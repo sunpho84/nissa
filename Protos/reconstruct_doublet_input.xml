@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<ahmidas>
+  <params>
+    <L> SED_NL </L>
+    <T> SED_NT </T>
+    <kappa> SED_Kappa </kappa>
+    <mu> SED_Mu </mu>
+    <thetax> SED_ThetaX </thetax>
+    <thetay> SED_ThetaY </thetay>
+    <thetaz> SED_ThetaZ </thetaz>
+    <thetat> 1 </thetat>
+    <phys_base> 1 </phys_base>
+    <debug> 0 </debug>
+  </params>
+  <files>
+    <file>
+      <type>gauge</type>
+      <directory>.</directory>
+      <filenameBase>Conf</filenameBase>
+    </file>
+    <file>
+      <type>propagator</type>
+      <directory>.</directory>
+      <filenameBase>prop.</filenameBase>
+      <firstIndex>0</firstIndex>
+      <lastIndex>SED_Last_prop_index</lastIndex>
+      <indexWidth>2</indexWidth>
+    </file>
+  </files>
+</ahmidas>

@@ -1,0 +1,45 @@
+
+L=SED_NL
+T=SED_NT
+
+DebugLevel = 1
+InitialStoreCounter = SED_Confno
+Measurements = 1
+2kappamu = SED_2kappamu
+Kappa = SED_Kappa
+BCAngleT = 1.0
+ThetaX = SED_ThetaX
+ThetaY = SED_ThetaY
+ThetaZ = SED_ThetaZ
+GaugeConfigInputFile = SED_GaugeConfigInputFile
+UseEvenOdd = no
+CgmmsNoExtraMasses = SED_CgmmsNoExtraMasses
+
+#NrXProcs = 2
+#NrYProcs = 2
+#NrZProcs = 2
+
+
+SourceType = POINT
+SourceLocation = 0
+ReadSource = yes
+NoSamples = 1
+Indices = 0-SED_IndexEnd
+
+SplittedPropagator = yes
+
+BeginMonomial GAUGE
+  beta = SED_Beta
+  Type = Wilson
+  Timescale = 0
+EndMonomial
+
+BeginOperator TMWILSON
+  2kappaMu = SED_2kappamu
+  kappa = SED_Kappa
+  UseEvenOdd = no
+  Solver = cgmms
+  SolverPrecision = SED_SolverPrecision
+  MaxSolverIterations = 15000
+  PropagatorPrecision = 32
+EndOperator

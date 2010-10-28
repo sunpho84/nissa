@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding='UTF-8'?>
+<ahmidas>
+  <params>
+    <L> SED_NL </L>
+    <T> SED_NT </T>
+    <!-- -->
+    <kappa> 0.177 </kappa>
+    <mu> 1.41243 </mu>
+    <!-- -->
+    <!-- this is the timeslice of the stochastic source -->
+    <timesliceSource> SED_Wall_T_Pos </timesliceSource>
+    <!-- -->
+    <!-- -->
+    <!-- this is the seed for the random number generator (type uint64_t, unsigned 64 bit integer)-->
+    <!-- note that 0 results in taking the current system time instead -->
+    <seed> SED_Seed </seed>
+    <!-- -->
+    <!-- -->
+    <!-- this is the polarization of the source according to Base::SourcePolarization:                  -->
+    <!--   0: sou_UNPOLARIZED      = all 4 Dirac entries are the same                                   -->
+    <!--   1: sou_PARTLY_POLARIZED = all 4 Dirac entries are different but non-zero                     -->
+    <!--   2: sou_FULLY_POLARIZED  = only one of the entries is non-zero (a.k.a. Dirac or spin diluted) -->
+    <SourcePolarization> 2 </SourcePolarization>
+    <!-- -->
+    <!-- -->
+    <!-- this is the color state of the source according to Base::SourceColourState:    -->
+    <!--   0: sou_WHITE   = all 3 color entries are the same                            -->
+    <!--   1: sou_GENERIC = all 3 color entries are different but non-zero              -->
+    <!--   2: sou_PURE  = only one of the entries is non-zero (a.k.a. color diluted)    -->
+    <SourceColorState> 1 </SourceColorState>
+    <!-- -->
+    <!-- -->
+    <!-- this is the type of stochastic source according to Base::SourceStochasticTypeFlag: -->
+    <!--  4: sou_Z4 =  Z(2) x Z(2) = 1/sqrt(2) * complex(+/-1 , +/-1) -->
+    <!--  2: sou_Z2 = Z(2) = +/-1                                     -->
+    <!-- +1: sou_P1 = for test cases: all entries +1                  -->
+    <!-- -1: sou_M1 = for test cases: all entries -1                  -->
+    <SourceStochasticTypeFlag> SED_NoiseType </SourceStochasticTypeFlag>
+    <!-- -->
+    <!-- -->
+    <!-- if smearing is desired set the following 4 parameters to proper values -->
+    <!-- APE smearing parameters -->
+    <APE_steps>  0   </APE_steps>
+    <APE_param>  0.0 </APE_param>
+    <!-- Gaussian/Jacobi smearing parameters -->
+    <Jac_steps>  0   </Jac_steps>
+    <Jac_param>  0.0 </Jac_param>
+  </params>
+  <files>
+    <!-- output file -->
+    <file>
+      <type>stochastic_source</type>
+      <directory>.</directory>
+      <filenameBase>source.</filenameBase>
+      <firstIndex>0</firstIndex>
+      <lastIndex>3</lastIndex>
+      <indexWidth>2</indexWidth>
+    </file>
+    <!-- gauge field (input, only needed for smearing -->
+    <file>
+      <type>gauge</type>
+      <directory>../Confs/</directory>
+      <filenameBase>conf.</filenameBase>
+      <firstIndex>0100</firstIndex>
+      <lastIndex>0100</lastIndex>
+      <indexWidth>4</indexWidth>
+    </file>
+  </files>
+</ahmidas>
