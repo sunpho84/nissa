@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #set the base folder
-source ~/prace_conf.sh
+source ~/nissa_conf.sh
 
 echo
 echo "Two points function calculation"

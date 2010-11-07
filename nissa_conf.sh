@@ -5,10 +5,6 @@ then
     
     echo ------loading base parameters-------
     
-    #this is the path to the working area with all the programs, prototype
-    #for input files, and so
-    base_programs=/home/prace/Prace/Programs
-    
     #set path for ahmidas
     base_ahmidas_pa=$base_programs/ahmidas_pa
     base_ahmidas_fe=$base_programs/ahmidas_fe
@@ -18,10 +14,10 @@ then
     base_tmLQCD_fe=$base_programs/tmLQCD_fe
     
     #set path for scripts
-    base_scripts=/home/prace/nissa/Scripts
+    base_scripts=$base_nissa/Scripts
     
     #set path for input prototypes
-    base_protos=/home/prace/nissa/Protos
+    base_protos=$base_nissa/Protos
     
     #if the job have been sent to a queque, cd to the folder
     #nb: all the job should be called on the folder containing the 
@@ -39,7 +35,6 @@ then
     fi
     
     echo
-    
 
     echo -e Base Programs path:\\t $base_programs
     echo -e Ahmidas location:\\t $base_ahmidas
