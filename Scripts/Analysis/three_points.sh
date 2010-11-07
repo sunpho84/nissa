@@ -24,18 +24,25 @@ do
     source_name=${list_source_name[$is]}
     source_pars=($(echo ${list_source_pars[$is]}|sed 's|_| |g'))
     source_seed=${list_source_seed[$is]}
-    tsource=${source_pars[0]}
 
     if [ $source_type == "Point12" ]
     then
         last_prop_index=11
         finalize=finalize_meson_sequential_propagator
         sequ=generate_meson_sequential_source
+	tsource=${source_pars[3]}
     elif [ $source_type == "Wall4" ]
     then
         last_prop_index=3
         finalize=finalize_meson_sequential_stochastic_propagator
         sequ=generate_meson_sequential_stochastic_source
+	tsource=${source_pars[0]}
+    elif [ $source_type == "Wall1" ]
+    then
+        last_prop_index=0
+        finalize=finalize_meson_sequential_ultrastochastic_propagator
+        sequ=generate_meson_sequential_ultrastochastic_source
+	tsource=${source_pars[0]}
     fi
 
     #loops over the spectator
@@ -57,7 +64,7 @@ do
 	  source_dir=$base_conf/Props/$source_name/$theta_spec/$mu_spec/$f_spec
 	  targ_dir=$base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$f_spec
 	  
-	  if [ -d "$targ_dir" ]
+	  if [  -d "$targ_dir" ]
 	  then
 	      echo "Sequential Source "$targ_dir" already existing"
 	      echo
@@ -74,12 +81,12 @@ do
 	    
               #Generate the sequential p5 source input file
 	      TH=$(( $T / 2 ))
-	      t=${source_pars[0]}
-	      if [ $t -lt $TH ]
+
+	      if [ $tsource -lt $TH ]
 	      then
-		  TSlice=$(( $t + $TH ))
+		  TSlice=$(( $tsource + $TH ))
 	      else
-		  TSlice=$(( $t - $TH ))
+		  TSlice=$(( $tsource - $TH ))
 	      fi
 	      sed '
                 s|SED_NL|'$L'|;
@@ -94,8 +101,7 @@ do
                 ' $base_protos/generate_sequential_source_input.xml > generate_sequential_source_input.xml
 	    
    	      #invoke the program
-	      #$MPI_PREF
-	      $base_ahmidas/applications/$sequ generate_sequential_source_input.xml
+	      $MPI_AH_PREF $base_ahmidas/applications/$sequ generate_sequential_source_input.xml
 	      
 	      if [ "$?" ]
 	      then
@@ -178,7 +184,7 @@ do
 		    ln -vsf $base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$f_spec/source.$i source.$confno.00.$i
 		done
 		
-		$MPI_EXEC $base_tmLQCD/invert -f inverter.input
+		$MPI_TM_PREF $base_tmLQCD/invert -f inverter.input
 		
                 #clean input and log file
 		#rm -vf extra_masses.input inverter.input output.para
@@ -238,8 +244,7 @@ do
                          s|SED_Last_prop_index|'$last_prop_index'|;
                          ' > $targ/finalize_meson_sequential_propagator_input.xml
 		    
-		    #$MPI_EXEC
-		    $base_ahmidas/applications/$finalize finalize_meson_sequential_propagator_input.xml
+		    $MPI_AH_PREF $base_ahmidas/applications/$finalize finalize_meson_sequential_propagator_input.xml
 		    
                     #move the two flavour to appropriate folder
 		    mkdir -pv $targ/$f1
@@ -324,13 +329,15 @@ do
 		  if [ $source_type == "Point12" ]
 		  then
 		      vol_fact=1
-		      #$MPI_EXEC
-		      $base_ahmidas/applications/contract_two_lines contract_two_lines_input.xml
+		      $MPI_AH_PREF $base_ahmidas/applications/contract_two_lines contract_two_lines_input.xml
 		  elif [ $source_type == "Wall4" ]
 		  then
 		      vol_fact=$(( $L * $L * $L ))
-		      #$MPI_EXEC 
-		      $base_ahmidas/applications/contract_two_stochastic_lines contract_two_lines_input.xml
+		      $MPI_AH_PREF $base_ahmidas/applications/contract_two_stochastic_lines contract_two_lines_input.xml
+		  elif [ $source_type == "Wall1" ]
+		  then
+		      vol_fact=$(( $L * $L * $L ))
+		      $MPI_AH_PREF $base_ahmidas/applications/contract_two_ultrastochastic_lines contract_two_lines_input.xml
 		  fi
 		  
                   #rm -vf contract_two_lines_input.xml
@@ -355,7 +362,7 @@ do
 		    list_file=""
 		    awk '{a=a$3" ";b=b"name_micro_"$1"_"$2" "}
                       END{print a;system("paste "b)}' ~/Prace/Data/Correlations_content/$op|awk '
-                    BEGIN{norm=1.0/'$vol_fact';t='$tsource';T='$T'}                                                  
+                    BEGIN{norm=1.0/'$vol_fact';T='$T';t=(T-'$tsource')%T}
                     NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
                      NR>2{for(i=1;i<=n;i++)
                              {x[t]+=$(3*i-1)*c[i];y[t]+=$(3*i)*c[i]}
@@ -373,74 +380,60 @@ do
 
           #########################Checking P5P5#######################
 	  
-	  if [ $itheta_spec == 0 ]
-	  then
-
-	      echo "Now checking two points functions"
-	      echo
+	  echo "Now checking two points functions"
+	  echo
+	  
+	  for((imu1=imu_spec;imu1<nmu;imu1++))
+	  do
 	      
-	      for((imu1=imu_spec;imu1<nmu;imu1++))
-	      do
-		
-		mu1=${list_mu[$imu1]}
-		theta1=$theta_spec
-		
-		targ=$base_conf/3pts/2pts_check/$source_name/$theta_spec/$mu_spec/$f_spec/$mu1/$f1
-		mkdir -pv $targ
-		
-		if [ -f $targ/P5P5 ]
-		then
-		    echo "Two Points funcion already checked"
-		else
-		    
-		    cd $targ
-		    
-		    for ics in $(seq -f%02.0f 00 $last_prop_index)
-		    do
-		      ln -svf $base_conf/Sources/$source_name/source.$ics prop.$ics
-		    done
-
-		    source1=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/$mu1/$f1
-		    source2=.
-		    
-		    echo "Checking: "$source1
-		    
-		    (
-			(
-			    cat $base_protos/contract_two_lines_head.xml
-			    echo "    <operator> 5</operator>"
-			    echo "    <operator> -1</operator>"
-			    cat $base_protos/contract_two_lines_tail.xml
-			    )|sed '                                                                                              
-                           s|SED_NL|'$L'|;
-                           s|SED_NT|'$T'|;
-                           s|SED_Line_a|'$source1'|;
-                           s|SED_IndexEnd|'$last_prop_index'|;
-                           s|SED_Line_b|'$source2'|;'
-		    ) > $targ/contract_two_lines_input.xml
-		    
-		    if [ $source_type == "Point12" ]
-		    then
-			vol_fact=1
-			#$MPI_EXEC
-			$base_ahmidas/applications/contract_two_lines contract_two_lines_input.xml
-		    elif [ $source_type == "Wall4" ]
-		    then
-			vol_fact=$(( $L * $L * $L ))
-			#$MPI_EXEC
-			$base_ahmidas/applications/contract_two_stochastic_lines contract_two_lines_input.xml
-		    fi
-		    
-		    gawk 'NR==2+'$tsource'{print $1,$2/'$vol_fact',$3/'$vol_fact'}' correlators.dat > P5P5
-		    
+	      mu1=${list_mu[$imu1]}
+	      theta1=$theta_spec
+	      
+	      targ=$base_conf/3pts/2pts_check/$source_name/$theta_spec/$mu_spec/$f_spec/$mu1/$f1
+	      mkdir -pv $targ
+	      
+	      if [ -f $targ/P5P5 ]
+	      then
+		  echo "Two Points funcion already checked"
+	      else
+		  
+		  cd $targ
+		  
+		  source1=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/$mu1/$f1
+		  source2=$base_conf/Sources/$source_name/
+		  
+		  echo "Checking: "$source1
+		  
+		  sed '                                                                                              
+                      s|SED_NL|'$L'|;
+                      s|SED_NT|'$T'|;
+                      s|SED_S0_Flav|'$f_spec'|
+                      s|SED_Line_a|'$source1'|;
+                      s|SED_IndexEnd|'$last_prop_index'|;
+                      s|SED_Line_b|'$source2'|;' $base_protos/check_meson_3pts_input.xml > $targ/check_meson_3pts_input.xml
+		  
+		  if [ $source_type == "Point12" ]
+		  then
+		      vol_fact=1
+		      $MPI_AH_PREF $base_ahmidas/example/check_meson_3pts
+		  elif [ $source_type == "Wall4" ]
+		  then
+		      vol_fact=$(( $L * $L * $L ))
+		      $MPI_AH_PREF $base_ahmidas/example/check_meson_stochastic_3pts
+		  elif [ $source_type == "Wall1" ]
+		  then
+		      vol_fact=$(( $L * $L * $L ))
+		      $MPI_AH_PREF $base_ahmidas/example/check_meson_ultrastochastic_3pts
+		  fi
+		  
+		  awk 'NR==2+'$tsource'{print $1,$2/'$vol_fact',$3/'$vol_fact'}' $targ/correlators.dat > $targ/P5P5
+		  
                     #rm -vf contract_two_lines_input.xml
-
-		fi
-
-	      done
-
-	  fi
-
+		  
+	      fi
+	      
+	  done
+	  
 	done #spectator flavor
 	
       done #spectator mu
