@@ -23,9 +23,6 @@ then
     #set path for input prototypes
     base_protos=/home/prace/nissa/Protos
     
-    #set our position
-    WHERE=ROMA3
-
     #if the job have been sent to a queque, cd to the folder
     #nb: all the job should be called on the folder containing the 
     #analysis for the current configuration
