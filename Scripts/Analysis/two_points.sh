@@ -362,7 +362,7 @@ do
 		      list_file=""
 		      awk '
                          {a=a$3" ";b=b"name_micro_"$1"_"$2" "}
-                      END{print a;system("paste "b)}' ~/Prace/Data/Correlations_content/$op|awk '
+                      END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$op|awk '
                     BEGIN{norm=1.0/'$vol_fact';T='$T';t=(T-'$tsource')%T}
                     NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
                      NR>2{for(i=1;i<=n;i++)
