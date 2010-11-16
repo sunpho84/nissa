@@ -12,14 +12,15 @@ then
 
     if [ "$WHERE" == JUGENE ]
     then
-	if [ "$PBS_O_WORKDIR" != "" ]
-	then
-	    MPI_TM_PREF="mpirun -np 128"
-	    MPI_AH_PREF="mpirun -np 128"
-	else
-	    MPI_TM_PREF="llrun -np 128"
-	    MPI_AH_PREF=""
-	fi
+#	if [ "$PBS_O_WORKDIR" != "" ]
+#	then
+	    MPI_TM_PREF="mpirun -np "$((4*$LOADL_BG_SIZE))" -mode VN"
+	    MPI_AH_PREF="mpirun -np "$LOADL_BG_SIZE" -mode SMP"
+#	    MPI_AH_PREF="mpirun -np 32 -mode SMP"
+#	else
+#	    MPI_TM_PREF="llrun -np 128"
+#	    MPI_AH_PREF=""
+#	fi
     elif [ "$WHERE" == ROMA3 ]
     then
 	if [ "$PBS_O_WORKDIR" != "" ]

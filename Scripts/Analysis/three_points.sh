@@ -24,6 +24,7 @@ do
     source_name=${list_source_name[$is]}
     source_pars=($(echo ${list_source_pars[$is]}|sed 's|_| |g'))
     source_seed=${list_source_seed[$is]}
+    source_prec=${list_source_prec[$is]}
 
     if [ $source_type == "Point12" ]
     then
@@ -171,7 +172,7 @@ do
                     s|SED_CgmmsNoExtraMasses|'$(( ${#list_mu[@]} - 1 ))'|;
                     s|SED_GaugeConfigInputFile|Conf|;
                     s|SED_IndexEnd|'$last_prop_index'|;
-                    s|SED_SolverPrecision|'$prec'|
+                    s|SED_SolverPrecision|'$source_prec'|
                     ' > $targ/inverter.input
 		
 		OLD=$PWD
