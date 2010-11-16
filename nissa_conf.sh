@@ -29,7 +29,7 @@ then
 	cd $PBS_O_WORKDIR
 	echo "We are in a job queque"
     else
-	base_ahmidas=$base_ahmidas_fe
+	base_ahmidas=$base_ahmidas_pa
 	base_tmLQCD=$base_tmLQCD_pa
 	echo "Not in a job queque"
     fi
@@ -42,7 +42,10 @@ then
     echo -e Main script path:\\t $base_scripts
     echo -e Program prototypes:\\t $base_protos
 
-    source $base_scripts/Setup/main.sh
-    
+    if [ "$1" != "" ]
+    then
+	source $base_scripts/setup.sh
+    fi
+
     configured=1
 fi

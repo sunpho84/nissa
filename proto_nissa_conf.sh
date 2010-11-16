@@ -8,4 +8,4 @@ base_programs=/home/prace/Prace/Programs
 #nissa location
 base_nissa=/home/prace/nissa
     
-source $base_nissa/nissa_conf.sh
+source $base_nissa/nissa_conf.sh $1
