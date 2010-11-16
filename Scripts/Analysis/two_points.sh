@@ -9,6 +9,10 @@ echo "-------------------------------"
 echo "Working dir: $PWD"
 echo
 
+#take initial time
+tic=$(date +%s)
+rm -f $base_conf/time_log
+
 nmu=${#list_mu[@]}
 
 for((is=0;is<nsource;is++))
@@ -25,6 +29,7 @@ do
     source_name=${list_source_name[$is]}
     source_pars=($(echo ${list_source_pars[$is]}|sed 's|_| |g'))
     source_seed=${list_source_seed[$is]}
+    source_prec=${list_source_prec[$is]}
     tsource=${source_pars[0]}
 
     if [ $source_type == "Point12" ]
@@ -65,8 +70,8 @@ do
                 ' $base_protos/generate_point_source_input.xml > generate_point_source_input.xml
             
 	    #invoke the program
+	    echo $MPI_AH_PREF $base_ahmidas/example/generate_point_source
 	    $MPI_AH_PREF $base_ahmidas/example/generate_point_source
-	    
         elif [ $source_type == Wall4 ]
         then
             
@@ -77,6 +82,7 @@ do
                  s|SED_NoiseType|'$source_nois'|;
                  s|SED_Wall_T_Pos|'${source_pars[0]}'|;
                  s|SED_Seed|'$source_seed'|' $base_protos/generate_sthoc_wall_source_input.xml > generate_stochastic_source_input.xml
+	    echo $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
             $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
             
 	elif [ $source_type == Wall1 ]
@@ -89,6 +95,7 @@ do
                  s|SED_NoiseType|'$source_nois'|;
                  s|SED_Wall_T_Pos|'${source_pars[0]}'|;
                  s|SED_Seed|'$source_seed'|' $base_protos/generate_ultrasthoc_wall_source_input.xml > generate_stochastic_source_input.xml
+	    echo $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
             $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
             
         else
@@ -105,7 +112,12 @@ do
 	cd -
 
     fi
-    
+
+    #take time
+    tac=$tic
+    tic=$(date +%s)
+    echo "Time to generate source: "$(($tic-$tac)) >> $base_conf/time_log
+
     echo "######################## SECOND STEP: Inversion of doublet ############################"
 
     for theta in ${list_theta[@]}
@@ -148,7 +160,7 @@ do
             s|SED_CgmmsNoExtraMasses|'$(( ${#list_mu[@]} - 1 ))'|;
             s|SED_GaugeConfigInputFile|Conf|;
             s|SED_IndexEnd|'$last_prop_index'|;
-            s|SED_SolverPrecision|'$prec'|
+            s|SED_SolverPrecision|'$source_prec'|
             ' > $targ/inverter.input
 	  
 	  OLD=$PWD
@@ -162,6 +174,11 @@ do
 	  done
         
 	  $MPI_TM_PREF $base_tmLQCD/invert -f inverter.input
+
+          #take time
+	  tac=$tic
+	  tic=$(date +%s)
+	  echo "Time to invert the source: "$(($tic-$tac)) >> $base_conf/time_log
         
           #clean input and log file
 #         rm -vf extra_masses.input inverter.input output.para
@@ -181,7 +198,7 @@ do
 	  for im in $(seq -f%02.0f 00 $(( ${#list_mu[@]} - 1 )) )
           do
 	    
-	    mu=${list_mu[$im]}
+	    mu=${list_mu[10#$im]}
 	    
             for ics in $(seq -f%02.0f 00 $last_prop_index)
             do
@@ -198,50 +215,7 @@ do
 	      fi		    
 	      
 	    done
-	    
-	    targ=$base_conf/Props/$source_name/$theta/$mu/
 
-	    echo "Reconstructing $source_name $theta $mu doublet"
-	    
-	    cd $targ
-            
-            #link the configuration
-            ln -vfs $base_conf/Conf Conf0
-            
-            cat $base_protos/reconstruct_doublet_input.xml|sed '
-                 s|SED_NL|'$L'|;
-                 s|SED_NT|'$T'|;
-                 s|SED_ThetaX|'$theta'|;
-                 s|SED_ThetaY|'$theta'|;
-                 s|SED_ThetaZ|'$theta'|;
-                 s|SED_Beta|'$beta'|;
-                 s|SED_Kappa|'$kappa'|;
-                 s|SED_Mu|'$mu'|;
-                 s|SED_Flavored_Source|0|;
-                 s|SED_Source_Flavor|0|;
-                 s|SED_Last_prop_index|'$last_prop_index'|;
-                 ' > $targ/reconstruct_doublet_input.xml
-		
-            $MPI_AH_PREF $base_ahmidas/example/$reco reconstruct_doublet_input.xml
-            
-            #move the two flavour to appropriate folder
-            for f in 0 1
-            do
-	      mkdir -pv $targ/$f
-	      for ics in $(seq -f%02.0f 00 $last_prop_index)
-                do
-		mv -v $targ/prop.$ics.$f $targ/$f/prop.$ics
-	      done
-            done
-            
-            #remove the input file and the link to conf
-            #rm -vf Conf0 reconstruct_doublet_input.xml
-            
-            cd -
-            
-            echo "Doublet reconstructed"
-            echo
-	    
 	  done
 	  
 	  touch completed
@@ -259,132 +233,58 @@ do
       
     echo "######################## THIRD STEP: Contractions ###########################"
     echo
-      
-    for theta1 in ${list_theta[@]}
-    do
 
-      if [ "$Standing2pts" == "1" ]
-      then
-	  list_theta2=${list_theta[0]}
-	  echo "Contraction for only standing 2pts"
-      else
-	  list_theta2=${list_theta[@]}
-	  echo "Contraction for all theta combinations of 2pts"
-      fi
-      
-      for theta2 in $list_theta2
-      do
-
-	for((imu1=0;imu1<nmu;imu1++))
-	do
-	
-	  for((imu2=imu1;imu2<nmu;imu2++))
-	  do
-	    
-	    mu1=${list_mu[$imu1]}
-	    mu2=${list_mu[$imu2]}
-	    
-	    for s1 in 0 1
-	    do
-	    
-	      for s2 in 0 1
-	      do
-	      
-		echo "Contracting combination:" $mu1 $mu2 $s1 $s2 $theta1 $theta2
-	      
-		source1=$base_conf/Props/$source_name/$theta1/$mu1/$s1
-		source2=$base_conf/Props/$source_name/$theta2/$mu2/$s2
-	      
-		if [ ! -d $source1 ] || [ ! -d $source2 ]
-		then
-		    echo "Could not find "$source1" or "$source2
-		    exit
-		fi
-	      
-		targ=$base_conf/2pts/$source_name/$theta1/$mu1/$s1/$theta2/$mu2/$s2/
-		
-		mkdir -pv $targ
-		
-		(
-		    (
-			cat $base_protos/contract_two_lines_head.xml
-			cat $base_analysis/contract_two_lines_middle.xml
-			cat $base_protos/contract_two_lines_tail.xml
-			)|sed '
-                           s|SED_NL|'$L'|;
-                           s|SED_NT|'$T'|;
-                           s|SED_Line_a|'$source1'|;
-                           s|SED_IndexEnd|'$last_prop_index'|;
-                           s|SED_Line_b|'$source2'|;'
-		) > $targ/contract_two_lines_input.xml
-		
-		cd $targ
-		
-		if [ -f P5P5 ]
-		then
-		    echo "Already calculated"
-		else
-		    
-		    if [ $source_type == "Point12" ]
-		    then
-			vol_fact=1
-  		        $MPI_AH_PREF $base_ahmidas/applications/contract_two_lines contract_two_lines_input.xml
-		    elif [ $source_type == "Wall4" ]
-		    then
-			vol_fact=$(( $L * $L * $L ))
-		        $MPI_AH_PREF $base_ahmidas/applications/contract_two_stochastic_lines contract_two_lines_input.xml
-		    elif [ $source_type == "Wall1" ]
-		    then
-			vol_fact=$(( $L * $L * $L ))
-			$MPI_AH_PREF $base_ahmidas/applications/contract_two_ultrastochastic_lines contract_two_lines_input.xml
-		    fi
-		  
-		    #rm -vf contract_two_lines_input.xml
-		    
-		    split -l $(( $T + 1 )) -d correlators.dat micro
-		    
-		    lim=($(awk '{print $1"_"$2}' $base_analysis/micro_correlations))
-		    n=$(( ${#lim[@]} -1 ))
-		    lin=($(seq -w 0 $n))
-		    
-		    for i in $(seq 0 $n)
-		    do
-		      echo ${lim[$i]}
-		      mv micro${lin[$i]} name_micro_${lim[$i]}
-		    done
-		    rm -fv micro*
-		  
-		    #let's put together all the micro-correlations needed for the macro correlations
-		    #put all the needed volume factor, and translate the corr. to the origin
-		    for op in $(cat $base_analysis/correlations_needed)
-		    do
-		      list_coef=""
-		      list_file=""
-		      awk '
-                         {a=a$3" ";b=b"name_micro_"$1"_"$2" "}
-                      END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$op|awk '
-                    BEGIN{norm=1.0/'$vol_fact';T='$T';t=(T-'$tsource')%T}
-                    NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
-                     NR>2{for(i=1;i<=n;i++)
-                             {x[t]+=$(3*i-1)*c[i];y[t]+=$(3*i)*c[i]}
-                              t=(t+1)%T}
-                      END{for(t=0;t<T;t++)printf("%.10e\t%.10e\n",x[t]*norm,y[t]*norm)}' > $op
-		    done
-		    rm -fv name_micro*
-		fi
-		
-		cd -
-		
-	      done
-	    
-	    done
-	    
-	  done
-	  
-	done
-      
-      done
-      
-    done
+    if [ $source_type == "Point12" ]
+    then
+        vol_fact=1
+        prog_contr=applications/contract_multi_lines
+    elif [ $source_type == "Wall4" ]
+    then
+        vol_fact=$(( $L * $L * $L ))
+        prog_contr=applications/contract_multi_stochastic_lines
+    elif [ $source_type == "Wall1" ]
+    then
+        vol_fact=$(( $L * $L * $L ))
+        prog_contr=applications/contract_multi_ultrastochastic_lines
+    fi
     
+    targ=$base_conf/2pts/$source_name/$theta/
+    
+    if [ ! -f $targ/correlators.dat ]
+    then
+        mkdir -vp $targ
+        cd $targ
+        
+        (
+            echo $L $T
+            echo $kappa
+            echo $theta $theta $theta 1
+            echo $tsource
+            echo $vol_fact
+            echo $base_conf/Conf
+            echo 4
+            echo 5 5
+            echo -1 5
+            echo 5 -1
+            echo -1 -1
+            echo $nmu
+            for((imu1=0;imu1<nmu;imu1++))
+            do
+                mu=${list_mu[$imu1]}
+                echo $mu $base_conf/Props/$source_name/$theta/$mu/prop.
+            done
+        ) > input
+	
+        echo $MPI_AH_PREF $base_ahmidas/$prog_contr input
+        $MPI_AH_PREF $base_ahmidas/$prog_contr input
+  
+        #take time
+	tac=$tic
+	tic=$(date +%s)
+	echo "Time to make contractions: "$(($tic-$tac)) >> $base_conf/time_log
+
+	cd -
+
+    fi
+
 done
