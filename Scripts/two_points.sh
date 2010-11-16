@@ -9,9 +9,10 @@ echo "-------------------------------"
 echo "Working dir: $PWD"
 echo
 
+rm -f $base_conf/time_log
+
 #take initial time
 tic=$(date +%s)
-rm -f $base_conf/time_log
 
 nmu=${#list_mu[@]}
 
@@ -28,22 +29,23 @@ do
     source_nois=${list_source_nois[$is]}
     source_name=${list_source_name[$is]}
     source_pars=($(echo ${list_source_pars[$is]}|sed 's|_| |g'))
-    source_seed=${list_source_seed[$is]}
+    source_seed=$((${list_source_seed[$is]}+$additive_seed))
     source_prec=${list_source_prec[$is]}
-    tsource=${source_pars[0]}
+
+    tsource=$(( $((${source_pars[0]}+$additive_time_offset)) % $T ))
 
     if [ $source_type == "Point12" ]
     then
         last_prop_index=11
-        reco=reconstruct_doublet
     elif [ $source_type == "Wall4" ]
     then
         last_prop_index=3
-        reco=reconstruct_stochastic_doublet
     elif [ $source_type == "Wall1" ]
     then
         last_prop_index=0
-        reco=reconstruct_ultrastochastic_doublet
+    else
+	echo "Unknown source type"$source_type
+	exit
     fi
     
     echo "Generating source named: "$source_name" of type: "$source_type" with pars: "${source_pars[@]}" and seed: "$source_seed
@@ -70,7 +72,6 @@ do
                 ' $base_protos/generate_point_source_input.xml > generate_point_source_input.xml
             
 	    #invoke the program
-	    echo $MPI_AH_PREF $base_ahmidas/example/generate_point_source
 	    $MPI_AH_PREF $base_ahmidas/example/generate_point_source
         elif [ $source_type == Wall4 ]
         then
@@ -82,7 +83,6 @@ do
                  s|SED_NoiseType|'$source_nois'|;
                  s|SED_Wall_T_Pos|'${source_pars[0]}'|;
                  s|SED_Seed|'$source_seed'|' $base_protos/generate_sthoc_wall_source_input.xml > generate_stochastic_source_input.xml
-	    echo $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
             $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
             
 	elif [ $source_type == Wall1 ]
@@ -95,7 +95,6 @@ do
                  s|SED_NoiseType|'$source_nois'|;
                  s|SED_Wall_T_Pos|'${source_pars[0]}'|;
                  s|SED_Seed|'$source_seed'|' $base_protos/generate_ultrasthoc_wall_source_input.xml > generate_stochastic_source_input.xml
-	    echo $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
             $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
             
         else

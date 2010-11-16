@@ -12,6 +12,19 @@ echo -e kappa:\\t $kappa
 echo -e beta:\\t $beta
 echo -e path:\\t $base_analysis
 
+#parse the source
+nsource=${#list_source_name[@]}
+tn0=$nsource
+tn1=${#list_source_type[@]}
+tn2=${#list_source_pars[@]}
+tn3=${#list_source_seed[@]}
+if [ "$tn1" -ne "$tn0" ] || [ "$tn2" -ne "$tn0" ] || [ "$tn3" -ne "$tn0" ]
+then
+    echo "Source name, type and pars do not match"
+    echo "Check configuration file!"
+    exit
+fi
+
 #setup parallelization
 echo ------loading mpi parameters-------
 

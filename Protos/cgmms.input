@@ -15,9 +15,9 @@ GaugeConfigInputFile = SED_GaugeConfigInputFile
 UseEvenOdd = no
 CgmmsNoExtraMasses = SED_CgmmsNoExtraMasses
 
-#NrXProcs = 2
-#NrYProcs = 2
-#NrZProcs = 2
+NrXProcs = 4
+NrYProcs = 4
+NrZProcs = 8
 
 
 SourceType = POINT
@@ -40,6 +40,6 @@ BeginOperator TMWILSON
   UseEvenOdd = no
   Solver = cgmms
   SolverPrecision = SED_SolverPrecision
-  MaxSolverIterations = 15000
+  MaxSolverIterations = 35000
   PropagatorPrecision = 32
 EndOperator

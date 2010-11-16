@@ -23,27 +23,26 @@ do
     source_type=${list_source_type[$is]}
     source_name=${list_source_name[$is]}
     source_pars=($(echo ${list_source_pars[$is]}|sed 's|_| |g'))
-    source_seed=${list_source_seed[$is]}
+    source_seed=$((${list_source_seed[$is]}+$additive_seed))
     source_prec=${list_source_prec[$is]}
+
+    tsource=$(( $((${source_pars[0]}+$additive_time_offset)) % $T ))
 
     if [ $source_type == "Point12" ]
     then
         last_prop_index=11
         finalize=finalize_meson_sequential_propagator
         sequ=generate_meson_sequential_source
-	tsource=${source_pars[3]}
     elif [ $source_type == "Wall4" ]
     then
         last_prop_index=3
         finalize=finalize_meson_sequential_stochastic_propagator
         sequ=generate_meson_sequential_stochastic_source
-	tsource=${source_pars[0]}
     elif [ $source_type == "Wall1" ]
     then
         last_prop_index=0
         finalize=finalize_meson_sequential_ultrastochastic_propagator
         sequ=generate_meson_sequential_ultrastochastic_source
-	tsource=${source_pars[0]}
     fi
 
     #loops over the spectator
