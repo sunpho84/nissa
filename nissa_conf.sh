@@ -29,8 +29,8 @@ then
 	cd $PBS_O_WORKDIR
 	echo "We are in a job queque"
     else
-	base_ahmidas=$base_ahmidas_pa
-	base_tmLQCD=$base_tmLQCD_pa
+	base_ahmidas=$base_ahmidas_fe
+	base_tmLQCD=$base_tmLQCD_fe
 	echo "Not in a job queque"
     fi
     
