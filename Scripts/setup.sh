@@ -46,7 +46,7 @@ then
 	MPI_TM_PREF="mpiexec -np "$MPI_np
 	MPI_AH_PREF=""
     else
-	MPI_TM_PREF="mpiexec -np 2"
+	MPI_TM_PREF=""
 	MPI_AH_PREF=""
     fi
 else	
