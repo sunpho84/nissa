@@ -42,10 +42,5 @@ then
     echo -e Main script path:\\t $base_scripts
     echo -e Program prototypes:\\t $base_protos
 
-    if [ "$1" != "" ]
-    then
-	source $base_scripts/setup.sh
-    fi
-
     configured=1
 fi
