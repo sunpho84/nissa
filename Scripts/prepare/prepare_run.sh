@@ -55,6 +55,8 @@ do
 
 	echo "#!/bin/bash"
 	echo
+	echo "source ~/nissa_conf.sh"
+	echo
 	echo "confno="$conf
 	echo "additive_seed="$additive_seed
 	echo "additive_time_offset="$additive_time_offset
