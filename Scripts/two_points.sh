@@ -257,7 +257,9 @@ do
     then
 
 	base_2pts=$base_conf/2pts/$source_name
-	
+        mkdir -vp $base_2pts
+        cd $base_2pts
+        	
 	(
 	    cd $base_nissa/Data/Correlations_content/
 	    cat ${two_points_correlations[@]}
@@ -268,9 +270,6 @@ do
 	ncombo=$(( 4 * $ntheta * $(( $ntheta + 1 )) / 2 * $nmu * $(( $nmu + 1 )) / 2 ))
 	echo "Ncombo: "$ncombo
 	
-        mkdir -vp $base_2pts
-        cd $base_2pts
-        
         (
             echo $L $T
             echo $kappa
