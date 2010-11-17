@@ -233,6 +233,14 @@ do
     echo "######################## THIRD STEP: Contractions ###########################"
     echo
 
+    nmicro=$(
+	(
+	    cd $base_nissa/Data/Correlations_content/
+	    cat $two_points_correlations
+	    cd $OLDPWD
+	) | gawk '{print $1,$2}' | tee micro_correlations | wc | gawk '{print $1}' 
+    )
+	
     if [ $source_type == "Point12" ]
     then
         vol_fact=1
@@ -261,11 +269,8 @@ do
             echo $tsource
             echo $vol_fact
             echo $base_conf/Conf
-            echo 4
-            echo 5 5
-            echo -1 5
-            echo 5 -1
-            echo -1 -1
+            echo $nmicro
+	    cat micro_correlations
             echo $nmu
             for((imu1=0;imu1<nmu;imu1++))
             do
@@ -274,7 +279,6 @@ do
             done
         ) > input
 	
-        echo $MPI_AH_PREF $base_ahmidas/$prog_contr input
         $MPI_AH_PREF $base_ahmidas/$prog_contr input
   
         #take time

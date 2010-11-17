@@ -22,23 +22,7 @@ kappa=[kappac]
 musea=[musea]
 
 #List of two points functions
-correlations_needed="
-A0A0
-A0P5
-AKAK
-P5A0
-P5P5
-P5V0
-S0S0
-S0P5
-TKAK
-TKTK
-V0A0
-V0P5
-V0V0
-VKAK
-VKVK
-"
+two_points_correlations=(A0A0 A0P5 AKAK P5A0 P5P5 P5V0 S0S0 S0P5 TKAK TKTK V0A0 V0P5 V0V0 VKAK VKVK)
 
 #This is for the three points
 list_itheta_spec="0 1"
