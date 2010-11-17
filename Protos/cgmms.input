@@ -25,7 +25,7 @@ SourceLocation = 0
 ReadSource = yes
 NoSamples = 1
 Indices = 0-SED_IndexEnd
-
+UseRelativePrecision = yes
 SplittedPropagator = yes
 
 BeginMonomial GAUGE
