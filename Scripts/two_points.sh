@@ -264,13 +264,16 @@ do
 	    cd $base_nissa/Data/Correlations_content/
 	    cat ${two_points_correlations[@]}
 	    cd $OLDPWD
-	) | gawk '{print $1,$2}' > $base_2pts/micro_correlations 
-	nmicro=$(wc $base_2pts/micro_correlations | gawk '{print $1}')
+	) | awk '{print $1,$2}' > $base_2pts/micro_correlations 
+	nmicro=$(wc $base_2pts/micro_correlations | awk '{print $1}')
 	
 	ncombo=$(( 4 * $ntheta * $(( $ntheta + 1 )) / 2 * $nmu * $(( $nmu + 1 )) / 2 ))
 	echo "Ncombo: "$ncombo
 	
-        (
+        nprop=$(( $ntheta * $nmu ))
+        echo "Nprop: "$nprop
+
+	(
             echo $L $T
             echo $kappa
             echo $tsource
@@ -278,7 +281,7 @@ do
             echo $base_conf/Conf
             echo $nmicro
 	    cat $base_2pts/micro_correlations
-            echo $nmu
+            echo $nprop
 	    for((itheta=0;itheta<ntheta;itheta++))
 	    do
 
