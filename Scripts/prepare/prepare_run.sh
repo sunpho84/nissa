@@ -23,7 +23,7 @@ then
 
     echo "Adapt the file 'run_instructions.sh' and 'work_header.sh' (if needed) and rerun"
     echo
-    exit
+
 else
     source run_instructions.sh
 fi
