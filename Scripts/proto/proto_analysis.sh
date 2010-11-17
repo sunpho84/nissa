@@ -18,6 +18,7 @@ use_external_additive_time_offset=1
 #this is the list of theta and sea for which we will do first inversion
 list_theta=( [theta1] [theta2] )
 list_mu=( [mu1] [mu2] )
+beta=[beta]
 kappa=[kappac]
 musea=[musea]
 
@@ -34,6 +35,9 @@ base_analysis=SED_Base_analysis
 MPI_nn=
 MPI_nc=
 MPI_np=$(( $MPI_nn * $MPI_nc ))
+
+#perform all the setting up
+source $base_scripts/setup.sh
 
 #list of the program to run
 #comment unwanted things

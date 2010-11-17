@@ -4,9 +4,8 @@
 
 #now we are in the folder of the analized conf
 #it's time to load info about the analysis
-echo ------loading analysis parameters-------
-source ../analysis_parameters.sh
-
+echo
+echo ------analysis parameters-------
 echo -e musea:\\t $musea
 echo -e kappa:\\t $kappa
 echo -e beta:\\t $beta
@@ -26,8 +25,8 @@ then
 fi
 
 #setup parallelization
-echo ------loading mpi parameters-------
-
+echo
+echo ------mpi parameters-------
 if [ "$WHERE" == JUGENE ]
 then
     
@@ -55,10 +54,9 @@ else
 fi
 
 #load the info about the conf, basically nothing
-echo ------loading configuration parameters-------
-source gaugeconf_parameters.sh
-
+echo
+echo ------configuration parameters-------
 base_conf=$base_analysis/$confno
 echo -e Conf\#:\\t $confno
 echo -e Path: \\t $base_conf
-echo
+
