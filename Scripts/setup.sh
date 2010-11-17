@@ -34,6 +34,9 @@ then
     
     MPI_TM_PREF="mpirun -np "$((4*$LOADL_BG_SIZE))" -mode VN"
     MPI_AH_PREF="mpirun -np "$LOADL_BG_SIZE" -mode SMP"
+
+    USE_MPI=1
+
 elif [ "$WHERE" == ROMA3 ]
 then
     
@@ -44,10 +47,12 @@ then
     if [ "$PBS_O_WORKDIR" != "" ]
     then
 	MPI_TM_PREF="mpiexec -np "$MPI_np
-	MPI_AH_PREF=""
+	MPI_AH_PREF="mpiexec -np "$MPI_np
+	USE_MPI=1
     else
 	MPI_TM_PREF=""
 	MPI_AH_PREF=""
+	USE_MPI=0
     fi
 else	
     echo "Erorr: unknown location $WHERE"
