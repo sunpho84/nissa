@@ -14,9 +14,9 @@ then
 	echo "use_external_additive_time_offset=1 #idem"
     ) > run_instructions.sh
 
-    if [ $WHERE == "JUGENE" ]
+    if [ "$WHERE" == "JUGENE" ]
     then
-	cp $base_script/proto/work_jugene_header.sh work_header.sh
+	cp $base_scripts/proto/work_jugene_header.sh work_header.sh
     else
 	touch work_header.sh
     fi
@@ -54,11 +54,13 @@ do
 	cat ../work_header.sh
 
 	echo "#!/bin/bash"
+	echo
 	echo "confno="$conf
 	echo "additive_seed="$additive_seed
 	echo "additive_time_offset="$additive_time_offset
-
+	echo
 	echo "source ../analysis.sh"
+	echo
     ) > work.sh
     cd -
 done
