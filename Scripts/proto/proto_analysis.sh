@@ -15,6 +15,7 @@ list_source_prec=( [resd] ) # residual
 use_external_additive_seed=1
 use_external_additive_time_offset=1
 
+
 #this is the list of theta and sea for which we will do first inversion
 list_theta=( [theta1] [theta2] )
 list_mu=( [mu1] [mu2] )
@@ -24,6 +25,8 @@ musea=[musea]
 
 #List of two points functions
 two_points_correlations=(A0A0 A0P5 AKAK P5A0 P5P5 P5V0 S0S0 S0P5 TKAK TKTK V0A0 V0P5 V0V0 VKAK VKVK)
+two_points_theta1=(0) #in the case 
+
 
 #This is for the three points
 list_itheta_spec="0 1"
