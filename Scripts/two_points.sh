@@ -9,12 +9,15 @@ echo "-------------------------------"
 echo "Working dir: $PWD"
 echo
 
+#reset the time log
 rm -f $base_conf/time_log
 
 #take initial time
 tic=$(date +%s)
 
+#count the number of mu and theta
 nmu=${#list_mu[@]}
+ntheta=${#list_theta[@]}
 
 echo "Number of sources: "$nsource
 echo
@@ -236,8 +239,6 @@ do
     echo "######################## THIRD STEP: Contractions ###########################"
     echo
 
-    ntheta=${#list_theta[@]}
-
     if [ $source_type == "Point12" ]
     then
         vol_fact=1
@@ -252,20 +253,21 @@ do
         prog_contr=applications/contract_meson_ultrastochastic_2pts
     fi
 
-    base_2pts=$base_conf/2pts/$source_name/
-
-    (
-	cd $base_nissa/Data/Correlations_content/
-	cat ${two_points_correlations[@]}
-	cd $OLDPWD
-    ) | gawk '{print $1,$2}' | > $base_2pts/micro_correlations 
-    nmicro=$(wc $base_2pts/micro_correlations | gawk '{print $1}')
-
-    ncombo=$(( 4 * $ntheta * $(( $ntheta + 1 )) / 2 * $nmu * $(( $nmu + 1 )) / 2 ))
-    echo "Ncombo: "$ncombo
-
     if [ ! -f $base_2pts/completed ]
     then
+
+	base_2pts=$base_conf/2pts/$source_name
+	
+	(
+	    cd $base_nissa/Data/Correlations_content/
+	    cat ${two_points_correlations[@]}
+	    cd $OLDPWD
+	) | gawk '{print $1,$2}' > $base_2pts/micro_correlations 
+	nmicro=$(wc $base_2pts/micro_correlations | gawk '{print $1}')
+	
+	ncombo=$(( 4 * $ntheta * $(( $ntheta + 1 )) / 2 * $nmu * $(( $nmu + 1 )) / 2 ))
+	echo "Ncombo: "$ncombo
+	
         mkdir -vp $base_2pts
         cd $base_2pts
         
@@ -286,22 +288,23 @@ do
 		for((imu1=0;imu1<nmu;imu1++))
 		do
                     mu=${list_mu[$imu1]}
-                    echo $mu $base_conf/Props/$source_name/$theta/$mu/prop.
+                    echo $base_conf/Props/$source_name/$theta/$mu/prop. $mu $theta
 		done
 
 	    done
 
 	    echo $ncombo
-	    for((itheta1=0;itheta1<ntheta;itheta1++))
+	    list_targ_combo=""
+	    for itheta1 in list_2pts_theta1
 	    do
 		theta1=${list_theta[$itheta1]}
-		for((if1=0;if1<2;if1++))
+		for((itheta2=0;itheta2<ntheta;itheta2++))
 		do
-		    for((if2=0;if2<2;if2++))
+		    theta2=${list_theta[$itheta2]}
+		    for((if1=0;if1<2;if1++))
 		    do
-			for((itheta2=0;itheta2<ntheta;itheta2++))
+			for((if2=0;if2<2;if2++))
 			do
-			    theta2=${list_theta[$itheta2]}
 			    for((imu1=0;imu1<nmu;imu1++))
 			    do
 				mu1=${list_mu[$imu1]}
@@ -312,10 +315,12 @@ do
 				    iprop1=$(( $itheta1 * $nmu + $imu1 ))
 				    iprop2=$(( $itheta2 * $nmu + $imu2 ))
 				    
-				    targ_combo=$base_2pts/$theta1/$mu1/$if1/$theta2/$mu2/$if2/
+				    targ_combo=$theta1/$mu1/$if1/$theta2/$mu2/$if2/
 				    mkdir -vp $targ_combo
 
 				    echo $iprop1 $if1 $iprop2 $if2 $targ_combo
+
+				    list_targ_combo=list_targ_combo" "$targ_combo
 				done
 			    done
 			done
@@ -323,11 +328,29 @@ do
 		done
 
 	    done
-
+	    
         ) > $base_2pts/input
 	
         $MPI_AH_PREF $base_ahmidas/$prog_contr $base_2pts/input
-  
+	
+        #let's put together all the micro-correlations needed for the macro correlations
+        #put all the needed volume factor, and translate the corr. to the origin
+	for targ_combo in list_targ_combo
+	do
+	    
+            for contr in ${two_points_correlations[@]}
+            do
+                list_coef=""
+                list_file=""
+                awk '
+                    {a=a$3" ";b=b$1"_"$2" "}
+                 END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$contr|awk '
+               NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
+                NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%12f\t%12f\t",x,y)}' > $contr
+            done
+            #rm -fv *_*
+	done
+
         #take time
 	tac=$tic
 	tic=$(date +%s)
