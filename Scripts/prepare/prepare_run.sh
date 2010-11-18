@@ -14,6 +14,13 @@ then
 	echo "use_external_additive_time_offset=1 #idem"
     ) > run_instructions.sh
 
+    if [ -f work_header.sh ]
+    then
+	mv work_header.sh work_header_old.sh
+	echo "Warning: 'work_header.sh' already present, moved to 'work_header_old.sh'"
+    fi
+    echo
+
     if [ "$WHERE" == "JUGENE" ]
     then
 	cp $base_scripts/proto/work_jugene_header.sh work_header.sh
@@ -26,49 +33,56 @@ then
 
 else
     source run_instructions.sh
-fi
 
-for tconf in $conf_list
-do
-    conf=$(echo $tconf|awk '{printf("%.4d\n",$1)}')
-
-    mkdir -pv $conf
-    cd $conf
+    for tconf in $conf_list
+    do
+	conf=$(echo $tconf|awk '{printf("%.4d\n",$1)}')
+	
+	mkdir -pv $conf
+	cd $conf
+	
+	ln -sfv $source_confs/conf.$tconf Conf
+	(
+	    if [ "$use_external_additive_seed" == 1 ]
+	    then
+		additive_seed=$(($RANDOM%100000))
+	    else
+		additive_seed=0
+	    fi
+	    
+	    if [ "$use_external_additive_time_offset" == 1 ]
+	    then
+		additive_time_offset=$(($RANDOM%$T))
+	    else
+		additive_time_offset=0
+	    fi
+	    
+	    cat ../work_header.sh
+	    
+	    echo "#!/bin/bash"
+	    echo
+	    echo "source ~/nissa_conf.sh"
+	    echo
+	    echo "confno="$conf
+	    echo "additive_seed="$additive_seed
+	    echo "additive_time_offset="$additive_time_offset
+	    echo
+	    echo "source ../analysis.sh"
+	    echo
+	) > work.sh
+	cd -
+    done
     
-    ln -sfv $source_confs/conf.$tconf Conf
-    (
-	if [ "$use_external_additive_seed" == 1 ]
-	then
-	    additive_seed=$(($RANDOM%100000))
-	else
-	    additive_seed=0
-	fi
-	   
-	if [ "$use_external_additive_time_offset" == 1 ]
-	then
-	    additive_time_offset=$(($RANDOM%$T))
-	else
-	    additive_time_offset=0
-	fi
+    if [ -f analysis.sh ]
+    then
+	mv analysis.sh analysis_old.sh
+	echo "Warning: 'analysis.sh' already present, moved to 'analysis_old.sh'"
+    fi
 
-	cat ../work_header.sh
+    sed 's|SED_L|'$L'|;s|SED_T|'$T'|;s|SED_Base_analysis|'$PWD'|' $base_scripts/proto/proto_analysis.sh > analysis.sh
+    
+    echo
+    echo "Now adapt the 'analysis.sh' and delete 'run_instructions.sh'"
+    echo
 
-	echo "#!/bin/bash"
-	echo
-	echo "source ~/nissa_conf.sh"
-	echo
-	echo "confno="$conf
-	echo "additive_seed="$additive_seed
-	echo "additive_time_offset="$additive_time_offset
-	echo
-	echo "source ../analysis.sh"
-	echo
-    ) > work.sh
-    cd -
-done
-
-sed 's|SED_L|'$L'|;s|SED_T|'$T'|;s|SED_Base_analysis|'$PWD'|' $base_scripts/proto/proto_analysis.sh > analysis.sh
-
-echo
-echo "Now adapt the 'analysis.sh' and delete 'run_instructions.sh'"
-echo
+fi
