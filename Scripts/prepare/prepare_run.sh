@@ -30,7 +30,7 @@ fi
 
 for tconf in $conf_list
 do
-    conf=$(printf %.4d $tconf)
+    conf=$(echo $tconf|awk '{printf("%.4d\n",$1)}')
 
     mkdir -pv $conf
     cd $conf
