@@ -347,7 +347,7 @@ do
                     {a=a$3" ";b=b$1"_"$2" "}
                  END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$contr|awk '
                NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
-                NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%.12f\t%.12f\n",x,y)}' > $targ_combo/$contr
+                NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%.12g\t%.12g\n",x,y)}' > $targ_combo/$contr
             done
             #rm -fv *_*
 
