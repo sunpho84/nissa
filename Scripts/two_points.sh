@@ -87,7 +87,7 @@ do
                  s|SED_NL|'$L'|;
                  s|SED_NT|'$T'|;
                  s|SED_NoiseType|'$source_nois'|;
-                 s|SED_Wall_T_Pos|'${source_pars[0]}'|;
+                 s|SED_Wall_T_Pos|'$tsource'|;
                  s|SED_Seed|'$source_seed'|' $base_protos/generate_sthoc_wall_source_input.xml > generate_stochastic_source_input.xml
             $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
             
@@ -99,7 +99,7 @@ do
                  s|SED_NL|'$L'|;
                  s|SED_NT|'$T'|;
                  s|SED_NoiseType|'$source_nois'|;
-                 s|SED_Wall_T_Pos|'${source_pars[0]}'|;
+                 s|SED_Wall_T_Pos|'$tsource'|;
                  s|SED_Seed|'$source_seed'|' $base_protos/generate_ultrasthoc_wall_source_input.xml > generate_stochastic_source_input.xml
             $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
             
@@ -177,7 +177,7 @@ do
 	  do
             ln -vsf $base_conf/Sources/$source_name/source.$i source.$confno.00.$i
 	  done
-        
+          
 	  $MPI_TM_PREF $base_tmLQCD/invert -f inverter.input
 
           #take time
@@ -273,91 +273,94 @@ do
         nprop=$(( $ntheta * $nmu ))
         echo "Nprop: "$nprop
 
-	(
-            echo $L $T
-            echo $kappa
-            echo $tsource
-            echo $vol_fact
-            echo $base_conf/Conf
-            echo $nmicro
-	    cat $base_2pts/micro_correlations
-            echo $nprop
-	    for((itheta=0;itheta<ntheta;itheta++))
+	echo $L $T >> $base_2pts/input
+        echo $kappa >> $base_2pts/input
+        echo $tsource >> $base_2pts/input
+        echo $vol_fact >> $base_2pts/input
+        echo $base_conf/Conf >> $base_2pts/input
+        echo $nmicro >> $base_2pts/input
+	cat $base_2pts/micro_correlations >> $base_2pts/input
+        echo $nprop >> $base_2pts/input
+	for((itheta=0;itheta<ntheta;itheta++))
+	do
+	    
+	    theta=${list_theta[$itheta]}
+	    
+	    for((imu1=0;imu1<nmu;imu1++))
 	    do
-
-		theta=${list_theta[$itheta]}
-
-		for((imu1=0;imu1<nmu;imu1++))
-		do
-                    mu=${list_mu[$imu1]}
-                    echo $base_conf/Props/$source_name/$theta/$mu/prop. $mu $theta
-		done
-
+                mu=${list_mu[$imu1]}
+                echo $base_conf/Props/$source_name/$theta/$mu/prop. $mu $theta  >> $base_2pts/input
 	    done
-
-	    echo $ncombo
-	    list_targ_combo=""
-	    for itheta1 in list_2pts_theta1
+	    
+	done
+	
+	echo $ncombo >> $base_2pts/input
+	
+	list_targ_combo=""
+	for itheta1 in $two_points_theta1
+	do
+	    theta1=${list_theta[$itheta1]}
+	    for((itheta2=0;itheta2<ntheta;itheta2++))
 	    do
-		theta1=${list_theta[$itheta1]}
-		for((itheta2=0;itheta2<ntheta;itheta2++))
+		theta2=${list_theta[$itheta2]}
+		for((if1=0;if1<2;if1++))
 		do
-		    theta2=${list_theta[$itheta2]}
-		    for((if1=0;if1<2;if1++))
+		    for((if2=0;if2<2;if2++))
 		    do
-			for((if2=0;if2<2;if2++))
+			for((imu1=0;imu1<nmu;imu1++))
 			do
-			    for((imu1=0;imu1<nmu;imu1++))
+			    mu1=${list_mu[$imu1]}
+			    for((imu2=0;imu2<nmu;imu2++))
 			    do
-				mu1=${list_mu[$imu1]}
-				for((imu2=0;imu2<nmu;imu2++))
-				do
-				    mu2=${list_mu[$imu2]}
-				    
-				    iprop1=$(( $itheta1 * $nmu + $imu1 ))
-				    iprop2=$(( $itheta2 * $nmu + $imu2 ))
-				    
-				    targ_combo=$theta1/$mu1/$if1/$theta2/$mu2/$if2/
-				    mkdir -vp $targ_combo
-
-				    echo $iprop1 $if1 $iprop2 $if2 $targ_combo
-
-				    list_targ_combo=list_targ_combo" "$targ_combo
-				done
+				mu2=${list_mu[$imu2]}
+				
+				iprop1=$(( $itheta1 * $nmu + $imu1 ))
+				iprop2=$(( $itheta2 * $nmu + $imu2 ))
+				
+				targ_combo=$base_2pts/$theta1/$mu1/$if1/$theta2/$mu2/$if2/
+				mkdir -pv $targ_combo
+				
+				echo $iprop1 $if1 $iprop2 $if2 $targ_combo >> $base_2pts/input
+				
+				list_targ_combo=$list_targ_combo$targ_combo" "
 			    done
 			done
 		    done
 		done
-
 	    done
-	    
-        ) > $base_2pts/input
+	done
 	
         $MPI_AH_PREF $base_ahmidas/$prog_contr $base_2pts/input
 	
         #let's put together all the micro-correlations needed for the macro correlations
         #put all the needed volume factor, and translate the corr. to the origin
-	for targ_combo in list_targ_combo
+	for targ_combo in $list_targ_combo
 	do
-	    
+
+	    echo $targ_combo
+	    cd $targ_combo
+
             for contr in ${two_points_correlations[@]}
             do
-                list_coef=""
-                list_file=""
                 awk '
                     {a=a$3" ";b=b$1"_"$2" "}
                  END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$contr|awk '
                NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
-                NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%12f\t%12f\t",x,y)}' > $contr
+                NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%.12f\t%.12f\n",x,y)}' > $targ_combo/$contr
             done
             #rm -fv *_*
+
+	    cd $OLDPWD
+
 	done
 
         #take time
 	tac=$tic
 	tic=$(date +%s)
 	echo "Time to make contractions: "$(($tic-$tac)) >> $base_conf/time_log
-
+	
+	touch completed
+	
 	cd -
 
     fi
