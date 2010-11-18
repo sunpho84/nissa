@@ -253,10 +253,11 @@ do
         prog_contr=applications/contract_meson_ultrastochastic_2pts
     fi
 
+    base_2pts=$base_conf/2pts/$source_name
+
     if [ ! -f $base_2pts/completed ]
     then
 
-	base_2pts=$base_conf/2pts/$source_name
         mkdir -vp $base_2pts
         cd $base_2pts
         	
@@ -362,6 +363,10 @@ do
 	touch completed
 	
 	cd $base_conf
+
+    else
+	
+	echo "Contractions already performed"
 
     fi
 
