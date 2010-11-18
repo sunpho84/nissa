@@ -361,7 +361,7 @@ do
 	
 	touch completed
 	
-	cd -
+	cd $base_conf
 
     fi
 
