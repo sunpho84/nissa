@@ -61,7 +61,6 @@ fi
 #load the info about the conf, basically nothing
 echo
 echo ------configuration parameters-------
-base_conf=$base_analysis/$confno
-echo -e Conf\#:\\t $confno
+echo -e Conf\#:\\t $conf
 echo -e Path: \\t $base_conf
 
