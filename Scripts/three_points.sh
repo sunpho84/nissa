@@ -9,7 +9,9 @@ echo "-------------------------------"
 echo "Working dir: $PWD"
 echo
 
+#count the number of mu and theta
 nmu=${#list_mu[@]}
+ntheta=${#list_theta[@]}
 
 for((is=0;is<nsource;is++))
 do
@@ -30,19 +32,22 @@ do
 
     if [ $source_type == "Point12" ]
     then
+	vol_fact=1
         last_prop_index=11
         finalize=finalize_meson_sequential_propagator
-        sequ=generate_meson_sequential_source
+        prog_contr=applications/contract_meson_3pts
     elif [ $source_type == "Wall4" ]
     then
+        vol_fact=$(( $L * $L * $L ))
         last_prop_index=3
         finalize=finalize_meson_sequential_stochastic_propagator
-        sequ=generate_meson_sequential_stochastic_source
+        prog_contr=applications/contract_meson_stochastic_3pts
     elif [ $source_type == "Wall1" ]
     then
+        vol_fact=$(( $L * $L * $L ))
         last_prop_index=0
         finalize=finalize_meson_sequential_ultrastochastic_propagator
-        sequ=generate_meson_sequential_ultrastochastic_source
+        prog_contr=applications/contract_meson_ultrasthocastic_3pts
     fi
 
     #loops over the spectator
@@ -61,7 +66,7 @@ do
 	
 	  echo "Generating sequential source from the original named: "$source_name" of type: "$source_type" with pars: "${source_pars[@]}" and seed: "$source_seed", for the "$theta_spec" theta, "$mu_spec" mass, "$f_spec" flavour"
 	
-	  source_dir=$base_conf/Props/$source_name/$theta_spec/$mu_spec/$f_spec
+	  source_dir=$base_conf/Props/$source_name/$theta_spec/$mu_spec
 	  targ_dir=$base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$f_spec
 	  
 	  if [  -d "$targ_dir" ]
@@ -73,7 +78,7 @@ do
 	      mkdir -pv $targ_dir
 	      cd $targ_dir
 	      
-	      #link the S0 propagator
+	      #link the DD propagator
 	      for ics in $(seq -f%02.0f 00 $last_prop_index)
 	      do
 		ln -sfv $source_dir/prop.$ics
@@ -93,7 +98,10 @@ do
                 s|SED_NT|'$T'|;
                 s|SED_Take_Slice|1|;
                 s|SED_Chosen_Slice|'$TSlice'|;
-                s|SED_S0_Flav|'$f_spec'|
+                s|SED_S0_Flav|'$f_spec'|;
+                s|SED_Beta|'$beta'|;
+                s|SED_Kappa|'$kappa'|;
+                s|SED_Mu|'$mu_spec'|;
                 s|SED_IndexEnd|'$last_prop_index'|;
                 s|SED_ThetaX|'$theta_spec'|;
                 s|SED_ThetaY|'$theta_spec'|;
@@ -159,7 +167,7 @@ do
 		mu1=${list_mu[0]} #controlla
 		two_kappamu=$(echo $kappa|awk '{printf("%.12f\n",2*$1*'$mu1')}')
 		cat $base_protos/cgmms.input|sed '
-                    s|SED_Confno|'$confno'|;
+                    s|SED_Conf|'$conf'|;
                     s|SED_NL|'$L'|;
                     s|SED_NT|'$T'|;
                     s|SED_ThetaX|'$theta1'|;
@@ -178,10 +186,10 @@ do
 		cd $targ
 		
                 #link configuration and source
-		ln -vfs $base_conf/Conf Conf.$confno
+		ln -vfs $base_conf/Conf Conf.$conf
 		for i in $(seq -f%02.0f 00 $last_prop_index)
 		  do
-		    ln -vsf $base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$f_spec/source.$i source.$confno.00.$i
+		    ln -vsf $base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$f_spec/source.$i source.$conf.00.$i
 		done
 		
 		$MPI_TM_PREF $base_tmLQCD/invert -f inverter.input
@@ -190,10 +198,10 @@ do
 		#rm -vf extra_masses.input inverter.input output.para
 		
                 #clean link to conf and source
-		#rm -vf source.$confno.00.?? Conf.$confno
+		#rm -vf source.$conf.00.?? Conf.$conf
 		
                 #clean useless first mass up output
-		#rm -vf source.$confno.00.??.inverted
+		#rm -vf source.$conf.00.??.inverted
 		#rm -vf .source*
 		
 		echo
@@ -209,7 +217,7 @@ do
 		    for ics in $(seq -f%02.0f 00 $last_prop_index)
 		    do
 			
-			orig=source.$confno.00.$ics.cgmms.$imu1.inverted
+			orig=source.$conf.00.$ics.cgmms.$imu1.inverted
 			dest=$mu1/prop.$ics
 			
 			if [ ! -f $orig ]
@@ -222,46 +230,7 @@ do
 			
 		    done
 		
-		    targ=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/$mu1/
 		    
-		    echo "Finalizing $source_name $theta1 $mu1 doublet"
-		    
-		    cd $targ
-		    
-                    #link the configuration
-		    ln -vfs $base_conf/Conf Conf0
-		    
-                    cat $base_protos/finalize_meson_sequential_propagator_input.xml|sed '
-                         s|SED_NL|'$L'|;
-                         s|SED_NT|'$T'|;
-                         s|SED_ThetaX|'$theta1'|;
-                         s|SED_ThetaY|'$theta1'|;
-                         s|SED_ThetaZ|'$theta1'|;
-                         s|SED_Beta|'$beta'|;
-                         s|SED_Kappa|'$kappa'|;
-                         s|SED_Mu|'$mu1'|;
-                         s|SED_S0_Flav|'$f_spec'|;
-                         s|SED_Last_prop_index|'$last_prop_index'|;
-                         ' > $targ/finalize_meson_sequential_propagator_input.xml
-		    
-		    $MPI_AH_PREF $base_ahmidas/applications/$finalize finalize_meson_sequential_propagator_input.xml
-		    
-                    #move the two flavour to appropriate folder
-		    mkdir -pv $targ/$f1
-		    for ics in $(seq -f%02.0f 00 $last_prop_index)
-		    do
-			mv -v $targ/prop.$ics.final $targ/$f1/prop.$ics
-		    done
-		    #rm -fv $targ/prop.*
-		    
-                    #remove the input file and the link to conf
-		    #rm -vf Conf0 reconstruct_doublet_input.xml
-		    
-		    cd -
-		    
-		    echo "Doublet reconstructed"
-		    echo
-
 		done #loop over output mass
 
 		touch completed
@@ -279,160 +248,129 @@ do
 	  echo "######################## THIRD STEP: Three point function calculation ############################"
 	  echo
 	
-	  for((imu1=0;imu1<nmu;imu1++))
-	  do
-	    
-	    mu1=${list_mu[$imu1]}
-	    
-	    for((imu2=imu1;imu2<nmu;imu2++))
-	    do
-	    
-	      f2=$f_spec #this is the charged
-	      theta2=$theta1 #to put -
-
-	      mu2=${list_mu[$imu2]}
-	    
-	      echo "Contracting combination: "$mu_spec $mu1 $mu2 $f_spec $f1 $f2
-
-	      source1=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/$mu1/$f1/
-	      source2=$base_conf/Props/$source_name/$theta2/$mu2/$f2
-	    
-	      if [ ! -d $source1 ] || [ ! -d $source2 ]
-	      then
-		  echo "Could not find "$source1" or "$source2
-		  exit
-	      fi
+	  base_3pts=$base_conf/3pts/$source_name
+	  
+	  if [ ! -f $base_3pts/completed ]
+	  then
 	      
-	      targ=$base_conf/3pts/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/$mu1/$f1/$theta2/$mu2/$f2/
-	      
-	      mkdir -pv $targ
-	      
+              mkdir -vp $base_3pts
+              cd $base_3pts
+              
 	      (
-		  (
-		      cat $base_protos/contract_two_lines_head.xml
-		      cat $base_analysis/contract_two_lines_middle.xml
-		      cat $base_protos/contract_two_lines_tail.xml
-		      )|sed 's|SED_NL|'$L'|;
-                             s|SED_NT|'$T'|;
-                             s|SED_Line_a|'$source1'|;
-                             s|SED_IndexEnd|'$last_prop_index'|;
-                             s|SED_Line_b|'$source2'|;'
-	      ) > $targ/contract_two_lines_input.xml
+		  cd $base_nissa/Data/Correlations_content/
+		  cat ${three_points_correlations[@]}
+		  cd $OLDPWD
+	      ) | awk '{print $1,$2}' > $base_3pts/micro_correlations 
+	      nmicro=$(wc $base_3pts/micro_correlations | awk '{print $1}')
 	      
-	      cd $targ
-	      
-	      if [ -f P5P5 ]
-	      then
-		  echo "Already calculated"
-	      else
-		  
-		  if [ $source_type == "Point12" ]
-		  then
-		      vol_fact=1
-		      $MPI_AH_PREF $base_ahmidas/applications/contract_two_lines contract_two_lines_input.xml
-		  elif [ $source_type == "Wall4" ]
-		  then
-		      vol_fact=$(( $L * $L * $L ))
-		      $MPI_AH_PREF $base_ahmidas/applications/contract_two_stochastic_lines contract_two_lines_input.xml
-		  elif [ $source_type == "Wall1" ]
-		  then
-		      vol_fact=$(( $L * $L * $L ))
-		      $MPI_AH_PREF $base_ahmidas/applications/contract_two_ultrastochastic_lines contract_two_lines_input.xml
-		  fi
-		  
-                  #rm -vf contract_two_lines_input.xml
-		  
-		  split -l $(( $T + 1 )) -d correlators.dat micro
-		  
-		  lim=($(awk '{print $1"_"$2}' $base_analysis/micro_correlations))
-		  n=$(( ${#lim[@]} -1 ))
-		  lin=($(seq -w 0 $n))
-		  
-		  for i in $(seq 0 $n)
-		  do
-		    echo ${lim[$i]}
-		    mv micro${lin[$i]} name_micro_${lim[$i]}
-		  done
-		
- 		  #let's put together all the micro-correlations needed for the macro correlations
-                  #put all the needed volume factor, and translate the corr. to the origin                             
-		  for op in $(cat $base_analysis/correlations_needed)
-		  do
-		    list_coef=""
-		    list_file=""
-		    awk '{a=a$3" ";b=b"name_micro_"$1"_"$2" "}
-                      END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$op|awk '
-                    BEGIN{norm=1.0/'$vol_fact';T='$T';t=(T-'$tsource')%T}
-                    NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
-                     NR>2{for(i=1;i<=n;i++)
-                             {x[t]+=$(3*i-1)*c[i];y[t]+=$(3*i)*c[i]}
-                              t=(t+1)%T}
-                      END{for(t=0;t<T;t++)printf("%.10e\t%.10e\n",x[t]*norm,y[t]*norm)}' > $op
-		  done
-		  rm -fv name_micro*
-	      fi
-	      
-	      cd -
-	      
-	    done #loop over mu2
-	  
-	  done #loop over mu1
+              nprop=$(( $ntheta * $nmu ))
+              echo "Nprop: "$nprop
 
-          #########################Checking P5P5#######################
-	  
-	  echo "Now checking two points functions"
-	  echo
-	  
-	  for((imu1=imu_spec;imu1<nmu;imu1++))
-	  do
+	      ncombo=$(( $npropS0 * $npropS1 ))
+	      echo "Ncombo: "$ncombo
 	      
-	      mu1=${list_mu[$imu1]}
-	      theta1=$theta_spec
+	      echo $L $T >> $base_3pts/input
+              echo $kappa >> $base_3pts/input
+              echo $tsource >> $base_3pts/input
+              echo $vol_fact >> $base_3pts/input
+              echo $base_conf/Conf >> $base_3pts/input
+              echo $nmicro >> $base_3pts/input
+	      cat $base_3pts/micro_correlations >> $base_3pts/input
+              echo $nprop >> $base_3pts/input
+	      for((itheta0=0;itheta0<ntheta;itheta0++))
+	      do
+		  theta0=${list_theta[$itheta0]}
+		  for((imu0=0;imu0<nmu;imu0++))
+		  do
+                      mu0=${list_mu[$imu0]}
+                      echo $base_conf/Props/$source_name/$theta0/$mu0/prop. $mu0 $theta0 >> $base_3pts/input
+		  done
+	      done
+              echo $nprop >> $base_3pts/input
+	      for((itheta1=0;itheta1<ntheta;itheta1++))
+	      do
+		  theta1=${list_theta[$itheta1]}
+		  for((imu1=0;imu1<nmu;imu1++))
+		  do
+                      mu1=${list_mu[$imu1]}
+                      echo $base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/$mu1/ >> $base_3pts/input
+		  done
+	      done
 	      
-	      targ=$base_conf/3pts/2pts_check/$source_name/$theta_spec/$mu_spec/$f_spec/$mu1/$f1
-	      mkdir -pv $targ
+	      echo $ncombo >> $base_3pts/input
 	      
-	      if [ -f $targ/P5P5 ]
-	      then
-		  echo "Two Points funcion already checked"
-	      else
-		  
-		  cd $targ
-		  
-		  source1=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/$mu1/$f1
-		  source2=$base_conf/Sources/$source_name/
-		  
-		  echo "Checking: "$source1
-		  
-		  sed '                                                                                              
-                      s|SED_NL|'$L'|;
-                      s|SED_NT|'$T'|;
-                      s|SED_S0_Flav|'$f_spec'|
-                      s|SED_Line_a|'$source1'|;
-                      s|SED_IndexEnd|'$last_prop_index'|;
-                      s|SED_Line_b|'$source2'|;' $base_protos/check_meson_3pts_input.xml > $targ/check_meson_3pts_input.xml
-		  
-		  if [ $source_type == "Point12" ]
-		  then
-		      vol_fact=1
-		      $MPI_AH_PREF $base_ahmidas/example/check_meson_3pts
-		  elif [ $source_type == "Wall4" ]
-		  then
-		      vol_fact=$(( $L * $L * $L ))
-		      $MPI_AH_PREF $base_ahmidas/example/check_meson_stochastic_3pts
-		  elif [ $source_type == "Wall1" ]
-		  then
-		      vol_fact=$(( $L * $L * $L ))
-		      $MPI_AH_PREF $base_ahmidas/example/check_meson_ultrastochastic_3pts
-		  fi
-		  
-		  awk 'NR==2+'$tsource'{print $1,$2/'$vol_fact',$3/'$vol_fact'}' $targ/correlators.dat > $targ/P5P5
-		  
-                    #rm -vf contract_two_lines_input.xml
-		  
-	      fi
+	      list_targ_combo=""
+	      for((itheta0=0;itheta0<ntheta;itheta0++))
+	      do
+		  theta0=${list_theta[$itheta0]}
+		  for((itheta1=0;itheta1<ntheta;itheta1++))
+		  do
+		      theta1=${list_theta[$itheta1]}
+		      for((if1=0;if1<2;if1++))
+		      do
+			  for((if2=0;if2<2;if2++))
+			  do
+			      for((imu0=0;imu0<nmu;imu0++))
+			      do
+				  mu0=${list_mu[$imu0]}
+				  for((imu1=0;imu1<nmu;imu1++))
+				  do
+				      mu1=${list_mu[$imu1]}
+				      
+				      iprop0=$(( $itheta0 * $nmu + $imu0 ))
+				      iprop1=$(( $itheta1 * $nmu + $imu1 ))
+				      
+				      targ_combo=$base_3pts/$theta1/$mu1/$if1/$theta2/$mu2/$if2/
+				      mkdir -pv $targ_combo
+				      
+				      echo $iprop1 $if1 $iprop2 $if2 $targ_combo >> $base_3pts/input
+				      
+				      list_targ_combo=$list_targ_combo$targ_combo" "
+				  done
+			      done
+			  done
+		      done
+		  done
+	      done
 	      
-	  done
+              $MPI_AH_PREF $base_ahmidas/$prog_contr $base_3pts/input
+	      
+              #let's put together all the micro-correlations needed for the macro correlations
+              #put all the needed volume factor, and translate the corr. to the origin
+	      for targ_combo in $list_targ_combo
+	      do
+		  
+		  echo $targ_combo
+		  cd $targ_combo
+		  
+		  for contr in ${two_points_correlations[@]}
+		  do
+                      awk '
+                           {a=a$3" ";b=b$1"_"$2" "}
+                        END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$contr|awk '
+                      NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
+                       NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%.12g\t%.12g\n",x,y)}' > $targ_combo/$contr
+		  done
+                  #rm -fv *_*
+		  
+		  cd $OLDPWD
+		  
+	      done
+	      
+              #take time
+	      tac=$tic
+	      tic=$(date +%s)
+	      echo "Time to make contractions: "$(($tic-$tac)) >> $base_conf/time_log
+	      
+	      touch completed
+	      
+	      cd $base_conf
+	      
+	  else
+	      
+	      echo "Contractions already performed"
+	      
+	  fi
 	  
 	done #spectator flavor
 	
@@ -440,4 +378,3 @@ do
       
     done #spectator theta
 
-done #source name

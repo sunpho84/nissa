@@ -153,7 +153,7 @@ do
 	  mu=${list_mu[0]}
 	  two_kappamu=$(echo $kappa|awk '{printf("%.12f\n",2*$1*'$mu')}')
 	  cat $base_protos/cgmms.input|sed '
-            s|SED_Confno|'$confno'|
+            s|SED_Conf|'$conf'|
             s|SED_NL|'$L'|;
             s|SED_NT|'$T'|;
             s|SED_ThetaX|'$theta'|;
@@ -172,10 +172,10 @@ do
 	  cd $targ
 	  
           #link configuration and source
-	  ln -vfs $base_conf/Conf Conf.$confno
+	  ln -vfs $base_conf/Conf Conf.$conf
 	  for i in $(seq -f%02.0f 00 $last_prop_index)
 	  do
-            ln -vsf $base_conf/Sources/$source_name/source.$i source.$confno.00.$i
+            ln -vsf $base_conf/Sources/$source_name/source.$i source.$conf.00.$i
 	  done
           
 	  $MPI_TM_PREF $base_tmLQCD/invert -f inverter.input
@@ -189,10 +189,10 @@ do
 #         rm -vf extra_masses.input inverter.input output.para
         
           #clean link to conf and source
-#         rm -vf source.$confno.00.?? Conf.$confno
+#         rm -vf source.$conf.00.?? Conf.$conf
         
           #clean useless first mass up output
-#         rm -vf source.$confno.00.??.inverted
+#         rm -vf source.$conf.00.??.inverted
 #         rm -vf .source*
 	  
 	  echo
@@ -208,7 +208,7 @@ do
             for ics in $(seq -f%02.0f 00 $last_prop_index)
             do
 	      
-	      orig=source.$confno.00.$ics.cgmms.$im.inverted
+	      orig=source.$conf.00.$ics.cgmms.$im.inverted
 	      dest=$mu/prop.$ics
 	      
 	      if [ ! -f $orig ]
@@ -318,8 +318,7 @@ do
 				iprop1=$(( $itheta1 * $nmu + $imu1 ))
 				iprop2=$(( $itheta2 * $nmu + $imu2 ))
 				
-				targ_combo=$base_2pts/$theta1/$mu1/$if1/$theta2/$mu2/$if2/
-				mkdir -pv $targ_combo
+				targ_combo=$base_2pts/$theta1\_$mu1\_$if1\_$theta2\_$mu2\_$if2\_
 				
 				echo $iprop1 $if1 $iprop2 $if2 $targ_combo >> $base_2pts/input
 				
@@ -339,19 +338,16 @@ do
 	do
 
 	    echo $targ_combo
-	    cd $targ_combo
 
             for contr in ${two_points_correlations[@]}
             do
                 awk '
-                    {a=a$3" ";b=b$1"_"$2" "}
+                    {a=a$3" ";b=b"'$targ_combo'_"$1"_"$2" "}
                  END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$contr|awk '
                NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
-                NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%.12g\t%.12g\n",x,y)}' > $targ_combo/$contr
+                NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%.12g\t%.12g\n",x,y)}' > $targ_combo\_$contr
             done
-            #rm -fv *_*
-
-	    cd $OLDPWD
+            #rm -fv $targ_combo\_*_*
 
 	done
 
