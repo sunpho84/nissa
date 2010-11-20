@@ -40,22 +40,19 @@ do
     then
 	vol_fact=1
         last_prop_index=11
-        generate=generate_meson_sequential_propagator
-        finalize=finalize_meson_sequential_propagator
+        generate=generate_meson_sequential_source
         prog_contr=contract_meson_3pts
     elif [ $source_type == "Wall4" ]
     then
         vol_fact=$(( $L * $L * $L ))
         last_prop_index=3
-        generate=generate_meson_sequential_stochastic_propagator
-        finalize=finalize_meson_sequential_stochastic_propagator
+        generate=generate_meson_sequential_stochastic_source
         prog_contr=contract_meson_stochastic_3pts
     elif [ $source_type == "Wall1" ]
     then
         vol_fact=$(( $L * $L * $L ))
         last_prop_index=0
-        generate=generate_meson_sequential_ultrastochastic_propagator
-        finalize=finalize_meson_sequential_ultrastochastic_propagator
+        generate=generate_meson_sequential_ultrastochastic_source
         prog_contr=contract_meson_ultrasthocastic_3pts
     fi
 
