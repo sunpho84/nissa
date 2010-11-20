@@ -126,7 +126,7 @@ do
 	      if [ "$?" ]
 	      then
 		  
-		  echo "Source generated with success!"
+		  echo "Sequential source generated with success!"
   		  #rm generate_*source*.xml
 		  
 		  for ics in $(seq -f%02.0f 00 $last_prop_index)
@@ -150,6 +150,11 @@ do
 	  else
 	      f1=0
 	  fi
+
+          #take time 
+	  tac=$tic
+	  tic=$(date +%s)
+	  echo "Time to generate source: "$(($tic-$tac)) >> $base_conf/time_log
 
 	  echo "######################## SECOND STEP: Inversion of doublet ############################"
 	  echo
@@ -253,6 +258,11 @@ do
 		echo "Already inverted"
 		echo
 	    fi
+	    
+            #take time
+	    tac=$tic
+	    tic=$(date +%s)
+	    echo "Time to invert sequential source: "$(($tic-$tac)) >> $base_conf/time_log
 	    
 	  done #loop over "sequential" theta
 
