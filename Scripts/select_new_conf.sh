@@ -7,12 +7,13 @@ pwd
 conf_list=$(cat $conf_list_file)
 for conf_test in $conf_list
 do
-    if [ ! -f "$conf_test/analysis_"$analysis_name"_completed" ] $$ [ ! -f "$conf_test/analysis_"$analysis_name"_running" ]
+    if [ ! -f "$conf_test/analysis_"$analysis_name"_completed" ] && [ ! -f "$conf_test/analysis_"$analysis_name"_running" ]
     then
         conf=$conf_test
         echo "Will work on conf: "$conf
+	mkdir -p $conf
 	touch "$conf_test/analysis_"$analysis_name"_running"
-	trap "rm -f "$conf_test"/analysis_"$analysis_name"_running" EXIT
+	trap "rm -f "$conf"/analysis_"$analysis_name"_running" EXIT
         break
     fi
 done
