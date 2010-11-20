@@ -3,7 +3,7 @@ L=SED_NL
 T=SED_NT
 
 DebugLevel = 1
-InitialStoreCounter = SED_Confno
+InitialStoreCounter = SED_Conf
 Measurements = 1
 2kappamu = SED_2kappamu
 Kappa = SED_Kappa

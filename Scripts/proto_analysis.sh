@@ -46,9 +46,10 @@ two_points_correlations=(A0A0 A0P5 AKAK P5A0 P5P5 P5V0 S0S0 S0P5 TKAK TKTK V0A0 
 two_points_theta1=(0) #in the case you want more theta for the spectator
 
 #This is for the three points
-list_itheta_spec="0 1"
-list_imu_spec="0 1"
-list_f_spec="0 1"
+three_points_correlations=(A0A0 A0P5 AKAK P5A0 P5P5 P5V0 S0S0 S0P5 TKAK TKTK V0A0 V0P5 V0V0 VKAK VKVK)
+list_itheta_spec=(0 1)
+list_imu_spec=(0 1)
+list_f_spec=(0 1)
 
 #Useless
 #MPI_nn=
@@ -84,5 +85,5 @@ source global_seeds.sh
 source $base_scripts/two_points.sh
 source $base_scripts/three_points.sh
 
-cd $base_analysis.sh
+cd $base_analysis
 llsubmit analysis.sh

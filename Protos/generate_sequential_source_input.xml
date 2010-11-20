@@ -3,8 +3,8 @@
   <params>
     <L> SED_NL </L>
     <T> SED_NT </T>
-    <kappa> 0.1234 </kappa>
-    <mu> 0.1234 </mu>
+    <kappa> SED_Kappa </kappa>
+    <mu> SED_Mu </mu>
     <thetax> SED_ThetaX </thetax>
     <thetay> SED_ThetaY </thetay>
     <thetaz> SED_ThetaZ </thetaz>
@@ -15,6 +15,11 @@
     <debug> 0 </debug>
   </params>
   <files>
+    <file>
+      <type>gauge</type>
+      <directory>.</directory>
+      <filenameBase>Conf</filenameBase>
+    </file>
     <file>
       <type>propagator</type>
       <directory>.</directory>
