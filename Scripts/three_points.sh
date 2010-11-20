@@ -190,6 +190,9 @@ do
                     s|SED_ThetaX|'$theta1'|;
                     s|SED_ThetaY|'$theta1'|;
                     s|SED_ThetaZ|'$theta1'|;
+                    s|SED_NrXProcs|'${NProc[0]}'|;
+                    s|SED_NrYProcs|'${NProc[1]}'|;
+                    s|SED_NrZProcs|'${NProc[2]}'|;
                     s|SED_Beta|'$beta'|;
                     s|SED_Kappa|'$kappa'|;
                     s|SED_2kappamu|'$two_kappamu'|;
