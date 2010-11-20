@@ -9,9 +9,15 @@ echo "-------------------------------"
 echo "Working dir: $PWD"
 echo
 
+#take initial time
+tic=$(date +%s)
+
 #count the number of mu and theta
 nmu=${#list_mu[@]}
 ntheta=${#list_theta[@]}
+
+echo "Number of sources: "$nsource
+echo
 
 for((is=0;is<nsource;is++))
 do
@@ -34,34 +40,37 @@ do
     then
 	vol_fact=1
         last_prop_index=11
+        generate=generate_meson_sequential_propagator
         finalize=finalize_meson_sequential_propagator
-        prog_contr=applications/contract_meson_3pts
+        prog_contr=contract_meson_3pts
     elif [ $source_type == "Wall4" ]
     then
         vol_fact=$(( $L * $L * $L ))
         last_prop_index=3
+        generate=generate_meson_sequential_stochastic_propagator
         finalize=finalize_meson_sequential_stochastic_propagator
-        prog_contr=applications/contract_meson_stochastic_3pts
+        prog_contr=contract_meson_stochastic_3pts
     elif [ $source_type == "Wall1" ]
     then
         vol_fact=$(( $L * $L * $L ))
         last_prop_index=0
+        generate=generate_meson_sequential_ultrastochastic_propagator
         finalize=finalize_meson_sequential_ultrastochastic_propagator
-        prog_contr=applications/contract_meson_ultrasthocastic_3pts
+        prog_contr=contract_meson_ultrasthocastic_3pts
     fi
 
     #loops over the spectator
-    for itheta_spec in $list_itheta_spec
+    for itheta_spec in ${list_itheta_spec[@]}
     do
 
       theta_spec=${list_theta[$itheta_spec]}
 
-      for imu_spec in $list_imu_spec
+      for imu_spec in ${list_imu_spec[@]}
       do
 
 	mu_spec=${list_mu[$imu_spec]}
       
-	for f_spec in $list_f_spec
+	for f_spec in ${list_f_spec[@]}
 	do
 	
 	  echo "Generating sequential source from the original named: "$source_name" of type: "$source_type" with pars: "${source_pars[@]}" and seed: "$source_seed", for the "$theta_spec" theta, "$mu_spec" mass, "$f_spec" flavour"
@@ -69,7 +78,7 @@ do
 	  source_dir=$base_conf/Props/$source_name/$theta_spec/$mu_spec
 	  targ_dir=$base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$f_spec
 	  
-	  if [  -d "$targ_dir" ]
+	  if [ -d "$targ_dir" ]
 	  then
 	      echo "Sequential Source "$targ_dir" already existing"
 	      echo
@@ -83,6 +92,9 @@ do
 	      do
 		ln -sfv $source_dir/prop.$ics
 	      done
+	    
+	      #link the configuration
+	      ln -sfv $base_conf/Conf Conf0
 	    
               #Generate the sequential p5 source input file
 	      TH=$(( $T / 2 ))
@@ -109,7 +121,7 @@ do
                 ' $base_protos/generate_sequential_source_input.xml > generate_sequential_source_input.xml
 	    
    	      #invoke the program
-	      $MPI_AH_PREF $base_ahmidas/applications/$sequ generate_sequential_source_input.xml
+	      $MPI_AH_PREF $base_ahmidas/applications/$generate generate_sequential_source_input.xml
 	      
 	      if [ "$?" ]
 	      then
@@ -138,7 +150,7 @@ do
 	  else
 	      f1=0
 	  fi
-	  
+
 	  echo "######################## SECOND STEP: Inversion of doublet ############################"
 	  echo
 	  echo "Second inversion"
@@ -243,12 +255,11 @@ do
 	    fi
 	    
 	  done #loop over "sequential" theta
-	  
 
 	  echo "######################## THIRD STEP: Three point function calculation ############################"
 	  echo
 	
-	  base_3pts=$base_conf/3pts/$source_name
+	  base_3pts=$base_conf/3pts/$source_name/$itheta_spec/$imu_spec/$mu_spec
 	  
 	  if [ ! -f $base_3pts/completed ]
 	  then
@@ -266,11 +277,13 @@ do
               nprop=$(( $ntheta * $nmu ))
               echo "Nprop: "$nprop
 
-	      ncombo=$(( $npropS0 * $npropS1 ))
+	      ncombo=$(( $nprop * $nprop ))
 	      echo "Ncombo: "$ncombo
-	      
+
+	      rm -vf input
 	      echo $L $T >> $base_3pts/input
               echo $kappa >> $base_3pts/input
+	      echo $f_spec >> $base_3pts/input
               echo $tsource >> $base_3pts/input
               echo $vol_fact >> $base_3pts/input
               echo $base_conf/Conf >> $base_3pts/input
@@ -293,7 +306,7 @@ do
 		  for((imu1=0;imu1<nmu;imu1++))
 		  do
                       mu1=${list_mu[$imu1]}
-                      echo $base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/$mu1/ >> $base_3pts/input
+                      echo $base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/$mu1/prop. $mu1 $theta1 >> $base_3pts/input
 		  done
 	      done
 	      
@@ -306,34 +319,28 @@ do
 		  for((itheta1=0;itheta1<ntheta;itheta1++))
 		  do
 		      theta1=${list_theta[$itheta1]}
-		      for((if1=0;if1<2;if1++))
+		      for((imu0=0;imu0<nmu;imu0++))
 		      do
-			  for((if2=0;if2<2;if2++))
+			  mu0=${list_mu[$imu0]}
+			  for((imu1=0;imu1<nmu;imu1++))
 			  do
-			      for((imu0=0;imu0<nmu;imu0++))
-			      do
-				  mu0=${list_mu[$imu0]}
-				  for((imu1=0;imu1<nmu;imu1++))
-				  do
-				      mu1=${list_mu[$imu1]}
-				      
-				      iprop0=$(( $itheta0 * $nmu + $imu0 ))
-				      iprop1=$(( $itheta1 * $nmu + $imu1 ))
-				      
-				      targ_combo=$base_3pts/$theta1/$mu1/$if1/$theta2/$mu2/$if2/
-				      mkdir -pv $targ_combo
-				      
-				      echo $iprop1 $if1 $iprop2 $if2 $targ_combo >> $base_3pts/input
-				      
-				      list_targ_combo=$list_targ_combo$targ_combo" "
-				  done
-			      done
+			      mu1=${list_mu[$imu1]}
+			      
+			      iprop0=$(( $itheta0 * $nmu + $imu0 ))
+			      iprop1=$(( $itheta1 * $nmu + $imu1 ))
+			      
+			      targ_combo=$base_3pts/$theta0\_$mu0\_$theta1\_$mu1\_
+			      
+			      echo $iprop0 $iprop1 $targ_combo >> $base_3pts/input
+			      
+			      list_targ_combo=$list_targ_combo$targ_combo" "
 			  done
 		      done
 		  done
 	      done
-	      
-              $MPI_AH_PREF $base_ahmidas/$prog_contr $base_3pts/input
+              echo $base_conf/Sources/$source_name/source. $base_3pts/2pts_check_P5P5 >> $base_3pts/input
+
+              $MPI_AH_PREF $base_ahmidas/applications/$prog_contr $base_3pts/input
 	      
               #let's put together all the micro-correlations needed for the macro correlations
               #put all the needed volume factor, and translate the corr. to the origin
@@ -341,12 +348,11 @@ do
 	      do
 		  
 		  echo $targ_combo
-		  cd $targ_combo
 		  
 		  for contr in ${two_points_correlations[@]}
 		  do
                       awk '
-                           {a=a$3" ";b=b$1"_"$2" "}
+                           {a=a$3" ";b="'$targ_combo'"b$1"_"$2" "}
                         END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$contr|awk '
                       NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
                        NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%.12g\t%.12g\n",x,y)}' > $targ_combo/$contr
@@ -378,3 +384,4 @@ do
       
     done #spectator theta
 
+done #source
