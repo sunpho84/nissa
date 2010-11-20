@@ -37,6 +37,18 @@ then
 
     USE_MPI=1
 
+elif [ "$WHERE" == AURORA ]
+then
+    
+    ENV=$(echo $AURORA_ENV | sed 's/:/ -x /g')
+
+    echo -e Number of cores: $AURORA_NP
+    
+    MPI_TM_PREF="mpirun $ENV $AURORA_BTL -np $AURORA_NP -hostfile $AURORA_HOSTFILE -rf $AURORA_RANKFILE"
+    MPI_AH_PREF=$MPI_TM_PREF
+
+    USE_MPI=1
+
 elif [ "$WHERE" == ROMA3 ]
 then
     
