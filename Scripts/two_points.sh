@@ -160,9 +160,9 @@ do
             s|SED_ThetaX|'$theta'|;
             s|SED_ThetaY|'$theta'|;
             s|SED_ThetaZ|'$theta'|;
-            s|SED_NrXProcs|'${Nproc[0]}'|;
-            s|SED_NrYProcs|'${Nproc[1]}'|;
-            s|SED_NrZProcs|'${Nproc[2]}'|;
+            s|SED_NrXProcs|'${NProc[0]}'|;
+            s|SED_NrYProcs|'${NProc[1]}'|;
+            s|SED_NrZProcs|'${NProc[2]}'|;
             s|SED_Beta|'$beta'|;
             s|SED_Kappa|'$kappa'|;
             s|SED_2kappamu|'$two_kappamu'|;
