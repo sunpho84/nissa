@@ -15,9 +15,9 @@ GaugeConfigInputFile = SED_GaugeConfigInputFile
 UseEvenOdd = no
 CgmmsNoExtraMasses = SED_CgmmsNoExtraMasses
 
-NrXProcs = 8
-NrYProcs = 8
-NrZProcs = 8
+NrXProcs = 2
+NrYProcs = 2
+NrZProcs = 2
 
 
 SourceType = POINT

@@ -17,14 +17,27 @@
 #setup everythig
 source ~/nissa_conf.sh
 
+############ - 1 - Paths and names #########
+
 #set base path for the analysis
 base_analysis=[path_to_the_analysis]
 
-L=[L]
-T=[T]
+#file with the list of configurations
+conf_list=[conf_list_file]
+
+#name of the analysis (eg: "2pts", or "Bk")
+analysis_name=[name]
 
 #Path to the configurations (which have to have named as 'conf.xxxx'
 source_confs=[path_to_confs]
+
+
+########### - 2 - Physical information ########
+
+#volume and parallelization (xyz)
+L=[L]
+T=[T]
+NProc=([X] [Y] [Z])
 
 #Different source to be generated, in different columns
 list_source_name=( [name] )
@@ -34,7 +47,7 @@ list_source_nois=( [type] ) # possible: -1 1 2 4
 list_source_seed=( [seed] ) # seed
 list_source_prec=( [resd] ) # residual
 
-#this is the list of theta and sea for which we will do first inversion
+#list of theta and sea for which we will do first inversion
 list_theta=( [theta1] [theta2] )
 list_mu=( [mu1] [mu2] )
 beta=[beta]
@@ -45,7 +58,7 @@ musea=[musea]
 two_points_correlations=(A0A0 A0P5 AKAK P5A0 P5P5 P5V0 S0S0 S0P5 TKAK TKTK V0A0 V0P5 V0V0 VKAK VKVK)
 two_points_theta1=(0) #in the case you want more theta for the spectator
 
-#This is for the three points
+#List of info for the three points
 three_points_correlations=(A0A0 A0P5 AKAK P5A0 P5P5 P5V0 S0S0 S0P5 TKAK TKTK V0A0 V0P5 V0V0 VKAK VKVK)
 list_itheta_spec=(0 1)
 list_imu_spec=(0 1)
@@ -72,7 +85,7 @@ mkdir -vp $base_conf
 cd $base_conf
 ln -sf $source_confs/conf.$conf Conf
 
-#adapt here in the case you do not want to have seed and offset different for each configs                                                                                                                      
+#if not present, generate the seed for the conf
 if [ ! -f global_seeds.sh ]
 then
     echo additive_seed=$(bash $base_scripts/casual.sh) > global_seeds.sh
@@ -85,6 +98,9 @@ source global_seeds.sh
 #comment unwanted things
 source $base_scripts/two_points.sh
 source $base_scripts/three_points.sh
+
+#prohibite future re-run of the same analysis on this conf
+touch $base_conf/analysis_"$analysis_name"_completed
 
 cd $base_analysis
 llsubmit analysis.sh
