@@ -64,7 +64,7 @@ cd $base_analysis
 
 #search the gauge configuration to analyse,
 #exit if everything calculated
-source $base_scripts/select_gauge_conf.sh
+source $base_scripts/select_new_conf.sh
 
 #go to the conf
 base_conf=$base_analysis/$conf
