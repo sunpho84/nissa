@@ -70,6 +70,7 @@ source $base_scripts/select_new_conf.sh
 base_conf=$base_analysis/$conf
 mkdir -vp $base_conf
 cd $base_conf
+ln -sf $source_confs/conf.$conf Conf
 
 #adapt here in the case you do not want to have seed and offset different for each configs                                                                                                                      
 if [ ! -f global_seeds.sh ]
