@@ -75,24 +75,18 @@ source $base_scripts/setup.sh
 #now cd to the analysis
 cd $base_analysis
 
-#search the gauge configuration to analyse,
+#search the gauge configuration to analyse, and setup it
 #exit if everything calculated
 source $base_scripts/select_new_conf.sh
 
-#go to the conf
-base_conf=$base_analysis/$conf
-mkdir -vp $base_conf
-cd $base_conf
-ln -sf $source_confs/conf.$conf Conf
-
 #if not present, generate the seed for the conf
-if [ ! -f global_seeds.sh ]
+if [ ! -f $base_conf/global_seeds.sh ]
 then
-    echo additive_seed=$(bash $base_scripts/casual.sh) > global_seeds.sh
-    echo additive_time_offset=$(($(bash $base_scripts/casual.sh)%$T)) >> global_seeds.sh
+    echo additive_seed=$(bash $base_scripts/casual.sh) > $base_conf/global_seeds.sh
+    echo additive_time_offset=$(($(bash $base_scripts/casual.sh)%$T)) >> $base_conf/global_seeds.sh
 fi
 
-source global_seeds.sh
+source $base_conf/global_seeds.sh
 
 #list of the program to run
 #comment unwanted things
