@@ -105,6 +105,9 @@ do
 	      sed '
                 s|SED_NL|'$L'|;
                 s|SED_NT|'$T'|;
+                s|SED_NrXProcs|'${Nproc[0]}'|;
+                s|SED_NrYProcs|'${Nproc[1]}'|;
+                s|SED_NrZProcs|'${Nproc[2]}'|;
                 s|SED_Take_Slice|1|;
                 s|SED_Chosen_Slice|'$TSlice'|;
                 s|SED_S0_Flav|'$f_spec'|;
