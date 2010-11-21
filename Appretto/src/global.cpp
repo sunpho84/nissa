@@ -1,15 +1,14 @@
 #pragma once
 
-int T,L,loc_vol;
-int loc_size[4],nproc_dir[4]={0,0,0,0};
-int proc_pos[4]={0,0,0,0};
+int **glb_coord,glb_size[4],glb_vol;
+int **loc_coord,loc_size[4],loc_vol;
+int *glb_of_loc_ind;
+int  nproc_dir[4]={0,0,0,0};
+int proc_coord[4]={0,0,0,0};
 int rank,rank_tot,cart_rank;
 
 MPI_Comm cart_comm;
 
-int **global_coord;
-int **local_coord;
-int *global_index;
 
 typedef double complex[2];
 

@@ -34,9 +34,9 @@ void write_double_vector(LemonWriter *writer,void *data,int ndoubles_per_site)
   double *swapped_data=new double[loc_ndoubles_tot];
   revert_endianess_double_vector(swapped_data,(double*)data,loc_ndoubles_tot);
 
-  int globaldims[4]={T,L,L,L};
-  int scidacMapping[4]={0,1,2,3};
-  lemonWriteLatticeParallelMapped(writer,swapped_data,ndoubles_per_site*sizeof(double),globaldims,scidacMapping);
+  int glb_dims[4]={glb_size[0],glb_size[1],glb_size[2],glb_size[3]};
+  int scidac_mapping[4]={0,1,2,3};
+  lemonWriteLatticeParallelMapped(writer,swapped_data,ndoubles_per_site*sizeof(double),glb_dims,scidac_mapping);
 
   //delete the swapped data
   delete[] swapped_data;
@@ -69,11 +69,13 @@ void write_spincolor(char *path,spincolor *spinor)
 	  "<lz>%d</lz>\n"
 	  "<lt>%d</lt>\n"
 	  "</etmcFormat>",
-	  64,1,L,L,L,T);
+	  64,1,glb_size[0],glb_size[1],glb_size[2],glb_size[3]);
   write_text_record(writer,propagator_format_header,propagator_format_message);
 
   //Write the binary data
   write_double_vector(writer,spinor,sizeof(spincolor)/8);
+
+  if(rank==0) cout<<"File '"<<path<<"' saved (probably...)"<<endl;
 
   //Close the file
   lemonDestroyWriter(writer);
