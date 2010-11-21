@@ -272,7 +272,7 @@ do
 	  echo "######################## THIRD STEP: Three point function calculation ############################"
 	  echo
 	
-	  base_3pts=$base_conf/3pts/$source_name/$itheta_spec/$mu_spec/$f_spec
+	  base_3pts=$base_conf/3pts/$source_name\_$theta_spec\_$mu_spec/$f_spec
 	  
 	  if [ ! -f $base_3pts/completed ]
 	  then
@@ -325,7 +325,6 @@ do
 	      
 	      echo $ncombo >> $base_3pts/input
 	      
-	      list_targ_combo=""
 	      for((itheta0=0;itheta0<ntheta;itheta0++))
 	      do
 		  theta0=${list_theta[$itheta0]}
@@ -342,39 +341,14 @@ do
 			      iprop0=$(( $itheta0 * $nmu + $imu0 ))
 			      iprop1=$(( $itheta1 * $nmu + $imu1 ))
 			      
-			      targ_combo=$base_3pts/$theta0\_$mu0\_$theta1\_$mu1\_
-			      
-			      echo $iprop0 $iprop1 $targ_combo >> $base_3pts/input
-			      
-			      list_targ_combo=$list_targ_combo$targ_combo" "
+			      echo $iprop0 $iprop1 >> $base_3pts/input
 			  done
 		      done
 		  done
 	      done
-              echo $base_conf/Sources/$source_name/source. $base_3pts/2pts_check_P5P5 >> $base_3pts/input
+              echo $base_conf/Sources/$source_name/source. >> $base_3pts/input
 
               $MPI_AH_PREF $base_ahmidas/applications/$prog_contr $base_3pts/input
-	      
-              #let's put together all the micro-correlations needed for the macro correlations
-              #put all the needed volume factor, and translate the corr. to the origin
-	      for targ_combo in $list_targ_combo
-	      do
-		  
-		  echo $targ_combo
-		  
-		  for contr in ${two_points_correlations[@]}
-		  do
-                      awk '
-                           {a=a$3" ";b="'$targ_combo'"b$1"_"$2" "}
-                        END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$contr|awk '
-                      NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
-                       NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%.12g\t%.12g\n",x,y)}' > $targ_combo/$contr
-		  done
-                  #rm -fv *_*
-		  
-		  cd $OLDPWD
-		  
-	      done
 	      
               #take time
 	      tac=$tic
