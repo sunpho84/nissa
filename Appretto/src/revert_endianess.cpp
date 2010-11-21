@@ -1,3 +1,5 @@
+#pragma once
+
 //fucking tool to revert the endianess of doubles
 void revert_endianess_double_vector(double *dest,double *sour,int ndoubles)
 {

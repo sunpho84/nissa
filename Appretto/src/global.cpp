@@ -1,3 +1,5 @@
+#pragma once
+
 int T,L,loc_vol;
 int loc_size[4],nproc_dir[4]={0,0,0,0};
 int proc_pos[4]={0,0,0,0};
@@ -16,3 +18,6 @@ typedef complex color[3];
 
 typedef spin colorspin[3];
 typedef color spincolor[4];
+
+typedef spin spinspin[4];
+typedef spinspin colorspinspin[3];

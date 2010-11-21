@@ -1,3 +1,5 @@
+#pragma once
+
 #include <lemon.h>
 #include "revert_endianess.cpp"
 
@@ -47,7 +49,7 @@ void write_spincolor(char *path,spincolor *spinor)
   MPI_File *writer_file=new MPI_File;
   MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
   MPI_File_set_size(*writer_file,0);
-  LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);;
+  LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
 
   //Write the info on the propagator type
   char propagator_type_header[]="propagator-type";
