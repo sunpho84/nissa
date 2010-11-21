@@ -272,7 +272,7 @@ do
 	  echo "######################## THIRD STEP: Three point function calculation ############################"
 	  echo
 	
-	  base_3pts=$base_conf/3pts/$source_name/$itheta_spec/$imu_spec/$mu_spec
+	  base_3pts=$base_conf/3pts/$source_name/$itheta_spec/$mu_spec/$f_spec
 	  
 	  if [ ! -f $base_3pts/completed ]
 	  then

@@ -23,7 +23,7 @@ source ~/nissa_conf.sh
 base_analysis=[path_to_the_analysis]
 
 #file with the list of configurations
-conf_list=[conf_list_file]
+conf_list_file=[conf_list_file]
 
 #name of the analysis (eg: "2pts", or "Bk")
 analysis_name=[name]
