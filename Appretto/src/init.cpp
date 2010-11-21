@@ -15,13 +15,15 @@ void init_mpi()
 //index runs as x,y,z,t (faster:x)
 void set_geometry()
 {
-  local_coord=(int**)malloc(sizeof(int*)*loc_vol);
-  for(int ivol=0;ivol<loc_vol;ivol++) local_coord[ivol]=(int*)malloc(sizeof(int)*4);
+  loc_coord=(int**)malloc(sizeof(int*)*loc_vol);
+  glb_coord=(int**)malloc(sizeof(int*)*loc_vol);
+  for(int loc_ind=0;loc_ind<loc_vol;loc_ind++)
+    {
+      loc_coord[loc_ind]=(int*)malloc(sizeof(int)*4);
+      glb_coord[loc_ind]=(int*)malloc(sizeof(int)*4);
+    }
 
-  global_coord=(int**)malloc(sizeof(int*)*loc_vol);
-  for(int ivol=0;ivol<loc_vol;ivol++) global_coord[ivol]=(int*)malloc(sizeof(int)*4);
-
-  global_index=(int*)malloc(sizeof(int)*loc_vol);
+  glb_of_loc_ind=(int*)malloc(sizeof(int)*loc_vol);
   
   int x[4],gx[4];
   for(x[0]=0;x[0]<loc_size[0];x[0]++)
@@ -29,22 +31,22 @@ void set_geometry()
       for(x[2]=0;x[2]<loc_size[2];x[2]++)
         for(x[3]=0;x[3]<loc_size[3];x[3]++)
 	  {
-	    for(int i=0;i<4;i++) gx[i]=x[i]+proc_pos[i]*loc_size[i];
+	    for(int i=0;i<4;i++) gx[i]=x[i]+proc_coord[i]*loc_size[i];
 
-	    int ivol=x[0],gvol=gx[0];
+	    int loc_ind=x[0],glb_ind=gx[0];
 	    for(int i=1;i<4;i++)
 	      {
-		ivol=ivol*loc_size[i]+x[i];
-		gvol=gvol*loc_size[i]*nproc_dir[i]+gx[i];
+		loc_ind=loc_ind*loc_size[i]+x[i];
+		glb_ind=glb_ind*loc_size[i]*nproc_dir[i]+gx[i];
 	      }
 
 	    for(int i=0;i<4;i++)
 	      {
-		local_coord[ivol][i]=x[i];
-		global_coord[ivol][i]=gx[i];
+		loc_coord[loc_ind][i]=x[i];
+		glb_coord[loc_ind][i]=gx[i];
 	      }
 
-	    global_index[ivol]=gvol;
+	    glb_of_loc_ind[loc_ind]=glb_ind;
           }
 }
 
@@ -53,24 +55,31 @@ void init_grid()
   int i,periods[4]={1,1,1,1};
   char proc_name[1024];
 
-  loc_size[0]=T;
-  for(int i=1;i<4;i++) loc_size[i]=L;
+  if(rank==0)
+    cout<<"Global lattice:\t"<<glb_size[0]<<"x"<<glb_size[1]<<"x"<<glb_size[2]<<"x"<<glb_size[3]<<endl;
+
+  for(int i=0;i<4;i++) loc_size[i]=glb_size[i];
 
   MPI_Get_processor_name(proc_name,&i);
   MPI_Dims_create(rank_tot,4,nproc_dir);
   if(rank==0)
     {
-      cout<<endl;
       cout<<"Creating grid\t"<<nproc_dir[0]<<"x"<<nproc_dir[1]<<"x"<<nproc_dir[2]<<"x"<<nproc_dir[3]<<endl;
       cout.flush();
     }
 
-  if((nproc_dir[0]<1||nproc_dir[1]<1||nproc_dir[2]<1||nproc_dir[3]<1)||(loc_size[1]%nproc_dir[1]!=0||loc_size[2]%nproc_dir[2]!=0||loc_size[3]%nproc_dir[3]!=0||T%nproc_dir[0]!=0))
+  bool ok=1;
+  for(int idir=0;idir<4;idir++)
+    {
+      ok=ok and (nproc_dir[idir]>0);
+      ok=ok and (glb_size[idir]%nproc_dir[idir]==0);
+    }
+
+  if(!ok)
     {
       if(rank==0)
 	{
-	  cerr<<"The lattice cannot be properly mapped on the name grid"<<endl;
-	  cerr<<"Aborting...!"<<endl;
+	  cerr<<"The lattice is incommensurable with the total processor amount"<<endl;
 	  cerr.flush();
 	}
       MPI_Abort(MPI_COMM_WORLD,1);
@@ -78,6 +87,15 @@ void init_grid()
       exit(-1);
     }
   
+  //Calculate locale and global volume
+  glb_vol=1;
+  for(i=0;i<4;i++)
+    {
+      loc_size[i]=glb_size[i]/nproc_dir[i];
+      glb_vol*=glb_size[i];
+    }
+  loc_vol=glb_vol/rank_tot;
+
   if(rank==0)
     {
       cout<<"Local volume\t"<<loc_size[0]<<"x"<<loc_size[1]
@@ -85,21 +103,13 @@ void init_grid()
       cout<<endl;
     }
 
-  loc_size[0]=T/nproc_dir[0];
-  loc_vol=loc_size[0];
-  for(i=1;i<4;i++)
-    {
-      loc_size[i]/=nproc_dir[i];
-      loc_vol*=loc_size[i];
-    }
-
   MPI_Cart_create(MPI_COMM_WORLD,4,nproc_dir,periods,1,&cart_comm);
   MPI_Comm_rank(cart_comm,&cart_rank);
-  MPI_Cart_coords(cart_comm,cart_rank,4,proc_pos);
+  MPI_Cart_coords(cart_comm,cart_rank,4,proc_coord);
 
   cout<<"Process "<<rank<<" of "<<rank_tot<<" on "<<proc_name
-      <<": cart_id "<<cart_rank<<", coordinates ("<<proc_pos[0]
-      <<" "<<proc_pos[1]<<" "<<proc_pos[2]<<" "<<proc_pos[3]<<")"
+      <<": cart_id "<<cart_rank<<", coordinates ("<<proc_coord[0]
+      <<" "<<proc_coord[1]<<" "<<proc_coord[2]<<" "<<proc_coord[3]<<")"
       <<endl;
   cout.flush();
   
