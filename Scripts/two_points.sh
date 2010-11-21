@@ -301,7 +301,6 @@ do
 	
 	echo $ncombo >> $base_2pts/input
 	
-	list_targ_combo=""
 	for itheta1 in $two_points_theta1
 	do
 	    theta1=${list_theta[$itheta1]}
@@ -321,12 +320,8 @@ do
 				
 				iprop1=$(( $itheta1 * $nmu + $imu1 ))
 				iprop2=$(( $itheta2 * $nmu + $imu2 ))
-				
-				targ_combo=$base_2pts/$theta1\_$mu1\_$if1\_$theta2\_$mu2\_$if2\_
-				
-				echo $iprop1 $if1 $iprop2 $if2 $targ_combo >> $base_2pts/input
-				
-				list_targ_combo=$list_targ_combo$targ_combo" "
+								
+				echo $iprop1 $if1 $iprop2 $if2 >> $base_2pts/input
 			    done
 			done
 		    done
@@ -336,25 +331,6 @@ do
 	
         $MPI_AH_PREF $base_ahmidas/$prog_contr $base_2pts/input
 	
-        #let's put together all the micro-correlations needed for the macro correlations
-        #put all the needed volume factor, and translate the corr. to the origin
-	for targ_combo in $list_targ_combo
-	do
-
-	    echo $targ_combo
-
-            for contr in ${two_points_correlations[@]}
-            do
-                awk '
-                    {a=a$3" ";b=b"'$targ_combo'"$1"_"$2" "}
-                 END{print a;system("paste "b)}' $base_nissa/Data/Correlations_content/$contr|awk '
-               NR==1{n=NF;for(i=1;i<=n;i++)c[i]=$i/n}
-                NR>1{x=0;y=0;for(i=1;i<=n;i++){x+=$(2*i-1)*c[i];y+=$(2*i)*c[i]};printf("%.12g\t%.12g\n",x,y)}' > $targ_combo\_$contr
-            done
-            #rm -fv $targ_combo\_*_*
-
-	done
-
         #take time
 	tac=$tic
 	tic=$(date +%s)
