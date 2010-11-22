@@ -74,7 +74,7 @@ void write_spincolor(char *path,spincolor *spinor)
 	  "<lz>%d</lz>\n"
 	  "<lt>%d</lt>\n"
 	  "</etmcFormat>",
-	  64,1,glb_size[0],glb_size[1],glb_size[2],glb_size[3]);
+	  64,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
   write_text_record(writer,propagator_format_header,propagator_format_message);
 
   //Write the binary data
