@@ -2,7 +2,7 @@
 
 #include <lemon.h>
 #include <lime.h>
-#include "revert_endianess.cpp"
+#include "endianess.cpp"
 
 using namespace std;
 
@@ -14,7 +14,11 @@ void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
   char *header_type=NULL;
   int glb_dims[4]={glb_size[0],glb_size[1],glb_size[2],glb_size[3]};
   int scidac_mapping[4]={0,1,2,3};
-  double *swapped_data=new double[loc_ndoubles_tot];
+
+  //swap the endianess if needed
+  double *swapped_data;
+  if(big_endian) swapped_data=new double[loc_ndoubles_tot];
+  else swapped_data=(double*) data;
 
   while(lemonReaderNextRecord(reader)!=LIME_EOF)
     {
@@ -32,13 +36,13 @@ void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
 	    }
 	  lemonReadLatticeParallelMapped(reader,swapped_data,ndoubles_per_site*sizeof(double),glb_dims,scidac_mapping);
 	  //swap the endianess
-	  revert_endianess_double_vector((double*)data,swapped_data,loc_ndoubles_tot);
+	  if(big_endian) revert_endianess_double_vector((double*)data,swapped_data,loc_ndoubles_tot);
 	}
     }
 
   if(rank==0) cout<<"Data read!"<<endl;
 
-  delete[] swapped_data;
+  if(big_endian) delete[] swapped_data;
 }
 
 //Read a whole spincolor
