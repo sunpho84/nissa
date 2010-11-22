@@ -314,7 +314,7 @@ do
 			for((imu1=0;imu1<nmu;imu1++))
 			do
 			    mu1=${list_mu[$imu1]}
-			    for((imu2=0;imu2<nmu;imu2++))
+			    for((imu2=imu1;imu2<nmu;imu2++))
 			    do
 				mu2=${list_mu[$imu2]}
 				
