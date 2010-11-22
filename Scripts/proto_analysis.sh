@@ -55,11 +55,11 @@ kappa=[kappac]
 musea=[musea]
 
 #List of two points functions
-two_points_correlations=(A0A0 A0P5 AKAK P5A0 P5P5 P5V0 S0S0 S0P5 TKAK TKTK V0A0 V0P5 V0V0 VKAK VKVK)
+two_points_correlations=(A0A0 A0P5 A0S0 AKAK BKBK P5A0 P5P5 P5S0 P5V0 S0A0 S0S0 S0V0 S0P5 TKTK V0A0 V0P5 V0S0 V0V0 VKAK VKVK)
 two_points_theta1=(0) #in the case you want more theta for the spectator
 
 #List of info for the three points
-three_points_correlations=(A0A0 A0P5 AKAK P5A0 P5P5 P5V0 S0S0 S0P5 TKAK TKTK V0A0 V0P5 V0V0 VKAK VKVK)
+three_points_correlations=(A0P5 AKP5 BKP5 P5P5 S0P5 TKP5 V0P5 VKP5)
 list_itheta_spec=(0 1)
 list_imu_spec=(0 1)
 list_f_spec=(0 1)
