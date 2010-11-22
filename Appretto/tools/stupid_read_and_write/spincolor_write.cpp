@@ -8,28 +8,12 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_mpi();
 
-  //The first node read the input file
-  if(rank==0)
-    {
-      ifstream input("input");
+  open_input("input");
 
-      bool ok=true;
+  read_int("L",glb_size[1]);
+  read_int("T",glb_size[0]);
 
-      ok=ok and (input>>glb_size[1]);
-      ok=ok and (input>>glb_size[0]);
-
-      input.close();
-
-      if(!ok)
-        {
-          cerr<<"Error in reading input file!"<<endl;
-          MPI_Abort(MPI_COMM_WORLD,1);
-          MPI_Finalize();
-          exit(1);
-        }
-
-      glb_size[2]=glb_size[3]=glb_size[1];
-    }
+  close_input();
 
   //and broadcast it to the other nodes
   MPI_Bcast(glb_size,4,MPI_INT,0,MPI_COMM_WORLD);

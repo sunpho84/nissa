@@ -55,6 +55,10 @@ void init_grid()
   int i,periods[4]={1,1,1,1};
   char proc_name[1024];
 
+  glb_size[2]=glb_size[3]=glb_size[1];
+  MPI_Bcast(glb_size,4,MPI_INT,0,MPI_COMM_WORLD);
+  MPI_Barrier(MPI_COMM_WORLD);
+
   if(rank==0)
     cout<<"Global lattice:\t"<<glb_size[0]<<"x"<<glb_size[1]<<"x"<<glb_size[2]<<"x"<<glb_size[3]<<endl;
 
