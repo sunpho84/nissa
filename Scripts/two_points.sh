@@ -272,7 +272,7 @@ do
 	) | awk '{print $1,$2}' > $base_2pts/micro_correlations 
 	nmicro=$(wc $base_2pts/micro_correlations | awk '{print $1}')
 	
-	ncombo=$(( 4 * $ntheta * $(( $ntheta + 1 )) / 2 * $nmu * $(( $nmu + 1 )) / 2 ))
+	ncombo=$(( 4 * $ntheta * ${#two_points_theta1[@]} * $nmu * $(( $nmu + 1 )) / 2 ))
 	echo "Ncombo: "$ncombo
 	
         nprop=$(( $ntheta * $nmu ))
@@ -301,7 +301,7 @@ do
 	
 	echo $ncombo >> $base_2pts/input
 	
-	for itheta1 in $two_points_theta1
+	for itheta1 in ${two_points_theta1[@]}
 	do
 	    theta1=${list_theta[$itheta1]}
 	    for((itheta2=0;itheta2<ntheta;itheta2++))
