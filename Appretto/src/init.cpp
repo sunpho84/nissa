@@ -3,6 +3,7 @@
 #include <mpi.h>
 #include <cstdlib>
 #include <iostream>
+#include "endianess.cpp"
 
 using namespace std;
 
@@ -11,6 +12,8 @@ void init_mpi()
   MPI_Init(NULL,NULL);
   MPI_Comm_size(MPI_COMM_WORLD,&rank_tot);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+
+  check_endianess();
 }
 
 //index runs as x,y,z,t (faster:x)

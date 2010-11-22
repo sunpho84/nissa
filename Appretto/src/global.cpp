@@ -7,6 +7,8 @@ int  nproc_dir[4]={0,0,0,0};
 int proc_coord[4]={0,0,0,0};
 int rank,rank_tot,cart_rank;
 
+int big_endian;
+
 MPI_Comm cart_comm;
 
 

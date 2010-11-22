@@ -1,7 +1,7 @@
 #pragma once
 
 #include <lemon.h>
-#include "revert_endianess.cpp"
+#include "endianess.cpp"
 
 using namespace std;
 
@@ -31,15 +31,20 @@ void write_double_vector(LemonWriter *writer,void *data,int ndoubles_per_site)
   write_header(writer,header,sizeof(double)*loc_ndoubles_tot*rank_tot);
 
   //swap the endianess
-  double *swapped_data=new double[loc_ndoubles_tot];
-  revert_endianess_double_vector(swapped_data,(double*)data,loc_ndoubles_tot);
+  double *swapped_data;
+  if(big_endian)
+    {
+      swapped_data=new double[loc_ndoubles_tot];
+      revert_endianess_double_vector(swapped_data,(double*)data,loc_ndoubles_tot);
+    }
+  else swapped_data=(double*) data;
 
   int glb_dims[4]={glb_size[0],glb_size[1],glb_size[2],glb_size[3]};
   int scidac_mapping[4]={0,1,2,3};
   lemonWriteLatticeParallelMapped(writer,swapped_data,ndoubles_per_site*sizeof(double),glb_dims,scidac_mapping);
 
-  //delete the swapped data
-  delete[] swapped_data;
+  //delete the swapped data, if created
+  if(big_endian) delete[] swapped_data;
 }
 
 //Write a whole spincolor
