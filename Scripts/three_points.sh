@@ -294,7 +294,7 @@ do
 	      echo "Ncombo: "$ncombo
 
 	      rm -vf input
-	      echo $L $T >> $base_3pts/input
+	      echo $L $T > $base_3pts/input
               echo $kappa >> $base_3pts/input
 	      echo $f_spec >> $base_3pts/input
               echo $tsource >> $base_3pts/input

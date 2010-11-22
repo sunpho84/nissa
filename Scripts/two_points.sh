@@ -278,7 +278,7 @@ do
         nprop=$(( $ntheta * $nmu ))
         echo "Nprop: "$nprop
 
-	echo $L $T >> $base_2pts/input
+	echo $L $T > $base_2pts/input
         echo $kappa >> $base_2pts/input
         echo $tsource >> $base_2pts/input
         echo $vol_fact >> $base_2pts/input
