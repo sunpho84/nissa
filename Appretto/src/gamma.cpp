@@ -80,4 +80,14 @@ void init_base_gamma()
   init_gamma(base_gamma[ 3],  2,0,-1 , 3,0,1  , 0,0,1  , 1,0,-1);
   init_gamma(base_gamma[ 4],  2,-1,0 , 3,-1,0 , 0,-1,0 , 1,-1,0);
   init_gamma(base_gamma[ 5],  0,1,0  , 1,1,0  , 2,-1,0 , 3,-1,0);
+  init_gamma(base_gamma[ 6],  3,0,1  , 2,0,1  , 1,0,1  , 0,0,1 );
+  init_gamma(base_gamma[ 7],  3,1,0  , 2,-1,0 , 1,1,0  , 0,-1,0);
+  init_gamma(base_gamma[ 8],  2,0,1  , 3,0,-1 , 0,0,1  , 1,0,-1);
+  init_gamma(base_gamma[ 9],  2,1,0  , 3,1,0  , 0,-1,0 , 1,-1,0);
+  init_gamma(base_gamma[10],  1,0,-1 , 0,0,-1 , 3,0,1  , 2,0,1 );
+  init_gamma(base_gamma[11],  1,-1,0 , 0,1,0  , 3,1,0  , 2,-1,0);
+  init_gamma(base_gamma[12],  0,0,-1 , 1,0,1  , 2,0,1  , 3,0,-1);
+  init_gamma(base_gamma[13],  1,0,1  , 0,0,1  , 3,0,1  , 2,0,1 );
+  init_gamma(base_gamma[14],  1,1,0  , 0,-1,0 , 3,1,0  , 2,-1,0);
+  init_gamma(base_gamma[15],  0,0,1  , 1,0,-1 , 2,0,1  , 3,0,-1);
 }
