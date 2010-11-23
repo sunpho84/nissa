@@ -48,14 +48,36 @@ void print_gamma(gamma &in)
     {
       int pos=in.pos[ir];
       for(int ic=0;ic<pos;ic++) cout<<"0,0\t";
-      cout<<in.entr[pos][0]<<","<<in.entr[pos][1]<<"\t";
+      cout<<in.entr[ir][0]<<","<<in.entr[ir][1]<<"\t";
       for(int ic=pos+1;ic<4;ic++) cout<<"0,0\t";
       cout<<endl;
     }
 }
 
 //Initialize the gamma matrix base and the rotators
+// base_gamma[ 0] = identity
+// base_gamma[ 1] = gamma_1
+// base_gamma[ 2] = gamma_2
+// base_gamma[ 3] = gamma_3
+// base_gamma[ 4] = gamma_0
+// base_gamma[ 5] = gamma_5
+// base_gamma[ 6] = gamma_15
+// base_gamma[ 7] = gamma_25
+// base_gamma[ 8] = gamma_35
+// base_gamma[ 9] = gamma_05
+// base_gamma[10] = gamma_01
+// base_gamma[11] = gamma_02
+// base_gamma[12] = gamma_03
+// base_gamma[13] = gamma_23
+// base_gamma[14] = gamma_31
+// base_gamma[15] = gamma_12
+
 void init_base_gamma()
 {
-  init_gamma(base_gamma[ 0],  0,1,0 , 1,1,0 , 2,1,0 , 3,1,0);
+  init_gamma(base_gamma[ 0],  0,1,0  , 1,1,0  , 2,1,0  , 3,1,0 );
+  init_gamma(base_gamma[ 1],  3,0,-1 , 2,0,-1 , 1,0,1  , 0,0,1 );
+  init_gamma(base_gamma[ 2],  3,-1,0 , 2,1,0  , 1,1,0  , 0,-1,0);
+  init_gamma(base_gamma[ 3],  2,0,-1 , 3,0,1  , 0,0,1  , 1,0,-1);
+  init_gamma(base_gamma[ 4],  2,-1,0 , 3,-1,0 , 0,-1,0 , 1,-1,0);
+  init_gamma(base_gamma[ 5],  0,1,0  , 1,1,0  , 2,-1,0 , 3,-1,0);
 }
