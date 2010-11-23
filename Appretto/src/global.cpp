@@ -1,5 +1,9 @@
 #pragma once
 
+#include <iostream>
+
+using namespace std;
+
 int **glb_coord,glb_size[4],glb_vol=0;
 int **loc_coord,loc_size[4],loc_vol=0;
 int *glb_of_loc_ind=NULL;
@@ -44,7 +48,7 @@ void complex_prod(complex a,complex b,complex c)
 //The product of a complex number by  the conjugate of the second
 void complex_conj_prod(complex a,complex b,complex c)
 {
-  a[0]=b[0]*c[0]-b[1]*c[1];
+  a[0]=b[0]*c[0]+b[1]*c[1];
   a[1]=-b[0]*c[1]+b[1]*c[0];
 }
 
@@ -60,3 +64,14 @@ typedef color spincolor[4];
 
 typedef spin spinspin[4];
 typedef spinspin colorspinspin[3];
+
+//Print a spinspin
+void print_spinspin(spinspin &s)
+{
+  for(int id1=0;id1<4;id1++)
+    {
+      for(int id2=0;id2<4;id2++) cout<<s[id1][id2][0]<<","<<s[id1][id2][1]<<"\t";
+      cout<<endl;
+    }
+}
+

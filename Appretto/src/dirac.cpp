@@ -44,7 +44,7 @@ void init_dirac(dirac_matr &out,
 
 //If the two dirac matrix in1 and in2 have the same position structure sum
 //them, otherwise it crashes
-void gamma_summ(dirac_matr &out,dirac_matr &in1,dirac_matr &in2)
+void dirac_summ(dirac_matr &out,dirac_matr &in1,dirac_matr &in2)
 {
   for(int ig=0;ig<4;ig++)
     if(in1.pos[ig]==in2.pos[ig])
