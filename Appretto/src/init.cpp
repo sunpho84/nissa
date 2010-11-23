@@ -5,7 +5,7 @@
 #include <iostream>
 #include "endianess.cpp"
 #include "random.cpp"
-#include "gamma.cpp"
+#include "dirac.cpp"
 
 using namespace std;
 
