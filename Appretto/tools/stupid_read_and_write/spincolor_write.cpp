@@ -5,13 +5,22 @@
 
 int main(int narg,char **arg)
 {
+  char filename[1024];
+
   //basic mpi initialization
   init_appretto();
 
-  open_input("input");
+  if(narg<2)
+    {
+      if(rank==0) cerr<<"Use: "<<arg[0]<<" input_file"<<endl;
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
+
+  open_input(arg[1]);
 
   read_int("L",glb_size[1]);
   read_int("T",glb_size[0]);
+  read_str("Filename",filename);
 
   close_input();
 
@@ -34,7 +43,6 @@ int main(int narg,char **arg)
 	  spinore[ivol][id1][ic1][im]=glb_of_loc_ind[ivol]*2+im;
 
   //Write the spinor
-  char filename[1024]="akatabum.00";  
   write_spincolor(filename,spinore);
   
   //////////////////////////////////////////////////////

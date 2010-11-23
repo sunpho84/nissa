@@ -32,7 +32,7 @@ void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
     {
       header_type=lemonReaderType(reader);
       if(rank==0) cout<<"found record: "<<header_type<<endl;
-      if (strcmp("scidac-binary-data",header_type)==0)
+      if(strcmp("scidac-binary-data",header_type)==0)
 	{
 	  int bytes=lemonReaderBytes(reader);
 	  int bytes_supposed=ndoubles_per_site*sizeof(double)*glb_vol;

@@ -8,7 +8,7 @@ int proc_coord[4]={0,0,0,0};
 int rank,rank_tot,cart_rank;
 
 int big_endian;
-const int debug=1;
+const int debug=2;
 
 MPI_Comm cart_comm;
 

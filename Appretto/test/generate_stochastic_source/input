@@ -1,4 +1,7 @@
 L 4
 T 8
 Seed 1
-TWall 7
+TakeSlice 1
+TWall 3
+NoiseType 4
+Filename source
