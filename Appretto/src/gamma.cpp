@@ -115,6 +115,8 @@ void print_gamma(gamma &in)
 
 void init_base_gamma()
 {
+  const double rad2=1./sqrt(2);
+
   init_gamma(base_gamma[ 0],  0,1,0  , 1,1,0  , 2,1,0  , 3,1,0 );
   init_gamma(base_gamma[ 1],  3,0,-1 , 2,0,-1 , 1,0,1  , 0,0,1 );
   init_gamma(base_gamma[ 2],  3,-1,0 , 2,1,0  , 1,1,0  , 0,-1,0);
@@ -131,4 +133,8 @@ void init_base_gamma()
   init_gamma(base_gamma[13],  1,0,1  , 0,0,1  , 3,0,1  , 2,0,1 );
   init_gamma(base_gamma[14],  1,1,0  , 0,-1,0 , 3,1,0  , 2,-1,0);
   init_gamma(base_gamma[15],  0,0,1  , 1,0,-1 , 2,0,1  , 3,0,-1);
+
+  init_gamma(Pplus ,          0,rad2,rad2  , 1,rad2,rad2  , 2,rad2,-rad2 , 3,rad2,-rad2);
+  init_gamma(Pminus,          0,rad2,-rad2 , 1,rad2,-rad2 , 2,rad2,rad2  , 3,rad2,rad2 );
+
 }
