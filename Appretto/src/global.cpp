@@ -17,7 +17,22 @@ const int ran2_ntab=32;
 int *ran2_idum,*ran2_idum2,**ran2_iv,*ran2_iy;
 bool random_initialized=false;
 
+//A complex number
 typedef double complex[2];
+
+//The sum of two complex number
+void complex_summ(complex a,complex b,complex c)
+{
+  a[0]=b[0]+c[0];
+  a[1]=b[1]+c[1];
+}
+
+//The product of two complex number
+void complex_prod(complex a,complex b,complex c)
+{
+  a[0]=b[0]*c[0]-a[1]*c[1];
+  a[1]=b[0]*c[1]+a[0]*c[1];
+}
 
 typedef complex spin[4];
 typedef complex color[3];

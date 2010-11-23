@@ -41,6 +41,47 @@ void init_gamma(gamma &out,
   out.entr[3][1]=ima3;
 }
 
+//If the two gamma in1 and in2 have the same position structure sum
+//them, otherwise it crashes
+void gamma_summ(gamma &out,gamma &in1,gamma &in2)
+{
+  for(int ig=0;ig<4;ig++)
+    if(in1.pos[ig]==in2.pos[ig])
+      {
+	out.pos[ig]=in1.pos[ig];
+	complex_summ(out.entr[ig],in1.entr[ig],in2.entr[ig]);
+      }
+    else 
+      {
+	if(rank==0) cerr<<"The two matrix passed to sum have different positions"<<endl;
+	MPI_Abort(MPI_COMM_WORLD,1);
+      }
+}
+
+//Assign to the first gamma the product of the second and the third
+void gamma_prod(gamma &out,gamma &in1,gamma &in2)
+{
+  //This is the line on the first matrix
+  for(int ig1=0;ig1<4;ig1++)
+    {
+      //This is the line to be taken on the second matrix
+      int ig2=in1.pos[ig1];
+
+      //For each line, then column of the output matrix which is
+      //different from 0 is the column of the second matrix different
+      //from 0 on the line with index equal to the column of the first
+      //matrix which is different from 0 (that is, ig2)
+      out.pos[ig1]=in2.pos[ig2];
+
+      //The entries of the output is, on each line, the complex
+      //product of the entries of the first matrix on that line, for
+      //the entries of the second matrix on the line with the index
+      //equal to the column of the first matrix which is different
+      //from 0 (which again is ig2)
+      complex_prod(out.entr[ig1],in1.entr[ig1],in2.entr[ig2]);
+    }
+}
+
 //Print the gamma on node 0
 void print_gamma(gamma &in)
 {
