@@ -7,7 +7,7 @@ void init_random(int seed)
 {
   const int im1=2147483563,ia1=40014;
   const int iq1=53668,ir1=12211;
-  int i,j,k;
+  int j,k;
 
   //Generate the true seed
   if(rank==0)

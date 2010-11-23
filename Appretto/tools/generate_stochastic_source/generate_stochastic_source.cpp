@@ -48,6 +48,7 @@ int main(int narg,char **arg)
 	  else spinore[loc_site][id1][ic1][0]=spinore[loc_site][id1][ic1][1]=0;
 	  if(rank==0) cout<<loc_site<<endl;
 	}
+  MPI_Barrier(MPI_COMM_WORLD);
   write_spincolor(filename,spinore);
 
   //swap the other three spinor
@@ -61,6 +62,8 @@ int main(int narg,char **arg)
 	      swap(spinore[loc_site][id1][ic1][0],spinore[loc_site][id1-1][ic1][0]);
 	      swap(spinore[loc_site][id1][ic1][1],spinore[loc_site][id1-1][ic1][1]);
 	    }
+      MPI_Barrier(MPI_COMM_WORLD);
+      write_spincolor(filename,spinore);
     }
 
   //////////////////////////////////////////////////////
