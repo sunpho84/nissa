@@ -36,6 +36,21 @@ int main(int narg,char **arg)
 
   read_colorspinspin(base_filename,spinore);
 
+  if(rank==0)
+    for(int loc_site=0;loc_site<loc_vol;loc_site++)
+      for(int ic=0;ic<3;ic++)
+	{
+	  for(int id_sink=0;id_sink<4;id_sink++)
+	    {
+	      for(int id_source=0;id_source<4;id_source++)
+		cout<<spinore[loc_site][ic][id_source][id_sink][0]<<","<<spinore[loc_site][ic][id_source][id_sink][0]<<"\t"<<endl;
+	      cout<<endl;
+	    }
+	  cout<<endl;
+	}
+	      
+  delete[] spinore;
+
   ///////////////////////////////////////////
 
   close_appretto();

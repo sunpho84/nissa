@@ -5,3 +5,4 @@
 #include "reader.cpp"
 #include "input.cpp"
 #include "dirac.cpp"
+#include "contract.cpp"

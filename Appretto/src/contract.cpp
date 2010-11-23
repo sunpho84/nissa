@@ -5,9 +5,20 @@ void trace_g_sdag_g_s(complex c,dirac_matr &g1,spinspin &s1,dirac_matr &g2,spins
 {
   spinspin t1,t2;
   
-  for(int id=0;id<4;id++)
+  spinspin_dirac_spinspindag_prod(t1,g1,s1);
+  if(rank==0)
     {
+      print_spinspin(t1);
+      cout<<endl;
     }
-  trace_prod_spinspins(c,t1,t2));
+
+  spinspin_dirac_spinspin_prod(t2,g2,s2);
+  if(rank==0)
+    {
+      print_spinspin(t2);
+      cout<<endl;
+    }
+
+  trace_prod_spinspins(c,t1,t2);
 }
 
