@@ -27,12 +27,30 @@ void complex_summ(complex a,complex b,complex c)
   a[1]=b[1]+c[1];
 }
 
+//Summ to the output the product of two complex number
+void complex_summ_the_prod(complex a,complex b,complex c)
+{
+  a[0]+=b[0]*c[0]-b[1]*c[1];
+  a[1]+=b[0]*c[1]+b[1]*c[0];
+}
+
 //The product of two complex number
 void complex_prod(complex a,complex b,complex c)
 {
-  a[0]=b[0]*c[0]-a[1]*c[1];
-  a[1]=b[0]*c[1]+a[0]*c[1];
+  a[0]=b[0]*c[0]-b[1]*c[1];
+  a[1]=b[0]*c[1]+b[1]*c[0];
 }
+
+//The product of a complex number by  the conjugate of the second
+void complex_conj_prod(complex a,complex b,complex c)
+{
+  a[0]=b[0]*c[0]-b[1]*c[1];
+  a[1]=-b[0]*c[1]+b[1]*c[0];
+}
+
+//the real amd imaginary unit
+complex ONE={1,0};
+complex I={0,1};
 
 typedef complex spin[4];
 typedef complex color[3];
