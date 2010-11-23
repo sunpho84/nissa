@@ -9,6 +9,14 @@ using namespace std;
 //Write a vector of doubles
 void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
 {
+  //take initial time
+  double tic;
+  if(debug)
+    {
+      MPI_Barrier(cart_comm);
+      tic=MPI_Wtime();
+    }
+
   int loc_ndoubles_tot=ndoubles_per_site*loc_vol;
 
   char *header_type=NULL;

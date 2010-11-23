@@ -25,6 +25,14 @@ void write_text_record(LemonWriter *writer,char *header,char *message)
 //Write a vector of doubles
 void write_double_vector(LemonWriter *writer,void *data,int ndoubles_per_site)
 {
+  //take initial time
+  double tic;
+  if(debug)
+    {
+      MPI_Barrier(cart_comm);
+      tic=MPI_Wtime();
+    }
+
   int loc_ndoubles_tot=ndoubles_per_site*loc_vol;
 
   char header[1024]="scidac-binary-data";
@@ -45,6 +53,16 @@ void write_double_vector(LemonWriter *writer,void *data,int ndoubles_per_site)
 
   //delete the swapped data, if created
   if(big_endian) delete[] swapped_data;
+
+  //take final time
+  double tac;
+  if(debug)
+    {
+      MPI_Barrier(cart_comm);
+      tac=MPI_Wtime();
+
+      if(rank==0) cout<<"Time elapsed in writing: "<<tac-tic<<" s"<<endl;
+    }
 }
 
 //Write a whole spincolor
