@@ -106,8 +106,6 @@ int main(int narg, char **arg)
       prop[iprop][1]->rotateToPhysicalBasis(1);
     }
 
-  std::vector<Core::Correlator<Dirac::Matrix> > C2;
-
   int ncombo;
   ifile>>ncombo;
   ofstream fout;
@@ -118,6 +116,9 @@ int main(int narg, char **arg)
 
   for(int icombo=0;icombo<ncombo;icombo++)
     {
+
+      std::vector<Core::Correlator<Dirac::Matrix> > C2;
+
       int iprop1,iprop2,if1,if2;
       ifile>>iprop1>>if1>>iprop2>>if2;
       if(isr)
@@ -136,21 +137,23 @@ int main(int narg, char **arg)
       C2=Contract::light_meson_twopoint(*(prop[iprop1][if1]),*(prop[iprop2][if2]),op_comb);
 #endif
       if(isr)
-	{
-	  for(int icontr=0;icontr<ncontr;icontr++)
-	    {
-	      fout<<" # op1 = "<<op_comb[icontr].first<<" , op2 = "<<op_comb[icontr].second<<endl;
-	      C2[icontr].setOffset(tss);
-	      C2[icontr]*=1/norm;
+       	{
+          for(int icontr=0;icontr<ncontr;icontr++)
+            {
+              fout<<" # op1 = "<<op_comb[icontr].first<<" , op2 = "<<op_comb[icontr].second<<endl;
+       	      C2[icontr].setOffset(tss);
+              C2[icontr]*=1/norm;
 	      for(int t=0;t<T;t++)
-		{
-		  complex<double> corr=C2[icontr][t].trace();
-		  fout<<corr.real()<<" "<<corr.imag()<<endl;
-		}
-	      fout<<endl;
-	    }
-	  fout<<endl;
-	}
+                {
+                  complex<double> corr=C2[icontr][t].trace();
+                  fout<<corr.real()<<" "<<corr.imag()<<endl;
+                }
+              fout<<endl;
+            }
+          fout<<endl;
+
+	  C2.clear();
+        }
     }
   
   if(isr) fout.close();

@@ -4,3 +4,4 @@
 #include "writer.cpp"
 #include "reader.cpp"
 #include "input.cpp"
+#include "gamma.cpp"

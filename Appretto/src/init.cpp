@@ -5,6 +5,7 @@
 #include <iostream>
 #include "endianess.cpp"
 #include "random.cpp"
+#include "gamma.cpp"
 
 using namespace std;
 
@@ -15,6 +16,7 @@ void init_appretto()
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
 
   check_endianess();
+  init_base_gamma();
 }
 
 //index runs as x,y,z,t (faster:x)
