@@ -8,13 +8,22 @@ using namespace std;
 
 int main(int narg,char **arg)
 {
-  //basic initialization
+  char filename[1024];
+
+  //basic mpi initialization
   init_appretto();
 
-  open_input("input");
+  if(narg<2)
+    {
+      if(rank==0) cerr<<"Use: "<<arg[0]<<" input_file"<<endl;
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
+
+  open_input(arg[1]);
 
   read_int("L",glb_size[1]);
   read_int("T",glb_size[0]);
+  read_str("Filename",filename);
 
   close_input();
 
@@ -25,7 +34,6 @@ int main(int narg,char **arg)
 
   spincolor *spinore=new spincolor[loc_vol];
 
-  char filename[1024]="akatabum.00";
   read_spincolor(filename,spinore);
 
   //Print the spincolor

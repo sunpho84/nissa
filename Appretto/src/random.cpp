@@ -14,8 +14,10 @@ void init_random(int seed)
     {
       srand(seed);
       seed=rand();
-      MPI_Bcast(&seed,1,MPI_INT,0,MPI_COMM_WORLD);
+      if(debug) cout<<"New seed generated, "<<seed<<endl;
     }
+  MPI_Bcast(&seed,1,MPI_INT,0,MPI_COMM_WORLD);
+  if(debug and rank==1) cout<<"Rank "<<rank<<" seed received: "<<seed<<endl;
 
   if(rank==0 and loc_vol==0)
     {

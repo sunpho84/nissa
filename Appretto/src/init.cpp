@@ -53,6 +53,8 @@ void set_geometry()
 
 	    glb_of_loc_ind[loc_ind]=glb_ind;
           }
+
+  if(rank==0 and debug) cout<<"Geometry intialized"<<endl;
 }
 
 void init_grid()

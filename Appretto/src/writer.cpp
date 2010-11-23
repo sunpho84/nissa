@@ -70,7 +70,10 @@ void write_spincolor(char *path,spincolor *spinor)
 {
   //Open the file
   MPI_File *writer_file=new MPI_File;
-  MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
+  int status;
+  status=MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
+  if(rank==0 and debug>1) cout<<"File "<<path<<" opened with status: "<<status<<endl;
+
   MPI_File_set_size(*writer_file,0);
   LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
 
