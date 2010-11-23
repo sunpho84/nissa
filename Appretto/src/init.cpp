@@ -4,10 +4,11 @@
 #include <cstdlib>
 #include <iostream>
 #include "endianess.cpp"
+#include "random.cpp"
 
 using namespace std;
 
-void init_mpi()
+void init_appretto()
 {
   MPI_Init(NULL,NULL);
   MPI_Comm_size(MPI_COMM_WORLD,&rank_tot);
@@ -56,6 +57,15 @@ void set_geometry()
 
 void init_grid()
 {
+  //take initial time
+  double tic;
+  if(debug)
+    {
+      MPI_Barrier(MPI_COMM_WORLD);
+      tic=MPI_Wtime();
+    }
+
+
   int i,periods[4]={1,1,1,1};
   char proc_name[1024];
 
@@ -70,7 +80,7 @@ void init_grid()
 
   MPI_Get_processor_name(proc_name,&i);
   MPI_Dims_create(rank_tot,4,nproc_dir);
-  if(rank==0)
+  if(rank==0 && debug==1)
     {
       cout<<"Creating grid\t"<<nproc_dir[0]<<"x"<<nproc_dir[1]<<"x"<<nproc_dir[2]<<"x"<<nproc_dir[3]<<endl;
       cout.flush();
@@ -115,13 +125,26 @@ void init_grid()
   MPI_Comm_rank(cart_comm,&cart_rank);
   MPI_Cart_coords(cart_comm,cart_rank,4,proc_coord);
 
-  cout<<"Process "<<rank<<" of "<<rank_tot<<" on "<<proc_name
-      <<": cart_id "<<cart_rank<<", coordinates ("<<proc_coord[0]
-      <<" "<<proc_coord[1]<<" "<<proc_coord[2]<<" "<<proc_coord[3]<<")"
-      <<endl;
-  cout.flush();
+  if(debug>2)
+    {
+      cout<<"Process "<<rank<<" of "<<rank_tot<<" on "<<proc_name
+	  <<": cart_id "<<cart_rank<<", coordinates ("<<proc_coord[0]
+	  <<" "<<proc_coord[1]<<" "<<proc_coord[2]<<" "<<proc_coord[3]<<")"
+	  <<endl;
+      cout.flush();
   
-  MPI_Barrier(MPI_COMM_WORLD);
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+
+  //take final time
+  double tac;
+  if(debug)
+    {
+      MPI_Barrier(MPI_COMM_WORLD);
+      tac=MPI_Wtime();
+
+      if(rank==0) cout<<"Time elapsed for MPI inizialization: "<<tac-tic<<" s"<<endl;
+    }
 
   set_geometry();
 }

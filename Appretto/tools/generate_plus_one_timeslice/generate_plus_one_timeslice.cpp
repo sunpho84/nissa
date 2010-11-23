@@ -7,8 +7,8 @@ int main(int narg,char **arg)
 {
   int TWall;
 
-  //basic mpi initialization
-  init_mpi();
+  //basic initialization
+  init_appretto();
 
   open_input("input");
 
@@ -17,10 +17,6 @@ int main(int narg,char **arg)
   read_int("TWall",TWall);
 
   close_input();
-
-  //and broadcast it to the other nodes
-  MPI_Bcast(glb_size,4,MPI_INT,0,MPI_COMM_WORLD);
-  MPI_Barrier(MPI_COMM_WORLD);
 
   //Init the MPI grid
   init_grid();
@@ -32,11 +28,14 @@ int main(int narg,char **arg)
 
   for(int id1=0;id1<4;id1++)
     {
-      sprintf(filename,"spinor.0%d",id1);
+      sprintf(filename,"source.0%d",id1);
       for(int ivol=0;ivol<loc_vol;ivol++)
 	for(int id2=0;id2<4;id2++)
 	  for(int ic1=0;ic1<3;ic1++)
 	    {
+	      spinore[ivol][id2][ic1][0]=1-2*(rand()>RAND_MAX/2);
+	      spinore[ivol][id2][ic1][1]=0;
+
 	      if(id1==id2 && glb_coord[ivol][0]==TWall) spinore[ivol][id2][ic1][0]=1;
 	      else spinore[ivol][id2][ic1][0]=0;
 	      spinore[ivol][id2][ic1][1]=0;
@@ -47,7 +46,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////////////////////////////
 
-  MPI_Finalize();
+  close_appretto();
 
   return 0;
 }

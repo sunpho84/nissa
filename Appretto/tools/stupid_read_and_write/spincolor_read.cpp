@@ -8,8 +8,8 @@ using namespace std;
 
 int main(int narg,char **arg)
 {
-  //basic mpi initialization
-  init_mpi();
+  //basic initialization
+  init_appretto();
 
   open_input("input");
 
@@ -38,7 +38,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  MPI_Finalize();
+  close_appretto();
 
   return 0;
 }
