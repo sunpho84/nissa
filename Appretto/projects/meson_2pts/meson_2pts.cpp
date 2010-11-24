@@ -48,7 +48,7 @@ int main(int narg,char **arg)
       MPI_Barrier(cart_comm);
       tic=MPI_Wtime();
     }
-  trace_g_sdag_g_s(contr,base_gamma[0],spinore1,base_gamma[0],spinore2);
+  contract_two_spinspins(contr,base_gamma[5],spinore1,base_gamma[5],spinore2,-1,-1);
   //take final time
   double tac;
   if(debug)
