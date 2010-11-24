@@ -29,6 +29,13 @@ void read_int(int &in)
   MPI_Bcast(&in,1,MPI_INT,0,MPI_COMM_WORLD);
 }
 
+//Read a double from the file
+void read_double(double &in)
+{
+  if(rank==0) input_global>>in;
+  MPI_Bcast(&in,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+}
+
 //Read a string from the file
 void read_str(char *str,int length)
 {
