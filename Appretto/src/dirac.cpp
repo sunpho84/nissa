@@ -62,6 +62,8 @@ void dirac_summ(dirac_matr &out,dirac_matr &in1,dirac_matr &in2)
 //Assign to the first dirac matrixes the product of the second and the third
 void dirac_prod(dirac_matr &out,dirac_matr &in1,dirac_matr &in2)
 {
+  dirac_matr temp; //this is needed to avoid to overwrite one of the input
+
   //This is the line on the first matrix
   for(int ig1=0;ig1<4;ig1++)
     {
@@ -72,15 +74,18 @@ void dirac_prod(dirac_matr &out,dirac_matr &in1,dirac_matr &in2)
       //different from 0 is the column of the second matrix different
       //from 0 on the line with index equal to the column of the first
       //matrix which is different from 0 (that is, ig2)
-      out.pos[ig1]=in2.pos[ig2];
-
+      temp.pos[ig1]=in2.pos[ig2];
+      
       //The entries of the output is, on each line, the complex
       //product of the entries of the first matrix on that line, for
       //the entries of the second matrix on the line with the index
       //equal to the column of the first matrix which is different
       //from 0 (which again is ig2)
-      complex_prod(out.entr[ig1],in1.entr[ig1],in2.entr[ig2]);
+      complex_prod(temp.entr[ig1],in1.entr[ig1],in2.entr[ig2]);
     }
+  
+  memcpy(out.pos,temp.pos,sizeof(int)*4);
+  memcpy(out.entr,temp.entr,sizeof(complex)*4);  
 }
 
 //Assign to the first dirac the product of the second by the complex
@@ -178,8 +183,4 @@ void trace_prod_spinspins(complex c,spinspin &a,spinspin &b)
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
       complex_summ_the_prod(c,a[id1][id2],b[id2][id1]);
-
-  //to be checked
-  //c[0]*=0.25;
-  //c[1]*=0.25;
 }
