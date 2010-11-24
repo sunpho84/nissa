@@ -50,6 +50,14 @@ void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
 
   if(rank==0) cout<<"Data read!"<<endl;
 
+  if(debug)
+    {
+      MPI_Barrier(cart_comm);
+      tac=MPI_Wtime();
+
+      if(rank==0) cout<<"Time elapsed in writing: "<<tac-tic<<" s"<<endl;
+    }
+
   if(big_endian) delete[] swapped_data;
 }
 
