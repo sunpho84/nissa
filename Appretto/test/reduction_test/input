@@ -1,4 +1,6 @@
-L 16
-T 32
-BaseFilename1 prop1
-BaseFilename2 prop2
+L 4
+T 8
+BaseFilename1 source
+BaseFilename2 source
+NContr 1
+       5 5
