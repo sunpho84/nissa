@@ -53,7 +53,7 @@ void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
   if(debug)
     {
       MPI_Barrier(cart_comm);
-      tac=MPI_Wtime();
+      double tac=MPI_Wtime();
 
       if(rank==0) cout<<"Time elapsed in writing: "<<tac-tic<<" s"<<endl;
     }
