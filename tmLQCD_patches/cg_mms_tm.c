@@ -207,7 +207,9 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
       destruct_writer(writer);
 
       for(im = 0; im < g_no_extra_masses; im++) {
-
+	
+	g_mu = g_extra_masses[im];
+	
 	/*
 	sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, im+1);
 
@@ -250,9 +252,11 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
 	write_propagator_format(writer, propagatorFormat);
 	free(propagatorFormat);
 	write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, 64);
-	destruct_writer(writer);
-	
+	destruct_writer(writer);	
       }
+
+      g_mu = tmp_mu;
+
       return(iteration+1);
     }
     
