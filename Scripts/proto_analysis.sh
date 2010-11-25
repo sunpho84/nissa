@@ -1,5 +1,5 @@
 # @ shell = /bin/bash
-# @ job_name = job_strunz
+# @ job_name = job
 # @ error  = $(job_name).$(jobid).err
 # @ output = $(job_name).$(jobid).out
 # @ environment = COPY_ALL

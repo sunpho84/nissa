@@ -33,7 +33,7 @@ then
     echo -e Number of cores: $LOADL_BG_SIZE
     
     MPI_TM_PREF="mpirun -np "$((4*$LOADL_BG_SIZE))" -mode VN"
-    MPI_AH_PREF="mpirun -np "$((4*$LOADL_BG_SIZE))" -mode VN"
+    MPI_AH_PREF="mpirun -np "$((4*$LOADL_BG_SIZE))" -mode VN -env \"DCMF_EAGER=500000000\" -mapfile TXYZ"
 
     USE_MPI=1
 
