@@ -78,7 +78,10 @@ void init_grid()
   MPI_Barrier(MPI_COMM_WORLD);
 
   if(rank==0)
-    cout<<"Global lattice:\t"<<glb_size[0]<<"x"<<glb_size[1]<<"x"<<glb_size[2]<<"x"<<glb_size[3]<<endl;
+    {
+      cout<<endl<<"Number of running processes: "<<rank_tot<<endl;
+      cout<<"Global lattice:\t"<<glb_size[0]<<"x"<<glb_size[1]<<"x"<<glb_size[2]<<"x"<<glb_size[3]<<endl;
+    }
 
   for(int i=0;i<4;i++) loc_size[i]=glb_size[i];
 

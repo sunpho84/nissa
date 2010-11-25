@@ -16,7 +16,7 @@ void revert_endianess_double_vector(double *dest,double *sour,int ndoubles)
 {
   char *cdest,*csour;
 
-  if(rank==0) cout<<"Reverting the endianess ot the data"<<endl;
+  if(rank==0 and debug>1) cout<<"Reverting the endianess ot the data"<<endl;
 
   for(int idouble=0;idouble<ndoubles;idouble++)
     {
