@@ -103,7 +103,7 @@ do
           #take time 
 	  tac=$tic
 	  tic=$(date +%s)
-	  echo "Time to generate source: "$(($tic-$tac)) >> $base_conf/time_log
+	  echo "Time to generate the sequential source: "$(($tic-$tac)) >> $base_conf/time_log
 
 	  echo "######################## SECOND STEP: Inversion of doublet ############################"
 	  echo
@@ -177,7 +177,7 @@ do
 		for imu1 in $(seq -f%02.0f 00 $(( ${#list_mu[@]} - 1 )) )
 		do
 		    
-		    mu1=${list_mu[$imu1]}
+		    mu1=${10#list_mu[$imu1]}
 		    mkdir -pv $targ/$mu1/
 				    
 		    for ics in $(seq -f%02.0f 00 $last_prop_index)
