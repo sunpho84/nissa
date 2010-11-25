@@ -26,7 +26,7 @@ int compute_allocable_propagators(int nprop_list)
       if(rank==0) cerr<<"Error: not enough memory for two propagators"<<endl;
       MPI_Abort(MPI_COMM_WORLD,1);
     }
-  else if(debug and rank==0) cout<<"Ok there is enough memory to load two propagators"<<endl;
+  else if(debug>1 and rank==0) cout<<"Ok there is enough memory to load two propagators"<<endl;
 
   free(fuf);
 
@@ -168,13 +168,13 @@ int main(int narg,char **arg)
       read_int(r_prop1[iprop]);
 
       if(debug and rank==0)
-	cout<<" prop "<<iprop<<", m="<<mass_prop1[iprop]<<" th="<<theta_prop1[iprop]<<" phys="<<phys_prop1[iprop]<<" r="<<r_prop1[iprop]<<endl;
+	cout<<" prop."<<iprop<<" "<<base_filename1[iprop]<<", m="<<mass_prop1[iprop]<<" th="<<theta_prop1[iprop]<<" phys="<<phys_prop1[iprop]<<" r="<<r_prop1[iprop]<<endl;
     }
       
   //Read the number of propagators of the second list
   int nprop_list2;
   read_int("NPropSecondlist",nprop_list2);
-  if(rank==0) cout<<"Nprop of the first list: "<<nprop_list2<<endl;
+  if(rank==0) cout<<"Nprop of the second list: "<<nprop_list2<<endl;
 
   //Read the name, mass, theta and other flags for the second list
   char base_filename2[nprop_list2][1024];
@@ -191,12 +191,13 @@ int main(int narg,char **arg)
       read_int(r_prop2[iprop]);
 
       if(debug and rank==0)
-	cout<<" prop "<<iprop<<", m="<<mass_prop2[iprop]<<" th="<<theta_prop2[iprop]<<" phys="<<phys_prop2[iprop]<<" r="<<r_prop2[iprop]<<endl;
+	cout<<" prop"<<iprop<<" "<<base_filename2[iprop]<<", m="<<mass_prop2[iprop]<<" th="<<theta_prop2[iprop]<<" phys="<<phys_prop2[iprop]<<" r="<<r_prop2[iprop]<<endl;
     }
       
   //Read the number of contractions
   int ncontr;
   read_int("NContr",ncontr);
+  if(rank==0) cout<<"Number of contractions: "<<ncontr<<endl;
 
   //Initialize the list of correlations and the list of operators
   complex contr[ncontr][glb_size[0]];
@@ -208,7 +209,7 @@ int main(int narg,char **arg)
       read_int(op1[icontr]);
       read_int(op2[icontr]);
 
-      if(rank==0) cout<<" contr. "<<icontr<<" "<<op1[icontr]<<" "<<op2[icontr]<<endl;
+      if(rank==0 and debug) cout<<" contr."<<icontr<<" "<<op1[icontr]<<" "<<op2[icontr]<<endl;
     }
 
   close_input();
@@ -322,7 +323,11 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
- if(rank==0) fout.close();
+ if(rank==0)
+   {
+     cout<<endl<<"Everything ok, exiting!"<<endl;
+     fout.close();
+   }
 
   for(int iprop1=0;iprop1<nprop_per_block;iprop1++) delete[] spinor1[iprop1];
   delete[] spinor2;

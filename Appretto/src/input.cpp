@@ -25,21 +25,45 @@ void close_input()
 //Read an integer from the file
 void read_int(int &in)
 {
-  if(rank==0) input_global>>in;
+  if(rank==0)
+    {
+      bool ok=(input_global>>in);
+      if(!ok)
+	{
+	  cerr<<"Couldn't read from input file!!!"<<endl;
+	    MPI_Abort(MPI_COMM_WORLD,1);
+	}
+    }
   MPI_Bcast(&in,1,MPI_INT,0,MPI_COMM_WORLD);
 }
 
 //Read a double from the file
 void read_double(double &in)
 {
-  if(rank==0) input_global>>in;
+  if(rank==0)
+    {
+      bool ok=(input_global>>in);
+      if(!ok)
+	{
+	  cerr<<"Couldn't read from input file!!!"<<endl;
+	    MPI_Abort(MPI_COMM_WORLD,1);
+	}
+    }
   MPI_Bcast(&in,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
 }
 
 //Read a string from the file
 void read_str(char *str,int length)
 {
-  if(rank==0) input_global>>str;
+  if(rank==0)
+    {
+      bool ok=(input_global>>str);
+      if(!ok)
+	{
+	  cerr<<"Couldn't read from input file!!!"<<endl;
+	    MPI_Abort(MPI_COMM_WORLD,1);
+	}
+    }
   MPI_Bcast(str,length,MPI_BYTE,0,MPI_COMM_WORLD);
 }
 
@@ -63,7 +87,16 @@ void read_int(const char *exp_str,int &in)
   expect_str(exp_str);
   read_int(in);
 
-  if(rank==0) cout<<"Read variable '"<<exp_str<<"' with value: "<<in<<endl;
+  if(rank==0 and debug) cout<<"Read variable '"<<exp_str<<"' with value: "<<in<<endl;
+}
+
+//Read a double checking the tag
+void read_double(const char *exp_str,double &in)
+{
+  expect_str(exp_str);
+  read_double(in);
+
+  if(rank==0 and debug) cout<<"Read variable '"<<exp_str<<"' with value: "<<in<<endl;
 }
 
 //Read a string checking the tag
@@ -72,5 +105,5 @@ void read_str(const char *exp_str,char *in,int length=1024)
   expect_str(exp_str);
   read_str(in,length);
 
-  if(rank==0) cout<<"Read variable '"<<exp_str<<"' with value: "<<in<<endl;
+  if(rank==0 and debug) cout<<"Read variable '"<<exp_str<<"' with value: "<<in<<endl;
 }

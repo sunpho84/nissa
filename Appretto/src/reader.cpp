@@ -11,7 +11,7 @@ void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
 {
   //take initial time
   double tic;
-  if(debug)
+  if(debug>1)
     {
       MPI_Barrier(cart_comm);
       tic=MPI_Wtime();
@@ -31,7 +31,7 @@ void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
   while(lemonReaderNextRecord(reader)!=LIME_EOF)
     {
       header_type=lemonReaderType(reader);
-      if(rank==0) cout<<"found record: "<<header_type<<endl;
+      if(rank==0 and debug>1) cout<<"found record: "<<header_type<<endl;
       if(strcmp("scidac-binary-data",header_type)==0)
 	{
 	  int bytes=lemonReaderBytes(reader);
@@ -48,14 +48,14 @@ void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
 	}
     }
 
-  if(rank==0) cout<<"Data read!"<<endl;
+  if(rank==0 and debug>1) cout<<"Data read!"<<endl;
 
-  if(debug)
+  if(debug>1)
     {
       MPI_Barrier(cart_comm);
       double tac=MPI_Wtime();
 
-      if(rank==0) cout<<"Time elapsed in reading: "<<tac-tic<<" s"<<endl;
+      if(rank==0) cout<<"Time elapsed in reading "<<tac-tic<<" s"<<endl;
     }
 
   if(big_endian) delete[] swapped_data;
@@ -66,7 +66,12 @@ void read_spincolor(char *path,spincolor *spinor)
 {
   //Open the file
   MPI_File *reader_file=new MPI_File;
-  MPI_File_open(cart_comm,path,MPI_MODE_RDONLY,MPI_INFO_NULL,reader_file);
+  int ok=MPI_File_open(cart_comm,path,MPI_MODE_RDONLY,MPI_INFO_NULL,reader_file);
+  if(ok!=MPI_SUCCESS)
+    {
+      cerr<<"Couldn't open for reading the file: '"<<path<<"'"<<endl;
+      MPI_Abort(cart_comm,1);
+    }
   LemonReader *reader=lemonCreateReader(reader_file,cart_comm);
 
   read_double_vector(reader,spinor,sizeof(spincolor)/8);
@@ -78,6 +83,13 @@ void read_spincolor(char *path,spincolor *spinor)
 //Read 4 spincolor and revert their indexes
 void read_colorspinspin(char *base_path,colorspinspin *css)
 {
+  double tic;
+  if(debug)
+    {
+      MPI_Barrier(cart_comm);
+      tic=MPI_Wtime();
+    }
+
   char filename[1024];
   spincolor *sc=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
 
@@ -96,6 +108,14 @@ void read_colorspinspin(char *base_path,colorspinspin *css)
 	      css[loc_site][ic_sink][id_source][id_sink][0]=sc[loc_site][id_sink][ic_sink][0];
 	      css[loc_site][ic_sink][id_source][id_sink][1]=sc[loc_site][id_sink][ic_sink][1];
 	    }
+    }
+
+  if(debug)
+    {
+      MPI_Barrier(cart_comm);
+      double tac=MPI_Wtime();
+
+      if(rank==0) cout<<"Time elapsed in reading file '"<<base_path<<"': "<<tac-tic<<" s"<<endl;
     }
   
   //Destroy the temp

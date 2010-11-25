@@ -83,13 +83,17 @@ do
         then
             
             #Generate the wall4 source
-            sed '
-                 s|SED_NL|'$L'|;
-                 s|SED_NT|'$T'|;
-                 s|SED_NoiseType|'$source_nois'|;
-                 s|SED_Wall_T_Pos|'$tsource'|;
-                 s|SED_Seed|'$source_seed'|' $base_protos/generate_sthoc_wall_source_input.xml > generate_stochastic_source_input.xml
-            $MPI_AH_PREF $base_ahmidas/example/generate_stochastic_source
+            (
+		echo "L "$L
+		echo "T "$T
+		echo "Seed "$source_seed
+		echo "TakeSlice 1"
+		echo "TWall "$tsource
+		echo "NoiseType "$source_nois
+		echo "Filename source"
+	    )  > input
+
+            $MPI_TM_PREF $base_nissa/Appretto/tools/generate_stochastic_source/generate_stochastic_source input
             
 	elif [ $source_type == Wall1 ]
         then
@@ -134,21 +138,16 @@ do
       echo "In this workflow we invert only for all theta "
       echo
       
-      targ=$base_conf/Props/$source_name/$theta/
-      mkdir -pv $targ
+      base_inv=$base_conf/Props/$source_name/$theta/
+      mkdir -pv $base_inv
 
       echo "Inverting: "$source_name" "$theta
       
-      if [ ! -f $targ/completed ]
+      if [ ! -f $base_inv/completed ]
       then
-        #prepare the list of folders where to put final data
-	  for mu in ${list_mu[@]}
-	  do
-            mkdir -pv $targ/$mu/
-	  done
         
           #create additional masses list: first mass is included as base
-	  for mu in ${list_mu[@]};do echo $mu;done|awk 'NR>1{printf("%.12f\n",2*$1*'$kappa')}' > $targ/extra_masses.input
+	  for mu in ${list_mu[@]};do echo $mu;done|awk 'NR>1{printf("%.12f\n",2*$1*'$kappa')}' > $base_inv/extra_masses.input
 	  
           #prepare input for inverter
 	  mu=${list_mu[0]}
@@ -170,20 +169,20 @@ do
             s|SED_GaugeConfigInputFile|Conf|;
             s|SED_IndexEnd|'$last_prop_index'|;
             s|SED_SolverPrecision|'$source_prec'|
-            ' > $targ/inverter.input
+            ' > $base_inv/inverter.input
 	  
 	  OLD=$PWD
-	  cd $targ
+	  cd $base_inv
 	  
           #link configuration and source
 	  ln -vfs $base_conf/Conf Conf.$conf
 	  for i in $(seq -f%02.0f 00 $last_prop_index)
 	  do
-            ln -vsf $base_conf/Sources/$source_name/source.$i source.$conf.00.$i
+            ln -vsf $base_conf/Sources/$source_name/source.$i $base_inv/source.$conf.00.$i
 	  done
           
 	  $MPI_TM_PREF $base_tmLQCD/invert -f inverter.input
-
+	  
           #take time
 	  tac=$tic
 	  tic=$(date +%s)
@@ -211,17 +210,24 @@ do
 	    
             for ics in $(seq -f%02.0f 00 $last_prop_index)
             do
-	      
-	      orig=source.$conf.00.$ics.cgmms.$im.inverted
-	      dest=$mu/prop.$ics
-	      
-	      if [ ! -f $orig ]
-	      then
-		  echo "Could not find: "$orig
-		  exit
-	      else
-		  mv -v $orig $dest
-	      fi		    
+
+	      for if1 in 0 1
+	      do
+		
+		mkdir -vp $base_inv/$mu/$if1
+
+		orig=$base_inv/source.$conf.00.$ics.cgmms.$im.inverted.$if1
+		dest=$base_inv/$mu/$if1/prop.$ics
+		
+		if [ ! -f $orig ]
+		then
+		    echo "Could not find: "$orig
+		    exit
+		else
+		    mv -v $orig $dest
+		fi
+
+	      done	    
 	      
 	    done
 
@@ -249,8 +255,7 @@ do
         prog_contr=applications/contract_meson_2pts
     elif [ $source_type == "Wall4" ]
     then
-        vol_fact=$(( $L * $L * $L ))
-        prog_contr=applications/contract_meson_stochastic_2pts
+	prog_contr="Appretto/projects/meson_2pts/meson_2pts input"
     elif [ $source_type == "Wall1" ]
     then
         vol_fact=$(( $L * $L * $L ))
@@ -269,67 +274,51 @@ do
 	    cd $base_nissa/Data/Correlations_content/
 	    cat ${two_points_correlations[@]}
 	    cd $OLDPWD
-	) | awk '{print $1,$2}' > $base_2pts/micro_correlations 
+	) | awk '{print $1,$2}' > $base_2pts/micro_correlations
 	nmicro=$(wc $base_2pts/micro_correlations | awk '{print $1}')
 	
-	ncombo=$(( 4 * $ntheta * ${#two_points_theta1[@]} * $nmu * $(( $nmu + 1 )) / 2 ))
-	echo "Ncombo: "$ncombo
-	
-        nprop=$(( $ntheta * $nmu ))
-        echo "Nprop: "$nprop
+        nprop1=$(( 2 * $nmu ))
+        nprop2=$(( $nprop1 * $ntheta ))
+        echo "Nprop1: "$nprop1
+        echo "Nprop2: "$nprop2
 
-	echo $L $T > $base_2pts/input
-        echo $kappa >> $base_2pts/input
-        echo $tsource >> $base_2pts/input
-        echo $vol_fact >> $base_2pts/input
-        echo $base_conf/Conf >> $base_2pts/input
-        echo $nmicro >> $base_2pts/input
-	cat $base_2pts/micro_correlations >> $base_2pts/input
-        echo $nprop >> $base_2pts/input
-	for((itheta=0;itheta<ntheta;itheta++))
-	do
-	    
-	    theta=${list_theta[$itheta]}
-	    
-	    for((imu1=0;imu1<nmu;imu1++))
-	    do
-                mu=${list_mu[$imu1]}
-                echo $base_conf/Props/$source_name/$theta/$mu/prop. $mu $theta  >> $base_2pts/input
-	    done
-	    
-	done
-	
-	echo $ncombo >> $base_2pts/input
-	
+	echo "L "$L  > $base_2pts/input
+	echo "T "$T >> $base_2pts/input
+	echo "TWall "$tsource >> $base_2pts/input
+	echo "NPropFirstList "$nprop1 >> $base_2pts/input
 	for itheta1 in ${two_points_theta1[@]}
 	do
-	    theta1=${list_theta[$itheta1]}
-	    for((itheta2=0;itheta2<ntheta;itheta2++))
+	  theta1=${list_theta[$itheta1]}
+	  for((imu1=0;imu1<nmu;imu1++))
+	  do
+	    mu1=${list_mu[$imu1]}	
+	    for((if1=0;if1<2;if1++))
 	    do
-		theta2=${list_theta[$itheta2]}
-		for((if1=0;if1<2;if1++))
-		do
-		    for((if2=0;if2<2;if2++))
-		    do
-			for((imu1=0;imu1<nmu;imu1++))
-			do
-			    mu1=${list_mu[$imu1]}
-			    for((imu2=imu1;imu2<nmu;imu2++))
-			    do
-				mu2=${list_mu[$imu2]}
-				
-				iprop1=$(( $itheta1 * $nmu + $imu1 ))
-				iprop2=$(( $itheta2 * $nmu + $imu2 ))
-								
-				echo $iprop1 $if1 $iprop2 $if2 >> $base_2pts/input
-			    done
-			done
-		    done
-		done
+	      echo " "$base_conf/Props/$source_name/$theta1/$mu1/$if1/prop $mu1 $theta1 0 $if1 >> $base_2pts/input
 	    done
+	  done
 	done
-	
-        $MPI_AH_PREF $base_ahmidas/$prog_contr $base_2pts/input
+	echo "NPropSecondList "$nprop2 >> $base_2pts/input
+	for((itheta2=0;itheta2<ntheta;itheta2++))
+	do
+	  theta2=${list_theta[$itheta2]}
+	  for((imu2=0;imu2<nmu;imu2++))
+	  do
+	    mu2=${list_mu[$imu2]}	
+	    for((if2=0;if2<2;if2++))
+	    do
+	      echo " "$base_conf/Props/$source_name/$theta2/$mu2/$if2/prop $mu2 $theta2 0 $if2 >> $base_2pts/input
+	    done
+	  done
+	done
+
+	echo "Ncontr "$nmicro >> $base_2pts/input
+	cat $base_2pts/micro_correlations >> $base_2pts/input
+
+	echo
+	echo "Launching program: "$prog_contr
+	echo
+        $MPI_TM_PREF $base_nissa/$prog_contr $base_2pts/input
 	
         #take time
 	tac=$tic
