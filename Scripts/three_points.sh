@@ -22,8 +22,6 @@ echo
 for((is=0;is<nsource;is++))
 do
     
-    
-    
     echo "######################## FIRST STEP: Sequential source generation ##########################"
     echo
     echo "Initial Source number "$is" generation"
