@@ -32,10 +32,8 @@ then
     
     echo -e Number of cores: $LOADL_BG_SIZE
     
-#    MPI_TM_PREF="mpirun -np "$((4*$LOADL_BG_SIZE))" -mode VN"
-    MPI_TM_PREF="mpirun -mode SMP"
-#    MPI_AH_PREF="mpirun -np "$LOADL_BG_SIZE" -mode SMP"
-    MPI_AH_PREF="mpirun -mode SMP"
+    MPI_TM_PREF="mpirun -np "$((4*$LOADL_BG_SIZE))" -mode VN"
+    MPI_AH_PREF="mpirun -np "$((4*$LOADL_BG_SIZE))" -mode VN"
 
     USE_MPI=1
 
