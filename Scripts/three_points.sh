@@ -21,7 +21,9 @@ echo
 
 for((is=0;is<nsource;is++))
 do
-
+    
+    
+    
     echo "######################## FIRST STEP: Sequential source generation ##########################"
     echo
     echo "Initial Source number "$is" generation"
@@ -38,22 +40,16 @@ do
 
     if [ $source_type == "Point12" ]
     then
-	vol_fact=1
         last_prop_index=11
-        generate=generate_meson_sequential_source
-        prog_contr=contract_meson_3pts
     elif [ $source_type == "Wall4" ]
     then
-        vol_fact=$(( $L * $L * $L ))
         last_prop_index=3
-        generate=generate_meson_sequential_stochastic_source
-        prog_contr=contract_meson_stochastic_3pts
     elif [ $source_type == "Wall1" ]
     then
-        vol_fact=$(( $L * $L * $L ))
         last_prop_index=0
-        generate=generate_meson_sequential_ultrastochastic_source
-        prog_contr=contract_meson_ultrasthocastic_3pts
+    else
+        echo "Unknown source type"$source_type
+        exit
     fi
 
     #loops over the spectator
@@ -67,13 +63,21 @@ do
 
 	mu_spec=${list_mu[$imu_spec]}
       
-	for f_spec in ${list_f_spec[@]}
+	for r_spec in ${list_r_spec[@]}
 	do
 	
-	  echo "Generating sequential source from the original named: "$source_name" of type: "$source_type" with pars: "${source_pars[@]}" and seed: "$source_seed", for the "$theta_spec" theta, "$mu_spec" mass, "$f_spec" flavour"
+	  #choose the r1 flavor to have the charged combo
+	  if [ $r_spec == 0 ]
+	  then
+	      r1=1
+	  else
+	      r1=0
+	  fi
+
+	  echo "Generating sequential source from the original named: "$source_name" of type: "$source_type" with pars: "${source_pars[@]}" and seed: "$source_seed", for the "$theta_spec" theta, "$mu_spec" mass, "$r_spec" flavour"
 	
-	  source_dir=$base_conf/Props/$source_name/$theta_spec/$mu_spec
-	  targ_dir=$base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$f_spec
+	  source_dir=$base_conf/Props/$source_name/$theta_spec/$mu_spec/$r_spec
+	  targ_dir=$base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$r_spec
 	  
 	  if [ -d "$targ_dir" ]
 	  then
@@ -82,17 +86,7 @@ do
 	  else
 	      
 	      mkdir -pv $targ_dir
-	      cd $targ_dir
 	      
-	      #link the DD propagator
-	      for ics in $(seq -f%02.0f 00 $last_prop_index)
-	      do
-		ln -sfv $source_dir/prop.$ics
-	      done
-	    
-	      #link the configuration
-	      ln -sfv $base_conf/Conf Conf0
-	    
               #Generate the sequential p5 source input file
 	      TH=$(( $T / 2 ))
 
@@ -102,53 +96,10 @@ do
 	      else
 		  TSlice=$(( $tsource - $TH ))
 	      fi
-	      sed '
-                s|SED_NL|'$L'|;
-                s|SED_NT|'$T'|;
-                s|SED_NrXProcs|'${Nproc[0]}'|;
-                s|SED_NrYProcs|'${Nproc[1]}'|;
-                s|SED_NrZProcs|'${Nproc[2]}'|;
-                s|SED_Take_Slice|1|;
-                s|SED_Chosen_Slice|'$TSlice'|;
-                s|SED_S0_Flav|'$f_spec'|;
-                s|SED_Beta|'$beta'|;
-                s|SED_Kappa|'$kappa'|;
-                s|SED_Mu|'$mu_spec'|;
-                s|SED_IndexEnd|'$last_prop_index'|;
-                s|SED_ThetaX|'$theta_spec'|;
-                s|SED_ThetaY|'$theta_spec'|;
-                s|SED_ThetaZ|'$theta_spec'|;
-                ' $base_protos/generate_sequential_source_input.xml > generate_sequential_source_input.xml
-	    
-   	      #invoke the program
-	      $MPI_AH_PREF $base_ahmidas/applications/$generate generate_sequential_source_input.xml
-	      
-	      if [ "$?" ]
-	      then
-		  
-		  echo "Sequential source generated with success!"
-  		  #rm generate_*source*.xml
-		  
-		  for ics in $(seq -f%02.0f 00 $last_prop_index)
-		  do
-		    #rm -fv prop.$ics
-		    mv -v prop.$ics.seq source.$ics
-		  done
-		  
-	      fi
-	      
-	      cd -
-	      
-	  fi
 
-	  #ok now the source have been created
-	  
-	  #choose the f1 flavor to have the charged combo
-	  if [ $f_spec == 0 ]
-	  then
-	      f1=1
-	  else
-	      f1=0
+   	      #invoke the program
+	      $MPI_AH_PREF $base_nissas/tools/select_slice $L $T $TSlice $source_dir/prop $targ_dir/source
+	      
 	  fi
 
           #take time 
@@ -165,18 +116,13 @@ do
 	  for theta1 in ${list_theta[@]}
 	  do
 	    
-	    targ=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/
+	    targ=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$r_spec/$theta1/
 	    
 	    echo "Inverting: "$source_name" "$theta1
 	    
 	    if [ ! -f $targ/completed ]
 	    then
-                #prepare the list of folders where to put final data
-		for mu1 in ${list_mu[@]}
-		do
-		    mkdir -pv $targ/$mu1/
-		done
-		
+	  	
                 #create additional masses list: first mass is included as base
 		for mu1 in ${list_mu[@]};do echo $mu1;done|awk 'NR>1{printf("%.12f\n",2*$1*'$kappa')}' > $targ/extra_masses.input
 
@@ -209,7 +155,7 @@ do
 		ln -vfs $base_conf/Conf Conf.$conf
 		for i in $(seq -f%02.0f 00 $last_prop_index)
 		  do
-		    ln -vsf $base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$f_spec/source.$i source.$conf.00.$i
+		    ln -vsf $base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$r_spec/source.$i source.$conf.00.$i
 		done
 		
 		$MPI_TM_PREF $base_tmLQCD/invert -f inverter.input
@@ -233,11 +179,15 @@ do
 		do
 		    
 		    mu1=${list_mu[$imu1]}
-		    
+		    mkdir -pv $targ/$mu1/
+				    
 		    for ics in $(seq -f%02.0f 00 $last_prop_index)
 		    do
 			
-			orig=source.$conf.00.$ics.cgmms.$imu1.inverted
+			#remove the r equal to the spectator (would be the scalar)
+			rm -fvr source.$conf.00.$ics.cgmms.$imu1.inverted.$r_spec
+			orig=source.$conf.00.$ics.cgmms.$imu1.inverted.$r1
+
 			dest=$mu1/prop.$ics
 			
 			if [ ! -f $orig ]
@@ -272,7 +222,20 @@ do
 	  echo "######################## THIRD STEP: Three point function calculation ############################"
 	  echo
 	
-	  base_3pts=$base_conf/3pts/$source_name\_$theta_spec\_$mu_spec\_$f_spec
+	  if [ $source_type == "Point12" ]
+	  then
+              vol_fact=1
+              prog_contr=applications/contract_meson_2pts
+	  elif [ $source_type == "Wall4" ]
+	  then
+              prog_contr="Appretto/projects/meson_2pts/meson_2pts input"
+	  elif [ $source_type == "Wall1" ]
+	  then
+              vol_fact=$(( $L * $L * $L ))
+              prog_contr=applications/contract_meson_ultrastochastic_2pts
+	  fi
+
+	  base_3pts=$base_conf/3pts/$source_name\_$theta_spec\_$mu_spec\_$r_spec
 	  
 	  if [ ! -f $base_3pts/completed ]
 	  then
@@ -288,67 +251,33 @@ do
 	      nmicro=$(wc $base_3pts/micro_correlations | awk '{print $1}')
 	      
               nprop=$(( $ntheta * $nmu ))
-              echo "Nprop: "$nprop
 
-	      ncombo=$(( $nprop * $nprop ))
-	      echo "Ncombo: "$ncombo
-
-	      rm -vf input
-	      echo $L $T > $base_3pts/input
-              echo $kappa >> $base_3pts/input
-	      echo $f_spec >> $base_3pts/input
-              echo $tsource >> $base_3pts/input
-              echo $vol_fact >> $base_3pts/input
-              echo $base_conf/Conf >> $base_3pts/input
-              echo $nmicro >> $base_3pts/input
+	      echo "L "$L  > $base_3pts/input
+              echo "T "$T >> $base_3pts/input
+              echo "TWall "$tsource >> $base_3pts/input
+              echo "NPropFirstList "$nprop >> $base_3pts/input
+              for theta1 in ${list_theta[@]}
+              do
+		  for mu1 in ${list_mu[@]}
+		  do
+		      echo " "$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$r_spec/$theta1/$mu1/prop $mu1 $theta1 2 $r1 >> $base_3pts/input
+		  done
+	      done
+              echo "NPropSecondList "$nprop2 >> $base_3pts/input
+              for theta2 in ${list_theta[@]}
+              do
+		  for mu2 in ${list_mu[@]}
+		  do
+		      echo " "$base_conf/Props/$source_name/$theta2/$mu2/$r1/prop $mu2 $theta2 0 $r1 >> $base_3pts/input
+		  done
+              done
+	      echo "Ncontr "$nmicro >> $base_3pts/input
 	      cat $base_3pts/micro_correlations >> $base_3pts/input
-              echo $nprop >> $base_3pts/input
-	      for((itheta0=0;itheta0<ntheta;itheta0++))
-	      do
-		  theta0=${list_theta[$itheta0]}
-		  for((imu0=0;imu0<nmu;imu0++))
-		  do
-                      mu0=${list_mu[$imu0]}
-                      echo $base_conf/Props/$source_name/$theta0/$mu0/prop. $mu0 $theta0 >> $base_3pts/input
-		  done
-	      done
-              echo $nprop >> $base_3pts/input
-	      for((itheta1=0;itheta1<ntheta;itheta1++))
-	      do
-		  theta1=${list_theta[$itheta1]}
-		  for((imu1=0;imu1<nmu;imu1++))
-		  do
-                      mu1=${list_mu[$imu1]}
-                      echo $base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$f_spec/$theta1/$mu1/prop. $mu1 $theta1 >> $base_3pts/input
-		  done
-	      done
 	      
-	      echo $ncombo >> $base_3pts/input
-	      
-	      for((itheta0=0;itheta0<ntheta;itheta0++))
-	      do
-		  theta0=${list_theta[$itheta0]}
-		  for((itheta1=0;itheta1<ntheta;itheta1++))
-		  do
-		      theta1=${list_theta[$itheta1]}
-		      for((imu0=0;imu0<nmu;imu0++))
-		      do
-			  mu0=${list_mu[$imu0]}
-			  for((imu1=0;imu1<nmu;imu1++))
-			  do
-			      mu1=${list_mu[$imu1]}
-			      
-			      iprop0=$(( $itheta0 * $nmu + $imu0 ))
-			      iprop1=$(( $itheta1 * $nmu + $imu1 ))
-			      
-			      echo $iprop0 $iprop1 >> $base_3pts/input
-			  done
-		      done
-		  done
-	      done
-              echo $base_conf/Sources/$source_name/source. >> $base_3pts/input
-
-              $MPI_AH_PREF $base_ahmidas/applications/$prog_contr $base_3pts/input
+              echo
+              echo "Launching program: "$prog_contr
+              echo
+              $MPI_TM_PREF $base_nissa/$prog_contr $base_3pts/input
 	      
               #take time
 	      tac=$tic
