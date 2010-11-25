@@ -314,7 +314,7 @@ void op_invert(const int op_id, const int index_start) {
 		       g_spinor_field[DUM_DERI+3], -1., VOLUME/2);
       /* write propagator */
 
-      //commented by me
+      //commented by SANFO
       //optr->write_prop(op_id, index_start, i);
 
       mul_r(optr->prop0, 1./(2*optr->kappa), g_spinor_field[DUM_DERI], VOLUME/2);
@@ -363,6 +363,7 @@ void op_invert(const int op_id, const int index_start) {
 
 
 void op_write_prop(const int op_id, const int index_start, const int append_) {
+  /*
   operator * optr = &operator_list[op_id];
   double ratime = 0., retime = 0.;
   char filename[100];
@@ -397,7 +398,7 @@ void op_write_prop(const int op_id, const int index_start, const int append_) {
   
   if(!PropInfo.splitted) append = 1;
   if(append_) append=1;
-  /* the 1 is for appending */
+  // the 1 is for appending
   construct_writer(&writer, filename, append);
   if (PropInfo.splitted || SourceInfo.ix == index_start) {
     inverterInfo = construct_paramsInverterInfo(optr->reached_prec, optr->iterations, optr->solver, optr->no_flavours);
@@ -406,8 +407,8 @@ void op_write_prop(const int op_id, const int index_start, const int append_) {
     
     free(inverterInfo);
   }
-  /* write the source depending on format */
-  /* to be fixed for 2 fl tmwilson        */
+  // write the source depending on format 
+  // to be fixed for 2 fl tmwilson        
   if (PropInfo.format == 1) {
     sourceFormat = construct_paramsSourceFormat(32, optr->no_flavours, 4, 3);
     
@@ -444,6 +445,6 @@ void op_write_prop(const int op_id, const int index_start, const int append_) {
   }
   
   destruct_writer(writer);
-  
+*/  
   return;
 }
