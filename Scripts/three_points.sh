@@ -98,7 +98,7 @@ do
 	      fi
 
    	      #invoke the program
-	      $MPI_AH_PREF $base_nissas/tools/select_slice $L $T $TSlice $source_dir/prop $targ_dir/source
+	      $MPI_AH_PREF $base_nissa/Appretto/tools/select_slice/select_slice $L $T $TSlice $source_dir/prop $targ_dir/source
 	      
 	  fi
 
@@ -117,6 +117,7 @@ do
 	  do
 	    
 	    targ=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$r_spec/$theta1/
+	    mkdir -pv $targ
 	    
 	    echo "Inverting: "$source_name" "$theta1
 	    
@@ -263,7 +264,7 @@ do
 		      echo " "$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$r_spec/$theta1/$mu1/prop $mu1 $theta1 2 $r1 >> $base_3pts/input
 		  done
 	      done
-              echo "NPropSecondList "$nprop2 >> $base_3pts/input
+              echo "NPropSecondList "$nprop >> $base_3pts/input
               for theta2 in ${list_theta[@]}
               do
 		  for mu2 in ${list_mu[@]}

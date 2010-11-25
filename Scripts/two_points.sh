@@ -211,13 +211,13 @@ do
             for ics in $(seq -f%02.0f 00 $last_prop_index)
             do
 
-	      for if1 in 0 1
+	      for r1 in 0 1
 	      do
 		
-		mkdir -vp $base_inv/$mu/$if1
+		mkdir -vp $base_inv/$mu/$r1
 
-		orig=$base_inv/source.$conf.00.$ics.cgmms.$im.inverted.$if1
-		dest=$base_inv/$mu/$if1/prop.$ics
+		orig=$base_inv/source.$conf.00.$ics.cgmms.$im.inverted.$r1
+		dest=$base_inv/$mu/$r1/prop.$ics
 		
 		if [ ! -f $orig ]
 		then
@@ -292,9 +292,9 @@ do
 	  for((imu1=0;imu1<nmu;imu1++))
 	  do
 	    mu1=${list_mu[$imu1]}	
-	    for((if1=0;if1<2;if1++))
+	    for((r1=0;r1<2;r1++))
 	    do
-	      echo " "$base_conf/Props/$source_name/$theta1/$mu1/$if1/prop $mu1 $theta1 0 $if1 >> $base_2pts/input
+	      echo " "$base_conf/Props/$source_name/$theta1/$mu1/$r1/prop $mu1 $theta1 0 $r1 >> $base_2pts/input
 	    done
 	  done
 	done
@@ -305,9 +305,9 @@ do
 	  for((imu2=0;imu2<nmu;imu2++))
 	  do
 	    mu2=${list_mu[$imu2]}	
-	    for((if2=0;if2<2;if2++))
+	    for((r2=0;r2<2;r2++))
 	    do
-	      echo " "$base_conf/Props/$source_name/$theta2/$mu2/$if2/prop $mu2 $theta2 0 $if2 >> $base_2pts/input
+	      echo " "$base_conf/Props/$source_name/$theta2/$mu2/$r2/prop $mu2 $theta2 0 $r2 >> $base_2pts/input
 	    done
 	  done
 	done
