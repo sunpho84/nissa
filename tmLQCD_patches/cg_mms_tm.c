@@ -170,41 +170,79 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
       // the 0 is for appending 
       construct_writer(&writer, filename, 0);
 
-      propagatorFormat = construct_paramsPropagatorFormat(32, 1);
+      propagatorFormat = construct_paramsPropagatorFormat(nbits, 1);
       write_propagator_format(writer, propagatorFormat);
       free(propagatorFormat);
 
       convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+2], g_spinor_field[DUM_SOLVER+1], 
 			  g_spinor_field[DUM_SOLVER]);
-      write_spinor(writer, &g_spinor_field[DUM_SOLVER+2], &g_spinor_field[DUM_SOLVER+1], 1, 32);
+      write_spinor(writer, &g_spinor_field[DUM_SOLVER+2], &g_spinor_field[DUM_SOLVER+1], 1, nbits);
       destruct_writer(writer);
       */
 
       //Now we save the 'up' and 'down' propagators
+
+      //Try to open the file which instruct what to save
+      FILE* instruct;
+      int save0,save1,nbits;
+      save0=save1=1;
+      nbits=32;
+      if(g_proc_id==0)
+	{
+	  instruct=fopen("cg_mms_instructions","r");
+	  if(instruct!=NULL)
+	    {
+	      int nintread=0;
+	      nintread+=fscanf(instruct,"%d",&save0);
+	      nintread+=fscanf(instruct,"%d",&save1);
+	      nintread+=fscanf(instruct,"%d",&nbits);
+	      if(nintread!=3)
+		{
+		  printf("Error in reading instructions for the cgmms save\n");
+		  save0=1;
+		  save1=1;
+		  nbits=32;
+		}
+	      if(nbits!=32) nbits=64;
+	    }
+	  else printf("Error in opening instructions for the cgmms save\n");
+	  fclose(instruct);
+	}
+      
+      MPI_Bcast(&save0,1,MPI_INT,0,MPI_COMM_WORLD);
+      MPI_Bcast(&save1,1,MPI_INT,0,MPI_COMM_WORLD);
+      MPI_Bcast(&nbits,1,MPI_INT,0,MPI_COMM_WORLD);
+      
       mul_r(g_spinor_field[DUM_SOLVER], 2*g_kappa, g_spinor_field[DUM_SOLVER], N);
       
       //up
-      Q_plus_psi(g_spinor_field[DUM_SOLVER+1],g_spinor_field[DUM_SOLVER]);
-      convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+3], g_spinor_field[DUM_SOLVER+2], 
-			  g_spinor_field[DUM_SOLVER+1]);
-      sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted.0", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, 0);
-      construct_writer(&writer, filename, 1);
-      propagatorFormat = construct_paramsPropagatorFormat(64, 1);
-      write_propagator_format(writer, propagatorFormat);
-      free(propagatorFormat);
-      write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, 64);
-      destruct_writer(writer);
+      if(save0==1)
+	{
+	  Q_plus_psi(g_spinor_field[DUM_SOLVER+1],g_spinor_field[DUM_SOLVER]);
+	  convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+3], g_spinor_field[DUM_SOLVER+2], 
+			      g_spinor_field[DUM_SOLVER+1]);
+	  sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted.0", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, 0);
+	  construct_writer(&writer, filename, 1);
+	  propagatorFormat = construct_paramsPropagatorFormat(nbits, 1);
+	  write_propagator_format(writer, propagatorFormat);
+	  free(propagatorFormat);
+	  write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, nbits);
+	  destruct_writer(writer);
+	}
       //down
-      Q_minus_psi(g_spinor_field[DUM_SOLVER+1],g_spinor_field[DUM_SOLVER]);
-      convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+3], g_spinor_field[DUM_SOLVER+2], 
-			  g_spinor_field[DUM_SOLVER+1]);
-      sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted.1", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, 0);
-      construct_writer(&writer, filename, 1);
-      propagatorFormat = construct_paramsPropagatorFormat(64, 1);
-      write_propagator_format(writer, propagatorFormat);
-      free(propagatorFormat);
-      write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, 64);
-      destruct_writer(writer);
+      if(save1==1)
+	{
+	  Q_minus_psi(g_spinor_field[DUM_SOLVER+1],g_spinor_field[DUM_SOLVER]);
+	  convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+3], g_spinor_field[DUM_SOLVER+2],
+			      g_spinor_field[DUM_SOLVER+1]);
+	  sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted.1", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, 0);
+	  construct_writer(&writer, filename, 1);
+	  propagatorFormat = construct_paramsPropagatorFormat(nbits, 1);
+	  write_propagator_format(writer, propagatorFormat);
+	  free(propagatorFormat);
+	  write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, nbits);
+	  destruct_writer(writer);
+	}
 
       for(im = 0; im < g_no_extra_masses; im++) {
 	
@@ -215,7 +253,7 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
 
 	construct_writer(&writer, filename, 0);
 
-	propagatorFormat = construct_paramsPropagatorFormat(32, 1);
+	propagatorFormat = construct_paramsPropagatorFormat(nbits, 1);
 	write_propagator_format(writer, propagatorFormat);
 	free(propagatorFormat);
 
@@ -224,7 +262,7 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
 	}
 	convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+2], g_spinor_field[DUM_SOLVER+1], xs_mms_solver[im]);
 
-        write_spinor(writer, &g_spinor_field[DUM_SOLVER+2], &g_spinor_field[DUM_SOLVER+1], 1, 32);
+        write_spinor(writer, &g_spinor_field[DUM_SOLVER+2], &g_spinor_field[DUM_SOLVER+1], 1, nbits);
         destruct_writer(writer);
 	*/
 	
@@ -232,27 +270,33 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
 	mul_r(xs_mms_solver[im], 2*g_kappa,xs_mms_solver[im] , N);
 	
 	//up
-	Q_plus_psi(g_spinor_field[DUM_SOLVER+1],xs_mms_solver[im]);
-	convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+3], g_spinor_field[DUM_SOLVER+2], 
-			    g_spinor_field[DUM_SOLVER+1]);
-	sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted.0", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, im+1);
-	construct_writer(&writer, filename, 1);
-	propagatorFormat = construct_paramsPropagatorFormat(64, 1);
-	write_propagator_format(writer, propagatorFormat);
-	free(propagatorFormat);
-	write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, 64);
-	destruct_writer(writer);
+	if(save0==1)
+	  {
+	    Q_plus_psi(g_spinor_field[DUM_SOLVER+1],xs_mms_solver[im]);
+	    convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+3], g_spinor_field[DUM_SOLVER+2], 
+				g_spinor_field[DUM_SOLVER+1]);
+	    sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted.0", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, im+1);
+	    construct_writer(&writer, filename, 1);
+	    propagatorFormat = construct_paramsPropagatorFormat(nbits, 1);
+	    write_propagator_format(writer, propagatorFormat);
+	    free(propagatorFormat);
+	    write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, nbits);
+	    destruct_writer(writer);
+	  }
 	//down
-	Q_minus_psi(g_spinor_field[DUM_SOLVER+1],xs_mms_solver[im]);
-	convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+3], g_spinor_field[DUM_SOLVER+2], 
-			    g_spinor_field[DUM_SOLVER+1]);
-	sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted.1", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, im+1);
-	construct_writer(&writer, filename, 1);
-	propagatorFormat = construct_paramsPropagatorFormat(64, 1);
-	write_propagator_format(writer, propagatorFormat);
-	free(propagatorFormat);
-	write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, 64);
-	destruct_writer(writer);	
+	if(save1==1)
+	  {
+	    Q_minus_psi(g_spinor_field[DUM_SOLVER+1],xs_mms_solver[im]);
+	    convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+3], g_spinor_field[DUM_SOLVER+2], 
+				g_spinor_field[DUM_SOLVER+1]);
+	    sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted.1", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, im+1);
+	    construct_writer(&writer, filename, 1);
+	    propagatorFormat = construct_paramsPropagatorFormat(nbits, 1);
+	    write_propagator_format(writer, propagatorFormat);
+	    free(propagatorFormat);
+	    write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, nbits);
+	    destruct_writer(writer);	
+	  }
       }
 
       g_mu = tmp_mu;

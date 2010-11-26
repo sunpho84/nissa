@@ -255,6 +255,7 @@ int main(int narg,char **arg)
       {
 	int counter=iblock_first+iprop1;
 	
+	if(debug>1 and rank==0) cout<<"Going to read propagator: "<<base_filename1[counter]<<endl;
 	read_colorspinspin(base_filename1[counter],spinor1[iprop1]);
       }
 
@@ -275,7 +276,11 @@ int main(int narg,char **arg)
 		}
 	    }
 	  //if not found in the first list, load it
-	  if(spinor2_ptr==spinor2) read_colorspinspin(base_filename2[iprop2],spinor2);
+	  if(spinor2_ptr==spinor2)
+	    {
+	      if(debug>1 and rank==0) cout<<"Going to read propagator: "<<base_filename2[iprop2]<<endl;
+	      read_colorspinspin(base_filename2[iprop2],spinor2);
+	    }
 	  
 	  //Calculate all the two points between spinor 1 and spinor2
 	  for(int iprop1=0;iprop1<iblock_length;iprop1++)

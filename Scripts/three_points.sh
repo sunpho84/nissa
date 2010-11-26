@@ -114,21 +114,21 @@ do
 	  for theta1 in ${list_theta[@]}
 	  do
 	    
-	    targ=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$r_spec/$theta1/
-	    mkdir -pv $targ
-	    
-	    echo "Inverting: "$source_name" "$theta1
-	    
-	    if [ ! -f $targ/completed ]
-	    then
-	  	
-                #create additional masses list: first mass is included as base
-		for mu1 in ${list_mu[@]};do echo $mu1;done|awk 'NR>1{printf("%.12f\n",2*$1*'$kappa')}' > $targ/extra_masses.input
-
-                #prepare input for inverter
-		mu1=${list_mu[0]} #controlla
-		two_kappamu=$(echo $kappa|awk '{printf("%.12f\n",2*$1*'$mu1')}')
-		cat $base_protos/cgmms.input|sed '
+	      base_inv=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$r_spec/$theta1/
+	      mkdir -pv $base_inv
+	      
+	      echo "Inverting: "$source_name" "$theta1
+	      
+	      if [ ! -f $base_inv/completed ]
+	      then
+	  	  
+                  #create additional masses list: first mass is included as base
+		  for mu1 in ${list_mu[@]};do echo $mu1;done|awk 'NR>1{printf("%.12f\n",2*$1*'$kappa')}' > $base_inv/extra_masses.input
+		  
+                  #prepare input for inverter
+		  mu1=${list_mu[0]} #controlla
+		  two_kappamu=$(echo $kappa|awk '{printf("%.12f\n",2*$1*'$mu1')}')
+		  cat $base_protos/cgmms.input|sed '
                     s|SED_Conf|'$conf'|;
                     s|SED_NL|'$L'|;
                     s|SED_NT|'$T'|;
@@ -145,79 +145,85 @@ do
                     s|SED_GaugeConfigInputFile|Conf|;
                     s|SED_IndexEnd|'$last_prop_index'|;
                     s|SED_SolverPrecision|'$source_prec'|
-                    ' > $targ/inverter.input
-		
-		OLD=$PWD
-		cd $targ
-		
-                #link configuration and source
-		ln -vfs $base_conf/Conf Conf.$conf
-		for i in $(seq -f%02.0f 00 $last_prop_index)
+                    ' > $base_inv/inverter.input
+		  
+		  OLD=$PWD
+		  cd $base_inv
+		  
+                  #link configuration and source
+		  ln -vfs $base_conf/Conf Conf.$conf
+		  for i in $(seq -f%02.0f 00 $last_prop_index)
 		  do
-		    ln -vsf $base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$r_spec/source.$i source.$conf.00.$i
-		done
-		
-		$MPI_TM_PREF $base_tmLQCD/invert -f inverter.input
-		
-                #clean input and log file
-		#rm -vf extra_masses.input inverter.input output.para
-		
-                #clean link to conf and source
-		#rm -vf source.$conf.00.?? Conf.$conf
-		
-                #clean useless first mass up output
-		#rm -vf source.$conf.00.??.inverted
-		#rm -vf .source*
-		
-		echo
-		echo "Inversion finished"
-		echo
+		      ln -vsf $base_conf/SeqSources/$source_name/$theta_spec/$mu_spec/$r_spec/source.$i source.$conf.00.$i
+		  done
+		  
+		  $MPI_TM_PREF $base_tmLQCD/invert -f inverter.input
+		  
+                  #clean input and log file
+                  #rm -vf extra_masses.input inverter.input output.para
+		  
+                  #clean link to conf and source
+                  #rm -vf source.$conf.00.?? Conf.$conf
+		  
+                  #clean useless first mass up output
+                  #rm -vf source.$conf.00.??.inverted
+                  #rm -vf .source*
+		  
+		  echo
+		  echo "Inversion finished"
+		  echo
         
-                #Move each mass in appropriate folder and finalize the sequential propagator
-		for imu1 in $(seq -f%02.0f 00 $(( ${#list_mu[@]} - 1 )) )
-		do
-		    
-		    mu1=${10#list_mu[$imu1]}
-		    mkdir -pv $targ/$mu1/
-				    
-		    for ics in $(seq -f%02.0f 00 $last_prop_index)
-		    do
-			
-			#remove the r equal to the spectator (would be the scalar)
-			rm -fvr source.$conf.00.$ics.cgmms.$imu1.inverted.$r_spec
-			orig=source.$conf.00.$ics.cgmms.$imu1.inverted.$r1
-
-			dest=$mu1/prop.$ics
-			
-			if [ ! -f $orig ]
-			then
-			    echo "Could not find: "$orig
-#			    exit
-			else
-			    mv -v $orig $dest
-			fi		    
-			
-		    done
-		
-		    
-		done #loop over output mass
-
-		touch completed
-		
-		cd $OLD
-		
-	    else
-		echo "Already inverted"
-		echo
-	    fi
-	    
-            #take time
-	    tac=$tic
-	    tic=$(date +%s)
-	    echo "Time to invert sequential source: "$(($tic-$tac)) >> $base_conf/time_log
-	    
+                  #Move each mass in appropriate folder and finalize the sequential propagator
+		  imu1=0
+		  for imu1 in $(( ${#list_mu[@]} -1 ))
+		  do
+		      
+		      mu1=${list_mu[$imu1]}
+		      
+		      mkdir -pv $base_inv/$mu1
+		      
+		      for ics in $(seq -f%02.0f 00 $last_prop_index)
+		      do
+			  
+			  file1=$(echo $imu1|awk '{printf("'$base_inv/source.$conf.00.$ics.cgmms."%02d.inverted."$r_spec"\n"'",$1)}')
+			  file2=$(echo $imu1|awk '{printf("'$base_inv/source.$conf.00.$ics.cgmms."%02d.inverted."$r1"\n"'",$1)}')
+			  
+                          #remove the r equal to the spectator (would be the scalar)
+			  rm -fvr $file1
+			  
+			  #move the other
+			  orig=$file2
+			  dest=$base_inv/$mu1/prop.$ics
+			  
+			  if [ ! -f $orig ]
+			  then
+			      echo "Could not find: "$orig
+#  			      exit
+			  else
+			      mv -v $orig $dest
+			  fi
+			  
+		      done
+		      
+		      
+		  done #loop over output mass
+		  
+		  touch completed
+		  
+		  cd $OLD
+		  
+	      else
+		  echo "Already inverted"
+		  echo
+	      fi
+	      
+              #take time
+	      tac=$tic
+	      tic=$(date +%s)
+	      echo "Time to invert sequential source: "$(($tic-$tac)) >> $base_conf/time_log
+	      
 	  done #loop over "sequential" theta
-
+	  
 	  echo "######################## THIRD STEP: Three point function calculation ############################"
 	  echo
 	
@@ -227,7 +233,7 @@ do
               prog_contr=applications/contract_meson_2pts
 	  elif [ $source_type == "Wall4" ]
 	  then
-              prog_contr="Appretto/projects/meson_2pts/meson_2pts input"
+              prog_contr="Appretto/projects/meson_2pts/meson_2pts"
 	  elif [ $source_type == "Wall1" ]
 	  then
               vol_fact=$(( $L * $L * $L ))

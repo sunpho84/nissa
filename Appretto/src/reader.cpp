@@ -6,9 +6,11 @@
 
 using namespace std;
 
-//Write a vector of doubles
-void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
+//Read a whole spincolor
+void read_spincolor(char *path,spincolor *spinor)
 {
+  const int nreals_per_site=24;
+
   //take initial time
   double tic;
   if(debug>1)
@@ -17,17 +19,19 @@ void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
       tic=MPI_Wtime();
     }
 
-  int loc_ndoubles_tot=ndoubles_per_site*loc_vol;
+  //Open the file
+  MPI_File *reader_file=new MPI_File;
+  int ok=MPI_File_open(cart_comm,path,MPI_MODE_RDONLY,MPI_INFO_NULL,reader_file);
+  if(ok!=MPI_SUCCESS)
+    {
+      if(rank==0) cerr<<"Couldn't open for reading the file: '"<<path<<"'"<<endl;
+      MPI_Abort(cart_comm,1);
+    }
 
+  LemonReader *reader=lemonCreateReader(reader_file,cart_comm);
   char *header_type=NULL;
-  int glb_dims[4]={glb_size[0],glb_size[1],glb_size[2],glb_size[3]};
-  int scidac_mapping[4]={0,1,2,3};
 
-  //swap the endianess if needed
-  double *swapped_data;
-  if(big_endian) swapped_data=new double[loc_ndoubles_tot];
-  else swapped_data=(double*) data;
-
+  bool read=false;
   while(lemonReaderNextRecord(reader)!=LIME_EOF)
     {
       header_type=lemonReaderType(reader);
@@ -35,49 +39,50 @@ void read_double_vector(LemonReader *reader,void *data,int ndoubles_per_site)
       if(strcmp("scidac-binary-data",header_type)==0)
 	{
 	  int bytes=lemonReaderBytes(reader);
-	  int bytes_supposed=ndoubles_per_site*sizeof(double)*glb_vol;
-	  if(bytes!=bytes_supposed)
+	  int bytes_float=nreals_per_site*sizeof(float)*glb_vol;
+	  int bytes_double=nreals_per_site*sizeof(double)*glb_vol;
+	  if(bytes!=bytes_float and bytes!=bytes_double)
 	    {
-	      cerr<<"Opsss! The record contain "<<bytes<<" bytes, and it is supposed to contain: "<<bytes_supposed<<endl;
+	      cerr<<"Opsss! The record contain "<<bytes<<" bytes, and it is supposed to contain: "
+		  <<bytes_float<<" or "<<bytes_double<<endl;
 	      MPI_Abort(MPI_COMM_WORLD,1);
 	      MPI_Finalize();
 	    }
-	  lemonReadLatticeParallelMapped(reader,swapped_data,ndoubles_per_site*sizeof(double),glb_dims,scidac_mapping);
-	  //swap the endianess
-	  if(big_endian) revert_endianess_double_vector((double*)data,swapped_data,loc_ndoubles_tot);
+	  
+	  int loc_nreals_tot=nreals_per_site*loc_vol;
+	  
+	  int glb_dims[4]={glb_size[0],glb_size[1],glb_size[2],glb_size[3]};
+	  int scidac_mapping[4]={0,1,2,3};
+	  
+	  lemonReadLatticeParallelMapped(reader,spinor,bytes,glb_dims,scidac_mapping);
+	  
+	  if(bytes==bytes_float) //cast to double changing endianess if needed
+	    if(big_endian) floats_to_doubles_changing_endianess((double*)spinor,(float*)spinor,loc_nreals_tot);
+	    else floats_to_doubles_same_endianess((double*)spinor,(float*)spinor,loc_nreals_tot);
+	  else //swap the endianess if needed
+	    if(big_endian) doubles_to_doubles_changing_endianess((double*)spinor,(double*)spinor,loc_nreals_tot);
+	  
+	  read=true;
+	  if(rank==0 and debug>1) cout<<"Data read!"<<endl;
 	}
     }
+  
+  if(read==false)
+    {
+      if(rank==0) cerr<<"Error: couldn't find binary"<<endl;
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
 
-  if(rank==0 and debug>1) cout<<"Data read!"<<endl;
+  lemonDestroyReader(reader);
+  MPI_File_close(reader_file);
 
-  if(debug>1)
+ if(debug>1)
     {
       MPI_Barrier(cart_comm);
       double tac=MPI_Wtime();
 
       if(rank==0) cout<<"Time elapsed in reading "<<tac-tic<<" s"<<endl;
     }
-
-  if(big_endian) delete[] swapped_data;
-}
-
-//Read a whole spincolor
-void read_spincolor(char *path,spincolor *spinor)
-{
-  //Open the file
-  MPI_File *reader_file=new MPI_File;
-  int ok=MPI_File_open(cart_comm,path,MPI_MODE_RDONLY,MPI_INFO_NULL,reader_file);
-  if(ok!=MPI_SUCCESS)
-    {
-      cerr<<"Couldn't open for reading the file: '"<<path<<"'"<<endl;
-      MPI_Abort(cart_comm,1);
-    }
-  LemonReader *reader=lemonCreateReader(reader_file,cart_comm);
-
-  read_double_vector(reader,spinor,sizeof(spincolor)/8);
-
-  lemonDestroyReader(reader);
-  MPI_File_close(reader_file);
 }
 
 //Read 4 spincolor and revert their indexes
