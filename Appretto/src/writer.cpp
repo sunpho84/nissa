@@ -43,7 +43,7 @@ void write_double_vector(LemonWriter *writer,void *data,int ndoubles_per_site)
   if(big_endian)
     {
       swapped_data=new double[loc_ndoubles_tot];
-      revert_endianess_double_vector(swapped_data,(double*)data,loc_ndoubles_tot);
+      doubles_to_doubles_changing_endianess(swapped_data,(double*)data,loc_ndoubles_tot);
     }
   else swapped_data=(double*) data;
 
