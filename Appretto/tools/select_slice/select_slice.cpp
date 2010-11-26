@@ -11,15 +11,15 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_appretto();
 
-  if(narg<2)
+  if(narg<7)
     {
-      if(rank==0) cerr<<"Use: "<<arg[0]<<" L T Tslice filein fileout"<<endl;
+      if(rank==0) cerr<<"Use: "<<arg[0]<<" L T Tslice filein fileout OUT_prec[32,64]"<<endl;
       MPI_Abort(MPI_COMM_WORLD,1);
     }
 
   glb_size[1]=atoi(arg[1]);
   glb_size[0]=atoi(arg[2]);
-
+  
   int tslice=atoi(arg[3]);
 
   //Init the MPI grid 
@@ -47,7 +47,7 @@ int main(int narg,char **arg)
 	}
   
       sprintf(filename,"%s.0%d",arg[5],id1);
-      write_spincolor(filename,spinore);
+      write_spincolor(filename,spinore,atoi(arg[6]));
     }
 
   delete[] spinore;

@@ -31,6 +31,8 @@ analysis_name=[name]
 #Path to the configurations (which have to have named as 'conf.xxxx'
 source_confs=[path_to_confs]
 
+#precision for the I/O (32 or 64 bits)
+IO_prec=[32 or 64]
 
 ########### - 2 - Physical information ########
 

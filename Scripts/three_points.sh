@@ -96,7 +96,7 @@ do
 	      fi
 
    	      #invoke the program
-	      $MPI_AH_PREF $base_nissa/Appretto/tools/select_slice/select_slice $L $T $TSlice $source_dir/prop $targ_dir/source
+	      $MPI_AH_PREF $base_nissa/Appretto/tools/select_slice/select_slice $L $T $TSlice $source_dir/prop $targ_dir/source $IO_prec
 	      
 	  fi
 
@@ -147,6 +147,13 @@ do
                     s|SED_SolverPrecision|'$source_prec'|
                     ' > $base_inv/inverter.input
 		  
+                  #write the instructions of what to write
+		  (
+		      echo $r_spec   #if r_spec=0, don't save the up
+		      echo $r1       #and as r1=!r_spec, save the down
+		      echo $IO_prec  #and vice versa
+		  ) > $base_inv/cg_mms_instructions
+
 		  OLD=$PWD
 		  cd $base_inv
 		  
@@ -174,35 +181,26 @@ do
 		  echo
         
                   #Move each mass in appropriate folder and finalize the sequential propagator
-		  imu1=0
-		  for imu1 in $(( ${#list_mu[@]} -1 ))
+		  for((imu1=0;imu1<${#list_mu[@]};imu1++))
 		  do
 		      
 		      mu1=${list_mu[$imu1]}
-		      
 		      mkdir -pv $base_inv/$mu1
 		      
 		      for ics in $(seq -f%02.0f 00 $last_prop_index)
 		      do
 			  
-			  file1=$(echo $imu1|awk '{printf("'$base_inv/source.$conf.00.$ics.cgmms."%02d.inverted."$r_spec"\n"'",$1)}')
-			  file2=$(echo $imu1|awk '{printf("'$base_inv/source.$conf.00.$ics.cgmms."%02d.inverted."$r1"\n"'",$1)}')
+			file=$(echo $imu1|awk '{printf("'$base_inv/source.$conf.00.$ics.cgmms."%02d.inverted."$r1"\n"'",$1)}')
+			dest=$base_inv/$mu1/prop.$ics
 			  
-                          #remove the r equal to the spectator (would be the scalar)
-			  rm -fvr $file1
-			  
-			  #move the other
-			  orig=$file2
-			  dest=$base_inv/$mu1/prop.$ics
-			  
-			  if [ ! -f $orig ]
-			  then
-			      echo "Could not find: "$orig
-#  			      exit
-			  else
-			      mv -v $orig $dest
-			  fi
-			  
+			if [ ! -f $file ]
+			then
+			    echo "Could not find: "$file
+	                    exit
+			else
+			    mv -v $file $dest
+			fi
+			
 		      done
 		      
 		      
