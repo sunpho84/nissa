@@ -204,9 +204,9 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
 		  nbits=32;
 		}
 	      if(nbits!=32) nbits=64;
+	      fclose(instruct);
 	    }
-	  else printf("Error in opening instructions for the cgmms save\n");
-	  fclose(instruct);
+	  else printf("No instruction for the cgmms save, saving both props in prec 32 bits\n");
 	}
       
       MPI_Bcast(&save0,1,MPI_INT,0,MPI_COMM_WORLD);

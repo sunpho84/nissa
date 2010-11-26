@@ -11,6 +11,7 @@ int main(int narg,char **arg)
   int seed=0;
   int take_slice=1;
   int noise_type=4;
+  int prec=32;
 
   //basic mpi initialization                                                                                                 
   init_appretto();
@@ -30,6 +31,7 @@ int main(int narg,char **arg)
   read_int("TWall",twall);
   read_int("NoiseType",noise_type);
   read_str("Filename",base_filename);
+  read_int("Precision",prec);
 
   close_input();
 
@@ -81,7 +83,7 @@ int main(int narg,char **arg)
 	  else spinore[loc_site][id1][ic1][0]=spinore[loc_site][id1][ic1][1]=0;
 	}
 
-  write_spincolor(filename,spinore);
+  write_spincolor(filename,spinore,prec);
 
   //swap the other three spinor
   for(int id1=1;id1<4;id1++)
@@ -94,7 +96,7 @@ int main(int narg,char **arg)
 	      swap(spinore[loc_site][id1][ic1][0],spinore[loc_site][id1-1][ic1][0]);
 	      swap(spinore[loc_site][id1][ic1][1],spinore[loc_site][id1-1][ic1][1]);
 	    }
-      write_spincolor(filename,spinore);
+      write_spincolor(filename,spinore,prec);
     }
 
   //////////////////////////////////////////////////////

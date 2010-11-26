@@ -9,8 +9,6 @@ using namespace std;
 //Read a whole spincolor
 void read_spincolor(char *path,spincolor *spinor)
 {
-  const int nreals_per_site=24;
-
   //take initial time
   double tic;
   if(debug>1)
@@ -38,25 +36,26 @@ void read_spincolor(char *path,spincolor *spinor)
       if(rank==0 and debug>1) cout<<"found record: "<<header_type<<endl;
       if(strcmp("scidac-binary-data",header_type)==0)
 	{
-	  int bytes=lemonReaderBytes(reader);
-	  int bytes_float=nreals_per_site*sizeof(float)*glb_vol;
-	  int bytes_double=nreals_per_site*sizeof(double)*glb_vol;
-	  if(bytes!=bytes_float and bytes!=bytes_double)
+	  int nbytes=lemonReaderBytes(reader);
+	  int nbytes_per_site=nbytes/glb_vol;
+	  int nbytes_per_site_float=nreals_per_spincolor*sizeof(float);
+	  int nbytes_per_site_double=nreals_per_spincolor*sizeof(double);
+	  if(nbytes_per_site!=nbytes_per_site_float and nbytes_per_site!=nbytes_per_site_double)
 	    {
-	      cerr<<"Opsss! The record contain "<<bytes<<" bytes, and it is supposed to contain: "
-		  <<bytes_float<<" or "<<bytes_double<<endl;
+	      cerr<<"Opsss! The record contain "<<nbytes<<" bytes, and it is supposed to contain: "
+		  <<nbytes_per_site_float*glb_vol<<" or "<<nbytes_per_site_double*glb_vol<<endl;
 	      MPI_Abort(MPI_COMM_WORLD,1);
 	      MPI_Finalize();
 	    }
 	  
-	  int loc_nreals_tot=nreals_per_site*loc_vol;
+	  int loc_nreals_tot=nreals_per_spincolor*loc_vol;
 	  
 	  int glb_dims[4]={glb_size[0],glb_size[1],glb_size[2],glb_size[3]};
 	  int scidac_mapping[4]={0,1,2,3};
 	  
-	  lemonReadLatticeParallelMapped(reader,spinor,bytes,glb_dims,scidac_mapping);
+	  lemonReadLatticeParallelMapped(reader,spinor,nbytes_per_site,glb_dims,scidac_mapping);
 	  
-	  if(bytes==bytes_float) //cast to double changing endianess if needed
+	  if(nbytes_per_site==nbytes_per_site_float) //cast to double changing endianess if needed
 	    if(big_endian) floats_to_doubles_changing_endianess((double*)spinor,(float*)spinor,loc_nreals_tot);
 	    else floats_to_doubles_same_endianess((double*)spinor,(float*)spinor,loc_nreals_tot);
 	  else //swap the endianess if needed

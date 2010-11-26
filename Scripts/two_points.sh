@@ -91,6 +91,7 @@ do
 		echo "TWall "$tsource
 		echo "NoiseType "$source_nois
 		echo "Filename source"
+		echo "Precision "$IO_prec
 	    )  > input
 
             $MPI_TM_PREF $base_nissa/Appretto/tools/generate_stochastic_source/generate_stochastic_source input
@@ -170,7 +171,14 @@ do
             s|SED_IndexEnd|'$last_prop_index'|;
             s|SED_SolverPrecision|'$source_prec'|
             ' > $base_inv/inverter.input
-	  
+
+	  #write the instructions of what to write
+	  (
+	      echo 1
+	      echo 1
+	      echo $IO_prec
+	  ) > $base_inv/cg_mms_instructions
+
 	  OLD=$PWD
 	  cd $base_inv
 	  
