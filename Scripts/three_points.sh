@@ -259,25 +259,26 @@ do
 	      echo "L "$L  > $base_3pts/input
               echo "T "$T >> $base_3pts/input
               echo "TWall "$tsource >> $base_3pts/input
-              echo "NPropFirstList "$nprop >> $base_3pts/input
+	      echo "NPropFirstList "$nprop >> $base_3pts/input #list of quark propagators to be reverted, which close the S1
               for theta1 in ${list_theta[@]}
               do
 		  for mu1 in ${list_mu[@]}
 		  do
-		      echo " "$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$r_spec/$theta1/$mu1/prop $mu1 $theta1 2 $r1 >> $base_3pts/input
+		    echo " "$base_conf/Props/$source_name/$theta1/$mu1/$rS1/prop $mu1 $theta1 0 $rS1 >> $base_3pts/input
 		  done
 	      done
-              echo "NPropSecondList "$nprop >> $base_3pts/input
+	      echo "NPropSecondList "$nprop >> $base_3pts/input #list of sequential propagators
               for theta2 in ${list_theta[@]}
               do
 		  for mu2 in ${list_mu[@]}
 		  do
-		      echo " "$base_conf/Props/$source_name/$theta2/$mu2/$r1/prop $mu2 $theta2 0 $r1 >> $base_3pts/input
+		    echo " "$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$r_spec/$theta2/$mu2/prop $mu2 $theta2 2 $rS1 >> $base_3pts/input
 		  done
               done
 	      echo "Ncontr "$nmicro >> $base_3pts/input
 	      cat $base_3pts/micro_correlations >> $base_3pts/input
-	      
+	      echo "Output "$base_3pts"/three_points_contractions" >> $base_3pts/input
+
               echo
               echo "Launching program: "$prog_contr
               echo
