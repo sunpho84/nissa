@@ -23,10 +23,13 @@ int compute_allocable_propagators(int nprop_list)
 
   if(fuf==NULL)
     {
-      if(rank==0) cerr<<"Error: not enough memory for two propagators"<<endl;
-      MPI_Abort(MPI_COMM_WORLD,1);
+      if(rank==0)
+	{
+	  cerr<<"Error: not enough memory for two propagators"<<endl;
+	  MPI_Abort(MPI_COMM_WORLD,1);
+	}
     }
-  else if(debug>1 and rank==0) cout<<"Ok there is enough memory to load two propagators"<<endl;
+    else if(debug>1 and rank==0) cout<<"Ok there is enough memory to load two propagators"<<endl;
 
   free(fuf);
 
@@ -133,10 +136,11 @@ int main(int narg,char **arg)
   init_appretto();
 
   if(narg<2)
-    {
-      if(rank==0) cerr<<"Use: "<<arg[0]<<" input_file"<<endl;
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+    if(rank==0)
+      {
+	cerr<<"Use: "<<arg[0]<<" input_file"<<endl;
+	MPI_Abort(MPI_COMM_WORLD,1);
+      }
 
   open_input(arg[1]);
 
