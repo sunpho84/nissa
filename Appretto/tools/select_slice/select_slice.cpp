@@ -12,10 +12,11 @@ int main(int narg,char **arg)
   init_appretto();
 
   if(narg<7)
-    {
-      if(rank==0) cerr<<"Use: "<<arg[0]<<" L T Tslice filein fileout OUT_prec[32,64]"<<endl;
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+    if(rank==0)
+      {
+	cerr<<"Use: "<<arg[0]<<" L T Tslice filein fileout OUT_prec[32,64]"<<endl;
+	MPI_Abort(MPI_COMM_WORLD,1);
+      }
 
   glb_size[1]=atoi(arg[1]);
   glb_size[0]=atoi(arg[2]);
