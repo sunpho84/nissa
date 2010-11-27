@@ -209,9 +209,11 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
 	  else printf("No instruction for the cgmms save, saving both props in prec 32 bits\n");
 	}
       
+#ifdef MPI
       MPI_Bcast(&save0,1,MPI_INT,0,MPI_COMM_WORLD);
       MPI_Bcast(&save1,1,MPI_INT,0,MPI_COMM_WORLD);
       MPI_Bcast(&nbits,1,MPI_INT,0,MPI_COMM_WORLD);
+#endif
       
       mul_r(g_spinor_field[DUM_SOLVER], 2*g_kappa, g_spinor_field[DUM_SOLVER], N);
       

@@ -322,6 +322,7 @@ do
 
 	echo "Ncontr "$nmicro >> $base_2pts/input
 	cat $base_2pts/micro_correlations >> $base_2pts/input
+	echo "Output "$base_2pts"/two_points_contractions" >> $base_2pts/input
 
 	echo
 	echo "Launching program: "$prog_contr

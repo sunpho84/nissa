@@ -66,6 +66,21 @@ then
 	MPI_AH_PREF=""
 	USE_MPI=0
     fi
+
+elif [ "$WHERE" == MACSILV ]
+then
+    echo -e Total instance:  2
+    
+    if [ "$PBS_O_WORKDIR" != "" ]
+    then
+	MPI_TM_PREF="/usr/local/bin/mpiexec -np 2"
+	MPI_AH_PREF="/usr/local/bin/mpiexec -np 2"
+	USE_MPI=1
+    else
+	MPI_TM_PREF=""
+	MPI_AH_PREF=""
+	USE_MPI=0
+    fi
 else	
     echo "Erorr: unknown location $WHERE"
 fi

@@ -62,9 +62,9 @@ two_points_theta1=(0) #in the case you want more theta for the spectator
 
 #List of info for the three points
 three_points_correlations=(A0P5 AKP5 BKP5 P5P5 S0P5 TKP5 V0P5 VKP5)
-list_itheta_spec=(0 1)
-list_imu_spec=(0 1)
-list_r_spec=(0 1)
+list_itheta_spec=(0)
+list_imu_spec=(0)
+list_r_spec=(0)
 
 #Useless
 #MPI_nn=
