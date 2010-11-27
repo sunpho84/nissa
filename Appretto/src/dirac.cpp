@@ -18,6 +18,7 @@ public:
 //The base of the 16 gamma matrixes and the two rotators
 dirac_matr base_gamma[16];
 dirac_matr Pplus,Pminus;
+const char gtag[16][3]={"S0","V1","V2","V3","V0","P5","A1","A2","A3","A0","T1","T2","T3","B1","B2","B3"};
 
 //Initialize a dirac matrix with outside entries
 void init_dirac(dirac_matr &out,
