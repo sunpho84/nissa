@@ -122,7 +122,7 @@ void init_grid()
 
   if(debug>2)
     {
-      printf("Process %d of %d on %d: %d, %d (%d %d %d %d)\n",rank,rank_tot,
+      printf("Process %d of %d on %s: %d (%d %d %d %d)\n",rank,rank_tot,
 	     proc_name,cart_rank,proc_coord[0],proc_coord[1],proc_coord[2],proc_coord[3]);
       fflush(stdout);
   
@@ -136,7 +136,7 @@ void init_grid()
       MPI_Barrier(MPI_COMM_WORLD);
       tac=MPI_Wtime();
 
-      if(rank==0) printf("Time elapsed for MPI inizialization: %d s\n",tac-tic);
+      if(rank==0) printf("Time elapsed for MPI inizialization: %f s\n",tac-tic);
     }
 
   set_geometry();

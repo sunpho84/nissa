@@ -1,6 +1,7 @@
 #pragma once
 
 #include <math.h>
+#include <string.h>
 
 #include "global.c"
 
@@ -123,9 +124,9 @@ void print_dirac(dirac_matr *in)
   for(int ir=0;ir<4;ir++)
     {
       int pos=in->pos[ir];
-      for(int ic=0;ic<pos;ic++) printf("0,0\t");
-      printf("%+08.8f,%+08.8f\t",in->entr[ir][0],in->entr[ir][1]);
-      for(int ic=pos+1;ic<4;ic++) printf("0,0\t");
+      for(int ic=0;ic<pos;ic++) printf("+%02.2f,+%02.2f\t",0.,0.);
+      printf("%+02.2f,%+02.2f\t",in->entr[ir][0],in->entr[ir][1]);
+      for(int ic=pos+1;ic<4;ic++) printf("+%02.2f,+%02.2f\t",0.,0.);
       printf("\n");
     }
 }

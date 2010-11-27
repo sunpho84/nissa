@@ -4,4 +4,5 @@ Seed 1
 TakeSlice 1
 TWall 3
 NoiseType 4
-Filename source_2
+Filename source
+Precision 32

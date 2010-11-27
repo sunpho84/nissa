@@ -1,22 +1,19 @@
 #include <mpi.h>
-#include <fstream>
 #include <lemon.h>
 
 #include "appretto.h"
-
-using namespace std;
 
 int main(int narg,char **arg)
 {
   //basic mpi initialization
   init_appretto();
 
-  if(narg<7)
-    if(rank==0)
-      {
-	cerr<<"Use: "<<arg[0]<<" L T Tslice filein fileout OUT_prec[32,64]"<<endl;
-	MPI_Abort(MPI_COMM_WORLD,1);
-      }
+  if(narg<7 && rank==0)
+    {
+      fprintf(stderr,"Use: %s, L T Tslice filein fileout OUT_prec[32,64]\n",arg[0]);
+      fflush(stderr);
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
 
   glb_size[1]=atoi(arg[1]);
   glb_size[0]=atoi(arg[2]);
@@ -28,7 +25,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  spincolor *spinore=new spincolor[loc_vol];
+  spincolor *spinore=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   char filename[1024];
 
   //Put 0 on all timeslice different from tslice
@@ -51,7 +48,7 @@ int main(int narg,char **arg)
       write_spincolor(filename,spinore,atoi(arg[6]));
     }
 
-  delete[] spinore;
+  free(spinore);
   
   ///////////////////////////////////////////
 

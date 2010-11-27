@@ -1,7 +1,8 @@
 #include <mpi.h>
-#include <fstream>
 #include <lemon.h>
 #include <math.h>
+#include <stdio.h>
+
 #include "appretto.h"
 
 int main(int narg,char **arg)
@@ -16,22 +17,23 @@ int main(int narg,char **arg)
   //basic mpi initialization                                                                                                 
   init_appretto();
 
-  if(narg<2)
+  if(narg<2 && rank==0)
     {
-      if(rank==0) cerr<<"Use: "<<arg[0]<<" input_file"<<endl;
+      fprintf(stderr,"Use: %s input_file\n",arg[0]);
+      fflush(stderr);
       MPI_Abort(MPI_COMM_WORLD,1);
     }
 
   open_input(arg[1]);
 
-  read_int("L",glb_size[1]);
-  read_int("T",glb_size[0]);
-  read_int("Seed",seed);
-  read_int("TakeSlice",take_slice);
-  read_int("TWall",twall);
-  read_int("NoiseType",noise_type);
-  read_str("Filename",base_filename);
-  read_int("Precision",prec);
+  read_str_int("L",&(glb_size[1]));
+  read_str_int("T",&(glb_size[0]));
+  read_str_int("Seed",&seed);
+  read_str_int("TakeSlice",&take_slice);
+  read_str_int("TWall",&twall);
+  read_str_int("NoiseType",&noise_type);
+  read_str_str("Filename",base_filename,1024);
+  read_str_int("Precision",&prec);
 
   close_input();
 
@@ -43,7 +45,7 @@ int main(int narg,char **arg)
 
   //////////////////////////////////////////////////////
 
-  spincolor *spinore=new spincolor[loc_vol];
+  spincolor *spinore=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
 
   char filename[1024];
   sprintf(filename,"%s.00",base_filename);
@@ -55,7 +57,7 @@ int main(int narg,char **arg)
     for(int id1=0;id1<4;id1++)
       for(int ic1=0;ic1<3;ic1++)
 	{
-	  if(id1==0 and (take_slice==0 or glb_coord[loc_site][0]==twall))
+	  if(id1==0 && (take_slice==0 || glb_coord[loc_site][0]==twall))
 	    {
 	      switch(noise_type)
 		{
@@ -76,8 +78,12 @@ int main(int narg,char **arg)
 		  spinore[loc_site][0][ic1][1]=(2*(ran2(loc_site)>0.5)-1)/rad2;
 		  break;
 		default:
-		  if(rank==0) cerr<<"Noise type "<<noise_type<<" unknown"<<endl;
-		  MPI_Abort(MPI_COMM_WORLD,1);
+		  if(rank==0)
+		    {
+		      fprintf(stderr,"Noise type %d unknown\n",noise_type);
+		      fflush(stderr);
+		      MPI_Abort(MPI_COMM_WORLD,1);
+		    }
 		}
 	    }
 	  else spinore[loc_site][id1][ic1][0]=spinore[loc_site][id1][ic1][1]=0;
@@ -86,6 +92,7 @@ int main(int narg,char **arg)
   write_spincolor(filename,spinore,prec);
 
   //swap the other three spinor
+  double temp;
   for(int id1=1;id1<4;id1++)
     {
       sprintf(filename,"%s.0%d",base_filename,id1);
@@ -93,11 +100,18 @@ int main(int narg,char **arg)
 	for(int ic1=0;ic1<3;ic1++)
 	  if(glb_coord[loc_site][0]==twall)
 	    {
-	      swap(spinore[loc_site][id1][ic1][0],spinore[loc_site][id1-1][ic1][0]);
-	      swap(spinore[loc_site][id1][ic1][1],spinore[loc_site][id1-1][ic1][1]);
+	      temp=spinore[loc_site][id1][ic1][0];
+	      spinore[loc_site][id1][ic1][0]=spinore[loc_site][id1-1][ic1][0];
+	      spinore[loc_site][id1-1][ic1][0]=temp;
+
+	      temp=spinore[loc_site][id1][ic1][1];
+	      spinore[loc_site][id1][ic1][1]=spinore[loc_site][id1-1][ic1][1];
+	      spinore[loc_site][id1-1][ic1][1]=temp;
 	    }
       write_spincolor(filename,spinore,prec);
     }
+
+  free(spinore);
 
   //////////////////////////////////////////////////////
 

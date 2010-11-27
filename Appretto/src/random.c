@@ -38,7 +38,7 @@ void init_random(int seed)
       //initialization
       ran2_idum[loc_ind]=seed+glb_of_loc_ind[loc_ind];
 
-      ran2_idum[loc_ind]=max(ran2_idum[loc_ind]+1,1);
+      ran2_idum[loc_ind]=max_int(ran2_idum[loc_ind]+1,1);
       ran2_idum2[loc_ind]=ran2_idum[loc_ind];
       for(j=ran2_ntab+7;j>=0;j--)
         {
@@ -84,5 +84,5 @@ double ran2(int loc_ind)
   ran2_iv[loc_ind][j]=ran2_idum[loc_ind];
   if(ran2_iy[loc_ind]<0) ran2_iy[loc_ind]+=imm1;
 
-  return min(am*ran2_iy[loc_ind],rnmx);
+  return min_int(am*ran2_iy[loc_ind],rnmx);
 }

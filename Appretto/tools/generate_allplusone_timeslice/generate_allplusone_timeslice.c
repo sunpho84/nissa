@@ -1,6 +1,6 @@
 #include <mpi.h>
-#include <fstream>
 #include <lemon.h>
+
 #include "appretto.h"
 
 int main(int narg,char **arg)
@@ -12,9 +12,9 @@ int main(int narg,char **arg)
 
   open_input("input");
 
-  read_int("L",glb_size[1]);
-  read_int("T",glb_size[0]);
-  read_int("TWall",TWall);
+  read_str_int("L",&(glb_size[1]));
+  read_str_int("T",&(glb_size[0]));
+  read_str_int("TWall",&TWall);
 
   close_input();
 
@@ -23,7 +23,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////////////////////////////
 
-  spincolor *spinore=new spincolor[loc_vol];
+  spincolor *spinore=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   char filename[1024];
 
   for(int id1=0;id1<4;id1++)
@@ -41,8 +41,10 @@ int main(int narg,char **arg)
 	      spinore[ivol][id2][ic1][1]=0;
 	    }
 
-      write_spincolor(filename,spinore);
+      write_spincolor(filename,spinore,32);
     }
+
+  free(spinore);
   
   //////////////////////////////////////////////////////
 

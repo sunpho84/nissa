@@ -1,6 +1,8 @@
 #pragma once
 
-FILE* input_global;
+#include <strings.h>
+
+FILE *input_global;
 
 void open_input(char *input_path)
 {
@@ -44,7 +46,7 @@ void read_double(double *in)
 {
   if(rank==0)
     {
-      int ok=fscanf(input_global,"%g",*in);
+      int ok=fscanf(input_global,"%lg",in);
       if(!ok)
 	{
 	  fprintf(stderr,"Couldn't read from input file!!!\n");
