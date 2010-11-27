@@ -82,7 +82,7 @@ void read_spincolor(char *path,spincolor *spinor)
       MPI_Barrier(cart_comm);
       double tac=MPI_Wtime();
 
-      if(rank==0) printf("Time elapsed in reading: %d s\n",tac-tic);
+      if(rank==0) printf("Time elapsed in reading: %f s\n",tac-tic);
     }
 }
 
@@ -121,7 +121,7 @@ void read_colorspinspin(char *base_path,colorspinspin *css)
       MPI_Barrier(cart_comm);
       double tac=MPI_Wtime();
 
-      if(rank==0) printf("Time elapsed in reading file '%s': %d s\n",base_path,tac-tic);
+      if(rank==0) printf("Time elapsed in reading file '%s': %f s\n",base_path,tac-tic);
     }
   
   //Destroy the temp

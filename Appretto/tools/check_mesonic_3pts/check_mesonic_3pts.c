@@ -1,10 +1,7 @@
 #include <mpi.h>
-#include <fstream>
 #include <lemon.h>
 
 #include "appretto.h"
-
-using namespace std;
 
 /*
              SEQ	                  	 
@@ -40,12 +37,12 @@ void contract_with_source(complex *corr,colorspinspin *S1,int *list_op,colorspin
 	switch(rprop)
 	  {
 	  case 0: //This is D-^-1
-	    dirac_prod(t1[icontr], t1[icontr],Pminus);
-	    dirac_prod(t2[icontr], Pminus,t2[icontr]);
+	    dirac_prod(&(t1[icontr]), &(t1[icontr]),&Pminus);
+	    dirac_prod(&(t2[icontr]), &Pminus,&(t2[icontr]));
 	    break;
 	  case 1: //This is D+^-1
-	    dirac_prod(t1[icontr], t1[icontr],Pplus);
-	    dirac_prod(t2[icontr], Pplus,t2[icontr]);
+	    dirac_prod(&(t1[icontr]), &(t1[icontr]),&Pplus);
+	    dirac_prod(&(t2[icontr]), &Pplus,&(t2[icontr]));
 	    break;
 	  }
 
@@ -53,19 +50,19 @@ void contract_with_source(complex *corr,colorspinspin *S1,int *list_op,colorspin
         switch(rprop)
           {
           case 0: //This is D-^-1
-            dirac_prod(t1[icontr], t1[icontr],Pminus);
-            dirac_prod(t2[icontr], Pplus,t2[icontr]);
+            dirac_prod(&(t1[icontr]), &(t1[icontr]),&Pminus);
+            dirac_prod(&(t2[icontr]), &Pplus,&(t2[icontr]));
             break;
           case 1: //This is D+^-1
-            dirac_prod(t1[icontr], t1[icontr],Pplus);
-            dirac_prod(t2[icontr], Pminus,t2[icontr]);
+            dirac_prod(&(t1[icontr]), &(t1[icontr]),&Pplus);
+            dirac_prod(&(t2[icontr]), &Pminus,&(t2[icontr]));
             break;
           }
 
     }
 
   //Call for the routine which does the real contraction
-  trace_g_s_g_sdag(corr,t1,S1,t2,source,ncontr);
+  trace_g_sdag_g_s(corr,t2,source,t1,S1,ncontr);
 }
 
 int main(int narg,char **arg)
@@ -81,64 +78,64 @@ int main(int narg,char **arg)
       tic=MPI_Wtime();
     }
 
-  if(narg<2)
+  if(narg<2 && rank==0)
     {
-      if(rank==0) cerr<<"Use: "<<arg[0]<<" input_file"<<endl;
+      fprintf(stderr,"Use: %s input_file\n",arg[0]);
+      fflush(stderr);
       MPI_Abort(MPI_COMM_WORLD,1);
     }
 
   open_input(arg[1]);
 
   //Read the volume
-  read_int("L",glb_size[1]);
-  read_int("T",glb_size[0]);
+  read_str_int("L",&(glb_size[1]));
+  read_str_int("T",&(glb_size[0]));
 
   //Init the MPI grid 
   init_grid();
 
   //allocate the source and the prop
-  colorspinspin *source=new colorspinspin[loc_vol];
-  colorspinspin *S1=new colorspinspin[loc_vol];
-  if(source==NULL or S1==NULL)
+  colorspinspin *source=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
+  colorspinspin *S1=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
+  if((source==NULL || S1==NULL ) && rank==0)
     {
-      if(rank==0) cerr<<"Error! Not enoug memory to allocate source and spinor!"<<endl;
+      fprintf(stderr,"Error! Not enoug memory to allocate source and spinor!\n");
+      fflush(stderr);
       MPI_Abort(MPI_COMM_WORLD,1);
     }
 
   //Read the time location of the source
   int twall;
-  read_int("TWall",twall);
+  read_str_int("TWall",&twall);
 
   //Read the source
   char path[1024];
-  read_str("Source",path);
+  read_str_str("Source",path,1024);
   read_colorspinspin(path,source);
 
   //Read the number of contractions
   int ncontr;
-  read_int("NContr",ncontr);
-  if(rank==0) cout<<"Number of contractions: "<<ncontr<<endl;
+  read_str_int("NContr",&ncontr);
+  if(rank==0) printf("Number of contractions: %d\n",ncontr);
 
   //Initialize the list of correlations and the list of operators
   complex contr[ncontr][glb_size[0]];
-  int *op=new int[ncontr]; 
+  int *op=(int*)malloc(sizeof(int)*ncontr);
   for(int icontr=0;icontr<ncontr;icontr++)
     {
       //Read the operator pairs
-      read_int(op[icontr]);
+      read_int(&(op[icontr]));
 
-      if(rank==0 and debug) cout<<" contr."<<icontr<<" "<<op[icontr]<<endl;
+      if(rank==0 && debug) printf(" contr.%d %d\n",icontr,op[icontr]);
     }
 
   //Read the number of the props
   int nprop;
-  read_int("NProp",nprop);
+  read_str_int("NProp",&nprop);
 
   //Inizialization of output
-  ofstream fout;
-  fout.precision(16);
-  fout.width(16);
-  if(rank==0) fout.open("two_points_check");
+  FILE *fout;
+  if(rank==0) fout=fopen("two_points_check","w");
   int spat_vol=glb_size[1]*glb_size[1]*glb_size[1];
 
   //Loop over propagators
@@ -151,45 +148,41 @@ int main(int narg,char **arg)
 
       //Read the name, mass, theta and r for the list of the propagators
       read_str(path,1024);
-      read_double(mass_spec);
-      read_double(theta_spec);
-      read_double(mass1);
-      read_double(theta1);
-      read_int(phys);
-      read_int(r1);
+      read_double(&mass_spec);
+      read_double(&theta_spec);
+      read_double(&mass1);
+      read_double(&theta1);
+      read_int(&phys);
+      read_int(&r1);
 
-      if(debug and rank==0)
-	cout<<" prop."<<iprop<<" "<<path<<", m_spec="<<mass_spec<<" th_spec="<<theta_spec<<", m1="<<mass1<<" th1="<<theta1<<" phys="<<phys<<" r1="<<r1<<endl;
+      if(debug && rank==0)
+	printf(" prop.%d %s, m_spec=%f th_spec=%f, m1=%f th1=%f phys=%d r1=%d\n",iprop,path,mass_spec,theta_spec,mass1,theta1,phys,r1);
       
       //Read the propagator
       read_colorspinspin(path,S1);
       
-      if(rank==0)
-	fout<<noshowpos<<" #"
-	    <<" m_spec="<<mass_spec<<" th_spec="<<theta_spec
-	    <<" m1="<<mass1<<" th1="<<theta1<<" r1="<<r1<<endl;
+      if(rank==0) fprintf(fout," # m_spec=%f th_spec=%f m1=%f th1=%f r1=%d\n",mass_spec,theta_spec,mass1,theta1,r1);
       
       contract_with_source((complex*)contr,S1,op,source,ncontr,phys,r1);
 
       if(rank==0)
 	{
-	  fout<<endl;
+	  fprintf(fout,"\n");
 	  
 	  for(int icontr=0;icontr<ncontr;icontr++)
 	    {
-	      fout<<noshowpos<<" # "<<op[icontr]<<endl;
-	      fout<<endl;
+	      fprintf(fout," # %s\n\n",gtag[op[icontr]]);
 	      for(int tempt=0;tempt<glb_size[0];tempt++)
 		{
 		  int t=tempt+twall;
 		  if(t>=glb_size[0]) t-=glb_size[0];
 		  
-		  fout<<showpos<<contr[icontr][t][0]/spat_vol<<"\t"<<contr[icontr][t][1]/spat_vol<<endl;
+		  fprintf(fout,"%+016.16g\t%+016.16g\n",contr[icontr][t][0]/spat_vol,contr[icontr][t][1]/spat_vol);
 		}
-	      fout<<endl;
+	      fprintf(fout,"\n");
 	    }
+	  fprintf(fout,"\n");
 	}
-      if(rank==0) fout<<endl;
     }
 
   close_input();
@@ -200,21 +193,21 @@ int main(int narg,char **arg)
     {
       MPI_Barrier(cart_comm);
       tac=MPI_Wtime();
-      if(rank==0) cout<<"Time elapsed in doing "<<nprop*ncontr<<" contraction: "<<tac-tic<<" s"<<endl;
+      if(rank==0) printf("Time elapsed in doing %d contractions: %g s\n",nprop*ncontr,tac-tic);
     }
 
   ///////////////////////////////////////////
+  
+  if(rank==0)
+    {
+      printf("\nEverything ok, exiting!\n");
+      fclose(fout);
+    }
+  
+  free(S1);
+  free(source);
 
- if(rank==0)
-   {
-     cout<<endl<<"Everything ok, exiting!"<<endl;
-     fout.close();
-   }
-
-  delete[] S1;
-  delete[] source;
-
-  delete[] op;
+  free(op);
 
   close_appretto();
 

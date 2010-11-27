@@ -75,7 +75,7 @@ void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int 
       MPI_Barrier(cart_comm);
       tac=MPI_Wtime();
 
-      if(rank==0) printf("Time elapsed in writing: %d s\n",tac-tic);
+      if(rank==0) printf("Time elapsed in writing: %f s\n",tac-tic);
     }
 }
 

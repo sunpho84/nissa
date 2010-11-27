@@ -1,10 +1,7 @@
 #include <mpi.h>
-#include <fstream>
 #include <lemon.h>
 
 #include "appretto.h"
-
-using namespace std;
 
 int main(int narg,char **arg)
 {
@@ -13,17 +10,18 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_appretto();
 
-  if(narg<2)
+  if(narg<2 && rank==0)
     {
-      if(rank==0) cerr<<"Use: "<<arg[0]<<" input_file"<<endl;
+      fprintf(stderr,"Use: %s input_file\n",arg[0]);
+      fflush(stderr);
       MPI_Abort(MPI_COMM_WORLD,1);
     }
 
   open_input(arg[1]);
 
-  read_int("L",glb_size[1]);
-  read_int("T",glb_size[0]);
-  read_str("BaseFilename",base_filename);
+  read_str_int("L",&(glb_size[1]));
+  read_str_int("T",&(glb_size[0]));
+  read_str_str("BaseFilename",base_filename,1024);
 
   close_input();
 
@@ -32,7 +30,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  colorspinspin *spinore=new colorspinspin[loc_vol];
+  colorspinspin *spinore=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
 
   read_colorspinspin(base_filename,spinore);
 
@@ -43,13 +41,13 @@ int main(int narg,char **arg)
 	  for(int id_sink=0;id_sink<4;id_sink++)
 	    {
 	      for(int id_source=0;id_source<4;id_source++)
-		cout<<spinore[loc_site][ic][id_source][id_sink][0]<<","<<spinore[loc_site][ic][id_source][id_sink][0]<<"\t";
-	      cout<<endl;
+		printf("%g,%g\t",spinore[loc_site][ic][id_source][id_sink][0],spinore[loc_site][ic][id_source][id_sink][0]);
+	      printf("\n");
 	    }
-	  cout<<endl;
+	      printf("\n");
 	}
 	      
-  delete[] spinore;
+  free(spinore);
 
   ///////////////////////////////////////////
 

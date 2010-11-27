@@ -74,5 +74,5 @@ void print_spinspin(spinspin s)
     }
 }
 
-inline int min(int a,int b){if(a<b) return a;else return b;}
-inline int max(int a,int b){if(a>b) return a;else return b;}
+int min_int(int a,int b){if(a<b) return a;else return b;}
+int max_int(int a,int b){if(a>b) return a;else return b;}
