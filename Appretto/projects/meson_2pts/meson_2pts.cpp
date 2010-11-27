@@ -5,6 +5,30 @@
 //by one. The first list is split into blocks, each of them as large 
 //as possible.
 
+//First list has to be the shortest, and should contain to be reverted
+//The meson has quark content:
+//            _
+//            q(m1)q(m2)
+//
+//This is the reference scheme:
+
+/*               +              
+                S(m1)                           
+                .....          
+              ..     ..        
+             .         .       
+        op1  X           X  op2
+             .         .       
+              ..     ..        
+                .....          
+                S(m2)          
+                                    
+source |------>---->----->---->| sink
+
+*/
+
+
+
 #include <mpi.h>
 #include <fstream>
 #include <lemon.h>
@@ -51,7 +75,7 @@ int compute_allocable_propagators(int nprop_list)
   return nprop_max;
 }
 
-//This function takes care to make the revert on the SECOND spinor, putting the needed gamma5
+//This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 //It also applies the appropriate rotators to the physical basis if asked
 void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr,int f1,int r1,int f2,int r2)
 {
@@ -61,9 +85,9 @@ void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op
   for(int icontr=0;icontr<ncontr;icontr++)
     {
       
-      //Put the two gamma5 needed for the revert of the second spinor
-      dirac_prod(t1[icontr], base_gamma[5],base_gamma[list_op1[icontr]]);
-      dirac_prod(t2[icontr], base_gamma[list_op2[icontr]],base_gamma[5]);
+      //Put the two gamma5 needed for the revert of the first spinor
+      dirac_prod(t1[icontr], base_gamma[list_op1[icontr]],base_gamma[5]);
+      dirac_prod(t2[icontr], base_gamma[5],base_gamma[list_op2[icontr]]);
       
       //Remind that D- rotates as 1+ig5, but D-^-1 rotates as 1-ig5,
       //moreover (D^-1)^dagger rotates again as 1+ig5 (pweee!!!)
@@ -75,59 +99,59 @@ void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op
       if(f1<1)
 	switch(r1)
 	  {
-	  case 0: //This is D-^-1
-	    dirac_prod(t1[icontr], t1[icontr],Pminus);
-	    dirac_prod(t2[icontr], Pminus,t2[icontr]);
-	    break;
-	  case 1: //This is D+^-1
+	  case 0: //This is (D-^-1)^dag
 	    dirac_prod(t1[icontr], t1[icontr],Pplus);
 	    dirac_prod(t2[icontr], Pplus,t2[icontr]);
+	    break;
+	  case 1: //This is (D+^-1)^dag
+	    dirac_prod(t1[icontr], t1[icontr],Pminus);
+	    dirac_prod(t2[icontr], Pminus,t2[icontr]);
 	    break;
 	  }
 
       if(f1>1)
         switch(r1)
           {
-          case 0: //This is D-^-1
-            dirac_prod(t1[icontr], t1[icontr],Pminus);
-            dirac_prod(t2[icontr], Pplus,t2[icontr]);
-            break;
-          case 1: //This is D+^-1
+          case 0: //This is (D-^-1)^dag
             dirac_prod(t1[icontr], t1[icontr],Pplus);
             dirac_prod(t2[icontr], Pminus,t2[icontr]);
+            break;
+          case 1: //This is (D+^-1)^dag
+            dirac_prod(t1[icontr], t1[icontr],Pminus);
+            dirac_prod(t2[icontr], Pplus,t2[icontr]);
             break;
           }
 
       if(f2<1)
 	switch(r2)
 	  {
-	  case 0: //This is (D-^-1)^dagger
-	    dirac_prod(t2[icontr], t2[icontr],Pplus);
-	    dirac_prod(t1[icontr], Pplus,t1[icontr]);
-	    break;
-	  case 1: //This is (D+^-1)^dagger
+	  case 0: //This is D-^-1
 	    dirac_prod(t2[icontr], t2[icontr],Pminus);
 	    dirac_prod(t1[icontr], Pminus,t1[icontr]);
+	    break;
+	  case 1: //This is D+^-1
+	    dirac_prod(t2[icontr], t2[icontr],Pplus);
+	    dirac_prod(t1[icontr], Pplus,t1[icontr]);
 	    break;
 	  }
 
      if(f2>1)
         switch(r2)
           {
-          case 0: //This is (D-^-1)^dagger
-            dirac_prod(t2[icontr], t2[icontr],Pplus);
-            dirac_prod(t1[icontr], Pminus,t1[icontr]);
-            break;
-          case 1: //This is (D+^-1)^dagger
+          case 0: //This is D-^-1
             dirac_prod(t2[icontr], t2[icontr],Pminus);
             dirac_prod(t1[icontr], Pplus,t1[icontr]);
+            break;
+          case 1: //This is D+^-1
+            dirac_prod(t2[icontr], t2[icontr],Pplus);
+            dirac_prod(t1[icontr], Pminus,t1[icontr]);
             break;
           }
 
     }
   
   //Call for the routine which does the real contraction
-  trace_g_s_g_sdag(corr,t1,s1,t2,s2,ncontr);
+  trace_g_sdag_g_s(corr,t1,s1,t2,s2,ncontr);
 }
 
 int main(int narg,char **arg)
@@ -292,7 +316,7 @@ int main(int narg,char **arg)
 	      int counter=iblock_first+iprop1;
 
 	      if(rank==0)
-		fout<<" #"
+		fout<<noshowpos<<" #"
 		    <<" m1="<<mass_prop1[counter]<<" th1="<<theta_prop1[counter]<<" r1="<<r_prop1[counter]<<" ,"
 		    <<" m2="<<mass_prop2[iprop2] <<" th2="<<theta_prop2[iprop2] <<" r2="<<r_prop2[iprop2]<<endl;
 
@@ -304,7 +328,7 @@ int main(int narg,char **arg)
 		  
 		  for(int icontr=0;icontr<ncontr;icontr++)
 		    {
-		      fout<<" # "<<op1[icontr]<<" "<<op2[icontr]<<endl;
+		      fout<<noshowpos<<" # "<<op1[icontr]<<" "<<op2[icontr]<<" "<<gtag[op2[icontr]]<<gtag[op1[icontr]]<<endl;
 		      fout<<endl;
 		      for(int tempt=0;tempt<glb_size[0];tempt++)
 			{
