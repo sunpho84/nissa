@@ -1,10 +1,7 @@
 #pragma once
 
 #include <lemon.h>
-#include <lime.h>
-#include "endianess.cpp"
-
-using namespace std;
+#include "endianess.c"
 
 //Read a whole spincolor
 void read_spincolor(char *path,spincolor *spinor)
@@ -18,34 +15,35 @@ void read_spincolor(char *path,spincolor *spinor)
     }
 
   //Open the file
-  MPI_File *reader_file=new MPI_File;
+  MPI_File *reader_file=(MPI_File*)malloc(sizeof(MPI_File));
   int ok=MPI_File_open(cart_comm,path,MPI_MODE_RDONLY,MPI_INFO_NULL,reader_file);
-  if(ok!=MPI_SUCCESS)
+  if(ok!=MPI_SUCCESS && rank==0)
     {
-      if(rank==0) cerr<<"Couldn't open for reading the file: '"<<path<<"'"<<endl;
+      fprintf(stderr,"Couldn't open for reading the file: '%s'\n",path);
+      fflush(stderr);
       MPI_Abort(cart_comm,1);
     }
 
   LemonReader *reader=lemonCreateReader(reader_file,cart_comm);
   char *header_type=NULL;
 
-  bool read=false;
-  while(lemonReaderNextRecord(reader)!=LIME_EOF)
+  int read=0;
+  while(lemonReaderNextRecord(reader)!=LEMON_EOF)
     {
       header_type=lemonReaderType(reader);
-      if(rank==0 and debug>1) cout<<"found record: "<<header_type<<endl;
+      if(rank==0 && debug>1) printf("found record: %s\n",header_type);
       if(strcmp("scidac-binary-data",header_type)==0)
 	{
 	  int nbytes=lemonReaderBytes(reader);
 	  int nbytes_per_site=nbytes/glb_vol;
 	  int nbytes_per_site_float=nreals_per_spincolor*sizeof(float);
 	  int nbytes_per_site_double=nreals_per_spincolor*sizeof(double);
-	  if(nbytes_per_site!=nbytes_per_site_float and nbytes_per_site!=nbytes_per_site_double)
+	  if(nbytes_per_site!=nbytes_per_site_float && nbytes_per_site!=nbytes_per_site_double)
 	    {
-	      cerr<<"Opsss! The record contain "<<nbytes<<" bytes, and it is supposed to contain: "
-		  <<nbytes_per_site_float*glb_vol<<" or "<<nbytes_per_site_double*glb_vol<<endl;
+	      fprintf(stderr,"Opsss! The record contain %d bytes and it is supposed to contain: %d or %d\n",
+		      nbytes,nbytes_per_site_float*glb_vol,nbytes_per_site_double*glb_vol);
+	      fflush(stderr);
 	      MPI_Abort(MPI_COMM_WORLD,1);
-	      MPI_Finalize();
 	    }
 	  
 	  int loc_nreals_tot=nreals_per_spincolor*loc_vol;
@@ -61,15 +59,19 @@ void read_spincolor(char *path,spincolor *spinor)
 	  else //swap the endianess if needed
 	    if(big_endian) doubles_to_doubles_changing_endianess((double*)spinor,(double*)spinor,loc_nreals_tot);
 	  
-	  read=true;
-	  if(rank==0 and debug>1) cout<<"Data read!"<<endl;
+	  read=1;
+	  if(rank==0 && debug>1) printf("Data read!\n");
 	}
     }
   
-  if(read==false)
+  if(read==0)
     {
-      if(rank==0) cerr<<"Error: couldn't find binary"<<endl;
-      MPI_Abort(MPI_COMM_WORLD,1);
+      if(rank==0)
+	{
+	  fprintf(stderr,"Error: couldn't find binary\n");
+	  fflush(stderr);
+	  MPI_Abort(MPI_COMM_WORLD,1);
+	}
     }
 
   lemonDestroyReader(reader);
@@ -80,7 +82,7 @@ void read_spincolor(char *path,spincolor *spinor)
       MPI_Barrier(cart_comm);
       double tac=MPI_Wtime();
 
-      if(rank==0) cout<<"Time elapsed in reading "<<tac-tic<<" s"<<endl;
+      if(rank==0) printf("Time elapsed in reading: %d s\n",tac-tic);
     }
 }
 
@@ -119,7 +121,7 @@ void read_colorspinspin(char *base_path,colorspinspin *css)
       MPI_Barrier(cart_comm);
       double tac=MPI_Wtime();
 
-      if(rank==0) cout<<"Time elapsed in reading file '"<<base_path<<"': "<<tac-tic<<" s"<<endl;
+      if(rank==0) printf("Time elapsed in reading file '%s': %d s\n",base_path,tac-tic);
     }
   
   //Destroy the temp
