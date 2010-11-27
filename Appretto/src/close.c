@@ -1,13 +1,13 @@
 #pragma once
 
-#include "random.cpp"
+#include "random.c"
 
 void close_appretto()
 {
   if(random_initialized)
     {
       close_random();
-      random_initialized=false;
+      random_initialized=0;
     }
   MPI_Finalize();
 }

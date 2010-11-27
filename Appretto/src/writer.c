@@ -1,9 +1,9 @@
 #pragma once
 
 #include <lemon.h>
-#include "endianess.cpp"
+#include <stdio.h>
 
-using namespace std;
+#include "endianess.c"
 
 //Write the header for a record
 void write_header(LemonWriter *writer,char *header,int record_bytes)
@@ -26,10 +26,14 @@ void write_text_record(LemonWriter *writer,char *header,char *message)
 void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int nbits)
 {
 
-  if(nbits!=32 and nbits!=64)
+  if(nbits!=32 && nbits!=64)
     {
-      if(rank==0) cerr<<"Error, asking "<<nbits<<" precision, use instead 32 or 64"<<endl;
-      MPI_Abort(MPI_COMM_WORLD,1);
+      if(rank==0)
+	{
+	  fprintf(stderr,"Error, asking %d precision, use instead 32 or 64\n",nbits);
+	  fflush(stderr);
+	  MPI_Abort(MPI_COMM_WORLD,1);
+	}
     }
 
   //take initial time
@@ -48,7 +52,7 @@ void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int 
   write_header(writer,header,nbytes_glb);
 
   char *buffer=NULL;
-  if(big_endian or nbits==32) buffer=new char[nbytes_glb];
+  if(big_endian || nbits==32) buffer=(char*)malloc(sizeof(char)*nbytes_glb);
   
   if(nbits==64)
     if(big_endian) doubles_to_doubles_changing_endianess((double*)buffer,(double*)data,nreals_loc);
@@ -62,7 +66,7 @@ void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int 
   lemonWriteLatticeParallelMapped(writer,buffer,nbytes_per_site,glb_dims,scidac_mapping);
 
   //delete the swapped data, if created
-  if(big_endian or nbits==32) delete[] buffer;
+  if(big_endian || nbits==32) free(buffer);
 
   //take final time
   double tac;
@@ -71,7 +75,7 @@ void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int 
       MPI_Barrier(cart_comm);
       tac=MPI_Wtime();
 
-      if(rank==0) cout<<"Time elapsed in writing: "<<tac-tic<<" s"<<endl;
+      if(rank==0) printf("Time elapsed in writing: %d s\n",tac-tic);
     }
 }
 
@@ -79,11 +83,12 @@ void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int 
 void write_spincolor(char *path,spincolor *spinor,int prec)
 {
   //Open the file
-  MPI_File *writer_file=new MPI_File;
+  MPI_File *writer_file=(MPI_File*)malloc(sizeof(MPI_File));
   int ok=MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
-  if(ok!=MPI_SUCCESS)
+  if(ok!=MPI_SUCCESS && rank==0)
     {
-      cerr<<"Couldn't open for writing the file: '"<<path<<"'"<<endl;
+      fprintf(stderr,"Couldn't open for writing the file: '%s'\n",path);
+      fflush(stderr);
       MPI_Abort(cart_comm,1);
     }
 
@@ -114,8 +119,8 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
   //Write the binary data
   write_double_vector(writer,(char*)spinor,nreals_per_spincolor,prec);
 
-  if(rank==0) cout<<"File '"<<path<<"' saved (probably...)"<<endl;
-
+  if(rank==0) printf("File '%s' saved (probably...)\n",path);
+  
   //Close the file
   lemonDestroyWriter(writer);
   MPI_File_close(writer_file);

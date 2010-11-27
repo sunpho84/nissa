@@ -1,8 +1,6 @@
 #pragma once
 
-#include <iostream>
-
-using namespace std;
+#include <stdio.h>
 
 int **glb_coord,glb_size[4],glb_vol=0;
 int **loc_coord,loc_size[4],loc_vol=0;
@@ -20,7 +18,7 @@ MPI_Comm cart_comm;
 //random generator stuff
 const int ran2_ntab=32;
 int *ran2_idum,*ran2_idum2,**ran2_iv,*ran2_iy;
-bool random_initialized=false;
+int random_initialized=0;
 
 //A complex number
 typedef double complex[2];
@@ -67,12 +65,14 @@ typedef spin spinspin[4];
 typedef spinspin colorspinspin[3];
 
 //Print a spinspin
-void print_spinspin(spinspin &s)
+void print_spinspin(spinspin s)
 {
   for(int id1=0;id1<4;id1++)
     {
-      for(int id2=0;id2<4;id2++) cout<<s[id1][id2][0]<<","<<s[id1][id2][1]<<"\t";
-      cout<<endl;
+      for(int id2=0;id2<4;id2++) printf("%+016.16f,%+016.16f\t",s[id1][id2][0],s[id1][id2][1]);
+      printf("\n");
     }
 }
 
+inline int min(int a,int b){if(a<b) return a;else return b;}
+inline int max(int a,int b){if(a>b) return a;else return b;}

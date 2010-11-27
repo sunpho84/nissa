@@ -1,13 +1,11 @@
 #pragma once
 
 #include <mpi.h>
-#include <cstdlib>
-#include <iostream>
-#include "endianess.cpp"
-#include "random.cpp"
-#include "dirac.cpp"
+#include <stdio.h>
 
-using namespace std;
+#include "endianess.c"
+#include "random.c"
+#include "dirac.c"
 
 void init_appretto()
 {
@@ -56,7 +54,7 @@ void set_geometry()
 	    glb_of_loc_ind[loc_ind]=glb_ind;
           }
 
-  if(rank==0 and debug) cout<<"Geometry intialized"<<endl;
+  if(rank==0 && debug) printf("Geometry intialized\n");
 }
 
 void init_grid()
@@ -79,8 +77,8 @@ void init_grid()
 
   if(rank==0)
     {
-      cout<<endl<<"Number of running processes: "<<rank_tot<<endl;
-      cout<<"Global lattice:\t"<<glb_size[0]<<"x"<<glb_size[1]<<"x"<<glb_size[2]<<"x"<<glb_size[3]<<endl;
+      printf("\nNumber of running processes: %d\n",rank_tot);
+      printf("Global lattice:\t%dx%dx%dx%d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3]);
     }
 
   for(int i=0;i<4;i++) loc_size[i]=glb_size[i];
@@ -89,27 +87,22 @@ void init_grid()
   MPI_Dims_create(rank_tot,4,nproc_dir);
   if(rank==0 && debug==1)
     {
-      cout<<"Creating grid\t"<<nproc_dir[0]<<"x"<<nproc_dir[1]<<"x"<<nproc_dir[2]<<"x"<<nproc_dir[3]<<endl;
-      cout.flush();
+      printf("\nCreating grid:\t%dx%dx%dx%d\n",nproc_dir[0],nproc_dir[1],nproc_dir[2],nproc_dir[3]);
+      fflush(stdout);
     }
 
-  bool ok=1;
+  int ok=1;
   for(int idir=0;idir<4;idir++)
     {
-      ok=ok and (nproc_dir[idir]>0);
-      ok=ok and (glb_size[idir]%nproc_dir[idir]==0);
+      ok=ok && (nproc_dir[idir]>0);
+      ok=ok && (glb_size[idir]%nproc_dir[idir]==0);
     }
 
-  if(!ok)
+  if(!ok && rank==0)
     {
-      if(rank==0)
-	{
-	  cerr<<"The lattice is incommensurable with the total processor amount"<<endl;
-	  cerr.flush();
-	}
+      fprintf(stderr,"The lattice is incommensurable with the total processor amount\n");
+      fflush(stderr);
       MPI_Abort(MPI_COMM_WORLD,1);
-      MPI_Finalize();
-      exit(-1);
     }
   
   //Calculate locale and global volume
@@ -121,12 +114,7 @@ void init_grid()
     }
   loc_vol=glb_vol/rank_tot;
 
-  if(rank==0)
-    {
-      cout<<"Local volume\t"<<loc_size[0]<<"x"<<loc_size[1]
-	  <<"x"<<loc_size[2]<<"x"<<loc_size[3]<<endl;
-      cout<<endl;
-    }
+  if(rank==0) printf("Local volume\t%dx%dx%dx%d\n",loc_size[0],loc_size[1],loc_size[2],loc_size[3]);
 
   MPI_Cart_create(MPI_COMM_WORLD,4,nproc_dir,periods,1,&cart_comm);
   MPI_Comm_rank(cart_comm,&cart_rank);
@@ -134,11 +122,9 @@ void init_grid()
 
   if(debug>2)
     {
-      cout<<"Process "<<rank<<" of "<<rank_tot<<" on "<<proc_name
-	  <<": cart_id "<<cart_rank<<", coordinates ("<<proc_coord[0]
-	  <<" "<<proc_coord[1]<<" "<<proc_coord[2]<<" "<<proc_coord[3]<<")"
-	  <<endl;
-      cout.flush();
+      printf("Process %d of %d on %d: %d, %d (%d %d %d %d)\n",rank,rank_tot,
+	     proc_name,cart_rank,proc_coord[0],proc_coord[1],proc_coord[2],proc_coord[3]);
+      fflush(stdout);
   
       MPI_Barrier(MPI_COMM_WORLD);
     }
@@ -150,7 +136,7 @@ void init_grid()
       MPI_Barrier(MPI_COMM_WORLD);
       tac=MPI_Wtime();
 
-      if(rank==0) cout<<"Time elapsed for MPI inizialization: "<<tac-tic<<" s"<<endl;
+      if(rank==0) printf("Time elapsed for MPI inizialization: %d s\n",tac-tic);
     }
 
   set_geometry();

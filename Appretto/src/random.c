@@ -1,6 +1,8 @@
 #pragma once
 
-#include "global.cpp"
+#include <stdio.h>
+
+#include "global.c"
 
 //Initilialise the random number generator
 void init_random(int seed)
@@ -14,14 +16,14 @@ void init_random(int seed)
     {
       srand(seed);
       seed=rand();
-      if(debug) cout<<"New seed generated, "<<seed<<endl;
+      if(debug>1) printf("New seed generated, %d\n",seed);
     }
   MPI_Bcast(&seed,1,MPI_INT,0,MPI_COMM_WORLD);
-  if(debug and rank==1) cout<<"Rank "<<rank<<" seed received: "<<seed<<endl;
 
-  if(rank==0 and loc_vol==0)
+  if(rank==0 && loc_vol==0)
     {
-      cerr<<"Error, grid not initalized"<<endl;
+      fprintf(stderr,"Error, grid not initalized\n");
+      fflush(stderr);
       MPI_Abort(MPI_COMM_WORLD,1);
     }
   
@@ -48,7 +50,7 @@ void init_random(int seed)
       ran2_iy[loc_ind]=ran2_iv[loc_ind][0];
     }
 
-  if(rank==0 and debug) cout<<"Random generator initialized"<<endl;
+  if(rank==0 && debug) printf("Random generator initialized\n");
 }
 
 //Close random
