@@ -239,6 +239,10 @@ int main(int narg,char **arg)
 
       if(rank==0 and debug) cout<<" contr."<<icontr<<" "<<op1[icontr]<<" "<<op2[icontr]<<endl;
     }
+  
+  //Read the output filename
+  char outfile[1024];
+  read_str("Output",outfile);
 
   close_input();
 
@@ -268,7 +272,7 @@ int main(int narg,char **arg)
   ofstream fout;
   fout.precision(16);
   fout.width(16);
-  if(rank==0) fout.open("two_points_correlations");
+  if(rank==0) fout.open(outfile);
   int spat_vol=glb_size[1]*glb_size[1]*glb_size[1];
 
   //Loop over the blocks of the first list
@@ -328,7 +332,7 @@ int main(int narg,char **arg)
 		  
 		  for(int icontr=0;icontr<ncontr;icontr++)
 		    {
-		      fout<<noshowpos<<" # "<<op1[icontr]<<" "<<op2[icontr]<<" "<<gtag[op2[icontr]]<<gtag[op1[icontr]]<<endl;
+		      fout<<noshowpos<<" # "<<gtag[op2[icontr]]<<gtag[op1[icontr]]<<endl;
 		      fout<<endl;
 		      for(int tempt=0;tempt<glb_size[0];tempt++)
 			{
