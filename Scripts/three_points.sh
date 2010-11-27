@@ -64,12 +64,12 @@ do
 	for r_spec in ${list_r_spec[@]}
 	do
 	
-	  #choose the r1 flavor to have the charged combo
+	  #choose the rS1 flavor to have the charged combo
 	  if [ $r_spec == 0 ]
 	  then
-	      r1=1
+	      rS1=1
 	  else
-	      r1=0
+	      rS1=0
 	  fi
 
 	  echo "Generating sequential source from the original named: "$source_name" of type: "$source_type" with pars: "${source_pars[@]}" and seed: "$source_seed", for the "$theta_spec" theta, "$mu_spec" mass, "$r_spec" flavour"
@@ -151,7 +151,7 @@ do
                   #write the instructions of what to write
 		  (
 		      echo $r_spec   #if r_spec=0, don't save the up
-		      echo $r1       #and as r1=!r_spec, save the down
+		      echo $rS1      #and as rS1=!r_spec, save the down
 		      echo $IO_prec  #and vice versa
 		  ) > $base_inv/cg_mms_instructions
 
@@ -191,7 +191,7 @@ do
 		      for ics in $(seq -f%02.0f 00 $last_prop_index)
 		      do
 			  
-			file=$(echo $imu1|awk '{printf("'$base_inv/source.$conf.00.$ics.cgmms."%02d.inverted."$r1"\n"'",$1)}')
+			file=$(echo $imu1|awk '{printf("'$base_inv/source.$conf.00.$ics.cgmms."%02d.inverted."$rS1"\n"'",$1)}')
 			dest=$base_inv/$mu1/prop.$ics
 			  
 			if [ ! -f $file ]
