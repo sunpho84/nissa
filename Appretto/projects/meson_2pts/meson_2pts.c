@@ -307,14 +307,14 @@ int main(int narg,char **arg)
 	int counter=iblock_first+iprop1;
 	
 	double tic1=0,tac1;
-	if(debug>1 && rank==0)
+	if(debug>1)
 	  {
-	    printf("Going to read propagator %d/%d: %s\n",iprop1+1,iblock_length,base_filename1[counter]);
+	    if(rank==0) printf("Going to read propagator %d/%d: %s\n",iprop1+1,iblock_length,base_filename1[counter]);
 	    MPI_Barrier(cart_comm);
 	    tic1=MPI_Wtime();
 	  }
 	read_colorspinspin(base_filename1[counter],spinor1[iprop1]);
-	if(debug>1 && rank==0)
+	if(debug>1)
 	  {
 	    MPI_Barrier(cart_comm);
 	    tac1=MPI_Wtime();
@@ -343,14 +343,14 @@ int main(int narg,char **arg)
 	  if(spinor2_ptr==spinor2)
 	    {
 	      double tic1=0,tac1;
-	      if(debug>1 && rank==0)
+	      if(debug>1)
 		{
-		  printf("Going to read propagator %d/%d: %s\n",iprop2+1,nprop_list2,base_filename2[iprop2]);
+		  if(rank==0) printf("Going to read propagator %d/%d: %s\n",iprop2+1,nprop_list2,base_filename2[iprop2]);
 		  MPI_Barrier(cart_comm);
 		  tic1=MPI_Wtime();
 		}
 	      read_colorspinspin(base_filename2[iprop2],spinor2);
-	      if(debug>1 && rank==0)
+	      if(debug>1)
 		{
 		  MPI_Barrier(cart_comm);
 		  tac1=MPI_Wtime();
@@ -368,9 +368,9 @@ int main(int narg,char **arg)
 		fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass_prop1[counter],theta_prop1[counter],r_prop1[counter],mass_prop2[iprop2],theta_prop2[iprop2],r_prop2[iprop2]);
 
 	      double tic1=0,tac1;
-	      if(debug>1 && rank==0)
+	      if(debug>1)
 		{
-		  printf("Going to perform %d vs %d contractions\n",iprop1+1,iprop2+1);
+		  if(rank==0) printf("Going to perform %d vs %d contractions\n",iprop1+1,iprop2+1);
 		  MPI_Barrier(cart_comm);
 		  tic1=MPI_Wtime();
 		}	      
