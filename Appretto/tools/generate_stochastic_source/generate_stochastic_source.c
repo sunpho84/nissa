@@ -46,6 +46,12 @@ int main(int narg,char **arg)
   //////////////////////////////////////////////////////
 
   spincolor *spinore=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  if(spinore==NULL)
+    {
+      fprintf(stderr,"Error: couldn't allocate the out spinor\n");
+      fflush(stderr);
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
 
   char filename[1024];
   sprintf(filename,"%s.00",base_filename);
