@@ -154,6 +154,12 @@ void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_o
 
 int main(int narg,char **arg)
 {
+  int tot_prop_read=0;
+  int tot_contr_made=0;
+  
+  double tot_reading_time=0;
+  double tot_contract_time=0;
+
   //Basic mpi initialization
   init_appretto();
 
@@ -293,15 +299,28 @@ int main(int narg,char **arg)
       int iblock_last=min_int((iblock+1)*nprop_per_block,nprop_list1);
       int iblock_length=iblock_last-iblock_first;
 
-      if(rank==0 && debug) printf("Block %d/%d length: %d\n",iblock,nblocks,iblock_length);
+      if(rank==0 && debug) printf("Block %d/%d length: %d\n",iblock+1,nblocks,iblock_length);
 
       //now read the whole first block
       for(int iprop1=0;iprop1<iblock_length;iprop1++)
       {
 	int counter=iblock_first+iprop1;
 	
-	if(debug>1 && rank==0) printf("Going to read propagator %d/%d: %s\n",iprop1,iblock_length,base_filename1[counter]);
+	double tic1=0,tac1;
+	if(debug>1 && rank==0)
+	  {
+	    printf("Going to read propagator %d/%d: %s\n",iprop1+1,iblock_length,base_filename1[counter]);
+	    MPI_Barrier(cart_comm);
+	    tic1=MPI_Wtime();
+	  }
 	read_colorspinspin(base_filename1[counter],spinor1[iprop1]);
+	if(debug>1 && rank==0)
+	  {
+	    MPI_Barrier(cart_comm);
+	    tac1=MPI_Wtime();
+	    tot_reading_time+=tac1-tic1;
+	    tot_prop_read++;
+	  }
       }
 
       //now loop over the second popagator
@@ -323,8 +342,21 @@ int main(int narg,char **arg)
 	  //if not found in the first list, load it
 	  if(spinor2_ptr==spinor2)
 	    {
-	      if(debug>1 && rank==0) printf("Going to read propagator %d: %s\n",iprop2,base_filename2[iprop2]);
+	      double tic1=0,tac1;
+	      if(debug>1 && rank==0)
+		{
+		  printf("Going to read propagator %d/%d: %s\n",iprop2+1,nprop_list2,base_filename2[iprop2]);
+		  MPI_Barrier(cart_comm);
+		  tic1=MPI_Wtime();
+		}
 	      read_colorspinspin(base_filename2[iprop2],spinor2);
+	      if(debug>1 && rank==0)
+		{
+		  MPI_Barrier(cart_comm);
+		  tac1=MPI_Wtime();
+		  tot_reading_time+=tac1-tic1;
+		  tot_prop_read++;
+		}
 	    }
 	  
 	  //Calculate all the two points between spinor 1 and spinor2
@@ -335,7 +367,21 @@ int main(int narg,char **arg)
 	      if(rank==0)
 		fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass_prop1[counter],theta_prop1[counter],r_prop1[counter],mass_prop2[iprop2],theta_prop2[iprop2],r_prop2[iprop2]);
 
+	      double tic1=0,tac1;
+	      if(debug>1 && rank==0)
+		{
+		  printf("Going to perform %d vs %d contractions\n",iprop1+1,iprop2+1);
+		  MPI_Barrier(cart_comm);
+		  tic1=MPI_Wtime();
+		}	      
 	      meson_two_points(contr,op1,spinor1[iprop1],op2,spinor2_ptr,ncontr,phys_prop1[counter],r_prop1[counter],phys_prop2[iprop2],r_prop2[iprop2]);
+	      if(debug>1 && rank==0)
+		{
+		  MPI_Barrier(cart_comm);
+		  tac1=MPI_Wtime();
+		  tot_contract_time+=tac1-tic1;
+		  tot_contr_made++;
+		}
 
 	      if(rank==0)
 		{
@@ -370,7 +416,14 @@ int main(int narg,char **arg)
     {
       MPI_Barrier(cart_comm);
       tac=MPI_Wtime();
-      if(rank==0) printf("Time elapsed in doing %d contractions: %f s\n",nprop_list1*nprop_list2*ncontr,tac-tic);
+      if(rank==0)
+	{
+	  printf("\nTotal time elapsed: %f s of which:\n",tac-tic);
+	  printf(" - %f s (%2.2f/100) to read %d propagators  (aver. %f s/prop) s\n",
+		 tot_reading_time,tot_reading_time/(tac-tic)*100,tot_prop_read,tot_reading_time/tot_prop_read);
+	  printf(" - %f s (%2.2f/100) to make %d contractions (aver. %f s/contr) s\n",
+		 tot_contract_time,tot_contract_time/(tac-tic)*100,tot_contr_made,tot_contract_time/tot_contr_made);
+	}
     }
 
   ///////////////////////////////////////////
