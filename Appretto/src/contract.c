@@ -22,7 +22,7 @@ void trace_g_sdag_g_s(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_mat
   //Check if the global vector is contiguos
   complex *glb_c_buf=glb_c[0];
   int use_buf=0;
-  for(int icontr=0;icontr<ncontr && use_buf==0;icontr++) use_buf=(glb_c[icontr]!=glb_c_buf+glb_size[0]);
+  for(int icontr=0;icontr<ncontr && use_buf==0;icontr++) use_buf=(glb_c[icontr]!=glb_c_buf+icontr*glb_size[0]);
   if(use_buf)
     {
       if(debug>1 && rank==0)
@@ -65,7 +65,6 @@ void trace_g_sdag_g_s(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_mat
 	    glb_c[icontr][glb_t][0]=glb_c_buf[icontr*glb_size[0]+glb_t][0];
 	    glb_c[icontr][glb_t][1]=glb_c_buf[icontr*glb_size[0]+glb_t][1];
 	  }
-      //memcpy(glb_c[icontr],glb_c_buf[icontr*glb_size[0]],2*glb_size[0]*sizeof(double));
       free(glb_c_buf);
     }
 
