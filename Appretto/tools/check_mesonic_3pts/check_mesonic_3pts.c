@@ -16,7 +16,7 @@
 */
 
 //This function contract a source with a sequential spinor putting the passed list of operators
-void contract_with_source(complex *corr,colorspinspin *S1,int *list_op,colorspinspin *source,int ncontr,int fprop,int rprop)
+void contract_with_source(complex **corr,colorspinspin *S1,int *list_op,colorspinspin *source,int ncontr,int fprop,int rprop)
 {
   //Temporary vector for the internal matrices
   dirac_matr t1[ncontr],t2[ncontr];
@@ -25,6 +25,7 @@ void contract_with_source(complex *corr,colorspinspin *S1,int *list_op,colorspin
     {
       
       //Init the second 
+      t1[icontr]=base_gamma[list_op[icontr]];
       t2[icontr]=base_gamma[0];
       
       //Remind that D- rotates as 1+ig5, but D-^-1 rotates as 1-ig5,
@@ -49,13 +50,13 @@ void contract_with_source(complex *corr,colorspinspin *S1,int *list_op,colorspin
       if(fprop>1)
         switch(rprop)
           {
-          case 0: //This is D-^-1
+          case 0: //This is D-^-1 on the sequential. t1 is on the sink
             dirac_prod(&(t1[icontr]), &(t1[icontr]),&Pminus);
-            dirac_prod(&(t2[icontr]), &Pplus,&(t2[icontr]));
+            dirac_prod(&(t2[icontr]), &(t2[icontr]),&Pplus);
             break;
-          case 1: //This is D+^-1
+          case 1: //This is D+^-1 on the sequential. t1 is on the sink
             dirac_prod(&(t1[icontr]), &(t1[icontr]),&Pplus);
-            dirac_prod(&(t2[icontr]), &Pminus,&(t2[icontr]));
+            dirac_prod(&(t2[icontr]), &(t2[icontr]),&Pminus);
             break;
           }
 
@@ -74,7 +75,7 @@ int main(int narg,char **arg)
   double tic;
   if(debug)
     {
-      MPI_Barrier(cart_comm);
+      MPI_Barrier(MPI_COMM_WORLD);
       tic=MPI_Wtime();
     }
 
@@ -119,10 +120,12 @@ int main(int narg,char **arg)
   if(rank==0) printf("Number of contractions: %d\n",ncontr);
 
   //Initialize the list of correlations and the list of operators
-  complex contr[ncontr][glb_size[0]];
+  complex **contr=(complex**)malloc(sizeof(complex*)*ncontr);
+  contr[0]=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
   int *op=(int*)malloc(sizeof(int)*ncontr);
   for(int icontr=0;icontr<ncontr;icontr++)
     {
+      contr[icontr]=contr[0]+icontr*glb_size[0];
       //Read the operator pairs
       read_int(&(op[icontr]));
 
@@ -134,7 +137,7 @@ int main(int narg,char **arg)
   read_str_int("NProp",&nprop);
 
   //Inizialization of output
-  FILE *fout;
+  FILE *fout=NULL;
   if(rank==0) fout=fopen("two_points_check","w");
   int spat_vol=glb_size[1]*glb_size[1]*glb_size[1];
 
@@ -163,7 +166,7 @@ int main(int narg,char **arg)
       
       if(rank==0) fprintf(fout," # m_spec=%f th_spec=%f m1=%f th1=%f r1=%d\n",mass_spec,theta_spec,mass1,theta1,r1);
       
-      contract_with_source((complex*)contr,S1,op,source,ncontr,phys,r1);
+      contract_with_source(contr,S1,op,source,ncontr,phys,r1);
 
       if(rank==0)
 	{
@@ -208,6 +211,8 @@ int main(int narg,char **arg)
   free(source);
 
   free(op);
+  free(contr[0]);
+  free(contr);
 
   close_appretto();
 
