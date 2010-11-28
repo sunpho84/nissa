@@ -75,7 +75,7 @@ int compute_allocable_propagators(int nprop_list)
 
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 //It also applies the appropriate rotators to the physical basis if asked
-void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr,int f1,int r1,int f2,int r2)
+void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr,int f1,int r1,int f2,int r2)
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];
@@ -180,11 +180,12 @@ int main(int narg,char **arg)
   if(rank==0) printf("Nprop of the first list: %d\n",nprop_list1);
 
   //Read the name, mass, theta and other flags for the first list
-  char base_filename1[nprop_list1][1024];
-  double mass_prop1[nprop_list1];
-  double theta_prop1[nprop_list1];
-  int phys_prop1[nprop_list1];
-  int r_prop1[nprop_list1];
+  char **base_filename1=(char**)malloc(sizeof(char*)*nprop_list1);
+  for(int iprop1=0;iprop1<nprop_list1;iprop1++) base_filename1[iprop1]=(char*)malloc(1024);
+  double  *mass_prop1=(double*)malloc(sizeof(double)*nprop_list1);
+  double *theta_prop1=(double*)malloc(sizeof(double)*nprop_list1);
+  int    * phys_prop1=   (int*)malloc(sizeof(int)   *nprop_list1);
+  int        *r_prop1=   (int*)malloc(sizeof(int)   *nprop_list1);
   for(int iprop=0;iprop<nprop_list1;iprop++)
     {
       read_str(base_filename1[iprop],1024);
@@ -203,11 +204,12 @@ int main(int narg,char **arg)
   if(rank==0) printf("Nprop of the second list: %d\n",nprop_list2);
 
   //Read the name, mass, theta and other flags for the second list
-  char base_filename2[nprop_list2][1024];
-  double mass_prop2[nprop_list2];
-  double theta_prop2[nprop_list2];
-  int phys_prop2[nprop_list2];
-  int r_prop2[nprop_list2];
+  char **base_filename2=(char**)malloc(sizeof(char*)*nprop_list2);
+  for(int iprop2=0;iprop2<nprop_list2;iprop2++) base_filename2[iprop2]=(char*)malloc(1024);
+  double  *mass_prop2=(double*)malloc(sizeof(double)*nprop_list2);
+  double *theta_prop2=(double*)malloc(sizeof(double)*nprop_list2);
+  int    * phys_prop2=   (int*)malloc(sizeof(int)   *nprop_list2);
+  int        *r_prop2=   (int*)malloc(sizeof(int)   *nprop_list2);
   for(int iprop=0;iprop<nprop_list2;iprop++)
     {
       read_str(base_filename2[iprop],1024);
@@ -226,11 +228,15 @@ int main(int narg,char **arg)
   if(rank==0) printf("Number of contractions: %d\n",ncontr);
 
   //Initialize the list of correlations and the list of operators
-  complex contr[ncontr][glb_size[0]];
+  //contiguous allocation
+  complex **contr=(complex**)malloc(sizeof(complex*)*ncontr);
+  contr[0]=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]); 
   int *op1=(int*)malloc(sizeof(int)*ncontr);
   int *op2=(int*)malloc(sizeof(int)*ncontr);
   for(int icontr=0;icontr<ncontr;icontr++)
     {
+      contr[icontr]=contr[0]+icontr*glb_size[0];
+
       //Read the operator pairs
       read_int(&(op1[icontr]));
       read_int(&(op2[icontr]));
@@ -253,7 +259,7 @@ int main(int narg,char **arg)
   if(nprop_list1>nblocks*nprop_per_block) nblocks++;
 
   //allocate the spinors
-  colorspinspin *spinor1[nprop_per_block];
+  colorspinspin **spinor1=(colorspinspin**)malloc(sizeof(colorspinspin*)*nprop_per_block);
   for(int iprop1=0;iprop1<nprop_per_block;iprop1++) spinor1[iprop1]=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
   colorspinspin *spinor2=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
 
@@ -287,12 +293,14 @@ int main(int narg,char **arg)
       int iblock_last=min_int((iblock+1)*nprop_per_block,nprop_list1);
       int iblock_length=iblock_last-iblock_first;
 
+      if(rank==0 && debug) printf("Block %d/%d length: %d\n",iblock,nblocks,iblock_length);
+
       //now read the whole first block
       for(int iprop1=0;iprop1<iblock_length;iprop1++)
       {
 	int counter=iblock_first+iprop1;
 	
-	if(debug>1 && rank==0) printf("Going to read propagator: %s\n",base_filename1[counter]);
+	if(debug>1 && rank==0) printf("Going to read propagator %d/%d: %s\n",iprop1,iblock_length,base_filename1[counter]);
 	read_colorspinspin(base_filename1[counter],spinor1[iprop1]);
       }
 
@@ -315,7 +323,7 @@ int main(int narg,char **arg)
 	  //if not found in the first list, load it
 	  if(spinor2_ptr==spinor2)
 	    {
-	      if(debug>1 && rank==0) printf("Going to read propagator: %s\n",base_filename2[iprop2]);
+	      if(debug>1 && rank==0) printf("Going to read propagator %d: %s\n",iprop2,base_filename2[iprop2]);
 	      read_colorspinspin(base_filename2[iprop2],spinor2);
 	    }
 	  
@@ -327,7 +335,7 @@ int main(int narg,char **arg)
 	      if(rank==0)
 		fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass_prop1[counter],theta_prop1[counter],r_prop1[counter],mass_prop2[iprop2],theta_prop2[iprop2],r_prop2[iprop2]);
 
-	      meson_two_points((complex*)contr,op1,spinor1[iprop1],op2,spinor2_ptr,ncontr,phys_prop1[counter],r_prop1[counter],phys_prop2[iprop2],r_prop2[iprop2]);
+	      meson_two_points(contr,op1,spinor1[iprop1],op2,spinor2_ptr,ncontr,phys_prop1[counter],r_prop1[counter],phys_prop2[iprop2],r_prop2[iprop2]);
 
 	      if(rank==0)
 		{
@@ -347,7 +355,11 @@ int main(int narg,char **arg)
 		      fprintf(fout,"\n");
 		    }
 		}
-	      if(rank==0) fprintf(fout,"\n");
+	      if(rank==0)
+		{
+		  fprintf(fout,"\n");
+		  if(debug>1) fflush(fout);
+		}
 	    }
 	}
     }
@@ -363,14 +375,31 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
- if(rank==0)
-   {
-     printf("\nEverything ok, exiting!\n");
-     fclose(fout);
-   }
+  if(rank==0)
+    {
+      printf("\nEverything ok, exiting!\n");
+      fclose(fout);
+    }
 
-  for(int iprop1=0;iprop1<nprop_per_block;iprop1++) free(spinor1[iprop1]);
+  free(mass_prop2);
+  free(theta_prop2);
+  free(phys_prop2);
+  free(r_prop2);
   free(spinor2);
+  for(int iprop2=0;iprop2<nprop_list2;iprop2++) free(base_filename2);
+  free(base_filename2);
+
+  free(mass_prop1);
+  free(theta_prop1);
+  free(phys_prop1);
+  free(r_prop1);
+  for(int iprop1=0;iprop1<nprop_per_block;iprop1++) free(spinor1[iprop1]);
+  free(spinor1);
+  for(int iprop1=0;iprop1<nprop_list1;iprop1++) free(base_filename1);
+  free(base_filename1);
+
+  free(contr[0]);
+  free(contr);
 
   free(op1);
   free(op2);
