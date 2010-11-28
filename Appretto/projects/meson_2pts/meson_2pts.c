@@ -370,12 +370,12 @@ int main(int narg,char **arg)
 	      double tic1=0,tac1;
 	      if(debug>1)
 		{
-		  if(rank==0) printf("Going to perform %d vs %d contractions\n",iprop1+1,iprop2+1);
+		  if(rank==0) printf("Going to perform (prop%d,prop%d) contractions\n",iprop1+1,iprop2+1);
 		  MPI_Barrier(cart_comm);
 		  tic1=MPI_Wtime();
 		}	      
 	      meson_two_points(contr,op1,spinor1[iprop1],op2,spinor2_ptr,ncontr,phys_prop1[counter],r_prop1[counter],phys_prop2[iprop2],r_prop2[iprop2]);
-	      if(debug>1 && rank==0)
+	      if(debug>1)
 		{
 		  MPI_Barrier(cart_comm);
 		  tac1=MPI_Wtime();
