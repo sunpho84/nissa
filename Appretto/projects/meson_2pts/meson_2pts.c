@@ -386,7 +386,7 @@ int main(int narg,char **arg)
   free(phys_prop2);
   free(r_prop2);
   free(spinor2);
-  for(int iprop2=0;iprop2<nprop_list2;iprop2++) free(base_filename2);
+  for(int iprop2=0;iprop2<nprop_list2;iprop2++) free(base_filename2[iprop2]);
   free(base_filename2);
 
   free(mass_prop1);
@@ -395,7 +395,7 @@ int main(int narg,char **arg)
   free(r_prop1);
   for(int iprop1=0;iprop1<nprop_per_block;iprop1++) free(spinor1[iprop1]);
   free(spinor1);
-  for(int iprop1=0;iprop1<nprop_list1;iprop1++) free(base_filename1);
+  for(int iprop1=0;iprop1<nprop_list1;iprop1++) free(base_filename1[iprop1]);
   free(base_filename1);
 
   free(contr[0]);
