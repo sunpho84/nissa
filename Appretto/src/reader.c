@@ -28,7 +28,7 @@ void read_spincolor(char *path,spincolor *spinor)
   char *header_type=NULL;
 
   int read=0;
-  while(lemonReaderNextRecord(reader)!=LEMON_EOF)
+  while(lemonReaderNextRecord(reader)!=LEMON_EOF && read==0)
     {
       header_type=lemonReaderType(reader);
       if(rank==0 && debug>1) printf("found record: %s\n",header_type);
@@ -48,10 +48,17 @@ void read_spincolor(char *path,spincolor *spinor)
 	  
 	  int loc_nreals_tot=nreals_per_spincolor*loc_vol;
 	  
-	  int glb_dims[4]={glb_size[0],glb_size[1],glb_size[2],glb_size[3]};
-	  int scidac_mapping[4]={0,1,2,3};
+	  int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
+	  int scidac_mapping[4]={0,3,2,1};
 	  
 	  lemonReadLatticeParallelMapped(reader,spinor,nbytes_per_site,glb_dims,scidac_mapping);
+	  if(debug>1)
+	    {
+	      MPI_Barrier(cart_comm);
+	      double tac=MPI_Wtime();
+	      
+	      if(rank==0) printf("Time elapsed by lemon reading: %f s\n",tac-tic);
+	    }
 	  
 	  if(nbytes_per_site==nbytes_per_site_float) //cast to double changing endianess if needed
 	    if(big_endian) floats_to_doubles_changing_endianess((double*)spinor,(float*)spinor,loc_nreals_tot);
@@ -82,7 +89,7 @@ void read_spincolor(char *path,spincolor *spinor)
       MPI_Barrier(cart_comm);
       double tac=MPI_Wtime();
 
-      if(rank==0) printf("Time elapsed in reading: %f s\n",tac-tic);
+      if(rank==0) printf("Total time elapsed in reading: %f s\n",tac-tic);
     }
 }
 

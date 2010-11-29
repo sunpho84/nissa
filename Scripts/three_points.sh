@@ -96,8 +96,8 @@ do
 	      fi
 
    	      #invoke the program
-	      echo $MPI_AH_PREF $base_nissa/Appretto/tools/select_slice/select_slice $L $T $TSlice $source_dir/prop $targ_dir/source $IO_prec
-	      $MPI_AH_PREF $base_nissa/Appretto/tools/select_slice/select_slice $L $T $TSlice $source_dir/prop $targ_dir/source $IO_prec
+	      echo $MPI_AH_PREF $base_nissa/Appretto/tools/generate_meson_seqsource/generate_meson_seqsource $L $T $TSlice $source_dir/prop $targ_dir/source $IO_prec
+	      $MPI_AH_PREF $base_nissa/Appretto/tools/generate_meson_seqsource/generate_meson_seqsource $L $T $TSlice $source_dir/prop $targ_dir/source $IO_prec
 	      
 	  fi
 

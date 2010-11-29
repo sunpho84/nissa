@@ -380,7 +380,7 @@ int main(int narg,char **arg)
 		  MPI_Barrier(cart_comm);
 		  tac1=MPI_Wtime();
 		  tot_contract_time+=tac1-tic1;
-		  tot_contr_made++;
+		  tot_contr_made+=ncontr;
 		}
 
 	      if(rank==0)
