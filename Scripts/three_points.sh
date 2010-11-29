@@ -23,7 +23,7 @@ ntheta=${#list_theta[@]}
 #create the list of theta for the sequential, whcih is reverted in sign
 for((itheta=0;itheta<ntheta;itheta++))
 do
-    list_seq_theta[$itheta]=$(echo ${list_theta[$itheta]}|awk '{c=substr($1,0,1);if(int(c)==c)ini=1;else ini=2;if($1>0)s="-";print ini,s substr($1,ini)}'
+    list_seq_theta[$itheta]=$(echo ${list_theta[$itheta]}|awk '{c=substr($1,0,1);if(int(c)==c)ini=1;else ini=2;if($1>0)s="-";print s""substr($1,ini)}')
 done
 
 echo "Number of sources: "$nsource
@@ -106,7 +106,6 @@ do
 	      fi
 
    	      #invoke the program
-	      echo $MPI_AH_PREF $base_nissa/Appretto/tools/generate_meson_seqsource/generate_meson_seqsource $L $T $TSlice $source_dir/prop $targ_dir/source $IO_prec
 	      $MPI_AH_PREF $base_nissa/Appretto/tools/generate_meson_seqsource/generate_meson_seqsource $L $T $TSlice $source_dir/prop $targ_dir/source $IO_prec
 	      
 	  fi
