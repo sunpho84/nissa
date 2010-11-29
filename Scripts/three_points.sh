@@ -264,7 +264,7 @@ do
               do
 		  for mu1 in ${list_mu[@]}
 		  do
-		    echo " "$base_conf/Props/$source_name/$theta1/$mu1/$rS1/prop $mu1 $theta1 0 $rS1 >> $base_3pts/input
+		    echo " "$base_conf/Props/$source_name/$theta1/$mu1/$rS1/prop $mu1 $theta1 0 $r_spec >> $base_3pts/input
 		  done
 	      done
 	      echo "NPropSecondList "$nprop >> $base_3pts/input #list of sequential propagators

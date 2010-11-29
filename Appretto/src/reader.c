@@ -113,13 +113,13 @@ void read_colorspinspin(char *base_path,colorspinspin *css)
       read_spincolor(filename,sc);
       
       //Switch the spincolor into the colorspin. 
-      //In a spinspin the source index runs slower than the sink
+      //In a spinspin the sink index runs slower than the source
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	for(int ic_sink=0;ic_sink<3;ic_sink++)
 	  for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
 	    {
-	      css[loc_site][ic_sink][id_source][id_sink][0]=sc[loc_site][id_sink][ic_sink][0];
-	      css[loc_site][ic_sink][id_source][id_sink][1]=sc[loc_site][id_sink][ic_sink][1];
+	      css[loc_site][ic_sink][id_sink][id_source][0]=sc[loc_site][id_sink][ic_sink][0];
+	      css[loc_site][ic_sink][id_sink][id_source][1]=sc[loc_site][id_sink][ic_sink][1];
 	    }
     }
 
