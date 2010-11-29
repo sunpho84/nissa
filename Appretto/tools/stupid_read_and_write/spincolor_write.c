@@ -41,7 +41,7 @@ int main(int narg,char **arg)
     for(int id1=0;id1<4;id1++)
       for(int ic1=0;ic1<3;ic1++)
 	for(int im=0;im<2;im++)
-	  spinore[ivol][id1][ic1][im]=glb_of_loc_ind[ivol]*2+im;
+	  spinore[ivol][id1][ic1][im]=glblx_of_loclx[ivol]*2+im;
 
   //Write the spinor
   write_spincolor(filename,spinore,32);

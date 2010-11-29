@@ -3,10 +3,13 @@
 #include <lemon.h>
 #include "endianess.c"
 
-//Read a whole spincolor
-void read_spincolor(char *path,spincolor *spinor)
+//Read from the argument path a maximal amount of data nbyes_per_site
+//return the real read amount of bytes
+int read_binary_blob(char *data_out,char *path,const char *expected_record,int max_nbytes_per_site)
 {
-  //take initial time
+  int nbytes_per_site;
+  
+  //Take inital time
   double tic;
   if(debug>1)
     {
@@ -25,60 +28,53 @@ void read_spincolor(char *path,spincolor *spinor)
     }
 
   LemonReader *reader=lemonCreateReader(reader_file,cart_comm);
-  char *header_type=NULL;
+  char *header=NULL;
 
   int read=0;
   while(lemonReaderNextRecord(reader)!=LEMON_EOF && read==0)
     {
-      header_type=lemonReaderType(reader);
-      if(rank==0 && debug>1) printf("found record: %s\n",header_type);
-      if(strcmp("scidac-binary-data",header_type)==0)
+      header=lemonReaderType(reader);
+      if(rank==0 && debug>1) printf("found record: %s\n",header);
+      if(strcmp(expected_record,header)==0)
 	{
 	  int nbytes=lemonReaderBytes(reader);
-	  int nbytes_per_site=nbytes/glb_vol;
-	  int nbytes_per_site_float=nreals_per_spincolor*sizeof(float);
-	  int nbytes_per_site_double=nreals_per_spincolor*sizeof(double);
-	  if(nbytes_per_site!=nbytes_per_site_float && nbytes_per_site!=nbytes_per_site_double)
+	  nbytes_per_site=nbytes/glb_vol;
+	  if(nbytes_per_site>max_nbytes_per_site && rank==0)
 	    {
-	      fprintf(stderr,"Opsss! The record contain %d bytes and it is supposed to contain: %d or %d\n",
-		      nbytes,nbytes_per_site_float*glb_vol,nbytes_per_site_double*glb_vol);
+	      fprintf(stderr,"Opsss! The file contain %d bytes per site and it is supposed to contain not more than: %d or %d\n",
+		      nbytes,nbytes_per_site,max_nbytes_per_site);
 	      fflush(stderr);
 	      MPI_Abort(MPI_COMM_WORLD,1);
 	    }
 	  
-	  int loc_nreals_tot=nreals_per_spincolor*loc_vol;
-	  
-	  int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
-	  int scidac_mapping[4]={0,3,2,1};
-	  
-	  lemonReadLatticeParallelMapped(reader,spinor,nbytes_per_site,glb_dims,scidac_mapping);
+	  //load with timing
+	  double tic1;
 	  if(debug>1)
 	    {
 	      MPI_Barrier(cart_comm);
-	      double tac=MPI_Wtime();
-	      
-	      if(rank==0) printf("Time elapsed by lemon reading: %f s\n",tac-tic);
+	      tic1=MPI_Wtime();
 	    }
-	  
-	  if(nbytes_per_site==nbytes_per_site_float) //cast to double changing endianess if needed
-	    if(big_endian) floats_to_doubles_changing_endianess((double*)spinor,(float*)spinor,loc_nreals_tot);
-	    else floats_to_doubles_same_endianess((double*)spinor,(float*)spinor,loc_nreals_tot);
-	  else //swap the endianess if needed
-	    if(big_endian) doubles_to_doubles_changing_endianess((double*)spinor,(double*)spinor,loc_nreals_tot);
-	  
+	  int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
+	  int scidac_mapping[4]={0,3,2,1};
+	  lemonReadLatticeParallelMapped(reader,data_out,nbytes_per_site,glb_dims,scidac_mapping);
+	  if(debug>1)
+	    {
+	      MPI_Barrier(cart_comm);
+	      double tac1=MPI_Wtime();
+	      if(rank==0) printf("Time elapsed by lemon to read %d bytes: %f s\n",nbytes,tac1-tic1);
+	    }
+
 	  read=1;
 	  if(rank==0 && debug>1) printf("Data read!\n");
 	}
     }
   
-  if(read==0)
+  //Abort if couldn't find th record
+  if(read==0 && rank==0)
     {
-      if(rank==0)
-	{
-	  fprintf(stderr,"Error: couldn't find binary\n");
-	  fflush(stderr);
-	  MPI_Abort(MPI_COMM_WORLD,1);
-	}
+      fprintf(stderr,"Error: couldn't find binary\n");
+      fflush(stderr);
+      MPI_Abort(MPI_COMM_WORLD,1);
     }
 
   lemonDestroyReader(reader);
@@ -91,10 +87,59 @@ void read_spincolor(char *path,spincolor *spinor)
 
       if(rank==0) printf("Total time elapsed in reading: %f s\n",tac-tic);
     }
+
+ return nbytes_per_site;
 }
 
+//Read a vector of nreal_per_site reals number in float or double precision
+//change endianess if needed
+void read_real_vector(double *out,char *path,const char *header,int nreals_per_site)
+{
+  //Take inital time
+  double tic;
+  if(debug>1)
+    {
+      MPI_Barrier(cart_comm);
+      tic=MPI_Wtime();
+    }
+
+  int nbytes_per_site_float=nreals_per_site*sizeof(float);
+  int nbytes_per_site_double=nreals_per_site*sizeof(double);
+  int nbytes_per_site_read=read_binary_blob((char*)out,path,header,nbytes_per_site_double);
+  
+  if(nbytes_per_site_read!=nbytes_per_site_float && nbytes_per_site_read!=nbytes_per_site_double && rank==0)
+    {
+      fprintf(stderr,"Opsss! The file %s contain %d bytes per site and it is supposed to contain: %d (single) or %d (double)\n",
+	      path,nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);
+      fflush(stderr);
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
+  
+  int loc_nreals_tot=nreals_per_spincolor*loc_vol;
+  
+  if(nbytes_per_site_read==nbytes_per_site_float) //cast to double changing endianess if needed
+    if(big_endian) floats_to_doubles_changing_endianess((double*)out,(float*)out,loc_nreals_tot);
+    else floats_to_doubles_same_endianess((double*)out,(float*)out,loc_nreals_tot);
+  else //swap the endianess if needed
+    if(big_endian) doubles_to_doubles_changing_endianess((double*)out,(double*)out,loc_nreals_tot);
+
+ if(debug>1)
+    {
+      MPI_Barrier(cart_comm);
+      double tac=MPI_Wtime();
+
+      if(rank==0) printf("Total time including possible conversion: %f s\n",tac-tic);
+    }
+}  
+
+//Read a whole spincolor
+void read_spincolor(spincolor *spinor,char *path)
+{
+  read_real_vector((double*)spinor,path,"scidac-binary-data",nreals_per_spincolor);
+}  
+
 //Read 4 spincolor and revert their indexes
-void read_colorspinspin(char *base_path,colorspinspin *css)
+void read_colorspinspin(colorspinspin *css,char *base_path)
 {
   double tic;
   if(debug)
@@ -110,7 +155,7 @@ void read_colorspinspin(char *base_path,colorspinspin *css)
   for(int id_source=0;id_source<4;id_source++) //dirac index of source
     {
       sprintf(filename,"%s.0%d",base_path,id_source);
-      read_spincolor(filename,sc);
+      read_spincolor(sc,filename);
       
       //Switch the spincolor into the colorspin. 
       //In a spinspin the sink index runs slower than the source
@@ -133,4 +178,12 @@ void read_colorspinspin(char *base_path,colorspinspin *css)
   
   //Destroy the temp
   free(sc);
+}
+
+////////////////////////// gauge configuration loading /////////////////////////////
+
+//Read a gauge configuration
+void read_gauge_conf(quad_su3 *out,char *path)
+{
+  read_real_vector((double*)out,path,"ildg-binary-data",nreals_per_quad_su3);
 }

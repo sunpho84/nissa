@@ -36,8 +36,8 @@ int main(int narg,char **arg)
 
   complex *contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
 
-  read_colorspinspin(base_filename1,spinore1);
-  read_colorspinspin(base_filename2,spinore2);
+  read_colorspinspin(spinore1,base_filename1);
+  read_colorspinspin(spinore2,base_filename2);
   
   //take initial time
   double tic;
@@ -46,7 +46,7 @@ int main(int narg,char **arg)
       MPI_Barrier(cart_comm);
       tic=MPI_Wtime();
     }
-  trace_g_sdag_g_s(contr,&(base_gamma[0]),spinore1,&(base_gamma[0]),spinore2,1);
+  trace_g_sdag_g_s((complex**)contr,&(base_gamma[0]),spinore1,&(base_gamma[0]),spinore2,1);
   //take final time
   double tac;
   if(debug)

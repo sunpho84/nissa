@@ -17,24 +17,24 @@ void init_appretto()
   init_base_gamma();
 }
 
-//index runs as x,y,z,t (faster:x)
+//indexes run as t,z,y,x (faster:x)
 void set_geometry()
 {
-  loc_coord=(int**)malloc(sizeof(int*)*loc_vol);
-  glb_coord=(int**)malloc(sizeof(int*)*loc_vol);
+  loc_coord_of_loclx=(int**)malloc(sizeof(int*)*loc_vol);
+  glb_coord_of_loclx=(int**)malloc(sizeof(int*)*loc_vol);
   for(int loc_ind=0;loc_ind<loc_vol;loc_ind++)
     {
-      loc_coord[loc_ind]=(int*)malloc(sizeof(int)*4);
-      glb_coord[loc_ind]=(int*)malloc(sizeof(int)*4);
+      loc_coord_of_loclx[loc_ind]=(int*)malloc(sizeof(int)*4);
+      glb_coord_of_loclx[loc_ind]=(int*)malloc(sizeof(int)*4);
     }
 
-  glb_of_loc_ind=(int*)malloc(sizeof(int)*loc_vol);
+  glblx_of_loclx=(int*)malloc(sizeof(int)*loc_vol);
   
   int x[4],gx[4];
-  for(x[0]=0;x[0]<loc_size[0];x[0]++)
-    for(x[1]=0;x[1]<loc_size[1];x[1]++)
+  for(x[0]=0;x[0]<loc_size[0];x[0]++) 
+    for(x[3]=0;x[3]<loc_size[3];x[3]++)
       for(x[2]=0;x[2]<loc_size[2];x[2]++)
-        for(x[3]=0;x[3]<loc_size[3];x[3]++)
+	for(x[1]=0;x[1]<loc_size[1];x[1]++)
 	  {
 	    for(int i=0;i<4;i++) gx[i]=x[i]+proc_coord[i]*loc_size[i];
 
@@ -47,11 +47,11 @@ void set_geometry()
 
 	    for(int i=0;i<4;i++)
 	      {
-		loc_coord[loc_ind][i]=x[i];
-		glb_coord[loc_ind][i]=gx[i];
+		loc_coord_of_loclx[loc_ind][i]=x[i];
+		glb_coord_of_loclx[loc_ind][i]=gx[i];
 	      }
 
-	    glb_of_loc_ind[loc_ind]=glb_ind;
+	    glblx_of_loclx[loc_ind]=glb_ind;
           }
 
   if(rank==0 && debug) printf("Geometry intialized\n");
@@ -78,7 +78,7 @@ void init_grid()
   if(rank==0)
     {
       printf("\nNumber of running processes: %d\n",rank_tot);
-      printf("Global lattice:\t%dx%dx%dx%d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3]);
+      printf("Global lattice:\t%dx%dx%dx%d\n",glb_size[0],glb_size[3],glb_size[2],glb_size[1]);
     }
 
   for(int i=0;i<4;i++) loc_size[i]=glb_size[i];
@@ -87,7 +87,7 @@ void init_grid()
   MPI_Dims_create(rank_tot,4,nproc_dir);
   if(rank==0 && debug==1)
     {
-      printf("\nCreating grid:\t%dx%dx%dx%d\n",nproc_dir[0],nproc_dir[1],nproc_dir[2],nproc_dir[3]);
+      printf("\nCreating grid:\t%dx%dx%dx%d\n",nproc_dir[0],nproc_dir[3],nproc_dir[2],nproc_dir[1]);
       fflush(stdout);
     }
 
@@ -114,7 +114,7 @@ void init_grid()
     }
   loc_vol=glb_vol/rank_tot;
 
-  if(rank==0) printf("Local volume\t%dx%dx%dx%d\n",loc_size[0],loc_size[1],loc_size[2],loc_size[3]);
+  if(rank==0) printf("Local volume\t%dx%dx%dx%d\n",loc_size[0],loc_size[3],loc_size[2],loc_size[1]);
 
   MPI_Cart_create(MPI_COMM_WORLD,4,nproc_dir,periods,1,&cart_comm);
   MPI_Comm_rank(cart_comm,&cart_rank);
@@ -123,7 +123,7 @@ void init_grid()
   if(debug>2)
     {
       printf("Process %d of %d on %s: %d (%d %d %d %d)\n",rank,rank_tot,
-	     proc_name,cart_rank,proc_coord[0],proc_coord[1],proc_coord[2],proc_coord[3]);
+	     proc_name,cart_rank,proc_coord[0],proc_coord[3],proc_coord[2],proc_coord[1]);
       fflush(stdout);
   
       MPI_Barrier(MPI_COMM_WORLD);

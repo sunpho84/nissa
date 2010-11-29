@@ -30,18 +30,11 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  spincolor *spinore=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*loc_vol);
 
-  read_spincolor(spinore,filename);
+  read_gauge_conf(conf,filename);
 
-  //Print the spincolor
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int id1=0;id1<4;id1++)
-      for(int ic1=0;ic1<3;ic1++)
-        for(int im=0;im<2;im++)
-          printf("%d %d %d %d %d %f\n",rank,ivol,id1,ic1,im,spinore[ivol][id1][ic1][im]);
-
-  free(spinore);
+  free(conf);
   
   ///////////////////////////////////////////
 

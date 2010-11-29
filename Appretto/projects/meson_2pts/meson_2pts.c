@@ -313,7 +313,7 @@ int main(int narg,char **arg)
 	    MPI_Barrier(cart_comm);
 	    tic1=MPI_Wtime();
 	  }
-	read_colorspinspin(base_filename1[counter],spinor1[iprop1]);
+	read_colorspinspin(spinor1[iprop1],base_filename1[counter]);
 	if(debug)
 	  {
 	    MPI_Barrier(cart_comm);
@@ -349,7 +349,7 @@ int main(int narg,char **arg)
 		  MPI_Barrier(cart_comm);
 		  tic1=MPI_Wtime();
 		}
-	      read_colorspinspin(base_filename2[iprop2],spinor2);
+	      read_colorspinspin(spinor2,base_filename2[iprop2]);
 	      if(debug)
 		{
 		  MPI_Barrier(cart_comm);

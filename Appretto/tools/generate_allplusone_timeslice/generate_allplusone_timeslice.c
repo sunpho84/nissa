@@ -35,8 +35,8 @@ int main(int narg,char **arg)
 	    {
 	      spinore[ivol][id2][ic1][0]=1-2*(rand()>RAND_MAX/2);
 	      spinore[ivol][id2][ic1][1]=0;
-
-	      if(id1==id2 && glb_coord[ivol][0]==TWall) spinore[ivol][id2][ic1][0]=1;
+	      
+	      if(id1==id2 && glb_coord_of_loclx[ivol][0]==TWall) spinore[ivol][id2][ic1][0]=1;
 	      else spinore[ivol][id2][ic1][0]=0;
 	      spinore[ivol][id2][ic1][1]=0;
 	    }

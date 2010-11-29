@@ -33,11 +33,11 @@ int main(int narg,char **arg)
   for(int id1=0;id1<4;id1++)
     {
       sprintf(filename,"%s.0%d",arg[4],id1);
-      read_spincolor(filename,spinore);
+      read_spincolor(spinore,filename);
 
       for(int ivol=0;ivol<loc_vol;ivol++)
 	{
-	  if(glb_coord[ivol][0]!=tslice)
+	  if(glb_coord_of_loclx[ivol][0]!=tslice)
 	    for(int id2=0;id2<4;id2++)
 	      for(int ic1=0;ic1<3;ic1++)
 		for(int im=0;im<2;im++)
