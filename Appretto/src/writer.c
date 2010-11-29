@@ -61,8 +61,8 @@ void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int 
     if(big_endian) doubles_to_floats_changing_endianess((float*)buffer,(double*)data,nreals_loc);
     else doubles_to_floats_same_endianess((float*)buffer,(double*)data,nreals_loc);
       
-  int glb_dims[4]={glb_size[0],glb_size[1],glb_size[2],glb_size[3]};
-  int scidac_mapping[4]={0,1,2,3};
+  int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
+  int scidac_mapping[4]={0,3,2,1};
   lemonWriteLatticeParallelMapped(writer,buffer,nbytes_per_site,glb_dims,scidac_mapping);
 
   //delete the swapped data, if created
