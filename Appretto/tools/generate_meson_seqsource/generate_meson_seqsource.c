@@ -46,20 +46,20 @@ int main(int narg,char **arg)
 		  spinore[ivol][id2][ic1][im]=0;
 	  else
 	    {
-	    for(int id2=0;id2<4;id2++)
-	      for(int ic1=0;ic1<3;ic1++)
-			complex_prod(sp_temp[id2][ic1],gdirac.entr[id2],spinore[ivol][gdirac.pos[id2]][ic1]);
-	    for(int id2=0;id2<4;id2++)
-	      for(int ic1=0;ic1<3;ic1++)
-		for(int im=0;im<2;im++)
-		  spinore[ivol][id2][ic1][im]=sp_temp[id2][ic1][im];
-		}
+	      for(int id2=0;id2<4;id2++)
+		for(int ic1=0;ic1<3;ic1++)
+		  complex_prod(sp_temp[id2][ic1],gdirac.entr[id2],spinore[ivol][gdirac.pos[id2]][ic1]);
+	      for(int id2=0;id2<4;id2++)
+		for(int ic1=0;ic1<3;ic1++)
+		  for(int im=0;im<2;im++)
+		    spinore[ivol][id2][ic1][im]=sp_temp[id2][ic1][im];
+	    }
 	}
-
+      
       sprintf(filename,"%s.0%d",arg[5],id1);
       write_spincolor(filename,spinore,atoi(arg[6]));
     }
-
+  
   free(spinore);
   
   ///////////////////////////////////////////

@@ -16,6 +16,12 @@ tic=$(date +%s)
 nmu=${#list_mu[@]}
 ntheta=${#list_theta[@]}
 
+#create the list of theta for the sequential, whcih is reverted in sign
+for((itheta=0;itheta<ntheta;itheta++))
+do
+    list_seq_theta[$itheta]=$(echo ${list_theta[$itheta]}|awk '{print -$1}')
+done
+
 echo "Number of sources: "$nsource
 echo
 
@@ -109,16 +115,16 @@ do
 	  echo "######################## SECOND STEP: Inversion of doublet ############################"
 	  echo
 	  echo "Second inversion"
-	  echo 
-	
+	  echo 	  
+
 	  #this is the list of theta to use on the sequential line
-	  for theta1 in ${list_theta[@]}
+	  for theta_seq in ${list_seq_theta[@]}
 	  do
-	    
-	      base_inv=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$r_spec/$theta1/
+	      
+	      base_inv=$base_conf/SeqProps/$source_name/$theta_spec/$mu_spec/$r_spec/$theta_seq/
 	      mkdir -pv $base_inv
 	      
-	      echo "Inverting: "$source_name" "$theta1
+	      echo "Inverting: "$source_name" "$theta_seq
 	      
 	      if [ ! -f $base_inv/completed ]
 	      then
@@ -133,9 +139,9 @@ do
                     s|SED_Conf|'$conf'|;
                     s|SED_NL|'$L'|;
                     s|SED_NT|'$T'|;
-                    s|SED_ThetaX|'$theta1'|;
-                    s|SED_ThetaY|'$theta1'|;
-                    s|SED_ThetaZ|'$theta1'|;
+                    s|SED_ThetaX|'$theta_seq'|;
+                    s|SED_ThetaY|'$theta_seq'|;
+                    s|SED_ThetaZ|'$theta_seq'|;
                     s|SED_NrXProcs|'${NProc[0]}'|;
                     s|SED_NrYProcs|'${NProc[1]}'|;
                     s|SED_NrZProcs|'${NProc[2]}'|;
@@ -221,7 +227,7 @@ do
 	      tic=$(date +%s)
 	      echo "Time to invert sequential source: "$(($tic-$tac)) >> $base_conf/time_log
 	      
-	  done #loop over "sequential" theta
+	  done #loop over "sequential" theta_seq
 	  
 	  echo "######################## THIRD STEP: Three point function calculation ############################"
 	  echo
@@ -263,12 +269,12 @@ do
               for theta1 in ${list_theta[@]}
               do
 		  for mu1 in ${list_mu[@]}
-		  do
-		    echo " "$base_conf/Props/$source_name/$theta1/$mu1/$rS1/prop $mu1 $theta1 0 $r_spec >> $base_3pts/input
+		  do #to make the charged, take the same r of the spectator
+		    echo " "$base_conf/Props/$source_name/$theta1/$mu1/$r_spec/prop $mu1 $theta1 0 $r_spec >> $base_3pts/input
 		  done
 	      done
 	      echo "NPropSecondList "$nprop >> $base_3pts/input #list of sequential propagators
-              for theta2 in ${list_theta[@]}
+              for theta2 in ${list_seq_theta[@]}
               do
 		  for mu2 in ${list_mu[@]}
 		  do
