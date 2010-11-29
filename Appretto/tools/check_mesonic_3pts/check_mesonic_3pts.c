@@ -112,7 +112,7 @@ int main(int narg,char **arg)
   //Read the source
   char path[1024];
   read_str_str("Source",path,1024);
-  read_colorspinspin(path,source);
+  read_colorspinspin(source,path);
 
   //Read the number of contractions
   int ncontr;
@@ -162,7 +162,7 @@ int main(int narg,char **arg)
 	printf(" prop.%d %s, m_spec=%f th_spec=%f, m1=%f th1=%f phys=%d r1=%d\n",iprop,path,mass_spec,theta_spec,mass1,theta1,phys,r1);
       
       //Read the propagator
-      read_colorspinspin(path,S1);
+      read_colorspinspin(S1,path);
       
       if(rank==0) fprintf(fout," # m_spec=%f th_spec=%f m1=%f th1=%f r1=%d\n",mass_spec,theta_spec,mass1,theta1,r1);
       

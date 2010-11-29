@@ -32,7 +32,7 @@ int main(int narg,char **arg)
 
   colorspinspin *spinore=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
 
-  read_colorspinspin(base_filename,spinore);
+  read_colorspinspin(spinore,base_filename);
 
   if(rank==0)
     for(int loc_site=0;loc_site<loc_vol;loc_site++)

@@ -2,15 +2,21 @@
 
 #include <stdio.h>
 
-int **glb_coord,glb_size[4],glb_vol=0;
-int **loc_coord,loc_size[4],loc_vol=0;
-int *glb_of_loc_ind=NULL;
+//nomenclature: lx is lexicografic
+//glb is relative to the global grid, loc to the local one
+
+int **glb_coord_of_loclx,glb_size[4],glb_vol=0;
+int **loc_coord_of_loclx,loc_size[4],loc_vol=0;
+int *glblx_of_loclx=NULL;
 int  nproc_dir[4]={0,0,0,0};
 int proc_coord[4]={0,0,0,0};
 int rank,rank_tot,cart_rank;
 
 int big_endian;
+
 const int nreals_per_spincolor=24;
+const int nreals_per_quad_su3=72;
+
 const int debug=1;
 
 MPI_Comm cart_comm;
@@ -20,8 +26,23 @@ const int ran2_ntab=32;
 int *ran2_idum,*ran2_idum2,**ran2_iv,*ran2_iy;
 int random_initialized=0;
 
-//A complex number
+///////////////// New types ///////////////////
+
 typedef double complex[2];
+
+typedef complex spin[4];
+typedef complex color[3];
+
+typedef spin colorspin[3];
+typedef color spincolor[4];
+
+typedef spin spinspin[4];
+typedef spinspin colorspinspin[3];
+
+typedef color su3[3];
+typedef su3 quad_su3[4];
+
+////////////// Operations on new types //////////////////
 
 //The sum of two complex number
 void complex_summ(complex a,complex b,complex c)
@@ -54,15 +75,6 @@ void complex_conj_prod(complex a,complex b,complex c)
 //the real amd imaginary unit
 complex ONE={1,0};
 complex I={0,1};
-
-typedef complex spin[4];
-typedef complex color[3];
-
-typedef spin colorspin[3];
-typedef color spincolor[4];
-
-typedef spin spinspin[4];
-typedef spinspin colorspinspin[3];
 
 //Print a spinspin
 void print_spinspin(spinspin s)

@@ -63,7 +63,7 @@ int main(int narg,char **arg)
     for(int id1=0;id1<4;id1++)
       for(int ic1=0;ic1<3;ic1++)
 	{
-	  if(id1==0 && (take_slice==0 || glb_coord[loc_site][0]==twall))
+	  if(id1==0 && (take_slice==0 || glb_coord_of_loclx[loc_site][0]==twall))
 	    {
 	      switch(noise_type)
 		{
@@ -104,7 +104,7 @@ int main(int narg,char **arg)
       sprintf(filename,"%s.0%d",base_filename,id1);
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	for(int ic1=0;ic1<3;ic1++)
-	  if(glb_coord[loc_site][0]==twall)
+	  if(glb_coord_of_loclx[loc_site][0]==twall)
 	    {
 	      temp=spinore[loc_site][id1][ic1][0];
 	      spinore[loc_site][id1][ic1][0]=spinore[loc_site][id1-1][ic1][0];

@@ -36,7 +36,7 @@ void init_random(int seed)
       ran2_iv[loc_ind]=(int*)malloc(ran2_ntab*sizeof(int));
       
       //initialization
-      ran2_idum[loc_ind]=seed+glb_of_loc_ind[loc_ind];
+      ran2_idum[loc_ind]=seed+glblx_of_loclx[loc_ind];
 
       ran2_idum[loc_ind]=max_int(ran2_idum[loc_ind]+1,1);
       ran2_idum2[loc_ind]=ran2_idum[loc_ind];

@@ -41,7 +41,7 @@ void trace_g_sdag_g_s(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_mat
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	{
 	  complex ctemp;
-	  int glb_t=glb_coord[loc_site][0];
+	  int glb_t=glb_coord_of_loclx[loc_site][0];
 	  //Color loop
 	  for(int icol=0;icol<3;icol++)
 	    {
