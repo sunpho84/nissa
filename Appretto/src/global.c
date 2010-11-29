@@ -11,7 +11,7 @@ int rank,rank_tot,cart_rank;
 
 int big_endian;
 const int nreals_per_spincolor=24;
-const int debug=2;
+const int debug=1;
 
 MPI_Comm cart_comm;
 

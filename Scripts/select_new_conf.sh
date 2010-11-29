@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ ! -f "$conf_list_file" ]
 then
     echo "Configuration list '"$conf_list_file"' not present!!!"
@@ -10,7 +12,6 @@ do
     if [ ! -f "$conf_test/analysis_"$analysis_name"_completed" ] && [ ! -f "$conf_test/analysis_"$analysis_name"_running" ]
     then
         conf=$conf_test
-        echo "Will work on conf: "$conf
         break
     fi
 done
@@ -30,4 +31,11 @@ trap "rm -f "$conf"/analysis_"$analysis_name"_running" EXIT
 
 #link the conf
 cd $base_conf
-ln -sf $source_confs/conf.$conf Conf
+ln -svf $source_confs/conf.$conf Conf
+
+echo
+echo ------configuration parameters-------
+echo "Will work on conf: "$conf
+echo "Path: "$base_conf
+
+

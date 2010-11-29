@@ -35,7 +35,7 @@ void trace_g_sdag_g_s(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_mat
 
   for(int icontr=0;icontr<ncontr;icontr++) 
     {
-      if(debug>1 && rank==0) printf("Contraction %d/%d\n, ",icontr+1,ncontr);
+      if(debug>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
       
       //Local loop
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
