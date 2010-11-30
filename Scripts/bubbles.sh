@@ -170,7 +170,8 @@ do
     echo "NProp "$nmu >> $base_bubbles/input
     for mu in ${list_mu[@]}
     do
-	r=$( echo $mu | awk '{print ($1>0)}' )
+	base_inv=$base_conf/Props/$source_name\_$mu/
+      	r=$( echo $mu | awk '{print ($1>0)}' )
         echo $base_inv/prop "m="$mu 0 $r >> $base_bubbles/input
     done
     

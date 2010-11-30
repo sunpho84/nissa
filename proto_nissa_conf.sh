@@ -10,7 +10,7 @@ then
     #nissa location
     base_nissa=/home/prace/nissa
     
-    source $base_nissa/nissa_conf.sh $1
+    source $base_nissa/setup.sh
 
     CONFIGURED=1
 fi

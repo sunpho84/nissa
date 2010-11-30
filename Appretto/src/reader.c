@@ -7,7 +7,7 @@
 //return the real read amount of bytes
 int read_binary_blob(char *data_out,char *path,const char *expected_record,int max_nbytes_per_site)
 {
-  int nbytes_per_site;
+  int nbytes_per_site=0;
   
   //Take inital time
   double tic;
