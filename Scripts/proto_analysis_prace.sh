@@ -14,7 +14,7 @@
 
 #!/bin/bash
 
-#setup everythig
+#setup everything
 source ~/nissa_conf.sh
 
 ############ - 1 - Paths and names #########
