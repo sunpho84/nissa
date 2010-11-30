@@ -66,13 +66,9 @@ list_itheta_spec=(0)
 list_imu_spec=(0)
 list_r_spec=(0)
 
-#Useless
-#MPI_nn=
-#MPI_nc=
-#MPI_np=$(( $MPI_nn * $MPI_nc ))
+############## - 3 Setups ################
 
-#perform all the setting up
-source $base_scripts/setup.sh
+nsource=${#list_source_type[@]}
 
 #now cd to the analysis
 cd $base_analysis

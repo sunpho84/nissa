@@ -24,10 +24,10 @@ tic=$(date +%s)
 #count the number of mu
 nmu=${#list_mu[@]}
 
-echo "Number of sources: "$nsource
+echo "Number of sources: "$nsources
 echo
 
-for((is=0;is<nsource;is++))
+for((is=0;is<nsources;is++))
 do
 
     echo "######################## FIRST STEP: Source generation ##########################"
@@ -38,16 +38,16 @@ do
     source_seed=$base_seed+$is
     source_name=$(printf %02d $is)
 
-    targ_dir=Sources/$source_name
+    source_dir=$base_conf/Sources/$source_name
 
-    if [ -d "$targ_dir" ]
+    if [ -d "$source_dir" ]
     then
         echo "Source "$source_name" already existing"
         echo
     else
         
-        mkdir -pv $targ_dir
-        cd $targ_dir
+        mkdir -pv $source_dir
+        cd $source_dir
 	
         #Generate the wall4 source
         (
@@ -56,7 +56,7 @@ do
 	    echo "Seed "$source_seed
 	    echo "TakeSlice 0"
 	    echo "TWall -1"
-	    echo "NoiseType "$source_nois
+	    echo "NoiseType "$source_noise
 	    echo "Filename source"
 	    echo "Precision "$IO_prec
 	)  > input
@@ -112,20 +112,25 @@ do
             s|SED_2kappamu|'$two_kappamu'|;
             s|SED_GaugeConfigInputFile|Conf|;
             s|SED_IndexEnd|3|;
-            s|SED_SolverPrecision|'$inversion_prec'|
+            s|SED_SolverPrecision|'$inversion_precision'|
             ' > $base_inv/inverter.input
 
 	  cd $base_inv
 	  
           #link configuration and source
 	  ln -vfs $base_conf/Conf Conf.$conf
-	  for i in $(seq -f%02.0f 00 $last_prop_index)
+	  for i in $(seq -f%02.0f 00 03)
 	  do
             ln -vsf $base_conf/Sources/$source_name/source.$i $base_inv/source.$conf.00.$i
 	  done
           
 	  $MPI_TM_PREF $base_tmLQCD/invert -f inverter.input
 	  
+	  for i in $(seq -f%02.0f 00 03)
+	  do
+              mv $base_inv/source.$conf.00.$i.inverted $base_inv/prop.$i
+	  done
+
           #take time
 	  tac=$tic
 	  tic=$(date +%s)
@@ -143,5 +148,32 @@ do
       cd $base_conf
       
     done
+
+    echo "######################## THIRD STEP: Three point function calculation ############################"
+    echo
+    
+    base_bubbles=$base_conf/bubbles/$source_name\_$is
+    if [ ! -f $base_bubbles/completed ]
+    then
+        mkdir -vp $base_bubbles
+    fi
+    
+    cd $base_bubbles
+    
+    echo "L "$L  > $base_bubbles/input
+    echo "T "$T >> $base_bubbles/input
+    echo "TWall 0" >> $base_bubbles/input
+    echo "Source "$source_dir"/source" >> $base_bubbles/input
+    echo "NContr 16" >> $base_bubbles/input
+    seq 0 15 >> $base_bubbles/input
+    echo "Output bubbles" >> $base_bubbles/input
+    echo "NProp "$nmu >> $base_bubbles/input
+    for mu in ${list_mu[@]}
+    do
+	r=$( echo $mu | awk '{print ($1>0)}' )
+        echo $base_inv/prop "m="$mu 0 $r >> $base_bubbles/input
+    done
+    
+    $MPI_TM_PREF $base_nissa/Appretto/projects/bubbles/bubbles input    
     
 done
