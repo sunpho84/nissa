@@ -70,6 +70,7 @@ double ran2(int loc_ind)
   const int iq1=53668,iq2=52774,ir1=12211,ir2=3791,ndiv=1+imm1/ran2_ntab;
   const double am=1.0/im1,eps=1.2e-7,rnmx=1-eps;
   int j,k;
+  double out;
 
   k=ran2_idum[loc_ind]/iq1;
   ran2_idum[loc_ind]=ia1*(ran2_idum[loc_ind]-k*iq1)-k*ir1;
@@ -84,5 +85,7 @@ double ran2(int loc_ind)
   ran2_iv[loc_ind][j]=ran2_idum[loc_ind];
   if(ran2_iy[loc_ind]<0) ran2_iy[loc_ind]+=imm1;
 
-  return min_int(am*ran2_iy[loc_ind],rnmx);
+  out=min_double(am*ran2_iy[loc_ind],rnmx);
+
+  return out;
 }

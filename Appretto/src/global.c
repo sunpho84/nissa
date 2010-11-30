@@ -88,3 +88,6 @@ void print_spinspin(spinspin s)
 
 int min_int(int a,int b){if(a<b) return a;else return b;}
 int max_int(int a,int b){if(a>b) return a;else return b;}
+
+double min_double(double a,double b){if(a<b) return a;else return b;}
+double max_double(double a,double b){if(a>b) return a;else return b;}
