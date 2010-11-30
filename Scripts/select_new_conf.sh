@@ -34,7 +34,6 @@ cd $base_conf
 ln -svf $source_confs/conf.$conf Conf
 
 echo
-echo ------configuration parameters-------
 echo "Will work on conf: "$conf
 echo "Path: "$base_conf
 
