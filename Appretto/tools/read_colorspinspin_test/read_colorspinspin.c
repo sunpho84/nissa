@@ -38,10 +38,11 @@ int main(int narg,char **arg)
     for(int loc_site=0;loc_site<loc_vol;loc_site++)
       for(int ic=0;ic<3;ic++)
 	{
+	  printf(" # %d %d\n",loc_site,ic);
 	  for(int id_sink=0;id_sink<4;id_sink++)
 	    {
 	      for(int id_source=0;id_source<4;id_source++)
-		printf("%g,%g\t",spinore[loc_site][ic][id_source][id_sink][0],spinore[loc_site][ic][id_source][id_sink][0]);
+		printf("%g,%g\t",spinore[loc_site][ic][id_sink][id_source][0],spinore[loc_site][ic][id_sink][id_source][1]);
 	      printf("\n");
 	    }
 	      printf("\n");
