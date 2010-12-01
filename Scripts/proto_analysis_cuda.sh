@@ -37,9 +37,6 @@ list_mu=( [mu1] [mu2] )
 beta=[beta]
 kappa=[kappac]
 
-#perform all the setting up
-source $base_scripts/setup.sh
-
 #now cd to the analysis
 cd $base_analysis
 
