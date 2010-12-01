@@ -20,12 +20,6 @@ tic=$(date +%s)
 nmu=${#list_mu[@]}
 ntheta=${#list_theta[@]}
 
-#create the list of theta for the sequential, whcih is reverted in sign
-for((itheta=0;itheta<ntheta;itheta++))
-do
-    list_seq_theta[$itheta]=$(echo ${list_theta[$itheta]}|awk '{c=substr($1,0,1);if(int(c)==c)ini=1;else ini=2;if($1>0)s="-";print s""substr($1,ini)}')
-done
-
 echo "Number of sources: "$nsource
 echo
 
