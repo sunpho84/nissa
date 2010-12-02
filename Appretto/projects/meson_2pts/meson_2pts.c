@@ -396,7 +396,7 @@ int main(int narg,char **arg)
 			  int t=tempt+twall;
 			  if(t>=glb_size[0]) t-=glb_size[0];
 			  
-			  fprintf(fout,"%+016.16g\t%+016.16f\n",contr[icontr][t][0]/spat_vol,contr[icontr][t][1]/spat_vol);
+			  fprintf(fout,"%+016.16g\t%+016.16g\n",contr[icontr][t][0]/spat_vol,contr[icontr][t][1]/spat_vol);
 			}
 		      fprintf(fout,"\n");
 		    }
