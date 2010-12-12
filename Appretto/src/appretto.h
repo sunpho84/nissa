@@ -6,3 +6,5 @@
 #include "input.c"
 #include "dirac.c"
 #include "contract.c"
+#include "communicate.c"
+#include "su3.c"

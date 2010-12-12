@@ -2,6 +2,7 @@
 
 #include <lemon.h>
 #include "endianess.c"
+#include "communicate.c"
 
 //Read from the argument path a maximal amount of data nbyes_per_site
 //return the real read amount of bytes
@@ -115,7 +116,7 @@ void read_real_vector(double *out,char *path,const char *header,int nreals_per_s
       MPI_Abort(MPI_COMM_WORLD,1);
     }
   
-  int loc_nreals_tot=nreals_per_spincolor*loc_vol;
+  int loc_nreals_tot=nreals_per_site*loc_vol;
   
   if(nbytes_per_site_read==nbytes_per_site_float) //cast to double changing endianess if needed
     if(big_endian) floats_to_doubles_changing_endianess((double*)out,(float*)out,loc_nreals_tot);
@@ -133,9 +134,26 @@ void read_real_vector(double *out,char *path,const char *header,int nreals_per_s
 }  
 
 //Read a whole spincolor
-void read_spincolor(spincolor *spinor,char *path)
+void read_spincolor(spincolor *out,char *path)
 {
-  read_real_vector((double*)spinor,path,"scidac-binary-data",nreals_per_spincolor);
+  spincolor *temp=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+
+  read_real_vector((double*)temp,path,"scidac-binary-data",nreals_per_spincolor);
+
+  int x[4],isour,idest;
+
+  for(x[0]=0;x[0]<loc_size[0];x[0]++)
+    for(x[1]=0;x[1]<loc_size[1];x[1]++)
+      for(x[2]=0;x[2]<loc_size[2];x[2]++)
+	for(x[3]=0;x[3]<loc_size[3];x[3]++)
+	  {
+	    isour=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
+	    idest=loclx_of_coord(x);
+
+	    memcpy(out[idest],temp[isour],sizeof(spincolor));
+	  }
+  
+  free(temp);
 }  
 
 //Read 4 spincolor and revert their indexes
@@ -182,8 +200,32 @@ void read_colorspinspin(colorspinspin *css,char *base_path)
 
 ////////////////////////// gauge configuration loading /////////////////////////////
 
-//Read a gauge configuration
-void read_gauge_conf(quad_su3 *out,char *path)
+//Read only the local part of the gauge configuration
+void read_local_gauge_conf(quad_su3 *out,char *path)
 {
-  read_real_vector((double*)out,path,"ildg-binary-data",nreals_per_quad_su3);
+  quad_su3 *temp=(quad_su3*)malloc(sizeof(quad_su3)*loc_vol);
+
+  read_real_vector((double*)temp,path,"ildg-binary-data",nreals_per_quad_su3);
+  
+  int x[4],isour,idest;
+  quad_su3 buff;
+
+  for(x[0]=0;x[0]<loc_size[0];x[0]++)
+    for(x[1]=0;x[1]<loc_size[1];x[1]++)
+      for(x[2]=0;x[2]<loc_size[2];x[2]++)
+	for(x[3]=0;x[3]<loc_size[3];x[3]++)
+	  {
+	    isour=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
+	    idest=loclx_of_coord(x);
+
+	    memcpy(buff[0],temp[isour][3],sizeof(su3));
+	    memcpy(buff[1],temp[isour][0],sizeof(su3));
+	    memcpy(buff[2],temp[isour][1],sizeof(su3));
+	    memcpy(buff[3],temp[isour][2],sizeof(su3));
+	    
+	    //this is to avoid premature overwrite
+	    memcpy(out[idest],buff,sizeof(quad_su3));
+	  }
+  
+  free(temp);
 }

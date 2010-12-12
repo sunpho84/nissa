@@ -115,9 +115,27 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
 	  "</etmcFormat>",
 	  prec,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
   write_text_record(writer,propagator_format_header,propagator_format_message);
+  
+  //order things as expected
+  spincolor *temp=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  
+  int x[4],isour,idest;
+
+  for(x[0]=0;x[0]<loc_size[0];x[0]++)
+    for(x[1]=0;x[1]<loc_size[1];x[1]++)
+      for(x[2]=0;x[2]<loc_size[2];x[2]++)
+	for(x[3]=0;x[3]<loc_size[3];x[3]++)
+	  {
+	    idest=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
+	    isour=loclx_of_coord(x);
+
+	    memcpy(temp[idest],spinor[isour],sizeof(spincolor));
+	  }
 
   //Write the binary data
-  write_double_vector(writer,(char*)spinor,nreals_per_spincolor,prec);
+  write_double_vector(writer,(char*)temp,nreals_per_spincolor,prec);
+
+  free(temp);
 
   if(rank==0) printf("File '%s' saved (probably...)\n",path);
   

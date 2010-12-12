@@ -1,8 +1,8 @@
-L 8
-T 16
+L 4
+T 8
 Seed 13
 TakeSlice 1
 TWall 0
 NoiseType 4
-Filename source
+Filename 32/source
 Precision 32

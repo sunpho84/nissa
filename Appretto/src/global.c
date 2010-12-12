@@ -4,12 +4,29 @@
 
 //nomenclature: lx is lexicografic
 //glb is relative to the global grid, loc to the local one
-
 int **glb_coord_of_loclx,glb_size[4],glb_vol=0;
 int **loc_coord_of_loclx,loc_size[4],loc_vol=0;
 int *glblx_of_loclx=NULL;
-int  nproc_dir[4]={0,0,0,0};
+
+//neighbours of local volume + borders
+int **loclx_neighdw,**loclx_neighup;
+
+//size of the border along the 4 dir,types for sending
+int bord_dir_vol[4],bord_offset[4];
+int loc_bord;
+MPI_Datatype MPI_SU3;
+MPI_Datatype MPI_QUAD_SU3;
+MPI_Datatype MPI_GAUGE_SLICE_SEND[4],MPI_GAUGE_SLICE_RECE[4];
+
+//size of the edges along the 6 directions
+int edge_dir_vol[6],edge_offset[6];
+int loc_edge;
+int edge_numb[4][4]={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}};
+MPI_Datatype MPI_GAUGE_EDGE_SEND[6],MPI_GAUGE_EDGE_RECE[6];
+
+int nproc_dir[4]={0,0,0,0};
 int proc_coord[4]={0,0,0,0};
+int rank_neighdw[4],rank_neighup[4];
 int rank,rank_tot,cart_rank;
 
 int big_endian;
@@ -17,7 +34,7 @@ int big_endian;
 const int nreals_per_spincolor=24;
 const int nreals_per_quad_su3=72;
 
-const int debug=1;
+const int debug=3;
 
 MPI_Comm cart_comm;
 
@@ -42,6 +59,8 @@ typedef spinspin colorspinspin[3];
 typedef color su3[3];
 typedef su3 quad_su3[4];
 
+typedef colorspinspin su3spinspin[3];
+
 ////////////// Operations on new types //////////////////
 
 //The sum of two complex number
@@ -52,29 +71,73 @@ void complex_summ(complex a,complex b,complex c)
 }
 
 //Summ to the output the product of two complex number
+//it is assumed that a!=b and a!=c
 void complex_summ_the_prod(complex a,complex b,complex c)
 {
   a[0]+=b[0]*c[0]-b[1]*c[1];
   a[1]+=b[0]*c[1]+b[1]*c[0];
 }
+void complex_summ_the_conj2_prod(complex a,complex b,complex c)
+{
+  a[0]+=b[0]*c[0]+b[1]*c[1];
+  a[1]+=-b[0]*c[1]+b[1]*c[0];
+}
+void complex_summ_the_conj1_prod(complex a,complex b,complex c)
+{
+  complex_summ_the_conj2_prod(a,c,b);
+}
+void complex_summ_the_conj_conj_prod(complex a,complex b,complex c)
+{
+  a[0]+=b[0]*c[0]-b[1]*c[1];
+  a[1]+=-b[0]*c[1]-b[1]*c[0];
+}
 
 //The product of two complex number
-void complex_prod(complex a,complex b,complex c)
+void unsafe_complex_prod(complex a,complex b,complex c)
 {
   a[0]=b[0]*c[0]-b[1]*c[1];
   a[1]=b[0]*c[1]+b[1]*c[0];
 }
 
-//The product of a complex number by  the conjugate of the second
-void complex_conj_prod(complex a,complex b,complex c)
+//The product of a complex number by the conjugate of the second
+void unsafe_complex_conj2_prod(complex a,complex b,complex c)
 {
   a[0]=b[0]*c[0]+b[1]*c[1];
   a[1]=-b[0]*c[1]+b[1]*c[0];
+}
+void unsafe_complex_conj1_prod(complex a,complex b,complex c)
+{
+  unsafe_complex_conj2_prod(a,c,b);
+}
+
+//The product of the conjugate of two complex numbers
+void unsafe_complex_conj_conj_prod(complex a,complex b,complex c)
+{
+  a[0]=b[0]*c[0]-b[1]*c[1];
+  a[1]=-b[0]*c[1]-b[1]*c[0];
+}
+
+//The product of two complex number
+void safe_complex_prod(complex a,complex b,complex c)
+{
+  double tmp=b[0]*c[0]-b[1]*c[1];
+  a[1]=b[0]*c[1]+b[1]*c[0];
+  a[0]=tmp;
+}
+
+//The product of a complex number by the conjugate of the second
+void safe_complex_conj2_prod(complex a,complex b,complex c)
+{
+  double tmp=a[0]=b[0]*c[0]+b[1]*c[1];
+  a[1]=-b[0]*c[1]+b[1]*c[0];
+  a[0]=tmp;
 }
 
 //the real amd imaginary unit
 complex ONE={1,0};
 complex I={0,1};
+
+//////////////////////////////////////////////////////////
 
 //Print a spinspin
 void print_spinspin(spinspin s)
