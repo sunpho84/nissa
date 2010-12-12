@@ -12,7 +12,7 @@ echo " ####                                                                     
 echo " ##################################################################################"
 echo " ##################################################################################"
 echo
-echo "Started at : ", $(date)
+echo "Started at : " $(date)
 echo
 
 echo "Three-point functions calculation started at : "$(date) >> $base_conf/time_log
