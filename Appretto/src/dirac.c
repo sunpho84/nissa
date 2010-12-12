@@ -80,7 +80,7 @@ void dirac_prod(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
       //the entries of the second matrix on the line with the index
       //equal to the column of the first matrix which is different
       //from 0 (which again is ig2)
-      complex_prod(temp.entr[ig1],in1->entr[ig1],in2->entr[ig2]);
+      unsafe_complex_prod(temp.entr[ig1],in1->entr[ig1],in2->entr[ig2]);
     }
   
   memcpy(out->pos,temp.pos,sizeof(int)*4);
@@ -96,7 +96,7 @@ void dirac_compl_prod(dirac_matr *out,dirac_matr *in,complex c)
     {
       out->pos[ig]=in->pos[ig];
 
-      complex_prod(out->entr[ig],in->entr[ig],c);
+      unsafe_complex_prod(out->entr[ig],in->entr[ig],c);
     }
 }
 
@@ -106,7 +106,7 @@ void spinspin_dirac_spinspin_prod(spinspin out,dirac_matr *m,spinspin in)
   //This is the line on the matrix
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
-      complex_prod(out[id1][id2],m->entr[id1],in[m->pos[id1]][id2]);
+      unsafe_complex_prod(out[id1][id2],m->entr[id1],in[m->pos[id1]][id2]);
 }
 
 //Assign to the first spinspin the product of the passed dirac matrix by the passed spinspin
@@ -115,7 +115,7 @@ void spinspin_dirac_spinspindag_prod(spinspin out,dirac_matr *m,spinspin in)
   //This is the line on the matrix
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
-      complex_conj_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
+      unsafe_complex_conj2_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
 }
 
 //Print the dirac marix passed as argument only on node 0

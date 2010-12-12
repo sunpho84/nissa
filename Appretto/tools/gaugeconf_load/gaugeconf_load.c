@@ -27,13 +27,26 @@ int main(int narg,char **arg)
 
   //Init the MPI grid 
   init_grid();
-  
+
   ///////////////////////////////////////////
 
-  quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*loc_vol);
+  quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));
+  for(int ivol=0;ivol<loc_vol+loc_bord;ivol++)
+    for(int idir=0;idir<4;idir++)
+      for(int ic=0;ic<3;ic++)
+	for(int ir=0;ir<3;ir++)
+	  conf[ivol][idir][ic][ir][0]=conf[ivol][idir][ic][ir][1]=0;
 
-  read_gauge_conf(conf,filename);
-
+  read_local_gauge_conf(conf,filename);
+  communicate_gauge_borders(conf);
+  communicate_gauge_edges(conf);
+  
+  su3spinspin *clov;
+  clover_term(clov,conf);
+  
+  double gplaq=global_plaquette(conf);
+  if(rank==0) printf("plaq: %.10g\n",gplaq);
+  
   free(conf);
   
   ///////////////////////////////////////////
