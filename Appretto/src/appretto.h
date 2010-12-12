@@ -8,3 +8,4 @@
 #include "contract.c"
 #include "communicate.c"
 #include "su3.c"
+#include "gaugeconf.c"

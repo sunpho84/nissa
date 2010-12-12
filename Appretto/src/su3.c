@@ -13,7 +13,25 @@ void su3_trace(complex tr,su3 m)
 //put to zero an su3 matrix
 void su3_put_to_zero(su3 m)
 {
-  memset(m,0,18);
+  memset(m,0,sizeof(su3));
+}
+
+//copy a to b
+void su3_copy(su3 b,su3 a)
+{
+  memcpy(b,a,sizeof(su3));
+}
+
+//copy a to b
+void quad_su3_copy(quad_su3 b,quad_su3 a)
+{
+  memcpy(b,a,sizeof(quad_su3));
+}
+
+//put to zero an su3 matrix of spinspin
+void su3spinspin_put_to_zero(su3spinspin m)
+{
+  memset(m,0,sizeof(su3spinspin));
 }
 
 //summ two su3 matrixes
@@ -116,14 +134,13 @@ double global_plaquette(quad_su3 *conf)
   
   return totplaq/glb_vol/6;
 }
-
 //This will calculate the clover term
 /*
-  ^                   C--<-- B --<--X 
+  ^                   C--<-- B --<--Y 
   |                   |  2  | |  1  | 
   n                   |     | |     | 
-  u                   D-->--\0/-->--A 
-  |                   D--<--/0\--<--A 
+  u                   D-->--\X/-->--A 
+  |                   D--<--/X\--<--A 
   -----mu---->        |  3  | |  4  | 
   		      |     | |     | 
 		      E-->-- F -->--G 
@@ -132,38 +149,41 @@ double global_plaquette(quad_su3 *conf)
 void clover_term(su3spinspin *clov,quad_su3 *conf)
 {
   int A,B,C,D,E,F,G;
+  complex Ihalf={0.5,0};
 
   su3 temp1,temp2,leaves_summ;
-	      //Put to 0 the summ of the leaves
-	      su3_put_to_zero(leaves_summ);
+  double temp_summ=0;
 
-
-  for(int O=0;O<loc_vol;O++)
+  for(int X=0;X<loc_vol;X++)
     {
+      su3spinspin_put_to_zero(clov[X]);
+
       for(int mu=0;mu<4;mu++)
 	{
-	  A=loclx_neighup[O][mu];
-	  D=loclx_neighdw[O][mu];
+	  A=loclx_neighup[X][mu];
+	  D=loclx_neighdw[X][mu];
 	  
 	  for(int nu=mu+1;nu<4;nu++)
 	    {
-	      B=loclx_neighup[O][nu];
-	      F=loclx_neighdw[O][nu];
+	      B=loclx_neighup[X][nu];
+	      F=loclx_neighdw[X][nu];
 	      
 	      C=loclx_neighup[D][nu];
 	      E=loclx_neighdw[D][nu];
 
 	      G=loclx_neighdw[A][nu];
-	      /*
-	      //Leaf 1
-	      su3_su3_prod(temp1,conf[O][mu],conf[A][nu]);
-	      su3_su3_dag_prod(temp2,temp1,conf[B][mu]);
-	      su3_su3_dag_prod(temp1,temp2,conf[O][nu]);
-	      su3_summ(leaves_summ,leaves_summ,temp1);
+
+	      //Put to 0 the summ of the leaves
+	      su3_put_to_zero(leaves_summ);
 	      
+	      //Leaf 1
+	      su3_su3_prod(temp1,conf[X][mu],conf[A][nu]);
+	      su3_su3_dag_prod(temp2,temp1,conf[B][mu]);
+	      su3_su3_dag_prod(temp1,temp2,conf[X][nu]);
+	      su3_summ(leaves_summ,leaves_summ,temp1);
 
 	      //Leaf 2
-	      su3_su3_dag_prod(temp1,conf[O][nu],conf[C][mu]);
+	      su3_su3_dag_prod(temp1,conf[X][nu],conf[C][mu]);
 	      su3_su3_dag_prod(temp2,temp1,conf[D][nu]);
 	      su3_su3_prod(temp1,temp2,conf[D][mu]);
 	      su3_summ(leaves_summ,leaves_summ,temp1);
@@ -173,19 +193,39 @@ void clover_term(su3spinspin *clov,quad_su3 *conf)
 	      su3_su3_prod(temp2,temp1,conf[E][mu]);
 	      su3_su3_prod(temp1,temp2,conf[F][nu]);
 	      su3_summ(leaves_summ,leaves_summ,temp1);
-	      */
+	      
 	      //Leaf 4
 	      su3_dag_su3_prod(temp1,conf[F][nu],conf[F][mu]);
 	      su3_su3_prod(temp2,temp1,conf[G][nu]);
-	      su3_su3_dag_prod(temp1,temp2,conf[O][mu]);
+	      su3_su3_dag_prod(temp1,temp2,conf[X][mu]);
 	      su3_summ(leaves_summ,leaves_summ,temp1);
 	      
+	      //build i*sigma_mu_nu
+	      dirac_matr ismn=base_gamma[nu];
+	      dirac_prod(&ismn,&(base_gamma[mu]),&(base_gamma[nu]));
+	      dirac_compl_prod(&ismn,&ismn,Ihalf);
+	      
+	      //now put the summ of the leaves in the clover term
+	      for(int id1=0;id1<4;id1++)
+		{
+		  int id2=ismn.pos[id1];
+
+		  complex dirac_weight;
+		  dirac_weight[0]=ismn.entr[id1][0];
+		  dirac_weight[1]=ismn.entr[id1][1];
+
+		  for(int ic1=0;ic1<3;ic1++)
+		    for(int ic2=0;ic2<3;ic2++)
+		      {
+			complex col_weight;
+			col_weight[0]=leaves_summ[ic1][ic2][0]-leaves_summ[ic2][ic1][0];
+			col_weight[1]=leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1];	
+
+			complex_summ_the_prod(clov[X][ic1][ic2][id1][id2],dirac_weight,col_weight);
+			temp_summ+=clov[X][ic1][ic2][id1][id2][0];
+		      }
+		}
 	    }
 	}
     }
-  
-  double total_leaves_summ,partial_summ=leaves_summ[0][0][0];
-  MPI_Reduce(&partial_summ,&total_leaves_summ,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);  
-  
-  if(rank==0) printf("%.12g\n",total_leaves_summ);
 }

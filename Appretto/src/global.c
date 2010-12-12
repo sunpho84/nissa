@@ -7,6 +7,8 @@
 int **glb_coord_of_loclx,glb_size[4],glb_vol=0;
 int **loc_coord_of_loclx,loc_size[4],loc_vol=0;
 int *glblx_of_loclx=NULL;
+int *glblx_of_bordlx=NULL;
+int *glblx_of_edgelx=NULL;
 
 //neighbours of local volume + borders
 int **loclx_neighdw,**loclx_neighup;
