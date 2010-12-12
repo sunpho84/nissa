@@ -25,7 +25,7 @@ fi
 base_conf=$base_analysis/$conf
 mkdir -pv $base_conf
 
-#take posses of the filder
+#take possess of the folder
 touch "$conf_test/analysis_"$analysis_name"_running"
 trap "rm -f "$conf"/analysis_"$analysis_name"_running" EXIT
 
@@ -36,5 +36,4 @@ ln -svf $source_confs/conf.$conf Conf
 echo
 echo "Will work on conf: "$conf
 echo "Path: "$base_conf
-
 

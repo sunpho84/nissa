@@ -7,11 +7,15 @@ echo
 echo " ##################################################################################"
 echo " ##################################################################################"
 echo " ####                                                                          ####"
-echo " ####                    Three points functions calculation                    ####"
+echo " ####                    Three-point functions calculation                     ####"
 echo " ####                                                                          ####"
 echo " ##################################################################################"
 echo " ##################################################################################"
 echo
+echo "Started at : ", $(date)
+echo
+
+echo "Three-point functions calculation started at : "$(date) >> $base_conf/time_log
 
 #take initial time
 tic=$(date +%s)
@@ -309,3 +313,9 @@ do
     done #spectator theta
 
 done #source
+
+echo "Three-point functions calculation ended at : "$(date) >> $base_conf/time_log
+
+echo
+echo "Three-point functions calculation ended at : " $(date)
+echo

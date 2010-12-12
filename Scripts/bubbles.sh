@@ -12,14 +12,21 @@ echo " ####                                                                     
 echo " ##################################################################################"
 echo " ##################################################################################"
 echo
+echo "Started at : ", $(date)
+echo
 echo "Working dir: $PWD"
 echo
 
-#reset the time log
-rm -f $base_conf/time_log
-
 #take initial time
 tic=$(date +%s)
+
+#reset the time log
+if [ -f "$base_conf/time_log" ]
+then
+    mv -f $base_conf/time_log $base_conf/time_log_$tic
+fi
+
+echo "Bubbles calculation started at : "$(date) >> $base_conf/time_log
 
 #count the number of mu
 nmu=${#list_mu[@]}
@@ -175,6 +182,12 @@ do
         echo $base_inv/prop "m="$mu 0 $r >> $base_bubbles/input
     done
     
-    $MPI_TM_PREF $base_nissa/Appretto/projects/bubbles/bubbles input    
+    $MPI_TM_PREF $base_nissa/Appretto/projects/bubbles/bubbles input
     
 done
+
+echo "Bubbles calculation ended at : "$(date) >> $base_conf/time_log
+
+echo
+echo "Bubbles calculation ended at : " $(date)
+echo
