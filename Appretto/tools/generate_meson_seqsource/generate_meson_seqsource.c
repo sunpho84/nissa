@@ -48,7 +48,7 @@ int main(int narg,char **arg)
 	    {
 	      for(int id2=0;id2<4;id2++)
 		for(int ic1=0;ic1<3;ic1++)
-		  complex_prod(sp_temp[id2][ic1],gdirac.entr[id2],spinore[ivol][gdirac.pos[id2]][ic1]);
+		  unsafe_complex_prod(sp_temp[id2][ic1],gdirac.entr[id2],spinore[ivol][gdirac.pos[id2]][ic1]);
 	      for(int id2=0;id2<4;id2++)
 		for(int ic1=0;ic1<3;ic1++)
 		  for(int im=0;im<2;im++)

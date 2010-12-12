@@ -7,19 +7,26 @@ echo
 echo " ##################################################################################"
 echo " ##################################################################################"
 echo " ####                                                                          ####"
-echo " ####                    Two points functions calculation                      ####"
+echo " ####                    Two-point functions calculation                       ####"
 echo " ####                                                                          ####"
 echo " ##################################################################################"
 echo " ##################################################################################"
 echo
+echo "Started at : ", $(date)
+echo
 echo "Working dir: $PWD"
 echo
 
-#reset the time log
-rm -f $base_conf/time_log
-
 #take initial time
 tic=$(date +%s)
+
+#reset the time log
+if [ -f "$base_conf/time_log" ]
+then
+    mv -f $base_conf/time_log $base_conf/time_log_$tic
+fi
+
+echo "Two-point functions calculation started at : "$(date) >> $base_conf/time_log
 
 #count the number of mu and theta
 nmu=${#list_mu[@]}
@@ -241,7 +248,7 @@ do
 		    mv -v $orig $dest
 		fi
 
-	      done	    
+	      done
 	      
 	    done
 
@@ -305,7 +312,7 @@ do
 	  theta1=${list_theta[$itheta1]}
 	  for((imu1=0;imu1<nmu;imu1++))
 	  do
-	    mu1=${list_mu[$imu1]}	
+	    mu1=${list_mu[$imu1]}
 	    for((r1=0;r1<2;r1++))
 	    do
 	      echo " "$base_conf/Props/$source_name/$theta1/$mu1/$r1/prop $mu1 $theta1 0 $r1 >> $base_2pts/input
@@ -318,7 +325,7 @@ do
 	  theta2=${list_theta[$itheta2]}
 	  for((imu2=0;imu2<nmu;imu2++))
 	  do
-	    mu2=${list_mu[$imu2]}	
+	    mu2=${list_mu[$imu2]}
 	    for((r2=0;r2<2;r2++))
 	    do
 	      echo " "$base_conf/Props/$source_name/$theta2/$mu2/$r2/prop $mu2 $theta2 0 $r2 >> $base_2pts/input
@@ -351,3 +358,10 @@ do
     fi
 
 done
+
+echo "Two-point functions calculation ended at : "$(date) >> $base_conf/time_log
+
+echo
+echo "Two-point functions calculation ended at : " $(date)
+echo
+

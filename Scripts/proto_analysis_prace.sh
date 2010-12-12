@@ -13,6 +13,11 @@
 #
 
 #!/bin/bash
+set echo
+
+echo
+echo "====> JOB STARTED AT : " $(date)
+echo
 
 #setup everything
 source ~/nissa_conf.sh
@@ -96,4 +101,10 @@ source $base_scripts/three_points.sh
 touch $base_conf/analysis_"$analysis_name"_completed
 
 cd $base_analysis
+
 llsubmit analysis.sh
+
+echo
+echo "====> JOB ENDED AT : " $(date)
+echo
+
