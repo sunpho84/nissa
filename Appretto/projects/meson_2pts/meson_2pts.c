@@ -40,8 +40,8 @@ source |------>---->----->---->| sink
 //This is the minimal requirement for the program to be able to work.
 int compute_allocable_propagators(int nprop_list,int nch_contr)
 {
-  quad_su3 *temp_conf;
-  as2t_su3 *temp_clov;
+  quad_su3 *temp_conf=NULL;
+  as2t_su3 *temp_clov=NULL;
   if(nch_contr>0)
     {
       temp_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));
@@ -59,7 +59,7 @@ int compute_allocable_propagators(int nprop_list,int nch_contr)
 	}
     }
 
-  colorspinspin *fuf;
+  colorspinspin *fuf=NULL;
   int nmin_req;
   if(nch_contr==0) nmin_req=2;
   else nmin_req=3;
@@ -348,9 +348,9 @@ int main(int narg,char **arg)
   
   //if we have to calculate the chromo-magnetic operator allocate one additional spinor
   //if necessary allocate and load the gauge configuration,and allocate the space for the clover term
-  colorspinspin *ch_spinor;
-  quad_su3 *gauge_conf;
-  as2t_su3 *Pmunu;
+  colorspinspin *ch_spinor=NULL;
+  quad_su3 *gauge_conf=NULL;
+  as2t_su3 *Pmunu=NULL;
   if(nch_contr!=0)
     {
       ch_spinor=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
@@ -372,11 +372,11 @@ int main(int narg,char **arg)
   if(nch_contr>0)
     {
       read_local_gauge_conf(gauge_conf,gaugeconf_file);
-      double gplaq=global_plaquette(gauge_conf);
-      if(rank==0) printf("plaq: %.10g\n",gplaq);
-
       communicate_gauge_borders(gauge_conf);
       communicate_gauge_edges(gauge_conf);
+
+      double gplaq=global_plaquette(gauge_conf);
+      if(rank==0) printf("plaq: %.10g\n",gplaq);
       
       Pmunu_term(Pmunu,gauge_conf);
       free(gauge_conf);
@@ -462,7 +462,7 @@ int main(int narg,char **arg)
 	    }
 	  
 	  //apply the chromo magnetic operator to the second spinor
-	  if(nch_contr>0) unsafe_apply_clover_term_to_colorspinspin(ch_spinor,Pmunu,spinor2);
+	  if(nch_contr>0) unsafe_apply_clover_term_to_colorspinspin(ch_spinor,Pmunu,spinor2_ptr);
 	  
 	  //Calculate all the two points between spinor 1 and spinor2
 	  for(int iprop1=0;iprop1<iblock_length;iprop1++)

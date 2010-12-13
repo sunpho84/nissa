@@ -197,6 +197,13 @@ void read_colorspinspin(colorspinspin *css,char *base_path)
 //Read only the local part of the gauge configuration
 void read_local_gauge_conf(quad_su3 *out,char *path)
 {
+  double tic;
+  if(debug)
+    {
+      MPI_Barrier(cart_comm);
+      tic=MPI_Wtime();
+    }
+
   quad_su3 *temp=(quad_su3*)malloc(sizeof(quad_su3)*loc_vol);
 
   read_real_vector((double*)temp,path,"ildg-binary-data",nreals_per_quad_su3);
@@ -220,6 +227,14 @@ void read_local_gauge_conf(quad_su3 *out,char *path)
 	    //this is to avoid premature overwrite
 	    memcpy(out[idest],buff,sizeof(quad_su3));
 	  }
-  
+
   free(temp);
+  
+  if(debug)
+    {
+      MPI_Barrier(cart_comm);
+      double tac=MPI_Wtime();
+      
+      if(rank==0) printf("Time elapsed in reading gauge file '%s': %f s\n",path,tac-tic);
+    }
 }

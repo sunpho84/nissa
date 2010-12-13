@@ -261,6 +261,16 @@ do
 	      ) | awk '{print $1,$2}' > $base_3pts/micro_correlations 
 	      nmicro=$(wc $base_3pts/micro_correlations | awk '{print $1}')
 	      
+	      if [ "${#three_points_ch_correlations[@]}" -gt 0 ]
+	      then
+		  (
+		      cd $base_nissa/Data/Correlations_content/
+		      cat ${three_points_ch_correlations[@]}
+		      cd $OLDPWD
+		  ) | awk '{print $1,$2}' > $base_3pts/micro_ch_correlations
+		  nch_micro=$(wc $base_3pts/micro_ch_correlations | awk '{print $1}')
+	      fi
+
               nprop=$(( $ntheta * $nmu ))
 
 	      echo "L "$L  > $base_3pts/input
@@ -284,6 +294,14 @@ do
               done
 	      echo "Ncontr "$nmicro >> $base_3pts/input
 	      cat $base_3pts/micro_correlations >> $base_3pts/input
+
+	      echo "NChromoContr "$nch_micro >> $base_3pts/input
+	      if [ "${#three_points_ch_correlations[@]}" -gt 0 ]
+	      then
+		  cat $base_3pts/micro_ch_correlations >> $base_3pts/input
+		  echo "GaugeConf "$base_conf/Conf >> $base_3pts/input
+	      fi
+
 	      echo "Output "$base_3pts"/three_points_contractions" >> $base_3pts/input
 
               echo

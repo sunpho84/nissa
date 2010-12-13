@@ -34,14 +34,12 @@ then
 elif [ "$WHERE" == ROMA3 ]
 then
     
-    echo -e Number of nodes: $MPI_nn
-    echo -e Number of cores: $MPI_nc
-    echo -e Total instance:  $MPI_np
-    
     if [ "$PBS_O_WORKDIR" != "" ]
     then
-	MPI_TM_PREF="mpiexec -np "$MPI_np
-	MPI_AH_PREF="mpiexec -np "$MPI_np
+	echo  "Total instance: 16"
+    
+	MPI_TM_PREF="mpirun -np 16"
+	MPI_AH_PREF="mpirun -np 16"
 	USE_MPI=1
     else
 	MPI_TM_PREF=""
