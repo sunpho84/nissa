@@ -54,7 +54,7 @@ int compute_allocable_propagators(int nprop_list,int nch_contr)
       temp_clov=(as2t_su3*)malloc(sizeof(as2t_su3)*loc_vol);
       if(temp_clov==NULL && rank>0)
 	{
-	  fprintf(stderr,"Unable to allocate the space for the clover term!\n");
+	  fprintf(stderr,"Unable to allocate the space for the P_munu term!\n");
 	  MPI_Abort(MPI_COMM_WORLD,1);
 	}
     }
@@ -347,7 +347,7 @@ int main(int narg,char **arg)
   colorspinspin *spinor2=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
   
   //if we have to calculate the chromo-magnetic operator allocate one additional spinor
-  //if necessary allocate and load the gauge configuration,and allocate the space for the clover term
+  //if necessary allocate and load the gauge configuration,and allocate the space for the pmunu term
   colorspinspin *ch_spinor=NULL;
   quad_su3 *gauge_conf=NULL;
   as2t_su3 *Pmunu=NULL;
@@ -368,7 +368,7 @@ int main(int narg,char **arg)
       tic=MPI_Wtime();
     }
   
-  //if necessary, load the gauge configuration and calculate the clover term
+  //if necessary, load the gauge configuration and calculate the pmunu term
   if(nch_contr>0)
     {
       read_local_gauge_conf(gauge_conf,gaugeconf_file);
@@ -462,7 +462,7 @@ int main(int narg,char **arg)
 	    }
 	  
 	  //apply the chromo magnetic operator to the second spinor
-	  if(nch_contr>0) unsafe_apply_clover_term_to_colorspinspin(ch_spinor,Pmunu,spinor2_ptr);
+	  if(nch_contr>0) unsafe_apply_chromo_operator_to_colorspinspin(ch_spinor,Pmunu,spinor2_ptr);
 	  
 	  //Calculate all the two points between spinor 1 and spinor2
 	  for(int iprop1=0;iprop1<iblock_length;iprop1++)

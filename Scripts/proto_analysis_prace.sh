@@ -55,7 +55,7 @@ list_source_seed=( [seed] ) # seed
 list_source_prec=( [resd] ) # residual
 
 #list of theta and sea for which we will do first inversion
-list_theta=( [theta1] [theta2] )
+list_theta=( [theta1] [theta2] ) #multiples of 2pi
 list_mu=( [mu1] [mu2] )
 beta=[beta]
 kappa=[kappac]
