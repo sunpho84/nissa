@@ -35,29 +35,52 @@ source |------>---->----->---->| sink
 #include "appretto.h"
 
 //Calculate the maximum number of allocable propagators
-int compute_allocable_propagators(int nprop_list)
+//First of all check if there is enough room for the configuration,
+//then for the two/three propagators.
+//This is the minimal requirement for the program to be able to work.
+int compute_allocable_propagators(int nprop_list,int nch_contr)
 {
-  //First of all check if there is enough room for two propagators.
-  //This is the minimal requirement for the program to be able to work.
+  quad_su3 *temp_conf;
+  as2t_su3 *temp_clov;
+  if(nch_contr>0)
+    {
+      temp_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));
+      if(temp_conf==NULL && rank>0)
+	{
+	  fprintf(stderr,"Unable to allocate the space for the gauge configuration!\n");
+	  MPI_Abort(MPI_COMM_WORLD,1);
+	}
+
+      temp_clov=(as2t_su3*)malloc(sizeof(as2t_su3)*loc_vol);
+      if(temp_clov==NULL && rank>0)
+	{
+	  fprintf(stderr,"Unable to allocate the space for the clover term!\n");
+	  MPI_Abort(MPI_COMM_WORLD,1);
+	}
+    }
+
   colorspinspin *fuf;
-  fuf=(colorspinspin*)malloc(2*sizeof(colorspinspin)*loc_vol);
+  int nmin_req;
+  if(nch_contr==0) nmin_req=2;
+  else nmin_req=3;
+  fuf=(colorspinspin*)malloc(nmin_req*sizeof(colorspinspin)*loc_vol);
 
   if(fuf==NULL)
     {
       if(rank==0)
 	{
-	  fprintf(stderr,"Error: not enough memory for two propagators\n");
+	  fprintf(stderr,"Error: not enough memory for %d propagators\n",nmin_req);
 	  fflush(stderr);
 	  MPI_Abort(MPI_COMM_WORLD,1);
 	}
     }
-  else if(debug>1 && rank==0) printf("Ok there is enough memory to load two propagators\n");
+  else if(debug>1 && rank==0) printf("Ok there is enough memory to load %d propagators\n",nmin_req);
 
   free(fuf);
 
   //Now determine the largest number of propagator of the first list (and one additional) loadable at once.
-  //We are sure that we can allocate at least 2 props, so it will exit with at least nprop_max=1.
-  int nprop_max=nprop_list + 1;
+  //We are sure that we can allocate at least nmin_req props, so it will exit with at least nprop_max=1.
+  int nprop_max=nprop_list+nmin_req-1;
   do
     {
       nprop_max--;
@@ -69,6 +92,12 @@ int compute_allocable_propagators(int nprop_list)
 
   if(debug && rank==0)
     printf("Will allocate %d propagators from a list with %d propagators\n",nprop_max,nprop_list);
+
+  if(nch_contr>0)
+    {
+      free(temp_conf);
+      free(temp_clov);
+    }
 
   return nprop_max;
 }
@@ -150,6 +179,28 @@ void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_o
   
   //Call for the routine which does the real contraction
   trace_g_sdag_g_s(corr,t1,s1,t2,s2,ncontr);
+}
+
+//print all the passed contractions to the file
+void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex **contr,int twall,const char *tag)
+{
+  int spat_vol=glb_size[1]*glb_size[2]*glb_size[3];
+  
+  fprintf(fout,"\n");
+  
+  for(int icontr=0;icontr<ncontr;icontr++)
+    {
+      fprintf(fout," # %s%s%s\n",tag,gtag[op2[icontr]],gtag[op1[icontr]]);
+      fprintf(fout,"\n");
+      for(int tempt=0;tempt<glb_size[0];tempt++)
+	{
+	  int t=tempt+twall;
+	  if(t>=glb_size[0]) t-=glb_size[0];
+	  
+	  fprintf(fout,"%+016.16g\t%+016.16g\n",contr[icontr][t][0]/spat_vol,contr[icontr][t][1]/spat_vol);
+	}
+      fprintf(fout,"\n");
+    }
 }
 
 int main(int narg,char **arg)
@@ -250,25 +301,63 @@ int main(int narg,char **arg)
       if(rank==0 && debug) printf(" contr.%d %d %d\n",icontr,op1[icontr],op2[icontr]);
     }
   
+  //Read the number of contractions with insertion of the chromo-magnetic operator
+  int nch_contr;
+  read_str_int("NChromoContr",&nch_contr);
+  if(rank==0) printf("Number of chromo-contractions: %d\n",nch_contr);
+  
+  //Initialize the list of chromo correlations and the list of operators
+  //contiguous allocation
+  complex **ch_contr=(complex**)malloc(sizeof(complex*)*nch_contr);
+  ch_contr[0]=(complex*)malloc(sizeof(complex)*nch_contr*glb_size[0]); 
+  int *ch_op1=(int*)malloc(sizeof(int)*nch_contr);
+  int *ch_op2=(int*)malloc(sizeof(int)*nch_contr);
+  for(int ich_contr=0;ich_contr<nch_contr;ich_contr++)
+    {
+      ch_contr[ich_contr]=ch_contr[0]+ich_contr*glb_size[0];
+      
+      //Read the operator pairs
+      read_int(&(ch_op1[ich_contr]));
+      read_int(&(ch_op2[ich_contr]));
+      
+      if(rank==0 && debug) printf(" chromo contr.%d %d %d\n",ich_contr,ch_op1[ich_contr],ch_op2[ich_contr]);
+    }
+  
+  //Read the location of the gauge configuration if needed
+  char gaugeconf_file[1024];
+  if(nch_contr>0) read_str_str("GaugeConf",gaugeconf_file,1024);
+    
   //Read the output filename
   char outfile[1024];
   read_str_str("Output",outfile,1024);
-
+  
   close_input();
-
+  
   //Init the MPI grid 
   init_grid();
   
   //Calculate the number of blocks for the first list
-  int nprop_per_block=compute_allocable_propagators(nprop_list1);
+  int nprop_per_block=compute_allocable_propagators(nprop_list1,nch_contr);
   int nblocks=nprop_list1/nprop_per_block;
   if(nprop_list1>nblocks*nprop_per_block) nblocks++;
-
+  
   //allocate the spinors
   colorspinspin **spinor1=(colorspinspin**)malloc(sizeof(colorspinspin*)*nprop_per_block);
   for(int iprop1=0;iprop1<nprop_per_block;iprop1++) spinor1[iprop1]=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
   colorspinspin *spinor2=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
-
+  
+  //if we have to calculate the chromo-magnetic operator allocate one additional spinor
+  //if necessary allocate and load the gauge configuration,and allocate the space for the clover term
+  colorspinspin *ch_spinor;
+  quad_su3 *gauge_conf;
+  as2t_su3 *Pmunu;
+  if(nch_contr!=0)
+    {
+      ch_spinor=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
+      gauge_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));
+      Pmunu=(as2t_su3*)malloc(sizeof(as2t_su3)*loc_vol);
+    }  
+  
   ///////////////////////////////////////////
   
   //take initial time
@@ -278,7 +367,21 @@ int main(int narg,char **arg)
       MPI_Barrier(cart_comm);
       tic=MPI_Wtime();
     }
+  
+  //if necessary, load the gauge configuration and calculate the clover term
+  if(nch_contr>0)
+    {
+      read_local_gauge_conf(gauge_conf,gaugeconf_file);
+      double gplaq=global_plaquette(gauge_conf);
+      if(rank==0) printf("plaq: %.10g\n",gplaq);
 
+      communicate_gauge_borders(gauge_conf);
+      communicate_gauge_edges(gauge_conf);
+      
+      Pmunu_term(Pmunu,gauge_conf);
+      free(gauge_conf);
+    }
+  
   FILE *fout=NULL;
   if(rank==0)
     {
@@ -290,7 +393,6 @@ int main(int narg,char **arg)
 	  MPI_Abort(MPI_COMM_WORLD,1);
 	}
     }
-  int spat_vol=glb_size[1]*glb_size[1]*glb_size[1];
 
   //Loop over the blocks of the first list
   for(int iblock=0;iblock<nblocks;iblock++)
@@ -359,6 +461,9 @@ int main(int narg,char **arg)
 		}
 	    }
 	  
+	  //apply the chromo magnetic operator to the second spinor
+	  if(nch_contr>0) unsafe_apply_clover_term_to_colorspinspin(ch_spinor,Pmunu,spinor2);
+	  
 	  //Calculate all the two points between spinor 1 and spinor2
 	  for(int iprop1=0;iprop1<iblock_length;iprop1++)
 	    {
@@ -373,36 +478,23 @@ int main(int narg,char **arg)
 		  if(rank==0 && debug>1) printf("Going to perform (prop%d,prop%d) contractions\n",iprop1+1,iprop2+1);
 		  MPI_Barrier(cart_comm);
 		  tic1=MPI_Wtime();
-		}	      
+		}
 	      meson_two_points(contr,op1,spinor1[iprop1],op2,spinor2_ptr,ncontr,phys_prop1[counter],r_prop1[counter],phys_prop2[iprop2],r_prop2[iprop2]);
+	      if(nch_contr>0) meson_two_points(ch_contr,ch_op1,spinor1[iprop1],ch_op2,ch_spinor,nch_contr,phys_prop1[counter],r_prop1[counter],phys_prop2[iprop2],r_prop2[iprop2]);
+
 	      if(debug)
 		{
 		  MPI_Barrier(cart_comm);
 		  tac1=MPI_Wtime();
 		  tot_contract_time+=tac1-tic1;
-		  tot_contr_made+=ncontr;
+		  tot_contr_made+=ncontr+nch_contr;
 		}
 
 	      if(rank==0)
 		{
-		  fprintf(fout,"\n");
-		  
-		  for(int icontr=0;icontr<ncontr;icontr++)
-		    {
-		      fprintf(fout," # %s%s\n",gtag[op2[icontr]],gtag[op1[icontr]]);
-		      fprintf(fout,"\n");
-		      for(int tempt=0;tempt<glb_size[0];tempt++)
-			{
-			  int t=tempt+twall;
-			  if(t>=glb_size[0]) t-=glb_size[0];
-			  
-			  fprintf(fout,"%+016.16g\t%+016.16g\n",contr[icontr][t][0]/spat_vol,contr[icontr][t][1]/spat_vol);
-			}
-		      fprintf(fout,"\n");
-		    }
-		}
-	      if(rank==0)
-		{
+		  print_contractions_to_file(fout,ncontr,op1,op2,contr,twall,"");
+		  if(nch_contr>0) print_contractions_to_file(fout,nch_contr,ch_op1,ch_op2,ch_contr,twall,"CHROMO-");
+
 		  fprintf(fout,"\n");
 		  if(debug>1) fflush(fout);
 		}
@@ -434,6 +526,12 @@ int main(int narg,char **arg)
       fclose(fout);
     }
 
+  if(nch_contr!=0)
+    {
+      free(ch_spinor);
+      free(Pmunu);
+    }
+
   free(mass_prop2);
   free(theta_prop2);
   free(phys_prop2);
@@ -450,6 +548,12 @@ int main(int narg,char **arg)
   free(spinor1);
   for(int iprop1=0;iprop1<nprop_list1;iprop1++) free(base_filename1[iprop1]);
   free(base_filename1);
+
+  free(ch_contr[0]);
+  free(ch_contr);
+
+  free(ch_op1);
+  free(ch_op2);
 
   free(contr[0]);
   free(contr);

@@ -3,6 +3,7 @@
 #include <lemon.h>
 #include "endianess.c"
 #include "communicate.c"
+#include "global.c"
 
 //Read from the argument path a maximal amount of data nbyes_per_site
 //return the real read amount of bytes
@@ -176,14 +177,7 @@ void read_colorspinspin(colorspinspin *css,char *base_path)
       read_spincolor(sc,filename);
       
       //Switch the spincolor into the colorspin. 
-      //In a spinspin the sink index runs slower than the source
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
-	for(int ic_sink=0;ic_sink<3;ic_sink++)
-	  for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
-	    {
-	      css[loc_site][ic_sink][id_sink][id_source][0]=sc[loc_site][id_sink][ic_sink][0];
-	      css[loc_site][ic_sink][id_sink][id_source][1]=sc[loc_site][id_sink][ic_sink][1];
-	    }
+      for(int loc_site=0;loc_site<loc_vol;loc_site++) put_spincolor_into_colorspinspin(css[loc_site],sc[loc_site],id_source);
     }
 
   if(debug)

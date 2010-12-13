@@ -1,5 +1,7 @@
 #pragma once
 
+#include "global.c"
+
 //return the trace of an su3 matrix
 void su3_trace(complex tr,su3 m)
 {
@@ -16,10 +18,16 @@ void su3_put_to_zero(su3 m)
   memset(m,0,sizeof(su3));
 }
 
-//put to zero an su3 anti-simmetric tenor
-void su3_as2t_put_to_zero(su3_as2t m)
+//put to zero a color vector
+void color_put_to_zero(color m)
 {
-  memset(m,0,sizeof(su3_as2t));
+  memset(m,0,sizeof(color));
+}
+
+//put to zero an su3 anti-simmetric tensor
+void as2t_su3_put_to_zero(as2t_su3 m)
+{
+  memset(m,0,sizeof(as2t_su3));
 }
 
 //copy a to b
@@ -95,6 +103,16 @@ void su3_dag_su3_dag_prod(su3 a,su3 b,su3 c)
       }
 }
 
+//product of an su3 matrix by a color vector
+void unsafe_su3_color_prod(color a,su3 b,color c)
+{
+  for(int c1=0;c1<3;c1++)
+    {
+      unsafe_complex_prod(a[c1],b[c1][0],c[0]);
+      for(int c2=1;c2<3;c2++) complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);
+    }
+}
+
 //square (the proto-plaquette)
 /*
      
@@ -140,7 +158,7 @@ double global_plaquette(quad_su3 *conf)
   
   return totplaq/glb_vol/6;
 }
-//This will calculate the clover term
+//This will calculate 2*a^2*ig*P_{mu,nu}
 /*
   ^                   C--<-- B --<--Y 
   |                   |  2  | |  1  | 
@@ -151,8 +169,7 @@ double global_plaquette(quad_su3 *conf)
   		      |     | |     | 
 		      E-->-- F -->--G 
 */
-
-void clover_term(su3_as2t *clov,quad_su3 *conf)
+void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
 {
   int A,B,C,D,E,F,G;
   int munu;
@@ -161,7 +178,7 @@ void clover_term(su3_as2t *clov,quad_su3 *conf)
 
   for(int X=0;X<loc_vol;X++)
     {
-      su3_as2t_put_to_zero(clov[X]);
+      as2t_su3_put_to_zero(Pmunu[X]);
 
       munu=0;
       for(int mu=0;mu<4;mu++)
@@ -183,38 +200,82 @@ void clover_term(su3_as2t *clov,quad_su3 *conf)
 	      su3_put_to_zero(leaves_summ);
 	      
 	      //Leaf 1
-	      su3_su3_prod(temp1,conf[X][mu],conf[A][nu]);
-	      su3_su3_dag_prod(temp2,temp1,conf[B][mu]);
-	      su3_su3_dag_prod(temp1,temp2,conf[X][nu]);
-	      su3_summ(leaves_summ,leaves_summ,temp1);
+	      su3_su3_prod(temp1,conf[X][mu],conf[A][nu]);         //    B--<--Y 
+	      su3_su3_dag_prod(temp2,temp1,conf[B][mu]);           //    |  1  | 
+	      su3_su3_dag_prod(temp1,temp2,conf[X][nu]);           //    |     | 
+	      su3_summ(leaves_summ,leaves_summ,temp1);	           //    X-->--A 
 
 	      //Leaf 2
-	      su3_su3_dag_prod(temp1,conf[X][nu],conf[C][mu]);
-	      su3_su3_dag_prod(temp2,temp1,conf[D][nu]);
-	      su3_su3_prod(temp1,temp2,conf[D][mu]);
-	      su3_summ(leaves_summ,leaves_summ,temp1);
+	      su3_su3_dag_prod(temp1,conf[X][nu],conf[C][mu]);      //   C--<--B
+	      su3_su3_dag_prod(temp2,temp1,conf[D][nu]);            //   |  2  | 
+	      su3_su3_prod(temp1,temp2,conf[D][mu]);		    //   |     | 
+	      su3_summ(leaves_summ,leaves_summ,temp1);		    //   D-->--X
 	      
 	      //Leaf 3
-	      su3_dag_su3_dag_prod(temp1,conf[D][mu],conf[E][nu]);
-	      su3_su3_prod(temp2,temp1,conf[E][mu]);
-	      su3_su3_prod(temp1,temp2,conf[F][nu]);
-	      su3_summ(leaves_summ,leaves_summ,temp1);
+	      su3_dag_su3_dag_prod(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
+	      su3_su3_prod(temp2,temp1,conf[E][mu]);		    //   |  3  | 
+	      su3_su3_prod(temp1,temp2,conf[F][nu]);		    //   |     | 
+	      su3_summ(leaves_summ,leaves_summ,temp1);		    //   E-->--F
 	      
 	      //Leaf 4
-	      su3_dag_su3_prod(temp1,conf[F][nu],conf[F][mu]);
-	      su3_su3_prod(temp2,temp1,conf[G][nu]);
-	      su3_su3_dag_prod(temp1,temp2,conf[X][mu]);
-	      su3_summ(leaves_summ,leaves_summ,temp1);
+	      su3_dag_su3_prod(temp1,conf[F][nu],conf[F][mu]);       //  X--<--A 
+	      su3_su3_prod(temp2,temp1,conf[G][nu]);                 //  |  4  | 
+	      su3_su3_dag_prod(temp1,temp2,conf[X][mu]);             //  |     |  
+	      su3_summ(leaves_summ,leaves_summ,temp1);               //  F-->--G 
 
+	      //calculate U-U^dagger
 	      for(int ic1=0;ic1<3;ic1++)
 		for(int ic2=0;ic2<3;ic2++)
 		  {
-		    clov[X][ic1][ic2][munu][0]=leaves_summ[ic1][ic2][0]-leaves_summ[ic2][ic1][0];
-		    clov[X][ic1][ic2][munu][1]=leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1];	
+		    Pmunu[X][munu][ic1][ic2][0]=(leaves_summ[ic1][ic2][0]-leaves_summ[ic2][ic1][0])/4;
+		    Pmunu[X][munu][ic1][ic2][1]=(leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1])/4;
 		  }
 
 	      munu++;
 	    }
+	}
+    }
+}
+
+//apply the clover term to the passed spinor site by site (not yet fully optimized)
+void unsafe_apply_point_clover_term_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in)
+{
+  color temp_d1;
+  
+  for(int d1=0;d1<4;d1++)
+    {
+      color_put_to_zero(out[d1]);
+      for(int imunu=0;imunu<6;imunu++)
+	{
+	  unsafe_su3_color_prod(temp_d1,Pmunu[imunu],in[smunu_pos[d1][imunu]]);
+	  for(int c=0;c<3;c++) complex_summ_the_prod(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
+	}
+    }
+}
+
+//apply the clover term to the passed spinor to the whole volume
+void unsafe_apply_clover_term_to_spincolor(spincolor *out,as2t_su3 *Pmunu,spincolor *in)
+{
+  for(int ivol=0;ivol<loc_vol;ivol++) unsafe_apply_point_clover_term_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
+}
+
+//apply the clover term to the passed colorspinspin
+void unsafe_apply_clover_term_to_colorspinspin(colorspinspin *out,as2t_su3 *Pmunu,colorspinspin *in)
+{
+  spincolor temp1,temp2;
+  
+  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+    {
+      //Loop over the four source dirac indexes
+      for(int id_source=0;id_source<4;id_source++) //dirac index of source
+	{
+	  //Switch the color_spinspin into the spincolor.
+	  get_spincolor_from_colorspinspin(temp1,in[loc_site],id_source);
+	  
+	  unsafe_apply_point_clover_term_to_spincolor(temp2,Pmunu[loc_site],temp1);
+	  
+	  //Switch back the spincolor into the colorspinspin
+	  put_spincolor_into_colorspinspin(out[loc_site],temp2,id_source);
 	}
     }
 }

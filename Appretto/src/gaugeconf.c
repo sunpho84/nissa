@@ -68,6 +68,7 @@ void ac_rotate_gaugeconf(quad_su3 *out,quad_su3 *in,int axis)
 	  }
 }
 
+//shift the gauge configuration
 void shift_gaugeconf(quad_su3 *out,quad_su3 *in,int dir,int amount)
 {
   if(rank==0 && rank_tot>1)
