@@ -16,6 +16,12 @@ void su3_put_to_zero(su3 m)
   memset(m,0,sizeof(su3));
 }
 
+//put to zero an su3 anti-simmetric tenor
+void su3_as2t_put_to_zero(su3_as2t m)
+{
+  memset(m,0,sizeof(su3_as2t));
+}
+
 //copy a to b
 void su3_copy(su3 b,su3 a)
 {
@@ -146,18 +152,18 @@ double global_plaquette(quad_su3 *conf)
 		      E-->-- F -->--G 
 */
 
-void clover_term(su3spinspin *clov,quad_su3 *conf)
+void clover_term(su3_as2t *clov,quad_su3 *conf)
 {
   int A,B,C,D,E,F,G;
-  complex Ihalf={0.5,0};
+  int munu;
 
   su3 temp1,temp2,leaves_summ;
-  double temp_summ=0;
 
   for(int X=0;X<loc_vol;X++)
     {
-      su3spinspin_put_to_zero(clov[X]);
+      su3_as2t_put_to_zero(clov[X]);
 
+      munu=0;
       for(int mu=0;mu<4;mu++)
 	{
 	  A=loclx_neighup[X][mu];
@@ -199,32 +205,15 @@ void clover_term(su3spinspin *clov,quad_su3 *conf)
 	      su3_su3_prod(temp2,temp1,conf[G][nu]);
 	      su3_su3_dag_prod(temp1,temp2,conf[X][mu]);
 	      su3_summ(leaves_summ,leaves_summ,temp1);
-	      
-	      //build i*sigma_mu_nu
-	      dirac_matr ismn=base_gamma[nu];
-	      dirac_prod(&ismn,&(base_gamma[mu]),&(base_gamma[nu]));
-	      dirac_compl_prod(&ismn,&ismn,Ihalf);
-	      
-	      //now put the summ of the leaves in the clover term
-	      for(int id1=0;id1<4;id1++)
-		{
-		  int id2=ismn.pos[id1];
 
-		  complex dirac_weight;
-		  dirac_weight[0]=ismn.entr[id1][0];
-		  dirac_weight[1]=ismn.entr[id1][1];
+	      for(int ic1=0;ic1<3;ic1++)
+		for(int ic2=0;ic2<3;ic2++)
+		  {
+		    clov[X][ic1][ic2][munu][0]=leaves_summ[ic1][ic2][0]-leaves_summ[ic2][ic1][0];
+		    clov[X][ic1][ic2][munu][1]=leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1];	
+		  }
 
-		  for(int ic1=0;ic1<3;ic1++)
-		    for(int ic2=0;ic2<3;ic2++)
-		      {
-			complex col_weight;
-			col_weight[0]=leaves_summ[ic1][ic2][0]-leaves_summ[ic2][ic1][0];
-			col_weight[1]=leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1];	
-
-			complex_summ_the_prod(clov[X][ic1][ic2][id1][id2],dirac_weight,col_weight);
-			temp_summ+=clov[X][ic1][ic2][id1][id2][0];
-		      }
-		}
+	      munu++;
 	    }
 	}
     }
