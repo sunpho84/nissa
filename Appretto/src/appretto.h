@@ -9,3 +9,4 @@
 #include "communicate.c"
 #include "su3.c"
 #include "gaugeconf.c"
+#include "dirac_operator.c"
