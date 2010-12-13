@@ -61,12 +61,14 @@ beta=[beta]
 kappa=[kappac]
 musea=[musea]
 
-#List of two points functions
+#List of two points functions (and with chromo insertion)
 two_points_correlations=(A0A0 A0P5 A0S0 AKAK BKBK P5A0 P5P5 P5S0 P5V0 S0A0 S0S0 S0V0 S0P5 TKTK V0A0 V0P5 V0S0 V0V0 VKAK VKVK)
+two_points_ch_correlations=(S0P5 P5P5)
 two_points_theta1=(0) #in the case you want more theta for the spectator in the 2pts contractions
 
 #List of info for the three points
 three_points_correlations=(A0P5 AKP5 BKP5 P5P5 S0P5 TKP5 V0P5 VKP5)
+three_points_ch_correlations=(S0P5 P5P5)
 list_seq_theta=(0)    #specify the theta values for the sequential propagator
 list_itheta_spec=(0)  #specify the theta to use for the spectator
 list_imu_spec=(0)     #specify the mu to use for the spectator

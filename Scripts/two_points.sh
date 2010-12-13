@@ -345,7 +345,6 @@ do
 
 	echo "Ncontr "$nmicro >> $base_2pts/input
 	cat $base_2pts/micro_correlations >> $base_2pts/input
-	echo "Output "$base_2pts"/two_points_contractions" >> $base_2pts/input
 	
 	echo "NChromoContr "$nch_micro >> $base_2pts/input
 	if [ "${#two_points_ch_correlations[@]}" -gt 0 ]
@@ -353,6 +352,7 @@ do
 	    cat $base_2pts/micro_ch_correlations >> $base_2pts/input
 	    echo "GaugeConf "$base_conf/Conf >> $base_2pts/input
 	fi
+
 	echo "Output "$base_2pts"/two_points_contractions" >> $base_2pts/input
 	
 	echo
