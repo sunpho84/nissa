@@ -237,8 +237,8 @@ void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
     }
 }
 
-//apply the clover term to the passed spinor site by site (not yet fully optimized)
-void unsafe_apply_point_clover_term_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in)
+//apply the chromo operator to the passed spinor site by site (not yet fully optimized)
+void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in)
 {
   color temp_d1;
   
@@ -253,14 +253,15 @@ void unsafe_apply_point_clover_term_to_spincolor(spincolor out,as2t_su3 Pmunu,sp
     }
 }
 
-//apply the clover term to the passed spinor to the whole volume
-void unsafe_apply_clover_term_to_spincolor(spincolor *out,as2t_su3 *Pmunu,spincolor *in)
+//apply the chromo operator to the passed spinor to the whole volume
+void unsafe_apply_chromo_operator_to_spincolor(spincolor *out,as2t_su3 *Pmunu,spincolor *in)
 {
-  for(int ivol=0;ivol<loc_vol;ivol++) unsafe_apply_point_clover_term_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
+  for(int ivol=0;ivol<loc_vol;ivol++) unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
 }
 
-//apply the clover term to the passed colorspinspin
-void unsafe_apply_clover_term_to_colorspinspin(colorspinspin *out,as2t_su3 *Pmunu,colorspinspin *in)
+//apply the chromo operator to the passed colorspinspin
+//normalization as in ape next
+void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,as2t_su3 *Pmunu,colorspinspin *in)
 {
   spincolor temp1,temp2;
   
@@ -272,7 +273,7 @@ void unsafe_apply_clover_term_to_colorspinspin(colorspinspin *out,as2t_su3 *Pmun
 	  //Switch the color_spinspin into the spincolor.
 	  get_spincolor_from_colorspinspin(temp1,in[loc_site],id_source);
 	  
-	  unsafe_apply_point_clover_term_to_spincolor(temp2,Pmunu[loc_site],temp1);
+	  unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[loc_site],temp1);
 	  
 	  //Switch back the spincolor into the colorspinspin
 	  put_spincolor_into_colorspinspin(out[loc_site],temp2,id_source);
