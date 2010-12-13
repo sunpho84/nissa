@@ -5,7 +5,7 @@
 //by one. The first list is split into blocks, each of them as large 
 //as possible.
 
-//First list has to be the shortest, and should contain to be reverted
+//First list has to be the shortest.
 //The meson has quark content:
 //            _
 //            q(m1)q(m2)

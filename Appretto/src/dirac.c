@@ -173,6 +173,23 @@ void init_base_gamma()
   init_dirac(&Pplus ,          0,rad2,rad2  , 1,rad2,rad2  , 2,rad2,-rad2 , 3,rad2,-rad2);
   init_dirac(&Pminus,          0,rad2,-rad2 , 1,rad2,-rad2 , 2,rad2,rad2  , 3,rad2,rad2 );
 
+  //the sigma mu nu in an anti-simmetric tensor
+  int lmunu[6]={10,11,12,15,14,13};
+  int cmunu[6]={1,1,1,1,-1,1};
+  for(int imunu=0;imunu<6;imunu++)
+    for(int d1=0;d1<4;d1++)
+      {
+	int d2_of_d1=base_gamma[lmunu[imunu]].pos[d1];
+	for(int d2=0;d2<4;d2++)
+	  {
+	    if(d2!=d2_of_d1) smunu[d1][d2][imunu][0]=smunu[d1][d2][imunu][1]=0;
+	    else
+	      {
+		smunu[d1][d2][imunu][0]=cmunu[imunu]*base_gamma[lmunu[imunu]].entr[d1][0];
+		smunu[d1][d2][imunu][1]=cmunu[imunu]*base_gamma[lmunu[imunu]].entr[d1][1];
+	      }
+	  }
+      }
 }
 
 //Trace of the product off two spinspins

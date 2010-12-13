@@ -63,6 +63,10 @@ typedef su3 quad_su3[4];
 
 typedef colorspinspin su3spinspin[3];
 
+typedef complex as2t[6];
+typedef as2t su3_as2t[3][3];
+as2t smunu[4][4]; //this are the sigma matrices
+
 ////////////// Operations on new types //////////////////
 
 //The sum of two complex number
@@ -133,6 +137,13 @@ void safe_complex_conj2_prod(complex a,complex b,complex c)
   double tmp=a[0]=b[0]*c[0]+b[1]*c[1];
   a[1]=-b[0]*c[1]+b[1]*c[0];
   a[0]=tmp;
+}
+
+//saturate two anti-simmetric tensors
+void as2t_saturate(complex out,as2t a,as2t b)
+{
+  unsafe_complex_prod(out,a[0],b[0]);
+  for(int munu=1;munu<6;munu++) complex_summ_the_prod(out,a[munu],b[munu]);
 }
 
 //the real amd imaginary unit
