@@ -298,6 +298,16 @@ do
 	) | awk '{print $1,$2}' > $base_2pts/micro_correlations
 	nmicro=$(wc $base_2pts/micro_correlations | awk '{print $1}')
 	
+	if [ "${#two_points_ch_correlations[@]}" -gt 0 ]
+	then
+	    (
+		cd $base_nissa/Data/Correlations_content/
+		cat ${two_points_ch_correlations[@]}
+		cd $OLDPWD
+	    ) | awk '{print $1,$2}' > $base_2pts/micro_ch_correlations
+	    nch_micro=$(wc $base_2pts/micro_ch_correlations | awk '{print $1}')
+	fi
+	
         nprop1=$(( 2 * $nmu ))
         nprop2=$(( $nprop1 * $ntheta ))
         echo "Nprop1: "$nprop1
@@ -336,7 +346,15 @@ do
 	echo "Ncontr "$nmicro >> $base_2pts/input
 	cat $base_2pts/micro_correlations >> $base_2pts/input
 	echo "Output "$base_2pts"/two_points_contractions" >> $base_2pts/input
-
+	
+	echo "NChromoContr "$nch_micro >> $base_2pts/input
+	if [ "${#two_points_ch_correlations[@]}" -gt 0 ]
+        then
+	    cat $base_2pts/micro_ch_correlations >> $base_2pts/input
+	    echo "GaugeConf "$base_conf/Conf >> $base_2pts/input
+	fi
+	echo "Output "$base_2pts"/two_points_contractions" >> $base_2pts/input
+	
 	echo
 	echo "Launching program: "$prog_contr
 	echo

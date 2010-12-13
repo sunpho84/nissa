@@ -179,16 +179,10 @@ void init_base_gamma()
   for(int imunu=0;imunu<6;imunu++)
     for(int d1=0;d1<4;d1++)
       {
-	int d2_of_d1=base_gamma[lmunu[imunu]].pos[d1];
-	for(int d2=0;d2<4;d2++)
-	  {
-	    if(d2!=d2_of_d1) smunu[d1][d2][imunu][0]=smunu[d1][d2][imunu][1]=0;
-	    else
-	      {
-		smunu[d1][d2][imunu][0]=cmunu[imunu]*base_gamma[lmunu[imunu]].entr[d1][0];
-		smunu[d1][d2][imunu][1]=cmunu[imunu]*base_gamma[lmunu[imunu]].entr[d1][1];
-	      }
-	  }
+	smunu_entr[d1][imunu][0]=cmunu[imunu]*base_gamma[lmunu[imunu]].entr[d1][0];
+	smunu_entr[d1][imunu][1]=cmunu[imunu]*base_gamma[lmunu[imunu]].entr[d1][1];
+	
+	smunu_pos[d1][imunu]=base_gamma[lmunu[imunu]].pos[d1];
       }
 }
 

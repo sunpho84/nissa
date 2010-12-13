@@ -64,8 +64,10 @@ typedef su3 quad_su3[4];
 typedef colorspinspin su3spinspin[3];
 
 typedef complex as2t[6];
-typedef as2t su3_as2t[3][3];
-as2t smunu[4][4]; //this are the sigma matrices
+typedef su3 as2t_su3[6];
+
+as2t smunu_entr[4];   //these are the sigma matrices entries
+int smunu_pos[4][6];  //and positions
 
 ////////////// Operations on new types //////////////////
 
@@ -160,6 +162,29 @@ void print_spinspin(spinspin s)
       for(int id2=0;id2<4;id2++) printf("%+016.16f,%+016.16f\t",s[id1][id2][0],s[id1][id2][1]);
       printf("\n");
     }
+}
+
+//Get a spincolor from a colorspinspin
+//In a spinspin the sink index runs slower than the source                                                                                                                                                                                                                  
+void get_spincolor_from_colorspinspin(spincolor out,colorspinspin in,int id_source)
+{
+  for(int ic_sink=0;ic_sink<3;ic_sink++)
+    for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
+      {
+	out[id_sink][ic_sink][0]=in[ic_sink][id_sink][id_source][0];
+	out[id_sink][ic_sink][1]=in[ic_sink][id_sink][id_source][1];
+      }
+}
+
+//Put a spincolor into a colorspinspin
+void put_spincolor_into_colorspinspin(colorspinspin out,spincolor in,int id_source)
+{
+  for(int ic_sink=0;ic_sink<3;ic_sink++)
+    for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
+      {
+	out[ic_sink][id_sink][id_source][0]=in[id_sink][ic_sink][0];
+	out[ic_sink][id_sink][id_source][1]=in[id_sink][ic_sink][1];
+      }
 }
 
 int min_int(int a,int b){if(a<b) return a;else return b;}
