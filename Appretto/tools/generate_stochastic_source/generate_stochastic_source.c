@@ -111,7 +111,7 @@ int main(int narg,char **arg)
       sprintf(filename,"%s.0%d",base_filename,id1);
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	for(int ic1=0;ic1<3;ic1++)
-	  if(glb_coord_of_loclx[loc_site][0]==twall)
+	  if(glb_coord_of_loclx[loc_site][0]==twall || take_slice==0)
 	    {
 	      temp=spinore[loc_site][id1][ic1][0];
 	      spinore[loc_site][id1][ic1][0]=spinore[loc_site][id1-1][ic1][0];
