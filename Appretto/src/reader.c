@@ -158,7 +158,7 @@ void read_spincolor(spincolor *out,char *path)
 }  
 
 //Read 4 spincolor and revert their indexes
-void read_colorspinspin(colorspinspin *css,char *base_path)
+void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
 {
   double tic;
   if(debug)
@@ -173,7 +173,8 @@ void read_colorspinspin(colorspinspin *css,char *base_path)
   //Read the four spinor
   for(int id_source=0;id_source<4;id_source++) //dirac index of source
     {
-      sprintf(filename,"%s.0%d",base_path,id_source);
+      if(end_path!=NULL) sprintf(filename,"%s.0%d.%s",base_path,id_source,end_path);
+      else sprintf(filename,"%s.0%d",base_path,id_source);
       read_spincolor(sc,filename);
       
       //Switch the spincolor into the colorspin. 
