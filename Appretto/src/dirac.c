@@ -194,3 +194,18 @@ void trace_prod_spinspins(complex c,spinspin a,spinspin b)
     for(int id2=0;id2<4;id2++)
       complex_summ_the_prod(c,a[id1][id2],b[id2][id1]);
 }
+
+void spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b)
+{
+  //This is the line on the matrix
+  for(int id1=0;id1<4;id1++){
+    for(int id2=0;id2<4;id2++){
+        out[id1][id2][0]=0.;
+        out[id1][id2][1]=0.;
+        for(int id=0;id<4;id++)
+                complex_summ_the_prod(out[id1][id2],a[id1][id],b[id][id2]);
+        }
+   }
+}
+
+
