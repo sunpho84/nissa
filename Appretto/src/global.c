@@ -2,23 +2,33 @@
 
 #include <stdio.h>
 
-//nomenclature: lx is lexicografic
-//glb is relative to the global grid, loc to the local one
-int **glb_coord_of_loclx,glb_size[4],glb_vol=0;
-int **loc_coord_of_loclx,loc_size[4],loc_vol=0;
+//nomenclature: 
+//-glb is relative to the global grid
+//-loc to the local one
+int glb_size[4],glb_vol=0;
+int loc_size[4],loc_vol=0;
+//-lx is lexicografic
+int **glb_coord_of_loclx;
+int **loc_coord_of_loclx;
 int *glblx_of_loclx=NULL;
 int *glblx_of_bordlx=NULL;
 int *glblx_of_edgelx=NULL;
+//-eor is even-odd reduced
+int loc_volr;
 
 //neighbours of local volume + borders
 int **loclx_neighdw,**loclx_neighup;
 
+//basic mpi types
+MPI_Datatype MPI_SU3;
+MPI_Datatype MPI_QUAD_SU3;
+MPI_Datatype MPI_SPINCOLOR;
+
 //size of the border along the 4 dir,types for sending
 int bord_dir_vol[4],bord_offset[4];
 int loc_bord;
-MPI_Datatype MPI_SU3;
-MPI_Datatype MPI_QUAD_SU3;
-MPI_Datatype MPI_GAUGE_SLICE_SEND[4],MPI_GAUGE_SLICE_RECE[4];
+MPI_Datatype MPI_GAUGE_BORD_SEND[4],MPI_GAUGE_BORD_RECE[4];
+MPI_Datatype MPI_LXSPINCOLOR_BORD_SEND[4],MPI_LXSPINCOLOR_BORD_RECE[4];
 
 //size of the edges along the 6 directions
 int edge_dir_vol[6],edge_offset[6];
@@ -151,6 +161,9 @@ void as2t_saturate(complex out,as2t a,as2t b)
 //the real amd imaginary unit
 complex ONE={1,0};
 complex I={0,1};
+
+//pi
+const double PI=3.14159265358979323846;                                                                                                                            
 
 //////////////////////////////////////////////////////////
 

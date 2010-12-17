@@ -36,8 +36,8 @@ ________________________________________________________________________________
 and following, the negative direction borders
 */
 
-//Send the borders of the gauge configuration
-void communicate_gauge_borders(quad_su3 *conf)
+//Send the borders of the data
+void communicate_lx_borders(char *data,MPI_Datatype *MPI_BORD_SEND,MPI_Datatype *MPI_BORD_RECE,int nbytes_per_site)
 {
   int nrequest=0;
   MPI_Request request[16];
@@ -47,11 +47,11 @@ void communicate_gauge_borders(quad_su3 *conf)
   for(int i=0;i<4;i++)
     {
       //sending the upper border to the lower node
-      send=loclx_of_coord_list(0,0,0,0);
-      rece=loc_vol+bord_offset[i]+loc_bord/2;
-      MPI_Isend(conf[send],1,MPI_GAUGE_SLICE_SEND[i],rank_neighdw[i],83+i,
+      send=loclx_of_coord_list(0,0,0,0)*nbytes_per_site;
+      rece=(loc_vol+bord_offset[i]+loc_bord/2)*nbytes_per_site;
+      MPI_Isend((void*)(data+send),1,MPI_BORD_SEND[i],rank_neighdw[i],83+i,
 		cart_comm,&request[nrequest++]);
-      MPI_Irecv(conf[rece],1,MPI_GAUGE_SLICE_RECE[i],rank_neighup[i],83+i, 
+      MPI_Irecv((void*)(data+rece),1,MPI_BORD_RECE[i],rank_neighup[i],83+i, 
 		cart_comm,&request[nrequest++]);
       
       //sending the lower border to the upper node
@@ -59,11 +59,11 @@ void communicate_gauge_borders(quad_su3 *conf)
       for(int jdir=0;jdir<4;jdir++)
 	if(jdir==i) x[jdir]=loc_size[i]-1;
 	else x[jdir]=0;
-      send=loclx_of_coord(x);
-      rece=loc_vol+bord_offset[i];
-      MPI_Isend(conf[send],1,MPI_GAUGE_SLICE_SEND[i],rank_neighup[i],87+i,
+      send=loclx_of_coord(x)*nbytes_per_site;
+      rece=(loc_vol+bord_offset[i])*nbytes_per_site;
+      MPI_Isend((void*)(data+send),1,MPI_BORD_SEND[i],rank_neighup[i],87+i,
 		cart_comm,&request[nrequest++]);
-      MPI_Irecv(conf[rece],1,MPI_GAUGE_SLICE_RECE[i],rank_neighdw[i],87+i, 
+      MPI_Irecv((void*)(data+rece),1,MPI_BORD_RECE[i],rank_neighdw[i],87+i, 
 		  cart_comm,&request[nrequest++]);
     }
   
@@ -88,8 +88,8 @@ ________________________________________________________________________________
 then follows all the i-j+ edges, the i+j- and after the i+j+
 */
 
-//Send the edges of the gauge configuration
-void communicate_gauge_edges(quad_su3 *conf)
+//Send the edges of lx vector
+void communicate_lx_edges(char *data,MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,int nbytes_per_site)
 {
   int nrequest=0;
   MPI_Request request[48];
@@ -110,38 +110,38 @@ void communicate_gauge_edges(quad_su3 *conf)
 	x[jdir]=0;
 
 	//Send the i-j- internal edge to the j- site as i-j+ external edge
-	send=loc_vol+bord_offset[idir];
-	rece=loc_vol+loc_bord+edge_offset[iedge]+loc_edge/4;
-	MPI_Isend(conf[send],1,MPI_GAUGE_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
+	send=(loc_vol+bord_offset[idir])*nbytes_per_site;
+	rece=(loc_vol+loc_bord+edge_offset[iedge]+loc_edge/4)*nbytes_per_site;
+	MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
 		  cart_comm,&request[nrequest++]);
-	MPI_Irecv(conf[rece],1,MPI_GAUGE_EDGE_RECE[iedge],rank_neighup[jdir],83+imessage,
+	MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighup[jdir],83+imessage,
 		  cart_comm,&request[nrequest++]);
 	imessage++;
 	
 	//Send the i-j+ internal edge to the j+ site as i-j- external edge
-	send=loc_vol+bord_offset[idir]+pos_edge_offset;
-	rece=loc_vol+loc_bord+edge_offset[iedge];
-	MPI_Isend(conf[send],1,MPI_GAUGE_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
+	send=(loc_vol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
+	rece=(loc_vol+loc_bord+edge_offset[iedge])*nbytes_per_site;
+	MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
 		  cart_comm,&request[nrequest++]);
-	MPI_Irecv(conf[rece],1,MPI_GAUGE_EDGE_RECE[iedge],rank_neighdw[jdir],83+imessage,
+	MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighdw[jdir],83+imessage,
 		  cart_comm,&request[nrequest++]);
 	imessage++;
 
 	//Send the i+j- internal edge to the j- site as i+j+ external edge
-	send=loc_vol+bord_offset[idir]+loc_bord/2;
-	rece=loc_vol+loc_bord+edge_offset[iedge]+3*loc_edge/4;
-	MPI_Isend(conf[send],1,MPI_GAUGE_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
+	send=(loc_vol+bord_offset[idir]+loc_bord/2)*nbytes_per_site;
+	rece=(loc_vol+loc_bord+edge_offset[iedge]+3*loc_edge/4)*nbytes_per_site;
+	MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
 		  cart_comm,&request[nrequest++]);
-	MPI_Irecv(conf[rece],1,MPI_GAUGE_EDGE_RECE[iedge],rank_neighup[jdir],83+imessage,
+	MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighup[jdir],83+imessage,
 		  cart_comm,&request[nrequest++]);
 	imessage++;
 	
 	//Send the i+j+ internal edge to the j+ site as i+j- external edge
-	send=loc_vol+bord_offset[idir]+loc_bord/2+pos_edge_offset;
-	rece=loc_vol+loc_bord+edge_offset[iedge]+loc_edge/2;
-	MPI_Isend(conf[send],1,MPI_GAUGE_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
+	send=(loc_vol+bord_offset[idir]+loc_bord/2+pos_edge_offset)*nbytes_per_site;
+	rece=(loc_vol+loc_bord+edge_offset[iedge]+loc_edge/2)*nbytes_per_site;
+	MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
 		  cart_comm,&request[nrequest++]);
-	MPI_Irecv(conf[rece],1,MPI_GAUGE_EDGE_RECE[iedge],rank_neighdw[jdir],83+imessage,
+	MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighdw[jdir],83+imessage,
 		  cart_comm,&request[nrequest++]);
 	imessage++;
       }
@@ -149,4 +149,20 @@ void communicate_gauge_edges(quad_su3 *conf)
   MPI_Waitall(nrequest,request,status);
 }
 	 
+//Send the borders of the gauge configuration
+void communicate_gauge_borders(quad_su3 *conf)
+{
+  communicate_lx_borders((char*)conf,MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,sizeof(quad_su3));
+}
 
+//Send the edges of the gauge configuration
+void communicate_gauge_edges(quad_su3 *conf)
+{
+  communicate_lx_edges((char*)conf,MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,sizeof(quad_su3));
+}
+
+//Send the borders of a spincolor vector
+void communicate_lx_spincolor_borders(spincolor *s)
+{
+  communicate_lx_borders((char*)s,MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,sizeof(spincolor));
+}

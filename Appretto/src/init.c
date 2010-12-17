@@ -7,61 +7,8 @@
 #include "random.c"
 #include "dirac.c"
 
-//Return the index of site of coord x in the border idir,jdir
-int edgelx_of_coord(int *x,int idir,int jdir)
-{
-  int ilx=0;
-  
-  for(int i=0;i<4;i++) if(i!=idir && i!=jdir) ilx=ilx*loc_size[i]+x[i];
-  
-  return ilx;
-}
+#include "geometry.c"
 
-//Return the index of site of coord x in the border idir
-int bordlx_of_coord(int *x,int idir)
-{
-  int ilx=0;
-  
-  for(int i=0;i<4;i++) if(i!=idir) ilx=ilx*loc_size[i]+x[i];
-  
-  return ilx;
-}
-
-int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int idir)
-{
-  int x[4]={x0,x1,x2,x3};
-  return bordlx_of_coord(x,idir);
-}
-
-//Return the index of site of coord x in a box of sides s
-int lx_of_coord(int *x,int *s)
-{
-  int ilx=0;
-  
-  for(int i=0;i<4;i++) ilx=ilx*s[i]+x[i];
-  
-  return ilx;
-}
-
-//wrappers
-int loclx_of_coord(int *x)
-{
-  return lx_of_coord(x,loc_size);
-}
-  
-//wrappers
-int loclx_of_coord_list(int x0,int x1,int x2,int x3)
-{
-  int x[4]={x0,x1,x2,x3};
-  return lx_of_coord(x,loc_size);
-}
-  
-//wrappers
-int glblx_of_coord(int *x)
-{
-  return lx_of_coord(x,glb_size);
-}
-  
 void init_appretto()
 {
   MPI_Init(NULL,NULL);
@@ -76,222 +23,12 @@ void init_appretto()
   MPI_Type_contiguous(4,MPI_SU3,&MPI_QUAD_SU3);
   MPI_Type_commit(&MPI_QUAD_SU3);
 
+  //a spincolor (24 doubles)
+  MPI_Type_contiguous(24,MPI_DOUBLE,&MPI_SPINCOLOR);
+  MPI_Type_commit(&MPI_SPINCOLOR);  
+  
   check_endianess();
   init_base_gamma();
-}
-
-//indexes run as t,z,y,x (faster:x)
-void set_geometry()
-{
-  //set the various time-slice types
-
-  //find the rank of the neighbour in the various dir
-  for(int idir=0;idir<4;idir++)
-    MPI_Cart_shift(cart_comm,idir,1,&(rank_neighdw[idir]),&(rank_neighup[idir]));
-  
-  loc_coord_of_loclx=(int**)malloc(sizeof(int*)*loc_vol);
-  glb_coord_of_loclx=(int**)malloc(sizeof(int*)*loc_vol);
-  loclx_neighup=(int**)malloc(sizeof(int*)*(loc_vol+loc_bord));
-  loclx_neighdw=(int**)malloc(sizeof(int*)*(loc_vol+loc_bord));
-  for(int loc_ind=0;loc_ind<loc_vol;loc_ind++)
-    {
-      loc_coord_of_loclx[loc_ind]=(int*)malloc(sizeof(int)*4);
-      glb_coord_of_loclx[loc_ind]=(int*)malloc(sizeof(int)*4);
-    }
-
-  for(int loc_ind=0;loc_ind<(loc_vol+loc_bord);loc_ind++)
-    {
-      loclx_neighup[loc_ind]=(int*)malloc(sizeof(int)*4);
-      loclx_neighdw[loc_ind]=(int*)malloc(sizeof(int)*4);
-    }
-
-  glblx_of_loclx=(int*)malloc(sizeof(int)*loc_vol);
-  glblx_of_bordlx=(int*)malloc(sizeof(int)*loc_bord);
-  glblx_of_edgelx=(int*)malloc(sizeof(int)*loc_edge);
-
-  //Label the sites
-  int x[4],gx[4]={0,0,0,0};
-  for(x[0]=0;x[0]<loc_size[0];x[0]++) 
-    for(x[1]=0;x[1]<loc_size[1];x[1]++)
-      for(x[2]=0;x[2]<loc_size[2];x[2]++)
-	for(x[3]=0;x[3]<loc_size[3];x[3]++)
-	  {
-	    for(int i=0;i<4;i++) gx[i]=x[i]+proc_coord[i]*loc_size[i];
-
-	    int loc_ind,glb_ind;
-	    loc_ind=loclx_of_coord(x);
-	    glb_ind=glblx_of_coord(gx);
-
-	    for(int i=0;i<4;i++)
-	      {
-		loc_coord_of_loclx[loc_ind][i]=x[i];
-		glb_coord_of_loclx[loc_ind][i]=gx[i];
-	      }
-
-	    glblx_of_loclx[loc_ind]=glb_ind;
-          }
-  
-
-  //////////////////neighbours search//////////////////////
-
-  //now fill the neighbours of sites of the bulk, and the defined
-  //neighbours of the sites of the external borders
-  for(int iloc=0;iloc<loc_vol;iloc++)
-    {
-      for(int idir=0;idir<4;idir++)
-	{
-	  x[idir]=loc_coord_of_loclx[iloc][idir];
-	  gx[idir]=glb_coord_of_loclx[iloc][idir];
-	}
-      
-      //Direction on the whole iper-cube
-      for(int idir=0;idir<4;idir++)
-	{
-	  //Down direction
-	  if(x[idir]!=0)
-	    {
-	      x[idir]--;
-	      loclx_neighdw[iloc][idir]=loclx_of_coord(x);
-	      x[idir]++;
-	    }
-	  else //border
-	    {
-	      int raw_ibord=bordlx_of_coord(x,idir)+bord_offset[idir];
-	      int ibord=loc_vol+raw_ibord;
-	      loclx_neighdw[iloc][idir]=ibord;
-	      loclx_neighup[ibord][idir]=iloc;
-	      //the movement along the down direction from the border are not defined 
-	      loclx_neighdw[ibord][idir]=-1;
-	      //number the elements of the border
-	      gx[idir]=(gx[idir]-1+glb_size[idir])%glb_size[idir];
-	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
-	      gx[idir]=glb_coord_of_loclx[iloc][idir];
-
-	      //This is the bad moment: the movents inside the cube
-	      for(int jdir=0;jdir<4;jdir++)
-		if(idir!=jdir) 
-		  {
-		    //Down direction
-		    if(x[jdir]!=0)
-		      {
-			x[jdir]--;
-			int ibord2=loc_vol+bord_offset[idir]+bordlx_of_coord(x,idir);
-			x[jdir]++;
-			loclx_neighdw[ibord][jdir]=ibord2;
-		      }
-		    else //i-j- edge
-		      {
-			int raw_iedge=edge_offset[edge_numb[idir][jdir]]+edgelx_of_coord(x,idir,jdir);
-			//put the value of the neighbour
-			int iedge=loc_vol+loc_bord+raw_iedge;
-			loclx_neighdw[ibord][jdir]=iedge;
-			//number the elements of the edge
-			gx[idir]=(gx[idir]-1+glb_size[idir])%glb_size[idir];
-			gx[jdir]=(gx[jdir]-1+glb_size[jdir])%glb_size[jdir];
-			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
-			gx[idir]=glb_coord_of_loclx[iloc][idir];
-			gx[jdir]=glb_coord_of_loclx[iloc][jdir];
-		      }
-		    //Upper direction
-		    if(x[jdir]!=loc_size[jdir]-1)
-		      {
-			x[jdir]++;
-			int ibord2=loc_vol+bord_offset[idir]+bordlx_of_coord(x,idir);
-			x[jdir]--;
-			loclx_neighup[ibord][jdir]=ibord2;
-		      }
-		    else
-		      {
-			int raw_iedge=edge_offset[edge_numb[idir][jdir]]+edgelx_of_coord(x,idir,jdir);
-			if(idir<jdir) raw_iedge+=loc_edge/4; //edge i-j+
-			else raw_iedge+=loc_edge/2; //edge j+i-
-			//put the value of the neighbour
-			int iedge=loc_vol+loc_bord+raw_iedge;
-			loclx_neighup[ibord][jdir]=iedge;
-			//number the elements of the edge
-			gx[idir]=(gx[idir]-1+glb_size[idir])%glb_size[idir];
-			gx[jdir]=(gx[jdir]+1+glb_size[jdir])%glb_size[jdir];
-			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
-			gx[idir]=glb_coord_of_loclx[iloc][idir];
-			gx[jdir]=glb_coord_of_loclx[iloc][jdir];
-		      }
-		  }
-	    }
-	  
-	  //Upper direction
-	  if(x[idir]!=loc_size[idir]-1)
-	    {
-	      x[idir]++;
-	      loclx_neighup[iloc][idir]=loclx_of_coord(x);
-	      x[idir]--;
-	    }
-	  else //border
-	    {
-	      int raw_ibord=loc_bord/2+bordlx_of_coord(x,idir)+bord_offset[idir];
-	      int ibord=loc_vol+raw_ibord;
-	      loclx_neighup[iloc][idir]=ibord;
-	      loclx_neighdw[ibord][idir]=iloc;
-	      //the movement along the up direction from the border are not defined 
-	      loclx_neighup[ibord][idir]=-1;
-	      //number the elements of the border
-	      gx[idir]=(gx[idir]+1+glb_size[idir])%glb_size[idir];
-	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
-	      gx[idir]=glb_coord_of_loclx[iloc][idir];
-
-	      //Another very bad moment: the movents inside the cube
-	      for(int jdir=0;jdir<4;jdir++)
-		if(idir!=jdir) 
-		  {
-		    //Down direction
-		    if(x[jdir]!=0)
-		      {
-			x[jdir]--;
-			int ibord2=loc_vol+bord_offset[idir]+loc_bord/2+bordlx_of_coord(x,idir);
-			x[jdir]++;
-			loclx_neighdw[ibord][jdir]=ibord2;
-		      }
-		    else //edge
-		      {
-			int raw_iedge=edge_offset[edge_numb[idir][jdir]]+edgelx_of_coord(x,idir,jdir);
-			if(idir<jdir) raw_iedge+=loc_edge/2; //edge i-j+
-			else raw_iedge+=loc_edge/4; //edge j+i-
-			//put the value of the neighbour
-			int iedge=loc_vol+loc_bord+raw_iedge;
-			loclx_neighdw[ibord][jdir]=iedge;
-			//number the elements of the edge
-			gx[idir]=(gx[idir]+1+glb_size[idir])%glb_size[idir];
-			gx[jdir]=(gx[jdir]-1+glb_size[jdir])%glb_size[jdir];
-			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
-			gx[idir]=glb_coord_of_loclx[iloc][idir];
-			gx[jdir]=glb_coord_of_loclx[iloc][jdir];
-		      }
-		    //Upper direction
-		    if(x[jdir]!=loc_size[jdir]-1)
-		      {
-			x[jdir]++;
-			int ibord2=loc_vol+bord_offset[idir]+loc_bord/2+bordlx_of_coord(x,idir);
-			x[jdir]--;
-			loclx_neighup[ibord][jdir]=ibord2;
-		      }
-		    else //edge
-		      {
-			int raw_iedge=edge_offset[edge_numb[idir][jdir]]+3*loc_edge/4+edgelx_of_coord(x,idir,jdir);
-			//put the value of the neighbour
-			int iedge=loc_vol+loc_bord+raw_iedge;
-			loclx_neighup[ibord][jdir]=iedge;
-			//number the elements of the edge
-			gx[idir]=(gx[idir]+1+glb_size[idir])%glb_size[idir];
-			gx[jdir]=(gx[jdir]+1+glb_size[jdir])%glb_size[jdir];
-			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
-			gx[idir]=glb_coord_of_loclx[iloc][idir];
-			gx[jdir]=glb_coord_of_loclx[iloc][jdir];
-		      }
-		  }
-	    }
-	}
-    }
-    
-  if(rank==0 && debug) printf("Geometry intialized\n");
 }
 
 void init_grid()
@@ -303,7 +40,6 @@ void init_grid()
       MPI_Barrier(MPI_COMM_WORLD);
       tic=MPI_Wtime();
     }
-
 
   int periods[4]={1,1,1,1};
   char proc_name[1024];
@@ -352,6 +88,7 @@ void init_grid()
   //Calculate local volume
   for(int idir=0;idir<4;idir++) loc_size[idir]=glb_size[idir]/nproc_dir[idir];
   loc_vol=glb_vol/rank_tot;
+  loc_volr=loc_vol/2;
   
   //Calculate the border size
   loc_bord=0;
@@ -413,72 +150,8 @@ void init_grid()
   
       MPI_Barrier(MPI_COMM_WORLD);
     }
-
-  //Various type useful for edges and sub-borders
-  MPI_Datatype MPI_GAUGE_3_SLICE;
-  MPI_Datatype MPI_GAUGE_23_SLICE;
-  MPI_Type_contiguous(loc_size[3],MPI_QUAD_SU3,&MPI_GAUGE_3_SLICE);
-  MPI_Type_contiguous(loc_size[2]*loc_size[3],MPI_QUAD_SU3,&MPI_GAUGE_23_SLICE);
-  MPI_Type_commit(&MPI_GAUGE_3_SLICE);
-  MPI_Type_commit(&MPI_GAUGE_23_SLICE);
-
-  //define the 0-dir slice
-  MPI_Type_contiguous(loc_size[1]*loc_size[2]*loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_SLICE_RECE[0]));
-  MPI_Type_contiguous(loc_size[1]*loc_size[2]*loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_SLICE_SEND[0]));
-  MPI_Type_commit(&(MPI_GAUGE_SLICE_RECE[0]));
-  MPI_Type_commit(&(MPI_GAUGE_SLICE_SEND[0]));
   
-  //define the 1-dir slice
-  MPI_Type_contiguous(loc_size[0]*loc_size[2]*loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_SLICE_RECE[1]));
-  MPI_Type_vector(loc_size[0],1,loc_size[1],MPI_GAUGE_23_SLICE,&(MPI_GAUGE_SLICE_SEND[1]));
-  MPI_Type_commit(&(MPI_GAUGE_SLICE_RECE[1]));
-  MPI_Type_commit(&(MPI_GAUGE_SLICE_SEND[1]));
-
-  //define the 2-dir slice
-  MPI_Type_contiguous(loc_size[0]*loc_size[1]*loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_SLICE_RECE[2]));
-  MPI_Type_vector(loc_size[0]*loc_size[1],1,loc_size[2],MPI_GAUGE_3_SLICE,&(MPI_GAUGE_SLICE_SEND[2]));
-  MPI_Type_commit(&(MPI_GAUGE_SLICE_RECE[2]));
-  MPI_Type_commit(&(MPI_GAUGE_SLICE_SEND[2]));
-  
-  //define the 3-dir slice
-  MPI_Type_contiguous(loc_size[0]*loc_size[1]*loc_size[2],MPI_QUAD_SU3,&(MPI_GAUGE_SLICE_RECE[3]));
-  MPI_Type_vector(loc_size[0]*loc_size[1]*loc_size[2],1,loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_SLICE_SEND[3]));
-  MPI_Type_commit(&(MPI_GAUGE_SLICE_RECE[3]));
-  MPI_Type_commit(&(MPI_GAUGE_SLICE_SEND[3]));
-  
-  ///////////define the sender and receiver for the 6 kinds of edges////////////
-  
-  //this is the 01 sender, that is simply a vector of L[2] vector of L[3] 
-  MPI_Type_contiguous(loc_size[2]*loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_EDGE_SEND[0]));
-  MPI_Type_contiguous(loc_size[2]*loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_EDGE_RECE[0]));
-  
-  //this is the 02 sender, a vector of L[1] segment of
-  //length L[3] (already defined) separated by L[2] of them
-  MPI_Type_vector(loc_size[1],1,loc_size[2],MPI_GAUGE_3_SLICE,&(MPI_GAUGE_EDGE_SEND[1]));
-  MPI_Type_contiguous(loc_size[1]*loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_EDGE_RECE[1]));
-  
-  //this is the 03 sender, a vector of length L[1]xL[2] of single
-  //elements, separated by L[3] of them
-  MPI_Type_vector(loc_size[1]*loc_size[2],1,loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_EDGE_SEND[2]));
-  MPI_Type_contiguous(loc_size[1]*loc_size[2],MPI_QUAD_SU3,&(MPI_GAUGE_EDGE_RECE[2]));
-  
-  //this is the 12 sender, should be equal to the 02 sender, with 1->0
-  MPI_Type_vector(loc_size[0],1,loc_size[2],MPI_GAUGE_3_SLICE,&(MPI_GAUGE_EDGE_SEND[3]));
-  MPI_Type_contiguous(loc_size[0]*loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_EDGE_RECE[3]));
-  
-  //this is the 13 sender, should be equal to the 03 sender, with 1->0
-  MPI_Type_vector(loc_size[0]*loc_size[2],1,loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_EDGE_SEND[4]));
-  MPI_Type_contiguous(loc_size[0]*loc_size[2],MPI_QUAD_SU3,&(MPI_GAUGE_EDGE_RECE[4]));
-  
-  //this is the 23 sender, should be equal to the 03 sender with 1<->2
-  MPI_Type_vector(loc_size[0]*loc_size[1],1,loc_size[3],MPI_QUAD_SU3,&(MPI_GAUGE_EDGE_SEND[5]));
-  MPI_Type_contiguous(loc_size[0]*loc_size[1],MPI_QUAD_SU3,&(MPI_GAUGE_EDGE_RECE[5]));
-  
-  for(int iedge=0;iedge<6;iedge++)
-    {
-      MPI_Type_commit(&(MPI_GAUGE_EDGE_SEND[iedge]));
-      MPI_Type_commit(&(MPI_GAUGE_EDGE_RECE[iedge]));
-    }
+  //////////////////////////////////////////////////////////////////////////////////////////
 
   //take final time
   double tac;
@@ -490,5 +163,10 @@ void init_grid()
       if(rank==0) printf("Time elapsed for MPI inizialization: %f s\n",tac-tic);
     }
 
-  set_geometry();
+  set_lx_geometry();
+
+  set_lx_bord_senders_and_receivers(MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
+  set_lx_edge_senders_and_receivers(MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
+
+  set_lx_bord_senders_and_receivers(MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
 }

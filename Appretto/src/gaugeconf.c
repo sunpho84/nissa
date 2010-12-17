@@ -95,3 +95,17 @@ void shift_gaugeconf(quad_su3 *out,quad_su3 *in,int dir,int amount)
 	    quad_su3_copy(out[B],in[A]);
 	  }
 }
+
+//put boundary conditions on the gauge conf
+void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi)
+{
+  complex theta[4];
+  for(int idir=0;idir<4;idir++)
+    {
+      theta[idir][0]=cos(theta_in_pi[idir]*PI/glb_size[idir]);
+      theta[idir][1]=sin(theta_in_pi[idir]*PI/glb_size[idir]);
+    }
+  
+  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+    for(int idir=0;idir<4;idir++) safe_su3_complex_prod(conf[loc_site][idir],conf[loc_site][idir],theta[idir]);
+}
