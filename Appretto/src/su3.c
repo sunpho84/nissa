@@ -113,6 +113,16 @@ void unsafe_su3_color_prod(color a,su3 b,color c)
     }
 }
 
+//product of an su3 matrix by a color vector
+void unsafe_su3_dag_color_prod(color a,su3 b,color c)
+{
+  for(int c1=0;c1<3;c1++)
+    {
+      unsafe_complex_conj1_prod(a[c1],b[0][c1],c[0]);
+      for(int c2=1;c2<3;c2++) complex_summ_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+    }
+}
+
 //product of an su3 matrix by a complex
 void safe_su3_complex_prod(su3 a,su3 b,complex c)
 {
