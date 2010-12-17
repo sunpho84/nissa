@@ -113,6 +113,15 @@ void unsafe_su3_color_prod(color a,su3 b,color c)
     }
 }
 
+//product of an su3 matrix by a complex
+void safe_su3_complex_prod(su3 a,su3 b,complex c)
+{
+  complex *ca=(complex*)a;
+  complex *cb=(complex*)b;
+
+  for(int i=0;i<9;i++) safe_complex_prod(ca[i],cb[i],c);
+}
+
 //square (the proto-plaquette)
 /*
      
