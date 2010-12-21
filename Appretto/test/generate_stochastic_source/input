@@ -2,7 +2,7 @@ L 4
 T 8
 Seed 13
 TakeSlice 1
-TWall 0
-NoiseType 4
+TWall 7
+NoiseType 1
 Filename source
 Precision 64

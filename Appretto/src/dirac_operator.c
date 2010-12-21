@@ -1,28 +1,56 @@
 #pragma once
 
-//Apply the dirac operator to a spincolor
+//Apply the Q=D*g5 operator to a spincolor
 //it is assumed that boundary condition has been already adjusted outside
-void apply_dirac_operator(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double m)
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//                              + -1
+// The inverter solve Scgmms=(DD )   in twisted basis    tw    +   + -1    +
+// The solution in the twisted basis can be obtained as S   = D (DD )   = D Scgmms
+//      tw                                                                       +                                    
+// --> S   = (1/2k +i g5 m) Scgmms (x) - 1/2 \sum   U   (x) ( 1 - g  )S(x+mu) + U (x-mu) (1 + g  ) S(x-mu)
+//                                               mu  mu            mu                          mu
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+void apply_Q(spincolor *out, spincolor *in,quad_su3 *conf,double kappac,double mu)
 {
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    {
-    }
+  dirac_matr gamma[4]={base_gamma[4],base_gamma[1],base_gamma[2],base_gamma[3]};
+
+  //reset
+  memset(out,0,loc_vol*sizeof(spincolor));
+
+  for(int X=0;X<loc_vol;X++)
+  {
+    for(int mu=0;mu<4;mu++)
+      {
+	//Forward
+	int Xup=loclx_neighup[X][mu];	
+	unsafe_summ_su3_prod_spincolor(out[X],conf[X][mu],in[Xup]);
+	unsafe_subt_su3_dirac_prod_spincolor(out[X],conf[X][mu],&(gamma[mu]),in[Xup]);
+
+	//Backward 
+	int Xdw=loclx_neighdw[X][mu];
+	unsafe_summ_su3_dag_prod_spincolor(out[X],conf[Xdw][mu],in[Xdw]);
+	unsafe_summ_su3_dag_dirac_prod_spincolor(out[X],conf[Xdw][mu],&(gamma[mu]),in[Xdw]);
+      }
+    //Put the 1/2 facor on derivative
+    spincolor_assign_rprod(out[X],-0.5);
+    
+    //Add the 1/(2kappac) term
+    unsafe_spincolor_assign_summ_with_rfactor(out[X],in[X],1/(2*kappac));
+
+    //Put the gamma5
+    safe_dirac_prod_spincolor(out[X],&(base_gamma[5]),out[X]);
+
+    //Add the mass term (gamma5 factor not necessary)
+    unsafe_spincolor_assign_summ_with_ifactor(out[X],in[X],mu);
+  }
 }
 
-//Apply the D+D- operator to a spincolor
-//if no temporary spinor is provided, it will be allocated inside
-void apply_DDdag_operator(spincolor *out,spincolor *in,spincolor *temp,quad_su3 *conf,double kappac,double m)
+//Apply the Q+ and Q- operator to a spincolor
+void reconstruct_doublet(spincolor *outplus, spincolor *outminus,spincolor *in,quad_su3 *conf,double kappac,double mu)
 {
-  int all=0;
-  if(temp==NULL)
-    {
-      all=1;
-      temp=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-    }
-  
-  apply_dirac_operator(temp,in,conf,kappac,+m);
-  //to be added: comunication of the borders
-  apply_dirac_operator(out,temp,conf,kappac,-m);
-  
-  if(all!=0) free(temp);
+  apply_Q(outplus,in,conf,kappac,mu);
+  for(int X=0;X<loc_vol;X++)
+    unsafe_spincolor_summ_with_ifactor(outminus[X],outplus[X],in[X],-2*mu);
 }
