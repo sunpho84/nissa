@@ -970,6 +970,7 @@ int main(int narg,char **arg)
       fclose(fout2);
     }
 
+  /*
   free(mass_prop2);
   free(theta_prop2);
   free(phys_prop2);
@@ -1018,7 +1019,7 @@ int main(int narg,char **arg)
   free(mezzottoR);
 
   free(op);
-
+  */
 
   close_appretto();
 
