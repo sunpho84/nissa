@@ -217,12 +217,12 @@ do
   
   name_list=(First Second Third Fourth)
   nmu_list=($nmu_low $nmu $nmu_low $nmu)
-  LR_list=(0 1 0 1)
+  LR_list=(0 0 1 1)
 
   echo "######################## THIRD STEP: Three point function calculation ############################"
   echo
   
-  base_Bk=$base_conf/Bk/$source_name
+  base_Bk=$base_conf/Bk/$is_source_name
   if [ ! -f $base_Bk/completed ]
   then
       mkdir -vp $base_Bk

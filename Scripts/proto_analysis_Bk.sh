@@ -62,7 +62,7 @@ beta=[beta]
 kappa=[kappac]
 musea=[musea]
 
-list_ops_eight=(5 0 1 2 3 4 6 7 8 9 10 11 12)
+list_ops_eight=(5 0 1 2 3 4 6 7 8 9 10 11 12 13 14 15)
 two_points_correlations=(P5P5 A0P5 P5A0)
 
 ############## - 3 Setups ################
