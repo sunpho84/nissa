@@ -677,8 +677,6 @@ int main(int narg,char **arg)
           //read the second propagator one by one
           colorspinspin *spinor2_ptr; //This will point to spinor2 
           spinor2_ptr=spinor2;
-          double tic1=0,tac1;
-
  	  // look for this propagator in the first list (also LEFT)
           for(int iprop1=0;iprop1<iblock1_length;iprop1++)
             {
@@ -716,7 +714,6 @@ int main(int narg,char **arg)
                  //read the fourth propagator one by one
                   colorspinspin *spinor4_ptr; //This will point to spinor4 
                   spinor4_ptr=spinor4;
-                  double tic1=0,tac1;
 		  // look for this propagator in the third list (RIGHT SIDE)
 	          for(int iprop3=0;iprop3<iblock3_length;iprop3++)
             	  {
@@ -750,55 +747,55 @@ int main(int narg,char **arg)
 	 
 		
 		//Calculate two points
-                 if (rank==0) printf ("Computing 2 points LEFT...\n");
-
-	        for(int iprop1=0;iprop1<iblock1_length;iprop1++)
-        	{
-             		 int counter1=iblock1_first+iprop1;
-
-             		 if(rank==0)
-               		 fprintf(fout2," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass_prop1[counter1],theta_prop1[counter1],r_prop1[counter1],mass_prop2[iprop2],theta_prop2[iprop2],r_prop2[iprop2]);
-              		 double tic1=0,tac1;
-		         if(debug)
-               		 {
-	                  if(rank==0 && debug>1) printf("Going to perform (prop%d,prop%d) contractions\n",iprop1+1,iprop2+1);
-        	          MPI_Barrier(cart_comm);
-                	  tic1=MPI_Wtime();
-               		 }
+		  if(iprop4==0 && iblock3==0)
+		    {
+		      if (rank==0) printf ("Computing 2 points LEFT...\n");
+		      
+		      for(int iprop1=0;iprop1<iblock1_length;iprop1++)
+			{
+			  int counter1=iblock1_first+iprop1;
+			  
+			  if(rank==0)
+			    fprintf(fout2," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass_prop1[counter1],theta_prop1[counter1],r_prop1[counter1],mass_prop2[iprop2],theta_prop2[iprop2],r_prop2[iprop2]);
+			  double tic1=0,tac1;
+			  if(debug)
+			    {
+			      if(rank==0 && debug>1) printf("Going to perform (prop%d,prop%d) contractions\n",iprop1+1,iprop2+1);
+			      MPI_Barrier(cart_comm);
+			      tic1=MPI_Wtime();
+			    }
              		 meson_two_points(mezzottoL,op1,spinor1[iprop1],op2,spinor2_ptr,ncontr2,phys_prop1[counter1],r_prop1[counter1],phys_prop2[iprop2],r_prop2[iprop2]);
 		         if(debug)
                		 {
-	                  MPI_Barrier(cart_comm);
-        	          tac1=MPI_Wtime();
-                	  tot_contract_time+=tac1-tic1;
+			   MPI_Barrier(cart_comm);
+			   tac1=MPI_Wtime();
+			   tot_contract_time+=tac1-tic1;
 	                  tot_contr_made+=ncontr2;
-        	        }
-
-            		if(rank==0)
-	                {
-        	          fprintf(fout2,"\n");
-	
-        	          for(int icontr=0;icontr<ncontr2;icontr++)
-                	  {
-	                      fprintf(fout2," # %s%s\n",gtag[op1[icontr]],gtag[op2[icontr]]);
-        	              fprintf(fout2,"\n");
-	                      for(int tempt=0;tempt<glb_size[0];tempt++)
+			 }
+			 
+			 if(rank==0)
+			   {
+			     
+			     for(int icontr=0;icontr<ncontr2;icontr++)
+			       {
+				 fprintf(fout2,"\n");
+				 fprintf(fout2," # %s%s\n",gtag[op1[icontr]],gtag[op2[icontr]]);
+				 for(int tempt=0;tempt<glb_size[0];tempt++)
         	                {
                 	          int t=tempt+twall;
                         	  if(t>=glb_size[0]) t-=glb_size[0];
-
-                 	         fprintf(fout2,"%+016.16g\t%+016.16g\n",mezzottoL[icontr][t][0]/spat_vol,mezzottoL[icontr][t][1]/spat_vol);
-                       		 }
-                     	      fprintf(fout2,"\n");
-                   	  }
-               		}
-            	      if(rank==0)
-               	      {
+				  
+				  fprintf(fout2,"%+016.16g\t%+016.16g\n",mezzottoL[icontr][t][0]/spat_vol,mezzottoL[icontr][t][1]/spat_vol);
+				}
+			       }
+			   }
+			 if(rank==0)
+			   {
              		     fprintf(fout2,"\n");
                 	     if(debug>1) fflush(fout2);
-               	      }
-		}
-
+			   }
+			}
+		    }
 
                if (rank==0) printf ("Computing 2 points RIGHT... \n");
 
@@ -826,12 +823,10 @@ int main(int narg,char **arg)
 
                         if(rank==0)
                         {
-                          fprintf(fout2,"\n");
-
                           for(int icontr=0;icontr<ncontr2;icontr++)
                           {
-                              fprintf(fout2," # %s%s\n",gtag[op1[icontr]],gtag[op2[icontr]]);
                               fprintf(fout2,"\n");
+                              fprintf(fout2," # %s%s\n",gtag[op1[icontr]],gtag[op2[icontr]]);
                               for(int tempt=0;tempt<glb_size[0];tempt++)
                                 {
                                   int t=tempt+twall;
@@ -839,7 +834,6 @@ int main(int narg,char **arg)
 
                                  fprintf(fout2,"%+016.16g\t%+016.16g\n",mezzottoR[icontr][t][0]/spat_vol,mezzottoR[icontr][t][1]/spat_vol);
                                  }
-                              fprintf(fout2,"\n");
                           }
                         }
                       if(rank==0)
@@ -894,12 +888,10 @@ int main(int narg,char **arg)
 
                			if(rank==0)
                   		{
-                     		 fprintf(fout,"\n");
-
                     		 for(int icontr=0;icontr<ncontr;icontr++)
                       		 {
+                        	   fprintf(fout,"\n");
                   		       fprintf(fout," # %s%s-%s%s DISCONNECTED \n",gtag[5],gtag[op[icontr]],gtag[5],gtag[op[icontr]]);
-                        	       fprintf(fout,"\n");
 		                       for(int tempt=0;tempt<glb_size[0];tempt++)
                          		{
 		                            int t=tempt+twall;
@@ -908,9 +900,7 @@ int main(int narg,char **arg)
                         		    fprintf(fout,"%+016.16g\t%+016.16g\n",mezzottos[icontr][t][0]/spat_vol,mezzottos[icontr][t][1]/spat_vol);
                          		 }
                         	       fprintf(fout,"\n");
-
                         	       fprintf(fout," # %s%s-%s%s CONNECTED\n",gtag[5],gtag[op[icontr]],gtag[5],gtag[op[icontr]]);
-                         	       fprintf(fout,"\n");
                        		       for(int tempt=0;tempt<glb_size[0];tempt++)
                     		       {
                        			     int t=tempt+twall;
@@ -918,7 +908,6 @@ int main(int narg,char **arg)
 
 		                             fprintf(fout,"%+016.16g\t%+016.16g\n",ottos[icontr][t][0]/spat_vol,ottos[icontr][t][1]/spat_vol);
                          		}
-                     		       fprintf(fout,"\n");
 
 				 }
                    		}
