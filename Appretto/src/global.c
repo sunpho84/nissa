@@ -95,6 +95,11 @@ void complex_summ_the_prod(complex a,complex b,complex c)
   a[0]+=b[0]*c[0]-b[1]*c[1];
   a[1]+=b[0]*c[1]+b[1]*c[0];
 }
+void complex_subt_the_prod(complex a,complex b,complex c)
+{
+  a[0]-=b[0]*c[0]-b[1]*c[1];
+  a[1]-=b[0]*c[1]+b[1]*c[0];
+}
 void complex_summ_the_conj2_prod(complex a,complex b,complex c)
 {
   a[0]+=b[0]*c[0]+b[1]*c[1];
@@ -149,6 +154,10 @@ void safe_complex_conj2_prod(complex a,complex b,complex c)
   double tmp=a[0]=b[0]*c[0]+b[1]*c[1];
   a[1]=-b[0]*c[1]+b[1]*c[0];
   a[0]=tmp;
+}
+void safe_complex_conj1_prod(complex a,complex b,complex c)
+{
+  safe_complex_conj2_prod(a,c,b);
 }
 
 //saturate two anti-simmetric tensors

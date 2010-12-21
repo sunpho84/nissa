@@ -89,7 +89,7 @@ void dirac_prod(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
 
 //Assign to the first dirac the product of the second by the complex
 //number passed as argument
-void dirac_compl_prod(dirac_matr *out,dirac_matr *in,complex c)
+void unsafe_dirac_compl_prod(dirac_matr *out,dirac_matr *in,complex c)
 {
   //This is the line on the matrix
   for(int ig=0;ig<4;ig++)

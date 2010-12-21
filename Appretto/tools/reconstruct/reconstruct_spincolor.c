@@ -20,6 +20,11 @@ int main(int narg,char **arg)
   read_str_int("L",&(glb_size[1]));
   read_str_int("T",&(glb_size[0]));
 
+  double m;
+  double kappac;
+  read_str_double("m",&(m));
+  read_str_double("kappac",&(kappac));
+
   //Init the MPI grid 
   init_grid();
 
@@ -35,7 +40,7 @@ int main(int narg,char **arg)
   read_double(&(theta[2]));
   read_double(&(theta[3]));
   if(rank==0)
-    printf("Thetas: $f %f %f %f %f\n",theta[0],theta[1],theta[2],theta[3]);
+    printf("Thetas: %f %f %f %f\n",theta[0],theta[1],theta[2],theta[3]);
 
   //load the configuration, put boundaries condition and communicate borders
   read_local_gauge_conf(conf,gauge_file);
@@ -64,37 +69,34 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
 
   spincolor *D_prop_reco[2];
-  D_prop_reco[0]=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-  D_prop_reco[1]=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-
-  // here
+  D_prop_reco[0]=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  D_prop_reco[1]=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   
-  // perform 
-  
-  // the
-  
-  // reconstruction
-  
+  reconstruct_doublet(D_prop_reco[0] , D_prop_reco[1], DD_prop, conf, kappac,m); 
 
   //printing
-  for(int r=0;r<2;r++)
-    {
-      printf(" # r = %d\n",r);
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
-	{
-	  printf(" ## %d\n",loc_site);
-	  for(int id=0;id<4;id++)
-	    {
-	      printf(" ### %d\n",id);
-	      for(int ic=0;ic<3;ic++)
-		{
-		  printf("ic=%d,re:\t%g\t%g\n",ic,D_prop_read[r][loc_site][id][ic][0],D_prop_reco[r][loc_site][id][ic][0]);
-		  printf("ic=%d,im:\t%g\t%g\n",ic,D_prop_read[r][loc_site][id][ic][1],D_prop_reco[r][loc_site][id][ic][1]);
-		}
-	    }
-	}
-    }
-	      
+  if(rank==0)
+  {
+    for(int loc_site=0;loc_site<loc_vol;loc_site++)
+      {
+	printf(" # ivol=%d\n",loc_site);
+	for(int id=0;id<4;id++)
+	  {
+	    printf(" ## id=%d\n",id);
+	    for(int ic=0;ic<3;ic++)
+	      {
+		
+		printf("ic=%d:\t",ic);
+		for(int r=0;r<2;r++)
+		  {
+		    printf("\t%g %g",D_prop_read[r][loc_site][id][ic][0],D_prop_read[r][loc_site][id][ic][1]);
+		    printf("\t%g %g",D_prop_reco[r][loc_site][id][ic][0],D_prop_reco[r][loc_site][id][ic][1]);
+		  }
+		printf("\n");
+	      }
+	  }
+      }
+  }	      
   free(D_prop_reco[0]);
   free(D_prop_reco[1]);
 
