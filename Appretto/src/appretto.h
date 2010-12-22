@@ -10,3 +10,4 @@
 #include "su3.c"
 #include "gaugeconf.c"
 #include "dirac_operator.c"
+#include "invert.c"

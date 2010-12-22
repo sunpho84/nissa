@@ -4,6 +4,8 @@
 #include "endianess.c"
 #include "communicate.c"
 #include "global.c"
+#include "dirac_operator.c"
+#include "gaugeconf.c"
 
 //Read from the argument path a maximal amount of data nbyes_per_site
 //return the real read amount of bytes
@@ -157,6 +159,23 @@ void read_spincolor(spincolor *out,char *path)
   free(temp);
 }  
 
+//Read a spincolor and reconstruct the doublet
+void read_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path,quad_su3 *conf,double kappa,double mu)
+{
+  int all=0;
+  if(temp==NULL)
+    {
+      temp=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+      all=1;
+    }
+  read_spincolor(temp,path);
+  communicate_lx_spincolor_borders(temp);
+
+  reconstruct_doublet(out[0],out[1],temp,conf,kappa,mu);  
+
+  if(all) free(temp);
+}  
+
 //Read 4 spincolor and revert their indexes
 void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
 {
@@ -191,6 +210,49 @@ void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
   
   //Destroy the temp
   free(sc);
+}
+
+//Read 4 spincolor and reconstruct them
+void read_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char *end_path,quad_su3 *conf,double kappa,double mu)
+{
+  double tic;
+  if(debug)
+    {
+      MPI_Barrier(cart_comm);
+      tic=MPI_Wtime();
+    }
+  
+  char filename[1024];
+  spincolor *sc[2]={(spincolor*)malloc(sizeof(spincolor)*loc_vol),(spincolor*)malloc(sizeof(spincolor)*loc_vol)};
+  spincolor *temp=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+
+  //Read the four spinor
+  for(int id_source=0;id_source<4;id_source++) //dirac index of source
+    {
+      if(end_path!=NULL) sprintf(filename,"%s.0%d.%s",base_path,id_source,end_path);
+      else sprintf(filename,"%s.0%d",base_path,id_source);
+      read_spincolor_reconstructing(sc,temp,filename,conf,kappa,mu);
+      
+      //Switch the spincolor into the colorspin. 
+      for(int loc_site=0;loc_site<loc_vol;loc_site++)
+	{
+	  put_spincolor_into_colorspinspin(css[0][loc_site],sc[0][loc_site],id_source);
+	  put_spincolor_into_colorspinspin(css[1][loc_site],sc[1][loc_site],id_source);
+	}
+    }
+
+  if(debug)
+    {
+      MPI_Barrier(cart_comm);
+      double tac=MPI_Wtime();
+
+      if(rank==0) printf("Time elapsed in reading file '%s': %f s\n",base_path,tac-tic);
+    }
+
+  //Destroy the temp
+  free(sc[0]);
+  free(sc[1]);
+  free(temp);
 }
 
 ////////////////////////// gauge configuration loading /////////////////////////////
