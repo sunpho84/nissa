@@ -47,7 +47,7 @@ int big_endian;
 const int nreals_per_spincolor=24;
 const int nreals_per_quad_su3=72;
 
-const int debug=3;
+const int debug=1;
 
 MPI_Comm cart_comm;
 

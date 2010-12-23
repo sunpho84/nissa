@@ -33,9 +33,17 @@ void spincolor_copy(spincolor b,spincolor a){memcpy(b,a,sizeof(spincolor));}
 void color_summ(color a,color b,color c)
 {for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
 
-void assign_color_summ(color a,color b,color c)
-{for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
+void summassign_color(color a,color b)
+{for(int i=0;i<6;i++) ((double*)a)[i]+=((double*)b)[i];}
 
+void subtassign_color(color a,color b)
+{for(int i=0;i<6;i++) ((double*)a)[i]-=((double*)b)[i];}
+
+void summassign_icolor(color a,color b)
+{for(int i=0;i<6;i+=2) {((double*)a)[i]-=((double*)b)[i+1];((double*)a)[i+1]+=((double*)b)[i];}}
+
+void subtassign_icolor(color a,color b)
+{for(int i=0;i<6;i+=2) {((double*)a)[i]+=((double*)b)[i+1];((double*)a)[i+1]-=((double*)b)[i];}}
 
 ////////////////////////////////// Operations between su3 //////////////////////////
 
@@ -189,8 +197,12 @@ void assign_spincolor_prod_real(spincolor out,double factor)
 {for(int i=0;i<24;i++) ((double*)out)[i]*=factor;}
 
 //summ assign
-void assign_spincolor_summ(spincolor out,spincolor in)
+void summassign_spincolor(spincolor out,spincolor in)
 {for(int i=0;i<24;i++) ((double*)out)[i]+=((double*)in)[i];}
+
+//subt assign
+void subtassign_spincolor(spincolor out,spincolor in)
+{for(int i=0;i<24;i++) ((double*)out)[i]-=((double*)in)[i];}
 
 //spincolor*real
 void unsafe_summassign_spincolor_prod_real(spincolor out,spincolor in,double factor)
