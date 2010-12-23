@@ -159,32 +159,9 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
       g_sloppy_precision = 0;
       g_mu = tmp_mu;
 
-      /* save all the results of (Q^dagger Q)^(-1) \gamma_5 \phi */
-      /* here ... */
-      /*
-      sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, 0);
-      if(g_kappa != 0) {
-	mul_r(g_spinor_field[DUM_SOLVER], (2*g_kappa)*(2*g_kappa), g_spinor_field[DUM_SOLVER], N);
-      }
-
-      // the 0 is for appending 
-      construct_writer(&writer, filename, 0);
-
-      propagatorFormat = construct_paramsPropagatorFormat(nbits, 1);
-      write_propagator_format(writer, propagatorFormat);
-      free(propagatorFormat);
-
-      convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+2], g_spinor_field[DUM_SOLVER+1], 
-			  g_spinor_field[DUM_SOLVER]);
-      write_spinor(writer, &g_spinor_field[DUM_SOLVER+2], &g_spinor_field[DUM_SOLVER+1], 1, nbits);
-      destruct_writer(writer);
-      */
-
-      //Now we save the 'up' and 'down' propagators
-
       //Try to open the file which instruct what to save
       FILE* instruct;
-      int save0,save1,nbits;
+      int saveDD,save0,save1,nbits;
       save0=save1=1;
       nbits=32;
       if(g_proc_id==0)
@@ -196,9 +173,11 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
 	      nintread+=fscanf(instruct,"%d",&save0);
 	      nintread+=fscanf(instruct,"%d",&save1);
 	      nintread+=fscanf(instruct,"%d",&nbits);
-	      if(nintread!=3)
+	      nintread+=fscanf(instruct,"%d",&saveDD);
+	      if(nintread!=4)
 		{
 		  printf("Error in reading instructions for the cgmms save\n");
+		  saveDD=1;
 		  save0=1;
 		  save1=1;
 		  nbits=32;
@@ -215,6 +194,31 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
       MPI_Bcast(&nbits,1,MPI_INT,0,MPI_COMM_WORLD);
 #endif
       
+      /* save all the results of (Q^dagger Q)^(-1) \gamma_5 \phi */
+      /* here ... */
+      if(saveDD==1)
+	{
+	  sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, 0);
+	  if(g_kappa != 0) {
+	    mul_r(g_spinor_field[DUM_SOLVER+1], (2*g_kappa)*(2*g_kappa), g_spinor_field[DUM_SOLVER], N);
+	  }
+	  
+	  // the 0 is for appending 
+	  construct_writer(&writer, filename, 0);
+	  
+	  propagatorFormat = construct_paramsPropagatorFormat(nbits, 1);
+	  write_propagator_format(writer, propagatorFormat);
+	  free(propagatorFormat);
+	  
+	  convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+3], g_spinor_field[DUM_SOLVER+2], 
+			      g_spinor_field[DUM_SOLVER+1]);
+	  write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, nbits);
+	  destruct_writer(writer);
+	  
+	}
+      
+      //Now we save the 'up' and 'down' propagators
+
       mul_r(g_spinor_field[DUM_SOLVER], 2*g_kappa, g_spinor_field[DUM_SOLVER], N);
       
       //up
@@ -248,25 +252,27 @@ int cg_mms_tm(spinor * const P, spinor * const Q, const int max_iter,
 
       for(im = 0; im < g_no_extra_masses; im++) {
 	
-	g_mu = g_extra_masses[im];
-	
-	/*
-	sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, im+1);
-
-	construct_writer(&writer, filename, 0);
-
-	propagatorFormat = construct_paramsPropagatorFormat(nbits, 1);
-	write_propagator_format(writer, propagatorFormat);
-	free(propagatorFormat);
-
-	if(g_kappa != 0) {
-	  mul_r(xs_mms_solver[im], (2*g_kappa)*(2*g_kappa), xs_mms_solver[im], N);
-	}
-	convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+2], g_spinor_field[DUM_SOLVER+1], xs_mms_solver[im]);
-
-        write_spinor(writer, &g_spinor_field[DUM_SOLVER+2], &g_spinor_field[DUM_SOLVER+1], 1, nbits);
-        destruct_writer(writer);
-	*/
+	if(saveDD)
+	  {
+	    g_mu = g_extra_masses[im];
+	    
+	    
+	    sprintf(filename,"%s.%.4d.%.2d.%.2d.cgmms.%.2d.inverted", SourceInfo.basename, SourceInfo.nstore, SourceInfo.t, SourceInfo.ix, im+1);
+	    
+	    construct_writer(&writer, filename, 0);
+	    
+	    propagatorFormat = construct_paramsPropagatorFormat(nbits, 1);
+	    write_propagator_format(writer, propagatorFormat);
+	    free(propagatorFormat);
+	    
+	    if(g_kappa != 0) {
+	      mul_r(g_spinor_field[DUM_SOLVER+1], (2*g_kappa)*(2*g_kappa), xs_mms_solver[im], N);
+	    }
+	    convert_lexic_to_eo(g_spinor_field[DUM_SOLVER+3], g_spinor_field[DUM_SOLVER+2], g_spinor_field[DUM_SOLVER+1]);
+	    
+	    write_spinor(writer, &g_spinor_field[DUM_SOLVER+3], &g_spinor_field[DUM_SOLVER+2], 1, nbits);
+	    destruct_writer(writer);
+	  }
 	
 	//Now we save the 'up' and 'down' propagators
 	mul_r(xs_mms_solver[im], 2*g_kappa,xs_mms_solver[im] , N);
