@@ -71,11 +71,14 @@ void init_grid()
       fflush(stdout);
     }
 
+  //check that lattice is commensurable with the grid
+  //and check wether the idir dir is parallelized or not
   int ok=1;
   for(int idir=0;idir<4;idir++)
     {
       ok=ok && (nproc_dir[idir]>0);
       ok=ok && (glb_size[idir]%nproc_dir[idir]==0);
+      paral_dir[idir]=(nproc_dir[idir]>1);
     }
 
   if(!ok && rank==0)
@@ -96,7 +99,8 @@ void init_grid()
   for(int idir=0;idir<4;idir++)
     {
       //bord size along the idir dir
-      bord_dir_vol[idir]=loc_vol/loc_size[idir];
+      if(paral_dir[idir]) bord_dir_vol[idir]=loc_vol/loc_size[idir];
+      else bord_dir_vol[idir]=0;
 
       //total bord
       loc_bord+=bord_dir_vol[idir];
@@ -114,7 +118,8 @@ void init_grid()
     for(int jdir=idir+1;jdir<4;jdir++)
       {
 	//edge among the i and j dir
-	edge_dir_vol[iedge]=bord_dir_vol[idir]/loc_size[jdir];
+	if(paral_dir[idir] && paral_dir[jdir]) edge_dir_vol[iedge]=bord_dir_vol[idir]/loc_size[jdir];
+	else edge_dir_vol[iedge]=0;
 	
 	//total edge
 	loc_edge+=edge_dir_vol[iedge];
@@ -129,6 +134,7 @@ void init_grid()
   if(rank==0)
     {
       printf("Local volume\t%dx%dx%dx%d = %d\n",loc_size[0],loc_size[1],loc_size[2],loc_size[3],loc_vol);
+      printf("Parallelized dirs: t=%d x=%d y=%d z=%d\n",paral_dir[0],paral_dir[1],paral_dir[2],paral_dir[3]);
       if(debug>1) printf("Border size: %d\n",loc_bord);
       if(debug>1) printf("Edge size: %d\n",loc_edge);
       if(debug>2) 
@@ -164,9 +170,12 @@ void init_grid()
     }
 
   set_lx_geometry();
-
-  set_lx_bord_senders_and_receivers(MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
-  set_lx_edge_senders_and_receivers(MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
-
-  set_lx_bord_senders_and_receivers(MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
+  
+  if(rank_tot>0)
+    {
+      set_lx_bord_senders_and_receivers(MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
+      set_lx_edge_senders_and_receivers(MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
+      
+      set_lx_bord_senders_and_receivers(MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
+    }
 }

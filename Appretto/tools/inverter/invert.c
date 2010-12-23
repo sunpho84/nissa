@@ -61,26 +61,35 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  inv_Q2_cg(solution,source,conf,kappa,m,1000,1,1.e-6);
+  inv_Q2_cg(solution,source,NULL,conf,kappa,m,1000,1,1.e-6);
 
   spincolor *source_reco=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   
   apply_Q2(source_reco,solution,conf,kappa,m,NULL);
   
   //printing
-  double truered=0;
+  double truered,loc_truered=0;
   for(int loc_site=0;loc_site<loc_vol;loc_site++)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	{
 	  double tempr=source[loc_site][id][ic][0]-source_reco[loc_site][id][ic][0];
 	  double tempi=source[loc_site][id][ic][1]-source_reco[loc_site][id][ic][1];
-	  truered+=tempr*tempr+tempi*tempi;
+	  loc_truered+=tempr*tempr+tempi*tempi;
 	}
-  
+
+  if(rank_tot>0) MPI_Allreduce(&loc_truered,&truered,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);                                 
+  else truered=loc_truered;
+
   if(rank==0) printf("Residue: %g\n",truered); 
 
   ///////////////////////////////////////////
+
+  theta[0]=0;
+  theta[1]=theta[2]=theta[3]=0.1;
+  put_boundaries_conditions(conf,theta,1,0);
+  communicate_gauge_borders(conf);
+  inv_Q2_cg(solution,source,solution,conf,kappa,m,1000,1,1.e-6);
 
   free(solution);
   free(source);

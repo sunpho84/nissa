@@ -126,11 +126,12 @@ void set_lx_geometry()
       for(int idir=0;idir<4;idir++)
 	{
 	  //Down direction
-	  if(x[idir]!=0)
+	  if(x[idir]!=0 || paral_dir[idir]==0)
 	    {
-	      x[idir]--;
+	      int temp_xdir=x[idir];
+	      x[idir]=(x[idir]+loc_size[idir]-1)%loc_size[idir];
 	      loclx_neighdw[iloc][idir]=loclx_of_coord(x);
-	      x[idir]++;
+	      x[idir]=temp_xdir;
 	    }
 	  else //border
 	    {
@@ -150,11 +151,12 @@ void set_lx_geometry()
 		if(idir!=jdir) 
 		  {
 		    //Down direction
-		    if(x[jdir]!=0)
+		    if(x[jdir]!=0 || paral_dir[jdir]==0)
 		      {
-			x[jdir]--;
+			int temp_xdir=x[jdir];
+			x[jdir]=(x[jdir]+loc_size[jdir]-1)%loc_size[jdir];
 			int ibord2=loc_vol+bord_offset[idir]+bordlx_of_coord(x,idir);
-			x[jdir]++;
+			x[jdir]=temp_xdir;
 			loclx_neighdw[ibord][jdir]=ibord2;
 		      }
 		    else //i-j- edge
@@ -171,11 +173,12 @@ void set_lx_geometry()
 			gx[jdir]=glb_coord_of_loclx[iloc][jdir];
 		      }
 		    //Upper direction
-		    if(x[jdir]!=loc_size[jdir]-1)
+		    if(x[jdir]!=loc_size[jdir]-1 || paral_dir[jdir]==0)
 		      {
-			x[jdir]++;
+			int temp_xdir=x[jdir];
+			x[jdir]=(x[jdir]+1)%loc_size[jdir];
 			int ibord2=loc_vol+bord_offset[idir]+bordlx_of_coord(x,idir);
-			x[jdir]--;
+			x[jdir]=temp_xdir;
 			loclx_neighup[ibord][jdir]=ibord2;
 		      }
 		    else
@@ -197,11 +200,12 @@ void set_lx_geometry()
 	    }
 	  
 	  //Upper direction
-	  if(x[idir]!=loc_size[idir]-1)
+	  if(x[idir]!=loc_size[idir]-1 || paral_dir[idir]==0)
 	    {
-	      x[idir]++;
+	      int temp_xdir=x[idir];
+	      x[idir]=(x[idir]+1)%loc_size[idir];
 	      loclx_neighup[iloc][idir]=loclx_of_coord(x);
-	      x[idir]--;
+	      x[idir]=temp_xdir;
 	    }
 	  else //border
 	    {
@@ -221,11 +225,13 @@ void set_lx_geometry()
 		if(idir!=jdir) 
 		  {
 		    //Down direction
-		    if(x[jdir]!=0)
+		    if(x[jdir]!=0 || paral_dir[jdir]==0)
 		      {
+			int temp_xdir=x[jdir];
+			x[jdir]=(x[jdir]+loc_size[jdir]-1)%loc_size[jdir];
 			x[jdir]--;
 			int ibord2=loc_vol+bord_offset[idir]+loc_bord/2+bordlx_of_coord(x,idir);
-			x[jdir]++;
+			x[jdir]=temp_xdir;
 			loclx_neighdw[ibord][jdir]=ibord2;
 		      }
 		    else //edge
@@ -244,11 +250,12 @@ void set_lx_geometry()
 			gx[jdir]=glb_coord_of_loclx[iloc][jdir];
 		      }
 		    //Upper direction
-		    if(x[jdir]!=loc_size[jdir]-1)
+		    if(x[jdir]!=loc_size[jdir]-1 || paral_dir[jdir]==0)
 		      {
-			x[jdir]++;
+			int temp_xdir=x[jdir];
+			x[jdir]=(x[jdir]+1)%loc_size[jdir];
 			int ibord2=loc_vol+bord_offset[idir]+loc_bord/2+bordlx_of_coord(x,idir);
-			x[jdir]--;
+			x[jdir]=temp_xdir;
 			loclx_neighup[ibord][jdir]=ibord2;
 		      }
 		    else //edge
