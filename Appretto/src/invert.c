@@ -3,7 +3,7 @@
 #include "dirac_operator.c"
 #include "su3.c"
 
-void inv_Q2_cg(spincolor *sol,spincolor *source,quad_su3 *conf,double kappac,double m,int niter,int rniter,double residue)
+void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappac,double m,int niter,int rniter,double residue)
 {
   int riter=0;
   spincolor *s=(spincolor*)malloc(sizeof(spincolor)*(loc_vol));
@@ -11,8 +11,9 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,quad_su3 *conf,double kappac,dou
   spincolor *r=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   spincolor *t=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord)); //temporary for internal calculation of DD
 
-  memset(sol,0,loc_vol*sizeof(spincolor));
-  
+  if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
+  else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));
+
   //external loop, used if the internal exceed the maximal number of iterations
   double lambda; //(r_(k+1),r_(k+1))
   do
@@ -28,21 +29,20 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,quad_su3 *conf,double kappac,dou
 	    double c1=(*dsource)-(*ds);
 	    (*dp)=(*dr)=c1;
 	    loc_delta+=c1*c1;
-	    
 	    dp++;dr++;ds++;dsource++;
 	  }
-	MPI_Allreduce(&loc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(rank_tot>0) MPI_Allreduce(&loc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	else delta=loc_delta;
       }
 
       //main loop
       int iter=0;
       do
 	{
-
 	  double omega; //(r_k,r_k)/(p_k*DD*p_k)
 	  {
 	    double alpha;
-	    communicate_lx_spincolor_borders(p);
+	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
 	    apply_Q2(s,p,conf,kappac,m,t);
 	    double loc_alpha=0;
 	    complex *cs=(complex*)s,*cp=(complex*)p;
@@ -52,7 +52,8 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,quad_su3 *conf,double kappac,dou
 
 		cs++;cp++;
 	      }
-	    MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    if(rank_tot>0) MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    else alpha=loc_alpha;
 	    omega=delta/alpha;
 	  }
 	  
@@ -68,8 +69,12 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,quad_su3 *conf,double kappac,dou
 
 		dsol++;ds++;dp++;dr++;
 	      }
-	    communicate_lx_spincolor_borders(sol);
-	    MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    if(rank_tot>0) 
+	      {
+		communicate_lx_spincolor_borders(sol);
+		MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	      }
+	    else lambda=loc_lambda;
 	  }
 
 	  double gammag=lambda/delta; //(r_(k+1),r_(k+1))/(r_k,r_k)
@@ -97,14 +102,15 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,quad_su3 *conf,double kappac,dou
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;
-	for(int i=0;i<loc_vol*3*2;i++)
+	for(int i=0;i<loc_vol*3*4*2;i++)
 	  {
 	    double c1=(*dsource)-(*ds);
 	    loc_lambda+=c1*c1;
 	    
 	    dsource++;ds++;
 	  }
-	MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	else lambda=loc_lambda;
       }
 
       riter++;

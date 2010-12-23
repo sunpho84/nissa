@@ -23,17 +23,17 @@ void apply_Q(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu
 
   for(int X=0;X<loc_vol;X++)
   {
-    for(int mu=0;mu<4;mu++)
+    for(int idir=0;idir<4;idir++)
       {
 	//Forward
-	int Xup=loclx_neighup[X][mu];	
-	unsafe_summ_su3_prod_spincolor(out[X],conf[X][mu],in[Xup]);
-	unsafe_subt_su3_dirac_prod_spincolor(out[X],conf[X][mu],&(gamma[mu]),in[Xup]);
+	int Xup=loclx_neighup[X][idir];
+	unsafe_summ_su3_prod_spincolor(out[X],conf[X][idir],in[Xup]);
+	unsafe_subt_su3_dirac_prod_spincolor(out[X],conf[X][idir],&(gamma[idir]),in[Xup]);
 
 	//Backward 
-	int Xdw=loclx_neighdw[X][mu];
-	unsafe_summ_su3_dag_prod_spincolor(out[X],conf[Xdw][mu],in[Xdw]);
-	unsafe_summ_su3_dag_dirac_prod_spincolor(out[X],conf[Xdw][mu],&(gamma[mu]),in[Xdw]);
+	int Xdw=loclx_neighdw[X][idir];
+	unsafe_summ_su3_dag_prod_spincolor(out[X],conf[Xdw][idir],in[Xdw]);
+	unsafe_summ_su3_dag_dirac_prod_spincolor(out[X],conf[Xdw][idir],&(gamma[idir]),in[Xdw]);
       }
     //Put the -1/2 factor on derivative
     spincolor_assign_rprod(out[X],-0.5);

@@ -45,29 +45,30 @@ void communicate_lx_borders(char *data,MPI_Datatype *MPI_BORD_SEND,MPI_Datatype 
   int send,rece;
 
   for(int i=0;i<4;i++)
-    {
-      //sending the upper border to the lower node
-      send=loclx_of_coord_list(0,0,0,0)*nbytes_per_site;
-      rece=(loc_vol+bord_offset[i]+loc_bord/2)*nbytes_per_site;
-      MPI_Isend((void*)(data+send),1,MPI_BORD_SEND[i],rank_neighdw[i],83+i,
-		cart_comm,&request[nrequest++]);
-      MPI_Irecv((void*)(data+rece),1,MPI_BORD_RECE[i],rank_neighup[i],83+i, 
-		cart_comm,&request[nrequest++]);
-      
-      //sending the lower border to the upper node
-      int x[4];
-      for(int jdir=0;jdir<4;jdir++)
-	if(jdir==i) x[jdir]=loc_size[i]-1;
-	else x[jdir]=0;
-      send=loclx_of_coord(x)*nbytes_per_site;
-      rece=(loc_vol+bord_offset[i])*nbytes_per_site;
-      MPI_Isend((void*)(data+send),1,MPI_BORD_SEND[i],rank_neighup[i],87+i,
-		cart_comm,&request[nrequest++]);
-      MPI_Irecv((void*)(data+rece),1,MPI_BORD_RECE[i],rank_neighdw[i],87+i, 
+    if(paral_dir[i]!=0)
+      {
+	//sending the upper border to the lower node
+	send=loclx_of_coord_list(0,0,0,0)*nbytes_per_site;
+	rece=(loc_vol+bord_offset[i]+loc_bord/2)*nbytes_per_site;
+	MPI_Isend((void*)(data+send),1,MPI_BORD_SEND[i],rank_neighdw[i],83+i,
 		  cart_comm,&request[nrequest++]);
-    }
+	MPI_Irecv((void*)(data+rece),1,MPI_BORD_RECE[i],rank_neighup[i],83+i, 
+		  cart_comm,&request[nrequest++]);
+	
+	//sending the lower border to the upper node
+	int x[4];
+	for(int jdir=0;jdir<4;jdir++)
+	  if(jdir==i) x[jdir]=loc_size[i]-1;
+	  else x[jdir]=0;
+	send=loclx_of_coord(x)*nbytes_per_site;
+	rece=(loc_vol+bord_offset[i])*nbytes_per_site;
+	MPI_Isend((void*)(data+send),1,MPI_BORD_SEND[i],rank_neighup[i],87+i,
+		  cart_comm,&request[nrequest++]);
+	MPI_Irecv((void*)(data+rece),1,MPI_BORD_RECE[i],rank_neighdw[i],87+i, 
+		  cart_comm,&request[nrequest++]);
+      }
   
-  MPI_Waitall(nrequest,request,status);
+  if(nrequest>0) MPI_Waitall(nrequest,request,status);
 }
 
 /* and this is the shape of the edges
@@ -100,53 +101,54 @@ void communicate_lx_edges(char *data,MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *M
   
   for(int idir=0;idir<4;idir++)
     for(int jdir=idir+1;jdir<4;jdir++)
-      {
-	int iedge=edge_numb[idir][jdir];
-	int pos_edge_offset;
-
-	//take the starting point of the border
-	x[jdir]=loc_size[jdir]-1;
-	pos_edge_offset=bordlx_of_coord(x,idir);
-	x[jdir]=0;
-
-	//Send the i-j- internal edge to the j- site as i-j+ external edge
-	send=(loc_vol+bord_offset[idir])*nbytes_per_site;
-	rece=(loc_vol+loc_bord+edge_offset[iedge]+loc_edge/4)*nbytes_per_site;
-	MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
-		  cart_comm,&request[nrequest++]);
-	MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighup[jdir],83+imessage,
-		  cart_comm,&request[nrequest++]);
-	imessage++;
-	
-	//Send the i-j+ internal edge to the j+ site as i-j- external edge
-	send=(loc_vol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
-	rece=(loc_vol+loc_bord+edge_offset[iedge])*nbytes_per_site;
-	MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
-		  cart_comm,&request[nrequest++]);
-	MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighdw[jdir],83+imessage,
-		  cart_comm,&request[nrequest++]);
-	imessage++;
-
-	//Send the i+j- internal edge to the j- site as i+j+ external edge
-	send=(loc_vol+bord_offset[idir]+loc_bord/2)*nbytes_per_site;
-	rece=(loc_vol+loc_bord+edge_offset[iedge]+3*loc_edge/4)*nbytes_per_site;
-	MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
-		  cart_comm,&request[nrequest++]);
-	MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighup[jdir],83+imessage,
-		  cart_comm,&request[nrequest++]);
-	imessage++;
-	
-	//Send the i+j+ internal edge to the j+ site as i+j- external edge
-	send=(loc_vol+bord_offset[idir]+loc_bord/2+pos_edge_offset)*nbytes_per_site;
-	rece=(loc_vol+loc_bord+edge_offset[iedge]+loc_edge/2)*nbytes_per_site;
-	MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
-		  cart_comm,&request[nrequest++]);
-	MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighdw[jdir],83+imessage,
-		  cart_comm,&request[nrequest++]);
-	imessage++;
-      }
-
-  MPI_Waitall(nrequest,request,status);
+      if(paral_dir[idir] && paral_dir[jdir])
+	{
+	  int iedge=edge_numb[idir][jdir];
+	  int pos_edge_offset;
+	  
+	  //take the starting point of the border
+	  x[jdir]=loc_size[jdir]-1;
+	  pos_edge_offset=bordlx_of_coord(x,idir);
+	  x[jdir]=0;
+	  
+	  //Send the i-j- internal edge to the j- site as i-j+ external edge
+	  send=(loc_vol+bord_offset[idir])*nbytes_per_site;
+	  rece=(loc_vol+loc_bord+edge_offset[iedge]+loc_edge/4)*nbytes_per_site;
+	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighup[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  imessage++;
+	  
+	  //Send the i-j+ internal edge to the j+ site as i-j- external edge
+	  send=(loc_vol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
+	  rece=(loc_vol+loc_bord+edge_offset[iedge])*nbytes_per_site;
+	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighdw[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  imessage++;
+	  
+	  //Send the i+j- internal edge to the j- site as i+j+ external edge
+	  send=(loc_vol+bord_offset[idir]+loc_bord/2)*nbytes_per_site;
+	  rece=(loc_vol+loc_bord+edge_offset[iedge]+3*loc_edge/4)*nbytes_per_site;
+	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighup[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  imessage++;
+	  
+	  //Send the i+j+ internal edge to the j+ site as i+j- external edge
+	  send=(loc_vol+bord_offset[idir]+loc_bord/2+pos_edge_offset)*nbytes_per_site;
+	  rece=(loc_vol+loc_bord+edge_offset[iedge]+loc_edge/2)*nbytes_per_site;
+	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighdw[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  imessage++;
+	}
+  
+  if(nrequest>0) MPI_Waitall(nrequest,request,status);
 }
 	 
 //Send the borders of the gauge configuration

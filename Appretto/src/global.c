@@ -36,6 +36,7 @@ int loc_edge;
 int edge_numb[4][4]={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}};
 MPI_Datatype MPI_GAUGE_EDGE_SEND[6],MPI_GAUGE_EDGE_RECE[6];
 
+int paral_dir[4],nparal_dir;
 int nproc_dir[4]={0,0,0,0};
 int proc_coord[4]={0,0,0,0};
 int rank_neighdw[4],rank_neighup[4];
@@ -46,7 +47,7 @@ int big_endian;
 const int nreals_per_spincolor=24;
 const int nreals_per_quad_su3=72;
 
-const int debug=1;
+const int debug=3;
 
 MPI_Comm cart_comm;
 
