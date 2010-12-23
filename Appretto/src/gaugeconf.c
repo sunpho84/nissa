@@ -111,7 +111,7 @@ void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords
   if(putonedges) nsite+=loc_edge;
 
   for(int loc_site=0;loc_site<nsite;loc_site++)
-    for(int idir=0;idir<4;idir++) safe_su3_complex_prod(conf[loc_site][idir],conf[loc_site][idir],theta[idir]);
+    for(int idir=0;idir<4;idir++) safe_su3_prod_complex(conf[loc_site][idir],conf[loc_site][idir],theta[idir]);
 }
 
 void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges)

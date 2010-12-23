@@ -27,6 +27,16 @@ void su3_copy(su3 b,su3 a){memcpy(b,a,sizeof(su3));}
 void quad_su3_copy(quad_su3 b,quad_su3 a){memcpy(b,a,sizeof(quad_su3));}
 void spincolor_copy(spincolor b,spincolor a){memcpy(b,a,sizeof(spincolor));}
 
+////////////////////////////////// Operations between colors //////////////////////////
+
+//summ two colors
+void color_summ(color a,color b,color c)
+{for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
+
+void assign_color_summ(color a,color b,color c)
+{for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
+
+
 ////////////////////////////////// Operations between su3 //////////////////////////
 
 //summ two su3 matrixes
@@ -34,7 +44,7 @@ void su3_summ(su3 a,su3 b,su3 c)
 {for(int i=0;i<18;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
 
 //Product of two su3 matrixes
-void su3_su3_prod(su3 a,su3 b,su3 c)
+void su3_prod_su3(su3 a,su3 b,su3 c)
 {
   for(int ir_out=0;ir_out<3;ir_out++)
     for(int ic_out=0;ic_out<3;ic_out++)
@@ -46,7 +56,7 @@ void su3_su3_prod(su3 a,su3 b,su3 c)
 }
 
 //Product of two su3 matrixes
-void su3_dag_su3_prod(su3 a,su3 b,su3 c)
+void su3_dag_prod_su3(su3 a,su3 b,su3 c)
 {
   for(int ir_out=0;ir_out<3;ir_out++)
     for(int ic_out=0;ic_out<3;ic_out++)
@@ -58,7 +68,7 @@ void su3_dag_su3_prod(su3 a,su3 b,su3 c)
 }
 
 //Product of two su3 matrixes
-void su3_su3_dag_prod(su3 a,su3 b,su3 c)
+void su3_prod_su3_dag(su3 a,su3 b,su3 c)
 {
   for(int ir_out=0;ir_out<3;ir_out++)
     for(int ic_out=0;ic_out<3;ic_out++)
@@ -70,7 +80,7 @@ void su3_su3_dag_prod(su3 a,su3 b,su3 c)
 }
 
 //Product of two su3 matrixes
-void su3_dag_su3_dag_prod(su3 a,su3 b,su3 c)
+void su3_dag_prod_su3_dag(su3 a,su3 b,su3 c)
 {
   for(int ir_out=0;ir_out<3;ir_out++)
     for(int ic_out=0;ic_out<3;ic_out++)
@@ -82,7 +92,7 @@ void su3_dag_su3_dag_prod(su3 a,su3 b,su3 c)
 }
 
 //product of an su3 matrix by a complex
-void safe_su3_complex_prod(su3 a,su3 b,complex c)
+void safe_su3_prod_complex(su3 a,su3 b,complex c)
 {
   complex *ca=(complex*)a;
   complex *cb=(complex*)b;
@@ -171,19 +181,23 @@ void safe_spincolor_summ_with_rfactor(spincolor a,spincolor b,spincolor c,double
 {for(int i=0;i<24;i++) ((double*)a)[i]=factor*((double*)b)[i]+((double*)c)[i];}
 
 //spincolor*complex
-void safe_spincolor_cprod(spincolor out,complex a,spincolor in)
+void safe_complex_prod_spincolor(spincolor out,complex a,spincolor in)
 {for(int i=0;i<12;i++) safe_complex_prod(((complex*)out)[i],a,((complex*)in)[i]);}
 
 //spincolor*real
-void spincolor_assign_rprod(spincolor out,double factor)
+void assign_spincolor_prod_real(spincolor out,double factor)
 {for(int i=0;i<24;i++) ((double*)out)[i]*=factor;}
 
+//summ assign
+void assign_spincolor_summ(spincolor out,spincolor in)
+{for(int i=0;i<24;i++) ((double*)out)[i]+=((double*)in)[i];}
+
 //spincolor*real
-void unsafe_spincolor_assign_summ_with_rfactor(spincolor out,spincolor in,double factor)
+void unsafe_summassign_spincolor_prod_real(spincolor out,spincolor in,double factor)
 {for(int i=0;i<24;i++) ((double*)out)[i]+=((double*)in)[i]*factor;}
 
 //spincolor*i*real
-void unsafe_spincolor_assign_summ_with_ifactor(spincolor out,spincolor in,double factor)
+void unsafe_summassign_spincolor_prod_ireal(spincolor out,spincolor in,double factor)
 {
   for(int i=0;i<24;i+=2)
     {
@@ -291,9 +305,9 @@ void squared_path(su3 square,quad_su3 *conf,int A,int mu,int nu)
 
   su3 AB,AC;
 
-  su3_su3_prod(AB,conf[A][mu],conf[B][nu]);
-  su3_su3_prod(AC,conf[A][nu],conf[C][mu]);
-  su3_su3_dag_prod(square,AB,AC);
+  su3_prod_su3(AB,conf[A][mu],conf[B][nu]);
+  su3_prod_su3(AC,conf[A][nu],conf[C][mu]);
+  su3_prod_su3_dag(square,AB,AC);
 }
 
 //This calculate the global plaquette. It's not done in a very
@@ -359,27 +373,27 @@ void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
 	      su3_put_to_zero(leaves_summ);
 	      
 	      //Leaf 1
-	      su3_su3_prod(temp1,conf[X][mu],conf[A][nu]);         //    B--<--Y 
-	      su3_su3_dag_prod(temp2,temp1,conf[B][mu]);           //    |  1  | 
-	      su3_su3_dag_prod(temp1,temp2,conf[X][nu]);           //    |     | 
+	      su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);         //    B--<--Y 
+	      su3_prod_su3_dag(temp2,temp1,conf[B][mu]);           //    |  1  | 
+	      su3_prod_su3_dag(temp1,temp2,conf[X][nu]);           //    |     | 
 	      su3_summ(leaves_summ,leaves_summ,temp1);	           //    X-->--A 
 
 	      //Leaf 2
-	      su3_su3_dag_prod(temp1,conf[X][nu],conf[C][mu]);      //   C--<--B
-	      su3_su3_dag_prod(temp2,temp1,conf[D][nu]);            //   |  2  | 
-	      su3_su3_prod(temp1,temp2,conf[D][mu]);		    //   |     | 
+	      su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);      //   C--<--B
+	      su3_prod_su3_dag(temp2,temp1,conf[D][nu]);            //   |  2  | 
+	      su3_prod_su3(temp1,temp2,conf[D][mu]);		    //   |     | 
 	      su3_summ(leaves_summ,leaves_summ,temp1);		    //   D-->--X
 	      
 	      //Leaf 3
-	      su3_dag_su3_dag_prod(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
-	      su3_su3_prod(temp2,temp1,conf[E][mu]);		    //   |  3  | 
-	      su3_su3_prod(temp1,temp2,conf[F][nu]);		    //   |     | 
+	      su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
+	      su3_prod_su3(temp2,temp1,conf[E][mu]);		    //   |  3  | 
+	      su3_prod_su3(temp1,temp2,conf[F][nu]);		    //   |     | 
 	      su3_summ(leaves_summ,leaves_summ,temp1);		    //   E-->--F
 	      
 	      //Leaf 4
-	      su3_dag_su3_prod(temp1,conf[F][nu],conf[F][mu]);       //  X--<--A 
-	      su3_su3_prod(temp2,temp1,conf[G][nu]);                 //  |  4  | 
-	      su3_su3_dag_prod(temp1,temp2,conf[X][mu]);             //  |     |  
+	      su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);       //  X--<--A 
+	      su3_prod_su3(temp2,temp1,conf[G][nu]);                 //  |  4  | 
+	      su3_prod_su3_dag(temp1,temp2,conf[X][mu]);             //  |     |  
 	      su3_summ(leaves_summ,leaves_summ,temp1);               //  F-->--G 
 
 	      //calculate U-U^dagger

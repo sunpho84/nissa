@@ -36,16 +36,16 @@ void apply_Q(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu
 	unsafe_summ_su3_dag_dirac_prod_spincolor(out[X],conf[Xdw][idir],&(gamma[idir]),in[Xdw]);
       }
     //Put the -1/2 factor on derivative
-    spincolor_assign_rprod(out[X],-0.5);
+    assign_spincolor_prod_real(out[X],-0.5);
     
     //Add the 1/(2kappac) term
-    unsafe_spincolor_assign_summ_with_rfactor(out[X],in[X],1/(2*kappac));
+    unsafe_summassign_spincolor_prod_real(out[X],in[X],1/(2*kappac));
 
     //Put the gamma5
     safe_dirac_prod_spincolor(out[X],&(base_gamma[5]),out[X]);
 
     //Add the mass term (gamma5 factor not necessary)
-    unsafe_spincolor_assign_summ_with_ifactor(out[X],in[X],mu);
+    unsafe_summassign_spincolor_prod_ireal(out[X],in[X],mu);
   }
 }
 
