@@ -187,10 +187,10 @@ do
 
 	  #write the instructions of what to write
 	  (
-	      echo 1
-	      echo 1
-	      echo $IO_prec
 	      echo 0
+	      echo 0
+	      echo $IO_prec
+	      echo 1
 	  ) > $base_inv/cg_mms_instructions
 
 	  OLD=$PWD
@@ -232,14 +232,11 @@ do
 	    
             for ics in $(seq -f%02.0f 00 $last_prop_index)
             do
-
-	      for r1 in 0 1
-	      do
 		
-		mkdir -vp $base_inv/$mu/$r1
+		mkdir -vp $base_inv/$mu
 
-		orig=$base_inv/source.$conf.00.$ics.cgmms.$im.inverted.$r1
-		dest=$base_inv/$mu/$r1/prop.$ics
+		orig=$base_inv/source.$conf.00.$ics.cgmms.$im.inverted
+		dest=$base_inv/$mu/prop.$ics
 		
 		if [ ! -f $orig ]
 		then
@@ -248,9 +245,7 @@ do
 		else
 		    mv -v $orig $dest
 		fi
-
-	      done
-	      
+		
 	    done
 
 	  done
@@ -277,7 +272,7 @@ do
         prog_contr=applications/contract_meson_2pts
     elif [ $source_type == "Wall4" ]
     then
-	prog_contr="Appretto/projects/meson_2pts/meson_2pts input"
+	prog_contr="Appretto/projects/meson_2pts/meson_2pts_reco input"
     elif [ $source_type == "Wall1" ]
     then
         vol_fact=$(( $L * $L * $L ))
@@ -309,7 +304,7 @@ do
 	    nch_micro=$(wc $base_2pts/micro_ch_correlations | awk '{print $1}')
 	fi
 	
-        nprop1=$(( 2 * $nmu ))
+        nprop1=$(( $nmu ))
         nprop2=$(( $nprop1 * $ntheta ))
         echo "Nprop1: "$nprop1
         echo "Nprop2: "$nprop2
@@ -324,10 +319,7 @@ do
 	  for((imu1=0;imu1<nmu;imu1++))
 	  do
 	    mu1=${list_mu[$imu1]}
-	    for((r1=0;r1<2;r1++))
-	    do
-	      echo " "$base_conf/Props/$source_name/$theta1/$mu1/$r1/prop $mu1 $theta1 0 $r1 >> $base_2pts/input
-	    done
+	    echo " "$base_conf/Props/$source_name/$theta1/$mu1/prop $mu1 $theta1 >> $base_2pts/input
 	  done
 	done
 	echo "NPropSecondList "$nprop2 >> $base_2pts/input
@@ -337,10 +329,7 @@ do
 	  for((imu2=0;imu2<nmu;imu2++))
 	  do
 	    mu2=${list_mu[$imu2]}
-	    for((r2=0;r2<2;r2++))
-	    do
-	      echo " "$base_conf/Props/$source_name/$theta2/$mu2/$r2/prop $mu2 $theta2 0 $r2 >> $base_2pts/input
-	    done
+	    echo " "$base_conf/Props/$source_name/$theta2/$mu2/prop $mu2 $theta2 >> $base_2pts/input
 	  done
 	done
 
@@ -351,8 +340,10 @@ do
 	if [ "${#two_points_ch_correlations[@]}" -gt 0 ]
         then
 	    cat $base_2pts/micro_ch_correlations >> $base_2pts/input
-	    echo "GaugeConf "$base_conf/Conf >> $base_2pts/input
 	fi
+
+	echo "GaugeConf "$base_conf/Conf >> $base_2pts/input
+	echo "Kappa "$kappa >> $base_2pts/input
 
 	echo "Output "$base_2pts"/two_points_contractions" >> $base_2pts/input
 	
