@@ -52,6 +52,19 @@ int main(int narg,char **arg)
   char source_file[1024];
   read_str_str("Source",source_file,1024);
   read_spincolor(source,source_file);
+
+  double residue;
+  read_str_double("Residue",&residue);
+  int nitermax;
+  read_str_int("NiterMax",&nitermax);
+  
+  //multiply the source by gamma5
+  for(int X=0;X<loc_vol;X++)
+    for(int d=2;d<4;d++)
+      for(int c=0;c<3;c++)
+	for(int r=0;r<2;r++)
+	  source[X][d][c][r]=-source[X][d][c][r];
+
   communicate_lx_spincolor_borders(source);
 
   //initialize solution
@@ -61,7 +74,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  inv_Q2_cg(solution,source,NULL,conf,kappa,m,1000,1,1.e-6);
+  inv_Q2_cg(solution,source,NULL,conf,kappa,m,nitermax,1,residue);
 
   spincolor *source_reco=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   
@@ -85,11 +98,13 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
+  /*
   theta[0]=0;
   theta[1]=theta[2]=theta[3]=0.1;
   put_boundaries_conditions(conf,theta,1,0);
   communicate_gauge_borders(conf);
   inv_Q2_cg(solution,source,solution,conf,kappa,m,1000,1,1.e-6);
+  */
 
   free(solution);
   free(source);

@@ -16,6 +16,75 @@
 
 void apply_Q(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu)
 {
+  double kcf=1/(2*kappac);
+
+  for(int X=0;X<loc_vol;X++)
+  {
+    spincolor tempF,tempB;
+
+    for(int idir=0;idir<4;idir++)
+      {
+	//Forward
+	int Xup=loclx_neighup[X][idir];
+	unsafe_su3_prod_spincolor(tempF,conf[X][idir],in[Xup]);
+	if(idir==0) spincolor_copy(out[X],tempF);
+	else summassign_spincolor(out[X],tempF);
+	
+	//Backward
+	int Xdw=loclx_neighdw[X][idir];
+	unsafe_su3_dag_prod_spincolor(tempB,conf[Xdw][idir],in[Xdw]);
+	summassign_spincolor(out[X],tempB);
+	
+	//summ the multiplication by gamma
+	subtassign_spincolor(tempB,tempF);
+	//this differs for all the dir
+	switch(idir)
+	  {
+	  case 0:
+	    subtassign_color(out[X][0],tempB[2]);
+	    subtassign_color(out[X][1],tempB[3]);
+	    subtassign_color(out[X][2],tempB[0]);
+	    subtassign_color(out[X][3],tempB[1]);
+	    break;
+	  case 1:
+	    subtassign_icolor(out[X][0],tempB[3]);
+	    subtassign_icolor(out[X][1],tempB[2]);
+	    summassign_icolor(out[X][2],tempB[1]);
+	    summassign_icolor(out[X][3],tempB[0]);
+	    break;
+	  case 2:
+	    subtassign_color(out[X][0],tempB[3]);
+	    summassign_color(out[X][1],tempB[2]);
+	    summassign_color(out[X][2],tempB[1]);
+	    subtassign_color(out[X][3],tempB[0]);
+	    break;
+	  case 3:
+	    subtassign_icolor(out[X][0],tempB[2]);
+	    summassign_icolor(out[X][1],tempB[3]);
+	    summassign_icolor(out[X][2],tempB[0]);
+	    subtassign_icolor(out[X][3],tempB[1]);
+	    break;
+	  }
+      }
+
+    //Put the -1/2 factor on derivative, the gamma5, and the imu
+    //ok this is horrible, but fast
+    for(int c=0;c<3;c++)
+      {
+	out[X][0][c][0]=-0.5*out[X][0][c][0]+kcf*in[X][0][c][0]-mu*in[X][0][c][1];
+	out[X][0][c][1]=-0.5*out[X][0][c][1]+kcf*in[X][0][c][1]+mu*in[X][0][c][0];
+	out[X][1][c][0]=-0.5*out[X][1][c][0]+kcf*in[X][1][c][0]-mu*in[X][1][c][1];
+	out[X][1][c][1]=-0.5*out[X][1][c][1]+kcf*in[X][1][c][1]+mu*in[X][1][c][0];
+	out[X][2][c][0]=+0.5*out[X][2][c][0]-kcf*in[X][2][c][0]-mu*in[X][2][c][1];
+	out[X][2][c][1]=+0.5*out[X][2][c][1]-kcf*in[X][2][c][1]+mu*in[X][2][c][0];
+	out[X][3][c][0]=+0.5*out[X][3][c][0]-kcf*in[X][3][c][0]-mu*in[X][3][c][1];
+	out[X][3][c][1]=+0.5*out[X][3][c][1]-kcf*in[X][3][c][1]+mu*in[X][3][c][0];
+      }
+  }
+}
+
+void apply_Q_old(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu)
+{
   dirac_matr gamma[4]={base_gamma[4],base_gamma[1],base_gamma[2],base_gamma[3]};
 
   //reset
