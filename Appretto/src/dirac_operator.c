@@ -197,7 +197,11 @@ void apply_Q_v1(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double
 
 void apply_Q_v0(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu)
 {
-  dirac_matr gamma[4]={base_gamma[4],base_gamma[1],base_gamma[2],base_gamma[3]};
+  dirac_matr gamma[4];
+  gamma[0]=base_gamma[4];
+  gamma[1]=base_gamma[1];
+  gamma[2]=base_gamma[2];
+  gamma[3]=base_gamma[3];
 
   //reset
   memset(out,0,loc_vol*sizeof(spincolor));
