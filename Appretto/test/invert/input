@@ -5,3 +5,5 @@ kappa 0.1770000
 GaugeConf ../Conf
 ThetaTXYZ 1 0 0 0
 Source ../point
+Residue 1.e-6
+NiterMax 10000
