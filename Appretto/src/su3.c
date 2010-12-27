@@ -33,6 +33,15 @@ void spincolor_copy(spincolor b,spincolor a){memcpy(b,a,sizeof(spincolor));}
 void color_summ(color a,color b,color c)
 {for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
 
+void color_isumm(color a,color b,color c)
+{for(int i=0;i<6;i+=2) {((double*)a)[i]=((double*)b)[i]-((double*)c)[i+1];((double*)a)[i+1]=((double*)b)[i+1]+((double*)c)[i];}}
+
+void color_isubt(color a,color b,color c)
+{for(int i=0;i<6;i+=2) {((double*)a)[i]=((double*)b)[i]+((double*)c)[i+1];((double*)a)[i+1]=((double*)b)[i+1]-((double*)c)[i];}}
+
+void color_subt(color a,color b,color c)
+{for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]-((double*)c)[i];}
+
 void summassign_color(color a,color b)
 {for(int i=0;i<6;i++) ((double*)a)[i]+=((double*)b)[i];}
 
