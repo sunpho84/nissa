@@ -74,7 +74,16 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
+  //take initial time                                                                                                        
+  double tic;
+  MPI_Barrier(cart_comm);
+  tic=MPI_Wtime();
   inv_Q2_cg(solution,source,NULL,conf,kappa,m,nitermax,1,residue);
+
+  MPI_Barrier(cart_comm);
+  double tac=MPI_Wtime();
+  if(rank==0)
+    printf("\nTotal time elapsed: %f s\n",tac-tic);
 
   spincolor *source_reco=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   
