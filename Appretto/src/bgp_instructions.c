@@ -18,6 +18,7 @@
 #define bgp_summassign_icomplex(A,B) A=__fxcxnpma(A,B,1)
 #define bgp_subtassign_icomplex(A,B) A=__fxcxnsma(A,B,1)
 #define bgp_complex_put_to_zero(A) bgp_subtassign_complex(A,A)
+#define bgp_summ_real_with_imag(A,B) A=__fxcxma(B,B,1)
 
 #define bgp_complex_prod_real(A,B,C) A=__fxpmul(B,C);
 #define bgp_complex_summ_the_prod_real(A,B,C,D)  A=__fxcpmadd(B,C,D);
@@ -99,6 +100,23 @@
 #define bgp_copy_color(A0,A1,A2,B0,B1,B2)	\
   bgp_color_put_to_zero(A0,A1,A2);		\
   bgp_summassign_color(A0,A1,A2,B0,B1,B2);
+
+#define bgp_summassign_scalarprod_color(N0,N1,N2,A0,A1,A2,B0,B1,B2)	\
+  N0=__fpmadd(N0,A0,B0);						\
+  N1=__fpmadd(N1,A1,B1);						\
+  N2=__fpmadd(N2,A2,B2);
+
+#define bgp_summassign_square_color(N0,N1,N2,A0,A1,A2) bgp_summassign_scalarprod_color(N0,N1,N2,A0,A1,A2,A0,A1,A2)
+
+#define bgp_square_norm_color(N0,N1,N2)		\
+  bgp_summassign_complex(N0,N1);		\
+  bgp_summassign_complex(N0,N2);		\
+  bgp_summ_real_with_imag(N0,N0);
+
+#define bgp_realprodscal_color(N0,N1,N2)	\
+  bgp_summassign_complex(N0,N1);		\
+  bgp_summassign_complex(N0,N2);
+
   
 #define bgp_load_su3(U00,U01,U02,U10,U11,U12,U20,U21,U22,U)	\
   bgp_load_color(U00,U01,U02,U[0]);				\
@@ -182,3 +200,28 @@
   bgp_load_color(B0,B1,B2,s[1]);					\
   bgp_load_color(C0,C1,C2,s[2]);					\
   bgp_load_color(D0,D1,D2,s[3]);
+
+#define bgp_save_spincolor(s,A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2)	\
+  bgp_save_color(s[0],A0,A1,A2);					\
+  bgp_save_color(s[1],B0,B1,B2);					\
+  bgp_save_color(s[2],C0,C1,C2);					\
+  bgp_save_color(s[3],D0,D1,D2);
+
+#define bgp_subtassign_spincolor(A00,A01,A02,B00,B01,B02,C00,C01,C02,D00,D01,D02,A10,A11,A12,B10,B11,B12,C10,C11,C12,D10,D11,D12) \
+  bgp_subtassign_color(A00,A01,A02,A10,A11,A12);			\
+  bgp_subtassign_color(B00,B01,B02,B10,B11,B12);			\
+  bgp_subtassign_color(C00,C01,C02,C10,C11,C12);			\
+  bgp_subtassign_color(D00,D01,D02,D10,D11,D12);
+
+#define bgp_summassign_color_square_spincolor(N0,N1,N2,A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2) \
+  bgp_summassign_square_color(N0,N1,N2,A0,A1,A2);			\
+  bgp_summassign_square_color(N0,N1,N2,B0,B1,B2);			\
+  bgp_summassign_square_color(N0,N1,N2,C0,C1,C2);			\
+  bgp_summassign_square_color(N0,N1,N2,D0,D1,D2);
+
+#define bgp_summassign_color_scalarprod_spincolor(N0,N1,N2,A00,A01,A02,B00,B01,B02,C00,C01,C02,D00,D01,D02,A10,A11,A12,B10,B11,B12,C10,C11,C12,D10,D11,D12) \
+  bgp_summassign_scalarprod_color(N0,N1,N2,A00,A01,A02,A10,A11,A12);	\
+  bgp_summassign_scalarprod_color(N0,N1,N2,B00,B01,B02,B10,B11,B12);	\
+  bgp_summassign_scalarprod_color(N0,N1,N2,C00,C01,C02,C10,C11,C12);	\
+  bgp_summassign_scalarprod_color(N0,N1,N2,D00,D01,D02,D10,D11,D12);
+  
