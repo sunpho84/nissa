@@ -6,7 +6,7 @@
 #include "dirac_operator_bgp.c"
 
 #elif defined SSE
-
+//possibly to be added
 #else
 
 #include "dirac_operator_portable.c"
