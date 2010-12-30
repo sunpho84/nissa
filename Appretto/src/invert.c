@@ -6,7 +6,7 @@
 #ifdef BGP
 
 #include "cg_invert_bgp.c"
-//include "cgmms_invert_bgp.c"
+#include "cgmms_invert_bgp.c"
 
 #elif defined SSE
 //possibly to be added
