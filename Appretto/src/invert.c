@@ -5,12 +5,14 @@
 
 #ifdef BGP
 
-#include "invert_bgp.c"
+#include "cg_invert_bgp.c"
+//include "cgmms_invert_bgp.c"
 
 #elif defined SSE
 //possibly to be added
 #else
 
-#include "invert_portable.c"
+#include "cg_invert_portable.c"
+#include "cgmms_invert_portable.c"
 
 #endif

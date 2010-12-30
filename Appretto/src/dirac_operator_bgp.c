@@ -14,6 +14,10 @@
 
 void apply_Q(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu)
 {
+  int Xup,X,Xdw;
+
+#pragma disjoint(*out,*in,*conf,Xup,X,Xdw)
+
   static double _Complex A0,A1,A2;
   static double _Complex B0,B1,B2;
 
@@ -32,13 +36,9 @@ void apply_Q(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu
 
   complex cpumass bgp_aligned ={1/(2*kappac),mu};
   bgp_load_complex(mass,cpumass);
-  
-  int Xup,Xdw;
 
-  for(int X=0;X<loc_vol;X++)
+  for(X=0;X<loc_vol;X++)
   {
-    color temp_c0,temp_c1,temp_c2,temp_c3;
-
     //Forward 0
     Xup=loclx_neighup[X][0];
 
@@ -58,7 +58,9 @@ void apply_Q(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu
     bgp_su3_prod_color(R10,R11,R12,C0,C1,C2,D0,D1,D2,E0,E1,E2,B0,B1,B2);
     bgp_copy_color(R20,R21,R22,R00,R01,R02);
     bgp_copy_color(R30,R31,R32,R10,R11,R12);
-    
+    //
+    //
+
     //Backward 0
     Xdw=loclx_neighdw[X][0];
 
@@ -109,11 +111,11 @@ void apply_Q(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu
     bgp_cache_touch_su3(conf[Xdw][1]);
 
     bgp_load_color(A0,A1,A2,in[Xdw][0]);
-    bgp_load_color(E0,E1,E2,in[Xdw][3]);
-    bgp_subtassign_icolor(A0,A1,A2,E0,E1,E2);
-
     bgp_load_color(B0,B1,B2,in[Xdw][1]);
     bgp_load_color(T0,T1,T2,in[Xdw][2]);
+    bgp_load_color(E0,E1,E2,in[Xdw][3]);
+
+    bgp_subtassign_icolor(A0,A1,A2,E0,E1,E2);
     bgp_subtassign_icolor(B0,B1,B2,T0,T1,T2);
 
     bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[Xdw][1]);
