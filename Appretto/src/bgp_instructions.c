@@ -13,6 +13,14 @@
   bgp_cache_touch_complex((char*)U+96);		\
   bgp_cache_touch_complex((char*)U+128);
 
+#define bgp_cache_touch_spincolor(s)		\
+  bgp_cache_touch_complex((char*)s);		\
+  bgp_cache_touch_complex((char*)s+32);		\
+  bgp_cache_touch_complex((char*)s+64);		\
+  bgp_cache_touch_complex((char*)s+96);		\
+  bgp_cache_touch_complex((char*)s+128);	\
+  bgp_cache_touch_complex((char*)s+160);
+
 #define bgp_load_complex(A,B) A=__lfpd((double*)B)
 #define bgp_save_complex(A,B) __stfpd((double*)A,B)
 #define bgp_summassign_complex(A,B) A=__fpadd(A,B)
