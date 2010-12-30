@@ -72,7 +72,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
     {
       //     -s=Ap
       if(rank_tot>0) communicate_lx_spincolor_borders(p);
-      apply_Q2(s,p,conf,kappac,0,t);
+      apply_Q2(s,p,conf,kappac,m[0],t);
       
       //     -pap=(p,s)=(p,Ap)
       {
@@ -99,7 +99,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
         {
           if(flag[imass]==1)
             {
-              zfs[imass]=zas[imass]*zps[imass]*betap/(betaa*alpha*(zps[imass]-zas[imass])+zps[imass]*betap*(1-(m[imass]*m[imass])*betaa));
+              zfs[imass]=zas[imass]*zps[imass]*betap/(betaa*alpha*(zps[imass]-zas[imass])+zps[imass]*betap*(1-(m[imass]-m[0])*(m[imass]+m[0])*betaa));
               betas[imass]=betaa*zfs[imass]/zas[imass];
             
 
@@ -161,7 +161,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	    }
 	    
             //     check over residual
-            if(rr*zfs[imass]<residue) flag[imass]=0;
+            //if(rr*zfs[imass]<residue) flag[imass]=0;
             
             //     passes all f into actuals
             zps[imass]=zas[imass];
