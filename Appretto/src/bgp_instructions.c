@@ -4,12 +4,14 @@
 
 #define bgp_aligned __attribute__ ((aligned (16)))
 
-#define bgp_cache_touch_su3(U) \
-  __dcbt(((char*)((unsigned long int)(U))));     \
-  __dcbt(((char*)((unsigned long int)(U)))+32);  \
-  __dcbt(((char*)((unsigned long int)(U)))+64);  \
-  __dcbt(((char*)((unsigned long int)(U)))+96);  \
-  __dcbt(((char*)((unsigned long int)(U)))+128); 
+#define bgp_cache_touch_complex(c) __dcbt(c)
+
+#define bgp_cache_touch_su3(U)			\
+  bgp_cache_touch_complex((char*)U);		\
+  bgp_cache_touch_complex((char*)U+32);		\
+  bgp_cache_touch_complex((char*)U+64);		\
+  bgp_cache_touch_complex((char*)U+96);		\
+  bgp_cache_touch_complex((char*)U+128);
 
 #define bgp_load_complex(A,B) A=__lfpd((double*)B)
 #define bgp_save_complex(A,B) __stfpd((double*)A,B)
@@ -52,10 +54,13 @@
   bgp_complex_prod_real(A1,A1,R);		  \
   bgp_complex_prod_real(A2,A2,R);
 
+#define bgp_summ_color_prod_real(A0,A1,A2,B0,B1,B2,C0,C1,C2,R)	\
+  bgp_complex_summ_the_prod_real(A0,B0,C0,R);			\
+  bgp_complex_summ_the_prod_real(A1,B1,C1,R);			\
+  bgp_complex_summ_the_prod_real(A2,B2,C2,R);
+
 #define bgp_summassign_color_prod_real(A0,A1,A2,B0,B1,B2,R)	\
-  bgp_complex_summ_the_prod_real(A0,A0,B0,R);			\
-  bgp_complex_summ_the_prod_real(A1,A1,B1,R);			\
-  bgp_complex_summ_the_prod_real(A2,A2,B2,R);
+  bgp_summ_color_prod_real(A0,A1,A2,A0,A1,A2,B0,B1,B2,R)
 
 #define bgp_subtassign_color_prod_real(A0,A1,A2,B0,B1,B2,R)	\
   bgp_complex_subt_the_prod_real(A0,A0,B0,R);			\
@@ -190,9 +195,9 @@
   bgp_complex_subt_the_prod_ireal(O2,O2,I1,__cimag(U12));
 
 #define bgp_assign_minus_one_half_gamma5_prod_spincolor(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2) \
-  bgp_assign_color_prod_real(A0,A1,A2,-0.5);				\
-  bgp_assign_color_prod_real(B0,B1,B2,-0.5);				\
-  bgp_assign_color_prod_real(C0,C1,C2,+0.5);				\
+  bgp_assign_color_prod_real(A0,A1,A2,-0.5);			\
+  bgp_assign_color_prod_real(B0,B1,B2,-0.5);			\
+  bgp_assign_color_prod_real(C0,C1,C2,+0.5);			\
   bgp_assign_color_prod_real(D0,D1,D2,+0.5);
 
 #define bgp_load_spincolor(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,s)	\
@@ -213,13 +218,31 @@
   bgp_subtassign_color(C00,C01,C02,C10,C11,C12);			\
   bgp_subtassign_color(D00,D01,D02,D10,D11,D12);
 
+#define bgp_summ_spincolor_prod_real(A00,A01,A02,B00,B01,B02,C00,C01,C02,D00,D01,D02,A10,A11,A12,B10,B11,B12,C10,C11,C12,D10,D11,D12,A20,A21,A22,B20,B21,B22,C20,C21,C22,D20,D21,D22,R) \
+  bgp_summ_color_prod_real(A00,A01,A02,A10,A11,A12,A20,A21,A22,R); \
+  bgp_summ_color_prod_real(B00,B01,B02,B10,B11,B12,B20,B21,B22,R); \
+  bgp_summ_color_prod_real(C00,C01,C02,C10,C11,C12,C20,C21,C22,R); \
+  bgp_summ_color_prod_real(D00,D01,D02,D10,D11,D12,D20,D21,D22,R);
+
+#define bgp_summassign_spincolor_prod_real(A00,A01,A02,B00,B01,B02,C00,C01,C02,D00,D01,D02,A10,A11,A12,B10,B11,B12,C10,C11,C12,D10,D11,D12,R) \
+  bgp_summassign_color_prod_real(A00,A01,A02,A10,A11,A12,R);			\
+  bgp_summassign_color_prod_real(B00,B01,B02,B10,B11,B12,R);			\
+  bgp_summassign_color_prod_real(C00,C01,C02,C10,C11,C12,R);			\
+  bgp_summassign_color_prod_real(D00,D01,D02,D10,D11,D12,R);
+
+#define bgp_subtassign_spincolor_prod_real(A00,A01,A02,B00,B01,B02,C00,C01,C02,D00,D01,D02,A10,A11,A12,B10,B11,B12,C10,C11,C12,D10,D11,D12,R) \
+  bgp_subtassign_color_prod_real(A00,A01,A02,A10,A11,A12,R);		\
+  bgp_subtassign_color_prod_real(B00,B01,B02,B10,B11,B12,R);		\
+  bgp_subtassign_color_prod_real(C00,C01,C02,C10,C11,C12,R);		\
+  bgp_subtassign_color_prod_real(D00,D01,D02,D10,D11,D12,R);
+
 #define bgp_summassign_color_square_spincolor(N0,N1,N2,A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2) \
   bgp_summassign_square_color(N0,N1,N2,A0,A1,A2);			\
   bgp_summassign_square_color(N0,N1,N2,B0,B1,B2);			\
   bgp_summassign_square_color(N0,N1,N2,C0,C1,C2);			\
   bgp_summassign_square_color(N0,N1,N2,D0,D1,D2);
 
-#define bgp_summassign_color_scalarprod_spincolor(N0,N1,N2,A00,A01,A02,B00,B01,B02,C00,C01,C02,D00,D01,D02,A10,A11,A12,B10,B11,B12,C10,C11,C12,D10,D11,D12) \
+#define bgp_summassign_color_realscalarprod_spincolor(N0,N1,N2,A00,A01,A02,B00,B01,B02,C00,C01,C02,D00,D01,D02,A10,A11,A12,B10,B11,B12,C10,C11,C12,D10,D11,D12) \
   bgp_summassign_scalarprod_color(N0,N1,N2,A00,A01,A02,A10,A11,A12);	\
   bgp_summassign_scalarprod_color(N0,N1,N2,B00,B01,B02,B10,B11,B12);	\
   bgp_summassign_scalarprod_color(N0,N1,N2,C00,C01,C02,C10,C11,C12);	\
