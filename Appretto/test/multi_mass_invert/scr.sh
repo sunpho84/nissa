@@ -21,6 +21,7 @@
     echo GaugeConf ../Conf
     echo ThetaTXYZ 1 0 0 0
     echo Residue 1.e-6
+    echo StoppingCriterion standard
     echo NiterMax 10000
     echo
     echo NSource 4

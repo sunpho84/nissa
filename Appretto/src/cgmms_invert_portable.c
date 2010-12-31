@@ -3,13 +3,43 @@
 #include "dirac_operator.c"
 #include "su3.c"
 
-void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappac,double *m,int niter,double residue,int nmass)
+double calculate_local_weighted_residue(spincolor *source,spincolor *sol,quad_su3 *conf,double kappac,double m,spincolor *s,spincolor *t,int dinf)
+{
+  apply_Q2(s,sol,conf,kappac,m,t);
+  
+  double weighted_residue,loc_weighted_residue=0;  
+  double *ds=(double*)s,*dsource=(double*)source,*dsol=(double*)sol;
+
+  for(int i=0;i<loc_vol*3*4;i++)
+    {
+      double nr=(*ds)-(*dsource);
+      double ni=(*(ds+1))-(*(dsource+1));
+      
+      double contrib=(nr*nr+ni*ni)/((*dsol)*(*dsol)+(*dsol+1)*(*dsol+1));
+
+      if(dinf==2) loc_weighted_residue+=contrib;
+      else if(contrib>loc_weighted_residue) loc_weighted_residue=contrib;
+	
+      ds+=2;dsource+=2;dsol+=2;
+    }
+
+  if(rank_tot>0)
+    if(dinf==2) MPI_Allreduce(&loc_weighted_residue,&weighted_residue,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    else MPI_Allreduce(&loc_weighted_residue,&weighted_residue,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+  else weighted_residue=loc_weighted_residue;
+  
+  if(dinf==2) weighted_residue/=loc_vol;
+  
+  return weighted_residue;
+}
+
+void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappac,double *m,int nmass,int niter,double stopping_residue,int stopping_criterion)
 {
   double zps[nmass],zas[nmass],zfs[nmass],betas[nmass],alphas[nmass];
   double rr,rfrf,pap,alpha;
   double betap,betaa;
   int iter;
-  int flag[nmass];
+  int flag[nmass],stop=0,running_mass=nmass;
 
   spincolor *t=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord)); //temporary for internal calculation of DD
   spincolor *s=(spincolor*)malloc(sizeof(spincolor)*(loc_vol));
@@ -160,19 +190,57 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
                 }
 	    }
 	    
-            //     check over residual
-            //if(rr*zfs[imass]<residue) flag[imass]=0;
-            
             //     passes all f into actuals
             zps[imass]=zas[imass];
             zas[imass]=zfs[imass];
           }
       rr=rfrf;
       iter++;
+      
+      //     check over residual
+      double residue;
+      if(stopping_criterion==sc_standard)
+	{
+	  residue=rfrf;
+	  if(residue<stopping_residue) stop=1;
 
-      if(rank==0 && debug) printf("cgmms iter %d residue %g\n",iter,rfrf);
+	  if(rank==0 && debug) printf("cgmms iter %d residue %g\n",iter,residue);
+     	}
+      else	      //different stopping criterion for each mass
+	{
+	  if((stopping_criterion==sc_differentiate||iter%10==0) && rank==0 && debug)
+	    printf("cgmms iter %d residue(s):\t",iter);
+	for(int imass=nmass-1;imass>=0;imass--)
+	  if(flag[imass])
+	    {
+	      if(stopping_criterion==sc_differentiate)
+		{
+		  residue=rr*zfs[imass];
+		  if(rank==0 && debug) printf("%g",residue);
+		}
+	      else
+		if(iter%10==0)
+		  {  //locally weighted norm
+		    communicate_lx_spincolor_borders(sol[imass]);
+		    if(stopping_criterion==sc_weighted_norm2)
+		      residue=calculate_local_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,2);
+		    else
+		      residue=calculate_local_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,-1);
+		  	      
+		    if(residue<stopping_residue)
+		      {
+			running_mass--;
+			flag[imass]=0;
+		      }
+		    if(rank==0 && debug) printf("%g\t",residue);
+		  }
+	    }
+	if((stopping_criterion==sc_differentiate||iter%10==0) && rank==0 && debug)
+	  printf("\n");
+	}
+      if(running_mass==0) stop=1;
     }
-  while(rfrf>residue && iter<niter);
+  while(stop==0 && iter<niter);
 
   for(int imass=0;imass<nmass;imass++)  communicate_lx_spincolor_borders(sol[imass]);
   
