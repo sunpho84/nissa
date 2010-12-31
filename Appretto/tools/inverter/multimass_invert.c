@@ -63,6 +63,25 @@ int main(int narg,char **arg)
 
   double residue;
   read_str_double("Residue",&residue);
+  int stopping_criterion=numb_known_stopping_criterion;
+  char str_stopping_criterion[1024];
+  read_str_str("StoppingCriterion",str_stopping_criterion,1024);
+  int isc=0;
+  do
+    {
+      if(strcasecmp(list_known_stopping_criterion[isc],str_stopping_criterion)==0) stopping_criterion=isc;
+      isc++;
+    }
+  while(isc<numb_known_stopping_criterion && stopping_criterion==numb_known_stopping_criterion);
+
+  if(stopping_criterion==numb_known_stopping_criterion && rank==0)
+    {
+      fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
+      fprintf(stderr,"List of known stopping criterions:\n");
+      for(int isc=0;isc<numb_known_stopping_criterion;isc++) fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
+  
   int nitermax;
   read_str_int("NiterMax",&nitermax);
   
@@ -96,7 +115,7 @@ int main(int narg,char **arg)
       double tic;
       MPI_Barrier(cart_comm);
       tic=MPI_Wtime();
-      inv_Q2_cgmms(solution,source,NULL,conf,kappa,m,nitermax,residue,nmass);
+      inv_Q2_cgmms(solution,source,NULL,conf,kappa,m,nmass,nitermax,residue,stopping_criterion);
       
       MPI_Barrier(cart_comm);
       double tac=MPI_Wtime();
@@ -134,20 +153,20 @@ int main(int narg,char **arg)
 	    }
 	}
     }
-
+  
   close_input();
   
   ///////////////////////////////////////////
-
+  
   for(int imass=0;imass<nmass;imass++) free(solution[imass]);
   free(source);
   free(source_reco);
 
   free(conf);
-
+  
   ///////////////////////////////////////////
-
+  
   close_appretto();
-
+  
   return 0;
 }
