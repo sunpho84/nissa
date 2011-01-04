@@ -130,6 +130,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
       while(lambda>residue && iter<niter);
       
       //last calculation of residual, in the case iter>niter
+      communicate_lx_spincolor_borders(sol);
       apply_Q2(s,sol,conf,kappac,m,t);
       {
 	double loc_lambda=0;
