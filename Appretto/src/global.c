@@ -166,6 +166,24 @@ void safe_complex_conj1_prod(complex a,complex b,complex c)
   safe_complex_conj2_prod(a,c,b);
 }
 
+//complex prod i
+void safe_complex_prod_i(complex a,complex b)
+{
+  double temp=b[0];
+  a[0]=-b[1];
+  a[1]=temp;
+}
+void assign_complex_prod_i(complex a){safe_complex_prod_i(a,a);}
+
+//complex prod -i
+void safe_complex_prod_minus_i(complex a,complex b)
+{
+  double temp=b[0];
+  a[0]=b[1];
+  a[1]=-temp;
+}
+void assign_complex_prod_minus_i(complex a){safe_complex_prod_minus_i(a,a);}
+
 //saturate two anti-simmetric tensors
 void as2t_saturate(complex out,as2t a,as2t b)
 {

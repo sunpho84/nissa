@@ -13,12 +13,12 @@
 
 #endif
 
-//Apply the Q+ and Q- operator to a spincolor
-void reconstruct_doublet(spincolor *outplus,spincolor *outminus,spincolor *in,quad_su3 *conf,double kappac,double mu)
+//Apply the Q+ and Q- operator to a spincolor,so that we have Q-^-1 (r==0) and Q+^-1 (r==1) as output
+void reconstruct_doublet(spincolor *outminus,spincolor *outplus,spincolor *in,quad_su3 *conf,double kappac,double mu)
 {
-  apply_Q(outplus,in,conf,kappac,mu);
+  apply_Q(outminus,in,conf,kappac,mu);
   for(int X=0;X<loc_vol;X++)
-    unsafe_spincolor_summ_with_ifactor(outminus[X],outplus[X],in[X],-2*mu);
+    unsafe_spincolor_summ_with_ifactor(outplus[X],outminus[X],in[X],-2*mu);
 }
 
 //Apply the Q+Q- operator to a spincolor
