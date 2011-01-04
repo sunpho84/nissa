@@ -216,7 +216,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	      if(stopping_criterion==sc_differentiate)
 		{
 		  residue=rr*zfs[imass];
-		  if(rank==0 && debug) printf("%g",residue);
+		  if(rank==0 && debug) printf("%g\t",residue);
 		}
 	      else
 		if(iter%10==0)

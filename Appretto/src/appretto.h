@@ -1,3 +1,6 @@
+#include <mpi.h>
+#include <lemon.h>
+
 #include "global.c"
 #include "init.c"
 #include "close.c"

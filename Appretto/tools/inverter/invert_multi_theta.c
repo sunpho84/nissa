@@ -69,6 +69,7 @@ int main(int narg,char **arg)
   spincolor *solution0=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
   spincolor *solutionP=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
   spincolor *solutionM=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+  spincolor *solution3=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
 
   theta[0]=1;theta[1]=theta[2]=theta[3]=0;
   put_boundaries_conditions(conf,theta,1,0);
@@ -85,9 +86,36 @@ int main(int narg,char **arg)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
 	  solutionG[ivol][id][ic][ri]=2*solution0[ivol][id][ic][ri]-solutionP[ivol][id][ic][ri];
-      
 
   theta[0]=0;theta[1]=theta[2]=theta[3]=-2*thetaX;
+  put_boundaries_conditions(conf,theta,1,0);
+  communicate_gauge_borders(conf);
+  inv_Q2_cg(solutionM,source,solutionG,conf,kappa,m,nitermax,1,residue);
+
+  for(int ivol=0;ivol<loc_vol+loc_bord;ivol++)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+	for(int ri=0;ri<2;ri++)
+	  {
+	      double t=thetaX;
+	      double yP=solutionP[ivol][id][ic][ri];
+	      double y0=solution0[ivol][id][ic][ri];
+	      double yM=solutionM[ivol][id][ic][ri];
+	      double c=y0;
+	      double b=(yP-yM)/(2*t);
+	      double a=(yP-b*t-c)/(t*t);
+	      double dt=2*t;
+	      //double diff=solutionG[ivol][id][ic][ri]-yM;
+	      //double summ=solutionG[ivol][id][ic][ri]+yM;
+	      //double scart=fabs(2*diff/summ);
+	      //printf("%g %d %d %d %d %g %g\n",scart,ivol,id,ic,ri,yM,diff+yM);
+
+	      solutionG[ivol][id][ic][ri]=a*dt*dt+b*dt+c;
+	      
+	      //printf("yP %g %g\n",yP,a*t*t+b*t+c);
+	  }
+  
+  theta[0]=0;theta[1]=theta[2]=theta[3]=3*thetaX;
   put_boundaries_conditions(conf,theta,1,0);
   communicate_gauge_borders(conf);
   inv_Q2_cg(solutionM,source,solutionG,conf,kappa,m,nitermax,1,residue);
@@ -99,14 +127,7 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
-  /*
-  theta[0]=0;
-  theta[1]=theta[2]=theta[3]=0.1;
-  put_boundaries_conditions(conf,theta,1,0);
-  communicate_gauge_borders(conf);
-  inv_Q2_cg(solution,source,solution,conf,kappa,m,1000,1,1.e-6);
-  */
-
+  free(solution3);
   free(solution0);
   free(solutionP);
   free(solutionM);
