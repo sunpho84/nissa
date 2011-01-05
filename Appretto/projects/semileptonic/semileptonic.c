@@ -93,6 +93,14 @@ int pm_one(int loc_site)
   else return -1;
 }
 
+int glb(int s)
+{
+  if(s>=loc_vol+loc_bord) return glblx_of_edgelx[s-loc_vol-loc_bord];
+  else
+    if(s>=loc_vol) return glblx_of_bordlx[s-loc_vol];
+    else return glblx_of_loclx[s];
+}
+
 //Adapt the border condition
 void adapt_theta(int putonbords,int putonedges)
 {
