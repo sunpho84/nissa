@@ -186,10 +186,9 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
           }
       }
 
-      //     calculate alphas=alpha*zfs*betas/zas*beta
       for(int imass=0;imass<nmass;imass++)
         if(flag[imass]==1)
-          {
+          { //     calculate alphas=alpha*zfs*betas/zas*beta
             alphas[imass]=alpha*zfs[imass]*betas[imass]/(zas[imass]*betaa);
             
             //     calculate ps'=r'+alpha*p
