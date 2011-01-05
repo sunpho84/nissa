@@ -229,7 +229,6 @@ void set_lx_geometry()
 		      {
 			int temp_xdir=x[jdir];
 			x[jdir]=(x[jdir]+loc_size[jdir]-1)%loc_size[jdir];
-			x[jdir]--;
 			int ibord2=loc_vol+bord_offset[idir]+loc_bord/2+bordlx_of_coord(x,idir);
 			x[jdir]=temp_xdir;
 			loclx_neighdw[ibord][jdir]=ibord2;
