@@ -225,7 +225,7 @@ void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex 
     for(int icontr=0;icontr<ncontr;icontr++)
       {
 	fprintf(fout,"\n");
-	fprintf(fout," # %s%s%s\n",tag,gtag[op2[icontr]],gtag[op1[icontr]]);
+	fprintf(fout," # %s%s%s\n\n",tag,gtag[op2[icontr]],gtag[op1[icontr]]);
 	for(int tempt=0;tempt<glb_size[0];tempt++)
 	  {
 	    int t=tempt+twall;
