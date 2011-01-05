@@ -57,6 +57,16 @@ int nch_contr_3pts;
 complex **ch_contr_3pts;
 int *ch_op1_3pts,*ch_op2_3pts;
 
+//timings
+int ninv_tot=0,ncontr_tot=0;
+double tot_time=0,inv_time=0,contr_time=0;
+
+double take_time()
+{
+  MPI_Barrier(MPI_COMM_WORLD);
+  return MPI_Wtime();
+}
+
 //return the position of the propagator of theta and mass
 int iprop_of(int itheta,int imass){return itheta*nmass+imass;}
 
@@ -91,14 +101,6 @@ int pm_one(int loc_site)
   double r=ran2(loc_site);
   if(r>0.5) return 1;
   else return -1;
-}
-
-int glb(int s)
-{
-  if(s>=loc_vol+loc_bord) return glblx_of_edgelx[s-loc_vol-loc_bord];
-  else
-    if(s>=loc_vol) return glblx_of_bordlx[s-loc_vol];
-    else return glblx_of_loclx[s];
 }
 
 //Adapt the border condition
@@ -452,6 +454,14 @@ void initialize_semileptonic(char *input_path)
 //Finalization
 void close_semileptonic()
 {
+  if(rank==0)
+    {
+      printf("\n");
+      printf("Total time: %g, of which:\n",tot_time);
+      printf(" - %02.2f%s to perform %d inversions\n",inv_time/tot_time*100,"%",ninv_tot);
+      printf(" - %02.2f%s to perform %d contractions\n",contr_time/tot_time*100,"%",ncontr_tot);
+    }
+
   free(Pmunu);free(conf);free(mass);free(theta);
   for(int iprop=0;iprop<npropS0;iprop++){free(S0[0][iprop]);free(S0[1][iprop]);}
   free(S0[0]);free(S0[1]);free(reco_solution[0]);free(reco_solution[1]);
@@ -483,8 +493,11 @@ void calculate_S0()
 	{ //adapt the border condition
 	  put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
 	  adapt_theta(1,1);
-	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
 	  
+	  inv_time-=take_time();
+	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
+	  inv_time+=take_time();ninv_tot++;
+
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet
 	      reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
@@ -513,7 +526,10 @@ void calculate_S1(int ispec)
 	{ //adapt the border condition
 	  put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
 	  adapt_theta(1,1);
+
+	  inv_time-=take_time();
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
+	  inv_time+=take_time();ninv_tot++;
 	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet: r(S1)=!r(spec), so we have to multiply by Q+ if r(spec)==1 and Q- if 0
@@ -547,13 +563,19 @@ void calculate_all_2pts()
 	     
 	     if(rank==0) fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
 	     
+	     contr_time-=take_time();
 	     meson_two_points(contr_2pts,op1_2pts,S0[r1][ip1],op2_2pts,S0[r2][ip2],ncontr_2pts);
+	     contr_time+=take_time();ncontr_tot+=ncontr_2pts;
 	     print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"");
 	     
-	     if(nch_contr_2pts>0) unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin,Pmunu,S0[r2][ip2]);
-	     meson_two_points(ch_contr_2pts,ch_op1_2pts,S0[r1][ip1],ch_op2_2pts,ch_colorspinspin,nch_contr_2pts);
-	     print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,twall,"CHROMO-");
-	     
+	     if(nch_contr_2pts>0)
+	       {
+		 contr_time-=take_time();
+		 unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin,Pmunu,S0[r2][ip2]);
+		 meson_two_points(ch_contr_2pts,ch_op1_2pts,S0[r1][ip1],ch_op2_2pts,ch_colorspinspin,nch_contr_2pts);
+		 contr_time+=take_time();ncontr_tot+=nch_contr_2pts;
+		 print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,twall,"CHROMO-");
+	       }
 	     if(rank==0) fprintf(fout,"\n");
 	    }
   
@@ -575,14 +597,19 @@ void calculate_all_3pts(int ispec)
 	    int ip1=iprop_of(ith1,im1),ip2=iprop_of(ith2,im2);
 	    
 	    if(rank==0) fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
-	    
+	    contr_time-=take_time();
 	    meson_two_points(contr_3pts,op1_3pts,S0[r1][ip1],op2_3pts,S1[ip2],ncontr_3pts);
+	    contr_time+=take_time();ncontr_tot+=ncontr_3pts;
 	    print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"");
 	    
-	    if(nch_contr_3pts>0) unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin,Pmunu,S1[ip2]);
-	    meson_two_points(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_colorspinspin,nch_contr_3pts);
-	    print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,twall,"CHROMO-");
-	    
+	    if(nch_contr_3pts>0)
+	      {
+		unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin,Pmunu,S1[ip2]);
+		contr_time-=take_time();
+		meson_two_points(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_colorspinspin,nch_contr_3pts);
+		contr_time+=take_time();ncontr_tot+=nch_contr_3pts;
+		print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,twall,"CHROMO-");
+	      }
 	    if(rank==0) fprintf(fout,"\n");
 	  }
   
@@ -594,7 +621,6 @@ void check_two_points()
 {
   FILE *fout=open_text_file_for_output("2pts_check");
   int spat_vol=glb_size[1]*glb_size[2]*glb_size[3];
-
 
   for(int ith2=0;ith2<ntheta;ith2++)
     for(int im2=0;im2<nmass;im2++)
@@ -637,6 +663,7 @@ int main(int narg,char **arg)
 	MPI_Abort(MPI_COMM_WORLD,1);
       }
 
+  tot_time-=take_time();
   initialize_semileptonic(arg[1]);
   
   generate_source();
@@ -651,6 +678,7 @@ int main(int narg,char **arg)
       calculate_all_3pts(ispec);
     }
   
+  tot_time+=take_time();
   close_semileptonic();
   
   return 0;
