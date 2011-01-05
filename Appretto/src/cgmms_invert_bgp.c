@@ -3,6 +3,47 @@
 #include "dirac_operator.c"
 #include "su3.c"
 
+double calculate_weighted_residue(spincolor *source,spincolor *sol,quad_su3 *conf,double kappac,double m,spincolor *s,spincolor *t,int dinf)
+{
+  apply_Q2(s,sol,conf,kappac,m,t);
+  
+  double loc_weighted_residue=0,tot_weighted_residue;
+  double loc_weight=0,tot_weight;
+  double *ds=(double*)s,*dsource=(double*)source,*dsol=(double*)sol;
+
+  for(int i=0;i<loc_vol*3*4;i++)
+    {
+      double nr=(*ds)-(*dsource);
+      double ni=(*(ds+1))-(*(dsource+1));
+      
+      double weight=1/((*dsol)*(*dsol)+(*dsol+1)*(*dsol+1));
+      double contrib=(nr*nr+ni*ni)*weight;
+
+      if(dinf==2)
+        {
+          loc_weighted_residue+=contrib;
+          loc_weight+=weight;
+        }
+      else if(contrib>loc_weighted_residue) loc_weighted_residue=contrib;
+        
+      ds+=2;dsource+=2;dsol+=2;
+    }
+    }
+
+  if(rank_tot>0)
+    if(dinf==2)
+      {
+        MPI_Allreduce(&loc_weighted_residue,&tot_weighted_residue,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        MPI_Allreduce(&loc_weight,&tot_weight,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+      }
+    else MPI_Allreduce(&loc_weighted_residue,&tot_weighted_residue,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+  else tot_weighted_residue=loc_weighted_residue;
+  
+  if(dinf==2) tot_weighted_residue/=loc_vol*tot_weight;
+  
+  return tot_weighted_residue;
+}
+
 void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappac,double *m,int nmass,int niter,double stopping_residue,int stopping_criterion)
 {
   static double _Complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
@@ -14,7 +55,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
   double rr,rfrf,pap,alpha;
   double betap,betaa;
   int iter;
-  int flag[nmass];
+  int flag[nmass],stop=0,running_mass=nmass;
 
   spincolor *t=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord)); //temporary for internal calculation of DD
   spincolor *s=(spincolor*)malloc(sizeof(spincolor)*(loc_vol));
@@ -49,6 +90,8 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
         
     if(rank_tot>0) MPI_Allreduce(cloc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     else rr=cloc_rr[0];
+
+    if(stopping_criterion==sc_standard||stopping_criterion==sc_differentiate) stopping_residue*=rr;
   }
 
   //     -betaa=1
@@ -168,37 +211,71 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
       //     calculate alphas=alpha*zfs*betas/zas*beta
       for(int imass=0;imass<nmass;imass++) alphas[imass]=alpha*zfs[imass]*betas[imass]/(zas[imass]*betaa);
       //     calculate ps'=zfs*r'+alphas*ps
-      {
-	for(int i=0;i<loc_vol;i++)
-	  {
-	    bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,r[i]);
-	    for(int imass=0;imass<nmass;imass++) 
-	      if(flag[imass]==1)
-		{
-		  bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,ps[imass][i]);
-		  bgp_assign_spincolor_prod_real(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,alphas[imass]);
-		  bgp_summassign_spincolor_prod_real(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,zfs[imass]);
-		  bgp_save_spincolor(ps[imass][i],B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32);
-		}
-	  }
-      }
+        if(flag[imass]==1)
+          {
+	    for(int i=0;i<loc_vol;i++)
+	      {
+		bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,r[i]);
+		for(int imass=0;imass<nmass;imass++) 
+		  if(flag[imass]==1)
+		    {
+		      bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,ps[imass][i]);
+		      bgp_assign_spincolor_prod_real(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,alphas[imass]);
+		      bgp_summassign_spincolor_prod_real(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,zfs[imass]);
+		      bgp_save_spincolor(ps[imass][i],B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32);
+		    }
+	      }
 	    
-	//     check over residual
-	//if(rr*zfs[imass]<residue) flag[imass]=0;
-        
-	//     passes all f into actuals
-	for(int imass=0;imass<nmass;imass++)
-	  {
+	    //     passes all f into actuals
 	    zps[imass]=zas[imass];
 	    zas[imass]=zfs[imass];
 	  }
-      rr=rfrf;
-      iter++;
-
-      if(rank==0 && debug) printf("cgmms iter %d residue %g\n",iter,rfrf);
+	rr=rfrf;
+	iter++;
+	
+	//     check over residual
+	if(stopping_criterion==sc_standard)
+	  {
+	    residue=rfrf;
+	    if(residue<stopping_residue) stop=1;
+	    
+	    if(rank==0 && debug) printf("cgmms iter %d residue %g\n",iter,residue);
+	  }
+	else            //different stopping criterion for each mass
+	  {
+	    if((stopping_criterion==sc_differentiate||iter%10==0) && rank==0 && debug)
+	      printf("cgmms iter %d residue(s):\t",iter);
+	    for(int imass=nmass-1;imass>=0;imass--)
+	      if(flag[imass])
+		{
+		  if(stopping_criterion==sc_differentiate)
+		    {
+		      residue=rr*zfs[imass];
+		      if(rank==0 && debug) printf("%g\t",residue);
+		    }
+		  else
+		    if(iter%10==0)
+		      {  //locally weighted norm
+			communicate_lx_spincolor_borders(sol[imass]);
+			if(stopping_criterion==sc_weighted_norm2)
+			  residue=calculate_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,2);
+			else residue=calculate_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,-1);
+			
+			if(residue<stopping_residue)
+			  {
+			    running_mass--;
+			    flag[imass]=0;
+			  }
+			if(rank==0 && debug) printf("%g\t",residue);
+		      }
+		}
+	    if((stopping_criterion==sc_differentiate||iter%10==0) && rank==0 && debug)
+	      printf("\n");
+	  }
+	if(running_mass==0) stop=1;
     }
-  while(rfrf>stopping_residue && iter<niter);
-
+  while(stop==0 && iter<niter);
+  
   for(int imass=0;imass<nmass;imass++)  communicate_lx_spincolor_borders(sol[imass]);
   
   for(int imass=0;imass<nmass;imass++) free(ps[imass]);
