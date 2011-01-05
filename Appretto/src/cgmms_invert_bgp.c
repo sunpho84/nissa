@@ -28,8 +28,7 @@ double calculate_weighted_residue(spincolor *source,spincolor *sol,quad_su3 *con
         
       ds+=2;dsource+=2;dsol+=2;
     }
-    }
-
+  
   if(rank_tot>0)
     if(dinf==2)
       {
@@ -208,11 +207,13 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
           }
       }
 
-      //     calculate alphas=alpha*zfs*betas/zas*beta
-      for(int imass=0;imass<nmass;imass++) alphas[imass]=alpha*zfs[imass]*betas[imass]/(zas[imass]*betaa);
-      //     calculate ps'=zfs*r'+alphas*ps
+
+      for(int imass=0;imass<nmass;imass++)
         if(flag[imass]==1)
           {
+	    //     calculate alphas=alpha*zfs*betas/zas*beta
+	    alphas[imass]=alpha*zfs[imass]*betas[imass]/(zas[imass]*betaa);
+	    //     calculate ps'=zfs*r'+alphas*ps
 	    for(int i=0;i<loc_vol;i++)
 	      {
 		bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,r[i]);
@@ -234,6 +235,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	iter++;
 	
 	//     check over residual
+	double residue;
 	if(stopping_criterion==sc_standard)
 	  {
 	    residue=rfrf;
