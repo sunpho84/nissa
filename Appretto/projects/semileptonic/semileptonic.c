@@ -57,6 +57,9 @@ int nch_contr_3pts;
 complex **ch_contr_3pts;
 int *ch_op1_3pts,*ch_op2_3pts;
 
+//return the position of the propagator of theta and mass
+int iprop_of(int itheta,int imass){return itheta*nmass+imass;}
+
 //allocate vectors of the required length
 char *allocate_vector(int length,char *tag)
 {
@@ -215,7 +218,6 @@ void generate_source()
 //Generate a sequential source for S1
 void generate_sequential_source(int ispec)
 {
-  int iprop=ith_spec[ispec]*nmass+imass_spec[ispec];
   int r=r_spec[ispec];
 
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -224,7 +226,7 @@ void generate_sequential_source(int ispec)
 	memset(sequential_source[ivol],0,sizeof(colorspinspin));
       else
 	{ //avoid to put g5, beacuse commutate with (i+-g5)/sqrt(2) and cancel with those of the QQ
-	  memcpy(sequential_source[ivol],S0[r][iprop][ivol],sizeof(colorspinspin));
+	  memcpy(sequential_source[ivol],S0[r][iprop_of(theta[ith_spec[ispec]],mass[imass_spec[ispec]])][ivol],sizeof(colorspinspin));
 	  for(int c=0;c<3;c++) //rotate as r because it's D^-1
 	    rotate_spinspin_to_physical_basis(sequential_source[ivol][c],r,r);
 	}
@@ -241,9 +243,9 @@ void read_list_of_doubles(char *tag,int *nentries,double **list)
   for(int ientr=0;ientr<(*nentries);ientr++)
     {
       read_double(&((*list)[ientr]));
-      printf("%g\t",(*list)[ientr]);
+      if(rank==0) printf("%g\t",(*list)[ientr]);
     }
-  printf("\n");
+  if(rank==0) printf("\n");
 }
 
 //Parse all the input file
@@ -352,7 +354,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(ith_spec[ispec]));
       read_int(&(imass_spec[ispec]));
       read_int(&(r_spec[ispec]));
-      printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,theta[ith_spec[ispec]],mass[imass_spec[ispec]],r_spec[ispec]);
+      if(rank==0)printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,theta[ith_spec[ispec]],mass[imass_spec[ispec]],r_spec[ispec]);
     }
   read_str_int("NContrThreePoints",&ncontr_3pts);
   contr_3pts=(complex**)malloc(sizeof(complex*)*ncontr_3pts);
@@ -402,7 +404,7 @@ void initialize_semileptonic(char *input_path)
   communicate_gauge_edges(conf);
   
   double gplaq=global_plaquette(conf);
-  if(rank==0) printf("plaq: %.10g\n",gplaq);
+  if(rank==0) printf("plaq: %.18g\n",gplaq);
   
   Pmunu_term(Pmunu,conf);
   
@@ -472,16 +474,15 @@ void calculate_S0()
       for(int itheta=0;itheta<ntheta;itheta++)
 	{ //adapt the border condition
 	  put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
-	  adapt_theta(1,0);
+	  adapt_theta(1,1);
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
-	  for(int imass=0;imass<nmass;imass++) printf("residue %d %g\n",imass,calculate_local_weighted_residue(source,cgmms_solution[imass],conf,kappa,mass[imass],reco_solution[0],reco_solution[1],2));
-
+	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet
 	      reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		for(int i=0;i<loc_vol;i++)
-		  put_spincolor_into_colorspinspin(S0[r][itheta*nmass+imass][i],reco_solution[r][i],id);
+		  put_spincolor_into_colorspinspin(S0[r][iprop_of(itheta,imass)][i],reco_solution[r][i],id);
 	    }
 	}
     }
@@ -503,7 +504,7 @@ void calculate_S1(int ispec)
       for(int itheta=0;itheta<ntheta;itheta++)
 	{ //adapt the border condition
 	  put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
-	  adapt_theta(1,0);
+	  adapt_theta(1,1);
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
 	  
 	  for(int imass=0;imass<nmass;imass++)
@@ -512,7 +513,7 @@ void calculate_S1(int ispec)
 	      if(r_spec[ispec]==1) reco_mass=-reco_mass;
 	      //use reco_solution[0] as temporary storage
 	      apply_Q(reco_solution[0],cgmms_solution[imass],conf,kappa,reco_mass);
-	      for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S1[itheta*nmass+imass][i],reco_solution[0][i],id);
+	      for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass)][i],reco_solution[0][i],id);
 	    }
 	}
     }
@@ -534,7 +535,7 @@ void calculate_all_2pts()
 	for(int im1=0;im1<nmass;im1++)
 	  for(int r1=0;r1<2;r1++)
 	    {
-	     int ip1=ith1*nmass+im1,ip2=ith2*nmass+im2;
+	      int ip1=iprop_of(ith1,im1),ip2=iprop_of(ith2,im2);
 	     
 	     if(rank==0) fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
 	     
@@ -563,7 +564,7 @@ void calculate_all_3pts(int ispec)
       for(int ith1=0;ith1<ntheta;ith1++)
 	for(int im1=0;im1<nmass;im1++)
 	  {
-	    int ip1=ith1*nmass+im1,ip2=ith2*nmass+im2;
+	    int ip1=iprop_of(ith1,im1),ip2=iprop_of(ith2,im2);
 	    
 	    if(rank==0) fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
 	    
@@ -590,7 +591,7 @@ void check_two_points()
   for(int ith2=0;ith2<ntheta;ith2++)
     for(int im2=0;im2<nmass;im2++)
       {
-	int ip2=ith2*nmass+im2;
+	int ip2=iprop_of(ith2,im2);
 	contract_with_source(contr_2pts,S1[ip2],op2_2pts,original_source);
 	
 	if(rank==0)

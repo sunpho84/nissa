@@ -3,11 +3,12 @@
 #include "dirac_operator.c"
 #include "su3.c"
 
-double calculate_local_weighted_residue(spincolor *source,spincolor *sol,quad_su3 *conf,double kappac,double m,spincolor *s,spincolor *t,int dinf)
+double calculate_weighted_residue(spincolor *source,spincolor *sol,quad_su3 *conf,double kappac,double m,spincolor *s,spincolor *t,int dinf)
 {
   apply_Q2(s,sol,conf,kappac,m,t);
   
-  double weighted_residue,loc_weighted_residue=0;  
+  double loc_weighted_residue=0,tot_weighted_residue;
+  double loc_weight=0,tot_weight;
   double *ds=(double*)s,*dsource=(double*)source,*dsol=(double*)sol;
 
   for(int i=0;i<loc_vol*3*4;i++)
@@ -15,22 +16,31 @@ double calculate_local_weighted_residue(spincolor *source,spincolor *sol,quad_su
       double nr=(*ds)-(*dsource);
       double ni=(*(ds+1))-(*(dsource+1));
       
-      double contrib=(nr*nr+ni*ni)/((*dsol)*(*dsol)+(*dsol+1)*(*dsol+1));
+      double weight=1/((*dsol)*(*dsol)+(*dsol+1)*(*dsol+1));
+      double contrib=(nr*nr+ni*ni)*weight;
 
-      if(dinf==2) loc_weighted_residue+=contrib;
+      if(dinf==2)
+	{
+	  loc_weighted_residue+=contrib;
+	  loc_weight+=weight;
+	}
       else if(contrib>loc_weighted_residue) loc_weighted_residue=contrib;
 	
       ds+=2;dsource+=2;dsol+=2;
     }
 
   if(rank_tot>0)
-    if(dinf==2) MPI_Allreduce(&loc_weighted_residue,&weighted_residue,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    else MPI_Allreduce(&loc_weighted_residue,&weighted_residue,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
-  else weighted_residue=loc_weighted_residue;
+    if(dinf==2)
+      {
+	MPI_Allreduce(&loc_weighted_residue,&tot_weighted_residue,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	MPI_Allreduce(&loc_weight,&tot_weight,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+      }
+    else MPI_Allreduce(&loc_weighted_residue,&tot_weighted_residue,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
+  else tot_weighted_residue=loc_weighted_residue;
   
-  if(dinf==2) weighted_residue/=loc_vol;
+  if(dinf==2) tot_weighted_residue/=loc_vol*tot_weight;
   
-  return weighted_residue;
+  return tot_weighted_residue;
 }
 
 void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappac,double *m,int nmass,int niter,double stopping_residue,int stopping_criterion)
@@ -71,6 +81,8 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
       }
     if(rank_tot>0) MPI_Allreduce(&loc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     else rr=loc_rr;
+
+    if(stopping_criterion==sc_standard||stopping_criterion==sc_differentiate) stopping_residue*=rr;
   }
 
   //     -betaa=1
@@ -223,9 +235,9 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 		  {  //locally weighted norm
 		    communicate_lx_spincolor_borders(sol[imass]);
 		    if(stopping_criterion==sc_weighted_norm2)
-		      residue=calculate_local_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,2);
+		      residue=calculate_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,2);
 		    else
-		      residue=calculate_local_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,-1);
+		      residue=calculate_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,-1);
 		  	      
 		    if(residue<stopping_residue)
 		      {
