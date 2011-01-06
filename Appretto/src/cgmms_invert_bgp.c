@@ -3,9 +3,9 @@
 #include "dirac_operator.c"
 #include "su3.c"
 
-double calculate_weighted_residue(spincolor *source,spincolor *sol,quad_su3 *conf,double kappac,double m,spincolor *s,spincolor *t,int dinf)
+double calculate_weighted_residue(spincolor *source,spincolor *sol,quad_su3 *conf,double kappac,double m,spincolor *s,spincolor *t,int dinf,redspincolor *tin,redspincolor *tout)
 {
-  apply_Q2(s,sol,conf,kappac,m,t);
+  apply_Q2(s,sol,conf,kappac,m,t,tout,tin);
   
   double loc_weighted_residue=0,tot_weighted_residue;
   double loc_weight=0,tot_weight;
@@ -56,13 +56,16 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
   int iter;
   int flag[nmass],stop=0,running_mass=nmass;
 
+  redspincolor *tout=(redspincolor*)malloc(sizeof(redspincolor)*loc_bord);
+  redspincolor *tin=(redspincolor*)malloc(sizeof(redspincolor)*loc_bord);
+
   spincolor *t=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord)); //temporary for internal calculation of DD
   spincolor *s=(spincolor*)malloc(sizeof(spincolor)*(loc_vol));
   spincolor *r=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   spincolor *p=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
   spincolor **ps=(spincolor**)malloc(sizeof(spincolor*)*nmass);
-  for(int imass=0;imass<nmass;imass++) ps[imass]=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
-  
+  for(int imass=0;imass<nmass;imass++) ps[imass]=(spincolor*)malloc(sizeof(spincolor)*loc_vol); 
+ 
   //sol[*]=0
   for(int imass=0;imass<nmass;imass++)
     {
@@ -123,8 +126,8 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
   do
     {
       //     -s=Ap
-      if(rank_tot>0) communicate_lx_spincolor_borders(p);
-      apply_Q2(s,p,conf,kappac,m[0],t);
+      if(rank_tot>0) communicate_lx_redspincolor_borders(p,tout,tin);
+      apply_Q2(s,p,conf,kappac,m[0],t,tout,tin);
       
       //     -pap=(p,s)=(p,Ap)
       {
@@ -258,10 +261,10 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 		  else
 		    if(iter%10==0)
 		      {  //locally weighted norm
-			communicate_lx_spincolor_borders(sol[imass]);
+			communicate_lx_redspincolor_borders(sol[imass],tout,tin);
 			if(stopping_criterion==sc_weighted_norm2)
-			  residue=calculate_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,2);
-			else residue=calculate_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,-1);
+			  residue=calculate_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,2,tout,tin);
+			else residue=calculate_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,-1,tout,tin);
 			
 			if(residue<stopping_residue)
 			  {
@@ -286,4 +289,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
   free(p);
   free(r);
   free(t);
+  
+  free(tout);
+  free(tin);
 }

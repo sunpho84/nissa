@@ -12,6 +12,8 @@ int **glb_coord_of_loclx;
 int **loc_coord_of_loclx;
 int *glblx_of_loclx=NULL;
 int *glblx_of_bordlx=NULL;
+int *loclx_of_bordlx=NULL;
+int *dir_of_bordlx=NULL;
 int *glblx_of_edgelx=NULL;
 //-eor is even-odd reduced
 int loc_volr;
@@ -28,12 +30,16 @@ char list_known_stopping_criterion[4][1024]={"standard","differentiate","weighte
 MPI_Datatype MPI_SU3;
 MPI_Datatype MPI_QUAD_SU3;
 MPI_Datatype MPI_SPINCOLOR;
+MPI_Datatype MPI_REDSPINCOLOR;
 
 //size of the border along the 4 dir,types for sending
+int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
+int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
 int bord_dir_vol[4],bord_offset[4];
 int loc_bord;
 MPI_Datatype MPI_GAUGE_BORD_SEND[4],MPI_GAUGE_BORD_RECE[4];
 MPI_Datatype MPI_LXSPINCOLOR_BORD_SEND[4],MPI_LXSPINCOLOR_BORD_RECE[4];
+MPI_Datatype MPI_LXREDSPINCOLOR_BORD[4];
 
 //size of the edges along the 6 directions
 int edge_dir_vol[6],edge_offset[6];
@@ -69,6 +75,7 @@ typedef complex spin[4];
 typedef complex color[3];
 
 typedef spin colorspin[3];
+typedef color redspincolor[2];
 typedef color spincolor[4];
 
 typedef spin spinspin[4];

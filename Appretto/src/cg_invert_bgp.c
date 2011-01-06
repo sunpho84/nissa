@@ -16,6 +16,10 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
   spincolor *r=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   spincolor *t=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord)); //temporary for internal calculation of DD
 
+  //temporary for comunications of Q2
+  redspincolor *tout=(redspincolor*)malloc(sizeof(redspincolor)*loc_bord); 
+  redspincolor *tin=(redspincolor*)malloc(sizeof(redspincolor)*loc_bord);
+
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
   else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));
 
@@ -27,7 +31,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
       double delta;
       {
 
-	apply_Q2(s,sol,conf,kappac,m,t);
+	apply_Q2(s,sol,conf,kappac,m,t,tout,tin);
 
 	complex cloc_delta={0,0};
 
@@ -55,8 +59,8 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
 	  double omega; //(r_k,r_k)/(p_k*DD*p_k)
 	  {
 	    double alpha;
-	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
-	    apply_Q2(s,p,conf,kappac,m,t);
+	    if(rank_tot>0) communicate_lx_redspincolor_borders(p,tout,tin);
+	    apply_Q2(s,p,conf,kappac,m,t,tout,tin);
 
 	    complex cloc_alpha={0,0};
 
@@ -100,7 +104,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
 	    bgp_save_complex(cloc_lambda,N0);
 	    if(rank_tot>0) 
 	      {
-		communicate_lx_spincolor_borders(sol);
+		communicate_lx_redspincolor_borders(sol,tout,tin);
 		MPI_Allreduce(cloc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	      }
 	    else lambda=cloc_lambda[0];
@@ -131,7 +135,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
       
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
-      apply_Q2(s,sol,conf,kappac,m,t);
+      apply_Q2(s,sol,conf,kappac,m,t,tout,tin);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;
@@ -154,4 +158,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
   free(p);
   free(r);
   free(t);
+  
+  free(tout);
+  free(tin);
 }

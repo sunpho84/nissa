@@ -84,7 +84,11 @@ void set_lx_geometry()
     }
 
   glblx_of_loclx=(int*)malloc(sizeof(int)*loc_vol);
+
   glblx_of_bordlx=(int*)malloc(sizeof(int)*loc_bord);
+  loclx_of_bordlx=(int*)malloc(sizeof(int)*loc_bord);
+  dir_of_bordlx=(int*)malloc(sizeof(int)*loc_bord);
+
   glblx_of_edgelx=(int*)malloc(sizeof(int)*loc_edge);
 
   //Label the sites
@@ -143,8 +147,12 @@ void set_lx_geometry()
 	      loclx_neighdw[ibord][idir]=-1;
 	      //number the elements of the border
 	      gx[idir]=(gx[idir]-1+glb_size[idir])%glb_size[idir];
+	      x[idir]=(x[idir]-1+loc_size[idir])%loc_size[idir];
 	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
+	      loclx_of_bordlx[raw_ibord]=loclx_of_coord(x);
+	      dir_of_bordlx[raw_ibord]=2*idir+1;
 	      gx[idir]=glb_coord_of_loclx[iloc][idir];
+	      x[idir]=loc_coord_of_loclx[iloc][idir];
 
 	      //This is the bad moment: the movents inside the cube
 	      for(int jdir=0;jdir<4;jdir++)
@@ -217,8 +225,12 @@ void set_lx_geometry()
 	      loclx_neighup[ibord][idir]=-1;
 	      //number the elements of the border
 	      gx[idir]=(gx[idir]+1+glb_size[idir])%glb_size[idir];
+	      x[idir]=(x[idir]+1+loc_size[idir])%loc_size[idir];
 	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
+	      loclx_of_bordlx[raw_ibord]=loclx_of_coord(x);
+	      dir_of_bordlx[raw_ibord]=2*idir;
 	      gx[idir]=glb_coord_of_loclx[iloc][idir];
+	      x[idir]=loc_coord_of_loclx[iloc][idir];
 
 	      //Another very bad moment: the movents inside the cube
 	      for(int jdir=0;jdir<4;jdir++)
@@ -274,6 +286,20 @@ void set_lx_geometry()
 	    }
 	}
     }
+
+  //init sender and receiver points for borders
+  for(int i=0;i<4;i++)
+    if(paral_dir[i]!=0)
+      {
+	start_lx_bord_send_up[i]=loclx_of_coord_list(0,0,0,0);
+	start_lx_bord_rece_up[i]=(loc_vol+bord_offset[i]+loc_bord/2);
+	int x[4];
+	for(int jdir=0;jdir<4;jdir++)
+	  if(jdir==i) x[jdir]=loc_size[i]-1;
+	  else x[jdir]=0;
+	start_lx_bord_send_dw[i]=loclx_of_coord(x);
+	start_lx_bord_rece_dw[i]=loc_vol+bord_offset[i];
+      }
     
   if(rank==0 && debug) printf("Geometry intialized\n");
 }

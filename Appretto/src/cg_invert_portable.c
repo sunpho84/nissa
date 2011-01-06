@@ -11,6 +11,10 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
   spincolor *r=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   spincolor *t=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord)); //temporary for internal calculation of DD
 
+  //temporary for comunications of Q2
+  redspincolor *tout=(redspincolor*)malloc(sizeof(redspincolor)*loc_bord); 
+  redspincolor *tin=(redspincolor*)malloc(sizeof(redspincolor)*loc_bord);
+
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
   else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));
 
@@ -21,7 +25,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       double delta;
       {
-	apply_Q2(s,sol,conf,kappac,m,t);
+	apply_Q2(s,sol,conf,kappac,m,t,tout,tin);
 	double loc_delta=0;
 	double *dsource=(double*)source,*ds=(double*)s,*dp=(double*)p,*dr=(double*)r;
 	for(int i=0;i<loc_vol*3*4*2;i++)
@@ -43,7 +47,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
 	  {
 	    double alpha;
 	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
-	    apply_Q2(s,p,conf,kappac,m,t);
+	    apply_Q2(s,p,conf,kappac,m,t,tout,tin);
 	    double loc_alpha=0;
 	    complex *cs=(complex*)s,*cp=(complex*)p;
 	    for(int i=0;i<loc_vol*3*4;i++)
@@ -95,7 +99,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
       
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
-      apply_Q2(s,sol,conf,kappac,m,t);
+      apply_Q2(s,sol,conf,kappac,m,t,tout,tin);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;
@@ -118,4 +122,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
   free(p);
   free(r);
   free(t);
+
+  free(tin);
+  free(tout);
 }

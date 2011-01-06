@@ -27,6 +27,10 @@ void init_appretto()
   MPI_Type_contiguous(24,MPI_DOUBLE,&MPI_SPINCOLOR);
   MPI_Type_commit(&MPI_SPINCOLOR);  
   
+  //a reduced spincolor (12 doubles)
+  MPI_Type_contiguous(12,MPI_DOUBLE,&MPI_REDSPINCOLOR);
+  MPI_Type_commit(&MPI_REDSPINCOLOR);
+  
   check_endianess();
   init_base_gamma();
 }
@@ -175,7 +179,7 @@ void init_grid()
     {
       set_lx_bord_senders_and_receivers(MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
       set_lx_edge_senders_and_receivers(MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
-      
       set_lx_bord_senders_and_receivers(MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
+      initialize_lx_bord_receivers_of_kind(MPI_LXREDSPINCOLOR_BORD,&MPI_REDSPINCOLOR);
     }
 }
