@@ -22,7 +22,7 @@ void reconstruct_doublet(spincolor *outminus,spincolor *outplus,spincolor *in,qu
 }
 
 //Apply the Q+Q- operator to a spincolor
-void apply_Q2(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu,spincolor *temp)
+void apply_Q2(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu,spincolor *temp,redspincolor *tin,redspincolor *tout)
 {
   int all=0;
 
@@ -33,7 +33,7 @@ void apply_Q2(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu
     }
 
   apply_Q(temp,in,conf,kappa,+mu);
-  communicate_lx_spincolor_borders(temp);
+  communicate_lx_redspincolor_borders(temp,tin,tout);
   apply_Q(out,temp,conf,kappa,-mu);
 
   if(all==1)
