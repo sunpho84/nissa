@@ -5,13 +5,6 @@
 
 #include "appretto.h"
 
-int pm_one(int loc_site)
-{
-  double r=ran2(loc_site);
-  if(r>0.5) return 1;
-  else return -1;
-}
-
 int main(int narg,char **arg)
 {
   char base_filename[1024];
