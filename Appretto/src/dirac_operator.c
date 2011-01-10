@@ -33,7 +33,9 @@ void apply_Q2(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu
     }
 
   apply_Q(temp,in,conf,kappa,+mu);
-  communicate_lx_redspincolor_borders(temp,tin,tout);
+  //if(tin!=NULL && tout!=NULL) communicate_lx_redspincolor_borders(temp,tin,tout);
+  //else
+  communicate_lx_spincolor_borders(temp);
   apply_Q(out,temp,conf,kappa,-mu);
 
   if(all==1)

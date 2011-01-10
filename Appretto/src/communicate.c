@@ -1,6 +1,7 @@
 #pragma once
 
 #include "su3.c"
+#include "bgp_instructions.c"
 
 /* This is the shape and ordering of the border in the memory, for a 3^4 lattice
 _______________________________________________________________________________________________________________________
@@ -172,9 +173,6 @@ void apply_lxspincolor_border_projector(redspincolor *p,spincolor *s)
   static double _Complex S20,S21,S22;
   static double _Complex S30,S31,S32;
 
-  static double _Complex P00,P01,P02;
-  static double _Complex P10,P11,P12;
-
   for(int ibord=0;ibord<loc_bord;ibord++)
     {
       int idir=dir_of_bordlx[ibord];
@@ -188,41 +186,41 @@ void apply_lxspincolor_border_projector(redspincolor *p,spincolor *s)
       switch(idir)
 	{
 	case 0:
-	  bgp_color_summ(P00,P01,P02, S00,S01,S02, S20,S21,S22);
-	  bgp_color_summ(P10,P11,P12, S10,S11,S12, S30,S31,S32);
+	  bgp_summassign_color(S00,S01,S02, S20,S21,S22);
+	  bgp_summassign_color(S10,S11,S12, S30,S31,S32);
 	  break;
 	case 1:
-	  bgp_color_subt(P00,P01,P02, S00,S01,S02, S20,S21,S22);
-	  bgp_color_subt(P10,P11,P12, S10,S11,S12, S30,S31,S32);
+	  bgp_subtassign_color(S00,S01,S02, S20,S21,S22);
+	  bgp_subtassign_color(S10,S11,S12, S30,S31,S32);
 	  break;
 	case 2:
-	  bgp_color_isumm(P00,P01,P02, S00,S01,S02, S30,S31,S32);
-	  bgp_color_isumm(P10,P11,P12, S10,S11,S12, S20,S21,S22);
+	  bgp_summassign_icolor(S00,S01,S02, S30,S31,S32);
+	  bgp_summassign_icolor(S10,S11,S12, S20,S21,S22);
 	  break;
 	case 3:
-	  bgp_color_isubt(P00,P01,P02, S00,S01,S02, S30,S31,S32);
-	  bgp_color_isubt(P10,P11,P12, S10,S11,S12, S20,S21,S22);
+	  bgp_subtassign_icolor(S00,S01,S02, S30,S31,S32);
+	  bgp_subtassign_icolor(S10,S11,S12, S20,S21,S22);
 	  break;
 	case 4:
-	  bgp_color_summ(P00,P01,P02, S00,S01,S02, S30,S31,S32);
-	  bgp_color_subt(P10,P11,P12, S10,S11,S12, S20,S21,S22);
+	  bgp_summassign_color(S00,S01,S02, S30,S31,S32);
+	  bgp_subtassign_color(S10,S11,S12, S20,S21,S22);
 	  break;
 	case 5:
-	  bgp_color_subt(P00,P01,P02, S00,S01,S02, S30,S31,S32);
-	  bgp_color_summ(P10,P11,P12, S10,S11,S12, S20,S21,S22);
+	  bgp_subtassign_color(S00,S01,S02, S30,S31,S32);
+	  bgp_summassign_color(S10,S11,S12, S20,S21,S22);
 	  break;
 	case 6:
-	  bgp_color_isumm(P00,P01,P02, S00,S01,S02, S20,S21,S22);
-	  bgp_color_isubt(P10,P11,P12, S10,S11,S12, S30,S31,S32);
+	  bgp_summassign_icolor(S00,S01,S02, S20,S21,S22);
+	  bgp_subtassign_icolor(S10,S11,S12, S30,S31,S32);
 	  break;
 	case 7:
-	  bgp_color_isubt(P00,P01,P02, S00,S01,S02, S20,S21,S22);
-	  bgp_color_isumm(P10,P11,P12, S10,S11,S12, S30,S31,S32);
+	  bgp_subtassign_icolor(S00,S01,S02, S20,S21,S22);
+	  bgp_summassign_icolor(S10,S11,S12, S30,S31,S32);
 	  break;
 	}
       
-      bgp_save_color(p[ibord][0],P00,P01,P02);
-      bgp_save_color(p[ibord][1],P10,P11,P12);
+      bgp_save_color(p[ibord][0],S00,S01,S02);
+      bgp_save_color(p[ibord][1],S10,S11,S12);
     }
 #else
   for(int ibord=0;ibord<loc_bord;ibord++)

@@ -203,9 +203,34 @@ complex ONE={1,0};
 complex I={0,1};
 
 //pi
-const double PI=3.14159265358979323846;                                                                                                                            
+const double PI=3.14159265358979323846;
 
 //////////////////////////////////////////////////////////
+
+//allocate vectors of the required length
+char *allocate_vector(int length,char *tag)
+{
+  char *out=(char*)malloc(length);
+  if(out==NULL && rank==0)
+    {
+      fprintf(stderr,"Error during allocation of %s\n",tag);
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
+#ifdef BGP
+  if((uint64_t)out%16!=0 && rank==0)
+    {
+      fprintf(stderr,"Error during allocation of %s, alignment not suitable for BGP!\n",tag);
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
+#endif
+  return out;
+}
+
+spincolor *allocate_spincolor(int length,char *tag){return (spincolor*)allocate_vector(length*sizeof(spincolor),tag);}
+quad_su3 *allocate_quad_su3(int length,char *tag){return (quad_su3*)allocate_vector(length*sizeof(quad_su3),tag);}
+as2t_su3 *allocate_as2t_su3(int length,char *tag){return (as2t_su3*)allocate_vector(length*sizeof(as2t_su3),tag);}
+colorspinspin *allocate_colorspinspin(int length,char *tag){return (colorspinspin*)allocate_vector(length*sizeof(colorspinspin),tag);}
+
 
 //Print a spinspin
 void print_spinspin(spinspin s)
