@@ -146,8 +146,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
             {
               zfs[imass]=zas[imass]*zps[imass]*betap/(betaa*alpha*(zps[imass]-zas[imass])+zps[imass]*betap*(1-(m[imass]-m[0])*(m[imass]+m[0])*betaa));
               betas[imass]=betaa*zfs[imass]/zas[imass];
-            
-
+	      
 	      {
 		double *dps=(double*)(ps[imass]),*dsol=(double*)(sol[imass]);
 		for(int i=0;i<loc_vol*3*4*2;i++)
