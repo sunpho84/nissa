@@ -46,7 +46,7 @@ void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int 
 
   int nreals_loc=nreals_per_site*loc_vol;
   int nbytes_per_site=nreals_per_site*nbits/8;
-  int nbytes_glb=nbytes_per_site*glb_vol;
+  uint64_t nbytes_glb=nbytes_per_site*glb_vol;
 
   char header[1024]="scidac-binary-data";
   write_header(writer,header,nbytes_glb);
