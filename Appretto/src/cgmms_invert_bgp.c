@@ -206,30 +206,30 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
           }
       }
 
-
       for(int imass=0;imass<nmass;imass++)
-        if(flag[imass]==1)
-          {
-	    //     calculate alphas=alpha*zfs*betas/zas*beta
-	    alphas[imass]=alpha*zfs[imass]*betas[imass]/(zas[imass]*betaa);
-	    //     calculate ps'=zfs*r'+alphas*ps
-	    for(int i=0;i<loc_vol;i++)
+        if(flag[imass]==1) //     calculate alphas=alpha*zfs*betas/zas*beta
+	  alphas[imass]=alpha*zfs[imass]*betas[imass]/(zas[imass]*betaa);
+
+      for(int i=0;i<loc_vol;i++)
+	{
+	  bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,r[i]);
+	  for(int imass=0;imass<nmass;imass++)
+	    if(flag[imass]==1) //     calculate ps'=zfs*r'+alphas*ps
 	      {
-		bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,r[i]);
-		for(int imass=0;imass<nmass;imass++) 
-		  if(flag[imass]==1)
-		    {
-		      bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,ps[imass][i]);
-		      bgp_assign_spincolor_prod_real(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,alphas[imass]);
-		      bgp_summassign_spincolor_prod_real(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,zfs[imass]);
-		      bgp_save_spincolor(ps[imass][i],B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32);
-		    }
+		bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,ps[imass][i]);
+		bgp_assign_spincolor_prod_real(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,alphas[imass]);
+		bgp_summassign_spincolor_prod_real(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,zfs[imass]);
+		bgp_save_spincolor(ps[imass][i],B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32);
 	      }
-	    
-	    //     passes all f into actuals
+	}
+  
+      for(int imass=0;imass<nmass;imass++)
+	if(flag[imass]==1) //     passes all f into actuals
+	  {
 	    zps[imass]=zas[imass];
 	    zas[imass]=zfs[imass];
 	  }
+
 	rr=rfrf;
 	iter++;
 	
