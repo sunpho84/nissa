@@ -25,7 +25,7 @@ void site_trace_g_sdag_g_s_g_sdag_g_s (complex c,dirac_matr *g1,spinspin s1,dira
 
 //Trace the product of gamma1 * spinspin1^dag * gamma2 * spinspin2,
 //this version is quite inefficient and kept here for pedagogical reasons
-void trace_g_sdag_g_s_old(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,const int ncontr)
+void trace_g_sdag_g_s(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,const int ncontr)
 {
   //Allocate a contguous memory area where to store local results
   complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
@@ -88,7 +88,7 @@ void trace_g_sdag_g_s_old(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac
 //Performed this way:
 // \sum_{vol,a,b,c,d} g1_ab S_bc^+ g2_cd S_da = \sum_{a,c} g1_a g2_c \sum_vol S_cb(a)^* S_d(c)a = 
 // \sum_i X_i Y_i where i=4*a+c, X_i = g1_a g2_c and Y_i = \sum_vol S_cb(a)^* S_d(c)a
-void trace_g_sdag_g_s(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,const int ncontr)
+void trace_g_sdag_g_s_new(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,const int ncontr)
 {
   //Allocate X_i
   complex X[loc_size[0]][16];

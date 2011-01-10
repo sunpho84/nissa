@@ -6,8 +6,9 @@
 #include "endianess.c"
 
 //Write the header for a record
-void write_header(LemonWriter *writer,char *header,int record_bytes)
+void write_header(LemonWriter *writer,char *header,uint64_t record_bytes)
 {
+  if(rank==0) printf("Writing: %Ld bytes\n",record_bytes);
   LemonRecordHeader *lemon_header=lemonCreateHeader(1,1,header,record_bytes);
   lemonWriteRecordHeader(lemon_header,writer);
   lemonDestroyHeader(lemon_header);
@@ -52,8 +53,17 @@ void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int 
   write_header(writer,header,nbytes_glb);
 
   char *buffer=NULL;
-  if(big_endian || nbits==32) buffer=(char*)malloc(sizeof(char)*nbytes_glb);
-  
+  if(big_endian || nbits==32)
+    {
+      buffer=(char*)malloc(sizeof(double)*nreals_loc);
+      if(buffer==NULL && rank==0)
+	{
+	  fprintf(stderr,"Error allocating: buffer for writing\n");
+	  fflush(stderr);
+	  MPI_Abort(MPI_COMM_WORLD,1);
+	}
+    }	    
+
   if(nbits==64)
     if(big_endian) doubles_to_doubles_changing_endianess((double*)buffer,(double*)data,nreals_loc);
     else buffer=data;
