@@ -45,7 +45,7 @@ int read_binary_blob(char *data_out,char *path,const char *expected_record,int m
 	  nbytes_per_site=nbytes/glb_vol;
 	  if(nbytes_per_site>max_nbytes_per_site && rank==0)
 	    {
-	      fprintf(stderr,"Opsss! The file contain %d bytes per site and it is supposed to contain not more than: %d or %d\n",nbytes,nbytes_per_site,max_nbytes_per_site);
+	      fprintf(stderr,"Opsss! The file contain %Ld bytes per site and it is supposed to contain not more than: %d or %d\n",nbytes,nbytes_per_site,max_nbytes_per_site);
 	      fflush(stderr);
 	      MPI_Abort(MPI_COMM_WORLD,1);
 	    }
@@ -64,7 +64,7 @@ int read_binary_blob(char *data_out,char *path,const char *expected_record,int m
 	    {
 	      MPI_Barrier(cart_comm);
 	      double tac1=MPI_Wtime();
-	      if(rank==0) printf("Time elapsed by lemon to read %ld bytes: %f s\n",nbytes,tac1-tic1);
+	      if(rank==0) printf("Time elapsed by lemon to read %Ld bytes: %f s\n",nbytes,tac1-tic1);
 	    }
 
 	  read=1;

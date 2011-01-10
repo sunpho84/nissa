@@ -217,11 +217,11 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	  residue=rfrf;
 	  if(residue<stopping_residue) stop=1;
 
-	  if(rank==0 && debug) printf("cgmms iter %d residue %g\n",iter,residue);
+	  if(rank==0 && debug && iter%10==0) printf("cgmms iter %d residue %g\n",iter,residue);
      	}
       else	      //different stopping criterion for each mass
 	{
-	  if((stopping_criterion==sc_differentiate||iter%10==0) && rank==0 && debug)
+	  if(iter%10==0 && rank==0 && debug)
 	    printf("cgmms iter %d residue(s):\t",iter);
 	for(int imass=nmass-1;imass>=0;imass--)
 	  if(flag[imass])
@@ -229,7 +229,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	      if(stopping_criterion==sc_differentiate)
 		{
 		  residue=rr*zfs[imass];
-		  if(rank==0 && debug) printf("%g\t",residue);
+		  if(rank==0 && debug &&iter%10==0) printf("%g\t",residue);
 		}
 	      else
 		if(iter%10==0)
@@ -240,15 +240,16 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 		    else
 		      residue=calculate_weighted_residue(source,sol[imass],conf,kappac,m[imass],s,t,-1,tout,tin);
 		  	      
-		    if(residue<stopping_residue)
-		      {
-			running_mass--;
-			flag[imass]=0;
-		      }
 		    if(rank==0 && debug) printf("%g\t",residue);
 		  }
+
+	      if(residue<stopping_residue)
+		{
+		  running_mass--;
+		  flag[imass]=0;
+		}
 	    }
-	if((stopping_criterion==sc_differentiate||iter%10==0) && rank==0 && debug)
+	if(iter%10==0 && rank==0 && debug)
 	  printf("\n");
 	}
       if(running_mass==0) stop=1;

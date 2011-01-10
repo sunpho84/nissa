@@ -89,3 +89,12 @@ double ran2(int loc_ind)
 
   return out;
 }
+
+//return +-1
+int pm_one(int loc_site)
+{
+  double r=ran2(loc_site);
+  if(r>0.5) return 1;
+  else return -1;
+}
+
