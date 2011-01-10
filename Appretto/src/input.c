@@ -114,3 +114,18 @@ void read_str_str(const char *exp_str,char *in,int length)
 
   if(rank==0 && debug) printf("Read variable '%s' with value: %s\n",exp_str,in);
 }
+
+//Read a list of double and its length, allocate the list
+void read_list_of_doubles(char *tag,int *nentries,double **list)
+{
+  read_str_int(tag,nentries);
+  (*list)=(double*)malloc((*nentries)*sizeof(double));
+  
+  if(rank==0) printf("List of %s:\t",tag);
+  for(int ientr=0;ientr<(*nentries);ientr++)
+    {
+      read_double(&((*list)[ientr]));
+      if(rank==0) printf("%g\t",(*list)[ientr]);
+    }
+  if(rank==0) printf("\n");
+}

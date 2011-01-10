@@ -61,99 +61,8 @@ int *ch_op1_3pts,*ch_op2_3pts;
 int ninv_tot=0,ncontr_tot=0;
 double tot_time=0,inv_time=0,contr_time=0;
 
-double take_time()
-{
-  MPI_Barrier(MPI_COMM_WORLD);
-  return MPI_Wtime();
-}
-
 //return the position of the propagator of theta and mass
 int iprop_of(int itheta,int imass){return itheta*nmass+imass;}
-
-//swap two doubles
-void swap_doubles(double *d1,double *d2)
-{
-  double temp=(*d1);
-  (*d1)=(*d2);
-  (*d2)=temp;
-}
-
-//return +-1
-int pm_one(int loc_site)
-{
-  double r=ran2(loc_site);
-  if(r>0.5) return 1;
-  else return -1;
-}
-
-//Adapt the border condition
-void adapt_theta(int putonbords,int putonedges)
-{
-  double diff_theta[4];
-  int adapt=0;
-
-  for(int idir=0;idir<4;idir++)
-    {
-      adapt=adapt || (old_theta[idir]!=put_theta[idir]);
-      diff_theta[idir]=put_theta[idir]-old_theta[idir];
-      old_theta[idir]=put_theta[idir];
-    }
-  
-  if(adapt)
-    {
-      if(rank==0) printf("Necesarry to add boundary condition: %f %f %f %f\n",diff_theta[0],diff_theta[1],diff_theta[2],diff_theta[3]);
-      put_boundaries_conditions(conf,diff_theta,putonbords,putonedges);
-    }
-}
-
-//Open a text file for output
-FILE* open_text_file_for_output(char *outfile)
-{
-  FILE *fout=NULL;
-  if(rank==0) fout=fopen(outfile,"w");
-  if(rank==0 && fout==NULL)
-    {
-      fprintf(stderr,"Couldn't open the file: %s",outfile);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
-  return fout;
-}
-
-//Rotate left and right by (1+-ig5)/sqrt(2)
-//We distinguish for types of rotations, ir=rsink*2+rsource
-//We divide the spinspin into 4 blocks, according to id<2
-// -------------------------------
-// | div |  0  |  1  |  2  |  3  |
-// -------------------------------
-// | 0 1 | + 1 | 1 + | 1 - | - 1 |
-// | 2 3 | 1 - | - 1 | + 1 | 1 + |
-// -------------------------------
-// so just have to specify which is the block which rotate as +-i
-void rotate_spinspin_to_physical_basis(spinspin s,int rsi,int rso)
-{
-  const int list_prb[4]={0,1,2,3},list_mrb[4]={3,2,1,0}; //plus and minus rotating blocks
-  const int so_shft[4]={0,2,0,2},si_shft[4]={0,0,2,2}; //shift of dirac indexes for blocks
-  
-  int ir=rsi*2+rso,prb=list_prb[ir],mrb=list_mrb[ir];
-  
-  for(int dso=0;dso<2;dso++)
-    for(int dsi=0;dsi<2;dsi++)
-      {
-	int pso=dso+so_shft[prb],psi=dsi+si_shft[prb];
-	int mso=dso+so_shft[mrb],msi=dsi+si_shft[mrb];
-	
-	// rotation with +,-
-	assign_complex_prod_i(s[pso][psi]);
-	assign_complex_prod_minus_i(s[mso][msi]);
-      }
-}
-
-void rotate_vol_colorspinspin_to_physical_basis(colorspinspin *s,int rsi,int rso)
-{
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int ic=0;ic<3;ic++)
-      rotate_spinspin_to_physical_basis(s[ivol][ic],rsi,rso);
-}
 
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr)
@@ -227,21 +136,6 @@ void generate_sequential_source(int ispec)
     }
   if(rank==0) printf("Sequential source created\n");
 }  
-
-//Read a list of double and its length, allocate the list
-void read_list_of_doubles(char *tag,int *nentries,double **list)
-{
-  read_str_int(tag,nentries);
-  (*list)=(double*)malloc((*nentries)*sizeof(double));
-  
-  if(rank==0) printf("List of %s:\t",tag);
-  for(int ientr=0;ientr<(*nentries);ientr++)
-    {
-      read_double(&((*list)[ientr]));
-      if(rank==0) printf("%g\t",(*list)[ientr]);
-    }
-  if(rank==0) printf("\n");
-}
 
 //Parse all the input file
 void initialize_semileptonic(char *input_path)
@@ -405,7 +299,7 @@ void initialize_semileptonic(char *input_path)
   
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
-  adapt_theta(1,1);
+  adapt_theta(conf,old_theta,put_theta,1,1);
 
   //Allocate all the S0 colorspinspin vectors
   npropS0=ntheta*nmass;
@@ -477,10 +371,11 @@ void calculate_S0()
       for(int itheta=0;itheta<ntheta;itheta++)
 	{ //adapt the border condition
 	  put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
-	  adapt_theta(1,1);
+	  adapt_theta(conf,old_theta,put_theta,1,1);
 	  
 	  double part_time=-take_time();
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
+
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	  if(rank==0) printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
 
@@ -512,7 +407,7 @@ void calculate_S1(int ispec)
       for(int itheta=0;itheta<ntheta;itheta++)
 	{ //adapt the border condition
 	  put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
-	  adapt_theta(1,1);
+	  adapt_theta(conf,old_theta,put_theta,1,1);
 
 	  double part_time=-take_time();
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
