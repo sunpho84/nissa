@@ -155,7 +155,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
         {
           if(flag[imass]==1)
             {
-	      zfs[imass]=zas[imass]*zps[imass]*betap/(betaa*alpha*(zps[imass]-zas[imass])+zps[imass]*betap*(1-(m[imass]-m[0])*(m[imass]+m[0])*betaa));
+	      zfs[imass]=zas[imass]*betap/(betaa*alpha*(1-zas[imass]/zps[imass])+betap*(1-(m[imass]-m[0])*(m[imass]+m[0])*betaa));
 	      betas[imass]=betaa*zfs[imass]/zas[imass];
 	      
 	      {
@@ -240,7 +240,17 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	    residue=rfrf;
 	    if(residue<stopping_residue) stop=1;
 	    
-	    if(rank==0 && iter%10==0 && debug) printf("cgmms iter %d residue %g\n",iter,residue);
+	    if(rank==0 && iter%10==0 && debug)
+	      {
+		printf("cgmms iter %d residue %g\n",iter,residue);
+		for(int imass=nmass-1;imass>=0;imass--)
+		  if(flag[imass])
+		  {
+		    printf("%g\t",rr*zfs[imass]);
+		    if(rr*zfs[imass]<stopping_residue*stopping_residue) flag[imass]=0;
+		  }
+		printf("\n");
+	      }
 	  }
 	else            //different stopping criterion for each mass
 	  {
@@ -266,8 +276,8 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 		      }
 		  if(residue<stopping_residue)
 		    {
-		      running_mass--;
-		      flag[imass]=0;
+		      //running_mass--;
+		      //flag[imass]=0;
 		    }
 		}
 	    if(iter%10==0 && rank==0 && debug)
@@ -278,7 +288,31 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
   while(stop==0 && iter<niter);
   
   for(int imass=0;imass<nmass;imass++)  communicate_lx_spincolor_borders(sol[imass]);
-  
+
+  for(int imass=0;imass<nmass;imass++)
+    {
+      apply_Q2(s,sol[imass],conf,kappac,m[imass],t,NULL,NULL);
+      {
+	complex cloc_pap={0,0};
+        bgp_color_put_to_zero(N0,N1,N2);
+
+	for(int i=0;i<loc_vol;i++)
+	  {
+	    bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,s[i]);
+            bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,source[i]);
+	    bgp_subtassign_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32);
+            bgp_summassign_color_square_spincolor(N0,N1,N2,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
+	  }
+        bgp_square_norm_color(N0,N1,N2);
+	bgp_save_complex(cloc_pap,N0);
+
+	if(rank_tot>0) MPI_Allreduce(cloc_pap,&pap,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	else pap=cloc_pap[0];
+
+	if(rank==0) printf("imass %d residue %g\n",imass,pap);
+      }
+    }  
+
   for(int imass=0;imass<nmass;imass++) free(ps[imass]);
   free(ps);
   free(s);

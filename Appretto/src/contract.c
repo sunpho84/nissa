@@ -155,12 +155,13 @@ void trace_g_sdag_g_s(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_mat
 		bgp_load_complex(L,loc_c[icontr][loc_t+T0]);
 		bgp_load_complex(XI,X[loc_t][i]);
 		bgp_complex_summ_the_prod(L,L,XI,Y);
+		bgp_save_complex(loc_c[icontr][loc_t+T0],L);
 #else
 		complex_summ_the_prod(loc_c[icontr][loc_t+T0],X[loc_t][i],Y);
 #endif
 	      }
 #ifdef BGP
-	    bgp_save_complex(loc_c[icontr][loc_t+T0],L);
+
 #endif
 	    i++;
 	  }
