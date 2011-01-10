@@ -245,8 +245,8 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 
 	      if(residue<stopping_residue)
 		{
-		  running_mass--;
-		  flag[imass]=0;
+		  //running_mass--;
+		  //flag[imass]=0;
 		}
 	    }
 	if(iter%10==0 && rank==0 && debug)
