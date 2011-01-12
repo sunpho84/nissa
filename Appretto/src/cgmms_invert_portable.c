@@ -85,7 +85,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
     if(rank_tot>0) MPI_Allreduce(&loc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     else rr=loc_rr;
 
-    if(stopping_criterion==sc_standard||stopping_criterion==sc_differentiate) stopping_residue*=rr;
+    if(stopping_criterion==sc_standard||stopping_criterion==sc_unilevel) stopping_residue*=rr;
   }
 
   //     -betaa=1
@@ -226,7 +226,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	for(int imass=nmass-1;imass>=0;imass--)
 	  if(flag[imass])
 	    {
-	      if(stopping_criterion==sc_differentiate)
+	      if(stopping_criterion==sc_unilevel)
 		{
 		  residue=rr*zfs[imass];
 		  if(rank==0 && debug &&iter%10==0) printf("%g\t",residue);
