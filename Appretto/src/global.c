@@ -22,9 +22,9 @@ int loc_volr;
 int **loclx_neighdw,**loclx_neighup;
 
 //stopping criterions for multimass inverter
-int sc_standard=0,sc_differentiate=1,sc_weighted_norm2=2,sc_weighted_norm_inf=3;
+int sc_standard=0,sc_unilevel=1,sc_weighted_norm2=2,sc_weighted_norm_inf=3;
 int numb_known_stopping_criterion=4;
-char list_known_stopping_criterion[4][1024]={"standard","differentiate","weighted_norm2","weighted_norm_inf"};
+char list_known_stopping_criterion[4][1024]={"standard","unilevel","weighted_norm2","weighted_norm_inf"};
 
 //basic mpi types
 MPI_Datatype MPI_SU3;
