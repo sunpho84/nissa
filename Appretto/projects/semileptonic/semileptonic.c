@@ -88,19 +88,18 @@ void contract_with_source(complex **corr,colorspinspin *S1,int *list_op,colorspi
   dirac_matr t1[ncontr_2pts],t2[ncontr_2pts];
 
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
-    {
-      //Init the second 
+    { //Init the second 
       t1[icontr]=base_gamma[list_op[icontr]];
       t2[icontr]=base_gamma[0];
     }
 
-  //Call for the routine which does the real contraction
+  //Call the routine which does the real contraction
   trace_g_sdag_g_s(corr,t2,source,t1,S1,ncontr_2pts);
 }
 
 //Generate the source for the dirac index
 void generate_source()
-{
+{ //reset
   memset(original_source,0,sizeof(colorspinspin)*loc_vol);
   
   for(int loc_site=0;loc_site<loc_vol;loc_site++)
@@ -112,7 +111,7 @@ void generate_source()
 	  //imaginary part
 	  if(noise_type==4) original_source[loc_site][ic][0][0][1]=pm_one(loc_site)/rad2;
 	  
-	  for(int d=1;d<4;d++)
+	  for(int d=1;d<4;d++) //copy the other three dirac indexes
 	    memcpy(original_source[loc_site][ic][d][d],original_source[loc_site][ic][0][0],sizeof(complex));
 	}
 }
@@ -129,7 +128,7 @@ void generate_sequential_source(int ispec)
 	memset(sequential_source[ivol],0,sizeof(colorspinspin));
       else
 	{ //avoid to put g5, beacuse commutate with (i+-g5)/sqrt(2) and cancel with those of the QQ
-	  memcpy(sequential_source[ivol],S0[r][iprop_of(theta[ith_spec[ispec]],mass[imass_spec[ispec]])][ivol],sizeof(colorspinspin));
+	  memcpy(sequential_source[ivol],S0[r][iprop_of(ith_spec[ispec],imass_spec[ispec])][ivol],sizeof(colorspinspin));
 	  for(int c=0;c<3;c++) //rotate as r because it's D^-1
 	    rotate_spinspin_to_physical_basis(sequential_source[ivol][c],r,r);
 	}
@@ -147,13 +146,10 @@ void initialize_semileptonic(char *input_path)
   //Read the volume
   read_str_int("L",&(glb_size[1]));
   read_str_int("T",&(glb_size[0]));
-
   //Init the MPI grid 
-  init_grid();
-    
+  init_grid(); 
   //Gauge path
   read_str_str("GaugeConfPath",conf_path,1024);
-  
   //Kappa
   read_str_double("Kappa",&kappa);
   
@@ -162,19 +158,21 @@ void initialize_semileptonic(char *input_path)
   //Read the seed and initialize the random generator
   read_str_int("Seed",&seed);
   init_random(seed);
-
   //Read the location of the wall
   read_str_int("TWall",&twall);
-
   //Read the noise type
   read_str_int("NoiseType",&noise_type);
-  
+
   // 3) Read list of masses and of thetas
+
   read_list_of_doubles("NMass",&nmass,&mass);
   read_list_of_doubles("NTheta",&ntheta,&theta);
 
   // 4) Info about the inverter
+
+  //Residue
   read_str_double("Residue",&stopping_residue);
+  //Stopping criterion
   stopping_criterion=numb_known_stopping_criterion;
   char str_stopping_criterion[1024];
   read_str_str("StoppingCriterion",str_stopping_criterion,1024);
@@ -185,7 +183,7 @@ void initialize_semileptonic(char *input_path)
       isc++;
     }
   while(isc<numb_known_stopping_criterion && stopping_criterion==numb_known_stopping_criterion);
-
+  
   if(stopping_criterion==numb_known_stopping_criterion && rank==0)
     {
       fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
@@ -194,9 +192,11 @@ void initialize_semileptonic(char *input_path)
       MPI_Abort(MPI_COMM_WORLD,1);
     }
   
+  //Number of iterations
   read_str_int("NiterMax",&niter_max);
   
   // 5) contraction list for two points
+
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=(complex**)malloc(sizeof(complex*)*ncontr_2pts);
   contr_2pts[0]=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
@@ -281,13 +281,13 @@ void initialize_semileptonic(char *input_path)
 
   close_input();
 
-  ////////////////////////////////////// end of input reading
+  ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf, Pmunu and all the needed spincolor and colorspinspin
   conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"conf");
   Pmunu=allocate_as2t_su3(loc_vol,"Pmunu");
-  
-  // load the gauge conf, propagate borders, calculate plaquette and PmuNu term
+
+  //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_local_gauge_conf(conf,conf_path);
   communicate_gauge_borders(conf);
   communicate_gauge_edges(conf);
@@ -337,8 +337,8 @@ void close_semileptonic()
     {
       printf("\n");
       printf("Total time: %g, of which:\n",tot_time);
-      printf(" - %02.2f%s to perform %d inversions\n",inv_time/tot_time*100,"%",ninv_tot);
-      printf(" - %02.2f%s to perform %d contractions\n",contr_time/tot_time*100,"%",ncontr_tot);
+      printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
+      printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
     }
 
   free(Pmunu);free(conf);free(mass);free(theta);
@@ -358,8 +358,7 @@ void calculate_S0()
 {
   for(int id=0;id<4;id++)
     { //loop over the source dirac index
-      
-      for(int ivol=0;ivol<loc_vol;ivol++) //avoid the g5 insertion
+      for(int ivol=0;ivol<loc_vol;ivol++)
 	{
 	  get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
 	  //put the g5
@@ -375,7 +374,6 @@ void calculate_S0()
 	  
 	  double part_time=-take_time();
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
-
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	  if(rank==0) printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
 
@@ -449,7 +447,8 @@ void calculate_all_2pts()
 		{
 		  int ip1=iprop_of(ith1,im1),ip2=iprop_of(ith2,im2);
 		  
-		  if(rank==0) fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
+		  if(rank==0) fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",
+				      mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
 		  
 		  meson_two_points(contr_2pts,op1_2pts,S0[r1][ip1],op2_2pts,S0[r2][ip2],ncontr_2pts);
 		  ncontr_tot+=ncontr_2pts;
@@ -486,7 +485,8 @@ void calculate_all_3pts(int ispec)
 	  {
 	    int ip1=iprop_of(ith1,im1),ip2=iprop_of(ith2,im2);
 	    
-	    if(rank==0) fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
+	    if(rank==0) fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",
+				mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
 
 	    meson_two_points(contr_3pts,op1_3pts,S0[r1][ip1],op2_3pts,S1[ip2],ncontr_3pts);
 	    ncontr_tot+=ncontr_3pts;
@@ -531,7 +531,8 @@ void check_two_points()
 		    int t=tempt+twall;
 		    if(t>=glb_size[0]) t-=glb_size[0];
 		    
-		    fprintf(fout,"%+016.16g\t%+016.16g\n",contr_2pts[icontr][t][0]/spat_vol,contr_2pts[icontr][t][1]/spat_vol);
+		    fprintf(fout,"%+016.16g\t%+016.16g\n",
+			    contr_2pts[icontr][t][0]/spat_vol,contr_2pts[icontr][t][1]/spat_vol);
 		  }
 		fprintf(fout,"\n");
 	      }
