@@ -56,7 +56,7 @@ int check_cgmms_residue(int *run_flag,double *residue_mass,int nrun,double rr,do
 	  {
 	    residue_mass[imass]=rr*zfs[imass]*zfs[imass];
 	    
-	    if(st_crit==sc_standard) fini=(residue_mass[imass]<st_res2 || residue_mass[0]<st_res);
+	    if(st_crit==sc_standard) fini=(residue_mass[imass]<st_res2||residue_mass[0]<st_res);
 	    else fini=residue_mass[imass]<st_res;
 	  }
 	else if(st_crit==sc_weighted_norm2||st_crit==sc_weighted_norm_inf)
@@ -87,7 +87,7 @@ int check_cgmms_residue(int *run_flag,double *residue_mass,int nrun,double rr,do
   return nrun;
 }
 
-void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,int st_crit)
+void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
 {
   static double _Complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
   static double _Complex B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32;
@@ -100,7 +100,6 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
   int iter;
   int run_flag[nmass],nrun_mass=nmass;
   double final_res[nmass];
-  double st_res2;
 
   spincolor *t=allocate_spincolor(loc_vol+loc_bord,"temporary for internal calculation of DD");
   spincolor *s=allocate_spincolor(loc_vol,"s in cgmms");
@@ -137,7 +136,6 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
     else rr=cloc_rr[0];
 
     if(st_crit==sc_standard||st_crit==sc_unilevel) st_res*=rr;
-    if(st_crit==sc_standard) st_res2=st_res*st_res;
   }
 
   //     -betaa=1
@@ -281,7 +279,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	iter++;
 	
 	//     check over residual
-	nrun_mass=check_cgmms_residue(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_res2,iter,sol,nmass,m,source,conf,kappa,s,t);
+	nrun_mass=check_cgmms_residue(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t);
     }
   while(nrun_mass>0 && iter<niter);
   

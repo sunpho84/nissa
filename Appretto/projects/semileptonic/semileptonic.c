@@ -22,6 +22,7 @@ spincolor **cgmms_solution,*reco_solution[2];
 
 //cgmms inverter parameters
 double stopping_residue;
+double minimal_residue;
 int stopping_criterion;
 int niter_max;
 
@@ -89,12 +90,12 @@ void contract_with_source(complex **corr,colorspinspin *S1,int *list_op,colorspi
 
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     { //Init the second 
-      t1[icontr]=base_gamma[list_op[icontr]];
-      t2[icontr]=base_gamma[0];
+      t1[icontr]=base_gamma[0];
+      t2[icontr]=base_gamma[list_op[icontr]];
     }
 
   //Call the routine which does the real contraction
-  trace_g_sdag_g_s(corr,t2,source,t1,S1,ncontr_2pts);
+  trace_g_sdag_g_s(corr,t1,S1,t2,source,ncontr_2pts);
 }
 
 //Generate the source for the dirac index
@@ -191,7 +192,8 @@ void initialize_semileptonic(char *input_path)
       for(int isc=0;isc<numb_known_stopping_criterion;isc++) fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
       MPI_Abort(MPI_COMM_WORLD,1);
     }
-  
+  if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
+      
   //Number of iterations
   read_str_int("NiterMax",&niter_max);
   
@@ -373,7 +375,7 @@ void calculate_S0()
 	  adapt_theta(conf,old_theta,put_theta,1,1);
 	  
 	  double part_time=-take_time();
-	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
+	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	  if(rank==0) printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
 
@@ -408,7 +410,7 @@ void calculate_S1(int ispec)
 	  adapt_theta(conf,old_theta,put_theta,1,1);
 
 	  double part_time=-take_time();
-	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
+	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	  if(rank==0) printf("Finished the inversion of S1 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
 	  
@@ -471,8 +473,12 @@ void calculate_all_2pts()
 
 //Calculate and print to file the 3pts
 void calculate_all_3pts(int ispec)
-{
-  FILE *fout=open_text_file_for_output(outfile_3pts);
+{ //generate a different filename for each spectator
+  char outfile_3pts_spec[1024];
+  if(nspec>1) sprintf(outfile_3pts_spec,"%s_%d",outfile_3pts,ispec);
+  else memcpy(outfile_3pts_spec,outfile_3pts,1024);
+
+  FILE *fout=open_text_file_for_output(outfile_3pts_spec);
  
   contr_time-=take_time();
   
@@ -508,7 +514,7 @@ void calculate_all_3pts(int ispec)
 }
 
 //check all the two points
-void check_two_points()
+void check_two_points(int ispec)
 {
   FILE *fout=open_text_file_for_output("2pts_check");
   int spat_vol=glb_size[1]*glb_size[2]*glb_size[3];
@@ -521,21 +527,14 @@ void check_two_points()
 	
 	if(rank==0)
 	  {
+	    fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",
+		    mass[imass_spec[ispec]],theta[ith_spec[ispec]],r_spec[ispec],mass[im2],theta[ith2],r_spec[ispec]);
+
 	    fprintf(fout,"\n");
 	    
 	    for(int icontr=0;icontr<ncontr_2pts;icontr++)
-	      {
-		fprintf(fout," # %s\n\n",gtag[op2_2pts[icontr]]);
-		for(int tempt=0;tempt<glb_size[0];tempt++)
-		  {
-		    int t=tempt+twall;
-		    if(t>=glb_size[0]) t-=glb_size[0];
-		    
-		    fprintf(fout,"%+016.16g\t%+016.16g\n",
-			    contr_2pts[icontr][t][0]/spat_vol,contr_2pts[icontr][t][1]/spat_vol);
-		  }
-		fprintf(fout,"\n");
-	      }
+	      if(op1_2pts[icontr]==5)
+		fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op2_2pts[icontr]],contr_2pts[icontr][twall][0]/spat_vol,contr_2pts[icontr][twall][1]/spat_vol);
 	    fprintf(fout,"\n");
 	  }
       }
@@ -568,7 +567,7 @@ int main(int narg,char **arg)
     {
       generate_sequential_source(ispec);
       calculate_S1(ispec);
-      check_two_points();
+      check_two_points(ispec);
       calculate_all_3pts(ispec);
     }
   
