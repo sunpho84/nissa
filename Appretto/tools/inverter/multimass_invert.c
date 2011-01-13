@@ -61,7 +61,7 @@ int main(int narg,char **arg)
   
   for(int imass=0;imass<nmass;imass++) solution[imass]=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
 
-  double residue;
+  double residue,minimal_residue;
   read_str_double("Residue",&residue);
   int stopping_criterion=numb_known_stopping_criterion;
   char str_stopping_criterion[1024];
@@ -81,6 +81,7 @@ int main(int narg,char **arg)
       for(int isc=0;isc<numb_known_stopping_criterion;isc++) fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
       MPI_Abort(MPI_COMM_WORLD,1);
     }
+  if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
   
   int nitermax;
   read_str_int("NiterMax",&nitermax);
@@ -115,7 +116,7 @@ int main(int narg,char **arg)
       double tic;
       MPI_Barrier(cart_comm);
       tic=MPI_Wtime();
-      inv_Q2_cgmms(solution,source,NULL,conf,kappa,m,nmass,nitermax,residue,stopping_criterion);
+      inv_Q2_cgmms(solution,source,NULL,conf,kappa,m,nmass,nitermax,residue,minimal_residue,stopping_criterion);
       
       MPI_Barrier(cart_comm);
       double tac=MPI_Wtime();
@@ -124,7 +125,7 @@ int main(int narg,char **arg)
       
       for(int imass=0;imass<nmass;imass++)
 	{
-	  apply_Q2(source_reco,solution[imass],conf,kappa,m[imass],NULL);
+	  apply_Q2(source_reco,solution[imass],conf,kappa,m[imass],NULL,NULL,NULL);
 	  
 	  //printing
 	  double truered,loc_truered=0;

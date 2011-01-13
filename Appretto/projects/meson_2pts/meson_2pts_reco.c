@@ -38,26 +38,6 @@ source |------>---->----->---->| sink
 #include "appretto.h"
 #include "common.c"
 
-//Adapt the boundaries condition
-void adapt_theta(quad_su3 *conf,double *old_theta,double *theta,int putonbords,int putonedges)
-{
-  double diff_theta[4];
-  int adapt=0;
-
-  for(int idir=0;idir<4;idir++)
-    {
-      adapt=adapt || (old_theta[idir]!=theta[idir]);
-      diff_theta[idir]=theta[idir]-old_theta[idir];
-      old_theta[idir]=theta[idir];
-    }
-  
-  if(adapt)
-    {
-      if(rank==0) printf("Necesarry to add boundary condition: %f %f %f %f\n",diff_theta[0],diff_theta[1],diff_theta[2],diff_theta[3]);
-      put_boundaries_conditions(conf,diff_theta,putonbords,putonedges);
-    }
-}
-
 int main(int narg,char **arg)
 {
   int tot_prop_read=0;
