@@ -107,6 +107,7 @@ do
 		echo "Precision "$IO_prec
 	    )  > input
 
+            echo $MPI_TM_PREF $base_nissa/Appretto/tools/generate_stochastic_source/generate_stochastic_source input
             $MPI_TM_PREF $base_nissa/Appretto/tools/generate_stochastic_source/generate_stochastic_source input
             
 	elif [ $source_type == Wall1 ]

@@ -26,7 +26,7 @@ then
     mv -f $base_conf/time_log $base_conf/time_log_$tic
 fi
 
-seedLR=( 0 89723)
+seedLR=( 0 89723 )
 
 echo "Bk calculation started at : "$(date) >> $base_conf/time_log
 
@@ -260,7 +260,12 @@ do
   echo "Output_2points two_points" >> $base_Bk/input
   
   $MPI_TM_PREF $base_nissa/Appretto/projects/eight_BK/eight_BK input
-  
+
+        #take time
+	tac=$tic
+	tic=$(date +%s)
+	echo "Time to make contractions: "$(($tic-$tac)) >> $base_conf/time_log
+
 done
 
 echo "Bk calculation ended at : "$(date) >> $base_conf/time_log

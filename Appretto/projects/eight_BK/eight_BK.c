@@ -1,9 +1,21 @@
 
-//This program calculates a list of three-point functions for the BK 
-//contracting all the propagators in the four lists only if 
-//if one of the r is different. 
-// The first and third list are uploaded in blocks as big as possible 
-// propagators  the second and fourth are uploaded one by one
+// This program calculates a list of three-point functions for the BK 
+// contracting all the propagators in the four lists if and only if 
+// the sum of the r's is odd and the masses of the first and the third lists
+// as well as those of the second and the fourth lists are equal.
+// The first and second lists refer to the left side (see below), while 
+// the third and the fourth lists correspond to the right side 
+// (different source located at T/2 away from the left one).
+// The first and third lists are uploaded in blocks of doublets as large as possible.
+// The second list is uploaded one by one.
+// The fourth propagator is uploaded by doublets.
+//
+// ***** The third list MUST contain the same masses, theta's and flavors of the first list in the same order *****
+//
+// ***** The fourth list MUST contain the same masses, theta's and flavors of the second list in the same order *****
+//
+// ***** The flavors must be ordered with r=0 first *****
+// 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Three-point disconnected part (Mezzotos)
@@ -46,52 +58,66 @@ source |------>---->----->---->| sink
 
 */
 
-
-
 #include <mpi.h>
 #include <lemon.h>
 
-
 #include "appretto.h"
 
+
+
+
 //Calculate the maximum number of allocable propagators
-int compute_allocable_propagators_list(int nprop_list1,int nprop_list3)
+int compute_allocable_propagators_list(int nprop_list)
 {
-  //First of all check if there is enough room for four propagators.
+  //Check if the nprop_list is even (flavor doublets)
+  if(nprop_list != (2*(nprop_list/2)))
+    {
+      if(rank==0)
+	{
+	  fprintf(stderr,"Error: number of propagators must be even\n");
+	  fflush(stderr);
+	  MPI_Abort(MPI_COMM_WORLD,1);
+	}
+    }
+
+  //Check if there is enough room for seven propagators (nprop_list = 2).
   //This is the minimal requirement for the program to be able to work.
   colorspinspin *fuf;
-  fuf=(colorspinspin*)malloc(4*sizeof(colorspinspin)*loc_vol);
+  fuf=(colorspinspin*)malloc(7*sizeof(colorspinspin)*loc_vol);
 
   if(fuf==NULL)
     {
       if(rank==0)
 	{
-	  fprintf(stderr,"Error: not enough memory for four propagators\n");
+	  fprintf(stderr,"Error: not enough memory for seven propagators\n");
 	  fflush(stderr);
 	  MPI_Abort(MPI_COMM_WORLD,1);
 	}
     }
-  else if(debug>1 && rank==0) printf("Ok there is enough memory to load four  propagators\n");
+  else if(debug>1 && rank==0) printf("Ok there is enough memory to load seven propagators\n");
 
   free(fuf);
 
-  //Now determine the largest number of propagator of the first and third list(light ones) (and two additional) loadable at once.
-  int nprop_max= nprop_list1+ nprop_list3 + 2; 
+  //Now determine the largest number of doublets of propagators of the first and third lists (light ones) and two additional ones loadable at once.
+  int nprop_max = 2 * nprop_list + 7;
   do
     {
-      nprop_max--;
-      fuf=(colorspinspin*)malloc((nprop_max+1)*sizeof(colorspinspin)*loc_vol);
+      nprop_max-=4;
+      fuf=(colorspinspin*)malloc(nprop_max*sizeof(colorspinspin)*loc_vol);
     }
   while(fuf==NULL);
 
   free(fuf);
 
   if(debug && rank==0)
-    printf("Will allocate %d propagators at once \n",nprop_max-1);
+    printf("Will allocate %d propagators at once \n",nprop_max);
 
-  int nprop_max_list=(nprop_max-1)/2;
-  return nprop_max_list; //return the number of allocable propagators in each list
+  int nprop_max_per_list=(nprop_max-3)/2;
+  return nprop_max_per_list; //return the number of allocable propagators in the first and third lists (separately)
 }
+
+
+
 
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 //It also applies the appropriate rotators to the physical basis if asked
@@ -173,6 +199,8 @@ void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_o
 }
 
 
+
+
 void BK_eight_disconnected(complex **mezzo, int *list_opQ,colorspinspin *sdL,colorspinspin *ssL, colorspinspin *sdR,colorspinspin *ssR,int ncontr,int fdL,int rdL,int fsL,int rsL,int fdR,int rdR,int fsR,int rsR ){
 
  //Temporary vectors for the internal gamma
@@ -246,14 +274,15 @@ void BK_eight_disconnected(complex **mezzo, int *list_opQ,colorspinspin *sdL,col
             break;
           }
 
-
     }
 
  //Call for the routine which does the real contraction for the Mezzotto and the otto:
   sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(mezzo,gsource_times_g5_L,sdL,g5_times_gQ_L,ssL,gsource_times_g5_R,sdR,g5_times_gQ_R,ssR,ncontr);
 
-
 }
+
+
+
 
 void BK_eight_connected(complex **otto, int *list_opQ,colorspinspin *sdL,colorspinspin *ssL, colorspinspin *sdR,colorspinspin *ssR,int ncontr,int fdL,int rdL,int fsL,int rsL,int fdR,int rdR,int fsR,int rsR ){
 
@@ -330,7 +359,6 @@ void BK_eight_connected(complex **otto, int *list_opQ,colorspinspin *sdL,colorsp
             break;
           }
 
-
     }
 
  //Call for the routine which does the real contraction for the Mezzotto and the otto:
@@ -345,6 +373,8 @@ int main(int narg,char **arg)
   
   double tot_reading_time=0;
   double tot_contract_time=0;
+
+ double tic,tic1,tac,tac1;
 
   //Basic mpi initialization
   init_appretto();
@@ -361,8 +391,6 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////////////////
   ////////////////// Basic input file ///////////////////
   ///////////////////////////////////////////////////////
-  /*
-  */
 
   //Read the volume
   read_str_int("L",&(glb_size[1]));
@@ -384,7 +412,7 @@ int main(int narg,char **arg)
   for(int iprop1=0;iprop1<nprop_list1;iprop1++) end_filename1[iprop1]=(char*)malloc(1024);
   double  *mass_prop1=(double*)malloc(sizeof(double)*nprop_list1);
   double *theta_prop1=(double*)malloc(sizeof(double)*nprop_list1);
-  int    * phys_prop1=   (int*)malloc(sizeof(int)   *nprop_list1);
+  int     *phys_prop1=   (int*)malloc(sizeof(int)   *nprop_list1);
   int        *r_prop1=   (int*)malloc(sizeof(int)   *nprop_list1);
   for(int iprop=0;iprop<nprop_list1;iprop++)
     {
@@ -411,7 +439,7 @@ int main(int narg,char **arg)
   for(int iprop2=0;iprop2<nprop_list2;iprop2++) end_filename2[iprop2]=(char*)malloc(1024);
   double  *mass_prop2=(double*)malloc(sizeof(double)*nprop_list2);
   double *theta_prop2=(double*)malloc(sizeof(double)*nprop_list2);
-  int    * phys_prop2=   (int*)malloc(sizeof(int)   *nprop_list2);
+  int     *phys_prop2=   (int*)malloc(sizeof(int)   *nprop_list2);
   int        *r_prop2=   (int*)malloc(sizeof(int)   *nprop_list2);
   for(int iprop=0;iprop<nprop_list2;iprop++)
     {
@@ -425,7 +453,6 @@ int main(int narg,char **arg)
       if(debug && rank==0)
 	printf(" prop.%d %s %s, m=%f th=%f phys=%d r=%d\n",iprop,base_filename2[iprop],end_filename2[iprop],mass_prop2[iprop],theta_prop2[iprop],phys_prop2[iprop],r_prop2[iprop]);
     }
-      
 
   //Read the number of propagators of the third list
   int nprop_list3;
@@ -439,7 +466,7 @@ int main(int narg,char **arg)
   for(int iprop3=0;iprop3<nprop_list3;iprop3++) end_filename3[iprop3]=(char*)malloc(1024);
   double  *mass_prop3=(double*)malloc(sizeof(double)*nprop_list3);
   double *theta_prop3=(double*)malloc(sizeof(double)*nprop_list3);
-  int    * phys_prop3=   (int*)malloc(sizeof(int)   *nprop_list3);
+  int     *phys_prop3=   (int*)malloc(sizeof(int)   *nprop_list3);
   int        *r_prop3=   (int*)malloc(sizeof(int)   *nprop_list3);
   for(int iprop=0;iprop<nprop_list3;iprop++)
     {
@@ -466,7 +493,7 @@ int main(int narg,char **arg)
   for(int iprop4=0;iprop4<nprop_list4;iprop4++) end_filename4[iprop4]=(char*)malloc(1024);
   double  *mass_prop4=(double*)malloc(sizeof(double)*nprop_list4);
   double *theta_prop4=(double*)malloc(sizeof(double)*nprop_list4);
-  int    * phys_prop4=   (int*)malloc(sizeof(int)   *nprop_list4);
+  int     *phys_prop4=   (int*)malloc(sizeof(int)   *nprop_list4);
   int        *r_prop4=   (int*)malloc(sizeof(int)   *nprop_list4);
   for(int iprop=0;iprop<nprop_list4;iprop++)
     {
@@ -481,13 +508,33 @@ int main(int narg,char **arg)
         printf(" prop.%d %s %s, m=%f th=%f phys=%d r=%d\n",iprop,base_filename4[iprop],end_filename4[iprop],mass_prop4[iprop],theta_prop4[iprop],phys_prop4[iprop],r_prop4[iprop]);
     }
 
+  //Check the number of propagators in the lists
+  if(nprop_list1 != nprop_list3)
+    {
+      if(rank==0)
+	{
+	  fprintf(stderr,"Error: the first and third lists must have the same number of propagators\n");
+	  fflush(stderr);
+	  MPI_Abort(MPI_COMM_WORLD,1);
+	}
+    }
+
+  if(nprop_list2 != nprop_list4)
+    {
+      if(rank==0)
+	{
+	  fprintf(stderr,"Error: the second and foruth lists must have the same number of propagators\n");
+	  fflush(stderr);
+	  MPI_Abort(MPI_COMM_WORLD,1);
+	}
+    }
+
+
   //Read the number of contractions
 
   int ncontr;
   read_str_int("NContr_eight",&ncontr);
   if(rank==0) printf("Number of contractions for the eight: %d\n",ncontr);
-
-
 
   //Initialize the list of correlations and the list of operators
   //contiguous allocation for the three points
@@ -495,9 +542,6 @@ int main(int narg,char **arg)
   mezzottos[0]=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]); 
   complex **ottos=(complex**)malloc(sizeof(complex*)*ncontr);
   ottos[0]=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
-
-
-
 
   int *op=(int*)malloc(sizeof(int)*ncontr);
 
@@ -511,7 +555,6 @@ int main(int narg,char **arg)
       if(rank==0 && debug) printf(" eight contr.%d %d \n",icontr,op[icontr]);
     }
 
-
   int ncontr2;
   read_str_int("NContr_2points",&ncontr2);
   if(rank==0) printf("Number of contractions for the 2points: %d\n",ncontr2);
@@ -523,7 +566,6 @@ int main(int narg,char **arg)
   complex **mezzottoL=(complex**)malloc(sizeof(complex*)*ncontr2);
   mezzottoL[0]=(complex*)malloc(sizeof(complex)*ncontr2*glb_size[0]);
 
-
   int *op1=(int*)malloc(sizeof(int)*ncontr2);
   int *op2=(int*)malloc(sizeof(int)*ncontr2);
   for(int icontr=0;icontr<ncontr2;icontr++)
@@ -532,14 +574,12 @@ int main(int narg,char **arg)
       mezzottoL[icontr]=mezzottoL[0]+icontr*glb_size[0];
       mezzottoR[icontr]=mezzottoR[0]+icontr*glb_size[0];
 
-
       //Read the operator pairs
       read_int(&(op1[icontr]));
       read_int(&(op2[icontr]));
 
       if(rank==0 && debug) printf(" 2points contr.%d %d %d\n",icontr,op1[icontr],op2[icontr]);
     }
-
 
   //Read the output filename for the tree-points
   char outfile[1024];
@@ -549,32 +589,31 @@ int main(int narg,char **arg)
   char outfile2[1024];
   read_str_str("Output_2points",outfile2,1024);
 
-
   close_input();
 
   //Init the MPI grid 
   init_grid();
   
-  //Calculate the number of blocks for the first list and third
-  int nprop_per_block=compute_allocable_propagators_list(nprop_list1,nprop_list3);
-  int nblocks1=nprop_list1/(nprop_per_block);
-  int nblocks3=nprop_list3/(nprop_per_block);
-  if(nprop_list1>nblocks1*nprop_per_block) nblocks1++;
-  if(nprop_list3>nblocks3*nprop_per_block) nblocks3++;
+  //Calculate the number of blocks for the first list
+  int nprop_per_block=compute_allocable_propagators_list(nprop_list1);
+  int nblocks=nprop_list1/(nprop_per_block);
+  if(nprop_list1>nblocks*nprop_per_block) nblocks++;
 
   //allocate the spinors
   colorspinspin **spinor1=(colorspinspin**)malloc(sizeof(colorspinspin*)*nprop_per_block);
   for(int iprop1=0;iprop1<nprop_per_block;iprop1++) spinor1[iprop1]=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
-  colorspinspin *spinor2=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
   colorspinspin **spinor3=(colorspinspin**)malloc(sizeof(colorspinspin*)*nprop_per_block);
   for(int iprop3=0;iprop3<nprop_per_block;iprop3++) spinor3[iprop3]=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
-  colorspinspin *spinor4=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
+  colorspinspin *spinor2=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
+  colorspinspin **spinor4=(colorspinspin**)malloc(sizeof(colorspinspin*)*2);
+  for(int r4=0;r4<2;r4++) spinor4[r4]=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
 
+  colorspinspin *spinor2_ptr;    //This will point to spinor2
+  colorspinspin *spinor4_ptr[2]; //This will point to spinor4
 
   ///////////////////////////////////////////
   
   //take initial time
-  double tic;
   if(debug)
     {
       MPI_Barrier(cart_comm);
@@ -610,25 +649,25 @@ int main(int narg,char **arg)
 
 
 
+// Start of the contractions
 
-  //Loop over the blocks of the first list
-  for(int iblock1=0;iblock1<nblocks1;iblock1++)
+  //Loop over the blocks of the first and third lists
+  for(int iblock=0;iblock<nblocks;iblock++)
     {
-      int iblock1_first=iblock1*nprop_per_block;
-      int iblock1_last=min_int((iblock1+1)*nprop_per_block,nprop_list1);
-      int iblock1_length=iblock1_last-iblock1_first;
+      int iblock_first=iblock*nprop_per_block;
+      int iblock_last=min_int((iblock+1)*nprop_per_block,nprop_list1);
+      int iblock_length=iblock_last-iblock_first;
 
-      if(rank==0 && debug) printf("Block %d/%d length: %d\n",iblock1+1,nblocks1,iblock1_length);
+      if(rank==0 && debug) printf("Block %d/%d length: %d\n",iblock+1,nblocks,iblock_length);
 
-      //now read the whole first block
-      for(int iprop1=0;iprop1<iblock1_length;iprop1++)
+      //now read the whole block of the first list
+      for(int iprop1=0;iprop1<iblock_length;iprop1++)
       {
-        int counter1=iblock1_first+iprop1;
+        int counter1=iblock_first+iprop1;
 
-        double tic1=0,tac1;
         if(debug)
           {
-            if(rank==0 && debug>1) printf("Going to read first propagator %d/%d: %s\n",iprop1+1,iblock1_length,base_filename1[counter1]);
+            if(rank==0 && debug>1) printf("Going to read propagator %d/%d from the first list: %s\n",iprop1+1,iblock_length,base_filename1[counter1]);
             MPI_Barrier(cart_comm);
             tic1=MPI_Wtime();
           }
@@ -641,28 +680,19 @@ int main(int narg,char **arg)
             tot_prop_read++;
           }
       }
-    // Looop over the blocks of the third list
-    for(int iblock3=0;iblock3<nblocks3;iblock3++)
-    {
-      int iblock3_first=iblock3*nprop_per_block;
-      int iblock3_last=min_int((iblock3+1)*nprop_per_block,nprop_list3);
-      int iblock3_length=iblock3_last-iblock3_first;
 
-      if(rank==0 && debug) printf("Block %d/%d length: %d\n",iblock3+1,nblocks3,iblock3_length);
-
-      //now read the whole third  block
-      for(int iprop3=0;iprop3<iblock3_length;iprop3++)
+      //now read the whole block of the third list
+      for(int iprop3=0;iprop3<iblock_length;iprop3++)
       {
-        int counter3=iblock3_first+iprop3;
+        int counter3=iblock_first+iprop3;
 
-        double tic1=0,tac1;
         if(debug)
           {
-            if(rank==0 && debug>1) printf("Going to read first propagator %d/%d: %s\n",iprop3+1,iblock3_length,base_filename3[counter3]);
+            if(rank==0 && debug>1) printf("Going to read propagator %d/%d from the third list: %s\n",iprop3+1,iblock_length,base_filename1[counter3]);
             MPI_Barrier(cart_comm);
             tic1=MPI_Wtime();
           }
-        read_colorspinspin(spinor3[iprop3],base_filename3[counter3],end_filename3[counter3]);
+        read_colorspinspin(spinor3[iprop3],base_filename3[counter3],end_filename1[counter3]);
         if(debug)
           {
             MPI_Barrier(cart_comm);
@@ -671,16 +701,19 @@ int main(int narg,char **arg)
             tot_prop_read++;
           }
       }
-     //now loop over the second popagator
+
+     //initialize variable iprop4_prev
+     int iprop4_prev = -1;
+
+     //now loop over the second propagator
      for(int iprop2=0;iprop2<nprop_list2;iprop2++)
      {
           //read the second propagator one by one
-          colorspinspin *spinor2_ptr; //This will point to spinor2 
           spinor2_ptr=spinor2;
- 	  // look for this propagator in the first list (also LEFT)
-          for(int iprop1=0;iprop1<iblock1_length;iprop1++)
+ 	  // look for this propagator in the first list (LEFT SIDE)
+          for(int iprop1=0;iprop1<iblock_length;iprop1++)
             {
-              int counter1=iblock1_first+iprop1;
+              int counter1=iblock_first+iprop1;
               if(strcmp(base_filename1[counter1],base_filename2[iprop2])==0 && strcmp(end_filename1[counter1],end_filename2[iprop2])==0)
                 {
                   spinor2_ptr=spinor1[iprop1];
@@ -690,10 +723,9 @@ int main(int narg,char **arg)
           //if not found in the first list, load it
           if(spinor2_ptr==spinor2)
             {
-              double tic1=0,tac1;
               if(debug)
                 {
-                  if(rank==0) printf("Going to read propagator %d/%d: %s %s \n",iprop2+1,nprop_list2,base_filename2[iprop2], end_filename2[iprop2]);
+                  if(rank==0) printf("Going to read propagator %d/%d from the second list: %s %s \n",iprop2+1,nprop_list2,base_filename2[iprop2], end_filename2[iprop2]);
                   MPI_Barrier(cart_comm);
                   tic1=MPI_Wtime();
                 }
@@ -707,34 +739,39 @@ int main(int narg,char **arg)
                 }
             }
 
-	
-	 //now loop over the fourth propagator
-          for(int iprop4=0;iprop4<nprop_list4;iprop4++)
-          {
-                 //read the fourth propagator one by one
-                  colorspinspin *spinor4_ptr; //This will point to spinor4 
-                  spinor4_ptr=spinor4;
-		  // look for this propagator in the third list (RIGHT SIDE)
-	          for(int iprop3=0;iprop3<iblock3_length;iprop3++)
-            	  {
-	              int counter3=iblock3_first+iprop3;
-        	      if(strcmp(base_filename3[counter3],base_filename4[iprop4])==0 && strcmp(end_filename3[counter3],end_filename4[iprop4])==0)
-                	{
-	                  spinor4_ptr=spinor3[iprop3];
-        	          if(debug && rank==0) printf("Propagator %s %s found in the position %d of the first list\n",base_filename4[iprop4],end_filename4[iprop4],counter3);
-               		 }
-           	    }
-          	  //if not found in the third list, load it
-	          if(spinor4_ptr==spinor4)
+           int iprop4 = iprop2 - r_prop2[iprop2];
+          //read the two flavors for the fourth propagator
+           if(iprop4 != iprop4_prev)
+           {
+                  spinor4_ptr[0]=spinor4[0];
+                  spinor4_ptr[1]=spinor4[1];
+		  // look for this propagator among the ones of the third list (RIGHT SIDE)
+          for(int iprop3=0;iprop3<iblock_length;iprop3+=2)
+            {
+              int counter3=iblock_first+iprop3;
+              if(strcmp(base_filename3[counter3],base_filename4[iprop4])==0 && strcmp(end_filename3[counter3],end_filename4[iprop4])==0)
+                {
+                  spinor4_ptr[0]=spinor3[iprop3];
+                  if(debug && rank==0) printf("Propagator %s found in the position %d of the third list\n",base_filename4[iprop4],counter3);
+                  spinor4_ptr[1]=spinor3[iprop3+1];
+                  if(debug && rank==0) printf("Propagator %s found in the position %d of the third list\n",base_filename4[iprop4+1],counter3+1);
+                }
+            }
+              //if not found among the third ones, load it
+	          if(spinor4_ptr[0]==spinor4[0])
         	    {
-             		 double tic1=0,tac1;
+                  for(int r4=0;r4<2;r4++)
+                  {
+                     int counter4=iprop4+r4;
+
 	             	 if(debug)
         	        {
-               		  if(rank==0) printf("Going to read propagator %d/%d: %s %s \n",iprop4+1,nprop_list4,base_filename4[iprop4], end_filename4[iprop4]);
+               		  if(rank==0) printf("Going to read propagator %d/%d from the fourth list: %s %s \n",counter4+1,nprop_list4,base_filename4[counter4], end_filename4[counter4]);
 	                  MPI_Barrier(cart_comm);
         		  tic1=MPI_Wtime();
                		 }
-	              read_colorspinspin(spinor4,base_filename4[iprop4],end_filename4[iprop4]);
+
+	              read_colorspinspin(spinor4[r4],base_filename4[counter4],end_filename4[counter4]);
 	              if(debug)
         	        {
                 	  MPI_Barrier(cart_comm);
@@ -742,22 +779,21 @@ int main(int narg,char **arg)
         	          tot_reading_time+=tac1-tic1;
                 	  tot_prop_read++;
                		 }
+               	  }
            	    }
+           	 iprop4_prev=iprop4;
+           }
 
-	 
-		
-		//Calculate two points
-		  if(iprop4==0 && iblock3==0)
-		    {
-		      if (rank==0) printf ("Computing 2 points LEFT...\n");
-		      
-		      for(int iprop1=0;iprop1<iblock1_length;iprop1++)
+
+		      for(int iprop1=0;iprop1<iblock_length;iprop1++)
 			{
-			  int counter1=iblock1_first+iprop1;
-			  
+			  int counter1=iblock_first+iprop1;
+
+		//Calculate two points (LEFT SIDE)
+		      if (rank==0) printf ("Computing 2 points LEFT... \n");
+
 			  if(rank==0)
 			    fprintf(fout2," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass_prop1[counter1],theta_prop1[counter1],r_prop1[counter1],mass_prop2[iprop2],theta_prop2[iprop2],r_prop2[iprop2]);
-			  double tic1=0,tac1;
 			  if(debug)
 			    {
 			      if(rank==0 && debug>1) printf("Going to perform (prop%d,prop%d) contractions\n",iprop1+1,iprop2+1);
@@ -781,45 +817,51 @@ int main(int narg,char **arg)
 				 fprintf(fout2,"\n");
 				 fprintf(fout2," # %s%s\n",gtag[op1[icontr]],gtag[op2[icontr]]);
 				 for(int tempt=0;tempt<glb_size[0];tempt++)
-        	                {
+        	         {
                 	          int t=tempt+twall;
                         	  if(t>=glb_size[0]) t-=glb_size[0];
-				  
-				  fprintf(fout2,"%+016.16g\t%+016.16g\n",mezzottoL[icontr][t][0]/spat_vol,mezzottoL[icontr][t][1]/spat_vol);
-				}
-			       }
-			   }
-			 if(rank==0)
-			   {
-             		     fprintf(fout2,"\n");
-                	     if(debug>1) fflush(fout2);
-			   }
-			}
-		    }
 
+				  fprintf(fout2,"%+016.16g\t%+016.16g\n",mezzottoL[icontr][t][0]/spat_vol,mezzottoL[icontr][t][1]/spat_vol);
+				     }
+			      }
+                  fprintf(fout2,"\n");
+                  if(debug>1) fflush(fout2);
+			   }
+
+    //fix the index of the third propagator with flavor r3=0 and with the same mass of the current one from the first list
+          int iprop3_base = iprop1 - r_prop1[counter1];
+
+     //now loop over the two flavors of the third propagator
+          for(int r3=0;r3<2;r3++)
+          {
+              int iprop3=iprop3_base+r3;
+              int counter3=iblock_first+iprop3;
+
+	 	  //now select the fourth propagator with the same mass as the current one from the second list and with the appropriate flavor
+                int r123 = r_prop1[counter1] + r_prop2[iprop2] + r_prop3[counter3];
+                int r4 =  1 - r123 + 2 * (r123 / 2);
+                int counter4 = iprop4 + r4;
+
+
+		//Calculate two points (RIGHT SIDE)
                if (rank==0) printf ("Computing 2 points RIGHT... \n");
 
-                for(int iprop3=0;iprop3<iblock3_length;iprop3++)
-                {
-                         int counter3=iblock3_first+iprop3;
-
                          if(rank==0)
-                         fprintf(fout2," # m3=%f th3=%f r3=%d , m4=%f th4=%f r4=%d\n",mass_prop3[counter3],theta_prop3[counter3],r_prop3[counter3],mass_prop4[iprop4],theta_prop4[iprop4],r_prop4[iprop4]);
-                         double tic1=0,tac1;
+                         fprintf(fout2," # m3=%f th3=%f r3=%d , m4=%f th4=%f r4=%d\n",mass_prop3[counter3],theta_prop3[counter3],r_prop3[counter3],mass_prop4[counter4],theta_prop4[counter4],r_prop4[counter4]);
                          if(debug)
                          {
-                          if(rank==0 && debug>1) printf("Going to perform (prop%d,prop%d) contractions\n",iprop3+1,iprop4+1);
+                          if(rank==0 && debug>1) printf("Going to perform (prop%d,prop%d) contractions\n",counter3+1,counter4+1);
                           MPI_Barrier(cart_comm);
                           tic1=MPI_Wtime();
                          }
-                         meson_two_points(mezzottoR,op1,spinor3[iprop3],op2,spinor4_ptr,ncontr2,phys_prop3[counter3],r_prop3[counter3],phys_prop4[iprop4],r_prop4[iprop4]);
+                         meson_two_points(mezzottoR,op1,spinor3[iprop3],op2,spinor4_ptr[r4],ncontr2,phys_prop3[counter3],r_prop3[counter3],phys_prop4[counter4],r_prop4[counter4]);
                          if(debug)
                          {
                           MPI_Barrier(cart_comm);
                           tac1=MPI_Wtime();
                           tot_contract_time+=tac1-tic1;
                           tot_contr_made+=ncontr2;
-                        }
+                         }
 
                         if(rank==0)
                         {
@@ -835,55 +877,32 @@ int main(int narg,char **arg)
                                  fprintf(fout2,"%+016.16g\t%+016.16g\n",mezzottoR[icontr][t][0]/spat_vol,mezzottoR[icontr][t][1]/spat_vol);
                                  }
                           }
-                        }
-                      if(rank==0)
-                      {
                              fprintf(fout2,"\n");
                              if(debug>1) fflush(fout2);
                       }
-                }
 
-		// End Calculate two points 
                  //Calculate all the three points 
-                  for(int iprop1=0;iprop1<iblock1_length;iprop1++)
-                  {
-                   	int counter1=iblock1_first+iprop1;
-			for(int iprop3=0;iprop3<iblock3_length;iprop3++)
-                  	{
-				int counter3=iblock3_first+iprop3;
-                   		//only continue if one of the r1,r2,r3,r4 have different sign than the others
-		                if (r_prop1[counter1]+r_prop2[iprop2]+r_prop3[counter3]+r_prop4[iprop4]==0 || r_prop1[counter1]+r_prop2[iprop2]+r_prop3[counter3]+r_prop4[iprop4]==2 || r_prop1[counter1]+r_prop2[iprop2]+r_prop3[counter3]+r_prop4[iprop4]==4) {
-					if (rank==0) printf (" NOT VALID r-combination:  m1=%f r1=%d , m2=%f r2=%d m3=%f r3=%d, m4=%f r4=%d\n", mass_prop1[counter1],r_prop1[counter1],mass_prop2[iprop2],r_prop2[iprop2],mass_prop3[counter3],r_prop3[counter3],mass_prop4[iprop4],r_prop4[iprop4]);
-				}
-				//end if over not valid combinations
-				else{
 
 		                   if(rank==0)
-                		   fprintf(fout," # m1=%f r1=%d , m2=%f r2=%d m3=%f r3=%d, m4=%f r4=%d\n",mass_prop1[counter1],r_prop1[counter1],mass_prop2[iprop2],r_prop2[iprop2],mass_prop3[counter3],r_prop3[counter3],mass_prop4[iprop4],r_prop4[iprop4]);
-
-                  		   double tic1=0,tac1;
+		                   {
+		                   printf ("Computing 3 points ... \n");
+                		   fprintf(fout," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d\n",mass_prop1[counter1],r_prop1[counter1],mass_prop2[iprop2],r_prop2[iprop2],mass_prop3[counter3],r_prop3[counter3],mass_prop4[iprop4],r_prop4[iprop4]);
+	                       }
                 		   if(debug)
                   		   {
-                    			   if(rank==0) printf("Going to perform (prop%d,prop%d,prop%d,prop%d) contractions\n",iprop1+1,iprop2+1,iprop3+1,iprop4+1);
+                    			   if(rank==0) printf("Going to perform (prop%d,prop%d,prop%d,prop%d) contractions\n",counter1+1,iprop2+1,counter3+1,counter4+1);
                 			   MPI_Barrier(cart_comm);
                       			   tic1=MPI_Wtime();
                   		   }
-                		  BK_eight_disconnected(mezzottos,op,spinor1[iprop1],spinor2_ptr,spinor3[iprop3],spinor4_ptr,ncontr,phys_prop1[counter1],r_prop1[counter1],phys_prop2[iprop2],r_prop2[iprop2],phys_prop3[counter3],r_prop3[counter3],phys_prop4[iprop4],r_prop4[iprop4]);
-                   		  BK_eight_connected(ottos,op,spinor1[iprop1],spinor2_ptr,spinor3[iprop3],spinor4_ptr,ncontr,phys_prop1[counter1],r_prop1[counter1],phys_prop2[iprop2],r_prop2[iprop2],phys_prop3[counter3],r_prop3[counter3],phys_prop4[iprop4],r_prop4[iprop4]);
 
+                		  BK_eight_disconnected(mezzottos,op,spinor1[iprop1],spinor2_ptr,spinor3[iprop3],spinor4_ptr[r4],ncontr,phys_prop1[counter1],r_prop1[counter1],phys_prop2[iprop2],r_prop2[iprop2],phys_prop3[counter3],r_prop3[counter3],phys_prop4[counter4],r_prop4[counter4]);
+                   		  BK_eight_connected(ottos,op,spinor1[iprop1],spinor2_ptr,spinor3[iprop3],spinor4_ptr[r4],ncontr,phys_prop1[counter1],r_prop1[counter1],phys_prop2[iprop2],r_prop2[iprop2],phys_prop3[counter3],r_prop3[counter3],phys_prop4[counter4],r_prop4[counter4]);
 		                  if(debug)
                   		 {
                 		     MPI_Barrier(cart_comm);
                  		     tac1=MPI_Wtime();
 		                     tot_contract_time+=tac1-tic1;
-                		     tot_contr_made+=ncontr;
-                  		 }
-		                 if(debug)
-                  		 {
-	        	             MPI_Barrier(cart_comm);
-        	        	     tac1=MPI_Wtime();
-		                     tot_contract_time+=tac1-tic1;
-                		     tot_contr_made+=ncontr;
+                		     tot_contr_made+=2*ncontr;
                   		 }
 
                			if(rank==0)
@@ -907,30 +926,21 @@ int main(int narg,char **arg)
                         		     if(t>=glb_size[0]) t-=glb_size[0];
 
 		                             fprintf(fout,"%+016.16g\t%+016.16g\n",ottos[icontr][t][0]/spat_vol,ottos[icontr][t][1]/spat_vol);
-                         		}
+                         		  }
 
-				 }
-                   		}
-                  
-                	        if(rank==0)
-                	        {
+				               }
                 		   fprintf(fout,"\n");
                  		   if(debug>1) fflush(fout);
 		                }
-			    }// end else over valid r combinations	
-  			  } // end for over iprop1
-			} // end for over iprop3 
-		   
-                  // End calculate 3 points
 
+     } // end for over r3
+    } // end for over iprop1
 
-       }//end for over iprop4
-     }// end for over iprop2
-   } // end for over iblock3
-  } // end for over iblock1
+   } // end for over iprop2
+
+  } // end for over iblock
 
   //take final time
-  double tac;
   if(debug)
     {
       MPI_Barrier(cart_comm);
@@ -951,15 +961,19 @@ int main(int narg,char **arg)
     {
       printf("\nEverything ok, exiting!\n");
       fclose(fout);
-    }
-
-  if(rank==0)
-    {
-      printf("\nEverything ok, exiting!\n");
       fclose(fout2);
     }
 
   /*
+  free(mass_prop4);
+  free(theta_prop4);
+  free(phys_prop4);
+  free(r_prop4);
+  for(int r4=0;r4<2;r4++) free(spinor4[r4]);
+  free(spinor4);
+  for(int iprop4=0;iprop4<nprop_list4;iprop4++) free(base_filename4[iprop4]);
+  free(base_filename4);
+
   free(mass_prop2);
   free(theta_prop2);
   free(phys_prop2);
@@ -968,13 +982,14 @@ int main(int narg,char **arg)
   for(int iprop2=0;iprop2<nprop_list2;iprop2++) free(base_filename2[iprop2]);
   free(base_filename2);
 
-  free(mass_prop4);
-  free(theta_prop4);
-  free(phys_prop4);
-  free(r_prop4);
-  free(spinor4);
-  for(int iprop4=0;iprop4<nprop_list4;iprop4++) free(base_filename4[iprop4]);
-  free(base_filename4);
+  free(mass_prop3);
+  free(theta_prop3);
+  free(phys_prop3);
+  free(r_prop3);
+  for(int iprop3=0;iprop3<nprop_per_block;iprop3++) free(spinor3[iprop3]);
+  free(spinor3);
+  for(int iprop3=0;iprop3<nprop_list3;iprop3++) free(base_filename3[iprop3]);
+  free(base_filename3);
 
   free(mass_prop1);
   free(theta_prop1);
@@ -984,16 +999,6 @@ int main(int narg,char **arg)
   free(spinor1);
   for(int iprop1=0;iprop1<nprop_list1;iprop1++) free(base_filename1[iprop1]);
   free(base_filename1);
-
-
-  free(mass_prop3);
-  free(theta_prop3);
-  free(phys_prop3);
-  free(r_prop3);
-  for(int iprop3=0;iprop3<nprop_per_block;iprop3++) free(spinor3[iprop3]);
-  free(spinor1);
-  for(int iprop3=0;iprop3<nprop_list3;iprop3++) free(base_filename3[iprop3]);
-  free(base_filename3);
 
   free(mezzottos[0]);
   free(mezzottos);
