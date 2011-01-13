@@ -221,23 +221,32 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
   free(loc_c);
 }
 
+//print a single contraction to the file
+void print_contraction_to_file(FILE *fout,int op1,int op2,complex *contr,int twall,const char *tag,double norm)
+{
+  if(rank==0)
+    {
+      fprintf(fout," # %s%s%s\n",tag,gtag[op2],gtag[op1]);
+      for(int tempt=0;tempt<glb_size[0];tempt++)
+	{
+	  int t=tempt+twall;
+	  if(t>=glb_size[0]) t-=glb_size[0];
+	  
+	  fprintf(fout,"%+016.16g\t%+016.16g\n",contr[t][0]/norm,contr[t][1]/norm);
+	}
+    }
+}
+
 //print all the passed contractions to the file
 void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex **contr,int twall,const char *tag)
 {
-  int spat_vol=glb_size[1]*glb_size[2]*glb_size[3];
+  double norm=glb_size[1]*glb_size[2]*glb_size[3];
   
   if(rank==0)
     for(int icontr=0;icontr<ncontr;icontr++)
       {
 	fprintf(fout,"\n");
-	fprintf(fout," # %s%s%s\n",tag,gtag[op2[icontr]],gtag[op1[icontr]]);
-	for(int tempt=0;tempt<glb_size[0];tempt++)
-	  {
-	    int t=tempt+twall;
-	    if(t>=glb_size[0]) t-=glb_size[0];
-	    
-	    fprintf(fout,"%+016.16g\t%+016.16g\n",contr[icontr][t][0]/spat_vol,contr[icontr][t][1]/spat_vol);
-	  }
+	print_contraction_to_file(fout,op1[icontr],op2[icontr],contr[icontr],twall,tag,norm);
       }
 }
 
