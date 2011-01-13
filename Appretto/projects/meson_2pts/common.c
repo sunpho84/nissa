@@ -152,21 +152,3 @@ void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_o
   trace_g_sdag_g_s(corr,t1,s1,t2,s2,ncontr);
 }
 
-//print all the passed contractions to the file
-void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex **contr,int twall,const char *tag)
-{
-  int spat_vol=glb_size[1]*glb_size[2]*glb_size[3];
-  
-  for(int icontr=0;icontr<ncontr;icontr++)
-    {
-      fprintf(fout,"\n");
-      fprintf(fout," # %s%s%s\n",tag,gtag[op2[icontr]],gtag[op1[icontr]]);
-      for(int tempt=0;tempt<glb_size[0];tempt++)
-	{
-	  int t=tempt+twall;
-	  if(t>=glb_size[0]) t-=glb_size[0];
-	  
-	  fprintf(fout,"%+016.16g\t%+016.16g\n",contr[icontr][t][0]/spat_vol,contr[icontr][t][1]/spat_vol);
-	}
-    }
-}

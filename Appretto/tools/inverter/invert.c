@@ -87,7 +87,7 @@ int main(int narg,char **arg)
 
   spincolor *source_reco=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   
-  apply_Q2(source_reco,solution,conf,kappa,m,NULL);
+  apply_Q2(source_reco,solution,conf,kappa,m,NULL,NULL,NULL);
   
   //printing
   double truered,loc_truered=0;
