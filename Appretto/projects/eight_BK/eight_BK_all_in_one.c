@@ -52,47 +52,6 @@ source |------>---->----->---->| sink
 
 #include "appretto.h"
 
-void BK_eight_disconnected(complex **mezzo, int *list_opQ,colorspinspin *sdL,colorspinspin *ssL, colorspinspin *sdR,colorspinspin *ssR,int ncontr,int fdL,int rdL,int fsL,int rsL,int fdR,int rdR,int fsR,int rsR )
-{
-  
-  //Temporary vectors for the internal gamma
-  dirac_matr gsource_times_g5_L[ncontr],g5_times_gQ_L[ncontr];
-  dirac_matr gsource_times_g5_R[ncontr],g5_times_gQ_R[ncontr];
-  int gsource=5; //Kaon-Kaon
-  for(int icontr=0;icontr<ncontr;icontr++)
-    {
-      //Put the two gamma5 needed for the revert of the d spinor
-      dirac_prod(&(gsource_times_g5_L[icontr]),&(base_gamma[gsource]),&(base_gamma[5]));
-      dirac_prod(&(g5_times_gQ_L[icontr]),&(base_gamma[5]),&(base_gamma[list_opQ[icontr]]));
-      dirac_prod(&(gsource_times_g5_R[icontr]),&(base_gamma[gsource]),&(base_gamma[5]));
-      dirac_prod(&(g5_times_gQ_R[icontr]),&(base_gamma[5]),&(base_gamma[list_opQ[icontr]]));
-    }
-  
-  //Call for the routine which does the real contraction for the Mezzotto and the otto:
-  sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(mezzo,gsource_times_g5_L,sdL,g5_times_gQ_L,ssL,gsource_times_g5_R,sdR,g5_times_gQ_R,ssR,ncontr);
-}
-
-void BK_eight_connected(complex **otto, int *list_opQ,colorspinspin *sdL,colorspinspin *ssL, colorspinspin *sdR,colorspinspin *ssR,int ncontr,int fdL,int rdL,int fsL,int rsL,int fdR,int rdR,int fsR,int rsR)
-{
-  //Temporary vectors for the internal gamma
-  dirac_matr gsource_times_g5_L[ncontr],g5_times_gQ_L[ncontr];
-  dirac_matr gsource_times_g5_R[ncontr],g5_times_gQ_R[ncontr];
-  int gsource=5; //Kaon-Kaon
-  for(int icontr=0;icontr<ncontr;icontr++)
-    {
-      //Put the two gamma5 needed for the revert of the d spinor
-      dirac_prod(&(gsource_times_g5_L[icontr]),&(base_gamma[gsource]),&(base_gamma[5]));
-      dirac_prod(&(g5_times_gQ_L[icontr]),&(base_gamma[5]),&(base_gamma[list_opQ[icontr]]));
-      dirac_prod(&(gsource_times_g5_R[icontr]),&(base_gamma[gsource]),&(base_gamma[5]));
-      dirac_prod(&(g5_times_gQ_R[icontr]),&(base_gamma[5]),&(base_gamma[list_opQ[icontr]]));
-    }
-  
-  //Call for the routine which does the real contraction for the Mezzotto and the otto:
-  trace_g_sdag_g_s_g_sdag_g_s(otto,gsource_times_g5_L,sdL,g5_times_gQ_L,ssL,gsource_times_g5_R,sdR,g5_times_gQ_R,ssR,ncontr);
-}
-
-#include "appretto.h"
-
 char conf_path[1024];
 quad_su3 *conf;
 double kappa;
@@ -113,35 +72,21 @@ spincolor **cgmms_solution,*reco_solution[2];
 
 //cgmms inverter parameters
 double stopping_residue;
+double minimal_residue;
 int stopping_criterion;
 int niter_max;
 
 //two points contractions
-int ncontr_2pts;
-complex **contr_2pts;
+complex **contr_otto,**contr_mezzotto,**contr_2pts;
+char outfile_otto[1024],outfile_mezzotto[1024],outfile_2pts[1024];
 int *op1_2pts,*op2_2pts;
-char outfile_2pts[1024];
+int ncontr_2pts;
 
 //timings
 int ninv_tot=0,ncontr_tot=0;
 double tot_time=0,inv_time=0,contr_time=0;
 
-//This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
-void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr)
-{
-  //Temporary vectors for the internal gamma
-  dirac_matr t1[ncontr],t2[ncontr];
-
-  for(int icontr=0;icontr<ncontr;icontr++)
-    {
-      //Put the two gamma5 needed for the revert of the first spinor
-      dirac_prod(&(t1[icontr]), &(base_gamma[list_op1[icontr]]),&(base_gamma[5]));
-      dirac_prod(&(t2[icontr]), &(base_gamma[5]),&(base_gamma[list_op2[icontr]]));
-    }
-  
-  //Call the routine which does the real contraction
-  trace_g_sdag_g_s(corr,t1,s1,t2,s2,ncontr);
-}
+int nspec=1;
 
 //Generate the source for the dirac index
 void generate_source(int LR)
@@ -217,12 +162,26 @@ void initialize_Bk(char *input_path)
       for(int isc=0;isc<numb_known_stopping_criterion;isc++) fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
       MPI_Abort(MPI_COMM_WORLD,1);
     }
+  if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
   
   //Number of iterations
   read_str_int("NiterMax",&niter_max);
   
-  // 5) contraction list for two points
+  // 5) contraction list for eight
 
+  contr_otto=(complex**)malloc(sizeof(complex*)*16);
+  contr_otto[0]=(complex*)malloc(sizeof(complex)*16*glb_size[0]); 
+  contr_mezzotto=(complex**)malloc(sizeof(complex*)*16);
+  contr_mezzotto[0]=(complex*)malloc(sizeof(complex)*16*glb_size[0]); 
+  
+  for(int iop=0;iop<16;iop++)
+    {
+      contr_otto[iop]=contr_otto[0]+iop*glb_size[0];
+      contr_mezzotto[iop]=contr_mezzotto[0]+iop*glb_size[0];
+    }
+  
+  read_str_str("OutfileOtto",outfile_otto,1024);
+  read_str_str("OutfileTwoPoints",outfile_2pts,1024);
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=(complex**)malloc(sizeof(complex*)*ncontr_2pts);
   contr_2pts[0]=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
@@ -238,8 +197,7 @@ void initialize_Bk(char *input_path)
 
       if(rank==0 && debug) printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
-  
-  read_str_str("OutfileTwoPoints",outfile_2pts,1024);
+
 
   close_input();
 
@@ -281,7 +239,7 @@ void initialize_Bk(char *input_path)
 }
 
 //Finalization
-void close_semileptonic()
+void close_Bk()
 {
   if(rank==0)
     {
@@ -294,10 +252,9 @@ void close_semileptonic()
   free(conf);free(mass);
   for(int iprop=0;iprop<nmass;iprop++) for(int LR=0;LR<2;LR++) for(int UD=0;UD<2;UD++) free(S[LR][UD][iprop]);
   free(reco_solution[0]);free(reco_solution[1]);
-  //free(op1_2pts);free(op2_2pts);free(ch_op1_2pts);free(ch_op2_2pts);
-  //free(contr_2pts[0]);free(contr_2pts);free(ch_contr_2pts[0]);free(ch_contr_2pts);
-  //free(op1_3pts);free(op2_3pts);free(ch_op1_3pts);free(ch_op2_3pts);
-  //free(contr_3pts[0]);free(contr_3pts);free(ch_contr_3pts[0]);free(ch_contr_3pts);
+  free(contr_otto[0]);free(contr_otto);
+  free(contr_mezzotto[0]);free(contr_mezzotto);
+
   close_appretto();
 }
 
@@ -316,7 +273,7 @@ void calculate_S(int LR)
       communicate_lx_spincolor_borders(source);
       
       double part_time=-take_time();
-      inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,stopping_criterion);
+      inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
       part_time+=take_time();ninv_tot++;inv_time+=part_time;
       char tag[2][10]={"left","right"};
       if(rank==0) printf("Finished the %s source inversion, dirac index %d in %g sec\n",tag[LR],id,part_time);
@@ -331,10 +288,115 @@ void calculate_S(int LR)
 	}
     }
   
+  for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
+    for(int ipropS=0;ipropS<nmass;ipropS++) //put the (1+ig5)/sqrt(2) factor
+      rotate_vol_colorspinspin_to_physical_basis(S[LR][r][ipropS],!r,!r);
+}
+
+void Bk_eights(colorspinspin *SL1,colorspinspin *SL2,colorspinspin *SR1,colorspinspin *SR2)
+{
+  //Temporary vectors for the internal gamma
+  dirac_matr tsource[16],tsink[16];
+
+  for(int igamma=0;igamma<16;igamma++)
+    {
+      //Put the two gamma5 needed for the revert of the d spinor
+      tsource[igamma]=base_gamma[0]; //g5*g5
+      dirac_prod(&(tsink[igamma]),&(base_gamma[5]),&(base_gamma[igamma]));
+    }
+  
+  //Call the routine which does the real contraction for the Mezzotto and the Otto
+  trace_g_sdag_g_s_g_sdag_g_s(contr_otto,tsource,SL1,tsink,SL2,tsource,SR1,tsink,SR2,16);
+  sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(contr_mezzotto,tsource,SL1,tsink,SL2,tsource,SR1,tsink,SR2,16);
+}
+
+void meson_two_points(colorspinspin *s1,colorspinspin *s2)
+{
+  //Temporary vectors for the internal gamma
+  dirac_matr t1[ncontr_2pts],t2[ncontr_2pts];
+  
+  for(int icontr=0;icontr<ncontr_2pts;icontr++)
+    {
+      //Put the two gamma5 needed for the revert of the first spinor
+      dirac_prod(&(t1[icontr]),&(base_gamma[op1_2pts[icontr]]),&(base_gamma[5]));
+      dirac_prod(&(t2[icontr]),&(base_gamma[5]),&(base_gamma[op2_2pts[icontr]]));
+    }
+  //Call for the routine which does the real contraction
+  trace_g_sdag_g_s(contr_2pts,t1,s1,t2,s2,ncontr_2pts);
+}
+
+//print all the passed contractions to the file
+void print_ottos_contractions_to_file(FILE *fout)
+{
+  double norm=glb_size[1]*glb_size[2]*glb_size[3];
+  
+  if(rank==0)
+    for(int icontr=0;icontr<16;icontr++)
+      {
+        fprintf(fout,"\n");
+	print_contraction_to_file(fout,icontr,5,contr_mezzotto[icontr],twall[0],"DISCONNECTED ",norm);
+        fprintf(fout,"\n");
+	print_contraction_to_file(fout,icontr,5,contr_otto[icontr],twall[0],"CONNECTED ",norm);
+      }
+}
+
+//print all the passed contractions to the file
+void print_two_points_contractions_to_file(FILE *fout,int LR)
+{
+  double norm=glb_size[1]*glb_size[2]*glb_size[3];
+  
+  if(rank==0)
+    for(int icontr=0;icontr<ncontr_2pts;icontr++)
+      {
+        fprintf(fout,"\n");
+	print_contraction_to_file(fout,op2_2pts[icontr],op1_2pts[icontr],contr_2pts[icontr],twall[LR],"",norm);
+      }
+}
+
+//Calculate and print to file all the contractions
+void calculate_all_contractions()
+{
+  FILE *fout_otto=open_text_file_for_output(outfile_otto);
+  FILE *fout_2pts=open_text_file_for_output(outfile_2pts);
+ 
+  contr_time-=take_time();
+
+  for(int im1=0;im1<nspec;im1++)
+    for(int r1=0;r1<2;r1++)
+      for(int im2=0;im2<nmass;im2++)
+	for(int r2=0;r2<2;r2++)
+	  for(int r3=0;r3<2;r3++)
+	    {
+	      int r4=1-(r1+r2+r3)%2;
+            
+	      if(rank==0) fprintf(fout_otto," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d\n",
+				  mass[im1],r1,mass[im2],r2,mass[im1],r3,mass[im2],r4);
+
+	      Bk_eights(S[0][r1][im1],S[0][r2][im2],S[1][r3][im1],S[1][r4][im2]);
+	      ncontr_tot+=32;
+	      if(rank==0) print_ottos_contractions_to_file(fout_otto);
+	    }
+
   for(int LR=0;LR<2;LR++)
-    for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-      for(int ipropS=0;ipropS<nmass;ipropS++) //put the (1+ig5)/sqrt(2) factor
-	rotate_vol_colorspinspin_to_physical_basis(S[LR][r][ipropS],!r,!r);
+    for(int im1=0;im1<nspec;im1++)
+      for(int r1=0;r1<2;r1++)
+	for(int im2=0;im2<nmass;im2++)
+	  for(int r2=0;r2<2;r2++)
+	    {
+	      if(rank==0) fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d LR=%d\n",
+				  mass[im1],r1,mass[im2],r2,LR);
+	      meson_two_points(S[LR][r1][im1],S[LR][r2][im2]);
+	      if(rank==0) print_two_points_contractions_to_file(fout_2pts,LR);
+	      ncontr_tot+=ncontr_2pts;
+	    }
+
+  contr_time+=take_time();
+  
+  if(rank==0)
+    {
+      fclose(fout_otto);
+      fclose(fout_2pts);
+    }
 }
 
 int main(int narg,char **arg)
@@ -357,9 +419,11 @@ int main(int narg,char **arg)
       generate_source(LR);
       calculate_S(LR);
     }
+
+  calculate_all_contractions();
   
   tot_time+=take_time();
-  close_semileptonic();
+  close_Bk();
   
   return 0;
 }

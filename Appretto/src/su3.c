@@ -117,6 +117,15 @@ void safe_su3_prod_complex(su3 a,su3 b,complex c)
   for(int i=0;i<9;i++) safe_complex_prod(ca[i],cb[i],c);
 }
 
+//product of an su3 matrix by a real
+void su3_prod_real(su3 a,su3 b,double r)
+{
+  double *da=(double*)a;
+  double *db=(double*)b;
+
+  for(int i=0;i<18;i++) da[i]=db[i]*r;
+}
+
 ////////////////////// products between su3 and color //////////////////
 
 //product of an su3 matrix by a color vector
