@@ -45,6 +45,7 @@ T=[T]
 #noise type residual for the inverter and maximal number of iterations
 noise_type=4 #-1 1 2 4
 stopping_residue=[resd]
+minimal_residue=[resd2]
 num_max_iter=[num]
 
 #list of theta and sea for which we will do first inversion
@@ -109,6 +110,7 @@ NTheta ${#list_theta[@]}
 ${list_theta[@]}
 Residue $stopping_residue
 StoppingCriterion standard
+MinimalResidue $minimal_residue
 NiterMax $num_max_iter
 
 NContrTwoPoints "$(echo "$list_2micro"|wc -l)"
