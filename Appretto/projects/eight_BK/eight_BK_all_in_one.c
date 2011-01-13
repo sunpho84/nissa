@@ -349,7 +349,7 @@ void print_two_points_contractions_to_file(FILE *fout,int LR)
     for(int icontr=0;icontr<ncontr_2pts;icontr++)
       {
         fprintf(fout,"\n");
-	print_contraction_to_file(fout,op2_2pts[icontr],op1_2pts[icontr],contr_2pts[icontr],twall[LR],"",norm);
+	print_contraction_to_file(fout,op2_2pts[icontr],op1_2pts[icontr],contr_2pts[icontr],twall[0],"",norm);
       }
 }
 
@@ -361,6 +361,7 @@ void calculate_all_contractions()
  
   contr_time-=take_time();
 
+  //Ottos
   for(int im1=0;im1<nspec;im1++)
     for(int r1=0;r1<2;r1++)
       for(int im2=0;im2<nmass;im2++)
@@ -372,21 +373,31 @@ void calculate_all_contractions()
 	      if(rank==0) fprintf(fout_otto," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d\n",
 				  mass[im1],r1,mass[im2],r2,mass[im1],r3,mass[im2],r4);
 
-	      Bk_eights(S[0][r1][im1],S[0][r2][im2],S[1][r3][im1],S[1][r4][im2]);
+	      Bk_eights(S[0][r2][im2],S[0][r1][im1],S[1][r4][im2],S[1][r3][im1]);
 	      ncontr_tot+=32;
-	      if(rank==0) print_ottos_contractions_to_file(fout_otto);
+	      if(rank==0)
+		{
+		  print_ottos_contractions_to_file(fout_otto);
+		  fprintf(fout_otto,"\n");
+		}
 	    }
 
-  for(int LR=0;LR<2;LR++)
-    for(int im1=0;im1<nspec;im1++)
-      for(int r1=0;r1<2;r1++)
-	for(int im2=0;im2<nmass;im2++)
-	  for(int r2=0;r2<2;r2++)
+  //two points
+  char tag_LR[2][10]={"LEFT","RIGHT"};
+  for(int im1=0;im1<nspec;im1++)
+    for(int r1=0;r1<2;r1++)
+      for(int im2=0;im2<nmass;im2++)
+	for(int r2=0;r2<2;r2++)
+	  for(int LR=0;LR<2;LR++)
 	    {
-	      if(rank==0) fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d LR=%d\n",
-				  mass[im1],r1,mass[im2],r2,LR);
+	      if(rank==0) fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d %s\n",
+				  mass[im1],r1,mass[im2],r2,tag_LR[LR]);
 	      meson_two_points(S[LR][r1][im1],S[LR][r2][im2]);
-	      if(rank==0) print_two_points_contractions_to_file(fout_2pts,LR);
+	      if(rank==0)
+		{
+		  print_two_points_contractions_to_file(fout_2pts,LR);
+		  fprintf(fout_2pts,"\n");
+		}
 	      ncontr_tot+=ncontr_2pts;
 	    }
 
