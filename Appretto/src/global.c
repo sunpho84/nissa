@@ -233,8 +233,10 @@ char *allocate_vector(int length,char *tag)
 
 spincolor *allocate_spincolor(int length,char *tag){return (spincolor*)allocate_vector(length*sizeof(spincolor),tag);}
 quad_su3 *allocate_quad_su3(int length,char *tag){return (quad_su3*)allocate_vector(length*sizeof(quad_su3),tag);}
+su3 *allocate_su3(int length,char *tag){return (su3*)allocate_vector(length*sizeof(su3),tag);}
 as2t_su3 *allocate_as2t_su3(int length,char *tag){return (as2t_su3*)allocate_vector(length*sizeof(as2t_su3),tag);}
 colorspinspin *allocate_colorspinspin(int length,char *tag){return (colorspinspin*)allocate_vector(length*sizeof(colorspinspin),tag);}
+su3spinspin *allocate_su3spinspin(int length,char *tag){return (su3spinspin*)allocate_vector(length*sizeof(su3spinspin),tag);}
 
 
 //Print a spinspin
@@ -267,6 +269,17 @@ void put_spincolor_into_colorspinspin(colorspinspin out,spincolor in,int id_sour
       {
 	out[ic_sink][id_sink][id_source][0]=in[id_sink][ic_sink][0];
 	out[ic_sink][id_sink][id_source][1]=in[id_sink][ic_sink][1];
+      }
+}
+
+//Put a spincolor into a su3spinspin
+void put_spincolor_into_su3spinspin(su3spinspin out,spincolor in,int id_source,int ic_source)
+{
+  for(int ic_sink=0;ic_sink<3;ic_sink++)
+    for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
+      {
+	out[ic_sink][ic_source][id_sink][id_source][0]=in[id_sink][ic_sink][0];
+	out[ic_sink][ic_source][id_sink][id_source][1]=in[id_sink][ic_sink][1];
       }
 }
 
