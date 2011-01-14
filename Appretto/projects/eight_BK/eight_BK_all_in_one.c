@@ -86,7 +86,8 @@ int ncontr_2pts;
 int ninv_tot=0,ncontr_tot=0;
 double tot_time=0,inv_time=0,contr_time=0;
 
-int nspec=1;
+//number of spectator masses
+int nspec;
 
 //Generate the source for the dirac index
 void generate_source(int LR)
@@ -182,6 +183,7 @@ void initialize_Bk(char *input_path)
   
   read_str_str("OutfileOtto",outfile_otto,1024);
   read_str_str("OutfileTwoPoints",outfile_2pts,1024);
+  read_str_int("NSpec",&nspec);
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=(complex**)malloc(sizeof(complex*)*ncontr_2pts);
   contr_2pts[0]=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
@@ -362,10 +364,10 @@ void calculate_all_contractions()
   contr_time-=take_time();
 
   //Ottos
-  for(int im1=0;im1<nspec;im1++)
-    for(int r1=0;r1<2;r1++)
-      for(int im2=0;im2<nmass;im2++)
-	for(int r2=0;r2<2;r2++)
+  for(int im2=0;im2<nmass;im2++)
+   for(int r2=0;r2<2;r2++)
+    for(int im1=0;im1<nspec;im1++)
+     for(int r1=0;r1<2;r1++)
 	  for(int r3=0;r3<2;r3++)
 	    {
 	      int r4=1-(r1+r2+r3)%2;
@@ -373,7 +375,7 @@ void calculate_all_contractions()
 	      if(rank==0) fprintf(fout_otto," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d\n",
 				  mass[im1],r1,mass[im2],r2,mass[im1],r3,mass[im2],r4);
 
-	      Bk_eights(S[0][r2][im2],S[0][r1][im1],S[1][r4][im2],S[1][r3][im1]);
+	      Bk_eights(S[0][r1][im1],S[0][r2][im2],S[1][r3][im1],S[1][r4][im2]);
 	      ncontr_tot+=32;
 	      if(rank==0)
 		{
@@ -384,11 +386,11 @@ void calculate_all_contractions()
 
   //two points
   char tag_LR[2][10]={"LEFT","RIGHT"};
-  for(int im1=0;im1<nspec;im1++)
-    for(int r1=0;r1<2;r1++)
-      for(int im2=0;im2<nmass;im2++)
-	for(int r2=0;r2<2;r2++)
-	  for(int LR=0;LR<2;LR++)
+  for(int im2=0;im2<nmass;im2++)
+   for(int r2=0;r2<2;r2++)
+    for(int im1=0;im1<nspec;im1++)
+     for(int r1=0;r1<2;r1++)
+      for(int LR=0;LR<2;LR++)
 	    {
 	      if(rank==0) fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d %s\n",
 				  mass[im1],r1,mass[im2],r2,tag_LR[LR]);

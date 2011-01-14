@@ -45,12 +45,13 @@ T=[T]
 #noise type residual for the inverter and maximal number of iterations
 noise_type=4 #-1 1 2 4
 stopping_residue=[resd]
-num_max_iter=[num]
 minimal_residue=[min]
+num_max_iter=[num]
 
 #list of masses
 kappa=[kappac]
 list_mu=( [mu1] [mu2] )
+nmu_low=[nmu_low]
 
 #List of two points functions
 two_points_correlations=(P5P5 A0P5 P5A0)
@@ -101,9 +102,10 @@ StoppingCriterion standard
 MinimalResidue $minimal_residue
 NiterMax $num_max_iter
 
-OutFileOtto otto
+OutFileOtto ottos
 
 OutFileTwoPoints two_points
+NSpec $nmu_low
 NContrTwoPoints "$(echo "$list_2micro"|wc -l)"
 ${list_2micro[@]}
 " > input

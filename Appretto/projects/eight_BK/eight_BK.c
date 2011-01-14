@@ -886,7 +886,7 @@ int main(int narg,char **arg)
 		                   if(rank==0)
 		                   {
 		                   printf ("Computing 3 points ... \n");
-                		   fprintf(fout," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d\n",mass_prop1[counter1],r_prop1[counter1],mass_prop2[iprop2],r_prop2[iprop2],mass_prop3[counter3],r_prop3[counter3],mass_prop4[iprop4],r_prop4[iprop4]);
+                		   fprintf(fout," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d\n",mass_prop1[counter1],r_prop1[counter1],mass_prop2[iprop2],r_prop2[iprop2],mass_prop3[counter3],r_prop3[counter3],mass_prop4[counter4],r_prop4[counter4]);
 	                       }
                 		   if(debug)
                   		   {
