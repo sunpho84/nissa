@@ -43,14 +43,14 @@ void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD)
 		    for(int al2=0;al2<4;al2++)
 		      for(int be1=0;be1<4;be1++)
 			for(int be2=0;be2<4;be2++)
-			  if((C5[al1][be1][0]||C5[al1][be1][1])&&(C5[al2][be2][0]||C5[al2][be2][1]))
+			  //if((C5[al1][be1][0]||C5[al1][be1][1])&&(C5[al2][be2][0]||C5[al2][be2][1]))
 			    for(int ga1=0;ga1<4;ga1++)
 			      for(int ga2=0;ga2<4;ga2++)
 				{
 				  int se=epsilon[a1][b1][c1]*epsilon[a2][b2][c2];
 				  
 				  complex ter;
-				  unsafe_complex_prod(ter,SU[a1][a2][al1][al2],SU[c1][c2][ga1][ga2]);
+				  unsafe_complex_prod(ter,SU[a2][a1][al2][al1],SU[c2][c1][ga2][ga1]);
 				  complex_subt_the_prod(ter,SU[a2][c1][al2][ga1],SU[c2][a1][ga2][al1]);
 				  
 				  safe_complex_prod(ter,SD[be2][be1][b2][b1],ter);
