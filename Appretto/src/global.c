@@ -106,8 +106,16 @@ void complex_subt(complex a,complex b,complex c)
   a[1]=b[1]-c[1];
 }
 
+//prod with real
+void complex_prod_with_real(complex a,complex b,double c)
+{
+  a[0]=b[0]*r;
+  a[1]=b[1]*r;
+}
+
 //Summ to the output the product of two complex number
 //it is assumed that a!=b and a!=c
+
 void complex_summ_the_prod(complex a,complex b,complex c)
 {
   a[0]+=b[0]*c[0]-b[1]*c[1];

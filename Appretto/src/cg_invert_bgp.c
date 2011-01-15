@@ -11,14 +11,10 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
   static double _Complex R;
 
   int riter=0;
-  spincolor *s=(spincolor*)malloc(sizeof(spincolor)*(loc_vol));
-  spincolor *p=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-  spincolor *r=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
-  spincolor *t=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord)); //temporary for internal calculation of DD
-
-  //temporary for comunications of Q2
-  redspincolor *tout=(redspincolor*)malloc(sizeof(redspincolor)*loc_bord); 
-  redspincolor *tin=(redspincolor*)malloc(sizeof(redspincolor)*loc_bord);
+  spincolor *s=allocate_spincolor(loc_vol,"s in gc");
+  spincolor *p=allocate_spincolor(loc_vol+loc_bord,"p in gc");
+  spincolor *r=allocate_spincolor(loc_vol,"r in gc");
+  spincolor *t=allocate_spincolor(loc_vol+loc_bord,"t in gc"); //temporary for internal calculation of DD
 
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
   else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));
@@ -31,7 +27,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
       double delta;
       {
 
-	apply_Q2(s,sol,conf,kappac,m,t,tout,tin);
+	apply_Q2(s,sol,conf,kappac,m,t,NULL,NULL);
 
 	complex cloc_delta={0,0};
 
@@ -59,8 +55,8 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
 	  double omega; //(r_k,r_k)/(p_k*DD*p_k)
 	  {
 	    double alpha;
-	    if(rank_tot>0) communicate_lx_redspincolor_borders(p,tout,tin);
-	    apply_Q2(s,p,conf,kappac,m,t,tout,tin);
+	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
+	    apply_Q2(s,p,conf,kappac,m,t,NULL,NULL);
 
 	    complex cloc_alpha={0,0};
 
@@ -104,7 +100,7 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
 	    bgp_save_complex(cloc_lambda,N0);
 	    if(rank_tot>0) 
 	      {
-		communicate_lx_redspincolor_borders(sol,tout,tin);
+		communicate_lx_spincolor_borders(sol);
 		MPI_Allreduce(cloc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	      }
 	    else lambda=cloc_lambda[0];
@@ -129,13 +125,13 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
 
 	  iter++;
 
-	  if(rank==0 && debug) printf("iter %d residue %g\n",iter,lambda);
+	  if(rank==0 && debug && iter%10==0) printf("iter %d residue %g\n",iter,lambda);
 	}
       while(lambda>residue && iter<niter);
       
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
-      apply_Q2(s,sol,conf,kappac,m,t,tout,tin);
+      apply_Q2(s,sol,conf,kappac,m,t,NULL,NULL);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;
@@ -158,7 +154,4 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
   free(p);
   free(r);
   free(t);
-  
-  free(tout);
-  free(tin);
 }
