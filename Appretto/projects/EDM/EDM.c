@@ -27,11 +27,10 @@ spinspin C5; //C*gamma5
 
 void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD)
 {//                        e_00   e_01     e_02      e_10     e_11    e_12      e_20    e_21     e_22
-  int epsilon[3][3][3]={{{0,0,0},{0,0,1},{0,-1,0}},{{0,0,-1},{0,0,0},{1,0,0}},{{0,1,0},{-1,0,0},{0,0,0}}}
-
-  spinspin_put_to_zero(contr);
-
-
+  int epsilon[3][3][3]={{{0,0,0},{0,0,1},{0,-1,0}},{{0,0,-1},{0,0,0},{1,0,0}},{{0,1,0},{-1,0,0},{0,0,0}}};
+  
+  memset(contr,0,sizeof(spinspin));
+  
   for(int a1=0;a1<3;a1++)
     for(int b1=0;b1<3;b1++)
       for(int c1=0;c1<3;c1++)
@@ -44,23 +43,24 @@ void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD)
 		    for(int al2=0;al2<4;al2++)
 		      for(int be1=0;be1<4;be1++)
 			for(int be2=0;be2<4;be2++)
-			  for(int ga1=0;ga1<4;ga1++)
-			    for(int ga2=0;ga2<4;ga2++)
-			      {
-				int se=epsilon[a1][b1][c1]*epsilon[a2][b2][c2];
-				
-				complex ter;
-				unsafe_complex_prod(ter,SU[a1][a2][alpha1][alpha2],SU[c1][c2][gamma1][gamma2]);
-				complex_subt_the_prod(ter,SU[a2][c1][alpha2][gamma1],SU[c2][a1][gamma2][alpha1]);
-				
-				safe_complex_prod(ter,SD[beta2][beta1][b2][b1],ter);
-				safe_complex_prod(ter,C5[alpha1][beta1],ter);
-				safe_complex_prod(ter,C5[alpha2][beta2],ter);
-				
-				for(int ri=0;ri<2;ri++)
-				  if(se==1) contr[gamma1][gamma2][ri]=ter[ri];
-				  else      contr[gamma1][gamma2][ri]=-ter[ri];
-			      }
+			  if((C5[al1][be1][0]||C5[al1][be1][1])&&(C5[al2][be2][0]||C5[al2][be2][1]))
+			    for(int ga1=0;ga1<4;ga1++)
+			      for(int ga2=0;ga2<4;ga2++)
+				{
+				  int se=epsilon[a1][b1][c1]*epsilon[a2][b2][c2];
+				  
+				  complex ter;
+				  unsafe_complex_prod(ter,SU[a1][a2][al1][al2],SU[c1][c2][ga1][ga2]);
+				  complex_subt_the_prod(ter,SU[a2][c1][al2][ga1],SU[c2][a1][ga2][al1]);
+				  
+				  safe_complex_prod(ter,SD[be2][be1][b2][b1],ter);
+				  safe_complex_prod(ter,C5[al1][be1],ter);
+				  safe_complex_prod(ter,C5[al2][be2],ter);
+				  
+				  for(int ri=0;ri<2;ri++)
+				    if(se==1) contr[ga1][ga2][ri]=ter[ri];
+				    else      contr[ga1][ga2][ri]=-ter[ri];
+				}
 }
 
 void summ_the_point_proton_contraction_wrong(complex contr_plus,complex contr_minus,su3spinspin SU,su3spinspin SD)
@@ -139,7 +139,8 @@ void proton_contraction(complex *contr_plus,complex *contr_minus,su3spinspin *SU
   memset(loc_plus,0,sizeof(complex)*glb_size[0]);
   memset(loc_minus,0,sizeof(complex)*glb_size[0]);
 
-  spinspin ter,cp,cm;
+  spinspin ter;
+  complex cp,cm;
   
   for(int loc_site=0;loc_site<loc_vol;loc_site++)
     {
@@ -150,8 +151,8 @@ void proton_contraction(complex *contr_plus,complex *contr_minus,su3spinspin *SU
       trace_prod_spinspins(cp,ter,Pp);
       trace_prod_spinspins(cm,ter,Pm);
 
-      complex_summ(contr_plus[glb_t],contr_plus[glb_t],cp);
-      complex_summ(contr_minus[glb_t],contr_minus[glb_t],cp);
+      complex_summ(loc_plus[glb_t],loc_plus[glb_t],cp);
+      complex_summ(loc_minus[glb_t],loc_minus[glb_t],cm);
     }
 
   MPI_Barrier(MPI_COMM_WORLD);
@@ -177,15 +178,16 @@ void initialize_EDM(char *input_path)
 {
   //C5
   complex ima={0,1};
+  dirac_matr gC,migC,gC5;
   memset(C5,0,sizeof(spinspin));
-  dirac_prod(&gC,&(base_gamma[2]),&(base_gamma[4]));
-  safe_dirac_prod_complex(&gC,&gC,ima);
-  dirac_prod(&gC5,&gC,base_gamma[5]);
+  dirac_prod(&migC,&(base_gamma[2]),&(base_gamma[4]));
+  unsafe_dirac_compl_prod(&gC,&migC,ima);
+  dirac_prod(&gC5,&gC,&(base_gamma[5]));
   for(int id1=0;id1<4;id1++)
     {
       int id2=gC5.pos[id1];
       for(int ri=0;ri<2;ri++)
-	C5[id1][id2][ri]=gc5.entr[id1][ri];
+	C5[id1][id2][ri]=gC5.entr[id1][ri];
     }
   
   //Pp and Pm
@@ -193,11 +195,11 @@ void initialize_EDM(char *input_path)
   memset(Pm,0,sizeof(spinspin));
   for(int id1=0;id1<4;id1++)
     {
-      int id2=Pp[id][base_gamma[4].pos[id1]]
-
+      int id2=base_gamma[4].pos[id1];
+      
       Pp[id1][id1][0]=0.5;
       complex_prod_with_real(Pp[id1][id2],base_gamma[4].entr[id1],+0.5);
-						                               
+      
       Pm[id1][id1][0]=0.5;
       complex_prod_with_real(Pm[id1][id2],base_gamma[4].entr[id1],-0.5);
     }
@@ -224,7 +226,7 @@ void initialize_EDM(char *input_path)
       read_str(outp_path[iconf],1024);
     }
   //Put border condition and communicate
-  double theta[4]={1,0,0,0};
+  //double theta[4]={1,0,0,0};
 
   //put_boundaries_conditions(conf,theta,1,0);
   //Kappa
@@ -362,8 +364,8 @@ int main(int narg,char **arg)
   if(rank==0)
     {
       printf("Total time: %g s\n",tot_time);
-      printf("-inversion time: %g%s avg: %d s\n",tinv/tot_time*100,"%",tinv/nconf/12);
-      printf("-contraction time: %g%s\n",tcontr/tot_time*100,"%",tcontr);
+      printf("-inversion time: %g%s avg: %d s\n",tinv/tot_time*100,"%",(int)(tinv/nconf/12));
+      printf("-contraction time: %g%s\n",tcontr/tot_time*100,"%");
     }
 
   close_appretto();
