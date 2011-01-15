@@ -43,7 +43,7 @@ void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD)
 		    for(int al2=0;al2<4;al2++)
 		      for(int be1=0;be1<4;be1++)
 			for(int be2=0;be2<4;be2++)
-			  //if((C5[al1][be1][0]||C5[al1][be1][1])&&(C5[al2][be2][0]||C5[al2][be2][1]))
+			  if((C5[al1][be1][0]||C5[al1][be1][1])&&(C5[al2][be2][0]||C5[al2][be2][1]))
 			    for(int ga1=0;ga1<4;ga1++)
 			      for(int ga2=0;ga2<4;ga2++)
 				{
@@ -150,7 +150,7 @@ void proton_contraction(complex *contr_plus,complex *contr_minus,su3spinspin *SU
       
       trace_prod_spinspins(cp,ter,Pp);
       trace_prod_spinspins(cm,ter,Pm);
-
+      
       complex_summ(loc_plus[glb_t],loc_plus[glb_t],cp);
       complex_summ(loc_minus[glb_t],loc_minus[glb_t],cm);
     }
