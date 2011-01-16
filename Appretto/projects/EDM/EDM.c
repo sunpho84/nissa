@@ -26,9 +26,8 @@ spinspin Pp,Pm; //projectors over N and N*
 spinspin C5; //C*gamma5
 
 void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD)
-{//                        e_00   e_01     e_02      e_10     e_11    e_12      e_20    e_21     e_22
+{//                       e_00x   e_01x    e_02x     e_10x    e_11x   e_12x     e_20x   e_21x    e_22x
   int epsilon[3][3][3]={{{0,0,0},{0,0,1},{0,-1,0}},{{0,0,-1},{0,0,0},{1,0,0}},{{0,1,0},{-1,0,0},{0,0,0}}};
-  
   memset(contr,0,sizeof(spinspin));
   
   for(int a1=0;a1<3;a1++)
@@ -53,7 +52,7 @@ void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD)
 				  unsafe_complex_prod(ter,SU[a2][a1][al2][al1],SU[c2][c1][ga2][ga1]);
 				  complex_subt_the_prod(ter,SU[a2][c1][al2][ga1],SU[c2][a1][ga2][al1]);
 				  
-				  safe_complex_prod(ter,SD[be2][be1][b2][b1],ter);
+				  safe_complex_prod(ter,SD[b2][b1][be2][be1],ter);
 				  safe_complex_prod(ter,C5[al1][be1],ter);
 				  safe_complex_prod(ter,C5[al2][be2],ter);
 				  
@@ -65,7 +64,7 @@ void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD)
 
 void summ_the_point_proton_contraction_wrong(complex contr_plus,complex contr_minus,su3spinspin SU,su3spinspin SD)
 {
-  const int e_sign[6]={1,-1,-1,1,1,1-1};
+  const int e_sign[6]={1,-1,-1,1,1,-1};
   const int e_ind[6][3]={{0,1,2},{0,2,1},{1,0,2},{1,2,0},{2,0,1},{2,1,0}};
   const int cc_p[4]={1,0,3,2};
   const int cc_e[4]={-1,1,-1,1};
