@@ -57,8 +57,8 @@ void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD)
 				  safe_complex_prod(ter,C5[al2][be2],ter);
 				  
 				  for(int ri=0;ri<2;ri++)
-				    if(se==1) contr[ga1][ga2][ri]=ter[ri];
-				    else      contr[ga1][ga2][ri]=-ter[ri];
+				    if(se==1) contr[ga2][ga1][ri]+=ter[ri];
+				    else      contr[ga2][ga1][ri]-=ter[ri];
 				}
 }
 
@@ -182,6 +182,7 @@ void initialize_EDM(char *input_path)
   dirac_prod(&migC,&(base_gamma[2]),&(base_gamma[4]));
   unsafe_dirac_compl_prod(&gC,&migC,ima);
   dirac_prod(&gC5,&gC,&(base_gamma[5]));
+
   for(int id1=0;id1<4;id1++)
     {
       int id2=gC5.pos[id1];
