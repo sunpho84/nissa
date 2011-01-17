@@ -95,7 +95,7 @@ void initialize_EDM(char *input_path)
     }
   
   //Proj[0] and Proj[1]
-  memset(Proj,0,2*sizeof(spinspin));
+  for(int nns=0;nns<2;nns++) memset(Proj[nns],0,sizeof(spinspin));
   for(int id1=0;id1<4;id1++)
     {
       int id2=base_gamma[4].pos[id1];
@@ -192,7 +192,7 @@ void prepare_source()
 
   if(isloc)
     for(int ic=0;ic<3;ic++)
-      for(int id=0;id<3;id++)
+      for(int id=0;id<4;id++)
 	original_source[ivol][ic][ic][id][id][0]=1;
 }      
 
@@ -276,14 +276,14 @@ void calculate_all_2pts()
   tcontr-=take_time();
   
   char ftag[2][1]={"U","D"},pm_tag[2][1]={"+","-"};
-
+  
   complex *loc_contr[2],*glb_contr[2];
   for(int nns=0;nns<2;nns++)
     {
       loc_contr[nns]=(complex*)malloc(sizeof(complex)*glb_size[0]);
       glb_contr[nns]=(complex*)malloc(sizeof(complex)*glb_size[0]);
     }
-
+  
   spinspin ter;
   complex point_contr[2];
   
@@ -291,14 +291,14 @@ void calculate_all_2pts()
     {
       int r2=!r1;
       
-      memset(loc_contr,0,2*sizeof(complex)*glb_size[0]);
+      for(int nns=0;nns<2;nns++) memset(loc_contr[nns],0,sizeof(complex)*glb_size[0]);
   
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	{
 	  int glb_t=glb_coord_of_loclx[loc_site][0];
 	  
 	  point_proton_contraction(ter,S0[r1][loc_site],S0[r2][loc_site]);
-      
+	  
 	  for(int nns=0;nns<2;nns++)
 	    {
 	      trace_prod_spinspins(point_contr[nns],ter,Proj[nns]);
