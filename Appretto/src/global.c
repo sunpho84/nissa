@@ -140,6 +140,11 @@ void complex_summ_the_conj_conj_prod(complex a,complex b,complex c)
   a[0]+=b[0]*c[0]-b[1]*c[1];
   a[1]+=-b[0]*c[1]-b[1]*c[0];
 }
+void complex_subt_the_conj_conj_prod(complex a,complex b,complex c)
+{
+  a[0]-=b[0]*c[0]-b[1]*c[1];
+  a[1]-=-b[0]*c[1]-b[1]*c[0];
+}
 
 //The product of two complex number
 void unsafe_complex_prod(complex a,complex b,complex c)
@@ -258,7 +263,7 @@ void print_spinspin(spinspin s)
 }
 
 //Get a spincolor from a colorspinspin
-//In a spinspin the sink index runs slower than the source                                                                                                                                                                                                                  
+//In a spinspin the sink index runs slower than the source
 void get_spincolor_from_colorspinspin(spincolor out,colorspinspin in,int id_source)
 {
   for(int ic_sink=0;ic_sink<3;ic_sink++)
@@ -266,6 +271,17 @@ void get_spincolor_from_colorspinspin(spincolor out,colorspinspin in,int id_sour
       {
 	out[id_sink][ic_sink][0]=in[ic_sink][id_sink][id_source][0];
 	out[id_sink][ic_sink][1]=in[ic_sink][id_sink][id_source][1];
+      }
+}
+
+//Get a spincolor from a su3spinspin
+void get_spincolor_from_su3spinspin(spincolor out,su3spinspin in,int id_source,int ic_source)
+{
+  for(int ic_sink=0;ic_sink<3;ic_sink++)
+    for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
+      {
+	out[id_sink][ic_sink][0]=in[ic_sink][ic_source][id_sink][id_source][0];
+	out[id_sink][ic_sink][1]=in[ic_sink][ic_source][id_sink][id_source][1];
       }
 }
 
