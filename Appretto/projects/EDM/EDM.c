@@ -304,9 +304,9 @@ void calculate_all_2pts()
 
 //sequential source for the "like" case, traced with Proj[0]
 //this should be multplied by g5 that is cancelled by the Q+Q
-void prepare_like_sequential_source(int rlike)
+void prepare_like_sequential_source(int rlike,int t)
 {
-  int slice_to_take=10;
+  int slice_to_take=t;//glb_size[0]/4;
 
   memset(seq_source,0,sizeof(su3spinspin)*loc_vol);
   
@@ -316,16 +316,16 @@ void prepare_like_sequential_source(int rlike)
 	for(int a1=0;a1<3;a1++)
 	  for(int z=0;z<3;z++)
 	    for(int c1=0;c1<3;c1++)
-	      if(epsilon[a1][z][c1])
+	      //if(epsilon[a1][z][c1])
 		for(int a2=0;a2<3;a2++)
 		  for(int x=0;x<3;x++)
 		    for(int c2=0;c2<3;c2++)
-		      if(epsilon[a2][x][c2])
+		      //if(epsilon[a2][x][c2])
 			for(int al1=0;al1<4;al1++)
 			  for(int al2=0;al2<4;al2++)
 			    for(int tau=0;tau<4;tau++)
 			      for(int rho=0;rho<4;rho++)
-				if((C5[al2][tau][0]||C5[al2][tau][1])&&(C5[al1][rho][0]||C5[al1][rho][1]))
+				//if((C5[al2][tau][0]||C5[al2][tau][1])&&(C5[al1][rho][0]||C5[al1][rho][1]))
 				  for(int ga1=0;ga1<4;ga1++)
 				    for(int ga2=0;ga2<4;ga2++)
 				      {
@@ -333,8 +333,8 @@ void prepare_like_sequential_source(int rlike)
 					
 					complex ter;
 					
-					unsafe_complex_conj_conj_prod(ter,S0[rlike][ivol][a2][a1][al2][al1],S0[rlike][ivol][c2][c1][ga1][ga2]);
-					complex_subt_the_conj_conj_prod(ter,S0[rlike][ivol][a2][c1][al2][ga2],S0[rlike][ivol][c2][a1][ga1][al1]);
+					unsafe_complex_conj_conj_prod(ter,S0[rlike][ivol][a2][a1][al2][al1],S0[rlike][ivol][c2][c1][ga2][ga1]);
+					complex_subt_the_conj_conj_prod(ter,S0[rlike][ivol][a2][c1][al2][ga1],S0[rlike][ivol][c2][a1][ga2][al1]);
 					
 					safe_complex_conj1_prod(ter,C5[al2][rho],ter);
 					safe_complex_conj1_prod(ter,C5[al1][tau],ter);
@@ -348,7 +348,7 @@ void prepare_like_sequential_source(int rlike)
 	//counter rotate to twisted basis
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++)
-	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],!rlike,!rlike);
+	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],rlike,rlike);
       }
 }
 
@@ -378,27 +378,34 @@ void calculate_S1_like(int rlike)
   if(rank==0) printf("like sequential inversions finished\n");
   
   //put the (1+ig5)/sqrt(2) factor
-  for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-    for(int ivol=0;ivol<loc_vol;ivol++)
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    {
+      su3spinspin temp;
+      memcpy(temp,S1[ivol],sizeof(su3spinspin));
+      
       for(int ic1=0;ic1<3;ic1++)
 	for(int ic2=0;ic2<3;ic2++)
 	  { //the solution was the g5 s+, so we put g5 and do the dagger
-	    for(int id_sour=0;id_sour<4;id_sour++)
-	      for(int id_sink=0;id_sink<4;id_sink++)
-		for(int ri=0;ri<2;ri++)
+	    rotate_spinspin_to_physical_basis(temp[ic1][ic2],!rlike,rlike);
+	    for(int id1=0;id1<4;id1++)
+	      for(int id2=0;id2<4;id2++) //perform the dagger and put g5
+		if(id1<2) //id1 is the sink index of the not daggered
 		  {
-		    double temp=S1[ivol][ic1][ic2][id_sour][id_sink][ri];
-		    if(id_sink>=2) temp=-temp;
-		    S1[ivol][ic1][ic2][id_sour][id_sink][ri]=S1[ivol][ic1][ic2][id_sink][id_sour][ri];
-		    S1[ivol][ic1][ic2][id_sour][id_sink][ri]=temp;
+		    S1[ivol][ic1][ic2][id1][id2][0]=temp[ic2][ic1][id2][id1][0];
+		    S1[ivol][ic1][ic2][id1][id2][1]=-temp[ic2][ic1][id2][id1][1];
 		  }
-	    rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],!rlike,!rlike);
+		else
+		  {
+		    S1[ivol][ic1][ic2][id1][id2][0]=-temp[ic2][ic1][id2][id1][0];
+		    S1[ivol][ic1][ic2][id1][id2][1]=temp[ic2][ic1][id2][id1][1];
+		  }
 	  }
+    }
   
   if(rank==0) printf("rotations performed\n");
 }
 
-void contract_with_source(complex *glb_contr,su3spinspin *s,su3spinspin *S)
+void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
 {
   complex *loc_contr=malloc(sizeof(complex)*glb_size[0]);
   memset(loc_contr,0,sizeof(complex)*glb_size[0]);
@@ -407,17 +414,16 @@ void contract_with_source(complex *glb_contr,su3spinspin *s,su3spinspin *S)
     for(int id1=0;id1<4;id1++)
       for(int id2=0;id2<4;id2++)
 	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
-	    complex_summ_the_conj1_prod(loc_contr[glb_coord_of_loclx[ivol][0]],s[ivol][ic1][ic2][id1][id2],S[ivol][ic2][ic1][id2][id1]);
+	  for(int ic2=0;ic2<3;ic2++) //eta+*S
+	    complex_summ_the_conj1_prod(loc_contr[glb_coord_of_loclx[ivol][0]],eta[ivol][ic2][ic1][id2][id1],S[ivol][ic2][ic1][id2][id1]);
 
   MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   
   free(loc_contr);
 }
 
-void check_2pts()
+void check_2pts(FILE *fout)
 {
-  FILE *fout=open_text_file_for_output("2pts_check");
   complex *contr_2pts=malloc(sizeof(complex)*glb_size[0]);
   
   contract_with_source(contr_2pts,original_source,S1);
@@ -429,7 +435,7 @@ void check_2pts()
 
       //fprintf(fout,"\n");
             
-      fprintf(fout," +016.16g\t%+016.16g\n",contr_2pts[source_pos[0]][0],contr_2pts[source_pos[0]][1]);
+      fprintf(fout," %+016.16g\t%+016.16g\n",contr_2pts[source_pos[0]][0],contr_2pts[source_pos[0]][1]);
     }
   
   free(contr_2pts);
@@ -464,10 +470,13 @@ int main(int narg,char **arg)
       calculate_S0();
       calculate_all_2pts();
 
-      prepare_like_sequential_source(1);
-      calculate_S1_like(1);
-      check_2pts(S1);
-      
+      FILE *fout=open_text_file_for_output("2pts_check");
+      for(int t=0;t<glb_size[0];t++)
+	{
+	  prepare_like_sequential_source(1,t);
+	  calculate_S1_like(1);
+	  check_2pts(fout);
+	}
       if(rank==0) fclose(output);
     }
 
