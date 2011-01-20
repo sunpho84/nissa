@@ -316,16 +316,16 @@ void prepare_like_sequential_source(int rlike,int t)
 	for(int a1=0;a1<3;a1++)
 	  for(int z=0;z<3;z++)
 	    for(int c1=0;c1<3;c1++)
-	      //if(epsilon[a1][z][c1])
+	      if(epsilon[a1][z][c1])
 		for(int a2=0;a2<3;a2++)
 		  for(int x=0;x<3;x++)
 		    for(int c2=0;c2<3;c2++)
-		      //if(epsilon[a2][x][c2])
+		      if(epsilon[a2][x][c2])
 			for(int al1=0;al1<4;al1++)
 			  for(int al2=0;al2<4;al2++)
 			    for(int tau=0;tau<4;tau++)
 			      for(int rho=0;rho<4;rho++)
-				//if((C5[al1][tau][0]||C5[al1][tau][1])&&(C5[al2][rho][0]||C5[al1][rho][1]))
+				if((C5[al1][tau][0]||C5[al1][tau][1])&&(C5[al2][rho][0]||C5[al2][rho][1]))
 				  for(int ga1=0;ga1<4;ga1++)
 				    for(int ga2=0;ga2<4;ga2++)
 				      {
@@ -335,9 +335,8 @@ void prepare_like_sequential_source(int rlike,int t)
 					
 					unsafe_complex_conj_conj_prod(ter,S0[rlike][ivol][a2][a1][al2][al1],S0[rlike][ivol][c2][c1][ga2][ga1]);
 					complex_subt_the_conj_conj_prod(ter,S0[rlike][ivol][a2][c1][al2][ga1],S0[rlike][ivol][c2][a1][ga2][al1]);
-					
+					safe_complex_conj1_prod(ter,C5[al1][tau],ter); //check
 					safe_complex_conj1_prod(ter,C5[al2][rho],ter);
-					safe_complex_conj1_prod(ter,C5[al1][tau],ter);
 					
 					safe_complex_prod(ter,Proj[0][ga1][ga2],ter);
 					
@@ -350,7 +349,8 @@ void prepare_like_sequential_source(int rlike,int t)
 	//counter rotate to twisted basis
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++)
-	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],rlike,rlike);
+	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],!rlike,!rlike);
+	//	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],rlike,rlike);
       }
 }
 
