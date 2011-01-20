@@ -325,7 +325,7 @@ void prepare_like_sequential_source(int rlike,int t)
 			  for(int al2=0;al2<4;al2++)
 			    for(int tau=0;tau<4;tau++)
 			      for(int rho=0;rho<4;rho++)
-				//if((C5[al2][tau][0]||C5[al2][tau][1])&&(C5[al1][rho][0]||C5[al1][rho][1]))
+				//if((C5[al1][tau][0]||C5[al1][tau][1])&&(C5[al2][rho][0]||C5[al1][rho][1]))
 				  for(int ga1=0;ga1<4;ga1++)
 				    for(int ga2=0;ga2<4;ga2++)
 				      {
@@ -342,8 +342,10 @@ void prepare_like_sequential_source(int rlike,int t)
 					safe_complex_prod(ter,Proj[0][ga1][ga2],ter);
 					
 					for(int ri=0;ri<2;ri++)
-					  if(se==1) seq_source[ivol][x][z][rho][tau][ri]+=ter[ri];
-					  else      seq_source[ivol][x][z][rho][tau][ri]-=ter[ri];
+					  {
+					    if(se==1) seq_source[ivol][x][z][rho][tau][ri]+=ter[ri];
+					    if(se==-1) seq_source[ivol][x][z][rho][tau][ri]-=ter[ri];
+					  }
 				      }  
 	//counter rotate to twisted basis
 	for(int ic1=0;ic1<3;ic1++)
