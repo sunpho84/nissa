@@ -223,16 +223,16 @@ void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD)
 				  int se=epsilon[a1][b1][c1]*epsilon[a2][b2][c2];
 				  
 				  complex ter;
-				  unsafe_complex_prod(ter,SU[a2][a1][al2][al1],SU[c2][c1][ga2][ga1]);
-				  complex_subt_the_prod(ter,SU[a2][c1][al2][ga1],SU[c2][a1][ga2][al1]);
+				  unsafe_complex_prod(ter,SU[a1][a2][al1][al2],SU[c1][c2][ga1][ga2]);
+				  complex_subt_the_prod(ter,SU[a1][c2][al1][ga2],SU[c1][a2][ga1][al2]);
 				  
-				  safe_complex_prod(ter,SD[b2][b1][be2][be1],ter);
+				  safe_complex_prod(ter,SD[b1][b2][be1][be2],ter);
 				  safe_complex_prod(ter,C5[al1][be1],ter);
 				  safe_complex_prod(ter,C5[al2][be2],ter);
 				  
 				  for(int ri=0;ri<2;ri++)
-				    if(se==1) contr[ga2][ga1][ri]+=ter[ri];
-				    else      contr[ga2][ga1][ri]-=ter[ri];
+				    if(se==1) contr[ga1][ga2][ri]+=ter[ri];
+				    else      contr[ga1][ga2][ri]-=ter[ri];
 				}
 }
 
@@ -325,7 +325,7 @@ void prepare_like_sequential_source(int rlike,int t)
 			  for(int al2=0;al2<4;al2++)
 			    for(int tau=0;tau<4;tau++)
 			      for(int rho=0;rho<4;rho++)
-				if((C5[al1][tau][0]||C5[al1][tau][1])&&(C5[al2][rho][0]||C5[al2][rho][1]))
+				//if((C5[tau][al1][0]||C5[tau][al1][1])&&(C5[rho][al2][0]||C5[rho][al2][1]))
 				  for(int ga1=0;ga1<4;ga1++)
 				    for(int ga2=0;ga2<4;ga2++)
 				      {
@@ -333,24 +333,21 @@ void prepare_like_sequential_source(int rlike,int t)
 					
 					complex ter;
 					
-					unsafe_complex_conj_conj_prod(ter,S0[rlike][ivol][a2][a1][al2][al1],S0[rlike][ivol][c2][c1][ga2][ga1]);
-					complex_subt_the_conj_conj_prod(ter,S0[rlike][ivol][a2][c1][al2][ga1],S0[rlike][ivol][c2][a1][ga2][al1]);
-					safe_complex_conj1_prod(ter,C5[al1][tau],ter); //check
+					unsafe_complex_conj_conj_prod(ter,S0[!rlike][ivol][a2][a1][al2][al1],S0[!rlike][ivol][c2][c1][ga1][ga2]);
+					complex_subt_the_conj_conj_prod(ter,S0[!rlike][ivol][a2][c1][al2][ga2],S0[!rlike][ivol][c2][a1][ga1][al1]);
+					
+					safe_complex_conj1_prod(ter,C5[al1][tau],ter);
 					safe_complex_conj1_prod(ter,C5[al2][rho],ter);
 					
 					safe_complex_prod(ter,Proj[0][ga1][ga2],ter);
 					
-					for(int ri=0;ri<2;ri++)
-					  {
-					    if(se==1) seq_source[ivol][x][z][rho][tau][ri]+=ter[ri];
-					    if(se==-1) seq_source[ivol][x][z][rho][tau][ri]-=ter[ri];
-					  }
+					if(se==+1) complex_summ(seq_source[ivol][x][z][tau][rho],seq_source[ivol][x][z][tau][rho],ter);
+					if(se==-1) complex_subt(seq_source[ivol][x][z][tau][rho],seq_source[ivol][x][z][tau][rho],ter);
 				      }  
 	//counter rotate to twisted basis
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++)
-	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],!rlike,!rlike);
-	//	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],rlike,rlike);
+	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],rlike,rlike);
       }
 }
 
@@ -363,7 +360,12 @@ void calculate_S1_like(int rlike)
       { //take the source and do not! put g5
 	for(int ivol=0;ivol<loc_vol;ivol++)
 	  get_spincolor_from_su3spinspin(source[ivol],seq_source[ivol],id_sour,ic_sour);
-	
+
+	if(rank==0)
+	  for(int id1=0;id1<4;id1++)
+	    for(int ic1=0;ic1<3;ic1++)
+	      fprintf(stderr,"%g %g\n",source[0][id1][ic1][0],source[0][id1][ic1][1]);
+		     
 	tinv-=take_time();
 	inv_Q2_cg(solDD,source,NULL,conf,kappa,mass,nitermax,1,residue);
 	tinv+=take_time();
@@ -475,8 +477,8 @@ int main(int narg,char **arg)
       FILE *fout=open_text_file_for_output("2pts_check");
       for(int t=0;t<glb_size[0];t++)
 	{
-	  prepare_like_sequential_source(1,t);
-	  calculate_S1_like(1);
+	  prepare_like_sequential_source(0,t);
+	  calculate_S1_like(0);
 	  check_2pts(fout);
 	}
       if(rank==0) fclose(output);

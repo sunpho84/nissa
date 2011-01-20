@@ -138,6 +138,15 @@ void unsafe_su3_prod_color(color a,su3 b,color c)
     }
 }
 
+void unsafe_color_prod_su3(color a,color b,su3 c)
+{
+  for(int c1=0;c1<3;c1++)
+    {
+      unsafe_complex_prod(a[c1],b[0],c[0][c1]);
+      for(int c2=1;c2<3;c2++) complex_summ_the_prod(a[c1],b[c2],c[c2][c1]);
+    }
+}
+
 void unsafe_summ_su3_prod_color(color a,su3 b,color c)
 {for(int c1=0;c1<3;c1++) for(int c2=0;c2<3;c2++) complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);}
 
@@ -163,6 +172,15 @@ void unsafe_su3_dag_prod_color(color a,su3 b,color c)
     {
       unsafe_complex_conj1_prod(a[c1],b[0][c1],c[0]);
       for(int c2=1;c2<3;c2++) complex_summ_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+    }
+}
+
+void unsafe_color_prod_su3_dag(color a,color b,su3 c)
+{
+  for(int c1=0;c1<3;c1++)
+    {
+      unsafe_complex_conj2_prod(a[c1],b[0],c[c1][0]);
+      for(int c2=1;c2<3;c2++) complex_summ_the_conj2_prod(a[c1],b[c2],c[c1][c2]);
     }
 }
 

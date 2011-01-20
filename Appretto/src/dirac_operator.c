@@ -1,5 +1,7 @@
 #pragma once
 
+#include "dirac_operator_left_portable.c"
+
 //Include the dirac operator: this depend on the machine
 #ifdef BGP
 
@@ -22,7 +24,7 @@ void reconstruct_doublet(spincolor *outminus,spincolor *outplus,spincolor *in,qu
 }
 
 //Apply the Q+Q- operator to a spincolor
-void apply_Q2(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu,spincolor *temp,redspincolor *tin,redspincolor *tout)
+void apply_Q2_RL(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu,spincolor *temp,redspincolor *tin,redspincolor *tout,int RL)
 {
   int all=0;
 
@@ -32,15 +34,27 @@ void apply_Q2(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu
       all=1;
     }
 
-  apply_Q(temp,in,conf,kappa,+mu);
+  if(RL==0) apply_Q(temp,in,conf,kappa,+mu);
+  else apply_Q_left(temp,in,conf,kappa,+mu);
   //if(tin!=NULL && tout!=NULL) communicate_lx_redspincolor_borders(temp,tin,tout);
   //else
   communicate_lx_spincolor_borders(temp);
-  apply_Q(out,temp,conf,kappa,-mu);
+  if(RL==0) apply_Q(out,temp,conf,kappa,-mu);
+  else apply_Q_left(out,temp,conf,kappa,-mu);
 
   if(all==1)
     {
       free(temp);
       temp=NULL;
     }
+}
+
+void apply_Q2(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu,spincolor *temp,redspincolor *tin,redspincolor *tout)
+{
+  apply_Q2_RL(out,in,conf,kappa,mu,temp,tin,tout,0);
+}
+
+void apply_Q2_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu,spincolor *temp,redspincolor *tin,redspincolor *tout)
+{
+  apply_Q2_RL(out,in,conf,kappa,mu,temp,tin,tout,1);
 }

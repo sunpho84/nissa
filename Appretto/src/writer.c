@@ -8,7 +8,7 @@
 //Write the header for a record
 void write_header(LemonWriter *writer,char *header,uint64_t record_bytes)
 {
-  if(rank==0) printf("Writing: %Ld bytes\n",record_bytes);
+  if(rank==0) printf("Writing: %Ld bytes\n",(long long int)record_bytes);
   LemonRecordHeader *lemon_header=lemonCreateHeader(1,1,header,record_bytes);
   lemonWriteRecordHeader(lemon_header,writer);
   lemonDestroyHeader(lemon_header);
