@@ -2,7 +2,6 @@
 
 #include "dirac_operator.c"
 #include "su3.c"
-
 #include "cgmms_invert_common.c"
 
 #ifdef BGP
