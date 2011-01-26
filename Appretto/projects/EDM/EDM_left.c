@@ -287,6 +287,7 @@ void calculate_all_2pts()
 		  int t=(tt+source_pos[0])%glb_size[0];
 		  fprintf(output," %+016.16g\t%+016.16g\n",glb_contr[nns][t][0],glb_contr[nns][t][1]);
 		}
+	      fprintf(output,"\n");
 	    }
 	}
     }
@@ -349,75 +350,6 @@ void prepare_like_sequential_source(int rlike,int t)
       }
 }
 
-void prepare_cap_dislike_sequential_source(int rlike,int t)
-{
-  int slice_to_take=t;//glb_size[0]/4;
-
-  memset(seq_source,0,sizeof(su3spinspin)*loc_vol);
-  
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    if(glb_coord_of_loclx[ivol][0]==slice_to_take)
-      {
-	for(int a1=0;a1<3;a1++)
-	  for(int b1=0;b1<3;b1++)
-	    for(int c1=0;c1<3;c1++)
-	      if(epsilon[a1][b1][c1])
-		for(int a2=0;a2<3;a2++)
-		  for(int b2=0;b2<3;b2++)
-		    for(int c2=0;c2<3;c2++)
-		      if(epsilon[a2][b2][c2])
-			for(int mu1=0;mu1<4;mu1++)
-			  for(int mu2=0;mu2<4;mu2++)
-			    for(int be1=0;be1<4;be1++)
-			      for(int be2=0;be2<4;be2++)
-				for(int al1=0;al1<4;al1++)
-				  for(int al2=0;al2<4;al2++)
-				    if(Proj[0][al2][al1][0]||Proj[0][al2][al1][1])
-				      for(int ga1=0;ga1<4;ga1++)
-					for(int ga2=0;ga2<4;ga2++)
-					  {
-					    int se=epsilon[a1][b1][c1]*epsilon[a2][b2][c2];
-					    complex ter={0,0},coe;
-					    
-					    if((C5[mu1][ga1][0]||C5[mu1][ga1][1])&&(C5[mu2][ga2][0]||C5[mu2][ga2][1]))
-					      {
-						unsafe_complex_prod(coe,C5[mu1][ga1],C5[mu2][ga2]);
-						complex_summ_the_prod(ter,coe,S0[rlike][ivol][b1][b2][al1][al2]);
-					      }
-					    
-					    if((C5[mu1][ga1][0]||C5[mu1][ga1][1])&&(C5[be2][ga2][0]||C5[be2][ga2][1]) && al2==ga2)
-					      {
-						unsafe_complex_prod(coe,C5[mu1][ga1],C5[be2][ga2]);
-						complex_summ_the_prod(ter,coe,S0[rlike][ivol][b1][b2][al1][be2]);
-					      }
-					    
-					    if((C5[be1][ga1][0]||C5[be1][ga1][1])&&(C5[mu2][ga2][0]||C5[mu2][ga2][1]) && mu1==al1)
-					      {
-						unsafe_complex_prod(coe,C5[be1][ga1],C5[mu2][ga2]);
-						complex_summ_the_prod(ter,coe,S0[rlike][ivol][b1][b2][be1][al2]);
-					      }
-					    
-					    if((C5[be1][ga1][0]||C5[be1][ga1][1])&&(C5[be2][ga2][0]||C5[be2][ga2][1]) && mu1==al1 && mu2==al2)
-					      {
-						unsafe_complex_prod(coe,C5[be1][ga1],C5[be2][ga2]);
-						complex_summ_the_prod(ter,coe,S0[rlike][ivol][b1][b2][be1][be2]);
-					      }
-					    
-					    safe_complex_prod(ter,S0[!rlike][ivol][c1][c2][ga1][ga2],ter);
-					    safe_complex_prod(ter,Proj[0][al2][al1],ter);
-					    
-					    for(int ri=0;ri<2;ri++)
-					      if(se==1) seq_source[ivol][a2][a1][mu2][mu1][ri]+=ter[ri];
-					      else      seq_source[ivol][a2][a1][mu2][mu1][ri]-=ter[ri];
-					  }
-	
-	//counter rotate to twisted basis
-	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
-	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],!rlike,!rlike);
-      }
-}
-
 void prepare_dislike_sequential_source(int rlike,int t)
 {
   int slice_to_take=t;//glb_size[0]/4;
@@ -443,7 +375,6 @@ void prepare_dislike_sequential_source(int rlike,int t)
 				  for(int al1=0;al1<4;al1++)
 				    for(int be1=0;be1<4;be1++)
 				      if(C5[al1][be1][0]||C5[al1][be1][1])
-					for(int al2=0;al2<4;al2++)
 					  for(int be2=0;be2<4;be2++)
 					    {
 					      //first part
@@ -453,6 +384,7 @@ void prepare_dislike_sequential_source(int rlike,int t)
 						    if(epsilon[x][b2][c2])
 						      {
 							complex part={0,0};
+
 							if(a1==z && al1==tau)
 							  complex_summ(part,part,S0[rlike][ivol][c1][c2][ga1][ga2]);
 							if(c1==z && ga1==tau)
@@ -468,25 +400,27 @@ void prepare_dislike_sequential_source(int rlike,int t)
 						      }
 					      
 					      //second part
-					      if((C5[al2][be2][0]||C5[al2][be2][1])&&(ga2==rho))
-						for(int a2=0;a2<3;a2++)
-						  for(int b2=0;b2<3;b2++)
-						    if(epsilon[a2][b2][x])
-						      {
-							complex part={0,0};
-							if(c1==z && ga1==tau)
-							  complex_summ(part,part,S0[rlike][ivol][a1][a2][al1][al2]);
-							if(a1==z && al1==tau)
-							  complex_subt(part,part,S0[rlike][ivol][c1][a2][ga1][al2]);
-							
-							safe_complex_prod(part,C5[al2][be2],part);
-							complex_prod_with_real(part,part,epsilon[a2][b2][x]);
-							safe_complex_prod(part,S0[!rlike][ivol][b1][b2][be1][be2],part);
-							safe_complex_prod(part,Proj[0][ga2][ga1],part);
-							
-							if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
-							else complex_subt_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
-						      }
+					      for(int al2=0;al2<4;al2++)					       
+						if((C5[al2][be2][0]||C5[al2][be2][1])&&(ga2==rho))
+						  for(int a2=0;a2<3;a2++)
+						    for(int b2=0;b2<3;b2++)
+						      if(epsilon[a2][b2][x])
+							{
+							  complex part={0,0};
+							  
+							  if(c1==z && ga1==tau)
+							    complex_summ(part,part,S0[rlike][ivol][a1][a2][al1][al2]);
+							  if(a1==z && al1==tau)
+							    complex_subt(part,part,S0[rlike][ivol][c1][a2][ga1][al2]);
+							  
+							  safe_complex_prod(part,C5[al2][be2],part);
+							  complex_prod_with_real(part,part,epsilon[a2][b2][x]);
+							  safe_complex_prod(part,S0[!rlike][ivol][b1][b2][be1][be2],part);
+							  safe_complex_prod(part,Proj[0][ga2][ga1],part);
+							  
+							  if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
+							  else complex_subt_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
+							}
 					    }
 		      }
 		}
@@ -601,6 +535,42 @@ void check_2pts(FILE *fout)
   
   free(contr_2pts);
 }
+
+//Calculate the proton contraction with the inserction of a gamma
+void point_proton_sequential_contraction(complex contr,su3spinspin S0,dirac_matr g,su3spinspin S1)
+{
+  contr[0]=contr[1]=0;
+  
+  complex temp;
+
+  for(int icso=0;icso<3;icso++)
+    for(int icsi=0;icsi<3;icsi++)
+      for(int idso=0;idso<4;idso++)
+	for(int idsi=0;idsi<4;idsi++)
+	  {
+	    unsafe_complex_prod(temp,S0[icsi][icso][idsi][idso],g.entr[idsi]);
+	    complex_summ_the_prod(contr,temp,S1[icsi][icso][g.pos[idsi]][idso]);
+	  }
+}
+
+//Calculate the proton contraction with the inserction of the dipole operator
+void point_proton_sequential_J0_contraction(complex contr,su3spinspin S0,double t,su3spinspin S1)
+{
+  contr[0]=contr[1]=0;
+  
+  complex temp;
+  if(t>glb_size[0]/2) t-=glb_size[0];
+
+  for(int icso=0;icso<3;icso++)
+    for(int icsi=0;icsi<3;icsi++)
+      for(int idso=0;idso<4;idso++)
+	for(int idsi=0;idsi<4;idsi++)
+	  {
+	    complex_prod_real(temp,S0[icsi][icso][idsi][idso],t);
+	    complex_summ_the_prod(contr,temp,S1[icsi][icso][idsi][idso]);
+	  }
+}
+
 
 int main(int narg,char **arg)
 {
