@@ -240,6 +240,14 @@ void summassign_spincolor(spincolor out,spincolor in)
 void subtassign_spincolor(spincolor out,spincolor in)
 {for(int i=0;i<24;i++) ((double*)out)[i]-=((double*)in)[i];}
 
+//spincolor*complex
+void unsafe_spincolor_prod_complex(spincolor out,spincolor in,complex factor)
+{for(int i=0;i<12;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+
+//spincolor*complex
+void spincolor_summ_the_prod_complex(spincolor out,spincolor in,complex factor)
+{for(int i=0;i<12;i++) complex_summ_the_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+
 //spincolor*real
 void unsafe_summassign_spincolor_prod_real(spincolor out,spincolor in,double factor)
 {for(int i=0;i<24;i++) ((double*)out)[i]+=((double*)in)[i]*factor;}
