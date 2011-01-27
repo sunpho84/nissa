@@ -11,6 +11,7 @@
 #include "contract.c"
 #include "communicate.c"
 #include "su3.c"
+#include "su3_paths.c"
 #include "gaugeconf.c"
 #include "dirac_operator.c"
 #include "invert.c"
