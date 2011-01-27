@@ -2,16 +2,6 @@
 
 #include "global.c"
 
-//return the trace of an su3 matrix
-void su3_trace(complex tr,su3 m)
-{
-  tr[0]=m[0][0][0];
-  tr[1]=m[0][0][1];
-
-  complex_summ(tr,tr,m[1][1]);
-  complex_summ(tr,tr,m[2][2]);
-}
-
 //////////////////////////////////// Put to zero /////////////////////////////////
 
 void color_put_to_zero(color m){memset(m,0,sizeof(color));}
@@ -19,6 +9,7 @@ void su3_put_to_zero(su3 m){memset(m,0,sizeof(su3));}
 void as2t_su3_put_to_zero(as2t_su3 m){memset(m,0,sizeof(as2t_su3));}
 void spincolor_put_to_zero(spincolor m){memset(m,0,sizeof(spincolor));}
 void su3spinspin_put_to_zero(su3spinspin m){memset(m,0,sizeof(su3spinspin));}
+void su3_put_to_id(su3 m){su3_put_to_zero(m);for(int ic=0;ic<3;ic++) m[ic][ic][0]=1;}
 
 //////////////////////////////////////// Copy /////////////////////////////////////
 
@@ -55,6 +46,38 @@ void subtassign_icolor(color a,color b)
 {for(int i=0;i<6;i+=2) {((double*)a)[i]+=((double*)b)[i+1];((double*)a)[i+1]-=((double*)b)[i];}}
 
 ////////////////////////////////// Operations between su3 //////////////////////////
+
+//return the trace of an su3 matrix
+void su3_trace(complex tr,su3 m)
+{
+  tr[0]=m[0][0][0];
+  tr[1]=m[0][0][1];
+
+  complex_summ(tr,tr,m[1][1]);
+  complex_summ(tr,tr,m[2][2]);
+}
+
+//return the hemitian su3 matrix
+void safe_su3_hermitian(su3 out,su3 in)
+{
+  su3 tmp;
+  for(int ic_in=0;ic_in<3;ic_in++)
+    for(int ic_out=0;ic_out<3;ic_out++)
+      {
+	tmp[ic_in][ic_out][0]= in[ic_out][ic_in][0];
+	tmp[ic_in][ic_out][1]=-in[ic_out][ic_in][1];
+      }
+  su3_copy(out,tmp);
+}
+void unsafe_su3_hermitian(su3 out,su3 in)
+{
+  for(int ic_in=0;ic_in<3;ic_in++)
+    for(int ic_out=0;ic_out<3;ic_out++)
+      {
+	out[ic_in][ic_out][0]= in[ic_out][ic_in][0];
+	out[ic_in][ic_out][1]=-in[ic_out][ic_in][1];
+      }
+}
 
 //summ two su3 matrixes
 void su3_summ(su3 a,su3 b,su3 c)
@@ -337,175 +360,5 @@ void unsafe_subt_su3_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spin
     {
       for(int ic=0;ic<3;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
       unsafe_subt_su3_prod_color(out[id1],U,tmp);
-    }
-}
-
-/////////////////////////////////////// Complicated things /////////////////////
-
-//square (the proto-plaquette)
-/*
-     
-  C------D
-n |      | 
-u |      | 
-  A--mu--B
-  
-The square path P_{mu,nu} is defined as U(A,mu)U(B,nu)U^(C,mu)U^(A,nu)=
-=U(A,mu)U(B,nu)(U(A,nu)U^(C,mu))^=U(AB,munu)*U^(AC,numu)
-*/
-
-void squared_path(su3 square,quad_su3 *conf,int A,int mu,int nu)
-{
-  int B=loclx_neighup[A][mu];
-  int C=loclx_neighup[A][nu];
-
-  su3 AB,AC;
-
-  su3_prod_su3(AB,conf[A][mu],conf[B][nu]);
-  su3_prod_su3(AC,conf[A][nu],conf[C][mu]);
-  su3_prod_su3_dag(square,AB,AC);
-}
-
-//This calculate the global plaquette. It's not done in a very
-//efficient way, but it's ok for our scope.
-double global_plaquette(quad_su3 *conf)
-{
-  su3 square;
-  complex pl;
-  double totlocplaq=0;
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int idir=0;idir<4;idir++)
-      for(int jdir=idir+1;jdir<4;jdir++)
-	{
-	  squared_path(square,conf,ivol,idir,jdir);
-	  su3_trace(pl,square);
-	  totlocplaq+=pl[0]/3;
-	}
-  
-  double totplaq;
-  MPI_Reduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  
-  return totplaq/glb_vol/6;
-}
-//This will calculate 2*a^2*ig*P_{mu,nu}
-/*
-  ^                   C--<-- B --<--Y 
-  |                   |  2  | |  1  | 
-  n                   |     | |     | 
-  u                   D-->--\X/-->--A 
-  |                   D--<--/X\--<--A 
-  -----mu---->        |  3  | |  4  | 
-  		      |     | |     | 
-		      E-->-- F -->--G 
-*/
-void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
-{
-  int A,B,C,D,E,F,G;
-  int munu;
-
-  su3 temp1,temp2,leaves_summ;
-
-  for(int X=0;X<loc_vol;X++)
-    {
-      as2t_su3_put_to_zero(Pmunu[X]);
-
-      munu=0;
-      for(int mu=0;mu<4;mu++)
-	{
-	  A=loclx_neighup[X][mu];
-	  D=loclx_neighdw[X][mu];
-	  
-	  for(int nu=mu+1;nu<4;nu++)
-	    {
-	      B=loclx_neighup[X][nu];
-	      F=loclx_neighdw[X][nu];
-	      
-	      C=loclx_neighup[D][nu];
-	      E=loclx_neighdw[D][nu];
-
-	      G=loclx_neighdw[A][nu];
-
-	      //Put to 0 the summ of the leaves
-	      su3_put_to_zero(leaves_summ);
-	      
-	      //Leaf 1
-	      su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);         //    B--<--Y 
-	      su3_prod_su3_dag(temp2,temp1,conf[B][mu]);           //    |  1  | 
-	      su3_prod_su3_dag(temp1,temp2,conf[X][nu]);           //    |     | 
-	      su3_summ(leaves_summ,leaves_summ,temp1);	           //    X-->--A 
-
-	      //Leaf 2
-	      su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);      //   C--<--B
-	      su3_prod_su3_dag(temp2,temp1,conf[D][nu]);            //   |  2  | 
-	      su3_prod_su3(temp1,temp2,conf[D][mu]);		    //   |     | 
-	      su3_summ(leaves_summ,leaves_summ,temp1);		    //   D-->--X
-	      
-	      //Leaf 3
-	      su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
-	      su3_prod_su3(temp2,temp1,conf[E][mu]);		    //   |  3  | 
-	      su3_prod_su3(temp1,temp2,conf[F][nu]);		    //   |     | 
-	      su3_summ(leaves_summ,leaves_summ,temp1);		    //   E-->--F
-	      
-	      //Leaf 4
-	      su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);       //  X--<--A 
-	      su3_prod_su3(temp2,temp1,conf[G][nu]);                 //  |  4  | 
-	      su3_prod_su3_dag(temp1,temp2,conf[X][mu]);             //  |     |  
-	      su3_summ(leaves_summ,leaves_summ,temp1);               //  F-->--G 
-
-	      //calculate U-U^dagger
-	      for(int ic1=0;ic1<3;ic1++)
-		for(int ic2=0;ic2<3;ic2++)
-		  {
-		    Pmunu[X][munu][ic1][ic2][0]=(leaves_summ[ic1][ic2][0]-leaves_summ[ic2][ic1][0])/4;
-		    Pmunu[X][munu][ic1][ic2][1]=(leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1])/4;
-		  }
-
-	      munu++;
-	    }
-	}
-    }
-}
-
-//apply the chromo operator to the passed spinor site by site (not yet fully optimized)
-void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in)
-{
-  color temp_d1;
-  
-  for(int d1=0;d1<4;d1++)
-    {
-      color_put_to_zero(out[d1]);
-      for(int imunu=0;imunu<6;imunu++)
-	{
-	  unsafe_su3_prod_color(temp_d1,Pmunu[imunu],in[smunu_pos[d1][imunu]]);
-	  for(int c=0;c<3;c++) complex_summ_the_prod(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
-	}
-    }
-}
-
-//apply the chromo operator to the passed spinor to the whole volume
-void unsafe_apply_chromo_operator_to_spincolor(spincolor *out,as2t_su3 *Pmunu,spincolor *in)
-{
-  for(int ivol=0;ivol<loc_vol;ivol++) unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
-}
-
-//apply the chromo operator to the passed colorspinspin
-//normalization as in ape next
-void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,as2t_su3 *Pmunu,colorspinspin *in)
-{
-  spincolor temp1,temp2;
-  
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
-    {
-      //Loop over the four source dirac indexes
-      for(int id_source=0;id_source<4;id_source++) //dirac index of source
-	{
-	  //Switch the color_spinspin into the spincolor.
-	  get_spincolor_from_colorspinspin(temp1,in[loc_site],id_source);
-	  
-	  unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[loc_site],temp1);
-	  
-	  //Switch back the spincolor into the colorspinspin
-	  put_spincolor_into_colorspinspin(out[loc_site],temp2,id_source);
-	}
     }
 }
