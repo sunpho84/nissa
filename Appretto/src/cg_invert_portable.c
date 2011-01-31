@@ -3,17 +3,13 @@
 #include "dirac_operator.c"
 #include "su3.c"
 
-void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappac,double m,int niter,int rniter,double residue,int RL)
+void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int UD,int RL)
 {
   int riter=0;
   spincolor *s=(spincolor*)malloc(sizeof(spincolor)*(loc_vol));
   spincolor *p=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
   spincolor *r=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   spincolor *t=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord)); //temporary for internal calculation of DD
-
-  //temporary for comunications of Q2
-  redspincolor *tout=(redspincolor*)malloc(sizeof(redspincolor)*loc_bord); 
-  redspincolor *tin=(redspincolor*)malloc(sizeof(redspincolor)*loc_bord);
 
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
   else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));
@@ -25,8 +21,8 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       double delta;
       {
-	if(RL==0) apply_Q2(s,sol,conf,kappac,m,t,tout,tin);
-	else apply_Q2_left(s,sol,conf,kappac,m,t,tout,tin);
+	if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
+	apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
 
 	double loc_delta=0;
 	double *dsource=(double*)source,*ds=(double*)s,*dp=(double*)p,*dr=(double*)r;
@@ -50,8 +46,8 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
 	    double alpha;
 	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
 
-	    if(RL==0) apply_Q2(s,p,conf,kappac,m,t,tout,tin);
-	    else apply_Q2_left(s,p,conf,kappac,m,t,tout,tin);
+	    if(UD==0) apply_Q_RL(s,p,conf,kappa,m,RL);
+	    else apply_Q2_RL(s,p,conf,kappa,m,t,NULL,NULL,RL);
 
 	    double loc_alpha=0;
 	    complex *cs=(complex*)s,*cp=(complex*)p;
@@ -105,8 +101,8 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
 
-      if(RL==0) apply_Q2(s,sol,conf,kappac,m,t,tout,tin);
-      else apply_Q2_left(s,sol,conf,kappac,m,t,tout,tin);
+      if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
+      else apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;
@@ -129,17 +125,5 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
   free(p);
   free(r);
   free(t);
-
-  free(tin);
-  free(tout);
 }
 
-void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappac,double m,int niter,int rniter,double residue)
-{
-  inv_Q2_cg_RL(sol,source,guess,conf,kappac,m,niter,rniter,residue,0);
-}
-
-void inv_Q2_cg_left(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappac,double m,int niter,int rniter,double residue)
-{
-  inv_Q2_cg_RL(sol,source,guess,conf,kappac,m,niter,rniter,residue,1);
-}

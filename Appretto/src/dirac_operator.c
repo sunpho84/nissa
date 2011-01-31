@@ -15,6 +15,12 @@
 
 #endif
 
+void apply_Q_RL(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu,int RL)
+{
+  if(RL==0) apply_Q(out,in,conf,kappa,mu);
+  else apply_Q_left(out,in,conf,kappa,mu);
+}
+
 //Apply the Q+ and Q- operator to a spincolor,so that we have Q-^-1 (r==0) and Q+^-1 (r==1) as output
 void reconstruct_doublet(spincolor *outminus,spincolor *outplus,spincolor *in,quad_su3 *conf,double kappac,double mu)
 {
