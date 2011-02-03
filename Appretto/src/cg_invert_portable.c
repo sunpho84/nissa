@@ -126,4 +126,3 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
   free(r);
   free(t);
 }
-
