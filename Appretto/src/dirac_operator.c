@@ -1,20 +1,19 @@
 #pragma once
 
-#include "dirac_operator_left_portable.c"
-
 //Include the dirac operator: this depend on the machine
 #ifdef BGP
 
 #include "dirac_operator_bgp.c"
+#include "dirac_operator_left_bgp.c"
 
-#elif defined SSE
-//possibly to be added
 #else
 
 #include "dirac_operator_portable.c"
+#include "dirac_operator_left_portable.c"
 
 #endif
 
+//wrapper
 void apply_Q_RL(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu,int RL)
 {
   if(RL==0) apply_Q(out,in,conf,kappa,mu);

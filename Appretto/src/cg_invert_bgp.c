@@ -29,7 +29,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
       {
 
         if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
-        apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
+        else apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
 
 	complex cloc_delta={0,0};
 
@@ -60,7 +60,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 	    double alpha;
 	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
 	    if(UD==0) apply_Q_RL(s,p,conf,kappa,m,RL);
-	    apply_Q2_RL(s,p,conf,kappa,m,t,NULL,NULL,RL);
+	    else apply_Q2_RL(s,p,conf,kappa,m,t,NULL,NULL,RL);
 
 	    complex cloc_alpha={0,0};
 
@@ -136,7 +136,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
       if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
-      apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
+      else apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;
