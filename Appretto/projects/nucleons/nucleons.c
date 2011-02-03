@@ -1,5 +1,3 @@
-//we are calculate the NEUTRON EDM, so the ddu, and then the 110
-
 #include <mpi.h>
 #include <lemon.h>
 
@@ -39,7 +37,7 @@ double tinv=0,tcontr=0,tot_time=0;
 //output file
 FILE *output;
 
-void initialize_EDM(char *input_path)
+void initialize_nucleons(char *input_path)
 {
   //C5
   complex ima={0,1};
@@ -508,6 +506,7 @@ void calculate_S1_dislike(int rlike)
   if(rank==0) printf("rotations performed\n");
 }
 
+//this is needed to check 2pts
 void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
 {
   complex *loc_contr=malloc(sizeof(complex)*glb_size[0]);
@@ -525,6 +524,7 @@ void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
   free(loc_contr);
 }
 
+//check all the two points
 void check_2pts(FILE *fout)
 {
   complex *contr_2pts=malloc(sizeof(complex)*glb_size[0]);
@@ -586,7 +586,7 @@ int main(int narg,char **arg)
       MPI_Abort(MPI_COMM_WORLD,1);
     }
   
-  initialize_EDM(arg[1]);
+  initialize_nucleons(arg[1]);
   
   ///////////////////////////////////////////
   
