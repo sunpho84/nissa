@@ -5,7 +5,7 @@
 
 //configuration
 int nconf;
-char **conf_path,**outp_path;
+char **conf_path,**out_path;
 quad_su3 *conf;
 double mass;
 double kappa;
@@ -25,17 +25,19 @@ int nitermax;
 double residue;
 spincolor *solDD,*sol_reco[2];
 
+//insertion
+int tseparation;
+int tsink;
+
 spinspin Proj[2]; //projectors over N and N*
 spinspin C5; //C*gamma5
 
 //                      e_00x   e_01x    e_02x     e_10x    e_11x   e_12x     e_20x   e_21x    e_22x
 int epsilon[3][3][3]={{{0,0,0},{0,0,1},{0,-1,0}},{{0,0,-1},{0,0,0},{1,0,0}},{{0,1,0},{-1,0,0},{0,0,0}}};
+char ftag[2][2]={"U","D"};
 
 //timings
 double tinv=0,tcontr=0,tot_time=0;
-
-//output file
-FILE *output;
 
 void initialize_nucleons(char *input_path)
 {
@@ -78,13 +80,13 @@ void initialize_nucleons(char *input_path)
   //Read the gauge conf
   read_str_int("NGaugeConf",&nconf);
   conf_path=(char**)malloc(sizeof(char*)*nconf);
-  outp_path=(char**)malloc(sizeof(char*)*nconf);
+  out_path=(char**)malloc(sizeof(char*)*nconf);
   for(int iconf=0;iconf<nconf;iconf++)
     {
       conf_path[iconf]=(char*)malloc(1024);
-      outp_path[iconf]=(char*)malloc(1024);
+      out_path[iconf]=(char*)malloc(1024);
       read_str_str("GaugeConfPath",conf_path[iconf],1024);
-      read_str(outp_path[iconf],1024);
+      read_str(out_path[iconf],1024);
     }
   //Put border condition and communicate
   //double theta[4]={1,0,0,0};
@@ -98,14 +100,21 @@ void initialize_nucleons(char *input_path)
   for(int i=1;i<4;i++) read_int(&(source_pos[i]));
   read_str_double("Mass",&mass);
 
+  // 3) inverter
+
   //Residue
   read_str_double("Residue",&residue);
   //Number of iterations
   read_str_int("NiterMax",&nitermax);
-
+  
+  // 4) insertion info
+  //tsink-tsource
+  read_str_int("TSeparation",&tseparation);
+  tsink=(source_pos[0]+tseparation)%glb_size[0];
+  
   close_input();
 
-  /////////////////////////////// Allocate the various spinors //////////////////
+  ///////////////////// Allocate the various spinors ///////////////////////
   
   original_source=allocate_su3spinspin(loc_vol,"original_source");
   
@@ -235,11 +244,14 @@ void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD)
 }
 
 //calculate all the 2pts contractions
-void calculate_all_2pts()
+void calculate_all_2pts(char *path)
 {
+  //output file
+  FILE *output=open_text_file_for_output(path);
+
   tcontr-=take_time();
   
-  char ftag[2][2]={"U","D"},pm_tag[2][2]={"+","-"};
+  char pm_tag[2][2]={"+","-"};
   
   complex *loc_contr[2],*glb_contr[2];
   for(int nns=0;nns<2;nns++)
@@ -270,8 +282,6 @@ void calculate_all_2pts()
 	    }
 	}
       
-      MPI_Barrier(MPI_COMM_WORLD);
-      
       for(int nns=0;nns<2;nns++) MPI_Reduce(loc_contr[nns],glb_contr[nns],2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
       
       if(rank==0)
@@ -292,7 +302,11 @@ void calculate_all_2pts()
 
   tcontr+=take_time();
   
-  if(rank==0) printf("contractions ultimated\n");
+  if(rank==0)
+    {
+      printf("contractions ultimated\n");
+      fclose(output);
+    }
 
   for(int nns=0;nns<2;nns++)
     {    
@@ -524,14 +538,20 @@ void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
   free(loc_contr);
 }
 
-//check all the two points
-void check_2pts(FILE *fout)
+//check two points with the current sequential source
+void check_2pts_with_current_sequential_source(char *path)
 {
+  FILE *fout=open_text_file_for_output(path);
+  
   complex *contr_2pts=malloc(sizeof(complex)*glb_size[0]);
   
   contract_with_source(contr_2pts,original_source,S1);
   
-  if(rank==0) fprintf(fout," %+016.16g\t%+016.16g\n",contr_2pts[source_pos[0]][0],contr_2pts[source_pos[0]][1]);
+  if(rank==0)
+    {
+      fprintf(fout," %+016.16g\t%+016.16g\n",contr_2pts[source_pos[0]][0],contr_2pts[source_pos[0]][1]);
+      fclose(fout);
+    }
   
   free(contr_2pts);
 }
@@ -549,7 +569,7 @@ void point_proton_sequential_contraction(complex contr,su3spinspin S0,dirac_matr
 	for(int idsi=0;idsi<4;idsi++)
 	  {
 	    unsafe_complex_prod(temp,S0[icsi][icso][idsi][idso],g.entr[idsi]);
-	    complex_summ_the_prod(contr,temp,S1[icsi][icso][g.pos[idsi]][idso]);
+	    complex_summ_the_prod(contr,temp,S1[icso][icsi][idso][g.pos[idsi]]);
 	  }
 }
 
@@ -571,6 +591,47 @@ void point_proton_sequential_J0_contraction(complex contr,su3spinspin S0,double 
 	  }
 }
 
+//calculate all the 3pts contractions
+void calculate_all_3pts_with_current_sequential(int rlike,int rS0,char *path)
+{
+  tcontr-=take_time();
+  
+  complex *loc_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
+  complex *glb_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
+  
+  memset(loc_contr,0,sizeof(complex)*glb_size[0]);
+  
+  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+    {
+      complex point_contr;
+      int glb_t=glb_coord_of_loclx[loc_site][0];
+      point_proton_sequential_contraction(point_contr,S0[rS0][loc_site],base_gamma[4],S1[loc_site]);
+      complex_summ(loc_contr[glb_t],loc_contr[glb_t],point_contr);
+    }
+  
+  MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  
+  if(rank==0)
+    {
+      FILE *fout=open_text_file_for_output(path);
+      fprintf(fout," # Three point for %s%s%s\n",ftag[rlike],ftag[rlike],ftag[!rlike]);
+      
+      for(int tt=0;tt<glb_size[0];tt++)
+	{
+	  int t=(tt+source_pos[0])%glb_size[0];
+	  fprintf(fout," %+016.16g\t%+016.16g\n",glb_contr[t][0],glb_contr[t][1]);
+	}
+      fprintf(fout,"\n");
+      fclose(fout);
+    }
+
+  tcontr+=take_time();
+  
+  if(rank==0) printf("contractions ultimated\n");
+
+  free(loc_contr);
+  free(glb_contr);
+}
 
 int main(int narg,char **arg)
 {
@@ -594,32 +655,20 @@ int main(int narg,char **arg)
   
   for(int iconf=0;iconf<nconf;iconf++)
     {
-      output=open_text_file_for_output(outp_path[iconf]);
-      
       read_conf_and_put_antiperiodic(conf,conf_path[iconf],source_pos[0]);
       
       calculate_S0();
-      calculate_all_2pts();
-
-      FILE *fout;
-      /*
-	fout=open_text_file_for_output("2pts_check");
-      for(int t=0;t<glb_size[0];t++)
-	{
-	  prepare_like_sequential_source(0,t);
-	  calculate_S1_like(0);
-	  check_2pts(fout);
-	}
-      if(rank==0) fclose(output);
-      */
-      fout=open_text_file_for_output("2pts_check_dislike");
-      for(int t=0;t<glb_size[0];t++)
-	{
-	  prepare_dislike_sequential_source(0,t);
-	  calculate_S1_dislike(0);
-	  check_2pts(fout);
-	}
-      if(rank==0) fclose(output);
+      calculate_all_2pts(out_path[iconf]);
+      
+      prepare_like_sequential_source(0,tsink);
+      calculate_S1_like(0);
+      check_2pts_with_current_sequential_source("2pts_check_like");
+      calculate_all_3pts_with_current_sequential(0,1,"3pts_like");
+      
+      prepare_dislike_sequential_source(0,tsink);
+      calculate_S1_dislike(0);
+      check_2pts_with_current_sequential_source("2pts_check_dislike");
+      calculate_all_3pts_with_current_sequential(0,0,"3pts_dislike");
     }
 
   tot_time+=take_time();

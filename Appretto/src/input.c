@@ -103,7 +103,7 @@ void read_str_double(const char *exp_str,double *in)
   expect_str(exp_str);
   read_double(in);
 
-  if(rank==0 && debug) printf("Read variable '%s' with value: %f\n",exp_str,(*in));
+  if(rank==0 && debug) printf("Read variable '%s' with value: %g\n",exp_str,(*in));
 }
 
 //Read a string checking the tag
