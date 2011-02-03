@@ -16,6 +16,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 
   //external loop, used if the internal exceed the maximal number of iterations
   double lambda; //(r_(k+1),r_(k+1))
+  double source_norm;
   do
     {
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
@@ -36,6 +37,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 	if(rank_tot>0) MPI_Allreduce(&loc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else delta=loc_delta;
       }
+      if(riter==0) source_norm=delta;
 
       //main loop
       int iter=0;
@@ -96,7 +98,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 
 	  if(rank==0 && debug && iter%10==0) printf("iter %d residue %g\n",iter,lambda);
 	}
-      while(lambda>residue && iter<niter);
+      while(lambda>(residue*source_norm) && iter<niter);
       
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
@@ -119,7 +121,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 
       riter++;
     }
-  while(lambda>residue && riter<rniter);
+  while(lambda>(residue*source_norm) && riter<rniter);
   
   free(s);
   free(p);

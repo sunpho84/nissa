@@ -184,6 +184,8 @@ void calculate_S0()
 		  source[ivol][id_sink][ic_sink][ri]=-source[ivol][id_sink][ic_sink][ri];
 	  }
 	
+	if(rank==0) printf("\n(S0) source index: %d, %d\n",id_sour,ic_sour);
+
 	tinv-=take_time();
 	inv_Q2_cg(solDD,source,NULL,conf,kappa,mass,nitermax,1,residue);	
 	tinv+=take_time();
@@ -456,6 +458,8 @@ void calculate_S1_like(int rlike)
 		if(id_sour<2) source[ivol][id_sour][ic_sour][ri]= seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
 		else          source[ivol][id_sour][ic_sour][ri]=-seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
 	
+	if(rank==0) printf("\n(S1) like, sink index: %d, %d\n",id_sink,ic_sink);
+
 	tinv-=take_time();
 	inv_Q2_cg_left(solDD,source,NULL,conf,kappa,mass,nitermax,1,residue);
 	tinv+=take_time();
@@ -493,6 +497,8 @@ void calculate_S1_dislike(int rlike)
 	      for(int ri=0;ri<2;ri++)
 		if(id_sour<2) source[ivol][id_sour][ic_sour][ri]= seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
 		else          source[ivol][id_sour][ic_sour][ri]=-seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
+
+	if(rank==0) printf("\n(S1) dislike, sink index: %d, %d\n",id_sink,ic_sink);
 	
 	tinv-=take_time();
 	inv_Q2_cg_left(solDD,source,NULL,conf,kappa,mass,nitermax,1,residue);
