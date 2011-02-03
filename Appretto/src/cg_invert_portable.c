@@ -23,7 +23,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
       double delta;
       {
 	if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
-	apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
+	else apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
 
 	double loc_delta=0;
 	double *dsource=(double*)source,*ds=(double*)s,*dp=(double*)p,*dr=(double*)r;
