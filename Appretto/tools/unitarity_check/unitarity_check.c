@@ -3,11 +3,13 @@
 
 #include "appretto.h"
 
-void test_unitarity(quad_su3 *conf)
+void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
 {
   su3 prod;
   double loc_max=0,loc_avg=0;
   double glb_max=0,glb_avg=0;
+  
+  read_local_gauge_conf(conf,filename);
   
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int idir=0;idir<4;idir++)
@@ -28,7 +30,7 @@ void test_unitarity(quad_su3 *conf)
   
   glb_avg/=2*3*4*glb_vol;
   
-  if(rank==0) printf("Max deviation: %g Average deviation: %g\n",glb_avg,glb_max);
+  if(rank==0) fprintf(fout,"%g Max %g Avg in %s\n",glb_max,glb_avg,filename);
 }
 
 int main(int narg,char **arg)
@@ -50,6 +52,10 @@ int main(int narg,char **arg)
   read_str_int("L",&(glb_size[1]));
   read_str_int("T",&(glb_size[0]));
 
+  char output[1024];
+  read_str_str("SummaryFile",output,1024);
+  FILE *fout=open_text_file_for_output(output);
+  
   int nconf;
   read_str_int("NGaugeConf",&nconf);
 
@@ -60,14 +66,15 @@ int main(int narg,char **arg)
   for(int iconf=0;iconf<nconf;iconf++)
     {
       read_str(filename,1024);
-      read_local_gauge_conf(conf,filename);
-      test_unitarity(conf);
+      test_unitarity(fout,conf,filename);
     }
 
   close_input();
 
   ///////////////////////////////////////////
-
+  
+  if(rank==0) fclose(fout);
+  
   free(conf);
   close_appretto();
 

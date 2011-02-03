@@ -3,7 +3,7 @@
 #include "bgp_instructions.c"
 #include "dirac_operator.c"
 
-void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappac,double m,int niter,int rniter,double residue)
+void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int UD,int RL)
 {
   static double _Complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
   static double _Complex B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32;
@@ -27,7 +27,8 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
       double delta;
       {
 
-	apply_Q2(s,sol,conf,kappac,m,t,NULL,NULL);
+        if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
+        apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
 
 	complex cloc_delta={0,0};
 
@@ -56,7 +57,8 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
 	  {
 	    double alpha;
 	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
-	    apply_Q2(s,p,conf,kappac,m,t,NULL,NULL);
+	    if(UD==0) apply_Q_RL(s,p,conf,kappa,m,RL);
+	    apply_Q2_RL(s,p,conf,kappa,m,t,NULL,NULL,RL);
 
 	    complex cloc_alpha={0,0};
 
@@ -131,7 +133,8 @@ void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
       
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
-      apply_Q2(s,sol,conf,kappac,m,t,NULL,NULL);
+      if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
+      apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;
