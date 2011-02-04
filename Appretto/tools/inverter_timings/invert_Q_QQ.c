@@ -56,16 +56,34 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
   
+  //allocate solution
+  spincolor *solutionQ=allocate_spincolor(loc_vol+loc_bord,"solutionQ");
+  spincolor *solutionQ_sorc=allocate_spincolor(loc_vol+loc_bord,"solutionQ_sorc");
+
   //prepare the source
   spincolor *source=allocate_spincolor(loc_vol+loc_bord,"source");
   memset(source,0,sizeof(spincolor)*(loc_vol+loc_bord));
   if(rank==0) source[0][0][0][0]=1;
   communicate_lx_spincolor_borders(source);
 
-  //allocate solution
-  spincolor *solutionQ=allocate_spincolor(loc_vol+loc_bord,"solutionQ");
-  spincolor *solutionQ_QQ=allocate_spincolor(loc_vol+loc_bord,"solutionQ_QQ");
+  //Preliminary test over the hermiticity of Q
+  apply_Q_sorcered(solutionQ_sorc,source,conf,kappa,m);
+  apply_Q(solutionQ,source,conf,kappa,m);
+  
+  double glb_diff,loc_diff=0;
+  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+	{
+	  double dr=solutionQ[loc_site][id][ic][0]-solutionQ_sorc[loc_site][id][ic][0];
+	  double di=solutionQ[loc_site][id][ic][1]-solutionQ_sorc[loc_site][id][ic][1];
+	  loc_diff+=dr*dr+di*di;
+	}
+  MPI_Allreduce(&loc_diff,&glb_diff,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
+  if(rank==0) printf("\nTotal difference between Q[*][0] and Q[0][*]^+: %g\n",glb_diff);
+
+  /*
   //perform the Q inversion through QQ
   double tQ_QQ=-take_time();
   inv_Q2_cg(solutionQ,source,NULL,conf,kappa,m,nitermax,1,residue);
@@ -77,7 +95,7 @@ int main(int narg,char **arg)
   inv_Q_cg(solutionQ,source,NULL,conf,kappa,m,nitermax,1,residue);
   tQ+=take_time();
   
-  double glb_diff,loc_diff=0;
+  loc_diff=0;
   for(int loc_site=0;loc_site<loc_vol;loc_site++)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
@@ -93,9 +111,10 @@ int main(int narg,char **arg)
       printf("\nTotal time elapsed: Q=%fs, Q_QQ=%gs\n",tQ,tQ_QQ);
       printf("\nTotal difference: %g\n",glb_diff);
     }
-
+  */
+  
   free(solutionQ);
-  free(solutionQ_QQ);
+  free(solutionQ_sorc);
   free(source);
   free(conf);
 

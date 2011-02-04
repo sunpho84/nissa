@@ -3,11 +3,11 @@
 #include "bgp_instructions.c"
 #include "dirac_operator.c"
 
-void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int UD,int RL)
+void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
 {
   static double _Complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
   static double _Complex B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32;
-  static double _Complex N0,N1,N2;
+  static double _Complex N0,N1,N2,S0,S1,S2;
   static double _Complex R;
 
   int riter=0;
@@ -27,16 +27,17 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       double delta;
       {
+	apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
 
-        if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
-        else apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
-
-	complex cloc_delta={0,0};
-
+	complex cloc_delta={0,0},cloc_source_norm={0,0};
+	
 	bgp_color_put_to_zero(N0,N1,N2);
+	if(riter==0) bgp_color_put_to_zero(S0,S1,S2);
 	for(int i=0;i<loc_vol;i++)
 	  {
 	    bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,source[i]);
+	    if(riter==0) bgp_summassign_color_square_spincolor(S0,S1,S2,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
+
 	    bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,s[i]);
 	    bgp_subtassign_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32);
 	    bgp_save_spincolor(p[i],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
@@ -44,12 +45,13 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 	    bgp_summassign_color_square_spincolor(N0,N1,N2,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
 	  }
 	bgp_square_norm_color(N0,N1,N2);
+	if(riter==0) bgp_square_norm_color(S0,S1,S2);
 	bgp_save_complex(cloc_delta,N0);
+	if(riter==0) bgp_save_complex(cloc_source_norm,S0);
 	
-	if(rank_tot>0) MPI_Allreduce(cloc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	else delta=cloc_delta[0];
+	MPI_Allreduce(cloc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(riter==0) MPI_Allreduce(cloc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       }
-      if(riter==0) source_norm=delta;
 
       //main loop
       int iter=0;
@@ -59,8 +61,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 	  {
 	    double alpha;
 	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
-	    if(UD==0) apply_Q_RL(s,p,conf,kappa,m,RL);
-	    else apply_Q2_RL(s,p,conf,kappa,m,t,NULL,NULL,RL);
+	    apply_Q2_RL(s,p,conf,kappa,m,t,NULL,NULL,RL);
 
 	    complex cloc_alpha={0,0};
 
@@ -135,8 +136,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
       
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
-      if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
-      else apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
+      apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;

@@ -13,6 +13,8 @@
 
 #endif
 
+#include "dirac_operator_sorcered_portable.c"
+
 //wrapper
 void apply_Q_RL(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu,int RL)
 {

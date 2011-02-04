@@ -3,7 +3,7 @@
 #include "dirac_operator.c"
 #include "su3.c"
 
-void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int UD,int RL)
+void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
 {
   int riter=0;
   spincolor *s=(spincolor*)malloc(sizeof(spincolor)*(loc_vol));
@@ -22,22 +22,22 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       double delta;
       {
-	if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
-	else apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
+	apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
 
-	double loc_delta=0;
+	double loc_delta=0,loc_source_norm=0;
 	double *dsource=(double*)source,*ds=(double*)s,*dp=(double*)p,*dr=(double*)r;
 	for(int i=0;i<loc_vol*3*4*2;i++)
 	  {
 	    double c1=(*dsource)-(*ds);
 	    (*dp)=(*dr)=c1;
+	    if(riter==0) loc_source_norm+=(*dsource)*(*dsource);
 	    loc_delta+=c1*c1;
 	    dp++;dr++;ds++;dsource++;
 	  }
-	if(rank_tot>0) MPI_Allreduce(&loc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	else delta=loc_delta;
+	MPI_Allreduce(&loc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(riter==0) MPI_Allreduce(&loc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       }
-      if(riter==0) source_norm=delta;
+      
 
       //main loop
       int iter=0;
@@ -48,8 +48,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 	    double alpha;
 	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
 
-	    if(UD==0) apply_Q_RL(s,p,conf,kappa,m,RL);
-	    else apply_Q2_RL(s,p,conf,kappa,m,t,NULL,NULL,RL);
+	    apply_Q2_RL(s,p,conf,kappa,m,t,NULL,NULL,RL);
 
 	    double loc_alpha=0;
 	    complex *cs=(complex*)s,*cp=(complex*)p;
@@ -103,8 +102,7 @@ void inv_Q_12_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
 
-      if(UD==0) apply_Q_RL(s,sol,conf,kappa,m,RL);
-      else apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
+      apply_Q2_RL(s,sol,conf,kappa,m,t,NULL,NULL,RL);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;
