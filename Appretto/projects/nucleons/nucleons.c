@@ -317,9 +317,7 @@ void calculate_all_2pts(char *path)
     }
 }
 
-void prepare_like_sequential_source(int rlike,int t)
-{
-  int slice_to_take=t;//glb_size[0]/4;
+void prepare_like_sequential_source(int rlike,int slice_to_take)
 
   memset(seq_source,0,sizeof(su3spinspin)*loc_vol);
   
@@ -364,9 +362,7 @@ void prepare_like_sequential_source(int rlike,int t)
       }
 }
 
-void prepare_dislike_sequential_source(int rlike,int t)
-{
-  int slice_to_take=t;//glb_size[0]/4;
+void prepare_dislike_sequential_source(int rlike,int slice_to_take)
 
   memset(seq_source,0,sizeof(su3spinspin)*loc_vol);
   
