@@ -317,7 +317,9 @@ void calculate_all_2pts(char *path)
     }
 }
 
-void prepare_like_sequential_source(int rlike,int slice_to_take)
+void prepare_like_sequential_source(int rlike,int rdislike,int t)
+{
+  int slice_to_take=t;
 
   memset(seq_source,0,sizeof(su3spinspin)*loc_vol);
   
@@ -358,11 +360,13 @@ void prepare_like_sequential_source(int rlike,int slice_to_take)
 	//counter rotate to twisted basis
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++)
-	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],rlike,rlike);
+	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],!rdislike,!rdislike);
       }
 }
 
-void prepare_dislike_sequential_source(int rlike,int slice_to_take)
+void prepare_dislike_sequential_source(int rlike,int rdislike,int t)
+{
+  int slice_to_take=t;
 
   memset(seq_source,0,sizeof(su3spinspin)*loc_vol);
   
@@ -395,14 +399,12 @@ void prepare_dislike_sequential_source(int rlike,int slice_to_take)
 						      {
 							complex part={0,0};
 
-							if(a1==z && al1==tau)
-							  complex_summ(part,part,S0[rlike][ivol][c1][c2][ga1][ga2]);
-							if(c1==z && ga1==tau)
-							  complex_subt(part,part,S0[rlike][ivol][a1][c2][al1][ga2]);
+							if(a1==z && al1==tau) complex_summ(part,part,S0[rlike][ivol][c1][c2][ga1][ga2]);
+							if(c1==z && ga1==tau) complex_subt(part,part,S0[rlike][ivol][a1][c2][al1][ga2]);
 							
 							safe_complex_prod(part,C5[rho][be2],part);
 							complex_prod_with_real(part,part,epsilon[x][b2][c2]);
-							safe_complex_prod(part,S0[!rlike][ivol][b1][b2][be1][be2],part);
+							safe_complex_prod(part,S0[rdislike][ivol][b1][b2][be1][be2],part);
 							safe_complex_prod(part,Proj[0][ga2][ga1],part);
 							
 							if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
@@ -418,14 +420,12 @@ void prepare_dislike_sequential_source(int rlike,int slice_to_take)
 							{
 							  complex part={0,0};
 							  
-							  if(c1==z && ga1==tau)
-							    complex_summ(part,part,S0[rlike][ivol][a1][a2][al1][al2]);
-							  if(a1==z && al1==tau)
-							    complex_subt(part,part,S0[rlike][ivol][c1][a2][ga1][al2]);
+							  if(c1==z && ga1==tau) complex_summ(part,part,S0[rlike][ivol][a1][a2][al1][al2]);
+							  if(a1==z && al1==tau) complex_subt(part,part,S0[rlike][ivol][c1][a2][ga1][al2]);
 							  
 							  safe_complex_prod(part,C5[al2][be2],part);
 							  complex_prod_with_real(part,part,epsilon[a2][b2][x]);
-							  safe_complex_prod(part,S0[!rlike][ivol][b1][b2][be1][be2],part);
+							  safe_complex_prod(part,S0[rdislike][ivol][b1][b2][be1][be2],part);
 							  safe_complex_prod(part,Proj[0][ga2][ga1],part);
 							  
 							  if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
@@ -442,7 +442,7 @@ void prepare_dislike_sequential_source(int rlike,int slice_to_take)
       }
 }
 
-void calculate_S1_like(int rlike)
+void calculate_S1_like(int rlike,int rdislike)
 {
   for(int id_sink=0;id_sink<4;id_sink++)
     for(int ic_sink=0;ic_sink<3;ic_sink++)
@@ -460,9 +460,9 @@ void calculate_S1_like(int rlike)
 	inv_Q2_cg_left(solDD,source,NULL,conf,kappa,mass,nitermax,1,residue);
 	tinv+=take_time();
 	
-	//use sol_reco[0] as temporary storage. If rlike==0, we solve for d, so cancel u
-	if(rlike==0) apply_Q_left(sol_reco[0],solDD,conf,kappa,-mass);
-	else         apply_Q_left(sol_reco[0],solDD,conf,kappa, mass);
+	//use sol_reco[0] as temporary storage. If rdislike==0, we solve for u, so cancel d
+	if(rdislike==0) apply_Q_left(sol_reco[0],solDD,conf,kappa, mass);
+	else            apply_Q_left(sol_reco[0],solDD,conf,kappa,-mass);
 	
 	for(int ivol=0;ivol<loc_vol;ivol++)
 	  for(int id_sour=0;id_sour<4;id_sour++)
@@ -477,12 +477,12 @@ void calculate_S1_like(int rlike)
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int ic1=0;ic1<3;ic1++)
       for(int ic2=0;ic2<3;ic2++)
-	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],rlike,!rlike);
+	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],rdislike,!rdislike);
   
   if(rank==0) printf("rotations performed\n");
 }
 
-void calculate_S1_dislike(int rlike)
+void calculate_S1_dislike(int rlike,int rdislike)
 {
   for(int id_sink=0;id_sink<4;id_sink++)
     for(int ic_sink=0;ic_sink<3;ic_sink++)
@@ -616,7 +616,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rS0,char *path)
   if(rank==0)
     {
       FILE *fout=open_text_file_for_output(path);
-      fprintf(fout," # Three point for %s%s%s\n",ftag[rlike],ftag[rlike],ftag[!rlike]);
+      fprintf(fout," # Three point for %s%s%s\n",ftag[rlike],ftag[rlike],ftag[rS0]);
       
       for(int tt=0;tt<glb_size[0];tt++)
 	{
@@ -662,15 +662,16 @@ int main(int narg,char **arg)
       calculate_S0();
       calculate_all_2pts(out_path[iconf]);
       
-      prepare_like_sequential_source(0,tsink);
-      calculate_S1_like(0);
+      int rlike=0,rdislike=1;
+      prepare_like_sequential_source(rlike,rdislike,tsink);
+      calculate_S1_like(rlike,rdislike);
       check_2pts_with_current_sequential_source("2pts_check_like");
-      calculate_all_3pts_with_current_sequential(0,1,"3pts_like");
+      calculate_all_3pts_with_current_sequential(rlike,rdislike,"3pts_like");
       
-      prepare_dislike_sequential_source(0,tsink);
-      calculate_S1_dislike(0);
+      prepare_dislike_sequential_source(rlike,rdislike,tsink);
+      calculate_S1_dislike(rlike,rdislike);
       check_2pts_with_current_sequential_source("2pts_check_dislike");
-      calculate_all_3pts_with_current_sequential(0,0,"3pts_dislike");
+      calculate_all_3pts_with_current_sequential(rlike,rlike,"3pts_dislike");
     }
 
   tot_time+=take_time();
