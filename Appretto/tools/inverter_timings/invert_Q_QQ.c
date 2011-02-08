@@ -62,12 +62,21 @@ int main(int narg,char **arg)
 
   //prepare the source
   spincolor *source=allocate_spincolor(loc_vol+loc_bord,"source");
+  redspincolor *source_redbord_out=allocate_redspincolor(loc_bord,"outgoing reduced border of source");
+  redspincolor *source_redbord=allocate_redspincolor(loc_bord,"reduced border of source");
   memset(source,0,sizeof(spincolor)*(loc_vol+loc_bord));
-  if(rank==0) source[0][0][0][0]=1;
-  communicate_lx_spincolor_borders(source);
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+	for(int ri=0;ri<2;ri++)
+	  source[ivol][id][ic][ri]=(double)rand()/RAND_MAX;
 
-  //Preliminary test over the hermiticity of Q
-  apply_Q_sorcered(solutionQ_sorc,source,conf,kappa,m);
+  ///communicate
+  communicate_lx_spincolor_borders(source);
+  apply_lxspincolor_border_projector(source_redbord_out,source);
+  MPI_Request request[16];
+  start_communicate_lx_redspincolor_borders(source_redbord,source_redbord_out,request);
+  apply_Q_sorcered(solutionQ_sorc,source,source_redbord,conf,kappa,m,request);
   apply_Q(solutionQ,source,conf,kappa,m);
   
   double glb_diff,loc_diff=0;
