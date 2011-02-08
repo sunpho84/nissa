@@ -184,7 +184,7 @@ void calculate_S0()
 		  source[ivol][id_sink][ic_sink][ri]=-source[ivol][id_sink][ic_sink][ri];
 	  }
 	
-	if(rank==0) printf("\n(S0) source index: %d, %d\n",id_sour,ic_sour);
+	if(rank==0) printf("\n(S0) source index: id=%d, ic=%d\n",id_sour,ic_sour);
 
 	tinv-=take_time();
 	inv_Q2_cg(solDD,source,NULL,conf,kappa,mass,nitermax,1,residue);	
@@ -265,42 +265,41 @@ void calculate_all_2pts(char *path)
   spinspin ter;
   complex point_contr[2];
   
-  for(int r1=0;r1<2;r1++)
-    {
-      int r2=!r1;
-      
-      for(int nns=0;nns<2;nns++) memset(loc_contr[nns],0,sizeof(complex)*glb_size[0]);
-  
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
-	{
-	  int glb_t=glb_coord_of_loclx[loc_site][0];
-	  
-	  point_proton_contraction(ter,S0[r1][loc_site],S0[r2][loc_site]);
-	  
-	  for(int nns=0;nns<2;nns++)
-	    {
-	      trace_prod_spinspins(point_contr[nns],ter,Proj[nns]);
-	      complex_summ(loc_contr[nns][glb_t],loc_contr[nns][glb_t],point_contr[nns]);
-	    }
-	}
-      
-      for(int nns=0;nns<2;nns++) MPI_Reduce(loc_contr[nns],glb_contr[nns],2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-      
-      if(rank==0)
-	{
-	  fprintf(output," # Two point for %s%s%s\n",ftag[r1],ftag[r1],ftag[r2]);
-	  for(int nns=0;nns<2;nns++)
-	    {
-	      fprintf(output,"# Contraction with (1%sg4)/2\n",pm_tag[nns]);
-	      for(int tt=0;tt<glb_size[0];tt++)
-		{
-		  int t=(tt+source_pos[0])%glb_size[0];
-		  fprintf(output," %+016.16g\t%+016.16g\n",glb_contr[nns][t][0],glb_contr[nns][t][1]);
-		}
-	      fprintf(output,"\n");
-	    }
-	}
-    }
+  for(int rlike=0;rlike<2;rlike++)
+    for(int rdislike=0;rdislike<2;rdislike++)
+      {
+	for(int nns=0;nns<2;nns++) memset(loc_contr[nns],0,sizeof(complex)*glb_size[0]);
+	
+	for(int loc_site=0;loc_site<loc_vol;loc_site++)
+	  {
+	    int glb_t=glb_coord_of_loclx[loc_site][0];
+	    
+	    point_proton_contraction(ter,S0[rlike][loc_site],S0[rdislike][loc_site]);
+	    
+	    for(int nns=0;nns<2;nns++)
+	      {
+		trace_prod_spinspins(point_contr[nns],ter,Proj[nns]);
+		complex_summ(loc_contr[nns][glb_t],loc_contr[nns][glb_t],point_contr[nns]);
+	      }
+	  }
+	
+	for(int nns=0;nns<2;nns++) MPI_Reduce(loc_contr[nns],glb_contr[nns],2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	
+	if(rank==0)
+	  {
+	    fprintf(output," # Two point for %s%s%s\n",ftag[rlike],ftag[rlike],ftag[rdislike]);
+	    for(int nns=0;nns<2;nns++)
+	      {
+		fprintf(output,"# Contraction with (1%sg4)/2\n",pm_tag[nns]);
+		for(int tt=0;tt<glb_size[0];tt++)
+		  {
+		    int t=(tt+source_pos[0])%glb_size[0];
+		    fprintf(output," %+016.16g\t%+016.16g\n",glb_contr[nns][t][0],glb_contr[nns][t][1]);
+		  }
+		fprintf(output,"\n");
+	      }
+	  }
+      }
 
   tcontr+=take_time();
   
@@ -317,10 +316,8 @@ void calculate_all_2pts(char *path)
     }
 }
 
-void prepare_like_sequential_source(int rlike,int rdislike,int t)
+void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 {
-  int slice_to_take=t;
-
   memset(seq_source,0,sizeof(su3spinspin)*loc_vol);
   
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -364,10 +361,8 @@ void prepare_like_sequential_source(int rlike,int rdislike,int t)
       }
 }
 
-void prepare_dislike_sequential_source(int rlike,int rdislike,int t)
+void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 {
-  int slice_to_take=t;
-
   memset(seq_source,0,sizeof(su3spinspin)*loc_vol);
   
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -454,15 +449,15 @@ void calculate_S1_like(int rlike,int rdislike)
 		if(id_sour<2) source[ivol][id_sour][ic_sour][ri]= seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
 		else          source[ivol][id_sour][ic_sour][ri]=-seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
 	
-	if(rank==0) printf("\n(S1) like, sink index: %d, %d\n",id_sink,ic_sink);
+	if(rank==0) printf("\n(S1) like, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",rlike,rdislike,id_sink,ic_sink);
 
 	tinv-=take_time();
 	inv_Q2_cg_left(solDD,source,NULL,conf,kappa,mass,nitermax,1,residue);
 	tinv+=take_time();
 	
-	//use sol_reco[0] as temporary storage. If rdislike==0, we solve for u, so cancel d
-	if(rdislike==0) apply_Q_left(sol_reco[0],solDD,conf,kappa, mass);
-	else            apply_Q_left(sol_reco[0],solDD,conf,kappa,-mass);
+	//use sol_reco[0] as temporary storage. We solve for rdislike
+	if(rdislike==0) apply_Q_left(sol_reco[0],solDD,conf,kappa, mass); //cancel d
+	else            apply_Q_left(sol_reco[0],solDD,conf,kappa,-mass); //cancel u
 	
 	for(int ivol=0;ivol<loc_vol;ivol++)
 	  for(int id_sour=0;id_sour<4;id_sour++)
@@ -477,7 +472,7 @@ void calculate_S1_like(int rlike,int rdislike)
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int ic1=0;ic1<3;ic1++)
       for(int ic2=0;ic2<3;ic2++)
-	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],rdislike,!rdislike);
+	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],!rdislike,rdislike);
   
   if(rank==0) printf("rotations performed\n");
 }
@@ -494,15 +489,15 @@ void calculate_S1_dislike(int rlike,int rdislike)
 		if(id_sour<2) source[ivol][id_sour][ic_sour][ri]= seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
 		else          source[ivol][id_sour][ic_sour][ri]=-seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
 
-	if(rank==0) printf("\n(S1) dislike, sink index: %d, %d\n",id_sink,ic_sink);
+	if(rank==0) printf("\n(S1) dislike, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",rlike,rdislike,id_sink,ic_sink);
 	
 	tinv-=take_time();
 	inv_Q2_cg_left(solDD,source,NULL,conf,kappa,mass,nitermax,1,residue);
 	tinv+=take_time();
 	
-	//use sol_reco[0] as temporary storage. If rlike==0, we solve for u, so cancel d
-	if(rlike==0) apply_Q_left(sol_reco[0],solDD,conf,kappa, mass);
-	else         apply_Q_left(sol_reco[0],solDD,conf,kappa,-mass);
+	//use sol_reco[0] as temporary storage. We solve for rlike
+	if(rlike==0) apply_Q_left(sol_reco[0],solDD,conf,kappa, mass); //cancel d
+	else         apply_Q_left(sol_reco[0],solDD,conf,kappa,-mass); //cancel u
 	
 	for(int ivol=0;ivol<loc_vol;ivol++)
 	  for(int id_sour=0;id_sour<4;id_sour++)
@@ -517,7 +512,7 @@ void calculate_S1_dislike(int rlike,int rdislike)
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int ic1=0;ic1<3;ic1++)
       for(int ic2=0;ic2<3;ic2++)
-	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],rlike,!rlike);
+	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],!rlike,rlike);
   
   if(rank==0) printf("rotations performed\n");
 }
@@ -565,13 +560,14 @@ void point_proton_sequential_contraction(complex contr,su3spinspin S0,dirac_matr
   
   complex temp;
 
-  for(int icso=0;icso<3;icso++)
-    for(int icsi=0;icsi<3;icsi++)
-      for(int idso=0;idso<4;idso++)
-	for(int idsi=0;idsi<4;idsi++)
+  for(int ic1=0;ic1<3;ic1++)
+    for(int ic2=0;ic2<3;ic2++)
+      for(int id1=0;id1<4;id1++)
+	for(int id2=0;id2<4;id2++)
 	  {
-	    unsafe_complex_prod(temp,S0[icsi][icso][idsi][idso],g.entr[idsi]);
-	    complex_summ_the_prod(contr,temp,S1[icso][icsi][idso][g.pos[idsi]]);
+	    int idg=g.pos[id2];
+	    unsafe_complex_prod(temp,        S0[ic2][ic1][id2][id1],g.entr[id2]);
+	    complex_summ_the_prod(contr,temp,S1[ic1][ic2][id1][idg]);
 	  }
 }
 
@@ -594,7 +590,7 @@ void point_proton_sequential_J0_contraction(complex contr,su3spinspin S0,double 
 }
 
 //calculate all the 3pts contractions
-void calculate_all_3pts_with_current_sequential(int rlike,int rS0,char *path)
+void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,char *path)
 {
   tcontr-=take_time();
   
@@ -616,7 +612,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rS0,char *path)
   if(rank==0)
     {
       FILE *fout=open_text_file_for_output(path);
-      fprintf(fout," # Three point for %s%s%s\n",ftag[rlike],ftag[rlike],ftag[rS0]);
+      fprintf(fout," # Three point for %s%s%s\n",ftag[rlike],ftag[rlike],ftag[rdislike]);
       
       for(int tt=0;tt<glb_size[0];tt++)
 	{
@@ -661,17 +657,28 @@ int main(int narg,char **arg)
       
       calculate_S0();
       calculate_all_2pts(out_path[iconf]);
-      
-      int rlike=0,rdislike=1;
-      prepare_like_sequential_source(rlike,rdislike,tsink);
-      calculate_S1_like(rlike,rdislike);
-      check_2pts_with_current_sequential_source("2pts_check_like");
-      calculate_all_3pts_with_current_sequential(rlike,rdislike,"3pts_like");
-      
-      prepare_dislike_sequential_source(rlike,rdislike,tsink);
-      calculate_S1_dislike(rlike,rdislike);
-      check_2pts_with_current_sequential_source("2pts_check_dislike");
-      calculate_all_3pts_with_current_sequential(rlike,rlike,"3pts_dislike");
+
+      for(int rlike=0;rlike<2;rlike++)
+	for(int rdislike=0;rdislike<2;rdislike++)
+	  {
+	    char out2pts_check_like[1024],out3pts_like[1024];
+	    char out2pts_check_dislike[1024],out3pts_dislike[1024];
+	    
+	    sprintf(out2pts_check_like,"2pts_check_like%s%s%s",ftag[rlike],ftag[rlike],ftag[rdislike]);
+	    sprintf(out2pts_check_dislike,"2pts_check_dislike%s%s%s",ftag[rlike],ftag[rlike],ftag[rdislike]);
+	    sprintf(out3pts_like,"3pts_like%s%s%s",ftag[rlike],ftag[rlike],ftag[rdislike]);
+	    sprintf(out3pts_dislike,"3pts_dislike%s%s%s",ftag[rlike],ftag[rlike],ftag[rdislike]);
+	    
+	    prepare_like_sequential_source(rlike,rdislike,tsink);
+	    calculate_S1_like(rlike,rdislike);
+	    check_2pts_with_current_sequential_source(out2pts_check_like);
+	    calculate_all_3pts_with_current_sequential(rlike,rdislike,rdislike,out3pts_like);
+	    
+	    prepare_dislike_sequential_source(rlike,rdislike,tsink);
+	    calculate_S1_dislike(rlike,rdislike);
+	    check_2pts_with_current_sequential_source(out2pts_check_dislike);
+	    calculate_all_3pts_with_current_sequential(rlike,rdislike,rlike,out3pts_dislike);
+	  }
     }
 
   tot_time+=take_time();

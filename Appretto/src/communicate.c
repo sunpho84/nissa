@@ -50,15 +50,15 @@ void communicate_lx_borders(char *data,MPI_Datatype *MPI_BORD_SEND,MPI_Datatype 
     if(paral_dir[i]!=0)
       {
 	//sending the upper border to the lower node
-	MPI_Isend((void*)(data+start_lx_bord_send_up[i]*nbytes_per_site),1,MPI_BORD_SEND[i],rank_neighdw[i],83+i,
-		  cart_comm,&request[nrequest++]);
 	MPI_Irecv((void*)(data+start_lx_bord_rece_up[i]*nbytes_per_site),1,MPI_BORD_RECE[i],rank_neighup[i],83+i, 
+		  cart_comm,&request[nrequest++]);
+	MPI_Isend((void*)(data+start_lx_bord_send_up[i]*nbytes_per_site),1,MPI_BORD_SEND[i],rank_neighdw[i],83+i,
 		  cart_comm,&request[nrequest++]);
 	
 	//sending the lower border to the upper node
-	MPI_Isend((void*)(data+start_lx_bord_send_dw[i]*nbytes_per_site),1,MPI_BORD_SEND[i],rank_neighup[i],87+i,
-		  cart_comm,&request[nrequest++]);
 	MPI_Irecv((void*)(data+start_lx_bord_rece_dw[i]*nbytes_per_site),1,MPI_BORD_RECE[i],rank_neighdw[i],87+i, 
+		  cart_comm,&request[nrequest++]);
+	MPI_Isend((void*)(data+start_lx_bord_send_dw[i]*nbytes_per_site),1,MPI_BORD_SEND[i],rank_neighup[i],87+i,
 		  cart_comm,&request[nrequest++]);
       }
   
@@ -108,36 +108,36 @@ void communicate_lx_edges(char *data,MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *M
 	  //Send the i-j- internal edge to the j- site as i-j+ external edge
 	  send=(loc_vol+bord_offset[idir])*nbytes_per_site;
 	  rece=(loc_vol+loc_bord+edge_offset[iedge]+loc_edge/4)*nbytes_per_site;
-	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
-		    cart_comm,&request[nrequest++]);
 	  MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighup[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
 		    cart_comm,&request[nrequest++]);
 	  imessage++;
 	  
 	  //Send the i-j+ internal edge to the j+ site as i-j- external edge
 	  send=(loc_vol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
 	  rece=(loc_vol+loc_bord+edge_offset[iedge])*nbytes_per_site;
-	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
-		    cart_comm,&request[nrequest++]);
 	  MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighdw[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
 		    cart_comm,&request[nrequest++]);
 	  imessage++;
 	  
 	  //Send the i+j- internal edge to the j- site as i+j+ external edge
 	  send=(loc_vol+bord_offset[idir]+loc_bord/2)*nbytes_per_site;
 	  rece=(loc_vol+loc_bord+edge_offset[iedge]+3*loc_edge/4)*nbytes_per_site;
-	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
-		    cart_comm,&request[nrequest++]);
 	  MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighup[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighdw[jdir],83+imessage,
 		    cart_comm,&request[nrequest++]);
 	  imessage++;
 	  
 	  //Send the i+j+ internal edge to the j+ site as i+j- external edge
 	  send=(loc_vol+bord_offset[idir]+loc_bord/2+pos_edge_offset)*nbytes_per_site;
 	  rece=(loc_vol+loc_bord+edge_offset[iedge]+loc_edge/2)*nbytes_per_site;
-	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
-		    cart_comm,&request[nrequest++]);
 	  MPI_Irecv((void*)(data+rece),1,MPI_EDGE_RECE[iedge],rank_neighdw[jdir],83+imessage,
+		    cart_comm,&request[nrequest++]);
+	  MPI_Isend((void*)(data+send),1,MPI_EDGE_SEND[iedge],rank_neighup[jdir],83+imessage,
 		    cart_comm,&request[nrequest++]);
 	  imessage++;
 	}
@@ -223,92 +223,88 @@ void apply_lxspincolor_border_projector(redspincolor *p,spincolor *s)
       bgp_save_color(p[ibord][1],S10,S11,S12);
     }
 #else
-  for(int ibord=0;ibord<loc_bord;ibord++)
-    {
-      int idir=dir_of_bordlx[ibord];
-      int ivol=loclx_of_bordlx[ibord];
-      switch(idir)
-	{
-	case 0:
-	  color_summ(p[ibord][0],s[ivol][0],s[ivol][2]);
-	  color_summ(p[ibord][1],s[ivol][1],s[ivol][3]);
-	  break;
-	case 1:
-	  color_subt(p[ibord][0],s[ivol][0],s[ivol][2]);
-	  color_subt(p[ibord][1],s[ivol][1],s[ivol][3]);
-	  break;
-	case 2:
-	  color_isumm(p[ibord][0],s[ivol][0],s[ivol][3]);
-	  color_isumm(p[ibord][1],s[ivol][1],s[ivol][2]);
-	  break;
-	case 3:
-	  color_isubt(p[ibord][0],s[ivol][0],s[ivol][3]);
-	  color_isubt(p[ibord][1],s[ivol][1],s[ivol][2]);
-	  break;
-	case 4:
-	  color_summ(p[ibord][0],s[ivol][0],s[ivol][3]);
-	  color_subt(p[ibord][1],s[ivol][1],s[ivol][2]);
-	  break;
-	case 5:
-	  color_subt(p[ibord][0],s[ivol][0],s[ivol][3]);
-	  color_summ(p[ibord][1],s[ivol][1],s[ivol][2]);
-	  break;
-	case 6:
-	  color_isumm(p[ibord][0],s[ivol][0],s[ivol][2]);
-	  color_isubt(p[ibord][1],s[ivol][1],s[ivol][3]);
-	  break;
-	case 7:
-	  color_isubt(p[ibord][0],s[ivol][0],s[ivol][2]);
-	  color_isumm(p[ibord][1],s[ivol][1],s[ivol][3]);
-	  break;
-	}
-    }
+  int ib=0;
+  
+  /////////// border for the backward derivate, to be sent backward //////////
+
+  if(paral_dir[0]) //Backward 0
+    for(int X=loc_vol;X<loc_vol+bord_offset[1];X++)
+      {
+	int Xup0=loclx_neighup[X][0];
+	color_summ(p[ib][0],s[Xup0][0],s[Xup0][2]);
+	color_summ(p[ib++][1],s[Xup0][1],s[Xup0][3]);
+      }
+  if(paral_dir[1]) //Backward 1
+    for(int X=loc_vol+bord_offset[1];X<loc_vol+bord_offset[2];X++)
+      {
+	int Xup1=loclx_neighup[X][1];
+	color_isumm(p[ib][0],s[Xup1][0],s[Xup1][3]);
+	color_isumm(p[ib++][1],s[Xup1][1],s[Xup1][2]);
+      }
+  if(paral_dir[2]) //Backward 2
+    for(int X=loc_vol+bord_offset[2];X<loc_vol+bord_offset[3];X++)
+      {
+	int Xup2=loclx_neighup[X][2];
+	color_summ(p[ib][0],s[Xup2][0],s[Xup2][3]);
+	color_subt(p[ib++][1],s[Xup2][1],s[Xup2][2]);
+      }
+  if(paral_dir[3]) //Backward 3
+    for(int X=loc_vol+bord_offset[3];X<loc_vol+loc_bord/2;X++)
+      {
+	int Xup3=loclx_neighup[X][3];
+	color_isumm(p[ib][0],s[Xup3][0],s[Xup3][2]);
+	color_isubt(p[ib++][1],s[Xup3][1],s[Xup3][3]);
+      }
+  
+  /////////// border for the forward derivate, to be sent backward //////////
+  
+  if(paral_dir[0]) //Forward 0
+    for(int X=loc_vol+loc_bord/2;X<loc_vol+loc_bord/2+bord_offset[1];X++)
+      {
+	int Xdw0=loclx_neighdw[X][0];
+	color_subt(p[ib][0],s[Xdw0][0],s[Xdw0][2]);
+	color_subt(p[ib++][1],s[Xdw0][1],s[Xdw0][3]);
+      }
+  if(paral_dir[1]) //Forward 1
+    for(int X=loc_vol+loc_bord/2+bord_offset[1];X<loc_vol+loc_bord/2+bord_offset[2];X++)
+      {
+	int Xdw1=loclx_neighdw[X][1];
+	color_isubt(p[ib][0],s[Xdw1][0],s[Xdw1][3]);
+	color_isubt(p[ib++][1],s[Xdw1][1],s[Xdw1][2]);
+      }
+  if(paral_dir[2]) //Forward 2
+    for(int X=loc_vol+loc_bord/2+bord_offset[2];X<loc_vol+loc_bord/2+bord_offset[3];X++)
+      {
+	int Xdw2=loclx_neighdw[X][2];
+	color_subt(p[ib][0],s[Xdw2][0],s[Xdw2][3]);
+	color_summ(p[ib++][1],s[Xdw2][1],s[Xdw2][2]);
+      }
+  if(paral_dir[3]) //Forward 3
+    for(int X=loc_vol+loc_bord/2+bord_offset[3];X<loc_vol+loc_bord;X++)
+      {
+	int Xdw3=loclx_neighdw[X][3];
+	color_isubt(p[ib][0],s[Xdw3][0],s[Xdw3][2]);
+	color_isumm(p[ib++][1],s[Xdw3][1],s[Xdw3][3]);
+      }
 #endif
 }
 
-//apply the projector over the internal border
-void expand_projected_lxspincolor_border(spincolor *s,redspincolor *p)
-{
-  for(int ibord=0;ibord<loc_bord;ibord++)
-    {
-      memcpy(&(s[loc_vol+ibord][0]),p[ibord],sizeof(color)*2);
-      memset(&(s[loc_vol+ibord][2]),0,sizeof(color)*2);
-    }      
-}
-
 //Send the reduced border of a spincolor vector
-void communicate_lx_redspincolor_borders(spincolor *s,redspincolor *temp_out,redspincolor *temp_in)
+void start_communicate_lx_redspincolor_borders(redspincolor *in,redspincolor *out,MPI_Request *request)
 {
-  int oall=0,iall=0;
-
-  if(temp_out==NULL){oall=1; temp_out=(redspincolor*)malloc(loc_bord*sizeof(redspincolor));}
-  if(temp_in==NULL) {iall=1; temp_in=(redspincolor*)malloc(loc_bord*sizeof(redspincolor));}
-
-  apply_lxspincolor_border_projector(temp_out,s);
-
   int nrequest=0;
-  MPI_Request request[16];
-  MPI_Status status[16];
 
-  for(int i=0;i<4;i++)
-    if(paral_dir[i]!=0)
+  for(int i=0;i<4;i++) //sending the border containing backward derivate to the forward node
+    if(paral_dir[i])
       {
-	int pos_up=(start_lx_bord_rece_up[i]-loc_vol);
-	int pos_dw=(start_lx_bord_rece_dw[i]-loc_vol);
-	
-       //sending the upper border to the lower node
-       MPI_Isend((void*)(temp_out+pos_up),1,MPI_LXREDSPINCOLOR_BORD[i],rank_neighdw[i],83+i,cart_comm,&request[nrequest++]);
-       MPI_Irecv((void*)(temp_in+pos_up),1,MPI_LXREDSPINCOLOR_BORD[i],rank_neighup[i],83+i,cart_comm,&request[nrequest++]);
-	
-       //sending the lower border to the upper node
-       MPI_Isend((void*)(temp_out+pos_dw),1,MPI_LXREDSPINCOLOR_BORD[i],rank_neighup[i],87+i,cart_comm,&request[nrequest++]);
-       MPI_Irecv((void*)(temp_in+pos_dw),1,MPI_LXREDSPINCOLOR_BORD[i],rank_neighdw[i],87+i,cart_comm,&request[nrequest++]);
+	MPI_Irecv((void*)(in +bord_offset[i]           ),1,MPI_LXREDSPINCOLOR_BORD[i],rank_neighdw[i],83+i,cart_comm,&request[nrequest++]);
+	MPI_Isend((void*)(out+bord_offset[i]+loc_bord/2),1,MPI_LXREDSPINCOLOR_BORD[i],rank_neighup[i],83+i,cart_comm,&request[nrequest++]);
       }
   
-  if(nrequest>0) MPI_Waitall(nrequest,request,status);
-
-  expand_projected_lxspincolor_border(s,temp_in);
-
-  if(iall) free(temp_in);
-  if(oall) free(temp_out);
+  for(int i=0;i<4;i++) //sending the border containing forward derivate to the backward node
+    if(paral_dir[i])
+      {
+	MPI_Irecv((void*)(in +bord_offset[i]+loc_bord/2),1,MPI_LXREDSPINCOLOR_BORD[i],rank_neighup[i],87+i,cart_comm,&request[nrequest++]);
+	MPI_Isend((void*)(out+bord_offset[i]           ),1,MPI_LXREDSPINCOLOR_BORD[i],rank_neighdw[i],87+i,cart_comm,&request[nrequest++]);
+      }
 }
