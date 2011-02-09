@@ -26,7 +26,7 @@ as2t_su3 *Pmunu;
 colorspinspin *source,*ch_prop,***S;
 spincolor *inv_source,*reco_solution[2],**QQ;
 
-int seed,nsource,noise_type;
+int seed,starting_source,ending_source,noise_type;
 
 int nmass;
 double kappa,*mass;
@@ -189,9 +189,10 @@ void initialize_bubbles(char *input_path)
 
   //read the seed
   read_str_int("Seed",&seed);
-  init_random(seed);
-  //read the number of sources
-  read_str_int("NSource",&nsource);
+  //read the number of the starting sources
+  read_str_int("StartingSource",&starting_source);
+  //read the number of the starting sources
+  read_str_int("EndingSource",&ending_source);
   //read the noise type
   read_str_int("NoiseType",&noise_type);
 
@@ -224,10 +225,12 @@ void initialize_bubbles(char *input_path)
   close_input();
 }
 
-void generate_volume_source()
+void generate_volume_source(int isource)
 { //reset
   memset(source,0,sizeof(colorspinspin)*loc_vol);
   
+  init_random(seed+isource);
+
   for(int loc_site=0;loc_site<loc_vol;loc_site++)
     for(int ic=0;ic<3;ic++)
       { //real part
@@ -286,7 +289,7 @@ void calculate_all_contractions(int isource)
 
   char outp[1024];
   sprintf(outp,"%s%d",outfile,isource);
-  FILE *fout=open_text_file_for_output(outfile);;
+  FILE *fout=open_text_file_for_output(outfile);
   
   for(int imass=0;imass<nmass;imass++)
     for(int r=0;r<2;r++)
@@ -357,9 +360,9 @@ int main(int narg,char **arg)
   initialize_bubbles(arg[1]);
 
   //loop over the sources
-  for(int isource=0;isource<nsource;isource++)
+  for(int isource=starting_source;isource<ending_source;isource++)
     {
-      generate_volume_source(source);
+      generate_volume_source(isource);
       calculate_S();
       calculate_all_contractions(isource);
     }
