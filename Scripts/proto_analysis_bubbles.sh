@@ -22,15 +22,11 @@ analysis_name=[name]
 #Path to the configurations (which have to have named as 'conf.xxxx'
 source_confs=[path_to_confs]
 
-#precision for the I/O (32 or 64 bits)
-IO_prec=[32 or 64]
-
 ########### - 2 - Physical information ########
 
 #volume and parallelization (xyz)
 L=[L]
 T=[T]
-NProc=([X] [Y] [Z])
 
 #number of source, precision of the inversion
 starting_source=[starting] #number of the starting sources (included)
@@ -41,8 +37,9 @@ minimal_precision=[minimal_precision]
 
 #mu
 list_mu=( [mu1] [mu2] )
-beta=[beta]
 kappa=[kappa]
+
+##################### end of tunable parameters ###################
 
 #now cd to the analysis
 cd $base_analysis

@@ -288,8 +288,8 @@ void calculate_all_contractions(int isource)
   contr_time-=take_time();
 
   char outp[1024];
-  sprintf(outp,"%s%d",outfile,isource);
-  FILE *fout=open_text_file_for_output(outfile);
+  sprintf(outp,"%s%04d",outfile,isource);
+  FILE *fout=open_text_file_for_output(outp);
   
   for(int imass=0;imass<nmass;imass++)
     for(int r=0;r<2;r++)

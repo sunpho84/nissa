@@ -37,7 +37,7 @@ nmu=${#list_mu[@]}
     echo "T "$T
     echo "Ncontr 16"
     echo $(seq 0 15)
-    echo "NChromoContr 16"
+    echo "NChromoContr 2"
     echo 0 5
     echo "GaugeConf Conf"
     echo "Seed "$source_seed
@@ -46,7 +46,7 @@ nmu=${#list_mu[@]}
     echo "NoiseType "$source_noise
     echo "Kappa "$kappa
     echo "NMass "$nmu
-    echo ${mu[@]}
+    echo ${list_mu[@]}
     echo "Residue "$inversion_precision
     echo "StoppingCriterion standard"
     echo "MinimalResidue "$minimal_precision
