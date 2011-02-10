@@ -110,6 +110,19 @@ void spinspin_dirac_spinspin_prod(spinspin out,dirac_matr *m,spinspin in)
 }
 
 //Assign to the first spinspin the product of the passed dirac matrix by the passed spinspin
+void safe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m)
+{
+  spinspin temp;
+  memset(temp,0,sizeof(spinspin));
+  
+  for(int idso=0;idso<4;idso++)
+    for(int idsi=0;idsi<4;idsi++)
+      unsafe_complex_prod(temp[idsi][idso],m->entr[idso],in[idsi][m->pos[idso]]);
+  
+  memcopy(out,temp,sizeof(spinspin));
+}
+
+//Assign to the first spinspin the product of the passed dirac matrix by the passed spinspin
 void spinspin_dirac_spinspindag_prod(spinspin out,dirac_matr *m,spinspin in)
 {
   //This is the line on the matrix
