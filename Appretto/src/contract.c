@@ -263,7 +263,7 @@ void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex 
 void rotate_spinspin_to_physical_basis(spinspin s,int rsi,int rso)
 {
   const int list_prb[4]={0,1,2,3},list_mrb[4]={3,2,1,0}; //plus and minus rotating blocks
-  const int so_shft[4]={0,2,0,2},si_shft[4]={0,0,2,2}; //shift of dirac indexes for blocks
+  const int so_shft[4]={0,2,0,2},si_shft[4]={0,0,2,2};   //start of dirac indexes defining blocks
   
   int ir=rsi*2+rso,prb=list_prb[ir],mrb=list_mrb[ir];
   

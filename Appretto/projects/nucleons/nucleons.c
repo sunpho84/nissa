@@ -34,7 +34,6 @@ spinspin C5; //C*gamma5
 
 //                      e_00x   e_01x    e_02x     e_10x    e_11x   e_12x     e_20x   e_21x    e_22x
 int epsilon[3][3][3]={{{0,0,0},{0,0,1},{0,-1,0}},{{0,0,-1},{0,0,0},{1,0,0}},{{0,1,0},{-1,0,0},{0,0,0}}};
-char ftag[2][2]={"U","D"};
 
 //timings
 double tinv=0,tcontr=0,tot_time=0;
@@ -267,9 +266,10 @@ void calculate_all_2pts(char *path)
   
   for(int rlike=0;rlike<2;rlike++)
     for(int rdislike=0;rdislike<2;rdislike++)
-      {
+      { //reset output
 	for(int nns=0;nns<2;nns++) memset(loc_contr[nns],0,sizeof(complex)*glb_size[0]);
 	
+	//local loop
 	for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	  {
 	    int glb_t=glb_coord_of_loclx[loc_site][0];
@@ -283,11 +283,12 @@ void calculate_all_2pts(char *path)
 	      }
 	  }
 	
+	//final reduction
 	for(int nns=0;nns<2;nns++) MPI_Reduce(loc_contr[nns],glb_contr[nns],2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	
 	if(rank==0)
 	  {
-	    fprintf(output," # Two point for %s%s%s\n",ftag[rlike],ftag[rlike],ftag[rdislike]);
+	    fprintf(output," # Two point for rlike=%d, rdislike=%d\n",rlike,rdislike);
 	    for(int nns=0;nns<2;nns++)
 	      {
 		fprintf(output,"# Contraction with (1%sg4)/2\n",pm_tag[nns]);
@@ -472,7 +473,7 @@ void calculate_S1_like(int rlike,int rdislike)
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int ic1=0;ic1<3;ic1++)
       for(int ic2=0;ic2<3;ic2++)
-	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],!rdislike,rdislike);
+	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],rdislike,!rdislike);
   
   if(rank==0) printf("rotations performed\n");
 }
@@ -512,7 +513,7 @@ void calculate_S1_dislike(int rlike,int rdislike)
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int ic1=0;ic1<3;ic1++)
       for(int ic2=0;ic2<3;ic2++)
-	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],!rlike,rlike);
+	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],rlike,!rlike);
   
   if(rank==0) printf("rotations performed\n");
 }
@@ -612,7 +613,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
   if(rank==0)
     {
       FILE *fout=open_text_file_for_output(path);
-      fprintf(fout," # Three point for %s%s%s\n",ftag[rlike],ftag[rlike],ftag[rdislike]);
+      fprintf(fout," # Three point for rlike=%d, rdislike=%d\n",rlike,rdislike);
       
       for(int tt=0;tt<glb_size[0];tt++)
 	{
@@ -664,16 +665,18 @@ int main(int narg,char **arg)
 	    char out2pts_check_like[1024],out3pts_like[1024];
 	    char out2pts_check_dislike[1024],out3pts_dislike[1024];
 	    
-	    sprintf(out2pts_check_like,"2pts_check_like%s%s%s",ftag[rlike],ftag[rlike],ftag[rdislike]);
-	    sprintf(out2pts_check_dislike,"2pts_check_dislike%s%s%s",ftag[rlike],ftag[rlike],ftag[rdislike]);
-	    sprintf(out3pts_like,"3pts_like%s%s%s",ftag[rlike],ftag[rlike],ftag[rdislike]);
-	    sprintf(out3pts_dislike,"3pts_dislike%s%s%s",ftag[rlike],ftag[rlike],ftag[rdislike]);
+	    sprintf(out2pts_check_like,"2pts_check_like%d%d%d",rlike,rlike,rdislike);
+	    sprintf(out2pts_check_dislike,"2pts_check_dislike%d%d%d",rlike,rlike,rdislike);
+	    sprintf(out3pts_like,"3pts_like%d%d%d",rlike,rlike,rdislike);
+	    sprintf(out3pts_dislike,"3pts_dislike%d%d%d",rlike,rlike,rdislike);
 	    
+	    //like three points
 	    prepare_like_sequential_source(rlike,rdislike,tsink);
 	    calculate_S1_like(rlike,rdislike);
 	    check_2pts_with_current_sequential_source(out2pts_check_like);
 	    calculate_all_3pts_with_current_sequential(rlike,rdislike,rdislike,out3pts_like);
 	    
+	    //dislike three points
 	    prepare_dislike_sequential_source(rlike,rdislike,tsink);
 	    calculate_S1_dislike(rlike,rdislike);
 	    check_2pts_with_current_sequential_source(out2pts_check_dislike);
