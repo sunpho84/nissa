@@ -299,11 +299,23 @@ void unsafe_spincolor_summ_with_ifactor(spincolor out,spincolor a,spincolor b,do
 void unsafe_dirac_prod_spincolor(spincolor out,dirac_matr *m,spincolor in)
 {for(int id1=0;id1<4;id1++) for(int ic=0;ic<3;ic++) safe_complex_prod(out[id1][ic],m->entr[id1],in[m->pos[id1]][ic]);}
 
+//spincolor*dirac
+void unsafe_spincolor_prod_dirac(spincolor out,spincolor in,dirac_matr *m)
+{unsafe_dirac_prod_spincolor(out,m,in);}
+
 //dirac*spincolor
 void safe_dirac_prod_spincolor(spincolor out,dirac_matr *m,spincolor in)
 {
   spincolor tmp;
   unsafe_dirac_prod_spincolor(tmp,m,in);
+  spincolor_copy(out,tmp);
+}
+
+//spincolor*dirac
+void safe_spincolor_prod_dirac(spincolor out,spincolor in,dirac_matr *m)
+{
+  spincolor tmp;
+  unsafe_spincolor_prod_dirac(tmp,in,m);
   spincolor_copy(out,tmp);
 }
 
