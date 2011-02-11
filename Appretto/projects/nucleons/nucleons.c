@@ -38,6 +38,8 @@ int epsilon[3][3][3]={{{0,0,0},{0,0,1},{0,-1,0}},{{0,0,-1},{0,0,0},{1,0,0}},{{0,
 //timings
 double tinv=0,tcontr=0,tot_time=0;
 
+int dummyr=0;
+
 void initialize_nucleons(char *input_path)
 {
   //C5
@@ -356,9 +358,9 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 				      }
 	
 	//counter rotate to twisted basis
-	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
-	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],!rdislike,!rdislike);
+	//for(int ic1=0;ic1<3;ic1++)
+	//for(int ic2=0;ic2<3;ic2++)
+	//rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],dummyr,!rdislike);
       }
 }
 
@@ -432,9 +434,9 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 		}
 	
 	//counter rotate to twisted basis
-	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
-	    rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],!rlike,!rlike);
+	//for(int ic1=0;ic1<3;ic1++)
+	//for(int ic2=0;ic2<3;ic2++)
+	//rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],dummyr,!rlike);
       }
 }
 
@@ -442,14 +444,18 @@ void calculate_S1_like(int rlike,int rdislike)
 {
   for(int id_sink=0;id_sink<4;id_sink++)
     for(int ic_sink=0;ic_sink<3;ic_sink++)
-      { //take the source and put g5 on the source
+      { //take the source and put g5 on the source, and pre-rotate
 	for(int ivol=0;ivol<loc_vol;ivol++)
-	  for(int id_sour=0;id_sour<4;id_sour++)
-	    for(int ic_sour=0;ic_sour<3;ic_sour++)
-	      for(int ri=0;ri<2;ri++)
-		if(id_sour<2) source[ivol][id_sour][ic_sour][ri]= seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
-		else          source[ivol][id_sour][ic_sour][ri]=-seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
-	
+	  {
+	    for(int id_sour=0;id_sour<4;id_sour++)
+	      for(int ic_sour=0;ic_sour<3;ic_sour++)
+		for(int ri=0;ri<2;ri++)
+		  if(id_sour<2)source[ivol][id_sour][ic_sour][ri]= seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
+		  else         source[ivol][id_sour][ic_sour][ri]=-seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
+	    if(rdislike==0) safe_spincolor_prod_dirac(source[ivol],source[ivol],&Pminus); //up
+	    else            safe_spincolor_prod_dirac(source[ivol],source[ivol],&Pplus);  //dw
+	  }
+
 	if(rank==0) printf("\n(S1) like, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",rlike,rdislike,id_sink,ic_sink);
 
 	tinv-=take_time();
@@ -457,8 +463,16 @@ void calculate_S1_like(int rlike,int rdislike)
 	tinv+=take_time();
 	
 	//use sol_reco[0] as temporary storage. We solve for rdislike
-	if(rdislike==0) apply_Q_left(sol_reco[0],solDD,conf,kappa, mass); //cancel d
-	else            apply_Q_left(sol_reco[0],solDD,conf,kappa,-mass); //cancel u
+	if(rdislike==0)
+	  {
+	    apply_Q_left(sol_reco[0],solDD,conf,kappa, mass); //cancel d
+	    for(int ivol=0;ivol<loc_vol;ivol++) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pminus);
+	  }
+	else
+	  {
+            apply_Q_left(sol_reco[0],solDD,conf,kappa,-mass); //cancel u
+	    for(int ivol=0;ivol<loc_vol;ivol++) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pplus);
+	  }
 	
 	for(int ivol=0;ivol<loc_vol;ivol++)
 	  for(int id_sour=0;id_sour<4;id_sour++)
@@ -470,10 +484,10 @@ void calculate_S1_like(int rlike,int rdislike)
   if(rank==0) printf("like sequential inversions finished\n");
   
   //put the (1+ig5)/sqrt(2) factor
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int ic1=0;ic1<3;ic1++)
-      for(int ic2=0;ic2<3;ic2++)
-	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],rdislike,!rdislike);
+  //for(int ivol=0;ivol<loc_vol;ivol++)
+  //for(int ic1=0;ic1<3;ic1++)
+  //for(int ic2=0;ic2<3;ic2++)
+  //rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],!dummyr,!rdislike);
   
   if(rank==0) printf("rotations performed\n");
 }
@@ -484,11 +498,16 @@ void calculate_S1_dislike(int rlike,int rdislike)
     for(int ic_sink=0;ic_sink<3;ic_sink++)
       { //take the source and put g5 on the source
 	for(int ivol=0;ivol<loc_vol;ivol++)
-	  for(int id_sour=0;id_sour<4;id_sour++)
-	    for(int ic_sour=0;ic_sour<3;ic_sour++)
-	      for(int ri=0;ri<2;ri++)
-		if(id_sour<2) source[ivol][id_sour][ic_sour][ri]= seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
-		else          source[ivol][id_sour][ic_sour][ri]=-seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
+	  {
+	    for(int id_sour=0;id_sour<4;id_sour++)
+	      for(int ic_sour=0;ic_sour<3;ic_sour++)
+		for(int ri=0;ri<2;ri++)
+		  if(id_sour<2)source[ivol][id_sour][ic_sour][ri]= seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
+		  else         source[ivol][id_sour][ic_sour][ri]=-seq_source[ivol][ic_sink][ic_sour][id_sink][id_sour][ri];
+	    
+	    if(rlike==0) safe_spincolor_prod_dirac(source[ivol],source[ivol],&Pminus); //up
+	    else         safe_spincolor_prod_dirac(source[ivol],source[ivol],&Pplus);  //dw
+	  }
 
 	if(rank==0) printf("\n(S1) dislike, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",rlike,rdislike,id_sink,ic_sink);
 	
@@ -497,8 +516,16 @@ void calculate_S1_dislike(int rlike,int rdislike)
 	tinv+=take_time();
 	
 	//use sol_reco[0] as temporary storage. We solve for rlike
-	if(rlike==0) apply_Q_left(sol_reco[0],solDD,conf,kappa, mass); //cancel d
-	else         apply_Q_left(sol_reco[0],solDD,conf,kappa,-mass); //cancel u
+	if(rlike==0)
+	  {
+	    apply_Q_left(sol_reco[0],solDD,conf,kappa, mass); //cancel d
+	    for(int ivol=0;ivol<loc_vol;ivol++) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pminus); //up
+	  }
+	else
+	  {
+	    apply_Q_left(sol_reco[0],solDD,conf,kappa,-mass); //cancel u
+	    for(int ivol=0;ivol<loc_vol;ivol++) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pplus);  //dw
+	  }
 	
 	for(int ivol=0;ivol<loc_vol;ivol++)
 	  for(int id_sour=0;id_sour<4;id_sour++)
@@ -510,10 +537,10 @@ void calculate_S1_dislike(int rlike,int rdislike)
   if(rank==0) printf("dislike sequential inversions finished\n");
   
   //put the (1+ig5)/sqrt(2) factor
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int ic1=0;ic1<3;ic1++)
-      for(int ic2=0;ic2<3;ic2++)
-	rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],rlike,!rlike);
+  //for(int ivol=0;ivol<loc_vol;ivol++)
+  //for(int ic1=0;ic1<3;ic1++)
+  //for(int ic2=0;ic2<3;ic2++)
+  //rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],!dummyr,!rlike);
   
   if(rank==0) printf("rotations performed\n");
 }
