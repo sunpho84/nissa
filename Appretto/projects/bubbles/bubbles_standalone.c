@@ -85,7 +85,7 @@ void contract_with_source(complex **corr,colorspinspin *prop,int *list_op,colors
 
 //This perform the contraction using the so-callled (by Silvano) Chris Micheal trick
 //otherwise called "twisted trick"
-void contract_with_chris_michael(complex **corr,int *list_op,colorspinspin *s1,colorspinspin *s2,int ncontr)
+void contract_with_chris_michael(complex **corr,int *list_op,colorspinspin *s1,colorspinspin *s2,int ncontr,double mass)
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];
@@ -99,6 +99,12 @@ void contract_with_chris_michael(complex **corr,int *list_op,colorspinspin *s1,c
   
   //Call for the routine which does the real contraction
   trace_g_sdag_g_s(corr,t2,s2,t1,s1,ncontr);
+  
+  //multiply by 2*mass
+  for(int icontr=0;icontr<ncontr;icontr++)
+    for(int t=0;t<glb_size[0];t++)
+      for(int ri=0;ri<2;ri++)
+	corr[icontr][t][ri]*=2*mass;  
 }
 	  
 //print all the passed contractions to the file
@@ -257,7 +263,7 @@ void calculate_S()
 	  get_spincolor_from_colorspinspin(inv_source[ivol],source[ivol],idso);
 	  
 	  //put the g5
-	  for(int idsi=0;idsi<2;idsi++)
+	  for(int idsi=2;idsi<4;idsi++)
 	    for(int icol=0;icol<3;icol++)
 	      for(int ri=0;ri<2;ri++)
 		inv_source[ivol][idsi][icol][ri]=-inv_source[ivol][idsi][icol][ri];
@@ -309,10 +315,10 @@ void calculate_all_contractions(int isource)
 	
 	if(r==0)
 	  {
-	    contract_with_chris_michael(contr,op,S[imass][r],S[imass][r],ncontr);
+	    contract_with_chris_michael(contr,op,S[imass][r],S[imass][r],ncontr,mass[imass]);
 	    print_bubbles_to_file(fout,ncontr,op,contr,"CHRIS-");
 	    
-	    contract_with_chris_michael(ch_contr,ch_op,ch_prop,S[imass][r],nch_contr);
+	    contract_with_chris_michael(ch_contr,ch_op,ch_prop,S[imass][r],nch_contr,mass[imass]);
 	    print_bubbles_to_file(fout,nch_contr,ch_op,ch_contr,"CHROMO-CHRIS-");
 	    
 	    ncontr_tot+=nch_contr+ncontr;

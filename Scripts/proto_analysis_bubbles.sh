@@ -1,3 +1,17 @@
+# @ shell = /bin/bash
+# @ job_name = job
+# @ error  = $(job_name).$(jobid).err
+# @ output = $(job_name).$(jobid).out
+# @ environment = COPY_ALL
+# @ notification = always
+# @ notify_user = Francesco.Sanfilippo@roma1.infn.it
+# @ wall_clock_limit = 01:00:00
+# @ job_type         = BLUEGENE
+# @ bg_size          = 512
+# @ bg_connection    = TORUS
+# @ queue
+#
+
 #!/bin/bash
 set echo
 
