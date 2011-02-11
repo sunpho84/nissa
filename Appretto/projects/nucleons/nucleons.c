@@ -60,14 +60,16 @@ void initialize_nucleons(char *input_path)
   //Proj[0] and Proj[1]
   for(int nns=0;nns<2;nns++) memset(Proj[nns],0,sizeof(spinspin));
   for(int id1=0;id1<4;id1++)
-    if(id1==1||id1==3) //to be removed
+    if(id1==0||id1==2) //to be removed
     {
       int id2=base_gamma[4].pos[id1];
       
       Proj[0][id1][id1][0]=Proj[1][id1][id1][0]=0.5;
-      complex_prod_with_real(Proj[0][id1][id2],base_gamma[4].entr[id1],+0.5);
-      complex_prod_with_real(Proj[1][id1][id2],base_gamma[4].entr[id1],-0.5);
+      //complex_prod_with_real(Proj[0][id1][id2],base_gamma[4].entr[id1],+0.5);
+      //complex_prod_with_real(Proj[1][id1][id2],base_gamma[4].entr[id1],-0.5);
     }
+  Proj[0][0][2][0]=Proj[0][2][0][0]=-0.5;
+  Proj[1][0][2][0]=Proj[1][2][0][0]=+0.5;
 
   open_input(input_path);
 
@@ -357,11 +359,6 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 					  if(se==1) seq_source[ivol][a2][a1][mu2][mu1][ri]+=ter[ri];
 					  else      seq_source[ivol][a2][a1][mu2][mu1][ri]-=ter[ri];
 				      }
-	
-	//counter rotate to twisted basis
-	//for(int ic1=0;ic1<3;ic1++)
-	//for(int ic2=0;ic2<3;ic2++)
-	//rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],dummyr,!rdislike);
       }
 }
 
@@ -433,11 +430,6 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 					    }
 		      }
 		}
-	
-	//counter rotate to twisted basis
-	//for(int ic1=0;ic1<3;ic1++)
-	//for(int ic2=0;ic2<3;ic2++)
-	//rotate_spinspin_to_physical_basis(seq_source[ivol][ic1][ic2],dummyr,!rlike);
       }
 }
 
@@ -483,14 +475,6 @@ void calculate_S1_like(int rlike,int rdislike)
       }
   
   if(rank==0) printf("like sequential inversions finished\n");
-  
-  //put the (1+ig5)/sqrt(2) factor
-  //for(int ivol=0;ivol<loc_vol;ivol++)
-  //for(int ic1=0;ic1<3;ic1++)
-  //for(int ic2=0;ic2<3;ic2++)
-  //rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],!dummyr,!rdislike);
-  
-  if(rank==0) printf("rotations performed\n");
 }
 
 void calculate_S1_dislike(int rlike,int rdislike)
@@ -536,14 +520,6 @@ void calculate_S1_dislike(int rlike,int rdislike)
       }
   
   if(rank==0) printf("dislike sequential inversions finished\n");
-  
-  //put the (1+ig5)/sqrt(2) factor
-  //for(int ivol=0;ivol<loc_vol;ivol++)
-  //for(int ic1=0;ic1<3;ic1++)
-  //for(int ic2=0;ic2<3;ic2++)
-  //rotate_spinspin_to_physical_basis(S1[ivol][ic1][ic2],!dummyr,!rlike);
-  
-  if(rank==0) printf("rotations performed\n");
 }
 
 //this is needed to check 2pts
@@ -687,6 +663,7 @@ int main(int narg,char **arg)
       calculate_S0();
       calculate_all_2pts(out_path[iconf]);
 
+      
       for(int rlike=0;rlike<2;rlike++)
 	for(int rdislike=1;rdislike>=0;rdislike--)
 	  {
@@ -710,6 +687,7 @@ int main(int narg,char **arg)
 	    check_2pts_with_current_sequential_source(out2pts_check_dislike);
 	    calculate_all_3pts_with_current_sequential(rlike,rdislike,rlike,out3pts_dislike);
 	  }
+      
     }
 
   tot_time+=take_time();
