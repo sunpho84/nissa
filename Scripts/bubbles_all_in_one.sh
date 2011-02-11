@@ -50,7 +50,7 @@ nmu=${#list_mu[@]}
     echo "Residue "$inversion_precision
     echo "StoppingCriterion standard"
     echo "MinimalResidue "$minimal_precision
-    echo "NIterMax 10000"
+    echo "NIterMax "$niter_max
     echo "Output bubble"
 )  > input
 
