@@ -60,6 +60,7 @@ void initialize_nucleons(char *input_path)
   //Proj[0] and Proj[1]
   for(int nns=0;nns<2;nns++) memset(Proj[nns],0,sizeof(spinspin));
   for(int id1=0;id1<4;id1++)
+    if(id1==1||id1==3) //to be removed
     {
       int id2=base_gamma[4].pos[id1];
       
@@ -687,7 +688,7 @@ int main(int narg,char **arg)
       calculate_all_2pts(out_path[iconf]);
 
       for(int rlike=0;rlike<2;rlike++)
-	for(int rdislike=0;rdislike<2;rdislike++)
+	for(int rdislike=1;rdislike>=0;rdislike--)
 	  {
 	    char out2pts_check_like[1024],out3pts_like[1024];
 	    char out2pts_check_dislike[1024],out3pts_dislike[1024];
