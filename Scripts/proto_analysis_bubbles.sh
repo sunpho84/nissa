@@ -47,6 +47,7 @@ starting_source=[starting] #number of the starting sources (included)
 ending_source=[ending] #number of the ending sources (excluded)
 source_noise=[-1 1 2 4]
 inversion_precision=[inverter_precision]
+niter_max=[niter]
 minimal_precision=[minimal_precision]
 
 #mu
