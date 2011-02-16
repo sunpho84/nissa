@@ -33,13 +33,13 @@ spinspin Proj[2]; //projectors over N and N*
 spinspin C5; //C*gamma5
 
 //two points contractions
-int nproton_2pt_contr=1;
-int list_2pt_op1[1]={5};
-int list_2pt_op2[1]={0};
+int nproton_2pt_contr=38;
+int list_2pt_op1[38]={5,0,5,0, 1,2,3,4, 6,7,8,9, 1,2,3,4, 6,7,8,9, 10,11,12,13,14,15, 10,11,12,13,14,15, 13,14,15,10,11,12};
+int list_2pt_op2[38]={0,5,0,5, 6,7,8,9, 1,2,3,4, 1,2,3,4, 6,7,8,9, 10,11,12,13,14,15, 13,14,15,10,11,12, 10,11,12,13,14,15};
 
 //three point contractions
-int nproton_3pt_contr=1;
-int list_3pt_op[1]={4};
+int nproton_3pt_contr=4;
+int list_3pt_op[4]={0,5,4,9};
 
 //                      e_00x   e_01x    e_02x     e_10x    e_11x   e_12x     e_20x   e_21x    e_22x
 int epsilon[3][3][3]={{{0,0,0},{0,0,1},{0,-1,0}},{{0,0,-1},{0,0,0},{1,0,0}},{{0,1,0},{-1,0,0},{0,0,0}}};
