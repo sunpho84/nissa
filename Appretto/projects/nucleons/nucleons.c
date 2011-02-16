@@ -33,7 +33,7 @@ spinspin Proj[2]; //projectors over N and N*
 spinspin C5; //C*gamma5
 
 //two points contractions
-int nproton_2pt_contr=38;
+int nproton_2pt_contr=38;      //VA     AV       VV       AA       TT                 TT~                T~T
 int list_2pt_op1[38]={5,0,5,0, 1,2,3,4, 6,7,8,9, 1,2,3,4, 6,7,8,9, 10,11,12,13,14,15, 10,11,12,13,14,15, 13,14,15,10,11,12};
 int list_2pt_op2[38]={0,5,0,5, 6,7,8,9, 1,2,3,4, 1,2,3,4, 6,7,8,9, 10,11,12,13,14,15, 13,14,15,10,11,12, 10,11,12,13,14,15};
 
@@ -237,47 +237,45 @@ void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD,dirac
 {
   memset(contr,0,sizeof(spinspin));
   
-  //prepare the gammas
-  dirac_matr Cgamma1,Cgamma3;
-  dirac_prod(&Cgamma1,&gC,&gamma1);
-  dirac_prod(&Cgamma3,&gC,&gamma3);
-
-  for(int a1=0;a1<3;a1++)
-    for(int b1=0;b1<3;b1++)
-      for(int c1=0;c1<3;c1++)
-	if(epsilon[a1][b1][c1])
-	  for(int a2=0;a2<3;a2++)
-	    for(int b2=0;b2<3;b2++)
-	      for(int c2=0;c2<3;c2++)
-		if(epsilon[a2][b2][c2])
-		  for(int al1=0;al1<4;al1++)
-		    for(int al2=0;al2<4;al2++)
-		      for(int ga1=0;ga1<4;ga1++)
-			for(int ga2=0;ga2<4;ga2++)
-			  {
-			    int be1=Cgamma1.pos[al1];
-			    int be2=Cgamma3.pos[al2];
-			    
-			    int delta1=gamma2.pos[ga1];
-			    int delta2=gamma4.pos[ga2];
-			    
-			    int se=epsilon[a1][b1][c1]*epsilon[a2][b2][c2];
-			    
-			    complex ter;
-			    unsafe_complex_prod(ter,SU[a1][a2][al1][al2],SU[c1][c2][delta1][delta2]);
-			    complex_subt_the_prod(ter,SU[a1][c2][al1][delta2],SU[c1][a2][delta1][al2]);
-				
-			    safe_complex_prod(ter,SD[b1][b2][be1][be2],ter);
-			    safe_complex_prod(ter,Cgamma1.entr[al1],ter);
-			    safe_complex_prod(ter,Cgamma3.entr[al2],ter);
-			    
-			    safe_complex_prod(ter,ter,gamma2.entr[ga1]);
-			    safe_complex_prod(ter,ter,gamma4.entr[ga2]);
-			    
-			    for(int ri=0;ri<2;ri++)
-			      if(se==1) contr[ga1][ga2][ri]+=ter[ri];
-			      else      contr[ga1][ga2][ri]-=ter[ri];
-			  }
+  for(int ga1=0;ga1<4;ga1++)
+    for(int ga2=0;ga2<4;ga2++)
+      {
+	for(int a1=0;a1<3;a1++)
+	  for(int b1=0;b1<3;b1++)
+	    for(int c1=0;c1<3;c1++)
+	      if(epsilon[a1][b1][c1])
+		for(int a2=0;a2<3;a2++)
+		  for(int b2=0;b2<3;b2++)
+		    for(int c2=0;c2<3;c2++)
+		      if(epsilon[a2][b2][c2])
+			for(int al1=0;al1<4;al1++)
+			  for(int al2=0;al2<4;al2++)
+			    {
+			      int be1=gamma1.pos[al1];
+			      int be2=gamma3.pos[al2];
+			      
+			      int delta1=gamma2.pos[ga1];
+			      int delta2=gamma4.pos[ga2];
+			      
+			      int se=epsilon[a1][b1][c1]*epsilon[a2][b2][c2];
+			      
+			      complex ter;
+			      unsafe_complex_prod(ter,SU[a1][a2][al1][al2],SU[c1][c2][delta1][delta2]);
+			      complex_subt_the_prod(ter,SU[a1][c2][al1][delta2],SU[c1][a2][delta1][al2]);
+			      
+			      safe_complex_prod(ter,SD[b1][b2][be1][be2],ter);
+			      safe_complex_prod(ter,gamma1.entr[al1],ter);
+			      safe_complex_prod(ter,gamma3.entr[al2],ter);
+			      
+			      for(int ri=0;ri<2;ri++)
+				if(se==1) contr[ga1][ga2][ri]+=ter[ri];
+				else      contr[ga1][ga2][ri]-=ter[ri];
+			    }
+	
+	complex temp;
+	unsafe_complex_prod(temp,contr[ga1][ga2],gamma2.entr[ga1]);
+	unsafe_complex_prod(contr[ga1][ga2],temp,gamma4.entr[ga2]);
+      }
 }
 
 //calculate all the 2pts contractions
@@ -299,13 +297,19 @@ void calculate_all_2pts(char *path)
   
   spinspin ter;
   complex point_contr[2];
-  
+
+  dirac_matr o3,o4=base_gamma[0];
+  dirac_prod(&o3,&gC,&base_gamma[5]);
+
   for(int icontr=0;icontr<nproton_2pt_contr;icontr++)
     {
+
+      dirac_matr o1,o2=base_gamma[list_2pt_op2[icontr]];
+      dirac_prod(&o1,&gC,&base_gamma[list_2pt_op1[icontr]]);
+      
       for(int rlike=0;rlike<2;rlike++)
 	for(int rdislike=0;rdislike<2;rdislike++)
 	  {
-	    dirac_matr o1=base_gamma[list_2pt_op1[icontr]],o2=base_gamma[list_2pt_op2[icontr]];
 	    
 	    if(rank==0) fprintf(output," # Two point for rlike=%d, rdislike=%d\n",rlike,rdislike);
 	    
@@ -320,8 +324,8 @@ void calculate_all_2pts(char *path)
 		  {
 		    int glb_t=glb_coord_of_loclx[loc_site][0];
 		    
-		    if(SS==0) point_proton_contraction(ter,S0[rlike][loc_site],S0[rdislike][loc_site],o1,o2,base_gamma[5],base_gamma[0]);
-		    else point_proton_contraction(ter,S0[rlike][loc_site],S0[rdislike][loc_site],base_gamma[5],base_gamma[0],o1,o2);
+		    if(SS==0) point_proton_contraction(ter,S0[rlike][loc_site],S0[rdislike][loc_site],o1,o2,o3,o4);
+		    else point_proton_contraction(ter,S0[rlike][loc_site],S0[rdislike][loc_site],o3,o4,o1,o2);
 		    
 		    for(int nns=0;nns<2;nns++)
 		      {
@@ -335,8 +339,8 @@ void calculate_all_2pts(char *path)
 		
 		if(rank==0)
 		  {
-		    if(SS==0) fprintf(output," # %s%s-P5S0\n",gtag[list_2pt_op2[icontr]],gtag[list_2pt_op1[icontr]]);
-		    else      fprintf(output," # P5S0-%s%s\n",gtag[list_2pt_op2[icontr]],gtag[list_2pt_op1[icontr]]);
+		    if(SS==0) fprintf(output," # %s%s-P5S0\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
+		    else      fprintf(output," # P5S0-%s%s\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
 		    for(int nns=0;nns<2;nns++)
 		      {
 			fprintf(output,"# Contraction with (1%sg4)/2\n",pm_tag[nns]);
