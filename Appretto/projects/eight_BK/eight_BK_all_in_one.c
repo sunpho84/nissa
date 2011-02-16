@@ -1,9 +1,4 @@
-
-//This program calculates a list of three-point functions for the BK 
-//contracting all the propagators in the four lists only if 
-//if one of the r is different. 
-// The first and third list are uploaded in blocks as big as possible 
-// propagators  the second and fourth are uploaded one by one
+// This program create the two sources, invert them and perform all the needed contractions
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 // Three-point disconnected part (Mezzotos)
@@ -31,6 +26,8 @@
               ..     ..                       ..      ..
                 .....          		  	.....
                 S(md)                            S(md)  
+
+
 
                 S(ms)        S(ms)
                 .....       ,.....
@@ -260,7 +257,7 @@ void close_Bk()
   close_appretto();
 }
 
-//calculate the standard propagators
+//calculate the propagators
 void calculate_S(int LR)
 {
   for(int id=0;id<4;id++)
