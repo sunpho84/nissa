@@ -38,6 +38,9 @@ int nproton_2pt_contr=32;      //VA     AV       VV       AA       TT        BB 
 int list_2pt_op1[32]={5,0,5,0, 1,2,3,4, 6,7,8,9, 1,2,3,4, 6,7,8,9, 10,11,12, 13,14,15, 10,11,12, 13,14,15};
 int list_2pt_op2[32]={0,5,0,5, 6,7,8,9, 1,2,3,4, 1,2,3,4, 6,7,8,9, 10,11,12, 13,14,15, 13,14,15, 10,11,12};
 
+//which 3 pts compute
+int compute_3pts[2][2];
+
 //three point contractions
 int nproton_3pt_contr=16;
 int list_3pt_op[16]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
@@ -134,6 +137,12 @@ void initialize_nucleons(char *input_path)
   //tsink-tsource
   read_str_int("TSeparation",&tseparation);
   tsink=(source_pos[0]+tseparation)%glb_size[0];
+  
+  // 5) three points computation infos
+  read_str_int("Compute3ptsLike0Dislike0",&(compute_3pts[0][0]));
+  read_str_int("Compute3ptsLike0Dislike1",&(compute_3pts[0][1]));
+  read_str_int("Compute3ptsLike1Dislike0",&(compute_3pts[1][0]));
+  read_str_int("Compute3ptsLike1Dislike1",&(compute_3pts[1][1]));
   
   close_input();
 
@@ -798,30 +807,30 @@ int main(int narg,char **arg)
       calculate_S0();
       calculate_all_2pts(out_path[iconf]);
 
-      //modify: "<1" with "<2" and ">0" with ">=0" to make all possible sources
-      for(int rlike=0;rlike<1;rlike++)
-	for(int rdislike=1;rdislike>0;rdislike--)
-	  {
-	    char out2pts_check_like[1024],out3pts_like[1024];
-	    char out2pts_check_dislike[1024],out3pts_dislike[1024];
-	    
-	    sprintf(out2pts_check_like,"2pts_check_like%d%d%d",rlike,rlike,rdislike);
-	    sprintf(out2pts_check_dislike,"2pts_check_dislike%d%d%d",rlike,rlike,rdislike);
-	    sprintf(out3pts_like,"3pts_like%d%d%d",rlike,rlike,rdislike);
-	    sprintf(out3pts_dislike,"3pts_dislike%d%d%d",rlike,rlike,rdislike);
-	    
-	    //like three points
-	    prepare_like_sequential_source(rlike,rdislike,tsink);
-	    calculate_S1_like(rlike,rdislike);
-	    check_2pts_with_current_sequential_source(out2pts_check_like);
-	    calculate_all_3pts_with_current_sequential(rlike,rdislike,rdislike,out3pts_like,"like");
-	    
-	    //dislike three points
-	    prepare_dislike_sequential_source(rlike,rdislike,tsink);
-	    calculate_S1_dislike(rlike,rdislike);
-	    check_2pts_with_current_sequential_source(out2pts_check_dislike);
-	    calculate_all_3pts_with_current_sequential(rlike,rdislike,rlike,out3pts_dislike,"dislike");
-	  }
+      for(int rlike=0;rlike<2;rlike++)
+	for(int rdislike=0;rdislike<2;rdislike++)
+	  if(compute_3pts[rlike][rdislike])
+	    {
+	      char out2pts_check_like[1024],out3pts_like[1024];
+	      char out2pts_check_dislike[1024],out3pts_dislike[1024];
+	      
+	      sprintf(out2pts_check_like,"2pts_check_like%d%d%d",rlike,rlike,rdislike);
+	      sprintf(out2pts_check_dislike,"2pts_check_dislike%d%d%d",rlike,rlike,rdislike);
+	      sprintf(out3pts_like,"3pts_like%d%d%d",rlike,rlike,rdislike);
+	      sprintf(out3pts_dislike,"3pts_dislike%d%d%d",rlike,rlike,rdislike);
+	      
+	      //like three points
+	      prepare_like_sequential_source(rlike,rdislike,tsink);
+	      calculate_S1_like(rlike,rdislike);
+	      check_2pts_with_current_sequential_source(out2pts_check_like);
+	      calculate_all_3pts_with_current_sequential(rlike,rdislike,rdislike,out3pts_like,"like");
+	      
+	      //dislike three points
+	      prepare_dislike_sequential_source(rlike,rdislike,tsink);
+	      calculate_S1_dislike(rlike,rdislike);
+	      check_2pts_with_current_sequential_source(out2pts_check_dislike);
+	      calculate_all_3pts_with_current_sequential(rlike,rdislike,rlike,out3pts_dislike,"dislike");
+	    }
       
     }
 

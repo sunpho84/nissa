@@ -53,6 +53,12 @@ mu=([mu])
 #separation between source and sink
 tseparation=[t]
 
+#list of 3pts to compute
+Compute3ptsLike0Dislike0=[ 0 1 ]
+Compute3ptsLike0Dislike1=[ 0 1 ]
+Compute3ptsLike1Dislike0=[ 0 1 ]
+Compute3ptsLike1Dislike1=[ 0 1 ]
+
 ############## - 3 Setups ################
 
 #now cd to the analysis
@@ -88,6 +94,10 @@ Mass $mu
 Residue $stopping_residue
 NiterMax $num_max_iter
 TSeparation $tseparation
+Compute3ptsLike0Dislike0 $Compute3ptsLike0Dislike0
+Compute3ptsLike0Dislike1 $Compute3ptsLike0Dislike1
+Compute3ptsLike1Dislike0 $Compute3ptsLike1Dislike0
+Compute3ptsLike1Dislike1 $Compute3ptsLike1Dislike1 
 " > input
 
 #shell the program
