@@ -690,10 +690,12 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 	  unsafe_apply_chromo_operator_to_su3spinspin(supp_S,Pmunu,S0[rS0]);
 	  break;
 	case 2:
-	  ncontr=3;
+	  ncontr=3; //three spatial directions
+	  //the Dipole Operator is applied inside the contraction (that is, direction) loop
 	  break;
 	}
       
+      //loop over contraction
       for(int icontr=0;icontr<ncontr;icontr++)
 	{
 	  //reset output
@@ -702,11 +704,13 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 	  //apply the EDM in the dir=icontr+1
 	  if(norm_chro_EDM==2) apply_dipole_operator(supp_S,S0[rS0],icontr+1);
 	  
+	  //loop over local node volume
 	  for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	    {
 	      complex point_contr;
 	      int glb_t=glb_coord_of_loclx[loc_site][0];
-
+	      
+	      //contract the single point
 	      switch(norm_chro_EDM)
 		{
 		case 0:
@@ -716,15 +720,14 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 		  point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[list_3pt_chromo_op[icontr]],S1[loc_site]);
 		  break;
 		case 2:
-		  point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[4],S1[loc_site]); //ask Silvano
+		  point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[4],S1[loc_site]);
 		  break;
 		}
-
 	      
-
 	      complex_summ(loc_contr[glb_t],loc_contr[glb_t],point_contr);
 	    }
 	  
+	  //final reduction
 	  MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	  
 	  if(rank==0)
@@ -743,7 +746,8 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 		  fprintf(fout," # Proton-EDM_%d-Proton\n",icontr+1);
 		  break;
 		}
-
+	      
+	      //print the contraction
 	      for(int tt=0;tt<glb_size[0];tt++)
 		{
 		  int t=(tt+source_pos[0])%glb_size[0];
@@ -752,8 +756,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 	      fprintf(fout,"\n");
 	    }
 	}
-
-	     }
+    }
 
   tcontr+=take_time();
   
@@ -795,9 +798,9 @@ int main(int narg,char **arg)
       calculate_S0();
       calculate_all_2pts(out_path[iconf]);
 
-      
-      for(int rlike=0;rlike<2;rlike++)
-	for(int rdislike=1;rdislike>=0;rdislike--)
+      //modify: "<1" with "<2" and ">0" with ">=0" to make all possible sources
+      for(int rlike=0;rlike<1;rlike++)
+	for(int rdislike=1;rdislike>0;rdislike--)
 	  {
 	    char out2pts_check_like[1024],out3pts_like[1024];
 	    char out2pts_check_dislike[1024],out3pts_dislike[1024];

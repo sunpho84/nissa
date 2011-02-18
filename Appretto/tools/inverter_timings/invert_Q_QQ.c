@@ -69,7 +69,7 @@ int main(int narg,char **arg)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
-	  source[ivol][id][ic][ri]=(double)rand()/RAND_MAX;
+	  source[ivol][id][ic][ri]=1;//(double)rand()/RAND_MAX;
 
   ///communicate
   communicate_lx_spincolor_borders(source);
@@ -87,6 +87,7 @@ int main(int narg,char **arg)
 	  double dr=solutionQ[loc_site][id][ic][0]-solutionQ_sorc[loc_site][id][ic][0];
 	  double di=solutionQ[loc_site][id][ic][1]-solutionQ_sorc[loc_site][id][ic][1];
 	  loc_diff+=dr*dr+di*di;
+	  if(rank==0 && loc_site==0) printf("%g %g %g %g\n",solutionQ[loc_site][id][ic][0],solutionQ_sorc[loc_site][id][ic][0],solutionQ[loc_site][id][ic][1],solutionQ_sorc[loc_site][id][ic][1]);
 	}
   MPI_Allreduce(&loc_diff,&glb_diff,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 

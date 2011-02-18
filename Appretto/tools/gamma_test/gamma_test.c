@@ -123,9 +123,9 @@ int main(int narg,char **arg)
 
       //check of Pplus
       dirac_matr gamma_Pplus;
-      dirac_compl_prod(&gamma_Pplus,&(base_gamma[5]),I);
+      safe_dirac_compl_prod(&gamma_Pplus,&(base_gamma[5]),I);
       dirac_summ(&gamma_Pplus,&gamma_Pplus,&(base_gamma[0]));
-      dirac_compl_prod(&gamma_Pplus,&gamma_Pplus,one_over_rad2);
+      safe_dirac_compl_prod(&gamma_Pplus,&gamma_Pplus,one_over_rad2);
       printf("Pminus=(1+iGamma5)/sqrt(2) as:\n");
       printf("(a) defined by Silvano\n");
       print_dirac(&Pplus);
@@ -136,9 +136,9 @@ int main(int narg,char **arg)
       //check of Pminus
       dirac_matr gamma_Pminus;
       complex mI={0,-1};
-      dirac_compl_prod(&gamma_Pminus,&(base_gamma[5]),mI);
+      safe_dirac_compl_prod(&gamma_Pminus,&(base_gamma[5]),mI);
       dirac_summ(&gamma_Pminus,&gamma_Pminus,&(base_gamma[0]));
-      dirac_compl_prod(&gamma_Pminus,&gamma_Pminus,one_over_rad2);
+      safe_dirac_compl_prod(&gamma_Pminus,&gamma_Pminus,one_over_rad2);
       printf("Pminus=(1-iGamma5)/sqrt(2) as:\n");
       printf("(a) defined by Silvano\n");
       print_dirac(&Pminus);

@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "geometry_lx.c"
+#include "geometry_eo.c"
 
 //swap the data from lexical order to even odd
 void unsafe_swap_lx_to_eo(char *out,char *in,int nbytes_per_site)
