@@ -9,6 +9,7 @@ char **conf_path,**out_path;
 quad_su3 *conf;
 double mass;
 double kappa;
+as2t_su3 *Pmunu;
 
 //source
 int source_pos[4];
@@ -29,17 +30,21 @@ spincolor *solDD,*sol_reco[2];
 int tseparation;
 int tsink;
 
-spinspin Proj[2]; //projectors over N and N*
+spinspin Proj[3]; //projectors over N and N*, and 00 compont of N (in the spinorial representation)
 spinspin C5; //C*gamma5
 
 //two points contractions
-int nproton_2pt_contr=38;      //VA     AV       VV       AA       TT                 TT~                T~T
-int list_2pt_op1[38]={5,0,5,0, 1,2,3,4, 6,7,8,9, 1,2,3,4, 6,7,8,9, 10,11,12,13,14,15, 10,11,12,13,14,15, 13,14,15,10,11,12};
-int list_2pt_op2[38]={0,5,0,5, 6,7,8,9, 1,2,3,4, 1,2,3,4, 6,7,8,9, 10,11,12,13,14,15, 13,14,15,10,11,12, 10,11,12,13,14,15};
+int nproton_2pt_contr=32;      //VA     AV       VV       AA       TT        BB        TB        BT
+int list_2pt_op1[32]={5,0,5,0, 1,2,3,4, 6,7,8,9, 1,2,3,4, 6,7,8,9, 10,11,12, 13,14,15, 10,11,12, 13,14,15};
+int list_2pt_op2[32]={0,5,0,5, 6,7,8,9, 1,2,3,4, 1,2,3,4, 6,7,8,9, 10,11,12, 13,14,15, 13,14,15, 10,11,12};
 
 //three point contractions
-int nproton_3pt_contr=4;
-int list_3pt_op[4]={0,5,4,9};
+int nproton_3pt_contr=16;
+int list_3pt_op[16]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
+
+//three point chromo contractions
+int nproton_3pt_chromo_contr=2;
+int list_3pt_chromo_op[4]={0,5};
 
 //                      e_00x   e_01x    e_02x     e_10x    e_11x   e_12x     e_20x   e_21x    e_22x
 int epsilon[3][3][3]={{{0,0,0},{0,0,1},{0,-1,0}},{{0,0,-1},{0,0,0},{1,0,0}},{{0,1,0},{-1,0,0},{0,0,0}}};
@@ -73,24 +78,19 @@ void initialize_nucleons(char *input_path)
   put_dirac_matr_into_spinspin(C5,&gC5);
   
   //Proj[0] and Proj[1]
-  for(int nns=0;nns<2;nns++) memset(Proj[nns],0,sizeof(spinspin));
+  for(int nns=0;nns<3;nns++) memset(Proj[nns],0,sizeof(spinspin));
   for(int id1=0;id1<4;id1++)
-#ifdef APE
-    if(id1==0||id1==2)
-#endif
     {
       int id2=base_gamma[4].pos[id1];
       
       Proj[0][id1][id1][0]=Proj[1][id1][id1][0]=0.5;
-#ifndef APE //this is not needed by APE
       complex_prod_with_real(Proj[0][id1][id2],base_gamma[4].entr[id1],+0.5);
       complex_prod_with_real(Proj[1][id1][id2],base_gamma[4].entr[id1],-0.5);
-#endif
     }
-#ifdef APE //because only this is needed
-  Proj[0][0][2][0]=Proj[0][2][0][0]=-0.5; 
-  Proj[1][0][2][0]=Proj[1][2][0][0]=+0.5;
-#endif
+
+  for(int id1=0;id1<4;id1++) if(id1==0||id1==2) Proj[2][id1][id1][0]=Proj[2][id1][id1][0]=0.5;
+  Proj[2][0][2][0]=Proj[2][2][0][0]=-0.5; 
+
   open_input(input_path);
 
   // 1) Information about the gauge conf
@@ -100,7 +100,8 @@ void initialize_nucleons(char *input_path)
   //Init the MPI grid 
   init_grid();
   //Allocate the gauge Conf
-  conf=allocate_quad_su3(loc_vol+loc_bord,"conf");
+  conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"conf");
+  Pmunu=allocate_as2t_su3(loc_vol,"Pmunu");
   //Read the gauge conf
   read_str_int("NGaugeConf",&nconf);
   conf_path=(char**)malloc(sizeof(char*)*nconf);
@@ -113,9 +114,7 @@ void initialize_nucleons(char *input_path)
       read_str(out_path[iconf],1024);
     }
   //Put border condition and communicate
-  //double theta[4]={1,0,0,0};
 
-  //put_boundaries_conditions(conf,theta,1,0);
   //Kappa
   read_str_double("Kappa",&(kappa));
   
@@ -161,13 +160,28 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
 {
   read_local_gauge_conf(conf,conf_path);
   
+  //commmunicate borders
+  communicate_gauge_borders(conf);  
+  communicate_gauge_edges(conf);
+  
+  //calculate plaquette
+  double gplaq=global_plaquette(conf);
+  if(rank==0) printf("plaq: %.18g\n",gplaq);
+
+  //calcolate Pmunu
+  Pmunu_term(Pmunu,conf);
+
+  //put boundaries
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(glb_coord_of_loclx[ivol][0]==(tsource+glb_size[0]-1)%glb_size[0])
       for(int ic1=0;ic1<3;ic1++)
 	for(int ic2=0;ic2<3;ic2++)
 	  for(int ri=0;ri<2;ri++)
 	    conf[ivol][0][ic1][ic2][ri]*=-1;
+
+  //re-communicate borders
   communicate_gauge_borders(conf);  
+  communicate_gauge_edges(conf);
 }
 
 //create a 12 index point source
@@ -239,43 +253,47 @@ void point_proton_contraction(spinspin contr,su3spinspin SU,su3spinspin SD,dirac
   
   for(int ga1=0;ga1<4;ga1++)
     for(int ga2=0;ga2<4;ga2++)
-      {
-	for(int a1=0;a1<3;a1++)
-	  for(int b1=0;b1<3;b1++)
-	    for(int c1=0;c1<3;c1++)
-	      if(epsilon[a1][b1][c1])
-		for(int a2=0;a2<3;a2++)
-		  for(int b2=0;b2<3;b2++)
-		    for(int c2=0;c2<3;c2++)
-		      if(epsilon[a2][b2][c2])
-			for(int al1=0;al1<4;al1++)
-			  for(int al2=0;al2<4;al2++)
-			    {
-			      int be1=gamma1.pos[al1];
-			      int be2=gamma3.pos[al2];
-			      
-			      int delta1=gamma2.pos[ga1];
-			      int delta2=gamma4.pos[ga2];
-			      
-			      int se=epsilon[a1][b1][c1]*epsilon[a2][b2][c2];
-			      
-			      complex ter;
-			      unsafe_complex_prod(ter,SU[a1][a2][al1][al2],SU[c1][c2][delta1][delta2]);
-			      complex_subt_the_prod(ter,SU[a1][c2][al1][delta2],SU[c1][a2][delta1][al2]);
-			      
-			      safe_complex_prod(ter,SD[b1][b2][be1][be2],ter);
-			      safe_complex_prod(ter,gamma1.entr[al1],ter);
-			      safe_complex_prod(ter,gamma3.entr[al2],ter);
-			      
-			      for(int ri=0;ri<2;ri++)
-				if(se==1) contr[ga1][ga2][ri]+=ter[ri];
-				else      contr[ga1][ga2][ri]-=ter[ri];
-			    }
-	
-	complex temp;
-	unsafe_complex_prod(temp,contr[ga1][ga2],gamma2.entr[ga1]);
-	unsafe_complex_prod(contr[ga1][ga2],temp,gamma4.entr[ga2]);
-      }
+      if(Proj[0][ga1][ga2][0]!=0||Proj[0][ga1][ga2][1]!=0)
+	{
+	  int delta1=gamma2.pos[ga1];
+	  int delta2=gamma4.pos[ga2];
+	  
+	  for(int a1=0;a1<3;a1++)
+	    for(int b1=0;b1<3;b1++)
+	      for(int c1=0;c1<3;c1++)
+		if(epsilon[a1][b1][c1])
+		  for(int a2=0;a2<3;a2++)
+		    for(int b2=0;b2<3;b2++)
+		      for(int c2=0;c2<3;c2++)
+			if(epsilon[a2][b2][c2])
+			  {
+			    for(int al1=0;al1<4;al1++)
+			      {
+				complex ter1={0,0};
+				
+				for(int al2=0;al2<4;al2++)
+				  {
+				    int be1=gamma1.pos[al1];
+				    int be2=gamma3.pos[al2];
+				    
+				    complex ter2;
+				    unsafe_complex_prod(ter2,SU[a1][a2][al1][al2],SU[c1][c2][delta1][delta2]);
+				    complex_subt_the_prod(ter2,SU[a1][c2][al1][delta2],SU[c1][a2][delta1][al2]);
+				  
+				    safe_complex_prod(ter2,SD[b1][b2][be1][be2],ter2);
+				    complex_summ_the_prod(ter1,gamma3.entr[al2],ter2);
+				  }
+				
+				int se=epsilon[a1][b1][c1]*epsilon[a2][b2][c2];
+				if(se==1) complex_summ_the_prod(contr[ga1][ga2],gamma1.entr[al1],ter1);
+				else      complex_subt_the_prod(contr[ga1][ga2],gamma1.entr[al1],ter1);
+			      }
+			  }
+	  
+	  complex temp;
+	  unsafe_complex_prod(temp,contr[ga1][ga2],gamma2.entr[ga1]);
+	  unsafe_complex_prod(contr[ga1][ga2],temp,gamma4.entr[ga2]);
+	}
 }
 
 //calculate all the 2pts contractions
@@ -288,15 +306,15 @@ void calculate_all_2pts(char *path)
   
   char pm_tag[2][2]={"+","-"};
   
-  complex *loc_contr[2],*glb_contr[2];
-  for(int nns=0;nns<2;nns++)
+  complex *loc_contr[3],*glb_contr[3];
+  for(int nns=0;nns<3;nns++)
     {
       loc_contr[nns]=(complex*)malloc(sizeof(complex)*glb_size[0]);
       glb_contr[nns]=(complex*)malloc(sizeof(complex)*glb_size[0]);
     }
   
   spinspin ter;
-  complex point_contr[2];
+  complex point_contr[3];
 
   dirac_matr o3,o4=base_gamma[0];
   dirac_prod(&o3,&gC,&base_gamma[5]);
@@ -317,7 +335,7 @@ void calculate_all_2pts(char *path)
 	    for(int SS=0;SS<2;SS++)
 	      {
 		//reset output
-		for(int nns=0;nns<2;nns++) memset(loc_contr[nns],0,sizeof(complex)*glb_size[0]);
+		for(int nns=0;nns<3;nns++) memset(loc_contr[nns],0,sizeof(complex)*glb_size[0]);
 		
 		//local loop
 		for(int loc_site=0;loc_site<loc_vol;loc_site++)
@@ -327,7 +345,7 @@ void calculate_all_2pts(char *path)
 		    if(SS==0) point_proton_contraction(ter,S0[rlike][loc_site],S0[rdislike][loc_site],o1,o2,o3,o4);
 		    else point_proton_contraction(ter,S0[rlike][loc_site],S0[rdislike][loc_site],o3,o4,o1,o2);
 		    
-		    for(int nns=0;nns<2;nns++)
+		    for(int nns=0;nns<3;nns++)
 		      {
 			trace_prod_spinspins(point_contr[nns],ter,Proj[nns]);
 			complex_summ(loc_contr[nns][glb_t],loc_contr[nns][glb_t],point_contr[nns]);
@@ -335,15 +353,16 @@ void calculate_all_2pts(char *path)
 		  }
 		
 		//final reduction
-		for(int nns=0;nns<2;nns++) MPI_Reduce(loc_contr[nns],glb_contr[nns],2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+		for(int nns=0;nns<3;nns++) MPI_Reduce(loc_contr[nns],glb_contr[nns],2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 		
 		if(rank==0)
 		  {
 		    if(SS==0) fprintf(output," # %s%s-P5S0\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
 		    else      fprintf(output," # P5S0-%s%s\n",gtag[list_2pt_op1[icontr]],gtag[list_2pt_op2[icontr]]);
-		    for(int nns=0;nns<2;nns++)
+		    for(int nns=0;nns<3;nns++)
 		      {
-			fprintf(output,"# Contraction with (1%sg4)/2\n",pm_tag[nns]);
+			if(nns<2) fprintf(output,"# Contraction with (1%sg4)/2\n",pm_tag[nns]);
+			else      fprintf(output,"# Contraction with (1+g4)_00(spinorial)/2\n");
 			for(int tt=0;tt<glb_size[0];tt++)
 			  {
 			    int t=(tt+source_pos[0])%glb_size[0];
@@ -360,11 +379,11 @@ void calculate_all_2pts(char *path)
 
   if(rank==0)
     {
-      printf("contractions ultimated\n");
+      printf("contractions finished\n");
       fclose(output);
     }
 
-  for(int nns=0;nns<2;nns++)
+  for(int nns=0;nns<3;nns++)
     {    
       free(loc_contr[nns]);
       free(glb_contr[nns]);
@@ -402,7 +421,7 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 					
 					safe_complex_prod(ter,C5[be1][mu1],ter);
 					safe_complex_prod(ter,C5[be2][mu2],ter);
-					safe_complex_prod(ter,Proj[0][al2][al1],ter);
+					safe_complex_prod(ter,Proj[2][al2][al1],ter); //create z+ polarized proton
 					
 					for(int ri=0;ri<2;ri++)
 					  if(se==1) seq_source[ivol][a2][a1][mu2][mu1][ri]+=ter[ri];
@@ -426,7 +445,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 		  for(int ga1=0;ga1<4;ga1++)
 		    for(int ga2=0;ga2<4;ga2++)
 		      {
-			if(Proj[0][ga2][ga1][0]||Proj[0][ga2][ga1][1])
+			if(Proj[2][ga2][ga1][0]||Proj[2][ga2][ga1][1])
 			  for(int a1=0;a1<3;a1++)
 			    for(int b1=0;b1<3;b1++)
 			      for(int c1=0;c1<3;c1++)
@@ -450,7 +469,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 							safe_complex_prod(part,C5[rho][be2],part);
 							complex_prod_with_real(part,part,epsilon[x][b2][c2]);
 							safe_complex_prod(part,S0[rdislike][ivol][b1][b2][be1][be2],part);
-							safe_complex_prod(part,Proj[0][ga2][ga1],part);
+							safe_complex_prod(part,Proj[2][ga2][ga1],part); //spin z+ polarized proton
 							
 							if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
 							else complex_subt_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
@@ -471,7 +490,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 							  safe_complex_prod(part,C5[al2][be2],part);
 							  complex_prod_with_real(part,part,epsilon[a2][b2][x]);
 							  safe_complex_prod(part,S0[rdislike][ivol][b1][b2][be1][be2],part);
-							  safe_complex_prod(part,Proj[0][ga2][ga1],part);
+							  safe_complex_prod(part,Proj[2][ga2][ga1],part);
 							  
 							  if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
 							  else complex_subt_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
@@ -625,61 +644,116 @@ void point_proton_sequential_contraction(complex contr,su3spinspin S0,dirac_matr
 	  }
 }
 
-//Calculate the proton contraction with the inserction of the dipole operator
-void point_proton_sequential_J0_contraction(complex contr,su3spinspin S0,double t,su3spinspin S1)
+//Apply the dipole operator on a su3spinspin
+void apply_dipole_operator(su3spinspin *S_out,su3spinspin *S_in,int dir)
 {
-  contr[0]=contr[1]=0;
-  
-  complex temp;
-  if(t>glb_size[0]/2) t-=glb_size[0];
+  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+    {
+      int coor=(glb_coord_of_loclx[loc_site][dir]-source_pos[dir]+glb_size[dir])%glb_size[dir];
 
-  for(int icso=0;icso<3;icso++)
-    for(int icsi=0;icsi<3;icsi++)
-      for(int idso=0;idso<4;idso++)
-	for(int idsi=0;idsi<4;idsi++)
-	  {
-	    complex_prod_real(temp,S0[icsi][icso][idsi][idso],t);
-	    complex_summ_the_prod(contr,temp,S1[icsi][icso][idsi][idso]);
-	  }
+      if(coor> glb_size[dir]/2) coor-=glb_size[dir]; //minor distance
+      if(coor==glb_size[dir]/2) coor=0; //take away the border (Simpson)
+      
+      for(int icso=0;icso<3;icso++)
+	for(int icsi=0;icsi<3;icsi++)
+	  for(int idso=0;idso<4;idso++)
+	    for(int idsi=0;idsi<4;idsi++)
+	      for(int ri=0;ri<2;ri++)
+		S_out[loc_site][icsi][icso][idsi][idso][ri]=S_in[loc_site][icsi][icso][idsi][idso][ri]*coor;
+    }
 }
 
 //calculate all the 3pts contractions
 void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,char *path,const char *tag)
 {
+  int ncontr;
   FILE *fout=open_text_file_for_output(path);
-
+  su3spinspin *supp_S=allocate_su3spinspin(loc_vol,"suppS");;
+  
   tcontr-=take_time();
   
   complex *loc_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
   complex *glb_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
 
-  for(int icontr=0;icontr<nproton_3pt_contr;icontr++)
+  //this loop is made in order to avoid duplicating the routine
+  for(int norm_chro_EDM=0;norm_chro_EDM<3;norm_chro_EDM++)
     {
-      //reset output
-      memset(loc_contr,0,sizeof(complex)*glb_size[0]);
-      
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
+
+      //switch the contraction
+      switch(norm_chro_EDM)
 	{
-	  complex point_contr;
-	  int glb_t=glb_coord_of_loclx[loc_site][0];
-	  point_proton_sequential_contraction(point_contr,S0[rS0][loc_site],base_gamma[list_3pt_op[icontr]],S1[loc_site]);
-	  complex_summ(loc_contr[glb_t],loc_contr[glb_t],point_contr);
+	case 0:
+	  ncontr=nproton_3pt_contr;
+	  break;
+	case 1:
+	  ncontr=nproton_3pt_chromo_contr;
+	  unsafe_apply_chromo_operator_to_su3spinspin(supp_S,Pmunu,S0[rS0]);
+	  break;
+	case 2:
+	  ncontr=3;
+	  break;
 	}
       
-      MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-      
-      if(rank==0)
+      for(int icontr=0;icontr<ncontr;icontr++)
 	{
-	  fprintf(fout," # Three point for rlike=%d, rdislike=%d, %s source\n",rlike,rdislike,tag);
-	  fprintf(fout," # Proton-%s-Proton\n",gtag[list_3pt_op[icontr]]);
-	  for(int tt=0;tt<glb_size[0];tt++)
+	  //reset output
+	  memset(loc_contr,0,sizeof(complex)*glb_size[0]);
+	  
+	  //apply the EDM in the dir=icontr+1
+	  if(norm_chro_EDM==2) apply_dipole_operator(supp_S,S0[rS0],icontr+1);
+	  
+	  for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	    {
-	      int t=(tt+source_pos[0])%glb_size[0];
-	      fprintf(fout," %+016.16g\t%+016.16g\n",glb_contr[t][0],glb_contr[t][1]);
+	      complex point_contr;
+	      int glb_t=glb_coord_of_loclx[loc_site][0];
+
+	      switch(norm_chro_EDM)
+		{
+		case 0:
+		  point_proton_sequential_contraction(point_contr,S0[rS0][loc_site],base_gamma[list_3pt_op[icontr]],S1[loc_site]);
+		  break;
+		case 1:
+		  point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[list_3pt_chromo_op[icontr]],S1[loc_site]);
+		  break;
+		case 2:
+		  point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[4],S1[loc_site]); //ask Silvano
+		  break;
+		}
+
+	      
+
+	      complex_summ(loc_contr[glb_t],loc_contr[glb_t],point_contr);
 	    }
-	  fprintf(fout,"\n");
+	  
+	  MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	  
+	  if(rank==0)
+	    {
+	      fprintf(fout," # Three point for rlike=%d, rdislike=%d, %s source\n",rlike,rdislike,tag);
+
+	      switch(norm_chro_EDM)
+		{
+		case 0:
+		  fprintf(fout," # Proton-%s-Proton\n",gtag[list_3pt_op[icontr]]);
+		  break;
+		case 1:
+		  fprintf(fout," # Proton-CHROMO_%s-Proton\n",gtag[list_3pt_op[icontr]]);
+		  break;
+		case 2:
+		  fprintf(fout," # Proton-EDM_%d-Proton\n",icontr+1);
+		  break;
+		}
+
+	      for(int tt=0;tt<glb_size[0];tt++)
+		{
+		  int t=(tt+source_pos[0])%glb_size[0];
+		  fprintf(fout," %+016.16g\t%+016.16g\n",glb_contr[t][0],glb_contr[t][1]);
+		}
+	      fprintf(fout,"\n");
+	    }
 	}
-    }
+
+	     }
 
   tcontr+=take_time();
   
@@ -691,6 +765,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 
   free(loc_contr);
   free(glb_contr);
+  free(supp_S);
 }
 
 int main(int narg,char **arg)
