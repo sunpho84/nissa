@@ -23,7 +23,7 @@ char gaugeconf_file[1024];
 quad_su3 *conf;
 as2t_su3 *Pmunu;
 
-colorspinspin *source,*ch_prop,***S;
+colorspinspin *source,*ch_prop,***S,edm_prop*[3];
 spincolor *inv_source,*reco_solution[2],**QQ;
 
 int seed,starting_source,ending_source,noise_type;
@@ -191,6 +191,7 @@ void initialize_bubbles(char *input_path)
   source=allocate_colorspinspin(loc_vol,"source");
   inv_source=allocate_spincolor(loc_vol+loc_bord,"inv_source");
   ch_prop=allocate_colorspinspin(loc_vol,"chromo-prop");
+  for(int idir=0;idir<3;idir++) edm_prop[idir]=allocate_colorspinspin(loc_vol,"edm_prop");
   for(int r=0;r<2;r++) reco_solution[r]=allocate_spincolor(loc_vol,"reco_solution");
 
   //read the seed
@@ -289,6 +290,24 @@ void calculate_S()
   inv_time+=take_time();
 }
 
+//Apply the dipole operator on a su3spinspin
+void apply_dipole_operator(colorspinspin *S_out,colorspinspin *S_in,int dir)
+{
+  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+    {
+      int coor=glb_coord_of_loclx[loc_site][dir];
+
+      if(coor> glb_size[dir]/2) coor-=glb_size[dir]; //minor distance
+      if(coor==glb_size[dir]/2) coor=0; //take away the border (Simpson)
+      
+      for(int icsi=0;icsi<3;icsi++)
+	for(int idso=0;idso<4;idso++)
+	  for(int idsi=0;idsi<4;idsi++)
+	    for(int ri=0;ri<2;ri++)
+	      S_out[loc_site][icsi][idsi][idso][ri]=S_in[loc_site][icsi][idsi][idso][ri]*coor;
+    }
+}
+
 void calculate_all_contractions(int isource)
 {
   contr_time-=take_time();
@@ -303,16 +322,31 @@ void calculate_all_contractions(int isource)
 	//apply the chromo magnetic operator to the second spinor
 	unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S[imass][r]);
 	
+	//apply the dipole operator to the spinor
+	for(int idir=0;idir<3;idir++) apply_dipole_operator(edm_prop[i],S[imass][r],idir+1);
+	
 	if(rank==0) fprintf(fout," # mass=%g r=%d\n",mass[imass],r);
 	
+	//simple contractions
 	contract_with_source(contr,S[imass][r],op,source,ncontr);
 	print_bubbles_to_file(fout,ncontr,op,contr,"");
 
+	//chromo contractions
 	contract_with_source(ch_contr,ch_prop,ch_op,source,nch_contr);
 	print_bubbles_to_file(fout,nch_contr,ch_op,ch_contr,"CHROMO-");
 	
+	//edm contractions
+	for(int idir=0;idir<3;idir++)
+	  {
+	    contract_with_source(contr,edm_prop[idir],&(base_gamma[4]),source,1);
+	    char tag[1024];
+	    sprintf(tag,"EDM_%d",idir+1);
+	    print_bubbles_to_file(fout,1,&(base_gamma[4]),contr,tag);
+	  }
+
 	ncontr_tot+=nch_contr+ncontr;
 	
+	//do everything with the chris-michael trick
 	if(r==0)
 	  {
 	    contract_with_chris_michael(contr,op,S[imass][r],S[imass][r],ncontr,mass[imass]);

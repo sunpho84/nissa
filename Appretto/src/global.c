@@ -16,6 +16,14 @@ int *loclx_of_bordlx=NULL;
 int *dir_of_bordlx=NULL;
 int *glblx_of_edgelx=NULL;
 //-eor is even-odd reduced
+int *loclx_parity;
+int *loceo_of_loclx;
+int *loclx_of_loce;
+int *loclx_of_loco;
+int **loce_neighup;
+int **loce_neighdw;
+int **loco_neighup;
+int **loco_neighdw;
 int loc_volr;
 
 //neighbours of local volume + borders

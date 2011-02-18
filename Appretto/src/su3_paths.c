@@ -371,3 +371,26 @@ void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,as2t_su3 *
 	}
     }
 }
+
+//apply the chromo operator to the passed su3spinspin
+//normalization as in ape next
+void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmunu,su3spinspin *in)
+{
+  spincolor temp1,temp2;
+  
+  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+    {
+      //Loop over the four source dirac indexes
+      for(int id_source=0;id_source<4;id_source++) //dirac index of source
+	for(int ic_source=0;ic_source<3;ic_source++) //color index of source
+	  {
+	    //Switch the su3spinspin into the spincolor.
+	    get_spincolor_from_su3spinspin(temp1,in[loc_site],id_source,ic_source);
+	    
+	    unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[loc_site],temp1);
+	    
+	    //Switch back the spincolor into the colorspinspin
+	    put_spincolor_into_su3spinspin(out[loc_site],temp2,id_source,ic_source);
+	  }
+    }
+}

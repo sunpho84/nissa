@@ -68,14 +68,13 @@ void set_lx_geometry()
     MPI_Cart_shift(cart_comm,idir,1,&(rank_neighdw[idir]),&(rank_neighup[idir]));
   
   loc_coord_of_loclx=(int**)malloc(sizeof(int*)*loc_vol);
-  glb_coord_of_loclx=(int**)malloc(sizeof(int*)*loc_vol);
+  glb_coord_of_loclx=(int**)malloc(sizeof(int*)*(loc_vol+loc_bord));
   loclx_neighup=(int**)malloc(sizeof(int*)*(loc_vol+loc_bord));
   loclx_neighdw=(int**)malloc(sizeof(int*)*(loc_vol+loc_bord));
   for(int loc_ind=0;loc_ind<loc_vol;loc_ind++)
-    {
-      loc_coord_of_loclx[loc_ind]=(int*)malloc(sizeof(int)*4);
-      glb_coord_of_loclx[loc_ind]=(int*)malloc(sizeof(int)*4);
-    }
+    loc_coord_of_loclx[loc_ind]=(int*)malloc(sizeof(int)*4);
+  for(int loc_ind=0;loc_ind<loc_vol+loc_bord;loc_ind++)
+    glb_coord_of_loclx[loc_ind]=(int*)malloc(sizeof(int)*4);
 
   for(int loc_ind=0;loc_ind<(loc_vol+loc_bord);loc_ind++)
     {
@@ -113,7 +112,6 @@ void set_lx_geometry()
 	    glblx_of_loclx[loc_ind]=glb_ind;
           }
   
-
   //////////////////neighbours search//////////////////////
 
   //now fill the neighbours of sites of the bulk, and the defined
@@ -148,6 +146,7 @@ void set_lx_geometry()
 	      //number the elements of the border
 	      gx[idir]=(gx[idir]-1+glb_size[idir])%glb_size[idir];
 	      x[idir]=(x[idir]-1+loc_size[idir])%loc_size[idir];
+	      for(int idir=0;idir<4;idir++) glb_coord_of_loclx[ibord][idir]=gx[idir];
 	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
 	      loclx_of_bordlx[raw_ibord]=loclx_of_coord(x);
 	      dir_of_bordlx[raw_ibord]=2*idir+1;
@@ -226,6 +225,7 @@ void set_lx_geometry()
 	      //number the elements of the border
 	      gx[idir]=(gx[idir]+1+glb_size[idir])%glb_size[idir];
 	      x[idir]=(x[idir]+1+loc_size[idir])%loc_size[idir];
+	      for(int idir=0;idir<4;idir++) glb_coord_of_loclx[ibord][idir]=gx[idir];
 	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
 	      loclx_of_bordlx[raw_ibord]=loclx_of_coord(x);
 	      dir_of_bordlx[raw_ibord]=2*idir;
