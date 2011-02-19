@@ -73,7 +73,7 @@ if [ ! -f $base_conf/source_pos ]
 then
     (
 	echo -n $(($(bash $base_scripts/casual.sh)%$T))
-	for((i=1;i<4;i++));do echo -n $(($(bash $base_scripts/casual.sh)%$L));done
+	for((i=1;i<4;i++));do echo -n \ $(($(bash $base_scripts/casual.sh)%$L));done
     ) > $base_conf/source_pos
 fi
 
