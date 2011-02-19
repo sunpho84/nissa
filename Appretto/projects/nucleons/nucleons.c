@@ -122,8 +122,14 @@ void initialize_nucleons(char *input_path)
   read_str_double("Kappa",&(kappa));
   
   // 2) Source position and mass
-  read_str_int("SourcePosition",&(source_pos[0]));
-  for(int i=1;i<4;i++) read_int(&(source_pos[i]));
+  expect_str("SourcePosition");
+  if(rank==0) printf("Source position: ");
+  for(int idir=0;idir<4;idir++) 
+    {
+      read_int(&(source_pos[idir]));
+      if(rank==0) printf("%d ",source_pos[idir]);
+    }
+  if(rank==0) printf("\n");
   read_str_double("Mass",&mass);
 
   // 3) inverter
