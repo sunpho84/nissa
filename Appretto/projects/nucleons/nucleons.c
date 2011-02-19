@@ -47,7 +47,7 @@ int list_3pt_op[16]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 
 //three point chromo contractions
 int nproton_3pt_chromo_contr=2;
-int list_3pt_chromo_op[4]={0,5};
+int list_3pt_chromo_op[2]={0,5};
 
 //                      e_00x   e_01x    e_02x     e_10x    e_11x   e_12x     e_20x   e_21x    e_22x
 int epsilon[3][3][3]={{{0,0,0},{0,0,1},{0,-1,0}},{{0,0,-1},{0,0,0},{1,0,0}},{{0,1,0},{-1,0,0},{0,0,0}}};
