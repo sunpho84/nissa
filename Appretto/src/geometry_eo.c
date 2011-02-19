@@ -38,8 +38,18 @@ void set_eo_geometry()
       
       //assign the lx site of the e/o site, and
       //increment the number of even or odd sites
-      if(par==0) loclx_of_loce[iloce++]=loclx;
-      else       loclx_of_loce[iloco++]=loclx;
+      if(par==0)
+	{
+	  loceo_of_loclx[loclx]=iloce;
+	  loclx_of_loce[iloce]=loclx;
+	  iloce++;
+	}
+      else
+	{
+	  loceo_of_loclx[loclx]=iloco;
+	  loclx_of_loco[iloco]=loclx;
+	  iloco++;
+	}
     }
   
   //////////////////neighbours search//////////////////////

@@ -23,7 +23,7 @@ char gaugeconf_file[1024];
 quad_su3 *conf;
 as2t_su3 *Pmunu;
 
-colorspinspin *source,*ch_prop,***S,edm_prop*[3];
+colorspinspin *source,*ch_prop,***S,*edm_prop[3];
 spincolor *inv_source,*reco_solution[2],**QQ;
 
 int seed,starting_source,ending_source,noise_type;
@@ -323,7 +323,7 @@ void calculate_all_contractions(int isource)
 	unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S[imass][r]);
 	
 	//apply the dipole operator to the spinor
-	for(int idir=0;idir<3;idir++) apply_dipole_operator(edm_prop[i],S[imass][r],idir+1);
+	for(int idir=0;idir<3;idir++) apply_dipole_operator(edm_prop[idir],S[imass][r],idir+1);
 	
 	if(rank==0) fprintf(fout," # mass=%g r=%d\n",mass[imass],r);
 	
@@ -338,10 +338,12 @@ void calculate_all_contractions(int isource)
 	//edm contractions
 	for(int idir=0;idir<3;idir++)
 	  {
-	    contract_with_source(contr,edm_prop[idir],&(base_gamma[4]),source,1);
+	    int ninsertions=1;
+	    int dipole_insertion[1]={4};
+	    contract_with_source(contr,edm_prop[idir],dipole_insertion,source,ninsertions);
 	    char tag[1024];
 	    sprintf(tag,"EDM_%d",idir+1);
-	    print_bubbles_to_file(fout,1,&(base_gamma[4]),contr,tag);
+	    print_bubbles_to_file(fout,ninsertions,dipole_insertion,contr,tag);
 	  }
 
 	ncontr_tot+=nch_contr+ncontr;

@@ -142,29 +142,6 @@ void contract_with_chris_michael(complex **corr,int *list_op,colorspinspin *s1,c
   //Call for the routine which does the real contraction
   trace_g_sdag_g_s(corr,t2,s2,t1,s1,ncontr);
 }
-	  
-//print all the passed contractions to the file
-void print_contractions_to_file(FILE *fout,int ncontr,int *op,complex **contr,int twall,const char *tag)
-{
-  if(rank==0)
-    {
-      fprintf(fout,"\n");
-
-      for(int icontr=0;icontr<ncontr;icontr++)
-	{
-	  fprintf(fout," # %s%s\n\n",tag,gtag[op[icontr]]);
-	  for(int tempt=0;tempt<glb_size[0];tempt++)
-	    {
-	      int t=tempt+twall;
-	      if(t>=glb_size[0]) t-=glb_size[0];
-
-	      fprintf(fout,"%+016.16g\t%+016.16g\n",contr[icontr][t][0],contr[icontr][t][1]);
-	    }
-	  fprintf(fout,"\n");
-	}
-      fprintf(fout,"\n");
-    }
-}
 
 int main(int narg,char **arg)
 {
