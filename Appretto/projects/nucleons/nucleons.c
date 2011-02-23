@@ -808,11 +808,11 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  prepare_source();
-  
   for(int iconf=0;iconf<nconf;iconf++)
     {
       read_conf_and_put_antiperiodic(conf,conf_path[iconf]);
+
+      prepare_source();
       
       calculate_S0();
       calculate_all_2pts(out_path[iconf]);
