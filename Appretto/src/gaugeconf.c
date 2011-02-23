@@ -69,31 +69,31 @@ void ac_rotate_gaugeconf(quad_su3 *out,quad_su3 *in,int axis)
 }
 
 //shift the gauge configuration
-void shift_gaugeconf(quad_su3 *out,quad_su3 *in,int dir,int amount)
+void shift_gaugeconf_down(quad_su3 *conf,int *amount)
 {
-  if(rank==0 && rank_tot>1)
-    {
-      fprintf(stderr,"Shift works only on single node!\n");
-      MPI_Abort(MPI_COMM_WORLD,0);
-    }
-  
-  int xA[4],xB[4];
-  for(xA[0]=0;xA[0]<glb_size[0];xA[0]++)
-    for(xA[1]=0;xA[1]<glb_size[1];xA[1]++)
-      for(xA[2]=0;xA[2]<glb_size[2];xA[2]++)
-	for(xA[3]=0;xA[3]<glb_size[3];xA[3]++)
-	  {
-	    for(int idir=0;idir<4;idir++) xB[idir]=xA[idir];
+  quad_su3 *temp_conf=allocate_quad_su3(loc_vol+loc_bord,"temp_conf");
+  quad_su3 *supp_conf=allocate_quad_su3(loc_vol,"supp_conf");
 
-	    xB[dir]+=amount;
-	    if(xB[dir]>0) xB[dir]=xB[dir]%glb_size[dir];
-	    else xB[dir]=xB[dir]-xB[dir]%glb_size[dir];
+  //initial copy inside temp_conf
+  memcpy(temp_conf,conf,sizeof(quad_su3)*loc_vol);
 
-	    int A=glblx_of_coord(xA);
-	    int B=glblx_of_coord(xB);
-	    
-	    quad_su3_copy(out[B],in[A]);
-	  }
+  for(int idir=0;idir<4;idir++)
+    for(int ix=0;ix<amount[idir];ix++)
+      {
+        communicate_gauge_borders(temp_conf);
+        
+        for(int ivol=0;ivol<loc_vol;ivol++)
+          {
+            int orig=loclx_neighup[ivol][idir];
+            quad_su3_copy(supp_conf[ivol],temp_conf[orig]);
+          }
+
+        memcpy(temp_conf,supp_conf,sizeof(quad_su3)*loc_vol);
+      }
+
+  memcpy(conf,temp_conf,sizeof(quad_su3)*loc_vol);
+
+  free(temp_conf);free(supp_conf);
 }
 
 //put boundary conditions on the gauge conf
