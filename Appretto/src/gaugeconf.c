@@ -18,7 +18,7 @@
 
 */
 
-void ac_rotate_gaugeconf(quad_su3 *out,quad_su3 *in,int axis)
+void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis)
 {
   int d1=1+(axis-1+1)%3;
   int d2=1+(axis-1+2)%3;
@@ -69,7 +69,7 @@ void ac_rotate_gaugeconf(quad_su3 *out,quad_su3 *in,int axis)
 }
 
 //shift the gauge configuration
-void shift_gaugeconf_down(quad_su3 *conf,int *amount)
+void shift_gauge_conf_down(quad_su3 *conf,int *amount)
 {
   quad_su3 *temp_conf=allocate_quad_su3(loc_vol+loc_bord,"temp_conf");
   quad_su3 *supp_conf=allocate_quad_su3(loc_vol,"supp_conf");
