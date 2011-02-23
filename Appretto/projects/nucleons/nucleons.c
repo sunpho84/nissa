@@ -171,9 +171,13 @@ void initialize_nucleons(char *input_path)
 }
 
 //read a configuration and put anti-periodic condition at the slice tsource-1
-void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
+void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path)
 {
   read_local_gauge_conf(conf,conf_path);
+  
+  //shift the gauge conf
+  shift_gauge_conf_down(conf,source_pos);
+  for(int dir=0;dir<4;dir++) source_pos[dir]=0;
   
   //commmunicate borders
   communicate_gauge_borders(conf);  
@@ -185,10 +189,10 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
 
   //calcolate Pmunu
   Pmunu_term(Pmunu,conf);
-
+  
   //put boundaries
   for(int ivol=0;ivol<loc_vol;ivol++)
-    if(glb_coord_of_loclx[ivol][0]==(tsource+glb_size[0]-1)%glb_size[0])
+    if(glb_coord_of_loclx[ivol][0]==(glb_size[0]-1)%glb_size[0])
       for(int ic1=0;ic1<3;ic1++)
 	for(int ic2=0;ic2<3;ic2++)
 	  for(int ri=0;ri<2;ri++)
@@ -808,7 +812,7 @@ int main(int narg,char **arg)
   
   for(int iconf=0;iconf<nconf;iconf++)
     {
-      read_conf_and_put_antiperiodic(conf,conf_path[iconf],source_pos[0]);
+      read_conf_and_put_antiperiodic(conf,conf_path[iconf]);
       
       calculate_S0();
       calculate_all_2pts(out_path[iconf]);
