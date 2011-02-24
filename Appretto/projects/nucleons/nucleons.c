@@ -5,6 +5,7 @@
 
 //configuration
 int nconf;
+double put_theta[4]={0,0,0,0};
 char **conf_path,**out_path;
 quad_su3 *conf;
 double mass;
@@ -171,13 +172,9 @@ void initialize_nucleons(char *input_path)
 }
 
 //read a configuration and put anti-periodic condition at the slice tsource-1
-void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path)
+void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
 {
   read_local_gauge_conf(conf,conf_path);
-  
-  //shift the gauge conf
-  shift_gauge_conf_down(conf,source_pos);
-  for(int dir=0;dir<4;dir++) source_pos[dir]=0;
   
   //commmunicate borders
   communicate_gauge_borders(conf);  
@@ -189,14 +186,10 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path)
 
   //calcolate Pmunu
   Pmunu_term(Pmunu,conf);
-  
-  //put boundaries
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    if(glb_coord_of_loclx[ivol][0]==(glb_size[0]-1)%glb_size[0])
-      for(int ic1=0;ic1<3;ic1++)
-	for(int ic2=0;ic2<3;ic2++)
-	  for(int ri=0;ri<2;ri++)
-	    conf[ivol][0][ic1][ic2][ri]*=-1;
+
+  //Put the anti-periodic condition on the temporal border
+  put_theta[0]=1;
+  put_boundaries_conditions(conf,put_theta,1,1);
 
   //re-communicate borders
   communicate_gauge_borders(conf);  
@@ -250,9 +243,19 @@ void calculate_S0()
 	
 	for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 	  for(int ivol=0;ivol<loc_vol;ivol++)
-	    put_spincolor_into_su3spinspin(S0[r][ivol],sol_reco[r][ivol],id_sour,ic_sour);
+	    {
+	      //put the anti-periodic condition on the propagator
+	      int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
+	      double arg=M_PI*dt/glb_size[0];
+	      complex phase={cos(arg),sin(arg)};
+	      spincolor temp;
+	      
+	      unsafe_spincolor_prod_complex(temp,sol_reco[r][ivol],phase);
+	      
+	      put_spincolor_into_su3spinspin(S0[r][ivol],temp,id_sour,ic_sour);
+	    }
       }
-  
+
   if(rank==0) printf("inversions finished\n");
   
   //put the (1+ig5)/sqrt(2) factor
@@ -411,11 +414,16 @@ void calculate_all_2pts(char *path)
 
 void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 {
-  memset(seq_source,0,sizeof(su3spinspin)*loc_vol);
+  int dt=(tseparation+source_pos[0])%glb_size[0]-source_pos[0];
+  double arg=-M_PI*dt/glb_size[0];
+  complex phase={cos(arg),sin(arg)};
   
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(glb_coord_of_loclx[ivol][0]==slice_to_take)
       {
+	su3spinspin temp;
+	memset(temp,0,sizeof(su3spinspin));
+	
 	for(int a1=0;a1<3;a1++)
 	  for(int b1=0;b1<3;b1++)
 	    for(int c1=0;c1<3;c1++)
@@ -443,19 +451,28 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 					safe_complex_prod(ter,Proj[2][al2][al1],ter); //create z+ polarized proton
 					
 					for(int ri=0;ri<2;ri++)
-					  if(se==1) seq_source[ivol][a2][a1][mu2][mu1][ri]+=ter[ri];
-					  else      seq_source[ivol][a2][a1][mu2][mu1][ri]-=ter[ri];
+					  if(se==1) temp[a2][a1][mu2][mu1][ri]+=ter[ri];
+					  else      temp[a2][a1][mu2][mu1][ri]-=ter[ri];
 				      }
+
+	
+	//remove the anti-periodic condition on the sequential source
+	unsafe_su3spinspin_prod_complex(seq_source[ivol],temp,phase);
       }
 }
 
 void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 {
-  memset(seq_source,0,sizeof(su3spinspin)*loc_vol);
+  int dt=(tseparation+source_pos[0])%glb_size[0]-source_pos[0];
+  double arg=-M_PI*dt/glb_size[0];
+  complex phase={cos(arg),sin(arg)};
   
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(glb_coord_of_loclx[ivol][0]==slice_to_take)
       {
+	su3spinspin temp;
+	memset(temp,0,sizeof(su3spinspin));
+
 	for(int x=0;x<3;x++)
 	  for(int z=0;z<3;z++)
 	    for(int rho=0;rho<4;rho++)
@@ -490,8 +507,8 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 							safe_complex_prod(part,S0[rdislike][ivol][b1][b2][be1][be2],part);
 							safe_complex_prod(part,Proj[2][ga2][ga1],part); //spin z+ polarized proton
 							
-							if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
-							else complex_subt_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
+							if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
+							else complex_subt_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
 						      }
 					      
 					      //second part
@@ -511,12 +528,14 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 							  safe_complex_prod(part,S0[rdislike][ivol][b1][b2][be1][be2],part);
 							  safe_complex_prod(part,Proj[2][ga2][ga1],part);
 							  
-							  if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
-							  else complex_subt_the_prod(seq_source[ivol][x][z][rho][tau],part,C5[al1][be1]);
+							  if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
+							  else complex_subt_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
 							}
 					    }
 		      }
 		}
+	//remove the anti-periodic condition on the sequential source
+	unsafe_su3spinspin_prod_complex(seq_source[ivol],temp,phase);
       }
 }
 
@@ -555,10 +574,21 @@ void calculate_S1_like(int rlike,int rdislike)
 	  }
 	
 	for(int ivol=0;ivol<loc_vol;ivol++)
-	  for(int id_sour=0;id_sour<4;id_sour++)
-	    for(int ic_sour=0;ic_sour<3;ic_sour++)
-	      for(int ri=0;ri<2;ri++)
-		S1[ivol][ic_sink][ic_sour][id_sink][id_sour][ri]=sol_reco[0][ivol][id_sour][ic_sour][ri];
+	  {
+	    //put the anti-periodic condition on the propagator
+	    int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
+	    double arg=-M_PI*dt/glb_size[0];
+	    complex phase={cos(arg),sin(arg)};
+
+	    spincolor temp;
+	    
+	    unsafe_spincolor_prod_complex(temp,sol_reco[0][ivol],phase);
+	    
+	    for(int id_sour=0;id_sour<4;id_sour++)
+	      for(int ic_sour=0;ic_sour<3;ic_sour++)
+		for(int ri=0;ri<2;ri++)
+		  S1[ivol][ic_sink][ic_sour][id_sink][id_sour][ri]=temp[id_sour][ic_sour][ri];
+	  }
       }
   
   if(rank==0) printf("like sequential inversions finished\n");
@@ -600,10 +630,21 @@ void calculate_S1_dislike(int rlike,int rdislike)
 	  }
 	
 	for(int ivol=0;ivol<loc_vol;ivol++)
-	  for(int id_sour=0;id_sour<4;id_sour++)
-	    for(int ic_sour=0;ic_sour<3;ic_sour++)
-	      for(int ri=0;ri<2;ri++)
-		S1[ivol][ic_sink][ic_sour][id_sink][id_sour][ri]=sol_reco[0][ivol][id_sour][ic_sour][ri];
+	  {
+	    //put the anti-periodic condition on the propagator
+	    int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
+	    double arg=-M_PI*dt/glb_size[0];
+	    complex phase={cos(arg),sin(arg)};
+
+	    spincolor temp;
+
+	    unsafe_spincolor_prod_complex(temp,sol_reco[0][ivol],phase);
+	    
+	    for(int id_sour=0;id_sour<4;id_sour++)
+	      for(int ic_sour=0;ic_sour<3;ic_sour++)
+		for(int ri=0;ri<2;ri++)
+		  S1[ivol][ic_sink][ic_sour][id_sink][id_sour][ri]=temp[id_sour][ic_sour][ri];
+	  }
       }
   
   if(rank==0) printf("dislike sequential inversions finished\n");
@@ -808,11 +849,11 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
+  prepare_source();
+  
   for(int iconf=0;iconf<nconf;iconf++)
     {
-      read_conf_and_put_antiperiodic(conf,conf_path[iconf]);
-
-      prepare_source();
+      read_conf_and_put_antiperiodic(conf,conf_path[iconf],source_pos[0]);
       
       calculate_S0();
       calculate_all_2pts(out_path[iconf]);
