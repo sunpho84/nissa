@@ -374,3 +374,9 @@ void unsafe_subt_su3_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spin
       unsafe_subt_su3_prod_color(out[id1],U,tmp);
     }
 }
+
+//su3spinspin*complex
+//spincolor*complex
+void unsafe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor)
+{for(int i=0;i<144;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+
