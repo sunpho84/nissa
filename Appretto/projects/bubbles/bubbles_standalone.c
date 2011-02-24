@@ -27,6 +27,7 @@ colorspinspin *source,*ch_prop,***S,*edm_prop[3];
 spincolor *inv_source,*reco_solution[2],**QQ;
 
 int seed,starting_source,ending_source,noise_type;
+int source_pos[4];
 
 int nmass;
 double kappa,*mass;
@@ -196,6 +197,14 @@ void initialize_bubbles(char *input_path)
 
   //read the seed
   read_str_int("Seed",&seed);
+  //read the position of the source (for the edm)
+  expect_str("SourcePosition");
+  for(int idir=0;idir<4;idir++)
+    {
+      read_int(&(source_pos[idir]));
+      if(rank==0) printf("%d ",source_pos[idir]);
+    }
+
   //read the number of the starting sources
   read_str_int("StartingSource",&starting_source);
   //read the number of the starting sources
@@ -295,7 +304,7 @@ void apply_dipole_operator(colorspinspin *S_out,colorspinspin *S_in,int dir)
 {
   for(int loc_site=0;loc_site<loc_vol;loc_site++)
     {
-      int coor=glb_coord_of_loclx[loc_site][dir];
+      int coor=(glb_coord_of_loclx[loc_site][dir]-source_pos[dir]+glb_size[dir])%glb_size[dir];
 
       if(coor> glb_size[dir]/2) coor-=glb_size[dir]; //minor distance
       if(coor==glb_size[dir]/2) coor=0; //take away the border (Simpson)
