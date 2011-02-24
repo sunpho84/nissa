@@ -415,7 +415,7 @@ void calculate_all_2pts(char *path)
 void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 {
   int dt=(tseparation+source_pos[0])%glb_size[0]-source_pos[0];
-  double arg=-M_PI*dt/glb_size[0];
+  double arg=M_PI*dt/glb_size[0];
   complex phase={cos(arg),sin(arg)};
   
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -464,7 +464,7 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
 void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 {
   int dt=(tseparation+source_pos[0])%glb_size[0]-source_pos[0];
-  double arg=-M_PI*dt/glb_size[0];
+  double arg=M_PI*dt/glb_size[0];
   complex phase={cos(arg),sin(arg)};
   
   for(int ivol=0;ivol<loc_vol;ivol++)
