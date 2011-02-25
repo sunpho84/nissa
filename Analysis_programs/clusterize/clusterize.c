@@ -84,6 +84,7 @@ void prepare_header(string header,string template,int *level_entry)
   
   int lheader=strlen(header);
   for(int i=0;i<lheader;i++) if(header[i]=='\'') header[i]=' ';
+  strcat(header,"\n");
 }
 
 int main(int narg,char **arg)
@@ -126,12 +127,22 @@ int main(int narg,char **arg)
   //read T
   int T;
   read_file_expecting((char*)&T,frun_input,"%d","T");
+  //read the output file
+  string outpath;
+  read_file_expecting(outpath,frun_input,"%s","outfile");
+  FILE *fout=open_file(outpath,"w");
+  //read the number of jacknives
+  int njack;
+  read_file_expecting((char*)&njack,frun_input,"%d","njack");
   //read the path template
   string path_template;
   read_file_expecting(path_template,frun_input,"%s","path_template");
   //read the number of files to open
   int nfiles;
   read_file_expecting((char*)&nfiles,frun_input,"%d","nfiles");
+  //calculate cluster size
+  int clus_size=nfiles/njack;
+  printf("Njack: %d, cluster size: %d\n",njack,clus_size);
   //open all the input files, reading each entry
   expect_string(frun_input,"list_of_files");
   FILE *fdata[nfiles];
@@ -143,10 +154,6 @@ int main(int narg,char **arg)
       sprintf(file_path,path_template,chunk);
       fdata[ifile]=open_file(file_path,"r");
     }
-  //read the output file
-  string outpath;
-  read_file_expecting(outpath,frun_input,"%s","outfile");
-  FILE *fout=open_file(outpath,"w");
 
   /////////////////////////////////////////////////////////////////////////////////
 
@@ -166,7 +173,7 @@ int main(int narg,char **arg)
 	  level_entry[ilevel]=temp_icombo%var_value_tot[ilevel];
 	  temp_icombo/=var_value_tot[ilevel];
 	}
-      
+
       //now read all the required header
       for(int ilevel=0;ilevel<nlevel;ilevel++)
 	if(required_header[ilevel] && (ilevel==nlevel-1||level_entry[ilevel+1]==0))
@@ -177,17 +184,27 @@ int main(int narg,char **arg)
 	    for(int ifile=0;ifile<nfiles;ifile++)
 	      {
 		string read_header;
-		char *read=fgets(read_header,1024,fdata[ifile]);
-		if(read!=read_header)
+		int nchar;
+		do
 		  {
-		    fprintf(stderr,"Error while reading header: %s\n",header);
-		    exit(1);
+		    char *read=fgets(read_header,1024,fdata[ifile]);
+		    if(read!=read_header)
+		      {
+			fprintf(stderr,"Error while reading header: %s\n",header);
+			exit(1);
+		      }
+		    
+		    nchar=0;
+		    do if(*read!=' ' && *read!='\n' && *read!='\0') nchar++;
+		    while(*(read++)!='\0' && nchar==0);
 		  }
-		if(strcmp(read,read_header))
-		  {
-		    fprintf(stderr,"Error while reading header: %s, obtained: %s\n",header,read_header);
-		    exit(1);
-		  }
+		while(nchar==0);
+		  
+		  if(strcmp(read_header,header))
+		    {
+		      fprintf(stderr,"Error while reading header: '%s', obtained: '%s'\n",header,read_header);
+		      exit(1);
+		    }
 	      }
 	  }
       
@@ -196,7 +213,30 @@ int main(int narg,char **arg)
       for(int ifile=0;ifile<nfiles;ifile++)
 	for(int t=0;t<T;t++)
 	  for(int ri=0;ri<2;ri++)
-	    read_file((char*)&data[ifile][t][ri],fdata[ifile],"%g","data");
+	    read_file((char*)&data[ifile][t][ri],fdata[ifile],"%lg","data");
+      
+      //clusterize
+      for(int ri=0;ri<2;ri++)
+	for(int t=0;t<T;t++)
+	  {
+	    double clus[njack+1];
+	    memset(clus,0,sizeof(double)*(njack+1));
+	    for(int ifile=0;ifile<nfiles;ifile++)
+	      {
+		int iclus=ifile/njack;
+		clus[iclus]+=data[ifile][t][ri];
+	      }
+	    for(int iclus=0;iclus<njack;iclus++) clus[njack]+=clus[iclus];
+	    for(int ijack=0;ijack<njack;ijack++) clus[ijack]=(clus[njack]-clus[ijack])/(nfiles-clus_size);
+	    clus[njack]/=nfiles;
+	    
+	    if(fwrite(&clus,sizeof(double),njack+1,fout)!=(njack+1))
+	      {
+		fprintf(stderr,"Error while writing double!\n");
+		exit(1);
+	      }
+	  }
+      if(icombo%100==0) printf("Completed correlation: %d\n",icombo);
     }
 
   return 0;
