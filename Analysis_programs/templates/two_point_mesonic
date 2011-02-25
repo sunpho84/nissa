@@ -1,0 +1,19 @@
+nlevel 6
+
+var_name th2
+header NO
+
+var_name m2
+header NO
+
+var_name r2
+header NO
+
+var_name m1
+header NO
+
+var_name r1
+header  '#'m1=[m1]'th1=0.000000'r1=[r1]','m2=[m2]'th2=[th2]'r2=[r2]
+
+var_name ob
+header '#'[ob]
