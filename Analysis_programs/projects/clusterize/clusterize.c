@@ -1,6 +1,12 @@
+#ifndef root
+#define root
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+
+#include <analysis_include.h>
 
 typedef char string[1024];
 
@@ -9,53 +15,11 @@ string *var_name;
 int *var_value_tot;
 int *required_header;
 string **var_values;
-string *level_header_template;
+string *level_header_templ;
 
-FILE *open_file(const string path,const string mod)
+void prepare_header(string header,string templ,int *level_entry)
 {
-  FILE *out=fopen(path,mod);
-
-  if(out==NULL)
-    {
-      fprintf(stderr,"Error opening file %s for %s\n",path,mod);
-      exit(1);
-    }
-  
-  return out;
-}
-
-void expect_string(FILE *fin,const string exp)
-{
-  string read;
-  int nscan=fscanf(fin,"%s",read);
-  if(nscan!=1||strcmp(exp,read)!=0)
-    {
-      if(nscan==EOF) fprintf(stderr,"Error,reached file end while waiting for %s\n",exp);
-      else           fprintf(stderr,"Error, read %s instead than %s\n",read,exp);
-      exit(1);
-    }
-}
-
-void read_file(char *out,FILE *fin,const string what,const string varname)
-{
-  int nscan=fscanf(fin,what,out);
-  if(nscan!=1)
-    {
-      if(nscan==EOF) fprintf(stderr,"Error,reached file end while reading %s\n",varname);
-      else           fprintf(stderr,"Error, not enough data while reading %s\n",varname);
-      exit(1);
-    }
-}
-
-void read_file_expecting(char *out,FILE *fin,const string what,const string varname)
-{
-  expect_string(fin,varname);
-  read_file(out,fin,what,varname);
-}
-
-void prepare_header(string header,string template,int *level_entry)
-{
-  memcpy(header,template,1024);
+  memcpy(header,templ,1024);
 
   for(int ilevel=0;ilevel<nlevel;ilevel++)
     {
@@ -97,61 +61,66 @@ int main(int narg,char **arg)
 
   FILE *frun_input=open_file(arg[1],"r");
   
-  //read the analysis template
-  string analysis_template_path;
-  read_file_expecting(analysis_template_path,frun_input,"%s","analysis_template_path");
-  FILE *fatempl=open_file(analysis_template_path,"r");
-  read_file_expecting((char*)&nlevel,fatempl,"%d","nlevel");
+  //read the analysis templ
+  string analysis_templ_path;
+  read_formatted_from_file_expecting(analysis_templ_path,frun_input,"%s","analysis_templ_path");
+  FILE *fatempl=open_file(analysis_templ_path,"r");
+  read_formatted_from_file_expecting((char*)&nlevel,fatempl,"%d","nlevel");
   //allocate room for the header format
   var_name=(string*)malloc(nlevel*sizeof(string));
   var_value_tot=(int*)malloc(nlevel*sizeof(int));
   var_values=(string**)malloc(nlevel*sizeof(string*));
-  level_header_template=(string*)malloc(nlevel*sizeof(string));
+  level_header_templ=(string*)malloc(nlevel*sizeof(string));
   required_header=(int*)malloc(nlevel*sizeof(int));
   //read the name of the looping variables and their values
   for(int ilevel=0;ilevel<nlevel;ilevel++)
     {
-      read_file_expecting(var_name[ilevel],fatempl,"%s","var_name");
-      expect_string(frun_input,var_name[ilevel]);
-      read_file_expecting((char*)&(var_value_tot[ilevel]),frun_input,"%d","var_value_tot");
+      read_formatted_from_file_expecting(var_name[ilevel],fatempl,"%s","var_name");
+      expect_string_from_file(frun_input,var_name[ilevel]);
+      read_formatted_from_file_expecting((char*)&(var_value_tot[ilevel]),frun_input,"%d","var_value_tot");
 
       var_values[ilevel]=(string*)malloc(var_value_tot[ilevel]*sizeof(string));
-      expect_string(frun_input,"list_of_var_values");
+      expect_string_from_file(frun_input,"list_of_var_values");
       for(int ival=0;ival<var_value_tot[ilevel];ival++)
-	read_file(var_values[ilevel][ival],frun_input,"%s","var_value");
+	read_formatted_from_file(var_values[ilevel][ival],frun_input,"%s","var_value");
       
-      read_file_expecting(level_header_template[ilevel],fatempl,"%s","header");
-      required_header[ilevel]=strcmp(level_header_template[ilevel],"NO");
+      read_formatted_from_file_expecting(level_header_templ[ilevel],fatempl,"%s","header");
+      required_header[ilevel]=strcmp(level_header_templ[ilevel],"NO");
     }
   fclose(fatempl);
   //read T
   int T;
-  read_file_expecting((char*)&T,frun_input,"%d","T");
+  read_formatted_from_file_expecting((char*)&T,frun_input,"%d","T");
   //read the output file
   string outpath;
-  read_file_expecting(outpath,frun_input,"%s","outfile");
+  read_formatted_from_file_expecting(outpath,frun_input,"%s","outfile");
   FILE *fout=open_file(outpath,"w");
   //read the number of jacknives
-  int njack;
-  read_file_expecting((char*)&njack,frun_input,"%d","njack");
-  //read the path template
-  string path_template;
-  read_file_expecting(path_template,frun_input,"%s","path_template");
+  int njack_read;
+  read_formatted_from_file_expecting((char*)&njack_read,frun_input,"%d","njack");
+  if(njack!=njack_read)
+    {
+      fprintf(stderr,"Error, number of jacknives fixed to: %d, read: %d.\n",njack,njack_read);
+      exit(1);
+    }
+  //read the path templ
+  string path_templ;
+  read_formatted_from_file_expecting(path_templ,frun_input,"%s","path_templ");
   //read the number of files to open
   int nfiles;
-  read_file_expecting((char*)&nfiles,frun_input,"%d","nfiles");
+  read_formatted_from_file_expecting((char*)&nfiles,frun_input,"%d","nfiles");
   //calculate cluster size
   int clus_size=nfiles/njack;
   printf("Njack: %d, cluster size: %d\n",njack,clus_size);
   //open all the input files, reading each entry
-  expect_string(frun_input,"list_of_files");
+  expect_string_from_file(frun_input,"list_of_files");
   FILE *fdata[nfiles];
   for(int ifile=0;ifile<nfiles;ifile++)
     {
       string chunk;
-      read_file(chunk,frun_input,"%s","particular file name");
+      read_formatted_from_file(chunk,frun_input,"%s","particular file name");
       string file_path;
-      sprintf(file_path,path_template,chunk);
+      sprintf(file_path,path_templ,chunk);
       fdata[ifile]=open_file(file_path,"r");
     }
 
@@ -179,7 +148,7 @@ int main(int narg,char **arg)
 	if(required_header[ilevel] && (ilevel==nlevel-1||level_entry[ilevel+1]==0))
 	  {
 	    string header;
-	    prepare_header(header,level_header_template[ilevel],level_entry);
+	    prepare_header(header,level_header_templ[ilevel],level_entry);
 	    
 	    for(int ifile=0;ifile<nfiles;ifile++)
 	      {
@@ -213,7 +182,7 @@ int main(int narg,char **arg)
       for(int ifile=0;ifile<nfiles;ifile++)
 	for(int t=0;t<T;t++)
 	  for(int ri=0;ri<2;ri++)
-	    read_file((char*)&data[ifile][t][ri],fdata[ifile],"%lg","data");
+	    read_formatted_from_file((char*)&data[ifile][t][ri],fdata[ifile],"%lg","data");
       
       //clusterize
       for(int ri=0;ri<2;ri++)
@@ -230,7 +199,7 @@ int main(int narg,char **arg)
 	    for(int ijack=0;ijack<njack;ijack++) clus[ijack]=(clus[njack]-clus[ijack])/(nfiles-clus_size);
 	    clus[njack]/=nfiles;
 	    
-	    if(fwrite(&clus,sizeof(double),njack+1,fout)!=(njack+1))
+	    if(fwrite(clus,sizeof(double),njack+1,fout)!=(njack+1))
 	      {
 		fprintf(stderr,"Error while writing double!\n");
 		exit(1);
