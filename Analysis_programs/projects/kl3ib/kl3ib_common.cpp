@@ -18,7 +18,12 @@ double fun_ratio(double A,double SL,double M,int t,int TH)
 
 void check_interval(int var,int min,int max)
 {
-  if(var>max || var<min) crash("Asked for correlation of impossible combination\n",1);
+  if(var>=max || var<min)
+    {
+      char err_mess[1024];
+      sprintf(err_mess,"Asked for correlation of impossible combination, %d not in the interval: [%d,%d)\n",var,min,max);
+      crash(err_mess,1);
+    }
 }
 
 //read a particular two point passed as argument
@@ -112,7 +117,7 @@ void read_improved_P5_Vmu_P5(jack_vec *c,const char *base_path,int nmoms,int nma
   int ri[4]={0,1,1,1};
 
   read_three_points(c,path,nmoms,nmass,im1,im2,im3,ik1,ik2,r1,r2,r3,mu,ri[mu]);
-  read_three_points(ctemp,path,nmoms,nmass,im1,im2,im3,opposite_theta(ik1,theta),opposite_theta(ik2,theta),r1,r2,r3,mu,ri[mu]);
+  read_three_points(c,path,nmoms,nmass,im1,im3,im2,opposite_theta(ik1,theta),opposite_theta(ik2,theta),r1,r2,r3,mu,ri[mu]);
 
   jack_vec_summassign_jack_vec(c,ctemp);
   jack_vec_prodassign_double(c,0.5);
@@ -139,3 +144,59 @@ void read_improved_P5_P5(jack_vec *c,const char *base_path,int nmoms,int nmass,i
   jack_vec_free(ctemp);
 }
 
+//load the mesonic three point function
+void load_improved_charged_meson_three_points_P5_V0_P5(jack_vec *P5_V0_P5,const char *base_path,int nmoms,int nmass,int r,int im1,int im2,int im3,int ik1,int ik2,double *theta,int L)
+{
+  //load the charged "r" flavour
+  int r1=r,r2=!r1,r3=r1;
+
+  //load mu=0
+  int mu=0;
+
+  //read
+  read_improved_P5_Vmu_P5(P5_V0_P5,base_path,nmoms,nmass,im1,im2,im3,ik1,ik2,r1,r2,r3,mu,theta);
+
+  //Put the 1/spat_vol factor
+  jack_vec_prodassign_double(P5_V0_P5,1.0/(L*L*L));
+}
+
+void load_improved_degenerate_charged_meson_three_points_P5_V0_P5(jack_vec *P5_V0_P5,const char *base_path,int nmoms,int nmass,int r,int im_spec,int im_valence,int ik1,int ik2,double *theta,int L)
+{load_improved_charged_meson_three_points_P5_V0_P5(P5_V0_P5,base_path,nmoms,nmass,r,im_spec,im_valence,im_valence,ik1,ik2,theta,L);}
+
+//load the mesonic two point function
+void load_improved_charged_meson_two_points_P5_P5(jack_vec *P5_P5,const char *base_path,int nmoms,int nmass,int r,int im_spec,int im_valence,int ik1,double *theta,int L)
+{
+  //load the charged "r" flavour
+  int r1=r,r2=r1;
+
+  //load the degenerate three point
+  int im1=im_spec,im2=im_valence;
+  
+  //load the meson
+  int ik2=0;
+
+  //read
+  read_improved_P5_P5(P5_P5,base_path,nmoms,nmass,im1,im2,ik1,ik2,r1,r2,theta);
+  
+  //Put the -1/spat_vol factor
+  jack_vec_prodassign_double(P5_P5,-1.0/(L*L*L));
+}
+
+
+void print_corr_to_file(const char *path,jack_vec *corr)
+{
+  //open the out file
+  FILE *fout=open_file(path,"w");
+  jack_vec_fprintf(fout,corr);  
+  fclose(fout);
+}
+
+void calculate_Q2(jack Q2,jack E1,double theta1,jack E2,double theta2,int L)
+{
+  jack DE;
+  jack_subt_jack(DE,E1,E2);
+  jack_prod_jack(Q2,DE,DE);
+  
+  double dp=2*M_PI/L*(theta1-theta2);
+  jack_subt_double(Q2,Q2,3*dp*dp);
+}
