@@ -27,28 +27,6 @@ void read_input()
   fclose(input);
 }
 
-//load the mesonic three point function for the Zv
-void load_standing_degenerate_charged_meson_three_points_P5_V0_P5(jack_vec *P5_V0_P5,int r,int im_spec,int im_valence)
-{
-  //load the charged "r" flavour
-  int r1=r,r2=!r1,r3=r1;
-
-  //load the degenerate three point
-  int im1=im_spec,im2=im_valence,im3=im_valence;
-  
-  //load the standing meson
-  int ik1=0,ik2=0;
- 
-  //load mu=0
-  int mu=0;
-
-  //read
-  read_P5_Vmu_P5(P5_V0_P5,base_path,nmoms,nmass,im1,im2,im3,ik1,ik2,r1,r2,r3,mu);
-
-  //Put the 1/spat_vol factor
-  jack_vec_prodassign_double(P5_V0_P5,1.0/(L*L*L));
-}
-
 //load the mesonic two point function for the Zv
 void load_standing_charged_meson_two_points_P5_P5(jack_vec *P5_P5,int r,int im_spec,int im_valence)
 {
@@ -68,6 +46,24 @@ void load_standing_charged_meson_two_points_P5_P5(jack_vec *P5_P5,int r,int im_s
   jack_vec_prodassign_double(P5_P5,-1.0/(L*L*L));
 }
 
+void load_standing_charged_meson_two_points_A0_P5(jack_vec *A0_P5,int r,int im_spec,int im_valence)
+{
+  //load the charged "r" flavour
+  int r1=r,r2=r1;
+
+  //load the degenerate three point
+  int im1=im_spec,im2=im_valence;
+  
+  //load the standing meson
+  int ik1=0,ik2=0;
+ 
+  //read
+  read_A0_P5(A0_P5,base_path,nmoms,nmass,im1,im2,ik1,ik2,r1,r2);
+  
+  //Put the -1/spat_vol factor
+  jack_vec_prodassign_double(A0_P5,-1.0/(L*L*L));
+}
+
 void print_corr_to_file(const char *path,jack_vec *corr)
 {
   //open the out file
@@ -82,37 +78,31 @@ int main()
   read_input();
 
   //allocate vector where to load data
-  jack_vec *P5_V0_P5=jack_vec_malloc(T);
-  jack_vec *P5_V0_P5_simm=jack_vec_malloc(TH);
   jack_vec *P5_P5=jack_vec_malloc(T);
-  jack_vec *Zv_corr=jack_vec_malloc(TH);
-
-  //load two and three point for Zv
-  int r=0,im_spec=0,im_valence=0;
-  load_standing_degenerate_charged_meson_three_points_P5_V0_P5(P5_V0_P5,r,im_spec,im_valence);
-  load_standing_charged_meson_two_points_P5_P5(P5_P5,r,im_spec,im_valence);
-
-  //calculate Zv_corr
-  jack_vec_simmetrize(P5_V0_P5_simm,P5_V0_P5,-1);
-  jack_frac_jack_vec(Zv_corr,P5_P5->data[TH],P5_V0_P5_simm);
-  jack_vec_prodassign_double(Zv_corr,0.5);
+  jack_vec *A0_P5=jack_vec_malloc(T);
+  jack_vec *ratio=jack_vec_malloc(T);
+  jack_vec *ratio_simm=jack_vec_malloc(TH);
   
-  //fit constant over Zv
-  jack Zv_const;
-  constant_fit(Zv_const,Zv_corr,6,18);
-  printf("Zv: %g %g\n",Zv_const[njack],jack_error(Zv_const));
-
+  //load two points for Zv
+  int r=1,im_spec=0,im_valence=0;
+  load_standing_charged_meson_two_points_A0_P5(A0_P5,r,im_spec,im_valence);
+  load_standing_charged_meson_two_points_P5_P5(P5_P5,r,im_spec,im_valence);
+  
+  jack_vec_frac_jack_vec(ratio,P5_P5,A0_P5);
+  jack_vec_prodassign_double(ratio,-2*0.0064);
+  jack_vec_simmetrize(ratio_simm,ratio,-1);
+  
   //print results
   print_corr_to_file("P5_P5_out",P5_P5);
-  print_corr_to_file("P5_V0_P5_out",P5_V0_P5);
-  print_corr_to_file("P5_P5_simm_out",P5_V0_P5_simm);
-  print_corr_to_file("Zv_corr_out",Zv_corr);
-
+  print_corr_to_file("A0_P5_out",A0_P5);
+  print_corr_to_file("ratio_out",ratio);
+  print_corr_to_file("ratio_simm_out",ratio_simm);
+  
   //free the jacknife vector used to load data
-  jack_vec_free(P5_V0_P5_simm);
-  jack_vec_free(P5_V0_P5);
   jack_vec_free(P5_P5);
-  jack_vec_free(Zv_corr);
+  jack_vec_free(A0_P5);
+  jack_vec_free(ratio);
+  jack_vec_free(ratio_simm);
   
   return 0;
 }

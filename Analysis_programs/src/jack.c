@@ -32,3 +32,15 @@ void jack_subt_jack(jack c,jack a,jack b)
     c[ijack]=a[ijack]-b[ijack];
 }
 
+void jack_subt_double(jack c,jack a,double b)
+{
+  for(int ijack=0;ijack<njack+1;ijack++)
+    c[ijack]=a[ijack]-b;
+}
+
+void jack_sqrt_jack(jack c,jack a)
+{
+  for(int ijack=0;ijack<njack+1;ijack++)
+    c[ijack]=sqrt(a[ijack]);
+}
+
