@@ -200,6 +200,16 @@ void jack_vec_frac_jack_vec(jack_vec *c,jack_vec *a,jack_vec *b)
 void jack_vec_fracassign_jack_vec(jack_vec *c,jack_vec *b)
 {jack_vec_frac_jack_vec(c,c,b);}
 
+void jack_vec_sqrt_jack_vec(jack_vec *c,jack_vec *a)
+{
+  int nel=a->nel;
+  jack_vec_check_equal_nel(a,c);
+
+  for(int iel=0;iel<nel;iel++)
+    for(int ijack=0;ijack<njack+1;ijack++)
+      c->data[iel][ijack]=sqrt(a->data[iel][ijack]);
+}
+
 void jack_vec_frac_jack(jack_vec *c,jack_vec *a,jack b)
 {
   int nel=a->nel;
