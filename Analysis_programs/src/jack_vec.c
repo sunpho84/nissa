@@ -118,6 +118,16 @@ void jack_vec_prod_double(jack_vec *c,jack_vec *a,double b)
 void jack_vec_prodassign_double(jack_vec *a,double b)
 {jack_vec_prod_double(a,a,b);}
 
+void jack_vec_prod_jack(jack_vec *c,jack_vec *a,jack b)
+{
+  int nel=a->nel;
+  jack_vec_check_equal_nel(a,c);
+  
+  for(int iel=0;iel<nel;iel++)
+    for(int ijack=0;ijack<njack+1;ijack++)
+      c->data[iel][ijack]=a->data[iel][ijack]*b[ijack];
+}
+
 void jack_vec_prod_jack_vec(jack_vec *c,jack_vec *a,jack_vec *b)
 {
   int nel=a->nel;
@@ -128,6 +138,9 @@ void jack_vec_prod_jack_vec(jack_vec *c,jack_vec *a,jack_vec *b)
     for(int ijack=0;ijack<njack+1;ijack++)
       c->data[iel][ijack]=a->data[iel][ijack]*b->data[iel][ijack];
 }
+
+void jack_vec_prodassign_jack_vec(jack_vec *c,jack_vec *b)
+{jack_vec_prod_jack_vec(c,c,b);}
 
 void jack_vec_average(jack_vec *corr_av,jack_vec **corr,int n)
 {
@@ -182,5 +195,31 @@ void jack_vec_frac_jack_vec(jack_vec *c,jack_vec *a,jack_vec *b)
   for(int iel=0;iel<nel;iel++)
     for(int ijack=0;ijack<njack+1;ijack++)
       c->data[iel][ijack]=a->data[iel][ijack]/b->data[iel][ijack];
+}
+
+void jack_vec_fracassign_jack_vec(jack_vec *c,jack_vec *b)
+{jack_vec_frac_jack_vec(c,c,b);}
+
+void jack_vec_frac_jack(jack_vec *c,jack_vec *a,jack b)
+{
+  int nel=a->nel;
+  jack_vec_check_equal_nel(a,c);
+
+  for(int iel=0;iel<nel;iel++)
+    for(int ijack=0;ijack<njack+1;ijack++)
+      c->data[iel][ijack]=a->data[iel][ijack]/b[ijack];
+}
+
+void jack_vec_fracassign_jack(jack_vec *c,jack b)
+{jack_vec_frac_jack(c,c,b);}
+
+void jack_frac_jack_vec(jack_vec *c,jack a,jack_vec *b)
+{
+  int nel=b->nel;
+  jack_vec_check_equal_nel(b,c);
+
+  for(int iel=0;iel<nel;iel++)
+    for(int ijack=0;ijack<njack+1;ijack++)
+      c->data[iel][ijack]=a[ijack]/b->data[iel][ijack];
 }
 
