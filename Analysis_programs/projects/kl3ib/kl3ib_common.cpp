@@ -26,6 +26,14 @@ void check_interval(int var,int min,int max)
     }
 }
 
+void print_corr_to_file(const char *path,jack_vec *corr)
+{
+  //open the out file
+  FILE *fout=open_file(path,"w");
+  jack_vec_fprintf(fout,corr);  
+  fclose(fout);
+}
+
 //read a particular two point passed as argument
 void read_two_points(jack_vec *c,const char *in,int nmoms,int nmass,int im1,int im2,int ik1,int ik2,int r1,int r2,int ri)
 {
@@ -72,6 +80,8 @@ void read_three_points(jack_vec *c,const char *in,int nmoms,int nmass,int im1,in
   for(int iel=0;iel<nel;iel++)
     for(int ijack=0;ijack<njack+1;ijack++)
       c->data[iel][ijack]=data_in[iel][mu][ri][ijack];
+  
+  fclose(file);
 }
 
 void read_P5_Vmu_P5(jack_vec *c,const char *base_path,int nmoms,int nmass,int im1,int im2,int im3,int ik1,int ik2,int r1,int r2,int r3,int mu)
@@ -115,11 +125,14 @@ void read_improved_P5_Vmu_P5(jack_vec *c,const char *base_path,int nmoms,int nma
   
   //real or imag part, according to mu
   int ri[4]={0,1,1,1};
+  //summ or subtract, according to mu
+  int si[4]={+1,-1,-1,-1};
 
   read_three_points(c,path,nmoms,nmass,im1,im2,im3,ik1,ik2,r1,r2,r3,mu,ri[mu]);
-  read_three_points(c,path,nmoms,nmass,im1,im3,im2,opposite_theta(ik1,theta),opposite_theta(ik2,theta),r1,r2,r3,mu,ri[mu]);
+  read_three_points(ctemp,path,nmoms,nmass,im1,im2,im3,opposite_theta(ik1,theta),opposite_theta(ik2,theta),r1,r2,r3,mu,ri[mu]);
 
-  jack_vec_summassign_jack_vec(c,ctemp);
+  if(si[mu]==+1) jack_vec_summassign_jack_vec(c,ctemp);
+  else           jack_vec_subtassign_jack_vec(c,ctemp);
   jack_vec_prodassign_double(c,0.5);
   
   jack_vec_free(ctemp);
@@ -145,23 +158,23 @@ void read_improved_P5_P5(jack_vec *c,const char *base_path,int nmoms,int nmass,i
 }
 
 //load the mesonic three point function
-void load_improved_charged_meson_three_points_P5_V0_P5(jack_vec *P5_V0_P5,const char *base_path,int nmoms,int nmass,int r,int im1,int im2,int im3,int ik1,int ik2,double *theta,int L)
+void load_improved_charged_meson_three_points_P5_Vmu_P5(jack_vec *P5_Vmu_P5,const char *base_path,int nmoms,int nmass,int r,int im1,int im2,int im3,int ik1,int ik2,int mu,double *theta,int L)
 {
   //load the charged "r" flavour
   int r1=r,r2=!r1,r3=r1;
 
-  //load mu=0
-  int mu=0;
-
   //read
-  read_improved_P5_Vmu_P5(P5_V0_P5,base_path,nmoms,nmass,im1,im2,im3,ik1,ik2,r1,r2,r3,mu,theta);
+  read_improved_P5_Vmu_P5(P5_Vmu_P5,base_path,nmoms,nmass,im1,im2,im3,ik1,ik2,r1,r2,r3,mu,theta);
 
   //Put the 1/spat_vol factor
-  jack_vec_prodassign_double(P5_V0_P5,1.0/(L*L*L));
+  jack_vec_prodassign_double(P5_Vmu_P5,1.0/(L*L*L));
 }
 
+void load_improved_degenerate_charged_meson_three_points_P5_Vmu_P5(jack_vec *P5_Vmu_P5,const char *base_path,int nmoms,int nmass,int r,int im_spec,int im_valence,int ik1,int ik2,int mu,double *theta,int L)
+{load_improved_charged_meson_three_points_P5_Vmu_P5(P5_Vmu_P5,base_path,nmoms,nmass,r,im_spec,im_valence,im_valence,ik1,ik2,mu,theta,L);}
+
 void load_improved_degenerate_charged_meson_three_points_P5_V0_P5(jack_vec *P5_V0_P5,const char *base_path,int nmoms,int nmass,int r,int im_spec,int im_valence,int ik1,int ik2,double *theta,int L)
-{load_improved_charged_meson_three_points_P5_V0_P5(P5_V0_P5,base_path,nmoms,nmass,r,im_spec,im_valence,im_valence,ik1,ik2,theta,L);}
+{load_improved_charged_meson_three_points_P5_Vmu_P5(P5_V0_P5,base_path,nmoms,nmass,r,im_spec,im_valence,im_valence,ik1,ik2,0,theta,L);}
 
 //load the mesonic two point function
 void load_improved_charged_meson_two_points_P5_P5(jack_vec *P5_P5,const char *base_path,int nmoms,int nmass,int r,int im_spec,int im_valence,int ik1,double *theta,int L)
@@ -183,14 +196,6 @@ void load_improved_charged_meson_two_points_P5_P5(jack_vec *P5_P5,const char *ba
 }
 
 
-void print_corr_to_file(const char *path,jack_vec *corr)
-{
-  //open the out file
-  FILE *fout=open_file(path,"w");
-  jack_vec_fprintf(fout,corr);  
-  fclose(fout);
-}
-
 void calculate_Q2(jack Q2,jack E1,double theta1,jack E2,double theta2,int L)
 {
   jack DE;
@@ -199,4 +204,25 @@ void calculate_Q2(jack Q2,jack E1,double theta1,jack E2,double theta2,int L)
   
   double dp=2*M_PI/L*(theta1-theta2);
   jack_subt_double(Q2,Q2,3*dp*dp);
+}
+
+void calculate_Q_P(jack *Q,jack *P,jack E1,double theta1,jack E2,double theta2,int L)
+{
+  jack_subt_jack(Q[0],E1,E2);
+  jack_summ_jack(P[0],E1,E2);
+
+  double Qi=2*M_PI/L*(theta1-theta2);
+  double Pi=2*M_PI/L*(theta1+theta2);
+
+  for(int i=1;i<4;i++)
+    {
+      jack_from_double(Q[i],Qi);
+      jack_from_double(P[i],Pi);
+    }
+}
+
+void quad_jack_prod_quad_jack(jack prod,jack *v,jack *p)
+{
+  jack_prod_jack(prod,v[0],p[0]);
+  for(int mu=1;mu<4;mu++) jack_subtprod_jack(prod,v[mu],p[mu]);
 }

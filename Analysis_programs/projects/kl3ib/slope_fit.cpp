@@ -1,12 +1,15 @@
 #include <analysis_include.h>
 #include "kl3ib_common.cpp"
 
-#define T 48
+int T,L,TH;
 
 int ijc;
+char base_path[1024];
 jack_vec *K_simm,*Ks_simm,*ratio_simm;
 double a390=1;
 
+int nmoms,nmass=3;
+double *mass,*theta;
 int tmin=12,tmax=23;
 
 //calculate the chi square
@@ -139,10 +142,31 @@ void plot(jack A,jack SL,jack C,jack M)
   free(K_simm_sub);
 }
 
+void read_input()
+{
+  FILE *input=open_file("input","r");
+  read_formatted_from_file_expecting(base_path,input,"%s","base_path");
+  read_formatted_from_file_expecting((char*)&T,input,"%d","T");
+  L=TH=T/2;
+
+  read_formatted_from_file_expecting((char*)&nmass,input,"%d","nmass");
+  expect_string_from_file(input,"mass_list");
+  mass=(double*)malloc(sizeof(double)*nmass);
+  for(int imass=0;imass<nmass;imass++) read_formatted_from_file((char*)&(mass[imass]),input,"%lg","mass");
+
+  read_formatted_from_file_expecting((char*)&nmoms,input,"%d","nmoms");
+  expect_string_from_file(input,"theta_list");
+  theta=(double*)malloc(sizeof(double)*nmoms);
+  for(int imom=0;imom<nmoms;imom++) read_formatted_from_file((char*)&(theta[imom]),input,"%lg","theta");
+
+  fclose(input);
+}
+
 int main()
 {
-  int nmoms=5,nmass=3;
   jack_vec *temp_K[2],*temp_Ks[2],*temp_ratio[2];
+  
+  read_input();
   
   for(int r=0;r<2;r++)
     {
@@ -157,16 +181,21 @@ int main()
   int ik1=0,ik2=0;
   int ri=0;
   int TH=T/2;
-
+  
+  
   //read the 00 and 11 combo
   for(int r=0;r<2;r++)
     {
       int r1=r,r2=r;
       
-      read_two_points(temp_K[r],"oPPo-ss_conf.1.dat",nmoms,nmass,im1,im2,ik1,ik2,r1,r2,ri);
-      read_two_points(temp_Ks[r],"oPPo-sd_conf.1.dat",nmoms,nmass,im1,im2,ik1,ik2,r1,r2,ri);
+      char sing[1024],doub[1024];
+      sprintf(sing,"%s/oPPo-ss_conf.1.dat",base_path);
+      sprintf(doub,"%s/oPPo-sd_conf.1.dat",base_path);
       
-      jack_vec_prodassign_double(temp_K[r],-1.0/(T*TH*TH));
+      read_two_points(temp_K[r],sing,nmoms,nmass,im1,im2,ik1,ik2,r1,r2,ri);
+      read_two_points(temp_Ks[r],doub,nmoms,nmass,im1,im2,ik1,ik2,r1,r2,ri);
+      
+      jack_vec_prodassign_double(temp_K[r],-1.0/(TH*TH*TH));
       jack_vec_prodassign_double(temp_Ks[r],-1.0/(TH*TH*TH));
       
       //ratio between k with insertion and k
