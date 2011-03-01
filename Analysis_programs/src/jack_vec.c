@@ -105,6 +105,20 @@ void jack_vec_summ_jack_vec(jack_vec *c,jack_vec *a,jack_vec *b)
 void jack_vec_summassign_jack_vec(jack_vec *c,jack_vec *b)
 {jack_vec_summ_jack_vec(c,c,b);}
 
+void jack_vec_subt_jack_vec(jack_vec *c,jack_vec *a,jack_vec *b)
+{
+  int nel=a->nel;
+  jack_vec_check_equal_nel(a,b);
+  jack_vec_check_equal_nel(a,c);
+  
+  for(int iel=0;iel<nel;iel++)
+    for(int ijack=0;ijack<njack+1;ijack++)
+      c->data[iel][ijack]=a->data[iel][ijack]-b->data[iel][ijack];
+}
+
+void jack_vec_subtassign_jack_vec(jack_vec *c,jack_vec *b)
+{jack_vec_subt_jack_vec(c,c,b);}
+
 void jack_vec_prod_double(jack_vec *c,jack_vec *a,double b)
 {
   int nel=a->nel;
@@ -154,7 +168,7 @@ void jack_vec_average(jack_vec *corr_av,jack_vec **corr,int n)
   
   memcpy(corr_av->data,corr[0]->data,sizeof(jack)*nel);
   
-  for(int i=2;i<n;i++) jack_vec_summassign_jack_vec(corr_av,corr[i]);
+  for(int i=1;i<n;i++) jack_vec_summassign_jack_vec(corr_av,corr[i]);
   jack_vec_prodassign_double(corr_av,1.0/n);
 }
 

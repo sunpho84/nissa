@@ -11,15 +11,21 @@ int T,TH,L;
 int nmoms,nmass;
 
 char base_path[1024];
-double *theta;
+double *mass,*theta;
 
 void read_input()
 {
   FILE *input=open_file("input","r");
   read_formatted_from_file_expecting(base_path,input,"%s","base_path");
+
   read_formatted_from_file_expecting((char*)&T,input,"%d","T");
   L=TH=T/2;
+
   read_formatted_from_file_expecting((char*)&nmass,input,"%d","nmass");
+  expect_string_from_file(input,"mass_list"); 
+  mass=(double*)malloc(sizeof(double)*nmass);
+  for(int imass=0;imass<nmass;imass++) read_formatted_from_file((char*)&(mass[imass]),input,"%lg","mass");
+
   read_formatted_from_file_expecting((char*)&nmoms,input,"%d","nmoms");
   expect_string_from_file(input,"theta_list");
   theta=(double*)malloc(sizeof(double)*nmoms);
@@ -64,12 +70,16 @@ void load_standing_charged_meson_two_points_A0_P5(jack_vec *A0_P5,int r,int im_s
   jack_vec_prodassign_double(A0_P5,-1.0/(L*L*L));
 }
 
-void print_corr_to_file(const char *path,jack_vec *corr)
+void calculate_d0_A0_P5(jack_vec *d0_A0_P5,jack_vec *A0_P5)
 {
-  //open the out file
-  FILE *fout=open_file(path,"w");
-  jack_vec_fprintf(fout,corr);  
-  fclose(fout);
+  int T=A0_P5->nel;
+  jack_vec_check_equal_nel(d0_A0_P5,A0_P5);
+  
+  for(int ijack=0;ijack<njack+1;ijack++)
+    {
+      d0_A0_P5->data[0][ijack]=d0_A0_P5->data[T-1][ijack]=0;
+      for(int t=1;t<(T-1);t++) d0_A0_P5->data[t][ijack]=(A0_P5->data[t+1][ijack]-A0_P5->data[t-1][ijack])*0.5;
+    }
 }
 
 int main()
@@ -80,29 +90,41 @@ int main()
   //allocate vector where to load data
   jack_vec *P5_P5=jack_vec_malloc(T);
   jack_vec *A0_P5=jack_vec_malloc(T);
-  jack_vec *ratio=jack_vec_malloc(T);
-  jack_vec *ratio_simm=jack_vec_malloc(TH);
+  jack_vec *d0_A0_P5=jack_vec_malloc(T);
+  jack_vec *ratio_averaged=jack_vec_malloc(T);
+  jack_vec *ratio_averaged_simm=jack_vec_malloc(TH);
+  jack_vec *ratio[2];
   
   //load two points for Zv
-  int r=1,im_spec=0,im_valence=0;
-  load_standing_charged_meson_two_points_A0_P5(A0_P5,r,im_spec,im_valence);
-  load_standing_charged_meson_two_points_P5_P5(P5_P5,r,im_spec,im_valence);
+  int nr=1;
+  for(int r=0;r<nr;r++)
+    {
+      ratio[r]=jack_vec_malloc(T);
+
+      int im_spec=0,im_valence=0;
+      load_standing_charged_meson_two_points_A0_P5(A0_P5,r,im_spec,im_valence);
+      load_standing_charged_meson_two_points_P5_P5(P5_P5,r,im_spec,im_valence);
+      
+      calculate_d0_A0_P5(d0_A0_P5,A0_P5);
+      jack_vec_frac_jack_vec(ratio[r],P5_P5,d0_A0_P5);
+      jack_vec_prodassign_double(ratio[r],2*mass[0]);
+      
+      //print results
+      if(r==0)
+	{
+	  print_corr_to_file("P5_P5.out",P5_P5);
+	  print_corr_to_file("A0_P5.out",A0_P5);
+	  print_corr_to_file("d0_A0_P5.out",d0_A0_P5);
+	  print_corr_to_file("ratio.out",ratio[r]);
+	}
+    }
   
-  jack_vec_frac_jack_vec(ratio,P5_P5,A0_P5);
-  jack_vec_prodassign_double(ratio,-2*0.0064);
-  jack_vec_simmetrize(ratio_simm,ratio,-1);
+  jack_vec_average(ratio_averaged,ratio,nr);
+  jack_vec_simmetrize(ratio_averaged_simm,ratio_averaged,1);
   
-  //print results
-  print_corr_to_file("P5_P5_out",P5_P5);
-  print_corr_to_file("A0_P5_out",A0_P5);
-  print_corr_to_file("ratio_out",ratio);
-  print_corr_to_file("ratio_simm_out",ratio_simm);
-  
-  //free the jacknife vector used to load data
-  jack_vec_free(P5_P5);
-  jack_vec_free(A0_P5);
-  jack_vec_free(ratio);
-  jack_vec_free(ratio_simm);
+  jack Zv;
+  constant_fit(Zv,ratio_averaged_simm,6,18);
+  printf("Zv: %g %g\n",Zv[njack],jack_error(Zv));
   
   return 0;
 }
