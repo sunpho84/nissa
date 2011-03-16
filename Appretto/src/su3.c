@@ -45,7 +45,29 @@ void summassign_icolor(color a,color b)
 void subtassign_icolor(color a,color b)
 {for(int i=0;i<6;i+=2) {((double*)a)[i]+=((double*)b)[i+1];((double*)a)[i+1]-=((double*)b)[i];}}
 
+void color_prod_real(color a,color b,double c)
+{for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]*c;}
+
 ////////////////////////////////// Operations between su3 //////////////////////////
+
+//just print an su3 matrix
+void su3_print(su3 U)
+{
+  for(int icol1=0;icol1<3;icol1++)
+    {
+      for(int icol2=0;icol2<3;icol2++)
+	{
+	  for(int ri=0;ri<2;ri++)
+	    {
+	      printf("%g",U[icol1][icol2][ri]);
+	      if(ri==0) printf(",");
+	    }
+	  printf(" ");
+	}
+      printf("\n");
+    }
+  printf("\n");
+}
 
 //return the trace of an su3 matrix
 void su3_trace(complex tr,su3 m)
@@ -55,6 +77,24 @@ void su3_trace(complex tr,su3 m)
 
   complex_summ(tr,tr,m[1][1]);
   complex_summ(tr,tr,m[2][2]);
+}
+
+//calculate the determinant of an su3 matrix
+void su3_det(complex d,su3 U)
+{
+  complex a;
+  
+  unsafe_complex_prod(a,U[1][1],U[2][2]);
+  complex_subt_the_prod(a,U[1][2],U[2][1]);
+  unsafe_complex_prod(d,U[0][0],a);
+
+  unsafe_complex_prod(a,U[1][2],U[2][0]);
+  complex_subt_the_prod(a,U[1][0],U[2][2]);
+  complex_summ_the_prod(d,U[0][1],a);
+
+  unsafe_complex_prod(a,U[1][0],U[2][1]);
+  complex_subt_the_prod(a,U[1][1],U[2][0]);
+  complex_summ_the_prod(d,U[0][2],a);
 }
 
 //return the hemitian su3 matrix
@@ -149,6 +189,92 @@ void su3_prod_real(su3 a,su3 b,double r)
   for(int i=0;i<18;i++) da[i]=db[i]*r;
 }
 
+//calculate explicitely the inverse
+void su3_explicit_inverse(su3 invU,su3 U)
+{
+  complex det,rec_det;
+  su3_det(det,U);
+  complex_reciprocal(rec_det,det);
+
+  unsafe_complex_prod(invU[0][0],U[1][1],U[2][2]);
+  unsafe_complex_prod(invU[1][0],U[1][2],U[2][0]);
+  unsafe_complex_prod(invU[2][0],U[1][0],U[2][1]);
+
+  unsafe_complex_prod(invU[0][1],U[0][2],U[2][1]);
+  unsafe_complex_prod(invU[1][1],U[0][0],U[2][2]);
+  unsafe_complex_prod(invU[2][1],U[0][1],U[2][0]);
+
+  unsafe_complex_prod(invU[0][2],U[0][1],U[1][2]);
+  unsafe_complex_prod(invU[1][2],U[0][2],U[1][0]);
+  unsafe_complex_prod(invU[2][2],U[0][0],U[1][1]);
+
+
+  complex_subt_the_prod(invU[0][0],U[1][2],U[2][1]);
+  complex_subt_the_prod(invU[1][0],U[1][0],U[2][2]);
+  complex_subt_the_prod(invU[2][0],U[1][1],U[2][0]);
+
+  complex_subt_the_prod(invU[0][1],U[0][1],U[2][2]);
+  complex_subt_the_prod(invU[1][1],U[0][2],U[2][0]);
+  complex_subt_the_prod(invU[2][1],U[0][0],U[2][1]);
+
+  complex_subt_the_prod(invU[0][2],U[0][2],U[1][1]);
+  complex_subt_the_prod(invU[1][2],U[0][0],U[1][2]);
+  complex_subt_the_prod(invU[2][2],U[0][1],U[1][0]);
+
+  for(int icol1=0;icol1<3;icol1++)
+    for(int icol2=0;icol2<3;icol2++)
+      safe_complex_prod(invU[icol1][icol2],invU[icol1][icol2],rec_det);
+}
+
+//summ of the squared norm of the entries
+double su3_normq(su3 U)
+{
+  double normq=0;
+
+  for(int icol1=0;icol1<3;icol1++)
+    for(int icol2=0;icol2<3;icol2++)
+      for(int ri=0;ri<2;ri++)
+	normq+=U[icol1][icol2][ri]*U[icol1][icol2][ri];
+  
+  return normq;
+}
+
+//unitarize an su3 matrix
+void su3_unitarize(su3 new_link,su3 prop_link)
+{
+  su3 inv;
+  double gamma,check;
+  
+  do
+    {
+      su3_explicit_inverse(inv,prop_link);
+      gamma=sqrt(su3_normq(inv)/su3_normq(prop_link));
+      
+      //average U and U^-1^+
+      check=0;
+      for(int icol1=0;icol1<3;icol1++)
+	for(int icol2=0;icol2<3;icol2++)
+	  {
+	    new_link[icol1][icol2][0]=0.5*(prop_link[icol1][icol2][0]*gamma+inv[icol2][icol1][0]/gamma);
+	    new_link[icol1][icol2][1]=0.5*(prop_link[icol1][icol2][1]*gamma-inv[icol2][icol1][1]/gamma);
+	    for(int ri=0;ri<2;ri++)
+	      check+=(new_link[icol1][icol2][ri]-prop_link[icol1][icol2][ri])
+		*(new_link[icol1][icol2][ri]-prop_link[icol1][icol2][ri]);
+	  }
+
+      memcpy(prop_link,new_link,sizeof(su3));
+      
+      check=sqrt(check);
+    }
+  while(check>1.e-15);
+  
+  //divide by third root of det
+  complex det,fact;
+  su3_det(det,new_link);
+  complex_pow(fact,det,-1.0/3);
+  safe_su3_prod_complex(new_link,new_link,fact);
+}
+
 ////////////////////// products between su3 and color //////////////////
 
 //product of an su3 matrix by a color vector
@@ -157,6 +283,15 @@ void unsafe_su3_prod_color(color a,su3 b,color c)
   for(int c1=0;c1<3;c1++)
     {
       unsafe_complex_prod(a[c1],b[c1][0],c[0]);
+      for(int c2=1;c2<3;c2++) complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);
+    }
+}
+
+void su3_summ_the_color_prod(color a,su3 b,color c)
+{
+  for(int c1=0;c1<3;c1++)
+    {
+      complex_summ_the_prod(a[c1],b[c1][0],c[0]);
       for(int c2=1;c2<3;c2++) complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);
     }
 }
@@ -194,6 +329,15 @@ void unsafe_su3_dag_prod_color(color a,su3 b,color c)
   for(int c1=0;c1<3;c1++)
     {
       unsafe_complex_conj1_prod(a[c1],b[0][c1],c[0]);
+      for(int c2=1;c2<3;c2++) complex_summ_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+    }
+}
+
+void su3_dag_summ_the_color_prod(color a,su3 b,color c)
+{
+  for(int c1=0;c1<3;c1++)
+    {
+      complex_summ_the_conj1_prod(a[c1],b[0][c1],c[0]);
       for(int c2=1;c2<3;c2++) complex_summ_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
     }
 }

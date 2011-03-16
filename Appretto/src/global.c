@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdio.h>
+#include <math.h>
 
 //nomenclature: 
 //-glb is relative to the global grid
@@ -66,7 +67,7 @@ int big_endian;
 const int nreals_per_spincolor=24;
 const int nreals_per_quad_su3=72;
 
-const int debug=1;
+const int debug=2;
 
 MPI_Comm cart_comm;
 
@@ -223,6 +224,25 @@ void safe_complex_prod_minus_i(complex a,complex b)
   a[1]=-temp;
 }
 void assign_complex_prod_minus_i(complex a){safe_complex_prod_minus_i(a,a);}
+
+//reciprocal of a complex
+void complex_reciprocal(complex rec,complex c)
+{
+  double module=c[0]*c[0]+c[1]*c[1];
+  
+  rec[0]=c[0]/module;
+  rec[1]=-c[1]/module;
+}
+
+//power of a complex
+void complex_pow(complex res,complex base,double exp)
+{
+  double module=pow(base[0]*base[0]+base[1]*base[1],exp/2);
+  double anomaly=atan2(base[1],base[0])*exp;
+
+  res[0]=module*cos(anomaly);
+  res[1]=module*sin(anomaly);
+}
 
 //saturate two anti-simmetric tensors
 void as2t_saturate(complex out,as2t a,as2t b)

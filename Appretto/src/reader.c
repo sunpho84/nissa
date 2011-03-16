@@ -23,6 +23,11 @@ int read_binary_blob(char *data_out,char *path,const char *expected_record,int m
 
   //Open the file
   MPI_File *reader_file=(MPI_File*)malloc(sizeof(MPI_File));
+  if(reader_file==NULL && rank==0)
+    {
+      fprintf(stderr,"Error while allocating MPI file\n");
+      MPI_Abort(cart_comm,1);
+    }
   int ok=MPI_File_open(cart_comm,path,MPI_MODE_RDONLY,MPI_INFO_NULL,reader_file);
   if(ok!=MPI_SUCCESS && rank==0)
     {
