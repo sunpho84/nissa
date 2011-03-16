@@ -15,23 +15,29 @@ void density_profile(double *rho,spincolor *sp)
   for(int l=0;l<loc_vol;l++)
     if(glb_coord_of_loclx[l][0]==0)
       {
-	double d=0;
+	//calculate distance
+	double r2=0;
+	int d;
 	for(int mu=1;mu<4;mu++)
 	  {
 	    int x=glb_coord_of_loclx[l][mu];
 	    if(x>=L/2) x-=L;
-	    d+=x*x;
+	    r2+=x*x;
 	  }
-	d=sqrt(d);
-	n[(int) d]++;
+	d=(int)sqrt(r2);
+
+	//calculate the number of points at distance d
+	n[d]++;
 	
+	//calculate norm of the source
 	for(int id=0;id<4;id++)
 	  for(int ic=0;ic<3;ic++)
 	    for(int ri=0;ri<2;ri++)
-	      rho[(int)d]+=sp[l][id][ic][ri]*sp[l][id][ic][ri];
+	      rho[d]+=sp[l][id][ic][ri]*sp[l][id][ic][ri];
       }
   
-  for(int d=0;d<L;d++) if(n[d]) rho[d]/=n[d];
+  //normalize
+  //for(int d=0;d<L;d++) if(n[d]) rho[d]/=n[d];
 }
 
 int main(int narg,char **arg)
@@ -66,8 +72,9 @@ int main(int narg,char **arg)
   quad_su3 *smea_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"smea_conf");
   read_local_gauge_conf(orig_conf,filename);
 
-  ape_smearing(smea_conf,orig_conf,1,0.1);
-  printf("gauge conf smeared\n");
+  //ape_smearing(smea_conf,orig_conf,1,0.1);
+  //printf("gauge conf smeared\n");
+  memcpy(smea_conf,orig_conf,sizeof(quad_su3)*loc_vol);
 
   //allocate and generate the source
   spincolor *origi_sp=allocate_spincolor(loc_vol+loc_bord,"orig_spincolor");
