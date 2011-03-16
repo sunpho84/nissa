@@ -1,5 +1,10 @@
 #include <mpi.h>
+#include <math.h>
 #include <lemon.h>
+
+#ifndef M_PI
+#define M_PI           3.14159265358979323846
+#endif
 
 #include "global.c"
 #include "init.c"
@@ -11,6 +16,7 @@
 #include "contract.c"
 #include "communicate.c"
 #include "su3.c"
+#include "smear.c"
 #include "su3_paths.c"
 #include "gaugeconf.c"
 #include "dirac_operator.c"
