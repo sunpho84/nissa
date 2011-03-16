@@ -75,11 +75,19 @@ void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *
 }
 
 //summ
-void vol_spincolor_summ(spincolor *smear_sc,spincolor *H,int timeslice)
+void vol_spincolor_summassign(spincolor *smear_sc,spincolor *H,int timeslice)
 {
   for(int l=0;l<loc_vol;l++)
     if(glb_coord_of_loclx[l][0]==timeslice||timeslice==-1)
       spincolor_summ(smear_sc[l],smear_sc[l],H[l]);
+}
+
+//normalize
+void vol_assign_spincolor_prod_real(spincolor *sc,double c,int timeslice)
+{
+  for(int l=0;l<loc_vol;l++)
+    if(glb_coord_of_loclx[l][0]==timeslice||timeslice==-1)
+      assign_spincolor_prod_real(sc[l],c);
 }
 
 //normalize
@@ -124,7 +132,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       smearing_apply_kappa_H(H_new,kappa,conf,H_old,timeslice);
       
       //add kappa*H
-      vol_spincolor_summ(smear_sc,H_new,timeslice);
+      vol_spincolor_summassign(smear_sc,H_new,timeslice);
     }
   
   //final normalization  
@@ -134,6 +142,19 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
   free(H_new);
 }
 
+double vol_spincolor_norm(spincolor *smear_sc,int timeslice)
+{
+  double n2=0;
+  for(int l=0;l<loc_vol;l++)
+    if(glb_coord_of_loclx[l][0]==timeslice||timeslice==-1)
+      for(int id=0;id<4;id++)
+	for(int ic=0;ic<3;ic++)
+	  for(int ri=0;ri<2;ri++)
+	    n2+=pow(smear_sc[l][id][ic][ri],2);
+  
+  return n2;
+}  
+
 //jacobi smearing on the 
 void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int niter,int timeslice)
 {
@@ -141,7 +162,9 @@ void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double
   
   //iter 0
   memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
-  
+  double n2_ini=vol_spincolor_norm(smear_sc,timeslice);
+
+  //loop over jacobi iterations
   for(int iter=0;iter<niter;iter++)
     {
       communicate_lx_spincolor_borders(smear_sc);
@@ -150,11 +173,15 @@ void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double
       smearing_apply_kappa_H(H,kappa,conf,smear_sc,timeslice);
 
       //add kappa*H
-      vol_spincolor_summ(smear_sc,H,timeslice);
+      vol_spincolor_summassign(smear_sc,H,timeslice);
+      
+      //dynamic normalization  
+      vol_assign_spincolor_prod_real(smear_sc,1/(1+6*kappa),timeslice);
     }
-
+  
+  double n2_fin=vol_spincolor_norm(smear_sc,timeslice);
   //final normalization  
-  vol_spincolor_normalize(smear_sc,timeslice);
-
+  vol_assign_spincolor_prod_real(smear_sc,sqrt(n2_ini/n2_fin),timeslice);
+  
   free(H);
 }

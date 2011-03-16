@@ -226,6 +226,13 @@ void calculate_S0()
 	inv_Q2_cg(solDD,source,NULL,conf,kappa,mass,nitermax,1,residue);	
 	tinv+=take_time();
 	reconstruct_doublet(sol_reco[0],sol_reco[1],solDD,conf,kappa,mass);
+
+	//smerd the sink
+	for(int i=0;i<2;i++)
+	  {
+	    dina_smearing(temp_source,sol_reco[i],conf,jacobi_kappa,jacobi_niter,-1);
+	    memcpy(sol_reco[i],temp_source,sizeof(spincolor)*loc_vol);
+	  }	
 	
 	for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 	  for(int ivol=0;ivol<loc_vol;ivol++)
