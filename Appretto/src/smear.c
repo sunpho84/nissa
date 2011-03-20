@@ -44,7 +44,8 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,int nstep,double alp
 	      for(int icol1=0;icol1<3;icol1++)
 		for(int icol2=0;icol2<3;icol2++)
 		  for(int ri=0;ri<2;ri++)
-		    prop_link[icol1][icol2][ri]=(1-alpha)*temp_conf[loc_site][mu][icol1][icol2][ri]+alpha/6*stap[icol1][icol2][ri];
+		    //prop_link[icol1][icol2][ri]=(1-alpha)*temp_conf[loc_site][mu][icol1][icol2][ri]+alpha/6*stap[icol1][icol2][ri];
+		    prop_link[icol1][icol2][ri]=temp_conf[loc_site][mu][icol1][icol2][ri]+alpha*stap[icol1][icol2][ri];
 	            
 	      su3_unitarize(smear_conf[loc_site][mu],prop_link);
 	    }
@@ -118,7 +119,9 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 {
   spincolor *H_old=allocate_spincolor(loc_vol+loc_bord,"H_old");
   spincolor *H_new=allocate_spincolor(loc_vol+loc_bord,"H_new");
-
+  
+  communicate_gauge_borders(conf);
+  
   //iter 0
   memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
   memcpy(H_new,origi_sc,sizeof(spincolor)*loc_vol);
@@ -159,6 +162,8 @@ double vol_spincolor_norm(spincolor *smear_sc,int timeslice)
 void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int niter,int timeslice)
 {
   spincolor *H=allocate_spincolor(loc_vol+loc_bord,"H");
+ 
+  communicate_gauge_borders(conf);
   
   //iter 0
   memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);

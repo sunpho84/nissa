@@ -8,7 +8,7 @@
 int nconf;
 double put_theta[4]={0,0,0,0};
 char **conf_path,**out_path;
-quad_su3 *conf,*ori_conf;
+quad_su3 *conf,*ori_conf,*smea_conf;
 double mass;
 double kappa;
 
@@ -18,8 +18,8 @@ spincolor *source;
 su3spinspin *original_source;
 
 //smearing parameters
-double jacobi_kappa;
-int jacobi_niter;
+double jacobi_kappa,ape_alpha;
+int jacobi_niter,ape_niter;
 
 //the propagators
 su3spinspin *S0[2];
@@ -98,7 +98,8 @@ void initialize_nucleons(char *input_path)
   //Allocate the gauge Conf
   conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"conf");
   ori_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"ori_conf");
-
+  smea_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"smea_conf");
+  
   //Read the gauge conf
   read_str_int("NGaugeConf",&nconf);
   conf_path=(char**)malloc(sizeof(char*)*nconf);
@@ -124,6 +125,8 @@ void initialize_nucleons(char *input_path)
       if(rank==0) printf("%d ",source_pos[idir]);
     }
   if(rank==0) printf("\n");
+  read_str_double("ApeAlpha",&ape_alpha);
+  read_str_int("ApeNiter",&ape_niter);
   read_str_double("JacobiKappa",&jacobi_kappa);
   read_str_int("JacobiNiter",&jacobi_niter);
 
@@ -157,6 +160,7 @@ void initialize_nucleons(char *input_path)
 void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
 {
   read_local_gauge_conf(ori_conf,conf_path);
+  ape_smearing(smea_conf,ori_conf,ape_alpha,ape_niter);
   memcpy(conf,ori_conf,sizeof(quad_su3)*loc_vol);
 
   //commmunicate borders
@@ -164,8 +168,8 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   communicate_gauge_edges(conf);
   
   //calculate plaquette
-  double gplaq=global_plaquette(conf);
-  if(rank==0) printf("plaq: %.18g\n",gplaq);
+  if(rank==0) printf("plaq: %.18g\n",global_plaquette(conf));
+  if(rank==0) printf("smerded plaq: %.18g\n",global_plaquette(smea_conf));
 
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
@@ -219,7 +223,7 @@ void calculate_S0()
 	if(rank==0) printf("\n(S0) source index: id=%d, ic=%d\n",id_sour,ic_sour);
 	
 	//smerd the source
-	dina_smearing(source,temp_source,conf,jacobi_kappa,jacobi_niter,source_pos[0]);
+	dina_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter,source_pos[0]);
 	
 	//invert
 	tinv-=take_time();
@@ -230,7 +234,7 @@ void calculate_S0()
 	//smerd the sink
 	for(int i=0;i<2;i++)
 	  {
-	    dina_smearing(temp_source,sol_reco[i],conf,jacobi_kappa,jacobi_niter,-1);
+	    dina_smearing(temp_source,sol_reco[i],smea_conf,jacobi_kappa,jacobi_niter,-1);
 	    memcpy(sol_reco[i],temp_source,sizeof(spincolor)*loc_vol);
 	  }	
 	
