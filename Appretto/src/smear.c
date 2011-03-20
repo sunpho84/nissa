@@ -2,13 +2,14 @@
 
 //perform ape smearing
 //be sure not to have border condition added
-void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,int nstep,double alpha)
+void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
 {
   quad_su3 *temp_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"temp_conf");
   memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
   
   for(int istep=0;istep<nstep;istep++)
     {
+      if(rank==0 && debug) printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
       memcpy(temp_conf,smear_conf,sizeof(quad_su3)*loc_vol);
       
       //communicate the borders
