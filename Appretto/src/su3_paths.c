@@ -32,6 +32,8 @@ void squared_path(su3 square,quad_su3 *conf,int A,int mu,int nu)
 //efficient way, but it's ok for our scope.
 double global_plaquette(quad_su3 *conf)
 {
+  communicate_gauge_borders(conf);
+  
   su3 square;
   complex pl;
   double totlocplaq=0;
