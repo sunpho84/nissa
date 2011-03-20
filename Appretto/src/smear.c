@@ -6,11 +6,11 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,int nstep,double alp
 {
   quad_su3 *temp_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"temp_conf");
   memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
-
+  
   for(int istep=0;istep<nstep;istep++)
     {
       memcpy(temp_conf,smear_conf,sizeof(quad_su3)*loc_vol);
-
+      
       //communicate the borders
       communicate_gauge_borders(temp_conf);
       communicate_gauge_edges(temp_conf);

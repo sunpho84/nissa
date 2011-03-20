@@ -159,6 +159,7 @@ void initialize_nucleons(char *input_path)
 //read a configuration and put anti-periodic condition at the slice tsource-1
 void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
 {
+  //read original configuration, smerd it and copy it
   read_local_gauge_conf(ori_conf,conf_path);
   ape_smearing(smea_conf,ori_conf,ape_alpha,ape_niter);
   memcpy(conf,ori_conf,sizeof(quad_su3)*loc_vol);
@@ -168,8 +169,10 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   communicate_gauge_edges(conf);
   
   //calculate plaquette
-  if(rank==0) printf("plaq: %.18g\n",global_plaquette(conf));
-  if(rank==0) printf("smerded plaq: %.18g\n",global_plaquette(smea_conf));
+  double plaq=global_plaquette(conf);
+  if(rank==0) printf("plaq: %.18g\n",plaq);
+  plaq=global_plaquette(conf);
+  if(rank==0) printf("smerded plaq: %.18g\n",plaq);
 
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
