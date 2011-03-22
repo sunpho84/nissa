@@ -228,6 +228,20 @@ void calculate_S0()
 	//smerd the source
 	dina_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter,source_pos[0]);
 	
+	//print the denisity profile
+	if(ic_source==0 && id_source==0)
+	  {
+	    int L=glb_size[1];
+	    double rho[L];
+	    density_profile(rho,source,source_pos);
+	    FILE *fout=open_text_file_for_output("profile");
+	    if(rank==0)
+	      {
+		for(int d=0;d<L;d++) fprintf(fout,"%d %g\n",d,rho[d]);
+		fclose(fout);
+	      }
+	  }	
+	
 	//invert
 	tinv-=take_time();
 	inv_Q2_cg(solDD,source,NULL,conf,kappa,mass,nitermax,1,residue);	
