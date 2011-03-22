@@ -3,45 +3,9 @@
 
 #include "appretto.h"
 
-void density_profile(double *rho,spincolor *sp)
-{
-  int L=glb_size[1];
-
-  int n[L];
-
-  memset(rho,0,sizeof(double)*L);
-  memset(n,0,sizeof(int)*L);
-
-  for(int l=0;l<loc_vol;l++)
-    if(glb_coord_of_loclx[l][0]==0)
-      {
-	//calculate distance
-	double r2=0;
-	int d;
-	for(int mu=1;mu<4;mu++)
-	  {
-	    int x=glb_coord_of_loclx[l][mu];
-	    if(x>=L/2) x-=L;
-	    r2+=x*x;
-	  }
-	d=(int)sqrt(r2);
-
-	//calculate the number of points at distance d
-	n[d]++;
-	
-	//calculate norm of the source
-	for(int id=0;id<4;id++)
-	  for(int ic=0;ic<3;ic++)
-	    for(int ri=0;ri<2;ri++)
-	      rho[d]+=sp[l][id][ic][ri]*sp[l][id][ic][ri];
-      }
-  
-  //normalize
-  //for(int d=0;d<L;d++) if(n[d]) rho[d]/=n[d];
-}
-
 int main(int narg,char **arg)
 {
+  int or_pos[4]={0,0,0,0};
   char filename[1024];
 
   //basic mpi initialization
@@ -72,9 +36,9 @@ int main(int narg,char **arg)
   quad_su3 *smea_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"smea_conf");
   read_local_gauge_conf(orig_conf,filename);
 
-  //ape_smearing(smea_conf,orig_conf,1,0.1);
-  //printf("gauge conf smeared\n");
-  memcpy(smea_conf,orig_conf,sizeof(quad_su3)*loc_vol);
+  ape_smearing(smea_conf,orig_conf,20,0.5);
+  printf("gauge conf smeared\n");
+  //memcpy(smea_conf,orig_conf,sizeof(quad_su3)*loc_vol);
 
   //allocate and generate the source
   spincolor *origi_sp=allocate_spincolor(loc_vol+loc_bord,"orig_spincolor");
@@ -87,8 +51,8 @@ int main(int narg,char **arg)
   
   int L=glb_size[1];
   double n_or[L],n_sm[L];
-  density_profile(n_or,origi_sp);
-  density_profile(n_sm,smear_sp);
+  density_profile(n_or,origi_sp,or_pos);
+  density_profile(n_sm,smear_sp,or_pos);
 
   FILE *fout=fopen("/tmp/prof","w");
   for(int d=0;d<L;d++)

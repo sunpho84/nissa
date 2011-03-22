@@ -18,12 +18,12 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
       
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	{     
-	  for(int mu=0;mu<4;mu++)
+	  for(int mu=1;mu<4;mu++)
 	    {
 	      //calculate staples
 	      su3 stap,temp1,temp2;
 	      memset(stap,0,sizeof(su3));
-	      for(int nu=0;nu<4;nu++)                   //  E---F---C   
+	      for(int nu=1;nu<4;nu++)                   //  E---F---C   
 		if(nu!=mu)                              //  |   |   | mu
 		  {                                     //  D---A---B   
 		    int A=loc_site;                     //        nu    
@@ -56,12 +56,55 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
   free(temp_conf);
 }
 
+//return the spatial density profile at a fixed timeslice, at radius r from or_pos
+void density_profile(double *glb_rho,spincolor *sp,int *or_pos)
+{
+  int L=glb_size[1];
+  
+  int glb_n[L],loc_n[L]; 
+  double loc_rho[L];
+  
+  memset(loc_rho,0,sizeof(double)*L);
+  memset(loc_n,0,sizeof(int)*L);
+
+  for(int l=0;l<loc_vol;l++)
+    if(glb_coord_of_loclx[l][0]==or_pos[0]||or_pos[0]<0)
+      {
+        //calculate distance
+        double r2=0;
+        int d;
+        for(int mu=1;mu<4;mu++)
+          {
+            int x=glb_coord_of_loclx[l][mu]-or_pos[mu];
+            if(x>=L/2) x-=L;
+            r2+=x*x;
+          }
+        d=(int)sqrt(r2);
+
+        //calculate the number of points at distance d
+        loc_n[d]++;
+        
+        //calculate norm of the source
+        for(int id=0;id<4;id++)
+          for(int ic=0;ic<3;ic++)
+            for(int ri=0;ri<2;ri++)
+              loc_rho[d]+=sp[l][id][ic][ri]*sp[l][id][ic][ri];
+      }
+  
+  //final reduction
+  MPI_Reduce(loc_rho,glb_rho,L,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Reduce(loc_n,glb_n,L,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
+  
+  //normalize
+  for(int d=0;d<L;d++) if(glb_n[d]) glb_rho[d]=sqrt(glb_rho[d]/glb_n[d]);
+}
+
 //apply kappa*H to a spincolor
 void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *smear_sc,int timeslice)
 {
   memset(H,0,sizeof(spincolor)*loc_vol);
   for(int l=0;l<loc_vol;l++)
-    if(glb_coord_of_loclx[l][0]==timeslice||timeslice==-1)
+    if(glb_coord_of_loclx[l][0]==timeslice||timeslice<0)
       for(int id=0;id<4;id++)
 	{
 	  for(int mu=1;mu<4;mu++)
@@ -191,3 +234,4 @@ void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double
   
   free(H);
 }
+
