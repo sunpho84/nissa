@@ -88,7 +88,7 @@ void density_profile(double *glb_rho,spincolor *sp,int *or_pos)
         for(int id=0;id<4;id++)
           for(int ic=0;ic<3;ic++)
             for(int ri=0;ri<2;ri++)
-              loc_rho[d]+=sp[l][id][ic][ri]*sp[l][id][ic][ri];
+	      loc_rho[d]+=sp[l][id][ic][ri]*sp[l][id][ic][ri];
       }
   
   //final reduction
@@ -96,13 +96,17 @@ void density_profile(double *glb_rho,spincolor *sp,int *or_pos)
   MPI_Reduce(loc_n,glb_n,L,MPI_INT,MPI_SUM,0,MPI_COMM_WORLD);
   
   //normalize
-  for(int d=0;d<L;d++) if(glb_n[d]) glb_rho[d]=sqrt(glb_rho[d]/glb_n[d]);
+  for(int d=0;d<L;d++) if(glb_n[d])
+    glb_rho[d]=sqrt(glb_rho[d]/glb_n[d]);
 }
 
 //apply kappa*H to a spincolor
 void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *smear_sc,int timeslice)
 {
   memset(H,0,sizeof(spincolor)*loc_vol);
+  
+  communicate_lx_spincolor_borders(smear_sc);
+  
   for(int l=0;l<loc_vol;l++)
     if(glb_coord_of_loclx[l][0]==timeslice||timeslice<0)
       for(int id=0;id<4;id++)
@@ -131,7 +135,7 @@ void vol_spincolor_summassign(spincolor *smear_sc,spincolor *H,int timeslice)
 void vol_assign_spincolor_prod_real(spincolor *sc,double c,int timeslice)
 {
   for(int l=0;l<loc_vol;l++)
-    if(glb_coord_of_loclx[l][0]==timeslice||timeslice==-1)
+    if(glb_coord_of_loclx[l][0]==timeslice||timeslice<-1)
       assign_spincolor_prod_real(sc[l],c);
 }
 
@@ -180,6 +184,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       
       //add kappa*H
       vol_spincolor_summassign(smear_sc,H_new,timeslice);
+
     }
   
   //final normalization  
@@ -188,19 +193,6 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
   free(H_old);
   free(H_new);
 }
-
-double vol_spincolor_norm(spincolor *smear_sc,int timeslice)
-{
-  double n2=0;
-  for(int l=0;l<loc_vol;l++)
-    if(glb_coord_of_loclx[l][0]==timeslice||timeslice==-1)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    n2+=pow(smear_sc[l][id][ic][ri],2);
-  
-  return n2;
-}  
 
 //jacobi smearing on the 
 void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int niter,int timeslice)
@@ -211,13 +203,10 @@ void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double
   
   //iter 0
   memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
-  double n2_ini=vol_spincolor_norm(smear_sc,timeslice);
 
   //loop over jacobi iterations
   for(int iter=0;iter<niter;iter++)
     {
-      communicate_lx_spincolor_borders(smear_sc);
-      
       //apply kappa*H
       smearing_apply_kappa_H(H,kappa,conf,smear_sc,timeslice);
 
@@ -228,10 +217,9 @@ void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double
       vol_assign_spincolor_prod_real(smear_sc,1/(1+6*kappa),timeslice);
     }
   
-  double n2_fin=vol_spincolor_norm(smear_sc,timeslice);
   //final normalization  
-  vol_assign_spincolor_prod_real(smear_sc,sqrt(n2_ini/n2_fin),timeslice);
-  
+  //vol_assign_spincolor_prod_real(smear_sc,sqrt(n2_ini/n2_fin),timeslice);
+
   free(H);
 }
 
