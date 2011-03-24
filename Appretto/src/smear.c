@@ -219,7 +219,7 @@ void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double
     }
   
   //final normalization  
-  //vol_assign_spincolor_prod_real(smear_sc,sqrt(n2_ini/n2_fin),timeslice);
+  vol_spincolor_normalize(smear_sc,timeslice);
 
   free(H);
 }
