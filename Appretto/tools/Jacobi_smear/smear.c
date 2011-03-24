@@ -36,8 +36,8 @@ int main(int narg,char **arg)
   quad_su3 *smea_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"smea_conf");
   read_local_gauge_conf(orig_conf,filename);
 
-  ape_smearing(smea_conf,orig_conf,20,0.5);
-  printf("gauge conf smeared\n");
+  ape_smearing(smea_conf,orig_conf,0.5,0);
+  if(rank==0) printf("gauge conf smeared\n");
   //memcpy(smea_conf,orig_conf,sizeof(quad_su3)*loc_vol);
 
   //allocate and generate the source
@@ -54,14 +54,14 @@ int main(int narg,char **arg)
   density_profile(n_or,origi_sp,or_pos);
   density_profile(n_sm,smear_sp,or_pos);
 
-  FILE *fout=fopen("/tmp/prof","w");
+  FILE *fout=open_text_file_for_output("profile");
   for(int d=0;d<L;d++)
     {
       n_or[d]=sqrt(n_or[d]);
       n_sm[d]=sqrt(n_sm[d]);
-      fprintf(fout,"%d %g %g\n",d,n_or[d],n_sm[d]);
+      if(rank==0) fprintf(fout,"%d %g %g\n",d,n_or[d],n_sm[d]);
     }
-  fclose(fout);
+  if(rank==0) fclose(fout);
     
   ///////////////////////////////////////////
   
