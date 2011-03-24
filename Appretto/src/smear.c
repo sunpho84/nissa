@@ -77,6 +77,7 @@ void density_profile(double *glb_rho,spincolor *sp,int *or_pos)
           {
             int x=glb_coord_of_loclx[l][mu]-or_pos[mu];
             if(x>=L/2) x-=L;
+            if(x<-L/2) x+=L;
             r2+=x*x;
           }
         d=(int)sqrt(r2);
