@@ -5,7 +5,7 @@
 
 int main(int narg,char **arg)
 {
-  int or_pos[4]={0,0,0,0};
+  int or_pos[4]={31,10,19,13};
   char filename[1024];
 
   //basic mpi initialization
@@ -36,18 +36,27 @@ int main(int narg,char **arg)
   quad_su3 *smea_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"smea_conf");
   read_local_gauge_conf(orig_conf,filename);
 
-  ape_smearing(smea_conf,orig_conf,0.5,0);
+  ape_smearing(smea_conf,orig_conf,0.5,20);
   if(rank==0) printf("gauge conf smeared\n");
   //memcpy(smea_conf,orig_conf,sizeof(quad_su3)*loc_vol);
 
   //allocate and generate the source
   spincolor *origi_sp=allocate_spincolor(loc_vol+loc_bord,"orig_spincolor");
   memset(origi_sp,0,sizeof(spincolor)*loc_vol);
-  if(rank==0) origi_sp[0][0][0][0]=1;
+
+  //put the source
+  int local=1;
+  int lx[4];
+  for(int mu=0;mu<4;mu++)
+    {
+      lx[mu]=or_pos[mu]-proc_coord[mu]*loc_size[mu];
+      local=local && lx[mu]>=0 && lx[mu]<loc_size[mu];
+    }
+  if(local==1) origi_sp[loclx_of_coord(lx)][0][0][0]=1;
   
   //allocate and smeard
   spincolor *smear_sp=allocate_spincolor(loc_vol+loc_bord,"smear_spincolor");
-  dina_smearing(smear_sp,origi_sp,smea_conf,4,50,0);
+  dina_smearing(smear_sp,origi_sp,smea_conf,4,50,or_pos[0]);
   
   int L=glb_size[1];
   double n_or[L],n_sm[L];
