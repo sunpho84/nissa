@@ -298,7 +298,7 @@ void calculate_S0()
 	  }
 	
 	//smerd the source
-	dina_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter,source_pos[0]);
+	jacobi_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
 
 	//print the denisity profile
         if(ic_sour==0 && id_sour==0)
@@ -350,7 +350,7 @@ void calculate_S0()
 		  }
 		
 		//smerd the sink
-		dina_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter,-1);
+		jacobi_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
 		for(int ivol=0;ivol<loc_vol;ivol++)
 		  put_spincolor_into_su3spinspin(S0_SS[imass][r][ivol],source[ivol],id_sour,ic_sour);
 	      }

@@ -226,7 +226,7 @@ void calculate_S0()
 	if(rank==0) printf("\n(S0) source index: id=%d, ic=%d\n",id_sour,ic_sour);
 	
 	//smerd the source
-	dina_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter,source_pos[0]);
+	jacobi_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
 	
 	//print the denisity profile
 	if(ic_sour==0 && id_sour==0)
@@ -251,7 +251,7 @@ void calculate_S0()
 	//smerd the sink
 	for(int i=0;i<2;i++)
 	  {
-	    dina_smearing(temp_source,sol_reco[i],smea_conf,jacobi_kappa,jacobi_niter,-1);
+	    jacobi_smearing(temp_source,sol_reco[i],smea_conf,jacobi_kappa,jacobi_niter);
 	    memcpy(sol_reco[i],temp_source,sizeof(spincolor)*loc_vol);
 	  }	
 	
