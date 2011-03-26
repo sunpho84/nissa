@@ -91,6 +91,14 @@ void jack_vec_fprintf(FILE *file,jack_vec *v)
   for(int iel=0;iel<nel;iel++) fprintf(file,"%d %g %g\n",iel,v->data[iel][njack],jack_error(v->data[iel]));
 }
 
+void jack_vec_print_to_file(const char *path,jack_vec *corr)
+{
+  //open the out file
+  FILE *fout=open_file(path,"w");
+  jack_vec_fprintf(fout,corr);  
+  fclose(fout);
+}
+
 void jack_vec_summ_jack_vec(jack_vec *c,jack_vec *a,jack_vec *b)
 {
   int nel=a->nel;
@@ -132,6 +140,9 @@ void jack_vec_prod_double(jack_vec *c,jack_vec *a,double b)
 void jack_vec_prodassign_double(jack_vec *a,double b)
 {jack_vec_prod_double(a,a,b);}
 
+void jack_vec_fracassign_double(jack_vec *a,double b)
+{jack_vec_prod_double(a,a,1/b);}
+
 void jack_vec_prod_jack(jack_vec *c,jack_vec *a,jack b)
 {
   int nel=a->nel;
@@ -141,6 +152,9 @@ void jack_vec_prod_jack(jack_vec *c,jack_vec *a,jack b)
     for(int ijack=0;ijack<njack+1;ijack++)
       c->data[iel][ijack]=a->data[iel][ijack]*b[ijack];
 }
+
+void jack_vec_prodassign_jack(jack_vec *c,jack b)
+{jack_vec_prod_jack(c,c,b);}
 
 void jack_vec_prod_jack_vec(jack_vec *c,jack_vec *a,jack_vec *b)
 {

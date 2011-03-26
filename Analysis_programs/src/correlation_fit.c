@@ -34,7 +34,7 @@ void ch2_fit_mass_wr(int &npar,double *fuf,double &ch,double *p,int flag)
 }
 
 //perform the simultaneous fit of the mass
-void jack_fit_mass(jack Z,jack M,jack_vec *a,int tmin,int tmax)
+void jack_mass_fit(jack Z,jack M,jack_vec *a,int tmin,int tmax)
 {
   _tmin_fit_mass=tmin;
   _tmax_fit_mass=tmax;
@@ -83,7 +83,7 @@ double chi2_constant_fit(double C,int ij)
   double ch2=0;
   
   for(int t=0;t<T;t++)
-    if((t>=_tmin_constant_fit && t<=_tmax_constant_fit)||(t>=T-_tmax_constant_fit && t<=T-_tmin_constant_fit))
+    if(t>=_tmin_constant_fit && t<=_tmax_constant_fit)
       {
 	double add=pow((_data_constant_fit->data[t][_ijack_constant_fit]-C)/_err_data_constant_fit[t],2);
 	ch2+=add;
@@ -101,7 +101,7 @@ void ch2_constant_fit_wr(int &npar,double *fuf,double &ch,double *p,int flag)
 }
 
 //perform the simultaneous fit of the mass
-void constant_fit(jack C,jack_vec *a,int tmin,int tmax)
+void jack_constant_fit(jack C,jack_vec *a,int tmin,int tmax)
 {
   _tmin_constant_fit=tmin;
   _tmax_constant_fit=tmax;

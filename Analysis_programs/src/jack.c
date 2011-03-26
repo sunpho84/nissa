@@ -26,10 +26,28 @@ void jack_prod_jack(jack c,jack a,jack b)
     c[ijack]=a[ijack]*b[ijack];
 }
 
+void jack_fracassign_jack(jack c,jack a)
+{
+  for(int ijack=0;ijack<njack+1;ijack++)
+    c[ijack]/=a[ijack];
+}
+
+void jack_prodassign_jack(jack c,jack a)
+{
+  for(int ijack=0;ijack<njack+1;ijack++)
+    c[ijack]*=a[ijack];
+}
+
 void jack_frac_jack(jack c,jack a,jack b)
 {
   for(int ijack=0;ijack<njack+1;ijack++)
     c[ijack]=a[ijack]/b[ijack];
+}
+
+void double_frac_jack(jack c,double a,jack b)
+{
+  for(int ijack=0;ijack<njack+1;ijack++)
+    c[ijack]=a/b[ijack];
 }
 
 void jack_subtprod_jack(jack c,jack a,jack b)
@@ -48,6 +66,36 @@ void jack_summ_jack(jack c,jack a,jack b)
 {
   for(int ijack=0;ijack<njack+1;ijack++)
     c[ijack]=a[ijack]+b[ijack];
+}
+
+void jack_summassign_jack(jack c,jack a)
+{
+  for(int ijack=0;ijack<njack+1;ijack++)
+    c[ijack]+=a[ijack];
+}
+
+void jack_fracassign_double(jack c,double a)
+{
+  for(int ijack=0;ijack<njack+1;ijack++)
+    c[ijack]/=a;
+}
+
+void jack_prodassign_double(jack c,double a)
+{
+  for(int ijack=0;ijack<njack+1;ijack++)
+    c[ijack]*=a;
+}
+
+void jack_summassign_double(jack c,double a)
+{
+  for(int ijack=0;ijack<njack+1;ijack++)
+    c[ijack]+=a;
+}
+
+void jack_summ_double(jack c,jack a,double b)
+{
+  for(int ijack=0;ijack<njack+1;ijack++)
+    c[ijack]=a[ijack]+b;
 }
 
 void jack_subt_double(jack c,jack a,double b)

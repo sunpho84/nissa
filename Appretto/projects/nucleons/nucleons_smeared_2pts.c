@@ -229,7 +229,7 @@ void calculate_S0()
 	dina_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter,source_pos[0]);
 	
 	//print the denisity profile
-	if(ic_source==0 && id_source==0)
+	if(ic_sour==0 && id_sour==0)
 	  {
 	    int L=glb_size[1];
 	    double rho[L];
