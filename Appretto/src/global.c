@@ -26,6 +26,7 @@ int **loce_neighdw;
 int **loco_neighup;
 int **loco_neighdw;
 int loc_volr;
+int appretto_eo_geom_init=0;
 
 //neighbours of local volume + borders
 int **loclx_neighdw,**loclx_neighup;

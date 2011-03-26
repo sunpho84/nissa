@@ -122,6 +122,12 @@ void unsafe_su3_hermitian(su3 out,su3 in)
 //summ two su3 matrixes
 void su3_summ(su3 a,su3 b,su3 c)
 {for(int i=0;i<18;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
+void su3_summ_real(su3 a,su3 b,double c)
+{for(int i=0;i<3;i++) for(int ri=0;ri<2;ri++) a[i][i][ri]=b[i][i][ri]+c;}
+void su3_subt(su3 a,su3 b,su3 c)
+{for(int i=0;i<18;i++) ((double*)a)[i]=((double*)b)[i]-((double*)c)[i];}
+void su3_subt_complex(su3 a,su3 b,complex c)
+{for(int i=0;i<3;i++) for(int ri=0;ri<2;ri++) a[i][i][ri]=b[i][i][ri]-c[ri];}
 
 //Product of two su3 matrixes
 void su3_prod_su3(su3 a,su3 b,su3 c)
@@ -195,32 +201,32 @@ void su3_explicit_inverse(su3 invU,su3 U)
   complex det,rec_det;
   su3_det(det,U);
   complex_reciprocal(rec_det,det);
-
+  
   unsafe_complex_prod(invU[0][0],U[1][1],U[2][2]);
   unsafe_complex_prod(invU[1][0],U[1][2],U[2][0]);
   unsafe_complex_prod(invU[2][0],U[1][0],U[2][1]);
-
+  
   unsafe_complex_prod(invU[0][1],U[0][2],U[2][1]);
   unsafe_complex_prod(invU[1][1],U[0][0],U[2][2]);
   unsafe_complex_prod(invU[2][1],U[0][1],U[2][0]);
-
+  
   unsafe_complex_prod(invU[0][2],U[0][1],U[1][2]);
   unsafe_complex_prod(invU[1][2],U[0][2],U[1][0]);
   unsafe_complex_prod(invU[2][2],U[0][0],U[1][1]);
-
-
+  
+  
   complex_subt_the_prod(invU[0][0],U[1][2],U[2][1]);
   complex_subt_the_prod(invU[1][0],U[1][0],U[2][2]);
   complex_subt_the_prod(invU[2][0],U[1][1],U[2][0]);
-
+  
   complex_subt_the_prod(invU[0][1],U[0][1],U[2][2]);
   complex_subt_the_prod(invU[1][1],U[0][2],U[2][0]);
   complex_subt_the_prod(invU[2][1],U[0][0],U[2][1]);
-
+  
   complex_subt_the_prod(invU[0][2],U[0][2],U[1][1]);
   complex_subt_the_prod(invU[1][2],U[0][0],U[1][2]);
   complex_subt_the_prod(invU[2][2],U[0][1],U[1][0]);
-
+  
   for(int icol1=0;icol1<3;icol1++)
     for(int icol2=0;icol2<3;icol2++)
       safe_complex_prod(invU[icol1][icol2],invU[icol1][icol2],rec_det);
@@ -242,27 +248,31 @@ double su3_normq(su3 U)
 //unitarize an su3 matrix
 void su3_unitarize(su3 new_link,su3 prop_link)
 {
-  su3 inv;
+  su3 inv,temp_link;
   double gamma,check;
+  
+  memcpy(temp_link,prop_link,sizeof(su3));
   
   do
     {
-      su3_explicit_inverse(inv,prop_link);
-      gamma=sqrt(su3_normq(inv)/su3_normq(prop_link));
-      
+      su3_explicit_inverse(inv,temp_link);
+      gamma=sqrt(su3_normq(inv)/su3_normq(temp_link));
+
       //average U and U^-1^+
       check=0;
       for(int icol1=0;icol1<3;icol1++)
 	for(int icol2=0;icol2<3;icol2++)
 	  {
-	    new_link[icol1][icol2][0]=0.5*(prop_link[icol1][icol2][0]*gamma+inv[icol2][icol1][0]/gamma);
-	    new_link[icol1][icol2][1]=0.5*(prop_link[icol1][icol2][1]*gamma-inv[icol2][icol1][1]/gamma);
+	    new_link[icol1][icol2][0]=0.5*(temp_link[icol1][icol2][0]*gamma+inv[icol2][icol1][0]/gamma);
+	    new_link[icol1][icol2][1]=0.5*(temp_link[icol1][icol2][1]*gamma-inv[icol2][icol1][1]/gamma);
 	    for(int ri=0;ri<2;ri++)
-	      check+=(new_link[icol1][icol2][ri]-prop_link[icol1][icol2][ri])
-		*(new_link[icol1][icol2][ri]-prop_link[icol1][icol2][ri]);
+	      {
+		double diff=new_link[icol1][icol2][ri]-temp_link[icol1][icol2][ri];
+		check+=diff*diff;
+		}
 	  }
-
-      memcpy(prop_link,new_link,sizeof(su3));
+      
+      memcpy(temp_link,new_link,sizeof(su3));
       
       check=sqrt(check);
     }

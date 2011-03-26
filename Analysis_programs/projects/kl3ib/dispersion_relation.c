@@ -54,13 +54,15 @@ int main()
   int r1=0,r2=r1;
 
   //load the pion
-  int im1=0,im2=0;
+  int im1=0,im2=1;
   
   //open all the out file
   FILE *Z_out=open_file("Z_out","w");
+  FILE *e_out=open_file("e_out","w");
   FILE *m_out=open_file("m_out","w");
+  FILE *e2_out=open_file("e2_out","w");
   FILE *m2_out=open_file("m2_out","w");
-  FILE *delta_m2_out=open_file("delta_m2_out","w");
+  FILE *delta_e2_out=open_file("delta_e2_out","w");
   
   //loop over triangular impulses
   for(int ik1=0;ik1<nmoms;ik1++)
@@ -72,34 +74,43 @@ int main()
 	//load the correlation functions, averaged	
 	load_averaged_two_points(c,base_path,im1,im2,ik1,ik2,r1,r2);
 	
-	//fit Z and mass
-	jack Z,m;
-	jack_fit_mass(Z,m,c,12,23);
+	//fit Z and energy
+	jack Z,e;
+	jack_mass_fit(Z,e,c,12,23);
 	
-	//calculate squared mass
-	jack m2;
-	jack_prod_jack(m2,m,m);
+	//calculate squared energy
+	jack e2;
+	jack_prod_jack(e2,e,e);
 	
 	//if this is the first mass, copy it to m2_0
-	jack m2_0;
-	if((ik1==0)&&(ik2==0)) memcpy(m2_0,m2,sizeof(jack));
+	jack e2_0;
+	if((ik1==0)&&(ik2==0)) memcpy(e2_0,e2,sizeof(jack));
 	
-	//subtract m2_0 from m2
-	jack delta_m2;
-	jack_subt_jack(delta_m2,m2,m2_0);
+	//subtract e2_0 from e2
+	jack delta_e2;
+	jack_subt_jack(delta_e2,e2,e2_0);
+	
+	//calculate invariant mass
+	jack m2,m;
+	jack_subt_double(m2,e2,q2);
+	jack_sqrt_jack(m,m2);
 	
 	//print results
 	fprintf(Z_out,"%g %g %g\n",q2,Z[njack],jack_error(Z));
+	fprintf(e_out,"%g %g %g\n",q2,e[njack],jack_error(e));
 	fprintf(m_out,"%g %g %g\n",q2,m[njack],jack_error(m));
+	fprintf(e2_out,"%g %g %g\n",q2,e2[njack],jack_error(e2));
 	fprintf(m2_out,"%g %g %g\n",q2,m2[njack],jack_error(m2));
-	fprintf(delta_m2_out,"%g %g %g\n",q2,delta_m2[njack],jack_error(delta_m2));
+	fprintf(delta_e2_out,"%g %g %g\n",q2,delta_e2[njack],jack_error(delta_e2));
       }
 
   //close output files
   fclose(Z_out);
+  fclose(e_out);
   fclose(m_out);
+  fclose(e2_out);
   fclose(m2_out);
-  fclose(delta_m2_out);
+  fclose(delta_e2_out);
   
   //free the jacknife vector used to load data
   jack_vec_free(c);

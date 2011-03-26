@@ -132,7 +132,7 @@ void vol_spincolor_summassign(spincolor *smear_sc,spincolor *H,int timeslice)
       spincolor_summ(smear_sc[l],smear_sc[l],H[l]);
 }
 
-//normalize
+//prod with real
 void vol_assign_spincolor_prod_real(spincolor *sc,double c,int timeslice)
 {
   for(int l=0;l<loc_vol;l++)
@@ -140,10 +140,9 @@ void vol_assign_spincolor_prod_real(spincolor *sc,double c,int timeslice)
       assign_spincolor_prod_real(sc[l],c);
 }
 
-//normalize
-void vol_spincolor_normalize(spincolor *smear_sc,int timeslice)
+//norm of a vol spincolor
+double vol_spincolor_norm(spincolor *smear_sc,int timeslice)
 {
-  //calculate global norm
   double loc_norm=0;
   for(int l=0;l<loc_vol;l++)
     if(glb_coord_of_loclx[l][0]==timeslice||timeslice==-1)
@@ -153,14 +152,22 @@ void vol_spincolor_normalize(spincolor *smear_sc,int timeslice)
 	    loc_norm+=smear_sc[l][id][ic][ri]*smear_sc[l][id][ic][ri];
   double norm;
   MPI_Allreduce(&loc_norm,&norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  norm=sqrt(norm);
+
+  return sqrt(norm);
+}
+
+//normalize
+void vol_spincolor_normalize(spincolor *smear_sc,double norm_fin,int timeslice)
+{
+  double norm_in=vol_spincolor_norm(smear_sc,timeslice);
   
   //normalize
-  for(int l=0;l<loc_vol;l++)      
+  for(int l=0;l<loc_vol;l++)
+    if(glb_coord_of_loclx[l][0]==timeslice||timeslice==-1)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
-	  smear_sc[l][id][ic][ri]/=norm;
+	  smear_sc[l][id][ic][ri]*=norm_fin/norm_in;
 }
 
 //jacobi smearing on the 
@@ -189,7 +196,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
     }
   
   //final normalization  
-  vol_spincolor_normalize(smear_sc,timeslice);
+  vol_spincolor_normalize(smear_sc,1,timeslice);
   
   free(H_old);
   free(H_new);
@@ -204,6 +211,7 @@ void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double
   
   //iter 0
   memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
+  double norm_in=vol_spincolor_norm(smear_sc,timeslice);
 
   //loop over jacobi iterations
   for(int iter=0;iter<niter;iter++)
@@ -219,7 +227,7 @@ void dina_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double
     }
   
   //final normalization  
-  vol_spincolor_normalize(smear_sc,timeslice);
+  vol_spincolor_normalize(smear_sc,norm_in,timeslice);
 
   free(H);
 }

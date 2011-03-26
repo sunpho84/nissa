@@ -104,10 +104,10 @@ int main()
       if(r==0)
 	{
 	  //print results
-	  print_corr_to_file("P5_P5.out",P5_P5);
-	  print_corr_to_file("P5_V0_P5.out",P5_V0_P5);
-	  print_corr_to_file("P5_P5_simm.out",P5_V0_P5_simm);
-	  print_corr_to_file("Zv_corr.out",Zv_corr[r]);
+	  jack_vec_print_to_file("P5_P5.out",P5_P5);
+	  jack_vec_print_to_file("P5_V0_P5.out",P5_V0_P5);
+	  jack_vec_print_to_file("P5_P5_simm.out",P5_V0_P5_simm);
+	  jack_vec_print_to_file("Zv_corr.out",Zv_corr[r]);
 	}
     }
   

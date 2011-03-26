@@ -10,12 +10,6 @@ int opposite_theta(int ik,double *theta)
   return ik_opp;
 }
 
-//return the ratio between the correlation function with and without insertion
-double fun_ratio(double A,double SL,double M,int t,int TH)
-{
-  return A+SL*(t-TH)*tanh(M*(TH-t));
-}
-
 void check_interval(int var,int min,int max)
 {
   if(var>=max || var<min)
@@ -24,14 +18,6 @@ void check_interval(int var,int min,int max)
       sprintf(err_mess,"Asked for correlation of impossible combination, %d not in the interval: [%d,%d)\n",var,min,max);
       crash(err_mess,1);
     }
-}
-
-void print_corr_to_file(const char *path,jack_vec *corr)
-{
-  //open the out file
-  FILE *fout=open_file(path,"w");
-  jack_vec_fprintf(fout,corr);  
-  fclose(fout);
 }
 
 //read a particular two point passed as argument
@@ -55,7 +41,7 @@ void read_three_points(jack_vec *c,const char *in,int nmoms,int nmass,int im1,in
   check_interval(mu,0,4);
 
   int icorr=ik1+nmoms*(ik2+nmoms*(im1*2+r1+2*nmass*(im2*2+r2+2*nmass*(im3*2+r3))));
-
+  
   FILE *file=open_file(in,"r");
   int nel=c->nel;
 
@@ -174,7 +160,7 @@ void load_improved_degenerate_charged_meson_three_points_P5_Vmu_P5(jack_vec *P5_
 {load_improved_charged_meson_three_points_P5_Vmu_P5(P5_Vmu_P5,base_path,nmoms,nmass,r,im_spec,im_valence,im_valence,ik1,ik2,mu,theta,L);}
 
 void load_improved_degenerate_charged_meson_three_points_P5_V0_P5(jack_vec *P5_V0_P5,const char *base_path,int nmoms,int nmass,int r,int im_spec,int im_valence,int ik1,int ik2,double *theta,int L)
-{load_improved_charged_meson_three_points_P5_Vmu_P5(P5_V0_P5,base_path,nmoms,nmass,r,im_spec,im_valence,im_valence,ik1,ik2,0,theta,L);}
+{load_improved_degenerate_charged_meson_three_points_P5_Vmu_P5(P5_V0_P5,base_path,nmoms,nmass,r,im_spec,im_valence,ik1,ik2,0,theta,L);}
 
 //load the mesonic two point function
 void load_improved_charged_meson_two_points_P5_P5(jack_vec *P5_P5,const char *base_path,int nmoms,int nmass,int r,int im_spec,int im_valence,int ik1,double *theta,int L)
