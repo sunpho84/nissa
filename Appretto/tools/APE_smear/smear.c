@@ -5,8 +5,6 @@
 
 int main(int narg,char **arg)
 {
-  char filename[1024];
-
   //basic mpi initialization
   init_appretto();
 
@@ -21,8 +19,7 @@ int main(int narg,char **arg)
 
   read_str_int("L",&(glb_size[1]));
   read_str_int("T",&(glb_size[0]));
-  read_str_str("Filename",filename,1024);
-
+  
   close_input();
 
   //Init the MPI grid 
@@ -33,10 +30,10 @@ int main(int narg,char **arg)
   quad_su3 *origi_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"or_conf");
   quad_su3 *smear_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"sm_conf");
   
-  read_local_gauge_conf(origi_conf,filename);
+  read_local_gauge_conf(origi_conf,"/home/francesco/Prace/nissa/Appretto/test/gaugeconf_load/conf.0048");
       
-  ape_smearing(smear_conf,origi_conf,10,0.5);
-
+  ape_smearing(smear_conf,origi_conf,0.4,7);
+  
   su3_print(origi_conf[0][1]);
   su3_print(smear_conf[0][1]);
 
@@ -46,6 +43,16 @@ int main(int narg,char **arg)
   printf("%g %g\n",origi_plaq,smear_plaq);
   
   ///////////////////////////////////////////
+  
+  spincolor *s=allocate_spincolor(loc_vol,"s");
+  spincolor *t=allocate_spincolor(loc_vol,"t");
+  read_spincolor(s,"/home/francesco/Prace/Programs/src/ahmidas-rw/test/point_src.48");
+  jacobi_smearing(t,s,smear_conf,0.5,5);
+  int l=loclx_of_coord_list(0,1,0,2);
+  
+  for(int d=0;d<4;d++)
+    for(int c=0;c<3;c++)
+      printf("%g %g\n",t[l][d][c][0],t[l][d][c][1]);
   
   close_appretto();
 
