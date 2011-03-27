@@ -3,20 +3,20 @@
 #include "dirac_operator.c"
 #include "su3.c"
 
-void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
+void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
 {
   static double _Complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
   static double _Complex B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32;
   static double _Complex N0,N1,N2;
   static double _Complex R;
-
+  
   double zps[nmass],zas[nmass],zfs[nmass],betas[nmass],alphas[nmass];
   double rr,rfrf,pap,alpha;
   double betap,betaa;
   int iter;
   int run_flag[nmass],nrun_mass=nmass;
   double final_res[nmass];
-
+  
   spincolor *t=allocate_spincolor(loc_vol+loc_bord,"temporary for internal calculation of DD");
   spincolor *s=allocate_spincolor(loc_vol,"s in cgmms");
   spincolor *r=allocate_spincolor(loc_vol,"r in cgmms");
@@ -37,7 +37,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
   {
     complex cloc_rr={0,0};
     bgp_color_put_to_zero(N0,N1,N2);
-
+    
     for(int i=0;i<loc_vol;i++)
       {
 	bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,source[i]);
@@ -47,13 +47,13 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
       }
     bgp_square_norm_color(N0,N1,N2);
     bgp_save_complex(cloc_rr,N0);
-        
+    
     if(rank_tot>0) MPI_Allreduce(cloc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     else rr=cloc_rr[0];
-
+    
     if(st_crit==sc_standard||st_crit==sc_unilevel) st_res*=rr;
   }
-
+  
   //     -betaa=1
   betaa=1;
   
@@ -66,7 +66,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	  bgp_save_spincolor(ps[imass][i],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
       }
   }
-
+  
   //     -zps=zas=1
   //     -alphas=0
   {
@@ -85,7 +85,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
     {
       //     -s=Ap
       if(rank_tot>0) communicate_lx_spincolor_borders(p);
-      apply_Q2(s,p,conf,kappa,m[0],t,NULL,NULL);
+      apply_Q2_RL(s,p,conf,kappa,m[0],t,NULL,NULL,RL);
       //     -pap=(p,s)=(p,Ap)
       {
 	complex cloc_pap={0,0};
@@ -103,7 +103,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	if(rank_tot>0) MPI_Allreduce(cloc_pap,&pap,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else pap=cloc_pap[0];
       }
-
+      
       //     calculate betaa=rr/pap=(r,r)/(p,Ap)
       betap=betaa;
       betaa=-rr/pap;
@@ -195,7 +195,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
 	iter++;
 	
 	//     check over residual
-	nrun_mass=check_cgmms_residue(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t);
+	nrun_mass=check_cgmms_residue_RL(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t,RL);
     }
   while(nrun_mass>0 && iter<niter);
   
@@ -206,7 +206,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
   for(int imass=0;imass<nmass;imass++)
     {
       double res,w_res,weight,max_res;
-      apply_Q2(s,sol[imass],conf,kappa,m[imass],t,NULL,NULL);
+      apply_Q2_RL(s,sol[imass],conf,kappa,m[imass],t,NULL,NULL,RL);
       {
 	complex cloc_res={0,0};
 	double locw_res=0;
@@ -271,3 +271,9 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
   free(r);
   free(t);
 }
+
+void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
+{inv_Q2_cgmms_RL(sol,source,guess,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,0);}
+
+void inv_Q2_cgmms_left(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
+{inv_Q2_cgmms_RL(sol,source,guess,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,1);}
