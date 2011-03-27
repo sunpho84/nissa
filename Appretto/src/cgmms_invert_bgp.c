@@ -271,9 +271,3 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
   free(r);
   free(t);
 }
-
-void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
-{inv_Q2_cgmms_RL(sol,source,guess,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,0);}
-
-void inv_Q2_cgmms_left(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
-{inv_Q2_cgmms_RL(sol,source,guess,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,1);}
