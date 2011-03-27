@@ -3,7 +3,7 @@
 #include "dirac_operator.c"
 #include "su3.c"
 
-void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
+void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
 {
   double zps[nmass],zas[nmass],zfs[nmass],betas[nmass],alphas[nmass];
   double rr,rfrf,pap,alpha;
@@ -75,7 +75,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
     {
       //     -s=Ap
       if(rank_tot>0) communicate_lx_spincolor_borders(p);
-      apply_Q2(s,p,conf,kappa,m[0],t,NULL,NULL);
+      apply_Q2_RL(s,p,conf,kappa,m[0],t,NULL,NULL,RL);
       
       //     -pap=(p,s)=(p,Ap)
       {
@@ -169,7 +169,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
       iter++;
       
       //     check over residual
-      nrun_mass=check_cgmms_residue(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t);
+      nrun_mass=check_cgmms_residue_RL(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t,RL);
     }
   while(nrun_mass>0 && iter<niter);
   
@@ -180,7 +180,7 @@ void inv_Q2_cgmms(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *
   for(int imass=0;imass<nmass;imass++)
     {
       double res,w_res,weight,max_res;
-      apply_Q2(s,sol[imass],conf,kappa,m[imass],t,NULL,NULL);
+      apply_Q2_RL(s,sol[imass],conf,kappa,m[imass],t,NULL,NULL,RL);
       {
 	double loc_res=0;
 	double locw_res=0;
