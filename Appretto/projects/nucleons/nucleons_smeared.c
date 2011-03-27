@@ -43,7 +43,7 @@ int tseparation;
 int tsink;
 
 spinspin Proj[3]; //projectors over N and N*, and 00 compont of N (in the spinorial representation)
-int Proj_ind1[8]={0,0,1,1,2,2,3,3},Proj_ind2[8]={0,2,1,3,0,2,1,3}; //indexes different from 0
+int Proj_ind1[8]={0,0,1,1,2,2,3,3},Proj_ind2[8]={0,2,1,3,0,2,1,3}; //indices different from 0
 int Proj_couples[4][2]={{0,5},{2,7},{1,4},{3,6}}; //independent couples
 int Proj_entr[3][4]={{1,1,-1,-1},{1,1,1,1},{1,0,-1,0}};
 spinspin C5; //C*gamma5
@@ -406,10 +406,10 @@ void local_diquark(diquark *diq,su3spinspin *S)
 		  //both epsilon index (at fixed b) exchanged, so summ
 		  complex_summ_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][c1][c][al1][al],S[l][a1][a][ga1][ga]);
 		  complex_subt_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][c1][a][al1][ga],S[l][a1][c][ga1][al]);
-		  //now only b indexes (a and c) exchanged, so subt
+		  //now only b indices (a and c) exchanged, so subt
 		  complex_subt_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][a1][c][al1][al],S[l][c1][a][ga1][ga]);
 		  complex_summ_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][a1][a][al1][ga],S[l][c1][c][ga1][al]);
-		  //again only b1 indexes (a1 and c1) exchanged, so subt
+		  //again only b1 indices (a1 and c1) exchanged, so subt
 		  complex_subt_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][c1][a][al1][al],S[l][a1][c][ga1][ga]);
 		  complex_summ_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][c1][c][al1][ga],S[l][a1][a][ga1][al]);
 		}
@@ -452,7 +452,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
   //tag for the contraction file
   char pm_tag[2][2]={"+","-"};
   
-  //diquark term and all-open dirac indexes term
+  //diquark term and all-open dirac indices term
   diquark *diq=(diquark*)malloc(sizeof(diquark)*loc_vol);
   ssssss prot6[glb_size[0]];
   ssss prot4[glb_size[0]];
@@ -477,7 +477,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 	//calculate the di-quark part
 	local_diquark(diq,S0[im_like][rlike]);
 	
-	//now close with the third propagator leaving all dirac indexes open, and makes global reduction
+	//now close with the third propagator leaving all dirac indices open, and makes global reduction
 	for(int im_dislike=0;im_dislike<nmass;im_dislike++)
 	  for(int rdislike=0;rdislike<2;rdislike++)
 	    {
@@ -486,7 +486,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 	      
 	      close_diquark(prot6,diq,S0[im_dislike][rdislike]);
 	      
-	      //now we still have a structure with 6 dirac indexes, and is possible to factorize 2 dirac contractions
+	      //now we still have a structure with 6 dirac indices, and is possible to factorize 2 dirac contractions
 	      //perform the proton contraction putting operators on the sink or on the source
 	      for(int SS=0;SS<2;SS++)
 		{
@@ -505,8 +505,14 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 				else      complex_summ_the_prod(prot4[t][al][be][ga][ga1],o3.entr[al1],prot6[t][al1][be1][ga1][al][be][ga]);
 			      }
 		  
-		  //now put the other two dirac matrices, remaining with 2 open dirac indexes.
-		  //We collect them in an appropriate structure
+		  //now put the other two dirac matrices, remaining with 2 open dirac indices.
+		  //We collect them in an appropriate structures:
+		  //
+		  //   + 0 - 0     + 0 + 0     + 0 + 0  	This are (2 times) the 3 projectors. Only 8 entries
+		  //   0 + 0 -     0 + 0 +     0 0 0 0  	are different from 0. Entries are numbered seq.lly,
+		  //   - 0 + 0     + 0 + 0     + 0 + 0  	and summed in pairs.                               
+		  //   0 - 0 +     0 + 0 +     0 0 0 0 	                                                   
+
 		  for(int icontr=0;icontr<nproton_2pt_contr;icontr++)
 		    {
 		      memset(prot,0,sizeof(spin)*glb_size[0]);
@@ -536,7 +542,7 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 				}
 			    }
 		      
-		      //ok, we managed to have something with 2 left dirac indexes.
+		      //ok, we managed to have something with 2 left dirac indices (altough organized)
 		      //still we need to project them, using the already defined 3 projectors
 		      for(int nns=0;nns<3;nns++)
 			{
@@ -979,22 +985,6 @@ int main(int narg,char **arg)
   
   initialize_nucleons(arg[1]);
   
-  /*
-  for(int nns=0;nns<3;nns++)
-    {
-      for(int id1=0;id1<4;id1++)
-	{
-	  for(int id2=0;id2<4;id2++)
-	    {
-	      for(int ri=0;ri<2;ri++) printf("%g ",Proj[nns][id1][id2][ri]);
-	      printf("\t");
-	    }
-	  printf("\n");
-	}
-      printf("\n");
-    }
-  */
-
   ///////////////////////////////////////////
   
   prepare_source();
