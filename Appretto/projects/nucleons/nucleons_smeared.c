@@ -415,6 +415,7 @@ void local_diquark(diquark *diq,su3spinspin *S)
 		}
 }
 
+//close the diquark with the third propagator
 void close_diquark(ssssss *prot6,diquark *diq,su3spinspin* S)
 {
   ssssss *loc_prot6=(ssssss*)malloc(sizeof(ssssss)*glb_size[0]);
@@ -989,13 +990,23 @@ int main(int narg,char **arg)
   
   prepare_source();
   
+  //loop over configurations
   for(int iconf=0;iconf<nconf;iconf++)
     {
+      //prepare the SL output path
+      char path_SL[1024],path_SS[1024];
+      sprintf(path_SL,"%s_SL",out_path[iconf]);
+      sprintf(path_SS,"%s_SS",out_path[iconf]);
+
       read_conf_and_put_antiperiodic(conf,conf_path[iconf],source_pos[0]);
       
       calculate_S0();
-      calculate_all_2pts(out_path[iconf],S0_SS);
+      
+      //now print both SL and SS
+      calculate_all_2pts(path_SL,S0_SL);
+      calculate_all_2pts(path_SS,S0_SS);
 
+      //time for the three points
       for(int rlike=0;rlike<2;rlike++)
 	for(int rdislike=0;rdislike<2;rdislike++)
 	  if(compute_3pts[rlike][rdislike])
