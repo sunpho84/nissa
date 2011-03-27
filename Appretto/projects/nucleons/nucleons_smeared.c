@@ -52,6 +52,7 @@ spinspin C5; //C*gamma5
 int nproton_2pt_contr=32;      //VA     AV       VV       AA       TT        BB        TB        BT
 int list_2pt_op1[32]={5,0,5,0, 1,2,3,4, 6,7,8,9, 1,2,3,4, 6,7,8,9, 10,11,12, 13,14,15, 10,11,12, 13,14,15};
 int list_2pt_op2[32]={0,5,5,0, 6,7,8,9, 1,2,3,4, 1,2,3,4, 6,7,8,9, 10,11,12, 13,14,15, 13,14,15, 10,11,12};
+int compute_also_SL_2pts;
 
 //which 3 pts compute
 int compute_3pts[2][2];
@@ -188,7 +189,9 @@ void initialize_nucleons(char *input_path)
   //Number of iterations
   read_str_int("NiterMax",&niter_max);
   
-  // 4) insertion info
+  // 4) 2pts and insertion info
+  //compute also SL 2pts?
+  read_str_int("ComputeAlsoSL2pts",&compute_also_SL_2pts);
   //tsink-tsource
   read_str_int("TSeparation",&tseparation);
   tsink=(source_pos[0]+tseparation)%glb_size[0];
@@ -1003,7 +1006,7 @@ int main(int narg,char **arg)
       calculate_S0();
       
       //now print both SL and SS
-      calculate_all_2pts(path_SL,S0_SL);
+      if(compute_also_SL_2pts) calculate_all_2pts(path_SL,S0_SL);
       calculate_all_2pts(path_SS,S0_SS);
 
       //time for the three points

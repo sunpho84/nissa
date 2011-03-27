@@ -52,6 +52,9 @@ kappa=[kappac]
 list_mu=([mu1] [mu2])
 ind3pts_mass=[imu] #ind. of mass for the 3pts
 
+#compute or not SL two points
+compute_also_SL_2pts=[ 0 1 ]
+
 #separation between source and sink
 tseparation=[t]
 
@@ -112,6 +115,8 @@ Residue $stopping_residue
 StoppingCriterion standard
 MinimalResidue $minimal_residue
 NiterMax $num_max_iter
+
+ComputeAlsoSL2pts $compute_also_SL_2pts
 
 TSeparation $tseparation
 Compute3ptsLike0Dislike0 $Compute3ptsLike0Dislike0
