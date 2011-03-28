@@ -1,15 +1,15 @@
 #pragma once
 
-#include "dirac_operator.c"
+#include "dirac_operator_sorcered_portable.c"
 #include "su3.c"
 
-void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
+void inv_Q2_cg_sorc_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
 {
   int riter=0;
-  spincolor *s=(spincolor*)malloc(sizeof(spincolor)*(loc_vol));
-  spincolor *p=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-  spincolor *r=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
-  spincolor *t=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord)); //temporary for internal calculation of DD
+  spincolor *s=allocate_spincolor(loc_vol,"s in sorcered cg");
+  spincolor *p=allocate_spincolor(loc_vol+loc_bord,"p in sorcered cg");
+  spincolor *r=allocate_spincolor(loc_vol,"r in sorcered cg");
+  spincolor *t=allocate_spincolor(loc_vol+loc_bord,"t in sorcered cg"); //temporary for internal calculation of DD
 
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
   else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));

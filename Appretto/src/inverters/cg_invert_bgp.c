@@ -1,7 +1,7 @@
 #pragma once
 
-#include "bgp_instructions.c"
-#include "dirac_operator.c"
+#include "base/bgp_instructions.c"
+#include "dirac_operators/dirac_operator.c"
 
 void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
 {
