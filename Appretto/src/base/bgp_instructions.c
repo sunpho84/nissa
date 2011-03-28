@@ -85,6 +85,13 @@
     bgp_complex_prod_real(A2,A2,R);		  \
   }
 
+#define bgp_assign_color_prod_ireal(A0,A1,A2,R)	  \
+  {						  \
+    bgp_complex_prod_ireal(A0,A0,R);		  \
+    bgp_complex_prod_ireal(A1,A1,R);		  \
+    bgp_complex_prod_ireal(A2,A2,R);		  \
+  }
+
 #define bgp_color_prod_real(A0,A1,A2,B0,B1,B2,R)  \
   {						  \
     bgp_complex_prod_real(A0,B0,R);		  \

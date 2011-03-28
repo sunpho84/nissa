@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bgp_instructions.c"
+#include "base/bgp_instructions.c"
 
 #define bgp_summassign_diagonal_term(R00,R01,R02,R10,R11,R12,R20,R21,R22,R30,R31,R32,A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2, mass)\
   bgp_summassign_color_prod_real(R00,R01,R02,A0,A1,A2,__creal(mass));	\
