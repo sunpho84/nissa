@@ -1,7 +1,3 @@
-#ifndef root
-#define root
-#endif
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -58,7 +54,9 @@ int main(int narg,char **arg)
       fprintf(stderr,"Error, use: %s run_input\n",arg[0]);
       exit(1);
     }
-
+  
+  int big_endian=check_endianess();
+  
   FILE *frun_input=open_file(arg[1],"r");
   
   //read the analysis templ
@@ -185,26 +183,29 @@ int main(int narg,char **arg)
 	    read_formatted_from_file((char*)&data[ifile][t][ri],fdata[ifile],"%lg","data");
       
       //clusterize
+      double clus[2][T][njack+1];
+      memset(clus,0,sizeof(double)*2*T*(njack+1));
       for(int ri=0;ri<2;ri++)
 	for(int t=0;t<T;t++)
 	  {
-	    double clus[njack+1];
-	    memset(clus,0,sizeof(double)*(njack+1));
 	    for(int ifile=0;ifile<nfiles;ifile++)
 	      {
 		int iclus=ifile/njack;
-		clus[iclus]+=data[ifile][t][ri];
+		clus[ri][t][iclus]+=data[ifile][t][ri];
 	      }
-	    for(int iclus=0;iclus<njack;iclus++) clus[njack]+=clus[iclus];
-	    for(int ijack=0;ijack<njack;ijack++) clus[ijack]=(clus[njack]-clus[ijack])/(nfiles-clus_size);
-	    clus[njack]/=nfiles;
-	    
-	    if(fwrite(clus,sizeof(double),njack+1,fout)!=(njack+1))
-	      {
-		fprintf(stderr,"Error while writing double!\n");
-		exit(1);
-	      }
+	    for(int iclus=0;iclus<njack;iclus++) clus[ri][t][njack]+=clus[ri][t][iclus];
+	    for(int ijack=0;ijack<njack;ijack++) clus[ri][t][ijack]=(clus[ri][t][njack]-clus[ri][t][ijack])/(nfiles-clus_size);
+	    clus[ri][t][njack]/=nfiles;
 	  }
+      
+      if(big_endian==0) doubles_to_doubles_changing_endianess((double*)clus,(double*)clus,2*T*(njack+1));
+      
+      if(fwrite(clus,sizeof(double),2*T*(njack+1),fout)!=2*T*(njack+1))
+	{
+	  fprintf(stderr,"Error while writing double!\n");
+	  exit(1);
+	}
+
       if(icombo%100==0) printf("Completed correlation: %d\n",icombo);
     }
 
