@@ -1,8 +1,5 @@
 #pragma once
 
-#include "dirac_operator.c"
-#include "su3.c"
-
 void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
 {
   int riter=0;
