@@ -1,6 +1,6 @@
 #pragma once
 
-#include "su3.c"
+#include "types/su3.c"
 
 #define bgp_aligned __attribute__ ((aligned (16)))
 

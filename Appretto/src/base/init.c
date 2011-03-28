@@ -3,11 +3,11 @@
 #include <mpi.h>
 #include <stdio.h>
 
-#include "endianess.c"
-#include "random.c"
-#include "dirac.c"
+#include "IO/endianess.c"
+#include "base/random.c"
+#include "types/dirac.c"
 
-#include "geometry.c"
+#include "geometry/geometry.c"
 
 void init_appretto()
 {

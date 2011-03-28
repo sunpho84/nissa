@@ -1,10 +1,5 @@
 #pragma once
 
-#include <math.h>
-#include <string.h>
-
-#include "global.c"
-
 //The structure for gamma matrix
 typedef struct
 {
