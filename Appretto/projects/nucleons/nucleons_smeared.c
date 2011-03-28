@@ -872,94 +872,81 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
   complex *loc_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
   complex *glb_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
   
-  for(int imass=0;imass<nmass;imass++)
-    {
+  for(int im_seq=0;im_seq<nmass;im_seq++)
+    for(int im_close=0;im_close<nmass;im_close++)
+      {
+	
+	//this loop is made in order to avoid duplicating the routine
+	for(int norm_chro_EDM=0;norm_chro_EDM<3;norm_chro_EDM++)
+	  {
 
-      //this loop is made in order to avoid duplicating the routine
-      for(int norm_chro_EDM=0;norm_chro_EDM<3;norm_chro_EDM++)
-	{
-
-	  //switch the contraction
-	  switch(norm_chro_EDM)
-	    {
-	    case 0:
-	      ncontr=nproton_3pt_contr;
-	      break;
-	    case 1:
-	      ncontr=nproton_3pt_chromo_contr;
-	      unsafe_apply_chromo_operator_to_su3spinspin(supp_S,Pmunu,S0_SL[imass][rS0]);
-	      break;
-	    case 2:
-	      ncontr=3; //three spatial directions
-	      //the Dipole Operator is applied inside the contraction (that is, direction) loop
-	      break;
-	    }
+	    //switch the contraction
+	    switch(norm_chro_EDM)
+	      {
+	      case 0:ncontr=nproton_3pt_contr;break;
+	      case 1:
+		ncontr=nproton_3pt_chromo_contr;
+		unsafe_apply_chromo_operator_to_su3spinspin(supp_S,Pmunu,S0_SL[im_close][rS0]);
+		break;
+	      case 2:
+		ncontr=3; //three spatial directions
+		//the Dipole Operator is applied inside the contraction (that is, direction) loop
+		break;
+	      }
       
-	  //loop over contraction
-	  for(int icontr=0;icontr<ncontr;icontr++)
-	    {
-	      //reset output
-	      memset(loc_contr,0,sizeof(complex)*glb_size[0]);
+	    //loop over contraction
+	    for(int icontr=0;icontr<ncontr;icontr++)
+	      {
+		//reset output
+		memset(loc_contr,0,sizeof(complex)*glb_size[0]);
 	  
-	      //apply the EDM in the dir=icontr+1
-	      if(norm_chro_EDM==2) apply_dipole_operator(supp_S,S0_SL[imass][rS0],icontr+1);
+		//apply the EDM in the dir=icontr+1
+		if(norm_chro_EDM==2) apply_dipole_operator(supp_S,S0_SL[im_close][rS0],icontr+1);
 	  
-	      //loop over local node volume
-	      for(int loc_site=0;loc_site<loc_vol;loc_site++)
-		{
-		  complex point_contr;
-		  int glb_t=glb_coord_of_loclx[loc_site][0];
+		//loop over local node volume
+		for(int loc_site=0;loc_site<loc_vol;loc_site++)
+		  {
+		    complex point_contr;
+		    int glb_t=glb_coord_of_loclx[loc_site][0];
 	      
-		  //contract the single point
-		  switch(norm_chro_EDM)
-		    {
-		    case 0:
-		      point_proton_sequential_contraction(point_contr,S0_SL[imass][rS0][loc_site],base_gamma[list_3pt_op[icontr]],S1[imass][loc_site]);
-		      break;
-		    case 1:
-		      point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[list_3pt_chromo_op[icontr]],S1[imass][loc_site]);
-		      break;
-		    case 2:
-		      point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[4],S1[imass][loc_site]);
-		      break;
-		    }
+		    //contract the single point
+		    switch(norm_chro_EDM)
+		      {
+		      case 0:point_proton_sequential_contraction(point_contr,S0_SL[im_close][rS0][loc_site],base_gamma[list_3pt_op[icontr]],S1[im_seq][loc_site]);break;
+		      case 1:point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[list_3pt_chromo_op[icontr]],S1[im_seq][loc_site]);break;
+		      case 2:point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[4],S1[im_seq][loc_site]);break;
+		      }
 	      
-		  complex_summ(loc_contr[glb_t],loc_contr[glb_t],point_contr);
-		}
+		    complex_summ(loc_contr[glb_t],loc_contr[glb_t],point_contr);
+		  }
 	  
-	      //final reduction
-	      MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+		//final reduction
+		MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	  
-	      if(rank==0)
-		{
-		  fprintf(fout," # Three point for rlike=%d, rdislike=%d, %s source, closing mass %g\n",
-			  rlike,rdislike,tag,mass[imass]);
+		if(rank==0)
+		  {
+		    fprintf(fout," # Three point for rlike=%d, rdislike=%d, %s source, m_spe=%g m_seq=%g m_close=%g\n",
+			    rlike,rdislike,tag,mass[im_3pts],mass[im_seq],mass[im_close]);
 
-		  switch(norm_chro_EDM)
-		    {
-		    case 0:
-		      fprintf(fout," # Proton-%s-Proton\n",gtag[list_3pt_op[icontr]]);
-		      break;
-		    case 1:
-		      fprintf(fout," # Proton-CHROMO_%s-Proton\n",gtag[list_3pt_op[icontr]]);
-		      break;
-		    case 2:
-		      fprintf(fout," # Proton-EDM_%d-Proton\n",icontr+1);
-		      break;
-		    }
+		    switch(norm_chro_EDM)
+		      {
+		      case 0:fprintf(fout," # Proton-%s-Proton\n",gtag[list_3pt_op[icontr]]);break;
+		      case 1:fprintf(fout," # Proton-CHROMO_%s-Proton\n",gtag[list_3pt_op[icontr]]);break;
+		      case 2:fprintf(fout," # Proton-EDM_%d-Proton\n",icontr+1);break;
+		      }
 	      
-		  //print the contraction
-		  for(int tt=0;tt<glb_size[0];tt++)
-		    {
-		      int t=(tt+source_pos[0])%glb_size[0];
-		      fprintf(fout," %+016.16g\t%+016.16g\n",glb_contr[t][0],glb_contr[t][1]);
-		    }
-		  fprintf(fout,"\n");
-		}
-	    }
-	}
-    }
-
+		    //print the contraction
+		    for(int tt=0;tt<glb_size[0];tt++)
+		      {
+			int t=(tt+source_pos[0])%glb_size[0];
+			fprintf(fout," %+016.16g\t%+016.16g\n",glb_contr[t][0],glb_contr[t][1]);
+		      }
+		    fprintf(fout,"\n");
+		  }
+	      }
+	  }
+      }
+  
   tcontr_3pt+=take_time();
   
   if(rank==0)
