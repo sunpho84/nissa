@@ -5,8 +5,6 @@
 
 int main(int narg,char **arg)
 {
-  char filename[1024];
-
   //basic mpi initialization
   init_appretto();
   
@@ -31,7 +29,7 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
 
   quad_su3 *conf=allocate_quad_su3(loc_vol,"conf");
-  read_local_gauge_conf(conf,filename);  
+  read_local_gauge_conf(conf,arg[3]);  
   
   FILE *fout=fopen(arg[4],"wb");
 
