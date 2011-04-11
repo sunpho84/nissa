@@ -18,7 +18,7 @@ double effective_mass(double y,double yp,int t,int TH)
       meff*=scale;
       iter++;
     }
-  while(res>1.e-8);
+  while(res>1.e-8 && iter<1000);
 
   return meff;
 }

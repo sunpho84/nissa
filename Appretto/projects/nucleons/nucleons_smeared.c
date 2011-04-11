@@ -185,7 +185,7 @@ void initialize_nucleons(char *input_path)
       MPI_Abort(MPI_COMM_WORLD,1);
     }
   if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
-      
+  
   //Number of iterations
   read_str_int("NiterMax",&niter_max);
   
@@ -203,14 +203,14 @@ void initialize_nucleons(char *input_path)
   read_str_int("Compute3ptsLike1Dislike1",&(compute_3pts[1][1]));
   
   close_input();
-
+  
   ///////////////////// Allocate the various spinors ///////////////////////
   
   original_source=allocate_su3spinspin(loc_vol,"original_source");
   
   source=allocate_spincolor(loc_vol+loc_bord,"source");
   temp_source=allocate_spincolor(loc_vol+loc_bord,"temp_source");
-
+  
   //S0 and similars
   solDD=(spincolor**)malloc(sizeof(spincolor*)*nmass);
   S0_SL=(su3spinspin***)malloc(sizeof(su3spinspin**)*nmass);
@@ -218,12 +218,12 @@ void initialize_nucleons(char *input_path)
   for(int imass=0;imass<nmass;imass++)
     {
       solDD[imass]=allocate_spincolor(loc_vol+loc_bord,"solDD");
-
+      
       //smearead-local spinor
       S0_SL[imass]=(su3spinspin**)malloc(sizeof(su3spinspin*)*2);
       S0_SL[imass][0]=allocate_su3spinspin(loc_vol,"S0_SL[X][0]");
       S0_SL[imass][1]=allocate_su3spinspin(loc_vol,"S0_SL[X][1]");
-
+      
       //smeared-smeared
       S0_SS[imass]=(su3spinspin**)malloc(sizeof(su3spinspin*)*2);
       S0_SS[imass][0]=allocate_su3spinspin(loc_vol,"S0_SS[X][0]");
@@ -234,7 +234,7 @@ void initialize_nucleons(char *input_path)
   sol_reco[1]=allocate_spincolor(loc_vol,"solution_reco[1]");
   
   seq_source=allocate_su3spinspin(loc_vol,"seqential_source");
-
+  
   S1=(su3spinspin**)malloc(nmass*sizeof(su3spinspin*));
   for(int imass=0;imass<nmass;imass++) S1[imass]=allocate_su3spinspin(loc_vol,"S1");
 }
@@ -251,7 +251,7 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   //calculate plaquette of original conf
   double gplaq=global_plaquette(conf);
   if(rank==0) printf("plaq: %.18g\n",gplaq);
-
+  
   //calcolate Pmunu
   Pmunu_term(Pmunu,conf);
   
@@ -263,7 +263,7 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
   put_boundaries_conditions(conf,put_theta,1,1);
-
+  
   //re-communicate borders
   communicate_gauge_borders(conf);
   communicate_gauge_borders(smea_conf);
@@ -275,10 +275,10 @@ void prepare_source()
 {
   int isloc=1;
   int lx[4];
-
+  
   //reset the source
   memset(original_source,0,sizeof(spincolor)*loc_vol);
-
+  
   //check if the source position is associated to the rank and calculate its local position
   for(int idir=0;idir<4;idir++)
     {
@@ -301,7 +301,7 @@ void calculate_S0()
       {
 	
 	// =====================================================================
-
+	
 	// 1) prepare the source
 	
 	if(rank==0) printf("\n(S0) source index: id=%d, ic=%d\n",id_sour,ic_sour);
@@ -318,7 +318,7 @@ void calculate_S0()
 	
 	//smerd the source
 	jacobi_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
-
+	
 	//print the denisity profile
         if(ic_sour==0 && id_sour==0)
           {
@@ -332,7 +332,7 @@ void calculate_S0()
                 fclose(fout);
               }
           }     
-
+	
 	if(rank==0) printf(" -> source smeared\n");
 	
 	//============================================================================
@@ -668,49 +668,49 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 				  for(int al1=0;al1<4;al1++)
 				    for(int be1=0;be1<4;be1++)
 				      if(C5[al1][be1][0]||C5[al1][be1][1])
-					  for(int be2=0;be2<4;be2++)
-					    {
-					      //first part
-					      if(C5[rho][be2][0]||C5[rho][be2][1])
-						for(int b2=0;b2<3;b2++)
-						  for(int c2=0;c2<3;c2++)
-						    if(epsilon[x][b2][c2])
+					for(int be2=0;be2<4;be2++)
+					  {
+					    //first part
+					    if(C5[rho][be2][0]||C5[rho][be2][1])
+					      for(int b2=0;b2<3;b2++)
+						for(int c2=0;c2<3;c2++)
+						  if(epsilon[x][b2][c2])
+						    {
+						      complex part={0,0};
+
+						      if(a1==z && al1==tau) complex_summ(part,part,S0_SL[im_3pts][rlike][ivol][c1][c2][ga1][ga2]);
+						      if(c1==z && ga1==tau) complex_subt(part,part,S0_SL[im_3pts][rlike][ivol][a1][c2][al1][ga2]);
+							
+						      safe_complex_prod(part,C5[rho][be2],part);
+						      complex_prod_with_real(part,part,epsilon[x][b2][c2]);
+						      safe_complex_prod(part,S0_SL[im_3pts][rdislike][ivol][b1][b2][be1][be2],part);
+						      safe_complex_prod(part,Proj[2][ga2][ga1],part); //spin z+ polarized proton
+							
+						      if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
+						      else complex_subt_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
+						    }
+					      
+					    //second part
+					    for(int al2=0;al2<4;al2++)					       
+					      if((C5[al2][be2][0]||C5[al2][be2][1])&&(ga2==rho))
+						for(int a2=0;a2<3;a2++)
+						  for(int b2=0;b2<3;b2++)
+						    if(epsilon[a2][b2][x])
 						      {
 							complex part={0,0};
-
-							if(a1==z && al1==tau) complex_summ(part,part,S0_SL[im_3pts][rlike][ivol][c1][c2][ga1][ga2]);
-							if(c1==z && ga1==tau) complex_subt(part,part,S0_SL[im_3pts][rlike][ivol][a1][c2][al1][ga2]);
-							
-							safe_complex_prod(part,C5[rho][be2],part);
-							complex_prod_with_real(part,part,epsilon[x][b2][c2]);
+							  
+							if(c1==z && ga1==tau) complex_summ(part,part,S0_SL[im_3pts][rlike][ivol][a1][a2][al1][al2]);
+							if(a1==z && al1==tau) complex_subt(part,part,S0_SL[im_3pts][rlike][ivol][c1][a2][ga1][al2]);
+							  
+							safe_complex_prod(part,C5[al2][be2],part);
+							complex_prod_with_real(part,part,epsilon[a2][b2][x]);
 							safe_complex_prod(part,S0_SL[im_3pts][rdislike][ivol][b1][b2][be1][be2],part);
-							safe_complex_prod(part,Proj[2][ga2][ga1],part); //spin z+ polarized proton
-							
+							safe_complex_prod(part,Proj[2][ga2][ga1],part);
+							  
 							if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
 							else complex_subt_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
 						      }
-					      
-					      //second part
-					      for(int al2=0;al2<4;al2++)					       
-						if((C5[al2][be2][0]||C5[al2][be2][1])&&(ga2==rho))
-						  for(int a2=0;a2<3;a2++)
-						    for(int b2=0;b2<3;b2++)
-						      if(epsilon[a2][b2][x])
-							{
-							  complex part={0,0};
-							  
-							  if(c1==z && ga1==tau) complex_summ(part,part,S0_SL[im_3pts][rlike][ivol][a1][a2][al1][al2]);
-							  if(a1==z && al1==tau) complex_subt(part,part,S0_SL[im_3pts][rlike][ivol][c1][a2][ga1][al2]);
-							  
-							  safe_complex_prod(part,C5[al2][be2],part);
-							  complex_prod_with_real(part,part,epsilon[a2][b2][x]);
-							  safe_complex_prod(part,S0_SL[im_3pts][rdislike][ivol][b1][b2][be1][be2],part);
-							  safe_complex_prod(part,Proj[2][ga2][ga1],part);
-							  
-							  if(epsilon[a1][b1][c1]==1) complex_summ_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
-							  else complex_subt_the_prod(temp[x][z][rho][tau],part,C5[al1][be1]);
-							}
-					    }
+					  }
 		      }
 		}
 	//remove the anti-periodic condition on the sequential source
