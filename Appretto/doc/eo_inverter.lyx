@@ -1,0 +1,268 @@
+#LyX 1.6.7 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation skip
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+Action:
+\begin_inset Formula \[
+S=\chi M\chi\]
+
+\end_inset
+
+where
+\begin_inset Formula \[
+M_{i,j}=\left(\frac{1}{2k}+i\mu\gamma_{5}\right)\delta_{i,j}-\frac{1}{2}\sum_{\mu}\left[\left(1+\gamma_{\mu}\right)U_{i,\mu}\delta_{i+\hat{\mu},j}+\left(1-\gamma_{\mu}\right)U_{i-\hat{\mu},\mu}^{\dagger}\delta_{i-\hat{\mu},j}\right]\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We have
+\begin_inset Formula \[
+M=\left(\begin{array}{cc}
+D_{ee} & D_{oe}\\
+D_{eo} & D_{oo}\end{array}\right)\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+assign_mul_one_pm_imu_inv(Even_new,Even, +1.,)
+\begin_inset Newline newline
+\end_inset
+
+assign_mul_one_pm_imu_inv(s,rsign)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $s=\frac{1-2i\gamma_{5}k\mu}{1+\left(2k\mu\right)^{2}}r=\frac{1}{2\kappa}\frac{\frac{1}{2\kappa}-i\gamma_{5}\mu}{\frac{1}{4\kappa^{2}}+\mu^{2}}r$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Hopping_Matrix(OE, g_spinor_field[DUM_DERI],Even_new)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $2\kappa\sum_{\pm\mu}\frac{1+\gamma_{\mu}}{2}U_{x,\mu}$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+assign_mul_add_r(g_spinor_field[DUM_DERI], +1.,Odd)
+\begin_inset Newline newline
+\end_inset
+
+assign_mul_add_r(r,c,s)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $r=c\, r+s$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+gamma5(g_spinor_field[DUM_DERI], g_spinor_field[DUM_DERI])
+\begin_inset Newline newline
+\end_inset
+
+gamma5(r,s)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $r=\gamma_{5}\, s$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+cg_her(Odd_new, g_spinor_field[DUM_DERI],Qtm_pm_psi)
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+Qtm_pm_psi(spinor * const l, spinor * const k)
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+/* Q_{-} */ (Qtm_minus_psi)
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+Hopping_Matrix(EO,t1,k)
+\end_layout
+
+\begin_layout Enumerate
+mul_one_pm_imu_inv(t1,-1)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+mul_one_pm_imu_inv(l,sign)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $l=\frac{1-i\gamma_{5}k\mu}{1+\left(k\mu\right)^{2}}l$
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+Hopping_Matrix(OE,t0,t1)
+\end_layout
+
+\begin_layout Enumerate
+mul_one_pm_imu_sub_mul_gamma5(t0,k,t0,-1)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+
+\begin_inset space ~
+\end_inset
+
+mul_one_pm_imu_sub_mul_gamma5(l,k,j,)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $l=\gamma_{5}\,((\frac{1}{2\kappa}\pm i\mu\gamma_{5})\, k-j)$
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\begin_layout Enumerate
+/* Q_{+} */ (Qtm_plus_psi)
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+Hopping_Matrix(EO,l,t0)
+\end_layout
+
+\begin_layout Enumerate
+mul_one_pm_imu_inv(l,+1)
+\end_layout
+
+\begin_layout Enumerate
+Hopping_Matrix(OE,t1,l)
+\end_layout
+
+\begin_layout Enumerate
+mul_one_pm_imu_sub_mul_gamma5(l,t0,t1,+1)
+\end_layout
+
+\end_deeper
+\end_deeper
+\end_deeper
+\begin_layout Enumerate
+Qtm_minus_psi(Odd_new, Odd_new)
+\end_layout
+
+\begin_layout Enumerate
+Hopping_Matrix(EO, g_spinor_field[DUM_DERI],Odd_new)
+\end_layout
+
+\begin_layout Enumerate
+mul_one_pm_imu_inv(g_spinor_field[DUM_DERI],+1.)
+\end_layout
+
+\begin_deeper
+\begin_layout Enumerate
+assign_add_mul_r(Even_new, g_spinor_field[DUM_DERI],+1.)
+\begin_inset Newline newline
+\end_inset
+
+assign_add_mul_r(r,s,c)
+\begin_inset Newline newline
+\end_inset
+
+
+\begin_inset Formula $r=r+cs$
+\end_inset
+
+
+\end_layout
+
+\end_deeper
+\end_body
+\end_document

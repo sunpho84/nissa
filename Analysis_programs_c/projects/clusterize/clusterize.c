@@ -105,10 +105,11 @@ int main(int narg,char **arg)
   string path_templ;
   read_formatted_from_file_expecting(path_templ,frun_input,"%s","path_templ");
   //read the number of files to open
-  int nfiles;
-  read_formatted_from_file_expecting((char*)&nfiles,frun_input,"%d","nfiles");
+  int tfiles;
+  read_formatted_from_file_expecting((char*)&tfiles,frun_input,"%d","nfiles");
   //calculate cluster size
-  int clus_size=nfiles/njack;
+  int clus_size=tfiles/njack;
+  int nfiles=clus_size*njack;
   printf("Njack: %d, cluster size: %d\n",njack,clus_size);
   //open all the input files, reading each entry
   expect_string_from_file(frun_input,"list_of_files");
@@ -120,6 +121,7 @@ int main(int narg,char **arg)
       string file_path;
       sprintf(file_path,path_templ,chunk);
       fdata[ifile]=open_file(file_path,"r");
+      //printf("file %d = %s\n",ifile,file_path);
     }
 
   /////////////////////////////////////////////////////////////////////////////////
@@ -190,7 +192,7 @@ int main(int narg,char **arg)
 	  {
 	    for(int ifile=0;ifile<nfiles;ifile++)
 	      {
-		int iclus=ifile/njack;
+		int iclus=ifile%njack;
 		clus[ri][t][iclus]+=data[ifile][t][ri];
 	      }
 	    for(int iclus=0;iclus<njack;iclus++) clus[ri][t][njack]+=clus[ri][t][iclus];
@@ -199,6 +201,8 @@ int main(int narg,char **arg)
 	  }
       
       if(big_endian==0) doubles_to_doubles_changing_endianess((double*)clus,(double*)clus,2*T*(njack+1));
+      
+      for(int t=0;t<T;t++) printf("%d %lg %lg\n",t,clus[0][t][njack],clus[1][t][njack]);
       
       if(fwrite(clus,sizeof(double),2*T*(njack+1),fout)!=2*T*(njack+1))
 	{

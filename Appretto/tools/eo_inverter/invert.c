@@ -5,36 +5,125 @@
 
 const int debug3=0;
 
-void inv_Doo_or_Dee(spincolor *psi,spincolor *source,double kappa,double mu,int parity)
+double kappa;
+double mu;
+double muh;
+
+void assign_add_mul_r_ee(spincolor *r,spincolor *s,double c)
 {
-  double muh=2*kappa*mu;
-  complex factp={1/(1+muh*muh),muh/(1+muh*muh)};
-  complex factm={factp[0],-factm[1]};
+  for(int X=0;X<loc_vol;X++)
+    if(loclx_parity[X]==0)
+      for(int id=0;id<4;id++)
+	for(int ic=0;ic<3;ic++)
+	  for(int ri=0;ri<2;ri++)
+	    r[X][id][ic][ri]+=s[X][id][ic][ri]*c;
+}
+
+void assign_mul_one_pm_imu_inv_oo_or_ee(spincolor *psi,spincolor *source,double _sign,int parity)
+{
+  double sign=-1.; 
+  if(_sign < 0.){
+    sign = 1.; 
+  }
+  
+  double nrm = 1/(1+muh*muh);
+  complex z={nrm,sign*nrm*muh};
+  complex w={z[0],-z[1]};
+  spincolor temp;
+
+  for(int X=0;X<loc_vol;X++)
+    if(loclx_parity[X]==parity)
+      {
+	for(int ic=0;ic<3;ic++)
+	  {
+	    unsafe_complex_prod(temp[0][ic],source[X][0][ic],z);
+	    unsafe_complex_prod(temp[1][ic],source[X][1][ic],z);
+	    unsafe_complex_prod(temp[2][ic],source[X][2][ic],w);
+	    unsafe_complex_prod(temp[3][ic],source[X][3][ic],w);
+	  }
+	memcpy(psi[X],temp,sizeof(spincolor));
+      }
+}
+
+void assign_mul_one_pm_imu_inv_oo(spincolor *psi,spincolor *source,double sign)
+{assign_mul_one_pm_imu_inv_oo_or_ee(psi,source,sign,1);}
+void assign_mul_one_pm_imu_inv_ee(spincolor *psi,spincolor *source,double sign)
+{assign_mul_one_pm_imu_inv_oo_or_ee(psi,source,sign,0);}
+
+void assign_mul_one_pm_imu_sub_mul_gamma5_oo(spincolor *t,spincolor *r,spincolor *s,double _sign)
+{
+  double sign=1.; 
+  if(_sign < 0.){
+    sign = -1.; 
+  }
+  
+  complex z={1,sign*muh};
+  complex w={1,-sign*muh};
+  spin phi;
+
+  for(int X=0;X<loc_vol;X++)
+    if(loclx_parity[X]==1)
+      for(int ic=0;ic<3;ic++)
+	{
+	  unsafe_complex_prod(phi[0],z,r[X][0][ic]);
+	  unsafe_complex_prod(phi[1],z,r[X][1][ic]);
+	  unsafe_complex_prod(phi[2],w,r[X][2][ic]);
+	  unsafe_complex_prod(phi[3],w,r[X][3][ic]);
+	  
+	  complex_subt(t[X][0][ic],phi[0],s[X][0][ic]);
+	  complex_subt(t[X][1][ic],phi[1],s[X][1][ic]);
+	  complex_subt(t[X][2][ic],s[X][2][ic],phi[2]);
+	  complex_subt(t[X][3][ic],s[X][3][ic],phi[3]);
+	}
+}
+
+void assign_mul_one_pm_imu_oo_or_ee(spincolor *psi,spincolor *source,double _sign,int parity)
+{
+  double sign=1.; 
+  if(_sign < 0.){
+    sign = -1.; 
+  }
+  
+  complex z={1,sign*muh};
+  complex w={z[0],-z[1]};
+  spincolor temp;
   
   for(int X=0;X<loc_vol;X++)
     if(loclx_parity[X]==parity)
       {
-	for(int id=0;id<2;id++)
-	  for(int ic=0;ic<3;ic++)
-	    {
-	      unsafe_complex_prod(psi[X][id][ic],source[X][id][ic],factm);
-	      unsafe_complex_prod(psi[X][id+2][ic],source[X][id+2][ic],factp);
-	    }
+	for(int ic=0;ic<3;ic++)
+	  {
+	    unsafe_complex_prod(temp[0][ic],source[X][0][ic],z);
+	    unsafe_complex_prod(temp[1][ic],source[X][1][ic],z);
+	    unsafe_complex_prod(temp[2][ic],source[X][2][ic],w);
+	    unsafe_complex_prod(temp[3][ic],source[X][3][ic],w);
+	  }
+	memcpy(psi[X],temp,sizeof(spincolor));
       }
 }
 
-void inv_Doo(spincolor *psi,spincolor *source,double kappa,double mu)
+void assign_mul_one_pm_imu_oo(spincolor *psi,spincolor *source,double sign)
+{assign_mul_one_pm_imu_inv_oo_or_ee(psi,source,sign,1);}
+void assign_mul_one_pm_imu_ee(spincolor *psi,spincolor *source,double sign)
+{assign_mul_one_pm_imu_inv_oo_or_ee(psi,source,sign,0);}
+
+void assign_mul_add_r_oo_or_ee(spincolor *r,double c,spincolor *s,int parity)
 {
-  inv_Doo_or_Dee(psi,source,kappa,mu,1);
+  for(int X=0;X<loc_vol;X++)
+    if(loclx_parity[X]==parity)
+      for(int id=0;id<4;id++)
+	for(int ic=0;ic<3;ic++)
+	  for(int ri=0;ri<2;ri++)
+	    r[X][id][ic][ri]=c*r[X][id][ic][ri]+s[X][id][ic][ri];
 }
 
-void inv_Dee(spincolor *psi,spincolor *source,double kappa,double mu)
-{
-  inv_Doo_or_Dee(psi,source,kappa,mu,0);
-}
+void assign_mul_add_r_oo(spincolor *r,double c,spincolor *s)
+{assign_mul_add_r_oo_or_ee(r,c,s,1);}
+void assign_mul_add_r_ee(spincolor *r,double c,spincolor *s)
+{assign_mul_add_r_oo_or_ee(r,c,s,0);}
 
 //apply D_eo or oe
-void apply_Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,int parity)
+void apply_Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,int parity)
 {
   int Xup,Xdw;
 
@@ -130,96 +219,69 @@ void apply_Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,i
 	summassign_icolor(out[X][2],temp_c2);
 	subtassign_icolor(out[X][3],temp_c3);
 	
-	for(int id=0;id<4;id++)
-	  for(int ic=0;ic<3;ic++)
-	    for(int ri=0;ri<2;ri++)
-	      out[X][id][ic][ri]*=-kappa;
+	//for(int id=0;id<4;id++)
+	//for(int ic=0;ic<3;ic++)
+	//for(int ri=0;ri<2;ri++)
+	//out[X][id][ic][ri]*=-0.5;
       }
 }
 
-/*
-void apply_Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,int parity)
-{
-  apply_m2Doe_or_m2Deo(out,in,conf,parity);
-  if(debug3) printf(" Doe_or_doe parity: %d\n",parity);
-  for(int X=0;X<loc_vol;X++)
-    if(loclx_parity[X]!=parity) //this loop is on sink
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    {
-	      if(debug3) printf("X=%d\n",X);
-	      out[X][id][ic][ri]*=-0.5;
-	    }
-}
-
 void apply_Doe(spincolor *out,spincolor *in,quad_su3 *conf)
-{
-  apply_Doe_or_Deo(out,in,conf,0);
-}
-
+{apply_Doe_or_Deo(out,in,conf,0);}
 void apply_Deo(spincolor *out,spincolor *in,quad_su3 *conf)
-{
-  apply_Doe_or_Deo(out,in,conf,1);
-}
-*/
+{apply_Doe_or_Deo(out,in,conf,1);}
 
-void apply_Doe(spincolor *out,spincolor *in,double kappa,quad_su3 *conf)
+void gamma5_ee_or_oo(spincolor *out,spincolor *in,int parity)
 {
-  apply_Doe_or_Deo(out,in,conf,kappa,0);
-}
-
-void apply_Deo(spincolor *out,spincolor *in,double kappa,quad_su3 *conf)
-{
-  apply_Doe_or_Deo(out,in,conf,kappa,1);
-}
-
-void apply_Q2_oo_impr(spincolor *s,spincolor *p,quad_su3 *conf,double kappa,double m,spincolor *t1,spincolor *t2)
-{
-  apply_Deo(t1,p,kappa,conf);
-  inv_Dee(t2,t1,kappa,m);
-  communicate_lx_spincolor_borders(t2);
-  apply_Doe(t1,t2,kappa,conf);
-  inv_Doo(t2,t1,kappa,m);
-  
   for(int X=0;X<loc_vol;X++)
-    if(loclx_parity[X]==1)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    s[X][id][ic][ri]=p[X][id][ic][ri]-t2[X][id][ic][ri];
+    if(loclx_parity[X]==parity)
+      for(int ic=0;ic<3;ic++)
+	for(int ri=0;ri<2;ri++)
+	  {
+	    out[X][0][ic][ri]=in[X][0][ic][ri];
+	    out[X][1][ic][ri]=in[X][1][ic][ri];
+	    out[X][2][ic][ri]=-in[X][2][ic][ri];
+	    out[X][3][ic][ri]=-in[X][3][ic][ri];
+	  }
 }
 
-void inv_Q_eo_impr_cg(spincolor *sol,spincolor *or_source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue)
+void gamma5_ee(spincolor *out,spincolor *in)
+{gamma5_ee_or_oo(out,in,0);}
+void gamma5_oo(spincolor *out,spincolor *in)
+{gamma5_ee_or_oo(out,in,1);}
+
+void Qtm_minus_psi(spincolor *l,spincolor *k,quad_su3 *conf,spincolor *t0,spincolor *t1)
+{
+  apply_Deo(t1,k,conf);
+  assign_mul_one_pm_imu_inv_oo(t1,t1,-1);
+  apply_Doe(t0,t1,conf);
+  assign_mul_one_pm_imu_sub_mul_gamma5_oo(l,k,t0,-1);
+}
+
+void Qtm_pm_psi(spincolor *l,spincolor *k,quad_su3 *conf,spincolor *t0,spincolor *t1,spincolor *t2)
+{
+  apply_Deo(t1,k,conf);
+  assign_mul_one_pm_imu_inv_oo(t1,t1,-1);
+  apply_Doe(t0,t1,conf);
+  assign_mul_one_pm_imu_sub_mul_gamma5_oo(t0,k,t0,-1);
+  
+  apply_Deo(l,t0,conf);
+  assign_mul_one_pm_imu_inv_oo(l,l,+1);
+  apply_Doe(t1,l,conf);
+  assign_mul_one_pm_imu_sub_mul_gamma5_oo(l,t0,t1,+1);
+}
+
+void cg_her(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,int niter,int rniter,double residue)
 {
   int riter=0;
-  spincolor *source=allocate_spincolor(loc_vol+loc_bord,"source");
-  spincolor *s=allocate_spincolor(loc_vol,"s");
   spincolor *p=allocate_spincolor(loc_vol+loc_bord,"p");
   spincolor *r=allocate_spincolor(loc_vol,"r");
+  spincolor *s=allocate_spincolor(loc_vol,"s");
   spincolor *t1=allocate_spincolor(loc_vol+loc_bord,"t1"); //temporary for internal calculation of DD
   spincolor *t2=allocate_spincolor(loc_vol+loc_bord,"t2"); //temporary for internal calculation of DD
-
-  ///////////////// prepare the internal source /////////////////
-  communicate_lx_spincolor_borders(or_source);
-  //even part
-  inv_Dee(source,or_source,kappa,m);
-  //odd part with the 20% claimed improvement
-  communicate_lx_spincolor_borders(source);
-  apply_Doe(t1,source,kappa,conf);
-
-  for(int X=0;X<loc_vol;X++)
-    if(loclx_parity[X]==1)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    p[X][id][ic][ri]=or_source[X][id][ic][ri]+t1[X][id][ic][ri];
-  inv_Doo(source,p,kappa,m); //20% claimed improvement
-
-  communicate_lx_spincolor_borders(source);
+  spincolor *t3=allocate_spincolor(loc_vol+loc_bord,"t3");
   
-  //reset the solution
-  memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
+  ///////////////// prepare the internal source /////////////////
   
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
   else
@@ -236,8 +298,8 @@ void inv_Q_eo_impr_cg(spincolor *sol,spincolor *or_source,spincolor *guess,quad_
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       double delta;
       {
-	apply_Q2_oo_impr(s,sol,conf,kappa,m,t1,t2);
-
+	Qtm_pm_psi(s,sol,conf,t1,t2,t3);
+	
         double loc_delta=0,loc_source_norm=0;
 	for(int X=0;X<loc_vol;X++)
 	  if(loclx_parity[X]==1)
@@ -263,7 +325,8 @@ void inv_Q_eo_impr_cg(spincolor *sol,spincolor *or_source,spincolor *guess,quad_
 	  double alpha;
 	  communicate_lx_spincolor_borders(p);
 	  
-	  apply_Q2_oo_impr(s,p,conf,kappa,m,t1,t2);
+	  //apply_Q2_RL(s,p,conf,t1,NULL,NULL,0);
+	  Qtm_pm_psi(s,p,conf,t1,t2,t3);
 
 	  double loc_alpha=0; //real part of the scalar product
 	  for(int X=0;X<loc_vol;X++)
@@ -272,10 +335,10 @@ void inv_Q_eo_impr_cg(spincolor *sol,spincolor *or_source,spincolor *guess,quad_
 		for(int ic=0;ic<3;ic++)
 		  for(int ri=0;ri<2;ri++)
 		    loc_alpha+=s[X][id][ic][ri]*p[X][id][ic][ri];
-	  if(rank_tot>0) MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	  else alpha=loc_alpha;
+	  MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	  omega=delta/alpha;
-	  
+	  printf("omega: %g\n",omega);
+
 	  double loc_lambda=0;
 	  for(int X=0;X<loc_vol;X++)
 	    if(loclx_parity[X]==1)
@@ -289,8 +352,7 @@ void inv_Q_eo_impr_cg(spincolor *sol,spincolor *or_source,spincolor *guess,quad_
 		      r[X][id][ic][ri]=c1;
 		      loc_lambda+=c1*c1;
 		    }
-	  if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	  else lambda=loc_lambda;
+	  MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	  
 	  double gammag=lambda/delta; //(r_(k+1),r_(k+1))/(r_k,r_k)
 	  delta=lambda;
@@ -315,7 +377,7 @@ void inv_Q_eo_impr_cg(spincolor *sol,spincolor *or_source,spincolor *guess,quad_
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
 
-      apply_Q2_oo_impr(s,sol,conf,kappa,m,t1,t2);
+      Qtm_pm_psi(s,sol,conf,t1,t2,t3);
       {
         double loc_lambda=0;
 	for(int X=0;X<loc_vol;X++)
@@ -335,22 +397,62 @@ void inv_Q_eo_impr_cg(spincolor *sol,spincolor *or_source,spincolor *guess,quad_
     }
   while(lambda>(residue*source_norm) && riter<rniter);
   
-  communicate_lx_spincolor_borders(sol);
-  apply_Deo(t1,sol,kappa,conf);
-  inv_Dee(p,t1,kappa,m);
-  for(int X=0;X<loc_vol;X++)
-    if(loclx_parity[X]==0)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    sol[X][id][ic][ri]=source[X][id][ic][ri]+0.5*p[X][id][ic][ri];
-  
   free(s);
   free(p);
   free(r);
   free(t1);
   free(t2);
-  free(source);
+  free(t3);
+}
+
+void inv_Q_eo_impr_cg(spincolor *Even_new,spincolor *Odd_new,spincolor *Even,spincolor *Odd,spincolor *guess,quad_su3 *conf,int niter,int rniter,double residue)
+ {
+  spincolor *t0=allocate_spincolor(loc_vol+loc_bord,"t0");
+  spincolor *t1=allocate_spincolor(loc_vol+loc_bord,"t1");
+
+  //create the source for the OO
+  assign_mul_one_pm_imu_inv_ee(Even_new,Even,1);
+  apply_Doe(t0,Even_new,conf);
+  assign_mul_add_r_oo(t0,1,Odd);
+  gamma5_oo(t0,t0);
+
+  cg_her(Odd_new,t0,guess,conf,niter,rniter,residue);
+  
+  //now remove the additional Q
+  Qtm_minus_psi(Odd_new,Odd_new,conf,t0,t1);
+  
+  //reconstruct even sites
+  apply_Deo(t0,Odd_new,conf);
+  assign_mul_one_pm_imu_inv_ee(t0,t0,1);
+  assign_add_mul_r_ee(Even_new,t0,1);
+  
+  free(t0);
+  free(t1);
+}
+
+void mega_wrap(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,int niter,int rniter,double residue)
+{
+  spincolor *Even=allocate_spincolor(loc_vol,"Even");
+  spincolor *Odd=allocate_spincolor(loc_vol,"Odd");
+  spincolor *Even_new=allocate_spincolor(loc_vol,"Even_new");
+  spincolor *Odd_new=allocate_spincolor(loc_vol,"Odd_new");
+  
+  //split in even and odd
+  for(int X=0;X<loc_vol;X++)
+    if(loclx_parity[X]==0) memcpy(Even[X],source[X],sizeof(spincolor));
+    else                   memcpy(Odd[X],source[X],sizeof(spincolor));
+  
+  inv_Q_eo_impr_cg(Even_new,Odd_new,Even,Odd,guess,conf,niter,rniter,residue);
+  
+  //repaste even and odd
+  for(int X=0;X<loc_vol;X++)
+    if(loclx_parity[X]==0) memcpy(sol[X],Even_new[X],sizeof(spincolor));
+    else                   memcpy(sol[X],Odd_new[X],sizeof(spincolor));
+  
+  free(Odd_new);
+  free(Even_new);
+  free(Odd);
+  free(Even);
 }
 
 int main(int narg,char **arg)
@@ -370,11 +472,10 @@ int main(int narg,char **arg)
   read_str_int("L",&(glb_size[1]));
   read_str_int("T",&(glb_size[0]));
 
-  double m;
-  double kappa;
-  read_str_double("m",&(m));
+  read_str_double("m",&(mu));
   read_str_double("kappa",&(kappa));
-
+  muh=2*kappa*mu;
+  
   //Init the MPI grid 
   init_grid();
   set_eo_geometry();
@@ -399,7 +500,7 @@ int main(int narg,char **arg)
   communicate_gauge_borders(conf);
 
   //initialize source to delta
-  spincolor *source=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+  spincolor *source=allocate_spincolor(loc_vol+loc_bord,"source");
   memset(source,0,sizeof(spincolor)*loc_vol);
   if(rank==0) source[0][0][0][0]=1;
 
@@ -418,42 +519,48 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
+  spincolor *temp0=allocate_spincolor(loc_vol+loc_bord,"temp0");
   spincolor *tempe=allocate_spincolor(loc_vol+loc_bord,"tempe");
   spincolor *tempo=allocate_spincolor(loc_vol+loc_bord,"tempe");
-  spincolor *temp1=allocate_spincolor(loc_vol+loc_bord,"temp");
-  
-  apply_Deo(tempe,source,kappa,conf);
-  apply_Doe(tempo,source,kappa,conf);
+  spincolor *temp1=allocate_spincolor(loc_vol+loc_bord,"temp1");
+  //spincolor *temp2=allocate_spincolor(loc_vol+loc_bord,"temp2");
 
-  apply_Deo(temp1,source,kappa,conf);
-  apply_Doe(temp1,source,kappa,conf);
+  for(int X=0;X<loc_vol;X++)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+	for(int ri=0;ri<2;ri++)
+	  temp0[X][id][ic][ri]=(double)rand()/RAND_MAX;
   
+  apply_Deo(tempe,temp0,conf);
+  apply_Doe(tempo,temp0,conf);
+
   for(int X=0;X<loc_vol;X++)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
 	  {
-	    if(loclx_parity[X]==0) temp1[X][ic][id][ri]-=tempe[X][id][ic][ri];
-	    else                   temp1[X][ic][id][ri]-=tempo[X][id][ic][ri];
+	    if(loclx_parity[X]==0) temp1[X][id][ic][ri]=tempe[X][id][ic][ri];
+	    else                   temp1[X][id][ic][ri]=tempo[X][id][ic][ri];
 	    
-	    if(temp1[X][id][ic][ri]) printf("par=%d X=%d id=%d ic=%d ri=%d %g\n",loclx_parity[X],X,id,ic,ri,temp1[X][id][ic][ri]);
+	    //printf("%d %d %d %d %g %g\n",X,id,ic,ri,temp1[X][id][ic][ri],temp2[X][id][ic][ri]);
 	  }
 
   //take initial time                                                                                                        
   double tic;
   MPI_Barrier(cart_comm);
   tic=MPI_Wtime();
-  inv_Q_eo_impr_cg(solutionQ,source,NULL,conf,kappa,m,nitermax,1,residue);
-  //inv_Q2_cg(solutionQ2,source,NULL,conf,kappa,m,nitermax,1,residue);
+  inv_Q2_cg(solutionQ,source,NULL,conf,kappa,mu,nitermax,1,residue);
+  apply_Q(solutionQ2,solutionQ,conf,kappa,mu);
+  mega_wrap(solutionQ,source,NULL,conf,nitermax,1,residue);
 
   MPI_Barrier(cart_comm);
   double tac=MPI_Wtime();
   if(rank==0)
     printf("\nTotal time elapsed: %f s\n",tac-tic);
 
-  spincolor *source_reco=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  spincolor *source_reco=allocate_spincolor(loc_vol,"source_reco");
   
-  apply_Q2(source_reco,solutionQ,conf,kappa,m,NULL,NULL,NULL);
+  apply_Q(source_reco,solutionQ,conf,kappa,mu);
   
   //printing
   double truered,loc_truered=0;
@@ -461,6 +568,8 @@ int main(int narg,char **arg)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	{
+	  for(int ri=0;ri<2;ri++)
+	    printf("%g %g\n",solutionQ2[loc_site][id][ic][ri],solutionQ[loc_site][id][ic][ri]);
 	  double tempr=source[loc_site][id][ic][0]-source_reco[loc_site][id][ic][0];
 	  double tempi=source[loc_site][id][ic][1]-source_reco[loc_site][id][ic][1];
 	  loc_truered+=tempr*tempr+tempi*tempi;
@@ -478,7 +587,7 @@ int main(int narg,char **arg)
   theta[1]=theta[2]=theta[3]=0.1;
   put_boundaries_conditions(conf,theta,1,0);
   communicate_gauge_borders(conf);
-  inv_Q2_cg(solution,source,solution,conf,kappa,m,1000,1,1.e-6);
+  inv_Q2_cg(solution,source,solution,conf,1000,1,1.e-6);
   */
 
   free(solutionQ);

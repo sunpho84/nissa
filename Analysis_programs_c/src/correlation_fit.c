@@ -84,10 +84,11 @@ double chi2_constant_fit(double C,int ij)
   
   for(int t=0;t<T;t++)
     if(t>=_tmin_constant_fit && t<=_tmax_constant_fit)
-      {
-	double add=pow((_data_constant_fit->data[t][_ijack_constant_fit]-C)/_err_data_constant_fit[t],2);
-	ch2+=add;
-      }
+      if(!isnan(_err_data_constant_fit[t]))
+	{
+	  double add=pow((_data_constant_fit->data[t][_ijack_constant_fit]-C)/_err_data_constant_fit[t],2);
+	  ch2+=add;
+	}
   
   return ch2;
 }
@@ -108,22 +109,17 @@ void jack_constant_fit(jack C,jack_vec *a,int tmin,int tmax)
   _err_data_constant_fit=(double*)malloc(sizeof(double)*(a->nel));
   int T=a->nel;
   for(int t=0;t<T;t++)
-    if((t>=tmin && t<=tmax)||(t>=T-tmax && t<=T-tmin))
+    if(t>=tmin && t<=tmax)
       _err_data_constant_fit[t]=jack_error(a->data[t]);
   _data_constant_fit=a;
  
   for(_ijack_constant_fit=0;_ijack_constant_fit<njack+1;_ijack_constant_fit++)
     {
       TMinuit minu;
-      
       minu.SetPrintLevel(-1);
-
       double c=a->data[(tmin+tmax)/2][_ijack_constant_fit];
-      
       minu.DefineParameter(0,"C",c,0.0001,0,0);
-      
       minu.SetFCN(ch2_constant_fit_wr);
-      
       minu.Migrad();
       
       double dum;
