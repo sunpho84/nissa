@@ -22,6 +22,7 @@ public:
   
   void put(double *);
   jvec load(const char *,int);
+  jvec load_naz(const char *,int);
   
   jack& operator[](int);
   jvec operator=(double);
@@ -66,14 +67,58 @@ jvec jvec::load(const char *path,int i)
       fprintf(stderr,"Error while searching for correlation %d!\n",i);
       exit(1);
     }
-  
-  if(fread(in,sizeof(double)*nel*(njack+1),1,fin)!=1)
+  int stat=fread(in,sizeof(double)*nel*(njack+1),1,fin);
+  if(stat!=1)
     {
-      fprintf(stderr,"Error while reading data!\n");
-      exit(1);
+      if(stat==EOF)
+	{
+	  fprintf(stderr,"Error, reached EOF while reading data!\n");
+	  exit(1);
+	}
+      else
+        {
+	  perror("Error while reading data!");
+	  exit(1);
+	}
     }
   
   put(in);
+  
+  fclose(fin);
+  
+  return (*this);
+}
+
+jvec jvec::load_naz(const char *path,int icorr)
+{
+  double in[nel][2][njack+1];
+  
+  FILE *fin=open_file(path,"r");
+
+  if(fseek(fin,2*(icorr/2)*sizeof(double)*nel*(njack+1),SEEK_SET))
+    {
+      fprintf(stderr,"Error while searching for correlation %d!\n",icorr);
+      exit(1);
+    }
+  int stat=fread(in,sizeof(double)*2*nel*(njack+1),1,fin);
+  if(stat!=1)
+    {
+      if(stat==EOF)
+	{
+	  fprintf(stderr,"Error, reached EOF while reading data!\n");
+	  exit(1);
+	}
+      else
+        {
+	  perror("Error while reading data!\n");
+	  exit(1);
+	}
+    }
+  
+  int ri=icorr%2;
+  for(int iel=0;iel<nel;iel++)
+    for(int ijack=0;ijack<njack+1;ijack++)
+      data[iel].data[ijack]=in[iel][ri][ijack];
   
   fclose(fin);
   
@@ -87,9 +132,16 @@ jvec jvec_load(const char *path,int nel,int njack,int i)
   return out.load(path,i);
 }
 
-ostream& operator<<(ostream &out,jvec &obj)
+jvec jvec_load_naz(const char *path,int nel,int njack,int i)
 {
-  for(int iel=0;iel<obj.nel;iel++) out<<iel<<" "<<obj[iel]<<endl;
+  jvec out(nel,njack);
+  
+  return out.load_naz(path,i);
+}
+
+ostream& operator<<(ostream &out,const jvec &obj)
+{
+  for(int iel=0;iel<obj.nel;iel++) out<<iel<<" "<<obj.data[iel]<<endl;
   
   return out;
 }
@@ -223,3 +275,5 @@ jvec atan(const jvec &a){return single_operator(a,atan);}
 
 jvec sqrt(const jvec &a){return single_operator(a,sqrt);}
 jvec pow(const jvec &a,double b){return pair_operator(a,b,pow);}
+
+//////////////
