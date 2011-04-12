@@ -100,9 +100,9 @@ double jack::med()
   return data[njack];
 }
 
-ostream& operator<<(ostream &out,jack &obj)
+ostream& operator<<(ostream &out,const jack &obj)
 {
-  out<<obj.med()<<" "<<obj.err();
+  out<<jack(obj).med()<<" "<<jack(obj).err();
   return out;
 }
 
