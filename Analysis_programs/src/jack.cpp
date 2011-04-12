@@ -1,0 +1,196 @@
+#pragma once
+
+#include <math.h>
+#include <string.h>
+#include <algorithm>
+#include <functional>
+#include <iostream>
+
+using namespace std;
+
+class jack
+{
+public:
+  int njack;
+  double *data;
+  void create(int);
+  jack(const jack&);
+  explicit jack();
+  explicit jack(int);
+  explicit jack(int,int*);
+  explicit jack(int,double*);
+  
+  double operator[](int);
+  jack operator=(double);
+
+  double med();
+  double err();
+  
+  void put(double*);
+};
+
+//creation and assignment
+
+void jack::put(double *in)
+{
+  memcpy(data,in,sizeof(double)*(njack+1));
+}
+
+void jack::create(int n)
+{
+  njack=n;
+  data=new double[njack+1];
+}
+
+jack::jack(const jack &in) : njack(in.njack),data(new double[njack+1])
+{
+  put(in.data);
+}
+jack::jack(){}
+
+jack::jack(int n)
+{
+  create(n);
+}
+
+jack::jack(int n,double *in)
+{
+  create(n);
+  put(in);
+}
+
+jack::jack(int n,int *in)
+{
+  double temp[n];
+  for(int ijack=0;ijack<n+1;ijack++) temp[ijack]=in[ijack];
+  (*this)=jack(n,temp);
+}
+
+// access and error
+
+double jack::operator[](int ijack)
+{
+  return data[ijack];
+}
+
+jack jack::operator=(double)
+{
+  for(int ijack=0;ijack<njack+1;ijack++) data[ijack]=0;
+  return *this;
+}
+
+double jack::err()
+{
+  double sx=0,s2x=0;
+  
+  for(int ij=0;ij<njack;ij++)
+    {
+      sx+=data[ij];
+      s2x+=data[ij]*data[ij];
+    }
+  sx/=njack;
+  s2x/=njack;
+  s2x-=sx*sx;
+  
+  return sqrt(s2x*(njack-1)); 
+}
+
+double jack::med()
+{
+  return data[njack];
+}
+
+ostream& operator<<(ostream &out,jack &obj)
+{
+  out<<obj.med()<<" "<<obj.err();
+  return out;
+}
+
+//functions
+
+double unary_minus(const double a){return -a;}
+double unary_plus(const double a){return a;}
+
+double double_summ(const double a,const double b){return a+b;}
+double double_subt(const double a,const double b){return a-b;}
+double double_prod(const double a,const double b){return a*b;}
+double double_frac(const double a,const double b){return a/b;}
+
+jack single_operator(const jack &a,double (*fun)(const double))
+{
+  int njack=a.njack;
+  jack c(njack);
+  transform(a.data,a.data+njack+1,c.data,ptr_fun(fun));
+
+  return c;
+}
+
+jack pair_operator(const jack &a,const jack &b,double (*fun)(const double,const double))
+{
+  int njack=a.njack;
+  if(b.njack!=njack)
+    {
+      cerr<<"Error, unmatched njack: "<<njack<<" "<<b.njack<<"!"<<endl;
+      exit(1);
+    }
+  jack c(njack);
+  transform(a.data,a.data+njack+1,b.data,c.data,ptr_fun(fun));
+
+  return c;
+}
+
+jack pair_operator(const jack &a,const double b,double (*fun)(const double,const double),int du)
+{
+  int njack=a.njack;
+  jack c(njack);
+  
+  for(int ijack=0;ijack<njack+1;ijack++)
+    if(du==2) c.data[ijack]=fun(a.data[ijack],b);
+    else      c.data[ijack]=fun(b,a.data[ijack]);
+
+  return c;
+}
+
+jack pair_operator(const jack &a,const double b,double (*fun)(const double,const double))
+{return pair_operator(a,b,fun,2);}
+jack pair_operator(const double a,const jack &b,double (*fun)(const double,const double))
+{return pair_operator(b,a,fun,1);}
+
+jack operator+(const jack &a,const jack &b){return pair_operator(a,b,double_summ);}
+jack operator-(const jack &a,const jack &b){return pair_operator(a,b,double_subt);}
+jack operator*(const jack &a,const jack &b){return pair_operator(a,b,double_prod);}
+jack operator/(const jack &a,const jack &b){return pair_operator(a,b,double_frac);}
+
+jack operator+=(jack &a,const jack &b){return a=a+b;}
+jack operator-=(jack &a,const jack &b){return a=a-b;}
+jack operator*=(jack &a,const jack &b){return a=a*b;}
+jack operator/=(jack &a,const jack &b){return a=a/b;}
+
+/////////////
+
+jack operator+(const jack &a,const double b){return pair_operator(a,b,double_summ);}
+jack operator-(const jack &a,const double b){return pair_operator(a,b,double_subt);}
+jack operator*(const jack &a,const double b){return pair_operator(a,b,double_prod);}
+jack operator/(const jack &a,const double b){return pair_operator(a,b,double_frac);}
+
+jack operator+=(jack &a,const double b){return a=a+b;}
+jack operator-=(jack &a,const double b){return a=a-b;}
+jack operator*=(jack &a,const double b){return a=a*b;}
+jack operator/=(jack &a,const double b){return a=a/b;}
+
+jack operator+(const double a,const jack &b){return pair_operator(a,b,double_summ);}
+jack operator-(const double a,const jack &b){return pair_operator(a,b,double_subt);}
+jack operator*(const double a,const jack &b){return pair_operator(a,b,double_prod);}
+jack operator/(const double a,const jack &b){return pair_operator(a,b,double_frac);}
+
+jack operator+(const jack &a){return single_operator(a,unary_plus);}
+jack operator-(const jack &a){return single_operator(a,unary_minus);}
+jack sin(const jack &a){return single_operator(a,sin);}
+jack cos(const jack &a){return single_operator(a,cos);}
+jack tan(const jack &a){return single_operator(a,tan);}
+jack asin(const jack &a){return single_operator(a,asin);}
+jack acos(const jack &a){return single_operator(a,acos);}
+jack atan(const jack &a){return single_operator(a,atan);}
+
+jack sqrt(const jack &a){return single_operator(a,sqrt);}
+jack pow(const jack &a,double b){return pair_operator(a,b,pow);}
