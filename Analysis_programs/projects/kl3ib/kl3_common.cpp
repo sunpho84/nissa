@@ -6,7 +6,7 @@ int T,TH,L;
 int nmoms,nmass;
 
 char base_path[1024];
-double *theta;
+double *mass,*theta;
 
 void read_input()
 {
@@ -14,11 +14,17 @@ void read_input()
   read_formatted_from_file_expecting(base_path,input,"%s","base_path");
   read_formatted_from_file_expecting((char*)&T,input,"%d","T");
   L=TH=T/2;
+  
   read_formatted_from_file_expecting((char*)&nmass,input,"%d","nmass");
+  expect_string_from_file(input,"mass_list");
+  mass=(double*)malloc(sizeof(double)*nmass);
+  for(int imass=0;imass<nmass;imass++) read_formatted_from_file((char*)&(mass[imass]),input,"%lg","mass");
+  
   read_formatted_from_file_expecting((char*)&nmoms,input,"%d","nmoms");
   expect_string_from_file(input,"theta_list");
   theta=(double*)malloc(sizeof(double)*nmoms);
   for(int imom=0;imom<nmoms;imom++) read_formatted_from_file((char*)&(theta[imom]),input,"%lg","theta");
+  
   fclose(input);
 }
 
@@ -32,7 +38,7 @@ void check_interval(int var,int min,int max)
 }
 
 //read a particular two point passed as argument
-jtvec read_two_points(const char *in,int T,int njack,int nmoms,int nmass,int im1,int im2,int ik1,int ik2,int r1,int r2,int ri)
+jvec read_two_points(const char *in,int T,int njack,int nmoms,int nmass,int im1,int im2,int ik1,int ik2,int r1,int r2,int ri)
 {
   check_interval(ik1,0,nmoms);check_interval(im1,0,nmass);check_interval(r1,0,2);
   check_interval(ik2,0,nmoms);check_interval(im2,0,nmass);check_interval(r2,0,2);

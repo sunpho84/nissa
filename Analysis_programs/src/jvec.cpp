@@ -15,17 +15,21 @@ public:
   int njack;
   jack *data;
   void create(int,int);
-  jvec();
+  explicit jvec(){}
   jvec(const jvec&);
-  explicit jvec(int,int);
-  explicit jvec(int,double*);
-  
+  jvec(int,int);
+    
   void put(double *);
   jvec load(const char *,int);
   jvec load_naz(const char *,int);
   
   jack& operator[](int);
-  jvec operator=(double);
+  jvec operator=(double in){for(int iel=0;iel<nel;iel++) data[iel]=in;return *this;}
+  jvec operator=(const jvec&);
+
+  jvec first_half();
+  jvec simmetric();
+  jvec simmetrized(int parity);
 };
 
 //creation and assignment
@@ -37,12 +41,16 @@ void jvec::create(int ne,int nj)
   for(int iel=0;iel<nel;iel++) data[iel].create(nj);
 }
 
-jvec::jvec(){}
-
 jvec::jvec(const jvec &in) : nel(in.nel),njack(in.njack)
 {
   create(nel,njack);
   for(int iel=0;iel<nel;iel++) data[iel]=in.data[iel];
+}
+
+jvec jvec::operator=(const jvec &in)
+{
+  for(int iel=0;iel<nel;iel++) data[iel]=in.data[iel];
+  return *this;
 }
 
 jvec::jvec(int ne,int nj)
@@ -149,12 +157,6 @@ ostream& operator<<(ostream &out,const jvec &obj)
 jack& jvec::operator[](int iel)
 {
   return data[iel];
-}
-
-jvec jvec::operator=(double in)
-{
-  for(int iel=0;iel<nel;iel++) data[iel]=0;
-  return *this;
 }
 
 jvec single_operator(const jvec &a,double (*fun)(const double))
@@ -277,3 +279,97 @@ jvec sqrt(const jvec &a){return single_operator(a,sqrt);}
 jvec pow(const jvec &a,double b){return pair_operator(a,b,pow);}
 
 //////////////
+
+jvec jvec::first_half()
+{
+  if(nel%2!=0)
+    {
+      cerr<<"Error, required the first half of an odd-length ("<<nel<<") jvector!"<<endl;
+      exit(1);
+    }
+  
+  jvec c(nel/2,njack);
+  for(int iel=0;iel<nel/2;iel++)
+    c.data[iel]=data[iel];
+  
+  return c;
+}
+
+jvec jvec::simmetric()
+{
+  jvec c(nel,njack);
+  for(int iel=0;iel<nel;iel++)
+    c.data[iel]=data[nel-iel-1];
+
+  return c;
+}
+
+jvec jvec::simmetrized(int parity)
+{
+  if(abs(parity)!=1)
+    {
+      cerr<<"Error, parity required for simmetrization: "<<parity<<endl;
+      exit(1);
+    }
+  
+  if(nel%2!=0)
+    {
+      cerr<<"Error, required to simmetrize an odd-length jvector!"<<endl;
+      exit(1);
+    }
+  
+  jvec c(nel/2+1,njack);
+  
+  for(int iel=0;iel<=nel/2;iel++)
+    {
+      if(parity==1) c.data[iel]=(data[iel]+data[(nel-iel)%nel])/2;
+      else          c.data[iel]=(data[iel]-data[(nel-iel)%nel])/2;
+    }
+
+  return c;
+}
+
+jack constant_fit(jvec in,int tin,int tfin)
+{
+  int njack=in.njack;
+  jack E(njack),temp;
+
+  E=0;
+  double norm=0;
+  for(int iel=tfin;iel<=tfin;iel++)
+    {
+      double err=in.data[iel].err();
+      double weight=1/(err*err);
+      E+=in[iel]*weight;
+      temp=in[iel]*weight;
+      norm+=weight;
+    }
+  return E/norm;
+}
+
+void linear_fit(jvec in,jack &m,jack &q,int tin,int tfin)
+{
+  int njack=in.njack;
+  double S,Sx,Sx2;
+  jack Sxy(njack),Sy(njack);
+  
+  Sx2=S=Sx=0;
+  Sxy=Sy=0;
+  for(int iel=tin;iel<=tfin;iel++)
+    {
+      double err=in.data[iel].err();
+      double weight=1/(err*err);
+      int x=iel;
+      jack y=in.data[iel];
+
+      S+=weight;
+      Sx+=x*weight;
+      Sx2+=x*x*weight;
+      Sxy+=x*y*weight;
+      Sy+=y*weight;
+    }
+  
+  double delta=S*Sx2-Sx*Sx;
+  m=(S*Sxy-Sx*Sy)/delta;
+  q=(Sx2*Sy-Sxy*Sx)/delta;
+}

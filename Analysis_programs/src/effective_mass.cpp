@@ -57,12 +57,12 @@ jack effective_mass(const jack y,const jack yp,int t,int TH)
   return m;
 }
 
-jtvec effective_mass(const jtvec a)
+jvec effective_mass(const jvec a)
 {
   int TH=a.nel-1;
   int njack=a.njack;
   
-  jtvec b(TH,njack);
+  jvec b(TH,njack);
   
   for(int t=0;t<TH;t++) b.data[t]=effective_mass(a.data[t],a.data[t+1],t,TH);
   
