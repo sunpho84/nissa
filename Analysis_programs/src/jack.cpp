@@ -15,7 +15,7 @@ public:
   double *data;
   void create(int);
   jack(const jack&);
-  explicit jack(){}
+  explicit jack(){data=NULL;njack=0;}
   explicit jack(int);
   explicit jack(int,int*);
   explicit jack(int,double*);
@@ -27,6 +27,7 @@ public:
   double med();
   double err();
   
+  void reallocate_if_necessary(int);
   void put(double*);
 };
 
@@ -43,6 +44,15 @@ void jack::create(int n)
   data=new double[njack+1];
 }
 
+void jack::reallocate_if_necessary(int nj)
+{
+  if(njack!=nj)
+    {
+      if(data!=NULL) delete[] data;
+      create(nj);
+    }
+}
+
 jack::jack(const jack &in) : njack(in.njack)
 {
   data=new double[njack+1];
@@ -51,6 +61,7 @@ jack::jack(const jack &in) : njack(in.njack)
 
 jack jack::operator=(const jack &in)
 {
+  reallocate_if_necessary(in.njack);
   put(in.data);
   
   return *this;
@@ -193,12 +204,20 @@ jack operator/(const double a,const jack &b){return pair_operator(a,b,double_fra
 
 jack operator+(const jack &a){return single_operator(a,unary_plus);}
 jack operator-(const jack &a){return single_operator(a,unary_minus);}
+
 jack sin(const jack &a){return single_operator(a,sin);}
 jack cos(const jack &a){return single_operator(a,cos);}
 jack tan(const jack &a){return single_operator(a,tan);}
 jack asin(const jack &a){return single_operator(a,asin);}
 jack acos(const jack &a){return single_operator(a,acos);}
 jack atan(const jack &a){return single_operator(a,atan);}
+
+jack sinh(const jack &a){return single_operator(a,sinh);}
+jack cosh(const jack &a){return single_operator(a,cosh);}
+jack tanh(const jack &a){return single_operator(a,tanh);}
+jack asinh(const jack &a){return single_operator(a,asinh);}
+jack acosh(const jack &a){return single_operator(a,acosh);}
+jack atanh(const jack &a){return single_operator(a,atanh);}
 
 jack sqrt(const jack &a){return single_operator(a,sqrt);}
 jack pow(const jack &a,double b){return pair_operator(a,b,pow);}

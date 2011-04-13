@@ -1,6 +1,5 @@
 #include "include.h"
 #include "kl3_common.cpp"
-int njack=10;
 
 jtvec load_averaged_two_points(char *base_path,int im1,int im2,int ik1,int ik2,int r1,int r2)
 {
@@ -17,6 +16,7 @@ jtvec load_averaged_two_points(char *base_path,int im1,int im2,int ik1,int ik2,i
 
 int main()
 {
+  njack=10;
   read_input();
   
   //load the neutral "up" flavour
