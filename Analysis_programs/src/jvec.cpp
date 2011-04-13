@@ -15,13 +15,15 @@ public:
   int njack;
   jack *data;
   void create(int,int);
-  explicit jvec(){}
+  explicit jvec(){data=NULL;nel=0;njack=0;}
   jvec(const jvec&);
   jvec(int,int);
-    
+
+  void reallocate_if_necessary(int,int);
   void put(double *);
   jvec load(const char *,int);
   jvec load_naz(const char *,int);
+  void print_to_file(const char *,...);
   
   jack& operator[](int);
   jvec operator=(double in){for(int iel=0;iel<nel;iel++) data[iel]=in;return *this;}
@@ -32,6 +34,8 @@ public:
   jvec simmetrized(int parity);
 };
 
+ostream& operator<<(ostream &out,const jvec &obj);
+
 //creation and assignment
 void jvec::create(int ne,int nj)
 {
@@ -39,6 +43,15 @@ void jvec::create(int ne,int nj)
   njack=nj;
   data=new jack[nel];
   for(int iel=0;iel<nel;iel++) data[iel].create(nj);
+}
+
+void jvec::reallocate_if_necessary(int ne,int nj)
+{
+  if(nel!=ne||njack!=nj)
+    {
+      if(data!=NULL) delete[] data;
+      create(ne,nj);
+    }
 }
 
 jvec::jvec(const jvec &in) : nel(in.nel),njack(in.njack)
@@ -49,6 +62,7 @@ jvec::jvec(const jvec &in) : nel(in.nel),njack(in.njack)
 
 jvec jvec::operator=(const jvec &in)
 {
+  reallocate_if_necessary(in.nel,in.njack);
   for(int iel=0;iel<nel;iel++) data[iel]=in.data[iel];
   return *this;
 }
@@ -95,6 +109,20 @@ jvec jvec::load(const char *path,int i)
   fclose(fin);
   
   return (*this);
+}
+
+void jvec::print_to_file(const char *format,...)
+{
+  char buffer[1024];
+  va_list args;
+
+  va_start(args,format);
+  vsprintf(buffer,format,args);
+  va_end(args);
+
+  ofstream fout(buffer);
+  fout<<(*this);
+  fout.close();
 }
 
 jvec jvec::load_naz(const char *path,int icorr)
@@ -268,12 +296,20 @@ jvec operator/(const double a,const jvec &b){return pair_operator(a,b,double_fra
 
 jvec operator+(const jvec &a){return single_operator(a,unary_plus);}
 jvec operator-(const jvec &a){return single_operator(a,unary_minus);}
+
 jvec sin(const jvec &a){return single_operator(a,sin);}
 jvec cos(const jvec &a){return single_operator(a,cos);}
 jvec tan(const jvec &a){return single_operator(a,tan);}
 jvec asin(const jvec &a){return single_operator(a,asin);}
 jvec acos(const jvec &a){return single_operator(a,acos);}
 jvec atan(const jvec &a){return single_operator(a,atan);}
+
+jvec sinh(const jvec &a){return single_operator(a,sinh);}
+jvec cosh(const jvec &a){return single_operator(a,cosh);}
+jvec tanh(const jvec &a){return single_operator(a,tanh);}
+jvec asinh(const jvec &a){return single_operator(a,asinh);}
+jvec acosh(const jvec &a){return single_operator(a,acosh);}
+jvec atanh(const jvec &a){return single_operator(a,atanh);}
 
 jvec sqrt(const jvec &a){return single_operator(a,sqrt);}
 jvec pow(const jvec &a,double b){return pair_operator(a,b,pow);}
@@ -336,7 +372,7 @@ jack constant_fit(jvec in,int tin,int tfin)
 
   E=0;
   double norm=0;
-  for(int iel=tfin;iel<=tfin;iel++)
+  for(int iel=tin;iel<=tfin;iel++)
     {
       double err=in.data[iel].err();
       double weight=1/(err*err);

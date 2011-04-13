@@ -1,6 +1,5 @@
 #include "include.h"
 #include "kl3_common.cpp"
-int njack=10;
 
 double fun_A0P5(double Z_A0P5,double M_A0P5,int t){return Z_A0P5*exp(-M_A0P5*TH)*sinh(M_A0P5*(t-TH));}
 double fun_P5P5(double Z_P5P5,double M_P5P5,int t){return Z_P5P5*exp(-M_P5P5*TH)*cosh(M_P5P5*(TH-t))/M_P5P5;}
@@ -13,6 +12,7 @@ double (*fit_fun_K)(double,double,int),(*fit_fun_ratio)(double,double,double,int
 int tmin_fit,tmax_fit;
 double *K_fit,*ratio_fit;
 double *dK_fit,*dratio_fit;
+double a390=1/2.32;
 
 //calculate the chi square
 double chi2_mass_ratio(double A,double SL,double C,double M)
@@ -108,50 +108,58 @@ jvec load_chaveraged_2pts(const char *nome_file,int im1,int im2,int ik1,int ik2,
   sprintf(path,"%s/%s",base_path,nome_file);  
   
   //read the 2 two points with opposite r
-  return (read_two_points(path,T,njack,nmoms,nmass,im1,im2,ik1,ik2,0,0,ri)+
-	  read_two_points(path,T,njack,nmoms,nmass,im1,im2,ik1,ik2,1,1,ri))*
-    (-0.5/(L*L*L));
+  return (read_two_points(path,im1,im2,ik1,ik2,0,0,ri)+
+	  read_two_points(path,im1,im2,ik1,ik2,1,1,ri))/2;
 }
 
 int main()
 {
+  njack=10;
   read_input();
   
   int im1=0,im2=1; //quello raddoppiato e' il primo!
   int ik1=0,ik2=0;
   int ri=0;
   
+  //load the data
   jvec K_A0P5 =load_chaveraged_2pts("oA0Po-ss_conf.1.dat",im1,im2,ik1,ik2,ri).simmetrized(-1);
   jvec Ks_A0P5=load_chaveraged_2pts("oA0Po-sd_conf.1.dat",im1,im2,ik1,ik2,ri).simmetrized(-1);
   jvec K_P5P5 =load_chaveraged_2pts("oPPo-ss_conf.1.dat",im1,im2,ik1,ik2,ri).simmetrized(1);
   jvec Ks_P5P5=load_chaveraged_2pts("oPPo-sd_conf.1.dat",im1,im2,ik1,ik2,ri).simmetrized(1);
   
+  //define the ratios
   jvec ratio_P5P5=Ks_P5P5/K_P5P5;
   jvec ratio_A0P5=Ks_A0P5/K_A0P5;
   
+  //fit of P5P5
   jack A_P5P5(njack),SL_P5P5(njack),C_P5P5(njack),M_P5P5(njack);
-  jack_fit_mass_and_ratio_P5P5(A_P5P5,SL_P5P5,C_P5P5,M_P5P5,K_P5P5,ratio_P5P5,13,23);
-
-  jack A_A0P5(njack),SL_A0P5(njack),C_A0P5(njack),M_A0P5(njack);
-  jack_fit_mass_and_ratio_A0P5(A_A0P5,SL_A0P5,C_A0P5,M_A0P5,K_A0P5,ratio_A0P5,13,23);
+  jack_fit_mass_and_ratio_P5P5(A_P5P5,SL_P5P5,C_P5P5,M_P5P5,K_P5P5,ratio_P5P5,12,23);
   
-  cout<<"Mass P5P5: "<<M_P5P5<<endl;
+  //fit of A0P5
+  jack A_A0P5(njack),SL_A0P5(njack),C_A0P5(njack),M_A0P5(njack);
+  jack_fit_mass_and_ratio_A0P5(A_A0P5,SL_A0P5,C_A0P5,M_A0P5,K_A0P5,ratio_A0P5,12,23);
+  
+  //calculate fK
+  jack fK_P5P5=(mass[0]+mass[1])*sqrt(C_P5P5)/(M_P5P5*sinh(M_P5P5));
+  jack fK_A0P5=C_A0P5*0.6108/sqrt(C_P5P5);
+  cout<<(mass[0]+mass[1])<<" "<<sqrt(C_P5P5)<<" "<<M_P5P5<<" "<<sinh(M_P5P5)<<endl;
+  //calculate delta_fK/fK/delta_m
+  jack dfK_fr_fK_2dm=A_A0P5-0.5*A_P5P5-0.5*(1/M_P5P5-TH)*SL_A0P5;
+  jack dfK_fr_fK_2dm_WI=-1/(mass[0]+mass[1])+0.5*(A_P5P5+(TH-3.0/M_P5P5)*SL_P5P5);
+  
+  cout<<"Mass P5P5: "<<M_P5P5<<" = "<<M_P5P5/a390<<" GeV"<<endl;
   cout<<"Slope P5P5: "<<SL_P5P5<<endl;
   cout<<"A P5P5: "<<A_P5P5<<endl;
   cout<<endl;
-  cout<<"Mass A0P5: "<<M_A0P5<<endl;
+  cout<<"Mass A0P5: "<<M_A0P5<<" = "<<M_A0P5/a390<<" GeV"<<endl;
   cout<<"Slope A0P5: "<<SL_A0P5<<endl;
   cout<<"A A0P5: "<<A_A0P5<<endl;
   cout<<endl;
-  
-  jvec rest_ratio_P5P5(ratio_P5P5);
-  for(int t=0;t<=TH;t++)
-    for(int ijack=0;ijack<njack+1;ijack++)
-      rest_ratio_P5P5.data[t].data[ijack]-=fun_ratio_P5P5(A_P5P5[ijack],SL_P5P5[ijack],M_P5P5[ijack],t);
-  
-  ofstream fuf("/tmp/fuf_jack");
-  //cout<<ratio_P5P5.data[0].data<<" "<<rest_ratio_P5P5.data[0].data<<endl;
-  fuf<<K_P5P5;
-  
+  cout<<"fK (def): "<<fK_A0P5<<" = "<<fK_A0P5/a390<<" GeV"<<endl;
+  cout<<"fK (WI): "<<fK_P5P5<<" = "<<fK_P5P5/a390<<" GeV"<<endl;
+  cout<<endl;
+  cout<<"dfK/fK/2dm (def): "<<dfK_fr_fK_2dm<<endl;
+  cout<<"dfK/fK/2dm (WI): "<<dfK_fr_fK_2dm_WI<<endl;
+
   return 0;
 }

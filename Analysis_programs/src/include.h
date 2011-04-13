@@ -4,6 +4,8 @@
 
 using namespace std;
 
+#include "tools.cpp"
+
 #include "endianess.cpp"
 #include "file.cpp"
 #include "jack.cpp"
