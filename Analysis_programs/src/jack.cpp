@@ -15,14 +15,15 @@ public:
   double *data;
   void create(int);
   jack(const jack&);
-  explicit jack();
+  explicit jack(){}
   explicit jack(int);
   explicit jack(int,int*);
   explicit jack(int,double*);
   
   double operator[](int);
   jack operator=(double);
-
+  jack operator=(const jack&);
+  
   double med();
   double err();
   
@@ -42,11 +43,18 @@ void jack::create(int n)
   data=new double[njack+1];
 }
 
-jack::jack(const jack &in) : njack(in.njack),data(new double[njack+1])
+jack::jack(const jack &in) : njack(in.njack)
 {
+  data=new double[njack+1];
   put(in.data);
 }
-jack::jack(){}
+
+jack jack::operator=(const jack &in)
+{
+  put(in.data);
+  
+  return *this;
+}
 
 jack::jack(int n)
 {
@@ -73,9 +81,9 @@ double jack::operator[](int ijack)
   return data[ijack];
 }
 
-jack jack::operator=(double)
+jack jack::operator=(double a)
 {
-  for(int ijack=0;ijack<njack+1;ijack++) data[ijack]=0;
+  for(int ijack=0;ijack<njack+1;ijack++) data[ijack]=a;
   return *this;
 }
 
