@@ -77,6 +77,9 @@ int main()
       jack_vec *x_corr_simm=jack_vec_malloc(TH);
       jack_vec_frac_jack_vec(x_corr,ti,t0);
       jack_vec_simmetrize(x_corr_simm,x_corr,-1);
+      char path[1024];
+      sprintf(path,"/tmp/x_%d_%d",im_s,ik);
+      jack_vec_print_to_file(path,x_corr_simm);
       
       //fit x
       jack x;
@@ -94,8 +97,6 @@ int main()
       printf("%g, m = %g +- %g, ",p2,m[njack],jack_error(m));
       printf("e2 = %g +- %g\n",e2[njack],jack_error(e2));
     }
-  
-  //jack_vec_print_to_file("/tmp/x",x_corr_simm);
   
   return 0;
 }

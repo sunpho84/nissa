@@ -253,10 +253,10 @@ jvec operator-(const jvec &a,const jvec &b){return pair_operator(a,b,double_subt
 jvec operator*(const jvec &a,const jvec &b){return pair_operator(a,b,double_prod);}
 jvec operator/(const jvec &a,const jvec &b){return pair_operator(a,b,double_frac);}
 
-jvec operator+=(const jvec &a,const jvec &b){return a+b;}
-jvec operator-=(const jvec &a,const jvec &b){return a-b;}
-jvec operator*=(const jvec &a,const jvec &b){return a*b;}
-jvec operator/=(const jvec &a,const jvec &b){return a/b;}
+jvec operator+=(jvec &a,const jvec &b){return a=a+b;}
+jvec operator-=(jvec &a,const jvec &b){return a=a-b;}
+jvec operator*=(jvec &a,const jvec &b){return a=a*b;}
+jvec operator/=(jvec &a,const jvec &b){return a=a/b;}
 
 ///////////
 
