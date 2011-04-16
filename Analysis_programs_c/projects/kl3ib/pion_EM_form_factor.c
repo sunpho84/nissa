@@ -11,7 +11,7 @@ int T,TH,L;
 int nmoms,nmass;
 
 char base_path[1024];
-double *theta;
+double *theta,*mass;
 
 void read_input()
 {
@@ -19,11 +19,17 @@ void read_input()
   read_formatted_from_file_expecting(base_path,input,"%s","base_path");
   read_formatted_from_file_expecting((char*)&T,input,"%d","T");
   L=TH=T/2;
+
   read_formatted_from_file_expecting((char*)&nmass,input,"%d","nmass");
+  expect_string_from_file(input,"mass_list");
+  mass=(double*)malloc(sizeof(double)*nmass);
+  for(int imass=0;imass<nmass;imass++) read_formatted_from_file((char*)&(mass[imass]),input,"%lg","mass");
+  
   read_formatted_from_file_expecting((char*)&nmoms,input,"%d","nmoms");
   expect_string_from_file(input,"theta_list");
   theta=(double*)malloc(sizeof(double)*nmoms);
   for(int imom=0;imom<nmoms;imom++) read_formatted_from_file((char*)&(theta[imom]),input,"%lg","theta");
+  
   fclose(input);
 }
 
@@ -58,7 +64,7 @@ int main()
 
   //fit mass
   jack M[nmoms],Z;
-  for(int ik=0;ik<nmoms;ik++) jack_fit_mass(Z,M[ik],P5_P5[ik],12,23);
+  for(int ik=0;ik<nmoms;ik++) jack_mass_fit(Z,M[ik],P5_P5[ik],12,23);
   
   for(int ik1=0;ik1<nmoms;ik1++)
     for(int ik2=0;ik2<nmoms;ik2++)
@@ -75,11 +81,11 @@ int main()
 	  //print the double ratio
 	  char path_out[1024];
 	  sprintf(path_out,"EM_ff_mom_%d_%d.out",ik1,ik2);
-	  print_corr_to_file(path_out,double_ratio_simm);
+	  jack_vec_print_to_file(path_out,double_ratio_simm);
 	  
 	  //calculate the form factor
 	  jack C;
-	  constant_fit(C,double_ratio_simm,10,14);
+	  jack_constant_fit(C,double_ratio_simm,10,14);
 	  //calculate the transferred impulse
 	  jack Q2;
 	  calculate_Q2(Q2,M[ik1],theta[ik1],M[ik2],theta[ik2],L);
@@ -95,9 +101,9 @@ int main()
 
       char path_out[1024];
       sprintf(path_out,"P5_P5_mom%d.out",ik1);
-      print_corr_to_file(path_out,P5_P5[ik1]);
+      jack_vec_print_to_file(path_out,P5_P5[ik1]);
       sprintf(path_out,"P5_V0_P5_mom_%d_%d.out",ik1,ik2);
-      print_corr_to_file(path_out,P5_V0_P5[ik1][ik2]);
+      jack_vec_print_to_file(path_out,P5_V0_P5[ik1][ik2]);
     }
 
   //free the jacknife vector used to load data

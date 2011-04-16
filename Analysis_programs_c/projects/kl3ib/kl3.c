@@ -11,7 +11,7 @@ int T,TH,L;
 int nmoms,nmass;
 
 char base_path[1024];
-double *theta;
+double *theta,*mass;
 
 void read_input()
 {
@@ -20,6 +20,9 @@ void read_input()
   read_formatted_from_file_expecting((char*)&T,input,"%d","T");
   L=TH=T/2;
   read_formatted_from_file_expecting((char*)&nmass,input,"%d","nmass");
+  expect_string_from_file(input,"mass_list");
+  mass=(double*)malloc(sizeof(double)*nmass);
+  for(int imass=0;imass<nmass;imass++) read_formatted_from_file((char*)&(mass[imass]),input,"%lg","mass");
   read_formatted_from_file_expecting((char*)&nmoms,input,"%d","nmoms");
   expect_string_from_file(input,"theta_list");
   theta=(double*)malloc(sizeof(double)*nmoms);
@@ -109,6 +112,8 @@ int main()
   jack_vec *temp2=jack_vec_malloc(TH);
 
   jack V0,Vi;
+  char path[1024];
+  FILE *fout;
   for(int ik_l=0;ik_l<nmoms;ik_l++)
     for(int ik_s=0;ik_s<nmoms;ik_s++)
       {
@@ -141,7 +146,7 @@ int main()
 	      //product of K->Pi Pi->K
 	      double_ratio_simm[1]->data[t][ij]=a*b;
 	    }
-	
+
 	//calculate the denominator
 	jack_vec_simmetrize(temp1,P5_Vmu_P5[im_l][im_l][ik_l][ik_l][0],-1);
 	jack_vec_simmetrize(temp2,P5_Vmu_P5[im_s][im_s][ik_s][ik_s][0],-1);
@@ -172,8 +177,6 @@ int main()
 	printf("V0= %g %g\n",V0[njack]/sq[njack],jack_error(V0)/sq[njack]);
 	printf("Vi= %g %g\n",Vi[njack]/sq[njack],jack_error(Vi)/sq[njack]);
 	
-	char path[1024];
-	FILE *fout;
 	for(int mu=0;mu<2;mu++)
 	  {
 	    sprintf(path,"out_double_ratio_simm_P5_V%d_P5_%d_%d",mu,ik_s,ik_l);

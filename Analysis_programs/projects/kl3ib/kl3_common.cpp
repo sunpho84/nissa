@@ -155,3 +155,22 @@ jvec read_deg_ch_thimpr_P5_V0_P5(int im_spec,int im_val,int ik1,int ik2,int r)
   
 jack calculate_Q2(jack E1,double theta1,jack E2,double theta2)
 {return pow(E1-E2,2)-3*pow(2*M_PI*(theta1-theta2)/L,2);}
+
+void calculate_Q_P(jack *Q,jack *P,jack E1,double theta1,jack E2,double theta2)
+{
+  Q[0]=E1-E2;
+  P[0]=E1+E2;
+
+  for(int i=1;i<4;i++)
+    {
+      Q[i]=jack(njack);Q[i]=2*M_PI/L*(theta1-theta2);
+      P[i]=jack(njack);P[i]=2*M_PI/L*(theta1+theta2);
+    }
+}
+
+jack quad_jack_prod_quad_jack(jack *v,jack *p)
+{
+  jack res=v[0]*p[0];
+  for(int mu=1;mu<4;mu++) res-=v[mu]*p[mu];
+  return res;
+}
