@@ -409,3 +409,49 @@ void linear_fit(jvec in,jack &m,jack &q,int tin,int tfin)
   m=(S*Sxy-Sx*Sy)/delta;
   q=(Sx2*Sy-Sxy*Sx)/delta;
 }
+
+void linear_fit(jack &m,jack &q,double *x,jvec &y)
+{
+  int njack=y.njack;
+  double S,Sx,Sx2;
+  jack Sxy(njack),Sy(njack);
+  
+  Sx2=S=Sx=0;
+  Sxy=Sy=0;
+  for(int iel=0;iel<y.nel;iel++)
+    {
+      double err=y.data[iel].err();
+      double weight=1/(err*err);
+      double xi=x[iel];
+      jack yi=y.data[iel];
+
+      S+=weight;
+      Sx+=xi*weight;
+      Sx2+=xi*xi*weight;
+      Sxy+=xi*yi*weight;
+      Sy+=yi*weight;
+    }
+  
+  double delta=S*Sx2-Sx*Sx;
+  m=(S*Sxy-Sx*Sy)/delta;
+  q=(Sx2*Sy-Sxy*Sx)/delta;
+}
+
+jvec par_single_fun(double (*fun)(double,double*),jvec &x,jvec &par)
+{
+  int nx=x.nel;
+  int njack=x.njack;
+  int npar=par.nel;
+  
+  jvec y(nx,njack);
+  
+  for(int ijack=0;ijack<njack+1;ijack++)
+    {
+      double dpar[npar];
+      //create temporary double vector for pars
+      for(int ipar=0;ipar<npar;ipar++) dpar[ipar]=par.data[ipar].data[ijack];
+      for(int ix=0;ix<nx;ix++) y.data[ix].data[ijack]=fun(x.data[ix].data[ijack],dpar);
+    }
+  
+  return y;
+}

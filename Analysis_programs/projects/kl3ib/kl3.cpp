@@ -86,17 +86,18 @@ int main()
 	    cV[mu]*=A;
 	    cV[mu].print_to_file("/tmp/out_double_ratio_simm_P5_V%d_P5_%d_%d",mu,ik_s,ik_l);
 	  }
-	    
+	
 	jack V0=constant_fit(cV[0],10,14);
 	jack Vi=constant_fit(cV[1],10,14);
 	
-	cout<<"V0: "<<V0/A<<endl;
+	cout<<"V0: "<<V0/A<<" "<<A<<endl;
 	cout<<"Vi: "<<Vi/A<<endl;
 	
 	//calculate the impulses
 	jack Q[4],P[4],Q2;
 	calculate_Q_P(Q,P,E2pt[im_s][ik_s],theta[ik_s],E2pt[im_l][ik_l],theta[ik_l]);
 	Q2=quad_jack_prod_quad_jack(Q,Q);
+	//calculate_Q_P(Q,P,E3pt[im_s][ik_s],theta[ik_s],E3pt[im_l][ik_l],theta[ik_l]);
 
 	jack fp,fm,f0;
 	if(theta[ik_s]!=-theta[ik_l] && ik_s!=ik_l)
