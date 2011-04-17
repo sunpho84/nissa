@@ -122,6 +122,7 @@ int main()
   int ri=0;
   
   //load the data
+  jvec Pi_P5P5 =load_chaveraged_2pts("oPPo-ss_conf.1.dat",im1,im1,ik1,ik2,ri).simmetrized(1);
   jvec K_A0P5 =load_chaveraged_2pts("oA0Po-ss_conf.1.dat",im1,im2,ik1,ik2,ri).simmetrized(-1);
   jvec Ks_A0P5=load_chaveraged_2pts("oA0Po-sd_conf.1.dat",im1,im2,ik1,ik2,ri).simmetrized(-1);
   jvec K_P5P5 =load_chaveraged_2pts("oPPo-ss_conf.1.dat",im1,im2,ik1,ik2,ri).simmetrized(1);
@@ -131,22 +132,27 @@ int main()
   jvec ratio_P5P5=Ks_P5P5/K_P5P5;
   jvec ratio_A0P5=Ks_A0P5/K_A0P5;
   
-  //fit of P5P5
+  //fit of P5P5 for K
   jack A_P5P5(njack),SL_P5P5(njack),C_P5P5(njack),M_P5P5(njack);
   jack_fit_mass_and_ratio_P5P5(A_P5P5,SL_P5P5,C_P5P5,M_P5P5,K_P5P5,ratio_P5P5,12,23);
   
-  //fit of A0P5
+  //fit of A0P5 for K
   jack A_A0P5(njack),SL_A0P5(njack),C_A0P5(njack),M_A0P5(njack);
   jack_fit_mass_and_ratio_A0P5(A_A0P5,SL_A0P5,C_A0P5,M_A0P5,K_A0P5,ratio_A0P5,12,23);
+  
+  //fit of P5P5 fot Pi
+  jack Mpi=constant_fit(effective_mass(Pi_P5P5),12,23);
   
   //calculate fK
   jack fK_P5P5=(mass[0]+mass[1])*sqrt(C_P5P5)/(M_P5P5*sinh(M_P5P5));
   jack fK_A0P5=C_A0P5*0.6108/sqrt(C_P5P5);
-  cout<<(mass[0]+mass[1])<<" "<<sqrt(C_P5P5)<<" "<<M_P5P5<<" "<<sinh(M_P5P5)<<endl;
+  //cout<<(mass[0]+mass[1])<<" "<<sqrt(C_P5P5)<<" "<<M_P5P5<<" "<<sinh(M_P5P5)<<endl;
   //calculate delta_fK/fK/delta_m
   jack dfK_fr_fK_2dm=A_A0P5-0.5*A_P5P5-0.5*(1/M_P5P5-TH)*SL_A0P5;
   jack dfK_fr_fK_2dm_WI=-1/(mass[0]+mass[1])+0.5*(A_P5P5+(TH-3.0/M_P5P5)*SL_P5P5);
   
+  cout<<"Delta MK2: "<<Mpi*Mpi<<" "<<2*M_P5P5*SL_P5P5<<endl;
+  cout<<endl;
   cout<<"Mass P5P5: "<<M_P5P5<<" = "<<M_P5P5/a390<<" GeV"<<endl;
   cout<<"Slope P5P5: "<<SL_P5P5<<endl;
   cout<<"A P5P5: "<<A_P5P5<<endl;
@@ -160,6 +166,9 @@ int main()
   cout<<endl;
   cout<<"dfK/fK/2dm (def): "<<dfK_fr_fK_2dm<<endl;
   cout<<"dfK/fK/2dm (WI): "<<dfK_fr_fK_2dm_WI<<endl;
-
+  
+  (Mpi*Mpi).write_to_binfile("results");
+  (2*M_P5P5*SL_P5P5).append_to_binfile("results");
+  
   return 0;
 }

@@ -29,6 +29,8 @@ public:
   
   void reallocate_if_necessary(int);
   void put(double*);
+  jack append_to_binfile(const char*,...);
+  jack write_to_binfile(const char*,...);
 };
 
 //creation and assignment
@@ -117,6 +119,48 @@ double jack::err()
 double jack::med()
 {
   return data[njack];
+}
+
+jack jack::append_to_binfile(const char *format,...)
+{
+  char buffer[1024];
+  va_list args;
+  
+  va_start(args,format);
+  vsprintf(buffer,format,args);
+  va_end(args);
+  
+  FILE *fout=open_file(buffer,"aw");
+  int nw=fwrite(data,sizeof(double)*(njack+1),1,fout);
+  if(nw!=1)
+    {
+      cerr<<"Error appending to file "<<buffer<<endl;
+      exit(1);
+    }
+  fclose(fout);
+  
+  return *this;
+}
+
+jack jack::write_to_binfile(const char *format,...)
+{
+  char buffer[1024];
+  va_list args;
+  
+  va_start(args,format);
+  vsprintf(buffer,format,args);
+  va_end(args);
+  
+  FILE *fout=open_file(buffer,"w");
+  int nw=fwrite(data,sizeof(double)*(njack+1),1,fout);
+  if(nw!=1)
+    {
+      cerr<<"Error appending to file "<<buffer<<endl;
+      exit(1);
+    }
+  fclose(fout);
+  
+  return *this;
 }
 
 ostream& operator<<(ostream &out,const jack &obj)
