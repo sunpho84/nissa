@@ -9,7 +9,7 @@ public:
   ofstream fout;
   ostream& operator<<(jvec &out);
   
-  grace(const char *path);
+  grace(const char *path,...);
   grace(const grace&);
   grace();
   
@@ -28,6 +28,7 @@ public:
   grace set(int,...);
   
   grace print_graph(double *,jvec);
+  grace print_graph(jvec);
   grace polygon(double *,jvec &);
   grace polygon(double (*fun)(double,double*),double,double,int,jvec &);
 };
@@ -74,13 +75,20 @@ grace::grace()
   exit(1);
 }
 
-grace::grace(const char *path)
+grace::grace(const char *format,...)
 {
+  char buffer[1024];
+  va_list args;
+  
+  va_start(args,format);
+  vsprintf(buffer,format,args);
+  va_end(args);
+  
   nset=0;
-  fout.open(path);
+  fout.open(buffer);
   if(!fout.good())
     {
-      cerr<<"Errorr in opening grace file: "<<path<<endl;
+      cerr<<"Errorr in opening grace file: "<<buffer<<endl;
       exit(1);
     }
 }
@@ -101,6 +109,16 @@ grace grace::print_graph(double *x,jvec y)
 
   fout<<"@type xydy"<<endl;
   for(int i=0;i<nel;i++) fout<<x[i]<<" "<<y[i]<<endl;
+
+  return *this;
+}
+
+grace grace::print_graph(jvec y)
+{
+  int nel=y.nel;
+
+  fout<<"@type xydy"<<endl;
+  for(int i=0;i<nel;i++) fout<<i<<" "<<y[i]<<endl;
 
   return *this;
 }
@@ -238,6 +256,7 @@ grace grace::set(int n,...)
       set_line_type(what);
       set_symbol(what);
     }
+  va_end(vl);
   
   return *this;
 }

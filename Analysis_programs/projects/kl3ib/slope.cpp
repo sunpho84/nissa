@@ -12,7 +12,12 @@ double (*fit_fun_K)(double,double,int),(*fit_fun_ratio)(double,double,double,int
 int tmin_fit,tmax_fit;
 double *K_fit,*ratio_fit;
 double *dK_fit,*dratio_fit;
-double a390=1/2.32;
+double a390=1/2.32/1000;
+double Zv390=0.6108;
+double Zp390=0.437;
+
+double dM_K_fis=-6;
+double ml=3.6;
 
 //calculate the chi square
 double chi2_mass_ratio(double A,double SL,double C,double M)
@@ -140,18 +145,30 @@ int main()
   jack A_A0P5(njack),SL_A0P5(njack),C_A0P5(njack),M_A0P5(njack);
   jack_fit_mass_and_ratio_A0P5(A_A0P5,SL_A0P5,C_A0P5,M_A0P5,K_A0P5,ratio_A0P5,12,23);
   
-  //fit of P5P5 fot Pi
+  //fit of P5P5 of Pi
   jack Mpi=constant_fit(effective_mass(Pi_P5P5),12,23);
+  
+  //calculate mu-md
+  jack dml_P5P5=dM_K_fis/SL_P5P5/Zp390;
+  jack dml_A0P5=dM_K_fis/SL_A0P5/Zp390;
+  //calculate mu,md
+  jack mu_P5P5=ml-dml_P5P5*0.5,md_P5P5=ml+dml_P5P5*0.5;
+  jack mu_A0P5=ml-dml_A0P5*0.5,md_A0P5=ml+dml_A0P5*0.5;
   
   //calculate fK
   jack fK_P5P5=(mass[0]+mass[1])*sqrt(C_P5P5)/(M_P5P5*sinh(M_P5P5));
-  jack fK_A0P5=C_A0P5*0.6108/sqrt(C_P5P5);
+  jack fK_A0P5=C_A0P5*Zv390/sqrt(C_P5P5);
   //cout<<(mass[0]+mass[1])<<" "<<sqrt(C_P5P5)<<" "<<M_P5P5<<" "<<sinh(M_P5P5)<<endl;
   //calculate delta_fK/fK/delta_m
-  jack dfK_fr_fK_2dm=A_A0P5-0.5*A_P5P5-0.5*(1/M_P5P5-TH)*SL_A0P5;
-  jack dfK_fr_fK_2dm_WI=-1/(mass[0]+mass[1])+0.5*(A_P5P5+(TH-3.0/M_P5P5)*SL_P5P5);
+  jack dfK_fr_afK_2dm=A_A0P5-0.5*A_P5P5-0.5*(1/M_P5P5-TH)*SL_A0P5;
+  jack dfK_fr_afK_2dm_WI=-1/(mass[0]+mass[1])+0.5*(A_P5P5+(TH-3.0/M_P5P5)*SL_P5P5);
+  //physical units
+  jack dfK_fr_fK=dfK_fr_afK_2dm*dml_P5P5*Zp390*a390;
+  jack dfK_fr_fK_WI=dfK_fr_afK_2dm_WI*dml_A0P5*Zp390*a390;
   
   cout<<"Delta MK2: "<<Mpi*Mpi<<" "<<2*M_P5P5*SL_P5P5<<endl;
+  cout<<" md-mu P5P5: "<<dml_P5P5<<", A0P5: "<<dml_A0P5<<endl;
+  cout<<" mu/md P5P5: "<<mu_P5P5/md_P5P5<<", A0P5: "<<mu_A0P5/md_A0P5<<endl;
   cout<<endl;
   cout<<"Mass P5P5: "<<M_P5P5<<" = "<<M_P5P5/a390<<" GeV"<<endl;
   cout<<"Slope P5P5: "<<SL_P5P5<<endl;
@@ -164,11 +181,17 @@ int main()
   cout<<"fK (def): "<<fK_A0P5<<" = "<<fK_A0P5/a390<<" GeV"<<endl;
   cout<<"fK (WI): "<<fK_P5P5<<" = "<<fK_P5P5/a390<<" GeV"<<endl;
   cout<<endl;
-  cout<<"dfK/fK/2dm (def): "<<dfK_fr_fK_2dm<<endl;
-  cout<<"dfK/fK/2dm (WI): "<<dfK_fr_fK_2dm_WI<<endl;
+  cout<<"1/a*dfK/fK/2dm (def): "<<dfK_fr_afK_2dm<<endl;
+  cout<<"1/a*dfK/fK/2dm (WI): "<<dfK_fr_afK_2dm_WI<<endl;
+  cout<<endl;
+  cout<<"dfK/fK (def): "<<dfK_fr_fK<<endl;
+  cout<<"dfK/fK (WI): "<<dfK_fr_fK_WI<<endl;
   
-  (Mpi*Mpi).write_to_binfile("results");
-  (2*M_P5P5*SL_P5P5).append_to_binfile("results");
+  (Mpi*Mpi).write_to_binfile("slope_results");
+  (2*M_P5P5*SL_P5P5).append_to_binfile("slope_results");
+  (2*M_A0P5*SL_A0P5).append_to_binfile("slope_results");
+  dfK_fr_fK.append_to_binfile("slope_results");
+  dfK_fr_fK_WI.append_to_binfile("slope_results");
   
   return 0;
 }
