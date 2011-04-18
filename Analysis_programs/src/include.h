@@ -1,3 +1,6 @@
+#define _FILE_OFFSET_BITS 64
+#define _LARGEFILE_SOURCE
+
 #include <TMinuit.h>
 #include <iostream>
 #include <fstream>

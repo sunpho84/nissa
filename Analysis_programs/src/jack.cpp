@@ -19,6 +19,7 @@ public:
   explicit jack(int);
   explicit jack(int,int*);
   explicit jack(int,double*);
+  ~jack();
   
   double operator[](int);
   jack operator=(double);
@@ -54,6 +55,8 @@ void jack::reallocate_if_necessary(int nj)
       create(nj);
     }
 }
+
+jack::~jack(){if(data!=NULL) delete[]data;}
 
 jack::jack(const jack &in) : njack(in.njack)
 {
@@ -173,6 +176,7 @@ ostream& operator<<(ostream &out,const jack &obj)
 
 double unary_minus(const double a){return -a;}
 double unary_plus(const double a){return a;}
+double sqr(const double a){return a*a;}
 
 double double_summ(const double a,const double b){return a+b;}
 double double_subt(const double a,const double b){return a-b;}
@@ -263,5 +267,6 @@ jack asinh(const jack &a){return single_operator(a,asinh);}
 jack acosh(const jack &a){return single_operator(a,acosh);}
 jack atanh(const jack &a){return single_operator(a,atanh);}
 
+jack sqr(const jack &a){return single_operator(a,sqr);}
 jack sqrt(const jack &a){return single_operator(a,sqrt);}
 jack pow(const jack &a,double b){return pair_operator(a,b,pow);}

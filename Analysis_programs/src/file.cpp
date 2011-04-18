@@ -38,7 +38,7 @@ FILE *open_file(const char* path,const char* mod)
 
   if(out==NULL)
     {
-      fprintf(stderr,"Error opening file '%s' in mode '%s'\n",path,mod);
+      perror(combine("Error opening file '%s' in mode '%s'",path,mod).c_str());
       exit(1);
     }
   

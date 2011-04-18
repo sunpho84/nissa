@@ -18,17 +18,19 @@ public:
   explicit jvec(){data=NULL;nel=0;njack=0;}
   jvec(const jvec&);
   jvec(int,int);
-
+  ~jvec();
+  
   void reallocate_if_necessary(int,int);
   void put(double *);
   jvec load(const char *,int);
+  jvec load(FILE *,int);
   jvec load_naz(const char *,int);
   void print_to_file(const char *,...);
   
   jack& operator[](int);
   jvec operator=(double in){for(int iel=0;iel<nel;iel++) data[iel]=in;return *this;}
   jvec operator=(const jvec&);
-
+  
   jvec first_half();
   jvec simmetric();
   jvec simmetrized(int parity);
@@ -54,6 +56,8 @@ void jvec::reallocate_if_necessary(int ne,int nj)
     }
 }
 
+jvec::~jvec(){if(data!=NULL) delete[] data;}
+
 jvec::jvec(const jvec &in) : nel(in.nel),njack(in.njack)
 {
   create(nel,njack);
@@ -78,13 +82,11 @@ void jvec::put(double *in)
     data[iel].put(in+iel*(njack+1));
 }
 
-jvec jvec::load(const char *path,int i)
+jvec jvec::load(FILE *fin,int i)
 {
   double in[nel*(njack+1)];
   
-  FILE *fin=open_file(path,"r");
-
-  if(fseek(fin,i*sizeof(double)*nel*(njack+1),SEEK_SET))
+  if(fseeko(fin,(off_t)i*sizeof(double)*nel*(njack+1),SEEK_SET))
     {
       fprintf(stderr,"Error while searching for correlation %d!\n",i);
       exit(1);
@@ -106,6 +108,13 @@ jvec jvec::load(const char *path,int i)
   
   put(in);
   
+  return *this;
+}  
+
+jvec jvec::load(const char *path,int i)
+{
+  FILE *fin=open_file(path,"r");
+  load(fin,i);
   fclose(fin);
   
   return (*this);
@@ -131,7 +140,7 @@ jvec jvec::load_naz(const char *path,int icorr)
   
   FILE *fin=open_file(path,"r");
 
-  if(fseek(fin,2*(icorr/2)*sizeof(double)*nel*(njack+1),SEEK_SET))
+  if(fseeko(fin,(off_t)2*(icorr/2)*sizeof(double)*nel*(njack+1),SEEK_SET))
     {
       fprintf(stderr,"Error while searching for correlation %d!\n",icorr);
       exit(1);
@@ -311,6 +320,7 @@ jvec asinh(const jvec &a){return single_operator(a,asinh);}
 jvec acosh(const jvec &a){return single_operator(a,acosh);}
 jvec atanh(const jvec &a){return single_operator(a,atanh);}
 
+jvec sqr(const jvec &a){return single_operator(a,sqr);}
 jvec sqrt(const jvec &a){return single_operator(a,sqrt);}
 jvec pow(const jvec &a,double b){return pair_operator(a,b,pow);}
 
