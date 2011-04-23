@@ -1,7 +1,7 @@
 #include "include.h"
 #include "kl3_common.cpp"
 
-jtvec load_averaged_two_points(char *base_path,int im1,int im2,int ik1,int ik2,int r1,int r2)
+jvec load_averaged_two_points(char *base_path,int im1,int im2,int ik1,int ik2,int r1,int r2)
 {
   char path[1024];
   sprintf(path,"%s/oPPo-ss_conf.1.dat",base_path);
@@ -9,9 +9,8 @@ jtvec load_averaged_two_points(char *base_path,int im1,int im2,int ik1,int ik2,i
   int ri=0;
   
   //read the 2 two points with opposite momentum
-  return (read_two_points(path,T,njack,nmoms,nmass,im1,im2,ik1,ik2,r1,r2,ri)+
-	   read_two_points(path,T,njack,nmoms,nmass,im1,im2,ik2,ik1,r1,r2,ri))*
-    (-0.5/(24*24*24));
+  return (read_two_points(path,im1,im2,ik1,ik2,r1,r2,ri)+
+	  read_two_points(path,im1,im2,ik2,ik1,r1,r2,ri))*0.5;
 }
 
 int main()
@@ -32,9 +31,9 @@ int main()
         //calculate q2
         double q2=3*pow((theta[ik1]-theta[ik2])*2*M_PI/L,2);
         //load the correlation functions, averaged      
-        jtvec c=load_averaged_two_points(base_path,im1,im2,ik1,ik2,r1,r2);
-	jtvec cs=c.simmetrized(1);
-	jtvec cmeff=effective_mass(cs);
+        jvec c=load_averaged_two_points(base_path,im1,im2,ik1,ik2,r1,r2);
+	jvec cs=c.simmetrized(1);
+	jvec cmeff=effective_mass(cs);
 	jack m=constant_fit(cmeff,13,23);
 	cout<<q2<<" "<<m<<endl;
       }	

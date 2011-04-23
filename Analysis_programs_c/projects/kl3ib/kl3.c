@@ -191,7 +191,7 @@ int main()
 	calculate_Q_P(Q,P,E[im_s][ik_s],theta[ik_s],E[im_l][ik_l],theta[ik_l],L);
 	quad_jack_prod_quad_jack(Q2,Q,Q);
 
-	if(theta[ik_s]!=-theta[ik_l] && ik_s!=ik_l)
+	if(theta[ik_s]!=-theta[ik_l])
 	  {
 	    //calculate f+,fm,f0
 	    jack fp,fm,f0;
@@ -216,7 +216,7 @@ int main()
 	    fprintf(file_f0,"%g %g %g %d %d\n",Q2[njack],f0[njack],jack_error(f0),ik_s,ik_l);
 	  }
 
-	if(theta[ik_s]==-theta[ik_l] && ik_s!=ik_l)
+	if(theta[ik_s]==-theta[ik_l])
 	  {
 	    //calculate f+,fm,f0
 	    jack fp,fm,f0;

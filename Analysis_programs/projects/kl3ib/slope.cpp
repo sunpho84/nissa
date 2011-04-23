@@ -12,9 +12,8 @@ double (*fit_fun_K)(double,double,int),(*fit_fun_ratio)(double,double,double,int
 int tmin_fit,tmax_fit;
 double *K_fit,*ratio_fit;
 double *dK_fit,*dratio_fit;
-double a390=1/2.32/1000;
+double clat;
 double Zv390=0.6108;
-double Zp390=0.437;
 
 double dM_K_fis=-6;
 double ml=3.6;
@@ -121,6 +120,7 @@ int main()
 {
   njack=10;
   read_input();
+  clat=lat[ibeta]/1000;
   
   int im1=0,im2=1; //quello raddoppiato e' il primo!
   int ik1=0,ik2=0;
@@ -149,8 +149,8 @@ int main()
   jack Mpi=constant_fit(effective_mass(Pi_P5P5),12,23);
   
   //calculate mu-md
-  jack dml_P5P5=dM_K_fis/SL_P5P5/Zp390;
-  jack dml_A0P5=dM_K_fis/SL_A0P5/Zp390;
+  jack dml_P5P5=dM_K_fis/SL_P5P5/Zp[ibeta];
+  jack dml_A0P5=dM_K_fis/SL_A0P5/Zp[ibeta];
   //calculate mu,md
   jack mu_P5P5=ml-dml_P5P5*0.5,md_P5P5=ml+dml_P5P5*0.5;
   jack mu_A0P5=ml-dml_A0P5*0.5,md_A0P5=ml+dml_A0P5*0.5;
@@ -163,23 +163,23 @@ int main()
   jack dfK_fr_afK_2dm=A_A0P5-0.5*A_P5P5-0.5*(1/M_P5P5-TH)*SL_A0P5;
   jack dfK_fr_afK_2dm_WI=-1/(mass[0]+mass[1])+0.5*(A_P5P5+(TH-3.0/M_P5P5)*SL_P5P5);
   //physical units
-  jack dfK_fr_fK=dfK_fr_afK_2dm*dml_P5P5*Zp390*a390;
-  jack dfK_fr_fK_WI=dfK_fr_afK_2dm_WI*dml_A0P5*Zp390*a390;
+  jack dfK_fr_fK=dfK_fr_afK_2dm*dml_P5P5*Zp[ibeta]*clat;
+  jack dfK_fr_fK_WI=dfK_fr_afK_2dm_WI*dml_A0P5*Zp[ibeta]*clat;
   
   cout<<"Delta MK2: "<<Mpi*Mpi<<" "<<2*M_P5P5*SL_P5P5<<endl;
   cout<<" md-mu P5P5: "<<dml_P5P5<<", A0P5: "<<dml_A0P5<<endl;
   cout<<" mu/md P5P5: "<<mu_P5P5/md_P5P5<<", A0P5: "<<mu_A0P5/md_A0P5<<endl;
   cout<<endl;
-  cout<<"Mass P5P5: "<<M_P5P5<<" = "<<M_P5P5/a390<<" GeV"<<endl;
+  cout<<"Mass P5P5: "<<M_P5P5<<" = "<<M_P5P5/clat<<" GeV"<<endl;
   cout<<"Slope P5P5: "<<SL_P5P5<<endl;
   cout<<"A P5P5: "<<A_P5P5<<endl;
   cout<<endl;
-  cout<<"Mass A0P5: "<<M_A0P5<<" = "<<M_A0P5/a390<<" GeV"<<endl;
+  cout<<"Mass A0P5: "<<M_A0P5<<" = "<<M_A0P5/clat<<" GeV"<<endl;
   cout<<"Slope A0P5: "<<SL_A0P5<<endl;
   cout<<"A A0P5: "<<A_A0P5<<endl;
   cout<<endl;
-  cout<<"fK (def): "<<fK_A0P5<<" = "<<fK_A0P5/a390<<" GeV"<<endl;
-  cout<<"fK (WI): "<<fK_P5P5<<" = "<<fK_P5P5/a390<<" GeV"<<endl;
+  cout<<"fK (def): "<<fK_A0P5<<" = "<<fK_A0P5/clat<<" GeV"<<endl;
+  cout<<"fK (WI): "<<fK_P5P5<<" = "<<fK_P5P5/clat<<" GeV"<<endl;
   cout<<endl;
   cout<<"1/a*dfK/fK/2dm (def): "<<dfK_fr_afK_2dm<<endl;
   cout<<"1/a*dfK/fK/2dm (WI): "<<dfK_fr_afK_2dm_WI<<endl;
