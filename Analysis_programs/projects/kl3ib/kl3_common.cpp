@@ -5,16 +5,21 @@
 int T,TH,L;
 int nmoms,nmass;
 int njack;
+int ibeta;
 
 char base_path[1024];
 double *mass,*theta;
 int *iopp_th;
+
+double lat[4]={1/2.0198,1/2.3286,1/2.9419,1/3.6800};
+double Zp[4]={0.411,0.437,0.477,0.501};
 
 void read_input()
 {
   FILE *input=open_file("input","r");
   read_formatted_from_file_expecting(base_path,input,"%s","base_path");
   read_formatted_from_file_expecting((char*)&T,input,"%d","T");
+  read_formatted_from_file_expecting((char*)&ibeta,input,"%d","Beta");
   L=TH=T/2;
   
   read_formatted_from_file_expecting((char*)&nmass,input,"%d","nmass");
@@ -24,7 +29,7 @@ void read_input()
   
   read_formatted_from_file_expecting((char*)&nmoms,input,"%d","nmoms");
   expect_string_from_file(input,"theta_list");
-
+  
   theta=(double*)malloc(sizeof(double)*nmoms);
   for(int imom=0;imom<nmoms;imom++) read_formatted_from_file((char*)&(theta[imom]),input,"%lg","theta");
   

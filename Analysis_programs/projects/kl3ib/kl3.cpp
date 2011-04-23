@@ -67,13 +67,13 @@ int main()
 	
 	jvec cV[2];
 	//temporal direction: simmetrize t with T-t
-	cV[0]=P5_Vmu_P5[im_s][im_l][ik_s][ik_l][0].simmetrized(-1)*P5_Vmu_P5[im_l][im_s][ik_l][ik_s][0].simmetrized(-1);
+	cV[0]=(P5_Vmu_P5[im_s][im_l][ik_s][ik_l][0]*P5_Vmu_P5[im_l][im_s][ik_l][ik_s][0]).simmetrized(1);
 	//spatial direction
 	cV[1]=cV[0]*0;
-	for(int idir=1;idir<4;idir++) cV[1]+=P5_Vmu_P5[im_s][im_l][ik_s][ik_l][idir].simmetrized(1)*
-					P5_Vmu_P5[im_l][im_s][ik_l][ik_s][idir].simmetrized(1)/3;
+	for(int idir=1;idir<4;idir++) cV[1]+=(P5_Vmu_P5[im_s][im_l][ik_s][ik_l][idir]*
+					      P5_Vmu_P5[im_l][im_s][ik_l][ik_s][idir]).simmetrized(1)/3;
 	//denominator
-	jvec Den=P5_Vmu_P5[im_l][im_l][ik_l][ik_l][0].simmetrized(-1)*P5_Vmu_P5[im_s][im_s][ik_s][ik_s][0].simmetrized(-1);
+	jvec Den=(P5_Vmu_P5[im_l][im_l][ik_l][ik_l][0]*P5_Vmu_P5[im_s][im_s][ik_s][ik_s][0]).simmetrized(1);
 	
 	//calculate 2*sqrt(E_K*E_Pi)
 	jack A=2*sqrt(E3pt[im_s][ik_s]*E3pt[im_l][ik_l]);
@@ -116,7 +116,7 @@ int main()
 	    fp=(V0-Q[0]*fm)/P[0];
 	    f0=fp+Q2/DM2*fm;
 	  }
-
+	
 	cout<<ik_s<<" "<<ik_l<<" Q0="<<Q[0].med()<<" "<<"Qi="<<Q[1].med()<<" P0="<<P[0].med()<<" P1="<<P[1].med()<<endl;
 	file_fp<<Q2.med()<<" "<<fp<<" "<<ik_s<<" "<<ik_l<<endl;
 	file_fm<<Q2.med()<<" "<<fm<<" "<<ik_s<<" "<<ik_l<<endl;

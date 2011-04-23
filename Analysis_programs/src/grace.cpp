@@ -8,6 +8,7 @@ public:
   int nset;
   ofstream fout;
   ostream& operator<<(jvec &out);
+  ostream& operator<<(bvec &out);
   
   grace(const char *path,...);
   grace(const grace&);
@@ -23,14 +24,26 @@ public:
   grace set_line_size(int);  
   grace set_line_type(const char*);
   grace set_color(const char*);
+  grace set_legend(const char*);
   grace set_symbol(const char*);
   grace new_set(...);
   grace set(int,...);
   
   grace print_graph(double *,jvec);
+  grace print_graph(double,jack);
   grace print_graph(jvec);
+  grace contour(double *,jvec &);
   grace polygon(double *,jvec &);
   grace polygon(double (*fun)(double,double*),double,double,int,jvec &);
+  grace contour(double (*fun)(double,double*),double,double,int,jvec &);
+
+  grace print_graph(double *,bvec);
+  grace print_graph(double,boot);
+  grace print_graph(bvec);
+  grace contour(double *,bvec &);
+  grace polygon(double *,bvec &);
+  grace contour(double (*fun)(double,double*),double,double,int,bvec &);
+  grace polygon(double (*fun)(double,double*),double,double,int,bvec &);
 };
 
 int switch_gr_string(const gr_string *list,int nel,const char *in)
@@ -96,6 +109,9 @@ grace::grace(const char *format,...)
 ostream& grace::operator<<(jvec &out)
 {return fout<<out;}
 
+ostream& grace::operator<<(bvec &out)
+{return fout<<out;}
+
 grace grace::new_set(...)
 {
   fout<<"&"<<endl;
@@ -103,62 +119,25 @@ grace grace::new_set(...)
   return *this;
 }
 
-grace grace::print_graph(double *x,jvec y)
-{
-  int nel=y.nel;
+#define JACK
+#define VTYPE jvec
+#define TYPE jack
+#define N njack
+#include "grace_comm.cpp"
+#undef N
+#undef TYPE
+#undef VTYPE
+#undef JACK
 
-  fout<<"@type xydy"<<endl;
-  for(int i=0;i<nel;i++) fout<<x[i]<<" "<<y[i]<<endl;
-
-  return *this;
-}
-
-grace grace::print_graph(jvec y)
-{
-  int nel=y.nel;
-
-  fout<<"@type xydy"<<endl;
-  for(int i=0;i<nel;i++) fout<<i<<" "<<y[i]<<endl;
-
-  return *this;
-}
-
-grace grace::polygon(double *x,jvec &in)
-{
-  int nel=in.nel,njack=in.njack;
-  double *err=new double[nel];
-
-  fout<<"@type xy"<<endl;
-  fout<<"@s"<<nset<<" fill type 1"<<endl;
-  
-  for(int i=0;i<nel;i++)
-    {
-      err[i]=in[i].err();
-      fout<<x[i]<<" "<<in.data[i].data[njack]-err[i]<<endl;
-    }
-  
-  for(int i=nel-1;i>=0;i--)fout<<x[i]<<" "<<in.data[i].data[njack]+err[i]<<endl;
-  
-  delete[] err;
-  return *this;
-}
-
-grace grace::polygon(double (*fun)(double,double*),double x0,double x1,int nx,jvec &par)
-{
-  int njack=par.njack;
-  
-  double x[nx],dx=(x1-x0)/nx;
-  jvec xj(nx+1,njack);
-  jvec y(nx+1,njack);
-  
-  for(int i=0;i<=nx;i++) xj.data[i]=x[i]=x0+dx*i;
-  
-  y=par_single_fun(fun,xj,par);
-  
-  polygon(x,y);
-  
-  return *this;
-}
+#define BOOT
+#define VTYPE bvec
+#define TYPE boot
+#define N nboot
+#include "grace_comm.cpp"
+#undef N
+#undef TYPE
+#undef VTYPE
+#undef BOOT
 
 grace grace::plot_size(int x,int y)
 {
@@ -191,6 +170,12 @@ grace grace::axis_label(const char *titlex,const char *titley)
   return *this;
 }
 
+grace grace::set_legend(const char *leg)
+{
+  fout<<"@s"<<nset<<" legend \""<<leg<<"\""<<endl;
+  return *this;
+}
+
 grace grace::set_color(const char *col)
 {
   int icol=switch_color(col);
@@ -214,6 +199,9 @@ grace grace::set_symbol(const char *symb)
 {
   int type=switch_symbol(symb);
   if(type!=-1) fout<<"@s"<<nset<<" symbol "<<type<<endl;
+  
+  if(strcmp(symb,"filled")==0) fout<<"@s"<<nset<<" symbol fill pattern 1"<<endl;
+  if(strcmp(symb,"unfilled")==0) fout<<"@s"<<nset<<" symbol fill pattern 0"<<endl;
   
   return *this;
 }
