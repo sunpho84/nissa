@@ -317,6 +317,7 @@ VTYPE acosh(const VTYPE &a){return single_operator(a,acosh);}
 VTYPE atanh(const VTYPE &a){return single_operator(a,atanh);}
 
 VTYPE sqr(const VTYPE &a){return single_operator(a,sqr);}
+VTYPE log(const VTYPE &a){return single_operator(a,log);}
 VTYPE sqrt(const VTYPE &a){return single_operator(a,sqrt);}
 VTYPE pow(const VTYPE &a,double b){return pair_operator(a,b,pow);}
 

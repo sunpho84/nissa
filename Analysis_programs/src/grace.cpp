@@ -7,8 +7,8 @@ class grace
 public:
   int nset;
   ofstream fout;
-  ostream& operator<<(jvec &out);
-  ostream& operator<<(bvec &out);
+  ostream& operator<<(jvec out);
+  ostream& operator<<(bvec out);
   
   grace(const char *path,...);
   grace(const grace&);
@@ -29,19 +29,25 @@ public:
   grace new_set(...);
   grace set(int,...);
   
+  grace ave_line(double *,double *,int);
+  
   grace print_graph(double *,jvec);
   grace print_graph(double,jack);
   grace print_graph(jvec);
+
   grace contour(double *,jvec &);
   grace polygon(double *,jvec &);
+  grace ave_line(double *,jvec &);
   grace polygon(double (*fun)(double,double*),double,double,int,jvec &);
   grace contour(double (*fun)(double,double*),double,double,int,jvec &);
 
   grace print_graph(double *,bvec);
   grace print_graph(double,boot);
   grace print_graph(bvec);
+
   grace contour(double *,bvec &);
   grace polygon(double *,bvec &);
+  grace ave_line(double *,bvec &);
   grace contour(double (*fun)(double,double*),double,double,int,bvec &);
   grace polygon(double (*fun)(double,double*),double,double,int,bvec &);
 };
@@ -106,16 +112,23 @@ grace::grace(const char *format,...)
     }
 }
 
-ostream& grace::operator<<(jvec &out)
+ostream& grace::operator<<(jvec out)
 {return fout<<out;}
 
-ostream& grace::operator<<(bvec &out)
+ostream& grace::operator<<(bvec out)
 {return fout<<out;}
 
 grace grace::new_set(...)
 {
   fout<<"&"<<endl;
   nset++;
+  return *this;
+}
+
+grace grace::ave_line(double *x,double *y,int n)
+{
+  fout<<"@type xy"<<endl;
+  for(int i=0;i<n;i++) fout<<x[i]<<" "<<y[i]<<endl;
   return *this;
 }
 

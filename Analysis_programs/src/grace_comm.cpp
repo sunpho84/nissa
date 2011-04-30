@@ -42,6 +42,8 @@ void build_graph(double *x,VTYPE &y,double (*fun)(double,double*),double x0,doub
   y=par_single_fun(fun,xj,par);
 } 
 
+///////////////////////////////////////////////////////////////////////////////
+
 grace grace::polygon(double *x,VTYPE &in)
 {
   int nel=in.nel,N=in.N;
@@ -114,5 +116,17 @@ grace grace::contour(double (*fun)(double,double*),double x0,double x1,int nx,VT
   contour(x,y);
   
   return *this;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////
+
+grace grace::ave_line(double *x,VTYPE &in)
+{
+  int nel=in.nel;
+  double y[nel];
+  
+  for(int iel=0;iel<nel;iel++) y[iel]=in.data[iel].med();
+  
+  return ave_line(x,y,nel);
 }
 
