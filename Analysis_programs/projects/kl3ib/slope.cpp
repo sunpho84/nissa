@@ -18,6 +18,8 @@ double Zv390=0.6108;
 double dM_K_fis=-6;
 double ml=3.6;
 
+int tin[4]={10,12,16,19};
+
 //calculate the chi square
 double chi2_mass_ratio(double A,double SL,double C,double M)
 {
@@ -73,7 +75,7 @@ void jack_fit_mass_and_ratio(jack &A,jack &SL,jack &C,jack &M,jvec &K,jvec &rati
 	  K_fit[t]=K.data[t].data[ijack];
 	  ratio_fit[t]=ratio.data[t].data[ijack];
 	}
-
+      
       TMinuit minu;
       
       double meff=-log(K_fit[tmin+1]/K_fit[tmin]);
@@ -139,14 +141,16 @@ int main()
   
   //fit of P5P5 for K
   jack A_P5P5(njack),SL_P5P5(njack),C_P5P5(njack),M_P5P5(njack);
-  jack_fit_mass_and_ratio_P5P5(A_P5P5,SL_P5P5,C_P5P5,M_P5P5,K_P5P5,ratio_P5P5,12,23);
+  jack_fit_mass_and_ratio_P5P5(A_P5P5,SL_P5P5,C_P5P5,M_P5P5,K_P5P5,ratio_P5P5,tin[ibeta],TH-1);
+  ratio_P5P5.print_to_file("slope");
   
   //fit of A0P5 for K
   jack A_A0P5(njack),SL_A0P5(njack),C_A0P5(njack),M_A0P5(njack);
-  jack_fit_mass_and_ratio_A0P5(A_A0P5,SL_A0P5,C_A0P5,M_A0P5,K_A0P5,ratio_A0P5,12,23);
+  jack_fit_mass_and_ratio_A0P5(A_A0P5,SL_A0P5,C_A0P5,M_A0P5,K_A0P5,ratio_A0P5,tin[ibeta],TH-1);
   
   //fit of P5P5 of Pi
-  jack Mpi=constant_fit(effective_mass(Pi_P5P5),12,23);
+  jack Mpi=constant_fit(effective_mass(Pi_P5P5),tin[ibeta],TH-1);
+  effective_mass(Pi_P5P5).print_to_file("M_P5P5");
   
   //calculate mu-md
   jack dml_P5P5=dM_K_fis/SL_P5P5/Zp[ibeta];
@@ -172,10 +176,12 @@ int main()
   cout<<endl;
   cout<<"Mass P5P5: "<<M_P5P5<<" = "<<M_P5P5/clat<<" GeV"<<endl;
   cout<<"Slope P5P5: "<<SL_P5P5<<endl;
+  cout<<"C P5P5: "<<C_P5P5<<endl;
   cout<<"A P5P5: "<<A_P5P5<<endl;
   cout<<endl;
   cout<<"Mass A0P5: "<<M_A0P5<<" = "<<M_A0P5/clat<<" GeV"<<endl;
   cout<<"Slope A0P5: "<<SL_A0P5<<endl;
+  cout<<"C A0P5: "<<C_A0P5<<endl;
   cout<<"A A0P5: "<<A_A0P5<<endl;
   cout<<endl;
   cout<<"fK (def): "<<fK_A0P5<<" = "<<fK_A0P5/clat<<" GeV"<<endl;
@@ -190,8 +196,19 @@ int main()
   (Mpi*Mpi).write_to_binfile("slope_results");
   (2*M_P5P5*SL_P5P5).append_to_binfile("slope_results");
   (2*M_A0P5*SL_A0P5).append_to_binfile("slope_results");
-  dfK_fr_fK.append_to_binfile("slope_results");
-  dfK_fr_fK_WI.append_to_binfile("slope_results");
+  dfK_fr_afK_2dm.append_to_binfile("slope_results");
+  dfK_fr_afK_2dm_WI.append_to_binfile("slope_results");
+  M_P5P5.append_to_binfile("slope_results");
+  fK_P5P5.append_to_binfile("slope_results");
+  
+  //P5P5
+  grace out_P5P5("P5P5");
+  out_P5P5.fout<<"@yaxes scale Logarithmic"<<endl;
+  out_P5P5.set(1,"none");
+  out_P5P5.fout<<"@type xydy"<<endl;
+  out_P5P5<<K_P5P5;
+  out_P5P5.fout<<"&"<<endl<<"@type xy"<<endl;
+  for(int t=tmin_fit;t<tmax_fit;t++) out_P5P5.fout<<t<<" "<<fun_P5P5(C_P5P5.med(),M_P5P5.med(),t)<<endl;
   
   return 0;
 }

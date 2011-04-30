@@ -42,6 +42,7 @@ public:
   double med(){return data[N];}
   double err();
   
+  void fill_gauss(double med,double sigma){for(int itype=0;itype<N;itype++)data[itype]=rng(med,sigma/sqrt(njack-1));data[N]=med;}
   void put(double* in){memcpy(data,in,sizeof(double)*(N+1));}
 
   TYPE append_to_binfile(const char*,...);
@@ -64,7 +65,7 @@ double TYPE::err()
   return sqrt(s2x*(njack-1));
 }
 
- TYPE TYPE::append_to_binfile(const char *format,...)
+TYPE TYPE::append_to_binfile(const char *format,...)
 {
   char buffer[1024];
   va_list args;
@@ -85,7 +86,7 @@ double TYPE::err()
   return *this;
 }
 
- TYPE TYPE::write_to_binfile(const char *format,...)
+TYPE TYPE::write_to_binfile(const char *format,...)
 {
   char buffer[1024];
   va_list args;
@@ -123,7 +124,7 @@ TYPE single_operator(const TYPE &a,double (*fun)(const double))
   return c;
 }
 
- TYPE pair_operator(const TYPE &a,const TYPE &b,double (*fun)(const double,const double))
+TYPE pair_operator(const TYPE &a,const TYPE &b,double (*fun)(const double,const double))
 {
   int N=a.N;
   if(b.N!=N)
