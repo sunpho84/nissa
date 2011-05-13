@@ -48,7 +48,7 @@ void read_data_list()
 
   read_formatted_from_file_expecting((char*)&im_spec,input,"%d","im_spec");
   read_formatted_from_file_expecting((char*)&ith_spec,input,"%d","ith_spec");
-  read_formatted_from_file_expecting((char*)&ith_spec,input,"%d","r_spec");
+  read_formatted_from_file_expecting((char*)&r_spec,input,"%d","r_spec");
   
   //find opposite theta
   iopp_th=(int*)malloc(sizeof(int)*nmoms);

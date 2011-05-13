@@ -10,11 +10,59 @@ int main()
   //allocate vector where to load data
   jvec P5_Vmu_P5[nmass][nmass][nmoms][nmoms][4];
   jvec P5_P5[nmass][nmoms];
-
+  
+  int im_spec=0,im_s=1,im_l=0;
+  
   /////////////////////////////////////////////////// data loading ////////////////////////////////////////////////////////
+
+  int ri=0,mu=0,r=0;
+  
+  //calculate K slope
+  jvec P5P5_K=read_two_points(combine("%s/oPPo-ss_conf.1.dat",base_path).c_str(),im_s,im_l,0,0,!r,r,0).simmetrized(1);
+  jvec P5sP5_K=read_two_points(combine("%s/oPPo-sd_conf.1.dat",base_path).c_str(),im_s,im_l,0,0,!r,r,0).simmetrized(1);
+  jvec ratio_K=P5sP5_K/P5P5_K;
+  P5P5_K.print_to_file("/tmp/P5P5_K");
+  ratio_K.print_to_file("/tmp/P5P5_K_ratio");
+  
+  //calculate Pi slope
+  jvec P5P5_Pi=read_two_points(combine("%s/oPPo-ss_conf.1.dat",base_path).c_str(),im_l,im_l,0,0,!r,r,0).simmetrized(1);
+  jvec P5sP5_Pi=read_two_points(combine("%s/oPPo-sd_conf.1.dat",base_path).c_str(),im_l,im_l,0,0,!r,r,0).simmetrized(1);
+  jvec ratio_Pi=P5sP5_Pi/P5P5_Pi;
+  P5P5_Pi.print_to_file("/tmp/P5P5_Pi");
+  ratio_Pi.print_to_file("/tmp/P5P5_Pi_ratio");
+  
+  jvec orig=read_three_points(combine("%s/oPVmuPo-sss_conf.1.dat",base_path).c_str(),im_s,im_l,im_l,0,0,!r,r,r,mu,ri).simmetrized(-1);
+  jvec pert1=read_three_points(combine("%s/oPVmuPo-ssd_conf.1.dat",base_path).c_str(),im_s,im_l,im_l,0,0,!r,r,r,mu,ri).simmetrized(-1);
+  jvec pert2=read_three_points(combine("%s/oPVmuPo-sds_conf.1.dat",base_path).c_str(),im_s,im_l,im_l,0,0,!r,r,r,mu,ri).simmetrized(-1);
+  jvec pert3=read_three_points(combine("%s/oPVmuPo-dss_conf.1.dat",base_path).c_str(),im_s,im_l,im_l,0,0,!r,r,r,mu,ri).simmetrized(-1);
+  orig.print_to_file("/tmp/P5_Vmu_P5_sss");
+  jvec slope1=pert1/orig;
+  jvec slope2=pert2/orig;
+  jvec slope3=pert3/orig;
+  
+  slope1.print_to_file("/tmp/P5_Vmu_P5_ch_ssd_ratio");
+  slope2.print_to_file("/tmp/P5_Vmu_P5_ch_sds_ratio");
+  slope3.print_to_file("/tmp/P5_Vmu_P5_ch_dss_ratio");
+  
+  (ratio_K-slope3).print_to_file("/tmp/fuf_K");
+  (ratio_Pi-slope1.simmetric()).print_to_file("/tmp/fuf_Pi");
+  (slope1-slope2+slope3).print_to_file("/tmp/fuf");
+  
+  jvec disc=read_three_points(combine("%s/oPoVmuPo-sss_conf.1.dat",base_path).c_str(),im_s,im_l,im_l,0,0,!r,r,r,mu,ri).simmetrized(-1);
+  jvec disc1=read_three_points(combine("%s/oPoVmuPo-ssd_conf.1.dat",base_path).c_str(),im_s,im_l,im_l,0,0,!r,r,r,mu,ri).simmetrized(-1);
+  jvec disc2=read_three_points(combine("%s/oPoVmuPo-sds_conf.1.dat",base_path).c_str(),im_s,im_l,im_l,0,0,!r,r,r,mu,ri).simmetrized(-1);
+  jvec disc3=read_three_points(combine("%s/oPoVmuPo-dss_conf.1.dat",base_path).c_str(),im_s,im_l,im_l,0,0,!r,r,r,mu,ri).simmetrized(-1);
+  disc.print_to_file("/tmp/disc");
+  
+  jvec disc_ratio_2=disc2/disc;
+  jvec disc_ratio_3=disc3/disc;
+  
+  disc_ratio_2.print_to_file("/tmp/disc_ratio_2");
+  disc_ratio_3.print_to_file("/tmp/disc_ratio_3");
+  
+  exit(1);
   
   //load two and three points
-  int im_spec=0,im_s=1,im_l=0;
   for(int im1=0;im1<nmass;im1++)
     for(int ik1=0;ik1<nmoms;ik1++)
       {

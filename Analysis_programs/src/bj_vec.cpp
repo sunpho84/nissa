@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <functional>
 #include <iostream>
+#include <fstream>
 
 using namespace std;
 
@@ -35,7 +36,9 @@ public:
 #endif
   ~VTYPE(){if(data!=NULL) delete[] data;data=NULL;}
   
-  void put(double *);
+  void put(double **out){for(int iel=0;iel<nel;iel++) data[iel].put(out[iel]);}
+  void put(double *out){for(int iel=0;iel<nel;iel++) data[iel].put(out+iel*(N+1));}
+  void get(double *in){for(int iel=0;iel<nel;iel++) data[iel].get(in+iel*(N+1));}
   VTYPE load(const char *,int);
   VTYPE load(FILE *,int);
   VTYPE load_naz(const char *,int);
@@ -43,14 +46,62 @@ public:
   
   TYPE& operator[](int i){return data[i];}
   VTYPE operator=(double in){for(int iel=0;iel<nel;iel++) data[iel]=in;return *this;}
+  VTYPE operator=(const TYPE& a){
+    if(data==NULL){cerr<<"Error, using unallocated vector!"<<endl;exit(1);}for(int iel=0;iel<nel;iel++) data[iel]=a;return *this;}
 
   
   VTYPE first_half();
   VTYPE simmetric();
   VTYPE simmetrized(int parity);
+  
+  VTYPE append_to_binfile(const char*,...);
+  VTYPE write_to_binfile(const char*,...);
 };
 
 ostream& operator<<(ostream &out,const VTYPE &obj);
+
+VTYPE VTYPE::append_to_binfile(const char *format,...)
+{
+  char buffer[1024];
+  va_list args;
+  
+  va_start(args,format);
+  vsprintf(buffer,format,args);
+  va_end(args);
+  
+  FILE *fout=open_file(buffer,"aw");
+  int nw=fwrite(data,sizeof(double)*(N+1)*nel,1,fout);
+  if(nw!=1)
+    {
+      cerr<<"Error appending to file "<<buffer<<endl;
+      exit(1);
+    }
+  fclose(fout);
+  
+  return *this;
+}
+
+VTYPE VTYPE::write_to_binfile(const char *format,...)
+{
+  char buffer[1024];
+  va_list args;
+  
+  va_start(args,format);
+  vsprintf(buffer,format,args);
+  va_end(args);
+  
+  FILE *fout=open_file(buffer,"w");
+  int nw=fwrite(data,sizeof(double)*(N+1)*nel,1,fout);
+  if(nw!=1)
+    {
+      cerr<<"Error writing to file "<<buffer<<endl;
+      exit(1);
+    }
+  fclose(fout);
+  
+  return *this;
+}
+
 
 VTYPE VTYPE::load(FILE *fin,int i)
 {
@@ -61,8 +112,8 @@ VTYPE VTYPE::load(FILE *fin,int i)
       fprintf(stderr,"Error while searching for correlation %d!\n",i);
       exit(1);
     }
-  int stat=fread(in,sizeof(double)*nel*(N+1),1,fin);
-  if(stat!=1)
+  int stat=fread(in,sizeof(double),nel*(N+1),fin);
+  if(stat!=nel*(N+1))
     {
       if(stat==EOF)
 	{
@@ -76,7 +127,7 @@ VTYPE VTYPE::load(FILE *fin,int i)
 	}
     }
   
-  for(int iel=0;iel<nel;iel++) data[iel].put(in+iel*(N+1));
+  put(in);
   
   return *this;
 }  
@@ -84,6 +135,7 @@ VTYPE VTYPE::load(FILE *fin,int i)
 VTYPE VTYPE::load(const char *path,int i)
 {
   FILE *fin=open_file(path,"r");
+  
   load(fin,i);
   fclose(fin);
   
@@ -172,7 +224,13 @@ jvec jvec_load_naz(const char *path,int nel,int njack,int i)
 
 ostream& operator<<(ostream &out,const VTYPE &obj)
 {
-  for(int iel=0;iel<obj.nel;iel++) out<<iel<<" "<<obj.data[iel]<<endl;
+  for(int iel=0;iel<obj.nel;iel++) 
+    {
+      double med=obj.data[iel].med();
+      double err=obj.data[iel].err();
+      if(!isnan(med) && !isnan(err))
+	out<<iel<<" "<<obj.data[iel]<<endl;
+    }
   
   return out;
 }
@@ -385,21 +443,54 @@ VTYPE VTYPE::simmetrized(int parity)
   return c;
 }
 
-TYPE constant_fit(VTYPE in,int tin,int tfin)
+TYPE constant_fit(VTYPE in,int tin,int tfin,const char *path=NULL)
 {
-  TYPE E(in.data[0]),temp;
+  TYPE E(in.data[0]);
 
   E=0;
   double norm=0;
-  for(int iel=tin;iel<=tfin;iel++)
+  for(int iel=max(tin,0);iel<=min(tfin,in.nel-1);iel++)
     {
+      TYPE ele=in.data[iel];
       double err=in.data[iel].err();
       double weight=1/(err*err);
-      E+=in.data[iel]*weight;
-      temp=in[iel]*weight;
-      norm+=weight;
+      if(!isnan(err))
+	{
+	  E+=ele*weight;
+	  norm+=weight;
+	}
     }
-  return E/norm;
+  E/=norm;
+  
+  if(path!=NULL)
+    {
+      double ym=E.med(),dy=E.err();
+      ofstream out(path);
+      out<<"@page size 800,600"<<endl;
+      //error of the line
+      out<<"@s0 line type 1"<<endl;      
+      out<<"@s0 line color 7"<<endl;
+      out<<"@s0 fill color 7"<<endl;
+      out<<"@s0 fill type 1"<<endl;
+      out<<tin<<" "<<ym-dy<<endl<<tfin<<" "<<ym-dy<<endl;
+      out<<tfin<<" "<<ym+dy<<endl<<tin<<" "<<ym+dy<<endl;
+      out<<tin<<" "<<ym-dy<<endl;
+      out<<"&"<<endl;
+      //central line
+      out<<"@s1 line color 1"<<endl;
+      out<<tin<<" "<<ym<<endl<<tfin<<" "<<ym<<endl;
+      //plot the original data with error  
+      out<<"&"<<endl;
+      out<<"@type xydy"<<endl;      
+      out<<"@s2 line type 0"<<endl;      
+      out<<"@s2 symbol color 1"<<endl;
+      out<<"@s2 errorbar color 1"<<endl;
+      out<<"@s2 symbol 1"<<endl;
+      out<<in;
+      out.close();
+    }
+  
+return E;
 }
 
 void linear_fit(VTYPE in,TYPE &m,TYPE &q,int tin,int tfin)
@@ -409,7 +500,7 @@ void linear_fit(VTYPE in,TYPE &m,TYPE &q,int tin,int tfin)
   
   Sx2=S=Sx=0;
   Sxy=Sy=0;
-  for(int iel=tin;iel<=tfin;iel++)
+  for(int iel=max(tin,0);iel<=min(tfin,in.nel-1);iel++)
     {
       double err=in.data[iel].err();
       double weight=1/(err*err);
