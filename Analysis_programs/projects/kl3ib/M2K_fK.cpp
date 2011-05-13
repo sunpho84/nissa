@@ -64,7 +64,7 @@ double fun_fit_dfK(double A,double B,double C,double D,double E,double f0,double
 {
   double dxill_dml=db0/(16*M_PI*M_PI*f0*f0);
   double xill=dxill_dml*ml;
-  return -A*(-3.0/4*(log(xill)+1)+B+2*D*xill+E*a*a)*dxill_dml;
+  return A+B*xill*log(xill)+C*xill+D*a*a;
 }
 
 
@@ -72,7 +72,7 @@ double fun_fit_M2K(double A,double B,double C,double D,double E,double f0,double
 {return A + B*ml + C*a*a + D*ml*ml + E*a*a*ml;}
 
 double fun_fit_dM2K(double A,double B,double C,double D,double E,double f0,double db0,double ml,double a)
-{return - ( B + 2*D*ml + E*a*a );}
+{return B + E*a*a;}
 
 double fun_fit_delta_ml(double A,double B,double C,double D,double E,double f0,double db0,double ml,double a)
 {return delta_MK_phys[plot_iboot]/(fun_fit_dM2K(A,B,C,D,E,f0,db0,ml,a)/2/pow(fun_fit_M2K(A,B,C,D,E,f0,db0,ml,a),0.5));}
@@ -193,15 +193,15 @@ double chi2(double A,double B,double C,double D,double E,double f0,double db0,do
     {
       if(fitting_fK==1)
 	{
-	  double ch2_fK_term=pow((Y_fit[iel]-fun_fit_fK(A,B,C,D,E,f0,db0,X_fit[iel],a[ibeta[iel]]))/err_Y_fit[iel],2);
+	  //double ch2_fK_term=pow((Y_fit[iel]-fun_fit_fK(A,B,C,D,E,f0,db0,X_fit[iel],a[ibeta[iel]]))/err_Y_fit[iel],2);
 	  double ch2_dfK_term=pow((Z_fit[iel]-fun_fit_dfK(A,B,C,D,E,f0,db0,X_fit[iel],a[ibeta[iel]]))/err_Z_fit[iel],2);
-	  ch2+=ch2_fK_term+ch2_dfK_term;
+	  ch2+=ch2_dfK_term;//+ch2_fK_term;
 	}
       else
 	{
-	  double ch2_M2K_term=pow((Y_fit[iel]-fun_fit_M2K(A,B,C,D,E,f0,db0,X_fit[iel],a[ibeta[iel]]))/err_Y_fit[iel],2);
+	  //double ch2_M2K_term=pow((Y_fit[iel]-fun_fit_M2K(A,B,C,D,E,f0,db0,X_fit[iel],a[ibeta[iel]]))/err_Y_fit[iel],2);
 	  double ch2_dM2K_term=pow((Z_fit[iel]-fun_fit_dM2K(A,B,C,D,E,f0,db0,X_fit[iel],a[ibeta[iel]]))/err_Z_fit[iel],2);
-	  ch2+=ch2_M2K_term+ch2_dM2K_term;
+	  ch2+=ch2_dM2K_term;//+ch2_M2K_term;
 	}
     }
   
@@ -229,13 +229,22 @@ void fit(boot &A,boot &B,boot &C,boot &D,boot &E,boot *X,bvec &Y,bvec &Z)
   TMinuit minu;
   minu.SetPrintLevel(-1);
   
-  minu.DefineParameter(0,"A",0.150,0.0001,0,0);
+  minu.DefineParameter(0,"A",0.0,0.0001,0,0);
   minu.DefineParameter(1,"B",0.01,0.0001,0,0);
-  minu.DefineParameter(2,"C",0.01,0.0001,0,0);
+  minu.DefineParameter(2,"C",0,0.0001,0,0);
   minu.DefineParameter(3,"D",0,0.0001,0,0);
   minu.DefineParameter(4,"E",0,0.0001,0,0);
-  if(fitting_fK==0) minu.FixParameter(3);
-  
+  if(fitting_fK==0)
+    {
+      minu.FixParameter(0);
+      minu.FixParameter(2);
+      minu.FixParameter(3);
+    }
+  else
+    {
+      //minu.FixParameter(1);
+      minu.FixParameter(4);
+    }
   minu.SetFCN(chi2_wr);
   
   double C2;
@@ -425,7 +434,8 @@ void analysis_M2K()
     }
   
   //calculate md-mu
-  boot dMK_chir_cont=dM2K_chir_cont/(2*sqrt(M2K_chir_cont));
+  //boot dMK_chir_cont=dM2K_chir_cont/(2*sqrt(M2K_chir_cont));
+  boot dMK_chir_cont=dM2K_chir_cont/(2*MK_phys);
   delta_ml_chir_cont=delta_MK_phys/dMK_chir_cont;
   boot mu_chir_cont=ml_phys-delta_ml_chir_cont/2;
   boot md_chir_cont=ml_phys+delta_ml_chir_cont/2;

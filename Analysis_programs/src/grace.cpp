@@ -14,6 +14,9 @@ public:
   grace(const grace&);
   grace();
   
+  void close(){fout.close();}
+  virtual ~grace(){close();}
+  
   grace plot_size(int,int);
   grace plot_title(const char*);
   

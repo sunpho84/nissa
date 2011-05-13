@@ -22,4 +22,4 @@ using namespace std;
 #include "bvec.cpp"
 
 #include "grace.cpp"
-#include "effective_mass.cpp"
+#include "fits.cpp"

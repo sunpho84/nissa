@@ -44,6 +44,7 @@ public:
   
   void fill_gauss(double med,double sigma){for(int itype=0;itype<N;itype++)data[itype]=rng(med,sigma/sqrt(njack-1));data[N]=med;}
   void put(double* in){memcpy(data,in,sizeof(double)*(N+1));}
+  void get(double* out){memcpy(out,data,sizeof(double)*(N+1));}
 
   TYPE append_to_binfile(const char*,...);
   TYPE write_to_binfile(const char*,...);
@@ -75,7 +76,7 @@ TYPE TYPE::append_to_binfile(const char *format,...)
   va_end(args);
   
   FILE *fout=open_file(buffer,"aw");
-  int nw=fwrite(data,sizeof(double)*(njack+1),1,fout);
+  int nw=fwrite(data,sizeof(double)*(N+1),1,fout);
   if(nw!=1)
     {
       cerr<<"Error appending to file "<<buffer<<endl;
@@ -96,7 +97,7 @@ TYPE TYPE::write_to_binfile(const char *format,...)
   va_end(args);
   
   FILE *fout=open_file(buffer,"w");
-  int nw=fwrite(data,sizeof(double)*(njack+1),1,fout);
+  int nw=fwrite(data,sizeof(double)*(N+1),1,fout);
   if(nw!=1)
     {
       cerr<<"Error appending to file "<<buffer<<endl;
@@ -109,7 +110,11 @@ TYPE TYPE::write_to_binfile(const char *format,...)
 
 ostream& operator<<(ostream &out,const TYPE &obj)
 {
-  out<< TYPE(obj).med()<<" "<< TYPE(obj).err();
+  double med=TYPE(obj).med();
+  double err=TYPE(obj).err();
+
+  if(!isnan(med) && !isnan(err)) out<<med<<" "<<err;
+  
   return out;
 }
 
@@ -199,6 +204,8 @@ TYPE asinh(const TYPE &a){return single_operator(a,asinh);}
 TYPE acosh(const TYPE &a){return single_operator(a,acosh);}
 TYPE atanh(const TYPE &a){return single_operator(a,atanh);}
 
+TYPE exp(const TYPE &a){return single_operator(a,exp);}
+TYPE log(const TYPE &a){return single_operator(a,log);}
 TYPE sqr(const TYPE &a){return single_operator(a,sqr);}
 TYPE sqrt(const TYPE &a){return single_operator(a,sqrt);}
 TYPE pow(const TYPE &a,double b){return pair_operator(a,b,pow);}
