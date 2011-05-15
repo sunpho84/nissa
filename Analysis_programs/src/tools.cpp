@@ -17,28 +17,12 @@ string combine(const char *format,...)
   return string(buffer);
 }
 
-//Estrae a real number between 0 and max
-inline double rnd(double max=1)
-{return random()*max/2147483648.0;}
-
-//Extract a gaussian number
-double rng(double med=0,double sigma=1)
+double det3(double *a,double *b,double *c)
 {
-  double q,r,x;
-  static double y;
-  static bool flag=true;
-
-  if(flag)
-    {
-      r=sqrt(-2*log(1-rnd())); //This is correct, otherwise may be inf
-      q=2*M_PI*rnd();
-      
-      x=r*cos(q);
-      y=r*sin(q);
-    }
-  else x=y;
-
-  flag=!flag;
-
-  return med+sigma*x;
+  double d;
+  d= a[0]*(b[1]*c[2]-b[2]*c[1]);
+  d+=b[0]*(c[1]*a[2]-c[2]*a[1]);
+  d+=c[0]*(a[1]*b[2]-a[2]*b[1]);
+  
+  return d;
 }
