@@ -4,6 +4,8 @@
 #include <functional>
 #include <iostream>
 
+#include "rand.cpp"
+
 using namespace std;
 
 class TYPE
@@ -42,13 +44,20 @@ public:
   double med(){return data[N];}
   double err();
   
-  void fill_gauss(double med,double sigma){for(int itype=0;itype<N;itype++)data[itype]=rng(med,sigma/sqrt(njack-1));data[N]=med;}
+  void fill_gauss(double med,double sigma,int seed);
   void put(double* in){memcpy(data,in,sizeof(double)*(N+1));}
   void get(double* out){memcpy(out,data,sizeof(double)*(N+1));}
 
   TYPE append_to_binfile(const char*,...);
   TYPE write_to_binfile(const char*,...);
 };
+
+void TYPE::fill_gauss(double med,double sigma,int seed)
+{
+  ran_gen extr(seed);
+  for(int itype=0;itype<N;itype++) data[itype]=extr.get_gauss(med,sigma/sqrt(njack-1));
+  data[N]=med;
+}
 
 double TYPE::err()
 {

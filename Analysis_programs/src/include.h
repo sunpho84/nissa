@@ -23,3 +23,6 @@ using namespace std;
 
 #include "grace.cpp"
 #include "fits.cpp"
+
+#include "rand.cpp"
+#include "interpolate.cpp"
