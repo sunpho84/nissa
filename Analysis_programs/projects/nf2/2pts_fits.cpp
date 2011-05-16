@@ -52,14 +52,14 @@ void chi2(int &npar,double *fuf,double &ch,double *p,int flag)
 int main()
 {
   read_pars("input");
-  read_ensamble_pars(base_path,T,ibeta,nmass,mass,iml_un,nlights,data_list_file);
+  read_ensemble_pars(base_path,T,ibeta,nmass,mass,iml_un,nlights,data_list_file);
   TH=L=T/2;
   
   int ncombo=nmass*(nmass+1)/2;
   
   //load all the corrs
   double *buf=new double[ncombo*T*(njack+1)];
-  FILE *fin=open_file(combine("%s/%s",base_path,"P5P5").c_str(),"r");
+  FILE *fin=open_file(combine("%s/%s",base_path,corr_name).c_str(),"r");
   int stat=fread(buf,sizeof(double),ncombo*(njack+1)*T,fin);
   if(stat!=ncombo*(njack+1)*T)
     {
