@@ -61,47 +61,31 @@ boot interpolate_charm_strange(bvec vec,int nmass,int nlights,double *mass,int i
 }
 
 //load all data
-void load_all_ensambles_MZ(const char *ens_list_path,const char *obs_name,bvec *&M,bvec *&Z,int &nens,int *&T,int *&ibeta,int *&nmass,double **&mass,int *&iml_un,int *&nlights)
+void load_all_ensembles_MZ(bvec *&M,bvec *&Z,int &nens,int *&T,int *&ibeta,int *&nmass,const char *base_MZ_path,const char *obs_name,char **ens_name)
 {
   init_latpars();
   
-  FILE *ens_list_file=open_file(ens_list_path,"r");
-  read_formatted_from_file_expecting((char*)(&nens),ens_list_file,"%d","nens");
-  
-  char ens_path_base[1024],data_path_base[1024];
-  read_formatted_from_file_expecting((char*)(&ens_path_base),ens_list_file,"%s","ens_path_base");
-  read_formatted_from_file_expecting((char*)(&data_path_base),ens_list_file,"%s","data_path_base");
-  
+  //allocate room for m and z
   M=(bvec*)malloc(nens*sizeof(bvec));
   Z=(bvec*)malloc(nens*sizeof(bvec));
-  T=(int*)malloc(nens*sizeof(int));
-  ibeta=(int*)malloc(nens*sizeof(int));
-  nmass=(int*)malloc(nens*sizeof(int));
-  mass=(double**)malloc(nens*sizeof(double*));
-  iml_un=(int*)malloc(nens*sizeof(int));
-  nlights=(int*)malloc(nens*sizeof(int));
   
+  //Loop over ensembles. Data is supposed to be stored in a file named [base_MZ_path]/[obs_name]/[ens_name]/results
   for(int iens=0;iens<nens;iens++)
     {
-      char ens_path_pars[1024],base_path[1024];
-      read_formatted_from_file(ens_path_pars,ens_list_file,"%s","ens_path_pars");
+      char MZ_path[1024];
+      sprintf(MZ_path,"%s/%s/%s/results",base_MZ_path,obs_name,ens_name[iens]);
       
-      char ens_path[1024],data_path[1024];
-      sprintf(ens_path,"%s/%s",ens_path_base,ens_path_pars);
-      sprintf(data_path,"%s/%s/%s/results",data_path_base,obs_name,ens_path_pars);
-
-      cout<<"Reading ensamble: "<<ens_path<<endl;
-      read_ensamble_pars(base_path,T[iens],ibeta[iens],nmass[iens],mass[iens],iml_un[iens],nlights[iens],combine("%s/data_list",ens_path).c_str());
-
+      cout<<"Reading ensemble: "<<ens_name[iens]<<" from file: "<<MZ_path<<endl;
+      
+      //allocate room or M and Z2
       int ncombo=nmass[iens]*(nmass[iens]+1)/2;
       M[iens].create(ncombo,nboot,njack);
       Z[iens].create(ncombo,nboot,njack);
       
       //reading of data
-      jvec tempm(ncombo,njack);
-      jvec tempz(ncombo,njack);
-      tempm.load(data_path,0);
-      tempz.load(data_path,1);
+      jvec tempm(ncombo,njack),tempz(ncombo,njack);
+      tempm.load(MZ_path,0);
+      tempz.load(MZ_path,1);
       
       //bootjacking
       for(int icombo=0;icombo<ncombo;icombo++)
@@ -110,6 +94,4 @@ void load_all_ensambles_MZ(const char *ens_list_path,const char *obs_name,bvec *
 	  boot_from_jack(Z[iens].data[icombo],tempz.data[icombo],ibeta[iens]);
 	}
     }
-  
-  fclose(ens_list_file);
 }
