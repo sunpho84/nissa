@@ -19,7 +19,7 @@ public:
   
 #ifdef BVEC
   void create(int ne,int nb,int nj){nel=ne;nboot=nb;njack=nj;data=new boot[nel];for(int iel=0;iel<nel;iel++) data[iel].create(nb,nj);}
-  explicit VTYPE(){data=NULL;nel=nboot=njack=0;}
+  VTYPE(){data=NULL;nel=nboot=njack=0;}
   VTYPE(const VTYPE& a) : nel(a.nel),nboot(a.nboot),njack(a.njack){create(nel,nboot,njack);for(int iel=0;iel<nel;iel++) data[iel]=a.data[iel];}
   VTYPE(int ne,int nb,int nj){create(ne,nb,nj);}
   void reallocate_if_necessary(int ne,int nb,int nj){if(nel!=ne||njack!=nj||nb!=nboot){delete[] data;create(ne,nb,nj);}}
@@ -91,7 +91,9 @@ VTYPE VTYPE::write_to_binfile(const char *format,...)
   va_end(args);
   
   FILE *fout=open_file(buffer,"w");
-  int nw=fwrite(data,sizeof(double)*(N+1)*nel,1,fout);
+  double out[nel*(N+1)];
+  get(out);
+  int nw=fwrite(out,sizeof(double)*(N+1)*nel,1,fout);
   if(nw!=1)
     {
       cerr<<"Error writing to file "<<buffer<<endl;

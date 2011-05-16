@@ -29,8 +29,6 @@ void read_pars(const char *input)
   read_formatted_from_file_expecting((char*)(&tmin[2]),fin,"%d","tint_hh");
   read_formatted_from_file((char*)(&tmax[2]),fin,"%d","tint_hh");
   
-  read_formatted_from_file_expecting((char*)(&nlights),fin,"%d","nlights");
-  
   read_formatted_from_file_expecting(out_file,fin,"%s","out_file");
   
   fclose(fin);
@@ -54,10 +52,8 @@ void chi2(int &npar,double *fuf,double &ch,double *p,int flag)
 int main()
 {
   read_pars("input");
-  read_setup_pars(base_path,T,ibeta,nmass,iml_un,mass,data_list_file);
+  read_ensamble_pars(base_path,T,ibeta,nmass,mass,iml_un,nlights,data_list_file);
   TH=L=T/2;
-  
-  init_latpars(100);
   
   int ncombo=nmass*(nmass+1)/2;
   
@@ -82,13 +78,13 @@ int main()
   corr_err=new double[TH+1];
   
   //fit each combo
-  int icombo=0;
+  int ic=0;
   for(int ims=0;ims<nmass;ims++)
     for(int imc=ims;imc<nmass;imc++)
       {
 	//take into account corr
 	jvec corr(T,njack);
-	corr.put(buf+icombo*T*(njack+1));
+	corr.put(buf+ic*T*(njack+1));
 	
 	//choose the index of the fitting interval
 	if(ims>=nlights) ifit_int=2;
@@ -119,12 +115,12 @@ int main()
 	  
 	    //fit
 	    double dum;
-	    minu.DefineParameter(0,"Z2",meff.data[ijack],0.001,0,0);
-	    minu.DefineParameter(1,"M",cestim.data[ijack],0.001,0,0);
+	    minu.DefineParameter(0,"Z2",cestim.data[ijack],0.001,0,0);
+	    minu.DefineParameter(1,"M",meff.data[ijack],0.001,0,0);
 	    minu.Migrad();
-	    minu.GetParameter(0,Z2.data[icombo].data[ijack],dum);
-	    minu.GetParameter(1,M.data[icombo].data[ijack],dum);
-	    //cout<<ims<<" "<<imc<<"  "<<mass[ims]<<" "<<mass[imc]<<"  "<<icombo<<"  "<<Z2.data[icombo].data[ijack]<<" "<<M.data[icombo].data[ijack]<<endl;
+	    minu.GetParameter(0,Z2.data[ic].data[ijack],dum);
+	    minu.GetParameter(1,M.data[ic].data[ijack],dum);
+	    //cout<<ims<<" "<<imc<<"  "<<mass[ims]<<" "<<mass[imc]<<"  "<<ic<<"  "<<Z2.data[ic].data[ijack]<<" "<<M.data[ic].data[ijack]<<endl;
 	  }
 	
 	if((ims==iml_un||ims==nlights-1||ims==nlights||ims==nmass-1)&&
@@ -138,8 +134,8 @@ int main()
 	    out<<mcor<<endl;
 	    out<<"&"<<endl;
 	    out<<"@type xy"<<endl;
-	    double av_mass=M[icombo].med();
-	    double er_mass=M[icombo].err();
+	    double av_mass=M[ic].med();
+	    double er_mass=M[ic].err();
 	    out<<tmin[ifit_int]+1<<" "<<av_mass-er_mass<<endl;
 	    out<<tmax[ifit_int]+1<<" "<<av_mass-er_mass<<endl;
 	    out<<tmax[ifit_int]+1<<" "<<av_mass+er_mass<<endl;
@@ -147,13 +143,22 @@ int main()
 	    out<<tmin[ifit_int]+1<<" "<<av_mass-er_mass<<endl;
 	  }
 	
-	cout<<ims<<" "<<imc<<"  "<<mass[ims]<<" "<<mass[imc]<<"  "<<icombo<<"  "<<M[icombo]<<"  "<<Z2[icombo]<<endl;
+	cout<<ims<<" "<<imc<<"  "<<mass[ims]<<" "<<mass[imc]<<"  "<<ic<<"  "<<M[ic]<<"  "<<Z2[ic]<<endl;
 	
-	icombo++;
+	ic++;
       }
   
+  ofstream out("fitted_mass.xmg");
+  out<<"@type xydy"<<endl;
+  for(int ims=0;ims<nmass;ims++)
+    {
+      //out<<"s0 line type 0"<<endl;
+      for(int imc=0;imc<nmass;imc++) out<<mass[imc]<<" "<<M[icombo(ims,imc,nmass)]<<endl;
+      out<<"&"<<endl;
+    }
+
   M.write_to_binfile(out_file);
   Z2.append_to_binfile(out_file);
-  
+
   return 0;
 }
