@@ -39,13 +39,13 @@ int main()
 	    }
 	}
       
-      bvec MD_charm=interpolate_charm(M,nmass[iens],nlights[iens],mass[iens],ibeta[iens]);
-      Mint.data[iens]=MD_charm[iml_un[iens]];
+      bvec MK_strange=interpolate_strange(M,nmass[iens],nlights[iens],mass[iens],ibeta[iens]);
+      Mint.data[iens]=MK_strange[iml_un[iens]];
       
-      cout<<(mass[iens][iml_un[iens]]/lat[ibeta[iens]]/Zp[ibeta[iens]]).med()<<" "<<MD_charm[iml_un[iens]]<<endl;
+      cout<<(mass[iens][iml_un[iens]]/lat[ibeta[iens]]/Zp[ibeta[iens]]).med()<<" "<<MK_strange[iml_un[iens]]<<endl;
     }
   
-  Mint.write_to_binfile("interpolated_M_D");
+  Mint.write_to_binfile("interpolated_M_K");
   
   return 0;
 }

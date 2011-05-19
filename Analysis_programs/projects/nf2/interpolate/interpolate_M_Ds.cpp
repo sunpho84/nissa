@@ -28,14 +28,14 @@ int main()
       bvec M(ncombo,nboot,njack);
       for(int ims=0;ims<nmass[iens];ims++)
 	{
-	  ofstream out(combine("%02d_%0.4f.xmg",iens,mass[iens][ims]).c_str());
+	  //ofstream out(combine("%02d_%0.4f.xmg",iens,mass[iens][ims]).c_str());
 	  
 	  //prepare physical data
 	  for(int imc=ims;imc<nmass[iens];imc++)
 	    {
 	      int ic=icombo(imc,ims,nmass[iens]);
 	      M[ic]=aM[iens][ic]/lat[ibeta[iens]];
-	      out<<(mass[iens][imc]/lat[ibeta[iens]]/Zp[ibeta[iens]]).med()<<" "<<M[ic]<<endl;
+	      //out<<(mass[iens][imc]/lat[ibeta[iens]]/Zp[ibeta[iens]]).med()<<" "<<M[ic]<<endl;
 	    }
 	}
       
@@ -44,7 +44,7 @@ int main()
       cout<<(mass[iens][iml_un[iens]]/lat[ibeta[iens]]/Zp[ibeta[iens]]).med()<<" "<<Mint[iens]<<endl;
     }
   
-  Mint.write_to_binfile("interpolated_Ds");
+  Mint.write_to_binfile("interpolated_M_Ds");
   
   return 0;
 }
