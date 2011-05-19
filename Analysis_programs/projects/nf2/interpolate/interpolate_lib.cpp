@@ -19,7 +19,7 @@ bvec interpolate_charm(bvec vec,int nmass,int nlights,double *mass,int ibeta)
 	  temp_mass[imq-nlights]=mass[imq];
 	}
       
-      interpolated[iml]=interpolate_single(temp_vec,temp_mass,amc_phys[ibeta]);
+      interpolated[iml]=interpolate_single(temp_vec,temp_mass,mc_phys*lat_med[ibeta]*Zp_med[ibeta]);
     }
   
   return interpolated;
@@ -32,8 +32,8 @@ bvec interpolate_strange(bvec vec,int nmass,int nlights,double *mass,int ibeta)
   bvec interpolated(nlights,nboot,njack);
   
   //temporary storage
-  bvec temp_vec(nmass-nlights,nboot,njack);
-  double temp_mass[nmass-nlights];
+  bvec temp_vec(nlights,nboot,njack);
+  double temp_mass[nlights];
   //interpolate each light
   for(int iml=0;iml<nlights;iml++)
     {
@@ -44,7 +44,7 @@ bvec interpolate_strange(bvec vec,int nmass,int nlights,double *mass,int ibeta)
 	  temp_mass[imq]=mass[imq];
 	}
       
-      interpolated[iml]=interpolate_single(temp_vec,temp_mass,ams_phys[ibeta]);
+      interpolated[iml]=interpolate_single(temp_vec,temp_mass,ms_phys*lat_med[ibeta]*Zp_med[ibeta]);
     }
   
   return interpolated;
@@ -57,7 +57,7 @@ boot interpolate_charm_strange(bvec vec,int nmass,int nlights,double *mass,int i
   bvec charm_interpolated=interpolate_charm(vec,nmass,nlights,mass,ibeta);
   
   //then interpolate in the strange
-  return interpolate_single(charm_interpolated,mass,ams_phys[ibeta]);
+  return interpolate_single(charm_interpolated,mass,ms_phys*lat_med[ibeta]*Zp_med[ibeta]);
 }
 
 //load all data

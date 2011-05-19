@@ -136,11 +136,11 @@ int main()
 	    out<<"@type xy"<<endl;
 	    double av_mass=M[ic].med();
 	    double er_mass=M[ic].err();
-	    out<<tmin[ifit_int]+1<<" "<<av_mass-er_mass<<endl;
-	    out<<tmax[ifit_int]+1<<" "<<av_mass-er_mass<<endl;
-	    out<<tmax[ifit_int]+1<<" "<<av_mass+er_mass<<endl;
-	    out<<tmin[ifit_int]+1<<" "<<av_mass+er_mass<<endl;
-	    out<<tmin[ifit_int]+1<<" "<<av_mass-er_mass<<endl;
+	    out<<tmin[ifit_int]<<" "<<av_mass-er_mass<<endl;
+	    out<<tmax[ifit_int]<<" "<<av_mass-er_mass<<endl;
+	    out<<tmax[ifit_int]<<" "<<av_mass+er_mass<<endl;
+	    out<<tmin[ifit_int]<<" "<<av_mass+er_mass<<endl;
+	    out<<tmin[ifit_int]<<" "<<av_mass-er_mass<<endl;
 	  }
 	
 	cout<<ims<<" "<<imc<<"  "<<mass[ims]<<" "<<mass[imc]<<"  "<<ic<<"  "<<M[ic]<<"  "<<Z2[ic]<<endl;

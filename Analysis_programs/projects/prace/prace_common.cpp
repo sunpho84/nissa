@@ -74,7 +74,7 @@ jvec read_two_points(int ith2,int im2,int r2,int im1,int r1,int iobs,int ri=0)
   icorr=icorr*2+check_interval(r1,0,2);
   icorr=icorr*n2pts+check_interval(iobs,0,n2pts);
   icorr=icorr*2+check_interval(ri,0,2);
-  
+
   jvec out(T,njack);
   out.load(file_2pts,icorr);
   
