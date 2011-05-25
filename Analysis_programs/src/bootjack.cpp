@@ -47,9 +47,10 @@ public:
   void fill_gauss(double med,double sigma,int seed);
   void put(double* in){memcpy(data,in,sizeof(double)*(N+1));}
   void get(double* out){memcpy(out,data,sizeof(double)*(N+1));}
-
+  
   TYPE append_to_binfile(const char*,...);
   TYPE write_to_binfile(const char*,...);
+  TYPE load(const char*,int);
 };
 
 void TYPE::fill_gauss(double med,double sigma,int seed)
@@ -113,6 +114,25 @@ TYPE TYPE::write_to_binfile(const char *format,...)
       exit(1);
     }
   fclose(fout);
+  
+  return *this;
+}
+
+TYPE TYPE::load(const char *path,int i=0)
+{
+  FILE *fin=open_file(path,"r");
+  if(fseeko(fin,(off_t)i*sizeof(double)*(N+1),SEEK_SET))
+    {
+      cerr<<"Error while searching for boot or jack "<<i<<" in file "<<path<<"!"<<endl;
+      exit(1);
+    }
+  int nw=fread(data,sizeof(double),N+1,fin);
+  if(nw!=N+1)
+    {
+      cerr<<"Error reading from file "<<path<<endl;
+      exit(1);
+    }
+  fclose(fin);
   
   return *this;
 }

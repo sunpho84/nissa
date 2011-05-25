@@ -10,6 +10,9 @@ double lat_med[4]={1/2.0198,1/2.3286,1/2.9419,1/3.6800};
 double lat_err[4]={lat_med[0]/31.5,lat_med[1]/36.8,lat_med[2]/41.9,lat_med[3]/44.7};
 double lat_med_fm[4]={lat_med[0]*hc,lat_med[1]*hc,lat_med[2]*hc,lat_med[3]*hc};
 
+double lat_rat_med[4]={1,0.868996,0.79319,0.800388};
+double lat_rat_err[4]={0,0.00620553,0.00533782,0.00512307};
+
 double Zp_med[4]={0.411,0.437,0.477,0.501};
 double Zp_err[4]={0.012,0.007,0.006,0.020};
 
@@ -20,8 +23,8 @@ double Za_err[4]={0.011,0.006,0.006,0.006};
 double ml_phys_med=3.6/1000,ms_phys_med=95.0/1000,mc_phys_med=1140.0/1000;
 double ml_phys_err=0.2/1000,ms_phys_err= 6.0/1000,mc_phys_err=  40.0/1000;
 
-double f0_med=121.9019/1000,f0_err=0.1668/1000;
-double db0_med=5.2756,db0_err=0.2078;
+double f0_med=121.9019/1000,db0_med=5.2756;
+double f0_err=0.1668/1000,db0_err=0.2078;
 
 bool latpars_initted=false;
 
@@ -30,6 +33,9 @@ boot ml_phys,ms_phys,mc_phys;
 boot aml_phys[4],ams_phys[4],amc_phys[4];
 boot f0,db0;
 int iboot_jack[4][nboot+1];
+
+double mD_phys=1.8696;
+double mD_s_phys=1.9685;
 
 void read_ensemble_pars(char *base_path,int &T,int &ibeta,int &nmass,double *&mass,int &iml_un,int &nlights,const char *data_list_file)
 {
@@ -71,36 +77,42 @@ void init_latpars()
   for(int ib=0;ib<4;ib++)
     {
       lat[ib]=boot(nboot,njack);
-      lat[ib].fill_gauss(lat_med[ib],lat_err[ib],1010+ib);
-
+      if(ib==0) lat[ib].fill_gauss(lat_med[ib],lat_err[ib],156010+ib);
+      else
+	{
+	  lat[ib].fill_gauss(lat_rat_med[ib],lat_rat_err[ib],156010+ib);
+	  lat[ib]*=lat[ib-1];
+	}
+      cout<<"Lattice spacing "<<ib<<" "<<lat[ib]*hc<<endl;
+      
       Zp[ib]=boot(nboot,njack);
-      Zp[ib].fill_gauss(Zp_med[ib],Zp_err[ib],1532+ib);
+      Zp[ib].fill_gauss(Zp_med[ib],Zp_err[ib],1534572+ib);
     }
   
   ml_phys=boot(nboot,njack);
   ms_phys=boot(nboot,njack);
   mc_phys=boot(nboot,njack);
-
+  
   ml_phys.fill_gauss(ml_phys_med,ml_phys_err,2478463);
   ms_phys.fill_gauss(ms_phys_med,ms_phys_err,6764732);
   mc_phys.fill_gauss(mc_phys_med,mc_phys_err,7623647);
   
-  for(int ibeta=0;ibeta<4;ibeta++)
+  for(int ib=0;ib<4;ib++)
     {
-      ran_gen estr(22141425);
+      ran_gen estr(22141425+ib);
       for(int iboot=0;iboot<nboot;iboot++)
-	iboot_jack[ibeta][iboot]=estr.get_int(njack);
-      iboot_jack[ibeta][nboot]=njack;
+	iboot_jack[ib][iboot]=estr.get_int(njack);
+      iboot_jack[ib][nboot]=njack;
 
-      aml_phys[ibeta]=ml_phys*lat[ibeta]*Zp[ibeta];
-      ams_phys[ibeta]=ms_phys*lat[ibeta]*Zp[ibeta];
-      amc_phys[ibeta]=mc_phys*lat[ibeta]*Zp[ibeta];
+      aml_phys[ib]=ml_phys*lat[ib]*Zp[ib];
+      ams_phys[ib]=ms_phys*lat[ib]*Zp[ib];
+      amc_phys[ib]=mc_phys*lat[ib]*Zp[ib];
     }
 
   for(int ib=0;ib<4;ib++)
     {
       Za[ib]=boot(nboot,njack);
-      Za[ib].fill_gauss(Za_med[ib],Za_err[ib],2323456);
+      Za[ib].fill_gauss(Za_med[ib],Za_err[ib],2873246+ib);
     }      
   
   f0=boot(nboot,njack);
