@@ -141,12 +141,12 @@ void vol_assign_spincolor_prod_real(spincolor *sc,double c)
 void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int niter)
 {
   spincolor *H=allocate_spincolor(loc_vol+loc_bord,"H");
- 
+  
   communicate_gauge_borders(conf);
   
   //iter 0
-  memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
-
+  if(smear_sc!=origi_sc) memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
+  
   //loop over jacobi iterations
   for(int iter=0;iter<niter;iter++)
     {
