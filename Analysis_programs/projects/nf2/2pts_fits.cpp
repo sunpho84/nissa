@@ -39,6 +39,8 @@ double fun_fit(double Z2,double M,int t)
 {
   if(parity==1) return Z2*exp(-M*TH)*cosh(M*(TH-t))/M;
   else return Z2*exp(-M*TH)*sin(M*(TH-t))/M;
+  //if(parity==1) return Z2*Z2*M*exp(-M*TH)*cosh(M*(TH-t));
+  //else return Z2*exp(-M*TH)*sin(M*(TH-t))/M;
 }
 
 //chi2 calculation
@@ -159,6 +161,6 @@ int main()
 
   M.write_to_binfile(out_file);
   Z2.append_to_binfile(out_file);
-
+  
   return 0;
 }

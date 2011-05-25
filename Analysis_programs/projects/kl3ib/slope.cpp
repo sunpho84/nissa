@@ -210,5 +210,15 @@ int main()
   out_P5P5.fout<<"&"<<endl<<"@type xy"<<endl;
   for(int t=tmin_fit;t<tmax_fit;t++) out_P5P5.fout<<t<<" "<<fun_P5P5(C_P5P5.med(),M_P5P5.med(),t)<<endl;
   
+  //prepare the file for the quark mass fit
+  ofstream pion("pion.dat");
+  for(int ifuf=0;ifuf<6;ifuf++) pion<<"ciao"<<endl;
+  pion<<M_P5P5.med()<<endl;
+  for(int ijack=0;ijack<njack;ijack++) pion<<M_P5P5[ijack]<<endl;
+  pion<<"ciao"<<endl;
+  pion<<C_P5P5.med()<<endl;
+  for(int ijack=0;ijack<njack;ijack++) pion<<C_P5P5[ijack]<<endl;
+  pion.close();
+  
   return 0;
 }
