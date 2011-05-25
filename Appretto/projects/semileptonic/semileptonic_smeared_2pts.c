@@ -1,5 +1,7 @@
 #include "appretto.h"
 
+//gauge info
+int ngauge_conf;
 char conf_path[1024];
 quad_su3 *conf,*sme_conf;
 double kappa;
@@ -87,8 +89,6 @@ void initialize_semileptonic(char *input_path)
   read_str_int("T",&(glb_size[0]));
   //Init the MPI grid 
   init_grid(); 
-  //Gauge path
-  read_str_str("GaugeConfPath",conf_path,1024);
   //Kappa
   read_str_double("Kappa",&kappa);
   
@@ -158,32 +158,13 @@ void initialize_semileptonic(char *input_path)
       if(rank==0 && debug) printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
   
-  read_str_str("OutfileTwoPoints",outfile_2pts,1024);
-
-  close_input();
-
+  read_str_int("NGaugeConf",&ngauge_conf);  
+  
   ////////////////////////////////////// end of input reading/////////////////////////////////
   
   //allocate gauge conf and all the needed spincolor and colorspinspin
   conf=allocate_quad_su3(loc_vol+loc_bord,"conf");
   sme_conf=allocate_quad_su3(loc_vol+loc_bord,"sme_conf");
-  
-  //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-  read_local_gauge_conf(conf,conf_path);
-  //prepared the smerded version and  calculate plaquette
-  ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
-
-  communicate_gauge_borders(conf);
-  communicate_gauge_borders(sme_conf);
-  
-  double gplaq=global_plaquette(conf);
-  if(rank==0) printf("plaq: %.18g\n",gplaq);
-  gplaq=global_plaquette(sme_conf);
-  if(rank==0) printf("smerded plaq: %.18g\n",gplaq);
-
-  //Put the anti-periodic condition on the temporal border
-  put_theta[0]=1;
-  adapt_theta(conf,old_theta,put_theta,1,0);
   
   //Allocate all the S0 colorspinspin vectors
   npropS0=nmass;
@@ -206,6 +187,28 @@ void initialize_semileptonic(char *input_path)
   original_source=allocate_colorspinspin(loc_vol,"original_source");
 }
 
+//load the conf, smear it and put boundary cond
+void load_gauge_conf()
+{
+  //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
+  read_local_gauge_conf(conf,conf_path);
+  //prepared the smerded version and  calculate plaquette
+  ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
+
+  communicate_gauge_borders(conf);
+  communicate_gauge_borders(sme_conf);
+  
+  double gplaq=global_plaquette(conf);
+  if(rank==0) printf("plaq: %.18g\n",gplaq);
+  gplaq=global_plaquette(sme_conf);
+  if(rank==0) printf("smerded plaq: %.18g\n",gplaq);
+
+  //Put the anti-periodic condition on the temporal border
+  old_theta[0]=0;
+  put_theta[0]=1;
+  adapt_theta(conf,old_theta,put_theta,1,0);
+}
+
 //Finalization
 void close_semileptonic()
 {
@@ -216,13 +219,15 @@ void close_semileptonic()
       printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
       printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
     }
-
+  
+  /*
   free(conf);free(sme_conf);free(mass);
   for(int iprop=0;iprop<npropS0;iprop++){free(S0[0][iprop]);free(S0[1][iprop]);}
   free(S0[0]);free(S0[1]);free(reco_solution[0]);free(reco_solution[1]);
   free(op1_2pts);free(op2_2pts);
   free(contr_2pts[0]);free(contr_2pts);
   close_appretto();
+  */
 }
 
 //calculate the standard propagators
@@ -320,13 +325,22 @@ int main(int narg,char **arg)
   tot_time-=take_time();
   initialize_semileptonic(arg[1]);
   
-  generate_source();
-  
-  for(int LS_source=0;LS_source<2;LS_source++)
-    {
-      calculate_S0(LS_source);
-      calculate_all_2pts(LS_source);
-    }
+  for(int iconf=0;iconf<ngauge_conf;iconf++)
+  {
+      //Gauge path
+      read_str(conf_path,1024);
+      read_int(&twall);
+      read_str(outfile_2pts,1024);
+      
+      load_gauge_conf();
+      generate_source();
+      
+      for(int LS_source=0;LS_source<2;LS_source++)
+      {
+	  calculate_S0(LS_source);
+	  calculate_all_2pts(LS_source);
+      }
+  }
   
   tot_time+=take_time();
   close_semileptonic();
