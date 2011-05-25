@@ -280,7 +280,7 @@ void calculate_all_2pts(int LS_source)
 	    for(int id=0;id<4;id++)
 	      {
 		for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_colorspinspin(reco_solution[0][ivol],S0[r][imass][ivol],id);
-		
+		jacobi_smearing(reco_solution[1],reco_solution[0],sme_conf,jacobi_kappa,jacobi_niter);
 		for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_colorspinspin(S0[r][imass][ivol],reco_solution[1][ivol],id);
 	      }
       
