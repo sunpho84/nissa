@@ -7,9 +7,11 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
   quad_su3 *temp_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"temp_conf");
   memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
   
+  if(rank==0 && debug) printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
+      
   for(int istep=0;istep<nstep;istep++)
     {
-      if(rank==0 && debug) printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
+      if(rank==0 && debug==2) printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
       memcpy(temp_conf,smear_conf,sizeof(quad_su3)*loc_vol);
       
       //communicate the borders
@@ -104,10 +106,10 @@ void density_profile(double *glb_rho,spincolor *sp,int *or_pos)
 //apply kappa*H to a spincolor
 void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *smear_sc)
 {
+  communicate_lx_spincolor_borders(smear_sc);
   memset(H,0,sizeof(spincolor)*loc_vol);
   
-  communicate_lx_spincolor_borders(smear_sc);
-  
+#ifndef BGP
   for(int l=0;l<loc_vol;l++)
     for(int id=0;id<4;id++)
       {
@@ -121,6 +123,58 @@ void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *
 	  }
 	color_prod_real(H[l][id],H[l][id],kappa);
       }
+#else
+  bgp_complex H0,H1,H2;
+  bgp_complex A0,A1,A2;
+  bgp_complex B0,B1,B2;
+  
+  bgp_complex U00,U01,U02;
+  bgp_complex U10,U11,U12;
+  bgp_complex U20,U21,U22;
+
+  bgp_complex V00,V01,V02;
+  bgp_complex V10,V11,V12;
+  bgp_complex V20,V21,V22;
+  
+  for(int l=0;l<loc_vol;l++)
+    {
+      for(int mu=1;mu<4;mu++)
+	{
+	  int lup=loclx_neighup[l][mu];
+	  int ldw=loclx_neighdw[l][mu];
+	  
+	  bgp_cache_touch_su3(conf[l][mu]);
+	  bgp_cache_touch_su3(conf[ldw][mu]);
+	  bgp_cache_touch_spincolor(H[l]);
+	  bgp_cache_touch_spincolor(smear_sc[lup]);
+	  bgp_cache_touch_spincolor(smear_sc[ldw]);
+	  
+	  bgp_load_su3(U00,U01,U02,U10,U11,U12,U20,U21,U22,conf[l][mu]);
+	  bgp_load_su3(V00,V01,V02,V10,V11,V12,V20,V21,V22,conf[ldw][mu]);
+	  
+	  for(int id=0;id<4;id++)
+	    {
+	      bgp_load_color(H0,H1,H2,H[l][id]);
+	      bgp_load_color(A0,A1,A2,smear_sc[lup][id]);
+	      bgp_load_color(B0,B1,B2,smear_sc[ldw][id]);
+	      
+	      bgp_summ_the_su3_prod_color(H0,H1,H2,U00,U01,U02,U10,U11,U12,U20,U21,U22,A0,A1,A2);
+	      bgp_summ_the_su3_dag_prod_color(H0,H1,H2,V00,V01,V02,V10,V11,V12,V20,V21,V22,B0,B1,B2);
+
+	      bgp_save_color(H[l][id],H0,H1,H2);
+	    }
+	}
+      
+      bgp_cache_touch_spincolor(H[l]);  
+      for(int id=0;id<4;id++)
+	{
+	  bgp_load_color(A0,A1,A2,H[l][id]);  
+	  bgp_color_prod_real(B0,B1,B2,A0,A1,A2,kappa);
+	  bgp_save_color(H[l][id],B0,B1,B2);
+	}
+    }
+  
+#endif
 }
 
 //summ
@@ -141,8 +195,10 @@ void vol_assign_spincolor_prod_real(spincolor *sc,double c)
 void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int niter)
 {
   spincolor *H=allocate_spincolor(loc_vol+loc_bord,"H");
-  
+  double norm_fact=1/(1+6*kappa);
   communicate_gauge_borders(conf);
+  
+  if(rank==0 && debug) printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
   
   //iter 0
   if(smear_sc!=origi_sc) memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
@@ -150,14 +206,35 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
   //loop over jacobi iterations
   for(int iter=0;iter<niter;iter++)
     {
-	if(rank==0 && debug) printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
+	if(rank==0 && debug==2) printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
 	
 	//apply kappa*H
 	smearing_apply_kappa_H(H,kappa,conf,smear_sc);
+#ifndef BGP
 	//add kappa*H
 	vol_spincolor_summassign(smear_sc,H);
 	//dynamic normalization  
-	vol_assign_spincolor_prod_real(smear_sc,1/(1+6*kappa));
+	vol_assign_spincolor_prod_real(smear_sc,norm_fact);
+#else
+	bgp_complex A0,A1,A2;
+	bgp_complex B0,B1,B2;
+	bgp_complex C0,C1,C2;
+	
+	for(int l=0;l<loc_vol;l++)
+	  {
+	    bgp_cache_touch_spincolor(smear_sc[l]);
+	    bgp_cache_touch_spincolor(H[l]);
+	    
+	    for(int id=0;id<4;id++)
+	      {
+		bgp_load_color(A0,A1,A2,smear_sc[l][id]);
+		bgp_load_color(B0,B1,B2,H[l][id]);
+		bgp_color_prod_real(C0,C1,C2,A0,A1,A2,norm_fact);
+		bgp_summassign_color_prod_real(C0,C1,C2,B0,B1,B2,norm_fact);
+		bgp_save_color(smear_sc[l][id],C0,C1,C2);
+	      }
+	  }
+#endif
     }
   
   free(H);
