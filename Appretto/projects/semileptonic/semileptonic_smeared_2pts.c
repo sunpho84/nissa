@@ -179,8 +179,8 @@ void initialize_semileptonic(char *input_path)
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=(spincolor**)malloc(sizeof(spincolor*)*nmass);
   for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=allocate_spincolor(loc_vol+loc_bord,"cgmms_solution");
-  reco_solution[0]=allocate_spincolor(loc_vol,"reco_solution[0]");
-  reco_solution[1]=allocate_spincolor(loc_vol,"reco_solution[1]");
+  reco_solution[0]=allocate_spincolor(loc_vol+loc_bord,"reco_solution[0]");
+  reco_solution[1]=allocate_spincolor(loc_vol+loc_bord,"reco_solution[1]");
   
   //Allocate one spincolor for the source
   source=allocate_spincolor(loc_vol+loc_bord,"source");
