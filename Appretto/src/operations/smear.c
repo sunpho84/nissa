@@ -154,10 +154,8 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 	
 	//apply kappa*H
 	smearing_apply_kappa_H(H,kappa,conf,smear_sc);
-	
 	//add kappa*H
 	vol_spincolor_summassign(smear_sc,H);
-	
 	//dynamic normalization  
 	vol_assign_spincolor_prod_real(smear_sc,1/(1+6*kappa));
     }
