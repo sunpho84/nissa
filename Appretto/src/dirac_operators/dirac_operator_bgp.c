@@ -16,29 +16,24 @@ void apply_Q(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu
 {
   int Xup,X,Xdw;
 
-#pragma disjoint(*out,*in,*conf,Xup,X,Xdw)
-  __alignx(16,out);
-  __alignx(16,in);
-  __alignx(16,conf);
-   
-  double static _Complex A0,A1,A2;
-  double static _Complex B0,B1,B2;
+  bgp_complex A0,A1,A2;
+  bgp_complex B0,B1,B2;
 
-  double static _Complex C0,C1,C2;
-  double static _Complex D0,D1,D2;
-  double static _Complex E0,E1,E2;
+  bgp_complex C0,C1,C2;
+  bgp_complex D0,D1,D2;
+  bgp_complex E0,E1,E2;
 
-  double static _Complex T0,T1,T2;
+  bgp_complex T0,T1,T2;
 
-  double static _Complex R00,R01,R02;
-  double static _Complex R10,R11,R12;
-  double static _Complex R20,R21,R22;
-  double static _Complex R30,R31,R32;
+  bgp_complex R00,R01,R02;
+  bgp_complex R10,R11,R12;
+  bgp_complex R20,R21,R22;
+  bgp_complex R30,R31,R32;
 
-  double static _Complex mass;
+  bgp_complex mass;
 
   complex cpumass={1/(2*kappac),mu};
-  __alignx(16,cpumass);
+  
   bgp_load_complex(mass,cpumass);
   
   for(X=0;X<loc_vol;X++)

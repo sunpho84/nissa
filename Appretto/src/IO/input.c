@@ -25,12 +25,12 @@ void close_input()
   if(rank==0) fclose(input_global);
 }
 
-//Read an integer from the file
-void read_int(int *in)
+//Read a var from the file
+void read_var(char *in,const char *par,int size_of)
 {
   if(rank==0)
     {
-      int ok=fscanf(input_global,"%d",in);
+      int ok=fscanf(input_global,par,in);
       if(!ok)
 	{
 	  fprintf(stderr,"Couldn't read from input file!!!\n");
@@ -38,40 +38,20 @@ void read_int(int *in)
 	  MPI_Abort(MPI_COMM_WORLD,1);
 	}
     }
-  MPI_Bcast(in,1,MPI_INT,0,MPI_COMM_WORLD);
+  MPI_Bcast(in,size_of,MPI_BYTE,0,MPI_COMM_WORLD);
 }
+
+//Read an integer from the file
+void read_int(int *in)
+{read_var((char*)in,"%d",sizeof(int));}
 
 //Read a double from the file
 void read_double(double *in)
-{
-  if(rank==0)
-    {
-      int ok=fscanf(input_global,"%lg",in);
-      if(!ok)
-	{
-	  fprintf(stderr,"Couldn't read from input file!!!\n");
-	  fflush(stderr);
-	  MPI_Abort(MPI_COMM_WORLD,1);
-	}
-    }
-  MPI_Bcast(in,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
-}
+{read_var((char*)in,"%lg",sizeof(double));}
 
 //Read a string from the file
 void read_str(char *str,int length)
-{
-  if(rank==0)
-    {
-      int ok=fscanf(input_global,"%s",str);
-      if(!ok)
-	{
-	  fprintf(stderr,"Couldn't read from input file!!!\n");
-	  fflush(stderr);
-	  MPI_Abort(MPI_COMM_WORLD,1);
-	}
-    }
-  MPI_Bcast(str,length,MPI_BYTE,0,MPI_COMM_WORLD);
-}
+{read_var((char*)str,"%s",length);}
 
 //Read a string from the file and check against the argument
 void expect_str(const char *exp_str)
@@ -116,16 +96,24 @@ void read_str_str(const char *exp_str,char *in,int length)
 }
 
 //Read a list of double and its length, allocate the list
-void read_list_of_doubles(char *tag,int *nentries,double **list)
+void read_list_of_var(char *tag,int *nentries,char **list,int size_of_el,const char *par)
 {
   read_str_int(tag,nentries);
-  (*list)=(double*)malloc((*nentries)*sizeof(double));
+  (*list)=(char*)malloc((*nentries)*size_of_el);
   
   if(rank==0) printf("List of %s:\t",tag);
   for(int ientr=0;ientr<(*nentries);ientr++)
     {
-      read_double(&((*list)[ientr]));
-      if(rank==0) printf("%g\t",(*list)[ientr]);
+      read_var((*list)+ientr*size_of_el,par,size_of_el);
+      if(rank==0){printf(par,*((*list)+ientr*size_of_el));printf("\t");}
     }
   if(rank==0) printf("\n");
 }
+
+//read a list of doubles
+void read_list_of_doubles(char *tag,int *nentries,double **list)
+{read_list_of_var(tag,nentries,(char**)list,sizeof(double),"%lg");}
+
+//read a list of int
+void read_list_of_ints(char *tag,int *nentries,int **list)
+{read_list_of_var(tag,nentries,(char**)list,sizeof(int),"%d");}

@@ -5,10 +5,10 @@
 
 void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
 {
-  static double _Complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
-  static double _Complex B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32;
-  static double _Complex N0,N1,N2,S0,S1,S2;
-  static double _Complex R;
+  bgp_complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
+  bgp_complex B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32;
+  bgp_complex N0,N1,N2,S0,S1,S2;
+  bgp_complex R;
 
   int riter=0;
   spincolor *s=allocate_spincolor(loc_vol,"s in gc");
@@ -91,7 +91,7 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
 	      {        //sol_(k+1)=x_k+omega*p_k
 		bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,sol[i]);
 		bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,p[i]);
-		bgp_summassign_spincolor_prod_real(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,__creal(omega));
+		bgp_summassign_spincolor_prod_real(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,__creal(comega));
 		bgp_save_spincolor(sol[i],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
 
 		//r_(k+1)=x_k-omega*p_k and residue calculation

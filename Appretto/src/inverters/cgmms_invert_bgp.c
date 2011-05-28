@@ -5,10 +5,9 @@
 
 void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
 {
-  static double _Complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
-  static double _Complex B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32;
-  static double _Complex N0,N1,N2;
-  static double _Complex R;
+  bgp_complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
+  bgp_complex B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32;
+  bgp_complex N0,N1,N2;
   
   double zps[nmass],zas[nmass],zfs[nmass],betas[nmass],alphas[nmass];
   double rr,rfrf,pap,alpha;

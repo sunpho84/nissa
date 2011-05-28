@@ -18,7 +18,8 @@ colorspinspin *original_source;
 
 //smearing parameters
 double jacobi_kappa,ape_alpha;
-int jacobi_niter,ape_niter;
+int *jacobi_niter,ape_niter;
+int nsm_lev;
 
 //vectors for the spinor data
 int npropS0;
@@ -97,8 +98,6 @@ void initialize_semileptonic(char *input_path)
   //Read the seed and initialize the random generator
   read_str_int("Seed",&seed);
   init_random(seed);
-  //Read the location of the wall
-  read_str_int("TWall",&twall);
   //Read the noise type
   read_str_int("NoiseType",&noise_type);
   //Read the masses
@@ -110,8 +109,19 @@ void initialize_semileptonic(char *input_path)
   read_str_double("ApeAlpha",&ape_alpha);
   read_str_int("ApeNiter",&ape_niter);
   read_str_double("JacobiKappa",&jacobi_kappa);
-  read_str_int("JacobiNiter",&jacobi_niter);
-
+  read_list_of_ints("JacobiNiters",&nsm_lev,&jacobi_niter);
+  if(jacobi_niter[0]!=0)
+    {
+      if(rank==0) fprintf(stderr,"Error, jacobi level of smearing 0 have to be null, obtained: %d!\n",jacobi_niter[0]);
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
+  for(int iter=1;iter<nsm_lev;iter++)
+    if(jacobi_niter[iter]<jacobi_niter[iter-1])
+      {
+	if(rank==0) fprintf(stderr,"Error, jacobi level %d minor than %d (%d, %d)!\n",iter,iter-1,jacobi_niter[iter],jacobi_niter[iter-1]);
+	MPI_Abort(MPI_COMM_WORLD,1);
+      }
+  
   // 4) Info about the inverter
 
   //Residue
@@ -219,19 +229,10 @@ void close_semileptonic()
       printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
       printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
     }
-  
-  /*
-  free(conf);free(sme_conf);free(mass);
-  for(int iprop=0;iprop<npropS0;iprop++){free(S0[0][iprop]);free(S0[1][iprop]);}
-  free(S0[0]);free(S0[1]);free(reco_solution[0]);free(reco_solution[1]);
-  free(op1_2pts);free(op2_2pts);
-  free(contr_2pts[0]);free(contr_2pts);
-  close_appretto();
-  */
 }
 
 //calculate the standard propagators
-void calculate_S0(int LS_source)
+void calculate_S0(int sm_lev_sour)
 {
   for(int id=0;id<4;id++)
     { //loop over the source dirac index
@@ -243,7 +244,7 @@ void calculate_S0(int LS_source)
 	}
       
       //smerd the source if needed
-      if(LS_source==1) jacobi_smearing(source,source,sme_conf,jacobi_kappa,jacobi_niter);
+      if(sm_lev_sour!=0) jacobi_smearing(source,source,sme_conf,jacobi_kappa,jacobi_niter[sm_lev_sour]);
       
       double part_time=-take_time();
       communicate_lx_spincolor_borders(source);
@@ -267,25 +268,23 @@ void calculate_S0(int LS_source)
 }
 
 //Calculate and print to file the 2pts
-void calculate_all_2pts(int LS_source)
+void calculate_all_2pts(int sm_lev_sour)
 {
-  const char tag[2][5]={"L","S"};
-  
   //loop over smearing of the sink
-  for(int LS_sink=0;LS_sink<2;LS_sink++)
+  for(int sm_lev_sink=0;sm_lev_sink<nsm_lev;sm_lev_sink++)
     {
       char path[1024];
-      sprintf(path,"%s_%s%s",outfile_2pts,tag[LS_source],tag[LS_sink]);
+      sprintf(path,"%s_%d%d",outfile_2pts,sm_lev_sour,sm_lev_sink);
       FILE *fout=open_text_file_for_output(path);
       
       //in the case smear the sink
-      if(LS_sink==1)
+      if(sm_lev_sink!=0)
 	for(int r=0;r<2;r++)
 	  for(int imass=0;imass<nmass;imass++)
 	    for(int id=0;id<4;id++)
 	      {
 		for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_colorspinspin(reco_solution[0][ivol],S0[r][imass][ivol],id);
-		jacobi_smearing(reco_solution[1],reco_solution[0],sme_conf,jacobi_kappa,jacobi_niter);
+		jacobi_smearing(reco_solution[1],reco_solution[0],sme_conf,jacobi_kappa,jacobi_niter[sm_lev_sink]-jacobi_niter[sm_lev_sink-1]);
 		for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_colorspinspin(S0[r][imass][ivol],reco_solution[1][ivol],id);
 	      }
       
@@ -296,7 +295,11 @@ void calculate_all_2pts(int LS_source)
 	  for(int im1=0;im1<nmass;im1++)
 	    for(int r1=0;r1<2;r1++)
 	      {
-		if(rank==0) fprintf(fout," # m1=%f r1=%d , m2=%f r2=%d\n",mass[im1],r1,mass[im2],r2);
+		if(rank==0)
+		  {
+		    fprintf(fout," # m1=%f r1=%d , m2=%f r2=%d ,",mass[im1],r1,mass[im2],r2);
+		    fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter[sm_lev_sour],jacobi_niter[sm_lev_sink]);
+		  }
 		
 		meson_two_points(contr_2pts,op1_2pts,S0[r1][im1],op2_2pts,S0[r2][im2],ncontr_2pts);
 		ncontr_tot+=ncontr_2pts;
@@ -335,10 +338,10 @@ int main(int narg,char **arg)
       load_gauge_conf();
       generate_source();
       
-      for(int LS_source=0;LS_source<2;LS_source++)
+      for(int sm_lev_sour=0;sm_lev_sour<nsm_lev;sm_lev_sour++)
       {
-	  calculate_S0(LS_source);
-	  calculate_all_2pts(LS_source);
+	  calculate_S0(sm_lev_sour);
+	  calculate_all_2pts(sm_lev_sour);
       }
   }
   

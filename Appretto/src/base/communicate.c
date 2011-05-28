@@ -167,11 +167,10 @@ void communicate_lx_spincolor_borders(spincolor *s)
 void apply_lxspincolor_border_projector(redspincolor *p,spincolor *s)
 {
 #ifdef BGP
-#pragma disjoint(*s,*p)
-  static double _Complex S00,S01,S02;
-  static double _Complex S10,S11,S12;
-  static double _Complex S20,S21,S22;
-  static double _Complex S30,S31,S32;
+  bgp_complex S00,S01,S02;
+  bgp_complex S10,S11,S12;
+  bgp_complex S20,S21,S22;
+  bgp_complex S30,S31,S32;
 
   for(int ibord=0;ibord<loc_bord;ibord++)
     {

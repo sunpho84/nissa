@@ -270,13 +270,6 @@ char *allocate_vector(int length,char *tag)
       fprintf(stderr,"Error during allocation of %s\n",tag);
       MPI_Abort(MPI_COMM_WORLD,1);
     }
-#ifdef BGP
-  if((uint64_t)out%16!=0 && rank==0)
-    {
-      fprintf(stderr,"Error during allocation of %s, alignment not suitable for BGP!\n",tag);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
-#endif
   return out;
 }
 
