@@ -100,20 +100,33 @@ void read_list_of_var(char *tag,int *nentries,char **list,int size_of_el,const c
 {
   read_str_int(tag,nentries);
   (*list)=(char*)malloc((*nentries)*size_of_el);
-  
-  if(rank==0) printf("List of %s:\t",tag);
   for(int ientr=0;ientr<(*nentries);ientr++)
     {
-      read_var((*list)+ientr*size_of_el,par,size_of_el);
-      if(rank==0){printf(par,*((*list)+ientr*size_of_el));printf("\t");}
+      char *in=(*list)+ientr*size_of_el;
+      read_var(in,par,size_of_el);
     }
-  if(rank==0) printf("\n");
 }
 
 //read a list of doubles
 void read_list_of_doubles(char *tag,int *nentries,double **list)
-{read_list_of_var(tag,nentries,(char**)list,sizeof(double),"%lg");}
+{
+  read_list_of_var(tag,nentries,(char**)list,sizeof(double),"%lg");
+  if(rank==0)
+    {
+      printf("List of %s:\t",tag);
+      for(int ientr=0;ientr<(*nentries);ientr++) printf("%lg\t",(*list)[ientr]);
+      printf("\n");
+    }
+}
 
 //read a list of int
 void read_list_of_ints(char *tag,int *nentries,int **list)
-{read_list_of_var(tag,nentries,(char**)list,sizeof(int),"%d");}
+{
+  read_list_of_var(tag,nentries,(char**)list,sizeof(int),"%d");
+  if(rank==0)
+    {
+      printf("List of %s:\t",tag);
+      for(int ientr=0;ientr<(*nentries);ientr++) printf("%d\t",(*list)[ientr]);
+      printf("\n");
+    }
+}
