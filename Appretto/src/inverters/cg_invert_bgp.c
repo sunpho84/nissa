@@ -91,7 +91,7 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
 	      {        //sol_(k+1)=x_k+omega*p_k
 		bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,sol[i]);
 		bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,p[i]);
-		bgp_summassign_spincolor_prod_real(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,__creal(comega));
+		bgp_summassign_spincolor_prod_real(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,omega);
 		bgp_save_spincolor(sol[i],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
 
 		//r_(k+1)=x_k-omega*p_k and residue calculation
