@@ -1,4 +1,33 @@
 #pragma once
+/*
+int t_fit_effective_mass,TH_fit_effective_mass;
+double rapp_fit_effective_mass;
+TMinuit minu_fit_effective_mass(1);
+double fun_fit_effective_mass(double meff)
+{return sqr(cosh(meff*(TH_fit_effective_mass-(t_fit_effective_mass+1)))/cosh(meff*(TH_fit_effective_mass-t_fit_effective_mass))-rapp_fit_effective_mass);}
+
+void ch2_fit_effective_mass(int &npar,double *fuf,double &ch,double *p,int flag)
+{ch=fun_fit_effective_mass(p[0]);}
+
+//return effective mass
+double effective_mass(double y,double yp,int t,int TH)
+{
+  double rapp=yp/y;
+  double meff=-log(rapp);
+  t_fit_effective_mass=t;
+  TH_fit_effective_mass=TH;
+  rapp_fit_effective_mass=rapp;
+  
+  minu_fit_effective_mass.SetPrintLevel(-1);
+  minu_fit_effective_mass.SetFCN(ch2_fit_effective_mass);
+  minu_fit_effective_mass.DefineParameter(0,"M",meff,0.001,0,0);
+  minu_fit_effective_mass.Migrad();
+  
+  minu_fit_effective_mass.GetParameter(0,meff,rapp);
+  
+  return meff;
+}
+*/
 
 //return effective mass
 double effective_mass(double y,double yp,int t,int TH)
@@ -16,7 +45,7 @@ double effective_mass(double y,double yp,int t,int TH)
       meff*=scale;
       iter++;
     }
-  while(res>1.e-8 && iter<1000);
+  while(res>1.e-8 && iter<10000);
   
   return meff;
 }

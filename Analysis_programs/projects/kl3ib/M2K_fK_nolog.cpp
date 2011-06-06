@@ -10,28 +10,41 @@ const int nboot=100;
 int njack=10;
 const int nbeta=4;
 
-#include "latpars.cpp"
-
 double *aml_bare;
 boot *ml;
 int ref_ml_beta[nbeta];
 
+const double hc=0.19733;
+double lat_med[nbeta]={1/2.0198,1/2.3286,1/2.9419,1/3.6800};
+double lat_err[nbeta]={lat_med[0]/31.5,lat_med[1]/36.8,lat_med[2]/41.9,lat_med[3]/44.7};
+double lat_med_fm[nbeta]={lat_med[0]*hc,lat_med[1]*hc,lat_med[2]*hc,lat_med[3]*hc};
+double Zp_med[nbeta]={0.411,0.437,0.477,0.501};
+double Zp_err[nbeta]={0.012,0.007,0.006,0.020};
+
+double ml_phys_med=3.6/1000;
+double ml_phys_err=0.2/1000;
+double MK_phys=0.493667;
+double delta_MK_phys_med=-0.006;
+double delta_MK_phys_err=0.0006;
+//double MPi_phys=0.135,M2Pi_phys=MPi_phys*MPi_phys;
+
 //read data
-bvec da_m2K,delta_fK_fr_afK_2dm_bare;
-bvec amK,afK;
+bvec da_M2K,delta_fK_fr_afK_2dm_bare;
+bvec aMK,afK;
 //derived data
-bvec dm2K,dmK,delta_ml;
+bvec dM2K,dMK,delta_ml;
 bvec delta_fK,delta_fK_fr_fK_2dm;
 bvec dfK;
-bvec m2K,fK;
+bvec M2K,fK;
 
 bvec delta_ml_chir;
 boot delta_ml_chir_cont;
 
-boot delta_mK_phys;
+boot ml_phys,f0,db0,lat[nbeta],Zp[nbeta];
+boot delta_MK_phys;
 
 bvec par_res_fit_fK;
-bvec par_res_fit_m2K;
+bvec par_res_fit_M2K;
 
 const char set_color[nbeta][1024]={"black","blue","red","green4"};
 const char set_fill_color[nbeta][1024]={"grey","turquoise","yellow","green"};
@@ -55,18 +68,18 @@ double fun_fit_dfK(double A,double B,double C,double D,double E,double f0,double
 }
 
 
-double fun_fit_m2K(double A,double B,double C,double D,double E,double f0,double db0,double ml,double a)
+double fun_fit_M2K(double A,double B,double C,double D,double E,double f0,double db0,double ml,double a)
 {return A + B*ml + C*a*a + D*ml*ml + E*a*a*ml;}
 
-double fun_fit_dm2K(double A,double B,double C,double D,double E,double f0,double db0,double ml,double a)
+double fun_fit_dM2K(double A,double B,double C,double D,double E,double f0,double db0,double ml,double a)
 {return B + E*a*a;}
 
 double fun_fit_delta_ml(double A,double B,double C,double D,double E,double f0,double db0,double ml,double a)
-{return delta_mK_phys[plot_iboot]/(fun_fit_dm2K(A,B,C,D,E,f0,db0,ml,a)/2/pow(fun_fit_m2K(A,B,C,D,E,f0,db0,ml,a),0.5));}
+{return delta_MK_phys[plot_iboot]/(fun_fit_dM2K(A,B,C,D,E,f0,db0,ml,a)/2/pow(fun_fit_M2K(A,B,C,D,E,f0,db0,ml,a),0.5));}
 
 double fun_fit_delta_fK(double A,double B,double C,double D,double E,double f0,double db0,double ml,double a)
 {
-  return fun_fit_dfK(A,B,C,D,E,f0,db0,ml,a)*fun_fit_delta_ml(par_res_fit_m2K[0][plot_iboot],par_res_fit_m2K[1][plot_iboot],par_res_fit_m2K[2][plot_iboot],par_res_fit_m2K[3][plot_iboot],par_res_fit_m2K[4][plot_iboot],f0,db0,ml,a);
+  return fun_fit_dfK(A,B,C,D,E,f0,db0,ml,a)*fun_fit_delta_ml(par_res_fit_M2K[0][plot_iboot],par_res_fit_M2K[1][plot_iboot],par_res_fit_M2K[2][plot_iboot],par_res_fit_M2K[3][plot_iboot],par_res_fit_M2K[4][plot_iboot],f0,db0,ml,a);
 }
 
 
@@ -94,21 +107,35 @@ void read_input(const char *path)
   
   aml_bare=(double*)malloc(sizeof(double)*nel);
   ml=(boot*)malloc(sizeof(boot)*nel);
-  da_m2K=bvec(nel,nboot,njack);
-  dm2K=bvec(nel,nboot,njack);
-  dmK=bvec(nel,nboot,njack);
+  da_M2K=bvec(nel,nboot,njack);
+  dM2K=bvec(nel,nboot,njack);
+  dMK=bvec(nel,nboot,njack);
   delta_ml=bvec(nel,nboot,njack);
   delta_fK=bvec(nel,nboot,njack);
   delta_fK_fr_fK_2dm=bvec(nel,nboot,njack);
   delta_fK_fr_afK_2dm_bare=bvec(nel,nboot,njack);
   dfK=bvec(nel,nboot,njack);
-  amK=bvec(nel,nboot,njack);
+  aMK=bvec(nel,nboot,njack);
   afK=bvec(nel,nboot,njack);
-  m2K=bvec(nel,nboot,njack);
+  M2K=bvec(nel,nboot,njack);
   fK=bvec(nel,nboot,njack);
+  for(int ib=0;ib<nbeta;ib++)
+    {
+      lat[ib]=boot(nboot,njack);
+      lat[ib].fill_gauss(lat_med[ib],lat_err[ib],235235+ib);
+      Zp[ib]=boot(nboot,njack);
+      Zp[ib].fill_gauss(Zp_med[ib],Zp_err[ib],87466+ib);
+    }
+  delta_MK_phys=boot(nboot,njack);
+  ml_phys=boot(nboot,njack);
+  f0=boot(nboot,njack);
+  db0=boot(nboot,njack);
   
-  delta_mK_phys=boot(nboot,njack);
-  delta_mK_phys.fill_gauss(delta_mK_phys_med,delta_mK_phys_err,2525245);
+  delta_MK_phys.fill_gauss(delta_MK_phys_med,delta_MK_phys_err,678456);
+  ml_phys.fill_gauss(ml_phys_med,ml_phys_err,97635);
+  f0.fill_gauss(121.9019/1000,0.1668/1000,765473457);
+  db0.fill_gauss(5.2756,0.2078,6732576);
+  
 
   //reset index list of lighter ml
   for(int ib=0;ib<nbeta;ib++) ref_ml_beta[ib]=-1;
@@ -124,32 +151,31 @@ void read_input(const char *path)
       A.load(str,0);
       
       //prepare boot
-      ml[i].create(nboot,njack);
       ml[i]=aml_bare[i]/lat[ibeta[i]]/Zp[ibeta[i]];
-      boot_from_jack(da_m2K[i],A[1]);
+      boot_from_jack(da_M2K[i],A[1]);
       boot_from_jack(delta_fK_fr_afK_2dm_bare[i],A[4]);
-      boot_from_jack(amK[i],A[5]);
+      boot_from_jack(aMK[i],A[5]);
       boot_from_jack(afK[i],A[6]);
       
       //prepare renormalized quantities
-      dm2K[i]=da_m2K[i]/lat[ibeta[i]]*Zp[ibeta[i]];
+      dM2K[i]=da_M2K[i]/lat[ibeta[i]]*Zp[ibeta[i]];
       delta_fK_fr_fK_2dm[i]=delta_fK_fr_afK_2dm_bare[i]*lat[ibeta[i]]*Zp[ibeta[i]]; //propagate Zp error
       //calculate the physical quantity
-      dmK[i]=dm2K[i]/(2*mK_phys);
-      delta_ml[i]=delta_mK_phys/dmK[i];
-      m2K[i]=sqr(amK[i]/lat[ibeta[i]]);
+      dMK[i]=dM2K[i]/(2*MK_phys);
+      delta_ml[i]=delta_MK_phys/dMK[i];
+      M2K[i]=sqr(aMK[i]/lat[ibeta[i]]);
       fK[i]=afK[i]/lat[ibeta[i]];
       dfK[i]=delta_fK_fr_afK_2dm_bare[i]*afK[i]*Zp[ibeta[i]];
       delta_fK[i]=dfK[i]*delta_ml[i];
       
-      cout<<ml[i]<<" "<<dm2K[i]<<" "<<fK[i]<<endl;
+      cout<<ml[i]<<" "<<dM2K[i]<<" "<<fK[i]<<endl;
       
       //set the lighter mass
       int b=ibeta[i],r=ref_ml_beta[b];
       if(r==-1||ml[r].med()>ml[i].med()) ref_ml_beta[b]=i;
     }
   cout<<"---"<<endl;
-  for(int ib=0;ib<nbeta;ib++) cout<<"Ref "<<ib<<" = "<<ref_ml_beta[ib]<<", "<<ml[ref_ml_beta[ib]]<<" meV"<<endl;
+  for(int ib=0;ib<nbeta;ib++) cout<<"Ref "<<ib<<" = "<<ref_ml_beta[ib]<<", "<<ml[ref_ml_beta[ib]]<<" MeV"<<endl;
   cout<<"---"<<endl;
 }
 
@@ -173,9 +199,9 @@ double chi2(double A,double B,double C,double D,double E,double f0,double db0,do
 	}
       else
 	{
-	  //double ch2_m2K_term=pow((Y_fit[iel]-fun_fit_m2K(A,B,C,D,E,f0,db0,X_fit[iel],a[ibeta[iel]]))/err_Y_fit[iel],2);
-	  double ch2_dm2K_term=pow((Z_fit[iel]-fun_fit_dm2K(A,B,C,D,E,f0,db0,X_fit[iel],a[ibeta[iel]]))/err_Z_fit[iel],2);
-	  ch2+=ch2_dm2K_term;//+ch2_m2K_term;
+	  //double ch2_M2K_term=pow((Y_fit[iel]-fun_fit_M2K(A,B,C,D,E,f0,db0,X_fit[iel],a[ibeta[iel]]))/err_Y_fit[iel],2);
+	  double ch2_dM2K_term=pow((Z_fit[iel]-fun_fit_dM2K(A,B,C,D,E,f0,db0,X_fit[iel],a[ibeta[iel]]))/err_Z_fit[iel],2);
+	  ch2+=ch2_dM2K_term;//+ch2_M2K_term;
 	}
     }
   
@@ -377,67 +403,67 @@ void plot_funz_a2(const char *out_path,const char *title,const char *xlab,const 
   out.new_set();
 }
 
-void analysis_m2K()
+void analysis_M2K()
 {
   const char tag_ml[1024]="m\\sl\\N\\SMS,2GeV\\N (GeV)";
   const char tag_delta_ml[1024]="\\xd\\0m\\sl\\N\\SMS,2GeV\\N (GeV)";
-  const char tag_m2K[1024]="M\\S2\\N\\sK";
-  const char tag_dm2K[1024]="\\xd\\0M\\S2\\N\\sK";
+  const char tag_M2K[1024]="M\\S2\\N\\sK";
+  const char tag_dM2K[1024]="\\xd\\0M\\S2\\N\\sK";
   const char tag_a2[1024]="a\\S2\\N (fm)";
   
   //perform the fit
   boot A(nboot,njack),B(nboot,njack),C(nboot,njack),D(nboot,njack),E(nboot,njack);
   fitting_fK=0;
-  fit(A,B,C,D,E,ml,m2K,dm2K);
+  fit(A,B,C,D,E,ml,M2K,dM2K);
   cout<<endl;  
   
   //chiral extrapolation
-  boot m2K_chir[nbeta],m2K_chir_cont(nboot,njack),dm2K_chir_cont(nboot,njack);
-  bvec dm2K_estr_ml(nbeta,nboot,njack);
+  boot M2K_chir[nbeta],M2K_chir_cont(nboot,njack),dM2K_chir_cont(nboot,njack);
+  bvec dM2K_estr_ml(nbeta,nboot,njack);
   for(int ib=0;ib<nbeta;ib++)
     {
-      m2K_chir[ib]=boot(nboot,njack);
+      M2K_chir[ib]=boot(nboot,njack);
       for(int iboot=0;iboot <nboot+1;iboot++)
 	{
 	  int r=ref_ml_beta[ib];
-	  m2K_chir_cont.data[iboot]=fun_fit_m2K(A[iboot],B[iboot],C[iboot],D[iboot],E[iboot],f0[iboot],db0[iboot],ml_phys[iboot],0);
-	  dm2K_chir_cont.data[iboot]=fun_fit_dm2K(A[iboot],B[iboot],C[iboot],D[iboot],E[iboot],f0[iboot],db0[iboot],ml_phys[iboot],0);
-	  m2K_chir[ib].data[iboot]=fun_fit_m2K(A[iboot],B[iboot],C[iboot],D[iboot],E[iboot],f0[iboot],db0[iboot],ml_phys[iboot],lat[ib][iboot]);
-	  dm2K_estr_ml.data[ib].data[iboot]=dm2K[r][iboot]*fun_fit_dm2K(A[iboot],B[iboot],C[iboot],D[iboot],E[iboot],f0[iboot],db0[iboot],ml_phys[iboot],0)/fun_fit_dm2K(A[iboot],B[iboot],C[iboot],D[iboot],E[iboot],f0[iboot],db0[iboot],ml[r][iboot],0);
+	  M2K_chir_cont.data[iboot]=fun_fit_M2K(A[iboot],B[iboot],C[iboot],D[iboot],E[iboot],f0[iboot],db0[iboot],ml_phys[iboot],0);
+	  dM2K_chir_cont.data[iboot]=fun_fit_dM2K(A[iboot],B[iboot],C[iboot],D[iboot],E[iboot],f0[iboot],db0[iboot],ml_phys[iboot],0);
+	  M2K_chir[ib].data[iboot]=fun_fit_M2K(A[iboot],B[iboot],C[iboot],D[iboot],E[iboot],f0[iboot],db0[iboot],ml_phys[iboot],lat[ib][iboot]);
+	  dM2K_estr_ml.data[ib].data[iboot]=dM2K[r][iboot]*fun_fit_dM2K(A[iboot],B[iboot],C[iboot],D[iboot],E[iboot],f0[iboot],db0[iboot],ml_phys[iboot],0)/fun_fit_dM2K(A[iboot],B[iboot],C[iboot],D[iboot],E[iboot],f0[iboot],db0[iboot],ml[r][iboot],0);
 	}
     }
   
   //calculate md-mu
-  //boot dmK_chir_cont=dm2K_chir_cont/(2*sqrt(m2K_chir_cont));
-  boot dmK_chir_cont=dm2K_chir_cont/(2*mK_phys);
-  delta_ml_chir_cont=delta_mK_phys/dmK_chir_cont;
+  //boot dMK_chir_cont=dM2K_chir_cont/(2*sqrt(M2K_chir_cont));
+  boot dMK_chir_cont=dM2K_chir_cont/(2*MK_phys);
+  delta_ml_chir_cont=delta_MK_phys/dMK_chir_cont;
   boot mu_chir_cont=ml_phys-delta_ml_chir_cont/2;
   boot md_chir_cont=ml_phys+delta_ml_chir_cont/2;
   boot mu_fr_md_chir_cont=mu_chir_cont/md_chir_cont;
   
   //chiral and continuum
-  cout<<"MK = ("<<sqrt(m2K_chir_cont)*1000<<") MeV"<<endl;
+  cout<<"MK = ("<<sqrt(M2K_chir_cont)*1000<<") MeV"<<endl;
   cout<<"md - mu = ("<<delta_ml_chir_cont*1000<<") Mev"<<endl;
   cout<<"mu / md = ("<<mu_chir_cont*1000<<") / ("<<md_chir_cont*1000<<") = "<<mu_fr_md_chir_cont<<endl;
     
-  par_res_fit_m2K=bvec(11,nboot,njack);
+  par_res_fit_M2K=bvec(11,nboot,njack);
   
-  par_res_fit_m2K.data[0]=A;
-  par_res_fit_m2K.data[1]=B;
-  par_res_fit_m2K.data[2]=C;
-  par_res_fit_m2K.data[3]=D;
-  par_res_fit_m2K.data[4]=E;
-  par_res_fit_m2K.data[5]=f0;
-  par_res_fit_m2K.data[6]=db0;
-  par_res_fit_m2K.data[7]=lat[0];
-  par_res_fit_m2K.data[8]=lat[1];
-  par_res_fit_m2K.data[9]=lat[2];
-  par_res_fit_m2K.data[10]=lat[3];
+  par_res_fit_M2K.data[0]=A;
+  par_res_fit_M2K.data[1]=B;
+  par_res_fit_M2K.data[2]=C;
+  par_res_fit_M2K.data[3]=D;
+  par_res_fit_M2K.data[4]=E;
+  par_res_fit_M2K.data[5]=f0;
+  par_res_fit_M2K.data[6]=db0;
+  par_res_fit_M2K.data[7]=lat[0];
+  par_res_fit_M2K.data[8]=lat[1];
+  par_res_fit_M2K.data[9]=lat[2];
+  par_res_fit_M2K.data[10]=lat[3];
   
-  plot_funz_ml("M2K_funz_ml.xmg",tag_m2K,tag_ml,tag_m2K,ml,m2K,par_res_fit_m2K,ml_phys.med(),fun_fit_m2K,m2K_chir_cont);
-  plot_funz_ml("dM2K_funz_ml.xmg",tag_dm2K,tag_ml,tag_dm2K,ml,dm2K,par_res_fit_m2K,ml_phys.med(),fun_fit_dm2K,dm2K_chir_cont);
-  plot_funz_ml("delta_ml_funz_ml.xmg",tag_delta_ml,tag_ml,tag_delta_ml,ml,delta_ml,par_res_fit_m2K,ml_phys.med(),fun_fit_delta_ml,delta_ml_chir_cont);
-  plot_funz_a2("dM2K_funz_a2.xmg",tag_dm2K,tag_a2,tag_dm2K,lat_med_fm,dm2K_estr_ml,par_res_fit_m2K,fun_fit_dm2K,dm2K_chir_cont);
+  plot_funz_ml("M2K_funz_ml.xmg",tag_M2K,tag_ml,tag_M2K,ml,M2K,par_res_fit_M2K,ml_phys.med(),fun_fit_M2K,M2K_chir_cont);
+  plot_funz_ml("dM2K_funz_ml.xmg",tag_dM2K,tag_ml,tag_dM2K,ml,dM2K,par_res_fit_M2K,ml_phys.med(),fun_fit_dM2K,dM2K_chir_cont);
+  plot_funz_ml("delta_ml_funz_ml.xmg",tag_delta_ml,tag_ml,tag_delta_ml,ml,delta_ml,par_res_fit_M2K,ml_phys.med(),fun_fit_delta_ml,delta_ml_chir_cont);
+  plot_funz_a2("dM2K_funz_a2.xmg",tag_dM2K,tag_a2,tag_dM2K,lat_med_fm,dM2K_estr_ml,par_res_fit_M2K,fun_fit_dM2K,dM2K_chir_cont);
 }
 
 void analysis_fK()
@@ -504,11 +530,9 @@ int main(int narg,char **arg)
       exit(1);
     }
   
-  init_latpars();
-  
   read_input(arg[1]);
   
-  analysis_m2K();
+  analysis_M2K();
   cout<<"---"<<endl;
   analysis_fK();
   

@@ -96,14 +96,15 @@ int main()
 	
 	//simmetrize
 	corr=corr.simmetrized(parity);
+	int ttmin=tmin[ifit_int];
+	int ttmax=tmax[ifit_int];
 	jvec mcor=effective_mass(corr);
-	jack meff=constant_fit(mcor,tmin[ifit_int]+1,tmax[ifit_int]);
-	jvec temp(corr.nel,corr.njack);
-	for(int t=tmin[ifit_int];t<=tmax[ifit_int];t++)
-	  for(int ijack=0;ijack<njack+1;ijack++)
-	    temp[t].data[ijack]=corr[t].data[ijack]/fun_fit(1,meff.data[ijack],t);
-	jack cestim=constant_fit(temp,tmin[ifit_int],tmax[ifit_int]);
+	jack meff=constant_fit(mcor,ttmin,ttmax);
+	jack cestim(njack);
+	for(int ijack=0;ijack<=njack;ijack++) cestim.data[ijack]=corr[ttmin][ijack]/fun_fit(1,meff.data[ijack],ttmin);
 	
+	if(!isnan(cestim.data[njack])) minu.DefineParameter(0,"Z2",cestim.data[njack],0.001,0,0);
+	if(!isnan(meff.data[njack])) minu.DefineParameter(1,"M",meff.data[njack],0.001,0,10000000);
 	//jacknife analysis
 	for(int ijack=0;ijack<njack+1;ijack++)
 	  {
@@ -117,8 +118,6 @@ int main()
 	  
 	    //fit
 	    double dum;
-	    minu.DefineParameter(0,"Z2",cestim.data[ijack],0.001,0,0);
-	    minu.DefineParameter(1,"M",meff.data[ijack],0.001,0,0);
 	    minu.Migrad();
 	    minu.GetParameter(0,Z2.data[ic].data[ijack],dum);
 	    minu.GetParameter(1,M.data[ic].data[ijack],dum);

@@ -1,7 +1,7 @@
 #include "../common.cpp"
 
 //interpolate in the charm
-bvec interpolate_charm(bvec vec,int nmass,int nlights,double *mass,int ibeta)
+bvec interpolate_charm(bvec vec,int nmass,int nlights,double *mass,int ibeta,const char *suff=NULL)
 {
   //output
   bvec interpolated(nlights,nboot,njack);
@@ -20,8 +20,21 @@ bvec interpolate_charm(bvec vec,int nmass,int nlights,double *mass,int ibeta)
 	}
       
       interpolated[iml]=interpolate_single(temp_vec,temp_mass,amc_phys[ibeta]);
+
+      if(suff!=NULL)
+	{
+	  ofstream outplot(combine("interpolating_charm_%s_l%d.xmg",suff,iml).c_str());
+	  outplot<<"@type xydy"<<endl;
+	  outplot<<"@s0 symbol 1"<<endl;
+	  for(int imass=0;imass<nmass-nlights;imass++)
+	    outplot<<temp_mass[imass]<<" "<<temp_vec[imass]<<endl;
+	  outplot<<"&\n@type xydxdy"<<endl;
+	  outplot<<amc_phys[ibeta].med()<<" "<<interpolated[iml].med()<<" ";
+	  outplot<<amc_phys[ibeta].err()<<" "<<interpolated[iml].err()<<" ";
+	  outplot.close();
+	}
     }
-  
+
   return interpolated;
 }
 
@@ -51,17 +64,32 @@ bvec interpolate_strange(bvec vec,int nmass,int nlights,double *mass,int ibeta)
 }
 
 //interpolate in charm and in strange  
-boot interpolate_charm_strange(bvec vec,int nmass,int nlights,double *mass,int ibeta)
+boot interpolate_charm_strange(bvec vec,int nmass,int nlights,double *mass,int ibeta,const char *suff=NULL)
 {
   //first of all interpolate in the charm
-  bvec charm_interpolated=interpolate_charm(vec,nmass,nlights,mass,ibeta);
+  bvec charm_interpolated=interpolate_charm(vec,nmass,nlights,mass,ibeta,suff);
   
   //then interpolate in the strange
-  return interpolate_single(charm_interpolated,mass,ams_phys[ibeta]);
+  boot out=interpolate_single(charm_interpolated,mass,ams_phys[ibeta]);
+  
+  if(suff!=NULL)
+    {
+      ofstream outplot(combine("interpolating_strange_%s.xmg",suff).c_str());
+      outplot<<"@type xydy"<<endl;
+      outplot<<"@s0 symbol 1"<<endl;
+      for(int imass=0;imass<nlights;imass++)
+	outplot<<mass[imass]<<" "<<charm_interpolated[imass]<<endl;
+      outplot<<"&\n@type xydxdy"<<endl;
+      outplot<<ams_phys[ibeta].med()<<" "<<out.med()<<" ";
+      outplot<<ams_phys[ibeta].err()<<" "<<out.err()<<" ";
+      outplot.close();
+    }
+  
+  return out;
 }
 
 //load all data
-void load_all_ensembles_MZ(bvec *&M,bvec *&Z,int &nens,int *&T,int *&ibeta,int *&nmass,const char *base_MZ_path,const char *obs_name,char **ens_name)
+void load_all_ensembles_MZ(bvec *&M,bvec *&Z,int &nens,int *&T,int *&ibeta,int *&nmass,const char *base_MZ_path,const char *obs_name,char **ens_name,char **base_corrs_path)
 {
   init_latpars();
   
@@ -82,6 +110,21 @@ void load_all_ensembles_MZ(bvec *&M,bvec *&Z,int &nens,int *&T,int *&ibeta,int *
       M[iens].create(ncombo,nboot,njack);
       Z[iens].create(ncombo,nboot,njack);
       
+      //load iboot
+      int iboot_jack[100];
+      FILE *fiboot=fopen(combine("%s/iboot",base_corrs_path[iens]).c_str(),"r");
+      if(fiboot==NULL)
+	{
+	  perror(combine("Error opening file iboot for ensamble %s",base_corrs_path[iens]).c_str());
+	  exit(1);
+	}
+      int nr=fread(iboot_jack,sizeof(int),100,fiboot);
+      if(nr!=100)
+	{
+	  perror(combine("Error loading iboot data for ensamble %s",base_corrs_path[iens]).c_str());
+	  exit(1);
+	}
+      
       //reading of data
       jvec tempm(ncombo,njack),tempz(ncombo,njack);
       tempm.load(MZ_path,0);
@@ -90,8 +133,8 @@ void load_all_ensembles_MZ(bvec *&M,bvec *&Z,int &nens,int *&T,int *&ibeta,int *
       //bootjacking
       for(int icombo=0;icombo<ncombo;icombo++)
 	{
-	  boot_from_jack(M[iens].data[icombo],tempm.data[icombo],ibeta[iens]);
-	  boot_from_jack(Z[iens].data[icombo],tempz.data[icombo],ibeta[iens]);
+	  boot_from_jack(M[iens].data[icombo],tempm.data[icombo],iboot_jack);
+	  boot_from_jack(Z[iens].data[icombo],tempz.data[icombo],iboot_jack);
 	}
     }
 }

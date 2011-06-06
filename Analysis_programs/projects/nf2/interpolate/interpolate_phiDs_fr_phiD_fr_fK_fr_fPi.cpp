@@ -19,34 +19,42 @@ int main()
   
   //load all ensembles data
   bvec *aM,*Z;
-  load_all_ensembles_MZ(aM,Z,nens,T,ibeta,nmass,base_MZ_path,obs_name,ens_name);
+  load_all_ensembles_MZ(aM,Z,nens,T,ibeta,nmass,base_MZ_path,obs_name,ens_name,base_corrs_path);
   
-  //compute phi
-  bvec phiD[nens];
+  //compute f and phi
+  bvec f[nens],phi[nens],ratio[nens];
   for(int iens=0;iens<nens;iens++)
     {
       int b=ibeta[iens];
-      phiD[iens]=sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b]*sqrt(aM[iens]/lat[b]);
+      f[iens]=sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b];
+      phi[iens]=f[iens]*sqrt(aM[iens]/lat[b]);
       for(int ims=0;ims<nmass[iens];ims++)
 	for(int imc=ims;imc<nmass[iens];imc++)
 	  {
 	    int ic=icombo(imc,ims,nmass[iens]);
-	    phiD[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
-	    if(ims==iml_un[iens] && iens==5) cerr<<mass[iens][imc]<<" "<<phiD[iens][ic]<<endl;
+	    phi[iens][ic]*=mass[iens][ims]+mass[iens][imc];
+	    f[iens][ic]*=mass[iens][ims]+mass[iens][imc];
+	  }
+
+      ratio[iens]=phi[iens];
+      for(int ims=0;ims<nmass[iens];ims++)
+	for(int imc=ims;imc<nmass[iens];imc++)
+	  {
+	    int nm=nmass[iens];
+	    boot phiD=phi[iens][icombo(iml_un[iens],imc,nm)];
+	    boot phiDs=phi[iens][icombo(ims,imc,nm)];
+	    boot fPi=f[iens][icombo(iml_un[iens],iml_un[iens],nm)];
+	    boot fK=f[iens][icombo(iml_un[iens],ims,nm)];
+	    
+	    ratio[iens][icombo(ims,imc,nm)]=(phiDs/phiD)/(fK/fPi);
 	  }
     }
-  
-  bvec phiDint(nens,nboot,njack);
+
+  bvec ratio_int(nens,nboot,njack);
   for(int iens=0;iens<nens;iens++)
-    {
-      bvec phiD_charm=interpolate_charm(phiD[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens]);
-      phiDint.data[iens]=phiD_charm[iml_un[iens]];
-      
-      if(iens==5) cerr<<" "<<amc_phys[ibeta[iens]].med()<<" "<<phiD_charm[iml_un[iens]]<<endl;
-      cout<<(mass[iens][iml_un[iens]]/lat[ibeta[iens]]/Zp[ibeta[iens]]).med()<<" "<<phiD_charm[iml_un[iens]]<<endl;
-    }
-  
-  phiDint.write_to_binfile("interpolated_M_D");
+    ratio_int[iens]=interpolate_charm_strange(ratio[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens],combine("ens%d",iens).c_str());
+
+  ratio_int.write_to_binfile("interpolated_ratio");
   
   return 0;
 }

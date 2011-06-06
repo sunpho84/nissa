@@ -7,8 +7,8 @@ double **mass;
 
 //read data
 bvec phiD;
+double ghat_ave,ghat_err;
 boot ghat;
-double ghat_ave=0.44,ghat_err=0.08;
 
 bvec ml;
 int ref_ml_beta[4]={-1,-1,-1,-1};
@@ -21,14 +21,16 @@ const char set_symbol[nbeta][1024]={"square","circle","triangle up","triangle le
 const char set_legend[nbeta][1024]={"\\xb\\0=3.80","\\xb\\0=3.90","\\xb\\0=4.05","\\xb\\0=4.20"};
 const char set_legend_fm[nbeta][1024]={"a = 0.098 fm","a = 0.085 fm","a = 0.067 fm","a = 0.054 fm"};
 
-int glb_iboot;
+int iboot;
 
 double fun_fit_phiD(double A,double B,double C,double ml,double a)
 {
-  double xi=db0.data[glb_iboot]*ml/sqr(4*M_PI*f0.data[glb_iboot]);
-  double cl=-3*(1+sqr(ghat.data[glb_iboot]))/4*xi*log(xi);
+  double xi=db0.data[iboot]*ml/sqr(4*M_PI*f0.data[iboot]);
+  double cl;
+  if(ghat_ave!=0) cl=-3*(1+3.0*sqr(ghat.data[iboot]))/4*xi*log(xi);
+  else cl=0;
   
-  return A * ( 1 - cl + B*ml + C*a*a );
+  return A * ( 1 + cl + B*ml + C*a*a );
 }
 
 void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const char *ylab,bvec &X,bvec &Y,bvec &par,double X_phys,double (*fun)(double,double,double,double,double),boot &chiral_extrap_cont)
@@ -50,7 +52,7 @@ void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const 
 	{
 	  bvec Y_pol(npoint,nboot,njack);
 	  for(int ipoint=0;ipoint<npoint;ipoint++)
-	    for(int iboot=glb_iboot=0;iboot<nboot+1;glb_iboot=iboot++)
+	    for(iboot=0;iboot<nboot+1;iboot++)
 	      Y_pol.data[ipoint].data[iboot]=fun(par[0][iboot],par[1][iboot],par[2][iboot],X_pol[ipoint],lat[ib][iboot]);
 	  
 	  out.set(1,set_fill_color[ib]);
@@ -63,7 +65,7 @@ void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const 
 	}
       //plot continuum curve
       for(int ipoint=0;ipoint<npoint;ipoint++)
-	for(int iboot=glb_iboot=0;iboot<nboot+1;glb_iboot=iboot++)
+	for(iboot=0;iboot<nboot+1;iboot++)
 	  Y_pol.data[ipoint]=fun(par[0][iboot],par[1][iboot],par[2][iboot],X_pol[ipoint],0);
       //out.set(1,"magenta");
       //out.polygon(X_pol,Y_pol);
@@ -166,6 +168,7 @@ void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
       minu.GetParameter(1,B.data[iboot],dum);
       minu.GetParameter(2,C.data[iboot],dum);
       
+      double lat_med[4]={lat[0].med(),lat[1].med(),lat[2].med(),lat[3].med()};
       if(iboot==0) C2=chi2(A.data[iboot],B[iboot],C[iboot],lat_med);
     }
   
@@ -194,7 +197,7 @@ void plot_funz_a2(const char *out_path,const char *title,const char *xlab,const 
     {
       X_pol[iens]=0.1/99*iens;
       X2_pol[iens]=X_pol[iens]*X_pol[iens];
-	for(int iboot=glb_iboot=0;iboot<nboot+1;glb_iboot=iboot++)
+	for(iboot=0;iboot<nboot+1;iboot++)
 	  Y_pol.data[iens].data[iboot]=fun(par[0][iboot],par[1][iboot],par[2][iboot],ml_phys[iboot],X_pol[iens]/hc);
     }
   out.set(1,"yellow");
@@ -227,9 +230,6 @@ void plot_funz_a2(const char *out_path,const char *title,const char *xlab,const 
 int main(int narg,char **arg)
 {
   init_latpars();
-  //prepar the ghat
-  ghat=boot(nboot,njack);
-  ghat.fill_gauss(ghat_ave,ghat_err,25252352);
   
   //read ensemble list, meson phiD and meson name
   FILE *an_input_file=open_file("analysis_pars","r");
@@ -237,7 +237,13 @@ int main(int narg,char **arg)
   read_formatted_from_file_expecting(ens_list_path,an_input_file,"%s","ens_list_path");
   read_formatted_from_file_expecting(meson_phi_file,an_input_file,"%s","meson_phi_file");
   read_formatted_from_file_expecting(meson_name,an_input_file,"%s","meson_name");
+  read_formatted_from_file_expecting((char*)&ghat_ave,an_input_file,"%lg","ghat");
+  read_formatted_from_file((char*)&ghat_err,an_input_file,"%lg","ghat_err");
   fclose(an_input_file);
+  
+  //prepar the ghat
+  ghat=boot(nboot,njack);
+  ghat.fill_gauss(ghat_ave,ghat_err,25252352);
   
   //load ensembles list and parameters
   load_ensembles_list(base_corrs_path,ens_name,nens,T,ibeta,nmass,mass,iml_un,nlights,ens_list_path);
@@ -298,6 +304,7 @@ int main(int narg,char **arg)
   
   const char tag_ml[1024]="m\\sl\\N\\SMS,2GeV\\N (GeV)";
   const char tag_a2[1024]="a\\S2\\N (fm)";
+  double lat_med_fm[4]={lat[0].med()/hc,lat[1].med()/hc,lat[2].med()/hc,lat[3].med()/hc};
   plot_funz_ml("phiD_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,phiD,par_res_fit_phiD,ml_phys.med(),fun_fit_phiD,phiD_chir_cont);
   plot_funz_a2("phiD_funz_a2.xmg",meson_name,tag_a2,meson_name,lat_med_fm,phiD_estr_ml,par_res_fit_phiD,fun_fit_phiD,phiD_chir_cont);
   

@@ -160,6 +160,7 @@ void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
       minu.GetParameter(1,B.data[iboot],dum);
       minu.GetParameter(2,C.data[iboot],dum);
       
+      double lat_med[4]={lat[0].med(),lat[1].med(),lat[2].med(),lat[3].med()};
       if(iboot==0) C2=chi2(A.data[iboot],B[iboot],C[iboot],lat_med);
     }
   
@@ -285,7 +286,9 @@ int main(int narg,char **arg)
   
   const char tag_ml[1024]="m\\sl\\N\\SMS,2GeV\\N (GeV)";
   const char tag_a2[1024]="a\\S2\\N (fm)";
-    plot_funz_ml("MD_s_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,MD_s,par_res_fit_MD_s,ml_phys.med(),fun_fit_MD_s,MD_s_chir_cont);
+  double lat_med_fm[4]={lat[0].med()/hc,lat[1].med()/hc,lat[2].med()/hc,lat[3].med()/hc};
+  
+  plot_funz_ml("MD_s_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,MD_s,par_res_fit_MD_s,ml_phys.med(),fun_fit_MD_s,MD_s_chir_cont);
   plot_funz_a2("MD_s_funz_a2.xmg",meson_name,tag_a2,meson_name,lat_med_fm,MD_s_estr_ml,par_res_fit_MD_s,fun_fit_MD_s,MD_s_chir_cont);
   
   return 0;

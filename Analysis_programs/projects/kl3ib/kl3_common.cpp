@@ -7,12 +7,11 @@ int nmoms,nmass;
 int njack;
 int ibeta;
 
+const double hc=0.19733;
+
 char base_path[1024];
 double *mass,*theta;
 int *iopp_th;
-
-double lat[4]={1/2.0198,1/2.3286,1/2.9419,1/3.6800};
-double Zp[4]={0.411,0.437,0.477,0.501};
 
 void read_input()
 {

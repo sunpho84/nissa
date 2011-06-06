@@ -35,7 +35,7 @@ spinspin Proj[3]; //projectors over N and N*, and 00 compont of N (in the spinor
 spinspin C5; //C*gamma5
 
 //two points contractions
-int nproton_2pt_contr=32;      //VA     AV       VV       AA       TT        BB        TB        BT
+int nproton_2pt_contr=1;      //VA     AV       VV       AA       TT        BB        TB        BT
 int list_2pt_op1[32]={5,0,5,0, 1,2,3,4, 6,7,8,9, 1,2,3,4, 6,7,8,9, 10,11,12, 13,14,15, 10,11,12, 13,14,15};
 int list_2pt_op2[32]={0,5,5,0, 6,7,8,9, 1,2,3,4, 1,2,3,4, 6,7,8,9, 10,11,12, 13,14,15, 13,14,15, 10,11,12};
 
@@ -43,7 +43,7 @@ int list_2pt_op2[32]={0,5,5,0, 6,7,8,9, 1,2,3,4, 1,2,3,4, 6,7,8,9, 10,11,12, 13,
 int compute_3pts[2][2];
 
 //three point contractions
-int nproton_3pt_contr=16;
+int nproton_3pt_contr=0;
 int list_3pt_op[16]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15};
 
 //three point chromo contractions
@@ -174,7 +174,12 @@ void initialize_nucleons(char *input_path)
 //read a configuration and put anti-periodic condition at the slice tsource-1
 void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
 {
-  read_local_gauge_conf(conf,conf_path);
+  //read_local_gauge_conf(conf,conf_path);
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int mu=0;mu<4;mu++)
+      su3_put_to_id(conf[ivol][mu]);
+  
+  write_local_gauge_conf(conf_path,conf);
   
   //commmunicate borders
   communicate_gauge_borders(conf);  
@@ -188,8 +193,8 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   Pmunu_term(Pmunu,conf);
 
   //Put the anti-periodic condition on the temporal border
-  put_theta[0]=1;
-  put_boundaries_conditions(conf,put_theta,1,1);
+  //put_theta[0]=1;
+  //put_boundaries_conditions(conf,put_theta,1,1);
 
   //re-communicate borders
   communicate_gauge_borders(conf);  
@@ -246,7 +251,7 @@ void calculate_S0()
 	    {
 	      //put the anti-periodic condition on the propagator
 	      int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
-	      double arg=M_PI*dt/glb_size[0];
+	      double arg=0;//M_PI*dt/glb_size[0];
 	      complex phase={cos(arg),sin(arg)};
 	      spincolor temp;
 	      
@@ -857,7 +862,7 @@ int main(int narg,char **arg)
       
       calculate_S0();
       calculate_all_2pts(out_path[iconf]);
-
+      /*
       for(int rlike=0;rlike<2;rlike++)
 	for(int rdislike=0;rdislike<2;rdislike++)
 	  if(compute_3pts[rlike][rdislike])
@@ -882,7 +887,7 @@ int main(int narg,char **arg)
 	      check_2pts_with_current_sequential_source(out2pts_check_dislike);
 	      calculate_all_3pts_with_current_sequential(rlike,rdislike,rlike,out3pts_dislike,"dislike");
 	    }
-      
+      */      
     }
 
   tot_time+=take_time();
