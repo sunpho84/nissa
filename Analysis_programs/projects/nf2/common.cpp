@@ -6,25 +6,10 @@ const int nboot=100;
 int njack=16;
 
 const double hc=0.19733;
-double lat_med[4]={1/2.0198,1/2.3286,1/2.9419,1/3.6800};
-double lat_err[4]={lat_med[0]/31.5,lat_med[1]/36.8,lat_med[2]/41.9,lat_med[3]/44.7};
-double lat_med_fm[4]={lat_med[0]*hc,lat_med[1]*hc,lat_med[2]*hc,lat_med[3]*hc};
-
-double lat_rat_med[4]={1,0.868996,0.79319,0.800388};
-double lat_rat_err[4]={0,0.00620553,0.00533782,0.00512307};
-
-double Zp_med[4]={0.411,0.437,0.477,0.501};
-double Zp_err[4]={0.012,0.007,0.006,0.020};
 
 //results taken by arxiv:1004.1115
 double Za_med[4]={0.746,0.746,0.772,0.780};
 double Za_err[4]={0.011,0.006,0.006,0.006};
-
-double ml_phys_med=3.6/1000,ms_phys_med=95.0/1000,mc_phys_med=1140.0/1000;
-double ml_phys_err=0.2/1000,ms_phys_err= 6.0/1000,mc_phys_err=  40.0/1000;
-
-double f0_med=121.9019/1000,db0_med=5.2756;
-double f0_err=0.1668/1000,db0_err=0.2078;
 
 bool latpars_initted=false;
 
@@ -32,7 +17,13 @@ boot lat[4],Zp[4],Za[4];
 boot ml_phys,ms_phys,mc_phys;
 boot aml_phys[4],ams_phys[4],amc_phys[4];
 boot f0,db0;
-int iboot_jack[4][nboot+1];
+
+double mPi_phys=0.1350; //neutral
+double fPi_phys=0.1307;
+
+double mK_phys=0.493667;
+double delta_mK_phys_med=-0.006;
+double delta_mK_phys_err=0.0006;
 
 double mD_phys=1.8696;
 double mD_s_phys=1.9685;
@@ -70,40 +61,38 @@ int icombo(int im1,int im2,int nmass)
   return ims*nmass-(ims*(ims-1))/2+(imc-ims);
 }
 
+boot get_latpar(FILE *fin)
+{
+  boot out(nboot,njack);
+  double buf[101];
+  int nr=fread(buf,sizeof(double),101,fin);
+  if(nr!=101)
+    {
+      perror("Error reading from latpars file");
+      exit(1);
+    }
+  out.put(buf);
+  return out;
+}
+
 void init_latpars()
 {
   if(latpars_initted==true) return;
   
-  for(int ib=0;ib<4;ib++)
-    {
-      lat[ib]=boot(nboot,njack);
-      if(ib==0) lat[ib].fill_gauss(lat_med[ib],lat_err[ib],156010+ib);
-      else
-	{
-	  lat[ib].fill_gauss(lat_rat_med[ib],lat_rat_err[ib],156010+ib);
-	  lat[ib]*=lat[ib-1];
-	}
-      cout<<"Lattice spacing "<<ib<<" "<<lat[ib]*hc<<endl;
-      
-      Zp[ib]=boot(nboot,njack);
-      Zp[ib].fill_gauss(Zp_med[ib],Zp_err[ib],1534572+ib);
-    }
+  FILE *input_latpars=fopen("/home/francesco/QCD/LAVORI/NF2/DATA/latpars_E","r");
   
-  ml_phys=boot(nboot,njack);
-  ms_phys=boot(nboot,njack);
-  mc_phys=boot(nboot,njack);
+  for(int ib=0;ib<4;ib++) lat[ib]=get_latpar(input_latpars);
+  for(int ib=0;ib<4;ib++) Zp[ib]=get_latpar(input_latpars);
   
-  ml_phys.fill_gauss(ml_phys_med,ml_phys_err,2478463);
-  ms_phys.fill_gauss(ms_phys_med,ms_phys_err,6764732);
-  mc_phys.fill_gauss(mc_phys_med,mc_phys_err,7623647);
+  f0=get_latpar(input_latpars);
+  db0=get_latpar(input_latpars);
+  
+  ml_phys=get_latpar(input_latpars);
+  ms_phys=get_latpar(input_latpars);
+  mc_phys=get_latpar(input_latpars);
   
   for(int ib=0;ib<4;ib++)
     {
-      ran_gen estr(22141425+ib);
-      for(int iboot=0;iboot<nboot;iboot++)
-	iboot_jack[ib][iboot]=estr.get_int(njack);
-      iboot_jack[ib][nboot]=njack;
-
       aml_phys[ib]=ml_phys*lat[ib]*Zp[ib];
       ams_phys[ib]=ms_phys*lat[ib]*Zp[ib];
       amc_phys[ib]=mc_phys*lat[ib]*Zp[ib];
@@ -114,12 +103,6 @@ void init_latpars()
       Za[ib]=boot(nboot,njack);
       Za[ib].fill_gauss(Za_med[ib],Za_err[ib],2873246+ib);
     }      
-  
-  f0=boot(nboot,njack);
-  db0=boot(nboot,njack);
-
-  f0.fill_gauss(f0_med,f0_err,855438428);
-  db0.fill_gauss(db0_med,db0_err,76547898);
 }
 
 //load all data
@@ -159,10 +142,10 @@ void load_ensembles_list(char **&base_corrs_path,char **&ens_name,int &nens,int 
   fclose(ens_list_file);
 }
 
-void boot_from_jack(boot &out,jack in,int ibeta)
+void boot_from_jack(boot &out,jack in,int *iboot_jack)
 {
   int nboot=out.nboot;
   int njack=in.njack;
-  for(int iboot=0;iboot<nboot;iboot++) out.data[iboot]=in.data[iboot_jack[ibeta][iboot]];
+  for(int iboot=0;iboot<nboot;iboot++) out.data[iboot]=in.data[iboot_jack[iboot]];
   out.data[nboot]=in.data[njack];
 }

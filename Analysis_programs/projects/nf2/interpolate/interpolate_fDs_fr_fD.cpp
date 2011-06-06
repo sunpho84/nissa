@@ -19,31 +19,39 @@ int main()
   
   //load all ensembles data
   bvec *aM,*Z;
-  load_all_ensembles_MZ(aM,Z,nens,T,ibeta,nmass,base_MZ_path,obs_name,ens_name);
+  load_all_ensembles_MZ(aM,Z,nens,T,ibeta,nmass,base_MZ_path,obs_name,ens_name,base_corrs_path);
   
   //compute phi
-  bvec phiD_s[nens];
+  bvec phi[nens];
   for(int iens=0;iens<nens;iens++)
     {
       int b=ibeta[iens];
-      phiD_s[iens]=sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b]*sqrt(aM[iens]/lat[b]);
+      
+      phi[iens]=sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b]*sqrt(aM[iens]/lat[b]);
       for(int ims=0;ims<nmass[iens];ims++)
 	for(int imc=ims;imc<nmass[iens];imc++)
 	  {
 	    int ic=icombo(imc,ims,nmass[iens]);
-	    phiD_s[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
+	    phi[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
 	  }
     }
-  
-  bvec phiD_s_int(nens,nboot,njack);
+
+  for(int iens=0;iens<nens;iens++)
+    for(int ims=nmass[iens]-1;ims>=0;ims--)
+      for(int imc=ims;imc<nmass[iens];imc++)
+	{
+	  int ic=icombo(imc,ims,nmass[iens]);
+	  phi[iens].data[ic]/=phi[iens].data[icombo(imc,iml_un[iens],nmass[iens])];
+	}
+
+  bvec phint(nens,nboot,njack);
   for(int iens=0;iens<nens;iens++)
     {
-      phiD_s_int.data[iens]=interpolate_charm_strange(phiD_s[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens]);
-      
-      cout<<(mass[iens][iml_un[iens]]/lat[ibeta[iens]]/Zp[ibeta[iens]]).med()<<" "<<phiD_s_int[iens]<<endl;
+      phint.data[iens]=interpolate_charm_strange(phi[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens]);
+      cout<<mass[iens][iml_un[iens]]<<" "<<phint.data[iens]<<endl;
     }
   
-  phiD_s_int.write_to_binfile("interpolated_phiD_s");
+  phint.write_to_binfile("interpolated_phi_ratio_DsD");
   
   return 0;
 }

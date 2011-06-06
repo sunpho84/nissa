@@ -24,9 +24,8 @@ void write_text_record(LemonWriter *writer,char *header,char *message)
 }
 
 //Write a vector of double, in 32 or 64 bits according to the argument
-void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int nbits)
+void write_double_vector(LemonWriter *writer,char *data,char *header_message,int nreals_per_site,int nbits)
 {
-
   if(nbits!=32 && nbits!=64)
     {
       if(rank==0)
@@ -49,8 +48,7 @@ void write_double_vector(LemonWriter *writer,char *data,int nreals_per_site,int 
   int nbytes_per_site=nreals_per_site*nbits/8;
   uint64_t nbytes_glb=nbytes_per_site*glb_vol;
 
-  char header[1024]="scidac-binary-data";
-  write_header(writer,header,nbytes_glb);
+  write_header(writer,header_message,nbytes_glb);
 
   char *buffer=NULL;
   if(big_endian || nbits==32)
@@ -127,7 +125,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
   write_text_record(writer,propagator_format_header,propagator_format_message);
   
   //order things as expected
-  spincolor *temp=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  spincolor *temp=allocate_spincolor(loc_vol,"temp reading propagator");
   
   int x[4],isour,idest;
 
@@ -143,7 +141,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
 	  }
 
   //Write the binary data
-  write_double_vector(writer,(char*)temp,nreals_per_spincolor,prec);
+  write_double_vector(writer,(char*)temp,"scidac-binary-data",nreals_per_spincolor,prec);
 
   free(temp);
 
@@ -152,4 +150,54 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
   //Close the file
   lemonDestroyWriter(writer);
   MPI_File_close(writer_file);
+}
+
+////////////////////////// gauge configuration loading /////////////////////////////
+
+//Write only the local part of the gauge configuration
+void write_local_gauge_conf(char *path,quad_su3 *in)
+{
+  double twrite=-take_time();
+  quad_su3 *temp=allocate_quad_su3(loc_vol,"temp_gauge_writer");
+
+  int x[4],isour,idest;
+  quad_su3 buff;
+
+  for(x[0]=0;x[0]<loc_size[0];x[0]++)
+    for(x[1]=0;x[1]<loc_size[1];x[1]++)
+      for(x[2]=0;x[2]<loc_size[2];x[2]++)
+	for(x[3]=0;x[3]<loc_size[3];x[3]++)
+	  {
+	    idest=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
+	    isour=loclx_of_coord(x);
+
+	    memcpy(buff,in[isour],sizeof(quad_su3));
+
+	    memcpy(temp[idest][3],buff[0],sizeof(su3));
+	    memcpy(temp[idest][0],buff[1],sizeof(su3));
+	    memcpy(temp[idest][1],buff[2],sizeof(su3));
+	    memcpy(temp[idest][2],buff[3],sizeof(su3));
+	  }
+
+  //Open the file
+  MPI_File *writer_file=(MPI_File*)malloc(sizeof(MPI_File));
+  int ok=MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
+  if(ok!=MPI_SUCCESS && rank==0)
+    {
+      fprintf(stderr,"Couldn't open for writing the file: '%s'\n",path);
+      fflush(stderr);
+      MPI_Abort(cart_comm,1);
+    }
+
+  MPI_File_set_size(*writer_file,0);
+  LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
+  write_double_vector(writer,(char*)temp,"ildg-binary-data",nreals_per_quad_su3,64);
+  
+  free(temp);
+  
+  if(debug)
+    {
+      twrite+=take_time();
+      if(rank==0) printf("Time elapsed in writing gauge file '%s': %f s\n",path,twrite);
+    }
 }

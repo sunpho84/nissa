@@ -22,51 +22,34 @@ int main()
   bvec *aM,*Z;
   load_all_ensembles_MZ(aM,Z,nens,T,ibeta,nmass,base_MZ_path,obs_name,ens_name,base_corrs_path);
   
-  //compute f
-  bvec f[nens];
-  bvec phi[nens];
+  //compute M
+  bvec M[nens];
   for(int iens=0;iens<nens;iens++)
     {
       int b=ibeta[iens];
-      
-      if(string(obs_name)==string("P5P5"))
-	{
-	  f[iens]=sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b];
-	  phi[iens]=f[iens]*sqrt(aM[iens]/lat[b]);
-	  for(int ims=0;ims<nmass[iens];ims++)
-	    for(int imc=ims;imc<nmass[iens];imc++)
-	      {
-		int ic=icombo(imc,ims,nmass[iens]);
-		f[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
-		phi[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
-	      }
-	}
-      
-      if(string(obs_name)==string("VECT")) f[iens]=Za[b]*sqrt(Z[iens])/aM[iens]/lat[b];
+      M[iens]=aM[iens]/lat[b];
     }
   
   bvec fint(nens,nboot,njack);
   for(int iens=0;iens<nens;iens++)
     {
       if(string(meson_name)==string("Ds"))
-	fint.data[iens]=interpolate_charm_strange(phi[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens]);
+	fint.data[iens]=interpolate_charm_strange(M[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens]);
       
       if(string(meson_name)==string("D"))
-	fint.data[iens]=interpolate_charm(phi[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens])[iml_un[iens]];
+	fint.data[iens]=interpolate_charm(M[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens])[iml_un[iens]];
       
       if(string(meson_name)==string("K"))
-	fint.data[iens]=interpolate_strange(f[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens])[iml_un[iens]];
+	fint.data[iens]=interpolate_strange(M[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens])[iml_un[iens]];
       
       if(string(meson_name)==string("Pi"))
-	fint.data[iens]=f[iens][icombo(iml_un[iens],iml_un[iens],nmass[iens])];
+	fint.data[iens]=M[iens][icombo(iml_un[iens],iml_un[iens],nmass[iens])];
       
       cout<<mass[iens][iml_un[iens]]<<" "<<fint.data[iens]<<endl;
     }
   
-  if(string(meson_name)==string("K")) fint.write_to_binfile(combine("interpolated_f_%s",meson_name).c_str());
-  else
-    if(string(meson_name)==string("Pi")) fint.write_to_binfile(combine("f_%s",meson_name).c_str());
-    else fint.write_to_binfile(combine("interpolated_phi_%s",meson_name).c_str());
+  if(string(meson_name)==string("Pi")) fint.write_to_binfile(combine("M_%s",meson_name).c_str());
+  else fint.write_to_binfile(combine("interpolated_M_%s",meson_name).c_str());
   
   return 0;
 }

@@ -6,12 +6,14 @@ int nens,*T,*ibeta,*iml_un,*nlights,*nmass;
 double **mass;
 
 //read data
-bvec phiD_s;
+bvec phiDsD;
+boot ghat;
+double ghat_ave,ghat_err;
 
 bvec ml;
 int ref_ml_beta[4]={-1,-1,-1,-1};
 
-bvec par_res_fit_phiD_s;
+bvec par_res_fit_phiDsD;
 
 const char set_color[nbeta][1024]={"black","blue","red","green4"};
 const char set_fill_color[nbeta][1024]={"grey","turquoise","yellow","green"};
@@ -21,8 +23,16 @@ const char set_legend_fm[nbeta][1024]={"a = 0.098 fm","a = 0.085 fm","a = 0.067 
 
 int iboot;
 
-double fun_fit_phiD_s(double A,double B,double C,double ml,double a)
-{return A * ( 1 + B*ml + C*a*a );}
+double fun_fit_phiDsD(double A,double B,double C,double ml,double a)
+{
+  double xi=db0.data[iboot]*ml/sqr(4*M_PI*f0.data[iboot]);
+  double cl;
+  
+  if(ghat_ave!=0) cl=-3*(1+3.0*sqr(ghat.data[iboot]))/4*xi*log(xi);
+  else cl=0;
+  
+  return A * ( 1 - cl + B*ml + C*a*a );
+}
 
 void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const char *ylab,bvec &X,bvec &Y,bvec &par,double X_phys,double (*fun)(double,double,double,double,double),boot &chiral_extrap_cont)
 {
@@ -97,8 +107,8 @@ double chi2(double A,double B,double C,double *a)
 
   for(int iens=0;iens<nens;iens++)
     {
-      double ch2_phiD_s_term=pow((Y_fit[iens]-fun_fit_phiD_s(A,B,C,X_fit[iens],a[ibeta[iens]]))/err_Y_fit[iens],2);
-      ch2+=ch2_phiD_s_term;
+      double ch2_phiDsD_term=pow((Y_fit[iens]-fun_fit_phiDsD(A,B,C,X_fit[iens],a[ibeta[iens]]))/err_Y_fit[iens],2);
+      ch2+=ch2_phiDsD_term;
     }
   
   return ch2;
@@ -221,15 +231,20 @@ void plot_funz_a2(const char *out_path,const char *title,const char *xlab,const 
 int main(int narg,char **arg)
 {
   init_latpars();
+  //prepar the ghat
+  ghat=boot(nboot,njack);
   
-  //read ensemble list, meson phiD_s and meson name
+  //read ensemble list, meson phiDsD and meson name
   FILE *an_input_file=open_file("analysis_pars","r");
   char ens_list_path[1024],meson_phi_file[1024],meson_name[1024];
   read_formatted_from_file_expecting(ens_list_path,an_input_file,"%s","ens_list_path");
   read_formatted_from_file_expecting(meson_phi_file,an_input_file,"%s","meson_phi_file");
   read_formatted_from_file_expecting(meson_name,an_input_file,"%s","meson_name");
+  read_formatted_from_file_expecting((char*)&ghat_ave,an_input_file,"%lg","ghat");
+  read_formatted_from_file((char*)&ghat_err,an_input_file,"%lg","ghat_err");
   fclose(an_input_file);
   
+  ghat.fill_gauss(ghat_ave,ghat_err,25252352);
   //load ensembles list and parameters
   load_ensembles_list(base_corrs_path,ens_name,nens,T,ibeta,nmass,mass,iml_un,nlights,ens_list_path);
   
@@ -250,48 +265,47 @@ int main(int narg,char **arg)
   cout<<"---"<<endl;
 
   //load data
-  phiD_s=bvec(nens,nboot,njack);
-  phiD_s.load(meson_phi_file,0);  
+  phiDsD=bvec(nens,nboot,njack);
+  phiDsD.load(meson_phi_file,0);  
 
   //perform the fit
   boot A(nboot,njack),B(nboot,njack),C(nboot,njack);
-  fit(A,B,C,ml,phiD_s);
+  fit(A,B,C,ml,phiDsD);
   cout<<endl;
   
   //chiral extrapolation
-  boot phiD_s_chir[nbeta],phiD_s_chir_cont(nboot,njack);
-  bvec phiD_s_estr_ml(nbeta,nboot,njack),fD_s_estr_ml(nbeta,nboot,njack);
+  boot phiDsD_chir[nbeta],phiDsD_chir_cont(nboot,njack);
+  bvec phiDsD_estr_ml(nbeta,nboot,njack);
   for(int ib=0;ib<nbeta;ib++)
     {
-      phiD_s_chir[ib]=boot(nboot,njack);
+      phiDsD_chir[ib]=boot(nboot,njack);
       for(iboot=0;iboot<nboot+1;iboot++)
 	{
 	  int r=ref_ml_beta[ib];
-	  phiD_s_chir_cont.data[iboot]=fun_fit_phiD_s(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0);
-	  phiD_s_chir[ib].data[iboot]=fun_fit_phiD_s(A[iboot],B[iboot],C[iboot],ml_phys[iboot],lat[ib][iboot]);
+	  phiDsD_chir_cont.data[iboot]=fun_fit_phiDsD(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0);
+	  phiDsD_chir[ib].data[iboot]=fun_fit_phiDsD(A[iboot],B[iboot],C[iboot],ml_phys[iboot],lat[ib][iboot]);
 	  
-	  if(r!=-1) phiD_s_estr_ml.data[ib].data[iboot]=phiD_s[r][iboot]*fun_fit_phiD_s(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0)/fun_fit_phiD_s(A[iboot],B[iboot],C[iboot],ml[r][iboot],0);
+	  if(r!=-1) phiDsD_estr_ml.data[ib].data[iboot]=phiDsD[r][iboot]*fun_fit_phiDsD(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0)/fun_fit_phiDsD(A[iboot],B[iboot],C[iboot],ml[r][iboot],0);
 	}
     }
-  boot fD_s_chir_cont=phiD_s_chir_cont/sqrt(mD_s_phys);
   
   //chiral and continuum
-  cout<<"phiD_s = ("<<phiD_s_chir_cont*1000<<") MeV"<<endl;
-  cout<<"fD_s = ("<<fD_s_chir_cont*1000<<") MeV"<<endl;
-  phiD_s_chir_cont.write_to_binfile("results_phiD_s");
-  fD_s_chir_cont.write_to_binfile("results_fD_s");
+  boot fDsD_chir_cont=phiDsD_chir_cont/sqrt(mD_s_phys/mD_phys);
+  cout<<"phiDsD = ("<<phiDsD_chir_cont<<") MeV"<<endl;
+  cout<<"fDsfD = ("<<fDsD_chir_cont<<") MeV"<<endl;
+  phiDsD_chir_cont.write_to_binfile("results_phiDsD");
   
-  par_res_fit_phiD_s=bvec(3,nboot,njack);
+  par_res_fit_phiDsD=bvec(3,nboot,njack);
   
-  par_res_fit_phiD_s.data[0]=A;
-  par_res_fit_phiD_s.data[1]=B;
-  par_res_fit_phiD_s.data[2]=C;
+  par_res_fit_phiDsD.data[0]=A;
+  par_res_fit_phiDsD.data[1]=B;
+  par_res_fit_phiDsD.data[2]=C;
   
   const char tag_ml[1024]="m\\sl\\N\\SMS,2GeV\\N (GeV)";
   const char tag_a2[1024]="a\\S2\\N (fm)";
   double lat_med_fm[4]={lat[0].med()/hc,lat[1].med()/hc,lat[2].med()/hc,lat[3].med()/hc};
-  plot_funz_ml("phiD_s_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,phiD_s,par_res_fit_phiD_s,ml_phys.med(),fun_fit_phiD_s,phiD_s_chir_cont);
-  plot_funz_a2("phiD_s_funz_a2.xmg",meson_name,tag_a2,meson_name,lat_med_fm,phiD_s_estr_ml,par_res_fit_phiD_s,fun_fit_phiD_s,phiD_s_chir_cont);
+  plot_funz_ml("phiDsD_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,phiDsD,par_res_fit_phiDsD,ml_phys.med(),fun_fit_phiDsD,phiDsD_chir_cont);
+  plot_funz_a2("phiDsD_funz_a2.xmg",meson_name,tag_a2,meson_name,lat_med_fm,phiDsD_estr_ml,par_res_fit_phiDsD,fun_fit_phiDsD,phiDsD_chir_cont);
   
   return 0;
 }
