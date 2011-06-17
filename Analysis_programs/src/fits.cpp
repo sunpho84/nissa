@@ -74,6 +74,19 @@ jvec effective_mass(const jvec a)
   return b;
 }
 
+//jack-vec
+jvec aperiodic_effective_mass(const jvec a)
+{
+  int TH=a.nel-1;
+  int njack=a.njack;
+  
+  jvec b(TH,njack);
+  
+  for(int t=0;t<TH;t++) b.data[t]=log(a.data[t]/a.data[t+1]);
+  
+  return b;
+}
+
 //fit the mass
 jack mass_fit(jvec corr,int tmin,int tmax,const char *path=NULL)
 {
@@ -91,4 +104,37 @@ void P5P5_fit(jack &E,jack &Z,jvec corr,int tmin,int tmax,const char *path1=NULL
   int TH=temp.nel-1;
   for(int t=0;t<=TH;t++) temp[t]=corr[t]/exp(-E*TH)/cosh(E*(TH-t))*E;
   Z=constant_fit(temp,tmin,tmax,path2);
+}
+
+void linear_fit(jack &m,jack &q,jvec corr,int tmin,int tmax)
+{
+  tmin=max(0,tmin);
+  tmax=min(tmax+1,corr.nel);
+  int njack=corr.njack;
+  jack Y(njack),XY(njack),Y2(njack);
+  double X=0,W=0,X2;
+
+  Y=XY=0;
+  for(int t=tmin;t<tmax;t++)
+    {
+      double err=corr[t].err();
+      double w=1/sqr(err);
+      
+      W+=w;
+      
+      X+=t*w;
+      X2+=t*t*w;
+      
+      Y+=corr[t]*w;
+      Y2+=sqr(corr[t])*w;
+      
+      XY+=t*corr[t]*w;
+    }
+
+  XY-=X*Y/W;
+  Y2-=Y*Y/W;
+  X2-=X*X/W;
+  
+  m=XY/X2;
+  q=(Y-m*X)/W;
 }

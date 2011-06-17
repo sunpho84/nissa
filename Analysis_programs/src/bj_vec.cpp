@@ -397,11 +397,11 @@ VTYPE VTYPE::first_half()
     }
   
 #ifdef BVEC
-  bvec c(nel,nboot,njack);
+  bvec c(nel/2+1,nboot,njack);
 #else
-  jvec c(nel,njack);
+  jvec c(nel/2+1,njack);
 #endif
-  for(int iel=0;iel<nel/2;iel++)
+  for(int iel=0;iel<=nel/2;iel++)
     c.data[iel]=data[iel];
   
   return c;
