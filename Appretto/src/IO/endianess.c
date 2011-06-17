@@ -25,19 +25,19 @@ void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndouble
 	
 	temp=csour[7];
 	csour[7]=cdest[0];
-	cdest[0]=csour[7];
+	cdest[0]=temp;
 
 	temp=csour[6];
 	csour[6]=cdest[1];
-	cdest[1]=csour[6];
+	cdest[1]=temp;
 
 	temp=csour[5];
 	csour[5]=cdest[2];
-	cdest[2]=csour[5];
+	cdest[2]=temp;
 
 	temp=csour[4];
 	csour[4]=cdest[3];
-	cdest[3]=csour[4];
+	cdest[3]=temp;
     }
   else
     for(int idouble=0;idouble<ndoubles;idouble++)

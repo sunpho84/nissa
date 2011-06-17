@@ -8,6 +8,9 @@ double fun_ratio_A0P5(double A,double SL,double M,int t){return A+SL*(TH-t)/tanh
 
 /////////////////  fit of slope and ratio of A0P5  /////////////////
 
+double lat[4]={1/2.0198,1/2.3286,1/2.9419,1/3.6800};
+double Zp[4]={0.411,0.437,0.477,0.501};
+
 double (*fit_fun_K)(double,double,int),(*fit_fun_ratio)(double,double,double,int);
 int tmin_fit,tmax_fit;
 double *K_fit,*ratio_fit;

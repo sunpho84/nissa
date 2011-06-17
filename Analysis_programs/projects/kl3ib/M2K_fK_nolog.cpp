@@ -242,7 +242,7 @@ void fit(boot &A,boot &B,boot &C,boot &D,boot &E,boot *X,bvec &Y,bvec &Z)
     }
   else
     {
-      //minu.FixParameter(1);
+      minu.FixParameter(1);
       minu.FixParameter(4);
     }
   minu.SetFCN(chi2_wr);
