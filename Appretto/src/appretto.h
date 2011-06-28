@@ -19,6 +19,7 @@
 #include "operations/contract.c"
 #include "operations/smear.c"
 #include "operations/fourier_transform.c"
+#include "operations/gauge_fixing.c"
 
 #include "types/dirac.c"
 #include "types/su3.c"

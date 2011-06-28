@@ -144,24 +144,22 @@ void communicate_lx_edges(char *data,MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *M
   
   if(nrequest>0) MPI_Waitall(nrequest,request,status);
 }
+
+//Useful for gauge fixing
+void communicate_su3_borders(su3 *u)
+{communicate_lx_borders((char*)u,MPI_SU3_BORD_SEND,MPI_SU3_BORD_RECE,sizeof(su3));}
 	 
 //Send the borders of the gauge configuration
 void communicate_gauge_borders(quad_su3 *conf)
-{
-  communicate_lx_borders((char*)conf,MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,sizeof(quad_su3));
-}
+{communicate_lx_borders((char*)conf,MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,sizeof(quad_su3));}
 
 //Send the edges of the gauge configuration
 void communicate_gauge_edges(quad_su3 *conf)
-{
-  communicate_lx_edges((char*)conf,MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,sizeof(quad_su3));
-}
+{communicate_lx_edges((char*)conf,MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,sizeof(quad_su3));}
 
 //Send the borders of a spincolor vector
 void communicate_lx_spincolor_borders(spincolor *s)
-{
-  communicate_lx_borders((char*)s,MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,sizeof(spincolor));
-}
+{communicate_lx_borders((char*)s,MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,sizeof(spincolor));}
 
 //apply the projector over the internal border
 void apply_lxspincolor_border_projector(redspincolor *p,spincolor *s)
