@@ -47,6 +47,7 @@ int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
 int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
 int bord_dir_vol[4],bord_offset[4];
 int loc_bord;
+MPI_Datatype MPI_SU3_BORD_SEND[4],MPI_SU3_BORD_RECE[4];
 MPI_Datatype MPI_GAUGE_BORD_SEND[4],MPI_GAUGE_BORD_RECE[4];
 MPI_Datatype MPI_LXSPINCOLOR_BORD_SEND[4],MPI_LXSPINCOLOR_BORD_RECE[4];
 MPI_Datatype MPI_LXREDSPINCOLOR_BORD[4];

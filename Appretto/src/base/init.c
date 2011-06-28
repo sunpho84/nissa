@@ -177,6 +177,7 @@ void init_grid()
   
   if(rank_tot>0)
     {
+      set_lx_bord_senders_and_receivers(MPI_SU3_BORD_SEND,MPI_SU3_BORD_RECE,&MPI_SU3);
       set_lx_bord_senders_and_receivers(MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
       set_lx_edge_senders_and_receivers(MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
       set_lx_bord_senders_and_receivers(MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);

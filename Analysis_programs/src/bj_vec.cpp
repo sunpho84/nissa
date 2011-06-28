@@ -416,7 +416,7 @@ VTYPE VTYPE::simmetric()
 #endif
   
   for(int iel=0;iel<nel;iel++)
-    c.data[iel]=data[nel-iel-1];
+    c.data[iel]=data[(nel-iel)%nel];
 
   return c;
 }
