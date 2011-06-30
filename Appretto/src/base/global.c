@@ -193,7 +193,7 @@ void safe_complex_prod(complex a,complex b,complex c)
 //The product of a complex number by the conjugate of the second
 void safe_complex_conj2_prod(complex a,complex b,complex c)
 {
-  double tmp=a[0]=b[0]*c[0]+b[1]*c[1];
+  double tmp=b[0]*c[0]+b[1]*c[1];
   a[1]=-b[0]*c[1]+b[1]*c[0];
   a[0]=tmp;
 }
@@ -212,18 +212,18 @@ void complex_prod_real(complex a,complex b,double c)
 //complex prod i
 void safe_complex_prod_i(complex a,complex b)
 {
-  double temp=b[0];
+  double tmp=b[0];
   a[0]=-b[1];
-  a[1]=temp;
+  a[1]=tmp;
 }
 void assign_complex_prod_i(complex a){safe_complex_prod_i(a,a);}
 
 //complex prod -i
 void safe_complex_prod_minus_i(complex a,complex b)
 {
-  double temp=b[0];
+  double tmp=b[0];
   a[0]=b[1];
-  a[1]=-temp;
+  a[1]=-tmp;
 }
 void assign_complex_prod_minus_i(complex a){safe_complex_prod_minus_i(a,a);}
 
@@ -347,9 +347,9 @@ double max_double(double a,double b){if(a>b) return a;else return b;}
 //swap two doubles
 void swap_doubles(double *d1,double *d2)
 {
-  double temp=(*d1);
+  double tmp=(*d1);
   (*d1)=(*d2);
-  (*d2)=temp;
+  (*d2)=tmp;
 }
 
 double take_time()

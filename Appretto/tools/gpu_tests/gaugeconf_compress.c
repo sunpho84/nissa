@@ -18,15 +18,19 @@ int main(int narg,char **arg)
   read_str_int("L",&(glb_size[1]));
   read_str_int("T",&(glb_size[0]));
   read_str_str("Filename",filename,1024);
-
+  
   close_input();
 
   //Init the MPI grid 
   init_grid();
 
   ///////////////////////////////////////////
+
+  quad_su3 *conf=allocate_quad_su3(loc_vol,"conf");
   
-  choose_device();
+  read_local_gauge_conf(conf,filename);  
+
+  test_gaugeconf_compression(conf,loc_vol);
   
   close_appretto();
 

@@ -7,7 +7,7 @@ void float_to_double_vec(double *out,float *in,int nel)
 {for(int iel=0;iel<nel;iel++) out[iel]=(double)(in[iel]);}
 
 //compress an su3 matrix to 8 parameters
-void su3_to_su3c(su3c out,su3d in)
+void su3d_to_su3c(su3c out,su3d in)
 {
   out[0]=(float)(in[0][1][0]); //a2
   out[1]=(float)(in[0][1][1]);
@@ -19,50 +19,93 @@ void su3_to_su3c(su3c out,su3d in)
   out[7]=(float)(in[1][0][1]);
 }
 
+//compress an array of su3
+void gaugeconf_compress(quad_su3c *out,quad_su3d *in,int size)
+{for(int i=0;i<4*size;i++) su3d_to_su3c(((su3c*)out)[i],((su3d*)in)[i]);}
+
 //decompress 8 parameters to an su3 matrix
 void su3c_to_su3f(su3f out,su3c in)
 {
-  out[0][1][0]=in[0]; //a2
-  out[0][1][1]=in[1];
-  out[0][2][0]=in[2]; //a3
-  out[0][2][1]=in[3];  
-  
-  float help=in[0]*in[0]+in[1]*in[1]+in[2]*in[2]+in[3]*in[3];
-  float N=sqrt(help);
-  float rep_N=1/N;
-  
-  help=sqrt(1-help); //a1
-  out[0][0][0]=help*cos(in[4]);
-  out[0][0][1]=help*sin(in[4]);
-  
-  out[1][0][0]=in[6]; //b1
-  out[1][0][1]=in[7];
-  
-  complef p2={rep_N*out[1][0][0],rep_N*out[1][0][1]}; //p2=b1/N
-  
-  help=sqrt(1-out[0][0][0]*out[0][0][0]-out[0][0][1]*out[0][0][1]-out[1][0][0]*out[1][0][0]-out[1][0][1]*out[1][0][1]);
-  out[2][0][0]=help*cos(in[5]); //c1
-  out[2][0][1]=help*sin(in[5]);
-  
-  complef p1={rep_N*out[2][0][0],-rep_N*out[2][0][1]}; //p1=conj(c1)/N
-  
-  unsafe_complef_conj2_prod(out[1][1],out[0][1],out[0][0]); //b2
-  safe_complef_prod(out[1][1],p2,out[1][1]);
-  complef_summ_the_conj2_prod(out[1][1],p1,out[0][2]);
-  complef_prod_real(out[1][1],out[1][1],-rep_N);
+#include "gauge_decompression.c"
+} 
 
-  unsafe_complef_conj2_prod(out[1][2],out[0][2],out[0][0]); //b3
-  safe_complef_prod(out[1][2],p2,out[1][2]);
-  complef_subt_the_conj2_prod(out[1][2],p1,out[0][1]);
-  complef_prod_real(out[1][2],out[1][2],-rep_N);
+//device version
+__device__ void dev_su3c_to_su3f(su3f out,su3c in)
+{
+#include "gauge_decompression.c"
+} 
 
-  unsafe_complef_conj2_prod(out[2][1],out[0][1],out[0][0]); //c2
-  safe_complef_conj1_prod(out[2][1],p1,out[2][1]);
-  complef_subt_the_conj_conj_prod(out[2][1],p2,out[0][2]);
-  complef_prod_real(out[2][1],out[2][1],-rep_N);
-
-  unsafe_complef_conj2_prod(out[2][2],out[0][2],out[0][0]); //c3
-  safe_complef_conj1_prod(out[2][2],p1,out[2][2]);
-  complef_summ_the_conj_conj_prod(out[2][2],p2,out[0][1]);
-  complef_prod_real(out[2][2],out[2][2],-rep_N);
+//reconstruction of a full gauge conf
+__global__ void gpu_gaugeconf_reconstruct(quad_su3f *out,quad_su3c *in,int vol)
+{
+  int pos=threadIdx.x+blockDim.x*blockIdx.x;
+  if(pos<vol*4)
+    dev_su3c_to_su3f(((su3f*)out)[pos],((su3c*)in)[pos]);
 }
+
+extern "C" void test_gaugeconf_compression(quad_su3d *conf,int vol)
+{
+
+  // -------- 1) Compress the configuration on cpu and send it to the gpu -----------
+
+  //allocate room for the compressed conf on cpu
+  int comp_size=vol*sizeof(quad_su3c);
+  quad_su3c *cpu_comp_conf=(quad_su3c*)cpu_allocate_vector(comp_size,"cpu_comp_conf");
+  
+  //compress the configuration
+  gaugeconf_compress(cpu_comp_conf,conf,vol);
+  
+  //allocate room for the compressed conf on the gpu and send it
+  quad_su3c *gpu_comp_conf=(quad_su3c*)gpu_allocate_vector(comp_size,"gpu_comp_conf");
+  memcpy_cpu_to_gpu(gpu_comp_conf,cpu_comp_conf,comp_size);
+  
+  //free cpu compressed conf
+  free(cpu_comp_conf);
+  
+  
+  // -------- 2) decompress the configuration on the gpu ------------
+  
+  //allocate room for the decompressed conf on gpu
+  int uncomp_size=vol*sizeof(quad_su3f);
+  quad_su3f *gpu_uncomp_conf=(quad_su3f*)gpu_allocate_vector(uncomp_size,"gpu_uncomp_conf");
+  
+  //expand the configuration
+  int blocksize=192;
+  int gridsize=(int)ceil(vol*4.0/blocksize);
+  gpu_gaugeconf_reconstruct<<<gridsize,blocksize>>>(gpu_uncomp_conf,gpu_comp_conf,vol);
+
+  //free gpu compressed conf
+  gpu_free(gpu_comp_conf,"gpu_comp_conf");
+  
+
+  // -------- 3) copy the configuration back to cpu --------------
+  
+  //allocate room for the uncompressed conf on cpu and get it
+  quad_su3f *cpu_uncomp_conf=(quad_su3f*)cpu_allocate_vector(uncomp_size,"cpu_uncomp_conf");
+  memcpy_gpu_to_cpu(cpu_uncomp_conf,gpu_uncomp_conf,uncomp_size);
+  
+  //free the gpu decompressed conf
+  gpu_free(gpu_uncomp_conf,"gpu_uncomp_conf");
+
+  // -------- 4) now compare the decompressed conf with the original one ------- 
+
+  for(int ivol=0;ivol<vol;ivol++)
+    for(int idir=0;idir<4;idir++)
+      {
+	float err=0;
+	
+	for(int i=0;i<3;i++)
+	  for(int j=0;j<3;j++)
+	    for(int ri=0;ri<2;ri++)
+	      {
+		double diff=conf[ivol][idir][i][j][ri]-cpu_uncomp_conf[ivol][idir][i][j][ri];
+		err+=diff*diff;
+	      }
+	
+	printf("%d %d %g\n",ivol,idir,err);
+      }
+  
+  //free the cpu decompressed conf
+  free(cpu_uncomp_conf);
+}
+
