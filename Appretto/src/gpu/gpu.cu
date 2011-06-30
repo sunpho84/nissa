@@ -2,5 +2,7 @@
 
 extern int rank;
 
-#include "find_device.cu"
-#include "choose_device.cu"
+#include "base/global.cu"
+
+#include "init/find_gpu.cu"
+#include "init/choose_gpu.cu"
