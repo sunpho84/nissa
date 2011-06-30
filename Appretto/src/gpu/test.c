@@ -1,10 +1,11 @@
 #include <stdio.h>
 
-int find_devices();
+int rank=0;
 
 int main()
 {
-  printf("%d devices found\n",find_devices());
+  choose_device();
+  //printf("%d devices found\n",find_devices());
   
   return 0;
 }
