@@ -19,6 +19,8 @@ typedef double compled[2];
 typedef compled spind[4];
 typedef compled colord[3];
 
+typedef colord spincolord[4];
+
 typedef colord su3d[3];
 typedef su3d quad_su3d[4];
 
