@@ -8,3 +8,5 @@ extern int rank;
 
 #include "init/find_gpu.cu"
 #include "init/choose_gpu.cu"
+
+#include "dirac_operators/dirac_operator.cu"
