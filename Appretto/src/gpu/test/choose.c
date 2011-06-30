@@ -4,7 +4,7 @@ int rank=0;
 
 int main()
 {
-  choose_device();
+  choose_gpu();
   //printf("%d devices found\n",find_devices());
   
   return 0;

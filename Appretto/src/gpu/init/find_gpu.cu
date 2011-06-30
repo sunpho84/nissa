@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 
-//this is copied from the CUDA sdk 
-extern "C" int find_devices()
+//this is adapted from the CUDA sdk 
+extern "C" int find_gpu()
 {
   int deviceCount;
 

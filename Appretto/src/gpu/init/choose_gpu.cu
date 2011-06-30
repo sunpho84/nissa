@@ -2,10 +2,10 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
 
-extern "C" void choose_device()
+extern "C" void choose_gpu()
 {
   //check that we have at least one gpu
-  if(find_devices()==0)
+  if(find_gpu()==0)
     {
       fprintf(stderr,"Error: no gpu found.\n");
       MPI_Abort(MPI_COMM_WORLD,1);
