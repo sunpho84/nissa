@@ -13,8 +13,9 @@ char *cpu_allocate_vector(int length,char *tag)
 }
 su3c *cpu_allocate_su3c(int length,char *tag){return (su3c*)cpu_allocate_vector(length*sizeof(su3c),tag);}
 su3f *cpu_allocate_su3f(int length,char *tag){return (su3f*)cpu_allocate_vector(length*sizeof(su3f),tag);}
-quad_su3c *cpu_allocate_quad_su3c(int length,char *tag){return (quad_su3c*)cpu_allocate_vector(length*sizeof(quad_su3c),tag);}
+su3g *cpu_allocate_su3g(int length,char *tag){return (su3g*)cpu_allocate_vector(length*sizeof(su3g),tag);}
 quad_su3f *cpu_allocate_quad_su3f(int length,char *tag){return (quad_su3f*)cpu_allocate_vector(length*sizeof(quad_su3f),tag);}
+quad_su3d *cpu_allocate_quad_su3d(int length,char *tag){return (quad_su3d*)cpu_allocate_vector(length*sizeof(quad_su3d),tag);}
 
 //allocate vectors of the required length
 char *gpu_allocate_vector(int length,char *tag)
@@ -31,13 +32,18 @@ char *gpu_allocate_vector(int length,char *tag)
 }
 su3c *gpu_allocate_su3c(int length,char *tag){return (su3c*)gpu_allocate_vector(length*sizeof(su3c),tag);}
 su3f *gpu_allocate_su3f(int length,char *tag){return (su3f*)gpu_allocate_vector(length*sizeof(su3f),tag);}
-quad_su3c *gpu_allocate_quad_su3c(int length,char *tag){return (quad_su3c*)gpu_allocate_vector(length*sizeof(quad_su3c),tag);}
+su3g *gpu_allocate_su3g(int length,char *tag){return (su3g*)gpu_allocate_vector(length*sizeof(su3g),tag);}
 quad_su3f *gpu_allocate_quad_su3f(int length,char *tag){return (quad_su3f*)gpu_allocate_vector(length*sizeof(quad_su3f),tag);}
+quad_su3d *gpu_allocate_quad_su3d(int length,char *tag){return (quad_su3d*)gpu_allocate_vector(length*sizeof(quad_su3d),tag);}
 
 //free a vector on the gpu
 extern "C" void gpu_free(void *out,char *tag)
 {
-  if(out!=NULL) cudaFree(out);
+  if(out!=NULL)
+    {
+      cudaFree(out);
+      out=NULL;
+    }
   else
     if(rank==0)
       {
