@@ -1,6 +1,7 @@
 #include <mpi.h>
 
 extern int rank;
+extern int loc_vol,loc_bord;
 
 #include "base/types.cu"
 #include "base/global.cu"

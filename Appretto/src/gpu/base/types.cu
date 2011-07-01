@@ -10,7 +10,6 @@ typedef colorf su3f[3];
 typedef su3f quad_su3f[4];
 
 typedef float su3c[8];
-typedef su3c quad_su3c[4];
 
 
 //double prec types
@@ -23,6 +22,9 @@ typedef colord spincolord[4];
 
 typedef colord su3d[3];
 typedef su3d quad_su3d[4];
+
+typedef double su3g[8];
+
 
 //The sum of two complex number
 #define complef_summ(a,b,c) a[0]=b[0]+c[0];a[1]=b[1]+c[1];
