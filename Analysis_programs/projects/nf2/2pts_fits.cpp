@@ -37,10 +37,8 @@ void read_pars(const char *input)
 //function to fit
 double fun_fit(double Z2,double M,int t)
 {
-  if(parity==1) return Z2*exp(-M*TH)*cosh(M*(TH-t))/M;
-  else return Z2*exp(-M*TH)*sin(M*(TH-t))/M;
-  //if(parity==1) return Z2*Z2*M*exp(-M*TH)*cosh(M*(TH-t));
-  //else return Z2*exp(-M*TH)*sin(M*(TH-t))/M;
+  if(parity==1) return Z2*exp(-M*TH)*cosh(M*(TH-t))/sinh(M);
+  else return Z2*exp(-M*TH)*sin(M*(TH-t))/sinh(M);
 }
 
 //chi2 calculation
@@ -98,27 +96,26 @@ int main()
 	corr=corr.simmetrized(parity);
 	int ttmin=tmin[ifit_int];
 	int ttmax=tmax[ifit_int];
-	jvec mcor=effective_mass(corr);
-	jack meff=constant_fit(mcor,ttmin,ttmax);
-	jack cestim(njack);
-	for(int ijack=0;ijack<=njack;ijack++) cestim.data[ijack]=corr[ttmin][ijack]/fun_fit(1,meff.data[ijack],ttmin);
+	jvec Mcor=effective_mass(corr),Z2cor(TH+1,njack);
+	jack Meff=constant_fit(Mcor,ttmin,ttmax);
+	for(int t=0;t<=TH;t++)
+	  for(int ijack=0;ijack<=njack;ijack++)
+	    Z2cor[t].data[ijack]=corr[t].data[ijack]/fun_fit(1,Meff[ijack],t);
+	jack Z2eff=constant_fit(Z2cor,ttmin,ttmax);
 	
-	if(!isnan(cestim.data[njack])) minu.DefineParameter(0,"Z2",cestim.data[njack],0.001,0,0);
-	if(!isnan(meff.data[njack])) minu.DefineParameter(1,"M",meff.data[njack],0.001,0,10000000);
+	if(!isnan(Z2eff[0])) minu.DefineParameter(0,"Z2",Z2eff[0],Z2eff.err(),0,2*Z2eff[0]);
+	if(!isnan(Meff[0])) minu.DefineParameter(1,"M",Meff[0],Meff.err(),0,2*Meff[0]);
+	for(int t=tmin[ifit_int];t<=tmax[ifit_int];t++) corr_err[t]=corr.data[t].err();
+	
 	//jacknife analysis
 	for(int ijack=0;ijack<njack+1;ijack++)
 	  {
 	    //copy data so that glob function may access it
-	    for(int t=tmin[ifit_int];t<=tmax[ifit_int];t++)
-	      {
-		corr_fit[t]=corr.data[t].data[ijack];	
-		corr_err[t]=corr.data[t].err();
-		//cout<<t<<" "<<corr_fit[t]<<" "<<corr_err[t]<<endl;
-	      }
+	    for(int t=tmin[ifit_int];t<=tmax[ifit_int];t++) corr_fit[t]=corr.data[t].data[ijack];
 	  
 	    //fit
 	    double dum;
-	    minu.Migrad();
+	    minu.Migrad();	    
 	    minu.GetParameter(0,Z2.data[ic].data[ijack],dum);
 	    minu.GetParameter(1,M.data[ic].data[ijack],dum);
 	    //cout<<ims<<" "<<imc<<"  "<<mass[ims]<<" "<<mass[imc]<<"  "<<ic<<"  "<<Z2.data[ic].data[ijack]<<" "<<M.data[ic].data[ijack]<<endl;
@@ -132,7 +129,7 @@ int main()
 	    ofstream out(combine("fit_plot_%02d_%02d.xmg",ims,imc).c_str());
 	    out<<"@type xydy"<<endl;
 	    out<<"@s0 line type 0"<<endl;
-	    out<<mcor<<endl;
+	    out<<Mcor<<endl;
 	    out<<"&"<<endl;
 	    out<<"@type xy"<<endl;
 	    double av_mass=M[ic].med();
@@ -144,7 +141,7 @@ int main()
 	    out<<tmin[ifit_int]<<" "<<av_mass-er_mass<<endl;
 	  }
 	
-	cout<<ims<<" "<<imc<<"  "<<mass[ims]<<" "<<mass[imc]<<"  "<<ic<<"  "<<M[ic]<<"  "<<Z2[ic]<<endl;
+	cout<<mass[ims]<<" "<<mass[imc]<<"  "<<M[ic]<<" "<<Meff<<"  "<<Z2[ic]<<" "<<Z2eff<<" "<<sqrt(Z2[ic])/(sinh(M[ic])*M[ic])*(mass[ims]+mass[imc])<<" "<<sqrt(Z2eff)/(sinh(Meff)*Meff)*(mass[ims]+mass[imc])<<endl;
 	
 	ic++;
       }

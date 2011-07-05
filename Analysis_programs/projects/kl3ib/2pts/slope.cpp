@@ -1,8 +1,8 @@
 #include "include.h"
-#include "kl3_common.cpp"
+#include "../kl3_common.cpp"
 
 double fun_A0P5(double Z_A0P5,double M_A0P5,int t){return Z_A0P5*exp(-M_A0P5*TH)*sinh(M_A0P5*(t-TH));}
-double fun_P5P5(double Z_P5P5,double M_P5P5,int t){return Z_P5P5*exp(-M_P5P5*TH)*cosh(M_P5P5*(TH-t))/M_P5P5;}
+double fun_P5P5(double Z_P5P5,double M_P5P5,int t){return Z_P5P5*exp(-M_P5P5*TH)*cosh(M_P5P5*(TH-t))/sinh(M_P5P5);}
 double fun_ratio_P5P5(double A,double SL,double M,int t){return A+SL*(t-TH)*tanh(M*(t-TH));}
 double fun_ratio_A0P5(double A,double SL,double M,int t){return A+SL*(TH-t)/tanh(M*(TH-t));}
 
