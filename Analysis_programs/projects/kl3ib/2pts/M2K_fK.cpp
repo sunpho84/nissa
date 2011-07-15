@@ -278,6 +278,8 @@ void analysis_dm2K_fr_dl()
   boot mu_fr_md_chir_cont=mu_chir_cont/md_chir_cont;
   
   //chiral and continuum
+  cout<<"dm2K = "<<dm2K_fr_dl_chir_cont<<endl;
+  cout<<"dmK = "<<dmK_chir_cont<<endl;
   cout<<"md - mu = ("<<dl_chir_cont*1000<<") Mev"<<endl;
   cout<<"mu / md = ("<<mu_chir_cont*1000<<") / ("<<md_chir_cont*1000<<") = "<<mu_fr_md_chir_cont<<endl;
   
@@ -318,6 +320,7 @@ void analysis_dfK_fr_dl()
   
   //chiral and continuum
   boot dfK_chir_cont=dfK_fr_dl_chir_cont*dl_chir_cont;
+  cout<<"dfK = "<<dfK_fr_dl_chir_cont<<endl;
   cout<<"fK+ - fK0 = ("<<dfK_chir_cont*1000<<") MeV"<<endl;
   cout<<"fK+ / fK - 1 = ("<<dfK_chir_cont/0.158/2<<")"<<endl;
   

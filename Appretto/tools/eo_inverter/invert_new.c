@@ -9,118 +9,55 @@ double kappa;
 double mu;
 double muh;
 
-void assign_add_mul_r_ee(spincolor *r,spincolor *s,double c)
+//apply gamma5
+void apply_gamma5(spincolor *out,spincolor *in)
 {
-  for(int X=0;X<loc_vol;X++)
-    if(loclx_parity[X]==0)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    r[X][id][ic][ri]+=s[X][id][ic][ri]*c;
-}
-
-void assign_mul_one_pm_imu_inv_oo_or_ee(spincolor *psi,spincolor *source,double _sign,int parity)
-{
-  double sign=-1.; 
-  if(_sign < 0.){
-    sign = 1.; 
-  }
-  
-  double nrm = 1/(1+muh*muh);
-  complex z={nrm,sign*nrm*muh};
-  complex w={z[0],-z[1]};
-  spincolor temp;
-
-  for(int X=0;X<loc_vol;X++)
-    if(loclx_parity[X]==parity)
-      {
-	for(int ic=0;ic<3;ic++)
-	  {
-	    unsafe_complex_prod(temp[0][ic],source[X][0][ic],z);
-	    unsafe_complex_prod(temp[1][ic],source[X][1][ic],z);
-	    unsafe_complex_prod(temp[2][ic],source[X][2][ic],w);
-	    unsafe_complex_prod(temp[3][ic],source[X][3][ic],w);
-	  }
-	memcpy(psi[X],temp,sizeof(spincolor));
-      }
-}
-
-void assign_mul_one_pm_imu_inv_oo(spincolor *psi,spincolor *source,double sign)
-{assign_mul_one_pm_imu_inv_oo_or_ee(psi,source,sign,1);}
-void assign_mul_one_pm_imu_inv_ee(spincolor *psi,spincolor *source,double sign)
-{assign_mul_one_pm_imu_inv_oo_or_ee(psi,source,sign,0);}
-
-void assign_mul_one_pm_imu_sub_mul_gamma5_oo(spincolor *t,spincolor *r,spincolor *s,double _sign)
-{
-  double sign=1.; 
-  if(_sign < 0.){
-    sign = -1.; 
-  }
-  
-  complex z={1,sign*muh};
-  complex w={1,-sign*muh};
-  spin phi;
-
-  for(int X=0;X<loc_vol;X++)
-    if(loclx_parity[X]==1)
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int id=0;id<4)
       for(int ic=0;ic<3;ic++)
 	{
-	  unsafe_complex_prod(phi[0],z,r[X][0][ic]);
-	  unsafe_complex_prod(phi[1],z,r[X][1][ic]);
-	  unsafe_complex_prod(phi[2],w,r[X][2][ic]);
-	  unsafe_complex_prod(phi[3],w,r[X][3][ic]);
-	  
-	  complex_subt(t[X][0][ic],phi[0],s[X][0][ic]);
-	  complex_subt(t[X][1][ic],phi[1],s[X][1][ic]);
-	  complex_subt(t[X][2][ic],s[X][2][ic],phi[2]);
-	  complex_subt(t[X][3][ic],s[X][3][ic],phi[3]);
+	  out[ivol][id][ic][0]=in[ivol][id][ic][0];
+	  out[ivol][id][ic][1]=(id<2?) +in[ivol][id][ic][1] : -in[ivol][id][ic][1];
 	}
 }
-
-void assign_mul_one_pm_imu_oo_or_ee(spincolor *psi,spincolor *source,double _sign,int parity)
+      
+//apply D_ee or D_oo
+void apply_Dee_or_Doo(spincolor *out,spincolor *in,int parity)
 {
-  double sign=1.; 
-  if(_sign < 0.){
-    sign = -1.; 
-  }
+  complex z[2]={{1/(2*kappa),+mu},{1/(2*kappa),-mu}};
   
-  complex z={1,sign*muh};
-  complex w={z[0],-z[1]};
-  spincolor temp;
-  
-  for(int X=0;X<loc_vol;X++)
-    if(loclx_parity[X]==parity)
-      {
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    if(loclx_parity[X]!=parity) //loop is on sink
+      for(int id=0;id<4)
 	for(int ic=0;ic<3;ic++)
-	  {
-	    unsafe_complex_prod(temp[0][ic],source[X][0][ic],z);
-	    unsafe_complex_prod(temp[1][ic],source[X][1][ic],z);
-	    unsafe_complex_prod(temp[2][ic],source[X][2][ic],w);
-	    unsafe_complex_prod(temp[3][ic],source[X][3][ic],w);
-	  }
-	memcpy(psi[X],temp,sizeof(spincolor));
-      }
+	  unsafe_complex_prod(out[ivol][id][ic],in[ivol][id][ic],z[id/2]);
 }
 
-void assign_mul_one_pm_imu_oo(spincolor *psi,spincolor *source,double sign)
-{assign_mul_one_pm_imu_inv_oo_or_ee(psi,source,sign,1);}
-void assign_mul_one_pm_imu_ee(spincolor *psi,spincolor *source,double sign)
-{assign_mul_one_pm_imu_inv_oo_or_ee(psi,source,sign,0);}
+void apply_Dee(spincolor *out,spincolor *in)
+{apply_Dee_or_Doo(out,in,0);}
 
-void assign_mul_add_r_oo_or_ee(spincolor *r,double c,spincolor *s,int parity)
+void apply_Doo(spincolor *out,spincolor *in)
+{apply_Dee_or_Doo(out,in,1);}
+
+//apply inv_D_ee or inv_D_oo
+void apply_inv_Dee_or_Doo(spincolor *out,spincolor *in,int parity)
 {
-  for(int X=0;X<loc_vol;X++)
-    if(loclx_parity[X]==parity)
-      for(int id=0;id<4;id++)
+  double f=2*kappa/(1+sqr(2*mu*kappa));
+  complex z[2]={{1/(2*kappa),+mu},{1/(2*kappa),-mu}};
+  
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    if(loclx_parity[X]!=parity) //loop is on sink
+      for(int id=0;id<4)
 	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    r[X][id][ic][ri]=c*r[X][id][ic][ri]+s[X][id][ic][ri];
+	  unsafe_complex_prod(out[ivol][id][ic],in[ivol][id][ic],z[id/2]);
 }
 
-void assign_mul_add_r_oo(spincolor *r,double c,spincolor *s)
-{assign_mul_add_r_oo_or_ee(r,c,s,1);}
-void assign_mul_add_r_ee(spincolor *r,double c,spincolor *s)
-{assign_mul_add_r_oo_or_ee(r,c,s,0);}
+void apply_Dee(spincolor *out,spincolor *in)
+{apply_Dee_or_Doo(out,in,0);}
+
+void apply_Doo(spincolor *out,spincolor *in)
+{apply_Dee_or_Doo(out,in,1);}
+
 
 //apply D_eo or oe
 void apply_Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,int parity)
@@ -455,6 +392,26 @@ void mega_wrap(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,
   free(Even);
 }
 
+void apply_M(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu)
+{
+  spincolor *temp=allocate_spincolor(loc_vol+loc_bord,"temp");
+  apply_gamma5(temp,in);
+  apply_Q(out,in,conf,kappa,mu);
+  free(temp);
+}
+
+void apply_M_split(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu)
+{
+  spincolor *temp1=allocate_spincolor(loc_vol+loc_bord,"temp1");
+  spincolor *temp2=allocate_spincolor(loc_vol+loc_bord,"temp2");
+  
+  apply_Deo(temp1,in,conf);
+  apply_inv_Dee(temp2,temp1);
+  for(int i=0;i<loc_vol*4*3*2;i++) ((double*)temp2)[i]+=((double*)in)[i];
+  free(temp1);
+  free(temp2);
+}
+
 int main(int narg,char **arg)
 {
   //basic mpi initialization
@@ -503,6 +460,11 @@ int main(int narg,char **arg)
   spincolor *source=allocate_spincolor(loc_vol+loc_bord,"source");
   memset(source,0,sizeof(spincolor)*loc_vol);
   if(rank==0) source[0][0][0][0]=1;
+  
+  spincolor *test1=allocate_spincolor(loc_vol+loc_bord,"test1");
+  apply_M(test1,source,conf,kappa,mu);
+  spincolor *test2=allocate_spincolor(loc_vol+loc_bord,"test2");
+  apply_M_split(test2,source,conf,kappa,mu)
 
   double residue;
   read_str_double("Residue",&residue);
