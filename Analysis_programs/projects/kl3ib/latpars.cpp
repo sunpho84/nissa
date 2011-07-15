@@ -21,7 +21,7 @@ double fPi_phys=0.1307;
 boot ms_phys,ams_phys[4];
 double mK_phys=0.493667;
 double dmK_phys_med=-0.006;
-double dmK_phys_err=0.0006/1000;
+double dmK_phys_err=0.0006;
 //c physics
 boot mc_phys,amc_phys[4];
 double mD_phys=1.8696;

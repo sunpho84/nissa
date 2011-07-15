@@ -1,4 +1,5 @@
 #include <include.h>
+#include <sstream>
 #include <iostream>
 
 using namespace std;
@@ -8,6 +9,20 @@ int T=48,TH=24;
 int njack;
 int nmass=2;
 int nslso,nslsi;
+
+string print_error_band(jvec a,double *x)
+{
+  int nt=a.nel;
+  ostringstream out;
+  out<<"@type xy"<<endl;
+  for(int t=0;t<nt;t++) out<<x[t]<<" "<<a[t].med()-a[t].err()<<endl;
+  for(int t=nt-1;t>=0;t--) out<<x[t]<<" "<<a[t].med()+a[t].err()<<endl;
+  out<<x[0]<<" "<<a[0].med()+a[0].err()<<endl;
+  out<<"&\n@type xy"<<endl;
+  for(int t=0;t<nt;t++) out<<x[t]<<" "<<a[t].med()<<endl;
+  
+  return out.str();
+}
 
 int iprop(int im3,int im2,int im1,int parity,int islso,int islsi)
 {return 2*(islso+nslso*(islsi+nslsi*(parity+2*(im1+nmass*(im2+nmass*im3)))));}
@@ -85,6 +100,23 @@ int main()
 	    jack SLOPE(njack),C(njack);
 	    cout<<tmin<<" "<<tmax<<endl;
 	    linear_fit(SLOPE,C,u,tmin,tmax);
+	    
+	    ofstream out_ratio(combine("ud_pres_%d%d%d_%d%d",r3,r2,r1,islso,islsi).c_str());
+	    int nt=101;
+	    int Dt=tmax-tmin;
+	    double dt=Dt*1.1/(nt-1);
+	    double t[nt];
+	    jvec ratio_fitted(nt,njack);
+	    for(int it=0;it<nt;it++)
+	      {
+		t[it]=tmin-0.05*Dt+dt*it;
+		for(int ijack=0;ijack<=njack;ijack++)
+		  ratio_fitted[it].data[ijack]=C[ijack]+SLOPE[ijack]*t[it];
+	      }
+	    out_ratio<<print_error_band(ratio_fitted,t);
+	    out_ratio<<"@type xydy"<<endl
+		     <<u<<"&"<<endl;
+
 	    jvec ud(TH-1,njack);
 	    for(int t=0;t<TH-1;t++) ud.data[t]=u[t+1]-u[t];
 	    ud.print_to_file(combine("ud%d%d%d_%d%d",r3,r2,r1,islso,islsi).c_str());
