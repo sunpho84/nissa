@@ -84,9 +84,9 @@ M_{i,j}=\left(\frac{1}{2k}+i\mu\gamma_{5}\right)\delta_{i,j}-\frac{1}{2}\sum_{\m
 that, separated in parity component is:
 \begin_inset Formula 
 \[
-M=\left(\begin{array}{cc}
-D_{ee} & D_{eo}\\
-D_{oe} & D_{oo}
+\gamma_{5}M=\left(\begin{array}{cc}
+Q_{ee} & Q_{eo}\\
+Q_{oe} & Q_{oo}
 \end{array}\right)
 \]
 
@@ -95,24 +95,24 @@ D_{oe} & D_{oo}
 where in particular: 
 \begin_inset Formula 
 \[
-D_{ee/oo}=\left(\frac{1}{2k}+i\mu\gamma_{5}\right)\delta_{ee/oo}
+Q_{ee/oo}=\left(\frac{\gamma_{5}}{2k}+i\mu\right)\delta_{ee/oo}
 \]
 
 \end_inset
 
 We can factorize 
-\begin_inset Formula $M$
+\begin_inset Formula $\gamma_{5}M$
 \end_inset
 
  like this: 
 \begin_inset Formula 
 \[
-M=\left(\begin{array}{cc}
-D_{ee} & 0\\
-D_{oe} & 1
+\gamma_{5}M=\left(\begin{array}{cc}
+Q_{ee} & 0\\
+Q_{oe} & 1
 \end{array}\right)\left(\begin{array}{cc}
-1 & D_{ee}^{-1}D_{eo}\\
-0 & D_{oo}-D_{oe}D_{ee}^{-1}D_{eo}
+1 & Q_{ee}^{-1}Q_{eo}\\
+0 & Q_{oo}-Q_{oe}Q_{ee}^{-1}Q_{eo}
 \end{array}\right)
 \]
 
@@ -121,12 +121,12 @@ D_{oe} & 1
 and 
 \begin_inset Formula 
 \[
-M^{-1}=\left(\begin{array}{cc}
-1 & D_{ee}^{-1}D_{eo}\\
-0 & D_{oo}-D_{oe}D_{ee}^{-1}D_{eo}
+\left(\gamma_{5}M\right)^{-1}=M^{-1}\gamma_{5}=\left(\begin{array}{cc}
+1 & Q_{ee}^{-1}Q_{eo}\\
+0 & Q_{oo}-Q_{oe}Q_{ee}^{-1}Q_{eo}
 \end{array}\right)^{-1}\left(\begin{array}{cc}
-D_{ee} & 0\\
-D_{oe} & 1
+Q_{ee} & 0\\
+Q_{oe} & 1
 \end{array}\right)^{-1}
 \]
 
@@ -136,11 +136,11 @@ but the two are invertible, in particular
 \begin_inset Formula 
 \[
 \left(\begin{array}{cc}
-D_{ee} & 0\\
-D_{oe} & 1
+Q_{ee} & 0\\
+Q_{oe} & 1
 \end{array}\right)^{-1}=\left(\begin{array}{cc}
-D_{ee}^{-1} & 0\\
--D_{oe}D_{ee}^{-1} & 1
+Q_{ee}^{-1} & 0\\
+-Q_{oe}Q_{ee}^{-1} & 1
 \end{array}\right)
 \]
 
@@ -150,10 +150,10 @@ and
 \begin_inset Formula 
 \[
 \left(\begin{array}{cc}
-1 & D_{ee}^{-1}D_{eo}\\
-0 & D_{oo}-D_{oe}D_{ee}^{-1}D_{eo}
+1 & Q_{ee}^{-1}Q_{eo}\\
+0 & Q_{oo}-Q_{oe}Q_{ee}^{-1}Q_{eo}
 \end{array}\right)^{-1}=\left(\begin{array}{cc}
-1 & -D_{ee}^{-1}D_{eo}K^{-1}\\
+1 & -Q_{ee}^{-1}Q_{eo}K^{-1}\\
 0 & K^{-1}
 \end{array}\right)
 \]
@@ -163,7 +163,7 @@ and
 where 
 \begin_inset Formula 
 \[
-K^{-1}\equiv\left(D_{oo}-D_{oe}D_{ee}^{-1}D_{eo}\right)^{-1}
+K^{-1}\equiv\left(Q_{oo}-Q_{oe}Q_{ee}^{-1}Q_{eo}\right)^{-1}
 \]
 
 \end_inset
@@ -174,7 +174,15 @@ and
 \begin_layout Standard
 \begin_inset Formula 
 \[
-D_{ee/oo}^{-1}=\frac{2k-4k^{2}i\mu\gamma_{5}}{1+4k^{2}\mu^{2}}\delta_{ee/oo}.
+\frac{1}{\frac{1}{4k^{2}}+\mu^{2}}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+Q_{ee/oo}^{-1}=\frac{2k\gamma_{5}-4k^{2}i\mu}{1+4k^{2}\mu^{2}}\delta_{ee/oo}.
 \]
 
 \end_inset
@@ -183,7 +191,7 @@ D_{ee/oo}^{-1}=\frac{2k-4k^{2}i\mu\gamma_{5}}{1+4k^{2}\mu^{2}}\delta_{ee/oo}.
 \end_layout
 
 \begin_layout Standard
-It turns out easier to solve 
+11It turns out easier to solve 
 \begin_inset Formula $K^{-1}$
 \end_inset
 
@@ -194,7 +202,7 @@ It turns out easier to solve
 :
 \begin_inset Formula 
 \[
-K^{-1}=\left[D_{oo}\left(1-D_{oo}^{-1}D_{oe}D_{ee}^{-1}D_{eo}\right)\right]^{-1}=\left(1-D_{oo}^{-1}D_{oe}D_{ee}^{-1}D_{eo}\right)^{-1}D_{oo}^{-1}
+K^{-1}=\left[Q_{oo}\left(1-Q_{oo}^{-1}Q_{oe}Q_{ee}^{-1}Q_{eo}\right)\right]^{-1}=\left(1-Q_{oo}^{-1}Q_{oe}Q_{ee}^{-1}Q_{eo}\right)^{-1}Q_{oo}^{-1}
 \]
 
 \end_inset
@@ -229,7 +237,7 @@ Define the spinor:
 \varphi_{o}
 \end{array}\right)\equiv\left(\begin{array}{c}
 D_{ee}^{-1}\chi_{e}\\
-\chi_{o}-D_{oe}\varphi_{e}
+\gamma_{5}\chi_{o}-D_{oe}\varphi_{e}
 \end{array}\right)
 \]
 
@@ -242,7 +250,7 @@ D_{ee}^{-1}\chi_{e}\\
 Then define the quantity:
 \begin_inset Formula 
 \[
-\varphi'\equiv D_{oo}^{-1}\varphi_{o}
+\varphi'\equiv\gamma_{5}D_{oo}^{-1}\varphi_{o}
 \]
 
 \end_inset
@@ -263,6 +271,18 @@ Solve the problem:
 \begin_inset Formula 
 \[
 \phi_{e}=\varphi_{e}-D_{ee}^{-1}D_{eo}\phi_{o}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+where1
+\begin_inset Formula 
+\[
+D_{ee/oo}^{-1}=\frac{2k}{1+4k^{2}\mu^{2}}\left(1-2ki\mu\gamma_{5}\right)\delta_{ee/oo}.
 \]
 
 \end_inset
