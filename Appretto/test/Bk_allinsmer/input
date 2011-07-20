@@ -1,0 +1,32 @@
+L 4
+T 8
+
+Kappa 0.177000
+Seed 0
+
+NSeparations 2
+ 4 6
+NoiseType 1
+NMass 2
+ 0.50 0.60
+
+ApeAlpha 0.5
+ApeNiter 5
+JacobiKappa 0.5
+JacobiNiters 2
+ 0 8
+
+Residue 1.e-24
+StoppingCriterion standard
+MinimalResidue 1.e-30
+NiterMax 1000
+
+NSpec 1
+
+NContrTwoPoints 3
+5 5
+5 9
+9 5
+
+NgaugeConf 1
+ ../Conf 0 otto twopoints
