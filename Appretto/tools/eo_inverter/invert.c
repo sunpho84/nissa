@@ -222,7 +222,7 @@ void apply_Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,int parity)
 	for(int id=0;id<4;id++)
 	  for(int ic=0;ic<3;ic++)
 	    for(int ri=0;ri<2;ri++)
-	      out[X][id][ic][ri]*=-0.5;
+	      out[X][id][ic][ri]*=-kappa; //-0.5
       }
 }
 
@@ -255,7 +255,7 @@ void Qtm_minus_psi(spincolor *l,spincolor *k,quad_su3 *conf,spincolor *t0,spinco
   apply_Deo(t1,k,conf);
   assign_mul_one_pm_imu_inv_oo(t1,t1,-1);
   apply_Doe(t0,t1,conf);
-  assign_mul_one_pm_imu_sub_mul_gamma5_oo(l,k,t0,-1);
+  assign_mul_one_pm_imu_sub_mul_gamma5_oo(l,k,t0,+1);
 }
 
 void Qtm_pm_psi(spincolor *l,spincolor *k,quad_su3 *conf,spincolor *t0,spincolor *t1,spincolor *t2)
@@ -327,7 +327,7 @@ void cg_her(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,int
 	  
 	  //apply_Q2_RL(s,p,conf,t1,NULL,NULL,0);
 	  Qtm_pm_psi(s,p,conf,t1,t2,t3);
-
+	  
 	  double loc_alpha=0; //real part of the scalar product
 	  for(int X=0;X<loc_vol;X++)
 	    if(loclx_parity[X]==1)
@@ -338,7 +338,7 @@ void cg_her(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,int
 	  MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	  omega=delta/alpha;
 	  //printf("omega: %g\n",omega);
-
+	  
 	  double loc_lambda=0;
 	  for(int X=0;X<loc_vol;X++)
 	    if(loclx_parity[X]==1)
@@ -372,7 +372,7 @@ void cg_her(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,int
 	  
 	  if(rank==0 && debug) printf("eo iter %d residue %g\n",iter,lambda);
 	}
-      while(lambda>(residue*source_norm) && iter<niter);
+      while(lambda>(residue/source_norm) && iter<niter);
       
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
@@ -413,7 +413,7 @@ void inv_Q_eo_impr_cg(spincolor *Even_new,spincolor *Odd_new,spincolor *Even,spi
   //create the source for the OO
   assign_mul_one_pm_imu_inv_ee(Even_new,Even,1);
   apply_Doe(t0,Even_new,conf);
-  assign_mul_add_r_oo(t0,1,Odd);
+  assign_mul_add_r_oo(t0,+1,Odd);
   gamma5_oo(t0,t0);
 
   cg_her(Odd_new,t0,guess,conf,niter,rniter,residue);
@@ -424,7 +424,7 @@ void inv_Q_eo_impr_cg(spincolor *Even_new,spincolor *Odd_new,spincolor *Even,spi
   //reconstruct even sites
   apply_Deo(t0,Odd_new,conf);
   assign_mul_one_pm_imu_inv_ee(t0,t0,1);
-  assign_add_mul_r_ee(Even_new,t0,1);
+  assign_add_mul_r_ee(Even_new,t0,+1);
   
   free(t0);
   free(t1);
@@ -545,7 +545,7 @@ int main(int narg,char **arg)
 	    //printf("%d %d %d %d %g %g\n",X,id,ic,ri,temp1[X][id][ic][ri],temp2[X][id][ic][ri]);
 	  }
 
-  //take initial time                                                                                                        
+  //take initial time 
   double tic;
   MPI_Barrier(cart_comm);
   tic=MPI_Wtime();
