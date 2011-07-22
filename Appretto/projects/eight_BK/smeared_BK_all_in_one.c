@@ -551,7 +551,7 @@ int main(int narg,char **arg)
 
       //Read position of first wall, reconstruct the others
       read_int(twall);
-      for(int iwall=1;iwall<nwall;iwall++) twall[iwall]=twall[0]+tsepa[iwall-1];
+      for(int iwall=1;iwall<nwall;iwall++) twall[iwall]=(twall[0]+tsepa[iwall-1])%glb_size[0];
 
       //Read outpaths
       read_str(basepath_bag,1024);
