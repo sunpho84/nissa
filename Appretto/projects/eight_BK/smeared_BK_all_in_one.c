@@ -239,7 +239,8 @@ void initialize_Bk(char *input_path)
   sme_conf=allocate_quad_su3(loc_vol+loc_bord,"sme_conf");
   
   //Allocate all the propagators colorspinspin vectors
-  nprop=iS(nwall,nsm_lv,nmass,2);
+  nprop=nwall*nsm_lv*nmass*2;
+  if(rank==0) printf("nprop: %d\n",nprop);
   S=(colorspinspin**)malloc(sizeof(colorspinspin*)*nprop);
   for(int iprop=0;iprop<nprop;iprop++) S[iprop]=allocate_colorspinspin(loc_vol,"S");
   
@@ -557,7 +558,7 @@ int main(int narg,char **arg)
       read_str(basepath_2pts,1024);
 
       //Invert propagators
-      if(rank==0) printf("Going to unvert: %d walls\n",nwall);
+      if(rank==0) printf("Going to invert: %d walls\n",nwall);
       for(int iwall=0;iwall<nwall;iwall++)
 	{
 	  generate_source(iwall);
