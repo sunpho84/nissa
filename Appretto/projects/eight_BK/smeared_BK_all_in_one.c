@@ -432,7 +432,7 @@ void calculate_all_contractions()
 	    {
 	      int tsepar=abs(twall[iwL]-twall[iwR]);
 	      
-	      fprintf(fout_bag," # LEFT_WALL_t=%d , RIGHT_WALL_t=%d , tseparat=%d\n\n",
+	      if(rank==0) fprintf(fout_bag," # LEFT_WALL_t=%d , RIGHT_WALL_t=%d , tseparat=%d\n\n",
 		      twall[iwL],twall[iwR],tsepar);
 	      
 	      //Ottos
