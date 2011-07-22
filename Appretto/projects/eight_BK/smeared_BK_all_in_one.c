@@ -449,18 +449,19 @@ void calculate_all_contractions()
 			      fprintf(fout_bag," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d",
 				      mass[im1],r1,mass[im2],r2,mass[im1],r3,mass[im2],r4);
 			      fprintf(fout_bag," . Tseparation=%d\n",tsepar);
-			      
-			      int ip1=iS(iwL,sm_lv_L,im1,r1),ip2=iS(iwL,sm_lv_L,im2,r2);
-			      int ip3=iS(iwR,sm_lv_R,im1,r3),ip4=iS(iwR,sm_lv_R,im2,r4);
-			      
-			      Bk_eights(S[ip1],S[ip2],S[ip3],S[ip4]);
-			      
-			      ncontr_tot+=32;
-			      if(rank==0)
-				{
-				  print_ottos_contractions_to_file(fout_bag);
-				  fprintf(fout_bag,"\n");
-				}
+			    }
+			  
+			  int ip1=iS(iwL,sm_lv_L,im1,r1),ip2=iS(iwL,sm_lv_L,im2,r2);
+			  int ip3=iS(iwR,sm_lv_R,im1,r3),ip4=iS(iwR,sm_lv_R,im2,r4);
+			  
+			  Bk_eights(S[ip1],S[ip2],S[ip3],S[ip4]);
+			  
+			  ncontr_tot+=32;
+			  
+			  if(rank==0)
+			    {
+			      print_ottos_contractions_to_file(fout_bag);
+			      fprintf(fout_bag,"\n");
 			    }
 			}
 	    }
