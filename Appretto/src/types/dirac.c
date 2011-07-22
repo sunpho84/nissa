@@ -207,7 +207,7 @@ void init_base_gamma()
       }
 }
 
-//Trace of the product off two spinspins
+//Trace of the product of two spinspins
 void trace_prod_spinspins(complex c,spinspin a,spinspin b)
 {
   c[0]=c[1]=0;
