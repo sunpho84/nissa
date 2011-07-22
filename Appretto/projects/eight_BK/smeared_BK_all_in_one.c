@@ -313,7 +313,7 @@ void calculate_S(int iwall)
 	  for(int id1=2;id1<4;id1++) for(int ic=0;ic<3;ic++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic][ri]*=-1;
 	}
       
-      //loop over smerding levels
+      //loop over smerding levels of the source
       for(int sm_lv=0;sm_lv<nsm_lv;sm_lv++)
 	{
 	  if(rank==0) printf("\n");
@@ -486,7 +486,8 @@ void calculate_all_contractions()
 		  int sm_to_app=((sm_lv_sink==0) ? 
 				 jacobi_niter[sm_lv_sink] : (jacobi_niter[sm_lv_sink]-jacobi_niter[sm_lv_sink-1])); 
 		  
-		  int iprop=iS(iwall,sm_lv_sink,imass,r);
+		  //smerd each source with the level of smerding of the sink
+		  int iprop=iS(iwall,sm_lv_sour,imass,r);
 		  
 		  for(int ivol=0;ivol<loc_vol;ivol++)
 		    get_spincolor_from_colorspinspin(reco_solution[0][ivol],S[iprop][ivol],id);
