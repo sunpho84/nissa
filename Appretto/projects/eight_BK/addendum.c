@@ -25,7 +25,7 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex **glb_c,colorspinspin *s1L,dirac_matr
   for(int icontr=0;icontr<ncontr;icontr++)
     for(int glb_t=0;glb_t<glb_size[0];glb_t++)
       loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
-  
+
   //Check if the global vector is contiguos
   complex *glb_c_buf=glb_c[0];
   int use_buf=0;
