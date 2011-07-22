@@ -14,6 +14,7 @@ MinimalResidue 1.e-30
 NiterMax 1000
 OutFileOtto otto
 OutFileTwoPoints twopoints
+Nspec 1
 NContrTwoPoints 3
 5 5
 5 9

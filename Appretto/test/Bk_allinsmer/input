@@ -4,17 +4,17 @@ T 8
 Kappa 0.177000
 Seed 0
 
-NSeparations 2
- 4 6
+NSeparations 1
+ 4
 NoiseType 1
-NMass 2
- 0.50 0.60
+NMass 1
+ 0.50
 
 ApeAlpha 0.5
 ApeNiter 5
 JacobiKappa 0.5
-JacobiNiters 2
- 0 8
+JacobiNiters 1
+ 0
 
 Residue 1.e-24
 StoppingCriterion standard

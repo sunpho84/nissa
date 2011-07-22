@@ -48,6 +48,7 @@ source |------>---->----->---->| sink
 #include <lemon.h>
 
 #include "appretto.h"
+#include "addendum.c"
 
 //gauge info
 int ngauge_conf;
@@ -353,18 +354,18 @@ void calculate_S(int iwall)
 void Bk_eights(colorspinspin *SL1,colorspinspin *SL2,colorspinspin *SR1,colorspinspin *SR2)
 {
   //Temporary vectors for the internal gamma
-  dirac_matr tsource[16],tsink[16];
+  dirac_matr tsink[16];//tsource[16]
 
   for(int igamma=0;igamma<16;igamma++)
     {
       //Put the two gamma5 needed for the revert of the d spinor
-      tsource[igamma]=base_gamma[0]; //g5*g5
+      //tsource[igamma]=base_gamma[0]; //g5*g5
       dirac_prod(&(tsink[igamma]),&(base_gamma[5]),&(base_gamma[igamma]));
     }
   
   //Call the routine which does the real contraction for the Mezzotto and the Otto
-  trace_g_sdag_g_s_g_sdag_g_s(contr_otto,tsource,SL1,tsink,SL2,tsource,SR1,tsink,SR2,16);
-  sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(contr_mezzotto,tsource,SL1,tsink,SL2,tsource,SR1,tsink,SR2,16);
+  trace_id_sdag_g_s_id_sdag_g_s(contr_otto,SL1,tsink,SL2,SR1,tsink,SR2,16);
+  sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(contr_mezzotto,SL1,tsink,SL2,SR1,tsink,SR2,16);
 }
 
 //Compute mesonic two points
