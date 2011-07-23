@@ -18,29 +18,12 @@ void spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b)
       }
 }
 
-void trace_id_sdag_g_s_id_sdag_g_s(complex **glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
+void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
 {
   //Allocate a contguous memory area where to store local results
   complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
-  for(int icontr=0;icontr<ncontr;icontr++)
-    for(int glb_t=0;glb_t<glb_size[0];glb_t++)
-      loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
+  memset(loc_c,0,sizeof(complex)*ncontr*glb_size[0]);
 
-  //Check if the global vector is contiguos
-  complex *glb_c_buf=glb_c[0];
-  int use_buf=0;
-  for(int icontr=0;icontr<ncontr && use_buf==0;icontr++)
-    use_buf=(glb_c[icontr]!=glb_c_buf+icontr*glb_size[0]);
-  if(use_buf)
-    {
-      if(debug>1 && rank==0)
-        {
-          printf("Creating a temporary buffer for the contractions.\n");
-          printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
-        }
-      glb_c_buf=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
-    }
-  
   //Local loop
   spinspin AR,AL;
   for(int loc_site=0;loc_site<loc_vol;loc_site++)
@@ -65,47 +48,19 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex **glb_c,colorspinspin *s1L,dirac_matr
 	  }
     }
   
-  //Finale reduction
+  //Final reduction
   if(debug>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
-  MPI_Reduce(loc_c,glb_c_buf,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   if(debug>1 && rank==0) printf("Reduction done\n");
-  
-  //if a temporary buffer has been used, destory it after copyng data to the true one
-  if(use_buf)
-    {
-      for(int icontr=0;icontr<ncontr;icontr++)
-        for(int glb_t=0;glb_t<glb_size[0];glb_t++)
-          {
-            glb_c[icontr][glb_t][0]=glb_c_buf[icontr*glb_size[0]+glb_t][0];
-            glb_c[icontr][glb_t][1]=glb_c_buf[icontr*glb_size[0]+glb_t][1];
-          }
-      free(glb_c_buf);
-    }
   
   free(loc_c);
 }
 
-void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex **glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
+void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
 {
   //Allocate a contguous memory area where to store local results
   complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
-  for(int icontr=0;icontr<ncontr;icontr++)
-    for(int glb_t=0;glb_t<glb_size[0];glb_t++)
-      loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
-  
-  //Check if the global vector is contiguos
-  complex *glb_c_buf=glb_c[0];
-  int use_buf=0;
-  for(int icontr=0;icontr<ncontr && use_buf==0;icontr++) use_buf=(glb_c[icontr]!=glb_c_buf+icontr*glb_size[0]);
-  if(use_buf)
-    {
-      if(debug>1 && rank==0)
-        {
-          printf("Creating a temporary buffer for the contractions.\n");
-          printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
-        }
-      glb_c_buf=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
-    }
+  memset(loc_c,0,sizeof(complex)*ncontr*glb_size[0]);
   
   //Local loop
   for(int loc_site=0;loc_site<loc_vol;loc_site++)
@@ -149,22 +104,10 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex **glb_c,colorspinspin
       }
     }
   
-  //Finale reduction
+  //Final reduction
   if(debug>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
-  MPI_Reduce(loc_c,glb_c_buf,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   if(debug>1 && rank==0) printf("Reduction done\n");
-  
-  //if a temporary buffer has been used, destory it after copyng data to the true one
-  if(use_buf)
-    {
-      for(int icontr=0;icontr<ncontr;icontr++)
-        for(int glb_t=0;glb_t<glb_size[0];glb_t++)
-          {
-            glb_c[icontr][glb_t][0]=glb_c_buf[icontr*glb_size[0]+glb_t][0];
-            glb_c[icontr][glb_t][1]=glb_c_buf[icontr*glb_size[0]+glb_t][1];
-          }
-      free(glb_c_buf);
-    }
   
   free(loc_c);
 }

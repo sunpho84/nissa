@@ -85,12 +85,12 @@ int stopping_criterion;
 int niter_max;
 
 //ottos contractions
-complex **contr_otto,**contr_mezzotto;
+complex *contr_otto,*contr_mezzotto;
 char basepath_bag[1024];
 
 //two points contractions
 int ncontr_2pts;
-complex **contr_2pts;
+complex *contr_2pts;
 int *op1_2pts,*op2_2pts;
 char basepath_2pts[1024];
 
@@ -202,27 +202,16 @@ void initialize_Bk(char *input_path)
   
   // 5) contraction list for eight
 
-  contr_otto=(complex**)malloc(sizeof(complex*)*16);
-  contr_otto[0]=(complex*)malloc(sizeof(complex)*16*glb_size[0]); 
-  contr_mezzotto=(complex**)malloc(sizeof(complex*)*16);
-  contr_mezzotto[0]=(complex*)malloc(sizeof(complex)*16*glb_size[0]); 
-  
-  for(int iop=0;iop<16;iop++)
-    {
-      contr_otto[iop]=contr_otto[0]+iop*glb_size[0];
-      contr_mezzotto[iop]=contr_mezzotto[0]+iop*glb_size[0];
-    }
+  contr_otto=(complex*)malloc(sizeof(complex)*16*glb_size[0]); 
+  contr_mezzotto=(complex*)malloc(sizeof(complex)*16*glb_size[0]); 
   
   read_str_int("NSpec",&nspec);
   read_str_int("NContrTwoPoints",&ncontr_2pts);
-  contr_2pts=(complex**)malloc(sizeof(complex*)*ncontr_2pts);
-  contr_2pts[0]=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
+  contr_2pts=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
   op1_2pts=(int*)malloc(sizeof(int)*ncontr_2pts);
   op2_2pts=(int*)malloc(sizeof(int)*ncontr_2pts);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     {
-      contr_2pts[icontr]=contr_2pts[0]+icontr*glb_size[0];
-
       //Read the operator pairs
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
@@ -293,8 +282,7 @@ void close_Bk()
   for(int iprop=0;iprop<nprop;iprop++) check_free(S[iprop]);
   check_free(reco_solution[1]);check_free(reco_solution[0]);
   check_free(S);
-  check_free(contr_otto[0]);check_free(contr_otto);
-  check_free(contr_mezzotto[0]);check_free(contr_mezzotto);
+  check_free(contr_otto);check_free(contr_mezzotto);
   close_appretto();
 }
 
@@ -381,7 +369,7 @@ void meson_two_points(colorspinspin *s1,colorspinspin *s2)
       dirac_prod(&(t2[icontr]),&(base_gamma[5]),&(base_gamma[op2_2pts[icontr]]));
     }
   //Call for the routine which perform actually real contraction
-  trace_g_sdag_g_s(contr_2pts,t1,s1,t2,s2,ncontr_2pts);
+  trace_g_sdag_g_s(&contr_2pts,t1,s1,t2,s2,ncontr_2pts);
 }
 
 //print all the passed contractions to the file
@@ -393,9 +381,9 @@ void print_ottos_contractions_to_file(FILE *fout)
     for(int icontr=0;icontr<16;icontr++)
       {
         fprintf(fout,"\n");
-	print_contraction_to_file(fout,icontr,5,contr_mezzotto[icontr],twall[0],"DISCONNECTED ",norm);
+	print_contraction_to_file(fout,icontr,5,contr_mezzotto+icontr*glb_size[0],twall[0],"DISCONNECTED ",norm);
         fprintf(fout,"\n");
-	print_contraction_to_file(fout,icontr,5,contr_otto[icontr],twall[0],"CONNECTED ",norm);
+	print_contraction_to_file(fout,icontr,5,contr_otto+icontr*glb_size[0],twall[0],"CONNECTED ",norm);
       }
 }
 
@@ -408,7 +396,7 @@ void print_two_points_contractions_to_file(FILE *fout)
     for(int icontr=0;icontr<ncontr_2pts;icontr++)
       {
         fprintf(fout,"\n");
-	print_contraction_to_file(fout,op2_2pts[icontr],op1_2pts[icontr],contr_2pts[icontr],twall[0],"",norm);
+	print_contraction_to_file(fout,op2_2pts[icontr],op1_2pts[icontr],contr_2pts+icontr*glb_size[0],twall[0],"",norm);
       }
 }
 

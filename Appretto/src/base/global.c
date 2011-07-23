@@ -139,21 +139,19 @@ void complex_subt_the_prod(complex a,complex b,complex c)
 }
 void complex_summ_the_conj2_prod(complex a,complex b,complex c)
 {
-  a[0]+=b[0]*c[0]+b[1]*c[1];
+  a[0]+=+b[0]*c[0]+b[1]*c[1];
   a[1]+=-b[0]*c[1]+b[1]*c[0];
 }
 void complex_summ_the_conj1_prod(complex a,complex b,complex c)
-{
-  complex_summ_the_conj2_prod(a,c,b);
-}
+{complex_summ_the_conj2_prod(a,c,b);}
 void complex_summ_the_conj_conj_prod(complex a,complex b,complex c)
 {
-  a[0]+=b[0]*c[0]-b[1]*c[1];
+  a[0]+=+b[0]*c[0]-b[1]*c[1];
   a[1]+=-b[0]*c[1]-b[1]*c[0];
 }
 void complex_subt_the_conj_conj_prod(complex a,complex b,complex c)
 {
-  a[0]-=b[0]*c[0]-b[1]*c[1];
+  a[0]-=+b[0]*c[0]-b[1]*c[1];
   a[1]-=-b[0]*c[1]-b[1]*c[0];
 }
 
@@ -167,18 +165,16 @@ void unsafe_complex_prod(complex a,complex b,complex c)
 //The product of a complex number by the conjugate of the second
 void unsafe_complex_conj2_prod(complex a,complex b,complex c)
 {
-  a[0]=b[0]*c[0]+b[1]*c[1];
+  a[0]=+b[0]*c[0]+b[1]*c[1];
   a[1]=-b[0]*c[1]+b[1]*c[0];
 }
 void unsafe_complex_conj1_prod(complex a,complex b,complex c)
-{
-  unsafe_complex_conj2_prod(a,c,b);
-}
+{unsafe_complex_conj2_prod(a,c,b);}
 
 //The product of the conjugate of two complex numbers
 void unsafe_complex_conj_conj_prod(complex a,complex b,complex c)
 {
-  a[0]=b[0]*c[0]-b[1]*c[1];
+  a[0]=+b[0]*c[0]-b[1]*c[1];
   a[1]=-b[0]*c[1]-b[1]*c[0];
 }
 
@@ -198,9 +194,7 @@ void safe_complex_conj2_prod(complex a,complex b,complex c)
   a[0]=tmp;
 }
 void safe_complex_conj1_prod(complex a,complex b,complex c)
-{
-  safe_complex_conj2_prod(a,c,b);
-}
+{safe_complex_conj2_prod(a,c,b);}
 
 //complex prod real
 void complex_prod_real(complex a,complex b,double c)
