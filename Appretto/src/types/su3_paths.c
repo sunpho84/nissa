@@ -141,7 +141,7 @@ void Pline(su3 *Pline,quad_su3 *conf)
 	     }	
 	}
   
-  free(U0);free(plf);free(plb);
+  check_free(U0);check_free(plf);check_free(plb);
 }
 
 void Pline_forward(su3 *Pline, quad_su3 *conf)
@@ -198,7 +198,7 @@ void Pline_forward(su3 *Pline, quad_su3 *conf)
 	     }
         }
 
-  free(U0);free(plf);
+  check_free(U0);check_free(plf);
 }
 
 void Pline_backward(su3 *Pline, quad_su3 *conf)
@@ -248,7 +248,7 @@ void Pline_backward(su3 *Pline, quad_su3 *conf)
 	     }
 	}
 
-  free(U0);free(plb);
+  check_free(U0);check_free(plb);
 }
 
 //This will calculate 2*a^2*ig*P_{mu,nu}

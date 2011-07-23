@@ -155,7 +155,7 @@ void read_spincolor(spincolor *out,char *path)
 	    memcpy(out[idest],temp[isour],sizeof(spincolor));
 	  }
   
-  free(temp);
+  check_free(temp);
 }  
 
 //Read a spincolor and reconstruct the doublet
@@ -172,7 +172,7 @@ void read_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path,qu
 
   reconstruct_doublet(out[0],out[1],temp,conf,kappa,mu);  
 
-  if(all) free(temp);
+  if(all) check_free(temp);
 }  
 
 //Read 4 spincolor and revert their indexes
@@ -208,7 +208,7 @@ void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
     }
   
   //Destroy the temp
-  free(sc);
+  check_free(sc);
 }
 
 //Read 4 spincolor and reconstruct them
@@ -249,9 +249,9 @@ void read_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char 
     }
 
   //Destroy the temp
-  free(sc[0]);
-  free(sc[1]);
-  free(temp);
+  check_free(sc[0]);
+  check_free(sc[1]);
+  check_free(temp);
 }
 
 ////////////////////////// gauge configuration loading /////////////////////////////
@@ -284,7 +284,7 @@ void read_local_gauge_conf(quad_su3 *out,char *path)
 	    memcpy(out[idest],buff,sizeof(quad_su3));
 	  }
 
-  free(temp);
+  check_free(temp);
   
   if(debug)
     {

@@ -56,11 +56,11 @@ void init_random(int seed)
 //Close random
 void close_random()
 {
-  free(ran2_idum);
-  free(ran2_idum2);
-  free(ran2_iy);
-  for(int loc_ind=0;loc_ind<loc_vol;loc_ind++) free(ran2_iv[loc_ind]);
-  free(ran2_iv);
+  check_free(ran2_idum);
+  check_free(ran2_idum2);
+  check_free(ran2_iy);
+  for(int loc_ind=0;loc_ind<loc_vol;loc_ind++) check_free(ran2_iv[loc_ind]);
+  check_free(ran2_iv);
 }
 
 //standard ran2 from numerical recipes

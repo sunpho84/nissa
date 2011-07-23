@@ -93,7 +93,7 @@ void shift_gauge_conf_down(quad_su3 *conf,int *amount)
 
   memcpy(conf,temp_conf,sizeof(quad_su3)*loc_vol);
 
-  free(temp_conf);free(supp_conf);
+  check_free(temp_conf);check_free(supp_conf);
 }
 
 //put boundary conditions on the gauge conf

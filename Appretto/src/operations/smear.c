@@ -55,7 +55,7 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
 	}
     }
       
-  free(temp_conf);
+  check_free(temp_conf);
 }
 
 //return the spatial density profile at a fixed timeslice, at radius r from or_pos
@@ -237,6 +237,6 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 #endif
     }
   
-  free(H);
+  check_free(H);
 }
 

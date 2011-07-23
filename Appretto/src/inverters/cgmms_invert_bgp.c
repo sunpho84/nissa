@@ -263,10 +263,10 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
       }
     }  
   
-  for(int imass=0;imass<nmass;imass++) free(ps[imass]);
-  free(ps);
-  free(s);
-  free(p);
-  free(r);
-  free(t);
+  for(int imass=0;imass<nmass;imass++) check_free(ps[imass]);
+  check_free(ps);
+  check_free(s);
+  check_free(p);
+  check_free(r);
+  check_free(t);
 }
