@@ -116,6 +116,8 @@ void complex_subt(complex a,complex b,complex c)
   a[0]=b[0]-c[0];
   a[1]=b[1]-c[1];
 }
+void complex_summassign(complex a,complex b){complex_summ(a,a,b);}
+void complex_subtassign(complex a,complex b){complex_subt(a,a,b);}
 
 //prod with real
 void complex_prod_with_real(complex a,complex b,double c)
