@@ -249,7 +249,6 @@ void initialize_Bk(char *input_path)
   for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=allocate_spincolor(loc_vol+loc_bord,"cgmms_solution");
   reco_solution[0]=allocate_spincolor(loc_vol,"reco_solution[0]");
   reco_solution[1]=allocate_spincolor(loc_vol,"reco_solution[1]");
-  
   //Allocate one spincolor for the source
   source=allocate_spincolor(loc_vol+loc_bord,"source");
 
@@ -289,13 +288,13 @@ void close_Bk()
       printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
       printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
     }
-
-  free(conf);free(sme_conf);free(mass);
-  for(int iprop=0;iprop<nprop;iprop++) free(S[iprop]);
-  free(reco_solution[0]);free(reco_solution[1]);free(S);
-  free(contr_otto[0]);free(contr_otto);
-  free(contr_mezzotto[0]);free(contr_mezzotto);
-
+  
+  check_free(conf);check_free(sme_conf);check_free(mass);
+  for(int iprop=0;iprop<nprop;iprop++) check_free(S[iprop]);
+  check_free(reco_solution[1]);check_free(reco_solution[0]);
+  check_free(S);
+  check_free(contr_otto[0]);check_free(contr_otto);
+  check_free(contr_mezzotto[0]);check_free(contr_mezzotto);
   close_appretto();
 }
 
@@ -432,6 +431,7 @@ void calculate_all_contractions()
 	    {
 	      int tsepar=abs(twall[iwL]-twall[iwR]);
 	      
+	      MPI_Barrier(MPI_COMM_WORLD);
 	      if(rank==0) fprintf(fout_bag," # LEFT_WALL_t=%d , RIGHT_WALL_t=%d , tseparat=%d\n\n",
 		      twall[iwL],twall[iwR],tsepar);
 	      
@@ -496,7 +496,7 @@ void calculate_all_contractions()
 		  for(int ivol=0;ivol<loc_vol;ivol++)
 		    put_spincolor_into_colorspinspin(S[iprop][ivol],reco_solution[1][ivol],id);
               }
-	
+		
 	//two points
 	for(int im2=0;im2<nmass;im2++)
 	  for(int r2=0;r2<2;r2++)

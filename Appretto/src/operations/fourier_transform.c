@@ -72,6 +72,6 @@ void spincolor_FT(spincolor *S,spincolor *FT,double *theta,int **iP,int nmom)
 
   MPI_Reduce(FT_loc,FT,24*nmom,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   
-  for(int idir=0;idir<4;idir++){free(P[idir]);free(SinP[idir]);}
-  free(P2);free(SinP2);free(SinP4);free(P);free(SinP);
+  for(int idir=0;idir<4;idir++){check_free(P[idir]);check_free(SinP[idir]);}
+  check_free(P2);check_free(SinP2);check_free(SinP4);check_free(P);check_free(SinP);
 }

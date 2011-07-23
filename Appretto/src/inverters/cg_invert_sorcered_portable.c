@@ -121,8 +121,8 @@ void inv_Q2_cg_sorc_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su
     }
   while(lambda>(residue*source_norm) && riter<rniter);
   
-  free(s);
-  free(p);
-  free(r);
-  free(t);
+  check_free(s);
+  check_free(p);
+  check_free(r);
+  check_free(t);
 }

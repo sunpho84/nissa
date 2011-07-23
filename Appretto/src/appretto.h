@@ -7,6 +7,7 @@
 #define M_PI           3.14159265358979323846
 #endif
 
+#include "base/debug.c"
 #include "base/global.c"
 #include "base/init.c"
 #include "base/close.c"

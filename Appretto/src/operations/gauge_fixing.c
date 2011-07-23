@@ -50,7 +50,7 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   if(proc_coord[0]!=(nproc_dir[0]-1) && nproc_dir[0]>1)
     MPI_Send((void*)buf,loc_slice_area,MPI_SU3,rank_neighup[0],252,cart_comm);
 
-  if(nproc_dir[0]>1) free(buf);
+  if(nproc_dir[0]>1) check_free(buf);
 }
 
 //apply a gauge transformation to the conf

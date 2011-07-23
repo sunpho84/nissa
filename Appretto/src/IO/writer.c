@@ -74,7 +74,7 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
   lemonWriteLatticeParallelMapped(writer,buffer,nbytes_per_site,glb_dims,scidac_mapping);
 
   //delete the swapped data, if created
-  if(big_endian || nbits==32) free(buffer);
+  if(big_endian || nbits==32) check_free(buffer);
 
   //take final time
   double tac;
@@ -143,7 +143,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
   //Write the binary data
   write_double_vector(writer,(char*)temp,"scidac-binary-data",nreals_per_spincolor,prec);
 
-  free(temp);
+  check_free(temp);
 
   if(rank==0) printf("File '%s' saved (probably...)\n",path);
   
@@ -193,7 +193,7 @@ void write_local_gauge_conf(char *path,quad_su3 *in)
   LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
   write_double_vector(writer,(char*)temp,"ildg-binary-data",nreals_per_quad_su3,64);
   
-  free(temp);
+  check_free(temp);
   
   if(debug)
     {

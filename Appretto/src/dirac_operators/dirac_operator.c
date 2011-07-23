@@ -49,7 +49,7 @@ void apply_Q2_RL(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double
 
   if(all==1)
     {
-      free(temp);
+      check_free(temp);
       temp=NULL;
     }
 }

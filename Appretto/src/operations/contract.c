@@ -81,10 +81,10 @@ void trace_g_sdag_g_s(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_mat
 	    glb_c[icontr][glb_t][0]=glb_c_buf[icontr*glb_size[0]+glb_t][0];
 	    glb_c[icontr][glb_t][1]=glb_c_buf[icontr*glb_size[0]+glb_t][1];
 	  }
-      free(glb_c_buf);
+      check_free(glb_c_buf);
     }
   
-  free(loc_c);
+  check_free(loc_c);
 }
 
 void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin *s1L, dirac_matr *g2L, colorspinspin *s2L, dirac_matr *g1R,colorspinspin *s1R, dirac_matr *g2R, colorspinspin *s2R,const int ncontr)
@@ -153,10 +153,10 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
             glb_c[icontr][glb_t][0]=glb_c_buf[icontr*glb_size[0]+glb_t][0];
             glb_c[icontr][glb_t][1]=glb_c_buf[icontr*glb_size[0]+glb_t][1];
           }
-      free(glb_c_buf);
+      check_free(glb_c_buf);
     }
 
-  free(loc_c);
+  check_free(loc_c);
 }
 
 
@@ -215,10 +215,10 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
             glb_c[icontr][glb_t][0]=glb_c_buf[icontr*glb_size[0]+glb_t][0];
             glb_c[icontr][glb_t][1]=glb_c_buf[icontr*glb_size[0]+glb_t][1];
           }
-      free(glb_c_buf);
+      check_free(glb_c_buf);
     }
 
-  free(loc_c);
+  check_free(loc_c);
 }
 
 //print a single contraction to the file
