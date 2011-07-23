@@ -194,6 +194,7 @@ void vol_assign_spincolor_prod_real(spincolor *sc,double c)
 //jacobi smearing
 void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int niter)
 {
+  spincolor *temp=allocate_spincolor(loc_vol+loc_bord,"temp"); //we do not know if smear_sc is allocated with border
   spincolor *H=allocate_spincolor(loc_vol+loc_bord,"H");
   double norm_fact=1/(1+6*kappa);
   communicate_gauge_borders(conf);
@@ -201,7 +202,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
   if(rank==0 && debug) printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
   
   //iter 0
-  if(smear_sc!=origi_sc) memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
+  if(smear_sc!=origi_sc) memcpy(temp,origi_sc,sizeof(spincolor)*loc_vol);
   
   //loop over jacobi iterations
   for(int iter=0;iter<niter;iter++)
@@ -209,12 +210,12 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 	if(rank==0 && debug==2) printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
 	
 	//apply kappa*H
-	smearing_apply_kappa_H(H,kappa,conf,smear_sc);
+	smearing_apply_kappa_H(H,kappa,conf,temp);
 #ifndef BGP
 	//add kappa*H
-	vol_spincolor_summassign(smear_sc,H);
+	vol_spincolor_summassign(temp,H);
 	//dynamic normalization  
-	vol_assign_spincolor_prod_real(smear_sc,norm_fact);
+	vol_assign_spincolor_prod_real(temp,norm_fact);
 #else
 	bgp_complex A0,A1,A2;
 	bgp_complex B0,B1,B2;
@@ -222,21 +223,24 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 	
 	for(int l=0;l<loc_vol;l++)
 	  {
-	    bgp_cache_touch_spincolor(smear_sc[l]);
+	    bgp_cache_touch_spincolor(temp[l]);
 	    bgp_cache_touch_spincolor(H[l]);
 	    
 	    for(int id=0;id<4;id++)
 	      {
-		bgp_load_color(A0,A1,A2,smear_sc[l][id]);
+		bgp_load_color(A0,A1,A2,temp[l][id]);
 		bgp_load_color(B0,B1,B2,H[l][id]);
 		bgp_color_prod_real(C0,C1,C2,A0,A1,A2,norm_fact);
 		bgp_summassign_color_prod_real(C0,C1,C2,B0,B1,B2,norm_fact);
-		bgp_save_color(smear_sc[l][id],C0,C1,C2);
+		bgp_save_color(temp[l][id],C0,C1,C2);
 	      }
 	  }
 #endif
     }
   
+  memcpy(smear_sc,temp,sizeof(spincolor)*loc_vol);
+  
   check_free(H);
+  check_free(temp);
 }
 
