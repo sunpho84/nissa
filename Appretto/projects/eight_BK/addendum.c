@@ -43,7 +43,7 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
                 spinspin_dirac_spinspin_prod(ALg,&(g2R[icontr]),AL);
                 spinspin_dirac_spinspin_prod(ARg,&(g2L[icontr]),AR);
                 trace_prod_spinspins(ctemp,ALg,ARg);
-                complex_summ(loc_c[icontr*glb_size[0]+glb_t],loc_c[icontr*glb_size[0]+glb_t],ctemp);
+                complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
 	      }
 	  }
     }
