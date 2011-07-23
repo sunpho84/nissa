@@ -202,7 +202,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
   if(rank==0 && debug) printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
   
   //iter 0
-  if(smear_sc!=origi_sc) memcpy(temp,origi_sc,sizeof(spincolor)*loc_vol);
+  memcpy(temp,origi_sc,sizeof(spincolor)*loc_vol);
   
   //loop over jacobi iterations
   for(int iter=0;iter<niter;iter++)
