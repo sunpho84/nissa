@@ -16,7 +16,7 @@
 */
 
 int ncontr,nch_contr;
-complex **contr,**ch_contr;
+complex *contr,*ch_contr;
 int *op,*ch_op;
 
 char gaugeconf_file[1024];
@@ -67,7 +67,7 @@ void get_stopping_criterion(int *stopping_criterione,double *minimal_residue)
 }
 
 //This function contract a source with a propagator putting the passed list of operators
-void contract_with_source(complex **corr,colorspinspin *prop,int *list_op,colorspinspin *source,int ncontr)
+void contract_with_source(complex *corr,colorspinspin *prop,int *list_op,colorspinspin *source,int ncontr)
 {
   //Temporary vector for the internal matrices
   dirac_matr t1[ncontr];
@@ -86,7 +86,7 @@ void contract_with_source(complex **corr,colorspinspin *prop,int *list_op,colors
 
 //This perform the contraction using the so-callled (by Silvano) Chris Micheal trick
 //otherwise called "twisted trick"
-void contract_with_chris_michael(complex **corr,int *list_op,colorspinspin *s1,colorspinspin *s2,int ncontr,double mass)
+void contract_with_chris_michael(complex *corr,int *list_op,colorspinspin *s1,colorspinspin *s2,int ncontr,double mass)
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];
@@ -105,11 +105,11 @@ void contract_with_chris_michael(complex **corr,int *list_op,colorspinspin *s1,c
   for(int icontr=0;icontr<ncontr;icontr++)
     for(int t=0;t<glb_size[0];t++)
       for(int ri=0;ri<2;ri++)
-	corr[icontr][t][ri]*=2*mass;  
+	(corr+icontr*glb_size[0])[t][ri]*=2*mass;  
 }
 	  
 //print all the passed contractions to the file
-void print_bubbles_to_file(FILE *fout,int ncontr,int *op,complex **contr,const char *tag)
+void print_bubbles_to_file(FILE *fout,int ncontr,int *op,complex *contr,const char *tag)
 {
   if(rank==0)
     {
@@ -119,7 +119,7 @@ void print_bubbles_to_file(FILE *fout,int ncontr,int *op,complex **contr,const c
 	{
 	  fprintf(fout," # %s%s\n\n",tag,gtag[op[icontr]]);
 	  for(int t=0;t<glb_size[0];t++)
-	    fprintf(fout,"%+016.16g\t%+016.16g\n",contr[icontr][t][0],contr[icontr][t][1]);
+	    fprintf(fout,"%+016.16g\t%+016.16g\n",(contr+icontr*glb_size[0])[t][0],(contr+icontr*glb_size[0])[t][1]);
 	  fprintf(fout,"\n");
 	}
       fprintf(fout,"\n");
@@ -145,12 +145,10 @@ void initialize_bubbles(char *input_path)
   if(rank==0) printf("Number of contractions: %d\n",ncontr);
 
   //Initialize the list of correlations and the list of operators
-  contr=(complex**)malloc(sizeof(complex*)*ncontr);
-  contr[0]=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
+  contr=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
   op=(int*)malloc(sizeof(int)*ncontr);
   for(int icontr=0;icontr<ncontr;icontr++)
     {
-      contr[icontr]=contr[0]+icontr*glb_size[0];
       //Read the operator
       read_int(&(op[icontr]));
       
@@ -163,12 +161,10 @@ void initialize_bubbles(char *input_path)
   
   //Initialize the list of chromo correlations and the list of operators
   //contiguous allocation
-  ch_contr=(complex**)malloc(sizeof(complex*)*nch_contr);
-  ch_contr[0]=(complex*)malloc(sizeof(complex)*nch_contr*glb_size[0]); 
+  ch_contr=(complex*)malloc(sizeof(complex)*nch_contr*glb_size[0]); 
   ch_op=(int*)malloc(sizeof(int)*nch_contr);
   for(int ich_contr=0;ich_contr<nch_contr;ich_contr++)
     {
-      ch_contr[ich_contr]=ch_contr[0]+ich_contr*glb_size[0];
       //Read the operator
       read_int(&(ch_op[ich_contr]));
       

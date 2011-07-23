@@ -7,14 +7,14 @@ Seed 0
 NSeparations 1
  4
 NoiseType 1
-NMass 1
- 0.50
+NMass 2
+ 0.50 0.60
 
 ApeAlpha 0.5
 ApeNiter 5
 JacobiKappa 0.5
-JacobiNiters 1
- 0
+JacobiNiters 2
+ 0 8
 
 Residue 1.e-24
 StoppingCriterion standard

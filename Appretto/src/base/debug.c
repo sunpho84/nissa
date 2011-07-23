@@ -1,10 +1,17 @@
 #pragma once
 
 #define fprintf_debug(fil,mes)						\
-  MPI_Barrier(MPI_COMM_WORLD);						\
-  if(rank==0) fprintf(fil,"Debug message: %s on file %s, line %d\n",mes,__FILE__,__LINE__);
+  {									\
+    MPI_Barrier(MPI_COMM_WORLD);					\
+    if(rank==0)								\
+      {									\
+	fprintf(fil,"Debug message: %s on file %s, line %d\n",mes,__FILE__,__LINE__); \
+	fflush(fil);							\
+      }									\
+    MPI_Barrier(MPI_COMM_WORLD);					\
+  }
 
-#define printf_debug(mes) fprintf(stderr,mes);
+#define printf_debug(mes) fprintf_debug(stdout,mes);
 
 #define crash(mes)				\
   {						\
