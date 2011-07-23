@@ -11,7 +11,7 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
       
   for(int istep=0;istep<nstep;istep++)
     {
-      if(rank==0 && debug==2) printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
+      if(rank==0 && debug>1) printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
       memcpy(temp_conf,smear_conf,sizeof(quad_su3)*loc_vol);
       
       //communicate the borders
@@ -194,53 +194,61 @@ void vol_assign_spincolor_prod_real(spincolor *sc,double c)
 //jacobi smearing
 void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int niter)
 {
-  spincolor *temp=allocate_spincolor(loc_vol+loc_bord,"temp"); //we do not know if smear_sc is allocated with border
-  spincolor *H=allocate_spincolor(loc_vol+loc_bord,"H");
-  double norm_fact=1/(1+6*kappa);
-  communicate_gauge_borders(conf);
-  
-  if(rank==0 && debug) printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
-  
-  //iter 0
-  memcpy(temp,origi_sc,sizeof(spincolor)*loc_vol);
-  
-  //loop over jacobi iterations
-  for(int iter=0;iter<niter;iter++)
+  if(niter<1)
     {
-	if(rank==0 && debug==2) printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
-	
-	//apply kappa*H
-	smearing_apply_kappa_H(H,kappa,conf,temp);
-#ifndef BGP
-	//add kappa*H
-	vol_spincolor_summassign(temp,H);
-	//dynamic normalization  
-	vol_assign_spincolor_prod_real(temp,norm_fact);
-#else
-	bgp_complex A0,A1,A2;
-	bgp_complex B0,B1,B2;
-	bgp_complex C0,C1,C2;
-	
-	for(int l=0;l<loc_vol;l++)
-	  {
-	    bgp_cache_touch_spincolor(temp[l]);
-	    bgp_cache_touch_spincolor(H[l]);
-	    
-	    for(int id=0;id<4;id++)
-	      {
-		bgp_load_color(A0,A1,A2,temp[l][id]);
-		bgp_load_color(B0,B1,B2,H[l][id]);
-		bgp_color_prod_real(C0,C1,C2,A0,A1,A2,norm_fact);
-		bgp_summassign_color_prod_real(C0,C1,C2,B0,B1,B2,norm_fact);
-		bgp_save_color(temp[l][id],C0,C1,C2);
-	      }
-	  }
-#endif
+      if(rank==0 && debug) printf("Skipping smearing (0 iter required)\n");
+      if(smear_sc!=origi_sc) memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
     }
-  
-  memcpy(smear_sc,temp,sizeof(spincolor)*loc_vol);
-  
-  check_free(H);
-  check_free(temp);
+  else
+    {
+      spincolor *temp=allocate_spincolor(loc_vol+loc_bord,"temp"); //we do not know if smear_sc is allocated with border
+      spincolor *H=allocate_spincolor(loc_vol+loc_bord,"H");
+      double norm_fact=1/(1+6*kappa);
+      communicate_gauge_borders(conf);
+
+      if(rank==0 && debug) printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
+      
+      //iter 0
+      memcpy(temp,origi_sc,sizeof(spincolor)*loc_vol);
+      
+      //loop over jacobi iterations
+      for(int iter=0;iter<niter;iter++)
+	{
+	  if(rank==0 && debug>1) printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
+	  
+	  //apply kappa*H
+	  smearing_apply_kappa_H(H,kappa,conf,temp);
+#ifndef BGP
+	  //add kappa*H
+	  vol_spincolor_summassign(temp,H);
+	  //dynamic normalization  
+	  vol_assign_spincolor_prod_real(temp,norm_fact);
+#else
+	  bgp_complex A0,A1,A2;
+	  bgp_complex B0,B1,B2;
+	  bgp_complex C0,C1,C2;
+	  
+	  for(int l=0;l<loc_vol;l++)
+	    {
+	      bgp_cache_touch_spincolor(temp[l]);
+	      bgp_cache_touch_spincolor(H[l]);
+	      
+	      for(int id=0;id<4;id++)
+		{
+		  bgp_load_color(A0,A1,A2,temp[l][id]);
+		  bgp_load_color(B0,B1,B2,H[l][id]);
+		  bgp_color_prod_real(C0,C1,C2,A0,A1,A2,norm_fact);
+		  bgp_summassign_color_prod_real(C0,C1,C2,B0,B1,B2,norm_fact);
+		  bgp_save_color(temp[l][id],C0,C1,C2);
+		}
+	    }
+#endif
+	}
+      
+      memcpy(smear_sc,temp,sizeof(spincolor)*loc_vol);
+      
+      check_free(H);
+      check_free(temp);
+    }
 }
 

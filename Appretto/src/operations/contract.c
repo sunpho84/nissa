@@ -28,26 +28,12 @@ void site_trace_g_sdag_g_s_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac
 }
 
 //Trace the product of gamma1 * spinspin1^dag * gamma2 * spinspin2,
-void trace_g_sdag_g_s(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,const int ncontr)
+void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,const int ncontr)
 {
   //Allocate a contiguous memory area where to store local node results
   complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
   for(int icontr=0;icontr<ncontr;icontr++)
     for(int glb_t=0;glb_t<glb_size[0];glb_t++) loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
-  
-  //Check if the global vector is contiguos (needed in order to make a single MPI call)
-  complex *glb_c_buf=glb_c[0];
-  int use_buf=0;
-  for(int icontr=0;icontr<ncontr && use_buf==0;icontr++) use_buf=(glb_c[icontr]!=glb_c_buf+icontr*glb_size[0]);
-  if(use_buf)
-    {
-      if(debug>1 && rank==0)
-	{
-	  printf("Creating a temporary buffer for the contractions.\n");
-	  printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
-	}
-      glb_c_buf=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
-    }
   
   for(int icontr=0;icontr<ncontr;icontr++) 
     {
@@ -69,20 +55,8 @@ void trace_g_sdag_g_s(complex **glb_c,dirac_matr *g1,colorspinspin *s1,dirac_mat
   
   //Final reduction
   if(debug>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
-  MPI_Reduce(loc_c,glb_c_buf,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   if(debug>1 && rank==0) printf("Reduction done\n");
-  
-  //if a temporary buffer has been used, destroy it after copying data to the true one
-  if(use_buf)
-    {
-      for(int icontr=0;icontr<ncontr;icontr++)
-	for(int glb_t=0;glb_t<glb_size[0];glb_t++)
-	  {
-	    glb_c[icontr][glb_t][0]=glb_c_buf[icontr*glb_size[0]+glb_t][0];
-	    glb_c[icontr][glb_t][1]=glb_c_buf[icontr*glb_size[0]+glb_t][1];
-	  }
-      check_free(glb_c_buf);
-    }
   
   check_free(loc_c);
 }
@@ -238,7 +212,7 @@ void print_contraction_to_file(FILE *fout,int op1,int op2,complex *contr,int twa
 }
 
 //print all the passed contractions to the file
-void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex **contr,int twall,const char *tag)
+void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex *contr,int twall,const char *tag)
 {
   double norm=glb_size[1]*glb_size[2]*glb_size[3];
   
@@ -246,7 +220,7 @@ void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex 
     for(int icontr=0;icontr<ncontr;icontr++)
       {
 	fprintf(fout,"\n");
-	print_contraction_to_file(fout,op1[icontr],op2[icontr],contr[icontr],twall,tag,norm);
+	print_contraction_to_file(fout,op1[icontr],op2[icontr],contr+icontr*glb_size[0],twall,tag,norm);
       }
 }
 

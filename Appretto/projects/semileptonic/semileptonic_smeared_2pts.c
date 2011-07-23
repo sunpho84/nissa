@@ -34,7 +34,7 @@ int niter_max;
 
 //two points contractions
 int ncontr_2pts;
-complex **contr_2pts;
+complex *contr_2pts;
 int *op1_2pts,*op2_2pts;
 char outfile_2pts[1024];
 
@@ -43,7 +43,7 @@ int ninv_tot=0,ncontr_tot=0;
 double tot_time=0,inv_time=0,contr_time=0;
 
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
-void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr)
+void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr)
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];
@@ -153,14 +153,11 @@ void initialize_semileptonic(char *input_path)
   // 5) contraction list for two points
   
   read_str_int("NContrTwoPoints",&ncontr_2pts);
-  contr_2pts=(complex**)malloc(sizeof(complex*)*ncontr_2pts);
-  contr_2pts[0]=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
+  contr_2pts=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
   op1_2pts=(int*)malloc(sizeof(int)*ncontr_2pts);
   op2_2pts=(int*)malloc(sizeof(int)*ncontr_2pts);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     {
-      contr_2pts[icontr]=contr_2pts[0]+icontr*glb_size[0];
-
       //Read the operator pairs
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));

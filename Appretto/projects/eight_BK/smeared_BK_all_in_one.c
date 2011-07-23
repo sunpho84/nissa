@@ -369,7 +369,7 @@ void meson_two_points(colorspinspin *s1,colorspinspin *s2)
       dirac_prod(&(t2[icontr]),&(base_gamma[5]),&(base_gamma[op2_2pts[icontr]]));
     }
   //Call for the routine which perform actually real contraction
-  trace_g_sdag_g_s(&contr_2pts,t1,s1,t2,s2,ncontr_2pts);
+  trace_g_sdag_g_s(contr_2pts,t1,s1,t2,s2,ncontr_2pts);
 }
 
 //print all the passed contractions to the file

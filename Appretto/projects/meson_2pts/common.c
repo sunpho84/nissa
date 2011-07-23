@@ -75,7 +75,7 @@ int compute_allocable_propagators(int nprop_list,int nch_contr,int nmin_req)
 
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 //It also applies the appropriate rotators to the physical basis if asked
-void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr,int f1,int r1,int f2,int r2)
+void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr,int f1,int r1,int f2,int r2)
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];

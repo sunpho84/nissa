@@ -118,14 +118,11 @@ int main(int narg,char **arg)
 
   //Initialize the list of correlations and the list of operators
   //contiguous allocation
-  complex **contr=(complex**)malloc(sizeof(complex*)*ncontr);
-  contr[0]=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]); 
+  complex *contr=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]); 
   int *op1=(int*)malloc(sizeof(int)*ncontr);
   int *op2=(int*)malloc(sizeof(int)*ncontr);
   for(int icontr=0;icontr<ncontr;icontr++)
     {
-      contr[icontr]=contr[0]+icontr*glb_size[0];
-
       //Read the operator pairs
       read_int(&(op1[icontr]));
       read_int(&(op2[icontr]));
@@ -140,14 +137,11 @@ int main(int narg,char **arg)
   
   //Initialize the list of chromo correlations and the list of operators
   //contiguous allocation
-  complex **ch_contr=(complex**)malloc(sizeof(complex*)*nch_contr);
-  ch_contr[0]=(complex*)malloc(sizeof(complex)*nch_contr*glb_size[0]); 
+  complex *ch_contr=(complex*)malloc(sizeof(complex)*nch_contr*glb_size[0]); 
   int *ch_op1=(int*)malloc(sizeof(int)*nch_contr);
   int *ch_op2=(int*)malloc(sizeof(int)*nch_contr);
   for(int ich_contr=0;ich_contr<nch_contr;ich_contr++)
     {
-      ch_contr[ich_contr]=ch_contr[0]+ich_contr*glb_size[0];
-      
       //Read the operator pairs
       read_int(&(ch_op1[ich_contr]));
       read_int(&(ch_op2[ich_contr]));
@@ -413,13 +407,11 @@ int main(int narg,char **arg)
   for(int iprop1=0;iprop1<nprop_list1;iprop1++) free(base_filename1[iprop1]);
   free(base_filename1);
 
-  free(ch_contr[0]);
   free(ch_contr);
 
   free(ch_op1);
   free(ch_op2);
 
-  free(contr[0]);
   free(contr);
 
   free(op1);

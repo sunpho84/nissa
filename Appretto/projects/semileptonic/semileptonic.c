@@ -28,13 +28,13 @@ int niter_max;
 
 //two points contractions
 int ncontr_2pts;
-complex **contr_2pts;
+complex *contr_2pts;
 int *op1_2pts,*op2_2pts;
 char outfile_2pts[1024];
 
 //two points chromo contractions
 int nch_contr_2pts;
-complex **ch_contr_2pts;
+complex *ch_contr_2pts;
 int *ch_op1_2pts,*ch_op2_2pts;
 colorspinspin *ch_colorspinspin;
 
@@ -49,13 +49,13 @@ colorspinspin **S1;
 
 //three points contractions
 int ncontr_3pts;
-complex **contr_3pts;
+complex *contr_3pts;
 int *op1_3pts,*op2_3pts;
 char outfile_3pts[1024];
 
 //two points chromo contractions
 int nch_contr_3pts;
-complex **ch_contr_3pts;
+complex *ch_contr_3pts;
 int *ch_op1_3pts,*ch_op2_3pts;
 
 //timings
@@ -66,7 +66,7 @@ double tot_time=0,inv_time=0,contr_time=0;
 int iprop_of(int itheta,int imass){return itheta*nmass+imass;}
 
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
-void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr)
+void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr)
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];
@@ -83,7 +83,7 @@ void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_o
 }
 
 //This function contract a source with a sequential spinor putting the passed list of operators
-void contract_with_source(complex **corr,colorspinspin *S1,int *list_op,colorspinspin *source)
+void contract_with_source(complex *corr,colorspinspin *S1,int *list_op,colorspinspin *source)
 {
   //Temporary vector for the internal matrices
   dirac_matr t1[ncontr_2pts],t2[ncontr_2pts];
@@ -200,14 +200,11 @@ void initialize_semileptonic(char *input_path)
   // 5) contraction list for two points
 
   read_str_int("NContrTwoPoints",&ncontr_2pts);
-  contr_2pts=(complex**)malloc(sizeof(complex*)*ncontr_2pts);
-  contr_2pts[0]=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
+  contr_2pts=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
   op1_2pts=(int*)malloc(sizeof(int)*ncontr_2pts);
   op2_2pts=(int*)malloc(sizeof(int)*ncontr_2pts);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     {
-      contr_2pts[icontr]=contr_2pts[0]+icontr*glb_size[0];
-
       //Read the operator pairs
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
@@ -216,14 +213,11 @@ void initialize_semileptonic(char *input_path)
     }
   
   read_str_int("NChromoContrTwoPoints",&nch_contr_2pts);
-  ch_contr_2pts=(complex**)malloc(sizeof(complex*)*nch_contr_2pts);
-  ch_contr_2pts[0]=(complex*)malloc(sizeof(complex)*nch_contr_2pts*glb_size[0]);
+  ch_contr_2pts=(complex*)malloc(sizeof(complex)*nch_contr_2pts*glb_size[0]);
   ch_op1_2pts=(int*)malloc(sizeof(int)*nch_contr_2pts);
   ch_op2_2pts=(int*)malloc(sizeof(int)*nch_contr_2pts);
   for(int icontr=0;icontr<nch_contr_2pts;icontr++)
     {
-      ch_contr_2pts[icontr]=ch_contr_2pts[0]+icontr*glb_size[0];
-
       //Read the operator pairs
       read_int(&(ch_op1_2pts[icontr]));
       read_int(&(ch_op2_2pts[icontr]));
@@ -248,14 +242,11 @@ void initialize_semileptonic(char *input_path)
       if(rank==0)printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,theta[ith_spec[ispec]],mass[imass_spec[ispec]],r_spec[ispec]);
     }
   read_str_int("NContrThreePoints",&ncontr_3pts);
-  contr_3pts=(complex**)malloc(sizeof(complex*)*ncontr_3pts);
-  contr_3pts[0]=(complex*)malloc(sizeof(complex)*ncontr_3pts*glb_size[0]); 
+  contr_3pts=(complex*)malloc(sizeof(complex)*ncontr_3pts*glb_size[0]); 
   op1_3pts=(int*)malloc(sizeof(int)*ncontr_3pts);
   op2_3pts=(int*)malloc(sizeof(int)*ncontr_3pts);
   for(int icontr=0;icontr<ncontr_3pts;icontr++)
     {
-      contr_3pts[icontr]=contr_3pts[0]+icontr*glb_size[0];
-
       //Read the operator pairs
       read_int(&(op1_3pts[icontr]));
       read_int(&(op2_3pts[icontr]));
@@ -264,14 +255,11 @@ void initialize_semileptonic(char *input_path)
     }
 
   read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
-  ch_contr_3pts=(complex**)malloc(sizeof(complex*)*nch_contr_3pts);
-  ch_contr_3pts[0]=(complex*)malloc(sizeof(complex)*nch_contr_3pts*glb_size[0]);
+  ch_contr_3pts=(complex*)malloc(sizeof(complex)*nch_contr_3pts*glb_size[0]);
   ch_op1_3pts=(int*)malloc(sizeof(int)*nch_contr_3pts);
   ch_op2_3pts=(int*)malloc(sizeof(int)*nch_contr_3pts);
   for(int icontr=0;icontr<nch_contr_3pts;icontr++)
     {
-      ch_contr_3pts[icontr]=ch_contr_3pts[0]+icontr*glb_size[0];
-
       //Read the operator pairs
       read_int(&(ch_op1_3pts[icontr]));
       read_int(&(ch_op2_3pts[icontr]));
@@ -343,15 +331,15 @@ void close_semileptonic()
       printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
     }
 
-  free(Pmunu);free(conf);free(mass);free(theta);
-  for(int iprop=0;iprop<npropS0;iprop++){free(S0[0][iprop]);free(S0[1][iprop]);}
-  free(S0[0]);free(S0[1]);free(reco_solution[0]);free(reco_solution[1]);
-  free(op1_2pts);free(op2_2pts);free(ch_op1_2pts);free(ch_op2_2pts);
-  free(contr_2pts[0]);free(contr_2pts);free(ch_contr_2pts[0]);free(ch_contr_2pts);
-  free(op1_3pts);free(op2_3pts);free(ch_op1_3pts);free(ch_op2_3pts);
-  free(contr_3pts[0]);free(contr_3pts);free(ch_contr_3pts[0]);free(ch_contr_3pts);
-  free(ch_colorspinspin);free(sequential_source);
-  free(ith_spec);free(imass_spec);free(r_spec);
+  check_free(Pmunu);check_free(conf);check_free(mass);check_free(theta);
+  for(int iprop=0;iprop<npropS0;iprop++){check_free(S0[0][iprop]);check_free(S0[1][iprop]);}
+  check_free(S0[0]);check_free(S0[1]);check_free(reco_solution[0]);check_free(reco_solution[1]);
+  check_free(op1_2pts);check_free(op2_2pts);check_free(ch_op1_2pts);check_free(ch_op2_2pts);
+  check_free(contr_2pts);check_free(ch_contr_2pts);
+  check_free(op1_3pts);check_free(op2_3pts);check_free(ch_op1_3pts);check_free(ch_op2_3pts);
+  check_free(contr_3pts);check_free(ch_contr_3pts);
+  check_free(ch_colorspinspin);check_free(sequential_source);
+  check_free(ith_spec);check_free(imass_spec);check_free(r_spec);
   close_appretto();
 }
 
@@ -534,7 +522,7 @@ void check_two_points(int ispec)
 	    
 	    for(int icontr=0;icontr<ncontr_2pts;icontr++)
 	      if(op1_2pts[icontr]==5)
-		fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op2_2pts[icontr]],contr_2pts[icontr][twall][0]/spat_vol,contr_2pts[icontr][twall][1]/spat_vol);
+		fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op2_2pts[icontr]],(contr_2pts+icontr*glb_size[0])[twall][0]/spat_vol,(contr_2pts+icontr*glb_size[0])[twall][1]/spat_vol);
 	    fprintf(fout,"\n");
 	  }
       }
