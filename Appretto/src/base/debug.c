@@ -19,14 +19,14 @@
     if(rank==0) MPI_Abort(MPI_COMM_WORLD,1);	\
   }
 
-#define free_null(a)							\
-  {									\
-    free(a);								\
-    a=NULL;								\
-  }
+void free_null(void *a)
+{
+  free(a);
+  a=NULL;
+}
 
-#define check_free(a)							\
-  {									\
-    if(a!=NULL) {free_null(a);}						\
-    else crash("Error, trying to free an already freed array");		\
+void check_free(void *a)
+  {
+    if(a!=NULL) free_null(a);
+    else crash("Error, trying to free an already freed array");
   }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dirac_operators/dirac_operator.c"
+#include "../dirac_operators/dirac_operator.c"
 
 //Read from the argument path a maximal amount of data nbyes_per_site
 //return the real read amount of bytes

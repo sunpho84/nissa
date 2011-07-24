@@ -1,6 +1,3 @@
-#include <mpi.h>
-#include <lemon.h>
-
 #include "appretto.h"
 
 int main(int narg,char **arg)
@@ -86,13 +83,13 @@ int main(int narg,char **arg)
 	printf("\n");
       }
 
-  free(spinor1);
-  free(spinor2);
+  check_free(spinor1);
+  check_free(spinor2);
 
   for(int icontr=0;icontr<ncontr;icontr++)
-    free(contr[icontr]);
+    check_free(contr[icontr]);
   
-  free(contr);
+  check_free(contr);
   
   ///////////////////////////////////////////
 

@@ -1,8 +1,3 @@
-#include <mpi.h>
-#include <lemon.h>
-#include <math.h>
-#include <stdio.h>
-
 #include "appretto.h"
 
 int main(int narg,char **arg)

@@ -1,8 +1,5 @@
 #pragma once
 
-#include <lemon.h>
-#include <stdio.h>
-
 //produce the table of the momentum
 void Momentum(int **iP,double *bc,double *P2,double *SinP2,double **P,double **SinP,double *SinP4,int nmom)
 {
@@ -16,7 +13,7 @@ void Momentum(int **iP,double *bc,double *P2,double *SinP2,double **P,double **S
 	    P2[imom]=SinP2[imom]=SinP4[imom]=0;
 	    for(int idir=0;idir<4;idir++)
 	      {
-		P[idir][imom]=2*PI*(lP[idir]+bc[idir]*0.5)/glb_size[idir];
+		P[idir][imom]=2*M_PI*(lP[idir]+bc[idir]*0.5)/glb_size[idir];
 		P2[imom]+=pow(P[idir][imom],2);
 		SinP[idir][imom]=sin(P[idir][imom]);
 		SinP2[imom]+=pow(SinP[idir][imom],2);

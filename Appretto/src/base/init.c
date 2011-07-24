@@ -1,13 +1,9 @@
 #pragma once
 
-#include <mpi.h>
-#include <stdio.h>
+#include "../IO/endianess.c"
+#include "../base/random.c"
 
-#include "IO/endianess.c"
-#include "base/random.c"
-#include "types/dirac.c"
-
-#include "geometry/geometry.c"
+#include "../geometry/geometry.c"
 
 void init_appretto()
 {
@@ -30,6 +26,14 @@ void init_appretto()
   //a reduced spincolor (12 doubles)
   MPI_Type_contiguous(12,MPI_DOUBLE,&MPI_REDSPINCOLOR);
   MPI_Type_commit(&MPI_REDSPINCOLOR);
+  
+  //initialize global variables
+  appretto_eo_geom_init=0;
+  random_initialized=0;
+  memset(proc_coord,0,4*sizeof(int));
+  memset(nproc_dir,0,4*sizeof(int));
+  ONE[0]=I[1]=1;
+  ONE[1]=I[0]=0;
   
   check_endianess();
   init_base_gamma();

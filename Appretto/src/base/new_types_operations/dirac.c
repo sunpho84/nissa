@@ -1,23 +1,7 @@
 #pragma once
 
-//The structure for gamma matrix
-typedef struct
-{
-  int pos[4];
-  complex entr[4];
-} dirac_matr;
-
-//The base of the 16 gamma matrixes and the two rotators
-dirac_matr base_gamma[16];
-dirac_matr Pplus,Pminus;
-const char gtag[16][3]={"S0","V1","V2","V3","V0","P5","A1","A2","A3","A0","T1","T2","T3","B1","B2","B3"};
-
 //Initialize a dirac matrix with outside entries
-void init_dirac(dirac_matr *out,
-		int pos0,double rea0,double ima0,
-		int pos1,double rea1,double ima1,
-		int pos2,double rea2,double ima2,
-		int pos3,double rea3,double ima3)
+void init_dirac(dirac_matr *out,int pos0,double rea0,double ima0,int pos1,double rea1,double ima1,int pos2,double rea2,double ima2,int pos3,double rea3,double ima3)
 {
   out->pos[0]=pos0;
   out->pos[1]=pos1;

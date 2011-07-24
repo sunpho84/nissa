@@ -1,8 +1,5 @@
 #pragma once
 
-#include <mpi.h>
-#include <lemon.h>
-
 #include "appretto.h"
 
 //Calculate the maximum number of allocable propagators

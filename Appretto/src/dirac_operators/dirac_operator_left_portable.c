@@ -1,7 +1,5 @@
 #pragma once
 
-#include "types/su3.c"
-
 //Apply the Q=D*g5 operator to a spincolor
 //it is assumed that boundary condition has been already adjusted outside
 

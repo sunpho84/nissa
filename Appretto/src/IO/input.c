@@ -1,7 +1,5 @@
 #pragma once
 
-#include <strings.h>
-
 FILE *input_global;
 
 void open_input(char *input_path)

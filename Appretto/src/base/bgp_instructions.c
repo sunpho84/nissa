@@ -1,7 +1,5 @@
 #pragma once
 
-#include "types/su3.c"
-
 #ifdef BGP_EMU
 
 #define bgp_aligned

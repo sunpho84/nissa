@@ -1,6 +1,3 @@
-#include <mpi.h>
-#include <lemon.h>
-
 #include "appretto.h"
 
 int main(int narg,char **arg)
@@ -34,7 +31,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////////////////////////////
 
-  spincolor *spinore=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  spincolor *spinore=allocate_spincolor(loc_vol,"spinore");
 
   //Fill the spincolor with a function of the global index of the site
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -46,7 +43,7 @@ int main(int narg,char **arg)
   //Write the spinor
   write_spincolor(filename,spinore,32);
 
-  free(spinore);
+  check_free(spinore);
   
   //////////////////////////////////////////////////////
 
