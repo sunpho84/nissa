@@ -1,6 +1,3 @@
-#include <mpi.h>
-#include <lemon.h>
-
 #include "appretto.h"
 
 int main(int narg,char **arg)
@@ -30,7 +27,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  spincolor *spinore=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  spincolor *spinore=allocate_spincolor(loc_vol,"spinore");
 
   read_spincolor(spinore,filename);
 
@@ -41,7 +38,7 @@ int main(int narg,char **arg)
         for(int im=0;im<2;im++)
           printf("%d %d %d %d %d %f\n",rank,ivol,id1,ic1,im,spinore[ivol][id1][ic1][im]);
 
-  free(spinore);
+  check_free(spinore);
   
   ///////////////////////////////////////////
 

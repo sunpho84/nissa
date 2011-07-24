@@ -1,6 +1,3 @@
-#include <mpi.h>
-#include <lemon.h>
-
 #include "appretto.h"
 
 void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base/global.c"
+#include "../base/global.c"
 
 /////////////////////////////////////// Complicated things /////////////////////
 

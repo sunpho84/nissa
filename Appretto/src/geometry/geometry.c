@@ -1,8 +1,5 @@
 #pragma once
 
-#include <mpi.h>
-#include <stdio.h>
-
 #include "geometry_lx.c"
 #include "geometry_eo.c"
 

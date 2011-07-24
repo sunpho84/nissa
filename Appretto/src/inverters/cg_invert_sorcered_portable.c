@@ -1,7 +1,6 @@
 #pragma once
 
 #include "dirac_operator_sorcered_portable.c"
-#include "su3.c"
 
 void inv_Q2_cg_sorc_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
 {

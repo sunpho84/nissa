@@ -102,8 +102,8 @@ void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords
   complex theta[4];
   for(int idir=0;idir<4;idir++)
     {
-      theta[idir][0]=cos(theta_in_pi[idir]*PI/glb_size[idir]);
-      theta[idir][1]=sin(theta_in_pi[idir]*PI/glb_size[idir]);
+      theta[idir][0]=cos(theta_in_pi[idir]*M_PI/glb_size[idir]);
+      theta[idir][1]=sin(theta_in_pi[idir]*M_PI/glb_size[idir]);
     }
   
   int nsite=loc_vol;

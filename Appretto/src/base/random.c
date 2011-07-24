@@ -1,7 +1,5 @@
 #pragma once
 
-#include <stdio.h>
-
 #include "global.c"
 
 //Initilialise the random number generator

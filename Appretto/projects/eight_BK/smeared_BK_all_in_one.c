@@ -44,11 +44,7 @@ source |------>---->----->---->| sink
 
 */
 
-#include <mpi.h>
-#include <lemon.h>
-
 #include "appretto.h"
-#include "addendum.c"
 
 //gauge info
 int ngauge_conf;
@@ -469,25 +465,17 @@ void calculate_all_contractions()
 	FILE *fout_2pts=open_text_file_for_output(path_2pts);
 
 	//smear all the sink
-	for(int iwall=0;iwall<nwall;iwall++)
-	  for(int r=0;r<2;r++)
-	    for(int imass=0;imass<nmass;imass++)
-	      for(int id=0;id<4;id++)
-		{
-		  int sm_to_app=((sm_lv_sink==0) ? 
-				 jacobi_niter[sm_lv_sink] : (jacobi_niter[sm_lv_sink]-jacobi_niter[sm_lv_sink-1])); 
-		  
-		  //smerd each source with the level of smerding of the sink
-		  int iprop=iS(iwall,sm_lv_sour,imass,r);
-		  
-		  for(int ivol=0;ivol<loc_vol;ivol++)
-		    get_spincolor_from_colorspinspin(reco_solution[0][ivol],S[iprop][ivol],id);
-		  if(rank==0 && debug) printf("Iwall %d, r=%d, imass=%d, id=%d ",iwall,r,imass,id);
-		  jacobi_smearing(reco_solution[1],reco_solution[0],sme_conf,jacobi_kappa,sm_to_app);
-		  for(int ivol=0;ivol<loc_vol;ivol++)
-		    put_spincolor_into_colorspinspin(S[iprop][ivol],reco_solution[1][ivol],id);
-              }
-		
+	int sm_to_app=((sm_lv_sink==0) ? jacobi_niter[sm_lv_sink] : (jacobi_niter[sm_lv_sink]-jacobi_niter[sm_lv_sink-1])); 
+	if(sm_to_app!=0)
+	  for(int iprop=0;iprop<nprop;iprop++)
+	    for(int id=0;id<4;id++)
+	      {	    
+		for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
+		if(rank==0 && debug) printf("Prop %d, id=%d ",iprop,id);
+		jacobi_smearing(source,source,sme_conf,jacobi_kappa,sm_to_app);
+		for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
+	      }
+	
 	//two points
 	for(int im2=0;im2<nmass;im2++)
 	  for(int r2=0;r2<2;r2++)

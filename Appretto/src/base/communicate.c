@@ -1,6 +1,5 @@
 #pragma once
 
-#include "types/su3.c"
 #include "bgp_instructions.c"
 
 /* This is the shape and ordering of the border in the memory, for a 3^4 lattice

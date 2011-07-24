@@ -1,6 +1,3 @@
-#include <mpi.h>
-#include <lemon.h>
-
 #include "appretto.h"
 
 //configuration

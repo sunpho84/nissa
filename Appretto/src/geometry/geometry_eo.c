@@ -1,8 +1,5 @@
 #pragma once
 
-#include <mpi.h>
-#include <stdio.h>
-
 //indexes run as t,z,y,x (faster:x)
 void set_eo_geometry()
 {

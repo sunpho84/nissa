@@ -1,8 +1,5 @@
 #pragma once
 
-#include <lemon.h>
-#include <stdio.h>
-
 #include "endianess.c"
 
 //Write the header for a record

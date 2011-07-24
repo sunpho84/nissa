@@ -1,6 +1,3 @@
-#include <mpi.h>
-#include <lemon.h>
-
 #include "appretto.h"
 
 int main(int narg,char **arg)
@@ -29,7 +26,7 @@ int main(int narg,char **arg)
   init_grid();
 
   //Initialize the gauge configuration and read the path
-  quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord));
+  quad_su3 *conf=allocate_quad_su3(loc_vol+loc_bord,"conf");
   char gauge_file[1024];
   read_str_str("GaugeConf",gauge_file,1024);
   
@@ -48,7 +45,7 @@ int main(int narg,char **arg)
   communicate_gauge_borders(conf);
 
   //initialize and load the DD+ solution
-  spincolor *DD_prop=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+  spincolor *DD_prop=allocate_spincolor(loc_vol+loc_bord,"DD_prop");
   char DD_file[1024];
   read_str_str("DDprop",DD_file,1024);
   read_spincolor(DD_prop,DD_file);
@@ -56,8 +53,8 @@ int main(int narg,char **arg)
 
   //initialize and load the D- and D+ solution
   spincolor *D_prop_read[2];
-  D_prop_read[0]=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
-  D_prop_read[1]=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  D_prop_read[0]=allocate_spincolor(loc_vol,"DD_prop_read[0]");
+  D_prop_read[1]=allocate_spincolor(loc_vol,"DD_prop_read[1]");
   char D_file[1024];
   read_str_str("Dprop_minus",D_file,1024);
   read_spincolor(D_prop_read[0],D_file);
@@ -69,14 +66,13 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
 
   spincolor *D_prop_reco[2];
-  D_prop_reco[0]=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
-  D_prop_reco[1]=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  D_prop_reco[0]=allocate_spincolor(loc_vol,"D_prop_reco0");
+  D_prop_reco[1]=allocate_spincolor(loc_vol,"D_prop_reco1");
   
-  reconstruct_doublet(D_prop_reco[0] , D_prop_reco[1], DD_prop, conf, kappac,m); 
+  reconstruct_doublet(D_prop_reco[0],D_prop_reco[1],DD_prop,conf,kappac,m); 
 
   //printing
   if(rank==0)
-  {
     for(int loc_site=0;loc_site<loc_vol;loc_site++)
       {
 	printf(" # ivol=%d\n",loc_site);
@@ -95,17 +91,17 @@ int main(int narg,char **arg)
 		printf("\n");
 	      }
 	  }
-      }
-  }	      
-  free(D_prop_reco[0]);
-  free(D_prop_reco[1]);
-
-  free(D_prop_read[0]);
-  free(D_prop_read[1]);
-
-  free(DD_prop[0]);
-
-  free(conf);
+      }	      
+  
+  check_free(D_prop_reco[0]);
+  check_free(D_prop_reco[1]);
+  
+  check_free(D_prop_read[0]);
+  check_free(D_prop_read[1]);
+  
+  check_free(DD_prop[0]);
+  
+  check_free(conf);
 
   ///////////////////////////////////////////
 

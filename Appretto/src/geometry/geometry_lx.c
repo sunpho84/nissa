@@ -1,8 +1,5 @@
 #pragma once
 
-#include <mpi.h>
-#include <stdio.h>
-
 //Return the index of site of coord x in the border idir,jdir
 int edgelx_of_coord(int *x,int idir,int jdir)
 {

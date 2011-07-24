@@ -1,7 +1,5 @@
 #pragma once
 
-#include "base/global.c"
-
 //////////////////////////////////// Put to zero /////////////////////////////////
 
 void color_put_to_zero(color m){memset(m,0,sizeof(color));}
