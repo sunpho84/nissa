@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../dirac_operators/dirac_operator.c"
-
 //follow incusion below
 #include "cgmms_invert_common.c"
 
