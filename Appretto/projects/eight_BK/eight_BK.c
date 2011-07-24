@@ -195,7 +195,7 @@ void meson_two_points(complex **corr,int *list_op1,colorspinspin *s1,int *list_o
     }
 
   //Call for the routine which does the real contraction
-  trace_g_sdag_g_s(corr,t1,s1,t2,s2,ncontr);
+  trace_g_sdag_g_s(corr[0],t1,s1,t2,s2,ncontr);
 }
 
 
