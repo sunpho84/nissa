@@ -11,6 +11,7 @@
 #include "base/init.c"
 #include "base/close.c"
 #include "base/communicate.c"
+#include "base/random.c"
 
 #include "IO/writer.c"
 #include "IO/reader.c"
