@@ -378,13 +378,16 @@ void print_ottos_contractions_to_file(FILE *fout)
   double norm=glb_size[1]*glb_size[2]*glb_size[3];
   
   if(rank==0)
+  {
     for(int icontr=0;icontr<16;icontr++)
-      {
+    {
         fprintf(fout,"\n");
 	print_contraction_to_file(fout,icontr,5,contr_mezzotto+icontr*glb_size[0],twall[0],"DISCONNECTED ",norm);
         fprintf(fout,"\n");
 	print_contraction_to_file(fout,icontr,5,contr_otto+icontr*glb_size[0],twall[0],"CONNECTED ",norm);
       }
+    fprintf(fout,"\n");
+  }
 }
 
 //print all the passed contractions to the file
@@ -393,11 +396,14 @@ void print_two_points_contractions_to_file(FILE *fout)
   double norm=glb_size[1]*glb_size[2]*glb_size[3];
   
   if(rank==0)
+  {
     for(int icontr=0;icontr<ncontr_2pts;icontr++)
       {
         fprintf(fout,"\n");
 	print_contraction_to_file(fout,op2_2pts[icontr],op1_2pts[icontr],contr_2pts+icontr*glb_size[0],twall[0],"",norm);
       }
+    fprintf(fout,"\n");
+ }
 }
 
 //Calculate and print to file all the contractions
@@ -419,7 +425,6 @@ void calculate_all_contractions()
 	    {
 	      int tsepar=abs(twall[iwL]-twall[iwR]);
 	      
-	      MPI_Barrier(MPI_COMM_WORLD);
 	      if(rank==0) fprintf(fout_bag," # LEFT_WALL_t=%d , RIGHT_WALL_t=%d , tseparat=%d\n\n",
 		      twall[iwL],twall[iwR],tsepar);
 	      
@@ -442,16 +447,14 @@ void calculate_all_contractions()
 			  int ip1=iS(iwL,sm_lv_L,im1,r1),ip2=iS(iwL,sm_lv_L,im2,r2);
 			  int ip3=iS(iwR,sm_lv_R,im1,r3),ip4=iS(iwR,sm_lv_R,im2,r4);
 			  
+			  if(rank==0){printf("%d %d %d %d\n",ip1,ip2,ip3,ip4);fflush(stdout);}
 			  Bk_eights(S[ip1],S[ip2],S[ip3],S[ip4]);
-			  
+
 			  ncontr_tot+=32;
 			  
-			  if(rank==0)
-			    {
-			      print_ottos_contractions_to_file(fout_bag);
-			      fprintf(fout_bag,"\n");
-			    }
-			}
+			  print_ottos_contractions_to_file(fout_bag);
+			  if(rank==0) fflush(fout_bag);
+  			}
 	    }
 	
 	if(rank==0) fclose(fout_bag);
@@ -503,11 +506,8 @@ void calculate_all_contractions()
 		    
 		    meson_two_points(S[iprop1],S[iprop2]);
 		    
-		    if(rank==0)
-		      {
-			print_two_points_contractions_to_file(fout_2pts);
-			fprintf(fout_2pts,"\n");
-		      }
+		    print_two_points_contractions_to_file(fout_2pts);
+		    
 		    ncontr_tot+=ncontr_2pts;
 		  }
 	if(rank==0) fclose(fout_2pts);

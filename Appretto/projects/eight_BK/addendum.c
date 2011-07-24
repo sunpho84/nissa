@@ -20,7 +20,7 @@ void spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b)
 
 void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
 {
-  //Allocate a contguous memory area where to store local results
+  //Allocate a contiguous memory area where to store local results
   complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
   memset(loc_c,0,sizeof(complex)*ncontr*glb_size[0]);
 
@@ -47,13 +47,13 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
 	      }
 	  }
     }
-  
+
   //Final reduction
   if(debug>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   if(debug>1 && rank==0) printf("Reduction done\n");
   
-  free(loc_c);
+  check_free(loc_c);
 }
 
 void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
@@ -61,14 +61,14 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
   //Allocate a contguous memory area where to store local results
   complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
   memset(loc_c,0,sizeof(complex)*ncontr*glb_size[0]);
-  
+
   //Local loop
   for(int loc_site=0;loc_site<loc_vol;loc_site++)
     {
       int glb_t=glb_coord_of_loclx[loc_site][0];
-      complex *ctempL=(complex*)malloc(sizeof(complex)*ncontr);
-      complex *ctempR=(complex*)malloc(sizeof(complex)*ncontr);
-      complex *ctemp=(complex*)malloc(sizeof(complex)*ncontr);
+      complex ctempL[ncontr];
+      complex ctempR[ncontr];
+      complex ctemp[ncontr];
       
       for(int icontr=0;icontr<ncontr;icontr++)
 	for(int reim=0;reim<2;reim++)
@@ -109,5 +109,5 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   if(debug>1 && rank==0) printf("Reduction done\n");
   
-  free(loc_c);
+  check_free(loc_c);
 }
