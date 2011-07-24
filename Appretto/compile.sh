@@ -28,9 +28,10 @@ recomp_appretto()
     if [ $old_checksum != $checksum ]
     then
 	echo "Recompiling Appretto library..."
+	rm src/appretto
 	comp src/appretto src/appretto.c -c
         
-	if [ $? == 0 ]
+	if [ $? == 0 ] && [ -f src/appretto ]
 	then
 	    echo $checksum > src/appretto_checksum
 	else
