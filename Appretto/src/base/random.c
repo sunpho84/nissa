@@ -1,7 +1,5 @@
 #pragma once
 
-#include "global.c"
-
 //Initilialise the random number generator
 void init_random(int seed)
 {

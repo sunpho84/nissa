@@ -1,7 +1,5 @@
 #pragma once
 
-#include "../base/global.c"
-
 /////////////////////////////////////// Complicated things /////////////////////
 
 //square (the proto-plaquette)

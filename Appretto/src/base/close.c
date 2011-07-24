@@ -1,7 +1,5 @@
 #pragma once
 
-#include "random.c"
-
 void close_appretto()
 {
   if(random_initialized)
