@@ -23,7 +23,7 @@ void site_trace_g_sdag_g_s_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac
   spinspin_dirac_spinspindag_prod(t3,g3,s3);
   spinspin_dirac_spinspin_prod(t4,g4,s4);
   spinspin_spinspin_prod(t34,t3,t4);
-
+  
   trace_prod_spinspins(c,t12,t34);
 }
 
@@ -38,18 +38,48 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
   for(int icontr=0;icontr<ncontr;icontr++) 
     {
       if(debug>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
+
+      //two possible ways of doing it: trivial or not trivial
+      short int g1t[4],g2t[4],g12t[4][4];
+      int trivial=(trivialize_dirac_matr(g1t,g1+icontr) && trivialize_dirac_matr(g2t,g2+icontr));
+      if(trivial)
+	{
+	  int map[4][4]={{0,1,2,3},{1,0,3,2},{2,3,0,1},{3,2,1,0}};
+	  for(int id1=0;id1<4;id1++)
+	    for(int id2=0;id2<4;id2++)
+	      g12t[id1][id2]=map[g1t[id1]][g2t[id2]];
+	}
       
       //Local loop
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
+      for(int ivol=0;ivol<loc_vol;ivol++)
 	{
-	  int glb_t=glb_coord_of_loclx[loc_site][0];
-	  complex ctemp;
+	  int glb_t=glb_coord_of_loclx[ivol][0];
 	  //Color loop
-	  for(int icol=0;icol<3;icol++)
-	    {
-	      site_trace_g_sdag_g_s(ctemp,&(g1[icontr]),s1[loc_site][icol],&(g2[icontr]),s2[loc_site][icol]);
-	      complex_summ(loc_c[icontr*glb_size[0]+glb_t],loc_c[icontr*glb_size[0]+glb_t],ctemp);
-	    }
+	  for(int ic=0;ic<3;ic++)
+	    if(trivial)
+	      for(int id1=0;id1<4;id1++)
+		for(int id2=0;id2<4;id2++)
+		  switch(g12t[id1][id2])
+		    {
+		    case 0:complex_summ_the_conj1_prod(loc_c[icontr*glb_size[0]+glb_t],
+						       s1[ivol][ic][id2][g1[icontr].pos[id1]],
+						       s2[ivol][ic][g2[icontr].pos[id2]][id1]);break;
+		    case 1:complex_subt_the_conj1_prod(loc_c[icontr*glb_size[0]+glb_t],
+						       s1[ivol][ic][id2][g1[icontr].pos[id1]],
+						       s2[ivol][ic][g2[icontr].pos[id2]][id1]);break;
+		    case 2:complex_summ_the_conj1_prod_i(loc_c[icontr*glb_size[0]+glb_t],
+							 s1[ivol][ic][id2][g1[icontr].pos[id1]],
+							 s2[ivol][ic][g2[icontr].pos[id2]][id1]);break;
+		    case 3:complex_subt_the_conj1_prod_i(loc_c[icontr*glb_size[0]+glb_t],
+							 s1[ivol][ic][id2][g1[icontr].pos[id1]],
+							 s2[ivol][ic][g2[icontr].pos[id2]][id1]);break;
+		    }
+	    else
+	      {
+		complex ctemp;
+		site_trace_g_sdag_g_s(ctemp,&(g1[icontr]),s1[ivol][ic],&(g2[icontr]),s2[ivol][ic]);
+		complex_summ(loc_c[icontr*glb_size[0]+glb_t],loc_c[icontr*glb_size[0]+glb_t],ctemp);
+	      }
 	}
     }
   
@@ -60,7 +90,7 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
   
   check_free(loc_c);
 }
-
+  
 void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin *s1L, dirac_matr *g2L, colorspinspin *s2L, dirac_matr *g1R,colorspinspin *s1R, dirac_matr *g2R, colorspinspin *s2R,const int ncontr)
 {
 //Allocate a contguous memory area where to store local results

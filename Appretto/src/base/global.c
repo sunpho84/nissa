@@ -101,6 +101,6 @@ EXTERN dirac_matr Pplus,Pminus;
 #ifdef APPRETTO
 const char gtag[16][3]={"S0","V1","V2","V3","V0","P5","A1","A2","A3","A0","T1","T2","T3","B1","B2","B3"};
 #else
-const char gtag[16][3];
+extern const char gtag[16][3];
 #endif
 

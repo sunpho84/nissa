@@ -1,14 +1,14 @@
 #!/bin/bash
 
-if [ ! -f paths.sh ]
+if [ ! -f params.sh ]
 then
-    echo -e "COMP=\nLEMON_PATH=\nLIME_PATH=\nINC_PATH=\"-I$PWD/src\"\nLIB_PATH=\nCOMP_FLAG=\"-std=c99 -O5 -Wall\"\n" > paths.sh
-    echo "Error, file 'paths.sh' not found. Created: fill it and relaunch."
+    echo -e "COMP=\nLEMON_PATH=\nLIME_PATH=\nINC_PATH=\"-I$PWD/src\"\nLIB_PATH=\nCOMP_FLAG=\"-std=c99 -O5 -Wall\"\n" > parmas.sh
+    echo "Error, file 'params.sh' not found. Created: fill it and relaunch."
     exit
 fi
 
-source paths.sh
-if [ "$COMP" == "" ];then echo "File 'paths.sh' not filled!";exit;fi
+source params.sh
+if [ "$COMP" == "" ];then echo "File 'params.sh' not filled!";exit;fi
 
 if [ "$1" == "" ]
 then
@@ -28,7 +28,7 @@ recomp_appretto()
     if [ $old_checksum != $checksum ]
     then
 	echo "Recompiling Appretto library..."
-	rm src/appretto
+	rm -f src/appretto
 	comp src/appretto src/appretto.c -c
         
 	if [ $? == 0 ] && [ -f src/appretto ]
