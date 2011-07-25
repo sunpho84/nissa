@@ -443,7 +443,6 @@ void calculate_all_contractions()
 			  int ip1=iS(iwL,sm_lv_L,im1,r1),ip2=iS(iwL,sm_lv_L,im2,r2);
 			  int ip3=iS(iwR,sm_lv_R,im1,r3),ip4=iS(iwR,sm_lv_R,im2,r4);
 			  
-			  if(rank==0){printf("%d %d %d %d\n",ip1,ip2,ip3,ip4);fflush(stdout);}
 			  Bk_eights(S[ip1],S[ip2],S[ip3],S[ip4]);
 
 			  ncontr_tot+=32;
@@ -455,7 +454,7 @@ void calculate_all_contractions()
 	
 	if(rank==0) fclose(fout_bag);
       }
-
+  
   //loop over smearing of the source and sink
   for(int sm_lv_sour=0;sm_lv_sour<nsm_lv;sm_lv_sour++)
     for(int sm_lv_sink=0;sm_lv_sink<nsm_lv;sm_lv_sink++)

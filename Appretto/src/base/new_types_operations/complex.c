@@ -23,7 +23,6 @@ void complex_prod_with_real(complex a,complex b,double c)
 
 //Summ to the output the product of two complex number
 //it is assumed that a!=b and a!=c
-
 void complex_summ_the_prod(complex a,complex b,complex c)
 {
   a[0]+=b[0]*c[0]-b[1]*c[1];
@@ -46,6 +45,13 @@ void complex_summ_the_conj_conj_prod(complex a,complex b,complex c)
   a[0]+=+b[0]*c[0]-b[1]*c[1];
   a[1]+=-b[0]*c[1]-b[1]*c[0];
 }
+void complex_subt_the_conj2_prod(complex a,complex b,complex c)
+{
+  a[0]-=+b[0]*c[0]+b[1]*c[1];
+  a[1]-=-b[0]*c[1]+b[1]*c[0];
+}
+void complex_subt_the_conj1_prod(complex a,complex b,complex c)
+{complex_subt_the_conj2_prod(a,c,b);}
 void complex_subt_the_conj_conj_prod(complex a,complex b,complex c)
 {
   a[0]-=+b[0]*c[0]-b[1]*c[1];
@@ -117,6 +123,40 @@ void safe_complex_prod_minus_i(complex a,complex b)
   a[1]=-tmp;
 }
 void assign_complex_prod_minus_i(complex a){safe_complex_prod_minus_i(a,a);}
+void complex_summ_the_prod_i(complex a,complex b,complex c)
+{
+  a[1]+=b[0]*c[0]-b[1]*c[1];
+  a[0]-=b[0]*c[1]+b[1]*c[0];
+}
+void complex_subt_the_prod_i(complex a,complex b,complex c)
+{
+  a[1]-=b[0]*c[0]-b[1]*c[1];
+  a[0]+=b[0]*c[1]+b[1]*c[0];
+}
+void complex_summ_the_conj2_prod_i(complex a,complex b,complex c)
+{
+  a[1]+=+b[0]*c[0]+b[1]*c[1];
+  a[0]-=-b[0]*c[1]+b[1]*c[0];
+}
+void complex_summ_the_conj1_prod_i(complex a,complex b,complex c)
+{complex_summ_the_conj2_prod(a,c,b);}
+void complex_summ_the_conj_conj_prod_i(complex a,complex b,complex c)
+{
+  a[1]+=+b[0]*c[0]-b[1]*c[1];
+  a[0]-=-b[0]*c[1]-b[1]*c[0];
+}
+void complex_subt_the_conj2_prod_i(complex a,complex b,complex c)
+{
+  a[1]-=+b[0]*c[0]+b[1]*c[1];
+  a[0]+=-b[0]*c[1]+b[1]*c[0];
+}
+void complex_subt_the_conj1_prod_i(complex a,complex b,complex c)
+{complex_subt_the_conj2_prod(a,c,b);}
+void complex_subt_the_conj_conj_prod_i(complex a,complex b,complex c)
+{
+  a[1]-=+b[0]*c[0]-b[1]*c[1];
+  a[0]+=-b[0]*c[1]-b[1]*c[0];
+}
 
 //reciprocal of a complex
 void complex_reciprocal(complex rec,complex c)
