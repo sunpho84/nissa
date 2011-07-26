@@ -2,7 +2,7 @@
 
 if [ ! -f params.sh ]
 then
-    echo -e "COMP=\nLEMON_PATH=\nLIME_PATH=\nINC_PATH=\"-I$PWD/src\"\nLIB_PATH=\nCOMP_FLAG=\"-std=c99 -O5 -Wall\"\n" > parmas.sh
+    echo -e "COMP=\nLEMON_PATH=\nLIME_PATH=\nINC_PATH=\"-I$PWD/src\"\nLIB_PATH=\nCOMP_FLAG=\"-std=c99 -O5 -Wall\"\n" > params.sh
     echo "Error, file 'params.sh' not found. Created: fill it and relaunch."
     exit
 fi

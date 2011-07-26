@@ -24,6 +24,9 @@ void init_appretto()
   MPI_Type_contiguous(12,MPI_DOUBLE,&MPI_REDSPINCOLOR);
   MPI_Type_commit(&MPI_REDSPINCOLOR);
   
+  //initialize the first vector of appretto
+  initialize_main_appretto_vect();
+  
   //initialize global variables
   appretto_eo_geom_init=0;
   random_initialized=0;

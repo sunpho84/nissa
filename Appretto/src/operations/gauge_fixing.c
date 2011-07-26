@@ -7,7 +7,7 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   su3 *buf=NULL;
   
   //if the number of processors in the 0 dir is greater than 1 allocate room for border
-  if(nproc_dir[0]>1) buf=(su3*)allocate_su3(loc_slice_area,"buf");
+  if(nproc_dir[0]>1) buf=appretto_malloc("buf",loc_slice_area,su3);
 
   //if we are on first proc slice put to identity the t=0 slice, otherwise receive it from previous proc slice
   if(proc_coord[0]==0)
@@ -50,7 +50,7 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   if(proc_coord[0]!=(nproc_dir[0]-1) && nproc_dir[0]>1)
     MPI_Send((void*)buf,loc_slice_area,MPI_SU3,rank_neighup[0],252,cart_comm);
 
-  if(nproc_dir[0]>1) check_free(buf);
+  if(nproc_dir[0]>1) appretto_free(buf);
 }
 
 //apply a gauge transformation to the conf

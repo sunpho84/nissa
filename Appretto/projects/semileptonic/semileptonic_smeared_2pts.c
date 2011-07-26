@@ -170,8 +170,8 @@ void initialize_semileptonic(char *input_path)
   ////////////////////////////////////// end of input reading/////////////////////////////////
   
   //allocate gauge conf and all the needed spincolor and colorspinspin
-  conf=allocate_quad_su3(loc_vol+loc_bord,"conf");
-  sme_conf=allocate_quad_su3(loc_vol+loc_bord,"sme_conf");
+  conf=appretto_malloc("or_conf",loc_vol+loc_bord,quad_su3);
+  sme_conf=appretto_malloc("sm_conf",loc_vol+loc_bord,quad_su3);
   
   //Allocate all the S0 colorspinspin vectors
   npropS0=nmass;
@@ -179,19 +179,19 @@ void initialize_semileptonic(char *input_path)
   S0[1]=(colorspinspin**)malloc(sizeof(colorspinspin*)*npropS0);
   for(int iprop=0;iprop<npropS0;iprop++)
     {
-      S0[0][iprop]=allocate_colorspinspin(loc_vol,"S0[0]");
-      S0[1][iprop]=allocate_colorspinspin(loc_vol,"S0[1]");
+      S0[0][iprop]=appretto_malloc("S0[0]",loc_vol,colorspinspin);
+      S0[1][iprop]=appretto_malloc("S0[1]",loc_vol,colorspinspin);
     }
   
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=(spincolor**)malloc(sizeof(spincolor*)*nmass);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=allocate_spincolor(loc_vol+loc_bord,"cgmms_solution");
-  reco_solution[0]=allocate_spincolor(loc_vol+loc_bord,"reco_solution[0]");
-  reco_solution[1]=allocate_spincolor(loc_vol+loc_bord,"reco_solution[1]");
+  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=appretto_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
+  reco_solution[0]=appretto_malloc("reco_sol[0]",loc_vol+loc_bord,spincolor);
+  reco_solution[1]=appretto_malloc("reco_sol[1]",loc_vol+loc_bord,spincolor);
   
   //Allocate one spincolor for the source
-  source=allocate_spincolor(loc_vol+loc_bord,"source");
-  original_source=allocate_colorspinspin(loc_vol,"original_source");
+  source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
+  original_source=appretto_malloc("orig_source",loc_vol,colorspinspin);
 }
 
 //load the conf, smear it and put boundary cond
@@ -201,7 +201,6 @@ void load_gauge_conf()
   read_local_gauge_conf(conf,conf_path);
   //prepared the smerded version and  calculate plaquette
   ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
-
   communicate_gauge_borders(conf);
   communicate_gauge_borders(sme_conf);
   
@@ -226,6 +225,8 @@ void close_semileptonic()
       printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
       printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
     }
+  
+  close_appretto();
 }
 
 //calculate the standard propagators

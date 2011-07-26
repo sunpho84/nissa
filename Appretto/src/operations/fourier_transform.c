@@ -33,23 +33,23 @@ void Momentum(int **iP,double *bc,double *P2,double *SinP2,double **P,double **S
 //perform the fourier transform momentum per momentum
 void spincolor_FT(spincolor *S,spincolor *FT,double *theta,int **iP,int nmom)
 {
-  double *P2=(double*)malloc(sizeof(double)*nmom);
-  double *SinP2=(double*)malloc(sizeof(double)*nmom);
-  double *SinP4=(double*)malloc(sizeof(double)*nmom);
+  double *P2=appretto_malloc("P2",nmom,double);
+  double *SinP2=appretto_malloc("SinP2",nmom,double);
+  double *SinP4=appretto_malloc("SinP4",nmom,double);
 
-  double **P=(double**)malloc(sizeof(double)*4);
-  double **SinP=(double**)malloc(sizeof(double)*4);
+  double *P[4];
+  double *SinP[4];
 
   for(int idir=0;idir<4;idir++)
     {
-      P[idir]=(double*)malloc(sizeof(double)*nmom);
-      SinP[idir]=(double*)malloc(sizeof(double)*nmom);
+      P[idir]=appretto_malloc("P[idir]",nmom,double);
+      SinP[idir]=appretto_malloc("SinP[idir]",nmom,double);
     }
   
   Momentum(iP,theta,P2,SinP2,P,SinP,SinP4,nmom); 
 
   //local FT
-  spincolor *FT_loc=(spincolor*)malloc(sizeof(spincolor)*nmom);
+  spincolor *FT_loc=appretto_malloc("FT_loc",nmom,spincolor);
   for(int imom=0;imom<nmom;imom++) spincolor_put_to_zero(FT_loc[imom]); 
 	
   double lP[4];
@@ -69,6 +69,6 @@ void spincolor_FT(spincolor *S,spincolor *FT,double *theta,int **iP,int nmom)
 
   MPI_Reduce(FT_loc,FT,24*nmom,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   
-  for(int idir=0;idir<4;idir++){check_free(P[idir]);check_free(SinP[idir]);}
-  check_free(P2);check_free(SinP2);check_free(SinP4);check_free(P);check_free(SinP);
+  for(int idir=0;idir<4;idir++){appretto_free(P[idir]);appretto_free(SinP[idir]);}
+  appretto_free(P2);appretto_free(SinP2);appretto_free(SinP4);;
 }

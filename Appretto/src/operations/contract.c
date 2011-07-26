@@ -31,7 +31,7 @@ void site_trace_g_sdag_g_s_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac
 void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,const int ncontr)
 {
   //Allocate a contiguous memory area where to store local node results
-  complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
+  complex *loc_c=appretto_malloc("loc_c",ncontr*glb_size[0],complex);
   for(int icontr=0;icontr<ncontr;icontr++)
     for(int glb_t=0;glb_t<glb_size[0];glb_t++) loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
   
@@ -88,13 +88,13 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   if(debug>1 && rank==0) printf("Reduction done\n");
   
-  check_free(loc_c);
+  appretto_free(loc_c);
 }
   
 void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin *s1L, dirac_matr *g2L, colorspinspin *s2L, dirac_matr *g1R,colorspinspin *s1R, dirac_matr *g2R, colorspinspin *s2R,const int ncontr)
 {
 //Allocate a contguous memory area where to store local results
-  complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
+  complex *loc_c=appretto_malloc("loc_c",ncontr*glb_size[0],complex);
   for(int icontr=0;icontr<ncontr;icontr++)
     for(int glb_t=0;glb_t<glb_size[0];glb_t++) loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
 
@@ -109,7 +109,7 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
           printf("Creating a temporary buffer for the contractions.\n");
           printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
         }
-      glb_c_buf=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
+      glb_c_buf=appretto_malloc("glb_c_buf",ncontr*glb_size[0],complex);
     }
 
   for(int icontr=0;icontr<ncontr;icontr++)
@@ -157,17 +157,17 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
             glb_c[icontr][glb_t][0]=glb_c_buf[icontr*glb_size[0]+glb_t][0];
             glb_c[icontr][glb_t][1]=glb_c_buf[icontr*glb_size[0]+glb_t][1];
           }
-      check_free(glb_c_buf);
+      appretto_free(glb_c_buf);
     }
 
-  check_free(loc_c);
+  appretto_free(loc_c);
 }
 
 
 void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin *s1L, dirac_matr *g2L, colorspinspin *s2L, dirac_matr *g1R,colorspinspin *s1R, dirac_matr *g2R, colorspinspin *s2R,const int ncontr)
 {
 //Allocate a contguous memory area where to store local results
-  complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
+  complex *loc_c=appretto_malloc("loc_c",ncontr*glb_size[0],complex);
   for(int icontr=0;icontr<ncontr;icontr++)
     for(int glb_t=0;glb_t<glb_size[0];glb_t++) loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
 
@@ -182,7 +182,7 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
           printf("Creating a temporary buffer for the contractions.\n");
           printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
         }
-      glb_c_buf=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
+      glb_c_buf=appretto_malloc("glb_c_buf",ncontr*glb_size[0],complex);
     }
 
   for(int icontr=0;icontr<ncontr;icontr++)
@@ -219,16 +219,16 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
             glb_c[icontr][glb_t][0]=glb_c_buf[icontr*glb_size[0]+glb_t][0];
             glb_c[icontr][glb_t][1]=glb_c_buf[icontr*glb_size[0]+glb_t][1];
           }
-      check_free(glb_c_buf);
+      appretto_free(glb_c_buf);
     }
 
-  check_free(loc_c);
+  appretto_free(loc_c);
 }
 
 void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
 {
   //Allocate a contiguous memory area where to store local results
-  complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
+  complex *loc_c=appretto_malloc("loc_c",ncontr*glb_size[0],complex);
   memset(loc_c,0,sizeof(complex)*ncontr*glb_size[0]);
 
   //Local loop
@@ -260,13 +260,13 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   if(debug>1 && rank==0) printf("Reduction done\n");
   
-  check_free(loc_c);
+  appretto_free(loc_c);
 }
 
 void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
 {
   //Allocate a contguous memory area where to store local results
-  complex *loc_c=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
+  complex *loc_c=appretto_malloc("loc_c",ncontr*glb_size[0],complex);
   memset(loc_c,0,sizeof(complex)*ncontr*glb_size[0]);
 
   //Local loop
@@ -316,7 +316,7 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   if(debug>1 && rank==0) printf("Reduction done\n");
   
-  check_free(loc_c);
+  appretto_free(loc_c);
 }
 
 //print a single contraction to the file

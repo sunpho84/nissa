@@ -34,12 +34,8 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
     }
 
   //take initial time
-  double tic;
-  if(debug)
-    {
-      MPI_Barrier(cart_comm);
-      tic=MPI_Wtime();
-    }
+  double time;
+  if(debug) time=-take_time();
 
   int nreals_loc=nreals_per_site*loc_vol;
   int nbytes_per_site=nreals_per_site*nbits/8;
@@ -48,16 +44,7 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
   write_header(writer,header_message,nbytes_glb);
 
   char *buffer=NULL;
-  if(big_endian || nbits==32)
-    {
-      buffer=(char*)malloc(sizeof(double)*nreals_loc);
-      if(buffer==NULL && rank==0)
-	{
-	  fprintf(stderr,"Error allocating: buffer for writing\n");
-	  fflush(stderr);
-	  MPI_Abort(MPI_COMM_WORLD,1);
-	}
-    }	    
+  if(big_endian || nbits==32) buffer=appretto_malloc("buffer",nreals_loc,double);
 
   if(nbits==64)
     if(big_endian) doubles_to_doubles_changing_endianess((double*)buffer,(double*)data,nreals_loc);
@@ -71,16 +58,13 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
   lemonWriteLatticeParallelMapped(writer,buffer,nbytes_per_site,glb_dims,scidac_mapping);
 
   //delete the swapped data, if created
-  if(big_endian || nbits==32) check_free(buffer);
+  if(big_endian || nbits==32) appretto_free(buffer);
 
   //take final time
-  double tac;
   if(debug)
     {
-      MPI_Barrier(cart_comm);
-      tac=MPI_Wtime();
-
-      if(rank==0) printf("Time elapsed in writing: %f s\n",tac-tic);
+      time+=take_time();
+      if(rank==0) printf("Time elapsed in writing: %f s\n",time);
     }
 }
 
@@ -122,7 +106,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
   write_text_record(writer,propagator_format_header,propagator_format_message);
   
   //order things as expected
-  spincolor *temp=allocate_spincolor(loc_vol,"temp reading propagator");
+  spincolor *temp=appretto_malloc("temp_read_prop",loc_vol,spincolor);
   
   int x[4],isour,idest;
 
@@ -140,7 +124,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
   //Write the binary data
   write_double_vector(writer,(char*)temp,"scidac-binary-data",nreals_per_spincolor,prec);
 
-  check_free(temp);
+  appretto_free(temp);
 
   if(rank==0) printf("File '%s' saved (probably...)\n",path);
   
@@ -155,7 +139,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
 void write_local_gauge_conf(char *path,quad_su3 *in)
 {
   double twrite=-take_time();
-  quad_su3 *temp=allocate_quad_su3(loc_vol,"temp_gauge_writer");
+  quad_su3 *temp=appretto_malloc("temp_gauge_writer",loc_vol,quad_su3);
 
   int x[4],isour,idest;
   quad_su3 buff;
@@ -190,7 +174,7 @@ void write_local_gauge_conf(char *path,quad_su3 *in)
   LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
   write_double_vector(writer,(char*)temp,"ildg-binary-data",nreals_per_quad_su3,64);
   
-  check_free(temp);
+  appretto_free(temp);
   
   if(debug)
     {

@@ -136,7 +136,7 @@ void read_real_vector(double *out,char *path,const char *header,int nreals_per_s
 //Read a whole spincolor
 void read_spincolor(spincolor *out,char *path)
 {
-  spincolor *temp=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  spincolor *temp=appretto_malloc("temp_read_buf",loc_vol,spincolor);
 
   read_real_vector((double*)temp,path,"scidac-binary-data",nreals_per_spincolor);
 
@@ -153,7 +153,7 @@ void read_spincolor(spincolor *out,char *path)
 	    memcpy(out[idest],temp[isour],sizeof(spincolor));
 	  }
   
-  check_free(temp);
+  appretto_free(temp);
 }  
 
 //Read a spincolor and reconstruct the doublet
@@ -162,7 +162,7 @@ void read_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path,qu
   int all=0;
   if(temp==NULL)
     {
-      temp=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+      temp=appretto_malloc("temp",loc_vol+loc_bord,spincolor);
       all=1;
     }
   read_spincolor(temp,path);
@@ -170,21 +170,17 @@ void read_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path,qu
 
   reconstruct_doublet(out[0],out[1],temp,conf,kappa,mu);  
 
-  if(all) check_free(temp);
+  if(all) appretto_free(temp);
 }  
 
 //Read 4 spincolor and revert their indexes
 void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
 {
-  double tic;
-  if(debug)
-    {
-      MPI_Barrier(cart_comm);
-      tic=MPI_Wtime();
-    }
+  double time;
+  if(debug) time=-take_time();
 
   char filename[1024];
-  spincolor *sc=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
+  spincolor *sc=appretto_malloc("sc",loc_vol,spincolor);
 
   //Read the four spinor
   for(int id_source=0;id_source<4;id_source++) //dirac index of source
@@ -199,29 +195,23 @@ void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
 
   if(debug)
     {
-      MPI_Barrier(cart_comm);
-      double tac=MPI_Wtime();
-
-      if(rank==0) printf("Time elapsed in reading file '%s': %f s\n",base_path,tac-tic);
+      time+=take_time();
+      if(rank==0) printf("Time elapsed in reading file '%s': %f s\n",base_path,time);
     }
   
   //Destroy the temp
-  check_free(sc);
+  appretto_free(sc);
 }
 
 //Read 4 spincolor and reconstruct them
 void read_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char *end_path,quad_su3 *conf,double kappa,double mu)
 {
-  double tic;
-  if(debug)
-    {
-      MPI_Barrier(cart_comm);
-      tic=MPI_Wtime();
-    }
+  double time;
+  if(debug) time=-take_time();
   
   char filename[1024];
-  spincolor *sc[2]={(spincolor*)malloc(sizeof(spincolor)*loc_vol),(spincolor*)malloc(sizeof(spincolor)*loc_vol)};
-  spincolor *temp=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+  spincolor *sc[2]={appretto_malloc("sc1",loc_vol,spincolor),appretto_malloc("sc3",loc_vol,spincolor)};
+  spincolor *temp=appretto_malloc("temp",loc_vol+loc_bord,spincolor);
 
   //Read the four spinor
   for(int id_source=0;id_source<4;id_source++) //dirac index of source
@@ -240,16 +230,14 @@ void read_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char 
 
   if(debug)
     {
-      MPI_Barrier(cart_comm);
-      double tac=MPI_Wtime();
-
-      if(rank==0) printf("Time elapsed in reading file '%s': %f s\n",base_path,tac-tic);
+      time+=take_time();
+      if(rank==0) printf("Time elapsed in reading file '%s': %f s\n",base_path,time);
     }
 
   //Destroy the temp
-  check_free(sc[0]);
-  check_free(sc[1]);
-  check_free(temp);
+  appretto_free(sc[0]);
+  appretto_free(sc[1]);
+  appretto_free(temp);
 }
 
 ////////////////////////// gauge configuration loading /////////////////////////////
@@ -258,7 +246,7 @@ void read_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char 
 void read_local_gauge_conf(quad_su3 *out,char *path)
 {
   double tread=-take_time();
-  quad_su3 *temp=allocate_quad_su3(loc_vol,"temp_gauge_reader");
+  quad_su3 *temp=appretto_malloc("temp_gauge_read_buf",loc_vol,quad_su3);
 
   read_real_vector((double*)temp,path,"ildg-binary-data",nreals_per_quad_su3);
   
@@ -282,7 +270,7 @@ void read_local_gauge_conf(quad_su3 *out,char *path)
 	    memcpy(out[idest],buff,sizeof(quad_su3));
 	  }
 
-  check_free(temp);
+  appretto_free(temp);
   
   if(debug)
     {

@@ -79,9 +79,13 @@ EXTERN int big_endian;
 
 #define nreals_per_spincolor 24
 #define nreals_per_quad_su3 72
-#define debug 1
 
 EXTERN MPI_Comm cart_comm;
+
+//vectors
+void *main_appretto_arr;
+appretto_vect main_appretto_vect;
+appretto_vect *last_appretto_vect;
 
 //random generator stuff
 #define ran2_ntab 32

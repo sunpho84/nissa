@@ -71,8 +71,8 @@ void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis)
 //shift the gauge configuration
 void shift_gauge_conf_down(quad_su3 *conf,int *amount)
 {
-  quad_su3 *temp_conf=allocate_quad_su3(loc_vol+loc_bord,"temp_conf");
-  quad_su3 *supp_conf=allocate_quad_su3(loc_vol,"supp_conf");
+  quad_su3 *temp_conf=appretto_malloc("temp_conf",loc_vol+loc_bord,quad_su3);
+  quad_su3 *supp_conf=appretto_malloc("supp_conf",loc_vol,quad_su3);
 
   //initial copy inside temp_conf
   memcpy(temp_conf,conf,sizeof(quad_su3)*loc_vol);
@@ -93,7 +93,7 @@ void shift_gauge_conf_down(quad_su3 *conf,int *amount)
 
   memcpy(conf,temp_conf,sizeof(quad_su3)*loc_vol);
 
-  check_free(temp_conf);check_free(supp_conf);
+  appretto_free(temp_conf);appretto_free(supp_conf);
 }
 
 //put boundary conditions on the gauge conf

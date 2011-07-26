@@ -228,7 +228,7 @@ void initialize_semileptonic(char *input_path)
   read_str_str("OutfileTwoPoints",outfile_2pts,1024);
 
   // 6) three points functions
-  sequential_source=allocate_colorspinspin(loc_vol+loc_bord,"Sequential source"); //the bord is unnecessary
+  sequential_source=appretto_malloc("Sequential source",loc_vol,colorspinspin);
   read_str_int("NSpec",&nspec);
   ith_spec=(int*)malloc(nspec*sizeof(int));
   imass_spec=(int*)malloc(nspec*sizeof(int));
@@ -274,8 +274,8 @@ void initialize_semileptonic(char *input_path)
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf, Pmunu and all the needed spincolor and colorspinspin
-  conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"conf");
-  Pmunu=allocate_as2t_su3(loc_vol,"Pmunu");
+  conf=appretto_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  Pmunu=appretto_malloc("Pmunu",loc_vol,as2t_su3);
 
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_local_gauge_conf(conf,conf_path);
@@ -297,27 +297,27 @@ void initialize_semileptonic(char *input_path)
   S0[1]=(colorspinspin**)malloc(sizeof(colorspinspin*)*npropS0);
   for(int iprop=0;iprop<npropS0;iprop++)
     {
-      S0[0][iprop]=allocate_colorspinspin(loc_vol,"S0[0]");
-      S0[1][iprop]=allocate_colorspinspin(loc_vol,"S0[1]");
+      S0[0][iprop]=appretto_malloc("S0[0]",loc_vol,colorspinspin);
+      S0[1][iprop]=appretto_malloc("S0[1]",loc_vol,colorspinspin);
     }
 
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=(spincolor**)malloc(sizeof(spincolor*)*nmass);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=allocate_spincolor(loc_vol+loc_bord,"cgmms_solution");
-  reco_solution[0]=allocate_spincolor(loc_vol,"reco_solution[0]");
-  reco_solution[1]=allocate_spincolor(loc_vol,"reco_solution[1]");
+  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=appretto_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
+  reco_solution[0]=appretto_malloc("reco_solution[0]",loc_vol,spincolor);
+  reco_solution[1]=appretto_malloc("reco_solution[1]",loc_vol,spincolor);
   
   //Allocate one spincolor for the source
-  source=allocate_spincolor(loc_vol+loc_bord,"source");
-  original_source=allocate_colorspinspin(loc_vol,"original_source");
+  source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
+  original_source=appretto_malloc("original_source",loc_vol,colorspinspin);
 
   //Allocate one colorspinspin for the chromo-contractions
-  ch_colorspinspin=allocate_colorspinspin(loc_vol,"chromo-colorspinspin");
+  ch_colorspinspin=appretto_malloc("chromo-colorspinspin",loc_vol,colorspinspin);
 
   //Allocate all the S1 colorspinspin vectors
   npropS1=ntheta*nmass;
   S1=(colorspinspin**)malloc(sizeof(colorspinspin*)*loc_vol);
-  for(int iprop=0;iprop<npropS0;iprop++) S1[iprop]=allocate_colorspinspin(loc_vol,"S1");
+  for(int iprop=0;iprop<npropS0;iprop++) S1[iprop]=appretto_malloc("S1[i]",loc_vol,colorspinspin);
 }
 
 //Finalization
@@ -331,15 +331,12 @@ void close_semileptonic()
       printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
     }
 
-  check_free(Pmunu);check_free(conf);check_free(mass);check_free(theta);
-  for(int iprop=0;iprop<npropS0;iprop++){check_free(S0[0][iprop]);check_free(S0[1][iprop]);}
-  check_free(S0[0]);check_free(S0[1]);check_free(reco_solution[0]);check_free(reco_solution[1]);
-  check_free(op1_2pts);check_free(op2_2pts);check_free(ch_op1_2pts);check_free(ch_op2_2pts);
-  check_free(contr_2pts);check_free(ch_contr_2pts);
-  check_free(op1_3pts);check_free(op2_3pts);check_free(ch_op1_3pts);check_free(ch_op2_3pts);
-  check_free(contr_3pts);check_free(ch_contr_3pts);
-  check_free(ch_colorspinspin);check_free(sequential_source);
-  check_free(ith_spec);check_free(imass_spec);check_free(r_spec);
+  appretto_free(Pmunu);appretto_free(conf);
+  for(int iprop=0;iprop<npropS0;iprop++){appretto_free(S0[0][iprop]);appretto_free(S0[1][iprop]);appretto_free(S1[iprop]);}
+  appretto_free(reco_solution[0]);appretto_free(reco_solution[1]);
+  appretto_free(ch_colorspinspin);appretto_free(sequential_source);
+  for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
+  appretto_free(source);appretto_free(original_source);
   close_appretto();
 }
 

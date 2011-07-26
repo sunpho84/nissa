@@ -35,7 +35,7 @@ void apply_Q2_RL(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double
 
   if(temp==NULL)
     {
-      temp=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+      temp=appretto_malloc("tempQ",loc_vol+loc_bord,spincolor);
       all=1;
     }
 
@@ -49,7 +49,7 @@ void apply_Q2_RL(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double
 
   if(all==1)
     {
-      check_free(temp);
+      appretto_free(temp);
       temp=NULL;
     }
 }
