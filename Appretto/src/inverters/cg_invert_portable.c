@@ -3,10 +3,10 @@
 void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
 {
   int riter=0;
-  spincolor *s=(spincolor*)malloc(sizeof(spincolor)*(loc_vol));
-  spincolor *p=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-  spincolor *r=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
-  spincolor *t=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord)); //temporary for internal calculation of DD
+  spincolor *s=appretto_malloc("s",loc_vol,spincolor);
+  spincolor *p=appretto_malloc("p",loc_vol+loc_bord,spincolor);
+  spincolor *r=appretto_malloc("r",loc_vol,spincolor);
+  spincolor *t=appretto_malloc("t",loc_vol+loc_bord,spincolor); //temporary for internal calculation of DD
 
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
   else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));
@@ -118,8 +118,8 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
     }
   while(lambda>(residue*source_norm) && riter<rniter);
   
-  check_free(s);
-  check_free(p);
-  check_free(r);
-  check_free(t);
+  appretto_free(s);
+  appretto_free(p);
+  appretto_free(r);
+  appretto_free(t);
 }

@@ -4,7 +4,7 @@
 //be sure not to have border condition added
 void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
 {
-  quad_su3 *temp_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"temp_conf");
+  quad_su3 *temp_conf=appretto_malloc("temp_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
   
   if(rank==0 && debug) printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
@@ -55,7 +55,7 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
 	}
     }
       
-  check_free(temp_conf);
+  appretto_free(temp_conf);
 }
 
 //return the spatial density profile at a fixed timeslice, at radius r from or_pos
@@ -201,8 +201,8 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
     }
   else
     {
-      spincolor *temp=allocate_spincolor(loc_vol+loc_bord,"temp"); //we do not know if smear_sc is allocated with border
-      spincolor *H=allocate_spincolor(loc_vol+loc_bord,"H");
+      spincolor *temp=appretto_malloc("temp",loc_vol+loc_bord,spincolor);//we do not know if smear_sc is allocated with bord
+      spincolor *H=appretto_malloc("H",loc_vol+loc_bord,spincolor);
       double norm_fact=1/(1+6*kappa);
       communicate_gauge_borders(conf);
 
@@ -247,8 +247,8 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       
       memcpy(smear_sc,temp,sizeof(spincolor)*loc_vol);
       
-      check_free(H);
-      check_free(temp);
+      appretto_free(H);
+      appretto_free(temp);
     }
 }
 

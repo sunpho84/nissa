@@ -192,7 +192,7 @@ void initialize_Bk(char *input_path)
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf, Pmunu and all the needed spincolor and colorspinspin
-  conf=allocate_quad_su3(loc_vol+loc_bord,"conf");
+  conf=appretto_malloc("conf",loc_vol+loc_bord,quad_su3);
 
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_local_gauge_conf(conf,conf_path);
@@ -210,20 +210,20 @@ void initialize_Bk(char *input_path)
     for(int UD=0;UD<2;UD++)
       {
 	S[LR][UD]=(colorspinspin**)malloc(sizeof(colorspinspin*)*nmass);
-	for(int iprop=0;iprop<nmass;iprop++) S[LR][UD][iprop]=allocate_colorspinspin(loc_vol,"S");
+	for(int iprop=0;iprop<nmass;iprop++) S[LR][UD][iprop]=appretto_malloc("S[i]",loc_vol,colorspinspin);
       }
   
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=(spincolor**)malloc(sizeof(spincolor*)*nmass);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=allocate_spincolor(loc_vol+loc_bord,"cgmms_solution");
-  reco_solution[0]=allocate_spincolor(loc_vol,"reco_solution[0]");
-  reco_solution[1]=allocate_spincolor(loc_vol,"reco_solution[1]");
+  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=appretto_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
+  reco_solution[0]=appretto_malloc("reco_solution[0]",loc_vol,spincolor);
+  reco_solution[1]=appretto_malloc("reco_solution[1]",loc_vol,spincolor);
   
   //Allocate one spincolor for the source
-  source=allocate_spincolor(loc_vol+loc_bord,"source");
+  source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
 
   //Allocate the colorspinspin of the LR source
-  original_source=allocate_colorspinspin(loc_vol,"original_source");
+  original_source=appretto_malloc("original_source",loc_vol,colorspinspin);
 }
 
 //Finalization
@@ -237,12 +237,12 @@ void close_Bk()
       printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
     }
 
-  check_free(conf);check_free(mass);
-  for(int iprop=0;iprop<nmass;iprop++) for(int LR=0;LR<2;LR++) for(int UD=0;UD<2;UD++) check_free(S[LR][UD][iprop]);
-  check_free(reco_solution[0]);check_free(reco_solution[1]);
-  check_free(contr_otto);check_free(contr_mezzotto);
-  check_free(contr_2pts);
-
+  appretto_free(conf);
+  for(int iprop=0;iprop<nmass;iprop++) for(int LR=0;LR<2;LR++) for(int UD=0;UD<2;UD++) appretto_free(S[LR][UD][iprop]);
+  appretto_free(source);appretto_free(original_source);
+  appretto_free(reco_solution[0]);appretto_free(reco_solution[1]);
+  for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
+  
   close_appretto();
 }
 

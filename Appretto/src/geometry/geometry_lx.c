@@ -38,9 +38,7 @@ int lx_of_coord(int *x,int *s)
 
 //wrappers
 int loclx_of_coord(int *x)
-{
-  return lx_of_coord(x,loc_size);
-}
+{return lx_of_coord(x,loc_size);}
   
 //wrappers
 int loclx_of_coord_list(int x0,int x1,int x2,int x3)
@@ -51,9 +49,7 @@ int loclx_of_coord_list(int x0,int x1,int x2,int x3)
   
 //wrappers
 int glblx_of_coord(int *x)
-{
-  return lx_of_coord(x,glb_size);
-}
+{return lx_of_coord(x,glb_size);}
   
 //indexes run as t,z,y,x (faster:x)
 void set_lx_geometry()

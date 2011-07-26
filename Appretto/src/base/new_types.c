@@ -29,3 +29,18 @@ typedef struct
   complex entr[4];
 } dirac_matr;
 
+//Appretto vector
+typedef struct
+{
+  int nel;
+  int size_per_el;
+  
+  char tag[appretto_vect_string_length];
+  char type[appretto_vect_string_length];
+  
+  char file[appretto_vect_string_length];
+  int line;
+
+  void *prev;
+  void *next;
+} appretto_vect;

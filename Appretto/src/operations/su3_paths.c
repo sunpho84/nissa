@@ -54,9 +54,9 @@ void Pline(su3 *Pline,quad_su3 *conf)
 {
   int X,iX[4],T=loc_size[0];
   
-  su3 *U0=(su3*)malloc(sizeof(su3)*(loc_size[0]+1));
-  su3 *plf=(su3*)malloc(sizeof(su3)*(loc_size[0]+1));
-  su3 *plb=(su3*)malloc(sizeof(su3)*(loc_size[0]+1));
+  su3 *U0=appretto_malloc("U0",loc_size[0]+1,su3);
+  su3 *plf=appretto_malloc("plf",loc_size[0]+1,su3);
+  su3 *plb=appretto_malloc("plb",loc_size[0]+1,su3);
   
   MPI_Status status_f,status_b;
   int tag_f=0,tag_b=1;
@@ -139,15 +139,15 @@ void Pline(su3 *Pline,quad_su3 *conf)
 	     }	
 	}
   
-  check_free(U0);check_free(plf);check_free(plb);
+  appretto_free(U0);appretto_free(plf);appretto_free(plb);
 }
 
 void Pline_forward(su3 *Pline, quad_su3 *conf)
 {
   int X,iX[4],T=loc_size[0];
   
-  su3 *U0=(su3*)malloc(sizeof(su3)*(loc_size[0]+1));
-  su3 *plf=(su3*)malloc(sizeof(su3)*(loc_size[0]+1));
+  su3 *U0=appretto_malloc("U0",loc_size[0]+1,su3);
+  su3 *plf=appretto_malloc("plf",loc_size[0]+1,su3);
   
   MPI_Status status_f;
   int tag_f=0;
@@ -196,15 +196,15 @@ void Pline_forward(su3 *Pline, quad_su3 *conf)
 	     }
         }
 
-  check_free(U0);check_free(plf);
+  appretto_free(U0);appretto_free(plf);
 }
 
 void Pline_backward(su3 *Pline, quad_su3 *conf)
 {
   int X,iX[4],T=loc_size[0];
   
-  su3 *U0=(su3*)malloc(sizeof(su3)*(loc_size[0]+1));
-  su3 *plb=(su3*)malloc(sizeof(su3)*(loc_size[0]+1));
+  su3 *U0=appretto_malloc("U0",loc_size[0]+1,su3);
+  su3 *plb=appretto_malloc("plb",loc_size[0]+1,su3);
   
   MPI_Status status_b;
   int tag_b=1;
@@ -246,7 +246,7 @@ void Pline_backward(su3 *Pline, quad_su3 *conf)
 	     }
 	}
 
-  check_free(U0);check_free(plb);
+  appretto_free(U0);appretto_free(plb);
 }
 
 //This will calculate 2*a^2*ig*P_{mu,nu}

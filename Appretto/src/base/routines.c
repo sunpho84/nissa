@@ -34,3 +34,11 @@ FILE* open_text_file_for_output(char *outfile)
     }
   return fout;
 }
+
+void take_last_characters(char *out,const char *in,int size)
+{
+  int len=strlen(in)+1;
+  int copy_len=(len<=size)?len:size;
+  const char *str_init=(len<=size)?in:in+len-size;
+  memcpy(out,str_init,copy_len);
+}

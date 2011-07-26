@@ -4,9 +4,8 @@
 
 #include "headers.h"
 
-#include "base/debug.c"
 #include "base/routines.c"
-#include "base/alloc.c"
+#include "base/vectors.c"
 #include "base/new_types_operations.c"
 #include "base/init.c"
 #include "base/close.c"

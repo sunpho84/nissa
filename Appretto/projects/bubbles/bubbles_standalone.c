@@ -170,7 +170,7 @@ void initialize_bubbles(char *input_path)
   
   //reading of gauge conf and computation of Pmunu
   read_str_str("GaugeConf",gaugeconf_file,1024);
-  conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"gauge conf");
+  conf=appretto_malloc("conf",loc_vol+loc_bord,quad_su3);
   read_local_gauge_conf(conf,gaugeconf_file);
   communicate_gauge_borders(conf);
   communicate_gauge_edges(conf);
@@ -178,15 +178,15 @@ void initialize_bubbles(char *input_path)
   //calculate plaquette, Pmunu
   double gplaq=global_plaquette(conf);
   if(rank==0) printf("plaq: %.10g\n",gplaq);
-  Pmunu=allocate_as2t_su3(loc_vol,"clover term");
+  Pmunu=appretto_malloc("clover",loc_vol,as2t_su3);
   Pmunu_term(Pmunu,conf);
   
   //allocate the source and the chromo-prop
-  source=allocate_colorspinspin(loc_vol,"source");
-  inv_source=allocate_spincolor(loc_vol+loc_bord,"inv_source");
-  ch_prop=allocate_colorspinspin(loc_vol,"chromo-prop");
-  for(int idir=0;idir<3;idir++) edm_prop[idir]=allocate_colorspinspin(loc_vol,"edm_prop");
-  for(int r=0;r<2;r++) reco_solution[r]=allocate_spincolor(loc_vol,"reco_solution");
+  source=appretto_malloc("source",loc_vol+loc_bord,colorspinspin);
+  inv_source=appretto_malloc("inv_source",loc_vol+loc_bord,spincolor);
+  ch_prop=appretto_malloc("chromo-prop",loc_vol,colorspinspin);
+  for(int idir=0;idir<3;idir++) edm_prop[idir]=appretto_malloc("edm_prop",loc_vol,colorspinspin);
+  for(int r=0;r<2;r++) reco_solution[r]=appretto_malloc("reco_solution",loc_vol,spincolor);
 
   //read the seed
   read_str_int("Seed",&seed);
@@ -216,8 +216,8 @@ void initialize_bubbles(char *input_path)
   for(int imass=0;imass<nmass;imass++)
     {
       S[imass]=(colorspinspin**)malloc(2*sizeof(colorspinspin*));
-      for(int r=0;r<2;r++) S[imass][r]=allocate_colorspinspin(loc_vol,"S");
-      QQ[imass]=allocate_spincolor(loc_vol+loc_bord,"QQ");
+      for(int r=0;r<2;r++) S[imass][r]=appretto_malloc("S",loc_vol,colorspinspin);
+      QQ[imass]=appretto_malloc("QQ[i]",loc_vol+loc_bord,spincolor);
       read_double(&(mass[imass]));
     }
     
@@ -230,7 +230,7 @@ void initialize_bubbles(char *input_path)
 
   //Read path of output
   read_str_str("Output",outfile,1024);
-  
+
   close_input();
 }
 
@@ -386,6 +386,19 @@ void close_bubbles()
   
   if(rank==0) printf("\nEverything ok, exiting!\n");
   
+  appretto_free(conf);
+  appretto_free(Pmunu);
+  appretto_free(source);
+  for(int imass=0;imass<nmass;imass++)
+    {
+      appretto_free(QQ[imass]);
+      for(int r=0;r<2;r++) appretto_free(S[imass][r]);
+    }
+  appretto_free(inv_source);
+  appretto_free(ch_prop);
+  for(int idir=0;idir<3;idir++) appretto_free(edm_prop[idir]);
+  for(int r=0;r<2;r++) appretto_free(reco_solution[r]);
+
   close_appretto();
 }
 

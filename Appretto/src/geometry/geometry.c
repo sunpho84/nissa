@@ -23,20 +23,12 @@ void swap_lx_to_eo_or_eo_to_lx(char *vect_e,char *vect_o,char *vect_lx,int nbyte
 
 //swap the data from even odd to lexical order
 void swap_lx_to_eo(char *out_e,char *out_o,char *in_lx,int nbytes_per_site,int bord)
-{
-  swap_lx_to_eo_or_eo_to_lx(out_e,out_o,in_lx,nbytes_per_site,bord,0);
-}
+{swap_lx_to_eo_or_eo_to_lx(out_e,out_o,in_lx,nbytes_per_site,bord,0);}
 void swap_eo_to_lx(char *out_lx,char *in_e,char *in_o,int nbytes_per_site,int bord)
-{
-  swap_lx_to_eo_or_eo_to_lx(in_e,in_o,out_lx,nbytes_per_site,bord,1);
-}
+{swap_lx_to_eo_or_eo_to_lx(in_e,in_o,out_lx,nbytes_per_site,bord,1);}
 
 //wrappers
 void swap_spincolor_lx_to_eo(spincolor *out_e,spincolor *out_o,spincolor *in_lx,int bord)
-{
-  swap_lx_to_eo((char*)out_e,(char*)out_o,(char*)in_lx,sizeof(spincolor),bord);
-}
+{swap_lx_to_eo((char*)out_e,(char*)out_o,(char*)in_lx,sizeof(spincolor),bord);}
 void swap_spincolor_eo_to_lx(spincolor *out_lx,spincolor *in_e,spincolor *in_o,int bord)
-{
-  swap_eo_to_lx((char*)out_lx,(char*)in_e,(char*)in_o,sizeof(spincolor),bord);
-}
+{swap_eo_to_lx((char*)out_lx,(char*)in_e,(char*)in_o,sizeof(spincolor),bord);}

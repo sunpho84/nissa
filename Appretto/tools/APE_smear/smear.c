@@ -52,8 +52,8 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
-  quad_su3 *origi_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"or_conf");
-  quad_su3 *smear_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"sm_conf");
+  quad_su3 *origi_conf=appretto_malloc("or_conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *smear_conf=appretto_malloc("sm_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   
   read_local_gauge_conf(origi_conf,"/home/francesco/Prace/nissa/Appretto/test/gaugeconf_load/conf.0048");
   
@@ -71,8 +71,8 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  spincolor *s=allocate_spincolor(loc_vol,"s");
-  spincolor *t=allocate_spincolor(loc_vol,"t");
+  spincolor *s=appretto_malloc("s",loc_vol,spincolor);
+  spincolor *t=appretto_malloc("t",loc_vol,spincolor);
   read_spincolor(s,"/home/francesco/Prace/Programs/src/ahmidas-rw/test/point_src.48");
   jacobi_smearing(t,s,smear_conf,0.5,5);
   int l=loclx_of_coord_list(0,1,0,2);
@@ -80,6 +80,11 @@ int main(int narg,char **arg)
   for(int d=0;d<4;d++)
     for(int c=0;c<3;c++)
       printf("%g %g\n",t[l][d][c][0],t[l][d][c][1]);
+  
+  appretto_free(s);
+  appretto_free(t);
+  appretto_free(smear_conf);
+  appretto_free(origi_conf);
   
   close_appretto();
 
