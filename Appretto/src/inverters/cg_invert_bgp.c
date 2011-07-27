@@ -10,10 +10,10 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
   bgp_complex R;
 
   int riter=0;
-  spincolor *s=allocate_spincolor(loc_vol,"s in gc");
-  spincolor *p=allocate_spincolor(loc_vol+loc_bord,"p in gc");
-  spincolor *r=allocate_spincolor(loc_vol,"r in gc");
-  spincolor *t=allocate_spincolor(loc_vol+loc_bord,"t in gc"); //temporary for internal calculation of DD
+  spincolor *s=appretto_malloc("s in gc",loc_vol,spincolor);
+  spincolor *p=appretto_malloc("p in gc",loc_vol+loc_bord,spincolor);
+  spincolor *r=appretto_malloc("r in gc",loc_vol,spincolor);
+  spincolor *t=appretto_malloc("t in gc",loc_vol+loc_bord,spincolor); //temporary for internal calculation of DD
 
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
   else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));
@@ -154,8 +154,8 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
     }
   while(lambda>(residue*source_norm) && riter<rniter);
   
-  check_free(s);
-  check_free(p);
-  check_free(r);
-  check_free(t);
+  appretto_free(s);
+  appretto_free(p);
+  appretto_free(r);
+  appretto_free(t);
 }
