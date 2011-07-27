@@ -124,9 +124,9 @@ void initialize_nucleons(char *input_path)
   //Init the MPI grid 
   init_grid();
   //Allocate the gauge Conf
-  conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"conf");
-  smea_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"conf");
-  Pmunu=allocate_as2t_su3(loc_vol,"Pmunu");
+  conf=appretto_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  smea_conf=appretto_malloc("smea_conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  Pmunu=appretto_malloc("Pmunu",loc_vol,as2t_su3);
   //Read the gauge conf
   read_str_int("NGaugeConf",&nconf);
   conf_path=(char**)malloc(sizeof(char*)*nconf);
@@ -206,10 +206,10 @@ void initialize_nucleons(char *input_path)
   
   ///////////////////// Allocate the various spinors ///////////////////////
   
-  original_source=allocate_su3spinspin(loc_vol,"original_source");
+  original_source=appretto_malloc("original_source",loc_vol,su3spinspin);
   
-  source=allocate_spincolor(loc_vol+loc_bord,"source");
-  temp_source=allocate_spincolor(loc_vol+loc_bord,"temp_source");
+  source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
+  temp_source=appretto_malloc("temp_source",loc_vol+loc_bord,spincolor);
   
   //S0 and similars
   solDD=(spincolor**)malloc(sizeof(spincolor*)*nmass);
@@ -217,26 +217,26 @@ void initialize_nucleons(char *input_path)
   S0_SS=(su3spinspin***)malloc(sizeof(su3spinspin**)*nmass);
   for(int imass=0;imass<nmass;imass++)
     {
-      solDD[imass]=allocate_spincolor(loc_vol+loc_bord,"solDD");
+      solDD[imass]=appretto_malloc("solDD",loc_vol+loc_bord,spincolor);
       
       //smearead-local spinor
       S0_SL[imass]=(su3spinspin**)malloc(sizeof(su3spinspin*)*2);
-      S0_SL[imass][0]=allocate_su3spinspin(loc_vol,"S0_SL[X][0]");
-      S0_SL[imass][1]=allocate_su3spinspin(loc_vol,"S0_SL[X][1]");
+      S0_SL[imass][0]=appretto_malloc("S0_SL[X][0]",loc_vol,su3spinspin);
+      S0_SL[imass][1]=appretto_malloc("S0_SL[X][1]",loc_vol,su3spinspin);
       
       //smeared-smeared
       S0_SS[imass]=(su3spinspin**)malloc(sizeof(su3spinspin*)*2);
-      S0_SS[imass][0]=allocate_su3spinspin(loc_vol,"S0_SS[X][0]");
-      S0_SS[imass][1]=allocate_su3spinspin(loc_vol,"S0_SS[X][1]");
+      S0_SS[imass][0]=appretto_malloc("S0_SS[X][0]",loc_vol,su3spinspin);
+      S0_SS[imass][1]=appretto_malloc("S0_SS[X][1]",loc_vol,su3spinspin);
     }
   
-  sol_reco[0]=allocate_spincolor(loc_vol,"solution_reco[0]");
-  sol_reco[1]=allocate_spincolor(loc_vol,"solution_reco[1]");
+  sol_reco[0]=appretto_malloc("solution_reco[0]",loc_vol,spincolor);
+  sol_reco[1]=appretto_malloc("solution_reco[1]",loc_vol,spincolor);
   
-  seq_source=allocate_su3spinspin(loc_vol,"seqential_source");
+  seq_source=appretto_malloc("seqential_source",loc_vol,su3spinspin);
   
   S1=(su3spinspin**)malloc(nmass*sizeof(su3spinspin*));
-  for(int imass=0;imass<nmass;imass++) S1[imass]=allocate_su3spinspin(loc_vol,"S1");
+  for(int imass=0;imass<nmass;imass++) S1[imass]=appretto_malloc("S1",loc_vol,su3spinspin);
 }
 
 //read a configuration and put anti-periodic condition at the slice tsource-1
@@ -865,7 +865,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 {
   int ncontr;
   FILE *fout=open_text_file_for_output(path);
-  su3spinspin *supp_S=allocate_su3spinspin(loc_vol,"suppS");
+  su3spinspin *supp_S=appretto_malloc("suppS",loc_vol,su3spinspin);
   
   tcontr_3pt-=take_time();
   
@@ -957,7 +957,24 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 
   free(loc_contr);
   free(glb_contr);
-  free(supp_S);
+  appretto_free(supp_S);
+}
+
+void close_nucleons()
+{
+  appretto_free(conf);appretto_free(smea_conf);appretto_free(Pmunu);
+  appretto_free(original_source);appretto_free(source);
+  appretto_free(temp_source);appretto_free(seq_source);
+  for(int imass=0;imass<nmass;imass++)
+    {
+      appretto_free(solDD[imass]);
+      appretto_free(S0_SL[imass][0]);appretto_free(S0_SL[imass][1]);
+      appretto_free(S0_SS[imass][0]);appretto_free(S0_SS[imass][1]);
+      appretto_free(S1[imass]);
+    }
+  appretto_free(sol_reco[0]);appretto_free(sol_reco[1]);
+  
+  close_appretto();
 }
 
 int main(int narg,char **arg)
@@ -1036,7 +1053,7 @@ int main(int narg,char **arg)
       printf("-contraction time for 3pts: %g%s\n",tcontr_3pt/tot_time*100,"%");
     }
 
-  close_appretto();
+  close_nucleons();
 
   return 0;
 }
