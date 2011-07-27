@@ -13,12 +13,12 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
   int run_flag[nmass],nrun_mass=nmass;
   double final_res[nmass];
   
-  spincolor *t=allocate_spincolor(loc_vol+loc_bord,"temporary for internal calculation of DD");
-  spincolor *s=allocate_spincolor(loc_vol,"s in cgmms");
-  spincolor *r=allocate_spincolor(loc_vol,"r in cgmms");
-  spincolor *p=allocate_spincolor(loc_vol+loc_bord,"p in cgmms");
-  spincolor **ps=(spincolor**)malloc(sizeof(spincolor*)*nmass);
-  for(int imass=0;imass<nmass;imass++) ps[imass]=allocate_spincolor(loc_vol,"ps in cgmms");
+  spincolor *t=appretto_malloc("DD_temp",loc_vol+loc_bord,spincolor);
+  spincolor *s=appretto_malloc("s",loc_vol,spincolor);
+  spincolor *r=appretto_malloc("r",loc_vol,spincolor);
+  spincolor *p=appretto_malloc("p",loc_vol+loc_bord,spincolor);
+  spincolor *ps[nmass];
+  for(int imass=0;imass<nmass;imass++) ps[imass]=appretto_malloc("ps",loc_vol,spincolor);
 
   //sol[*]=0
   for(int imass=0;imass<nmass;imass++)
@@ -260,10 +260,10 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
       }
     }  
   
-  for(int imass=0;imass<nmass;imass++) check_free(ps[imass]);
-  check_free(ps);
-  check_free(s);
-  check_free(p);
-  check_free(r);
-  check_free(t);
+  for(int imass=0;imass<nmass;imass++) appretto_free(ps[imass]);
+  appretto_free(s);
+  appretto_free(p);
+  appretto_free(r);
+  appretto_free(t);
+
 }
