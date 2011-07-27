@@ -13,8 +13,8 @@ NMass 2
 ApeAlpha 0.5
 ApeNiter 5
 JacobiKappa 0.5
-JacobiNiters 2
- 0 8
+SourceJacobiNiters 2   0 8
+SinkJacobiNiters   2   0 8
 
 Residue 1.e-24
 StoppingCriterion standard

@@ -66,8 +66,9 @@ colorspinspin *original_source;
 
 //smearing parameters
 double jacobi_kappa,ape_alpha;
-int *jacobi_niter,ape_niter;
-int nsm_lv;
+int *so_jnit,so_jnlv;
+int *si_jnit,si_jnlv;
+int ape_niter;
 
 //vectors for the spinor data
 int nprop;
@@ -98,7 +99,7 @@ double tot_time=0,inv_time=0,contr_time=0;
 int nspec;
 
 //return the index of the prop
-int iS(int iwall,int sm_lv,int imass,int r) {return r+2*(imass+nmass*(sm_lv+nsm_lv*iwall));}
+int iS(int iwall,int sm_lv,int imass,int r) {return r+2*(imass+nmass*(sm_lv+so_jnlv*iwall));}
 
 //generate the source for the dirac index
 void generate_source(int iwall)
@@ -155,18 +156,12 @@ void initialize_Bk(char *input_path)
   read_str_double("ApeAlpha",&ape_alpha);
   read_str_int("ApeNiter",&ape_niter);
   read_str_double("JacobiKappa",&jacobi_kappa);
-  read_list_of_ints("JacobiNiters",&nsm_lv,&jacobi_niter);
-  if(jacobi_niter[0]!=0)
-    {
-      if(rank==0) fprintf(stderr,"Error, jacobi level of smearing 0 have to be null, obtained: %d!\n",jacobi_niter[0]);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
-  for(int iter=1;iter<nsm_lv;iter++)
-    if(jacobi_niter[iter]<jacobi_niter[iter-1])
-      {
-        if(rank==0) fprintf(stderr,"Error, jacobi level %d minor than %d (%d, %d)!\n",iter,iter-1,jacobi_niter[iter],jacobi_niter[iter-1]);
-        MPI_Abort(MPI_COMM_WORLD,1);
-      }
+  read_list_of_ints("SourceJacobiNiters",&so_jnlv,&so_jnit);
+  read_list_of_ints("SinkJacobiNiters",  &si_jnlv,&si_jnit);
+
+  for(int jlv=1;jlv<max_int(so_jnlv,si_jnlv);jlv++)
+    if((jlv<so_jnlv && so_jnit[jlv]<so_jnit[jlv-1])||(jlv<si_jnlv && si_jnit[jlv]<si_jnit[jlv-1]))
+      crash("Error, jacobi levels have to be sorted in ascending order!");
   
   // 4) Info about the inverter
 
@@ -224,7 +219,7 @@ void initialize_Bk(char *input_path)
   sme_conf=appretto_malloc("sme_conf",loc_vol+loc_bord,quad_su3);
   
   //Allocate all the propagators colorspinspin vectors
-  nprop=nwall*nsm_lv*nmass*2;
+  nprop=nwall*so_jnlv*nmass*2;
   if(rank==0) printf("nprop: %d\n",nprop);
   S=(colorspinspin**)malloc(sizeof(colorspinspin*)*nprop);
   for(int iprop=0;iprop<nprop;iprop++) S[iprop]=appretto_malloc("S[i]",loc_vol,colorspinspin);
@@ -299,20 +294,20 @@ void calculate_S(int iwall)
 	}
       
       //loop over smerding levels of the source
-      for(int sm_lv=0;sm_lv<nsm_lv;sm_lv++)
+      for(int so_jlv=0;so_jlv<so_jnlv;so_jlv++)
 	{
 	  if(rank==0) printf("\n");
 	  
-	  int sm_to_app=((sm_lv==0) ? jacobi_niter[sm_lv] : (jacobi_niter[sm_lv]-jacobi_niter[sm_lv-1]));
+	  int so_jnit_to_app=((so_jlv==0) ? so_jnit[so_jlv] : (so_jnit[so_jlv]-so_jnit[so_jlv-1]));
 	  if(rank==0 && debug) printf("Source ");
-	  jacobi_smearing(source,source,sme_conf,jacobi_kappa,sm_to_app);
+	  jacobi_smearing(source,source,sme_conf,jacobi_kappa,so_jnit_to_app);
 	  
 	  double part_time=-take_time();
 	  communicate_lx_spincolor_borders(source);
 	  if(rank==0) printf("\n");
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	  if(rank==0) printf("Finished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n",iwall,id,sm_lv,part_time);
+	  if(rank==0) printf("Finished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n",iwall,id,so_jlv,part_time);
 	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet
@@ -320,18 +315,18 @@ void calculate_S(int iwall)
 	      if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{
-		  int iprop=iS(iwall,sm_lv,imass,r);
+		  int iprop=iS(iwall,so_jlv,imass,r);
 		  for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S[iprop][i],reco_solution[r][i],id);
 		}
 	    }
 	}
     }
   
-  for(int sm_lv=0;sm_lv<nsm_lv;sm_lv++)
+  for(int so_jlv=0;so_jlv<so_jnlv;so_jlv++)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
       for(int imass=0;imass<nmass;imass++) //put the (1+ig5)/sqrt(2) factor
 	{
-	  int iprop=iS(iwall,sm_lv,imass,r);
+	  int iprop=iS(iwall,so_jlv,imass,r);
 	  rotate_vol_colorspinspin_to_physical_basis(S[iprop],!r,!r);
 	}
 }
@@ -410,8 +405,8 @@ void calculate_all_contractions()
   contr_time-=take_time();
   
   //loop over smearing of the left and right wall
-  for(int sm_lv_L=0;sm_lv_L<nsm_lv;sm_lv_L++)
-    for(int sm_lv_R=0;sm_lv_R<nsm_lv;sm_lv_R++)
+  for(int sm_lv_L=0;sm_lv_L<so_jnlv;sm_lv_L++)
+    for(int sm_lv_R=0;sm_lv_R<so_jnlv;sm_lv_R++)
       {
 	char path_bag[1024];
 	sprintf(path_bag,"%s_%d%d",basepath_bag,sm_lv_L,sm_lv_R);
@@ -458,22 +453,22 @@ void calculate_all_contractions()
       }
   
   //loop over smearing of the source and sink
-  for(int sm_lv_sour=0;sm_lv_sour<nsm_lv;sm_lv_sour++)
-    for(int sm_lv_sink=0;sm_lv_sink<nsm_lv;sm_lv_sink++)
+  for(int so_jlv=0;so_jlv<so_jnlv;so_jlv++)
+    for(int si_jlv=0;si_jlv<si_jnlv;si_jlv++)
       {
 	char path_2pts[1024];
-	sprintf(path_2pts,"%s_%d%d",basepath_2pts,sm_lv_sour,sm_lv_sink);
+	sprintf(path_2pts,"%s_%d%d",basepath_2pts,so_jlv,si_jlv);
 	FILE *fout_2pts=open_text_file_for_output(path_2pts);
 
 	//smear all the sink
-	int sm_to_app=((sm_lv_sink==0) ? jacobi_niter[sm_lv_sink] : (jacobi_niter[sm_lv_sink]-jacobi_niter[sm_lv_sink-1])); 
-	if(sm_to_app!=0)
+	int si_jnit_to_app=((si_jlv==0) ? si_jnit[si_jlv] : (si_jnit[si_jlv]-si_jnit[si_jlv-1])); 
+	if(si_jnit_to_app!=0)
 	  for(int iprop=0;iprop<nprop;iprop++)
 	    for(int id=0;id<4;id++)
 	      {	    
 		for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
 		if(rank==0 && debug) printf("Prop %d, id=%d ",iprop,id);
-		jacobi_smearing(source,source,sme_conf,jacobi_kappa,sm_to_app);
+		jacobi_smearing(source,source,sme_conf,jacobi_kappa,si_jnit_to_app);
 		for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
 	      }
 	
@@ -487,11 +482,11 @@ void calculate_all_contractions()
 		    if(rank==0)
 		      {
 		       fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d , wall=%d , ",mass[im1],r1,mass[im2],r2,iwall);
-		       fprintf(fout_2pts," sme_source=%d sme_sink=%d\n",jacobi_niter[sm_lv_sour],jacobi_niter[sm_lv_sink]);
+		       fprintf(fout_2pts," sme_source=%d sme_sink=%d\n",so_jnit[so_jlv],si_jnit[si_jlv]);
 		      }
 		    
-		    int iprop1=iS(iwall,sm_lv_sour,im1,r1);
-		    int iprop2=iS(iwall,sm_lv_sour,im2,r2);
+		    int iprop1=iS(iwall,so_jlv,im1,r1);
+		    int iprop2=iS(iwall,so_jlv,im2,r2);
 		    
 		    meson_two_points(S[iprop1],S[iprop2]);
 		    
