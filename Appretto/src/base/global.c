@@ -83,9 +83,9 @@ EXTERN int big_endian;
 EXTERN MPI_Comm cart_comm;
 
 //vectors
-void *main_appretto_arr;
-appretto_vect main_appretto_vect;
-appretto_vect *last_appretto_vect;
+EXTERN void *main_appretto_arr;
+EXTERN appretto_vect main_appretto_vect;
+EXTERN appretto_vect *last_appretto_vect;
 
 //random generator stuff
 #define ran2_ntab 32
