@@ -38,6 +38,23 @@ bvec interpolate_charm(bvec vec,int nmass,int nlights,double *mass,int ibeta,con
   return interpolated;
 }
 
+//interpolate to the charm a degenerate meson
+boot interpolate_charm_charm(bvec vec,int nmass,int nlights,double *mass,int ibeta,const char *suff=NULL)
+{
+  
+  //temporary storage
+  bvec temp_vec(nmass-nlights,nboot,njack);
+  double temp_mass[nmass-nlights];
+  //interpolate
+  for(int imq=nlights;imq<nmass;imq++)
+    {
+      temp_vec[imq-nlights]=vec[icombo(imq,imq,nmass)];
+      temp_mass[imq-nlights]=mass[imq];
+    }
+  
+  return interpolate_single(temp_vec,temp_mass,amc_phys[ibeta]);
+}
+
 //interpolate in the strange
 bvec interpolate_strange(bvec vec,int nmass,int nlights,double *mass,int ibeta)
 {

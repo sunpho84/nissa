@@ -3,6 +3,9 @@
 \begin_document
 \begin_header
 \textclass article
+\begin_preamble
+\usepackage{cancel}
+\end_preamble
 \use_default_options true
 \maintain_unincluded_children false
 \language english
@@ -95,12 +98,102 @@ Q_{oe} & Q_{oo}
 where in particular: 
 \begin_inset Formula 
 \[
-Q_{ee/oo}=\left(\frac{\gamma_{5}}{2k}+i\mu\right)\delta_{ee/oo}
+D_{ee/oo}=\left(\frac{1}{2k}+i\gamma_{5}\mu\right)\delta_{ee/oo}
 \]
 
 \end_inset
 
-We can factorize 
+We want to solve 
+\begin_inset Formula $M\psi=\eta$
+\end_inset
+
+ which means
+\begin_inset Formula 
+\[
+\left(\begin{array}{cc}
+Q_{ee} & Q_{eo}\\
+Q_{oe} & Q_{oo}
+\end{array}\right)\left(\begin{array}{c}
+\psi_{e}\\
+\psi_{o}
+\end{array}\right)=\left(\begin{array}{c}
+\gamma_{5}\eta_{e}\\
+\gamma_{5}\eta_{o}
+\end{array}\right)
+\]
+
+\end_inset
+
+writing separate equations:
+\begin_inset Formula 
+\[
+\begin{cases}
+Q_{ee}\psi_{e}+Q_{eo}\psi_{o}=\gamma_{5}\eta_{e}\\
+Q_{oe}\psi_{e}+Q_{oo}\psi_{o}=\gamma_{5}\eta_{o}
+\end{cases}
+\]
+
+\end_inset
+
+We can solve for 
+\begin_inset Formula $\psi_{e}$
+\end_inset
+
+ from the first and substitute in the second:
+\begin_inset Formula 
+\[
+\begin{cases}
+\psi_{e}=Q_{ee}^{-1}\left(\gamma_{5}\eta_{e}-Q_{eo}\psi_{o}\right)\\
+Q_{oe}Q_{ee}^{-1}\left(\gamma_{5}\eta_{e}-Q_{eo}\psi_{o}\right)+Q_{oo}\psi_{o}=\gamma_{5}\eta_{o}
+\end{cases}
+\]
+
+\end_inset
+
+Let's focus on the second:
+\begin_inset Formula 
+\[
+\left(Q_{oo}-Q_{oe}Q_{ee}^{-1}Q_{eo}\right)\psi_{o}=\gamma_{5}\eta_{o}-Q_{oe}Q_{ee}^{-1}\gamma_{5}\eta_{e}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+Q_{oo}\left(1-Q_{oo}^{-1}Q_{oe}Q_{ee}^{-1}Q_{eo}\right)\psi_{o}=\gamma_{5}\eta_{o}-Q_{oe}Q_{ee}^{-1}\gamma_{5}\eta_{e}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\gamma_{5}\left(1-Q_{oo}^{-1}Q_{oe}Q_{ee}^{-1}Q_{eo}\right)\psi_{o}=D_{oo}^{-1}\left(\gamma_{5}\eta_{o}-Q_{oe}Q_{ee}^{-1}\gamma_{5}\eta_{e}\right)
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+\gamma_{5}\left(1-D_{oo}^{-1}D_{oe}D_{ee}^{-1}D_{eo}\right)\psi_{o}=\gamma_{5}D_{oo}^{-1}\left(\eta_{o}-\gamma_{5}D_{oe}D_{ee}^{-1}\eta_{e}\right)
+\]
+
+\end_inset
+
+or
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\left(\gamma_{5}D_{oo}-\gamma_{5}D_{oe}D_{ee}^{-1}D_{eo}\right)\psi_{o}=\gamma_{5}\eta_{o}-\gamma_{5}D_{oe}D_{ee}^{-1}\gamma_{5}\eta_{e}
+\]
+
+\end_inset
+
+an factorize 
 \begin_inset Formula $\gamma_{5}M$
 \end_inset
 
@@ -108,11 +201,25 @@ We can factorize
 \begin_inset Formula 
 \[
 \gamma_{5}M=\left(\begin{array}{cc}
-Q_{ee} & 0\\
-Q_{oe} & 1
+\gamma_{5}D_{ee} & 0\\
+\gamma_{5}D_{oe} & 1
 \end{array}\right)\left(\begin{array}{cc}
-1 & Q_{ee}^{-1}Q_{eo}\\
-0 & Q_{oo}-Q_{oe}Q_{ee}^{-1}Q_{eo}
+1 & \cancel{\gamma_{5}}D_{ee}^{-1}\cancel{\gamma_{5}}D_{eo}\\
+0 & \gamma_{5}D_{oo}-\gamma_{5}D_{oe}\cancel{\gamma_{5}}D_{ee}^{-1}\cancel{\gamma_{5}}D_{eo}
+\end{array}\right)=
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+=\left(\begin{array}{cc}
+\gamma_{5}D_{ee} & 0\\
+\gamma_{5}D_{oe} & 1
+\end{array}\right)\left(\begin{array}{cc}
+1 & D_{ee}^{-1}D_{eo}\\
+0 & \gamma_{5}D_{oo}-\gamma_{5}D_{oe}D_{ee}^{-1}D_{eo}
 \end{array}\right)
 \]
 
@@ -121,12 +228,12 @@ Q_{oe} & 1
 and 
 \begin_inset Formula 
 \[
-\left(\gamma_{5}M\right)^{-1}=M^{-1}\gamma_{5}=\left(\begin{array}{cc}
-1 & Q_{ee}^{-1}Q_{eo}\\
-0 & Q_{oo}-Q_{oe}Q_{ee}^{-1}Q_{eo}
+\left(\gamma_{5}M\right)^{-1}=\left(\begin{array}{cc}
+1 & D_{ee}^{-1}D_{eo}\\
+0 & \gamma_{5}D_{oo}-\gamma_{5}D_{oe}D_{ee}^{-1}D_{eo}
 \end{array}\right)^{-1}\left(\begin{array}{cc}
-Q_{ee} & 0\\
-Q_{oe} & 1
+\gamma_{5}D_{ee} & 0\\
+\gamma_{5}D_{oe} & 1
 \end{array}\right)^{-1}
 \]
 
