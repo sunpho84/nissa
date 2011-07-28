@@ -13,39 +13,39 @@ void Pline_serial(su3 *Pline, quad_su3 *conf)
   int T=loc_size[0];
   int X;
 
-  for (iX[1]=0; iX[1]<L; iX[1]++){
-    for (iX[2]=0; iX[2]<L; iX[2]++){
-      for (iX[3]=0; iX[3]<L; iX[3]++){
-	for (iX[0]=0; iX[0]<T; iX[0]++){
+  for (iX[1]=0; iX[1]<L; iX[1]++)
+    for (iX[2]=0; iX[2]<L; iX[2]++)
+      for (iX[3]=0; iX[3]<L; iX[3]++)
+	{
+	  for (iX[0]=0; iX[0]<T; iX[0]++)
+	    {
+	      X=loclx_of_coord(iX);
+	      unsafe_su3_hermitian(U0[iX[0]+1],conf[X][0]);
+	    }
+	  su3_copy(plf[1],U0[1]);
+	  for (int t=2; t<=T; t++) su3_prod_su3(plf[t],U0[t],plf[t-1]);
+	  for (iX[0]=0; iX[0]<T; iX[0]++)
+	    {
+	      X=loclx_of_coord(iX);
+	      su3_copy(U0[iX[0]+1],conf[X][0]);
+	    }
+	  su3_copy(plb[T],U0[T]);
+	  for (int t=1; t<T; t++)
+	    {
+	      int tback=T-t;
+	      su3_prod_su3(plb[tback],U0[tback],plb[tback+1]);
+	    }
+	  iX[0]=0;
 	  X=loclx_of_coord(iX);
-	  unsafe_su3_hermitian(U0[iX[0]+1],conf[X][0]);
+	  su3_put_to_id(Pline[X]);
+	  for (iX[0]=1; iX[0]<T; iX[0]++)
+	    {
+	      int t=iX[0];
+	      X=loclx_of_coord(iX);
+	      if( t <= ( T/2 - 1 ) ) su3_copy(Pline[X],  plf[ t ]);
+	      else  su3_copy(Pline[X],plb[t+1]);
+	    }	      
 	}
-	su3_copy(plf[1],U0[1]);
-	for (int t=2; t<=T; t++) su3_prod_su3(plf[t],U0[t],plf[t-1]);
-	for (iX[0]=0; iX[0]<T; iX[0]++){
-	  X=loclx_of_coord(iX);
-	  su3_copy(U0[iX[0]+1],conf[X][0]);
-	}
-	su3_copy(plb[T],U0[T]);
-	for (int t=1; t<T; t++){
-	  int tback=T-t;
-	  su3_prod_su3(plb[tback],U0[tback],plb[tback+1]);
-	}
-	iX[0]=0;
-	X=loclx_of_coord(iX);
-	su3_put_to_id(Pline[X]);
-	for (iX[0]=1; iX[0]<T; iX[0]++){
-	  int t=iX[0];
-	  X=loclx_of_coord(iX);
-	  if( t <= ( T/2 - 1 ) ) su3_copy(Pline[X],  plf[ t ]);
-	  else  su3_copy(Pline[X],plb[t+1]);
-	}
-	    
-      }
-    }
-  }
-
-  
 }
 
 void Pline_serial_forward(su3 *Pline, quad_su3 *conf)
@@ -58,30 +58,28 @@ void Pline_serial_forward(su3 *Pline, quad_su3 *conf)
   int T=loc_size[0];
   int X;
 
-  for (iX[1]=0; iX[1]<L; iX[1]++){
-    for (iX[2]=0; iX[2]<L; iX[2]++){
-      for (iX[3]=0; iX[3]<L; iX[3]++){
-	for (iX[0]=0; iX[0]<T; iX[0]++){
+  for (iX[1]=0; iX[1]<L; iX[1]++)
+    for (iX[2]=0; iX[2]<L; iX[2]++)
+      for (iX[3]=0; iX[3]<L; iX[3]++)
+	{
+	  for (iX[0]=0; iX[0]<T; iX[0]++)
+	    {
+	      X=loclx_of_coord(iX);
+	      unsafe_su3_hermitian(U0[iX[0]+1],conf[X][0]);
+	    }
+	  su3_copy(plf[1],U0[1]);
+	  for (int t=2; t<=T; t++) su3_prod_su3(plf[t],U0[t],plf[t-1]);
+	  
+	  iX[0]=0;
 	  X=loclx_of_coord(iX);
-	  unsafe_su3_hermitian(U0[iX[0]+1],conf[X][0]);
+	  su3_put_to_id(Pline[X]);
+	  for (iX[0]=1; iX[0]<T; iX[0]++)
+	    {
+	      int t=iX[0];
+	      X=loclx_of_coord(iX);
+	      su3_copy(Pline[X],  plf[ t ]);
+	    }
 	}
-	su3_copy(plf[1],U0[1]);
-	for (int t=2; t<=T; t++) su3_prod_su3(plf[t],U0[t],plf[t-1]);
-            
-	iX[0]=0;
-	X=loclx_of_coord(iX);
-	su3_put_to_id(Pline[X]);
-	for (iX[0]=1; iX[0]<T; iX[0]++){
-	  int t=iX[0];
-	  X=loclx_of_coord(iX);
-	  su3_copy(Pline[X],  plf[ t ]);
-	}
-
-      }
-    }
-  }
-
-
 }
 
 void Pline_serial_backward(su3 *Pline, quad_su3 *conf)
@@ -94,27 +92,28 @@ void Pline_serial_backward(su3 *Pline, quad_su3 *conf)
   int T=loc_size[0];
   int X;
    
-  for (iX[1]=0; iX[1]<L; iX[1]++){
-    for (iX[2]=0; iX[2]<L; iX[2]++){
-      for (iX[3]=0; iX[3]<L; iX[3]++){
-	for (iX[0]=0; iX[0]<T; iX[0]++){
-	  X=loclx_of_coord(iX);
-	  su3_copy(U0[iX[0]+1],conf[X][0]);
+  for (iX[1]=0; iX[1]<L; iX[1]++)
+    for (iX[2]=0; iX[2]<L; iX[2]++)
+      for (iX[3]=0; iX[3]<L; iX[3]++)
+	{
+	  for (iX[0]=0; iX[0]<T; iX[0]++)
+	    {
+	      X=loclx_of_coord(iX);
+	      su3_copy(U0[iX[0]+1],conf[X][0]);
+	    }
+	  su3_copy(plb[T],U0[T]);
+	  for (int t=1; t<T; t++)
+	    {
+	      int tback=T-t;
+	      su3_prod_su3(plb[tback],U0[tback],plb[tback+1]);
+	    }
+	  for (iX[0]=T-1; iX[0]>=0; iX[0]--)
+	    {
+	      int t=iX[0];
+	      X=loclx_of_coord(iX);
+	      su3_copy(Pline[X],plb[t+1]);
+	    }
 	}
-	su3_copy(plb[T],U0[T]);
-	for (int t=1; t<T; t++){
-	  int tback=T-t;
-	  su3_prod_su3(plb[tback],U0[tback],plb[tback+1]);
-	}
-	for (iX[0]=T-1; iX[0]>=0; iX[0]--){
-	  int t=iX[0];
-	  X=loclx_of_coord(iX);
-	  su3_copy(Pline[X],plb[t+1]);
-	}
-
-      }
-    }
-  }
 }
 
 int main(int narg,char **arg)
