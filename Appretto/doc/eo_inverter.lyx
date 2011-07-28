@@ -150,6 +150,10 @@ Q_{oe}Q_{ee}^{-1}\left(\gamma_{5}\eta_{e}-Q_{eo}\psi_{o}\right)+Q_{oo}\psi_{o}=\
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
 Let's focus on the second:
 \begin_inset Formula 
 \[
@@ -158,158 +162,17 @@ Let's focus on the second:
 
 \end_inset
 
-
-\begin_inset Formula 
-\[
-Q_{oo}\left(1-Q_{oo}^{-1}Q_{oe}Q_{ee}^{-1}Q_{eo}\right)\psi_{o}=\gamma_{5}\eta_{o}-Q_{oe}Q_{ee}^{-1}\gamma_{5}\eta_{e}
-\]
-
-\end_inset
-
-
-\begin_inset Formula 
-\[
-\gamma_{5}\left(1-Q_{oo}^{-1}Q_{oe}Q_{ee}^{-1}Q_{eo}\right)\psi_{o}=D_{oo}^{-1}\left(\gamma_{5}\eta_{o}-Q_{oe}Q_{ee}^{-1}\gamma_{5}\eta_{e}\right)
-\]
-
-\end_inset
-
-
-\begin_inset Formula 
-\[
-\gamma_{5}\left(1-D_{oo}^{-1}D_{oe}D_{ee}^{-1}D_{eo}\right)\psi_{o}=\gamma_{5}D_{oo}^{-1}\left(\eta_{o}-\gamma_{5}D_{oe}D_{ee}^{-1}\eta_{e}\right)
-\]
-
-\end_inset
-
-or
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\left(\gamma_{5}D_{oo}-\gamma_{5}D_{oe}D_{ee}^{-1}D_{eo}\right)\psi_{o}=\gamma_{5}\eta_{o}-\gamma_{5}D_{oe}D_{ee}^{-1}\gamma_{5}\eta_{e}
-\]
-
-\end_inset
-
-an factorize 
-\begin_inset Formula $\gamma_{5}M$
-\end_inset
-
- like this: 
-\begin_inset Formula 
-\[
-\gamma_{5}M=\left(\begin{array}{cc}
-\gamma_{5}D_{ee} & 0\\
-\gamma_{5}D_{oe} & 1
-\end{array}\right)\left(\begin{array}{cc}
-1 & \cancel{\gamma_{5}}D_{ee}^{-1}\cancel{\gamma_{5}}D_{eo}\\
-0 & \gamma_{5}D_{oo}-\gamma_{5}D_{oe}\cancel{\gamma_{5}}D_{ee}^{-1}\cancel{\gamma_{5}}D_{eo}
-\end{array}\right)=
-\]
-
-\end_inset
-
-
-\begin_inset Formula 
-\[
-=\left(\begin{array}{cc}
-\gamma_{5}D_{ee} & 0\\
-\gamma_{5}D_{oe} & 1
-\end{array}\right)\left(\begin{array}{cc}
-1 & D_{ee}^{-1}D_{eo}\\
-0 & \gamma_{5}D_{oo}-\gamma_{5}D_{oe}D_{ee}^{-1}D_{eo}
-\end{array}\right)
-\]
-
-\end_inset
-
-and 
-\begin_inset Formula 
-\[
-\left(\gamma_{5}M\right)^{-1}=\left(\begin{array}{cc}
-1 & D_{ee}^{-1}D_{eo}\\
-0 & \gamma_{5}D_{oo}-\gamma_{5}D_{oe}D_{ee}^{-1}D_{eo}
-\end{array}\right)^{-1}\left(\begin{array}{cc}
-\gamma_{5}D_{ee} & 0\\
-\gamma_{5}D_{oe} & 1
-\end{array}\right)^{-1}
-\]
-
-\end_inset
-
-but the two are invertible, in particular
-\begin_inset Formula 
-\[
-\left(\begin{array}{cc}
-Q_{ee} & 0\\
-Q_{oe} & 1
-\end{array}\right)^{-1}=\left(\begin{array}{cc}
-Q_{ee}^{-1} & 0\\
--Q_{oe}Q_{ee}^{-1} & 1
-\end{array}\right)
-\]
-
-\end_inset
-
-and 
-\begin_inset Formula 
-\[
-\left(\begin{array}{cc}
-1 & Q_{ee}^{-1}Q_{eo}\\
-0 & Q_{oo}-Q_{oe}Q_{ee}^{-1}Q_{eo}
-\end{array}\right)^{-1}=\left(\begin{array}{cc}
-1 & -Q_{ee}^{-1}Q_{eo}K^{-1}\\
-0 & K^{-1}
-\end{array}\right)
-\]
-
-\end_inset
-
-where 
-\begin_inset Formula 
-\[
-K^{-1}\equiv\left(Q_{oo}-Q_{oe}Q_{ee}^{-1}Q_{eo}\right)^{-1}
-\]
-
-\end_inset
-
-and
-\end_layout
-
-\begin_layout Standard
-\begin_inset Formula 
-\[
-\frac{1}{\frac{1}{4k^{2}}+\mu^{2}}
-\]
-
-\end_inset
-
-
-\begin_inset Formula 
-\[
-Q_{ee/oo}^{-1}=\frac{2k\gamma_{5}-4k^{2}i\mu}{1+4k^{2}\mu^{2}}\delta_{ee/oo}.
-\]
-
-\end_inset
-
-
-\end_layout
-
-\begin_layout Standard
-11It turns out easier to solve 
-\begin_inset Formula $K^{-1}$
-\end_inset
-
- by factorizing 
-\begin_inset Formula $D_{oo}$
+by explicitating the hidden 
+\begin_inset Formula $\gamma_{5}$
 \end_inset
 
 :
+\end_layout
+
+\begin_layout Standard
 \begin_inset Formula 
 \[
-K^{-1}=\left[Q_{oo}\left(1-Q_{oo}^{-1}Q_{oe}Q_{ee}^{-1}Q_{eo}\right)\right]^{-1}=\left(1-Q_{oo}^{-1}Q_{oe}Q_{ee}^{-1}Q_{eo}\right)^{-1}Q_{oo}^{-1}
+\left(\gamma_{5}D_{oo}-\gamma_{5}D_{oe}D_{ee}^{-1}D_{eo}\right)\psi_{o}=\gamma_{5}\eta_{o}-\gamma_{5}D_{oe}D_{ee}^{-1}\gamma_{5}\eta_{e}.
 \]
 
 \end_inset
@@ -318,21 +181,16 @@ K^{-1}=\left[Q_{oo}\left(1-Q_{oo}^{-1}Q_{oe}Q_{ee}^{-1}Q_{eo}\right)\right]^{-1}
 \end_layout
 
 \begin_layout Standard
-In this way you can solve the problem
+Let's call 
 \begin_inset Formula 
-\[
-\left(\begin{array}{c}
-\phi_{e}\\
-\phi_{o}
-\end{array}\right)=M^{-1}\left(\begin{array}{c}
-\chi_{e}\\
-\chi_{o}
-\end{array}\right)
-\]
+\begin{eqnarray*}
+\chi_{o} & \equiv & \gamma_{5}\eta_{o}-\gamma_{5}D_{oe}D_{ee}^{-1}\gamma_{5}\eta_{e}\\
+K_{oo} & \equiv & \gamma_{5}D_{oo}-\gamma_{5}D_{oe}D_{ee}^{-1}D_{eo}
+\end{eqnarray*}
 
 \end_inset
 
-in this way:
+Reassuming, you can solve the problem in this way:
 \end_layout
 
 \begin_layout Enumerate
@@ -343,8 +201,8 @@ Define the spinor:
 \varphi_{e}\\
 \varphi_{o}
 \end{array}\right)\equiv\left(\begin{array}{c}
-D_{ee}^{-1}\chi_{e}\\
-\gamma_{5}\chi_{o}-D_{oe}\varphi_{e}
+D_{ee}^{-1}\eta_{e}\\
+\gamma_{5}\chi_{o}-D_{oe}\eta_{e}
 \end{array}\right)
 \]
 

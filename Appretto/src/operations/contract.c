@@ -277,38 +277,29 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
       complex ctempR[ncontr];
       complex ctemp[ncontr];
       
-      for(int icontr=0;icontr<ncontr;icontr++)
-	for(int reim=0;reim<2;reim++)
-	  ctempL[icontr][reim]=ctempR[icontr][reim]=ctemp[icontr][reim]=0;
+      memset(ctempL,0,sizeof(complex)*ncontr);
+      memset(ctempR,0,sizeof(complex)*ncontr);
+      memset(ctemp,0,sizeof(complex)*ncontr);
       
       for(int icol=0;icol<3;icol++)
 	{
-	  spinspin AL;
+	  spinspin AL,AR;
 	  spinspin_spinspindag_prod(AL,s2L[loc_site][icol],s1L[loc_site][icol]);
-	  for(int icontr=0;icontr<ncontr;icontr++)
-	    {
-	      complex ctempL_color;
-	      trace_prod_dirac_spinspin(ctempL_color,&(g2R[icontr]),AL);
-	      complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
-	    }
-	}
-      for(int icol=0;icol<3;icol++)
-	{
-	  spinspin AR;
 	  spinspin_spinspindag_prod(AR,s2R[loc_site][icol],s1R[loc_site][icol]);
-	  
 	  for(int icontr=0;icontr<ncontr;icontr++)
 	    {
-	      complex ctempR_color;
+	      complex ctempL_color,ctempR_color;
+
+	      trace_prod_dirac_spinspin(ctempL_color,g2R+icontr,AL);
 	      trace_prod_dirac_spinspin(ctempR_color,&(g2L[icontr]),AR);
+
+	      complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
 	      complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
 	    }
 	}
+      
       for(int icontr=0;icontr<ncontr;icontr++)
-	{
-	  safe_complex_prod(ctemp[icontr],ctempL[icontr],ctempR[icontr]);
-	  complex_summ(loc_c[icontr*glb_size[0]+glb_t],loc_c[icontr*glb_size[0]+glb_t],ctemp[icontr]);
-      }
+	complex_summ_the_prod(loc_c[icontr*glb_size[0]+glb_t],ctempL[icontr],ctempR[icontr]);
     }
   
   //Final reduction
