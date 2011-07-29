@@ -83,6 +83,8 @@ EXTERN int big_endian;
 EXTERN MPI_Comm cart_comm;
 
 //vectors
+EXTERN int appretto_max_required_memory;
+EXTERN int appretto_required_memory;
 EXTERN void *main_appretto_arr;
 EXTERN appretto_vect main_appretto_vect;
 EXTERN appretto_vect *last_appretto_vect;
