@@ -2,6 +2,25 @@
 
 FILE *input_global;
 
+int file_exist(const char *path)
+{
+  int status=1;
+  
+  if(rank==0)
+    {
+      FILE *f=fopen(path,"r");
+      if(f!=NULL)
+        {
+          status=1;
+          fclose(f);
+        }
+      else status=0;
+    }
+  
+  MPI_Bcast(&status,1,MPI_INT,0,MPI_COMM_WORLD);
+  return status;
+}
+
 void open_input(char *input_path)
 {
   if(rank==0)

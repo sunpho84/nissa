@@ -69,6 +69,8 @@ int compute_appretto_vect_memory_usage()
 //initialize the first vector
 void initialize_main_appretto_vect()
 {
+  appretto_required_memory=0;
+  appretto_max_required_memory=0;
   last_appretto_vect=&main_appretto_vect;
   sprintf(main_appretto_vect.tag,"base");
   sprintf(main_appretto_vect.type,"(null)");
@@ -115,6 +117,10 @@ void *appretto_true_malloc(const char *tag,int nel,int size_per_el,const char *t
       appretto_vect_content_printf(last_appretto_vect);
     }
   
+  //Update the amount of required memory
+  appretto_required_memory+=size;
+  appretto_max_required_memory=max_int(appretto_max_required_memory,appretto_required_memory);
+  
   return (void*)last_appretto_vect+sizeof(appretto_vect);
 }
 
@@ -139,7 +145,10 @@ void appretto_true_free(void **arr,const char *file,int line)
       //if not last element
       if(next!=NULL) next->prev=prev;
       else last_appretto_vect=prev;
-      
+    
+      //update the appretto required memory
+      appretto_required_memory-=(vect->size_per_el*vect->nel);
+  
       free(vect);
       
       *arr=NULL;

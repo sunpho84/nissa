@@ -12,6 +12,24 @@ double min_double(double a,double b)
 double max_double(double a,double b)
 {if(a>b) return a;else return b;}
 
+//print a number in some kind of familiar units
+void fprintf_friendly_units(FILE *fout,int quant,int orders,const char *units)
+{
+  const char units_prefix[6][2]={"","K","M","G","T","P"};
+  int iord=0;
+  
+  while(quant>orders)
+    {
+      quant/=orders;
+      iord++;
+    }
+  
+  if(rank==0) fprintf(fout,"%d %s%s",quant,units_prefix[iord],units);
+}
+
+void fprintf_friendly_filesize(FILE *fout,int quant)
+{fprintf_friendly_units(fout,quant,1024,"Bytes");}
+
 //swap two doubles
 void swap_doubles(double *d1,double *d2)
 {

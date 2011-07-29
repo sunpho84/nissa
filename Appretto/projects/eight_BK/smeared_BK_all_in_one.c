@@ -47,7 +47,7 @@ source |------>---->----->---->| sink
 #include "appretto.h"
 
 //gauge info
-int ngauge_conf;
+int igauge_conf=0,ngauge_conf,nanalized_conf;
 char conf_path[1024];
 quad_su3 *conf,*sme_conf;
 double kappa;
@@ -94,6 +94,7 @@ char basepath_2pts[1024];
 //timings
 int ninv_tot=0,ncontr_tot=0;
 double tot_time=0,inv_time=0,contr_time=0;
+int wall_time;
 
 //number of spectator masses
 int nspec;
@@ -121,9 +122,17 @@ void generate_source(int iwall)
 }
 
 //Parse all the input file
-void initialize_Bk(char *input_path)
+void initialize_Bk(int narg,char **arg)
 {
-  open_input(input_path);
+
+  // 0) base initializations
+  
+  //Check arguments
+  if(narg<2) crash("No input file specified!\n");
+  //Take init time
+  tot_time-=take_time();
+  //Open input
+  open_input(arg[1]);
 
   // 1) Read information about the gauge conf
   
@@ -132,6 +141,8 @@ void initialize_Bk(char *input_path)
   read_str_int("T",&(glb_size[0]));
   //Init the MPI grid 
   init_grid(); 
+  //Read the walltime
+  read_str_int("Walltime",&wall_time);
   //Kappa
   read_str_double("Kappa",&kappa);
   
@@ -220,7 +231,7 @@ void initialize_Bk(char *input_path)
   
   //Allocate all the propagators colorspinspin vectors
   nprop=nwall*so_jnlv*nmass*2;
-  if(rank==0) printf("nprop: %d\n",nprop);
+  if(rank==0) printf("Number of propagator to be allocated: %d\n",nprop);
   S=(colorspinspin**)malloc(sizeof(colorspinspin*)*nprop);
   for(int iprop=0;iprop<nprop;iprop++) S[iprop]=appretto_malloc("S[i]",loc_vol,colorspinspin);
   
@@ -262,12 +273,18 @@ void load_gauge_conf()
 //Finalization
 void close_Bk()
 {
+  //take final time
+  tot_time+=take_time();
+
   if(rank==0)
     {
       printf("\n");
-      printf("Total time: %g, of which:\n",tot_time);
-      printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
-      printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+      printf("Total time: %g secs to analize %d configurations (%2.2g secs avg), of which:\n",
+	     tot_time,nanalized_conf,tot_time/nanalized_conf);
+      printf(" - %02.2f%s to perform %d inversions (%2.2g secs avg)\n",
+	     inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
+      printf(" - %02.2f%s to perform %d contr. (%2.2g secs avg)\n",
+	     contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
     }
   
   appretto_free(conf);appretto_free(sme_conf);
@@ -307,7 +324,8 @@ void calculate_S(int iwall)
 	  if(rank==0) printf("\n");
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	  if(rank==0) printf("Finished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n",iwall,id,so_jlv,part_time);
+	  if(rank==0) printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
+			     iwall,id,so_jlv,part_time);
 	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet
@@ -500,51 +518,108 @@ void calculate_all_contractions()
   contr_time+=take_time();
 }
 
+//find a not yet analized conf
+int find_conf()
+{
+  int conf_found=0;
+  
+  do
+    {
+      //Read the conf path
+      read_str(conf_path,1024);
+      
+      //Read position of first wall
+      read_int(twall);
+      
+      //Read outpaths
+      read_str(basepath_bag,1024);
+      read_str(basepath_2pts,1024);
+      
+      //Check wether the config is analized or not by searching for outputs
+      char check_path[1024];
+      sprintf(check_path,"%s_00",basepath_bag);
+      if(file_exist(check_path))
+	{
+	  conf_found=0;
+	  if(rank==0) printf("\nConfiguration \"%s\" already analized.\n",conf_path);
+	}
+      else conf_found=1;
+      
+      igauge_conf++;
+    }
+  while(conf_found==0 && igauge_conf<ngauge_conf);
+  
+  return conf_found;
+}
+
+//analize a single configuration
+void analize_conf()
+{
+  //Determine the position of all the wall starting from the distance
+  for(int iwall=1;iwall<nwall;iwall++) twall[iwall]=(twall[0]+tsepa[iwall-1])%glb_size[0];
+
+  //Read the configuration
+  load_gauge_conf();
+  
+  //Invert propagators
+  if(rank==0) printf("Going to invert: %d walls\n",nwall);
+  for(int iwall=0;iwall<nwall;iwall++)
+    {
+      generate_source(iwall);
+      calculate_S(iwall);
+    }
+  
+  //Perform all the contractions
+  calculate_all_contractions();
+  
+  nanalized_conf++;
+}
+
+//check if there is enough residual time for another conf
+int check_residual_time()
+{
+  double spent_time=take_time()+tot_time;
+  double remaining_time=wall_time-spent_time;
+  double ave_time=(nanalized_conf>0) ? (spent_time/nanalized_conf) : 0;
+  double pess_time=ave_time*1.1;
+  
+  int enough_time=(igauge_conf<ngauge_conf) ? (remaining_time>pess_time) : 1;
+  
+  if(!enough_time && rank==0)
+    {
+      printf("\n");
+      printf("-average running time: %lg secs per conf,\n",ave_time);
+      printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
+      printf("-remaining time: %lg secs per conf\n",remaining_time);
+      printf("Not enough time for another conf, so exiting.\n");
+    }
+  
+  return enough_time;
+}
+
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
   init_appretto();
 
-  if(narg<2 && rank==0)
-      {
-	fprintf(stderr,"Use: %s input_file\n",arg[0]);
-	fflush(stderr);
-	MPI_Abort(MPI_COMM_WORLD,1);
-      }
-
   //Inner initialization
-  tot_time-=take_time();
-  initialize_Bk(arg[1]);
+  initialize_Bk(narg,arg);
 
   //Loop over configurations
-  for(int iconf=0;iconf<ngauge_conf;iconf++)
+  int keep_on_analizing;
+  do
   {
-      //Read the conf
-      read_str(conf_path,1024);
-      load_gauge_conf();
+    //Find a not-analized configuration
+    int conf_found=find_conf();
 
-      //Read position of first wall, reconstruct the others
-      read_int(twall);
-      for(int iwall=1;iwall<nwall;iwall++) twall[iwall]=(twall[0]+tsepa[iwall-1])%glb_size[0];
-
-      //Read outpaths
-      read_str(basepath_bag,1024);
-      read_str(basepath_2pts,1024);
-
-      //Invert propagators
-      if(rank==0) printf("Going to invert: %d walls\n",nwall);
-      for(int iwall=0;iwall<nwall;iwall++)
-	{
-	  generate_source(iwall);
-	  calculate_S(iwall);
-	}
-      
-      //Perform all the contractions
-      calculate_all_contractions();
+    //If a conf has been found analize it
+    if(conf_found) analize_conf();
+    
+    //Check if we have enough time to analize another conf
+    keep_on_analizing=(igauge_conf<ngauge_conf) ? (conf_found && check_residual_time()) : 0;
   }
+  while(keep_on_analizing);
   
-  tot_time+=take_time();
-
   //Finalization
   close_input();
   close_Bk();
