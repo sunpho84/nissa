@@ -431,7 +431,8 @@ void calculate_all_contractions()
 	FILE *fout_bag=open_text_file_for_output(path_bag);
 	
 	//loop over left-right wall combo
-	for(int iwL=0;iwL<nwall;iwL++)
+	//for(int iwL=0;iwL<nwall;iwL++)
+	int iwL=0
 	  for(int iwR=iwL+1;iwR<nwall;iwR++)
 	    {
 	      int tsepar=abs(twall[iwL]-twall[iwR]);
@@ -471,49 +472,51 @@ void calculate_all_contractions()
       }
   
   //loop over smearing of the source and sink
-  for(int so_jlv=0;so_jlv<so_jnlv;so_jlv++)
-    for(int si_jlv=0;si_jlv<si_jnlv;si_jlv++)
-      {
-	char path_2pts[1024];
-	sprintf(path_2pts,"%s_%d%d",basepath_2pts,so_jlv,si_jlv);
-	FILE *fout_2pts=open_text_file_for_output(path_2pts);
-
-	//smear all the sink
-	int si_jnit_to_app=((si_jlv==0) ? si_jnit[si_jlv] : (si_jnit[si_jlv]-si_jnit[si_jlv-1])); 
-	if(si_jnit_to_app!=0)
-	  for(int iprop=0;iprop<nprop;iprop++)
-	    for(int id=0;id<4;id++)
-	      {	    
-		for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
-		if(rank==0 && debug) printf("Prop %d, id=%d ",iprop,id);
-		jacobi_smearing(source,source,sme_conf,jacobi_kappa,si_jnit_to_app);
-		for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
-	      }
-	
-	//two points
-	for(int im2=0;im2<nmass;im2++)
-	  for(int r2=0;r2<2;r2++)
-	    for(int im1=0;im1<nspec;im1++)
-	      for(int r1=0;r1<2;r1++)
-		for(int iwall=0;iwall<nwall;iwall++)
-		  {
-		    if(rank==0)
-		      {
-		       fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d , wall=%d , ",mass[im1],r1,mass[im2],r2,iwall);
-		       fprintf(fout_2pts," sme_source=%d sme_sink=%d\n",so_jnit[so_jlv],si_jnit[si_jlv]);
-		      }
-		    
-		    int iprop1=iS(iwall,so_jlv,im1,r1);
-		    int iprop2=iS(iwall,so_jlv,im2,r2);
-		    
-		    meson_two_points(S[iprop1],S[iprop2]);
-		    
-		    print_two_points_contractions_to_file(fout_2pts);
-		    
-		    ncontr_tot+=ncontr_2pts;
-		  }
-	if(rank==0) fclose(fout_2pts);
-      }
+  for(int si_jlv=0;si_jlv<si_jnlv;si_jlv++)
+    {
+      //smear all the sink
+      int si_jnit_to_app=((si_jlv==0) ? si_jnit[si_jlv] : (si_jnit[si_jlv]-si_jnit[si_jlv-1])); 
+      if(si_jnit_to_app!=0)
+	for(int iprop=0;iprop<nprop;iprop++)
+	  for(int id=0;id<4;id++)
+	    {	    
+	      for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
+	      if(rank==0 && debug) printf("Prop %d, id=%d ",iprop,id);
+	      jacobi_smearing(source,source,sme_conf,jacobi_kappa,si_jnit_to_app);
+	      for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
+	    }
+      
+      for(int so_jlv=0;so_jlv<so_jnlv;so_jlv++)
+	{
+	  char path_2pts[1024];
+	  sprintf(path_2pts,"%s_%d%d",basepath_2pts,so_jlv,si_jlv);
+	  FILE *fout_2pts=open_text_file_for_output(path_2pts);
+	  
+	  //two points
+	  for(int im2=0;im2<nmass;im2++)
+	    for(int r2=0;r2<2;r2++)
+	      for(int im1=0;im1<nspec;im1++)
+		for(int r1=0;r1<2;r1++)
+		  for(int iwall=0;iwall<nwall;iwall++)
+		    {
+		      if(rank==0)
+			{
+			  fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d , wall=%d , ",mass[im1],r1,mass[im2],r2,iwall);
+			  fprintf(fout_2pts," sme_source=%d sme_sink=%d\n",so_jnit[so_jlv],si_jnit[si_jlv]);
+			}
+		      
+		      int iprop1=iS(iwall,so_jlv,im1,r1);
+		      int iprop2=iS(iwall,so_jlv,im2,r2);
+		      
+		      meson_two_points(S[iprop1],S[iprop2]);
+		      
+		      print_two_points_contractions_to_file(fout_2pts);
+		      
+		      ncontr_tot+=ncontr_2pts;
+		    }
+	  if(rank==0) fclose(fout_2pts);
+	}
+    }
   
   contr_time+=take_time();
 }
