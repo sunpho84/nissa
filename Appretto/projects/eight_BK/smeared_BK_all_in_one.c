@@ -432,7 +432,7 @@ void calculate_all_contractions()
 	
 	//loop over left-right wall combo
 	//for(int iwL=0;iwL<nwall;iwL++)
-	int iwL=0
+	int iwL=0;
 	  for(int iwR=iwL+1;iwR<nwall;iwR++)
 	    {
 	      int tsepar=abs(twall[iwL]-twall[iwR]);
