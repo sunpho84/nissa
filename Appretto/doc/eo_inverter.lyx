@@ -67,7 +67,7 @@
 Action:
 \begin_inset Formula 
 \[
-S=\chi M\chi
+S=\chi D\chi
 \]
 
 \end_inset
@@ -75,7 +75,7 @@ S=\chi M\chi
 where
 \begin_inset Formula 
 \[
-M_{i,j}=\left(\frac{1}{2k}+i\mu\gamma_{5}\right)\delta_{i,j}-\frac{1}{2}\sum_{\mu}\left[\left(1+\gamma_{\mu}\right)U_{i,\mu}\delta_{i+\hat{\mu},j}+\left(1-\gamma_{\mu}\right)U_{i-\hat{\mu},\mu}^{\dagger}\delta_{i-\hat{\mu},j}\right]
+D_{i,j}=\left(\frac{1}{2k}+i\mu\gamma_{5}\right)\delta_{i,j}-\frac{1}{2}\sum_{\mu}\left[\left(1+\gamma_{\mu}\right)U_{i,\mu}\delta_{i+\hat{\mu},j}+\left(1-\gamma_{\mu}\right)U_{i-\hat{\mu},\mu}^{\dagger}\delta_{i-\hat{\mu},j}\right]
 \]
 
 \end_inset
@@ -87,9 +87,9 @@ M_{i,j}=\left(\frac{1}{2k}+i\mu\gamma_{5}\right)\delta_{i,j}-\frac{1}{2}\sum_{\m
 that, separated in parity component is:
 \begin_inset Formula 
 \[
-\gamma_{5}M=\left(\begin{array}{cc}
-Q_{ee} & Q_{eo}\\
-Q_{oe} & Q_{oo}
+D=\left(\begin{array}{cc}
+D_{ee} & D_{eo}\\
+D_{oe} & D_{oo}
 \end{array}\right)
 \]
 
@@ -104,15 +104,28 @@ D_{ee/oo}=\left(\frac{1}{2k}+i\gamma_{5}\mu\right)\delta_{ee/oo}
 \end_inset
 
 We want to solve 
-\begin_inset Formula $M\psi=\eta$
+\begin_inset Formula $D\psi=\eta$
 \end_inset
 
- which means
+.
+ As 
+\begin_inset Formula $D$
+\end_inset
+
+ do not have good hermiticity proprierties, we will solve for 
+\begin_inset Formula 
+\[
+\gamma_{5}D\psi=\gamma_{5}\eta
+\]
+
+\end_inset
+
+which means
 \begin_inset Formula 
 \[
 \left(\begin{array}{cc}
-Q_{ee} & Q_{eo}\\
-Q_{oe} & Q_{oo}
+\gamma_{5}D_{ee} & \gamma_{5}D_{eo}\\
+\gamma_{5}D_{oe} & \gamma_{5}D_{oo}
 \end{array}\right)\left(\begin{array}{c}
 \psi_{e}\\
 \psi_{o}
@@ -124,12 +137,16 @@ Q_{oe} & Q_{oo}
 
 \end_inset
 
-writing separate equations:
+
+\end_layout
+
+\begin_layout Standard
+Writing separate equations:
 \begin_inset Formula 
 \[
 \begin{cases}
-Q_{ee}\psi_{e}+Q_{eo}\psi_{o}=\gamma_{5}\eta_{e}\\
-Q_{oe}\psi_{e}+Q_{oo}\psi_{o}=\gamma_{5}\eta_{o}
+\gamma_{5}D_{ee}\psi_{e}+\gamma_{5}D_{eo}\psi_{o}=\gamma_{5}\eta_{e}\\
+\gamma_{5}D_{oe}\psi_{e}+\gamma_{5}D_{oo}\psi_{o}=\gamma_{5}\eta_{o}
 \end{cases}
 \]
 
@@ -143,7 +160,7 @@ We can solve for
 \begin_inset Formula 
 \[
 \begin{cases}
-\psi_{e}=Q_{ee}^{-1}\left(\gamma_{5}\eta_{e}-Q_{eo}\psi_{o}\right)\\
+\psi_{e}=D_{ee}^{-1}\left(\eta_{e}-D_{eo}\psi_{o}\right)\\
 Q_{oe}Q_{ee}^{-1}\left(\gamma_{5}\eta_{e}-Q_{eo}\psi_{o}\right)+Q_{oo}\psi_{o}=\gamma_{5}\eta_{o}
 \end{cases}
 \]
@@ -190,6 +207,18 @@ K_{oo} & \equiv & \gamma_{5}D_{oo}-\gamma_{5}D_{oe}D_{ee}^{-1}D_{eo}
 
 \end_inset
 
+
+\end_layout
+
+\begin_layout Standard
+As 
+\begin_inset Formula $K_{oo}$
+\end_inset
+
+ is not hermitean, we have to solve:
+\end_layout
+
+\begin_layout Standard
 Reassuming, you can solve the problem in this way:
 \end_layout
 
