@@ -92,9 +92,12 @@ int *op1_2pts,*op2_2pts;
 char basepath_2pts[1024];
 
 //timings
-int ninv_tot=0,ncontr_tot=0;
-double tot_time=0,inv_time=0,contr_time=0;
-int wall_time;
+int wall_time,ntot_inv=0;
+int ntot_contr_2pts=0;
+int ntot_contr_3pts=0;
+double tot_time=0,tot_inv_time=0;
+double tot_contr_2pts_time=0;
+double tot_contr_3pts_time=0;
 
 //number of spectator masses
 int nspec;
@@ -279,12 +282,14 @@ void close_Bk()
   if(rank==0)
     {
       printf("\n");
-      printf("Total time: %g secs to analize %d configurations (%2.2g secs avg), of which:\n",
+      printf("Total time: %g secs to analize %d configurations (%f secs avg), of which:\n",
 	     tot_time,nanalized_conf,tot_time/nanalized_conf);
-      printf(" - %02.2f%s to perform %d inversions (%2.2g secs avg)\n",
-	     inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
-      printf(" - %02.2f%s to perform %d contr. (%2.2g secs avg)\n",
-	     contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+      printf(" - %02.2f%s to perform %d inversions (%f secs avg)\n",
+	     tot_inv_time/tot_time*100,"%",ntot_inv,tot_inv_time/ntot_inv);
+      printf(" - %02.2f%s to perform %d 3pts contr. (%f secs avg)\n",
+	     tot_contr_3pts_time/tot_time*100,"%",ntot_contr_3pts,tot_contr_3pts_time/ntot_contr_3pts);
+      printf(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
+	     tot_contr_2pts_time/tot_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
     }
   
   appretto_free(conf);appretto_free(sme_conf);
@@ -323,7 +328,7 @@ void calculate_S(int iwall)
 	  communicate_lx_spincolor_borders(source);
 	  if(rank==0) printf("\n");
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
-	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
+	  part_time+=take_time();ntot_inv++;tot_inv_time+=part_time;
 	  if(rank==0) printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
 			     iwall,id,so_jlv,part_time);
 	  
@@ -420,7 +425,7 @@ void print_two_points_contractions_to_file(FILE *fout)
 //Calculate and print to file all the contractions
 void calculate_all_contractions()
 {
-  contr_time-=take_time();
+  tot_contr_3pts_time-=take_time();
   
   //loop over smearing of the left and right wall
   for(int sm_lv_L=0;sm_lv_L<so_jnlv;sm_lv_L++)
@@ -461,7 +466,7 @@ void calculate_all_contractions()
 			  
 			  Bk_eights(S[ip1],S[ip2],S[ip3],S[ip4]);
 
-			  ncontr_tot+=32;
+			  ntot_contr_3pts+=32;
 			  
 			  print_ottos_contractions_to_file(fout_bag);
 			  if(rank==0) fflush(fout_bag);
@@ -471,10 +476,16 @@ void calculate_all_contractions()
 	if(rank==0) fclose(fout_bag);
       }
   
-  //loop over smearing of the source and sink
+  tot_contr_3pts_time+=take_time();
+  
+  ///////////////two points////////////
+  
+  tot_contr_2pts_time-=take_time();
+  
+  //loop over smearing levels of the sink
   for(int si_jlv=0;si_jlv<si_jnlv;si_jlv++)
     {
-      //smear all the sink
+      //smear all the propagators on the sink
       int si_jnit_to_app=((si_jlv==0) ? si_jnit[si_jlv] : (si_jnit[si_jlv]-si_jnit[si_jlv-1])); 
       if(si_jnit_to_app!=0)
 	for(int iprop=0;iprop<nprop;iprop++)
@@ -486,13 +497,14 @@ void calculate_all_contractions()
 	      for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
 	    }
       
+      //loop over all source smearing level
       for(int so_jlv=0;so_jlv<so_jnlv;so_jlv++)
 	{
 	  char path_2pts[1024];
 	  sprintf(path_2pts,"%s_%d%d",basepath_2pts,so_jlv,si_jlv);
 	  FILE *fout_2pts=open_text_file_for_output(path_2pts);
 	  
-	  //two points
+	  //loop over all the combos
 	  for(int im2=0;im2<nmass;im2++)
 	    for(int r2=0;r2<2;r2++)
 	      for(int im1=0;im1<nspec;im1++)
@@ -512,13 +524,13 @@ void calculate_all_contractions()
 		      
 		      print_two_points_contractions_to_file(fout_2pts);
 		      
-		      ncontr_tot+=ncontr_2pts;
+		      ntot_contr_2pts+=ncontr_2pts;
 		    }
 	  if(rank==0) fclose(fout_2pts);
 	}
     }
   
-  contr_time+=take_time();
+  tot_contr_2pts_time+=take_time();
 }
 
 //find a not yet analized conf
