@@ -165,6 +165,15 @@ void init_grid()
       MPI_Barrier(MPI_COMM_WORLD);
     }
   
+  /*
+  //create the communicator along different plans
+  int split_plans[4]={0,1,1,1};
+  MPI_Cart_sub(cart_comm,split_plans,&plan_comm);
+  
+  //create communicator along t line
+  int split_time[4]={1,0,0,0};
+  MPI_Cart_sub(cart_comm,split_time,&time_comm);
+  */
   //////////////////////////////////////////////////////////////////////////////////////////
 
   //take final time

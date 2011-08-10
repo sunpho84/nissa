@@ -79,7 +79,7 @@ void set_lx_geometry()
 
   glblx_of_bordlx=(int*)malloc(sizeof(int)*loc_bord);
   loclx_of_bordlx=(int*)malloc(sizeof(int)*loc_bord);
-  dir_of_bordlx=(int*)malloc(sizeof(int)*loc_bord);
+  dir_of_bord=(int*)malloc(sizeof(int)*loc_bord);
 
   glblx_of_edgelx=(int*)malloc(sizeof(int)*loc_edge);
 
@@ -142,7 +142,7 @@ void set_lx_geometry()
 	      for(int idir=0;idir<4;idir++) glb_coord_of_loclx[ibord][idir]=gx[idir];
 	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
 	      loclx_of_bordlx[raw_ibord]=loclx_of_coord(x);
-	      dir_of_bordlx[raw_ibord]=2*idir+1;
+	      dir_of_bord[raw_ibord]=2*idir+1;
 	      gx[idir]=glb_coord_of_loclx[iloc][idir];
 	      x[idir]=loc_coord_of_loclx[iloc][idir];
 
@@ -221,7 +221,7 @@ void set_lx_geometry()
 	      for(int idir=0;idir<4;idir++) glb_coord_of_loclx[ibord][idir]=gx[idir];
 	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
 	      loclx_of_bordlx[raw_ibord]=loclx_of_coord(x);
-	      dir_of_bordlx[raw_ibord]=2*idir;
+	      dir_of_bord[raw_ibord]=2*idir;
 	      gx[idir]=glb_coord_of_loclx[iloc][idir];
 	      x[idir]=loc_coord_of_loclx[iloc][idir];
 

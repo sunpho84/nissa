@@ -1,27 +1,5 @@
 #pragma once
 
-//return 4 integers corresponding to the 1,-1,i,-i according to gamma entries
-//if it is not possible to trivialize, return 0
-int trivialize_dirac_matr(short int *gt,dirac_matr *g)
-{
-  int i=0;
-  do
-    {
-      if(fabs(g->entr[i][0]-1)<1.e-20 && fabs(g->entr[i][1])<1.e-20) gt[i]=0;
-      else
-	if(fabs(g->entr[i][0]+1)<1.e-20 && fabs(g->entr[i][1])<1.e-20) gt[i]=1;
-	else
-	  if(fabs(g->entr[i][0])<1.e-20 && fabs(g->entr[i][1]-1)<1.e-20) gt[i]=2;
-	  else
-	    if(fabs(g->entr[i][0])<1.e-20 && fabs(g->entr[i][1]+1)<1.e-20) gt[i]=3;
-	    else i=4;
-      i++;
-    }
-  while(i<4);
-  
-  return (i==4);
-}
-
 //Initialize a dirac matrix with outside entries
 void init_dirac(dirac_matr *out,int pos0,double rea0,double ima0,int pos1,double rea1,double ima1,int pos2,double rea2,double ima2,int pos3,double rea3,double ima3)
 {

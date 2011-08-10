@@ -163,9 +163,10 @@ void communicate_gauge_edges(quad_su3 *conf)
 //Send the borders of a spincolor vector
 void communicate_lx_spincolor_borders(spincolor *s)
 {communicate_lx_borders((char*)s,MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,sizeof(spincolor));}
+/*
 
 //apply the projector over the internal border
-void apply_lxspincolor_border_projector(redspincolor *p,spincolor *s)
+void apply_e_spincolor_border_projector(redspincolor *p,spincolor *s)
 {
 #ifdef BGP
   bgp_complex S00,S01,S02;
@@ -173,9 +174,9 @@ void apply_lxspincolor_border_projector(redspincolor *p,spincolor *s)
   bgp_complex S20,S21,S22;
   bgp_complex S30,S31,S32;
 
-  for(int ibord=0;ibord<loc_bord;ibord++)
+  for(int ibord=0;ibord<loc_bord/2;ibord++)
     {
-      int idir=dir_of_bordlx[ibord];
+      int idir=dir_of_bord[ibord];
       int ivol=loclx_of_bordlx[ibord];
 
       bgp_load_color(S00,S01,S02,s[ivol][0]);
@@ -288,7 +289,7 @@ void apply_lxspincolor_border_projector(redspincolor *p,spincolor *s)
       }
 #endif
 }
-
+*/
 //Send the reduced border of a spincolor vector
 void start_communicate_lx_redspincolor_borders(redspincolor *in,redspincolor *out,MPI_Request *request)
 {

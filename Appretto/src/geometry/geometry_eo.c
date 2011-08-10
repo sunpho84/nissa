@@ -55,6 +55,8 @@ void set_eo_geometry()
       
       //////////////////neighbours search//////////////////////
       
+      memset(bord_offset_eo,0,sizeof(int)*2*8);
+      
       //now fill the neighbours of sites
       for(int loclx=0;loclx<loc_vol+loc_bord;loclx++)
 	{
@@ -70,10 +72,28 @@ void set_eo_geometry()
 		loco_neighdw[loceo][idir]=loceo_of_loclx[loclx_neighdw[loclx][idir]];
 		loco_neighup[loceo][idir]=loceo_of_loclx[loclx_neighup[loclx][idir]];
 	      }
+	  
+	  //count the number of points in the even and odd border
+	  if(loclx>=loc_vol)
+	    {
+	      int ibord=loclx-loc_vol;
+	      int ibord_dir=0;
+	      if(loclx>=(loc_vol+loc_bord/2))
+		{
+		  ibord-=loc_vol/2;
+		  ibord_dir+=4;
+		}
+	      ibord_dir+=dir_of_bord[ibord];
+	      
+	      int eo=loclx_parity[loclx];
+	      bord_offset_eo[eo][ibord_dir]++;
+	    }	      
 	}
       
       if(rank==0 && debug) printf("E/O Geometry intialized\n");
     }
+  
+  if(rank==0) for(int idir=0;idir<8;idir++) printf("%d %d %d\n",idir,bord_offset_eo[0][idir],bord_offset_eo[1][idir]);
 }
 
 /*

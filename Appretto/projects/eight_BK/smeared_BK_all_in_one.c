@@ -440,7 +440,7 @@ void calculate_all_contractions()
 	int iwL=0;
 	  for(int iwR=iwL+1;iwR<nwall;iwR++)
 	    {
-	      int tsepar=abs(twall[iwL]-twall[iwR]);
+	      int tsepar=(twall[iwL]+glb_size[0]-twall[iwR])%glb_size[0];
 	      
 	      if(rank==0) fprintf(fout_bag," # LEFT_WALL_t=%d , RIGHT_WALL_t=%d , tseparat=%d\n\n",
 		      twall[iwL],twall[iwR],tsepar);
