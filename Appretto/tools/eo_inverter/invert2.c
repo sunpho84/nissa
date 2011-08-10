@@ -21,15 +21,14 @@ void gamma5(spincolor *out,spincolor *in)
 //apply D_eo or oe
 void Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,int parity)
 {
-  memset(out,0,sizeof(spincolor)*loc_vol);
-  
   int Xup,Xdw;
 
   if(debug3) printf(" m2Doe_or_m2Deo parity: %d\n",parity);
   for(int X=0;X<loc_vol;X++)
     if(loclx_parity[X]!=parity) //loop is on sink
       {
-        color temp_c0,temp_c1,temp_c2,temp_c3;
+	memset(out[X],0,sizeof(spincolor));
+	color temp_c0,temp_c1,temp_c2,temp_c3;
         
         //Forward 0
         Xup=loclx_neighup[X][0];
@@ -126,8 +125,6 @@ void Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,int parity)
 
 void direct_invert(spincolor *solution,spincolor *source,double mu,double kappa)
 {
-  memset(solution,0,sizeof(loc_vol)*sizeof(spincolor));
-  
   spincolor *temp_source=appretto_malloc("temp_source",loc_vol,spincolor);
   spincolor *solutionQ2=appretto_malloc("solutionQ2",loc_vol,spincolor);
 
@@ -141,8 +138,6 @@ void direct_invert(spincolor *solution,spincolor *source,double mu,double kappa)
 
 void dir_inv_Dee_Doo(spincolor *out,spincolor *in,double mu,double kappa,int parity,int dir_inv)
 {
-  memset(out,0,sizeof(loc_vol)*sizeof(spincolor));
-  
   double a=1/(2*kappa);
   double b=mu;
   complex z;
@@ -192,13 +187,11 @@ void K(spincolor *out,spincolor *in,quad_su3* conf,double mu,double kappa)
   inv_Doo(temp,out,mu,kappa);
   Doo(temp,in,mu,kappa);
 
-  //memset(out,0,sizeof(loc_vol)*sizeof(spincolor));
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(loclx_parity[ivol]==1)
       for(int id=0;id<4;id++)
 	for(int ic=0;ic<3;ic++)
 	  for(int ri=0;ri<2;ri++)
-	    //out[ivol][id][ic][ri]=+in[ivol][id][ic][ri]-temp[ivol][id][ic][ri];
 	    out[ivol][id][ic][ri]=temp[ivol][id][ic][ri]-out[ivol][id][ic][ri];
 
   gamma5(out,out);
@@ -352,7 +345,6 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
 void improved_invert(spincolor *solution,spincolor *chi,double mu,double kappa)
 {
   spincolor *varphi=appretto_malloc("varphi",loc_vol,spincolor);
-  //spincolor *varphi1=appretto_malloc("varphi1",loc_vol,spincolor);
 
   spincolor *temp=appretto_malloc("temp",loc_vol,spincolor);
   inv_Dee(temp,chi,mu,kappa);
@@ -369,11 +361,18 @@ void improved_invert(spincolor *solution,spincolor *chi,double mu,double kappa)
 	      varphi[ivol][id+2][ic][ri]=-chi[ivol][id+2][ic][ri]+varphi[ivol][id+2][ic][ri];
 	    }
   
-  //inv_Doo(varphi1,varphi,mu,kappa);
   inv_K(solution,varphi,mu,kappa);
-  
+
+  Deo(varphi,solution,conf);
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    if(loclx_parity[ivol]==0)
+      for(int id=0;id<4;id++)
+	for(int ic=0;ic<3;ic++)
+	  for(int ri=0;ri<2;ri++)
+	    varphi[ivol][id][ic][ri]=chi[ivol][id][ic][ri]-varphi[ivol][id][ic][ri];
+  inv_Dee(solution,varphi,mu,kappa);
+
   appretto_free(varphi);
-  //appretto_free(varphi1);
 }
 
 void init(char *input_path,double *mu,double *kappa)
@@ -452,11 +451,10 @@ int main(int narg,char **arg)
   improved_invert(solution_improved,glb_source,mu,kappa);
 
   for(int ivol=0;ivol<loc_vol;ivol++)
-    if(loclx_parity[ivol]==1)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    printf("%lg %lg\n",solution_direct[ivol][id][ic][ri],solution_improved[ivol][id][ic][ri]);
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+	for(int ri=0;ri<2;ri++)
+	  printf("%lg %lg\n",solution_direct[ivol][id][ic][ri],solution_improved[ivol][id][ic][ri]);
   
   ///////////////////////////////////////////
 

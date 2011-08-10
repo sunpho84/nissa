@@ -11,15 +11,15 @@
 //-loc to the local one
 EXTERN int glb_size[4],glb_vol;
 EXTERN int loc_size[4],loc_vol;
+EXTERN int *dir_of_bord;
 //-lx is lexicografic
 EXTERN int **glb_coord_of_loclx;
 EXTERN int **loc_coord_of_loclx;
 EXTERN int *glblx_of_loclx;
 EXTERN int *glblx_of_bordlx;
 EXTERN int *loclx_of_bordlx;
-EXTERN int *dir_of_bordlx;
 EXTERN int *glblx_of_edgelx;
-//-eor is even-odd reduced
+//-eo is even-odd
 EXTERN int *loclx_parity;
 EXTERN int *loceo_of_loclx;
 EXTERN int *loclx_of_loce;
@@ -61,6 +61,8 @@ EXTERN MPI_Datatype MPI_GAUGE_BORD_SEND[4],MPI_GAUGE_BORD_RECE[4];
 EXTERN MPI_Datatype MPI_LXSPINCOLOR_BORD_SEND[4],MPI_LXSPINCOLOR_BORD_RECE[4];
 EXTERN MPI_Datatype MPI_LXREDSPINCOLOR_BORD[4];
 
+EXTERN int bord_offset_eo[2][8]; //eo, 8 dirs
+
 //size of the edges along the 6 directions
 EXTERN int edge_dir_vol[6],edge_offset[6];
 EXTERN int loc_edge;
@@ -81,6 +83,8 @@ EXTERN int big_endian;
 #define nreals_per_quad_su3 72
 
 EXTERN MPI_Comm cart_comm;
+EXTERN MPI_Comm plan_comm;
+EXTERN MPI_Comm time_comm;
 
 //vectors
 EXTERN int appretto_max_required_memory;
