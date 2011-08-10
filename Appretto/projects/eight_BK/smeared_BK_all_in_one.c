@@ -432,7 +432,7 @@ void calculate_all_contractions()
     for(int sm_lv_R=0;sm_lv_R<so_jnlv;sm_lv_R++)
       {
 	char path_bag[1024];
-	sprintf(path_bag,"%s_%d%d",basepath_bag,sm_lv_L,sm_lv_R);
+	sprintf(path_bag,"%s_%02d_%02d",basepath_bag,so_jnit[sm_lv_L],so_jnit[sm_lv_R]);
 	FILE *fout_bag=open_text_file_for_output(path_bag);
 	
 	//loop over left-right wall combo
@@ -501,7 +501,7 @@ void calculate_all_contractions()
       for(int so_jlv=0;so_jlv<so_jnlv;so_jlv++)
 	{
 	  char path_2pts[1024];
-	  sprintf(path_2pts,"%s_%d%d",basepath_2pts,so_jlv,si_jlv);
+	  sprintf(path_2pts,"%s_%02d_%02d",basepath_2pts,so_jnit[so_jlv],si_jnit[si_jlv]);
 	  FILE *fout_2pts=open_text_file_for_output(path_2pts);
 	  
 	  //loop over all the combos
@@ -552,7 +552,7 @@ int find_conf()
       
       //Check wether the config is analized or not by searching for outputs
       char check_path[1024];
-      sprintf(check_path,"%s_00",basepath_bag);
+      sprintf(check_path,"%s_%02d_%02d",basepath_bag,so_jnit[0],si_jnit[0]);
       if(file_exist(check_path))
 	{
 	  conf_found=0;

@@ -39,47 +39,17 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
     {
       if(debug>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
 
-      //two possible ways of doing it: trivial or not trivial
-      short int g1t[4],g2t[4],g12t[4][4];
-      int trivial=(trivialize_dirac_matr(g1t,g1+icontr) && trivialize_dirac_matr(g2t,g2+icontr));
-      if(trivial)
-	{
-	  int map[4][4]={{0,1,2,3},{1,0,3,2},{2,3,0,1},{3,2,1,0}};
-	  for(int id1=0;id1<4;id1++)
-	    for(int id2=0;id2<4;id2++)
-	      g12t[id1][id2]=map[g1t[id1]][g2t[id2]];
-	}
-      
       //Local loop
       for(int ivol=0;ivol<loc_vol;ivol++)
 	{
 	  int glb_t=glb_coord_of_loclx[ivol][0];
 	  //Color loop
 	  for(int ic=0;ic<3;ic++)
-	    if(trivial)
-	      for(int id1=0;id1<4;id1++)
-		for(int id2=0;id2<4;id2++)
-		  switch(g12t[id1][id2])
-		    {
-		    case 0:complex_summ_the_conj1_prod(loc_c[icontr*glb_size[0]+glb_t],
-						       s1[ivol][ic][id2][g1[icontr].pos[id1]],
-						       s2[ivol][ic][g2[icontr].pos[id2]][id1]);break;
-		    case 1:complex_subt_the_conj1_prod(loc_c[icontr*glb_size[0]+glb_t],
-						       s1[ivol][ic][id2][g1[icontr].pos[id1]],
-						       s2[ivol][ic][g2[icontr].pos[id2]][id1]);break;
-		    case 2:complex_summ_the_conj1_prod_i(loc_c[icontr*glb_size[0]+glb_t],
-							 s1[ivol][ic][id2][g1[icontr].pos[id1]],
-							 s2[ivol][ic][g2[icontr].pos[id2]][id1]);break;
-		    case 3:complex_subt_the_conj1_prod_i(loc_c[icontr*glb_size[0]+glb_t],
-							 s1[ivol][ic][id2][g1[icontr].pos[id1]],
-							 s2[ivol][ic][g2[icontr].pos[id2]][id1]);break;
-		    }
-	    else
-	      {
-		complex ctemp;
-		site_trace_g_sdag_g_s(ctemp,&(g1[icontr]),s1[ivol][ic],&(g2[icontr]),s2[ivol][ic]);
-		complex_summ(loc_c[icontr*glb_size[0]+glb_t],loc_c[icontr*glb_size[0]+glb_t],ctemp);
-	      }
+	    {
+	      complex ctemp;
+	      site_trace_g_sdag_g_s(ctemp,&(g1[icontr]),s1[ivol][ic],&(g2[icontr]),s2[ivol][ic]);
+	      complex_summ(loc_c[icontr*glb_size[0]+glb_t],loc_c[icontr*glb_size[0]+glb_t],ctemp);
+	    }
 	}
     }
   
