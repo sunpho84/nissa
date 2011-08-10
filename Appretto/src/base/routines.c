@@ -17,12 +17,15 @@ void fprintf_friendly_units(FILE *fout,int quant,int orders,const char *units)
 {
   const char units_prefix[6][2]={"","K","M","G","T","P"};
   int iord=0;
+  double temp=quant;
   
-  while(quant>orders)
+  while(temp>orders)
     {
-      quant/=orders;
+      temp/=orders;
       iord++;
     }
+  
+  quant=(int)(temp+0.5);
   
   if(rank==0) fprintf(fout,"%d %s%s",quant,units_prefix[iord],units);
 }
