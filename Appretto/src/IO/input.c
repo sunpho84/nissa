@@ -26,12 +26,7 @@ void open_input(char *input_path)
   if(rank==0)
     {
       input_global=fopen(input_path,"r");
-      if(input_global==NULL)
-	{
-	  fprintf(stderr,"File '%s' not found\n",input_path);
-	  fflush(stderr);
-	  MPI_Abort(MPI_COMM_WORLD,1);
-	}
+      if(input_global==NULL) crash("File '%s' not found",input_path);
 
       if(debug) printf("File '%s' opened\n",input_path);
     }	
@@ -45,16 +40,9 @@ void close_input()
 //Read a var from the file
 void read_var(char *in,const char *par,int size_of)
 {
-  if(rank==0)
-    {
-      int ok=fscanf(input_global,par,in);
-      if(!ok)
-	{
-	  fprintf(stderr,"Couldn't read from input file!!!\n");
-	  fflush(stderr);
-	  MPI_Abort(MPI_COMM_WORLD,1);
-	}
-    }
+  int ok=(rank==0) ? fscanf(input_global,par,in) : 1;
+  if(!ok) crash("Couldn't read from input file!!!");
+  
   MPI_Bcast(in,size_of,MPI_BYTE,0,MPI_COMM_WORLD);
 }
 
@@ -77,12 +65,7 @@ void expect_str(const char *exp_str)
 
   read_str(obt_str,1024);
   
-  if(strcasecmp(exp_str,obt_str)!=0 && rank==0)
-    {
-      fprintf(stderr,"Error, expexcted '%s' in input file, obtained: '%s'\n",exp_str,obt_str);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  if(strcasecmp(exp_str,obt_str)!=0) crash("Error, expexcted '%s' in input file, obtained: '%s'",exp_str,obt_str);
 }
 
 //Read an integer checking the tag

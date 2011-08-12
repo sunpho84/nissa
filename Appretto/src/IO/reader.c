@@ -1,120 +1,158 @@
 #pragma once
 
-//Read from the argument path a maximal amount of data nbyes_per_site
-//return the real read amount of bytes
-int read_binary_blob(char *data_out,char *path,const char *expected_record,int max_nbytes_per_site)
+//create an appretto reader
+appretto_reader *appretto_reader_create()
 {
-  int nbytes_per_site=0;
+  appretto_reader *reader=appretto_malloc("reader",1,appretto_reader);
   
-  //Take inital time
-  double tic;
-  if(debug>1)
-    {
-      MPI_Barrier(cart_comm);
-      tic=MPI_Wtime();
-    }
-
-  //Open the file
-  MPI_File *reader_file=(MPI_File*)malloc(sizeof(MPI_File));
-  if(reader_file==NULL && rank==0)
-    {
-      fprintf(stderr,"Error while allocating MPI file\n");
-      MPI_Abort(cart_comm,1);
-    }
-  int ok=MPI_File_open(cart_comm,path,MPI_MODE_RDONLY,MPI_INFO_NULL,reader_file);
-  if(ok!=MPI_SUCCESS && rank==0)
-    {
-      fprintf(stderr,"Couldn't open for reading the file: '%s'\n",path);
-      fflush(stderr);
-      MPI_Abort(cart_comm,1);
-    }
-
-  LemonReader *reader=lemonCreateReader(reader_file,cart_comm);
-  char *header=NULL;
-
-  int read=0;
-  while(lemonReaderNextRecord(reader)!=LEMON_EOF && read==0)
-    {
-      header=lemonReaderType(reader);
-      if(rank==0 && debug>1) printf("found record: %s\n",header);
-      if(strcmp(expected_record,header)==0)
-	{
-	  uint64_t nbytes=lemonReaderBytes(reader);
-	  nbytes_per_site=nbytes/glb_vol;
-	  if(nbytes_per_site>max_nbytes_per_site && rank==0)
-	    {
-	      fprintf(stderr,"Opsss! The file contain %Ld bytes per site and it is supposed to contain not more than: %d or %d\n",(long long int)nbytes,nbytes_per_site,max_nbytes_per_site);
-	      fflush(stderr);
-	      MPI_Abort(MPI_COMM_WORLD,1);
-	    }
-	  
-	  //load with timing
-	  double tic1;
-	  if(debug>1)
-	    {
-	      MPI_Barrier(cart_comm);
-	      tic1=MPI_Wtime();
-	    }
-	  int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
-	  int scidac_mapping[4]={0,3,2,1};
-	  lemonReadLatticeParallelMapped(reader,data_out,nbytes_per_site,glb_dims,scidac_mapping);
-	  if(debug>1)
-	    {
-	      MPI_Barrier(cart_comm);
-	      double tac1=MPI_Wtime();
-	      if(rank==0) printf("Time elapsed by lemon to read %Ld bytes: %f s\n",(long long int)nbytes,tac1-tic1);
-	    }
-
-	  read=1;
-	  if(rank==0 && debug>1) printf("Data read!\n");
-	}
-    }
-  
-  //Abort if couldn't find th record
-  if(read==0 && rank==0)
-    {
-      fprintf(stderr,"Error: couldn't find binary\n");
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
-
-  lemonDestroyReader(reader);
-  MPI_File_close(reader_file);
-
- if(debug>1)
-    {
-      MPI_Barrier(cart_comm);
-      double tac=MPI_Wtime();
-
-      if(rank==0) printf("Total time elapsed in reading: %f s\n",tac-tic);
-    }
-
- return nbytes_per_site;
+  reader->open=0;
+  reader->reading=0;
+  reader->buf=NULL;
+  reader->lemon_reader=NULL;
+  reader->reader_file=appretto_malloc("mpi_file",1,MPI_File);
+  return reader;
 }
 
-//Read a vector of nreal_per_site reals number in float or double precision
-//change endianess if needed
-void read_real_vector(double *out,char *path,const char *header,int nreals_per_site)
+//close an appretto reader
+void appretto_reader_close(appretto_reader *reader)
 {
-  //Take inital time
-  double tic;
-  if(debug>1)
+  if(reader->open) 
     {
-      MPI_Barrier(cart_comm);
-      tic=MPI_Wtime();
+      lemonDestroyReader(reader->lemon_reader);
+      MPI_File_close(reader->reader_file);
+      reader->open=0;
     }
+}
 
+//destroy an appretto reader
+void appretto_reader_destroy(appretto_reader *reader)
+{
+  if(reader->open) appretto_reader_close(reader);
+  appretto_free(reader->reader_file);
+  if(reader->buf!=NULL) appretto_free(reader->buf);
+  if(reader->open) appretto_reader_close(reader);
+
+  appretto_free(reader);
+}
+
+//open a file through an appretto reader
+void appretto_reader_open(appretto_reader *reader,char *path)
+{
+  if(reader->open) appretto_reader_close(reader);
+  
+  if(MPI_File_open(cart_comm,path,MPI_MODE_RDONLY,MPI_INFO_NULL,reader->reader_file)!=MPI_SUCCESS)
+    crash("Couldn't open for reading the file: '%s'",path);
+  reader->open=1;
+
+  reader->lemon_reader=lemonCreateReader(reader->reader_file,cart_comm);
+}
+
+//search a particular record in a file
+void appretto_reader_search_record(appretto_reader *reader,const char *expected_record)
+{
+  int found=0;
+  while(found==0 && lemonReaderNextRecord(reader->lemon_reader)!=LEMON_EOF)
+    {
+      char *header=lemonReaderType(reader->lemon_reader);
+
+      if(rank==0 && debug>1) printf("found record: %s\n",header);
+      if(strcmp(expected_record,header)==0) found=1;
+    }
+  
+  if(found==0) crash("Error, reached the end of file while searching for record %s",expected_record);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//start reading current record of a file
+void appretto_reader_start_reading_current_record(void *out,appretto_reader *reader,int max_nbytes_per_site)
+{
+  if(!(reader->open)) crash("Ops! Trying to read from a not open reader!");
+  
+  uint64_t nbytes=lemonReaderBytes(reader->lemon_reader);
+  int nbytes_per_site=nbytes/glb_vol;
+  if(nbytes_per_site>max_nbytes_per_site)
+    crash("Opsss! The file contain %d bytes per site and it is supposed to contain not more than %d!",
+	  nbytes_per_site,max_nbytes_per_site);
+  
+  int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
+  int scidac_mapping[4]={0,3,2,1};
+
+  if(lemonReadLatticeParallelNonBlockingMapped(reader->lemon_reader,out,nbytes_per_site,glb_dims,scidac_mapping)!=
+     LEMON_SUCCESS) crash("Error starting to read from a file!");
+  reader->reading=1;
+  reader->nbytes_per_site=nbytes_per_site;
+}
+
+//create the reader, open the file, search the record and start reading
+appretto_reader *appretto_reader_start_reading(void *out,char *filename,const char *record_name,int max_bytes_per_site)
+{
+  appretto_reader *reader=appretto_reader_create();
+  appretto_reader_open(reader,filename);
+  appretto_reader_search_record(reader,record_name);
+  appretto_reader_start_reading_current_record(out,reader,max_bytes_per_site);
+  
+  return reader;
+}
+
+//start reading a real vector
+appretto_reader *start_reading_real_vector(double *out,char *path,const char *expected_record,int nreals_per_site)
+{return appretto_reader_start_reading(out,path,expected_record,nreals_per_site*sizeof(double));}
+
+//start reading a spincolor
+appretto_reader *start_reading_spincolor(spincolor *out,char *path)
+{return start_reading_real_vector((double*)out,path,"scidac-binary-data",nreals_per_spincolor);}
+
+//start reading a colorspinspin
+appretto_reader **start_reading_colorspinspin(colorspinspin *out,char *base_path,char *end_path)
+{
+  appretto_reader **readers=malloc(4*sizeof(appretto_reader*));
+  for(int so=0;so<4;so++)
+    {
+      char filename[1024];
+      if(end_path!=NULL) sprintf(filename,"%s.0%d.%s",base_path,so,end_path);
+      else sprintf(filename,"%s.0%d",base_path,so);
+      readers[so]=appretto_reader_start_reading(out,filename,"scidac-binary-data",nreals_per_spincolor);
+    }
+  
+  return readers;
+}
+
+//start reading a gauge conf
+appretto_reader *start_reading_gauge_conf(quad_su3 *out,char *path)
+{return start_reading_real_vector((double*)out,path,"ildg-binary-data",nreals_per_quad_su3);}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//finalize (wait) to read a certain record
+void appretto_reader_finalize_reading_current_record(appretto_reader *reader)
+{
+  if(!reader->reading) crash("Error! Waiting to finish reading from a reader that is not reading!");
+  
+  if(lemonFinishReading(reader->lemon_reader)!=LEMON_SUCCESS) crash("Error waiting to finish reading!");
+  reader->reading=0;
+}
+
+//wait to finish reading and destroy the reader
+void appretto_reader_finalize_reading(appretto_reader *reader)
+{
+  appretto_reader_finalize_reading_current_record(reader);
+  appretto_reader_close(reader);
+  appretto_reader_destroy(reader);
+}
+
+//finalization of a real vector: change endianess if needed
+void finalize_reading_real_vector(double *out,appretto_reader *reader,int nreals_per_site)
+{
   int nbytes_per_site_float=nreals_per_site*sizeof(float);
   int nbytes_per_site_double=nreals_per_site*sizeof(double);
-  int nbytes_per_site_read=read_binary_blob((char*)out,path,header,nbytes_per_site_double);
+  int nbytes_per_site_read=reader->nbytes_per_site;
   
-  if(nbytes_per_site_read!=nbytes_per_site_float && nbytes_per_site_read!=nbytes_per_site_double && rank==0)
-    {
-      fprintf(stderr,"Opsss! The file %s contain %d bytes per site and it is supposed to contain: %d (single) or %d (double)\n",
-	      path,nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  appretto_reader_finalize_reading(reader);  
+  
+  if(nbytes_per_site_read!=nbytes_per_site_float && nbytes_per_site_read!=nbytes_per_site_double)
+    crash("Opsss! The file contain %d bytes per site and it is supposed to contain: %d (single) or %d (double)",
+	  nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);
   
   int loc_nreals_tot=nreals_per_site*loc_vol;
   
@@ -123,38 +161,171 @@ void read_real_vector(double *out,char *path,const char *header,int nreals_per_s
     else floats_to_doubles_same_endianess((double*)out,(float*)out,loc_nreals_tot);
   else //swap the endianess if needed
     if(big_endian) doubles_to_doubles_changing_endianess((double*)out,(double*)out,loc_nreals_tot);
-
- if(debug>1)
-    {
-      MPI_Barrier(cart_comm);
-      double tac=MPI_Wtime();
-
-      if(rank==0) printf("Total time including possible conversion: %f s\n",tac-tic);
-    }
 }  
 
-//Read a whole spincolor
-void read_spincolor(spincolor *out,char *path)
+//reorder a read spincolor
+void reorder_read_spincolor(spincolor *sc)
 {
-  spincolor *temp=appretto_malloc("temp_read_buf",loc_vol,spincolor);
-
-  read_real_vector((double*)temp,path,"scidac-binary-data",nreals_per_spincolor);
-
-  int x[4],isour,idest;
-
+  int x[4];
   for(x[0]=0;x[0]<loc_size[0];x[0]++)
     for(x[1]=0;x[1]<loc_size[1];x[1]++)
       for(x[2]=0;x[2]<loc_size[2];x[2]++)
 	for(x[3]=0;x[3]<loc_size[3];x[3]++)
 	  {
-	    isour=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
-	    idest=loclx_of_coord(x);
-
-	    memcpy(out[idest],temp[isour],sizeof(spincolor));
+	    int isour=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
+	    int idest=loclx_of_coord(x);
+	    if(isour<idest)
+	      {
+		spincolor temp;
+		memcpy(temp,sc[isour],sizeof(spincolor));
+		memcpy(sc[isour],sc[idest],sizeof(spincolor));
+		memcpy(sc[idest],temp,sizeof(spincolor));
+	      }
 	  }
+}
+
+//reorder a read colorspinspin
+void reorder_read_colorspinspin(colorspinspin *css)
+{
+  int x[4];
+  for(x[0]=0;x[0]<loc_size[0];x[0]++)
+    for(x[1]=0;x[1]<loc_size[1];x[1]++)
+      for(x[2]=0;x[2]<loc_size[2];x[2]++)
+	for(x[3]=0;x[3]<loc_size[3];x[3]++)
+	  {
+	    int ivsour=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
+	    int ivdest=loclx_of_coord(x);
+	    for(int so=0;so<4;so++)
+	      for(int si=0;si<4;si++)
+		for(int c=0;c<3;c++)
+		  {
+		    int isour=12*(so*loc_vol+ivsour)+3*si+c;
+		    int idest=so+4*(si+4*(c+3*ivdest));
+		    if(isour<idest)
+		      {
+			complex temp;
+			memcpy(temp,css[isour],sizeof(complex));
+			memcpy(css[isour],css[idest],sizeof(complex));
+			memcpy(css[idest],temp,sizeof(complex));
+		      }
+		  }
+	  }
+}
+
+//reorder a read gauge conf
+void reorder_read_gauge_conf(quad_su3 *conf)
+{
+  int x[4];
+  for(x[0]=0;x[0]<loc_size[0];x[0]++)
+    for(x[1]=0;x[1]<loc_size[1];x[1]++)
+      for(x[2]=0;x[2]<loc_size[2];x[2]++)
+	for(x[3]=0;x[3]<loc_size[3];x[3]++)
+	  {
+	    int isour=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
+	    int idest=loclx_of_coord(x);
+	    
+	    if(idest<=isour)
+	      {
+		quad_su3 buf;
+		memcpy(buf,conf[idest],sizeof(quad_su3));
+		memcpy(conf[idest][0],conf[isour][3],sizeof(su3));
+		memcpy(conf[idest][1],conf[isour][0],3*sizeof(su3));
+		memcpy(conf[isour][0],buf[3],sizeof(su3));
+		memcpy(conf[isour][1],buf[0],3*sizeof(su3));
+	      }
+	  }
+}
+
+//finalize reading a spincolor
+void finalize_reading_spincolor(spincolor *sc,appretto_reader *reader)
+{
+  finalize_reading_real_vector((double*)sc,reader,nreals_per_spincolor);
+  reorder_read_spincolor(sc);
+}
+
+//finalize reading a colorspinspin
+void finalize_reading_colorspinspin(colorspinspin *css,appretto_reader **reader)
+{
+  for(int i=0;i<4;i++) finalize_reading_real_vector((double*)css,reader[i],nreals_per_spincolor*4);
+  reorder_read_colorspinspin(css);
+}
+
+//finalize reading the reading a gauge conf
+void finalize_reading_gauge_conf(quad_su3 *conf,appretto_reader *reader)
+{
+  finalize_reading_real_vector((double*)conf,reader,nreals_per_quad_su3);
+  reorder_read_gauge_conf(conf);
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+//read a binary blob
+int read_binary_blob(void *out,char *path,const char *expected_record,int nmax_bytes_per_site)
+{
+  //Take inital time
+  double time=(debug>1) ? -take_time() : 0;
   
-  appretto_free(temp);
-}  
+  appretto_reader *reader=appretto_reader_start_reading(out,path,expected_record,nmax_bytes_per_site);
+  int nbytes_per_site=reader->nbytes_per_site;
+  appretto_reader_finalize_reading(reader);
+  
+  if(debug>1)
+    {
+      time+=take_time();
+      if(rank==0) printf("Total time elapsed in reading %Ld bytes: %f s\n",nbytes_per_site*(long long int)glb_vol,time);
+    }  
+
+  return nbytes_per_site;
+}
+
+//read a real vector
+void read_real_vector(double *out,char *path,const char *expected_record,int nreals_per_site)
+{
+  //Take inital time
+  double time=(debug>1) ? -take_time() : 0;
+  appretto_reader *reader=start_reading_real_vector(out,path,expected_record,nreals_per_site);  
+  
+  finalize_reading_real_vector(out,reader,nreals_per_site);
+  
+  if(debug>1)
+    {
+      time+=take_time();
+      if(rank==0) printf("Total time including possible conversion: %f s\n",time);
+    }
+}
+
+//read a spincolor
+void read_spincolor(spincolor *sc,char *path)
+{
+  read_real_vector((double*)sc,path,"ildg-binary-data",nreals_per_spincolor);
+  reorder_read_spincolor(sc);
+}
+
+//read a colorspinspin
+void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
+{
+  //Take inital time
+  double time=(debug>1) ? -take_time() : 0;
+  appretto_reader **reader=start_reading_colorspinspin(css,base_path,end_path);
+  finalize_reading_colorspinspin(css,reader);
+  
+  free(reader);
+  
+  if(debug>1)
+    {
+      time+=take_time();
+      if(rank==0) printf("Total time including possible conversion: %f s\n",time);
+    }
+}
+
+//read a gauge conf
+void read_gauge_conf(quad_su3 *conf,char *path)
+{
+  read_real_vector((double*)conf,path,"ildg-binary-data",nreals_per_quad_su3);
+  reorder_read_gauge_conf(conf);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Read a spincolor and reconstruct the doublet
 void read_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path,quad_su3 *conf,double kappa,double mu)
@@ -172,36 +343,6 @@ void read_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path,qu
 
   if(all) appretto_free(temp);
 }  
-
-//Read 4 spincolor and revert their indexes
-void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
-{
-  double time;
-  if(debug) time=-take_time();
-
-  char filename[1024];
-  spincolor *sc=appretto_malloc("sc",loc_vol,spincolor);
-
-  //Read the four spinor
-  for(int id_source=0;id_source<4;id_source++) //dirac index of source
-    {
-      if(end_path!=NULL) sprintf(filename,"%s.0%d.%s",base_path,id_source,end_path);
-      else sprintf(filename,"%s.0%d",base_path,id_source);
-      read_spincolor(sc,filename);
-      
-      //Switch the spincolor into the colorspin. 
-      for(int loc_site=0;loc_site<loc_vol;loc_site++) put_spincolor_into_colorspinspin(css[loc_site],sc[loc_site],id_source);
-    }
-
-  if(debug)
-    {
-      time+=take_time();
-      if(rank==0) printf("Time elapsed in reading file '%s': %f s\n",base_path,time);
-    }
-  
-  //Destroy the temp
-  appretto_free(sc);
-}
 
 //Read 4 spincolor and reconstruct them
 void read_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char *end_path,quad_su3 *conf,double kappa,double mu)
@@ -238,43 +379,4 @@ void read_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char 
   appretto_free(sc[0]);
   appretto_free(sc[1]);
   appretto_free(temp);
-}
-
-////////////////////////// gauge configuration loading /////////////////////////////
-
-//Read only the local part of the gauge configuration
-void read_local_gauge_conf(quad_su3 *out,char *path)
-{
-  double tread=-take_time();
-  quad_su3 *temp=appretto_malloc("temp_gauge_read_buf",loc_vol,quad_su3);
-
-  read_real_vector((double*)temp,path,"ildg-binary-data",nreals_per_quad_su3);
-  
-  int x[4],isour,idest;
-  quad_su3 buff;
-
-  for(x[0]=0;x[0]<loc_size[0];x[0]++)
-    for(x[1]=0;x[1]<loc_size[1];x[1]++)
-      for(x[2]=0;x[2]<loc_size[2];x[2]++)
-	for(x[3]=0;x[3]<loc_size[3];x[3]++)
-	  {
-	    isour=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
-	    idest=loclx_of_coord(x);
-
-	    memcpy(buff[0],temp[isour][3],sizeof(su3));
-	    memcpy(buff[1],temp[isour][0],sizeof(su3));
-	    memcpy(buff[2],temp[isour][1],sizeof(su3));
-	    memcpy(buff[3],temp[isour][2],sizeof(su3));
-	    
-	    //this is to avoid premature overwrite
-	    memcpy(out[idest],buff,sizeof(quad_su3));
-	  }
-
-  appretto_free(temp);
-  
-  if(debug)
-    {
-      tread+=take_time();
-      if(rank==0) printf("Time elapsed in reading gauge file '%s': %f s\n",path,tread);
-    }
 }
