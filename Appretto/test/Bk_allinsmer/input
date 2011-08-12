@@ -30,5 +30,6 @@ NContrTwoPoints 3
 5 9
 9 5
 
-NgaugeConf 1
+NgaugeConf 2
  ../Conf 0 otto twopoints
+ ../Conf 0 otto_b twopoints_b

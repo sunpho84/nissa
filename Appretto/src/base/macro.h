@@ -7,21 +7,27 @@
 #define appretto_malloc(a,b,c) appretto_true_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
 #define appretto_free(a) appretto_true_free((void**)&(a),__FILE__,__LINE__)
 
-#define fprintf_debug(fil,mes)                                          \
+#define fprintf_debug(fil,...)					\
   {                                                                     \
     MPI_Barrier(MPI_COMM_WORLD);                                        \
     if(rank==0)                                                         \
       {                                                                 \
-        fprintf(fil,"Debug message: %s on file %s, line %d\n",mes,__FILE__,__LINE__); \
-        fflush(fil);                                                    \
+        fprintf(fil,"Debug message: <<");				\
+	fprintf(fil,__VA_ARGS__);					\
+	fprintf(fil,">> on file %s, line %d\n",__FILE__,__LINE__);	\
+	fflush(fil);							\
       }                                                                 \
     MPI_Barrier(MPI_COMM_WORLD);                                        \
   }
 
-#define printf_debug(mes) fprintf_debug(stdout,mes);
+#define printf_debug(...) fprintf_debug(stdout,__VA_ARGS__);
 
-#define crash(mes)                              \
+#define crash(...)                              \
   {                                             \
-    fprintf_debug(stderr,mes);                  \
+    fprintf_debug(stderr,__VA_ARGS__);		\
+    fflush(stderr);				\
     if(rank==0) MPI_Abort(MPI_COMM_WORLD,1);    \
   }
+
+#define if_appretto_vect_not_initialized() if(main_appretto_arr!=((void*)&main_appretto_vect)+sizeof(appretto_vect))
+

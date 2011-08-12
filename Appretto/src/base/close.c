@@ -24,6 +24,7 @@ void close_appretto()
       print_all_appretto_vect_content();
       printf("For a total of %d bytes\n",compute_appretto_vect_memory_usage());
     }
+  MPI_Barrier(MPI_COMM_WORLD);
   
   MPI_Finalize();
 }

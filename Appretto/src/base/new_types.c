@@ -44,3 +44,14 @@ typedef struct
   void *prev;
   void *next;
 } appretto_vect;
+
+//Appretto file reader
+typedef struct
+{
+  int open;
+  int reading;
+  int nbytes_per_site;
+  char *buf;
+  MPI_File *reader_file;
+  LemonReader *lemon_reader;
+} appretto_reader;
