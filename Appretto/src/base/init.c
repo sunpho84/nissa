@@ -34,10 +34,10 @@ void init_appretto()
   memset(nproc_dir,0,4*sizeof(int));
   ONE[0]=I[1]=1;
   ONE[1]=I[0]=0;
-  
+  //check endianess
   check_endianess();
   init_base_gamma();
-  
+  //associate sigsegv with proper handle
   signal(SIGSEGV,terminate_sigsegv);
 }
 

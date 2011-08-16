@@ -29,5 +29,5 @@
     if(rank==0) MPI_Abort(MPI_COMM_WORLD,1);    \
   }
 
-#define if_appretto_vect_not_initialized() if(main_appretto_arr!=((void*)&main_appretto_vect)+sizeof(appretto_vect))
+#define if_appretto_vect_not_initialized() if(main_appretto_arr!=((char*)&main_appretto_vect)+sizeof(appretto_vect))
 

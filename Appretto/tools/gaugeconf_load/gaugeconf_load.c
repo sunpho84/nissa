@@ -7,7 +7,7 @@ void test(quad_su3 *conf,as2t tmunu)
   gplaq=global_plaquette(conf);
   if(rank==0) printf("plaq: %.10g\n",gplaq);
   
-  as2t_su3 *clov=(as2t_su3*)malloc(sizeof(as2t_su3)*loc_vol);
+  as2t_su3 *clov=appretto_malloc("clov",loc_vol,as2t_su3);
   
   Pmunu_term(clov,conf);
   
@@ -24,7 +24,7 @@ void test(quad_su3 *conf,as2t tmunu)
       as2t_saturate(temp,tmunu,as);
       partial_summ+=temp[0];
     }
-  free(clov);
+  appretto_free(clov);
   double total_leaves_summ;
   MPI_Reduce(&partial_summ,&total_leaves_summ,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
@@ -59,8 +59,8 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
-  quad_su3 *conft=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));
-  quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));
+  quad_su3 *conft=appretto_malloc("conft",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *conf=appretto_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
   {
     dirac_matr temp_gamma[4];
     temp_gamma[0]=base_gamma[4];
@@ -83,18 +83,10 @@ int main(int narg,char **arg)
 	    }
 	  d++;
 	}
-    read_local_gauge_conf(conft,filename);  
+    read_gauge_conf(conft,filename);  
     communicate_gauge_borders(conft);
     communicate_gauge_edges(conft);
     test(conft,tmunu);
-    
-    quad_su3 *conf2=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));  
-    printf("Swap from lx to eo and then back to lx\n");
-    unsafe_swap_gauge_lx_to_eo(conf,conft);
-    unsafe_swap_gauge_eo_to_lx(conf2,conf);
-    communicate_gauge_borders(conf2);
-    communicate_gauge_edges(conf2);
-    test(conf2,tmunu);
   }
 
   if(rank_tot==1)
@@ -126,14 +118,14 @@ int main(int narg,char **arg)
 	      }
 	    d++;
 	  }
-      ac_rotate_gaugeconf(conf,conft,1);
+      ac_rotate_gauge_conf(conf,conft,1);
       communicate_gauge_borders(conf);
       communicate_gauge_edges(conf);
       test(conf,tmunu);
-      free(conf);
+      appretto_free(conf);
     }
 
-  free(conft);
+  appretto_free(conft);
   
   ///////////////////////////////////////////
 
