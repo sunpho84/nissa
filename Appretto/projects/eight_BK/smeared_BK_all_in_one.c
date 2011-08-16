@@ -124,41 +124,6 @@ void generate_source(int iwall)
 	}
 }
 
-//find a not yet analized conf
-int find_next_conf()
-{
-  int conf_found=0;
-  
-  do
-    {
-      //Read the conf path
-      read_str(conf_path,1024);
-      
-      //Read position of first wall
-      read_int(twall);
-      
-      //Read outpaths
-      read_str(basepath_bag,1024);
-      read_str(basepath_2pts,1024);
-      
-      //Check wether the config is analized or not by searching for outputs
-      char check_path[1024];
-      sprintf(check_path,"%s_%02d_%02d",basepath_bag,so_jnit[0],si_jnit[0]);
-      if(rank==0) printf("\nChecking \"%s\".\n",conf_path);
-      if(file_exist(check_path))
-	{
-	  conf_found=0;
-	  if(rank==0) printf("\nConfiguration \"%s\" already analized.\n",conf_path);
-	}
-      else conf_found=1;
-      
-      igauge_conf++;
-    }
-  while(conf_found==0 && igauge_conf<ngauge_conf);
-  
-  return conf_found;
-}
-
 //Parse all the input file
 void initialize_Bk(int narg,char **arg)
 {
@@ -287,6 +252,63 @@ void initialize_Bk(int narg,char **arg)
   original_source=appretto_malloc("original_source",loc_vol,colorspinspin);
 }
 
+//find a not yet analized conf
+int find_next_conf()
+{
+  int conf_found=0;
+  
+  do
+    {
+      //Read the conf path
+      read_str(conf_path,1024);
+      
+      //Read position of first wall
+      read_int(twall);
+      
+      //Read outpaths
+      read_str(basepath_bag,1024);
+      read_str(basepath_2pts,1024);
+      
+      //Check wether the config is analized or not by searching for outputs
+      char check_path[1024];
+      sprintf(check_path,"%s_%02d_%02d",basepath_bag,so_jnit[0],si_jnit[0]);
+      if(rank==0) printf("\nChecking \"%s\".\n",conf_path);
+      if(file_exist(check_path))
+	{
+	  conf_found=0;
+	  if(rank==0) printf("\nConfiguration \"%s\" already analized.\n",conf_path);
+	}
+      else conf_found=1;
+      
+      igauge_conf++;
+    }
+  while(conf_found==0 && igauge_conf<ngauge_conf);
+  
+  return conf_found;
+}
+
+//check if there is enough residual time for another conf
+int check_residual_time()
+{
+  double spent_time=take_time()+tot_time;
+  double remaining_time=wall_time-spent_time;
+  double ave_time=(nanalized_conf>0) ? (spent_time/nanalized_conf) : 0;
+  double pess_time=ave_time*1.1;
+  
+  int enough_time=(igauge_conf<ngauge_conf) ? (remaining_time>pess_time) : 1;
+  
+  if(!enough_time && rank==0)
+    {
+      printf("\n");
+      printf("-average running time: %lg secs per conf,\n",ave_time);
+      printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
+      printf("-remaining time: %lg secs per conf\n",remaining_time);
+      printf("Not enough time for another conf, so exiting.\n");
+    }
+  
+  return enough_time;
+}
+
 //load the conf, smear it and put boundary cond
 void load_gauge_conf()
 {
@@ -310,39 +332,6 @@ void load_gauge_conf()
   old_theta[0]=0;
   put_theta[0]=1;
   adapt_theta(conf,old_theta,put_theta,1,0);
-}
-
-//Finalization
-void close_Bk()
-{
-  //take final time
-  tot_time+=take_time();
-
-  if(rank==0)
-    {
-      printf("\n");
-      printf("Total time: %g secs to analize %d configurations (%f secs avg), of which:\n",
-	     tot_time,nanalized_conf,tot_time/nanalized_conf);
-      printf(" - %02.2f%s to perform %d inversions (%f secs avg)\n",
-	     tot_inv_time/tot_time*100,"%",ntot_inv,tot_inv_time/ntot_inv);
-      printf(" - %02.2f%s to perform %d 3pts contr. (%f secs avg)\n",
-	     tot_contr_3pts_time/tot_time*100,"%",ntot_contr_3pts,tot_contr_3pts_time/ntot_contr_3pts);
-      printf(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
-	     tot_contr_2pts_time/tot_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
-    }
-  
-  appretto_free(twall);
-  appretto_free(op1_2pts);appretto_free(op2_2pts);
-  appretto_free(contr_otto);appretto_free(contr_mezzotto);
-  appretto_free(conf);appretto_free(sme_conf);appretto_free(contr_2pts);
-  for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
-  appretto_free(cgmms_solution);
-  appretto_free(source);appretto_free(original_source);
-  for(int iprop=0;iprop<nprop;iprop++) appretto_free(S[iprop]);
-  appretto_free(S);
-  appretto_free(reco_solution[1]);appretto_free(reco_solution[0]);
-  
-  close_appretto();
 }
 
 //calculate the propagators
@@ -576,56 +565,56 @@ void calculate_all_contractions()
 }
 
 //analize a single configuration
-int analize_next_conf()
+void analize_conf()
 {
-  //Find if there is another conf to analize
-  int keep_on_analizing=find_next_conf();
+  //Determine the position of all the wall starting from the distance
+  for(int iwall=1;iwall<nwall;iwall++) twall[iwall]=(twall[0]+tsepa[iwall-1])%glb_size[0];
   
-  if(keep_on_analizing)
+  //Invert propagators
+  if(rank==0) printf("Going to invert: %d walls\n",nwall);
+  for(int iwall=0;iwall<nwall;iwall++)
     {
-      //Load the gauge conf
-      load_gauge_conf();
-      
-      //Determine the position of all the wall starting from the distance
-      for(int iwall=1;iwall<nwall;iwall++) twall[iwall]=(twall[0]+tsepa[iwall-1])%glb_size[0];
-      
-      //Invert propagators
-      if(rank==0) printf("Going to invert: %d walls\n",nwall);
-      for(int iwall=0;iwall<nwall;iwall++)
-	{
-	  generate_source(iwall);
-	  calculate_S(iwall);
-	}
-      
-      //Perform all the contractions
-      calculate_all_contractions();
-      
-      nanalized_conf++;
+      generate_source(iwall);
+      calculate_S(iwall);
     }
   
-  return keep_on_analizing;
+  //Perform all the contractions
+  calculate_all_contractions();
+  
+  nanalized_conf++;
 }
 
-//check if there is enough residual time for another conf
-int check_residual_time()
+//Finalization
+void close_Bk()
 {
-  double spent_time=take_time()+tot_time;
-  double remaining_time=wall_time-spent_time;
-  double ave_time=(nanalized_conf>0) ? (spent_time/nanalized_conf) : 0;
-  double pess_time=ave_time*1.1;
-  
-  int enough_time=(igauge_conf<ngauge_conf) ? (remaining_time>pess_time) : 1;
-  
-  if(!enough_time && rank==0)
+  //take final time
+  tot_time+=take_time();
+
+  if(rank==0)
     {
       printf("\n");
-      printf("-average running time: %lg secs per conf,\n",ave_time);
-      printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
-      printf("-remaining time: %lg secs per conf\n",remaining_time);
-      printf("Not enough time for another conf, so exiting.\n");
+      printf("Total time: %g secs to analize %d configurations (%f secs avg), of which:\n",
+	     tot_time,nanalized_conf,tot_time/nanalized_conf);
+      printf(" - %02.2f%s to perform %d inversions (%f secs avg)\n",
+	     tot_inv_time/tot_time*100,"%",ntot_inv,tot_inv_time/ntot_inv);
+      printf(" - %02.2f%s to perform %d 3pts contr. (%f secs avg)\n",
+	     tot_contr_3pts_time/tot_time*100,"%",ntot_contr_3pts,tot_contr_3pts_time/ntot_contr_3pts);
+      printf(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
+	     tot_contr_2pts_time/tot_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
     }
   
-  return enough_time;
+  appretto_free(twall);
+  appretto_free(op1_2pts);appretto_free(op2_2pts);
+  appretto_free(contr_otto);appretto_free(contr_mezzotto);
+  appretto_free(conf);appretto_free(sme_conf);appretto_free(contr_2pts);
+  for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
+  appretto_free(cgmms_solution);
+  appretto_free(source);appretto_free(original_source);
+  for(int iprop=0;iprop<nprop;iprop++) appretto_free(S[iprop]);
+  appretto_free(S);
+  appretto_free(reco_solution[1]);appretto_free(reco_solution[0]);
+  
+  close_appretto();
 }
 
 int main(int narg,char **arg)
@@ -637,16 +626,16 @@ int main(int narg,char **arg)
   initialize_Bk(narg,arg);
 
   //Loop over configurations
-  int keep_on_analizing;
-  do
+
+  //Find if there is another conf to analize and time to analize it
+  while(find_next_conf() && check_residual_time())
     {
-      //Pass to the next conf
-      keep_on_analizing=analize_next_conf();
+      //Load the gauge conf
+      load_gauge_conf();
       
-      //Check if we have enough time to analize another conf
-      if(keep_on_analizing) keep_on_analizing=check_residual_time();
+      //Analize it
+      analize_conf();
     }
-  while(keep_on_analizing);
   
   //Finalization
   close_input();
