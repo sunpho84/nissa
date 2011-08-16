@@ -5,7 +5,7 @@
 #define appretto_vect_string_length 20
 
 #define appretto_malloc(a,b,c) appretto_true_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
-#define appretto_free(a) appretto_true_free((void**)&(a),__FILE__,__LINE__)
+#define appretto_free(a) a=appretto_true_free(a,__FILE__,__LINE__)
 
 #define fprintf_debug(fil,...)					\
   {                                                                     \

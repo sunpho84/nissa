@@ -133,6 +133,8 @@ int find_next_conf(char *conf_path_next,int *twall_next,char *basepath_bag_next,
 {
   int conf_found=0;
   
+  if(rank==0) printf("Searching for new conf to load or pre-load\n");
+  
   do
     {
       //Read the conf path
@@ -166,7 +168,12 @@ int find_next_conf(char *conf_path_next,int *twall_next,char *basepath_bag_next,
 int cache_next_conf()
 {
   int keep_on_analizing=find_next_conf(conf_path_cached,&twall_cached,basepath_bag_cached,basepath_2pts_cached);
+  double start_cache_time=-take_time();
   if(keep_on_analizing) conf_loader=start_reading_gauge_conf(conf_cached,conf_path_cached);
+  start_cache_time+=take_time();
+  
+  if(rank==0) printf("Time to start caching: %lg s\n",start_cache_time);
+  
   return keep_on_analizing;
 }
 
@@ -204,7 +211,7 @@ int initialize_Bk(int narg,char **arg)
   read_list_of_ints("NSeparations",&nsepa,&tsepa);
   //Allocate twall space
   nwall=nsepa+1;
-  twall=(int*)malloc(sizeof(int)*(nwall));
+  twall=appretto_malloc("twal",nwall,int);
   //Read the noise type
   read_str_int("NoiseType",&noise_type);
   //Read list of masses
@@ -253,14 +260,15 @@ int initialize_Bk(int narg,char **arg)
   
   // 5) contraction list for eight
 
-  contr_otto=(complex*)malloc(sizeof(complex)*16*glb_size[0]); 
-  contr_mezzotto=(complex*)malloc(sizeof(complex)*16*glb_size[0]); 
+  contr_otto=appretto_malloc("contr_otto",16*glb_size[0],complex);
+  contr_mezzotto=appretto_malloc("contr_mezzotto",16*glb_size[0],complex);
   
   read_str_int("NSpec",&nspec);
+  if(nspec>nmass) crash("Nspec>nmass!!!");
   read_str_int("NContrTwoPoints",&ncontr_2pts);
-  contr_2pts=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
-  op1_2pts=(int*)malloc(sizeof(int)*ncontr_2pts);
-  op2_2pts=(int*)malloc(sizeof(int)*ncontr_2pts);
+  contr_2pts=appretto_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
+  op1_2pts=appretto_malloc("op1",ncontr_2pts,int);
+  op2_2pts=appretto_malloc("op2",ncontr_2pts,int);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     {
       //Read the operator pairs
@@ -282,11 +290,11 @@ int initialize_Bk(int narg,char **arg)
   //Allocate all the propagators colorspinspin vectors
   nprop=nwall*so_jnlv*nmass*2;
   if(rank==0) printf("Number of propagator to be allocated: %d\n",nprop);
-  S=(colorspinspin**)malloc(sizeof(colorspinspin*)*nprop);
+  S=appretto_malloc("S",nprop,colorspinspin*);
   for(int iprop=0;iprop<nprop;iprop++) S[iprop]=appretto_malloc("S[i]",loc_vol,colorspinspin);
   
   //Allocate nmass spincolors, for the cgmms solutions
-  cgmms_solution=(spincolor**)malloc(sizeof(spincolor*)*nmass);
+  cgmms_solution=appretto_malloc("cgmms_solution",nmass,spincolor*);
   for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=appretto_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
   reco_solution[0]=appretto_malloc("reco_solution[0]",loc_vol,spincolor);
   reco_solution[1]=appretto_malloc("reco_solution[1]",loc_vol,spincolor);
@@ -348,10 +356,15 @@ void close_Bk()
 	     tot_contr_2pts_time/tot_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
     }
   
-  appretto_free(conf);appretto_free(sme_conf);
+  appretto_free(twall);
+  appretto_free(op1_2pts);appretto_free(op2_2pts);
+  appretto_free(contr_otto);appretto_free(contr_mezzotto);
+  appretto_free(conf);appretto_free(sme_conf);appretto_free(contr_2pts);
   for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
+  appretto_free(cgmms_solution);
   appretto_free(source);appretto_free(original_source);
   for(int iprop=0;iprop<nprop;iprop++) appretto_free(S[iprop]);
+  appretto_free(S);
   appretto_free(conf_cached);
   appretto_free(reco_solution[1]);appretto_free(reco_solution[0]);
   
@@ -416,7 +429,6 @@ void Bk_eights(colorspinspin *SL1,colorspinspin *SL2,colorspinspin *SR1,colorspi
 {
   //Temporary vectors for the internal gamma
   dirac_matr tsink[16];//tsource[16]
-
   for(int igamma=0;igamma<16;igamma++)
     {
       //Put the two gamma5 needed for the revert of the d spinor
@@ -434,7 +446,6 @@ void meson_two_points(colorspinspin *s1,colorspinspin *s2)
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr_2pts],t2[ncontr_2pts];
-  
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     {
       //Put the two gamma5 needed for the revert of the first spinor

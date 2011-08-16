@@ -32,7 +32,8 @@ void spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b)
   memset(out,0,sizeof(spinspin));
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
-      for(int id=0;id<4;id++) complex_summ_the_conj2_prod(out[id1][id2],a[id1][id],b[id2][id]);
+      for(int id=0;id<4;id++)
+	complex_summ_the_conj2_prod(out[id1][id2],a[id1][id],b[id2][id]);
 }
 
 //Get a spincolor from a colorspinspin

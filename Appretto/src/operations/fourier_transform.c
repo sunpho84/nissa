@@ -74,5 +74,5 @@ void spincolor_FT(spincolor *S,spincolor *FT,double *theta,int **iP,int nmom)
       appretto_free(P[idir]);
       appretto_free(SinP[idir]);
     }
-  appretto_free(P2);appretto_free(SinP2);appretto_free(SinP4);;
+  appretto_free(P2);appretto_free(SinP2);appretto_free(SinP4);
 }

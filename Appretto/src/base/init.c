@@ -37,6 +37,8 @@ void init_appretto()
   
   check_endianess();
   init_base_gamma();
+  
+  signal(SIGSEGV,terminate_sigsegv);
 }
 
 void init_grid()

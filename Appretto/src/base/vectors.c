@@ -130,20 +130,20 @@ void *appretto_true_malloc(const char *tag,int nel,int size_per_el,const char *t
 }
 
 //release a vector
-void appretto_true_free(void **arr,const char *file,int line)
+void* appretto_true_free(void *arr,const char *file,int line)
 {
-  if(rank==0 && debug>1)
+  if(arr!=NULL)
     {
-      printf("At line %d of file %s freeing vector ",line,file);
-      appretto_vect_content_printf(last_appretto_vect);
-    }
-  
-  if(*arr!=NULL)
-    {
-      appretto_vect *vect=(appretto_vect*)(*arr-sizeof(appretto_vect));
+      appretto_vect *vect=(appretto_vect*)(arr-sizeof(appretto_vect));
       appretto_vect *prev=vect->prev;
       appretto_vect *next=vect->next;
       
+      if(rank==0 && debug>1)
+	{
+	  printf("At line %d of file %s freeing vector ",line,file);
+	  appretto_vect_content_printf(vect);
+	}
+  
       //detach from previous
       prev->next=next;
       
@@ -155,13 +155,8 @@ void appretto_true_free(void **arr,const char *file,int line)
       appretto_required_memory-=(vect->size_per_el*vect->nel);
   
       free(vect);
-      
-      *arr=NULL;
     }
-  else
-    if(rank==0)
-      {
-	fprintf(stderr,"Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
-	MPI_Abort(MPI_COMM_WORLD,1);
-      }
+  else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
+  
+  return NULL;
 }

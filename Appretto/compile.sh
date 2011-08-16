@@ -18,7 +18,7 @@ fi
 
 comp()
 {
-    $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -llemon -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -llime -L$LIME_PATH/lib/ -I$LIME_PATH/include/
+    $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -lm -llemon -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -llime -L$LIME_PATH/lib/ -I$LIME_PATH/include/
 }
 
 recomp_appretto()

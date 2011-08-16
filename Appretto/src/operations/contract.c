@@ -217,8 +217,8 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
                 complex ctemp;
 		spinspin ALg, ARg;
 		
-                spinspin_dirac_spinspin_prod(ALg,&(g2R[icontr]),AL);
-                spinspin_dirac_spinspin_prod(ARg,&(g2L[icontr]),AR);
+                spinspin_dirac_spinspin_prod(ALg,g2R+icontr,AL);
+                spinspin_dirac_spinspin_prod(ARg,g2L+icontr,AR);
                 trace_prod_spinspins(ctemp,ALg,ARg);
                 complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
 	      }
@@ -238,7 +238,7 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
   //Allocate a contguous memory area where to store local results
   complex *loc_c=appretto_malloc("loc_c",ncontr*glb_size[0],complex);
   memset(loc_c,0,sizeof(complex)*ncontr*glb_size[0]);
-
+  
   //Local loop
   for(int loc_site=0;loc_site<loc_vol;loc_site++)
     {
