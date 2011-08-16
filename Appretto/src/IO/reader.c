@@ -77,9 +77,11 @@ void appretto_reader_start_reading_current_record(void *out,appretto_reader *rea
   
   int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
   int scidac_mapping[4]={0,3,2,1};
-
+  double temp=-take_time();
   if(lemonReadLatticeParallelNonBlockingMapped(reader->lemon_reader,out,nbytes_per_site,glb_dims,scidac_mapping)!=
      LEMON_SUCCESS) crash("Error starting to read from a file!");
+  temp+=take_time();
+  if(rank==0) printf("Lemon time to start reading: %lg\n",temp);
   reader->reading=1;
   reader->nbytes_per_site=nbytes_per_site;
 }
