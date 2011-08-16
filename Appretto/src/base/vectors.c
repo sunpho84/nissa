@@ -3,7 +3,7 @@
 //check weather the borders are allocated
 void check_minimal_allocated_size(void *v,int l,const char *err_mess)
 {
-  appretto_vect *vect=v-sizeof(appretto_vect);
+  appretto_vect *vect=(appretto_vect*)((char*)v-sizeof(appretto_vect));
   if(vect->nel<l)
     if(rank==0)
       {
@@ -81,7 +81,7 @@ void initialize_main_appretto_vect()
       main_appretto_vect.size_per_el=0;
       memcpy(main_appretto_vect.file,__FILE__+max_int(0,strlen(__FILE__)-12),12);
       main_appretto_vect.line=__LINE__;
-      main_appretto_arr=(void*)last_appretto_vect+sizeof(appretto_vect);
+      main_appretto_arr=(char*)last_appretto_vect+sizeof(appretto_vect);
     }
 }
 
@@ -126,7 +126,7 @@ void *appretto_true_malloc(const char *tag,int nel,int size_per_el,const char *t
   appretto_required_memory+=size;
   appretto_max_required_memory=max_int(appretto_max_required_memory,appretto_required_memory);
   
-  return (void*)last_appretto_vect+sizeof(appretto_vect);
+  return (char*)last_appretto_vect+sizeof(appretto_vect);
 }
 
 //release a vector
@@ -134,7 +134,7 @@ void* appretto_true_free(void *arr,const char *file,int line)
 {
   if(arr!=NULL)
     {
-      appretto_vect *vect=(appretto_vect*)(arr-sizeof(appretto_vect));
+      appretto_vect *vect=(appretto_vect*)((char*)arr-sizeof(appretto_vect));
       appretto_vect *prev=vect->prev;
       appretto_vect *next=vect->next;
       
