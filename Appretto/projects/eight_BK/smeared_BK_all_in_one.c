@@ -49,9 +49,7 @@ source |------>---->----->---->| sink
 //gauge info
 int igauge_conf=0,ngauge_conf,nanalized_conf;
 char conf_path[1024];
-char conf_path_cached[1024];
-quad_su3 *conf_cached,*conf,*sme_conf;
-appretto_reader *conf_loader;
+quad_su3 *conf,*sme_conf;
 double kappa;
 
 int nmass;
@@ -61,7 +59,7 @@ double put_theta[4],old_theta[4]={0,0,0,0};
 //source data
 int seed,noise_type;
 int nsepa,*tsepa;
-int nwall,*twall,twall_cached;
+int nwall,*twall;
 double rad2=1.414213562373095048801688724209;
 spincolor *source;
 colorspinspin *original_source;
@@ -86,14 +84,12 @@ int niter_max;
 //ottos contractions
 complex *contr_otto,*contr_mezzotto;
 char basepath_bag[1024];
-char basepath_bag_cached[1024];
 
 //two points contractions
 int ncontr_2pts;
 complex *contr_2pts;
 int *op1_2pts,*op2_2pts;
 char basepath_2pts[1024];
-char basepath_2pts_cached[1024];
 
 //timings
 int wall_time,ntot_inv=0;
@@ -129,31 +125,30 @@ void generate_source(int iwall)
 }
 
 //find a not yet analized conf
-int find_next_conf(char *conf_path_next,int *twall_next,char *basepath_bag_next,char *basepath_2pts_next)
+int find_next_conf()
 {
   int conf_found=0;
-  
-  if(rank==0) printf("Searching for new conf to load or pre-load\n");
   
   do
     {
       //Read the conf path
-      read_str(conf_path_next,1024);
+      read_str(conf_path,1024);
       
       //Read position of first wall
-      read_int(twall_next);
+      read_int(twall);
       
       //Read outpaths
-      read_str(basepath_bag_next,1024);
-      read_str(basepath_2pts_next,1024);
+      read_str(basepath_bag,1024);
+      read_str(basepath_2pts,1024);
       
       //Check wether the config is analized or not by searching for outputs
       char check_path[1024];
-      sprintf(check_path,"%s_%02d_%02d",basepath_bag_next,so_jnit[0],si_jnit[0]);
+      sprintf(check_path,"%s_%02d_%02d",basepath_bag,so_jnit[0],si_jnit[0]);
+      if(rank==0) printf("\nChecking \"%s\".\n",conf_path);
       if(file_exist(check_path))
 	{
 	  conf_found=0;
-	  if(rank==0) printf("\nConfiguration \"%s\" already analized.\n",conf_path_next);
+	  if(rank==0) printf("\nConfiguration \"%s\" already analized.\n",conf_path);
 	}
       else conf_found=1;
       
@@ -164,21 +159,8 @@ int find_next_conf(char *conf_path_next,int *twall_next,char *basepath_bag_next,
   return conf_found;
 }
 
-//find next conf and cache it
-int cache_next_conf()
-{
-  int keep_on_analizing=find_next_conf(conf_path_cached,&twall_cached,basepath_bag_cached,basepath_2pts_cached);
-  double start_cache_time=-take_time();
-  if(keep_on_analizing) conf_loader=start_reading_gauge_conf(conf_cached,conf_path_cached);
-  start_cache_time+=take_time();
-  
-  if(rank==0) printf("Time to start caching: %lg s\n",start_cache_time);
-  
-  return keep_on_analizing;
-}
-
 //Parse all the input file
-int initialize_Bk(int narg,char **arg)
+void initialize_Bk(int narg,char **arg)
 {
 
   // 0) base initializations
@@ -283,7 +265,6 @@ int initialize_Bk(int narg,char **arg)
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf
-  conf_cached=appretto_malloc("conf_cached",loc_vol,quad_su3);
   conf=appretto_malloc("conf",loc_vol+loc_bord,quad_su3);
   sme_conf=appretto_malloc("sme_conf",loc_vol+loc_bord,quad_su3);
   
@@ -304,22 +285,16 @@ int initialize_Bk(int narg,char **arg)
   
   //Allocate the colorspinspin of the source
   original_source=appretto_malloc("original_source",loc_vol,colorspinspin);
-  
-  //Search the first conf
-  int keep_on_analizing=cache_next_conf();
-  
-  return keep_on_analizing;
 }
 
 //load the conf, smear it and put boundary cond
-void fetch_gauge_conf()
+void load_gauge_conf()
 {
-  //finalize the gauge conf loading and copy cached twall and outpaths
+  //load the gauge conf
   double time=-take_time();
-  finalize_reading_gauge_conf(conf_cached,conf_loader);
+  read_gauge_conf(conf,conf_path);
   time+=take_time();
-  if(rank==0) printf("\nTime needed to load conf %s: %g s.\n\n",conf_path_cached,time);
-  memcpy(conf,conf_cached,sizeof(quad_su3)*loc_vol);
+  if(rank==0) printf("\nTime needed to load conf %s: %g s.\n\n",conf_path,time);
   //prepared the smerded version and calculate plaquette
   ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
 
@@ -365,7 +340,6 @@ void close_Bk()
   appretto_free(source);appretto_free(original_source);
   for(int iprop=0;iprop<nprop;iprop++) appretto_free(S[iprop]);
   appretto_free(S);
-  appretto_free(conf_cached);
   appretto_free(reco_solution[1]);appretto_free(reco_solution[0]);
   
   close_appretto();
@@ -604,30 +578,30 @@ void calculate_all_contractions()
 //analize a single configuration
 int analize_next_conf()
 {
-  //Fetch the next conf from  the cache
-  fetch_gauge_conf();
-  //Copy cached parameters
-  *twall=twall_cached;
-  strcpy(basepath_2pts,basepath_2pts_cached);
-  strcpy(basepath_bag,basepath_bag_cached);
-  //Find next conf to be analized and cache it
-  int keep_on_analizing=cache_next_conf();
+  //Find if there is another conf to analize
+  int keep_on_analizing=find_next_conf();
   
-  //Determine the position of all the wall starting from the distance
-  for(int iwall=1;iwall<nwall;iwall++) twall[iwall]=(twall[0]+tsepa[iwall-1])%glb_size[0];
-  
-  //Invert propagators
-  if(rank==0) printf("Going to invert: %d walls\n",nwall);
-  for(int iwall=0;iwall<nwall;iwall++)
+  if(keep_on_analizing)
     {
-      generate_source(iwall);
-      calculate_S(iwall);
+      //Load the gauge conf
+      load_gauge_conf();
+      
+      //Determine the position of all the wall starting from the distance
+      for(int iwall=1;iwall<nwall;iwall++) twall[iwall]=(twall[0]+tsepa[iwall-1])%glb_size[0];
+      
+      //Invert propagators
+      if(rank==0) printf("Going to invert: %d walls\n",nwall);
+      for(int iwall=0;iwall<nwall;iwall++)
+	{
+	  generate_source(iwall);
+	  calculate_S(iwall);
+	}
+      
+      //Perform all the contractions
+      calculate_all_contractions();
+      
+      nanalized_conf++;
     }
-  
-  //Perform all the contractions
-  calculate_all_contractions();
-  
-  nanalized_conf++;
   
   return keep_on_analizing;
 }
@@ -660,17 +634,19 @@ int main(int narg,char **arg)
   init_appretto();
 
   //Inner initialization
-  int keep_on_analizing=initialize_Bk(narg,arg);
+  initialize_Bk(narg,arg);
 
   //Loop over configurations
-  while(keep_on_analizing)
-  {
-    //Pass to the next conf
-    keep_on_analizing=analize_next_conf();
-    
-    //Check if we have enough time to analize another conf
-    if(keep_on_analizing) keep_on_analizing=check_residual_time();
-  }
+  int keep_on_analizing;
+  do
+    {
+      //Pass to the next conf
+      keep_on_analizing=analize_next_conf();
+      
+      //Check if we have enough time to analize another conf
+      if(keep_on_analizing) keep_on_analizing=check_residual_time();
+    }
+  while(keep_on_analizing);
   
   //Finalization
   close_input();
