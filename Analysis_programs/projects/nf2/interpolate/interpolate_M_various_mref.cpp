@@ -30,28 +30,22 @@ int main()
       M[iens]=aM[iens]/lat[b];
     }
   
-  bvec fint(nens,nboot,njack);
+  double mint[3]={90.0/1000,95.0/1000,100.0/1000};
+  bvec out(3*nens,nboot,njack);
+
   for(int iens=0;iens<nens;iens++)
     {
-      if(string(meson_name)==string("Ds"))
-	fint.data[iens]=interpolate_charm_strange(M[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens]);
-      
-      if(string(meson_name)==string("D"))
-	fint.data[iens]=interpolate_charm(M[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens])[iml_un[iens]];
-      
+      bvec fint[3];
       if(string(meson_name)==string("K"))
-	fint.data[iens]=interpolate_strange(sqr(M[iens]),nmass[iens],nlights[iens],mass[iens],ibeta[iens])[iml_un[iens]];
+	interpolate_many_strange(fint,sqr(M[iens]),nmass[iens],nlights[iens],mass[iens],ibeta[iens],mint,3);
       
-      if(string(meson_name)==string("Pi"))
-	fint.data[iens]=M[iens][icombo(iml_un[iens],iml_un[iens],nmass[iens])];
-      
-      cout<<mass[iens][iml_un[iens]]<<" "<<fint.data[iens]<<endl;
+      for(int iref=0;iref<3;iref++)
+	{
+	  //cout<<mass[iens][iml_un[iens]]<<" "<<fint[iref][iml_un[iens]]<<endl;
+	  out[iref*nens+iens]=fint[iref][iml_un[iens]];
+	}
     }
-  
-  if(string(meson_name)==string("Pi")) fint.write_to_binfile(combine("M_%s",meson_name).c_str());
-  else
-    if(string(meson_name)==string("K")) fint.write_to_binfile(combine("interpolated_M2_%s",meson_name).c_str());
-    else fint.write_to_binfile(combine("interpolated_M_%s",meson_name).c_str());
+  out.write_to_binfile(combine("interpolated_M2_%s",meson_name).c_str());
   
   return 0;
 }

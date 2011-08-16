@@ -54,7 +54,7 @@ boot interpolate_single(bvec vec,double *x,boot xf)
 	  //interpolate
 	  out.data[iboot]=m*xf[iboot]+q;
 	  
-	  if(iboot==nboot && debug)
+	  if(0 && iboot==nboot && debug)
 	    {
 	      cout<<" "<<sup-1<<" "<<x[sup-1]<<" "<<vec[sup-1][iboot]<<" "<<m*x[sup-1]+q<<endl;
 	      cout<<" "<<sup<<" "<<x[sup]<<" "<<vec[sup][iboot]<<" "<<m*x[sup]+q<<endl;
@@ -78,7 +78,7 @@ boot interpolate_single(bvec vec,double *x,boot xf)
 	  //interpolate
 	  out.data[iboot]=a*sqr(xf[iboot])+b*xf[iboot]+c;
 
-	  if(iboot==nboot && debug)
+	  if(0 && iboot==nboot && debug)
 	    {
 	      cout<<" "<<nearx-1<<" "<<x[nearx-1]<<" "<<vec[nearx-1][iboot]<<endl;
 	      cout<<" "<<nearx<<" "<<x[nearx]<<" "<<vec[nearx][iboot]<<endl;

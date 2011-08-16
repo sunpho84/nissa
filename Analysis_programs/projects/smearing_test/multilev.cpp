@@ -1,5 +1,6 @@
 #include <include.h>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -76,6 +77,17 @@ void read_pars(const char *input)
   read_formatted_from_file((char*)(&tmin_list[2][1]),fin,"%d","tmin_hh_smeared");
 }
 
+string rectangle(int a,int b,jack c)
+{
+  ostringstream out;
+  
+  out<<a<<" "<<c.med()-c.err()<<endl<<b<<" "<<c.med()-c.err()<<endl;
+  out<<b<<" "<<c.med()+c.err()<<endl<<a<<" "<<c.med()+c.err()<<endl;
+  out<<a<<" "<<c.med()-c.err()<<endl;	    
+  
+  return out.str();
+}
+
 int main()
 {
   read_pars("input");
@@ -87,7 +99,7 @@ int main()
   for(int sm_lev_so=0;sm_lev_so<nsm_lev;sm_lev_so++) c[sm_lev_so]=new jvec[nsm_lev];
 
   //loop over heavier mass
-  int icombo=0,ncombo=nmass*nmass;
+  int ic=0,ncombo=nmass*nmass;
   jvec Z0(ncombo,njack),M0(ncombo,njack);
   jvec Z(ncombo,njack),M(ncombo,njack);
   for(int im1=0;im1<nmass;im1++)
@@ -109,8 +121,32 @@ int main()
 	      //print effective mass
 	      jvec eff=effective_mass(c[sm_lev_so][sm_lev_si]);
 	      
+	      char path[1024];
+	      sprintf(path,"%save_%d%d",base_path,sm_lev_so,sm_lev_si);
+	      
+	      jvec temp=(jvec_load(path,T,njack,icombo(im1,im2,0,0))+jvec_load(path,T,njack,icombo(im1,im2,1,1)))/2;
+	      
+	      ofstream out2(combine("ori_%02d_%02d_%d%d.xmg",im1,im2,sm_lev_so,sm_lev_si).c_str());
+	      out2<<temp;
+	      
+	      ofstream out3(combine("marc_%02d_%02d_%d%d.xmg",im1,im2,sm_lev_so,sm_lev_si).c_str());
+	      for(int iel=0;iel<c[sm_lev_so][sm_lev_si].nel-1;iel++)
+		out3<<iel+0.1<<" "<<log(c[sm_lev_so][sm_lev_si][iel]/c[sm_lev_so][sm_lev_si][iel+1])<<endl;
+	      
+	      ofstream out4(combine("eff_%02d_%02d_%d%d.xmg",im1,im2,sm_lev_so,sm_lev_si).c_str());
+	      out4<<eff;
+	      
 	      //fit mass
 	      mass_estim=constant_fit(eff,tmin,TH);
+	      
+	      ofstream out5(combine("fuffa_%02d_%02d_%d%d.xmg",im1,im2,sm_lev_so,sm_lev_si).c_str());
+	      out5<<"@type xydy"<<endl<<"@s0 line type 0"<<endl;
+	      temp=c[sm_lev_so][sm_lev_si];
+	      for(int iel=0;iel<temp.nel;iel++)
+		for(int ijack=0;ijack<njack+1;ijack++)
+		  temp[iel].data[ijack]=sqrt(temp[iel].data[ijack]/fun_fit(1,1,mass_estim[ijack],iel));
+	      out5<<temp<<"&\n@type xy\n";
+	      out5<<rectangle(tmin,TH,constant_fit(temp,tmin,TH))<<endl;
 	      
 	      //prepare the plot of the mass fit
 	      ofstream out(combine("plot_%02d_%02d_%d%d.xmg",im1,im2,sm_lev_so,sm_lev_si).c_str());
@@ -151,31 +187,31 @@ int main()
 	    //minu.mnsimp();
 	    minu.Migrad();
 	    
-	    minu.GetParameter(0,Z0[icombo].data[ijack_fit],dum);
-	    minu.GetParameter(1,M0[icombo].data[ijack_fit],dum);
-	    minu.GetParameter(2,Z[icombo].data[ijack_fit],dum);
-	    minu.GetParameter(2+nsm_lev,M[icombo].data[ijack_fit],dum);
+	    minu.GetParameter(0,Z0[ic].data[ijack_fit],dum);
+	    minu.GetParameter(1,M0[ic].data[ijack_fit],dum);
+	    minu.GetParameter(2,Z[ic].data[ijack_fit],dum);
+	    minu.GetParameter(2+nsm_lev,M[ic].data[ijack_fit],dum);
 	  }
       
-	cout<<Z0[icombo]<<endl;
-	cout<<M0[icombo]<<endl;
-	cout<<Z[icombo]<<endl;
-	cout<<M[icombo]<<endl;
+	cout<<Z0[ic]<<endl;
+	cout<<M0[ic]<<endl;
+	cout<<Z[ic]<<endl;
+	cout<<M[ic]<<endl;
 	
-	icombo++;
+	ic++;
       }
   
   ofstream Mout("M.xmg");
-  icombo=0;
+  ic=0;
   Mout<<"@type xydy"<<endl;
   for(int im1=0;im1<nmass;im1++)
     for(int im2=0;im2<nmass;im2++)
-      Mout<<mass[im1]<<" "<<mass[im2]<<" "<<M0[icombo++].err()<<endl;
+      Mout<<mass[im1]<<" "<<mass[im2]<<" "<<M0[ic++].err()<<endl;
   Mout<<"&"<<endl;
-  icombo=0;
+  ic=0;
   for(int im1=0;im1<nmass;im1++)
     for(int im2=0;im2<nmass;im2++)
-      Mout<<mass[im1]<<" "<<mass[im2]<<" "<<M[icombo++].err()<<endl;
+      Mout<<mass[im1]<<" "<<mass[im2]<<" "<<M[ic++].err()<<endl;
   
   return 0;
 }
