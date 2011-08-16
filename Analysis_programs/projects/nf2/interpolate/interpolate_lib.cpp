@@ -80,6 +80,33 @@ bvec interpolate_strange(bvec vec,int nmass,int nlights,double *mass,int ibeta)
   return interpolated;
 }
 
+//interpolate in the strange
+void interpolate_many_strange(bvec *out,bvec in,int nmass,int nlights,double *mass,int ibeta,double *mint,int nint)
+{
+  for(int iref=0;iref<3;iref++)
+    {
+      //output
+      out[iref]=bvec(nlights,nboot,njack);
+      
+      //interpolate each light
+      for(int iml=0;iml<nlights;iml++)
+	{
+	  int nscart=min(nlights-2,iml+1);
+	  //temporary storage
+	  bvec temp_vec(nlights-nscart,nboot,njack);
+	  double temp_mass[nlights-nscart];
+	  //copy data for each light
+	  for(int imq=0;imq<nlights-nscart;imq++)
+	    {
+	      temp_vec[imq]=in[icombo(iml,imq+nscart,nmass)];
+	      temp_mass[imq]=mass[imq+nscart];
+	    }
+	  //cout<<iref<<" "<<mint[iref]<<endl;
+	  out[iref][iml]=interpolate_single(temp_vec,temp_mass,mint[iref]*lat[ibeta]*Zp[ibeta]);
+	}
+    }
+}
+
 //interpolate in charm and in strange  
 boot interpolate_charm_strange(bvec vec,int nmass,int nlights,double *mass,int ibeta,const char *suff=NULL)
 {
