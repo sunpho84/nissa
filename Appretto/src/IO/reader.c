@@ -65,6 +65,7 @@ void appretto_reader_search_record(appretto_reader *reader,const char *expected_
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //start reading current record of a file
+//actually it reads and proceeds as it is not clear that non blocking function works really
 void appretto_reader_start_reading_current_record(void *out,appretto_reader *reader,int max_nbytes_per_site)
 {
   if(!(reader->open)) crash("Ops! Trying to read from a not open reader!");
@@ -77,13 +78,8 @@ void appretto_reader_start_reading_current_record(void *out,appretto_reader *rea
   
   int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
   int scidac_mapping[4]={0,3,2,1};
-  double temp=-take_time();
-  //if(lemonReadLatticeParallelNonBlockingMapped(reader->lemon_reader,out,nbytes_per_site,glb_dims,scidac_mapping)!=
-  //LEMON_SUCCESS) crash("Error starting to read from a file!");
-  if(lemonReadLatticeParallelNonBlockingMapped(reader->lemon_reader,out,nbytes_per_site,glb_dims,scidac_mapping)!=
+  if(lemonReadLatticeParallelMapped(reader->lemon_reader,out,nbytes_per_site,glb_dims,scidac_mapping)!=
      LEMON_SUCCESS) crash("Error starting to read from a file!");
-  temp+=take_time();
-  if(rank==0) printf("Lemon time to start reading: %lg\n",temp);
   reader->reading=1;
   reader->nbytes_per_site=nbytes_per_site;
 }
@@ -129,11 +125,12 @@ appretto_reader *start_reading_gauge_conf(quad_su3 *out,char *path)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //finalize (wait) to read a certain record
+//actually it doesn't wait because reading is always done nonblocky
 void appretto_reader_finalize_reading_current_record(appretto_reader *reader)
 {
   if(!reader->reading) crash("Error! Waiting to finish reading from a reader that is not reading!");
   
-  if(lemonFinishReading(reader->lemon_reader)!=LEMON_SUCCESS) crash("Error waiting to finish reading!");
+  //if(lemonFinishReading(reader->lemon_reader)!=LEMON_SUCCESS) crash("Error waiting to finish reading!");
   reader->reading=0;
 }
 
