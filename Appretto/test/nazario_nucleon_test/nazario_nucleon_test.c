@@ -171,7 +171,7 @@ void initialize_nucleons(char *input_path)
 //read a configuration and put anti-periodic condition at the slice tsource-1
 void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
 {
-  //read_local_gauge_conf(conf,conf_path);
+  //read_gauge_conf(conf,conf_path);
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int mu=0;mu<4;mu++)
       su3_put_to_id(conf[ivol][mu]);

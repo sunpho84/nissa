@@ -278,7 +278,7 @@ void initialize_semileptonic(char *input_path)
   Pmunu=appretto_malloc("Pmunu",loc_vol,as2t_su3);
 
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-  read_local_gauge_conf(conf,conf_path);
+  read_gauge_conf(conf,conf_path);
   communicate_gauge_borders(conf);
   communicate_gauge_edges(conf);
   

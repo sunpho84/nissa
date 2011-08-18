@@ -27,7 +27,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  spincolor *spinore=allocate_spincolor(loc_vol,"spinore");
+  spincolor *spinore=appretto_malloc("spinore",loc_vol,spincolor);
 
   read_spincolor(spinore,filename);
 
@@ -38,7 +38,7 @@ int main(int narg,char **arg)
         for(int im=0;im<2;im++)
           printf("%d %d %d %d %d %f\n",rank,ivol,id1,ic1,im,spinore[ivol][id1][ic1][im]);
 
-  check_free(spinore);
+  appretto_free(spinore);
   
   ///////////////////////////////////////////
 

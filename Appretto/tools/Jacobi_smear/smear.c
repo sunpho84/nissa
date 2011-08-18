@@ -31,7 +31,7 @@ int main(int narg,char **arg)
   //allocate and read conf
   quad_su3 *orig_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"orig_conf");
   quad_su3 *smea_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"smea_conf");
-  read_local_gauge_conf(orig_conf,filename);
+  read_gauge_conf(orig_conf,filename);
 
   ape_smearing(smea_conf,orig_conf,0.5,20);
   if(rank==0) printf("gauge conf smeared\n");

@@ -195,7 +195,7 @@ void initialize_Bk(char *input_path)
   conf=appretto_malloc("conf",loc_vol+loc_bord,quad_su3);
 
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-  read_local_gauge_conf(conf,conf_path);
+  read_gauge_conf(conf,conf_path);
   communicate_gauge_borders(conf);
   
   double gplaq=global_plaquette(conf);

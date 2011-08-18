@@ -28,7 +28,7 @@ int main(int narg,char **arg)
 
   quad_su3 *conf=allocate_quad_su3(loc_vol,"conf");
   
-  read_local_gauge_conf(conf,filename);  
+  read_gauge_conf(conf,filename);  
 
   test_gaugeconf_compression(conf,loc_vol);
   

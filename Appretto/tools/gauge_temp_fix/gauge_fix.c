@@ -28,7 +28,7 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
 
   quad_su3 *conf=allocate_quad_su3(loc_vol+loc_bord,"Conf");
-  read_local_gauge_conf(conf,filename);  
+  read_gauge_conf(conf,filename);  
   communicate_gauge_borders(conf);
   
   su3 *fixm=allocate_su3(loc_vol+loc_bord,"fixm");
