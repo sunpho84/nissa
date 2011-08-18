@@ -26,7 +26,7 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
 
   quad_su3 *conf=allocate_quad_su3(loc_vol,"conf");
-  read_local_gauge_conf(conf,arg[3]);  
+  read_gauge_conf(conf,arg[3]);  
   
   FILE *fout=fopen(arg[4],"wb");
 

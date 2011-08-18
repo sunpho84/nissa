@@ -208,7 +208,7 @@ int main(int narg,char **arg)
     }
   
   //load the gauge configuration 
-  read_local_gauge_conf(gauge_conf,gaugeconf_file);
+  read_gauge_conf(gauge_conf,gaugeconf_file);
   communicate_gauge_borders(gauge_conf);
   communicate_gauge_edges(gauge_conf);
   adapt_theta(gauge_conf,old_theta,theta,1,1);

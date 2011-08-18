@@ -46,7 +46,7 @@ int main(int narg,char **arg)
   close_input();
  
   //load the configuration, put boundaries condition and communicate borders
-  read_local_gauge_conf(conf,gauge_file);
+  read_gauge_conf(conf,gauge_file);
   memset(conf,0,sizeof(quad_su3)*loc_vol);
 
   for(int ivol=0;ivol<loc_vol;ivol++)

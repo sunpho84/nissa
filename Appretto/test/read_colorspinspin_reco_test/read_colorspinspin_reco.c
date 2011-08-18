@@ -41,7 +41,7 @@ int main(int narg,char **arg)
     printf("Thetas: %f %f %f %f\n",theta[0],theta[1],theta[2],theta[3]);
 
   //load the configuration, put boundaries condition and communicate borders
-  read_local_gauge_conf(conf,gauge_file);
+  read_gauge_conf(conf,gauge_file);
   put_boundaries_conditions(conf,theta);
   communicate_gauge_borders(conf);
 

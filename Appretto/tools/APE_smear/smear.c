@@ -55,7 +55,7 @@ int main(int narg,char **arg)
   quad_su3 *origi_conf=appretto_malloc("or_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   quad_su3 *smear_conf=appretto_malloc("sm_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   
-  read_local_gauge_conf(origi_conf,"/home/francesco/Prace/nissa/Appretto/test/gaugeconf_load/conf.0048");
+  read_gauge_conf(origi_conf,"/home/francesco/Prace/nissa/Appretto/test/gaugeconf_load/conf.0048");
   
   test_unitarity(origi_conf);
   ape_smearing(smear_conf,origi_conf,0.4,7);

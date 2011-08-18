@@ -343,7 +343,7 @@ int main(int narg,char **arg)
   //if necessary, load the gauge configuration and calculate the pmunu term
   if(nch_contr>0)
     {
-      read_local_gauge_conf(gauge_conf,gaugeconf_file);
+      read_gauge_conf(gauge_conf,gaugeconf_file);
       communicate_gauge_borders(gauge_conf);
       communicate_gauge_edges(gauge_conf);
 

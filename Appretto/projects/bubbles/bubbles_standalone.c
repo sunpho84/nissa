@@ -142,8 +142,8 @@ void initialize_bubbles(char *input_path)
   if(rank==0) printf("Number of contractions: %d\n",ncontr);
 
   //Initialize the list of correlations and the list of operators
-  contr=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]);
-  op=(int*)malloc(sizeof(int)*ncontr);
+  contr=appretto_malloc("contr",ncontr*glb_size[0],complex);
+  op=appretto_malloc("op",ncontr,int);
   for(int icontr=0;icontr<ncontr;icontr++)
     {
       //Read the operator
@@ -158,8 +158,8 @@ void initialize_bubbles(char *input_path)
   
   //Initialize the list of chromo correlations and the list of operators
   //contiguous allocation
-  ch_contr=(complex*)malloc(sizeof(complex)*nch_contr*glb_size[0]); 
-  ch_op=(int*)malloc(sizeof(int)*nch_contr);
+  ch_contr=appretto_malloc("ch_contr",nch_contr*glb_size[0],complex);
+  ch_op=appretto_malloc("ch_op",nch_contr,int);
   for(int ich_contr=0;ich_contr<nch_contr;ich_contr++)
     {
       //Read the operator
@@ -171,7 +171,7 @@ void initialize_bubbles(char *input_path)
   //reading of gauge conf and computation of Pmunu
   read_str_str("GaugeConf",gaugeconf_file,1024);
   conf=appretto_malloc("conf",loc_vol+loc_bord,quad_su3);
-  read_local_gauge_conf(conf,gaugeconf_file);
+  read_gauge_conf(conf,gaugeconf_file);
   communicate_gauge_borders(conf);
   communicate_gauge_edges(conf);
 
@@ -210,12 +210,12 @@ void initialize_bubbles(char *input_path)
 
   //Read the number of masses and allocate spinors for the cgmms
   read_str_int("NMass",&nmass);
-  mass=(double*)malloc(sizeof(double)*nmass);
-  S=(colorspinspin***)malloc(nmass*sizeof(colorspinspin**));
-  QQ=(spincolor**)malloc(nmass*sizeof(spincolor*));
+  mass=appretto_malloc("mass",nmass,double);
+  S=appretto_malloc("S",nmass,colorspinspin**);
+  QQ=appretto_malloc("QQ",nmass,spincolor*);
   for(int imass=0;imass<nmass;imass++)
     {
-      S[imass]=(colorspinspin**)malloc(2*sizeof(colorspinspin*));
+      S[imass]=appretto_malloc("S[imass]",2,colorspinspin*);
       for(int r=0;r<2;r++) S[imass][r]=appretto_malloc("S",loc_vol,colorspinspin);
       QQ[imass]=appretto_malloc("QQ[i]",loc_vol+loc_bord,spincolor);
       read_double(&(mass[imass]));
@@ -386,6 +386,8 @@ void close_bubbles()
   
   if(rank==0) printf("\nEverything ok, exiting!\n");
   
+  appretto_free(contr);appretto_free(ch_contr);
+  appretto_free(op);appretto_free(ch_op);
   appretto_free(conf);
   appretto_free(Pmunu);
   appretto_free(source);
@@ -393,7 +395,12 @@ void close_bubbles()
     {
       appretto_free(QQ[imass]);
       for(int r=0;r<2;r++) appretto_free(S[imass][r]);
+      appretto_free(S[imass]);
     }
+  appretto_free(S);
+  appretto_free(QQ);
+  appretto_free(mass);
+
   appretto_free(inv_source);
   appretto_free(ch_prop);
   for(int idir=0;idir<3;idir++) appretto_free(edm_prop[idir]);
@@ -407,12 +414,7 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_appretto();
 
-  if(narg<2 && rank==0)
-    {
-      fprintf(stderr,"Use: %s input_file\n",arg[0]);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  if(narg<2) crash("Use: %s input_file",arg[0]);
 
   initialize_bubbles(arg[1]);
 
