@@ -111,16 +111,10 @@ void initialize_semileptonic(char *input_path)
   read_str_double("JacobiKappa",&jacobi_kappa);
   read_list_of_ints("JacobiNiters",&nsm_lev,&jacobi_niter);
   if(jacobi_niter[0]!=0)
-    {
-      if(rank==0) fprintf(stderr,"Error, jacobi level of smearing 0 have to be null, obtained: %d!\n",jacobi_niter[0]);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+    crash("Error, jacobi level of smearing 0 have to be null, obtained: %d!",jacobi_niter[0]);
   for(int iter=1;iter<nsm_lev;iter++)
     if(jacobi_niter[iter]<jacobi_niter[iter-1])
-      {
-	if(rank==0) fprintf(stderr,"Error, jacobi level %d minor than %d (%d, %d)!\n",iter,iter-1,jacobi_niter[iter],jacobi_niter[iter-1]);
-	MPI_Abort(MPI_COMM_WORLD,1);
-      }
+      crash("Error, jacobi level %d minor than %d (%d, %d)!",iter,iter-1,jacobi_niter[iter],jacobi_niter[iter-1]);
   
   // 4) Info about the inverter
 
@@ -153,9 +147,9 @@ void initialize_semileptonic(char *input_path)
   // 5) contraction list for two points
   
   read_str_int("NContrTwoPoints",&ncontr_2pts);
-  contr_2pts=(complex*)malloc(sizeof(complex)*ncontr_2pts*glb_size[0]); 
-  op1_2pts=(int*)malloc(sizeof(int)*ncontr_2pts);
-  op2_2pts=(int*)malloc(sizeof(int)*ncontr_2pts);
+  contr_2pts=appretto_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
+  op1_2pts=appretto_malloc("op1_2pts",ncontr_2pts,int);
+  op2_2pts=appretto_malloc("op2_2pts",ncontr_2pts,int);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     {
       //Read the operator pairs
@@ -175,17 +169,17 @@ void initialize_semileptonic(char *input_path)
   
   //Allocate all the S0 colorspinspin vectors
   npropS0=nmass;
-  S0[0]=(colorspinspin**)malloc(sizeof(colorspinspin*)*npropS0);
-  S0[1]=(colorspinspin**)malloc(sizeof(colorspinspin*)*npropS0);
+  S0[0]=appretto_malloc("S0[0]",npropS0,colorspinspin*);
+  S0[1]=appretto_malloc("S0[1]",npropS0,colorspinspin*);
   for(int iprop=0;iprop<npropS0;iprop++)
     {
-      S0[0][iprop]=appretto_malloc("S0[0]",loc_vol,colorspinspin);
-      S0[1][iprop]=appretto_malloc("S0[1]",loc_vol,colorspinspin);
+      S0[0][iprop]=appretto_malloc("S0[0][iprop]",loc_vol,colorspinspin);
+      S0[1][iprop]=appretto_malloc("S0[1][iprop]",loc_vol,colorspinspin);
     }
   
   //Allocate nmass spincolors, for the cgmms solutions
-  cgmms_solution=(spincolor**)malloc(sizeof(spincolor*)*nmass);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=appretto_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
+  cgmms_solution=appretto_malloc("cgmms_solution",nmass,spincolor*);
+  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=appretto_malloc("cgmms_solution[imass]",loc_vol+loc_bord,spincolor);
   reco_solution[0]=appretto_malloc("reco_sol[0]",loc_vol+loc_bord,spincolor);
   reco_solution[1]=appretto_malloc("reco_sol[1]",loc_vol+loc_bord,spincolor);
   
@@ -198,8 +192,8 @@ void initialize_semileptonic(char *input_path)
 void load_gauge_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-  read_local_gauge_conf(conf,conf_path);
-  //prepared the smerded version and  calculate plaquette
+  read_gauge_conf(conf,conf_path);
+  //prepare the smerded version and calculate plaquette
   ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
   communicate_gauge_borders(conf);
   communicate_gauge_borders(sme_conf);
@@ -218,6 +212,22 @@ void load_gauge_conf()
 //Finalization
 void close_semileptonic()
 {
+  appretto_free(original_source);appretto_free(source);
+  appretto_free(reco_solution[1]);appretto_free(reco_solution[0]);
+  for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
+  appretto_free(cgmms_solution);
+  for(int r=0;r<2;r++)
+    {
+      for(int iprop=0;iprop<npropS0;iprop++)
+	appretto_free(S0[r][iprop]);
+      appretto_free(S0[r]);
+    }
+  appretto_free(sme_conf);
+  appretto_free(conf);
+  appretto_free(contr_2pts);
+  appretto_free(op1_2pts);
+  appretto_free(op2_2pts);
+
   if(rank==0)
     {
       printf("\n");
@@ -316,12 +326,7 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_appretto();
   
-  if(narg<2 && rank==0)
-      {
-	fprintf(stderr,"Use: %s input_file\n",arg[0]);
-	fflush(stderr);
-	MPI_Abort(MPI_COMM_WORLD,1);
-      }
+  if(narg<2) crash("Use: %s input_file",arg[0]);
   
   tot_time-=take_time();
   initialize_semileptonic(arg[1]);
