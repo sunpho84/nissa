@@ -1,0 +1,46 @@
+L 4
+T 8
+
+GaugeConfPath ../Conf
+Kappa 0.177000
+Seed 0
+TWall 0
+NoiseType 1
+
+ApeAlpha 0.5
+ApeNiter 5
+JacobiKappa 0.5
+JacobiNiterSo 3   0 8 16
+JacobiNiterSe 3   0 8 16
+JacobiNiterSi 3   0 8 16
+
+Nmass 3 0.50 0.60 0.70
+NTheta 1 0.00
+
+Residue 1.e-10
+StoppingCriterion standard
+MinimalResidue 1.e-10
+NiterMax 4000
+
+NContrTwoPoints 5
+5 9
+5 5
+13 13
+14 14
+15 15
+
+NChromoContrTwoPoints 1
+5 0
+OutfileTwoPoints two_points
+
+NSpec 1
+iThetaMassR 0 0 1
+NContrThreePoints 4
+5 9
+5 5
+4 5
+5 4
+NChromoContrThreePoints 2
+5 0
+5 5
+OutfileThreePoints three_points
