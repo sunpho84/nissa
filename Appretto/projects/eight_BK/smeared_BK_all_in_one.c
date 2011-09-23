@@ -317,17 +317,20 @@ void load_gauge_conf()
   read_gauge_conf(conf,conf_path);
   time+=take_time();
   if(rank==0) printf("\nTime needed to load conf %s: %g s.\n\n",conf_path,time);
-  //prepared the smerded version and calculate plaquette
-  ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
 
+  //compute plaquette
   communicate_gauge_borders(conf);
-  communicate_gauge_borders(sme_conf);
-  
   double gplaq=global_plaquette(conf);
   if(rank==0) printf("plaq: %.18g\n",gplaq);
+  
+  //prepare the smerded version
+  ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
+  communicate_gauge_borders(sme_conf);
+
+  //calculate smerded plaquette
   gplaq=global_plaquette(sme_conf);
   if(rank==0) printf("smerded plaq: %.18g\n",gplaq);
-
+  
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;
   put_theta[0]=1;

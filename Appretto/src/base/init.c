@@ -7,15 +7,18 @@ void init_appretto()
   MPI_Init(NULL,NULL);
   MPI_Comm_size(MPI_COMM_WORLD,&rank_tot);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
+  
+  //print the version
+  if(rank==0) printf("Initializing Appretto, version: %s\n",SVN_VERS);
 
   //define the gauge link
   MPI_Type_contiguous(18,MPI_DOUBLE,&MPI_SU3);
   MPI_Type_commit(&MPI_SU3);
-
+  
   //four links starting from a single point
   MPI_Type_contiguous(4,MPI_SU3,&MPI_QUAD_SU3);
   MPI_Type_commit(&MPI_QUAD_SU3);
-
+  
   //a spincolor (24 doubles)
   MPI_Type_contiguous(24,MPI_DOUBLE,&MPI_SPINCOLOR);
   MPI_Type_commit(&MPI_SPINCOLOR);  
@@ -36,9 +39,13 @@ void init_appretto()
   ONE[1]=I[0]=0;
   //check endianess
   check_endianess();
+  if(rank==0) printf("System endianess: %s\n",(big_endian==1 ? "big" : "little"));
+
   init_base_gamma();
   //associate sigsegv with proper handle
   signal(SIGSEGV,terminate_sigsegv);
+  
+  if(rank==0) printf("Appretto initialized\n\n");
 }
 
 void init_grid()

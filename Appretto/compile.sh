@@ -1,5 +1,8 @@
 #!/bin/bash
 
+#get the subversion
+SVN_VERS=$(svnversion -n 2>/dev/null)
+
 if [ ! -f params.sh ]
 then
     echo -e "COMP=\nLEMON_PATH=\nLIME_PATH=\nINC_PATH=\"-I$PWD/src\"\nLIB_PATH=\nCOMP_FLAG=\"-std=c99 -O2 -Wall\"\n" > params.sh
@@ -18,7 +21,7 @@ fi
 
 comp()
 {
-    $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -lm -llemon -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -llime -L$LIME_PATH/lib/ -I$LIME_PATH/include/
+    $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -lm -llemon -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -llime -L$LIME_PATH/lib/ -I$LIME_PATH/include/ -D SVN_VERS=\"$SVN_VERS\"
 }
 
 recomp_appretto()
