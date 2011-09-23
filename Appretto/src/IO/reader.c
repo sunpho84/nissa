@@ -164,9 +164,32 @@ void finalize_reading_real_vector(double *out,appretto_reader *reader,int nreals
     if(big_endian) doubles_to_doubles_changing_endianess((double*)out,(double*)out,loc_nreals_tot);
 }  
 
+//reorder a vector according to the specified order (the order is destroyed)
+void reorder_vector(char *vect,int *order,int nel,int sel)
+{
+  char *buf=malloc(sel);
+  
+  for(int sour=0;sour<nel;sour++)
+    while(sour!=order[sour])
+      {
+	int dest=order[sour];
+	
+	memcpy(buf,vect+sour*sel,sel);
+	memcpy(vect+sour*sel,vect+dest*sel,sel);
+	memcpy(vect+dest*sel,buf,sel);
+	
+	order[sour]=order[dest];
+	order[dest]=dest;
+      }
+  
+  free(buf);
+}
+
 //reorder a read spincolor
 void reorder_read_spincolor(spincolor *sc)
 {
+  int *order=appretto_malloc("order",loc_vol,int);
+  
   int x[4];
   for(x[0]=0;x[0]<loc_size[0];x[0]++)
     for(x[1]=0;x[1]<loc_size[1];x[1]++)
@@ -175,19 +198,18 @@ void reorder_read_spincolor(spincolor *sc)
 	  {
 	    int isour=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
 	    int idest=loclx_of_coord(x);
-	    if(isour<idest)
-	      {
-		spincolor temp;
-		memcpy(temp,sc[isour],sizeof(spincolor));
-		memcpy(sc[isour],sc[idest],sizeof(spincolor));
-		memcpy(sc[idest],temp,sizeof(spincolor));
-	      }
+	    order[isour]=idest;
 	  }
+
+  reorder_vector((char*)sc,order,loc_vol,sizeof(spincolor));
+  appretto_free(order);
 }
 
 //reorder a read colorspinspin
 void reorder_read_colorspinspin(colorspinspin *css)
 {
+  int *order=appretto_malloc("order",loc_vol*48,int);
+  
   int x[4];
   for(x[0]=0;x[0]<loc_size[0];x[0]++)
     for(x[1]=0;x[1]<loc_size[1];x[1]++)
@@ -202,20 +224,20 @@ void reorder_read_colorspinspin(colorspinspin *css)
 		  {
 		    int isour=12*(so*loc_vol+ivsour)+3*si+c;
 		    int idest=so+4*(si+4*(c+3*ivdest));
-		    if(isour<idest)
-		      {
-			complex temp;
-			memcpy(temp,css[isour],sizeof(complex));
-			memcpy(css[isour],css[idest],sizeof(complex));
-			memcpy(css[idest],temp,sizeof(complex));
-		      }
+		    
+		    order[isour]=idest;
 		  }
 	  }
+  
+  reorder_vector((char*)css,order,loc_vol*48,sizeof(complex));
+  appretto_free(order);
 }
 
 //reorder a read gauge conf
 void reorder_read_gauge_conf(quad_su3 *conf)
 {
+  int *order=appretto_malloc("order",loc_vol*4,int);
+  
   int x[4];
   for(x[0]=0;x[0]<loc_size[0];x[0]++)
     for(x[1]=0;x[1]<loc_size[1];x[1]++)
@@ -224,17 +246,13 @@ void reorder_read_gauge_conf(quad_su3 *conf)
 	  {
 	    int isour=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
 	    int idest=loclx_of_coord(x);
-	    
-	    if(idest<=isour)
-	      {
-		quad_su3 buf;
-		memcpy(buf,conf[idest],sizeof(quad_su3));
-		memcpy(conf[idest][0],conf[isour][3],sizeof(su3));
-		memcpy(conf[idest][1],conf[isour][0],3*sizeof(su3));
-		memcpy(conf[isour][0],buf[3],sizeof(su3));
-		memcpy(conf[isour][1],buf[0],3*sizeof(su3));
-	      }
+	  
+	    for(int i=0;i<3;i++) order[4*isour+i]=4*idest+i+1;
+	    order[4*isour+3]=4*idest;
 	  }
+  
+  reorder_vector((char*)conf,order,4*loc_vol,sizeof(su3));
+  appretto_free(order);
 }
 
 //finalize reading a spincolor

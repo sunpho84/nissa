@@ -122,9 +122,9 @@ int main(int narg,char **arg)
       communicate_gauge_borders(conf);
       communicate_gauge_edges(conf);
       test(conf,tmunu);
-      appretto_free(conf);
     }
 
+  appretto_free(conf);
   appretto_free(conft);
   
   ///////////////////////////////////////////
