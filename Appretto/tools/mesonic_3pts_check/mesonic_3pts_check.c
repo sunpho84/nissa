@@ -70,7 +70,7 @@ int main(int narg,char **arg)
 
   //take initial time
   double tic;
-  if(debug_lvl)
+  if(debug)
     {
       MPI_Barrier(MPI_COMM_WORLD);
       tic=MPI_Wtime();
@@ -126,7 +126,7 @@ int main(int narg,char **arg)
       //Read the operator pairs
       read_int(&(op[icontr]));
 
-      if(rank==0 && debug_lvl) printf(" contr.%d %d\n",icontr,op[icontr]);
+      if(rank==0 && debug) printf(" contr.%d %d\n",icontr,op[icontr]);
     }
 
   //Read the number of the props
@@ -155,7 +155,7 @@ int main(int narg,char **arg)
       read_int(&phys);
       read_int(&r1);
 
-      if(debug_lvl && rank==0)
+      if(debug && rank==0)
 	printf(" prop.%d %s, m_spec=%f th_spec=%f, m1=%f th1=%f phys=%d r1=%d\n",iprop,path,mass_spec,theta_spec,mass1,theta1,phys,r1);
       
       //Read the propagator
@@ -189,7 +189,7 @@ int main(int narg,char **arg)
 
   //take final time
   double tac;
-  if(debug_lvl)
+  if(debug)
     {
       MPI_Barrier(cart_comm);
       tac=MPI_Wtime();
