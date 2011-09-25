@@ -7,11 +7,11 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
   quad_su3 *temp_conf=appretto_malloc("temp_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
   
-  if(rank==0 && debug) printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
+  if(rank==0 && debug_lvl) printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
       
   for(int istep=0;istep<nstep;istep++)
     {
-      if(rank==0 && debug>1) printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
+      if(rank==0 && debug_lvl>1) printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
       memcpy(temp_conf,smear_conf,sizeof(quad_su3)*loc_vol);
       
       //communicate the borders
@@ -196,7 +196,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 {
   if(niter<1)
     {
-      if(rank==0 && debug) printf("Skipping smearing (0 iter required)\n");
+      if(rank==0 && debug_lvl) printf("Skipping smearing (0 iter required)\n");
       if(smear_sc!=origi_sc) memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
     }
   else
@@ -206,7 +206,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       double norm_fact=1/(1+6*kappa);
       communicate_gauge_borders(conf);
 
-      if(rank==0 && debug) printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
+      if(rank==0 && debug_lvl) printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
       
       //iter 0
       memcpy(temp,origi_sc,sizeof(spincolor)*loc_vol);
@@ -214,7 +214,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       //loop over jacobi iterations
       for(int iter=0;iter<niter;iter++)
 	{
-	  if(rank==0 && debug>1) printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
+	  if(rank==0 && debug_lvl>1) printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
 	  
 	  //apply kappa*H
 	  smearing_apply_kappa_H(H,kappa,conf,temp);

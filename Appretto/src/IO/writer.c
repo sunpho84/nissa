@@ -35,7 +35,7 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
 
   //take initial time
   double time;
-  if(debug) time=-take_time();
+  if(debug_lvl) time=-take_time();
 
   int nreals_loc=nreals_per_site*loc_vol;
   int nbytes_per_site=nreals_per_site*nbits/8;
@@ -61,7 +61,7 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
   if(big_endian || nbits==32) appretto_free(buffer);
 
   //take final time
-  if(debug)
+  if(debug_lvl)
     {
       time+=take_time();
       if(rank==0) printf("Time elapsed in writing: %f s\n",time);
@@ -176,7 +176,7 @@ void write_local_gauge_conf(char *path,quad_su3 *in)
   
   appretto_free(temp);
   
-  if(debug)
+  if(debug_lvl)
     {
       twrite+=take_time();
       if(rank==0) printf("Time elapsed in writing gauge file '%s': %f s\n",path,twrite);

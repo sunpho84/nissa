@@ -37,8 +37,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
 	
 	dsource++;dp++;dr++;
       }
-    if(rank_tot>0) MPI_Allreduce(&loc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    else rr=loc_rr;
+    MPI_Allreduce(&loc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 
     if(st_crit==sc_standard||st_crit==sc_unilevel) st_res*=rr;
   }
@@ -83,8 +82,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
 	    loc_pap+=(*dp)*(*ds);
 	    dp++;ds++;
 	  }
-	if(rank_tot>0) MPI_Allreduce(&loc_pap,&pap,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	else pap=loc_pap;
+	MPI_Allreduce(&loc_pap,&pap,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       }
 
       //     calculate betaa=rr/pap=(r,r)/(p,Ap)
@@ -126,8 +124,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
             loc_rfrf+=(*dr)*(*dr);
 	    dr++;ds++;
           }
-	if(rank_tot>0) MPI_Allreduce(&loc_rfrf,&rfrf,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	else rfrf=loc_rfrf;
+	MPI_Allreduce(&loc_rfrf,&rfrf,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       }
 
       //     calculate alpha=rfrf/rr=(r',r')/(r,r)
@@ -163,10 +160,12 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
             zas[imass]=zfs[imass];
           }
       rr=rfrf;
+      
       iter++;
       
       //     check over residual
       nrun_mass=check_cgmms_residue_RL(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t,RL);
+      
     }
   while(nrun_mass>0 && iter<niter);
   
@@ -199,24 +198,15 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
 	    if(plain_res>locmax_res) locmax_res=plain_res;
 	  }
 
-	if(rank_tot>0)
-	  {
-	    MPI_Reduce(&loc_res,&res,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-	    MPI_Reduce(&locw_res,&w_res,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-	    MPI_Reduce(&loc_weight,&weight,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-	    MPI_Reduce(&locmax_res,&max_res,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
-	  }
-	else
-	  {
-	    res=loc_res;
-	    w_res=locw_res;
-	    weight=loc_weight;
-	    max_res=locmax_res;
-	  }
+	MPI_Reduce(&loc_res,&res,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce(&locw_res,&w_res,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce(&loc_weight,&weight,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce(&locmax_res,&max_res,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+
 	w_res=w_res/weight*12*glb_vol;
 	max_res*=12*glb_vol;
 	
-	if(rank==0) printf("imass %d, residue true=%g approx=%g weighted=%g max=%g\n",imass,res,final_res[imass],w_res,max_res);
+	master_printf("imass %d, residue true=%g approx=%g weighted=%g max=%g\n",imass,res,final_res[imass],w_res,max_res);
       }
     }  
 

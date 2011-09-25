@@ -10,12 +10,9 @@ void close_appretto()
     }
   
   //print information over the maximum amount of memory used
-  if(rank==0)
-    {
-      printf("\nMaximal memory used during the run: %d bytes (",appretto_max_required_memory);
-      fprintf_friendly_filesize(stdout,appretto_max_required_memory);
-      printf(") per process\n\n");
-    }
+  master_printf("\nMaximal memory used during the run: %d bytes (",appretto_max_required_memory);
+  master(fprintf_friendly_filesize(stdout,appretto_max_required_memory););
+  master_printf(") per process\n\n");
   
   //check wether there are still allocated vectors
   if(main_appretto_vect.next!=NULL && rank==0)

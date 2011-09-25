@@ -12,7 +12,7 @@ void init_random(int seed)
     {
       srand(seed);
       seed=rand();
-      if(debug>1) printf("New seed generated, %d\n",seed);
+      if(debug_lvl>1) printf("New seed generated, %d\n",seed);
     }
   MPI_Bcast(&seed,1,MPI_INT,0,MPI_COMM_WORLD);
 
@@ -46,7 +46,7 @@ void init_random(int seed)
       ran2_iy[loc_ind]=ran2_iv[loc_ind][0];
     }
 
-  if(rank==0 && debug) printf("Random generator initialized\n");
+  if(rank==0 && debug_lvl) printf("Random generator initialized\n");
 }
 
 //Close random

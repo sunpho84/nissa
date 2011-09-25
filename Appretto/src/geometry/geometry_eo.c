@@ -90,7 +90,7 @@ void set_eo_geometry()
 	    }	      
 	}
       
-      if(rank==0 && debug) printf("E/O Geometry intialized\n");
+      if(rank==0 && debug_lvl) printf("E/O Geometry intialized\n");
     }
   
   if(rank==0) for(int idir=0;idir<8;idir++) printf("%d %d %d\n",idir,bord_offset_eo[0][idir],bord_offset_eo[1][idir]);

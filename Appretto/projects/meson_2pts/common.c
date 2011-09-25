@@ -42,7 +42,7 @@ int compute_allocable_propagators(int nprop_list,int nch_contr,int nmin_req)
 	  MPI_Abort(MPI_COMM_WORLD,1);
 	}
     }
-  else if(debug>1 && rank==0) printf("Ok there is enough memory to load %d propagators\n",nmin_req);
+  else if(debug_lvl>1 && rank==0) printf("Ok there is enough memory to load %d propagators\n",nmin_req);
 
   free(fuf);
 
@@ -58,7 +58,7 @@ int compute_allocable_propagators(int nprop_list,int nch_contr,int nmin_req)
 
   free(fuf);
 
-  if(debug && rank==0)
+  if(debug_lvl && rank==0)
     printf("Will allocate %d propagators from a list with %d propagators\n",nprop_max,nprop_list);
 
   if(nch_contr>0)

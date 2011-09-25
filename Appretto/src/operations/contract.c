@@ -37,7 +37,7 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
   
   for(int icontr=0;icontr<ncontr;icontr++) 
     {
-      if(debug>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
+      if(debug_lvl>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       for(int ivol=0;ivol<loc_vol;ivol++)
@@ -54,9 +54,9 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
     }
   
   //Final reduction
-  if(debug>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
   
   appretto_free(loc_c);
 }
@@ -74,7 +74,7 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
   for(int icontr=0;icontr<ncontr && use_buf==0;icontr++) use_buf=(glb_c[icontr]!=glb_c_buf+icontr*glb_size[0]);
   if(use_buf)
     {
-      if(debug>1 && rank==0)
+      if(debug_lvl>1 && rank==0)
         {
           printf("Creating a temporary buffer for the contractions.\n");
           printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
@@ -84,7 +84,7 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
 
   for(int icontr=0;icontr<ncontr;icontr++)
     {
-      if(debug>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
+      if(debug_lvl>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
@@ -114,9 +114,9 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
     
 
   //Finale reduction
-  if(debug>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c_buf,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
 
   //if a temporary buffer has been used, destory it after copyng data to the true one
   if(use_buf)
@@ -147,7 +147,7 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
   for(int icontr=0;icontr<ncontr && use_buf==0;icontr++) use_buf=(glb_c[icontr]!=glb_c_buf+icontr*glb_size[0]);
   if(use_buf)
     {
-      if(debug>1 && rank==0)
+      if(debug_lvl>1 && rank==0)
         {
           printf("Creating a temporary buffer for the contractions.\n");
           printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
@@ -157,7 +157,7 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
 
   for(int icontr=0;icontr<ncontr;icontr++)
     {
-      if(debug>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
+      if(debug_lvl>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
@@ -176,9 +176,9 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
     }
 
   //Finale reduction
-  if(debug>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c_buf,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
 
   //if a temporary buffer has been used, destory it after copyng data to the true one
   if(use_buf)
@@ -226,9 +226,9 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
     }
 
   //Final reduction
-  if(debug>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
   
   appretto_free(loc_c);
 }
@@ -273,9 +273,9 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
     }
   
   //Final reduction
-  if(debug>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
   
   appretto_free(loc_c);
 }

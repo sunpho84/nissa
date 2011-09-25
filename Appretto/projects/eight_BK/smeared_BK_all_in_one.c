@@ -193,13 +193,16 @@ void initialize_Bk(int narg,char **arg)
     }
   while(isc<numb_known_stopping_criterion && stopping_criterion==numb_known_stopping_criterion);
   
-  if(stopping_criterion==numb_known_stopping_criterion && rank==0)
-    {
-      fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
-      fprintf(stderr,"List of known stopping criterions:\n");
-      for(int isc=0;isc<numb_known_stopping_criterion;isc++) fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  master(
+	 if(stopping_criterion==numb_known_stopping_criterion)
+	   {
+	     fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
+	     fprintf(stderr,"List of known stopping criterions:\n");
+	     for(int isc=0;isc<numb_known_stopping_criterion;isc++)
+	       fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
+	     MPI_Abort(MPI_COMM_WORLD,1);
+	   }
+	 );
   if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
   
   //Number of iterations
@@ -222,7 +225,7 @@ void initialize_Bk(int narg,char **arg)
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
 
-      if(rank==0 && debug) printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
+      debug_printf(1," contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
   
   read_str_int("NGaugeConf",&ngauge_conf);
@@ -235,7 +238,7 @@ void initialize_Bk(int narg,char **arg)
   
   //Allocate all the propagators colorspinspin vectors
   nprop=nwall*so_jnlv*nmass*2;
-  if(rank==0) printf("Number of propagator to be allocated: %d\n",nprop);
+  master_printf("Number of propagator to be allocated: %d\n",nprop);
   S=appretto_malloc("S",nprop,colorspinspin*);
   for(int iprop=0;iprop<nprop;iprop++) S[iprop]=appretto_malloc("S[i]",loc_vol,colorspinspin);
   
@@ -272,11 +275,11 @@ int find_next_conf()
       //Check wether the config is analized or not by searching for outputs
       char check_path[1024];
       sprintf(check_path,"%s_%02d_%02d",basepath_bag,so_jnit[0],si_jnit[0]);
-      if(rank==0) printf("\nChecking \"%s\".\n",conf_path);
+      master_printf("\nChecking \"%s\".\n",conf_path);
       if(file_exist(check_path))
 	{
 	  conf_found=0;
-	  if(rank==0) printf("\nConfiguration \"%s\" already analized.\n",conf_path);
+	  master_printf("\nConfiguration \"%s\" already analized.\n",conf_path);
 	}
       else conf_found=1;
       
@@ -297,14 +300,16 @@ int check_residual_time()
   
   int enough_time=(igauge_conf<ngauge_conf) ? (remaining_time>pess_time) : 1;
   
-  if(!enough_time && rank==0)
-    {
-      printf("\n");
-      printf("-average running time: %lg secs per conf,\n",ave_time);
-      printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
-      printf("-remaining time: %lg secs per conf\n",remaining_time);
-      printf("Not enough time for another conf, so exiting.\n");
-    }
+  master(
+	 if(!enough_time)
+	   {
+	     printf("\n");
+	     printf("-average running time: %lg secs per conf,\n",ave_time);
+	     printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
+	     printf("-remaining time: %lg secs per conf\n",remaining_time);
+	     printf("Not enough time for another conf, so exiting.\n");
+	   }
+	 );
   
   return enough_time;
 }
@@ -316,12 +321,12 @@ void load_gauge_conf()
   double time=-take_time();
   read_gauge_conf(conf,conf_path);
   time+=take_time();
-  if(rank==0) printf("\nTime needed to load conf %s: %g s.\n\n",conf_path,time);
+  master_printf("\nTime needed to load conf %s: %g s.\n\n",conf_path,time);
 
   //compute plaquette
   communicate_gauge_borders(conf);
   double gplaq=global_plaquette(conf);
-  if(rank==0) printf("plaq: %.18g\n",gplaq);
+  master_printf("plaq: %.18g\n",gplaq);
   
   //prepare the smerded version
   ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
@@ -329,7 +334,7 @@ void load_gauge_conf()
 
   //calculate smerded plaquette
   gplaq=global_plaquette(sme_conf);
-  if(rank==0) printf("smerded plaq: %.18g\n",gplaq);
+  master_printf("smerded plaq: %.18g\n",gplaq);
   
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;
@@ -340,7 +345,7 @@ void load_gauge_conf()
 //calculate the propagators
 void calculate_S(int iwall)
 {
-  if(rank==0) printf("\n");
+  master_printf("\n");
   
   for(int id=0;id<4;id++)
     { //loop over the source dirac index
@@ -354,24 +359,24 @@ void calculate_S(int iwall)
       //loop over smerding levels of the source
       for(int so_jlv=0;so_jlv<so_jnlv;so_jlv++)
 	{
-	  if(rank==0) printf("\n");
+	  master_printf("\n");
 	  
 	  int so_jnit_to_app=((so_jlv==0) ? so_jnit[so_jlv] : (so_jnit[so_jlv]-so_jnit[so_jlv-1]));
-	  if(rank==0 && debug) printf("Source ");
+	  master_printf("Source ");
 	  jacobi_smearing(source,source,sme_conf,jacobi_kappa,so_jnit_to_app);
 	  
 	  double part_time=-take_time();
 	  communicate_lx_spincolor_borders(source);
-	  if(rank==0) printf("\n");
+	  master_printf("\n");
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ntot_inv++;tot_inv_time+=part_time;
-	  if(rank==0) printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
+	  master_printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
 			     iwall,id,so_jlv,part_time);
 	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet
 	      reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
-	      if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{
 		  int iprop=iS(iwall,so_jlv,imass,r);
@@ -427,17 +432,18 @@ void print_ottos_contractions_to_file(FILE *fout)
 {
   double norm=glb_size[1]*glb_size[2]*glb_size[3];
   
-  if(rank==0)
-  {
-    for(int icontr=0;icontr<16;icontr++)
-    {
-        fprintf(fout,"\n");
-	print_contraction_to_file(fout,icontr,5,contr_mezzotto+icontr*glb_size[0],twall[0],"DISCONNECTED ",norm);
-        fprintf(fout,"\n");
-	print_contraction_to_file(fout,icontr,5,contr_otto+icontr*glb_size[0],twall[0],"CONNECTED ",norm);
-      }
-    fprintf(fout,"\n");
-  }
+  master(
+	 {
+	   for(int icontr=0;icontr<16;icontr++)
+	     {
+	       fprintf(fout,"\n");
+	       print_contraction_to_file(fout,icontr,5,contr_mezzotto+icontr*glb_size[0],twall[0],"DISCONNECTED ",norm);
+	       fprintf(fout,"\n");
+	       print_contraction_to_file(fout,icontr,5,contr_otto+icontr*glb_size[0],twall[0],"CONNECTED ",norm);
+	     }
+	   fprintf(fout,"\n");
+	 }
+	 );
 }
 
 //print all the passed contractions to the file
@@ -445,15 +451,14 @@ void print_two_points_contractions_to_file(FILE *fout)
 {
   double norm=glb_size[1]*glb_size[2]*glb_size[3];
   
-  if(rank==0)
-  {
-    for(int icontr=0;icontr<ncontr_2pts;icontr++)
-      {
-        fprintf(fout,"\n");
-	print_contraction_to_file(fout,op2_2pts[icontr],op1_2pts[icontr],contr_2pts+icontr*glb_size[0],twall[0],"",norm);
-      }
-    fprintf(fout,"\n");
- }
+  master(
+	 for(int icontr=0;icontr<ncontr_2pts;icontr++)
+	   {
+           fprintf(fout,"\n");
+	   print_contraction_to_file(fout,op2_2pts[icontr],op1_2pts[icontr],contr_2pts+icontr*glb_size[0],twall[0],"",norm);
+	   }
+	 fprintf(fout,"\n");
+	 );
 }
 
 //Calculate and print to file all the contractions
@@ -476,8 +481,7 @@ void calculate_all_contractions()
 	    {
 	      int tsepar=(twall[iwR]+glb_size[0]-twall[iwL])%glb_size[0];
 	      
-	      if(rank==0) fprintf(fout_bag," # LEFT_WALL_t=%d , RIGHT_WALL_t=%d , tseparat=%d\n\n",
-		      twall[iwL],twall[iwR],tsepar);
+	      master_fprintf(fout_bag," # LEFT_WALL_t=%d , RIGHT_WALL_t=%d , tseparat=%d\n\n",twall[iwL],twall[iwR],tsepar);
 	      
 	      //Ottos
 	      for(int im2=0;im2<nmass;im2++)
@@ -488,12 +492,11 @@ void calculate_all_contractions()
 			{
 			  int r4=1-(r1+r2+r3)%2;
 			  
-			  if(rank==0)
-			    {
-			      fprintf(fout_bag," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d",
-				      mass[im1],r1,mass[im2],r2,mass[im1],r3,mass[im2],r4);
-			      fprintf(fout_bag," . Tseparation=%d\n",tsepar);
-			    }
+			  master(
+				 fprintf(fout_bag," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d",
+					 mass[im1],r1,mass[im2],r2,mass[im1],r3,mass[im2],r4);
+				 fprintf(fout_bag," . Tseparation=%d\n",tsepar);
+				 );
 			  
 			  int ip1=iS(iwL,sm_lv_L,im1,r1),ip2=iS(iwL,sm_lv_L,im2,r2);
 			  int ip3=iS(iwR,sm_lv_R,im1,r3),ip4=iS(iwR,sm_lv_R,im2,r4);
@@ -503,11 +506,11 @@ void calculate_all_contractions()
 			  ntot_contr_3pts+=32;
 			  
 			  print_ottos_contractions_to_file(fout_bag);
-			  if(rank==0) fflush(fout_bag);
+			  master(fflush(fout_bag));
   			}
 	    }
 	
-	if(rank==0) fclose(fout_bag);
+	  master(fclose(fout_bag));
       }
   
   tot_contr_3pts_time+=take_time();
@@ -526,7 +529,7 @@ void calculate_all_contractions()
 	  for(int id=0;id<4;id++)
 	    {	    
 	      for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
-	      if(rank==0 && debug) printf("Prop %d, id=%d ",iprop,id);
+	      master_printf("Prop %d, id=%d ",iprop,id);
 	      jacobi_smearing(source,source,sme_conf,jacobi_kappa,si_jnit_to_app);
 	      for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
 	    }
@@ -545,11 +548,10 @@ void calculate_all_contractions()
 		for(int r1=0;r1<2;r1++)
 		  for(int iwall=0;iwall<nwall;iwall++)
 		    {
-		      if(rank==0)
-			{
-			  fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d , wall=%d , ",mass[im1],r1,mass[im2],r2,iwall);
-			  fprintf(fout_2pts," sme_source=%d sme_sink=%d\n",so_jnit[so_jlv],si_jnit[si_jlv]);
-			}
+		      master(
+			     fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d , wall=%d , ",mass[im1],r1,mass[im2],r2,iwall);
+			     fprintf(fout_2pts," sme_source=%d sme_sink=%d\n",so_jnit[so_jlv],si_jnit[si_jlv]);
+			     );
 		      
 		      int iprop1=iS(iwall,so_jlv,im1,r1);
 		      int iprop2=iS(iwall,so_jlv,im2,r2);
@@ -560,7 +562,7 @@ void calculate_all_contractions()
 		      
 		      ntot_contr_2pts+=ncontr_2pts;
 		    }
-	  if(rank==0) fclose(fout_2pts);
+	  master(fclose(fout_2pts));
 	}
     }
   
@@ -574,7 +576,7 @@ void analize_conf()
   for(int iwall=1;iwall<nwall;iwall++) twall[iwall]=(twall[0]+tsepa[iwall-1])%glb_size[0];
   
   //Invert propagators
-  if(rank==0) printf("Going to invert: %d walls\n",nwall);
+  master_printf("Going to invert: %d walls\n",nwall);
   for(int iwall=0;iwall<nwall;iwall++)
     {
       generate_source(iwall);
@@ -593,18 +595,17 @@ void close_Bk()
   //take final time
   tot_time+=take_time();
 
-  if(rank==0)
-    {
-      printf("\n");
-      printf("Total time: %g secs to analize %d configurations (%f secs avg), of which:\n",
-	     tot_time,nanalized_conf,tot_time/nanalized_conf);
-      printf(" - %02.2f%s to perform %d inversions (%f secs avg)\n",
-	     tot_inv_time/tot_time*100,"%",ntot_inv,tot_inv_time/ntot_inv);
-      printf(" - %02.2f%s to perform %d 3pts contr. (%f secs avg)\n",
-	     tot_contr_3pts_time/tot_time*100,"%",ntot_contr_3pts,tot_contr_3pts_time/ntot_contr_3pts);
-      printf(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
-	     tot_contr_2pts_time/tot_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
-    }
+  master(
+	 printf("\n");
+	 printf("Total time: %g secs to analize %d configurations (%f secs avg), of which:\n",
+		tot_time,nanalized_conf,tot_time/nanalized_conf);
+	 printf(" - %02.2f%s to perform %d inversions (%f secs avg)\n",
+		tot_inv_time/tot_time*100,"%",ntot_inv,tot_inv_time/ntot_inv);
+	 printf(" - %02.2f%s to perform %d 3pts contr. (%f secs avg)\n",
+		tot_contr_3pts_time/tot_time*100,"%",ntot_contr_3pts,tot_contr_3pts_time/ntot_contr_3pts);
+	 printf(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
+		tot_contr_2pts_time/tot_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
+	 );
   
   appretto_free(twall);
   appretto_free(op1_2pts);appretto_free(op2_2pts);

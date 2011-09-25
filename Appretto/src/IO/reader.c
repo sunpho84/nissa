@@ -55,7 +55,7 @@ void appretto_reader_search_record(appretto_reader *reader,const char *expected_
     {
       char *header=lemonReaderType(reader->lemon_reader);
 
-      if(rank==0 && debug>1) printf("found record: %s\n",header);
+      if(debug_lvl>1) master_printf("found record: %s\n",header);
       if(strcmp(expected_record,header)==0) found=1;
     }
   
@@ -164,27 +164,6 @@ void finalize_reading_real_vector(double *out,appretto_reader *reader,int nreals
     if(big_endian) doubles_to_doubles_changing_endianess((double*)out,(double*)out,loc_nreals_tot);
 }  
 
-//reorder a vector according to the specified order (the order is destroyed)
-void reorder_vector(char *vect,int *order,int nel,int sel)
-{
-  char *buf=malloc(sel);
-  
-  for(int sour=0;sour<nel;sour++)
-    while(sour!=order[sour])
-      {
-	int dest=order[sour];
-	
-	memcpy(buf,vect+sour*sel,sel);
-	memcpy(vect+sour*sel,vect+dest*sel,sel);
-	memcpy(vect+dest*sel,buf,sel);
-	
-	order[sour]=order[dest];
-	order[dest]=dest;
-      }
-  
-  free(buf);
-}
-
 //reorder a read spincolor
 void reorder_read_spincolor(spincolor *sc)
 {
@@ -282,16 +261,16 @@ void finalize_reading_gauge_conf(quad_su3 *conf,appretto_reader *reader)
 int read_binary_blob(void *out,char *path,const char *expected_record,int nmax_bytes_per_site)
 {
   //Take inital time
-  double time=(debug>1) ? -take_time() : 0;
+  double time=(debug_lvl>1) ? -take_time() : 0;
   
   appretto_reader *reader=appretto_reader_start_reading(out,path,expected_record,nmax_bytes_per_site);
   int nbytes_per_site=reader->nbytes_per_site;
   appretto_reader_finalize_reading(reader);
   
-  if(debug>1)
+  if(debug_lvl>1)
     {
       time+=take_time();
-      if(rank==0) printf("Total time elapsed in reading %Ld bytes: %f s\n",nbytes_per_site*(long long int)glb_vol,time);
+      master_printf("Total time elapsed in reading %Ld bytes: %f s\n",nbytes_per_site*(long long int)glb_vol,time);
     }  
 
   return nbytes_per_site;
@@ -301,15 +280,15 @@ int read_binary_blob(void *out,char *path,const char *expected_record,int nmax_b
 void read_real_vector(double *out,char *path,const char *expected_record,int nreals_per_site)
 {
   //Take inital time
-  double time=(debug>1) ? -take_time() : 0;
+  double time=(debug_lvl>1) ? -take_time() : 0;
   appretto_reader *reader=start_reading_real_vector(out,path,expected_record,nreals_per_site);  
   
   finalize_reading_real_vector(out,reader,nreals_per_site);
   
-  if(debug>1)
+  if(debug_lvl>1)
     {
       time+=take_time();
-      if(rank==0) printf("Total time including possible conversion: %f s\n",time);
+      master_printf("Total time including possible conversion: %f s\n",time);
     }
 }
 
@@ -324,16 +303,16 @@ void read_spincolor(spincolor *sc,char *path)
 void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
 {
   //Take inital time
-  double time=(debug>1) ? -take_time() : 0;
+  double time=(debug_lvl>1) ? -take_time() : 0;
   appretto_reader **reader=start_reading_colorspinspin(css,base_path,end_path);
   finalize_reading_colorspinspin(css,reader);
   
   free(reader);
   
-  if(debug>1)
+  if(debug_lvl>1)
     {
       time+=take_time();
-      if(rank==0) printf("Total time including possible conversion: %f s\n",time);
+      master_printf("Total time including possible conversion: %f s\n",time);
     }
 }
 
@@ -367,7 +346,7 @@ void read_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path,qu
 void read_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char *end_path,quad_su3 *conf,double kappa,double mu)
 {
   double time;
-  if(debug) time=-take_time();
+  if(debug_lvl) time=-take_time();
   
   char filename[1024];
   spincolor *sc[2]={appretto_malloc("sc1",loc_vol,spincolor),appretto_malloc("sc3",loc_vol,spincolor)};
@@ -388,10 +367,10 @@ void read_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char 
 	}
     }
 
-  if(debug)
+  if(debug_lvl)
     {
       time+=take_time();
-      if(rank==0) printf("Time elapsed in reading file '%s': %f s\n",base_path,time);
+      master_printf("Time elapsed in reading file '%s': %f s\n",base_path,time);
     }
 
   //Destroy the temp

@@ -15,7 +15,7 @@ void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndouble
   char *cdest,*csour;
   char temp;
   
-  if(rank==0 && debug>1) printf("Reverting the endianess ot the data\n");
+  if(rank==0 && debug_lvl>1) printf("Reverting the endianess ot the data\n");
 
   if(dest==sour)
     for(int idouble=0;idouble<ndoubles;idouble++)
@@ -62,7 +62,7 @@ void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndouble
 //Do not change endianess
 void floats_to_doubles_same_endianess(double *dest,float *sour,int n)
 {
-  if(rank==0 && debug>1) printf("Converting %d floats to doubles\n",n);
+  if(rank==0 && debug_lvl>1) printf("Converting %d floats to doubles\n",n);
   
   for(int i=n-1;i>=0;i--) dest[i]=(double)(sour[i]);
 }
@@ -73,7 +73,7 @@ void floats_to_doubles_changing_endianess(double *dest,float *sour,int n)
   char *c;
   char temp;
 
-  if(rank==0 && debug>1) printf("Converting %d floats to doubles changing endianess\n",n);
+  if(rank==0 && debug_lvl>1) printf("Converting %d floats to doubles changing endianess\n",n);
 
   for(int i=n-1;i>=0;i--)
     {
@@ -96,7 +96,7 @@ void floats_to_doubles_changing_endianess(double *dest,float *sour,int n)
 //Do not change the endianess
 void doubles_to_floats_same_endianess(float *dest,double *sour,int n)
 {
-  if(rank==0 && debug>1) printf("Converting %d doubles to floats\n",n);
+  if(rank==0 && debug_lvl>1) printf("Converting %d doubles to floats\n",n);
 
   for(int i=0;i<n;i++) dest[i]=(float)(sour[i]);
 }
@@ -107,7 +107,7 @@ void doubles_to_floats_changing_endianess(float *dest,double *sour,int n)
   char *c;
   char temp;
 
-  if(rank==0 && debug>1) printf("Converting %d doubles to floats changing endianess\n",n);
+  if(rank==0 && debug_lvl>1) printf("Converting %d doubles to floats changing endianess\n",n);
 
   for(int i=0;i<n;i++)
     {
