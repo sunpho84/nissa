@@ -1,0 +1,28 @@
+L=4
+T=8
+
+DebugLevel = 5
+InitialStoreCounter = 0
+Measurements = 1
+2kappamu = 0.177
+kappa = 0.177
+BCAngleT = 1.
+GaugeConfigInputFile = conf
+UseEvenOdd = yes
+UseSloppyPrecision = no
+
+SourceType = Point
+SourceLocation = 0
+ReadSource = no
+NoSamples = 1
+
+BeginOperator TMWILSON
+  2kappaMu = 0.177
+  kappa = 0.177
+  UseEvenOdd = yes
+  Solver = CG
+  SolverPrecision = 1.e-15
+  MaxSolverIterations = 10000
+  AddDownPropagator = no
+EndOperator
+
