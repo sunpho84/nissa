@@ -41,7 +41,7 @@ and following, the negative direction borders
 //Send the borders of the data
 void communicate_lx_borders(char *data,MPI_Datatype *MPI_BORD_SEND,MPI_Datatype *MPI_BORD_RECE,int nbytes_per_site)
 {
-  if(debug>1) check_borders_allocated(data);
+  if(debug_lvl>1) check_borders_allocated(data);
   
   int nrequest=0;
   MPI_Request request[16];
@@ -87,7 +87,7 @@ then follows all the i-j+ edges, the i+j- and after the i+j+
 //Send the edges of lx vector
 void communicate_lx_edges(char *data,MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,int nbytes_per_site)
 {
-  if(debug>1) check_edges_allocated(data);
+  if(debug_lvl>1) check_edges_allocated(data);
   
   int nrequest=0;
   MPI_Request request[48];

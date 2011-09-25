@@ -209,7 +209,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
 
-      if(rank==0 && debug) printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
+      if(rank==0 && debug_lvl) printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
   
   read_str_int("NChromoContrTwoPoints",&nch_contr_2pts);
@@ -222,7 +222,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(ch_op1_2pts[icontr]));
       read_int(&(ch_op2_2pts[icontr]));
 
-      if(rank==0 && debug) printf(" ch-contr.%d %d %d\n",icontr,ch_op1_2pts[icontr],ch_op2_2pts[icontr]);
+      if(rank==0 && debug_lvl) printf(" ch-contr.%d %d %d\n",icontr,ch_op1_2pts[icontr],ch_op2_2pts[icontr]);
     }
 
   read_str_str("OutfileTwoPoints",outfile_2pts,1024);
@@ -251,7 +251,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(op1_3pts[icontr]));
       read_int(&(op2_3pts[icontr]));
 
-      if(rank==0 && debug) printf(" contr.%d %d %d\n",icontr,op1_3pts[icontr],op2_3pts[icontr]);
+      if(rank==0 && debug_lvl) printf(" contr.%d %d %d\n",icontr,op1_3pts[icontr],op2_3pts[icontr]);
     }
 
   read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
@@ -264,7 +264,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(ch_op1_3pts[icontr]));
       read_int(&(ch_op2_3pts[icontr]));
 
-      if(rank==0 && debug) printf(" ch-contr.%d %d %d\n",icontr,ch_op1_3pts[icontr],ch_op2_3pts[icontr]);
+      if(rank==0 && debug_lvl) printf(" ch-contr.%d %d %d\n",icontr,ch_op1_3pts[icontr],ch_op2_3pts[icontr]);
     }
 
   read_str_str("OutfileThreePoints",outfile_3pts,1024);

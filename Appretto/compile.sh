@@ -27,7 +27,7 @@ comp()
 recomp_appretto()
 {
     if [ -f src/appretto_checksum ];then old_checksum=$(cat src/appretto_checksum);else old_checksum="0";fi
-    checksum=$(comp - src/appretto.c "-c -E"|sha1sum|awk '{print $1}')
+    checksum=$(comp - src/appretto.c "-c -E"|tee /tmp/appretto.out|sha1sum|awk '{print $1}')
     if [ $old_checksum != $checksum ] || [ ! -f src/appretto ]
     then
 	echo "Recompiling Appretto library..."

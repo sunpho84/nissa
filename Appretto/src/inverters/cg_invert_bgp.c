@@ -129,7 +129,7 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
 
 	  iter++;
 
-	  if(rank==0 && debug && iter%10==0) printf("iter %d residue %g\n",iter,lambda);
+	  if(rank==0 && debug_lvl && iter%10==0) printf("iter %d residue %g\n",iter,lambda);
 	}
       while(lambda>(residue*source_norm) && iter<niter);
       

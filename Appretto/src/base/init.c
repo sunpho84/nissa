@@ -52,7 +52,7 @@ void init_grid()
 {
   //take initial time
   double tic;
-  if(debug)
+  if(debug_lvl)
     {
       MPI_Barrier(MPI_COMM_WORLD);
       tic=MPI_Wtime();
@@ -82,7 +82,7 @@ void init_grid()
 
   MPI_Get_processor_name(proc_name,&proc_name_length);
   MPI_Dims_create(rank_tot,4,nproc_dir);
-  if(rank==0 && debug==1)
+  if(rank==0 && debug_lvl==1)
     {
       printf("\nCreating grid:\t%dx%dx%dx%d\n",nproc_dir[0],nproc_dir[1],nproc_dir[2],nproc_dir[3]);
       fflush(stdout);
@@ -152,12 +152,12 @@ void init_grid()
     {
       printf("Local volume\t%dx%dx%dx%d = %d\n",loc_size[0],loc_size[1],loc_size[2],loc_size[3],loc_vol);
       printf("Parallelized dirs: t=%d x=%d y=%d z=%d\n",paral_dir[0],paral_dir[1],paral_dir[2],paral_dir[3]);
-      if(debug>1) printf("Border size: %d\n",loc_bord);
-      if(debug>1) printf("Edge size: %d\n",loc_edge);
-      if(debug>2) 
+      if(debug_lvl>1) printf("Border size: %d\n",loc_bord);
+      if(debug_lvl>1) printf("Edge size: %d\n",loc_edge);
+      if(debug_lvl>2) 
 	for(int idir=0;idir<4;idir++)
 	  printf("Border offset for dir %d: %d\n",idir,bord_offset[idir]);
-      if(debug>2)
+      if(debug_lvl>2)
 	for(int iedge=0;iedge<6;iedge++)
 	  printf("Border offset for edge %d: %d\n",iedge,edge_offset[iedge]);
     }
@@ -165,7 +165,7 @@ void init_grid()
   MPI_Comm_rank(cart_comm,&cart_rank);
   MPI_Cart_coords(cart_comm,cart_rank,4,proc_coord);
 
-  if(debug>2)
+  if(debug_lvl>2)
     {
       printf("Process %d of %d on %s: %d (%d %d %d %d)\n",rank,rank_tot,
 	     proc_name,cart_rank,proc_coord[0],proc_coord[1],proc_coord[2],proc_coord[3]);
@@ -187,7 +187,7 @@ void init_grid()
 
   //take final time
   double tac;
-  if(debug)
+  if(debug_lvl)
     {
       MPI_Barrier(MPI_COMM_WORLD);
       tac=MPI_Wtime();

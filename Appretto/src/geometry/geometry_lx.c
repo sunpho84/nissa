@@ -294,7 +294,7 @@ void set_lx_geometry()
 	start_lx_bord_rece_dw[i]=loc_vol+bord_offset[i];
       }
     
-  if(rank==0 && debug) printf("Geometry intialized\n");
+  if(rank==0 && debug_lvl) printf("Geometry intialized\n");
 }
 
 //definitions of lexical ordered sender for borders

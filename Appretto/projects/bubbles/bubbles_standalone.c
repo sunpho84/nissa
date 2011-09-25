@@ -149,7 +149,7 @@ void initialize_bubbles(char *input_path)
       //Read the operator
       read_int(&(op[icontr]));
       
-      if(rank==0 && debug) printf(" contr.%d %d\n",icontr,op[icontr]);
+      if(rank==0 && debug_lvl) printf(" contr.%d %d\n",icontr,op[icontr]);
     }
   
   //Read the number of contractions with insertion of the chromo-magnetic operator
@@ -165,7 +165,7 @@ void initialize_bubbles(char *input_path)
       //Read the operator
       read_int(&(ch_op[ich_contr]));
       
-      if(rank==0 && debug) printf(" chromo contr.%d %d\n",ich_contr,ch_op[ich_contr]);
+      if(rank==0 && debug_lvl) printf(" chromo contr.%d %d\n",ich_contr,ch_op[ich_contr]);
     }
   
   //reading of gauge conf and computation of Pmunu

@@ -87,7 +87,7 @@ int main(int narg,char **arg)
       read_double(&(mass_prop1[iprop]));
       read_double(&(theta_prop1[iprop]));
 
-      if(debug && rank==0)
+      if(debug_lvl && rank==0)
 	printf(" prop.%d %s, m=%f th=%f\n",iprop,base_filename1[iprop],mass_prop1[iprop],theta_prop1[iprop]);
     }
       
@@ -107,7 +107,7 @@ int main(int narg,char **arg)
       read_double(&(mass_prop2[iprop]));
       read_double(&(theta_prop2[iprop]));
 
-      if(debug && rank==0)
+      if(debug_lvl && rank==0)
 	printf(" prop.%d %s, m=%f th=%f\n",iprop,base_filename2[iprop],mass_prop2[iprop],theta_prop2[iprop]);
     }
       
@@ -127,7 +127,7 @@ int main(int narg,char **arg)
       read_int(&(op1[icontr]));
       read_int(&(op2[icontr]));
 
-      if(rank==0 && debug) printf(" contr.%d %d %d\n",icontr,op1[icontr],op2[icontr]);
+      if(rank==0 && debug_lvl) printf(" contr.%d %d %d\n",icontr,op1[icontr],op2[icontr]);
     }
   
   //Read the number of contractions with insertion of the chromo-magnetic operator
@@ -146,7 +146,7 @@ int main(int narg,char **arg)
       read_int(&(ch_op1[ich_contr]));
       read_int(&(ch_op2[ich_contr]));
       
-      if(rank==0 && debug) printf(" chromo contr.%d %d %d\n",ich_contr,ch_op1[ich_contr],ch_op2[ich_contr]);
+      if(rank==0 && debug_lvl) printf(" chromo contr.%d %d %d\n",ich_contr,ch_op1[ich_contr],ch_op2[ich_contr]);
     }
   
   //Read the location of the gauge configuration
@@ -201,7 +201,7 @@ int main(int narg,char **arg)
   
   //take initial time
   double tic;
-  if(debug)
+  if(debug_lvl)
     {
       MPI_Barrier(cart_comm);
       tic=MPI_Wtime();
@@ -219,7 +219,7 @@ int main(int narg,char **arg)
   //if necessary calculate the pmunu term
   if(nch_contr>0) Pmunu_term(Pmunu,gauge_conf);
 
-  if(debug)
+  if(debug_lvl)
     {
       MPI_Barrier(cart_comm);
       gauge_reading_time=MPI_Wtime()-tic;
@@ -244,7 +244,7 @@ int main(int narg,char **arg)
       int iblock_last=min_int((iblock+1)*nprop_per_block,nprop_list1);
       int iblock_length=iblock_last-iblock_first;
 
-      if(rank==0 && debug) printf("Block %d/%d length: %d\n",iblock+1,nblocks,iblock_length);
+      if(rank==0 && debug_lvl) printf("Block %d/%d length: %d\n",iblock+1,nblocks,iblock_length);
 
       //now read the whole first block
       for(int iprop1=0;iprop1<iblock_length;iprop1++)
@@ -252,16 +252,16 @@ int main(int narg,char **arg)
 	int counter=iblock_first+iprop1;
 	
 	double tic1=0,tac1;
-	if(debug)
+	if(debug_lvl)
 	  {
-	    if(rank==0 && debug>1) printf("Going to read propagator %d/%d: %s\n",iprop1+1,iblock_length,base_filename1[counter]);
+	    if(rank==0 && debug_lvl>1) printf("Going to read propagator %d/%d: %s\n",iprop1+1,iblock_length,base_filename1[counter]);
 	    MPI_Barrier(cart_comm);
 	    tic1=MPI_Wtime();
 	  }
 	theta[1]=theta[2]=theta[3]=theta_prop1[counter];
 	adapt_theta(gauge_conf,old_theta,theta,1,0);
 	read_colorspinspin_reconstructing(spinor1[iprop1],base_filename1[counter],NULL,gauge_conf,kappa,mass_prop2[counter]);
-	if(debug)
+	if(debug_lvl)
 	  {
 	    MPI_Barrier(cart_comm);
 	    tac1=MPI_Wtime();
@@ -283,14 +283,14 @@ int main(int narg,char **arg)
 	      if(strcmp(base_filename1[counter],base_filename2[iprop2])==0)
 		{
 		  spinor2_ptr=spinor1[iprop1];
-		  if(debug && rank==0) printf("Propagator %s found in the position %d of the first list\n",base_filename2[iprop2],counter);
+		  if(debug_lvl && rank==0) printf("Propagator %s found in the position %d of the first list\n",base_filename2[iprop2],counter);
 		}
 	    }
 	  //if not found in the first list, load it
 	  if(spinor2_ptr==spinor2)
 	    {
 	      double tic1=0,tac1;
-	      if(debug)
+	      if(debug_lvl)
 		{
 		  if(rank==0) printf("Going to read propagator %d/%d: %s\n",iprop2+1,nprop_list2,base_filename2[iprop2]);
 		  MPI_Barrier(cart_comm);
@@ -299,7 +299,7 @@ int main(int narg,char **arg)
 	      theta[1]=theta[2]=theta[3]=theta_prop2[iprop2];
 	      adapt_theta(gauge_conf,old_theta,theta,1,0);
 	      read_colorspinspin_reconstructing(spinor2,base_filename2[iprop2],NULL,gauge_conf,kappa,mass_prop2[iprop2]);
-	      if(debug)
+	      if(debug_lvl)
 		{
 		  MPI_Barrier(cart_comm);
 		  tac1=MPI_Wtime();
@@ -326,16 +326,16 @@ int main(int narg,char **arg)
 		    fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass_prop1[counter],theta_prop1[counter],r1,mass_prop2[iprop2],theta_prop2[iprop2],r2);
 		  
 		  double tic1=0,tac1;
-		  if(debug)
+		  if(debug_lvl)
 		    {
-		      if(rank==0 && debug>1) printf("Going to perform (prop%d,prop%d) contractions\n",iprop1+1,iprop2+1);
+		      if(rank==0 && debug_lvl>1) printf("Going to perform (prop%d,prop%d) contractions\n",iprop1+1,iprop2+1);
 		      MPI_Barrier(cart_comm);
 		      tic1=MPI_Wtime();
 		    }
 		  meson_two_points(contr,op1,spinor1[iprop1][r1],op2,spinor2_ptr[r2],ncontr,0,r1,0,r2);
 		  if(nch_contr>0) meson_two_points(ch_contr,ch_op1,spinor1[iprop1][r1],ch_op2,ch_spinor[r2],nch_contr,0,r1,0,r2);
 		  
-		  if(debug)
+		  if(debug_lvl)
 		    {
 		      MPI_Barrier(cart_comm);
 		      tac1=MPI_Wtime();
@@ -349,7 +349,7 @@ int main(int narg,char **arg)
 		      if(nch_contr>0) print_contractions_to_file(fout,nch_contr,ch_op1,ch_op2,ch_contr,twall,"CHROMO-");
 		      
 		      fprintf(fout,"\n");
-		      if(debug>1) fflush(fout);
+		      if(debug_lvl>1) fflush(fout);
 		    }
 		}
 	}
@@ -357,7 +357,7 @@ int main(int narg,char **arg)
   
   //take final time
   double tac;
-  if(debug)
+  if(debug_lvl)
     {
       MPI_Barrier(cart_comm);
       tac=MPI_Wtime();

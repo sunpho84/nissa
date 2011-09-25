@@ -1,6 +1,6 @@
 #include "appretto.h"
 
-const int debug3=0;
+const int debug_lvl3=0;
 
 spincolor *glb_source;
 quad_su3 *conf;
@@ -23,7 +23,7 @@ void Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,int parity)
 {
   int Xup,Xdw;
 
-  if(debug3) printf(" m2Doe_or_m2Deo parity: %d\n",parity);
+  if(debug_lvl3) printf(" m2Doe_or_m2Deo parity: %d\n",parity);
   for(int X=0;X<loc_vol;X++)
     if(loclx_parity[X]!=parity) //loop is on sink
       {
@@ -283,7 +283,7 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
 		for(int ic=0;ic<3;ic++)
 		  for(int ri=0;ri<2;ri++)
 		    {
-		      if(debug3) printf("%d %d %d %d %g %g %g\n",X,id,ic,ri,s[X][id][ic][ri],r[X][id][ic][ri],p[X][id][ic][ri]);
+		      if(debug_lvl3) printf("%d %d %d %d %g %g %g\n",X,id,ic,ri,s[X][id][ic][ri],r[X][id][ic][ri],p[X][id][ic][ri]);
 		      sol[X][id][ic][ri]+=omega*p[X][id][ic][ri];    //sol_(k+1)=x_k+omega*p_k
 		      double c1=r[X][id][ic][ri]-omega*s[X][id][ic][ri];//r_(k+1)=x_k-omega*pk
 		      r[X][id][ic][ri]=c1;
@@ -301,13 +301,13 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
 		for(int ic=0;ic<3;ic++)
 		  for(int ri=0;ri<2;ri++)
 		    {
-		      if(debug3) printf("r=%g p=%g\n",r[X][id][ic][ri],p[X][id][ic][ri]);
+		      if(debug_lvl3) printf("r=%g p=%g\n",r[X][id][ic][ri],p[X][id][ic][ri]);
 		      p[X][id][ic][ri]=r[X][id][ic][ri]+gammag*p[X][id][ic][ri];
 		    }
 	  
 	  iter++;
 	  
-	  if(rank==0 && debug) printf("eo iter %d residue %g\n",iter,lambda);
+	  if(rank==0 && debug_lvl) printf("eo iter %d residue %g\n",iter,lambda);
 	}
       while(lambda>(residue*source_norm) && iter<niter);
       

@@ -116,7 +116,7 @@ void *appretto_true_malloc(const char *tag,int nel,int size_per_el,const char *t
   last_appretto_vect->next=new;
   last_appretto_vect=new;
   
-  if(rank==0 && debug>1) 
+  if(rank==0 && debug_lvl>1) 
     {
       printf("Allocated vector ");
       appretto_vect_content_printf(last_appretto_vect);
@@ -138,7 +138,7 @@ void* appretto_true_free(void *arr,const char *file,int line)
       appretto_vect *prev=vect->prev;
       appretto_vect *next=vect->next;
       
-      if(rank==0 && debug>1)
+      if(rank==0 && debug_lvl>1)
 	{
 	  printf("At line %d of file %s freeing vector ",line,file);
 	  appretto_vect_content_printf(vect);

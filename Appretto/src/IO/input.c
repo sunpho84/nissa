@@ -28,7 +28,7 @@ void open_input(char *input_path)
       input_global=fopen(input_path,"r");
       if(input_global==NULL) crash("File '%s' not found",input_path);
 
-      if(debug) printf("File '%s' opened\n",input_path);
+      if(debug_lvl) printf("File '%s' opened\n",input_path);
     }	
 }
 
@@ -74,7 +74,7 @@ void read_str_int(const char *exp_str,int *in)
   expect_str(exp_str);
   read_int(in);
 
-  if(rank==0 && debug) printf("Read variable '%s' with value: %d\n",exp_str,(*in));
+  if(rank==0 && debug_lvl) printf("Read variable '%s' with value: %d\n",exp_str,(*in));
 }
 
 //Read a double checking the tag
@@ -83,7 +83,7 @@ void read_str_double(const char *exp_str,double *in)
   expect_str(exp_str);
   read_double(in);
 
-  if(rank==0 && debug) printf("Read variable '%s' with value: %g\n",exp_str,(*in));
+  if(rank==0 && debug_lvl) printf("Read variable '%s' with value: %g\n",exp_str,(*in));
 }
 
 //Read a string checking the tag
@@ -92,7 +92,7 @@ void read_str_str(const char *exp_str,char *in,int length)
   expect_str(exp_str);
   read_str(in,length);
 
-  if(rank==0 && debug) printf("Read variable '%s' with value: %s\n",exp_str,in);
+  if(rank==0 && debug_lvl) printf("Read variable '%s' with value: %s\n",exp_str,in);
 }
 
 //Read a list of double and its length, allocate the list

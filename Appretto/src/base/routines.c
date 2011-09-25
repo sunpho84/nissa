@@ -43,7 +43,7 @@ void swap_doubles(double *d1,double *d2)
 
 double take_time()
 {
-  MPI_Barrier(MPI_COMM_WORLD);
+  //MPI_Barrier(MPI_COMM_WORLD);
   return MPI_Wtime();
 }
 
@@ -67,3 +67,40 @@ void take_last_characters(char *out,const char *in,int size)
   const char *str_init=(len<=size)?in:in+len-size;
   memcpy(out,str_init,copy_len);
 }
+
+//reorder a vector according to the specified order (the order is destroyed)
+void reorder_vector(char *vect,int *order,int nel,int sel)
+{
+  char *buf=appretto_malloc("buf",sel,char);
+  
+  for(int sour=0;sour<nel;sour++)
+    while(sour!=order[sour])
+      {
+	int dest=order[sour];
+	
+	memcpy(buf,vect+sour*sel,sel);
+	memcpy(vect+sour*sel,vect+dest*sel,sel);
+	memcpy(vect+dest*sel,buf,sel);
+	
+	order[sour]=order[dest];
+	order[dest]=dest;
+      }
+  
+  appretto_free(buf);
+}
+
+int master_fprintf(FILE *stream,const char *format,...)
+{
+  int ret=0;
+  
+  if(rank==0)
+    {
+      va_list ap;
+      va_start(ap,format);
+      ret=vfprintf(stream,format,ap);
+      va_end(ap);
+    }
+  
+  return ret;
+}
+

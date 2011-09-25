@@ -183,7 +183,7 @@ void initialize_Bk(char *input_path)
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
 
-      if(rank==0 && debug) printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
+      if(rank==0 && debug_lvl) printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
 
 

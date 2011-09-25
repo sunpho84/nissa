@@ -2,10 +2,7 @@
 
 void test(quad_su3 *conf,as2t tmunu)
 {
-  double gplaq; 
-
-  gplaq=global_plaquette(conf);
-  if(rank==0) printf("plaq: %.10g\n",gplaq);
+  master_printf("plaq: %.10g\n",global_plaquette(conf));
   
   as2t_su3 *clov=appretto_malloc("clov",loc_vol,as2t_su3);
   
@@ -28,8 +25,7 @@ void test(quad_su3 *conf,as2t tmunu)
   double total_leaves_summ;
   MPI_Reduce(&partial_summ,&total_leaves_summ,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 
-  if(rank==0) printf("%.12g\n",total_leaves_summ);
-  
+  master_printf("%.12g\n",total_leaves_summ);
 }
 
 int main(int narg,char **arg)
@@ -39,12 +35,7 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_appretto();
 
-  if(narg<2 && rank==0)
-    {
-      fprintf(stderr,"Use: %s input_file\n",arg[0]);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  if(narg<2) crash("Use: %s input_file\n",arg[0]);
 
   open_input(arg[1]);
 

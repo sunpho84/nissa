@@ -26,14 +26,12 @@ double calculate_weighted_residue_RL(spincolor *source,spincolor *sol,quad_su3 *
       ds+=2;dsource+=2;dsol+=2;
     }
   
-  if(rank_tot>0)
     if(dinf==2)
       {
         MPI_Allreduce(&loc_weighted_residue,&tot_weighted_residue,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
         MPI_Allreduce(&loc_weight,&tot_weight,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       }
     else MPI_Allreduce(&loc_weighted_residue,&tot_weighted_residue,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
-  else tot_weighted_residue=loc_weighted_residue;
   
   if(dinf==2) tot_weighted_residue/=loc_vol*tot_weight;
   
@@ -74,12 +72,12 @@ int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr
 	  }
       } 
   
-  if(rank==0 && iter%each==0 && debug)
-    {
-      printf("cgmms iter %d residues: ",iter);
-      for(int imass=0;imass<nmass;imass++) if(run_flag[imass]) printf("%1.4e  ",residue_mass[imass]);
-      printf("\n");
-    }
+  if(iter%each==0)
+    master(
+	   printf("cgmms iter %d residues: ",iter);
+	   for(int imass=0;imass<nmass;imass++) if(run_flag[imass]) printf("%1.4e  ",residue_mass[imass]);
+	   printf("\n");
+	   );
   
   return nrun;
 }
