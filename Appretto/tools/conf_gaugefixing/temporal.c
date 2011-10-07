@@ -27,14 +27,14 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
-  quad_su3 *conf=allocate_quad_su3(loc_vol+loc_bord,"Conf");
+  quad_su3 *conf=appretto_malloc("Conf",loc_vol+loc_bord,quad_su3);
   read_gauge_conf(conf,filename);  
   communicate_gauge_borders(conf);
   
-  su3 *fixm=allocate_su3(loc_vol+loc_bord,"fixm");
+  su3 *fixm=appretto_malloc("fixm",loc_vol+loc_bord,su3);
   find_temporal_gauge_fixing_matr(fixm,conf);
 
-  quad_su3 *fixed_conf=allocate_quad_su3(loc_vol+loc_bord,"FixedConf");
+  quad_su3 *fixed_conf=appretto_malloc("FixedConf",loc_vol+loc_bord,quad_su3);
   gauge_transform_conf(fixed_conf,fixm,conf);
   communicate_gauge_borders(fixed_conf);
   
@@ -43,11 +43,15 @@ int main(int narg,char **arg)
   if(rank==0)
     {
       printf("Plaq before: %16.16lg\n",plaq_bef);
-      printf("Plaq after: %16.16lg\n",plaq_aft);
+      printf("Plaq after:  %16.16lg\n",plaq_aft);
     }
   
   ///////////////////////////////////////////
 
+  appretto_free(fixed_conf);
+  appretto_free(fixm);
+  appretto_free(conf);
+  
   close_appretto();
 
   return 0;

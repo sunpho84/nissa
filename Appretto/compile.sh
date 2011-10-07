@@ -48,3 +48,9 @@ recomp_appretto()
 
 recomp_appretto
 comp $1 $1.c "src/appretto"
+
+#in case of error compile showing the output
+if [ $? != 0 ]
+then
+    comp $1 $1.c "-E src/appretto"
+fi

@@ -60,7 +60,6 @@ double put_theta[4],old_theta[4]={0,0,0,0};
 int seed,noise_type;
 int nsepa,*tsepa;
 int nwall,*twall;
-double rad2=1.414213562373095048801688724209;
 spincolor *source;
 colorspinspin *original_source;
 
@@ -107,21 +106,9 @@ int iS(int iwall,int sm_lv,int imass,int r) {return r+2*(imass+nmass*(sm_lv+so_j
 
 //generate the source for the dirac index
 void generate_source(int iwall)
-{ //reset
-  memset(original_source,0,sizeof(colorspinspin)*loc_vol);
-  
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
-    if(glb_coord_of_loclx[loc_site][0]==twall[iwall])
-      for(int ic=0;ic<3;ic++)
-	{ //real part
-	  if(noise_type>=2) original_source[loc_site][ic][0][0][0]=pm_one(loc_site)/rad2;
-	  else original_source[loc_site][ic][0][0][0]=noise_type;
-	  //imaginary part
-	  if(noise_type==4) original_source[loc_site][ic][0][0][1]=pm_one(loc_site)/rad2;
-	  
-	  for(int d=1;d<4;d++) //copy the other three dirac indexes
-	    memcpy(original_source[loc_site][ic][d][d],original_source[loc_site][ic][0][0],sizeof(complex));
-	}
+{
+  enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
+  generate_spindiluted_source(original_source,type[noise_type],twall[iwall]);
 }
 
 //Parse all the input file
@@ -153,7 +140,7 @@ void initialize_Bk(int narg,char **arg)
   
   //Read the seed and initialize the random generator
   read_str_int("Seed",&seed);
-  init_random(seed);
+  start_loc_rnd_gen(seed);
   //Read the position of additional walls
   read_list_of_ints("NSeparations",&nsepa,&tsepa);
   //Allocate twall space
@@ -193,16 +180,15 @@ void initialize_Bk(int narg,char **arg)
     }
   while(isc<numb_known_stopping_criterion && stopping_criterion==numb_known_stopping_criterion);
   
-  master(
-	 if(stopping_criterion==numb_known_stopping_criterion)
-	   {
-	     fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
-	     fprintf(stderr,"List of known stopping criterions:\n");
-	     for(int isc=0;isc<numb_known_stopping_criterion;isc++)
-	       fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
-	     MPI_Abort(MPI_COMM_WORLD,1);
-	   }
-	 );
+  if(stopping_criterion==numb_known_stopping_criterion)
+    {
+      master_fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
+      master_fprintf(stderr,"List of known stopping criterions:\n");
+      for(int isc=0;isc<numb_known_stopping_criterion;isc++)
+	master_fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
+  
   if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
   
   //Number of iterations
@@ -300,17 +286,15 @@ int check_residual_time()
   
   int enough_time=(igauge_conf<ngauge_conf) ? (remaining_time>pess_time) : 1;
   
-  master(
-	 if(!enough_time)
-	   {
-	     printf("\n");
-	     printf("-average running time: %lg secs per conf,\n",ave_time);
-	     printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
-	     printf("-remaining time: %lg secs per conf\n",remaining_time);
-	     printf("Not enough time for another conf, so exiting.\n");
-	   }
-	 );
-  
+  if(!enough_time)
+    {
+      master_printf("\n");
+      master_printf("-average running time: %lg secs per conf,\n",ave_time);
+      master_printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
+      master_printf("-remaining time: %lg secs per conf\n",remaining_time);
+      master_printf("Not enough time for another conf, so exiting.\n");
+    }
+
   return enough_time;
 }
 
@@ -432,18 +416,17 @@ void print_ottos_contractions_to_file(FILE *fout)
 {
   double norm=glb_size[1]*glb_size[2]*glb_size[3];
   
-  master(
-	 {
-	   for(int icontr=0;icontr<16;icontr++)
-	     {
-	       fprintf(fout,"\n");
-	       print_contraction_to_file(fout,icontr,5,contr_mezzotto+icontr*glb_size[0],twall[0],"DISCONNECTED ",norm);
-	       fprintf(fout,"\n");
-	       print_contraction_to_file(fout,icontr,5,contr_otto+icontr*glb_size[0],twall[0],"CONNECTED ",norm);
-	     }
-	   fprintf(fout,"\n");
-	 }
-	 );
+  if(rank==0)
+    {
+      for(int icontr=0;icontr<16;icontr++)
+	{
+	  fprintf(fout,"\n");
+	  print_contraction_to_file(fout,icontr,5,contr_mezzotto+icontr*glb_size[0],twall[0],"DISCONNECTED ",norm);
+	  fprintf(fout,"\n");
+	  print_contraction_to_file(fout,icontr,5,contr_otto+icontr*glb_size[0],twall[0],"CONNECTED ",norm);
+	}
+      fprintf(fout,"\n");
+    }
 }
 
 //print all the passed contractions to the file
@@ -451,14 +434,15 @@ void print_two_points_contractions_to_file(FILE *fout)
 {
   double norm=glb_size[1]*glb_size[2]*glb_size[3];
   
-  master(
-	 for(int icontr=0;icontr<ncontr_2pts;icontr++)
-	   {
-           fprintf(fout,"\n");
-	   print_contraction_to_file(fout,op2_2pts[icontr],op1_2pts[icontr],contr_2pts+icontr*glb_size[0],twall[0],"",norm);
-	   }
-	 fprintf(fout,"\n");
-	 );
+  if(rank==0)
+    {
+      for(int icontr=0;icontr<ncontr_2pts;icontr++)
+	{
+	  fprintf(fout,"\n");
+	  print_contraction_to_file(fout,op2_2pts[icontr],op1_2pts[icontr],contr_2pts+icontr*glb_size[0],twall[0],"",norm);
+	}
+      fprintf(fout,"\n");
+    }
 }
 
 //Calculate and print to file all the contractions
@@ -492,11 +476,9 @@ void calculate_all_contractions()
 			{
 			  int r4=1-(r1+r2+r3)%2;
 			  
-			  master(
-				 fprintf(fout_bag," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d",
+			  master_fprintf(fout_bag," # m1=%f r1=%d , m2=%f r2=%d , m3=%f r3=%d , m4=%f r4=%d",
 					 mass[im1],r1,mass[im2],r2,mass[im1],r3,mass[im2],r4);
-				 fprintf(fout_bag," . Tseparation=%d\n",tsepar);
-				 );
+			  master_fprintf(fout_bag," . Tseparation=%d\n",tsepar);
 			  
 			  int ip1=iS(iwL,sm_lv_L,im1,r1),ip2=iS(iwL,sm_lv_L,im2,r2);
 			  int ip3=iS(iwR,sm_lv_R,im1,r3),ip4=iS(iwR,sm_lv_R,im2,r4);
@@ -506,11 +488,10 @@ void calculate_all_contractions()
 			  ntot_contr_3pts+=32;
 			  
 			  print_ottos_contractions_to_file(fout_bag);
-			  master(fflush(fout_bag));
   			}
 	    }
 	
-	  master(fclose(fout_bag));
+	  if(rank==0) fclose(fout_bag);
       }
   
   tot_contr_3pts_time+=take_time();
@@ -548,10 +529,8 @@ void calculate_all_contractions()
 		for(int r1=0;r1<2;r1++)
 		  for(int iwall=0;iwall<nwall;iwall++)
 		    {
-		      master(
-			     fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d , wall=%d , ",mass[im1],r1,mass[im2],r2,iwall);
-			     fprintf(fout_2pts," sme_source=%d sme_sink=%d\n",so_jnit[so_jlv],si_jnit[si_jlv]);
-			     );
+		      master_fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d , wall=%d , ",mass[im1],r1,mass[im2],r2,iwall);
+		      master_fprintf(fout_2pts," sme_source=%d sme_sink=%d\n",so_jnit[so_jlv],si_jnit[si_jlv]);
 		      
 		      int iprop1=iS(iwall,so_jlv,im1,r1);
 		      int iprop2=iS(iwall,so_jlv,im2,r2);
@@ -562,7 +541,7 @@ void calculate_all_contractions()
 		      
 		      ntot_contr_2pts+=ncontr_2pts;
 		    }
-	  master(fclose(fout_2pts));
+	  if(rank==0) fclose(fout_2pts);
 	}
     }
   
@@ -595,17 +574,15 @@ void close_Bk()
   //take final time
   tot_time+=take_time();
 
-  master(
-	 printf("\n");
-	 printf("Total time: %g secs to analize %d configurations (%f secs avg), of which:\n",
+  master_printf("\n");
+  master_printf("Total time: %g secs to analize %d configurations (%f secs avg), of which:\n",
 		tot_time,nanalized_conf,tot_time/nanalized_conf);
-	 printf(" - %02.2f%s to perform %d inversions (%f secs avg)\n",
+  master_printf(" - %02.2f%s to perform %d inversions (%f secs avg)\n",
 		tot_inv_time/tot_time*100,"%",ntot_inv,tot_inv_time/ntot_inv);
-	 printf(" - %02.2f%s to perform %d 3pts contr. (%f secs avg)\n",
+  master_printf(" - %02.2f%s to perform %d 3pts contr. (%f secs avg)\n",
 		tot_contr_3pts_time/tot_time*100,"%",ntot_contr_3pts,tot_contr_3pts_time/ntot_contr_3pts);
-	 printf(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
+  master_printf(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
 		tot_contr_2pts_time/tot_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
-	 );
   
   appretto_free(twall);
   appretto_free(op1_2pts);appretto_free(op2_2pts);

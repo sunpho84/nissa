@@ -2,16 +2,14 @@
 
 void close_appretto()
 {
-  //close the random generator
-  if(random_initialized)
-    {
-      close_random();
-      random_initialized=0;
-    }
+  master_printf("Closing Appretto");
+  
+  //stop the random generator
+  stop_loc_rnd_gen();
   
   //print information over the maximum amount of memory used
-  master_printf("\nMaximal memory used during the run: %d bytes (",appretto_max_required_memory);
-  master(fprintf_friendly_filesize(stdout,appretto_max_required_memory););
+  master_printf("Maximal memory used during the run: %d bytes (",appretto_max_required_memory);
+  if(rank==0) fprintf_friendly_filesize(stdout,appretto_max_required_memory);
   master_printf(") per process\n\n");
   
   //check wether there are still allocated vectors
@@ -23,5 +21,6 @@ void close_appretto()
     }
   MPI_Barrier(MPI_COMM_WORLD);
   
+  master_printf("   Ciao!\n\n");
   MPI_Finalize();
 }

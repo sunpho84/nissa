@@ -72,12 +72,12 @@ int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr
 	  }
       } 
   
-  if(iter%each==0)
-    master(
-	   printf("cgmms iter %d residues: ",iter);
-	   for(int imass=0;imass<nmass;imass++) if(run_flag[imass]) printf("%1.4e  ",residue_mass[imass]);
-	   printf("\n");
-	   );
+  if(iter%each==0 && rank==0)
+    {    
+      printf("cgmms iter %d residues: ",iter);
+      for(int imass=0;imass<nmass;imass++) if(run_flag[imass]) printf("%1.4e  ",residue_mass[imass]);
+      printf("\n");
+    }
   
   return nrun;
 }

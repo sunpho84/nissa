@@ -29,7 +29,7 @@ EXTERN int **loce_neighdw;
 EXTERN int **loco_neighup;
 EXTERN int **loco_neighdw;
 EXTERN int loc_volr;
-EXTERN int appretto_eo_geom_init;
+EXTERN int appretto_eo_geom_inited;
 
 //neighbours of local volume + borders
 EXTERN int **loclx_neighdw,**loclx_neighup;
@@ -94,9 +94,8 @@ EXTERN appretto_vect main_appretto_vect;
 EXTERN appretto_vect *last_appretto_vect;
 
 //random generator stuff
-#define ran2_ntab 32
-EXTERN int *ran2_idum,*ran2_idum2,**ran2_iv,*ran2_iy;
-EXTERN int random_initialized;
+EXTERN rnd_gen *loc_rnd_gen;
+EXTERN int loc_rnd_gen_inited;
 
 EXTERN as2t smunu_entr[4];   //these are the sigma matrices entries
 EXTERN int smunu_pos[4][6];  //and positions

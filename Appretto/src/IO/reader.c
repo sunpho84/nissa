@@ -48,7 +48,7 @@ void appretto_reader_open(appretto_reader *reader,char *path)
 }
 
 //search a particular record in a file
-void appretto_reader_search_record(appretto_reader *reader,const char *expected_record)
+int appretto_reader_search_record(appretto_reader *reader,const char *expected_record)
 {
   int found=0;
   while(found==0 && lemonReaderNextRecord(reader->lemon_reader)!=LEMON_EOF)
@@ -59,7 +59,7 @@ void appretto_reader_search_record(appretto_reader *reader,const char *expected_
       if(strcmp(expected_record,header)==0) found=1;
     }
   
-  if(found==0) crash("Error, reached the end of file while searching for record %s",expected_record);
+  return found;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,8 @@ appretto_reader *appretto_reader_start_reading(void *out,char *filename,const ch
 {
   appretto_reader *reader=appretto_reader_create();
   appretto_reader_open(reader,filename);
-  appretto_reader_search_record(reader,record_name);
+  int found=appretto_reader_search_record(reader,record_name);
+  if(!found) crash("Error, record %s not found.\n",record_name);
   appretto_reader_start_reading_current_record(out,reader,max_bytes_per_site);
   
   return reader;
@@ -134,10 +135,28 @@ void appretto_reader_finalize_reading_current_record(appretto_reader *reader)
   reader->reading=0;
 }
 
-//wait to finish reading and destroy the reader
-void appretto_reader_finalize_reading(appretto_reader *reader)
+//read the checksum
+void read_checksum(checksum check_read,appretto_reader *reader)
+{
+  int found=appretto_reader_search_record(reader,"scidac-checksum");
+  if(found)
+    {
+      uint64_t nbytes=lemonReaderBytes(reader->lemon_reader);
+      char *mess=(char*)calloc(nbytes+1,sizeof(char));
+      if(lemonReaderReadData(mess,&nbytes,reader->lemon_reader)!=LEMON_SUCCESS) crash("Error while reading checksum");
+      sscanf(strstr(mess,"<suma>")+6,"%x",&(check_read[0]));
+      sscanf(strstr(mess,"<sumb>")+6,"%x",&(check_read[1]));
+      
+      free(mess);
+    }
+  else check_read[0]=check_read[1]=0;
+}
+
+//wait to finish reading, read the checksum and destroy the reader
+void appretto_reader_finalize_reading(checksum read_check,appretto_reader *reader)
 {
   appretto_reader_finalize_reading_current_record(reader);
+  read_checksum(read_check,reader);  
   appretto_reader_close(reader);
   appretto_reader_destroy(reader);
 }
@@ -149,8 +168,23 @@ void finalize_reading_real_vector(double *out,appretto_reader *reader,int nreals
   int nbytes_per_site_double=nreals_per_site*sizeof(double);
   int nbytes_per_site_read=reader->nbytes_per_site;
   
-  appretto_reader_finalize_reading(reader);  
-  
+  //read the checksum
+  checksum read_check;
+  appretto_reader_finalize_reading(read_check,reader);
+  if(read_check[0]!=0||read_check[1]!=0)
+    {
+      master_printf("Checksums read:      %#010x %#010x\n",read_check[0],read_check[1]);
+
+      //compute checksum
+      checksum comp_check;
+      checksum_compute_ildg_data(comp_check,out,nbytes_per_site_read);
+      
+      //print the comparison between checksums
+      master_printf("Checksums computed:  %#010x %#010x\n",comp_check[0],comp_check[1]);
+      if(read_check[0]!=comp_check[0]||read_check[1]!=comp_check[1]) master_printf("Warning, checksums do not agree!\n");
+    }
+  else master_printf("Data checksum not found.\n");
+    
   if(nbytes_per_site_read!=nbytes_per_site_float && nbytes_per_site_read!=nbytes_per_site_double)
     crash("Opsss! The file contain %d bytes per site and it is supposed to contain: %d (single) or %d (double)",
 	  nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);
@@ -264,8 +298,9 @@ int read_binary_blob(void *out,char *path,const char *expected_record,int nmax_b
   double time=(debug_lvl>1) ? -take_time() : 0;
   
   appretto_reader *reader=appretto_reader_start_reading(out,path,expected_record,nmax_bytes_per_site);
+  checksum check;
+  appretto_reader_finalize_reading(check,reader);
   int nbytes_per_site=reader->nbytes_per_site;
-  appretto_reader_finalize_reading(reader);
   
   if(debug_lvl>1)
     {
@@ -319,7 +354,9 @@ void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
 //read a gauge conf
 void read_gauge_conf(quad_su3 *conf,char *path)
 {
+  master_printf("\nReading configuration from file: %s\n",path);
   read_real_vector((double*)conf,path,"ildg-binary-data",nreals_per_quad_su3);
+  master_printf("Configuration read!\n\n");
   reorder_read_gauge_conf(conf);
 }
 
