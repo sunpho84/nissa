@@ -2,6 +2,8 @@
 
 ///////////////// New types ///////////////////
 
+typedef uint32_t checksum[2];
+
 typedef double complex[2];
 
 typedef complex spin[4];
@@ -21,6 +23,21 @@ typedef colorspinspin su3spinspin[3];
 
 typedef complex as2t[6];
 typedef su3 as2t_su3[6];
+
+//Random types
+enum rnd_type{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z4,RND_GAUSS};
+//Source type
+enum source_type{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
+  
+
+//The structure for the random generator
+typedef struct
+{
+  int idum;
+  int idum2;
+  int iv[ran2_ntab];
+  int iy;
+} rnd_gen;
 
 //The structure for gamma matrix
 typedef struct

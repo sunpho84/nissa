@@ -30,6 +30,25 @@ void fprintf_friendly_units(FILE *fout,int quant,int orders,const char *units)
   if(rank==0) fprintf(fout,"%d %s%s",quant,units_prefix[iord],units);
 }
 
+void master_printf_box(const char *template,...)
+{
+  if(rank==0)
+    {
+      char temp_out[1024];
+      va_list ap;
+      va_start(ap,template);
+      vsnprintf(temp_out,1024,template,ap);
+      va_end(ap);
+      int l=strlen(temp_out);
+
+      printf("\n /");
+      for(int i=0;i<l;i++) printf("-");
+      printf("\\\n |%s|\n \\",temp_out);
+      for(int i=0;i<l;i++) printf("-");
+      printf("/\n");
+    }
+}
+
 void fprintf_friendly_filesize(FILE *fout,int quant)
 {fprintf_friendly_units(fout,quant,1024,"Bytes");}
 

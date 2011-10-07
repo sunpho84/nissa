@@ -12,7 +12,6 @@ double put_theta[4],old_theta[4]={0,0,0,0};
 
 //source data
 int seed,noise_type,twall;
-double rad2=1.414213562373095048801688724209;
 spincolor *source;
 colorspinspin *original_source;
 
@@ -106,23 +105,11 @@ void contract_with_source(complex *corr,colorspinspin *S1,int *list_op,colorspin
   trace_g_sdag_g_s(corr,t1,S1,t2,source,ncontr_2pts);
 }
 
-//Generate the source for the dirac index
+//generate the source
 void generate_source()
-{ //reset
-  memset(original_source,0,sizeof(colorspinspin)*loc_vol);
-  
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
-    if(glb_coord_of_loclx[loc_site][0]==twall)
-      for(int ic=0;ic<3;ic++)
-	{ //real part
-	  if(noise_type>=2) original_source[loc_site][ic][0][0][0]=pm_one(loc_site)/rad2;
-	  else original_source[loc_site][ic][0][0][0]=noise_type;
-	  //imaginary part
-	  if(noise_type==4) original_source[loc_site][ic][0][0][1]=pm_one(loc_site)/rad2;
-	  
-	  for(int d=1;d<4;d++) //copy the other three dirac indexes
-	    memcpy(original_source[loc_site][ic][d][d],original_source[loc_site][ic][0][0],sizeof(complex));
-	}
+{
+  enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
+  generate_spindiluted_source(original_source,type[noise_type],twall);
 }
 
 //Generate a sequential source for S1
@@ -166,7 +153,7 @@ void initialize_semileptonic(char *input_path)
   
   //Read the seed and initialize the random generator
   read_str_int("Seed",&seed);
-  init_random(seed);
+  start_loc_rnd_gen(seed);
   //Read the location of the wall
   read_str_int("TWall",&twall);
   //Read the noise type

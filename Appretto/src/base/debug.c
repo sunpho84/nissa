@@ -14,7 +14,28 @@ void print_backtrace_list()
 
 void terminate_sigsegv(int par)
 {
-  print_all_appretto_vect_content();
-  print_backtrace_list();
-  crash("Error detected");
+  //if(par==11)
+    {
+      print_all_appretto_vect_content();
+      print_backtrace_list();
+      crash("Error detected");
+    }
+}
+
+void internal_crash(int line,const char *file,const char *template,...)
+{
+  va_list ap;
+  va_start(ap,template);
+  
+  fflush(stdout);
+  
+  if(rank==0)
+    {
+      char mess[1024];
+      vsprintf(mess,template,ap);
+      fprintf(stderr,"ERROR on line %d of file \"%s\", message error: \"%s\".\n",line,file,mess);
+      MPI_Abort(MPI_COMM_WORLD,1);
+    }
+    
+    va_end(ap);
 }

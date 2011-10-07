@@ -3,9 +3,9 @@
 //indexes run as t,z,y,x (faster:x)
 void set_eo_geometry()
 {
-  if(appretto_eo_geom_init==0)
+  if(appretto_eo_geom_inited==0)
     {
-      appretto_eo_geom_init=1;
+      appretto_eo_geom_inited=1;
       
       //set the various time-slice types
       loclx_parity=(int*)malloc(sizeof(int)*(loc_vol+loc_bord));

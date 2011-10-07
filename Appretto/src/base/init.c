@@ -9,7 +9,7 @@ void init_appretto()
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
   
   //print the version
-  if(rank==0) printf("Initializing Appretto, version: %s\n",SVN_VERS);
+  master_printf("Initializing Appretto, version: %s\n",SVN_VERS);
 
   //define the gauge link
   MPI_Type_contiguous(18,MPI_DOUBLE,&MPI_SU3);
@@ -31,32 +31,29 @@ void init_appretto()
   initialize_main_appretto_vect();
   
   //initialize global variables
-  appretto_eo_geom_init=0;
-  random_initialized=0;
+  appretto_eo_geom_inited=0;
+  loc_rnd_gen_inited=0;
   memset(proc_coord,0,4*sizeof(int));
   memset(nproc_dir,0,4*sizeof(int));
   ONE[0]=I[1]=1;
   ONE[1]=I[0]=0;
   //check endianess
   check_endianess();
-  if(rank==0) printf("System endianess: %s\n",(big_endian==1 ? "big" : "little"));
+  if(big_endian) master_printf("System endianess: big, conversion needed\n");
+  else master_printf("System endianess: little, no conversion needed\n");
 
   init_base_gamma();
   //associate sigsegv with proper handle
   signal(SIGSEGV,terminate_sigsegv);
   
-  if(rank==0) printf("Appretto initialized\n\n");
+  master_printf("Appretto initialized\n");
 }
 
 void init_grid()
 {
   //take initial time
-  double tic;
-  if(debug_lvl)
-    {
-      MPI_Barrier(MPI_COMM_WORLD);
-      tic=MPI_Wtime();
-    }
+  double time_init=-take_time();
+  master_printf("\nInitializing MPI, geometry and communications\n");
 
   int periods[4]={1,1,1,1};
   char proc_name[1024];
@@ -74,19 +71,12 @@ void init_grid()
       glb_vol*=glb_size[idir];
     }
 
-  if(rank==0)
-    {
-      printf("\nNumber of running processes: %d\n",rank_tot);
-      printf("Global lattice:\t%dx%dx%dx%d = %d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3],glb_vol);
-    }
+  master_printf("Number of running processes: %d\n",rank_tot);
+  master_printf("Global lattice:\t%dx%dx%dx%d = %d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3],glb_vol);
 
   MPI_Get_processor_name(proc_name,&proc_name_length);
   MPI_Dims_create(rank_tot,4,nproc_dir);
-  if(rank==0 && debug_lvl==1)
-    {
-      printf("\nCreating grid:\t%dx%dx%dx%d\n",nproc_dir[0],nproc_dir[1],nproc_dir[2],nproc_dir[3]);
-      fflush(stdout);
-    }
+  master_printf("Creating grid:\t%dx%dx%dx%d\n",nproc_dir[0],nproc_dir[1],nproc_dir[2],nproc_dir[3]);
 
   //check that lattice is commensurable with the grid
   //and check wether the idir dir is parallelized or not
@@ -98,12 +88,7 @@ void init_grid()
       paral_dir[idir]=(nproc_dir[idir]>1);
     }
 
-  if(!ok && rank==0)
-    {
-      fprintf(stderr,"The lattice is incommensurable with the total processor amount\n");
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  if(!ok) crash("The lattice is incommensurable with the total processor amount!");
   
   //Calculate local volume
   for(int idir=0;idir<4;idir++) loc_size[idir]=glb_size[idir]/nproc_dir[idir];
@@ -166,13 +151,13 @@ void init_grid()
   MPI_Cart_coords(cart_comm,cart_rank,4,proc_coord);
 
   if(debug_lvl>2)
-    {
-      printf("Process %d of %d on %s: %d (%d %d %d %d)\n",rank,rank_tot,
-	     proc_name,cart_rank,proc_coord[0],proc_coord[1],proc_coord[2],proc_coord[3]);
-      fflush(stdout);
-  
-      MPI_Barrier(MPI_COMM_WORLD);
-    }
+    for(int irank=0;irank<rank_tot;irank++)
+      {
+	if(rank==irank) printf("Process %d of %d on %s: %d (%d %d %d %d)\n",rank,rank_tot,
+			       proc_name,cart_rank,proc_coord[0],proc_coord[1],proc_coord[2],proc_coord[3]);
+	fflush(stdout);
+	MPI_Barrier(MPI_COMM_WORLD);
+      }
   
   /*
   //create the communicator along different plans
@@ -185,16 +170,6 @@ void init_grid()
   */
   //////////////////////////////////////////////////////////////////////////////////////////
 
-  //take final time
-  double tac;
-  if(debug_lvl)
-    {
-      MPI_Barrier(MPI_COMM_WORLD);
-      tac=MPI_Wtime();
-
-      if(rank==0) printf("Time elapsed for MPI inizialization: %f s\n",tac-tic);
-    }
-
   set_lx_geometry();
   
   if(rank_tot>0)
@@ -205,4 +180,7 @@ void init_grid()
       set_lx_bord_senders_and_receivers(MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
       initialize_lx_bord_receivers_of_kind(MPI_LXREDSPINCOLOR_BORD,&MPI_REDSPINCOLOR);
     }
+  
+  //take final time
+  master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());
 }

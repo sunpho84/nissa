@@ -235,22 +235,9 @@ void initialize_bubbles(char *input_path)
 }
 
 void generate_volume_source(int isource)
-{ //reset
-  memset(source,0,sizeof(colorspinspin)*loc_vol);
-  
-  init_random(seed+isource);
-
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
-    for(int ic=0;ic<3;ic++)
-      { //real part
-	if(noise_type>=2) source[loc_site][ic][0][0][0]=pm_one(loc_site)/rad2;
-	else source[loc_site][ic][0][0][0]=noise_type;
-	//imaginary part
-	if(noise_type==4) source[loc_site][ic][0][0][1]=pm_one(loc_site)/rad2;
-        
-	for(int d=1;d<4;d++) //copy the other three dirac indexes
-	  memcpy(source[loc_site][ic][d][d],source[loc_site][ic][0][0],sizeof(complex));
-      }
+{
+  enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
+  generate_spindiluted_source(source,type[noise_type],-1);
 }
 
 void calculate_S()
@@ -418,6 +405,8 @@ int main(int narg,char **arg)
 
   initialize_bubbles(arg[1]);
 
+  start_loc_rnd_gen(seed);
+  
   //loop over the sources
   for(int isource=starting_source;isource<ending_source;isource++)
     {
