@@ -47,11 +47,10 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
     MPI_Allreduce(cloc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     
     if(st_crit==sc_standard||st_crit==sc_unilevel) st_res*=rr;
-    master(
-	   printf("cgmms iter 0 residues: ");
-	   for(int imass=0;imass<nmass;imass++) printf("%1.4e  ",rr);
-	   printf("\n");
-	   );
+
+    printf("cgmms iter 0 residues: ");
+    for(int imass=0;imass<nmass;imass++) printf("%1.4e  ",rr);
+    printf("\n");
   }
   
   //     -betaa=1
