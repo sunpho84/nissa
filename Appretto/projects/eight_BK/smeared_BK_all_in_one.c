@@ -104,7 +104,7 @@ int nspec;
 //return the index of the prop
 int iS(int iwall,int sm_lv,int imass,int r) {return r+2*(imass+nmass*(sm_lv+so_jnlv*iwall));}
 
-//generate the source for the dirac index
+//generate the source 
 void generate_source(int iwall)
 {
   enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};

@@ -345,3 +345,11 @@ void rotate_vol_colorspinspin_to_physical_basis(colorspinspin *s,int rsi,int rso
       rotate_spinspin_to_physical_basis(s[ivol][ic],rsi,rso);
 }
 
+void rotate_vol_su3spinspin_to_physical_basis(su3spinspin *s,int rsi,int rso)
+{
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int ic1=0;ic1<3;ic1++)
+      for(int ic2=0;ic2<3;ic2++)
+	rotate_spinspin_to_physical_basis(s[ivol][ic1][ic2],rsi,rso);
+}
+
