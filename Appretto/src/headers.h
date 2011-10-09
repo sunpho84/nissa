@@ -192,6 +192,7 @@ void rnd_get_Z2(complex out,rnd_gen *gen);
 void rnd_get_Z4(complex out,rnd_gen *gen);
 void rotate_spinspin_to_physical_basis(spinspin s,int rsi,int rso);
 void rotate_vol_colorspinspin_to_physical_basis(colorspinspin *s,int rsi,int rso);
+void rotate_vol_su3spinspin_to_physical_basis(su3spinspin *s,int rsi,int rso);
 void safe_complex_conj1_prod(complex a,complex b,complex c);
 void safe_complex_conj2_prod(complex a,complex b,complex c);
 void safe_complex_prod(complex a,complex b,complex c);

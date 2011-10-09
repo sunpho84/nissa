@@ -1,0 +1,29 @@
+L 4
+T 8
+Kappa 0.177000
+
+Seed 100
+NoiseType 4 
+
+Nmass 3
+0.50 0.60 0.70
+
+ApeAlpha 0.5
+ApeNiter 5
+JacobiKappa 0.5
+JacobiNiters 1  0
+
+Residue 1.e-10
+StoppingCriterion standard
+MinimalResidue 1.e-10
+NiterMax 4000
+
+NContrTwoPoints 5
+5 9
+5 5
+13 13
+14 14
+15 15
+
+NGaugeConf 1
+../../../data/L4T8conf 0 out
