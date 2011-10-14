@@ -56,8 +56,11 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
 //apply a gauge transformation to the conf
 void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
 {
-  communicate_su3_borders(g);
-  communicate_gauge_borders(uin);
+  if(rank_tot>1)
+    {
+      communicate_su3_borders(g);
+      communicate_gauge_borders(uin);
+    }
   
   su3 temp;
   for(int ivol=0;ivol<loc_vol;ivol++)
