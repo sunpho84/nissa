@@ -1,0 +1,5 @@
+L 4
+T 8
+GaugeConf  ../../../data/L4T8conf
+Alpha 0.04
+Precision 1.e-10

@@ -1,166 +1,200 @@
 #include "appretto.h"
 
-void landau_delta(su3 delta,quad_su3 *conf,int ivol)
-{
-  su3 U1;
+double alpha;
+double precision;
 
-  su3_put_to_zero(delta);
-  
-  for(int idir=0;idir<4;idir++)
+//compute the steepest descent gauge fixing transformation
+void find_fixing(su3 *g,quad_su3 *conf,double alpha)
+{
+  //loop over local sites
+  for(int ivol=0;ivol<loc_vol;ivol++)
     {
-      int bvol=loclx_neighdw[ivol][idir];
+      su3 delta;
+      su3_put_to_zero(delta);
       
-      //Calculate U_nu(x-nu)+U_nu(x)
-      for(int ic1=0;ic1<3;ic1++)
-	for(int ic2=0;ic2<3;ic2++)
-	  for(int ri=0;ri<2;ri++)
-	    U1[ic1][ic2][ri]=conf[bvol][idir][ic1][ic2][ri]+conf[ivol][idir][ic1][ic2][ri];
-    }
-  
-  //Calculate U_nu(x-nu)+U_nu(x)-h.c. and the trace
-  complex tr={0,0};
-  for(int ic1=0;ic1<3;ic1++)
-    {
-      for(int ic2=0;ic2<3;ic2++)
+      //Calculate \sum_mu(U_mu(x-mu)-U_mu(x-mu)^dag-U_mu(x)+U^dag_mu(x)]
+      for(int mu=0;mu<4;mu++)
 	{
-	  delta[ic1][ic2][0]=U1[ic1][ic2][0]-U1[ic2][ic1][0];
-	  delta[ic1][ic2][1]=U1[ic1][ic2][1]+U1[ic2][ic1][1];
-	}	  
-      for(int ri=0;ri<2;ri++) tr[ri]+=delta[ic1][ic1][ri];
+	  int bvol=loclx_neighdw[ivol][mu];
+	  
+	  for(int ic1=0;ic1<3;ic1++)
+	    for(int ic2=0;ic2<3;ic2++)
+	      {
+		//real part
+		delta[ic1][ic2][0]+=
+		  +conf[bvol][mu][ic1][ic2][0] //U_mu(x-mu)
+		  -conf[bvol][mu][ic2][ic1][0] //U_mu(x-mu)^dag
+		  -conf[ivol][mu][ic1][ic2][0] //U_mu(x)
+		  +conf[ivol][mu][ic2][ic1][0];//U_mu(x)^dag
+		//imag part
+		delta[ic1][ic2][1]+=
+		  +conf[bvol][mu][ic1][ic2][1] //U_mu(x-mu)
+		  +conf[bvol][mu][ic2][ic1][1] //U_mu(x-mu)^dag
+		  -conf[ivol][mu][ic1][ic2][1] //U_mu(x)
+		  -conf[ivol][mu][ic2][ic1][1];//U_mu(x)^dag
+	      }
+	}
+      
+      //compute the trace/3
+      complex trace={0,0};
+      for(int ic=0;ic<3;ic++)
+	{
+	  trace[0]+=delta[ic][ic][0];
+	  trace[1]+=delta[ic][ic][1];
+	}
+      trace[0]/=3;
+      trace[1]/=3;
+      
+      //subtract the trace (divide by 1/3)
+      for(int ic=0;ic<3;ic++)
+	{
+	  delta[ic][ic][0]-=trace[0];
+	  delta[ic][ic][1]-=trace[1];
+	}
+      
+      //multiply by a/2 and add 1
+      for(int ic1=0;ic1<3;ic1++)
+	{
+	  for(int ic2=0;ic2<3;ic2++)
+	    for(int ri=0;ri<2;ri++)
+	      delta[ic1][ic2][ri]*=alpha/2;
+	  //add 1
+	  delta[ic1][ic1][0]+=1;
+	}
+      
+      //unitarize
+      su3_unitarize(g[ivol],delta);
     }
-  
-  //subtract the trace
-  for(int ic=0;ic<3;ic++) for(int ri=0;ri<2;ri++) delta[ic][ic][ri]-=tr[ri]/3;
 }
 
-double landau_gauge_fixing_quality(quad_su3 *conf)
+//here for future usage
+double landau_gauge_fixing_functional(quad_su3 *conf)
 {  
-  complex loc_qual={0,0};
+  double loc_qual=0;
   double glb_qual;
   
   for(int ivol=0;ivol<loc_vol;ivol++)
-    {
-      //su3 delta;
-      
-      //landau_delta(delta,conf,ivol);
-
-      //calculate the product
-      //for(int ic1=0;ic1<3;ic1++)
-      //for(int ic2=0;ic2<3;ic2++)
-      //complex_summ_the_conj1_prod(loc_qual,delta[ic1][ic2],delta[ic2][ic1]);
-      for(int mu=0;mu<4;mu++)
-	{
-	  int b=loclx_neighdw[ivol][mu];
-	  for(int ic=0;ic<3;ic++)
-	    loc_qual[0]+=conf[ivol][mu][ic][ic][0]+conf[b][mu][ic][ic][0];
-	}
-    }
-  MPI_Reduce(loc_qual,&glb_qual,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD); 
+    for(int mu=0;mu<4;mu++)
+      for(int ic=0;ic<3;ic++)
+	loc_qual+=conf[ivol][mu][ic][ic][0];
   
-  return -glb_qual/glb_vol/3;
+  //global reduction
+  MPI_Allreduce(&loc_qual,&glb_qual,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  
+  return glb_qual/2/3/4/glb_vol;
 }
 
-void landau_gauge_fixing(quad_su3 *conf)
+//compute the quality of the gauge fixing
+double landau_gauge_fixing_quality(quad_su3 *conf)
 {
-  init_random(10);
+  communicate_gauge_borders(conf);
 
-  double alpha=0.08;
+  double loc_omega=0;
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    {
+      su3 delta;
+      su3_put_to_zero(delta);
+      
+      for(int mu=0;mu<4;mu++)
+	{
+	  int bvol=loclx_neighdw[ivol][mu];
 
-  set_eo_geometry();
+	  //compute delta
+	  for(int ic1=0;ic1<3;ic1++)
+	    for(int ic2=0;ic2<3;ic2++)
+	      {
+		delta[ic1][ic2][0]+=
+		  +conf[bvol][mu][ic1][ic2][0]
+		  -conf[bvol][mu][ic2][ic1][0]
+		  -conf[ivol][mu][ic1][ic2][0]
+		  +conf[ivol][mu][ic2][ic1][0];
+		delta[ic1][ic2][1]+=
+		  +conf[bvol][mu][ic1][ic2][1]
+		  +conf[bvol][mu][ic2][ic1][1]
+		  -conf[ivol][mu][ic1][ic2][1]
+		  -conf[ivol][mu][ic2][ic1][1];
+	      }
 
-  for(int iter=0;iter<20000;iter++)
-    for(int par=0;par<2;par++)
-      {
-	//communicate_gauge_borders(conf);
-
-	if(par==0)
-	  {
-	    //calculate original plaquette and quality
-	    double qual,old_qual=qual;
-	    qual=landau_gauge_fixing_quality(conf);
-	    double plaq=global_plaquette(conf);
-	    if(rank==0 && iter) printf("Quality: %g %g\n",qual-old_qual,plaq);
-	  }
-	
-	for(int ivol=0;ivol<loc_vol;ivol++)
-	  if(loclx_parity[ivol]==par)
+	  //compute trace
+	  complex trace={0,0};
+	  for(int ic=0;ic<3;ic++)
 	    {
-	      su3 g;
-	      
-	      //if(iter%100!=99)
-		{
-		  memset(g,0,sizeof(su3));
-		  
-		  for(int mu=0;mu<4;mu++)
-		    {
-		      su3 gt,gd;
-		      int b=loclx_neighdw[ivol][mu];
-		      su3_subt(gt,conf[b][mu],conf[ivol][mu]);
-		      unsafe_su3_hermitian(gd,gt);
-		      su3_summ(g,gt,gd);
-		    }
-	      
-		  //subtract the trace and multiply by alpha/2
-		  complex tr;
-		  su3 expon;
-		  su3_trace(tr,g);
-		  complex_prod_real(tr,tr,1.0/3);
-		  su3_subt_complex(g,g,tr);
-		  su3_prod_real(expon,g,alpha/2);
-	      
-		  //calculate the exponential of the matrix
-		  su3_copy(g,expon);
-		  su3_summ_real(g,g,1);
-		}
-		/*
-	      else
-		{
-		  for(int i=0;i<3;i++)
-		    {
-		      for(int j=0;j<3;j++)
-			for(int ri=0;ri<2;ri++)
-			  g[i][j][ri]=0.2*ran2(ivol)/(iter/1500+1);
-		      g[i][i][0]+=1;
-		    }
-		    }*/
-	      su3_unitarize(g,g);
-	    
-	      //perform the gauge transf
-	      for(int mu=0;mu<4;mu++)
-		{
-		  int b=loclx_neighdw[ivol][mu];
-		  su3 te;
-		  
-		  su3_prod_su3(te,g,conf[ivol][mu]);
-		  su3_copy(conf[ivol][mu],te);
-		  
-		  su3_prod_su3_dag(te,conf[b][mu],g);
-		  su3_copy(conf[b][mu],te);
-		}
+	      trace[0]+=delta[ic][ic][0];
+	      trace[1]+=delta[ic][ic][1];
 	    }
-      }
+	  trace[0]/=3;
+	  trace[1]/=3;
+	  
+	  //subtract trace
+	  for(int ic=0;ic<3;ic++)
+	    {
+	      delta[ic][ic][0]-=trace[0];
+	      delta[ic][ic][1]-=trace[1];
+	    }
+	}
+      
+      //compute the trace of the square and summ it to omega
+      for(int ic1=0;ic1<3;ic1++)
+	for(int ic2=0;ic2<3;ic2++)
+	  loc_omega+=
+	    +delta[ic1][ic2][0]*delta[ic2][ic1][0]
+	    +delta[ic1][ic2][1]*delta[ic2][ic1][1];
+    }
+  
+  //global reduction
+  double glb_omega;
+  MPI_Allreduce(&loc_omega,&glb_omega,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  
+  return glb_omega/glb_vol/3;
+}
+
+//perform the landau gauge fixing
+void landau_gauge_fixing(quad_su3 *conf_out,quad_su3 *conf_in)
+{
+  //fixing transformation
+  su3 *fixm=appretto_malloc("fixm",loc_vol+loc_bord,su3);
+
+  //fix iteratively up to reaching required precision
+  int iter=0;
+  double qual_out=landau_gauge_fixing_quality(conf_in);
+  do
+    {
+      double qual_in=qual_out;
+      
+      //find the next fixing and compute its quality
+      find_fixing(fixm,conf_in,alpha);
+      gauge_transform_conf(conf_out,fixm,conf_in);
+      qual_out=landau_gauge_fixing_quality(conf_out);
+      
+      //compute change in quality
+      double delta_qual=qual_out-qual_in;
+      master_printf("Iter %d alpha %lg, quality: %lg delta: %lg\n",iter,alpha,qual_in,delta_qual);
+      memcpy(conf_in,conf_out,sizeof(quad_su3)*loc_vol);
+      
+      iter++;
+    }
+  while(qual_out>=precision);
+  
+  appretto_free(fixm);
 }
 
 int main(int narg,char **arg)
 {
-  char filename[1024];
+  char conf_in_path[1024];
 
   //basic mpi initialization
   init_appretto();
 
-  if(narg<2 && rank==0)
-    {
-      fprintf(stderr,"Use: %s input_file\n",arg[0]);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  if(narg<2) crash("Use: %s input_file",arg[0]);
 
   open_input(arg[1]);
 
   read_str_int("L",&(glb_size[1]));
   read_str_int("T",&(glb_size[0]));
-  read_str_str("Filename",filename,1024);
-
+  read_str_str("GaugeConf",conf_in_path,1024);
+  read_str_double("Alpha",&alpha);
+  read_str_double("Precision",&precision);
+  
   close_input();
 
   //Init the MPI grid 
@@ -168,14 +202,19 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
-  quad_su3 *conf=allocate_quad_su3(loc_vol+loc_bord,"Conf");
-  read_gauge_conf(conf,filename);  
+  quad_su3 *conf=appretto_malloc("Conf",loc_vol+loc_bord,quad_su3);
+  quad_su3 *fix_conf=appretto_malloc("Conf2",loc_vol+loc_bord,quad_su3);
+  
+  read_gauge_conf(conf,conf_in_path);  
   communicate_gauge_borders(conf);
   
-  landau_gauge_fixing(conf);
+  landau_gauge_fixing(fix_conf,conf);
   
   ///////////////////////////////////////////
 
+  appretto_free(conf);
+  appretto_free(fix_conf);
+  
   close_appretto();
 
   return 0;
