@@ -75,7 +75,7 @@ EXTERN int paral_dir[4],nparal_dir;
 EXTERN int nproc_dir[4];
 EXTERN int proc_coord[4];
 EXTERN int rank_neighdw[4],rank_neighup[4];
-EXTERN int rank,rank_tot,cart_rank;
+EXTERN int rank,rank_tot,cart_rank,line_rank[4];
 
 EXTERN int big_endian;
 
@@ -84,7 +84,7 @@ EXTERN int big_endian;
 
 EXTERN MPI_Comm cart_comm;
 EXTERN MPI_Comm plan_comm;
-EXTERN MPI_Comm time_comm;
+EXTERN MPI_Comm line_comm[4];
 
 //vectors
 EXTERN int appretto_max_required_memory;

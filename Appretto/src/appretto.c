@@ -19,6 +19,7 @@
 #include "IO/input.c"
 
 #include "operations/su3_paths.c"
+#include "operations/fft.c"
 #include "operations/gaugeconf.c"
 #include "operations/contract.c"
 #include "operations/smear.c"
