@@ -3,14 +3,79 @@
 double alpha;
 double precision;
 
+//return the log of the factorial of n
+double lfact(double n)
+{
+  double log_factn=0;
+  for(int i=1;i<=n;i++) log_factn+=logf(i);
+  return log_factn;
+}
+
+//overrelax the transformation
+void overrelax(su3 *out,su3 *in,int N,double omega)
+{
+  //find coefficients
+  double coef[N+1];
+  for(int n=0;n<=N;n++) coef[n]=exp(lgamma(omega+1)-lgamma(omega+1-n)-lfact(n));
+  
+  //loop over volume
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    {
+      su3 t,o,w;
+
+      su3_summ_real(w,in[ivol],-1); //subtract 1 from in[ivol]
+      su3_copy(t,w);                //init t
+      su3_put_to_id(o);             //output init
+      
+      //compute various powers
+      for(int n=1;n<=N;n++)
+	{ //summ 
+	  for(int i=0;i<18;i++) ((double*)o)[i]+=coef[n]*((double*)t)[i];
+	  safe_su3_prod_su3(t,t,w); //next power of w
+	}
+      
+      //unitarize
+      su3_unitarize(out[ivol],o);
+    }
+}
+
+//apply the fast fourier acceleration
+void fast_fourier_accelerate_fixing(su3 *g)
+{  
+  fft4d((complex*)g,(complex*)g,9,1);
+  
+  //apply the conditioning
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    {
+      //compute p2
+      double p2=0;
+      for(int mu=0;mu<4;mu++)
+	{
+	  int ix=glb_coord_of_loclx[ivol][mu];
+	  double pmu=M_PI*ix/glb_size[mu];
+	  double sinpmu=sin(pmu);
+	  p2+=sinpmu*sinpmu;
+	}
+      p2/=4;
+      
+      //apply
+      if(p2!=0)
+	for(int i=0;i<3;i++)
+	  for(int j=0;j<3;j++)
+	    for(int ri=0;ri<2;ri++)
+	      g[ivol][i][j][ri]/=p2;
+    }
+  
+    fft4d((complex*)g,(complex*)g,9,-1);
+}
+
 //compute the steepest descent gauge fixing transformation
-void find_fixing(su3 *g,quad_su3 *conf,double alpha)
+void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,double alpha)
 {
   //loop over local sites
   for(int ivol=0;ivol<loc_vol;ivol++)
     {
-      su3 delta;
-      su3_put_to_zero(delta);
+      su3_put_to_zero(g[ivol]);
       
       //Calculate \sum_mu(U_mu(x-mu)-U_mu(x-mu)^dag-U_mu(x)+U^dag_mu(x)]
       for(int mu=0;mu<4;mu++)
@@ -21,13 +86,13 @@ void find_fixing(su3 *g,quad_su3 *conf,double alpha)
 	    for(int ic2=0;ic2<3;ic2++)
 	      {
 		//real part
-		delta[ic1][ic2][0]+=
+		g[ivol][ic1][ic2][0]+=
 		  +conf[bvol][mu][ic1][ic2][0] //U_mu(x-mu)
 		  -conf[bvol][mu][ic2][ic1][0] //U_mu(x-mu)^dag
 		  -conf[ivol][mu][ic1][ic2][0] //U_mu(x)
 		  +conf[ivol][mu][ic2][ic1][0];//U_mu(x)^dag
 		//imag part
-		delta[ic1][ic2][1]+=
+		g[ivol][ic1][ic2][1]+=
 		  +conf[bvol][mu][ic1][ic2][1] //U_mu(x-mu)
 		  +conf[bvol][mu][ic2][ic1][1] //U_mu(x-mu)^dag
 		  -conf[ivol][mu][ic1][ic2][1] //U_mu(x)
@@ -39,8 +104,8 @@ void find_fixing(su3 *g,quad_su3 *conf,double alpha)
       complex trace={0,0};
       for(int ic=0;ic<3;ic++)
 	{
-	  trace[0]+=delta[ic][ic][0];
-	  trace[1]+=delta[ic][ic][1];
+	  trace[0]+=g[ivol][ic][ic][0];
+	  trace[1]+=g[ivol][ic][ic][1];
 	}
       trace[0]/=3;
       trace[1]/=3;
@@ -48,23 +113,25 @@ void find_fixing(su3 *g,quad_su3 *conf,double alpha)
       //subtract the trace (divide by 1/3)
       for(int ic=0;ic<3;ic++)
 	{
-	  delta[ic][ic][0]-=trace[0];
-	  delta[ic][ic][1]-=trace[1];
+	  g[ivol][ic][ic][0]-=trace[0];
+	  g[ivol][ic][ic][1]-=trace[1];
 	}
-      
-      //multiply by a/2 and add 1
-      for(int ic1=0;ic1<3;ic1++)
-	{
-	  for(int ic2=0;ic2<3;ic2++)
-	    for(int ri=0;ri<2;ri++)
-	      delta[ic1][ic2][ri]*=alpha/2;
-	  //add 1
-	  delta[ic1][ic1][0]+=1;
-	}
-      
-      //unitarize
-      su3_unitarize(g[ivol],delta);
     }
+  
+  fast_fourier_accelerate_fixing(g);
+
+  //multiply by a/2 and add 1
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int ic1=0;ic1<3;ic1++)
+      {
+	for(int ic2=0;ic2<3;ic2++)
+	  for(int ri=0;ri<2;ri++)
+	    g[ivol][ic1][ic2][ri]*=alpha/2;
+	g[ivol][ic1][ic1][0]+=1;
+      }
+      
+  //overrelax and unitarize
+  overrelax(g,g,3,1.75);
 }
 
 //here for future usage
@@ -137,8 +204,8 @@ double landau_gauge_fixing_quality(quad_su3 *conf)
       for(int ic1=0;ic1<3;ic1++)
 	for(int ic2=0;ic2<3;ic2++)
 	  loc_omega+=
-	    +delta[ic1][ic2][0]*delta[ic2][ic1][0]
-	    +delta[ic1][ic2][1]*delta[ic2][ic1][1];
+	    +delta[ic1][ic2][0]*delta[ic1][ic2][0]
+	    +delta[ic1][ic2][1]*delta[ic1][ic2][1];
     }
   
   //global reduction
@@ -151,29 +218,33 @@ double landau_gauge_fixing_quality(quad_su3 *conf)
 //perform the landau gauge fixing
 void landau_gauge_fixing(quad_su3 *conf_out,quad_su3 *conf_in)
 {
+  memcpy(conf_out,conf_in,sizeof(quad_su3)*loc_vol);
+  
   //fixing transformation
   su3 *fixm=appretto_malloc("fixm",loc_vol+loc_bord,su3);
 
   //fix iteratively up to reaching required precision
   int iter=0;
-  double qual_out=landau_gauge_fixing_quality(conf_in);
+  double qual_out=landau_gauge_fixing_quality(conf_out);
   do
     {
-      double qual_in=qual_out;
-      
       //find the next fixing and compute its quality
-      find_fixing(fixm,conf_in,alpha);
-      gauge_transform_conf(conf_out,fixm,conf_in);
-      qual_out=landau_gauge_fixing_quality(conf_out);
+      double tin=take_time();
+      find_steepest_descent_fixing(fixm,conf_out,alpha);
+      gauge_transform_conf(conf_out,fixm,conf_out);
       
       //compute change in quality
+      double tint=take_time();
+      double qual_in=qual_out;
+      qual_out=landau_gauge_fixing_quality(conf_out);      
       double delta_qual=qual_out-qual_in;
-      master_printf("Iter %d alpha %lg, quality: %lg delta: %lg\n",iter,alpha,qual_in,delta_qual);
-      memcpy(conf_in,conf_out,sizeof(quad_su3)*loc_vol);
-      
+      master_printf("Iter %d alpha %lg, quality: %lg (%lg req) delta: %lg; %lg %lg s\n",iter,alpha,qual_out,precision,delta_qual,tint-tin,take_time()-tint);
+          
       iter++;
     }
   while(qual_out>=precision);
+  
+  master_printf("Final quality: %lg\n",qual_out);
   
   appretto_free(fixm);
 }
@@ -205,11 +276,14 @@ int main(int narg,char **arg)
   quad_su3 *conf=appretto_malloc("Conf",loc_vol+loc_bord,quad_su3);
   quad_su3 *fix_conf=appretto_malloc("Conf2",loc_vol+loc_bord,quad_su3);
   
-  read_gauge_conf(conf,conf_in_path);  
+  read_gauge_conf(conf,conf_in_path);
   communicate_gauge_borders(conf);
   
   landau_gauge_fixing(fix_conf,conf);
   
+  master_printf("plaq: %.18g\n",global_plaquette(conf));
+  master_printf("plaq: %.18g\n",global_plaquette(fix_conf));
+
   ///////////////////////////////////////////
 
   appretto_free(conf);

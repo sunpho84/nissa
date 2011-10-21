@@ -121,7 +121,7 @@ void unsafe_su3_hermitian(su3 out,su3 in)
 void su3_summ(su3 a,su3 b,su3 c)
 {for(int i=0;i<18;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
 void su3_summ_real(su3 a,su3 b,double c)
-{for(int i=0;i<3;i++) for(int ri=0;ri<2;ri++) a[i][i][ri]=b[i][i][ri]+c;}
+{su3_copy(a,b);for(int i=0;i<3;i++) a[i][i][0]=b[i][i][0]+c;}
 void su3_subt(su3 a,su3 b,su3 c)
 {for(int i=0;i<18;i++) ((double*)a)[i]=((double*)b)[i]-((double*)c)[i];}
 void su3_subt_complex(su3 a,su3 b,complex c)
@@ -137,6 +137,12 @@ void su3_prod_su3(su3 a,su3 b,su3 c)
 	for(int itemp=1;itemp<3;itemp++)
 	  complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
       }
+}
+void safe_su3_prod_su3(su3 a,su3 b,su3 c)
+{
+  su3 d;
+  su3_prod_su3(d,b,c);
+  su3_copy(a,d);
 }
 
 //Product of two su3 matrixes
@@ -531,4 +537,3 @@ void unsafe_subt_su3_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spin
 //spincolor*complex
 void unsafe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor)
 {for(int i=0;i<144;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
-
