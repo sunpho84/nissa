@@ -123,3 +123,36 @@ int master_fprintf(FILE *stream,const char *format,...)
   return ret;
 }
 
+
+//return the log2 of N
+int log2N(int N)
+{
+  int log2N=0;
+  
+  do log2N++;
+  while ((2<<log2N)<N);
+  
+  return log2N;
+}
+
+//factorize a number
+int factorize(int *list,int N)
+{
+  int nfatt=0;
+  int fatt=2;
+
+  while(N>1)
+    {
+      int div=N/fatt;
+      int res=N-div*fatt;
+      if(res!=0) fatt++;
+      else 
+	{
+	  N=div;
+	  list[nfatt]=fatt;
+	  nfatt++;
+	}
+    }
+
+  return nfatt;
+}

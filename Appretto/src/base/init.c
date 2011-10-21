@@ -8,6 +8,10 @@ void init_appretto()
   MPI_Comm_size(MPI_COMM_WORLD,&rank_tot);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
   
+  //associate sigsegv with proper handle
+  signal(SIGSEGV,terminate_sigsegv);
+  signal(SIGFPE,terminate_sigsegv);
+
   //print the version
   master_printf("Initializing Appretto, version: %s\n",SVN_VERS);
 
@@ -43,12 +47,109 @@ void init_appretto()
   else master_printf("System endianess: little, no conversion needed\n");
 
   init_base_gamma();
-  //associate sigsegv with proper handle
-  signal(SIGSEGV,terminate_sigsegv);
   
   master_printf("Appretto initialized\n");
 }
 
+//compute internal volume
+int bulk_volume(int *L)
+{
+  int intvol=1,mu=0;
+  do
+    {
+      if(L[mu]>2) intvol*=L[mu]-2;
+      else intvol=0;
+      
+      mu++;
+    }
+  while(intvol!=0 && mu<4);
+  
+  return intvol;
+}
+
+//compute the bulk volume of the reciprocal lattice L/P
+int bulk_recip_lat_volume(int *P,int *L)
+{
+  int X[4]={L[0]/P[0],L[1]/P[1],L[2]/P[2],L[3]/P[3]};
+  return bulk_volume(X);
+}
+
+//find the grid of procs minimizing the surface
+void find_minimal_surface_grid(int *mP,int *L,int NP)
+{
+  if(NP==1||NP==glb_vol)
+    {
+      if(NP==1) mP[0]=mP[1]=mP[2]=mP[3]=1;
+      else 
+	for(int mu=0;mu<4;mu++)
+	  mP[mu]=L[mu];
+    }
+  else
+    {
+      //compute total and local volume
+      int V=L[0]*L[1]*L[2]*L[3];
+      int VL=V/NP;
+      
+      //factorize the local volume
+      int list_factVL[log2N(VL)];
+      int nfactVL=factorize(list_factVL,VL);
+      
+      //factorize the number of proc
+      int list_factNP[log2N(NP)];
+      int nfactNP=factorize(list_factNP,NP);
+      
+      //if nfactVL>nfactNP factorize the reciprocal lattice
+      int nfactX=(nfactVL<nfactNP) ? nfactVL : nfactNP;
+      int *list_factX=(nfactVL<nfactNP) ? list_factVL : list_factNP;
+
+      //compute the number of combinations
+      int ncomboX=1;
+      for(int ifactX=0;ifactX<nfactX;ifactX++) ncomboX*=4;
+      
+      //find the partition which minimize the surface
+      int minsurfVL=-1;
+      mP[0]=mP[1]=mP[2]=mP[3]=-1;
+      int icomboX=0;
+      do
+	{
+	  //find the partioning of P corresponding to combo ic
+	  int X[4]={1,1,1,1};
+	  int ifactX=nfactX-1;
+	  int valid_partitioning=1;
+	  do
+	    {
+	      int mu=(icomboX>>(2*ifactX)) & 0x3;
+	      X[mu]*=list_factX[ifactX];
+	      
+	      valid_partitioning=(L[mu]%X[mu]==0);
+	      
+	      if(valid_partitioning) ifactX--;
+	    }
+	  while(valid_partitioning==1 && ifactX>=0);
+	  
+	  //if it is a valid partitioning
+	  if(valid_partitioning)
+	    {
+	      //compute the surface=loc_vol-bulk_volume
+	      int surfVL=VL-((nfactVL<nfactNP) ? bulk_volume(X) : bulk_recip_lat_volume(X,L));
+	      
+	      //if it is the minimal surface (or first valid combo) copy it
+	      if(surfVL<minsurfVL||minsurfVL==-1)
+		{
+		  minsurfVL=surfVL;
+		  for(int mu=0;mu<4;mu++)
+		    mP[mu]=(nfactVL<nfactNP) ? L[mu]/X[mu] : X[mu];
+		}
+	      
+	      icomboX++;
+	    }
+	  else icomboX+=(ifactX>1) ? 1<<(2*(ifactX-1)) : 1;
+	}
+      while(icomboX<ncomboX);
+    }
+}
+
+//initialize MPI grid
 void init_grid()
 {
   //take initial time
@@ -73,14 +174,13 @@ void init_grid()
 
   master_printf("Number of running processes: %d\n",rank_tot);
   master_printf("Global lattice:\t%dx%dx%dx%d = %d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3],glb_vol);
-
-  MPI_Get_processor_name(proc_name,&proc_name_length);
-  MPI_Dims_create(rank_tot,4,nproc_dir);
-  master_printf("Creating grid:\t%dx%dx%dx%d\n",nproc_dir[0],nproc_dir[1],nproc_dir[2],nproc_dir[3]);
-
+  
+  //find the grid minimizing the surface
+  find_minimal_surface_grid(nproc_dir,glb_size,rank_tot);
+  
   //check that lattice is commensurable with the grid
   //and check wether the idir dir is parallelized or not
-  int ok=1;
+  int ok=(glb_vol%rank_tot==0);
   for(int idir=0;idir<4;idir++)
     {
       ok=ok && (nproc_dir[idir]>0);
@@ -89,7 +189,11 @@ void init_grid()
     }
 
   if(!ok) crash("The lattice is incommensurable with the total processor amount!");
+  master_printf("Creating grid:\t%dx%dx%dx%d\n",nproc_dir[0],nproc_dir[1],nproc_dir[2],nproc_dir[3]);
   
+  MPI_Get_processor_name(proc_name,&proc_name_length);
+  MPI_Dims_create(rank_tot,4,nproc_dir);
+
   //Calculate local volume
   for(int idir=0;idir<4;idir++) loc_size[idir]=glb_size[idir]/nproc_dir[idir];
   loc_vol=glb_vol/rank_tot;
@@ -106,7 +210,7 @@ void init_grid()
 
       //total bord
       loc_bord+=bord_dir_vol[idir];
-
+      
       //summ of the border extent up to dir idir
       if(idir>0) bord_offset[idir]=bord_offset[idir-1]+bord_dir_vol[idir-1];
     }
@@ -163,11 +267,18 @@ void init_grid()
   //create the communicator along different plans
   int split_plans[4]={0,1,1,1};
   MPI_Cart_sub(cart_comm,split_plans,&plan_comm);
-  
-  //create communicator along t line
-  int split_time[4]={1,0,0,0};
-  MPI_Cart_sub(cart_comm,split_time,&time_comm);
   */
+  //create communicator along t line
+  int split_time[4];
+  for(int mu=0;mu<4;mu++)
+    {
+      memset(split_time,0,4*sizeof(int));
+      split_time[mu]=1;
+      MPI_Cart_sub(cart_comm,split_time,&(line_comm[mu]));
+      MPI_Comm_rank(line_comm[mu],&(line_rank[mu]));
+      if(line_rank[mu]!=proc_coord[mu]) crash("Line communicator has messed up coord and rank (implement reorder!)");
+   }
+  
   //////////////////////////////////////////////////////////////////////////////////////////
 
   set_lx_geometry();

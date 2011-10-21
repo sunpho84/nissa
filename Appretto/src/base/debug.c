@@ -28,6 +28,7 @@ void internal_crash(int line,const char *file,const char *template,...)
   va_start(ap,template);
   
   fflush(stdout);
+  fflush(stderr);
   
   if(rank==0)
     {
