@@ -219,6 +219,7 @@ void safe_su3_dag_prod_color(color a,su3 b,color c);
 void safe_su3_hermitian(su3 out,su3 in);
 void safe_su3_prod_color(color a,su3 b,color c);
 void safe_su3_prod_complex(su3 a,su3 b,complex c);
+void safe_su3_prod_su3(su3 a,su3 b,su3 c);
 void set_eo_geometry();
 void set_lx_bord_senders_and_receivers(MPI_Datatype *MPI_BORD_SEND,MPI_Datatype *MPI_BORD_RECE,MPI_Datatype *base);
 void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);

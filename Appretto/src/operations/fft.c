@@ -84,7 +84,6 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign)
   //reorder data across the various proc: glb_iel_in=iel_blk_out*glb_nblk+glb_iblk_out_rev
   int nrequest0=0,nexp_request0=loc_size[mu]*2;
   MPI_Request request0[nexp_request0];
-  complex *recv=(blk_size==1) ? out : buf; //if blk_size==1 put directly in the out (skip step 2)
   for(int loc_iblk_in=0;loc_iblk_in<loc_nblk;loc_iblk_in++)
     for(int iel_blk_in=0;iel_blk_in<blk_size;iel_blk_in++)
       {
@@ -101,7 +100,7 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign)
 	int loc_iel_out=loc_iblk_out*blk_size+iel_blk_out;
 	
 	//now, if the destination is local, put it on place
-	if(proc_coord_out==proc_coord[mu]) memcpy(recv+ncpp*loc_iel_out,in+ncpp*loc_iel_in,sizeof(complex)*ncpp);
+	if(proc_coord_out==proc_coord[mu]) memcpy(buf+ncpp*loc_iel_out,in+ncpp*loc_iel_in,sizeof(complex)*ncpp);
 	else //send the data to the destination
 	  MPI_Isend((void*)(in+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,proc_coord_out,1241+loc_iel_out,
 		    line_comm[mu],&request0[nrequest0++]);
@@ -110,7 +109,7 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign)
 	int glb_iel_send=iel_blk_in*glb_nblk+bitrev(glb_iblk_in,log2glb_nblk);
 	int proc_coord_send=glb_iel_send/loc_size[mu];
 	if(proc_coord_send!=line_rank[mu])
-	  MPI_Irecv((void*)(recv+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,proc_coord_send,1241+loc_iel_in, 
+	  MPI_Irecv((void*)(buf+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,proc_coord_send,1241+loc_iel_in, 
 		    line_comm[mu],&request0[nrequest0++]);
       }
   
@@ -121,7 +120,8 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign)
   /////////////////////////// second part ////////////////////////////////////
   
   //perform the block fourier transform if needed
-  if(blk_size!=1)
+  if(blk_size==1) memcpy(out,buf,loc_size[mu]*ncpp*sizeof(complex));
+  else
     {
       //initialize the output
       memset(out,0,loc_size[mu]*ncpp*sizeof(complex));
