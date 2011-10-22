@@ -28,7 +28,8 @@ typedef su3 as2t_su3[6];
 enum rnd_type{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z4,RND_GAUSS};
 //Source type
 enum source_type{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
-  
+//Gauge condition
+enum gauge_cond_type{LANDAU,COULOMB};
 
 //The structure for the random generator
 typedef struct

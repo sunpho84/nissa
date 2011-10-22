@@ -123,6 +123,13 @@ int master_fprintf(FILE *stream,const char *format,...)
   return ret;
 }
 
+//return the log of the factorial of n
+double lfact(double n)
+{
+  double log_factn=0;
+  for(int i=1;i<=n;i++) log_factn+=logf(i);
+  return log_factn;
+}
 
 //return the log2 of N
 int log2N(int N)

@@ -104,7 +104,7 @@ void checksum_compute_ildg_data(uint32_t *check,void *data,size_t bps)
 	    uint32_t temp_rank=X[1]+glb_size[1]*(X[2]+glb_size[2]*(X[3]+glb_size[3]*X[0]));
 	    uint32_t rank[2]={temp_rank%29,temp_rank%31};
 	    
-	    uint32_t temp=crc32(0,data+bps*ivol,bps);
+	    uint32_t temp=crc32(0,(unsigned char*)data+bps*ivol,bps);
 	    
 	    for(int i=0;i<2;i++) loc_check[i]^=temp<<rank[i]|temp>>(32-rank[i]);
 	  }
@@ -123,7 +123,7 @@ void checksum_compute_appretto_data(uint32_t *check,void *data,size_t bps)
       uint32_t temp_rank=X[1]+glb_size[1]*(X[2]+glb_size[2]*(X[3]+glb_size[3]*X[0]));
       uint32_t rank[2]={temp_rank%29,temp_rank%31};
       
-      uint32_t temp=crc32_fix_endianess(0,data+bps*ivol,bps);
+      uint32_t temp=crc32_fix_endianess(0,(unsigned char*)data+bps*ivol,bps);
       
       for(int i=0;i<2;i++) loc_check[i]^=temp<<rank[i]|temp>>(32-rank[i]);
     }
