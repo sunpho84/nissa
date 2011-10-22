@@ -24,15 +24,20 @@ comp()
     $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -lm -llemon -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -llime -L$LIME_PATH/lib/ -I$LIME_PATH/include/ -D SVN_VERS=\"$SVN_VERS\"
 }
 
+precomp()
+{
+    $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -L$LIME_PATH/lib/ -I$LIME_PATH/include/ -D SVN_VERS=\"$SVN_VERS\"
+}
+
 recomp_appretto()
 {
     if [ -f src/appretto_checksum ];then old_checksum=$(cat src/appretto_checksum);else old_checksum="0";fi
-    checksum=$(comp - src/appretto.c "-c -E"|tee /tmp/appretto.out|sha1sum|awk '{print $1}')
+    checksum=$(precomp - src/appretto.c "-c -E"|tee /tmp/appretto.out|sha1sum|awk '{print $1}')
     if [ $old_checksum != $checksum ] || [ ! -f src/appretto ]
     then
 	echo "Recompiling Appretto library..."
 	rm -f src/appretto
-	comp src/appretto src/appretto.c -c
+	precomp src/appretto src/appretto.c -c
         
 	if [ $? == 0 ] && [ -f src/appretto ]
 	then
