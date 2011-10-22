@@ -72,53 +72,59 @@ void fast_fourier_accelerate_fixing(su3 *g)
 //compute the steepest descent gauge fixing transformation
 void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,double alpha)
 {
+  memset(g,0,loc_vol*sizeof(su3));
+  
   //loop over local sites
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  for(int i=0;i<loc_vol;i++)
     {
-      su3_put_to_zero(g[ivol]);
-      
-      //Calculate \sum_mu(U_mu(x-mu)-U_mu(x-mu)^dag-U_mu(x)+U^dag_mu(x)]
+      //Calculate \sum_mu(U_mu(x-mu)-U_mu(x-mu)^dag-U_mu(x)+U^dag_mu(x))
+      //and subtract the trace. It is computed just as the TA (traceless anti-herm)
+      //this has 8 independent element (A+F+I)=0
+      // ( 0,A) ( B,C) (D,E)
+      // (-B,C) ( 0,F) (G,H)
+      // (-D,E) (-G,H) (0,I)
       for(int mu=0;mu<4;mu++)
 	{
-	  int bvol=loclx_neighdw[ivol][mu];
+	  int b=loclx_neighdw[i][mu];
 	  
-	  for(int ic1=0;ic1<3;ic1++)
-	    for(int ic2=0;ic2<3;ic2++)
-	      {
-		//real part
-		g[ivol][ic1][ic2][0]+=
-		  +conf[bvol][mu][ic1][ic2][0] //U_mu(x-mu)
-		  -conf[bvol][mu][ic2][ic1][0] //U_mu(x-mu)^dag
-		  -conf[ivol][mu][ic1][ic2][0] //U_mu(x)
-		  +conf[ivol][mu][ic2][ic1][0];//U_mu(x)^dag
-		//imag part
-		g[ivol][ic1][ic2][1]+=
-		  +conf[bvol][mu][ic1][ic2][1] //U_mu(x-mu)
-		  +conf[bvol][mu][ic2][ic1][1] //U_mu(x-mu)^dag
-		  -conf[ivol][mu][ic1][ic2][1] //U_mu(x)
-		  -conf[ivol][mu][ic2][ic1][1];//U_mu(x)^dag
-	      }
+	  //off-diagonal real parts
+	  g[i][0][1][0]+=conf[b][mu][0][1][0]-conf[b][mu][1][0][0]-conf[i][mu][0][1][0]+conf[i][mu][1][0][0]; //B
+	  g[i][0][2][0]+=conf[b][mu][0][2][0]-conf[b][mu][2][0][0]-conf[i][mu][0][2][0]+conf[i][mu][2][0][0]; //D
+	  g[i][1][2][0]+=conf[b][mu][1][2][0]-conf[b][mu][2][1][0]-conf[i][mu][1][2][0]+conf[i][mu][2][1][0]; //G
+
+	  //off diagonal imag parts
+	  g[i][0][1][1]+=conf[b][mu][0][1][1]+conf[b][mu][1][0][1]-conf[i][mu][0][1][1]-conf[i][mu][1][0][1]; //C
+	  g[i][0][2][1]+=conf[b][mu][0][2][1]+conf[b][mu][2][0][1]-conf[i][mu][0][2][1]-conf[i][mu][2][0][1]; //E
+	  g[i][1][2][1]+=conf[b][mu][1][2][1]+conf[b][mu][2][1][1]-conf[i][mu][1][2][1]-conf[i][mu][2][1][1]; //H
+
+	  //digonal imag parts
+	  g[i][0][0][1]+=conf[b][mu][0][0][1]+conf[b][mu][0][0][1]-conf[i][mu][0][0][1]-conf[i][mu][0][0][1]; //A
+	  g[i][1][1][1]+=conf[b][mu][1][1][1]+conf[b][mu][1][1][1]-conf[i][mu][1][1][1]-conf[i][mu][1][1][1]; //F
+	  g[i][2][2][1]+=conf[b][mu][2][2][1]+conf[b][mu][2][2][1]-conf[i][mu][2][2][1]-conf[i][mu][2][2][1]; //I
 	}
       
-      //compute the trace/3
-      complex trace={0,0};
-      for(int ic=0;ic<3;ic++)
-	{
-	  trace[0]+=g[ivol][ic][ic][0];
-	  trace[1]+=g[ivol][ic][ic][1];
-	}
-      trace[0]/=3;
-      trace[1]/=3;
+      //compute the trace
+      double T3=(g[i][0][0][1]+g[i][1][1][1]+g[i][2][2][1])/3;
       
-      //subtract the trace (divide by 1/3)
-      for(int ic=0;ic<3;ic++)
-	{
-	  g[ivol][ic][ic][0]-=trace[0];
-	  g[ivol][ic][ic][1]-=trace[1];
-	}
+      //subtract 1/3 of the trace from each element, so to make traceless the matrix
+      g[i][0][0][1]-=T3;
+      g[i][1][1][1]-=T3;
+      g[i][2][2][1]-=T3;
+      
+      //fill the other parts
+      
+      //off-diagonal real parts
+      g[i][1][0][0]=-g[i][0][1][0];
+      g[i][2][0][0]=-g[i][0][2][0];
+      g[i][2][1][0]=-g[i][1][2][0];
+      
+      //off diagonal imag parts
+      g[i][1][0][1]=g[i][0][1][1];
+      g[i][2][0][1]=g[i][0][2][1];
+      g[i][2][1][1]=g[i][1][2][1];
     }
   
-  fast_fourier_accelerate_fixing(g);
+  //fast_fourier_accelerate_fixing(g);
 
   //multiply by a/2 and add 1
   for(int ivol=0;ivol<loc_vol;ivol++)
