@@ -330,7 +330,7 @@ void read_real_vector(double *out,char *path,const char *expected_record,int nre
 //read a spincolor
 void read_spincolor(spincolor *sc,char *path)
 {
-  read_real_vector((double*)sc,path,"ildg-binary-data",nreals_per_spincolor);
+  read_real_vector((double*)sc,path,"scidac-binary-data",nreals_per_spincolor);
   reorder_read_spincolor(sc);
 }
 

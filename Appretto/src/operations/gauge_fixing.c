@@ -115,33 +115,18 @@ void overrelax(su3 *out,su3 *in,int N,double omega)
 }
 
 //apply the fast fourier acceleration
-void fast_fourier_accelerate_fixing(su3 *g)
+void fast_fourier_accelerate_fixing(su3 *g,double *preco)
 {  
   fft4d((complex*)g,(complex*)g,9,1);
   
   //apply the conditioning
   for(int ivol=0;ivol<loc_vol;ivol++)
-    {
-      //compute p2
-      double p2=0;
-      for(int mu=0;mu<4;mu++)
-	{
-	  int ix=glb_coord_of_loclx[ivol][mu];
-	  double pmu=M_PI*ix/glb_size[mu];
-	  double sinpmu=sin(pmu);
-	  p2+=sinpmu*sinpmu;
-	}
-      p2/=4;
-      
-      //apply
-      if(p2!=0)
-	for(int i=0;i<3;i++)
-	  for(int j=0;j<3;j++)
-	    for(int ri=0;ri<2;ri++)
-	      g[ivol][i][j][ri]/=p2;
-    }
+    for(int i=0;i<3;i++)
+      for(int j=0;j<3;j++)
+	for(int ri=0;ri<2;ri++)
+	  g[ivol][i][j][ri]/=preco[ivol];
   
-    fft4d((complex*)g,(complex*)g,9,-1);
+  fft4d((complex*)g,(complex*)g,9,-1);
 }
 
 //compute delta to fix landau or coulomb gauges
@@ -201,12 +186,14 @@ void compute_fixing_delta(su3 g,quad_su3 *conf,int ivol,enum gauge_cond_type GT)
 }
 
 //compute the steepest descent gauge fixing transformation
-void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,double alpha,enum gauge_cond_type GT)
+void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,double alpha,enum gauge_cond_type GT,int iter,double *preco)
 {
+  int par=iter%2;
+  
   //loop over local sites
   for(int ivol=0;ivol<loc_vol;ivol++) compute_fixing_delta(g[ivol],conf,ivol,GT);
-  
-  fast_fourier_accelerate_fixing(g);
+
+  //if(preco!=NULL) fast_fourier_accelerate_fixing(g,preco);
 
   //multiply by a/2 and add 1
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -215,7 +202,8 @@ void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,double alpha,enum gauge_
 	{
 	  for(int ic2=0;ic2<3;ic2++)
 	    for(int ri=0;ri<2;ri++)
-	      g[ivol][ic1][ic2][ri]*=alpha/2;
+	      if(loclx_parity[ivol]==par) g[ivol][ic1][ic2][ri]*=alpha/2;
+	      else                        g[ivol][ic1][ic2][ri]=0;
 	  g[ivol][ic1][ic1][0]+=1;
 	}
       su3_unitarize(g[ivol],g[ivol]);
@@ -269,19 +257,41 @@ void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double alp
 {
   memcpy(conf_out,conf_in,sizeof(quad_su3)*loc_vol);
   
+  set_eo_geometry();
+  
   //fixing transformation
   su3 *fixm=appretto_malloc("fixm",loc_vol+loc_bord,su3);
-
+  
+  //compute the preconditioning matrix
+  double *preco=appretto_malloc("p2",loc_vol,double);  
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    {
+      //compute p2
+      preco[ivol]=0;
+      for(int mu=0;mu<4;mu++)
+	{
+	  int ix=glb_coord_of_loclx[ivol][mu];
+	  double pmu=M_PI*ix/glb_size[mu];
+	  double sinpmu=sin(pmu);
+	  preco[ivol]+=sinpmu*sinpmu;
+	}
+      preco[ivol]/=4;
+      
+      if(preco[ivol]==0) preco[ivol]=1;
+    }
+  
   //fix iteratively up to reaching required precision
   int iter=0;
   double qual_out=compute_gauge_fixing_quality(conf_out,GT);
   master_printf("Iter 0 alpha %lg, quality: %lg (%lg req)\n",
-		alpha,qual_out,precision);          
+		alpha,qual_out,precision);
   do
     {
       //find the next fixing and compute its quality
       double tcomp=-take_time();
-      find_steepest_descent_fixing(fixm,conf_out,alpha,GT);
+      
+      find_steepest_descent_fixing(fixm,conf_out,alpha,GT,iter,preco);
+      
       gauge_transform_conf(conf_out,fixm,conf_out);
       tcomp+=take_time();
       
@@ -293,14 +303,15 @@ void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double alp
       tqual+=take_time();
       
       iter++;
-      master_printf("Iter %d alpha %lg, quality: %lg (%lg req) delta: %lg; %lg %lg s\n",
-		    iter,alpha,qual_out,precision,delta_qual,tcomp,tqual);          
+      master_printf("Iter %d alpha %lg, quality: %lg (%lg req) delta: %+3.3lg%%; %lg %lg s\n",
+		    iter,alpha,qual_out,precision,delta_qual/(2*(qual_in+qual_out))*100,tcomp,tqual);          
     }
   while(qual_out>=precision);
   
   master_printf("Final quality: %lg\n",qual_out);
   
   appretto_free(fixm);
+  appretto_free(preco);
 }
 //wrappers
 void landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double alpha,double precision)

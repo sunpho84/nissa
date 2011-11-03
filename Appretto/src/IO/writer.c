@@ -5,7 +5,7 @@
 //Write the header for a record
 void write_header(LemonWriter *writer,char *header,uint64_t record_bytes)
 {
-  if(rank==0) printf("Writing: %Ld bytes\n",(long long int)record_bytes);
+  master_printf("Writing: %Ld bytes\n",(long long int)record_bytes);
   LemonRecordHeader *lemon_header=lemonCreateHeader(1,1,header,record_bytes);
   lemonWriteRecordHeader(lemon_header,writer);
   lemonDestroyHeader(lemon_header);
@@ -23,29 +23,20 @@ void write_text_record(LemonWriter *writer,char *header,char *message)
 //Write a vector of double, in 32 or 64 bits according to the argument
 void write_double_vector(LemonWriter *writer,char *data,char *header_message,int nreals_per_site,int nbits)
 {
-  if(nbits!=32 && nbits!=64)
-    {
-      if(rank==0)
-	{
-	  fprintf(stderr,"Error, asking %d precision, use instead 32 or 64\n",nbits);
-	  fflush(stderr);
-	  MPI_Abort(MPI_COMM_WORLD,1);
-	}
-    }
-
+  if(nbits!=32 && nbits!=64) crash("Error, asking %d precision, use instead 32 or 64\n",nbits);
+  
   //take initial time
-  double time;
-  if(debug_lvl) time=-take_time();
-
+  double time=-take_time();
+  
   int nreals_loc=nreals_per_site*loc_vol;
   int nbytes_per_site=nreals_per_site*nbits/8;
   uint64_t nbytes_glb=nbytes_per_site*glb_vol;
-
+  
   write_header(writer,header_message,nbytes_glb);
-
+  
   char *buffer=NULL;
   if(big_endian || nbits==32) buffer=appretto_malloc("buffer",nreals_loc,double);
-
+  
   if(nbits==64)
     if(big_endian) doubles_to_doubles_changing_endianess((double*)buffer,(double*)data,nreals_loc);
     else buffer=data;
@@ -56,39 +47,31 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
   int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
   int scidac_mapping[4]={0,3,2,1};
   lemonWriteLatticeParallelMapped(writer,buffer,nbytes_per_site,glb_dims,scidac_mapping);
-
+  
   //delete the swapped data, if created
   if(big_endian || nbits==32) appretto_free(buffer);
-
+  
   //take final time
-  if(debug_lvl)
-    {
-      time+=take_time();
-      if(rank==0) printf("Time elapsed in writing: %f s\n",time);
-    }
+  time+=take_time();
+  master_printf("Time elapsed in writing: %f s\n",time);
 }
 
 //Write a whole spincolor
 void write_spincolor(char *path,spincolor *spinor,int prec)
 {
   //Open the file
-  MPI_File *writer_file=(MPI_File*)malloc(sizeof(MPI_File));
+  MPI_File *writer_file=appretto_malloc("Writer_file",1,MPI_File);
   int ok=MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
-  if(ok!=MPI_SUCCESS && rank==0)
-    {
-      fprintf(stderr,"Couldn't open for writing the file: '%s'\n",path);
-      fflush(stderr);
-      MPI_Abort(cart_comm,1);
-    }
-
+  if(ok!=MPI_SUCCESS) crash("Couldn't open for writing the file: '%s'\n",path);
+  
   MPI_File_set_size(*writer_file,0);
   LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
-
+  
   //Write the info on the propagator type
   char propagator_type_header[]="propagator-type";
   char propagator_type_message[]="DiracFermion_Sink";
   write_text_record(writer,propagator_type_header,propagator_type_message);
-
+  
   //Write the info on the propagator format
   char propagator_format_header[]="etmc-propagator-format";
   char propagator_format_message[1024];
@@ -106,10 +89,10 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
   write_text_record(writer,propagator_format_header,propagator_format_message);
   
   //order things as expected
-  spincolor *temp=appretto_malloc("temp_read_prop",loc_vol,spincolor);
+  spincolor *temp=appretto_malloc("temp_write_prop",loc_vol,spincolor);
   
   int x[4],isour,idest;
-
+  
   for(x[0]=0;x[0]<loc_size[0];x[0]++)
     for(x[1]=0;x[1]<loc_size[1];x[1]++)
       for(x[2]=0;x[2]<loc_size[2];x[2]++)
@@ -117,23 +100,38 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
 	  {
 	    idest=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
 	    isour=loclx_of_coord(x);
-
+	    
 	    memcpy(temp[idest],spinor[isour],sizeof(spincolor));
 	  }
-
+  
   //Write the binary data
   write_double_vector(writer,(char*)temp,"scidac-binary-data",nreals_per_spincolor,prec);
-
+  
   appretto_free(temp);
-
-  if(rank==0) printf("File '%s' saved (probably...)\n",path);
+  master_printf("File '%s' saved (probably...)\n",path);
   
   //Close the file
   lemonDestroyWriter(writer);
   MPI_File_close(writer_file);
+  appretto_free(writer_file);
 }
 
-////////////////////////// gauge configuration loading /////////////////////////////
+//Write a whole su3spinspin
+void write_su3spinspin(char *path,su3spinspin *prop,int prec)
+{
+  spincolor *temp=appretto_malloc("temp",loc_vol,spincolor);
+  for(int id=0;id<4;id++)
+    for(int ic=0;ic<3;ic++)
+      {
+	char full_path[1024];
+	sprintf(full_path,"%s.%02d",path,id*3+ic);
+	for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_su3spinspin(temp[ivol],prop[ivol],id,ic);
+	write_spincolor(full_path,temp,prec);
+      }
+  appretto_free(temp);
+}
+
+////////////////////////// gauge configuration writing /////////////////////////////
 
 //Write only the local part of the gauge configuration
 void write_local_gauge_conf(char *path,quad_su3 *in)
@@ -161,14 +159,9 @@ void write_local_gauge_conf(char *path,quad_su3 *in)
 	  }
 
   //Open the file
-  MPI_File *writer_file=(MPI_File*)malloc(sizeof(MPI_File));
+  MPI_File *writer_file=appretto_malloc("MPI_File",1,MPI_File);
   int ok=MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
-  if(ok!=MPI_SUCCESS && rank==0)
-    {
-      fprintf(stderr,"Couldn't open for writing the file: '%s'\n",path);
-      fflush(stderr);
-      MPI_Abort(cart_comm,1);
-    }
+  if(ok!=MPI_SUCCESS) crash("Couldn't open for writing the file: '%s'\n",path);
 
   MPI_File_set_size(*writer_file,0);
   LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
@@ -179,6 +172,9 @@ void write_local_gauge_conf(char *path,quad_su3 *in)
   if(debug_lvl)
     {
       twrite+=take_time();
-      if(rank==0) printf("Time elapsed in writing gauge file '%s': %f s\n",path,twrite);
+      master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,twrite);
     }
+  
+  MPI_File_close(writer_file);
+  appretto_free(writer_file);
 }

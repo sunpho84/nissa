@@ -51,7 +51,7 @@ int loclx_of_coord_list(int x0,int x1,int x2,int x3)
 int glblx_of_coord(int *x)
 {return lx_of_coord(x,glb_size);}
   
-//indexes run as t,z,y,x (faster:x)
+//indexes run as t,x,y,z (faster:z)
 void set_lx_geometry()
 {
   //set the various time-slice types
