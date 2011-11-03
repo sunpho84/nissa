@@ -422,6 +422,8 @@ void subtassign_spincolor(spincolor out,spincolor in)
 {for(int i=0;i<24;i++) ((double*)out)[i]-=((double*)in)[i];}
 
 //spincolor*complex
+void safe_spincolor_prod_complex(spincolor out,spincolor in,complex factor)
+{for(int i=0;i<12;i++) safe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
 void unsafe_spincolor_prod_complex(spincolor out,spincolor in,complex factor)
 {for(int i=0;i<12;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
 

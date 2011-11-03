@@ -1,6 +1,6 @@
 #pragma once
 
-//indexes run as t,z,y,x (faster:x)
+//indexes run as t,x,y,z (faster:z)
 void set_eo_geometry()
 {
   if(appretto_eo_geom_inited==0)
@@ -9,6 +9,7 @@ void set_eo_geometry()
       
       //set the various time-slice types
       loclx_parity=(int*)malloc(sizeof(int)*(loc_vol+loc_bord));
+      /*
       loceo_of_loclx=(int*)malloc(sizeof(int)*(loc_vol+loc_bord));
       loclx_of_loce=(int*)malloc(sizeof(int)*(loc_vol+loc_bord)/2);
       loclx_of_loco=(int*)malloc(sizeof(int)*(loc_vol+loc_bord)/2);
@@ -24,8 +25,9 @@ void set_eo_geometry()
 	  loco_neighup[loceo]=(int*)malloc(sizeof(int)*4);
 	  loco_neighdw[loceo]=(int*)malloc(sizeof(int)*4);
 	}
-      
-      int iloce=0,iloco=0;
+      */
+
+      //int iloce=0,iloco=0;
       //Label the bulk sites
       for(int loclx=0;loclx<loc_vol+loc_bord;loclx++)
 	{
@@ -36,7 +38,7 @@ void set_eo_geometry()
 	  
 	  //fix parity of local index
 	  loclx_parity[loclx]=par;
-	  
+	  /*
 	  //assign the lx site of the e/o site, and
 	  //increment the number of even or odd sites
 	  if(par==0)
@@ -51,10 +53,11 @@ void set_eo_geometry()
 	      loclx_of_loco[iloco]=loclx;
 	      iloco++;
 	    }
+	  */
 	}
       
       //////////////////neighbours search//////////////////////
-      
+      /*
       memset(bord_offset_eo,0,sizeof(int)*2*8);
       
       //now fill the neighbours of sites
@@ -91,9 +94,10 @@ void set_eo_geometry()
 	}
       
       if(rank==0 && debug_lvl) printf("E/O Geometry intialized\n");
+      */
     }
   
-  if(rank==0) for(int idir=0;idir<8;idir++) printf("%d %d %d\n",idir,bord_offset_eo[0][idir],bord_offset_eo[1][idir]);
+  //if(rank==0) for(int idir=0;idir<8;idir++) printf("%d %d %d\n",idir,bord_offset_eo[0][idir],bord_offset_eo[1][idir]);
 }
 
 /*
