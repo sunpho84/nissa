@@ -199,6 +199,15 @@ void su3_prod_real(su3 a,su3 b,double r)
   for(int i=0;i<18;i++) da[i]=db[i]*r;
 }
 
+//summ the prod of su3 with real
+void su3_summ_the_prod_real(su3 a,su3 b,double r)
+{
+  double *da=(double*)a;
+  double *db=(double*)b;
+
+  for(int i=0;i<18;i++) da[i]+=db[i]*r;
+}
+
 //calculate explicitely the inverse
 void su3_explicit_inverse(su3 invU,su3 U)
 {
@@ -257,6 +266,7 @@ void su3_unitarize(su3 new_link,su3 prop_link)
   
   memcpy(temp_link,prop_link,sizeof(su3));
   
+  //master_printf("\n");
   do
     {
       su3_explicit_inverse(inv,temp_link);
@@ -279,6 +289,8 @@ void su3_unitarize(su3 new_link,su3 prop_link)
       memcpy(temp_link,new_link,sizeof(su3));
       
       check=sqrt(check);
+      
+      //master_printf("%lg\n",check);
     }
   while(check>1.e-15);
   
