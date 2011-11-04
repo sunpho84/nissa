@@ -87,50 +87,52 @@ int find_nmu_gauge_cond(enum gauge_cond_type GT)
 }
 
 //overrelax the transformation
-void overrelax(su3 *out,su3 *in,int N,double omega)
+void overrelax(su3 out,su3 in,double w)
 {
-  //find coefficients
-  double coef[N+1];
-  for(int n=0;n<=N;n++) coef[n]=exp(lgamma(omega+1)-lgamma(omega+1-n)-lfact(n));
+  double coef[5]={1,w,w*(w-1)/2,w*(w-1)*(w-2)/6,w*(w-1)*(w-2)*(w-3)/24};
+  su3 f,t;
   
-  //loop over volume
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  su3_summ_real(f,in,-1);   //subtract 1 from in
+  
+  //ord 0
+  su3_put_to_id(out);       //output init
+  
+  //ord 1
+  su3_copy(t,f);
+  su3_summ_the_prod_real(out,t,coef[1]);
+  
+  //ord 2-4
+  for(int iord=2;iord<5;iord++)
     {
-      su3 t,o,w;
-
-      su3_summ_real(w,in[ivol],-1); //subtract 1 from in[ivol]
-      su3_copy(t,w);                //init t
-      su3_put_to_id(o);             //output init
-      
-      //compute various powers
-      for(int n=1;n<=N;n++)
-	{ //summ 
-	  for(int i=0;i<18;i++) ((double*)o)[i]+=coef[n]*((double*)t)[i];
-	  safe_su3_prod_su3(t,t,w); //next power of w
-	}
-      
-      //unitarize
-      su3_unitarize(out[ivol],o);
+      safe_su3_prod_su3(t,t,f);
+      su3_summ_the_prod_real(out,t,coef[iord]);
     }
-}
-
-//apply the fast fourier acceleration
-void fast_fourier_accelerate_fixing(su3 *g,double *preco)
-{  
-  fft4d((complex*)g,(complex*)g,9,1);
-  
-  //apply the conditioning
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int i=0;i<3;i++)
-      for(int j=0;j<3;j++)
-	for(int ri=0;ri<2;ri++)
-	  g[ivol][i][j][ri]/=preco[ivol];
-  
-  fft4d((complex*)g,(complex*)g,9,-1);
 }
 
 //compute delta to fix landau or coulomb gauges
 void compute_fixing_delta(su3 g,quad_su3 *conf,int ivol,enum gauge_cond_type GT)
+{
+  //reset g
+  memset(g,0,sizeof(su3));
+  
+  //decide if landau or coulomb
+  int nmu=find_nmu_gauge_cond(GT);
+  
+  for(int mu=0;mu<nmu;mu++)
+    {
+      int b=loclx_neighdw[ivol][mu];
+
+      for(int ic1=0;ic1<3;ic1++)
+	for(int ic2=0;ic2<3;ic2++)
+	  {
+	    g[ic1][ic2][0]+=conf[ivol][mu][ic1][ic2][0]+conf[b][mu][ic2][ic1][0];
+	    g[ic1][ic2][1]+=conf[ivol][mu][ic1][ic2][1]-conf[b][mu][ic2][ic1][1];
+	  }
+    }
+}
+
+//compute delta for the quality of landau or coulomb gauges
+void compute_quality_delta(su3 g,quad_su3 *conf,int ivol,enum gauge_cond_type GT)
 {
   //reset g
   memset(g,0,sizeof(su3));
@@ -185,32 +187,166 @@ void compute_fixing_delta(su3 g,quad_su3 *conf,int ivol,enum gauge_cond_type GT)
   g[2][1][1]=g[1][2][1];
 }
 
+//horrible, horrifying routine of unknown meaning copied from APE
+void exponentiate(su3 g,su3 a)
+{
+  //Exponentiate. Commented lines are original from APE (more or less)
+  //up0=a[0][0]+a[1][1]~
+  complex up0;
+  complex_summ_conj2(up0,a[0][0],a[1][1]);
+  //up1=a[0][1]-a[1][0]~
+  complex up1;
+  complex_subt_conj2(up1,a[0][1],a[1][0]);
+  //icsi=1/sqrt(up0*up0~+up1*up1~)
+  double icsi=1/sqrt(squared_complex_norm(up0)+squared_complex_norm(up1));
+  //up0=up0*icsi
+  complex_prod_real(up0,up0,icsi);
+  //appuno=up0~
+  complex appuno;
+  complex_conj(appuno,up0);
+  //up1=up1*icsi
+  complex_prod_real(up1,up1,icsi);
+  //appdue=-up1
+  complex appdue;
+  complex_prod_real(appdue,up1,-1);
+  //n0=a[0][0]*appuno+a[1][0]*appdue
+  complex n0;
+  unsafe_complex_prod(n0,a[0][0],appuno);
+  complex_summ_the_prod(n0,a[1][0],appdue);
+  //n2=a[0][2]*appuno+a[1][2]*appdue
+  complex n2;
+  unsafe_complex_prod(n2,a[0][2],appuno);
+  complex_summ_the_prod(n2,a[1][2],appdue);
+  //n3=-a[0][0]*appdue~+a[1][0]*appuno~
+  complex n3;
+  unsafe_complex_conj2_prod(n3,a[1][0],appuno);
+  complex_subt_the_conj2_prod(n3,a[0][0],appdue);
+  //n6=a[2][0]
+  complex n6={a[2][0][0],a[2][0][1]};
+  //n5=-a[0][2]*appdue~+a[1][2]*appuno~
+  complex n5;
+  unsafe_complex_conj2_prod(n5,a[1][2],appuno);
+  complex_subt_the_conj2_prod(n5,a[0][2],appdue);
+  //n7=a[2][1]
+  complex n7={a[2][1][0],a[2][1][1]};
+  //up1=n5-n7~
+  complex_subt_conj2(up1,n5,n7);
+  //n4=-a[0][1]*appdue~+a[1][1]*appuno~
+  complex n4;
+  unsafe_complex_conj2_prod(n4,a[1][1],appuno);
+  complex_subt_the_conj2_prod(n4,a[0][1],appdue);
+  //n8=a[2][2]
+  complex n8={a[2][2][0],a[2][2][1]};
+  //up0=n8~+n4 
+  complex_summ_conj1(up0,n8,n4);
+  //icsi=1/sqrt(up0*up0~+up1*up1~)
+  icsi=1/sqrt(squared_complex_norm(up0)+squared_complex_norm(up1));
+  //up0=up0*icsi
+  complex_prod_real(up0,up0,icsi);
+  //bppuno=up0~
+  complex bppuno;
+  complex_conj(bppuno,up0);
+  //up1=up1*icsi
+  complex_prod_real(up1,up1,icsi);
+  //bppdue=-up1
+  complex bppdue={-up1[0],-up1[1]};
+  //a[0][2]=n2
+  a[0][2][0]=n2[0];
+  a[0][2][1]=n2[1];
+  //a[2][0]=-n3*bppdue~+n6*bppuno~
+  unsafe_complex_conj2_prod(a[2][0],n6,bppuno);
+  complex_subt_the_conj2_prod(a[2][0],n3,bppdue);
+  //up1=a[0][2]-a[2][0]~
+  complex_subt_conj2(up1,a[0][2],a[2][0]);
+  //a[0][0]=n0
+  a[0][0][0]=n0[0];
+  a[0][0][1]=n0[1];
+  //a[2][2]=-n5*bppdue~+n8*bppuno~
+  unsafe_complex_conj2_prod(a[2][2],n8,bppuno);
+  complex_subt_the_conj2_prod(a[2][2],n5,bppdue);
+  //up0=a[2][2]~+a[0][0]
+  complex_summ_conj1(up0,a[2][2],a[0][0]);
+  //icsi=1/sqrt(up0*up0~+up1*up1~)
+  icsi=1/sqrt(squared_complex_norm(up0)+squared_complex_norm(up1));
+  //up0=up0*icsi
+  complex_prod_real(up0,up0,icsi);
+  //cppuno=up0~
+  complex cppuno;
+  complex_conj(cppuno,up0);
+  //up1=up1*icsi
+  complex_prod_real(up1,up1,icsi);
+  //cppdue=-up1
+  complex cppdue={-up1[0],-up1[1]};
+  //e0=appuno
+  complex e0={appuno[0],appuno[1]};
+  //e1=appdue
+  complex e1={appdue[0],appdue[1]};
+  //e2=0
+  //complex e2={0,0};
+  //e3=-bppuno*appdue~
+  complex e3={0,0};
+  complex_subt_the_conj2_prod(e3,bppuno,appdue);
+  //e4=bppuno*appuno~
+  complex e4;
+  unsafe_complex_conj2_prod(e4,bppuno,appuno);
+  //e5=bppdue
+  complex e5={bppdue[0],bppdue[1]};
+  //e6=bppdue~*appdue~
+  complex e6;
+  unsafe_complex_conj_conj_prod(e6,bppdue,appdue);
+  //e7=-bppdue~*appuno~
+  complex e7={0,0};
+  complex_subt_the_conj_conj_prod(e7,bppdue,appuno);
+  //e8=bppuno~
+  complex e8;
+  complex_conj(e8,bppuno);
+  //g[0][0]=cppuno*e0+cppdue*e6
+  unsafe_complex_prod(g[0][0],cppuno,e0);
+  complex_summ_the_prod(g[0][0],cppdue,e6);
+  //g[0][1]=cppuno*e1+cppdue*e7
+  unsafe_complex_prod(g[0][1],cppuno,e1);
+  complex_summ_the_prod(g[0][1],cppdue,e7);
+  //g[0][2]=cppdue*e8
+  unsafe_complex_prod(g[0][2],cppdue,e8);
+  //g[1][0]=e3
+  g[1][0][0]=e3[0];
+  g[1][0][1]=e3[1];
+  //g[1][1]=e4
+  g[1][1][0]=e4[0];
+  g[1][1][1]=e4[1];
+  //g[1][2]=e5
+  g[1][2][0]=e5[0];
+  g[1][2][1]=e5[1];
+  //g[2][0]=-cppdue~*e0+cppuno~*e6
+  unsafe_complex_conj1_prod(g[2][0],cppuno,e6);
+  complex_subt_the_conj1_prod(g[2][0],cppdue,e0);
+  //g[2][1]=-cppdue~*e1+cppuno~*e7
+  unsafe_complex_conj1_prod(g[2][1],cppuno,e7);
+  complex_subt_the_conj1_prod(g[2][1],cppdue,e1);
+  //g[2][2]=cppuno~*e8
+  unsafe_complex_conj1_prod(g[2][2],cppuno,e8);
+}
+
 //compute the steepest descent gauge fixing transformation
-void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,double alpha,enum gauge_cond_type GT,int iter,double *preco)
+void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,enum gauge_cond_type GT,int iter)
 {
   int par=iter%2;
   
   //loop over local sites
-  for(int ivol=0;ivol<loc_vol;ivol++) compute_fixing_delta(g[ivol],conf,ivol,GT);
-
-  //if(preco!=NULL) fast_fourier_accelerate_fixing(g,preco);
-
-  //multiply by a/2 and add 1
   for(int ivol=0;ivol<loc_vol;ivol++)
-    {
-      for(int ic1=0;ic1<3;ic1++)
-	{
-	  for(int ic2=0;ic2<3;ic2++)
-	    for(int ri=0;ri<2;ri++)
-	      if(loclx_parity[ivol]==par) g[ivol][ic1][ic2][ri]*=alpha/2;
-	      else                        g[ivol][ic1][ic2][ri]=0;
-	  g[ivol][ic1][ic1][0]+=1;
-	}
-      su3_unitarize(g[ivol],g[ivol]);
-    }
-      
-  //overrelax and unitarize
-  //overrelax(g,g,3,1.75); //this is pointless
+    if(loclx_parity[ivol]==par)
+      {
+	su3 a,b,c;
+	compute_fixing_delta(a,conf,ivol,GT);
+	exponentiate(b,a);
+	overrelax(c,b,1.73);
+	su3_unitarize(g[ivol],c);
+      }
+    else
+      {
+	memset(g[ivol],0,sizeof(su3));
+	for(int ic=0;ic<3;ic++) g[ivol][ic][ic][0]=1;
+      }
 }
 
 //here for future usage
@@ -239,7 +375,7 @@ double compute_gauge_fixing_quality(quad_su3 *conf,enum gauge_cond_type GT)
   for(int ivol=0;ivol<loc_vol;ivol++)
     {
       su3 delta;
-      compute_fixing_delta(delta,conf,ivol,GT);
+      compute_quality_delta(delta,conf,ivol,GT);
       
       //compute the trace of the square and summ it to omega
       for(int i=0;i<18;i++) loc_omega+=((double*)delta)[i]*((double*)delta)[i];
@@ -253,7 +389,7 @@ double compute_gauge_fixing_quality(quad_su3 *conf,enum gauge_cond_type GT)
 }
 
 //perform the landau or coulomb gauge fixing
-void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double alpha,double precision,enum gauge_cond_type GT)
+void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision,enum gauge_cond_type GT)
 {
   memcpy(conf_out,conf_in,sizeof(quad_su3)*loc_vol);
   
@@ -262,35 +398,17 @@ void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double alp
   //fixing transformation
   su3 *fixm=appretto_malloc("fixm",loc_vol+loc_bord,su3);
   
-  //compute the preconditioning matrix
-  double *preco=appretto_malloc("p2",loc_vol,double);  
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    {
-      //compute p2
-      preco[ivol]=0;
-      for(int mu=0;mu<4;mu++)
-	{
-	  int ix=glb_coord_of_loclx[ivol][mu];
-	  double pmu=M_PI*ix/glb_size[mu];
-	  double sinpmu=sin(pmu);
-	  preco[ivol]+=sinpmu*sinpmu;
-	}
-      preco[ivol]/=4;
-      
-      if(preco[ivol]==0) preco[ivol]=1;
-    }
-  
   //fix iteratively up to reaching required precision
   int iter=0;
   double qual_out=compute_gauge_fixing_quality(conf_out,GT);
-  master_printf("Iter 0 alpha %lg, quality: %lg (%lg req)\n",
-		alpha,qual_out,precision);
+  master_printf("Iter 0, quality: %lg (%lg req)\n",
+		qual_out,precision);
   do
     {
       //find the next fixing and compute its quality
       double tcomp=-take_time();
       
-      find_steepest_descent_fixing(fixm,conf_out,alpha,GT,iter,preco);
+      find_steepest_descent_fixing(fixm,conf_out,GT,iter);
       
       gauge_transform_conf(conf_out,fixm,conf_out);
       tcomp+=take_time();
@@ -303,19 +421,18 @@ void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double alp
       tqual+=take_time();
       
       iter++;
-      master_printf("Iter %d alpha %lg, quality: %lg (%lg req) delta: %+3.3lg%%; %lg %lg s\n",
-		    iter,alpha,qual_out,precision,delta_qual/(2*(qual_in+qual_out))*100,tcomp,tqual);          
+      master_printf("Iter %d, quality: %lg (%lg req) delta: %+3.3lg%%; %lg %lg s\n",
+		    iter,qual_out,precision,delta_qual/(2*(qual_in+qual_out))*100,tcomp,tqual);          
     }
   while(qual_out>=precision);
   
   master_printf("Final quality: %lg\n",qual_out);
   
   appretto_free(fixm);
-  appretto_free(preco);
 }
 //wrappers
-void landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double alpha,double precision)
-{landau_or_coulomb_gauge_fix(conf_out,conf_in,alpha,precision,LANDAU);}
-void coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double alpha,double precision)
-{landau_or_coulomb_gauge_fix(conf_out,conf_in,alpha,precision,COULOMB);}
+void landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
+{landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,LANDAU);}
+void coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
+{landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,COULOMB);}
 

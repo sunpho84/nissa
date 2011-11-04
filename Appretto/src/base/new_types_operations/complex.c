@@ -1,15 +1,38 @@
 #pragma once
 
+//Assign the conj
+void complex_conj(complex a,complex b)
+{
+  a[0]=b[0];
+  a[1]=-b[1];
+}
 //The sum of two complex number
 void complex_summ(complex a,complex b,complex c)
 {
   a[0]=b[0]+c[0];
   a[1]=b[1]+c[1];
 }
+void complex_summ_conj2(complex a,complex b,complex c)
+{
+  a[0]=b[0]+c[0];
+  a[1]=b[1]-c[1];
+}
+void complex_summ_conj1(complex a,complex b,complex c)
+{complex_summ_conj2(a,c,b);}
 void complex_subt(complex a,complex b,complex c)
 {
   a[0]=b[0]-c[0];
   a[1]=b[1]-c[1];
+}
+void complex_subt_conj2(complex a,complex b,complex c)
+{
+  a[0]=b[0]-c[0];
+  a[1]=b[1]+c[1];
+}
+void complex_subt_conj1(complex a,complex b,complex c)
+{
+  a[0]=b[0]-c[0];
+  a[1]=-b[1]-c[1];
 }
 void complex_summassign(complex a,complex b)
 {
@@ -167,6 +190,9 @@ void complex_subt_the_conj_conj_prod_i(complex a,complex b,complex c)
   a[1]-=+b[0]*c[0]-b[1]*c[1];
   a[0]+=-b[0]*c[1]-b[1]*c[0];
 }
+//squared norm
+double squared_complex_norm(complex c)
+{return c[0]*c[0]+c[1]*c[1];}
 
 //reciprocal of a complex
 void complex_reciprocal(complex rec,complex c)

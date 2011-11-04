@@ -3,7 +3,6 @@
 int main(int narg,char **arg)
 {
   char conf_in_path[1024];
-  double alpha;
   double precision;
 
   //basic mpi initialization
@@ -16,7 +15,6 @@ int main(int narg,char **arg)
   read_str_int("L",&(glb_size[1]));
   read_str_int("T",&(glb_size[0]));
   read_str_str("GaugeConf",conf_in_path,1024);
-  read_str_double("Alpha",&alpha);
   read_str_double("Precision",&precision);
   
   close_input();
@@ -32,7 +30,7 @@ int main(int narg,char **arg)
   read_gauge_conf(conf,conf_in_path);
   communicate_gauge_borders(conf);
   
-  landau_gauge_fix(fix_conf,conf,alpha,precision);
+  landau_gauge_fix(fix_conf,conf,precision);
   
   master_printf("plaq: %.18g\n",global_plaquette(conf));
   master_printf("plaq: %.18g\n",global_plaquette(fix_conf));
