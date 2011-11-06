@@ -172,9 +172,9 @@ void load_gauge_conf()
   read_gauge_conf(unfix_conf,conf_path);
   //prepare the fixed version and calculate plaquette
   fix_time-=take_time();
-  //landau_gauge_fix(conf,unfix_conf,0.08,1.e-20);
-  //landau_gauge_fix(conf,unfix_conf,0.2,1.e-20);
-  memcpy(conf,unfix_conf,loc_vol*sizeof(quad_su3));
+  landau_ape__gauge_fix(conf,unfix_conf,1.e-20);
+  //landau_gauge_fix(conf,unfix_conf,1.e-20);
+  //memcpy(conf,unfix_conf,loc_vol*sizeof(quad_su3));
   fix_time+=take_time();
   master_printf("Fixed conf in %lg sec\n",fix_time);
   communicate_gauge_borders(conf);
@@ -306,8 +306,8 @@ void compute_fft(double sign)
 		    for(int id_si=0;id_si<4;id_si++)
 		      for(int ic_so=0;ic_so<3;ic_so++)
 			for(int ic_si=0;ic_si<3;ic_si++)
-			  unsafe_complex_prod(S0[r][imass][ip][ic_si][ic_so][id_si][id_so],
-					      S0[r][imass][ip][ic_si][ic_so][id_si][id_so],eipx);
+			  safe_complex_prod(S0[r][imass][ip][ic_si][ic_so][id_si][id_so],
+					    S0[r][imass][ip][ic_si][ic_so][id_si][id_so],eipx);
 		}
       }
 }
