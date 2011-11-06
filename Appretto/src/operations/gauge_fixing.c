@@ -1,5 +1,23 @@
 #pragma once
 
+//apply a gauge transformation to the conf
+void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
+{
+  if(rank_tot>1)
+    {
+      communicate_su3_borders(g);
+      communicate_gauge_borders(uin);
+    }
+  
+  su3 temp;
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int mu=0;mu<4;mu++)
+      {
+	su3_prod_su3_dag(temp,uin[ivol][mu],g[loclx_neighup[ivol][mu]]);
+	su3_prod_su3(uout[ivol][mu],g[ivol],temp);
+      }
+}
+
 //determine the gauge transformation bringing to temporal gauge with T-1 timeslice diferent from id
 void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
 {
@@ -53,39 +71,6 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   if(nproc_dir[0]>1) appretto_free(buf);
 }
 
-//apply a gauge transformation to the conf
-void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
-{
-  if(rank_tot>1)
-    {
-      communicate_su3_borders(g);
-      communicate_gauge_borders(uin);
-    }
-  
-  su3 temp;
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int mu=0;mu<4;mu++)
-      {
-	su3_prod_su3_dag(temp,uin[ivol][mu],g[loclx_neighup[ivol][mu]]);
-	su3_prod_su3(uout[ivol][mu],g[ivol],temp);
-      }
-}
-
-//find the number of dir relevantfor the landau or coulomb condition
-int find_nmu_gauge_cond(enum gauge_cond_type GT)
-{
-  int nmu=0;
-  
-  switch(GT)
-    {
-    case LANDAU: nmu=4;break;
-    case COULOMB: nmu=3;break;
-    default:crash("Calling compute_landau_delta with wrong gauge condit. %d (possible: %d or %d)",GT,LANDAU,COULOMB);break;
-    }
-  
-  return nmu;
-}
-
 //overrelax the transformation
 void overrelax(su3 out,su3 in,double w)
 {
@@ -112,23 +97,6 @@ void overrelax(su3 out,su3 in,double w)
 //compute delta to fix landau or coulomb gauges
 void compute_fixing_delta(su3 g,quad_su3 *conf,int ivol,enum gauge_cond_type GT)
 {
-  //reset g
-  memset(g,0,sizeof(su3));
-  
-  //decide if landau or coulomb
-  int nmu=find_nmu_gauge_cond(GT);
-  
-  for(int mu=0;mu<nmu;mu++)
-    {
-      int b=loclx_neighdw[ivol][mu];
-
-      for(int ic1=0;ic1<3;ic1++)
-	for(int ic2=0;ic2<3;ic2++)
-	  {
-	    g[ic1][ic2][0]+=conf[ivol][mu][ic1][ic2][0]+conf[b][mu][ic2][ic1][0];
-	    g[ic1][ic2][1]+=conf[ivol][mu][ic1][ic2][1]-conf[b][mu][ic2][ic1][1];
-	  }
-    }
 }
 
 //compute delta for the quality of landau or coulomb gauges
@@ -327,6 +295,98 @@ void exponentiate(su3 g,su3 a)
   unsafe_complex_conj1_prod(g[2][2],cppuno,e8);
 }
 
+//find the transformation bringing to the landau or coulomb gauge
+void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double precision,enum gauge_cond_type GT)
+{
+  //allocate working conf
+  quad_su3 *w_conf=appretto_malloc("Working conf",loc_vol+loc_bord,quad_su3);
+
+  //set eo geometry, used to switch between different parity sites
+  set_eo_geometry();
+  
+  //reset fixing transformation to unity
+  for(int ivol=0;ivol<(loc_vol+loc_bord);ivol++) su3_put_to_id(fixm[ivol]);
+  
+  //fix iteratively up to reaching required precision
+  int iter=0;
+  double qual_out=compute_gauge_fixing_quality(conf_out,GT);
+  master_printf("Iter 0, quality: %lg (%lg req)\n",
+		qual_out,precision);
+  
+  //find the number of dir relevant for the landau or coulomb condition
+  int nmu=0;
+  switch(GT)
+    {
+    case LANDAU: nmu=4;break;
+    case COULOMB: nmu=3;break;
+    default:crash("Calling compute_landau_delta with wrong gauge condit. %d (possible: %d or %d)",GT,LANDAU,COULOMB);break;
+    }
+  
+  //macro-loop in which the fixing is effectively applied to the original conf
+  //this is done in order to avoid accumulated rounding errors
+  do
+    {
+      //copy the gauge configuration on working fixing it with current transformation
+      gauge_transform_conf(w_conf,fixm,conf);
+      communicate_gauge_borders(w_conf);
+
+      //loop fixing iteratively the working conf
+      do
+	{
+	  //alternate even and odd
+	  for(int par=0;par<2;par++)
+	    {
+	      // 1) first of all open
+	      
+	      //find the next fixing
+	      
+	      // 2) compute g=\sum_mu U_mu(x)+U^dag_mu(x-mu)
+
+	      su3 g;
+	      //first dir: reset and sum
+	      int b=loclx_neighdw[ivol][0];
+	      for(int ic1=0;ic1<3;ic1++)
+		for(int ic2=0;ic2<3;ic2++)
+		  {
+		    g[ic1][ic2][0]=conf[ivol][0][ic1][ic2][0]+conf[b][0][ic2][ic1][0];
+		    g[ic1][ic2][1]=conf[ivol][0][ic1][ic2][1]-conf[b][0][ic2][ic1][1];
+		  }
+	      //remaining dirs
+	      for(int mu=1;mu<nmu;mu++)
+		{
+		  b=loclx_neighdw[ivol][mu];
+		  
+		  for(int ic1=0;ic1<3;ic1++)
+		    for(int ic2=0;ic2<3;ic2++)
+		      {
+			g[ic1][ic2][0]+=conf[ivol][mu][ic1][ic2][0]+conf[b][mu][ic2][ic1][0];
+			g[ic1][ic2][1]+=conf[ivol][mu][ic1][ic2][1]-conf[b][mu][ic2][ic1][1];
+		      }
+		}
+	      
+	      //exponentiate 
+      double tcomp=-take_time();
+      
+      find_steepest_descent_fixing(fixm,conf_out,GT,iter);
+      
+      tcomp+=take_time();
+      
+      //compute change in quality
+      double tqual=-take_time();
+      double qual_in=qual_out;
+      qual_out=compute_gauge_fixing_quality(conf_out,GT);
+      double delta_qual=qual_out-qual_in;
+      tqual+=take_time();
+      
+      iter++;
+      master_printf("Iter %d, quality: %lg (%lg req) delta: %+3.3lg%%; %lg %lg s\n",
+		    iter,qual_out,precision,delta_qual/(2*(qual_in+qual_out))*100,tcomp,tqual);          
+    }
+  while(qual_out>=precision);
+  
+  master_printf("Final quality: %lg\n",qual_out);
+}
+
 //compute the steepest descent gauge fixing transformation
 void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,enum gauge_cond_type GT,int iter)
 {
@@ -339,7 +399,7 @@ void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,enum gauge_cond_type GT,
 	su3 a,b,c;
 	compute_fixing_delta(a,conf,ivol,GT);
 	exponentiate(b,a);
-	overrelax(c,b,1.73);
+	overrelax(c,b,1.72);
 	su3_unitarize(g[ivol],c);
       }
     else
@@ -347,23 +407,6 @@ void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,enum gauge_cond_type GT,
 	memset(g[ivol],0,sizeof(su3));
 	for(int ic=0;ic<3;ic++) g[ivol][ic][ic][0]=1;
       }
-}
-
-//here for future usage
-double compute_gauge_fixing_functional(quad_su3 *conf,enum gauge_cond_type GT)
-{  
-  double loc_qual=0;
-  double glb_qual;
-  
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int mu=0;mu<4;mu++)
-      for(int ic=0;ic<3;ic++)
-	loc_qual+=conf[ivol][mu][ic][ic][0];
-  
-  //global reduction
-  MPI_Allreduce(&loc_qual,&glb_qual,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  
-  return glb_qual/2/3/4/glb_vol;
 }
 
 //compute the quality of the gauge fixing
@@ -391,45 +434,19 @@ double compute_gauge_fixing_quality(quad_su3 *conf,enum gauge_cond_type GT)
 //perform the landau or coulomb gauge fixing
 void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision,enum gauge_cond_type GT)
 {
-  memcpy(conf_out,conf_in,sizeof(quad_su3)*loc_vol);
-  
-  set_eo_geometry();
-  
-  //fixing transformation
+  //allocate fixing matrix
   su3 *fixm=appretto_malloc("fixm",loc_vol+loc_bord,su3);
   
-  //fix iteratively up to reaching required precision
-  int iter=0;
-  double qual_out=compute_gauge_fixing_quality(conf_out,GT);
-  master_printf("Iter 0, quality: %lg (%lg req)\n",
-		qual_out,precision);
-  do
-    {
-      //find the next fixing and compute its quality
-      double tcomp=-take_time();
-      
-      find_steepest_descent_fixing(fixm,conf_out,GT,iter);
-      
-      gauge_transform_conf(conf_out,fixm,conf_out);
-      tcomp+=take_time();
-      
-      //compute change in quality
-      double tqual=-take_time();
-      double qual_in=qual_out;
-      qual_out=compute_gauge_fixing_quality(conf_out,GT);
-      double delta_qual=qual_out-qual_in;
-      tqual+=take_time();
-      
-      iter++;
-      master_printf("Iter %d, quality: %lg (%lg req) delta: %+3.3lg%%; %lg %lg s\n",
-		    iter,qual_out,precision,delta_qual/(2*(qual_in+qual_out))*100,tcomp,tqual);          
-    }
-  while(qual_out>=precision);
+  //find fixing matrix
+  find_landau_or_coulomb_gauge_fix(fixm,precision,GT);
   
-  master_printf("Final quality: %lg\n",qual_out);
+  //apply the transformation
+  gauge_transform_conf(conf_out,fixm,conf_out);  
   
+  //free fixing matrix
   appretto_free(fixm);
 }
+
 //wrappers
 void landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
 {landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,LANDAU);}
