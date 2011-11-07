@@ -50,7 +50,7 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
 		    //prop_link[icol1][icol2][ri]=(1-alpha)*temp_conf[loc_site][mu][icol1][icol2][ri]+alpha/6*stap[icol1][icol2][ri];
 		    prop_link[icol1][icol2][ri]=temp_conf[loc_site][mu][icol1][icol2][ri]+alpha*stap[icol1][icol2][ri];
 	            
-	      su3_unitarize(smear_conf[loc_site][mu],prop_link);
+	      su3_unitarize_explicitly_inverting(smear_conf[loc_site][mu],prop_link);
 	    }
 	}
     }

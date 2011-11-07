@@ -139,11 +139,7 @@ void su3_prod_su3(su3 a,su3 b,su3 c)
       }
 }
 void safe_su3_prod_su3(su3 a,su3 b,su3 c)
-{
-  su3 d;
-  su3_prod_su3(d,b,c);
-  su3_copy(a,d);
-}
+{su3 d;su3_prod_su3(d,b,c);su3_copy(a,d);}
 
 //Product of two su3 matrixes
 void su3_dag_prod_su3(su3 a,su3 b,su3 c)
@@ -156,6 +152,8 @@ void su3_dag_prod_su3(su3 a,su3 b,su3 c)
 	  complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
       }
 }
+void safe_su3_dag_prod_su3(su3 a,su3 b,su3 c)
+{su3 d;su3_dag_prod_su3(d,b,c);su3_copy(a,d);}
 
 //Product of two su3 matrixes
 void su3_prod_su3_dag(su3 a,su3 b,su3 c)
@@ -168,6 +166,8 @@ void su3_prod_su3_dag(su3 a,su3 b,su3 c)
 	  complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][itemp],c[ic_out][itemp]);
       }
 }
+void safe_su3_prod_su3_dag(su3 a,su3 b,su3 c)
+{su3 d;su3_prod_su3_dag(d,b,c);su3_copy(a,d);}
 
 //Product of two su3 matrixes
 void su3_dag_prod_su3_dag(su3 a,su3 b,su3 c)
@@ -180,6 +180,8 @@ void su3_dag_prod_su3_dag(su3 a,su3 b,su3 c)
 	  complex_summ_the_conj_conj_prod(a[ir_out][ic_out],b[itemp][ir_out],c[ic_out][itemp]);
       }
 }
+void safe_su3_dag_prod_su3_dag(su3 a,su3 b,su3 c)
+{su3 d;su3_dag_prod_su3_dag(d,b,c);su3_copy(a,d);}
 
 //product of an su3 matrix by a complex
 void safe_su3_prod_complex(su3 a,su3 b,complex c)
@@ -258,44 +260,51 @@ double su3_normq(su3 U)
   return normq;
 }
 
-void su3_unitarize(su3 o,su3 i)
+//unitarize by orthonormalizing the rows
+void su3_unitarize_orthonormalizing(su3 o,su3 i)
 {
-  double Den_A=squared_complex_norm(i[0][0])+squared_complex_norm(i[0][1])+squared_complex_norm(i[0][2]);
-  complex Num_A;
-  unsafe_complex_conj2_prod(  Num_A,i[1][0],i[0][0]);
-  complex_summ_the_conj2_prod(Num_A,i[1][1],i[0][1]);
-  complex_summ_the_conj2_prod(Num_A,i[1][2],i[0][2]);
+  //compute the squared norm of row 0
+  double row0_sq_norm=squared_complex_norm(i[0][0])+squared_complex_norm(i[0][1])+squared_complex_norm(i[0][2]);
   
-  complex temp_C;
-  complex_prod_real(temp_C,Num_A,1/Den_A);
+  //compute the scalar product between row 1 and 0
+  complex row10_sc_prod;
+  unsafe_complex_conj2_prod(  row10_sc_prod,i[1][0],i[0][0]);
+  complex_summ_the_conj2_prod(row10_sc_prod,i[1][1],i[0][1]);
+  complex_summ_the_conj2_prod(row10_sc_prod,i[1][2],i[0][2]);
+  
+  //orthonormalize row 1 
+  complex f;
+  complex_prod_real(f,row10_sc_prod,1/row0_sq_norm);
   
   for(int c=0;c<3;c++)
     {
       for(int ri=0;ri<2;ri++)
 	o[1][c][ri]=i[1][c][ri];
-      complex_subt_the_prod(o[1][c],temp_C,i[0][c]);
+      complex_subt_the_prod(o[1][c],f,i[0][c]);
     }
   
-  Den_A=1/sqrt(Den_A);
-  double Den_B=1/sqrt(squared_complex_norm(o[1][0])+squared_complex_norm(o[1][1])+squared_complex_norm(o[1][2]));
+  double row0_norm=1/sqrt(row0_sq_norm);
+  double row1_norm=1/sqrt(squared_complex_norm(o[1][0])+squared_complex_norm(o[1][1])+squared_complex_norm(o[1][2]));
   
+  //normalize the rows
   for(int c=0;c<3;c++)
     for(int ri=0;ri<2;ri++)
       {
-	o[0][c][ri]=Den_A*i[0][c][ri];
-	o[1][c][ri]=Den_B*i[1][c][ri];
+	o[0][c][ri]=row0_norm*i[0][c][ri];
+	o[1][c][ri]=row1_norm*o[1][c][ri];
       }
   
-  unsafe_complex_conj_conj_prod(o[2][0],i[0][1],i[1][2]);
-  complex_subt_the_conj_conj_prod(o[2][0],i[0][2],i[1][1]);
-  unsafe_complex_conj_conj_prod(o[2][1],i[0][2],i[1][0]);
-  complex_subt_the_conj_conj_prod(o[2][1],i[0][0],i[1][2]);
-  unsafe_complex_conj_conj_prod(o[2][2],i[0][0],i[1][1]);
-  complex_subt_the_conj_conj_prod(o[2][2],i[0][1],i[1][0]);
+  //orthonormalize the third row
+  unsafe_complex_conj_conj_prod(o[2][0],o[0][1],o[1][2]);
+  complex_subt_the_conj_conj_prod(o[2][0],o[0][2],o[1][1]);
+  unsafe_complex_conj_conj_prod(o[2][1],o[0][2],o[1][0]);
+  complex_subt_the_conj_conj_prod(o[2][1],o[0][0],o[1][2]);
+  unsafe_complex_conj_conj_prod(o[2][2],o[0][0],o[1][1]);
+  complex_subt_the_conj_conj_prod(o[2][2],o[0][1],o[1][0]);
 }
 
 //unitarize an su3 matrix
-void su3_unitarize_new(su3 new_link,su3 prop_link)
+void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link)
 {
   su3 inv,temp_link;
   double gamma,check;
