@@ -14,7 +14,7 @@ double put_theta[4],old_theta[4]={0,0,0,0};
 //source data
 int source_coord[4]={0,0,0,0};
 spincolor *source;
-su3spinspin *original_source;
+su3spinspin *original_source,*original_source_fft;
 
 //vectors for the spinor data
 int npropS0;
@@ -163,6 +163,7 @@ void initialize_semileptonic(char *input_path)
   //Allocate one spincolor for the source
   source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
   original_source=appretto_malloc("orig_source",loc_vol,su3spinspin);
+  original_source_fft=appretto_malloc("orig_source_fft",loc_vol+loc_bord,su3spinspin);
 }
 
 //load the conf, fix it and put boundary cond
@@ -194,7 +195,7 @@ void load_gauge_conf()
 //Finalization
 void close_semileptonic()
 {
-  appretto_free(original_source);appretto_free(source);
+  appretto_free(original_source);appretto_free(original_source_fft);appretto_free(source);
   appretto_free(reco_solution[1]);appretto_free(reco_solution[0]);
   for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
   appretto_free(cgmms_solution);
@@ -279,39 +280,30 @@ void calculate_S0()
       }
 }
 
+//compute the fft of the source
+void compute_source_fft(double sign)
+{fft4d((complex*)original_source_fft,(complex*)original_source,144,sign,0);}
+
+//compute the fft of all propagators
 void compute_fft(double sign)
 {
   for(int r=0;r<2;r++)
     for(int imass=0;imass<nmass;imass++)
       {
-	fft4d((complex*)S0[r][imass],(complex*)S0[r][imass],144,sign);
-	//add the source fft
-	int loc_ip[4];
-	for(loc_ip[0]=0;loc_ip[0]<loc_size[0];loc_ip[0]++)
-	  for(loc_ip[1]=0;loc_ip[1]<loc_size[1];loc_ip[1]++)
-	    for(loc_ip[2]=0;loc_ip[2]<loc_size[2];loc_ip[2]++)
-	      for(loc_ip[3]=0;loc_ip[3]<loc_size[3];loc_ip[3]++)
-		{
-		  int th=0;
-		  for(int mu=0;mu<4;mu++)
-		    {
-		      int glb_ip=loc_ip[mu]+loc_size[mu]*proc_coord[mu];
-		      th+=-2*sign*M_PI*glb_ip/glb_size[mu]*source_coord[mu];
-		    }
-		  complex eipx={cos(th)*glb_vol,sin(th)*glb_vol};
-		  
-		  int ip=loclx_of_coord(loc_ip);
-		  
-		  for(int id_so=0;id_so<4;id_so++)
-		    for(int id_si=0;id_si<4;id_si++)
-		      for(int ic_so=0;ic_so<3;ic_so++)
-			for(int ic_si=0;ic_si<3;ic_si++)
-			  safe_complex_prod(S0[r][imass][ip][ic_si][ic_so][id_si][id_so],
-					    S0[r][imass][ip][ic_si][ic_so][id_si][id_so],eipx);
-		}
+	fft4d((complex*)S0[r][imass],(complex*)S0[r][imass],144,sign,0);
+	//multiply by the hermitean of the fft of the source
+	for(int imom=0;imom<loc_vol;imom++)
+	  for(int ic_so=0;ic_so<3;ic_so++)
+	    for(int id_so=0;id_so<4;id_so++)
+	      for(int ic_si=0;ic_si<3;ic_si++)
+		for(int id_si=0;id_si<4;id_si++)
+		  safe_complex_conj1_prod(S0[r][imass][imom][ic_si][ic_so][id_si][id_so],
+					  S0[r][imass][imom][ic_si][ic_so][id_si][id_so],
+					  original_source_fft[imom][ic_so][ic_si][id_so][id_si]);
       }
 }
 
+//filter the computed momentum
 void print_momentum_subset()
 {
   FILE *fout=(rank==0) ? fopen("fft_internal","w") : NULL;
@@ -405,6 +397,7 @@ int main(int narg,char **arg)
       
       load_gauge_conf();
       generate_source();
+      compute_source_fft(-1);
       
       calculate_S0();
       calculate_all_2pts();

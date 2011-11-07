@@ -66,7 +66,7 @@ void data_coordinate_order_shift(complex *data,int ncpp,int mu0)
 // in the second, ft is done (if needed) on the odd length blocks
 // in the third lanczos lemma is implemented on the local data
 // in the fourth it is applied on non-local data (if needed)
-void fft1d(complex *out,complex *in,int ncpp,int mu,double sign)
+void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
 {
   int log2glb_nblk=find_max_pow2(glb_size[mu]); //number of powers of 2 contained in n
   int glb_nblk=1<<log2glb_nblk;                 //remaining odd block
@@ -290,13 +290,15 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign)
 	}
     }
   
-  if(sign<0) for(int i=0;i<loc_size[mu]*ncpp;i++) for(int ri=0;ri<2;ri++) out[i][ri]/=glb_size[mu];
+  if(normalize==1)
+    for(int i=0;i<loc_size[mu]*ncpp;i++)
+      for(int ri=0;ri<2;ri++) out[i][ri]/=glb_size[mu];
   
   appretto_free(buf);
 }
 
 //perform the fft in all directions
-void fft4d(complex *out,complex *in,int ncpp,double sign)
+void fft4d(complex *out,complex *in,int ncpp,double sign,int normalize)
 {
   //copy input in the output (if they differ!)
   if(out!=in) memcpy(out,in,ncpp*sizeof(complex)*loc_vol);
@@ -305,7 +307,7 @@ void fft4d(complex *out,complex *in,int ncpp,double sign)
   for(int mu=0;mu<4;mu++)
     {
       //perform the 1d fft (slower dir)
-      fft1d(out,out,ncpp*loc_vol/loc_size[mu],mu,sign);
+      fft1d(out,out,ncpp*loc_vol/loc_size[mu],mu,sign,normalize);
       
       //for the time being we stick to transpose the data
       data_coordinate_order_shift(out,ncpp,mu);
