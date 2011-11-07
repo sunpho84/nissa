@@ -71,88 +71,50 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   if(nproc_dir[0]>1) appretto_free(buf);
 }
 
-//overrelax the transformation
-void overrelax(su3 out,su3 in,double w)
+//////////////////////////////////////////// landau or coulomb gauges //////////////////////////////////////////////////////////////
+
+//scans the internal border of parity opposite to the passed one, opening the connection to get the transformed link
+int open_incoming_landau_or_coulomb_gauge_fixing_communication(MPI_Request *request_list,quad_su3 *conf,int par,int nmu)
 {
-  double coef[5]={1,w,w*(w-1)/2,w*(w-1)*(w-2)/6,w*(w-1)*(w-2)*(w-3)/24};
-  su3 f,t;
+  int nrequest=0;
   
-  su3_summ_real(f,in,-1);   //subtract 1 from in
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    if(loclx_parity[ivol]!=par)
+      for(int mu=0;mu<nmu;mu++)
+	{
+	  int f=loclx_neighup[ivol][mu];
+	  int b=loclx_neighdw[ivol][mu];
+	  
+	  if(f>=loc_vol) MPI_Irecv((void*)(conf[ivol][mu]),1,MPI_SU3,rank_neighup[mu],83+4*ivol+mu,cart_comm,&(request_list[nrequest++]));
+	  if(b>=loc_vol) MPI_Irecv((void*)(conf[b][mu]),1,MPI_SU3,rank_neighdw[mu],83+4*b+mu,cart_comm,&(request_list[nrequest++]));
+	}
   
-  //ord 0
-  su3_put_to_id(out);       //output init
-  
-  //ord 1
-  su3_copy(t,f);
-  su3_summ_the_prod_real(out,t,coef[1]);
-  
-  //ord 2-4
-  for(int iord=2;iord<5;iord++)
-    {
-      safe_su3_prod_su3(t,t,f);
-      su3_summ_the_prod_real(out,t,coef[iord]);
-    }
+  return nrequest;
 }
 
-//compute delta to fix landau or coulomb gauges
-void compute_fixing_delta(su3 g,quad_su3 *conf,int ivol,enum gauge_cond_type GT)
+//compute g=\sum_mu U_mu(x)+U^dag_mu(x-mu)
+void compute_landau_or_coulomb_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
 {
-}
-
-//compute delta for the quality of landau or coulomb gauges
-void compute_quality_delta(su3 g,quad_su3 *conf,int ivol,enum gauge_cond_type GT)
-{
-  //reset g
-  memset(g,0,sizeof(su3));
-  
-  //decide if landau or coulomb
-  int nmu=find_nmu_gauge_cond(GT);
-  
-  //Calculate \sum_mu(U_mu(x-mu)-U_mu(x-mu)^dag-U_mu(x)+U^dag_mu(x))
-  //and subtract the trace. It is computed just as the TA (traceless anti-herm)
-  //this has 8 independent element (A+F+I)=0
-  // ( 0,A) ( B,C) (D,E)
-  // (-B,C) ( 0,F) (G,H)
-  // (-D,E) (-G,H) (0,I)
-  for(int mu=0;mu<nmu;mu++)
+  //first dir: reset and sum
+  int b=loclx_neighdw[ivol][0];
+  for(int ic1=0;ic1<3;ic1++)
+    for(int ic2=0;ic2<3;ic2++)
+      {
+	g[ic1][ic2][0]=conf[ivol][0][ic1][ic2][0]+conf[b][0][ic2][ic1][0];
+	g[ic1][ic2][1]=conf[ivol][0][ic1][ic2][1]-conf[b][0][ic2][ic1][1];
+      }
+  //remaining dirs
+  for(int mu=1;mu<nmu;mu++)
     {
-      int b=loclx_neighdw[ivol][mu];
+      b=loclx_neighdw[ivol][mu];
       
-      //off-diagonal real parts
-      g[0][1][0]+=conf[b][mu][0][1][0]-conf[b][mu][1][0][0]-conf[ivol][mu][0][1][0]+conf[ivol][mu][1][0][0]; //B
-      g[0][2][0]+=conf[b][mu][0][2][0]-conf[b][mu][2][0][0]-conf[ivol][mu][0][2][0]+conf[ivol][mu][2][0][0]; //D
-      g[1][2][0]+=conf[b][mu][1][2][0]-conf[b][mu][2][1][0]-conf[ivol][mu][1][2][0]+conf[ivol][mu][2][1][0]; //G
-      
-      //off diagonal imag parts
-      g[0][1][1]+=conf[b][mu][0][1][1]+conf[b][mu][1][0][1]-conf[ivol][mu][0][1][1]-conf[ivol][mu][1][0][1]; //C
-      g[0][2][1]+=conf[b][mu][0][2][1]+conf[b][mu][2][0][1]-conf[ivol][mu][0][2][1]-conf[ivol][mu][2][0][1]; //E
-      g[1][2][1]+=conf[b][mu][1][2][1]+conf[b][mu][2][1][1]-conf[ivol][mu][1][2][1]-conf[ivol][mu][2][1][1]; //H
-      
-      //digonal imag parts
-      g[0][0][1]+=conf[b][mu][0][0][1]+conf[b][mu][0][0][1]-conf[ivol][mu][0][0][1]-conf[ivol][mu][0][0][1]; //A
-      g[1][1][1]+=conf[b][mu][1][1][1]+conf[b][mu][1][1][1]-conf[ivol][mu][1][1][1]-conf[ivol][mu][1][1][1]; //F
-      g[2][2][1]+=conf[b][mu][2][2][1]+conf[b][mu][2][2][1]-conf[ivol][mu][2][2][1]-conf[ivol][mu][2][2][1]; //I
+      for(int ic1=0;ic1<3;ic1++)
+	for(int ic2=0;ic2<3;ic2++)
+	  {
+	    g[ic1][ic2][0]+=conf[ivol][mu][ic1][ic2][0]+conf[b][mu][ic2][ic1][0];
+	    g[ic1][ic2][1]+=conf[ivol][mu][ic1][ic2][1]-conf[b][mu][ic2][ic1][1];
+	  }
     }
-  
-  //compute the trace
-  double T3=(g[0][0][1]+g[1][1][1]+g[2][2][1])/3;
-  
-  //subtract 1/3 of the trace from each element, so to make traceless the matrix
-  g[0][0][1]-=T3;
-  g[1][1][1]-=T3;
-  g[2][2][1]-=T3;
-  
-  //fill the other parts
-  
-  //off-diagonal real parts
-  g[1][0][0]=-g[0][1][0];
-  g[2][0][0]=-g[0][2][0];
-  g[2][1][0]=-g[1][2][0];
-  
-  //off diagonal imag parts
-  g[1][0][1]=g[0][1][1];
-  g[2][0][1]=g[0][2][1];
-  g[2][1][1]=g[1][2][1];
 }
 
 //horrible, horrifying routine of unknown meaning copied from APE
@@ -295,122 +257,122 @@ void exponentiate(su3 g,su3 a)
   unsafe_complex_conj1_prod(g[2][2],cppuno,e8);
 }
 
-//find the transformation bringing to the landau or coulomb gauge
-void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double precision,enum gauge_cond_type GT)
+//overrelax the transformation
+void overrelax(su3 out,su3 in,double w)
 {
-  //allocate working conf
-  quad_su3 *w_conf=appretto_malloc("Working conf",loc_vol+loc_bord,quad_su3);
-
-  //set eo geometry, used to switch between different parity sites
-  set_eo_geometry();
+  double coef[5]={1,w,w*(w-1)/2,w*(w-1)*(w-2)/6,w*(w-1)*(w-2)*(w-3)/24};
+  su3 f,t;
   
-  //reset fixing transformation to unity
-  for(int ivol=0;ivol<(loc_vol+loc_bord);ivol++) su3_put_to_id(fixm[ivol]);
+  su3_summ_real(f,in,-1);   //subtract 1 from in
   
-  //fix iteratively up to reaching required precision
-  int iter=0;
-  double qual_out=compute_gauge_fixing_quality(conf_out,GT);
-  master_printf("Iter 0, quality: %lg (%lg req)\n",
-		qual_out,precision);
+  //ord 0
+  su3_put_to_id(out);       //output init
   
-  //find the number of dir relevant for the landau or coulomb condition
-  int nmu=0;
-  switch(GT)
+  //ord 1
+  su3_copy(t,f);
+  su3_summ_the_prod_real(out,t,coef[1]);
+  
+  //ord 2-4
+  for(int iord=2;iord<5;iord++)
     {
-    case LANDAU: nmu=4;break;
-    case COULOMB: nmu=3;break;
-    default:crash("Calling compute_landau_delta with wrong gauge condit. %d (possible: %d or %d)",GT,LANDAU,COULOMB);break;
+      safe_su3_prod_su3(t,t,f);
+      su3_summ_the_prod_real(out,t,coef[iord]);
     }
-  
-  //macro-loop in which the fixing is effectively applied to the original conf
-  //this is done in order to avoid accumulated rounding errors
-  do
-    {
-      //copy the gauge configuration on working fixing it with current transformation
-      gauge_transform_conf(w_conf,fixm,conf);
-      communicate_gauge_borders(w_conf);
-
-      //loop fixing iteratively the working conf
-      do
-	{
-	  //alternate even and odd
-	  for(int par=0;par<2;par++)
-	    {
-	      // 1) first of all open
-	      
-	      //find the next fixing
-	      
-	      // 2) compute g=\sum_mu U_mu(x)+U^dag_mu(x-mu)
-
-	      su3 g;
-	      //first dir: reset and sum
-	      int b=loclx_neighdw[ivol][0];
-	      for(int ic1=0;ic1<3;ic1++)
-		for(int ic2=0;ic2<3;ic2++)
-		  {
-		    g[ic1][ic2][0]=conf[ivol][0][ic1][ic2][0]+conf[b][0][ic2][ic1][0];
-		    g[ic1][ic2][1]=conf[ivol][0][ic1][ic2][1]-conf[b][0][ic2][ic1][1];
-		  }
-	      //remaining dirs
-	      for(int mu=1;mu<nmu;mu++)
-		{
-		  b=loclx_neighdw[ivol][mu];
-		  
-		  for(int ic1=0;ic1<3;ic1++)
-		    for(int ic2=0;ic2<3;ic2++)
-		      {
-			g[ic1][ic2][0]+=conf[ivol][mu][ic1][ic2][0]+conf[b][mu][ic2][ic1][0];
-			g[ic1][ic2][1]+=conf[ivol][mu][ic1][ic2][1]-conf[b][mu][ic2][ic1][1];
-		      }
-		}
-	      
-	      //exponentiate 
-      double tcomp=-take_time();
-      
-      find_steepest_descent_fixing(fixm,conf_out,GT,iter);
-      
-      tcomp+=take_time();
-      
-      //compute change in quality
-      double tqual=-take_time();
-      double qual_in=qual_out;
-      qual_out=compute_gauge_fixing_quality(conf_out,GT);
-      double delta_qual=qual_out-qual_in;
-      tqual+=take_time();
-      
-      iter++;
-      master_printf("Iter %d, quality: %lg (%lg req) delta: %+3.3lg%%; %lg %lg s\n",
-		    iter,qual_out,precision,delta_qual/(2*(qual_in+qual_out))*100,tcomp,tqual);          
-    }
-  while(qual_out>=precision);
-  
-  master_printf("Final quality: %lg\n",qual_out);
 }
 
-//compute the steepest descent gauge fixing transformation
-void find_steepest_descent_fixing(su3 *g,quad_su3 *conf,enum gauge_cond_type GT,int iter)
+//find the transformation bringing to the landau or coulomb gauge the point ivol
+void find_local_landau_or_coulomb_gauge_fixing_transformation(su3 g,quad_su3 *conf,int ivol,int nmu)
 {
-  int par=iter%2;
+  su3 h;
   
-  //loop over local sites
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    if(loclx_parity[ivol]==par)
-      {
-	su3 a,b,c;
-	compute_fixing_delta(a,conf,ivol,GT);
-	exponentiate(b,a);
-	overrelax(c,b,1.72);
-	su3_unitarize(g[ivol],c);
-      }
-    else
-      {
-	memset(g[ivol],0,sizeof(su3));
-	for(int ic=0;ic<3;ic++) g[ivol][ic][ic][0]=1;
-      }
+  //compute the local summ of U_\mu(x)+U^\dagger_\mu(x-\mu)find local transformation matrix on point ivol
+  compute_landau_or_coulomb_delta(h,conf,ivol,nmu);
+  //exponentiate
+  exponentiate(g,h);
+  //overrelax
+  overrelax(h,g,1.72);
+  //unitarize
+  su3_unitarize_orthonormalizing(g,h);
 }
 
-//compute the quality of the gauge fixing
-double compute_gauge_fixing_quality(quad_su3 *conf,enum gauge_cond_type GT)
+//apply the passed transformation to the point and send external border on appropriate node
+int local_gauge_transform_and_send_borders(MPI_Request *request,quad_su3 *conf,su3 g,int ivol)
+{
+  int nrequest=0;
+  
+  // for each dir...
+  for(int mu=0;mu<4;mu++)
+    {
+      int b=loclx_neighdw[ivol][mu];
+      int f=loclx_neighup[ivol][mu];
+      
+      //perform local gauge transform
+      safe_su3_prod_su3(conf[ivol][mu],g,conf[ivol][mu]);
+      safe_su3_prod_su3_dag(conf[b][mu],conf[b][mu],g);
+      
+      //if the point is on the border send the transformed link to the appropriate node
+      if(b>=loc_vol) MPI_Isend((void*)(conf[b][mu]),1,MPI_SU3,rank_neighdw[mu],83+4*loclx_of_bordlx[b-loc_vol]+mu,cart_comm,&(request[nrequest++]));
+      if(f>=loc_vol) MPI_Isend((void*)(conf[ivol][mu]),1,MPI_SU3,rank_neighup[mu],83+4*loclx_neighdw[loclx_of_bordlx[f-loc_vol]][mu]+mu,cart_comm,&(request[nrequest++]));
+    }
+  
+  return nrequest;
+}
+
+//compute delta for the quality of landau or coulomb gauges
+void compute_landau_or_coulomb_quality_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
+{
+  //reset g
+  memset(g,0,sizeof(su3));
+  
+  //Calculate \sum_mu(U_mu(x-mu)-U_mu(x-mu)^dag-U_mu(x)+U^dag_mu(x))
+  //and subtract the trace. It is computed just as the TA (traceless anti-herm)
+  //this has 8 independent element (A+F+I)=0
+  // ( 0,A) ( B,C) (D,E)
+  // (-B,C) ( 0,F) (G,H)
+  // (-D,E) (-G,H) (0,I)
+  for(int mu=0;mu<nmu;mu++)
+    {
+      int b=loclx_neighdw[ivol][mu];
+      
+      //off-diagonal real parts
+      g[0][1][0]+=conf[b][mu][0][1][0]-conf[b][mu][1][0][0]-conf[ivol][mu][0][1][0]+conf[ivol][mu][1][0][0]; //B
+      g[0][2][0]+=conf[b][mu][0][2][0]-conf[b][mu][2][0][0]-conf[ivol][mu][0][2][0]+conf[ivol][mu][2][0][0]; //D
+      g[1][2][0]+=conf[b][mu][1][2][0]-conf[b][mu][2][1][0]-conf[ivol][mu][1][2][0]+conf[ivol][mu][2][1][0]; //G
+      
+      //off diagonal imag parts
+      g[0][1][1]+=conf[b][mu][0][1][1]+conf[b][mu][1][0][1]-conf[ivol][mu][0][1][1]-conf[ivol][mu][1][0][1]; //C
+      g[0][2][1]+=conf[b][mu][0][2][1]+conf[b][mu][2][0][1]-conf[ivol][mu][0][2][1]-conf[ivol][mu][2][0][1]; //E
+      g[1][2][1]+=conf[b][mu][1][2][1]+conf[b][mu][2][1][1]-conf[ivol][mu][1][2][1]-conf[ivol][mu][2][1][1]; //H
+      
+      //digonal imag parts
+      g[0][0][1]+=conf[b][mu][0][0][1]+conf[b][mu][0][0][1]-conf[ivol][mu][0][0][1]-conf[ivol][mu][0][0][1]; //A
+      g[1][1][1]+=conf[b][mu][1][1][1]+conf[b][mu][1][1][1]-conf[ivol][mu][1][1][1]-conf[ivol][mu][1][1][1]; //F
+      g[2][2][1]+=conf[b][mu][2][2][1]+conf[b][mu][2][2][1]-conf[ivol][mu][2][2][1]-conf[ivol][mu][2][2][1]; //I
+    }
+  
+  //compute the trace
+  double T3=(g[0][0][1]+g[1][1][1]+g[2][2][1])/3;
+  
+  //subtract 1/3 of the trace from each element, so to make traceless the matrix
+  g[0][0][1]-=T3;
+  g[1][1][1]-=T3;
+  g[2][2][1]-=T3;
+  
+  //fill the other parts
+  
+  //off-diagonal real parts
+  g[1][0][0]=-g[0][1][0];
+  g[2][0][0]=-g[0][2][0];
+  g[2][1][0]=-g[1][2][0];
+  
+  //off diagonal imag parts
+  g[1][0][1]=g[0][1][1];
+  g[2][0][1]=g[0][2][1];
+  g[2][1][1]=g[1][2][1];
+}
+
+//compute the quality of the landau or coulomb gauge fixing
+double compute_landau_or_coulomb_gauge_fixing_quality(quad_su3 *conf,int nmu)
 {
   communicate_gauge_borders(conf);
 
@@ -418,7 +380,7 @@ double compute_gauge_fixing_quality(quad_su3 *conf,enum gauge_cond_type GT)
   for(int ivol=0;ivol<loc_vol;ivol++)
     {
       su3 delta;
-      compute_quality_delta(delta,conf,ivol,GT);
+      compute_landau_or_coulomb_quality_delta(delta,conf,ivol,nmu);
       
       //compute the trace of the square and summ it to omega
       for(int i=0;i<18;i++) loc_omega+=((double*)delta)[i]*((double*)delta)[i];
@@ -431,17 +393,105 @@ double compute_gauge_fixing_quality(quad_su3 *conf,enum gauge_cond_type GT)
   return glb_omega/glb_vol/3;
 }
 
+//find the transformation bringing to the landau or coulomb gauge
+void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double required_precision,int nmu)
+{
+  //allocate working conf
+  quad_su3 *w_conf=appretto_malloc("Working conf",loc_vol+loc_bord,quad_su3);
+
+  //set eo geometry, used to switch between different parity sites
+  set_eo_geometry();
+  
+  //reset fixing transformation to unity
+  for(int ivol=0;ivol<loc_vol;ivol++) su3_put_to_id(fixm[ivol]);
+  
+  //fix iteratively up to reaching required precision, performing a
+  //macro-loop in which the fixing is effectively applied to the original
+  //conf: this is done in order to avoid accumulated rounding errors
+  int iter=0,macro_iter=0;
+  double true_precision;
+  do
+    {
+      //copy the gauge configuration on working fixing it with current transformation
+      gauge_transform_conf(w_conf,fixm,conf);
+      communicate_gauge_borders(w_conf);
+      
+      //compute initial precision
+      true_precision=compute_landau_or_coulomb_gauge_fixing_quality(w_conf,nmu);
+      
+      if(macro_iter==0) master_printf("Iter 0 [macro: 0], quality: %lg (%lg req)\n",true_precision,required_precision);
+      else master_printf("Finished macro iter %d, true quality: %lg (%lg req)\n",macro_iter-1,true_precision,required_precision);
+      macro_iter++;
+      
+      //loop fixing iteratively the working conf
+      double precision=true_precision;
+      while(true_precision>=required_precision && precision>=required_precision)
+	{
+	  MPI_Request request_list[loc_bord];
+	  
+	  //alternate even and odd
+	  for(int par=0;par<2;par++)
+	    {
+	      // 1) first of all open all the communication of the inner opposite parity borders
+	      int nrequest=open_incoming_landau_or_coulomb_gauge_fixing_communication(request_list,w_conf,par,nmu);
+	
+	      for(int ivol=0;ivol<loc_vol;ivol++)
+		if(loclx_parity[ivol]==par)
+		  {
+		    su3 g;
+		    
+		    // 2) find the local transformation bringing to the landau or coulomb gauge
+		    find_local_landau_or_coulomb_gauge_fixing_transformation(g,w_conf,ivol,nmu);
+		    
+		    // 3) locally transform and send all transformed external borders
+		    nrequest+=local_gauge_transform_and_send_borders(request_list+nrequest,w_conf,g,ivol);
+		    
+		    // 4) save gauge transformation
+		    safe_su3_prod_su3(fixm[ivol],g,fixm[ivol]);
+		  }
+	      
+	      // 5) wait for all request to be accomplished
+	      if(nrequest>0)
+		{
+		  MPI_Status status[nrequest];
+		  MPI_Waitall(nrequest,request_list,status);
+		}
+	    }
+	  
+	  //compute precision
+	  if(iter%10==0 && iter!=0)
+	    {
+	      precision=compute_landau_or_coulomb_gauge_fixing_quality(w_conf,nmu);	  
+	      master_printf("Iter %d [macro: %d], quality: %16.16lg (%lg req)\n",
+			    iter,macro_iter-1,precision,required_precision);
+	    }
+	  
+	  iter++;
+	}
+      
+      //normalize the transformation
+      for(int ivol=0;ivol<loc_vol;ivol++) su3_unitarize_explicitly_inverting(fixm[ivol],fixm[ivol]);
+      
+      //go to the beginning and check the quality of the macro iteration
+    }
+  while(true_precision>=required_precision);
+  
+  master_printf("Final quality: %16.16lg\n",true_precision);
+  
+  appretto_free(w_conf);
+}
+
 //perform the landau or coulomb gauge fixing
-void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision,enum gauge_cond_type GT)
+void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision,int nmu)
 {
   //allocate fixing matrix
   su3 *fixm=appretto_malloc("fixm",loc_vol+loc_bord,su3);
   
   //find fixing matrix
-  find_landau_or_coulomb_gauge_fix(fixm,precision,GT);
+  find_landau_or_coulomb_gauge_fixing_matr(fixm,conf_in,precision,nmu);
   
   //apply the transformation
-  gauge_transform_conf(conf_out,fixm,conf_out);  
+  gauge_transform_conf(conf_out,fixm,conf_in);
   
   //free fixing matrix
   appretto_free(fixm);
@@ -449,7 +499,7 @@ void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double pre
 
 //wrappers
 void landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
-{landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,LANDAU);}
+{landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,4);}
 void coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
-{landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,COULOMB);}
+{landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,3);}
 

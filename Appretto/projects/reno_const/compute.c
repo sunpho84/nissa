@@ -172,7 +172,7 @@ void load_gauge_conf()
   read_gauge_conf(unfix_conf,conf_path);
   //prepare the fixed version and calculate plaquette
   fix_time-=take_time();
-  landau_ape__gauge_fix(conf,unfix_conf,1.e-20);
+  landau_gauge_fix(conf,unfix_conf,1.e-20);
   //landau_gauge_fix(conf,unfix_conf,1.e-20);
   //memcpy(conf,unfix_conf,loc_vol*sizeof(quad_su3));
   fix_time+=take_time();
