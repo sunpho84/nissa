@@ -402,6 +402,19 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
   //set eo geometry, used to switch between different parity sites
   set_eo_geometry();
   
+  //lets's see what the parity order inside the border
+  if(0)
+  for(int mu=0;mu<4;mu++)
+    {
+      master_printf("\n");
+      for(int ibord=0;ibord<bord_dir_vol[mu];ibord++)
+	{
+	  int ivol=loc_vol+bord_offset[mu]+ibord;
+	  int par=loclx_parity[ivol];
+	  master_printf("%d %d %d %d\n",mu,ibord,ivol,par);
+	}
+    }
+  
   //reset fixing transformation to unity
   for(int ivol=0;ivol<loc_vol;ivol++) su3_put_to_id(fixm[ivol]);
   
@@ -435,6 +448,8 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	      // 1) first of all open all the communication of the inner opposite parity borders
 	      int nrequest=open_incoming_landau_or_coulomb_gauge_fixing_communication(request_list,w_conf,par,nmu);
 	
+	      double computer_time=take_time();
+	      
 	      for(int ivol=0;ivol<loc_vol;ivol++)
 		if(loclx_parity[ivol]==par)
 		  {
@@ -450,12 +465,15 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 		    safe_su3_prod_su3(fixm[ivol],g,fixm[ivol]);
 		  }
 	      
+	      double wait_time=take_time();
 	      // 5) wait for all request to be accomplished
 	      if(nrequest>0)
 		{
 		  MPI_Status status[nrequest];
 		  MPI_Waitall(nrequest,request_list,status);
 		}
+	      master_printf("Waited for %d request %lg sec, computer %lg\n",
+			    nrequest,take_time()-wait_time,wait_time-computer_time);
 	    }
 	  
 	  //compute precision
