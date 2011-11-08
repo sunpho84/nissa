@@ -74,6 +74,24 @@ int bulk_recip_lat_volume(int *P,int *L)
   return bulk_volume(X);
 }
 
+//compute the variance of the border
+int compute_border_variance(int *L,int *X,int consider_reciprocal)
+{
+  int S2B=0,SB=0;
+  for(int ib=0;ib<4;ib++)
+    {
+      int B=1;
+      for(int mu=0;mu<4;mu++) if(mu!=ib) B*=(consider_reciprocal) ? L[mu]/X[mu] : X[mu];
+      SB+=B;
+      S2B+=B*B;
+    }
+  SB/=4;
+  S2B/=4;
+  S2B-=SB*SB;
+  
+  return S2B;
+}
+
 //find the grid of procs minimizing the surface
 void find_minimal_surface_grid(int *mP,int *L,int NP)
 {
@@ -86,6 +104,9 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
     }
   else
     {
+      //minimal variance border
+      int mBV;
+      
       //compute total and local volume
       int V=L[0]*L[1]*L[2]*L[3];
       int VL=V/NP;
@@ -98,10 +119,11 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
       int list_factNP[log2N(NP)];
       int nfactNP=factorize(list_factNP,NP);
       
-      //if nfactVL>nfactNP factorize the reciprocal lattice
-      int nfactX=(nfactVL<nfactNP) ? nfactVL : nfactNP;
-      int *list_factX=(nfactVL<nfactNP) ? list_factVL : list_factNP;
-
+      //if nfactVL>=nfactNP factorize the reciprocal lattice
+      int consider_reciprocal=(nfactVL>=nfactNP);
+      int nfactX=(consider_reciprocal) ? nfactNP : nfactVL;
+      int *list_factX=(consider_reciprocal) ? list_factNP : list_factVL;
+      
       //compute the number of combinations
       int ncomboX=1;
       for(int ifactX=0;ifactX<nfactX;ifactX++) ncomboX*=4;
@@ -131,14 +153,34 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	  if(valid_partitioning)
 	    {
 	      //compute the surface=loc_vol-bulk_volume
-	      int surfVL=VL-((nfactVL<nfactNP) ? bulk_volume(X) : bulk_recip_lat_volume(X,L));
+	      int BL=consider_reciprocal ? bulk_recip_lat_volume(X,L) : bulk_volume(X);
+	      int surfVL=VL-BL;
 	      
-	      //if it is the minimal surface (or first valid combo) copy it
+	      //look if this is the new minimal surface
+	      int new_minimal=0;
+	      //if it is the minimal surface (or first valid combo) copy it and compute the border size
 	      if(surfVL<minsurfVL||minsurfVL==-1)
+		{
+		  new_minimal=1;
+		  mBV=compute_border_variance(L,X,consider_reciprocal);
+		}
+	      //if it is equal to previous found surface, consider borders variance
+	      if(surfVL==minsurfVL)
+		{
+		  int BV=compute_border_variance(L,X,consider_reciprocal);
+		  //if borders are more homogeneus consider this grid
+		  if(BV<mBV)
+		    {
+		      mBV=BV;
+		      new_minimal=1;
+		    }
+		}
+	      
+	      if(new_minimal)
 		{
 		  minsurfVL=surfVL;
 		  for(int mu=0;mu<4;mu++)
-		    mP[mu]=(nfactVL<nfactNP) ? L[mu]/X[mu] : X[mu];
+		    mP[mu]=consider_reciprocal ? X[mu] : L[mu]/X[mu];
 		}
 	      
 	      icomboX++;
