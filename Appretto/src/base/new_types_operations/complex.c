@@ -203,6 +203,19 @@ void complex_reciprocal(complex rec,complex c)
   rec[1]=-c[1]/module;
 }
 
+//squared root of a complex
+void complex_sqrt(complex res,complex base)
+{
+  double module=sqrt(base[0]*base[0]+base[1]*base[1]);
+  double cost=base[0]/module;
+  double sinth=sqrt(0.5*(1-cost));
+  double costh=sqrt(0.5*(1+cost));
+  module=sqrt(module);
+  if(base[1]>=0) res[0]=+module*costh;
+  else           res[0]=-module*costh;
+  res[1]=module*sinth;
+}
+
 //power of a complex
 void complex_pow(complex res,complex base,double exp)
 {

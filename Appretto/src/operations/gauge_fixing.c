@@ -73,25 +73,6 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
 
 //////////////////////////////////////////// landau or coulomb gauges //////////////////////////////////////////////////////////////
 
-//scans the internal border of parity opposite to the passed one, opening the connection to get the transformed link
-int open_incoming_landau_or_coulomb_gauge_fixing_communication(MPI_Request *request_list,quad_su3 *conf,int par,int nmu)
-{
-  int nrequest=0;
-  
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    if(loclx_parity[ivol]!=par)
-      for(int mu=0;mu<nmu;mu++)
-	{
-	  int f=loclx_neighup[ivol][mu];
-	  int b=loclx_neighdw[ivol][mu];
-	  
-	  if(f>=loc_vol) MPI_Irecv((void*)(conf[ivol][mu]),1,MPI_SU3,rank_neighup[mu],83+4*ivol+mu,cart_comm,&(request_list[nrequest++]));
-	  if(b>=loc_vol) MPI_Irecv((void*)(conf[b][mu]),1,MPI_SU3,rank_neighdw[mu],83+4*b+mu,cart_comm,&(request_list[nrequest++]));
-	}
-  
-  return nrequest;
-}
-
 //compute g=\sum_mu U_mu(x)+U^dag_mu(x-mu)
 void compute_landau_or_coulomb_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
 {
@@ -296,26 +277,17 @@ void find_local_landau_or_coulomb_gauge_fixing_transformation(su3 g,quad_su3 *co
 }
 
 //apply the passed transformation to the point and send external border on appropriate node
-int local_gauge_transform_and_send_borders(MPI_Request *request,quad_su3 *conf,su3 g,int ivol)
+void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
 {
-  int nrequest=0;
-  
   // for each dir...
   for(int mu=0;mu<4;mu++)
     {
       int b=loclx_neighdw[ivol][mu];
-      int f=loclx_neighup[ivol][mu];
       
       //perform local gauge transform
       safe_su3_prod_su3(conf[ivol][mu],g,conf[ivol][mu]);
       safe_su3_prod_su3_dag(conf[b][mu],conf[b][mu],g);
-      
-      //if the point is on the border send the transformed link to the appropriate node
-      if(b>=loc_vol) MPI_Isend((void*)(conf[b][mu]),1,MPI_SU3,rank_neighdw[mu],83+4*loclx_of_bordlx[b-loc_vol]+mu,cart_comm,&(request[nrequest++]));
-      if(f>=loc_vol) MPI_Isend((void*)(conf[ivol][mu]),1,MPI_SU3,rank_neighup[mu],83+4*loclx_neighdw[loclx_of_bordlx[f-loc_vol]][mu]+mu,cart_comm,&(request[nrequest++]));
     }
-  
-  return nrequest;
 }
 
 //compute delta for the quality of landau or coulomb gauges
@@ -393,6 +365,40 @@ double compute_landau_or_coulomb_gauge_fixing_quality(quad_su3 *conf,int nmu)
   return glb_omega/glb_vol/3;
 }
 
+void diagonalize_su3(su3 U)
+{
+  su3_print(U);
+  static double ts3=3*sqrt(3);
+  
+  complex d={U[0][0][0]+U[1][1][0]+U[2][2][0],U[0][0][1]+U[1][1][1]+U[2][2][1]};
+  double dm=d[0]*d[0]+d[1]*d[1];
+  complex d2;unsafe_complex_prod(d2,d,d);
+  complex d3;unsafe_complex_prod(d3,d2,d);
+  
+  complex arg={27+dm*(18-dm),8*d3[1]};
+  complex_sqrt(arg,arg);
+  complex a={(-27-9*dm-2*d3[0]+ts3*arg[0])/2,(-2*d3[1]+ts3*arg[1])/2};
+  complex_pow(a,a,1.0/3);
+  complex b;
+  complex_reciprocal(b,a);
+  complex c={-d2[0]-3*d[0],-d2[1]+3*d[1]};
+  safe_complex_prod(b,b,c);
+  
+  complex sol1={(d[0]+b[0]-a[0])/3,(d[1]+b[1]-a[1])/3};
+  
+  complex sol2;
+  unsafe_complex_prod(sol2,sol1,sol1);
+  complex sol3;
+  unsafe_complex_prod(sol3,sol2,sol1);
+  
+  complex zero={1,0};
+  complex_subt(zero,zero,sol3);
+  complex_summ_the_prod(zero,sol2,d);
+  complex_subt_the_conj2_prod(zero,sol1,d);
+  
+  printf("%lg %lg\n",zero[0],zero[1]);
+}
+
 //find the transformation bringing to the landau or coulomb gauge
 void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double required_precision,int nmu)
 {
@@ -402,18 +408,31 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
   //set eo geometry, used to switch between different parity sites
   set_eo_geometry();
   
-  //lets's see what the parity order inside the border
-  if(0)
+  //count even and odd elements on each external inferior and internal
+  //superior border so to allocate room for buffers
+  int bpar_dw_size[4][2]={{0,0},{0,0},{0,0},{0,0}};
+  int bpar_up_size[4][2]={{0,0},{0,0},{0,0},{0,0}};
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int mu=0;mu<4;mu++)
+      {
+	int b=loclx_neighdw[ivol][mu];
+	int f=loclx_neighup[ivol][mu];
+	if(b>=loc_vol) bpar_dw_size[mu][loclx_parity[b]]++;
+	if(f>=loc_vol) bpar_up_size[mu][loclx_parity[ivol]]++;
+      }
+  
+  if(rank==0) diagonalize_su3(conf[0][0]);
+
+  //allocate buffer for sending borders
+  su3 *buf_up[4][2];
+  su3 *buf_dw[4][2];
   for(int mu=0;mu<4;mu++)
-    {
-      master_printf("\n");
-      for(int ibord=0;ibord<bord_dir_vol[mu];ibord++)
+    if(paral_dir[mu])
+      for(int par=0;par<2;par++)
 	{
-	  int ivol=loc_vol+bord_offset[mu]+ibord;
-	  int par=loclx_parity[ivol];
-	  master_printf("%d %d %d %d\n",mu,ibord,ivol,par);
+	  buf_dw[mu][par]=appretto_malloc("Buf_dw",bpar_dw_size[mu][par],su3);
+	  buf_up[mu][par]=appretto_malloc("Buf_up",bpar_up_size[mu][par],su3);
 	}
-    }
   
   //reset fixing transformation to unity
   for(int ivol=0;ivol<loc_vol;ivol++) su3_put_to_id(fixm[ivol]);
@@ -438,50 +457,87 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
       
       //loop fixing iteratively the working conf
       double precision=true_precision;
+      double communic_time=0,computer_time=0;
       while(true_precision>=required_precision && precision>=required_precision)
 	{
-	  MPI_Request request_list[loc_bord];
-	  
 	  //alternate even and odd
 	  for(int par=0;par<2;par++)
 	    {
-	      // 1) first of all open all the communication of the inner opposite parity borders
-	      int nrequest=open_incoming_landau_or_coulomb_gauge_fixing_communication(request_list,w_conf,par,nmu);
-	
-	      double computer_time=take_time();
+	      double initial_time=take_time();
+	      
+	      int isend_dw[4]={0,0,0,0};
+	      int isend_up[4]={0,0,0,0};
 	      
 	      for(int ivol=0;ivol<loc_vol;ivol++)
 		if(loclx_parity[ivol]==par)
 		  {
 		    su3 g;
 		    
-		    // 2) find the local transformation bringing to the landau or coulomb gauge
+		    // 1) find the local transformation bringing to the landau or coulomb gauge
 		    find_local_landau_or_coulomb_gauge_fixing_transformation(g,w_conf,ivol,nmu);
 		    
-		    // 3) locally transform and send all transformed external borders
-		    nrequest+=local_gauge_transform_and_send_borders(request_list+nrequest,w_conf,g,ivol);
+		    // 2) locally transform gauge
+		    local_gauge_transform(w_conf,g,ivol);
 		    
-		    // 4) save gauge transformation
+		    // 3) save gauge transformation
 		    safe_su3_prod_su3(fixm[ivol],g,fixm[ivol]);
+		    
+		    // 4) lower external border must be sync.ed with upper internal border of lower node
+		    //  upper internal border with same parity must be sent using buf_up[mu][par]
+		    //    ""     ""      ""   ""   opp.    "     "  "  recv using buf_up[mu][!par]
+		    //  lower external   ""   ""   same    "     "  "  recv using buf_dw[mu][!par]
+		    //    ""     ""      ""   ""   opp.    "     "  "  sent using buf_dw[mu][par]
+		    for(int mu=0;mu<4;mu++)
+		      {
+			int f=loclx_neighup[ivol][mu];
+			int b=loclx_neighdw[ivol][mu];
+			if(f>=loc_vol) su3_copy(buf_up[mu][par][isend_up[mu]++],w_conf[ivol][mu]);
+			if(b>=loc_vol) su3_copy(buf_dw[mu][!par][isend_dw[mu]++],w_conf[b][mu]); //indeed parity is of b
+		      }
 		  }
 	      
-	      double wait_time=take_time();
-	      // 5) wait for all request to be accomplished
-	      if(nrequest>0)
-		{
-		  MPI_Status status[nrequest];
-		  MPI_Waitall(nrequest,request_list,status);
-		}
-	      master_printf("Waited for %d request %lg sec, computer %lg\n",
-			    nrequest,take_time()-wait_time,wait_time-computer_time);
+	      double intermediate_time=take_time();
+	      
+	      //communicate the borders
+	      int nrequest=0;
+	      MPI_Request request[16];
+	      MPI_Status status[16];
+	      for(int mu=0;mu<4;mu++)
+		if(paral_dir[mu])
+		  {
+		    MPI_Isend((void*)buf_up[mu][ par],bpar_up_size[mu][ par],MPI_SU3,rank_neighup[mu],87+4+mu,cart_comm,&request[nrequest++]);
+		    MPI_Irecv((void*)buf_up[mu][!par],bpar_up_size[mu][!par],MPI_SU3,rank_neighup[mu],87+  mu,cart_comm,&request[nrequest++]);
+		    MPI_Irecv((void*)buf_dw[mu][ par],bpar_dw_size[mu][ par],MPI_SU3,rank_neighdw[mu],87+4+mu,cart_comm,&request[nrequest++]);
+		    MPI_Isend((void*)buf_dw[mu][!par],bpar_dw_size[mu][!par],MPI_SU3,rank_neighdw[mu],87+  mu,cart_comm,&request[nrequest++]);
+		  }
+	      if(nrequest>0) MPI_Waitall(nrequest,request,status);
+	      
+	      //now unpack the receive borders
+	      int irecv_dw[4]={0,0,0,0};
+	      int irecv_up[4]={0,0,0,0};
+	      for(int ivol=0;ivol<loc_vol;ivol++)
+		if(loclx_parity[ivol]!=par)
+		  for(int mu=0;mu<4;mu++)
+		    {
+		      int f=loclx_neighup[ivol][mu];
+		      int b=loclx_neighdw[ivol][mu];
+		      if(f>=loc_vol) su3_copy(w_conf[ivol][mu],buf_up[mu][!par][irecv_up[mu]++]);
+		      if(b>=loc_vol) su3_copy(w_conf[b][mu],buf_dw[mu][par][irecv_dw[mu]++]); //indeed parity is of b
+		    }
+	      
+	      double final_time=take_time();
+	      
+	      computer_time+=intermediate_time-initial_time;
+	      communic_time+=final_time-intermediate_time;
 	    }
 	  
 	  //compute precision
 	  if(iter%10==0 && iter!=0)
 	    {
 	      precision=compute_landau_or_coulomb_gauge_fixing_quality(w_conf,nmu);	  
-	      master_printf("Iter %d [macro: %d], quality: %16.16lg (%lg req)\n",
-			    iter,macro_iter-1,precision,required_precision);
+	      master_printf("Iter %d [macro: %d], quality: %16.16lg (%lg req), compute time %lg sec, comm time %lg sec\n",
+			    iter,macro_iter-1,precision,required_precision,computer_time,communic_time);
+	      communic_time=computer_time=0;
 	    }
 	  
 	  iter++;
@@ -495,6 +551,15 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
   while(true_precision>=required_precision);
   
   master_printf("Final quality: %16.16lg\n",true_precision);
+  
+  //free buffers
+  for(int mu=0;mu<4;mu++)
+    if(paral_dir[mu])
+      for(int par=0;par<2;par++)
+	{
+	  appretto_free(buf_dw[mu][par]);
+	  appretto_free(buf_up[mu][par]);
+	}
   
   appretto_free(w_conf);
 }

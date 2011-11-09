@@ -105,7 +105,7 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
   else
     {
       //minimal variance border
-      int mBV;
+      int mBV=-1;
       
       //compute total and local volume
       int V=L[0]*L[1]*L[2]*L[3];
