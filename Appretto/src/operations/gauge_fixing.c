@@ -365,46 +365,12 @@ double compute_landau_or_coulomb_gauge_fixing_quality(quad_su3 *conf,int nmu)
   return glb_omega/glb_vol/3;
 }
 
-void diagonalize_su3(su3 U)
-{
-  su3_print(U);
-  static double ts3=3*sqrt(3);
-  
-  complex d={U[0][0][0]+U[1][1][0]+U[2][2][0],U[0][0][1]+U[1][1][1]+U[2][2][1]};
-  double dm=d[0]*d[0]+d[1]*d[1];
-  complex d2;unsafe_complex_prod(d2,d,d);
-  complex d3;unsafe_complex_prod(d3,d2,d);
-  
-  complex arg={27+dm*(18-dm),8*d3[1]};
-  complex_sqrt(arg,arg);
-  complex a={(-27-9*dm-2*d3[0]+ts3*arg[0])/2,(-2*d3[1]+ts3*arg[1])/2};
-  complex_pow(a,a,1.0/3);
-  complex b;
-  complex_reciprocal(b,a);
-  complex c={-d2[0]-3*d[0],-d2[1]+3*d[1]};
-  safe_complex_prod(b,b,c);
-  
-  complex sol1={(d[0]+b[0]-a[0])/3,(d[1]+b[1]-a[1])/3};
-  
-  complex sol2;
-  unsafe_complex_prod(sol2,sol1,sol1);
-  complex sol3;
-  unsafe_complex_prod(sol3,sol2,sol1);
-  
-  complex zero={1,0};
-  complex_subt(zero,zero,sol3);
-  complex_summ_the_prod(zero,sol2,d);
-  complex_subt_the_conj2_prod(zero,sol1,d);
-  
-  printf("%lg %lg\n",zero[0],zero[1]);
-}
-
 //find the transformation bringing to the landau or coulomb gauge
 void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double required_precision,int nmu)
 {
   //allocate working conf
   quad_su3 *w_conf=appretto_malloc("Working conf",loc_vol+loc_bord,quad_su3);
-
+  
   //set eo geometry, used to switch between different parity sites
   set_eo_geometry();
   
@@ -421,8 +387,6 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	if(f>=loc_vol) bpar_up_size[mu][loclx_parity[ivol]]++;
       }
   
-  if(rank==0) diagonalize_su3(conf[0][0]);
-
   //allocate buffer for sending borders
   su3 *buf_up[4][2];
   su3 *buf_dw[4][2];
