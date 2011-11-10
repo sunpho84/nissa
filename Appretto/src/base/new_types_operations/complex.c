@@ -96,20 +96,45 @@ void unsafe_complex_prod(complex a,complex b,complex c)
   a[1]=b[0]*c[1]+b[1]*c[0];
 }
 
+//Minus the product
+void unsafe_complex_prod_minus(complex a,complex b,complex c)
+{
+  a[0]=-(b[0]*c[0]-b[1]*c[1]);
+  a[1]=-(b[0]*c[1]+b[1]*c[0]);
+}
+
 //The product of a complex number by the conjugate of the second
 void unsafe_complex_conj2_prod(complex a,complex b,complex c)
 {
   a[0]=+b[0]*c[0]+b[1]*c[1];
   a[1]=-b[0]*c[1]+b[1]*c[0];
 }
+
+//Minus the former
+void unsafe_complex_conj2_prod_minus(complex a,complex b,complex c)
+{
+  a[0]=-(b[0]*c[0]+b[1]*c[1]);
+  a[1]=-(-b[0]*c[1]+b[1]*c[0]);
+}
+
+//Swapped order
 void unsafe_complex_conj1_prod(complex a,complex b,complex c)
 {unsafe_complex_conj2_prod(a,c,b);}
+void unsafe_complex_conj1_prod_minus(complex a,complex b,complex c)
+{unsafe_complex_conj2_prod_minus(a,c,b);}
 
 //The product of the conjugate of two complex numbers
 void unsafe_complex_conj_conj_prod(complex a,complex b,complex c)
 {
   a[0]=+b[0]*c[0]-b[1]*c[1];
   a[1]=-b[0]*c[1]-b[1]*c[0];
+}
+
+//Minus the former
+void unsafe_complex_conj_conj_prod_minus(complex a,complex b,complex c)
+{
+  a[0]=-b[0]*c[0]+b[1]*c[1];
+  a[1]=+b[0]*c[1]+b[1]*c[0];
 }
 
 //The product of two complex number
@@ -120,6 +145,14 @@ void safe_complex_prod(complex a,complex b,complex c)
   a[0]=tmp;
 }
 
+//Minus version
+void safe_complex_prod_minus(complex a,complex b,complex c)
+{
+  double tmp=-(b[0]*c[0]-b[1]*c[1]);
+  a[1]=-(b[0]*c[1]+b[1]*c[0]);
+  a[0]=tmp;
+}
+
 //The product of a complex number by the conjugate of the second
 void safe_complex_conj2_prod(complex a,complex b,complex c)
 {
@@ -127,8 +160,20 @@ void safe_complex_conj2_prod(complex a,complex b,complex c)
   a[1]=-b[0]*c[1]+b[1]*c[0];
   a[0]=tmp;
 }
+
+//Minus version
+void safe_complex_conj2_prod_minus(complex a,complex b,complex c)
+{
+  double tmp=-(b[0]*c[0]+b[1]*c[1]);
+  a[1]=-(-b[0]*c[1]+b[1]*c[0]);
+  a[0]=tmp;
+}
+
+//Swapped versions
 void safe_complex_conj1_prod(complex a,complex b,complex c)
 {safe_complex_conj2_prod(a,c,b);}
+void safe_complex_conj1_prod_minus(complex a,complex b,complex c)
+{safe_complex_conj2_prod_minus(a,c,b);}
 
 //complex prod real
 void complex_prod_real(complex a,complex b,double c)
