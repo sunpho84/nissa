@@ -5,7 +5,7 @@
 //Write the header for a record
 void write_header(LemonWriter *writer,char *header,uint64_t record_bytes)
 {
-  master_printf("Writing: %Ld bytes\n",(long long int)record_bytes);
+  if(debug_lvl>1) master_printf("Writing: %Ld bytes\n",(long long int)record_bytes);
   LemonRecordHeader *lemon_header=lemonCreateHeader(1,1,header,record_bytes);
   lemonWriteRecordHeader(lemon_header,writer);
   lemonDestroyHeader(lemon_header);
@@ -53,7 +53,7 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
   
   //take final time
   time+=take_time();
-  master_printf("Time elapsed in writing: %f s\n",time);
+  if(debug_lvl>1) master_printf("Time elapsed in writing: %f s\n",time);
 }
 
 //Write a whole spincolor
@@ -108,7 +108,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
   write_double_vector(writer,(char*)temp,"scidac-binary-data",nreals_per_spincolor,prec);
   
   appretto_free(temp);
-  master_printf("File '%s' saved (probably...)\n",path);
+  if(debug_lvl>1) master_printf("File '%s' saved (probably...)\n",path);
   
   //Close the file
   lemonDestroyWriter(writer);
@@ -169,7 +169,7 @@ void write_local_gauge_conf(char *path,quad_su3 *in)
   
   appretto_free(temp);
   
-  if(debug_lvl)
+  if(debug_lvl>1)
     {
       twrite+=take_time();
       master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,twrite);

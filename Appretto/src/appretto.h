@@ -10,6 +10,8 @@
 #include <stdarg.h>
 #include <signal.h>
 #include <execinfo.h>
+#include <sys/stat.h>
+
 #include <lemon.h>
 
 #ifndef M_PI
