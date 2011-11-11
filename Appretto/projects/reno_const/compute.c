@@ -14,7 +14,7 @@ double put_theta[4],old_theta[4]={0,0,0,0};
 //source data
 int source_coord[4]={0,0,0,0};
 spincolor *source;
-su3spinspin *original_source,*original_source_fft;
+su3spinspin *original_source;
 
 //vectors for the spinor data
 int npropS0;
@@ -31,7 +31,7 @@ int niter_max;
 int ncontr_2pts;
 complex *contr_2pts;
 int *op1_2pts,*op2_2pts;
-char outfile_2pts[1024];
+char outfolder[1024];
 
 //timings
 int ninv_tot=0,ncontr_tot=0;
@@ -163,7 +163,6 @@ void initialize_semileptonic(char *input_path)
   //Allocate one spincolor for the source
   source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
   original_source=appretto_malloc("orig_source",loc_vol,su3spinspin);
-  original_source_fft=appretto_malloc("orig_source_fft",loc_vol+loc_bord,su3spinspin);
 }
 
 //load the conf, fix it and put boundary cond
@@ -195,7 +194,7 @@ void load_gauge_conf()
 //Finalization
 void close_semileptonic()
 {
-  appretto_free(original_source);appretto_free(original_source_fft);appretto_free(source);
+  appretto_free(original_source);appretto_free(source);
   appretto_free(reco_solution[1]);appretto_free(reco_solution[0]);
   for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
   appretto_free(cgmms_solution);
@@ -275,14 +274,10 @@ void calculate_S0()
       {
 	rotate_vol_su3spinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
 	char path[1024];
-	sprintf(path,"out_r%1d_im%02d",r,ipropS0);
+	sprintf(path,"%s/out_r%1d_im%02d",outfolder,r,ipropS0);
 	write_su3spinspin(path,S0[r][ipropS0],64);
       }
 }
-
-//compute the fft of the source
-void compute_source_fft(double sign)
-{fft4d((complex*)original_source_fft,(complex*)original_source,144,sign,0);}
 
 //compute the fft of all propagators
 void compute_fft(double sign)
@@ -291,22 +286,32 @@ void compute_fft(double sign)
     for(int imass=0;imass<nmass;imass++)
       {
 	fft4d((complex*)S0[r][imass],(complex*)S0[r][imass],144,sign,0);
-	//multiply by the hermitean of the fft of the source
+	//multiply by the conjugate of the fft of the source
 	for(int imom=0;imom<loc_vol;imom++)
-	  for(int ic_so=0;ic_so<3;ic_so++)
-	    for(int id_so=0;id_so<4;id_so++)
-	      for(int ic_si=0;ic_si<3;ic_si++)
+	  {
+	    double arg=0;
+	    for(int mu=0;mu<4;mu++) arg+=((double)glb_coord_of_loclx[imom][mu]*source_coord[mu])/glb_size[mu];
+	    arg*=-sign*2*M_PI;
+	    complex f={cos(arg),sin(arg)};
+
+	    for(int ic_si=0;ic_si<3;ic_si++)
+	      for(int ic_so=0;ic_so<3;ic_so++)
 		for(int id_si=0;id_si<4;id_si++)
-		  safe_complex_conj1_prod(S0[r][imass][imom][ic_si][ic_so][id_si][id_so],
-					  S0[r][imass][imom][ic_si][ic_so][id_si][id_so],
-					  original_source_fft[imom][ic_so][ic_si][id_so][id_si]);
+		  for(int id_so=0;id_so<4;id_so++)
+		    safe_complex_prod(S0[r][imass][imom][ic_si][ic_so][id_si][id_so],
+				      S0[r][imass][imom][ic_si][ic_so][id_si][id_so],
+				      f);
+	  }
       }
 }
 
 //filter the computed momentum
 void print_momentum_subset()
 {
-  FILE *fout=(rank==0) ? fopen("fft_internal","w") : NULL;
+  char outfile_fft[1024];
+  sprintf(outfile_fft,"%s/fft",outfolder);
+
+  FILE *fout=(rank==0) ? fopen(outfile_fft,"w") : NULL;
   int glb_ip[4];
   int interv[2][2][2]={{{0,3},{0,2}},{{4,7},{2,3}}};
   for(int imass=0;imass<nmass;imass++)
@@ -334,16 +339,7 @@ void print_momentum_subset()
 			  for(int id_so=0;id_so<4;id_so++)
 			    for(int ic_si=0;ic_si<3;ic_si++)
 			      for(int id_si=0;id_si<4;id_si++)
-				{
-				  /*
-				    printf("%d ",rank);
-				    for(int mu=0;mu<4;mu++) printf("%d ",glb_ip[mu]);
-				    printf("im=%d r=%d ic_si=%d ic_so=%d id_si=%d id_so=%d  %lg %lg\n",
-				    imass,r,ic_si,ic_so,id_si,id_so,
-				    S0[r][imass][p][ic_si][ic_so][id_si][id_so][0],S0[r][imass][p][ic_si][ic_so][id_si][id_so][1]);
-				  */
-				  fwrite(S0[r][imass][p][ic_si][ic_so][id_si][id_so],sizeof(double),2,fout);
-				}
+				fwrite(S0[r][imass][p][ic_si][ic_so][id_si][id_so],sizeof(double),2,fout);
 		      }
 		    fflush(fout);
 		    MPI_Barrier(MPI_COMM_WORLD);
@@ -354,6 +350,8 @@ void print_momentum_subset()
 //Calculate and print to file the 2pts
 void calculate_all_2pts()
 {
+  char outfile_2pts[1024];
+  sprintf(outfile_2pts,"%s/2pts",outfolder);
   FILE *fout=open_text_file_for_output(outfile_2pts);
   
   //perform the contractions
@@ -375,6 +373,22 @@ void calculate_all_2pts()
   
 }
 
+void read_conf_parameters()
+{
+  //Gauge path
+  read_str(conf_path,1024);
+  
+  //Source position
+  read_int(&(source_coord[0]));
+  read_int(&(source_coord[1]));
+  read_int(&(source_coord[2]));
+  read_int(&(source_coord[3]));
+  
+  //Folder
+  read_str(outfolder,1024);
+  if(rank==0) mkdir(outfolder,S_IRWXU);
+}
+
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
@@ -387,23 +401,16 @@ int main(int narg,char **arg)
   
   for(int iconf=0;iconf<ngauge_conf;iconf++)
   {
-    //Gauge path
-      read_str(conf_path,1024);
-      read_int(&(source_coord[0]));
-      read_int(&(source_coord[1]));
-      read_int(&(source_coord[2]));
-      read_int(&(source_coord[3]));
-      read_str(outfile_2pts,1024);
-      
-      load_gauge_conf();
-      generate_source();
-      compute_source_fft(-1);
-      
-      calculate_S0();
-      calculate_all_2pts();
-
-      compute_fft(-1);
-      print_momentum_subset();
+    read_conf_parameters();
+    
+    load_gauge_conf();
+    generate_source();
+    
+    calculate_S0();
+    calculate_all_2pts();
+    
+    compute_fft(-1);
+    print_momentum_subset();
   }
   
   tot_time+=take_time();
