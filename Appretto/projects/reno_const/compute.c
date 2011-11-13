@@ -310,41 +310,62 @@ void print_momentum_subset()
 {
   char outfile_fft[1024];
   sprintf(outfile_fft,"%s/fft",outfolder);
+  
+  //buffer
+  su3spinspin buf[140][nmass][2];
 
-  FILE *fout=(rank==0) ? fopen(outfile_fft,"w") : NULL;
-  int glb_ip[4];
+  //gather all the data on rank 0
+  int glb_ip[4],ip=0;
   int interv[2][2][2]={{{0,3},{0,2}},{{4,7},{2,3}}};
-  for(int imass=0;imass<nmass;imass++)
-    for(int r=0;r<2;r++)
-      for(int iinterv=0;iinterv<2;iinterv++)
-	{
-	  for(glb_ip[0]=interv[iinterv][0][0];glb_ip[0]<=interv[iinterv][0][1];glb_ip[0]++)
-	    for(glb_ip[1]=interv[iinterv][1][0];glb_ip[1]<=interv[iinterv][1][1];glb_ip[1]++)
-	      for(glb_ip[2]=interv[iinterv][1][0];glb_ip[2]<=interv[iinterv][1][1];glb_ip[2]++)
-		for(glb_ip[3]=interv[iinterv][1][0];glb_ip[3]<=interv[iinterv][1][1];glb_ip[3]++)
+  MPI_Request request[140];
+  int nrequest=0;
+  for(int iinterv=0;iinterv<2;iinterv++)
+    {
+      for(glb_ip[0]=interv[iinterv][0][0];glb_ip[0]<=interv[iinterv][0][1];glb_ip[0]++)
+	for(glb_ip[1]=interv[iinterv][1][0];glb_ip[1]<=interv[iinterv][1][1];glb_ip[1]++)
+	  for(glb_ip[2]=interv[iinterv][1][0];glb_ip[2]<=interv[iinterv][1][1];glb_ip[2]++)
+	    for(glb_ip[3]=interv[iinterv][1][0];glb_ip[3]<=interv[iinterv][1][1];glb_ip[3]++)
+	      {
+		//identify the rank hosting this element
+		int hosting=rank_hosting_site_of_coord(glb_ip);
+		
+		//if the hosting is the current rank bufferize the data
+		if(hosting==cart_rank)
 		  {
-		    //check locality and identify local element
-		    int loc_ip[4],isloc=1;
-		    for(int mu=0;mu<4;mu++)
-		      {
-			loc_ip[mu]=glb_ip[mu]-loc_size[mu]*proc_coord[mu];
-			isloc=isloc & (glb_ip[mu]/loc_size[mu]==proc_coord[mu]);
-		      }
-		    
-		    //if it is local print it
-		    if(isloc)
-		      {
-			int p=loclx_of_coord(loc_ip);
-			for(int ic_so=0;ic_so<3;ic_so++)
-			  for(int id_so=0;id_so<4;id_so++)
-			    for(int ic_si=0;ic_si<3;ic_si++)
-			      for(int id_si=0;id_si<4;id_si++)
-				fwrite(S0[r][imass][p][ic_si][ic_so][id_si][id_so],sizeof(double),2,fout);
-		      }
-		    fflush(fout);
-		    MPI_Barrier(MPI_COMM_WORLD);
+		    int ilp=loclx_of_coord(glb_ip);
+		    for(int imass=0;imass<nmass;imass++)
+		      for(int r=0;r<2;r++)
+			memcpy(buf[ip][imass][r],S0[r][imass][ilp],sizeof(su3spinspin));
+		    if(cart_rank!=0)
+		      MPI_Isend((void*)(buf[ip]),2*nmass*144*2,MPI_DOUBLE,0,ip,cart_comm,&(request[nrequest++]));
 		  }
+		else
+		  if(rank==0)
+		    MPI_Irecv((void*)(buf[ip]),2*nmass*144*2,MPI_DOUBLE,hosting,ip,cart_comm,&(request[nrequest++]));
+		
+		ip++;
+	      }
+      
+      MPI_Status status[nrequest];
+      MPI_Waitall(nrequest,request,status);
+      
+      //On master rank print save data
+      if(rank==0)
+	{
+	  FILE *fout=fopen(outfile_fft,"w");
+	  
+	  for(int imass=0;imass<nmass;imass++)
+	    for(int r=0;r<2;r++)
+	      for(int ilp=0;ilp<ip;ilp++)
+		for(int ic_so=0;ic_so<3;ic_so++)
+		  for(int id_so=0;id_so<4;id_so++)
+		    for(int ic_si=0;ic_si<3;ic_si++)
+		      for(int id_si=0;id_si<4;id_si++)
+			fwrite(buf[ilp][imass][r][ic_si][ic_so][id_si][id_so],sizeof(double),2,fout);
+	  
+	  fclose(fout);
 	}
+    }
 }
 
 //Calculate and print to file the 2pts
