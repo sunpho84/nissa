@@ -313,7 +313,8 @@ void print_momentum_subset()
   
   //buffer
   su3spinspin buf[140][nmass][2];
-
+  memset(buf,0,140*nmass*2*sizeof(su3spinspin));
+  
   //gather all the data on rank 0
   int glb_ip[4],ip=0;
   int interv[2][2][2]={{{0,3},{0,2}},{{4,7},{2,3}}};
@@ -332,10 +333,15 @@ void print_momentum_subset()
 		//if the hosting is the current rank bufferize the data
 		if(hosting==cart_rank)
 		  {
-		    int ilp=loclx_of_coord(glb_ip);
+		    int loc_ip[4];
+		    for(int mu=0;mu<4;mu++) loc_ip[mu]=glb_ip[mu]%loc_size[mu];
+		    int ilp=loclx_of_coord(loc_ip);
+		    
 		    for(int imass=0;imass<nmass;imass++)
 		      for(int r=0;r<2;r++)
 			memcpy(buf[ip][imass][r],S0[r][imass][ilp],sizeof(su3spinspin));
+		    
+		    //if we are not on the master rank send data there
 		    if(cart_rank!=0)
 		      MPI_Isend((void*)(buf[ip]),2*nmass*144*2,MPI_DOUBLE,0,ip,cart_comm,&(request[nrequest++]));
 		  }
@@ -345,26 +351,29 @@ void print_momentum_subset()
 		
 		ip++;
 	      }
+    }
+  
+  //Wait for everything to arrive
+  MPI_Status status[nrequest];
+  MPI_Waitall(nrequest,request,status);
+  
+  //On master rank print save data the APE style
+  if(rank==0)
+    {
+      FILE *fout=fopen(outfile_fft,"w");
       
-      MPI_Status status[nrequest];
-      MPI_Waitall(nrequest,request,status);
+      for(int imass=0;imass<nmass;imass++)
+	for(int r=0;r<2;r++)
+	  for(int ilp=0;ilp<ip;ilp++)
+	    {
+	      for(int ic_so=0;ic_so<3;ic_so++)
+		for(int id_so=0;id_so<4;id_so++)
+		  for(int ic_si=0;ic_si<3;ic_si++)
+		    for(int id_si=0;id_si<4;id_si++)
+		      fwrite(buf[ilp][imass][r][ic_si][ic_so][id_si][id_so],sizeof(double),2,fout);
+	    }
       
-      //On master rank print save data
-      if(rank==0)
-	{
-	  FILE *fout=fopen(outfile_fft,"w");
-	  
-	  for(int imass=0;imass<nmass;imass++)
-	    for(int r=0;r<2;r++)
-	      for(int ilp=0;ilp<ip;ilp++)
-		for(int ic_so=0;ic_so<3;ic_so++)
-		  for(int id_so=0;id_so<4;id_so++)
-		    for(int ic_si=0;ic_si<3;ic_si++)
-		      for(int id_si=0;id_si<4;id_si++)
-			fwrite(buf[ilp][imass][r][ic_si][ic_so][id_si][id_so],sizeof(double),2,fout);
-	  
-	  fclose(fout);
-	}
+      fclose(fout);
     }
 }
 
