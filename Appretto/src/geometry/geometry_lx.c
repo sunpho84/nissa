@@ -50,7 +50,21 @@ int loclx_of_coord_list(int x0,int x1,int x2,int x3)
 //wrappers
 int glblx_of_coord(int *x)
 {return lx_of_coord(x,glb_size);}
+
+//Return the coordinate of the proc containing the global coord
+void proc_coord_of_site_of_coord(int *proc_coord,int *glb_coord)
+{for(int mu=0;mu<4;mu++) proc_coord[mu]=glb_coord[mu]/loc_size[mu];}
+
+//Return the rank containing the global coordinates
+int rank_hosting_site_of_coord(int *x)
+{
+  int ip,p[4];
+  proc_coord_of_site_of_coord(p,x);
+  MPI_Cart_rank(cart_comm,p,&ip);
   
+  return ip;
+}
+
 //indexes run as t,x,y,z (faster:z)
 void set_lx_geometry()
 {
