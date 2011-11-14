@@ -38,8 +38,10 @@
 
 #define bgp_load_complex(A,B) {A[0]=B[0];A[1]=B[1];}
 #define bgp_save_complex(A,B) bgp_load_complex(A,B);
-#define bgp_summassign_complex(A,B){A[0]+=B[0];A[1]+=B[1];}
-#define bgp_subtassign_complex(A,B){A[0]-=B[0];A[1]-=B[1];}
+#define bgp_complex_summ_complex(O,A,B){O[0]=A[0]+B[0];O[1]=A[1]+B[1];}
+#define bgp_complex_subt_complex(O,A,B){O[0]=A[0]-B[0];O[1]=A[1]-B[1];}
+#define bgp_complex_summ_complex_conj(O,A,B){O[0]=A[0]+B[0];O[1]=A[1]-B[1];}
+#define bgp_complex_subt_complex_conj(O,A,B){O[0]=A[0]-B[0];O[1]=A[1]+B[1];}
 #define bgp_summassign_icomplex(A,B){A[0]-=B[1];A[1]+=B[0];}
 #define bgp_subtassign_icomplex(A,B){A[0]+=B[1];A[1]-=B[0];}
 #define bgp_complex_put_to_zero(A){A[0]=A[1]=0;}
@@ -57,8 +59,8 @@
 
 #define bgp_load_complex(A,B) A=__lfpd((double*)B)
 #define bgp_save_complex(A,B) __stfpd((double*)A,B)
-#define bgp_summassign_complex(A,B) A=__fpadd(A,B)
-#define bgp_subtassign_complex(A,B) A=__fpsub(A,B)
+#define bgp_complex_summ_complex(O,A,B) O=__fpadd(A,B)
+#define bgp_complex_subt_complex(O,A,B) O=__fpsub(A,B)
 #define bgp_summassign_icomplex(A,B) A=__fxcxnpma(A,B,1)
 #define bgp_subtassign_icomplex(A,B) A=__fxcxnsma(A,B,1)
 #define bgp_complex_put_to_zero(A) bgp_subtassign_complex(A,A)
@@ -66,14 +68,17 @@
 
 #define bgp_paral_prod_complex(A,B,C) A=__fpmul(B,C);
 #define bgp_paral_summ_the_prod_complex(A,B,C,D) A=__fpmadd(B,C,D);
+#define bgp_complex_summ_complex_conj(A,B,C) A=__fxcpnsma(B,C,1)
+#define bgp_complex_subt_complex_conj(A,B,C) A=__fxcpnsma(B,C,-1)
 #define bgp_complex_prod_real(A,B,C) A=__fxpmul(B,C);
 #define bgp_complex_summ_the_prod_real(A,B,C,D)  A=__fxcpmadd(B,C,D);
 #define bgp_complex_summ_the_prod_ireal(A,B,C,D) A=__fxcxnpma(B,C,D);
 #define bgp_complex_subt_the_prod_real(A,B,C,D)  A=__fxcpnmsub(B,C,D);
 #define bgp_complex_subt_the_prod_ireal(A,B,C,D) A=__fxcxnsma(B,C,D);
-
 #endif
 
+#define bgp_summassign_complex(A,B) bgp_complex_summ_complex(A,A,B)
+#define bgp_subtassign_complex(A,B) bgp_complex_subt_complex(A,A,B)
 
 #define bgp_square_complex(A,B) bgp_paral_prod_complex(A,B,B);
 #define bgp_squareassign_complex(A) bgp_square_complex(A,A);
@@ -104,6 +109,8 @@
   }
 
 #define bgp_complex_summ_the_conj1_prod(A,B,C,D) bgp_complex_summ_the_conj2_prod(A,B,D,C);
+
+#define bgp_complex_copy(A,B) bgp_complex_prod_real(A,B,1);
 
 #define bgp_color_put_to_zero(A0,A1,A2)	  \
   {					  \
@@ -157,18 +164,36 @@
     bgp_complex_summ_the_prod_ireal(A2,A2,B2,R);		\
   }
 
-#define bgp_load_color(A0,A1,A2,B)	  \
-  {					  \
-    bgp_load_complex(A0,B[0]);		  \
-    bgp_load_complex(A1,B[1]);		  \
-    bgp_load_complex(A2,B[2]);		  \
+#define bgp_load_color_by_elements(A0,A1,A2,B0,B1,B2)	\
+  {							\
+    bgp_load_complex(A0,B0);				\
+    bgp_load_complex(A1,B1);				\
+    bgp_load_complex(A2,B2);				\
   }
 
-#define bgp_save_color(A,B0,B1,B2)	  \
-  {					  \
-    bgp_save_complex(A[0],B0);		  \
-    bgp_save_complex(A[1],B1);		  \
-    bgp_save_complex(A[2],B2);		  \
+#define bgp_load_color(A0,A1,A2,B) bgp_load_color_by_elements(A0,A1,A2,B[0],B[1],B[2]);
+
+#define bgp_save_color_by_elements(A0,A1,A2,B0,B1,B2)	  \
+  {							  \
+    bgp_save_complex(A0,B0);				  \
+    bgp_save_complex(A1,B1);				  \
+    bgp_save_complex(A2,B2);				  \
+  }
+
+#define bgp_save_color(A,B0,B1,B2) bgp_save_color_by_elements(A[0],A[1],A[2],B0,B1,B2);
+  
+#define bgp_color_summ_color(O0,O1,O2,A0,A1,A2,B0,B1,B2)	\
+  {								\
+    bgp_complex_summ_complex(O0,A0,B0);					\
+    bgp_complex_summ_complex(O1,A1,B1);					\
+    bgp_complex_summ_complex(O2,A2,B2);					\
+  }
+
+#define bgp_color_summ_color_conj(O0,O1,O2,A0,A1,A2,B0,B1,B2)	\
+  {								\
+    bgp_complex_summ_complex_conj(O0,A0,B0);					\
+    bgp_complex_summ_complex_conj(O1,A1,B1);					\
+    bgp_complex_summ_complex_conj(O2,A2,B2);					\
   }
 
 #define bgp_summassign_color(A0,A1,A2,B0,B1,B2)	\
@@ -206,11 +231,7 @@
     bgp_squareassign_complex(A2);		\
   }
 
-#define bgp_copy_color(A0,A1,A2,B0,B1,B2)	\
-  {						\
-    bgp_color_put_to_zero(A0,A1,A2);		\
-    bgp_summassign_color(A0,A1,A2,B0,B1,B2);	\
-  }
+#define bgp_color_copy(A0,A1,A2,B0,B1,B2) bgp_color_prod_real(A0,A1,A2,B0,B1,B2,1);
 
 #define bgp_summassign_scalarprod_color(N0,N1,N2,A0,A1,A2,B0,B1,B2)	\
   {									\
@@ -241,7 +262,34 @@
     bgp_load_color(U20,U21,U22,U[2]);				\
   }
 
-//all but first part
+#define bgp_save_su3(U,U00,U01,U02,U10,U11,U12,U20,U21,U22)	\
+  {								\
+    bgp_save_color(U[0],U00,U01,U02);				\
+    bgp_save_color(U[1],U10,U11,U12);				\
+    bgp_save_color(U[2],U20,U21,U22);				\
+  }
+
+#define bgp_su3_summ_su3(O00,O01,O02,O10,O11,O12,O20,O21,O22,A00,A01,A02,A10,A11,A12,A20,A21,A22,B00,B01,B02,B10,B11,B12,B20,B21,B22) \
+  {									\
+    bgp_color_summ_color(O00,O01,O02,A00,A01,A02,B00,B01,B02);		\
+    bgp_color_summ_color(O10,O11,O12,A10,A11,A12,B10,B11,B12);		\
+    bgp_color_summ_color(O20,O21,O22,A20,A21,A22,B20,B21,B22);		\
+  }
+#define bgp_su3_summassign_su3(O00,O01,O02,O10,O11,O12,O20,O21,O22,A00,A01,A02,A10,A11,A12,A20,A21,A22)	\
+  bgp_su3_summ_su3(O00,O01,O02,O10,O11,O12,O20,O21,O22,O00,O01,O02,O10,O11,O12,O20,O21,O22,A00,A01,A02,A10,A11,A12,A20,A21,A22)
+
+#define bgp_su3_summ_su3_dag(O00,O01,O02,O10,O11,O12,O20,O21,O22,A00,A01,A02,A10,A11,A12,A20,A21,A22,B00,B01,B02,B10,B11,B12,B20,B21,B22) \
+  {									\
+    bgp_color_summ_color_conj(O00,O01,O02,A00,A01,A02,B00,B10,B20);	\
+    bgp_color_summ_color_conj(O10,O11,O12,A10,A11,A12,B01,B11,B21);	\
+    bgp_color_summ_color_conj(O20,O21,O22,A20,A21,A22,B02,B12,B22);	\
+  }
+#define bgp_su3_summassign_su3_dag(O00,O01,O02,O10,O11,O12,O20,O21,O22,A00,A01,A02,A10,A11,A12,A20,A21,A22) \
+  bgp_su3_summ_su3_dag(O00,O01,O02,O10,O11,O12,O20,O21,O22,		\
+		       O00,O01,O02,O10,O11,O12,O20,O21,O22,		\
+		       A00,A01,A02,A10,A11,A12,A20,A21,A22)
+
+//all but first part of O_i = U_ij * I_j
 #define bgp_su3_prod_color_bulk(O0,O1,O2,U00,U01,U02,U10,U11,U12,U20,U21,U22,I0,I1,I2) \
   {									\
     bgp_complex_summ_the_prod_ireal(O0,O0,U00,__cimag(I0));		\
@@ -285,6 +333,7 @@
     bgp_su3_prod_color_bulk(O0,O1,O2,U00,U01,U02,U10,U11,U12,U20,U21,U22,I0,I1,I2); \
   }
 
+// O_i = I_j * U_ji
 #define bgp_color_prod_su3(O0,O1,O2,I0,I1,I2,U00,U01,U02,U10,U11,U12,U20,U21,U22) \
   {									\
     bgp_complex_prod_real(O0,U00,__creal(I0));				\

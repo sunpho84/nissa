@@ -56,8 +56,8 @@ void apply_Q_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,doub
     bgp_color_prod_su3(R00,R01,R02,A0,A1,A2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
     bgp_color_prod_su3(R10,R11,R12,B0,B1,B2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
 
-    bgp_copy_color(R20,R21,R22,R00,R01,R02);
-    bgp_copy_color(R30,R31,R32,R10,R11,R12);
+    bgp_color_copy(R20,R21,R22,R00,R01,R02);
+    bgp_color_copy(R30,R31,R32,R10,R11,R12);
     //
     //
 
