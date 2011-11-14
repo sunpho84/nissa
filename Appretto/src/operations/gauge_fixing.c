@@ -276,7 +276,9 @@ void overrelax(su3 out,su3 in,double w)
 
 #ifdef BGP
   bgp_complex f00,f01,f02,f10,f11,f12,f20,f21,f22;
-  bgp_complex o0,o1,o2, t0,t1,t2, r0,r1,r2;
+  bgp_complex o00,o01,o02,o10,o11,o12,o20,o21,o22;
+  bgp_complex t00,t01,t02,t10,t11,t12,t20,t21,t22;
+  bgp_complex r0,r1,r2;
   bgp_complex buno;
   
   //prepare multiplicative factor
@@ -287,39 +289,32 @@ void overrelax(su3 out,su3 in,double w)
   bgp_subtassign_complex(f11,buno);
   bgp_subtassign_complex(f22,buno);
   
-  
   //order 0-1
 
-  bgp_save_color(t[1][0],f00,f01,f02);
-  bgp_color_prod_real(o0,o1,o2, f00,f01,f02, coef[1]);
-  bgp_summassign_complex(o0,buno);
-  bgp_save_color(out[0],o0,o1,o2);
+  bgp_su3_prod_real(o00,o01,o02,o10,o11,o12,o20,o21,o22, f00,f01,f02,f10,f11,f12,f20,f21,f22, coef[1]);
+  bgp_summassign_complex(o00,buno);bgp_summassign_complex(o11,buno);bgp_summassign_complex(o22,buno);
+  bgp_save_su3(t[1],f00,f01,f02,f10,f11,f12,f20,f21,f22);
 
-  bgp_save_color(t[1][1],f10,f11,f12);
-  bgp_color_prod_real(o0,o1,o2, f10,f11,f12, coef[1]);
-  bgp_summassign_complex(o1,buno);
-  bgp_save_color(out[1],o0,o1,o2);
-
-  bgp_save_color(t[1][2],f20,f21,f22);
-  bgp_color_prod_real(o0,o1,o2, f20,f21,f22, coef[1]);
-  bgp_summassign_complex(o2,buno);
-  bgp_save_color(out[2],o0,o1,o2);
-  
   for(int iord=2;iord<5;iord++)
     {
-      for(int i=0;i<3;i++)
-	{
-	  //t'=t*f
-	  bgp_load_color(t0,t1,t2, t[iord-1][i]);
-	  bgp_color_prod_su3(r0,r1,r2, t0,t1,t2, f00,f01,f02,f10,f11,f12,f20,f21,f22);
-	  bgp_save_color(t[iord][i], r0,r1,r2);
-	  
-	  //o+=t'*c
-	  bgp_load_color(o0,o1,o2, out[i]);
-	  bgp_summassign_color_prod_real(o0,o1,o2, r0,r1,r2, coef[iord]);
-	  bgp_save_color(out[i], o0,o1,o2);
-	}
+      bgp_load_su3(t00,t01,t02,t10,t11,t12,t20,t21,t22, t[iord-1]);
+      
+      //t'_0i = t_0j * f_ji ; o_0i+=t'_0i*c
+      bgp_color_prod_su3(r0,r1,r2, t00,t01,t02, f00,f01,f02,f10,f11,f12,f20,f21,f22);
+      bgp_save_color(t[iord][0], r0,r1,r2);
+      bgp_summassign_color_prod_real(o00,o01,o02, r0,r1,r2, coef[iord]);
+
+      //t'_1i = t_1j * f_ji ; o_1i+=t'_1i*c
+      bgp_color_prod_su3(r0,r1,r2, t10,t11,t12, f00,f01,f02,f10,f11,f12,f20,f21,f22);
+      bgp_save_color(t[iord][1], r0,r1,r2);
+      bgp_summassign_color_prod_real(o10,o11,o12, r0,r1,r2, coef[iord]);
+
+      //t'_2i = t_2j * f_ji ; o_2i+=t'_2i*c
+      bgp_color_prod_su3(r0,r1,r2, t20,t21,t22, f00,f01,f02,f10,f11,f12,f20,f21,f22);
+      bgp_save_color(t[iord][2], r0,r1,r2);
+      bgp_summassign_color_prod_real(o20,o21,o22, r0,r1,r2, coef[iord]);
     }
+  bgp_save_su3(out, o00,o01,o02,o10,o11,o12,o20,o21,o22);
 #else
   su3 f;
   su3_summ_real(f,in,-1);   //subtract 1 from in
@@ -349,7 +344,7 @@ void find_local_landau_or_coulomb_gauge_fixing_transformation(su3 g,quad_su3 *co
   compute_landau_or_coulomb_delta(h,conf,ivol,nmu);
   //exponentiate
   exponentiate(g,h);
-  //overrelax
+  //overrelax and unitarize
   overrelax(h,g,1.72);
   //unitarize
   su3_unitarize_orthonormalizing(g,h);
