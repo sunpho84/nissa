@@ -269,6 +269,12 @@
     bgp_save_color(U[2],U20,U21,U22);				\
   }
 
+#define bgp_su3_prod_real(O00,O01,O02,O10,O11,O12,O20,O21,O22,A00,A01,A02,A10,A11,A12,A20,A21,A22,B) \
+  {									\
+    bgp_color_prod_real(O00,O01,O02,A00,A01,A02,B);			\
+    bgp_color_prod_real(O10,O11,O12,A10,A11,A12,B);			\
+    bgp_color_prod_real(O20,O21,O22,A20,A21,A22,B);			\
+  }
 #define bgp_su3_summ_su3(O00,O01,O02,O10,O11,O12,O20,O21,O22,A00,A01,A02,A10,A11,A12,A20,A21,A22,B00,B01,B02,B10,B11,B12,B20,B21,B22) \
   {									\
     bgp_color_summ_color(O00,O01,O02,A00,A01,A02,B00,B01,B02);		\
