@@ -1,0 +1,571 @@
+#LyX 1.6.7 created this file. For more info see http://www.lyx.org/
+\lyxformat 345
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\language english
+\inputencoding auto
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\cite_engine basic
+\use_bibtopic false
+\paperorientation portrait
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation skip
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\author "" 
+\author "" 
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Vomiting BGP assembler
+\end_layout
+
+\begin_layout Subsection*
+Attributes
+\end_layout
+
+\begin_layout Description
+Alignment __attribute__ ((aligned (16)))
+\end_layout
+
+\begin_layout Subsection*
+Load and store
+\end_layout
+
+\begin_layout Description
+Cache
+\begin_inset space ~
+\end_inset
+
+load __dcbt(((char*)((unsigned long int)addr)))
+\begin_inset Newline newline
+\end_inset
+
+prefetch 32 bits of data into cache
+\end_layout
+
+\begin_layout Description
+Parallel
+\begin_inset space ~
+\end_inset
+
+load (_Complex*)reg=__lfpd((double*)ptr) 
+\begin_inset Newline newline
+\end_inset
+
+load ptr and ptr+8 into a couple of sequential registers returning the address
+ of the first
+\end_layout
+
+\begin_layout Description
+Parallel
+\begin_inset space ~
+\end_inset
+
+save __stfpd((double*)ptr,(_Complex*)reg)
+\begin_inset Newline newline
+\end_inset
+
+save a couple of registers into two memory doubles
+\end_layout
+
+\begin_layout Subsection*
+Operations
+\end_layout
+
+\begin_layout Description
+Parall
+\begin_inset space ~
+\end_inset
+
+swap __fxmr(A) A[0]=A[1] together with A[1]=A[0]
+\end_layout
+
+\begin_layout Description
+Parallel
+\begin_inset space ~
+\end_inset
+
+add: __fpaddreg=__fpadd(a,b)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a[0]+b[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a[1]+b[1]
+\end_layout
+
+\begin_layout Description
+Parallel
+\begin_inset space ~
+\end_inset
+
+subtract: reg=__fpsub(a,b)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a[0]-b[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a[1]-b[1]
+\end_layout
+
+\begin_layout Description
+Parallel
+\begin_inset space ~
+\end_inset
+
+multiply: reg=__fpmul(a,b)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a[0]*b[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a[1]*b[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+multiply: reg=__fxmul(a,b)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a[1]*b[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a[0]*b[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+copy
+\begin_inset space ~
+\end_inset
+
+multiply: __fxpmul, reg=__fxsmul(b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a*b[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a*b[1]
+\end_layout
+
+\begin_layout Description
+Parallel
+\begin_inset space ~
+\end_inset
+
+multiply-add res=__fpmadd(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a[0]*b[0]+c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a[1]*b[1]+c[1]
+\end_layout
+
+\begin_layout Description
+Parallel
+\begin_inset space ~
+\end_inset
+
+negative
+\begin_inset space ~
+\end_inset
+
+multiply-add: res=__fpnmadd(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=-(a[0]*b[0]+c[0])
+\begin_inset Newline newline
+\end_inset
+
+res[1]=-(a[1]*b[1]+c[1])
+\end_layout
+
+\begin_layout Description
+Parallel
+\begin_inset space ~
+\end_inset
+
+multiply-subtract: res=__fpmsub(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a[0]*b[0]-c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a[1]*b[1]-c[1]
+\end_layout
+
+\begin_layout Description
+Parallel
+\begin_inset space ~
+\end_inset
+
+negative
+\begin_inset space ~
+\end_inset
+
+multiply-subtract: res=__fpnmsub(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=-(a[0]*b[0]-c[0])
+\begin_inset Newline newline
+\end_inset
+
+res[1]=-(a[1]*b[1]-c[1])
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+multiply-add: res=__fxmadd(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a[0]*b[1]+c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a[1]*b[0]+c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+negative
+\begin_inset space ~
+\end_inset
+
+multiply-add: res=__fxnmadd(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=-(a[0]*b[1]+c[0])
+\begin_inset Newline newline
+\end_inset
+
+res[1]=-(a[1]*b[0]+c[1])
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+multiply-subtract: res=__fxmsub(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a[0]*b[1]-c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a[1]*b[0]-c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+negative
+\begin_inset space ~
+\end_inset
+
+multiply-subtract: res=__fxnmsub(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=-(a[0]*b[1]-c[0])
+\begin_inset Newline newline
+\end_inset
+
+res[1]=-(a[1]*b[0]-c[1])
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+copy
+\begin_inset space ~
+\end_inset
+
+multiply-add: __fxcpmadd, __fxcsmadd(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a*b[0]+c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a*b[1]+c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+copy
+\begin_inset space ~
+\end_inset
+
+negative
+\begin_inset space ~
+\end_inset
+
+multiply-add: __fxcpnmadd, __fxcsnmadd(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=-a*b[0]-c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=-a*b[1]-c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+copy
+\begin_inset space ~
+\end_inset
+
+multiply-subtract: __fxcpmsub, __fxcsmsub(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a*b[0]-c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a*b[1]-c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+copy
+\begin_inset space ~
+\end_inset
+
+negative
+\begin_inset space ~
+\end_inset
+
+multiply-subtract: __fxcpnmsub, __fxcsnmsub(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=-a*b[0]+c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=-a*b[1]+c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+copy
+\begin_inset space ~
+\end_inset
+
+sub-primary
+\begin_inset space ~
+\end_inset
+
+multiply-add: __fxcpnpma, __fxcsnpma(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=-a*b[0]-c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a*b[1]-c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+copy
+\begin_inset space ~
+\end_inset
+
+sub-secondary
+\begin_inset space ~
+\end_inset
+
+multiply-add: __fxcpnsma, __fxcsnsma(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a*b[0]+c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=-a*b[1]+c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+mixed
+\begin_inset space ~
+\end_inset
+
+multiply-add: __fxcxma(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a*b[1]+c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a*b[0]+c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+mixed
+\begin_inset space ~
+\end_inset
+
+negative
+\begin_inset space ~
+\end_inset
+
+multiply-subtract: __fxcxnms(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=-a*b[1]+c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=-a*b[0]+c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+mixed
+\begin_inset space ~
+\end_inset
+
+negative
+\begin_inset space ~
+\end_inset
+
+sub-primary
+\begin_inset space ~
+\end_inset
+
+multiply-add: __fxcxnpma(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=-a*b[1]+c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=a*b[0]+c[1]
+\end_layout
+
+\begin_layout Description
+Cross
+\begin_inset space ~
+\end_inset
+
+mixed
+\begin_inset space ~
+\end_inset
+
+sub-secondary
+\begin_inset space ~
+\end_inset
+
+multiply-add: __fxcxnsma(c,b,a)
+\begin_inset Newline newline
+\end_inset
+
+res[0]=a*b[1]+c[0]
+\begin_inset Newline newline
+\end_inset
+
+res[1]=-a*b[0]+c[1]
+\end_layout
+
+\end_body
+\end_document

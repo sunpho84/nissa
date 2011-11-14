@@ -3,11 +3,8 @@
 //apply a gauge transformation to the conf
 void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
 {
-  if(rank_tot>1)
-    {
-      communicate_su3_borders(g);
-      communicate_gauge_borders(uin);
-    }
+  communicate_su3_borders(g);
+  communicate_gauge_borders(uin);
   
   su3 temp;
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -76,8 +73,38 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
 //compute g=\sum_mu U_mu(x)+U^dag_mu(x-mu)
 void compute_landau_or_coulomb_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
 {
-  //first dir: reset and sum
   int b=loclx_neighdw[ivol][0];
+
+#ifdef BGP
+
+  bgp_complex g00,g01,g02,g10,g11,g12,g20,g21,g22;
+  bgp_complex c00,c01,c02,c10,c11,c12,c20,c21,c22;
+  bgp_complex b00,b01,b02,b10,b11,b12,b20,b21,b22;
+
+  //first dir: reset and sum
+  bgp_load_su3(c00,c01,c02,c10,c11,c12,c20,c21,c22, conf[ivol][0]);
+  bgp_load_su3(b00,b01,b02,b10,b11,b12,b20,b21,b22, conf[b][0]);
+  bgp_su3_summ_su3_dag(g00,g01,g02,g10,g11,g12,g20,g21,g22,
+		       c00,c01,c02,c10,c11,c12,c20,c21,c22,
+		       b00,b01,b02,b10,b11,b12,b20,b21,b22);
+  //remaining dirs
+  for(int mu=1;mu<nmu;mu++)
+    {
+      b=loclx_neighdw[ivol][mu];
+      
+      bgp_load_su3(c00,c01,c02,c10,c11,c12,c20,c21,c22, conf[ivol][mu]);
+      bgp_load_su3(b00,b01,b02,b10,b11,b12,b20,b21,b22, conf[b][mu]);
+      bgp_su3_summassign_su3(g00,g01,g02,g10,g11,g12,g20,g21,g22,
+			     c00,c01,c02,c10,c11,c12,c20,c21,c22);
+      bgp_su3_summassign_su3_dag(g00,g01,g02,g10,g11,g12,g20,g21,g22,
+				 b00,b01,b02,b10,b11,b12,b20,b21,b22);
+    }
+
+  bgp_save_su3(g, g00,g01,g02,g10,g11,g12,g20,g21,g22);
+
+#else
+
+  //first dir: reset and sum
   for(int ic1=0;ic1<3;ic1++)
     for(int ic2=0;ic2<3;ic2++)
       {
@@ -96,6 +123,9 @@ void compute_landau_or_coulomb_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
 	    g[ic1][ic2][1]+=conf[ivol][mu][ic1][ic2][1]-conf[b][mu][ic2][ic1][1];
 	  }
     }
+
+#endif
+
 }
 
 //horrible, horrifying routine of unknown meaning copied from APE
@@ -242,23 +272,72 @@ void exponentiate(su3 g,su3 a)
 void overrelax(su3 out,su3 in,double w)
 {
   double coef[5]={1,w,w*(w-1)/2,w*(w-1)*(w-2)/6,w*(w-1)*(w-2)*(w-3)/24};
-  su3 f,t;
+  su3 t[5];
+
+#ifdef BGP
+  bgp_complex f00,f01,f02,f10,f11,f12,f20,f21,f22;
+  bgp_complex o0,o1,o2, t0,t1,t2, r0,r1,r2;
+  bgp_complex buno;
   
+  //prepare multiplicative factor
+  bgp_load_su3(f00,f01,f02,f10,f11,f12,f20,f21,f22,in);
+  complex uno={1,0};
+  bgp_load_complex(buno,uno);
+  bgp_subtassign_complex(f00,buno);
+  bgp_subtassign_complex(f11,buno);
+  bgp_subtassign_complex(f22,buno);
+  
+  
+  //order 0-1
+
+  bgp_save_color(t[1][0],f00,f01,f02);
+  bgp_color_prod_real(o0,o1,o2, f00,f01,f02, coef[1]);
+  bgp_summassign_complex(o0,buno);
+  bgp_save_color(out[0],o0,o1,o2);
+
+  bgp_save_color(t[1][1],f10,f11,f12);
+  bgp_color_prod_real(o0,o1,o2, f10,f11,f12, coef[1]);
+  bgp_summassign_complex(o1,buno);
+  bgp_save_color(out[1],o0,o1,o2);
+
+  bgp_save_color(t[1][2],f20,f21,f22);
+  bgp_color_prod_real(o0,o1,o2, f20,f21,f22, coef[1]);
+  bgp_summassign_complex(o2,buno);
+  bgp_save_color(out[2],o0,o1,o2);
+  
+  for(int iord=2;iord<5;iord++)
+    {
+      for(int i=0;i<3;i++)
+	{
+	  //t'=t*f
+	  bgp_load_color(t0,t1,t2, t[iord-1][i]);
+	  bgp_color_prod_su3(r0,r1,r2, t0,t1,t2, f00,f01,f02,f10,f11,f12,f20,f21,f22);
+	  bgp_save_color(t[iord][i], r0,r1,r2);
+	  
+	  //o+=t'*c
+	  bgp_load_color(o0,o1,o2, out[i]);
+	  bgp_summassign_color_prod_real(o0,o1,o2, r0,r1,r2, coef[iord]);
+	  bgp_save_color(out[i], o0,o1,o2);
+	}
+    }
+#else
+  su3 f;
   su3_summ_real(f,in,-1);   //subtract 1 from in
-  
+
   //ord 0
   su3_put_to_id(out);       //output init
   
   //ord 1
-  su3_copy(t,f);
-  su3_summ_the_prod_real(out,t,coef[1]);
-  
+  su3_copy(t[1],f);
+  su3_summ_the_prod_real(out,t[1],coef[1]);
+
   //ord 2-4
   for(int iord=2;iord<5;iord++)
     {
-      safe_su3_prod_su3(t,t,f);
-      su3_summ_the_prod_real(out,t,coef[iord]);
+      su3_prod_su3(t[iord],t[iord-1],f);
+      su3_summ_the_prod_real(out,t[iord],coef[iord]);
     }
+#endif
 }
 
 //find the transformation bringing to the landau or coulomb gauge the point ivol
