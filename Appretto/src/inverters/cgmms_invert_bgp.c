@@ -48,9 +48,9 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
     
     if(st_crit==sc_standard||st_crit==sc_unilevel) st_res*=rr;
 
-    printf("cgmms iter 0 residues: ");
-    for(int imass=0;imass<nmass;imass++) printf("%1.4e  ",rr);
-    printf("\n");
+    master_printf("cgmms iter 0 residues: ");
+    for(int imass=0;imass<nmass;imass++) master_printf("%1.4e  ",rr);
+    master_printf("\n");
   }
   
   //     -betaa=1
