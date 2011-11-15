@@ -119,16 +119,20 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
 //Write a whole su3spinspin
 void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 {
-  spincolor *temp=appretto_malloc("temp",loc_vol,spincolor);
-  for(int id=0;id<4;id++)
-    for(int ic=0;ic<3;ic++)
-      {
-	char full_path[1024];
-	sprintf(full_path,"%s.%02d",path,id*3+ic);
-	for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_su3spinspin(temp[ivol],prop[ivol],id,ic);
-	write_spincolor(full_path,temp,prec);
-      }
-  appretto_free(temp);
+    double time_in=take_time();
+    
+    spincolor *temp=appretto_malloc("temp",loc_vol,spincolor);
+    for(int id=0;id<4;id++)
+	for(int ic=0;ic<3;ic++)
+	{
+	    char full_path[1024];
+	    sprintf(full_path,"%s.%02d",path,id*3+ic);
+	    for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_su3spinspin(temp[ivol],prop[ivol],id,ic);
+	    write_spincolor(full_path,temp,prec);
+	}
+    appretto_free(temp);
+    
+    master_printf("Wrote su3spinspin in %lg sec\n",take_time()-time_in);
 }
 
 ////////////////////////// gauge configuration writing /////////////////////////////
