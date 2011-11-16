@@ -11,10 +11,15 @@ int file_exist(const char *path)
       FILE *f=fopen(path,"r");
       if(f!=NULL)
         {
+	  master_printf("File %s exists!\n",path);
           status=1;
           fclose(f);
         }
-      else status=0;
+      else
+        {
+	  master_printf("File %s do not exist!\n",path);
+	  status=0;
+	}
     }
   
   MPI_Bcast(&status,1,MPI_INT,0,MPI_COMM_WORLD);
