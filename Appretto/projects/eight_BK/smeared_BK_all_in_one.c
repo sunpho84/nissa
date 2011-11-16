@@ -210,8 +210,6 @@ void initialize_Bk(int narg,char **arg)
       //Read the operator pairs
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
-
-      debug_printf(1," contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
   
   read_str_int("NGaugeConf",&ngauge_conf);
@@ -286,15 +284,12 @@ int check_residual_time()
   
   int enough_time=(igauge_conf<ngauge_conf) ? (remaining_time>pess_time) : 1;
   
-  if(!enough_time)
-    {
-      master_printf("\n");
-      master_printf("-average running time: %lg secs per conf,\n",ave_time);
-      master_printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
-      master_printf("-remaining time: %lg secs per conf\n",remaining_time);
-      master_printf("Not enough time for another conf, so exiting.\n");
-    }
-
+  master_printf("\n");
+  master_printf("-average running time: %lg secs per conf,\n",ave_time);
+  master_printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
+  master_printf("-remaining time: %lg secs per conf\n",remaining_time);
+  if(!enough_time) master_printf("Not enough time for another conf, so exiting.\n");
+  
   return enough_time;
 }
 
