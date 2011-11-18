@@ -312,13 +312,14 @@ void print_momentum_subset()
   sprintf(outfile_fft,"%s/fft",outfolder);
   
   //buffer
-  su3spinspin buf[140][nmass][2];
-  memset(buf,0,140*nmass*2*sizeof(su3spinspin));
+  int nmom=140;
+  su3spinspin *buf=appretto_malloc("buf",nmom*nmass*2,su3spinspin);
+  memset(buf,0,nmom*nmass*2*sizeof(su3spinspin));
   
   //gather all the data on rank 0
   int glb_ip[4],ip=0;
   int interv[2][2][2]={{{0,3},{0,2}},{{4,7},{2,3}}};
-  MPI_Request request[140];
+  MPI_Request request[nmom];
   int nrequest=0;
   for(int iinterv=0;iinterv<2;iinterv++)
     {
@@ -339,15 +340,15 @@ void print_momentum_subset()
 		    
 		    for(int imass=0;imass<nmass;imass++)
 		      for(int r=0;r<2;r++)
-			memcpy(buf[ip][imass][r],S0[r][imass][ilp],sizeof(su3spinspin));
+			memcpy(buf[2*(nmass*ip+imass)+r],S0[r][imass][ilp],sizeof(su3spinspin));
 		    
 		    //if we are not on the master rank send data there
 		    if(cart_rank!=0)
-		      MPI_Isend((void*)(buf[ip]),2*nmass*144*2,MPI_DOUBLE,0,ip,cart_comm,&(request[nrequest++]));
+		      MPI_Isend((void*)(buf[ip*2*nmass]),2*nmass*sizeof(su3spinspin),MPI_CHAR,0,ip,cart_comm,&(request[nrequest++]));
 		  }
 		else
 		  if(rank==0)
-		    MPI_Irecv((void*)(buf[ip]),2*nmass*144*2,MPI_DOUBLE,hosting,ip,cart_comm,&(request[nrequest++]));
+		    MPI_Irecv((void*)(buf[ip*2*nmass]),2*nmass*sizeof(su3spinspin),MPI_CHAR,hosting,ip,cart_comm,&(request[nrequest++]));
 		
 		ip++;
 	      }
@@ -364,17 +365,18 @@ void print_momentum_subset()
       
       for(int imass=0;imass<nmass;imass++)
 	for(int r=0;r<2;r++)
-	  for(int ilp=0;ilp<ip;ilp++)
+	  for(int ilp=0;ilp<nmom;ilp++)
 	    {
 	      for(int ic_so=0;ic_so<3;ic_so++)
 		for(int id_so=0;id_so<4;id_so++)
 		  for(int ic_si=0;ic_si<3;ic_si++)
 		    for(int id_si=0;id_si<4;id_si++)
-		      fwrite(buf[ilp][imass][r][ic_si][ic_so][id_si][id_so],sizeof(double),2,fout);
+		      fwrite(buf[2*(nmass*ilp+imass)+r][ic_si][ic_so][id_si][id_so],sizeof(double),2,fout);
 	    }
       
       fclose(fout);
     }
+  appretto_free(buf);
 }
 
 //Calculate and print to file the 2pts
