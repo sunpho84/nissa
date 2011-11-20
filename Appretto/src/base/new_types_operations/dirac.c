@@ -192,12 +192,16 @@ void init_base_gamma()
 }
 
 //Trace of the product of two spinspins
-void trace_prod_spinspins(complex c,spinspin a,spinspin b)
+void summ_the_trace_prod_spinspins(complex c,spinspin a,spinspin b)
 {
-  c[0]=c[1]=0;
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
       complex_summ_the_prod(c,a[id1][id2],b[id2][id1]);
+}
+void trace_prod_spinspins(complex c,spinspin a,spinspin b)
+{
+  c[0]=c[1]=0;
+  summ_the_trace_prod_spinspins(c,a,b);
 }
 
 void spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b)

@@ -1,5 +1,4 @@
 #include "appretto.h"
-#include "addendum.c"
 
 //gauge info
 char conf_path[1024];
@@ -519,14 +518,14 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 		  
 		  meson_two_points(contr_2pts,op1_2pts,S0[r1][ip1],op2_2pts,S0[r2][ip2],ncontr_2pts);
 		  ncontr_tot+=ncontr_2pts;
-		  print_contractions_to_file_ptv(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"");
+		  print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1);
 		  
 		  if(nch_contr_2pts>0)
 		    {
 		      unsafe_apply_chromo_operator_to_su3spinspin(ch_su3spinspin,Pmunu,S0[r2][ip2]);
 		      meson_two_points(ch_contr_2pts,ch_op1_2pts,S0[r1][ip1],ch_op2_2pts,ch_su3spinspin,nch_contr_2pts);
 		      ncontr_tot+=nch_contr_2pts;
-		      print_contractions_to_file_ptv(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,source_coord[0],"CHROMO-");
+		      print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,source_coord[0],"CHROMO-",1);
 		    }
 		  if(rank==0) fprintf(fout,"\n");
 		}
@@ -564,14 +563,14 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 	    
 	    meson_two_points(contr_3pts,op1_3pts,S0[r1][ip1],op2_3pts,S1[ip2],ncontr_3pts);
 	    ncontr_tot+=ncontr_3pts;
-	    print_contractions_to_file_ptv(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,source_coord[0],"");
+	    print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,source_coord[0],"",1);
 	    
 	    if(nch_contr_3pts>0)
 	      {
 		unsafe_apply_chromo_operator_to_su3spinspin(ch_su3spinspin,Pmunu,S1[ip2]);
 		meson_two_points(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_su3spinspin,nch_contr_3pts);
 		ncontr_tot+=nch_contr_3pts;
-		print_contractions_to_file_ptv(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,source_coord[0],"CHROMO-");
+		print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,source_coord[0],"CHROMO-",1);
 	      }
 	    if(rank==0) fprintf(fout,"\n");
 	  }

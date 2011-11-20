@@ -213,7 +213,9 @@ void init_grid()
       loc_size[idir]=glb_size[idir];
       glb_vol*=glb_size[idir];
     }
-
+  glb_spat_vol=glb_vol/glb_size[0];
+  loc_spat_vol=loc_vol/loc_size[0];
+  
   master_printf("Number of running processes: %d\n",rank_tot);
   master_printf("Global lattice:\t%dx%dx%dx%d = %d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3],glb_vol);
   

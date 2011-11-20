@@ -1,5 +1,4 @@
 #include "appretto.h"
-#include "../semileptonic/addendum.c"
 
 //gauge info
 int ngauge_conf;
@@ -38,6 +37,78 @@ int ninv_tot=0,ncontr_tot=0;
 double tot_time=0,inv_time=0,contr_time=0,fix_time=0;
 double fft_time=0,save_time=0,load_time=0;
 
+//Compute bilinear green function needed for the X space renormalization
+void Xspace()
+{
+  char outfile_X[1024];
+  sprintf(outfile_X,"%s/Xgreen",outfolder);
+  
+  MPI_File fout;
+  int rc=MPI_File_open(cart_comm,outfile_X,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&fout);
+  if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_X);
+  
+  complex *green=appretto_malloc("greenX",loc_vol,complex);
+  int radius=min_int(glb_size[0],min_int(glb_size[1],10));
+  
+  int iout=0;
+  for(int r=0;r<2;r++)
+    for(int imass=0;imass<nmass;imass++)
+      for(int igamma=0;igamma<16;igamma++)
+	{
+	  dirac_matr g1,g2;
+	  dirac_prod(&g1,&(base_gamma[igamma]),&(base_gamma[5]));
+	  dirac_prod(&g2,&(base_gamma[5]),&(base_gamma[igamma]));
+	  
+	  //perform local contraction
+	  for(int ivol=0;ivol<loc_vol;ivol++)
+	    site_trace_g_ccss_dag_g_ccss(green[ivol],&g1,S0[r][imass][ivol],&g2,S0[r][imass][ivol]);
+	  
+	  //now the bad moment: save the data
+	  int glb_x[4],loc_x[4],x[4];
+	  for(x[0]=-radius;x[0]<=radius;x[0]++)
+	    {
+	      int radius1=(int)sqrt(radius*radius-x[0]*x[0]+0.5);
+	      for(x[1]=-radius1;x[1]<=radius1;x[1]++)
+		{
+		  int radius2=(int)sqrt(radius1*radius1-x[1]*x[1]+0.5);
+		  for(x[2]=-radius2;x[2]<=radius2;x[2]++)
+		    {
+		      int radius3=(int)(radius2*radius2-x[2]*x[2]+0.5);
+		      for(x[3]=-radius3;x[3]<=radius3;x[3]++)
+			{
+			  int isloc=1;
+			  for(int mu=0;mu<4;mu++)
+			    {
+			      glb_x[mu]=(glb_size[mu]+x[mu])%glb_size[mu];
+			      loc_x[mu]=glb_x[mu]-loc_coord_of_loclx[0][mu];
+			      
+			      isloc&=(loc_x[mu]<loc_size[mu]);
+			    }
+			  
+			  if(isloc)
+			    {
+			      int iloc=loclx_of_coord(loc_x);
+			      if(big_endian)
+				{
+				  complex buf;
+				  doubles_to_doubles_changing_endianess((double*)buf,(double*)(green+iloc),2);
+				  MPI_File_write_at(fout,iout*sizeof(complex),buf,2,MPI_DOUBLE,MPI_STATUS_IGNORE);
+				}
+			      else 
+				MPI_File_write_at(fout,iout*sizeof(complex),green+iloc,2,MPI_DOUBLE,MPI_STATUS_IGNORE);
+			    }
+			  
+			  iout++;
+			}
+		    }
+		}
+	    }
+	}
+  
+  MPI_File_close(&fout);
+  
+  appretto_free(green);
+}
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 void meson_two_points(complex *corr,int *list_op1,su3spinspin *s1,int *list_op2,su3spinspin *s2,int ncontr)
 {
@@ -304,13 +375,7 @@ void print_momentum_subset()
 
   MPI_File fout;
   int rc=MPI_File_open(cart_comm,outfile_fft,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&fout);
-  if(rc)
-    {
-      char err[1024];
-      int len=1024;
-      MPI_Error_string(rc,err,&len);
-      crash("Unable to open file: %s, raised error: %d %s",outfile_fft,rc,err);
-    }
+  if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_fft);
   
   int glb_ip[4],ip=0;
   int interv[2][2][2]={{{0,3},{0,2}},{{4,7},{2,3}}};
@@ -372,12 +437,11 @@ void calculate_all_2pts()
 	    
 	    meson_two_points(contr_2pts,op1_2pts,S0[r1][im1],op2_2pts,S0[r2][im2],ncontr_2pts);
 	    ncontr_tot+=ncontr_2pts;
-	    print_contractions_to_file_ptv(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"");
+	    print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1);
 	    
 	    if(rank==0) fprintf(fout,"\n");
 	  }
   contr_time+=take_time();
-  
 }
 
 void read_conf_parameters()
@@ -415,6 +479,8 @@ int main(int narg,char **arg)
     
     calculate_S0();
     calculate_all_2pts();
+    
+    Xspace();
     
     compute_fft(-1);
     print_momentum_subset();

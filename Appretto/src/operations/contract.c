@@ -27,6 +27,23 @@ void site_trace_g_sdag_g_s_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac
   trace_prod_spinspins(c,t12,t34);
 }
 
+//12 index prop
+void site_trace_g_ccss_dag_g_ccss(complex c,dirac_matr *g1,su3spinspin s1,dirac_matr *g2,su3spinspin s2)
+{
+  c[0]=c[1]=0;
+  //Color loop
+  for(int ic1=0;ic1<3;ic1++)
+    for(int ic2=0;ic2<3;ic2++)
+      {
+	spinspin t1,t2;
+	
+	spinspin_dirac_spinspindag_prod(t1,g1,s1[ic2][ic1]);
+	spinspin_dirac_spinspin_prod(t2,g2,s2[ic2][ic1]);
+	
+	summ_the_trace_prod_spinspins(c,t1,t2);
+      }
+}
+
 //Trace the product of gamma1 * spinspin1^dag * gamma2 * spinspin2,
 void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,const int ncontr)
 {
@@ -48,7 +65,7 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
 	    {
 	      complex ctemp;
 	      site_trace_g_sdag_g_s(ctemp,&(g1[icontr]),s1[ivol][ic],&(g2[icontr]),s2[ivol][ic]);
-	      complex_summ(loc_c[icontr*glb_size[0]+glb_t],loc_c[icontr*glb_size[0]+glb_t],ctemp);
+	      complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
 	    }
 	}
     }
@@ -233,6 +250,37 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
   appretto_free(loc_c);
 }
 
+//Trace the product of gamma1 * su3spinspin1^dag * gamma2 * su3spinspin2,
+void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g1,su3spinspin *s1,dirac_matr *g2,su3spinspin *s2,const int ncontr)
+{
+  //Allocate a contiguous memory area where to store local node results
+  complex *loc_c=appretto_malloc("loc_c",ncontr*glb_size[0],complex);
+  for(int icontr=0;icontr<ncontr;icontr++)
+    for(int glb_t=0;glb_t<glb_size[0];glb_t++) loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
+  
+  for(int icontr=0;icontr<ncontr;icontr++) 
+    {
+      if(debug_lvl>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
+
+      //Local loop
+      for(int ivol=0;ivol<loc_vol;ivol++)
+        {
+          int glb_t=glb_coord_of_loclx[ivol][0];
+	  
+	  complex ctemp;
+	  site_trace_g_ccss_dag_g_ccss(ctemp,&(g1[icontr]),s1[ivol],&(g2[icontr]),s2[ivol]);
+	  complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
+        }
+    }
+  
+  //Final reduction
+  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
+  
+  appretto_free(loc_c);
+}
+
 void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
 {
   //Allocate a contguous memory area where to store local results
@@ -291,16 +339,14 @@ void print_contraction_to_file(FILE *fout,int op1,int op2,complex *contr,int twa
 	  int t=tempt+twall;
 	  if(t>=glb_size[0]) t-=glb_size[0];
 	  
-	  fprintf(fout,"%+016.16g\t%+016.16g\n",contr[t][0]/norm,contr[t][1]/norm);
+	  fprintf(fout,"%+016.16g\t%+016.16g\n",contr[t][0]*norm,contr[t][1]*norm);
 	}
     }
 }
 
 //print all the passed contractions to the file
-void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex *contr,int twall,const char *tag)
+void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex *contr,int twall,const char *tag,double norm)
 {
-  double norm=glb_size[1]*glb_size[2]*glb_size[3];
-  
   if(rank==0)
     for(int icontr=0;icontr<ncontr;icontr++)
       {
