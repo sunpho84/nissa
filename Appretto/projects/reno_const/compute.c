@@ -174,12 +174,11 @@ void load_gauge_conf()
   read_gauge_conf(unfix_conf,conf_path);
   load_time+=take_time();
   //prepare the fixed version and calculate plaquette
-  fix_time-=take_time();
+  double elaps_time=-take_time();
   landau_gauge_fix(conf,unfix_conf,1.e-20);
-  //landau_gauge_fix(conf,unfix_conf,1.e-20);
-  //memcpy(conf,unfix_conf,loc_vol*sizeof(quad_su3));
-  fix_time+=take_time();
-  master_printf("Fixed conf in %lg sec\n",fix_time);
+  elaps_time+=take_time();
+  fix_time+=elaps_time;
+  master_printf("Fixed conf in %lg sec\n",elaps_time);
   communicate_gauge_borders(conf);
   communicate_gauge_borders(unfix_conf);
   
@@ -335,7 +334,7 @@ void print_momentum_subset()
 		    for(int r=0;r<2;r++)
 		      for(int imass=0;imass<nmass;imass++)
 			{
-			  int offset=ip*sizeof(complex)*144;
+			  int offset=((imass+r*nmass)*140+ip)*sizeof(su3spinspin);
 			  
 			  colorspincolorspin buf;
 			  for(int ic_so=0;ic_so<3;ic_so++)
