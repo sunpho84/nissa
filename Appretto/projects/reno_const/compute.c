@@ -36,6 +36,7 @@ char outfolder[1024];
 //timings
 int ninv_tot=0,ncontr_tot=0;
 double tot_time=0,inv_time=0,contr_time=0,fix_time=0;
+double fft_time=0,save_time=0,load_time=0;
 
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 void meson_two_points(complex *corr,int *list_op1,su3spinspin *s1,int *list_op2,su3spinspin *s2,int ncontr)
@@ -169,7 +170,9 @@ void initialize_semileptonic(char *input_path)
 void load_gauge_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
+  load_time-=take_time();
   read_gauge_conf(unfix_conf,conf_path);
+  load_time+=take_time();
   //prepare the fixed version and calculate plaquette
   fix_time-=take_time();
   landau_gauge_fix(conf,unfix_conf,1.e-20);
@@ -214,27 +217,15 @@ void close_semileptonic()
     {
       printf("\n");
       printf("Total time: %g, of which:\n",tot_time);
+      printf(" - %02.2f%s to load %d conf. (%2.2gs avg)\n",load_time/tot_time*100,"%",ngauge_conf,load_time/ngauge_conf);
       printf(" - %02.2f%s to fix %d conf. (%2.2gs avg)\n",fix_time/tot_time*100,"%",ngauge_conf,fix_time/ngauge_conf);
       printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
       printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+      printf(" - %02.2f%s to save %d su3spinspins. (%2.2gs avg)\n",save_time/tot_time*100,"%",2*nmass*ngauge_conf,save_time/(2*nmass*ngauge_conf));
     }
   
   close_appretto();
 }
-
-
-void remove_anti_periodic_cond(spincolor *S)
-{
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    {
-      int dt=(glb_coord_of_loclx[ivol][0]+source_coord[0])%glb_size[0]-source_coord[0];
-      double arg=M_PI*dt/glb_size[0];
-      complex phase={cos(arg),sin(arg)};
-      
-      safe_spincolor_prod_complex(S[ivol],S[ivol],phase);
-    }
-}
-
 
 //calculate the standard propagators
 void calculate_S0()
@@ -259,9 +250,6 @@ void calculate_S0()
 	  { //reconstruct the doublet
 	    reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	    
-	    //remove_anti_periodic_cond(reco_solution[0]);
-	    //remove_anti_periodic_cond(reco_solution[1]);
-	    
 	    if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	    for(int r=0;r<2;r++) //convert the id-th spincolor into the su3spinspin
 	      for(int i=0;i<loc_vol;i++)
@@ -275,13 +263,16 @@ void calculate_S0()
 	rotate_vol_su3spinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
 	char path[1024];
 	sprintf(path,"%s/out_r%1d_im%02d",outfolder,r,ipropS0);
-	write_su3spinspin(path,S0[r][ipropS0],64);
+	save_time-=take_time();
+	//write_su3spinspin(path,S0[r][ipropS0],64);
+	save_time+=take_time();
       }
 }
 
 //compute the fft of all propagators
 void compute_fft(double sign)
 {
+  fft_time-=take_time();
   for(int r=0;r<2;r++)
     for(int imass=0;imass<nmass;imass++)
       {
@@ -303,6 +294,7 @@ void compute_fft(double sign)
 				      f);
 	  }
       }
+  fft_time+=take_time();
 }
 
 //filter the computed momentum
@@ -310,17 +302,19 @@ void print_momentum_subset()
 {
   char outfile_fft[1024];
   sprintf(outfile_fft,"%s/fft",outfolder);
+
+  MPI_File fout;
+  int rc=MPI_File_open(cart_comm,outfile_fft,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&fout);
+  if(rc)
+    {
+      char err[1024];
+      int len=1024;
+      MPI_Error_string(rc,err,&len);
+      crash("Unable to open file: %s, raised error: %d %s",outfile_fft,rc,err);
+    }
   
-  //buffer
-  int nmom=140;
-  su3spinspin *buf=appretto_malloc("buf",nmom*nmass*2,su3spinspin);
-  memset(buf,0,nmom*nmass*2*sizeof(su3spinspin));
-  
-  //gather all the data on rank 0
   int glb_ip[4],ip=0;
   int interv[2][2][2]={{{0,3},{0,2}},{{4,7},{2,3}}};
-  MPI_Request request[nmom];
-  int nrequest=0;
   for(int iinterv=0;iinterv<2;iinterv++)
     {
       for(glb_ip[0]=interv[iinterv][0][0];glb_ip[0]<=interv[iinterv][0][1];glb_ip[0]++)
@@ -338,45 +332,27 @@ void print_momentum_subset()
 		    for(int mu=0;mu<4;mu++) loc_ip[mu]=glb_ip[mu]%loc_size[mu];
 		    int ilp=loclx_of_coord(loc_ip);
 		    
-		    for(int imass=0;imass<nmass;imass++)
-		      for(int r=0;r<2;r++)
-			memcpy(buf[2*(nmass*ip+imass)+r],S0[r][imass][ilp],sizeof(su3spinspin));
-		    
-		    //if we are not on the master rank send data there
-		    if(cart_rank!=0)
-		      MPI_Isend((void*)(buf[ip*2*nmass]),2*nmass*sizeof(su3spinspin),MPI_CHAR,0,ip,cart_comm,&(request[nrequest++]));
+		    for(int r=0;r<2;r++)
+		      for(int imass=0;imass<nmass;imass++)
+			{
+			  int offset=ip*sizeof(complex)*144;
+			  
+			  colorspincolorspin buf;
+			  for(int ic_so=0;ic_so<3;ic_so++)
+			    for(int id_so=0;id_so<4;id_so++)
+			      for(int ic_si=0;ic_si<3;ic_si++)
+				for(int id_si=0;id_si<4;id_si++)
+				  memcpy(buf[ic_so][id_so][ic_si][id_si],S0[r][imass][ilp][ic_si][ic_so][id_si][id_so],
+					 sizeof(complex));
+			  
+			  MPI_File_write_at(fout,offset,buf,16,MPI_SU3,MPI_STATUS_IGNORE);
+			}
 		  }
-		else
-		  if(rank==0)
-		    MPI_Irecv((void*)(buf[ip*2*nmass]),2*nmass*sizeof(su3spinspin),MPI_CHAR,hosting,ip,cart_comm,&(request[nrequest++]));
-		
 		ip++;
 	      }
     }
   
-  //Wait for everything to arrive
-  MPI_Status status[nrequest];
-  MPI_Waitall(nrequest,request,status);
-  
-  //On master rank print save data the APE style
-  if(rank==0)
-    {
-      FILE *fout=fopen(outfile_fft,"w");
-      
-      for(int imass=0;imass<nmass;imass++)
-	for(int r=0;r<2;r++)
-	  for(int ilp=0;ilp<nmom;ilp++)
-	    {
-	      for(int ic_so=0;ic_so<3;ic_so++)
-		for(int id_so=0;id_so<4;id_so++)
-		  for(int ic_si=0;ic_si<3;ic_si++)
-		    for(int id_si=0;id_si<4;id_si++)
-		      fwrite(buf[2*(nmass*ilp+imass)+r][ic_si][ic_so][id_si][id_so],sizeof(double),2,fout);
-	    }
-      
-      fclose(fout);
-    }
-  appretto_free(buf);
+  MPI_File_close(&fout);
 }
 
 //Calculate and print to file the 2pts

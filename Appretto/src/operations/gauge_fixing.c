@@ -350,17 +350,38 @@ void find_local_landau_or_coulomb_gauge_fixing_transformation(su3 g,quad_su3 *co
   su3_unitarize_orthonormalizing(g,h);
 }
 
-//apply the passed transformation to the point and send external border on appropriate node
+//apply the passed transformation to the point
 void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
 {
+#ifdef BGP
+  bgp_complex g00,g01,g02,g10,g11,g12,g20,g21,g22;
+  bgp_complex o00,o01,o02,o10,o11,o12,o20,o21,o22;
+  bgp_complex i00,i01,i02,i10,i11,i12,i20,i21,i22;
+  bgp_load_su3(g00,g01,g02,g10,g11,g12,g20,g21,g22,g);
+#endif
+
   // for each dir...
   for(int mu=0;mu<4;mu++)
     {
       int b=loclx_neighdw[ivol][mu];
       
       //perform local gauge transform
+#ifdef BGP
+      bgp_load_su3(i00,i01,i02,i10,i11,i12,i20,i21,i22,conf[ivol][mu]);
+      bgp_su3_prod_su3(o00,o01,o02,o10,o11,o12,o20,o21,o22,
+		       g00,g01,g02,g10,g11,g12,g20,g21,g22, 
+		       i00,i01,i02,i10,i11,i12,i20,i21,i22);
+      bgp_save_su3(conf[ivol][mu], o00,o01,o02,o10,o11,o12,o20,o21,o22);
+      
+      bgp_load_su3(i00,i01,i02,i10,i11,i12,i20,i21,i22,conf[b][mu]);
+      bgp_su3_prod_su3_dag(o00,o01,o02,o10,o11,o12,o20,o21,o22,
+			   i00,i01,i02,i10,i11,i12,i20,i21,i22,
+			   g00,g01,g02,g10,g11,g12,g20,g21,g22);
+      bgp_save_su3(conf[b][mu], o00,o01,o02,o10,o11,o12,o20,o21,o22);
+#else
       safe_su3_prod_su3(conf[ivol][mu],g,conf[ivol][mu]);
       safe_su3_prod_su3_dag(conf[b][mu],conf[b][mu],g);
+#endif
     }
 }
 
