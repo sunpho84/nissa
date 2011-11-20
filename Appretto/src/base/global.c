@@ -9,8 +9,8 @@
 //nomenclature: 
 //-glb is relative to the global grid
 //-loc to the local one
-EXTERN int glb_size[4],glb_vol;
-EXTERN int loc_size[4],loc_vol;
+EXTERN int glb_size[4],glb_vol,glb_spat_vol;
+EXTERN int loc_size[4],loc_vol,loc_spat_vol;
 EXTERN int *dir_of_bord;
 //-lx is lexicografic
 EXTERN int **glb_coord_of_loclx;

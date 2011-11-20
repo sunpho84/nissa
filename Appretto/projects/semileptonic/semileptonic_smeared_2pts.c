@@ -298,7 +298,7 @@ void calculate_all_2pts(int sm_lev_sour)
 		
 		meson_two_points(contr_2pts,op1_2pts,S0[r1][im1],op2_2pts,S0[r2][im2],ncontr_2pts);
 		ncontr_tot+=ncontr_2pts;
-		print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"");
+		print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0/glb_spat_vol);
 		
 		if(rank==0) fprintf(fout,"\n");
 	      }

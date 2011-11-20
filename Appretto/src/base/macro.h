@@ -29,4 +29,6 @@
 
 #define crash(...) internal_crash(__LINE__,__FILE__,__VA_ARGS__)
 
+#define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
+
 #define if_appretto_vect_not_initialized() if(main_appretto_arr!=((char*)&main_appretto_vect)+sizeof(appretto_vect))

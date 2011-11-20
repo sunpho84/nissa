@@ -18,11 +18,15 @@ void print_spinspin(spinspin s)
 }
 
 //trace of the product with a dirac matr of a spinspin
+void summ_the_trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b)
+{
+  for(int id=0;id<4;id++)
+    complex_summ_the_prod(c,a->entr[id],b[a->pos[id]][id]);
+}
 void trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b)
 {
   c[0]=c[1]=0;
-  for(int id=0;id<4;id++)
-    complex_summ_the_prod(c,a->entr[id],b[a->pos[id]][id]);
+  summ_the_trace_prod_dirac_spinspin(c,a,b);
 }
 
 //prouduct of two spinspins
@@ -35,6 +39,7 @@ void spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b)
       for(int id=0;id<4;id++)
 	complex_summ_the_conj2_prod(out[id1][id2],a[id1][id],b[id2][id]);
 }
+
 
 //Get a spincolor from a colorspinspin
 //In a spinspin the sink index runs slower than the source
