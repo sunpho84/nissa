@@ -330,6 +330,20 @@
     bgp_su3_prod_color_bulk(O0,O1,O2,U00,U01,U02,U10,U11,U12,U20,U21,U22,I0,I1,I2); \
   }
 
+#define bgp_su3_prod_su3(A00,A01,A02,A10,A11,A12,A20,A21,A22, B00,B01,B02,B10,B11,B12,B20,B21,B22, C00,C01,C02,C10,C11,C12,C20,C21,C22)	\
+  {									\
+    bgp_su3_prod_color(A00,A10,A20, B00,B01,B02,B10,B11,B12,B20,B21,B22, C00,C10,C20); \
+    bgp_su3_prod_color(A01,A11,A21, B00,B01,B02,B10,B11,B12,B20,B21,B22, C01,C11,C21); \
+    bgp_su3_prod_color(A02,A12,A22, B00,B01,B02,B10,B11,B12,B20,B21,B22, C02,C12,C22); \
+  }
+
+#define bgp_su3_prod_su3_dag(A00,A01,A02,A10,A11,A12,A20,A21,A22, B00,B01,B02,B10,B11,B12,B20,B21,B22, C00,C01,C02,C10,C11,C12,C20,C21,C22) \
+  {									\
+    bgp_color_prod_su3_dag(A00,A01,A02, B00,B01,B02, C00,C01,C02,C10,C11,C12,C20,C21,C22); \
+    bgp_color_prod_su3_dag(A10,A11,A12, B10,B11,B12, C00,C01,C02,C10,C11,C12,C20,C21,C22); \
+    bgp_color_prod_su3_dag(A20,A21,A22, B20,B21,B22, C00,C01,C02,C10,C11,C12,C20,C21,C22); \
+  }
+
 #define bgp_summ_the_su3_prod_color(O0,O1,O2,U00,U01,U02,U10,U11,U12,U20,U21,U22,I0,I1,I2) \
   {									\
     bgp_complex_summ_the_prod_real(O0,O0,U00,__creal(I0));		\

@@ -13,6 +13,9 @@ typedef spin colorspin[3];
 typedef color redspincolor[2];
 typedef color spincolor[4];
 
+typedef colorspin spincolorspin[4];
+typedef spincolorspin colorspincolorspin[3];
+
 typedef spin spinspin[4];
 typedef spinspin colorspinspin[3];
 

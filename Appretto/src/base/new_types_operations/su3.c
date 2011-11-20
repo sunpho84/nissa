@@ -162,8 +162,8 @@ void su3_prod_su3_dag(su3 a,su3 b,su3 c)
     for(int ic_out=0;ic_out<3;ic_out++)
       {
 	unsafe_complex_conj2_prod(a[ir_out][ic_out],b[ir_out][0],c[ic_out][0]);
-	for(int itemp=1;itemp<3;itemp++)
-	  complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][itemp],c[ic_out][itemp]);
+	complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][1],c[ic_out][1]);
+	complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][2],c[ic_out][2]);
       }
 }
 void safe_su3_prod_su3_dag(su3 a,su3 b,su3 c)
