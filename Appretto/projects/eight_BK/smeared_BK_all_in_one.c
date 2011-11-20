@@ -258,7 +258,7 @@ int find_next_conf()
       
       //Check wether the config is analized or not by searching for outputs
       char check_path[1024];
-      sprintf(check_path,"%s_%02d_%02d",basepath_bag,so_jnit[0],si_jnit[0]);
+      sprintf(check_path,"%s_%02d_%02d",basepath_bag,so_jnit[0],so_jnit[0]);
       master_printf("\nChecking \"%s\".\n",conf_path);
       if(file_exist(check_path))
 	{
