@@ -308,7 +308,7 @@ void calculate_all_2pts(int sm_lev_sour)
 		
 		meson_two_points(contr_2pts,op1_2pts,S0[r1][im1],op2_2pts,S0[r2][im2],ncontr_2pts);
 		ncontr_tot+=ncontr_2pts;
-		print_contractions_to_file_ptv(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"");
+		print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1);
 		
 		if(rank==0) fprintf(fout,"\n");
 	      }
@@ -328,13 +328,24 @@ int main(int narg,char **arg)
   tot_time-=take_time();
   initialize_semileptonic(arg[1]);
   
-  for(int iconf=0;iconf<ngauge_conf;iconf++)
+  int iconf=0;
+  do
   {
       //Gauge path
-      read_str(conf_path,1024);
-      read_int(&source_coord[0]);
-      read_str(outfile_2pts,1024);
-      
+      int ex=0;
+      do
+      {
+	  read_str(conf_path,1024);
+	  read_int(&source_coord[0]);
+	  read_str(outfile_2pts,1024);
+	  
+	  char check_path[1024];
+	  sprintf(check_path,"%s_%d%d",outfile_2pts,0,0);
+	  ex=file_exist(check_path);
+	  if(ex) master_printf("%s already analized, skiping.\n",conf_path);
+	  else   master_printf("%s not already analized.\n",conf_path);
+      }
+      while(ex);
       load_gauge_conf();
       generate_source();
       
@@ -343,7 +354,9 @@ int main(int narg,char **arg)
 	  calculate_S0(sm_lev_sour);
 	  calculate_all_2pts(sm_lev_sour);
       }
+      iconf++;
   }
+  while(iconf<ngauge_conf && take_time()+tot_time<2500);
   
   tot_time+=take_time();
   close_semileptonic();
