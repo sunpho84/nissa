@@ -39,6 +39,7 @@ int *op1_2pts,*op2_2pts;
 char outfile_2pts[1024];
 
 //timings
+int wall_time;
 int ninv_tot=0,ncontr_tot=0;
 double tot_time=0,inv_time=0,contr_time=0;
 
@@ -89,7 +90,9 @@ void initialize_semileptonic(char *input_path)
   read_str_int("L",&(glb_size[1]));
   read_str_int("T",&(glb_size[0]));
   //Init the MPI grid 
-  init_grid(); 
+  init_grid();
+  //Walltime
+  read_str_int("Walltime",&wall_time);
   //Kappa
   read_str_double("Kappa",&kappa);
   
@@ -343,7 +346,12 @@ int main(int narg,char **arg)
 	  sprintf(check_path,"%s_%d%d",outfile_2pts,0,0);
 	  ex=file_exist(check_path);
 	  if(ex) master_printf("%s already analized, skiping.\n",conf_path);
-	  else   master_printf("%s not already analized.\n",conf_path);
+	  else
+	  {
+	      master_printf("%s not already analized.\n",conf_path);
+	      FILE *fout=open_text_file_for_output(check_path);
+	      if(rank==0) fclose(fout);
+	  }
       }
       while(ex);
       load_gauge_conf();
@@ -356,7 +364,7 @@ int main(int narg,char **arg)
       }
       iconf++;
   }
-  while(iconf<ngauge_conf && take_time()+tot_time<2500);
+  while(iconf<ngauge_conf && take_time()+tot_time<wall_time);
   
   tot_time+=take_time();
   close_semileptonic();
