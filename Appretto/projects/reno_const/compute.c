@@ -39,6 +39,7 @@ double tot_time=0,inv_time=0,contr_time=0,fix_time=0;
 double fft_time=0,save_time=0,load_time=0;
 
 //Compute bilinear green function needed for the X space renormalization
+/*
 void Xspace()
 {
   char outfile_X[1024];
@@ -51,7 +52,10 @@ void Xspace()
   complex *green=appretto_malloc("greenX",loc_vol,complex);
   int radius=min_int(glb_size[0],min_int(glb_size[1],10));
   
-  int iout=0;
+  int iout;
+  
+  int pos=appretto_malloc("pos",loc_vol,int),nloc,ipos=0;
+  complex *loc_buf=appretto_malloc("loc_buf",loc_vol*2*nmass,complex);
   for(int r=0;r<2;r++)
     for(int imass=0;imass<nmass;imass++)
       for(int igamma=0;igamma<16;igamma++)
@@ -64,7 +68,7 @@ void Xspace()
 	  for(int ivol=0;ivol<loc_vol;ivol++)
 	    site_trace_g_ccss_dag_g_ccss(green[ivol],&g1,S0[r][imass][ivol],&g2,S0[r][imass][ivol]);
 	  
-	  //now the bad moment: save the data
+	  //now the bad moment: bufferize the data
 	  int glb_x[4],loc_x[4],x[4];
 	  for(x[0]=-radius;x[0]<=radius;x[0]++)
 	    {
@@ -108,8 +112,11 @@ void Xspace()
   
   MPI_File_close(&fout);
   
+  appretto_free(loc_buf);
+  appretto_free(loc_pos);
   appretto_free(green);
 }
+*/
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 void meson_two_points(complex *corr,int *list_op1,su3spinspin *s1,int *list_op2,su3spinspin *s2,int ncontr)
 {
@@ -373,17 +380,24 @@ void compute_fft(double sign)
 //filter the computed momentum
 void print_momentum_subset()
 {
+  //intervals defining the two canonical momentum subsets
+  int interv[2][2][2]={{{0,3},{0,2}},{{4,7},{2,3}}};
+
+  //build oputput file name
   char outfile_fft[1024];
   sprintf(outfile_fft,"%s/fft",outfolder);
 
+  //open oputput file for concurent access from different ranks
   MPI_File fout;
   int rc=MPI_File_open(cart_comm,outfile_fft,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&fout);
   if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_fft);
   
-  int glb_ip[4],ip=0;
-  int interv[2][2][2]={{{0,3},{0,2}},{{4,7},{2,3}}};
+  //loop over momenta subsets
+  int ip=0;
   for(int iinterv=0;iinterv<2;iinterv++)
     {
+      //loop over momenta in each se
+      int glb_ip[4];
       for(glb_ip[0]=interv[iinterv][0][0];glb_ip[0]<=interv[iinterv][0][1];glb_ip[0]++)
 	for(glb_ip[1]=interv[iinterv][1][0];glb_ip[1]<=interv[iinterv][1][1];glb_ip[1]++)
 	  for(glb_ip[2]=interv[iinterv][1][0];glb_ip[2]<=interv[iinterv][1][1];glb_ip[2]++)
@@ -392,18 +406,22 @@ void print_momentum_subset()
 		//identify the rank hosting this element
 		int hosting=rank_hosting_site_of_coord(glb_ip);
 		
-		//if the hosting is the current rank bufferize the data
+		//if the hosting is the current rank write the data at the correct location
 		if(hosting==cart_rank)
 		  {
+		    //find local index
 		    int loc_ip[4];
 		    for(int mu=0;mu<4;mu++) loc_ip[mu]=glb_ip[mu]%loc_size[mu];
 		    int ilp=loclx_of_coord(loc_ip);
 		    
+		    //write all the mass and r
 		    for(int r=0;r<2;r++)
 		      for(int imass=0;imass<nmass;imass++)
 			{
+			  //find the position in the file where to write data
 			  int offset=((imass+r*nmass)*140+ip)*sizeof(su3spinspin);
 			  
+			  //reorder data so to agree with APE standard
 			  colorspincolorspin buf;
 			  for(int ic_so=0;ic_so<3;ic_so++)
 			    for(int id_so=0;id_so<4;id_so++)
