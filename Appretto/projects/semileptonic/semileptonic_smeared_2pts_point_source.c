@@ -344,7 +344,7 @@ int main(int narg,char **arg)
 	  
 	  char check_path[1024];
 	  sprintf(check_path,"%s_%d%d",outfile_2pts,0,0);
-	  ex=file_exist(check_path);
+	  ex=file_exists(check_path);
 	  if(ex) master_printf("%s already analized, skiping.\n",conf_path);
 	  else
 	  {

@@ -60,12 +60,12 @@ void data_coordinate_order_shift(complex *data,int ncpp,int mu0)
   appretto_free(pos);
 }
 
-//perform the 1d transform (mu is used to choose the communicator and n)
-//The fft consist of four step.
-// in the first, data of is rearranged across the processors
-// in the second, ft is done (if needed) on the odd length blocks
-// in the third lanczos lemma is implemented on the local data
-// in the fourth it is applied on non-local data (if needed)
+// Perform the 1d transform (mu is used to choose the communicator and n)
+// The fft consist of four step:
+//  1) data of is rearranged across the processors
+//  2) ft is done on the odd length blocks (not needed if data length is a power of 2)
+//  3) Lanczos lemma is implemented on the local data
+//  4) Lanczos lemma is applied on non-local data (if needed)
 void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
 {
   int log2glb_nblk=find_max_pow2(glb_size[mu]); //number of powers of 2 contained in n

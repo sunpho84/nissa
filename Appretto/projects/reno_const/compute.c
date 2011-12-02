@@ -1,7 +1,7 @@
 #include "appretto.h"
 
 //gauge info
-int ngauge_conf;
+int ngauge_conf,nanalized_conf;
 char conf_path[1024];
 quad_su3 *conf,*unfix_conf;
 double kappa;
@@ -34,6 +34,7 @@ char outfolder[1024];
 
 //timings
 int ninv_tot=0,ncontr_tot=0;
+int wall_time;
 double tot_time=0,inv_time=0,contr_time=0,fix_time=0;
 double fft_time=0,save_time=0,load_time=0;
 
@@ -157,6 +158,8 @@ void initialize_semileptonic(char *input_path)
   read_str_int("T",&(glb_size[0]));
   //Init the MPI grid 
   init_grid(); 
+  //Wall_time
+  read_str_int("WallTime",&wall_time);
   //Kappa
   read_str_double("Kappa",&kappa);
   
@@ -286,12 +289,12 @@ void close_semileptonic()
   if(rank==0)
     {
       printf("\n");
-      printf("Total time: %g, of which:\n",tot_time);
-      printf(" - %02.2f%s to load %d conf. (%2.2gs avg)\n",load_time/tot_time*100,"%",ngauge_conf,load_time/ngauge_conf);
-      printf(" - %02.2f%s to fix %d conf. (%2.2gs avg)\n",fix_time/tot_time*100,"%",ngauge_conf,fix_time/ngauge_conf);
+      printf("Total time: %lg sec (%lg average per conf), of which:\n",tot_time,tot_time/nanalized_conf);
+      printf(" - %02.2f%s to load %d conf. (%2.2gs avg)\n",load_time/tot_time*100,"%",nanalized_conf,load_time/nanalized_conf);
+      printf(" - %02.2f%s to fix %d conf. (%2.2gs avg)\n",fix_time/tot_time*100,"%",nanalized_conf,fix_time/nanalized_conf);
       printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
       printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
-      printf(" - %02.2f%s to save %d su3spinspins. (%2.2gs avg)\n",save_time/tot_time*100,"%",2*nmass*ngauge_conf,save_time/(2*nmass*ngauge_conf));
+      printf(" - %02.2f%s to save %d su3spinspins. (%2.2gs avg)\n",save_time/tot_time*100,"%",2*nmass*nanalized_conf,save_time/(2*nmass*nanalized_conf));
     }
   
   close_appretto();
@@ -444,20 +447,52 @@ void calculate_all_2pts()
   contr_time+=take_time();
 }
 
-void read_conf_parameters()
+void read_conf_parameters(int *iconf)
 {
-  //Gauge path
-  read_str(conf_path,1024);
-  
-  //Source position
-  read_int(&(source_coord[0]));
-  read_int(&(source_coord[1]));
-  read_int(&(source_coord[2]));
-  read_int(&(source_coord[3]));
-  
-  //Folder
-  read_str(outfolder,1024);
-  if(rank==0) mkdir(outfolder,S_IRWXU);
+    int ok_conf;
+
+    do
+    {
+	//Gauge path
+	read_str(conf_path,1024);
+	
+	//Source position
+	read_int(&(source_coord[0]));
+	read_int(&(source_coord[1]));
+	read_int(&(source_coord[2]));
+	read_int(&(source_coord[3]));
+	
+	//Folder
+	read_str(outfolder,1024);
+	master_printf("Considering configuration %s\n",conf_path);
+	ok_conf=!(dir_exists(outfolder));
+	if(ok_conf)
+	{
+	    if(rank==0) mkdir(outfolder,S_IRWXU);
+	    master_printf("Configuration not already analized, starting.\n");
+	}
+	else
+	    master_printf("Configuration already analized, skipping.\n");
+    }
+    while(!ok_conf);
+}
+
+int check_remaining_time()
+{
+    int enough_time;
+    
+    //check remaining time
+    double temp_time=take_time()+tot_time;
+    double ave_time=temp_time/nanalized_conf;
+    double left_time=wall_time-temp_time;
+    enough_time=left_time>(ave_time*1.1);
+    
+    master_printf("Remaining time: %lg sec\n",left_time);
+    master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+    if(enough_time) master_printf("Continuing!\n");
+    else master_printf("Not enough time, exiting!\n");
+
+    return enough_time;
 }
 
 int main(int narg,char **arg)
@@ -470,9 +505,10 @@ int main(int narg,char **arg)
   tot_time-=take_time();
   initialize_semileptonic(arg[1]);
   
-  for(int iconf=0;iconf<ngauge_conf;iconf++)
+  int iconf=0,enough_time;
+  do
   {
-    read_conf_parameters();
+    read_conf_parameters(&iconf);
     
     load_gauge_conf();
     generate_source();
@@ -480,11 +516,16 @@ int main(int narg,char **arg)
     calculate_S0();
     calculate_all_2pts();
     
-    Xspace();
+    //Xspace();
     
     compute_fft(-1);
     print_momentum_subset();
+    
+    nanalized_conf++;
+    
+    enough_time=check_remaining_time();
   }
+  while(iconf<ngauge_conf && enough_time);
   
   tot_time+=take_time();
   close_semileptonic();
