@@ -260,7 +260,7 @@ int find_next_conf()
       char check_path[1024];
       sprintf(check_path,"%s_%02d_%02d",basepath_bag,so_jnit[0],so_jnit[0]);
       master_printf("\nChecking \"%s\".\n",conf_path);
-      if(file_exist(check_path))
+      if(file_exists(check_path))
 	{
 	  conf_found=0;
 	  master_printf("\nConfiguration \"%s\" already analized.\n",conf_path);

@@ -2,7 +2,7 @@
 
 FILE *input_global;
 
-int file_exist(const char *path)
+int file_exists(const char *path)
 {
   int status=1;
   
@@ -24,6 +24,30 @@ int file_exist(const char *path)
   
   MPI_Bcast(&status,1,MPI_INT,0,MPI_COMM_WORLD);
   return status;
+}
+
+//return 0 if the dir do not exists, 1 if exists, -1 if exist but is not a directory
+int dir_exists(char *path)
+{
+    struct stat st;
+    int exists;
+    int isdir;
+    
+    if(rank==0)
+    {
+	exists=(stat(path,&st)==0);
+	isdir=(st.st_mode&S_IFDIR);
+	
+	if(exists)
+	    if(isdir) master_printf("Directory %s is present\n",path);
+	    else master_printf("File %s is present but is not a directory\n",path);
+	else master_printf("Directory %s is not present\n",path);
+	}
+    
+    MPI_Bcast(&exists,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&isdir,1,MPI_INT,0,MPI_COMM_WORLD);
+    
+    return exists*(2*isdir-1);
 }
 
 void open_input(char *input_path)
