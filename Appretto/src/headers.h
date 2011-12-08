@@ -169,6 +169,7 @@ void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype
 void initialize_main_appretto_vect();
 void internal_crash(int line,const char *file,const char *template,...);
 void internal_decript_MPI_error(int line,const char *file,int rc,const char *template,...);
+void ints_to_ints_changing_endianess(int *dest,int *sour,int ndoubles);
 void inv_Q2_cg(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue);
 void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL);
 void inv_Q2_cg_left(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue);
@@ -226,6 +227,7 @@ void rnd_get_gauss(complex out,rnd_gen *gen);
 void rotate_spinspin_to_physical_basis(spinspin s,int rsi,int rso);
 void rotate_vol_colorspinspin_to_physical_basis(colorspinspin *s,int rsi,int rso);
 void rotate_vol_su3spinspin_to_physical_basis(su3spinspin *s,int rsi,int rso);
+void safe_color_prod_complex(color out,color in,complex factor);
 void safe_complex_conj1_prod(complex a,complex b,complex c);
 void safe_complex_conj1_prod_minus(complex a,complex b,complex c);
 void safe_complex_conj2_prod(complex a,complex b,complex c);
@@ -324,6 +326,7 @@ void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,as2t_su3 *
 void unsafe_apply_chromo_operator_to_spincolor(spincolor *out,as2t_su3 *Pmunu,spincolor *in);
 void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmunu,su3spinspin *in);
 void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in);
+void unsafe_color_prod_complex(color out,color in,complex factor);
 void unsafe_color_prod_su3(color a,color b,su3 c);
 void unsafe_color_prod_su3_dag(color a,color b,su3 c);
 void unsafe_complex_conj1_prod(complex a,complex b,complex c);

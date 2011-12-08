@@ -169,19 +169,19 @@ void finalize_reading_real_vector(double *out,appretto_reader *reader,int nreals
   int nbytes_per_site_read=reader->nbytes_per_site;
   
   //read the checksum
-  checksum read_check;
+  checksum read_check={0,0};
   appretto_reader_finalize_reading(read_check,reader);
   if(read_check[0]!=0||read_check[1]!=0)
     {
       master_printf("Checksums read:      %#010x %#010x\n",read_check[0],read_check[1]);
 
       //compute checksum
-      checksum comp_check;
+      checksum comp_check={0,0};
       checksum_compute_ildg_data(comp_check,out,nbytes_per_site_read);
       
       //print the comparison between checksums
       master_printf("Checksums computed:  %#010x %#010x\n",comp_check[0],comp_check[1]);
-      if(read_check[0]!=comp_check[0]||read_check[1]!=comp_check[1]) master_printf("Warning, checksums do not agree!\n");
+      if((read_check[0]!=comp_check[0])||(read_check[1]!=comp_check[1])) master_printf("Warning, checksums do not agree!\n");
     }
   else master_printf("Data checksum not found.\n");
     

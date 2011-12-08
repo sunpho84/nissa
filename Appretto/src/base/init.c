@@ -220,8 +220,9 @@ void init_grid()
   master_printf("Global lattice:\t%dx%dx%dx%d = %d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3],glb_vol);
   
   //find the grid minimizing the surface
-  find_minimal_surface_grid(nproc_dir,glb_size,rank_tot);
-  
+  //find_minimal_surface_grid(nproc_dir,glb_size,rank_tot);
+  nproc_dir[1]=nproc_dir[2]=nproc_dir[3]=0;
+  nproc_dir[0]=1;
   //check that lattice is commensurable with the grid
   //and check wether the idir dir is parallelized or not
   int ok=(glb_vol%rank_tot==0);
@@ -232,7 +233,7 @@ void init_grid()
       paral_dir[idir]=(nproc_dir[idir]>1);
     }
 
-  if(!ok) crash("The lattice is incommensurable with the total processor amount!");
+  //if(!ok) crash("The lattice is incommensurable with the total processor amount!");
   master_printf("Creating grid:\t%dx%dx%dx%d\n",nproc_dir[0],nproc_dir[1],nproc_dir[2],nproc_dir[3]);
   
   MPI_Get_processor_name(proc_name,&proc_name_length);

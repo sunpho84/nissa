@@ -1,3 +1,11 @@
+#include "appretto.h"
+
+void color_print(color i)
+{
+  for(int j=0;j<3;j++)
+    printf("%d: %lg %lg\n",j,i[j][0],i[j][1]);
+}
+
 /*
 void su3_maximal_trace_project_iteration(su3 o,su3 i)
 {
@@ -31,7 +39,6 @@ void su3_maximal_trace_project_iteration(su3 o,su3 i)
   o[2][1][0]=-d[0];o[2][1][1]=d[1];
   unsafe_complex_conj_conj_prod(o[2][2],c,e);
   
-  /*
   su3_print(o);
   su3 io;
   safe_su3_hermitian(io,o);
@@ -40,7 +47,7 @@ void su3_maximal_trace_project_iteration(su3 o,su3 i)
   
   su3_print(id);
   crash("");
-  */
+  
   //Exponentiate. Commented lines are original from APE (more or less)
   up0=(a00+a11~)
   up1=(a01-a10~)
@@ -81,10 +88,10 @@ void su3_maximal_trace_project_iteration(su3 o,su3 i)
 }
 */
 
-void diagonalize_su3(su3 U)
+void diagonalize_su3(color eival,su3 eivec,su3 U)
 {
-  su3_print(U);
   double ts3=3*sqrt(3);
+  complex f={-0.5,-0.5*sqrt(3)};
   
   //find eigenvalues
   complex d={U[0][0][0]+U[1][1][0]+U[2][2][0],U[0][0][1]+U[1][1][1]+U[2][2][1]};
@@ -103,7 +110,118 @@ void diagonalize_su3(su3 U)
   
   //this is the first solution.
   //to get other three combine d b a differently
-  complex sol1={(d[0]+b[0]-a[0])/3,(d[1]+b[1]-a[1])/3};
-  printf("%lg %lg\n",sol1[0],sol1[1]);
+  eival[0][0]=(d[0]+b[0]-a[0])/3;
+  eival[0][1]=(d[1]+b[1]-a[1])/3;
+  
+  safe_complex_prod(a,a,f);
+  safe_complex_conj2_prod(b,b,f);
+  eival[1][0]=(d[0]+b[0]-a[0])/3;
+  eival[1][1]=(d[1]+b[1]-a[1])/3;
+  
+  safe_complex_prod(a,a,f);
+  safe_complex_conj2_prod(b,b,f);
+  eival[2][0]=(d[0]+b[0]-a[0])/3;
+  eival[2][1]=(d[1]+b[1]-a[1])/3;
+  
+  //check
+  /*
+  for(int i=0;i<3;i++)
+    {
+      complex res={1,0};
+      complex_subt_the_conj1_prod(res,d,eival[i]);
+      complex temp;
+      unsafe_complex_prod(temp,eival[i],eival[i]);
+      complex_summ_the_prod(res,d,temp);
+      complex_subt_the_prod(res,temp,eival[i]);
+      printf("Res: %lg %lg\n",res[0],res[1]);
+    }
+  */
+  if(eivec!=NULL)
+    for(int i=0;i<3;i++)
+      {
+	eivec[i][i][0]=-1;
+	eivec[i][i][1]= 0;
+	
+	int j=(i+1)%3;
+	int k=(j+1)%3;
+	
+	complex Ujj,Ukk;
+	complex_subt(Ujj,U[j][j],eival[i]);
+	complex_subt(Ukk,U[k][k],eival[i]);
+	
+	//compute the three determinants
+	complex D;
+	unsafe_complex_prod(  D,Ujj,Ukk);
+	complex_subt_the_prod(D,U[j][k],U[k][j]);
+	complex Dj;
+	unsafe_complex_prod(  Dj,U[j][i],Ukk);
+	complex_subt_the_prod(Dj,U[j][k],U[k][i]);
+	complex Dk;
+	unsafe_complex_prod(  Dk,Ujj,U[k][i]);
+	complex_subt_the_prod(Dk,U[j][i],U[k][j]);
+	
+	//find the roots
+	complex_reciprocal( eivec[i][k],D);
+	unsafe_complex_prod(eivec[i][j],eivec[i][k],Dj);
+	safe_complex_prod(  eivec[i][k],eivec[i][k],Dk);
+	
+	//normalize the eigenvector to 1
+	double inv_norm=1/sqrt(1+eivec[i][j][0]*eivec[i][j][0]+eivec[i][j][1]*eivec[i][j][1]
+			       + eivec[i][k][0]*eivec[i][k][0]+eivec[i][k][1]*eivec[i][k][1]);
+	complex_prod_real(eivec[i][0],eivec[i][0],inv_norm);
+	complex_prod_real(eivec[i][1],eivec[i][1],inv_norm);
+	complex_prod_real(eivec[i][2],eivec[i][2],inv_norm);
+	
+	//check that this is truly the eigenvector
+	/*
+	color test1,test2,diff;
+	unsafe_su3_prod_color(test1,U,eivec[i]);
+	unsafe_color_prod_complex(test2,eivec[i],eival[i]);
+	color_subt(diff,test1,test2);
+	printf("Testing %d, eig: %lg %lg\n",i,eival[i][0],eival[i][1]);
+	//color_print(eivec[i]);
+	color_print(diff);
+	*/
+      }
 }
 
+void reconstruct_su3(su3 U,color eival,su3 eivec)
+{
+  su3 temp;
+  for(int i=0;i<3;i++)
+    unsafe_color_prod_complex(temp[i],eivec[i],eival[i]);
+  su3_dag_prod_su3(U,eivec,temp);
+}
+
+int main(int narg,char **arg)
+{
+  init_appretto();
+  
+  //set the lattice grid
+  glb_size[0]=8;
+  glb_size[1]=4;
+  
+  //init the grid
+  init_grid();
+
+  quad_su3 *conf=appretto_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  
+  //read conf, compute plaquette, print it
+  read_gauge_conf(conf,"../../data/L4T8conf");
+  
+  color eival;
+  su3 eivec;
+  diagonalize_su3(eival,eivec,conf[0][0]);
+  
+  su3 U;
+  reconstruct_su3(U,eival,eivec);
+  //su3_subt(U,U,conf[0][0]);
+  su3_print(U);
+  su3_print(conf[0][0]);
+  
+  appretto_free(conf);
+  
+  close_appretto();
+  
+  return 0;
+}
