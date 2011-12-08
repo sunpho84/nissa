@@ -51,19 +51,19 @@ void chi2(int &npar,double *fuf,double &ch,double *p,int flag)
 
 int main()
 {
-  init_latpars();
-  
   read_pars("input");
   read_ensemble_pars(base_path,T,ibeta,nmass,mass,iml_un,nlights,data_list_file);
   TH=L=T/2;
   
-  int ncombo=nmass*(nmass+1)/2;
+  init_latpars();
+  
+  int ncombo=nmass*nmass;
   
   //load all the corrs
-  double *buf=new double[ncombo*T*(njack+1)];
+  double *buf=new double[4*ncombo*T*(njack+1)];
   FILE *fin=open_file(combine("%s/%s",base_path,corr_name).c_str(),"r");
-  int stat=fread(buf,sizeof(double),ncombo*(njack+1)*T,fin);
-  if(stat!=ncombo*(njack+1)*T)
+  int stat=fread(buf,sizeof(double),4*ncombo*(njack+1)*T,fin);
+  if(stat!=4*ncombo*(njack+1)*T)
     {
       cerr<<"Error loading data!"<<endl;
       exit(1);
@@ -85,8 +85,14 @@ int main()
     for(int imc=ims;imc<nmass;imc++)
       {
 	//take into account corr
-	jvec corr(T,njack);
-	corr.put(buf+ic*T*(njack+1));
+	jvec corr1(T,njack),corr2(T,njack),corr;
+	int ic1=0+2*(ims+nmass*(0+2*imc));
+	int ic2=1+2*(ims+nmass*(1+2*imc));
+	cout<<ims<<" "<<imc<<" "<<ic1<<" "<<ic2<<endl;
+	corr1.put(buf+ic1*T*(njack+1));
+	corr2.put(buf+ic2*T*(njack+1));
+	corr=(corr1+corr2)/2;
+	cout<<corr1[0]<<" "<<corr2[0]<<endl;
 	
 	//choose the index of the fitting interval
 	if(ims>=nlights) ifit_int=2;
@@ -154,8 +160,8 @@ int main()
 	    }
 	  }
 	
-	  cout<<mass[ims]<<" "<<mass[imc]<<"  "<<M[ic]<<" "<<Z2[ic]<<" "<<sqrt(Z2[ic])/(sinh(M[ic])*M[ic])*(mass[ims]+mass[imc])<<" fV:"<<Za_med[ibeta]*sqrt(Z2[ic])/M[ic]/lat[ibeta].med()<<endl;
-	ic++;
+	  cout<<mass[ims]<<" "<<mass[imc]<<"  "<<M[ic]<<" "<<Z2[ic]<<" f:"<<sqrt(Z2[ic])/(sinh(M[ic])*M[ic])*(mass[ims]+mass[imc])<<" fV:"<<Za_med[ibeta]*sqrt(Z2[ic])/M[ic]/lat[ibeta].med()<<endl;
+	  ic++;
       }
   
   ofstream out("fitted_mass.xmg");

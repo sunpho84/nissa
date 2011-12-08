@@ -23,7 +23,7 @@ int main()
   bvec *aM,*Z;
   load_all_ensembles_MZ(aM,Z,nens,T,ibeta,nlights,nmass,base_MZ_path,obs_name,ens_name,base_corrs_path,mode);
   
-  cout<<"Interpolating for phiDs/phiD STRICTLY!"<<endl;
+  cout<<"Interpolating for phi!"<<endl;
   
   //compute phi
   bvec phi[nens];
@@ -31,13 +31,7 @@ int main()
     {
       int b=ibeta[iens];
       
-      phi[iens]=sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b]*sqrt(aM[iens]/lat[b]);
-      for(int ims=0;ims<nmass[iens];ims++)
-	for(int imc=ims;imc<nmass[iens];imc++)
-	  {
-	    int ic=icombo(imc,ims,nmass[iens],nlights[iens],mode);
-	    phi[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
-	  }
+      phi[iens]=Za[b]*sqrt(Z[iens])/aM[iens]/lat[b]*sqrt(aM[iens]/lat[b]);
     }
 
   for(int iens=0;iens<nens;iens++)
@@ -55,7 +49,7 @@ int main()
       cout<<mass[iens][iml_un[iens]]<<" "<<phint.data[iens]<<endl;
     }
   
-  phint.write_to_binfile("interpolated_phi_ratio_DsD");
+  phint.write_to_binfile("interpolated_phi_ratio_DsVDV");
   
   return 0;
 }

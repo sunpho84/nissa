@@ -6,11 +6,16 @@ using namespace std;
 
 int nmass,nm_low;
 int nsm_lev,njack;
-int tmin_list[3][2];
+int tmin_list[3][2],tminS,tminL;
 double *mass;
 jvec **c;
 int T,TH;
 char base_path[1024];
+
+jack f(jack Z,jack M,double m1,double m2)
+{
+  return Z/(M*sinh(M))*(m1+m2);
+}
 
 double fun_fit(double Z1,double Z2,double M,int t)
 {
@@ -45,11 +50,12 @@ void ch2(int &npar,double *fuf,double &ch,double *p,int flag)
   
   for(int t=0;t<=TH;t++)
     {
-      if(t>=16) ch+=sqr((c[0][0][t].data[ijack_fit]-fun_fit(ZL0,ZL0,M0,t))/c[0][0][t].err());
+      if(t>=tminL) ch+=sqr((c[0][0][t].data[ijack_fit]-fun_fit(ZL0,ZL0,M0,t))/c[0][0][t].err());
       
-      for(int sm_lev_so=0;sm_lev_so<nsm_lev;sm_lev_so++)
-	for(int sm_lev_si=0;sm_lev_si<nsm_lev;sm_lev_si++)
-	  if(t>=6) ch+=sqr((c[sm_lev_so][sm_lev_si][t].data[ijack_fit]-fun_fit(Z[sm_lev_so],Z[sm_lev_si],M,t))/c[sm_lev_so][sm_lev_si][t].err());
+      int temp_nsm_lev=nsm_lev;
+      for(int sm_lev_so=0;sm_lev_so<temp_nsm_lev;sm_lev_so++)
+	for(int sm_lev_si=0;sm_lev_si<temp_nsm_lev;sm_lev_si++)
+	  if(t>=tminS) ch+=sqr((c[sm_lev_so][sm_lev_si][t].data[ijack_fit]-fun_fit(Z[sm_lev_so],Z[sm_lev_si],M,t))/c[sm_lev_so][sm_lev_si][t].err());
     }
 }
 
@@ -58,6 +64,7 @@ void read_pars(const char *input)
   FILE *fin=open_file(input,"r");
   
   read_formatted_from_file_expecting(base_path,fin,"%s","base_path");
+  printf("Base_Path: %s\n",base_path);
   read_formatted_from_file_expecting((char*)&nmass,fin,"%d","nmass");
   mass=(double*)malloc(sizeof(double)*nmass);
   for(int imass=0;imass<nmass;imass++) read_formatted_from_file((char*)(&mass[imass]),fin,"%lg","mass");
@@ -112,7 +119,9 @@ int main()
 	    {
 	      int smear_type=(sm_lev_so or sm_lev_si);
 	      int tmin=tmin_list[combo_type][smear_type];
-	      if(sm_lev_so>1||sm_lev_si>1) tmin=13;
+	      
+	      tminL=tmin_list[combo_type][0];
+	      tminS=tmin_list[combo_type][1];
 	      
 	      //load the current combo
 	      c[sm_lev_so][sm_lev_si]=load_corr(sm_lev_so,sm_lev_si,im1,im2);
@@ -198,6 +207,13 @@ int main()
 	cout<<Z[ic]<<endl;
 	cout<<M[ic]<<endl;
 	
+	jack f0=f(Z0[ic],M0[ic],mass[im1],mass[im2]);
+	jack fS=f(Z[ic],M[ic],mass[im1],mass[im2]);
+	jack zero=
+	  //0.5*(Z[ic]-Z0[ic])/(Z0[ic]+Z[ic]);
+	  0.5*(f0-fS)/(f0+fS);
+	double n=zero.med()/zero.err();
+	cout<<f0<<" "<<fS<<" "<<0.5*(f0-fS)/(f0+fS)<<" "<<n<<endl;
 	ic++;
       }
   

@@ -117,6 +117,7 @@ VTYPE VTYPE::load(FILE *fin,int i)
       fprintf(stderr,"Error while searching for correlation %d!\n",i);
       exit(1);
     }
+  
   int stat=fread(in,sizeof(double),nel*(N+1),fin);
   if(stat!=nel*(N+1))
     {
@@ -127,7 +128,7 @@ VTYPE VTYPE::load(FILE *fin,int i)
 	}
       else
         {
-	  perror("Error while reading data!");
+	  perror("Error while reading data ");
 	  exit(1);
 	}
     }

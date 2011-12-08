@@ -10,10 +10,12 @@ const double hc=0.19733;
 //results taken by arxiv:1004.1115
 double Za_med[4]={0.746,0.746,0.772,0.780};
 double Za_err[4]={0.011,0.006,0.006,0.006};
+double Zv_med[4]={0.5816,0.6103,0.6451};
+double Zv_err[4]={0.0002,0.0003,0.0003};
 
 bool latpars_initted=false;
 
-boot lat[4],Zp[4],Za[4];
+boot lat[4],Zp[4],Za[4],Zv[4];
 boot ml_phys,ms_phys,mc_phys;
 boot aml_phys[4],ams_phys[4],amc_phys[4];
 boot f0,db0;
@@ -47,18 +49,60 @@ void read_ensemble_pars(char *base_path,int &T,int &ibeta,int &nmass,double *&ma
   fclose(input);
 }
 
-int icombo(int im1,int im2,int nmass)
+int icombo(int im1,int im2,int nmass,int nlights,int mode)
 {
-  int imc=max(im1,im2);
-  int ims=min(im1,im2);
+  int imc,ims,ic;
   
-  if((im1<0||im1>=nmass)||(im2<0||im2>=nmass))
+  switch(mode)
     {
-      cerr<<"Error, im1="<<im1<<", im2="<<im2<<" has to be in the interval: [0,"<<nmass-1<<"]"<<endl;
-      exit(1);
-    }
+    case 0:
+      imc=max(im1,im2);
+      ims=min(im1,im2);
   
-  return ims*nmass-(ims*(ims-1))/2+(imc-ims);
+      if((im1<0||im1>=nmass)||(im2<0||im2>=nmass))
+	{
+	  cerr<<"Error, im1="<<im1<<", im2="<<im2<<" has to be in the interval: [0,"<<nmass-1<<"]"<<endl;
+	  exit(1);
+	}
+  
+      ic=ims*nmass-(ims*(ims-1))/2+(imc-ims);
+      break;
+    case 1:
+      if(im1>=nlights)
+	{
+	  cerr<<"Error, requiring uncompute combo: im1="<<im1<<" > nlights="<<nlights<<"!"<<endl;
+	  exit(1);
+	}
+      
+      ic=im1*nmass+im2;
+      break;
+    case 2:
+      ic=0;
+      if(im2<im1)
+	{
+	  int imt=im1;
+	  im1=im2;
+	  im2=imt;
+	}
+      if(im1>=nlights||im2<im1)
+	{
+	  fprintf(stderr,"Error, im1=%d im2=%d nli=%d combo mode 2 not possible\n",im1,im2,nlights);
+	  exit(1);
+	}
+      for(int ims=0;ims<im1;ims++)
+	for(int imc=ims;imc<nmass;imc++)
+	  ic++;
+	for(int imc=im1;imc<im2;imc++)
+	  ic++;
+      printf("%d %d %d\n",im1,im2,ic);
+      break;
+    default:
+      cerr<<"Error, unkwnown mode"<<endl;
+      ic=0;
+      exit(1);
+      break;
+    }
+  return ic;
 }
 
 boot get_latpar(FILE *fin)
@@ -79,7 +123,7 @@ void init_latpars()
 {
   if(latpars_initted==true) return;
   
-  FILE *input_latpars=fopen("/home/francesco/QCD/LAVORI/NF2/DATA/latpars_E","r");
+  FILE *input_latpars=fopen("/Users/francesco/QCD/LAVORI/NF2/latpars_E","r");
   
   for(int ib=0;ib<4;ib++) lat[ib]=get_latpar(input_latpars);
   for(int ib=0;ib<4;ib++) Zp[ib]=get_latpar(input_latpars);
@@ -101,7 +145,9 @@ void init_latpars()
   for(int ib=0;ib<4;ib++)
     {
       Za[ib]=boot(nboot,njack);
+      Zv[ib]=boot(nboot,njack);
       Za[ib].fill_gauss(Za_med[ib],Za_err[ib],2873246+ib);
+      Zv[ib].fill_gauss(Zv_med[ib],Zv_err[ib],4334943+ib);
     }      
 }
 

@@ -112,7 +112,7 @@ void linear_fit(jack &m,jack &q,jvec corr,int tmin,int tmax)
   tmax=min(tmax+1,corr.nel);
   int njack=corr.njack;
   jack Y(njack),XY(njack),Y2(njack);
-  double X=0,W=0,X2;
+  double X=0,W=0,X2=0;
 
   Y=XY=0;
   for(int t=tmin;t<tmax;t++)

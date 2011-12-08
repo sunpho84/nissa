@@ -130,7 +130,7 @@ void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
   
   minu.SetFCN(chi2_wr);
   
-  double C2;
+  double C2=0;
   for(int iboot=0;iboot<nboot+1;iboot++)
     {
       if(iboot>0)

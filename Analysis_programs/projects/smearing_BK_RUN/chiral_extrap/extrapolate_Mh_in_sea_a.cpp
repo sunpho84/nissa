@@ -1,4 +1,4 @@
-#include "../common.cpp"
+#include "../../nf2/common.cpp"
 
 const int nbeta=4;
 char **base_corrs_path,**ens_name;
@@ -6,12 +6,12 @@ int nens,*T,*ibeta,*iml_un,*nlights,*nmass;
 double **mass;
 
 //read data
-bvec MD_s;
+bvec Mh;
 
 bvec ml;
 int ref_ml_beta[4]={-1,-1,-1,-1};
 
-bvec par_res_fit_MD_s;
+bvec par_res_fit_Mh;
 
 const char set_color[nbeta][1024]={"black","blue","red","green4"};
 const char set_fill_color[nbeta][1024]={"grey","turquoise","yellow","green"};
@@ -21,8 +21,11 @@ const char set_legend_fm[nbeta][1024]={"a = 0.098 fm","a = 0.085 fm","a = 0.067 
 
 int plot_iboot;
 
-double fun_fit_MD_s(double A,double B,double C,double ml,double a)
-{return A + B*ml + C*a*a;}
+double fun_fit_Mh(double A,double B,double C,double ml,double a)
+{
+  double a1=a/(0.0847/0.197);
+  return A*(1 + B*ml + C*a1*a1);
+}
 
 void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const char *ylab,bvec &X,bvec &Y,bvec &par,double X_phys,double (*fun)(double,double,double,double,double),boot &chiral_extrap_cont)
 {
@@ -97,8 +100,8 @@ double chi2(double A,double B,double C,double *a)
 
   for(int iens=0;iens<nens;iens++)
     {
-      double ch2_MD_s_term=pow((Y_fit[iens]-fun_fit_MD_s(A,B,C,X_fit[iens],a[ibeta[iens]]))/err_Y_fit[iens],2);
-      ch2+=ch2_MD_s_term;//+ch2_M2K_term;
+      double ch2_Mh_term=pow((Y_fit[iens]-fun_fit_Mh(A,B,C,X_fit[iens],a[ibeta[iens]]))/err_Y_fit[iens],2);
+      ch2+=ch2_Mh_term;//+ch2_M2K_term;
     }
   
   
@@ -130,7 +133,7 @@ void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
   
   minu.SetFCN(chi2_wr);
   
-  double C2=0;
+  double C2;
   for(int iboot=0;iboot<nboot+1;iboot++)
     {
       if(iboot>0)
@@ -165,7 +168,7 @@ void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
     }
   
   //calculate the chi2
-  cout<<"A = ("<<A<<"), B=("<<B<<"), C=("<<C<<")"<<endl;
+  cout<<"A=("<<A<<"), B=("<<B<<"), C=("<<C<<")"<<endl;
   cout<<"Chi2 = "<<C2<<" / "<<nens-3<<" = "<<C2/(nens-3)<<endl;
   
   delete[] X_fit;
@@ -243,53 +246,60 @@ int main(int narg,char **arg)
       cout<<iens<<" "<<b<<" "<<iml_un[iens]<<" "<<mass[iens][iml_un[iens]]<<endl;
       ml[iens]=mass[iens][iml_un[iens]]/lat[b]/Zp[b];
       //set the lighter mass
-      if(r==-1||ml[r].med()>ml[iens].med()) ref_ml_beta[b]=iens;
+      if(r==-1||fabs(ml[r].med()-0.050)>fabs(ml[iens].med()-0.050)) ref_ml_beta[b]=iens;
     }
   cout<<"---"<<endl;
   for(int ib=0;ib<nbeta;ib++) if(ref_ml_beta[ib]!=-1) cout<<"Ref "<<ib<<" = "<<ref_ml_beta[ib]<<", "<<ml[ref_ml_beta[ib]]<<" MeV"<<endl;
   cout<<"---"<<endl;
 
   //load data
-  MD_s=bvec(nens,nboot,njack);
-  MD_s.load(meson_mass_file,0);  
-
-  //perform the fit
-  boot A(nboot,njack),B(nboot,njack),C(nboot,njack);
-  fit(A,B,C,ml,MD_s);
-  cout<<endl;
-  
-  //chiral extrapolation
-  boot MD_s_chir[nbeta],MD_s_chir_cont(nboot,njack);
-  bvec MD_s_estr_ml(nbeta,nboot,njack);
-  for(int ib=0;ib<nbeta;ib++)
+  int nm=11;
+  Mh=bvec(nens,nboot,njack);
+  bvec Mh_chir_cont(nm,nboot,njack);
+  for(int im=0;im<nm;im++)
     {
-      MD_s_chir[ib]=boot(nboot,njack);
-      for(int iboot=0;iboot <nboot+1;iboot++)
+      Mh.load(meson_mass_file,im);
+      
+      //perform the fit
+      boot A(nboot,njack),B(nboot,njack),C(nboot,njack);
+      fit(A,B,C,ml,Mh);
+      cout<<endl;
+      
+      //chiral extrapolation
+      boot Mh_chir[nbeta];
+      bvec Mh_estr_ml(nbeta,nboot,njack);
+      for(int ib=0;ib<nbeta;ib++)
 	{
-	  int r=ref_ml_beta[ib];
-	  MD_s_chir_cont.data[iboot]=fun_fit_MD_s(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0);
-	  MD_s_chir[ib].data[iboot]=fun_fit_MD_s(A[iboot],B[iboot],C[iboot],ml_phys[iboot],lat[ib][iboot]);
-	  
-	  if(r!=-1) MD_s_estr_ml.data[ib].data[iboot]=MD_s[r][iboot]*fun_fit_MD_s(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0)/fun_fit_MD_s(A[iboot],B[iboot],C[iboot],ml[r][iboot],0);
+	  Mh_chir[ib]=boot(nboot,njack);
+	  for(int iboot=0;iboot <nboot+1;iboot++)
+	    {
+	      int r=ref_ml_beta[ib];
+	      Mh_chir_cont[im].data[iboot]=fun_fit_Mh(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0);
+	      Mh_chir[ib].data[iboot]=fun_fit_Mh(A[iboot],B[iboot],C[iboot],ml_phys[iboot],lat[ib][iboot]);
+	      
+	      if(r!=-1) Mh_estr_ml.data[ib].data[iboot]=Mh[r][iboot]*fun_fit_Mh(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0)/fun_fit_Mh(A[iboot],B[iboot],C[iboot],ml[r][iboot],0);
+	    }
 	}
+      
+      //chiral and continuum
+      cout<<"Mh = ("<<Mh_chir_cont[im]*1000<<") MeV"<<endl;
+      
+      par_res_fit_Mh=bvec(3,nboot,njack);
+      
+      par_res_fit_Mh.data[0]=A;
+      par_res_fit_Mh.data[1]=B;
+      par_res_fit_Mh.data[2]=C;
+      
+      const char tag_ml[1024]="m\\sl\\N\\SMS,2GeV\\N (GeV)";
+      const char tag_a2[1024]="a\\S2\\N (fm)";
+      double lat_med_fm[4]={lat[0].med()*hc,lat[1].med()*hc,lat[2].med()*hc,lat[3].med()*hc};
+
+      plot_funz_ml(combine("Mh_funz_ml_%d.xmg",im).c_str(),meson_name,tag_ml,meson_name,ml,Mh,par_res_fit_Mh,ml_phys.med(),fun_fit_Mh,Mh_chir_cont[im]);
+      plot_funz_a2(combine("Mh_funz_a2_%d.xmg",im).c_str(),meson_name,tag_a2,meson_name,lat_med_fm,Mh_estr_ml,par_res_fit_Mh,fun_fit_Mh,Mh_chir_cont[im]);
     }
-  
-  //chiral and continuum
-  cout<<"MD_s = ("<<MD_s_chir_cont*1000<<") MeV"<<endl;
-  MD_s_chir_cont.write_to_binfile("MD_s");
-  
-  par_res_fit_MD_s=bvec(3,nboot,njack);
-  
-  par_res_fit_MD_s.data[0]=A;
-  par_res_fit_MD_s.data[1]=B;
-  par_res_fit_MD_s.data[2]=C;
-  
-  const char tag_ml[1024]="m\\sl\\N\\SMS,2GeV\\N (GeV)";
-  const char tag_a2[1024]="a\\S2\\N (fm)";
-  double lat_med_fm[4]={lat[0].med()*hc,lat[1].med()*hc,lat[2].med()*hc,lat[3].med()*hc};
-  
-  plot_funz_ml("MD_s_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,MD_s,par_res_fit_MD_s,ml_phys.med(),fun_fit_MD_s,MD_s_chir_cont);
-  plot_funz_a2("MD_s_funz_a2.xmg",meson_name,tag_a2,meson_name,lat_med_fm,MD_s_estr_ml,par_res_fit_MD_s,fun_fit_MD_s,MD_s_chir_cont);
+
+  for(int im=nlights[2];im<nmass[2];im++) cout<<mass[2][im]/lat[1].med()/Zp[1].med()<<endl;
+  Mh_chir_cont.write_to_binfile("results");
   
   return 0;
 }
