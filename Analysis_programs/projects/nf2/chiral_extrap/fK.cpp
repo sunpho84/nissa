@@ -291,7 +291,7 @@ int main(int narg,char **arg)
   
   const char tag_ml[1024]="m\\sl\\N\\SMS,2GeV\\N (GeV)";
   const char tag_a2[1024]="a\\S2\\N (fm)";
-  double lat_med_fm[4]={lat[0].med()/hc,lat[1].med()/hc,lat[2].med()/hc,lat[3].med()/hc};
+  double lat_med_fm[4]={lat[0].med()*hc,lat[1].med()*hc,lat[2].med()*hc,lat[3].med()*hc};
   plot_funz_ml("fK_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,fK,par_res_fit_fK,ml_phys.med(),fun_fit_fK,fK_chir_cont);
   plot_funz_a2("fK_funz_a2.xmg",meson_name,tag_a2,meson_name,lat_med_fm,fK_estr_ml,par_res_fit_fK,fun_fit_fK,fK_chir_cont);
   

@@ -51,19 +51,17 @@ void chi2(int &npar,double *fuf,double &ch,double *p,int flag)
 
 int main()
 {
-  init_latpars();
-  
   read_pars("input");
   read_ensemble_pars(base_path,T,ibeta,nmass,mass,iml_un,nlights,data_list_file);
   TH=L=T/2;
   
-  int ncombo=nmass*(nmass+1)/2;
+  int ncombo=nmass*nmass;
   
   //load all the corrs
-  double *buf=new double[ncombo*T*(njack+1)];
+  double *buf=new double[4*ncombo*T*(njack+1)];
   FILE *fin=open_file(combine("%s/%s",base_path,corr_name).c_str(),"r");
-  int stat=fread(buf,sizeof(double),ncombo*(njack+1)*T,fin);
-  if(stat!=ncombo*(njack+1)*T)
+  int stat=fread(buf,sizeof(double),4*ncombo*(njack+1)*T,fin);
+  if(stat!=4*ncombo*(njack+1)*T)
     {
       cerr<<"Error loading data!"<<endl;
       exit(1);
@@ -79,15 +77,21 @@ int main()
   corr_fit=new double[TH+1];
   corr_err=new double[TH+1];
   
-  //fit each combo
   int ic=0;
+  //fit each combo
   for(int ims=0;ims<nmass;ims++)
-    for(int imc=ims;imc<nmass;imc++)
+    for(int imc=0;imc<nmass;imc++)
       {
+	int ic1=0+2*(imc+nmass*(0+2*ims));
+	int ic2=1+2*(imc+nmass*(1+2*ims));
+	printf("%d %d\n",ic1,ic2);
 	//take into account corr
 	jvec corr(T,njack);
-	corr.put(buf+ic*T*(njack+1));
-	
+	jvec corr1(T,njack);
+	jvec corr2(T,njack);
+	corr1.put(buf+ic1*T*(njack+1));
+	corr2.put(buf+ic2*T*(njack+1));
+	corr=(corr1+corr2)/2;
 	//choose the index of the fitting interval
 	if(ims>=nlights) ifit_int=2;
 	else
@@ -154,7 +158,7 @@ int main()
 	    }
 	  }
 	
-	  cout<<mass[ims]<<" "<<mass[imc]<<"  "<<M[ic]<<" "<<Z2[ic]<<" "<<sqrt(Z2[ic])/(sinh(M[ic])*M[ic])*(mass[ims]+mass[imc])<<" fV:"<<Za_med[ibeta]*sqrt(Z2[ic])/M[ic]/lat[ibeta].med()<<endl;
+	cout<<mass[ims]<<" "<<mass[imc]<<"  "<<M[ic]<<" "<<Z2[ic]<<" "<<sqrt(Z2[ic])/(sinh(M[ic])*M[ic])*(mass[ims]+mass[imc])<<endl;
 	ic++;
       }
   
@@ -163,7 +167,11 @@ int main()
   for(int ims=0;ims<nmass;ims++)
     {
       //out<<"s0 line type 0"<<endl;
-      for(int imc=0;imc<nmass;imc++) out<<mass[imc]<<" "<<M[icombo(ims,imc,nmass,nlights,0)]<<endl;
+      for(int imc=0;imc<nmass;imc++)
+	{
+	  int ic=imc+nmass*ims;
+	  out<<mass[imc]<<" "<<M[ic]<<endl;
+	}
       out<<"&"<<endl;
     }
 

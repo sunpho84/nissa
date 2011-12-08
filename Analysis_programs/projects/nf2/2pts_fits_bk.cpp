@@ -3,8 +3,8 @@
 char data_list_file[1024];
 char corr_name[1024],out_file[1024];
 
-int tmin[3],tmax[3];
-int nlights,ifit_int,parity;
+int tmin,tmax;
+int nlights,parity;
 double *corr_fit,*corr_err;
 
 int T,TH,L;
@@ -20,14 +20,8 @@ void read_pars(const char *input)
   read_formatted_from_file_expecting(corr_name,fin,"%s","corr_name");
   read_formatted_from_file_expecting((char*)(&parity),fin,"%d","parity");
   
-  read_formatted_from_file_expecting((char*)(&tmin[0]),fin,"%d","tint_ll");
-  read_formatted_from_file((char*)(&tmax[0]),fin,"%d","tint_ll");
-  
-  read_formatted_from_file_expecting((char*)(&tmin[1]),fin,"%d","tint_lh");
-  read_formatted_from_file((char*)(&tmax[1]),fin,"%d","tint_lh");
-  
-  read_formatted_from_file_expecting((char*)(&tmin[2]),fin,"%d","tint_hh");
-  read_formatted_from_file((char*)(&tmax[2]),fin,"%d","tint_hh");
+  read_formatted_from_file_expecting((char*)(&tmin),fin,"%d","tint");
+  read_formatted_from_file((char*)(&tmax),fin,"%d","tint");
   
   read_formatted_from_file_expecting(out_file,fin,"%s","out_file");
   
@@ -45,19 +39,17 @@ double fun_fit(double Z2,double M,int t)
 void chi2(int &npar,double *fuf,double &ch,double *p,int flag)
 {
   ch=0;
-  for(int t=tmin[ifit_int];t<=min(tmax[ifit_int],TH);t++)
+  for(int t=tmin;t<=min(tmax,TH);t++)
     ch+=sqr((corr_fit[t]-fun_fit(p[0],p[1],t))/corr_err[t]);
 }
 
 int main()
 {
-  init_latpars();
-  
   read_pars("input");
   read_ensemble_pars(base_path,T,ibeta,nmass,mass,iml_un,nlights,data_list_file);
   TH=L=T/2;
   
-  int ncombo=nmass*(nmass+1)/2;
+  int ncombo=nlights*(nmass-(nlights-1)/2);
   
   //load all the corrs
   double *buf=new double[ncombo*T*(njack+1)];
@@ -79,42 +71,36 @@ int main()
   corr_fit=new double[TH+1];
   corr_err=new double[TH+1];
   
-  //fit each combo
   int ic=0;
-  for(int ims=0;ims<nmass;ims++)
+  //fit each combo
+  for(int ims=0;ims<nlights;ims++)
     for(int imc=ims;imc<nmass;imc++)
       {
+	cout<<ims<<" "<<imc<<endl;
 	//take into account corr
 	jvec corr(T,njack);
 	corr.put(buf+ic*T*(njack+1));
-	
-	//choose the index of the fitting interval
-	if(ims>=nlights) ifit_int=2;
-	else
-	  if(imc>=nlights) ifit_int=1;
-	  else ifit_int=0;
+	if((string)corr_name=="VKVK") corr*=-1;
 	
 	//simmetrize
 	corr=corr.simmetrized(parity);
-	int ttmin=tmin[ifit_int];
-	int ttmax=tmax[ifit_int];
 	jvec Mcor=effective_mass(corr),Z2cor(TH+1,njack);
-	jack Meff=constant_fit(Mcor,ttmin,ttmax);
+	jack Meff=constant_fit(Mcor,tmin,tmax);
 	for(int t=0;t<=TH;t++)
 	  for(int ijack=0;ijack<=njack;ijack++)
 	    Z2cor[t].data[ijack]=corr[t].data[ijack]/fun_fit(1,Meff[ijack],t);
-	jack Z2eff=constant_fit(Z2cor,ttmin,ttmax);
+	jack Z2eff=constant_fit(Z2cor,tmin,tmax);
 	
 	if(!isnan(Z2eff[0])) minu.DefineParameter(0,"Z2",Z2eff[0],Z2eff.err(),0,2*Z2eff[0]);
 	if(!isnan(Meff[0])) minu.DefineParameter(1,"M",Meff[0],Meff.err(),0,2*Meff[0]);
-	for(int t=tmin[ifit_int];t<=tmax[ifit_int];t++) corr_err[t]=corr.data[t].err();
+	for(int t=tmin;t<=tmax;t++) corr_err[t]=corr.data[t].err();
 	
 	//jacknife analysis
 	for(int ijack=0;ijack<njack+1;ijack++)
 	  {
 	    //copy data so that glob function may access it
-	    for(int t=tmin[ifit_int];t<=tmax[ifit_int];t++) corr_fit[t]=corr.data[t].data[ijack];
-	  
+	    for(int t=tmin;t<=tmax;t++) corr_fit[t]=corr.data[t].data[ijack];
+	    
 	    //fit
 	    double dum;
 	    minu.Migrad();	    
@@ -122,48 +108,55 @@ int main()
 	    minu.GetParameter(1,M.data[ic].data[ijack],dum);
 	  }
 	
-	//if((ims==iml_un||ims==nlights-1||ims==nlights||ims==nmass-1)&&
-	//(imc==iml_un||imc==nlights-1||imc==nlights||imc==nmass-1))
-	  {
-	    //plot eff mass
-	    {
-	      ofstream out(combine("eff_mass_plot_%02d_%02d.xmg",ims,imc).c_str());
-	      out<<"@type xydy"<<endl;
-	      out<<"@s0 line type 0"<<endl;
-	      out<<Mcor<<endl;
-	      out<<"&"<<endl;
-	      out<<"@type xy"<<endl;
-	      double av_mass=M[ic].med();
-	      double er_mass=M[ic].err();
-	      out<<tmin[ifit_int]<<" "<<av_mass-er_mass<<endl;
-	      out<<tmax[ifit_int]<<" "<<av_mass-er_mass<<endl;
-	      out<<tmax[ifit_int]<<" "<<av_mass+er_mass<<endl;
-	      out<<tmin[ifit_int]<<" "<<av_mass+er_mass<<endl;
-	      out<<tmin[ifit_int]<<" "<<av_mass-er_mass<<endl;
-	    }
-	    //plot fun
-	    {
-	      ofstream out(combine("fun_plot_%02d_%02d.xmg",ims,imc).c_str());
-	      out<<"@type xydy"<<endl;
-	      out<<"@s0 line type 0"<<endl;
-	      out<<corr<<endl;
-	      out<<"&"<<endl;
-	      out<<"@type xy"<<endl;
-	      for(int t=tmin[ifit_int];t<tmax[ifit_int];t++)
-		out<<t<<" "<<fun_fit(Z2[ic][njack],M[ic][njack],t)<<endl;
-	    }
-	  }
+	//plot eff mass
+	{
+	  ofstream out(combine("eff_mass_plot_%02d_%02d.xmg",ims,imc).c_str());
+	  out<<"@type xydy"<<endl;
+	  out<<"@s0 line type 0"<<endl;
+	  out<<Mcor<<endl;
+	  out<<"&"<<endl;
+	  out<<"@type xy"<<endl;
+	  double av_mass=Meff.med();
+	  double er_mass=Meff.err();
+	  out<<tmin<<" "<<av_mass-er_mass<<endl;
+	  out<<tmax<<" "<<av_mass-er_mass<<endl;
+	  out<<tmax<<" "<<av_mass+er_mass<<endl;
+	  out<<tmin<<" "<<av_mass+er_mass<<endl;
+	  out<<tmin<<" "<<av_mass-er_mass<<endl;
+	}
+	//plot fun
+	{
+	  ofstream out(combine("fun_plot_%02d_%02d.xmg",ims,imc).c_str());
+	  out<<"@yaxes scale Logarithmic"<<endl;
+	  out<<"@type xydy"<<endl;
+	  out<<"@s0 line type 0"<<endl;
+	  out<<corr<<endl;
+	  out<<"&"<<endl;
+	  out<<"@type xy"<<endl;
+	  jvec temp(tmax-tmin+1,njack);
+	  for(int t=tmin;t<=tmax;t++)
+	    for(int ijack=0;ijack<=njack;ijack++) temp[t-tmin].data[ijack]=fun_fit(Z2[ic][ijack],M[ic][ijack],t);
+	  for(int t=tmin;t<=tmax;t++)
+	    out<<t<<" "<<temp[t-tmin].med()-temp[t-tmin].err()<<endl;
+	  for(int t=tmax;t>=tmin;t--)
+	    out<<t<<" "<<temp[t-tmin].med()+temp[t-tmin].err()<<endl;
+	}
 	
-	  cout<<mass[ims]<<" "<<mass[imc]<<"  "<<M[ic]<<" "<<Z2[ic]<<" "<<sqrt(Z2[ic])/(sinh(M[ic])*M[ic])*(mass[ims]+mass[imc])<<" fV:"<<Za_med[ibeta]*sqrt(Z2[ic])/M[ic]/lat[ibeta].med()<<endl;
+	cout<<mass[ims]<<" "<<mass[imc]<<"  "<<M[ic]<<" ("<<Meff<<") "<<Z2[ic]<<" "<<endl;
 	ic++;
       }
   
+  ic=0;
   ofstream out("fitted_mass.xmg");
   out<<"@type xydy"<<endl;
-  for(int ims=0;ims<nmass;ims++)
+  for(int ims=0;ims<nlights;ims++)
     {
       //out<<"s0 line type 0"<<endl;
-      for(int imc=0;imc<nmass;imc++) out<<mass[imc]<<" "<<M[icombo(ims,imc,nmass,nlights,0)]<<endl;
+      for(int imc=ims;imc<nmass;imc++)
+	{
+	  out<<mass[imc]<<" "<<M[ic]<<endl;
+	  ic++;
+	}
       out<<"&"<<endl;
     }
 

@@ -6,11 +6,10 @@ int main()
   //load ensemble list path and data path
   FILE *an_input_file=open_file("analysis_pars","r");
   int mode;
-  char ens_list_path[1024],base_MZ_path[1024],obs_name[1024],meson_name[1024];
+  char ens_list_path[1024],base_MZ_path[1024],meson_name[1024];
   read_formatted_from_file_expecting(ens_list_path,an_input_file,"%s","ens_list_path");
   read_formatted_from_file_expecting(base_MZ_path,an_input_file,"%s","base_MZ_path");
   read_formatted_from_file_expecting((char*)&mode,an_input_file,"%d","mode");
-  read_formatted_from_file_expecting(obs_name,an_input_file,"%s","obs_name");
   read_formatted_from_file_expecting(meson_name,an_input_file,"%s","meson_name");
   fclose(an_input_file);
   
@@ -21,42 +20,35 @@ int main()
   load_ensembles_list(base_corrs_path,ens_name,nens,T,ibeta,nmass,mass,iml_un,nlights,ens_list_path);
   
   //load all ensembles data
+  bvec *aMV,*ZV;
   bvec *aM,*Z;
-  load_all_ensembles_MZ(aM,Z,nens,T,ibeta,nlights,nmass,base_MZ_path,obs_name,ens_name,base_corrs_path,mode);
+  load_all_ensembles_MZ(aM,Z,nens,T,ibeta,nlights,nmass,base_MZ_path,"P5P5",ens_name,base_corrs_path,mode);
+  load_all_ensembles_MZ(aMV,ZV,nens,T,ibeta,nlights,nmass,base_MZ_path,"VKVK",ens_name,base_corrs_path,mode);
   
-  //compute f
-  bvec f[nens];
-  bvec phi[nens];
+  //compute x
   bvec x[nens];
   for(int iens=0;iens<nens;iens++)
     {
       int b=ibeta[iens];
       
-      if(string(obs_name)==string("P5P5"))
-	{
-	  f[iens]=sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b];
-	  phi[iens]=f[iens]*sqrt(aM[iens]/lat[b]);
-	  int lim1;
-	  if(mode==0) lim1=nmass[iens];
-	  else lim1=nlights[iens];
-	  for(int ims=0;ims<lim1;ims++)
-	    for(int imc=ims;imc<nmass[iens];imc++)
-	      {
-		int ic=icombo(ims,imc,nmass[iens],nlights[iens],mode);
-		f[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
-		phi[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
-		if(meson_name[0]=='D') x[iens]=phi[iens];
-		else x[iens]=f[iens];
-	      }
-	}
+      bvec f=sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b];
+      bvec fV=Za[b]*sqrt(ZV[iens])/aMV[iens]/lat[b];
       
-      if(string(obs_name)==string("VKVK"))
-	{
-	  x[iens]=f[iens]=Za[b]*sqrt(Z[iens])/aM[iens]/lat[b];
-	  if(meson_name[0]=='D') x[iens]*=sqrt(aM[iens]/lat[b]);
-	}
+      int lim1;
+      if(mode==0) lim1=nmass[iens];
+      else lim1=nlights[iens];
+      for(int ims=0;ims<lim1;ims++)
+	for(int imc=ims;imc<nmass[iens];imc++)
+	  {
+	    int ic=icombo(ims,imc,nmass[iens],nlights[iens],mode);
+	    f[ic]*=mass[iens][ims]+mass[iens][imc];
+	  }
+      
+      //cout<<f[0]<<" V "<<aMV[iens][0]/lat[b]<<endl;
+      
+      x[iens]=fV/f;
     }
-  
+
   bvec fint(nens,nboot,njack);
   for(int iens=0;iens<nens;iens++)
     {
@@ -75,10 +67,7 @@ int main()
       cout<<iens<<" "<<ibeta[iens]<<" "<<mass[iens][iml_un[iens]]<<" "<<fint.data[iens]<<endl;
     }
   
-  if(string(meson_name)==string("K") || ( meson_name[0]=='D' && string(obs_name)==string("VKVK"))) fint.write_to_binfile(combine("interpolated_f_%s",meson_name).c_str());
-  else
-    if(string(meson_name)==string("Pi")) fint.write_to_binfile(combine("f_%s",meson_name).c_str());
-    else fint.write_to_binfile(combine("interpolated_phi_%s",meson_name).c_str());
+  fint.write_to_binfile("interpolated_x");
   
   return 0;
 }

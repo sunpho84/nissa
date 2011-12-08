@@ -87,11 +87,13 @@ bvec lorentzian_fit(double *x,bvec y)
 {
   bvec d=poly_fit(x,1/y,2);
   bvec out(3,y.nboot,y.njack);
-  
+  //for(int i=0;i<3;i++) cout<<i<<" = "<<d[i]<<endl;
   out[1]=-0.5*d[1]/d[2];            //x0
   out[0]=1/(d[0]-sqr(out[1])*d[2]); //N
   out[2]=1/sqrt(d[2]*out[0]);       //sigma
-  
+  //cout<<"arg:"<<d[2]*out[0]<<endl;
+  //for(int i=0;i<3;i++) cout<<i<<" out= "<<out[i]<<endl;
+
   return out;
 }
 
@@ -148,7 +150,7 @@ boot get_xmax(const char *path,const int det)
   //for(int i=0;i<3;i++) cout<<par_rew[i]<<" "<<par_rew[i].err()/par_rew[i].med()<<endl;
   
   //filter
-  int nrew_filt=0,nfilt=0;;
+  int nrew_filt=0,nfilt=0;
   double tresh=par_rew[0].med()/4;
   double tresh_rew=par_rew[0].med()*3/4;
   for(int i=0;i<da_rew.nel;i++) nrew_filt+=da_rew[i].med() > tresh_rew ? 1 : 0;
@@ -163,7 +165,8 @@ boot get_xmax(const char *path,const int det)
     if(da_rew[i].med()>tresh_rew)
       {
 	x_rew_f[irew_filt]=x_rew[i];
-	da_rew_f[irew_filt]=da_rew[i];       
+	da_rew_f[irew_filt]=da_rew[i];
+	//cout<<ifilt<<" "<<x_rew_f[irew_filt]<<" "<<1/da_rew_f[irew_filt]<<endl;
 	irew_filt++;
       }
   for(int i=0;i<da.nel;i++)
@@ -171,12 +174,29 @@ boot get_xmax(const char *path,const int det)
       {
 	x_f[ifilt]=x[i];
 	da_f[ifilt]=da[i];
+	//cout<<ifilt<<" "<<x_f[ifilt]<<" "<<1/da_f[ifilt]<<endl;
 	ifilt++;
       }
-
+  
+  //cout<<"Det: "<<det<<endl;
+  //cout<<"NFilt: "<<nfilt<<endl;
+  
   bvec par_f=lorentzian_fit(x_f,da_f);
   bvec par_rew_f=lorentzian_fit(x_rew_f,da_rew_f);
-  //for(int i=0;i<3;i++) cout<<par_f[i]<<" "<<par_f[i].err()/par_f[i].med()<<endl;
+  for(int i=0;i<3;i++)
+    for(int iboot=0;iboot<nboot;iboot++)
+      {
+	if(isnan(par_f[i][iboot]))
+	  {
+	    par_f[i].data[iboot]=par_f[i].data[(iboot-1+nboot)%nboot];
+	    //cout<<"par: "<<par_f[i][iboot]<<" "<<par_f[i].err()/par_f[i].med()<<endl;
+	  }
+	if(isnan(par_rew_f[i][iboot]))
+	  {
+	    par_rew_f[i].data[iboot]=par_rew_f[i].data[(iboot-1+nboot)%nboot];
+	    //cout<<"par_: "<<par_rew_f[i][iboot]<<" "<<par_rew_f[i].err()/par_rew_f[i].med()<<endl;
+	  }
+      }
   bvec re_f(da_rew_f.nel,nboot,njack);
   bvec re_rew_f(da_rew_f.nel,nboot,njack);
   for(int i=0;i<da_rew_f.nel;i++) re_f[i]=par_f[0]/(1+sqr((x_rew_f[i]-par_f[1])/par_f[2]));

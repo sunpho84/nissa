@@ -131,7 +131,7 @@ void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
   
   minu.SetFCN(chi2_wr);
   
-  double C2;
+  double C2=0;
   for(int iboot=0;iboot<nboot+1;iboot++)
     {
       if(iboot>0)
@@ -290,7 +290,7 @@ int main(int narg,char **arg)
   
   const char tag_ml[1024]="\\om\\O\\sl\\N(2GeV)\\N [MeV]";
   const char tag_a2[1024]="a\\S2\\N (fm)";
-  double lat_med_fm[4]={lat[0].med()/hc,lat[1].med()/hc,lat[2].med()/hc,lat[3].med()/hc};
+  double lat_med_fm[4]={lat[0].med()*hc,lat[1].med()*hc,lat[2].med()*hc,lat[3].med()*hc};
   
   plot_funz_ml("M2K_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,M2K,par_res_fit_M2K,ml_phys.med(),fun_fit_M2K,M2K_chir_cont);
   plot_funz_a2("M2K_funz_a2.xmg",meson_name,tag_a2,meson_name,lat_med_fm,M2K_estr_ml,par_res_fit_M2K,fun_fit_M2K,M2K_chir_cont);

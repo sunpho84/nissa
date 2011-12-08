@@ -1,2 +1,0 @@
-head -c4 /dev/urandom | od -N4 -tu4 | sed -ne '1s/.* //p'
-#cat /dev/urandom|od -t d4 -N128 -w4 -A d|awk '/^[0-9]+( )+[0-9]+/{if( $2 % 2 != 0 ) {print $2; exit}}'|awk '{aux=substr($1,length($1)-7,8);print aux }'|awk '$1 ~ /^[1-9]/'

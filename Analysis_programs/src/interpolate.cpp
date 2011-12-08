@@ -29,7 +29,7 @@ boot interpolate_single(bvec vec,double *x,boot xf)
   int nboot=vec.nboot;
   int njack=vec.njack;
   boot out(nboot,njack);
-
+  
   for(int iboot=0;iboot<nboot+1;iboot++)
     {
       //check if the needed x is not below the lower one or above the heavier one
