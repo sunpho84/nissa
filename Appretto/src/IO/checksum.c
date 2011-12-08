@@ -109,7 +109,7 @@ void checksum_compute_ildg_data(uint32_t *check,void *data,size_t bps)
 	    for(int i=0;i<2;i++) loc_check[i]^=temp<<rank[i]|temp>>(32-rank[i]);
 	  }
   
-  MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED_LONG,MPI_BXOR,MPI_COMM_WORLD);
+  MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
 }
 
 //compute the checksum of data as used by appretto (unspecified endianess, time is faster index)
@@ -128,5 +128,5 @@ void checksum_compute_appretto_data(uint32_t *check,void *data,size_t bps)
       for(int i=0;i<2;i++) loc_check[i]^=temp<<rank[i]|temp>>(32-rank[i]);
     }
   
-  MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED_LONG,MPI_BXOR,MPI_COMM_WORLD);
+  MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
 }

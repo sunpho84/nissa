@@ -437,6 +437,11 @@ void safe_su3_dag_prod_color(color a,su3 b,color c)
   color_copy(a,t);
 }
 
+void safe_color_prod_complex(color out,color in,complex factor)
+{for(int i=0;i<3;i++) safe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+void unsafe_color_prod_complex(color out,color in,complex factor)
+{for(int i=0;i<3;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+
 ////////////////////////////////// Operations between spincolor ///////////////////
 
 //summ two spincolors
