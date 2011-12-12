@@ -44,7 +44,7 @@ source |------>---->----->---->| sink
 
 */
 
-#include "appretto.h"
+#include "nissa.h"
 
 //gauge info
 int igauge_conf=0,ngauge_conf,nanalized_conf;
@@ -127,10 +127,11 @@ void initialize_Bk(int narg,char **arg)
   // 1) Read information about the gauge conf
   
   //Read the volume
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
   //Init the MPI grid 
-  init_grid(); 
+  init_grid(T,L); 
   //Read the walltime
   read_str_int("Walltime",&wall_time);
   //Kappa
@@ -145,7 +146,7 @@ void initialize_Bk(int narg,char **arg)
   read_list_of_ints("NSeparations",&nsepa,&tsepa);
   //Allocate twall space
   nwall=nsepa+1;
-  twall=appretto_malloc("twal",nwall,int);
+  twall=nissa_malloc("twal",nwall,int);
   //Read the noise type
   read_str_int("NoiseType",&noise_type);
   //Read list of masses
@@ -196,15 +197,15 @@ void initialize_Bk(int narg,char **arg)
   
   // 5) contraction list for eight
 
-  contr_otto=appretto_malloc("contr_otto",16*glb_size[0],complex);
-  contr_mezzotto=appretto_malloc("contr_mezzotto",16*glb_size[0],complex);
+  contr_otto=nissa_malloc("contr_otto",16*glb_size[0],complex);
+  contr_mezzotto=nissa_malloc("contr_mezzotto",16*glb_size[0],complex);
   
   read_str_int("NSpec",&nspec);
   if(nspec>nmass) crash("Nspec>nmass!!!");
   read_str_int("NContrTwoPoints",&ncontr_2pts);
-  contr_2pts=appretto_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
-  op1_2pts=appretto_malloc("op1",ncontr_2pts,int);
-  op2_2pts=appretto_malloc("op2",ncontr_2pts,int);
+  contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
+  op1_2pts=nissa_malloc("op1",ncontr_2pts,int);
+  op2_2pts=nissa_malloc("op2",ncontr_2pts,int);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     {
       //Read the operator pairs
@@ -217,26 +218,26 @@ void initialize_Bk(int narg,char **arg)
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf
-  conf=appretto_malloc("conf",loc_vol+loc_bord,quad_su3);
-  sme_conf=appretto_malloc("sme_conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
+  sme_conf=nissa_malloc("sme_conf",loc_vol+loc_bord,quad_su3);
   
   //Allocate all the propagators colorspinspin vectors
   nprop=nwall*so_jnlv*nmass*2;
   master_printf("Number of propagator to be allocated: %d\n",nprop);
-  S=appretto_malloc("S",nprop,colorspinspin*);
-  for(int iprop=0;iprop<nprop;iprop++) S[iprop]=appretto_malloc("S[i]",loc_vol,colorspinspin);
+  S=nissa_malloc("S",nprop,colorspinspin*);
+  for(int iprop=0;iprop<nprop;iprop++) S[iprop]=nissa_malloc("S[i]",loc_vol,colorspinspin);
   
   //Allocate nmass spincolors, for the cgmms solutions
-  cgmms_solution=appretto_malloc("cgmms_solution",nmass,spincolor*);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=appretto_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
-  reco_solution[0]=appretto_malloc("reco_solution[0]",loc_vol,spincolor);
-  reco_solution[1]=appretto_malloc("reco_solution[1]",loc_vol,spincolor);
+  cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
+  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
+  reco_solution[0]=nissa_malloc("reco_solution[0]",loc_vol,spincolor);
+  reco_solution[1]=nissa_malloc("reco_solution[1]",loc_vol,spincolor);
 
   //Allocate one spincolor for the source
-  source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
+  source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
   
   //Allocate the colorspinspin of the source
-  original_source=appretto_malloc("original_source",loc_vol,colorspinspin);
+  original_source=nissa_malloc("original_source",loc_vol,colorspinspin);
 }
 
 //find a not yet analized conf
@@ -579,24 +580,24 @@ void close_Bk()
   master_printf(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
 		tot_contr_2pts_time/tot_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
   
-  appretto_free(twall);
-  appretto_free(op1_2pts);appretto_free(op2_2pts);
-  appretto_free(contr_otto);appretto_free(contr_mezzotto);
-  appretto_free(conf);appretto_free(sme_conf);appretto_free(contr_2pts);
-  for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
-  appretto_free(cgmms_solution);
-  appretto_free(source);appretto_free(original_source);
-  for(int iprop=0;iprop<nprop;iprop++) appretto_free(S[iprop]);
-  appretto_free(S);
-  appretto_free(reco_solution[1]);appretto_free(reco_solution[0]);
+  nissa_free(twall);
+  nissa_free(op1_2pts);nissa_free(op2_2pts);
+  nissa_free(contr_otto);nissa_free(contr_mezzotto);
+  nissa_free(conf);nissa_free(sme_conf);nissa_free(contr_2pts);
+  for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
+  nissa_free(cgmms_solution);
+  nissa_free(source);nissa_free(original_source);
+  for(int iprop=0;iprop<nprop;iprop++) nissa_free(S[iprop]);
+  nissa_free(S);
+  nissa_free(reco_solution[1]);nissa_free(reco_solution[0]);
   
-  close_appretto();
+  close_nissa();
 }
 
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   //Inner initialization
   initialize_Bk(narg,arg);
