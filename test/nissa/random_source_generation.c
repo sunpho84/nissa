@@ -7,7 +7,7 @@ int main()
   
   test(test_random_source_generation(),"Random source generation");
   
-  close_appretto();
+  close_nissa();
   
   return 0;
 }

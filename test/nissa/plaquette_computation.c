@@ -7,7 +7,7 @@ int main()
   
   test(test_plaquette_computation(),"Configuration loading");
   
-  close_appretto();
+  close_nissa();
   
   return 0;
 }
