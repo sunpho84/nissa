@@ -1,22 +1,20 @@
 #pragma once
 
-#include "appretto.h"
+#include "nissa.h"
 
 void init_test()
 {
-  init_appretto();
-  
-  //set the lattice grid
-  glb_size[0]=8;
-  glb_size[1]=4;
+  init_nissa();
   
   //init the grid
-  init_grid();
+  init_grid(8,4);
 }
 
 void test(int passed,const char *test_name)
 {
   if(!passed) master_printf("\n%s test not passed!\n\n",test_name);
   else master_printf("\n%s test passed\n\n",test_name);
+  
+  master_printf("################ %s test finished ###############\n",test_name);
 }
 

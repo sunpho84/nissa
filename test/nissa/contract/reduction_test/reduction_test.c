@@ -1,11 +1,11 @@
-#include "appretto.h"
+#include "nissa.h"
 
 int main(int narg,char **arg)
 {
   char base_filename1[1024],base_filename2[1024];
 
   //basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   if(narg<2 && rank==0)
     {
@@ -16,8 +16,11 @@ int main(int narg,char **arg)
   open_input(arg[1]);
 
   //read lattice size
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
+  //init the grid
+  init_grid(T,L);
 
   //read the propagators filename
   read_str_str("BaseFilename1",base_filename1,1024);
@@ -42,9 +45,6 @@ int main(int narg,char **arg)
 
   close_input();
 
-  //Init the MPI grid 
-  init_grid();
-  
   ///////////////////////////////////////////
   
   //allocate vectors for contractions
@@ -93,7 +93,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  close_appretto();
+  close_nissa();
 
   return 0;
 }

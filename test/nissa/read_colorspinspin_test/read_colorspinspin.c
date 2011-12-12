@@ -1,11 +1,11 @@
-#include "appretto.h"
+#include "nissa.h"
 
 int main(int narg,char **arg)
 {
   char base_filename[1024];
 
   //basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   if(narg<2 && rank==0)
     {
@@ -16,15 +16,17 @@ int main(int narg,char **arg)
 
   open_input(arg[1]);
 
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  //read the sizes
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
+  //Init the MPI grid 
+  init_grid(T,L);
+  
   read_str_str("BaseFilename",base_filename,1024);
 
   close_input();
 
-  //Init the MPI grid 
-  init_grid();
-  
   ///////////////////////////////////////////
 
   colorspinspin *spinore=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
@@ -49,7 +51,7 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
-  close_appretto();
+  close_nissa();
 
   return 0;
 }

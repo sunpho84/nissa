@@ -1,9 +1,9 @@
-#include "appretto.h"
+#include "nissa.h"
 
 int main(int narg,char **arg)
 {
 
-  init_appretto();
+  init_nissa();
   
   spinspin a,b;
   for(int id1=0;id1<4;id1++) 

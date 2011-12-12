@@ -7,7 +7,7 @@ int main()
   
   test(test_write_and_read(),"Write and read");
   
-  close_appretto();
+  close_nissa();
   
   return 0;
 }
