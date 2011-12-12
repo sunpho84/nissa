@@ -1,6 +1,6 @@
 #pragma once
 
-#include "appretto.h"
+#include "nissa.h"
 
 //Calculate the maximum number of allocable propagators
 //First of all check if there is enough room for the configuration,

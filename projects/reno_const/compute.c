@@ -1,4 +1,4 @@
-#include "appretto.h"
+#include "nissa.h"
 
 //gauge info
 int ngauge_conf,nanalized_conf;
@@ -49,13 +49,13 @@ void Xspace()
   int rc=MPI_File_open(cart_comm,outfile_X,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&fout);
   if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_X);
   
-  complex *green=appretto_malloc("greenX",loc_vol,complex);
+  complex *green=nissa_malloc("greenX",loc_vol,complex);
   int radius=min_int(glb_size[0],min_int(glb_size[1],10));
   
   int iout;
   
-  int pos=appretto_malloc("pos",loc_vol,int),nloc,ipos=0;
-  complex *loc_buf=appretto_malloc("loc_buf",loc_vol*2*nmass,complex);
+  int pos=nissa_malloc("pos",loc_vol,int),nloc,ipos=0;
+  complex *loc_buf=nissa_malloc("loc_buf",loc_vol*2*nmass,complex);
   for(int r=0;r<2;r++)
     for(int imass=0;imass<nmass;imass++)
       for(int igamma=0;igamma<16;igamma++)
@@ -112,9 +112,9 @@ void Xspace()
   
   MPI_File_close(&fout);
   
-  appretto_free(loc_buf);
-  appretto_free(loc_pos);
-  appretto_free(green);
+  nissa_free(loc_buf);
+  nissa_free(loc_pos);
+  nissa_free(green);
 }
 */
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
@@ -161,10 +161,11 @@ void initialize_semileptonic(char *input_path)
   // 1) Read information about the gauge conf
   
   //Read the volume
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
   //Init the MPI grid 
-  init_grid(); 
+  init_grid(T,L); 
   //Wall_time
   read_str_int("WallTime",&wall_time);
   //Kappa
@@ -206,9 +207,9 @@ void initialize_semileptonic(char *input_path)
   // 4) contraction list for two points
   
   read_str_int("NContrTwoPoints",&ncontr_2pts);
-  contr_2pts=appretto_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
-  op1_2pts=appretto_malloc("op1_2pts",ncontr_2pts,int);
-  op2_2pts=appretto_malloc("op2_2pts",ncontr_2pts,int);
+  contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
+  op1_2pts=nissa_malloc("op1_2pts",ncontr_2pts,int);
+  op2_2pts=nissa_malloc("op2_2pts",ncontr_2pts,int);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     {
       //Read the operator pairs
@@ -223,28 +224,28 @@ void initialize_semileptonic(char *input_path)
   ////////////////////////////////////// end of input reading/////////////////////////////////
   
   //allocate gauge conf and all the needed spincolor and su3spinspin
-  conf=appretto_malloc("or_conf",loc_vol+loc_bord,quad_su3);
-  unfix_conf=appretto_malloc("unfix_conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("or_conf",loc_vol+loc_bord,quad_su3);
+  unfix_conf=nissa_malloc("unfix_conf",loc_vol+loc_bord,quad_su3);
   
   //Allocate all the S0 su3spinspin vectors
   npropS0=nmass;
-  S0[0]=appretto_malloc("S0[0]",npropS0,su3spinspin*);
-  S0[1]=appretto_malloc("S0[1]",npropS0,su3spinspin*);
+  S0[0]=nissa_malloc("S0[0]",npropS0,su3spinspin*);
+  S0[1]=nissa_malloc("S0[1]",npropS0,su3spinspin*);
   for(int iprop=0;iprop<npropS0;iprop++)
     {
-      S0[0][iprop]=appretto_malloc("S0[0][iprop]",loc_vol,su3spinspin);
-      S0[1][iprop]=appretto_malloc("S0[1][iprop]",loc_vol,su3spinspin);
+      S0[0][iprop]=nissa_malloc("S0[0][iprop]",loc_vol,su3spinspin);
+      S0[1][iprop]=nissa_malloc("S0[1][iprop]",loc_vol,su3spinspin);
     }
   
   //Allocate nmass spincolors, for the cgmms solutions
-  cgmms_solution=appretto_malloc("cgmms_solution",nmass,spincolor*);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=appretto_malloc("cgmms_solution[imass]",loc_vol+loc_bord,spincolor);
-  reco_solution[0]=appretto_malloc("reco_sol[0]",loc_vol+loc_bord,spincolor);
-  reco_solution[1]=appretto_malloc("reco_sol[1]",loc_vol+loc_bord,spincolor);
+  cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
+  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution[imass]",loc_vol+loc_bord,spincolor);
+  reco_solution[0]=nissa_malloc("reco_sol[0]",loc_vol+loc_bord,spincolor);
+  reco_solution[1]=nissa_malloc("reco_sol[1]",loc_vol+loc_bord,spincolor);
   
   //Allocate one spincolor for the source
-  source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
-  original_source=appretto_malloc("orig_source",loc_vol,su3spinspin);
+  source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  original_source=nissa_malloc("orig_source",loc_vol,su3spinspin);
 }
 
 //load the conf, fix it and put boundary cond
@@ -277,21 +278,21 @@ void load_gauge_conf()
 //Finalization
 void close_semileptonic()
 {
-  appretto_free(original_source);appretto_free(source);
-  appretto_free(reco_solution[1]);appretto_free(reco_solution[0]);
-  for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
-  appretto_free(cgmms_solution);
+  nissa_free(original_source);nissa_free(source);
+  nissa_free(reco_solution[1]);nissa_free(reco_solution[0]);
+  for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
+  nissa_free(cgmms_solution);
   for(int r=0;r<2;r++)
     {
       for(int iprop=0;iprop<npropS0;iprop++)
-	appretto_free(S0[r][iprop]);
-      appretto_free(S0[r]);
+	nissa_free(S0[r][iprop]);
+      nissa_free(S0[r]);
     }
-  appretto_free(unfix_conf);
-  appretto_free(conf);
-  appretto_free(contr_2pts);
-  appretto_free(op1_2pts);
-  appretto_free(op2_2pts);
+  nissa_free(unfix_conf);
+  nissa_free(conf);
+  nissa_free(contr_2pts);
+  nissa_free(op1_2pts);
+  nissa_free(op2_2pts);
 
   if(rank==0)
     {
@@ -304,7 +305,7 @@ void close_semileptonic()
       printf(" - %02.2f%s to save %d su3spinspins. (%2.2gs avg)\n",save_time/tot_time*100,"%",2*nmass*nanalized_conf,save_time/(2*nmass*nanalized_conf));
     }
   
-  close_appretto();
+  close_nissa();
 }
 
 //calculate the standard propagators
@@ -516,7 +517,7 @@ int check_remaining_time()
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_appretto();
+  init_nissa();
   
   if(narg<2) crash("Use: %s input_file",arg[0]);
   

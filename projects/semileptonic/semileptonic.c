@@ -1,4 +1,4 @@
-#include "appretto.h"
+#include "nissa.h"
 
 char conf_path[1024];
 quad_su3 *conf;
@@ -132,10 +132,11 @@ void initialize_semileptonic(char *input_path)
   // 1) Read information about the gauge conf
   
   //Read the volume
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int T,L;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
   //Init the MPI grid 
-  init_grid(); 
+  init_grid(T,L); 
   //Gauge path
   read_str_str("GaugeConfPath",conf_path,1024);
   //Kappa
@@ -215,7 +216,7 @@ void initialize_semileptonic(char *input_path)
   read_str_str("OutfileTwoPoints",outfile_2pts,1024);
 
   // 6) three points functions
-  sequential_source=appretto_malloc("Sequential source",loc_vol,colorspinspin);
+  sequential_source=nissa_malloc("Sequential source",loc_vol,colorspinspin);
   read_str_int("NSpec",&nspec);
   ith_spec=(int*)malloc(nspec*sizeof(int));
   imass_spec=(int*)malloc(nspec*sizeof(int));
@@ -261,8 +262,8 @@ void initialize_semileptonic(char *input_path)
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf, Pmunu and all the needed spincolor and colorspinspin
-  conf=appretto_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  Pmunu=appretto_malloc("Pmunu",loc_vol,as2t_su3);
+  conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
 
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_gauge_conf(conf,conf_path);
@@ -284,27 +285,27 @@ void initialize_semileptonic(char *input_path)
   S0[1]=(colorspinspin**)malloc(sizeof(colorspinspin*)*npropS0);
   for(int iprop=0;iprop<npropS0;iprop++)
     {
-      S0[0][iprop]=appretto_malloc("S0[0]",loc_vol,colorspinspin);
-      S0[1][iprop]=appretto_malloc("S0[1]",loc_vol,colorspinspin);
+      S0[0][iprop]=nissa_malloc("S0[0]",loc_vol,colorspinspin);
+      S0[1][iprop]=nissa_malloc("S0[1]",loc_vol,colorspinspin);
     }
 
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=(spincolor**)malloc(sizeof(spincolor*)*nmass);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=appretto_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
-  reco_solution[0]=appretto_malloc("reco_solution[0]",loc_vol,spincolor);
-  reco_solution[1]=appretto_malloc("reco_solution[1]",loc_vol,spincolor);
+  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
+  reco_solution[0]=nissa_malloc("reco_solution[0]",loc_vol,spincolor);
+  reco_solution[1]=nissa_malloc("reco_solution[1]",loc_vol,spincolor);
   
   //Allocate one spincolor for the source
-  source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
-  original_source=appretto_malloc("original_source",loc_vol,colorspinspin);
+  source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  original_source=nissa_malloc("original_source",loc_vol,colorspinspin);
 
   //Allocate one colorspinspin for the chromo-contractions
-  ch_colorspinspin=appretto_malloc("chromo-colorspinspin",loc_vol,colorspinspin);
+  ch_colorspinspin=nissa_malloc("chromo-colorspinspin",loc_vol,colorspinspin);
 
   //Allocate all the S1 colorspinspin vectors
   npropS1=ntheta*nmass;
   S1=(colorspinspin**)malloc(sizeof(colorspinspin*)*loc_vol);
-  for(int iprop=0;iprop<npropS0;iprop++) S1[iprop]=appretto_malloc("S1[i]",loc_vol,colorspinspin);
+  for(int iprop=0;iprop<npropS0;iprop++) S1[iprop]=nissa_malloc("S1[i]",loc_vol,colorspinspin);
 }
 
 //Finalization
@@ -318,13 +319,13 @@ void close_semileptonic()
       printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
     }
 
-  appretto_free(Pmunu);appretto_free(conf);
-  for(int iprop=0;iprop<npropS0;iprop++){appretto_free(S0[0][iprop]);appretto_free(S0[1][iprop]);appretto_free(S1[iprop]);}
-  appretto_free(reco_solution[0]);appretto_free(reco_solution[1]);
-  appretto_free(ch_colorspinspin);appretto_free(sequential_source);
-  for(int imass=0;imass<nmass;imass++) appretto_free(cgmms_solution[imass]);
-  appretto_free(source);appretto_free(original_source);
-  close_appretto();
+  nissa_free(Pmunu);nissa_free(conf);
+  for(int iprop=0;iprop<npropS0;iprop++){nissa_free(S0[0][iprop]);nissa_free(S0[1][iprop]);nissa_free(S1[iprop]);}
+  nissa_free(reco_solution[0]);nissa_free(reco_solution[1]);
+  nissa_free(ch_colorspinspin);nissa_free(sequential_source);
+  for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
+  nissa_free(source);nissa_free(original_source);
+  close_nissa();
 }
 
 //calculate the standard propagators
@@ -517,7 +518,7 @@ void check_two_points(int ispec)
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   if(narg<2 && rank==0)
       {

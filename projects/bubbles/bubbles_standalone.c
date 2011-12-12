@@ -1,4 +1,4 @@
-#include "appretto.h"
+#include "nissa.h"
 
 /*
             	 
@@ -131,19 +131,20 @@ void initialize_bubbles(char *input_path)
   open_input(input_path);
 
   //Read the volume
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
 
   //Init the MPI grid 
-  init_grid();
+  init_grid(T,L);
 
   //Read the number of contractions
   read_str_int("NContr",&ncontr);
   if(rank==0) printf("Number of contractions: %d\n",ncontr);
 
   //Initialize the list of correlations and the list of operators
-  contr=appretto_malloc("contr",ncontr*glb_size[0],complex);
-  op=appretto_malloc("op",ncontr,int);
+  contr=nissa_malloc("contr",ncontr*glb_size[0],complex);
+  op=nissa_malloc("op",ncontr,int);
   for(int icontr=0;icontr<ncontr;icontr++)
     {
       //Read the operator
@@ -158,8 +159,8 @@ void initialize_bubbles(char *input_path)
   
   //Initialize the list of chromo correlations and the list of operators
   //contiguous allocation
-  ch_contr=appretto_malloc("ch_contr",nch_contr*glb_size[0],complex);
-  ch_op=appretto_malloc("ch_op",nch_contr,int);
+  ch_contr=nissa_malloc("ch_contr",nch_contr*glb_size[0],complex);
+  ch_op=nissa_malloc("ch_op",nch_contr,int);
   for(int ich_contr=0;ich_contr<nch_contr;ich_contr++)
     {
       //Read the operator
@@ -170,7 +171,7 @@ void initialize_bubbles(char *input_path)
   
   //reading of gauge conf and computation of Pmunu
   read_str_str("GaugeConf",gaugeconf_file,1024);
-  conf=appretto_malloc("conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
   read_gauge_conf(conf,gaugeconf_file);
   communicate_gauge_borders(conf);
   communicate_gauge_edges(conf);
@@ -178,15 +179,15 @@ void initialize_bubbles(char *input_path)
   //calculate plaquette, Pmunu
   double gplaq=global_plaquette(conf);
   if(rank==0) printf("plaq: %.10g\n",gplaq);
-  Pmunu=appretto_malloc("clover",loc_vol,as2t_su3);
+  Pmunu=nissa_malloc("clover",loc_vol,as2t_su3);
   Pmunu_term(Pmunu,conf);
   
   //allocate the source and the chromo-prop
-  source=appretto_malloc("source",loc_vol+loc_bord,colorspinspin);
-  inv_source=appretto_malloc("inv_source",loc_vol+loc_bord,spincolor);
-  ch_prop=appretto_malloc("chromo-prop",loc_vol,colorspinspin);
-  for(int idir=0;idir<3;idir++) edm_prop[idir]=appretto_malloc("edm_prop",loc_vol,colorspinspin);
-  for(int r=0;r<2;r++) reco_solution[r]=appretto_malloc("reco_solution",loc_vol,spincolor);
+  source=nissa_malloc("source",loc_vol+loc_bord,colorspinspin);
+  inv_source=nissa_malloc("inv_source",loc_vol+loc_bord,spincolor);
+  ch_prop=nissa_malloc("chromo-prop",loc_vol,colorspinspin);
+  for(int idir=0;idir<3;idir++) edm_prop[idir]=nissa_malloc("edm_prop",loc_vol,colorspinspin);
+  for(int r=0;r<2;r++) reco_solution[r]=nissa_malloc("reco_solution",loc_vol,spincolor);
 
   //read the seed
   read_str_int("Seed",&seed);
@@ -210,14 +211,14 @@ void initialize_bubbles(char *input_path)
 
   //Read the number of masses and allocate spinors for the cgmms
   read_str_int("NMass",&nmass);
-  mass=appretto_malloc("mass",nmass,double);
-  S=appretto_malloc("S",nmass,colorspinspin**);
-  QQ=appretto_malloc("QQ",nmass,spincolor*);
+  mass=nissa_malloc("mass",nmass,double);
+  S=nissa_malloc("S",nmass,colorspinspin**);
+  QQ=nissa_malloc("QQ",nmass,spincolor*);
   for(int imass=0;imass<nmass;imass++)
     {
-      S[imass]=appretto_malloc("S[imass]",2,colorspinspin*);
-      for(int r=0;r<2;r++) S[imass][r]=appretto_malloc("S",loc_vol,colorspinspin);
-      QQ[imass]=appretto_malloc("QQ[i]",loc_vol+loc_bord,spincolor);
+      S[imass]=nissa_malloc("S[imass]",2,colorspinspin*);
+      for(int r=0;r<2;r++) S[imass][r]=nissa_malloc("S",loc_vol,colorspinspin);
+      QQ[imass]=nissa_malloc("QQ[i]",loc_vol+loc_bord,spincolor);
       read_double(&(mass[imass]));
     }
     
@@ -373,33 +374,33 @@ void close_bubbles()
   
   if(rank==0) printf("\nEverything ok, exiting!\n");
   
-  appretto_free(contr);appretto_free(ch_contr);
-  appretto_free(op);appretto_free(ch_op);
-  appretto_free(conf);
-  appretto_free(Pmunu);
-  appretto_free(source);
+  nissa_free(contr);nissa_free(ch_contr);
+  nissa_free(op);nissa_free(ch_op);
+  nissa_free(conf);
+  nissa_free(Pmunu);
+  nissa_free(source);
   for(int imass=0;imass<nmass;imass++)
     {
-      appretto_free(QQ[imass]);
-      for(int r=0;r<2;r++) appretto_free(S[imass][r]);
-      appretto_free(S[imass]);
+      nissa_free(QQ[imass]);
+      for(int r=0;r<2;r++) nissa_free(S[imass][r]);
+      nissa_free(S[imass]);
     }
-  appretto_free(S);
-  appretto_free(QQ);
-  appretto_free(mass);
+  nissa_free(S);
+  nissa_free(QQ);
+  nissa_free(mass);
 
-  appretto_free(inv_source);
-  appretto_free(ch_prop);
-  for(int idir=0;idir<3;idir++) appretto_free(edm_prop[idir]);
-  for(int r=0;r<2;r++) appretto_free(reco_solution[r]);
+  nissa_free(inv_source);
+  nissa_free(ch_prop);
+  for(int idir=0;idir<3;idir++) nissa_free(edm_prop[idir]);
+  for(int r=0;r<2;r++) nissa_free(reco_solution[r]);
 
-  close_appretto();
+  close_nissa();
 }
 
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   if(narg<2) crash("Use: %s input_file",arg[0]);
 

@@ -61,7 +61,7 @@ source |------>---->----->---->| sink
 #include <mpi.h>
 #include <lemon.h>
 
-#include "appretto.h"
+#include "nissa.h"
 
 
 
@@ -361,7 +361,7 @@ int main(int narg,char **arg)
  double tic,tic1,tac,tac1;
 
   //Basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   if(narg<2 && rank==0)
       {
@@ -377,8 +377,9 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////////////////
 
   //Read the volume
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int L,T;
+  read_str_int("L",&L,);
+  read_str_int("T",&T);
 
   //Read the time location of the source
   int twall;
@@ -387,7 +388,7 @@ int main(int narg,char **arg)
   //Read the number of propagators of the first list
   int nprop_list1;
   read_str_int("NPropFirstlist",&nprop_list1);
-  if(rank==0) printf("Nprop of the first list: %d\n",nprop_list1);
+  master_printf("Nprop of the first list: %d\n",nprop_list1);
 
   //Read the name, mass, theta and other flags for the first list
   char **base_filename1=(char**)malloc(sizeof(char*)*nprop_list1);
@@ -441,7 +442,7 @@ int main(int narg,char **arg)
   //Read the number of propagators of the third list
   int nprop_list3;
   read_str_int("NPropThirdlist",&nprop_list3);
-  if(rank==0) printf("Nprop of the third list: %d\n",nprop_list3);
+  master_printf("Nprop of the third list: %d\n",nprop_list3);
 
   //Read the name, mass, theta and other flags for the third list
   char **base_filename3=(char**)malloc(sizeof(char*)*nprop_list3);
@@ -576,7 +577,7 @@ int main(int narg,char **arg)
   close_input();
 
   //Init the MPI grid 
-  init_grid();
+  init_grid(T,L);
   
   //Calculate the number of blocks for the first list
   int nprop_per_block=compute_allocable_propagators_list(nprop_list1);
@@ -999,7 +1000,7 @@ int main(int narg,char **arg)
   free(op);
   */
 
-  close_appretto();
+  close_nissa();
 
   return 0;
 }

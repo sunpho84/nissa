@@ -1,4 +1,4 @@
-#include "appretto.h"
+#include "nissa.h"
 
 typedef spinspin sss[4];
 typedef sss ssss[4];
@@ -118,15 +118,16 @@ void initialize_nucleons(char *input_path)
   open_input(input_path);
 
   // 1) Information about the gauge conf
-  
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
   //Init the MPI grid 
-  init_grid();
+  init_grid(T,L);
   //Allocate the gauge Conf
-  conf=appretto_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  smea_conf=appretto_malloc("smea_conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  Pmunu=appretto_malloc("Pmunu",loc_vol,as2t_su3);
+  conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  smea_conf=nissa_malloc("smea_conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
   //Read the gauge conf
   read_str_int("NGaugeConf",&nconf);
   conf_path=(char**)malloc(sizeof(char*)*nconf);
@@ -206,10 +207,10 @@ void initialize_nucleons(char *input_path)
   
   ///////////////////// Allocate the various spinors ///////////////////////
   
-  original_source=appretto_malloc("original_source",loc_vol,su3spinspin);
+  original_source=nissa_malloc("original_source",loc_vol,su3spinspin);
   
-  source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
-  temp_source=appretto_malloc("temp_source",loc_vol+loc_bord,spincolor);
+  source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  temp_source=nissa_malloc("temp_source",loc_vol+loc_bord,spincolor);
   
   //S0 and similars
   solDD=(spincolor**)malloc(sizeof(spincolor*)*nmass);
@@ -217,26 +218,26 @@ void initialize_nucleons(char *input_path)
   S0_SS=(su3spinspin***)malloc(sizeof(su3spinspin**)*nmass);
   for(int imass=0;imass<nmass;imass++)
     {
-      solDD[imass]=appretto_malloc("solDD",loc_vol+loc_bord,spincolor);
+      solDD[imass]=nissa_malloc("solDD",loc_vol+loc_bord,spincolor);
       
       //smearead-local spinor
       S0_SL[imass]=(su3spinspin**)malloc(sizeof(su3spinspin*)*2);
-      S0_SL[imass][0]=appretto_malloc("S0_SL[X][0]",loc_vol,su3spinspin);
-      S0_SL[imass][1]=appretto_malloc("S0_SL[X][1]",loc_vol,su3spinspin);
+      S0_SL[imass][0]=nissa_malloc("S0_SL[X][0]",loc_vol,su3spinspin);
+      S0_SL[imass][1]=nissa_malloc("S0_SL[X][1]",loc_vol,su3spinspin);
       
       //smeared-smeared
       S0_SS[imass]=(su3spinspin**)malloc(sizeof(su3spinspin*)*2);
-      S0_SS[imass][0]=appretto_malloc("S0_SS[X][0]",loc_vol,su3spinspin);
-      S0_SS[imass][1]=appretto_malloc("S0_SS[X][1]",loc_vol,su3spinspin);
+      S0_SS[imass][0]=nissa_malloc("S0_SS[X][0]",loc_vol,su3spinspin);
+      S0_SS[imass][1]=nissa_malloc("S0_SS[X][1]",loc_vol,su3spinspin);
     }
   
-  sol_reco[0]=appretto_malloc("solution_reco[0]",loc_vol,spincolor);
-  sol_reco[1]=appretto_malloc("solution_reco[1]",loc_vol,spincolor);
+  sol_reco[0]=nissa_malloc("solution_reco[0]",loc_vol,spincolor);
+  sol_reco[1]=nissa_malloc("solution_reco[1]",loc_vol,spincolor);
   
-  seq_source=appretto_malloc("seqential_source",loc_vol,su3spinspin);
+  seq_source=nissa_malloc("seqential_source",loc_vol,su3spinspin);
   
   S1=(su3spinspin**)malloc(nmass*sizeof(su3spinspin*));
-  for(int imass=0;imass<nmass;imass++) S1[imass]=appretto_malloc("S1",loc_vol,su3spinspin);
+  for(int imass=0;imass<nmass;imass++) S1[imass]=nissa_malloc("S1",loc_vol,su3spinspin);
 }
 
 //read a configuration and put anti-periodic condition at the slice tsource-1
@@ -865,7 +866,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 {
   int ncontr;
   FILE *fout=open_text_file_for_output(path);
-  su3spinspin *supp_S=appretto_malloc("suppS",loc_vol,su3spinspin);
+  su3spinspin *supp_S=nissa_malloc("suppS",loc_vol,su3spinspin);
   
   tcontr_3pt-=take_time();
   
@@ -957,30 +958,30 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 
   free(loc_contr);
   free(glb_contr);
-  appretto_free(supp_S);
+  nissa_free(supp_S);
 }
 
 void close_nucleons()
 {
-  appretto_free(conf);appretto_free(smea_conf);appretto_free(Pmunu);
-  appretto_free(original_source);appretto_free(source);
-  appretto_free(temp_source);appretto_free(seq_source);
+  nissa_free(conf);nissa_free(smea_conf);nissa_free(Pmunu);
+  nissa_free(original_source);nissa_free(source);
+  nissa_free(temp_source);nissa_free(seq_source);
   for(int imass=0;imass<nmass;imass++)
     {
-      appretto_free(solDD[imass]);
-      appretto_free(S0_SL[imass][0]);appretto_free(S0_SL[imass][1]);
-      appretto_free(S0_SS[imass][0]);appretto_free(S0_SS[imass][1]);
-      appretto_free(S1[imass]);
+      nissa_free(solDD[imass]);
+      nissa_free(S0_SL[imass][0]);nissa_free(S0_SL[imass][1]);
+      nissa_free(S0_SS[imass][0]);nissa_free(S0_SS[imass][1]);
+      nissa_free(S1[imass]);
     }
-  appretto_free(sol_reco[0]);appretto_free(sol_reco[1]);
+  nissa_free(sol_reco[0]);nissa_free(sol_reco[1]);
   
-  close_appretto();
+  close_nissa();
 }
 
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   tot_time-=take_time();
 
