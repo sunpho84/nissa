@@ -1,48 +1,39 @@
-#include "appretto.h"
+#include "nissa.h"
 
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_appretto();
+  init_nissa();
 
-  if(narg<2 && rank==0)
-    {
-      fprintf(stderr,"Use: %s input_file\n",arg[0]);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  if(narg<2) crash("Use: %s input_file",arg[0]);
 
   open_input(arg[1]);
 
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
-
+  //Init the MPI grid 
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
+  init_grid(T,L);
+  //masses
   int nmass;
   read_str_int("NMass",&(nmass));
-
   double m[nmass];
-  double kappa;
   read_str_double("masses",&(m[0]));
   for(int imass=1;imass<nmass;imass++) read_double(&(m[imass]));
-
+  //kappa
+  double kappa;
   read_str_double("kappa",&(kappa));
-
-  //Init the MPI grid 
-  init_grid();
-
   //Initialize the gauge configuration and read the path
-  quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord));
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
   char gauge_file[1024];
   read_str_str("GaugeConf",gauge_file,1024);
-  
   //read the thetas in multiples of 2*pi
   double theta[4];
   read_str_double("ThetaTXYZ",&(theta[0]));
   read_double(&(theta[1]));
   read_double(&(theta[2]));
   read_double(&(theta[3]));
-  if(rank==0)
-    printf("Thetas: %f %f %f %f\n",theta[0],theta[1],theta[2],theta[3]);
+  master_printf("Thetas: %f %f %f %f\n",theta[0],theta[1],theta[2],theta[3]);
 
   //load the configuration, put boundaries condition and communicate borders
   read_gauge_conf(conf,gauge_file);
@@ -56,8 +47,8 @@ int main(int narg,char **arg)
   //initialize solution
   spincolor *solution[nmass];
   
-  for(int imass=0;imass<nmass;imass++) solution[imass]=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-
+  for(int imass=0;imass<nmass;imass++) solution[imass]=nissa_malloc("solution",loc_vol+loc_bord,spincolor);
+  
   double residue,minimal_residue;
   read_str_double("Residue",&residue);
   int stopping_criterion=numb_known_stopping_criterion;
@@ -91,7 +82,7 @@ int main(int narg,char **arg)
 
   for(int isource=0;isource<nsource;isource++)
     {
-      printf("Source #%d\n",isource);
+      master_printf("Source #%d\n",isource);
 
       read_str_str("Source",source_file,1024);
       read_spincolor(source,source_file);
@@ -110,35 +101,15 @@ int main(int narg,char **arg)
       ///////////////////////////////////////////
       
       //take initial time                                                                                                        
-      double tic;
-      MPI_Barrier(cart_comm);
-      tic=MPI_Wtime();
+      double tinv=-take_time;
       inv_Q2_cgmms(solution,source,NULL,conf,kappa,m,nmass,nitermax,residue,minimal_residue,stopping_criterion);
+      tinv+=take_time();
       
-      MPI_Barrier(cart_comm);
-      double tac=MPI_Wtime();
-      if(rank==0)
-	printf("\nTotal time elapsed: %f s\n",tac-tic);
+      master_printf("\nTotal time elapsed: %f s\n",tinv);
       
       for(int imass=0;imass<nmass;imass++)
 	{
 	  apply_Q2(source_reco,solution[imass],conf,kappa,m[imass],NULL,NULL,NULL);
-	  
-	  //printing
-	  double truered,loc_truered=0;
-	  for(int loc_site=0;loc_site<loc_vol;loc_site++)
-	    for(int id=0;id<4;id++)
-	      for(int ic=0;ic<3;ic++)
-		{
-		  double tempr=source[loc_site][id][ic][0]-source_reco[loc_site][id][ic][0];
-		  double tempi=source[loc_site][id][ic][1]-source_reco[loc_site][id][ic][1];
-		  loc_truered+=tempr*tempr+tempi*tempi;
-		}
-	  
-	  if(rank_tot>0) MPI_Allreduce(&loc_truered,&truered,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);                                 
-	  else truered=loc_truered;
-	  
-	  if(rank==0) printf("Residue for mass %d: %g\n",imass,truered);
 	  
 	  for(int ud=0;ud<2;ud++)
 	    {
@@ -156,15 +127,15 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  for(int imass=0;imass<nmass;imass++) free(solution[imass]);
-  free(source);
-  free(source_reco);
+  for(int imass=0;imass<nmass;imass++) nissa_free(solution[imass]);
+  nissa_free(source);
+  nissa_free(source_reco);
 
-  free(conf);
+  nissa_free(conf);
   
   ///////////////////////////////////////////
   
-  close_appretto();
+  close_nissa();
   
   return 0;
 }

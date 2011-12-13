@@ -1,4 +1,4 @@
-#include "appretto.h"
+#include "nissa.h"
 
 #define rad2 1.414213562373095048801688724209
 
@@ -248,7 +248,7 @@ void apply_DOE_or_DEO(spincolor *out,spincolor *in,su3 *reord_U[2][2],int eo_or_
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   if(narg<3 && rank==0)
     {
@@ -257,11 +257,11 @@ int main(int narg,char **arg)
       MPI_Abort(MPI_COMM_WORLD,1);
     }
 
-  glb_size[1]=atoi(arg[1]);
-  glb_size[0]=atoi(arg[2]);
+  int L=atoi(arg[1]);
+  int T=atoi(arg[2]);
 
   //Init the MPI grid 
-  init_grid();
+  init_grid(L,T);
   init_random(0);
 
   ///////////////////////////////////////////
@@ -285,7 +285,7 @@ int main(int narg,char **arg)
   
   //////////////////////////////////////////
 
-  close_appretto();
+  close_nissa();
 
   return 0;
 }

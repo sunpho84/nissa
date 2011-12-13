@@ -1,4 +1,4 @@
-#include "appretto.h"
+#include "nissa.h"
 
 const double rad2=1.414213562373095048801688724209;
 
@@ -30,7 +30,7 @@ int main(int narg,char **arg)
   char filename[1024];
 
   //basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   if(narg<2 && rank==0)
     {
@@ -41,17 +41,18 @@ int main(int narg,char **arg)
 
   open_input(arg[1]);
 
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
+  //Init the MPI grid 
+  init_grid(T,L);
+
   read_str_int("Seed",&seed);
   read_str_double("Kappa",&kappa);
   read_str_double("Mass",&mass);
   read_str_str("Filename",filename,1024);
   
   close_input();
-
-  //Init the MPI grid 
-  init_grid();
 
   //Initialize the random generator
   init_random(seed);

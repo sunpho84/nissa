@@ -1,4 +1,4 @@
-#include "appretto.h"
+#include "nissa.h"
 
 const int debug_lvl3=0;
 
@@ -125,15 +125,15 @@ void Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,int parity)
 
 void direct_invert(spincolor *solution,spincolor *source,double mu,double kappa)
 {
-  spincolor *temp_source=appretto_malloc("temp_source",loc_vol,spincolor);
-  spincolor *solutionQ2=appretto_malloc("solutionQ2",loc_vol,spincolor);
+  spincolor *temp_source=nissa_malloc("temp_source",loc_vol,spincolor);
+  spincolor *solutionQ2=nissa_malloc("solutionQ2",loc_vol,spincolor);
 
   gamma5(temp_source,source);
   inv_Q2_cg(solutionQ2,temp_source,NULL,conf,kappa,mu,nitermax,1,residue);
   apply_Q(solution,solutionQ2,conf,kappa,-mu);
 
-  appretto_free(temp_source);
-  appretto_free(solutionQ2);
+  nissa_free(temp_source);
+  nissa_free(solutionQ2);
 }
 
 void dir_inv_Dee_Doo(spincolor *out,spincolor *in,double mu,double kappa,int parity,int dir_inv)
@@ -179,7 +179,7 @@ void Deo(spincolor *out,spincolor *in,quad_su3*conf){Doe_or_Deo(out,in,conf,1);}
 
 void K(spincolor *out,spincolor *in,quad_su3* conf,double mu,double kappa)
 {
-  spincolor *temp=appretto_malloc("temp",loc_vol,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
 
   Deo(out,in,conf);
   inv_Dee(temp,out,mu,kappa);
@@ -196,17 +196,17 @@ void K(spincolor *out,spincolor *in,quad_su3* conf,double mu,double kappa)
 
   gamma5(out,out);
   
-  appretto_free(temp);
+  nissa_free(temp);
 }
 
 void K2(spincolor *out,spincolor *in,quad_su3 *conf,double mu,double kappa)
 {
   memset(out,0,sizeof(spincolor)*loc_vol);
   
-  spincolor *temp=appretto_malloc("temp",loc_vol,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
   K(temp,in,conf,-mu,kappa);
   K(out,temp,conf,+mu,kappa);
-  appretto_free(temp);
+  nissa_free(temp);
 }
 
 void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
@@ -215,9 +215,9 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
   int riter=0;
   int rniter=5;
   spincolor *guess=NULL;
-  spincolor *p=appretto_malloc("p",loc_vol+loc_bord,spincolor);
-  spincolor *r=appretto_malloc("r",loc_vol,spincolor);
-  spincolor *s=appretto_malloc("s",loc_vol,spincolor);
+  spincolor *p=nissa_malloc("p",loc_vol+loc_bord,spincolor);
+  spincolor *r=nissa_malloc("r",loc_vol,spincolor);
+  spincolor *s=nissa_malloc("s",loc_vol,spincolor);
   
   ///////////////// prepare the internal source /////////////////
   
@@ -337,19 +337,19 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
   K(s,sol,conf,-mu,kappa);
   memcpy(sol,s,sizeof(spincolor)*loc_vol);
   
-  appretto_free(s);
-  appretto_free(p);
-  appretto_free(r);
+  nissa_free(s);
+  nissa_free(p);
+  nissa_free(r);
 }
 
 void improved_invert(spincolor *solution,spincolor *chi,double mu,double kappa)
 {
-  spincolor *varphi=appretto_malloc("varphi",loc_vol,spincolor);
+  spincolor *varphi=nissa_malloc("varphi",loc_vol,spincolor);
 
-  spincolor *temp=appretto_malloc("temp",loc_vol,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
   inv_Dee(temp,chi,mu,kappa);
   Doe(varphi,temp,conf);
-  appretto_free(temp);
+  nissa_free(temp);
   
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(loclx_parity[ivol]==1)
@@ -372,25 +372,26 @@ void improved_invert(spincolor *solution,spincolor *chi,double mu,double kappa)
 	    varphi[ivol][id][ic][ri]=chi[ivol][id][ic][ri]-varphi[ivol][id][ic][ri];
   inv_Dee(solution,varphi,mu,kappa);
 
-  appretto_free(varphi);
+  nissa_free(varphi);
 }
 
 void init(char *input_path,double *mu,double *kappa)
 {
   open_input(input_path);
 
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
 
-  read_str_double("m",mu);
-  read_str_double("kappa",kappa);
+  read_str_double("m",&mu);
+  read_str_double("kappa",&kappa);
   
   //Init the MPI grid 
-  init_grid();
+  init_grid(T,L);
   set_eo_geometry();
   
   //Initialize the gauge configuration and read the path
-  conf=appretto_malloc("conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
   char gauge_file[1024];
   read_str_str("GaugeConf",gauge_file,1024);
   
@@ -409,7 +410,7 @@ void init(char *input_path,double *mu,double *kappa)
   communicate_gauge_borders(conf);
 
   //initialize source to delta
-  glb_source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
+  glb_source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
   memset(glb_source,0,sizeof(spincolor)*loc_vol);
   if(rank==0)
     {
@@ -430,7 +431,7 @@ int main(int narg,char **arg)
   double kappa;
   
   //basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   if(narg<2 && rank==0)
     {
@@ -442,8 +443,8 @@ int main(int narg,char **arg)
   init(arg[1],&mu,&kappa);
 
   //initialize solution
-  spincolor *solution_direct=appretto_malloc("direct_sol",loc_vol+loc_bord,spincolor);
-  spincolor *solution_improved=appretto_malloc("direct_sol",loc_vol+loc_bord,spincolor);
+  spincolor *solution_direct=nissa_malloc("direct_sol",loc_vol+loc_bord,spincolor);
+  spincolor *solution_improved=nissa_malloc("direct_sol",loc_vol+loc_bord,spincolor);
   
   ///////////////////////////////////////////
   
@@ -458,15 +459,15 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
 
-  appretto_free(solution_direct);
-  appretto_free(solution_improved);
-  appretto_free(glb_source);
+  nissa_free(solution_direct);
+  nissa_free(solution_improved);
+  nissa_free(glb_source);
   
-  appretto_free(conf);
+  nissa_free(conf);
 
   ///////////////////////////////////////////
 
-  close_appretto();
+  close_nissa();
 
   return 0;
 }

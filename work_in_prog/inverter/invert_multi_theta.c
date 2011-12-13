@@ -1,21 +1,17 @@
-#include "appretto.h"
+#include "nissa.h"
 
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_appretto();
+  init_nissa();
 
-  if(narg<2 && rank==0)
-    {
-      fprintf(stderr,"Use: %s input_file\n",arg[0]);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  if(narg<2) crash("Use: %s input_file",arg[0]);
 
   open_input(arg[1]);
 
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
 
   double m;
   double kappa;
@@ -23,7 +19,7 @@ int main(int narg,char **arg)
   read_str_double("kappa",&(kappa));
 
   //Init the MPI grid 
-  init_grid();
+  init_grid(T,L);
 
   //Initialize the gauge configuration and read the path
   quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord));
@@ -134,7 +130,7 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
-  close_appretto();
+  close_nissa();
 
   return 0;
 }
