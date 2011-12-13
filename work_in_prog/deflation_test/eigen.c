@@ -1,4 +1,4 @@
-#include "appretto.h"
+#include "nissa.h"
 
 int seed;
 char conf_path[1024];
@@ -89,18 +89,19 @@ void init_program(char *path)
 {
   open_input(path);
   
-  //Init the MPI grid 
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));  
-  init_grid();
+  //init the MPI grid 
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
+  init_grid(T,L);
 
-  //Initialize the random generator
+  //initialize the random generator
   read_str_int("Seed",&seed);
   start_loc_rnd_gen(seed);
 
-  //Load the gauge conf
+  //load the gauge conf
   read_str_str("GaugeConfPath",conf_path,1024);
-  conf=appretto_malloc("Conf",loc_vol,quad_su3);
+  conf=nissa_malloc("Conf",loc_vol,quad_su3);
   read_gauge_conf(conf,conf_path);
 
   //load kappa, mu and preciison
@@ -115,12 +116,12 @@ double find_min_eigen(quad_su3 *conf,double kappa,spincolor *source,double mu,do
 {
   double eig_max;
   
-  spincolor *source=appretto_malloc("source",loc_vol+loc_bord,spincolor);
+  spincolor *source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
   generate_undiluted_source(source,RND_Z4,-1);
   vol_spincolor_normalize(source,source);
   
-  spincolor *temp=appretto_malloc("temp",loc_vol+loc_bord,spincolor);
-  spincolor *result=appretto_malloc("result",loc_vol+loc_bord,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);
+  spincolor *result=nissa_malloc("result",loc_vol+loc_bord,spincolor);
   
   int niter=0;
   double diff=precision;
@@ -163,14 +164,14 @@ double find_min_eigen(quad_su3 *conf,double kappa,spincolor *source,double mu,do
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_appretto();
+  init_nissa();
   
   if(narg<2) crash("Use: %s input_file\n",arg[0]);
 
   init_program(arg[1]);
 
-  spincolor *eigenvect=appretto_malloc("EigenVect",loc_vol+loc_bord,spincolor);
-  spincolor *source=appretto_malloc("Source",loc_vol+loc_bord,spincolor);
+  spincolor *eigenvect=nissa_malloc("EigenVect",loc_vol+loc_bord,spincolor);
+  spincolor *source=nissa_malloc("Source",loc_vol+loc_bord,spincolor);
   
   ///////////////////////////////////////////
   
@@ -179,10 +180,10 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  appretto_free(eigenvect);
-  appretto_free(source);
+  nissa_free(eigenvect);
+  nissa_free(source);
   
-  close_appretto();
+  close_nissa();
   
   return 0;
 }

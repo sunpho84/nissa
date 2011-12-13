@@ -1,9 +1,9 @@
-#include "appretto.h"
+#include "nissa.h"
 
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_appretto();
+  init_nissa();
 
   if(narg<2 && rank==0)
     {
@@ -15,14 +15,15 @@ int main(int narg,char **arg)
   open_input(arg[1]);
 
   char filename[1024];
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int T,L;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
   read_str_str("Filename",filename,1024);
   
   close_input();
 
   //Init the MPI grid 
-  init_grid();
+  init_grid(T,L);
 
   ///////////////////////////////////////////
 
@@ -32,7 +33,7 @@ int main(int narg,char **arg)
 
   test_gaugeconf_compression(conf,loc_vol);
   
-  close_appretto();
+  close_nissa();
 
   return 0;
 }

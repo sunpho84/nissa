@@ -1,4 +1,4 @@
-#include "appretto.h"
+#include "nissa.h"
 
 void color_print(color i)
 {
@@ -195,16 +195,16 @@ void reconstruct_su3(su3 U,color eival,su3 eivec)
 
 int main(int narg,char **arg)
 {
-  init_appretto();
+  init_nissa();
   
   //set the lattice grid
-  glb_size[0]=8;
-  glb_size[1]=4;
+  int T=8;
+  int L=4;
   
   //init the grid
-  init_grid();
+  init_grid(T,L);
 
-  quad_su3 *conf=appretto_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
   
   //read conf, compute plaquette, print it
   read_gauge_conf(conf,"../../data/L4T8conf");
@@ -219,9 +219,9 @@ int main(int narg,char **arg)
   su3_print(U);
   su3_print(conf[0][0]);
   
-  appretto_free(conf);
+  nissa_free(conf);
   
-  close_appretto();
+  close_nissa();
   
   return 0;
 }

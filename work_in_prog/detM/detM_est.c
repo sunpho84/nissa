@@ -1,4 +1,4 @@
-#include "appretto.h"
+#include "nissa.h"
 const double rad2=1.414213562373095048801688724209;
 
 void apply_D(spincolor *out,quad_su3 *conf,spincolor *in,double div)
@@ -131,26 +131,22 @@ int main(int narg,char **arg)
   char filename[1024];
 
   //basic mpi initialization
-  init_appretto();
-
-  if(narg<2 && rank==0)
-    {
-      fprintf(stderr,"Use: %s input_file\n",arg[0]);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
-
+  init_nissa();
+  
+  if(narg<2) crash("Use: %s input_file",arg[0]);
+  
   open_input(arg[1]);
 
-  read_str_int("L",&(glb_size[1]));
-  read_str_int("T",&(glb_size[0]));
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
+  //init the MPI grid 
+  init_grid(T,L);
+
   read_str_int("Seed",&seed);
   read_str_str("Filename",filename,1024);
   
   close_input();
-
-  //Init the MPI grid 
-  init_grid();
 
   //Initialize the random generator
   init_random(seed);
