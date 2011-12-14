@@ -25,6 +25,7 @@ int main()
   load_all_ensembles_MZ(aM,Z,nens,T,ibeta,nlights,nmass,base_MZ_path,obs_name,ens_name,base_corrs_path,mode);
   
   //compute f
+  bvec M[nens];
   bvec f[nens];
   bvec phi[nens];
   bvec x[nens];
@@ -34,8 +35,9 @@ int main()
       
       if(string(obs_name)==string("P5P5"))
 	{
+	  M[iens]=aM[iens]/lat[b];
 	  f[iens]=sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b];
-	  phi[iens]=f[iens]*sqrt(aM[iens]/lat[b]);
+	  phi[iens]=f[iens]*sqrt(M[iens]);
 	  int lim1;
 	  if(mode==0) lim1=nmass[iens];
 	  else lim1=nlights[iens];
@@ -45,15 +47,16 @@ int main()
 		int ic=icombo(ims,imc,nmass[iens],nlights[iens],mode);
 		f[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
 		phi[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
-		if(meson_name[0]=='D') x[iens]=phi[iens];
-		else x[iens]=f[iens];
+		cout<<iens<<" ens, ic="<<ic<<", il="<<mass[iens][ims]<<", ih="<<mass[iens][imc]<<", Z="<<Z[iens][ic]<<", M="<<M[iens][ic]<<endl;
 	      }
+	  if(meson_name[0]=='D') x[iens]=phi[iens];
+	  else x[iens]=f[iens];
 	}
       
       if(string(obs_name)==string("VKVK"))
 	{
 	  x[iens]=f[iens]=Za[b]*sqrt(Z[iens])/aM[iens]/lat[b];
-	  if(meson_name[0]=='D') x[iens]*=sqrt(aM[iens]/lat[b]);
+	  x[iens]*=sqrt(aM[iens]/lat[b]);
 	}
     }
   
@@ -75,7 +78,7 @@ int main()
       cout<<iens<<" "<<ibeta[iens]<<" "<<mass[iens][iml_un[iens]]<<" "<<fint.data[iens]<<endl;
     }
   
-  if(string(meson_name)==string("K") || ( meson_name[0]=='D' && string(obs_name)==string("VKVK"))) fint.write_to_binfile(combine("interpolated_f_%s",meson_name).c_str());
+  if(string(meson_name)==string("K")) fint.write_to_binfile(combine("interpolated_f_%s",meson_name).c_str());
   else
     if(string(meson_name)==string("Pi")) fint.write_to_binfile(combine("f_%s",meson_name).c_str());
     else fint.write_to_binfile(combine("interpolated_phi_%s",meson_name).c_str());

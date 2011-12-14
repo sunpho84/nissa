@@ -102,7 +102,8 @@ double tot_contr_3pts_time=0;
 int nspec;
 
 //return the index of the prop
-int iS(int iwall,int sm_lv,int imass,int r) {return r+2*(imass+nmass*(sm_lv+so_jnlv*iwall));}
+int iS(int iwall,int sm_lv,int imass,int r)
+{return r+2*(imass+nmass*(sm_lv+so_jnlv*iwall));}
 
 //generate the source 
 void generate_source(int iwall)
@@ -492,7 +493,7 @@ void calculate_all_contractions()
   
   tot_contr_3pts_time+=take_time();
   
-  ///////////////two points////////////
+  ///////////////two points///////////////
   
   tot_contr_2pts_time-=take_time();
   
