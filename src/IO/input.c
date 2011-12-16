@@ -2,6 +2,21 @@
 
 FILE *input_global;
 
+void file_touch(const char *path)
+{
+  if(rank==0)
+    {
+      FILE *f=fopen(path,"w");
+      if(f!=NULL)
+        {
+	  master_printf("File %s created\n",path);
+          fclose(f);
+	}
+      else
+	  crash("Unable to touch file: %s\n",path);
+    }
+}
+
 int file_exists(const char *path)
 {
   int status=1;

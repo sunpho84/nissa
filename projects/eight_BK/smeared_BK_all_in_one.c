@@ -242,7 +242,7 @@ void initialize_Bk(int narg,char **arg)
 }
 
 //find a not yet analized conf
-int find_next_conf()
+int find_next_conf(char *check_path)
 {
   int conf_found=0;
   
@@ -259,7 +259,6 @@ int find_next_conf()
       read_str(basepath_2pts,1024);
       
       //Check wether the config is analized or not by searching for outputs
-      char check_path[1024];
       sprintf(check_path,"%s_%02d_%02d",basepath_bag,so_jnit[0],so_jnit[0]);
       master_printf("\nChecking \"%s\".\n",conf_path);
       if(file_exists(check_path))
@@ -267,8 +266,8 @@ int find_next_conf()
 	  conf_found=0;
 	  master_printf("\nConfiguration \"%s\" already analized.\n",conf_path);
 	}
-      else conf_found=1;
-      
+      else
+	  conf_found=1;
       igauge_conf++;
     }
   while(conf_found==0 && igauge_conf<ngauge_conf);
@@ -606,8 +605,12 @@ int main(int narg,char **arg)
   //Loop over configurations
 
   //Find if there is another conf to analize and time to analize it
-  while(find_next_conf() && check_residual_time())
+  char check_path[1024];
+  while(find_next_conf(check_path) && check_residual_time())
     {
+      //take the conf
+      file_touch(check_path);
+
       //Load the gauge conf
       load_gauge_conf();
       
