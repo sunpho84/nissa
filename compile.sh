@@ -21,12 +21,12 @@ fi
 
 comp()
 {
-    $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -lm -llemon -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -llime -L$LIME_PATH/lib/ -I$LIME_PATH/include/ -D SVN_VERS=\"$SVN_VERS\"
+    $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -lm -llemon -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -llime -L$LIME_PATH/lib/ -I$LIME_PATH/include/ -Isrc -D SVN_VERS=\"$SVN_VERS\"
 }
 
 precomp()
 {
-    $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -L$LIME_PATH/lib/ -I$LIME_PATH/include/ -D SVN_VERS=\"$SVN_VERS\"
+    $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -L$LIME_PATH/lib/ -I$LIME_PATH/include/ -Isrc -D SVN_VERS=\"$SVN_VERS\"
 }
 
 recomp_nissa()

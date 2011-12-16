@@ -39,7 +39,6 @@ double tot_time=0,inv_time=0,contr_time=0,fix_time=0;
 double fft_time=0,save_time=0,load_time=0;
 
 //Compute bilinear green function needed for the X space renormalization
-/*
 void Xspace()
 {
   char outfile_X[1024];
@@ -50,12 +49,9 @@ void Xspace()
   if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_X);
   
   complex *green=nissa_malloc("greenX",loc_vol,complex);
-  int radius=min_int(glb_size[0],min_int(glb_size[1],10));
+  int radius=4;
   
-  int iout;
-  
-  int pos=nissa_malloc("pos",loc_vol,int),nloc,ipos=0;
-  complex *loc_buf=nissa_malloc("loc_buf",loc_vol*2*nmass,complex);
+  int iout=0;
   for(int r=0;r<2;r++)
     for(int imass=0;imass<nmass;imass++)
       for(int igamma=0;igamma<16;igamma++)
@@ -71,52 +67,43 @@ void Xspace()
 	  //now the bad moment: bufferize the data
 	  int glb_x[4],loc_x[4],x[4];
 	  for(x[0]=-radius;x[0]<=radius;x[0]++)
-	    {
-	      int radius1=(int)sqrt(radius*radius-x[0]*x[0]+0.5);
-	      for(x[1]=-radius1;x[1]<=radius1;x[1]++)
-		{
-		  int radius2=(int)sqrt(radius1*radius1-x[1]*x[1]+0.5);
-		  for(x[2]=-radius2;x[2]<=radius2;x[2]++)
-		    {
-		      int radius3=(int)(radius2*radius2-x[2]*x[2]+0.5);
-		      for(x[3]=-radius3;x[3]<=radius3;x[3]++)
-			{
-			  int isloc=1;
-			  for(int mu=0;mu<4;mu++)
-			    {
-			      glb_x[mu]=(glb_size[mu]+x[mu])%glb_size[mu];
-			      loc_x[mu]=glb_x[mu]-loc_coord_of_loclx[0][mu];
-			      
-			      isloc&=(loc_x[mu]<loc_size[mu]);
-			    }
-			  
-			  if(isloc)
-			    {
-			      int iloc=loclx_of_coord(loc_x);
-			      if(big_endian)
-				{
-				  complex buf;
-				  doubles_to_doubles_changing_endianess((double*)buf,(double*)(green+iloc),2);
-				  MPI_File_write_at(fout,iout*sizeof(complex),buf,2,MPI_DOUBLE,MPI_STATUS_IGNORE);
-				}
-			      else 
-				MPI_File_write_at(fout,iout*sizeof(complex),green+iloc,2,MPI_DOUBLE,MPI_STATUS_IGNORE);
-			    }
-			  
-			  iout++;
-			}
-		    }
-		}
-	    }
+	    for(x[1]=-radius;x[1]<=radius;x[1]++)
+	      for(x[2]=-radius;x[2]<=radius;x[2]++)
+		for(x[3]=-radius;x[3]<=radius;x[3]++)
+		  {
+		    int isloc=1;
+		    
+		    for(int mu=0;mu<4;mu++)
+		      {
+			glb_x[mu]=(glb_size[mu]+x[mu])%glb_size[mu];
+			loc_x[mu]=glb_x[mu]-proc_coord[mu]*loc_size[mu];
+			
+			isloc&=(loc_x[mu]>=0 && loc_x[mu]<loc_size[mu]);
+		      }
+		    
+		    if(isloc)
+		      {
+			int iloc=loclx_of_coord(loc_x);
+			
+			if(big_endian)
+			  {
+			    complex buf;
+			    doubles_to_doubles_changing_endianess((double*)buf,(double*)(green+iloc),2);
+			    MPI_File_write_at(fout,iout*sizeof(complex),buf,2,MPI_DOUBLE,MPI_STATUS_IGNORE);
+			  }
+			else
+			  MPI_File_write_at(fout,iout*sizeof(complex),green+iloc,2,MPI_DOUBLE,MPI_STATUS_IGNORE);
+		      }
+		    
+		    iout++;
+		  }
 	}
   
   MPI_File_close(&fout);
   
-  nissa_free(loc_buf);
-  nissa_free(loc_pos);
   nissa_free(green);
 }
-*/
+
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 void meson_two_points(complex *corr,int *list_op1,su3spinspin *s1,int *list_op2,su3spinspin *s2,int ncontr)
 {
@@ -535,7 +522,7 @@ int main(int narg,char **arg)
     calculate_S0();
     calculate_all_2pts();
     
-    //Xspace();
+    Xspace();
     
     compute_fft(-1);
     print_momentum_subset();
