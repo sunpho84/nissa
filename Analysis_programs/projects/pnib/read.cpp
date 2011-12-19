@@ -5,7 +5,7 @@
 using namespace std;
 
 int tmin,tmax;
-int T=48,TH=24;
+int T=64,TH=32;
 int njack;
 int nmass=2;
 int nslso,nslsi;

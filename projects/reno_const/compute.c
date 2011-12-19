@@ -479,8 +479,9 @@ void read_conf_parameters(int *iconf)
 	}
 	else
 	    master_printf("Configuration already analized, skipping.\n");
+	(*iconf)++;
     }
-    while(!ok_conf);
+    while(!ok_conf && (*iconf)<ngauge_conf);
 }
 
 int check_remaining_time()
@@ -516,20 +517,23 @@ int main(int narg,char **arg)
   {
     read_conf_parameters(&iconf);
     
-    load_gauge_conf();
-    generate_source();
-    
-    calculate_S0();
-    calculate_all_2pts();
-    
-    Xspace();
-    
-    compute_fft(-1);
-    print_momentum_subset();
-    
-    nanalized_conf++;
-    
-    enough_time=check_remaining_time();
+    if(iconf<ngauge_conf)
+      {    
+	load_gauge_conf();
+	generate_source();
+	
+	calculate_S0();
+	calculate_all_2pts();
+	
+	Xspace();
+	
+	compute_fft(-1);
+	print_momentum_subset();
+	
+	nanalized_conf++;
+	
+	enough_time=check_remaining_time();
+      }
   }
   while(iconf<ngauge_conf && enough_time);
   
