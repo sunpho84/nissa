@@ -167,8 +167,9 @@ VTYPE VTYPE::load_naz(const char *path,int icorr)
   double in[nel][2][N+1];
   
   FILE *fin=open_file(path,"r");
-
-  if(fseeko(fin,(off_t)2*(icorr/2)*sizeof(double)*nel*(N+1),SEEK_SET))
+  
+  int off=(off_t)2*(icorr/2)*sizeof(double)*nel*(N+1);
+  if(fseeko(fin,off,SEEK_SET))
     {
       fprintf(stderr,"Error while searching for correlation %d!\n",icorr);
       exit(1);
@@ -183,7 +184,7 @@ VTYPE VTYPE::load_naz(const char *path,int icorr)
 	}
       else
         {
-	  perror("Error while reading data!\n");
+	  perror("Error while reading data");
 	  exit(1);
 	}
     }
