@@ -7,6 +7,9 @@ void close_nissa()
   //unset lx geometry
   if(nissa_lx_geom_inited) unset_lx_geometry();
   
+  //unset eo geometry
+  if(nissa_eo_geom_inited) unset_eo_geometry();
+  
   //stop the random generator
   if(nissa_loc_rnd_gen_inited) stop_loc_rnd_gen();
   

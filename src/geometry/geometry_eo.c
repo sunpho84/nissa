@@ -1,32 +1,35 @@
 #pragma once
 
-//indexes run as t,x,y,z (faster:z)
+//set the eo geometry
 void set_eo_geometry()
 {
   if(nissa_eo_geom_inited==0)
     {
-      nissa_eo_geom_inited=1;
+      //check that all size are multiples of 2
+      int ok=1;
+      for(int mu=0;mu<4;mu++) ok&=(loc_size[mu]%2==0);
+      if(!ok) crash("local lattice size odd!");
       
       //set the various time-slice types
-      loclx_parity=(int*)malloc(sizeof(int)*(loc_vol+loc_bord));
-      /*
-      loceo_of_loclx=(int*)malloc(sizeof(int)*(loc_vol+loc_bord));
-      loclx_of_loce=(int*)malloc(sizeof(int)*(loc_vol+loc_bord)/2);
-      loclx_of_loco=(int*)malloc(sizeof(int)*(loc_vol+loc_bord)/2);
-      loce_neighup=(int**)malloc(sizeof(int*)*(loc_vol+loc_bord)/2);
-      loce_neighdw=(int**)malloc(sizeof(int*)*(loc_vol+loc_bord)/2);
-      loco_neighup=(int**)malloc(sizeof(int*)*(loc_vol+loc_bord)/2);
-      loco_neighdw=(int**)malloc(sizeof(int*)*(loc_vol+loc_bord)/2);
+      loclx_parity=nissa_malloc("loclx_parity",loc_vol+loc_bord,int);
       
-      for(int loceo=0;loceo<(loc_vol+loc_bord)/2;loceo++)
-	{
-	  loce_neighup[loceo]=(int*)malloc(sizeof(int)*4);
-	  loce_neighdw[loceo]=(int*)malloc(sizeof(int)*4);
-	  loco_neighup[loceo]=(int*)malloc(sizeof(int)*4);
-	  loco_neighdw[loceo]=(int*)malloc(sizeof(int)*4);
-	}
-      */
+      loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+loc_bord,int);
+      loclx_of_loceo[0]=nissa_malloc("loclx_of_loceo",loc_vol+loc_bord,int);
+      loclx_of_loceo[1]=loclx_of_loceo[0]+(loc_vol+loc_bord)/2;
+      loceo_neighup[0]=nissa_malloc("loceo_neighup",loc_vol+loc_bord,int*);
+      loceo_neighdw[0]=nissa_malloc("loceo_neighdw",loc_vol+loc_bord,int*);
+      loceo_neighup[0][0]=nissa_malloc("loceo_neighup[0]",4*(loc_vol+loc_bord),int);
+      loceo_neighdw[0][0]=nissa_malloc("loceo_neighdw[0]",4*(loc_vol+loc_bord),int);
 
+      loceo_neighup[1]=loceo_neighup[0]+(loc_vol+loc_bord)/2;
+      loceo_neighdw[1]=loceo_neighdw[0]+(loc_vol+loc_bord)/2;      
+      for(int eo=0;eo<2;eo++)
+	for(int loceo=1;loceo<(loc_vol+loc_bord)/2;loceo++)
+	  {
+	    loceo_neighup[eo][loceo]=loceo_neighup[eo][loceo-1]+4;
+	    loceo_neighdw[eo][loceo]=loceo_neighdw[eo][loceo-1]+4;
+	  }
+      
       //int iloce=0,iloco=0;
       //Label the bulk sites
       for(int loclx=0;loclx<loc_vol+loc_bord;loclx++)
@@ -92,10 +95,13 @@ void set_eo_geometry()
 	      bord_offset_eo[eo][ibord_dir]++;
 	    }	      
 	}
-      
-      if(rank==0 && debug_lvl) printf("E/O Geometry intialized\n");
       */
+      
+      master_printf("E/O Geometry intialized\n");
+      
+      nissa_eo_geom_inited=1;
     }
+  else crash("E/O Geometry already initialized!");
   
   //if(rank==0) for(int idir=0;idir<8;idir++) printf("%d %d %d\n",idir,bord_offset_eo[0][idir],bord_offset_eo[1][idir]);
 }
@@ -145,3 +151,20 @@ void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Dataty
   for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGE_RECE[iedge]));
 }
 */
+
+void unset_eo_geometry()
+{
+  if(nissa_eo_geom_inited==0) crash("asking to unset never initialized E/O Geometry!");
+
+  master_printf("Unsetting E/O Geometry\n");
+  
+  nissa_free(loceo_neighup[0][0]);
+  nissa_free(loceo_neighdw[0][0]);
+  nissa_free(loclx_of_loceo[0]);
+  nissa_free(loceo_neighup[0]);
+  nissa_free(loceo_neighdw[0]);
+  nissa_free(loclx_parity);
+  nissa_free(loceo_of_loclx);
+  
+  nissa_eo_geom_inited=0;
+}
