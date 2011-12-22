@@ -23,12 +23,9 @@ EXTERN int nissa_lx_geom_inited;
 //-eo is even-odd
 EXTERN int *loclx_parity;
 EXTERN int *loceo_of_loclx;
-EXTERN int *loclx_of_loce;
-EXTERN int *loclx_of_loco;
-EXTERN int **loce_neighup;
-EXTERN int **loce_neighdw;
-EXTERN int **loco_neighup;
-EXTERN int **loco_neighdw;
+EXTERN int *loclx_of_loceo[2];
+EXTERN int **loceo_neighup[2];
+EXTERN int **loceo_neighdw[2];
 EXTERN int loc_volr;
 EXTERN int nissa_eo_geom_inited;
 

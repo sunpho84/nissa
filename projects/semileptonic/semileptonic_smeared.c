@@ -1,10 +1,12 @@
 #include "nissa.h"
 
 //gauge info
+int ngauge_conf,nanalized_conf=0;
 char conf_path[1024];
 quad_su3 *conf,*sme_conf;
 as2t_su3 *Pmunu;
 double kappa;
+char outfolder[1024];
 
 int nmass,ntheta;
 double *mass,*theta;
@@ -37,7 +39,6 @@ int niter_max;
 int ncontr_2pts;
 complex *contr_2pts;
 int *op1_2pts,*op2_2pts;
-char outfile_2pts[1024];
 
 //two points chromo contractions
 int nch_contr_2pts;
@@ -58,7 +59,6 @@ colorspinspin **S1;
 int ncontr_3pts;
 complex *contr_3pts;
 int *op1_3pts,*op2_3pts;
-char outfile_3pts[1024];
 
 //two points chromo contractions
 int nch_contr_3pts;
@@ -67,7 +67,9 @@ int *ch_op1_3pts,*ch_op2_3pts;
 
 //timings
 int ninv_tot=0,ncontr_tot=0;
-double tot_time=0,inv_time=0,contr_time=0;
+int wall_time;
+double tot_time=0,inv_time=0;
+double load_time=0,contr_time=0;
 
 //return the position of the propagator of theta and mass
 int iprop_of(int itheta,int imass){return itheta*nmass+imass;}
@@ -145,8 +147,8 @@ void initialize_semileptonic(char *input_path)
   read_str_int("T",&T);
   //Init the MPI grid 
   init_grid(T,L); 
-  //Gauge path
-  read_str_str("GaugeConfPath",conf_path,1024);
+  //Wall time
+  read_str_int("WallTime",&wall_time);
   //Kappa
   read_str_double("Kappa",&kappa);
   
@@ -155,8 +157,6 @@ void initialize_semileptonic(char *input_path)
   //Read the seed and initialize the random generator
   read_str_int("Seed",&seed);
   start_loc_rnd_gen(seed);
-  //Read the location of the wall
-  read_str_int("TWall",&twall);
   //Read the noise type
   read_str_int("NoiseType",&noise_type);
 
@@ -240,8 +240,6 @@ void initialize_semileptonic(char *input_path)
       if(rank==0 && debug_lvl) printf(" ch-contr.%d %d %d\n",icontr,ch_op1_2pts[icontr],ch_op2_2pts[icontr]);
     }
 
-  read_str_str("OutfileTwoPoints",outfile_2pts,1024);
-
   // 7) three points functions
   
   sequential_source=nissa_malloc("Sequential source",loc_vol,colorspinspin);
@@ -283,35 +281,12 @@ void initialize_semileptonic(char *input_path)
       if(rank==0 && debug_lvl) printf(" ch-contr.%d %d %d\n",icontr,ch_op1_3pts[icontr],ch_op2_3pts[icontr]);
     }
 
-  read_str_str("OutfileThreePoints",outfile_3pts,1024);
-
-  close_input();
-
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf, Pmunu and all the needed spincolor and colorspinspin
   conf=nissa_malloc("or_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   sme_conf=nissa_malloc("sm_conf",loc_vol+loc_bord,quad_su3);
   Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
-
-  //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-  read_gauge_conf(conf,conf_path);
-  communicate_gauge_borders(conf);
-  communicate_gauge_edges(conf);
-  Pmunu_term(Pmunu,conf);
-  //prepare the smerded version and calculate plaquette
-  ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
-  communicate_gauge_borders(conf);
-  communicate_gauge_borders(sme_conf);
-
-  double gplaq=global_plaquette(conf);
-  if(rank==0) printf("plaq: %.18g\n",gplaq);
-  gplaq=global_plaquette(sme_conf);
-  if(rank==0) printf("smerded plaq: %.18g\n",gplaq);
-    
-  //Put the anti-periodic condition on the temporal border
-  put_theta[0]=1;
-  adapt_theta(conf,old_theta,put_theta,1,1);
 
   //Allocate all the S0 colorspinspin vectors
   npropS0=ntheta*nmass;
@@ -342,17 +317,73 @@ void initialize_semileptonic(char *input_path)
   for(int iprop=0;iprop<npropS0;iprop++) S1[iprop]=nissa_malloc("S1[i]",loc_vol,colorspinspin);
 }
 
+//find a new conf
+int read_conf_parameters(int *iconf)
+{
+  int ok_conf;
+
+  do
+    {
+      //Gauge path
+      read_str(conf_path,1024);
+      
+      //Twall
+      read_int(&(twall));
+      
+      //Out folder
+      read_str(outfolder,1024);
+      
+      //Check if the conf exist
+      master_printf("Considering configuration %s\n",conf_path);
+      ok_conf=!(dir_exists(outfolder));
+      if(ok_conf)
+	{
+	  if(rank==0) mkdir(outfolder,S_IRWXU);
+	  master_printf("Configuration not already analized, starting.\n");
+	}
+      else
+	master_printf("Configuration already analized, skipping.\n");
+      (*iconf)++;
+    }
+  while(!ok_conf && (*iconf)<ngauge_conf);
+  
+  if(*iconf==ngauge_conf) master_printf("No more configuration to analize\n");
+  
+  return ok_conf;
+}
+
+//read the conf and setup it
+void setup_conf()
+{
+  //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
+  read_gauge_conf(conf,conf_path);
+  communicate_gauge_borders(conf);
+  communicate_gauge_edges(conf);
+  Pmunu_term(Pmunu,conf);
+  
+  //prepare the smerded version
+  ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
+  communicate_gauge_borders(conf);
+  communicate_gauge_borders(sme_conf);
+  
+  //compute plaquette
+  master_printf("plaq: %.18g\n",global_plaquette(conf));
+  master_printf("smerded plaq: %.18g\n",global_plaquette(sme_conf));
+  
+  //put the anti-periodic condition on the temporal border
+  memset(old_theta,0,4*sizeof(double));
+  put_theta[0]=1;
+  adapt_theta(conf,old_theta,put_theta,1,1);
+}
+
 //Finalization
 void close_semileptonic()
 {
-  if(rank==0)
-    {
-      printf("\n");
-      printf("Total time: %g, of which:\n",tot_time);
-      printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
-      printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
-    }
-
+  master_printf("\n");
+  master_printf("Total time: %g, of which:\n",tot_time);
+  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
+  master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+  
   nissa_free(Pmunu);nissa_free(conf);nissa_free(sme_conf);
   for(int iprop=0;iprop<npropS0;iprop++){nissa_free(S0[0][iprop]);nissa_free(S0[1][iprop]);nissa_free(S1[iprop]);}
   nissa_free(S0[0]);nissa_free(S0[1]);nissa_free(S1);
@@ -481,7 +512,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
       smear_additive_colorspinspin(S0[r][iprop],S0[r][iprop],ism_lev_si,jacobi_niter_si);
   
   char path[1024];
-  sprintf(path,"%s_%02d_%02d",outfile_2pts,jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
+  sprintf(path,"%s/2pts_%02d_%02d",outfolder,jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
   FILE *fout=open_text_file_for_output(path);
 
   contr_time-=take_time();
@@ -527,7 +558,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 {
   char path[1024];
   
-  sprintf(path,"%s_sp%d_%02d_%02d",outfile_3pts,ispec,jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
+  sprintf(path,"%s/3pts_sp%d_%02d_%02d",outfolder,ispec,jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
 
   FILE *fout=open_text_file_for_output(path);
  
@@ -571,7 +602,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
 {
   char path[1024];
-  sprintf(path,"2pts_check_sp%d_%02d_%02d",ispec,jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
+  sprintf(path,"%s/2pts_check_sp%d_%02d_%02d",outfolder,ispec,jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
   FILE *fout=open_text_file_for_output(path);
   int spat_vol=glb_size[1]*glb_size[2]*glb_size[3];
 
@@ -598,6 +629,25 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
   if(rank==0) fclose(fout);
 }
 
+//check if the time is enough
+int check_remaining_time()
+{
+  int enough_time;
+
+  //check remaining time                                                                                                                                                                        
+  double temp_time=take_time()+tot_time;
+  double ave_time=temp_time/nanalized_conf;
+  double left_time=wall_time-temp_time;
+  enough_time=left_time>(ave_time*1.1);
+
+  master_printf("Remaining time: %lg sec\n",left_time);
+  master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+  if(enough_time) master_printf("Continuing!\n");
+  else master_printf("Not enough time, exiting!\n");
+  
+  return enough_time;
+}
+
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
@@ -608,27 +658,39 @@ int main(int narg,char **arg)
   tot_time-=take_time();
   initialize_semileptonic(arg[1]);
   
-  generate_source();
-  
-  for(int sm_lev_so=0;sm_lev_so<nsm_lev_so;sm_lev_so++)
+  int iconf=0,enough_time=1;
+  while(iconf<ngauge_conf && enough_time && read_conf_parameters(&iconf))
     {
-      calculate_S0(sm_lev_so);
+      generate_source();
       
-      for(int ispec=0;ispec<nspec;ispec++)
+      //loop on smearing of the source
+      for(int sm_lev_so=0;sm_lev_so<nsm_lev_so;sm_lev_so++)
 	{
-	  generate_sequential_source(ispec);
-
-	  for(int sm_lev_se=0;sm_lev_se<nsm_lev_se;sm_lev_se++)
+	  calculate_S0(sm_lev_so);
+	  
+	  //loop on spectator
+	  for(int ispec=0;ispec<nspec;ispec++)
 	    {
-	      calculate_S1(ispec,sm_lev_se);
-	      check_two_points(ispec,sm_lev_so,sm_lev_se);
-	      calculate_all_3pts(ispec,sm_lev_so,sm_lev_se);
-	    }
-	}	  
-      
-      for(int sm_lev_si=0;sm_lev_si<nsm_lev_si;sm_lev_si++) calculate_all_2pts(sm_lev_so,sm_lev_si);
-    }
+	      generate_sequential_source(ispec);
+	      
+	      //loop on smearing of the sequential prop
+	      for(int sm_lev_se=0;sm_lev_se<nsm_lev_se;sm_lev_se++)
+		{
+		  calculate_S1(ispec,sm_lev_se);
+		  check_two_points(ispec,sm_lev_so,sm_lev_se);
+		  calculate_all_3pts(ispec,sm_lev_so,sm_lev_se);
+		}
+	    }	  
+	  
+	  //loop on the smearing of the sink
+	  for(int sm_lev_si=0;sm_lev_si<nsm_lev_si;sm_lev_si++) calculate_all_2pts(sm_lev_so,sm_lev_si);
+	}
 
+      nanalized_conf++;
+
+      enough_time=check_remaining_time();
+    }
+  
   tot_time+=take_time();
   close_semileptonic();
   

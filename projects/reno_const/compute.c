@@ -453,35 +453,37 @@ void calculate_all_2pts()
   contr_time+=take_time();
 }
 
-void read_conf_parameters(int *iconf)
+int read_conf_parameters(int *iconf)
 {
-    int ok_conf;
-
-    do
+  int ok_conf;
+  
+  do
     {
-	//Gauge path
-	read_str(conf_path,1024);
-	
-	//Source position
-	read_int(&(source_coord[0]));
-	read_int(&(source_coord[1]));
-	read_int(&(source_coord[2]));
-	read_int(&(source_coord[3]));
-	
-	//Folder
-	read_str(outfolder,1024);
-	master_printf("Considering configuration %s\n",conf_path);
-	ok_conf=!(dir_exists(outfolder));
-	if(ok_conf)
+      //Gauge path
+      read_str(conf_path,1024);
+      
+      //Source position
+      read_int(&(source_coord[0]));
+      read_int(&(source_coord[1]));
+      read_int(&(source_coord[2]));
+      read_int(&(source_coord[3]));
+      
+      //Folder
+      read_str(outfolder,1024);
+      master_printf("Considering configuration %s\n",conf_path);
+      ok_conf=!(dir_exists(outfolder));
+      if(ok_conf)
 	{
-	    if(rank==0) mkdir(outfolder,S_IRWXU);
-	    master_printf("Configuration not already analized, starting.\n");
+	  if(rank==0) mkdir(outfolder,S_IRWXU);
+	  master_printf("Configuration not already analized, starting.\n");
 	}
-	else
-	    master_printf("Configuration already analized, skipping.\n");
-	(*iconf)++;
+      else
+	master_printf("Configuration already analized, skipping.\n");
+      (*iconf)++;
     }
-    while(!ok_conf && (*iconf)<ngauge_conf);
+  while(!ok_conf && (*iconf)<ngauge_conf);
+  
+  return ok_conf;
 }
 
 int check_remaining_time()
@@ -512,30 +514,24 @@ int main(int narg,char **arg)
   tot_time-=take_time();
   initialize_semileptonic(arg[1]);
   
-  int iconf=0,enough_time;
-  do
-  {
-    read_conf_parameters(&iconf);
-    
-    if(iconf<ngauge_conf)
-      {    
-	load_gauge_conf();
-	generate_source();
-	
-	calculate_S0();
-	calculate_all_2pts();
-	
-	Xspace();
-	
-	compute_fft(-1);
-	print_momentum_subset();
-	
-	nanalized_conf++;
-	
-	enough_time=check_remaining_time();
-      }
-  }
-  while(iconf<ngauge_conf && enough_time);
+  int iconf=0,enough_time=1;
+  while(iconf<ngauge_conf && enough_time && read_conf_parameters(&iconf))
+    {    
+      load_gauge_conf();
+      generate_source();
+      
+      calculate_S0();
+      calculate_all_2pts();
+      
+      Xspace();
+      
+      compute_fft(-1);
+      print_momentum_subset();
+      
+      nanalized_conf++;
+      
+      enough_time=check_remaining_time();
+    }
   
   tot_time+=take_time();
   close_semileptonic();
