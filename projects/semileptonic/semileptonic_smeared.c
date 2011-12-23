@@ -223,8 +223,8 @@ void initialize_semileptonic(char *input_path)
       //Read the operator pairs
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
-
-      if(rank==0 && debug_lvl) printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
+      
+      master_printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
   
   read_str_int("NChromoContrTwoPoints",&nch_contr_2pts);
@@ -236,8 +236,8 @@ void initialize_semileptonic(char *input_path)
       //Read the operator pairs
       read_int(&(ch_op1_2pts[icontr]));
       read_int(&(ch_op2_2pts[icontr]));
-
-      if(rank==0 && debug_lvl) printf(" ch-contr.%d %d %d\n",icontr,ch_op1_2pts[icontr],ch_op2_2pts[icontr]);
+      
+      master_printf(" ch-contr.%d %d %d\n",icontr,ch_op1_2pts[icontr],ch_op2_2pts[icontr]);
     }
 
   // 7) three points functions
@@ -253,7 +253,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(ith_spec[ispec]));
       read_int(&(imass_spec[ispec]));
       read_int(&(r_spec[ispec]));
-      if(rank==0)printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,theta[ith_spec[ispec]],mass[imass_spec[ispec]],r_spec[ispec]);
+      master_printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,theta[ith_spec[ispec]],mass[imass_spec[ispec]],r_spec[ispec]);
     }
   read_str_int("NContrThreePoints",&ncontr_3pts);
   contr_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glb_size[0],complex); 
@@ -264,8 +264,8 @@ void initialize_semileptonic(char *input_path)
       //Read the operator pairs
       read_int(&(op1_3pts[icontr]));
       read_int(&(op2_3pts[icontr]));
-
-      if(rank==0 && debug_lvl) printf(" contr.%d %d %d\n",icontr,op1_3pts[icontr],op2_3pts[icontr]);
+      
+      master_printf(" contr.%d %d %d\n",icontr,op1_3pts[icontr],op2_3pts[icontr]);
     }
 
   read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
@@ -277,8 +277,8 @@ void initialize_semileptonic(char *input_path)
       //Read the operator pairs
       read_int(&(ch_op1_3pts[icontr]));
       read_int(&(ch_op2_3pts[icontr]));
-
-      if(rank==0 && debug_lvl) printf(" ch-contr.%d %d %d\n",icontr,ch_op1_3pts[icontr],ch_op2_3pts[icontr]);
+      
+      master_printf(" ch-contr.%d %d %d\n",icontr,ch_op1_3pts[icontr],ch_op2_3pts[icontr]);
     }
 
   ////////////////////////////////////// end of input reading/////////////////////////////////
@@ -690,6 +690,8 @@ int main(int narg,char **arg)
 
       enough_time=check_remaining_time();
     }
+  
+  if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
   
   tot_time+=take_time();
   close_semileptonic();
