@@ -280,7 +280,11 @@ void initialize_semileptonic(char *input_path)
       
       master_printf(" ch-contr.%d %d %d\n",icontr,ch_op1_3pts[icontr],ch_op2_3pts[icontr]);
     }
-
+  
+  read_str_int("NGaugeConf",&ngauge_conf);
+  
+  master_printf("\n");
+  
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf, Pmunu and all the needed spincolor and colorspinspin
@@ -339,15 +343,15 @@ int read_conf_parameters(int *iconf)
       if(ok_conf)
 	{
 	  if(rank==0) mkdir(outfolder,S_IRWXU);
-	  master_printf("Configuration not already analized, starting.\n");
+	  master_printf("Configuration %s not already analized, starting.\n",conf_path);
 	}
       else
-	master_printf("Configuration already analized, skipping.\n");
+	master_printf("Configuration %s already analized, skipping.\n",conf_path);
       (*iconf)++;
     }
   while(!ok_conf && (*iconf)<ngauge_conf);
   
-  if(*iconf==ngauge_conf) master_printf("No more configuration to analize\n");
+  master_printf("\n");
   
   return ok_conf;
 }
@@ -427,31 +431,38 @@ void smear_additive_colorspinspin(colorspinspin *out,colorspinspin *in,int ism_l
 //calculate the standard propagators
 void calculate_S0(int ism_lev_so)
 {
+  //smear additively the source
+  master_printf("\nSource Smearing level: %d\n",ism_lev_so);
   smear_additive_colorspinspin(original_source,original_source,ism_lev_so,jacobi_niter_so);
+  master_printf("\n");
   
+ //loop over the source dirac index
   for(int id=0;id<4;id++)
-    { //loop over the source dirac index
+    { 
+      //put the g5
       for(int ivol=0;ivol<loc_vol;ivol++)
 	{
 	  get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
-	  //put the g5
 	  for(int id1=2;id1<4;id1++) for(int ic=0;ic<3;ic++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic][ri]*=-1;
 	}
       
       communicate_lx_spincolor_borders(source);
       
       for(int itheta=0;itheta<ntheta;itheta++)
-	{ //adapt the border condition
+	{
+	  //adapt the border condition
 	  put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
 	  adapt_theta(conf,old_theta,put_theta,1,1);
 	  
+	  //inverting
 	  double part_time=-take_time();
 	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	  if(rank==0) printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
 
+	  //reconstruct the doublet
 	  for(int imass=0;imass<nmass;imass++)
-	    { //reconstruct the doublet
+	    {
 	      reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	      if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
@@ -461,16 +472,24 @@ void calculate_S0(int ism_lev_so)
 	}
     }
   
+  //rotate to physical basis
   for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
     for(int ipropS0=0;ipropS0<npropS0;ipropS0++) //put the (1+ig5)/sqrt(2) factor
       rotate_vol_colorspinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
+  master_printf("Propagators rotated\n");
+
+  master_printf("\n");
 }
 
 //calculate the sequential propagators
 void calculate_S1(int ispec,int ism_lev_se)
 {
+  //smear additively the seq
+  master_printf("\nSeq Smearing level: %d\n",ism_lev_se);
   smear_additive_colorspinspin(sequential_source,sequential_source,ism_lev_se,jacobi_niter_se);
-
+  master_printf("\n");
+  
+  //loop over se
   for(int id=0;id<4;id++)
     { 
       for(int ivol=0;ivol<loc_vol;ivol++) //avoid the g5 insertion
@@ -502,6 +521,9 @@ void calculate_S1(int ispec,int ism_lev_se)
   //put the (1+-ig5)/sqrt(2) factor. On the source rotate as r_spec, on the sink as !r_spec
   for(int ipropS1=0;ipropS1<npropS1;ipropS1++) //but, being D^-1, everything is swapped
     rotate_vol_colorspinspin_to_physical_basis(S1[ipropS1],!(r_spec[ispec]),(r_spec[ispec]));
+  master_printf("Propagators rotated\n");
+
+  master_printf("\n");
 }
 
 //Calculate and print to file the 2pts
@@ -661,6 +683,7 @@ int main(int narg,char **arg)
   int iconf=0,enough_time=1;
   while(iconf<ngauge_conf && enough_time && read_conf_parameters(&iconf))
     {
+      setup_conf();
       generate_source();
       
       //loop on smearing of the source

@@ -38,7 +38,7 @@ double calculate_weighted_residue_RL(spincolor *source,spincolor *sol,quad_su3 *
   return tot_weighted_residue;
 }
 
-int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr,double *zfs,int st_crit,double st_res,double st_res2,int iter,spincolor **sol,int nmass,double *m,spincolor *source,quad_su3 *conf,double kappa,spincolor *s,spincolor *t,int RL)
+int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr,double *zfs,int st_crit,double st_res,double st_res2,int iter,spincolor **sol,int nmass,double *m,spincolor *source,quad_su3 *conf,double kappa,spincolor *s,spincolor *t,double source_norm,int RL)
 {
   const int each=10;
 
@@ -61,8 +61,6 @@ int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr
 	      if(st_crit==sc_weighted_norm2)
 		residue_mass[imass]=calculate_weighted_residue_RL(source,sol[imass],conf,kappa,m[imass],s,t,2,RL);
 	      else residue_mass[imass]=calculate_weighted_residue_RL(source,sol[imass],conf,kappa,m[imass],s,t,-1,RL);
-	
-	      if(residue_mass[imass]<st_res) fini=1;
 	    }
 	
 	if(fini)
@@ -74,8 +72,9 @@ int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr
   
   if(iter%each==0 && rank==0)
     {    
-      printf("cgmms iter %d residues: ",iter);
-      for(int imass=0;imass<nmass;imass++) if(run_flag[imass]) printf("%1.4e  ",residue_mass[imass]);
+      printf("cgmms iter %d rel. residues: ",iter);
+      for(int imass=0;imass<nmass;imass++) //if(run_flag[imass])
+					     printf("%1.4e  ",residue_mass[imass]/source_norm);
       printf("\n");
     }
   

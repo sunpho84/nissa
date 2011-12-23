@@ -82,7 +82,7 @@ void write_all_propagators(const char *name,int prec)
     for(int imass=0;imass<nmass;imass++)
       {
 	char path[1024];
-	sprintf(path,"%s/%sprop_r%1d_im%02d",outfolder,name,r,imass);
+	sprintf(path,"%s/%sprop/r%1d_im%02d",outfolder,name,r,imass);
 	save_prop_time-=take_time();
 	write_su3spinspin(path,S0[r][imass],prec);
 	save_prop_time+=take_time();
@@ -471,7 +471,15 @@ int read_conf_parameters(int *iconf)
       ok_conf=!(dir_exists(outfolder));
       if(ok_conf)
 	{
-	  if(rank==0) mkdir(outfolder,S_IRWXU);
+	  if(rank==0)
+	    {
+	      char temp[1024];
+	      mkdir(outfolder,S_IRWXU);
+	      sprintf(temp,"%s/Pprop",outfolder);
+	      mkdir(temp,S_IRWXU);
+	      sprintf(temp,"%s/Xprop",outfolder);
+	      mkdir(temp,S_IRWXU);
+	    }
 	  master_printf("Configuration not already analized, starting.\n");
 	}
       else
@@ -486,20 +494,20 @@ int read_conf_parameters(int *iconf)
 //check if the time is enough
 int check_remaining_time()
 {
-    int enough_time;
-    
-    //check remaining time
-    double temp_time=take_time()+tot_time;
-    double ave_time=temp_time/nanalized_conf;
-    double left_time=wall_time-temp_time;
-    enough_time=left_time>(ave_time*1.1);
-    
-    master_printf("Remaining time: %lg sec\n",left_time);
-    master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-    if(enough_time) master_printf("Continuing!\n");
-    else master_printf("Not enough time, exiting!\n");
-
-    return enough_time;
+  int enough_time;
+  
+  //check remaining time
+  double temp_time=take_time()+tot_time;
+  double ave_time=temp_time/nanalized_conf;
+  double left_time=wall_time-temp_time;
+  enough_time=left_time>(ave_time*1.1);
+  
+  master_printf("Remaining time: %lg sec\n",left_time);
+  master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+  if(enough_time) master_printf("Continuing!\n");
+  else master_printf("Not enough time, exiting!\n");
+  
+  return enough_time;
 }
 
 int main(int narg,char **arg)
@@ -521,11 +529,11 @@ int main(int narg,char **arg)
       //X space
       calculate_S0();
       calculate_all_2pts();
-      if(n_X_interv) print_propagator_subset("X_space_prop_subset",n_X_interv,X_interv);
+      if(n_X_interv) print_propagator_subset("Xprop/subset",n_X_interv,X_interv);
       
       //P space
       compute_fft(-1);
-      if(n_P_interv) print_propagator_subset("P_space_prop_subset",n_P_interv,P_interv);      
+      if(n_P_interv) print_propagator_subset("Pprop/subset",n_P_interv,P_interv);      
       
       nanalized_conf++;
       

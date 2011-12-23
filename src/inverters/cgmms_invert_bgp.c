@@ -12,6 +12,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
   int iter;
   int run_flag[nmass],nrun_mass=nmass;
   double final_res[nmass];
+  double source_norm;
   
   spincolor *t=nissa_malloc("DD_temp",loc_vol+loc_bord,spincolor);
   spincolor *s=nissa_malloc("s",loc_vol,spincolor);
@@ -45,11 +46,12 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
     bgp_save_complex(cloc_rr,N0);
     
     MPI_Allreduce(cloc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    source_norm=rr;
     
     if(st_crit==sc_standard||st_crit==sc_unilevel) st_res*=rr;
 
-    master_printf("cgmms iter 0 residues: ");
-    for(int imass=0;imass<nmass;imass++) master_printf("%1.4e  ",rr);
+    master_printf("cgmms iter 0 rel. residues: ");
+    for(int imass=0;imass<nmass;imass++) master_printf("%1.4e  ",1.0);
     master_printf("\n");
   }
   
@@ -192,7 +194,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
       iter++;
       
       //     check over residual
-      nrun_mass=check_cgmms_residue_RL(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t,RL);
+      nrun_mass=check_cgmms_residue_RL(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t,source_norm,RL);
     }
   while(nrun_mass>0 && iter<niter);
   
@@ -248,7 +250,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
 	  w_res=w_res/weight*12*glb_vol;
 	  max_res*=12*glb_vol;
 	  
-	  master_printf("imass %d, residue true=%g approx=%g weighted=%g max=%g\n",imass,res,final_res[imass],w_res,max_res);
+	  master_printf("imass %d, rel residue true=%g approx=%g weighted=%g max=%g\n",imass,res/source_norm,final_res[imass]/source_norm,w_res,max_res);
 	}
       }  
     
