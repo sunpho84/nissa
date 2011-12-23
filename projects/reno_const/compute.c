@@ -15,6 +15,7 @@ double *mass;
 double put_theta[4],old_theta[4]={0,0,0,0};
 
 //output parameters
+int write_fixed_conf;
 int work_in_physical_base;
 int X_space_prop_prec,P_space_prop_prec;
 int n_X_interv,n_P_interv;
@@ -46,7 +47,7 @@ char outfolder[1024];
 int ninv_tot=0,ncontr_tot=0,nsaved_prop_tot=0;
 int wall_time;
 double tot_time=0,inv_time=0,contr_time=0,fix_time=0;
-double fft_time=0,save_prop_time=0,load_time=0;
+double fft_time=0,save_prop_time=0,load_time=0,filter_prop_time=0;
 
 //Read the information regarding the format in which to save prop
 int read_prop_prec(const char *name)
@@ -194,6 +195,9 @@ void initialize_Zcomputation(char *input_path)
   
   // 5) Information on output
   
+  //save fixed conf?
+  read_str_int("WriteFixedConf",&write_fixed_conf);
+  
   //work in physical space?
   read_str_int("WorkInPhysicalBase",&work_in_physical_base);
   
@@ -250,6 +254,13 @@ void load_gauge_conf()
   communicate_gauge_borders(conf);
   communicate_gauge_borders(unfix_conf);
   
+  if(write_fixed_conf)
+    {
+      char temp[1024];
+      sprintf(temp,"%s/fixed_conf",outfolder);
+      write_gauge_conf(temp,conf);
+    }    
+  
   master_printf("plaq: %.18g\n",global_plaquette(conf));
   master_printf("unfix plaq: %.18g\n",global_plaquette(unfix_conf));
 
@@ -287,6 +298,7 @@ void close_Zcomputation()
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
   master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
   master_printf(" - %02.2f%s to save %d su3spinspins. (%2.2gs avg)\n",save_prop_time/tot_time*100,"%",nsaved_prop_tot,save_prop_time/nsaved_prop_tot);
+  master_printf(" - %02.2f%s to filter propagators. (%2.2gs avg per conf)\n",filter_prop_time/tot_time*100,"%",filter_prop_time/nanalized_conf);
   
   close_nissa();
 }
@@ -367,6 +379,8 @@ void compute_fft(double sign)
 //filter the propagators
 void print_propagator_subset(const char *name,int nsubset,interv *inte)
 {
+  filter_prop_time-=take_time();
+  
   colorspincolorspin *buf=nissa_malloc("buf",2*nmass,colorspincolorspin);
   
   //build oputput file name
@@ -422,6 +436,8 @@ void print_propagator_subset(const char *name,int nsubset,interv *inte)
   nissa_free(buf);
   
   MPI_File_close(&fout);
+
+  filter_prop_time+=take_time();
 }
 
 //Calculate and print to file the 2pts
