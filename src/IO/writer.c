@@ -153,8 +153,8 @@ void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 
 ////////////////////////// gauge configuration writing /////////////////////////////
 
-//Write only the local part of the gauge configuration
-void write_local_gauge_conf(char *path,quad_su3 *in)
+//Write the local part of the gauge configuration
+void write_gauge_conf(char *path,quad_su3 *in)
 {
   double twrite=-take_time();
   quad_su3 *temp=nissa_malloc("temp_gauge_writer",loc_vol,quad_su3);
