@@ -1,6 +1,6 @@
 #pragma once
 
-#ifdef APPRETTO
+#ifdef NISSA
 #define EXTERN 
 #else
 #define EXTERN extern
@@ -39,7 +39,7 @@ EXTERN int **loclx_neighdw,**loclx_neighup;
 #define sc_weighted_norm_inf 3
 
 #define numb_known_stopping_criterion 4
-#ifndef APPRETTO
+#ifndef NISSA
 char list_known_stopping_criterion[4][1024]={"standard","unilevel","weighted_norm2","weighted_norm_inf"};
 #endif
 
@@ -64,7 +64,7 @@ EXTERN int bord_offset_eo[2][8]; //eo, 8 dirs
 //size of the edges along the 6 directions
 EXTERN int edge_dir_vol[6],edge_offset[6];
 EXTERN int loc_edge;
-#ifdef APPRETTO
+#ifdef NISSA
 int edge_numb[4][4]={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}};
 #endif
 EXTERN MPI_Datatype MPI_GAUGE_EDGE_SEND[6],MPI_GAUGE_EDGE_RECE[6];
@@ -105,7 +105,7 @@ EXTERN complex I;
 //The base of the 16 gamma matrixes and the two rotators
 EXTERN dirac_matr base_gamma[16];
 EXTERN dirac_matr Pplus,Pminus;
-#ifdef APPRETTO
+#ifdef NISSA
 const char gtag[16][3]={"S0","V1","V2","V3","V0","P5","A1","A2","A3","A0","T1","T2","T3","B1","B2","B3"};
 #else
 extern const char gtag[16][3];

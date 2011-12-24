@@ -52,6 +52,15 @@ void master_printf_box(const char *template,...)
     }
 }
 
+//create a dir
+int create_dir(char *path,int mode)
+{
+  int res=(rank==0) ? mkdir(path,mode) : 0;
+  MPI_Bcast(&res,1,MPI_INT,0,MPI_COMM_WORLD);
+  
+  return res;
+}
+
 void fprintf_friendly_filesize(FILE *fout,int quant)
 {fprintf_friendly_units(fout,quant,1024,"Bytes");}
 
