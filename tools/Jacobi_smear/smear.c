@@ -2,45 +2,48 @@
 
 int main(int narg,char **arg)
 {
-  int or_pos[4]={31,10,19,13};
+  int or_pos[4]={0,0,0,0};
   char filename[1024];
-
+  
   //basic mpi initialization
   init_nissa();
 
-  if(narg<2 && rank==0)
-    {
-      fprintf(stderr,"Use: %s input_file\n",arg[0]);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  if(narg<2) crash("Use: %s input_file",arg[0]);
 
   open_input(arg[1]);
 
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  read_str_str("Filename",filename,1024);
-
-  close_input();
   
   //Init the MPI grid 
   init_grid(T,L);
   
+  //Smearing parameters
+  double ape_alpha;
+  read_str_double("ApeAlpha",&ape_alpha);
+  int ape_niters;
+  read_str_int("ApeNiter",&ape_niters);
+  double jacobi_kappa;
+  read_str_double("JacobiKappa",&jacobi_kappa);
+  int jacobi_niters;
+  read_str_int("JacobiNiters",&jacobi_niters);
+  
   ///////////////////////////////////////////
   
   //allocate and read conf
-  quad_su3 *orig_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"orig_conf");
-  quad_su3 *smea_conf=allocate_quad_su3(loc_vol+loc_bord+loc_edge,"smea_conf");
+  read_str_str("GaugeConf",filename,1024);
+  quad_su3 *orig_conf=nissa_malloc("Ori_Conf",loc_vol+loc_bord+loc_edge,quad_su3);
   read_gauge_conf(orig_conf,filename);
-
-  ape_smearing(smea_conf,orig_conf,0.5,20);
-  if(rank==0) printf("gauge conf smeared\n");
-  //memcpy(smea_conf,orig_conf,sizeof(quad_su3)*loc_vol);
-
+  
+  //smear the conf
+  quad_su3 *smea_conf=nissa_malloc("Smea_Conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  ape_smearing(smea_conf,orig_conf,ape_alpha,ape_niters);
+  master_printf("gauge conf smeared\n");
+  
   //allocate and generate the source
-  spincolor *origi_sp=allocate_spincolor(loc_vol+loc_bord,"orig_spincolor");
-  memset(origi_sp,0,sizeof(spincolor)*loc_vol);
+  spincolor *sp=nissa_malloc("orig_spincolor",loc_vol+loc_bord,spincolor);
+  memset(sp,0,sizeof(spincolor)*loc_vol);
 
   //put the source
   int local=1;
@@ -50,26 +53,39 @@ int main(int narg,char **arg)
       lx[mu]=or_pos[mu]-proc_coord[mu]*loc_size[mu];
       local=local && lx[mu]>=0 && lx[mu]<loc_size[mu];
     }
-  if(local==1) origi_sp[loclx_of_coord(lx)][0][0][0]=1;
+  if(local==1) sp[loclx_of_coord(lx)][0][0][0]=1;
   
-  //allocate and smeard
-  spincolor *smear_sp=allocate_spincolor(loc_vol+loc_bord,"smear_spincolor");
-  dina_smearing(smear_sp,origi_sp,smea_conf,4,50,or_pos[0]);
+  //read the output base
+  char base_out[1024];
+  read_str_str("BaseOut",base_out,1024);
   
-  int L=glb_size[1];
-  double n_or[L],n_sm[L];
-  density_profile(n_or,origi_sp,or_pos);
-  density_profile(n_sm,smear_sp,or_pos);
-
-  FILE *fout=open_text_file_for_output("profile");
-  for(int d=0;d<L;d++)
+  close_input();
+  
+  /////////////////////////////////////////////
+  
+  for(int ismear=0;ismear<jacobi_niters;ismear++)
     {
-      n_or[d]=sqrt(n_or[d]);
-      n_sm[d]=sqrt(n_sm[d]);
-      if(rank==0) fprintf(fout,"%d %g %g\n",d,n_or[d],n_sm[d]);
+      //comput the density profile
+      int r=sqrt(glb_size[0]*glb_size[0]+3*glb_size[1]*glb_size[1]);
+      double rho[r];
+      density_profile(rho,sp,or_pos);
+      
+      //write the profile
+      char path[1024];
+      sprintf(path,"%s_%02d",base_out,ismear);
+      FILE *fout=open_text_file_for_output(path);
+      for(int d=0;d<r;d++) master_fprintf(fout,"%d %g\n",d,rho[d]);
+      if(rank==0) fclose(fout);
+      
+      jacobi_smearing(sp,sp,smea_conf,jacobi_kappa,1);
     }
-  if(rank==0) fclose(fout);
-    
+  
+  ///////////////////////////////////////////
+  
+  nissa_free(smea_conf);
+  nissa_free(orig_conf);
+  nissa_free(sp);
+  
   ///////////////////////////////////////////
   
   close_nissa();
