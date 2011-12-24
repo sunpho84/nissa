@@ -18,6 +18,7 @@ int bulk_volume(int *L);
 int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr,double *zfs,int st_crit,double st_res,double st_res2,int iter,spincolor **sol,int nmass,double *m,spincolor *source,quad_su3 *conf,double kappa,spincolor *s,spincolor *t,double source_norm,int RL);
 int compute_border_variance(int *L,int *X,int consider_reciprocal);
 int compute_nissa_vect_memory_usage();
+int create_dir(char *path,int mode);
 int dir_exists(char *path);
 int edgelx_of_coord(int *x,int idir,int jdir);
 int factorize(int *list,int N);

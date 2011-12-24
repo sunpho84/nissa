@@ -1,4 +1,4 @@
-#define APPRETTO 1
+#define NISSA 1
 
 #include "nissa.h"
 

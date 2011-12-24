@@ -8,6 +8,7 @@ as2t_su3 *Pmunu;
 double kappa;
 char outfolder[1024];
 
+//list of masses and theta
 int nmass,ntheta;
 double *mass,*theta;
 double put_theta[4],old_theta[4]={0,0,0,0};
@@ -48,6 +49,7 @@ colorspinspin *ch_colorspinspin;
 
 //sequential props info
 int nspec;
+int tsep;
 int *imass_spec,*r_spec,*ith_spec;
 colorspinspin *sequential_source;
 
@@ -118,11 +120,11 @@ void generate_source()
 void generate_sequential_source(int ispec)
 {
   int r=r_spec[ispec];
-
-  if(rank==0) printf("Creating the sequential source\n");
+  
+  master_printf("\nCreating the sequential source for spectator %d\n",ispec);
   for(int ivol=0;ivol<loc_vol;ivol++)
     { //put to zero everything but the slice
-      if(glb_coord_of_loclx[ivol][0]!=(twall+glb_size[0]/2)%glb_size[0])
+      if(glb_coord_of_loclx[ivol][0]!=(twall+tsep)%glb_size[0])
 	memset(sequential_source[ivol],0,sizeof(colorspinspin));
       else
 	{ //avoid to put g5, beacuse commutate with (i+-g5)/sqrt(2) and cancel with those of the QQ
@@ -131,7 +133,7 @@ void generate_sequential_source(int ispec)
 	    rotate_spinspin_to_physical_basis(sequential_source[ivol][c],r,r);
 	}
     }
-  if(rank==0) printf("Sequential source created\n");
+  master_printf("Sequential source created\n\n");
 }  
 
 //Parse all the input file
@@ -243,6 +245,7 @@ void initialize_semileptonic(char *input_path)
   // 7) three points functions
   
   sequential_source=nissa_malloc("Sequential source",loc_vol,colorspinspin);
+  read_str_int("TSep",&tsep);
   read_str_int("NSpec",&nspec);
   ith_spec=nissa_malloc("ith_spec",nspec,int);
   imass_spec=nissa_malloc("imass_spec",nspec,int);
@@ -342,8 +345,13 @@ int read_conf_parameters(int *iconf)
       ok_conf=!(dir_exists(outfolder));
       if(ok_conf)
 	{
-	  if(rank==0) mkdir(outfolder,S_IRWXU);
-	  master_printf("Configuration %s not already analized, starting.\n",conf_path);
+	  int ris=create_dir(outfolder,S_IRWXU);
+	  if(ris==0) master_printf("Configuration %s not already analized, starting.\n",conf_path);
+	  else
+	    {
+	      ok_conf=0;
+	      master_printf("Configuration %s taken by someone else.\n",conf_path);
+	    }
 	}
       else
 	master_printf("Configuration %s already analized, skipping.\n",conf_path);
@@ -664,7 +672,7 @@ int check_remaining_time()
 
   master_printf("Remaining time: %lg sec\n",left_time);
   master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-  if(enough_time) master_printf("Continuing!\n");
+  if(enough_time) master_printf("Continuing with next conf!\n");
   else master_printf("Not enough time, exiting!\n");
   
   return enough_time;

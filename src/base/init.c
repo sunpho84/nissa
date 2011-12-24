@@ -14,10 +14,10 @@ void init_nissa()
   //associate sigsegv with proper handle
   signal(SIGSEGV,terminate_sigsegv);
   signal(SIGFPE,terminate_sigsegv);
-
+  
   //print the version
   master_printf("Initializing nissa, version: %s\n",SVN_VERS);
-
+  
   //define the gauge link
   MPI_Type_contiguous(18,MPI_DOUBLE,&MPI_SU3);
   MPI_Type_commit(&MPI_SU3);
