@@ -7,7 +7,7 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
   quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
   
-  if(debug_lvl>1) master_printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
+  if(debug_lvl) master_printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
       
   for(int istep=0;istep<nstep;istep++)
     {

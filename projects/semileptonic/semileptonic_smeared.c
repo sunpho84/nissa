@@ -16,7 +16,8 @@ double put_theta[4],old_theta[4]={0,0,0,0};
 //source data
 int seed,noise_type,twall;
 spincolor *source;
-colorspinspin *original_source;
+colorspinspin *unsmeared_source;
+colorspinspin *smeared_source;
 
 //smearing parameters
 double jacobi_kappa,ape_alpha;
@@ -113,7 +114,8 @@ void contract_with_source(complex *corr,colorspinspin *S1,int *list_op,colorspin
 void generate_source()
 {
   enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
-  generate_spindiluted_source(original_source,type[noise_type],twall);
+  generate_spindiluted_source(unsmeared_source,type[noise_type],twall);
+  memcpy(smeared_source,unsmeared_source,loc_vol*sizeof(colorspinspin));
 }
 
 //Generate a sequential source for S1
@@ -313,7 +315,8 @@ void initialize_semileptonic(char *input_path)
   
   //Allocate one spincolor for the source
   source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
-  original_source=nissa_malloc("original_source",loc_vol,colorspinspin);
+  unsmeared_source=nissa_malloc("unsmeared_source",loc_vol,colorspinspin);
+  smeared_source=nissa_malloc("smeared_source",loc_vol,colorspinspin);
 
   //Allocate one colorspinspin for the chromo-contractions
   ch_colorspinspin=nissa_malloc("chromo-colorspinspin",loc_vol,colorspinspin);
@@ -410,7 +413,9 @@ void close_semileptonic()
   nissa_free(ith_spec);nissa_free(r_spec);nissa_free(imass_spec);
   for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
   nissa_free(cgmms_solution);
-  nissa_free(source);nissa_free(original_source);
+  nissa_free(source);
+  nissa_free(unsmeared_source);
+  nissa_free(smeared_source);
   close_nissa();
 }
 
@@ -441,7 +446,7 @@ void calculate_S0(int ism_lev_so)
 {
   //smear additively the source
   master_printf("\nSource Smearing level: %d\n",ism_lev_so);
-  smear_additive_colorspinspin(original_source,original_source,ism_lev_so,jacobi_niter_so);
+  smear_additive_colorspinspin(smeared_source,smeared_source,ism_lev_so,jacobi_niter_so);
   master_printf("\n");
   
  //loop over the source dirac index
@@ -450,7 +455,7 @@ void calculate_S0(int ism_lev_so)
       //put the g5
       for(int ivol=0;ivol<loc_vol;ivol++)
 	{
-	  get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
+	  get_spincolor_from_colorspinspin(source[ivol],smeared_source[ivol],id);
 	  for(int id1=2;id1<4;id1++) for(int ic=0;ic<3;ic++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic][ri]*=-1;
 	}
       
@@ -493,7 +498,8 @@ void calculate_S0(int ism_lev_so)
 void calculate_S1(int ispec,int ism_lev_se)
 {
   //smear additively the seq
-  master_printf("\nSeq Smearing level: %d\n",ism_lev_se);
+  master_printf("\nSeq Smearing level: %d (will be applied twice!)\n",ism_lev_se);
+  smear_additive_colorspinspin(sequential_source,sequential_source,ism_lev_se,jacobi_niter_se);
   smear_additive_colorspinspin(sequential_source,sequential_source,ism_lev_se,jacobi_niter_se);
   master_printf("\n");
   
@@ -640,7 +646,7 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
     for(int im2=0;im2<nmass;im2++)
       {
 	int ip2=iprop_of(ith2,im2);
-	contract_with_source(contr_2pts,S1[ip2],op2_2pts,original_source);
+	contract_with_source(contr_2pts,S1[ip2],op2_2pts,smeared_source);
 	
 	if(rank==0)
 	  {
