@@ -363,6 +363,7 @@ void unsafe_summassign_spincolor_prod_ireal(spincolor out,spincolor in,double fa
 void unsafe_summassign_spincolor_prod_real(spincolor out,spincolor in,double factor);
 void unset_eo_geometry();
 void unset_lx_geometry();
+void vector_gather(void *glb,void *loc,int bps,int dest_rank);
 void vol_assign_spincolor_prod_real(spincolor *sc,double c);
 void vol_spincolor_summassign(spincolor *smear_sc,spincolor *H);
 void write_checksum(LemonWriter *writer,checksum check);
