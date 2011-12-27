@@ -49,7 +49,7 @@ int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr
 
 	if(st_crit==sc_standard||st_crit==sc_unilevel)
 	  {
-	    residue_mass[imass]=rr*zfs[imass]*zfs[imass];
+	    residue_mass[imass]=rr*zfs[imass]*zfs[imass]/source_norm;
 	    
 	    if(st_crit==sc_standard) fini=(residue_mass[imass]<st_res2||residue_mass[0]<st_res);
 	    else fini=residue_mass[imass]<st_res;
@@ -70,12 +70,13 @@ int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr
 	  }
       } 
   
-  if(iter%each==0 && rank==0)
+  if(iter%each==0)
     {    
-      printf("cgmms iter %d rel. residues: ",iter);
-      for(int imass=0;imass<nmass;imass++) //if(run_flag[imass])
-					     printf("%1.4e  ",residue_mass[imass]/source_norm);
-      printf("\n");
+      master_printf("cgmms iter %d rel. residues: ",iter);
+      for(int imass=0;imass<nmass;imass++)
+	if(run_flag[imass])
+	  master_printf("%1.4e  ",residue_mass[imass]);
+      master_printf("\n");
     }
   
   return nrun;
