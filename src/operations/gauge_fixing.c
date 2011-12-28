@@ -467,7 +467,7 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
   quad_su3 *w_conf=nissa_malloc("Working conf",loc_vol+loc_bord,quad_su3);
   
   //set eo geometry, used to switch between different parity sites
-  set_eo_geometry();
+  if(nissa_eo_geom_inited==0) set_eo_geometry();
   
   //count even and odd elements on each external inferior and internal
   //superior border so to allocate room for buffers

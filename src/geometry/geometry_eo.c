@@ -3,107 +3,49 @@
 //set the eo geometry
 void set_eo_geometry()
 {
-  if(nissa_eo_geom_inited==0)
-    {
-      //check that all size are multiples of 2
-      int ok=1;
-      for(int mu=0;mu<4;mu++) ok&=(loc_size[mu]%2==0);
-      if(!ok) crash("local lattice size odd!");
-      
-      //set the various time-slice types
-      loclx_parity=nissa_malloc("loclx_parity",loc_vol+loc_bord,int);
-      
-      loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+loc_bord,int);
-      loclx_of_loceo[0]=nissa_malloc("loclx_of_loceo",loc_vol+loc_bord,int);
-      loclx_of_loceo[1]=loclx_of_loceo[0]+(loc_vol+loc_bord)/2;
-      loceo_neighup[0]=nissa_malloc("loceo_neighup",loc_vol+loc_bord,int*);
-      loceo_neighdw[0]=nissa_malloc("loceo_neighdw",loc_vol+loc_bord,int*);
-      loceo_neighup[0][0]=nissa_malloc("loceo_neighup[0]",4*(loc_vol+loc_bord),int);
-      loceo_neighdw[0][0]=nissa_malloc("loceo_neighdw[0]",4*(loc_vol+loc_bord),int);
-
-      loceo_neighup[1]=loceo_neighup[0]+(loc_vol+loc_bord)/2;
-      loceo_neighdw[1]=loceo_neighdw[0]+(loc_vol+loc_bord)/2;      
-      for(int eo=0;eo<2;eo++)
+    if(nissa_eo_geom_inited!=0) crash("E/O Geometry already initialized!");
+    
+    //check that all size are multiples of 2
+    int ok=1;
+    for(int mu=0;mu<4;mu++) ok&=(loc_size[mu]%2==0);
+    if(!ok) crash("local lattice size odd!");
+    
+    //set the various time-slice types
+    loclx_parity=nissa_malloc("loclx_parity",loc_vol+loc_bord,int);
+    
+    loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+loc_bord,int);
+    loclx_of_loceo[0]=nissa_malloc("loclx_of_loceo",loc_vol+loc_bord,int);
+    loclx_of_loceo[1]=loclx_of_loceo[0]+(loc_vol+loc_bord)/2;
+    loceo_neighup[0]=nissa_malloc("loceo_neighup",loc_vol+loc_bord,int*);
+    loceo_neighdw[0]=nissa_malloc("loceo_neighdw",loc_vol+loc_bord,int*);
+    loceo_neighup[0][0]=nissa_malloc("loceo_neighup[0]",4*(loc_vol+loc_bord),int);
+    loceo_neighdw[0][0]=nissa_malloc("loceo_neighdw[0]",4*(loc_vol+loc_bord),int);
+    
+    loceo_neighup[1]=loceo_neighup[0]+(loc_vol+loc_bord)/2;
+    loceo_neighdw[1]=loceo_neighdw[0]+(loc_vol+loc_bord)/2;      
+    for(int eo=0;eo<2;eo++)
 	for(int loceo=1;loceo<(loc_vol+loc_bord)/2;loceo++)
-	  {
+	{
 	    loceo_neighup[eo][loceo]=loceo_neighup[eo][loceo-1]+4;
 	    loceo_neighdw[eo][loceo]=loceo_neighdw[eo][loceo-1]+4;
-	  }
-      
-      //int iloce=0,iloco=0;
-      //Label the bulk sites
-      for(int loclx=0;loclx<loc_vol+loc_bord;loclx++)
-	{
-	  //calculate global coord and parity
-	  int par=0;
-	  for(int idir=0;idir<4;idir++) par+=glb_coord_of_loclx[loclx][idir];
-	  par%=2;
-	  
-	  //fix parity of local index
-	  loclx_parity[loclx]=par;
-	  /*
-	  //assign the lx site of the e/o site, and
-	  //increment the number of even or odd sites
-	  if(par==0)
-	    {
-	      loceo_of_loclx[loclx]=iloce;
-	      loclx_of_loce[iloce]=loclx;
-	      iloce++;
-	    }
-	  else
-	    {
-	      loceo_of_loclx[loclx]=iloco;
-	      loclx_of_loco[iloco]=loclx;
-	      iloco++;
-	    }
-	  */
 	}
-      
-      //////////////////neighbours search//////////////////////
-      /*
-      memset(bord_offset_eo,0,sizeof(int)*2*8);
-      
-      //now fill the neighbours of sites
-      for(int loclx=0;loclx<loc_vol+loc_bord;loclx++)
-	{
-	  int loceo=loceo_of_loclx[loclx];
-	  for(int idir=0;idir<4;idir++)
-	    if(loclx_parity[loclx]==0)
-	      {
-		loce_neighdw[loceo][idir]=loceo_of_loclx[loclx_neighdw[loclx][idir]];
-		loce_neighup[loceo][idir]=loceo_of_loclx[loclx_neighup[loclx][idir]];
-	      }
-	    else
-	      {
-		loco_neighdw[loceo][idir]=loceo_of_loclx[loclx_neighdw[loclx][idir]];
-		loco_neighup[loceo][idir]=loceo_of_loclx[loclx_neighup[loclx][idir]];
-	      }
-	  
-	  //count the number of points in the even and odd border
-	  if(loclx>=loc_vol)
-	    {
-	      int ibord=loclx-loc_vol;
-	      int ibord_dir=0;
-	      if(loclx>=(loc_vol+loc_bord/2))
-		{
-		  ibord-=loc_vol/2;
-		  ibord_dir+=4;
-		}
-	      ibord_dir+=dir_of_bord[ibord];
-	      
-	      int eo=loclx_parity[loclx];
-	      bord_offset_eo[eo][ibord_dir]++;
-	    }	      
-	}
-      */
-      
-      master_printf("E/O Geometry intialized\n");
-      
-      nissa_eo_geom_inited=1;
+    
+    //int iloce=0,iloco=0;
+    //Label the bulk sites
+    for(int loclx=0;loclx<loc_vol+loc_bord;loclx++)
+    {
+	//calculate global coord and parity
+	int par=0;
+	for(int idir=0;idir<4;idir++) par+=glb_coord_of_loclx[loclx][idir];
+	par%=2;
+	
+	//fix parity of local index
+	loclx_parity[loclx]=par;
     }
-  else crash("E/O Geometry already initialized!");
-  
-  //if(rank==0) for(int idir=0;idir<8;idir++) printf("%d %d %d\n",idir,bord_offset_eo[0][idir],bord_offset_eo[1][idir]);
+    
+    master_printf("E/O Geometry intialized\n");
+    
+    nissa_eo_geom_inited=1;
 }
 
 /*

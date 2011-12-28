@@ -410,7 +410,7 @@ void meson_two_points(colorspinspin *s1,colorspinspin *s2)
 //print all the passed contractions to the file
 void print_ottos_contractions_to_file(FILE *fout)
 {
-  double norm=glb_size[1]*glb_size[2]*glb_size[3];
+  double norm=1.0/(glb_size[1]*glb_size[2]*glb_size[3]);
   
   if(rank==0)
     {
@@ -428,7 +428,7 @@ void print_ottos_contractions_to_file(FILE *fout)
 //print all the passed contractions to the file
 void print_two_points_contractions_to_file(FILE *fout)
 {
-  double norm=glb_size[1]*glb_size[2]*glb_size[3];
+  double norm=1.0/(glb_size[1]*glb_size[2]*glb_size[3]);
   
   if(rank==0)
     {
@@ -506,7 +506,7 @@ void calculate_all_contractions()
 	  for(int id=0;id<4;id++)
 	    {	    
 	      for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
-	      master_printf("Prop %d, id=%d ",iprop,id);
+	      if(debug_lvl>1) master_printf("Prop %d, id=%d ",iprop,id);
 	      jacobi_smearing(source,source,sme_conf,jacobi_kappa,si_jnit_to_app);
 	      for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
 	    }

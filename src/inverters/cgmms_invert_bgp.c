@@ -49,8 +49,6 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su
     source_norm=rr;
     master_printf("Source norm: %lg\n",source_norm);
     
-    if(st_crit==sc_standard||st_crit==sc_unilevel) st_res*=rr;
-
     master_printf("cgmms iter 0 rel. residues: ");
     for(int imass=0;imass<nmass;imass++) master_printf("%1.4e  ",1.0);
     master_printf("\n");
