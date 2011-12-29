@@ -30,11 +30,7 @@ void dirac_summ(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
 	complex_summ(out->entr[ig],in1->entr[ig],in2->entr[ig]);
       }
     else 
-      if(rank==0)
-	{
-	  fprintf(stderr,"The two matrix passed to sum have different positions\n");
-	  MPI_Abort(MPI_COMM_WORLD,1);
-	}
+      crash("The two matrix passed to sum have different positions");
 }
 
 //Assign to the first dirac matrixes the product of the second and the third

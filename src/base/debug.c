@@ -18,7 +18,7 @@ void terminate_sigsegv(int par)
     {
       print_all_nissa_vect_content();
       print_backtrace_list();
-      crash("Error detected");
+      crash("Signal %d detected, exiting\n",par);
     }
 }
 

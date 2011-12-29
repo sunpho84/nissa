@@ -24,39 +24,4 @@ comp()
     $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -lm -llemon -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -llime -L$LIME_PATH/lib/ -I$LIME_PATH/include/ -Isrc -D SVN_VERS=\"$SVN_VERS\"
 }
 
-precomp()
-{
-    $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -L$LIME_PATH/lib/ -I$LIME_PATH/include/ -Isrc -D SVN_VERS=\"$SVN_VERS\"
-}
-
-recomp_nissa()
-{
-    if [ -f src/nissa_checksum ];then old_checksum=$(cat src/nissa_checksum);else old_checksum="0";fi
-    checksum=$(precomp - src/nissa.c "-c -E"|tee /tmp/nissa.out|sha1sum|awk '{print $1}')
-    
-    if [ "$old_checksum" != "$checksum" ] || [ ! -f src/nissa ]
-    then
-	echo "Recompiling nissa library..."
-	rm -f src/nissa
-	precomp src/nissa src/nissa.c -c
-        
-	if [ $? == 0 ] && [ -f src/nissa ]
-	then
-	    echo $checksum > src/nissa_checksum
-	else
-	    echo "Error during nissa library compilation"
-	    exit
-	fi
-    else
-	echo "nissa library not recompiled"
-    fi
-}
-
-recomp_nissa
-comp $1 $1.c "src/nissa"
-
-#in case of error compile showing the output
-if [ $? != 0 ]
-then
-    comp $1 $1.c "-E src/nissa"
-fi
+comp $1 $1.c
