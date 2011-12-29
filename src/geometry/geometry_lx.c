@@ -55,14 +55,17 @@ int glblx_of_coord(int *x)
 void proc_coord_of_site_of_coord(int *proc_coord,int *glb_coord)
 {for(int mu=0;mu<4;mu++) proc_coord[mu]=glb_coord[mu]/loc_size[mu];}
 
+//Return the rank of passed coord
+int proc_of_coord(int *coord)
+{return lx_of_coord(coord,nproc_dir);}
+
 //Return the rank containing the global coordinates
 int rank_hosting_site_of_coord(int *x)
 {
-  int ip,p[4];
+  int p[4];
   proc_coord_of_site_of_coord(p,x);
-  MPI_Cart_rank(cart_comm,p,&ip);
   
-  return ip;
+  return proc_of_coord(p);
 }
 
 //indexes run as t,x,y,z (faster:z)

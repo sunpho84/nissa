@@ -1,15 +1,17 @@
-#define NISSA 1
-
 #include "nissa.h"
+
+#include "base/macro.h"
+#include "base/new_types.c"
+#include "base/global.c"
 
 #include "headers.h"
 
-#include "base/debug.c"
 #include "base/routines.c"
 #include "base/vectors.c"
 #include "base/new_types_operations.c"
 #include "base/init.c"
 #include "base/close.c"
+#include "base/debug.c"
 #include "base/communicate.c"
 #include "base/random.c"
 
