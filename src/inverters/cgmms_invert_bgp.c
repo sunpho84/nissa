@@ -1,6 +1,6 @@
 #pragma once
 
-void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
+void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
 {
   bgp_complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
   bgp_complex B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32;
