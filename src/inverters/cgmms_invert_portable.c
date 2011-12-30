@@ -1,6 +1,6 @@
 #pragma once
 
-void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,spincolor **guess,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
+void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
 {
   double zps[nmass],zas[nmass],zfs[nmass],betas[nmass],alphas[nmass];
   double rr,rfrf,pap,alpha;

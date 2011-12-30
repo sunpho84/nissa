@@ -15,8 +15,8 @@ void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndouble
   char *cdest,*csour;
   char temp;
   
-  if(rank==0 && debug_lvl>1) printf("Reverting the endianess ot the data\n");
-
+  if(debug_lvl>1) master_printf("Reverting the endianess ot the data\n");
+  
   if(dest==sour)
     for(int idouble=0;idouble<ndoubles;idouble++)
       {
@@ -57,12 +57,12 @@ void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndouble
     }
 }
 
-void ints_to_ints_changing_endianess(int *dest,int *sour,int nint)
+void floats_to_floats_changing_endianess(float *dest,float *sour,int nint)
 {
   char *cdest,*csour;
   char temp;
   
-  if(rank==0 && debug_lvl>1) printf("Reverting the endianess ot the data\n");
+  if(debug_lvl>1) master_printf("Reverting the endianess ot the data\n");
 
   if(dest==sour)
     for(int iint=0;iint<nint;iint++)
@@ -89,8 +89,6 @@ void ints_to_ints_changing_endianess(int *dest,int *sour,int nint)
 	cdest[2]=csour[1];
 	cdest[3]=csour[0];
     }
-  
-  printf("%d %d\n",*sour,*dest);
 }
 
 ////////////////////Copy a vector of floats to doubles. Sweep is reversed to avoid overwriting////////////////

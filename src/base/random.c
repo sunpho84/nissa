@@ -162,3 +162,22 @@ void generate_undiluted_source(spincolor *source,enum rnd_type rtype,int twall)
 	for(int ic=0;ic<3;ic++)
 	  comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
 }
+
+//generate a delta source
+void generate_delta_source(su3spinspin *source,int *x)
+{ //reset
+  memset(source,0,sizeof(su3spinspin)*loc_vol);
+
+  int islocal=1,lx[4];
+  for(int idir=0;idir<4;idir++)
+    {
+      lx[idir]=x[idir]-proc_coord[idir]*loc_size[idir];
+      islocal&=(lx[idir]>=0);
+      islocal&=(lx[idir]<loc_size[idir]);
+    }
+  
+  if(islocal)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+        source[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
+}

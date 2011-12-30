@@ -58,7 +58,7 @@ static uint32_t crc_table[256]={
 #define DO4(buf) DO2(buf);DO2(buf);
 #define DO8(buf) DO4(buf);DO4(buf);
 
-uint32_t crc32(uint32_t crc,const unsigned char *buf,size_t len)
+uint32_t ildg_crc32(uint32_t crc,const unsigned char *buf,size_t len)
 {
   if(buf==0) return 0L;
   
@@ -77,16 +77,16 @@ uint32_t crc32(uint32_t crc,const unsigned char *buf,size_t len)
   return crc^0xffffffffL;
 }
 
-uint32_t crc32_fix_endianess(uint32_t crc,const unsigned char *buf,size_t len)
+uint32_t ildg_crc32_fix_endianess(uint32_t crc,const unsigned char *buf,size_t len)
 {
   if(big_endian)
     {
       double temp_buf[len/sizeof(double)];
       doubles_to_doubles_changing_endianess(temp_buf,(double*)buf,len/sizeof(double));
-      return crc32(crc,(unsigned char *)temp_buf,len);
+      return ildg_crc32(crc,(unsigned char *)temp_buf,len);
     }
   else
-    return crc32(crc,buf,len);
+    return ildg_crc32(crc,buf,len);
 }
 
 //compute the checksum of ildg data (little endianess, time is slower index)
@@ -105,7 +105,7 @@ void checksum_compute_ildg_data(uint32_t *check,void *data,size_t bps)
 	    uint32_t glb_ivol=X[1]+glb_size[1]*(X[2]+glb_size[2]*(X[3]+glb_size[3]*X[0]));
 	    uint32_t crc_rank[2]={glb_ivol%29,glb_ivol%31};
 	    
-	    uint32_t temp=crc32(0,(unsigned char*)data+bps*loc_ivol,bps);
+	    uint32_t temp=ildg_crc32(0,(unsigned char*)data+bps*loc_ivol,bps);
 	    
 	    for(int i=0;i<2;i++) loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
 	  }
@@ -124,7 +124,7 @@ void checksum_compute_nissa_data(uint32_t *check,void *data,size_t bps)
       uint32_t ildg_ivol=X[1]+glb_size[1]*(X[2]+glb_size[2]*(X[3]+glb_size[3]*X[0]));
       uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
       
-      uint32_t temp=crc32_fix_endianess(0,(unsigned char*)data+bps*ivol,bps);
+      uint32_t temp=ildg_crc32_fix_endianess(0,(unsigned char*)data+bps*ivol,bps);
       
       for(int i=0;i<2;i++) loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
     }
