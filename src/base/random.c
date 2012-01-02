@@ -171,7 +171,7 @@ void generate_delta_source(su3spinspin *source,int *x)
   int islocal=1,lx[4];
   for(int idir=0;idir<4;idir++)
     {
-      lx[idir]=x[idir]-proc_coord[idir]*loc_size[idir];
+      lx[idir]=x[idir]-rank_coord[idir]*loc_size[idir];
       islocal&=(lx[idir]>=0);
       islocal&=(lx[idir]<loc_size[idir]);
     }

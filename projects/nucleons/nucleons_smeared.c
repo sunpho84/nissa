@@ -283,7 +283,7 @@ void prepare_source()
   //check if the source position is associated to the rank and calculate its local position
   for(int idir=0;idir<4;idir++)
     {
-      lx[idir]=source_pos[idir]-proc_coord[idir]*loc_size[idir];
+      lx[idir]=source_pos[idir]-rank_coord[idir]*loc_size[idir];
       isloc=isloc && (lx[idir]>=0 && lx[idir]<loc_size[idir]);
     }
   

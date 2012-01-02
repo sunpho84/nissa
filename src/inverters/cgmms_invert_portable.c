@@ -75,7 +75,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kap
   do
     {
       //     -s=Ap
-      if(rank_tot>0) communicate_lx_spincolor_borders(p);
+      communicate_lx_spincolor_borders(p);
       apply_Q2_RL(s,p,conf,kappa,m[0],t,RL);
       
       //     -pap=(p,s)=(p,Ap)

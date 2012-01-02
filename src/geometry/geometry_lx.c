@@ -1,78 +1,96 @@
 #pragma once
 
-//Return the index of site of coord x in the border idir,jdir
-int edgelx_of_coord(int *x,int idir,int jdir)
+//Return the index of site of coord x in the border mu,nu
+int edgelx_of_coord(int *x,int mu,int nu)
 {
   int ilx=0;
   
-  for(int i=0;i<4;i++) if(i!=idir && i!=jdir) ilx=ilx*loc_size[i]+x[i];
+  for(int rho=0;rho<4;rho++)
+    if(rho!=mu && rho!=nu)
+      ilx=ilx*loc_size[rho]+x[rho];
   
   return ilx;
 }
 
-//Return the index of site of coord x in the border idir
-int bordlx_of_coord(int *x,int idir)
+//Return the index of site of coord x in the border mu
+int bordlx_of_coord(int *x,int mu)
 {
   int ilx=0;
   
-  for(int i=0;i<4;i++) if(i!=idir) ilx=ilx*loc_size[i]+x[i];
+  for(int nu=0;nu<4;nu++) if(nu!=mu) ilx=ilx*loc_size[nu]+x[nu];
   
   return ilx;
 }
 
-int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int idir)
+//wrapper
+int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu)
 {
-  int x[4]={x0,x1,x2,x3};
-  return bordlx_of_coord(x,idir);
+  coords x={x0,x1,x2,x3};
+  return bordlx_of_coord(x,mu);
 }
 
 //Return the index of site of coord x in a box of sides s
-int lx_of_coord(int *x,int *s)
+int lx_of_coord(coords x,coords s)
 {
   int ilx=0;
   
-  for(int i=0;i<4;i++) ilx=ilx*s[i]+x[i];
+  for(int mu=0;mu<4;mu++)
+    ilx=ilx*s[mu]+x[mu];
   
   return ilx;
 }
 
 //wrappers
-int loclx_of_coord(int *x)
+int loclx_of_coord(coords x)
 {return lx_of_coord(x,loc_size);}
   
 //wrappers
 int loclx_of_coord_list(int x0,int x1,int x2,int x3)
 {
-  int x[4]={x0,x1,x2,x3};
+  coords x={x0,x1,x2,x3};
   return lx_of_coord(x,loc_size);
 }
   
 //wrappers
-int glblx_of_coord(int *x)
+int glblx_of_coord(coords x)
 {return lx_of_coord(x,glb_size);}
 
 //wrappers
 int glblx_of_coord_list(int x0,int x1,int x2,int x3)
 {
-  int x[4]={x0,x1,x2,x3};
+  coords x={x0,x1,x2,x3};
   return lx_of_coord(x,glb_size);
 }
   
-//Return the coordinate of the proc containing the global coord
-void proc_coord_of_site_of_coord(int *proc_coord,int *glb_coord)
-{for(int mu=0;mu<4;mu++) proc_coord[mu]=glb_coord[mu]/loc_size[mu];}
+//Return the coordinate of the rank containing the global coord
+void rank_coord_of_site_of_coord(coords rank_coord,coords glb_coord)
+{for(int mu=0;mu<4;mu++) rank_coord[mu]=glb_coord[mu]/loc_size[mu];}
 
 //Return the rank of passed coord
-int proc_of_coord(int *coord)
-{return lx_of_coord(coord,nproc_dir);}
+int rank_of_coord(coords x)
+{return lx_of_coord(x,nrank_dir);}
 
 //Return the rank containing the global coordinates
-int rank_hosting_site_of_coord(int *x)
+int rank_hosting_site_of_coord(coords x)
 {
-  int p[4];
-  proc_coord_of_site_of_coord(p,x);
+  coords p;
+  rank_coord_of_site_of_coord(p,x);
   
-  return proc_of_coord(p);
+  return rank_of_coord(p);
+}
+
+//Return the local site and rank containing the global coordinates
+void get_loclx_and_rank_of_coord(int *loc_site,int *rank,coords g)
+{
+  coords l,p;
+  for(int mu=0;mu<4;mu++)
+    {
+      p[mu]=g[mu]/loc_size[mu];
+      l[mu]=g[mu]-p[mu]*loc_size[mu];
+    }
+  
+  (*rank)=rank_of_coord(p);
+  (*loc_site)=loclx_of_coord(l);
 }
 
 //indexes run as t,x,y,z (faster:z)
@@ -81,28 +99,13 @@ void set_lx_geometry()
   if(nissa_lx_geom_inited==1) crash("cartesian geometry already intialized!");
   
   //find the rank of the neighbour in the various dir
-  for(int idir=0;idir<4;idir++)
-    MPI_Cart_shift(cart_comm,idir,1,&(rank_neighdw[idir]),&(rank_neighup[idir]));
+  for(int mu=0;mu<4;mu++)
+    MPI_Cart_shift(cart_comm,mu,1,&(rank_neighdw[mu]),&(rank_neighup[mu]));
   
-  loc_coord_of_loclx=nissa_malloc("loc_coord_of_loclx",loc_vol,int*);
-  glb_coord_of_loclx=nissa_malloc("glb_coord_of_loclx",loc_vol+loc_bord,int*);
-  loclx_neighup=nissa_malloc("loclx_neighup",loc_vol+loc_bord,int*);
-  loclx_neighdw=nissa_malloc("loclx_neighdw",loc_vol+loc_bord,int*);
-  
-  loc_coord_of_loclx[0]=nissa_malloc("loc_coord_of_loclx",4*loc_vol,int);
-  glb_coord_of_loclx[0]=nissa_malloc("glb_coord_of_loclx",4*(loc_vol+loc_bord),int);
-  loclx_neighup[0]=nissa_malloc("loclx_neighup",4*(loc_vol+loc_bord),int);
-  loclx_neighdw[0]=nissa_malloc("loclx_neighdw",4*(loc_vol+loc_bord),int);
-  
-  for(int loc_ind=1;loc_ind<loc_vol;loc_ind++)
-    loc_coord_of_loclx[loc_ind]=loc_coord_of_loclx[loc_ind-1]+4;
-  
-  for(int loc_ind=1;loc_ind<loc_vol+loc_bord;loc_ind++)
-    {
-      glb_coord_of_loclx[loc_ind]=glb_coord_of_loclx[loc_ind-1]+4;
-      loclx_neighup[loc_ind]=loclx_neighup[loc_ind-1]+4;
-      loclx_neighdw[loc_ind]=loclx_neighdw[loc_ind-1]+4;
-    }
+  loc_coord_of_loclx=nissa_malloc("loc_coord_of_loclx",loc_vol,coords);
+  glb_coord_of_loclx=nissa_malloc("glb_coord_of_loclx",loc_vol+loc_bord,coords);
+  loclx_neighup=nissa_malloc("loclx_neighup",loc_vol+loc_bord,coords);
+  loclx_neighdw=nissa_malloc("loclx_neighdw",loc_vol+loc_bord,coords);
   
   //local to global
   glblx_of_loclx=nissa_malloc("glblx_of_loclx",loc_vol,int);
@@ -116,22 +119,24 @@ void set_lx_geometry()
   glblx_of_edgelx=nissa_malloc("glblx_of_edgelx",loc_edge,int);
   
   //Label the sites
-  int x[4],gx[4]={0,0,0,0};
+  coords x,gx={0,0,0,0};
   for(x[0]=0;x[0]<loc_size[0];x[0]++) 
     for(x[1]=0;x[1]<loc_size[1];x[1]++)
       for(x[2]=0;x[2]<loc_size[2];x[2]++)
 	for(x[3]=0;x[3]<loc_size[3];x[3]++)
 	  {
-	    for(int i=0;i<4;i++) gx[i]=x[i]+proc_coord[i]*loc_size[i];
+	    for(int mu=0;mu<4;mu++)
+	      gx[mu]=x[mu]+rank_coord[mu]*loc_size[mu];
 	    
-	    int loc_ind,glb_ind;
-	    loc_ind=loclx_of_coord(x);
-	    glb_ind=glblx_of_coord(gx);
+	    //find local and global sites
+	    int loc_ind=loclx_of_coord(x);
+	    int glb_ind=glblx_of_coord(gx);
 	    
-	    for(int i=0;i<4;i++)
+	    //save local and global coordinates
+	    for(int mu=0;mu<4;mu++)
 	      {
-		loc_coord_of_loclx[loc_ind][i]=x[i];
-		glb_coord_of_loclx[loc_ind][i]=gx[i];
+		loc_coord_of_loclx[loc_ind][mu]=x[mu];
+		glb_coord_of_loclx[loc_ind][mu]=gx[mu];
 	      }
 	    
 	    glblx_of_loclx[loc_ind]=glb_ind;
@@ -141,171 +146,172 @@ void set_lx_geometry()
   
   //now fill the neighbours of sites of the bulk, and the defined
   //neighbours of the sites of the external borders
-  for(int iloc=0;iloc<loc_vol;iloc++)
+  for(int ivol=0;ivol<loc_vol;ivol++)
     {
-      for(int idir=0;idir<4;idir++)
+      //takes local and global coords of site ivol
+      for(int mu=0;mu<4;mu++)
 	{
-	  x[idir]=loc_coord_of_loclx[iloc][idir];
-	  gx[idir]=glb_coord_of_loclx[iloc][idir];
+	  x[mu]=loc_coord_of_loclx[ivol][mu];
+	  gx[mu]=glb_coord_of_loclx[ivol][mu];
 	}
       
       //Direction on the whole iper-cube
-      for(int idir=0;idir<4;idir++)
+      for(int mu=0;mu<4;mu++)
 	{
 	  //Down direction
-	  if(x[idir]!=0 || paral_dir[idir]==0)
+	  if(x[mu]!=0 || paral_dir[mu]==0)
 	    {
-	      int temp_xdir=x[idir];
-	      x[idir]=(x[idir]+loc_size[idir]-1)%loc_size[idir];
-	      loclx_neighdw[iloc][idir]=loclx_of_coord(x);
-	      x[idir]=temp_xdir;
+	      int temp_xdir=x[mu];
+	      x[mu]=(x[mu]+loc_size[mu]-1)%loc_size[mu];
+	      loclx_neighdw[ivol][mu]=loclx_of_coord(x);
+	      x[mu]=temp_xdir;
 	    }
 	  else //border
 	    {
-	      int raw_ibord=bordlx_of_coord(x,idir)+bord_offset[idir];
+	      int raw_ibord=bordlx_of_coord(x,mu)+bord_offset[mu];
 	      int ibord=loc_vol+raw_ibord;
-	      loclx_neighdw[iloc][idir]=ibord;
-	      loclx_neighup[ibord][idir]=iloc;
+	      loclx_neighdw[ivol][mu]=ibord;
+	      loclx_neighup[ibord][mu]=ivol;
 	      //the movement along the down direction from the border are not defined 
-	      loclx_neighdw[ibord][idir]=-1;
+	      loclx_neighdw[ibord][mu]=-1;
 	      //number the elements of the border
-	      gx[idir]=(gx[idir]-1+glb_size[idir])%glb_size[idir];
-	      x[idir]=(x[idir]-1+loc_size[idir])%loc_size[idir];
-	      for(int idir=0;idir<4;idir++) glb_coord_of_loclx[ibord][idir]=gx[idir];
+	      gx[mu]=(gx[mu]-1+glb_size[mu])%glb_size[mu];
+	      x[mu]=(x[mu]-1+loc_size[mu])%loc_size[mu];
+	      for(int mu=0;mu<4;mu++) glb_coord_of_loclx[ibord][mu]=gx[mu];
 	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
 	      loclx_of_bordlx[raw_ibord]=loclx_of_coord(x);
-	      dir_of_bord[raw_ibord]=2*idir+1;
-	      gx[idir]=glb_coord_of_loclx[iloc][idir];
-	      x[idir]=loc_coord_of_loclx[iloc][idir];
+	      dir_of_bord[raw_ibord]=2*mu+1;
+	      gx[mu]=glb_coord_of_loclx[ivol][mu];
+	      x[mu]=loc_coord_of_loclx[ivol][mu];
 	      
 	      //This is the bad moment: the movents inside the cube
-	      for(int jdir=0;jdir<4;jdir++)
-		if(idir!=jdir) 
+	      for(int nu=0;nu<4;nu++)
+		if(mu!=nu) 
 		  {
 		    //Down direction
-		    if(x[jdir]!=0 || paral_dir[jdir]==0)
+		    if(x[nu]!=0 || paral_dir[nu]==0)
 		      {
-			int temp_xdir=x[jdir];
-			x[jdir]=(x[jdir]+loc_size[jdir]-1)%loc_size[jdir];
-			int ibord2=loc_vol+bord_offset[idir]+bordlx_of_coord(x,idir);
-			x[jdir]=temp_xdir;
-			loclx_neighdw[ibord][jdir]=ibord2;
+			int temp_xdir=x[nu];
+			x[nu]=(x[nu]+loc_size[nu]-1)%loc_size[nu];
+			int ibord2=loc_vol+bord_offset[mu]+bordlx_of_coord(x,mu);
+			x[nu]=temp_xdir;
+			loclx_neighdw[ibord][nu]=ibord2;
 		      }
 		    else //i-j- edge
 		      {
-			int raw_iedge=edge_offset[edge_numb[idir][jdir]]+edgelx_of_coord(x,idir,jdir);
+			int raw_iedge=edge_offset[edge_numb[mu][nu]]+edgelx_of_coord(x,mu,nu);
 			//put the value of the neighbour
 			int iedge=loc_vol+loc_bord+raw_iedge;
-			loclx_neighdw[ibord][jdir]=iedge;
+			loclx_neighdw[ibord][nu]=iedge;
 			//number the elements of the edge
-			gx[idir]=(gx[idir]-1+glb_size[idir])%glb_size[idir];
-			gx[jdir]=(gx[jdir]-1+glb_size[jdir])%glb_size[jdir];
+			gx[mu]=(gx[mu]-1+glb_size[mu])%glb_size[mu];
+			gx[nu]=(gx[nu]-1+glb_size[nu])%glb_size[nu];
 			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
-			gx[idir]=glb_coord_of_loclx[iloc][idir];
-			gx[jdir]=glb_coord_of_loclx[iloc][jdir];
+			gx[mu]=glb_coord_of_loclx[ivol][mu];
+			gx[nu]=glb_coord_of_loclx[ivol][nu];
 		      }
 		    //Upper direction
-		    if(x[jdir]!=loc_size[jdir]-1 || paral_dir[jdir]==0)
+		    if(x[nu]!=loc_size[nu]-1 || paral_dir[nu]==0)
 		      {
-			int temp_xdir=x[jdir];
-			x[jdir]=(x[jdir]+1)%loc_size[jdir];
-			int ibord2=loc_vol+bord_offset[idir]+bordlx_of_coord(x,idir);
-			x[jdir]=temp_xdir;
-			loclx_neighup[ibord][jdir]=ibord2;
+			int temp_xdir=x[nu];
+			x[nu]=(x[nu]+1)%loc_size[nu];
+			int ibord2=loc_vol+bord_offset[mu]+bordlx_of_coord(x,mu);
+			x[nu]=temp_xdir;
+			loclx_neighup[ibord][nu]=ibord2;
 		      }
 		    else
 		      {
-			int raw_iedge=edge_offset[edge_numb[idir][jdir]]+edgelx_of_coord(x,idir,jdir);
-			if(idir<jdir) raw_iedge+=loc_edge/4; //edge i-j+
-			else raw_iedge+=loc_edge/2; //edge j+i-
+			int raw_iedge=edge_offset[edge_numb[mu][nu]]+edgelx_of_coord(x,mu,nu);
+			if(mu<nu) raw_iedge+=loc_edge/4; //edge mu-nu+
+			else raw_iedge+=loc_edge/2; //edge nu+mu-
 			//put the value of the neighbour
 			int iedge=loc_vol+loc_bord+raw_iedge;
-			loclx_neighup[ibord][jdir]=iedge;
+			loclx_neighup[ibord][nu]=iedge;
 			//number the elements of the edge
-			gx[idir]=(gx[idir]-1+glb_size[idir])%glb_size[idir];
-			gx[jdir]=(gx[jdir]+1+glb_size[jdir])%glb_size[jdir];
+			gx[mu]=(gx[mu]-1+glb_size[mu])%glb_size[mu];
+			gx[nu]=(gx[nu]+1+glb_size[nu])%glb_size[nu];
 			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
-			gx[idir]=glb_coord_of_loclx[iloc][idir];
-			gx[jdir]=glb_coord_of_loclx[iloc][jdir];
+			gx[mu]=glb_coord_of_loclx[ivol][mu];
+			gx[nu]=glb_coord_of_loclx[ivol][nu];
 		      }
 		  }
 	    }
 	  
 	  //Upper direction
-	  if(x[idir]!=loc_size[idir]-1 || paral_dir[idir]==0)
+	  if(x[mu]!=loc_size[mu]-1 || paral_dir[mu]==0)
 	    {
-	      int temp_xdir=x[idir];
-	      x[idir]=(x[idir]+1)%loc_size[idir];
-	      loclx_neighup[iloc][idir]=loclx_of_coord(x);
-	      x[idir]=temp_xdir;
+	      int temp_xdir=x[mu];
+	      x[mu]=(x[mu]+1)%loc_size[mu];
+	      loclx_neighup[ivol][mu]=loclx_of_coord(x);
+	      x[mu]=temp_xdir;
 	    }
 	  else //border
 	    {
-	      int raw_ibord=loc_bord/2+bordlx_of_coord(x,idir)+bord_offset[idir];
+	      int raw_ibord=loc_bord/2+bordlx_of_coord(x,mu)+bord_offset[mu];
 	      int ibord=loc_vol+raw_ibord;
-	      loclx_neighup[iloc][idir]=ibord;
-	      loclx_neighdw[ibord][idir]=iloc;
+	      loclx_neighup[ivol][mu]=ibord;
+	      loclx_neighdw[ibord][mu]=ivol;
 	      //the movement along the up direction from the border are not defined 
-	      loclx_neighup[ibord][idir]=-1;
+	      loclx_neighup[ibord][mu]=-1;
 	      //number the elements of the border
-	      gx[idir]=(gx[idir]+1+glb_size[idir])%glb_size[idir];
-	      x[idir]=(x[idir]+1+loc_size[idir])%loc_size[idir];
-	      for(int idir=0;idir<4;idir++) glb_coord_of_loclx[ibord][idir]=gx[idir];
+	      gx[mu]=(gx[mu]+1+glb_size[mu])%glb_size[mu];
+	      x[mu]=(x[mu]+1+loc_size[mu])%loc_size[mu];
+	      for(int mu=0;mu<4;mu++) glb_coord_of_loclx[ibord][mu]=gx[mu];
 	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
 	      loclx_of_bordlx[raw_ibord]=loclx_of_coord(x);
-	      dir_of_bord[raw_ibord]=2*idir;
-	      gx[idir]=glb_coord_of_loclx[iloc][idir];
-	      x[idir]=loc_coord_of_loclx[iloc][idir];
+	      dir_of_bord[raw_ibord]=2*mu;
+	      gx[mu]=glb_coord_of_loclx[ivol][mu];
+	      x[mu]=loc_coord_of_loclx[ivol][mu];
 	      
 	      //Another very bad moment: the movents inside the cube
-	      for(int jdir=0;jdir<4;jdir++)
-		if(idir!=jdir) 
+	      for(int nu=0;nu<4;nu++)
+		if(mu!=nu) 
 		  {
 		    //Down direction
-		    if(x[jdir]!=0 || paral_dir[jdir]==0)
+		    if(x[nu]!=0 || paral_dir[nu]==0)
 		      {
-			int temp_xdir=x[jdir];
-			x[jdir]=(x[jdir]+loc_size[jdir]-1)%loc_size[jdir];
-			int ibord2=loc_vol+bord_offset[idir]+loc_bord/2+bordlx_of_coord(x,idir);
-			x[jdir]=temp_xdir;
-			loclx_neighdw[ibord][jdir]=ibord2;
+			int temp_xdir=x[nu];
+			x[nu]=(x[nu]+loc_size[nu]-1)%loc_size[nu];
+			int ibord2=loc_vol+bord_offset[mu]+loc_bord/2+bordlx_of_coord(x,mu);
+			x[nu]=temp_xdir;
+			loclx_neighdw[ibord][nu]=ibord2;
 		      }
 		    else //edge
 		      {
-			int raw_iedge=edge_offset[edge_numb[idir][jdir]]+edgelx_of_coord(x,idir,jdir);
-			if(idir<jdir) raw_iedge+=loc_edge/2; //edge i-j+
-			else raw_iedge+=loc_edge/4; //edge j+i-
+			int raw_iedge=edge_offset[edge_numb[mu][nu]]+edgelx_of_coord(x,mu,nu);
+			if(mu<nu) raw_iedge+=loc_edge/2; //edge mu-nu+
+			else raw_iedge+=loc_edge/4; //edge nu+mu-
 			//put the value of the neighbour
 			int iedge=loc_vol+loc_bord+raw_iedge;
-			loclx_neighdw[ibord][jdir]=iedge;
+			loclx_neighdw[ibord][nu]=iedge;
 			//number the elements of the edge
-			gx[idir]=(gx[idir]+1+glb_size[idir])%glb_size[idir];
-			gx[jdir]=(gx[jdir]-1+glb_size[jdir])%glb_size[jdir];
+			gx[mu]=(gx[mu]+1+glb_size[mu])%glb_size[mu];
+			gx[nu]=(gx[nu]-1+glb_size[nu])%glb_size[nu];
 			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
-			gx[idir]=glb_coord_of_loclx[iloc][idir];
-			gx[jdir]=glb_coord_of_loclx[iloc][jdir];
+			gx[mu]=glb_coord_of_loclx[ivol][mu];
+			gx[nu]=glb_coord_of_loclx[ivol][nu];
 		      }
 		    //Upper direction
-		    if(x[jdir]!=loc_size[jdir]-1 || paral_dir[jdir]==0)
+		    if(x[nu]!=loc_size[nu]-1 || paral_dir[nu]==0)
 		      {
-			int temp_xdir=x[jdir];
-			x[jdir]=(x[jdir]+1)%loc_size[jdir];
-			int ibord2=loc_vol+bord_offset[idir]+loc_bord/2+bordlx_of_coord(x,idir);
-			x[jdir]=temp_xdir;
-			loclx_neighup[ibord][jdir]=ibord2;
+			int temp_xdir=x[nu];
+			x[nu]=(x[nu]+1)%loc_size[nu];
+			int ibord2=loc_vol+bord_offset[mu]+loc_bord/2+bordlx_of_coord(x,mu);
+			x[nu]=temp_xdir;
+			loclx_neighup[ibord][nu]=ibord2;
 		      }
 		    else //edge
 		      {
-			int raw_iedge=edge_offset[edge_numb[idir][jdir]]+3*loc_edge/4+edgelx_of_coord(x,idir,jdir);
+			int raw_iedge=edge_offset[edge_numb[mu][nu]]+3*loc_edge/4+edgelx_of_coord(x,mu,nu);
 			//put the value of the neighbour
 			int iedge=loc_vol+loc_bord+raw_iedge;
-			loclx_neighup[ibord][jdir]=iedge;
+			loclx_neighup[ibord][nu]=iedge;
 			//number the elements of the edge
-			gx[idir]=(gx[idir]+1+glb_size[idir])%glb_size[idir];
-			gx[jdir]=(gx[jdir]+1+glb_size[jdir])%glb_size[jdir];
+			gx[mu]=(gx[mu]+1+glb_size[mu])%glb_size[mu];
+			gx[nu]=(gx[nu]+1+glb_size[nu])%glb_size[nu];
 			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
-			gx[idir]=glb_coord_of_loclx[iloc][idir];
-			gx[jdir]=glb_coord_of_loclx[iloc][jdir];
+			gx[mu]=glb_coord_of_loclx[ivol][mu];
+			gx[nu]=glb_coord_of_loclx[ivol][nu];
 		      }
 		  }
 	    }
@@ -313,17 +319,17 @@ void set_lx_geometry()
     }
   
   //init sender and receiver points for borders
-  for(int i=0;i<4;i++)
-    if(paral_dir[i]!=0)
+  for(int mu=0;mu<4;mu++)
+    if(paral_dir[mu]!=0)
       {
-	start_lx_bord_send_up[i]=loclx_of_coord_list(0,0,0,0);
-	start_lx_bord_rece_up[i]=(loc_vol+bord_offset[i]+loc_bord/2);
-	int x[4];
-	for(int jdir=0;jdir<4;jdir++)
-	  if(jdir==i) x[jdir]=loc_size[i]-1;
-	  else x[jdir]=0;
-	start_lx_bord_send_dw[i]=loclx_of_coord(x);
-	start_lx_bord_rece_dw[i]=loc_vol+bord_offset[i];
+	start_lx_bord_send_up[mu]=loclx_of_coord_list(0,0,0,0);
+	start_lx_bord_rece_up[mu]=(loc_vol+bord_offset[mu]+loc_bord/2);
+	coords x;
+	for(int nu=0;nu<4;nu++)
+	  if(nu==mu) x[nu]=loc_size[mu]-1;
+	  else x[nu]=0;
+	start_lx_bord_send_dw[mu]=loclx_of_coord(x);
+	start_lx_bord_rece_dw[mu]=loc_vol+bord_offset[mu];
       }
   
   nissa_lx_geom_inited=1;
@@ -337,11 +343,6 @@ void unset_lx_geometry()
 
   master_printf("Unsetting cartesian geometry\n");
   nissa_lx_geom_inited=0;
-  
-  nissa_free(loc_coord_of_loclx[0]);
-  nissa_free(glb_coord_of_loclx[0]);
-  nissa_free(loclx_neighup[0]);
-  nissa_free(loclx_neighdw[0]);
   
   nissa_free(loc_coord_of_loclx);
   nissa_free(glb_coord_of_loclx);

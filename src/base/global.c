@@ -8,8 +8,8 @@ int glb_size[4],glb_vol,glb_spat_vol;
 int loc_size[4],loc_vol,loc_spat_vol;
 int *dir_of_bord;
 //-lx is lexicografic
-int **glb_coord_of_loclx;
-int **loc_coord_of_loclx;
+coords *glb_coord_of_loclx;
+coords *loc_coord_of_loclx;
 int *glblx_of_loclx;
 int *glblx_of_bordlx;
 int *loclx_of_bordlx;
@@ -19,13 +19,13 @@ int nissa_lx_geom_inited;
 int *loclx_parity;
 int *loceo_of_loclx;
 int *loclx_of_loceo[2];
-int **loceo_neighup[2];
-int **loceo_neighdw[2];
+coords *loceo_neighup[2];
+coords *loceo_neighdw[2];
 int loc_volr;
 int nissa_eo_geom_inited;
 
 //neighbours of local volume + borders
-int **loclx_neighdw,**loclx_neighup;
+coords *loclx_neighdw,*loclx_neighup;
 
 //stopping criterions for multimass inverter
 #define sc_standard 0
@@ -61,10 +61,11 @@ int edge_numb[4][4]={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}};
 MPI_Datatype MPI_GAUGE_EDGE_SEND[6],MPI_GAUGE_EDGE_RECE[6];
 
 int paral_dir[4],nparal_dir;
-int nproc_dir[4];
-int proc_coord[4];
+int nrank_dir[4];
+int rank_coord[4];
 int rank_neighdw[4],rank_neighup[4];
-int rank,rank_tot,cart_rank,line_rank[4];
+int rank,rank_tot,cart_rank;
+int plan_rank[4],line_rank[4];
 
 int big_endian;
 
@@ -72,7 +73,7 @@ int big_endian;
 #define nreals_per_quad_su3 72
 
 MPI_Comm cart_comm;
-MPI_Comm plan_comm;
+MPI_Comm plan_comm[4];
 MPI_Comm line_comm[4];
 
 //vectors

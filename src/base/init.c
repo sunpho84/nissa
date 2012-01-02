@@ -7,7 +7,7 @@ void init_nissa()
   //init base things
   MPI_Init(NULL,NULL);
   
-  //get the number of processor and the id of the local one
+  //get the number of rank and the id of the local one
   MPI_Comm_size(MPI_COMM_WORLD,&rank_tot);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
   
@@ -41,8 +41,8 @@ void init_nissa()
   nissa_lx_geom_inited=0;
   nissa_eo_geom_inited=0;
   nissa_loc_rnd_gen_inited=0;
-  memset(proc_coord,0,4*sizeof(int));
-  memset(nproc_dir,0,4*sizeof(int));
+  memset(rank_coord,0,4*sizeof(int));
+  memset(nrank_dir,0,4*sizeof(int));
   ONE[0]=I[1]=1;
   ONE[1]=I[0]=0;
   //check endianess
@@ -97,7 +97,7 @@ int compute_border_variance(int *L,int *X,int consider_reciprocal)
   return S2B;
 }
 
-//find the grid of procs minimizing the surface
+//find the grid minimizing the surface
 void find_minimal_surface_grid(int *mP,int *L,int NP)
 {
   //treat simple cases
@@ -121,7 +121,7 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
       int list_factVL[log2N(VL)];
       int nfactVL=factorize(list_factVL,VL);
       
-      //factorize the number of proc
+      //factorize the number of rank
       int list_factNP[log2N(NP)];
       int nfactNP=factorize(list_factNP,NP);
       
@@ -222,32 +222,32 @@ void init_grid(int T,int L)
   glb_spat_vol=glb_vol/glb_size[0];
   loc_spat_vol=loc_vol/loc_size[0];
   
-  master_printf("Number of running processes: %d\n",rank_tot);
+  master_printf("Number of running runks: %d\n",rank_tot);
   master_printf("Global lattice:\t%dx%dx%dx%d = %d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3],glb_vol);
   
   //find the grid minimizing the surface
-  find_minimal_surface_grid(nproc_dir,glb_size,rank_tot);
+  find_minimal_surface_grid(nrank_dir,glb_size,rank_tot);
   //check that lattice is commensurable with the grid
   //and check wether the idir dir is parallelized or not
   int ok=(glb_vol%rank_tot==0);
   for(int idir=0;idir<4;idir++)
     {
-      ok=ok && (nproc_dir[idir]>0);
-      ok=ok && (glb_size[idir]%nproc_dir[idir]==0);
-      paral_dir[idir]=(nproc_dir[idir]>1);
+      ok=ok && (nrank_dir[idir]>0);
+      ok=ok && (glb_size[idir]%nrank_dir[idir]==0);
+      paral_dir[idir]=(nrank_dir[idir]>1);
     }
-  if(!ok) crash("The lattice is incommensurable with the total processor amount!");
-  else master_printf("Creating grid:\t%dx%dx%dx%d\n",nproc_dir[0],nproc_dir[1],nproc_dir[2],nproc_dir[3]);  
+  if(!ok) crash("The lattice is incommensurable with the total ranks amount!");
+  else master_printf("Creating grid:\t%dx%dx%dx%d\n",nrank_dir[0],nrank_dir[1],nrank_dir[2],nrank_dir[3]);  
   
   //creates the grid
   int periods[4]={1,1,1,1};
-  MPI_Cart_create(MPI_COMM_WORLD,4,nproc_dir,periods,1,&cart_comm);
-  //takes rank and ccord of local proc
+  MPI_Cart_create(MPI_COMM_WORLD,4,nrank_dir,periods,1,&cart_comm);
+  //takes rank and ccord of local rank
   MPI_Comm_rank(cart_comm,&cart_rank);
-  MPI_Cart_coords(cart_comm,cart_rank,4,proc_coord);
+  MPI_Cart_coords(cart_comm,cart_rank,4,rank_coord);
 
   //calculate the local volume
-  for(int idir=0;idir<4;idir++) loc_size[idir]=glb_size[idir]/nproc_dir[idir];
+  for(int idir=0;idir<4;idir++) loc_size[idir]=glb_size[idir]/nrank_dir[idir];
   loc_vol=glb_vol/rank_tot;
   loc_volr=loc_vol/2;
   
@@ -313,22 +313,38 @@ void init_grid(int T,int L)
       
       for(int irank=0;irank<rank_tot;irank++)
 	{
-	  if(rank==irank) printf("Process %d of %d on %s: %d (%d %d %d %d)\n",rank,rank_tot,
-				 proc_name,cart_rank,proc_coord[0],proc_coord[1],proc_coord[2],proc_coord[3]);
+	  if(rank==irank) printf("Rank %d of %d running on processor %s: %d (%d %d %d %d)\n",rank,rank_tot,
+				 proc_name,cart_rank,rank_coord[0],rank_coord[1],rank_coord[2],rank_coord[3]);
 	  fflush(stdout);
 	  MPI_Barrier(MPI_COMM_WORLD);
 	}
     }
   
-  //create communicator along t line
-  int split_time[4];
+  //create communicator along plan
   for(int mu=0;mu<4;mu++)
     {
-      memset(split_time,0,4*sizeof(int));
-      split_time[mu]=1;
-      MPI_Cart_sub(cart_comm,split_time,&(line_comm[mu]));
+      int split_plan[4];
+      coords proj_rank_coord;
+      for(int nu=0;nu<4;nu++)
+	{
+	  split_plan[nu]=(nu==mu) ? 0 : 1;
+	  proj_rank_coord[nu]=(nu==mu) ? 0 : rank_coord[nu];
+	}
+      MPI_Cart_sub(cart_comm,split_plan,&(plan_comm[mu]));
+      MPI_Comm_rank(plan_comm[mu],&(plan_rank[mu]));
+      if(plan_rank[mu]!=rank_of_coord(proj_rank_coord))
+	crash("Plan communicator has messed up coord: %d and rank %d (implement reorder!)",rank_of_coord(proj_rank_coord),plan_rank[mu]);
+   }
+  
+  //create communicator along t line
+  for(int mu=0;mu<4;mu++)
+    {
+      int split_line[4];
+      memset(split_line,0,4*sizeof(int));
+      split_line[mu]=1;
+      MPI_Cart_sub(cart_comm,split_line,&(line_comm[mu]));
       MPI_Comm_rank(line_comm[mu],&(line_rank[mu]));
-      if(line_rank[mu]!=proc_coord[mu]) crash("Line communicator has messed up coord and rank (implement reorder!)");
+      if(line_rank[mu]!=rank_coord[mu]) crash("Line communicator has messed up coord and rank (implement reorder!)");
    }
   
   //////////////////////////////////////////////////////////////////////////////////////////
@@ -336,14 +352,11 @@ void init_grid(int T,int L)
   //set the cartesian geometry
   set_lx_geometry();
   
-  if(rank_tot>0)
-    {
-      set_lx_bord_senders_and_receivers(MPI_SU3_BORD_SEND,MPI_SU3_BORD_RECE,&MPI_SU3);
-      set_lx_bord_senders_and_receivers(MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
-      set_lx_edge_senders_and_receivers(MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
-      set_lx_bord_senders_and_receivers(MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
-      initialize_lx_bord_receivers_of_kind(MPI_LXREDSPINCOLOR_BORD,&MPI_REDSPINCOLOR);
-    }
+  set_lx_bord_senders_and_receivers(MPI_SU3_BORD_SEND,MPI_SU3_BORD_RECE,&MPI_SU3);
+  set_lx_bord_senders_and_receivers(MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
+  set_lx_edge_senders_and_receivers(MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
+  set_lx_bord_senders_and_receivers(MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
+  initialize_lx_bord_receivers_of_kind(MPI_LXREDSPINCOLOR_BORD,&MPI_REDSPINCOLOR);
   
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());

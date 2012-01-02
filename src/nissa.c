@@ -27,6 +27,7 @@
 #include "operations/smear.c"
 #include "operations/fourier_transform.c"
 #include "operations/gauge_fixing.c"
+#include "operations/remap_vector.c"
 
 #include "dirac_operators/dirac_operator.c"
 #include "inverters/invert.c"

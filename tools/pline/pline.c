@@ -157,8 +157,8 @@ int main(int narg,char **arg)
   
   int ic_in, ic_out; //auxiliar color indices
 
-  for (int rank_x0=0; rank_x0<nproc_dir[0]; rank_x0++) for (int rank_x1=0; rank_x1<nproc_dir[1]; rank_x1++) for (int rank_x2=0; rank_x2<nproc_dir[2]; rank_x2++) for (int rank_x3=0; rank_x3<nproc_dir[3]; rank_x3++){
-    if(proc_coord[0]==rank_x0 && proc_coord[1]==rank_x1 && proc_coord[2]==rank_x2 && proc_coord[3]==rank_x3){
+  for (int rank_x0=0; rank_x0<nrank_dir[0]; rank_x0++) for (int rank_x1=0; rank_x1<nrank_dir[1]; rank_x1++) for (int rank_x2=0; rank_x2<nrank_dir[2]; rank_x2++) for (int rank_x3=0; rank_x3<nrank_dir[3]; rank_x3++){
+    if(rank_coord[0]==rank_x0 && rank_coord[1]==rank_x1 && rank_coord[2]==rank_x2 && rank_coord[3]==rank_x3){
   //for (int irank=0; irank<rank_tot ; irank++){ if(rank==irank){
 	for(int loc_site=0;loc_site<loc_vol;loc_site++){
   	printf("(t,x,y,z)=(%d,%d,%d,%d)\n",glb_coord_of_loclx[loc_site][0],glb_coord_of_loclx[loc_site][1],glb_coord_of_loclx[loc_site][2],glb_coord_of_loclx[loc_site][3]);

@@ -62,7 +62,7 @@ void data_coordinate_order_shift(complex *data,int ncpp,int mu0)
 
 // Perform the 1d transform (mu is used to choose the communicator and n)
 // The fft consist of four step:
-//  1) data of is rearranged across the processors
+//  1) data of is rearranged across the ranks
 //  2) ft is done on the odd length blocks (not needed if data length is a power of 2)
 //  3) Lanczos lemma is implemented on the local data
 //  4) Lanczos lemma is applied on non-local data (if needed)
@@ -71,7 +71,7 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
   int log2glb_nblk=find_max_pow2(glb_size[mu]); //number of powers of 2 contained in n
   int glb_nblk=1<<log2glb_nblk;                 //remaining odd block
   int blk_size=glb_size[mu]/glb_nblk;           //block size
-  int loc_nblk=glb_nblk/nproc_dir[mu];          //number of local blocks
+  int loc_nblk=glb_nblk/nrank_dir[mu];          //number of local blocks
   
   //check if the loc_size is a multiple of block_size
   if(loc_size[mu]%blk_size!=0) crash("Error, FFT implemented only for power of 2 grids!");
@@ -81,7 +81,7 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
   
   ////////////////////////////// first part /////////////////////////////////
   
-  //reorder data across the various proc: glb_iel_in=iel_blk_out*glb_nblk+glb_iblk_out_rev
+  //reorder data across the various rank: glb_iel_in=iel_blk_out*glb_nblk+glb_iblk_out_rev
   int nrequest0=0,nexp_request0=loc_size[mu]*2;
   MPI_Request request0[nexp_request0];
   for(int loc_iblk_in=0;loc_iblk_in<loc_nblk;loc_iblk_in++)
@@ -90,26 +90,26 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
 	//find the full index
 	int loc_iel_in=loc_iblk_in*blk_size+iel_blk_in;
 	int glb_iel_in=glb_coord_of_loclx[0][mu]+loc_iel_in;
-	int glb_iblk_in=proc_coord[mu]*loc_nblk+loc_iblk_in;
+	int glb_iblk_in=rank_coord[mu]*loc_nblk+loc_iblk_in;
 	
 	//look at the output
 	int iel_blk_out=glb_iel_in/glb_nblk;
 	int glb_iblk_out=bitrev(glb_iel_in-iel_blk_out*glb_nblk,log2glb_nblk);
-	int proc_coord_out=glb_iblk_out/loc_nblk;
-	int loc_iblk_out=glb_iblk_out-proc_coord_out*loc_nblk;
+	int rank_coord_out=glb_iblk_out/loc_nblk;
+	int loc_iblk_out=glb_iblk_out-rank_coord_out*loc_nblk;
 	int loc_iel_out=loc_iblk_out*blk_size+iel_blk_out;
 	
 	//now, if the destination is local, put it on place
-	if(proc_coord_out==proc_coord[mu]) memcpy(buf+ncpp*loc_iel_out,in+ncpp*loc_iel_in,sizeof(complex)*ncpp);
+	if(rank_coord_out==rank_coord[mu]) memcpy(buf+ncpp*loc_iel_out,in+ncpp*loc_iel_in,sizeof(complex)*ncpp);
 	else //send the data to the destination
-	  MPI_Isend((void*)(in+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,proc_coord_out,1241+loc_iel_out,
+	  MPI_Isend((void*)(in+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,rank_coord_out,1241+loc_iel_out,
 		    line_comm[mu],&request0[nrequest0++]);
 
 	//if necessary receive data: glb_iel_send=iel_blk_in*glb_nblk+glb_iblk_in_rev
 	int glb_iel_send=iel_blk_in*glb_nblk+bitrev(glb_iblk_in,log2glb_nblk);
-	int proc_coord_send=glb_iel_send/loc_size[mu];
-	if(proc_coord_send!=line_rank[mu])
-	  MPI_Irecv((void*)(buf+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,proc_coord_send,1241+loc_iel_in, 
+	int rank_coord_send=glb_iel_send/loc_size[mu];
+	if(rank_coord_send!=line_rank[mu])
+	  MPI_Irecv((void*)(buf+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,rank_coord_send,1241+loc_iel_in, 
 		    line_comm[mu],&request0[nrequest0++]);
       }
   
@@ -217,12 +217,12 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
   ///////////////////////////////////// fourth part //////////////////////////////
   
   //now perform the lanczos procedure up to the end
-  for(int delta_proc=1;delta_proc<nproc_dir[mu];delta_proc*=2) //this is proc width of delta
+  for(int delta_rank=1;delta_rank<nrank_dir[mu];delta_rank*=2) //this is rank width of delta
     {
-      int delta=delta_proc*loc_size[mu];    //block extent
-      int idelta=proc_coord[mu]/delta_proc; //identify the delta of the current proc
+      int delta=delta_rank*loc_size[mu];    //block extent
+      int idelta=rank_coord[mu]/delta_rank; //identify the delta of the current rank
       
-      //find if the current processor hold the first or second block
+      //find if the current rank holding the first or second block
       complex *first,*second;
       MPI_Request request2[2];
       MPI_Status status2[2];
@@ -232,9 +232,9 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
 	  first=out;
 	  second=buf;
 	  
-	  MPI_Irecv((void*)buf,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]+delta_proc,113+line_rank[mu],
+	  MPI_Irecv((void*)buf,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu],
 		    line_comm[mu],&(request2[0]));
-	  MPI_Isend((void*)out,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]+delta_proc,113+line_rank[mu]+delta_proc,
+	  MPI_Isend((void*)out,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]+delta_rank,113+line_rank[mu]+delta_rank,
 		    line_comm[mu],&(request2[1]));
 	}
       else           //second: so it has to receive first block and send second
@@ -242,9 +242,9 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
 	  first=buf;
 	  second=out;
 	  
-	  MPI_Irecv((void*)buf,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]-delta_proc,113+line_rank[mu],
+	  MPI_Irecv((void*)buf,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu],
 		    line_comm[mu],&(request2[0]));
-	  MPI_Isend((void*)out,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]-delta_proc,113+line_rank[mu]-delta_proc,
+	  MPI_Isend((void*)out,2*ncpp*loc_size[mu],MPI_DOUBLE,line_rank[mu]-delta_rank,113+line_rank[mu]-delta_rank,
 		    line_comm[mu],&(request2[1]));
 	}
       
@@ -254,8 +254,8 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
       double wpr=-2*wtemp*wtemp;
       double wpi=sin(theta);
       
-      int proc_pos_delta=proc_coord[mu]%delta_proc; //position of the processor inside the delta
-      int pos_delta=proc_pos_delta*loc_size[mu];     //starting coord of local delta inside the delta
+      int rank_pos_delta=rank_coord[mu]%delta_rank;  //position of the rank inside the delta
+      int pos_delta=rank_pos_delta*loc_size[mu];     //starting coord of local delta inside the delta
 
       //fourier coefficient
       double wr=cos(pos_delta*theta);

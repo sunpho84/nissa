@@ -21,18 +21,18 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   int loc_slice_area=loc_size[1]*loc_size[2]*loc_size[3];
   su3 *buf=NULL;
   
-  //if the number of processors in the 0 dir is greater than 1 allocate room for border
-  if(nproc_dir[0]>1) buf=nissa_malloc("buf",loc_slice_area,su3);
+  //if the number of ranks in the 0 dir is greater than 1 allocate room for border
+  if(nrank_dir[0]>1) buf=nissa_malloc("buf",loc_slice_area,su3);
 
-  //if we are on first proc slice put to identity the t=0 slice, otherwise receive it from previous proc slice
-  if(proc_coord[0]==0)
+  //if we are on first rank slice put to identity the t=0 slice, otherwise receive it from previous rank slice
+  if(rank_coord[0]==0)
     {
       for(int ivol=0;ivol<loc_vol;ivol++)
 	if(glb_coord_of_loclx[ivol][0]==0)
 	  su3_put_to_id(fixm[ivol]);
     }
   else
-    if(nproc_dir[0]>1)
+    if(nrank_dir[0]>1)
       MPI_Recv((void*)fixm,loc_slice_area,MPI_SU3,rank_neighdw[0],252,cart_comm,MPI_STATUS_IGNORE);
   
   //now go ahead along t
@@ -51,7 +51,7 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
 	      su3_prod_su3(fixm[icurr],fixm[iback],u[iback][0]);
 	    }
 	  //border
-	  if(nproc_dir[0]>1)
+	  if(nrank_dir[0]>1)
 	    {
 	      c[0]=loc_size[0]-1;int iback=loclx_of_coord(c);
 	      c[0]=0;int icurr=loclx_of_coord(c);
@@ -61,11 +61,11 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
 	  
 	}
   
-  //if we are not on last slice of processor send g to next slice
-  if(proc_coord[0]!=(nproc_dir[0]-1) && nproc_dir[0]>1)
+  //if we are not on last slice of rank send g to next slice
+  if(rank_coord[0]!=(nrank_dir[0]-1) && nrank_dir[0]>1)
     MPI_Send((void*)buf,loc_slice_area,MPI_SU3,rank_neighup[0],252,cart_comm);
 
-  if(nproc_dir[0]>1) nissa_free(buf);
+  if(nrank_dir[0]>1) nissa_free(buf);
 }
 
 //////////////////////////////////////////// landau or coulomb gauges //////////////////////////////////////////////////////////////

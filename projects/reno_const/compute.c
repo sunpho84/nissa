@@ -112,6 +112,22 @@ void write_all_indep_propagators(const char *name,int prec)
       {
 	int mr=0;
 	
+	/*
+	su3spinspin *temp=nissa_malloc("temp",loc_vol,su3spinspin);
+	ac_rotate_vector((char*)temp,(char*)(S0[r][imass]),1,sizeof(su3spinspin));
+	nissa_free(temp);
+	*/
+	
+	int *temp=nissa_malloc("temp",loc_vol,int);
+	for(int ivol=0;ivol<loc_vol;ivol++)
+	  temp[ivol]=glb_coord_of_loclx[ivol][2];
+	ac_rotate_vector((char*)temp,(char*)temp,1,sizeof(int));
+	for(int ivol=0;ivol<loc_vol;ivol++)
+	  if(temp[ivol]!=glb_coord_of_loclx[ivol][3])
+	    printf("%d %d %d %d\n",rank,ivol,temp[ivol],glb_coord_of_loclx[ivol][3]);
+	nissa_free(temp);
+	
+	/*
 	add_remove_phase_factor(S0[r][imass],+1,source_coord[0]);
 	vector_gather(glb,S0[r][imass],sizeof(su3spinspin),mr);
 	add_remove_phase_factor(S0[r][imass],-1,source_coord[0]);
@@ -191,8 +207,10 @@ void write_all_indep_propagators(const char *name,int prec)
 		  if(nw!=indep_vol*24*bpr) crash("Error while writing %s",path);
 		  fclose(fout);
 		}
-	  }
-
+	  
+		}
+	*/
+	
       }
 
   nsaved_indep_prop_tot+=12*2*nmass;
