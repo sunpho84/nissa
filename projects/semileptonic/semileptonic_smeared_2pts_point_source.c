@@ -68,7 +68,7 @@ void generate_source()
   int islocal=1,lx[4];
   for(int idir=0;idir<4;idir++)
     {
-      lx[idir]=source_coord[idir]-proc_coord[idir]*loc_size[idir];
+      lx[idir]=source_coord[idir]-rank_coord[idir]*loc_size[idir];
       islocal&=(lx[idir]>=0);
       islocal&=(lx[idir]<loc_size[idir]);
     }

@@ -16,19 +16,11 @@ void set_eo_geometry()
     loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+loc_bord,int);
     loclx_of_loceo[0]=nissa_malloc("loclx_of_loceo",loc_vol+loc_bord,int);
     loclx_of_loceo[1]=loclx_of_loceo[0]+(loc_vol+loc_bord)/2;
-    loceo_neighup[0]=nissa_malloc("loceo_neighup",loc_vol+loc_bord,int*);
-    loceo_neighdw[0]=nissa_malloc("loceo_neighdw",loc_vol+loc_bord,int*);
-    loceo_neighup[0][0]=nissa_malloc("loceo_neighup[0]",4*(loc_vol+loc_bord),int);
-    loceo_neighdw[0][0]=nissa_malloc("loceo_neighdw[0]",4*(loc_vol+loc_bord),int);
+    loceo_neighup[0]=nissa_malloc("loceo_neighup",loc_vol+loc_bord,coords);
+    loceo_neighdw[0]=nissa_malloc("loceo_neighdw",loc_vol+loc_bord,coords);
     
     loceo_neighup[1]=loceo_neighup[0]+(loc_vol+loc_bord)/2;
     loceo_neighdw[1]=loceo_neighdw[0]+(loc_vol+loc_bord)/2;      
-    for(int eo=0;eo<2;eo++)
-	for(int loceo=1;loceo<(loc_vol+loc_bord)/2;loceo++)
-	{
-	    loceo_neighup[eo][loceo]=loceo_neighup[eo][loceo-1]+4;
-	    loceo_neighdw[eo][loceo]=loceo_neighdw[eo][loceo-1]+4;
-	}
     
     //int iloce=0,iloco=0;
     //Label the bulk sites
@@ -36,7 +28,8 @@ void set_eo_geometry()
     {
 	//calculate global coord and parity
 	int par=0;
-	for(int idir=0;idir<4;idir++) par+=glb_coord_of_loclx[loclx][idir];
+	for(int mu=0;mu<4;mu++)
+	  par+=glb_coord_of_loclx[loclx][mu];
 	par%=2;
 	
 	//fix parity of local index
@@ -96,12 +89,11 @@ void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Dataty
 
 void unset_eo_geometry()
 {
-  if(nissa_eo_geom_inited==0) crash("asking to unset never initialized E/O Geometry!");
+  if(nissa_eo_geom_inited==0)
+    crash("asking to unset never initialized E/O Geometry!");
 
   master_printf("Unsetting E/O Geometry\n");
   
-  nissa_free(loceo_neighup[0][0]);
-  nissa_free(loceo_neighdw[0][0]);
   nissa_free(loclx_of_loceo[0]);
   nissa_free(loceo_neighup[0]);
   nissa_free(loceo_neighdw[0]);

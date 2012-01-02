@@ -20,12 +20,12 @@ void vector_gather(void *glb,void *loc,int bps,int dest_rank)
       //reorder data
       int *ord=nissa_malloc("ord",glb_vol,int);
       int r[4];
-      for(r[0]=0;r[0]<nproc_dir[0];r[0]++)
-	for(r[1]=0;r[1]<nproc_dir[1];r[1]++)
-	  for(r[2]=0;r[2]<nproc_dir[2];r[2]++)
-	    for(r[3]=0;r[3]<nproc_dir[3];r[3]++)
+      for(r[0]=0;r[0]<nrank_dir[0];r[0]++)
+	for(r[1]=0;r[1]<nrank_dir[1];r[1]++)
+	  for(r[2]=0;r[2]<nrank_dir[2];r[2]++)
+	    for(r[3]=0;r[3]<nrank_dir[3];r[3]++)
 	      {
-		int irank=proc_of_coord(r);
+		int irank=rank_of_coord(r);
 		int l[4];
 		for(l[0]=0;l[0]<loc_size[0];l[0]++)
 		  for(l[1]=0;l[1]<loc_size[1];l[1]++)

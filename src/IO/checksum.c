@@ -100,7 +100,7 @@ void checksum_compute_ildg_data(uint32_t *check,void *data,size_t bps)
       for(x[2]=0;x[2]<loc_size[2];x[2]++)
 	for(x[3]=0;x[3]<loc_size[3];x[3]++)
 	  {
-	    int X[4];for(int i=0;i<4;i++) X[i]=loc_size[i]*proc_coord[i]+x[i];
+	    int X[4];for(int i=0;i<4;i++) X[i]=loc_size[i]*rank_coord[i]+x[i];
 	    uint32_t loc_ivol=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
 	    uint32_t glb_ivol=X[1]+glb_size[1]*(X[2]+glb_size[2]*(X[3]+glb_size[3]*X[0]));
 	    uint32_t crc_rank[2]={glb_ivol%29,glb_ivol%31};

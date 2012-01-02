@@ -50,7 +50,7 @@ int main(int narg,char **arg)
   int lx[4];
   for(int mu=0;mu<4;mu++)
     {
-      lx[mu]=or_pos[mu]-proc_coord[mu]*loc_size[mu];
+      lx[mu]=or_pos[mu]-rank_coord[mu]*loc_size[mu];
       local=local && lx[mu]>=0 && lx[mu]<loc_size[mu];
     }
   if(local==1) sp[loclx_of_coord(lx)][0][0][0]=1;

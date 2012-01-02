@@ -76,7 +76,7 @@ void Pline(su3 *Pline,quad_su3 *conf)
             su3_copy(plf[1],U0[1]);
             for(int t=2;t<=T;t++) su3_prod_su3(plf[t],U0[t],plf[t-1]);
 
-	    if(proc_coord[0]<nproc_dir[0]-1)
+	    if(rank_coord[0]<nrank_dir[0]-1)
 	      {
 		MPI_Send(plf[T],1,MPI_SU3,rank_neighup[0],tag_f,MPI_COMM_WORLD);
 		MPI_Recv(plb_up_buffer,1,MPI_SU3,rank_neighup[0],tag_b,MPI_COMM_WORLD,&status_b);
@@ -91,7 +91,7 @@ void Pline(su3 *Pline,quad_su3 *conf)
             su3_copy(plb[T],U0[T]);
             for(int t=1;t<T;t++) su3_prod_su3(plb[T-t],U0[T-t],plb[T-t+1]);
 
-	   if(proc_coord[0]>0)
+	   if(rank_coord[0]>0)
 	     {
 	       MPI_Send(plb[1],1,MPI_SU3,rank_neighdw[0],tag_b,MPI_COMM_WORLD);
 	       MPI_Recv(plf_dw_buffer,1,MPI_SU3,rank_neighdw[0],tag_f,MPI_COMM_WORLD,&status_f);
@@ -114,7 +114,7 @@ void Pline(su3 *Pline,quad_su3 *conf)
                 if(glb_coord_of_loclx[X][0]<=(glb_size[0]/2-1))
 		  {
 		    su3_copy(Pline[X],plf[t]);
-		    if(proc_coord[0]>0)
+		    if(rank_coord[0]>0)
 		      {
 			su3_prod_su3(aux,Pline[X],plf_dw_buffer);
 			su3_copy(Pline[X],aux);
@@ -130,7 +130,7 @@ void Pline(su3 *Pline,quad_su3 *conf)
 	       if(glb_coord_of_loclx[X][0]>(glb_size[0]/2-1))
 		 {
 		   su3_copy(Pline[X],plb[t+1]);
-		   if(proc_coord[0]<(nproc_dir[0]-1))
+		   if(rank_coord[0]<(nrank_dir[0]-1))
 		     {
 		       su3_prod_su3(aux,Pline[X],plb_up_buffer);
 		       su3_copy(Pline[X],aux);
@@ -166,17 +166,17 @@ void Pline_forward(su3 *Pline, quad_su3 *conf)
            su3_copy(plf[1],U0[1]);
            for(int t=2;t<=T;t++) su3_prod_su3(plf[t],U0[t],plf[t-1]);
 
-           if(proc_coord[0]<nproc_dir[0]-1)
+           if(rank_coord[0]<nrank_dir[0]-1)
 	     {
 	       su3_copy(plf_dw_buffer,plf[T]);
 	       MPI_Send(plf_dw_buffer,1,MPI_SU3,rank_neighup[0],tag_f,MPI_COMM_WORLD);
 	     }
-           if(proc_coord[0]>0) MPI_Recv(plf_dw_buffer,1,MPI_SU3,rank_neighdw[0],tag_f,MPI_COMM_WORLD,&status_f);
+           if(rank_coord[0]>0) MPI_Recv(plf_dw_buffer,1,MPI_SU3,rank_neighdw[0],tag_f,MPI_COMM_WORLD,&status_f);
 
 	   iX[0]=0;
 	   X=loclx_of_coord(iX);
 	   su3_put_to_id(Pline[X]);
-	   if(proc_coord[0]>0)
+	   if(rank_coord[0]>0)
 	     {
 	       su3_prod_su3(aux,Pline[X],plf_dw_buffer);
 	       su3_copy(Pline[X],aux);
@@ -188,7 +188,7 @@ void Pline_forward(su3 *Pline, quad_su3 *conf)
 	       //This is a "local" P-line
 	       su3_copy(Pline[X],plf[iX[0]]);
 	       //Here I acummulate the global P-line 
-	       if(proc_coord[0]>0)
+	       if(rank_coord[0]>0)
 		 {
 		   su3_prod_su3(aux,Pline[X],plf_dw_buffer);
 		   su3_copy(Pline[X],aux);
@@ -223,10 +223,10 @@ void Pline_backward(su3 *Pline, quad_su3 *conf)
             su3_copy(plb[T],U0[T]);
             for(int t=1;t<T;t++) su3_prod_su3(plb[T-t],U0[T-t],plb[T-t+1]);
 
-           if(proc_coord[0]<nproc_dir[0]-1)
+           if(rank_coord[0]<nrank_dir[0]-1)
 	     MPI_Recv(plb_up_buffer,1,MPI_SU3,rank_neighup[0],tag_b,MPI_COMM_WORLD,&status_b);
 	   
-           if(proc_coord[0]>0)
+           if(rank_coord[0]>0)
 	     {
 	       su3_copy(plb_up_buffer,plb[1]);
 	       MPI_Send(plb_up_buffer,1,MPI_SU3,rank_neighdw[0],tag_b,MPI_COMM_WORLD);
@@ -238,7 +238,7 @@ void Pline_backward(su3 *Pline, quad_su3 *conf)
 	       int t=iX[0];
 	       X=loclx_of_coord(iX);
 	       su3_copy(Pline[X],plb[t+1]);
-	       if(proc_coord[0]<nproc_dir[0]-1)
+	       if(rank_coord[0]<nrank_dir[0]-1)
 		 {
 		   su3_prod_su3(aux,Pline[X],plb_up_buffer);
 		   su3_copy(Pline[X],aux);
