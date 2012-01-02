@@ -72,6 +72,7 @@ int ninv_tot=0,ncontr_tot=0;
 int wall_time;
 double tot_time=0,inv_time=0;
 double load_time=0,contr_time=0;
+double contr_save_time=0;
 
 //return the position of the propagator of theta and mass
 int iprop_of(int itheta,int imass){return itheta*nmass+imass;}
@@ -81,7 +82,7 @@ void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];
-
+  
   for(int icontr=0;icontr<ncontr;icontr++)
     {
       //Put the two gamma5 needed for the revert of the first spinor
@@ -395,6 +396,7 @@ void close_semileptonic()
   master_printf("Total time: %g, of which:\n",tot_time);
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
   master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+  master_printf("   of which %02.2f%s to save correlations\n",contr_save_time*100.0/contr_time,"%");
   
   nissa_free(Pmunu);nissa_free(conf);nissa_free(sme_conf);
   for(int iprop=0;iprop<npropS0;iprop++){nissa_free(S0[0][iprop]);nissa_free(S0[1][iprop]);nissa_free(S1[iprop]);}
@@ -464,9 +466,9 @@ void calculate_S0(int ism_lev_so)
 	  
 	  //inverting
 	  double part_time=-take_time();
-	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	  inv_Q2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	  if(rank==0) printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
+	  master_printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
 
 	  //reconstruct the doublet
 	  for(int imass=0;imass<nmass;imass++)
@@ -511,7 +513,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 	  adapt_theta(conf,old_theta,put_theta,1,1);
 
 	  double part_time=-take_time();
-	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	  inv_Q2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	  if(rank==0) printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
 	  
@@ -542,11 +544,11 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
     for(int iprop=0;iprop<npropS0;iprop++)
       smear_additive_colorspinspin(S0[r][iprop],S0[r][iprop],ism_lev_si,jacobi_niter_si);
   
+  contr_time-=take_time();
+  
   char path[1024];
   sprintf(path,"%s/2pts_%02d_%02d",outfolder,jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
   FILE *fout=open_text_file_for_output(path);
-
-  contr_time-=take_time();
 
   for(int ispec=0;ispec<nspec;ispec++)
     {
@@ -567,14 +569,20 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 		  
 		  meson_two_points(contr_2pts,op1_2pts,S0[r1][ip1],op2_2pts,S0[r2][ip2],ncontr_2pts);
 		  ncontr_tot+=ncontr_2pts;
+		  
+		  contr_save_time-=take_time();
 		  print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0/glb_spat_vol);
+		  contr_save_time+=take_time();
 		  
 		  if(nch_contr_2pts>0)
 		    {
 		      unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin,Pmunu,S0[r2][ip2]);
 		      meson_two_points(ch_contr_2pts,ch_op1_2pts,S0[r1][ip1],ch_op2_2pts,ch_colorspinspin,nch_contr_2pts);
 		      ncontr_tot+=nch_contr_2pts;
+		      
+		      contr_save_time-=take_time();
 		      print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,twall,"CHROMO-",1.0/glb_spat_vol);
+		      contr_save_time+=take_time();
 		    }
 		  if(rank==0) fprintf(fout,"\n");
 		}
@@ -609,17 +617,23 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d,",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
 		fprintf(fout," smear_source=%d smear_seq=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
 	      }
-	    
+	
 	    meson_two_points(contr_3pts,op1_3pts,S0[r1][ip1],op2_3pts,S1[ip2],ncontr_3pts);
 	    ncontr_tot+=ncontr_3pts;
+	    
+	    contr_save_time-=take_time();
 	    print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"",1.0/glb_spat_vol);
+	    contr_save_time+=take_time();
 	    
 	    if(nch_contr_3pts>0)
 	      {
 		unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin,Pmunu,S1[ip2]);
 		meson_two_points(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_colorspinspin,nch_contr_3pts);
 		ncontr_tot+=nch_contr_3pts;
+		
+		contr_save_time-=take_time();
 		print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,twall,"CHROMO-",1.0/glb_spat_vol);
+		contr_save_time+=take_time();
 	      }
 	    if(rank==0) fprintf(fout,"\n");
 	  }

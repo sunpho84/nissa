@@ -124,7 +124,7 @@ void write_all_indep_propagators(const char *name,int prec)
 	    
 	    if(r==0 && imass==0)
 	      {
-		FILE *fout=fopen("/tmp/arem","w");
+		FILE *fout=fopen("arem","w");
 		int x[4];
 		for(x[0]=0;x[0]<glb_size[0];x[0]++)
 		  for(x[3]=0;x[3]<glb_size[3];x[3]++)
