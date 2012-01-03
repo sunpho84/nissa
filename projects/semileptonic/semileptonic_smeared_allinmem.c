@@ -630,6 +630,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
   //remap the operators list for 3pts into dirac matrixes, putting g5 to revert second prop
   dirac_matr d1_3pts[ntot_contr_3pts],d2_3pts[ntot_contr_3pts];
   int equal_to1[ntot_contr_3pts],equal_to2[ntot_contr_3pts];
+  for(int icontr=0;icontr<ntot_contr_3pts;icontr++) equal_to1[icontr]=equal_to2[icontr]=-1;
   int ntot_ind_mult1=0,ntot_ind_mult2=0;
   int nind_mult1=0,nind_mult2=0;
   for(int icontr=0;icontr<ntot_contr_3pts;icontr++)
@@ -641,34 +642,33 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 	  nind_mult2=ntot_ind_mult2;
 	}
       
-      //try to save a new indep multiplications
-      if(icontr<ncontr_3pts)
+      //if indep, save a new indep multiplications
+      if(equal_to1[icontr]==-1)
 	{
-	  dirac_prod(&(d1_3pts[ntot_ind_mult1]), &(base_gamma[op1_3pts[icontr]]),&(base_gamma[5]));
-	  dirac_prod(&(d2_3pts[ntot_ind_mult2]), &(base_gamma[5]),&(base_gamma[op2_3pts[icontr]]));
+	  if(icontr<ncontr_3pts) dirac_prod(&(d1_3pts[ntot_ind_mult1]), &(base_gamma[op1_3pts[icontr]]),&(base_gamma[5]));
+	  else dirac_prod(&(d1_3pts[ntot_ind_mult1]), &(base_gamma[ch_op1_3pts[icontr-ncontr_3pts]]),&(base_gamma[5])); 
+	  equal_to1[icontr]=ntot_ind_mult1;
+	  
+	  //find equivalent ones
+	  for(int jcontr=icontr+1;jcontr<ntot_contr_3pts;jcontr++)
+	    if(equal_to1[jcontr]==-1 && ((icontr<ncontr_3pts && op1_3pts[jcontr]==op1_3pts[icontr])||(icontr>=ncontr_3pts && ch_op1_3pts[jcontr-ncontr_3pts]==ch_op1_3pts[icontr-ncontr_3pts])))
+	      equal_to1[jcontr]=equal_to1[icontr];
+	  
+	  ntot_ind_mult1++;
 	}
-      else
+      if(equal_to2[icontr]==-1)
 	{
-	  dirac_prod(&(d1_3pts[ntot_ind_mult1]), &(base_gamma[ch_op1_3pts[icontr-ncontr_3pts]]),&(base_gamma[5]));
-	  dirac_prod(&(d2_3pts[ntot_ind_mult2]), &(base_gamma[5]),&(base_gamma[ch_op2_3pts[icontr-ncontr_3pts]]));
+	  if(icontr<ncontr_3pts) dirac_prod(&(d2_3pts[ntot_ind_mult2]), &(base_gamma[5]),&(base_gamma[op2_3pts[icontr]]));
+	  else dirac_prod(&(d2_3pts[ntot_ind_mult2]), &(base_gamma[5]),&(base_gamma[ch_op2_3pts[icontr-ncontr_3pts]]));
+	  equal_to2[icontr]=ntot_ind_mult2;
+	  
+	  //find equivalent ones
+	  for(int jcontr=icontr+1;jcontr<ntot_contr_3pts;jcontr++)
+	    if(equal_to2[jcontr]==-1 && ((icontr<ncontr_3pts && op2_3pts[jcontr]==op2_3pts[icontr])||(icontr>=ncontr_3pts && ch_op2_3pts[jcontr-ncontr_3pts]==ch_op2_3pts[icontr-ncontr_3pts])))
+	      equal_to2[jcontr]=equal_to2[icontr];
+	  
+	  ntot_ind_mult2++;
 	}
-      
-      //check if there are equivalent multiplications
-      
-      //initialize to itself
-      equal_to1[icontr]=ntot_ind_mult1;
-      equal_to2[icontr]=ntot_ind_mult2;
-      
-      //check with previous one
-      int inf_lim1=(icontr<ncontr_3pts) ? 0 : nind_mult1;
-      for(int im1=inf_lim1;im1<ntot_ind_mult1;im1++)
-	if(strncmp((char*)(d1_3pts+ntot_ind_mult1),(char*)(d1_3pts+im1),sizeof(dirac_matr))==0) equal_to1[icontr]=im1;
-      int inf_lim2=(icontr<ncontr_3pts) ? 0 : nind_mult2;
-      for(int im2=inf_lim2;im2<ntot_ind_mult2;im2++)
-	if(strncmp((char*)(d2_3pts+ntot_ind_mult2),(char*)(d2_3pts+im2),sizeof(dirac_matr))==0) equal_to2[icontr]=im2;
-      //if passed the check save it
-      if(equal_to1[icontr]==ntot_ind_mult1) ntot_ind_mult1++;
-      if(equal_to2[icontr]==ntot_ind_mult2) ntot_ind_mult2++;
     }
   
   for(int icontr=0;icontr<ntot_contr_3pts;icontr++)  
