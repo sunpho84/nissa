@@ -141,11 +141,17 @@ void generate_spindiluted_source(colorspinspin *source,enum rnd_type rtype,int t
 { //reset
   memset(source,0,sizeof(colorspinspin)*loc_vol);
   
+  //compute normalization norm: spat vol if twall>=0, glb_vol else
+  int norm2=glb_vol;
+  if(twall>=0) norm2/=glb_size[0];
+  double inv_sqrt_norm2=1.0/sqrt(norm2);
+  
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
       for(int ic=0;ic<3;ic++)
 	{ //generate the id_sink==id_source==0 entry
 	  comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
+	  complex_prod_real(source[ivol][ic][0][0],source[ivol][ic][0][0],inv_sqrt_norm2);
 	  for(int d=1;d<4;d++) //copy the other three dirac indexes
 	    memcpy(source[ivol][ic][d][d],source[ivol][ic][0][0],sizeof(complex));
 	}
