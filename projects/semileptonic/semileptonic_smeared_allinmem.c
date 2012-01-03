@@ -58,11 +58,11 @@ colorspinspin **S1;
 
 //three points contractions
 int ncontr_3pts;
-int *op1_3pts,*op2_3pts;
+int *op_3pts[2];
 
 //two points chromo contractions
 int nch_contr_3pts;
-int *ch_op1_3pts,*ch_op2_3pts;
+int *ch_op_3pts[2];
 
 //timings
 int ninv_tot=0,ncontr_tot=0;
@@ -257,27 +257,27 @@ void initialize_semileptonic(char *input_path)
       master_printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,theta[ith_spec[ispec]],mass[imass_spec[ispec]],r_spec[ispec]);
     }
   read_str_int("NContrThreePoints",&ncontr_3pts);
-  op1_3pts=nissa_malloc("op1_3pts",ncontr_3pts,int);
-  op2_3pts=nissa_malloc("op2_3pts",ncontr_3pts,int);
+  op_3pts[0]=nissa_malloc("op0_3pts",ncontr_3pts,int);
+  op_3pts[1]=nissa_malloc("op1_3pts",ncontr_3pts,int);
   for(int icontr=0;icontr<ncontr_3pts;icontr++)
     {
       //Read the operator pairs
-      read_int(&(op1_3pts[icontr]));
-      read_int(&(op2_3pts[icontr]));
+      read_int(&(op_3pts[0][icontr]));
+      read_int(&(op_3pts[1][icontr]));
       
-      master_printf(" contr.%d %d %d\n",icontr,op1_3pts[icontr],op2_3pts[icontr]);
+      master_printf(" contr.%d %d %d\n",icontr,op_3pts[0][icontr],op_3pts[1][icontr]);
     }
 
   read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
-  ch_op1_3pts=nissa_malloc("ch_op1_3pts",nch_contr_3pts,int);
-  ch_op2_3pts=nissa_malloc("ch_op2_3pts",nch_contr_3pts,int);
+  ch_op_3pts[0]=nissa_malloc("ch_op0_3pts",nch_contr_3pts,int);
+  ch_op_3pts[1]=nissa_malloc("ch_op1_3pts",nch_contr_3pts,int);
   for(int icontr=0;icontr<nch_contr_3pts;icontr++)
     {
       //Read the operator pairs
-      read_int(&(ch_op1_3pts[icontr]));
-      read_int(&(ch_op2_3pts[icontr]));
+      read_int(&(ch_op_3pts[0][icontr]));
+      read_int(&(ch_op_3pts[1][icontr]));
       
-      master_printf(" ch-contr.%d %d %d\n",icontr,ch_op1_3pts[icontr],ch_op2_3pts[icontr]);
+      master_printf(" ch-contr.%d %d %d\n",icontr,ch_op_3pts[0][icontr],ch_op_3pts[1][icontr]);
     }
   
   read_str_int("NGaugeConf",&ngauge_conf);
@@ -397,9 +397,9 @@ void close_semileptonic()
   nissa_free(sequential_source);
   nissa_free(contr_2pts);nissa_free(ch_contr_2pts);
   nissa_free(op1_2pts);nissa_free(op2_2pts);
-  nissa_free(op1_3pts);nissa_free(op2_3pts);
+  nissa_free(op_3pts[0]);nissa_free(op_3pts[1]);
   nissa_free(ch_op1_2pts);nissa_free(ch_op2_2pts);
-  nissa_free(ch_op1_3pts);nissa_free(ch_op2_3pts);
+  nissa_free(ch_op_3pts[0]);nissa_free(ch_op_3pts[1]);
   nissa_free(ith_spec);nissa_free(r_spec);nissa_free(imass_spec);
   for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
   nissa_free(cgmms_solution);
@@ -588,212 +588,46 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
   nissa_free(ch_colorspinspin);
 }
 
-//Calculate and print to file the 3pts
-void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
+//Calculate all three points contractions
+void three_points(int ispec,int ism_lev_so,int ism_lev_se)
 {
   //take initial time
   contr_time-=take_time();
   
-  //compute the total number of 3pts contractions (ordinary and chromo ones)
-  int ntot_contr_3pts=ncontr_3pts+nch_contr_3pts;
+  //allocate space for contractions
+  complex *glb_contr   =nissa_malloc(   "glb_3pts_contr",npropS1*npropS1*glb_size[0]*ncontr_3pts,complex);
+  complex *glb_ch_contr=nissa_malloc("glb_ch_3pts_contr",npropS1*npropS1*glb_size[0]*nch_contr_3pts,complex);
   
-  //apply Pmunu to the prop if needed
-  colorspinspin **ch_colorspinspin;
+  //create the list of propagator combinations
+  intpair nprop_rep={npropS1,npropS1};
+  int nprop_combo=npropS1*npropS1;
+  intpair *prop_combo=nissa_malloc("prop_combo",nprop_combo,intpair);
+  int icombo=0;
+  for(int iprop1=0;iprop1<npropS1;iprop1++)
+    for(int iprop0=0;iprop0<npropS1;iprop0++)
+      {
+	prop_combo[icombo][0]=iprop0;
+	prop_combo[icombo][1]=iprop1;
+	icombo++;
+      }
+  
+  //apply Pmunu to the prop if needed  
+  colorspinspin **ch_S1;
   if(nch_contr_3pts>0)
     {
-      ch_colorspinspin=nissa_malloc("ch_colorspinspin_ptr",npropS1,colorspinspin*);
-      ch_colorspinspin[0]=nissa_malloc("ch_colorspinspin",loc_vol*npropS1,colorspinspin);
-      for(int ip=0;ip<npropS1;ip++)
+      ch_S1=nissa_malloc("ch_colorspinspin_ptr",npropS1,colorspinspin*);
+      ch_S1[0]=nissa_malloc("ch_colorspinspin",loc_vol*npropS1,colorspinspin);
+      for(int iprop=0;iprop<npropS1;iprop++)
 	{
-	  ch_colorspinspin[ip]=ch_colorspinspin[0]+loc_vol*ip;
-	  unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin[ip],Pmunu,S1[ip]);
+	  ch_S1[iprop]=ch_S1[0]+loc_vol*iprop;
+	  unsafe_apply_chromo_operator_to_colorspinspin(ch_S1[iprop],Pmunu,S1[iprop]);
 	}
     }
   
-  //compute spatial volume
-  int spat_loc_vol=loc_size[1]*loc_size[2]*loc_size[3];
-  int spat_glb_vol=glb_size[1]*glb_size[2]*glb_size[3];
-  
-  //compute the local and global buffer dimension
-  int nprop_combo_3pts=ntheta*nmass*ntheta*nmass;
-  int loc_buf_size=nprop_combo_3pts*loc_size[0]*ntot_contr_3pts;
-  int glb_buf_size=nrank_dir[0]*loc_buf_size;
-  
-  //count all contractions and allocate space for saving them
-  complex *glb_ctr=nissa_malloc("glb3pts",glb_buf_size,complex);
-  complex *loc_ctr=nissa_malloc("loc3pts",loc_buf_size,complex);
-  memset(loc_ctr,0,sizeof(complex)*loc_buf_size);
-  
-  //find the r of the combo
+  //perform all the contractions
   int r1=r_spec[ispec];
-  
-  //remap the operators list for 3pts into dirac matrixes, putting g5 to revert second prop
-  dirac_matr d1_3pts[ntot_contr_3pts],d2_3pts[ntot_contr_3pts];
-  int equal_to1[ntot_contr_3pts],equal_to2[ntot_contr_3pts];
-  for(int icontr=0;icontr<ntot_contr_3pts;icontr++) equal_to1[icontr]=equal_to2[icontr]=-1;
-  int ntot_ind_mult1=0,ntot_ind_mult2=0;
-  int nind_mult1=0,nind_mult2=0;
-  for(int icontr=0;icontr<ntot_contr_3pts;icontr++)
-    {
-      //save non-chromo indep multiplications
-      if(icontr==ncontr_3pts)
-	{
-	  nind_mult1=ntot_ind_mult1;
-	  nind_mult2=ntot_ind_mult2;
-	}
-      
-      //if indep, save a new indep multiplications
-      if(equal_to1[icontr]==-1)
-	{
-	  if(icontr<ncontr_3pts) dirac_prod(&(d1_3pts[ntot_ind_mult1]), &(base_gamma[op1_3pts[icontr]]),&(base_gamma[5]));
-	  else dirac_prod(&(d1_3pts[ntot_ind_mult1]), &(base_gamma[ch_op1_3pts[icontr-ncontr_3pts]]),&(base_gamma[5])); 
-	  equal_to1[icontr]=ntot_ind_mult1;
-	  
-	  //find equivalent ones
-	  for(int jcontr=icontr+1;jcontr<ntot_contr_3pts;jcontr++)
-	    if(equal_to1[jcontr]==-1 && ((icontr<ncontr_3pts && op1_3pts[jcontr]==op1_3pts[icontr])||(icontr>=ncontr_3pts && ch_op1_3pts[jcontr-ncontr_3pts]==ch_op1_3pts[icontr-ncontr_3pts])))
-	      equal_to1[jcontr]=equal_to1[icontr];
-	  
-	  ntot_ind_mult1++;
-	}
-      if(equal_to2[icontr]==-1)
-	{
-	  if(icontr<ncontr_3pts) dirac_prod(&(d2_3pts[ntot_ind_mult2]), &(base_gamma[5]),&(base_gamma[op2_3pts[icontr]]));
-	  else dirac_prod(&(d2_3pts[ntot_ind_mult2]), &(base_gamma[5]),&(base_gamma[ch_op2_3pts[icontr-ncontr_3pts]]));
-	  equal_to2[icontr]=ntot_ind_mult2;
-	  
-	  //find equivalent ones
-	  for(int jcontr=icontr+1;jcontr<ntot_contr_3pts;jcontr++)
-	    if(equal_to2[jcontr]==-1 && ((icontr<ncontr_3pts && op2_3pts[jcontr]==op2_3pts[icontr])||(icontr>=ncontr_3pts && ch_op2_3pts[jcontr-ncontr_3pts]==ch_op2_3pts[icontr-ncontr_3pts])))
-	      equal_to2[jcontr]=equal_to2[icontr];
-	  
-	  ntot_ind_mult2++;
-	}
-    }
-  
-  for(int icontr=0;icontr<ntot_contr_3pts;icontr++)  
-    {
-      master_printf("%d 1 mult is equivalent to %d, ",icontr,equal_to1[icontr]);
-      master_printf("%d 2 mult is equivalent to %d\n",icontr,equal_to2[icontr]);
-    }
-  
-  //allocate room where to store the gamma times each prop at each point
-  colorspinspin **cssA=nissa_malloc("cssA_ptr",npropS1,colorspinspin*);
-  colorspinspin **cssB=nissa_malloc("cssB_ptr",npropS1,colorspinspin*);
-  cssA[0]=nissa_malloc("cssA",npropS1*ntot_ind_mult1,colorspinspin);
-  cssB[0]=nissa_malloc("cssB",npropS1*ntot_ind_mult2,colorspinspin);
-  for(int ip=1;ip<npropS1;ip++)
-    {
-      cssA[ip]=cssA[0]+ntot_ind_mult1*ip;
-      cssB[ip]=cssB[0]+ntot_ind_mult2*ip;
-    }
-  
-  //loop over the local spatial volume
-  for(int ispat=0;ispat<spat_loc_vol;ispat++)
-    {
-      //offset for contractions buffer
-      int offset=0;
-      
-      //loop over t
-      for(int t=0;t<loc_size[0];t++)
-	{
-	  //find the point
-	  int ivol=t*spat_loc_vol+ispat;
-	  
-	  //bufferize for each point all the propagators multiplied by all required gamma
-	  for(int ip=0;ip<npropS1;ip++)
-	    {
-	      //loop over color
-	      for(int ic=0;ic<3;ic++)
-		{
-		  //multiply with the dirac matrixes
-		  for(int im1=0;im1<ntot_ind_mult1;im1++)
-		    spinspin_dirac_spinspindag_prod(cssA[ip][im1][ic],&(d1_3pts[im1]),S0[r1][ip][ivol][ic]);
-		  
-		  //multiply with dirac matrix performing dagger
-		  for(int im2=0;im2<ntot_ind_mult2;im2++)
-		    {
-		      //find the second colorspinspin to be used: ordinary, or chromo one
-		      colorspinspin *SB=(im2<nind_mult2) ? S1[ip] : ch_colorspinspin[ip];
-		      spinspin_dirac_spinspin_prod(cssB[ip][im2][ic],&(d2_3pts[im2]),SB[ivol][ic]);
-		    }
-		}
-	    }
-	  
-	  //loop over 2nd prop
-	  for(int ith2=0;ith2<ntheta;ith2++)
-	    for(int im2=0;im2<nmass;im2++)
-	      {
-		//find 2nd prop
-		int ip2=iprop_of(ith2,im2);
-		
-		//loop over 1st prop
-		for(int ith1=0;ith1<ntheta;ith1++)
-		  for(int im1=0;im1<nmass;im1++)
-		    {
-		      int ip1=iprop_of(ith1,im1);
-		      
-		      //loop over contractions
-		      for(int icontr=0;icontr<ntot_contr_3pts;icontr++)
-			{
-			  //loop over color adding the full trace to the local contraction result
-			  for(int ic=0;ic<3;ic++)
-			    summ_the_trace_prod_spinspins(loc_ctr[offset],cssA[ip1][equal_to1[icontr]][ic],cssB[ip2][equal_to2[icontr]][ic]);
-			  
-			  //increment the offset of the buffer
-			  offset++;
-			}
-		    }
-	      }
-	}
-      //check agreement between estimate and real buffer size
-      if(offset!=loc_buf_size) crash("mismatch between estimate %d and real buffer size %d",loc_buf_size,offset);  
-    }
-  
-  //normalize
-  for(int i=0;i<loc_buf_size;i++)
-    {
-      loc_ctr[i][0]/=spat_glb_vol;
-      loc_ctr[i][1]/=spat_glb_vol;
-    }
-  
-  //perform plan reduction
-  MPI_Reduce(loc_ctr,glb_ctr,loc_buf_size,MPI_DOUBLE_COMPLEX,MPI_SUM,0,plan_comm[0]);
-  
-  //finalize the operations on master rank of each plan
-  if(plan_rank[0]==0)
-    if(rank!=0)
-      //on non-master node send data
-      MPI_Send((void*)glb_ctr,loc_buf_size,MPI_DOUBLE_COMPLEX,0,786+line_rank[0],line_comm[0]);
-    else
-      {
-	//on global master node open incoming communications
-	MPI_Request request[nrank_dir[0]];
-	for(int trank=1;trank<nrank_dir[0];trank++)
-	  MPI_Irecv((void*)(glb_ctr+loc_buf_size*trank),loc_buf_size,MPI_DOUBLE_COMPLEX,trank,786+trank,line_comm[0],&request[trank-1]);
-	
-	//prepare final reordering: transpose t with all the other indices
-	int *ord=nissa_malloc("reord",glb_buf_size,int);
-	int inner_size=glb_buf_size/glb_size[0];
-	for(int i=0;i<glb_buf_size;i++)
-	  {
-	    int outer=i/inner_size; //this is "t"
-	    int inner=i-outer*inner_size;
-	    
-	    //shift t
-	    int t=(outer>=twall) ? outer-twall : outer-twall+glb_size[0];
-	      
-	    //compute the swapped order index
-	    ord[i]=inner*glb_size[0]+t;
-	  }
-	
-	//wait to finish receiving all data
-	MPI_Waitall(nrank_dir[0]-1,request,MPI_STATUS_IGNORE);
-	
-	//reorder the received buffer
-	reorder_vector((char*)glb_ctr,ord,glb_buf_size,sizeof(complex));
-        nissa_free(ord);
-      }
+  lot_of_mesonic_contractions(glb_contr,op_3pts,ncontr_3pts,S0[r1],S1,nprop_rep,prop_combo,nprop_combo,twall);
+  if(nch_contr_3pts>0) lot_of_mesonic_contractions(glb_ch_contr,ch_op_3pts,nch_contr_3pts,S0[r1],ch_S1,nprop_rep,prop_combo,nprop_combo,twall);
   
   //save all the output
   contr_save_time-=take_time();
@@ -801,6 +635,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
     {
       //loop over corelation functions
       int ioff=0;
+      int ich_off=0;
       
       //open output
       char path[1024];
@@ -822,19 +657,32 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		fprintf(fout," smear_source=%d smear_seq=%d\n\n",jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
 		
 		//loop over contraction of the combo
-		for(int icontr=0;icontr<ntot_contr_3pts;icontr++)
+		for(int icontr=0;icontr<ncontr_3pts;icontr++)
 		  {
 		    //print the contraction header
-		    if(icontr<ncontr_3pts)
-		      fprintf(fout," # %s%s\n",gtag[op2_3pts[icontr]],gtag[op1_3pts[icontr]]);
-		    else
-		      fprintf(fout," # CHROMO-%s%s\n",gtag[ch_op2_3pts[icontr-ncontr_3pts]],gtag[ch_op1_3pts[icontr-ncontr_3pts]]);
+		    fprintf(fout," # %s%s\n",gtag[op_3pts[1][icontr]],gtag[op_3pts[0][icontr]]);
 		    
 		    //print the contraction
 		    for(int t=0;t<glb_size[0];t++)
 		      {
-			fprintf(fout,"%+016.16g\t%+016.16g\n",glb_ctr[ioff][0],glb_ctr[ioff][1]);
+			fprintf(fout,"%+016.16g\t%+016.16g\n",glb_contr[ioff][0],glb_contr[ioff][1]);
 			ioff++;
+		      }
+		    
+		    //paragraph end
+		    fprintf(fout,"\n");
+		  }
+		
+		//loop over ch-contraction of the combo
+		for(int icontr=0;icontr<nch_contr_3pts;icontr++)
+		  {
+		    fprintf(fout," # CHROMO-%s%s\n",gtag[ch_op_3pts[1][icontr]],gtag[ch_op_3pts[0][icontr]]);
+		    
+		    //print the contraction
+		    for(int t=0;t<glb_size[0];t++)
+		      {
+			fprintf(fout,"%+016.16g\t%+016.16g\n",glb_ch_contr[ich_off][0],glb_ch_contr[ich_off][1]);
+			ich_off++;
 		      }
 		    
 		    //paragraph end
@@ -847,23 +695,22 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
     }
   contr_save_time+=take_time();
   
+  //free all the vectors
+  
+  nissa_free(prop_combo);
+  
   //if allocated, free the ch_colorspinspin
   if(nch_contr_3pts>0)
     {
-      nissa_free(ch_colorspinspin[0]);
-      nissa_free(ch_colorspinspin);
+      nissa_free(ch_S1[0]);
+      nissa_free(ch_S1);
     }
   
-  nissa_free(cssA[0]);
-  nissa_free(cssB[0]);
-  
-  nissa_free(cssA);
-  nissa_free(cssB);
-
-  nissa_free(glb_ctr);
-  nissa_free(loc_ctr);
+  nissa_free(glb_contr);
+  nissa_free(glb_ch_contr);
 
   contr_time+=take_time();
+  ncontr_tot+=(ncontr_3pts+nch_contr_3pts)*nprop_combo;
 }
 
 //check all the two points
@@ -947,7 +794,7 @@ int main(int narg,char **arg)
 		{
 		  calculate_S1(ispec,sm_lev_se);
 		  check_two_points(ispec,sm_lev_so,sm_lev_se);
-		  calculate_all_3pts(ispec,sm_lev_so,sm_lev_se);
+		  three_points(ispec,sm_lev_so,sm_lev_se);
 		}
 	    }	  
 	  
