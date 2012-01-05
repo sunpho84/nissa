@@ -112,7 +112,7 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
   last_nissa_vect->next=new;
   last_nissa_vect=new;
   
-  if(rank==0)// && debug_lvl>1) 
+  if(rank==0 && debug_lvl>1) 
     {
       printf("Allocated vector ");
       nissa_vect_content_printf(last_nissa_vect);
@@ -121,7 +121,6 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
   //Update the amount of required memory
   nissa_required_memory+=size;
   nissa_max_required_memory=max_int(nissa_max_required_memory,nissa_required_memory);
-  master_printf("Used memory: %d\n",nissa_required_memory);
   
   return (char*)last_nissa_vect+sizeof(nissa_vect);
 }

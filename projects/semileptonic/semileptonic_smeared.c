@@ -71,8 +71,10 @@ int *ch_op1_3pts,*ch_op2_3pts;
 int ninv_tot=0,ncontr_tot=0;
 int wall_time;
 double tot_time=0,inv_time=0;
-double load_time=0,contr_time=0;
+double load_time=0,contr_time;
 double contr_save_time=0;
+double contr_2pts_time=0;
+double contr_3pts_time=0;
 
 //return the position of the propagator of theta and mass
 int iprop_of(int itheta,int imass){return itheta*nmass+imass;}
@@ -392,11 +394,15 @@ void setup_conf()
 //Finalization
 void close_semileptonic()
 {
+  contr_time=contr_2pts_time+contr_3pts_time+contr_save_time;
+  
   master_printf("\n");
   master_printf("Total time: %g, of which:\n",tot_time);
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
-  master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
-  master_printf("   of which %02.2f%s to save correlations\n",contr_save_time*100.0/contr_time,"%");
+  master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg) of which:\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+  master_printf("   * %02.2f%s to compute two points\n",contr_2pts_time*100.0/contr_time,"%");
+  master_printf("   * %02.2f%s to compute three points\n",contr_3pts_time*100.0/contr_time,"%");
+  master_printf("   * %02.2f%s to save correlations\n",contr_save_time*100.0/contr_time,"%");
   
   nissa_free(Pmunu);nissa_free(conf);nissa_free(sme_conf);
   for(int iprop=0;iprop<npropS0;iprop++){nissa_free(S0[0][iprop]);nissa_free(S0[1][iprop]);nissa_free(S1[iprop]);}
@@ -544,8 +550,6 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
     for(int iprop=0;iprop<npropS0;iprop++)
       smear_additive_colorspinspin(S0[r][iprop],S0[r][iprop],ism_lev_si,jacobi_niter_si);
   
-  contr_time-=take_time();
-  
   char path[1024];
   sprintf(path,"%s/2pts_%02d_%02d",outfolder,jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
   FILE *fout=open_text_file_for_output(path);
@@ -579,7 +583,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 			    ncontr_tot+=ncontr_2pts;
 			    
 			    contr_save_time-=take_time();
-			    print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0/glb_spat_vol);
+			    print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
 			    contr_save_time+=take_time();
 			    
 			    if(nch_contr_2pts>0)
@@ -588,16 +592,17 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 				ncontr_tot+=nch_contr_2pts;
 				
 				contr_save_time-=take_time();
-				print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,twall,"CHROMO-",1.0/glb_spat_vol);
+				print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,twall,"CHROMO-",1.0);
 				contr_save_time+=take_time();
 			    }
 			    if(rank==0) fprintf(fout,"\n");
 			}
+
+		      ncontr_tot+=nch_contr_2pts;
 		    }
 	      }
 	  }
     }
-  contr_time+=take_time();
 
   if(rank==0) fclose(fout);
 }
@@ -611,7 +616,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 
   FILE *fout=open_text_file_for_output(path);
  
-  contr_time-=take_time();
+  contr_3pts_time-=take_time();
   
   int r1=r_spec[ispec];
   int r2=!r1;
@@ -637,7 +642,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		ncontr_tot+=ncontr_3pts;
 		
 		contr_save_time-=take_time();
-		print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"",1.0/glb_spat_vol);
+		print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"",1.0);
 		contr_save_time+=take_time();
 		
 		if(nch_contr_3pts>0)
@@ -646,14 +651,14 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		    ncontr_tot+=nch_contr_3pts;
 		    
 		    contr_save_time-=take_time();
-		    print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,twall,"CHROMO-",1.0/glb_spat_vol);
+		    print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,twall,"CHROMO-",1.0);
 		    contr_save_time+=take_time();
 		}
 		if(rank==0) fprintf(fout,"\n");
 	    }
     }
 
-  contr_time+=take_time();
+  contr_3pts_time+=take_time();
   
   if(rank==0) fclose(fout);
 }
