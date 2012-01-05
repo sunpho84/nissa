@@ -629,16 +629,19 @@ void three_points(int ispec,int ism_lev_so,int ism_lev_se)
   colorspinspin *ch_colorspinspin=nissa_malloc("chromo-colorspinspin",loc_vol,colorspinspin);
   
   //find the number of propagator combinations to be hold on each x0=0 rank
+  int nprop_combo=npropS1*npropS1;
   int nrank_x0=rank_tot/nrank_dir[0];
-  int ncontr_per_rank_x0=(int)floor((double)npropS1*npropS1/nrank_x0);
-    
+  int nprop_combo_per_rank_x0=(int)ceil((double)npropS1*npropS1/nrank_x0);
+  int nrank_x0_tbu=(int)ceil((double)npropS1*npropS1/nprop_combo_per_rank_x0);
+  master_printf("Rank with x0=0: %d, nprop_combo_per_rank_x0: %d, ntot_combo: %d\n",nrank_x0,nprop_combo_per_rank_x0,npropS1*npropS1);
+  master_printf("Ncombo tot=%d, ncombo_per_rank_x0=%d, nrank to be used: %d\n",nprop_combo,nprop_combo_per_rank_x0,nrank_x0_tbu);
+  
   //allocate space for contractions
-  complex *glb_contr   =nissa_malloc(   "glb_3pts_contr",npropS1*npropS1*glb_size[0]*ncontr_3pts,complex);
-  complex *glb_ch_contr=nissa_malloc("glb_ch_3pts_contr",npropS1*npropS1*glb_size[0]*nch_contr_3pts,complex);
+  complex *glb_contr   =nissa_malloc(   "glb_3pts_contr",nprop_combo_per_rank_x0*glb_size[0]*ncontr_3pts,complex);
+  complex *glb_ch_contr=nissa_malloc("glb_ch_3pts_contr",nprop_combo_per_rank_x0*glb_size[0]*nch_contr_3pts,complex);
   
   //create the list of propagator combinations
   intpair nprop_rep={npropS1,npropS1};
-  int nprop_combo=npropS1*npropS1;
   intpair *prop_combo=nissa_malloc("prop_combo",nprop_combo,intpair);
   int icombo=0;
   for(int iprop1=0;iprop1<npropS1;iprop1++)
@@ -670,26 +673,44 @@ void three_points(int ispec,int ism_lev_so,int ism_lev_se)
   
   //save all the output
   contr_save_time-=take_time();
-  if(rank==0)
-    {
-      //loop over corelation functions
-      int ioff=0;
-      int ich_off=0;
-      
-      //open output
-      char path[1024];
-      sprintf(path,"%s/3pts_sp%d_%02d_%02d",outfolder,ispec,jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
-      FILE *fout=open_text_file_for_output(path);
-      
-      //fix r2
-      int r2=!r1;
-      
-      //loop over 2nd prop
-      for(int ith2=0;ith2<ntheta;ith2++)
-	for(int im2=0;im2<nmass;im2++)
-	  //loop over 1st prop
-	  for(int ith1=0;ith1<ntheta;ith1++)
-	    for(int im1=0;im1<nmass;im1++)
+  
+  //loop over corelation functions
+  int ioff=0;
+  int ich_off=0;
+  
+  //create output, opening it on rank 0 where first bunch of corr is stored
+  char path[1024];
+  sprintf(path,"%s/3pts_sp%d_%02d_%02d",outfolder,ispec,jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
+  FILE *fout=open_text_file_for_output(path);
+  int ist_combo=0,irank=0;
+  
+  //fix r2
+  int r2=!r1;
+  
+  //loop over 2nd prop
+  for(int ith2=0;ith2<ntheta;ith2++)
+    for(int im2=0;im2<nmass;im2++)
+      //loop over 1st prop
+      for(int ith1=0;ith1<ntheta;ith1++)
+	for(int im1=0;im1<nmass;im1++)
+	  {
+	    //if next rank must write, close, pass to next rank and reopen 
+	    if(ist_combo==nprop_combo_per_rank_x0)
+	      {
+		//close and reopen
+		if(rank==irank) fclose(fout);
+		irank++;
+
+		//wait
+		MPI_Barrier(MPI_COMM_WORLD);
+		
+		if(rank==irank) fout=fopen(path,"a");
+		//reset ncombo
+		ist_combo=ioff=ich_off=0;
+	      }
+	    
+	    //on appropriate rank, write
+	    if(rank==irank)
 	      {
 		//print combination header
 		fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d,",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
@@ -728,10 +749,13 @@ void three_points(int ispec,int ism_lev_so,int ism_lev_se)
 		    fprintf(fout,"\n");
 		  }
 	      }
-      
-      //close the output
-      fclose(fout);
-    }
+	    //increment the number of stored combo
+	    ist_combo++;
+	  }
+  
+  //close the output
+  if(irank==rank) fclose(fout);
+  
   contr_save_time+=take_time();
   
   //free all the vectors

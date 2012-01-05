@@ -454,9 +454,6 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
   int y=0;
   for(int ispat=0;ispat<spat_loc_vol;ispat++)
     {
-      //offset for contractions buffer
-      int offset=0;
-      
       //loop over t
       for(int t=0;t<loc_size[0];t++)
 	{
@@ -474,6 +471,7 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 	      for(int ic=0;ic<3;ic++)
 		  spinspin_dirac_spinspin_prod (css[1][ip][im][ic],&(d[1][im]),S1[ip][ivol][ic]);
 	  
+	  int offset=t;
 	  //span all propagator combinations adding the full trace to the local contraction result
 	  for(int ipr_combo=0;ipr_combo<npr_combo;ipr_combo++)
 	    for(int icontr=0;icontr<ncontr;icontr++)
@@ -482,56 +480,72 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 		  summ_the_trace_prod_spinspins(loc_contr[offset],css[0][pr_combo[ipr_combo][0]][eq_to_mult[0][icontr]][ic],css[1][pr_combo[ipr_combo][1]][eq_to_mult[1][icontr]][ic]);
 		
 		//increment the offset of the buffer
-		offset++;
+		offset+=loc_size[0];
 	      }
 	}
-      
-      //check agreement between estimate and real buffer size
-      if(offset!=loc_buf_size) crash("mismatch between estimate %d and real buffer size %d",loc_buf_size,offset);  
     }
+  
+  //find the number of propagator combinations to be hold on each x0=0 rank
+  int nrank_x0=rank_tot/nrank_dir[0];
+  int npr_combo_per_rank_x0=(int)ceil((double)npr_combo/nrank_x0);
+  int nrank_x0_tbu=(int)ceil((double)npr_combo/npr_combo_per_rank_x0);
+  master_printf("Ncombo tot=%d, ncombo_per_rank_x0=%d, nrank to be used: %d\n",npr_combo,npr_combo_per_rank_x0,nrank_x0_tbu);
+  int npr_combo_lst_rank_x0=npr_combo-npr_combo_per_rank_x0*(nrank_x0_tbu-1);
   
   //perform complanar ranks reduction
   master_printf("Reducing...\n");
-  MPI_Reduce(loc_contr,glb_contr,loc_buf_size,MPI_DOUBLE_COMPLEX,MPI_SUM,0,plan_comm[0]);
+  for(int irank=0;irank<nrank_x0_tbu;irank++)
+    {
+      int npr_combo_cur_rank_x0=(irank<nrank_x0_tbu-1) ? npr_combo_per_rank_x0 : npr_combo_lst_rank_x0;
+      master_printf("Reducing on %d rank %d combo\n",irank,npr_combo_cur_rank_x0);
+      MPI_Reduce(loc_contr+loc_size[0]*ncontr*npr_combo_per_rank_x0*irank,
+		 glb_contr,loc_size[0]*ncontr*npr_combo_cur_rank_x0,
+		 MPI_DOUBLE_COMPLEX,MPI_SUM,irank,plan_comm[0]);
+    }
   master_printf("Reduction done!\n");
   
-  //finalize the operations on master rank of each plan
-  if(plan_rank[0]==0)
-    if(rank!=0)
-      //on non-master node send data
-      MPI_Send((void*)glb_contr,loc_buf_size,MPI_DOUBLE_COMPLEX,0,786+line_rank[0],line_comm[0]);
-    else
-      {
-	//on global master node open incoming communications
-	MPI_Request request[nrank_dir[0]];
-	for(int trank=1;trank<nrank_dir[0];trank++)
-	  MPI_Irecv((void*)(glb_contr+loc_buf_size*trank),loc_buf_size,MPI_DOUBLE_COMPLEX,trank,786+trank,line_comm[0],&request[trank-1]);
-	
-	//prepare final reordering: transpose t with all the other indices
-	int glb_buf_size=nrank_dir[0]*loc_buf_size;
-	int *ord=nissa_malloc("reord",glb_buf_size,int);
-	int inner_size=glb_buf_size/glb_size[0];
-	for(int i=0;i<glb_buf_size;i++)
-	  {
-	    int outer=i/inner_size; //this is "t"
-	    int inner=i-outer*inner_size;
-	    
-	    //shift t
-	    int t=(outer>=twall) ? outer-twall : outer-twall+glb_size[0];
-	      
-	    //compute the swapped order index
-	    ord[i]=inner*glb_size[0]+t;
-	  }
-	
-	//wait to finish receiving all data
-	master_printf("Waiting to receive all data\n");
-	MPI_Waitall(nrank_dir[0]-1,request,MPI_STATUS_IGNORE);
-	master_printf("All data received\n");
-	
-	//reorder the received buffer
-	reorder_vector((char*)glb_contr,ord,glb_buf_size,sizeof(complex));
-        nissa_free(ord);
-      }
+  //finalize the operations on master rank of each line communicator of x0=0 plan
+  if(plan_rank[0]<nrank_x0_tbu)
+    {
+      int npr_combo_cur_rank=(plan_rank[0]<nrank_x0_tbu-1) ? npr_combo_per_rank_x0 : npr_combo_lst_rank_x0;
+      int npart_corr_cur_rank=npr_combo_cur_rank*ncontr;
+      int loc_buf_size=npart_corr_cur_rank*loc_size[0];
+      
+      if(line_rank[0]!=0)
+      	//on non-master node send data
+	MPI_Send((void*)glb_contr,loc_buf_size,MPI_DOUBLE_COMPLEX,0,786+line_rank[0],line_comm[0]);
+      else
+	{
+	  //on global master node open incoming communications
+	  MPI_Request request[nrank_dir[0]];
+	  for(int trank=1;trank<nrank_dir[0];trank++)
+	    MPI_Irecv((void*)(glb_contr+loc_buf_size*trank),loc_buf_size,MPI_DOUBLE_COMPLEX,trank,786+trank,line_comm[0],&request[trank-1]);
+	  
+	  //prepare final reordering: transpose t with all the other indices
+	  int *ord=nissa_malloc("reord",loc_buf_size*nrank_dir[0],int);
+	  for(int trank=0;trank<nrank_dir[0];trank++)
+	    for(int icorr=0;icorr<npart_corr_cur_rank;icorr++)
+	      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
+		{
+		  int fr=loc_t+loc_size[0]*(icorr+npart_corr_cur_rank*trank);
+		  int to=loc_t+loc_size[0]*(trank+nrank_dir[0]*icorr);
+		  
+		  //compute the swapped order index
+		  ord[fr]=to;
+		}
+	  
+	  //wait to finish receiving all data
+	  master_printf("Waiting to receive all data\n");
+	  MPI_Waitall(nrank_dir[0]-1,request,MPI_STATUS_IGNORE);
+	  master_printf("All data received\n");
+	  
+	  //reorder the received buffer
+	  master_printf("Reordering data\n");
+	  reorder_vector((char*)glb_contr,ord,loc_buf_size*nrank_dir[0],sizeof(complex));
+	  nissa_free(ord);
+	  master_printf("Data reordered\n");
+	}
+    }
   
   //free all vectors
   nissa_free(css[0][0]);
