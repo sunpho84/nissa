@@ -94,12 +94,8 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
   //try to allocate the new vector
   nissa_vect *new=(void*)malloc(size+sizeof(nissa_vect));
   if(new==NULL)
-    if(rank==0)
-      {
-        fprintf(stderr,"Error! Could not allocate vector named \"%s\" of %d elements of types %s\n",tag,nel,type);
-        fprintf(stderr,"(total size: %d bytes) request on line %d of file %s\n",size,line,file);
-	MPI_Abort(MPI_COMM_WORLD,1);
-      }
+    crash("could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) request on line %d of file %s"
+	  ,                                  tag,    nel,                type,           size,                     line,      file);
   
   //fill the vector with information supplied
   new->line=line;
@@ -116,7 +112,7 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
   last_nissa_vect->next=new;
   last_nissa_vect=new;
   
-  if(rank==0 && debug_lvl>1) 
+  if(rank==0)// && debug_lvl>1) 
     {
       printf("Allocated vector ");
       nissa_vect_content_printf(last_nissa_vect);
@@ -125,6 +121,7 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
   //Update the amount of required memory
   nissa_required_memory+=size;
   nissa_max_required_memory=max_int(nissa_max_required_memory,nissa_required_memory);
+  master_printf("Used memory: %d\n",nissa_required_memory);
   
   return (char*)last_nissa_vect+sizeof(nissa_vect);
 }
@@ -155,6 +152,7 @@ void* nissa_true_free(void *arr,const char *file,int line)
       nissa_required_memory-=(vect->size_per_el*vect->nel);
   
       free(vect);
+      //master_printf(" Vector freed!\n");
     }
   else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
   

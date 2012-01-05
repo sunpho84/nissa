@@ -451,6 +451,7 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
     }
   
   //summ over all the spatial volume the contractions
+  int y=0;
   for(int ispat=0;ispat<spat_loc_vol;ispat++)
     {
       //offset for contractions buffer
@@ -461,6 +462,7 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 	{
 	  //find the point
 	  int ivol=t*spat_loc_vol+ispat;
+	  master_printf("point %d over %d,time: %lg\n",y++,loc_vol,take_time());
 	
 	  //bufferize for each point all the propagators multiplied by all required gamma
 	  for(int ip=0;ip<npr[0];ip++)
@@ -489,7 +491,9 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
     }
   
   //perform complanar ranks reduction
+  master_printf("Reducing...\n");
   MPI_Reduce(loc_contr,glb_contr,loc_buf_size,MPI_DOUBLE_COMPLEX,MPI_SUM,0,plan_comm[0]);
+  master_printf("Reduction done!\n");
   
   //finalize the operations on master rank of each plan
   if(plan_rank[0]==0)
@@ -520,7 +524,9 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 	  }
 	
 	//wait to finish receiving all data
+	master_printf("Waiting to receive all data\n");
 	MPI_Waitall(nrank_dir[0]-1,request,MPI_STATUS_IGNORE);
+	master_printf("All data received\n");
 	
 	//reorder the received buffer
 	reorder_vector((char*)glb_contr,ord,glb_buf_size,sizeof(complex));
