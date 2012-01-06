@@ -71,9 +71,9 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
     }
   
   //Final reduction
-  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1) master_printf("Reduction done\n");
   
   nissa_free(loc_c);
 }
@@ -91,17 +91,17 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
   for(int icontr=0;icontr<ncontr && use_buf==0;icontr++) use_buf=(glb_c[icontr]!=glb_c_buf+icontr*glb_size[0]);
   if(use_buf)
     {
-      if(debug_lvl>1 && rank==0)
+      if(debug_lvl>1)
         {
-          printf("Creating a temporary buffer for the contractions.\n");
-          printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
+          master_printf("Creating a temporary buffer for the contractions.\n");
+          master_printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
         }
       glb_c_buf=nissa_malloc("glb_c_buf",ncontr*glb_size[0],complex);
     }
 
   for(int icontr=0;icontr<ncontr;icontr++)
     {
-      if(debug_lvl>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
+      if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
@@ -131,9 +131,9 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
     
 
   //Finale reduction
-  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c_buf,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1) master_printf("Reduction done\n");
 
   //if a temporary buffer has been used, destory it after copyng data to the true one
   if(use_buf)
@@ -164,17 +164,17 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
   for(int icontr=0;icontr<ncontr && use_buf==0;icontr++) use_buf=(glb_c[icontr]!=glb_c_buf+icontr*glb_size[0]);
   if(use_buf)
     {
-      if(debug_lvl>1 && rank==0)
+      if(debug_lvl>1)
         {
-          printf("Creating a temporary buffer for the contractions.\n");
-          printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
+          master_printf("Creating a temporary buffer for the contractions.\n");
+          master_printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
         }
       glb_c_buf=nissa_malloc("glb_c_buf",ncontr*glb_size[0],complex);
     }
 
   for(int icontr=0;icontr<ncontr;icontr++)
     {
-      if(debug_lvl>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
+      if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
@@ -192,10 +192,10 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
         }
     }
 
-  //Finale reduction
-  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  //Final reduction
+  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c_buf,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1) master_printf("Reduction done\n");
 
   //if a temporary buffer has been used, destory it after copyng data to the true one
   if(use_buf)
@@ -243,9 +243,9 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
     }
 
   //Final reduction
-  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1) master_printf("Reduction done\n");
   
   nissa_free(loc_c);
 }
@@ -260,7 +260,7 @@ void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g1,su3spinspin *s1,dirac
   
   for(int icontr=0;icontr<ncontr;icontr++) 
     {
-      if(debug_lvl>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
+      if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       for(int ivol=0;ivol<loc_vol;ivol++)
@@ -274,9 +274,9 @@ void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g1,su3spinspin *s1,dirac
     }
   
   //Final reduction
-  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1) master_printf("Reduction done\n");
   
   nissa_free(loc_c);
 }
@@ -321,9 +321,9 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
     }
   
   //Final reduction
-  if(debug_lvl>1 && rank==0) printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1 && rank==0) printf("Reduction done\n");
+  if(debug_lvl>1) master_printf("Reduction done\n");
   
   nissa_free(loc_c);
 }
@@ -521,14 +521,17 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 	  for(int trank=1;trank<nrank_dir[0];trank++)
 	    MPI_Irecv((void*)(glb_contr+loc_buf_size*trank),loc_buf_size,MPI_DOUBLE_COMPLEX,trank,786+trank,line_comm[0],&request[trank-1]);
 	  
-	  //prepare final reordering: transpose t with all the other indices
+	  //prepare final reordering: transpose t with all the other indices and shift backward of twall
 	  int *ord=nissa_malloc("reord",loc_buf_size*nrank_dir[0],int);
 	  for(int trank=0;trank<nrank_dir[0];trank++)
 	    for(int icorr=0;icorr<npart_corr_cur_rank;icorr++)
 	      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
 		{
+		  int sour_t=loc_t+loc_size[0]*trank;
+		  int dest_t=(sour_t>=twall) ? sour_t-twall : sour_t+glb_size[0]-twall;
+		  
 		  int fr=loc_t+loc_size[0]*(icorr+npart_corr_cur_rank*trank);
-		  int to=loc_t+loc_size[0]*(trank+nrank_dir[0]*icorr);
+		  int to=dest_t+glb_size[0]*icorr;
 		  
 		  //compute the swapped order index
 		  ord[fr]=to;
