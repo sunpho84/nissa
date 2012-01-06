@@ -546,6 +546,8 @@ void calculate_S1(int ispec,int ism_lev_se)
 //Calculate and print to file the 2pts
 void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 {
+  contr_2pts_time-=take_time();
+
   for(int r=0;r<2;r++)
     for(int iprop=0;iprop<npropS0;iprop++)
       smear_additive_colorspinspin(S0[r][iprop],S0[r][iprop],ism_lev_si,jacobi_niter_si);
@@ -603,7 +605,8 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 	      }
 	  }
     }
-
+  
+  contr_2pts_time+=take_time();
   if(rank==0) fclose(fout);
 }
 
