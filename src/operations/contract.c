@@ -54,7 +54,7 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
   
   for(int icontr=0;icontr<ncontr;icontr++) 
     {
-      if(debug_lvl>1 && rank==0) printf("Contraction %d/%d\n",icontr+1,ncontr);
+      if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       for(int ivol=0;ivol<loc_vol;ivol++)
@@ -496,7 +496,7 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
   master_printf("Reducing...\n");
   for(int irank=0;irank<nrank_x0_tbu;irank++)
     {
-      int npr_combo_cur_rank_x0=(irank<nrank_x0_tbu-1) ? npr_combo_per_rank_x0 : npr_combo_lst_rank_x0;
+      int npr_combo_cur_rank_x0=(irank<(nrank_x0_tbu-1)) ? npr_combo_per_rank_x0 : npr_combo_lst_rank_x0;
       master_printf("Reducing on %d rank %d combo\n",irank,npr_combo_cur_rank_x0);
       MPI_Reduce(loc_contr+loc_size[0]*ncontr*npr_combo_per_rank_x0*irank,
 		 glb_contr,loc_size[0]*ncontr*npr_combo_cur_rank_x0,

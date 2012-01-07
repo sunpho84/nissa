@@ -76,150 +76,6 @@ interv* read_subset_list(int *n_subset,const char *name,const char *tag)
   return inte;
 }
 
-void add_remove_phase_factor(su3spinspin *prop,double sign,int t0)
-{
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    {
-      int dt=glb_coord_of_loclx[ivol][0]-t0;
-      double arg=sign*M_PI*dt/glb_size[0];
-      complex phase={cos(arg),sin(arg)};
-      for(int ic1=0;ic1<3;ic1++)
-	for(int ic2=0;ic2<3;ic2++)
-	  for(int id1=0;id1<4;id1++)
-	    for(int id2=0;id2<4;id2++)
-	      safe_complex_prod(prop[ivol][ic1][ic2][id1][id2],prop[ivol][ic1][ic2][id1][id2],phase);
-    }
-}
-
-//write independent part of propagators
-void write_all_indep_propagators(const char *name,int prec)
-{
-  //first of all allocate a full su3spinspin where to gather data
-  su3spinspin *glb=nissa_malloc("glbsu3ss",glb_vol,su3spinspin);
-  //compute indep volume
-  int TH=glb_size[0]/2;
-  int LH=glb_size[1]/2;
-  int indep_vol=(TH+1)*(LH+1)*(LH+2)*(LH+3)/6;
-  master_printf("Indep sites: %d over %d, a factor %lg of compression should be achieved\n",indep_vol,glb_vol,(double)indep_vol/glb_vol);
-  //allocate a buffer for writing
-  int bpr=prec/8;
-  
-  char *buf=nissa_malloc("buf",indep_vol*bpr*sizeof(su3spinspin)/8,char);
-  
-  save_indep_prop_time-=take_time();
-  for(int r=0;r<2;r++)
-    for(int imass=0;imass<nmass;imass++)
-      {
-	int mr=0;
-	
-	/*
-	su3spinspin *temp=nissa_malloc("temp",loc_vol,su3spinspin);
-	ac_rotate_vector((char*)temp,(char*)(S0[r][imass]),1,sizeof(su3spinspin));
-	nissa_free(temp);
-	*/
-	
-	int *temp=nissa_malloc("temp",loc_vol,int);
-	for(int ivol=0;ivol<loc_vol;ivol++)
-	  temp[ivol]=glb_coord_of_loclx[ivol][2];
-	ac_rotate_vector((char*)temp,(char*)temp,1,sizeof(int));
-	for(int ivol=0;ivol<loc_vol;ivol++)
-	  if(temp[ivol]!=glb_coord_of_loclx[ivol][3])
-	    printf("%d %d %d %d\n",rank,ivol,temp[ivol],glb_coord_of_loclx[ivol][3]);
-	nissa_free(temp);
-	
-	/*
-	add_remove_phase_factor(S0[r][imass],+1,source_coord[0]);
-	vector_gather(glb,S0[r][imass],sizeof(su3spinspin),mr);
-	add_remove_phase_factor(S0[r][imass],-1,source_coord[0]);
-	    
-	
-	if(rank==mr)
-	  {
-	    //gathered_vector_mirrorize((double*)glb,288);
-	    //gathered_vector_cubic_symmetrize((double*)glb,288);
-	    
-	    if(r==0 && imass==0)
-	      {
-		FILE *fout=fopen("arem","w");
-		int x[4];
-		for(x[0]=0;x[0]<glb_size[0];x[0]++)
-		  for(x[3]=0;x[3]<glb_size[3];x[3]++)
-		    for(x[2]=0;x[2]<glb_size[2];x[2]++)
-		      for(x[1]=0;x[1]<glb_size[1];x[1]++)
-			{
-			  double ave=0;
-			  int ivol=glblx_of_coord(x);
-			  for(int id_so=0;id_so<4;id_so++)
-			    for(int ic_so=0;ic_so<3;ic_so++)
-			      if(id_so<2) ave+=glb[ivol][id_so][id_so][ic_so][ic_so][0];
-			      else        ave-=glb[ivol][id_so][id_so][ic_so][ic_so][0];
-			  double r=0;
-			  for(int mu=0;mu<4;mu++)
-			    {
-			      int d=abs(x[mu]-source_coord[mu]);
-			      if(d>=glb_size[mu]/2) d=glb_size[mu]-d;
-			      r+=d*d;
-			    }
-			  r=sqrt(r);
-			  fprintf(fout,"%lg %lg\n",r,ave);
-			}
-		fclose(fout);
-	      }
-	    //now take only the ipercubic independent part, and reorder it in accordance to
-	    //the ildg standard
-	    for(int id_so=0;id_so<4;id_so++)
-	      for(int ic_so=0;ic_so<3;ic_so++)
-		{
-		  int iindep=0;
-		  
-		  char *buf_base=buf+bpr*indep_vol*(ic_so+3*id_so);
-		  
-		  int x[4];
-		  for(x[0]=0;x[0]<=TH;x[0]++)
-		    for(x[3]=0;x[3]<=LH;x[3]++)
-		      for(x[2]=0;x[2]<=x[3];x[2]++)
-			for(x[1]=0;x[1]<=x[2];x[1]++)
-			  {
-			    int ivol=glblx_of_coord(x);
-			    for(int id_si=0;id_si<4;id_si++)
-			      for(int ic_si=0;ic_si<3;ic_si++)
-				for(int ri=0;ri<2;ri++)
-				  {
-				    int offset=bpr*(ri+2*(ic_si+3*(id_si+4*iindep)));
-				    char *out=buf_base+offset;
-				    if(prec==64) (*((double*)out))=       glb[ivol][ic_si][ic_so][id_si][id_so][ri];
-				    else         (*((float* )out))=(float)glb[ivol][ic_si][ic_so][id_si][id_so][ri];
-				  }
-			    iindep++;
-			  }
-		  
-		  //if necessary convert endianess
-		  if(big_endian)
-		    if(prec==64) doubles_to_doubles_changing_endianess((double*)buf,(double*)buf,indep_vol*24);
-		    else         floats_to_floats_changing_endianess  ((float*)buf,(float*)buf,indep_vol*24);
-		  
-		  //save
-		  char path[1024];
-		  sprintf(path,"%s/%sprop/r%1d_im%02d.%02d",outfolder,name,r,imass,id_so*3+ic_so);
-		  FILE *fout=fopen(path,"w");
-		  if(fout==NULL) crash("Error opening file %s\n",path);
-		  int nw=fwrite(buf_base,sizeof(char),indep_vol*24*bpr,fout);
-		  if(nw!=indep_vol*24*bpr) crash("Error while writing %s",path);
-		  fclose(fout);
-		}
-	  
-		}
-	*/
-	
-      }
-
-  nsaved_indep_prop_tot+=12*2*nmass;
-  save_indep_prop_time+=take_time();  
-  
-  nissa_free(buf);
-  nissa_free(glb);
-}
-
 //write all propagators
 void write_all_propagators(const char *name,int prec)
 {
@@ -340,7 +196,7 @@ void initialize_Zcomputation(char *input_path)
     
   read_str_int("NGaugeConf",&ngauge_conf);  
   
-  ////////////////////////////////////// end of input reading/////////////////////////////////
+  ///////////////////////////////// end of input reading/////////////////////////////////
   
   //allocate gauge conf and all the needed spincolor and su3spinspin
   conf=nissa_malloc("or_conf",loc_vol+loc_bord,quad_su3);
@@ -458,7 +314,7 @@ void compute_fft(double sign)
 	    for(int mu=0;mu<4;mu++) arg+=((double)glb_coord_of_loclx[imom][mu]*source_coord[mu])/glb_size[mu];
 	    arg*=-sign*2*M_PI;
 	    complex f={cos(arg),sin(arg)};
-
+	    
 	    for(int ic_si=0;ic_si<3;ic_si++)
 	      for(int ic_so=0;ic_so<3;ic_so++)
 		for(int id_si=0;id_si<4;id_si++)
@@ -469,13 +325,13 @@ void compute_fft(double sign)
 	  }
       }
   fft_time+=take_time();
-
+  
   //save propagators if asked
   if(full_P_space_prop_prec!=0) write_all_propagators("FullP",full_P_space_prop_prec);
 }
 
 //filter the propagators
-void print_propagator_subset(const char *name,int nsubset,interv *inte)
+void print_propagator_subsets(const char *name,int nsubset,interv *inte)
 {
   filter_prop_time-=take_time();
   
@@ -494,12 +350,12 @@ void print_propagator_subset(const char *name,int nsubset,interv *inte)
   int ip=0;
   for(int isub=0;isub<nsubset;isub++)
     {
-      //loop over momenta in each se
+      //loop over momenta in each set
       int glb_ip[4];
       for(glb_ip[0]=inte[isub][0][0];glb_ip[0]<=inte[isub][0][1];glb_ip[0]++)
-	for(glb_ip[1]=inte[isub][1][0];glb_ip[1]<=inte[isub][1][1];glb_ip[1]++)
+	for(glb_ip[3]=inte[isub][1][0];glb_ip[3]<=inte[isub][1][1];glb_ip[3]++)
 	  for(glb_ip[2]=inte[isub][1][0];glb_ip[2]<=inte[isub][1][1];glb_ip[2]++)
-	    for(glb_ip[3]=inte[isub][1][0];glb_ip[3]<=inte[isub][1][1];glb_ip[3]++)
+	    for(glb_ip[1]=inte[isub][1][0];glb_ip[1]<=inte[isub][1][1];glb_ip[1]++)
 	      {
 		//identify the rank hosting this element
 		int hosting=rank_hosting_site_of_coord(glb_ip);
@@ -521,6 +377,10 @@ void print_propagator_subset(const char *name,int nsubset,interv *inte)
 			      for(int id_si=0;id_si<4;id_si++)
 				memcpy(buf[r*nmass+imass][ic_so][id_so][ic_si][id_si],S0[r][imass][ilp][ic_si][ic_so][id_si][id_so],
 				       sizeof(complex));
+		    
+		    //if required change endianess
+		    if(big_endian)
+		      doubles_to_doubles_changing_endianess(buf,buf,18*16*2*nmass);
 		    
 		    //find the position in the file where to write data
 		    int offset=ip*2*nmass*sizeof(colorspincolorspin);
@@ -593,10 +453,6 @@ int read_conf_parameters(int *iconf)
 	      mkdir(temp,S_IRWXU);
 	      sprintf(temp,"%s/FullXprop",outfolder);
 	      mkdir(temp,S_IRWXU);
-	      sprintf(temp,"%s/IndepXprop",outfolder);
-	      mkdir(temp,S_IRWXU);
-	      sprintf(temp,"%s/IndepPprop",outfolder);
-	      mkdir(temp,S_IRWXU);
 	    }
 	  master_printf("Configuration not already analized, starting.\n");
 	}
@@ -647,11 +503,11 @@ int main(int narg,char **arg)
       //X space
       calculate_S0();
       calculate_all_2pts();
-      if(n_X_interv) print_propagator_subset("FullXprop/subset",n_X_interv,X_interv);
+      if(n_X_interv) print_propagator_subsets("FullXprop/subset",n_X_interv,X_interv);
       
       //P space
       compute_fft(-1);
-      if(n_P_interv) print_propagator_subset("FullPprop/subset",n_P_interv,P_interv);      
+      if(n_P_interv) print_propagator_subsets("FullPprop/subset",n_P_interv,P_interv);      
       
       nanalized_conf++;
       

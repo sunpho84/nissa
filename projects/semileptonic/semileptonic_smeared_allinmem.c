@@ -148,6 +148,10 @@ void initialize_semileptonic(char *input_path)
   init_grid(T,L); 
   //Wall time
   read_str_int("WallTime",&wall_time);
+  {
+    int spat_ranks=rank_tot/nrank_dir[0];
+    if(rank%spat_ranks!=plan_rank[0]) crash("plan and proj rank do not agree");
+  }
   //Kappa
   read_str_double("Kappa",&kappa);
   
@@ -241,6 +245,8 @@ void initialize_semileptonic(char *input_path)
   
   sequential_source=nissa_malloc("Sequential source",loc_vol,colorspinspin);
   read_str_int("TSep",&tsep);
+  if(tsep<0||tsep>=glb_size[0]) crash("tsep=%d while T=%d",twall,glb_size[0]);
+  
   read_str_int("NSpec",&nspec);
   ith_spec=nissa_malloc("ith_spec",nspec,int);
   imass_spec=nissa_malloc("imass_spec",nspec,int);
@@ -322,6 +328,7 @@ int read_conf_parameters(int *iconf)
       
       //Twall
       read_int(&(twall));
+      if(twall<0||twall>=glb_size[0]) crash("twall=%d while T=%d",twall,glb_size[0]);
       
       //Out folder
       read_str(outfolder,1024);
@@ -806,75 +813,78 @@ void three_points(int ispec,int ism_lev_so,int ism_lev_se)
   
   //fix r2
   int r2=!r1;
-  
-  //loop over 2nd prop
-  for(int ith2=0;ith2<ntheta;ith2++)
-    for(int im2=0;im2<nmass;im2++)
-      //loop over 1st prop
-      for(int ith1=0;ith1<ntheta;ith1++)
-	for(int im1=0;im1<nmass;im1++)
-	  {
-	    //if next rank must write, close, pass to next rank and reopen 
-	    if(ist_combo==nprop_combo_per_rank_x0)
+ 
+  if(rank_coord[0]==0)
+    {
+      //loop over 2nd prop
+      for(int ith2=0;ith2<ntheta;ith2++)
+	for(int im2=0;im2<nmass;im2++)
+	  //loop over 1st prop
+	  for(int ith1=0;ith1<ntheta;ith1++)
+	    for(int im1=0;im1<nmass;im1++)
 	      {
-		//close and reopen
-		if(rank==irank) fclose(fout);
-		irank++;
-
-		//wait
-		MPI_Barrier(MPI_COMM_WORLD);
-		
-		if(rank==irank) fout=fopen(path,"a");
-		//reset ncombo
-		ist_combo=ioff=ich_off=0;
-	      }
-	    
-	    //on appropriate rank, write
-	    if(rank==irank)
-	      {
-		//print combination header
-		fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d,",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
-		fprintf(fout," smear_source=%d smear_seq=%d\n\n",jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
-		
-		//loop over contraction of the combo
-		for(int icontr=0;icontr<ncontr_3pts;icontr++)
+		//if next rank must write, close, pass to next rank and reopen 
+		if(ist_combo==nprop_combo_per_rank_x0)
 		  {
-		    //print the contraction header
-		    fprintf(fout," # %s%s\n",gtag[op_3pts[1][icontr]],gtag[op_3pts[0][icontr]]);
+		    //close and reopen
+		    if(plan_rank[0]==irank) fclose(fout);
+		    irank++;
 		    
-		    //print the contraction
-		    for(int t=0;t<glb_size[0];t++)
-		      {
-			fprintf(fout,"%+016.16g\t%+016.16g\n",glb_contr[ioff][0],glb_contr[ioff][1]);
-			ioff++;
-		      }
+		    //wait
+		    MPI_Barrier(plan_comm[0]);
 		    
-		    //paragraph end
-		    fprintf(fout,"\n");
+		    if(plan_rank[0]==irank) fout=fopen(path,"a");
+		    //reset ncombo
+		    ist_combo=ioff=ich_off=0;
 		  }
 		
-		//loop over ch-contraction of the combo
-		for(int icontr=0;icontr<nch_contr_3pts;icontr++)
+		//on appropriate rank, write
+		if(plan_rank[0]==irank)
 		  {
-		    fprintf(fout," # CHROMO-%s%s\n",gtag[ch_op_3pts[1][icontr]],gtag[ch_op_3pts[0][icontr]]);
+		    //print combination header
+		    fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d,",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
+		    fprintf(fout," smear_source=%d smear_seq=%d\n\n",jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
 		    
-		    //print the contraction
-		    for(int t=0;t<glb_size[0];t++)
+		    //loop over contraction of the combo
+		    for(int icontr=0;icontr<ncontr_3pts;icontr++)
 		      {
-			fprintf(fout,"%+016.16g\t%+016.16g\n",glb_ch_contr[ich_off][0],glb_ch_contr[ich_off][1]);
-			ich_off++;
+			//print the contraction header
+			fprintf(fout," # %s%s\n",gtag[op_3pts[1][icontr]],gtag[op_3pts[0][icontr]]);
+			
+			//print the contraction
+			for(int t=0;t<glb_size[0];t++)
+			  {
+			    fprintf(fout,"%+016.16g\t%+016.16g\n",glb_contr[ioff][0],glb_contr[ioff][1]);
+			    ioff++;
+			  }
+			
+			//paragraph end
+			fprintf(fout,"\n");
 		      }
 		    
-		    //paragraph end
-		    fprintf(fout,"\n");
+		    //loop over ch-contraction of the combo
+		    for(int icontr=0;icontr<nch_contr_3pts;icontr++)
+		      {
+			fprintf(fout," # CHROMO-%s%s\n",gtag[ch_op_3pts[1][icontr]],gtag[ch_op_3pts[0][icontr]]);
+			
+			//print the contraction
+			for(int t=0;t<glb_size[0];t++)
+			  {
+			    fprintf(fout,"%+016.16g\t%+016.16g\n",glb_ch_contr[ich_off][0],glb_ch_contr[ich_off][1]);
+			    ich_off++;
+			  }
+			
+			//paragraph end
+			fprintf(fout,"\n");
+		      }
 		  }
+		//increment the number of stored combo
+		ist_combo++;
 	      }
-	    //increment the number of stored combo
-	    ist_combo++;
-	  }
-  
-  //close the output
-  if(irank==rank) fclose(fout);
+      
+      //close the output
+      if(plan_rank[0]==irank) fclose(fout);
+    }
   
   contr_save_time+=take_time();
   
@@ -948,9 +958,9 @@ int main(int narg,char **arg)
 {
   //Basic mpi initialization
   init_nissa();
-
+  
   if(narg<2) crash("Use: %s input_file",arg[0]);
-
+  
   tot_time-=take_time();
   initialize_semileptonic(arg[1]);
   
@@ -983,9 +993,9 @@ int main(int narg,char **arg)
 	  for(int sm_lev_si=0;sm_lev_si<nsm_lev_si;sm_lev_si++)
 	    two_points(sm_lev_so,sm_lev_si);
 	}
-
+      
       nanalized_conf++;
-
+      
       enough_time=check_remaining_time();
     }
   
