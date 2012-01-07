@@ -560,6 +560,11 @@ void calculate_S1(int ispec,int ism_lev_se)
 //Calculate all two points contractions
 void two_points(int ism_lev_so,int ism_lev_si)
 {
+  //semar
+  for(int r=0;r<2;r++)
+    for(int iprop=0;iprop<npropS0;iprop++)
+      smear_additive_colorspinspin(S0[r][iprop],S0[r][iprop],ism_lev_si,jacobi_niter_si);
+  
   //take initial time
   contr_2pts_time-=take_time();
   
