@@ -442,67 +442,66 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
     }
   
   //allocate room where to store the gamma times each prop at each point
-  colorspinspin **css[2];
-  for(int ss=0;ss<2;ss++)
+  spinspin **ss[2];
+  for(int iss=0;iss<2;iss++)
     {
-      css[ss]=nissa_malloc("css_ptr",npr[ss],colorspinspin*);
-      css[ss][0]=nissa_malloc("css",npr[ss]*nind_mult[ss],colorspinspin);
-      for(int ip=1;ip<npr[ss];ip++) css[ss][ip]=css[ss][0]+nind_mult[ss]*ip;
+      ss[iss]=nissa_malloc("cs_ptr",npr[iss],spinspin*);
+      ss[iss][0]=nissa_malloc("ss",npr[iss]*nind_mult[iss],spinspin);
+      for(int ip=1;ip<npr[iss];ip++) ss[iss][ip]=ss[iss][0]+nind_mult[iss]*ip;
     }
   
   //summ over all the spatial volume the contractions
-  int y=0;
-  for(int ispat=0;ispat<spat_loc_vol;ispat++)
-    {
-      //loop over t
-      for(int t=0;t<loc_size[0];t++)
-	{
-	  //find the point
-	  int ivol=t*spat_loc_vol+ispat;
-	  master_printf("point %d over %d,time: %lg\n",y++,loc_vol,take_time());
-	
-	  //bufferize for each point all the propagators multiplied by all required gamma
-	  for(int ip=0;ip<npr[0];ip++)
-	    for(int im=0;im<nind_mult[0];im++)
-	      for(int ic=0;ic<3;ic++)
-		spinspin_dirac_spinspindag_prod(css[0][ip][im][ic],&(d[0][im]),S0[ip][ivol][ic]);
-	  for(int ip=0;ip<npr[1];ip++)
-	    for(int im=0;im<nind_mult[1];im++)
-	      for(int ic=0;ic<3;ic++)
-		  spinspin_dirac_spinspin_prod (css[1][ip][im][ic],&(d[1][im]),S1[ip][ivol][ic]);
-	  
-	  int offset=t;
-	  //span all propagator combinations adding the full trace to the local contraction result
-	  for(int ipr_combo=0;ipr_combo<npr_combo;ipr_combo++)
-	    for(int icontr=0;icontr<ncontr;icontr++)
-	      {
-		for(int ic=0;ic<3;ic++)
-		  summ_the_trace_prod_spinspins(loc_contr[offset],css[0][pr_combo[ipr_combo][0]][eq_to_mult[0][icontr]][ic],css[1][pr_combo[ipr_combo][1]][eq_to_mult[1][icontr]][ic]);
-		
-		//increment the offset of the buffer
-		offset+=loc_size[0];
-	      }
-	}
-    }
-  
+  int ivol=0;
+  //loop over t
+  for(int t=0;t<loc_size[0];t++)
+    for(int ispat=0;ispat<spat_loc_vol;ispat++)
+      {
+	for(int ic=0;ic<3;ic++)
+	  {
+	    //if(ic==0) master_printf("point %d over %d,time: %lg\n",ivol,loc_vol,take_time());
+	    
+	    //bufferize for each point all the propagators multiplied by all required gamma
+	    for(int ip=0;ip<npr[0];ip++)
+	      for(int im=0;im<nind_mult[0];im++)
+		spinspin_dirac_spinspindag_prod(ss[0][ip][im],&(d[0][im]),S0[ip][ivol][ic]);
+	    for(int ip=0;ip<npr[1];ip++)
+	      for(int im=0;im<nind_mult[1];im++)
+		spinspin_dirac_spinspin_prod_transp(ss[1][ip][im],&(d[1][im]),S1[ip][ivol][ic]);
+	    
+	    int offset=t;
+	    //span all propagator combinations adding the full trace to the local contraction result
+	    for(int ipr_combo=0;ipr_combo<npr_combo;ipr_combo++)
+	      for(int icontr=0;icontr<ncontr;icontr++)
+		{
+		  complex *A=(complex*)ss[0][pr_combo[ipr_combo][0]][eq_to_mult[0][icontr]],*B=(complex*)ss[1][pr_combo[ipr_combo][1]][eq_to_mult[1][icontr]];
+		  for(int i=0;i<16;i++)
+		    complex_summ_the_prod(loc_contr[offset],A[i],B[i]);
+		  
+		  //increment the offset of the buffer
+		  offset+=loc_size[0];
+		}
+	  }
+	ivol++;
+      }
+
   //find the number of propagator combinations to be hold on each x0=0 rank
   int nrank_x0=rank_tot/nrank_dir[0];
   int npr_combo_per_rank_x0=(int)ceil((double)npr_combo/nrank_x0);
   int nrank_x0_tbu=(int)ceil((double)npr_combo/npr_combo_per_rank_x0);
-  master_printf("Ncombo tot=%d, ncombo_per_rank_x0=%d, nrank to be used: %d\n",npr_combo,npr_combo_per_rank_x0,nrank_x0_tbu);
+  //master_printf("Ncombo tot=%d, ncombo_per_rank_x0=%d, nrank to be used: %d\n",npr_combo,npr_combo_per_rank_x0,nrank_x0_tbu);
   int npr_combo_lst_rank_x0=npr_combo-npr_combo_per_rank_x0*(nrank_x0_tbu-1);
   
   //perform complanar ranks reduction
-  master_printf("Reducing...\n");
+  //master_printf("Reducing...\n");
   for(int irank=0;irank<nrank_x0_tbu;irank++)
     {
       int npr_combo_cur_rank_x0=(irank<(nrank_x0_tbu-1)) ? npr_combo_per_rank_x0 : npr_combo_lst_rank_x0;
-      master_printf("Reducing on %d rank %d combo\n",irank,npr_combo_cur_rank_x0);
+      //master_printf("Reducing on %d rank %d combo\n",irank,npr_combo_cur_rank_x0);
       MPI_Reduce(loc_contr+loc_size[0]*ncontr*npr_combo_per_rank_x0*irank,
 		 glb_contr,loc_size[0]*ncontr*npr_combo_cur_rank_x0,
 		 MPI_DOUBLE_COMPLEX,MPI_SUM,irank,plan_comm[0]);
     }
-  master_printf("Reduction done!\n");
+  //master_printf("Reduction done!\n");
   
   //finalize the operations on master rank of each line communicator of x0=0 plan
   if(plan_rank[0]<nrank_x0_tbu)
@@ -538,24 +537,24 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 		}
 	  
 	  //wait to finish receiving all data
-	  master_printf("Waiting to receive all data\n");
+	  //master_printf("Waiting to receive all data\n");
 	  MPI_Waitall(nrank_dir[0]-1,request,MPI_STATUS_IGNORE);
-	  master_printf("All data received\n");
+	  //master_printf("All data received\n");
 	  
 	  //reorder the received buffer
-	  master_printf("Reordering data\n");
+	  //master_printf("Reordering data\n");
 	  reorder_vector((char*)glb_contr,ord,loc_buf_size*nrank_dir[0],sizeof(complex));
 	  nissa_free(ord);
-	  master_printf("Data reordered\n");
+	  //master_printf("Data reordered\n");
 	}
     }
   
   //free all vectors
-  nissa_free(css[0][0]);
-  nissa_free(css[1][0]);
+  nissa_free(ss[0][0]);
+  nissa_free(ss[1][0]);
   
-  nissa_free(css[0]);
-  nissa_free(css[1]);
+  nissa_free(ss[0]);
+  nissa_free(ss[1]);
 
   nissa_free(loc_contr);
 }

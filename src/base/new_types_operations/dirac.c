@@ -97,6 +97,15 @@ void spinspin_dirac_spinspin_prod(spinspin out,dirac_matr *m,spinspin in)
       unsafe_complex_prod(out[id1][id2],m->entr[id1],in[m->pos[id1]][id2]);
 }
 
+//used in lot_of_mesonic_contractions
+void spinspin_dirac_spinspin_prod_transp(spinspin out,dirac_matr *m,spinspin in)
+{
+  //This is the line on the matrix
+  for(int id1=0;id1<4;id1++)
+    for(int id2=0;id2<4;id2++)
+      unsafe_complex_prod(out[id2][id1],m->entr[id1],in[m->pos[id1]][id2]);
+}
+
 //Assign to the first spinspin the product of the passed dirac matrix by the passed spinspin
 void safe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m)
 {

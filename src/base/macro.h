@@ -1,5 +1,8 @@
 #pragma once
 
+#define EVN 0
+#define ODD 1
+
 #define RAD2 1.414213562373095048801688724209l
 
 #define debug_lvl 1
