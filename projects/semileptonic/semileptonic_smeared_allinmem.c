@@ -659,7 +659,7 @@ void two_points(int ism_lev_so,int ism_lev_si)
   
   //create output, opening it on rank 0 where first bunch of corr is stored
   char path[1024];
-  sprintf(path,"%s/2pts_%02d_%02d",outfolder,jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_si]);
+  sprintf(path,"%s/2pts_%02d_%02d",outfolder,jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
   FILE *fout=open_text_file_for_output(path);
   int ist_combo=0,irank=0;
   
