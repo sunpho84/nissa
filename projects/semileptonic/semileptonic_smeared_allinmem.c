@@ -572,9 +572,9 @@ void two_points(int ism_lev_so,int ism_lev_si)
   int nprop_combo=nspec*ntheta*nmass*nmass*2*2;
   int nrank_x0=rank_tot/nrank_dir[0];
   int nprop_combo_per_rank_x0=(int)ceil((double)nprop_combo/nrank_x0);
-  int nrank_x0_tbu=(int)ceil((double)nprop_combo/nprop_combo_per_rank_x0);
-  master_printf("Rank with x0=0: %d, nprop_combo_per_rank_x0: %d, ntot_combo: %d\n",nrank_x0,nprop_combo_per_rank_x0,nprop_combo);
-  master_printf("Ncombo tot=%d, ncombo_per_rank_x0=%d, nrank to be used: %d\n",nprop_combo,nprop_combo_per_rank_x0,nrank_x0_tbu);
+  //int nrank_x0_tbu=(int)ceil((double)nprop_combo/nprop_combo_per_rank_x0);
+  //master_printf("Rank with x0=0: %d, nprop_combo_per_rank_x0: %d, ntot_combo: %d\n",nrank_x0,nprop_combo_per_rank_x0,nprop_combo);
+  //master_printf("Ncombo tot=%d, ncombo_per_rank_x0=%d, nrank to be used: %d\n",nprop_combo,nprop_combo_per_rank_x0,nrank_x0_tbu);
   
   //allocate space for contractions
   complex *glb_contr   =nissa_malloc(   "glb_2pts_contr",nprop_combo_per_rank_x0*glb_size[0]*ncontr_2pts,complex);
@@ -663,77 +663,80 @@ void two_points(int ism_lev_so,int ism_lev_si)
   FILE *fout=open_text_file_for_output(path);
   int ist_combo=0,irank=0;
   
-  for(int ispec=0;ispec<nspec;ispec++)
+  if(rank_coord[0]==0)
     {
-      int ith1=ith_spec[ispec];
-      for(int ith2=0;ith2<ntheta;ith2++)
-	for(int im2=0;im2<nmass;im2++)
-	  for(int r2=0;r2<2;r2++)
-	    for(int im1=0;im1<nmass;im1++)
-	      for(int r1=0;r1<2;r1++)
-		{
-		  //if next rank must write, close, pass to next rank and reopen 
-		  if(ist_combo==nprop_combo_per_rank_x0)
+      for(int ispec=0;ispec<nspec;ispec++)
+	{
+	  int ith1=ith_spec[ispec];
+	  for(int ith2=0;ith2<ntheta;ith2++)
+	    for(int im2=0;im2<nmass;im2++)
+	      for(int r2=0;r2<2;r2++)
+		for(int im1=0;im1<nmass;im1++)
+		  for(int r1=0;r1<2;r1++)
 		    {
-		      //close and reopen
-		      if(rank==irank) fclose(fout);
-		      irank++;
-		      
-		      //wait
-		      MPI_Barrier(MPI_COMM_WORLD);
-		      
-		      if(rank==irank) fout=fopen(path,"a");
-		      //reset ncombo
-		      ist_combo=ioff=ich_off=0;
-		    }
-		  
-		  //on appropriate rank, write
-		  if(rank==irank)
-		    {
-		      //print combination header
-		      fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
-		      fprintf(fout," smear_source=%d smear_sink=%d\n\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
-		      
-		      //loop over contraction of the combo
-		      for(int icontr=0;icontr<ncontr_2pts;icontr++)
+		      //if next rank must write, close, pass to next rank and reopen 
+		      if(ist_combo==nprop_combo_per_rank_x0)
 			{
-			  //print the contraction header
-			  fprintf(fout," # %s%s\n",gtag[op_2pts[1][icontr]],gtag[op_2pts[0][icontr]]);
+			  //close and reopen
+			  if(plan_rank[0]==irank) fclose(fout);
+			  irank++;
 			  
-			  //print the contraction
-			  for(int t=0;t<glb_size[0];t++)
-			    {
-			      fprintf(fout,"%+016.16g\t%+016.16g\n",glb_contr[ioff][0],glb_contr[ioff][1]);
-			      ioff++;
-			    }
+			  //wait
+			  MPI_Barrier(plan_comm[0]);
 			  
-			  //paragraph end
-			  fprintf(fout,"\n");
+			  if(plan_rank[0]==irank) fout=fopen(path,"a");
+			  //reset ncombo
+			  ist_combo=ioff=ich_off=0;
 			}
 		      
-		      //loop over ch-contraction of the combo
-		      for(int icontr=0;icontr<nch_contr_2pts;icontr++)
+		      //on appropriate rank, write
+		      if(plan_rank[0]==irank)
 			{
-			  fprintf(fout," # CHROMO-%s%s\n",gtag[ch_op_2pts[1][icontr]],gtag[ch_op_2pts[0][icontr]]);
+			  //print combination header
+			  fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
+			  fprintf(fout," smear_source=%d smear_sink=%d\n\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
 			  
-			  //print the contraction
-			  for(int t=0;t<glb_size[0];t++)
+			  //loop over contraction of the combo
+			  for(int icontr=0;icontr<ncontr_2pts;icontr++)
 			    {
-			      fprintf(fout,"%+016.16g\t%+016.16g\n",glb_ch_contr[ich_off][0],glb_ch_contr[ich_off][1]);
-			      ich_off++;
+			      //print the contraction header
+			      fprintf(fout," # %s%s\n",gtag[op_2pts[1][icontr]],gtag[op_2pts[0][icontr]]);
+			      
+			      //print the contraction
+			      for(int t=0;t<glb_size[0];t++)
+				{
+				  fprintf(fout,"%+016.16g\t%+016.16g\n",glb_contr[ioff][0],glb_contr[ioff][1]);
+				  ioff++;
+				}
+			      
+			      //paragraph end
+			      fprintf(fout,"\n");
 			    }
 			  
-			  //paragraph end
-			  fprintf(fout,"\n");
+			  //loop over ch-contraction of the combo
+			  for(int icontr=0;icontr<nch_contr_2pts;icontr++)
+			    {
+			      fprintf(fout," # CHROMO-%s%s\n",gtag[ch_op_2pts[1][icontr]],gtag[ch_op_2pts[0][icontr]]);
+			      
+			      //print the contraction
+			      for(int t=0;t<glb_size[0];t++)
+				{
+				  fprintf(fout,"%+016.16g\t%+016.16g\n",glb_ch_contr[ich_off][0],glb_ch_contr[ich_off][1]);
+				  ich_off++;
+				}
+			      
+			      //paragraph end
+			      fprintf(fout,"\n");
+			    }
 			}
+		      //increment the number of stored combo
+		      ist_combo++;
 		    }
-		  //increment the number of stored combo
-		  ist_combo++;
-		}
+	}
+      
+      //close the output
+      if(plan_rank[0]==irank) fclose(fout);
     }
-  
-  //close the output
-  if(irank==rank) fclose(fout);
   
   contr_save_time+=take_time();
   
@@ -764,9 +767,9 @@ void three_points(int ispec,int ism_lev_so,int ism_lev_se)
   int nprop_combo=npropS1*npropS1;
   int nrank_x0=rank_tot/nrank_dir[0];
   int nprop_combo_per_rank_x0=(int)ceil((double)npropS1*npropS1/nrank_x0);
-  int nrank_x0_tbu=(int)ceil((double)npropS1*npropS1/nprop_combo_per_rank_x0);
-  master_printf("Rank with x0=0: %d, nprop_combo_per_rank_x0: %d, ntot_combo: %d\n",nrank_x0,nprop_combo_per_rank_x0,npropS1*npropS1);
-  master_printf("Ncombo tot=%d, ncombo_per_rank_x0=%d, nrank to be used: %d\n",nprop_combo,nprop_combo_per_rank_x0,nrank_x0_tbu);
+  //int nrank_x0_tbu=(int)ceil((double)npropS1*npropS1/nprop_combo_per_rank_x0);
+  //master_printf("Rank with x0=0: %d, nprop_combo_per_rank_x0: %d, ntot_combo: %d\n",nrank_x0,nprop_combo_per_rank_x0,npropS1*npropS1);
+  //master_printf("Ncombo tot=%d, ncombo_per_rank_x0=%d, nrank to be used: %d\n",nprop_combo,nprop_combo_per_rank_x0,nrank_x0_tbu);
   
   //allocate space for contractions
   complex *glb_contr   =nissa_malloc(   "glb_3pts_contr",nprop_combo_per_rank_x0*glb_size[0]*ncontr_3pts,complex);
