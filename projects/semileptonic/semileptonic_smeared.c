@@ -371,19 +371,19 @@ int read_conf_parameters(int *iconf)
 void setup_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-  read_gauge_conf(conf,conf_path);
-  communicate_gauge_borders(conf);
-  communicate_gauge_edges(conf);
+  read_ildg_gauge_conf(conf,conf_path);
+  communicate_lx_gauge_borders(conf);
+  communicate_lx_gauge_edges(conf);
   Pmunu_term(Pmunu,conf);
   
   //prepare the smerded version
   ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
-  communicate_gauge_borders(conf);
-  communicate_gauge_borders(sme_conf);
+  communicate_lx_gauge_borders(conf);
+  communicate_lx_gauge_borders(sme_conf);
   
   //compute plaquette
-  master_printf("plaq: %.18g\n",global_plaquette(conf));
-  master_printf("smerded plaq: %.18g\n",global_plaquette(sme_conf));
+  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
   
   //put the anti-periodic condition on the temporal border
   memset(old_theta,0,4*sizeof(double));
@@ -472,14 +472,14 @@ void calculate_S0(int ism_lev_so)
 	  
 	  //inverting
 	  double part_time=-take_time();
-	  inv_Q2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	  master_printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
 
 	  //reconstruct the doublet
 	  for(int imass=0;imass<nmass;imass++)
 	    {
-	      reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	      reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	      if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		for(int i=0;i<loc_vol;i++)
@@ -519,7 +519,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 	  adapt_theta(conf,old_theta,put_theta,1,1);
 
 	  double part_time=-take_time();
-	  inv_Q2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	  if(rank==0) printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
 	  
@@ -528,7 +528,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 	      double reco_mass=-mass[imass];
 	      if(r_spec[ispec]==1) reco_mass=-reco_mass;
 	      //use reco_solution[0] as temporary storage
-	      apply_Q(reco_solution[0],cgmms_solution[imass],conf,kappa,reco_mass);
+	      apply_tmQ(reco_solution[0],cgmms_solution[imass],conf,kappa,reco_mass);
 	      if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass)][i],reco_solution[0][i],id);
 	    }

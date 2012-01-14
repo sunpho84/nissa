@@ -1,8 +1,8 @@
 #pragma once
 
-double calculate_weighted_residue_RL(spincolor *source,spincolor *sol,quad_su3 *conf,double kappa,double m,spincolor *s,spincolor *t,int dinf,int RL)
+double calculate_weighted_residue_tmQ2_RL(spincolor *source,spincolor *sol,quad_su3 *conf,double kappa,double m,spincolor *s,spincolor *t,int dinf,int RL)
 {
-  apply_Q2_RL(s,sol,conf,kappa,m,t,RL);
+  apply_tmQ2_RL(s,sol,conf,kappa,m,t,RL);
   
   double loc_weighted_residue=0,tot_weighted_residue;
   double loc_weight=0,tot_weight;
@@ -38,7 +38,7 @@ double calculate_weighted_residue_RL(spincolor *source,spincolor *sol,quad_su3 *
   return tot_weighted_residue;
 }
 
-int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr,double *zfs,int st_crit,double st_res,double st_res2,int iter,spincolor **sol,int nmass,double *m,spincolor *source,quad_su3 *conf,double kappa,spincolor *s,spincolor *t,double source_norm,int RL)
+int check_cgmms_residue_tmQ2_RL(int *run_flag,double *residue_mass,int nrun,double rr,double *zfs,int st_crit,double st_res,double st_res2,int iter,spincolor **sol,int nmass,double *m,spincolor *source,quad_su3 *conf,double kappa,spincolor *s,spincolor *t,double source_norm,int RL)
 {
   const int each=10;
 
@@ -59,8 +59,8 @@ int check_cgmms_residue_RL(int *run_flag,double *residue_mass,int nrun,double rr
 	    {  //locally weighted norm
 	      communicate_lx_spincolor_borders(sol[imass]);
 	      if(st_crit==sc_weighted_norm2)
-		residue_mass[imass]=calculate_weighted_residue_RL(source,sol[imass],conf,kappa,m[imass],s,t,2,RL);
-	      else residue_mass[imass]=calculate_weighted_residue_RL(source,sol[imass],conf,kappa,m[imass],s,t,-1,RL);
+		residue_mass[imass]=calculate_weighted_residue_tmQ2_RL(source,sol[imass],conf,kappa,m[imass],s,t,2,RL);
+	      else residue_mass[imass]=calculate_weighted_residue_tmQ2_RL(source,sol[imass],conf,kappa,m[imass],s,t,-1,RL);
 	    }
 	
 	if(fini)

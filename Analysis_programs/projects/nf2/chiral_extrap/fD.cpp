@@ -25,12 +25,12 @@ int iboot;
 
 double fun_fit_phiD(double A,double B,double C,double ml,double a)
 {
-  double xi=db0.data[iboot]*ml/sqr(4*M_PI*f0.data[iboot]);
+  double m2pi=db0.data[iboot]*ml;
   double cl;
-  if(ghat_ave!=0) cl=-3*(1+3.0*sqr(ghat.data[iboot]))/4*xi*log(xi);
+  if(ghat_ave!=0) cl=-3*(1+3.0*sqr(ghat.data[iboot]))/4*m2pi/sqr(4*M_PI*f0.data[iboot])*log(m2pi);
   else cl=0;
   
-  return A * ( 1 + cl + B*ml + C*a*a );
+  return A * ( 1 + cl + B*m2pi + C*a*a );
 }
 
 void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const char *ylab,bvec &X,bvec &Y,bvec &par,double X_phys,double (*fun)(double,double,double,double,double),boot &chiral_extrap_cont)
@@ -307,6 +307,11 @@ int main(int narg,char **arg)
   double lat_med_fm[4]={lat[0].med()/hc,lat[1].med()/hc,lat[2].med()/hc,lat[3].med()/hc};
   plot_funz_ml("phiD_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,phiD,par_res_fit_phiD,ml_phys.med(),fun_fit_phiD,phiD_chir_cont);
   plot_funz_a2("phiD_funz_a2.xmg",meson_name,tag_a2,meson_name,lat_med_fm,phiD_estr_ml,par_res_fit_phiD,fun_fit_phiD,phiD_chir_cont);
+
+  cout<<lat[0]<<endl;
+  cout<<lat[1]<<endl;
+  cout<<lat[2]<<endl;
+  cout<<lat[3]<<endl;
   
   return 0;
 }

@@ -10,8 +10,8 @@ int test_plaquette_computation()
   quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
   
   //read conf, compute plaquette, print it
-  read_gauge_conf(conf,"../../data/L4T8conf");
-  double plaq=global_plaquette(conf);
+  read_ildg_gauge_conf(conf,"../../data/L4T8conf");
+  double plaq=global_plaquette_lx_conf(conf);
   master_printf("Loaded plaquette: %16.16g, expected: %16.16g\n",plaq,exp_plaq);
   
   //check precision

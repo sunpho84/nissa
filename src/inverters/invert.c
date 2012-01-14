@@ -1,39 +1,41 @@
 #pragma once
 
 //follow inclusion below
-#include "cgmms_invert_common.c"
+#include "cgmms_invert_tmQ2_common.c"
 
 #ifdef BGP
 
-#include "cg_invert_bgp.c"
-#include "cgmms_invert_bgp.c"
+#include "cg_invert_tmQ2_bgp.c"
+#include "cgmms_invert_tmQ2_bgp.c"
 
 #else
 
-#include "cg_invert_portable.c"
-#include "cgmms_invert_portable.c"
+#include "cg_invert_tmQ2_portable.c"
+#include "cgmms_invert_tmQ2_portable.c"
 
 #endif
 
-#include "cg_invert_common.c"
+#include "cg_invert_tmQ2_common.c"
 
-void inv_Q2_cgmms(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
-{inv_Q2_cgmms_RL(sol,source,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,0);}
-void inv_Q2_cgmms_left(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
-{inv_Q2_cgmms_RL(sol,source,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,1);}
+////////////////////////////////////// TWISTED MASS LIGHT DEGENERATE INVERTERS ///////////////////////////////
 
-void inv_DQ_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
+void inv_tmQ2_cgmms(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
+{inv_tmQ2_cgmms_RL(sol,source,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,0);}
+void inv_tmQ2_cgmms_left(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
+{inv_tmQ2_cgmms_RL(sol,source,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,1);}
+
+void inv_tmDQ_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
 {
   //put the g5
   for(int ivol=0;ivol<loc_vol;ivol++) for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
-  inv_Q2_cgmms_RL(sol,source,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,RL);
+  inv_tmQ2_cgmms_RL(sol,source,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,RL);
   for(int ivol=0;ivol<loc_vol;ivol++) for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
 }
 
-void inv_DQ_cgmms(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
-{inv_DQ_cgmms_RL(sol,source,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,0);}
-void inv_DQ_cgmms_left(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
-{inv_DQ_cgmms_RL(sol,source,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,1);}
+void inv_tmDQ_cgmms(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
+{inv_tmDQ_cgmms_RL(sol,source,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,0);}
+void inv_tmDQ_cgmms_left(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
+{inv_tmDQ_cgmms_RL(sol,source,conf,kappa,m,nmass,niter,st_res,st_minres,st_crit,1);}
 
 ////////////////////////////////////////////////// full frontend //////////////////////////////////////////////
 
@@ -60,13 +62,13 @@ void compute_su3spinspin_propagators_multi_mass(su3spinspin ***prop,su3spinspin 
           get_spincolor_from_su3spinspin(temp_source[ivol],source[ivol],id,ic);
         
         double init_time=take_time();
-        inv_DQ_cgmms(cgmms_solution,temp_source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+        inv_tmDQ_cgmms(cgmms_solution,temp_source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
         master_printf("Finished the inversion of Q2, dirac index %d, color %d in %g sec\n",id,ic,take_time()-init_time);
         
         //reconstruct the doublet
         for(int imass=0;imass<nmass;imass++)
           {
-            reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+            reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
             
             //convert the id-th spincolor into the su3spinspin
             for(int r=0;r<2;r++)

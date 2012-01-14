@@ -299,21 +299,21 @@ void load_gauge_conf()
 {
   //load the gauge conf
   double time=-take_time();
-  read_gauge_conf(conf,conf_path);
+  read_ildg_gauge_conf(conf,conf_path);
   time+=take_time();
   master_printf("\nTime needed to load conf %s: %g s.\n\n",conf_path,time);
 
   //compute plaquette
-  communicate_gauge_borders(conf);
-  double gplaq=global_plaquette(conf);
+  communicate_lx_gauge_borders(conf);
+  double gplaq=global_plaquette_lx_conf(conf);
   master_printf("plaq: %.18g\n",gplaq);
   
   //prepare the smerded version
   ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
-  communicate_gauge_borders(sme_conf);
+  communicate_lx_gauge_borders(sme_conf);
 
   //calculate smerded plaquette
-  gplaq=global_plaquette(sme_conf);
+  gplaq=global_plaquette_lx_conf(sme_conf);
   master_printf("smerded plaq: %.18g\n",gplaq);
   
   //Put the anti-periodic condition on the temporal border
@@ -348,14 +348,14 @@ void calculate_S(int iwall)
 	  double part_time=-take_time();
 	  communicate_lx_spincolor_borders(source);
 	  master_printf("\n");
-	  inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ntot_inv++;tot_inv_time+=part_time;
 	  master_printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
 			     iwall,id,so_jlv,part_time);
 	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet
-	      reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	      reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{

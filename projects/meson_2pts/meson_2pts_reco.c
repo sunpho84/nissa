@@ -209,12 +209,12 @@ int main(int narg,char **arg)
     }
   
   //load the gauge configuration 
-  read_gauge_conf(gauge_conf,gaugeconf_file);
-  communicate_gauge_borders(gauge_conf);
-  communicate_gauge_edges(gauge_conf);
+  read_ildg_gauge_conf(gauge_conf,gaugeconf_file);
+  communicate_lx_gauge_borders(gauge_conf);
+  communicate_lx_gauge_edges(gauge_conf);
   adapt_theta(gauge_conf,old_theta,theta,1,1);
   
-  double gplaq=global_plaquette(gauge_conf);
+  double gplaq=global_plaquette_lx_conf(gauge_conf);
   if(rank==0) printf("plaq: %.10g\n",gplaq);
   
   //if necessary calculate the pmunu term

@@ -87,7 +87,7 @@ void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis)
   //allocate a temporary conf with borders
   quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+loc_bord,quad_su3);
   memcpy(temp_conf,in,loc_vol*sizeof(quad_su3));
-  communicate_gauge_borders(temp_conf);
+  communicate_lx_gauge_borders(temp_conf);
   
   //now reorder links
   for(int ivol=0;ivol<loc_vol;ivol++)

@@ -154,7 +154,7 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
 
   quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol));
-  read_gauge_conf(conf,filename);
+  read_ildg_gauge_conf(conf,filename);
   
   spincolor *eta=allocate_spincolor(loc_vol+loc_bord,"eta");
   spincolor *source=allocate_spincolor(loc_vol+loc_bord,"source");

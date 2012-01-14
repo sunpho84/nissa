@@ -36,9 +36,9 @@ int main(int narg,char **arg)
   master_printf("Thetas: %f %f %f %f\n",theta[0],theta[1],theta[2],theta[3]);
 
   //load the configuration, put boundaries condition and communicate borders
-  read_gauge_conf(conf,gauge_file);
+  read_ildg_gauge_conf(conf,gauge_file);
   put_boundaries_conditions(conf,theta,1,0);
-  communicate_gauge_borders(conf);
+  communicate_lx_gauge_borders(conf);
 
   //initialize the source
   spincolor *source=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));

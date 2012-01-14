@@ -72,6 +72,66 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
   if(debug_lvl>1) master_printf("Time elapsed in writing: %f s\n",time);
 }
 
+//Write a whole color vector
+void write_color(char *path,color *v,int prec)
+{
+  //Open the file
+  MPI_File *writer_file=nissa_malloc("Writer_file",1,MPI_File);
+  int ok=MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
+  if(ok!=MPI_SUCCESS) crash("Couldn't open for writing the file: '%s'\n",path);
+  
+  MPI_File_set_size(*writer_file,0);
+  LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
+  
+  //Write the info on the propagator type
+  char propagator_type_header[]="propagator-type";
+  char propagator_type_message[]="ColorOnly";
+  write_text_record(writer,propagator_type_header,propagator_type_message);
+  
+  //Write the info on the propagator format
+  char propagator_format_header[]="stag-propagator-format";
+  char propagator_format_message[1024];
+  sprintf(propagator_format_message, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+	  "<etmcFormat>\n"
+	  "<field>diracFermion</field>\n"
+	  "<precision>%d</precision>\n"
+	  "<flavours>%d</flavours>\n"
+	  "<lx>%d</lx>\n"
+	  "<ly>%d</ly>\n"
+	  "<lz>%d</lz>\n"
+	  "<lt>%d</lt>\n"
+	  "</etmcFormat>",
+	  prec,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
+  write_text_record(writer,propagator_format_header,propagator_format_message);
+  
+  //order things as expected
+  color *temp=nissa_malloc("temp_write_prop",loc_vol,color);
+  
+  int x[4],isour,idest;
+  
+  for(x[0]=0;x[0]<loc_size[0];x[0]++)
+    for(x[1]=0;x[1]<loc_size[1];x[1]++)
+      for(x[2]=0;x[2]<loc_size[2];x[2]++)
+	for(x[3]=0;x[3]<loc_size[3];x[3]++)
+	  {
+	    idest=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
+	    isour=loclx_of_coord(x);
+	    
+	    memcpy(temp[idest],v[isour],sizeof(color));
+	  }
+  
+  //Write the binary data
+  write_double_vector(writer,(char*)temp,"scidac-binary-data",nreals_per_color,prec);
+
+  nissa_free(temp);
+  if(debug_lvl>1) master_printf("File '%s' saved (probably...)\n",path);
+  
+  //Close the file
+  lemonDestroyWriter(writer);
+  MPI_File_close(writer_file);
+  nissa_free(writer_file);
+}
+
 //Write a whole spincolor
 void write_spincolor(char *path,spincolor *spinor,int prec)
 {

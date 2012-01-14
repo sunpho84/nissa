@@ -15,8 +15,8 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
       memcpy(temp_conf,smear_conf,sizeof(quad_su3)*loc_vol);
       
       //communicate the borders
-      communicate_gauge_borders(temp_conf);
-      communicate_gauge_edges(temp_conf);
+      communicate_lx_gauge_borders(temp_conf);
+      communicate_lx_gauge_edges(temp_conf);
       
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	{     
@@ -31,14 +31,14 @@ void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nst
 		    int A=loc_site;                     //        nu    
 		    int B=loclx_neighup[A][nu];
 		    int F=loclx_neighup[A][mu];
-		    su3_prod_su3(temp1,temp_conf[A][nu],temp_conf[B][mu]);
-		    su3_prod_su3_dag(temp2,temp1,temp_conf[F][nu]);
+		    unsafe_su3_prod_su3(temp1,temp_conf[A][nu],temp_conf[B][mu]);
+		    unsafe_su3_prod_su3_dag(temp2,temp1,temp_conf[F][nu]);
 		    su3_summ(stap,stap,temp2);
 		        
 		    int D=loclx_neighdw[A][nu];
 		    int E=loclx_neighup[D][mu];
-		    su3_dag_prod_su3(temp1,temp_conf[D][nu],temp_conf[D][mu]);
-		    su3_prod_su3(temp2,temp1,temp_conf[E][nu]);
+		    unsafe_su3_dag_prod_su3(temp1,temp_conf[D][nu],temp_conf[D][mu]);
+		    unsafe_su3_prod_su3(temp2,temp1,temp_conf[E][nu]);
 		    su3_summ(stap,stap,temp2);
 		  }
 	            
@@ -118,10 +118,10 @@ void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *
 	    int lup=loclx_neighup[l][mu];
 	    int ldw=loclx_neighdw[l][mu];
 	    
-	    su3_summ_the_color_prod    (H[l][id],conf[l  ][mu],smear_sc[lup][id]);
-	    su3_dag_summ_the_color_prod(H[l][id],conf[ldw][mu],smear_sc[ldw][id]);
+	    su3_summ_the_prod_color    (H[l][id],conf[l  ][mu],smear_sc[lup][id]);
+	    su3_dag_summ_the_prod_color(H[l][id],conf[ldw][mu],smear_sc[ldw][id]);
 	  }
-	color_prod_real(H[l][id],H[l][id],kappa);
+	color_prod_double(H[l][id],H[l][id],kappa);
       }
 #else
   bgp_complex H0,H1,H2;
@@ -169,7 +169,7 @@ void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *
       for(int id=0;id<4;id++)
 	{
 	  bgp_load_color(A0,A1,A2,H[l][id]);  
-	  bgp_color_prod_real(B0,B1,B2,A0,A1,A2,kappa);
+	  bgp_color_prod_double(B0,B1,B2,A0,A1,A2,kappa);
 	  bgp_save_color(H[l][id],B0,B1,B2);
 	}
     }
@@ -184,11 +184,11 @@ void vol_spincolor_summassign(spincolor *smear_sc,spincolor *H)
     spincolor_summ(smear_sc[l],smear_sc[l],H[l]);
 }
 
-//prod with real
-void vol_assign_spincolor_prod_real(spincolor *sc,double c)
+//prod with double
+void vol_spincolor_prod_double(spincolor *out,spincolor *in,double r)
 {
   for(int l=0;l<loc_vol;l++)
-    assign_spincolor_prod_real(sc[l],c);
+    spincolor_prod_double(out[l],in[l],r);
 }
 
 //jacobi smearing
@@ -204,7 +204,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);//we do not know if smear_sc is allocated with bord
       spincolor *H=nissa_malloc("H",loc_vol+loc_bord,spincolor);
       double norm_fact=1/(1+6*kappa);
-      communicate_gauge_borders(conf);
+      communicate_lx_gauge_borders(conf);
 
       if(debug_lvl>1) master_printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
       
@@ -222,7 +222,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 	  //add kappa*H
 	  vol_spincolor_summassign(temp,H);
 	  //dynamic normalization  
-	  vol_assign_spincolor_prod_real(temp,norm_fact);
+	  vol_spincolor_prod_double(temp,temp,norm_fact);
 #else
 	  bgp_complex A0,A1,A2;
 	  bgp_complex B0,B1,B2;
@@ -237,8 +237,8 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 		{
 		  bgp_load_color(A0,A1,A2,temp[l][id]);
 		  bgp_load_color(B0,B1,B2,H[l][id]);
-		  bgp_color_prod_real(C0,C1,C2,A0,A1,A2,norm_fact);
-		  bgp_summassign_color_prod_real(C0,C1,C2,B0,B1,B2,norm_fact);
+		  bgp_color_prod_double(C0,C1,C2,A0,A1,A2,norm_fact);
+		  bgp_summassign_color_prod_double(C0,C1,C2,B0,B1,B2,norm_fact);
 		  bgp_save_color(temp[l][id],C0,C1,C2);
 		}
 	    }

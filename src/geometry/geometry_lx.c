@@ -103,7 +103,7 @@ void set_lx_geometry()
     MPI_Cart_shift(cart_comm,mu,1,&(rank_neighdw[mu]),&(rank_neighup[mu]));
   
   loc_coord_of_loclx=nissa_malloc("loc_coord_of_loclx",loc_vol,coords);
-  glb_coord_of_loclx=nissa_malloc("glb_coord_of_loclx",loc_vol+loc_bord,coords);
+  glb_coord_of_loclx=nissa_malloc("glb_coord_of_loclx",loc_vol+loc_bord+loc_edge,coords);
   loclx_neighup=nissa_malloc("loclx_neighup",loc_vol+loc_bord,coords);
   loclx_neighdw=nissa_malloc("loclx_neighdw",loc_vol+loc_bord,coords);
   
@@ -207,6 +207,7 @@ void set_lx_geometry()
 			gx[mu]=(gx[mu]-1+glb_size[mu])%glb_size[mu];
 			gx[nu]=(gx[nu]-1+glb_size[nu])%glb_size[nu];
 			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
+			for(int rho=0;rho<4;rho++) glb_coord_of_loclx[iedge][rho]=gx[rho];
 			gx[mu]=glb_coord_of_loclx[ivol][mu];
 			gx[nu]=glb_coord_of_loclx[ivol][nu];
 		      }
@@ -231,6 +232,7 @@ void set_lx_geometry()
 			gx[mu]=(gx[mu]-1+glb_size[mu])%glb_size[mu];
 			gx[nu]=(gx[nu]+1+glb_size[nu])%glb_size[nu];
 			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
+			for(int rho=0;rho<4;rho++) glb_coord_of_loclx[iedge][rho]=gx[rho];
 			gx[mu]=glb_coord_of_loclx[ivol][mu];
 			gx[nu]=glb_coord_of_loclx[ivol][nu];
 		      }
@@ -288,6 +290,7 @@ void set_lx_geometry()
 			gx[mu]=(gx[mu]+1+glb_size[mu])%glb_size[mu];
 			gx[nu]=(gx[nu]-1+glb_size[nu])%glb_size[nu];
 			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
+			for(int rho=0;rho<4;rho++) glb_coord_of_loclx[iedge][rho]=gx[rho];
 			gx[mu]=glb_coord_of_loclx[ivol][mu];
 			gx[nu]=glb_coord_of_loclx[ivol][nu];
 		      }
@@ -310,6 +313,7 @@ void set_lx_geometry()
 			gx[mu]=(gx[mu]+1+glb_size[mu])%glb_size[mu];
 			gx[nu]=(gx[nu]+1+glb_size[nu])%glb_size[nu];
 			glblx_of_edgelx[raw_iedge]=glblx_of_coord(gx);
+			for(int rho=0;rho<4;rho++) glb_coord_of_loclx[iedge][rho]=gx[rho];
 			gx[mu]=glb_coord_of_loclx[ivol][mu];
 			gx[nu]=glb_coord_of_loclx[ivol][nu];
 		      }

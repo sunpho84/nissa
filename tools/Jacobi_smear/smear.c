@@ -34,7 +34,7 @@ int main(int narg,char **arg)
   //allocate and read conf
   read_str_str("GaugeConf",filename,1024);
   quad_su3 *orig_conf=nissa_malloc("Ori_Conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  read_gauge_conf(orig_conf,filename);
+  read_ildg_gauge_conf(orig_conf,filename);
   
   //smear the conf
   quad_su3 *smea_conf=nissa_malloc("Smea_Conf",loc_vol+loc_bord+loc_edge,quad_su3);

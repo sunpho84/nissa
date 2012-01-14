@@ -207,7 +207,7 @@ int main(int narg,char **arg)
   quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
   
   //read conf, compute plaquette, print it
-  read_gauge_conf(conf,"../../data/L4T8conf");
+  read_ildg_gauge_conf(conf,"../../data/L4T8conf");
   
   color eival;
   su3 eivec;

@@ -108,8 +108,8 @@ void initialize_nucleons(char *input_path)
       int id2=base_gamma[4].pos[id1];
       
       Proj[0][id1][id1][0]=Proj[1][id1][id1][0]=0.5;
-      complex_prod_with_real(Proj[0][id1][id2],base_gamma[4].entr[id1],+0.5);
-      complex_prod_with_real(Proj[1][id1][id2],base_gamma[4].entr[id1],-0.5);
+      complex_prod_double(Proj[0][id1][id2],base_gamma[4].entr[id1],+0.5);
+      complex_prod_double(Proj[1][id1][id2],base_gamma[4].entr[id1],-0.5);
     }
 
   for(int id1=0;id1<4;id1++) if(id1==0||id1==2) Proj[2][id1][id1][0]=Proj[2][id1][id1][0]=0.5;
@@ -243,14 +243,14 @@ void initialize_nucleons(char *input_path)
 //read a configuration and put anti-periodic condition at the slice tsource-1
 void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
 {
-  read_gauge_conf(conf,conf_path);
+  read_ildg_gauge_conf(conf,conf_path);
   
   //commmunicate borders
-  communicate_gauge_borders(conf);  
-  communicate_gauge_edges(conf);
+  communicate_lx_gauge_borders(conf);  
+  communicate_lx_gauge_edges(conf);
   
   //calculate plaquette of original conf
-  double gplaq=global_plaquette(conf);
+  double gplaq=global_plaquette_lx_conf(conf);
   if(rank==0) printf("plaq: %.18g\n",gplaq);
   
   //calcolate Pmunu
@@ -258,7 +258,7 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   
   //prepared the smerded version and  calculate plaquette
   ape_smearing(smea_conf,conf,ape_alpha,ape_niter);
-  gplaq=global_plaquette(smea_conf);
+  gplaq=global_plaquette_lx_conf(smea_conf);
   if(rank==0) printf("smerded plaq: %.18g\n",gplaq);
   
   //Put the anti-periodic condition on the temporal border
@@ -266,9 +266,9 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   put_boundaries_conditions(conf,put_theta,1,1);
   
   //re-communicate borders
-  communicate_gauge_borders(conf);
-  communicate_gauge_borders(smea_conf);
-  communicate_gauge_edges(conf);
+  communicate_lx_gauge_borders(conf);
+  communicate_lx_gauge_borders(smea_conf);
+  communicate_lx_gauge_edges(conf);
 }
 
 //create a 12 index point source
@@ -341,7 +341,7 @@ void calculate_S0()
 	// 2) peform the inversion taking time
 
 	tinv-=take_time();
-	inv_Q2_cgmms(solDD,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	inv_tmQ2_cgmms(solDD,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	tinv+=take_time();
 
 	if(rank==0) printf("inversions finished\n");
@@ -353,7 +353,7 @@ void calculate_S0()
 	for(int imass=0;imass<nmass;imass++)
 	  {
 	    //reconstruct the doublet
-	    reconstruct_doublet(sol_reco[0],sol_reco[1],solDD[imass],conf,kappa,mass[imass]);
+	    reconstruct_tm_doublet(sol_reco[0],sol_reco[1],solDD[imass],conf,kappa,mass[imass]);
 	    
 	    //convert the id-th spincolor into the colorspinspin and prepare the sink smerded version
 	    for(int r=0;r<2;r++)
@@ -683,7 +683,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 						      if(c1==z && ga1==tau) complex_subt(part,part,S0_SL[im_3pts][rlike][ivol][a1][c2][al1][ga2]);
 							
 						      safe_complex_prod(part,C5[rho][be2],part);
-						      complex_prod_with_real(part,part,epsilon[x][b2][c2]);
+						      complex_prod_double(part,part,epsilon[x][b2][c2]);
 						      safe_complex_prod(part,S0_SL[im_3pts][rdislike][ivol][b1][b2][be1][be2],part);
 						      safe_complex_prod(part,Proj[2][ga2][ga1],part); //spin z+ polarized proton
 							
@@ -704,7 +704,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
 							if(a1==z && al1==tau) complex_subt(part,part,S0_SL[im_3pts][rlike][ivol][c1][a2][ga1][al2]);
 							  
 							safe_complex_prod(part,C5[al2][be2],part);
-							complex_prod_with_real(part,part,epsilon[a2][b2][x]);
+							complex_prod_double(part,part,epsilon[a2][b2][x]);
 							safe_complex_prod(part,S0_SL[im_3pts][rdislike][ivol][b1][b2][be1][be2],part);
 							safe_complex_prod(part,Proj[2][ga2][ga1],part);
 							  
@@ -742,7 +742,7 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	  printf("\n(S1) %s, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",tag[ld],rlike,rdislike,id_sink,ic_sink);
 	
 	tinv-=take_time();
-	inv_Q2_cgmms_left(solDD,source,NULL,conf,kappa,mass,nmass,
+	inv_tmQ2_cgmms_left(solDD,source,conf,kappa,mass,nmass,
 			  niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	tinv+=take_time();
 	
@@ -751,12 +751,12 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	  {
 	    if((ld==0 && rdislike==0)||(ld==1 && rlike==1))
 	      {
-		apply_Q_left(sol_reco[0],solDD[imass],conf,kappa,+mass[imass]); //cancel d
+		apply_tmQ_left(sol_reco[0],solDD[imass],conf,kappa,+mass[imass]); //cancel d
 		for(int ivol=0;ivol<loc_vol;ivol++) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pminus);
 	      }
 	    else
 	      {
-		apply_Q_left(sol_reco[0],solDD[imass],conf,kappa,-mass[imass]); //cancel u
+		apply_tmQ_left(sol_reco[0],solDD[imass],conf,kappa,-mass[imass]); //cancel u
 		for(int ivol=0;ivol<loc_vol;ivol++) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pplus);
 	      }
 	    

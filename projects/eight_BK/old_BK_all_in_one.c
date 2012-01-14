@@ -205,10 +205,10 @@ void initialize_Bk(char *input_path)
   conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
 
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-  read_gauge_conf(conf,conf_path);
-  communicate_gauge_borders(conf);
+  read_ildg_gauge_conf(conf,conf_path);
+  communicate_lx_gauge_borders(conf);
  
-  double gplaq=global_plaquette(conf);
+  double gplaq=global_plaquette_lx_conf(conf);
   if(rank==0) printf("plaq: %.18g\n",gplaq);
  
   //Put the anti-periodic condition on the temporal border

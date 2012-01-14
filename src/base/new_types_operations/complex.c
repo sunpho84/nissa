@@ -46,7 +46,7 @@ void complex_subtassign(complex a,complex b)
 }
 
 //prod with real
-void complex_prod_with_real(complex a,complex b,double c)
+void complex_prod_double(complex a,complex b,double c)
 {
   a[0]=b[0]*c;
   a[1]=b[1]*c;

@@ -100,15 +100,40 @@ void rnd_get_Z4(complex out,rnd_gen *gen)
   out[1]=rnd_get_pm_one(gen)/RAD2;
 }
 
-//return a gaussian complex
-void rnd_get_gauss(complex out,rnd_gen *gen)
+//return a gaussian real
+double rnd_get_gauss(rnd_gen *gen,double ave,double sig)
 {
-  crash("Not implemented yet");
+  double q,r,x;
+  static double y;
+  static int flag=1;
+  
+  if(flag)
+    {
+      r=sqrt(-2*log(1-rnd_get_unif(gen,0,1)));
+      q=2*M_PI*rnd_get_unif(gen,0,1);
+      
+      x=r*cos(q);
+      y=r*sin(q);
+    }
+  else x=y;
+  
+  flag=!flag;
+  
+  return x*sig+ave;
+}
+
+//return a gaussian complex whose module has sigma sig
+void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig)
+{
+  const double one_by_sqrt2=0.707106781186547;
+  out[0]=rnd_get_gauss(gen,ave[0],sig*one_by_sqrt2);
+  out[1]=rnd_get_gauss(gen,ave[1],sig*one_by_sqrt2);
 }
 
 //return a complex number of appropriate type
 void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_type rtype)
 {
+  complex z={0,0};
   switch(rtype)
     {
     case RND_ALL_PLUS_ONE:  out[0]=1;                     out[1]=0;break;
@@ -116,7 +141,7 @@ void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_type rtype)
     case RND_UNIF:          out[0]=rnd_get_unif(gen,0,1); out[1]=0;break;
     case RND_Z2:            rnd_get_Z2(out,gen);                   break;
     case RND_Z4:            rnd_get_Z4(out,gen);                   break;
-    case RND_GAUSS:         rnd_get_gauss(out,gen);                break;
+    case RND_GAUSS:         rnd_get_gauss_complex(out,gen,z,1);    break;
     }
 }
 

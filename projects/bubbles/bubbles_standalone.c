@@ -172,12 +172,12 @@ void initialize_bubbles(char *input_path)
   //reading of gauge conf and computation of Pmunu
   read_str_str("GaugeConf",gaugeconf_file,1024);
   conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
-  read_gauge_conf(conf,gaugeconf_file);
-  communicate_gauge_borders(conf);
-  communicate_gauge_edges(conf);
+  read_ildg_gauge_conf(conf,gaugeconf_file);
+  communicate_lx_gauge_borders(conf);
+  communicate_lx_gauge_edges(conf);
 
   //calculate plaquette, Pmunu
-  double gplaq=global_plaquette(conf);
+  double gplaq=global_plaquette_lx_conf(conf);
   if(rank==0) printf("plaq: %.10g\n",gplaq);
   Pmunu=nissa_malloc("clover",loc_vol,as2t_su3);
   Pmunu_term(Pmunu,conf);
@@ -260,12 +260,12 @@ void calculate_S()
 		inv_source[ivol][idsi][icol][ri]=-inv_source[ivol][idsi][icol][ri];
 	}
       
-      inv_Q2_cgmms(QQ,inv_source,NULL,conf,kappa,mass,nmass,niter_max,residue,minimal_residue,stopping_criterion);
+      inv_tmQ2_cgmms(QQ,inv_source,conf,kappa,mass,nmass,niter_max,residue,minimal_residue,stopping_criterion);
       ninv_tot++;
       //put the solution inside the S vector
       for(int imass=0;imass<nmass;imass++) 
 	{
-	  reconstruct_doublet(reco_solution[0],reco_solution[1],QQ[imass],conf,kappa,mass[imass]);
+	  reconstruct_tm_doublet(reco_solution[0],reco_solution[1],QQ[imass],conf,kappa,mass[imass]);
 	  for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 	    for(int ivol=0;ivol<loc_vol;ivol++)
 	      put_spincolor_into_colorspinspin(S[imass][r][ivol],reco_solution[r][ivol],idso);
