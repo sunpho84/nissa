@@ -196,10 +196,10 @@ void initialize_Bk(char *input_path)
   conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
 
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-  read_gauge_conf(conf,conf_path);
-  communicate_gauge_borders(conf);
+  read_ildg_gauge_conf(conf,conf_path);
+  communicate_lx_gauge_borders(conf);
   
-  double gplaq=global_plaquette(conf);
+  double gplaq=global_plaquette_lx_conf(conf);
   if(rank==0) printf("plaq: %.18g\n",gplaq);
   
   //Put the anti-periodic condition on the temporal border
@@ -262,14 +262,14 @@ void calculate_S(int LR)
       communicate_lx_spincolor_borders(source);
       
       double part_time=-take_time();
-      inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+      inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
       part_time+=take_time();ninv_tot++;inv_time+=part_time;
       char tag[2][10]={"left","right"};
       if(rank==0) printf("Finished the %s source inversion, dirac index %d in %g sec\n",tag[LR],id,part_time);
       
       for(int imass=0;imass<nmass;imass++)
 	{ //reconstruct the doublet
-	  reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	  reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	  if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	  for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 	    for(int i=0;i<loc_vol;i++)

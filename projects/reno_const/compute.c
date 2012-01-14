@@ -19,9 +19,10 @@ double put_theta[4],old_theta[4]={0,0,0,0};
 int write_fixed_conf;
 int work_in_physical_base;
 int full_X_space_prop_prec,full_P_space_prop_prec;
-int indep_X_space_prop_prec,indep_P_space_prop_prec;
-int n_X_interv,n_P_interv;
-interv *X_interv,*P_interv;
+int n_X_interv[2],n_P_interv[2];
+interv *X_interv[2],*P_interv[2];
+int do_rome[16]={1,1,1,1,1,1,11,1,1,1,1,1,1,1};
+int do_orsay[16]={1,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 
 //source data
 int source_coord[4]={0,0,0,0};
@@ -44,10 +45,10 @@ int *op1_2pts,*op2_2pts;
 char outfolder[1024];
 
 //timings
-int ninv_tot=0,ncontr_tot=0,nsaved_prop_tot=0,nsaved_indep_prop_tot=0;
+int ninv_tot=0,ncontr_tot=0,nsaved_prop_tot=0;
 int wall_time;
 double tot_time=0,inv_time=0,contr_time=0,fix_time=0;
-double fft_time=0,save_prop_time=0,save_indep_prop_time=0,load_time=0,filter_prop_time=0;
+double fft_time=0,save_prop_time=0,load_time=0,filter_prop_time=0;
 
 //Read the information regarding the format in which to save prop
 int read_prop_prec(const char *name)
@@ -186,13 +187,11 @@ void initialize_Zcomputation(char *input_path)
   full_X_space_prop_prec=read_prop_prec("FullXSpacePropPrec");
   full_P_space_prop_prec=read_prop_prec("FullPSpacePropPrec");
     
-  //precision in which to save the independent X and P prop (0, 32, 64)
-  indep_X_space_prop_prec=read_prop_prec("IndepXSpacePropPrec");
-  indep_P_space_prop_prec=read_prop_prec("IndepPSpacePropPrec");
-    
   //read subsets of X and P space props to save
-  X_interv=read_subset_list(&n_X_interv,"NXSpacePropInterv","XInterv");
-  P_interv=read_subset_list(&n_P_interv,"NPSpacePropInterv","PInterv");
+  X_interv[0]=read_subset_list(&n_X_interv[0],"NXSpacePropIntervRome","XInterv");
+  P_interv[0]=read_subset_list(&n_P_interv[0],"NPSpacePropIntervRome","PInterv");
+  X_interv[1]=read_subset_list(&n_X_interv[1],"NXSpacePropIntervOrsay","XInterv");
+  P_interv[1]=read_subset_list(&n_P_interv[1],"NPSpacePropIntervOrsay","PInterv");
     
   read_str_int("NGaugeConf",&ngauge_conf);  
   
@@ -221,7 +220,7 @@ void load_gauge_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   load_time-=take_time();
-  read_gauge_conf(unfix_conf,conf_path);
+  read_ildg_gauge_conf(unfix_conf,conf_path);
   load_time+=take_time();
   //prepare the fixed version and calculate plaquette
   double elaps_time=-take_time();
@@ -229,8 +228,8 @@ void load_gauge_conf()
   elaps_time+=take_time();
   fix_time+=elaps_time;
   master_printf("Fixed conf in %lg sec\n",elaps_time);
-  communicate_gauge_borders(conf);
-  communicate_gauge_borders(unfix_conf);
+  communicate_lx_gauge_borders(conf);
+  communicate_lx_gauge_borders(unfix_conf);
   
   if(write_fixed_conf)
     {
@@ -239,8 +238,8 @@ void load_gauge_conf()
       write_gauge_conf(temp,conf);
     }    
   
-  master_printf("plaq: %.18g\n",global_plaquette(conf));
-  master_printf("unfix plaq: %.18g\n",global_plaquette(unfix_conf));
+  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  master_printf("unfix plaq: %.18g\n",global_plaquette_lx_conf(unfix_conf));
 
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;
@@ -263,8 +262,10 @@ void close_Zcomputation()
   nissa_free(contr_2pts);
   nissa_free(op1_2pts);
   nissa_free(op2_2pts);
-  nissa_free(X_interv);
-  nissa_free(P_interv);
+  nissa_free(X_interv[0]);
+  nissa_free(P_interv[0]);
+  nissa_free(X_interv[1]);
+  nissa_free(P_interv[1]);
   
   master_printf("\n");
   master_printf("Total time: %lg sec (%lg average per conf), of which:\n",tot_time,tot_time/nanalized_conf);
@@ -273,8 +274,6 @@ void close_Zcomputation()
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
   master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
   master_printf(" - %02.2f%s to save %d su3spinspins. (%2.2gs avg)\n",save_prop_time/tot_time*100,"%",nsaved_prop_tot,save_prop_time/nsaved_prop_tot);
-  master_printf(" - %02.2f%s to save independent part of %d su3spinspins. (%2.2gs avg)\n",save_indep_prop_time/tot_time*100,"%",
-		nsaved_indep_prop_tot,save_indep_prop_time/nsaved_indep_prop_tot);
   master_printf(" - %02.2f%s to filter propagators. (%2.2gs avg per conf)\n",filter_prop_time/tot_time*100,"%",filter_prop_time/nanalized_conf);
   
   close_nissa();
@@ -296,7 +295,6 @@ void calculate_S0()
   
   //save full propagators if asked
   if(full_X_space_prop_prec!=0) write_all_propagators("FullX",full_X_space_prop_prec);  
-  if(indep_X_space_prop_prec!=0) write_all_indep_propagators("IndepX",indep_X_space_prop_prec);  
 }
 
 //compute the fft of all propagators
@@ -331,70 +329,84 @@ void compute_fft(double sign)
 }
 
 //filter the propagators
-void print_propagator_subsets(const char *name,int nsubset,interv *inte)
+void print_propagator_subsets(int nsubset,interv *inte,char *setname,int *do_iparr)
 {
   filter_prop_time-=take_time();
   
-  colorspincolorspin *buf=nissa_malloc("buf",2*nmass,colorspincolorspin);
+  //loop over 16 different parity reversal
+  for(int iparr=0;iparr<16;iparr++)
+    if(do_iparr[iparr]==1)
+      {
+	//open output
+	MPI_File fout[2];
+	for(int r=0;r<2;r++)
+	  {
+	    //build oputput file name
+	    char outfile_fft[1024];
+	    sprintf(outfile_fft,"%s/%s/s%dft%d.out",outfolder,setname,iparr,r);
+	    
+	    //open oputput file for concurent access from different ranks
+	    int rc=MPI_File_open(cart_comm,outfile_fft,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&(fout[r]));
+	    if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_fft);
+	  }
+	
+	//loop over momenta subsets
+	int offset=0;
+	for(int imass=0;imass<nmass;imass++)
+	  for(int isub=0;isub<nsubset;isub++)
+	    {
+	      //loop over momenta in each set
+	      int glb_ip[4],sht_ip[4];
+	      int sig[4];
+	      for(int mu=0;mu<4;mu++)
+		sig[mu]=1-((iparr>>mu)&1)*2;
+	      
+	      for(sht_ip[0]=inte[isub][0][0];sht_ip[0]<=inte[isub][0][1];sht_ip[0]++)
+		for(sht_ip[2]=inte[isub][1][0];sht_ip[2]<=inte[isub][1][1];sht_ip[2]++)
+		  for(sht_ip[3]=inte[isub][1][0];sht_ip[3]<=inte[isub][1][1];sht_ip[3]++)
+		    for(sht_ip[1]=inte[isub][1][0];sht_ip[1]<=inte[isub][1][1];sht_ip[1]++)
+		      {
+			for(int mu=0;mu<4;mu++) glb_ip[mu]=(glb_size[mu]+sig[mu]*sht_ip[mu])%glb_size[mu];
+			
+			//identify the rank hosting this element
+			int hosting=rank_hosting_site_of_coord(glb_ip);
+			
+			//if the hosting is the current rank write the data at the correct location
+			if(hosting==cart_rank)
+			  {
+			    //find local index
+			    int loc_ip[4];
+			    for(int mu=0;mu<4;mu++) loc_ip[mu]=glb_ip[mu]%loc_size[mu];
+			    int ilp=loclx_of_coord(loc_ip);
+			    
+			    //bufferize data
+			    for(int r=0;r<2;r++)
+			      {
+				colorspincolorspin buf;
+				for(int ic_so=0;ic_so<3;ic_so++)
+				  for(int id_so=0;id_so<4;id_so++)
+				    for(int ic_si=0;ic_si<3;ic_si++)
+				      for(int id_si=0;id_si<4;id_si++)
+					memcpy(buf[ic_so][id_so][ic_si][id_si],S0[r][imass][ilp][ic_si][ic_so][id_si][id_so],
+					       sizeof(complex));
+				
+				//if required change endianess
+				if(big_endian)
+				  doubles_to_doubles_changing_endianess((double*)buf,(double*)buf,18*16);
+				
+				//write
+				MPI_File_write_at(fout[r],offset,buf,16,MPI_SU3,MPI_STATUS_IGNORE);
+			      }
+			    //increment the position in the file where to write data
+			    offset+=sizeof(colorspincolorspin);
+			  }
+		      }
+	    }
+	
+	for(int r=0;r<2;r++)
+	  MPI_File_close(&(fout[r]));
+      }
   
-  //build oputput file name
-  char outfile_fft[1024];
-  sprintf(outfile_fft,"%s/%s",outfolder,name);
-
-  //open oputput file for concurent access from different ranks
-  MPI_File fout;
-  int rc=MPI_File_open(cart_comm,outfile_fft,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,&fout);
-  if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_fft);
-  
-  //loop over momenta subsets
-  int ip=0;
-  for(int isub=0;isub<nsubset;isub++)
-    {
-      //loop over momenta in each set
-      int glb_ip[4];
-      for(glb_ip[0]=inte[isub][0][0];glb_ip[0]<=inte[isub][0][1];glb_ip[0]++)
-	for(glb_ip[3]=inte[isub][1][0];glb_ip[3]<=inte[isub][1][1];glb_ip[3]++)
-	  for(glb_ip[2]=inte[isub][1][0];glb_ip[2]<=inte[isub][1][1];glb_ip[2]++)
-	    for(glb_ip[1]=inte[isub][1][0];glb_ip[1]<=inte[isub][1][1];glb_ip[1]++)
-	      {
-		//identify the rank hosting this element
-		int hosting=rank_hosting_site_of_coord(glb_ip);
-		
-		//if the hosting is the current rank write the data at the correct location
-		if(hosting==cart_rank)
-		  {
-		    //find local index
-		    int loc_ip[4];
-		    for(int mu=0;mu<4;mu++) loc_ip[mu]=glb_ip[mu]%loc_size[mu];
-		    int ilp=loclx_of_coord(loc_ip);
-		    
-		    //bufferize data
-		    for(int r=0;r<2;r++)
-		      for(int imass=0;imass<nmass;imass++)
-			for(int ic_so=0;ic_so<3;ic_so++)
-			  for(int id_so=0;id_so<4;id_so++)
-			    for(int ic_si=0;ic_si<3;ic_si++)
-			      for(int id_si=0;id_si<4;id_si++)
-				memcpy(buf[r*nmass+imass][ic_so][id_so][ic_si][id_si],S0[r][imass][ilp][ic_si][ic_so][id_si][id_so],
-				       sizeof(complex));
-		    
-		    //if required change endianess
-		    if(big_endian)
-		      doubles_to_doubles_changing_endianess(buf,buf,18*16*2*nmass);
-		    
-		    //find the position in the file where to write data
-		    int offset=ip*2*nmass*sizeof(colorspincolorspin);
-		    
-		    MPI_File_write_at(fout,offset,buf,nmass*2*16,MPI_SU3,MPI_STATUS_IGNORE);
-		  }
-		ip++;
-	      }
-    }
-  
-  nissa_free(buf);
-  
-  MPI_File_close(&fout);
-
   filter_prop_time+=take_time();
 }
 
@@ -453,6 +465,18 @@ int read_conf_parameters(int *iconf)
 	      mkdir(temp,S_IRWXU);
 	      sprintf(temp,"%s/FullXprop",outfolder);
 	      mkdir(temp,S_IRWXU);
+	      sprintf(temp,"%s/SubsXprop",outfolder);
+	      mkdir(temp,S_IRWXU);
+	      sprintf(temp,"%s/SubsPprop",outfolder);
+	      mkdir(temp,S_IRWXU);
+	      sprintf(temp,"%s/SubsXprop/Rome",outfolder);
+	      mkdir(temp,S_IRWXU);
+	      sprintf(temp,"%s/SubsPprop/Rome",outfolder);
+	      mkdir(temp,S_IRWXU);
+	      sprintf(temp,"%s/SubsXprop/Orsay",outfolder);
+	      mkdir(temp,S_IRWXU);
+	      sprintf(temp,"%s/SubsPprop/Orsay",outfolder);
+	      mkdir(temp,S_IRWXU);
 	    }
 	  master_printf("Configuration not already analized, starting.\n");
 	}
@@ -503,11 +527,13 @@ int main(int narg,char **arg)
       //X space
       calculate_S0();
       calculate_all_2pts();
-      if(n_X_interv) print_propagator_subsets("FullXprop/subset",n_X_interv,X_interv);
+      if(n_X_interv[0]) print_propagator_subsets(n_X_interv[0],X_interv[0],"SubsXprop/Rome",do_rome);
+      if(n_X_interv[1]) print_propagator_subsets(n_X_interv[1],X_interv[1],"SubsXprop/Orsay",do_orsay);
       
       //P space
       compute_fft(-1);
-      if(n_P_interv) print_propagator_subsets("FullPprop/subset",n_P_interv,P_interv);      
+      if(n_P_interv[0]) print_propagator_subsets(n_P_interv[0],P_interv[0],"SubsPprop/Rome",do_rome);
+      if(n_P_interv[1]) print_propagator_subsets(n_P_interv[1],P_interv[1],"SubsPprop/Orsay",do_orsay);
       
       nanalized_conf++;
       

@@ -344,11 +344,11 @@ int main(int narg,char **arg)
   //if necessary, load the gauge configuration and calculate the pmunu term
   if(nch_contr>0)
     {
-      read_gauge_conf(gauge_conf,gaugeconf_file);
-      communicate_gauge_borders(gauge_conf);
-      communicate_gauge_edges(gauge_conf);
+      read_ildg_gauge_conf(gauge_conf,gaugeconf_file);
+      communicate_lx_gauge_borders(gauge_conf);
+      communicate_lx_gauge_edges(gauge_conf);
 
-      double gplaq=global_plaquette(gauge_conf);
+      double gplaq=global_plaquette_lx_conf(gauge_conf);
       if(rank==0) printf("plaq: %.10g\n",gplaq);
       
       Pmunu_term(Pmunu,gauge_conf);

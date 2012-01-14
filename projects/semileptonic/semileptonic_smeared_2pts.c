@@ -180,15 +180,15 @@ void initialize_semileptonic(char *input_path)
 void load_gauge_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-  read_gauge_conf(conf,conf_path);
+  read_ildg_gauge_conf(conf,conf_path);
   //prepare the smerded version and calculate plaquette
   ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
-  communicate_gauge_borders(conf);
-  communicate_gauge_borders(sme_conf);
+  communicate_lx_gauge_borders(conf);
+  communicate_lx_gauge_borders(sme_conf);
   
-  double gplaq=global_plaquette(conf);
+  double gplaq=global_plaquette_lx_conf(conf);
   if(rank==0) printf("plaq: %.18g\n",gplaq);
-  gplaq=global_plaquette(sme_conf);
+  gplaq=global_plaquette_lx_conf(sme_conf);
   if(rank==0) printf("smerded plaq: %.18g\n",gplaq);
 
   //Put the anti-periodic condition on the temporal border
@@ -244,13 +244,13 @@ void calculate_S0(int sm_lev_sour)
       
       double part_time=-take_time();
       communicate_lx_spincolor_borders(source);
-      inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+      inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
       part_time+=take_time();ninv_tot++;inv_time+=part_time;
       if(rank==0) printf("Finished the inversion of S0, dirac index %d in %g sec\n",id,part_time);
       
       for(int imass=0;imass<nmass;imass++)
 	{ //reconstruct the doublet
-	  reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	  reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	  if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	  for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 	    for(int i=0;i<loc_vol;i++)

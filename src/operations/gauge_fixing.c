@@ -3,15 +3,15 @@
 //apply a gauge transformation to the conf
 void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
 {
-  communicate_su3_borders(g);
-  communicate_gauge_borders(uin);
+  communicate_lx_su3_borders(g);
+  communicate_lx_gauge_borders(uin);
   
   su3 temp;
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int mu=0;mu<4;mu++)
       {
-	su3_prod_su3_dag(temp,uin[ivol][mu],g[loclx_neighup[ivol][mu]]);
-	su3_prod_su3(uout[ivol][mu],g[ivol],temp);
+	unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclx_neighup[ivol][mu]]);
+	unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
       }
 }
 
@@ -48,7 +48,7 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
 	      int icurr=loclx_of_coord(c);
 	      c[0]--;int iback=loclx_of_coord(c);c[0]++;
 	      
-	      su3_prod_su3(fixm[icurr],fixm[iback],u[iback][0]);
+	      unsafe_su3_prod_su3(fixm[icurr],fixm[iback],u[iback][0]);
 	    }
 	  //border
 	  if(nrank_dir[0]>1)
@@ -56,7 +56,7 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
 	      c[0]=loc_size[0]-1;int iback=loclx_of_coord(c);
 	      c[0]=0;int icurr=loclx_of_coord(c);
 	      
-	      su3_prod_su3(buf[icurr],fixm[iback],u[iback][0]);
+	      unsafe_su3_prod_su3(buf[icurr],fixm[iback],u[iback][0]);
 	    }
 	  
 	}
@@ -141,15 +141,15 @@ void exponentiate(su3 g,su3 a)
   //icsi=1/sqrt(up0*up0~+up1*up1~)
   double icsi=1/sqrt(squared_complex_norm(up0)+squared_complex_norm(up1));
   //up0=up0*icsi
-  complex_prod_real(up0,up0,icsi);
+  complex_prod_double(up0,up0,icsi);
   //appuno=up0~
   complex appuno;
   complex_conj(appuno,up0);
   //up1=up1*icsi
-  complex_prod_real(up1,up1,icsi);
+  complex_prod_double(up1,up1,icsi);
   //appdue=-up1
   complex appdue;
-  complex_prod_real(appdue,up1,-1);
+  complex_prod_double(appdue,up1,-1);
   //n0=a[0][0]*appuno+a[1][0]*appdue
   complex n0;
   unsafe_complex_prod(n0,a[0][0],appuno);
@@ -183,12 +183,12 @@ void exponentiate(su3 g,su3 a)
   //icsi=1/sqrt(up0*up0~+up1*up1~)
   icsi=1/sqrt(squared_complex_norm(up0)+squared_complex_norm(up1));
   //up0=up0*icsi
-  complex_prod_real(up0,up0,icsi);
+  complex_prod_double(up0,up0,icsi);
   //bppuno=up0~
   complex bppuno;
   complex_conj(bppuno,up0);
   //up1=up1*icsi
-  complex_prod_real(up1,up1,icsi);
+  complex_prod_double(up1,up1,icsi);
   //bppdue=-up1
   complex bppdue={-up1[0],-up1[1]};
   //a[0][2]=n2
@@ -210,12 +210,12 @@ void exponentiate(su3 g,su3 a)
   //icsi=1/sqrt(up0*up0~+up1*up1~)
   icsi=1/sqrt(squared_complex_norm(up0)+squared_complex_norm(up1));
   //up0=up0*icsi
-  complex_prod_real(up0,up0,icsi);
+  complex_prod_double(up0,up0,icsi);
   //cppuno=up0~
   complex cppuno;
   complex_conj(cppuno,up0);
   //up1=up1*icsi
-  complex_prod_real(up1,up1,icsi);
+  complex_prod_double(up1,up1,icsi);
   //cppdue=-up1
   complex cppdue={-up1[0],-up1[1]};
   //e0=appuno
@@ -291,7 +291,7 @@ void overrelax(su3 out,su3 in,double w)
   
   //order 0-1
 
-  bgp_su3_prod_real(o00,o01,o02,o10,o11,o12,o20,o21,o22, f00,f01,f02,f10,f11,f12,f20,f21,f22, coef[1]);
+  bgp_su3_prod_double(o00,o01,o02,o10,o11,o12,o20,o21,o22, f00,f01,f02,f10,f11,f12,f20,f21,f22, coef[1]);
   bgp_summassign_complex(o00,buno);bgp_summassign_complex(o11,buno);bgp_summassign_complex(o22,buno);
   bgp_save_su3(t[1],f00,f01,f02,f10,f11,f12,f20,f21,f22);
 
@@ -302,17 +302,17 @@ void overrelax(su3 out,su3 in,double w)
       //t'_0i = t_0j * f_ji ; o_0i+=t'_0i*c
       bgp_color_prod_su3(r0,r1,r2, t00,t01,t02, f00,f01,f02,f10,f11,f12,f20,f21,f22);
       bgp_save_color(t[iord][0], r0,r1,r2);
-      bgp_summassign_color_prod_real(o00,o01,o02, r0,r1,r2, coef[iord]);
+      bgp_summassign_color_prod_double(o00,o01,o02, r0,r1,r2, coef[iord]);
 
       //t'_1i = t_1j * f_ji ; o_1i+=t'_1i*c
       bgp_color_prod_su3(r0,r1,r2, t10,t11,t12, f00,f01,f02,f10,f11,f12,f20,f21,f22);
       bgp_save_color(t[iord][1], r0,r1,r2);
-      bgp_summassign_color_prod_real(o10,o11,o12, r0,r1,r2, coef[iord]);
+      bgp_summassign_color_prod_double(o10,o11,o12, r0,r1,r2, coef[iord]);
 
       //t'_2i = t_2j * f_ji ; o_2i+=t'_2i*c
       bgp_color_prod_su3(r0,r1,r2, t20,t21,t22, f00,f01,f02,f10,f11,f12,f20,f21,f22);
       bgp_save_color(t[iord][2], r0,r1,r2);
-      bgp_summassign_color_prod_real(o20,o21,o22, r0,r1,r2, coef[iord]);
+      bgp_summassign_color_prod_double(o20,o21,o22, r0,r1,r2, coef[iord]);
     }
   bgp_save_su3(out, o00,o01,o02,o10,o11,o12,o20,o21,o22);
 #else
@@ -324,13 +324,13 @@ void overrelax(su3 out,su3 in,double w)
   
   //ord 1
   su3_copy(t[1],f);
-  su3_summ_the_prod_real(out,t[1],coef[1]);
+  su3_summ_the_prod_double(out,t[1],coef[1]);
 
   //ord 2-4
   for(int iord=2;iord<5;iord++)
     {
-      su3_prod_su3(t[iord],t[iord-1],f);
-      su3_summ_the_prod_real(out,t[iord],coef[iord]);
+      unsafe_su3_prod_su3(t[iord],t[iord-1],f);
+      su3_summ_the_prod_double(out,t[iord],coef[iord]);
     }
 #endif
 }
@@ -441,7 +441,7 @@ void compute_landau_or_coulomb_quality_delta(su3 g,quad_su3 *conf,int ivol,int n
 //compute the quality of the landau or coulomb gauge fixing
 double compute_landau_or_coulomb_gauge_fixing_quality(quad_su3 *conf,int nmu)
 {
-  communicate_gauge_borders(conf);
+  communicate_lx_gauge_borders(conf);
 
   double loc_omega=0;
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -505,7 +505,7 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
     {
       //copy the gauge configuration on working fixing it with current transformation
       gauge_transform_conf(w_conf,fixm,conf);
-      communicate_gauge_borders(w_conf);
+      communicate_lx_gauge_borders(w_conf);
       
       //compute initial precision
       true_precision=compute_landau_or_coulomb_gauge_fixing_quality(w_conf,nmu);

@@ -13,7 +13,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //in this version we apply (1+gmu)/2 before the multiplication by U
-void apply_Q_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu)
+void apply_tmQ_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double mu)
 {
   double kcf=1/(2*kappac);
   int Xup,Xdw;
@@ -37,10 +37,10 @@ void apply_Q_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,doub
     color_subt(temp_c1,in[Xup][1],in[Xup][3]);
     unsafe_color_prod_su3_dag(temp_c2,temp_c0,conf[X][0]);
     unsafe_color_prod_su3_dag(temp_c3,temp_c1,conf[X][0]);
-    summassign_color(out[X][0],temp_c2);
-    summassign_color(out[X][1],temp_c3);
-    subtassign_color(out[X][2],temp_c2);
-    subtassign_color(out[X][3],temp_c3);
+    color_summassign(out[X][0],temp_c2);
+    color_summassign(out[X][1],temp_c3);
+    color_subtassign(out[X][2],temp_c2);
+    color_subtassign(out[X][3],temp_c3);
 
     //Forward 1
     Xdw=loclx_neighdw[X][1];
@@ -48,10 +48,10 @@ void apply_Q_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,doub
     color_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
     unsafe_color_prod_su3(temp_c2,temp_c0,conf[Xdw][1]);
     unsafe_color_prod_su3(temp_c3,temp_c1,conf[Xdw][1]);
-    summassign_color(out[X][0],temp_c2);
-    summassign_color(out[X][1],temp_c3);
-    summassign_icolor(out[X][2],temp_c3);
-    summassign_icolor(out[X][3],temp_c2);
+    color_summassign(out[X][0],temp_c2);
+    color_summassign(out[X][1],temp_c3);
+    color_isummassign(out[X][2],temp_c3);
+    color_isummassign(out[X][3],temp_c2);
 	
     //Backward 1
     Xup=loclx_neighup[X][1];
@@ -59,10 +59,10 @@ void apply_Q_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,doub
     color_isumm(temp_c1,in[Xup][1],in[Xup][2]);
     unsafe_color_prod_su3_dag(temp_c2,temp_c0,conf[X][1]);
     unsafe_color_prod_su3_dag(temp_c3,temp_c1,conf[X][1]);
-    summassign_color(out[X][0],temp_c2);
-    summassign_color(out[X][1],temp_c3);
-    subtassign_icolor(out[X][2],temp_c3);
-    subtassign_icolor(out[X][3],temp_c2);
+    color_summassign(out[X][0],temp_c2);
+    color_summassign(out[X][1],temp_c3);
+    color_isubtassign(out[X][2],temp_c3);
+    color_isubtassign(out[X][3],temp_c2);
     
     //Forward 2
     Xdw=loclx_neighdw[X][2];
@@ -70,10 +70,10 @@ void apply_Q_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,doub
     color_subt(temp_c1,in[Xdw][1],in[Xdw][2]);
     unsafe_color_prod_su3(temp_c2,temp_c0,conf[Xdw][2]);
     unsafe_color_prod_su3(temp_c3,temp_c1,conf[Xdw][2]);
-    summassign_color(out[X][0],temp_c2);
-    summassign_color(out[X][1],temp_c3);
-    subtassign_color(out[X][2],temp_c3);
-    summassign_color(out[X][3],temp_c2);
+    color_summassign(out[X][0],temp_c2);
+    color_summassign(out[X][1],temp_c3);
+    color_subtassign(out[X][2],temp_c3);
+    color_summassign(out[X][3],temp_c2);
 	
     //Backward 2
     Xup=loclx_neighup[X][2];
@@ -81,10 +81,10 @@ void apply_Q_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,doub
     color_summ(temp_c1,in[Xup][1],in[Xup][2]);
     unsafe_color_prod_su3_dag(temp_c2,temp_c0,conf[X][2]);
     unsafe_color_prod_su3_dag(temp_c3,temp_c1,conf[X][2]);
-    summassign_color(out[X][0],temp_c2);
-    summassign_color(out[X][1],temp_c3);
-    summassign_color(out[X][2],temp_c3);
-    subtassign_color(out[X][3],temp_c2);
+    color_summassign(out[X][0],temp_c2);
+    color_summassign(out[X][1],temp_c3);
+    color_summassign(out[X][2],temp_c3);
+    color_subtassign(out[X][3],temp_c2);
     
     //Forward 3
     Xdw=loclx_neighdw[X][3];
@@ -92,10 +92,10 @@ void apply_Q_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,doub
     color_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
     unsafe_color_prod_su3(temp_c2,temp_c0,conf[Xdw][3]);
     unsafe_color_prod_su3(temp_c3,temp_c1,conf[Xdw][3]);
-    summassign_color(out[X][0],temp_c2);
-    summassign_color(out[X][1],temp_c3);
-    summassign_icolor(out[X][2],temp_c2);
-    subtassign_icolor(out[X][3],temp_c3);
+    color_summassign(out[X][0],temp_c2);
+    color_summassign(out[X][1],temp_c3);
+    color_isummassign(out[X][2],temp_c2);
+    color_isubtassign(out[X][3],temp_c3);
 	
     //Backward 3
     Xup=loclx_neighup[X][3];
@@ -103,10 +103,10 @@ void apply_Q_left(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,doub
     color_isubt(temp_c1,in[Xup][1],in[Xup][3]);
     unsafe_color_prod_su3_dag(temp_c2,temp_c0,conf[X][3]);
     unsafe_color_prod_su3_dag(temp_c3,temp_c1,conf[X][3]);
-    summassign_color(out[X][0],temp_c2);
-    summassign_color(out[X][1],temp_c3);
-    subtassign_icolor(out[X][2],temp_c2);
-    summassign_icolor(out[X][3],temp_c3);
+    color_summassign(out[X][0],temp_c2);
+    color_summassign(out[X][1],temp_c3);
+    color_isubtassign(out[X][2],temp_c2);
+    color_isummassign(out[X][3],temp_c3);
     
     //Put the -1/2 factor on derivative, the gamma5, and the imu
     //ok this is horrible, but fast

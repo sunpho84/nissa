@@ -1,6 +1,6 @@
 #pragma once
 
-void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
+void inv_tmQ2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
 {
   int riter=0;
   spincolor *s=nissa_malloc("s",loc_vol,spincolor);
@@ -19,7 +19,7 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       double delta;
       {
-	apply_Q2_RL(s,sol,conf,kappa,m,t,RL);
+	apply_tmQ2_RL(s,sol,conf,kappa,m,t,RL);
 
 	double loc_delta=0,loc_source_norm=0;
 	double *dsource=(double*)source,*ds=(double*)s,*dp=(double*)p,*dr=(double*)r;
@@ -45,7 +45,7 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
 	    double alpha;
 	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
 
-	    apply_Q2_RL(s,p,conf,kappa,m,t,RL);
+	    apply_tmQ2_RL(s,p,conf,kappa,m,t,RL);
 
 	    double loc_alpha=0;
 	    complex *cs=(complex*)s,*cp=(complex*)p;
@@ -99,7 +99,7 @@ void inv_Q2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *co
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
 
-      apply_Q2_RL(s,sol,conf,kappa,m,t,RL);
+      apply_tmQ2_RL(s,sol,conf,kappa,m,t,RL);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;

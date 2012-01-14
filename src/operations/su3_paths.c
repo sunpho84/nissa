@@ -21,16 +21,16 @@ void squared_path(su3 square,quad_su3 *conf,int A,int mu,int nu)
 
   su3 AB,AC;
 
-  su3_prod_su3(AB,conf[A][mu],conf[B][nu]);
-  su3_prod_su3(AC,conf[A][nu],conf[C][mu]);
-  su3_prod_su3_dag(square,AB,AC);
+  unsafe_su3_prod_su3(AB,conf[A][mu],conf[B][nu]);
+  unsafe_su3_prod_su3(AC,conf[A][nu],conf[C][mu]);
+  unsafe_su3_prod_su3_dag(square,AB,AC);
 }
 
 //This calculate the global plaquette. It's not done in a very
 //efficient way, but it's ok for our scope.
-double global_plaquette(quad_su3 *conf)
+double global_plaquette_lx_conf(quad_su3 *conf)
 {
-  communicate_gauge_borders(conf);
+  communicate_lx_gauge_borders(conf);
   
   su3 square;
   complex pl;
@@ -48,6 +48,43 @@ double global_plaquette(quad_su3 *conf)
   MPI_Reduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   
   return totplaq/glb_vol/6;
+}
+
+/* compute the global plaquette on a e/o split conf, in a more efficient way
+     
+  C------D
+n |      | 
+u |      | 
+  A--mu--B
+
+*/
+double global_plaquette_eo_conf(quad_su3 *ev_conf,quad_su3 *od_conf)
+{
+  communicate_eo_gauge_borders(ev_conf,od_conf);
+  
+  double totlocplaq=0;
+  
+  //collect conf in a more suitable structure
+  quad_su3 *conf[2]={ev_conf,od_conf};
+
+  for(int A=0;A<loc_vol/2;A++)
+    for(int par=0;par<2;par++)
+      for(int mu=0;mu<4;mu++)
+	for(int nu=mu+1;nu<4;nu++)
+	  {
+	    //ACD and ABD path
+	    su3 ABD,ACD;
+	    unsafe_su3_prod_su3(ABD,conf[par][A][mu],conf[!par][loceo_neighup[par][A][mu]][nu]);
+	    unsafe_su3_prod_su3(ACD,conf[par][A][nu],conf[!par][loceo_neighup[par][A][nu]][mu]);
+	    
+	    //compute tr(ABDC)
+	    totlocplaq+=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
+	}
+  
+  double totplaq;
+  MPI_Reduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  
+  return totplaq/glb_vol/3/6;
 }
 
 void Pline(su3 *Pline,quad_su3 *conf)
@@ -74,7 +111,7 @@ void Pline(su3 *Pline,quad_su3 *conf)
 	      unsafe_su3_hermitian(U0[iX[0]+1],conf[X][0]);
              }
             su3_copy(plf[1],U0[1]);
-            for(int t=2;t<=T;t++) su3_prod_su3(plf[t],U0[t],plf[t-1]);
+            for(int t=2;t<=T;t++) unsafe_su3_prod_su3(plf[t],U0[t],plf[t-1]);
 
 	    if(rank_coord[0]<nrank_dir[0]-1)
 	      {
@@ -89,7 +126,7 @@ void Pline(su3 *Pline,quad_su3 *conf)
 		su3_copy(U0[iX[0]+1],conf[X][0]);
 	      }
             su3_copy(plb[T],U0[T]);
-            for(int t=1;t<T;t++) su3_prod_su3(plb[T-t],U0[T-t],plb[T-t+1]);
+            for(int t=1;t<T;t++) unsafe_su3_prod_su3(plb[T-t],U0[T-t],plb[T-t+1]);
 
 	   if(rank_coord[0]>0)
 	     {
@@ -103,7 +140,7 @@ void Pline(su3 *Pline,quad_su3 *conf)
             su3_put_to_id(Pline[X]); //if glb_t=0 -> P-line=Identity
             if(glb_coord_of_loclx[X][0]>0 && glb_coord_of_loclx[X][0]<=(glb_size[0]/2-1))
 	      { //if 0<t<=T/2-1 
-		su3_prod_su3(aux,Pline[X],plf_dw_buffer);
+		unsafe_su3_prod_su3(aux,Pline[X],plf_dw_buffer);
 		su3_copy(Pline[X],aux);
 	      }
             for(iX[0]=1;iX[0]<T;iX[0]++)
@@ -116,7 +153,7 @@ void Pline(su3 *Pline,quad_su3 *conf)
 		    su3_copy(Pline[X],plf[t]);
 		    if(rank_coord[0]>0)
 		      {
-			su3_prod_su3(aux,Pline[X],plf_dw_buffer);
+			unsafe_su3_prod_su3(aux,Pline[X],plf_dw_buffer);
 			su3_copy(Pline[X],aux);
 		      }
 		  }
@@ -132,7 +169,7 @@ void Pline(su3 *Pline,quad_su3 *conf)
 		   su3_copy(Pline[X],plb[t+1]);
 		   if(rank_coord[0]<(nrank_dir[0]-1))
 		     {
-		       su3_prod_su3(aux,Pline[X],plb_up_buffer);
+		       unsafe_su3_prod_su3(aux,Pline[X],plb_up_buffer);
 		       su3_copy(Pline[X],aux);
 		     }
 		 }
@@ -164,7 +201,7 @@ void Pline_forward(su3 *Pline, quad_su3 *conf)
 	      unsafe_su3_hermitian(U0[iX[0]+1],conf[X][0]);
 	    }
            su3_copy(plf[1],U0[1]);
-           for(int t=2;t<=T;t++) su3_prod_su3(plf[t],U0[t],plf[t-1]);
+           for(int t=2;t<=T;t++) unsafe_su3_prod_su3(plf[t],U0[t],plf[t-1]);
 
            if(rank_coord[0]<nrank_dir[0]-1)
 	     {
@@ -178,7 +215,7 @@ void Pline_forward(su3 *Pline, quad_su3 *conf)
 	   su3_put_to_id(Pline[X]);
 	   if(rank_coord[0]>0)
 	     {
-	       su3_prod_su3(aux,Pline[X],plf_dw_buffer);
+	       unsafe_su3_prod_su3(aux,Pline[X],plf_dw_buffer);
 	       su3_copy(Pline[X],aux);
 	     }
 
@@ -190,7 +227,7 @@ void Pline_forward(su3 *Pline, quad_su3 *conf)
 	       //Here I acummulate the global P-line 
 	       if(rank_coord[0]>0)
 		 {
-		   su3_prod_su3(aux,Pline[X],plf_dw_buffer);
+		   unsafe_su3_prod_su3(aux,Pline[X],plf_dw_buffer);
 		   su3_copy(Pline[X],aux);
 		 }
 	     }
@@ -221,7 +258,7 @@ void Pline_backward(su3 *Pline, quad_su3 *conf)
 	      su3_copy(U0[iX[0]+1],conf[X][0]);
             }
             su3_copy(plb[T],U0[T]);
-            for(int t=1;t<T;t++) su3_prod_su3(plb[T-t],U0[T-t],plb[T-t+1]);
+            for(int t=1;t<T;t++) unsafe_su3_prod_su3(plb[T-t],U0[T-t],plb[T-t+1]);
 
            if(rank_coord[0]<nrank_dir[0]-1)
 	     MPI_Recv(plb_up_buffer,1,MPI_SU3,rank_neighup[0],tag_b,MPI_COMM_WORLD,&status_b);
@@ -240,7 +277,7 @@ void Pline_backward(su3 *Pline, quad_su3 *conf)
 	       su3_copy(Pline[X],plb[t+1]);
 	       if(rank_coord[0]<nrank_dir[0]-1)
 		 {
-		   su3_prod_su3(aux,Pline[X],plb_up_buffer);
+		   unsafe_su3_prod_su3(aux,Pline[X],plb_up_buffer);
 		   su3_copy(Pline[X],aux);
 		 }
 	     }
@@ -284,36 +321,36 @@ void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
 	      
 	      C=loclx_neighup[D][nu];
 	      E=loclx_neighdw[D][nu];
-
+	      
 	      G=loclx_neighdw[A][nu];
-
+	      
 	      //Put to 0 the summ of the leaves
 	      su3_put_to_zero(leaves_summ);
 	      
 	      //Leaf 1
-	      su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);         //    B--<--Y 
-	      su3_prod_su3_dag(temp2,temp1,conf[B][mu]);           //    |  1  | 
-	      su3_prod_su3_dag(temp1,temp2,conf[X][nu]);           //    |     | 
-	      su3_summ(leaves_summ,leaves_summ,temp1);	           //    X-->--A 
-
+	      unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);         //    B--<--Y 
+	      unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);           //    |  1  | 
+	      unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][nu]);           //    |     | 
+	      su3_summ(leaves_summ,leaves_summ,temp1);	                  //    X-->--A 
+	      
 	      //Leaf 2
-	      su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);      //   C--<--B
-	      su3_prod_su3_dag(temp2,temp1,conf[D][nu]);            //   |  2  | 
-	      su3_prod_su3(temp1,temp2,conf[D][mu]);		    //   |     | 
-	      su3_summ(leaves_summ,leaves_summ,temp1);		    //   D-->--X
+	      unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);     //   C--<--B
+	      unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);           //   |  2  | 
+	      unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);		  //   |     | 
+	      su3_summ(leaves_summ,leaves_summ,temp1);		          //   D-->--X
 	      
 	      //Leaf 3
-	      su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
-	      su3_prod_su3(temp2,temp1,conf[E][mu]);		    //   |  3  | 
-	      su3_prod_su3(temp1,temp2,conf[F][nu]);		    //   |     | 
-	      su3_summ(leaves_summ,leaves_summ,temp1);		    //   E-->--F
+	      unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
+	      unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);		   //   |  3  | 
+	      unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);		   //   |     | 
+	      su3_summ(leaves_summ,leaves_summ,temp1);		           //   E-->--F
 	      
 	      //Leaf 4
-	      su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);       //  X--<--A 
-	      su3_prod_su3(temp2,temp1,conf[G][nu]);                 //  |  4  | 
-	      su3_prod_su3_dag(temp1,temp2,conf[X][mu]);             //  |     |  
-	      su3_summ(leaves_summ,leaves_summ,temp1);               //  F-->--G 
-
+	      unsafe_su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);       //  X--<--A 
+	      unsafe_su3_prod_su3(temp2,temp1,conf[G][nu]);                 //  |  4  | 
+	      unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][mu]);             //  |     |  
+	      su3_summ(leaves_summ,leaves_summ,temp1);                      //  F-->--G 
+	      
 	      //calculate U-U^dagger
 	      for(int ic1=0;ic1<3;ic1++)
 		for(int ic2=0;ic2<3;ic2++)
@@ -321,7 +358,7 @@ void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
 		    Pmunu[X][munu][ic1][ic2][0]=(leaves_summ[ic1][ic2][0]-leaves_summ[ic2][ic1][0])/4;
 		    Pmunu[X][munu][ic1][ic2][1]=(leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1])/4;
 		  }
-
+	      
 	      munu++;
 	    }
 	}
@@ -394,3 +431,4 @@ void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmun
 	  }
     }
 }
+

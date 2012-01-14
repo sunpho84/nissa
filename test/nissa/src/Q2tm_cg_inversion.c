@@ -5,7 +5,7 @@ int test_Q2tm_inversion()
   //load the well known source
   master_printf("\nLoading conf\n");
   quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  read_gauge_conf(conf,"../../data/L4T8conf");
+  read_ildg_gauge_conf(conf,"../../data/L4T8conf");
   
   //generate the classic source
   master_printf("Generating source\n");

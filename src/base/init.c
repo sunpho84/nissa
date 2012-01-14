@@ -26,6 +26,10 @@ void init_nissa()
   MPI_Type_contiguous(4,MPI_SU3,&MPI_QUAD_SU3);
   MPI_Type_commit(&MPI_QUAD_SU3);
   
+  //a ncolor (6 doubles)
+  MPI_Type_contiguous(6,MPI_DOUBLE,&MPI_COLOR);
+  MPI_Type_commit(&MPI_COLOR);  
+  
   //a spincolor (24 doubles)
   MPI_Type_contiguous(24,MPI_DOUBLE,&MPI_SPINCOLOR);
   MPI_Type_commit(&MPI_SPINCOLOR);  
@@ -294,8 +298,8 @@ void init_grid(int T,int L)
     {
       printf("Local volume\t%dx%dx%dx%d = %d\n",loc_size[0],loc_size[1],loc_size[2],loc_size[3],loc_vol);
       printf("Parallelized dirs: t=%d x=%d y=%d z=%d\n",paral_dir[0],paral_dir[1],paral_dir[2],paral_dir[3]);
-      if(debug_lvl>1) printf("Border size: %d\n",loc_bord);
-      if(debug_lvl>1) printf("Edge size: %d\n",loc_edge);
+      printf("Border size: %d\n",loc_bord);
+      printf("Edge size: %d\n",loc_edge);
       if(debug_lvl>2) 
 	for(int idir=0;idir<4;idir++)
 	  printf("Border offset for dir %d: %d\n",idir,bord_offset[idir]);
@@ -349,14 +353,19 @@ void init_grid(int T,int L)
   
   //////////////////////////////////////////////////////////////////////////////////////////
 
-  //set the cartesian geometry
+  //set the cartesian and eo geometry
   set_lx_geometry();
+  set_eo_geometry();
   
-  set_lx_bord_senders_and_receivers(MPI_SU3_BORD_SEND,MPI_SU3_BORD_RECE,&MPI_SU3);
-  set_lx_bord_senders_and_receivers(MPI_GAUGE_BORD_SEND,MPI_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
-  set_lx_edge_senders_and_receivers(MPI_GAUGE_EDGE_SEND,MPI_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
-  set_lx_bord_senders_and_receivers(MPI_LXSPINCOLOR_BORD_SEND,MPI_LXSPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
-  initialize_lx_bord_receivers_of_kind(MPI_LXREDSPINCOLOR_BORD,&MPI_REDSPINCOLOR);
+  set_lx_bord_senders_and_receivers(MPI_LX_SU3_BORD_SEND,MPI_LX_SU3_BORD_RECE,&MPI_SU3);
+  set_lx_bord_senders_and_receivers(MPI_LX_GAUGE_BORD_SEND,MPI_LX_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
+  set_lx_edge_senders_and_receivers(MPI_LX_GAUGE_EDGE_SEND,MPI_LX_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
+  set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_BORD_SEND,MPI_LX_SPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
+
+  set_eo_bord_senders_and_receivers(MPI_EO_GAUGE_BORD_SEND,MPI_EO_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
+  set_eo_bord_senders_and_receivers(MPI_EO_COLOR_BORD_SEND,MPI_EO_COLOR_BORD_RECE,&MPI_COLOR);
+  
+  //initialize_lx_bord_receivers_of_kind(MPI_LXREDSPINCOLOR_BORD,&MPI_REDSPINCOLOR);
   
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());

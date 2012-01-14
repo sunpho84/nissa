@@ -26,13 +26,13 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
 
   quad_su3 *conf=allocate_quad_su3(loc_vol,"conf");
-  read_gauge_conf(conf,arg[3]);  
+  read_ildg_gauge_conf(conf,arg[3]);  
   
   FILE *fout=fopen(arg[4],"wb");
 
   fwrite(glb_size,sizeof(int),4,fout);
 
-  double plaq=global_plaquette(conf);
+  double plaq=global_plaquette_lx_conf(conf);
   fwrite(&plaq,sizeof(double),1,fout);
   
   for(size_t t=0;t<T;t++)

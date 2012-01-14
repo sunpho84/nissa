@@ -1,6 +1,6 @@
 #pragma once
 
-//////////////////////////////////// Put to zero /////////////////////////////////
+//////////////////////////////////// Put to zero or 1 /////////////////////////////////
 
 void color_put_to_zero(color m){memset(m,0,sizeof(color));}
 void su3_put_to_zero(su3 m){memset(m,0,sizeof(su3));}
@@ -31,20 +31,60 @@ void color_isubt(color a,color b,color c)
 void color_subt(color a,color b,color c)
 {for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]-((double*)c)[i];}
 
-void summassign_color(color a,color b)
+void color_summassign(color a,color b)
 {for(int i=0;i<6;i++) ((double*)a)[i]+=((double*)b)[i];}
 
-void subtassign_color(color a,color b)
+void color_subtassign(color a,color b)
 {for(int i=0;i<6;i++) ((double*)a)[i]-=((double*)b)[i];}
 
-void summassign_icolor(color a,color b)
+void color_isummassign(color a,color b)
 {for(int i=0;i<6;i+=2) {((double*)a)[i]-=((double*)b)[i+1];((double*)a)[i+1]+=((double*)b)[i];}}
 
-void subtassign_icolor(color a,color b)
+void color_isubtassign(color a,color b)
 {for(int i=0;i<6;i+=2) {((double*)a)[i]+=((double*)b)[i+1];((double*)a)[i+1]-=((double*)b)[i];}}
 
-void color_prod_real(color a,color b,double c)
+void color_prod_double(color a,color b,double c)
 {for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]*c;}
+
+/////////////////////////////// Generate an hermitean matrix ///////////////////////
+
+//Taken from M.D'elia
+void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma)
+{
+  const double one_by_sqrt2=0.707106781186547;
+  const double one_by_sqrt3=0.577350269189626;
+  const double two_by_sqrt3=1.15470053837925;
+  
+  double r[8];
+  for(int ir=0;ir<8;ir++)
+    r[ir]=rnd_get_gauss(gen,0,sigma*one_by_sqrt2);
+
+  //real part of diagonal elements
+  H[0][0][0]= r[2]+one_by_sqrt3*r[7];
+  H[1][1][0]=-r[2]+one_by_sqrt3*r[7];
+  H[2][2][0]=     -two_by_sqrt3*r[7];
+  
+  //put immaginary part of diagonal elements to 0
+  H[0][0][1]=H[1][1][1]=H[2][2][1]=0;
+  
+  //remaining
+  H[0][1][0]=H[1][0][0]=r[0];
+  H[0][1][1]=-(H[1][0][1]=r[1]);
+  H[0][2][0]=H[2][0][0]=r[3];
+  H[0][2][1]=-(H[2][0][1]=r[4]);
+  H[1][2][0]=H[2][1][0]=r[5];
+  H[1][2][1]=-(H[2][1][1]=r[6]);
+}
+
+// A gauss vector has complex components z which are gaussian distributed
+// with <z~ z> = sigma
+void color_put_to_gauss(color H,rnd_gen *gen,double sigma)
+{
+  complex ave={0,0};
+  rnd_get_gauss_complex(H[0],gen,ave,sigma);
+  rnd_get_gauss_complex(H[1],gen,ave,sigma);
+  rnd_get_gauss_complex(H[2],gen,ave,sigma);
+}
 
 ////////////////////////////////// Operations between su3 //////////////////////////
 
@@ -128,7 +168,7 @@ void su3_subt_complex(su3 a,su3 b,complex c)
 {for(int i=0;i<3;i++) for(int ri=0;ri<2;ri++) a[i][i][ri]=b[i][i][ri]-c[ri];}
 
 //Product of two su3 matrixes
-void su3_prod_su3(su3 a,su3 b,su3 c)
+void unsafe_su3_prod_su3(su3 a,su3 b,su3 c)
 {
   for(int ir_out=0;ir_out<3;ir_out++)
     for(int ic_out=0;ic_out<3;ic_out++)
@@ -139,10 +179,10 @@ void su3_prod_su3(su3 a,su3 b,su3 c)
       }
 }
 void safe_su3_prod_su3(su3 a,su3 b,su3 c)
-{su3 d;su3_prod_su3(d,b,c);su3_copy(a,d);}
+{su3 d;unsafe_su3_prod_su3(d,b,c);su3_copy(a,d);}
 
 //Product of two su3 matrixes
-void su3_dag_prod_su3(su3 a,su3 b,su3 c)
+void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c)
 {
   for(int ir_out=0;ir_out<3;ir_out++)
     for(int ic_out=0;ic_out<3;ic_out++)
@@ -153,10 +193,10 @@ void su3_dag_prod_su3(su3 a,su3 b,su3 c)
       }
 }
 void safe_su3_dag_prod_su3(su3 a,su3 b,su3 c)
-{su3 d;su3_dag_prod_su3(d,b,c);su3_copy(a,d);}
+{su3 d;unsafe_su3_dag_prod_su3(d,b,c);su3_copy(a,d);}
 
 //Product of two su3 matrixes
-void su3_prod_su3_dag(su3 a,su3 b,su3 c)
+void unsafe_su3_prod_su3_dag(su3 a,su3 b,su3 c)
 {
   for(int ir_out=0;ir_out<3;ir_out++)
     for(int ic_out=0;ic_out<3;ic_out++)
@@ -167,10 +207,22 @@ void su3_prod_su3_dag(su3 a,su3 b,su3 c)
       }
 }
 void safe_su3_prod_su3_dag(su3 a,su3 b,su3 c)
-{su3 d;su3_prod_su3_dag(d,b,c);su3_copy(a,d);}
+{su3 d;unsafe_su3_prod_su3_dag(d,b,c);su3_copy(a,d);}
+
+//Trace of the product of two su3 matrices
+double real_part_of_trace_su3_prod_su3_dag(su3 a,su3 b)
+{
+  double t=0;
+  
+  for(int ic1=0;ic1<3;ic1++)
+    for(int ic2=0;ic2<3;ic2++)
+      t+=a[ic1][ic2][0]*b[ic1][ic2][0]+a[ic1][ic2][1]*b[ic1][ic2][1];
+  
+  return t;
+}
 
 //Product of two su3 matrixes
-void su3_dag_prod_su3_dag(su3 a,su3 b,su3 c)
+void unsafe_su3_dag_prod_su3_dag(su3 a,su3 b,su3 c)
 {
   for(int ir_out=0;ir_out<3;ir_out++)
     for(int ic_out=0;ic_out<3;ic_out++)
@@ -181,19 +233,32 @@ void su3_dag_prod_su3_dag(su3 a,su3 b,su3 c)
       }
 }
 void safe_su3_dag_prod_su3_dag(su3 a,su3 b,su3 c)
-{su3 d;su3_dag_prod_su3_dag(d,b,c);su3_copy(a,d);}
+{su3 d;unsafe_su3_dag_prod_su3_dag(d,b,c);su3_copy(a,d);}
 
 //product of an su3 matrix by a complex
-void safe_su3_prod_complex(su3 a,su3 b,complex c)
+void unsafe_su3_prod_complex(su3 a,su3 b,complex c)
 {
   complex *ca=(complex*)a;
   complex *cb=(complex*)b;
 
-  for(int i=0;i<9;i++) safe_complex_prod(ca[i],cb[i],c);
+  for(int i=0;i<9;i++) unsafe_complex_prod(ca[i],cb[i],c);
 }
+void safe_su3_prod_complex(su3 a,su3 b,complex c)
+{su3 d;unsafe_su3_prod_complex(d,b,c);su3_copy(a,d);}
+
+//product of an su3 matrix by a complex
+void unsafe_su3_prod_conj_complex(su3 a,su3 b,complex c)
+{
+  complex *ca=(complex*)a;
+  complex *cb=(complex*)b;
+
+  for(int i=0;i<9;i++) unsafe_complex_conj2_prod(ca[i],cb[i],c);
+}
+void safe_su3_prod_conj_complex(su3 a,su3 b,complex c)
+{su3 d;unsafe_su3_prod_conj_complex(d,b,c);su3_copy(a,d);}
 
 //product of an su3 matrix by a real
-void su3_prod_real(su3 a,su3 b,double r)
+void su3_prod_double(su3 a,su3 b,double r)
 {
   double *da=(double*)a;
   double *db=(double*)b;
@@ -202,7 +267,7 @@ void su3_prod_real(su3 a,su3 b,double r)
 }
 
 //summ the prod of su3 with real
-void su3_summ_the_prod_real(su3 a,su3 b,double r)
+void su3_summ_the_prod_double(su3 a,su3 b,double r)
 {
   double *da=(double*)a;
   double *db=(double*)b;
@@ -211,7 +276,7 @@ void su3_summ_the_prod_real(su3 a,su3 b,double r)
 }
 
 //calculate explicitely the inverse
-void su3_explicit_inverse(su3 invU,su3 U)
+void unsafe_su3_explicit_inverse(su3 invU,su3 U)
 {
   complex det,rec_det;
   su3_det(det,U);
@@ -246,6 +311,8 @@ void su3_explicit_inverse(su3 invU,su3 U)
     for(int icol2=0;icol2<3;icol2++)
       safe_complex_prod(invU[icol1][icol2],invU[icol1][icol2],rec_det);
 }
+void safe_su3_explicit_inverse(su3 invU,su3 U)
+{su3 tempU;unsafe_su3_explicit_inverse(tempU,U);su3_copy(invU,tempU);}
 
 //summ of the squared norm of the entries
 double su3_normq(su3 U)
@@ -274,7 +341,7 @@ void su3_unitarize_orthonormalizing(su3 o,su3 i)
   
   //orthonormalize row 1 
   complex f;
-  complex_prod_real(f,row10_sc_prod,1/row0_sq_norm);
+  complex_prod_double(f,row10_sc_prod,1/row0_sq_norm);
   
   for(int c=0;c<3;c++)
     {
@@ -314,7 +381,7 @@ void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link)
   //master_printf("\n");
   do
     {
-      su3_explicit_inverse(inv,temp_link);
+      unsafe_su3_explicit_inverse(inv,temp_link);
       gamma=sqrt(su3_normq(inv)/su3_normq(temp_link));
 
       //average U and U^-1^+
@@ -358,7 +425,12 @@ void unsafe_su3_prod_color(color a,su3 b,color c)
     }
 }
 
-void su3_summ_the_color_prod(color a,su3 b,color c)
+//safe prod
+void safe_su3_prod_color(color a,su3 b,color c)
+{color t;unsafe_su3_prod_color(t,b,c);color_copy(a,t);}
+
+//summ
+void su3_summ_the_prod_color(color a,su3 b,color c)
 {
   for(int c1=0;c1<3;c1++)
     {
@@ -367,34 +439,17 @@ void su3_summ_the_color_prod(color a,su3 b,color c)
     }
 }
 
-void unsafe_color_prod_su3(color a,color b,su3 c)
+//subt
+void su3_subt_the_prod_color(color a,su3 b,color c)
 {
   for(int c1=0;c1<3;c1++)
     {
-      unsafe_complex_prod(a[c1],b[0],c[0][c1]);
-      for(int c2=1;c2<3;c2++) complex_summ_the_prod(a[c1],b[c2],c[c2][c1]);
+      complex_subt_the_prod(a[c1],b[c1][0],c[0]);
+      for(int c2=1;c2<3;c2++) complex_subt_the_prod(a[c1],b[c1][c2],c[c2]);
     }
 }
 
-void unsafe_summ_su3_prod_color(color a,su3 b,color c)
-{for(int c1=0;c1<3;c1++) for(int c2=0;c2<3;c2++) complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);}
-
-void unsafe_subt_su3_prod_color(color a,su3 b,color c)
-{for(int c1=0;c1<3;c1++) for(int c2=0;c2<3;c2++) complex_subt_the_prod(a[c1],b[c1][c2],c[c2]);}
-
-//product of an su3 matrix by a color vector
-void safe_su3_prod_color(color a,su3 b,color c)
-{
-  color t;
-  for(int c1=0;c1<3;c1++)
-    {
-      unsafe_complex_prod(t[c1],b[c1][0],c[0]);
-      for(int c2=1;c2<3;c2++) complex_summ_the_prod(t[c1],b[c1][c2],c[c2]);
-    }
-  color_copy(a,t);
-}
-
-//product of an su3 matrix by a color vector
+//dag prod
 void unsafe_su3_dag_prod_color(color a,su3 b,color c)
 {
   for(int c1=0;c1<3;c1++)
@@ -404,7 +459,12 @@ void unsafe_su3_dag_prod_color(color a,su3 b,color c)
     }
 }
 
-void su3_dag_summ_the_color_prod(color a,su3 b,color c)
+//safe dag prod
+void safe_su3_dag_prod_color(color a,su3 b,color c)
+{color t;unsafe_su3_dag_prod_color(t,b,c);color_copy(a,t);}
+
+//summ dag
+void su3_dag_summ_the_prod_color(color a,su3 b,color c)
 {
   for(int c1=0;c1<3;c1++)
     {
@@ -413,6 +473,33 @@ void su3_dag_summ_the_color_prod(color a,su3 b,color c)
     }
 }
 
+//subt dag
+void su3_dag_subt_the_prod_color(color a,su3 b,color c)
+{
+  for(int c1=0;c1<3;c1++)
+    {
+      complex_subt_the_conj1_prod(a[c1],b[0][c1],c[0]);
+      for(int c2=1;c2<3;c2++) complex_subt_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+    }
+}
+
+//////////////////////////////////////////// color prod su3 ///////////////////////////////////////////
+
+//prod
+void unsafe_color_prod_su3(color a,color b,su3 c)
+{
+  for(int c1=0;c1<3;c1++)
+    {
+      unsafe_complex_prod(a[c1],b[0],c[0][c1]);
+      for(int c2=1;c2<3;c2++) complex_summ_the_prod(a[c1],b[c2],c[c2][c1]);
+    }
+}
+
+//safe prod
+void safe_color_prod_su3(color a,color b,su3 c)
+{color t;unsafe_color_prod_su3(t,b,c);color_copy(a,t);}
+
+//dag
 void unsafe_color_prod_su3_dag(color a,color b,su3 c)
 {
   for(int c1=0;c1<3;c1++)
@@ -422,20 +509,7 @@ void unsafe_color_prod_su3_dag(color a,color b,su3 c)
     }
 }
 
-void unsafe_summ_su3_dag_prod_color(color a,su3 b,color c)
-{for(int c1=0;c1<3;c1++) for(int c2=0;c2<3;c2++) complex_summ_the_conj1_prod(a[c1],b[c2][c1],c[c2]);}
-
-//product of an su3 matrix by a color vector
-void safe_su3_dag_prod_color(color a,su3 b,color c)
-{
-  color t;
-  for(int c1=0;c1<3;c1++)
-    {
-      safe_complex_conj1_prod(t[c1],b[0][c1],c[0]);
-      for(int c2=1;c2<3;c2++) complex_summ_the_conj1_prod(t[c1],b[c2][c1],c[c2]);
-    }
-  color_copy(a,t);
-}
+//////////////////////////////////// Color and complex //////////////////////////////
 
 void safe_color_prod_complex(color out,color in,complex factor)
 {for(int i=0;i<3;i++) safe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
@@ -452,10 +526,14 @@ void unsafe_color_prod_complex_conj(color out,color in,complex factor)
 //summ two spincolors
 void spincolor_summ(spincolor a,spincolor b,spincolor c)
 {for(int i=0;i<24;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
+void spincolor_summassign(spincolor a,spincolor b)
+{spincolor_summ(a,a,b);}
 
 //subtract two spincolors
 void spincolor_subt(spincolor a,spincolor b,spincolor c)
 {for(int i=0;i<24;i++) ((double*)a)[i]=((double*)b)[i]-((double*)c)[i];}
+void spincolor_subtassign(spincolor a,spincolor b)
+{spincolor_subt(a,a,b);}
 
 //summ after multyplying for a complex factor
 void safe_spincolor_summ_with_cfactor(spincolor a,spincolor b,spincolor c,complex factor)
@@ -469,41 +547,25 @@ void safe_spincolor_summ_with_cfactor(spincolor a,spincolor b,spincolor c,comple
 }
 
 //summ after multyplying for a real factor
-void safe_spincolor_summ_with_rfactor(spincolor a,spincolor b,spincolor c,double factor)
+void spincolor_summ_the_prod_double(spincolor a,spincolor b,spincolor c,double factor)
 {for(int i=0;i<24;i++) ((double*)a)[i]=factor*((double*)b)[i]+((double*)c)[i];}
 
-//spincolor*complex
-void safe_complex_prod_spincolor(spincolor out,complex a,spincolor in)
-{for(int i=0;i<12;i++) safe_complex_prod(((complex*)out)[i],a,((complex*)in)[i]);}
-
 //spincolor*real
-void assign_spincolor_prod_real(spincolor out,double factor)
-{for(int i=0;i<24;i++) ((double*)out)[i]*=factor;}
-
-//summ assign
-void summassign_spincolor(spincolor out,spincolor in)
-{for(int i=0;i<24;i++) ((double*)out)[i]+=((double*)in)[i];}
-
-//subt assign
-void subtassign_spincolor(spincolor out,spincolor in)
-{for(int i=0;i<24;i++) ((double*)out)[i]-=((double*)in)[i];}
+void spincolor_prod_double(spincolor out,spincolor in,double factor)
+{for(int i=0;i<24;i++) ((double*)out)[i]=((double*)in)[i]*factor;}
 
 //spincolor*complex
-void safe_spincolor_prod_complex(spincolor out,spincolor in,complex factor)
-{for(int i=0;i<12;i++) safe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
 void unsafe_spincolor_prod_complex(spincolor out,spincolor in,complex factor)
-{for(int i=0;i<12;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+{for(int i=0;i<12;i++) safe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+void safe_spincolor_prod_complex(spincolor out,spincolor in,complex factor)
+{spincolor t;unsafe_spincolor_prod_complex(t,in,factor);}
 
-//spincolor*complex
+//spincolor+spincolor*complex
 void spincolor_summ_the_prod_complex(spincolor out,spincolor in,complex factor)
 {for(int i=0;i<12;i++) complex_summ_the_prod(((complex*)out)[i],((complex*)in)[i],factor);}
 
-//spincolor*real
-void unsafe_summassign_spincolor_prod_real(spincolor out,spincolor in,double factor)
-{for(int i=0;i<24;i++) ((double*)out)[i]+=((double*)in)[i]*factor;}
-
 //spincolor*i*real
-void unsafe_summassign_spincolor_prod_ireal(spincolor out,spincolor in,double factor)
+void unsafe_spincolor_summassign_the_prod_idouble(spincolor out,spincolor in,double factor)
 {
   for(int i=0;i<24;i+=2)
     {
@@ -550,15 +612,15 @@ void safe_spincolor_prod_dirac(spincolor out,spincolor in,dirac_matr *m)
 void unsafe_su3_prod_spincolor(spincolor out,su3 U,spincolor in)
 {for(int is=0;is<4;is++) unsafe_su3_prod_color(out[is],U,in[is]);}
 
-void unsafe_summ_su3_prod_spincolor(spincolor out,su3 U,spincolor in)
-{for(int is=0;is<4;is++) unsafe_summ_su3_prod_color(out[is],U,in[is]);}
+void su3_summ_the_prod_spincolor(spincolor out,su3 U,spincolor in)
+{for(int is=0;is<4;is++) su3_summ_the_prod_color(out[is],U,in[is]);}
 
 //su3^*spincolor
 void unsafe_su3_dag_prod_spincolor(spincolor out,su3 U,spincolor in)
 {for(int is=0;is<4;is++) unsafe_su3_dag_prod_color(out[is],U,in[is]);}
 
-void unsafe_summ_su3_dag_prod_spincolor(spincolor out,su3 U,spincolor in)
-{for(int is=0;is<4;is++) unsafe_summ_su3_dag_prod_color(out[is],U,in[is]);}
+void unsafe_su3_dag_summ_the_prod_spincolor(spincolor out,su3 U,spincolor in)
+{for(int is=0;is<4;is++) su3_dag_summ_the_prod_color(out[is],U,in[is]);}
 
 //su3^*gamma*spincolor
 void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in)
@@ -571,13 +633,13 @@ void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spinc
     }
 }
 
-void unsafe_summ_su3_dag_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in)
+void unsafe_su3_dag_dirac_summ_the_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in)
 {
   color tmp;
   for(int id1=0;id1<4;id1++)
     {
       for(int ic=0;ic<3;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
-      unsafe_summ_su3_dag_prod_color(out[id1],U,tmp);
+      su3_dag_summ_the_prod_color(out[id1],U,tmp);
     }
 }
 
@@ -592,18 +654,17 @@ void unsafe_su3_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor
     }
 }
 
-void unsafe_subt_su3_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in)
+void unsafe_su3_dirac_subt_the_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in)
 {
   color tmp;
   for(int id1=0;id1<4;id1++)
     {
       for(int ic=0;ic<3;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
-      unsafe_subt_su3_prod_color(out[id1],U,tmp);
+      su3_subt_the_prod_color(out[id1],U,tmp);
     }
 }
 
 //su3spinspin*complex
-//spincolor*complex
 void unsafe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor)
 {for(int i=0;i<144;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
 void safe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor)

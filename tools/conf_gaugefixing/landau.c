@@ -28,13 +28,13 @@ int main(int narg,char **arg)
   quad_su3 *conf=nissa_malloc("Conf",loc_vol+loc_bord,quad_su3);
   quad_su3 *fix_conf=nissa_malloc("Conf2",loc_vol+loc_bord,quad_su3);
   
-  read_gauge_conf(conf,conf_in_path);
-  communicate_gauge_borders(conf);
+  read_ildg_gauge_conf(conf,conf_in_path);
+  communicate_lx_gauge_borders(conf);
   
   landau_gauge_fix(fix_conf,conf,precision);
   
-  master_printf("plaq: %.18g\n",global_plaquette(conf));
-  master_printf("plaq: %.18g\n",global_plaquette(fix_conf));
+  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(fix_conf));
 
   ///////////////////////////////////////////
 

@@ -145,7 +145,7 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
 
   quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol));
-  read_gauge_conf(conf,filename);
+  read_ildg_gauge_conf(conf,filename);
 
   su3 *Pl=(su3*)malloc(sizeof(su3)*(loc_vol));
   //Pline_serial_forward(Pl, conf);

@@ -102,7 +102,7 @@ void init_program(char *path)
   //load the gauge conf
   read_str_str("GaugeConfPath",conf_path,1024);
   conf=nissa_malloc("Conf",loc_vol,quad_su3);
-  read_gauge_conf(conf,conf_path);
+  read_ildg_gauge_conf(conf,conf_path);
 
   //load kappa, mu and preciison
   read_str_double("Kappa",&kappa);

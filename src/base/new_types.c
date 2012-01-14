@@ -8,6 +8,7 @@ typedef int intpair[2];
 typedef uint32_t checksum[2];
 
 typedef double complex[2];
+typedef complex quad_u1[4];
 
 typedef complex spin[4];
 typedef complex color[3];

@@ -56,7 +56,7 @@ int main(int narg,char **arg)
   quad_su3 *origi_conf=nissa_malloc("or_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   quad_su3 *smear_conf=nissa_malloc("sm_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   
-  read_gauge_conf(origi_conf,"/home/francesco/Prace/nissa/nissa/test/gaugeconf_load/conf.0048");
+  read_ildg_gauge_conf(origi_conf,"/home/francesco/Prace/nissa/nissa/test/gaugeconf_load/conf.0048");
   
   test_unitarity(origi_conf);
   ape_smearing(smear_conf,origi_conf,0.4,7);
@@ -65,8 +65,8 @@ int main(int narg,char **arg)
   su3_print(origi_conf[0][1]);
   su3_print(smear_conf[0][1]);
 
-  double origi_plaq=global_plaquette(origi_conf);
-  double smear_plaq=global_plaquette(smear_conf);
+  double origi_plaq=global_plaquette_lx_conf(origi_conf);
+  double smear_plaq=global_plaquette_lx_conf(smear_conf);
   
   printf("%g %g\n",origi_plaq,smear_plaq);
   

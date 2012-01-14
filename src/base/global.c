@@ -39,6 +39,7 @@ char list_known_stopping_criterion[4][1024]={"standard","unilevel","weighted_nor
 //basic mpi types
 MPI_Datatype MPI_SU3;
 MPI_Datatype MPI_QUAD_SU3;
+MPI_Datatype MPI_COLOR;
 MPI_Datatype MPI_SPINCOLOR;
 MPI_Datatype MPI_REDSPINCOLOR;
 
@@ -47,10 +48,14 @@ int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
 int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
 int bord_dir_vol[4],bord_offset[4];
 int loc_bord;
-MPI_Datatype MPI_SU3_BORD_SEND[4],MPI_SU3_BORD_RECE[4];
-MPI_Datatype MPI_GAUGE_BORD_SEND[4],MPI_GAUGE_BORD_RECE[4];
-MPI_Datatype MPI_LXSPINCOLOR_BORD_SEND[4],MPI_LXSPINCOLOR_BORD_RECE[4];
-MPI_Datatype MPI_LXREDSPINCOLOR_BORD[4];
+MPI_Datatype MPI_LX_SU3_BORD_SEND[4],MPI_LX_SU3_BORD_RECE[4];
+MPI_Datatype MPI_LX_GAUGE_BORD_SEND[4],MPI_LX_GAUGE_BORD_RECE[4];
+MPI_Datatype MPI_LX_SPINCOLOR_BORD_SEND[4],MPI_LX_SPINCOLOR_BORD_RECE[4];
+int start_eo_bord_send_up[4],start_eo_bord_rece_up[4];
+int start_eo_bord_send_dw[4],start_eo_bord_rece_dw[4];
+MPI_Datatype MPI_EO_GAUGE_BORD_SEND[4],MPI_EO_GAUGE_BORD_RECE[4];
+MPI_Datatype MPI_EO_COLOR_BORD_SEND[4],MPI_EO_COLOR_BORD_RECE[4];
+//MPI_Datatype MPI_LXREDSPINCOLOR_BORD[4];
 
 int bord_offset_eo[2][8]; //eo, 8 dirs
 
@@ -58,7 +63,8 @@ int bord_offset_eo[2][8]; //eo, 8 dirs
 int edge_dir_vol[6],edge_offset[6];
 int loc_edge;
 int edge_numb[4][4]={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}};
-MPI_Datatype MPI_GAUGE_EDGE_SEND[6],MPI_GAUGE_EDGE_RECE[6];
+MPI_Datatype MPI_LX_GAUGE_EDGE_SEND[6],MPI_LX_GAUGE_EDGE_RECE[6];
+MPI_Datatype MPI_EO_GAUGE_EDGE_SEND[6],MPI_EO_GAUGE_EDGE_RECE[6];
 
 int paral_dir[4],nparal_dir;
 int nrank_dir[4];
@@ -69,6 +75,7 @@ int plan_rank[4],line_rank[4];
 
 int big_endian;
 
+#define nreals_per_color 6
 #define nreals_per_spincolor 24
 #define nreals_per_quad_su3 72
 

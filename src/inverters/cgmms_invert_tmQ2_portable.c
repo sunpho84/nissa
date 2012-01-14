@@ -1,6 +1,6 @@
 #pragma once
 
-void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
+void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
 {
   double zps[nmass],zas[nmass],zfs[nmass],betas[nmass],alphas[nmass];
   double rr,rfrf,pap,alpha;
@@ -76,7 +76,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kap
     {
       //     -s=Ap
       communicate_lx_spincolor_borders(p);
-      apply_Q2_RL(s,p,conf,kappa,m[0],t,RL);
+      apply_tmQ2_RL(s,p,conf,kappa,m[0],t,RL);
       
       //     -pap=(p,s)=(p,Ap)
       {
@@ -169,8 +169,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kap
       iter++;
       
       //     check over residual
-      nrun_mass=check_cgmms_residue_RL(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t,source_norm,RL);
-      
+      nrun_mass=check_cgmms_residue_tmQ2_RL(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t,source_norm,RL);
     }
   while(nrun_mass>0 && iter<niter);
   
@@ -181,7 +180,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kap
   for(int imass=0;imass<nmass;imass++)
     {
       double res,w_res,weight,max_res;
-      apply_Q2_RL(s,sol[imass],conf,kappa,m[imass],t,RL);
+      apply_tmQ2_RL(s,sol[imass],conf,kappa,m[imass],t,RL);
       {
 	double loc_res=0;
 	double locw_res=0;
@@ -211,7 +210,7 @@ void inv_Q2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kap
 	w_res=w_res/weight*12*glb_vol;
 	max_res*=12*glb_vol;
 	
-	master_printf("imass %d, rel residue true=%g approx=%g weighted=%g max=%g\n",imass,res/source_norm,final_res[imass]/source_norm,w_res,max_res);
+	master_printf("imass %d, rel residue true=%g approx=%g weighted=%g max=%g\n",imass,res/source_norm,final_res[imass],w_res,max_res);
       }
     }  
 

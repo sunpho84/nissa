@@ -25,13 +25,12 @@ int iboot;
 
 double fun_fit_phiDsD(double A,double B,double C,double ml,double a)
 {
-  double xi=db0.data[iboot]*ml/sqr(4*M_PI*f0.data[iboot]);
+  double m2pi=db0.data[iboot]*ml;
   double cl;
-  
-  if(ghat_ave!=0) cl=-3*(1+3.0*sqr(ghat.data[iboot]))/4*xi*log(xi);
+  if(ghat_ave!=0) cl=-3*(1+3.0*sqr(ghat.data[iboot]))/4*m2pi/sqr(4*M_PI*f0.data[iboot])*log(m2pi);
   else cl=0;
-  
-  return A * ( 1 - cl + B*ml + C*a*a );
+
+  return A * ( 1 - cl + B*m2pi + C*a*a );
 }
 
 void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const char *ylab,bvec &X,bvec &Y,bvec &par,double X_phys,double (*fun)(double,double,double,double,double),boot &chiral_extrap_cont)
