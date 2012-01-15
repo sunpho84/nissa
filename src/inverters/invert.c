@@ -2,6 +2,7 @@
 
 //follow inclusion below
 #include "cgmms_invert_tmQ2_common.c"
+#include "cgmms_invert_stD2ee_common.c"
 
 #ifdef BGP
 
@@ -12,6 +13,8 @@
 
 #include "cg_invert_tmQ2_portable.c"
 #include "cgmms_invert_tmQ2_portable.c"
+
+#include "cgmms_invert_stD2ee_portable.c"
 
 #endif
 

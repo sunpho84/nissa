@@ -42,7 +42,7 @@ void apply_st2Deo(color *out,quad_su3 **conf,color *in)
     }
 }
 
-void apply_stDDee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
+void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
 {
   double mass2=mass*mass;
   
