@@ -21,8 +21,8 @@ int work_in_physical_base;
 int full_X_space_prop_prec,full_P_space_prop_prec;
 int n_X_interv[2],n_P_interv[2];
 interv *X_interv[2],*P_interv[2];
-int do_rome[16]={1,1,1,1,1,1,11,1,1,1,1,1,1,1};
-int do_orsay[16]={1,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
+int do_rome[16]= {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1};
+int do_orsay[16]={1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1};
 
 //source data
 int source_coord[4]={0,0,0,0};
@@ -72,7 +72,11 @@ interv* read_subset_list(int *n_subset,const char *name,const char *tag)
   for(int isub=0;isub<(*n_subset);isub++)
     for(int mu=0;mu<2;mu++)
       for(int iext=0;iext<2;iext++)
-	read_int(inte[isub][mu]+iext);
+	{
+	  read_int(inte[isub][mu]+iext);
+	  if((*inte[isub][mu])<0||(*inte[isub][mu])>=glb_size[mu])
+	    crash("error in loading %s interval, exceeds borders!",name);
+	}
   
   return inte;
 }
@@ -391,15 +395,16 @@ void print_propagator_subsets(int nsubset,interv *inte,char *setname,int *do_ipa
 					       sizeof(complex));
 				
 				//if required change endianess
-				if(big_endian)
-				  doubles_to_doubles_changing_endianess((double*)buf,(double*)buf,18*16);
+				//if(big_endian)
+				//doubles_to_doubles_changing_endianess((double*)buf,(double*)buf,18*16);
 				
 				//write
 				MPI_File_write_at(fout[r],offset,buf,16,MPI_SU3,MPI_STATUS_IGNORE);
 			      }
-			    //increment the position in the file where to write data
-			    offset+=sizeof(colorspincolorspin);
 			  }
+			
+			//increment the position in the file where to write data
+			offset+=sizeof(colorspincolorspin);
 		      }
 	    }
 	
