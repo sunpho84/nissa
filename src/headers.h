@@ -193,7 +193,7 @@ void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype
 void initialize_main_nissa_vect();
 void internal_crash(int line,const char *file,const char *template,...);
 void internal_decript_MPI_error(int line,const char *file,int rc,const char *template,...);
-void inv_stD2ee_cgmms(color **sol,color *source,quad_su3 **conf,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit);
+void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int nmass,int niter,double st_res,double st_minres,int st_crit);
 void inv_tmDQ_cgmms(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit);
 void inv_tmDQ_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL);
 void inv_tmDQ_cgmms_left(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit);
@@ -348,7 +348,7 @@ void su3_unitarize_orthonormalizing(su3 o,su3 i);
 void su3spinspin_put_to_zero(su3spinspin m);
 void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin *s1L, dirac_matr *g2L, colorspinspin *s2L, dirac_matr *g1R,colorspinspin *s1R, dirac_matr *g2R, colorspinspin *s2R,const int ncontr);
 void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr);
-void summ_all_inv_stD2ee_cgmms(color *sol,color *source,quad_su3 **conf,double *m,double *c,int nmass,int niter,double st_res,double st_minres,int st_crit);
+void summ_src_and_all_inv_stD2ee_cgmm2s(color *sol,color *source,quad_su3 **conf,double con,double *m2,double *coef,int nmass,int niter,double st_res,double st_minres,int st_crit);
 void summ_the_trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b);
 void summ_the_trace_prod_spinspins(complex c,spinspin a,spinspin b);
 void swap_doubles(double *d1,double *d2);

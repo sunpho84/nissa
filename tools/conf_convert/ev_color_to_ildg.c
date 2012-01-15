@@ -34,8 +34,9 @@ int main(int narg,char **arg)
 		
 		for(int ri=0;ri<2;ri++)
 		  {
-		    float temp;
-		    if(fscanf(fin,"%g",&temp)!=1) crash("while reading %s",arg[3]);
+		    //float temp;
+		    double temp;
+		    if(fscanf(fin,"%lg",&temp)!=1) crash("while reading %s",arg[3]);
 		    v[ivol][ic][ri]=(double)temp;
 		  }
 	      }

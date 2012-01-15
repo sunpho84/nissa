@@ -40,8 +40,9 @@ int main(int narg,char **arg)
 		      
 		      for(int ri=0;ri<2;ri++)
 			{
-			  float temp;
-			  if(fscanf(fin,"%g",&temp)!=1) crash("while reading conf");
+			  //float temp;
+			  double temp;
+			  if(fscanf(fin,"%lg",&temp)!=1) crash("while reading conf");
 			  conf[ivol][mu_map[mu]][ic1][ic2][ri]=(double)temp;
 			}
 		    }

@@ -1,6 +1,6 @@
 #pragma once
 
-void inv_stD2ee_cgmms(color **sol,color *source,quad_su3 **conf,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit)
+void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int nmass,int niter,double st_res,double st_minres,int st_crit)
 {
   double zps[nmass],zas[nmass],zfs[nmass],betas[nmass],alphas[nmass];
   double rr,rfrf,pap,alpha;
@@ -75,21 +75,23 @@ void inv_stD2ee_cgmms(color **sol,color *source,quad_su3 **conf,double *m,int nm
   do
     {
       //     -s=Ap
-      communicate_ev_color_borders(p);
-      apply_stD2ee(s,conf,t,m[0],p);
+
       
       //     -pap=(p,s)=(p,Ap)
       {
 	double loc_pap=0;
 	double *dp=(double*)p,*ds=(double*)s;
+	int n=0;
 	for(int i=0;i<loc_vol*3*2/2;i++)
 	  {
+	    (*ds)*=0.25;
 	    loc_pap+=(*dp)*(*ds);
 	    dp++;ds++;
+	    n++;
 	  }
 	MPI_Allreduce(&loc_pap,&pap,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
       }
-
+      
       //     calculate betaa=rr/pap=(r,r)/(p,Ap)
       betap=betaa;
       betaa=-rr/pap;
@@ -102,7 +104,7 @@ void inv_stD2ee_cgmms(color **sol,color *source,quad_su3 **conf,double *m,int nm
         {
           if(run_flag[imass]==1)
             {
-              zfs[imass]=zas[imass]*betap/(betaa*alpha*(1-zas[imass]/zps[imass])+betap*(1-(m[imass]-m[0])*(m[imass]+m[0])*betaa));
+              zfs[imass]=zas[imass]*betap/(betaa*alpha*(1-zas[imass]/zps[imass])+betap*(1-m2[imass]*betaa));
               betas[imass]=betaa*zfs[imass]/zas[imass];
 	      
 	      {
@@ -115,7 +117,7 @@ void inv_stD2ee_cgmms(color **sol,color *source,quad_su3 **conf,double *m,int nm
 	      }
             }
         }
-      
+
       //     calculate
       //     -r'=r+betaa*s=r+beta*Ap
       //     -rfrf=(r',r')
@@ -165,11 +167,10 @@ void inv_stD2ee_cgmms(color **sol,color *source,quad_su3 **conf,double *m,int nm
             zas[imass]=zfs[imass];
           }
       rr=rfrf;
-      
       iter++;
       
       //     check over residual
-      nrun_mass=check_cgmms_residue_stD2ee(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,s,t,source_norm);
+      nrun_mass=check_cgmm2s_residue_stD2ee(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m2,source,conf,s,t,source_norm);
     }
   while(nrun_mass>0 && iter<niter);
   
@@ -180,7 +181,7 @@ void inv_stD2ee_cgmms(color **sol,color *source,quad_su3 **conf,double *m,int nm
   for(int imass=0;imass<nmass;imass++)
     {
       double res,w_res,weight,max_res;
-      apply_stD2ee(s,conf,t,m[imass],sol[imass]);
+      apply_stD2ee(s,conf,t,sqrt(m2[imass]),sol[imass]);
       {
 	double loc_res=0;
 	double locw_res=0;
