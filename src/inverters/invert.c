@@ -9,6 +9,8 @@
 #include "cg_invert_tmQ2_bgp.c"
 #include "cgmms_invert_tmQ2_bgp.c"
 
+#include "cgmms_invert_stD2ee_portable.c"
+
 #else
 
 #include "cg_invert_tmQ2_portable.c"
