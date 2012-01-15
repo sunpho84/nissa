@@ -1,8 +1,8 @@
 #pragma once
 
-double calculate_weighted_residue_stD2ee(color *source,color *sol,quad_su3 **conf,double m,color *s,color *t,int dinf)
+double calculate_weighted_residue_stD2ee(color *source,color *sol,quad_su3 **conf,double m2,color *s,color *t,int dinf)
 {
-  apply_stD2ee(s,conf,t,m,sol);
+  apply_stD2ee(s,conf,t,sqrt(m2),sol);
   
   double loc_weighted_residue=0,tot_weighted_residue;
   double loc_weight=0,tot_weight;
@@ -38,7 +38,7 @@ double calculate_weighted_residue_stD2ee(color *source,color *sol,quad_su3 **con
   return tot_weighted_residue;
 }
 
-int check_cgmms_residue_stD2ee(int *run_flag,double *residue_mass,int nrun,double rr,double *zfs,int st_crit,double st_res,double st_res2,int iter,color **sol,int nmass,double *m,color *source,quad_su3 **conf,color *s,color *t,double source_norm)
+int check_cgmm2s_residue_stD2ee(int *run_flag,double *residue_mass,int nrun,double rr,double *zfs,int st_crit,double st_res,double st_res2,int iter,color **sol,int nmass,double *m2,color *source,quad_su3 **conf,color *s,color *t,double source_norm)
 {
   const int each=10;
 
@@ -59,8 +59,8 @@ int check_cgmms_residue_stD2ee(int *run_flag,double *residue_mass,int nrun,doubl
 	    {  //locally weighted norm
 	      communicate_ev_color_borders(sol[imass]);
 	      if(st_crit==sc_weighted_norm2)
-		residue_mass[imass]=calculate_weighted_residue_stD2ee(source,sol[imass],conf,m[imass],s,t,2);
-	      else residue_mass[imass]=calculate_weighted_residue_stD2ee(source,sol[imass],conf,m[imass],s,t,-1);
+		residue_mass[imass]=calculate_weighted_residue_stD2ee(source,sol[imass],conf,sqrt(m2[imass]),s,t,2);
+	      else residue_mass[imass]=calculate_weighted_residue_stD2ee(source,sol[imass],conf,sqrt(m2[imass]),s,t,-1);
 	    }
 	
 	if(fini)
@@ -83,16 +83,16 @@ int check_cgmms_residue_stD2ee(int *run_flag,double *residue_mass,int nrun,doubl
 }
 
 //return all the masses summed together
-void summ_src_and_all_inv_stD2ee_cgmms(color *sol,color *source,quad_su3 **conf,double con,double *m,double *coef,int nmass,int niter,double st_res,double st_minres,int st_crit)
+void summ_src_and_all_inv_stD2ee_cgmm2s(color *sol,color *source,quad_su3 **conf,double con,double *m2,double *coef,int nmass,int niter,double st_res,double st_minres,int st_crit)
 {
   //allocate temporary single solutions
   color *temp[nmass];
-  temp[0]=nissa_malloc("temp",(loc_vol+loc_bord)/2,color);
+  temp[0]=nissa_malloc("temp",(loc_vol+loc_bord)/2*nmass,color);
   for(int imass=1;imass<nmass;imass++)
     temp[imass]=temp[imass-1]+(loc_vol+loc_bord)/2;
   
   //coll multi-mass solver
-  inv_stD2ee_cgmms(temp,source,conf,m,nmass,niter,st_res,st_minres,st_crit);
+  inv_stD2ee_cgmm2s(temp,source,conf,m2,nmass,niter,st_res,st_minres,st_crit);
   
   //summ all the masses
   for(int ivol=0;ivol<loc_vol/2;ivol++)
