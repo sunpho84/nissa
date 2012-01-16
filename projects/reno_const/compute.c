@@ -395,8 +395,8 @@ void print_propagator_subsets(int nsubset,interv *inte,char *setname,int *do_ipa
 					       sizeof(complex));
 				
 				//if required change endianess
-				//if(big_endian)
-				//doubles_to_doubles_changing_endianess((double*)buf,(double*)buf,18*16);
+				if(big_endian)
+				    doubles_to_doubles_changing_endianess((double*)buf,(double*)buf,18*16);
 				
 				//write
 				MPI_File_write_at(fout[r],offset,buf,16,MPI_SU3,MPI_STATUS_IGNORE);
