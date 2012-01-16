@@ -477,17 +477,18 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 #ifdef BGP
 		  bgp_complex cpu_out,cpu_A,cpu_B;
 		  bgp_load_complex(cpu_out,loc_contr[offset]);
+#pragma unroll(15)
 		  for(int i=0;i<15;i++)
 		    {
 		      bgp_load_complex(cpu_A,A[i]);
 		      bgp_load_complex(cpu_B,B[i]);
-		      bgp_complex_summ_the_prod(cpu_out,cpu_out,cpu_A,cpu_B);
+		      bgp_complex_summ_the_prod(cpu_out,cpu_out,__lfpd(A[i]),__lfpd(B[i]));
 		      bgp_cache_touch_complex(A[i+1]);
 		      bgp_cache_touch_complex(B[i+1]);
 		    }
 		  bgp_load_complex(cpu_A,A[15]);
 		  bgp_load_complex(cpu_B,B[15]);
-		  bgp_complex_summ_the_prod(cpu_out,cpu_out,cpu_A,cpu_B);
+		  bgp_complex_summ_the_prod(cpu_out,cpu_out,__lfpd(A[15]),__lfpd(B[15]));
 		  bgp_save_complex(loc_contr[offset],cpu_out);
 #else
 		  for(int i=0;i<16;i++)
