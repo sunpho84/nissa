@@ -51,8 +51,8 @@ void init_nissa()
   ONE[1]=I[0]=0;
   //check endianess
   check_endianess();
-  if(big_endian) master_printf("System endianess: big, conversion needed\n");
-  else master_printf("System endianess: little, no conversion needed\n");
+  if(little_endian) master_printf("System endianess: little\n");
+  else master_printf("System endianess: big\n");
   
   //initialize the base of the gamma matrices
   init_base_gamma();

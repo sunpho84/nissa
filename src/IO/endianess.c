@@ -3,8 +3,8 @@
 //check the endianess of the machine
 void check_endianess()
 {
-  big_endian=1;
-  big_endian=(int)(*(char*)(&big_endian));
+  little_endian=1;
+  little_endian=(int)(*(char*)(&little_endian));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////

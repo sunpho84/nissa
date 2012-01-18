@@ -196,10 +196,10 @@ void finalize_reading_real_vector(double *out,nissa_reader *reader,int nreals_pe
   int loc_nreals_tot=nreals_per_site*loc_vol;
   
   if(nbytes_per_site_read==nbytes_per_site_float) //cast to double changing endianess if needed
-    if(big_endian) floats_to_doubles_changing_endianess((double*)out,(float*)out,loc_nreals_tot);
+    if(little_endian) floats_to_doubles_changing_endianess((double*)out,(float*)out,loc_nreals_tot);
     else floats_to_doubles_same_endianess((double*)out,(float*)out,loc_nreals_tot);
   else //swap the endianess if needed
-    if(big_endian) doubles_to_doubles_changing_endianess((double*)out,(double*)out,loc_nreals_tot);
+    if(little_endian) doubles_to_doubles_changing_endianess((double*)out,(double*)out,loc_nreals_tot);
 }  
 
 //reorder a read color
