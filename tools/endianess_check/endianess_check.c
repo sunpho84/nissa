@@ -4,8 +4,8 @@ int main()
 {
   check_endianess();
   printf("Endianess of this machine: ");
-  if(big_endian==1) printf("big\n");
-  else printf("little\n");
+  if(little_endian==1) printf("little\n");
+  else printf("big\n");
   
   return 0;
 }

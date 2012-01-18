@@ -79,7 +79,7 @@ uint32_t ildg_crc32(uint32_t crc,const unsigned char *buf,size_t len)
 
 uint32_t ildg_crc32_fix_endianess(uint32_t crc,const unsigned char *buf,size_t len)
 {
-  if(big_endian)
+  if(little_endian)
     {
       double temp_buf[len/sizeof(double)];
       doubles_to_doubles_changing_endianess(temp_buf,(double*)buf,len/sizeof(double));

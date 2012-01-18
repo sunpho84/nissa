@@ -1,6 +1,5 @@
 #pragma once
 
-
 //nomenclature: 
 //-glb is relative to the global grid
 //-loc to the local one
@@ -73,7 +72,7 @@ int rank_neighdw[4],rank_neighup[4];
 int rank,rank_tot,cart_rank;
 int plan_rank[4],line_rank[4];
 
-int big_endian;
+int little_endian;
 
 #define nreals_per_color 6
 #define nreals_per_spincolor 24

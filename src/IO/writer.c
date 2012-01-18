@@ -45,13 +45,13 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
   write_header(writer,header_message,nbytes_glb);
   
   char *buffer=NULL;
-  if(big_endian || nbits==32) buffer=nissa_malloc("buffer",nreals_loc,double);
+  if(little_endian || nbits==32) buffer=nissa_malloc("buffer",nreals_loc,double);
   
   if(nbits==64)
-    if(big_endian) doubles_to_doubles_changing_endianess((double*)buffer,(double*)data,nreals_loc);
+    if(little_endian) doubles_to_doubles_changing_endianess((double*)buffer,(double*)data,nreals_loc);
     else buffer=data;
   else
-    if(big_endian) doubles_to_floats_changing_endianess((float*)buffer,(double*)data,nreals_loc);
+    if(little_endian) doubles_to_floats_changing_endianess((float*)buffer,(double*)data,nreals_loc);
     else doubles_to_floats_same_endianess((float*)buffer,(double*)data,nreals_loc);
       
   int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
@@ -65,7 +65,7 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
   write_checksum(writer,check);
   
   //delete the swapped data, if created
-  if(big_endian || nbits==32) nissa_free(buffer);
+  if(little_endian || nbits==32) nissa_free(buffer);
   
   //take final time
   time+=take_time();

@@ -394,8 +394,8 @@ void print_propagator_subsets(int nsubset,interv *inte,char *setname,int *do_ipa
 					memcpy(buf[ic_so][id_so][ic_si][id_si],S0[r][imass][ilp][ic_si][ic_so][id_si][id_so],
 					       sizeof(complex));
 				
-				//if required change endianess
-				if(big_endian)
+				//if required change endianess in order to stick with APE
+				if(!little_endian)
 				    doubles_to_doubles_changing_endianess((double*)buf,(double*)buf,18*16);
 				
 				//write
