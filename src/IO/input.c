@@ -51,7 +51,7 @@ int dir_exists(char *path)
   if(rank==0)
     {
       exists=(stat(path,&st)==0);
-      isdir=(st.st_mode&S_IFDIR);
+      isdir=0;//(st.st_mode&S_IFDIR);
       
       if(exists)
 	if(isdir) master_printf("Directory %s is present\n",path);

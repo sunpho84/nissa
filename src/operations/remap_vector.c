@@ -52,8 +52,8 @@ void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
   int ireq=0;
   char *send_buf=out_buf; //init send pointer
   char *recv_buf=in_buf;  //init recv pointer
-  char *internal_send_buf;
-  char *internal_recv_buf;
+  char *internal_send_buf=NULL;
+  char *internal_recv_buf=NULL;
   for(int irank=0;irank<rank_tot;irank++)
     {
       if(rank!=irank)

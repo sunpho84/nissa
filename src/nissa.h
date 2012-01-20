@@ -10,6 +10,7 @@
 #include <stdarg.h>
 #include <signal.h>
 #include <execinfo.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 
 #include <lemon.h>

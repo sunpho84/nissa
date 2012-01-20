@@ -74,7 +74,7 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
   int loc_nblk=glb_nblk/nrank_dir[mu];          //number of local blocks
   
   //check if the loc_size is a multiple of block_size
-  if(loc_size[mu]%blk_size!=0) crash("Error, FFT implemented only for power of 2 grids!");
+  if(nrank_dir[mu]%2!=0) crash("Error, FFT implemented only for power of 2 grids! Ask sunpho to adapt it to a more general case if you really need!");
   
   //allocate the buffer to send data
   complex *buf=nissa_malloc("buf",loc_size[mu]*ncpp,complex);
