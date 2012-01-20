@@ -53,9 +53,11 @@ void master_printf_box(const char *template,...)
 }
 
 //create a dir
-int create_dir(char *path,int mode)
+int create_dir(char *path)
 {
-  int res=(rank==0) ? mkdir(path,mode) : 0;
+  char command[1024];
+  sprintf(command,"mkdir -p %s",path);  
+  int res=(rank==0) ? system(command) : 0;
   MPI_Bcast(&res,1,MPI_INT,0,MPI_COMM_WORLD);
   
   return res;
