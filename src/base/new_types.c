@@ -35,6 +35,8 @@ enum rnd_type{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z4,RND_GAUS
 //Source type
 enum source_type{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
 
+///////////////////// New structures //////////////
+
 //The structure for the random generator
 typedef struct
 {
@@ -77,3 +79,16 @@ typedef struct
   MPI_File *reader_file;
   LemonReader *lemon_reader;
 } nissa_reader;
+
+//rational approximation
+typedef struct
+{
+  char name[20];
+  double minimum;
+  double maximum;
+  double cons;
+  double exp_power;
+  int nterms;
+  double *poles;
+  double *weights;
+} rat_approx;

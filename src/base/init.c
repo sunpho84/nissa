@@ -253,7 +253,6 @@ void init_grid(int T,int L)
   //calculate the local volume
   for(int idir=0;idir<4;idir++) loc_size[idir]=glb_size[idir]/nrank_dir[idir];
   loc_vol=glb_vol/rank_tot;
-  loc_volr=loc_vol/2;
   
   //calculate the border size
   loc_bord=0;

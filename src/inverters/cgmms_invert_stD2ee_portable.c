@@ -75,7 +75,10 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
   do
     {
       //     -s=Ap
-
+      communicate_od_color_borders(p);
+      apply_st2Doe(t,conf,p);
+      communicate_od_color_borders(t);
+      apply_st2Deo(s,conf,t);
       
       //     -pap=(p,s)=(p,Ap)
       {

@@ -354,6 +354,11 @@ void print_propagator_subsets(int nsubset,interv *inte,char *setname,int *do_ipa
 	    if(rc) decript_MPI_error(rc,"Unable to open file: %s",outfile_fft);
 	  }
 	
+	//deciding sign for parities
+	int sig[4];
+	for(int mu=0;mu<4;mu++)
+	  sig[mu]=1-((iparr>>mu)&1)*2;
+	
 	//loop over momenta subsets
 	int offset=0;
 	for(int imass=0;imass<nmass;imass++)
@@ -361,17 +366,17 @@ void print_propagator_subsets(int nsubset,interv *inte,char *setname,int *do_ipa
 	    {
 	      //loop over momenta in each set
 	      int glb_ip[4],sht_ip[4];
-	      int sig[4];
-	      for(int mu=0;mu<4;mu++)
-		sig[mu]=1-((iparr>>mu)&1)*2;
 	      
 	      for(sht_ip[0]=inte[isub][0][0];sht_ip[0]<=inte[isub][0][1];sht_ip[0]++)
 		for(sht_ip[2]=inte[isub][1][0];sht_ip[2]<=inte[isub][1][1];sht_ip[2]++)
 		  for(sht_ip[3]=inte[isub][1][0];sht_ip[3]<=inte[isub][1][1];sht_ip[3]++)
 		    for(sht_ip[1]=inte[isub][1][0];sht_ip[1]<=inte[isub][1][1];sht_ip[1]++)
 		      {
-			for(int mu=0;mu<4;mu++) glb_ip[mu]=(glb_size[mu]+sig[mu]*sht_ip[mu])%glb_size[mu];
-			
+			for(int mu=0;mu<4;mu++)
+			  {
+			    glb_ip[mu]=(glb_size[mu]+sig[mu]*sht_ip[mu])%glb_size[mu];
+			    master_printf("%d %d\n",mu,glb_ip[mu]);
+			  }
 			//identify the rank hosting this element
 			int hosting=rank_hosting_site_of_coord(glb_ip);
 			

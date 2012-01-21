@@ -10,17 +10,23 @@ void set_eo_geometry()
     for(int mu=0;mu<4;mu++) ok&=(loc_size[mu]%2==0);
     if(!ok) crash("local lattice size odd!");
     
+    //set half the vol, bord and edge size
+    glb_volh=glb_vol/2;
+    loc_volh=loc_vol/2;
+    loc_bordh=loc_bord/2;
+    loc_edgeh=loc_edge/2;
+    
     //set the various time-slice types
     loclx_parity=nissa_malloc("loclx_parity",loc_vol+loc_bord+loc_edge,int);
     
     loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+loc_bord+loc_edge,int);
     loclx_of_loceo[0]=nissa_malloc("loclx_of_loceo",loc_vol+loc_bord+loc_edge,int);
-    loclx_of_loceo[1]=loclx_of_loceo[0]+(loc_vol+loc_bord+loc_edge)/2;
+    loclx_of_loceo[1]=loclx_of_loceo[0]+loc_volh+loc_bordh+loc_edgeh;
     loceo_neighup[0]=nissa_malloc("loceo_neighup",loc_vol+loc_bord+loc_edge,coords);
     loceo_neighdw[0]=nissa_malloc("loceo_neighdw",loc_vol+loc_bord+loc_edge,coords);
     
-    loceo_neighup[1]=loceo_neighup[0]+(loc_vol+loc_bord)/2;
-    loceo_neighdw[1]=loceo_neighdw[0]+(loc_vol+loc_bord)/2;
+    loceo_neighup[1]=loceo_neighup[0]+loc_volh+loc_bordh;
+    loceo_neighdw[1]=loceo_neighdw[0]+loc_volh+loc_bordh;
     
     //Label the bulk sites
     int iloc_eo[2]={0,0};
