@@ -253,9 +253,9 @@ void initialize_semileptonic(char *input_path)
   ith_spec=nissa_malloc("ith_spec",nspec,int);
   imass_spec=nissa_malloc("imass_spec",nspec,int);
   r_spec=nissa_malloc("r_spec",nspec,int);
-  expect_str("iThetaMassR");
   for(int ispec=0;ispec<nspec;ispec++)
     {
+      expect_str("iThetaMassR");
       read_int(&(ith_spec[ispec]));
       read_int(&(imass_spec[ispec]));
       read_int(&(r_spec[ispec]));
@@ -738,6 +738,7 @@ int main(int narg,char **arg)
 	  calculate_S0(sm_lev_so);
 	  
 	  //loop on spectator
+	  if(ncontr_3pts!=0 && nch_contr_3pts!=0)
 	  for(int ispec=0;ispec<nspec;ispec++)
 	    {
 	      generate_sequential_source(ispec);

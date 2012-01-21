@@ -3,8 +3,8 @@
 //nomenclature: 
 //-glb is relative to the global grid
 //-loc to the local one
-int glb_size[4],glb_vol,glb_spat_vol;
-int loc_size[4],loc_vol,loc_spat_vol;
+int glb_size[4],glb_vol,glb_spat_vol,glb_volh;
+int loc_size[4],loc_vol,loc_spat_vol,loc_volh;
 int *dir_of_bord;
 //-lx is lexicografic
 coords *glb_coord_of_loclx;
@@ -20,7 +20,6 @@ int *loceo_of_loclx;
 int *loclx_of_loceo[2];
 coords *loceo_neighup[2];
 coords *loceo_neighdw[2];
-int loc_volr;
 int nissa_eo_geom_inited;
 
 //neighbours of local volume + borders
@@ -46,7 +45,7 @@ MPI_Datatype MPI_REDSPINCOLOR;
 int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
 int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
 int bord_dir_vol[4],bord_offset[4];
-int loc_bord;
+int loc_bord,loc_bordh;
 MPI_Datatype MPI_LX_SU3_BORD_SEND[4],MPI_LX_SU3_BORD_RECE[4];
 MPI_Datatype MPI_LX_GAUGE_BORD_SEND[4],MPI_LX_GAUGE_BORD_RECE[4];
 MPI_Datatype MPI_LX_SPINCOLOR_BORD_SEND[4],MPI_LX_SPINCOLOR_BORD_RECE[4];
@@ -60,7 +59,7 @@ int bord_offset_eo[2][8]; //eo, 8 dirs
 
 //size of the edges along the 6 directions
 int edge_dir_vol[6],edge_offset[6];
-int loc_edge;
+int loc_edge,loc_edgeh;
 int edge_numb[4][4]={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}};
 MPI_Datatype MPI_LX_GAUGE_EDGE_SEND[6],MPI_LX_GAUGE_EDGE_RECE[6];
 MPI_Datatype MPI_EO_GAUGE_EDGE_SEND[6],MPI_EO_GAUGE_EDGE_RECE[6];

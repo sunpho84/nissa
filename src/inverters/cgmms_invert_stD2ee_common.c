@@ -83,25 +83,25 @@ int check_cgmm2s_residue_stD2ee(int *run_flag,double *residue_mass,int nrun,doub
 }
 
 //return all the masses summed together
-void summ_src_and_all_inv_stD2ee_cgmm2s(color *sol,color *source,quad_su3 **conf,double con,double *m2,double *coef,int nmass,int niter,double st_res,double st_minres,int st_crit)
+void summ_src_and_all_inv_stD2ee_cgmm2s(color *sol,color *source,quad_su3 **conf,rat_approx *appr,int niter,double st_res,double st_minres,int st_crit)
 {
   //allocate temporary single solutions
-  color *temp[nmass];
-  temp[0]=nissa_malloc("temp",(loc_vol+loc_bord)/2*nmass,color);
-  for(int imass=1;imass<nmass;imass++)
-    temp[imass]=temp[imass-1]+(loc_vol+loc_bord)/2;
+  color *temp[appr->nterms];
+  temp[0]=nissa_malloc("temp",(loc_vol+loc_bord)/2*appr->nterms,color);
+  for(int iterm=1;iterm<appr->nterms;iterm++)
+    temp[iterm]=temp[iterm-1]+(loc_vol+loc_bord)/2;
   
   //coll multi-mass solver
-  inv_stD2ee_cgmm2s(temp,source,conf,m2,nmass,niter,st_res,st_minres,st_crit);
+  inv_stD2ee_cgmm2s(temp,source,conf,appr->poles,appr->nterms,niter,st_res,st_minres,st_crit);
   
   //summ all the masses
   for(int ivol=0;ivol<loc_vol/2;ivol++)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	{
-	  sol[ivol][ic][ri]=con*source[ivol][ic][ri];
-	  for(int imass=0;imass<nmass;imass++)
-	    sol[ivol][ic][ri]+=coef[imass]*temp[imass][ivol][ic][ri];
+	  sol[ivol][ic][ri]=appr->cons*source[ivol][ic][ri];
+	  for(int iterm=0;iterm<appr->nterms;iterm++)
+	    sol[ivol][ic][ri]+=appr->weights[iterm]*temp[iterm][ivol][ic][ri];
 	}
   
   nissa_free(temp[0]);

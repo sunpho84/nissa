@@ -138,3 +138,66 @@ void linear_fit(jack &m,jack &q,jvec corr,int tmin,int tmax)
   m=XY/X2;
   q=(Y-m*X)/W;
 }
+
+bvec lin_solve(double *A,bvec b)
+{
+  int d=b.nel;
+  int nboot=b.nboot;
+  int njack=b.njack;
+
+  bvec x(d,nboot,njack);
+  
+  for(int i=0;i<d;i++)
+    {
+      double C=A[i*d+i];
+      for(int j=i;j<d;j++) A[i*d+j]/=C;
+      b[i]/=C;
+      
+      for(int k=i+1;k<d;k++)
+        {
+          double C=A[k*d+i];
+          for(int j=i;j<d;j++) A[k*d+j]-=A[i*d+j]*C;
+          b[k]-=C*b[i];
+        }
+    }
+  
+  for(int k=d-1;k>=0;k--)
+    {
+      boot S(nboot,njack);
+      S=0;
+      for(int i=k+1;i<d;i++) S+=A[k*d+i]*x[i];
+      x[k]=b[k]-S;
+    }
+  
+  return x;
+}
+
+bvec poly_fit(double *x,bvec y,int d)
+{
+  int np=y.nel;
+  int nboot=y.nboot;
+  int njack=y.njack;
+  
+  double Al[2*d+1];memset(Al,0,sizeof(double)*(2*d+1));
+  bvec c(d+1,nboot,njack);c=0;
+
+  for(int p=0;p<np;p++)
+    {
+      //calculate the weight
+      double w=pow(y[p].err(),-2);
+      //compute Al and c
+      for(int f=0;f<=2*d;f++)
+        {
+          Al[f]+=w;
+          if(f<=d) c[f]+=y[p]*w;
+          w*=x[p];
+        }
+    }
+  
+  double A[(d+1)*(d+1)];
+  for(int i=0;i<=d;i++)
+    for(int j=0;j<=d;j++)
+      A[i*(d+1)+j]=Al[i+j];
+  
+  return lin_solve(A,c);
+}      
