@@ -672,7 +672,6 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
   char path[1024];
   sprintf(path,"%s/2pts_check_sp%d_%02d_%02d",outfolder,ispec,jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
   FILE *fout=open_text_file_for_output(path);
-  int spat_vol=glb_size[1]*glb_size[2]*glb_size[3];
 
   for(int ith2=0;ith2<ntheta;ith2++)
     for(int im2=0;im2<nmass;im2++)
@@ -689,7 +688,7 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
 	    
 	    for(int icontr=0;icontr<ncontr_2pts;icontr++)
 	      if(op1_2pts[icontr]==5)
-		fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op2_2pts[icontr]],(contr_2pts+icontr*glb_size[0])[twall][0]/spat_vol,(contr_2pts+icontr*glb_size[0])[twall][1]/spat_vol);
+		fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op2_2pts[icontr]],(contr_2pts+icontr*glb_size[0])[twall][0],(contr_2pts+icontr*glb_size[0])[twall][1]);
 	    fprintf(fout,"\n");
 	  }
       }

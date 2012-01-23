@@ -256,13 +256,13 @@ void calculate_S0(int sm_lev_sour)
 	
 	double part_time=-take_time();
 	communicate_lx_spincolor_borders(source);
-	inv_Q2_cgmms(cgmms_solution,source,NULL,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	if(rank==0) printf("Finished the inversion of S0, dirac index %d, color %d in %g sec\n",id,ic,part_time);
 	
 	for(int imass=0;imass<nmass;imass++)
 	  { //reconstruct the doublet
-	    reconstruct_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	    reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	    if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	    for(int r=0;r<2;r++) //convert the id-th spincolor into the su3spinspin
 	      for(int i=0;i<loc_vol;i++)

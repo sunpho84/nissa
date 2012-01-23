@@ -317,7 +317,7 @@ void meson_two_points(colorspinspin *s1,colorspinspin *s2)
 //print all the passed contractions to the file
 void print_ottos_contractions_to_file(FILE *fout)
 {
-  double norm=glb_size[1]*glb_size[2]*glb_size[3];
+  double norm=1;
   
   if(rank==0)
     for(int icontr=0;icontr<16;icontr++)
@@ -404,12 +404,7 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_nissa();
 
-  if(narg<2 && rank==0)
-      {
-	fprintf(stderr,"Use: %s input_file\n",arg[0]);
-	fflush(stderr);
-	MPI_Abort(MPI_COMM_WORLD,1);
-      }
+  if(narg<2) crash("Use: %s input_file",arg[0]);
 
   tot_time-=take_time();
   initialize_Bk(arg[1]);
