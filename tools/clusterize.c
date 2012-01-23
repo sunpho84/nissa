@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
 int check_endianess()
 {
@@ -14,7 +16,7 @@ int count_corr(char *path,const char *line_to_find)
     FILE *fin=fopen(path,"r");
     if(fin==NULL)
     {
-	fprintf(stderr,"Error reading from file: %s\n",path);
+	fprintf(stderr,"Error opening file: %s\n",path);
 	exit(1);
     }
 
