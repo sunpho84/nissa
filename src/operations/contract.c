@@ -474,7 +474,6 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 	      for(int icontr=0;icontr<ncontr;icontr++)
 		{
 		  complex *A=(complex*)ss[0][pr_combo[ipr_combo][0]][eq_to_mult[0][icontr]],*B=(complex*)ss[1][pr_combo[ipr_combo][1]][eq_to_mult[1][icontr]];
-		  master_printf("considring combo %d, A=%d, B=%d\n",ipr_combo,pr_combo[ipr_combo][0],pr_combo[ipr_combo][1]);
 #ifdef BGP
 		  bgp_complex cpu_out,cpu_A,cpu_B;
 		  bgp_load_complex(cpu_out,loc_contr[offset]);
