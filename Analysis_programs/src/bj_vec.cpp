@@ -107,7 +107,6 @@ VTYPE VTYPE::write_to_binfile(const char *format,...)
   return *this;
 }
 
-
 VTYPE VTYPE::load(FILE *fin,int i)
 {
   double in[nel*(N+1)];
@@ -128,7 +127,7 @@ VTYPE VTYPE::load(FILE *fin,int i)
 	}
       else
         {
-	  perror("Error while reading data ");
+	  fprintf(stderr,"Error while reading data from file, obtained: %d while reading %d elements\n",stat,nel*(N+1));
 	  exit(1);
 	}
     }
@@ -140,6 +139,7 @@ VTYPE VTYPE::load(FILE *fin,int i)
 
 VTYPE VTYPE::load(const char *path,int i)
 {
+  cout<<"Loading from path "<<path<<endl;
   FILE *fin=open_file(path,"r");
   
   load(fin,i);
