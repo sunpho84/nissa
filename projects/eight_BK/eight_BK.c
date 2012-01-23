@@ -632,8 +632,6 @@ int main(int narg,char **arg)
   int spat_vol=glb_size[1]*glb_size[1]*glb_size[1];
 
 
-
-
 // Start of the contractions
 
   //Loop over the blocks of the first and third lists

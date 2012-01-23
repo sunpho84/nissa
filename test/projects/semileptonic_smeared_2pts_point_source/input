@@ -1,16 +1,24 @@
-L 16
-T 32
-TWall 31
-NPropFirstList 2
- prop1 0.0040 0.0 1 1
- prop2 0.0080 0.0 1 1
-NPropSecondList 2
- prop1 0.0040 0.0 1 1
- prop2 0.0080 0.0 1 1
-NContr 6
-       5 5
-       9 5
-       5 9
-       4 5
-       5 4
-       0 0
+L 4
+T 8
+WallTime 100
+Kappa 0.177000
+
+Nmass 3
+0.50 0.60 0.70
+
+ApeAlpha 0.5
+ApeNiter 0
+JacobiKappa 0.5
+JacobiNiters 1  0
+
+Residue 1.e-12
+StoppingCriterion standard
+MinimalResidue 1.e-20
+NiterMax 10000
+
+NContrTwoPoints 2
+5 5
+4 5
+
+NGaugeConf 1
+../../../data/L4T8conf 0 out
