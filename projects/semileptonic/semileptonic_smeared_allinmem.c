@@ -384,6 +384,7 @@ void setup_conf()
   
   //put the anti-periodic condition on the temporal border
   memset(old_theta,0,4*sizeof(double));
+  memset(put_theta,0,4*sizeof(double));
   put_theta[0]=1;
   adapt_theta(conf,old_theta,put_theta,1,1);
 }
@@ -510,11 +511,6 @@ void calculate_S0(int ism_lev_so)
 //calculate the sequential propagators
 void calculate_S1(int ispec,int ism_lev_se)
 {
-  //debug
-  for(int imass=0;imass<nmass;imass++)
-    for(int itheta=0;itheta<ntheta;itheta++)
-      memset(S1[iprop_of(itheta,imass)],0,loc_vol*sizeof(colorspinspin));
-
   int nmass_3pts=nmass-start_imass3pts[ispec];
   double *mass_3pts=mass+start_imass3pts[ispec];
   
@@ -931,6 +927,9 @@ void three_points(int ispec,int ism_lev_so,int ism_lev_se)
 //check all the two points
 void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
 {
+  double *mass_3pts=mass+start_imass3pts[ispec];
+  int nmass_3pts=nmass-start_imass3pts[ispec];
+
   complex *contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
   
   char path[1024];
@@ -939,15 +938,15 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
   int spat_vol=glb_size[1]*glb_size[2]*glb_size[3];
 
   for(int ith2=0;ith2<ntheta;ith2++)
-    for(int im2=0;im2<nmass;im2++)
+    for(int im2=0;im2<nmass_3pts;im2++)
       {
-	int ip2=iprop_of(ith2,im2);
+	int ip2=iprop_of(ith2,im2+start_imass3pts[ispec]);
 	contract_with_source(contr_2pts,S1[ip2],op_2pts[1],original_source);
 	
 	if(rank==0)
 	  {
 	    fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",
-		    mass[imass_spec[ispec]],theta[ith_spec[ispec]],r_spec[ispec],mass[im2],theta[ith2],r_spec[ispec]);
+		    mass[imass_spec[ispec]],theta[ith_spec[ispec]],r_spec[ispec],mass_3pts[im2],theta[ith2],r_spec[ispec]);
 
 	    fprintf(fout,"\n");
 	    

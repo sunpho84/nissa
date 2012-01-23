@@ -348,7 +348,7 @@ int read_conf_parameters(int *iconf)
       ok_conf=!(dir_exists(outfolder));
       if(ok_conf)
 	{
-	  int ris=create_dir(outfolder,S_IRWXU);
+	  int ris=create_dir(outfolder);
 	  if(ris==0) master_printf("Configuration %s not already analized, starting.\n",conf_path);
 	  else
 	    {
