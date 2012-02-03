@@ -1,5 +1,4 @@
 #include "nissa.h"
-#include "routines_eos.c"
 
 const int debug_lvl3=0;
 
