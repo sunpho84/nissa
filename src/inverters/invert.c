@@ -13,6 +13,7 @@
 
 #else
 
+#include "cg_invert_tmDeoimpr_portable.c"
 #include "cg_invert_tmQ2_portable.c"
 #include "cgmms_invert_tmQ2_portable.c"
 

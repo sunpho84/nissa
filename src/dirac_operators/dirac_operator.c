@@ -11,6 +11,7 @@
 #else
 
 #include "dirac_operator_tmQ_portable.c"
+#include "dirac_operator_tmDeoimpr_portable.c"
 #include "dirac_operator_tmQ_left_portable.c"
 
 #include "dirac_operator_stD_portable.c"
