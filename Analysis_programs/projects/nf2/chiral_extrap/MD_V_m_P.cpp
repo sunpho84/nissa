@@ -252,16 +252,23 @@ int main(int narg,char **arg)
 
   //load data
   diff=bvec(nens,nboot,njack);
-  bvec temp(nens,nboot,njack);
-  temp.load(meson_P5P5_file,0);
-  diff.load(meson_VKVK_file,0);
-  diff=sqrt(diff*diff-temp*temp);
-  //(m_D+E_Dv)^2-q^2=0 m_D+sqrt(m_Dv^2+q^2)=q, m_Dv^2+q^2=q^2+m_D^2+2mD q, q=(m_Dv^2-m_D^2)/2mD
+
+  bvec cP5P5(nens,nboot,njack);
+  cP5P5.load(meson_P5P5_file,0);
+  bvec cVKVK(nens,nboot,njack);
+  cVKVK.load(meson_VKVK_file,0);
+  diff=sqrt(sqr(cVKVK)-sqr(cP5P5));
   for(int iens=0;iens<nens;iens++)
     {
-      boot out=diff[iens]*lat[ibeta[iens]]/(2*temp[iens]);
+      boot P=cP5P5[iens]*lat[ibeta[iens]];
+      boot V=cVKVK[iens]*lat[ibeta[iens]];
+      boot N=V*V-P*P;
+      boot D=2*V;
+      boot qabs=N/D;
+      boot q=qabs/sqrt(3);
+      boot th=q*T[iens]/(2*M_PI);
       //cout<<iens<<" "<<mass[iens][iml_un[iens]]<<" "<<(diff[iens]*lat[ibeta[iens]])*(T[iens]/2.0/(3.14159*sqrt(3)))<<endl;
-      cout<<iens<<" "<<mass[iens][iml_un[iens]]<<" "<<out*(T[iens]/2.0/(3.14159*sqrt(3)))<<endl;
+      cout<<iens<<"\t"<<mass[iens][iml_un[iens]]<<"\t"<<V<<"\t"<<P<<"\t"<<th<<endl;
     }
   
   //perform the fit

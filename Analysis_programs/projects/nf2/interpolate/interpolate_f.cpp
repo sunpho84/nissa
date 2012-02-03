@@ -33,9 +33,10 @@ int main()
     {
       int b=ibeta[iens];
       
+      M[iens]=aM[iens]/lat[b];
+      
       if(string(obs_name)==string("P5P5"))
 	{
-	  M[iens]=aM[iens]/lat[b];
 	  f[iens]=sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b];
 	  phi[iens]=f[iens]*sqrt(M[iens]);
 	  int lim1;
@@ -49,8 +50,25 @@ int main()
 		phi[iens].data[ic]*=mass[iens][ims]+mass[iens][imc];
 		cout<<iens<<" ens, ic="<<ic<<", il="<<mass[iens][ims]<<", ih="<<mass[iens][imc]<<", Z="<<Z[iens][ic]<<", M="<<M[iens][ic]<<endl;
 	      }
-	  if(meson_name[0]=='D') x[iens]=phi[iens];
-	  else x[iens]=f[iens];
+	    x[iens]=phi[iens];
+	}
+      
+      if(string(obs_name)==string("S0S0"))
+	{
+	  f[iens]=(1/Zp_fr_Zs[b])*sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b];
+	  phi[iens]=f[iens]*sqrt(M[iens]);
+	  int lim1;
+	  if(mode==0) lim1=nmass[iens];
+	  else lim1=nlights[iens];
+	  for(int ims=0;ims<lim1;ims++)
+	    for(int imc=ims;imc<nmass[iens];imc++)
+	      {
+		int ic=icombo(ims,imc,nmass[iens],nlights[iens],mode);
+		f[iens].data[ic]*=mass[iens][imc]-mass[iens][ims];
+		phi[iens].data[ic]*=mass[iens][imc]-mass[iens][ims];
+		cout<<iens<<" ens, ic="<<ic<<", il="<<mass[iens][ims]<<", ih="<<mass[iens][imc]<<", Z="<<Z[iens][ic]<<", M="<<M[iens][ic]<<endl;
+	      }
+	  x[iens]=phi[iens];
 	}
       
       if(string(obs_name)==string("VKVK"))

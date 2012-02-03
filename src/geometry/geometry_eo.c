@@ -209,3 +209,8 @@ void split_lx_conf_into_eo_parts(quad_su3 **eo_out,quad_su3 *lx_in,int nsites)
 {split_lx_vector_into_eo_parts((char*)(eo_out[EVN]),(char*)(eo_out[ODD]),(char*)lx_in,nsites,sizeof(quad_su3));}
 void split_lx_color_into_eo_parts(color **eo_out,color *lx_in,int nsites)
 {split_lx_vector_into_eo_parts((char*)(eo_out[EVN]),(char*)(eo_out[ODD]),(char*)lx_in,nsites,sizeof(color));}
+void split_lx_spincolor_into_eo_parts(spincolor **eo_out,spincolor *lx_in,int nsites)
+{split_lx_vector_into_eo_parts((char*)(eo_out[EVN]),(char*)(eo_out[ODD]),(char*)lx_in,nsites,sizeof(spincolor));}
+
+void paste_eo_parts_into_lx_spincolor(spincolor *out_lx,spincolor *in_ev,spincolor *in_od,int nsites)
+{paste_eo_parts_into_lx_vector((char*)out_lx,(char*)in_ev,(char*)in_od,nsites,sizeof(spincolor));}

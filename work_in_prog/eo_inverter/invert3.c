@@ -1,11 +1,7 @@
 #include "nissa.h"
+#include "routines_eos.c"
 
 const int debug_lvl3=0;
-
-spincolor *glb_source;
-quad_su3 *conf;
-int nitermax;
-double residue;
 
 void gamma5(spincolor *out,spincolor *in)
 {
@@ -115,18 +111,18 @@ void Doe_or_Deo(spincolor *out,spincolor *in,quad_su3 *conf,int parity)
         color_summassign(out[X][1],temp_c3);
         color_isummassign(out[X][2],temp_c2);
         color_isubtassign(out[X][3],temp_c3);
-
+	
 	for(int id=0;id<4;id++)
           for(int ic=0;ic<3;ic++)
             for(int ri=0;ri<2;ri++)
-		out[X][id][ic][ri]*=-0.5;
+	      out[X][id][ic][ri]*=-0.5;
       }
 }
 
-void direct_invert(spincolor *solution,spincolor *source,double mu,double kappa)
+void direct_invert(spincolor *solution,spincolor *source,quad_su3 *conf,double kappa,double mu,int nitermax,double residue)
 {
-  spincolor *temp_source=nissa_malloc("temp_source",loc_vol,spincolor);
-  spincolor *solutionQ2=nissa_malloc("solutionQ2",loc_vol,spincolor);
+  spincolor *temp_source=nissa_malloc("temp_source",loc_vol+loc_bord,spincolor);
+  spincolor *solutionQ2=nissa_malloc("solutionQ2",loc_vol+loc_bord,spincolor);
 
   gamma5(temp_source,source);
   inv_tmQ2_cg(solutionQ2,temp_source,NULL,conf,kappa,mu,nitermax,1,residue);
@@ -136,7 +132,7 @@ void direct_invert(spincolor *solution,spincolor *source,double mu,double kappa)
   nissa_free(solutionQ2);
 }
 
-void dir_inv_Dee_Doo(spincolor *out,spincolor *in,double mu,double kappa,int parity,int dir_inv)
+void dir_inv_Dee_Doo(spincolor *out,spincolor *in,double kappa,double mu,int parity,int dir_inv)
 {
   double a=1/(2*kappa);
   double b=mu;
@@ -164,28 +160,28 @@ void dir_inv_Dee_Doo(spincolor *out,spincolor *in,double mu,double kappa,int par
 	}
 }
 
-void dir_Dee_Doo(spincolor *out,spincolor *in,double mu,double kappa,int parity)
-{dir_inv_Dee_Doo(out,in,mu,kappa,parity,0);}
-void inv_Dee_Doo(spincolor *out,spincolor *in,double mu,double kappa,int parity)
-{dir_inv_Dee_Doo(out,in,mu,kappa,parity,1);}
+void dir_Dee_Doo(spincolor *out,spincolor *in,double kappa,double mu,int parity)
+{dir_inv_Dee_Doo(out,in,kappa,mu,parity,0);}
+void inv_Dee_Doo(spincolor *out,spincolor *in,double kappa,double mu,int parity)
+{dir_inv_Dee_Doo(out,in,kappa,mu,parity,1);}
 
-void inv_Dee(spincolor *out,spincolor *in,double mu,double kappa){inv_Dee_Doo(out,in,mu,kappa,0);}
-void inv_Doo(spincolor *out,spincolor *in,double mu,double kappa){inv_Dee_Doo(out,in,mu,kappa,1);}
+void inv_Dee(spincolor *out,spincolor *in,double kappa,double mu){inv_Dee_Doo(out,in,kappa,mu,0);}
+void inv_Doo(spincolor *out,spincolor *in,double kappa,double mu){inv_Dee_Doo(out,in,kappa,mu,1);}
 
-void Dee(spincolor *out,spincolor *in,double mu,double kappa)    {dir_Dee_Doo(out,in,mu,kappa,0);}
-void Doo(spincolor *out,spincolor *in,double mu,double kappa)    {dir_Dee_Doo(out,in,mu,kappa,1);}
-void Doe(spincolor *out,spincolor *in,quad_su3*conf){Doe_or_Deo(out,in,conf,0);}
-void Deo(spincolor *out,spincolor *in,quad_su3*conf){Doe_or_Deo(out,in,conf,1);}
+void Dee(spincolor *out,spincolor *in,double kappa,double mu)    {dir_Dee_Doo(out,in,kappa,mu,0);}
+void Doo(spincolor *out,spincolor *in,double kappa,double mu)    {dir_Dee_Doo(out,in,kappa,mu,1);}
+void Doe(spincolor *out,spincolor *in,quad_su3 *conf){Doe_or_Deo(out,in,conf,0);}
+void Deo(spincolor *out,spincolor *in,quad_su3 *conf){Doe_or_Deo(out,in,conf,1);}
 
-void K(spincolor *out,spincolor *in,quad_su3* conf,double mu,double kappa)
+void K(spincolor *out,spincolor *in,quad_su3* conf,double kappa,double mu)
 {
   spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
 
   Deo(out,in,conf);
-  inv_Dee(temp,out,mu,kappa);
+  inv_Dee(temp,out,kappa,mu);
   Doe(out,temp,conf);  
-  inv_Doo(temp,out,mu,kappa);
-  Doo(temp,in,mu,kappa);
+  inv_Doo(temp,out,kappa,mu);
+  Doo(temp,in,kappa,mu);
 
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(loclx_parity[ivol]==1)
@@ -199,17 +195,17 @@ void K(spincolor *out,spincolor *in,quad_su3* conf,double mu,double kappa)
   nissa_free(temp);
 }
 
-void K2(spincolor *out,spincolor *in,quad_su3 *conf,double mu,double kappa)
+void K2(spincolor *out,spincolor *in,quad_su3 *conf,double kappa,double mu)
 {
   memset(out,0,sizeof(spincolor)*loc_vol);
   
   spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
-  K(temp,in,conf,-mu,kappa);
-  K(out,temp,conf,+mu,kappa);
+  K(temp,in,conf,kappa,-mu);
+  K(out,temp,conf,kappa,+mu);
   nissa_free(temp);
 }
 
-void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
+void inv_K(spincolor *sol,spincolor *source,quad_su3 *conf,double kappa,double mu,int nitermax,double residue)
 {
   int niter=nitermax;
   int riter=0;
@@ -236,7 +232,7 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       double delta;
       {
-	K2(s,sol,conf,mu,kappa);
+	K2(s,sol,conf,kappa,mu);
 	
         double loc_delta=0,loc_source_norm=0;
 	for(int X=0;X<loc_vol;X++)
@@ -263,7 +259,7 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
 	  double alpha;
 	  communicate_lx_spincolor_borders(p);
 	  
-	  K2(s,p,conf,mu,kappa);
+	  K2(s,p,conf,kappa,mu);
 	  
 	  double loc_alpha=0; //real part of the scalar product
 	  for(int X=0;X<loc_vol;X++)
@@ -314,7 +310,7 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
       //last calculation of residual, in the case iter>niter
       communicate_lx_spincolor_borders(sol);
 
-      K2(s,sol,conf,mu,kappa);
+      K2(s,sol,conf,kappa,mu);
       {
         double loc_lambda=0;
 	for(int X=0;X<loc_vol;X++)
@@ -334,7 +330,7 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
     }
   while(lambda>(residue*source_norm) && riter<rniter);
 
-  K(s,sol,conf,-mu,kappa);
+  K(s,sol,conf,kappa,-mu);
   memcpy(sol,s,sizeof(spincolor)*loc_vol);
   
   nissa_free(s);
@@ -342,12 +338,12 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
   nissa_free(r);
 }
 
-void improved_invert(spincolor *solution,spincolor *chi,double mu,double kappa)
+void improved_invert(spincolor *solution,spincolor *chi,quad_su3 *conf,double kappa,double mu,int nitermax,double residue)
 {
   spincolor *varphi=nissa_malloc("varphi",loc_vol,spincolor);
 
   spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
-  inv_Dee(temp,chi,mu,kappa);
+  inv_Dee(temp,chi,kappa,mu);
   Doe(varphi,temp,conf);
   nissa_free(temp);
   
@@ -361,8 +357,8 @@ void improved_invert(spincolor *solution,spincolor *chi,double mu,double kappa)
 	      varphi[ivol][id+2][ic][ri]=-chi[ivol][id+2][ic][ri]+varphi[ivol][id+2][ic][ri];
 	    }
   
-  inv_K(solution,varphi,mu,kappa);
-
+  inv_K(solution,varphi,conf,kappa,mu,nitermax,residue);
+  
   Deo(varphi,solution,conf);
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(loclx_parity[ivol]==0)
@@ -370,12 +366,12 @@ void improved_invert(spincolor *solution,spincolor *chi,double mu,double kappa)
 	for(int ic=0;ic<3;ic++)
 	  for(int ri=0;ri<2;ri++)
 	    varphi[ivol][id][ic][ri]=chi[ivol][id][ic][ri]-varphi[ivol][id][ic][ri];
-  inv_Dee(solution,varphi,mu,kappa);
+  inv_Dee(solution,varphi,kappa,mu);
 
   nissa_free(varphi);
 }
 
-void init(char *input_path,double *mu,double *kappa)
+void init(char *input_path,quad_su3 **conf,spincolor **glb_source,double *kappa,double *mu,int *nitermax,double *residue)
 {
   open_input(input_path);
 
@@ -391,7 +387,7 @@ void init(char *input_path,double *mu,double *kappa)
   //set_eo_geometry();
   
   //Initialize the gauge configuration and read the path
-  conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
+  (*conf)=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
   char gauge_file[1024];
   read_str_str("GaugeConf",gauge_file,1024);
   
@@ -405,42 +401,41 @@ void init(char *input_path,double *mu,double *kappa)
     printf("Thetas: %f %f %f %f\n",theta[0],theta[1],theta[2],theta[3]);
 
   //load the configuration, put boundaries condition and communicate borders
-  read_ildg_gauge_conf(conf,gauge_file);
-  put_boundaries_conditions(conf,theta,1,0);
-  communicate_lx_gauge_borders(conf);
-
+  read_ildg_gauge_conf(*conf,gauge_file);
+  put_boundaries_conditions(*conf,theta,1,0);
+  communicate_lx_gauge_borders(*conf);
+  
   //initialize source to delta
-  glb_source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
-  memset(glb_source,0,sizeof(spincolor)*loc_vol);
+  (*glb_source)=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  memset(*glb_source,0,sizeof(spincolor)*loc_vol);
   if(rank==0)
     {
-      glb_source[1][0][0][0]=1;
-      //glb_source[0][0][0][0]=1;
+      (*glb_source)[1][0][0][0]=1;
+      (*glb_source)[0][0][0][0]=1;
     }
-  communicate_lx_spincolor_borders(glb_source);
+  communicate_lx_spincolor_borders(*glb_source);
   
-  read_str_double("Residue",&residue);
-  read_str_int("NiterMax",&nitermax);
+  read_str_double("Residue",residue);
+  read_str_int("NiterMax",nitermax);
 
   close_input();
 }
 
 int main(int narg,char **arg)
 {
+  spincolor *glb_source;
+  quad_su3 *conf;
+  int nitermax;
+  double residue;
   double mu;
   double kappa;
   
   //basic mpi initialization
   init_nissa();
 
-  if(narg<2 && rank==0)
-    {
-      fprintf(stderr,"Use: %s input_file\n",arg[0]);
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
-
-  init(arg[1],&mu,&kappa);
+  if(narg<2) crash("Use: %s input_file\n",arg[0]);
+  
+  init(arg[1],&conf,&glb_source,&kappa,&mu,&nitermax,&residue);
 
   //initialize solution
   spincolor *solution_direct=nissa_malloc("direct_sol",loc_vol+loc_bord,spincolor);
@@ -448,8 +443,8 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  direct_invert(solution_direct,glb_source,mu,kappa);
-  improved_invert(solution_improved,glb_source,mu,kappa);
+  direct_invert(solution_direct,glb_source,conf,kappa,mu,nitermax,residue);
+  inv_tmD_cg_eoprec_eos(solution_improved,glb_source,conf,kappa,mu,nitermax,residue);
 
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int id=0;id<4;id++)
