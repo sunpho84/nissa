@@ -273,7 +273,11 @@ int main(int narg,char **arg)
 	  if(r!=-1) phiD_s_estr_ml.data[ib].data[iboot]=phiD_s[r][iboot]*fun_fit_phiD_s(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0)/fun_fit_phiD_s(A[iboot],B[iboot],C[iboot],ml[r][iboot],0);
 	}
     }
-  boot fD_s_chir_cont=phiD_s_chir_cont/sqrt(mD_s_phys);
+  
+  boot temp(nboot,njack);
+  temp.load("../chiral_cont_extrapol_M/MD_s");
+  cout<<"Using for MD_s_phys the value: "<<temp<<endl;
+  boot fD_s_chir_cont=phiD_s_chir_cont/sqrt(temp);
   
   //chiral and continuum
   cout<<"phiD_s = ("<<phiD_s_chir_cont*1000<<") MeV"<<endl;

@@ -363,6 +363,7 @@ void init_grid(int T,int L)
 
   set_eo_bord_senders_and_receivers(MPI_EO_GAUGE_BORD_SEND,MPI_EO_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
   set_eo_bord_senders_and_receivers(MPI_EO_COLOR_BORD_SEND,MPI_EO_COLOR_BORD_RECE,&MPI_COLOR);
+  set_eo_bord_senders_and_receivers(MPI_EO_SPINCOLOR_BORD_SEND,MPI_EO_SPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
   
   //initialize_lx_bord_receivers_of_kind(MPI_LXREDSPINCOLOR_BORD,&MPI_REDSPINCOLOR);
   

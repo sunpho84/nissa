@@ -235,3 +235,9 @@ void communicate_ev_color_borders(color *ev)
 {communicate_ev_borders((char*)ev,MPI_EO_COLOR_BORD_SEND,MPI_EO_COLOR_BORD_RECE,sizeof(color));}
 void communicate_od_color_borders(color *ev)
 {communicate_ev_borders((char*)ev,MPI_EO_COLOR_BORD_SEND,MPI_EO_COLOR_BORD_RECE,sizeof(color));}
+
+//Send the borders of an even spincolor
+void communicate_ev_spincolor_borders(spincolor *ev)
+{communicate_ev_borders((char*)ev,MPI_EO_SPINCOLOR_BORD_SEND,MPI_EO_SPINCOLOR_BORD_RECE,sizeof(spincolor));}
+void communicate_od_spincolor_borders(spincolor *ev)
+{communicate_ev_borders((char*)ev,MPI_EO_SPINCOLOR_BORD_SEND,MPI_EO_SPINCOLOR_BORD_RECE,sizeof(spincolor));}

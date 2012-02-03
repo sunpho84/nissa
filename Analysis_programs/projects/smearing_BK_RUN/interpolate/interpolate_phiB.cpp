@@ -36,7 +36,9 @@ int main()
   
   //compute phi
   bvec M[nens],f[nens],phi[nens];
-  for(int iens=0;iens<nens;iens++)
+  
+  if(string(obs_name)==string("P5P5"))
+    for(int iens=0;iens<nens;iens++)
     {
       int b=ibeta[iens];
       M[iens]=aM[iens]/lat[b];
@@ -52,6 +54,24 @@ int main()
 	    cout<<iens<<" ens, ic="<<ic<<", il="<<mass[iens][il]<<", ih="<<mass[iens][ih]<<", Z="<<Z[iens][ic]<<", M="<<M[iens][ic]<<endl;
 	  }
     }
+
+  if(string(obs_name)==string("S0S0"))
+    for(int iens=0;iens<nens;iens++)
+      {
+	int b=ibeta[iens];
+	M[iens]=aM[iens]/lat[b];
+	f[iens]=(1/Zp_fr_Zs[b])*sqrt(Z[iens])/(sinh(aM[iens])*aM[iens])/lat[b];
+	phi[iens]=f[iens];
+	for(int il=0;il<nlights[iens];il++)
+	  for(int ih=0;ih<nmass[iens];ih++)
+	    {
+	      int ic=il*nmass[iens]+ih;
+	      f[iens].data[ic]*=-mass[iens][il]+mass[iens][ih];
+	      phi[iens].data[ic]=f[iens][ic]*sqrt(M[iens][ic]);
+	      
+	      cout<<iens<<" ens, ic="<<ic<<", il="<<mass[iens][il]<<", ih="<<mass[iens][ih]<<", Z="<<Z[iens][ic]<<", M="<<M[iens][ic]<<endl;
+	    }
+      }
   
   bvec intphi[nh];
   //prepare Mhl
@@ -71,7 +91,7 @@ int main()
 	  for(int im=0;im<ni;im++)
 	    {
 	      mi[im]=mass[iens][im+nl];
-	      phii[im]=f[iens][im+nl];
+	      phii[im]=phi[iens][im+nl];
 	    }
 	  
 	  //interpolate

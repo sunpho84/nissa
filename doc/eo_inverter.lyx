@@ -5,6 +5,8 @@
 \textclass article
 \begin_preamble
 \usepackage{cancel}
+\renewcommand\[{\begin{equation}}
+\renewcommand\]{\end{equation}} 
 \end_preamble
 \use_default_options true
 \maintain_unincluded_children false
@@ -80,8 +82,8 @@ that, separated in parity component is:
 \begin_inset Formula 
 \[
 D=\left(\begin{array}{cc}
-D_{ee} & D_{eo}\\
-D_{oe} & D_{oo}
+D_{ee} & -\frac{1}{2}\left(-2D_{eo}\right)\\
+-\frac{1}{2}\left(-2D_{oe}\right) & D_{oo}
 \end{array}\right)
 \]
 
@@ -103,8 +105,8 @@ We want to solve
 \begin_inset Formula 
 \[
 \begin{cases}
-D_{ee}\psi_{e}+D_{eo}\psi_{o}=\eta_{e}\\
-D_{oe}\psi_{e}+D_{oo}\psi_{o}=\eta_{o}
+D_{ee}\psi_{e}-\frac{1}{2}\left(-2D_{eo}\right)\psi_{o}=\eta_{e}\\
+-\frac{1}{2}\left(-2D_{oe}\right)\psi_{e}+D_{oo}\psi_{o}=\eta_{o}
 \end{cases}
 \]
 
@@ -118,8 +120,8 @@ We can solve for
 \begin_inset Formula 
 \[
 \begin{cases}
-\psi_{e}=D_{ee}^{-1}\left(\eta_{e}-D_{eo}\psi_{o}\right)\\
-D_{oe}D_{ee}^{-1}\left(\eta_{e}-D_{eo}\psi_{o}\right)+D_{oo}\psi_{o}=\eta_{o}
+\psi_{e}=D_{ee}^{-1}\left(\eta_{e}+\frac{1}{2}\left(-2D_{eo}\right)\psi_{o}\right)\\
+-\frac{1}{2}\left(-2D_{oe}\right)D_{ee}^{-1}\left(\eta_{e}+\frac{1}{2}D_{eo}\psi_{o}\right)+D_{oo}\psi_{o}=\eta_{o}
 \end{cases}
 \]
 
@@ -130,7 +132,7 @@ D_{oe}D_{ee}^{-1}\left(\eta_{e}-D_{eo}\psi_{o}\right)+D_{oo}\psi_{o}=\eta_{o}
 
 \begin_layout Standard
 Let's focus on the second.
- Muliplying the sink of both sides by 
+ Multiplying the sink of both sides by 
 \begin_inset Formula $\gamma_{5}$
 \end_inset
 
@@ -140,7 +142,7 @@ Let's focus on the second.
 \begin_layout Standard
 \begin_inset Formula 
 \[
-K_{oo}\psi_{o}=\gamma_{5}\eta_{o}-\gamma_{5}D_{oe}D_{ee}^{-1}\eta_{e}
+K_{oo}\psi_{o}=\gamma_{5}\eta_{o}+\gamma_{5}\frac{1}{2}\left(-2D_{oe}\right)D_{ee}^{-1}\eta_{e}
 \]
 
 \end_inset
@@ -148,7 +150,7 @@ K_{oo}\psi_{o}=\gamma_{5}\eta_{o}-\gamma_{5}D_{oe}D_{ee}^{-1}\eta_{e}
 where 
 \begin_inset Formula 
 \[
-K_{oo}\equiv\gamma_{5}\left(D_{oo}-D_{oe}D_{ee}^{-1}D_{eo}\right).
+K_{oo}\equiv\gamma_{5}\left(D_{oo}-\frac{1}{4}\left(-2D_{oe}\right)D_{ee}^{-1}\left(-2D_{eo}\right)\right).
 \]
 
 \end_inset
@@ -169,7 +171,7 @@ Define the spinor:
 \chi_{o}
 \end{array}\right)\equiv\left(\begin{array}{c}
 D_{ee}^{-1}\eta_{e}\\
-K_{oo}^{\dagger}\left(\gamma_{5}\eta_{o}-\gamma_{5}D_{oe}\chi_{e}\right)
+K_{oo}^{\dagger}\left(\gamma_{5}\eta_{o}-\gamma_{5}\left(-2D_{oe}\right)\chi_{e}\right)
 \end{array}\right)
 \]
 
@@ -194,7 +196,7 @@ K_{oo}K_{oo}^{\dagger}\psi_{o}=\chi_{o}
 Reconstruct: 
 \begin_inset Formula 
 \[
-\psi_{e}=D_{ee}^{-1}\left(\eta_{e}-D_{eo}\psi_{o}\right)
+\psi_{e}=D_{ee}^{-1}\left(\eta_{e}+\frac{1}{2}\left(-2D_{eo}\right)\psi_{o}\right)
 \]
 
 \end_inset

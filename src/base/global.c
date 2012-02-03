@@ -53,6 +53,7 @@ int start_eo_bord_send_up[4],start_eo_bord_rece_up[4];
 int start_eo_bord_send_dw[4],start_eo_bord_rece_dw[4];
 MPI_Datatype MPI_EO_GAUGE_BORD_SEND[4],MPI_EO_GAUGE_BORD_RECE[4];
 MPI_Datatype MPI_EO_COLOR_BORD_SEND[4],MPI_EO_COLOR_BORD_RECE[4];
+MPI_Datatype MPI_EO_SPINCOLOR_BORD_SEND[4],MPI_EO_SPINCOLOR_BORD_RECE[4];
 //MPI_Datatype MPI_LXREDSPINCOLOR_BORD[4];
 
 int bord_offset_eo[2][8]; //eo, 8 dirs

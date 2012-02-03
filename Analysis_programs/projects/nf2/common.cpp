@@ -12,10 +12,12 @@ double Za_med[4]={0.746,0.746,0.772,0.780};
 double Za_err[4]={0.011,0.006,0.006,0.006};
 double Zv_med[4]={0.5816,0.6103,0.6451};
 double Zv_err[4]={0.0002,0.0003,0.0003};
+double Zp_fr_Zs_med[4]={0.580,0.626,0.686, 0.746};
+double Zp_fr_Zs_err[4]={0.017,0.013,0.012, 0.011};
 
 bool latpars_initted=false;
 
-boot lat[4],Zp[4],Za[4],Zv[4];
+boot lat[4],Zp[4],Za[4],Zv[4],Zp_fr_Zs[4];
 boot ml_phys,ms_phys,mc_phys;
 boot aml_phys[4],ams_phys[4],amc_phys[4];
 boot f0,db0;
@@ -146,8 +148,10 @@ void init_latpars()
     {
       Za[ib]=boot(nboot,njack);
       Zv[ib]=boot(nboot,njack);
+      Zp_fr_Zs[ib]=boot(nboot,njack);
       Za[ib].fill_gauss(Za_med[ib],Za_err[ib],2873246+ib);
       Zv[ib].fill_gauss(Zv_med[ib],Zv_err[ib],4334943+ib);
+      Zp_fr_Zs[ib].fill_gauss(Zp_fr_Zs_med[ib],Zp_fr_Zs_err[ib],5486357249+ib);
     }      
 }
 
