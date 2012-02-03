@@ -171,7 +171,7 @@ Define the spinor:
 \chi_{o}
 \end{array}\right)\equiv\left(\begin{array}{c}
 D_{ee}^{-1}\eta_{e}\\
-K_{oo}^{\dagger}\left(\gamma_{5}\eta_{o}-\gamma_{5}\left(-2D_{oe}\right)\chi_{e}\right)
+\gamma_{5}\eta_{o}-\gamma_{5}\left(-2D_{oe}\right)\chi_{e}
 \end{array}\right)
 \]
 
@@ -184,7 +184,15 @@ K_{oo}^{\dagger}\left(\gamma_{5}\eta_{o}-\gamma_{5}\left(-2D_{oe}\right)\chi_{e}
 Solve the problem:
 \begin_inset Formula 
 \[
-K_{oo}K_{oo}^{\dagger}\psi_{o}=\chi_{o}
+K_{oo}K_{oo}^{\dagger}\phi_{o}=\chi_{o}
+\]
+
+\end_inset
+
+and construct:
+\begin_inset Formula 
+\[
+\psi_{o}=K_{oo}^{\dagger}\phi_{o}
 \]
 
 \end_inset

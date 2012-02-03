@@ -444,7 +444,7 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
   
   direct_invert(solution_direct,glb_source,conf,kappa,mu,nitermax,residue);
-  inv_tmD_cg_eoprec_eos(solution_improved,glb_source,conf,kappa,mu,nitermax,residue);
+  inv_tmD_cg_eoprec_eos(solution_improved,glb_source,NULL,conf,kappa,mu,nitermax,residue);
 
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int id=0;id<4;id++)
