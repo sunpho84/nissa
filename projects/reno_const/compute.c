@@ -375,7 +375,7 @@ void print_propagator_subsets(int nsubset,interv *inte,char *setname,int *do_ipa
 			for(int mu=0;mu<4;mu++)
 			  {
 			    glb_ip[mu]=(glb_size[mu]+sig[mu]*sht_ip[mu])%glb_size[mu];
-			    master_printf("%d %d\n",mu,glb_ip[mu]);
+			    //master_printf("%d %d\n",mu,glb_ip[mu]);
 			  }
 			//identify the rank hosting this element
 			int hosting=rank_hosting_site_of_coord(glb_ip);
@@ -440,8 +440,16 @@ void calculate_all_2pts()
 	    ncontr_tot+=ncontr_2pts;
 	    print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1);
 	    
-	    if(rank==0) fprintf(fout,"\n");
+	    if(rank==0)
+	      fprintf(fout,"\n");
 	  }
+  
+  if(rank==0)
+    {
+      fflush(fout);
+      fclose(fout);
+    }
+  
   contr_time+=take_time();
 }
 
