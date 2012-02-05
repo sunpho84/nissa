@@ -439,11 +439,15 @@ int main(int narg,char **arg)
   //initialize solution
   spincolor *solution_direct=nissa_malloc("direct_sol",loc_vol+loc_bord,spincolor);
   spincolor *solution_improved=nissa_malloc("direct_sol",loc_vol+loc_bord,spincolor);
+  spincolor *guess=nissa_malloc("direct_sol",loc_volh+loc_bordh,spincolor);
+  memset(guess,0,loc_volh*sizeof(spincolor));
   
   ///////////////////////////////////////////
   
   direct_invert(solution_direct,glb_source,conf,kappa,mu,nitermax,residue);
-  inv_tmD_cg_eoprec_eos(solution_improved,glb_source,NULL,conf,kappa,mu,nitermax,residue);
+  inv_tmD_cg_eoprec_eos(solution_improved,glb_source,guess,conf,kappa,mu,nitermax,residue);
+  inv_tmD_cg_eoprec_eos(solution_improved,glb_source,NULL,conf,kappa,mu*1.1,nitermax,residue);
+  inv_tmD_cg_eoprec_eos(solution_improved,glb_source,guess,conf,kappa,mu*1.1,nitermax,residue);
 
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int id=0;id<4;id++)

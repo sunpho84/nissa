@@ -45,7 +45,11 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
 		  loc_delta+=c1*c1;
 		}
         MPI_Allreduce(&loc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-        if(riter==0) MPI_Allreduce(&loc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+        if(riter==0)
+	  {
+	    MPI_Allreduce(&loc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
+	  }
       }
       
       //main loop
@@ -90,6 +94,8 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
 		  p[X][id][ic][ri]=r[X][id][ic][ri]+gammag*p[X][id][ic][ri];
 	  
 	  iter++;
+
+          if(iter%10==0) master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
 	}
       while(lambda>(residue*source_norm) && iter<niter);
       
@@ -108,7 +114,8 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
 	if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else lambda=loc_lambda;
       }
-      
+      master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);
+
       riter++;
     }
   while(lambda>(residue*source_norm) && riter<rniter);

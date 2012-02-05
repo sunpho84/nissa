@@ -199,7 +199,6 @@ void paste_eo_parts_into_lx_vector(char *out_lx,char *in_ev,char *in_od,int nsit
     {
       int eo=loceo_of_loclx[loclx];
       int par=loclx_parity[loclx];
-      master_printf("%d %d %d\n",loclx,eo,par);
       memcpy(out_lx+bps*loclx,in[par]+bps*eo,bps);
     }
 }
