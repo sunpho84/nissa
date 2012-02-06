@@ -5,16 +5,17 @@ int test_eo_geometry()
 {
   const double tolerance=1.e-14;
   
-  set_eo_geometry();
+  //set_eo_geometry();
   
   //allocate lx and eo conf
   quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  quad_su3 *eo_conf[2]={nissa_malloc("eo_conf",loc_vol+loc_bord+loc_edge,quad_su3),eo_conf[0]+(loc_vol+loc_bord+loc_edge)/2};
+  quad_su3 *eo_conf[2];
+  eo_conf[0]=nissa_malloc("eo_conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  eo_conf[1]=eo_conf[0]+(loc_vol+loc_bord+loc_edge)/2;
   quad_su3 *lx_conf_reco=nissa_malloc("lx_conf_reco",loc_vol+loc_bord+loc_edge,quad_su3);
   
   //read conf, compute plaquette, print it
   read_ildg_gauge_conf(lx_conf,"../../data/L4T8conf");
-  //for(int ivol=0;ivol<loc_vol+loc_bord;ivol++) lx_conf[ivol][0][0][0][0]=glb_coord_of_loclx[ivol][0];
   communicate_lx_gauge_borders(lx_conf);
   communicate_lx_gauge_edges(lx_conf);
   
