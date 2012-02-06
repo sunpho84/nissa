@@ -99,9 +99,9 @@ int main(int narg,char **arg)
   ///////////////////////////////////////////
   
   double time0=take_time();
-  direct_invert(solution_direct,glb_source,conf,kappa,mu,nitermax,residue);
-  double time1=take_time();
   inv_tmD_cg_eoprec_eos(solution_improved,glb_source,guess,conf,kappa,mu,nitermax,residue);
+  double time1=take_time();
+  direct_invert(solution_direct,glb_source,conf,kappa,mu,nitermax,residue);
   double time2=take_time();
   
   double loc_nd=0,glb_nd;
@@ -113,7 +113,7 @@ int main(int narg,char **arg)
   MPI_Allreduce(&loc_nd,&glb_nd,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   
   master_printf("Diff: %lg\n",glb_nd/(glb_vol*4*3*2));
-  master_printf("Time:\nDirect: %lg sec\nInvers: %lg sec\n",time1-time0,time2-time1);
+  master_printf("Time:\nDirect: %lg sec\nInvers: %lg sec\n",time2-time1,time1-time0);
   
   ///////////////////////////////////////////
 
