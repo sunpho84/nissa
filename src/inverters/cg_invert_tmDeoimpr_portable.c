@@ -131,14 +131,20 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
 void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *source_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mu,int nitermax,double residue)
 {
   //prepare the e/o split version of the source
-  spincolor *source_eos[2]={nissa_malloc("source_eos",loc_vol+loc_bord,spincolor),source_eos[0]+loc_volh+loc_bordh};
+  spincolor *source_eos[2];
+  source_eos[0]=nissa_malloc("source_eos",loc_vol+loc_bord,spincolor);
+  source_eos[1]=source_eos[0]+loc_volh+loc_bordh;
   split_lx_spincolor_into_eo_parts(source_eos,source_lx,loc_vol);
   
   //prepare the e/o split version of the solution
-  spincolor *solution_eos[2]={nissa_malloc("solution_eos",loc_vol+loc_bord,spincolor),solution_eos[0]+loc_volh+loc_bordh};
+  spincolor *solution_eos[2];
+  solution_eos[0]=nissa_malloc("solution_eos",loc_vol+loc_bord,spincolor);
+  solution_eos[1]=solution_eos[0]+loc_volh+loc_bordh;
   
   //prepare the e/o split version of the conf
-  quad_su3 *conf_eos[2]={nissa_malloc("conf_eos",loc_vol+loc_bord,quad_su3),conf_eos[0]+loc_volh+loc_bordh};
+  quad_su3 *conf_eos[2];
+  conf_eos[0]=nissa_malloc("conf_eos",loc_vol+loc_bord,quad_su3);
+  conf_eos[1]=conf_eos[0]+loc_volh+loc_bordh;
   communicate_lx_gauge_borders(conf_lx);
   split_lx_conf_into_eo_parts(conf_eos,conf_lx,loc_vol+loc_bord);
   
