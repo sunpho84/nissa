@@ -361,11 +361,9 @@ void init_grid(int T,int L)
   set_lx_edge_senders_and_receivers(MPI_LX_GAUGE_EDGE_SEND,MPI_LX_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
   set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_BORD_SEND,MPI_LX_SPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
 
-  set_eo_bord_senders_and_receivers(MPI_EO_GAUGE_BORD_SEND,MPI_EO_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
-  set_eo_bord_senders_and_receivers(MPI_EO_COLOR_BORD_SEND,MPI_EO_COLOR_BORD_RECE,&MPI_COLOR);
-  set_eo_bord_senders_and_receivers(MPI_EO_SPINCOLOR_BORD_SEND,MPI_EO_SPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
-  
-  //initialize_lx_bord_receivers_of_kind(MPI_LXREDSPINCOLOR_BORD,&MPI_REDSPINCOLOR);
+  set_eo_bord_senders_and_receivers(MPI_EO_GAUGE_BORD_SEND_TXY,MPI_EV_GAUGE_BORD_SEND_Z,MPI_EO_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
+  set_eo_bord_senders_and_receivers(MPI_EO_COLOR_BORD_SEND_TXY,MPI_EV_COLOR_BORD_SEND_Z,MPI_EO_COLOR_BORD_RECE,&MPI_COLOR);
+  set_eo_bord_senders_and_receivers(MPI_EO_SPINCOLOR_BORD_SEND_TXY,MPI_EV_SPINCOLOR_BORD_SEND_Z,MPI_EO_SPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
   
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());

@@ -168,76 +168,138 @@ void communicate_lx_spincolor_borders(spincolor *s)
 ///////////////////////////////////////////////// even/odd split vectors communicators ///////////////////////////////////
 
 //Send the borders of the data
-void communicate_ev_borders(char *ev_data,MPI_Datatype *MPI_EV_BORD_SEND,MPI_Datatype *MPI_EV_BORD_RECE,int nbytes_per_site)
+void communicate_ev_borders(char *ev_data,MPI_Datatype *MPI_EV_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *MPI_EV_BORD_RECE,int nbytes_per_site)
 {
-  if(debug_lvl>1) check_borders_allocated(ev_data);
-  
   int nrequest=0;
   MPI_Request request[16];
   MPI_Status status[16];
 
-  for(int mu=0;mu<4;mu++)
+  for(int mu=0;mu<3;mu++)
     if(paral_dir[mu]!=0)
       {
 	//sending the upper border to the lower node
-	MPI_Irecv((void*)(ev_data+start_eo_bord_rece_up[mu]*nbytes_per_site),1,MPI_EV_BORD_RECE[mu],rank_neighup[mu],83+mu,
-		  cart_comm,&request[nrequest++]);
-	MPI_Isend((void*)(ev_data+start_eo_bord_send_up[mu]*nbytes_per_site),1,MPI_EV_BORD_SEND[mu],rank_neighdw[mu],83+mu,
-		  cart_comm,&request[nrequest++]);
+	MPI_Irecv((void*)(ev_data+start_eo_bord_rece_up[mu]*nbytes_per_site),1,MPI_EV_BORD_RECE[mu],rank_neighup[mu],83+mu,cart_comm,&request[nrequest++]);
+	MPI_Isend((void*)(ev_data+start_eo_bord_send_up[mu]*nbytes_per_site),1,MPI_EV_BORD_SEND_TXY[mu],rank_neighdw[mu],83+mu,cart_comm,&request[nrequest++]);
 	
 	//sending the lower border to the upper node
-	MPI_Irecv((void*)(ev_data+start_eo_bord_rece_dw[mu]*nbytes_per_site),1,MPI_EV_BORD_RECE[mu],rank_neighdw[mu],91+mu, 
-		  cart_comm,&request[nrequest++]);
-	MPI_Isend((void*)(ev_data+start_eo_bord_send_dw[mu]*nbytes_per_site),1,MPI_EV_BORD_SEND[mu],rank_neighup[mu],91+mu,
-		  cart_comm,&request[nrequest++]);
+	MPI_Irecv((void*)(ev_data+start_eo_bord_rece_dw[mu]*nbytes_per_site),1,MPI_EV_BORD_RECE[mu],rank_neighdw[mu],91+mu,cart_comm,&request[nrequest++]);
+	MPI_Isend((void*)(ev_data+start_eo_bord_send_dw[mu]*nbytes_per_site),1,MPI_EV_BORD_SEND_TXY[mu],rank_neighup[mu],91+mu,cart_comm,&request[nrequest++]);
       }
+  
+  if(paral_dir[3]!=0)
+    {
+      //sending the upper border to the lower node
+      MPI_Irecv((void*)(ev_data+start_eo_bord_rece_up[3]*nbytes_per_site),1,MPI_EV_BORD_RECE[3],rank_neighup[3],86,cart_comm,&request[nrequest++]);
+      MPI_Isend((void*)ev_data,1,MPI_EV_BORD_SEND_Z[0],rank_neighdw[3],86,cart_comm,&request[nrequest++]);
+      
+      //sending the lower border to the upper node
+      MPI_Irecv((void*)(ev_data+start_eo_bord_rece_dw[3]*nbytes_per_site),1,MPI_EV_BORD_RECE[3],rank_neighdw[3],94,cart_comm,&request[nrequest++]);
+      MPI_Isend((void*)ev_data,1,MPI_EV_BORD_SEND_Z[1],rank_neighup[3],94,cart_comm,&request[nrequest++]);
+    }
   
   if(nrequest>0) MPI_Waitall(nrequest,request,status);
 }
 
 //Send the borders of the data
-void communicate_eo_borders(char *ev_data,char *od_data,MPI_Datatype *MPI_EO_BORD_SEND,MPI_Datatype *MPI_EO_BORD_RECE,int nbytes_per_site)
+void communicate_od_borders(char *od_data,MPI_Datatype *MPI_EV_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *MPI_EV_BORD_RECE,int nbytes_per_site)
+{
+  int nrequest=0;
+  MPI_Request request[16];
+  MPI_Status status[16];
+
+  for(int mu=0;mu<3;mu++)
+    if(paral_dir[mu]!=0)
+      {
+	//sending the upper border to the lower node
+	MPI_Irecv((void*)(od_data+start_eo_bord_rece_up[mu]*nbytes_per_site),1,MPI_EV_BORD_RECE[mu],rank_neighup[mu],83+mu,cart_comm,&request[nrequest++]);
+	MPI_Isend((void*)(od_data+start_eo_bord_send_up[mu]*nbytes_per_site),1,MPI_EV_BORD_SEND_TXY[mu],rank_neighdw[mu],83+mu,cart_comm,&request[nrequest++]);
+	
+	//sending the lower border to the upper node
+	MPI_Irecv((void*)(od_data+start_eo_bord_rece_dw[mu]*nbytes_per_site),1,MPI_EV_BORD_RECE[mu],rank_neighdw[mu],91+mu,cart_comm,&request[nrequest++]);
+	MPI_Isend((void*)(od_data+start_eo_bord_send_dw[mu]*nbytes_per_site),1,MPI_EV_BORD_SEND_TXY[mu],rank_neighup[mu],91+mu,cart_comm,&request[nrequest++]);
+      }
+  
+  if(paral_dir[3]!=0)
+    {
+      int size_recv,size_send0,size_send1;
+      MPI_Type_size(MPI_EV_BORD_RECE[3],&size_recv);
+      MPI_Type_size(MPI_EV_BORD_SEND_Z[0],&size_send0);
+      MPI_Type_size(MPI_EV_BORD_SEND_Z[1],&size_send1);
+      
+      //sending the upper border to the lower node
+      MPI_Irecv((void*)(od_data+start_eo_bord_rece_up[3]*nbytes_per_site),1,MPI_EV_BORD_RECE[3],rank_neighup[3],86,cart_comm,&request[nrequest++]);
+      MPI_Isend((void*)od_data,1,MPI_EV_BORD_SEND_Z[1],rank_neighdw[3],86,cart_comm,&request[nrequest++]);
+      
+      //sending the lower border to the upper node
+      MPI_Irecv((void*)(od_data+start_eo_bord_rece_dw[3]*nbytes_per_site),1,MPI_EV_BORD_RECE[3],rank_neighdw[3],94,cart_comm,&request[nrequest++]);
+      MPI_Isend((void*)od_data,1,MPI_EV_BORD_SEND_Z[0],rank_neighup[3],94,cart_comm,&request[nrequest++]);
+    }
+  
+  if(nrequest>0) MPI_Waitall(nrequest,request,status);
+}
+
+//Send the borders of the data
+void communicate_eo_borders(char *ev_data,char *od_data,MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *MPI_EO_BORD_RECE,int nbytes_per_site)
 {
   char *data[2]={ev_data,od_data};
-  
-  if(debug_lvl>1) check_borders_allocated(data);
   
   int nrequest=0;
   MPI_Request request[32];
   MPI_Status status[32];
 
   for(int par=0;par<2;par++)
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<3;mu++)
       if(paral_dir[mu]!=0)
 	{
 	  //sending the upper border to the lower node
 	  MPI_Irecv((void*)(data[par]+start_eo_bord_rece_up[mu]*nbytes_per_site),1,MPI_EO_BORD_RECE[mu],rank_neighup[mu],83+par*4+mu,
 		    cart_comm,&request[nrequest++]);
-	  MPI_Isend((void*)(data[par]+start_eo_bord_send_up[mu]*nbytes_per_site),1,MPI_EO_BORD_SEND[mu],rank_neighdw[mu],83+par*4+mu,
+	  MPI_Isend((void*)(data[par]+start_eo_bord_send_up[mu]*nbytes_per_site),1,MPI_EO_BORD_SEND_TXY[mu],rank_neighdw[mu],83+par*4+mu,
 		    cart_comm,&request[nrequest++]);
 	  
 	  //sending the lower border to the upper node
 	  MPI_Irecv((void*)(data[par]+start_eo_bord_rece_dw[mu]*nbytes_per_site),1,MPI_EO_BORD_RECE[mu],rank_neighdw[mu],91+par*4+mu, 
 		    cart_comm,&request[nrequest++]);
-	  MPI_Isend((void*)(data[par]+start_eo_bord_send_dw[mu]*nbytes_per_site),1,MPI_EO_BORD_SEND[mu],rank_neighup[mu],91+par*4+mu,
+	  MPI_Isend((void*)(data[par]+start_eo_bord_send_dw[mu]*nbytes_per_site),1,MPI_EO_BORD_SEND_TXY[mu],rank_neighup[mu],91+par*4+mu,
 		    cart_comm,&request[nrequest++]);
 	}
+  
+  if(paral_dir[3]!=0)
+    {
+      //sending the upper border to the lower node
+      MPI_Irecv((void*)(ev_data+start_eo_bord_rece_up[3]*nbytes_per_site),1,MPI_EO_BORD_RECE[3],rank_neighup[3],86,cart_comm,&request[nrequest++]);
+      MPI_Isend((void*)ev_data,1,MPI_EV_BORD_SEND_Z[0],rank_neighdw[3],86,cart_comm,&request[nrequest++]);
+
+      //sending the lower border to the upper node
+      MPI_Irecv((void*)(ev_data+start_eo_bord_rece_dw[3]*nbytes_per_site),1,MPI_EO_BORD_RECE[3],rank_neighdw[3],94,cart_comm,&request[nrequest++]);
+      MPI_Isend((void*)ev_data,1,MPI_EV_BORD_SEND_Z[1],rank_neighup[3],94,cart_comm,&request[nrequest++]);
+      
+      //sending the upper border to the lower node
+      MPI_Irecv((void*)(od_data+start_eo_bord_rece_up[3]*nbytes_per_site),1,MPI_EO_BORD_RECE[3],rank_neighup[3],90,cart_comm,&request[nrequest++]);
+      MPI_Isend((void*)od_data,1,MPI_EV_BORD_SEND_Z[1],rank_neighdw[3],90,cart_comm,&request[nrequest++]);
+      
+      //sending the lower border to the upper node
+      MPI_Irecv((void*)(od_data+start_eo_bord_rece_dw[3]*nbytes_per_site),1,MPI_EO_BORD_RECE[3],rank_neighdw[3],98,cart_comm,&request[nrequest++]);
+      MPI_Isend((void*)od_data,1,MPI_EV_BORD_SEND_Z[0],rank_neighup[3],98,cart_comm,&request[nrequest++]);
+    }
   
   if(nrequest>0) MPI_Waitall(nrequest,request,status);
 }
 
 //Send the borders of the gauge configuration
 void communicate_eo_gauge_borders(quad_su3 *ev_conf,quad_su3 *od_conf)
-{communicate_eo_borders((char*)ev_conf,(char*)od_conf,MPI_EO_GAUGE_BORD_SEND,MPI_EO_GAUGE_BORD_RECE,sizeof(quad_su3));}
+{communicate_eo_borders((char*)ev_conf,(char*)od_conf,MPI_EO_GAUGE_BORD_SEND_TXY,MPI_EV_GAUGE_BORD_SEND_Z,MPI_EO_GAUGE_BORD_RECE,sizeof(quad_su3));}
 
 //Send the borders of an even color
 void communicate_ev_color_borders(color *ev)
-{communicate_ev_borders((char*)ev,MPI_EO_COLOR_BORD_SEND,MPI_EO_COLOR_BORD_RECE,sizeof(color));}
-void communicate_od_color_borders(color *ev)
-{communicate_ev_borders((char*)ev,MPI_EO_COLOR_BORD_SEND,MPI_EO_COLOR_BORD_RECE,sizeof(color));}
+{communicate_ev_borders((char*)ev,MPI_EO_COLOR_BORD_SEND_TXY,MPI_EV_COLOR_BORD_SEND_Z,MPI_EO_COLOR_BORD_RECE,sizeof(color));}
+void communicate_od_color_borders(color *od)
+{communicate_od_borders((char*)od,MPI_EO_COLOR_BORD_SEND_TXY,MPI_EV_COLOR_BORD_SEND_Z,MPI_EO_COLOR_BORD_RECE,sizeof(color));}
+void communicate_eo_color_borders(color *ev,color *od)
+{communicate_eo_borders((char*)ev,(char*)od,MPI_EO_COLOR_BORD_SEND_TXY,MPI_EV_COLOR_BORD_SEND_Z,MPI_EO_COLOR_BORD_RECE,sizeof(color));}
 
 //Send the borders of an even spincolor
 void communicate_ev_spincolor_borders(spincolor *ev)
-{communicate_ev_borders((char*)ev,MPI_EO_SPINCOLOR_BORD_SEND,MPI_EO_SPINCOLOR_BORD_RECE,sizeof(spincolor));}
-void communicate_od_spincolor_borders(spincolor *ev)
-{communicate_ev_borders((char*)ev,MPI_EO_SPINCOLOR_BORD_SEND,MPI_EO_SPINCOLOR_BORD_RECE,sizeof(spincolor));}
+{communicate_ev_borders((char*)ev,MPI_EO_SPINCOLOR_BORD_SEND_TXY,MPI_EV_SPINCOLOR_BORD_SEND_Z,MPI_EO_SPINCOLOR_BORD_RECE,sizeof(spincolor));}
+void communicate_od_spincolor_borders(spincolor *od)
+{communicate_od_borders((char*)od,MPI_EO_SPINCOLOR_BORD_SEND_TXY,MPI_EV_SPINCOLOR_BORD_SEND_Z,MPI_EO_SPINCOLOR_BORD_RECE,sizeof(spincolor));}

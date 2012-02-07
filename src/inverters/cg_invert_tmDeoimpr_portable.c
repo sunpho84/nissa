@@ -150,7 +150,7 @@ void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *source_lx,spincolor
   
   ///////////////////////////////////// invert with e/o improvement ///////////////////////////////////
   
-  spincolor *varphi=nissa_malloc("varphi",loc_volh,spincolor);
+  spincolor *varphi=nissa_malloc("varphi",loc_volh+loc_bordh,spincolor);
   
   //Equation (8.a)
   spincolor *temp=nissa_malloc("temp",loc_volh+loc_bordh,spincolor);
