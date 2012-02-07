@@ -13,7 +13,7 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
   spincolor *s=nissa_malloc("s",loc_volh,spincolor);
   spincolor *temp1=nissa_malloc("temp1",loc_volh+loc_bordh,spincolor);
   spincolor *temp2=nissa_malloc("temp2",loc_volh+loc_bordh,spincolor);
-
+  
   ///////////////// prepare the internal source /////////////////
   
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_volh+loc_bordh));
@@ -22,7 +22,7 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
       communicate_od_spincolor_borders(guess);
       memcpy(sol,guess,sizeof(spincolor)*(loc_volh+loc_bordh));
     }
-
+  
   //external loop, used if the internal exceed the maximal number of iterations
   double lambda; //(r_(k+1),r_(k+1))
   double source_norm;
@@ -48,7 +48,7 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
         if(riter==0)
 	  {
 	    MPI_Allreduce(&loc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	    master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
+	    master_printf("\niter 0 relative residue: %lg\n",delta/source_norm);
 	  }
       }
       
