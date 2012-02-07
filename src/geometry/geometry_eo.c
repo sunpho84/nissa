@@ -86,7 +86,7 @@ void set_eo_geometry()
 }
 
 //definitions of e/o split sender for borders
-void initialize_eo_bord_senders_of_kind(MPI_Datatype *MPI_EO_BORD_SEND,MPI_Datatype *base)
+void initialize_eo_bord_senders_of_kind(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *base)
 {
   //Various type useful for edges and sub-borders
   MPI_Datatype MPI_EO_3_SLICE;
@@ -95,13 +95,38 @@ void initialize_eo_bord_senders_of_kind(MPI_Datatype *MPI_EO_BORD_SEND,MPI_Datat
   MPI_Type_contiguous(loc_size[2]*loc_size[3]/2,*base,&MPI_EO_23_SLICE);
 
   ///////////define the sender for the 4 kinds of borders////////////
-  MPI_Type_contiguous(loc_size[1]*loc_size[2]*loc_size[3]/2,*base,&(MPI_EO_BORD_SEND[0]));
-  MPI_Type_vector(loc_size[0],1,loc_size[1],MPI_EO_23_SLICE,&(MPI_EO_BORD_SEND[1]));
-  MPI_Type_vector(loc_size[0]*loc_size[1],1,loc_size[2],MPI_EO_3_SLICE,&(MPI_EO_BORD_SEND[2]));
-  MPI_Type_commit(&(MPI_EO_BORD_SEND[2]));
-  MPI_Type_vector(loc_size[0]*loc_size[1]*loc_size[2],1,loc_size[3]/2,*base,&(MPI_EO_BORD_SEND[3]));
+  MPI_Type_contiguous(loc_size[1]*loc_size[2]*loc_size[3]/2,*base,&(MPI_EO_BORD_SEND_TXY[0]));
+  MPI_Type_vector(loc_size[0],1,loc_size[1],MPI_EO_23_SLICE,&(MPI_EO_BORD_SEND_TXY[1]));
+  MPI_Type_vector(loc_size[0]*loc_size[1],1,loc_size[2],MPI_EO_3_SLICE,&(MPI_EO_BORD_SEND_TXY[2]));
   //Commit
-  for(int ibord=0;ibord<4;ibord++) MPI_Type_commit(&(MPI_EO_BORD_SEND[ibord]));
+  for(int ibord=0;ibord<3;ibord++) MPI_Type_commit(&(MPI_EO_BORD_SEND_TXY[ibord]));
+  
+  //the z sending border is a mess
+  int ev_bord_z_size=loc_vol/2/loc_size[3];
+  int *ev_bord_z_pos_disp_dw=nissa_malloc("ev_bord_z_disp_dw",ev_bord_z_size,int);
+  int *ev_bord_z_pos_disp_up=nissa_malloc("ev_bord_z_disp_up",ev_bord_z_size,int);
+  int *single=nissa_malloc("single",ev_bord_z_size,int);
+  int izdw=0,izup=0;
+  for(int ieo=0;ieo<loc_volh;ieo++)
+    {
+      int ilx=loclx_of_loceo[0][ieo];
+      int x3=loc_coord_of_loclx[ilx][3];
+      if(x3==0)             ev_bord_z_pos_disp_dw[izdw++]=ieo;
+      if(x3==loc_size[3]-1) ev_bord_z_pos_disp_up[izup++]=ieo;
+    }
+  for(int ibord_z=0;ibord_z<ev_bord_z_size;ibord_z++)
+    single[ibord_z]=1;
+  
+  MPI_Type_indexed(ev_bord_z_size,single,ev_bord_z_pos_disp_dw,*base,&(MPI_EV_BORD_SEND_Z[0]));
+  MPI_Type_indexed(ev_bord_z_size,single,ev_bord_z_pos_disp_up,*base,&(MPI_EV_BORD_SEND_Z[1]));
+  
+  //commit the mess
+  MPI_Type_commit(&(MPI_EV_BORD_SEND_Z[0]));
+  MPI_Type_commit(&(MPI_EV_BORD_SEND_Z[1]));
+  
+  nissa_free(single);
+  nissa_free(ev_bord_z_pos_disp_dw);
+  nissa_free(ev_bord_z_pos_disp_up);
 }
 
 //definitions of e/o split receivers for borders
@@ -116,26 +141,11 @@ void initialize_eo_bord_receivers_of_kind(MPI_Datatype *MPI_EO_BORD_RECE,MPI_Dat
 }
 
 //initalize senders and receivers for borders of e/o split ordered vectors
-void set_eo_bord_senders_and_receivers(MPI_Datatype *MPI_EO_BORD_SEND,MPI_Datatype *MPI_EO_BORD_RECE,MPI_Datatype *base)
+void set_eo_bord_senders_and_receivers(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Datatype *MPI_EO_BORD_SEND_Z,MPI_Datatype *MPI_EO_BORD_RECE,MPI_Datatype *base)
 {
-  initialize_eo_bord_senders_of_kind(MPI_EO_BORD_SEND,base);
+  initialize_eo_bord_senders_of_kind(MPI_EO_BORD_SEND_TXY,MPI_EO_BORD_SEND_Z,base);
   initialize_eo_bord_receivers_of_kind(MPI_EO_BORD_RECE,base);
 }
-
-/*
-//definitions of lexical ordered receivers for edges
-void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base)
-{
-  //define the 6 edges receivers, which are contiguous in memory
-  MPI_Type_contiguous(loc_size[2]*loc_size[3],*base,&(MPI_EDGE_RECE[0]));
-  MPI_Type_contiguous(loc_size[1]*loc_size[3],*base,&(MPI_EDGE_RECE[1]));
-  MPI_Type_contiguous(loc_size[1]*loc_size[2],*base,&(MPI_EDGE_RECE[2]));
-  MPI_Type_contiguous(loc_size[0]*loc_size[3],*base,&(MPI_EDGE_RECE[3]));
-  MPI_Type_contiguous(loc_size[0]*loc_size[2],*base,&(MPI_EDGE_RECE[4]));
-  MPI_Type_contiguous(loc_size[0]*loc_size[1],*base,&(MPI_EDGE_RECE[5]));
-  for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGE_RECE[iedge]));
-}
-*/
 
 void unset_eo_geometry()
 {

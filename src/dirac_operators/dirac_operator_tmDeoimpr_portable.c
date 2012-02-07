@@ -8,7 +8,8 @@ void tmn2Deo_or_tmn2Doe_eos(spincolor *out,spincolor *in,quad_su3 **conf,int eoo
 {
   int Xup,Xdw;
   
-  communicate_od_spincolor_borders(in);
+  if(eooe==0) communicate_od_spincolor_borders(in);
+  else        communicate_ev_spincolor_borders(in);
   
   for(int X=0;X<loc_volh;X++)
     {
