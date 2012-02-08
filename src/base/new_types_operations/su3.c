@@ -556,9 +556,9 @@ void spincolor_prod_double(spincolor out,spincolor in,double factor)
 
 //spincolor*complex
 void unsafe_spincolor_prod_complex(spincolor out,spincolor in,complex factor)
-{for(int i=0;i<12;i++) safe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+{for(int i=0;i<12;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
 void safe_spincolor_prod_complex(spincolor out,spincolor in,complex factor)
-{spincolor t;unsafe_spincolor_prod_complex(t,in,factor);}
+{for(int i=0;i<12;i++) safe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
 
 //spincolor+spincolor*complex
 void spincolor_summ_the_prod_complex(spincolor out,spincolor in,complex factor)

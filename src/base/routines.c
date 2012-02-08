@@ -141,7 +141,7 @@ int master_fprintf(FILE *stream,const char *format,...)
 double lfact(double n)
 {
   double log_factn=0;
-  for(int i=1;i<=n;i++) log_factn+=logf(i);
+  for(int i=1;i<=n;i++) log_factn+=log(i);
   return log_factn;
 }
 

@@ -526,20 +526,20 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
     {
       int npr_combo_cur_rank=(plan_rank[0]<nrank_x0_tbu-1) ? npr_combo_per_rank_x0 : npr_combo_lst_rank_x0;
       int npart_corr_cur_rank=npr_combo_cur_rank*ncontr;
-      int loc_buf_size=npart_corr_cur_rank*loc_size[0];
+      int buf_size=npart_corr_cur_rank*loc_size[0];
       
       if(line_rank[0]!=0)
       	//on non-master node send data
-	MPI_Send((void*)glb_contr,loc_buf_size,MPI_DOUBLE_COMPLEX,0,786+line_rank[0],line_comm[0]);
+	MPI_Send((void*)glb_contr,buf_size,MPI_DOUBLE_COMPLEX,0,786+line_rank[0],line_comm[0]);
       else
 	{
 	  //on global master node open incoming communications
 	  MPI_Request request[nrank_dir[0]];
 	  for(int trank=1;trank<nrank_dir[0];trank++)
-	    MPI_Irecv((void*)(glb_contr+loc_buf_size*trank),loc_buf_size,MPI_DOUBLE_COMPLEX,trank,786+trank,line_comm[0],&request[trank-1]);
+	    MPI_Irecv((void*)(glb_contr+buf_size*trank),buf_size,MPI_DOUBLE_COMPLEX,trank,786+trank,line_comm[0],&request[trank-1]);
 	  
 	  //prepare final reordering: transpose t with all the other indices and shift backward of twall
-	  int *ord=nissa_malloc("reord",loc_buf_size*nrank_dir[0],int);
+	  int *ord=nissa_malloc("reord",buf_size*nrank_dir[0],int);
 	  for(int trank=0;trank<nrank_dir[0];trank++)
 	    for(int icorr=0;icorr<npart_corr_cur_rank;icorr++)
 	      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
@@ -561,7 +561,7 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 	  
 	  //reorder the received buffer
 	  //master_printf("Reordering data\n");
-	  reorder_vector((char*)glb_contr,ord,loc_buf_size*nrank_dir[0],sizeof(complex));
+	  reorder_vector((char*)glb_contr,ord,buf_size*nrank_dir[0],sizeof(complex));
 	  nissa_free(ord);
 	  //master_printf("Data reordered\n");
 	}

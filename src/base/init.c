@@ -303,7 +303,7 @@ void init_grid(int T,int L)
 	for(int idir=0;idir<4;idir++)
 	  printf("Border offset for dir %d: %d\n",idir,bord_offset[idir]);
       if(debug_lvl>2)
-	for(int iedge=0;iedge<6;iedge++)
+	for(iedge=0;iedge<6;iedge++)
 	  printf("Border offset for edge %d: %d\n",iedge,edge_offset[iedge]);
     }
   
