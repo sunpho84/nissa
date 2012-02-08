@@ -161,12 +161,14 @@ void generate_sequential_source(colorspinspin *S0)
   smear_colorspinspin(sequential_source,sequential_source);
   smear_colorspinspin(sequential_source,sequential_source);
   
-  master_printf("Sequential source created\n\n");
+  master_printf("Sequential source created!\n\n");
 }  
 
 //Parse all the input file
 void initialize_semileptonic(char *input_path)
 {
+  tot_time-=take_time();
+  
   open_input(input_path);
 
   // 1) Read information about the gauge conf
@@ -331,6 +333,8 @@ void setup_conf()
 //Finalization
 void close_semileptonic()
 {
+  tot_time+=take_time();
+
   contr_time=contr_2pts_time+contr_3pts_time+contr_save_time;
   
   master_printf("\n");
@@ -424,13 +428,13 @@ void calculate_all_2pts(colorspinspin *SA,colorspinspin *SB,double SA_mass,doubl
   contr_2pts_time-=take_time();
 
   meson_two_points(contr_2pts,op1_2pts,SA,op2_2pts,SB,ncontr_2pts);
+  ncontr_tot+=ncontr_2pts;
   
   char path[1024];
   sprintf(path,"%s/2pts_%s",outfolder,tag);
   FILE *fout=open_text_file_for_output(path);
 
-  if(rank==0) fprintf(fout," # mA=%f, mB=%f",SA_mass,SB_mass);
-  ncontr_tot+=ncontr_2pts;
+  if(rank==0) fprintf(fout," # mA=%f, mB=%f\n",SA_mass,SB_mass);
       
   contr_save_time-=take_time();
   print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
@@ -451,14 +455,13 @@ void calculate_all_3pts(colorspinspin *S0,colorspinspin *S1,double S0_mass,doubl
   contr_3pts_time-=take_time();
   
   meson_two_points(contr_3pts,op1_3pts,S0,op2_3pts,S1,ncontr_3pts);
+  ncontr_tot+=ncontr_3pts;
   
   char path[1024];
   sprintf(path,"%s/3pts_%s",outfolder,tag);
   FILE *fout=open_text_file_for_output(path);
   
-  if(rank==0) fprintf(fout," # S0_mass=%f , S1_mass=%f ,",S0_mass,S1_mass);
-  
-  ncontr_tot+=ncontr_3pts;
+  if(rank==0) fprintf(fout," # S0_mass=%f , S1_mass=%f\n",S0_mass,S1_mass);
   
   contr_save_time-=take_time();
   print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"",1.0);
@@ -499,7 +502,6 @@ int main(int narg,char **arg)
 
   if(narg<2) crash("Use: %s input_file",arg[0]);
 
-  tot_time-=take_time();
   initialize_semileptonic(arg[1]);
   
   int iconf=0,enough_time=1;
@@ -513,13 +515,12 @@ int main(int narg,char **arg)
       calculate_S0(S0L,lmass);
       calculate_S0(S0C,cmass);
       
-      calculate_all_2pts(S0L,S0L,lmass,lmass,"ll");
-      calculate_all_2pts(S0L,S0C,lmass,cmass,"lc");
-      calculate_all_2pts(S0C,S0C,cmass,cmass,"cc");
+      calculate_all_2pts(S0L,S0L,lmass,lmass,"ll_sl");
+      calculate_all_2pts(S0L,S0C,lmass,cmass,"lc_sl");
+      calculate_all_2pts(S0C,S0C,cmass,cmass,"cc_sl");
       
       ////////////////// moving three points /////////////////
       
-      //adapt the border condition
       put_theta[1]=put_theta[2]=put_theta[3]=theta;
       adapt_theta(conf,old_theta,put_theta,1,1);
       
@@ -529,14 +530,23 @@ int main(int narg,char **arg)
       calculate_all_3pts(S0L,S1CL,lmass,lmass,"charm_spec");
       calculate_all_3pts(S0C,S1LC,cmass,cmass,"light_spec");
       
-      nanalized_conf++;
+      /////////////// standing smeared two points ////////////
       
+      smear_colorspinspin(S0L,S0L);
+      smear_colorspinspin(S0C,S0C);
+      
+      calculate_all_2pts(S0L,S0L,lmass,lmass,"ll_ss");
+      calculate_all_2pts(S0L,S0C,lmass,cmass,"lc_ss");
+      calculate_all_2pts(S0C,S0C,cmass,cmass,"cc_ss");
+      
+      ////////////////////////////////////////////////////////
+      
+      nanalized_conf++;      
       enough_time=check_remaining_time();
     }
   
   if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
   
-  tot_time+=take_time();
   close_semileptonic();
   
   return 0;
