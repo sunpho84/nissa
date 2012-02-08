@@ -436,7 +436,11 @@ void calculate_all_2pts(colorspinspin *SA,colorspinspin *SB,double SA_mass,doubl
   print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
   contr_save_time+=take_time();
   
-  if(rank==0) fprintf(fout,"\n");
+  if(rank==0)
+    {
+      fprintf(fout,"\n");
+      fclose(fout);
+    }
   
   contr_2pts_time+=take_time();
 }
@@ -444,28 +448,29 @@ void calculate_all_2pts(colorspinspin *SA,colorspinspin *SB,double SA_mass,doubl
 //Calculate and print to file the 3pts
 void calculate_all_3pts(colorspinspin *S0,colorspinspin *S1,double S0_mass,double S1_mass,const char *tag)
 {
-  char path[1024];
-  
-  sprintf(path,"%s/3pts_%s",outfolder,tag);
-
-  FILE *fout=open_text_file_for_output(path);
- 
   contr_3pts_time-=take_time();
+  
+  meson_two_points(contr_3pts,op1_3pts,S0,op2_3pts,S1,ncontr_3pts);
+  
+  char path[1024];
+  sprintf(path,"%s/3pts_%s",outfolder,tag);
+  FILE *fout=open_text_file_for_output(path);
   
   if(rank==0) fprintf(fout," # S0_mass=%f , S1_mass=%f ,",S0_mass,S1_mass);
   
-  meson_two_points(contr_3pts,op1_3pts,S0,op2_3pts,S1,ncontr_3pts);
   ncontr_tot+=ncontr_3pts;
   
   contr_save_time-=take_time();
   print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"",1.0);
   contr_save_time+=take_time();
   
-  if(rank==0) fprintf(fout,"\n");
+  if(rank==0)
+    {
+      fprintf(fout,"\n");
+      fclose(fout);
+    }
   
   contr_3pts_time+=take_time();
-  
-  if(rank==0) fclose(fout);
 }
 
 //check if the time is enough

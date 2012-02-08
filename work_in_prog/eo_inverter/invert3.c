@@ -15,7 +15,8 @@ void direct_invert(spincolor *solution,spincolor *source,quad_su3 *conf,double k
 {
   spincolor *temp_source=nissa_malloc("temp_source",loc_vol+loc_bord,spincolor);
   spincolor *solutionQ2=nissa_malloc("solutionQ2",loc_vol+loc_bord,spincolor);
-
+  
+  master_printf("Direct inversion\n");
   gamma5(temp_source,source);
   inv_tmQ2_cg(solutionQ2,temp_source,NULL,conf,kappa,mu,nitermax,1,residue);
   apply_tmQ(solution,solutionQ2,conf,kappa,-mu);
