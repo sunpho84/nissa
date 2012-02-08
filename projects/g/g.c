@@ -423,23 +423,20 @@ void calculate_all_2pts(colorspinspin *SA,colorspinspin *SB,double SA_mass,doubl
 {
   contr_2pts_time-=take_time();
 
+  meson_two_points(contr_2pts,op1_2pts,SA,op2_2pts,SB,ncontr_2pts);
+  
   char path[1024];
   sprintf(path,"%s/2pts_%s",outfolder,tag);
   FILE *fout=open_text_file_for_output(path);
 
-  if(rank==0)
-    {
-      fprintf(fout," # mA=%f, mB=%f",SA_mass,SB_mass);
+  if(rank==0) fprintf(fout," # mA=%f, mB=%f",SA_mass,SB_mass);
+  ncontr_tot+=ncontr_2pts;
       
-      meson_two_points(contr_2pts,op1_2pts,SA,op2_2pts,SB,ncontr_2pts);
-      ncontr_tot+=ncontr_2pts;
-      
-      contr_save_time-=take_time();
-      print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
-      contr_save_time+=take_time();
-      
-      if(rank==0) fprintf(fout,"\n");
-    }
+  contr_save_time-=take_time();
+  print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
+  contr_save_time+=take_time();
+  
+  if(rank==0) fprintf(fout,"\n");
   
   contr_2pts_time+=take_time();
 }
