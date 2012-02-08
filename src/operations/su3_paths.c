@@ -87,6 +87,33 @@ double global_plaquette_eo_conf(quad_su3 *ev_conf,quad_su3 *od_conf)
   return totplaq/glb_vol/3/6;
 }
 
+//compute the staples; the border is supposed to have been already communicated
+void compute_point_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
+{
+  memset(staple,0,sizeof(quad_su3));
+  
+  for(int mu=0;mu<4;mu++)
+    {
+      su3 stap,temp1,temp2;
+      for(int nu=0;nu<4;nu++)                   //  E---F---C   
+	if(nu!=mu)                              //  |   |   | mu
+	  {                                     //  D---A---B   
+	    int p=loclx_parity[A];              //        nu    
+	    int B=loclx_neighup[A][nu];
+	    int F=loclx_neighup[A][mu];
+	    unsafe_su3_prod_su3(temp1,eo_conf[p][A][nu],eo_conf[!p][B][mu]);
+	    unsafe_su3_prod_su3_dag(temp2,temp1,eo_conf[!p][F][nu]);
+	    su3_summ(staple[mu],staple[mu],temp2);
+	    
+	    int D=loclx_neighdw[A][nu];
+	    int E=loclx_neighup[D][mu];
+	    unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][D][nu],eo_conf[!p][D][mu]);
+	    unsafe_su3_prod_su3(temp2,temp1,eo_conf[p][E][nu]);
+	    su3_summ(staple[mu],staple[mu],temp2);
+	  }
+    }
+}
+
 void Pline(su3 *Pline,quad_su3 *conf)
 {
   int X,iX[4],T=loc_size[0];
