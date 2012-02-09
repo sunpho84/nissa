@@ -4,8 +4,9 @@
 //Passed conf must NOT contain the backfield.
 //Of the result still need to be taken the TA
 //The approximation need to be already scaled, and must contain physical mass term
-void summ_the_sq4st_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,color *pf,rat_approx *appr,double residue)
+void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,color *pf,rat_approx *appr,double residue)
 {
+  master_printf("Computing quark force\n");
   //allocate each terms of the expansion
   //allocate temporary single solutions
   color *v_o[appr->nterms],*chi_e[appr->nterms];
@@ -64,13 +65,36 @@ void summ_the_sq4st_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,c
 //Compute the gluonic force the wilson plaquette action and summ to the output
 //Passed conf must NOT contain the backfield.
 //Of the result still need to be taken the TA
-void summ_the_sq4st_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,color *pf,rat_approx *appr,double residue)
+void wilson_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
 {
+  double r=beta/3;
+  master_printf("Computing Wilson force\n");
   for(int ivol=0;ivol<loc_vol;ivol++)
     {
-      quad_su3 staple;
-      compute_point_staples_eo_conf(staple,eo_conf,ivol);
+      quad_su3 staples;
+      compute_point_staples_eo_conf(staples,eo_conf,ivol);
+      for(int mu=0;mu<4;mu++) su3_summ_the_prod_double(F[loclx_parity[ivol]][ivol][mu],staples[mu],r);
+    }
+}
 
+//Compute the full force for the rooted staggered theory with nfl flavors
+//Conf and pf borders are assumed to have been already communicated
+void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx **appr,double residue)
+{
+  //First of all compute gluonic part of the force
+  wilson_force(F,conf,beta);
   
+  //Then summ the contributes coming from each flavor
+  for(int ifl=0;ifl<nfl;ifl++)
+    summ_the_rootst_eoimpr_force(F,eo_conf,u1b[ifl],pf[ifl],appr[ifl],residue);
   
+  //Finish the computation multiplying for the conf and aking TA
+  for(int eo=0;eo<2;eo++)
+    for(int ivol=0;ivol<loc_volh;ivol++)
+      for(int mu=0;mu<4;mu++)
+	{
+	  su3 temp;
+	  unsafe_su3_prod_su3(temp,conf[eo][ivol][mu],F[eo][ivol][mu]);
+	  su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
+	}
 }

@@ -76,6 +76,12 @@ int main()
 	  x[iens]=f[iens]=Za[b]*sqrt(Z[iens])/aM[iens]/lat[b];
 	  x[iens]*=sqrt(aM[iens]/lat[b]);
 	}
+      
+      if(string(obs_name)==string("AKAK"))
+	{
+	  x[iens]=f[iens]=Zv[b]*sqrt(Z[iens])/aM[iens]/lat[b];
+	  x[iens]*=sqrt(aM[iens]/lat[b]);
+	}
     }
   
   bvec fint(nens,nboot,njack);

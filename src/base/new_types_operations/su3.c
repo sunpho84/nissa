@@ -117,6 +117,27 @@ void su3_trace(complex tr,su3 m)
   complex_summ(tr,tr,m[2][2]);
 }
 
+//return the anti-hermitian traceless part of an su3 matrix
+void su3_traceless_anti_hermitian_part(su3 out,su3 in)
+{
+  double trace_im_third=(in[0][0][1]+in[1][1][1]+in[2][2][1])/3;
+  
+  //real part of diagonal: 0
+  out[0][0][0]=out[1][1][0]=out[2][2][0]=0;
+  //imag part of diagonal: subtract the trace
+  out[0][0][1]=in[0][0][1]-trace_im_third;
+  out[1][1][1]=in[1][1][1]-trace_im_third;
+  out[2][2][1]=in[2][2][1]-trace_im_third;
+  //out-of-diag real part
+  out[1][0][0]=-(out[0][1][0]=(in[0][1][0]-in[1][0][0])/2);
+  out[2][0][0]=-(out[0][2][0]=(in[0][2][0]-in[2][0][0])/2);
+  out[2][1][0]=-(out[1][2][0]=(in[1][2][0]-in[2][1][0])/2);
+  //out-of-diag imag part
+  out[1][0][1]=out[0][1][1]=(in[0][1][1]+in[1][0][1])/2;
+  out[2][0][1]=out[0][2][1]=(in[0][2][1]+in[2][0][1])/2;
+  out[2][1][1]=out[1][2][1]=(in[1][2][1]+in[2][1][1])/2;
+}
+
 //calculate the determinant of an su3 matrix
 void su3_det(complex d,su3 U)
 {
@@ -266,6 +287,18 @@ void su3_prod_double(su3 a,su3 b,double r)
   for(int i=0;i<18;i++) da[i]=db[i]*r;
 }
 
+//summ the prod of su3 with imag
+void su3_prod_idouble(su3 a,su3 b,double r)
+{
+  for(int i=0;i<3;i++)
+    for(int j=0;j<3;j++)
+      {
+	double c=b[i][j][0]*r;
+	a[i][j][0]=-b[i][j][1]*r;
+	a[i][j][1]=c;
+      }
+}
+
 //summ the prod of su3 with real
 void su3_summ_the_prod_double(su3 a,su3 b,double r)
 {
@@ -313,6 +346,31 @@ void unsafe_su3_explicit_inverse(su3 invU,su3 U)
 }
 void safe_su3_explicit_inverse(su3 invU,su3 U)
 {su3 tempU;unsafe_su3_explicit_inverse(tempU,U);su3_copy(invU,tempU);}
+
+//exponentiate an su3 matrix through taylor expansion
+void unsafe_su3_taylor_exponentiate(su3 out,su3 in,int order)
+{
+  //1st terms
+  double coef=1;
+  su3 temp;
+  su3_copy(temp,in);
+  
+  //order 0+1
+  for(int i=0;i<3;i++)
+    for(int j=0;j<3;j++)
+      {
+	out[i][j][0]=(i==j) ? in[i][j][0]+1 : in[i][j][0];
+	out[i][j][1]=in[i][j][1];
+      }
+  
+  //higher orders
+  for(int iorder=2;iorder<=order;iorder++)
+    {
+      safe_su3_prod_su3(temp,temp,in);
+      coef/=iorder;
+      su3_summ_the_prod_double(out,temp,coef);
+    } 
+}
 
 //summ of the squared norm of the entries
 double su3_normq(su3 U)
@@ -378,7 +436,6 @@ void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link)
   
   memcpy(temp_link,prop_link,sizeof(su3));
   
-  //master_printf("\n");
   do
     {
       unsafe_su3_explicit_inverse(inv,temp_link);
@@ -400,9 +457,7 @@ void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link)
       
       memcpy(temp_link,new_link,sizeof(su3));
       
-      check=sqrt(check);
-      
-      //master_printf("%lg\n",check);
+      check=sqrt(check); 
     }
   while(check>1.e-15);
   

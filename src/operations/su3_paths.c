@@ -94,7 +94,7 @@ void compute_point_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
   
   for(int mu=0;mu<4;mu++)
     {
-      su3 stap,temp1,temp2;
+      su3 temp1,temp2;
       for(int nu=0;nu<4;nu++)                   //  E---F---C   
 	if(nu!=mu)                              //  |   |   | mu
 	  {                                     //  D---A---B   
