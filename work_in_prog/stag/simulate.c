@@ -6,6 +6,9 @@
 #include "rat_expansion_database.c"
 #include "backfield.c"
 #include "eigenvalues.c"
+#include "rootst_eo_impr_omelyan_integrator.c"
+#include "rootst_eo_impr_force.c"
+#include "wilson_force.c"
 
 #include "tests.c"
 
@@ -56,7 +59,7 @@ void init_simulation(char *path)
   
   //allocate the u1 background field
   u1b=nissa_malloc("u1back**",nquarks,quad_u1**);
-  u1b[0]=nissa_malloc("u1back",nquarks*2,quad_u1*);
+  u1b[0]=nissa_malloc("u1back*",nquarks*2,quad_u1*);
   u1b[0][0]=nissa_malloc("u1back",nquarks*loc_vol,quad_u1);
   u1b[0][1]=u1b[0][0]+loc_vol/2;
   for(int iquark=1;iquark<nquarks;iquark++)
@@ -144,12 +147,8 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  backfield_application_test();
-  stD2ee_application_test();
-  //stD2ee_pow_minus_one_eighth_application_test();
-  stD2ee_max_eigenvalue_find_test();
-  //rhmc_step();
-  
+  read_ildg_conf_and_split_into_eo_parts(eo_conf_comp,"dat/conf_plain");
+    
   ///////////////////////////////////////
   
   close_simulation();
