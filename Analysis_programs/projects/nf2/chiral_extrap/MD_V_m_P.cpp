@@ -257,19 +257,7 @@ int main(int narg,char **arg)
   cP5P5.load(meson_P5P5_file,0);
   bvec cVKVK(nens,nboot,njack);
   cVKVK.load(meson_VKVK_file,0);
-  diff=sqrt(sqr(cVKVK)-sqr(cP5P5));
-  for(int iens=0;iens<nens;iens++)
-    {
-      boot P=cP5P5[iens]*lat[ibeta[iens]];
-      boot V=cVKVK[iens]*lat[ibeta[iens]];
-      boot N=V*V-P*P;
-      boot D=2*V;
-      boot qabs=N/D;
-      boot q=qabs/sqrt(3);
-      boot th=q*T[iens]/(2*M_PI);
-      //cout<<iens<<" "<<mass[iens][iml_un[iens]]<<" "<<(diff[iens]*lat[ibeta[iens]])*(T[iens]/2.0/(3.14159*sqrt(3)))<<endl;
-      cout<<iens<<"\t"<<mass[iens][iml_un[iens]]<<"\t"<<V<<"\t"<<P<<"\t"<<th<<endl;
-    }
+  diff=(sqr(cVKVK)-sqr(cP5P5))/(2*cVKVK)/sqrt(3)/(2*M_PI);
   
   //perform the fit
   boot A(nboot,njack),B(nboot,njack),C(nboot,njack);
@@ -292,6 +280,31 @@ int main(int narg,char **arg)
 	}
     }
   
+  for(int iens=0;iens<nens;iens++)
+    {
+      boot P=cP5P5[iens]*lat[ibeta[iens]];
+      boot V=cVKVK[iens]*lat[ibeta[iens]];
+      boot N=V*V-P*P;
+      boot D=2*V;
+      boot qabs=N/D;
+      boot q=qabs/sqrt(3);
+      boot th=q*T[iens]/(2*M_PI);
+      boot th_teo(nboot,njack);
+      for(int iboot=0;iboot<=nboot;iboot++)
+	{
+	  int b=ibeta[iens];
+	  double Ab=A[iboot];
+	  double Bb=B[iboot];
+	  double Cb=C[iboot];
+	  double a=lat[b][iboot];
+	  double z=Zp[b][iboot];
+	  double m=mass[iens][iml_un[iens]]/a/z;
+	  th_teo.data[iboot]=fun_fit_diff(Ab,Bb,Cb,m,a)*T[iens]*a;
+	}
+      //cout<<iens<<" "<<mass[iens][iml_un[iens]]<<" "<<(diff[iens]*lat[ibeta[iens]])*(T[iens]/2.0/(3.14159*sqrt(3)))<<endl;
+      cout<<iens<<"\t"<<mass[iens][iml_un[iens]]<<"\t"<<V<<"\t"<<P<<"\t"<<th<<" "<<th_teo<<endl;
+    }
+
   //chiral and continuum
   cout<<"diff = ("<<diff_chir_cont*1000<<") MeV"<<endl;
   diff_chir_cont.write_to_binfile("diff");
