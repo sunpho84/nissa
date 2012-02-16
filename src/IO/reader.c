@@ -455,10 +455,11 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,char *base_path,ch
 }
 
 //read an ildg conf and split it into e/o parts
-void read_ildg_conf_and_split_into_eo_parts(quad_su3 **eo_conf,char *path)
+void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,char *path)
 {
-  quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
+  quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol+loc_bord,quad_su3);
   read_ildg_gauge_conf(lx_conf,path);
+  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(lx_conf));
   split_lx_conf_into_eo_parts(eo_conf,lx_conf,loc_vol);
   nissa_free(lx_conf);
 }

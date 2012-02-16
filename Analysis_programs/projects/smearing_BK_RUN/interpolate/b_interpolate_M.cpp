@@ -8,16 +8,24 @@ bvec Mh(nm,nboot,njack);
 
 int main()
 {
-  Mh.load("/Users/francesco//QCD/LAVORI/SMEARING_BK_RUNS/ANALYSIS/P5P5/B/chiral_cont_extrapol_M/results",0);
+  FILE *an_input_file=open_file("analysis_pars","r");
+  char chiral_data[1024];
+  read_formatted_from_file_expecting(chiral_data,an_input_file,"%s","chiral_data");
+  fclose(an_input_file);
+  Mh.load(chiral_data,0);
   
   bvec par(3,nboot,njack);
+  int last=0;
+  while(!isnan(Mh[last].err()) && last<nm)
+    last++;
+
   for(int iboot=0;iboot<nboot+1;iboot++)
     {
       double y[3];
-      double *x=mass+8;
-      y[0]=Mh[8][iboot];
-      y[1]=Mh[9][iboot];
-      y[2]=Mh[10][iboot];
+      double *x=mass+last-3;
+      y[0]=Mh[last-3][iboot];
+      y[1]=Mh[last-2][iboot];
+      y[2]=Mh[last-1][iboot];
       parabolic_spline(par.data[0].data[iboot],par.data[1].data[iboot],par.data[2].data[iboot],x,y);
     }
   
@@ -30,7 +38,7 @@ int main()
   grace out("M_vs_m.xmg");
   out.fout<<"@type xy"<<endl;
   int nx=100;
-  double x[nx],x0=mass[8],x1=Mb_phys.med()+2*Mb_phys.err(),dx=(x1-x0)/(nx-1);
+  double x[nx],x0=mass[last-3],x1=Mb_phys.med()+2*Mb_phys.err(),dx=(x1-x0)/(nx-1);
   bvec y(nx,nboot,njack);
   for(int i=0;i<nx;i++)
     {

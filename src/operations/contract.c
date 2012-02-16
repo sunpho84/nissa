@@ -77,7 +77,17 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
   
   nissa_free(loc_c);
 }
-  
+
+void summ_the_trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,const int ncontr)
+{
+  complex *tmp_c=nissa_malloc("tmp_c",ncontr*glb_size[0],complex);
+  trace_g_sdag_g_s(tmp_c,g1,s1,g2,s2,ncontr);
+  for(int i=0;i<ncontr*glb_size[0];i++)
+    for(int ri=0;ri<2;ri++)
+      glb_c[i][ri]+=tmp_c[i][ri];
+  nissa_free(tmp_c);
+}
+
 void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin *s1L, dirac_matr *g2L, colorspinspin *s2L, dirac_matr *g1R,colorspinspin *s1R, dirac_matr *g2R, colorspinspin *s2R,const int ncontr)
 {
 //Allocate a contguous memory area where to store local results

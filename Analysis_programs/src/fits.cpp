@@ -91,7 +91,7 @@ jvec aperiodic_effective_mass(const jvec a)
 jack mass_fit(jvec corr,int tmin,int tmax,const char *path=NULL)
 {
   jvec effe=effective_mass(corr);
-  jack mass=constant_fit(effe,tmin+1,tmax,path);
+  jack mass=constant_fit(effe,tmin,tmax,path);
   
   return mass;
 }

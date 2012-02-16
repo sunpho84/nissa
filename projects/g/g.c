@@ -17,7 +17,6 @@
  */
 
 //fix the r of the spectator
-int r_spec=0;
 int sign_r[2]={-1,+1};
 
 //gauge info
@@ -34,7 +33,7 @@ spincolor *source;
 colorspinspin *original_source;
 
 //masses and theta
-double lmass,cmass;
+double mass[2];
 double theta;
 
 //smearing parameters
@@ -43,8 +42,8 @@ int ape_niter;
 int jacobi_niter;
 
 //vectors for the spinor data
-colorspinspin *S0L,*S0C;
-colorspinspin *S1LC,*S1CL;
+colorspinspin *S0[2][2];
+colorspinspin *S1[2][2][2];
 
 //inverter parameters
 double stopping_residue;
@@ -92,8 +91,16 @@ void smear_colorspinspin(colorspinspin *out,colorspinspin *in)
   nissa_free(temp);
 }
 
+//smear all S0
+void smear_S0()
+{
+  for(int lc_spec=0;lc_spec<2;lc_spec++)
+    for(int r_spec=0;r_spec<2;r_spec++)
+      smear_colorspinspin(S0[lc_spec][r_spec],S0[lc_spec][r_spec]);
+}
+
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
-void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr)
+void summ_the_meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr)
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];
@@ -106,7 +113,7 @@ void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op
     }
   
   //Call the routine which does the real contraction
-  trace_g_sdag_g_s(corr,t1,s1,t2,s2,ncontr);
+  summ_the_trace_g_sdag_g_s(corr,t1,s1,t2,s2,ncontr);
 }
 
 //This function contract a source with a sequential spinor putting the passed list of operators
@@ -134,7 +141,7 @@ void generate_source()
 }
 
 //Generate a sequential source for S1
-void generate_sequential_source(colorspinspin *S0)
+void generate_sequential_source(int lc_spec,int r_spec)
 {
   for(int ivol=0;ivol<loc_vol;ivol++)
     {
@@ -144,7 +151,7 @@ void generate_sequential_source(colorspinspin *S0)
       else
 	{
 	  //take ths S0
-	  memcpy(sequential_source[ivol],S0[ivol],sizeof(colorspinspin));
+	  memcpy(sequential_source[ivol],S0[lc_spec][r_spec][ivol],sizeof(colorspinspin));
 	  for(int c=0;c<3;c++)
 	    {
 	      //rotate as r_spec because it's D^-1
@@ -202,8 +209,8 @@ void initialize_semileptonic(char *input_path)
   
   // 4) Read list of masses and of thetas
 
-  read_str_double("lMass",&lmass);
-  read_str_double("cMass",&cmass);
+  read_str_double("lMass",&(mass[0]));
+  read_str_double("cMass",&(mass[1]));
   read_str_double("Theta",&theta);
 
   // 5) Info about the inverter
@@ -257,16 +264,19 @@ void initialize_semileptonic(char *input_path)
   sme_conf=nissa_malloc("sm_conf",loc_vol+loc_bord,quad_su3);
 
   //Allocate all the S0 colorspinspin vectors
-  S0L=nissa_malloc("S0L",loc_vol,colorspinspin);
-  S0C=nissa_malloc("S0C",loc_vol,colorspinspin);
+  for(int lc=0;lc<2;lc++)
+    for(int r=0;r<2;r++)
+      S0[lc][r]=nissa_malloc("S0",loc_vol,colorspinspin);
   
   //Allocate one spincolor for the source
   source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
   original_source=nissa_malloc("original_source",loc_vol,colorspinspin);
 
   //Allocate all the S1 colorspinspin vectors
-  S1LC=nissa_malloc("S1LC",loc_vol,colorspinspin);
-  S1CL=nissa_malloc("S1CL",loc_vol,colorspinspin);
+  for(int lc=0;lc<2;lc++)
+    for(int r=0;r<2;r++)
+      for(int ith=0;ith<2;ith++)
+	S1[lc][r][ith]=nissa_malloc("S1",loc_vol,colorspinspin);
 }
 
 //find a new conf
@@ -346,8 +356,13 @@ void close_semileptonic()
   master_printf("   * %02.2f%s to save correlations\n",contr_save_time*100.0/contr_time,"%");
   
   nissa_free(conf);nissa_free(sme_conf);
-  nissa_free(S0L);nissa_free(S0C);
-  nissa_free(S1LC);nissa_free(S1CL);
+  for(int lc=0;lc<2;lc++)
+    for(int r=0;r<2;r++)
+      {
+	nissa_free(S0[lc][r]);
+	for(int ith=0;ith<2;ith++)
+	  nissa_free(S1[lc][r][ith]);
+      }
   nissa_free(sequential_source);
   nissa_free(contr_2pts);nissa_free(contr_3pts);
   nissa_free(op1_2pts);nissa_free(op2_2pts);
@@ -357,10 +372,12 @@ void close_semileptonic()
 }
 
 //calculate the standard propagators
-void calculate_S0(colorspinspin *S0,double mass)
+void calculate_S0()
 {
-  //temporary vector for sol
+  //temporary vector for sol and guess
   spincolor *temp_sol=nissa_malloc("Temp_sol",loc_vol,spincolor);
+  spincolor *guess=nissa_malloc("Guess",loc_volh,spincolor);
+  memset(guess,0,loc_volh*sizeof(spincolor));
   
   //loop over the source dirac index
   for(int id=0;id<4;id++)
@@ -368,109 +385,166 @@ void calculate_S0(colorspinspin *S0,double mass)
       for(int ivol=0;ivol<loc_vol;ivol++)
 	get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
       
-      //inverting the light quark
-      double part_time=-take_time();
-      inv_tmD_cg_eoprec_eos(temp_sol,source,NULL,conf,kappa,sign_r[r_spec]*mass,niter_max,stopping_residue);
-      part_time+=take_time();ninv_tot++;inv_time+=part_time;
-      master_printf("Finished the inversion of S0 mass=%lg, dirac index %d in %g sec\n",mass,id,part_time);
-
-      //convert the id-th spincolor into the colorspinspin
-      for(int i=0;i<loc_vol;i++)
-	  put_spincolor_into_colorspinspin(S0[i],temp_sol[i],id);
+      for(int r_spec=0;r_spec<2;r_spec++)
+	for(int lc=!r_spec;lc!=r_spec+sign_r[r_spec];lc+=sign_r[r_spec])
+	  {
+	    //inverting
+	    double part_time=-take_time();
+	    inv_tmD_cg_eoprec_eos(temp_sol,source,guess,conf,kappa,sign_r[r_spec]*mass[lc],niter_max,stopping_residue);
+	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
+	    master_printf("Finished the inversion of S0 r=%d mass=%lg, dirac index %d in %g sec\n",r_spec,mass[lc],id,part_time);
+	    
+	    //convert the id-th spincolor into the colorspinspin
+	    for(int i=0;i<loc_vol;i++)
+	      put_spincolor_into_colorspinspin(S0[lc][r_spec][i],temp_sol[i],id);
+	  }
     }
   
   //rotate to physical basis; remember that D^-1 rotate opposite than D!
-  rotate_vol_colorspinspin_to_physical_basis(S0,!r_spec,!r_spec);
+  for(int lc=0;lc<2;lc++)
+    for(int r_spec=0;r_spec<2;r_spec++)
+      rotate_vol_colorspinspin_to_physical_basis(S0[lc][r_spec],!r_spec,!r_spec);
   
   master_printf("Propagators rotated\n");
   
   master_printf("\n");
   
+  nissa_free(guess);
   nissa_free(temp_sol);
 }
 
 //calculate the sequential propagators
-void calculate_S1(colorspinspin *S1,double mass,colorspinspin *S0)
+void calculate_S1()
 {
-  generate_sequential_source(S0);
-  
   //temporary solution
   spincolor *temp_sol=nissa_malloc("Temp_sol",loc_vol,spincolor);
+  spincolor *guess=nissa_malloc("Guess",loc_volh,spincolor);
   
-  //loop over dirac index of the source
-  for(int id=0;id<4;id++)
-    { 
-      for(int ivol=0;ivol<loc_vol;ivol++)
-	get_spincolor_from_colorspinspin(source[ivol],sequential_source[ivol],id);
-      communicate_lx_spincolor_borders(source);
-
-      double part_time=-take_time();
-      inv_tmD_cg_eoprec_eos(temp_sol,source,NULL,conf,kappa,-sign_r[r_spec]*mass,niter_max,stopping_residue);
-      part_time+=take_time();ninv_tot++;inv_time+=part_time;
-      master_printf("Finished the inversion of S1 mass=%lg dirac index %d in %g sec\n",mass,id,part_time);
-      
-      //put in the solution
-      for(int i=0;i<loc_vol;i++)
-	put_spincolor_into_colorspinspin(S1[i],temp_sol[i],id);
-    }
+  for(int lc_spec=0;lc_spec<2;lc_spec++)
+    for(int r_spec=0;r_spec<2;r_spec++)
+      {
+	generate_sequential_source(lc_spec,r_spec);
+	
+	//loop over dirac index of the source
+	for(int id=0;id<4;id++)
+	  { 
+	    for(int ivol=0;ivol<loc_vol;ivol++)
+	      get_spincolor_from_colorspinspin(source[ivol],sequential_source[ivol],id);
+	    communicate_lx_spincolor_borders(source);
+	    
+	    //reset the guess for each spectator and dirac index
+	    memset(guess,0,sizeof(spincolor)*loc_volh);
+	    
+	    //loop over theta
+	    for(int ith=0;ith<2;ith++)
+	      {
+		//adapt_theta
+		put_theta[1]=put_theta[2]=put_theta[3]=sign_r[ith]*theta;
+		adapt_theta(conf,old_theta,put_theta,1,1);
+		
+		//invert
+		double part_time=-take_time();
+		inv_tmD_cg_eoprec_eos(temp_sol,source,guess,conf,kappa,sign_r[!r_spec]*mass[!lc_spec],niter_max,stopping_residue);
+		part_time+=take_time();ninv_tot++;inv_time+=part_time;
+		master_printf("Finished the inversion of S1 mass=%lg dirac index %d theta=%lg on %lg mass spectator in %g sec\n",mass[!lc_spec],id,sign_r[ith]*theta,mass[lc_spec],part_time);
+	      
+		//put in the solution
+		for(int i=0;i<loc_vol;i++)
+		  put_spincolor_into_colorspinspin(S1[lc_spec][r_spec][ith][i],temp_sol[i],id);
+	      }
+	  }
+      }
   
   //put the (1+-ig5)/sqrt(2) factor. On the source rotate as r_spec, on the sink as !r_spec
   //but, being D^-1, everything is swapped
-  rotate_vol_colorspinspin_to_physical_basis(S1,!r_spec,r_spec);
+  for(int lc_spec=0;lc_spec<2;lc_spec++)
+    for(int r_spec=0;r_spec<2;r_spec++)
+      for(int ith=0;ith<2;ith++)
+	rotate_vol_colorspinspin_to_physical_basis(S1[lc_spec][r_spec][ith],!r_spec,r_spec);
   master_printf("Propagators rotated\n\n");
 
+  nissa_free(guess);
   nissa_free(temp_sol);
 }
 
 //Calculate and print to file the 2pts
-void calculate_all_2pts(colorspinspin *SA,colorspinspin *SB,double SA_mass,double SB_mass,const char *tag)
+void calculate_all_2pts(const char *tag)
 {
+  const char lc_tag[2][2]={"l","c"};
   contr_2pts_time-=take_time();
-
-  meson_two_points(contr_2pts,op1_2pts,SA,op2_2pts,SB,ncontr_2pts);
-  ncontr_tot+=ncontr_2pts;
   
-  char path[1024];
-  sprintf(path,"%s/2pts_%s",outfolder,tag);
-  FILE *fout=open_text_file_for_output(path);
-
-  if(rank==0) fprintf(fout," # mA=%f, mB=%f\n",SA_mass,SB_mass);
-      
-  contr_save_time-=take_time();
-  print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
-  contr_save_time+=take_time();
-  
-  if(rank==0)
-    {
-      fprintf(fout,"\n");
-      fclose(fout);
-    }
+  //loop on lc 1 & 2
+  for(int lc1=0;lc1<2;lc1++)
+    for(int lc2=0;lc2<2;lc2++)
+      {
+	//compute the average
+	memset(contr_2pts,0,ncontr_2pts*glb_size[0]*sizeof(complex));
+	for(int r_spec=0;r_spec<2;r_spec++)
+	  {
+	    summ_the_meson_two_points(contr_2pts,op1_2pts,S0[lc1][r_spec],op2_2pts,S0[lc2][r_spec],ncontr_2pts);
+	    ncontr_tot+=ncontr_2pts;
+	  }
+	//average
+	for(int i=0;i<ncontr_2pts*glb_size[0];i++)
+	  for(int ri=0;ri<2;ri++)
+	    contr_2pts[i][ri]*=0.5;
+	
+	char path[1024];
+	sprintf(path,"%s/2pts_%s%s_%s",outfolder,lc_tag[lc1],lc_tag[lc2],tag);
+	FILE *fout=open_text_file_for_output(path);
+	
+	if(rank==0) fprintf(fout," # mA=%f, mB=%f\n",mass[lc1],mass[lc2]);
+	
+	contr_save_time-=take_time();
+	print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
+	contr_save_time+=take_time();
+	
+	if(rank==0)
+	  {
+	    fprintf(fout,"\n");
+	    fclose(fout);
+	  }
+      }
   
   contr_2pts_time+=take_time();
 }
 
 //Calculate and print to file the 3pts
-void calculate_all_3pts(colorspinspin *S0,colorspinspin *S1,double S0_mass,double S1_mass,const char *tag)
+void calculate_all_3pts()
 {
+  const char lc_tag[2][20]={"light_spec","charm_spec"};
   contr_3pts_time-=take_time();
   
-  meson_two_points(contr_3pts,op1_3pts,S0,op2_3pts,S1,ncontr_3pts);
-  ncontr_tot+=ncontr_3pts;
-  
-  char path[1024];
-  sprintf(path,"%s/3pts_%s",outfolder,tag);
-  FILE *fout=open_text_file_for_output(path);
-  
-  if(rank==0) fprintf(fout," # S0_mass=%f , S1_mass=%f\n",S0_mass,S1_mass);
-  
-  contr_save_time-=take_time();
-  print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"",1.0);
-  contr_save_time+=take_time();
-  
-  if(rank==0)
+  for(int lc_spec=0;lc_spec<2;lc_spec++)
     {
-      fprintf(fout,"\n");
-      fclose(fout);
+      //compute the average
+      memset(contr_3pts,0,ncontr_3pts*glb_size[0]*sizeof(complex));
+      for(int r_spec=0;r_spec<2;r_spec++)
+	for(int ith=0;ith<2;ith++)
+	  {
+	    summ_the_meson_two_points(contr_3pts,op1_3pts,S0[!lc_spec][r_spec],op2_3pts,S1[lc_spec][r_spec][ith],ncontr_3pts);
+	    ncontr_tot+=ncontr_3pts;
+	  }
+	//average
+	for(int i=0;i<ncontr_3pts*glb_size[0];i++)
+	  for(int ri=0;ri<2;ri++)
+	    contr_3pts[i][ri]*=0.25;
+	
+	char path[1024];
+	sprintf(path,"%s/3pts_%s",outfolder,lc_tag[lc_spec]);
+	FILE *fout=open_text_file_for_output(path);
+	
+	if(rank==0) fprintf(fout," # S0_mass=%f , S1_mass=%f\n",mass[!lc_spec],mass[lc_spec]);
+	
+	contr_save_time-=take_time();
+	print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"",1.0);
+	contr_save_time+=take_time();
+	
+	if(rank==0)
+	  {
+	    fprintf(fout,"\n");
+	    fclose(fout);
+	  }
     }
   
   contr_3pts_time+=take_time();
@@ -512,32 +586,21 @@ int main(int narg,char **arg)
       
       ////////////////// standing two points /////////////////
       
-      calculate_S0(S0L,lmass);
-      calculate_S0(S0C,cmass);
+      calculate_S0();
       
-      calculate_all_2pts(S0L,S0L,lmass,lmass,"ll_sl");
-      calculate_all_2pts(S0L,S0C,lmass,cmass,"lc_sl");
-      calculate_all_2pts(S0C,S0C,cmass,cmass,"cc_sl");
+      calculate_all_2pts("sl");
       
       ////////////////// moving three points /////////////////
       
-      put_theta[1]=put_theta[2]=put_theta[3]=theta;
-      adapt_theta(conf,old_theta,put_theta,1,1);
+      calculate_S1();
       
-      calculate_S1(S1LC,cmass,S0L);
-      calculate_S1(S1CL,lmass,S0C);
-      
-      calculate_all_3pts(S0L,S1CL,lmass,lmass,"charm_spec");
-      calculate_all_3pts(S0C,S1LC,cmass,cmass,"light_spec");
+      calculate_all_3pts();
       
       /////////////// standing smeared two points ////////////
       
-      smear_colorspinspin(S0L,S0L);
-      smear_colorspinspin(S0C,S0C);
+      smear_S0();
       
-      calculate_all_2pts(S0L,S0L,lmass,lmass,"ll_ss");
-      calculate_all_2pts(S0L,S0C,lmass,cmass,"lc_ss");
-      calculate_all_2pts(S0C,S0C,cmass,cmass,"cc_ss");
+      calculate_all_2pts("ss");
       
       ////////////////////////////////////////////////////////
       
