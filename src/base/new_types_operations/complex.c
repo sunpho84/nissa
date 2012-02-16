@@ -52,6 +52,30 @@ void complex_prod_double(complex a,complex b,double c)
   a[1]=b[1]*c;
 }
 
+//summ the prod with real
+void complex_summ_the_prod_double(complex a,complex b,double c)
+{
+  a[0]+=b[0]*c;
+  a[1]+=b[1]*c;
+}
+void complex_subt_the_prod_double(complex a,complex b,double c)
+{
+  a[0]-=b[0]*c;
+  a[1]-=b[1]*c;
+}
+
+//summ the prod with imag
+void complex_summ_the_prod_idouble(complex a,complex b,double c)
+{
+  a[0]-=b[1]*c;
+  a[1]+=b[0]*c;
+}
+void complex_subt_the_prod_idouble(complex a,complex b,double c)
+{
+  a[0]+=b[1]*c;
+  a[1]-=b[0]*c;
+}
+
 //Summ to the output the product of two complex number
 //it is assumed that a!=b and a!=c
 void complex_summ_the_prod(complex a,complex b,complex c)
@@ -174,13 +198,6 @@ void safe_complex_conj1_prod(complex a,complex b,complex c)
 {safe_complex_conj2_prod(a,c,b);}
 void safe_complex_conj1_prod_minus(complex a,complex b,complex c)
 {safe_complex_conj2_prod_minus(a,c,b);}
-
-//complex prod real
-void complex_prod_real(complex a,complex b,double c)
-{
-  a[0]=b[0]*c;
-  a[1]=b[1]*c;
-}
 
 //complex prod i
 void safe_complex_prod_i(complex a,complex b)

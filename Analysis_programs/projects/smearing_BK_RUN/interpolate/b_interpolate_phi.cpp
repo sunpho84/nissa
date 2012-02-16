@@ -52,43 +52,25 @@ int main()
   
   for(int imass=0;imass<nm;imass++) inv_mass[imass]=1/mass[imass];
   
+  int last=0;
+  while(!isnan(phih[last].err()) && last<nm)
+    last++;
+  
   bvec par(3,nboot,njack);
   for(int iboot=0;iboot<nboot+1;iboot++)
     {
       double y[3];
-      double *x=inv_mass+8;
-      y[0]=phih[8][iboot];
-      y[1]=phih[9][iboot];
-      y[2]=phih[10][iboot];
+      double *x=inv_mass+last-3;
+      y[0]=phih[last-3][iboot];
+      y[1]=phih[last-2][iboot];
+      y[2]=phih[last-1][iboot];
       parabolic_spline(par.data[0].data[iboot],par.data[1].data[iboot],par.data[2].data[iboot],x,y);
     }
   
-  boot Mb_phys(nboot,njack);
-  Mb_phys.fill_gauss(4.91,0.14,124234);
-  cout<<Mb_phys<<endl;
-  
   grace out("phi_vs_m.xmg");
-  
-  out.fout<<"@type xy"<<endl;
-  int nx=100;
-  double x[nx],x0=1/(Mb_phys.med()+2*Mb_phys.err()),x1=1/mass[8],dx=(x1-x0)/(nx-1);
-  bvec y(nx,nboot,njack);
-  for(int i=0;i<nx;i++)
-    {
-      x[i]=x0+dx*i;
-      y[i]=par[0]*x[i]*x[i]+par[1]*x[i]+par[2];
-    }
-  out.polygon(x,y);
-  
   out.fout<<"@type xydy"<<endl;
   for(int im=0;im<nm;im++) out.fout<<1/mass[im]<<" "<<phih[im]<<endl;
-  
-  out.fout<<"&\n@type xy"<<endl;
-  out.ave_line(x,y);
-  ofstream err_perc("err_perc.xmg");
-  for(int im=0;im<nm;im++)
-    err_perc<<mass[im]<<" "<<phih[im].err()/phih[im].med()*100<<endl;
-  
+
   cout<<"pusc"<<endl;
   
   return 0;

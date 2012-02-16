@@ -322,5 +322,7 @@ int main(int narg,char **arg)
   plot_funz_ml("diff_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,diff,par_res_fit_diff,ml_phys.med(),fun_fit_diff,diff_chir_cont);
   plot_funz_a2("diff_funz_a2.xmg",meson_name,tag_a2,meson_name,lat_med_fm,diff_estr_ml,par_res_fit_diff,fun_fit_diff,diff_chir_cont);
   
+  cout<<mc_phys*Zp[0]*lat[0]<<endl;
+  
   return 0;
 }

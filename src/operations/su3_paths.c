@@ -101,14 +101,14 @@ void compute_point_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
 	    int p=loclx_parity[A];              //        nu    
 	    int B=loclx_neighup[A][nu];
 	    int F=loclx_neighup[A][mu];
-	    unsafe_su3_prod_su3(temp1,eo_conf[p][A][nu],eo_conf[!p][B][mu]);
-	    unsafe_su3_prod_su3_dag(temp2,temp1,eo_conf[!p][F][nu]);
+	    unsafe_su3_prod_su3(temp1,eo_conf[p][loceo_of_loclx[A]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
+	    unsafe_su3_prod_su3_dag(temp2,temp1,eo_conf[!p][loceo_of_loclx[F]][nu]);
 	    su3_summ(staple[mu],staple[mu],temp2);
 	    
-	    int D=loclx_neighdw[A][nu];
-	    int E=loclx_neighup[D][mu];
-	    unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][D][nu],eo_conf[!p][D][mu]);
-	    unsafe_su3_prod_su3(temp2,temp1,eo_conf[p][E][nu]);
+	    int D=loclx_neighdw[loceo_of_loclx[A]][nu];
+	    int E=loclx_neighup[loceo_of_loclx[D]][mu];
+	    unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][loceo_of_loclx[D]][nu],eo_conf[!p][loceo_of_loclx[D]][mu]);
+	    unsafe_su3_prod_su3(temp2,temp1,eo_conf[p][loceo_of_loclx[E]][nu]);
 	    su3_summ(staple[mu],staple[mu],temp2);
 	  }
     }

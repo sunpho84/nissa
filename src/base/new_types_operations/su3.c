@@ -288,7 +288,7 @@ void su3_prod_double(su3 a,su3 b,double r)
 }
 
 //summ the prod of su3 with imag
-void su3_prod_idouble(su3 a,su3 b,double r)
+void su3_prod_with_idouble(su3 a,su3 b,double r)
 {
   for(int i=0;i<3;i++)
     for(int j=0;j<3;j++)
@@ -369,7 +369,7 @@ void unsafe_su3_taylor_exponentiate(su3 out,su3 in,int order)
       safe_su3_prod_su3(temp,temp,in);
       coef/=iorder;
       su3_summ_the_prod_double(out,temp,coef);
-    } 
+    }
 }
 
 //summ of the squared norm of the entries

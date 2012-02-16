@@ -4,7 +4,7 @@
 void init_backfield_to_id(quad_u1 **S)
 {
   for(int par=0;par<2;par++)
-    for(int ieo=0;ieo<loc_vol/2;ieo++)
+    for(int ieo=0;ieo<loc_volh;ieo++)
       for(int mu=0;mu<4;mu++)
 	{
 	  S[par][ieo][mu][0]=1;
@@ -37,7 +37,7 @@ void add_stagphases_to_backfield(quad_u1 **S)
 void add_antiperiodic_bc_to_backfield(quad_u1 **S)
 {
   for(int par=0;par<2;par++)
-    for(int ieo=0;ieo<loc_vol/2;ieo++)
+    for(int ieo=0;ieo<loc_volh;ieo++)
       if(glb_coord_of_loclx[loclx_of_loceo[par][ieo]][0]==glb_size[0]-1)
 	for(int ri=0;ri<2;ri++)
 	  S[par][ieo][0][ri]*=-1;
@@ -46,17 +46,19 @@ void add_antiperiodic_bc_to_backfield(quad_u1 **S)
 //multpiply the configuration for an additional u(1) field
 void add_backfield_to_conf(quad_su3 **conf,quad_u1 **u1)
 {
+  master_printf("Adding backfield\n");
   for(int par=0;par<2;par++)
-    for(int ieo=0;ieo<loc_vol/2;ieo++)
+    for(int ieo=0;ieo<loc_volh;ieo++)
       for(int mu=0;mu<4;mu++)
 	safe_su3_prod_complex(conf[par][ieo][mu],conf[par][ieo][mu],u1[par][ieo][mu]);
 }
 
 //multpiply the configuration for an the conjugate of an u(1) field
-void rem_backfield_to_conf(quad_su3 **conf,quad_u1 **u1)
+void rem_backfield_from_conf(quad_su3 **conf,quad_u1 **u1)
 {
+  master_printf("Removing backfield\n");
   for(int par=0;par<2;par++)
-    for(int ieo=0;ieo<2;ieo++)
+    for(int ieo=0;ieo<loc_volh;ieo++)
       for(int mu=0;mu<4;mu++)
 	safe_su3_prod_conj_complex(conf[par][ieo][mu],conf[par][ieo][mu],u1[par][ieo][mu]);
 }

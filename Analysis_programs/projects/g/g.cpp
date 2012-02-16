@@ -6,9 +6,9 @@
 const int T=48,L=T/2;
 const int njack=16;
 
-int tmin_V=10,tmax_V=15;
+int tmin_V=7,tmax_V=15;
 int tmin_P=7,tmax_P=23;
-int tmin_g=tmin_P,tmax_g=min(T/2-tmin_P,tmax_V);
+int tmin_g=12,tmax_g=15;
 
 jvec load_3pts_charm_spec(const char *name,int reim)
 {return jvec_load(combine("3pts_charm_spec_%s",name).c_str(),T,njack,reim);}
@@ -50,9 +50,9 @@ int main()
     ofstream out("P5thAKVJK_parts.xmg");
     out<<"@type xydy"<<endl;
     out<<P5thAKVK<<endl;
-    out<<"&/n@type xydy"<<endl;
+    out<<"&\n@type xydy"<<endl;
     out<<P5thAKVJ<<endl;
-    out<<"&/n@type xydy"<<endl;
+    out<<"&\n@type xydy"<<endl;
     out<<P5thAKVJK<<endl;
   }
   
@@ -83,51 +83,105 @@ int main()
   double q2=3*sqr(qi);
   jack Mth_P5=sqrt(sqr(M_P5)+q2);
   
-  //reconstruct semi-analitically the time dependance of three points
-  jvec Dth_DV_td(T,njack);
-  for(int t=0;t<T/2;t++)
+  //reconstruct numerically and semi-analitically the time dependance of three points
+  jvec Dth_DV_td_sa(T,njack),Dth_DV_td_nu(T,njack);
+  for(int t=0;t<=T/2;t++)
     {
-      Dth_DV_td[t    ]=sqrt(Z2_P5*Z2_VK)*exp(-t*M_VK)*exp(-(T/2-t)*Mth_P5)/(2*Mth_P5*2*M_VK);
-      Dth_DV_td[t+T/2]=sqrt(Z2_P5*Z2_VK)*exp(-t*Mth_P5)*exp(-(T/2-t)*M_VK)/(2*Mth_P5*2*M_VK);
+      Dth_DV_td_nu[t    ]=P5P5[(T/2+t)%T]*VKVK[t]/sqrt(Z2_P5*Z2_VK);
+      Dth_DV_td_sa[t    ]=sqrt(Z2_P5*Z2_VK)*exp(-t*M_VK)*exp(-(T/2-t)*Mth_P5)/(2*Mth_P5*2*M_VK);
+    }
+  for(int t=1;t<T/2;t++)
+    {
+      Dth_DV_td_sa[T/2+t]=Dth_DV_td_sa[T/2-t];
+      Dth_DV_td_nu[T/2+t]=Dth_DV_td_nu[T/2-t];
     }
   
+  //compare time dependance and its simmetric
+  {
+    ofstream out("Dth_DV_td_sa_simm.xmg");
+    out<<"@type xydy"<<endl;
+    out<<Dth_DV_td_sa<<endl;
+    out<<"&\n@type xydy"<<endl;
+    out<<Dth_DV_td_sa.simmetric()<<endl;
+  }
+  
+  
+  //compare time dependance semi-analytical and numeric
+  {
+    ofstream out("Dth_DV_td_sa_nu.xmg");
+    out<<"@type xydy"<<endl;
+    out<<Dth_DV_td_sa<<endl;
+    out<<"&\n@type xydy"<<endl;
+    out<<Dth_DV_td_nu<<endl;
+  }
+  
+  
+  cout<<Dth_DV_td_sa[0][njack]<<" "<<Dth_DV_td_sa[0]<<endl;
+  cout<<Dth_DV_td_sa[47][njack]<<endl;
   ///////////////////////////// Determine the matrix element of AK between D(th=+-) and D* ////////////////////////////
   
-  jvec Dth_AK_DV=P5thAKVK/Dth_DV_td;
+  jvec Dth_AK_DV_sa=P5thAKVK/Dth_DV_td_sa;
+  jvec Dth_AK_DV_nu=P5thAKVK/Dth_DV_td_nu;
   
   //compare matrix element and its simmetric
   {
-    ofstream out("Dth_AK_DV_simm.xmg");
+    ofstream out("Dth_AK_DV_sa_simm.xmg");
     out<<"@type xydy"<<endl;
-    out<<Dth_AK_DV<<endl;
-    out<<"&/n@type xydy"<<endl;
-    out<<Dth_AK_DV.simmetric()<<endl;
+    out<<Dth_AK_DV_sa<<endl;
+    out<<"&\n@type xydy"<<endl;
+    out<<Dth_AK_DV_sa.simmetric()<<endl;
+  }
+  
+  
+  //compare matrix element semi-analytical and numeric
+  {
+    ofstream out("Dth_AK_DV_sa_nu.xmg");
+    out<<"@type xydy"<<endl;
+    out<<Dth_AK_DV_sa<<endl;
+    out<<"&\n@type xydy"<<endl;
+    out<<Dth_AK_DV_nu<<endl;
   }
   
   
   /////////////////////////////// Compute g ///////////////////////////
   
   //determine g correlation function
-  jvec g_corr=(Dth_AK_DV*0.746/(M_P5+M_VK)).simmetrized(1);
+  jvec g_corr_sa=(Dth_AK_DV_sa*0.746/(M_P5+M_VK)).simmetrized(1);
+  jvec g_corr_nu=(Dth_AK_DV_nu*0.746/(M_P5+M_VK)).simmetrized(1);
   
   //fit g
-  jack g=constant_fit(g_corr,tmin_g,tmax_g);
+  jack g_sa=constant_fit(g_corr_sa,tmin_g,tmax_g);
+  jack g_nu=constant_fit(g_corr_nu,tmin_g,tmax_g);
   
-  //write matrix element
+  //write matrix element semi analytical
+  {
+    ofstream out("g_corr_semianalytical.xmg");
+    out<<"@type xydy"<<endl;
+    out<<g_corr_sa<<endl;
+    out<<"&"<<endl<<"@type xy"<<endl;
+    out<<tmin_g<<" "<<g_sa.med()+g_sa.err()<<endl;
+    out<<tmax_g<<" "<<g_sa.med()+g_sa.err()<<endl;
+    out<<tmax_g<<" "<<g_sa.med()-g_sa.err()<<endl;
+    out<<tmin_g<<" "<<g_sa.med()-g_sa.err()<<endl;
+    out<<tmin_g<<" "<<g_sa.med()+g_sa.err()<<endl;
+  }
+  
+  //write matrix element numerical
   {
     ofstream out("g_corr_numerical.xmg");
     out<<"@type xydy"<<endl;
-    out<<g_corr<<endl;
+    out<<g_corr_nu<<endl;
     out<<"&"<<endl<<"@type xy"<<endl;
-    out<<tmin_g<<" "<<g.med()+g.err()<<endl;
-    out<<tmax_g<<" "<<g.med()+g.err()<<endl;
-    out<<tmax_g<<" "<<g.med()-g.err()<<endl;
-    out<<tmin_g<<" "<<g.med()-g.err()<<endl;
-    out<<tmin_g<<" "<<g.med()+g.err()<<endl;
+    out<<tmin_g<<" "<<g_nu.med()+g_nu.err()<<endl;
+    out<<tmax_g<<" "<<g_nu.med()+g_nu.err()<<endl;
+    out<<tmax_g<<" "<<g_nu.med()-g_nu.err()<<endl;
+    out<<tmin_g<<" "<<g_nu.med()-g_nu.err()<<endl;
+    out<<tmin_g<<" "<<g_nu.med()+g_nu.err()<<endl;
   }
   
   //print g
-  cout<<"g: "<<g<<endl;
+  cout<<"g_nu: "<<g_nu<<endl;
+  cout<<"g_sa: "<<g_sa<<endl;
   
   
   /////////////////////////////// Load the three points for the corrections /////////////////////////////////////
@@ -150,6 +204,12 @@ int main()
   
   cout<<(M_VK*M_VK-M_P5*M_P5)/(2*qi*M_VK)<<endl;
   cout<<M_VK<<endl<<M_P5<<endl;
+  
+  {
+    jack temp(njack);
+    temp.load("/Users/francesco/QCD/LAVORI/SMEARING_BK_RUNS/FITTED_MASS_Z/P5P5/3.90/24/0.0085/results",5);
+    cout<<temp<<endl;
+  }
   
   return 0;
 }

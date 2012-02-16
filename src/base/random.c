@@ -176,7 +176,7 @@ void generate_spindiluted_source(colorspinspin *source,enum rnd_type rtype,int t
       for(int ic=0;ic<3;ic++)
 	{ //generate the id_sink==id_source==0 entry
 	  comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
-	  complex_prod_real(source[ivol][ic][0][0],source[ivol][ic][0][0],inv_sqrt_norm2);
+	  complex_prod_double(source[ivol][ic][0][0],source[ivol][ic][0][0],inv_sqrt_norm2);
 	  for(int d=1;d<4;d++) //copy the other three dirac indexes
 	    memcpy(source[ivol][ic][d][d],source[ivol][ic][0][0],sizeof(complex));
 	}

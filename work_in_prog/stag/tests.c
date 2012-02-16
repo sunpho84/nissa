@@ -11,8 +11,8 @@ int backfield_application_test()
   ////////////////////////////////////////////
   
   //read the plain and phased conf
-  read_ildg_conf_and_split_into_eo_parts(eo_conf_comp,"dat/conf_plain");
-  read_ildg_conf_and_split_into_eo_parts(eo_conf_read_with_phases,"dat/conf_with_phases");
+  read_ildg_gauge_conf_and_split_into_eo_parts(eo_conf_comp,"dat/conf_plain");
+  read_ildg_gauge_conf_and_split_into_eo_parts(eo_conf_read_with_phases,"dat/conf_with_phases");
   
   //define phases
   init_backfield_to_id(u1b);
@@ -68,7 +68,7 @@ int stD2ee_application_test()
   ////////////////////////////////////////////
   
   //read the plain and phased conf
-  read_ildg_conf_and_split_into_eo_parts(eo_conf,"dat/conf_plain");
+  read_ildg_gauge_conf_and_split_into_eo_parts(eo_conf,"dat/conf_plain");
   
   //define phases
   init_backfield_to_id(u1b);
@@ -134,7 +134,7 @@ int stD2ee_pow_minus_one_eighth_application_test()
   ////////////////////////////////////////////
   
   //read the plain and phased conf
-  read_ildg_conf_and_split_into_eo_parts(eo_conf,"dat/conf_plain");
+  read_ildg_gauge_conf_and_split_into_eo_parts(eo_conf,"dat/conf_plain");
   
   //define phases
   init_backfield_to_id(u1b);
@@ -216,7 +216,7 @@ int stD2ee_max_eigenvalue_find_test()
   ////////////////////////////////////////////
   
   //read the plain and phased conf
-  read_ildg_conf_and_split_into_eo_parts(eo_conf,"dat/conf_plain");
+  read_ildg_gauge_conf_and_split_into_eo_parts(eo_conf,"dat/conf_plain");
   
   //define phases
   init_backfield_to_id(u1b);
@@ -236,18 +236,7 @@ int stD2ee_max_eigenvalue_find_test()
   nissa_free(u1b[0]);
   nissa_free(eo_conf[0]);
   
-  /*
-  if(glb_diff<1.e-9) 
-    {
-      master_printf("stD2ee^(-1/8) application test passed!\n");
-      return 1;
-    }
-  else
-    {
-      master_printf("stD2ee^(-1/8) application test not passed!\n");
-      return 0;
-    }
-  */
+  return 1;
 }
 
 

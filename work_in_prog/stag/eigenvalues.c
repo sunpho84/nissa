@@ -34,13 +34,12 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
   
   double eig_max;
   
-  color *vec=nissa_malloc("vec",(loc_vol+loc_bord)/2,color);
-  color *tmp=nissa_malloc("tmp",(loc_vol+loc_bord)/2,color);
+  color *vec=nissa_malloc("vec",loc_volh+loc_bordh,color);
+  color *tmp=nissa_malloc("tmp",loc_volh+loc_bordh,color);
   
   //generate the random field
-  for(int ivol=0;ivol<loc_vol/2;ivol++)
+  for(int ivol=0;ivol<loc_volh;ivol++)
     color_put_to_gauss(vec[ivol],&(loc_rnd_gen[ivol]),1);  
-  
   //apply the vector niter times normalizing at each iter
   for(int iter=0;iter<niters;iter++)
     {
@@ -59,7 +58,7 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
 }
 
 //scale the rational expansion
-void scale_expansions(rat_approx *rat_exp_pfgen,quad_su3 **eo_conf,quark_content *quark_pars,quad_u1 ***bf,int nquarks)
+void scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_exp_actio,quad_su3 **eo_conf,quark_content *quark_pars,quad_u1 ***bf,int nquarks)
 {
   //loop over each quark
   for(int iquark=0;iquark<nquarks;iquark++)
@@ -72,27 +71,39 @@ void scale_expansions(rat_approx *rat_exp_pfgen,quad_su3 **eo_conf,quark_content
       
       //Set scale factors
       //add the background field
-      /*
-	add_backfield_to_conf(eo_conf,u1b);
-      double m=max_eigenval(quark_pars,eo_conf);
-      rem_backfield_to_conf(eo_conf,u1b);
-      */
-      double scale=5.6331760852836039;
+      add_backfield_to_conf(eo_conf,bf[iquark]);
+      double scale=max_eigenval(quark_pars,eo_conf,50)*1.1;
+      rem_backfield_from_conf(eo_conf,bf[iquark]);
+
+      ///// DEBUG //////
+      scale=5.6331760852836039;
+      master_printf("Debug: scaling with pre-fixed scaling quantity\n");
+
       double scale_pfgen=pow(scale,db_rat_exp_pfgen_degr[ipf][irexp]);
-      master_printf("%lg %lg\n",scale,scale_pfgen);
-      
+      double scale_actio=pow(scale,db_rat_exp_actio_degr[ipf][irexp]);
+
       //scale the rational approximation to generate pseudo-fermions
       rat_exp_pfgen[iquark].exp_power=db_rat_exp_pfgen_degr[ipf][irexp];
       rat_exp_pfgen[iquark].minimum=db_rat_exp_min*scale;
       rat_exp_pfgen[iquark].maximum=db_rat_exp_max*scale;
       rat_exp_pfgen[iquark].cons=db_rat_exp_pfgen_cons[ipf][irexp]*scale_pfgen;
 
+      //scale the rational approximation to compute action (and force)
+      rat_exp_actio[iquark].exp_power=db_rat_exp_actio_degr[ipf][irexp];
+      rat_exp_actio[iquark].minimum=db_rat_exp_min*scale;
+      rat_exp_actio[iquark].maximum=db_rat_exp_max*scale;
+      rat_exp_actio[iquark].cons=db_rat_exp_actio_cons[ipf][irexp]*scale_pfgen;
+
       for(int iterm=0;iterm<db_rat_exp_nterms;iterm++)
         {
           rat_exp_pfgen[iquark].poles[iterm]=db_rat_exp_pfgen_pole[ipf][irexp][iterm]*scale+pow(quark_pars[iquark].mass,2);
           rat_exp_pfgen[iquark].weights[iterm]=db_rat_exp_pfgen_coef[ipf][irexp][iterm]*scale*scale_pfgen;
+
+          rat_exp_actio[iquark].poles[iterm]=db_rat_exp_actio_pole[ipf][irexp][iterm]*scale+pow(quark_pars[iquark].mass,2);
+          rat_exp_actio[iquark].weights[iterm]=db_rat_exp_actio_coef[ipf][irexp][iterm]*scale*scale_actio;
 	}
       
       master_printf_rat_approx(&(rat_exp_pfgen[iquark]));
+      master_printf_rat_approx(&(rat_exp_actio[iquark]));
     }
 }
