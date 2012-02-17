@@ -375,8 +375,8 @@ void close_semileptonic()
 void calculate_S0()
 {
   //temporary vector for sol and guess
-  spincolor *temp_sol=nissa_malloc("Temp_sol",loc_vol,spincolor);
-  spincolor *guess=nissa_malloc("Guess",loc_volh,spincolor);
+  spincolor *temp_sol=nissa_malloc("Temp_sol",loc_vol+loc_bord,spincolor);
+  spincolor *guess=nissa_malloc("Guess",loc_volh+loc_bordh,spincolor);
   memset(guess,0,loc_volh*sizeof(spincolor));
   
   //loop over the source dirac index
@@ -417,8 +417,8 @@ void calculate_S0()
 void calculate_S1()
 {
   //temporary solution
-  spincolor *temp_sol=nissa_malloc("Temp_sol",loc_vol,spincolor);
-  spincolor *guess=nissa_malloc("Guess",loc_volh,spincolor);
+  spincolor *temp_sol=nissa_malloc("Temp_sol",loc_vol+loc_bord,spincolor);
+  spincolor *guess=nissa_malloc("Guess",loc_volh+loc_bordh,spincolor);
   
   for(int lc_spec=0;lc_spec<2;lc_spec++)
     for(int r_spec=0;r_spec<2;r_spec++)

@@ -496,6 +496,7 @@ TYPE constant_fit(VTYPE in,int tin,int tfin,const char *path=NULL)
       out<<"@s2 errorbar color 1"<<endl;
       out<<"@s2 symbol 1"<<endl;
       out<<in;
+      out<<"&"<<endl;
       out.close();
     }
   
