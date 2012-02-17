@@ -65,7 +65,7 @@ colorspinspin *original_source;
 
 //vectors for the spinor data
 colorspinspin **S[2][2];
-spincolor **cgmms_solution,*reco_solution[2];
+spincolor **cgmms_solution,*temp_vec[2];
 
 //cgmms inverter parameters
 double stopping_residue;
@@ -184,7 +184,7 @@ void initialize_Bk(char *input_path)
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
 
-      if(rank==0 && debug_lvl) printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
+      if(debug_lvl) master_printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
 
 
@@ -200,7 +200,7 @@ void initialize_Bk(char *input_path)
   communicate_lx_gauge_borders(conf);
   
   double gplaq=global_plaquette_lx_conf(conf);
-  if(rank==0) printf("plaq: %.18g\n",gplaq);
+  master_printf("plaq: %.18g\n",gplaq);
   
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
@@ -217,8 +217,8 @@ void initialize_Bk(char *input_path)
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=(spincolor**)malloc(sizeof(spincolor*)*nmass);
   for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
-  reco_solution[0]=nissa_malloc("reco_solution[0]",loc_vol,spincolor);
-  reco_solution[1]=nissa_malloc("reco_solution[1]",loc_vol,spincolor);
+  temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
+  temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
   
   //Allocate one spincolor for the source
   source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
@@ -241,7 +241,7 @@ void close_Bk()
   nissa_free(conf);
   for(int iprop=0;iprop<nmass;iprop++) for(int LR=0;LR<2;LR++) for(int UD=0;UD<2;UD++) nissa_free(S[LR][UD][iprop]);
   nissa_free(source);nissa_free(original_source);
-  nissa_free(reco_solution[0]);nissa_free(reco_solution[1]);
+  nissa_free(temp_vec[0]);nissa_free(temp_vec[1]);
   for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
   
   close_nissa();
@@ -265,15 +265,15 @@ void calculate_S(int LR)
       inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
       part_time+=take_time();ninv_tot++;inv_time+=part_time;
       char tag[2][10]={"left","right"};
-      if(rank==0) printf("Finished the %s source inversion, dirac index %d in %g sec\n",tag[LR],id,part_time);
+      master_printf("Finished the %s source inversion, dirac index %d in %g sec\n",tag[LR],id,part_time);
       
       for(int imass=0;imass<nmass;imass++)
 	{ //reconstruct the doublet
-	  reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
-	  if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+	  reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	  master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	  for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 	    for(int i=0;i<loc_vol;i++)
-	      put_spincolor_into_colorspinspin(S[LR][r][imass][i],reco_solution[r][i],id);
+	      put_spincolor_into_colorspinspin(S[LR][r][imass][i],temp_vec[r][i],id);
 	}
     }
   

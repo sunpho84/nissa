@@ -17,7 +17,7 @@ colorspinspin *original_source;
 //vectors for the spinor data
 int npropS0;
 colorspinspin **S0[2];
-spincolor **cgmms_solution,*reco_solution[2];
+spincolor **cgmms_solution,*temp_vec[2];
 
 //cgmms inverter parameters
 double stopping_residue;
@@ -109,7 +109,7 @@ void generate_sequential_source(int ispec)
 {
   int r=r_spec[ispec];
 
-  if(rank==0) printf("Creating the sequential source\n");
+  master_printf("Creating the sequential source\n");
   for(int ivol=0;ivol<loc_vol;ivol++)
     { //put to zero everything but the slice
       if(glb_coord_of_loclx[ivol][0]!=(twall+glb_size[0]/2)%glb_size[0])
@@ -121,7 +121,7 @@ void generate_sequential_source(int ispec)
 	    rotate_spinspin_to_physical_basis(sequential_source[ivol][c],r,r);
 	}
     }
-  if(rank==0) printf("Sequential source created\n");
+  master_printf("Sequential source created\n");
 }  
 
 //Parse all the input file
@@ -197,7 +197,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(op1_2pts[icontr]));
       read_int(&(op2_2pts[icontr]));
 
-      if(rank==0 && debug_lvl) printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
+      if(debug_lvl) master_printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
     }
   
   read_str_int("NChromoContrTwoPoints",&nch_contr_2pts);
@@ -210,7 +210,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(ch_op1_2pts[icontr]));
       read_int(&(ch_op2_2pts[icontr]));
 
-      if(rank==0 && debug_lvl) printf(" ch-contr.%d %d %d\n",icontr,ch_op1_2pts[icontr],ch_op2_2pts[icontr]);
+      if(debug_lvl) master_printf(" ch-contr.%d %d %d\n",icontr,ch_op1_2pts[icontr],ch_op2_2pts[icontr]);
     }
 
   read_str_str("OutfileTwoPoints",outfile_2pts,1024);
@@ -227,7 +227,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(ith_spec[ispec]));
       read_int(&(imass_spec[ispec]));
       read_int(&(r_spec[ispec]));
-      if(rank==0)printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,theta[ith_spec[ispec]],mass[imass_spec[ispec]],r_spec[ispec]);
+      master_printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,theta[ith_spec[ispec]],mass[imass_spec[ispec]],r_spec[ispec]);
     }
   read_str_int("NContrThreePoints",&ncontr_3pts);
   contr_3pts=(complex*)malloc(sizeof(complex)*ncontr_3pts*glb_size[0]); 
@@ -239,7 +239,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(op1_3pts[icontr]));
       read_int(&(op2_3pts[icontr]));
 
-      if(rank==0 && debug_lvl) printf(" contr.%d %d %d\n",icontr,op1_3pts[icontr],op2_3pts[icontr]);
+      if(debug_lvl) master_printf(" contr.%d %d %d\n",icontr,op1_3pts[icontr],op2_3pts[icontr]);
     }
 
   read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
@@ -252,7 +252,7 @@ void initialize_semileptonic(char *input_path)
       read_int(&(ch_op1_3pts[icontr]));
       read_int(&(ch_op2_3pts[icontr]));
 
-      if(rank==0 && debug_lvl) printf(" ch-contr.%d %d %d\n",icontr,ch_op1_3pts[icontr],ch_op2_3pts[icontr]);
+      if(debug_lvl) master_printf(" ch-contr.%d %d %d\n",icontr,ch_op1_3pts[icontr],ch_op2_3pts[icontr]);
     }
 
   read_str_str("OutfileThreePoints",outfile_3pts,1024);
@@ -271,7 +271,7 @@ void initialize_semileptonic(char *input_path)
   communicate_lx_gauge_edges(conf);
   
   double gplaq=global_plaquette_lx_conf(conf);
-  if(rank==0) printf("plaq: %.18g\n",gplaq);
+  master_printf("plaq: %.18g\n",gplaq);
   
   Pmunu_term(Pmunu,conf);
   
@@ -292,8 +292,8 @@ void initialize_semileptonic(char *input_path)
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=(spincolor**)malloc(sizeof(spincolor*)*nmass);
   for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
-  reco_solution[0]=nissa_malloc("reco_solution[0]",loc_vol,spincolor);
-  reco_solution[1]=nissa_malloc("reco_solution[1]",loc_vol,spincolor);
+  temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
+  temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
   
   //Allocate one spincolor for the source
   source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
@@ -311,17 +311,14 @@ void initialize_semileptonic(char *input_path)
 //Finalization
 void close_semileptonic()
 {
-  if(rank==0)
-    {
-      printf("\n");
-      printf("Total time: %g, of which:\n",tot_time);
-      printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
-      printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
-    }
-
+  master_printf("\n");
+  master_printf("Total time: %g, of which:\n",tot_time);
+  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
+  master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+  
   nissa_free(Pmunu);nissa_free(conf);
   for(int iprop=0;iprop<npropS0;iprop++){nissa_free(S0[0][iprop]);nissa_free(S0[1][iprop]);nissa_free(S1[iprop]);}
-  nissa_free(reco_solution[0]);nissa_free(reco_solution[1]);
+  nissa_free(temp_vec[0]);nissa_free(temp_vec[1]);
   nissa_free(ch_colorspinspin);nissa_free(sequential_source);
   for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
   nissa_free(source);nissa_free(original_source);
@@ -350,15 +347,15 @@ void calculate_S0()
 	  double part_time=-take_time();
 	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	  if(rank==0) printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
+	  master_printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
 
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet
-	      reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
-	      if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		for(int i=0;i<loc_vol;i++)
-		  put_spincolor_into_colorspinspin(S0[r][iprop_of(itheta,imass)][i],reco_solution[r][i],id);
+		  put_spincolor_into_colorspinspin(S0[r][iprop_of(itheta,imass)][i],temp_vec[r][i],id);
 	    }
 	}
     }
@@ -385,16 +382,16 @@ void calculate_S1(int ispec)
 	  double part_time=-take_time();
 	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	  if(rank==0) printf("Finished the inversion of S1 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
+	  master_printf("Finished the inversion of S1 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
 	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet: r(S1)=!r(spec), so we have to multiply by Q+ if r(spec)==1 and Q- if 0
 	      double reco_mass=-mass[imass];
 	      if(r_spec[ispec]==1) reco_mass=-reco_mass;
-	      //use reco_solution[0] as temporary storage
-	      apply_tmQ(reco_solution[0],cgmms_solution[imass],conf,kappa,reco_mass);
-	      if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
-	      for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass)][i],reco_solution[0][i],id);
+	      //use temp_vec[0] as temporary storage
+	      apply_tmQ(temp_vec[0],cgmms_solution[imass],conf,kappa,reco_mass);
+	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+	      for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass)][i],temp_vec[0][i],id);
 	    }
 	}
     }
@@ -519,13 +516,8 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_nissa();
 
-  if(narg<2 && rank==0)
-      {
-	fprintf(stderr,"Use: %s input_file\n",arg[0]);
-	fflush(stderr);
-	MPI_Abort(MPI_COMM_WORLD,1);
-      }
-
+  if(narg<2) crash("Use: %s input_file\n",arg[0]);
+  
   tot_time-=take_time();
   initialize_semileptonic(arg[1]);
   
@@ -533,7 +525,7 @@ int main(int narg,char **arg)
   calculate_S0();
   calculate_all_2pts();
 
-  if(rank==0) printf("Ok, the 2points part is finished\n");
+  master_printf("Ok, the 2points part is finished\n");
   
   for(int ispec=0;ispec<nspec;ispec++)
     {
