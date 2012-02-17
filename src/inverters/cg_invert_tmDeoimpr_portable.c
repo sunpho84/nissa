@@ -183,7 +183,7 @@ void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *source_lx,spincolor
   inv_tmDee_or_oo_eos(solution_eos[EVN],varphi,kappa,mu);
 
   nissa_free(varphi);
-  
+
   /////////////////////////// paste the e/o parts of the solution together and free ///////////////////
   
   paste_eo_parts_into_lx_spincolor(solution_lx,solution_eos[EVN],solution_eos[ODD],loc_vol);

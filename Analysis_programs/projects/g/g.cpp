@@ -130,6 +130,8 @@ int main()
     out<<Dth_AK_DV_sa<<endl;
     out<<"&\n@type xydy"<<endl;
     out<<Dth_AK_DV_sa.simmetric()<<endl;
+    out<<"&\n@type xydy"<<endl;
+    out<<Dth_AK_DV_sa.simmetrized(1)<<endl;
   }
   
   
@@ -142,46 +144,20 @@ int main()
     out<<Dth_AK_DV_nu<<endl;
   }
   
+  //fit matrix element
+  jack RA1_sa=constant_fit(Dth_AK_DV_sa.simmetrized(1),tmin_g,tmax_g,"RA1_sa.xmg");
+  jack RA1_nu=constant_fit(Dth_AK_DV_nu.simmetrized(1),tmin_g,tmax_g,"RA1_nu.xmg");
   
-  /////////////////////////////// Compute g ///////////////////////////
   
-  //determine g correlation function
-  jvec g_corr_sa=(Dth_AK_DV_sa*0.746/(M_P5+M_VK)).simmetrized(1);
-  jvec g_corr_nu=(Dth_AK_DV_nu*0.746/(M_P5+M_VK)).simmetrized(1);
+  /////////////////////////////// Compute gc ///////////////////////////
   
-  //fit g
-  jack g_sa=constant_fit(g_corr_sa,tmin_g,tmax_g);
-  jack g_nu=constant_fit(g_corr_nu,tmin_g,tmax_g);
+  //determine gc
+  jack gc_sa=RA1_sa*0.746/(2*sqrt(M_P5*M_VK));
+  jack gc_nu=RA1_nu*0.746/(2*sqrt(M_P5*M_VK));
   
-  //write matrix element semi analytical
-  {
-    ofstream out("g_corr_semianalytical.xmg");
-    out<<"@type xydy"<<endl;
-    out<<g_corr_sa<<endl;
-    out<<"&"<<endl<<"@type xy"<<endl;
-    out<<tmin_g<<" "<<g_sa.med()+g_sa.err()<<endl;
-    out<<tmax_g<<" "<<g_sa.med()+g_sa.err()<<endl;
-    out<<tmax_g<<" "<<g_sa.med()-g_sa.err()<<endl;
-    out<<tmin_g<<" "<<g_sa.med()-g_sa.err()<<endl;
-    out<<tmin_g<<" "<<g_sa.med()+g_sa.err()<<endl;
-  }
-  
-  //write matrix element numerical
-  {
-    ofstream out("g_corr_numerical.xmg");
-    out<<"@type xydy"<<endl;
-    out<<g_corr_nu<<endl;
-    out<<"&"<<endl<<"@type xy"<<endl;
-    out<<tmin_g<<" "<<g_nu.med()+g_nu.err()<<endl;
-    out<<tmax_g<<" "<<g_nu.med()+g_nu.err()<<endl;
-    out<<tmax_g<<" "<<g_nu.med()-g_nu.err()<<endl;
-    out<<tmin_g<<" "<<g_nu.med()-g_nu.err()<<endl;
-    out<<tmin_g<<" "<<g_nu.med()+g_nu.err()<<endl;
-  }
-  
-  //print g
-  cout<<"g_nu: "<<g_nu<<endl;
-  cout<<"g_sa: "<<g_sa<<endl;
+  //print gc
+  cout<<"gc_nu: "<<gc_nu<<endl;
+  cout<<"gc_sa: "<<gc_sa<<endl;
   
   
   /////////////////////////////// Load the three points for the corrections /////////////////////////////////////
