@@ -51,10 +51,10 @@ void compute_su3spinspin_propagators_multi_mass(su3spinspin ***prop,su3spinspin 
 {
   //allocate temporary source
   spincolor *temp_source=nissa_malloc("temp_source",loc_vol+loc_bord,spincolor);
-  //allocate reco_solution
-  spincolor *reco_solution[2];
-  reco_solution[0]=nissa_malloc("reco_sol[0]",loc_vol+loc_bord,spincolor);
-  reco_solution[1]=nissa_malloc("reco_sol[1]",loc_vol+loc_bord,spincolor);
+  //allocate temp_vec
+  spincolor *temp_vec[2];
+  temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol+loc_bord,spincolor);
+  temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol+loc_bord,spincolor);
   //allocate nmass spincolors, for the cgmms solutions
   spincolor **cgmms_solution;
   cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
@@ -74,19 +74,19 @@ void compute_su3spinspin_propagators_multi_mass(su3spinspin ***prop,su3spinspin 
         //reconstruct the doublet
         for(int imass=0;imass<nmass;imass++)
           {
-            reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+            reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
             
             //convert the id-th spincolor into the su3spinspin
             for(int r=0;r<2;r++)
               for(int i=0;i<loc_vol;i++)
-                put_spincolor_into_su3spinspin(prop[r][imass][i],reco_solution[r][i],id,ic);
+                put_spincolor_into_su3spinspin(prop[r][imass][i],temp_vec[r][i],id,ic);
             
             master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
           }
       }
   
   //free temp vec
-  nissa_free(reco_solution[1]);nissa_free(reco_solution[0]);
+  nissa_free(temp_vec[1]);nissa_free(temp_vec[0]);
   nissa_free(temp_source);
   for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
   nissa_free(cgmms_solution);

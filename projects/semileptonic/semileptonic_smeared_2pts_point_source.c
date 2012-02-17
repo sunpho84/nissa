@@ -24,7 +24,7 @@ int nsm_lev;
 //vectors for the spinor data
 int npropS0;
 su3spinspin **S0[2];
-spincolor **cgmms_solution,*reco_solution[2];
+spincolor **cgmms_solution,*temp_vec[2];
 
 //cgmms inverter parameters
 double stopping_residue;
@@ -179,8 +179,8 @@ void initialize_semileptonic(char *input_path)
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
   for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution[imass]",loc_vol+loc_bord,spincolor);
-  reco_solution[0]=nissa_malloc("reco_sol[0]",loc_vol+loc_bord,spincolor);
-  reco_solution[1]=nissa_malloc("reco_sol[1]",loc_vol+loc_bord,spincolor);
+  temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol+loc_bord,spincolor);
+  temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol+loc_bord,spincolor);
   
   //Allocate one spincolor for the source
   source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
@@ -198,9 +198,9 @@ void load_gauge_conf()
   communicate_lx_gauge_borders(sme_conf);
   
   double gplaq=global_plaquette_lx_conf(conf);
-  if(rank==0) printf("plaq: %.18g\n",gplaq);
+  master_printf("plaq: %.18g\n",gplaq);
   gplaq=global_plaquette_lx_conf(sme_conf);
-  if(rank==0) printf("smerded plaq: %.18g\n",gplaq);
+  master_printf("smerded plaq: %.18g\n",gplaq);
 
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;
@@ -212,7 +212,7 @@ void load_gauge_conf()
 void close_semileptonic()
 {
   nissa_free(original_source);nissa_free(source);
-  nissa_free(reco_solution[1]);nissa_free(reco_solution[0]);
+  nissa_free(temp_vec[1]);nissa_free(temp_vec[0]);
   for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
   nissa_free(cgmms_solution);
   for(int r=0;r<2;r++)
@@ -258,15 +258,15 @@ void calculate_S0(int sm_lev_sour)
 	communicate_lx_spincolor_borders(source);
 	inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	if(rank==0) printf("Finished the inversion of S0, dirac index %d, color %d in %g sec\n",id,ic,part_time);
+	master_printf("Finished the inversion of S0, dirac index %d, color %d in %g sec\n",id,ic,part_time);
 	
 	for(int imass=0;imass<nmass;imass++)
 	  { //reconstruct the doublet
-	    reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
-	    if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+	    reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	    master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	    for(int r=0;r<2;r++) //convert the id-th spincolor into the su3spinspin
 	      for(int i=0;i<loc_vol;i++)
-		put_spincolor_into_su3spinspin(S0[r][imass][i],reco_solution[r][i],id,ic);
+		put_spincolor_into_su3spinspin(S0[r][imass][i],temp_vec[r][i],id,ic);
 	  }
       }
   
@@ -292,9 +292,9 @@ void calculate_all_2pts(int sm_lev_sour)
 	    for(int id=0;id<4;id++)
 	      for(int ic=0;ic<3;ic++)
 		{
-		  for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_su3spinspin(reco_solution[0][ivol],S0[r][imass][ivol],id,ic);
-		  jacobi_smearing(reco_solution[1],reco_solution[0],sme_conf,jacobi_kappa,jacobi_niter[sm_lev_sink]-jacobi_niter[sm_lev_sink-1]);
-		  for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_su3spinspin(S0[r][imass][ivol],reco_solution[1][ivol],id,ic);
+		  for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_su3spinspin(temp_vec[0][ivol],S0[r][imass][ivol],id,ic);
+		  jacobi_smearing(temp_vec[1],temp_vec[0],sme_conf,jacobi_kappa,jacobi_niter[sm_lev_sink]-jacobi_niter[sm_lev_sink-1]);
+		  for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_su3spinspin(S0[r][imass][ivol],temp_vec[1][ivol],id,ic);
 		}
       
       //perform the contractions
@@ -334,11 +334,11 @@ int main(int narg,char **arg)
   
   int iconf=0;
   do
-  {
+    {
       //Gauge path
       int ex=0;
       do
-      {
+	{
 	  read_str(conf_path,1024);
 	  read_int(&source_coord[0]);
 	  read_str(outfile_2pts,1024);
@@ -348,23 +348,23 @@ int main(int narg,char **arg)
 	  ex=file_exists(check_path);
 	  if(ex) master_printf("%s already analized, skiping.\n",conf_path);
 	  else
-	  {
+	    {
 	      master_printf("%s not already analized.\n",conf_path);
 	      FILE *fout=open_text_file_for_output(check_path);
 	      if(rank==0) fclose(fout);
-	  }
-      }
+	    }
+	}
       while(ex);
       load_gauge_conf();
       generate_source();
       
       for(int sm_lev_sour=0;sm_lev_sour<nsm_lev;sm_lev_sour++)
-      {
+	{
 	  calculate_S0(sm_lev_sour);
 	  calculate_all_2pts(sm_lev_sour);
-      }
+	}
       iconf++;
-  }
+    }
   while(iconf<ngauge_conf && take_time()+tot_time<wall_time);
   
   tot_time+=take_time();

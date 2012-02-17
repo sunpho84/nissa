@@ -21,7 +21,7 @@ quad_su3 *conf;
 as2t_su3 *Pmunu;
 
 colorspinspin *source,*ch_prop,***S,*edm_prop[3];
-spincolor *inv_source,*reco_solution[2],**QQ;
+spincolor *inv_source,*temp_vec[2],**QQ;
 
 int seed,starting_source,ending_source,noise_type;
 int source_pos[4];
@@ -187,7 +187,7 @@ void initialize_bubbles(char *input_path)
   inv_source=nissa_malloc("inv_source",loc_vol+loc_bord,spincolor);
   ch_prop=nissa_malloc("chromo-prop",loc_vol,colorspinspin);
   for(int idir=0;idir<3;idir++) edm_prop[idir]=nissa_malloc("edm_prop",loc_vol,colorspinspin);
-  for(int r=0;r<2;r++) reco_solution[r]=nissa_malloc("reco_solution",loc_vol,spincolor);
+  for(int r=0;r<2;r++) temp_vec[r]=nissa_malloc("temp_vec",loc_vol,spincolor);
 
   //read the seed
   read_str_int("Seed",&seed);
@@ -265,10 +265,10 @@ void calculate_S()
       //put the solution inside the S vector
       for(int imass=0;imass<nmass;imass++) 
 	{
-	  reconstruct_tm_doublet(reco_solution[0],reco_solution[1],QQ[imass],conf,kappa,mass[imass]);
+	  reconstruct_tm_doublet(temp_vec[0],temp_vec[1],QQ[imass],conf,kappa,mass[imass]);
 	  for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 	    for(int ivol=0;ivol<loc_vol;ivol++)
-	      put_spincolor_into_colorspinspin(S[imass][r][ivol],reco_solution[r][ivol],idso);
+	      put_spincolor_into_colorspinspin(S[imass][r][ivol],temp_vec[r][ivol],idso);
 	}
     }
   
@@ -392,7 +392,7 @@ void close_bubbles()
   nissa_free(inv_source);
   nissa_free(ch_prop);
   for(int idir=0;idir<3;idir++) nissa_free(edm_prop[idir]);
-  for(int r=0;r<2;r++) nissa_free(reco_solution[r]);
+  for(int r=0;r<2;r++) nissa_free(temp_vec[r]);
 
   close_nissa();
 }

@@ -72,7 +72,7 @@ int ape_niter;
 //vectors for the spinor data
 int nprop;
 colorspinspin **S;
-spincolor **cgmms_solution,*reco_solution[2];
+spincolor **cgmms_solution,*temp_vec[2];
 
 //cgmms inverter parameters
 double stopping_residue;
@@ -231,8 +231,8 @@ void initialize_Bk(int narg,char **arg)
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
   for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
-  reco_solution[0]=nissa_malloc("reco_solution[0]",loc_vol,spincolor);
-  reco_solution[1]=nissa_malloc("reco_solution[1]",loc_vol,spincolor);
+  temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
+  temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
 
   //Allocate one spincolor for the source
   source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
@@ -355,12 +355,12 @@ void calculate_S(int iwall)
 	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet
-	      reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{
 		  int iprop=iS(iwall,so_jlv,imass,r);
-		  for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S[iprop][i],reco_solution[r][i],id);
+		  for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S[iprop][i],temp_vec[r][i],id);
 		}
 	    }
 	}
@@ -589,7 +589,7 @@ void close_Bk()
   nissa_free(source);nissa_free(original_source);
   for(int iprop=0;iprop<nprop;iprop++) nissa_free(S[iprop]);
   nissa_free(S);
-  nissa_free(reco_solution[1]);nissa_free(reco_solution[0]);
+  nissa_free(temp_vec[1]);nissa_free(temp_vec[0]);
   
   close_nissa();
 }

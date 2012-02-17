@@ -504,7 +504,7 @@ int main(int narg,char **arg)
   r_spec=atoi(arg[1]);
   master_printf("R_spec: %d\n",r_spec);
   
-  initialize_semileptonic(arg[1]);
+  initialize_semileptonic(arg[2]);
   
   int iconf=0,enough_time=1;
   while(iconf<ngauge_conf && enough_time && read_conf_parameters(&iconf))

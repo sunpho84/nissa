@@ -28,7 +28,7 @@ int *jacobi_niter_se,nsm_lev_se;
 //vectors for the spinor data
 int npropS0;
 colorspinspin **S0[2];
-spincolor **cgmms_solution,*reco_solution[2];
+spincolor **cgmms_solution,*temp_vec[2];
 
 //cgmms inverter parameters
 double stopping_residue;
@@ -311,8 +311,8 @@ void initialize_semileptonic(char *input_path)
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
   for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
-  reco_solution[0]=nissa_malloc("reco_solution[0]",loc_vol,spincolor);
-  reco_solution[1]=nissa_malloc("reco_solution[1]",loc_vol,spincolor);
+  temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
+  temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
   
   //Allocate one spincolor for the source
   source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
@@ -407,7 +407,7 @@ void close_semileptonic()
   nissa_free(Pmunu);nissa_free(conf);nissa_free(sme_conf);
   for(int iprop=0;iprop<npropS0;iprop++){nissa_free(S0[0][iprop]);nissa_free(S0[1][iprop]);nissa_free(S1[iprop]);}
   nissa_free(S0[0]);nissa_free(S0[1]);nissa_free(S1);
-  nissa_free(reco_solution[0]);nissa_free(reco_solution[1]);
+  nissa_free(temp_vec[0]);nissa_free(temp_vec[1]);
   nissa_free(ch_colorspinspin);nissa_free(sequential_source);
   nissa_free(contr_2pts);nissa_free(ch_contr_2pts);
   nissa_free(contr_3pts);nissa_free(ch_contr_3pts);
@@ -479,11 +479,11 @@ void calculate_S0(int ism_lev_so)
 	  //reconstruct the doublet
 	  for(int imass=0;imass<nmass;imass++)
 	    {
-	      reconstruct_tm_doublet(reco_solution[0],reco_solution[1],cgmms_solution[imass],conf,kappa,mass[imass]);
-	      if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		for(int i=0;i<loc_vol;i++)
-		  put_spincolor_into_colorspinspin(S0[r][iprop_of(itheta,imass)][i],reco_solution[r][i],id);
+		  put_spincolor_into_colorspinspin(S0[r][iprop_of(itheta,imass)][i],temp_vec[r][i],id);
 	    }
 	}
     }
@@ -521,16 +521,16 @@ void calculate_S1(int ispec,int ism_lev_se)
 	  double part_time=-take_time();
 	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	  if(rank==0) printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
+	  master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
 	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet: r(S1)=!r(spec), so we have to multiply by Q+ if r(spec)==1 and Q- if 0
 	      double reco_mass=-mass[imass];
 	      if(r_spec[ispec]==1) reco_mass=-reco_mass;
-	      //use reco_solution[0] as temporary storage
-	      apply_tmQ(reco_solution[0],cgmms_solution[imass],conf,kappa,reco_mass);
-	      if(rank==0) printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
-	      for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass)][i],reco_solution[0][i],id);
+	      //use temp_vec[0] as temporary storage
+	      apply_tmQ(temp_vec[0],cgmms_solution[imass],conf,kappa,reco_mass);
+	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+	      for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass)][i],temp_vec[0][i],id);
 	    }
 	}
     }

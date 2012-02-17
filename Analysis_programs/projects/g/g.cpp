@@ -81,14 +81,14 @@ int main()
   double th=0.41;
   double qi=M_PI*th/L;
   double q2=3*sqr(qi);
-  jack Mth_P5=sqrt(sqr(M_P5)+q2);
+  jack Eth_P5=sqrt(sqr(M_P5)+q2);
   
   //reconstruct numerically and semi-analitically the time dependance of three points
   jvec Dth_DV_td_sa(T,njack),Dth_DV_td_nu(T,njack);
   for(int t=0;t<=T/2;t++)
     {
       Dth_DV_td_nu[t    ]=P5P5[(T/2+t)%T]*VKVK[t]/sqrt(Z2_P5*Z2_VK);
-      Dth_DV_td_sa[t    ]=sqrt(Z2_P5*Z2_VK)*exp(-t*M_VK)*exp(-(T/2-t)*Mth_P5)/(2*Mth_P5*2*M_VK);
+      Dth_DV_td_sa[t    ]=sqrt(Z2_P5*Z2_VK)*exp(-t*M_VK)*exp(-(T/2-t)*Eth_P5)/(2*Eth_P5*2*M_VK);
     }
   for(int t=1;t<T/2;t++)
     {
@@ -163,29 +163,25 @@ int main()
   /////////////////////////////// Load the three points for the corrections /////////////////////////////////////
 
   int TEST=IMAG;
-  jvec P5thA0V1_00=load_3pts_charm_spec("A0V1",TEST);
-  jvec P5thA0V2_00=load_3pts_charm_spec("A0V2",TEST);
-  jvec P5thA0V3_00=load_3pts_charm_spec("A0V3",TEST);
-  jvec P5thA0VK_00=(P5thA0V1_00+P5thA0V2_00+P5thA0V3_00)/3;
+  jvec P5thA0V1=load_3pts_charm_spec("A0V1",TEST);
+  jvec P5thA0V2=load_3pts_charm_spec("A0V2",TEST);
+  jvec P5thA0V3=load_3pts_charm_spec("A0V3",TEST);
+  jvec P5thA0VK=(P5thA0V1+P5thA0V2+P5thA0V3)/3;
   
+  
+  //build the ratio
+  jvec RA2A1_corr=P5thA0VK/P5thAKVJK;
   //write
   {
-    ofstream out("P5thA0VK.xmg");
+    ofstream out("RA2A1_corr.xmg");
     out<<"@type xydy"<<endl;
-    out<<P5thA0VK_00/P5thAKVJK<<endl;
+    out<<RA2A1_corr<<endl;
     
     out<<"@type xydy"<<endl;
-    out<<(P5thA0VK_00/P5thAKVJK).simmetrized(1)<<endl;
+    out<<RA2A1_corr.simmetrized(1)<<endl;
   }  
   
-  cout<<(M_VK*M_VK-M_P5*M_P5)/(2*qi*M_VK)<<endl;
   cout<<M_VK<<endl<<M_P5<<endl;
-  
-  {
-    jack temp(njack);
-    temp.load("/Users/francesco/QCD/LAVORI/SMEARING_BK_RUNS/FITTED_MASS_Z/P5P5/3.90/24/0.0085/results",5);
-    cout<<temp<<endl;
-  }
   
   return 0;
 }
