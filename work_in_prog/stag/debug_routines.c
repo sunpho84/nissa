@@ -19,3 +19,19 @@ void read_o_color(color *o,char *path)
   
   nissa_free(lx);
 }
+double color_norm2_diff(color *a,color *b)
+{
+  double loc_norm2=0;
+  double norm2;
+  
+  for(int ivol=0;ivol<loc_volh;ivol++)
+    for(int ic=0;ic<3;ic++)
+      for(int ri=0;ri<2;ri++)
+	{	
+	  double d=a[ivol][ic][ri]-b[ivol][ic][ri];
+	  loc_norm2+=d*d;
+	}
+  MPI_Allreduce(&loc_norm2,&norm2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  
+  return norm2;
+}

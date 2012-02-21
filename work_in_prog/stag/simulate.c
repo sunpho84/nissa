@@ -14,7 +14,7 @@
 
 #include "tests.c"
 
-double beta=5.38;
+double beta=5.3;
 double am=0.025;
 
 int L,T;
@@ -125,11 +125,11 @@ void rhmc_step()
   for(int iflav=0;iflav<nflavs;iflav++)
     generate_pseudo_fermion(pf[iflav],eo_conf,u1b[iflav],&(rat_exp_pfgen[iflav]));
   
-  int nstep=3;
+  int nstep=1;
   double residue=1.e-12;
-  double traj_length=0.01;
-  omelyan_rootst_eoimpr_evolver(H,eo_conf,beta,nflavs,u1b,pf,&rat_exp_actio,residue,traj_length,2*nstep);
-  omelyan_rootst_eoimpr_evolver(H,eo_conf,beta,nflavs,u1b,pf,&rat_exp_actio,residue,-traj_length,2*nstep);
+  double traj_length=0.1;
+  omelyan_rootst_eoimpr_evolver(H,eo_conf,beta,nflavs,u1b,pf,&rat_exp_actio,residue,traj_length,nstep);
+  omelyan_rootst_eoimpr_evolver(H,eo_conf,beta,nflavs,u1b,pf,&rat_exp_actio,residue,-traj_length,nstep);
 }
 
 //finalize everything
@@ -157,12 +157,12 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  backfield_application_test();
-  stD2ee_application_test();
-  stD2ee_pow_minus_one_eighth_application_test();
+  //backfield_application_test();
+  //stD2ee_application_test();
+  //stD2ee_pow_minus_one_eighth_application_test();
   
-  //read_ildg_gauge_conf_and_split_into_eo_parts(eo_conf,"dat/conf_plain");
-  //rhmc_step();
+  read_ildg_gauge_conf_and_split_into_eo_parts(eo_conf,"dat/conf_plain");
+  rhmc_step();
   
   ///////////////////////////////////////
   

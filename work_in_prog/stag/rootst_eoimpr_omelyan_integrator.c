@@ -38,6 +38,7 @@ void evolve_momenta_with_rootst_force(quad_su3 **H,quad_su3 **conf,double beta,i
 //eolve the configuration by using the computed momenta
 void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 {
+  master_printf("Evolving conf with momenta\n");
   master_printf("plaq %18.18lg\n",global_plaquette_eo_conf(eo_conf[0],eo_conf[1]));
   for(int eo=0;eo<2;eo++)
     for(int ivol=0;ivol<loc_volh;ivol++)

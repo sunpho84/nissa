@@ -345,6 +345,7 @@ int read_binary_blob(void *out,char *path,const char *expected_record,int nmax_b
 //read a real vector
 void read_real_vector(double *out,char *path,const char *expected_record,int nreals_per_site)
 {
+  master_printf("Reading vector: %s\n",path);
   //Take inital time
   double time=(debug_lvl>1) ? -take_time() : 0;
   nissa_reader *reader=start_reading_real_vector(out,path,expected_record,nreals_per_site);  

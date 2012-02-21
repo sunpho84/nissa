@@ -229,7 +229,8 @@ int stD2ee_max_eigenvalue_find_test()
   //find the maximal eigenvalue
   quark_content pars;
   pars.mass=0.025;
-  double mc=max_eigenval(&pars,eo_conf,5000);
+  //double mc=
+  max_eigenval(&pars,eo_conf,5000);
   
   ///////////////////////////////////////////
   
