@@ -23,21 +23,9 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
 
   //debug
   static int b=0;
-  if(b==0)
-    {
-      master_printf("Debug: resetting F\n");
-      memset(F[0],0,loc_volh*sizeof(quad_su3));
-      memset(F[1],0,loc_volh*sizeof(quad_su3));
-    }
-  
-  //debug
-  master_printf("Debug,reading phi\n");
-  if(b==0) read_e_color(pf,"dat/quark_force_phi1");
-  else     read_e_color(pf,"dat/quark_force_phi2");
   
   //invert the various terms
-  for(int i=0;i<appr->nterms;i++)
-    master_printf("approx %d %16.16lg\n",i,appr->poles[i]);
+  master_printf_rat_approx(appr);
   inv_stD2ee_cgmm2s(chi_e,pf,eo_conf,appr->poles,appr->nterms,1000000,residue,residue,0);
   
   //summ all the terms performing appropriate elaboration
@@ -99,13 +87,12 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
 	      //this is for ivol=EVN
 	      unsafe_complex_conj2_prod(temp,v_o[iterm][loceo_neighup[EVN][ivol][mu]][ic1],chi_e[iterm][ivol][ic2]);
 	      complex_summ_the_prod_double(F[EVN][ivol][mu][ic1][ic2],temp,appr->weights[iterm]);
-	      //if(ivol==0 && mu==1) master_printf("%lg %lg\n",temp[0],temp[1]);
+	      
 	      //this is for ivol=ODD
 	      unsafe_complex_conj2_prod(temp,chi_e[iterm][loceo_neighup[ODD][ivol][mu]][ic1],v_o[iterm][ivol][ic2]);
 	      complex_subt_the_prod_double(F[ODD][ivol][mu][ic1][ic2],temp,appr->weights[iterm]);
 	    }
-  master_printf("F %lg %lg\n",F[0][0][1][0][0][0],F[0][0][1][0][0][1]);
-  //crash("9");
+  
   //free the back field
   nissa_free(v_o[0]);
   nissa_free(chi_e[0]);
@@ -113,40 +100,23 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
 
 //Compute the full force for the rooted staggered theory with nfl flavors
 //Conf and pf borders are assumed to have been already communicated
-void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx **appr,double residue)
+void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue)
 {
   //First of all compute gluonic part of the force
   add_backfield_to_conf(conf,u1b[0]);
   wilson_force(F,conf,beta);
   rem_backfield_from_conf(conf,u1b[0]);
   
-  //debug
-  quad_su3 *temp[2];
-  temp[0]=nissa_malloc("Temp",loc_vol,quad_su3);
-  temp[1]=temp[0]+loc_volh;
-  read_ildg_gauge_conf_and_split_into_eo_parts(temp,"dat/gluonic_force_pre_ta");
-  double n2=0;
-  for(int eo=0;eo<2;eo++)
-    for(int ivol=0;ivol<loc_volh;ivol++)
-      for(int mu=0;mu<4;mu++)
-	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
-	    for(int ri=0;ri<2;ri++)
-	      {
-		double a=temp[eo][ivol][mu][ic1][ic2][ri]-F[eo][ivol][mu][ic1][ic2][ri];
-		n2+=a*a;
-	      }
-  n2/=loc_vol*4*9;
-  n2=sqrt(n2);
-  master_printf("Gluonic force norm diff: %lg\n",n2);
-  if(n2>1.e-15) crash("wilson force computatin failed");
-  
   //Then summ the contributes coming from each flavor
   for(int ifl=0;ifl<nfl;ifl++)
-    summ_the_rootst_eoimpr_force(F,conf,u1b[ifl],pf[ifl],appr[ifl],residue);
+    summ_the_rootst_eoimpr_force(F,conf,u1b[ifl],pf[ifl],&(appr[ifl]),residue);
   
-  read_ildg_gauge_conf_and_split_into_eo_parts(temp,"dat/quark_force_pre_ta");
-  n2=0;
+  //debug
+  quad_su3 *temp[2];
+  temp[0]=nissa_malloc("temp",loc_vol,quad_su3);
+  temp[1]=temp[0]+loc_volh;
+  read_ildg_gauge_conf_and_split_into_eo_parts(temp,"dat/total_force_pre_ta");
+  double n2=0;
   for(int eo=0;eo<2;eo++)
     for(int ivol=0;ivol<loc_volh;ivol++)
       for(int mu=0;mu<4;mu++)
@@ -160,7 +130,7 @@ void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,double beta,int nfl,q
 	      }
   n2/=loc_vol*4*9;
   n2=sqrt(n2);
-  master_printf("Quark force norm diff: %lg\n",n2);
+  master_printf("Total force norm diff: %lg\n",n2);
   if(n2>1.e-16) crash("quark and wilson force computatin failed");
   
   //Finish the computation multiplying for the conf and aking TA
