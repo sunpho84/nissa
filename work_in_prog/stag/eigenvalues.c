@@ -3,28 +3,30 @@
 //compute the norm2 of an even color vector
 double eo_color_norm2(color *v)
 {
-  double norm2=0;
+  double loc_norm2=0;
+  double norm2;
   
-  for(int ivol=0;ivol<loc_vol/2;ivol++)
+  for(int ivol=0;ivol<loc_volh;ivol++)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
-	norm2+=v[ivol][ic][ri]*v[ivol][ic][ri];
+	loc_norm2+=v[ivol][ic][ri]*v[ivol][ic][ri];
+  
+  MPI_Allreduce(&loc_norm2,&norm2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   
   return norm2;
 }
 
 //put the passed vector to the required norm
-double eo_color_normalize(color *v,double norm)
+double eo_color_normalize(color *out,color *in,double norm)
 {
-  double ori_norm=sqrt(eo_color_norm2(v));
-  double inv_fact=norm/ori_norm;
+  double fact=sqrt(norm/eo_color_norm2(in));
   
-  for(int ivol=0;ivol<loc_vol/2;ivol++)
+  for(int ivol=0;ivol<loc_volh;ivol++)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
-	v[ivol][ic][ri]*=inv_fact;
+	out[ivol][ic][ri]=in[ivol][ic][ri]*fact;
   
-  return ori_norm;
+  return 1/fact;
 }
 
 //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
@@ -34,25 +36,35 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
   
   double eig_max;
   
-  color *vec=nissa_malloc("vec",loc_volh+loc_bordh,color);
+  color *vec_in=nissa_malloc("vec_in",loc_volh+loc_bordh,color);
+  color *vec_out=nissa_malloc("vec_out",loc_volh+loc_bordh,color);
   color *tmp=nissa_malloc("tmp",loc_volh+loc_bordh,color);
   
   //generate the random field
   for(int ivol=0;ivol<loc_volh;ivol++)
-    color_put_to_gauss(vec[ivol],&(loc_rnd_gen[ivol]),1);  
+    color_put_to_gauss(vec_in[ivol],&(loc_rnd_gen[ivol]),3);
+  
+  //debug
+  static int a=0;
+  master_printf("Debug, loading initial eig\n");
+  if(a==0) read_e_color(vec_in,"dat/Eig_init1");
+  else     read_e_color(vec_in,"dat/Eig_init2");
+  a++;
+  
   //apply the vector niter times normalizing at each iter
   for(int iter=0;iter<niters;iter++)
     {
-      communicate_ev_color_borders(vec);
-      apply_stD2ee(vec,eo_conf,tmp,pars->mass,vec);
+      communicate_ev_color_borders(vec_in);
+      apply_stD2ee(vec_out,eo_conf,tmp,pars->mass,vec_in);
       //compute the norm
-      eig_max=eo_color_normalize(vec,1);
-      
+      eig_max=eo_color_normalize(vec_in,vec_out,loc_volh*3);
+    
       master_printf("max_eigen search, iter=%d, eig=%lg\n",iter,eig_max);
     }
   
-  nissa_free(vec);
   nissa_free(tmp);
+  nissa_free(vec_out);
+  nissa_free(vec_in);
   
   return eig_max;
 }
@@ -76,9 +88,11 @@ void scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_exp_actio,quad_s
       rem_backfield_from_conf(eo_conf,bf[iquark]);
 
       ///// DEBUG //////
-      scale=5.6331760852836039;
-      master_printf("Debug: scaling with pre-fixed scaling quantity\n");
-
+      double exp_scale=scale;
+      master_printf("Debug: scaling with %16.16lg, expected: %16.16lg\n",scale,exp_scale);
+      master_printf("Forcing to %16.16lg\n",exp_scale);
+      scale=exp_scale;
+      
       double scale_pfgen=pow(scale,db_rat_exp_pfgen_degr[ipf][irexp]);
       double scale_actio=pow(scale,db_rat_exp_actio_degr[ipf][irexp]);
 

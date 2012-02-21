@@ -5,6 +5,7 @@
 
 const int T=48,L=T/2;
 const int njack=16;
+const double ZV=0.746;
 
 int tmin_V=7,tmax_V=15;
 int tmin_P=7,tmax_P=23;
@@ -40,10 +41,10 @@ int main()
   jvec P5thA2V3=load_3pts_charm_spec("A2V3",REAL);
   jvec P5thA3V1=load_3pts_charm_spec("A3V1",REAL);
   jvec P5thA3V2=load_3pts_charm_spec("A3V2",REAL);
-  jvec P5thAKVJ=-(P5thA1V2+P5thA1V3+P5thA2V1+P5thA2V3+P5thA3V1+P5thA3V2)/6;
+  jvec P5thAKVJ=(P5thA1V2+P5thA1V3+P5thA2V1+P5thA2V3+P5thA3V1+P5thA3V2)/6;
   
   //put together the equation (16)
-  jvec P5thAKVJK=P5thAKVK+P5thAKVJ;
+  jvec P5thAKVJK=P5thAKVK-P5thAKVJ;
 
   //compare the different parts
   {
@@ -51,7 +52,7 @@ int main()
     out<<"@type xydy"<<endl;
     out<<P5thAKVK<<endl;
     out<<"&\n@type xydy"<<endl;
-    out<<P5thAKVJ<<endl;
+    out<<-P5thAKVJ<<endl;
     out<<"&\n@type xydy"<<endl;
     out<<P5thAKVJK<<endl;
   }
@@ -145,24 +146,15 @@ int main()
   }
   
   //fit matrix element
-  jack RA1_sa=constant_fit(Dth_AK_DV_sa.simmetrized(1),tmin_g,tmax_g,"RA1_sa.xmg");
-  jack RA1_nu=constant_fit(Dth_AK_DV_nu.simmetrized(1),tmin_g,tmax_g,"RA1_nu.xmg");
+  jack R1_sa=constant_fit(Dth_AK_DV_sa.simmetrized(1),tmin_g,tmax_g,"R1_sa.xmg");
+  jack R1_nu=constant_fit(Dth_AK_DV_nu.simmetrized(1),tmin_g,tmax_g,"R1_nu.xmg");
   
-  
-  /////////////////////////////// Compute gc ///////////////////////////
-  
-  //determine gc
-  jack gc_sa=RA1_sa*0.746/(2*sqrt(M_P5*M_VK));
-  jack gc_nu=RA1_nu*0.746/(2*sqrt(M_P5*M_VK));
-  
-  //print gc
-  cout<<"gc_nu: "<<gc_nu<<endl;
-  cout<<"gc_sa: "<<gc_sa<<endl;
-  
+  //determine the form factor
+  jack A1=R1_sa/(M_VK+M_P5);
   
   /////////////////////////////// Load the three points for the corrections /////////////////////////////////////
 
-  int TEST=IMAG;
+  int TEST=REAL;
   jvec P5thA0V1=load_3pts_charm_spec("A0V1",TEST);
   jvec P5thA0V2=load_3pts_charm_spec("A0V2",TEST);
   jvec P5thA0V3=load_3pts_charm_spec("A0V3",TEST);
@@ -170,18 +162,55 @@ int main()
   
   
   //build the ratio
-  jvec RA2A1_corr=P5thA0VK/P5thAKVJK;
-  //write
+  jvec R2_pt1_corr=P5thA0VK/P5thAKVJK;
+  jvec R2_pt2_corr=P5thAKVJ/P5thAKVJK;
+
+  //write part 1 of R2 simmetrized and not
   {
-    ofstream out("RA2A1_corr.xmg");
+    ofstream out("R2_pt1_simm.xmg");
     out<<"@type xydy"<<endl;
-    out<<RA2A1_corr<<endl;
+    out<<R2_pt1_corr<<endl;
     
     out<<"@type xydy"<<endl;
-    out<<RA2A1_corr.simmetrized(1)<<endl;
-  }  
+    out<<R2_pt1_corr.simmetrized(1)<<endl;
+  }
   
-  cout<<M_VK<<endl<<M_P5<<endl;
+  //write part 2 of R2 simmetrized and not
+  {
+    ofstream out("R2_pt2_simm.xmg");
+    out<<"@type xydy"<<endl;
+    out<<R2_pt2_corr<<endl;
+    
+    out<<"@type xydy"<<endl;
+    out<<R2_pt2_corr.simmetrized(1)<<endl;
+  }
+  
+  //determine the correction
+  jack R2_pt1=constant_fit(R2_pt1_corr.simmetrized(1),tmin_g,tmax_g,"R2_pt1.xmg");
+  jack R2_pt2=constant_fit(R2_pt2_corr.simmetrized(1),tmin_g,tmax_g,"R2_pt2.xmg");
+  jack R2_pt2_coef=(Eth_P5-M_VK)/qi;
+  cout<<"R2: \n pt1: "<<R2_pt1<<"\n pt2: "<<R2_pt2<<"\n coef2: "<<R2_pt2_coef<<endl;
+  jack R2=-(R2_pt1+R2_pt2*R2_pt2_coef);
+  
+  jack A2frA1=R2*sqr(M_VK+M_P5)/(2*qi*M_VK);
+  cout<<"A2/A1: "<<A2frA1<<endl;
+  
+  //////////////// Compute the full value of fpi*gDvDPi ////////////////
+  
+  jack fpi_gDvDPi_pt1=(M_VK+M_P5)*A1;
+  jack fpi_gDvDPi_corr_rel=(M_VK-M_P5)/(M_VK+M_P5)*A2frA1;
+
+  
+  /////////////////////////////// Compute gc ///////////////////////////
+  
+  //determine gc
+  jack gc_pt1=fpi_gDvDPi_pt1*ZV/(2*sqrt(M_P5*M_VK));
+  jack gc_pt2=gc_pt1*fpi_gDvDPi_corr_rel;
+  
+  //print gc
+  cout<<"gc: \n pt1: "<<gc_pt1<<"\n pt2: "<<gc_pt2<<endl;
+  
+  
   
   return 0;
 }

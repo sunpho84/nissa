@@ -97,14 +97,14 @@ void su3_print(su3 U)
 	{
 	  for(int ri=0;ri<2;ri++)
 	    {
-	      printf("%g",U[icol1][icol2][ri]);
-	      if(ri==0) printf(",");
+	      master_printf("%16.16lg",U[icol1][icol2][ri]);
+	      if(ri==0) printf("\t");
 	    }
-	  printf(" ");
+	  master_printf("\t");
 	}
-      printf("\n");
+      master_printf("\n");
     }
-  printf("\n");
+  master_printf("\n");
 }
 
 //return the trace of an su3 matrix
@@ -285,6 +285,17 @@ void su3_prod_double(su3 a,su3 b,double r)
   double *db=(double*)b;
 
   for(int i=0;i<18;i++) da[i]=db[i]*r;
+}
+
+//hermitian of su3 matrix times a real
+void su3_hermitian_prod_double(su3 a,su3 b,double r)
+{
+  for(int i=0;i<3;i++)
+    for(int j=0;j<3;j++)
+      {
+	a[i][j][0]= r*b[j][i][0];
+	a[i][j][1]=-r*b[j][i][1];
+      }
 }
 
 //summ the prod of su3 with imag

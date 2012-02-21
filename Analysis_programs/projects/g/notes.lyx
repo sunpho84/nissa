@@ -263,7 +263,7 @@ Obtain
 Then: 
 \begin_inset Formula 
 \[
-g_{D^{*}D\pi}=\frac{M_{D^{*}}+M_{D}}{f_{\pi}}A_{1}\left(0\right)\left(1+corr\right)\,.
+g_{D^{*}D\pi}=\frac{M_{D^{*}}+M_{D}}{f_{\pi}}A_{1}\left(0\right)\left(1+\frac{M_{D^{*}}-M_{D}}{M_{D^{*}}+M_{D}}\frac{A_{2}\left(0\right)}{A_{1}\left(0\right)}\right)\,.
 \]
 
 \end_inset

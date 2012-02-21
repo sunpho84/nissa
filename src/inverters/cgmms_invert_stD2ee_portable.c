@@ -217,7 +217,9 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
 	master_printf("imass %d, rel residue true=%g approx=%g weighted=%g max=%g\n",imass,res/source_norm,final_res[imass],w_res,max_res);
       }
     }  
-
+  
+  master_printf("Total iterations: %d\n",iter);
+  
   for(int imass=0;imass<nmass;imass++) nissa_free(ps[imass]);
   nissa_free(s);
   nissa_free(p);
