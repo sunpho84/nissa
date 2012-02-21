@@ -18,6 +18,21 @@ void spincolor_copy(spincolor b,spincolor a){memcpy(b,a,sizeof(spincolor));}
 
 ////////////////////////////////// Operations between colors //////////////////////////
 
+//just print a color
+void color_print(color c)
+{
+  for(int icol=0;icol<3;icol++)
+    {
+      for(int ri=0;ri<2;ri++)
+	{
+	  master_printf("%16.16lg",c[icol][ri]);
+	  if(ri==0) printf("\t");
+	}
+      master_printf("\n");
+    }
+  master_printf("\n");
+}
+
 //summ two colors
 void color_summ(color a,color b,color c)
 {for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
