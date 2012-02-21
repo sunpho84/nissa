@@ -67,6 +67,7 @@ typedef struct
 
   void *prev;
   void *next;
+  char pad[8];
 } nissa_vect;
 
 //nissa file reader

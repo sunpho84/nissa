@@ -1,5 +1,7 @@
 #pragma once
 
+#include "base/sse_instructions.c"
+
 //Refers to the doc: "doc/eo_inverter.lyx" for explenations
 
 //apply even-odd or odd-even part of tmD, multiplied by -2
@@ -17,7 +19,11 @@ void tmn2Deo_or_tmn2Doe_eos(spincolor *out,spincolor *in,quad_su3 **conf,int eoo
       
       //Forward 0
       Xup=loceo_neighup[eooe][X][0];
-      color_summ(temp_c0,in[Xup][0],in[Xup][2]);
+      sse_load_color(sse_c00,sse_c01,sse_c02, in[Xup][0]);
+      sse_load_color(sse_c10,sse_c11,sse_c12, in[Xup][2]);
+      sse_color_summassign(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12);
+      sse_save_color(temp_c0, sse_c00,sse_c01,sse_c02);
+      //color_summ(temp_c0,in[Xup][0],in[Xup][2]);
       color_summ(temp_c1,in[Xup][1],in[Xup][3]);
       unsafe_su3_prod_color(out[X][0],conf[eooe][X][0],temp_c0);
       unsafe_su3_prod_color(out[X][1],conf[eooe][X][0],temp_c1);
