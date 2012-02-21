@@ -1,22 +1,10 @@
 #pragma once
 
-//Include the dirac operator: this depend on the machine
-#ifdef BGP
+#include "dirac_operator_tmQ/dirac_operator_tmQ.c"
+#include "dirac_operator_tmQ_left/dirac_operator_tmQ_left.c"
+#include "dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.c"
 
-#include "dirac_operator_tmQ_bgp.c"
-#include "dirac_operator_tmQ_left_bgp.c"
-
-#include "dirac_operator_stD_portable.c"
-
-#else
-
-#include "dirac_operator_tmQ_portable.c"
-#include "dirac_operator_tmDeoimpr_portable.c"
-#include "dirac_operator_tmQ_left_portable.c"
-
-#include "dirac_operator_stD_portable.c"
-
-#endif
+#include "dirac_operator_stD/dirac_operator_stD.c"
 
 ///////////////////////////////////////////// TWISTED MASS DEGENERATE LIGHT DOUBLET ///////////////////////////////////////
 
