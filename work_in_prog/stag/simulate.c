@@ -128,8 +128,8 @@ void rhmc_step()
   int nstep=1;
   double residue=1.e-12;
   double traj_length=0.1;
-  omelyan_rootst_eoimpr_evolver(H,eo_conf,beta,nflavs,u1b,pf,&rat_exp_actio,residue,traj_length,nstep);
-  omelyan_rootst_eoimpr_evolver(H,eo_conf,beta,nflavs,u1b,pf,&rat_exp_actio,residue,-traj_length,nstep);
+  omelyan_rootst_eoimpr_evolver(H,eo_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,traj_length,nstep);
+  omelyan_rootst_eoimpr_evolver(H,eo_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,-traj_length,nstep);
 }
 
 //finalize everything

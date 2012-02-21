@@ -12,7 +12,7 @@ void gauge_field_unitarize_explicitely_inverting(quad_su3 **conf)
 // Evolve momenta according to the rooted staggered force
 // calculate H=H-F*dt to evolve link momenta
 // i.e calculate v(t+dt)=v(t)+a*dt
-void evolve_momenta_with_rootst_force(quad_su3 **H,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx **appr,double residue,double dt,int ortho_mode)
+void evolve_momenta_with_rootst_force(quad_su3 **H,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue,double dt,int ortho_mode)
 {
   //allocate force
   quad_su3 *F[2];
@@ -74,7 +74,7 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 //     v1 = v2 + a[r(t + dt)]*2*lambda*dt
 //    only last step:
 //     v(t + h) = v2 + a[r(t + dt)]*lambda*dt
-void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx **appr,double residue,double traj_length,int nstep)
+void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue,double traj_length,int nstep)
 {
   //define step length ant its multiples
   const double lambda=0.1931833;

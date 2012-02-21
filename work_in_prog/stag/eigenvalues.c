@@ -88,7 +88,7 @@ void scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_exp_actio,quad_s
       rem_backfield_from_conf(eo_conf,bf[iquark]);
 
       ///// DEBUG //////
-      double exp_scale=scale;
+      double exp_scale=5.6331760852836039;
       master_printf("Debug: scaling with %16.16lg, expected: %16.16lg\n",scale,exp_scale);
       master_printf("Forcing to %16.16lg\n",exp_scale);
       scale=exp_scale;
