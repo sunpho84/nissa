@@ -19,92 +19,112 @@ void tmn2Deo_or_tmn2Doe_eos(spincolor *out,spincolor *in,quad_su3 **conf,int eoo
       
       //Forward 0
       Xup=loceo_neighup[eooe][X][0];
-      sse_load_color(sse_c00,sse_c01,sse_c02, in[Xup][0]);
-      sse_load_color(sse_c10,sse_c11,sse_c12, in[Xup][2]);
-      sse_color_summassign(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12);
+      sse_load_colors_and_summ(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xup][0], in[Xup][2]);
       sse_save_color(temp_c0, sse_c00,sse_c01,sse_c02);
-      //color_summ(temp_c0,in[Xup][0],in[Xup][2]);
-      color_summ(temp_c1,in[Xup][1],in[Xup][3]);
       unsafe_su3_prod_color(out[X][0],conf[eooe][X][0],temp_c0);
-      unsafe_su3_prod_color(out[X][1],conf[eooe][X][0],temp_c1);
       color_copy(out[X][2],out[X][0]);
+      //
+      sse_load_colors_and_summ(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xup][1], in[Xup][3]);
+      sse_save_color(temp_c1, sse_c00,sse_c01,sse_c02);
+      unsafe_su3_prod_color(out[X][1],conf[eooe][X][0],temp_c1);
       color_copy(out[X][3],out[X][1]);
       
       //Backward 0
       Xdw=loceo_neighdw[eooe][X][0];
-      color_subt(temp_c0,in[Xdw][0],in[Xdw][2]);
-      color_subt(temp_c1,in[Xdw][1],in[Xdw][3]);
+      sse_load_colors_and_subt(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xdw][0], in[Xdw][2]);
+      sse_save_color(temp_c0, sse_c00,sse_c01,sse_c02);
       unsafe_su3_dag_prod_color(temp_c2,conf[!eooe][Xdw][0],temp_c0);
-      unsafe_su3_dag_prod_color(temp_c3,conf[!eooe][Xdw][0],temp_c1);
       color_summassign(out[X][0],temp_c2);
-      color_summassign(out[X][1],temp_c3);
       color_subtassign(out[X][2],temp_c2);
+      //
+      sse_load_colors_and_subt(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xdw][1], in[Xdw][3]);
+      sse_save_color(temp_c1, sse_c00,sse_c01,sse_c02);
+      unsafe_su3_dag_prod_color(temp_c3,conf[!eooe][Xdw][0],temp_c1);
+      color_summassign(out[X][1],temp_c3);
       color_subtassign(out[X][3],temp_c3);
       
       //Forward 1
       Xup=loceo_neighup[eooe][X][1];
-      color_isumm(temp_c0,in[Xup][0],in[Xup][3]);
-      color_isumm(temp_c1,in[Xup][1],in[Xup][2]);
+      sse_load_colors_and_isumm(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xup][0], in[Xup][3]);
+      sse_save_color(temp_c0, sse_c00,sse_c01,sse_c02);
       unsafe_su3_prod_color(temp_c2,conf[eooe][X][1],temp_c0);
-      unsafe_su3_prod_color(temp_c3,conf[eooe][X][1],temp_c1);
       color_summassign(out[X][0],temp_c2);
+      color_isubtassign(out[X][3],temp_c2);
+      //
+      sse_load_colors_and_isumm(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xup][1], in[Xup][2]);
+      sse_save_color(temp_c1, sse_c00,sse_c01,sse_c02);
+      unsafe_su3_prod_color(temp_c3,conf[eooe][X][1],temp_c1);
       color_summassign(out[X][1],temp_c3);
       color_isubtassign(out[X][2],temp_c3);
-      color_isubtassign(out[X][3],temp_c2);
       
       //Backward 1
       Xdw=loceo_neighdw[eooe][X][1];
-      color_isubt(temp_c0,in[Xdw][0],in[Xdw][3]);
-      color_isubt(temp_c1,in[Xdw][1],in[Xdw][2]);
+      sse_load_colors_and_isubt(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xdw][0], in[Xdw][3]);
+      sse_save_color(temp_c0, sse_c00,sse_c01,sse_c02);
       unsafe_su3_dag_prod_color(temp_c2,conf[!eooe][Xdw][1],temp_c0);
-      unsafe_su3_dag_prod_color(temp_c3,conf[!eooe][Xdw][1],temp_c1);
       color_summassign(out[X][0],temp_c2);
+      color_isummassign(out[X][3],temp_c2);
+      //
+      sse_load_colors_and_isubt(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xdw][1], in[Xdw][2]);
+      sse_save_color(temp_c1, sse_c00,sse_c01,sse_c02);
+      unsafe_su3_dag_prod_color(temp_c3,conf[!eooe][Xdw][1],temp_c1);
       color_summassign(out[X][1],temp_c3);
       color_isummassign(out[X][2],temp_c3);
-      color_isummassign(out[X][3],temp_c2);
       
       //Forward 2
       Xup=loceo_neighup[eooe][X][2];
-      color_summ(temp_c0,in[Xup][0],in[Xup][3]);
-      color_subt(temp_c1,in[Xup][1],in[Xup][2]);
+      sse_load_colors_and_summ(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xup][0], in[Xup][3]);
+      sse_save_color(temp_c0, sse_c00,sse_c01,sse_c02);
       unsafe_su3_prod_color(temp_c2,conf[eooe][X][2],temp_c0);
-      unsafe_su3_prod_color(temp_c3,conf[eooe][X][2],temp_c1);
       color_summassign(out[X][0],temp_c2);
+      color_summassign(out[X][3],temp_c2);
+      //
+      sse_load_colors_and_subt(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xup][1], in[Xup][2]);
+      sse_save_color(temp_c1, sse_c00,sse_c01,sse_c02);
+      unsafe_su3_prod_color(temp_c3,conf[eooe][X][2],temp_c1);
       color_summassign(out[X][1],temp_c3);
       color_subtassign(out[X][2],temp_c3);
-      color_summassign(out[X][3],temp_c2);
       
       //Backward 2
       Xdw=loceo_neighdw[eooe][X][2];
-      color_subt(temp_c0,in[Xdw][0],in[Xdw][3]);
-      color_summ(temp_c1,in[Xdw][1],in[Xdw][2]);
+      sse_load_colors_and_subt(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xdw][0], in[Xdw][3]);
+      sse_save_color(temp_c0, sse_c00,sse_c01,sse_c02);
       unsafe_su3_dag_prod_color(temp_c2,conf[!eooe][Xdw][2],temp_c0);
-      unsafe_su3_dag_prod_color(temp_c3,conf[!eooe][Xdw][2],temp_c1);
       color_summassign(out[X][0],temp_c2);
+      color_subtassign(out[X][3],temp_c2);
+      //
+      sse_load_colors_and_summ(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xdw][1], in[Xdw][2]);
+      sse_save_color(temp_c1, sse_c00,sse_c01,sse_c02);
+      unsafe_su3_dag_prod_color(temp_c3,conf[!eooe][Xdw][2],temp_c1);
       color_summassign(out[X][1],temp_c3);
       color_summassign(out[X][2],temp_c3);
-      color_subtassign(out[X][3],temp_c2);
       
       //Forward 3
       Xup=loceo_neighup[eooe][X][3];
-      color_isumm(temp_c0,in[Xup][0],in[Xup][2]);
-      color_isubt(temp_c1,in[Xup][1],in[Xup][3]);
+      sse_load_colors_and_isumm(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xup][0], in[Xup][2]);
+      sse_save_color(temp_c0, sse_c00,sse_c01,sse_c02);
       unsafe_su3_prod_color(temp_c2,conf[eooe][X][3],temp_c0);
-      unsafe_su3_prod_color(temp_c3,conf[eooe][X][3],temp_c1);
       color_summassign(out[X][0],temp_c2);
-      color_summassign(out[X][1],temp_c3);
       color_isubtassign(out[X][2],temp_c2);
+      //
+      sse_load_colors_and_isubt(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xup][1], in[Xup][3]);
+      sse_save_color(temp_c1, sse_c00,sse_c01,sse_c02);
+      unsafe_su3_prod_color(temp_c3,conf[eooe][X][3],temp_c1);
+      color_summassign(out[X][1],temp_c3);
       color_isummassign(out[X][3],temp_c3);
       
       //Backward 3
       Xdw=loceo_neighdw[eooe][X][3];
-      color_isubt(temp_c0,in[Xdw][0],in[Xdw][2]);
-      color_isumm(temp_c1,in[Xdw][1],in[Xdw][3]);
+      sse_load_colors_and_isubt(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xdw][0], in[Xdw][2]);
+      sse_save_color(temp_c0, sse_c00,sse_c01,sse_c02);
       unsafe_su3_dag_prod_color(temp_c2,conf[!eooe][Xdw][3],temp_c0);
-      unsafe_su3_dag_prod_color(temp_c3,conf[!eooe][Xdw][3],temp_c1);
       color_summassign(out[X][0],temp_c2);
-      color_summassign(out[X][1],temp_c3);
       color_isummassign(out[X][2],temp_c2);
+      //
+      sse_load_colors_and_isumm(sse_c00,sse_c01,sse_c02, sse_c10,sse_c11,sse_c12, in[Xdw][1], in[Xdw][3]);
+      sse_save_color(temp_c1, sse_c00,sse_c01,sse_c02);
+      unsafe_su3_dag_prod_color(temp_c3,conf[!eooe][Xdw][3],temp_c1);
+      color_summassign(out[X][1],temp_c3);
       color_isubtassign(out[X][3],temp_c3);
     }
 }
