@@ -1,5 +1,54 @@
 #include "nissa.h"
 
+/*
+
+  Program to compute two and three points correlation functions 
+  relevant for semileptonic decays.
+  
+  Nomenclature
+  
+  |         *        |         Q2          |
+  |     Q1 / \ Q2    |     .--------.      |
+  |       /   \      | SO *          *  SI |
+  |    SO*_____*SE   |     '--------'      |
+  |        spec      |         Q1          |
+  
+  SO = source
+  SI = sink
+  SE = sequential slice
+  
+  TSep specifiy the separation between sequential slice and source.
+  
+  For the SO, SE and SI a different number of smearing level can be specified
+  Take into account that or each SO and SE level of smearing, an inversion is required.
+  
+  Spectator for three points are specified in the input, according to
+   iThetaMassR [iTheta] [iMass] [r]
+  where iTheta and iMass are the indeces of the theta and mass inside their list
+  and r=0,1 is the flavor in the twisted doublet.
+  
+  Two points are compute for each combination of masses and r of Q1 and A2 and,
+  and for each theta of B, while only for the "spec" values of theta required in 3pts.
+  
+  Three points are computed only for all the mass and theta values of Q1 and Q2, but only
+  for the charged twisted mass combination.
+  
+  To avoid the calculation of three points and at the same time the inversion, specify:
+   NContrThreePoints 0
+   NChContrThreePoints 0
+   
+  The list of configuration must be specified in the format
+   [con] [tsource] [outfolder]
+   
+  The output folder must *not* be present and will be created by the program.
+  If the directory is present, the configuration will not be analized.
+  
+  The program will run up to finish the list of configurations, or when the WallTime (in seconds)
+  is passed.
+  
+*/
+  
+
 //gauge info
 int ngauge_conf,nanalized_conf=0;
 char conf_path[1024];
