@@ -20,31 +20,32 @@
   TSep specifiy the separation between sequential slice and source.
   
   For the SO, SE and SI a different number of smearing level can be specified
-  Take into account that or each SO and SE level of smearing, an inversion is required.
+  Take into account that or each SO and SE level of smearing, an inversion is required,
+  while different SI levels comes almost for free.
   
   Spectator for three points are specified in the input, according to
    iThetaMassR [iTheta] [iMass] [r]
-  where iTheta and iMass are the indeces of the theta and mass inside their list
+  where iTheta and iMass are the indexes of the theta and mass inside their list
   and r=0,1 is the flavor in the twisted doublet.
   
-  Two points are compute for each combination of masses and r of Q1 and A2 and,
-  and for each theta of B, while only for the "spec" values of theta required in 3pts.
+  Two points are computed for each combination of masses and r of Q1 and Q2,
+  and for each theta of Q2, but only for the values of theta Q1 listed in the "spec" list.
   
-  Three points are computed only for all the mass and theta values of Q1 and Q2, but only
+  Three points are computed for all the mass and theta values of Q1 and Q2, only
   for the charged twisted mass combination.
   
   To avoid the calculation of three points and at the same time the inversion, specify:
    NContrThreePoints 0
    NChContrThreePoints 0
    
-  The list of configuration must be specified in the format
+  The list of configurations must be specified in the format:
    [con] [tsource] [outfolder]
    
   The output folder must *not* be present and will be created by the program.
-  If the directory is present, the configuration will not be analized.
+  If the directory is present, the configuration will not be analyzed.
   
-  The program will run up to finish the list of configurations, or when the WallTime (in seconds)
-  is passed.
+  The program will run up to finish the list of configurations, or when 
+  the WallTime (in seconds) is passed.
   
 */
   
