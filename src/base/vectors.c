@@ -35,7 +35,7 @@ void nissa_vect_content_printf(nissa_vect *vect)
 {nissa_vect_content_fprintf(stdout,vect);}
 void last_nissa_vect_content_printf()
 {
-  if(rank==0) printf("Last nissa vect content: ");
+  master_printf("Last nissa vect content: ");
   nissa_vect_content_printf(last_nissa_vect);
 }
 
@@ -82,6 +82,8 @@ void initialize_main_nissa_vect()
       memcpy(main_nissa_vect.file,__FILE__+max_int(0,strlen(__FILE__)-12),12);
       main_nissa_vect.line=__LINE__;
       main_nissa_arr=(char*)last_nissa_vect+sizeof(nissa_vect);
+
+      master_printf("Vector memory manager started.\n");
     }
 }
 
@@ -112,17 +114,23 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
   last_nissa_vect->next=new;
   last_nissa_vect=new;
   
-  if(rank==0 && debug_lvl>1) 
+  if(debug_lvl>1) 
     {
-      printf("Allocated vector ");
+      master_printf("Allocated vector ");
       nissa_vect_content_printf(last_nissa_vect);
     }
+  
+  //define returned pointer and check for its alignement
+  void *return_ptr=(void*)last_nissa_vect+sizeof(nissa_vect);
+  int offset=(int)(return_ptr)%nissa_vect_alignment;
+  if(offset!=0)
+    crash("memory alignment problem, vector %s has %d offset",tag,offset);
   
   //Update the amount of required memory
   nissa_required_memory+=size;
   nissa_max_required_memory=max_int(nissa_max_required_memory,nissa_required_memory);
   
-  return (char*)last_nissa_vect+sizeof(nissa_vect);
+  return return_ptr;
 }
 
 //release a vector
@@ -134,9 +142,9 @@ void* nissa_true_free(void *arr,const char *file,int line)
       nissa_vect *prev=vect->prev;
       nissa_vect *next=vect->next;
       
-      if(rank==0 && debug_lvl>1)
+      if(debug_lvl>1)
 	{
-	  printf("At line %d of file %s freeing vector ",line,file);
+	  master_printf("At line %d of file %s freeing vector ",line,file);
 	  nissa_vect_content_printf(vect);
 	}
   
@@ -151,7 +159,6 @@ void* nissa_true_free(void *arr,const char *file,int line)
       nissa_required_memory-=(vect->size_per_el*vect->nel);
   
       free(vect);
-      //master_printf(" Vector freed!\n");
     }
   else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
   

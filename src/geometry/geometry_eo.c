@@ -86,7 +86,7 @@ void set_eo_geometry()
 }
 
 //definitions of e/o split sender for borders
-void initialize_eo_bord_senders_of_kind(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *base)
+void initialize_eo_bord_senders_of_kind(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *MPI_OD_BORD_SEND_Z,MPI_Datatype *base)
 {
   //Various type useful for edges and sub-borders
   MPI_Datatype MPI_EO_3_SLICE;
@@ -102,31 +102,46 @@ void initialize_eo_bord_senders_of_kind(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_D
   for(int ibord=0;ibord<3;ibord++) MPI_Type_commit(&(MPI_EO_BORD_SEND_TXY[ibord]));
   
   //the z sending border is a mess
-  int ev_bord_z_size=loc_vol/2/loc_size[3];
-  int *ev_bord_z_pos_disp_dw=nissa_malloc("ev_bord_z_disp_dw",ev_bord_z_size,int);
-  int *ev_bord_z_pos_disp_up=nissa_malloc("ev_bord_z_disp_up",ev_bord_z_size,int);
-  int *single=nissa_malloc("single",ev_bord_z_size,int);
-  int izdw=0,izup=0;
+  int eo_bord_z_size=loc_volh/loc_size[3];
+  int *ev_bord_z_pos_disp_dw=nissa_malloc("ev_bord_z_disp_dw",eo_bord_z_size,int);
+  int *ev_bord_z_pos_disp_up=nissa_malloc("ev_bord_z_disp_up",eo_bord_z_size,int);
+  int *od_bord_z_pos_disp_dw=nissa_malloc("od_bord_z_disp_dw",eo_bord_z_size,int);
+  int *od_bord_z_pos_disp_up=nissa_malloc("od_bord_z_disp_up",eo_bord_z_size,int);
+  int *single=nissa_malloc("single",eo_bord_z_size,int);
+  int ev_izdw=0,ev_izup=0;
+  int od_izdw=0,od_izup=0;
   for(int ieo=0;ieo<loc_volh;ieo++)
     {
-      int ilx=loclx_of_loceo[0][ieo];
-      int x3=loc_coord_of_loclx[ilx][3];
-      if(x3==0)             ev_bord_z_pos_disp_dw[izdw++]=ieo;
-      if(x3==loc_size[3]-1) ev_bord_z_pos_disp_up[izup++]=ieo;
+      int ev_ilx=loclx_of_loceo[0][ieo];
+      int od_ilx=loclx_of_loceo[1][ieo];
+      int ev_x3=loc_coord_of_loclx[ev_ilx][3];
+      int od_x3=loc_coord_of_loclx[od_ilx][3];
+      if(ev_x3==0) ev_bord_z_pos_disp_dw[ev_izdw++]=ieo;
+      if(ev_x3==loc_size[3]-1) ev_bord_z_pos_disp_up[ev_izup++]=ieo;
+      if(od_x3==0) od_bord_z_pos_disp_dw[od_izdw++]=ieo;
+      if(od_x3==loc_size[3]-1) od_bord_z_pos_disp_up[od_izup++]=ieo;
     }
-  for(int ibord_z=0;ibord_z<ev_bord_z_size;ibord_z++)
+  for(int ibord_z=0;ibord_z<eo_bord_z_size;ibord_z++)
     single[ibord_z]=1;
   
-  MPI_Type_indexed(ev_bord_z_size,single,ev_bord_z_pos_disp_dw,*base,&(MPI_EV_BORD_SEND_Z[0]));
-  MPI_Type_indexed(ev_bord_z_size,single,ev_bord_z_pos_disp_up,*base,&(MPI_EV_BORD_SEND_Z[1]));
+  MPI_Type_indexed(eo_bord_z_size,single,ev_bord_z_pos_disp_dw,*base,&(MPI_EV_BORD_SEND_Z[0]));
+  MPI_Type_indexed(eo_bord_z_size,single,ev_bord_z_pos_disp_up,*base,&(MPI_EV_BORD_SEND_Z[1]));
+  
+  MPI_Type_indexed(eo_bord_z_size,single,od_bord_z_pos_disp_dw,*base,&(MPI_OD_BORD_SEND_Z[0]));
+  MPI_Type_indexed(eo_bord_z_size,single,od_bord_z_pos_disp_up,*base,&(MPI_OD_BORD_SEND_Z[1]));
   
   //commit the mess
   MPI_Type_commit(&(MPI_EV_BORD_SEND_Z[0]));
   MPI_Type_commit(&(MPI_EV_BORD_SEND_Z[1]));
   
+  MPI_Type_commit(&(MPI_OD_BORD_SEND_Z[0]));
+  MPI_Type_commit(&(MPI_OD_BORD_SEND_Z[1]));
+  
   nissa_free(single);
   nissa_free(ev_bord_z_pos_disp_dw);
   nissa_free(ev_bord_z_pos_disp_up);
+  nissa_free(od_bord_z_pos_disp_dw);
+  nissa_free(od_bord_z_pos_disp_up);
 }
 
 //definitions of e/o split receivers for borders
@@ -141,9 +156,9 @@ void initialize_eo_bord_receivers_of_kind(MPI_Datatype *MPI_EO_BORD_RECE,MPI_Dat
 }
 
 //initalize senders and receivers for borders of e/o split ordered vectors
-void set_eo_bord_senders_and_receivers(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Datatype *MPI_EO_BORD_SEND_Z,MPI_Datatype *MPI_EO_BORD_RECE,MPI_Datatype *base)
+void set_eo_bord_senders_and_receivers(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *MPI_OD_BORD_SEND_Z,MPI_Datatype *MPI_EO_BORD_RECE,MPI_Datatype *base)
 {
-  initialize_eo_bord_senders_of_kind(MPI_EO_BORD_SEND_TXY,MPI_EO_BORD_SEND_Z,base);
+  initialize_eo_bord_senders_of_kind(MPI_EO_BORD_SEND_TXY,MPI_EV_BORD_SEND_Z,MPI_OD_BORD_SEND_Z,base);
   initialize_eo_bord_receivers_of_kind(MPI_EO_BORD_RECE,base);
 }
 

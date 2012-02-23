@@ -16,7 +16,7 @@ void init_nissa()
   signal(SIGFPE,terminate_sigsegv);
   
   //print the version
-  master_printf("Initializing nissa, version: %s\n",SVN_VERS);
+  master_printf("Initializing nissa, version: %s.\n",SVN_VERS);
   
   //define the gauge link
   MPI_Type_contiguous(18,MPI_DOUBLE,&MPI_SU3);
@@ -51,13 +51,13 @@ void init_nissa()
   ONE[1]=I[0]=0;
   //check endianess
   check_endianess();
-  if(little_endian) master_printf("System endianess: little\n");
-  else master_printf("System endianess: big\n");
+  if(little_endian) master_printf("System endianess: little.\n");
+  else master_printf("System endianess: big.\n");
   
   //initialize the base of the gamma matrices
   init_base_gamma();
   
-  master_printf("nissa initialized\n");
+  master_printf("Nissa initialized!\n");
 }
 
 //compute internal volume
@@ -361,9 +361,9 @@ void init_grid(int T,int L)
   set_lx_edge_senders_and_receivers(MPI_LX_GAUGE_EDGE_SEND,MPI_LX_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
   set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_BORD_SEND,MPI_LX_SPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
 
-  set_eo_bord_senders_and_receivers(MPI_EO_GAUGE_BORD_SEND_TXY,MPI_EV_GAUGE_BORD_SEND_Z,MPI_EO_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
-  set_eo_bord_senders_and_receivers(MPI_EO_COLOR_BORD_SEND_TXY,MPI_EV_COLOR_BORD_SEND_Z,MPI_EO_COLOR_BORD_RECE,&MPI_COLOR);
-  set_eo_bord_senders_and_receivers(MPI_EO_SPINCOLOR_BORD_SEND_TXY,MPI_EV_SPINCOLOR_BORD_SEND_Z,MPI_EO_SPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
+  set_eo_bord_senders_and_receivers(MPI_EO_GAUGE_BORD_SEND_TXY,MPI_EV_GAUGE_BORD_SEND_Z,MPI_OD_GAUGE_BORD_SEND_Z,MPI_EO_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
+  set_eo_bord_senders_and_receivers(MPI_EO_COLOR_BORD_SEND_TXY,MPI_EV_COLOR_BORD_SEND_Z,MPI_OD_COLOR_BORD_SEND_Z,MPI_EO_COLOR_BORD_RECE,&MPI_COLOR);
+  set_eo_bord_senders_and_receivers(MPI_EO_SPINCOLOR_BORD_SEND_TXY,MPI_EV_SPINCOLOR_BORD_SEND_Z,MPI_OD_SPINCOLOR_BORD_SEND_Z,MPI_EO_SPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
   
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());
