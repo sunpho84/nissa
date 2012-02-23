@@ -8,6 +8,7 @@
 #define debug_lvl 1
 
 #define nissa_vect_string_length 20
+#define nissa_vect_alignment 16
 
 #define ran2_ntab 32                                                                                                         
 #define nissa_malloc(a,b,c) nissa_true_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)

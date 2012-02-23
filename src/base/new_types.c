@@ -67,7 +67,9 @@ typedef struct
 
   void *prev;
   void *next;
-  char pad[8];
+
+  //padding to keep memory alignment
+  char pad[nissa_vect_alignment-(3*sizeof(int)+2*sizeof(void*)+3*nissa_vect_string_length)%nissa_vect_alignment];
 } nissa_vect;
 
 //nissa file reader
