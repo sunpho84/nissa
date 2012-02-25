@@ -39,7 +39,7 @@
    NChContrThreePoints 0
    
   The list of configurations must be specified in the format:
-   [con] [tsource] [outfolder]
+   [confname] [tsource] [outfolder]
    
   The output folder must *not* be present and will be created by the program.
   If the directory is present, the configuration will not be analyzed.
@@ -394,20 +394,20 @@ int read_conf_parameters(int *iconf)
       read_str(outfolder,1024);
       
       //Check if the conf exist
-      master_printf("Considering configuration %s\n",conf_path);
+      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",outfolder,conf_path);
       ok_conf=!(dir_exists(outfolder));
       if(ok_conf)
 	{
 	  int ris=create_dir(outfolder);
-	  if(ris==0) master_printf("Configuration %s not already analized, starting.\n",conf_path);
+	  if(ris==0) master_printf(" Output path \"%s\" not present: configuration \"%s\" not yet analyzed, starting.\n",outfolder,conf_path);
 	  else
 	    {
 	      ok_conf=0;
-	      master_printf("Configuration %s taken by someone else.\n",conf_path);
+	      master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 	    }
 	}
       else
-	master_printf("Configuration %s already analized, skipping.\n",conf_path);
+	master_printf(" Output path \"%s\" already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
       (*iconf)++;
     }
   while(!ok_conf && (*iconf)<ngauge_conf);
