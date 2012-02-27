@@ -3,15 +3,16 @@
 #define REAL 0
 #define IMAG 1
 
-const int T=48,L=T/2;
+int T,L,tsep;
+double th;
 const int njack=16;
 const double Zv[3]={0.5816,0.6103,0.6451};
 
 int ibeta;
 
-int tmin_V=9,tmax_V=17;
+int tmin_V=7,tmax_V=17;
 int tmin_P=7,tmax_P=23;
-int tmin_g=9,tmax_g=17;
+int tmin_g=7,tmax_g=17;
 
 jvec load_3pts_charm_spec(const char *name,int reim)
 {return jvec_load(combine("3pts_charm_spec_%s",name).c_str(),T,njack,reim);}
@@ -42,7 +43,21 @@ jack jack_average(jack &a,jack &b)
 void read_input()
 {
   FILE *input_file=open_file("analysis_pars","r");
+  read_formatted_from_file_expecting((char*)(&L),input_file,"%d","L");
+  T=2*L;
   read_formatted_from_file_expecting((char*)(&ibeta),input_file,"%d","ibeta");
+  read_formatted_from_file_expecting((char*)(&th),input_file,"%lg","th");
+  read_formatted_from_file_expecting((char*)(&tsep),input_file,"%d","tsep");
+  
+  read_formatted_from_file_expecting((char*)(&tmin_V),input_file,"%d","tmin_V");
+  read_formatted_from_file_expecting((char*)(&tmax_V),input_file,"%d","tmax_V");
+  
+  read_formatted_from_file_expecting((char*)(&tmin_P),input_file,"%d","tmin_P");
+  read_formatted_from_file_expecting((char*)(&tmax_P),input_file,"%d","tmax_P");
+  
+  read_formatted_from_file_expecting((char*)(&tmin_g),input_file,"%d","tmin_g");
+  read_formatted_from_file_expecting((char*)(&tmax_g),input_file,"%d","tmax_g");
+  
   fclose(input_file);
 }
 
@@ -119,32 +134,32 @@ int main()
   jack M_VK=jack_average(MSS_VK,MSL_VK),ZS_VK=sqrt(ZSS_VK),ZL_VK=ZSL_VK/ZS_VK;
   
   //reconstuct moving D mass
-  double th=0.41;
   double qi=M_PI*th/L;
   double q2=3*sqr(qi);
   jack Eth_P5=sqrt(sqr(M_P5)+q2);
   
   //reconstruct numerically and semi-analitically the time dependance of three points
   jvec Dth_DV_td_sa(T,njack),Dth_DV_td_nu(T,njack);
-  for(int t=0;t<=T/2;t++)
+  for(int t=0;t<=tsep;t++)
     {
-      Dth_DV_td_nu[t    ]=P5P5_sl[(T/2+t)%T]*VKVK_sl[t]/(ZL_P5*ZL_VK);
-      Dth_DV_td_sa[t    ]=(ZS_P5*ZS_VK)*exp(-t*M_VK)*exp(-(T/2-t)*Eth_P5)/(2*Eth_P5*2*M_VK);
+      Dth_DV_td_nu[t]=P5P5_sl[(tsep-t)%T]*VKVK_sl[t]/(ZL_P5*ZL_VK);
+      Dth_DV_td_sa[t]=(ZS_P5*ZS_VK)*exp(-(tsep-t)*Eth_P5)*exp(-(t)*M_VK)/(2*Eth_P5*2*M_VK);
     }
-  for(int t=1;t<T/2;t++)
+  for(int t=tsep+1;t<T;t++)
     {
-      Dth_DV_td_sa[T/2+t]=Dth_DV_td_sa[T/2-t];
-      Dth_DV_td_nu[T/2+t]=Dth_DV_td_nu[T/2-t];
+      Dth_DV_td_sa[t]=P5P5_sl[(t-tsep)%T]*VKVK_sl[T-t]/(ZL_P5*ZL_VK);
+      Dth_DV_td_nu[t]=(ZS_P5*ZS_VK)*exp(-(t-tsep)*Eth_P5)*exp(-(T-t)*M_VK)/(2*Eth_P5*2*M_VK);
     }
   
   //compare time dependance and its simmetric
-  {
-    ofstream out("Dth_DV_td_sa_simm.xmg");
-    out<<"@type xydy"<<endl;
-    out<<Dth_DV_td_sa<<endl;
-    out<<"&\n@type xydy"<<endl;
-    out<<Dth_DV_td_sa.simmetric()<<endl;
-  }
+  if(tsep==T/2)
+    {
+      ofstream out("Dth_DV_td_sa_simm.xmg");
+      out<<"@type xydy"<<endl;
+      out<<Dth_DV_td_sa<<endl;
+      out<<"&\n@type xydy"<<endl;
+      out<<Dth_DV_td_sa.simmetric()<<endl;
+    }
   
   //compare time dependance semi-analytical and numeric
   {
@@ -161,15 +176,16 @@ int main()
   jvec Dth_AK_DV_nu=P5thAKVK/Dth_DV_td_nu;
   
   //compare matrix element and its simmetric
-  {
-    ofstream out("Dth_AK_DV_sa_simm.xmg");
-    out<<"@type xydy"<<endl;
-    out<<Dth_AK_DV_sa<<endl;
-    out<<"&\n@type xydy"<<endl;
-    out<<Dth_AK_DV_sa.simmetric()<<endl;
-    out<<"&\n@type xydy"<<endl;
-    out<<Dth_AK_DV_sa.simmetrized(1)<<endl;
-  }
+  if(tsep==T/2)
+    {
+      ofstream out("Dth_AK_DV_sa_simm.xmg");
+      out<<"@type xydy"<<endl;
+      out<<Dth_AK_DV_sa<<endl;
+      out<<"&\n@type xydy"<<endl;
+      out<<Dth_AK_DV_sa.simmetric()<<endl;
+      out<<"&\n@type xydy"<<endl;
+      out<<Dth_AK_DV_sa.simmetrized(1)<<endl;
+    }
   
   //compare matrix element semi-analytical and numeric
   {
@@ -181,8 +197,8 @@ int main()
   }
   
   //fit matrix element
-  jack R1_sa=constant_fit(Dth_AK_DV_sa.simmetrized(1),tmin_g,tmax_g,"R1_sa.xmg");
-  jack R1_nu=constant_fit(Dth_AK_DV_nu.simmetrized(1),tmin_g,tmax_g,"R1_nu.xmg");
+  jack R1_sa=constant_fit( (tsep==T/2) ? Dth_AK_DV_sa.simmetrized(1) : Dth_AK_DV_sa,tmin_g,tmax_g,"R1_sa.xmg");
+  jack R1_nu=constant_fit( (tsep==T/2) ? Dth_AK_DV_nu.simmetrized(1) : Dth_AK_DV_nu,tmin_g,tmax_g,"R1_nu.xmg");
   
   //determine the form factor
   jack A1=R1_sa/(M_VK+M_P5);
@@ -200,24 +216,26 @@ int main()
   jvec R2_pt2_corr=P5thAKVJ/P5thAKVJK;
 
   //write part 1 of R2 simmetrized and not
-  {
-    ofstream out("R2_pt1_simm.xmg");
-    out<<"@type xydy"<<endl;
-    out<<R2_pt1_corr<<endl;
-    
-    out<<"@type xydy"<<endl;
-    out<<R2_pt1_corr.simmetrized(1)<<endl;
-  }
+  if(tsep==T/2)
+    {
+      ofstream out("R2_pt1_simm.xmg");
+      out<<"@type xydy"<<endl;
+      out<<R2_pt1_corr<<endl;
+      
+      out<<"@type xydy"<<endl;
+      out<<R2_pt1_corr.simmetrized(1)<<endl;
+    }
   
   //write part 2 of R2 simmetrized and not
-  {
-    ofstream out("R2_pt2_simm.xmg");
-    out<<"@type xydy"<<endl;
-    out<<R2_pt2_corr<<endl;
-    
-    out<<"@type xydy"<<endl;
-    out<<R2_pt2_corr.simmetrized(1)<<endl;
-  }
+  if(tsep==T/2)
+    {
+      ofstream out("R2_pt2_simm.xmg");
+      out<<"@type xydy"<<endl;
+      out<<R2_pt2_corr<<endl;
+      
+      out<<"@type xydy"<<endl;
+      out<<R2_pt2_corr.simmetrized(1)<<endl;
+    }
   
   //determine the correction
   jack R2_pt1=constant_fit(R2_pt1_corr.simmetrized(1),tmin_g,tmax_g,"R2_pt1.xmg");
