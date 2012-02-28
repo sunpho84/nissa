@@ -21,10 +21,10 @@ const char set_legend_fm[nbeta][1024]={"a = 0.098 fm","a = 0.085 fm","a = 0.067 
 
 int plot_iboot;
 
-double fun_fit_U(double A,double B,double C,double ml,double a)
-{return A + B*ml + C*a*a;}
+double fun_fit_U(double A,double B,double C,double D,double ml,double a)
+{return A + B*ml + C*a*a+D*ml*ml;}
 
-void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const char *ylab,bvec &X,bvec &Y,bvec &par,double X_phys,double (*fun)(double,double,double,double,double),boot &chiral_extrap_cont)
+void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const char *ylab,bvec &X,bvec &Y,bvec &par,double X_phys,double (*fun)(double,double,double,double,double,double),boot &chiral_extrap_cont)
 {
   //setup the plot
   grace out(out_path);
@@ -44,7 +44,7 @@ void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const 
 	  bvec Y_pol(npoint,nboot,njack);
 	  for(int ipoint=0;ipoint<npoint;ipoint++)
 	    for(int iboot=plot_iboot=0;iboot<nboot+1;plot_iboot=iboot++)
-	      Y_pol.data[ipoint].data[iboot]=fun(par[0][iboot],par[1][iboot],par[2][iboot],X_pol[ipoint],lat[ib][iboot]);
+	      Y_pol.data[ipoint].data[iboot]=fun(par[0][iboot],par[1][iboot],par[2][iboot],par[3][iboot],X_pol[ipoint],lat[ib][iboot]);
 	  
 	  out.set(1,set_fill_color[ib]);
 	  out.polygon(X_pol,Y_pol);
@@ -57,7 +57,7 @@ void plot_funz_ml(const char *out_path,const char *title,const char *xlab,const 
       //plot continuum curve
       for(int ipoint=0;ipoint<npoint;ipoint++)
 	for(int iboot=plot_iboot=0;iboot<nboot+1;plot_iboot=iboot++)
-	  Y_pol.data[ipoint]=fun(par[0][iboot],par[1][iboot],par[2][iboot],X_pol[ipoint],0);
+	  Y_pol.data[ipoint]=fun(par[0][iboot],par[1][iboot],par[2][iboot],par[3][iboot],X_pol[ipoint],0);
       //out.set(1,"magenta");
       //out.polygon(X_pol,Y_pol);
       //out.new_set();
@@ -91,13 +91,13 @@ double *X_fit;
 double *Y_fit,*err_Y_fit;
 
 //calculate the chi square
-double chi2(double A,double B,double C,double *a)
+double chi2(double A,double B,double C,double D,double *a)
 {
   double ch2=0;
 
   for(int iens=0;iens<nens;iens++)
     {
-      double ch2_U_term=pow((Y_fit[iens]-fun_fit_U(A,B,C,X_fit[iens],a[ibeta[iens]]))/err_Y_fit[iens],2);
+      double ch2_U_term=pow((Y_fit[iens]-fun_fit_U(A,B,C,D,X_fit[iens],a[ibeta[iens]]))/err_Y_fit[iens],2);
       ch2+=ch2_U_term;//+ch2_M2K_term;
     }
   
@@ -108,12 +108,12 @@ double chi2(double A,double B,double C,double *a)
 //wrapper for the calculation of the chi2
 void chi2_wr(int &npar,double *fuf,double &ch,double *p,int flag)
 {
-  double A=p[0],B=p[1],C=p[2];
-  double *a=p+3;
-  ch=chi2(A,B,C,a);
+  double A=p[0],B=p[1],C=p[2],D=p[3];
+  double *a=p+4;
+  ch=chi2(A,B,C,D,a);
 }
 
-void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
+void fit(boot &A,boot &B,boot &C,boot &D,bvec &X,bvec &Y)
 {
   //copy X
   X_fit=new double[nens];
@@ -127,6 +127,8 @@ void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
   minu.DefineParameter(0,"A",0.0,0.0001,0,0);
   minu.DefineParameter(1,"B",0.0,0.0001,0,0);
   minu.DefineParameter(2,"C",0.0,0.0001,0,0);
+  minu.DefineParameter(3,"D",0.0,0.0001,0,0);
+  minu.FixParameter(3);
   
   minu.SetFCN(chi2_wr);
   
@@ -136,14 +138,14 @@ void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
       if(iboot>0)
         minu.SetPrintLevel(-1);
       
-      minu.DefineParameter(3,"a380",lat[0][iboot],0.0001,0,0);
-      minu.DefineParameter(4,"a390",lat[1][iboot],0.0001,0,0);
-      minu.DefineParameter(5,"a405",lat[2][iboot],0.0001,0,0);
-      minu.DefineParameter(6,"a420",lat[3][iboot],0.0001,0,0);
-      minu.FixParameter(3);
+      minu.DefineParameter(4,"a380",lat[0][iboot],0.0001,0,0);
+      minu.DefineParameter(5,"a390",lat[1][iboot],0.0001,0,0);
+      minu.DefineParameter(6,"a405",lat[2][iboot],0.0001,0,0);
+      minu.DefineParameter(7,"a420",lat[3][iboot],0.0001,0,0);
       minu.FixParameter(4);
       minu.FixParameter(5);
       minu.FixParameter(6);
+      minu.FixParameter(7);
       
       for(int iens=0;iens<nens;iens++)
         {
@@ -159,13 +161,14 @@ void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
       minu.GetParameter(0,A.data[iboot],dum);
       minu.GetParameter(1,B.data[iboot],dum);
       minu.GetParameter(2,C.data[iboot],dum);
+      minu.GetParameter(3,D.data[iboot],dum);
       
       double lat_med[4]={lat[0].med(),lat[1].med(),lat[2].med(),lat[3].med()};
-      if(iboot==0) C2=chi2(A.data[iboot],B[iboot],C[iboot],lat_med);
+      if(iboot==0) C2=chi2(A.data[iboot],B[iboot],C[iboot],D[iboot],lat_med);
     }
   
   //calculate the chi2
-  cout<<"A = ("<<A<<"), B=("<<B<<"), C=("<<C<<")"<<endl;
+  cout<<"A = ("<<A<<"), B=("<<B<<"), C=("<<C<<"), D=("<<D<<")"<<endl;
   cout<<"Chi2 = "<<C2<<" / "<<nens-3<<" = "<<C2/(nens-3)<<endl;
   
   delete[] X_fit;
@@ -174,7 +177,7 @@ void fit(boot &A,boot &B,boot &C,bvec &X,bvec &Y)
 }
 
 
-void plot_funz_a2(const char *out_path,const char *title,const char *xlab,const char *ylab,double *X,bvec &Y,bvec &par,double (*fun)(double,double,double,double,double),boot &chiral_extrap_cont)
+void plot_funz_a2(const char *out_path,const char *title,const char *xlab,const char *ylab,double *X,bvec &Y,bvec &par,double (*fun)(double,double,double,double,double,double),boot &chiral_extrap_cont)
 {
   //setup the plot
   grace out(out_path);
@@ -190,7 +193,7 @@ void plot_funz_a2(const char *out_path,const char *title,const char *xlab,const 
       X_pol[iens]=0.1/99*iens;
       X2_pol[iens]=X_pol[iens]*X_pol[iens];
 	for(int iboot=plot_iboot=0;iboot<nboot+1;plot_iboot=iboot++)
-	Y_pol.data[iens].data[iboot]=fun(par[0][iboot],par[1][iboot],par[2][iboot],ml_phys[iboot],X_pol[iens]/hc);
+	  Y_pol.data[iens].data[iboot]=fun(par[0][iboot],par[1][iboot],par[2][iboot],par[3][iboot],ml_phys[iboot],X_pol[iens]/hc);
     }
   out.set(1,"yellow");
   out.polygon(X2_pol,Y_pol);
@@ -254,8 +257,8 @@ int main(int narg,char **arg)
   U.load(meson_mass_file,0);  
 
   //perform the fit
-  boot A(nboot,njack),B(nboot,njack),C(nboot,njack);
-  fit(A,B,C,ml,U);
+  boot A(nboot,njack),B(nboot,njack),C(nboot,njack),D(nboot,njack);
+  fit(A,B,C,D,ml,U);
   cout<<endl;
   
   //chiral extrapolation
@@ -267,10 +270,10 @@ int main(int narg,char **arg)
       for(int iboot=0;iboot <nboot+1;iboot++)
 	{
 	  int r=ref_ml_beta[ib];
-	  U_chir_cont.data[iboot]=fun_fit_U(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0);
-	  U_chir[ib].data[iboot]=fun_fit_U(A[iboot],B[iboot],C[iboot],ml_phys[iboot],lat[ib][iboot]);
+	  U_chir_cont.data[iboot]=fun_fit_U(A[iboot],B[iboot],C[iboot],D[iboot],ml_phys[iboot],0);
+	  U_chir[ib].data[iboot]=fun_fit_U(A[iboot],B[iboot],C[iboot],D[iboot],ml_phys[iboot],lat[ib][iboot]);
 	  
-	  if(r!=-1) U_estr_ml.data[ib].data[iboot]=U[r][iboot]*fun_fit_U(A[iboot],B[iboot],C[iboot],ml_phys[iboot],0)/fun_fit_U(A[iboot],B[iboot],C[iboot],ml[r][iboot],0);
+	  if(r!=-1) U_estr_ml.data[ib].data[iboot]=U[r][iboot]*fun_fit_U(A[iboot],B[iboot],C[iboot],D[iboot],ml_phys[iboot],0)/fun_fit_U(A[iboot],B[iboot],C[iboot],D[iboot],ml[r][iboot],0);
 	}
     }
   
@@ -278,15 +281,16 @@ int main(int narg,char **arg)
   cout<<"U = ("<<U_chir_cont<<")"<<endl;
   U_chir_cont.write_to_binfile("U");
   
-  par_res_fit_U=bvec(3,nboot,njack);
+  par_res_fit_U=bvec(4,nboot,njack);
   
   par_res_fit_U.data[0]=A;
   par_res_fit_U.data[1]=B;
   par_res_fit_U.data[2]=C;
+  par_res_fit_U.data[3]=D;
   
   const char tag_ml[1024]="m\\sl\\N\\SMS,2GeV\\N (GeV)";
   const char tag_a2[1024]="a\\S2\\N (fm)";
-  double lat_med_fm[4]={lat[0].med()/hc,lat[1].med()/hc,lat[2].med()/hc,lat[3].med()/hc};
+  double lat_med_fm[4]={lat[0].med()*hc,lat[1].med()*hc,lat[2].med()*hc,lat[3].med()*hc};
   
   plot_funz_ml("U_funz_ml.xmg",meson_name,tag_ml,meson_name,ml,U,par_res_fit_U,ml_phys.med(),fun_fit_U,U_chir_cont);
   plot_funz_a2("U_funz_a2.xmg",meson_name,tag_a2,meson_name,lat_med_fm,U_estr_ml,par_res_fit_U,fun_fit_U,U_chir_cont);
