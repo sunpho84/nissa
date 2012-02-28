@@ -47,7 +47,7 @@ colorspinspin *S0L,*S0C;
 colorspinspin *S1LC,*S1CL;
 
 //inverter parameters
-double stopping_residue;
+double stopping_residue_l,stopping_residue_c;
 int niter_max;
 
 //two points contractions
@@ -209,7 +209,8 @@ void initialize_semileptonic(char *input_path)
   // 5) Info about the inverter
   
   //Stopping Residue
-  read_str_double("StoppingResidue",&stopping_residue);
+  read_str_double("StoppingResidueL",&stopping_residue_l);
+  read_str_double("StoppingResidueC",&stopping_residue_c);
   
   //Number of iterations
   read_str_int("NiterMax",&niter_max);
@@ -357,7 +358,7 @@ void close_semileptonic()
 }
 
 //calculate the standard propagators
-void calculate_S0(colorspinspin *S0,double mass)
+void calculate_S0(colorspinspin *S0,double mass,double stopping_residue)
 {
   //temporary vector for sol
   spincolor *temp_sol=nissa_malloc("Temp_sol",loc_vol,spincolor);
@@ -390,7 +391,7 @@ void calculate_S0(colorspinspin *S0,double mass)
 }
 
 //calculate the sequential propagators
-void calculate_S1(colorspinspin *S1,double mass,colorspinspin *S0)
+void calculate_S1(colorspinspin *S1,double mass,colorspinspin *S0,double stopping_residue)
 {
   generate_sequential_source(S0);
   
@@ -514,8 +515,8 @@ int main(int narg,char **arg)
       
       ////////////////// standing two points /////////////////
       
-      calculate_S0(S0L,lmass);
-      calculate_S0(S0C,cmass);
+      calculate_S0(S0L,lmass,stopping_residue_l);
+      calculate_S0(S0C,cmass,stopping_residue_c);
       
       calculate_all_2pts(S0L,S0L,lmass,lmass,"ll_sl");
       calculate_all_2pts(S0L,S0C,lmass,cmass,"lc_sl");
@@ -526,8 +527,8 @@ int main(int narg,char **arg)
       put_theta[1]=put_theta[2]=put_theta[3]=theta;
       adapt_theta(conf,old_theta,put_theta,1,1);
       
-      calculate_S1(S1LC,cmass,S0L);
-      calculate_S1(S1CL,lmass,S0C);
+      calculate_S1(S1LC,cmass,S0L,stopping_residue_c);
+      calculate_S1(S1CL,lmass,S0C,stopping_residue_l);
       
       calculate_all_3pts(S0L,S1CL,lmass,lmass,"charm_spec");
       calculate_all_3pts(S0C,S1LC,cmass,cmass,"light_spec");
