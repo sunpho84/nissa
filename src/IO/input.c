@@ -52,8 +52,10 @@ int dir_exists(char *path)
       exists=(stat(path,&st)==0);
 
       if(debug_lvl>1)
-	if(exists) master_printf("Directory \"%s\" is present\n",path);
-	else master_printf("Directory \"%s\" is not present\n",path);
+	{
+	  if(exists) master_printf("Directory \"%s\" is present\n",path);
+	  else master_printf("Directory \"%s\" is not present\n",path);
+	}
     }
   
   MPI_Bcast(&exists,1,MPI_INT,0,MPI_COMM_WORLD);

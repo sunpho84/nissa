@@ -122,7 +122,7 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
   
   //define returned pointer and check for its alignement
   void *return_ptr=(void*)last_nissa_vect+sizeof(nissa_vect);
-  int offset=(int)(return_ptr)%nissa_vect_alignment;
+  int offset=((long long int)(return_ptr))%nissa_vect_alignment;
   if(offset!=0)
     crash("memory alignment problem, vector %s has %d offset",tag,offset);
   
