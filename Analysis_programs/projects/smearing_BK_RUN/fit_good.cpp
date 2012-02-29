@@ -56,11 +56,11 @@ jvec load_corr(char *base_path,int sm_lev,int im1,int im2,int r1,int r2,const ch
   int tag[2]={0,30};
   sprintf(path,"%s/%s_30_%02d",base_path,obs_name,tag[sm_lev]);
 
-  jvec l=(jvec_load(path,T,njack,icombo(im1,im2,!r1,!r2,0,0))+
-	  jvec_load(path,T,njack,icombo(im1,im2,!r1,!r2,0,0)))/2;
+  jvec l=(jvec_load(path,T,njack,icombo(im1,im2,!r1,!r2,0))+
+	  jvec_load(path,T,njack,icombo(im1,im2, r1, r2,0)))/2;
   
-  jvec r=(jvec_load(path,T,njack,icombo(im1,im2,!r1,!r2,1,0))+
-	  jvec_load(path,T,njack,icombo(im1,im2,!r1,!r2,1,0)))/2;
+  jvec r=(jvec_load(path,T,njack,icombo(im1,im2,!r1,!r2,0))+
+	  jvec_load(path,T,njack,icombo(im1,im2, r1, r2,0)))/2;
   
   
   for(int tL=0;tL<T;tL++)

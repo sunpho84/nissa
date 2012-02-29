@@ -233,8 +233,24 @@ TYPE asinh(const TYPE &a){return single_operator(a,asinh);}
 TYPE acosh(const TYPE &a){return single_operator(a,acosh);}
 TYPE atanh(const TYPE &a){return single_operator(a,atanh);}
 
+TYPE fabs(const TYPE &a){return single_operator(a,fabs);}
 TYPE exp(const TYPE &a){return single_operator(a,exp);}
 TYPE log(const TYPE &a){return single_operator(a,log);}
 TYPE sqr(const TYPE &a){return single_operator(a,sqr);}
 TYPE sqrt(const TYPE &a){return single_operator(a,sqrt);}
 TYPE pow(const TYPE &a,double b){return pair_operator(a,b,pow);}
+
+#ifdef BOOT
+TYPE boot_weighted_average(TYPE &a,TYPE &b)
+#else
+TYPE jack_weighted_average(TYPE &a,TYPE &b)
+#endif
+{
+  double ea=a.err();
+  double eb=b.err();
+
+  double wa=1/(ea*ea);
+  double wb=1/(eb*eb);
+
+  return (a*wa+b*wb)/(wa+wb);
+}

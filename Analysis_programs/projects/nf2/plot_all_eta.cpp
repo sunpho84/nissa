@@ -3,6 +3,8 @@
 
 int main()
 {
+  init_latpars();
+  
   //load ensemble list path and data path
   FILE *an_input_file=open_file("analysis_pars","r");
   int mode,iens;
@@ -29,6 +31,17 @@ int main()
   for(int im=0;im<nmass[iens];im++)
     out<<mass[iens][im]<<" "<<aM[iens][icombo(im,im,nmass[iens],nlights[iens],mode)]<<endl;
   out.close();
+  
+  {
+    ofstream out("Eta_phys.xmg");
+    int ib=ibeta[iens];
+    boot a=lat[ib];
+  cout<<a<<" "<<ib<<endl;
+    out<<"@type xydy"<<endl;
+    for(int im=0;im<nmass[iens];im++)
+      out<<(mass[iens][im]/Zp[ib]/a).med()<<" "<<aM[iens][icombo(im,im,nmass[iens],nlights[iens],mode)]/a<<endl;
+    out.close();
+  }
   
   return 0;
 }
