@@ -55,7 +55,7 @@ void master_printf_box(const char *template,...)
 //create a dir
 int create_dir(char *path)
 {
-  int res=(rank==0) ? mkdir(path,755) : 0;
+  int res=(rank==0) ? mkdir(path,740) : 0;
   MPI_Bcast(&res,1,MPI_INT,0,MPI_COMM_WORLD);
   if(res!=0)
     master_printf("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path,res);

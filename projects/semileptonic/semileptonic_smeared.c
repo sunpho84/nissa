@@ -121,6 +121,7 @@ int *ch_op1_3pts,*ch_op2_3pts;
 int ninv_tot=0,ncontr_tot=0;
 int wall_time;
 double tot_time=0,inv_time=0;
+double smear_time=0;
 double load_time=0,contr_time;
 double contr_save_time=0;
 double contr_2pts_time=0;
@@ -449,6 +450,7 @@ void close_semileptonic()
   master_printf("\n");
   master_printf("Total time: %g, of which:\n",tot_time);
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
+  master_printf(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_time,"%");
   master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg) of which:\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
   master_printf("   * %02.2f%s to compute two points\n",contr_2pts_time*100.0/contr_time,"%");
   master_printf("   * %02.2f%s to compute three points\n",contr_3pts_time*100.0/contr_time,"%");
@@ -596,12 +598,16 @@ void calculate_S1(int ispec,int ism_lev_se)
 //Calculate and print to file the 2pts
 void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 {
-  contr_2pts_time-=take_time();
-
+  smear_time-=take_time();
+    
   for(int r=0;r<2;r++)
     for(int iprop=0;iprop<npropS0;iprop++)
       smear_additive_colorspinspin(S0[r][iprop],S0[r][iprop],ism_lev_si,jacobi_niter_si);
   
+  double temp_time=take_time();
+  smear_time+=temp_time;
+  contr_2pts_time-=temp_time;
+
   char path[1024];
   sprintf(path,"%s/2pts_%02d_%02d",outfolder,jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
   FILE *fout=open_text_file_for_output(path);
@@ -615,43 +621,43 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 	    int ip2=iprop_of(ith2,im2);
 	    for(int r2=0;r2<2;r2++)
 	      {
-		  if(nch_contr_2pts>0)
-		      unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin,Pmunu,S0[r2][ip2]);
-		  
-		  for(int im1=0;im1<nmass;im1++)
-		    {
-		      int ip1=iprop_of(ith1,im1);
-		      
-		      for(int r1=0;r1<2;r1++)
-		        {
-			    
-			    if(rank==0)
-			     {
-				fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
-				fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
-			     }
-		  
-			    meson_two_points(contr_2pts,op1_2pts,S0[r1][ip1],op2_2pts,S0[r2][ip2],ncontr_2pts);
-			    ncontr_tot+=ncontr_2pts;
+		if(nch_contr_2pts>0)
+		  unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin,Pmunu,S0[r2][ip2]);
+		
+		for(int im1=0;im1<nmass;im1++)
+		  {
+		    int ip1=iprop_of(ith1,im1);
+		    
+		    for(int r1=0;r1<2;r1++)
+		      {
+			
+			if(rank==0)
+			  {
+			    fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
+			    fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
+			  }
+			
+			meson_two_points(contr_2pts,op1_2pts,S0[r1][ip1],op2_2pts,S0[r2][ip2],ncontr_2pts);
+			ncontr_tot+=ncontr_2pts;
+			
+			contr_save_time-=take_time();
+			print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
+			contr_save_time+=take_time();
+			
+			if(nch_contr_2pts>0)
+			  {
+			    meson_two_points(ch_contr_2pts,ch_op1_2pts,S0[r1][ip1],ch_op2_2pts,ch_colorspinspin,nch_contr_2pts);
+			    ncontr_tot+=nch_contr_2pts;
 			    
 			    contr_save_time-=take_time();
-			    print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
+			    print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,twall,"CHROMO-",1.0);
 			    contr_save_time+=take_time();
-			    
-			    if(nch_contr_2pts>0)
-			    {
-				meson_two_points(ch_contr_2pts,ch_op1_2pts,S0[r1][ip1],ch_op2_2pts,ch_colorspinspin,nch_contr_2pts);
-				ncontr_tot+=nch_contr_2pts;
-				
-				contr_save_time-=take_time();
-				print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,twall,"CHROMO-",1.0);
-				contr_save_time+=take_time();
-			    }
-			    if(rank==0) fprintf(fout,"\n");
-			}
-
-		      ncontr_tot+=nch_contr_2pts;
-		    }
+			  }
+			if(rank==0) fprintf(fout,"\n");
+		      }
+		    
+		    ncontr_tot+=nch_contr_2pts;
+		  }
 	      }
 	  }
     }
@@ -686,10 +692,10 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		int ip1=iprop_of(ith1,im1);
 		
 		if(rank==0)
-		{
+		  {
 		    fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d,",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
 		    fprintf(fout," smear_source=%d smear_seq=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
-		}
+		  }
 		
 		meson_two_points(contr_3pts,op1_3pts,S0[r1][ip1],op2_3pts,S1[ip2],ncontr_3pts);
 		ncontr_tot+=ncontr_3pts;
@@ -699,18 +705,18 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		contr_save_time+=take_time();
 		
 		if(nch_contr_3pts>0)
-		{
+		  {
 		    meson_two_points(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_colorspinspin,nch_contr_3pts);
 		    ncontr_tot+=nch_contr_3pts;
 		    
 		    contr_save_time-=take_time();
 		    print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,twall,"CHROMO-",1.0);
 		    contr_save_time+=take_time();
-		}
+		  }
 		if(rank==0) fprintf(fout,"\n");
 	    }
     }
-
+  
   contr_3pts_time+=take_time();
   
   if(rank==0) fclose(fout);
