@@ -107,7 +107,7 @@ void ch2_two_pts_SL_fit(int &npar,double *fuf,double &ch,double *p,int flag)
       double err=e_two_pts_SL_fit[0][t];
       double cont=sqr(diff/err);
       ch+=cont;
-      if(flag==3) cout<<"SL, t="<<t<<", diff="<<diff<<" err="<<err<<" cont="<<cont<<endl;
+      //if(flag==3) cout<<"SL, t="<<t<<", diff="<<diff<<" err="<<err<<" cont="<<cont<<endl;
     }
   for(int t=tmin_two_pts_SL_fit[1];t<=min(tmax_two_pts_SL_fit[1],TH_two_pts_SL_fit);t++)
     {
@@ -115,7 +115,7 @@ void ch2_two_pts_SL_fit(int &npar,double *fuf,double &ch,double *p,int flag)
       double err=e_two_pts_SL_fit[1][t];
       double cont=sqr(diff/err);
       ch+=cont;
-      if(flag==3) cout<<"SS, t="<<t<<", diff="<<diff<<" err="<<err<<" cont="<<cont<<endl;
+      //if(flag==3) cout<<"SS, t="<<t<<", diff="<<diff<<" err="<<err<<" cont="<<cont<<endl;
     }
 }
 
