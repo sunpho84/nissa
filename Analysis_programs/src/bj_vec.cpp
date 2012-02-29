@@ -452,6 +452,35 @@ VTYPE VTYPE::simmetrized(int parity)
   return c;
 }
 
+void write_constant_fit_plot(const char *path,VTYPE in,TYPE y,int tin,int tfin)
+{
+  double ym=y.med(),dy=y.err();
+  ofstream out(path);
+  out<<"@page size 800,600"<<endl;
+  //error of the line
+  out<<"@s0 line type 1"<<endl;      
+  out<<"@s0 line color 7"<<endl;
+  out<<"@s0 fill color 7"<<endl;
+  out<<"@s0 fill type 1"<<endl;
+  out<<tin<<" "<<ym-dy<<endl<<tfin<<" "<<ym-dy<<endl;
+  out<<tfin<<" "<<ym+dy<<endl<<tin<<" "<<ym+dy<<endl;
+  out<<tin<<" "<<ym-dy<<endl;
+  out<<"&"<<endl;
+  //central line
+  out<<"@s1 line color 1"<<endl;
+  out<<tin<<" "<<ym<<endl<<tfin<<" "<<ym<<endl;
+  //plot the original data with error  
+  out<<"&"<<endl;
+  out<<"@type xydy"<<endl;      
+  out<<"@s2 line type 0"<<endl;      
+  out<<"@s2 symbol color 1"<<endl;
+  out<<"@s2 errorbar color 1"<<endl;
+  out<<"@s2 symbol 1"<<endl;
+  out<<in;
+  out<<"&"<<endl;
+  out.close();
+}
+
 TYPE constant_fit(VTYPE in,int tin,int tfin,const char *path=NULL)
 {
   TYPE E(in.data[0]);
@@ -471,36 +500,9 @@ TYPE constant_fit(VTYPE in,int tin,int tfin,const char *path=NULL)
     }
   E/=norm;
   
-  if(path!=NULL)
-    {
-      double ym=E.med(),dy=E.err();
-      ofstream out(path);
-      out<<"@page size 800,600"<<endl;
-      //error of the line
-      out<<"@s0 line type 1"<<endl;      
-      out<<"@s0 line color 7"<<endl;
-      out<<"@s0 fill color 7"<<endl;
-      out<<"@s0 fill type 1"<<endl;
-      out<<tin<<" "<<ym-dy<<endl<<tfin<<" "<<ym-dy<<endl;
-      out<<tfin<<" "<<ym+dy<<endl<<tin<<" "<<ym+dy<<endl;
-      out<<tin<<" "<<ym-dy<<endl;
-      out<<"&"<<endl;
-      //central line
-      out<<"@s1 line color 1"<<endl;
-      out<<tin<<" "<<ym<<endl<<tfin<<" "<<ym<<endl;
-      //plot the original data with error  
-      out<<"&"<<endl;
-      out<<"@type xydy"<<endl;      
-      out<<"@s2 line type 0"<<endl;      
-      out<<"@s2 symbol color 1"<<endl;
-      out<<"@s2 errorbar color 1"<<endl;
-      out<<"@s2 symbol 1"<<endl;
-      out<<in;
-      out<<"&"<<endl;
-      out.close();
-    }
+  if(path!=NULL) write_constant_fit_plot(path,in,E,tin,tfin);
   
-return E;
+  return E;
 }
 
 void linear_fit(VTYPE in,TYPE &m,TYPE &q,int tin,int tfin)

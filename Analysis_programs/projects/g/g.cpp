@@ -5,14 +5,15 @@
 
 int T,L,tsep;
 double th;
-const int njack=16;
+int njack;
 const double Zv[3]={0.5816,0.6103,0.6451};
 
 int ibeta;
 
-int tmin_V=7,tmax_V=17;
-int tmin_P=7,tmax_P=23;
-int tmin_g=7,tmax_g=17;
+int tmin_V,tmax_V;
+int tminL_P,tmaxL_P;
+int tminS_P,tmaxS_P;
+int tmin_g,tmax_g;
 
 jvec load_3pts_charm_spec(const char *name,int reim)
 {return jvec_load(combine("3pts_charm_spec_%s",name).c_str(),T,njack,reim);}
@@ -44,6 +45,7 @@ void read_input()
 {
   FILE *input_file=open_file("analysis_pars","r");
   read_formatted_from_file_expecting((char*)(&L),input_file,"%d","L");
+  read_formatted_from_file_expecting((char*)(&njack),input_file,"%d","njack");
   T=2*L;
   read_formatted_from_file_expecting((char*)(&ibeta),input_file,"%d","ibeta");
   read_formatted_from_file_expecting((char*)(&th),input_file,"%lg","th");
@@ -52,8 +54,11 @@ void read_input()
   read_formatted_from_file_expecting((char*)(&tmin_V),input_file,"%d","tmin_V");
   read_formatted_from_file_expecting((char*)(&tmax_V),input_file,"%d","tmax_V");
   
-  read_formatted_from_file_expecting((char*)(&tmin_P),input_file,"%d","tmin_P");
-  read_formatted_from_file_expecting((char*)(&tmax_P),input_file,"%d","tmax_P");
+  read_formatted_from_file_expecting((char*)(&tminL_P),input_file,"%d","tminL_P");
+  read_formatted_from_file_expecting((char*)(&tmaxL_P),input_file,"%d","tmaxL_P");
+  
+  read_formatted_from_file_expecting((char*)(&tminS_P),input_file,"%d","tminS_P");
+  read_formatted_from_file_expecting((char*)(&tmaxS_P),input_file,"%d","tmaxS_P");
   
   read_formatted_from_file_expecting((char*)(&tmin_g),input_file,"%d","tmin_g");
   read_formatted_from_file_expecting((char*)(&tmax_g),input_file,"%d","tmax_g");
@@ -64,40 +69,6 @@ void read_input()
 int main()
 {
   read_input();
-  
-  //////////////////////////////// Calculate C2 defined in eq. (16) ////////////////////////////////
-
-  //load C2 for D(th=+-) and D*, with spectator c
-  //this is done in two parts, both for positive and negative th
-  
-  //load 1st part
-  jvec P5thA1V1=load_3pts_charm_spec("A1V1",REAL);
-  jvec P5thA2V2=load_3pts_charm_spec("A2V2",REAL);
-  jvec P5thA3V3=load_3pts_charm_spec("A3V3",REAL);
-  jvec P5thAKVK=(P5thA1V1+P5thA2V2+P5thA3V3)/3;
-
-  //load 2nd part
-  jvec P5thA1V2=load_3pts_charm_spec("A1V2",REAL);
-  jvec P5thA1V3=load_3pts_charm_spec("A1V3",REAL);
-  jvec P5thA2V1=load_3pts_charm_spec("A2V1",REAL);
-  jvec P5thA2V3=load_3pts_charm_spec("A2V3",REAL);
-  jvec P5thA3V1=load_3pts_charm_spec("A3V1",REAL);
-  jvec P5thA3V2=load_3pts_charm_spec("A3V2",REAL);
-  jvec P5thAKVJ=(P5thA1V2+P5thA1V3+P5thA2V1+P5thA2V3+P5thA3V1+P5thA3V2)/6;
-  
-  //put together the equation (16)
-  jvec P5thAKVJK=P5thAKVK-P5thAKVJ;
-
-  //compare the different parts
-  {
-    ofstream out("P5thAKVJK_parts.xmg");
-    out<<"@type xydy"<<endl;
-    out<<P5thAKVK<<endl;
-    out<<"&\n@type xydy"<<endl;
-    out<<-P5thAKVJ<<endl;
-    out<<"&\n@type xydy"<<endl;
-    out<<P5thAKVJK<<endl;
-  }
   
   ///////////////////////////// Load two points for standing D and D* //////////////////////////
   
@@ -120,18 +91,16 @@ int main()
   //////////////////////////////////// Fit masses and Z for standing D and D* ////////////////////////////////////////
   
   //compute D mass and Z
-  jack MSS_P5,ZSS_P5;
-  P5P5_fit(MSS_P5,ZSS_P5,P5P5_ss.simmetrized(1),tmin_P,tmax_P,"MSS_P5.xmg","ZSS_P5.xmg");
-  jack MSL_P5,ZSL_P5;
-  P5P5_fit(MSL_P5,ZSL_P5,P5P5_sl.simmetrized(1),tmin_P,tmax_P,"MSL_P5.xmg","ZSL_P5.xmg");
-  jack M_P5=jack_average(MSS_P5,MSL_P5),ZS_P5=sqrt(ZSS_P5),ZL_P5=ZSL_P5/ZS_P5;
+  jack M_P5,ZL_P5,ZS_P5;
+  two_pts_SL_fit(M_P5,ZL_P5,ZS_P5,P5P5_sl.simmetrized(1),P5P5_ss.simmetrized(1),tminL_P,tmaxL_P,tminS_P,tmaxS_P,"MSL_P5.xmg","MSS_P5.xmg");
+  cout<<"D mass: "<<M_P5<<", Z: "<<ZL_P5<<endl;
   
   //compute D* mass and Z
-  jack MSS_VK,ZSS_VK;
-  P5P5_fit(MSS_VK,ZSS_VK,VKVK_ss.simmetrized(1),tmin_V,tmax_V,"MSS_VK.xmg","ZSS_VK.xmg");
   jack MSL_VK,ZSL_VK;
-  P5P5_fit(MSL_VK,ZSL_VK,VKVK_sl.simmetrized(1),tmin_V,tmax_V,"MSL_VK.xmg","ZSL_VK.xmg");
-  jack M_VK=jack_average(MSS_VK,MSL_VK),ZS_VK=sqrt(ZSS_VK),ZL_VK=ZSL_VK/ZS_VK;
+  two_pts_fit(MSL_VK,ZSL_VK,VKVK_sl.simmetrized(1),tmin_V,tmax_V,"MSL_VK.xmg","ZSL_VK.xmg");
+  jack MSS_VK,ZSS_VK;
+  two_pts_fit(MSS_VK,ZSS_VK,VKVK_ss.simmetrized(1),tmin_V,tmax_V,"MSS_VK.xmg","ZSS_VK.xmg");
+  jack M_VK=jack_weighted_average(MSS_VK,MSL_VK),ZS_VK=sqrt(ZSS_VK),ZL_VK=ZSL_VK/ZS_VK;
   
   //reconstuct moving D mass
   double qi=M_PI*th/L;
@@ -168,6 +137,40 @@ int main()
     out<<Dth_DV_td_sa<<endl;
     out<<"&\n@type xydy"<<endl;
     out<<Dth_DV_td_nu<<endl;
+  }
+  
+  //////////////////////////////// Calculate C2 defined in eq. (16) ////////////////////////////////
+
+  //load C2 for D(th=+-) and D*, with spectator c
+  //this is done in two parts, both for positive and negative th
+  
+  //load 1st part
+  jvec P5thA1V1=load_3pts_charm_spec("A1V1",REAL);
+  jvec P5thA2V2=load_3pts_charm_spec("A2V2",REAL);
+  jvec P5thA3V3=load_3pts_charm_spec("A3V3",REAL);
+  jvec P5thAKVK=(P5thA1V1+P5thA2V2+P5thA3V3)/3;
+
+  //load 2nd part
+  jvec P5thA1V2=load_3pts_charm_spec("A1V2",REAL);
+  jvec P5thA1V3=load_3pts_charm_spec("A1V3",REAL);
+  jvec P5thA2V1=load_3pts_charm_spec("A2V1",REAL);
+  jvec P5thA2V3=load_3pts_charm_spec("A2V3",REAL);
+  jvec P5thA3V1=load_3pts_charm_spec("A3V1",REAL);
+  jvec P5thA3V2=load_3pts_charm_spec("A3V2",REAL);
+  jvec P5thAKVJ=(P5thA1V2+P5thA1V3+P5thA2V1+P5thA2V3+P5thA3V1+P5thA3V2)/6;
+  
+  //put together the equation (16)
+  jvec P5thAKVJK=P5thAKVK-P5thAKVJ;
+
+  //compare the different parts
+  {
+    ofstream out("P5thAKVJK_parts.xmg");
+    out<<"@type xydy"<<endl;
+    out<<P5thAKVK<<endl;
+    out<<"&\n@type xydy"<<endl;
+    out<<-P5thAKVJ<<endl;
+    out<<"&\n@type xydy"<<endl;
+    out<<P5thAKVJK<<endl;
   }
   
   ///////////////////////////// Determine the matrix element of AK between D(th=+-) and D* ////////////////////////////
