@@ -97,19 +97,33 @@ int main(int narg,char **arg)
 	}
     }
 
+    int targ_conf=0;
     for(int iconf=0;iconf<nconf;iconf++)
     {
+      FILE *fin;
+      
 	printf("%d\n",iconf);
 
 	//open file
-	sprintf(path,arg[1],iconf+base_gauge);
-	FILE *fin=fopen(path,"r");
-	if(fin==NULL)
-	{
-	    fprintf(stderr,"Error, couldn't open file: %s\n",path);
-	    exit(1);
-	}
-
+	do
+	  {
+	    sprintf(path,arg[1],targ_conf+base_gauge);
+	    fin=fopen(path,"r");
+	    if(fin==NULL)
+	      {
+		fprintf(stderr,"Error, couldn't open file: %s, skipping\n",path);
+		targ_conf++;
+		if(targ_conf>=nconf_teo)
+		  {
+		    fprintf(stderr,"Error, finished the available confs\n");
+		    exit(1);
+		  }
+	      }
+	    
+	  }
+	while(fin==NULL);
+	targ_conf++;
+	
 	//search the corr
 	for(int icorr=0;icorr<ncorr;icorr++)
 	{
