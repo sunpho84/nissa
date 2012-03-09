@@ -23,70 +23,127 @@ void parabolic_spline(double &a,double &b,double &c,double *xin,double *yd)
   c=Dc/D;
 }
 
-boot interpolate_single(bvec vec,double *x,boot xf)
+bvec interpolate_multi(bvec xin,bvec yin,bvec xout,const char *outpath=NULL)
 {
-  int nx=vec.nel;
-  int nboot=vec.nboot;
-  int njack=vec.njack;
-  boot out(nboot,njack);
+  bvec yout(xout.nel,xout.nboot,xout.njack);
+  int nxin=yin.nel;
+  int nxout=yout.nel;
   
-  for(int iboot=0;iboot<nboot+1;iboot++)
+  int nboot=yout.nboot;
+  
+  int nplot=100;
+  double xplot[nplot];
+  bvec yplot(nplot,xout.nboot,xout.njack);
+  
+  for(int ixout=0;ixout<nxout;ixout++)
     {
       //check if the needed x is not below the lower one or above the heavier one
-      double dmin=(x[1]-x[0])/2;
-      double dmax=(x[nx-1]-x[nx-2])/2;
-      bool linbelow=(xf[iboot]-x[0]<dmin);
-      bool linabove=(x[nx-1]-xf[iboot]<dmax);
-      if(nx==2) linabove=1;
+      double dmin=(xin[1][nboot]-xin[0][nboot])/2;
+      double dmax=(xin[nxin-1][nboot]-xin[nxin-2][nboot])/2;
+      bool linbelow=(xout[ixout][nboot]-xin[0][nboot]<dmin);
+      bool linabove=(xin[nxin-1][nboot]-xout[ixout][nboot]<dmax);
+      if(nxin==2) linabove=1;
       
-      //if linear
-      if(linabove||linbelow)
-	{
-	  //choose the pair
-	  int sup;
-	  if(linabove) sup=nx-1;
-	  else sup=1;
-	  
-	  //find the m and q
-	  double m=(vec[sup][iboot]-vec[sup-1][iboot])/(x[sup]-x[sup-1]);
-	  double q=vec[sup-1][iboot]-m*x[sup-1];
-	  
-	  //interpolate
-	  out.data[iboot]=m*xf[iboot]+q;
-	  
-	  if(0 && iboot==nboot && debug)
-	    {
-	      cout<<" "<<sup-1<<" "<<x[sup-1]<<" "<<vec[sup-1][iboot]<<" "<<m*x[sup-1]+q<<endl;
-	      cout<<" "<<sup<<" "<<x[sup]<<" "<<vec[sup][iboot]<<" "<<m*x[sup]+q<<endl;
-	      cout<<"  int: "<<xf[iboot]<<" "<<out.data[iboot]<<endl;
-	    }	  
-	}
-      else
-	{
-	  //if parabolic interpolation, find the nearest point
-	  int nearx=0;
-	  for(int ix=0;ix<nx;ix++) if(fabs(x[ix]-xf[iboot])<fabs(x[nearx]-xf[iboot])) nearx=ix;
-	  
-	  //copy the x and y for current bootstrap
-	  double xin[3]={x[nearx-1],x[nearx],x[nearx+1]};
-	  double yin[3]={vec[nearx-1][iboot],vec[nearx][iboot],vec[nearx+1][iboot]};
-	  
-	  //find the spline
-	  double a,b,c;
-	  parabolic_spline(a,b,c,xin,yin);
-	  
-	  //interpolate
-	  out.data[iboot]=a*sqr(xf[iboot])+b*xf[iboot]+c;
+      for(int iboot=0;iboot<nboot+1;iboot++)
+	//if linear
+	if(linabove||linbelow)
+	  {
+	    //choose the pair
+	    int sup;
+	    if(linabove) sup=nxin-1;
+	    else sup=1;
+	    
+	    //find the m and q
+	    double m=(yin[sup][iboot]-yin[sup-1][iboot])/(xin[sup][iboot]-xin[sup-1][iboot]);
+	    double q=yin[sup-1][iboot]-m*xin[sup-1][iboot];
+	    
+	    //interpolate
+	    yout[ixout].data[iboot]=m*xout[ixout][iboot]+q;
+	    
+	    if(outpath!=NULL && ixout==0)
+	      for(int iplot=0;iplot<nplot;iplot++)
+		{
+		  xplot[iplot]=xin[sup-1][iboot]+(xin[sup][iboot]-xin[sup-1][iboot])/99*iplot;
+		  yplot[iplot].data[iboot]=xplot[iplot]*m+q;
+		}
+	  }
+	else
+	  {
+	    //if parabolic interpolation, find the nearest point
+	    int nearx=0;
+	    for(int ixin=0;ixin<nxin;ixin++) if(fabs(xin[ixin][nboot]-xout[ixout][nboot])<fabs(xin[nearx][nboot]-xout[ixout][nboot])) nearx=ixin;
+	    
+	    //copy the x and y for current bootstrap
+	    double txin[3]={xin[nearx-1][iboot],xin[nearx][iboot],xin[nearx+1][iboot]};
+	    double tyin[3]={yin[nearx-1][iboot],yin[nearx][iboot],yin[nearx+1][iboot]};
+	    
+	    //find the spline
+	    double a,b,c;
+	    parabolic_spline(a,b,c,txin,tyin);
+	    
+	    //interpolate
+	    yout[ixout].data[iboot]=a*sqr(xout[ixout][iboot])+b*xout[ixout][iboot]+c;
 
-	  if(0 && iboot==nboot && debug)
-	    {
-	      cout<<" "<<nearx-1<<" "<<x[nearx-1]<<" "<<vec[nearx-1][iboot]<<endl;
-	      cout<<" "<<nearx<<" "<<x[nearx]<<" "<<vec[nearx][iboot]<<endl;
-	      cout<<" "<<nearx+1<<" "<<x[nearx+1]<<" "<<vec[nearx+1][iboot]<<endl;
-	      cout<<"  int: "<<xf[iboot]<<" "<<out.data[iboot]<<endl;
-	    }	  
-	}
+	    if(outpath!=NULL && ixout==0)
+	      for(int iplot=0;iplot<nplot;iplot++)
+		{
+		  xplot[iplot]=xin[nearx-1][iboot]+(xin[nearx+1][iboot]-xin[nearx-1][iboot])/99*iplot;
+		  if(iboot==0) cout<<xplot[iplot]<<endl;
+		  yplot[iplot].data[iboot]=a*sqr(xplot[iplot])+b*xplot[iplot]+c;
+		}
+	  }
     }
   
-  return out;
+  if(outpath!=NULL)
+    {
+      ofstream outplot(outpath);
+      outplot<<"@type xydy"<<endl;
+      outplot<<"@s0 symbol 1"<<endl;
+      for(int ixin=0;ixin<nxin;ixin++)
+	outplot<<xin[ixin].med()<<" "<<yin[ixin]<<endl;
+      outplot<<"&\n@type xydxdy"<<endl;
+      for(int ixout=0;ixout<nxout;ixout++)
+	{
+	  outplot<<xout[ixout].med()<<" "<<yout[ixout].med()<<" ";
+	  outplot<<xout[ixout].err()<<" "<<yout[ixout].err()<<endl;
+	}
+      outplot<<"&"<<endl;
+      write_polygon(outplot,xplot,yplot,1);
+      for(int ixout=0;ixout<nxout;ixout++)
+	{
+	  outplot<<"&"<<endl;
+	  for(int iboot=0;iboot<=nboot;iboot++)
+	    outplot<<xout[ixout][iboot]<<" "<<yout[ixout][iboot]<<endl;
+	}
+
+      outplot.close();
+    }
+  
+  return yout;
+}
+
+bvec interpolate_multi(double *xin,bvec yin,bvec xout,const char *outpath=NULL)
+{
+  bvec xin_vec(yin.nel,yin.nboot,yin.njack);
+  for(int iel=0;iel<yin.nel;iel++)
+    for(int iboot=0;iboot<=yin.nboot;iboot++)
+      xin_vec[iel].data[iboot]=xin[iel];
+  
+  return interpolate_multi(xin_vec,yin,xout,outpath);
+}
+
+boot interpolate_single(bvec xin,bvec yin,boot xout,const char *outpath=NULL)
+{
+  bvec xout_vec(1,yin.nboot,yin.njack);
+  xout_vec=xout;
+  
+  return interpolate_multi(xin,yin,xout_vec,outpath)[0];
+}
+
+boot interpolate_single(double *xin,bvec yin,boot xout,const char *outpath=NULL)
+{
+  bvec xout_vec(1,yin.nboot,yin.njack);
+  xout_vec=xout;
+  
+  return interpolate_multi(xin,yin,xout_vec,outpath)[0];
 }

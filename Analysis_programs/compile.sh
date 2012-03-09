@@ -13,4 +13,4 @@ else
     fi
 fi
 
-g++ -o $1 $a -I /Users/francesco/Prace/nissa/Analysis_programs/src $suff -Wall `rootlib` -I $(dirname $1) -O2
+g++ -o $1 $a -I /Users/francesco/Prace/nissa/Analysis_programs/src  $suff -Wall `rootlib` -I $(dirname $1) -O2

@@ -45,7 +45,7 @@ jvec effective_mass(jvec a)
 	      else
 		xr=m;
 	    }
-	  while(fabs(ym)>1.e-13);
+	  while(fabs(ym)>1.e-14);
 	  
 	  b.data[t].data[ijack]=m;
 	}
@@ -107,23 +107,27 @@ void ch2_two_pts_SL_fit(int &npar,double *fuf,double &ch,double *p,int flag)
       double err=e_two_pts_SL_fit[0][t];
       double cont=sqr(diff/err);
       ch+=cont;
-      //if(flag==3) cout<<"SL, t="<<t<<", diff="<<diff<<" err="<<err<<" cont="<<cont<<endl;
+      if(flag==3) cout<<"SL, t="<<t<<", diff="<<diff<<" err="<<err<<" cont="<<cont<<endl;
     }
+  
   for(int t=tmin_two_pts_SL_fit[1];t<=min(tmax_two_pts_SL_fit[1],TH_two_pts_SL_fit);t++)
     {
       double diff=c_two_pts_SL_fit[1][t]-fun_two_pts_SL_fit(ZS,ZS,M,t);
       double err=e_two_pts_SL_fit[1][t];
       double cont=sqr(diff/err);
       ch+=cont;
-      //if(flag==3) cout<<"SS, t="<<t<<", diff="<<diff<<" err="<<err<<" cont="<<cont<<endl;
+      if(flag==3) cout<<"SS, t="<<t<<", diff="<<diff<<" err="<<err<<" cont="<<cont<<endl;
     }
 }
 
 void two_pts_SL_fit(jack &M,jack &ZL,jack &ZS,jvec corrSL,jvec corrSS,int tminL,int tmaxL,int tminS,int tmaxS,const char *path1=NULL,const char *path2=NULL)
 {
-  jack ML=constant_fit(effective_mass(corrSL),tminL,tmaxL,path1);
-  jack MS=constant_fit(effective_mass(corrSS),tminS,tmaxS,path2);
-  M=jack_weighted_average(ML,MS);
+  jvec ecorrSL=effective_mass(corrSL);
+  jvec ecorrSS=effective_mass(corrSS);
+  
+  jack ML=constant_fit(ecorrSL,tminL,tmaxL,NULL);
+  //jack MS=constant_fit(ecorrSS,tminS,tmaxS,NULL);
+  M=ML;//jack_weighted_average(ML,MS);
   jvec tempSL(corrSS.nel,corrSS.njack),tempSS(corrSS.nel,corrSS.njack);
   int TH=tempSS.nel-1;
   for(int t=0;t<=TH;t++)
@@ -137,7 +141,6 @@ void two_pts_SL_fit(jack &M,jack &ZL,jack &ZS,jvec corrSL,jvec corrSS,int tminL,
   TMinuit minu;
   minu.SetPrintLevel(-1);
   minu.SetFCN(ch2_two_pts_SL_fit);
-  minu.DefineParameter(0,"M",M.med(),0.001,0,0);
   minu.DefineParameter(1,"ZL",ZL.med(),0.001,0,0);
   minu.DefineParameter(2,"ZS",ZS.med(),0.001,0,0);
   
@@ -161,6 +164,8 @@ void two_pts_SL_fit(jack &M,jack &ZL,jack &ZS,jvec corrSL,jvec corrSS,int tminL,
   
   for(int ijack_fit=0;ijack_fit<=njack;ijack_fit++)
     {
+      minu.DefineParameter(0,"M",M[ijack_fit],0.001,0,0);
+      minu.FixParameter(0);
       for(int iel=0;iel<=TH;iel++)
 	{
 	  c_two_pts_SL_fit[0][iel]=corrSL[iel][ijack_fit];
@@ -175,51 +180,10 @@ void two_pts_SL_fit(jack &M,jack &ZL,jack &ZS,jvec corrSL,jvec corrSS,int tminL,
   
   double ch2,grad[3],par[3]={M[njack],ZL[njack],ZS[njack]};
   minu.Eval(3,grad,ch2,par,3);
-  cout<<"ch2: "<<ch2<<endl;
+  cout<<"ML: "<<ML<<", ch2: "<<ch2<<endl;
   
-  /*
-  if(path1!=NULL)
-    {
-      double x[100];
-      double dx=(tmaxL-tminL)/99.0;
-      jvec y(100,njack);
-      jvec z=corrSL;
-      for(int i=0;i<100;i++)
-	{
-	  x[i]=tminL+dx*i;
-	  for(int ijack=0;ijack<=njack;ijack++) y[i].data[ijack]=fun_two_pts_SL_fit(ZS[ijack],ZL[ijack],M[ijack],x[i]);
-	  for(int ijack=0;ijack<=njack;ijack++) y[i].data[ijack]/=fun_two_pts_SL_fit(ZS[njack],ZL[njack],M[njack],x[i]);
-	}
-      for(int t=0;t<z.nel;t++) z[t]/=fun_two_pts_SL_fit(ZS[njack],ZL[njack],M[njack],t);
-      grace out(path1);
-      //out.fout<<"@    yaxes scale Logarithmic"<<endl;
-      out.fout<<"@type xydy"<<endl;
-      out.fout<<"@s0 line type 0"<<endl;
-      out<<z<<endl;
-      out.new_set();
-      out.contour(x,y);
-    }
-  if(path2!=NULL)
-    {
-      double x[100];
-      double dx=(tmaxS-tminS)/99.0;
-      jvec y(100,njack);
-      jvec z=corrSS;
-      for(int i=0;i<100;i++)
-	{
-	  x[i]=tminS+dx*i;
-	  for(int ijack=0;ijack<=njack;ijack++) y[i].data[ijack]=fun_two_pts_SL_fit(ZS[ijack],ZS[ijack],M[ijack],x[i])/fun_two_pts_SL_fit(ZS[njack],ZS[njack],M[njack],x[i]);
-	}
-      for(int t=0;t<z.nel;t++) z[t]/=fun_two_pts_SL_fit(ZS[njack],ZS[njack],M[njack],t);
-      grace out(path2);
-      //out.fout<<"@    yaxes scale Logarithmic"<<endl;
-      out.fout<<"@type xydy"<<endl;
-      out.fout<<"@s0 line type 0"<<endl;
-      out<<z<<endl;
-      out.new_set();
-      out.contour(x,y);
-    }
-  */
+  if(path1!=NULL) write_constant_fit_plot(path1,ecorrSL,M,tminL,tmaxL);
+  if(path2!=NULL) write_constant_fit_plot(path2,ecorrSS,M,tminS,tmaxS);
 }
 
 void linear_fit(jack &m,jack &q,jvec corr,int tmin,int tmax)

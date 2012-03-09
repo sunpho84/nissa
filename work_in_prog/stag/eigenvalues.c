@@ -30,6 +30,7 @@ double eo_color_normalize(color *out,color *in,double norm)
 }
 
 //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
+//assumes that the passed conf already has stag phases inside it
 double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
 {
   communicate_eo_gauge_borders(eo_conf[0],eo_conf[1]);
@@ -70,6 +71,7 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
 }
 
 //scale the rational expansion
+//assumes that the conf has already stag phases inside
 void scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_exp_actio,quad_su3 **eo_conf,quark_content *quark_pars,quad_u1 ***bf,int nquarks)
 {
   //loop over each quark

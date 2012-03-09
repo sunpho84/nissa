@@ -139,7 +139,7 @@ VTYPE VTYPE::load(FILE *fin,int i)
 
 VTYPE VTYPE::load(const char *path,int i)
 {
-  cout<<"Loading from path "<<path<<endl;
+  cout<<"Loading corr "<<i<<" from path "<<path<<endl;
   FILE *fin=open_file(path,"r");
   
   load(fin,i);
@@ -462,12 +462,14 @@ void write_constant_fit_plot(const char *path,VTYPE in,TYPE y,int tin,int tfin)
   out<<"@s0 line color 7"<<endl;
   out<<"@s0 fill color 7"<<endl;
   out<<"@s0 fill type 1"<<endl;
+  out<<"@type xy"<<endl;      
   out<<tin<<" "<<ym-dy<<endl<<tfin<<" "<<ym-dy<<endl;
   out<<tfin<<" "<<ym+dy<<endl<<tin<<" "<<ym+dy<<endl;
   out<<tin<<" "<<ym-dy<<endl;
   out<<"&"<<endl;
   //central line
   out<<"@s1 line color 1"<<endl;
+  out<<"@type xy"<<endl;      
   out<<tin<<" "<<ym<<endl<<tfin<<" "<<ym<<endl;
   //plot the original data with error  
   out<<"&"<<endl;

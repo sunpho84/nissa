@@ -7,8 +7,8 @@
 void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,color *pf,rat_approx *appr,double residue)
 {
   master_printf("Computing quark force\n");
+  
   //allocate each terms of the expansion
-  //allocate temporary single solutions
   color *v_o[appr->nterms],*chi_e[appr->nterms];
   v_o[0]=nissa_malloc("v",(loc_volh+loc_bordh)*appr->nterms,color);
   chi_e[0]=nissa_malloc("chi",(loc_volh+loc_bordh)*appr->nterms,color);
@@ -22,10 +22,10 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
   add_backfield_to_conf(eo_conf,u1b);
 
   //debug
-  static int b=0;
+  //static int b=0;
+  //master_printf_rat_approx(appr);
   
   //invert the various terms
-  master_printf_rat_approx(appr);
   inv_stD2ee_cgmm2s(chi_e,pf,eo_conf,appr->poles,appr->nterms,1000000,residue,residue,0);
   
   //summ all the terms performing appropriate elaboration
@@ -36,44 +36,49 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
       apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
     }
   
-  //debug
-  master_printf("Debug,reading the first term\n");
-  color *temp=nissa_malloc("temp",loc_volh,color);
-  if(b==0) read_e_color(temp,"dat/quark_force_term_1_1");
-  else     read_e_color(temp,"dat/quark_force_term_2_1");
-  double n2=0;
-  for(int ivol=0;ivol<loc_volh;ivol++)
-    for(int ic=0;ic<3;ic++)
-      for(int ri=0;ri<2;ri++)
-	{
-	  double a=temp[ivol][ic][ri]-chi_e[0][ivol][ic][ri];
-	  n2+=a*a;
-	  master_printf("%d %d %d  %lg %lg\n",ivol,ic,ri,temp[ivol][ic][ri],chi_e[0][ivol][ic][ri]);
-	}
-  n2=sqrt(n2/(loc_volh*3));
-  master_printf("Diff of first term: %lg\n",n2);
-  if(n2>=1.e-4) crash("norm error");
-  
-  master_printf("Debug,reading the first vterm\n");
-  if(b==0) read_o_color(temp,"dat/quark_force_vterm_1_1");
-  else     read_o_color(temp,"dat/quark_force_vterm_2_1");
-  b++;
-  n2=0;
-  for(int ivol=0;ivol<loc_volh;ivol++)
-    for(int ic=0;ic<3;ic++)
-      for(int ri=0;ri<2;ri++)
-	{
-	  double a=temp[ivol][ic][ri]-v_o[0][ivol][ic][ri];
-	  n2+=a*a;
-	  master_printf("%d %d %d  %lg %lg\n",ivol,ic,ri,temp[ivol][ic][ri],v_o[0][ivol][ic][ri]);
-	}
-  n2=sqrt(n2/(loc_volh*3));
-  master_printf("Diff of first term: %lg\n",n2);
-  if(n2>=1.e-4) crash("norm error");
-  
   //remove the background fields
   rem_backfield_from_conf(eo_conf,u1b);
   
+  //debug
+  /*
+    if(b<=1)
+    {
+      master_printf("Debug,reading the first term\n");
+      color *temp=nissa_malloc("temp",loc_volh,color);
+      if(b==0) read_e_color(temp,"dat/quark_force_term_1_q1");
+      else read_e_color(temp,"dat/quark_force_term_1_q2");
+      double n2=0;
+      for(int ivol=0;ivol<loc_volh;ivol++)
+	for(int ic=0;ic<3;ic++)
+	  for(int ri=0;ri<2;ri++)
+	    {
+	      double a=temp[ivol][ic][ri]-chi_e[0][ivol][ic][ri];
+	      n2+=a*a;
+	      //master_printf("%d %d %d  %lg %lg\n",ivol,ic,ri,temp[ivol][ic][ri],chi_e[0][ivol][ic][ri]);
+	    }
+      n2=sqrt(n2/(loc_volh*3));
+      master_printf("Diff of first term: %lg\n",n2);
+      if(n2>=1.e-4) crash("norm error");
+      
+      master_printf("Debug,reading the first vterm\n");
+      if(b==0) read_o_color(temp,"dat/quark_force_vterm_1_q1");
+      else read_o_color(temp,"dat/quark_force_vterm_1_q2");
+      b++;
+      n2=0;
+      for(int ivol=0;ivol<loc_volh;ivol++)
+	for(int ic=0;ic<3;ic++)
+	  for(int ri=0;ri<2;ri++)
+	    {
+	      double a=temp[ivol][ic][ri]-v_o[0][ivol][ic][ri];
+	      n2+=a*a;
+	      //master_printf("%d %d %d  %lg %lg\n",ivol,ic,ri,temp[ivol][ic][ri],v_o[0][ivol][ic][ri]);
+	    }
+      n2=sqrt(n2/(loc_volh*3));
+      master_printf("Diff of first term: %lg\n",n2);
+      if(n2>=1.e-4) crash("norm error");
+    }
+  */
+
   //conclude the calculation of the fermionic force
   for(int ivol=0;ivol<loc_volh;ivol++)
     for(int mu=0;mu<4;mu++)
@@ -111,29 +116,7 @@ void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,double beta,int nfl,q
   for(int ifl=0;ifl<nfl;ifl++)
     summ_the_rootst_eoimpr_force(F,conf,u1b[ifl],pf[ifl],&(appr[ifl]),residue);
   
-  //debug
-  quad_su3 *temp[2];
-  temp[0]=nissa_malloc("temp",loc_vol,quad_su3);
-  temp[1]=temp[0]+loc_volh;
-  read_ildg_gauge_conf_and_split_into_eo_parts(temp,"dat/total_force_pre_ta");
-  double n2=0;
-  for(int eo=0;eo<2;eo++)
-    for(int ivol=0;ivol<loc_volh;ivol++)
-      for(int mu=0;mu<4;mu++)
-	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
-	    for(int ri=0;ri<2;ri++)
-	      {
-		double a=temp[eo][ivol][mu][ic1][ic2][ri]-F[eo][ivol][mu][ic1][ic2][ri];
-		master_printf("%d %d %d %d %d %d  %lg %lg\n",eo,ivol,mu,ic1,ic2,ri,temp[eo][ivol][mu][ic1][ic2][ri],F[eo][ivol][mu][ic1][ic2][ri]);
-		n2+=a*a;
-	      }
-  n2/=loc_vol*4*9;
-  n2=sqrt(n2);
-  master_printf("Total force norm diff: %lg\n",n2);
-  if(n2>1.e-16) crash("quark and wilson force computatin failed");
-  
-  //Finish the computation multiplying for the conf and aking TA
+  //Finish the computation multiplying for the conf and taking TA
   for(int eo=0;eo<2;eo++)
     for(int ivol=0;ivol<loc_volh;ivol++)
       for(int mu=0;mu<4;mu++)

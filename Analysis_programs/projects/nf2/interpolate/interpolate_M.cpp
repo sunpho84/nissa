@@ -42,6 +42,9 @@ int main()
       if(string(meson_name)==string("D"))
 	fint.data[iens]=interpolate_charm(M[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens],mode,combine("out%02d",iens).c_str())[iml_un[iens]];
       
+      if(string(meson_name)==string("EtaC"))
+	fint.data[iens]=interpolate_charm_charm(M[iens],nmass[iens],nlights[iens],mass[iens],ibeta[iens],mode,combine("out%02d",iens).c_str())[iml_un[iens]];
+      
       if(string(meson_name)==string("K"))
 	{
 	  if(string(obs_name)==string("P5P5"))

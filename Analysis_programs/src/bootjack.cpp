@@ -73,7 +73,7 @@ double TYPE::err()
   s2x/=N;
   s2x-=sx*sx;
   
-  return sqrt(s2x*(njack-1));
+  return sqrt(fabs(s2x)*(njack-1));
 }
 
 TYPE TYPE::append_to_binfile(const char *format,...)
