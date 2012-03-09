@@ -3,86 +3,86 @@
 //set the eo geometry
 void set_eo_geometry()
 {
-    if(nissa_eo_geom_inited!=0) crash("E/O Geometry already initialized!");
-    
-    //check that all local sizes are multiples of 2
-    int ok=1;
-    for(int mu=0;mu<4;mu++) ok&=(loc_size[mu]%2==0);
-    if(!ok) crash("local lattice size odd!");
-    
-    //set half the vol, bord and edge size
-    glb_volh=glb_vol/2;
-    loc_volh=loc_vol/2;
-    loc_bordh=loc_bord/2;
-    loc_edgeh=loc_edge/2;
-    
-    //set the various time-slice types
-    loclx_parity=nissa_malloc("loclx_parity",loc_vol+loc_bord+loc_edge,int);
-    
-    loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+loc_bord+loc_edge,int);
-    loclx_of_loceo[0]=nissa_malloc("loclx_of_loceo",loc_vol+loc_bord+loc_edge,int);
-    loclx_of_loceo[1]=loclx_of_loceo[0]+loc_volh+loc_bordh+loc_edgeh;
-    loceo_neighup[0]=nissa_malloc("loceo_neighup",loc_vol+loc_bord+loc_edge,coords);
-    loceo_neighdw[0]=nissa_malloc("loceo_neighdw",loc_vol+loc_bord+loc_edge,coords);
-    
-    loceo_neighup[1]=loceo_neighup[0]+loc_volh+loc_bordh;
-    loceo_neighdw[1]=loceo_neighdw[0]+loc_volh+loc_bordh;
-    
-    //Label the bulk sites
-    int iloc_eo[2]={0,0};
-    for(int loclx=0;loclx<loc_vol+loc_bord+loc_edge;loclx++)
-      {
-	//calculate global coord and parity
-	int par=0;
-	for(int mu=0;mu<4;mu++)
-	  par+=glb_coord_of_loclx[loclx][mu];
-	
-	par%=2;
-	
-	//fix parity of local index
-	loclx_parity[loclx]=par;
-	
-	//associate the e/o index to lx sites and vice-versa
-	loceo_of_loclx[loclx]=iloc_eo[par];
-	loclx_of_loceo[par][iloc_eo[par]]=loclx;
-	iloc_eo[par]++;
-      }
-    
-    //Fix the movements among e/o ordered sites
-    for(int loclx=0;loclx<loc_vol+loc_bord;loclx++)
+  if(nissa_eo_geom_inited!=0) crash("E/O Geometry already initialized!");
+  
+  //check that all local sizes are multiples of 2
+  int ok=1;
+  for(int mu=0;mu<4;mu++) ok&=(loc_size[mu]%2==0);
+  if(!ok) crash("local lattice size odd!");
+  
+  //set half the vol, bord and edge size
+  glb_volh=glb_vol/2;
+  loc_volh=loc_vol/2;
+  loc_bordh=loc_bord/2;
+  loc_edgeh=loc_edge/2;
+  
+  //set the various time-slice types
+  loclx_parity=nissa_malloc("loclx_parity",loc_vol+loc_bord+loc_edge,int);
+  
+  loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+loc_bord+loc_edge,int);
+  loclx_of_loceo[0]=nissa_malloc("loclx_of_loceo",loc_vol+loc_bord+loc_edge,int);
+  loclx_of_loceo[1]=loclx_of_loceo[0]+loc_volh+loc_bordh+loc_edgeh;
+  loceo_neighup[0]=nissa_malloc("loceo_neighup",loc_vol+loc_bord+loc_edge,coords);
+  loceo_neighdw[0]=nissa_malloc("loceo_neighdw",loc_vol+loc_bord+loc_edge,coords);
+  
+  loceo_neighup[1]=loceo_neighup[0]+loc_volh+loc_bordh;
+  loceo_neighdw[1]=loceo_neighdw[0]+loc_volh+loc_bordh;
+  
+  //Label the bulk sites
+  int iloc_eo[2]={0,0};
+  for(int loclx=0;loclx<loc_vol+loc_bord+loc_edge;loclx++)
+    {
+      //calculate global coord and parity
+      int par=0;
       for(int mu=0;mu<4;mu++)
-	{
-	  //take parity and e/o corresponding site
-	  int par=loclx_parity[loclx];
-	  int loceo=loceo_of_loclx[loclx];
-	  
-	  //up movements
-	  int loclx_up=loclx_neighup[loclx][mu];
-	  
-	  if(loclx_up>=0 && loclx_up<loc_vol+loc_bord+loc_edge)
-	    loceo_neighup[par][loceo][mu]=loceo_of_loclx[loclx_up];
-	  
-	  //dw movements
-	  int loclx_dw=loclx_neighdw[loclx][mu];
-	  if(loclx_dw>=0 && loclx_dw<loc_vol+loc_bord+loc_edge)
-	    loceo_neighdw[par][loceo][mu]=loceo_of_loclx[loclx_dw];
-	  else
-	    loceo_neighdw[par][loceo][mu]=loclx_dw;
-	}
-	  
-    //init sender and receiver points for borders
+	par+=glb_coord_of_loclx[loclx][mu];
+      
+      par%=2;
+      
+      //fix parity of local index
+      loclx_parity[loclx]=par;
+      
+      //associate the e/o index to lx sites and vice-versa
+      loceo_of_loclx[loclx]=iloc_eo[par];
+      loclx_of_loceo[par][iloc_eo[par]]=loclx;
+      iloc_eo[par]++;
+    }
+  
+  //Fix the movements among e/o ordered sites
+  for(int loclx=0;loclx<loc_vol+loc_bord;loclx++)
     for(int mu=0;mu<4;mu++)
-      if(paral_dir[mu]!=0)
-	{
-	  start_eo_bord_send_up[mu]=loceo_of_loclx[start_lx_bord_send_up[mu]];
-	  start_eo_bord_rece_up[mu]=loceo_of_loclx[start_lx_bord_rece_up[mu]];
-	  start_eo_bord_send_dw[mu]=loceo_of_loclx[start_lx_bord_send_dw[mu]];
-	  start_eo_bord_rece_dw[mu]=loceo_of_loclx[start_lx_bord_rece_dw[mu]];
-	}
-
-    master_printf("E/O Geometry intialized\n");
-    
-    nissa_eo_geom_inited=1;
+      {
+	//take parity and e/o corresponding site
+	int par=loclx_parity[loclx];
+	int loceo=loceo_of_loclx[loclx];
+	
+	//up movements
+	int loclx_up=loclx_neighup[loclx][mu];
+	
+	if(loclx_up>=0 && loclx_up<loc_vol+loc_bord+loc_edge)
+	  loceo_neighup[par][loceo][mu]=loceo_of_loclx[loclx_up];
+	
+	//dw movements
+	int loclx_dw=loclx_neighdw[loclx][mu];
+	if(loclx_dw>=0 && loclx_dw<loc_vol+loc_bord+loc_edge)
+	  loceo_neighdw[par][loceo][mu]=loceo_of_loclx[loclx_dw];
+	else
+	  loceo_neighdw[par][loceo][mu]=loclx_dw;
+      }
+  
+  //init sender and receiver points for borders
+  for(int mu=0;mu<4;mu++)
+    if(paral_dir[mu]!=0)
+      {
+	start_eo_bord_send_up[mu]=loceo_of_loclx[start_lx_bord_send_up[mu]];
+	start_eo_bord_rece_up[mu]=loceo_of_loclx[start_lx_bord_rece_up[mu]];
+	start_eo_bord_send_dw[mu]=loceo_of_loclx[start_lx_bord_send_dw[mu]];
+	start_eo_bord_rece_dw[mu]=loceo_of_loclx[start_lx_bord_rece_dw[mu]];
+      }
+  
+  master_printf("E/O Geometry intialized\n");
+  
+  nissa_eo_geom_inited=1;
 }
 
 //definitions of e/o split sender for borders
@@ -162,6 +162,7 @@ void set_eo_bord_senders_and_receivers(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Da
   initialize_eo_bord_receivers_of_kind(MPI_EO_BORD_RECE,base);
 }
 
+//unset the eo geometry
 void unset_eo_geometry()
 {
   if(nissa_eo_geom_inited==0)
@@ -176,6 +177,38 @@ void unset_eo_geometry()
   nissa_free(loceo_of_loclx);
   
   nissa_eo_geom_inited=0;
+}
+
+//add or remove staggered phases to/from a conf
+void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
+{
+  if(nissa_eo_geom_inited==0) set_eo_geometry();
+  
+  for(int ieo=0;ieo<2;ieo++)
+    for(int ivol_eo=0;ivol_eo<loc_volh;ivol_eo++)
+      {
+	int ivol_lx=loclx_of_loceo[ieo][ivol_eo];
+	
+	int d=0;
+	
+	//phase in direction 1 is always 0 so nothing has to be done in that dir
+	//if(d%2==1) su3_prod_double(eo_conf[ieo][ivol_eo][1],eo_conf[ieo][ivol_eo][1],-1);
+	
+	//direction 2
+	d+=glb_coord_of_loclx[ivol_lx][1];
+	if(d%2==1) su3_prod_double(eo_conf[ieo][ivol_eo][2],eo_conf[ieo][ivol_eo][2],-1);
+	
+	//direction 3
+	d+=glb_coord_of_loclx[ivol_lx][2];
+	if(d%2==1) su3_prod_double(eo_conf[ieo][ivol_eo][3],eo_conf[ieo][ivol_eo][3],-1);
+	
+	//direction 0
+	d+=glb_coord_of_loclx[ivol_lx][3];
+	//debug: putting the anti-periodic condition on the temporal border
+	//in future remove it!!!
+	if(glb_coord_of_loclx[ivol_lx][0]==glb_size[0]-1) d+=1;
+	if(d%2==1) su3_prod_double(eo_conf[ieo][ivol_eo][0],eo_conf[ieo][ivol_eo][0],-1);
+      }
 }
 
 //separate the even or odd part of a vector

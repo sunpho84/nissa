@@ -56,13 +56,13 @@ jvec load_corr(char *base_path,int sm_lev,int im1,int im2,int r1,int r2,const ch
   int tag[2]={0,30};
   sprintf(path,"%s/%s_30_%02d",base_path,obs_name,tag[sm_lev]);
 
-  jvec l=(jvec_load(path,T,njack,icombo(im1,im2,!r1,!r2,0))+
-	  jvec_load(path,T,njack,icombo(im1,im2, r1, r2,0)))/2;
+  jvec l=(jvec_load(path,T,njack,icombo(im1,im2,!r1,!r2,0,0))+
+	  jvec_load(path,T,njack,icombo(im1,im2, r1, r2,0,0)))/2;
   
-  jvec r=(jvec_load(path,T,njack,icombo(im1,im2,!r1,!r2,0))+
-	  jvec_load(path,T,njack,icombo(im1,im2, r1, r2,0)))/2;
+  jvec r=(jvec_load(path,T,njack,icombo(im1,im2,!r1,!r2,1,0))+
+	  jvec_load(path,T,njack,icombo(im1,im2, r1, r2,1,0)))/2;
   
-  
+
   for(int tL=0;tL<T;tL++)
     {
       int tR=tL+tSEP;
@@ -132,9 +132,6 @@ string rectangle(int a,int b,jack c)
   return out.str();
 }
 
-//int xmin[4]={10,10,12,15};
-//int xmax[4]={13,15,17,24};
-
 int main(int narg,char **arg)
 {
   read_pars("input");
@@ -157,42 +154,41 @@ int main(int narg,char **arg)
 	
 	if(im2>=nlights) ifit_int=1;
 	else ifit_int=0;
-
+	
 	jvec eff[2];
 	for(int sm_lev=0;sm_lev<2;sm_lev++)
 	  {
 	    //load the current combo
-	    c[sm_lev]=load_corr(base_path,sm_lev,im1,im2,0,0,corr_name); //TM
+	    c[sm_lev]=load_corr(base_path,sm_lev,im1,im2,0,0,corr_name).simmetrized(1); //TM
 	    if(corr_name==string("S0S0")) c[sm_lev]=-c[sm_lev];
-	    
+
 	    //compute effective mass
-	    eff[sm_lev]=effective_mass(c[sm_lev].simmetrized(1));
+	    eff[sm_lev]=effective_mass(c[sm_lev]);
+	  }
+
+	for(int sm_lev=0;sm_lev<2;sm_lev++)
+	  {	    
+	    //check intervals
+	    int tin=tmin[ifit_int];
+	    int tfi=tin;
+	    bool adv=1;
+	    while(tfi<tmax[ifit_int] && adv)
+	      {
+		for(int ijack=0;ijack<=njack;ijack++)
+		  adv=adv && (eff[0][tfi][ijack]>0 && eff[1][tfi][ijack]>0);
+		if(adv) tfi++;
+	      }	
+	    if(tfi!=tmax[ifit_int]) cout<<"Warning, combo "<<ic<<" restricting to "<<tfi<<" instead than "<<tmax[ifit_int]<<endl;
 	    
-	    //compute eff mass subtracting t+1 with t. Find the point
-	    //where the fit with 0 is less than 1
-	    {
-	      jvec temp(TH-1,njack);
-	      for(int t=0;t<TH-1;t++) temp[t]=sqr(eff[sm_lev][t+1]-eff[sm_lev][t]);
-	      ofstream out(combine("eff_diff_%02d_%02d_%d.xmg",im1,im2,sm_lev).c_str());
-	      out<<temp;
-	    }
-	    
-	    //fit mass and print it
-	    {
-	      mass_estim[sm_lev]=constant_fit(eff[sm_lev],tmin[ifit_int],tmax[ifit_int]);
-	      ofstream out(combine("eff_%02d_%02d_%d.xmg",im1,im2,sm_lev).c_str());
-	      out<<"@type xydy"<<endl<<"@s0 line type 0"<<endl;
-	      out<<eff[sm_lev];
-	      out<<"&\n@type xy\n";
-	      out<<rectangle(tmin[ifit_int],tmax[ifit_int],mass_estim[sm_lev])<<endl;
-	    }
+	    //fit mass
+	    mass_estim[sm_lev]=constant_fit(eff[sm_lev],tmin[ifit_int],tmax[ifit_int]);
 	    
 	    //compute the corr func removed of the temporal dependency,
 	    //fit Z and print it
 	    {
 	      ofstream out(combine("rem_tdep_%02d_%02d_%d.xmg",im1,im2,sm_lev).c_str());
 	      out<<"@type xydy"<<endl<<"@s0 line type 0"<<endl;
-	      jvec temp=c[sm_lev].simmetrized(1);
+	      jvec temp=c[sm_lev];
 	      for(int iel=0;iel<TH;iel++)
 		for(int ijack=0;ijack<njack+1;ijack++)
 		  temp[iel].data[ijack]=temp[iel].data[ijack]/fun_fit(1,1,mass_estim[sm_lev][ijack],iel);
@@ -214,7 +210,7 @@ int main(int narg,char **arg)
 	jack af=Zl[ic]*(mass[im1]+mass[im2])/aM[ic]/sinh(aM[ic]);
 	jack f=af/a;
 	
-	for(ijack_fit=0;ijack_fit<njack+1;ijack_fit++)
+	for(ijack_fit=0;ijack_fit<=njack;ijack_fit++)
 	  {
 	    minu.DefineParameter(0,"aM",aM[ic][ijack_fit],aM[ic].err(),0,0);
 	    minu.DefineParameter(1,"ZL",Z_estim[0][ijack_fit],Z_estim[0].err(),0,0);
@@ -231,16 +227,27 @@ int main(int narg,char **arg)
 	for(int sm_lev=0;sm_lev<2;sm_lev++)
 	  {
 	    ofstream fout(combine("out_%02d_%02d_%d.xmg",im1,im2,sm_lev).c_str());
-	    fout<<"@type xydy"<<endl<<(c[sm_lev]).simmetrized(1)<<endl<<"&\n@type xy\n";
+	    fout<<"@type xydy"<<endl<<c[sm_lev]<<endl<<"&\n@type xy\n";
 	    for(int t=tmin[ifit_int];t<=tmax[ifit_int];t++)
 	      if(sm_lev==0) fout<<t<<" "<<fun_fit(Zl[ic][njack],Zs[ic][njack],aM[ic][njack],t)<<endl;
 	      else          fout<<t<<" "<<fun_fit(Zs[ic][njack],Zs[ic][njack],aM[ic][njack],t)<<endl;
 	    fout.close();
 	  }
+	
+	//fit mass and print it
+	for(int sm_lev=0;sm_lev<2;sm_lev++)
+	  {
+	    ofstream out(combine("eff_%02d_%02d_%d.xmg",im1,im2,sm_lev).c_str());
+	    out<<"@type xydy"<<endl<<"@s0 line type 0"<<endl;
+	    out<<eff[sm_lev];
+	    out<<"&\n@type xy\n";
+	    out<<rectangle(tmin[ifit_int],tmax[ifit_int],aM[ic])<<endl;
+	  }
+	    
+
       }
   
   aM.write_to_binfile(out_file);
-  //cout<<aM<<endl;
   (Zl*Zl).append_to_binfile(out_file);
 
   return 0;

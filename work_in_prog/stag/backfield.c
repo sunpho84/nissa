@@ -12,6 +12,7 @@ void init_backfield_to_id(quad_u1 **S)
 	}
 }
 
+/*
 //add the staggered phases to a background field
 void add_stagphases_to_backfield(quad_u1 **S)
 {
@@ -42,6 +43,7 @@ void add_antiperiodic_bc_to_backfield(quad_u1 **S)
 	for(int ri=0;ri<2;ri++)
 	  S[par][ieo][0][ri]*=-1;
 }
+*/
 
 //multpiply the configuration for an additional u(1) field
 void add_backfield_to_conf(quad_su3 **conf,quad_u1 **u1)

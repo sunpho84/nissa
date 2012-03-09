@@ -20,7 +20,7 @@ bvec interpolate_charm(bvec vec,int nmass,int nlights,double *mass,int ibeta,int
 	  temp_mass[imq-nlights]=mass[imq];
 	}
       
-      interpolated[iml]=interpolate_single(temp_vec,temp_mass,amc_phys[ibeta]);
+      interpolated[iml]=interpolate_single(temp_mass,temp_vec,amc_phys[ibeta]);
 
       if(suff!=NULL)
 	{
@@ -52,7 +52,7 @@ boot interpolate_charm_charm(bvec vec,int nmass,int nlights,double *mass,int ibe
       temp_mass[imq-nlights]=mass[imq];
     }
   
-  return interpolate_single(temp_vec,temp_mass,amc_phys[ibeta]);
+  return interpolate_single(temp_mass,temp_vec,amc_phys[ibeta]);
 }
 
 //interpolate in the strange
@@ -74,7 +74,7 @@ bvec interpolate_strange(bvec vec,int nmass,int nlights,double *mass,int ibeta,i
 	  temp_vec[imq]=vec[icombo(iml,imq+nscart,nmass,nlights,mode)];
 	  temp_mass[imq]=mass[imq+nscart];
 	}
-      interpolated[iml]=interpolate_single(temp_vec,temp_mass,ams_phys[ibeta]);
+      interpolated[iml]=interpolate_single(temp_mass,temp_vec,ams_phys[ibeta]);
     
       if(suff!=NULL)
 	{
@@ -105,7 +105,7 @@ boot interpolate_unitary_light_strange(bvec vec,int nmass,int nlights,int iml_un
   for(int imq=0;imq<nmass;imq++)
     temp_vec[imq]=vec[icombo(iml_un,imq,nmass,nlights,mode)];
   
-  interpolated=interpolate_single(temp_vec,mass,ams_phys[ibeta]);
+  interpolated=interpolate_single(mass,temp_vec,ams_phys[ibeta]);
   
   if(suff!=NULL)
     {
@@ -145,7 +145,7 @@ void interpolate_many_strange(bvec *out,bvec in,int nmass,int nlights,double *ma
 	      temp_mass[imq]=mass[imq+nscart];
 	    }
 	  //cout<<iref<<" "<<mint[iref]<<endl;
-	  out[iref][iml]=interpolate_single(temp_vec,temp_mass,mint[iref]*lat[ibeta]*Zp[ibeta]);
+	  out[iref][iml]=interpolate_single(temp_mass,temp_vec,mint[iref]*lat[ibeta]*Zp[ibeta]);
 	}
     }  
 }
@@ -157,7 +157,7 @@ boot interpolate_charm_strange(bvec vec,int nmass,int nlights,double *mass,int i
   bvec charm_interpolated=interpolate_charm(vec,nmass,nlights,mass,ibeta,mode,suff);
   
   //then interpolate in the strange
-  boot out=interpolate_single(charm_interpolated,mass,ams_phys[ibeta]);
+  boot out=interpolate_single(mass,charm_interpolated,ams_phys[ibeta]);
   
   if(suff!=NULL)
     {

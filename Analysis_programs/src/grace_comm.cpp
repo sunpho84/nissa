@@ -44,7 +44,7 @@ void build_graph(double *x,VTYPE &y,double (*fun)(double,double*),double x0,doub
 
 ///////////////////////////////////////////////////////////////////////////////
 
-grace grace::polygon(double *x,VTYPE &in)
+void write_polygon(ofstream &fout,double *x,VTYPE &in,int nset=0)
 {
   int nel=in.nel,N=in.N;
   double *err=new double[nel];
@@ -63,6 +63,11 @@ grace grace::polygon(double *x,VTYPE &in)
   for(int i=nel-1;i>=0;i--)fout<<x[i]<<" "<<in.data[i].data[N]+err[i]<<endl;
   
   delete[] err;
+}
+
+grace grace::polygon(double *x,VTYPE &in)
+{
+  write_polygon(fout,x,in,nset);
   return *this;
 }
 

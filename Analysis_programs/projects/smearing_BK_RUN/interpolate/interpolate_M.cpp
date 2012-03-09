@@ -1,3 +1,4 @@
+#include "../../nf2/common_pars.cpp"
 #include "../../nf2/common.cpp"
 #include "../../nf2/interpolate/interpolate_lib.cpp"
 
@@ -26,15 +27,6 @@ int main()
   
   init_latpars();
   
-  //prepare the list of mass
-  int nh=nmass[2]-nlights[2];
-  bvec mh(nh,nboot,njack);
-  for(int ih=0;ih<nh;ih++)
-    {
-      mh[ih]=mass[1][ih+nlights[1]]/lat[1]/Zp[1];
-      cout<<ih<<" "<<mh[ih]<<endl;
-    }
-  
   //compute M
   bvec M[nens];
   for(int iens=0;iens<nens;iens++)
@@ -43,47 +35,38 @@ int main()
       M[iens]=aM[iens]/lat[b];
     }
   
-  
-  bvec intM[nh];
+  bvec intM(nref_hmass*nens,nboot,njack);
   //prepare Mhl
-  for(int ih=0;ih<nh;ih++)
+  for(int iens=0;iens<nens;iens++)
     {
-      intM[ih]=bvec(nens,nboot,njack);
-      for(int iens=0;iens<nens;iens++)
+      int ib=ibeta[iens];
+      int nl=nlights[iens];
+      int nm=nmass[iens];
+      int nin=nm-nl;
+      
+      //prepare input
+      double xin[nin];
+      bvec yin(nin,nboot,njack);
+      for(int im=0;im<nin;im++)
 	{
-	  int ib=ibeta[iens];
-	  int nl=nlights[ib];
-	  int nm=nmass[ib];
-	  int ni=nm-nl;
-	  
-	  //prepare input
-	  double mi[ni];
-	  bvec Mi(ni,nboot,njack);
-	  for(int im=0;im<ni;im++)
-	    {
-	      mi[im]=mass[iens][im+nl];
-	      Mi[im]=M[iens][im+nl];
-	    } 
-	  
-	  //interpolate
-	  boot x=mh[ih]*lat[ib]*Zp[ib];
-	  intM[ih][iens]=interpolate_single(Mi,mi,x);
-
-	  cout<<ih<<" iens="<<iens<<" x="<<x<<" y="<<intM[ih][iens]<<endl;
+	  xin[im]=mass[iens][im+nl];
+	  yin[im]=M[iens][im+nl];
+	} 
+      
+      //prepare output
+      bvec xout(nref_hmass,nboot,njack),yout(nref_hmass,nboot,njack);
+      for(int iref_hmass=0;iref_hmass<nref_hmass;iref_hmass++) xout[iref_hmass]=ref_hmass[iref_hmass]*lat[ib]*Zp[ib];
+      
+      //interpolate
+      yout=interpolate_multi(xin,yin,xout,combine("interpolating_ens%02d.xmg",iens).c_str());
+      for(int iref_hmass=0;iref_hmass<nref_hmass;iref_hmass++)
+	{
+	  intM[iens+iref_hmass*nens]=yout[iref_hmass];
+	  cout<<iref_hmass<<" iens="<<iens<<" x="<<xout[iref_hmass].med()<<" y="<<yout[iref_hmass]<<endl;
 	}
-      if(ih==0) intM[ih].write_to_binfile("intM");
-      else      intM[ih].append_to_binfile("intM");
     }
-  /*
-//interpolate in the charm
-bvec interpolate_many_charm(bvec in,int nmass,double *mass,int nint,double *mint,int ibeta)
-{
-  bvec out(nint,nboot,njack);
-  for(int iint=0;iint<nint;iint++)
-    out[iint]=
-}
-
-  */    
+  
+  intM.write_to_binfile("intM");
   
   return 0;
 }

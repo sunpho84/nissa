@@ -75,30 +75,27 @@ void read_pars(const char *input)
 int main(int narg,char **arg)
 {
   read_pars("input");
-  jvec c[2];
+  jvec c;
   //loop over heavier mass
   int ncombo=nmass*nmass;
-  jvec Zl(ncombo,njack),Zs(ncombo,njack),aM(ncombo,njack);
+  jvec aM(ncombo,njack);
   for(int im1=0;im1<nmass;im1++)
     for(int im2=0;im2<nmass;im2++)
       {
 	int ic=im1*nmass+im2;
 	
 	//load the corrs
-	for(int sm_lev=0;sm_lev<2;sm_lev++)
-	  c[sm_lev]=load_corr(base_path,sm_lev,im1,im2,0,0,corr_name); //TM
+	c=load_corr(base_path,0,im1,im2,0,0,corr_name); //TM
+	aM.data[ic]=constant_fit(effective_mass(c.simmetrized(1)),tmin[0],tmax[0],combine("eff_plot_%02d_%02d.xmg",im1,im2).c_str());
 	
-	two_pts_SL_fit(aM.data[ic],Zl.data[ic],Zs.data[ic],c[0].simmetrized(1),c[1].simmetrized(1),tmin[0],tmax[0],tmin[1],tmax[1],
-		       combine("eff_plot_%02d_%02d_0.xmg",im1,im2).c_str(),combine("eff_plot_%02d_%02d_1.xmg",im1,im2).c_str());
-	
-	cout<<"im1:"<<im1<<" im2:"<<im2<<" ic:"<<ic<<"/"<<ncombo<<" aM: "<<aM[ic]<<", Zl:"<<Zl[ic]<<" Zs:"<<Zs[ic]<<
-	  " c[0][0]/c[0]["<<TH<<"]="<<c[0][0]/c[0][TH]<<
-	  " c[1][0]/c[1]["<<TH<<"]="<<c[1][0]/c[1][TH]<<
+	ofstream out(combine("plot_%02d_%02d.xmg",im1,im2).c_str());
+	out<<c<<endl;
+	cout<<"im1:"<<im1<<" im2:"<<im2<<" ic:"<<ic<<"/"<<ncombo<<" aM: "<<aM[ic]<<
+	  " c[0]/c["<<TH<<"]="<<c[0]/c[TH]<<
 	  endl;
       }
   
-  aM.write_to_binfile(out_file);
-  (Zl*Zl).append_to_binfile(out_file);
+  aM.write_to_binfile("M");
 
   return 0;
 }

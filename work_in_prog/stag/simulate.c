@@ -12,14 +12,13 @@
 #include "rootst_eoimpr_omelyan_integrator.c"
 #include "rootst_eoimpr_pseudofermions.c"
 
-#include "tests.c"
-
 double beta=5.3;
 double am=0.025;
 
 int L,T;
 
-quad_su3 *eo_conf[2];
+quad_su3 *new_conf[2];
+quad_su3 *conf[2];
 quad_su3 *H[2],*F[2];
 quad_u1 ***u1b;
 
@@ -66,8 +65,10 @@ void init_simulation(char *path)
   init_grid(T,L);
   
   //allocate the conf
-  eo_conf[0]=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
-  eo_conf[1]=eo_conf[0]+loc_volh+loc_bordh;
+  conf[0]=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
+  conf[1]=conf[0]+loc_volh+loc_bordh;
+  new_conf[0]=nissa_malloc("new_conf",loc_vol+loc_bord,quad_su3);
+  new_conf[1]=new_conf[0]+loc_volh+loc_bordh;
   
   //allocate the momenta
   H[0]=nissa_malloc("H",loc_vol+loc_bord,quad_su3);
@@ -108,34 +109,54 @@ void init_simulation(char *path)
   //initialize the local random generators
   start_loc_rnd_gen(0);
   
-  //initialize background field to stagg phases and anti-periodic bc
+  //initialize background field to id
   for(int iflav=0;iflav<nflavs;iflav++)
     {
       init_backfield_to_id(u1b[iflav]);
-      add_stagphases_to_backfield(u1b[iflav]);
-      add_antiperiodic_bc_to_backfield(u1b[iflav]);
     }
 }
 
-//perform a full hmc step
-void rhmc_step()
+//copy an e/o split conf
+void eo_conf_copy(quad_su3 **dest,quad_su3 **source)
 {
-  scale_expansions(rat_exp_pfgen,rat_exp_actio,eo_conf,flav_pars,u1b,nflavs);
-  generate_momenta(H);
-  for(int iflav=0;iflav<nflavs;iflav++)
-    generate_pseudo_fermion(pf[iflav],eo_conf,u1b[iflav],&(rat_exp_pfgen[iflav]));
+  for(int eo=0;eo<2;eo++)
+    memcpy(dest[eo],source[eo],loc_volh*sizeof(quad_su3));
+}
+
+//perform a full hmc step
+void rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf)
+{
+  //copy the old conf into the new
+  eo_conf_copy(out_conf,in_conf);
   
-  int nstep=1;
+  //add the phases
+  addrem_stagphases_to_eo_conf(out_conf);
+  
+  //generate the appropriate expansion of rational approximations
+  scale_expansions(rat_exp_pfgen,rat_exp_actio,conf,flav_pars,u1b,nflavs);
+  
+  //create the momenta
+  generate_momenta(H);
+  
+  //create pseudo-fermions
+  for(int iflav=0;iflav<nflavs;iflav++)
+    generate_pseudo_fermion(pf[iflav],out_conf,u1b[iflav],&(rat_exp_pfgen[iflav]));
+  
+  int nstep=13;
   double residue=1.e-12;
-  double traj_length=0.1;
-  omelyan_rootst_eoimpr_evolver(H,eo_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,traj_length,nstep);
-  omelyan_rootst_eoimpr_evolver(H,eo_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,-traj_length,nstep);
+  double traj_length=1;
+  omelyan_rootst_eoimpr_evolver(H,out_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,traj_length,nstep);
+  
+  //remove the phases
+  addrem_stagphases_to_eo_conf(out_conf);
 }
 
 //finalize everything
 void close_simulation()
 {
-  nissa_free(eo_conf[0]);
+  nissa_free(new_conf[0]);
+  nissa_free(conf[0]);
+  
   nissa_free(H[0]);
   nissa_free(F[0]);
   nissa_free(u1b[0][0]);
@@ -151,18 +172,52 @@ void close_simulation()
   close_nissa();
 }
 
+//compare an eo_conf with a saved one
+void check_eo_conf(quad_su3 **eo_conf,char *path)
+{
+  //allocate
+  quad_su3 *temp[2];
+  temp[0]=nissa_malloc("temp",loc_vol,quad_su3);
+  temp[1]=temp[0]+loc_volh;
+  
+  //read
+  master_printf("Debug, reading conf after updating\n");
+  read_ildg_gauge_conf_and_split_into_eo_parts(temp,path);
+  
+  //compute the norm
+  double n2=0;
+  for(int eo=0;eo<2;eo++)
+    for(int ivol=0;ivol<loc_volh;ivol++)
+      for(int mu=0;mu<4;mu++)
+	for(int ic1=0;ic1<3;ic1++)
+          for(int ic2=0;ic2<3;ic2++)
+            for(int ri=0;ri<2;ri++)
+              {
+		double a=temp[eo][ivol][mu][ic1][ic2][ri]-eo_conf[eo][ivol][mu][ic1][ic2][ri];
+		n2+=a*a;
+              }
+  n2/=loc_vol*4*9;
+  n2=sqrt(n2);
+  
+  //check
+  master_printf("Total conf norm diff: %lg\n",n2);
+  if(n2>1.e-7) crash("conf updating failed");
+  
+  //delocate
+  nissa_free(temp[0]);
+}
+
 int main(int narg,char **arg)
 {
   init_simulation("input");
   
   ///////////////////////////////////////
   
-  //backfield_application_test();
-  //stD2ee_application_test();
-  //stD2ee_pow_minus_one_eighth_application_test();
+  read_ildg_gauge_conf_and_split_into_eo_parts(conf,"dat/conf_plain");
+  rhmc_step(new_conf,conf);
   
-  read_ildg_gauge_conf_and_split_into_eo_parts(eo_conf,"dat/conf_plain");
-  rhmc_step();
+  //debug
+  check_eo_conf(new_conf,"dat/final_conf");
   
   ///////////////////////////////////////
   

@@ -62,6 +62,7 @@ void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf);
 void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis);
 void ac_rotate_vector(char *out,char *in,int axis,int bps);
 void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbords,int putonedges);
+void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf);
 void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep);
 void apply_st2Deo(color *out,quad_su3 **conf,color *in);
 void apply_st2Doe(color *out,quad_su3 **conf,color *in);
