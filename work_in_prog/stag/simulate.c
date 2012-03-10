@@ -146,6 +146,7 @@ void rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf)
   double residue=1.e-12;
   double traj_length=1;
   omelyan_rootst_eoimpr_evolver(H,out_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,traj_length,nstep);
+  omelyan_rootst_eoimpr_evolver(H,out_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,-traj_length,nstep);
   
   //remove the phases
   addrem_stagphases_to_eo_conf(out_conf);
@@ -217,7 +218,8 @@ int main(int narg,char **arg)
   rhmc_step(new_conf,conf);
   
   //debug
-  check_eo_conf(new_conf,"dat/final_conf");
+  //check_eo_conf(new_conf,"dat/final_conf");
+  check_eo_conf(new_conf,"dat/conf_plain");
   
   ///////////////////////////////////////
   

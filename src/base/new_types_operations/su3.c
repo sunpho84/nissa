@@ -454,11 +454,11 @@ void su3_unitarize_orthonormalizing(su3 o,su3 i)
   complex_subt_the_conj_conj_prod(o[2][2],o[0][1],o[1][0]);
 }
 
-//unitarize an su3 matrix
+//unitarize an su3 matrix by taking explicitely the inverse and averaging with it
 void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link)
 {
   su3 inv,temp_link;
-  double gamma,check;
+  double gamma,residue;
   
   memcpy(temp_link,prop_link,sizeof(su3));
   
@@ -468,7 +468,7 @@ void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link)
       gamma=sqrt(su3_normq(inv)/su3_normq(temp_link));
 
       //average U and U^-1^+
-      check=0;
+      residue=0;
       for(int icol1=0;icol1<3;icol1++)
 	for(int icol2=0;icol2<3;icol2++)
 	  {
@@ -477,21 +477,96 @@ void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link)
 	    for(int ri=0;ri<2;ri++)
 	      {
 		double diff=new_link[icol1][icol2][ri]-temp_link[icol1][icol2][ri];
-		check+=diff*diff;
-		}
+		residue+=diff*diff;
+	      }
 	  }
       
       memcpy(temp_link,new_link,sizeof(su3));
       
-      check=sqrt(check); 
+      residue=sqrt(residue); 
     }
-  while(check>1.e-15);
+  while(residue>1.e-15);
   
   //divide by third root of det
   complex det,fact;
   su3_det(det,new_link);
   complex_pow(fact,det,-1.0/3);
   safe_su3_prod_complex(new_link,new_link,fact);
+}
+
+//perform an iteration of maximal projection trace
+//by maximing the trace over three different subgroups of su3
+void su3_unitarize_maximal_trace_projecting_iteration(su3 U,su3 M)
+{
+  //two indices specifying subgroup
+  int sub_gr_index[3][2]={{0,1},{1,2},{0,2}};
+  //loop over the three subgroups
+  for(int isub_gr=0;isub_gr<3;isub_gr++)
+    {
+      int a=sub_gr_index[isub_gr][0];
+      int b=sub_gr_index[isub_gr][1];
+      
+      //compute the product
+      su3 P;
+      unsafe_su3_prod_su3_dag(P,U,M);
+      
+      //take projection of prod
+      double A=P[a][a][0]+P[b][b][0];
+      double B=P[a][b][1]+P[b][a][1];
+      double C=P[a][b][0]-P[b][a][0];
+      double D=P[a][a][1]-P[b][b][1];
+      
+      //normalize
+      double N=sqrt(A*A+B*B+C*C+D*D);
+      if(fabs(N)==0) N=A=1;
+      else
+	{
+	  N=1/N;
+	  A*=N;
+	  B*=N;
+	  C*=N;
+	  D*=N;
+	}
+      
+      //define the su2 matrix
+      complex r[2][2]={{{A,-D},{-C,-B}},{{C,-B},{ A, D}}};
+      
+      //update the guess: one of the line do not change, the other two changes
+      for(int c=0;c<3;c++)
+	{
+	  complex t1,t2;
+	  
+	  unsafe_complex_prod(  t1,r[0][0],U[a][c]);
+	  complex_summ_the_prod(t1,r[0][1],U[b][c]);
+	  
+	  unsafe_complex_prod(  t2,r[1][0],U[a][c]);
+	  complex_summ_the_prod(t2,r[1][1],U[b][c]);
+	  
+	  complex_copy(U[a][c],t1);
+	  complex_copy(U[b][c],t2);
+	}
+    }
+}
+
+//perform maximal projection trace up to reaching the machine precision
+void su3_unitarize_maximal_trace_projecting(su3 U,su3 M)
+{
+  //initialize the guess
+  su3_unitarize_explicitly_inverting(U,M);
+  
+  //compute initial trace
+  double new_trace=real_part_of_trace_su3_prod_su3_dag(U,M);
+  double old_trace,residue;
+  
+  //loop up to reach machine precision
+  do
+    {
+      old_trace=new_trace;
+      su3_unitarize_maximal_trace_projecting_iteration(U,M);
+      new_trace=real_part_of_trace_su3_prod_su3_dag(U,M);
+      residue=2*fabs(new_trace-old_trace)/(new_trace+old_trace);
+    }
+  while(residue>1.e-15);
 }
 
 ////////////////////// products between su3 and color //////////////////
