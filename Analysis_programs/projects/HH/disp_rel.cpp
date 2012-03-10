@@ -125,15 +125,53 @@ int main(int narg,char **arg)
 	for(int ith1=0;ith1<ntheta;ith1++)
 	  for(int ith2=0;ith2<ntheta;ith2++)
 	    {
-	      double qi=(theta[ith1]-theta[ith2]);//*M_PI/L;
+	      double qi=(theta[ith1]-theta[ith2])*M_PI/L;
 	      double q2=3*qi*qi;
 	      
 	      cout<<"th1:"<<theta[ith1]<<" th2:"<<theta[ith2]<<endl;
-	      out<<q2<<" "<<sqr(aM[icombo_int(ith1,ith2,im1,im2)])<<endl;
+	      out<<4*3*sqr(sin(qi/2))<<" "<<4*sqr(sinh(aM[icombo_int(ith1,ith2,im1,im2)]/2))<<endl;
 	    }
 	
 	out.close();
       }
-	      
+  
+  //check AKAK
+  jvec csl=load_corr(base_path,0,0,0,0,0,0,0,"AKAK");
+  jvec css=load_corr(base_path,1,0,0,0,0,0,0,"AKAK");
+  
+  {
+    ofstream out("AKAK_comparison.xmg");
+    out<<"@type xydy"<<endl;
+    out<<"@s0 line type 0"<<endl;      
+    out<<"@s0 symbol color 2"<<endl;
+    out<<"@s0 errorbar color 2"<<endl;
+    out<<"@s0 symbol 1"<<endl;
+    out<<csl<<endl;
+    out<<"&"<<endl;
+    out<<"@type xydy"<<endl;
+    out<<"@s1 line type 0"<<endl;      
+    out<<"@s1 symbol color 3"<<endl;
+    out<<"@s1 errorbar color 3"<<endl;
+    out<<"@s1 symbol 2"<<endl;
+    out<<css<<endl;
+  }
+  
+  {
+    ofstream out("AKAK_effmass_comparison.xmg");
+    out<<"@type xydy"<<endl;
+    out<<"@s0 line type 0"<<endl;      
+    out<<"@s0 symbol color 2"<<endl;
+    out<<"@s0 errorbar color 2"<<endl;
+    out<<"@s0 symbol 1"<<endl;
+    out<<effective_mass(csl.simmetrized(1))<<endl;
+    out<<"&"<<endl;
+    out<<"@type xydy"<<endl;
+    out<<"@s1 line type 0"<<endl;      
+    out<<"@s1 symbol color 3"<<endl;
+    out<<"@s1 errorbar color 3"<<endl;
+    out<<"@s1 symbol 2"<<endl;
+    out<<effective_mass(css.simmetrized(1))<<endl;
+  }
+  
   return 0;
 }

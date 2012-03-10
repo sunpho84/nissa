@@ -1,10 +1,22 @@
 #pragma once
 
+//Assign
+void complex_copy(complex a,complex b)
+{
+  a[0]=b[0];
+  a[1]=b[1];
+}
 //Assign the conj
 void complex_conj(complex a,complex b)
 {
   a[0]=b[0];
   a[1]=-b[1];
+}
+//Assign minus the conj
+void complex_minus_conj(complex a,complex b)
+{
+  a[0]=-b[0];
+  a[1]=b[1];
 }
 //The sum of two complex number
 void complex_summ(complex a,complex b,complex c)
@@ -50,6 +62,10 @@ void complex_prod_double(complex a,complex b,double c)
 {
   a[0]=b[0]*c;
   a[1]=b[1]*c;
+}
+void complex_prodassign_double(complex a,double c)
+{
+  complex_prod_double(a,a,c);
 }
 
 //summ the prod with real

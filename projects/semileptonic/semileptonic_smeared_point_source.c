@@ -153,6 +153,7 @@ void initialize_semileptonic(char *input_path)
   // 1) Read information about the gauge conf
   
   //Read the volume
+  int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
   //Init the MPI grid 
