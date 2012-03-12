@@ -257,7 +257,7 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   Pmunu_term(Pmunu,conf);
   
   //prepared the smerded version and  calculate plaquette
-  ape_smearing(smea_conf,conf,ape_alpha,ape_niter);
+  ape_smear_conf(smea_conf,conf,ape_alpha,ape_niter);
   gplaq=global_plaquette_lx_conf(smea_conf);
   if(rank==0) printf("smerded plaq: %.18g\n",gplaq);
   

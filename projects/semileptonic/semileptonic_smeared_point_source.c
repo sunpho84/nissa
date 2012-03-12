@@ -311,7 +311,7 @@ void initialize_semileptonic(char *input_path)
   communicate_lx_gauge_edges(conf);
   Pmunu_term(Pmunu,conf);
   //prepare the smerded version and calculate plaquette
-  ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
+  ape_smear(sme_conf,conf,ape_alpha,ape_niter);
   communicate_lx_gauge_borders(conf);
   communicate_lx_gauge_borders(sme_conf);
 
