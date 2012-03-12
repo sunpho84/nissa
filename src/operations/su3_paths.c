@@ -50,6 +50,37 @@ double global_plaquette_lx_conf(quad_su3 *conf)
   return totplaq/glb_vol/6;
 }
 
+//This calculate the variance of the global plaquette.
+double global_plaquette_variance_lx_conf(quad_su3 *conf)
+{
+  communicate_lx_gauge_borders(conf);
+  
+  su3 square;
+  complex pl;
+  double totlocplaq=0,totlocplaq2=0;
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int idir=0;idir<4;idir++)
+      for(int jdir=idir+1;jdir<4;jdir++)
+        {
+          squared_path(square,conf,ivol,idir,jdir);
+          su3_trace(pl,square);
+          totlocplaq+=pl[0]/3;
+          totlocplaq2+=(pl[0]/3)*(pl[0]/3);
+        }
+  
+  double totplaq;
+  MPI_Reduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  double totplaq2;
+  MPI_Reduce(&totlocplaq2,&totplaq2,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  
+  totplaq/=glb_vol*6;
+  totplaq2/=glb_vol*6;
+  
+  totplaq2-=totplaq*totplaq;
+  
+  return sqrt(totplaq2);
+}
+
 /* compute the global plaquette on a e/o split conf, in a more efficient way
      
   C------D

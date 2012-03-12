@@ -318,7 +318,7 @@ void setup_conf()
   communicate_lx_gauge_borders(conf);
   
   //prepare the smerded version
-  ape_smearing(sme_conf,conf,ape_alpha,ape_niter);
+  ape_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
   communicate_lx_gauge_borders(sme_conf);
   
   //compute plaquette

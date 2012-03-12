@@ -2,7 +2,7 @@
 
 //perform ape smearing
 //be sure not to have border condition added
-void ape_smearing(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
+void ape_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
 {
   quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
