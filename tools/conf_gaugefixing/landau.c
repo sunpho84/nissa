@@ -2,29 +2,31 @@
 
 int main(int narg,char **arg)
 {
-  char conf_in_path[1024];
   double precision;
-
+  char conf_in_path[1024];
+  char conf_out_path[1024];
+  
+  if(narg<2) crash("Use: %s input_file",arg[0]);
+  
   //basic mpi initialization
   init_nissa();
-
-  if(narg<2) crash("Use: %s input_file",arg[0]);
-
-  open_input(arg[1]);
-
+  
+  //Init the MPI grid 
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  //Init the MPI grid 
   init_grid(T,L);
-
-  read_str_str("GaugeConf",conf_in_path,1024);
+  
+  open_input(arg[1]);
+  
+  read_str_str("InGaugePath",conf_in_path,1024);
   read_str_double("Precision",&precision);
+  read_str_str("InGaugePath",conf_out_path,1024);
   
   close_input();
-
+  
   ///////////////////////////////////////////
-
+  
   quad_su3 *conf=nissa_malloc("Conf",loc_vol+loc_bord,quad_su3);
   quad_su3 *fix_conf=nissa_malloc("Conf2",loc_vol+loc_bord,quad_su3);
   
@@ -32,6 +34,8 @@ int main(int narg,char **arg)
   communicate_lx_gauge_borders(conf);
   
   landau_gauge_fix(fix_conf,conf,precision);
+  
+  write_gauge_conf(conf_out_path,fix_conf);
   
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(fix_conf));
