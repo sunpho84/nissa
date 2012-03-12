@@ -21,7 +21,7 @@ int main(int narg,char **arg)
   
   read_str_str("InGaugePath",conf_in_path,1024);
   read_str_double("Precision",&precision);
-  read_str_str("InGaugePath",conf_out_path,1024);
+  read_str_str("OutGaugePath",conf_out_path,1024);
   
   close_input();
   
