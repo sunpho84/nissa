@@ -309,7 +309,7 @@ void load_gauge_conf()
   master_printf("plaq: %.18g\n",gplaq);
   
   //prepare the smerded version
-  ape_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
+  ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
   communicate_lx_gauge_borders(sme_conf);
 
   //calculate smerded plaquette

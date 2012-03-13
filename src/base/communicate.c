@@ -148,13 +148,17 @@ void communicate_lx_edges(char *data,MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *M
   if(nrequest>0) MPI_Waitall(nrequest,request,status);
 }
 
-//Useful for gauge fixing
+//Useful for gauge fixing and hyp
 void communicate_lx_su3_borders(su3 *u)
 {communicate_lx_borders((char*)u,MPI_LX_SU3_BORD_SEND,MPI_LX_SU3_BORD_RECE,sizeof(su3));}
 
 //Send the borders of the gauge configuration
 void communicate_lx_gauge_borders(quad_su3 *conf)
 {communicate_lx_borders((char*)conf,MPI_LX_GAUGE_BORD_SEND,MPI_LX_GAUGE_BORD_RECE,sizeof(quad_su3));}
+
+//Send the edges: usefuls for hyp
+void communicate_lx_su3_edges(su3 *u)
+{communicate_lx_edges((char*)u,MPI_LX_SU3_EDGE_SEND,MPI_LX_SU3_EDGE_RECE,sizeof(su3));}
 
 //Send the edges of the gauge configuration
 void communicate_lx_gauge_edges(quad_su3 *conf)

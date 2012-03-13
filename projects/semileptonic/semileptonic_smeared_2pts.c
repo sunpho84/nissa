@@ -182,7 +182,7 @@ void load_gauge_conf()
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
   //prepare the smerded version and calculate plaquette
-  ape_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
+  ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
   communicate_lx_gauge_borders(conf);
   communicate_lx_gauge_borders(sme_conf);
   

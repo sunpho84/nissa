@@ -38,7 +38,7 @@ int main(int narg,char **arg)
   
   //smear the conf
   quad_su3 *smea_conf=nissa_malloc("Smea_Conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  ape_smear_conf(smea_conf,orig_conf,ape_alpha,ape_niters);
+  ape_spatial_smear_conf(smea_conf,orig_conf,ape_alpha,ape_niters);
   master_printf("gauge conf smeared\n");
   
   //allocate and generate the source

@@ -59,7 +59,7 @@ int main(int narg,char **arg)
   read_ildg_gauge_conf(origi_conf,"/home/francesco/Prace/nissa/nissa/test/gaugeconf_load/conf.0048");
   
   test_unitarity(origi_conf);
-  ape_smear_conf(smear_conf,origi_conf,0.4,7);
+  ape_spatial_smear_conf(smear_conf,origi_conf,0.4,7);
   test_unitarity(smear_conf);
  
   su3_print(origi_conf[0][1]);

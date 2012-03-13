@@ -146,6 +146,152 @@ void compute_point_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
     }
 }
 
+//shift an su3 vector of a single step along the mu axis, in the positive or negative dir
+void su3_vec_single_shift(su3 *u,int mu,int sign)
+{
+  //communicate borders
+  communicate_lx_su3_borders(u);
+  
+  //choose the orthogonal dirs
+  int nu,rho,sigma;
+  switch(mu)
+    {
+    case 0:
+      nu=1;
+      rho=2;
+      sigma=3;
+      break;
+    case 1:
+      nu=0;
+      rho=2;
+      sigma=3;
+      break;
+    case 2:
+      nu=0;
+      rho=1;
+      sigma=3;
+      break;
+    case 3:
+      nu=0;
+      rho=1;
+      sigma=2;
+      break;
+    default:
+      crash("mu>3 or mu<0");
+    }
+  
+  //choose start, end and step
+  int sh=(sign>0) ? -1 : +1;
+  int st=(sign>0) ? loc_size[mu]-1 : 0;
+  int en=(sign>0) ? 0 : loc_size[mu]-1 ;
+  
+  //loop over orthogonal dirs
+  coords x;
+  for(x[nu]=0;x[nu]<loc_size[nu];x[nu]++)
+    for(x[rho]=0;x[rho]<loc_size[rho];x[rho]++)
+      for(x[sigma]=0;x[sigma]<loc_size[sigma];x[sigma]++)
+	{
+	  //loop along the dir
+	  x[mu]=st;
+	  
+	  //make a buffer in the case in which this dir is not parallelized
+	  su3 buf;
+	  int isite=loclx_of_coord(x);
+	  if(nrank_dir[mu]==1)
+	    su3_copy(buf,u[isite]);
+	  
+	  //loop on remaining dir
+	  do
+	    {
+	      //find the site and the neighbour
+	      int ineigh=(sign>0) ? loclx_neighdw[isite][mu] : loclx_neighup[isite][mu]; 
+	      
+	      //copy theneighbour in the site
+	      su3_copy(u[isite],u[ineigh]);
+	      	      
+	      //advance
+	      x[mu]+=sh;
+	      if(x[mu]!=en+sh) isite=ineigh;
+	    }
+	  while(x[mu]!=en+sh);
+	  
+	  //if dir not parallelized, restore end
+	  if(nrank_dir[mu]==1)
+	    su3_copy(u[isite],buf);
+	}
+}
+
+
+//compute the real part of the trace of the rectangle of size nstep_mu X nstep_nu in th mu|nu plane
+void average_trace_of_rectangle_path(complex tra,quad_su3 *conf,int mu,int nu,int nstep_mu,int nstep_nu,su3 *u)
+{
+  //reset the link product
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    su3_put_to_id(u[ivol]);
+
+ //move along +mu
+  for(int i=0;i<nstep_mu;i++)
+    {
+      //take the product
+      for(int ivol=0;ivol<loc_vol;ivol++)
+	safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][mu]);
+      
+      su3_vec_single_shift(u,mu,+1);
+    }
+
+  //move along +nu
+  for(int i=0;i<nstep_nu;i++)
+    {
+      //take the product
+      for(int ivol=0;ivol<loc_vol;ivol++)
+	safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][nu]);
+      
+      su3_vec_single_shift(u,nu,+1);
+    }
+  
+  //move along -mu
+  for(int i=0;i<nstep_mu;i++)
+    {
+      su3_vec_single_shift(u,mu,-1);
+      
+      //take the product
+      for(int ivol=0;ivol<loc_vol;ivol++)
+	safe_su3_prod_su3_dag(u[ivol],u[ivol],conf[ivol][mu]);
+    }
+
+  //move along -nu
+  for(int i=0;i<nstep_nu;i++)
+    {
+      su3_vec_single_shift(u,nu,-1);
+      
+      //take the product
+      for(int ivol=0;ivol<loc_vol;ivol++)
+	safe_su3_prod_su3_dag(u[ivol],u[ivol],conf[ivol][nu]);
+    }
+  
+  //compute the trace
+  complex loc_tra={0,0};
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    {
+      complex temp;
+      su3_trace(temp,u[ivol]);
+      complex_summ(loc_tra,loc_tra,temp);
+    }
+  MPI_Allreduce(loc_tra,tra,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  
+  //normalize
+  complex_prod_double(tra,tra,1.0/glb_vol);
+}
+
+//return only the real part
+double average_real_part_of_trace_of_rectangle_path(quad_su3 *conf,int mu,int nu,int nstep_mu,int nstep_nu,su3 *u)
+{
+  complex tra;
+  average_trace_of_rectangle_path(tra,conf,mu,nu,nstep_mu,nstep_nu,u);
+  
+  return tra[0];
+}
+
 void Pline(su3 *Pline,quad_su3 *conf)
 {
   int X,iX[4],T=loc_size[0];
@@ -490,4 +636,3 @@ void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmun
 	  }
     }
 }
-
