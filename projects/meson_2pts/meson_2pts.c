@@ -418,7 +418,6 @@ int main(int narg,char **arg)
   
   if(nch_contr!=0)
     {
-      nissa_free(gauge_conf);
       nissa_free(ch_spinor);
       nissa_free(Pmunu);
     }
