@@ -64,6 +64,7 @@ int bord_offset_eo[2][8]; //eo, 8 dirs
 int edge_dir_vol[6],edge_offset[6];
 int loc_edge,loc_edgeh;
 int edge_numb[4][4]={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}};
+MPI_Datatype MPI_LX_SU3_EDGE_SEND[6],MPI_LX_SU3_EDGE_RECE[6];
 MPI_Datatype MPI_LX_GAUGE_EDGE_SEND[6],MPI_LX_GAUGE_EDGE_RECE[6];
 MPI_Datatype MPI_EO_GAUGE_EDGE_SEND[6],MPI_EO_GAUGE_EDGE_RECE[6];
 
