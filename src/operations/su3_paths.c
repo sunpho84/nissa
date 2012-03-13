@@ -153,7 +153,7 @@ void su3_vec_single_shift(su3 *u,int mu,int sign)
   communicate_lx_su3_borders(u);
   
   //choose the orthogonal dirs
-  int nu,rho,sigma;
+  int nu=0,rho=0,sigma=0;
   switch(mu)
     {
     case 0:
