@@ -180,10 +180,11 @@ int main(int narg,char **arg)
   if(narg<2) crash("Use: %s input_file",arg[0]);
   open_input(arg[1]);
   
-  //Read the volume
+  //Init the MPI grid 
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
+  init_grid(T,L);
   
   //Read the time location of the source
   int twall;
@@ -242,9 +243,10 @@ int main(int narg,char **arg)
 
   //Initialize the list of correlations and the list of operators
   //contiguous allocation
-  complex *contr=(complex*)malloc(sizeof(complex)*ncontr*glb_size[0]); 
-  int *op1=(int*)malloc(sizeof(int)*ncontr);
-  int *op2=(int*)malloc(sizeof(int)*ncontr);
+  master_printf("%d\n",glb_size[0]);
+  complex *contr=nissa_malloc("contr",ncontr*glb_size[0],complex);
+  int *op1=nissa_malloc("op1",ncontr,int);
+  int *op2=nissa_malloc("op2",ncontr,int);
   for(int icontr=0;icontr<ncontr;icontr++)
     {
       //Read the operator pairs
@@ -261,9 +263,9 @@ int main(int narg,char **arg)
   
   //Initialize the list of chromo correlations and the list of operators
   //contiguous allocation
-  complex *ch_contr=(complex*)malloc(sizeof(complex)*nch_contr*glb_size[0]); 
-  int *ch_op1=(int*)malloc(sizeof(int)*nch_contr);
-  int *ch_op2=(int*)malloc(sizeof(int)*nch_contr);
+  complex *ch_contr=nissa_malloc("ch_contr",nch_contr*glb_size[0],complex);
+  int *ch_op1=nissa_malloc("ch_op1",nch_contr,int);
+  int *ch_op2=nissa_malloc("ch_op2",nch_contr,int);
   for(int ich_contr=0;ich_contr<nch_contr;ich_contr++)
     {
       //Read the operator pairs
@@ -283,8 +285,7 @@ int main(int narg,char **arg)
   
   close_input();
   
-  //Init the MPI grid 
-  init_grid(T,L);
+  /////////////////////////////////////////////////////
   
   //Calculate the number of blocks for the first list
   int nprop_per_block=compute_allocable_propagators(nprop_list1,nch_contr);
@@ -292,36 +293,36 @@ int main(int narg,char **arg)
   if(nprop_list1>nblocks*nprop_per_block) nblocks++;
   
   //allocate the spinors
-  colorspinspin **spinor1=(colorspinspin**)malloc(sizeof(colorspinspin*)*nprop_per_block);
-  for(int iprop1=0;iprop1<nprop_per_block;iprop1++) spinor1[iprop1]=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
-  colorspinspin *spinor2=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
+  colorspinspin **spinor1=nissa_malloc("spinor1*",nprop_per_block,colorspinspin*);
+  for(int iprop1=0;iprop1<nprop_per_block;iprop1++) spinor1[iprop1]=nissa_malloc("spinor1",loc_vol,colorspinspin);
+  colorspinspin *spinor2=nissa_malloc("spinor2",loc_vol,colorspinspin);
   
   //if we have to calculate the chromo-magnetic operator allocate one additional spinor
   //if necessary allocate and load the gauge configuration,and allocate the space for the pmunu term
   colorspinspin *ch_spinor=NULL;
-  quad_su3 *gauge_conf=NULL;
   as2t_su3 *Pmunu=NULL;
+  quad_su3 *gauge_conf;
   if(nch_contr!=0)
     {
-      ch_spinor=(colorspinspin*)malloc(sizeof(colorspinspin)*loc_vol);
-      gauge_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));
-      Pmunu=(as2t_su3*)malloc(sizeof(as2t_su3)*loc_vol);
+      ch_spinor=nissa_malloc("ch_spinor",loc_vol,colorspinspin);
+      Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
     }  
   
   ///////////////////////////////////////////
   
-  
   //if necessary, load the gauge configuration and calculate the pmunu term
   if(nch_contr>0)
     {
+      gauge_conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  
       read_ildg_gauge_conf(gauge_conf,gaugeconf_file);
       communicate_lx_gauge_borders(gauge_conf);
       communicate_lx_gauge_edges(gauge_conf);
-
+      
       master_printf("plaq: %.10g\n",global_plaquette_lx_conf(gauge_conf));
       
       Pmunu_term(Pmunu,gauge_conf);
-      free(gauge_conf);
+      nissa_free(gauge_conf);
     }
   
   FILE *fout=open_text_file_for_output(outfile);
@@ -385,8 +386,9 @@ int main(int narg,char **arg)
 		fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",mass_prop1[counter],theta_prop1[counter],r_prop1[counter],mass_prop2[iprop2],theta_prop2[iprop2],r_prop2[iprop2]);
 
 	      master_printf("Going to perform (prop%d,prop%d) contractions\n",iprop1+1,iprop2+1);
-	      tot_contr-=take_time();
+	      tot_contract_time-=take_time();
 	      meson_two_points(contr,op1,spinor1[iprop1],op2,spinor2_ptr,ncontr,phys_prop1[counter],r_prop1[counter],phys_prop2[iprop2],r_prop2[iprop2]);
+
 	      if(nch_contr>0) meson_two_points(ch_contr,ch_op1,spinor1[iprop1],ch_op2,ch_spinor,nch_contr,phys_prop1[counter],r_prop1[counter],phys_prop2[iprop2],r_prop2[iprop2]);
 
 	      tot_contract_time+=take_time();
@@ -414,43 +416,43 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  master_printf("\nEverything ok, exiting!\n");
-  if(rank==0) fclose(fout);
-  
   if(nch_contr!=0)
     {
-      free(ch_spinor);
-      free(Pmunu);
+      nissa_free(gauge_conf);
+      nissa_free(ch_spinor);
+      nissa_free(Pmunu);
     }
 
-  free(mass_prop2);
-  free(theta_prop2);
-  free(phys_prop2);
-  free(r_prop2);
-  free(spinor2);
-  for(int iprop2=0;iprop2<nprop_list2;iprop2++) free(base_filename2[iprop2]);
-  free(base_filename2);
-
-  free(mass_prop1);
-  free(theta_prop1);
-  free(phys_prop1);
-  free(r_prop1);
-  for(int iprop1=0;iprop1<nprop_per_block;iprop1++) free(spinor1[iprop1]);
-  free(spinor1);
-  for(int iprop1=0;iprop1<nprop_list1;iprop1++) free(base_filename1[iprop1]);
-  free(base_filename1);
-
-  free(ch_contr);
-
-  free(ch_op1);
-  free(ch_op2);
-
-  free(contr);
-
-  free(op1);
-  free(op2);
-
+  nissa_free(mass_prop2);
+  nissa_free(theta_prop2);
+  nissa_free(phys_prop2);
+  nissa_free(r_prop2);
+  nissa_free(spinor2);
+  for(int iprop2=0;iprop2<nprop_list2;iprop2++) nissa_free(base_filename2[iprop2]);
+  nissa_free(base_filename2);
+  
+  nissa_free(mass_prop1);
+  nissa_free(theta_prop1);
+  nissa_free(phys_prop1);
+  nissa_free(r_prop1);
+  for(int iprop1=0;iprop1<nprop_per_block;iprop1++) nissa_free(spinor1[iprop1]);
+  nissa_free(spinor1);
+  for(int iprop1=0;iprop1<nprop_list1;iprop1++) nissa_free(base_filename1[iprop1]);
+  nissa_free(base_filename1);
+  
+  nissa_free(ch_contr);
+  
+  nissa_free(ch_op1);
+  nissa_free(ch_op2);
+  
+  nissa_free(contr);
+  
+  nissa_free(op1);
+  nissa_free(op2);
+  
+  master_printf("\nEverything ok, exiting!\n");
+  
   close_nissa();
-
+  
   return 0;
 }

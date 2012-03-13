@@ -117,7 +117,7 @@ nissa_reader **start_reading_colorspinspin(colorspinspin *out,char *base_path,ch
       char filename[1024];
       if(end_path!=NULL) sprintf(filename,"%s.0%d.%s",base_path,so,end_path);
       else sprintf(filename,"%s.0%d",base_path,so);
-      readers[so]=nissa_reader_start_reading(out,filename,"scidac-binary-data",nreals_per_spincolor);
+      readers[so]=nissa_reader_start_reading(out,filename,"scidac-binary-data",nreals_per_spincolor*sizeof(double));
     }
   
   return readers;
@@ -309,7 +309,7 @@ void finalize_reading_spincolor(spincolor *sc,nissa_reader *reader)
 //finalize reading a colorspinspin
 void finalize_reading_colorspinspin(colorspinspin *css,nissa_reader **reader)
 {
-  for(int i=0;i<4;i++) finalize_reading_real_vector((double*)css,reader[i],nreals_per_spincolor*4);
+  for(int i=0;i<4;i++) finalize_reading_real_vector((double*)css,reader[i],nreals_per_spincolor);
   reorder_read_colorspinspin(css);
 }
 
@@ -376,17 +376,15 @@ void read_spincolor(spincolor *sc,char *path)
 //read a colorspinspin
 void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
 {
-  //Take inital time
-  double time=(debug_lvl>1) ? -take_time() : 0;
-  nissa_reader **reader=start_reading_colorspinspin(css,base_path,end_path);
-  finalize_reading_colorspinspin(css,reader);
-  
-  free(reader);
-  
-  if(debug_lvl>1)
+  spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
+  for(int so=0;so<4;so++)
     {
-      time+=take_time();
-      master_printf("Total time including possible conversion: %f s\n",time);
+      char filename[1024];  
+      if(end_path!=NULL) sprintf(filename,"%s.0%d.%s",base_path,so,end_path);
+      else sprintf(filename,"%s.0%d",base_path,so);
+      read_spincolor(temp,filename);
+      for(int loc_site=0;loc_site<loc_vol;loc_site++)
+	put_spincolor_into_colorspinspin(css[loc_site],temp[loc_site],so);
     }
 }
 
