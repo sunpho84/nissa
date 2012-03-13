@@ -386,6 +386,24 @@ void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
 	put_spincolor_into_colorspinspin(css[loc_site],temp[loc_site],so);
     }
+  nissa_free(temp);
+}
+
+//read an su3spinspin
+void read_su3spinspin(su3spinspin *ccss,char *base_path,char *end_path)
+{
+  spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
+  for(int id=0;id<4;id++)
+    for(int ic=0;ic<3;ic++)
+      {
+	char filename[1024];  
+	if(end_path!=NULL) sprintf(filename,"%s.%02d.%s",base_path,id*3+ic,end_path);
+	else sprintf(filename,"%s.%02d",base_path,id*3+ic);
+	read_spincolor(temp,filename);
+	for(int loc_site=0;loc_site<loc_vol;loc_site++)
+	  put_spincolor_into_su3spinspin(ccss[loc_site],temp[loc_site],id,ic);
+      }
+  nissa_free(temp);
 }
 
 //read a gauge conf
