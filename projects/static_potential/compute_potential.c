@@ -1,45 +1,5 @@
 #include "nissa.h"
 
-/*
-//compute the static quark pair potential for time going from 1 to maxT and distance from 1 to maxD
-//writing the output to the passed path 
-void compute_static_quark_pair_potential(char *outpath,quad_su3 *conf,int maxT,int maxD)
-{
-  //open outpath
-  FILE *fout=open_text_file_for_output(outpath);
-  
-  //allocate product of links
-  su3 *u=nissa_malloc("U",loc_vol+loc_bord,su3);
-
-  //fix temporal direction
-  int mu=0;
-  
-  //loop over the distance
-  for(int nstep_D=1;nstep_D<=maxD;nstep_D++)
-    {
-      master_fprintf(fout,"# potential at distance %d between 1 and %d\n",nstep_D,maxT);
-      
-      //loop over time
-      for(int nstep_T=1;nstep_T<=maxT;nstep_T++)
-	{
-	  //loops averaging on orthogonal dirs
-	  double rec=0;
-	  for(int nu=1;nu<4;nu++)
-	    rec+=average_real_part_of_trace_of_rectangle_path(conf,mu,nu,nstep_T,nstep_D,u);
-	  master_fprintf(fout,"%.18lg\n",rec/3/3);
-	  if(rank==0) fflush(fout);
-	}
-      master_fprintf(fout,"\n");
-    }
-  
-  //close output
-  if(rank==0) fclose(fout);
-  
-  //free product
-  nissa_free(u);
-}
-*/
-
 //compute the static quark pair potential
 void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hyp_alpha0,double hyp_alpha1,double hyp_alpha2,double ape_alpha,int nlev_spat_smear,
 					 int *niter_lev_spat_smear,int Tmax,int Dmax)
@@ -107,44 +67,40 @@ void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hy
 		}
 	    }
 	  
-	  //loop over space distance
-	  for(int d=0;d<Dmax;d++)
-	    //loop over time distance
-	    for(int t=0;t<Tmax;t++)
-	      {
-		double Udt=0;
+	  //loop over the whole lattice
+	  for(int ivol=0;ivol<loc_vol;ivol++)
+	    {
+	      int A=ivol;
+	      
+	      //loop over time distance
+	      for(int t=0;t<Tmax;t++)
+		{
+		  //find D
+		  int D=A;
+		  for(int i=0;i<=t;i++) D=loclx_neighup[D][0];
+		  
+		  //loop over space distance
+		  for(int d=0;d<Dmax;d++)
+		    {
+		      //find B
+		      int B=A;
+		      for(int i=0;i<=d;i++) B=loclx_neighup[B][mu];
 
-		//loop over the whole lattice
-		int ivol;
-                int chunk=20;
-#pragma omp parallel for default(shared) private(ivol) schedule(static,chunk) reduction(+:Udt)
-		for(ivol=0;ivol<loc_vol;ivol++)
-		  {
-		    int A=ivol;
-		    
-		    //find D
-		    int D=A;
-		    for(int i=0;i<=t;i++) D=loclx_neighup[D][0];
-		    
-		    //find B
-		    int B=A;
-		    for(int i=0;i<=d;i++) B=loclx_neighup[B][mu];
-		    
-		    // |
-		    // |__   part 
-		    su3 p1;
-		    unsafe_su3_dag_prod_su3(p1,tline[A*Tmax+t],xline[A*Dmax+d]);
-		    
-		    // |  |
-		    // |__|  part 
-		    su3 p2;
-		    unsafe_su3_prod_su3(p2,p1,tline[B*Tmax+t]);
-		    
-		    //close with horizontal line DC
-		    Udt+=real_part_of_trace_su3_prod_su3_dag(p2,xline[D*Dmax+d]);
-		  }
-		U[d][t]=Udt;
-	      }
+		      // |
+		      // |__   part 
+		      su3 p1;
+		      unsafe_su3_dag_prod_su3(p1,tline[A*Tmax+t],xline[A*Dmax+d]);
+		      
+		      // |  |
+		      // |__|  part 
+		      su3 p2;
+		      unsafe_su3_prod_su3(p2,p1,tline[B*Tmax+t]);
+		      
+		      //close with horizontal line DC
+		      U[d][t]+=real_part_of_trace_su3_prod_su3_dag(p2,xline[D*Dmax+d]);
+		    }
+		}
+	    }
 	}
     
       //normalize and print
@@ -176,7 +132,8 @@ int main(int narg,char **arg)
   read_str_int("T",&T);
   init_grid(T,L);
   
-  double tot_time=-take_time();
+  //check that we are not working in parallel
+  if(rank_tot>1) crash("scalar only code");
   
   char conf_path[1024];
   read_str_str("GaugePath",conf_path,1024);
@@ -205,9 +162,6 @@ int main(int narg,char **arg)
   compute_static_quark_pair_potential(out_path,conf,hyp_alpha0,hyp_alpha1,hyp_alpha2,ape_alpha,nlev_spat_smear,niter_lev_spat_smear,Tmax,Dmax);
 
   ///////////////////////////////////
-  
-  tot_time+=take_time();
-  master_printf("Total time: %lg\n",tot_time);
   
   close_input();
   
