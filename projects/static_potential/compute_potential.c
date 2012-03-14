@@ -107,40 +107,44 @@ void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hy
 		}
 	    }
 	  
-	  //loop over the whole lattice
-	  for(int ivol=0;ivol<loc_vol;ivol++)
-	    {
-	      int A=ivol;
-	      
-	      //loop over time distance
-	      for(int t=0;t<Tmax;t++)
-		{
-		  //find D
-		  int D=A;
-		  for(int i=0;i<=t;i++) D=loclx_neighup[D][0];
-		  
-		  //loop over space distance
-		  for(int d=0;d<Dmax;d++)
-		    {
-		      //find B
-		      int B=A;
-		      for(int i=0;i<=d;i++) B=loclx_neighup[B][mu];
+	  //loop over space distance
+	  for(int d=0;d<Dmax;d++)
+	    //loop over time distance
+	    for(int t=0;t<Tmax;t++)
+	      {
+		double Udt=0;
 
-		      // |
-		      // |__   part 
-		      su3 p1;
-		      unsafe_su3_dag_prod_su3(p1,tline[A*Tmax+t],xline[A*Dmax+d]);
-		      
-		      // |  |
-		      // |__|  part 
-		      su3 p2;
-		      unsafe_su3_prod_su3(p2,p1,tline[B*Tmax+t]);
-		      
-		      //close with horizontal line DC
-		      U[d][t]+=real_part_of_trace_su3_prod_su3_dag(p2,xline[D*Dmax+d]);
-		    }
-		}
-	    }
+		//loop over the whole lattice
+		int ivol;
+                int chunk=20;
+#pragma omp parallel for default(shared) private(ivol) schedule(static,chunk) reduction(+:Udt)
+		for(ivol=0;ivol<loc_vol;ivol++)
+		  {
+		    int A=ivol;
+		    
+		    //find D
+		    int D=A;
+		    for(int i=0;i<=t;i++) D=loclx_neighup[D][0];
+		    
+		    //find B
+		    int B=A;
+		    for(int i=0;i<=d;i++) B=loclx_neighup[B][mu];
+		    
+		    // |
+		    // |__   part 
+		    su3 p1;
+		    unsafe_su3_dag_prod_su3(p1,tline[A*Tmax+t],xline[A*Dmax+d]);
+		    
+		    // |  |
+		    // |__|  part 
+		    su3 p2;
+		    unsafe_su3_prod_su3(p2,p1,tline[B*Tmax+t]);
+		    
+		    //close with horizontal line DC
+		    Udt+=real_part_of_trace_su3_prod_su3_dag(p2,xline[D*Dmax+d]);
+		  }
+		U[d][t]=Udt;
+	      }
 	}
     
       //normalize and print
@@ -172,6 +176,8 @@ int main(int narg,char **arg)
   read_str_int("T",&T);
   init_grid(T,L);
   
+  double tot_time=-take_time();
+  
   char conf_path[1024];
   read_str_str("GaugePath",conf_path,1024);
   char out_path[1024];
@@ -199,6 +205,9 @@ int main(int narg,char **arg)
   compute_static_quark_pair_potential(out_path,conf,hyp_alpha0,hyp_alpha1,hyp_alpha2,ape_alpha,nlev_spat_smear,niter_lev_spat_smear,Tmax,Dmax);
 
   ///////////////////////////////////
+  
+  tot_time+=take_time();
+  master_printf("Total time: %lg\n",tot_time);
   
   close_input();
   

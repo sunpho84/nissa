@@ -7,11 +7,11 @@
   
   Nomenclature
   
-  |         *        |         Q2          |
-  |     Q1 / \ Q2    |     .--------.      |
-  |       /   \      | SO *          *  SI |
-  |    SO*_____*SE   |     '--------'      |
-  |        spec      |         Q1          |
+  |       *        |          Q2          |
+  |   Q1 / \ Q2    |      .--------.      |
+  |     /   \      |  SO *          * SI  |
+  |  SO*_____*SE   |      '--------'      |
+  |      spec      |          Q1          |
   
   SO = source
   SI = sink
@@ -256,12 +256,12 @@ void initialize_semileptonic(char *input_path)
     }
   while(isc<numb_known_stopping_criterion && stopping_criterion==numb_known_stopping_criterion);
   
-  if(stopping_criterion==numb_known_stopping_criterion && rank==0)
+  if(stopping_criterion==numb_known_stopping_criterion)
     {
-      fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
-      fprintf(stderr,"List of known stopping criterions:\n");
-      for(int isc=0;isc<numb_known_stopping_criterion;isc++) fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
-      MPI_Abort(MPI_COMM_WORLD,1);
+      master_fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
+      master_fprintf(stderr,"List of known stopping criterions:\n");
+      for(int isc=0;isc<numb_known_stopping_criterion;isc++) master_fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
+      crash("check the input file");
     }
   if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
       
@@ -481,7 +481,8 @@ void smear_additive_colorspinspin(colorspinspin *out,colorspinspin *in,int ism_l
   
   int nsme=jacobi_niter[ism_lev];
   if(ism_lev>0) nsme-=jacobi_niter[ism_lev-1];
-
+  
+  //loop over dirac index
   for(int id=0;id<4;id++)
     {
       for(int ivol=0;ivol<loc_vol;ivol++)
@@ -630,30 +631,32 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 		    
 		    for(int r1=0;r1<2;r1++)
 		      {
+			//header
+			master_fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
+			master_fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
 			
-			if(rank==0)
-			  {
-			    fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
-			    fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
-			  }
-			
+			//compute contractions
 			meson_two_points(contr_2pts,op1_2pts,S0[r1][ip1],op2_2pts,S0[r2][ip2],ncontr_2pts);
 			ncontr_tot+=ncontr_2pts;
 			
+			//write 
 			contr_save_time-=take_time();
 			print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
 			contr_save_time+=take_time();
 			
+			//if chromo contractions
 			if(nch_contr_2pts>0)
 			  {
+			    //compute them
 			    meson_two_points(ch_contr_2pts,ch_op1_2pts,S0[r1][ip1],ch_op2_2pts,ch_colorspinspin,nch_contr_2pts);
 			    ncontr_tot+=nch_contr_2pts;
 			    
+			    //print them
 			    contr_save_time-=take_time();
 			    print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,twall,"CHROMO-",1.0);
 			    contr_save_time+=take_time();
 			  }
-			if(rank==0) fprintf(fout,"\n");
+			master_fprintf(fout,"\n");
 		      }
 		    
 		    ncontr_tot+=nch_contr_2pts;
@@ -691,29 +694,33 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 	    {
 		int ip1=iprop_of(ith1,im1);
 		
-		if(rank==0)
-		  {
-		    fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d,",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
-		    fprintf(fout," smear_source=%d smear_seq=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
-		  }
+		//header
+		master_fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d,",mass[im1],theta[ith1],r1,mass[im2],theta[ith2],r2);
+		master_fprintf(fout," smear_source=%d smear_seq=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
 		
+		//compute contractions
 		meson_two_points(contr_3pts,op1_3pts,S0[r1][ip1],op2_3pts,S1[ip2],ncontr_3pts);
 		ncontr_tot+=ncontr_3pts;
 		
+		//write them
 		contr_save_time-=take_time();
 		print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"",1.0);
 		contr_save_time+=take_time();
 		
+		//if chromo contractions
 		if(nch_contr_3pts>0)
 		  {
+		    //compute them
 		    meson_two_points(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_colorspinspin,nch_contr_3pts);
 		    ncontr_tot+=nch_contr_3pts;
 		    
+		    //and write them
 		    contr_save_time-=take_time();
 		    print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,twall,"CHROMO-",1.0);
 		    contr_save_time+=take_time();
 		  }
-		if(rank==0) fprintf(fout,"\n");
+		
+		master_fprintf(fout,"\n");
 	    }
     }
   
@@ -735,18 +742,15 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
 	int ip2=iprop_of(ith2,im2);
 	contract_with_source(contr_2pts,S1[ip2],op2_2pts,original_source);
 	
-	if(rank==0)
-	  {
-	    fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",
-		    mass[imass_spec[ispec]],theta[ith_spec[ispec]],r_spec[ispec],mass[im2],theta[ith2],r_spec[ispec]);
-
-	    fprintf(fout,"\n");
-	    
-	    for(int icontr=0;icontr<ncontr_2pts;icontr++)
-	      if(op1_2pts[icontr]==5)
-		fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op2_2pts[icontr]],(contr_2pts+icontr*glb_size[0])[twall][0],(contr_2pts+icontr*glb_size[0])[twall][1]);
-	    fprintf(fout,"\n");
-	  }
+	master_fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",
+		       mass[imass_spec[ispec]],theta[ith_spec[ispec]],r_spec[ispec],mass[im2],theta[ith2],r_spec[ispec]);
+	
+	master_fprintf(fout,"\n");
+	
+	for(int icontr=0;icontr<ncontr_2pts;icontr++)
+	  if(op1_2pts[icontr]==5)
+	    master_fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op2_2pts[icontr]],(contr_2pts+icontr*glb_size[0])[twall][0],(contr_2pts+icontr*glb_size[0])[twall][1]);
+	master_fprintf(fout,"\n");
       }
   
   if(rank==0) fclose(fout);
@@ -775,44 +779,48 @@ int main(int narg,char **arg)
 {
   //Basic mpi initialization
   init_nissa();
-
-  if(narg<2) crash("Use: %s input_file",arg[0]);
-
   tot_time-=take_time();
+  
+  //initialize the program
+  if(narg<2) crash("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
   
+  //loop over the configs
   int iconf=0,enough_time=1;
   while(iconf<ngauge_conf && enough_time && read_conf_parameters(&iconf))
     {
+      //smear the conf and generate the source
       setup_conf();
       generate_source();
       
       //loop on smearing of the source
       for(int sm_lev_so=0;sm_lev_so<nsm_lev_so;sm_lev_so++)
 	{
+	  //compute S0 propagator smearing the config the appropriate number of time the source
 	  calculate_S0(sm_lev_so);
 	  
 	  //loop on spectator
-	  if(ncontr_3pts!=0 && nch_contr_3pts!=0)
-	  for(int ispec=0;ispec<nspec;ispec++)
-	    {
-	      generate_sequential_source(ispec);
-	      
-	      //loop on smearing of the sequential prop
-	      for(int sm_lev_se=0;sm_lev_se<nsm_lev_se;sm_lev_se++)
-		{
-		  calculate_S1(ispec,sm_lev_se);
-		  check_two_points(ispec,sm_lev_so,sm_lev_se);
-		  calculate_all_3pts(ispec,sm_lev_so,sm_lev_se);
-		}
-	    }	  
+	  if(ncontr_3pts!=0 || nch_contr_3pts!=0)
+	    for(int ispec=0;ispec<nspec;ispec++)
+	      {
+		//select a timeslice and multiply by gamma5
+		generate_sequential_source(ispec);
+		
+		//loop on smearing of the sequential prop
+		for(int sm_lev_se=0;sm_lev_se<nsm_lev_se;sm_lev_se++)
+		  {
+		    calculate_S1(ispec,sm_lev_se);
+		    check_two_points(ispec,sm_lev_so,sm_lev_se);
+		    calculate_all_3pts(ispec,sm_lev_so,sm_lev_se);
+		  }
+	      }
 	  
 	  //loop on the smearing of the sink
 	  for(int sm_lev_si=0;sm_lev_si<nsm_lev_si;sm_lev_si++) calculate_all_2pts(sm_lev_so,sm_lev_si);
 	}
-
+      
+      //pass to the next conf if there is enough time
       nanalized_conf++;
-
       enough_time=check_remaining_time();
     }
   
