@@ -8,7 +8,7 @@ double calculate_weighted_residue_stD2ee(color *source,color *sol,quad_su3 **con
   double loc_weight=0,tot_weight;
   double *ds=(double*)s,*dsource=(double*)source,*dsol=(double*)sol;
   
-  for(int i=0;i<loc_vol*3/2;i++)
+  for(int i=0;i<loc_volh*3;i++)
     {
       double nr=(*ds)-(*dsource);
       double ni=(*(ds+1))-(*(dsource+1));
@@ -72,7 +72,7 @@ int check_cgmm2s_residue_stD2ee(int *run_flag,double *residue_mass,int nrun,doub
   
   if(iter%each==0)
     {    
-      master_printf("cgmms iter %d rel. residues: ",iter);
+      master_printf(" cgmms iter %d rel. residues: ",iter);
       for(int imass=0;imass<nmass;imass++)
 	if(run_flag[imass])
 	  master_printf("%1.4e  ",residue_mass[imass]);
@@ -87,15 +87,14 @@ void summ_src_and_all_inv_stD2ee_cgmm2s(color *sol,color *source,quad_su3 **conf
 {
   //allocate temporary single solutions
   color *temp[appr->nterms];
-  temp[0]=nissa_malloc("temp",(loc_vol+loc_bord)/2*appr->nterms,color);
-  for(int iterm=1;iterm<appr->nterms;iterm++)
-    temp[iterm]=temp[iterm-1]+(loc_vol+loc_bord)/2;
+  for(int iterm=0;iterm<appr->nterms;iterm++)
+    temp[iterm]=nissa_malloc("temp",loc_volh+loc_bordh,color);
   
-  //coll multi-mass solver
+  //call multi-mass solver
   inv_stD2ee_cgmm2s(temp,source,conf,appr->poles,appr->nterms,niter,st_res,st_minres,st_crit);
   
   //summ all the masses
-  for(int ivol=0;ivol<loc_vol/2;ivol++)
+  for(int ivol=0;ivol<loc_volh;ivol++)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	{
@@ -104,5 +103,7 @@ void summ_src_and_all_inv_stD2ee_cgmm2s(color *sol,color *source,quad_su3 **conf
 	    sol[ivol][ic][ri]+=appr->weights[iterm]*temp[iterm][ivol][ic][ri];
 	}
   
-  nissa_free(temp[0]);
+  //free temp vectors
+  for(int iterm=0;iterm<appr->nterms;iterm++)
+    nissa_free(temp[iterm]);
 }

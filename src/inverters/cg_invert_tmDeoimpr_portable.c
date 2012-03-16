@@ -145,7 +145,7 @@ void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *source_lx,spincolor
   quad_su3 *conf_eos[2];
   conf_eos[0]=nissa_malloc("conf_eos",loc_vol+loc_bord,quad_su3);
   conf_eos[1]=conf_eos[0]+loc_volh+loc_bordh;
-  communicate_lx_gauge_borders(conf_lx);
+  communicate_lx_quad_su3_borders(conf_lx);
   split_lx_conf_into_eo_parts(conf_eos,conf_lx,loc_vol+loc_bord);
   
   ///////////////////////////////////// invert with e/o improvement ///////////////////////////////////

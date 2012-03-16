@@ -304,13 +304,13 @@ void load_gauge_conf()
   master_printf("\nTime needed to load conf %s: %g s.\n\n",conf_path,time);
 
   //compute plaquette
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   double gplaq=global_plaquette_lx_conf(conf);
   master_printf("plaq: %.18g\n",gplaq);
   
   //prepare the smerded version
   ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
-  communicate_lx_gauge_borders(sme_conf);
+  communicate_lx_quad_su3_borders(sme_conf);
 
   //calculate smerded plaquette
   gplaq=global_plaquette_lx_conf(sme_conf);

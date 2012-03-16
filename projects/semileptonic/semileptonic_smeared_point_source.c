@@ -307,13 +307,13 @@ void initialize_semileptonic(char *input_path)
 
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   communicate_lx_gauge_edges(conf);
   Pmunu_term(Pmunu,conf);
   //prepare the smerded version and calculate plaquette
   ape_smear(sme_conf,conf,ape_alpha,ape_niter);
-  communicate_lx_gauge_borders(conf);
-  communicate_lx_gauge_borders(sme_conf);
+  communicate_lx_quad_su3_borders(conf);
+  communicate_lx_quad_su3_borders(sme_conf);
 
   double gplaq=global_plaquette_lx_conf(conf);
   master_printf("plaq: %.18g\n",gplaq);

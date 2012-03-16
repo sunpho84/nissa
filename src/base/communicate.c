@@ -153,7 +153,7 @@ void communicate_lx_su3_borders(su3 *u)
 {communicate_lx_borders((char*)u,MPI_LX_SU3_BORD_SEND,MPI_LX_SU3_BORD_RECE,sizeof(su3));}
 
 //Send the borders of the gauge configuration
-void communicate_lx_gauge_borders(quad_su3 *conf)
+void communicate_lx_quad_su3_borders(quad_su3 *conf)
 {communicate_lx_borders((char*)conf,MPI_LX_GAUGE_BORD_SEND,MPI_LX_GAUGE_BORD_RECE,sizeof(quad_su3));}
 
 //Send the edges: usefuls for hyp
@@ -174,6 +174,8 @@ void communicate_lx_spincolor_borders(spincolor *s)
 //Send the borders of the data
 void communicate_ev_borders(char *ev_data,MPI_Datatype *MPI_EV_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *MPI_EV_BORD_RECE,int nbytes_per_site)
 {
+  master_printf("communicating ev border of: %s\n",get_vect_name((void*)ev_data));
+  
   int nrequest=0;
   MPI_Request request[16];
   MPI_Status status[16];
@@ -207,6 +209,8 @@ void communicate_ev_borders(char *ev_data,MPI_Datatype *MPI_EV_BORD_SEND_TXY,MPI
 //Send the borders of the data
 void communicate_od_borders(char *od_data,MPI_Datatype *MPI_EV_BORD_SEND_TXY,MPI_Datatype *MPI_OD_BORD_SEND_Z,MPI_Datatype *MPI_EV_BORD_RECE,int nbytes_per_site)
 {
+  master_printf("communicating od border of: %s\n",get_vect_name((void*)od_data));
+  
   int nrequest=0;
   MPI_Request request[16];
   MPI_Status status[16];
@@ -240,6 +244,8 @@ void communicate_od_borders(char *od_data,MPI_Datatype *MPI_EV_BORD_SEND_TXY,MPI
 //Send the borders of the data
 void communicate_eo_borders(char *ev_data,char *od_data,MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *MPI_OD_BORD_SEND_Z,MPI_Datatype *MPI_EO_BORD_RECE,int nbytes_per_site)
 {
+  master_printf("communicating eo borders of: %s\n",get_vect_name((void*)ev_data));
+  
   char *data[2]={ev_data,od_data};
   
   int nrequest=0;
@@ -286,7 +292,7 @@ void communicate_eo_borders(char *ev_data,char *od_data,MPI_Datatype *MPI_EO_BOR
 }
 
 //Send the borders of the gauge configuration
-void communicate_eo_gauge_borders(quad_su3 *ev_conf,quad_su3 *od_conf)
+void communicate_eo_quad_su3_borders(quad_su3 *ev_conf,quad_su3 *od_conf)
 {communicate_eo_borders((char*)ev_conf,(char*)od_conf,MPI_EO_GAUGE_BORD_SEND_TXY,MPI_EV_GAUGE_BORD_SEND_Z,MPI_OD_GAUGE_BORD_SEND_Z,MPI_EO_GAUGE_BORD_RECE,sizeof(quad_su3));}
 
 //Send the borders of an even color

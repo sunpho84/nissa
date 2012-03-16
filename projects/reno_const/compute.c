@@ -232,8 +232,8 @@ void load_gauge_conf()
   elaps_time+=take_time();
   fix_time+=elaps_time;
   master_printf("Fixed conf in %lg sec\n",elaps_time);
-  communicate_lx_gauge_borders(conf);
-  communicate_lx_gauge_borders(unfix_conf);
+  communicate_lx_quad_su3_borders(conf);
+  communicate_lx_quad_su3_borders(unfix_conf);
   
   if(write_fixed_conf)
     {

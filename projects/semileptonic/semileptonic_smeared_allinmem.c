@@ -369,14 +369,14 @@ void setup_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   communicate_lx_gauge_edges(conf);
   Pmunu_term(Pmunu,conf);
   
   //prepare the smerded version
   ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
-  communicate_lx_gauge_borders(conf);
-  communicate_lx_gauge_borders(sme_conf);
+  communicate_lx_quad_su3_borders(conf);
+  communicate_lx_quad_su3_borders(sme_conf);
   
   //compute plaquette
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));

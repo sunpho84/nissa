@@ -197,7 +197,7 @@ void initialize_Bk(char *input_path)
 
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   
   double gplaq=global_plaquette_lx_conf(conf);
   master_printf("plaq: %.18g\n",gplaq);

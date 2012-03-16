@@ -316,7 +316,7 @@ int main(int narg,char **arg)
       gauge_conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
   
       read_ildg_gauge_conf(gauge_conf,gaugeconf_file);
-      communicate_lx_gauge_borders(gauge_conf);
+      communicate_lx_quad_su3_borders(gauge_conf);
       communicate_lx_gauge_edges(gauge_conf);
       
       master_printf("plaq: %.10g\n",global_plaquette_lx_conf(gauge_conf));

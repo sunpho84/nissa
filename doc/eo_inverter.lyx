@@ -200,7 +200,6 @@ and construct:
 
 \end_layout
 
-\begin_deeper
 \begin_layout Enumerate
 Reconstruct: 
 \begin_inset Formula 
@@ -213,7 +212,6 @@ Reconstruct:
 
 \end_layout
 
-\end_deeper
 \begin_layout Standard
 In order to achieve better memory access is important that spinors and links
  are ordered as they are needed.

@@ -11,6 +11,7 @@
 #include "rootst_eoimpr_force.c"
 #include "rootst_eoimpr_omelyan_integrator.c"
 #include "rootst_eoimpr_pseudofermions.c"
+#include "rootst_eoimpr_action.c"
 
 double beta=5.3;
 double am=0.025;
@@ -19,7 +20,7 @@ int L,T;
 
 quad_su3 *new_conf[2];
 quad_su3 *conf[2];
-quad_su3 *H[2],*F[2];
+quad_su3 *H[2];
 quad_u1 ***u1b;
 
 int nflavs;
@@ -71,12 +72,8 @@ void init_simulation(char *path)
   new_conf[1]=new_conf[0]+loc_volh+loc_bordh;
   
   //allocate the momenta
-  H[0]=nissa_malloc("H",loc_vol+loc_bord,quad_su3);
-  H[1]=H[0]+loc_volh+loc_bordh;
-  
-  //allocate the force
-  F[0]=nissa_malloc("F",loc_vol+loc_bord,quad_su3);
-  F[1]=F[0]+loc_volh+loc_bordh;
+  H[0]=nissa_malloc("H",loc_vol,quad_su3);
+  H[1]=H[0]+loc_volh;
   
   //allocate the u1 background field
   u1b=nissa_malloc("u1back**",nflavs,quad_u1**);
@@ -126,6 +123,10 @@ void eo_conf_copy(quad_su3 **dest,quad_su3 **source)
 //perform a full hmc step
 void rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf)
 {
+  int nstep=13;
+  double residue=1.e-12;
+  double traj_length=1.0;
+  
   //copy the old conf into the new
   eo_conf_copy(out_conf,in_conf);
   
@@ -140,12 +141,24 @@ void rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf)
   
   //create pseudo-fermions
   for(int iflav=0;iflav<nflavs;iflav++)
-    generate_pseudo_fermion(pf[iflav],out_conf,u1b[iflav],&(rat_exp_pfgen[iflav]));
+    generate_pseudo_fermion(pf[iflav],out_conf,u1b[iflav],&(rat_exp_pfgen[iflav]),residue);
   
-  int nstep=13;
-  double residue=1.e-12;
-  double traj_length=1;
+  //compute initial action
+  double init_action=full_rootst_eoimpr_action(out_conf,beta,H,nflavs,u1b,pf,rat_exp_actio,residue);
+  master_printf("Init action: %lg\n",init_action);
+  
+  //evolve forward
   omelyan_rootst_eoimpr_evolver(H,out_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,traj_length,nstep);
+  
+  //compute final action
+  double final_action=full_rootst_eoimpr_action(out_conf,beta,H,nflavs,u1b,pf,rat_exp_actio,residue);
+  master_printf("Final action: %lg\n",final_action);
+  
+  //compute the diff
+  master_printf("diff: %lg\n",final_action-init_action);
+  crash("debug");
+  
+  //evolve backward
   omelyan_rootst_eoimpr_evolver(H,out_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,-traj_length,nstep);
   
   //remove the phases
@@ -159,7 +172,6 @@ void close_simulation()
   nissa_free(conf[0]);
   
   nissa_free(H[0]);
-  nissa_free(F[0]);
   nissa_free(u1b[0][0]);
   nissa_free(u1b[0]);
   nissa_free(u1b);
@@ -219,7 +231,7 @@ int main(int narg,char **arg)
   
   //debug
   //check_eo_conf(new_conf,"dat/final_conf");
-  check_eo_conf(new_conf,"dat/conf_plain");
+  //check_eo_conf(new_conf,"dat/conf_plain");
   
   ///////////////////////////////////////
   
