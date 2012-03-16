@@ -173,7 +173,7 @@ void initialize_bubbles(char *input_path)
   read_str_str("GaugeConf",gaugeconf_file,1024);
   conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
   read_ildg_gauge_conf(conf,gaugeconf_file);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   communicate_lx_gauge_edges(conf);
 
   //calculate plaquette, Pmunu

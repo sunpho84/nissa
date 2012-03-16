@@ -38,7 +38,7 @@ int main(int narg,char **arg)
   //load the configuration, put boundaries condition and communicate borders
   read_ildg_gauge_conf(conf,gauge_file);
   put_boundaries_conditions(conf,theta,1,0);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
 
   //initialize the source
   spincolor *source=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));

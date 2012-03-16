@@ -4,13 +4,13 @@
 double eo_color_norm2(color *v)
 {
   double loc_norm2=0;
-  double norm2;
   
   for(int ivol=0;ivol<loc_volh;ivol++)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	loc_norm2+=v[ivol][ic][ri]*v[ivol][ic][ri];
   
+  double norm2;
   MPI_Allreduce(&loc_norm2,&norm2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   
   return norm2;
@@ -33,7 +33,7 @@ double eo_color_normalize(color *out,color *in,double norm)
 //assumes that the passed conf already has stag phases inside it
 double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
 {
-  communicate_eo_gauge_borders(eo_conf[0],eo_conf[1]);
+  communicate_eo_quad_su3_borders(eo_conf[0],eo_conf[1]);
   
   double eig_max;
   
@@ -43,23 +43,34 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
   
   //generate the random field
   for(int ivol=0;ivol<loc_volh;ivol++)
-    color_put_to_gauss(vec_in[ivol],&(loc_rnd_gen[ivol]),3);
+    color_put_to_gauss(vec_in[ivol],&(loc_rnd_gen[loclx_of_loceo[0][ivol]]),3);
   
+  /*
   //debug
   static int a=0;
   master_printf("Debug, loading initial eig\n");
   if(a==0) read_e_color(vec_in,"dat/Eig_init1");
   else     read_e_color(vec_in,"dat/Eig_init2");
   a++;
+  */
   
   //apply the vector niter times normalizing at each iter
   for(int iter=0;iter<niters;iter++)
     {
+      int n=loceo_of_loclx[loclx_of_coord_list(0,7,0,0)];
       communicate_ev_color_borders(vec_in);
+      n=loceo_neighup[1][n][1];
+      
+      int r,nx,neo;
+      coords g={0,8,0,0};
+      get_loclx_and_rank_of_coord(&nx,&r,g);
+      neo=loceo_of_loclx[nx];
+      
       apply_stD2ee(vec_out,eo_conf,tmp,pars->mass,vec_in);
+      
       //compute the norm
-      eig_max=eo_color_normalize(vec_in,vec_out,loc_volh*3);
-    
+      eig_max=eo_color_normalize(vec_in,vec_out,glb_volh*3);
+      
       master_printf("max_eigen search, iter=%d, eig=%lg\n",iter,eig_max);
     }
   
@@ -89,11 +100,13 @@ void scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_exp_actio,quad_s
       double scale=max_eigenval(quark_pars,eo_conf,50)*1.1;
       rem_backfield_from_conf(eo_conf,bf[iquark]);
 
+      /*
       ///// DEBUG //////
       double exp_scale=5.6331760852836039;
       master_printf("Debug: scaling with %16.16lg, expected: %16.16lg\n",scale,exp_scale);
       master_printf("Forcing to %16.16lg\n",exp_scale);
       scale=exp_scale;
+      */
       
       double scale_pfgen=pow(scale,db_rat_exp_pfgen_degr[ipf][irexp]);
       double scale_actio=pow(scale,db_rat_exp_actio_degr[ipf][irexp]);
@@ -108,7 +121,7 @@ void scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_exp_actio,quad_s
       rat_exp_actio[iquark].exp_power=db_rat_exp_actio_degr[ipf][irexp];
       rat_exp_actio[iquark].minimum=db_rat_exp_min*scale;
       rat_exp_actio[iquark].maximum=db_rat_exp_max*scale;
-      rat_exp_actio[iquark].cons=db_rat_exp_actio_cons[ipf][irexp]*scale_pfgen;
+      rat_exp_actio[iquark].cons=db_rat_exp_actio_cons[ipf][irexp]*scale_actio;
 
       for(int iterm=0;iterm<db_rat_exp_nterms;iterm++)
         {

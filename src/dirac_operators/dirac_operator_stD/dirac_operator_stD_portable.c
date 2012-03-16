@@ -6,15 +6,15 @@ void apply_st2Doe(color *out,quad_su3 **conf,color *in)
     {
       int evup0=loceo_neighup[ODD][io][0];
       int evdw0=loceo_neighdw[ODD][io][0];
-
+      
       unsafe_su3_prod_color(      out[io],conf[ODD][io   ][0],in[evup0]);
       su3_dag_subt_the_prod_color(out[io],conf[EVN][evdw0][0],in[evdw0]);
-
+      
       for(int mu=1;mu<4;mu++)
 	{
 	  int evup=loceo_neighup[ODD][io][mu];
 	  int evdw=loceo_neighdw[ODD][io][mu];
-
+	  
 	  su3_summ_the_prod_color(    out[io],conf[ODD][io  ][mu],in[evup]);
 	  su3_dag_subt_the_prod_color(out[io],conf[EVN][evdw][mu],in[evdw]);
 	}
@@ -36,15 +36,15 @@ void apply_st2Deo(color *out,quad_su3 **conf,color *in)
     {
       int odup0=loceo_neighup[EVN][ie][0];
       int oddw0=loceo_neighdw[EVN][ie][0];
-
+      
       unsafe_su3_dag_prod_color(out[ie],conf[ODD][oddw0][0],in[oddw0]);
       su3_subt_the_prod_color(  out[ie],conf[EVN][ie   ][0],in[odup0]);
-
+      
       for(int mu=1;mu<4;mu++)
 	{
 	  int odup=loceo_neighup[EVN][ie][mu];
 	  int oddw=loceo_neighdw[EVN][ie][mu];
-
+	  
 	  su3_dag_summ_the_prod_color(out[ie],conf[ODD][oddw][mu],in[oddw]);
 	  su3_subt_the_prod_color(    out[ie],conf[EVN][ie  ][mu],in[odup]);
 	}

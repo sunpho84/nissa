@@ -10,12 +10,10 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
   
   //allocate each terms of the expansion
   color *v_o[appr->nterms],*chi_e[appr->nterms];
-  v_o[0]=nissa_malloc("v",(loc_volh+loc_bordh)*appr->nterms,color);
-  chi_e[0]=nissa_malloc("chi",(loc_volh+loc_bordh)*appr->nterms,color);
-  for(int iterm=1;iterm<appr->nterms;iterm++)
+  for(int iterm=0;iterm<appr->nterms;iterm++)
     {
-      v_o[iterm]=v_o[iterm-1]+loc_volh+loc_bordh;
-      chi_e[iterm]=chi_e[iterm-1]+loc_volh+loc_bordh;
+      v_o[iterm]=nissa_malloc("v_o",loc_volh+loc_bordh,color);
+      chi_e[iterm]=nissa_malloc("chi_e",loc_volh+loc_bordh,color);
     }
   
   //add the background fields
@@ -34,6 +32,7 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
     {
       communicate_ev_color_borders(chi_e[iterm]);
       apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
+      communicate_od_color_borders(v_o[iterm]);
     }
   
   //remove the background fields
@@ -98,9 +97,12 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
 	      complex_subt_the_prod_double(F[ODD][ivol][mu][ic1][ic2],temp,appr->weights[iterm]);
 	    }
   
-  //free the back field
-  nissa_free(v_o[0]);
-  nissa_free(chi_e[0]);
+  //free
+  for(int iterm=0;iterm<appr->nterms;iterm++)
+    {
+      nissa_free(v_o[iterm]);
+      nissa_free(chi_e[iterm]);
+    }
 }
 
 //Compute the full force for the rooted staggered theory with nfl flavors

@@ -20,6 +20,13 @@ void check_borders_allocated(void *v)
 void check_edges_allocated(void *v)
 {check_minimal_allocated_size(v,loc_vol+loc_bord+loc_edge,"border not allocated");}
 
+//return the name of the vector
+char *get_vect_name(void *v)
+{
+  nissa_vect *vect=(nissa_vect*)((char*)v-sizeof(nissa_vect));
+  return vect->tag;
+}
+
 //print the content of an nissa vect
 void nissa_vect_content_fprintf(FILE *fout,nissa_vect *vect)
 {

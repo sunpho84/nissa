@@ -30,7 +30,7 @@ void squared_path(su3 square,quad_su3 *conf,int A,int mu,int nu)
 //efficient way, but it's ok for our scope.
 double global_plaquette_lx_conf(quad_su3 *conf)
 {
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   
   su3 square;
   complex pl;
@@ -53,7 +53,7 @@ double global_plaquette_lx_conf(quad_su3 *conf)
 //This calculate the variance of the global plaquette.
 double global_plaquette_variance_lx_conf(quad_su3 *conf)
 {
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   
   su3 square;
   complex pl;
@@ -91,7 +91,7 @@ u |      |
 */
 double global_plaquette_eo_conf(quad_su3 *ev_conf,quad_su3 *od_conf)
 {
-  communicate_eo_gauge_borders(ev_conf,od_conf);
+  communicate_eo_quad_su3_borders(ev_conf,od_conf);
   
   double totlocplaq=0;
   

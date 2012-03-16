@@ -15,7 +15,7 @@ void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alp
       memcpy(temp_conf,smear_conf,sizeof(quad_su3)*loc_vol);
       
       //communicate the borders
-      communicate_lx_gauge_borders(temp_conf);
+      communicate_lx_quad_su3_borders(temp_conf);
       communicate_lx_gauge_edges(temp_conf);
       
       for(int loc_site=0;loc_site<loc_vol;loc_site++)
@@ -205,7 +205,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);//we do not know if smear_sc is allocated with bord
       spincolor *H=nissa_malloc("H",loc_vol+loc_bord,spincolor);
       double norm_fact=1/(1+6*kappa);
-      communicate_lx_gauge_borders(conf);
+      communicate_lx_quad_su3_borders(conf);
 
       if(debug_lvl>1) master_printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
       
@@ -275,7 +275,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
       else                                                               dec1_remap_index[mu][nu]=idec1_remap++;
   
   //communicate borders of original conf
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   communicate_lx_gauge_edges(conf);
   
   /////////////////////////////////////// second level decoration /////////////////////////////////

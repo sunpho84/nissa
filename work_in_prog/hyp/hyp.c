@@ -166,7 +166,7 @@ int main(int narg,char **arg)
   //read conf
   quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
   read_ildg_gauge_conf(conf,"../../data/L4T8conf");
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   
   //smearing parameters
   double alpha0=0.75;

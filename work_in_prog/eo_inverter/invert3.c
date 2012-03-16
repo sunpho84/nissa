@@ -57,7 +57,7 @@ void init(char *input_path,quad_su3 **conf,spincolor **glb_source,double *kappa,
   //load the configuration, put boundaries condition and communicate borders
   read_ildg_gauge_conf(*conf,gauge_file);
   put_boundaries_conditions(*conf,theta,1,0);
-  communicate_lx_gauge_borders(*conf);
+  communicate_lx_quad_su3_borders(*conf);
   
   //initialize source to delta
   (*glb_source)=nissa_malloc("source",loc_vol+loc_bord,spincolor);

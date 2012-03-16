@@ -10,17 +10,19 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
   double final_res[nmass];
   double source_norm;
   
-  color *t=nissa_malloc("DD_temp",(loc_vol+loc_bord)/2,color);
-  color *s=nissa_malloc("s",loc_vol/2,color);
-  color *r=nissa_malloc("r",loc_vol/2,color);
-  color *p=nissa_malloc("p",(loc_vol+loc_bord)/2,color);
+  color *t=nissa_malloc("DD_temp",loc_volh+loc_bordh,color);
+  color *s=nissa_malloc("s",loc_volh,color);
+  color *r=nissa_malloc("r",loc_volh,color);
+  color *p=nissa_malloc("p",loc_volh+loc_bordh,color);
   color *ps[nmass];
-  for(int imass=0;imass<nmass;imass++) ps[imass]=nissa_malloc("ps",loc_vol/2,color);
-
+  for(int imass=0;imass<nmass;imass++) ps[imass]=nissa_malloc("ps",loc_volh,color);
+  
+  communicate_eo_quad_su3_borders(conf[0],conf[1]);
+  
   //sol[*]=0
   for(int imass=0;imass<nmass;imass++)
     {
-      memset(sol[imass],0,sizeof(color)*(loc_vol+loc_bord)/2);
+      memset(sol[imass],0,sizeof(color)*(loc_volh+loc_bordh));
       run_flag[imass]=1;
     }
   
@@ -30,7 +32,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
   {
     double loc_rr=0;
     double *dsource=(double*)source,*dp=(double*)p,*dr=(double*)r;
-    for(int i=0;i<loc_vol*3*2/2;i++)
+    for(int i=0;i<loc_volh*3*2;i++)
       {
 	(*dp)=(*dsource);
 	(*dr)=(*dsource);
@@ -40,9 +42,9 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
       }
     MPI_Allreduce(&loc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     source_norm=rr;
-    master_printf("Source norm: %lg\n",source_norm);
+    master_printf(" Source norm: %lg\n",source_norm);
     
-    master_printf("cgmms iter 0 rel. residues: ");
+    master_printf(" cgmms iter 0 rel. residues: ");
     for(int imass=0;imass<nmass;imass++) master_printf("%1.4e  ",1.0);
     master_printf("\n");
   }
@@ -57,7 +59,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
     for(int imass=0;imass<nmass;imass++)
       {
 	double *dps=(double*)(ps[imass]),*dsource=(double*)source;
-	for(int i=0;i<loc_vol*3*2/2;i++)
+	for(int i=0;i<loc_volh*3*2;i++)
 	  {
 	    (*dps)=(*dsource);
 	    dps++;dsource++;
@@ -67,7 +69,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
 	alphas[imass]=0;
       }
   }
-
+  
   //     -alpha=0
   alpha=0;
       
@@ -75,7 +77,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
   do
     {
       //     -s=Ap
-      communicate_od_color_borders(p);
+      communicate_ev_color_borders(p);
       apply_st2Doe(t,conf,p);
       communicate_od_color_borders(t);
       apply_st2Deo(s,conf,t);
@@ -85,7 +87,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
 	double loc_pap=0;
 	double *dp=(double*)p,*ds=(double*)s;
 	int n=0;
-	for(int i=0;i<loc_vol*3*2/2;i++)
+	for(int i=0;i<loc_volh*3*2;i++)
 	  {
 	    (*ds)*=0.25;
 	    loc_pap+=(*dp)*(*ds);
@@ -112,7 +114,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
 	      
 	      {
 		double *dps=(double*)(ps[imass]),*dsol=(double*)(sol[imass]);
-		for(int i=0;i<loc_vol*3*2/2;i++)
+		for(int i=0;i<loc_volh*3*2;i++)
 		  {
 		    (*dsol)-=(*dps)*betas[imass];
 		    dsol++;dps++;
@@ -128,7 +130,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
 	double loc_rfrf=0;
 
 	double *dr=(double*)r,*ds=(double*)s;	
-	for(int i=0;i<loc_vol*3*2/2;i++)
+	for(int i=0;i<loc_volh*3*2;i++)
 	  {
             (*dr)+=(*ds)*betaa;
             loc_rfrf+=(*dr)*(*dr);
@@ -143,7 +145,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
       //     calculate p'=r'+alpha*p
       {
 	double *dp=(double*)p,*dr=(double*)r;		
-	for(int i=0;i<loc_vol*3*2/2;i++)
+	for(int i=0;i<loc_volh*3*2;i++)
           {
             (*dp)=(*dr)+alpha*(*dp);
 	    dp++;dr++;
@@ -158,7 +160,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
             //     calculate ps'=r'+alpha*p
 	    {
 	      double *dps=(double*)(ps[imass]),*dr=(double*)r,*ds=(double*)s;
-	      for(int i=0;i<loc_vol*3*2/2;i++)
+	      for(int i=0;i<loc_volh*3*2;i++)
                 {
                   (*dps)=zfs[imass]*(*dr)+alphas[imass]*(*dps);
 		  dps++;ds++;dr++;
@@ -190,35 +192,35 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
 	double locw_res=0;
 	double locmax_res=0;
 	double loc_weight=0;
-
+	
 	complex *ds=(complex*)s,*dsour=(complex*)source,*dsol=(complex*)(sol[imass]);
-	for(int i=0;i<loc_vol*3/2;i++)
+	for(int i=0;i<loc_volh*3;i++)
 	  {
 	    ds[i][0]-=dsour[i][0];
 	    ds[i][1]-=dsour[i][1];
 	    double plain_res=ds[i][0]*ds[i][0]+ds[i][1]*ds[i][1];
 	    double point_weight=1/(dsol[i][0]*dsol[i][0]+dsol[i][1]*dsol[i][1]);
-
+	    
 	    loc_res+=plain_res;
-
+	    
 	    locw_res+=plain_res*point_weight;
 	    loc_weight+=point_weight;
 	    if(plain_res>locmax_res) locmax_res=plain_res;
 	  }
-
+	
 	MPI_Reduce(&loc_res,&res,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(&locw_res,&w_res,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(&loc_weight,&weight,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(&locmax_res,&max_res,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
-
+	
 	w_res=w_res/weight*12*glb_vol;
 	max_res*=12*glb_vol;
 	
-	master_printf("imass %d, rel residue true=%g approx=%g weighted=%g max=%g\n",imass,res/source_norm,final_res[imass],w_res,max_res);
+	master_printf(" imass %d, rel residue true=%g approx=%g weighted=%g max=%g\n",imass,res/source_norm,final_res[imass],w_res,max_res);
       }
     }  
   
-  master_printf("Total iterations: %d\n",iter);
+  master_printf(" Total cgmms iterations: %d\n",iter);
   
   for(int imass=0;imass<nmass;imass++) nissa_free(ps[imass]);
   nissa_free(s);

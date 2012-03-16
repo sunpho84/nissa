@@ -43,7 +43,7 @@ int main(int narg,char **arg)
   //load the configuration, put boundaries condition and communicate borders
   read_ildg_gauge_conf(conf,gauge_file);
   put_boundaries_conditions(conf,theta);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
 
   read_str_str("BaseFilenameDD",base_filename,1024);
 

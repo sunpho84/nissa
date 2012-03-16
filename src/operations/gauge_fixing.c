@@ -4,7 +4,7 @@
 void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
 {
   communicate_lx_su3_borders(g);
-  communicate_lx_gauge_borders(uin);
+  communicate_lx_quad_su3_borders(uin);
   
   su3 temp;
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -441,7 +441,7 @@ void compute_landau_or_coulomb_quality_delta(su3 g,quad_su3 *conf,int ivol,int n
 //compute the quality of the landau or coulomb gauge fixing
 double compute_landau_or_coulomb_gauge_fixing_quality(quad_su3 *conf,int nmu)
 {
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
 
   double loc_omega=0;
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -505,7 +505,7 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
     {
       //copy the gauge configuration on working fixing it with current transformation
       gauge_transform_conf(w_conf,fixm,conf);
-      communicate_lx_gauge_borders(w_conf);
+      communicate_lx_quad_su3_borders(w_conf);
       
       //compute initial precision
       true_precision=compute_landau_or_coulomb_gauge_fixing_quality(w_conf,nmu);

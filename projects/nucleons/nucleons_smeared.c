@@ -246,7 +246,7 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   read_ildg_gauge_conf(conf,conf_path);
   
   //commmunicate borders
-  communicate_lx_gauge_borders(conf);  
+  communicate_lx_quad_su3_borders(conf);  
   communicate_lx_gauge_edges(conf);
   
   //calculate plaquette of original conf
@@ -266,8 +266,8 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
   put_boundaries_conditions(conf,put_theta,1,1);
   
   //re-communicate borders
-  communicate_lx_gauge_borders(conf);
-  communicate_lx_gauge_borders(smea_conf);
+  communicate_lx_quad_su3_borders(conf);
+  communicate_lx_quad_su3_borders(smea_conf);
   communicate_lx_gauge_edges(conf);
 }
 

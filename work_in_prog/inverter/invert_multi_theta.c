@@ -33,7 +33,7 @@ int main(int narg,char **arg)
   //load the configuration, put boundaries condition and communicate borders
   read_ildg_gauge_conf(conf,gauge_file);
   put_boundaries_conditions(conf,theta,1,0);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
 
   //initialize and load the DD+ solution
   spincolor *source=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
@@ -66,12 +66,12 @@ int main(int narg,char **arg)
 
   theta[0]=1;theta[1]=theta[2]=theta[3]=0;
   put_boundaries_conditions(conf,theta,1,0);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   inv_Q2_cg(solution0,source,NULL,conf,kappa,m,nitermax,1,residue);
 
   theta[0]=0;theta[1]=theta[2]=theta[3]=thetaX;
   put_boundaries_conditions(conf,theta,1,0);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   inv_Q2_cg(solutionP,source,solution0,conf,kappa,m,nitermax,1,residue);
 
   for(int ivol=0;ivol<loc_vol+loc_bord;ivol++)
@@ -82,7 +82,7 @@ int main(int narg,char **arg)
 
   theta[0]=0;theta[1]=theta[2]=theta[3]=-2*thetaX;
   put_boundaries_conditions(conf,theta,1,0);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   inv_Q2_cg(solutionM,source,solutionG,conf,kappa,m,nitermax,1,residue);
 
   for(int ivol=0;ivol<loc_vol+loc_bord;ivol++)
@@ -110,7 +110,7 @@ int main(int narg,char **arg)
   
   theta[0]=0;theta[1]=theta[2]=theta[3]=3*thetaX;
   put_boundaries_conditions(conf,theta,1,0);
-  communicate_lx_gauge_borders(conf);
+  communicate_lx_quad_su3_borders(conf);
   inv_Q2_cg(solutionM,source,solutionG,conf,kappa,m,nitermax,1,residue);
 
   MPI_Barrier(cart_comm);

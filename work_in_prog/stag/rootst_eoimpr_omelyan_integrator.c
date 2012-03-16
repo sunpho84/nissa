@@ -28,6 +28,7 @@ void evolve_momenta_with_rootst_force(quad_su3 **H,quad_su3 **conf,double beta,i
   
   //evolve
   master_printf("Evolve momenta with force, dt=%lg\n",dt);
+  
   for(int eo=0;eo<2;eo++)
     for(int ivol=0;ivol<loc_volh;ivol++)
       for(int mu=0;mu<4;mu++)
@@ -41,8 +42,10 @@ void evolve_momenta_with_rootst_force(quad_su3 **H,quad_su3 **conf,double beta,i
 //eolve the configuration by using the computed momenta
 void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 {
+  //communitcate momenta borders
   master_printf("Evolving conf with momenta\n");
-  master_printf("plaq %18.18lg\n",global_plaquette_eo_conf(eo_conf[0],eo_conf[1]));
+  
+  //evolve
   for(int eo=0;eo<2;eo++)
     for(int ivol=0;ivol<loc_volh;ivol++)
       for(int mu=0;mu<4;mu++)
@@ -52,6 +55,7 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 	  unsafe_su3_taylor_exponentiate(t2,t1,6);
 	  safe_su3_prod_su3(eo_conf[eo][ivol][mu],t2,eo_conf[eo][ivol][mu]);
 	}
+  master_printf("plaquette after: %.18lg\n",-global_plaquette_eo_conf(eo_conf[0],eo_conf[1]));
 }
 
 // Omelyan integrator(cond-mat/0110438v1) for rooted staggered theory

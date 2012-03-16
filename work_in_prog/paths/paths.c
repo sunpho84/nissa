@@ -71,18 +71,18 @@ int main(int narg,char **arg)
   //read conf
   quad_su3 *read_conf=nissa_malloc("read_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   read_ildg_gauge_conf(read_conf,conf_path);
-  communicate_lx_gauge_borders(read_conf);
+  communicate_lx_quad_su3_borders(read_conf);
   master_printf(" read conf plaq: %.18g\n",global_plaquette_lx_conf(read_conf));
   
   //hyp conf
   quad_su3 *hyp_smeared_conf=nissa_malloc("hyp_smeared_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   hyp_smear_conf_dir(hyp_smeared_conf,read_conf,alpha0,alpha1,alpha2,0);
-  communicate_lx_gauge_borders(hyp_smeared_conf);
+  communicate_lx_quad_su3_borders(hyp_smeared_conf);
   master_printf(" hyp smeared conf plaq: %.18g\n",global_plaquette_lx_conf(hyp_smeared_conf));
   
   //smear conf
   ape_spatial_smear_conf(read_conf,read_conf,0.25,8);
-  communicate_lx_gauge_borders(read_conf);
+  communicate_lx_quad_su3_borders(read_conf);
   master_printf(" ape smeared conf plaq: %.18g\n",global_plaquette_lx_conf(read_conf));
   
   //overwrite spatial links
