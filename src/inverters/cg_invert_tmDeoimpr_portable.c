@@ -48,7 +48,8 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
         if(riter==0)
 	  {
 	    MPI_Allreduce(&loc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	    master_printf("\niter 0 relative residue: %lg\n",delta/source_norm);
+	    master_printf("\nSource norm: %lg\n",source_norm);
+	    master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
 	  }
       }
       
@@ -188,6 +189,17 @@ void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *source_lx,spincolor
   
   paste_eo_parts_into_lx_spincolor(solution_lx,solution_eos[EVN],solution_eos[ODD],loc_vol);
   
+  //int eo=ODD;
+  for(int eo=0;eo<2;eo++)
+  for(int ivol_eo=0;ivol_eo<loc_volh;ivol_eo++)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+	for(int ri=0;ri<2;ri++)
+	  {
+	    int ivol_lx=loclx_of_loceo[eo][ivol_eo];
+	    if(glb_coord_of_loclx[ivol_lx][0]==0)p5+=pow(solution_eos[eo][ivol_eo][id][ic][ri],2);
+	  }
+
   nissa_free(conf_eos[0]);
   nissa_free(source_eos[0]);
   nissa_free(solution_eos[0]);
