@@ -30,7 +30,7 @@ void apply_tmQ(spincolor *out,spincolor *in,quad_su3 *conf,double kappac,double 
     unsafe_su3_prod_color(out[X][1],conf[X][0],temp_c1);
     color_copy(out[X][2],out[X][0]);
     color_copy(out[X][3],out[X][1]);
-	
+    
     //Backward 0
     Xdw=loclx_neighdw[X][0];
     color_subt(temp_c0,in[Xdw][0],in[Xdw][2]);

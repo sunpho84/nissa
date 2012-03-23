@@ -16,7 +16,7 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double k
   spincolor *p=nissa_malloc("p",loc_vol+loc_bord,spincolor);
   spincolor *ps[nmass];
   for(int imass=0;imass<nmass;imass++) ps[imass]=nissa_malloc("ps",loc_vol,spincolor);
-
+  
   //sol[*]=0
   for(int imass=0;imass<nmass;imass++)
     {
