@@ -24,7 +24,7 @@ double color_norm2_diff(color *a,color *b)
   double loc_norm2=0;
   double norm2;
   
-  for(int ivol=0;ivol<loc_volh;ivol++)
+  nissa_loc_volh_loop(ivol)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	{	

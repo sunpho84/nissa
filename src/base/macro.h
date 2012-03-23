@@ -3,12 +3,18 @@
 #define EVN 0
 #define ODD 1
 
+#define BORDERS_VALID 1
+#define EDGES_VALID 2
+
 #define RAD2 1.414213562373095048801688724209l
 
 #define debug_lvl 1
 
 #define nissa_vect_string_length 20
 #define nissa_vect_alignment 16
+
+#define nissa_loc_volh_loop(a) for(int a=0;a<loc_volh;a++)
+#define nissa_loc_vol_loop(a) for(int a=0;a<loc_vol;a++)
 
 #define ran2_ntab 32                                                                                                         
 #define nissa_malloc(a,b,c) nissa_true_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)

@@ -13,12 +13,14 @@ void check_minimal_allocated_size(void *v,int l,const char *err_mess)
 }
 
 //check weather the borders are allocated
-void check_borders_allocated(void *v)
-{check_minimal_allocated_size(v,loc_vol+loc_bord,"border not allocated");}
+void check_lx_borders_allocated(void *v)
+{check_minimal_allocated_size(v,loc_vol+loc_bord,"lx border not allocated");}
+void check_eo_borders_allocated(void *v)
+{check_minimal_allocated_size(v,loc_volh+loc_bordh,"eo border not allocated");}
 
 //check weather the borders and edges are allocated
-void check_edges_allocated(void *v)
-{check_minimal_allocated_size(v,loc_vol+loc_bord+loc_edge,"border not allocated");}
+void check_lx_edges_allocated(void *v)
+{check_minimal_allocated_size(v,loc_vol+loc_bord+loc_edge,"lx edges not allocated");}
 
 //return the name of the vector
 char *get_vect_name(void *v)
@@ -110,6 +112,7 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
   new->line=line;
   new->nel=nel;
   new->size_per_el=size_per_el;
+  new->flag=0;
   take_last_characters(new->file,file,nissa_vect_string_length);
   take_last_characters(new->tag,tag,nissa_vect_string_length);
   take_last_characters(new->type,type,nissa_vect_string_length);

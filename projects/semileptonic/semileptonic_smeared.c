@@ -48,7 +48,12 @@
   the WallTime (in seconds) is passed.
   
 */
-  
+
+#ifdef POINT_SOURCE_VERSION
+#define prop_type su3spinspin
+#else
+#define prop_type colorspinspin
+#endif
 
 //gauge info
 int ngauge_conf,nanalized_conf=0;
@@ -64,9 +69,10 @@ double *mass,*theta;
 double put_theta[4],old_theta[4]={0,0,0,0};
 
 //source data
-int seed,noise_type,twall;
+int seed,noise_type;
+coords source_coord;
 spincolor *source;
-colorspinspin *original_source;
+prop_type *original_source;
 
 //smearing parameters
 double jacobi_kappa,ape_alpha;
@@ -77,7 +83,7 @@ int *jacobi_niter_se,nsm_lev_se;
 
 //vectors for the spinor data
 int npropS0;
-colorspinspin **S0[2];
+prop_type **S0[2];
 spincolor **cgmms_solution,*temp_vec[2];
 
 //cgmms inverter parameters
@@ -95,17 +101,17 @@ int *op1_2pts,*op2_2pts;
 int nch_contr_2pts;
 complex *ch_contr_2pts;
 int *ch_op1_2pts,*ch_op2_2pts;
-colorspinspin *ch_colorspinspin;
+prop_type *ch_prop;
 
 //sequential props info
 int nspec;
 int tsep;
 int *imass_spec,*r_spec,*ith_spec;
-colorspinspin *sequential_source;
+prop_type *sequential_source;
 
 //sequential propagators
 int npropS1;
-colorspinspin **S1;
+prop_type **S1;
 
 //three points contractions
 int ncontr_3pts;
@@ -131,7 +137,7 @@ double contr_3pts_time=0;
 int iprop_of(int itheta,int imass){return itheta*nmass+imass;}
 
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
-void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr)
+void meson_two_points(complex *corr,int *list_op1,prop_type *s1,int *list_op2,prop_type *s2,int ncontr)
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];
@@ -144,11 +150,16 @@ void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op
     }
   
   //Call the routine which does the real contraction
+#ifdef POINT_SOURCE_VERSION
+  trace_g_ccss_dag_g_ccss(corr,t1,s1,t2,s2,ncontr);
+#else
+  master_printf("%lg\n",s1[0][0][0][0][0]);
   trace_g_sdag_g_s(corr,t1,s1,t2,s2,ncontr);
+#endif
 }
 
 //This function contract a source with a sequential spinor putting the passed list of operators
-void contract_with_source(complex *corr,colorspinspin *S1,int *list_op,colorspinspin *source)
+void contract_with_source(complex *corr,prop_type *S1,int *list_op,prop_type *source)
 {
   //Temporary vector for the internal matrices
   dirac_matr t1[ncontr_2pts],t2[ncontr_2pts];
@@ -160,14 +171,22 @@ void contract_with_source(complex *corr,colorspinspin *S1,int *list_op,colorspin
     }
 
   //Call the routine which does the real contraction
+#ifdef POINT_SOURCE_VERSION
+  trace_g_ccss_dag_g_ccss(corr,t1,S1,t2,source,ncontr_2pts);
+#else
   trace_g_sdag_g_s(corr,t1,S1,t2,source,ncontr_2pts);
+#endif
 }
 
 //generate the source
 void generate_source()
 {
+#ifdef POINT_SOURCE_VERSION
+  generate_delta_source(original_source,source_coord);
+#else
   enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
-  generate_spindiluted_source(original_source,type[noise_type],twall);
+  generate_spindiluted_source(original_source,type[noise_type],source_coord[0]);
+#endif
 }
 
 //Generate a sequential source for S1
@@ -176,15 +195,22 @@ void generate_sequential_source(int ispec)
   int r=r_spec[ispec];
   
   master_printf("\nCreating the sequential source for spectator %d\n",ispec);
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     { //put to zero everything but the slice
-      if(glb_coord_of_loclx[ivol][0]!=(twall+tsep)%glb_size[0])
-	memset(sequential_source[ivol],0,sizeof(colorspinspin));
+      if(glb_coord_of_loclx[ivol][0]!=(source_coord[0]+tsep)%glb_size[0])
+	memset(sequential_source[ivol],0,sizeof(prop_type));
       else
 	{ //avoid to put g5, beacuse commutate with (i+-g5)/sqrt(2) and cancel with those of the QQ
-	  memcpy(sequential_source[ivol],S0[r][iprop_of(ith_spec[ispec],imass_spec[ispec])][ivol],sizeof(colorspinspin));
+	  memcpy(sequential_source[ivol],S0[r][iprop_of(ith_spec[ispec],imass_spec[ispec])][ivol],sizeof(prop_type));
 	  for(int c=0;c<3;c++) //rotate as r because it's D^-1
-	    rotate_spinspin_to_physical_basis(sequential_source[ivol][c],r,r);
+	    {
+#ifdef POINT_SOURCE_VERSION
+	      for(int c1=0;c1<3;c1++)
+		rotate_spinspin_to_physical_basis(sequential_source[ivol][c][c1],r,r);
+#else
+	      rotate_spinspin_to_physical_basis(sequential_source[ivol][c],r,r);
+#endif
+	    }
 	}
     }
   master_printf("Sequential source created\n\n");
@@ -298,9 +324,10 @@ void initialize_semileptonic(char *input_path)
 
   // 7) three points functions
   
-  sequential_source=nissa_malloc("Sequential source",loc_vol,colorspinspin);
+  sequential_source=nissa_malloc("Sequential source",loc_vol,prop_type);
   read_str_int("TSep",&tsep);
   read_str_int("NSpec",&nspec);
+  if(nspec==0) crash("it does have no sense to specify 0 spectators");
   ith_spec=nissa_malloc("ith_spec",nspec,int);
   imass_spec=nissa_malloc("imass_spec",nspec,int);
   r_spec=nissa_malloc("r_spec",nspec,int);
@@ -324,7 +351,7 @@ void initialize_semileptonic(char *input_path)
       
       master_printf(" contr.%d %d %d\n",icontr,op1_3pts[icontr],op2_3pts[icontr]);
     }
-
+  
   read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
   ch_contr_3pts=nissa_malloc("ch_contr_3pts",nch_contr_3pts*glb_size[0],complex);
   ch_op1_3pts=nissa_malloc("ch_op1_3pts",nch_contr_3pts,int);
@@ -343,22 +370,22 @@ void initialize_semileptonic(char *input_path)
   master_printf("\n");
   
   ////////////////////////////////////// end of input reading/////////////////////////////////
-
-  //allocate gauge conf, Pmunu and all the needed spincolor and colorspinspin
+  
+  //allocate gauge conf, Pmunu and all the needed spincolor and propagators
   conf=nissa_malloc("or_conf",loc_vol+loc_bord+loc_edge,quad_su3);
   sme_conf=nissa_malloc("sm_conf",loc_vol+loc_bord,quad_su3);
   Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
-
-  //Allocate all the S0 colorspinspin vectors
+  
+  //Allocate all the S0 prop_type vectors
   npropS0=ntheta*nmass;
-  S0[0]=nissa_malloc("S0[0]",npropS0,colorspinspin*);
-  S0[1]=nissa_malloc("S0[1]",npropS0,colorspinspin*);
+  S0[0]=nissa_malloc("S0[0]",npropS0,prop_type*);
+  S0[1]=nissa_malloc("S0[1]",npropS0,prop_type*);
   for(int iprop=0;iprop<npropS0;iprop++)
     {
-      S0[0][iprop]=nissa_malloc("S0[0]",loc_vol,colorspinspin);
-      S0[1][iprop]=nissa_malloc("S0[1]",loc_vol,colorspinspin);
+      S0[0][iprop]=nissa_malloc("S0[0]",loc_vol,prop_type);
+      S0[1][iprop]=nissa_malloc("S0[1]",loc_vol,prop_type);
     }
-
+  
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
   for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
@@ -367,15 +394,15 @@ void initialize_semileptonic(char *input_path)
   
   //Allocate one spincolor for the source
   source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
-  original_source=nissa_malloc("original_source",loc_vol,colorspinspin);
-
-  //Allocate one colorspinspin for the chromo-contractions
-  ch_colorspinspin=nissa_malloc("chromo-colorspinspin",loc_vol,colorspinspin);
-
-  //Allocate all the S1 colorspinspin vectors
+  original_source=nissa_malloc("original_source",loc_vol,prop_type);
+  
+  //Allocate one prop_type for the chromo-contractions
+  ch_prop=nissa_malloc("chromo-prop",loc_vol,prop_type);
+  
+  //Allocate all the S1 prop_type vectors
   npropS1=ntheta*nmass;
-  S1=nissa_malloc("S1",loc_vol,colorspinspin*);
-  for(int iprop=0;iprop<npropS0;iprop++) S1[iprop]=nissa_malloc("S1[i]",loc_vol,colorspinspin);
+  S1=nissa_malloc("S1",loc_vol,prop_type*);
+  for(int iprop=0;iprop<npropS0;iprop++) S1[iprop]=nissa_malloc("S1[i]",loc_vol,prop_type);
 }
 
 //find a new conf
@@ -388,8 +415,13 @@ int read_conf_parameters(int *iconf)
       //Gauge path
       read_str(conf_path,1024);
       
-      //Twall
-      read_int(&(twall));
+      //Source coord
+      read_int(&(source_coord[0]));
+#ifdef POINT_SOURCE_VERSION
+      read_int(&(source_coord[1]));
+      read_int(&(source_coord[2]));
+      read_int(&(source_coord[3]));
+#endif
       
       //Out folder
       read_str(outfolder,1024);
@@ -423,14 +455,10 @@ void setup_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
-  communicate_lx_quad_su3_borders(conf);
-  communicate_lx_gauge_edges(conf);
   Pmunu_term(Pmunu,conf);
   
   //prepare the smerded version
   ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
-  communicate_lx_quad_su3_borders(conf);
-  communicate_lx_quad_su3_borders(sme_conf);
   
   //compute plaquette
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
@@ -460,7 +488,7 @@ void close_semileptonic()
   for(int iprop=0;iprop<npropS0;iprop++){nissa_free(S0[0][iprop]);nissa_free(S0[1][iprop]);nissa_free(S1[iprop]);}
   nissa_free(S0[0]);nissa_free(S0[1]);nissa_free(S1);
   nissa_free(temp_vec[0]);nissa_free(temp_vec[1]);
-  nissa_free(ch_colorspinspin);nissa_free(sequential_source);
+  nissa_free(ch_prop);nissa_free(sequential_source);
   nissa_free(contr_2pts);nissa_free(ch_contr_2pts);
   nissa_free(contr_3pts);nissa_free(ch_contr_3pts);
   nissa_free(op1_2pts);nissa_free(op2_2pts);
@@ -474,8 +502,8 @@ void close_semileptonic()
   close_nissa();
 }
 
-//smear addditivily a colorspinspin
-void smear_additive_colorspinspin(colorspinspin *out,colorspinspin *in,int ism_lev,int *jacobi_niter)
+//smear addditivily a propagator
+void smear_additive_propagator(prop_type *out,prop_type *in,int ism_lev,int *jacobi_niter)
 {
   spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);
   
@@ -483,16 +511,32 @@ void smear_additive_colorspinspin(colorspinspin *out,colorspinspin *in,int ism_l
   if(ism_lev>0) nsme-=jacobi_niter[ism_lev-1];
   
   //loop over dirac index
-  for(int id=0;id<4;id++)
-    {
-      for(int ivol=0;ivol<loc_vol;ivol++)
-	get_spincolor_from_colorspinspin(temp[ivol],in[ivol],id);
-      
-      jacobi_smearing(temp,temp,sme_conf,jacobi_kappa,nsme);
-
-      for(int ivol=0;ivol<loc_vol;ivol++)
-	put_spincolor_into_colorspinspin(out[ivol],temp[ivol],id);
-    }
+#ifdef POINT_SOURCE_VERSION
+  for(int ic=0;ic<3;ic++)
+#endif
+    for(int id=0;id<4;id++)
+      {
+	nissa_loc_vol_loop(ivol)
+	  {
+#ifdef POINT_SOURCE_VERSION
+	    get_spincolor_from_su3spinspin(temp[ivol],in[ivol],id,ic);
+#else
+	    get_spincolor_from_colorspinspin(temp[ivol],in[ivol],id);
+#endif
+	  }
+	set_borders_invalid(temp);
+	
+	jacobi_smearing(temp,temp,sme_conf,jacobi_kappa,nsme);
+	
+	nissa_loc_vol_loop(ivol)
+	  {
+#ifdef POINT_SOURCE_VERSION
+	    put_spincolor_into_su3spinspin(out[ivol],temp[ivol],id,ic);
+#else
+	    put_spincolor_into_colorspinspin(out[ivol],temp[ivol],id);
+#endif
+	  }
+      }
   
   nissa_free(temp);
 }
@@ -502,49 +546,70 @@ void calculate_S0(int ism_lev_so)
 {
   //smear additively the source
   master_printf("\nSource Smearing level: %d\n",ism_lev_so);
-  smear_additive_colorspinspin(original_source,original_source,ism_lev_so,jacobi_niter_so);
+  smear_additive_propagator(original_source,original_source,ism_lev_so,jacobi_niter_so);
   master_printf("\n");
   
  //loop over the source dirac index
-  for(int id=0;id<4;id++)
-    { 
-      //put the g5
-      for(int ivol=0;ivol<loc_vol;ivol++)
-	{
-	  get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
-	  for(int id1=2;id1<4;id1++) for(int ic=0;ic<3;ic++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic][ri]*=-1;
-	}
-      
-      communicate_lx_spincolor_borders(source);
-      
-      for(int itheta=0;itheta<ntheta;itheta++)
-	{
-	  //adapt the border condition
-	  put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
-	  adapt_theta(conf,old_theta,put_theta,1,1);
-	  
-	  //inverting
-	  double part_time=-take_time();
-	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
-	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	  master_printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
-
-	  //reconstruct the doublet
-	  for(int imass=0;imass<nmass;imass++)
-	    {
-	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
-	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
-	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
-		for(int i=0;i<loc_vol;i++)
-		  put_spincolor_into_colorspinspin(S0[r][iprop_of(itheta,imass)][i],temp_vec[r][i],id);
-	    }
-	}
-    }
+#ifdef POINT_SOURCE_VERSION
+  for(int ic=0;ic<3;ic++)
+#endif
+    for(int id=0;id<4;id++)
+      { 
+	//put the g5
+	nissa_loc_vol_loop(ivol)
+	  {
+#ifdef POINT_SOURCE_VERSION
+	    get_spincolor_from_su3spinspin(source[ivol],original_source[ivol],id,ic);
+#else
+	    get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
+#endif
+	    for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
+	  }
+	set_borders_invalid(source);
+	
+	for(int itheta=0;itheta<ntheta;itheta++)
+	  {
+	    //adapt the border condition
+	    put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
+	    adapt_theta(conf,old_theta,put_theta,1,1);
+	    
+	    //inverting
+	    double part_time=-take_time();
+	    inv_tmQ2_cgmms(cgmms_solution,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion,source);
+	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
+#ifdef POINT_SOURCE_VERSION
+	    master_printf("Finished the inversion of S0 theta %d, color index %d, dirac index %d in %g sec\n",itheta,ic,id,part_time);
+#else
+	    master_printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
+#endif	    
+	    //reconstruct the doublet
+	    for(int imass=0;imass<nmass;imass++)
+	      {
+		reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgmms_solution[imass]);
+		master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+		for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
+		  nissa_loc_vol_loop(ivol)
+		    {
+#ifdef POINT_SOURCE_VERSION
+		      put_spincolor_into_su3spinspin(S0[r][iprop_of(itheta,imass)][ivol],temp_vec[r][ivol],id,ic);
+#else
+		      put_spincolor_into_colorspinspin(S0[r][iprop_of(itheta,imass)][ivol],temp_vec[r][ivol],id);
+#endif
+		    }
+	      }
+	  }
+      }
   
   //rotate to physical basis
   for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
     for(int ipropS0=0;ipropS0<npropS0;ipropS0++) //put the (1+ig5)/sqrt(2) factor
-      rotate_vol_colorspinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
+      {
+#ifdef POINT_SOURCE_VERSION
+	rotate_vol_su3spinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
+#else
+	rotate_vol_colorspinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
+#endif
+      }
   master_printf("Propagators rotated\n");
 
   master_printf("\n");
@@ -555,42 +620,63 @@ void calculate_S1(int ispec,int ism_lev_se)
 {
   //smear additively the seq
   master_printf("\nSeq Smearing level: %d (will be applied twice!)\n",ism_lev_se);
-  smear_additive_colorspinspin(sequential_source,sequential_source,ism_lev_se,jacobi_niter_se);
-  smear_additive_colorspinspin(sequential_source,sequential_source,ism_lev_se,jacobi_niter_se);
+  smear_additive_propagator(sequential_source,sequential_source,ism_lev_se,jacobi_niter_se);
+  smear_additive_propagator(sequential_source,sequential_source,ism_lev_se,jacobi_niter_se);
   master_printf("\n");
   
   //loop over se
-  for(int id=0;id<4;id++)
-    { 
-      for(int ivol=0;ivol<loc_vol;ivol++) //avoid the g5 insertion
-	get_spincolor_from_colorspinspin(source[ivol],sequential_source[ivol],id);
-      communicate_lx_spincolor_borders(source);
-
-      for(int itheta=0;itheta<ntheta;itheta++)
-	{ //adapt the border condition
-	  put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
-	  adapt_theta(conf,old_theta,put_theta,1,1);
-
-	  double part_time=-take_time();
-	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
-	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	  master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
-	  
-	  for(int imass=0;imass<nmass;imass++)
-	    { //reconstruct the doublet: r(S1)=!r(spec), so we have to multiply by Q+ if r(spec)==1 and Q- if 0
-	      double reco_mass=-mass[imass];
-	      if(r_spec[ispec]==1) reco_mass=-reco_mass;
-	      //use temp_vec[0] as temporary storage
-	      apply_tmQ(temp_vec[0],cgmms_solution[imass],conf,kappa,reco_mass);
-	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
-	      for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass)][i],temp_vec[0][i],id);
-	    }
-	}
-    }
+  for(int ic=0;ic<3;ic++)
+    for(int id=0;id<4;id++)
+      { 
+	nissa_loc_vol_loop(ivol) //avoid the g5 insertion
+	  {
+#ifdef POINT_SOURCE_VERSION
+	    get_spincolor_from_su3spinspin(source[ivol],sequential_source[ivol],id,ic);
+#else
+	    get_spincolor_from_colorspinspin(source[ivol],sequential_source[ivol],id);
+#endif
+	  }
+	set_borders_invalid(source);
+	
+	for(int itheta=0;itheta<ntheta;itheta++)
+	  { //adapt the border condition
+	    put_theta[1]=put_theta[2]=put_theta[3]=theta[itheta];
+	    adapt_theta(conf,old_theta,put_theta,1,1);
+	    
+	    double part_time=-take_time();
+	    inv_tmQ2_cgmms(cgmms_solution,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion,source);
+	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
+	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
+	    
+	    for(int imass=0;imass<nmass;imass++)
+	      { //reconstruct the doublet: r(S1)=!r(spec), so we have to multiply by Q+ if r(spec)==1 and Q- if 0
+		double reco_mass=-mass[imass];
+		if(r_spec[ispec]==1) reco_mass=-reco_mass;
+		//use temp_vec[0] as temporary storage
+		apply_tmQ(temp_vec[0],conf,kappa,reco_mass,cgmms_solution[imass]);
+		master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+		nissa_loc_vol_loop(ivol)
+		  {
+#ifdef POINT_SOURCE_VERSION
+		    put_spincolor_into_su3spinspin(S1[iprop_of(itheta,imass)][ivol],temp_vec[0][ivol],id,ic);
+#else
+		    put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass)][ivol],temp_vec[0][ivol],id);
+#endif
+		  }
+	      }
+	  }
+      }
 
   //put the (1+-ig5)/sqrt(2) factor. On the source rotate as r_spec, on the sink as !r_spec
   for(int ipropS1=0;ipropS1<npropS1;ipropS1++) //but, being D^-1, everything is swapped
-    rotate_vol_colorspinspin_to_physical_basis(S1[ipropS1],!(r_spec[ispec]),(r_spec[ispec]));
+    {
+#ifdef POINT_SOURCE_VERSION
+      rotate_vol_su3spinspin_to_physical_basis(S1[ipropS1],!(r_spec[ispec]),(r_spec[ispec]));
+#else
+      rotate_vol_colorspinspin_to_physical_basis(S1[ipropS1],!(r_spec[ispec]),(r_spec[ispec]));
+#endif
+    }
+
   master_printf("Propagators rotated\n");
 
   master_printf("\n");
@@ -603,7 +689,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
     
   for(int r=0;r<2;r++)
     for(int iprop=0;iprop<npropS0;iprop++)
-      smear_additive_colorspinspin(S0[r][iprop],S0[r][iprop],ism_lev_si,jacobi_niter_si);
+      smear_additive_propagator(S0[r][iprop],S0[r][iprop],ism_lev_si,jacobi_niter_si);
   
   double temp_time=take_time();
   smear_time+=temp_time;
@@ -623,7 +709,13 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 	    for(int r2=0;r2<2;r2++)
 	      {
 		if(nch_contr_2pts>0)
-		  unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin,Pmunu,S0[r2][ip2]);
+		  {
+#ifdef POINT_SOURCE_VERSION
+		    unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S0[r2][ip2]);
+#else
+		    unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S0[r2][ip2]);
+#endif
+		  }
 		
 		for(int im1=0;im1<nmass;im1++)
 		  {
@@ -641,19 +733,19 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 			
 			//write 
 			contr_save_time-=take_time();
-			print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,twall,"",1.0);
+			print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1.0);
 			contr_save_time+=take_time();
 			
 			//if chromo contractions
 			if(nch_contr_2pts>0)
 			  {
 			    //compute them
-			    meson_two_points(ch_contr_2pts,ch_op1_2pts,S0[r1][ip1],ch_op2_2pts,ch_colorspinspin,nch_contr_2pts);
+			    meson_two_points(ch_contr_2pts,ch_op1_2pts,S0[r1][ip1],ch_op2_2pts,ch_prop,nch_contr_2pts);
 			    ncontr_tot+=nch_contr_2pts;
 			    
 			    //print them
 			    contr_save_time-=take_time();
-			    print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,twall,"CHROMO-",1.0);
+			    print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,source_coord[0],"CHROMO-",1.0);
 			    contr_save_time+=take_time();
 			  }
 			master_fprintf(fout,"\n");
@@ -687,7 +779,13 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
     {
 	int ip2=iprop_of(ith2,im2);
 	if(nch_contr_3pts>0)
-	    unsafe_apply_chromo_operator_to_colorspinspin(ch_colorspinspin,Pmunu,S1[ip2]);
+	  {
+#ifdef POINT_SOURCE_VERSION
+	    unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S1[ip2]);
+#else
+	    unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S1[ip2]);
+#endif
+	  }
 	
 	for(int ith1=0;ith1<ntheta;ith1++)
 	    for(int im1=0;im1<nmass;im1++)
@@ -704,19 +802,19 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		
 		//write them
 		contr_save_time-=take_time();
-		print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"",1.0);
+		print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,source_coord[0],"",1.0);
 		contr_save_time+=take_time();
 		
 		//if chromo contractions
 		if(nch_contr_3pts>0)
 		  {
 		    //compute them
-		    meson_two_points(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_colorspinspin,nch_contr_3pts);
+		    meson_two_points(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_prop,nch_contr_3pts);
 		    ncontr_tot+=nch_contr_3pts;
 		    
 		    //and write them
 		    contr_save_time-=take_time();
-		    print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,twall,"CHROMO-",1.0);
+		    print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,source_coord[0],"CHROMO-",1.0);
 		    contr_save_time+=take_time();
 		  }
 		
@@ -749,7 +847,7 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
 	
 	for(int icontr=0;icontr<ncontr_2pts;icontr++)
 	  if(op1_2pts[icontr]==5)
-	    master_fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op2_2pts[icontr]],(contr_2pts+icontr*glb_size[0])[twall][0],(contr_2pts+icontr*glb_size[0])[twall][1]);
+	    master_fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op2_2pts[icontr]],(contr_2pts+icontr*glb_size[0])[source_coord[0]][0],(contr_2pts+icontr*glb_size[0])[source_coord[0]][1]);
 	master_fprintf(fout,"\n");
       }
   

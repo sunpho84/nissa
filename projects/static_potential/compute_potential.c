@@ -22,7 +22,7 @@ void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hy
   
   //compute the tline: this is done once forever since we are using only one level of hyp
   master_printf("Computing tline\n");
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
       const int mu=0;
       
@@ -56,7 +56,7 @@ void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hy
 	{
 	  //compute the xline
 	  master_printf("Computing xline for direction %d\n",mu);
-	  for(int ivol=0;ivol<loc_vol;ivol++)
+	  nissa_loc_vol_loop(ivol)
 	    {
 	      su3_copy(xline[ivol*Dmax],conf[ivol][mu]);
 	      int jvol=ivol;
@@ -68,7 +68,7 @@ void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hy
 	    }
 	  
 	  //loop over the whole lattice
-	  for(int ivol=0;ivol<loc_vol;ivol++)
+	  nissa_loc_vol_loop(ivol)
 	    {
 	      int A=ivol;
 	      

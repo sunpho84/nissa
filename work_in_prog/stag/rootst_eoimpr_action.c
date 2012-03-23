@@ -18,7 +18,7 @@ double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,colo
       rem_backfield_from_conf(eo_conf,u1b[ifl]);
       
       //compute scalar product
-      for(int ivol=0;ivol<loc_volh;ivol++)
+      nissa_loc_volh_loop(ivol)
 	for(int ic=0;ic<3;ic++)
 	  loc_action+=chi_e[ivol][ic][0]*pf[ifl][ivol][ic][0]+chi_e[ivol][ic][1]*pf[ifl][ivol][ic][1];
     }
@@ -48,11 +48,11 @@ double full_rootst_eoimpr_action(quad_su3 **eo_conf,double beta,quad_su3 **H,int
   //momenta action
   double mom_action=momenta_action(H);
   
-  /*debug
+  //*debug
   master_printf("Q%.18lg\n",quark_action);
   master_printf("G%.18lg\n",gluon_action);
   master_printf("M%.18lg\n",mom_action);
-  */
+  //*/
   
   return quark_action+gluon_action+mom_action;
 }

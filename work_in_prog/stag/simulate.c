@@ -200,7 +200,7 @@ void check_eo_conf(quad_su3 **eo_conf,char *path)
   //compute the norm
   double n2=0;
   for(int eo=0;eo<2;eo++)
-    for(int ivol=0;ivol<loc_volh;ivol++)
+    nissa_loc_volh_loop(ivol)
       for(int mu=0;mu<4;mu++)
 	for(int ic1=0;ic1<3;ic1++)
           for(int ic2=0;ic2<3;ic2++)

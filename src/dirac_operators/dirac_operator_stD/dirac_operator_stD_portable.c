@@ -2,7 +2,10 @@
 
 void apply_st2Doe(color *out,quad_su3 **conf,color *in)
 {
-  for(int io=0;io<loc_volh;io++)
+  communicate_eo_quad_su3_borders(conf);
+  communicate_ev_color_borders(in);
+  
+  nissa_loc_volh_loop(io)
     {
       int evup0=loceo_neighup[ODD][io][0];
       int evdw0=loceo_neighdw[ODD][io][0];
@@ -19,12 +22,14 @@ void apply_st2Doe(color *out,quad_su3 **conf,color *in)
 	  su3_dag_subt_the_prod_color(out[io],conf[EVN][evdw][mu],in[evdw]);
 	}
     }
+  
+  set_borders_invalid(out);
 }
 
 void apply_stDoe(color *out,quad_su3 **conf,color *in)
 {
   apply_st2Doe(out,conf,in);
-  for(int io=0;io<loc_volh;io++)
+  nissa_loc_volh_loop(io)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	out[io][ic][ri]*=0.5;
@@ -32,7 +37,10 @@ void apply_stDoe(color *out,quad_su3 **conf,color *in)
 
 void apply_st2Deo(color *out,quad_su3 **conf,color *in)
 {
-  for(int ie=0;ie<loc_volh;ie++)
+  communicate_eo_quad_su3_borders(conf);
+  communicate_od_color_borders(in);
+  
+  nissa_loc_volh_loop(ie)
     {
       int odup0=loceo_neighup[EVN][ie][0];
       int oddw0=loceo_neighdw[EVN][ie][0];
@@ -49,10 +57,15 @@ void apply_st2Deo(color *out,quad_su3 **conf,color *in)
 	  su3_subt_the_prod_color(    out[ie],conf[EVN][ie  ][mu],in[odup]);
 	}
     }
+  
+  set_borders_invalid(out);
 }
 
 void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
 {
+  communicate_eo_quad_su3_borders(conf);
+  communicate_ev_color_borders(in);
+  
   //check arguments
   if(out==in)   crash("out==in!");
   if(out==temp) crash("out==temp!");
@@ -62,12 +75,13 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
   
   //perform the off diagonal multiplication
   apply_st2Doe(temp,conf,in);
-  communicate_od_color_borders(temp);
   apply_st2Deo(out,conf,temp);
   
   //put the 0.25 and summ
-  for(int ivol=0;ivol<loc_volh;ivol++)
+  nissa_loc_volh_loop(ivol)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	out[ivol][ic][ri]=mass2*in[ivol][ic][ri]+0.25*out[ivol][ic][ri];
+  
+  set_borders_invalid(out);
 }

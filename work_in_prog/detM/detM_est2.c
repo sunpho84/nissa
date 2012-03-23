@@ -4,12 +4,12 @@ const double rad2=1.414213562373095048801688724209;
 
 void stoc_source(spincolor *spinore)
 {
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+  for(int ivol=0;ivol<loc_vol;ivol++)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
         {
-	  spinore[loc_site][id][ic][0]=pm_one(loc_site)/rad2;
-	  spinore[loc_site][id][ic][1]=pm_one(loc_site)/rad2;
+	  spinore[ivol][id][ic][0]=pm_one(ivol)/rad2;
+	  spinore[ivol][id][ic][1]=pm_one(ivol)/rad2;
 	}
 }
 

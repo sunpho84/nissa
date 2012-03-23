@@ -28,7 +28,7 @@ int test_Q2tm_inversion()
   
   //compare the weighted norm
   double loc_weighted_norm=0,weighted_norm;
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)

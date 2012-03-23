@@ -86,7 +86,7 @@ int main(int narg,char **arg)
   master_printf(" ape smeared conf plaq: %.18g\n",global_plaquette_lx_conf(read_conf));
   
   //overwrite spatial links
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int mu=1;mu<3;mu++)
       su3_copy(hyp_smeared_conf[ivol][mu],read_conf[ivol][mu]);
   

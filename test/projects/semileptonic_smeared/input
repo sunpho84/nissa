@@ -20,7 +20,7 @@ Nmass 3
 NTheta 2
 0.00 0.10
 
-Residue 1.e-12
+Residue 1.e-24
 StoppingCriterion standard
 MinimalResidue 1.e-30
 NiterMax 100000

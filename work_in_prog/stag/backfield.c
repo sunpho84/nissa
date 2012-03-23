@@ -4,11 +4,11 @@
 void init_backfield_to_id(quad_u1 **S)
 {
   for(int par=0;par<2;par++)
-    for(int ieo=0;ieo<loc_volh;ieo++)
+    nissa_loc_volh_loop(ivol)
       for(int mu=0;mu<4;mu++)
 	{
-	  S[par][ieo][mu][0]=1;
-	  S[par][ieo][mu][1]=0;
+	  S[par][ivol][mu][0]=1;
+	  S[par][ivol][mu][1]=0;
 	}
 }
 
@@ -50,9 +50,9 @@ void add_backfield_to_conf(quad_su3 **conf,quad_u1 **u1)
 {
   master_printf("Adding backfield\n");
   for(int par=0;par<2;par++)
-    for(int ieo=0;ieo<loc_volh;ieo++)
+    nissa_loc_volh_loop(ivol)
       for(int mu=0;mu<4;mu++)
-	safe_su3_prod_complex(conf[par][ieo][mu],conf[par][ieo][mu],u1[par][ieo][mu]);
+	safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
 }
 
 //multpiply the configuration for an the conjugate of an u(1) field
@@ -60,7 +60,7 @@ void rem_backfield_from_conf(quad_su3 **conf,quad_u1 **u1)
 {
   master_printf("Removing backfield\n");
   for(int par=0;par<2;par++)
-    for(int ieo=0;ieo<loc_volh;ieo++)
+    nissa_loc_volh_loop(ivol)
       for(int mu=0;mu<4;mu++)
-	safe_su3_prod_conj_complex(conf[par][ieo][mu],conf[par][ieo][mu],u1[par][ieo][mu]);
+	safe_su3_prod_conj_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
 }

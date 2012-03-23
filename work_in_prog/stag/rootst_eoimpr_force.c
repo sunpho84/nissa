@@ -79,7 +79,7 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
   */
 
   //conclude the calculation of the fermionic force
-  for(int ivol=0;ivol<loc_volh;ivol++)
+  nissa_loc_volh_loop(ivol)
     for(int mu=0;mu<4;mu++)
       for(int iterm=0;iterm<appr->nterms;iterm++)
 	for(int ic1=0;ic1<3;ic1++)
@@ -120,7 +120,7 @@ void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,double beta,int nfl,q
   
   //Finish the computation multiplying for the conf and taking TA
   for(int eo=0;eo<2;eo++)
-    for(int ivol=0;ivol<loc_volh;ivol++)
+    nissa_loc_volh_loop(ivol)
       for(int mu=0;mu<4;mu++)
 	{
 	  su3 temp;

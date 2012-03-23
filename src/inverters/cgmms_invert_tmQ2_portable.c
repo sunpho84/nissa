@@ -1,6 +1,6 @@
 #pragma once
 
-void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL)
+void inv_tmQ2_cgmms_RL(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter,double st_res,double st_minres,int st_crit,int RL,spincolor *source)
 {
   double zps[nmass],zas[nmass],zfs[nmass],betas[nmass],alphas[nmass];
   double rr,rfrf,pap,alpha;
@@ -20,8 +20,9 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double k
   //sol[*]=0
   for(int imass=0;imass<nmass;imass++)
     {
-      memset(sol[imass],0,sizeof(spincolor)*(loc_vol+loc_bord));
+      memset(sol[imass],0,sizeof(spincolor)*loc_vol);
       run_flag[imass]=1;
+      set_borders_invalid(sol[imass]);
     }
   
   //     -p=source
@@ -38,6 +39,8 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double k
 	
 	dsource++;dp++;dr++;
       }
+    set_borders_invalid(p);
+    
     MPI_Allreduce(&loc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     source_norm=rr;
     master_printf("Source norm: %lg\n",source_norm);
@@ -56,13 +59,15 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double k
   {
     for(int imass=0;imass<nmass;imass++)
       {
-	double *dps=(double*)(ps[imass]),*dsource=(double*)source;
-	for(int i=0;i<loc_vol*3*4*2;i++)
-	  {
-	    (*dps)=(*dsource);
-	    dps++;dsource++;
-	  }
-
+	{
+	  double *dps=(double*)(ps[imass]),*dsource=(double*)source;
+	  for(int i=0;i<loc_vol*3*4*2;i++)
+	    {
+	      (*dps)=(*dsource);
+	      dps++;dsource++;
+	    }
+	}
+	
 	zps[imass]=zas[imass]=1;
 	alphas[imass]=0;
       }
@@ -75,8 +80,7 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double k
   do
     {
       //     -s=Ap
-      communicate_lx_spincolor_borders(p);
-      apply_tmQ2_RL(s,p,conf,kappa,m[0],t,RL);
+      apply_tmQ2_RL(s,conf,kappa,m[0],t,RL,p);
       
       //     -pap=(p,s)=(p,Ap)
       {
@@ -113,6 +117,7 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double k
 		    dsol++;dps++;
 		  }
 	      }
+	      set_borders_invalid(sol[imass]);
             }
         }
       
@@ -122,14 +127,16 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double k
       {
 	double loc_rfrf=0;
 
-	double *dr=(double*)r,*ds=(double*)s;	
-	for(int i=0;i<loc_vol*3*4*2;i++)
-	  {
-            (*dr)+=(*ds)*betaa;
-            loc_rfrf+=(*dr)*(*dr);
-	    dr++;ds++;
-          }
-	MPI_Allreduce(&loc_rfrf,&rfrf,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	{
+	  double *dr=(double*)r,*ds=(double*)s;	
+	  for(int i=0;i<loc_vol*3*4*2;i++)
+	    {
+	      (*dr)+=(*ds)*betaa;
+	      loc_rfrf+=(*dr)*(*dr);
+	      dr++;ds++;
+	    }
+	  MPI_Allreduce(&loc_rfrf,&rfrf,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	}
       }
 
       //     calculate alpha=rfrf/rr=(r',r')/(r,r)
@@ -144,6 +151,7 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double k
 	    dp++;dr++;
           }
       }
+      set_borders_invalid(p);
 
       for(int imass=0;imass<nmass;imass++)
         if(run_flag[imass]==1)
@@ -169,18 +177,16 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double k
       iter++;
       
       //     check over residual
-      nrun_mass=check_cgmms_residue_tmQ2_RL(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m,source,conf,kappa,s,t,source_norm,RL);
+      nrun_mass=check_cgmms_residue_tmQ2_RL(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,nmass,m,source,conf,kappa,s,t,source_norm,RL,sol);
     }
   while(nrun_mass>0 && iter<niter);
-  
-  for(int imass=0;imass<nmass;imass++) communicate_lx_spincolor_borders(sol[imass]);
   
   //print the final true residue
   
   for(int imass=0;imass<nmass;imass++)
     {
       double res,w_res,weight,max_res;
-      apply_tmQ2_RL(s,sol[imass],conf,kappa,m[imass],t,RL);
+      apply_tmQ2_RL(s,conf,kappa,m[imass],t,RL,sol[imass]);
       {
 	double loc_res=0;
 	double locw_res=0;
@@ -201,7 +207,7 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,spincolor *source,quad_su3 *conf,double k
 	    loc_weight+=point_weight;
 	    if(plain_res>locmax_res) locmax_res=plain_res;
 	  }
-
+	
 	MPI_Reduce(&loc_res,&res,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(&locw_res,&w_res,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(&loc_weight,&weight,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);

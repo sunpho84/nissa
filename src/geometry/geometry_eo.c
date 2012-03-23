@@ -185,7 +185,7 @@ void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
   if(nissa_eo_geom_inited==0) set_eo_geometry();
   
   for(int ieo=0;ieo<2;ieo++)
-    for(int ivol_eo=0;ivol_eo<loc_volh;ivol_eo++)
+    nissa_loc_volh_loop(ivol_eo)
       {
 	int ivol_lx=loclx_of_loceo[ieo][ivol_eo];
 	
@@ -209,65 +209,63 @@ void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
 	if(glb_coord_of_loclx[ivol_lx][0]==glb_size[0]-1) d+=1;
 	if(d%2==1) su3_prod_double(eo_conf[ieo][ivol_eo][0],eo_conf[ieo][ivol_eo][0],-1);
       }
+  
+  set_borders_invalid(eo_conf[0]);
+  set_borders_invalid(eo_conf[1]);
 }
 
 //separate the even or odd part of a vector
-void take_e_or_o_part_of_lx_vector(char *out_e_or_o,char *in_lx,int nsites,int bps,int par)
+void take_e_or_o_part_of_lx_vector(void *out_e_or_o,void *in_lx,int bps,int par)
 {
-  if(nsites<0||nsites>loc_vol+loc_bord+loc_edge) crash("too large or small vector: %d",nsites);
-  
   //extract
-  for(int loclx=0;loclx<nsites;loclx++)
+  nissa_loc_vol_loop(loclx)
     if(par==loclx_parity[loclx])
       memcpy(out_e_or_o+bps*loceo_of_loclx[loclx],in_lx+bps*loclx,bps);
+  
+  set_borders_invalid(out_e_or_o);
 }
 //wrappers
-void take_e_part_of_lx_vector(char *out_e,char *in_lx,int nsites,int bps)
-{take_e_or_o_part_of_lx_vector(out_e,in_lx,nsites,bps,EVN);}
-void take_o_part_of_lx_vector(char *out_o,char *in_lx,int nsites,int bps)
-{take_e_or_o_part_of_lx_vector(out_o,in_lx,nsites,bps,ODD);}
-void take_e_part_of_lx_color(color *out_e,color *in_lx,int nsites)
-{take_e_part_of_lx_vector((char*)out_e,(char*)in_lx,nsites,sizeof(color));}
-void take_o_part_of_lx_color(color *out_o,color *in_lx,int nsites)
-{take_o_part_of_lx_vector((char*)out_o,(char*)in_lx,nsites,sizeof(color));}
+void take_e_part_of_lx_vector(void *out_e,void *in_lx,int bps)
+{take_e_or_o_part_of_lx_vector(out_e,in_lx,bps,EVN);}
+void take_o_part_of_lx_vector(void *out_o,void *in_lx,int bps)
+{take_e_or_o_part_of_lx_vector(out_o,in_lx,bps,ODD);}
+void take_e_part_of_lx_color(color *out_e,color *in_lx)
+{take_e_part_of_lx_vector(out_e,in_lx,sizeof(color));}
+void take_o_part_of_lx_color(color *out_o,color *in_lx)
+{take_o_part_of_lx_vector(out_o,in_lx,sizeof(color));}
 
 //separate the even and odd part of a vector
-void split_lx_vector_into_eo_parts(char *out_ev,char *out_od,char *in_lx,int nsites,int bps)
+void split_lx_vector_into_eo_parts(void **out_eo,void *in_lx,int bps)
 {
-  if(nsites<0||nsites>loc_vol+loc_bord+loc_edge) crash("too large or small vector: %d",nsites);
-  
-  //collect even and odd sites pointer into a more convenient structure
-  char *out[2]={out_ev,out_od};
-  
   //split
-  for(int loclx=0;loclx<nsites;loclx++)
-    memcpy(out[loclx_parity[loclx]]+bps*loceo_of_loclx[loclx],in_lx+bps*loclx,bps);
+  nissa_loc_vol_loop(loclx)
+    memcpy(out_eo[loclx_parity[loclx]]+bps*loceo_of_loclx[loclx],in_lx+bps*loclx,bps);
+  
+  set_borders_invalid(out_eo[0]);
+  set_borders_invalid(out_eo[1]);
 }
 
 //paste the even and odd parts of a vector into a full lx vector
-void paste_eo_parts_into_lx_vector(char *out_lx,char *in_ev,char *in_od,int nsites,int bps)
+void paste_eo_parts_into_lx_vector(void *out_lx,void **in_eo,int bps)
 {
-  if(nsites<0||nsites>loc_vol+loc_bord+loc_edge) crash("too large or small vector: %d",nsites);
-  
-  //collect even and odd sites pointer into a more convenient structure
-  char *in[2]={in_ev,in_od};
-  
   //paste
-  for(int loclx=0;loclx<nsites;loclx++)
+  nissa_loc_vol_loop(loclx)
     {
       int eo=loceo_of_loclx[loclx];
       int par=loclx_parity[loclx];
-      memcpy(out_lx+bps*loclx,in[par]+bps*eo,bps);
+      memcpy(out_lx+bps*loclx,in_eo[par]+bps*eo,bps);
     }
+
+  set_borders_invalid(out_lx);
 }
 
 //wrappers
-void split_lx_conf_into_eo_parts(quad_su3 **eo_out,quad_su3 *lx_in,int nsites)
-{split_lx_vector_into_eo_parts((char*)(eo_out[EVN]),(char*)(eo_out[ODD]),(char*)lx_in,nsites,sizeof(quad_su3));}
-void split_lx_color_into_eo_parts(color **eo_out,color *lx_in,int nsites)
-{split_lx_vector_into_eo_parts((char*)(eo_out[EVN]),(char*)(eo_out[ODD]),(char*)lx_in,nsites,sizeof(color));}
-void split_lx_spincolor_into_eo_parts(spincolor **eo_out,spincolor *lx_in,int nsites)
-{split_lx_vector_into_eo_parts((char*)(eo_out[EVN]),(char*)(eo_out[ODD]),(char*)lx_in,nsites,sizeof(spincolor));}
+void split_lx_conf_into_eo_parts(quad_su3 **eo_out,quad_su3 *lx_in)
+{split_lx_vector_into_eo_parts((void**)eo_out,lx_in,sizeof(quad_su3));}
+void split_lx_color_into_eo_parts(color **eo_out,color *lx_in)
+{split_lx_vector_into_eo_parts((void**)eo_out,lx_in,sizeof(color));}
+void split_lx_spincolor_into_eo_parts(spincolor **eo_out,spincolor *lx_in)
+{split_lx_vector_into_eo_parts((void**)eo_out,lx_in,sizeof(spincolor));}
 
-void paste_eo_parts_into_lx_spincolor(spincolor *out_lx,spincolor *in_ev,spincolor *in_od,int nsites)
-{paste_eo_parts_into_lx_vector((char*)out_lx,(char*)in_ev,(char*)in_od,nsites,sizeof(spincolor));}
+void paste_eo_parts_into_lx_spincolor(spincolor *out_lx,spincolor **in_eo)
+{paste_eo_parts_into_lx_vector(out_lx,(void**)in_eo,sizeof(spincolor));}

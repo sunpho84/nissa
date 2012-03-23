@@ -118,7 +118,7 @@ void checksum_compute_nissa_data(uint32_t *check,void *data,size_t bps)
 {
   uint32_t loc_check[2]={0,0};
   
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
       int *X=glb_coord_of_loclx[ivol];
       uint32_t ildg_ivol=X[1]+glb_size[1]*(X[2]+glb_size[2]*(X[3]+glb_size[3]*X[0]));

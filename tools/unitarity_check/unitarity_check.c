@@ -8,7 +8,7 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
   
   read_ildg_gauge_conf(conf,filename);
   
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int idir=0;idir<4;idir++)
       {  
 	su3_dag_prod_su3(prod,conf[ivol][idir],conf[ivol][idir]);

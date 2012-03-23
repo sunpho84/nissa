@@ -19,7 +19,7 @@
    
 */
 
-void ac_rotate_vector(char *out,char *in,int axis,int bps)
+void ac_rotate_vector(void *out,void *in,int axis,int bps)
 {
   //find the two swapping direction 
   int d1=1+(axis-1+1)%3;
@@ -35,7 +35,7 @@ void ac_rotate_vector(char *out,char *in,int axis,int bps)
   coords *xfr=nissa_malloc("xfr",loc_vol,coords);
   
   //scan all local sites to see where to send and from where to expect data
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
       //copy 0 and axis coord to "to" and "from" sites
       xto[ivol][0]=xfr[ivol][0]=glb_coord_of_loclx[ivol][0];
@@ -52,7 +52,7 @@ void ac_rotate_vector(char *out,char *in,int axis,int bps)
   
   //call the remapping
   remap_vector(out,in,xto,xfr,bps);
-
+  
   //free vectors
   nissa_free(xfr);
   nissa_free(xto);
@@ -90,7 +90,7 @@ void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis)
   communicate_lx_quad_su3_borders(temp_conf);
   
   //now reorder links
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
       {
 	//copy temporal direction and axis
 	memcpy(out[ivol][d0],temp_conf[ivol][d0],sizeof(su3));
@@ -100,7 +100,8 @@ void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis)
 	memcpy(out[ivol][d2],temp_conf[ivol][d1],sizeof(su3));
       }
   
-  ac_rotate_vector((char*)out,(char*)out,axis,sizeof(quad_su3));
+  //rotate rigidly
+  ac_rotate_vector(out,out,axis,sizeof(quad_su3));
 }
 
 //put boundary conditions on the gauge conf
@@ -117,8 +118,11 @@ void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords
   if(putonbords) nsite+=loc_bord;
   if(putonedges) nsite+=loc_edge;
 
-  for(int loc_site=0;loc_site<nsite;loc_site++)
-    for(int idir=0;idir<4;idir++) safe_su3_prod_complex(conf[loc_site][idir],conf[loc_site][idir],theta[idir]);
+  for(int ivol=0;ivol<nsite;ivol++)
+    for(int idir=0;idir<4;idir++) safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
+  
+  if(putonbords) set_borders_invalid(conf);
+  if(putonedges) set_edges_invalid(conf);
 }
 
 void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges)
@@ -142,7 +146,7 @@ void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbor
   
   if(adapt)
     {
-      if(rank==0) printf("Necesarry to add boundary condition: %f %f %f %f\n",diff_theta[0],diff_theta[1],diff_theta[2],diff_theta[3]);
+      master_printf("Necesarry to add boundary condition: %f %f %f %f\n",diff_theta[0],diff_theta[1],diff_theta[2],diff_theta[3]);
       put_boundaries_conditions(conf,diff_theta,putonbords,putonedges);
     }
 }

@@ -232,8 +232,6 @@ void load_gauge_conf()
   elaps_time+=take_time();
   fix_time+=elaps_time;
   master_printf("Fixed conf in %lg sec\n",elaps_time);
-  communicate_lx_quad_su3_borders(conf);
-  communicate_lx_quad_su3_borders(unfix_conf);
   
   if(write_fixed_conf)
     {
@@ -287,7 +285,7 @@ void close_Zcomputation()
 void calculate_S0()
 {
   inv_time-=take_time();
-  compute_su3spinspin_propagators_multi_mass(S0,original_source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+  compute_su3spinspin_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion,original_source);
   inv_time+=take_time();
   ninv_tot+=12;
   
@@ -310,7 +308,7 @@ void compute_fft(double sign)
       {
 	fft4d((complex*)S0[r][imass],(complex*)S0[r][imass],144,sign,0);
 	//multiply by the conjugate of the fft of the source
-	for(int imom=0;imom<loc_vol;imom++)
+	nissa_loc_vol_loop(imom)
 	  {
 	    double arg=0;
 	    for(int mu=0;mu<4;mu++) arg+=((double)glb_coord_of_loclx[imom][mu]*source_coord[mu])/glb_size[mu];
@@ -440,8 +438,7 @@ void calculate_all_2pts()
 	    ncontr_tot+=ncontr_2pts;
 	    print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1);
 	    
-	    if(rank==0)
-	      fprintf(fout,"\n");
+	    master_fprintf(fout,"\n");
 	  }
   
   if(rank==0)

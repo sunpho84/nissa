@@ -5,7 +5,7 @@ double eo_color_norm2(color *v)
 {
   double loc_norm2=0;
   
-  for(int ivol=0;ivol<loc_volh;ivol++)
+  nissa_loc_volh_loop(ivol)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	loc_norm2+=v[ivol][ic][ri]*v[ivol][ic][ri];
@@ -21,7 +21,7 @@ double eo_color_normalize(color *out,color *in,double norm)
 {
   double fact=sqrt(norm/eo_color_norm2(in));
   
-  for(int ivol=0;ivol<loc_volh;ivol++)
+  nissa_loc_volh_loop(ivol)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	out[ivol][ic][ri]=in[ivol][ic][ri]*fact;
@@ -42,7 +42,7 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
   color *tmp=nissa_malloc("tmp",loc_volh+loc_bordh,color);
   
   //generate the random field
-  for(int ivol=0;ivol<loc_volh;ivol++)
+  nissa_loc_volh_loop(ivol)
     color_put_to_gauss(vec_in[ivol],&(loc_rnd_gen[loclx_of_loceo[0][ivol]]),3);
   
   /*

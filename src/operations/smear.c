@@ -13,12 +13,12 @@ void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alp
     {
       if(debug_lvl>1) master_printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
       memcpy(temp_conf,smear_conf,sizeof(quad_su3)*loc_vol);
-      
+      set_borders_invalid(temp_conf);
+    
       //communicate the borders
-      communicate_lx_quad_su3_borders(temp_conf);
-      communicate_lx_gauge_edges(temp_conf);
+      communicate_lx_quad_su3_edges(temp_conf);
       
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
+      nissa_loc_vol_loop(ivol)
 	{
 	  for(int mu=1;mu<4;mu++)
 	    {
@@ -28,7 +28,7 @@ void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alp
 	      for(int nu=1;nu<4;nu++)                   //  E---F---C   
 		if(nu!=mu)                              //  |   |   | mu
 		  {                                     //  D---A---B   
-		    int A=loc_site;                     //        nu    
+		    int A=ivol;                     //        nu    
 		    int B=loclx_neighup[A][nu];
 		    int F=loclx_neighup[A][mu];
 		    unsafe_su3_prod_su3(temp1,temp_conf[A][nu],temp_conf[B][mu]);
@@ -47,15 +47,17 @@ void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alp
 	      for(int icol1=0;icol1<3;icol1++)
 		for(int icol2=0;icol2<3;icol2++)
 		  for(int ri=0;ri<2;ri++)
-		    //prop_link[icol1][icol2][ri]=(1-alpha)*temp_conf[loc_site][mu][icol1][icol2][ri]+alpha/6*stap[icol1][icol2][ri];
-		    prop_link[icol1][icol2][ri]=temp_conf[loc_site][mu][icol1][icol2][ri]+alpha*stap[icol1][icol2][ri];
+		    //prop_link[icol1][icol2][ri]=(1-alpha)*temp_conf[ivol][mu][icol1][icol2][ri]+alpha/6*stap[icol1][icol2][ri];
+		    prop_link[icol1][icol2][ri]=temp_conf[ivol][mu][icol1][icol2][ri]+alpha*stap[icol1][icol2][ri];
 	      
-	      su3_unitarize_maximal_trace_projecting(smear_conf[loc_site][mu],prop_link);
-	      //su3_unitarize_explicitly_inverting(smear_conf[loc_site][mu],prop_link);
+	      su3_unitarize_maximal_trace_projecting(smear_conf[ivol][mu],prop_link);
+	      //su3_unitarize_explicitly_inverting(smear_conf[ivol][mu],prop_link);
 	    }
 	}
     }
-      
+  
+  set_borders_invalid(smear_conf);
+  
   nissa_free(temp_conf);
 }
 
@@ -70,15 +72,15 @@ void density_profile(double *glb_rho,spincolor *sp,int *or_pos)
   memset(loc_rho,0,sizeof(double)*L);
   memset(loc_n,0,sizeof(int)*L);
 
-  for(int l=0;l<loc_vol;l++)
-    if(glb_coord_of_loclx[l][0]==or_pos[0]||or_pos[0]<0)
+  nissa_loc_vol_loop(ivol)
+    if(glb_coord_of_loclx[ivol][0]==or_pos[0]||or_pos[0]<0)
       {
         //calculate distance
         double r2=0;
         int d;
         for(int mu=1;mu<4;mu++)
           {
-            int x=glb_coord_of_loclx[l][mu]-or_pos[mu];
+            int x=glb_coord_of_loclx[ivol][mu]-or_pos[mu];
             if(x>=L/2) x-=L;
             if(x<-L/2) x+=L;
             r2+=x*x;
@@ -92,7 +94,7 @@ void density_profile(double *glb_rho,spincolor *sp,int *or_pos)
         for(int id=0;id<4;id++)
           for(int ic=0;ic<3;ic++)
             for(int ri=0;ri<2;ri++)
-	      loc_rho[d]+=sp[l][id][ic][ri]*sp[l][id][ic][ri];
+	      loc_rho[d]+=sp[ivol][id][ic][ri]*sp[ivol][id][ic][ri];
       }
   
   //final reduction
@@ -108,21 +110,22 @@ void density_profile(double *glb_rho,spincolor *sp,int *or_pos)
 void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *smear_sc)
 {
   communicate_lx_spincolor_borders(smear_sc);
+  
   memset(H,0,sizeof(spincolor)*loc_vol);
   
 #ifndef BGP
-  for(int l=0;l<loc_vol;l++)
+  nissa_loc_vol_loop(ivol)
     for(int id=0;id<4;id++)
       {
 	for(int mu=1;mu<4;mu++)
 	  {
-	    int lup=loclx_neighup[l][mu];
-	    int ldw=loclx_neighdw[l][mu];
+	    int ivup=loclx_neighup[ivol][mu];
+	    int ivdw=loclx_neighdw[ivol][mu];
 	    
-	    su3_summ_the_prod_color    (H[l][id],conf[l  ][mu],smear_sc[lup][id]);
-	    su3_dag_summ_the_prod_color(H[l][id],conf[ldw][mu],smear_sc[ldw][id]);
+	    su3_summ_the_prod_color    (H[ivol][id],conf[ivol][mu],smear_sc[ivup][id]);
+	    su3_dag_summ_the_prod_color(H[ivol][id],conf[ivdw][mu],smear_sc[ivdw][id]);
 	  }
-	color_prod_double(H[l][id],H[l][id],kappa);
+	color_prod_double(H[ivol][id],H[ivol][id],kappa);
       }
 #else
   bgp_complex H0,H1,H2;
@@ -137,59 +140,62 @@ void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *
   bgp_complex V10,V11,V12;
   bgp_complex V20,V21,V22;
   
-  for(int l=0;l<loc_vol;l++)
+  nissa_loc_vol_loop(ivol)
     {
       for(int mu=1;mu<4;mu++)
 	{
-	  int lup=loclx_neighup[l][mu];
-	  int ldw=loclx_neighdw[l][mu];
+	  int ivup=loclx_neighup[ivol][mu];
+	  int ivdw=loclx_neighdw[ivol][mu];
 	  
-	  bgp_cache_touch_su3(conf[l][mu]);
-	  bgp_cache_touch_su3(conf[ldw][mu]);
-	  bgp_cache_touch_spincolor(H[l]);
-	  bgp_cache_touch_spincolor(smear_sc[lup]);
-	  bgp_cache_touch_spincolor(smear_sc[ldw]);
+	  bgp_cache_touch_su3(conf[ivol][mu]);
+	  bgp_cache_touch_su3(conf[ivdw][mu]);
+	  bgp_cache_touch_spincolor(H[ivol]);
+	  bgp_cache_touch_spincolor(smear_sc[ivup]);
+	  bgp_cache_touch_spincolor(smear_sc[ivdw]);
 	  
-	  bgp_load_su3(U00,U01,U02,U10,U11,U12,U20,U21,U22,conf[l][mu]);
-	  bgp_load_su3(V00,V01,V02,V10,V11,V12,V20,V21,V22,conf[ldw][mu]);
+	  bgp_load_su3(U00,U01,U02,U10,U11,U12,U20,U21,U22,conf[ivol][mu]);
+	  bgp_load_su3(V00,V01,V02,V10,V11,V12,V20,V21,V22,conf[ivdw][mu]);
 	  
 	  for(int id=0;id<4;id++)
 	    {
-	      bgp_load_color(H0,H1,H2,H[l][id]);
-	      bgp_load_color(A0,A1,A2,smear_sc[lup][id]);
-	      bgp_load_color(B0,B1,B2,smear_sc[ldw][id]);
+	      bgp_load_color(H0,H1,H2,H[ivol][id]);
+	      bgp_load_color(A0,A1,A2,smear_sc[ivup][id]);
+	      bgp_load_color(B0,B1,B2,smear_sc[ivdw][id]);
 	      
 	      bgp_summ_the_su3_prod_color(H0,H1,H2,U00,U01,U02,U10,U11,U12,U20,U21,U22,A0,A1,A2);
 	      bgp_summ_the_su3_dag_prod_color(H0,H1,H2,V00,V01,V02,V10,V11,V12,V20,V21,V22,B0,B1,B2);
 
-	      bgp_save_color(H[l][id],H0,H1,H2);
+	      bgp_save_color(H[ivol][id],H0,H1,H2);
 	    }
 	}
       
-      bgp_cache_touch_spincolor(H[l]);  
+      bgp_cache_touch_spincolor(H[ivol]);  
       for(int id=0;id<4;id++)
 	{
-	  bgp_load_color(A0,A1,A2,H[l][id]);  
+	  bgp_load_color(A0,A1,A2,H[ivol][id]);  
 	  bgp_color_prod_double(B0,B1,B2,A0,A1,A2,kappa);
-	  bgp_save_color(H[l][id],B0,B1,B2);
+	  bgp_save_color(H[ivol][id],B0,B1,B2);
 	}
     }
-  
 #endif
+  
+  set_borders_invalid(H);
 }
 
 //summ
 void vol_spincolor_summassign(spincolor *smear_sc,spincolor *H)
 {
-  for(int l=0;l<loc_vol;l++)
-    spincolor_summ(smear_sc[l],smear_sc[l],H[l]);
+  nissa_loc_vol_loop(ivol)
+    spincolor_summ(smear_sc[ivol],smear_sc[ivol],H[ivol]);
+  set_borders_invalid(smear_sc);
 }
 
 //prod with double
 void vol_spincolor_prod_double(spincolor *out,spincolor *in,double r)
 {
-  for(int l=0;l<loc_vol;l++)
-    spincolor_prod_double(out[l],in[l],r);
+  nissa_loc_vol_loop(ivol)
+    spincolor_prod_double(out[ivol],in[ivol],r);
+  set_borders_invalid(out);
 }
 
 //jacobi smearing
@@ -211,6 +217,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       
       //iter 0
       memcpy(temp,origi_sc,sizeof(spincolor)*loc_vol);
+      set_borders_invalid(temp);
       
       //loop over jacobi iterations
       for(int iter=0;iter<niter;iter++)
@@ -229,24 +236,26 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 	  bgp_complex B0,B1,B2;
 	  bgp_complex C0,C1,C2;
 	  
-	  for(int l=0;l<loc_vol;l++)
+	  nissa_loc_vol_loop(ivol)
 	    {
-	      bgp_cache_touch_spincolor(temp[l]);
-	      bgp_cache_touch_spincolor(H[l]);
+	      bgp_cache_touch_spincolor(temp[ivol]);
+	      bgp_cache_touch_spincolor(H[ivol]);
 	      
 	      for(int id=0;id<4;id++)
 		{
-		  bgp_load_color(A0,A1,A2,temp[l][id]);
-		  bgp_load_color(B0,B1,B2,H[l][id]);
+		  bgp_load_color(A0,A1,A2,temp[ivol][id]);
+		  bgp_load_color(B0,B1,B2,H[ivol][id]);
 		  bgp_color_prod_double(C0,C1,C2,A0,A1,A2,norm_fact);
 		  bgp_summassign_color_prod_double(C0,C1,C2,B0,B1,B2,norm_fact);
-		  bgp_save_color(temp[l][id],C0,C1,C2);
+		  bgp_save_color(temp[ivol][id],C0,C1,C2);
 		}
 	    }
+	  set_borders_invalid(temp);
 #endif
 	}
       
       memcpy(smear_sc,temp,sizeof(spincolor)*loc_vol);
+      set_borders_invalid(smear_sc);
       
       nissa_free(H);
       nissa_free(temp);
@@ -274,9 +283,8 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
       if(mu==nu || (req_mu>=0 && req_mu<=3 && mu!=req_mu && nu!=req_mu)) dec1_remap_index[mu][nu]=-1;
       else                                                               dec1_remap_index[mu][nu]=idec1_remap++;
   
-  //communicate borders of original conf
-  communicate_lx_quad_su3_borders(conf);
-  communicate_lx_gauge_edges(conf);
+  //communicate borders and edges of original conf
+  communicate_lx_quad_su3_edges(conf);
   
   /////////////////////////////////////// second level decoration /////////////////////////////////
   
@@ -300,7 +308,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
 	    int ire0=dec2_remap_index[mu][nu][rho];
 	    
 	    //loop over local volume
-	    for(int A=0;A<loc_vol;A++)
+	    nissa_loc_vol_loop(A)
 	      {
 		//take original link
 		su3 temp0;
@@ -330,7 +338,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
 	      }
 	    
 	    //communicate borders for future usage
-	    communicate_lx_su3_borders(dec2_conf[ire0]);
+	    set_borders_invalid(dec2_conf[ire0]);
 	    communicate_lx_su3_edges(dec2_conf[ire0]);
 	  }
   
@@ -346,7 +354,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
     for(int nu=0;nu<4;nu++)
       if(nu!=mu && (req_mu<0 || req_mu>3 || mu==req_mu || nu==req_mu))
 	//loop over local volume
-	for(int A=0;A<loc_vol;A++)
+	nissa_loc_vol_loop(A)
 	  {
 	    //take original link
 	    su3 temp0;
@@ -391,7 +399,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
 		}
 	    
 	    //communicate borders for future usage
-	    communicate_lx_su3_borders(dec1_conf[ire0]);
+	    set_borders_invalid(dec1_conf[ire0]);
 	    communicate_lx_su3_edges(dec1_conf[ire0]);
 	  }
   
@@ -403,7 +411,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
   //loop over external index
   for(int mu=0;mu<4;mu++)
     //loop over local volume
-    for(int A=0;A<loc_vol;A++)
+    nissa_loc_vol_loop(A)
       {
 	//take original link
 	su3 temp0;
@@ -450,6 +458,9 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
 		}
 	  }
       }
+  
+  //invalid borders
+  set_borders_invalid(sm_conf);
   
   //free dec1
   for(int idec1=0;idec1<idec1_remap;idec1++) nissa_free(dec1_conf[idec1]);

@@ -383,9 +383,10 @@ void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
       if(end_path!=NULL) sprintf(filename,"%s.0%d.%s",base_path,so,end_path);
       else sprintf(filename,"%s.0%d",base_path,so);
       read_spincolor(temp,filename);
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
-	put_spincolor_into_colorspinspin(css[loc_site],temp[loc_site],so);
+      nissa_loc_vol_loop(ivol)
+	put_spincolor_into_colorspinspin(css[ivol],temp[ivol],so);
     }
+  set_borders_invalid(css);
   nissa_free(temp);
 }
 
@@ -400,9 +401,10 @@ void read_su3spinspin(su3spinspin *ccss,char *base_path,char *end_path)
 	if(end_path!=NULL) sprintf(filename,"%s.%02d.%s",base_path,id*3+ic,end_path);
 	else sprintf(filename,"%s.%02d",base_path,id*3+ic);
 	read_spincolor(temp,filename);
-	for(int loc_site=0;loc_site<loc_vol;loc_site++)
-	  put_spincolor_into_su3spinspin(ccss[loc_site],temp[loc_site],id,ic);
+	nissa_loc_vol_loop(ivol)
+	  put_spincolor_into_su3spinspin(ccss[ivol],temp[ivol],id,ic);
       }
+  set_borders_invalid(ccss);
   nissa_free(temp);
 }
 
@@ -413,6 +415,7 @@ void read_ildg_gauge_conf(quad_su3 *conf,char *path)
   read_real_vector((double*)conf,path,"ildg-binary-data",nreals_per_quad_su3);
   master_printf("Configuration read!\n\n");
   reorder_read_ildg_gauge_conf(conf);
+  set_borders_invalid(conf);
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -427,9 +430,9 @@ void read_tm_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path
       all=1;
     }
   read_spincolor(temp,path);
-  communicate_lx_spincolor_borders(temp);
+  set_borders_invalid(temp);
 
-  reconstruct_tm_doublet(out[0],out[1],temp,conf,kappa,mu);  
+  reconstruct_tm_doublet(out[0],out[1],conf,kappa,mu,temp);
 
   if(all) nissa_free(temp);
 }  
@@ -452,19 +455,19 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,char *base_path,ch
       read_tm_spincolor_reconstructing(sc,temp,filename,conf,kappa,mu);
       
       //Switch the spincolor into the colorspin. 
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
+      nissa_loc_vol_loop(ivol)
 	{
-	  put_spincolor_into_colorspinspin(css[0][loc_site],sc[0][loc_site],id_source);
-	  put_spincolor_into_colorspinspin(css[1][loc_site],sc[1][loc_site],id_source);
+	  put_spincolor_into_colorspinspin(css[0][ivol],sc[0][ivol],id_source);
+	  put_spincolor_into_colorspinspin(css[1][ivol],sc[1][ivol],id_source);
 	}
     }
 
-  if(debug_lvl)
-    {
-      time+=take_time();
-      master_printf("Time elapsed in reading file '%s': %f s\n",base_path,time);
-    }
+  time+=take_time();
+  master_printf("Time elapsed in reading file '%s': %f s\n",base_path,time);
 
+  set_borders_invalid(css[0]);
+  set_borders_invalid(css[1]);
+  
   //Destroy the temp
   nissa_free(sc[0]);
   nissa_free(sc[1]);
@@ -476,8 +479,8 @@ void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,char *path)
 {
   quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol+loc_bord,quad_su3);
   read_ildg_gauge_conf(lx_conf,path);
-  split_lx_conf_into_eo_parts(eo_conf,lx_conf,loc_vol);
+  split_lx_conf_into_eo_parts(eo_conf,lx_conf);
   nissa_free(lx_conf);
 
-  master_printf("plaq: %.18g\n",global_plaquette_eo_conf(eo_conf[0],eo_conf[1]));
+  master_printf("plaq: %.18g\n",global_plaquette_eo_conf(eo_conf));
 }

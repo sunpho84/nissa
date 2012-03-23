@@ -1,6 +1,6 @@
 #pragma once
 
-void inv_tmQ2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL)
+void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL,spincolor *source)
 {
   int riter=0;
   spincolor *s=nissa_malloc("s",loc_vol,spincolor);
@@ -10,7 +10,8 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
   else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));
-
+  set_borders_invalid(sol);  
+  
   //external loop, used if the internal exceed the maximal number of iterations
   double lambda; //(r_(k+1),r_(k+1))
   double source_norm;
@@ -19,8 +20,8 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       double delta;
       {
-	apply_tmQ2_RL(s,sol,conf,kappa,m,t,RL);
-
+	apply_tmQ2_RL(s,conf,kappa,m,t,RL,sol);
+	
 	double loc_delta=0,loc_source_norm=0;
 	double *dsource=(double*)source,*ds=(double*)s,*dp=(double*)p,*dr=(double*)r;
 	for(int i=0;i<loc_vol*3*4*2;i++)
@@ -34,6 +35,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 	MPI_Allreduce(&loc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	MPI_Allreduce(&loc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
+	set_borders_invalid(p);
       }
 
       //main loop
@@ -43,9 +45,8 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 	  double omega; //(r_k,r_k)/(p_k*DD*p_k)
 	  {
 	    double alpha;
-	    if(rank_tot>0) communicate_lx_spincolor_borders(p);
 
-	    apply_tmQ2_RL(s,p,conf,kappa,m,t,RL);
+	    apply_tmQ2_RL(s,conf,kappa,m,t,RL,p);
 
 	    double loc_alpha=0;
 	    complex *cs=(complex*)s,*cp=(complex*)p;
@@ -74,6 +75,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 	      }
 	    if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else lambda=loc_lambda;
+	    set_borders_invalid(sol);
 	  }
 
 	  double gammag=lambda/delta; //(r_(k+1),r_(k+1))/(r_k,r_k)
@@ -88,6 +90,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
 		
 		dp++;dr++;
 	      }
+	    set_borders_invalid(p);
 	    }
 
 	  iter++;
@@ -97,9 +100,8 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 *
       while(lambda>(residue*source_norm) && iter<niter);
       
       //last calculation of residual, in the case iter>niter
-      communicate_lx_spincolor_borders(sol);
-
-      apply_tmQ2_RL(s,sol,conf,kappa,m,t,RL);
+      
+      apply_tmQ2_RL(s,conf,kappa,m,t,RL,sol);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;

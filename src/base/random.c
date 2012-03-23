@@ -158,7 +158,7 @@ void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_type rtype)
 //fill a grid of vectors with numbers between 0 and 1
 void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max)
 {
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int i=0;i<dps;i++)
       v[ivol*dps+i]=rnd_get_unif(&(loc_rnd_gen[ivol]),min,max);
 }
@@ -166,9 +166,11 @@ void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max)
 //return a grid of +-x numbers
 void rnd_fill_pm_one_loc_vector(double *v,int nps)
 {
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int i=0;i<nps;i++)
       v[ivol*nps+i]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
+  
+  set_borders_invalid(v);
 }
 
 //generate a spindiluted vector according to the passed type
@@ -181,7 +183,7 @@ void generate_spindiluted_source(colorspinspin *source,enum rnd_type rtype,int t
   if(twall>=0) norm2/=glb_size[0];
   double inv_sqrt_norm2=1.0/sqrt(norm2);
   
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
       for(int ic=0;ic<3;ic++)
 	{ //generate the id_sink==id_source==0 entry
@@ -190,6 +192,8 @@ void generate_spindiluted_source(colorspinspin *source,enum rnd_type rtype,int t
 	  for(int d=1;d<4;d++) //copy the other three dirac indexes
 	    memcpy(source[ivol][ic][d][d],source[ivol][ic][0][0],sizeof(complex));
 	}
+  
+  set_borders_invalid(source);
 }
 
 //generate an undiluted vector according to the passed type
@@ -197,11 +201,13 @@ void generate_undiluted_source(spincolor *source,enum rnd_type rtype,int twall)
 { //reset
   memset(source,0,sizeof(spincolor)*loc_vol);
   
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
       for(int id=0;id<4;id++)
 	for(int ic=0;ic<3;ic++)
 	  comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
+  
+  set_borders_invalid(source);
 }
 
 //generate a delta source
@@ -221,4 +227,6 @@ void generate_delta_source(su3spinspin *source,int *x)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
         source[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
+  
+  set_borders_invalid(source);
 }

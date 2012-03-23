@@ -1,6 +1,6 @@
 #pragma once
 
-void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int nmass,int niter,double st_res,double st_minres,int st_crit)
+void inv_stD2ee_cgmm2s(color **sol,quad_su3 **conf,double *m2,int nmass,int niter,double st_res,double st_minres,int st_crit,color *source)
 {
   double zps[nmass],zas[nmass],zfs[nmass],betas[nmass],alphas[nmass];
   double rr,rfrf,pap,alpha;
@@ -17,13 +17,12 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
   color *ps[nmass];
   for(int imass=0;imass<nmass;imass++) ps[imass]=nissa_malloc("ps",loc_volh,color);
   
-  communicate_eo_quad_su3_borders(conf[0],conf[1]);
-  
   //sol[*]=0
   for(int imass=0;imass<nmass;imass++)
     {
-      memset(sol[imass],0,sizeof(color)*(loc_volh+loc_bordh));
+      memset(sol[imass],0,sizeof(color)*loc_volh);
       run_flag[imass]=1;
+      set_borders_invalid(sol[imass]);
     }
   
   //     -p=source
@@ -43,7 +42,8 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
     MPI_Allreduce(&loc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     source_norm=rr;
     master_printf(" Source norm: %lg\n",source_norm);
-    
+    set_borders_invalid(p);
+
     master_printf(" cgmms iter 0 rel. residues: ");
     for(int imass=0;imass<nmass;imass++) master_printf("%1.4e  ",1.0);
     master_printf("\n");
@@ -64,7 +64,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
 	    (*dps)=(*dsource);
 	    dps++;dsource++;
 	  }
-
+	
 	zps[imass]=zas[imass]=1;
 	alphas[imass]=0;
       }
@@ -77,9 +77,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
   do
     {
       //     -s=Ap
-      communicate_ev_color_borders(p);
       apply_st2Doe(t,conf,p);
-      communicate_od_color_borders(t);
       apply_st2Deo(s,conf,t);
       
       //     -pap=(p,s)=(p,Ap)
@@ -120,6 +118,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
 		    dsol++;dps++;
 		  }
 	      }
+	      set_borders_invalid(sol[imass]);
             }
         }
 
@@ -150,6 +149,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
             (*dp)=(*dr)+alpha*(*dp);
 	    dp++;dr++;
           }
+	set_borders_invalid(p);
       }
 
       for(int imass=0;imass<nmass;imass++)
@@ -175,11 +175,9 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
       iter++;
       
       //     check over residual
-      nrun_mass=check_cgmm2s_residue_stD2ee(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,sol,nmass,m2,source,conf,s,t,source_norm);
+      nrun_mass=check_cgmm2s_residue_stD2ee(run_flag,final_res,nrun_mass,rr,zfs,st_crit,st_res,st_minres,iter,nmass,m2,source,conf,s,t,source_norm,sol);
     }
   while(nrun_mass>0 && iter<niter);
-  
-  for(int imass=0;imass<nmass;imass++) communicate_ev_color_borders(sol[imass]);
   
   //print the final true residue
   
@@ -207,6 +205,7 @@ void inv_stD2ee_cgmm2s(color **sol,color *source,quad_su3 **conf,double *m2,int 
 	    loc_weight+=point_weight;
 	    if(plain_res>locmax_res) locmax_res=plain_res;
 	  }
+	set_borders_invalid(s);
 	
 	MPI_Reduce(&loc_res,&res,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	MPI_Reduce(&locw_res,&w_res,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);

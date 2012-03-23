@@ -3,16 +3,20 @@
 //apply a gauge transformation to the conf
 void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
 {
+  //communicate borders
   communicate_lx_su3_borders(g);
-  communicate_lx_quad_su3_borders(uin);
-  
+
+  //transform
   su3 temp;
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int mu=0;mu<4;mu++)
       {
 	unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclx_neighup[ivol][mu]]);
 	unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
       }
+  
+  //invaidate borders
+  set_borders_invalid(uout);
 }
 
 //determine the gauge transformation bringing to temporal gauge with T-1 timeslice diferent from id
@@ -23,11 +27,11 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   
   //if the number of ranks in the 0 dir is greater than 1 allocate room for border
   if(nrank_dir[0]>1) buf=nissa_malloc("buf",loc_slice_area,su3);
-
+  
   //if we are on first rank slice put to identity the t=0 slice, otherwise receive it from previous rank slice
   if(rank_coord[0]==0)
     {
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	if(glb_coord_of_loclx[ivol][0]==0)
 	  su3_put_to_id(fixm[ivol]);
     }
@@ -444,7 +448,7 @@ double compute_landau_or_coulomb_gauge_fixing_quality(quad_su3 *conf,int nmu)
   communicate_lx_quad_su3_borders(conf);
 
   double loc_omega=0;
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
       su3 delta;
       compute_landau_or_coulomb_quality_delta(delta,conf,ivol,nmu);
@@ -473,7 +477,7 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
   //superior border so to allocate room for buffers
   int bpar_dw_size[4][2]={{0,0},{0,0},{0,0},{0,0}};
   int bpar_up_size[4][2]={{0,0},{0,0},{0,0},{0,0}};
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int mu=0;mu<4;mu++)
       {
 	int b=loclx_neighdw[ivol][mu];
@@ -494,7 +498,7 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	}
   
   //reset fixing transformation to unity
-  for(int ivol=0;ivol<loc_vol;ivol++) su3_put_to_id(fixm[ivol]);
+  nissa_loc_vol_loop(ivol) su3_put_to_id(fixm[ivol]);
   
   //fix iteratively up to reaching required precision, performing a
   //macro-loop in which the fixing is effectively applied to the original
@@ -505,7 +509,6 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
     {
       //copy the gauge configuration on working fixing it with current transformation
       gauge_transform_conf(w_conf,fixm,conf);
-      communicate_lx_quad_su3_borders(w_conf);
       
       //compute initial precision
       true_precision=compute_landau_or_coulomb_gauge_fixing_quality(w_conf,nmu);
@@ -527,7 +530,7 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	      int isend_dw[4]={0,0,0,0};
 	      int isend_up[4]={0,0,0,0};
 	      
-	      for(int ivol=0;ivol<loc_vol;ivol++)
+	      nissa_loc_vol_loop(ivol)
 		if(loclx_parity[ivol]==par)
 		  {
 		    su3 g;
@@ -574,7 +577,7 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	      //now unpack the receive borders
 	      int irecv_dw[4]={0,0,0,0};
 	      int irecv_up[4]={0,0,0,0};
-	      for(int ivol=0;ivol<loc_vol;ivol++)
+	      nissa_loc_vol_loop(ivol)
 		if(loclx_parity[ivol]!=par)
 		  for(int mu=0;mu<4;mu++)
 		    {
@@ -590,6 +593,8 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	      communic_time+=final_time-intermediate_time;
 	    }
 	  
+	  set_borders_invalid(w_conf);
+	  
 	  //compute precision
 	  if(iter%10==0 && iter!=0)
 	    {
@@ -603,9 +608,10 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	}
       
       //normalize the transformation
-      for(int ivol=0;ivol<loc_vol;ivol++) su3_unitarize_explicitly_inverting(fixm[ivol],fixm[ivol]);
+      nissa_loc_vol_loop(ivol) su3_unitarize_explicitly_inverting(fixm[ivol],fixm[ivol]);
       
       //go to the beginning and check the quality of the macro iteration
+      set_borders_invalid(fixm);
     }
   while(true_precision>=required_precision);
   
