@@ -48,5 +48,6 @@ NContrThreePoints 3
 NChromoContrThreePoints 1
  5  5
 
-NGaugeConf 1
-../../../data/L4T8conf 3 out_temp
+NGaugeConf 2
+../../../data/L4T8conf 3 out_sourceA
+../../../data/L4T8conf 0 out_sourceB
