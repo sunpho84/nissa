@@ -21,6 +21,16 @@ void start_rnd_gen(rnd_gen *out,int seed)
   out->iy=out->iv[0];
 }
 
+//initialize the global random generator
+void start_glb_rnd_gen(int seed)
+{
+  if(nissa_glb_rnd_gen_inited==1) crash("global random generator already initialized");
+  start_rnd_gen(&(glb_rnd_gen),seed);
+  
+  nissa_glb_rnd_gen_inited=1;
+  master_printf("Global random generators initialized with seed: %d\n",seed);
+}
+
 //Initialize the grid of local random number generator
 void start_loc_rnd_gen(int seed)
 {
@@ -30,15 +40,15 @@ void start_loc_rnd_gen(int seed)
   if(loc_vol==0) crash("grid not initalized!");
   
   //Generate the true seed
-  srand(seed);
-  seed=rand();
+  if(nissa_glb_rnd_gen_inited==0) start_glb_rnd_gen(seed);
+  int internal_seed=(int)rnd_get_unif(&glb_rnd_gen,0,RAND_MAX);
   
   //allocate the grid of random generator, one for site
   loc_rnd_gen=nissa_malloc("Loc_rnd_gen",loc_vol,rnd_gen);
-  for(int ivol=0;ivol<loc_vol;ivol++) start_rnd_gen(&(loc_rnd_gen[ivol]),seed+glblx_of_loclx[ivol]);
+  for(int ivol=0;ivol<loc_vol;ivol++) start_rnd_gen(&(loc_rnd_gen[ivol]),internal_seed+glblx_of_loclx[ivol]);
   
   nissa_loc_rnd_gen_inited=1;
-  master_printf("Grid of local random generators initialized\n");
+  master_printf("Grid of local random generators initialized with internal seed: %d\n",internal_seed);
 }
 
 //Stop grid of local random generators
@@ -67,14 +77,14 @@ double rnd_get_unif(rnd_gen *gen,double min,double max)
   k=gen->idum2/iq2;
   gen->idum2=ia2*(gen->idum2-k*iq2)-k*ir2;
   if(gen->idum2<0) gen->idum2+=im2;
-      
+  
   j=gen->iy/ndiv;
   gen->iy=gen->iv[j]-gen->idum2;
   gen->iv[j]=gen->idum;
   if(gen->iy<0) gen->iy+=imm1;
-
+  
   out=min_double(am*gen->iy,rnmx);
-
+  
   return out*(max-min)+min;
 }
 

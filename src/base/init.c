@@ -45,6 +45,7 @@ void init_nissa()
   nissa_lx_geom_inited=0;
   nissa_eo_geom_inited=0;
   nissa_loc_rnd_gen_inited=0;
+  nissa_glb_rnd_gen_inited=0;
   memset(rank_coord,0,4*sizeof(int));
   memset(nrank_dir,0,4*sizeof(int));
   ONE[0]=I[1]=1;

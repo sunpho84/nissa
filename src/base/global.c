@@ -93,6 +93,8 @@ nissa_vect main_nissa_vect;
 nissa_vect *last_nissa_vect;
 
 //random generator stuff
+rnd_gen glb_rnd_gen;
+int nissa_glb_rnd_gen_inited;
 rnd_gen *loc_rnd_gen;
 int nissa_loc_rnd_gen_inited;
 

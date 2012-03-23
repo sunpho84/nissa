@@ -4,11 +4,11 @@ T 8
 Walltime 100
 
 Kappa 0.177000
-Seed 0
+Seed 100
 
 NSeparations 1
  4
-NoiseType 1
+NoiseType 4
 NMass 2
  0.50 0.60
 
@@ -31,5 +31,5 @@ NContrTwoPoints 3
 9 5
 
 NgaugeConf 2
- ../../../../data/L4T8conf 0 otto twopoints
+ ../../../../data/L4T8conf 3 otto twopoints
  ../../../../data/L4T8conf 0 otto_b twopoints_b

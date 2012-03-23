@@ -25,10 +25,10 @@ StoppingCriterion standard
 MinimalResidue 1.e-30
 NiterMax 100000
 
-NContrTwoPoints 2
+NContrTwoPoints 3
  5  5
  4  5
-
+ 0  0
 NChromoContrTwoPoints 2
  5  5
  4  5

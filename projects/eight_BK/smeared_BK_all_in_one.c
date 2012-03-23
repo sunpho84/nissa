@@ -110,6 +110,7 @@ void generate_source(int iwall)
 {
   enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
   generate_spindiluted_source(original_source,type[noise_type],twall[iwall]);
+  master_printf("source: %lg\n",original_source[0][0][0][0][0]);
 }
 
 //Parse all the input file
@@ -342,7 +343,7 @@ void calculate_S(int iwall)
 	  master_printf("\n");
 	  
 	  int so_jnit_to_app=((so_jlv==0) ? so_jnit[so_jlv] : (so_jnit[so_jlv]-so_jnit[so_jlv-1]));
-	  master_printf("Source ");
+	  
 	  jacobi_smearing(source,source,sme_conf,jacobi_kappa,so_jnit_to_app);
 	  
 	  double part_time=-take_time();
