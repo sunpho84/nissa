@@ -1,0 +1,34 @@
+L 4
+T 8
+
+Walltime 100
+
+Kappa 0.177000
+NMass 3
+ 0.50 0.060 2
+
+Residue 1.e-24
+StoppingCriterion standard
+MinimalResidue 1.e-30
+NiterMax 1000
+
+NContrTwoPoints 3
+5 5
+5 9
+9 5
+
+WriteFixedConf 1
+WorkInPhysicalBase 1
+FullXSpacePropPrec 0
+FullPSpacePropPrec 0
+
+NXSpacePropIntervRome 0
+NPSpacePropIntervRome 1
+0 4 0 2
+
+NXSpacePropIntervOrsay 0
+NPSpacePropIntervOrsay 0
+
+NgaugeConf 1
+../../../data/L4T8conf 4 0 0 0 out
+
