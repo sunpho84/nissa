@@ -31,5 +31,5 @@ NContrTwoPoints 3
 9 5
 
 NgaugeConf 2
- ../../../../data/L4T8conf 3 otto twopoints
- ../../../../data/L4T8conf 0 otto_b twopoints_b
+ ../../../../data/L4T8conf 3 out/otto_sourceA out/twopoints_sourceA
+ ../../../../data/L4T8conf 0 out/otto_sourceB out/twopoints_sourceB
