@@ -3,7 +3,7 @@
 //Refers to the doc: "doc/eo_inverter.lyx" for explenations
 
 //invert Koo defined in equation (7)
-void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *guess,quad_su3 **conf,double kappa,double mu,int nitermax,double residue)
+void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mu,int nitermax,double residue,spincolor *source)
 {
   int niter=nitermax;
   int riter=0;
@@ -16,12 +16,9 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
   
   ///////////////// prepare the internal source /////////////////
   
-  if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_volh+loc_bordh));
-  else
-    {
-      communicate_od_spincolor_borders(guess);
-      memcpy(sol,guess,sizeof(spincolor)*(loc_volh+loc_bordh));
-    }
+  if(guess==NULL) memset(sol,0,sizeof(spincolor)*loc_volh);
+  else memcpy(sol,guess,sizeof(spincolor)*loc_volh);
+  set_borders_invalid(sol);
   
   //external loop, used if the internal exceed the maximal number of iterations
   double lambda; //(r_(k+1),r_(k+1))
@@ -31,21 +28,23 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       double delta;
       {
-	tmDkern_eoprec_square_eos(s,temp1,temp2,sol,conf,kappa,mu);
+	tmDkern_eoprec_square_eos(s,temp1,temp2,conf,kappa,mu,sol);
 	
         double loc_delta=0,loc_source_norm=0;
-	for(int X=0;X<loc_volh;X++)
+	nissa_loc_volh_loop(ivol)
 	  for(int id=0;id<4;id++)
 	    for(int ic=0;ic<3;ic++)
 	      for(int ri=0;ri<2;ri++)
 		{
-		  double c1=source[X][id][ic][ri]-s[X][id][ic][ri];
-		  p[X][id][ic][ri]=r[X][id][ic][ri]=c1;
-		  if(riter==0) loc_source_norm+=source[X][id][ic][ri]*source[X][id][ic][ri];
+		  double c1=source[ivol][id][ic][ri]-s[ivol][id][ic][ri];
+		  p[ivol][id][ic][ri]=r[ivol][id][ic][ri]=c1;
+		  if(riter==0) loc_source_norm+=source[ivol][id][ic][ri]*source[ivol][id][ic][ri];
 		  loc_delta+=c1*c1;
-		}
+		}	
+	set_borders_invalid(p);
+	
         MPI_Allreduce(&loc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-        if(riter==0)
+	if(riter==0)
 	  {
 	    MPI_Allreduce(&loc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    master_printf("\nSource norm: %lg\n",source_norm);
@@ -60,39 +59,41 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
 	  double omega; //(r_k,r_k)/(p_k*DD*p_k)
 	  double alpha;
 	  
-	  tmDkern_eoprec_square_eos(s,temp1,temp2,p,conf,kappa,mu);
+	  tmDkern_eoprec_square_eos(s,temp1,temp2,conf,kappa,mu,p);
 	  
 	  double loc_alpha=0; //real part of the scalar product
-	  for(int X=0;X<loc_volh;X++)
+	  nissa_loc_volh_loop(ivol)
 	    for(int id=0;id<4;id++)
 	      for(int ic=0;ic<3;ic++)
 		for(int ri=0;ri<2;ri++)
-		  loc_alpha+=s[X][id][ic][ri]*p[X][id][ic][ri];
+		  loc_alpha+=s[ivol][id][ic][ri]*p[ivol][id][ic][ri];
 	  MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	  omega=delta/alpha;
 	  
 	  double loc_lambda=0;
-	  for(int X=0;X<loc_volh;X++)
+	  nissa_loc_volh_loop(ivol)
 	    for(int id=0;id<4;id++)
 	      for(int ic=0;ic<3;ic++)
 		for(int ri=0;ri<2;ri++)
 		  {
-		    sol[X][id][ic][ri]+=omega*p[X][id][ic][ri];    //sol_(k+1)=x_k+omega*p_k
-		    double c1=r[X][id][ic][ri]-omega*s[X][id][ic][ri];//r_(k+1)=x_k-omega*pk
-		    r[X][id][ic][ri]=c1;
+		    sol[ivol][id][ic][ri]+=omega*p[ivol][id][ic][ri];    //sol_(k+1)=x_k+omega*p_k
+		    double c1=r[ivol][id][ic][ri]-omega*s[ivol][id][ic][ri];//r_(k+1)=x_k-omega*pk
+		    r[ivol][id][ic][ri]=c1;
 		    loc_lambda+=c1*c1;
 		  }
 	  MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	  set_borders_invalid(sol);
 	  
 	  double gammag=lambda/delta; //(r_(k+1),r_(k+1))/(r_k,r_k)
 	  delta=lambda;
 	  
 	  //p_(k+1)=r_(k+1)+gammag*p_k
-	  for(int X=0;X<loc_volh;X++)
+	  nissa_loc_volh_loop(ivol)
 	    for(int id=0;id<4;id++)
 	      for(int ic=0;ic<3;ic++)
 		for(int ri=0;ri<2;ri++)
-		  p[X][id][ic][ri]=r[X][id][ic][ri]+gammag*p[X][id][ic][ri];
+		  p[ivol][id][ic][ri]=r[ivol][id][ic][ri]+gammag*p[ivol][id][ic][ri];
+	  set_borders_invalid(p);
 	  
 	  iter++;
 
@@ -101,15 +102,15 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
       while(lambda>(residue*source_norm) && iter<niter);
       
       //last calculation of residual, in the case iter>niter
-      tmDkern_eoprec_square_eos(s,temp1,temp2,sol,conf,kappa,mu);
+      tmDkern_eoprec_square_eos(s,temp1,temp2,conf,kappa,mu,sol);
       {
         double loc_lambda=0;
-	for(int X=0;X<loc_volh;X++)
+	nissa_loc_volh_loop(ivol)
 	  for(int id=0;id<4;id++)
 	    for(int ic=0;ic<3;ic++)
 	      for(int ri=0;ri<2;ri++)
 		{
-		  double c1=source[X][id][ic][ri]-s[X][id][ic][ri];
+		  double c1=source[ivol][id][ic][ri]-s[ivol][id][ic][ri];
 		  loc_lambda+=c1*c1;
 		}
 	if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -129,25 +130,24 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *source,spincolor *g
 }
 
 //Invert twisted mass operator using e/o preconditioning.
-void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *source_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mu,int nitermax,double residue)
+void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mu,int nitermax,double residue,spincolor *source_lx)
 {
   //prepare the e/o split version of the source
   spincolor *source_eos[2];
-  source_eos[0]=nissa_malloc("source_eos",loc_vol+loc_bord,spincolor);
-  source_eos[1]=source_eos[0]+loc_volh+loc_bordh;
-  split_lx_spincolor_into_eo_parts(source_eos,source_lx,loc_vol);
+  source_eos[0]=nissa_malloc("source_eos0",loc_volh+loc_bordh,spincolor);
+  source_eos[1]=nissa_malloc("source_eos1",loc_volh+loc_bordh,spincolor);
+  split_lx_spincolor_into_eo_parts(source_eos,source_lx);
   
   //prepare the e/o split version of the solution
   spincolor *solution_eos[2];
-  solution_eos[0]=nissa_malloc("solution_eos",loc_vol+loc_bord,spincolor);
-  solution_eos[1]=solution_eos[0]+loc_volh+loc_bordh;
+  solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+loc_bordh,spincolor);
+  solution_eos[1]=nissa_malloc("solution_eos_0",loc_volh+loc_bordh,spincolor);
   
   //prepare the e/o split version of the conf
   quad_su3 *conf_eos[2];
-  conf_eos[0]=nissa_malloc("conf_eos",loc_vol+loc_bord,quad_su3);
-  conf_eos[1]=conf_eos[0]+loc_volh+loc_bordh;
-  communicate_lx_quad_su3_borders(conf_lx);
-  split_lx_conf_into_eo_parts(conf_eos,conf_lx,loc_vol+loc_bord);
+  conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+loc_bordh,quad_su3);
+  conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+loc_bordh,quad_su3);
+  split_lx_conf_into_eo_parts(conf_eos,conf_lx);
   
   ///////////////////////////////////// invert with e/o improvement ///////////////////////////////////
   
@@ -155,11 +155,11 @@ void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *source_lx,spincolor
   
   //Equation (8.a)
   spincolor *temp=nissa_malloc("temp",loc_volh+loc_bordh,spincolor);
-  inv_tmDee_or_oo_eos(temp,source_eos[EVN],kappa,mu);
+  inv_tmDee_or_oo_eos(temp,kappa,mu,source_eos[EVN]);
   
   //Equation (8.b)
-  tmn2Doe_eos(varphi,temp,conf_eos);
-  for(int ivol=0;ivol<loc_volh;ivol++)
+  tmn2Doe_eos(varphi,conf_eos,temp);
+  nissa_loc_volh_loop(ivol)
     for(int id=0;id<2;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
@@ -167,40 +167,34 @@ void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *source_lx,spincolor
 	    varphi[ivol][id  ][ic][ri]=+source_eos[ODD][ivol][id  ][ic][ri]+varphi[ivol][id  ][ic][ri]*0.5;
 	    varphi[ivol][id+2][ic][ri]=-source_eos[ODD][ivol][id+2][ic][ri]-varphi[ivol][id+2][ic][ri]*0.5;
 	  }
+  set_borders_invalid(varphi);
   
   //Equation (9) using solution_eos[EVN] as temporary vector
-  inv_tmDkern_eoprec_square_eos(temp,varphi,guess_Koo,conf_eos,kappa,mu,nitermax,residue);
-  tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],temp,conf_eos,kappa,-mu);
+  inv_tmDkern_eoprec_square_eos(temp,guess_Koo,conf_eos,kappa,mu,nitermax,residue,varphi);
+  tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,-mu,temp);
   if(guess_Koo!=NULL) memcpy(guess_Koo,temp,sizeof(spincolor)*loc_volh); //if a guess was passed, return new one
   nissa_free(temp);
 
   //Equation (10)
-  tmn2Deo_eos(varphi,solution_eos[ODD],conf_eos);
-  for(int ivol=0;ivol<loc_volh;ivol++)
+  tmn2Deo_eos(varphi,conf_eos,solution_eos[ODD]);
+  nissa_loc_volh_loop(ivol)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
 	  varphi[ivol][id][ic][ri]=source_eos[EVN][ivol][id][ic][ri]+varphi[ivol][id][ic][ri]*0.5;
-  inv_tmDee_or_oo_eos(solution_eos[EVN],varphi,kappa,mu);
+  set_borders_invalid(varphi);
+  inv_tmDee_or_oo_eos(solution_eos[EVN],kappa,mu,varphi);
 
   nissa_free(varphi);
 
   /////////////////////////// paste the e/o parts of the solution together and free ///////////////////
   
-  paste_eo_parts_into_lx_spincolor(solution_lx,solution_eos[EVN],solution_eos[ODD],loc_vol);
+  paste_eo_parts_into_lx_spincolor(solution_lx,solution_eos);
   
-  //int eo=ODD;
-  for(int eo=0;eo<2;eo++)
-  for(int ivol_eo=0;ivol_eo<loc_volh;ivol_eo++)
-    for(int id=0;id<4;id++)
-      for(int ic=0;ic<3;ic++)
-	for(int ri=0;ri<2;ri++)
-	  {
-	    int ivol_lx=loclx_of_loceo[eo][ivol_eo];
-	    if(glb_coord_of_loclx[ivol_lx][0]==0)p5+=pow(solution_eos[eo][ivol_eo][id][ic][ri],2);
-	  }
-
-  nissa_free(conf_eos[0]);
-  nissa_free(source_eos[0]);
-  nissa_free(solution_eos[0]);
+  for(int par=0;par<2;par++)
+    {
+      nissa_free(conf_eos[par]);
+      nissa_free(source_eos[par]);
+      nissa_free(solution_eos[par]);
+    }
 }

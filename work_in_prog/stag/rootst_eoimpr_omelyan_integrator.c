@@ -6,7 +6,7 @@ void eo_conf_unitarize_explicitely_inverting(quad_su3 **conf)
   addrem_stagphases_to_eo_conf(conf);
   
   for(int eo=0;eo<2;eo++)
-    for(int ivol=0;ivol<loc_volh+loc_bordh;ivol++)
+    nissa_loc_volh_loop(ivol)
       for(int mu=0;mu<4;mu++)
 	su3_unitarize_explicitly_inverting(conf[eo][ivol][mu],conf[eo][ivol][mu]);
 
@@ -30,7 +30,7 @@ void evolve_momenta_with_rootst_force(quad_su3 **H,quad_su3 **conf,double beta,i
   master_printf("Evolve momenta with force, dt=%lg\n",dt);
   
   for(int eo=0;eo<2;eo++)
-    for(int ivol=0;ivol<loc_volh;ivol++)
+    nissa_loc_volh_loop(ivol)
       for(int mu=0;mu<4;mu++)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++)
@@ -47,7 +47,7 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
   
   //evolve
   for(int eo=0;eo<2;eo++)
-    for(int ivol=0;ivol<loc_volh;ivol++)
+    nissa_loc_volh_loop(ivol)
       for(int mu=0;mu<4;mu++)
 	{
 	  su3 t1,t2;

@@ -6,7 +6,7 @@
 int T,TH,L,tsep;
 double th;
 int njack;
-const double Zv[3]={0.746,0.746,0.772};
+const double Za[3]={0.746,0.746,0.772};
 
 int ibeta;
 
@@ -266,7 +266,7 @@ int main()
   /////////////////////////////// Compute gc ///////////////////////////
   
   //determine gc
-  jack gc_pt1=fpi_gDvDPi_pt1*Zv[ibeta]/(2*sqrt(M_P5*M_VK));
+  jack gc_pt1=fpi_gDvDPi_pt1*Za[ibeta]/(2*sqrt(M_P5*M_VK));
   jack gc_pt2=gc_pt1*fpi_gDvDPi_corr_rel;
   
   //print gc

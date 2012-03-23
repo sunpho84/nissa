@@ -80,7 +80,7 @@ int rank_hosting_site_of_coord(coords x)
 }
 
 //Return the local site and rank containing the global coordinates
-void get_loclx_and_rank_of_coord(int *loc_site,int *rank,coords g)
+void get_loclx_and_rank_of_coord(int *ivol,int *rank,coords g)
 {
   coords l,p;
   for(int mu=0;mu<4;mu++)
@@ -90,7 +90,7 @@ void get_loclx_and_rank_of_coord(int *loc_site,int *rank,coords g)
     }
   
   (*rank)=rank_of_coord(p);
-  (*loc_site)=loclx_of_coord(l);
+  (*ivol)=loclx_of_coord(l);
 }
 
 //indexes run as t,x,y,z (faster:z)
@@ -146,7 +146,7 @@ void set_lx_geometry()
   
   //now fill the neighbours of sites of the bulk, and the defined
   //neighbours of the sites of the external borders
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
       //takes local and global coords of site ivol
       for(int mu=0;mu<4;mu++)

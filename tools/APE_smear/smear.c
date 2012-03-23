@@ -6,7 +6,7 @@ void test_unitarity(quad_su3 *conf)
   double loc_max=0,loc_avg=0;
   double glb_max=0,glb_avg=0;
   
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int idir=0;idir<4;idir++)
       {  
         su3_dag_prod_su3(prod,conf[ivol][idir],conf[ivol][idir]);

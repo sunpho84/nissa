@@ -35,10 +35,10 @@ void vector_gather(void *glb,void *loc,int bps,int dest_rank)
 			  int g[4];
 			  for(int mu=0;mu<4;mu++) g[mu]=r[mu]*loc_size[mu]+l[mu];
 			
-			  int loc_site=loc_vol*irank+loclx_of_coord(l);
+			  int ivol=loc_vol*irank+loclx_of_coord(l);
 			  int glb_site=glblx_of_coord(g);
 			  
-			  ord[loc_site]=glb_site;
+			  ord[ivol]=glb_site;
 			}
 	      }
       

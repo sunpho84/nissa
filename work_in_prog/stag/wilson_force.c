@@ -7,7 +7,7 @@ void wilson_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
 {
   double r=beta/3;
   master_printf("Computing Wilson force, coef %lg\n",r);
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
       quad_su3 staples;
       compute_point_staples_eo_conf(staples,eo_conf,ivol);

@@ -120,7 +120,7 @@ void generate_sequential_source(int ispec)
   int r=r_spec[ispec];
   
   master_printf("\nCreating the sequential source for spectator %d\n",ispec);
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     { //put to zero everything but the slice
       if(glb_coord_of_loclx[ivol][0]!=(twall+tsep)%glb_size[0])
 	memset(sequential_source[ivol],0,sizeof(colorspinspin));
@@ -431,12 +431,12 @@ void smear_additive_colorspinspin(colorspinspin *out,colorspinspin *in,int ism_l
 
   for(int id=0;id<4;id++)
     {
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	get_spincolor_from_colorspinspin(temp[ivol],in[ivol],id);
       
       jacobi_smearing(temp,temp,sme_conf,jacobi_kappa,nsme);
 
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	put_spincolor_into_colorspinspin(out[ivol],temp[ivol],id);
     }
   
@@ -462,7 +462,7 @@ void calculate_S0(int ism_lev_so)
   for(int id=0;id<4;id++)
     { 
       //put the g5
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	{
 	  get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
 	  for(int id1=2;id1<4;id1++) for(int ic=0;ic<3;ic++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic][ri]*=-1;
@@ -488,7 +488,7 @@ void calculate_S0(int ism_lev_so)
 	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
-		for(int i=0;i<loc_vol;i++)
+		nissa_loc_vol_loop(ivol)
 		  put_spincolor_into_colorspinspin(S0[r][iprop_of(itheta,imass)][i],temp_vec[r][i],id);
 	    }
 	}
@@ -530,7 +530,7 @@ void calculate_S1(int ispec,int ism_lev_se)
   //loop over se
   for(int id=0;id<4;id++)
     { 
-      for(int ivol=0;ivol<loc_vol;ivol++) //avoid the g5 insertion
+      nissa_loc_vol_loop(ivol) //avoid the g5 insertion
 	get_spincolor_from_colorspinspin(source[ivol],sequential_source[ivol],id);
       communicate_lx_spincolor_borders(source);
 
@@ -551,7 +551,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 	      //use temp_vec[0] as temporary storage
 	      apply_tmQ(temp_vec[0],cgmms_solution[imass],conf,kappa,reco_mass);
 	      master_printf("Mass %d (%g) reconstructed \n",imass,mass_3pts[imass]);
-	      for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass+start_imass3pts[ispec])][i],temp_vec[0][i],id);
+	      nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass+start_imass3pts[ispec])][ivol],temp_vec[0][ivol],id);
 	    }
 	}
     }

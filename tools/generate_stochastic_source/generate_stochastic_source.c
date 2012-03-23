@@ -55,29 +55,29 @@ int main(int narg,char **arg)
   const double rad2=sqrt(2);
 
   //initialize the spinor with dirac index 0
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+  nissa_loc_vol_loop(ivol)
     for(int id1=0;id1<4;id1++)
       for(int ic1=0;ic1<3;ic1++)
 	{
-	  if(id1==0 && (take_slice==0 || glb_coord_of_loclx[loc_site][0]==twall))
+	  if(id1==0 && (take_slice==0 || glb_coord_of_loclx[ivol][0]==twall))
 	    {
 	      switch(noise_type)
 		{
 		case -1:
-		  spinore[loc_site][0][ic1][0]=-1;
-		  spinore[loc_site][0][ic1][1]=0;
+		  spinore[ivol][0][ic1][0]=-1;
+		  spinore[ivol][0][ic1][1]=0;
 		  break;
 		case +1:
-		  spinore[loc_site][0][ic1][0]=+1;
-		  spinore[loc_site][0][ic1][1]=0;
+		  spinore[ivol][0][ic1][0]=+1;
+		  spinore[ivol][0][ic1][1]=0;
 		  break;
 		case +2:
-		  spinore[loc_site][0][ic1][0]=pm_one(loc_site)/rad2;
-		  spinore[loc_site][0][ic1][1]=0;
+		  spinore[ivol][0][ic1][0]=pm_one(ivol)/rad2;
+		  spinore[ivol][0][ic1][1]=0;
 		  break;
 		case +4:
-		  spinore[loc_site][0][ic1][0]=pm_one(loc_site)/rad2;
-		  spinore[loc_site][0][ic1][1]=pm_one(loc_site)/rad2;
+		  spinore[ivol][0][ic1][0]=pm_one(ivol)/rad2;
+		  spinore[ivol][0][ic1][1]=pm_one(ivol)/rad2;
 		  break;
 		default:
 		  if(rank==0)
@@ -88,7 +88,7 @@ int main(int narg,char **arg)
 		    }
 		}
 	    }
-	  else spinore[loc_site][id1][ic1][0]=spinore[loc_site][id1][ic1][1]=0;
+	  else spinore[ivol][id1][ic1][0]=spinore[ivol][id1][ic1][1]=0;
 	}
 
   write_spincolor(filename,spinore,prec);
@@ -98,17 +98,17 @@ int main(int narg,char **arg)
   for(int id1=1;id1<4;id1++)
     {
       sprintf(filename,"%s.0%d",base_filename,id1);
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
+      for(int ivol=0;ivol<loc_vol;ivol++)
 	for(int ic1=0;ic1<3;ic1++)
-	  if(glb_coord_of_loclx[loc_site][0]==twall || take_slice==0)
+	  if(glb_coord_of_loclx[ivol][0]==twall || take_slice==0)
 	    {
-	      temp=spinore[loc_site][id1][ic1][0];
-	      spinore[loc_site][id1][ic1][0]=spinore[loc_site][id1-1][ic1][0];
-	      spinore[loc_site][id1-1][ic1][0]=temp;
+	      temp=spinore[ivol][id1][ic1][0];
+	      spinore[ivol][id1][ic1][0]=spinore[ivol][id1-1][ic1][0];
+	      spinore[ivol][id1-1][ic1][0]=temp;
 
-	      temp=spinore[loc_site][id1][ic1][1];
-	      spinore[loc_site][id1][ic1][1]=spinore[loc_site][id1-1][ic1][1];
-	      spinore[loc_site][id1-1][ic1][1]=temp;
+	      temp=spinore[ivol][id1][ic1][1];
+	      spinore[ivol][id1][ic1][1]=spinore[ivol][id1-1][ic1][1];
+	      spinore[ivol][id1-1][ic1][1]=temp;
 	    }
       write_spincolor(filename,spinore,prec);
     }

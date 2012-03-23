@@ -57,7 +57,7 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
       if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	{
 	  int glb_t=glb_coord_of_loclx[ivol][0];
 	  //Color loop
@@ -114,37 +114,34 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
       if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
+      nissa_loc_vol_loop(ivol)
         {
           complex ctemp;
-	  complex ctempL_color,ctempL;
-	  complex ctempR_color,ctempR;
-	  //Initialize to zero
-	  ctempL[0]=0.;
-	  ctempL[1]=0.;
-	  ctempR[0]=0.;
-	  ctempR[1]=0.;
-          int glb_t=glb_coord_of_loclx[loc_site][0];
+	  complex ctempL_color,ctempL={0,0};
+	  complex ctempR_color,ctempR={0,0};
+	  
+          int glb_t=glb_coord_of_loclx[ivol][0];
           //Color loops
-          for(int icol=0;icol<3;icol++) {
-		site_trace_g_sdag_g_s(ctempL_color,&(g1L[icontr]),s1L[loc_site][icol],&(g2L[icontr]),s2L[loc_site][icol]);
-		complex_summ(ctempL,ctempL,ctempL_color);
-         }
-	 for(int icol=0;icol<3;icol++) {   
-	      site_trace_g_sdag_g_s(ctempR_color,&(g1R[icontr]),s1R[loc_site][icol],&(g2R[icontr]),s2R[loc_site][icol]);
-	      complex_summ(ctempR,ctempR,ctempR_color);
-          }
-	      safe_complex_prod(ctemp,ctempL,ctempR);
-              complex_summ(loc_c[icontr*glb_size[0]+glb_t],loc_c[icontr*glb_size[0]+glb_t],ctemp);
+          for(int icol=0;icol<3;icol++)
+	    {
+	      site_trace_g_sdag_g_s(ctempL_color,&(g1L[icontr]),s1L[ivol][icol],&(g2L[icontr]),s2L[ivol][icol]);
+	      complex_summ(ctempL,ctempL,ctempL_color);
+	    }
+	 for(int icol=0;icol<3;icol++)
+	   {
+	     site_trace_g_sdag_g_s(ctempR_color,&(g1R[icontr]),s1R[ivol][icol],&(g2R[icontr]),s2R[ivol][icol]);
+	     complex_summ(ctempR,ctempR,ctempR_color);
+	   }
+	 safe_complex_prod(ctemp,ctempL,ctempR);
+	 complex_summ(loc_c[icontr*glb_size[0]+glb_t],loc_c[icontr*glb_size[0]+glb_t],ctemp);
         }
     }
-    
 
   //Finale reduction
   if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c_buf,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   if(debug_lvl>1) master_printf("Reduction done\n");
-
+  
   //if a temporary buffer has been used, destory it after copyng data to the true one
   if(use_buf)
     {
@@ -187,15 +184,15 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
       if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
-      for(int loc_site=0;loc_site<loc_vol;loc_site++)
+      nissa_loc_vol_loop(ivol)
         {
           complex ctemp;
-          int glb_t=glb_coord_of_loclx[loc_site][0];
+          int glb_t=glb_coord_of_loclx[ivol][0];
           //Color loop
           for(int icol1=0;icol1<3;icol1++) for(int icol2=0;icol2<3;icol2++)
             {
-//              site_trace_g_sdag_g_s_g_sdag_g_s(ctemp,&(g1L[icontr]),s1L[loc_site][icol1],&(g2L[icontr]),s2L[loc_site][icol2],&(g1R[icontr]),s1R[loc_site][icol2],&(g2R[icontr]),s2R[loc_site][icol1]);
-		site_trace_g_sdag_g_s_g_sdag_g_s(ctemp,&(g1L[icontr]),s1L[loc_site][icol2],&(g2L[icontr]),s2R[loc_site][icol2],&(g1R[icontr]),s1R[loc_site][icol1],&(g2R[icontr]),s2L[loc_site][icol1]);
+//              site_trace_g_sdag_g_s_g_sdag_g_s(ctemp,&(g1L[icontr]),s1L[ivol][icol1],&(g2L[icontr]),s2L[ivol][icol2],&(g1R[icontr]),s1R[ivol][icol2],&(g2R[icontr]),s2R[ivol][icol1]);
+		site_trace_g_sdag_g_s_g_sdag_g_s(ctemp,&(g1L[icontr]),s1L[ivol][icol2],&(g2L[icontr]),s2R[ivol][icol2],&(g1R[icontr]),s1R[ivol][icol1],&(g2R[icontr]),s2L[ivol][icol1]);
 
               complex_summ(loc_c[icontr*glb_size[0]+glb_t],loc_c[icontr*glb_size[0]+glb_t],ctemp);
             }
@@ -230,14 +227,14 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
 
   //Local loop
   spinspin AR,AL;
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+  nissa_loc_vol_loop(ivol)
     {
-      int glb_t=glb_coord_of_loclx[loc_site][0];
+      int glb_t=glb_coord_of_loclx[ivol][0];
       for(int icol1=0;icol1<3;icol1++)
 	for(int icol2=0;icol2<3;icol2++)
 	  {
-	    spinspin_spinspindag_prod(AL,s2L[loc_site][icol1],s1L[loc_site][icol2]);
-	    spinspin_spinspindag_prod(AR,s2R[loc_site][icol2],s1R[loc_site][icol1]);
+	    spinspin_spinspindag_prod(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
+	    spinspin_spinspindag_prod(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
 	    
 	    for(int icontr=0;icontr<ncontr;icontr++)
 	      {
@@ -273,7 +270,7 @@ void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g1,su3spinspin *s1,dirac
       if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
         {
           int glb_t=glb_coord_of_loclx[ivol][0];
 	  
@@ -298,9 +295,9 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
   memset(loc_c,0,sizeof(complex)*ncontr*glb_size[0]);
   
   //Local loop
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+  nissa_loc_vol_loop(ivol)
     {
-      int glb_t=glb_coord_of_loclx[loc_site][0];
+      int glb_t=glb_coord_of_loclx[ivol][0];
       complex ctempL[ncontr];
       complex ctempR[ncontr];
       complex ctemp[ncontr];
@@ -312,8 +309,8 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
       for(int icol=0;icol<3;icol++)
 	{
 	  spinspin AL,AR;
-	  spinspin_spinspindag_prod(AL,s2L[loc_site][icol],s1L[loc_site][icol]);
-	  spinspin_spinspindag_prod(AR,s2R[loc_site][icol],s1R[loc_site][icol]);
+	  spinspin_spinspindag_prod(AL,s2L[ivol][icol],s1L[ivol][icol]);
+	  spinspin_spinspindag_prod(AR,s2R[ivol][icol],s1R[ivol][icol]);
 	  for(int icontr=0;icontr<ncontr;icontr++)
 	    {
 	      complex ctempL_color,ctempR_color;
@@ -396,14 +393,14 @@ void rotate_spinspin_to_physical_basis(spinspin s,int rsi,int rso)
 
 void rotate_vol_colorspinspin_to_physical_basis(colorspinspin *s,int rsi,int rso)
 {
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int ic=0;ic<3;ic++)
       rotate_spinspin_to_physical_basis(s[ivol][ic],rsi,rso);
 }
 
 void rotate_vol_su3spinspin_to_physical_basis(su3spinspin *s,int rsi,int rso)
 {
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int ic1=0;ic1<3;ic1++)
       for(int ic2=0;ic2<3;ic2++)
 	rotate_spinspin_to_physical_basis(s[ivol][ic1][ic2],rsi,rso);
@@ -492,13 +489,13 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 		    {
 		      bgp_load_complex(cpu_A,A[i]);
 		      bgp_load_complex(cpu_B,B[i]);
-		      bgp_complex_summ_the_prod(cpu_out,cpu_out,__lfpd(A[i]),__lfpd(B[i]));
+		      bgp_complex_summ_the_prod(cpu_out,cpu_out,cpu_A,cpu_B);
 		      bgp_cache_touch_complex(A[i+1]);
 		      bgp_cache_touch_complex(B[i+1]);
 		    }
 		  bgp_load_complex(cpu_A,A[15]);
 		  bgp_load_complex(cpu_B,B[15]);
-		  bgp_complex_summ_the_prod(cpu_out,cpu_out,__lfpd(A[15]),__lfpd(B[15]));
+		  bgp_complex_summ_the_prod(cpu_out,cpu_out,cpu_A,cpu_B);
 		  bgp_save_complex(loc_contr[offset],cpu_out);
 #else
 		  for(int i=0;i<16;i++)

@@ -54,13 +54,8 @@ int main(int narg,char **arg)
   //Basic mpi initialization
   init_nissa();
 
-  if(narg<2 && rank==0)
-      {
-	fprintf(stderr,"Use: %s input_file\n",arg[0]);
-	fflush(stderr);
-	MPI_Abort(MPI_COMM_WORLD,1);
-      }
-
+  if(narg<2) crash("Use: %s input_file",arg[0]);
+  
   open_input(arg[1]);
 
   //Read the volume
@@ -210,8 +205,6 @@ int main(int narg,char **arg)
   
   //load the gauge configuration 
   read_ildg_gauge_conf(gauge_conf,gaugeconf_file);
-  communicate_lx_quad_su3_borders(gauge_conf);
-  communicate_lx_gauge_edges(gauge_conf);
   adapt_theta(gauge_conf,old_theta,theta,1,1);
   
   double gplaq=global_plaquette_lx_conf(gauge_conf);
@@ -261,7 +254,7 @@ int main(int narg,char **arg)
 	  }
 	theta[1]=theta[2]=theta[3]=theta_prop1[counter];
 	adapt_theta(gauge_conf,old_theta,theta,1,0);
-	read_colorspinspin_reconstructing(spinor1[iprop1],base_filename1[counter],NULL,gauge_conf,kappa,mass_prop2[counter]);
+	read_tm_colorspinspin_reconstructing(spinor1[iprop1],base_filename1[counter],NULL,gauge_conf,kappa,mass_prop2[counter]);
 	if(debug_lvl)
 	  {
 	    MPI_Barrier(cart_comm);
@@ -299,7 +292,7 @@ int main(int narg,char **arg)
 		}
 	      theta[1]=theta[2]=theta[3]=theta_prop2[iprop2];
 	      adapt_theta(gauge_conf,old_theta,theta,1,0);
-	      read_colorspinspin_reconstructing(spinor2,base_filename2[iprop2],NULL,gauge_conf,kappa,mass_prop2[iprop2]);
+	      read_tm_colorspinspin_reconstructing(spinor2,base_filename2[iprop2],NULL,gauge_conf,kappa,mass_prop2[iprop2]);
 	      if(debug_lvl)
 		{
 		  MPI_Barrier(cart_comm);
@@ -346,8 +339,8 @@ int main(int narg,char **arg)
 		  
 		  if(rank==0)
 		    {
-		      print_contractions_to_file(fout,ncontr,op1,op2,contr,twall,"");
-		      if(nch_contr>0) print_contractions_to_file(fout,nch_contr,ch_op1,ch_op2,ch_contr,twall,"CHROMO-");
+		      print_contractions_to_file(fout,ncontr,op1,op2,contr,twall,"",1);
+		      if(nch_contr>0) print_contractions_to_file(fout,nch_contr,ch_op1,ch_op2,ch_contr,twall,"CHROMO-",1);
 		      
 		      fprintf(fout,"\n");
 		      if(debug_lvl>1) fflush(fout);

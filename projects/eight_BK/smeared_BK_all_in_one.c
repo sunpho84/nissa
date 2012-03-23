@@ -110,7 +110,6 @@ void generate_source(int iwall)
 {
   enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
   generate_spindiluted_source(original_source,type[noise_type],twall[iwall]);
-  master_printf("source: %lg\n",original_source[0][0][0][0][0]);
 }
 
 //Parse all the input file
@@ -305,17 +304,13 @@ void load_gauge_conf()
   master_printf("\nTime needed to load conf %s: %g s.\n\n",conf_path,time);
 
   //compute plaquette
-  communicate_lx_quad_su3_borders(conf);
-  double gplaq=global_plaquette_lx_conf(conf);
-  master_printf("plaq: %.18g\n",gplaq);
+  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
   
   //prepare the smerded version
   ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
-  communicate_lx_quad_su3_borders(sme_conf);
 
   //calculate smerded plaquette
-  gplaq=global_plaquette_lx_conf(sme_conf);
-  master_printf("smerded plaq: %.18g\n",gplaq);
+  master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
   
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;
@@ -330,12 +325,13 @@ void calculate_S(int iwall)
   
   for(int id=0;id<4;id++)
     { //loop over the source dirac index
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	{
 	  get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
 	  //put the g5
 	  for(int id1=2;id1<4;id1++) for(int ic=0;ic<3;ic++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic][ri]*=-1;
 	}
+      set_borders_invalid(source);
       
       //loop over smerding levels of the source
       for(int so_jlv=0;so_jlv<so_jnlv;so_jlv++)
@@ -347,21 +343,20 @@ void calculate_S(int iwall)
 	  jacobi_smearing(source,source,sme_conf,jacobi_kappa,so_jnit_to_app);
 	  
 	  double part_time=-take_time();
-	  communicate_lx_spincolor_borders(source);
 	  master_printf("\n");
-	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	  inv_tmQ2_cgmms(cgmms_solution,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion,source);
 	  part_time+=take_time();ntot_inv++;tot_inv_time+=part_time;
 	  master_printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
 			     iwall,id,so_jlv,part_time);
 	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet
-	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgmms_solution[imass]);
 	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{
 		  int iprop=iS(iwall,so_jlv,imass,r);
-		  for(int i=0;i<loc_vol;i++) put_spincolor_into_colorspinspin(S[iprop][i],temp_vec[r][i],id);
+		  nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],temp_vec[r][ivol],id);
 		}
 	    }
 	}
@@ -506,10 +501,11 @@ void calculate_all_contractions()
 	for(int iprop=0;iprop<nprop;iprop++)
 	  for(int id=0;id<4;id++)
 	    {	    
-	      for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
+	      nissa_loc_vol_loop(ivol) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
+	      set_borders_invalid(source);
 	      if(debug_lvl>1) master_printf("Prop %d, id=%d ",iprop,id);
 	      jacobi_smearing(source,source,sme_conf,jacobi_kappa,si_jnit_to_app);
-	      for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
+	      nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
 	    }
       
       //loop over all source smearing level

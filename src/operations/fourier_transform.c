@@ -22,12 +22,7 @@ void Momentum(int **iP,double *bc,double *P2,double *SinP2,double **P,double **S
 	    imom++;
 	  }
 
-  if(rank==0 && imom!=nmom)
-    {
-      fprintf(stderr,"imom != nmom\n");
-      fflush(stderr);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
+  if(imom!=nmom) crash("imom != nmom");
 }
 
 //perform the fourier transform momentum per momentum
@@ -36,7 +31,7 @@ void spincolor_FT(spincolor *S,spincolor *FT,double *theta,int **iP,int nmom)
   double *P2=nissa_malloc("P2",nmom,double);
   double *SinP2=nissa_malloc("SinP2",nmom,double);
   double *SinP4=nissa_malloc("SinP4",nmom,double);
-
+  
   double *P[4];
   double *SinP[4];
 
@@ -57,7 +52,7 @@ void spincolor_FT(spincolor *S,spincolor *FT,double *theta,int **iP,int nmom)
     {	
       for(int idir=0;idir<4;idir++) lP[idir]=P[idir][imom];
 
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	{
 	  double arg=0;
 	  for(int idir=0;idir<4;idir++) arg+=lP[idir]*glb_coord_of_loclx[ivol][idir];

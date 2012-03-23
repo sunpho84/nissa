@@ -34,14 +34,14 @@ int main(int narg,char **arg)
   read_colorspinspin(spinore,base_filename,NULL);
 
   if(rank==0)
-    for(int loc_site=0;loc_site<loc_vol;loc_site++)
+    nissa_loc_vol_loop(ivol)
       for(int ic=0;ic<3;ic++)
 	{
-	  printf(" # %d %d\n",loc_site,ic);
+	  printf(" # %d %d\n",ivol,ic);
 	  for(int id_sink=0;id_sink<4;id_sink++)
 	    {
 	      for(int id_source=0;id_source<4;id_source++)
-		printf("%g,%g\t",spinore[loc_site][ic][id_sink][id_source][0],spinore[loc_site][ic][id_sink][id_source][1]);
+		printf("%g,%g\t",spinore[ivol][ic][id_sink][id_source][0],spinore[ivol][ic][id_sink][id_source][1]);
 	      printf("\n");
 	    }
 	      printf("\n");

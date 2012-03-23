@@ -203,7 +203,7 @@ void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 	{
 	    char full_path[1024];
 	    sprintf(full_path,"%s.%02d",path,id*3+ic);
-	    for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_su3spinspin(temp[ivol],prop[ivol],id,ic);
+	    nissa_loc_vol_loop(ivol) get_spincolor_from_su3spinspin(temp[ivol],prop[ivol],id,ic);
 	    write_spincolor(full_path,temp,prec);
 	}
     nissa_free(temp);

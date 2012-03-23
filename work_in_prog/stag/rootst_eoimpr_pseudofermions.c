@@ -5,7 +5,7 @@ void generate_pseudo_fermion(color *pf,quad_su3 **conf,quad_u1 **u1b,rat_approx 
 {
   //generate the random field
   color *pf_hb_vec=nissa_malloc("pf_hb_vec",loc_volh+loc_bordh,color);  
-  for(int ivol=0;ivol<loc_volh;ivol++)
+  nissa_loc_volh_loop(ivol)
     color_put_to_gauss(pf_hb_vec[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),1);
   
   /*

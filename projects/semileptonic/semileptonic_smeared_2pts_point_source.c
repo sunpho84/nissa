@@ -244,7 +244,7 @@ void calculate_S0(int sm_lev_sour)
   for(int id=0;id<4;id++)
     for(int ic=0;ic<3;ic++)
       { //loop over the source dirac index
-	for(int ivol=0;ivol<loc_vol;ivol++)
+	nissa_loc_vol_loop(ivol)
 	  {
 	    get_spincolor_from_su3spinspin(source[ivol],original_source[ivol],id,ic);
 	    //put the g5
@@ -265,8 +265,8 @@ void calculate_S0(int sm_lev_sour)
 	    reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
 	    master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	    for(int r=0;r<2;r++) //convert the id-th spincolor into the su3spinspin
-	      for(int i=0;i<loc_vol;i++)
-		put_spincolor_into_su3spinspin(S0[r][imass][i],temp_vec[r][i],id,ic);
+	      nissa_loc_vol_loop(ivol)
+		put_spincolor_into_su3spinspin(S0[r][imass][ivol],temp_vec[r][ivol],id,ic);
 	  }
       }
   
@@ -292,9 +292,9 @@ void calculate_all_2pts(int sm_lev_sour)
 	    for(int id=0;id<4;id++)
 	      for(int ic=0;ic<3;ic++)
 		{
-		  for(int ivol=0;ivol<loc_vol;ivol++) get_spincolor_from_su3spinspin(temp_vec[0][ivol],S0[r][imass][ivol],id,ic);
+		  nissa_loc_vol_loop(ivol) get_spincolor_from_su3spinspin(temp_vec[0][ivol],S0[r][imass][ivol],id,ic);
 		  jacobi_smearing(temp_vec[1],temp_vec[0],sme_conf,jacobi_kappa,jacobi_niter[sm_lev_sink]-jacobi_niter[sm_lev_sink-1]);
-		  for(int ivol=0;ivol<loc_vol;ivol++) put_spincolor_into_su3spinspin(S0[r][imass][ivol],temp_vec[1][ivol],id,ic);
+		  nissa_loc_vol_loop(ivol) put_spincolor_into_su3spinspin(S0[r][imass][ivol],temp_vec[1][ivol],id,ic);
 		}
       
       //perform the contractions

@@ -80,12 +80,12 @@ void smear_colorspinspin(colorspinspin *out,colorspinspin *in)
   
   for(int id=0;id<4;id++)
     {
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	get_spincolor_from_colorspinspin(temp[ivol],in[ivol],id);
       
       jacobi_smearing(temp,temp,sme_conf,jacobi_kappa,jacobi_niter);
       
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	put_spincolor_into_colorspinspin(out[ivol],temp[ivol],id);
     }
   
@@ -136,7 +136,7 @@ void generate_source()
 //Generate a sequential source for S1
 void generate_sequential_source(colorspinspin *S0)
 {
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
       //put to zero everything but the slice
       if(glb_coord_of_loclx[ivol][0]!=(twall+tsep)%glb_size[0])
@@ -157,6 +157,8 @@ void generate_sequential_source(colorspinspin *S0)
 	    }
 	}
     }
+  set_borders_invalid(sequential_source);
+  
   //smear the seq source (twice!)
   smear_colorspinspin(sequential_source,sequential_source);
   smear_colorspinspin(sequential_source,sequential_source);
@@ -315,11 +317,9 @@ void setup_conf()
 {
   //load the gauge conf, propagate borders
   read_ildg_gauge_conf(conf,conf_path);
-  communicate_lx_quad_su3_borders(conf);
   
   //prepare the smerded version
   ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
-  communicate_lx_quad_su3_borders(sme_conf);
   
   //compute plaquette
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
@@ -364,23 +364,21 @@ void calculate_S0(colorspinspin *S0,double mass,double stopping_residue)
   spincolor *temp_sol=nissa_malloc("Temp_sol",loc_vol,spincolor);
   
   //loop over the source dirac index
-  p5=0;
   for(int id=0;id<4;id++)
     { 
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
       
       //inverting the light quark
       double part_time=-take_time();
-      inv_tmD_cg_eoprec_eos(temp_sol,source,NULL,conf,kappa,sign_r[r_spec]*mass,niter_max,stopping_residue);
+      inv_tmD_cg_eoprec_eos(temp_sol,NULL,conf,kappa,sign_r[r_spec]*mass,niter_max,stopping_residue,source);
       part_time+=take_time();ninv_tot++;inv_time+=part_time;
       master_printf("Finished the inversion of S0 mass=%lg, dirac index %d in %g sec\n",mass,id,part_time);
 
       //convert the id-th spincolor into the colorspinspin
-      for(int i=0;i<loc_vol;i++)
-	  put_spincolor_into_colorspinspin(S0[i],temp_sol[i],id);
+      nissa_loc_vol_loop(ivol)
+	put_spincolor_into_colorspinspin(S0[ivol],temp_sol[ivol],id);
     }
-  master_printf("P5:%lg\n",p5);
   
   //rotate to physical basis; remember that D^-1 rotate opposite than D!
   rotate_vol_colorspinspin_to_physical_basis(S0,!r_spec,!r_spec);
@@ -403,18 +401,18 @@ void calculate_S1(colorspinspin *S1,double mass,colorspinspin *S0,double stoppin
   //loop over dirac index of the source
   for(int id=0;id<4;id++)
     { 
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	get_spincolor_from_colorspinspin(source[ivol],sequential_source[ivol],id);
       communicate_lx_spincolor_borders(source);
 
       double part_time=-take_time();
-      inv_tmD_cg_eoprec_eos(temp_sol,source,NULL,conf,kappa,-sign_r[r_spec]*mass,niter_max,stopping_residue);
+      inv_tmD_cg_eoprec_eos(temp_sol,NULL,conf,kappa,-sign_r[r_spec]*mass,niter_max,stopping_residue,source);
       part_time+=take_time();ninv_tot++;inv_time+=part_time;
       master_printf("Finished the inversion of S1 mass=%lg dirac index %d in %g sec\n",mass,id,part_time);
       
       //put in the solution
-      for(int i=0;i<loc_vol;i++)
-	put_spincolor_into_colorspinspin(S1[i],temp_sol[i],id);
+      nissa_loc_vol_loop(ivol)
+	put_spincolor_into_colorspinspin(S1[ivol],temp_sol[ivol],id);
     }
   
   //put the (1+-ig5)/sqrt(2) factor. On the source rotate as r_spec, on the sink as !r_spec

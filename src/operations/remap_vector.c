@@ -1,16 +1,16 @@
 #pragma once
 
 //remap a vector across all the ranks
-void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
+void remap_vector(void *out,void *in,coords *xto,coords *xfr,int bps)
 {
   //allocate a buffer where to repack data
-  char *out_buf=nissa_malloc("out_buf",loc_vol*(bps+sizeof(int)),char);
-  char *in_buf=nissa_malloc("in_buf",loc_vol*(bps+sizeof(int)),char);
+  void *out_buf=nissa_malloc("out_buf",loc_vol*(bps+sizeof(int)),void);
+  void *in_buf=nissa_malloc("in_buf",loc_vol*(bps+sizeof(int)),void);
   
   //allocate addresses, counting and reordering vectors
   int *rank_fr=nissa_malloc("rank_from",loc_vol,int);
   int *rank_to=nissa_malloc("rank_to",loc_vol,int);
-  int *loc_site_to=nissa_malloc("loc_site_to",loc_vol,int);
+  int *ivol_to=nissa_malloc("ivol_to",loc_vol,int);
   int *nfr=nissa_malloc("nfr",rank_tot,int);
   int *nto=nissa_malloc("nto",rank_tot,int);
   
@@ -19,10 +19,10 @@ void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
   memset(nto,0,sizeof(int)*rank_tot);
   
   //scan all local sites to see where to send and from where to expect data
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
       //compute destination site, and destination and origin rank
-      get_loclx_and_rank_of_coord(&(loc_site_to[ivol]),&(rank_to[ivol]),xto[ivol]);
+      get_loclx_and_rank_of_coord(&(ivol_to[ivol]),&(rank_to[ivol]),xto[ivol]);
       rank_fr[ivol]=rank_hosting_site_of_coord(xfr[ivol]);
       
       //count data to be sent and to be received from each rank
@@ -31,18 +31,18 @@ void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
     }
   
   //allocate starting position of out going buffer
-  char **out_buf_rank=nissa_malloc("out_buf_rank",rank_tot,char*);
+  void **out_buf_rank=nissa_malloc("out_buf_rank",rank_tot,void*);
   out_buf_rank[0]=out_buf;
   for(int irank=1;irank<rank_tot;irank++)
     out_buf_rank[irank]=out_buf_rank[irank-1]+nto[irank-1]*(bps+sizeof(int));
   
   //copy data on the out-going buffer
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
       int trank=rank_to[ivol];
       memcpy(out_buf_rank[trank],in+ivol*bps,bps);
       out_buf_rank[trank]+=bps;
-      (*((int*)(out_buf_rank[trank])))=loc_site_to[ivol];
+      (*((int*)(out_buf_rank[trank])))=ivol_to[ivol];
       out_buf_rank[trank]+=sizeof(int);
     }
   
@@ -50,19 +50,19 @@ void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
   //and to each rank which needs to receive data
   MPI_Request req_list[2*rank_tot];
   int ireq=0;
-  char *send_buf=out_buf; //init send pointer
-  char *recv_buf=in_buf;  //init recv pointer
-  char *internal_send_buf=NULL;
-  char *internal_recv_buf=NULL;
+  void *send_buf=out_buf; //init send pointer
+  void *recv_buf=in_buf;  //init recv pointer
+  void *internal_send_buf=NULL;
+  void *internal_recv_buf=NULL;
   for(int irank=0;irank<rank_tot;irank++)
     {
       if(rank!=irank)
 	{
 	  //start communications with other ranks
 	  if(nfr[irank]!=0)
-	    MPI_Irecv((void*)recv_buf,nfr[irank]*(bps+sizeof(int)),MPI_CHAR,irank,909+irank*rank_tot+rank,cart_comm,&req_list[ireq++]);
+	    MPI_Irecv(recv_buf,nfr[irank]*(bps+sizeof(int)),MPI_CHAR,irank,909+irank*rank_tot+rank,cart_comm,&req_list[ireq++]);
 	  if(nto[irank]!=0)
-	    MPI_Isend((void*)send_buf,nto[irank]*(bps+sizeof(int)),MPI_CHAR,irank,909+rank*rank_tot+irank,cart_comm,&req_list[ireq++]);
+	    MPI_Isend(send_buf,nto[irank]*(bps+sizeof(int)),MPI_CHAR,irank,909+rank*rank_tot+irank,cart_comm,&req_list[ireq++]);
 	}
       else
 	{
@@ -83,12 +83,15 @@ void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
   MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
   
   //now sort out data from the incoming buffer
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
-      char *start_in_buf=in_buf+ivol*(bps+sizeof(int));
+      void *start_in_buf=in_buf+ivol*(bps+sizeof(int));
       int to=(*((int*)(start_in_buf+bps)));
       memcpy(out+to*bps,start_in_buf,bps);
     }
+  
+  //invalidate borders
+  set_borders_invalid(out);
   
   //free vectors
   
@@ -97,7 +100,7 @@ void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
   nissa_free(nfr);
   nissa_free(nto);
   
-  nissa_free(loc_site_to);
+  nissa_free(ivol_to);
   nissa_free(rank_to);
   nissa_free(rank_fr);
   

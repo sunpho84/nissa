@@ -378,7 +378,7 @@ int main(int narg,char **arg)
 
   //Read the volume
   int L,T;
-  read_str_int("L",&L,);
+  read_str_int("L",&L);
   read_str_int("T",&T);
 
   //Read the time location of the source

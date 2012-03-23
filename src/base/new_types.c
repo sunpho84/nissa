@@ -64,12 +64,14 @@ typedef struct
   
   char file[nissa_vect_string_length];
   int line;
-
+  
   void *prev;
   void *next;
-
+  
+  uint32_t flag;
+  
   //padding to keep memory alignment
-  char pad[nissa_vect_alignment-(3*sizeof(int)+2*sizeof(void*)+3*nissa_vect_string_length)%nissa_vect_alignment];
+  char pad[nissa_vect_alignment-(3*sizeof(int)+2*sizeof(void*)+3*nissa_vect_string_length+sizeof(uint32_t))%nissa_vect_alignment];
 } nissa_vect;
 
 //nissa file reader

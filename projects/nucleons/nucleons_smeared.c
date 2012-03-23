@@ -146,13 +146,13 @@ void initialize_nucleons(char *input_path)
   // 2) Source position, masses and smerding parameters
 
   expect_str("SourcePosition");
-  if(rank==0) printf("Source position: ");
+  master_printf("Source position: ");
   for(int idir=0;idir<4;idir++) 
     {
       read_int(&(source_pos[idir]));
-      if(rank==0) printf("%d ",source_pos[idir]);
+      master_printf("%d ",source_pos[idir]);
     }
-  if(rank==0) printf("\n");
+  master_printf("\n");
   //Smearing parameters
   read_str_double("ApeAlpha",&ape_alpha);
   read_str_int("ApeNiter",&ape_niter);
@@ -245,30 +245,19 @@ void read_conf_and_put_antiperiodic(quad_su3 *conf,char *conf_path,int tsource)
 {
   read_ildg_gauge_conf(conf,conf_path);
   
-  //commmunicate borders
-  communicate_lx_quad_su3_borders(conf);  
-  communicate_lx_gauge_edges(conf);
-  
   //calculate plaquette of original conf
-  double gplaq=global_plaquette_lx_conf(conf);
-  if(rank==0) printf("plaq: %.18g\n",gplaq);
+  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
   
   //calcolate Pmunu
   Pmunu_term(Pmunu,conf);
   
   //prepared the smerded version and  calculate plaquette
   ape_spatial_smear_conf(smea_conf,conf,ape_alpha,ape_niter);
-  gplaq=global_plaquette_lx_conf(smea_conf);
-  if(rank==0) printf("smerded plaq: %.18g\n",gplaq);
+  master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(smea_conf));
   
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
   put_boundaries_conditions(conf,put_theta,1,1);
-  
-  //re-communicate borders
-  communicate_lx_quad_su3_borders(conf);
-  communicate_lx_quad_su3_borders(smea_conf);
-  communicate_lx_gauge_edges(conf);
 }
 
 //create a 12 index point source
@@ -305,10 +294,10 @@ void calculate_S0()
 	
 	// 1) prepare the source
 	
-	if(rank==0) printf("\n(S0) source index: id=%d, ic=%d\n",id_sour,ic_sour);
+	master_printf("\n(S0) source index: id=%d, ic=%d\n",id_sour,ic_sour);
 	
 	//take the source and put g5
-	for(int ivol=0;ivol<loc_vol;ivol++)
+	nissa_loc_vol_loop(ivol)
 	  {
 	    get_spincolor_from_su3spinspin(temp_source[ivol],original_source[ivol],id_sour,ic_sour);
 	    for(int id_sink=2;id_sink<4;id_sink++)
@@ -316,9 +305,11 @@ void calculate_S0()
 		for(int ri=0;ri<2;ri++)
 		  temp_source[ivol][id_sink][ic_sink][ri]=-temp_source[ivol][id_sink][ic_sink][ri];
 	  }
+	set_borders_invalid(temp_source);
 	
 	//smerd the source
 	jacobi_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
+	set_borders_invalid(source);
 	
 	//print the denisity profile
         if(ic_sour==0 && id_sour==0)
@@ -334,17 +325,17 @@ void calculate_S0()
               }
           }     
 	
-	if(rank==0) printf(" -> source smeared\n");
+	master_printf(" -> source smeared\n");
 	
 	//============================================================================
 	
 	// 2) peform the inversion taking time
 
 	tinv-=take_time();
-	inv_tmQ2_cgmms(solDD,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	inv_tmQ2_cgmms(solDD,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion,source);
 	tinv+=take_time();
 
-	if(rank==0) printf("inversions finished\n");
+	master_printf("inversions finished\n");
 	
 	//============================================================================
 
@@ -353,12 +344,12 @@ void calculate_S0()
 	for(int imass=0;imass<nmass;imass++)
 	  {
 	    //reconstruct the doublet
-	    reconstruct_tm_doublet(sol_reco[0],sol_reco[1],solDD[imass],conf,kappa,mass[imass]);
+	    reconstruct_tm_doublet(sol_reco[0],sol_reco[1],conf,kappa,mass[imass],solDD[imass]);
 	    
 	    //convert the id-th spincolor into the colorspinspin and prepare the sink smerded version
 	    for(int r=0;r<2;r++)
 	      {
-		for(int ivol=0;ivol<loc_vol;ivol++)
+		nissa_loc_vol_loop(ivol)
 		  {
 		    //put the anti-periodic condition on the propagator
 		    int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
@@ -371,7 +362,7 @@ void calculate_S0()
 		
 		//smerd the sink
 		jacobi_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
-		for(int ivol=0;ivol<loc_vol;ivol++)
+		nissa_loc_vol_loop(ivol)
 		  put_spincolor_into_su3spinspin(S0_SS[imass][r][ivol],source[ivol],id_sour,ic_sour);
 	      }
 	  }
@@ -380,7 +371,7 @@ void calculate_S0()
   //put the (1+ig5)/sqrt(2) factor
   for(int imass=0;imass<nmass;imass++)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++)
 	    {
@@ -388,13 +379,13 @@ void calculate_S0()
 	      rotate_spinspin_to_physical_basis(S0_SS[imass][r][ivol][ic1][ic2],!r,!r);
 	    }
   
-  if(rank==0) printf(" final rotations performed\n");
+  master_printf(" final rotations performed\n");
 }
 
 //Calculate the proton contraction for a single point
 void local_diquark(diquark *diq,su3spinspin *S)
 {
-  for(int l=0;l<loc_vol;l++)
+  nissa_loc_vol_loop(ivol)
     for(int al=0;al<4;al++)
       for(int al1=0;al1<4;al1++)
 	for(int ga=0;ga<4;ga++)
@@ -405,17 +396,17 @@ void local_diquark(diquark *diq,su3spinspin *S)
 		  int a=eps1[b],c=eps2[b],a1=eps1[b1],c1=eps2[b1];
 
 		  //first time reset
-		  unsafe_complex_prod  (diq[l][b][b1][al][ga][al1][ga1],S[l][a1][a][al1][al],S[l][c1][c][ga1][ga]);
-		  complex_subt_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][a1][c][al1][ga],S[l][c1][a][ga1][al]);
+		  unsafe_complex_prod  (diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][a1][a][al1][al],S[ivol][c1][c][ga1][ga]);
+		  complex_subt_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][a1][c][al1][ga],S[ivol][c1][a][ga1][al]);
 		  //both epsilon index (at fixed b) exchanged, so summ
-		  complex_summ_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][c1][c][al1][al],S[l][a1][a][ga1][ga]);
-		  complex_subt_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][c1][a][al1][ga],S[l][a1][c][ga1][al]);
+		  complex_summ_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][c1][c][al1][al],S[ivol][a1][a][ga1][ga]);
+		  complex_subt_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][c1][a][al1][ga],S[ivol][a1][c][ga1][al]);
 		  //now only b indices (a and c) exchanged, so subt
-		  complex_subt_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][a1][c][al1][al],S[l][c1][a][ga1][ga]);
-		  complex_summ_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][a1][a][al1][ga],S[l][c1][c][ga1][al]);
+		  complex_subt_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][a1][c][al1][al],S[ivol][c1][a][ga1][ga]);
+		  complex_summ_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][a1][a][al1][ga],S[ivol][c1][c][ga1][al]);
 		  //again only b1 indices (a1 and c1) exchanged, so subt
-		  complex_subt_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][c1][a][al1][al],S[l][a1][c][ga1][ga]);
-		  complex_summ_the_prod(diq[l][b][b1][al][ga][al1][ga1],S[l][c1][c][al1][ga],S[l][a1][a][ga1][al]);
+		  complex_subt_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][c1][a][al1][al],S[ivol][a1][c][ga1][ga]);
+		  complex_summ_the_prod(diq[ivol][b][b1][al][ga][al1][ga1],S[ivol][c1][c][al1][ga],S[ivol][a1][a][ga1][al]);
 		}
 }
 
@@ -425,9 +416,9 @@ void close_diquark(ssssss *prot6,diquark *diq,su3spinspin* S)
   ssssss *loc_prot6=(ssssss*)malloc(sizeof(ssssss)*glb_size[0]);
   memset(loc_prot6,0,sizeof(ssssss)*glb_size[0]);
 
-  for(int l=0;l<loc_vol;l++)
+  nissa_loc_vol_loop(ivol)
     {
-      int t=glb_coord_of_loclx[l][0];
+      int t=glb_coord_of_loclx[ivol][0];
       
       for(int al=0;al<4;al++)
 	for(int be=0;be<4;be++)
@@ -437,7 +428,7 @@ void close_diquark(ssssss *prot6,diquark *diq,su3spinspin* S)
 		for(int ga1=0;ga1<4;ga1++)
 		  for(int b=0;b<3;b++)
 		    for(int b1=0;b1<3;b1++)
-		      complex_summ_the_prod(loc_prot6[t][al][be][ga][al1][be1][ga1],S[l][b1][b][be1][be],diq[l][b][b1][al][ga][al1][ga1]);
+		      complex_summ_the_prod(loc_prot6[t][al][be][ga][al1][be1][ga1],S[ivol][b1][b][be1][be],diq[ivol][b][b1][al][ga][al1][ga1]);
     }
   
   MPI_Reduce(loc_prot6,prot6,glb_size[0]*8192,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
@@ -486,8 +477,8 @@ void calculate_all_2pts(char *path,su3spinspin ***S0)
 	for(int im_dislike=0;im_dislike<nmass;im_dislike++)
 	  for(int rdislike=0;rdislike<2;rdislike++)
 	    {
-	      if(rank==0) fprintf(output,"  # Two points for m_like=%g rlike=%d, m_dislike=%g rdislike=%d\n",
-				  mass[im_like],rlike,mass[im_dislike],rdislike);
+	      master_fprintf(output,"  # Two points for m_like=%g rlike=%d, m_dislike=%g rdislike=%d\n",
+			     mass[im_like],rlike,mass[im_dislike],rdislike);
 	      
 	      close_diquark(prot6,diq,S0[im_dislike][rdislike]);
 	      
@@ -593,7 +584,7 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
   double arg=M_PI*dt/glb_size[0];
   complex phase={cos(arg),sin(arg)};
   
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     if(glb_coord_of_loclx[ivol][0]==slice_to_take)
       {
 	su3spinspin temp;
@@ -647,7 +638,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
   double arg=M_PI*dt/glb_size[0];
   complex phase={cos(arg),sin(arg)};
   
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     if(glb_coord_of_loclx[ivol][0]==slice_to_take)
       {
 	su3spinspin temp;
@@ -727,7 +718,7 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
   for(int id_sink=0;id_sink<4;id_sink++)
     for(int ic_sink=0;ic_sink<3;ic_sink++)
       { //take the source and put g5 on the source, and pre-rotate
-	for(int ivol=0;ivol<loc_vol;ivol++)
+	nissa_loc_vol_loop(ivol)
 	  {
 	    for(int id_sour=0;id_sour<4;id_sour++)
 	      for(int ic_sour=0;ic_sour<3;ic_sour++)
@@ -737,13 +728,13 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	    if((ld==0 && rdislike==0)||(ld==1 && rlike==0))safe_spincolor_prod_dirac(source[ivol],source[ivol],&Pminus);//up
 	    else                                           safe_spincolor_prod_dirac(source[ivol],source[ivol],&Pplus); //dw
 	  }
-
-	if(rank==0)
-	  printf("\n(S1) %s, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",tag[ld],rlike,rdislike,id_sink,ic_sink);
+	set_borders_invalid(source);
+	
+	master_printf("\n(S1) %s, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",tag[ld],rlike,rdislike,id_sink,ic_sink);
 	
 	tinv-=take_time();
-	inv_tmQ2_cgmms_left(solDD,source,conf,kappa,mass,nmass,
-			  niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	inv_tmQ2_cgmms_left(solDD,conf,kappa,mass,nmass,
+			    niter_max,stopping_residue,minimal_residue,stopping_criterion,source);
 	tinv+=take_time();
 	
 	//use sol_reco[0] as temporary storage. We solve for rdislike
@@ -751,16 +742,16 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	  {
 	    if((ld==0 && rdislike==0)||(ld==1 && rlike==1))
 	      {
-		apply_tmQ_left(sol_reco[0],solDD[imass],conf,kappa,+mass[imass]); //cancel d
-		for(int ivol=0;ivol<loc_vol;ivol++) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pminus);
+		apply_tmQ_left(sol_reco[0],conf,kappa,+mass[imass],solDD[imass]); //cancel d
+		nissa_loc_vol_loop(ivol) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pminus);
 	      }
 	    else
 	      {
-		apply_tmQ_left(sol_reco[0],solDD[imass],conf,kappa,-mass[imass]); //cancel u
-		for(int ivol=0;ivol<loc_vol;ivol++) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pplus);
+		apply_tmQ_left(sol_reco[0],conf,kappa,-mass[imass],solDD[imass]); //cancel u
+		nissa_loc_vol_loop(ivol) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pplus);
 	      }
 	    
-	    for(int ivol=0;ivol<loc_vol;ivol++)
+	    nissa_loc_vol_loop(ivol)
 	      {
 		//put the anti-periodic condition on the propagator
 		int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
@@ -779,7 +770,7 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	  }
       }
   
-  if(rank==0) printf("%s sequential inversions finished\n",tag[ld]);
+  master_printf("%s sequential inversions finished\n",tag[ld]);
 }
 
 //wrappers
@@ -793,8 +784,8 @@ void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
 {
   complex *loc_contr=malloc(sizeof(complex)*glb_size[0]);
   memset(loc_contr,0,sizeof(complex)*glb_size[0]);
-
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  
+  nissa_loc_vol_loop(ivol)
     for(int id1=0;id1<4;id1++)
       for(int id2=0;id2<4;id2++)
 	for(int ic1=0;ic1<3;ic1++)
@@ -818,7 +809,7 @@ void check_2pts_with_current_sequential_source(char *path)
       if(rank==0) fprintf(fout,"mseq=%g %+016.16g\t%+016.16g\n",
 			  mass[imass],contr_2pts[source_pos[0]][0],contr_2pts[source_pos[0]][1]);
     }
-
+  
   if(rank==0) fclose(fout);
   
   free(contr_2pts);
@@ -830,7 +821,7 @@ void point_proton_sequential_contraction(complex contr,su3spinspin S0,dirac_matr
   contr[0]=contr[1]=0;
   
   complex temp;
-
+  
   for(int ic1=0;ic1<3;ic1++)
     for(int ic2=0;ic2<3;ic2++)
       for(int id1=0;id1<4;id1++)
@@ -845,10 +836,10 @@ void point_proton_sequential_contraction(complex contr,su3spinspin S0,dirac_matr
 //Apply the dipole operator on a su3spinspin
 void apply_dipole_operator(su3spinspin *S_out,su3spinspin *S_in,int dir)
 {
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+  nissa_loc_vol_loop(ivol)
     {
-      int coor=(glb_coord_of_loclx[loc_site][dir]-source_pos[dir]+glb_size[dir])%glb_size[dir];
-
+      int coor=(glb_coord_of_loclx[ivol][dir]-source_pos[dir]+glb_size[dir])%glb_size[dir];
+      
       if(coor> glb_size[dir]/2) coor-=glb_size[dir]; //minor distance
       if(coor==glb_size[dir]/2) coor=0; //take away the border (Simpson)
       
@@ -857,7 +848,7 @@ void apply_dipole_operator(su3spinspin *S_out,su3spinspin *S_in,int dir)
 	  for(int idso=0;idso<4;idso++)
 	    for(int idsi=0;idsi<4;idsi++)
 	      for(int ri=0;ri<2;ri++)
-		S_out[loc_site][icsi][icso][idsi][idso][ri]=S_in[loc_site][icsi][icso][idsi][idso][ri]*coor;
+		S_out[ivol][icsi][icso][idsi][idso][ri]=S_in[ivol][icsi][icso][idsi][idso][ri]*coor;
     }
 }
 
@@ -880,7 +871,6 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 	//this loop is made in order to avoid duplicating the routine
 	for(int norm_chro_EDM=0;norm_chro_EDM<3;norm_chro_EDM++)
 	  {
-
 	    //switch the contraction
 	    switch(norm_chro_EDM)
 	      {
@@ -894,36 +884,36 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 		//the Dipole Operator is applied inside the contraction (that is, direction) loop
 		break;
 	      }
-      
+	    
 	    //loop over contraction
 	    for(int icontr=0;icontr<ncontr;icontr++)
 	      {
 		//reset output
 		memset(loc_contr,0,sizeof(complex)*glb_size[0]);
-	  
+		
 		//apply the EDM in the dir=icontr+1
 		if(norm_chro_EDM==2) apply_dipole_operator(supp_S,S0_SL[im_close][rS0],icontr+1);
-	  
+		
 		//loop over local node volume
-		for(int loc_site=0;loc_site<loc_vol;loc_site++)
+		nissa_loc_vol_loop(ivol)
 		  {
 		    complex point_contr;
-		    int glb_t=glb_coord_of_loclx[loc_site][0];
-	      
+		    int glb_t=glb_coord_of_loclx[ivol][0];
+		    
 		    //contract the single point
 		    switch(norm_chro_EDM)
 		      {
-		      case 0:point_proton_sequential_contraction(point_contr,S0_SL[im_close][rS0][loc_site],base_gamma[list_3pt_op[icontr]],S1[im_seq][loc_site]);break;
-		      case 1:point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[list_3pt_chromo_op[icontr]],S1[im_seq][loc_site]);break;
-		      case 2:point_proton_sequential_contraction(point_contr,supp_S[loc_site],base_gamma[4],S1[im_seq][loc_site]);break;
+		      case 0:point_proton_sequential_contraction(point_contr,S0_SL[im_close][rS0][ivol],base_gamma[list_3pt_op[icontr]],S1[im_seq][ivol]);break;
+		      case 1:point_proton_sequential_contraction(point_contr,supp_S[ivol],base_gamma[list_3pt_chromo_op[icontr]],S1[im_seq][ivol]);break;
+		      case 2:point_proton_sequential_contraction(point_contr,supp_S[ivol],base_gamma[4],S1[im_seq][ivol]);break;
 		      }
-	      
+		    
 		    complex_summ(loc_contr[glb_t],loc_contr[glb_t],point_contr);
 		  }
-	  
+		
 		//final reduction
 		MPI_Reduce(loc_contr,glb_contr,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-	  
+		
 		if(rank==0)
 		  {
 		    fprintf(fout," # Three point for rlike=%d, rdislike=%d, %s source, m_spe=%g m_seq=%g m_close=%g\n",
@@ -935,7 +925,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 		      case 1:fprintf(fout," # Proton-CHROMO_%s-Proton\n",gtag[list_3pt_op[icontr]]);break;
 		      case 2:fprintf(fout," # Proton-EDM_%d-Proton\n",icontr+1);break;
 		      }
-	      
+		    
 		    //print the contraction
 		    for(int tt=0;tt<glb_size[0];tt++)
 		      {
@@ -955,7 +945,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
       fclose(fout);
       printf("contractions ultimated\n");
     }
-
+  
   free(loc_contr);
   free(glb_contr);
   nissa_free(supp_S);
@@ -982,9 +972,9 @@ int main(int narg,char **arg)
 {
   //basic mpi initialization
   init_nissa();
-
+  
   tot_time-=take_time();
-
+  
   if(narg<2 && rank==0)
     {
       fprintf(stderr,"Use: %s input_file\n",arg[0]);
@@ -996,7 +986,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  prepare_source();
+  generate_delta_source(original_source,source_pos);
   
   //loop over configurations
   for(int iconf=0;iconf<nconf;iconf++)
@@ -1005,7 +995,7 @@ int main(int narg,char **arg)
       char path_SL[1024],path_SS[1024];
       sprintf(path_SL,"%s_SL",out_path[iconf]);
       sprintf(path_SS,"%s_SS",out_path[iconf]);
-
+      
       read_conf_and_put_antiperiodic(conf,conf_path[iconf],source_pos[0]);
       
       calculate_S0();
@@ -1041,20 +1031,17 @@ int main(int narg,char **arg)
 	    }
       
     }
-
+  
   tot_time+=take_time();
-
+  
   ///////////////////////////////////////////
-
-  if(rank==0)
-    {
-      printf("Total time: %g s\n",tot_time);
-      printf("-inversion time: %g%s avg: %d s\n",tinv/tot_time*100,"%",(int)(tinv/nconf/12));
-      printf("-contraction time for 2pts: %g%s\n",tcontr_2pt/tot_time*100,"%");
-      printf("-contraction time for 3pts: %g%s\n",tcontr_3pt/tot_time*100,"%");
-    }
-
+  
+  master_printf("Total time: %g s\n",tot_time);
+  master_printf("-inversion time: %g%s avg: %d s\n",tinv/tot_time*100,"%",(int)(tinv/nconf/12));
+  master_printf("-contraction time for 2pts: %g%s\n",tcontr_2pt/tot_time*100,"%");
+  master_printf("-contraction time for 3pts: %g%s\n",tcontr_3pt/tot_time*100,"%");
+  
   close_nucleons();
-
+  
   return 0;
 }

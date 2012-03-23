@@ -35,7 +35,7 @@ double global_plaquette_lx_conf(quad_su3 *conf)
   su3 square;
   complex pl;
   double totlocplaq=0;
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int idir=0;idir<4;idir++)
       for(int jdir=idir+1;jdir<4;jdir++)
 	{
@@ -58,7 +58,7 @@ double global_plaquette_variance_lx_conf(quad_su3 *conf)
   su3 square;
   complex pl;
   double totlocplaq=0,totlocplaq2=0;
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     for(int idir=0;idir<4;idir++)
       for(int jdir=idir+1;jdir<4;jdir++)
         {
@@ -89,16 +89,13 @@ u |      |
   A--mu--B
 
 */
-double global_plaquette_eo_conf(quad_su3 *ev_conf,quad_su3 *od_conf)
+double global_plaquette_eo_conf(quad_su3 **conf)
 {
-  communicate_eo_quad_su3_borders(ev_conf,od_conf);
+  communicate_eo_quad_su3_borders(conf);
   
   double totlocplaq=0;
   
-  //collect conf in a more suitable structure
-  quad_su3 *conf[2]={ev_conf,od_conf};
-
-  for(int A=0;A<loc_vol/2;A++)
+  nissa_loc_volh_loop(A)
     for(int par=0;par<2;par++)
       for(int mu=0;mu<4;mu++)
 	for(int nu=mu+1;nu<4;nu++)
@@ -219,21 +216,26 @@ void su3_vec_single_shift(su3 *u,int mu,int sign)
 	  if(nrank_dir[mu]==1)
 	    su3_copy(u[isite],buf);
 	}
+  
+  //invalidate borders
+  set_borders_invalid(u);
 }
 
 
 //compute the real part of the trace of the rectangle of size nstep_mu X nstep_nu in th mu|nu plane
 void average_trace_of_rectangle_path(complex tra,quad_su3 *conf,int mu,int nu,int nstep_mu,int nstep_nu,su3 *u)
 {
+  communicate_lx_quad_su3_borders(conf);
+  
   //reset the link product
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     su3_put_to_id(u[ivol]);
 
  //move along +mu
   for(int i=0;i<nstep_mu;i++)
     {
       //take the product
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][mu]);
       
       su3_vec_single_shift(u,mu,+1);
@@ -243,7 +245,7 @@ void average_trace_of_rectangle_path(complex tra,quad_su3 *conf,int mu,int nu,in
   for(int i=0;i<nstep_nu;i++)
     {
       //take the product
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][nu]);
       
       su3_vec_single_shift(u,nu,+1);
@@ -255,7 +257,7 @@ void average_trace_of_rectangle_path(complex tra,quad_su3 *conf,int mu,int nu,in
       su3_vec_single_shift(u,mu,-1);
       
       //take the product
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	safe_su3_prod_su3_dag(u[ivol],u[ivol],conf[ivol][mu]);
     }
 
@@ -265,13 +267,13 @@ void average_trace_of_rectangle_path(complex tra,quad_su3 *conf,int mu,int nu,in
       su3_vec_single_shift(u,nu,-1);
       
       //take the product
-      for(int ivol=0;ivol<loc_vol;ivol++)
+      nissa_loc_vol_loop(ivol)
 	safe_su3_prod_su3_dag(u[ivol],u[ivol],conf[ivol][nu]);
     }
   
   //compute the trace
   complex loc_tra={0,0};
-  for(int ivol=0;ivol<loc_vol;ivol++)
+  nissa_loc_vol_loop(ivol)
     {
       complex temp;
       su3_trace(temp,u[ivol]);
@@ -294,6 +296,8 @@ double average_real_part_of_trace_of_rectangle_path(quad_su3 *conf,int mu,int nu
 
 void Pline(su3 *Pline,quad_su3 *conf)
 {
+  communicate_lx_quad_su3_borders(conf);
+  
   int X,iX[4],T=loc_size[0];
   
   su3 *U0=nissa_malloc("U0",loc_size[0]+1,su3);
@@ -386,6 +390,8 @@ void Pline(su3 *Pline,quad_su3 *conf)
 
 void Pline_forward(su3 *Pline, quad_su3 *conf)
 {
+  communicate_lx_quad_su3_borders(conf);
+  
   int X,iX[4],T=loc_size[0];
   
   su3 *U0=nissa_malloc("U0",loc_size[0]+1,su3);
@@ -443,6 +449,8 @@ void Pline_forward(su3 *Pline, quad_su3 *conf)
 
 void Pline_backward(su3 *Pline, quad_su3 *conf)
 {
+  communicate_lx_quad_su3_borders(conf);
+  
   int X,iX[4],T=loc_size[0];
   
   su3 *U0=nissa_malloc("U0",loc_size[0]+1,su3);
@@ -504,12 +512,14 @@ void Pline_backward(su3 *Pline, quad_su3 *conf)
 */
 void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
 {
+  communicate_lx_quad_su3_edges(conf);
+  
   int A,B,C,D,E,F,G;
   int munu;
 
   su3 temp1,temp2,leaves_summ;
 
-  for(int X=0;X<loc_vol;X++)
+  nissa_loc_vol_loop(X)
     {
       as2t_su3_put_to_zero(Pmunu[X]);
 
@@ -568,6 +578,8 @@ void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
 	    }
 	}
     }
+  
+  set_borders_invalid(Pmunu);
 }
 
 //apply the chromo operator to the passed spinor site by site (not yet fully optimized)
@@ -589,7 +601,7 @@ void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmun
 //apply the chromo operator to the passed spinor to the whole volume
 void unsafe_apply_chromo_operator_to_spincolor(spincolor *out,as2t_su3 *Pmunu,spincolor *in)
 {
-  for(int ivol=0;ivol<loc_vol;ivol++) unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
+  nissa_loc_vol_loop(ivol) unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
 }
 
 //apply the chromo operator to the passed colorspinspin
@@ -598,20 +610,23 @@ void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,as2t_su3 *
 {
   spincolor temp1,temp2;
   
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+  nissa_loc_vol_loop(ivol)
     {
       //Loop over the four source dirac indexes
       for(int id_source=0;id_source<4;id_source++) //dirac index of source
 	{
 	  //Switch the color_spinspin into the spincolor.
-	  get_spincolor_from_colorspinspin(temp1,in[loc_site],id_source);
+	  get_spincolor_from_colorspinspin(temp1,in[ivol],id_source);
 	  
-	  unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[loc_site],temp1);
+	  unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[ivol],temp1);
 	  
 	  //Switch back the spincolor into the colorspinspin
-	  put_spincolor_into_colorspinspin(out[loc_site],temp2,id_source);
+	  put_spincolor_into_colorspinspin(out[ivol],temp2,id_source);
 	}
     }
+  
+  //invalidate borders
+  set_borders_invalid(out);
 }
 
 //apply the chromo operator to the passed su3spinspin
@@ -620,19 +635,22 @@ void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmun
 {
   spincolor temp1,temp2;
   
-  for(int loc_site=0;loc_site<loc_vol;loc_site++)
+  nissa_loc_vol_loop(ivol)
     {
       //Loop over the four source dirac indexes
       for(int id_source=0;id_source<4;id_source++) //dirac index of source
 	for(int ic_source=0;ic_source<3;ic_source++) //color index of source
 	  {
 	    //Switch the su3spinspin into the spincolor.
-	    get_spincolor_from_su3spinspin(temp1,in[loc_site],id_source,ic_source);
+	    get_spincolor_from_su3spinspin(temp1,in[ivol],id_source,ic_source);
 	    
-	    unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[loc_site],temp1);
+	    unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[ivol],temp1);
 	    
 	    //Switch back the spincolor into the colorspinspin
-	    put_spincolor_into_su3spinspin(out[loc_site],temp2,id_source,ic_source);
+	    put_spincolor_into_su3spinspin(out[ivol],temp2,id_source,ic_source);
 	  }
     }
+
+  //invalidate borders
+  set_borders_invalid(out);
 }
