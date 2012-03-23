@@ -1,11 +1,5 @@
 #pragma once
 
-char *get_vect_name(void *v)
-{
-  nissa_vect *vect=(nissa_vect*)((char*)v-sizeof(nissa_vect));
-  return vect->tag;
-}
-
 //check weather the borders are allocated
 void check_minimal_allocated_size(void *v,int l,const char *err_mess)
 {

@@ -364,6 +364,7 @@ void calculate_S0(colorspinspin *S0,double mass,double stopping_residue)
   spincolor *temp_sol=nissa_malloc("Temp_sol",loc_vol,spincolor);
   
   //loop over the source dirac index
+  p5=0;
   for(int id=0;id<4;id++)
     { 
       for(int ivol=0;ivol<loc_vol;ivol++)
@@ -379,6 +380,7 @@ void calculate_S0(colorspinspin *S0,double mass,double stopping_residue)
       for(int i=0;i<loc_vol;i++)
 	  put_spincolor_into_colorspinspin(S0[i],temp_sol[i],id);
     }
+  master_printf("P5:%lg\n",p5);
   
   //rotate to physical basis; remember that D^-1 rotate opposite than D!
   rotate_vol_colorspinspin_to_physical_basis(S0,!r_spec,!r_spec);

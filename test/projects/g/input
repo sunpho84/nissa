@@ -17,7 +17,7 @@ cMass 0.60
 
 Theta 0.10
 
-StoppingResidueL 1.e-12
+StoppingResidueL 1.e-24
 StoppingResidueC 1.e-24
 NiterMax 100000
 

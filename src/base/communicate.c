@@ -174,8 +174,6 @@ void communicate_lx_spincolor_borders(spincolor *s)
 //Send the borders of the data
 void communicate_ev_borders(char *ev_data,MPI_Datatype *MPI_EV_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *MPI_EV_BORD_RECE,int nbytes_per_site)
 {
-  master_printf("communicating ev border of: %s\n",get_vect_name((void*)ev_data));
-  
   int nrequest=0;
   MPI_Request request[16];
   MPI_Status status[16];
@@ -209,8 +207,6 @@ void communicate_ev_borders(char *ev_data,MPI_Datatype *MPI_EV_BORD_SEND_TXY,MPI
 //Send the borders of the data
 void communicate_od_borders(char *od_data,MPI_Datatype *MPI_EV_BORD_SEND_TXY,MPI_Datatype *MPI_OD_BORD_SEND_Z,MPI_Datatype *MPI_EV_BORD_RECE,int nbytes_per_site)
 {
-  master_printf("communicating od border of: %s\n",get_vect_name((void*)od_data));
-  
   int nrequest=0;
   MPI_Request request[16];
   MPI_Status status[16];
@@ -244,8 +240,6 @@ void communicate_od_borders(char *od_data,MPI_Datatype *MPI_EV_BORD_SEND_TXY,MPI
 //Send the borders of the data
 void communicate_eo_borders(char *ev_data,char *od_data,MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *MPI_OD_BORD_SEND_Z,MPI_Datatype *MPI_EO_BORD_RECE,int nbytes_per_site)
 {
-  master_printf("communicating eo borders of: %s\n",get_vect_name((void*)ev_data));
-  
   char *data[2]={ev_data,od_data};
   
   int nrequest=0;
