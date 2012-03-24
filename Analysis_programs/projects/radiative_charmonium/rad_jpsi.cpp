@@ -183,6 +183,8 @@ int main()
   cout<<"F semi-analytical: "<<V_sa<<endl;
   cout<<"F numerical: "<<V_nu<<endl;
   
+  M_VK.write_to_binfile("M_VK");
+  M_P5.write_to_binfile("M_P5");
   V_nu.write_to_binfile("V_nu");
   
   return 0;

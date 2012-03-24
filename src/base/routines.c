@@ -30,32 +30,29 @@ void fprintf_friendly_units(FILE *fout,int quant,int orders,const char *units)
   
   quant=(int)(temp+0.5);
   
-  if(rank==0) fprintf(fout,"%d %s%s",quant,units_prefix[iord],units);
+  master_fprintf(fout,"%d %s%s",quant,units_prefix[iord],units);
 }
 
 void master_printf_box(const char *template,...)
 {
-  if(rank==0)
-    {
-      char temp_out[1024];
-      va_list ap;
-      va_start(ap,template);
-      vsnprintf(temp_out,1024,template,ap);
-      va_end(ap);
-      int l=strlen(temp_out);
-
-      printf("\n /");
-      for(int i=0;i<l;i++) printf("-");
-      printf("\\\n |%s|\n \\",temp_out);
-      for(int i=0;i<l;i++) printf("-");
-      printf("/\n");
-    }
+  char temp_out[1024];
+  va_list ap;
+  va_start(ap,template);
+  vsnprintf(temp_out,1024,template,ap);
+  va_end(ap);
+  int l=strlen(temp_out);
+  
+  master_printf("\n /");
+  for(int i=0;i<l;i++) master_printf("-");
+  printf("\\\n |%s|\n \\",temp_out);
+  for(int i=0;i<l;i++) master_printf("-");
+  master_printf("/\n");
 }
 
 //create a dir
 int create_dir(char *path)
 {
-  int res=(rank==0) ? mkdir(path,740) : 0;
+  int res=(rank==0) ? mkdir(path,480) : 0;
   MPI_Bcast(&res,1,MPI_INT,0,MPI_COMM_WORLD);
   if(res!=0)
     master_printf("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path,res);
