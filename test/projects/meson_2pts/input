@@ -38,4 +38,4 @@ NChromoContrThreePoints 1
  5  5
 
 NGaugeConf 1
-../../../data/L4T8conf 3 out_temp
+../../data/L4T8conf 3 out_temp

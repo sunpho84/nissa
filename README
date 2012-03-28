@@ -1,0 +1,65 @@
+     
+                           iiii                                                      
+                          i::::i                                                     
+                           iiii                                                      
+                                                                                    
+      nnnn  nnnnnnnn     iiiiiii      ssssssssss        ssssssssss      aaaaaaaaaaaaa   
+      n:::nn::::::::nn   i:::::i    ss::::::::::s     ss::::::::::s     a::::::::::::a  
+      n::::::::::::::nn   i::::i  ss:::::::::::::s  ss:::::::::::::s    aaaaaaaaa:::::a 
+      nn:::::::::::::::n  i::::i  s::::::ssss:::::s s::::::ssss:::::s            a::::a 
+        n:::::nnnn:::::n  i::::i   s:::::s  ssssss   s:::::s  ssssss      aaaaaaa:::::a 
+        n::::n    n::::n  i::::i     s::::::s          s::::::s         aa::::::::::::a 
+        n::::n    n::::n  i::::i        s::::::s          s::::::s     a::::aaaa::::::a 
+        n::::n    n::::n  i::::i  ssssss   s:::::s  ssssss   s:::::s  a::::a    a:::::a 
+        n::::n    n::::n i::::::i s:::::ssss::::::s s:::::ssss::::::s a::::a    a:::::a 
+        n::::n    n::::n i::::::i s::::::::::::::s  s::::::::::::::s  a:::::aaaa::::::a 
+        n::::n    n::::n i::::::i  s:::::::::::ss    s:::::::::::ss    a::::::::::aa:::a
+        nnnnnn    nnnnnn iiiiiiii   sssssssssss       sssssssssss       aaaaaaaaaa  aaaa
+
+
+
+Introduction
+------------
+
+
+Requirements
+------------
+
+-Some sort of MPI distribution (at the moment also when running on scalar machine)
+-Lemon library
+
+
+Compiling
+---------
+
+At the moment, the compilation is home-made and ugly. Surely it is the most unpleasant part of the library, 
+I hope to improve it soon. Run once the script "compile.sh" in the main directory.
+This will create a file called "params.sh" that you must fill with the following information:
+
+-COMP: the name of the compiler (e.g. mpicc)
+-LEMON_PATH: the path to the main directory where lemon is installed
+-INC_PATH, LIB_PATH: additional paths
+-COMP_FLAG: additional flag to the compiler
+
+Then, to compile a certain program you must invoke "compile.sh" with the path of the specific programs, e.g.:
+ bash compile.sh  projects/semileptonic/semileptonic_smeared
+
+The compilation is monolithic, so each time you compile a program, the whole library will be compiled together wit it.
+
+
+Directory structure
+-------------------
+
+doc:           in principle this will contain documentation to each and everything, but at the moment
+                only some note on particular routine
+
+src:            contains the library and all the routines common to the various programs
+
+tools:         intended to be contain simple programs like converters, data check, etc
+
+projects:      programs to perform massive computations
+
+test:          dedicated programs to check the library (inside "nissa" sub-drectory),
+                and also input files and reference data to check "tools" and "projects" programs
+
+work_in_prog:  scratch area where to develop new programs

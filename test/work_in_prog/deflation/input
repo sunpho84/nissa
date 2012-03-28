@@ -3,7 +3,7 @@ T 8
 
 Seed 0
 
-GaugeConfPath ../../../data/L4T8conf
+GaugeConfPath ../../data/L4T8conf
 
 Kappa 0.177000
 Mu 0.50
