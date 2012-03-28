@@ -4,8 +4,8 @@
 void remap_vector(void *out,void *in,coords *xto,coords *xfr,int bps)
 {
   //allocate a buffer where to repack data
-  void *out_buf=nissa_malloc("out_buf",loc_vol*(bps+sizeof(int)),void);
-  void *in_buf=nissa_malloc("in_buf",loc_vol*(bps+sizeof(int)),void);
+  void *out_buf=nissa_malloc("out_buf",loc_vol*(bps+sizeof(int)),char);
+  void *in_buf=nissa_malloc("in_buf",loc_vol*(bps+sizeof(int)),char);
   
   //allocate addresses, counting and reordering vectors
   int *rank_fr=nissa_malloc("rank_from",loc_vol,int);

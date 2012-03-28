@@ -14,10 +14,10 @@ JacobiNiterSo 2  0 30
 JacobiNiterSe 2  0 30
 JacobiNiterSi 2  0 30
 
-Nmass 3
-0.50 0.60 0.70
+NmassS0 2
+0.50 0.60
 
-NTheta 2
+NThetaS0 2
 0.00 0.10
 
 Residue 1.e-24
@@ -33,6 +33,12 @@ NChromoContrTwoPoints 2
  5  5
  4  5
  
+NmassS1 2
+0.60 0.70
+
+NThetaS1 2
+0.05 0.10
+
 TSep 4
 NSpec 2
 

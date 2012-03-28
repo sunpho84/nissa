@@ -11,8 +11,8 @@ const double Zv[4]={0.5816,0.6103,0.6451, 0.746};
 char base_path[1024];
 int ibeta;
 
-int tminL_V,tmaxL_V;
-int tminS_V,tmaxS_V;
+int tminL_B,tmaxL_B;
+int tminS_B,tmaxS_B;
 int tminL_P,tmaxL_P;
 int tminS_P,tmaxS_P;
 int tmin_f,tmax_f;
@@ -60,10 +60,10 @@ void read_input()
   
   read_formatted_from_file_expecting(data_list_path,input_file,"%s","data_list_file");
   
-  read_formatted_from_file_expecting((char*)(&tminL_V),input_file,"%d","tminL_V");
-  read_formatted_from_file_expecting((char*)(&tmaxL_V),input_file,"%d","tmaxL_V");
-  read_formatted_from_file_expecting((char*)(&tminS_V),input_file,"%d","tminS_V");
-  read_formatted_from_file_expecting((char*)(&tmaxS_V),input_file,"%d","tmaxS_V");
+  read_formatted_from_file_expecting((char*)(&tminL_B),input_file,"%d","tminL_B");
+  read_formatted_from_file_expecting((char*)(&tmaxL_B),input_file,"%d","tmaxL_B");
+  read_formatted_from_file_expecting((char*)(&tminS_B),input_file,"%d","tminS_B");
+  read_formatted_from_file_expecting((char*)(&tmaxS_B),input_file,"%d","tmaxS_B");
   
   read_formatted_from_file_expecting((char*)(&tminL_P),input_file,"%d","tminL_P");
   read_formatted_from_file_expecting((char*)(&tmaxL_P),input_file,"%d","tmaxL_P");
@@ -89,11 +89,11 @@ int main()
   //load sl P5P5 for D
   jvec P5P5_sl=load_2pts("P5P5",0, 0,0, 0, "30_00");
   
-  //load ss VKVK for D
-  jvec VKVK_ss=load_2pts("VKVK",0, 0,0, 0, "30_30");
-  //load sl VKVK for D
-  jvec VKVK_sl=load_2pts("VKVK",0, 0,0, 0, "30_00");
-
+  //load ss BKBK for D
+  jvec BKBK_ss=load_2pts("BKBK",0, 0,0, 0, "30_30");
+  //load sl BKBK for D
+  jvec BKBK_sl=load_2pts("BKBK",0, 0,0, 0, "30_00");
+  
   
   //////////////////////////////////// Fit masses and Z for standing D and D* ////////////////////////////////////////
   
@@ -103,8 +103,8 @@ int main()
   cout<<"D mass: "<<M_P5<<", Z: "<<ZL_P5<<endl;
   
   //compute D* mass and Z
-  jack M_VK,ZL_VK,ZS_VK;
-  two_pts_SL_fit(M_VK,ZL_VK,ZS_VK,VKVK_sl.simmetrized(1),VKVK_ss.simmetrized(1),tminL_V,tmaxL_V,tminS_V,tmaxS_V,"MSL_VK.xmg","MSS_VK.xmg");
+  jack M_BK,ZL_BK,ZS_BK;
+  two_pts_SL_fit(M_BK,ZL_BK,ZS_BK,BKBK_sl.simmetrized(1),BKBK_ss.simmetrized(1),tminL_B,tmaxL_B,tminS_B,tmaxS_B,"MSL_BK.xmg","MSS_BK.xmg");
   
   //reconstuct moving D mass
   double qi=M_PI*theta/L;
@@ -118,13 +118,13 @@ int main()
     {
       int dtsep=abs(tsep-t);
       
-      if(t<TH) Dth_DV_td_nu[t]=VKVK_ss[t]*P5P5_ss[dtsep]/(ZS_P5*ZS_VK);
-      else     Dth_DV_td_nu[t]=VKVK_ss[T-t]*P5P5_ss[dtsep]/(ZS_P5*ZS_VK);
+      if(t<TH) Dth_DV_td_nu[t]=BKBK_ss[t]*P5P5_ss[dtsep]/(ZS_P5*ZS_BK);
+      else     Dth_DV_td_nu[t]=BKBK_ss[T-t]*P5P5_ss[dtsep]/(ZS_P5*ZS_BK);
       
-      Dth_DV_td_sa[t]=(ZS_P5*ZS_VK)*
-	(exp((-M_VK*t)+(-Eth_P5*dtsep))
-	 +exp((-M_VK*(T-t)+(-Eth_P5*dtsep))))/
-	(2*Eth_P5*2*M_VK);
+      Dth_DV_td_sa[t]=(ZS_P5*ZS_BK)*
+	(exp((-M_BK*t)+(-Eth_P5*dtsep))
+	 +exp((-M_BK*(T-t)+(-Eth_P5*dtsep))))/
+	(2*Eth_P5*2*M_BK);
     }
   
   //compare time dependance and its simmetric
@@ -137,28 +137,33 @@ int main()
       out<<Dth_DV_td_nu<<endl;
     }
   
-  jack Q2_fit=sqr(M_VK-Eth_P5)-q2;
-  cout<<"theta optimal: "<<(M_VK*M_VK-M_P5*M_P5)/(2*M_VK)*L/sqrt(3)/M_PI<<endl;
+  jack Q2_fit=sqr(M_BK-Eth_P5)-q2;
+  cout<<"theta optimal: "<<(M_BK*M_BK-M_P5*M_P5)/(2*M_BK)*L/sqrt(3)/M_PI<<endl;
   cout<<"Q2: "<<Q2_fit<<endl;
   
   //////////////////////////////// Calculate three points ////////////////////////////////
 
   //load corrs
-  jvec P5thVIVJ_pt1= load_3pts("VIVJ_pt1",0,1,IMAG);
-  jvec P5thVIVJ_pt2=-load_3pts("VIVJ_pt2",0,1,IMAG);
-  jvec P5thVIVJ=(P5thVIVJ_pt1+P5thVIVJ_pt2)/2;
-
+  jvec P5thVIBJ_pt1=load_3pts("VIBJ_pt1",0,1,REAL);
+  jvec P5thVIBJ_pt2=load_3pts("VIBJ_pt2",0,1,REAL);
+  jvec P5thVIBJ_pt3=load_3pts("VIBJ_pt3",0,1,REAL);
+  
   //compare the different parts
   {
-    ofstream out("P5thVIVJ_parts.xmg");
+    ofstream out("P5thVIBJ.xmg");
     out<<"@type xydy"<<endl;
-    out<<P5thVIVJ<<endl;
+    out<<P5thVIBJ_pt1<<endl;
+    out<<"&/n@type xydy"<<endl;
+    out<<P5thVIBJ_pt2<<endl;
+    out<<"&/n@type xydy"<<endl;
+    out<<P5thVIBJ_pt2<<endl;
   }
-
+  
+  
   ///////////////////////////// Determine the matrix element between D(th=+-) and D* ////////////////////////////
   
-  jvec Dth_V_DV_sa=P5thVIVJ/Dth_DV_td_sa;
-  jvec Dth_V_DV_nu=P5thVIVJ/Dth_DV_td_nu;
+  jvec Dth_V_DV_sa=P5thVIBJ_pt1/Dth_DV_td_sa;
+  jvec Dth_V_DV_nu=P5thVIBJ_pt1/Dth_DV_td_nu;
   
   //compare matrix element and its simmetric
   if(tsep==T/2)
@@ -173,17 +178,17 @@ int main()
     }
   
   //fit matrix element
-  jack R_sa=constant_fit(Dth_V_DV_sa.simmetrized(-1),tmin_f,tmax_f,"R_sa.xmg");
-  jack R_nu=constant_fit(Dth_V_DV_nu.simmetrized(-1),tmin_f,tmax_f,"R_nu.xmg");
+  jack R_sa=constant_fit(Dth_V_DV_sa/*.simmetrized(-1)*/,tmin_f,tmax_f,"R_sa.xmg");
+  jack R_nu=constant_fit(Dth_V_DV_nu/*.simmetrized(-1)*/,tmin_f,tmax_f,"R_nu.xmg");
   
   //compute the form factor at 0 recoil
-  jack V_sa=R_sa/qi*(M_VK+M_P5)/(2*M_VK)*Zv[ibeta];
-  jack V_nu=R_nu/qi*(M_VK+M_P5)/(2*M_VK)*Zv[ibeta];
+  jack V_sa=R_sa/qi*(M_BK+M_P5)/(2*M_BK)*Zv[ibeta];
+  jack V_nu=R_nu/qi*(M_BK+M_P5)/(2*M_BK)*Zv[ibeta];
   
   cout<<"F semi-analytical: "<<V_sa<<endl;
   cout<<"F numerical: "<<V_nu<<endl;
   
-  M_VK.write_to_binfile("M_VK");
+  M_BK.write_to_binfile("M_BK");
   M_P5.write_to_binfile("M_P5");
   V_nu.write_to_binfile("V_nu");
   
