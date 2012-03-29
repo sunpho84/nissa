@@ -1,8 +1,8 @@
 #pragma once
 
-typedef double quadf[2];
+typedef double float128[2];
 
-void quadf_add(quadf c,quadf a,quadf b)
+void float128_add(float128 c,float128 a,float128 b)
 {
   double t1=a[0]+b[0];
   double e=t1-a[0];
@@ -12,7 +12,7 @@ void quadf_add(quadf c,quadf a,quadf b)
   c[1]=t2-(c[0]-t1);
 }
 
-void quadf_mul(quadf c,quadf a,quadf b)
+void float128_mul(float128 c,float128 a,float128 b)
 {
   double split=134217729;
   
@@ -36,5 +36,3 @@ void quadf_mul(quadf c,quadf a,quadf b)
   c[0]=t1+t2;
   c[1]=t2-(c[0]-t1);
 }
-
-

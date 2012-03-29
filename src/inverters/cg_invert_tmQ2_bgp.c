@@ -53,6 +53,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 		
 	MPI_Allreduce(cloc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	MPI_Allreduce(cloc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(riter==0) master_printf("Source norm: %lg\n",source_norm);
 	master_printf("iter 0 relative residue: 1\n");
       }
 

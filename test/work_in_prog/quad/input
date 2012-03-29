@@ -1,0 +1,50 @@
+L 4
+T 8
+
+WallTime 1000
+
+Kappa 0.177000
+Seed 100
+NoiseType 4 
+
+ApeAlpha 0.5
+ApeNiter 20
+JacobiKappa 4
+JacobiNiterSo 1  0
+JacobiNiterSe 1  0
+JacobiNiterSi 1  0
+
+NmassS0 2
+0.10 0.60
+
+NThetaS0 1
+0.00
+
+Residue 1.e-40
+StoppingCriterion standard
+MinimalResidue 1.e-60
+NiterMax 100000
+
+NContrTwoPoints 3
+ 5  5
+ 4  5
+ 0  0
+NChromoContrTwoPoints 2
+ 5  5
+ 4  5
+ 
+NmassS1 0
+
+NThetaS1 0
+
+TSep 4
+NSpec 1
+
+ iThetaMassR 0 0 0
+
+NContrThreePoints 0
+
+NChromoContrThreePoints 0
+
+NGaugeConf 1
+../../data/L4T8conf 3 out_sourceA
