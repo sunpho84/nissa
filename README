@@ -21,12 +21,23 @@
 Introduction
 ------------
 
+Nissa Is a Set of SU(3) Algorithm
+
+Creator:       	  Francesco Sanfilippo - francesco.sanfilippo@th.u-psud.fr
+
+Contributors:	  Mariam Atoui
+	  	  Benoit Blossier
+		  Nuria Carrasco
+
+This project is host at http://code.google.com/p/nissa
+
 
 Requirements
 ------------
 
 -Some sort of MPI distribution (at the moment also when running on scalar machine)
 -Lemon library
+-C compiler
 
 
 Compiling
@@ -50,12 +61,12 @@ The compilation is monolithic, so each time you compile a program, the whole lib
 Directory structure
 -------------------
 
-doc:           in principle this will contain documentation to each and everything, but at the moment
-                only some note on particular routine
+doc:           in principle this should contain documentation to each and everything, but at the moment
+                only notes on some particular routine
 
-src:            contains the library and all the routines common to the various programs
+src:           contains the library and all the routines common to the various programs
 
-tools:         intended to be contain simple programs like converters, data check, etc
+tools:         simple programs like converters, data check, etc
 
 projects:      programs to perform massive computations
 

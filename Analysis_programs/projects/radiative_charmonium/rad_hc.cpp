@@ -5,7 +5,7 @@
 
 int T,TH,L,tsep;
 double theta,lmass,cmass;
-int njack,ntheta=2;
+int njack,nthetaS0,nthetaS1;
 const double Zv[4]={0.5816,0.6103,0.6451, 0.746};
 
 char base_path[1024];
@@ -24,7 +24,7 @@ int icombo_2pts(int r1,int r2,int ith1,int reim)
 
 int icombo_3pts(int ith1,int ith2,int reim)
 {
-  return reim+2*(ith1+ntheta*ith2);
+  return reim+2*(ith1+nthetaS1*ith2);
 }
 
 jvec load_3pts(const char *name,int ith1,int ith2,int reim)
@@ -47,10 +47,18 @@ void read_data_list(const char *path)
   L=TH=T/2;
   read_formatted_from_file_expecting((char*)(&njack),input_file,"%d","njack");
   read_formatted_from_file_expecting((char*)(&ibeta),input_file,"%d","ibeta");
+  read_formatted_from_file_expecting((char*)(&nthetaS0),input_file,"%d","nthetaS0");
+  read_formatted_from_file_expecting((char*)(&nthetaS1),input_file,"%d","nthetaS1");
   read_formatted_from_file_expecting((char*)(&theta),input_file,"%lg","theta");
   read_formatted_from_file_expecting((char*)(&tsep),input_file,"%d","tsep");
   read_formatted_from_file_expecting((char*)(&lmass),input_file,"%lg","lmass");
   read_formatted_from_file_expecting((char*)(&cmass),input_file,"%lg","cmass");
+  
+  if(nthetaS0!=nthetaS1)
+    {
+      fprintf(stderr,"nthetaS0!=nthetaS1\n");
+      exit(1);
+    }
 }
 
 void read_input()
@@ -143,10 +151,12 @@ int main()
   
   //////////////////////////////// Calculate three points ////////////////////////////////
 
+  int itheta=(nthetaS1==1 ? 0 : 1); 
+  
   //load corrs
-  jvec P5thVIBJ_pt1=load_3pts("VIBJ_pt1",0,1,REAL);
-  jvec P5thVIBJ_pt2=load_3pts("VIBJ_pt2",0,1,REAL);
-  jvec P5thVIBJ_pt3=load_3pts("VIBJ_pt3",0,1,REAL);
+  jvec P5thVIBJ_pt1=load_3pts("VIBJ_pt1",0,itheta,REAL);
+  jvec P5thVIBJ_pt2=load_3pts("VIBJ_pt2",0,itheta,REAL);
+  jvec P5thVIBJ_pt3=load_3pts("VIBJ_pt3",0,itheta,REAL);
   
   //compare the different parts
   {
@@ -178,8 +188,8 @@ int main()
     }
   
   //fit matrix element
-  jack R_sa=constant_fit(Dth_V_DV_sa/*.simmetrized(-1)*/,tmin_f,tmax_f,"R_sa.xmg");
-  jack R_nu=constant_fit(Dth_V_DV_nu/*.simmetrized(-1)*/,tmin_f,tmax_f,"R_nu.xmg");
+  jack R_sa=constant_fit(Dth_V_DV_sa.simmetrized(-1),tmin_f,tmax_f,"R_sa.xmg");
+  jack R_nu=constant_fit(Dth_V_DV_nu.simmetrized(-1),tmin_f,tmax_f,"R_nu.xmg");
   
   //compute the form factor at 0 recoil
   jack V_sa=R_sa/qi*(M_BK+M_P5)/(2*M_BK)*Zv[ibeta];
