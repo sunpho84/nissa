@@ -30,6 +30,12 @@ typedef colorspinspin su3spinspin[3];
 typedef complex as2t[6];
 typedef su3 as2t_su3[6];
 
+//quadruple precision float
+typedef double float_128[2];
+typedef float_128 complex_128[2];
+typedef complex_128 color_128[3];
+typedef color_128 spincolor_128[4];
+
 //Random types
 enum rnd_type{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z4,RND_GAUSS};
 //Source type
