@@ -57,18 +57,17 @@
 
 //gauge info
 int ngauge_conf,nanalyzed_conf=0;
-char conf_path[1024];
+char conf_path[1024],outfolder[1024];
 quad_su3 *conf,*sme_conf;
 as2t_su3 *Pmunu;
 double kappa;
-char outfolder[1024];
+double put_theta[4],old_theta[4]={0,0,0,0};
 
 //list of masses and theta
 int nmassS0,nthetaS0;
 int nmassS1,nthetaS1;
 double *massS0,*thetaS0;
 double *massS1,*thetaS1;
-double put_theta[4],old_theta[4]={0,0,0,0};
 
 //source data
 int seed,noise_type;
@@ -154,7 +153,7 @@ void meson_two_points(complex *corr,int *list_op1,prop_type *s1,int *list_op2,pr
       dirac_prod(&(t2[icontr]), &(base_gamma[5]),&(base_gamma[list_op2[icontr]]));
     }
   
-  //Call the routine which does the real contraction
+  //Call the routine which perform the contraction
 #ifdef POINT_SOURCE_VERSION
   trace_g_ccss_dag_g_ccss(corr,t1,s1,t2,s2,ncontr);
 #else
@@ -169,7 +168,8 @@ void contract_with_source(complex *corr,prop_type *S1,int *list_op,prop_type *so
   dirac_matr t1[ncontr_2pts],t2[ncontr_2pts];
 
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
-    { //Init the second 
+    {
+      //Init the second 
       t1[icontr]=base_gamma[0];
       t2[icontr]=base_gamma[list_op[icontr]];
     }
@@ -200,17 +200,18 @@ void generate_sequential_source(int ispec)
   
   master_printf("\nCreating the sequential source for spectator %d\n",ispec);
   nissa_loc_vol_loop(ivol)
-    { //put to zero everything but the slice
+    {
+      //put to zero everything but the slice
       if(glb_coord_of_loclx[ivol][0]!=(source_coord[0]+tsep)%glb_size[0])
 	memset(sequential_source[ivol],0,sizeof(prop_type));
       else
-	{ //avoid to put g5, beacuse commutate with (i+-g5)/sqrt(2) and cancel with those of the QQ
+	{
+	  //avoid to put g5, beacuse commutate with (i+-g5)/sqrt(2) and cancel with those of the QQ
 	  memcpy(sequential_source[ivol],S0[r][ipropS0(ith_spec[ispec],imass_spec[ispec])][ivol],sizeof(prop_type));
 	  for(int c=0;c<3;c++) //rotate as r because it's D^-1
 	    {
 #ifdef POINT_SOURCE_VERSION
-	      for(int c1=0;c1<3;c1++)
-		rotate_spinspin_to_physical_basis(sequential_source[ivol][c][c1],r,r);
+	      for(int c1=0;c1<3;c1++) rotate_spinspin_to_physical_basis(sequential_source[ivol][c][c1],r,r);
 #else
 	      rotate_spinspin_to_physical_basis(sequential_source[ivol][c],r,r);
 #endif
@@ -480,8 +481,8 @@ void setup_conf()
   master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
   
   //put the anti-periodic condition on the temporal border
-  memset(old_theta,0,4*sizeof(double));
-  put_theta[0]=1;
+  old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
+  put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
   adapt_theta(conf,old_theta,put_theta,1,1);
 }
 
@@ -579,7 +580,7 @@ void calculate_S0(int ism_lev_so)
 #else
 	    get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
 #endif
-	    for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
+	    safe_dirac_prod_spincolor(source[ivol],&(base_gamma[5]),source[ivol]);
 	  }
 	set_borders_invalid(source);
 	
@@ -655,7 +656,8 @@ void calculate_S1(int ispec,int ism_lev_se)
 	set_borders_invalid(source);
 	
 	for(int itheta=0;itheta<nthetaS1;itheta++)
-	  { //adapt the border condition
+	  {
+	    //adapt the border condition
 	    put_theta[1]=put_theta[2]=put_theta[3]=thetaS1[itheta];
 	    adapt_theta(conf,old_theta,put_theta,1,1);
 	    
@@ -665,7 +667,8 @@ void calculate_S1(int ispec,int ism_lev_se)
 	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
 	    
 	    for(int imass=0;imass<nmassS1;imass++)
-	      { //reconstruct the doublet: r(S1)=!r(spec), so we have to multiply by Q+ if r(spec)==1 and Q- if 0
+	      {
+		//reconstruct the doublet: r(S1)=!r(spec), so we have to multiply by Q+ if r(spec)==1 and Q- if 0
 		double reco_mass=-massS1[imass];
 		if(r_spec[ispec]==1) reco_mass=-reco_mass;
 		//use temp_vec[0] as temporary storage
