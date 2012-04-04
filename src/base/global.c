@@ -24,6 +24,7 @@ int nissa_eo_geom_inited;
 
 //neighbours of local volume + borders
 coords *loclx_neighdw,*loclx_neighup;
+coords *loclx_neigh[2];
 
 //stopping criterions for multimass inverter
 #define sc_standard 0
@@ -35,28 +36,34 @@ coords *loclx_neighdw,*loclx_neighup;
 char list_known_stopping_criterion[4][1024]={"standard","unilevel","weighted_norm2","weighted_norm_inf"};
 
 //basic mpi types
+MPI_Datatype MPI_FLOAT_128;
 MPI_Datatype MPI_SU3;
 MPI_Datatype MPI_QUAD_SU3;
 MPI_Datatype MPI_COLOR;
 MPI_Datatype MPI_SPINCOLOR;
+MPI_Datatype MPI_SPINCOLOR_128;
 MPI_Datatype MPI_REDSPINCOLOR;
+
+//float 128 summ
+MPI_Op MPI_FLOAT_128_SUM;
 
 //size of the border along the 4 dir,types for sending
 int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
 int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
 int bord_dir_vol[4],bord_offset[4];
 int loc_bord,loc_bordh;
-MPI_Datatype MPI_LX_SU3_BORD_SEND[4],MPI_LX_SU3_BORD_RECE[4];
-MPI_Datatype MPI_LX_GAUGE_BORD_SEND[4],MPI_LX_GAUGE_BORD_RECE[4];
-MPI_Datatype MPI_LX_SPINCOLOR_BORD_SEND[4],MPI_LX_SPINCOLOR_BORD_RECE[4];
+MPI_Datatype MPI_LX_SU3_BORDS_SEND[4],MPI_LX_SU3_BORDS_RECE[4];
+MPI_Datatype MPI_LX_QUAD_SU3_BORDS_SEND[4],MPI_LX_QUAD_SU3_BORDS_RECE[4];
+MPI_Datatype MPI_LX_SPINCOLOR_BORDS_SEND[4],MPI_LX_SPINCOLOR_BORDS_RECE[4];
+MPI_Datatype MPI_LX_SPINCOLOR_128_BORDS_SEND[4],MPI_LX_SPINCOLOR_128_BORDS_RECE[4];
 int start_eo_bord_send_up[4],start_eo_bord_rece_up[4];//,start_ev_bord_send_up,start_od_bord_send_up;
 int start_eo_bord_send_dw[4],start_eo_bord_rece_dw[4];//,start_ev_bord_send_dw,start_od_bord_send_dw;
-MPI_Datatype MPI_EO_GAUGE_BORD_SEND_TXY[4],MPI_EO_GAUGE_BORD_RECE[4];
-MPI_Datatype MPI_EV_GAUGE_BORD_SEND_Z[2],MPI_OD_GAUGE_BORD_SEND_Z[2];
-MPI_Datatype MPI_EO_COLOR_BORD_SEND_TXY[4],MPI_EO_COLOR_BORD_RECE[4];
-MPI_Datatype MPI_EV_COLOR_BORD_SEND_Z[2],MPI_OD_COLOR_BORD_SEND_Z[2];
-MPI_Datatype MPI_EO_SPINCOLOR_BORD_SEND_TXY[4],MPI_EO_SPINCOLOR_BORD_RECE[4];
-MPI_Datatype MPI_EV_SPINCOLOR_BORD_SEND_Z[2],MPI_OD_SPINCOLOR_BORD_SEND_Z[2];
+MPI_Datatype MPI_EO_QUAD_SU3_BORDS_SEND_TXY[4],MPI_EO_QUAD_SU3_BORDS_RECE[4];
+MPI_Datatype MPI_EV_QUAD_SU3_BORDS_SEND_Z[2],MPI_OD_QUAD_SU3_BORDS_SEND_Z[2];
+MPI_Datatype MPI_EO_COLOR_BORDS_SEND_TXY[4],MPI_EO_COLOR_BORDS_RECE[4];
+MPI_Datatype MPI_EV_COLOR_BORDS_SEND_Z[2],MPI_OD_COLOR_BORDS_SEND_Z[2];
+MPI_Datatype MPI_EO_SPINCOLOR_BORDS_SEND_TXY[4],MPI_EO_SPINCOLOR_BORDS_RECE[4];
+MPI_Datatype MPI_EV_SPINCOLOR_BORDS_SEND_Z[2],MPI_OD_SPINCOLOR_BORDS_SEND_Z[2];
 
 int bord_offset_eo[2][8]; //eo, 8 dirs
 
@@ -64,16 +71,17 @@ int bord_offset_eo[2][8]; //eo, 8 dirs
 int edge_dir_vol[6],edge_offset[6];
 int loc_edge,loc_edgeh;
 int edge_numb[4][4]={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}};
-MPI_Datatype MPI_LX_SU3_EDGE_SEND[6],MPI_LX_SU3_EDGE_RECE[6];
-MPI_Datatype MPI_LX_GAUGE_EDGE_SEND[6],MPI_LX_GAUGE_EDGE_RECE[6];
-MPI_Datatype MPI_EO_GAUGE_EDGE_SEND[6],MPI_EO_GAUGE_EDGE_RECE[6];
+MPI_Datatype MPI_LX_SU3_EDGES_SEND[6],MPI_LX_SU3_EDGES_RECE[6];
+MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[6],MPI_LX_QUAD_SU3_EDGES_RECE[6];
+MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[6];
 
-int paral_dir[4],nparal_dir;
-int nrank_dir[4];
-int rank_coord[4];
-int rank_neighdw[4],rank_neighup[4];
 int rank,rank_tot,cart_rank;
-int plan_rank[4],line_rank[4];
+int nparal_dir;
+coords paral_dir;
+coords nrank_dir;
+coords rank_coord;
+coords rank_neigh[2],rank_neighdw,rank_neighup;
+coords plan_rank,line_rank;
 
 int little_endian;
 

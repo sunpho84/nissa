@@ -18,16 +18,18 @@ void set_eo_geometry()
   
   //set the various time-slice types
   loclx_parity=nissa_malloc("loclx_parity",loc_vol+loc_bord+loc_edge,int);
+  ignore_borders_communications_warning(loclx_parity);
   
   loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+loc_bord+loc_edge,int);
-  loclx_of_loceo[0]=nissa_malloc("loclx_of_loceo",loc_vol+loc_bord+loc_edge,int);
-  loclx_of_loceo[1]=loclx_of_loceo[0]+loc_volh+loc_bordh+loc_edgeh;
-  loceo_neighup[0]=nissa_malloc("loceo_neighup",loc_vol+loc_bord+loc_edge,coords);
-  loceo_neighdw[0]=nissa_malloc("loceo_neighdw",loc_vol+loc_bord+loc_edge,coords);
+  ignore_borders_communications_warning(loceo_of_loclx);
   
-  loceo_neighup[1]=loceo_neighup[0]+loc_volh+loc_bordh;
-  loceo_neighdw[1]=loceo_neighdw[0]+loc_volh+loc_bordh;
-  
+  for(int par=0;par<2;par++) loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",loc_volh+loc_bordh+loc_edgeh,int);
+  for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",loc_volh+loc_bordh+loc_edgeh,coords);
+  for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",loc_volh+loc_bordh+loc_edgeh,coords);
+  for(int par=0;par<2;par++) ignore_borders_communications_warning(loclx_of_loceo[par]);
+  for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighup[par]);
+  for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighdw[par]);
+
   //Label the bulk sites
   int iloc_eo[2]={0,0};
   for(int loclx=0;loclx<loc_vol+loc_bord+loc_edge;loclx++)
@@ -93,7 +95,7 @@ void initialize_eo_bord_senders_of_kind(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_D
   MPI_Datatype MPI_EO_23_SLICE;
   MPI_Type_contiguous(loc_size[3]/2,*base,&MPI_EO_3_SLICE);
   MPI_Type_contiguous(loc_size[2]*loc_size[3]/2,*base,&MPI_EO_23_SLICE);
-
+  
   ///////////define the sender for the 4 kinds of borders////////////
   MPI_Type_contiguous(loc_size[1]*loc_size[2]*loc_size[3]/2,*base,&(MPI_EO_BORD_SEND_TXY[0]));
   MPI_Type_vector(loc_size[0],1,loc_size[1],MPI_EO_23_SLICE,&(MPI_EO_BORD_SEND_TXY[1]));
@@ -110,7 +112,7 @@ void initialize_eo_bord_senders_of_kind(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_D
   int *single=nissa_malloc("single",eo_bord_z_size,int);
   int ev_izdw=0,ev_izup=0;
   int od_izdw=0,od_izup=0;
-  for(int ieo=0;ieo<loc_volh;ieo++)
+  nissa_loc_volh_loop(ieo)
     {
       int ev_ilx=loclx_of_loceo[0][ieo];
       int od_ilx=loclx_of_loceo[1][ieo];
@@ -162,6 +164,63 @@ void set_eo_bord_senders_and_receivers(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Da
   initialize_eo_bord_receivers_of_kind(MPI_EO_BORD_RECE,base);
 }
 
+//definitions of e/o split sender edges
+void initialize_eo_edge_senders_of_kind(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datatype *base)
+{
+  for(int par=0;par<2;par++)
+    for(int vmu=0;vmu<2;vmu++)
+      for(int mu=0;mu<4;mu++)
+	for(int vnu=0;vnu<2;vnu++)
+	  for(int nu=mu+1;nu<4;nu++)
+	    if(paral_dir[mu] && paral_dir[nu])
+	      {
+		int iedge=edge_numb[mu][nu];
+		int icomm=((par*2+vmu)*2+vnu)*6+iedge;
+		
+		//the sending edge might be a mess
+		int eo_edge_size=loc_volh/loc_size[mu]/loc_size[nu];
+		int *edge_pos_disp=nissa_malloc("edge_disp",eo_edge_size,int);
+		int *single=nissa_malloc("single",eo_edge_size,int);
+		for(int iedge_eo=0;iedge_eo<eo_edge_size;iedge_eo++) single[iedge_eo]=1;
+
+		int iedge_site=0;
+		for(int b_eo=0;b_eo<loc_bordh;b_eo++)
+		  {
+		    int ivol=loclx_of_loceo[par][loc_volh+b_eo];
+		    if(loclx_neigh[!vmu][ivol][mu]>=0 && loclx_neigh[!vmu][ivol][mu]<loc_vol && loclx_neigh[vnu][ivol][nu]>=loc_vol+loc_bord) edge_pos_disp[iedge_site++]=b_eo;
+		  }
+		if(iedge_site!=eo_edge_size) crash("iedge_site=%d did not arrive to eo_edge_size=%d",iedge_site,eo_edge_size);
+	       	
+		MPI_Type_indexed(eo_edge_size,single,edge_pos_disp,*base,&(MPI_EO_EDGES_SEND[icomm]));
+		//commit the mess
+		MPI_Type_commit(&(MPI_EO_EDGES_SEND[icomm]));
+		
+		nissa_free(single);
+		nissa_free(edge_pos_disp);
+	      }
+  
+}
+
+//definitions of e/o split receivers for edges
+void initialize_eo_edge_receivers_of_kind(MPI_Datatype *MPI_EDGES_RECE,MPI_Datatype *base)
+{
+  //define the 6 edges receivers, which are contiguous in memory
+  MPI_Type_contiguous(loc_size[2]*loc_size[3]/2,*base,&(MPI_EDGES_RECE[0]));
+  MPI_Type_contiguous(loc_size[1]*loc_size[3]/2,*base,&(MPI_EDGES_RECE[1]));
+  MPI_Type_contiguous(loc_size[1]*loc_size[2]/2,*base,&(MPI_EDGES_RECE[2]));
+  MPI_Type_contiguous(loc_size[0]*loc_size[3]/2,*base,&(MPI_EDGES_RECE[3]));
+  MPI_Type_contiguous(loc_size[0]*loc_size[2]/2,*base,&(MPI_EDGES_RECE[4]));
+  MPI_Type_contiguous(loc_size[0]*loc_size[1]/2,*base,&(MPI_EDGES_RECE[5]));
+  for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGES_RECE[iedge]));
+}
+
+//initalize senders and receivers for edges of lexically ordered vectors
+void set_eo_edge_senders_and_receivers(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datatype *MPI_EO_EDGES_RECE,MPI_Datatype *base)
+{
+  initialize_eo_edge_senders_of_kind(MPI_EO_EDGES_SEND,base);
+  initialize_eo_edge_receivers_of_kind(MPI_EO_EDGES_RECE,base);
+}
+
 //unset the eo geometry
 void unset_eo_geometry()
 {
@@ -170,9 +229,12 @@ void unset_eo_geometry()
 
   master_printf("Unsetting E/O Geometry\n");
   
-  nissa_free(loclx_of_loceo[0]);
-  nissa_free(loceo_neighup[0]);
-  nissa_free(loceo_neighdw[0]);
+  for(int par=0;par<2;par++)
+    {
+      nissa_free(loclx_of_loceo[par]);
+      nissa_free(loceo_neighup[par]);
+      nissa_free(loceo_neighdw[par]);
+    }
   nissa_free(loclx_parity);
   nissa_free(loceo_of_loclx);
   

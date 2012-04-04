@@ -10,6 +10,9 @@ int min_int(int a,int b)
 int max_int(int a,int b)
 {if(a>b) return a;else return b;}
 
+void MPI_FLOAT_128_SUM_routine(void *in,void *out,int *len,MPI_Datatype *type)
+{for(int i=0;i<(*len);i++) float_128_summassign(((float_128*)out)[i],((float_128*)in)[i]);}
+
 double min_double(double a,double b)
 {if(a<b) return a;else return b;}
 double max_double(double a,double b)

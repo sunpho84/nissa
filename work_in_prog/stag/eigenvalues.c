@@ -26,6 +26,8 @@ double eo_color_normalize(color *out,color *in,double norm)
       for(int ri=0;ri<2;ri++)
 	out[ivol][ic][ri]=in[ivol][ic][ri]*fact;
   
+  set_borders_invalid(out);
+  
   return 1/fact;
 }
 
@@ -33,17 +35,19 @@ double eo_color_normalize(color *out,color *in,double norm)
 //assumes that the passed conf already has stag phases inside it
 double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
 {
-  communicate_eo_quad_su3_borders(eo_conf[0],eo_conf[1]);
+  communicate_eo_quad_su3_borders(eo_conf);
   
   double eig_max;
   
   color *vec_in=nissa_malloc("vec_in",loc_volh+loc_bordh,color);
-  color *vec_out=nissa_malloc("vec_out",loc_volh+loc_bordh,color);
+  color *vec_out=nissa_malloc("vec_out",loc_volh,color);
   color *tmp=nissa_malloc("tmp",loc_volh+loc_bordh,color);
   
   //generate the random field
   nissa_loc_volh_loop(ivol)
-    color_put_to_gauss(vec_in[ivol],&(loc_rnd_gen[loclx_of_loceo[0][ivol]]),3);
+    color_put_to_gauss(vec_in[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),3);
+  
+  set_borders_invalid(vec_in);
   
   /*
   //debug
@@ -57,15 +61,6 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
   //apply the vector niter times normalizing at each iter
   for(int iter=0;iter<niters;iter++)
     {
-      int n=loceo_of_loclx[loclx_of_coord_list(0,7,0,0)];
-      communicate_ev_color_borders(vec_in);
-      n=loceo_neighup[1][n][1];
-      
-      int r,nx,neo;
-      coords g={0,8,0,0};
-      get_loclx_and_rank_of_coord(&nx,&r,g);
-      neo=loceo_of_loclx[nx];
-      
       apply_stD2ee(vec_out,eo_conf,tmp,pars->mass,vec_in);
       
       //compute the norm

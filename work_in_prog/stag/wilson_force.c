@@ -13,4 +13,7 @@ void wilson_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
       compute_point_staples_eo_conf(staples,eo_conf,ivol);
       for(int mu=0;mu<4;mu++) su3_hermitian_prod_double(F[loclx_parity[ivol]][loceo_of_loclx[ivol]][mu],staples[mu],r);
     }
+  
+  for(int eo=0;eo<2;eo++)
+    set_borders_invalid(F[eo]);
 }

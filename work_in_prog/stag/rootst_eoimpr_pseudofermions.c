@@ -4,7 +4,7 @@
 void generate_pseudo_fermion(color *pf,quad_su3 **conf,quad_u1 **u1b,rat_approx *rat,double residue)
 {
   //generate the random field
-  color *pf_hb_vec=nissa_malloc("pf_hb_vec",loc_volh+loc_bordh,color);  
+  color *pf_hb_vec=nissa_malloc("pf_hb_vec",loc_volh,color);
   nissa_loc_volh_loop(ivol)
     color_put_to_gauss(pf_hb_vec[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),1);
   
@@ -17,7 +17,7 @@ void generate_pseudo_fermion(color *pf,quad_su3 **conf,quad_u1 **u1b,rat_approx 
   */
   
   add_backfield_to_conf(conf,u1b);
-  summ_src_and_all_inv_stD2ee_cgmm2s(pf,pf_hb_vec,conf,rat,1000000,residue,residue,0);
+  summ_src_and_all_inv_stD2ee_cgmm2s(pf,conf,rat,1000000,residue,residue,0,pf_hb_vec);
   rem_backfield_from_conf(conf,u1b);
   
   /*

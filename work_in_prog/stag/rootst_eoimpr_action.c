@@ -6,7 +6,7 @@
 double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue)
 {  
   //allocate chi
-  color *chi_e=nissa_malloc("chi_e",loc_volh+loc_bordh,color);
+  color *chi_e=nissa_malloc("chi_e",loc_volh,color);
   
   //quark action
   double loc_action=0;
@@ -14,7 +14,7 @@ double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,colo
     {
       //compute chi with background field
       add_backfield_to_conf(eo_conf,u1b[ifl]);
-      summ_src_and_all_inv_stD2ee_cgmm2s(chi_e,pf[ifl],eo_conf,appr,1000000,residue,residue,0);
+      summ_src_and_all_inv_stD2ee_cgmm2s(chi_e,eo_conf,appr,1000000,residue,residue,0,pf[ifl]);
       rem_backfield_from_conf(eo_conf,u1b[ifl]);
       
       //compute scalar product
@@ -43,7 +43,7 @@ double full_rootst_eoimpr_action(quad_su3 **eo_conf,double beta,quad_su3 **H,int
   double quark_action=rootst_eoimpr_quark_action(eo_conf,nfl,u1b,pf,appr,residue);
   
   //gauge action
-  double gluon_action=beta*6*(1+global_plaquette_eo_conf(eo_conf[0],eo_conf[1]))*glb_vol;
+  double gluon_action=beta*6*(1+global_plaquette_eo_conf(eo_conf))*glb_vol;
   
   //momenta action
   double mom_action=momenta_action(H);

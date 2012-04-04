@@ -87,7 +87,7 @@ void apply_tmQ(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *i
       color_summassign(out[X][1],temp_c3);
       color_summassign(out[X][2],temp_c3);
       color_subtassign(out[X][3],temp_c2);
-      
+
       //Forward 3
       Xup=loclx_neighup[X][3];
       color_isumm(temp_c0,in[Xup][0],in[Xup][2]);

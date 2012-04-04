@@ -6,7 +6,7 @@
 int T,TH,L,tsep;
 double theta,lmass,cmass;
 int njack,ntheta=2;
-const double Zv[4]={0.5816,0.6103,0.6451, 0.746};
+const double Zv[4]={0.5816,0.6103,0.6451,0.686};
 
 char base_path[1024];
 int ibeta;
@@ -89,6 +89,11 @@ int main()
   //load sl P5P5 for D
   jvec P5P5_sl=load_2pts("P5P5",0, 0,0, 0, "30_00");
   
+  //load ss P5P5 for D
+  jvec P5P5_mov_ss=load_2pts("P5P5",1, 0,0, 0, "30_30");
+  //load sl P5P5 for D
+  jvec P5P5_mov_sl=load_2pts("P5P5",1, 0,0, 0, "30_00");
+  
   //load ss VKVK for D
   jvec VKVK_ss=load_2pts("VKVK",0, 0,0, 0, "30_30");
   //load sl VKVK for D
@@ -118,8 +123,8 @@ int main()
     {
       int dtsep=abs(tsep-t);
       
-      if(t<TH) Dth_DV_td_nu[t]=VKVK_ss[t]*P5P5_ss[dtsep]/(ZS_P5*ZS_VK);
-      else     Dth_DV_td_nu[t]=VKVK_ss[T-t]*P5P5_ss[dtsep]/(ZS_P5*ZS_VK);
+      if(t<TH) Dth_DV_td_nu[t]=VKVK_ss[t]*P5P5_mov_ss[dtsep]/(ZS_P5*ZS_VK);
+      else     Dth_DV_td_nu[t]=VKVK_ss[T-t]*P5P5_mov_ss[dtsep]/(ZS_P5*ZS_VK);
       
       Dth_DV_td_sa[t]=(ZS_P5*ZS_VK)*
 	(exp((-M_VK*t)+(-Eth_P5*dtsep))
@@ -185,6 +190,7 @@ int main()
   
   M_VK.write_to_binfile("M_VK");
   M_P5.write_to_binfile("M_P5");
+  V_sa.write_to_binfile("V_sa");
   V_nu.write_to_binfile("V_nu");
   
   return 0;

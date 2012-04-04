@@ -26,3 +26,16 @@ double det3(double *a,double *b,double *c)
   
   return d;
 }
+
+void crash(const char *temp,...)
+{
+  char buffer[1024];
+  va_list args;
+
+  va_start(args,temp);
+  vsprintf(buffer,temp,args);
+  va_end(args);
+
+  cerr<<"ERROR: "<<buffer<<endl;
+  exit(1);
+}

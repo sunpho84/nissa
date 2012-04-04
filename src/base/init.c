@@ -18,6 +18,10 @@ void init_nissa()
   //print the version
   master_printf("Initializing nissa, version: %s.\n",SVN_VERS);
   
+  //128 bit float
+  MPI_Type_contiguous(2,MPI_DOUBLE,&MPI_FLOAT_128);
+  MPI_Type_commit(&MPI_FLOAT_128);
+  
   //define the gauge link
   MPI_Type_contiguous(18,MPI_DOUBLE,&MPI_SU3);
   MPI_Type_commit(&MPI_SU3);
@@ -28,15 +32,22 @@ void init_nissa()
   
   //a ncolor (6 doubles)
   MPI_Type_contiguous(6,MPI_DOUBLE,&MPI_COLOR);
-  MPI_Type_commit(&MPI_COLOR);  
+  MPI_Type_commit(&MPI_COLOR);
   
   //a spincolor (24 doubles)
   MPI_Type_contiguous(24,MPI_DOUBLE,&MPI_SPINCOLOR);
-  MPI_Type_commit(&MPI_SPINCOLOR);  
+  MPI_Type_commit(&MPI_SPINCOLOR);
+  
+  //a spincolor_128 (24 float_128)
+  MPI_Type_contiguous(24,MPI_FLOAT_128,&MPI_SPINCOLOR_128);
+  MPI_Type_commit(&MPI_SPINCOLOR_128);
   
   //a reduced spincolor (12 doubles)
   MPI_Type_contiguous(12,MPI_DOUBLE,&MPI_REDSPINCOLOR);
   MPI_Type_commit(&MPI_REDSPINCOLOR);
+  
+  //summ for 128 bit float
+  MPI_Op_create((MPI_User_function*)MPI_FLOAT_128_SUM_routine,1,&MPI_FLOAT_128_SUM);
   
   //initialize the first vector of nissa
   initialize_main_nissa_vect();
@@ -352,20 +363,22 @@ void init_grid(int T,int L)
    }
   
   //////////////////////////////////////////////////////////////////////////////////////////
-
+  
   //set the cartesian and eo geometry
   set_lx_geometry();
   set_eo_geometry();
   
-  set_lx_bord_senders_and_receivers(MPI_LX_SU3_BORD_SEND,MPI_LX_SU3_BORD_RECE,&MPI_SU3);
-  set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGE_SEND,MPI_LX_SU3_EDGE_RECE,&MPI_SU3);
-  set_lx_bord_senders_and_receivers(MPI_LX_GAUGE_BORD_SEND,MPI_LX_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
-  set_lx_edge_senders_and_receivers(MPI_LX_GAUGE_EDGE_SEND,MPI_LX_GAUGE_EDGE_RECE,&MPI_QUAD_SU3);
-  set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_BORD_SEND,MPI_LX_SPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
-
-  set_eo_bord_senders_and_receivers(MPI_EO_GAUGE_BORD_SEND_TXY,MPI_EV_GAUGE_BORD_SEND_Z,MPI_OD_GAUGE_BORD_SEND_Z,MPI_EO_GAUGE_BORD_RECE,&MPI_QUAD_SU3);
-  set_eo_bord_senders_and_receivers(MPI_EO_COLOR_BORD_SEND_TXY,MPI_EV_COLOR_BORD_SEND_Z,MPI_OD_COLOR_BORD_SEND_Z,MPI_EO_COLOR_BORD_RECE,&MPI_COLOR);
-  set_eo_bord_senders_and_receivers(MPI_EO_SPINCOLOR_BORD_SEND_TXY,MPI_EV_SPINCOLOR_BORD_SEND_Z,MPI_OD_SPINCOLOR_BORD_SEND_Z,MPI_EO_SPINCOLOR_BORD_RECE,&MPI_SPINCOLOR);
+  set_lx_bord_senders_and_receivers(MPI_LX_SU3_BORDS_SEND,MPI_LX_SU3_BORDS_RECE,&MPI_SU3);
+  set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,&MPI_SU3);
+  set_lx_bord_senders_and_receivers(MPI_LX_QUAD_SU3_BORDS_SEND,MPI_LX_QUAD_SU3_BORDS_RECE,&MPI_QUAD_SU3);
+  set_lx_edge_senders_and_receivers(MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
+  set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,&MPI_SPINCOLOR);
+  set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_128_BORDS_SEND,MPI_LX_SPINCOLOR_128_BORDS_RECE,&MPI_SPINCOLOR_128);
+  
+  set_eo_bord_senders_and_receivers(MPI_EO_QUAD_SU3_BORDS_SEND_TXY,MPI_EV_QUAD_SU3_BORDS_SEND_Z,MPI_OD_QUAD_SU3_BORDS_SEND_Z,MPI_EO_QUAD_SU3_BORDS_RECE,&MPI_QUAD_SU3);
+  set_eo_bord_senders_and_receivers(MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_OD_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,&MPI_COLOR);
+  set_eo_bord_senders_and_receivers(MPI_EO_SPINCOLOR_BORDS_SEND_TXY,MPI_EV_SPINCOLOR_BORDS_SEND_Z,MPI_OD_SPINCOLOR_BORDS_SEND_Z,MPI_EO_SPINCOLOR_BORDS_RECE,&MPI_SPINCOLOR);
+  set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
   
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());

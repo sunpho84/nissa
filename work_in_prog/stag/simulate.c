@@ -66,32 +66,28 @@ void init_simulation(char *path)
   init_grid(T,L);
   
   //allocate the conf
-  conf[0]=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
-  conf[1]=conf[0]+loc_volh+loc_bordh;
-  new_conf[0]=nissa_malloc("new_conf",loc_vol+loc_bord,quad_su3);
-  new_conf[1]=new_conf[0]+loc_volh+loc_bordh;
+  conf[0]=nissa_malloc("conf_e",loc_volh+loc_bordh,quad_su3);
+  conf[1]=nissa_malloc("conf_o",loc_volh+loc_bordh,quad_su3);
+  new_conf[0]=nissa_malloc("new_conf_e",loc_volh+loc_bordh+loc_edgeh,quad_su3);
+  new_conf[1]=nissa_malloc("new_conf_o",loc_volh+loc_bordh+loc_edgeh,quad_su3);
   
   //allocate the momenta
-  H[0]=nissa_malloc("H",loc_vol,quad_su3);
-  H[1]=H[0]+loc_volh;
+  H[0]=nissa_malloc("H_e",loc_volh,quad_su3);
+  H[1]=nissa_malloc("H_o",loc_volh,quad_su3);
   
   //allocate the u1 background field
   u1b=nissa_malloc("u1back**",nflavs,quad_u1**);
-  u1b[0]=nissa_malloc("u1back*",nflavs*2,quad_u1*);
-  u1b[0][0]=nissa_malloc("u1back",nflavs*loc_vol,quad_u1);
-  u1b[0][1]=u1b[0][0]+loc_volh;
-  for(int iflav=1;iflav<nflavs;iflav++)
+  for(int iflav=0;iflav<nflavs;iflav++)
     {
-      u1b[iflav]=u1b[iflav-1]+2;
-      for(int ieo=0;ieo<2;ieo++)
-	u1b[iflav][ieo]=u1b[iflav-1][ieo]+loc_vol;
+      u1b[iflav]=nissa_malloc("u1back*",2,quad_u1*);
+      u1b[iflav][0]=nissa_malloc("u1back_e",loc_volh,quad_u1);
+      u1b[iflav][1]=nissa_malloc("u1back_o",loc_volh,quad_u1);
     }
   
   //allocate pseudo-fermions
   pf=nissa_malloc("pf*",nflavs,color*);
-  pf[0]=nissa_malloc("pf",nflavs*(loc_volh+loc_bordh),color);
-  for(int iflav=1;iflav<nflavs;iflav++)
-    pf[iflav]=pf[iflav-1]+loc_volh+loc_bordh;
+  for(int iflav=0;iflav<nflavs;iflav++)
+    pf[iflav]=nissa_malloc("pf",loc_volh+loc_bordh,color);
   
   //allocate rational approximation for pseudo-fermions generation
   rat_exp_pfgen=nissa_malloc("rat_exp_pfgen",nflavs,rat_approx);
@@ -190,8 +186,8 @@ void check_eo_conf(quad_su3 **eo_conf,char *path)
 {
   //allocate
   quad_su3 *temp[2];
-  temp[0]=nissa_malloc("temp",loc_vol,quad_su3);
-  temp[1]=temp[0]+loc_volh;
+  temp[0]=nissa_malloc("temp_0",loc_volh,quad_su3);
+  temp[1]=nissa_malloc("temp_1",loc_volh,quad_su3);
   
   //read
   master_printf("Debug, reading conf after updating\n");

@@ -6,7 +6,7 @@
 int T,TH,L,tsep;
 double theta,lmass,cmass;
 int njack,nthetaS0,nthetaS1;
-const double Zv[4]={0.5816,0.6103,0.6451, 0.746};
+const double Zv[4]={0.5816,0.6103,0.6451,0.686};
 
 char base_path[1024];
 int ibeta;
@@ -102,7 +102,6 @@ int main()
   //load sl BKBK for D
   jvec BKBK_sl=load_2pts("BKBK",0, 0,0, 0, "30_00");
   
-  
   //////////////////////////////////// Fit masses and Z for standing D and D* ////////////////////////////////////////
   
   //compute D mass and Z
@@ -120,16 +119,12 @@ int main()
   jack Eth_P5=sqrt(sqr(M_P5)+q2);
   
   //reconstruct numerically and semi-analitically the time dependance of three points
-  jvec Dth_DV_td_nu(T,njack);
-  jvec Dth_DV_td_sa(T,njack);
+  jvec Dth_DV_td(T,njack);
   for(int t=0;t<T;t++)
     {
       int dtsep=abs(tsep-t);
       
-      if(t<TH) Dth_DV_td_nu[t]=BKBK_ss[t]*P5P5_ss[dtsep]/(ZS_P5*ZS_BK);
-      else     Dth_DV_td_nu[t]=BKBK_ss[T-t]*P5P5_ss[dtsep]/(ZS_P5*ZS_BK);
-      
-      Dth_DV_td_sa[t]=(ZS_P5*ZS_BK)*
+      Dth_DV_td[t]=(ZS_P5*ZS_BK)*
 	(exp((-M_BK*t)+(-Eth_P5*dtsep))
 	 +exp((-M_BK*(T-t)+(-Eth_P5*dtsep))))/
 	(2*Eth_P5*2*M_BK);
@@ -138,11 +133,9 @@ int main()
   //compare time dependance and its simmetric
   if(tsep==T/2)
     {
-      ofstream out("Dth_DV_td_sa_simm.xmg");
+      ofstream out("Dth_DV_td_simm.xmg");
       out<<"@type xydy"<<endl;
-      out<<Dth_DV_td_sa<<endl;
-      out<<"&\n@type xydy"<<endl;
-      out<<Dth_DV_td_nu<<endl;
+      out<<Dth_DV_td<<endl;
     }
   
   jack Q2_fit=sqr(M_BK-Eth_P5)-q2;
@@ -151,7 +144,7 @@ int main()
   
   //////////////////////////////// Calculate three points ////////////////////////////////
 
-  int itheta=(nthetaS1==1 ? 0 : 1); 
+  int itheta=(nthetaS1==1 ? 0 : 1);
   
   //load corrs
   jvec P5thVIBJ_pt1=load_3pts("VIBJ_pt1",0,itheta,REAL);
@@ -166,41 +159,37 @@ int main()
     out<<"&/n@type xydy"<<endl;
     out<<P5thVIBJ_pt2<<endl;
     out<<"&/n@type xydy"<<endl;
-    out<<P5thVIBJ_pt2<<endl;
+    out<<P5thVIBJ_pt3<<endl;
   }
   
   
   ///////////////////////////// Determine the matrix element between D(th=+-) and D* ////////////////////////////
   
-  jvec Dth_V_DV_sa=P5thVIBJ_pt1/Dth_DV_td_sa;
-  jvec Dth_V_DV_nu=P5thVIBJ_pt1/Dth_DV_td_nu;
+  jvec Dth_V_DV=(P5thVIBJ_pt1-P5thVIBJ_pt2-P5thVIBJ_pt3)/Dth_DV_td;
   
   //compare matrix element and its simmetric
   if(tsep==T/2)
     {
-      ofstream out("Dth_V_DV_sa_simm.xmg");
+      ofstream out("Dth_V_DV_simm.xmg");
       out<<"@type xydy"<<endl;
-      out<<Dth_V_DV_sa<<endl;
+      out<<Dth_V_DV<<endl;
       out<<"&\n@type xydy"<<endl;
-      out<<-Dth_V_DV_sa.simmetric()<<endl;
+      out<<-Dth_V_DV.simmetric()<<endl;
       out<<"&\n@type xydy"<<endl;
-      out<<Dth_V_DV_sa.simmetrized(-1)<<endl;
+      out<<Dth_V_DV.simmetrized(-1)<<endl;
     }
   
   //fit matrix element
-  jack R_sa=constant_fit(Dth_V_DV_sa.simmetrized(-1),tmin_f,tmax_f,"R_sa.xmg");
-  jack R_nu=constant_fit(Dth_V_DV_nu.simmetrized(-1),tmin_f,tmax_f,"R_nu.xmg");
+  jack R=constant_fit(Dth_V_DV.simmetrized(-1),tmin_f,tmax_f,"R.xmg");
   
   //compute the form factor at 0 recoil
-  jack V_sa=R_sa/qi*(M_BK+M_P5)/(2*M_BK)*Zv[ibeta];
-  jack V_nu=R_nu/qi*(M_BK+M_P5)/(2*M_BK)*Zv[ibeta];
+  jack V=R/M_BK*Zv[ibeta];
   
-  cout<<"F semi-analytical: "<<V_sa<<endl;
-  cout<<"F numerical: "<<V_nu<<endl;
+  cout<<"F semi-analytical: "<<V<<endl;
   
   M_BK.write_to_binfile("M_BK");
   M_P5.write_to_binfile("M_P5");
-  V_nu.write_to_binfile("V_nu");
+  V.write_to_binfile("F");
   
   return 0;
 }
