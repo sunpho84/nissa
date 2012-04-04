@@ -1,17 +1,4 @@
 #include "nissa.h"
-#include "new_struct.c"
-
-#include "debug_routines.c"
-
-#include "generate_momenta.c"
-#include "rat_expansion_database.c"
-#include "backfield.c"
-#include "eigenvalues.c"
-#include "wilson_force.c"
-#include "rootst_eoimpr_force.c"
-#include "rootst_eoimpr_omelyan_integrator.c"
-#include "rootst_eoimpr_pseudofermions.c"
-#include "rootst_eoimpr_action.c"
 
 double beta=5.3;
 double am=0.025;

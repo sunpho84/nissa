@@ -1,7 +1,5 @@
 #pragma once
 
-#include "momenta_action.c"
-
 //compute quark action for a set of quark
 double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue)
 {  

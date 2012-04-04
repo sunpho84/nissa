@@ -103,3 +103,13 @@ typedef struct
   double *poles;
   double *weights;
 } rat_approx;
+
+//quark content
+typedef struct
+{
+  int deg;
+  double mass;
+  double re_pot;
+  double im_pot;
+  double charge;
+} quark_content;
