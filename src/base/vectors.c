@@ -1,29 +1,7 @@
 #pragma once
 
-//check weather the borders are allocated
-void check_minimal_allocated_size(void *v,int l,const char *err_mess)
-{
-  nissa_vect *vect=(nissa_vect*)((char*)v-sizeof(nissa_vect));
-  if(vect->nel<l)
-    if(rank==0)
-      {
-	fprintf(stderr,"Error \"%s\" in ",err_mess);
-	nissa_vect_content_fprintf(stderr,vect);
-      }
-}
-
-//check weather the borders are allocated
-void check_lx_borders_allocated(void *v)
-{check_minimal_allocated_size(v,loc_vol+loc_bord,"lx border not allocated");}
-void check_eo_borders_allocated(void *v)
-{check_minimal_allocated_size(v,loc_volh+loc_bordh,"eo border not allocated");}
-
-//check weather the borders and edges are allocated
-void check_lx_edges_allocated(void *v)
-{check_minimal_allocated_size(v,loc_vol+loc_bord+loc_edge,"lx edges not allocated");}
-
 //return the name of the vector
-char *get_vect_name(void *v)
+char *get_vec_name(void *v)
 {
   nissa_vect *vect=(nissa_vect*)((char*)v-sizeof(nissa_vect));
   return vect->tag;
@@ -42,11 +20,67 @@ void nissa_vect_content_fprintf(FILE *fout,nissa_vect *vect)
 //wrappers
 void nissa_vect_content_printf(nissa_vect *vect)
 {nissa_vect_content_fprintf(stdout,vect);}
+void vec_content_fprintf(FILE *f,void *vec)
+{nissa_vect_content_fprintf(f,(nissa_vect*)(vec-sizeof(nissa_vect)));}
+void vec_content_printf(void *vec)
+{vec_content_fprintf(stdout,vec);}
 void last_nissa_vect_content_printf()
 {
   master_printf("Last nissa vect content: ");
   nissa_vect_content_printf(last_nissa_vect);
 }
+
+//set a flag
+void set_vec_flag(char *data,int flag)
+{((nissa_vect*)(data-sizeof(nissa_vect)))->flag |= flag;}
+
+//unset a flag
+void unset_vec_flag(char *data,int flag)
+{((nissa_vect*)(data-sizeof(nissa_vect)))->flag &= ~flag;}
+
+//get a flag
+int get_vec_flag(void *ptr,int flag)
+{return ((nissa_vect*)(ptr-sizeof(nissa_vect)))->flag & flag;}
+
+//check if edges are valid
+int check_edges_valid(void *data)
+{return get_vec_flag(data,EDGES_VALID);}
+
+//check if edges have been allocated
+int check_edges_allocated(void *data)
+{return get_vec_flag(data,EDGES_ALLOCATED);}
+
+//check if borders are valid
+int check_borders_valid(void *data)
+{return get_vec_flag(data,BORDERS_VALID);}
+
+//check if borders have been allocated
+int check_borders_allocated(void *data)
+{return get_vec_flag(data,BORDERS_ALLOCATED);}
+
+//check if borders have been communicated at least once
+int check_borders_communicated_at_least_once(void *data)
+{return get_vec_flag(data,BORDERS_COMMUNICATED_AT_LEAST_ONCE);}
+
+//ignore the warning on borders allocated but never used
+void ignore_borders_communications_warning(void *data)
+{set_vec_flag(data,BORDERS_COMMUNICATED_AT_LEAST_ONCE);}
+
+//set borders ad valid
+void set_borders_valid(void *data)
+{set_vec_flag(data,BORDERS_VALID|BORDERS_COMMUNICATED_AT_LEAST_ONCE);}
+
+//set edges ad valid
+void set_edges_valid(void *data)
+{set_vec_flag(data,EDGES_VALID);}
+
+//set borders as invalid
+void set_borders_invalid(void *data)
+{unset_vec_flag(data,BORDERS_VALID|EDGES_VALID);}
+
+//set edges as invalid
+void set_edges_invalid(void *data)
+{unset_vec_flag(data,EDGES_VALID);}
 
 //print all nissa vect
 void print_all_nissa_vect_content()
@@ -58,6 +92,30 @@ void print_all_nissa_vect_content()
       curr=curr->next;
     }
   while(curr!=NULL);
+}
+
+//check if the borders are allocated
+void crash_if_borders_not_allocated(void *v)
+{
+  if(!check_borders_allocated(v))
+    if(rank==0)
+      {
+	fprintf(stderr,"borders not allocated in ");
+	vec_content_fprintf(stderr,v);
+	crash("see error");
+      }
+}
+
+//check if the edges are allocated
+void crash_if_edges_not_allocated(void *v)
+{
+  if(!check_edges_allocated(v))
+    if(rank==0)
+      {
+	fprintf(stderr,"edges not allocated in ");
+	vec_content_fprintf(stderr,v);
+	crash("see error");
+      }
 }
 
 //print all nissa vect
@@ -97,7 +155,7 @@ void initialize_main_nissa_vect()
 }
 
 //allocate an nissa vector 
-void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type,const char *file,int line)
+void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *type,const char *file,int line)
 {
   if_nissa_vect_not_initialized() initialize_main_nissa_vect();
   
@@ -124,7 +182,7 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
   last_nissa_vect->next=new;
   last_nissa_vect=new;
   
-  if(debug_lvl>1) 
+  if(debug_lvl>1)
     {
       master_printf("Allocated vector ");
       nissa_vect_content_printf(last_nissa_vect);
@@ -136,6 +194,10 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
   if(offset!=0)
     crash("memory alignment problem, vector %s has %d offset",tag,offset);
   
+  //if borders or edges are allocated, set appropriate flag
+  if(nel==(loc_vol+loc_bord) || nel==(loc_volh+loc_bordh)) set_vec_flag(return_ptr,BORDERS_ALLOCATED);
+  if(nel==(loc_vol+loc_bord+loc_edge) || nel==(loc_volh+loc_bordh+loc_edgeh)) set_vec_flag(return_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
+  
   //Update the amount of required memory
   nissa_required_memory+=size;
   nissa_max_required_memory=max_int(nissa_max_required_memory,nissa_required_memory);
@@ -144,7 +206,7 @@ void *nissa_true_malloc(const char *tag,int nel,int size_per_el,const char *type
 }
 
 //release a vector
-void* nissa_true_free(void *arr,const char *file,int line)
+void* internal_nissa_free(void *arr,const char *file,int line)
 {
   if(arr!=NULL)
     {
@@ -157,17 +219,20 @@ void* nissa_true_free(void *arr,const char *file,int line)
 	  master_printf("At line %d of file %s freeing vector ",line,file);
 	  nissa_vect_content_printf(vect);
 	}
-  
+      
+      if(rank_tot>1 && check_borders_allocated(arr) && !check_borders_communicated_at_least_once(arr))
+	master_printf("Warning, you allocated borders for vector: %s on line %d of file %s, but never communicated them!\n",vect->tag,vect->line,vect->file);
+      
       //detach from previous
       prev->next=next;
       
       //if not last element
       if(next!=NULL) next->prev=prev;
       else last_nissa_vect=prev;
-    
+      
       //update the nissa required memory
       nissa_required_memory-=(vect->size_per_el*vect->nel);
-  
+      
       free(vect);
     }
   else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);

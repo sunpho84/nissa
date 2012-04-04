@@ -6,10 +6,14 @@ void eo_conf_unitarize_explicitely_inverting(quad_su3 **conf)
   addrem_stagphases_to_eo_conf(conf);
   
   for(int eo=0;eo<2;eo++)
-    nissa_loc_volh_loop(ivol)
-      for(int mu=0;mu<4;mu++)
-	su3_unitarize_explicitly_inverting(conf[eo][ivol][mu],conf[eo][ivol][mu]);
-
+    {
+      nissa_loc_volh_loop(ivol)
+	for(int mu=0;mu<4;mu++)
+	  su3_unitarize_explicitly_inverting(conf[eo][ivol][mu],conf[eo][ivol][mu]);
+      
+      set_borders_invalid(conf[eo]);
+    }
+      
   addrem_stagphases_to_eo_conf(conf);
 }
 
@@ -19,9 +23,7 @@ void eo_conf_unitarize_explicitely_inverting(quad_su3 **conf)
 void evolve_momenta_with_rootst_force(quad_su3 **H,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue,double dt)
 {
   //allocate force
-  quad_su3 *F[2];
-  F[0]=nissa_malloc("F",loc_vol,quad_su3);
-  F[1]=F[0]+loc_volh;
+  quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
   
   //compute the force
   full_rootst_eoimpr_force(F,conf,beta,nfl,u1b,pf,appr,residue);
@@ -30,13 +32,15 @@ void evolve_momenta_with_rootst_force(quad_su3 **H,quad_su3 **conf,double beta,i
   master_printf("Evolve momenta with force, dt=%lg\n",dt);
   
   for(int eo=0;eo<2;eo++)
-    nissa_loc_volh_loop(ivol)
-      for(int mu=0;mu<4;mu++)
-	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
-	    complex_subt_the_prod_idouble(H[eo][ivol][mu][ic1][ic2],F[eo][ivol][mu][ic1][ic2],dt);
-  
-  nissa_free(F[0]);
+    {
+      nissa_loc_volh_loop(ivol)
+	for(int mu=0;mu<4;mu++)
+	  for(int ic1=0;ic1<3;ic1++)
+	    for(int ic2=0;ic2<3;ic2++)
+	      complex_subt_the_prod_idouble(H[eo][ivol][mu][ic1][ic2],F[eo][ivol][mu][ic1][ic2],dt);
+      
+      nissa_free(F[eo]);
+    }
 }
 
 //eolve the configuration by using the computed momenta
@@ -47,15 +51,19 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
   
   //evolve
   for(int eo=0;eo<2;eo++)
-    nissa_loc_volh_loop(ivol)
-      for(int mu=0;mu<4;mu++)
-	{
-	  su3 t1,t2;
-	  su3_prod_with_idouble(t1,H[eo][ivol][mu],dt);
-	  unsafe_su3_taylor_exponentiate(t2,t1,6);
-	  safe_su3_prod_su3(eo_conf[eo][ivol][mu],t2,eo_conf[eo][ivol][mu]);
-	}
-  master_printf("plaquette after: %.18lg\n",-global_plaquette_eo_conf(eo_conf[0],eo_conf[1]));
+    {
+      nissa_loc_volh_loop(ivol)
+	for(int mu=0;mu<4;mu++)
+	  {
+	    su3 t1,t2;
+	    su3_prod_with_idouble(t1,H[eo][ivol][mu],dt);
+	    unsafe_su3_taylor_exponentiate(t2,t1,6);
+	    safe_su3_prod_su3(eo_conf[eo][ivol][mu],t2,eo_conf[eo][ivol][mu]);
+	  }
+      set_borders_invalid(eo_conf[eo]);
+    }
+  
+  master_printf("plaquette after: %.18lg\n",-global_plaquette_eo_conf(eo_conf));
 }
 
 // Omelyan integrator(cond-mat/0110438v1) for rooted staggered theory

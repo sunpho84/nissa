@@ -21,8 +21,8 @@ const char set_legend_fm[nbeta][1024]={"a = 0.098 fm","a = 0.085 fm","a = 0.067 
 
 int plot_iboot;
 int include_a4;
-int include_ml_term;
 int include_380;
+int include_ml_term;
 
 double fun_fit_F(double A,double B,double C,double D,double ml,double a)
 {
@@ -96,6 +96,7 @@ bool fitting_fK;
 double *X_fit;
 double *Y_fit,*err_Y_fit;
 
+int contr_flag=0;
 //calculate the chi square
 double chi2(double A,double B,double C,double D,double *a)
 {
@@ -103,7 +104,11 @@ double chi2(double A,double B,double C,double D,double *a)
   
   for(int iens=0;iens<nens;iens++)
     if(include_380 || ibeta[iens]!=0)
-      ch2+=pow((Y_fit[iens]-fun_fit_F(A,B,C,D,X_fit[iens],a[ibeta[iens]]))/err_Y_fit[iens],2);
+      {
+	double contr=pow((Y_fit[iens]-fun_fit_F(A,B,C,D,X_fit[iens],a[ibeta[iens]]))/err_Y_fit[iens],2);
+	ch2+=contr;
+	if(contr_flag==1) cout<<"contr "<<iens<<": "<<contr<<" = ("<<Y_fit[iens]<<" - "<<fun_fit_F(A,B,C,D,X_fit[iens],a[ibeta[iens]])<<") / "<<err_Y_fit[iens]<<endl;
+      }
   
   return ch2;
 }
@@ -128,9 +133,9 @@ void fit(boot &A,boot &B,boot &C,boot &D,bvec &X,bvec &Y)
   minu.SetPrintLevel(-1);
   
   int npars=4;
-  minu.DefineParameter(0,"A",0.0,0.0001,0,0);
+  minu.DefineParameter(0,"A",1,0.0001,0,0);
   minu.DefineParameter(1,"B",0.0,0.0001,0,0);
-  minu.DefineParameter(2,"C",0.0,0.0001,0,0);
+  minu.DefineParameter(2,"C",0.02,0.0001,0,0);
   minu.DefineParameter(3,"D",0.0,0.0001,0,0);
   if(!include_a4)
     {
@@ -176,7 +181,12 @@ void fit(boot &A,boot &B,boot &C,boot &D,bvec &X,bvec &Y)
       minu.GetParameter(3,D.data[iboot],dum);
       
       double lat_med[4]={lat[0].med(),lat[1].med(),lat[2].med(),lat[3].med()};
-      if(iboot==0) C2=chi2(A.data[iboot],B[iboot],C[iboot],D[iboot],lat_med);
+      if(iboot==nboot) 
+	{
+	  contr_flag=1;
+	  C2=chi2(A.data[iboot],B[iboot],C[iboot],D[iboot],lat_med);
+	  contr_flag=0;
+	}
     }
   
   int ninc_ens=0;
@@ -270,6 +280,7 @@ int main(int narg,char **arg)
   read_formatted_from_file_expecting((char*)&include_ml_term,an_input_file,"%d","include_ml_term");
   read_formatted_from_file_expecting((char*)&nens,an_input_file,"%d","nens");
   read_formatted_from_file_expecting(meson_name,an_input_file,"%s","meson_name");
+  
   lmass=new double[nens];
   ibeta=new int[nens];
   F=bvec(nens,nboot,njack);
@@ -280,15 +291,17 @@ int main(int narg,char **arg)
       read_formatted_from_file((char*)&(lmass[iens]),an_input_file,"%lg","lmass");
       read_formatted_from_file(path,an_input_file,"%s","path");
       
-      jack temp(njack);
-      temp.load(combine("../%s/%s",path,meson_name).c_str());
-
+      jack temp,temp1(njack),temp2(njack);
+      temp1.load(combine("../%s/M",path).c_str());
+      temp2.load(combine("../../../RADIATIVE_CHARMONIUM/P5P5_MASS_FIT/%s/M",path).c_str());
+      cout<<"M1: "<<temp1<<", M2: "<<temp2<<endl;
+      temp=temp1/temp2;
+      
       //load iboot
       int iboot_jack[100];
       load_iboot(iboot_jack,path);
       
       boot_from_jack(F.data[iens],temp,iboot_jack);
-      F[iens]/=lat[ibeta[iens]];
     }
   fclose(an_input_file);
   
@@ -328,7 +341,9 @@ int main(int narg,char **arg)
     }
   
   //chiral and continuum
-  cout<<"F = "<<F_chir_cont<<" GeV"<<endl;
+  double M_ETAC_phys=2.9803;
+  cout<<"Ratio "<<F_chir_cont<<endl;
+  cout<<"F = "<<F_chir_cont*M_ETAC_phys<<" GeV"<<endl;
   cout<<endl;
   
   par_res_fit_F=bvec(4,nboot,njack);

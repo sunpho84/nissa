@@ -1,83 +1,144 @@
 #include "nissa.h"
+#include "dirac_operator_tmQ_128_portable.c"
 
-void compute_residue_128(spincolor *source,quad_su3 *conf,double kappa,double mass,spincolor *temp,spincolor *temp_sol,spincolor *tot_source)
+//compute the residue in 128 bit
+double compute_tmQ2_residue_128(spincolor *residue,quad_su3 *conf,double kappa,double mass,spincolor_128 *temp,spincolor_128 *tot_sol,spincolor *tot_source)
 {
-
-  apply_tmQ2(source,conf,kappa,mass,temp,temp_sol);
+  //compute D*sol in quadruple precision
+  spincolor_128 *residue_128=nissa_malloc("residue_128",loc_vol+loc_bord,spincolor_128);
+  apply_tmQ2_128(residue_128,conf,kappa,mass,temp,tot_sol);
   
-  float_128 res_128={0,0};
+  //compute the residue
+  float_128 loc_res_summ_128={0,0};
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
 	  {
-	    source[ivol][id][ic][ri]=tot_source[ivol][id][ic][ri]-source[ivol][id][ic][ri];
-	    float_128 temp={source[ivol][id][ic][ri]*source[ivol][id][ic][ri],0};
-	    float_128_summassign(res_128,temp);
+	    float_128_subt_from_64(residue_128[ivol][id][ic][ri],tot_source[ivol][id][ic][ri],residue_128[ivol][id][ic][ri]);
+	    float_128_summ_the_prod(loc_res_summ_128,residue_128[ivol][id][ic][ri],residue_128[ivol][id][ic][ri]);
+	    residue[ivol][id][ic][ri]=double_from_float_128(residue_128[ivol][id][ic][ri]);
 	  }
+  //perform global reduction of the residue
+  float_128 res_summ_128;
+  MPI_Allreduce(loc_res_summ_128,res_summ_128,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
   
-  master_printf("RESIDUE: %lg\n",res_128[0]);
+  //set borders invalid and free
+  set_borders_invalid(residue);  
+  nissa_free(residue_128);
+  
+  return res_summ_128[0];
 }
 
-
 //add the solution to the total one
-void solution_add_128(spincolor *tot_sol,spincolor *sol)
+void solution_add_128(spincolor_128 *tot_sol,spincolor *sol)
 {
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
-	  tot_sol[ivol][id][ic][ri]+=sol[ivol][id][ic][ri];
+	  float_128_summassign_64(tot_sol[ivol][id][ic][ri],sol[ivol][id][ic][ri]);
+  
+  set_borders_invalid(tot_sol);
 }
 
-int main()
+void inv_tmQ2_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mass,int niter,double external_solver_residue,spincolor *source)
 {
-  init_nissa();
+  //allocate temporary vectorthe solution in 128 bit
+  spincolor *residue_source=nissa_malloc("residue_source",loc_vol+loc_bord,spincolor);
+  spincolor_128 *temp_128=nissa_malloc("temp",loc_vol+loc_bord,spincolor_128); 
+  spincolor_128 *sol_128=nissa_malloc("sol_128",loc_vol+loc_bord,spincolor_128);
+  memset(sol_128,0,loc_vol*sizeof(spincolor_128));
+  set_borders_invalid(sol_128);
+  set_borders_invalid(temp_128);
   
-  //init the grid
-  init_grid(8,4);
+  //internal solver stopping condition
+  double inner_solver_residue=min_double(1.e-20,external_solver_residue);
+
+  //invert until residue is lower than required
+  double current_residue;
+  do
+    {
+      //compute the residue source: residue_source = source - Q2 * sol_128
+      current_residue=compute_tmQ2_residue_128(residue_source,conf,kappa,mass,temp_128,sol_128,source);
+      master_printf("\nExternal loop residue: %lg\n\n",current_residue);
+
+      //check if we residue not reached
+      if(current_residue>=external_solver_residue)
+	{
+	  //compute partial sol
+	  inv_tmQ2_cg(sol,NULL,conf,kappa,mass,100000,1,inner_solver_residue,residue_source);
+	  
+	  //add the solution to the total one
+	  solution_add_128(sol_128,sol);
+	}
+    }
+  while(current_residue>=external_solver_residue);
+  
+  //copy the solution
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+	for(int ri=0;ri<2;ri++)
+	  sol[ivol][id][ic][ri]=double_from_float_128(sol_128[ivol][id][ic][ri]);
+  
+  nissa_free(temp_128);
+  nissa_free(sol_128);
+  nissa_free(residue_source);
+}
+
+int main(int narg,char **arg)
+{
+  //Basic mpi initialization
+  init_nissa();
+
+  //initialize the program
+  if(narg<2) crash("Use: %s input_file",arg[0]);
+  
+  //read the input
+  open_input(arg[1]);
+
+  //Read the volume
+  int L,T;
+  read_str_int("L",&L);
+  read_str_int("T",&T);
+  //Init the MPI grid 
+  init_grid(T,L); 
+  //Kappa
+  double kappa;
+  read_str_double("Kappa",&kappa);
+  //Mass
+  double mass;
+  read_str_double("Mass",&mass);
+  //Residue
+  double residue;
+  read_str_double("Residue",&residue);
+  //Path of conf
+  char gauge_conf_path[1024];
+  read_str_str("GaugeConfPath",gauge_conf_path,1024);
+  
+  close_input();
   
   //read conf
   quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  read_ildg_gauge_conf(conf,"../../test/data/L4T8conf");
+  read_ildg_gauge_conf(conf,gauge_conf_path);
   
   //prepare the total source
-  spincolor *tot_source=nissa_malloc("tot_source",loc_vol+loc_bord,spincolor);
-  memset(tot_source,0,loc_vol*sizeof(spincolor));
-  if(rank==0) tot_source[0][0][0][0]=1;
-  set_borders_invalid(tot_source);
-  
-  //allocate the total solution
-  spincolor *tot_sol=nissa_malloc("tot_sol",loc_vol+loc_bord,spincolor);
-  memset(tot_sol,0,loc_vol*sizeof(spincolor));
-  
-  //set kappa, mass and residue
-  double mass=0.50;
-  double kappa=0.177;
-  double residue=1.e-10;
-  
-  //allocate the source, the solution and a temporary vec
   spincolor *source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
-  spincolor *sol=nissa_malloc("sol",loc_vol+loc_bord,spincolor);
-  spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);
- 
-  for(int iter=0;iter<5;iter++)
-    {
-      //compute the source: source = tot_source - Q2 * tot_sol
-      compute_residue_128(source,conf,kappa,mass,temp,tot_sol,tot_source);
-      
-      //compute partial sol
-      inv_tmQ2_cg(sol,NULL,conf,kappa,mass,100000,1,residue,source);
-
-      //add the solution to the total one
-      solution_add_128(tot_sol,sol);
-    }
+  memset(source,0,loc_vol*sizeof(spincolor));
+  if(rank==0) source[0][0][0][0]=1;
+  set_borders_invalid(source);
   
-  nissa_free(source);
+  //allocate solution
+  spincolor *sol=nissa_malloc("sol",loc_vol+loc_bord,spincolor);
+  
+  inv_tmQ2_cg_128(sol,NULL,conf,kappa,mass,10000,residue,source);
+  
   nissa_free(sol);
-  nissa_free(tot_source);
-  nissa_free(tot_sol);
+  nissa_free(source);
   nissa_free(conf);
+  
+  close_nissa();
   
   return 0;
 }

@@ -7,13 +7,13 @@ int njack=16;
 
 const double hc=0.19733;
 
-//results taken by arxiv:1004.1115
+//results taken by arxiv:1004.1115 and 1201.5025
 double Zp_med[4]={0.411,0.437,0.477,0.501};
 double Zp_err[4]={0.012,0.007,0.006,0.020};
 double Za_med[4]={0.746,0.746,0.772,0.780};
 double Za_err[4]={0.011,0.006,0.006,0.006};
-double Zv_med[4]={0.5816,0.6103,0.6451, 0.6751};
-double Zv_err[4]={0.0002,0.0003,0.0003, 0.0003};
+double Zv_med[4]={0.5816,0.6103,0.6451,0.686};
+double Zv_err[4]={0.0002,0.0003,0.0003,0.001};
 double Zp_fr_Zs_med[4]={0.580,0.626,0.686, 0.746};
 double Zp_fr_Zs_err[4]={0.017,0.013,0.012, 0.011};
 

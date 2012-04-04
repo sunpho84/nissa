@@ -235,7 +235,7 @@ void plot_funz_a2(const char *out_path,const char *title,const char *xlab,const 
 void load_iboot(int *iboot_jack,char *ens_name)
 {
   char path[1024];
-  sprintf(path,"../../DATA/%s/iboot",ens_name);
+  sprintf(path,"../../DATA1/%s/iboot",ens_name);
   
   FILE *fiboot=fopen(path,"r");
   if(fiboot==NULL)

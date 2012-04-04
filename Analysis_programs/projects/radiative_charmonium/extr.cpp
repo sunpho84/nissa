@@ -22,6 +22,7 @@ const char set_legend_fm[nbeta][1024]={"a = 0.098 fm","a = 0.085 fm","a = 0.067 
 int plot_iboot;
 int include_a4;
 int include_380;
+int include_ml_term;
 
 double fun_fit_F(double A,double B,double C,double D,double ml,double a)
 {
@@ -136,6 +137,11 @@ void fit(boot &A,boot &B,boot &C,boot &D,bvec &X,bvec &Y)
       minu.FixParameter(3);
       npars--;
     }
+  if(!include_ml_term)
+    {
+      minu.FixParameter(1);
+      npars--;
+    }
   minu.SetFCN(chi2_wr);
   
   double C2;
@@ -235,7 +241,7 @@ void plot_funz_a2(const char *out_path,const char *title,const char *xlab,const 
 void load_iboot(int *iboot_jack,char *ens_name)
 {
   char path[1024];
-  sprintf(path,"../../DATA/%s/iboot",ens_name);
+  sprintf(path,"../../DATA1/%s/iboot",ens_name);
   
   FILE *fiboot=fopen(path,"r");
   if(fiboot==NULL)
@@ -261,6 +267,7 @@ int main(int narg,char **arg)
   char meson_name[1024];
   read_formatted_from_file_expecting((char*)&include_a4,an_input_file,"%d","include_a4");
   read_formatted_from_file_expecting((char*)&include_380,an_input_file,"%d","include_380");
+  read_formatted_from_file_expecting((char*)&include_ml_term,an_input_file,"%d","include_ml_term");
   read_formatted_from_file_expecting((char*)&nens,an_input_file,"%d","nens");
   read_formatted_from_file_expecting(meson_name,an_input_file,"%s","meson_name");
   lmass=new double[nens];

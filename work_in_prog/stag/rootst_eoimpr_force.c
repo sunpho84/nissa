@@ -24,16 +24,12 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
   //master_printf_rat_approx(appr);
   
   //invert the various terms
-  inv_stD2ee_cgmm2s(chi_e,pf,eo_conf,appr->poles,appr->nterms,1000000,residue,residue,0);
+  inv_stD2ee_cgmm2s(chi_e,eo_conf,appr->poles,appr->nterms,1000000,residue,residue,0,pf);
   
   //summ all the terms performing appropriate elaboration
   //possible improvement by communicating more borders together
   for(int iterm=0;iterm<appr->nterms;iterm++)
-    {
-      communicate_ev_color_borders(chi_e[iterm]);
-      apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
-      communicate_od_color_borders(v_o[iterm]);
-    }
+    apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
   
   //remove the background fields
   rem_backfield_from_conf(eo_conf,u1b);
@@ -77,7 +73,10 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
       if(n2>=1.e-4) crash("norm error");
     }
   */
-
+  
+  //communicate borders of v_o (could be improved...)
+  for(int iterm=0;iterm<appr->nterms;iterm++)  communicate_od_color_borders(v_o[iterm]);
+  
   //conclude the calculation of the fermionic force
   nissa_loc_volh_loop(ivol)
     for(int mu=0;mu<4;mu++)

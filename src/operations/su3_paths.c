@@ -115,9 +115,11 @@ double global_plaquette_eo_conf(quad_su3 **conf)
   return totplaq/glb_vol/3/6;
 }
 
-//compute the staples; the border is supposed to have been already communicated
+//compute the staples
 void compute_point_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
 {
+  communicate_eo_quad_su3_edges(eo_conf);
+  
   memset(staple,0,sizeof(quad_su3));
   
   for(int mu=0;mu<4;mu++)

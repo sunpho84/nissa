@@ -101,12 +101,18 @@ void set_lx_geometry()
   //find the rank of the neighbour in the various dir
   for(int mu=0;mu<4;mu++)
     MPI_Cart_shift(cart_comm,mu,1,&(rank_neighdw[mu]),&(rank_neighup[mu]));
-  
+  memcpy(rank_neigh[0],rank_neighdw,sizeof(coords));
+  memcpy(rank_neigh[1],rank_neighup,sizeof(coords));
+
   loc_coord_of_loclx=nissa_malloc("loc_coord_of_loclx",loc_vol,coords);
   glb_coord_of_loclx=nissa_malloc("glb_coord_of_loclx",loc_vol+loc_bord+loc_edge,coords);
-  loclx_neighup=nissa_malloc("loclx_neighup",loc_vol+loc_bord,coords);
-  loclx_neighdw=nissa_malloc("loclx_neighdw",loc_vol+loc_bord,coords);
-  
+  loclx_neigh[0]=loclx_neighdw=nissa_malloc("loclx_neighdw",loc_vol+loc_bord,coords);
+  loclx_neigh[1]=loclx_neighup=nissa_malloc("loclx_neighup",loc_vol+loc_bord,coords);  
+  ignore_borders_communications_warning(loc_coord_of_loclx);
+  ignore_borders_communications_warning(glb_coord_of_loclx);
+  ignore_borders_communications_warning(loclx_neighup);
+  ignore_borders_communications_warning(loclx_neighdw);
+
   //local to global
   glblx_of_loclx=nissa_malloc("glblx_of_loclx",loc_vol,int);
       
