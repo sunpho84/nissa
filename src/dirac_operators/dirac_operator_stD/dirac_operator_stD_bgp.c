@@ -1,6 +1,6 @@
 #pragma once
 
-void apply_st2Doe_or_eo(color *out,quad_su3 **conf,color *in,int sink_parity)
+void apply_st2Doe(color *out,quad_su3 **conf,color *in)
 {
   bgp_complex A0,A1,A2;
   
@@ -11,28 +11,27 @@ void apply_st2Doe_or_eo(color *out,quad_su3 **conf,color *in,int sink_parity)
   bgp_complex R0,R1,R2;
   
   communicate_eo_quad_su3_borders(conf);
-  if(sink_parity==ODD) communicate_ev_color_borders(in);
-  else                 communicate_od_color_borders(in);
-  
-  nissa_loc_volh_loop(ivol)
+  communicate_ev_color_borders(in);
+    
+  nissa_loc_volh_loop(isink)
     {
       bgp_color_put_to_zero(R0,R1,R2);
       
       for(int mu=0;mu<4;mu++)
         {
-	  int up=loceo_neighup[sink_parity][ivol][mu];
-	  int dw=loceo_neighdw[sink_parity][ivol][mu];
+	  int up=loceo_neighup[ODD][isink][mu];
+	  int dw=loceo_neighdw[ODD][isink][mu];
 	  
 	  bgp_load_color(A0,A1,A2, in[up]);
-	  bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2, conf[sink_parity][ivol][mu]);
+	  bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2, conf[ODD][isink][mu]);
 	  bgp_summ_the_su3_prod_color(R0,R1,R2, C0,C1,C2,D0,D1,D2,E0,E1,E2, A0,A1,A2);
 	  
 	  bgp_load_color(A0,A1,A2, in[dw]);
-	  bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2, conf[!sink_parity][dw][mu]);
+	  bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2, conf[!ODD][dw][mu]);
 	  bgp_subt_the_su3_dag_prod_color(R0,R1,R2, C0,C1,C2,D0,D1,D2,E0,E1,E2, A0,A1,A2);
 	}
       
-      bgp_save_color(out[ivol], R0,R1,R2);
+      bgp_save_color(out[isink], R0,R1,R2);
     }
   
   set_borders_invalid(out);
@@ -47,10 +46,69 @@ void apply_stDoe(color *out,quad_su3 **conf,color *in)
 	out[io][ic][ri]*=0.5;
 }
 
-inline void apply_st2Doe(color *out,quad_su3 **conf,color *in)
-{apply_st2Doe_or_eo(out,conf,in,ODD);}
+void apply_st2Deo(color *out,quad_su3 **conf,color *in)
+{
+  bgp_complex A0,A1,A2;
+  
+  bgp_complex C0,C1,C2;
+  bgp_complex D0,D1,D2;
+  bgp_complex E0,E1,E2;
+  
+  bgp_complex R0,R1,R2;
+  
+  communicate_eo_quad_su3_borders(conf);
+  communicate_ev_color_borders(in);
+    
+  nissa_loc_volh_loop(isink)
+    {
+      bgp_color_put_to_zero(R0,R1,R2);
+      
+      for(int mu=0;mu<4;mu++)
+        {
+	  int up=loceo_neighup[EVN][isink][mu];
+	  int dw=loceo_neighdw[EVN][isink][mu];
+	  
+	  bgp_load_color(A0,A1,A2, in[up]);
+	  bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2, conf[EVN][isink][mu]);
+	  bgp_subt_the_su3_prod_color(R0,R1,R2, C0,C1,C2,D0,D1,D2,E0,E1,E2, A0,A1,A2);
+	  
+	  bgp_load_color(A0,A1,A2, in[dw]);
+	  bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2, conf[ODD][dw][mu]);
+	  bgp_summ_the_su3_dag_prod_color(R0,R1,R2, C0,C1,C2,D0,D1,D2,E0,E1,E2, A0,A1,A2);
+	}
+      
+      bgp_save_color(out[isink], R0,R1,R2);
+    }
+  
+  set_borders_invalid(out);
+}
+/*
 inline void apply_st2Deo(color *out,quad_su3 **conf,color *in)
-{apply_st2Doe_or_eo(out,conf,in,EVN);}
+{
+  communicate_eo_quad_su3_borders(conf);
+  communicate_od_color_borders(in);
+  
+  nissa_loc_volh_loop(ie)
+  {
+    int odup0=loceo_neighup[EVN][ie][0];
+    int oddw0=loceo_neighdw[EVN][ie][0];
+    
+    unsafe_su3_dag_prod_color(out[ie],conf[ODD][oddw0][0],in[oddw0]);
+    su3_subt_the_prod_color(  out[ie],conf[EVN][ie   ][0],in[odup0]);
+    
+    for(int mu=1;mu<4;mu++)
+      {
+	int odup=loceo_neighup[EVN][ie][mu];
+	int oddw=loceo_neighdw[EVN][ie][mu];
+	
+	su3_dag_summ_the_prod_color(out[ie],conf[ODD][oddw][mu],in[oddw]);
+	su3_subt_the_prod_color(    out[ie],conf[EVN][ie  ][mu],in[odup]);
+      }
+  }
+  
+  set_borders_invalid(out);
+}
+*/
 
 void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
 {

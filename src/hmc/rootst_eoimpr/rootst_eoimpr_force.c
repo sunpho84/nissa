@@ -19,10 +19,6 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
   //add the background fields
   add_backfield_to_conf(eo_conf,u1b);
 
-  //debug
-  //static int b=0;
-  //master_printf_rat_approx(appr);
-  
   //invert the various terms
   inv_stD2ee_cgmm2s(chi_e,eo_conf,appr->poles,appr->nterms,1000000,residue,residue,0,pf);
   
@@ -33,46 +29,6 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
   
   //remove the background fields
   rem_backfield_from_conf(eo_conf,u1b);
-  
-  //debug
-  /*
-    if(b<=1)
-    {
-      master_printf("Debug,reading the first term\n");
-      color *temp=nissa_malloc("temp",loc_volh,color);
-      if(b==0) read_e_color(temp,"dat/quark_force_term_1_q1");
-      else read_e_color(temp,"dat/quark_force_term_1_q2");
-      double n2=0;
-      for(int ivol=0;ivol<loc_volh;ivol++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    {
-	      double a=temp[ivol][ic][ri]-chi_e[0][ivol][ic][ri];
-	      n2+=a*a;
-	      //master_printf("%d %d %d  %lg %lg\n",ivol,ic,ri,temp[ivol][ic][ri],chi_e[0][ivol][ic][ri]);
-	    }
-      n2=sqrt(n2/(loc_volh*3));
-      master_printf("Diff of first term: %lg\n",n2);
-      if(n2>=1.e-4) crash("norm error");
-      
-      master_printf("Debug,reading the first vterm\n");
-      if(b==0) read_o_color(temp,"dat/quark_force_vterm_1_q1");
-      else read_o_color(temp,"dat/quark_force_vterm_1_q2");
-      b++;
-      n2=0;
-      for(int ivol=0;ivol<loc_volh;ivol++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    {
-	      double a=temp[ivol][ic][ri]-v_o[0][ivol][ic][ri];
-	      n2+=a*a;
-	      //master_printf("%d %d %d  %lg %lg\n",ivol,ic,ri,temp[ivol][ic][ri],v_o[0][ivol][ic][ri]);
-	    }
-      n2=sqrt(n2/(loc_volh*3));
-      master_printf("Diff of first term: %lg\n",n2);
-      if(n2>=1.e-4) crash("norm error");
-    }
-  */
   
   //communicate borders of v_o (could be improved...)
   for(int iterm=0;iterm<appr->nterms;iterm++)  communicate_od_color_borders(v_o[iterm]);

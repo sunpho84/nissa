@@ -359,12 +359,41 @@
     bgp_su3_prod_color_bulk(O0,O1,O2,U00,U01,U02,U10,U11,U12,U20,U21,U22,I0,I1,I2); \
   }
 
+#define bgp_subt_the_su3_prod_color(O0,O1,O2,U00,U01,U02,U10,U11,U12,U20,U21,U22,I0,I1,I2) \
+  {									\
+    bgp_complex_subt_the_prod_double(O0,O0,U00,__creal(I0));		\
+    bgp_complex_subt_the_prod_double(O1,O1,U11,__creal(I1));		\
+    bgp_complex_subt_the_prod_double(O2,O2,U22,__creal(I2));		\
+    									\
+    bgp_complex_subt_the_prod_idouble(O0,O0,U00,__cimag(I0));		\
+    bgp_complex_subt_the_prod_idouble(O1,O1,U11,__cimag(I1));		\
+    bgp_complex_subt_the_prod_idouble(O2,O2,U22,__cimag(I2));		\
+    									\
+    									\
+    bgp_complex_subt_the_prod_double (O0,O0,U01,__creal(I1));		\
+    bgp_complex_subt_the_prod_double (O1,O1,U12,__creal(I2));		\
+    bgp_complex_subt_the_prod_double (O2,O2,U20,__creal(I0));		\
+    									\
+    bgp_complex_subt_the_prod_idouble(O0,O0,U01,__cimag(I1));		\
+    bgp_complex_subt_the_prod_idouble(O1,O1,U12,__cimag(I2));		\
+    bgp_complex_subt_the_prod_idouble(O2,O2,U20,__cimag(I0));		\
+    									\
+    									\
+    bgp_complex_subt_the_prod_double (O0,O0,U02,__creal(I2));		\
+    bgp_complex_subt_the_prod_double (O1,O1,U10,__creal(I0));		\
+    bgp_complex_subt_the_prod_double (O2,O2,U21,__creal(I1));		\
+    									\
+    bgp_complex_subt_the_prod_idouble(O0,O0,U02,__cimag(I2));		\
+    bgp_complex_subt_the_prod_idouble(O1,O1,U10,__cimag(I0));		\
+    bgp_complex_subt_the_prod_idouble(O2,O2,U21,__cimag(I1));		\
+  }
+
 // O_i = I_j * U_ji
 #define bgp_color_prod_su3(O0,O1,O2,I0,I1,I2,U00,U01,U02,U10,U11,U12,U20,U21,U22) \
   {									\
-    bgp_complex_prod_double(O0,U00,__creal(I0));				\
-    bgp_complex_prod_double(O1,U11,__creal(I1));				\
-    bgp_complex_prod_double(O2,U22,__creal(I2));				\
+    bgp_complex_prod_double(O0,U00,__creal(I0));			\
+    bgp_complex_prod_double(O1,U11,__creal(I1));			\
+    bgp_complex_prod_double(O2,U22,__creal(I2));			\
     									\
     bgp_complex_summ_the_prod_idouble(O0,O0,U00,__cimag(I0));		\
     bgp_complex_summ_the_prod_idouble(O1,O1,U11,__cimag(I1));		\
