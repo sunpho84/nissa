@@ -49,15 +49,6 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
   
   set_borders_invalid(vec_in);
   
-  /*
-  //debug
-  static int a=0;
-  master_printf("Debug, loading initial eig\n");
-  if(a==0) read_e_color(vec_in,"dat/Eig_init1");
-  else     read_e_color(vec_in,"dat/Eig_init2");
-  a++;
-  */
-  
   //apply the vector niter times normalizing at each iter
   for(int iter=0;iter<niters;iter++)
     {
@@ -95,14 +86,6 @@ void scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_exp_actio,quad_s
       double scale=max_eigenval(quark_pars,eo_conf,50)*1.1;
       rem_backfield_from_conf(eo_conf,bf[iquark]);
 
-      /*
-      ///// DEBUG //////
-      double exp_scale=5.6331760852836039;
-      master_printf("Debug: scaling with %16.16lg, expected: %16.16lg\n",scale,exp_scale);
-      master_printf("Forcing to %16.16lg\n",exp_scale);
-      scale=exp_scale;
-      */
-      
       double scale_pfgen=pow(scale,db_rat_exp_pfgen_degr[ipf][irexp]);
       double scale_actio=pow(scale,db_rat_exp_actio_degr[ipf][irexp]);
 
