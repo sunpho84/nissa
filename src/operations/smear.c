@@ -153,28 +153,28 @@ void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *
 	  bgp_cache_touch_spincolor(smear_sc[ivup]);
 	  bgp_cache_touch_spincolor(smear_sc[ivdw]);
 	  
-	  bgp_load_su3(U00,U01,U02,U10,U11,U12,U20,U21,U22,conf[ivol][mu]);
-	  bgp_load_su3(V00,V01,V02,V10,V11,V12,V20,V21,V22,conf[ivdw][mu]);
+	  bgp_su3_load(U00,U01,U02,U10,U11,U12,U20,U21,U22,conf[ivol][mu]);
+	  bgp_su3_load(V00,V01,V02,V10,V11,V12,V20,V21,V22,conf[ivdw][mu]);
 	  
 	  for(int id=0;id<4;id++)
 	    {
-	      bgp_load_color(H0,H1,H2,H[ivol][id]);
-	      bgp_load_color(A0,A1,A2,smear_sc[ivup][id]);
-	      bgp_load_color(B0,B1,B2,smear_sc[ivdw][id]);
+	      bgp_color_load(H0,H1,H2,H[ivol][id]);
+	      bgp_color_load(A0,A1,A2,smear_sc[ivup][id]);
+	      bgp_color_load(B0,B1,B2,smear_sc[ivdw][id]);
 	      
 	      bgp_summ_the_su3_prod_color(H0,H1,H2,U00,U01,U02,U10,U11,U12,U20,U21,U22,A0,A1,A2);
 	      bgp_summ_the_su3_dag_prod_color(H0,H1,H2,V00,V01,V02,V10,V11,V12,V20,V21,V22,B0,B1,B2);
 
-	      bgp_save_color(H[ivol][id],H0,H1,H2);
+	      bgp_color_save(H[ivol][id],H0,H1,H2);
 	    }
 	}
       
       bgp_cache_touch_spincolor(H[ivol]);  
       for(int id=0;id<4;id++)
 	{
-	  bgp_load_color(A0,A1,A2,H[ivol][id]);  
+	  bgp_color_load(A0,A1,A2,H[ivol][id]);  
 	  bgp_color_prod_double(B0,B1,B2,A0,A1,A2,kappa);
-	  bgp_save_color(H[ivol][id],B0,B1,B2);
+	  bgp_color_save(H[ivol][id],B0,B1,B2);
 	}
     }
 #endif
@@ -243,11 +243,11 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 	      
 	      for(int id=0;id<4;id++)
 		{
-		  bgp_load_color(A0,A1,A2,temp[ivol][id]);
-		  bgp_load_color(B0,B1,B2,H[ivol][id]);
+		  bgp_color_load(A0,A1,A2,temp[ivol][id]);
+		  bgp_color_load(B0,B1,B2,H[ivol][id]);
 		  bgp_color_prod_double(C0,C1,C2,A0,A1,A2,norm_fact);
 		  bgp_summassign_color_prod_double(C0,C1,C2,B0,B1,B2,norm_fact);
-		  bgp_save_color(temp[ivol][id],C0,C1,C2);
+		  bgp_color_save(temp[ivol][id],C0,C1,C2);
 		}
 	    }
 	  set_borders_invalid(temp);

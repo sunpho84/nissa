@@ -86,8 +86,8 @@ void compute_landau_or_coulomb_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
   bgp_complex b00,b01,b02,b10,b11,b12,b20,b21,b22;
 
   //first dir: reset and sum
-  bgp_load_su3(c00,c01,c02,c10,c11,c12,c20,c21,c22, conf[ivol][0]);
-  bgp_load_su3(b00,b01,b02,b10,b11,b12,b20,b21,b22, conf[b][0]);
+  bgp_su3_load(c00,c01,c02,c10,c11,c12,c20,c21,c22, conf[ivol][0]);
+  bgp_su3_load(b00,b01,b02,b10,b11,b12,b20,b21,b22, conf[b][0]);
   bgp_su3_summ_su3_dag(g00,g01,g02,g10,g11,g12,g20,g21,g22,
 		       c00,c01,c02,c10,c11,c12,c20,c21,c22,
 		       b00,b01,b02,b10,b11,b12,b20,b21,b22);
@@ -96,15 +96,15 @@ void compute_landau_or_coulomb_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
     {
       b=loclx_neighdw[ivol][mu];
       
-      bgp_load_su3(c00,c01,c02,c10,c11,c12,c20,c21,c22, conf[ivol][mu]);
-      bgp_load_su3(b00,b01,b02,b10,b11,b12,b20,b21,b22, conf[b][mu]);
+      bgp_su3_load(c00,c01,c02,c10,c11,c12,c20,c21,c22, conf[ivol][mu]);
+      bgp_su3_load(b00,b01,b02,b10,b11,b12,b20,b21,b22, conf[b][mu]);
       bgp_su3_summassign_su3(g00,g01,g02,g10,g11,g12,g20,g21,g22,
 			     c00,c01,c02,c10,c11,c12,c20,c21,c22);
       bgp_su3_summassign_su3_dag(g00,g01,g02,g10,g11,g12,g20,g21,g22,
 				 b00,b01,b02,b10,b11,b12,b20,b21,b22);
     }
 
-  bgp_save_su3(g, g00,g01,g02,g10,g11,g12,g20,g21,g22);
+  bgp_su3_save(g, g00,g01,g02,g10,g11,g12,g20,g21,g22);
 
 #else
 
@@ -286,9 +286,9 @@ void overrelax(su3 out,su3 in,double w)
   bgp_complex buno;
   
   //prepare multiplicative factor
-  bgp_load_su3(f00,f01,f02,f10,f11,f12,f20,f21,f22,in);
+  bgp_su3_load(f00,f01,f02,f10,f11,f12,f20,f21,f22,in);
   complex uno={1,0};
-  bgp_load_complex(buno,uno);
+  bgp_complex_load(buno,uno);
   bgp_subtassign_complex(f00,buno);
   bgp_subtassign_complex(f11,buno);
   bgp_subtassign_complex(f22,buno);
@@ -297,28 +297,28 @@ void overrelax(su3 out,su3 in,double w)
 
   bgp_su3_prod_double(o00,o01,o02,o10,o11,o12,o20,o21,o22, f00,f01,f02,f10,f11,f12,f20,f21,f22, coef[1]);
   bgp_summassign_complex(o00,buno);bgp_summassign_complex(o11,buno);bgp_summassign_complex(o22,buno);
-  bgp_save_su3(t[1],f00,f01,f02,f10,f11,f12,f20,f21,f22);
+  bgp_su3_save(t[1],f00,f01,f02,f10,f11,f12,f20,f21,f22);
 
   for(int iord=2;iord<5;iord++)
     {
-      bgp_load_su3(t00,t01,t02,t10,t11,t12,t20,t21,t22, t[iord-1]);
+      bgp_su3_load(t00,t01,t02,t10,t11,t12,t20,t21,t22, t[iord-1]);
       
       //t'_0i = t_0j * f_ji ; o_0i+=t'_0i*c
       bgp_color_prod_su3(r0,r1,r2, t00,t01,t02, f00,f01,f02,f10,f11,f12,f20,f21,f22);
-      bgp_save_color(t[iord][0], r0,r1,r2);
+      bgp_color_save(t[iord][0], r0,r1,r2);
       bgp_summassign_color_prod_double(o00,o01,o02, r0,r1,r2, coef[iord]);
 
       //t'_1i = t_1j * f_ji ; o_1i+=t'_1i*c
       bgp_color_prod_su3(r0,r1,r2, t10,t11,t12, f00,f01,f02,f10,f11,f12,f20,f21,f22);
-      bgp_save_color(t[iord][1], r0,r1,r2);
+      bgp_color_save(t[iord][1], r0,r1,r2);
       bgp_summassign_color_prod_double(o10,o11,o12, r0,r1,r2, coef[iord]);
 
       //t'_2i = t_2j * f_ji ; o_2i+=t'_2i*c
       bgp_color_prod_su3(r0,r1,r2, t20,t21,t22, f00,f01,f02,f10,f11,f12,f20,f21,f22);
-      bgp_save_color(t[iord][2], r0,r1,r2);
+      bgp_color_save(t[iord][2], r0,r1,r2);
       bgp_summassign_color_prod_double(o20,o21,o22, r0,r1,r2, coef[iord]);
     }
-  bgp_save_su3(out, o00,o01,o02,o10,o11,o12,o20,o21,o22);
+  bgp_su3_save(out, o00,o01,o02,o10,o11,o12,o20,o21,o22);
 #else
   su3 f;
   su3_summ_real(f,in,-1);   //subtract 1 from in
@@ -361,7 +361,7 @@ void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
   bgp_complex g00,g01,g02,g10,g11,g12,g20,g21,g22;
   bgp_complex o00,o01,o02,o10,o11,o12,o20,o21,o22;
   bgp_complex i00,i01,i02,i10,i11,i12,i20,i21,i22;
-  bgp_load_su3(g00,g01,g02,g10,g11,g12,g20,g21,g22,g);
+  bgp_su3_load(g00,g01,g02,g10,g11,g12,g20,g21,g22,g);
 #endif
 
   // for each dir...
@@ -371,17 +371,17 @@ void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
       
       //perform local gauge transform
 #ifdef BGP
-      bgp_load_su3(i00,i01,i02,i10,i11,i12,i20,i21,i22,conf[ivol][mu]);
+      bgp_su3_load(i00,i01,i02,i10,i11,i12,i20,i21,i22,conf[ivol][mu]);
       bgp_su3_prod_su3(o00,o01,o02,o10,o11,o12,o20,o21,o22,
 		       g00,g01,g02,g10,g11,g12,g20,g21,g22, 
 		       i00,i01,i02,i10,i11,i12,i20,i21,i22);
-      bgp_save_su3(conf[ivol][mu], o00,o01,o02,o10,o11,o12,o20,o21,o22);
+      bgp_su3_save(conf[ivol][mu], o00,o01,o02,o10,o11,o12,o20,o21,o22);
       
-      bgp_load_su3(i00,i01,i02,i10,i11,i12,i20,i21,i22,conf[b][mu]);
+      bgp_su3_load(i00,i01,i02,i10,i11,i12,i20,i21,i22,conf[b][mu]);
       bgp_su3_prod_su3_dag(o00,o01,o02,o10,o11,o12,o20,o21,o22,
 			   i00,i01,i02,i10,i11,i12,i20,i21,i22,
 			   g00,g01,g02,g10,g11,g12,g20,g21,g22);
-      bgp_save_su3(conf[b][mu], o00,o01,o02,o10,o11,o12,o20,o21,o22);
+      bgp_su3_save(conf[b][mu], o00,o01,o02,o10,o11,o12,o20,o21,o22);
 #else
       safe_su3_prod_su3(conf[ivol][mu],g,conf[ivol][mu]);
       safe_su3_prod_su3_dag(conf[b][mu],conf[b][mu],g);

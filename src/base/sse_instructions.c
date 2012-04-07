@@ -7,7 +7,7 @@
 #define sse_c11 "4"
 #define sse_c12 "5"
 
-#define sse_load_color(a,b,c, d)				\
+#define sse_color_load(a,b,c, d)				\
   __asm__ __volatile__ ("movapd %0, %%xmm" a " \n\t"	\
 			"movapd %1, %%xmm" b " \n\t"	\
 			"movapd %2, %%xmm" c		\
@@ -19,7 +19,7 @@
 			:						\
 			"xmm" a, "xmm" b, "xmm" c)
 
-#define sse_save_color(d, a,b,c)		    \
+#define sse_color_save(d, a,b,c)		    \
   __asm__ __volatile__ ("movapd %%xmm" a ", %0 \n\t"	\
 			"movapd %%xmm" b ", %1 \n\t"	\
 			"movapd %%xmm" c ", %2"		\
@@ -37,8 +37,8 @@
 			:					\
 			"xmm" a, "xmm" b, "xmm" c)
 
-#define sse_load_colors_and_summ(a,b,c, d,e,f, G, H)	\
-  sse_load_color(a,b,c, G);				\
-  sse_load_color(d,e,f, H);				\
+#define sse_color_loads_and_summ(a,b,c, d,e,f, G, H)	\
+  sse_color_load(a,b,c, G);				\
+  sse_color_load(d,e,f, H);				\
   sse_color_summassign(a,b,c, d,e,f);
 

@@ -483,20 +483,20 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 		  complex *A=(complex*)ss[0][pr_combo[ipr_combo][0]][eq_to_mult[0][icontr]],*B=(complex*)ss[1][pr_combo[ipr_combo][1]][eq_to_mult[1][icontr]];
 #ifdef BGP
 		  bgp_complex cpu_out,cpu_A,cpu_B;
-		  bgp_load_complex(cpu_out,loc_contr[offset]);
+		  bgp_complex_load(cpu_out,loc_contr[offset]);
 #pragma unroll(15)
 		  for(int i=0;i<15;i++)
 		    {
-		      bgp_load_complex(cpu_A,A[i]);
-		      bgp_load_complex(cpu_B,B[i]);
+		      bgp_complex_load(cpu_A,A[i]);
+		      bgp_complex_load(cpu_B,B[i]);
 		      bgp_complex_summ_the_prod(cpu_out,cpu_out,cpu_A,cpu_B);
 		      bgp_cache_touch_complex(A[i+1]);
 		      bgp_cache_touch_complex(B[i+1]);
 		    }
-		  bgp_load_complex(cpu_A,A[15]);
-		  bgp_load_complex(cpu_B,B[15]);
+		  bgp_complex_load(cpu_A,A[15]);
+		  bgp_complex_load(cpu_B,B[15]);
 		  bgp_complex_summ_the_prod(cpu_out,cpu_out,cpu_A,cpu_B);
-		  bgp_save_complex(loc_contr[offset],cpu_out);
+		  bgp_complex_save(loc_contr[offset],cpu_out);
 #else
 		  for(int i=0;i<16;i++)
 		    complex_summ_the_prod(loc_contr[offset],A[i],B[i]);

@@ -35,21 +35,21 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	if(riter==0) bgp_color_put_to_zero(S0,S1,S2);
 	nissa_loc_vol_loop(ivol)
 	  {
-	    bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,source[ivol]);
+	    bgp_spincolor_load(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,source[ivol]);
 	    if(riter==0) bgp_summassign_color_square_spincolor(S0,S1,S2,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
 
-	    bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,s[ivol]);
+	    bgp_spincolor_load(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,s[ivol]);
 	    bgp_subtassign_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32);
-	    bgp_save_spincolor(p[ivol],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
-	    bgp_save_spincolor(r[ivol],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
+	    bgp_spincolor_save(p[ivol],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
+	    bgp_spincolor_save(r[ivol],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
 	    bgp_summassign_color_square_spincolor(N0,N1,N2,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
 	  }
 	set_borders_invalid(p);
 	
 	bgp_square_norm_color(N0,N1,N2);
 	bgp_square_norm_color(S0,S1,S2);
-	bgp_save_complex(cloc_delta,N0);
-	bgp_save_complex(cloc_source_norm,S0);
+	bgp_complex_save(cloc_delta,N0);
+	bgp_complex_save(cloc_source_norm,S0);
 		
 	MPI_Allreduce(cloc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	MPI_Allreduce(cloc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
@@ -71,12 +71,12 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	    bgp_color_put_to_zero(N0,N1,N2);
 	    nissa_loc_vol_loop(ivol)
 	      { //real part of the scalar product
-		bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,s[ivol]);
-		bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,p[ivol]);
+		bgp_spincolor_load(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,s[ivol]);
+		bgp_spincolor_load(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,p[ivol]);
 		bgp_summassign_color_realscalarprod_spincolor(N0,N1,N2,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32);
 	      }
 	    bgp_square_norm_color(N0,N1,N2);
-	    bgp_save_complex(cloc_alpha,N0);
+	    bgp_complex_save(cloc_alpha,N0);
 	    
 	    if(rank_tot>0) MPI_Allreduce(cloc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else alpha=cloc_alpha[0];
@@ -87,25 +87,25 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	  {
 	    complex cloc_lambda={0,0};
 	    complex comega={omega,0};
-	    bgp_load_complex(R,comega);
+	    bgp_complex_load(R,comega);
 
 	    bgp_color_put_to_zero(N0,N1,N2);
 	    nissa_loc_vol_loop(ivol)
 	      {        //sol_(k+1)=x_k+omega*p_k
-		bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,sol[ivol]);
-		bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,p[ivol]);
+		bgp_spincolor_load(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,sol[ivol]);
+		bgp_spincolor_load(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,p[ivol]);
 		bgp_summassign_spincolor_prod_double(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,omega);
-		bgp_save_spincolor(sol[ivol],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
+		bgp_spincolor_save(sol[ivol],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
 
 		//r_(k+1)=x_k-omega*p_k and residue calculation
-		bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,r[ivol]);
-		bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,s[ivol]);
+		bgp_spincolor_load(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,r[ivol]);
+		bgp_spincolor_load(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,s[ivol]);
 		bgp_subtassign_spincolor_prod_double(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,__creal(R));
 		bgp_summassign_color_square_spincolor(N0,N1,N2,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
-		bgp_save_spincolor(r[ivol],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
+		bgp_spincolor_save(r[ivol],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
 	      }
 	    bgp_square_norm_color(N0,N1,N2);
-	    bgp_save_complex(cloc_lambda,N0);
+	    bgp_complex_save(cloc_lambda,N0);
 	    if(rank_tot>0) MPI_Allreduce(cloc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else lambda=cloc_lambda[0];
 	    set_borders_invalid(sol);
@@ -117,14 +117,14 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	  //p_(k+1)=r_(k+1)+gammag*p_k
 	  {
 	    complex cgammag={gammag,0};
-	    bgp_load_complex(R,cgammag);
+	    bgp_complex_load(R,cgammag);
 
 	    nissa_loc_vol_loop(ivol)
 	      {
-		bgp_load_spincolor(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,p[ivol]);
-		bgp_load_spincolor(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,r[ivol]);
+		bgp_spincolor_load(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,p[ivol]);
+		bgp_spincolor_load(B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,r[ivol]);
 		bgp_summ_spincolor_prod_double(A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32,A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32,__creal(R));
-		bgp_save_spincolor(p[ivol],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
+		bgp_spincolor_save(p[ivol],A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32);
 	      }
 	    set_borders_invalid(p);
 	    }

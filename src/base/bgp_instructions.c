@@ -42,8 +42,8 @@
 
 #ifdef BGP_EMU
 
-#define bgp_load_complex(A,B) {A[0]=B[0];A[1]=B[1];}
-#define bgp_save_complex(A,B) bgp_load_complex(A,B);
+#define bgp_complex_load(A,B) {A[0]=B[0];A[1]=B[1];}
+#define bgp_complex_save(A,B) bgp_complex_load(A,B);
 #define bgp_complex_summ_complex(O,A,B){O[0]=A[0]+B[0];O[1]=A[1]+B[1];}
 #define bgp_complex_subt_complex(O,A,B){O[0]=A[0]-B[0];O[1]=A[1]-B[1];}
 #define bgp_complex_summ_complex_conj(O,A,B){O[0]=A[0]+B[0];O[1]=A[1]-B[1];}
@@ -63,8 +63,8 @@
 
 #else
 
-#define bgp_load_complex(A,B) A=__lfpd((double*)B)
-#define bgp_save_complex(A,B) __stfpd((double*)A,B)
+#define bgp_complex_load(A,B) A=__lfpd((double*)B)
+#define bgp_complex_save(A,B) __stfpd((double*)A,B)
 #define bgp_complex_summ_complex(O,A,B) O=__fpadd(A,B)
 #define bgp_complex_subt_complex(O,A,B) O=__fpsub(A,B)
 #define bgp_summassign_icomplex(A,B) A=__fxcxnpma(A,B,1)
@@ -170,36 +170,36 @@
     bgp_complex_summ_the_prod_idouble(A2,A2,B2,R);		\
   }
 
-#define bgp_load_color_by_elements(A0,A1,A2,B0,B1,B2)	\
+#define bgp_color_load_by_elements(A0,A1,A2,B0,B1,B2)	\
   {							\
-    bgp_load_complex(A0,B0);				\
-    bgp_load_complex(A1,B1);				\
-    bgp_load_complex(A2,B2);				\
+    bgp_complex_load(A0,B0);				\
+    bgp_complex_load(A1,B1);				\
+    bgp_complex_load(A2,B2);				\
   }
 
-#define bgp_load_color(A0,A1,A2,B) bgp_load_color_by_elements(A0,A1,A2,B[0],B[1],B[2]);
+#define bgp_color_load(A0,A1,A2,B) bgp_color_load_by_elements(A0,A1,A2,B[0],B[1],B[2]);
 
-#define bgp_save_color_by_elements(A0,A1,A2,B0,B1,B2)	  \
+#define bgp_color_save_by_elements(A0,A1,A2,B0,B1,B2)	  \
   {							  \
-    bgp_save_complex(A0,B0);				  \
-    bgp_save_complex(A1,B1);				  \
-    bgp_save_complex(A2,B2);				  \
+    bgp_complex_save(A0,B0);				  \
+    bgp_complex_save(A1,B1);				  \
+    bgp_complex_save(A2,B2);				  \
   }
 
-#define bgp_save_color(A,B0,B1,B2) bgp_save_color_by_elements(A[0],A[1],A[2],B0,B1,B2);
+#define bgp_color_save(A,B0,B1,B2) bgp_color_save_by_elements(A[0],A[1],A[2],B0,B1,B2);
   
-#define bgp_color_summ_color(O0,O1,O2,A0,A1,A2,B0,B1,B2)	\
-  {								\
+#define bgp_color_summ_color(O0,O1,O2,A0,A1,A2,B0,B1,B2)		\
+  {									\
     bgp_complex_summ_complex(O0,A0,B0);					\
     bgp_complex_summ_complex(O1,A1,B1);					\
     bgp_complex_summ_complex(O2,A2,B2);					\
   }
 
-#define bgp_color_summ_color_conj(O0,O1,O2,A0,A1,A2,B0,B1,B2)	\
-  {								\
-    bgp_complex_summ_complex_conj(O0,A0,B0);					\
-    bgp_complex_summ_complex_conj(O1,A1,B1);					\
-    bgp_complex_summ_complex_conj(O2,A2,B2);					\
+#define bgp_color_summ_color_conj(O0,O1,O2,A0,A1,A2,B0,B1,B2)		\
+  {									\
+    bgp_complex_summ_complex_conj(O0,A0,B0);				\
+    bgp_complex_summ_complex_conj(O1,A1,B1);				\
+    bgp_complex_summ_complex_conj(O2,A2,B2);				\
   }
 
 #define bgp_summassign_color(A0,A1,A2,B0,B1,B2)	\
@@ -261,18 +261,18 @@
     bgp_summassign_complex(N0,N2);		\
   }
 
-#define bgp_load_su3(U00,U01,U02,U10,U11,U12,U20,U21,U22,U)	\
+#define bgp_su3_load(U00,U01,U02,U10,U11,U12,U20,U21,U22,U)	\
   {								\
-    bgp_load_color(U00,U01,U02,U[0]);				\
-    bgp_load_color(U10,U11,U12,U[1]);				\
-    bgp_load_color(U20,U21,U22,U[2]);				\
+    bgp_color_load(U00,U01,U02,U[0]);				\
+    bgp_color_load(U10,U11,U12,U[1]);				\
+    bgp_color_load(U20,U21,U22,U[2]);				\
   }
 
-#define bgp_save_su3(U,U00,U01,U02,U10,U11,U12,U20,U21,U22)	\
+#define bgp_su3_save(U,U00,U01,U02,U10,U11,U12,U20,U21,U22)	\
   {								\
-    bgp_save_color(U[0],U00,U01,U02);				\
-    bgp_save_color(U[1],U10,U11,U12);				\
-    bgp_save_color(U[2],U20,U21,U22);				\
+    bgp_color_save(U[0],U00,U01,U02);				\
+    bgp_color_save(U[1],U10,U11,U12);				\
+    bgp_color_save(U[2],U20,U21,U22);				\
   }
 
 #define bgp_su3_prod_double(O00,O01,O02,O10,O11,O12,O20,O21,O22,A00,A01,A02,A10,A11,A12,A20,A21,A22,B) \
@@ -542,20 +542,20 @@
     bgp_assign_color_prod_double(D0,D1,D2,+0.5);				\
   }
 
-#define bgp_load_spincolor(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,s)	\
+#define bgp_spincolor_load(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,s)	\
   {									\
-    bgp_load_color(A0,A1,A2,s[0]);					\
-    bgp_load_color(B0,B1,B2,s[1]);					\
-    bgp_load_color(C0,C1,C2,s[2]);					\
-    bgp_load_color(D0,D1,D2,s[3]);					\
+    bgp_color_load(A0,A1,A2,s[0]);					\
+    bgp_color_load(B0,B1,B2,s[1]);					\
+    bgp_color_load(C0,C1,C2,s[2]);					\
+    bgp_color_load(D0,D1,D2,s[3]);					\
   }
 
-#define bgp_save_spincolor(s,A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2)	\
+#define bgp_spincolor_save(s,A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2)	\
   {									\
-    bgp_save_color(s[0],A0,A1,A2);					\
-    bgp_save_color(s[1],B0,B1,B2);					\
-    bgp_save_color(s[2],C0,C1,C2);					\
-    bgp_save_color(s[3],D0,D1,D2);					\
+    bgp_color_save(s[0],A0,A1,A2);					\
+    bgp_color_save(s[1],B0,B1,B2);					\
+    bgp_color_save(s[2],C0,C1,C2);					\
+    bgp_color_save(s[3],D0,D1,D2);					\
   }
 
 #define bgp_subtassign_spincolor(A00,A01,A02,B00,B01,B02,C00,C01,C02,D00,D01,D02,A10,A11,A12,B10,B11,B12,C10,C11,C12,D10,D11,D12) \
@@ -613,6 +613,7 @@
     bgp_subtassign_color_prod_double(C00,C01,C02,C10,C11,C12,R);		\
     bgp_subtassign_color_prod_double(D00,D01,D02,D10,D11,D12,R);		\
   }
+
 #define bgp_summassign_color_square_spincolor(N0,N1,N2,A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2) \
   {									\
     bgp_summassign_square_color(N0,N1,N2,A0,A1,A2);			\

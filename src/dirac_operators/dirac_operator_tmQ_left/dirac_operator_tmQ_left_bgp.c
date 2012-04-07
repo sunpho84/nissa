@@ -34,7 +34,7 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
 
   complex cpumass={1/(2*kappa),mu};
   
-  bgp_load_complex(mass,cpumass);
+  bgp_complex_load(mass,cpumass);
   
   communicate_lx_spincolor_borders(in);
   communicate_lx_quad_su3_borders(conf);
@@ -46,15 +46,15 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
       
       bgp_cache_touch_su3(conf[Xdw][0]);
       
-      bgp_load_color(A0,A1,A2,in[Xdw][0]);
-      bgp_load_color(B0,B1,B2,in[Xdw][1]);
-      bgp_load_color(E0,E1,E2,in[Xdw][2]);
-      bgp_load_color(T0,T1,T2,in[Xdw][3]);
+      bgp_color_load(A0,A1,A2,in[Xdw][0]);
+      bgp_color_load(B0,B1,B2,in[Xdw][1]);
+      bgp_color_load(E0,E1,E2,in[Xdw][2]);
+      bgp_color_load(T0,T1,T2,in[Xdw][3]);
       
       bgp_summassign_color(A0,A1,A2,E0,E1,E2);
       bgp_summassign_color(B0,B1,B2,T0,T1,T2);
       
-      bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[Xdw][0]);
+      bgp_su3_load(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[Xdw][0]);
       
       bgp_color_prod_su3(R00,R01,R02,A0,A1,A2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
       bgp_color_prod_su3(R10,R11,R12,B0,B1,B2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
@@ -69,15 +69,15 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
       
       bgp_cache_touch_su3(conf[Xup][0]);
       
-      bgp_load_color(A0,A1,A2,in[Xup][0]);
-      bgp_load_color(T0,T1,T2,in[Xup][2]);
+      bgp_color_load(A0,A1,A2,in[Xup][0]);
+      bgp_color_load(T0,T1,T2,in[Xup][2]);
       bgp_subtassign_color(A0,A1,A2,T0,T1,T2);
       
-      bgp_load_color(B0,B1,B2,in[Xup][1]);
-      bgp_load_color(T0,T1,T2,in[Xup][3]);
+      bgp_color_load(B0,B1,B2,in[Xup][1]);
+      bgp_color_load(T0,T1,T2,in[Xup][3]);
       bgp_subtassign_color(B0,B1,B2,T0,T1,T2);
       
-      bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[X][0]);
+      bgp_su3_load(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[X][0]);
       
       bgp_color_prod_su3_dag(T0,T1,T2,A0,A1,A2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
       bgp_color_prod_su3_dag(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
@@ -92,15 +92,15 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
       
       bgp_cache_touch_su3(conf[Xdw][1]);
       
-      bgp_load_color(A0,A1,A2,in[Xdw][0]);
-      bgp_load_color(B0,B1,B2,in[Xdw][1]);
-      bgp_load_color(T0,T1,T2,in[Xdw][2]);
-      bgp_load_color(E0,E1,E2,in[Xdw][3]);
+      bgp_color_load(A0,A1,A2,in[Xdw][0]);
+      bgp_color_load(B0,B1,B2,in[Xdw][1]);
+      bgp_color_load(T0,T1,T2,in[Xdw][2]);
+      bgp_color_load(E0,E1,E2,in[Xdw][3]);
       
       bgp_subtassign_icolor(A0,A1,A2,E0,E1,E2);
       bgp_subtassign_icolor(B0,B1,B2,T0,T1,T2);
       
-      bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[Xdw][1]);
+      bgp_su3_load(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[Xdw][1]);
       
       bgp_color_prod_su3(T0,T1,T2,A0,A1,A2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
       bgp_color_prod_su3(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
@@ -115,15 +115,15 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
       
       bgp_cache_touch_su3(conf[X][1]);
       
-      bgp_load_color(A0,A1,A2,in[Xup][0]);
-      bgp_load_color(B0,B1,B2,in[Xup][1]);
-      bgp_load_color(T0,T1,T2,in[Xup][2]);
-      bgp_load_color(E0,E1,E2,in[Xup][3]);
+      bgp_color_load(A0,A1,A2,in[Xup][0]);
+      bgp_color_load(B0,B1,B2,in[Xup][1]);
+      bgp_color_load(T0,T1,T2,in[Xup][2]);
+      bgp_color_load(E0,E1,E2,in[Xup][3]);
       
       bgp_summassign_icolor(A0,A1,A2,E0,E1,E2);
       bgp_summassign_icolor(B0,B1,B2,T0,T1,T2);
       
-      bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[X][1]);
+      bgp_su3_load(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[X][1]);
       
       bgp_color_prod_su3_dag(T0,T1,T2,A0,A1,A2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
       bgp_color_prod_su3_dag(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
@@ -138,15 +138,15 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
       
       bgp_cache_touch_su3(conf[Xdw][2]);
       
-      bgp_load_color(A0,A1,A2,in[Xdw][0]);
-      bgp_load_color(T0,T1,T2,in[Xdw][3]);
+      bgp_color_load(A0,A1,A2,in[Xdw][0]);
+      bgp_color_load(T0,T1,T2,in[Xdw][3]);
       bgp_summassign_color(A0,A1,A2,T0,T1,T2);
       
-      bgp_load_color(B0,B1,B2,in[Xdw][1]);
-      bgp_load_color(T0,T1,T2,in[Xdw][2]);
+      bgp_color_load(B0,B1,B2,in[Xdw][1]);
+      bgp_color_load(T0,T1,T2,in[Xdw][2]);
       bgp_subtassign_color(B0,B1,B2,T0,T1,T2);
       
-      bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[Xdw][2]);
+      bgp_su3_load(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[Xdw][2]);
       
       bgp_color_prod_su3(T0,T1,T2,A0,A1,A2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
       bgp_color_prod_su3(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
@@ -161,15 +161,15 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
       
       bgp_cache_touch_su3(conf[X][2]);
       
-      bgp_load_color(A0,A1,A2,in[Xup][0]);
-      bgp_load_color(T0,T1,T2,in[Xup][3]);
+      bgp_color_load(A0,A1,A2,in[Xup][0]);
+      bgp_color_load(T0,T1,T2,in[Xup][3]);
       bgp_subtassign_color(A0,A1,A2,T0,T1,T2);
       
-      bgp_load_color(B0,B1,B2,in[Xup][1]);
-      bgp_load_color(T0,T1,T2,in[Xup][2]);
+      bgp_color_load(B0,B1,B2,in[Xup][1]);
+      bgp_color_load(T0,T1,T2,in[Xup][2]);
       bgp_summassign_color(B0,B1,B2,T0,T1,T2);
       
-      bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[X][2]);
+      bgp_su3_load(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[X][2]);
       
       bgp_color_prod_su3_dag(T0,T1,T2,A0,A1,A2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
       bgp_color_prod_su3_dag(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
@@ -184,15 +184,15 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
       
       bgp_cache_touch_su3(conf[Xdw][3]);
       
-      bgp_load_color(A0,A1,A2,in[Xdw][0]);
-      bgp_load_color(T0,T1,T2,in[Xdw][2]);
+      bgp_color_load(A0,A1,A2,in[Xdw][0]);
+      bgp_color_load(T0,T1,T2,in[Xdw][2]);
       bgp_subtassign_icolor(A0,A1,A2,T0,T1,T2);
       
-      bgp_load_color(B0,B1,B2,in[Xdw][1]);
-      bgp_load_color(T0,T1,T2,in[Xdw][3]);
+      bgp_color_load(B0,B1,B2,in[Xdw][1]);
+      bgp_color_load(T0,T1,T2,in[Xdw][3]);
       bgp_summassign_icolor(B0,B1,B2,T0,T1,T2);
       
-      bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[Xdw][3]);
+      bgp_su3_load(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[Xdw][3]);
       
       bgp_color_prod_su3(T0,T1,T2,A0,A1,A2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
       bgp_color_prod_su3(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
@@ -207,15 +207,15 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
       
       bgp_cache_touch_su3(conf[X][3]);
       
-      bgp_load_color(A0,A1,A2,in[Xup][0]);
-      bgp_load_color(T0,T1,T2,in[Xup][2]);
+      bgp_color_load(A0,A1,A2,in[Xup][0]);
+      bgp_color_load(T0,T1,T2,in[Xup][2]);
       bgp_summassign_icolor(A0,A1,A2,T0,T1,T2);
       
-      bgp_load_color(B0,B1,B2,in[Xup][1]);
-      bgp_load_color(T0,T1,T2,in[Xup][3]);
+      bgp_color_load(B0,B1,B2,in[Xup][1]);
+      bgp_color_load(T0,T1,T2,in[Xup][3]);
       bgp_subtassign_icolor(B0,B1,B2,T0,T1,T2);
       
-      bgp_load_su3(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[X][3]);
+      bgp_su3_load(C0,C1,C2,D0,D1,D2,E0,E1,E2,conf[X][3]);
       
       bgp_color_prod_su3_dag(T0,T1,T2,A0,A1,A2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
       bgp_color_prod_su3_dag(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,E0,E1,E2);
@@ -226,14 +226,14 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
       bgp_summassign_icolor(R30,R31,R32,A0,A1,A2);
       
       bgp_assign_minus_one_half_gamma5_prod_spincolor(R00,R01,R02,R10,R11,R12,R20,R21,R22,R30,R31,R32);
-      bgp_load_spincolor(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,in[X]);
+      bgp_spincolor_load(A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2,in[X]);
       
       bgp_summassign_diagonal_term(R00,R01,R02,R10,R11,R12,R20,R21,R22,R30,R31,R32, A0,A1,A2,B0,B1,B2,C0,C1,C2,D0,D1,D2, mass);
       
-      bgp_save_color(out[X][0],R00,R01,R02);
-      bgp_save_color(out[X][1],R10,R11,R12);
-      bgp_save_color(out[X][2],R20,R21,R22);
-      bgp_save_color(out[X][3],R30,R31,R32);
+      bgp_color_save(out[X][0],R00,R01,R02);
+      bgp_color_save(out[X][1],R10,R11,R12);
+      bgp_color_save(out[X][2],R20,R21,R22);
+      bgp_color_save(out[X][3],R30,R31,R32);
     }
   
   set_borders_invalid(out);
