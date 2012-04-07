@@ -139,10 +139,9 @@ void rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf)
   
   //compute the diff
   master_printf("diff: %lg\n",final_action-init_action);
-  crash("debug");
-  
+
   //evolve backward
-  omelyan_rootst_eoimpr_evolver(H,out_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,-traj_length,nstep);
+  //omelyan_rootst_eoimpr_evolver(H,out_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,-traj_length,nstep);
   
   //remove the phases
   addrem_stagphases_to_eo_conf(out_conf);
