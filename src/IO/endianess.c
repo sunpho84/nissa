@@ -57,7 +57,7 @@ void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndouble
     }
 }
 
-void floats_to_floats_changing_endianess(float *dest,float *sour,int nint)
+void floats_to_floats_changing_endianess(float *dest,float *sour,int nfloats)
 {
   char *cdest,*csour;
   char temp;
@@ -65,10 +65,10 @@ void floats_to_floats_changing_endianess(float *dest,float *sour,int nint)
   if(debug_lvl>1) master_printf("Reverting the endianess ot the data\n");
 
   if(dest==sour)
-    for(int iint=0;iint<nint;iint++)
+    for(int ifloat=0;ifloat<nfloats;ifloat++)
       {
-	cdest=(char*)(dest+iint);
-	csour=(char*)(sour+iint);
+	cdest=(char*)(dest+ifloat);
+	csour=(char*)(sour+ifloat);
 	
 	temp=csour[3];
 	csour[3]=cdest[0];
@@ -79,10 +79,10 @@ void floats_to_floats_changing_endianess(float *dest,float *sour,int nint)
 	cdest[1]=temp;
     }
   else
-    for(int iint=0;iint<nint;iint++)
+    for(int ifloat=0;ifloat<nfloats;ifloat++)
       {
-	cdest=(char*)(dest+iint);
-	csour=(char*)(sour+iint);
+	cdest=(char*)(dest+ifloat);
+	csour=(char*)(sour+ifloat);
 	
 	cdest[0]=csour[3];
 	cdest[1]=csour[2];
@@ -90,6 +90,9 @@ void floats_to_floats_changing_endianess(float *dest,float *sour,int nint)
 	cdest[3]=csour[0];
     }
 }
+
+void ints_to_ints_changing_endianess(int *dest,int *sour,int nints)
+{floats_to_floats_changing_endianess((float*)dest,(float*)sour,nints);}
 
 ////////////////////Copy a vector of floats to doubles. Sweep is reversed to avoid overwriting////////////////
 

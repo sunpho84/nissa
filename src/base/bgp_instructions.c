@@ -24,6 +24,12 @@
     bgp_cache_touch_complex((char*)U+128);	\
   }
 
+#define bgp_cache_touch_color(s)		\
+  {						\
+    bgp_cache_touch_complex((char*)s);		\
+    bgp_cache_touch_complex((char*)s+32);	\
+  }
+
 #define bgp_cache_touch_spincolor(s)		\
   {						\
     bgp_cache_touch_complex((char*)s);		\
@@ -439,6 +445,35 @@
     bgp_complex_summ_the_prod_double(O2,O2,I2,__creal(U22));		\
     									\
     bgp_su3_dag_prod_color_bulk(O0,O1,O2,U00,U01,U02,U10,U11,U12,U20,U21,U22,I0,I1,I2) \
+  }
+
+#define bgp_subt_the_su3_dag_prod_color(O0,O1,O2,U00,U01,U02,U10,U11,U12,U20,U21,U22,I0,I1,I2) \
+  {									\
+    bgp_complex_subt_the_prod_double(O0,O0,I0,__creal(U00));		\
+    bgp_complex_subt_the_prod_double(O1,O1,I1,__creal(U11));		\
+    bgp_complex_subt_the_prod_double(O2,O2,I2,__creal(U22));		\
+    									\
+    bgp_complex_summ_the_prod_idouble(O0,O0,I0,__cimag(U00));		\
+    bgp_complex_summ_the_prod_idouble(O1,O1,I1,__cimag(U11));		\
+    bgp_complex_summ_the_prod_idouble(O2,O2,I2,__cimag(U22));		\
+    									\
+    									\
+    bgp_complex_subt_the_prod_double(O0,O0,I1,__creal(U10));		\
+    bgp_complex_subt_the_prod_double(O1,O1,I2,__creal(U21));		\
+    bgp_complex_subt_the_prod_double(O2,O2,I0,__creal(U02));		\
+    									\
+    bgp_complex_summ_the_prod_idouble(O0,O0,I1,__cimag(U10));		\
+    bgp_complex_summ_the_prod_idouble(O1,O1,I2,__cimag(U21));		\
+    bgp_complex_summ_the_prod_idouble(O2,O2,I0,__cimag(U02));		\
+    									\
+    									\
+    bgp_complex_subt_the_prod_double(O0,O0,I2,__creal(U20));		\
+    bgp_complex_subt_the_prod_double(O1,O1,I0,__creal(U01));		\
+    bgp_complex_subt_the_prod_double(O2,O2,I1,__creal(U12));		\
+    									\
+    bgp_complex_summ_the_prod_idouble(O0,O0,I2,__cimag(U20));		\
+    bgp_complex_summ_the_prod_idouble(O1,O1,I0,__cimag(U01));		\
+    bgp_complex_summ_the_prod_idouble(O2,O2,I1,__cimag(U12));		\
   }
 
 #define bgp_color_prod_su3_dag(O0,O1,O2,I0,I1,I2,U00,U01,U02,U10,U11,U12,U20,U21,U22) \
