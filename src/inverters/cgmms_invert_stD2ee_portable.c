@@ -39,10 +39,11 @@ void inv_stD2ee_cgmm2s(color **sol,quad_su3 **conf,double *m2,int nmass,int nite
 	
 	dsource++;dp++;dr++;
       }
+    set_borders_invalid(p);
+    
     MPI_Allreduce(&loc_rr,&rr,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     source_norm=rr;
     master_printf(" Source norm: %lg\n",source_norm);
-    set_borders_invalid(p);
 
     master_printf(" cgmms iter 0 rel. residues: ");
     for(int imass=0;imass<nmass;imass++) master_printf("%1.4e  ",1.0);
