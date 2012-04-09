@@ -186,18 +186,27 @@ void communicate_lx_spincolor_128_borders(spincolor_128 *s)
 
 ///////////////////////////////////////////////// even/odd split vectors communicators ///////////////////////////////////
 
-//Send the borders of the data
-void communicate_ev_borders(void *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_EV_BORDS_RECE,int nbytes_per_site)
+void finish_communicating_ev_borders(int *nrequest,MPI_Request *request,void *ev_data)
 {
+  tot_nissa_comm_time-=take_time();
+  if(*nrequest>0)
+    {
+      MPI_Waitall(*nrequest,request,MPI_STATUS_IGNORE);
+      *nrequest=0;
+    }
+  set_borders_valid(ev_data);
+  tot_nissa_comm_time+=take_time();
+}
+
+//Send the borders of the data
+void start_communicating_ev_borders(int *nrequest_ret,MPI_Request *request,void *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_EV_BORDS_RECE,int nbytes_per_site)
+{
+  int nrequest=0;
+  
   crash_if_borders_not_allocated(ev_data);
   
   if(!check_borders_valid(ev_data))
     {
-      tot_nissa_comm_time-=take_time();
-      int nrequest=0;
-      MPI_Request request[16];
-      MPI_Status status[16];
-      
       for(int mu=0;mu<3;mu++)
 	if(paral_dir[mu]!=0)
 	  {
@@ -220,11 +229,18 @@ void communicate_ev_borders(void *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MP
 	  MPI_Irecv(ev_data+start_eo_bord_rece_dw[3]*nbytes_per_site,1,MPI_EV_BORDS_RECE[3],rank_neighdw[3],94,cart_comm,&request[nrequest++]);
 	  MPI_Isend(ev_data,1,MPI_EV_BORDS_SEND_Z[1],rank_neighup[3],94,cart_comm,&request[nrequest++]);
 	}
-      
-      if(nrequest>0) MPI_Waitall(nrequest,request,status);
-      set_borders_valid(ev_data);
-      tot_nissa_comm_time+=take_time();
     }
+  
+  (*nrequest_ret)=nrequest;
+}
+
+//Send the borders of the data
+void communicate_ev_borders(void *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_EV_BORDS_RECE,int nbytes_per_site)
+{
+  int nrequest=0;
+  MPI_Request request[16];
+  start_communicating_ev_borders(&nrequest,request,ev_data,MPI_EV_BORDS_SEND_TXY,MPI_EV_BORDS_SEND_Z,MPI_EV_BORDS_RECE,nbytes_per_site);
+  finish_communicating_ev_borders(&nrequest,request,ev_data);
 }
 
 //Send the borders of the data
@@ -342,12 +358,20 @@ void communicate_od_color_borders(color *od)
 {communicate_od_borders(od,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_OD_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));}
 void communicate_eo_color_borders(color **eos)
 {communicate_eo_borders((void**)eos,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_OD_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));}
+void start_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev)
+{start_communicating_ev_borders(nrequest,request,ev,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));}
+void finish_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev)
+{finish_communicating_ev_borders(nrequest,request,ev);}
 
 //Send the borders of an even spincolor
 void communicate_ev_spincolor_borders(spincolor *ev)
 {communicate_ev_borders(ev,MPI_EO_SPINCOLOR_BORDS_SEND_TXY,MPI_EV_SPINCOLOR_BORDS_SEND_Z,MPI_EO_SPINCOLOR_BORDS_RECE,sizeof(spincolor));}
 void communicate_od_spincolor_borders(spincolor *od)
 {communicate_od_borders(od,MPI_EO_SPINCOLOR_BORDS_SEND_TXY,MPI_OD_SPINCOLOR_BORDS_SEND_Z,MPI_EO_SPINCOLOR_BORDS_RECE,sizeof(spincolor));}
+void start_communicating_ev_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *ev)
+{start_communicating_ev_borders(nrequest,request,ev,MPI_EO_SPINCOLOR_BORDS_SEND_TXY,MPI_EV_SPINCOLOR_BORDS_SEND_Z,MPI_EO_SPINCOLOR_BORDS_RECE,sizeof(spincolor));}
+void finish_communicating_ev_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *ev)
+{finish_communicating_ev_borders(nrequest,request,ev);}
 
 //Send the edges of eo vector
 void communicate_eo_edges(void **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)

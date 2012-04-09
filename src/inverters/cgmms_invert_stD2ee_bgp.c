@@ -83,27 +83,16 @@ void inv_stD2ee_cgmm2s(color **sol,quad_su3 **conf,double *m2,int nmass,int nite
   alpha=0;
       
   iter=0;
+  int nrequest=0;
+  MPI_Request request[16];
   do
     {
       //     -s=Ap
+      if(nrequest!=0) finish_communicating_ev_color_borders(&nrequest,request,p);      
       apply_st2Doe(t,conf,p);
       apply_st2Deo(s,conf,t);
       
       //     -pap=(p,s)=(p,Ap)
-      if(0)      {
-        double loc_pap=0;
-        double *dp=(double*)p,*ds=(double*)s;
-        int n=0;
-        for(int i=0;i<loc_volh*3*2;i++)
-          {
-            (*ds)*=0.25;
-            loc_pap+=(*dp)*(*ds);
-            dp++;ds++;
-            n++;
-          }
-        MPI_Allreduce(&loc_pap,&pap,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-      }
-
       {
         complex cloc_pap={0,0};
         bgp_color_put_to_zero(N0,N1,N2);
@@ -184,6 +173,7 @@ void inv_stD2ee_cgmm2s(color **sol,quad_su3 **conf,double *m2,int nmass,int nite
 	  bgp_color_save(p[ivol], A00,A01,A02);
 	}
         set_borders_invalid(p);
+	start_communicating_ev_color_borders(&nrequest,request,p);
       }
 
       for(int imass=0;imass<nmass;imass++)
@@ -245,7 +235,7 @@ void inv_stD2ee_cgmm2s(color **sol,quad_su3 **conf,double *m2,int nmass,int nite
 	  bgp_squareassign_color(B00,B01,B02);
 	  bgp_color_save(p[ivol], B00,B01,B02);
 	  set_borders_invalid(p);
-            
+	  
 	  for(int ic=0;ic<3;ic++)
 	    {
 	      double plain_res=s[ivol][ic][0]+s[ivol][ic][1];
