@@ -74,7 +74,7 @@ void init_simulation(char *path)
   //allocate pseudo-fermions
   pf=nissa_malloc("pf*",nflavs,color*);
   for(int iflav=0;iflav<nflavs;iflav++)
-    pf[iflav]=nissa_malloc("pf",loc_volh+loc_bordh,color);
+    pf[iflav]=nissa_malloc("pf",loc_volh,color);
   
   //allocate rational approximation for pseudo-fermions generation
   rat_exp_pfgen=nissa_malloc("rat_exp_pfgen",nflavs,rat_approx);
@@ -106,6 +106,7 @@ void eo_conf_copy(quad_su3 **dest,quad_su3 **source)
 //perform a full hmc step
 void rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf)
 {
+  double start_time=take_time();
   int nstep=13;
   double residue=1.e-12;
   double traj_length=1.0;
@@ -145,19 +146,27 @@ void rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf)
   
   //remove the phases
   addrem_stagphases_to_eo_conf(out_conf);
+  
+  master_printf("Total time: %lg s\n",take_time()-start_time);
 }
 
 //finalize everything
 void close_simulation()
 {
-  nissa_free(new_conf[0]);
-  nissa_free(conf[0]);
-  
-  nissa_free(H[0]);
-  nissa_free(u1b[0][0]);
-  nissa_free(u1b[0]);
+  for(int par=0;par<2;par++)
+    {
+      nissa_free(new_conf[par]);
+      nissa_free(conf[par]);
+      nissa_free(H[par]);
+      for(int iflav=0;iflav<nflavs;iflav++)
+	{
+	  nissa_free(pf[iflav]);
+	  for(int par=0;par<2;par++)
+	    nissa_free(u1b[iflav][par]);
+	  nissa_free(u1b[iflav]);
+	}
+    }
   nissa_free(u1b);
-  nissa_free(pf[0]);
   nissa_free(pf);
   
   nissa_free(rat_exp_pfgen);
