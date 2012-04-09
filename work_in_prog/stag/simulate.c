@@ -153,19 +153,20 @@ void rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf)
 //finalize everything
 void close_simulation()
 {
-  for(int iflav=0;iflav<nflavs;iflav++) nissa_free(pf[iflav]);
+  for(int iflav=0;iflav<nflavs;iflav++)
+    {
+      nissa_free(pf[iflav]);
+      for(int par=0;par<2;par++) nissa_free(u1b[iflav][par]);
+	nissa_free(u1b[iflav]);
+    }
+  
   for(int par=0;par<2;par++)
     {
       nissa_free(new_conf[par]);
       nissa_free(conf[par]);
       nissa_free(H[par]);
-      for(int iflav=0;iflav<nflavs;iflav++)
-	{
-	  for(int par=0;par<2;par++)
-	    nissa_free(u1b[iflav][par]);
-	  nissa_free(u1b[iflav]);
-	}
     }
+  
   nissa_free(u1b);
   nissa_free(pf);
   
@@ -219,7 +220,7 @@ int main(int narg,char **arg)
   ///////////////////////////////////////
   
   read_ildg_gauge_conf_and_split_into_eo_parts(conf,"dat/conf_plain");
-  rhmc_step(new_conf,conf);
+  //rhmc_step(new_conf,conf);
   
   //debug
   //check_eo_conf(new_conf,"dat/final_conf");
