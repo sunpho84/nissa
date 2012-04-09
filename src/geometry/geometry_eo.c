@@ -3,7 +3,7 @@
 //set the eo geometry
 void set_eo_geometry()
 {
-  if(nissa_eo_geom_inited!=0) crash("E/O Geometry already initialized!");
+  if(nissa_eo_geom_inited) crash("E/O Geometry already initialized!");
   
   //check that all local sizes are multiples of 2
   int ok=1;
@@ -224,7 +224,7 @@ void set_eo_edge_senders_and_receivers(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Datat
 //unset the eo geometry
 void unset_eo_geometry()
 {
-  if(nissa_eo_geom_inited==0)
+  if(!nissa_eo_geom_inited)
     crash("asking to unset never initialized E/O Geometry!");
 
   master_printf("Unsetting E/O Geometry\n");
@@ -244,10 +244,15 @@ void unset_eo_geometry()
 //add or remove staggered phases to/from a conf
 void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
 {
-  if(nissa_eo_geom_inited==0) set_eo_geometry();
+  if(!nissa_eo_geom_inited) set_eo_geometry();
+  
+  //work also on borders and edges if allocated and valid
+  int ending=loc_volh;
+  if(check_borders_allocated(eo_conf[0]) && check_borders_allocated(eo_conf[1]) && check_borders_valid(eo_conf[0]) && check_borders_valid(eo_conf[1])) ending+=loc_bordh;
+  if(check_edges_allocated(eo_conf[0])   && check_edges_allocated(eo_conf[1])   && check_edges_valid(eo_conf[0])   && check_edges_valid(eo_conf[1]))   ending+=loc_edgeh;
   
   for(int ieo=0;ieo<2;ieo++)
-    nissa_loc_volh_loop(ivol_eo)
+    for(int ivol_eo=0;ivol_eo<ending;ivol_eo++)
       {
 	int ivol_lx=loclx_of_loceo[ieo][ivol_eo];
 	
@@ -271,9 +276,6 @@ void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
 	if(glb_coord_of_loclx[ivol_lx][0]==glb_size[0]-1) d+=1;
 	if(d%2==1) su3_prod_double(eo_conf[ieo][ivol_eo][0],eo_conf[ieo][ivol_eo][0],-1);
       }
-  
-  set_borders_invalid(eo_conf[0]);
-  set_borders_invalid(eo_conf[1]);
 }
 
 //separate the even or odd part of a vector
