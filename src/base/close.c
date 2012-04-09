@@ -27,6 +27,7 @@ void close_nissa()
     }
   MPI_Barrier(MPI_COMM_WORLD);
   
+  master_printf("Total communication time: %lg s\n",tot_nissa_comm_time);
   master_printf("   Ciao!\n\n");
   MPI_Finalize();
 }

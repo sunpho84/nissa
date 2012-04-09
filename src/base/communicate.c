@@ -193,6 +193,7 @@ void communicate_ev_borders(void *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MP
   
   if(!check_borders_valid(ev_data))
     {
+      tot_nissa_comm_time-=take_time();
       int nrequest=0;
       MPI_Request request[16];
       MPI_Status status[16];
@@ -222,6 +223,7 @@ void communicate_ev_borders(void *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MP
       
       if(nrequest>0) MPI_Waitall(nrequest,request,status);
       set_borders_valid(ev_data);
+      tot_nissa_comm_time+=take_time();
     }
 }
 
@@ -232,6 +234,8 @@ void communicate_od_borders(void *od_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MP
   
   if(!check_borders_valid(od_data))
     {
+      tot_nissa_comm_time-=take_time();
+
       int nrequest=0;
       MPI_Request request[16];
       MPI_Status status[16];
@@ -261,6 +265,7 @@ void communicate_od_borders(void *od_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MP
       
       if(nrequest>0) MPI_Waitall(nrequest,request,status);
       set_borders_valid(od_data);
+      tot_nissa_comm_time+=take_time();
     }
 }
 
@@ -321,7 +326,9 @@ void communicate_eo_borders(void **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_
   set_borders_valid(data[EVN]);
   set_borders_valid(data[ODD]);
   
+  tot_nissa_comm_time-=take_time();
   if(nrequest>0) MPI_Waitall(nrequest,request,status);
+  tot_nissa_comm_time+=take_time();
 }
 
 //Send the borders of the gauge configuration
