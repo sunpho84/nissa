@@ -153,6 +153,7 @@ void rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf)
 //finalize everything
 void close_simulation()
 {
+  for(int iflav=0;iflav<nflavs;iflav++) nissa_free(pf[iflav]);
   for(int par=0;par<2;par++)
     {
       nissa_free(new_conf[par]);
@@ -160,7 +161,6 @@ void close_simulation()
       nissa_free(H[par]);
       for(int iflav=0;iflav<nflavs;iflav++)
 	{
-	  nissa_free(pf[iflav]);
 	  for(int par=0;par<2;par++)
 	    nissa_free(u1b[iflav][par]);
 	  nissa_free(u1b[iflav]);
@@ -209,6 +209,7 @@ void check_eo_conf(quad_su3 **eo_conf,char *path)
   
   //delocate
   nissa_free(temp[0]);
+  nissa_free(temp[1]);
 }
 
 int main(int narg,char **arg)
