@@ -25,9 +25,12 @@ void close_nissa()
       print_all_nissa_vect_content();
       printf("For a total of %d bytes\n",compute_nissa_vect_memory_usage());
     }
-  MPI_Barrier(MPI_COMM_WORLD);
-  
+
+  tot_nissa_time+=take_time();
+  master_printf("Total time: %lg s\n",tot_nissa_time);
   master_printf("Total communication time: %lg s\n",tot_nissa_comm_time);
+
+  MPI_Barrier(MPI_COMM_WORLD);
   master_printf("   Ciao!\n\n");
   MPI_Finalize();
 }

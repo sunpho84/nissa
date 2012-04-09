@@ -6,6 +6,7 @@ void init_nissa()
 {
   //init base things
   MPI_Init(NULL,NULL);
+  tot_nissa_time-=take_time();
   
   //get the number of rank and the id of the local one
   MPI_Comm_size(MPI_COMM_WORLD,&rank_tot);
