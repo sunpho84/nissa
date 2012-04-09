@@ -47,6 +47,9 @@ MPI_Datatype MPI_REDSPINCOLOR;
 //float 128 summ
 MPI_Op MPI_FLOAT_128_SUM;
 
+//timings for comm
+double tot_nissa_comm_time=0;
+
 //size of the border along the 4 dir,types for sending
 int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
 int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
