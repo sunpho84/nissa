@@ -35,7 +35,7 @@ void apply_tmQ2_RL(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolo
 
   if(temp==NULL)
     {
-      temp=nissa_malloc("tempQ",loc_vol+loc_bord,spincolor);
+      temp=nissa_malloc("tempQ",loc_vol+bord_vol,spincolor);
       all=1;
     }
 

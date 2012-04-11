@@ -4,12 +4,12 @@ int test_Q2tm_inversion()
 {
   //load the well known source
   master_printf("\nLoading conf\n");
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   read_ildg_gauge_conf(conf,"../../data/L4T8conf");
   
   //generate the classic source
   master_printf("Generating source\n");
-  spincolor *source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  spincolor *source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   if(nissa_loc_rnd_gen_inited) stop_loc_rnd_gen();
   start_loc_rnd_gen(2342);
   generate_undiluted_source(source,RND_Z4,-1);
@@ -18,7 +18,7 @@ int test_Q2tm_inversion()
   double kappa=0.177000;
   double mu=0.50;
   double prec=1.e-25;
-  spincolor *inver=nissa_malloc("inver",loc_vol+loc_bord,spincolor);
+  spincolor *inver=nissa_malloc("inver",loc_vol+bord_vol,spincolor);
   inv_Q2_cg(inver,source,NULL,conf,kappa,mu,1000000,5,prec);
   
   //now compare with saved data

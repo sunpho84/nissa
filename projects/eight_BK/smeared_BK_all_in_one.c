@@ -219,8 +219,8 @@ void initialize_Bk(int narg,char **arg)
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf
-  conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
-  sme_conf=nissa_malloc("sme_conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol,quad_su3);
   
   //Allocate all the propagators colorspinspin vectors
   nprop=nwall*so_jnlv*nmass*2;
@@ -230,12 +230,12 @@ void initialize_Bk(int narg,char **arg)
   
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
+  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+bord_vol,spincolor);
   temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
   temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
 
   //Allocate one spincolor for the source
-  source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   
   //Allocate the colorspinspin of the source
   original_source=nissa_malloc("original_source",loc_vol,colorspinspin);

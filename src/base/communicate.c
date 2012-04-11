@@ -119,7 +119,7 @@ void communicate_lx_edges(void *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *
 	      
 	      //Send the i-j- internal edge to the j- rank as i-j+ external edge
 	      send=(loc_vol+bord_offset[idir])*nbytes_per_site;
-	      rece=(loc_vol+loc_bord+edge_offset[iedge]+loc_edge/4)*nbytes_per_site;
+	      rece=(loc_vol+bord_vol+edge_offset[iedge]+edge_vol/4)*nbytes_per_site;
 	      MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],83+imessage,
 			cart_comm,&request[nrequest++]);
 	      MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],83+imessage,
@@ -128,7 +128,7 @@ void communicate_lx_edges(void *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *
 	      
 	      //Send the i-j+ internal edge to the j+ rank as i-j- external edge
 	      send=(loc_vol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
-	      rece=(loc_vol+loc_bord+edge_offset[iedge])*nbytes_per_site;
+	      rece=(loc_vol+bord_vol+edge_offset[iedge])*nbytes_per_site;
 	      MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],83+imessage,
 			cart_comm,&request[nrequest++]);
 	      MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],83+imessage,
@@ -136,8 +136,8 @@ void communicate_lx_edges(void *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *
 	      imessage++;
 	      
 	      //Send the i+j- internal edge to the j- rank as i+j+ external edge
-	      send=(loc_vol+bord_offset[idir]+loc_bord/2)*nbytes_per_site;
-	      rece=(loc_vol+loc_bord+edge_offset[iedge]+3*loc_edge/4)*nbytes_per_site;
+	      send=(loc_vol+bord_offset[idir]+bord_vol/2)*nbytes_per_site;
+	      rece=(loc_vol+bord_vol+edge_offset[iedge]+3*edge_vol/4)*nbytes_per_site;
 	      MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],83+imessage,
 			cart_comm,&request[nrequest++]);
 	      MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],83+imessage,
@@ -145,8 +145,8 @@ void communicate_lx_edges(void *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *
 	      imessage++;
 	      
 	      //Send the i+j+ internal edge to the j+ rank as i+j- external edge
-	      send=(loc_vol+bord_offset[idir]+loc_bord/2+pos_edge_offset)*nbytes_per_site;
-	      rece=(loc_vol+loc_bord+edge_offset[iedge]+loc_edge/2)*nbytes_per_site;
+	      send=(loc_vol+bord_offset[idir]+bord_vol/2+pos_edge_offset)*nbytes_per_site;
+	      rece=(loc_vol+bord_vol+edge_offset[iedge]+edge_vol/2)*nbytes_per_site;
 	      MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],83+imessage,
 			cart_comm,&request[nrequest++]);
 	      MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],83+imessage,
@@ -405,7 +405,7 @@ void communicate_eo_edges(void **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Da
 		      
 		      //Send the (mu,nu) internal edge to the nu rank as (mu,-nu) external edge
 		      //Receive the (mu,-nu) external edge from the -nu rank (mu,nu) internal edge
-		      int ext_edge_recv_start=(loc_volh+loc_bordh+loc_edgeh/4*(vmu*2+!vnu)+edge_offset[iedge]/2)*nbytes_per_site;
+		      int ext_edge_recv_start=(loc_volh+bord_volh+edge_volh/4*(vmu*2+!vnu)+edge_offset[iedge]/2)*nbytes_per_site;
 		      int int_edge_send_start=loc_volh*nbytes_per_site;
 		      MPI_Irecv(data[par]+ext_edge_recv_start,1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu][nu],83+imessage,
 				cart_comm,&request[nrequest++]);

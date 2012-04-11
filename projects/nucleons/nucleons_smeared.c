@@ -125,8 +125,8 @@ void initialize_nucleons(char *input_path)
   //Init the MPI grid 
   init_grid(T,L);
   //Allocate the gauge Conf
-  conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  smea_conf=nissa_malloc("smea_conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  smea_conf=nissa_malloc("smea_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
   //Read the gauge conf
   read_str_int("NGaugeConf",&nconf);
@@ -209,8 +209,8 @@ void initialize_nucleons(char *input_path)
   
   original_source=nissa_malloc("original_source",loc_vol,su3spinspin);
   
-  source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
-  temp_source=nissa_malloc("temp_source",loc_vol+loc_bord,spincolor);
+  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
+  temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
   
   //S0 and similars
   solDD=(spincolor**)malloc(sizeof(spincolor*)*nmass);
@@ -218,7 +218,7 @@ void initialize_nucleons(char *input_path)
   S0_SS=(su3spinspin***)malloc(sizeof(su3spinspin**)*nmass);
   for(int imass=0;imass<nmass;imass++)
     {
-      solDD[imass]=nissa_malloc("solDD",loc_vol+loc_bord,spincolor);
+      solDD[imass]=nissa_malloc("solDD",loc_vol+bord_vol,spincolor);
       
       //smearead-local spinor
       S0_SL[imass]=(su3spinspin**)malloc(sizeof(su3spinspin*)*2);

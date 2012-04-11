@@ -48,7 +48,7 @@ void apply_DOE_or_DEO(spincolor *out,spincolor *in,su3 *reord_U[2][2],int eo_or_
   color psi,psi2;
   spincolor rs;
   spincolor *s=in;
-  redspincolor *phi=allocate_redspincolor(loc_vol/2+loc_bord,"phi");
+  redspincolor *phi=allocate_redspincolor(loc_vol/2+bord_vol,"phi");
   su3 *U;
   
   int *loc_send_of_iter=send_of_iter[eo_or_oe];
@@ -269,7 +269,7 @@ int main(int narg,char **arg)
   set_eo_geometry();
   
   int *send_of_iter[2];
-  quad_su3 *conf=allocate_quad_su3(loc_vol+loc_bord,"conf");
+  quad_su3 *conf=allocate_quad_su3(loc_vol+bord_vol,"conf");
   su3 *reord_U[2][2];
   for(int eo_or_oe=0;eo_or_oe<2;eo_or_oe++)
     {

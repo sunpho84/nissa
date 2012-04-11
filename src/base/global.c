@@ -51,11 +51,15 @@ MPI_Op MPI_FLOAT_128_SUM;
 double tot_nissa_time=0;
 double tot_nissa_comm_time=0;
 
+//inverter verbosity
+const double nissa_default_inverter_verbosity=2;
+double nissa_inverter_verbosity=nissa_default_inverter_verbosity;
+
 //size of the border along the 4 dir,types for sending
 int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
 int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
 int bord_dir_vol[4],bord_offset[4];
-int loc_bord,loc_bordh;
+int bord_vol,bord_volh;
 MPI_Datatype MPI_LX_SU3_BORDS_SEND[4],MPI_LX_SU3_BORDS_RECE[4];
 MPI_Datatype MPI_LX_QUAD_SU3_BORDS_SEND[4],MPI_LX_QUAD_SU3_BORDS_RECE[4];
 MPI_Datatype MPI_LX_SPINCOLOR_BORDS_SEND[4],MPI_LX_SPINCOLOR_BORDS_RECE[4];
@@ -73,7 +77,7 @@ int bord_offset_eo[2][8]; //eo, 8 dirs
 
 //size of the edges along the 6 directions
 int edge_dir_vol[6],edge_offset[6];
-int loc_edge,loc_edgeh;
+int edge_vol,edge_volh;
 int edge_numb[4][4]={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}};
 MPI_Datatype MPI_LX_SU3_EDGES_SEND[6],MPI_LX_SU3_EDGES_RECE[6];
 MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[6],MPI_LX_QUAD_SU3_EDGES_RECE[6];

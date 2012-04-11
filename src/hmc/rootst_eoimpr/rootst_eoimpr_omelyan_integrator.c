@@ -20,13 +20,13 @@ void eo_conf_unitarize_explicitely_inverting(quad_su3 **conf)
 // Evolve momenta according to the rooted staggered force
 // calculate H=H-F*dt to evolve link momenta
 // i.e calculate v(t+dt)=v(t)+a*dt
-void evolve_momenta_with_rootst_force(quad_su3 **H,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue,double dt)
+void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,double residue,double dt)
 {
   //allocate force
   quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
   
   //compute the force
-  full_rootst_eoimpr_force(F,conf,beta,nfl,u1b,pf,appr,residue);
+  full_rootst_eoimpr_force(F,conf,pf,physic,appr,residue);
   
   //evolve
   master_printf("Evolve momenta with force, dt=%lg\n",dt);
@@ -67,7 +67,7 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 }
 
 // Omelyan integrator(cond-mat/0110438v1) for rooted staggered theory
-// in summary, at each step it should make:
+// in summary, at each step it should compute:
 //
 //     v1 = v(t) + a[r(t)]*lambda*dt
 //     r1 = r(t) + v1*dt/2
@@ -88,31 +88,32 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 //     v1 = v2 + a[r(t + dt)]*2*lambda*dt
 //    only last step:
 //     v(t + h) = v2 + a[r(t + dt)]*lambda*dt
-void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue,double traj_length,int nstep)
+void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,evol_pars *simul)
 {
   //define step length ant its multiples
   const double lambda=0.1931833;
-  double dt=traj_length/nstep,dth=dt/2;
+  double dt=simul->traj_length/simul->nmd_steps,dth=dt/2;
   double ldt=dt*lambda,l2dt=2*lambda*dt,uml2dt=(1-2*lambda)*dt;  
   
   //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-  evolve_momenta_with_rootst_force(H,conf,beta,nfl,u1b,pf,appr,residue,ldt);
+  evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physic,appr,simul->md_residue,ldt);
   
   //         Main loop
-  for(int istep=0;istep<nstep;istep++)
+  for(int istep=0;istep<simul->nmd_steps;istep++)
     {
-      master_printf("Starting step %d/%d\n",istep+1,nstep);
+      master_printf("Starting step %d/%d\n",istep+1,simul->nmd_steps);
       
+      //decide if last step is final or not
+      double last_dt=(istep==(simul->nmd_steps-1)) ? ldt : l2dt;
+
       //     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
       evolve_conf_with_momenta(conf,H,dth);
       //     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
-      evolve_momenta_with_rootst_force(H,conf,beta,nfl,u1b,pf,appr,residue,uml2dt);
+      evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physic,appr,simul->md_residue,uml2dt);
       //     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
       evolve_conf_with_momenta(conf,H,dth);
-      //     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt !only! at last step
-      if(istep==(nstep-1)) evolve_momenta_with_rootst_force(H,conf,beta,nfl,u1b,pf,appr,residue,ldt);
-      //     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*2*lambda*dt at all but last step
-      else                  evolve_momenta_with_rootst_force(H,conf,beta,nfl,u1b,pf,appr,residue,l2dt);
+      //     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
+       evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physic,appr,simul->md_residue,last_dt);
       
       //normalize the configuration
       eo_conf_unitarize_explicitely_inverting(conf);

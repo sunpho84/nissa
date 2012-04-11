@@ -1,88 +1,85 @@
 #include "nissa.h"
 
-double beta=5.3;
-double am=0.025;
+FILE *obs_file;
 
-int L,T;
+char in_conf_path[1024];
+char out_conf_path[1024];
 
 quad_su3 *new_conf[2];
 quad_su3 *conf[2];
-quad_su3 *H[2];
-quad_u1 ***u1b;
 
-int nflavs;
-color **pf;
-quark_content *flav_pars;
-rat_approx *rat_exp_pfgen;
-rat_approx *rat_exp_actio;
+theory_pars physic;
+evol_pars simul;
+
+int nreq_traj;
 
 //initialize the simulation
 void init_simulation(char *path)
 {
   //////////////////////////// read the input //////////////////////
   
-  //basic mpi initialization
-  init_nissa();
-  
   //open input file
   open_input(path);
-
-  //set sizes
+  
+  //Init the MPI grid 
+  int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
+  init_grid(T,L);
+  
+  //read in and out conf path
+  read_str_str("InConfPath",in_conf_path,1024);
+  read_str_str("OutConfPath",out_conf_path,1024);
+  
+  //read observable file
+  char obs_path[1024];
+  read_str_str("ObsPath",obs_path,1024);
+  obs_file=open_file(obs_path,"wa");
+  
+  //read the number of trajectory to perform
+  read_str_int("NTrajectory",&nreq_traj);
   
   //read the number of undegenerate flavs
-  read_str_int("NFlavs",&nflavs);
-  flav_pars=nissa_malloc("flav_pars",nflavs,quark_content);
+  read_str_int("NFlavs",&(physic.nflavs));
+  physic.flav_pars=nissa_malloc("flav_pars",physic.nflavs,quark_content);
   
   //read each flav parameters
-  for(int iflav=0;iflav<nflavs;iflav++)
+  for(int iflav=0;iflav<physic.nflavs;iflav++)
     {
-      read_str_int("Degeneracy",&(flav_pars[iflav].deg));
-      read_str_double("Mass",&(flav_pars[iflav].mass));
-      read_str_double("RePotCh",&(flav_pars[iflav].re_pot));
-      read_str_double("ImPotCh",&(flav_pars[iflav].im_pot));
-      read_str_double("ElecCharge",&(flav_pars[iflav].charge));
+      read_str_int("Degeneracy",&(physic.flav_pars[iflav].deg));
+      read_str_double("Mass",&(physic.flav_pars[iflav].mass));
+      read_str_double("RePotCh",&(physic.flav_pars[iflav].re_pot));
+      read_str_double("ImPotCh",&(physic.flav_pars[iflav].im_pot));
+      read_str_double("ElecCharge",&(physic.flav_pars[iflav].charge));
     }
+
+  //beta for Wilson action
+  read_str_double("Beta",&physic.beta);
+
+  //first guess for hmc evolution
+  read_str_double("HmcTrajLength",&simul.traj_length);
+  read_str_int("NmdSteps",&simul.nmd_steps);
+  read_str_int("NGaugeSubSteps",&simul.ngauge_substeps);
+  read_str_double("MdResidue",&simul.md_residue);
+  read_str_double("PfActionResidue",&simul.pf_action_residue);
   
   close_input();
   
   ////////////////////////// allocate stuff ////////////////////////
-  
-  //Init the MPI grid 
-  init_grid(T,L);
-  
+   
   //allocate the conf
-  conf[0]=nissa_malloc("conf_e",loc_volh+loc_bordh,quad_su3);
-  conf[1]=nissa_malloc("conf_o",loc_volh+loc_bordh,quad_su3);
-  new_conf[0]=nissa_malloc("new_conf_e",loc_volh+loc_bordh+loc_edgeh,quad_su3);
-  new_conf[1]=nissa_malloc("new_conf_o",loc_volh+loc_bordh+loc_edgeh,quad_su3);
-  
-  //allocate the momenta
-  H[0]=nissa_malloc("H_e",loc_volh,quad_su3);
-  H[1]=nissa_malloc("H_o",loc_volh,quad_su3);
+  conf[0]=nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3);
+  conf[1]=nissa_malloc("conf_o",loc_volh+bord_volh,quad_su3);
+  new_conf[0]=nissa_malloc("new_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
+  new_conf[1]=nissa_malloc("new_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
   
   //allocate the u1 background field
-  u1b=nissa_malloc("u1back**",nflavs,quad_u1**);
-  for(int iflav=0;iflav<nflavs;iflav++)
+  physic.backfield=nissa_malloc("back**",physic.nflavs,quad_u1**);
+  for(int iflav=0;iflav<physic.nflavs;iflav++)
     {
-      u1b[iflav]=nissa_malloc("u1back*",2,quad_u1*);
-      u1b[iflav][0]=nissa_malloc("u1back_e",loc_volh,quad_u1);
-      u1b[iflav][1]=nissa_malloc("u1back_o",loc_volh,quad_u1);
+      physic.backfield[iflav]=nissa_malloc("back*",2,quad_u1*);
+      for(int par=0;par<2;par++) physic.backfield[iflav][par]=nissa_malloc("back_eo",loc_volh,quad_u1);
     }
-  
-  //allocate pseudo-fermions
-  pf=nissa_malloc("pf*",nflavs,color*);
-  for(int iflav=0;iflav<nflavs;iflav++)
-    pf[iflav]=nissa_malloc("pf",loc_volh,color);
-  
-  //allocate rational approximation for pseudo-fermions generation
-  rat_exp_pfgen=nissa_malloc("rat_exp_pfgen",nflavs,rat_approx);
-  for(int iflav=0;iflav<nflavs;iflav++) rat_approx_create(&(rat_exp_pfgen[iflav]),db_rat_exp_nterms,"pfgen");
-  
-  //allocate rational approximation for force calculation
-  rat_exp_actio=nissa_malloc("rat_exp_actio",nflavs,rat_approx);
-  for(int iflav=0;iflav<nflavs;iflav++) rat_approx_create(&(rat_exp_actio[iflav]),db_rat_exp_nterms,"actio");
   
   //////////////////////// initialize stuff ////////////////////
   
@@ -90,141 +87,120 @@ void init_simulation(char *path)
   start_loc_rnd_gen(0);
   
   //initialize background field to id
-  for(int iflav=0;iflav<nflavs;iflav++)
+  for(int iflav=0;iflav<physic.nflavs;iflav++)
     {
-      init_backfield_to_id(u1b[iflav]);
+      init_backfield_to_id(physic.backfield[iflav]);
     }
 }
 
-//copy an e/o split conf
-void eo_conf_copy(quad_su3 **dest,quad_su3 **source)
+//perform the metropolis test on passed value
+int metro_test(double arg)
 {
-  for(int eo=0;eo<2;eo++)
-    memcpy(dest[eo],source[eo],loc_volh*sizeof(quad_su3));
-}
-
-//perform a full hmc step
-void rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf)
-{
-  double start_time=take_time();
-  int nstep=13;
-  double residue=1.e-12;
-  double traj_length=1.0;
+  double tresh=(arg<=0) ? 1 : exp(-arg);
+  double toss=rnd_get_unif(&glb_rnd_gen,0,1);
   
-  //copy the old conf into the new
-  eo_conf_copy(out_conf,in_conf);
+  master_printf("%lg %lg\n",toss,tresh);
   
-  //add the phases
-  addrem_stagphases_to_eo_conf(out_conf);
-  
-  //generate the appropriate expansion of rational approximations
-  scale_expansions(rat_exp_pfgen,rat_exp_actio,conf,flav_pars,u1b,nflavs);
-  
-  //create the momenta
-  generate_momenta(H);
-  
-  //create pseudo-fermions
-  for(int iflav=0;iflav<nflavs;iflav++)
-    generate_pseudo_fermion(pf[iflav],out_conf,u1b[iflav],&(rat_exp_pfgen[iflav]),residue);
-  
-  //compute initial action
-  double init_action=full_rootst_eoimpr_action(out_conf,beta,H,nflavs,u1b,pf,rat_exp_actio,residue);
-  master_printf("Init action: %lg\n",init_action);
-  
-  //evolve forward
-  omelyan_rootst_eoimpr_evolver(H,out_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,traj_length,nstep);
-  
-  //compute final action
-  double final_action=full_rootst_eoimpr_action(out_conf,beta,H,nflavs,u1b,pf,rat_exp_actio,residue);
-  master_printf("Final action: %lg\n",final_action);
-  
-  //compute the diff
-  master_printf("diff: %lg\n",final_action-init_action);
-
-  //evolve backward
-  //omelyan_rootst_eoimpr_evolver(H,out_conf,beta,nflavs,u1b,pf,rat_exp_actio,residue,-traj_length,nstep);
-  
-  //remove the phases
-  addrem_stagphases_to_eo_conf(out_conf);
-  
-  master_printf("Total time: %lg s\n",take_time()-start_time);
+  return toss<tresh;
 }
 
 //finalize everything
 void close_simulation()
 {
-  for(int iflav=0;iflav<nflavs;iflav++)
+  for(int iflav=0;iflav<physic.nflavs;iflav++)
     {
-      nissa_free(pf[iflav]);
-      for(int par=0;par<2;par++) nissa_free(u1b[iflav][par]);
-	nissa_free(u1b[iflav]);
+      for(int par=0;par<2;par++) nissa_free(physic.backfield[iflav][par]);
+      nissa_free(physic.backfield[iflav]);
     }
   
   for(int par=0;par<2;par++)
     {
       nissa_free(new_conf[par]);
       nissa_free(conf[par]);
-      nissa_free(H[par]);
     }
   
-  nissa_free(u1b);
-  nissa_free(pf);
+  nissa_free(physic.backfield);  
+  nissa_free(physic.flav_pars);
   
-  nissa_free(rat_exp_pfgen);
-  nissa_free(rat_exp_actio);
-  nissa_free(flav_pars);
+  if(rank==0) fclose(obs_file);
   
   close_nissa();
 }
 
-//compare an eo_conf with a saved one
-void check_eo_conf(quad_su3 **eo_conf,char *path)
+//generate a new conf (or, keep old one)
+int perform_rhmc_trajectory()
 {
-  //allocate
-  quad_su3 *temp[2];
-  temp[0]=nissa_malloc("temp_0",loc_volh,quad_su3);
-  temp[1]=nissa_malloc("temp_1",loc_volh,quad_su3);
+  double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,&physic,&simul);
   
-  //read
-  master_printf("Debug, reading conf after updating\n");
-  read_ildg_gauge_conf_and_split_into_eo_parts(temp,path);
+  //test new conf
+  int acc=1;//metro_test(diff_act);
+  master_printf("Diff action: %lg, ",diff_act);
+  if(acc)
+    {
+      master_printf("accetpted.\n");
+      //copy conf
+      for(int par=0;par<2;par++)
+	{
+	  memcpy(conf[par],new_conf[par],loc_volh*sizeof(quad_su3));
+	  set_borders_invalid(conf[par]);
+	}
+    }
+  else master_printf("rejected.\n");
   
-  //compute the norm
-  double n2=0;
-  for(int eo=0;eo<2;eo++)
-    nissa_loc_volh_loop(ivol)
-      for(int mu=0;mu<4;mu++)
-	for(int ic1=0;ic1<3;ic1++)
-          for(int ic2=0;ic2<3;ic2++)
-            for(int ri=0;ri<2;ri++)
-              {
-		double a=temp[eo][ivol][mu][ic1][ic2][ri]-eo_conf[eo][ivol][mu][ic1][ic2][ri];
-		n2+=a*a;
-              }
-  n2/=loc_vol*4*9;
-  n2=sqrt(n2);
-  
-  //check
-  master_printf("Total conf norm diff: %lg\n",n2);
-  if(n2>1.e-7) crash("conf updating failed");
-  
-  //delocate
-  nissa_free(temp[0]);
-  nissa_free(temp[1]);
+  return acc;
+}
+
+//generate an identical conf
+void generate_cold_eo_conf(quad_su3 **conf)
+{
+  for(int par=0;par<2;par++)
+    {
+      nissa_loc_volh_loop(ivol)
+	for(int mu=0;mu<4;mu++)
+	  su3_put_to_id(conf[par][ivol][mu]);
+      
+      set_borders_invalid(conf[par]);
+    }
+}
+
+//write gauge measures
+void perform_measurements(quad_su3 **conf,int iconf,int acc)
+{
+  master_fprintf(obs_file,"%d %d %lg\n",iconf,acc,global_plaquette_eo_conf(conf));
 }
 
 int main(int narg,char **arg)
 {
-  init_simulation("input");
+  //basic mpi initialization
+  init_nissa();
+  
+  if(narg<2) crash("Use: %s input_file",arg[0]);
+  
+  init_simulation(arg[1]);
   
   ///////////////////////////////////////
   
-  read_ildg_gauge_conf_and_split_into_eo_parts(conf,"dat/conf_plain");
-  //rhmc_step(new_conf,conf);
+  //load conf or generate it
+  if(file_exists(in_conf_path))
+    {
+      master_printf("Reading conf from file: %s\n",in_conf_path);
+      read_ildg_gauge_conf_and_split_into_eo_parts(conf,in_conf_path);
+    }
+  else
+    {
+      master_printf("File %s not found, generating cold conf\n",in_conf_path);
+      generate_cold_eo_conf(conf);
+    }
   
-  //debug
-  //check_eo_conf(new_conf,"dat/final_conf");
-  //check_eo_conf(new_conf,"dat/conf_plain");
+  //perform the required number of traj
+  for(int itraj=0;itraj<nreq_traj;itraj++)
+    {
+      int acc=perform_rhmc_trajectory();
+      perform_measurements(conf,itraj,acc);
+    }
+  
+  //write the final conf
+  paste_eo_parts_and_write_ildg_gauge_conf(out_conf_path,conf);
   
   ///////////////////////////////////////
   

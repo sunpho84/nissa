@@ -80,18 +80,23 @@ double take_time()
   return MPI_Wtime();
 }
 
-//Open a text file for output
-FILE* open_text_file_for_output(char *outfile)
+//Open a file checking it
+FILE* open_file(char *outfile,const char *mode)
 {
   FILE *fout=NULL;
-  if(rank==0) fout=fopen(outfile,"w");
-  if(rank==0 && fout==NULL)
+  
+  if(rank==0)
     {
-      fprintf(stderr,"Couldn't open the file: %s",outfile);
-      MPI_Abort(MPI_COMM_WORLD,1);
+      fout=fopen(outfile,mode);
+      if(fout==NULL) crash("Couldn't open the file: %s for mode: %s",outfile,mode);
     }
+  
   return fout;
 }
+
+//Open a text file for output
+FILE* open_text_file_for_output(char *outfile)
+{return open_file(outfile,"w");}
 
 void take_last_characters(char *out,const char *in,int size)
 {

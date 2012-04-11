@@ -113,3 +113,23 @@ typedef struct
   double im_pot;
   double charge;
 } quark_content;
+
+//theory content
+typedef struct
+{
+  double beta;
+  int nflavs;
+  quad_u1 ***backfield;
+  quark_content *flav_pars;
+} theory_pars;
+
+//evolution parameters
+typedef struct
+{
+  double traj_length;
+  double pf_action_residue;
+  double md_residue;
+  int nmd_steps;
+  int ngauge_substeps;
+  int *npseudo_fs;
+} evol_pars;

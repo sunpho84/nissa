@@ -44,7 +44,7 @@ int compute_allocable_propagators(int nprop_list,int nch_contr)
   as2t_su3 *temp_clov=NULL;
   if(nch_contr>0)
     {
-      temp_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));
+      temp_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+bord_vol+edge_vol));
       if(temp_conf==NULL) crash("Unable to allocate the space for the gauge configuration!");
       
       temp_clov=(as2t_su3*)malloc(sizeof(as2t_su3)*loc_vol);
@@ -313,7 +313,7 @@ int main(int narg,char **arg)
   //if necessary, load the gauge configuration and calculate the pmunu term
   if(nch_contr>0)
     {
-      gauge_conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+      gauge_conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
       read_ildg_gauge_conf(gauge_conf,gaugeconf_file);
       

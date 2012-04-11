@@ -182,7 +182,7 @@ int main(int narg,char **arg)
   //if we have to calculate the chromo-magnetic operator allocate one additional spinor
   //if necessary allocate and load the gauge configuration,and allocate the space for the pmunu term
   colorspinspin **ch_spinor=NULL;
-  quad_su3 *gauge_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));
+  quad_su3 *gauge_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+bord_vol+edge_vol));
   as2t_su3 *Pmunu=NULL;
   if(nch_contr!=0)
     {

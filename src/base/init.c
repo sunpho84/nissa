@@ -268,7 +268,7 @@ void init_grid(int T,int L)
   loc_vol=glb_vol/rank_tot;
   
   //calculate the border size
-  loc_bord=0;
+  bord_vol=0;
   bord_offset[0]=0;
   for(int idir=0;idir<4;idir++)
     {
@@ -277,15 +277,15 @@ void init_grid(int T,int L)
       else bord_dir_vol[idir]=0;
       
       //total bord
-      loc_bord+=bord_dir_vol[idir];
+      bord_vol+=bord_dir_vol[idir];
       
       //summ of the border extent up to dir idir
       if(idir>0) bord_offset[idir]=bord_offset[idir-1]+bord_dir_vol[idir-1];
     }
-  loc_bord*=2;
+  bord_vol*=2;
   
   //calculate the egdes size
-  loc_edge=0;
+  edge_vol=0;
   edge_offset[0]=0;
   int iedge=0;
   for(int idir=0;idir<4;idir++)
@@ -296,22 +296,22 @@ void init_grid(int T,int L)
 	else edge_dir_vol[iedge]=0;
 	
 	//total edge
-	loc_edge+=edge_dir_vol[iedge];
+	edge_vol+=edge_dir_vol[iedge];
 	
 	//summ of the border extent up to dir i
 	if(iedge>0)
 	  edge_offset[iedge]=edge_offset[iedge-1]+edge_dir_vol[iedge-1];
 	iedge++;
     }
-  loc_edge*=4;
+  edge_vol*=4;
   
   //print information
   if(rank==0)
     {
       printf("Local volume\t%dx%dx%dx%d = %d\n",loc_size[0],loc_size[1],loc_size[2],loc_size[3],loc_vol);
       printf("Parallelized dirs: t=%d x=%d y=%d z=%d\n",paral_dir[0],paral_dir[1],paral_dir[2],paral_dir[3]);
-      printf("Border size: %d\n",loc_bord);
-      printf("Edge size: %d\n",loc_edge);
+      printf("Border size: %d\n",bord_vol);
+      printf("Edge size: %d\n",edge_vol);
       if(debug_lvl>2) 
 	for(int idir=0;idir<4;idir++)
 	  printf("Border offset for dir %d: %d\n",idir,bord_offset[idir]);

@@ -164,7 +164,7 @@ int main(int narg,char **arg)
   init_grid(T,L);
   
   //read conf
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   read_ildg_gauge_conf(conf,"../../data/L4T8conf");
   communicate_lx_quad_su3_borders(conf);
   
@@ -175,18 +175,18 @@ int main(int narg,char **arg)
   
   //smear the conf with hyp
   double hyp_time=-take_time();
-  quad_su3 *hyp_smeared_conf=nissa_malloc("hyp_smeared_conf",loc_vol+loc_bord,quad_su3);  
+  quad_su3 *hyp_smeared_conf=nissa_malloc("hyp_smeared_conf",loc_vol+bord_vol,quad_su3);  
   if(rank_tot==1) hyp_single_rank_smear_conf(hyp_smeared_conf,conf,alpha0,alpha1,alpha2);
   hyp_time+=take_time();
   
   //smear the conf with hyp using fast routine
   double hypf_time=-take_time();
-  quad_su3 *hyp_fast_smeared_conf=nissa_malloc("hyp_fast_smeared_conf",loc_vol+loc_bord,quad_su3);  
+  quad_su3 *hyp_fast_smeared_conf=nissa_malloc("hyp_fast_smeared_conf",loc_vol+bord_vol,quad_su3);  
   hyp_smear_conf(hyp_fast_smeared_conf,conf,alpha0,alpha1,alpha2);
   hypf_time+=take_time();
   
   //smeare the conf with APE
-  quad_su3 *ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+loc_bord,quad_su3);  
+  quad_su3 *ape_smeared_conf=nissa_malloc("ape_smeared_conf",loc_vol+bord_vol,quad_su3);  
   ape_spatial_smear_conf(ape_smeared_conf,conf,0.7,1);
   
   //compute plaquette

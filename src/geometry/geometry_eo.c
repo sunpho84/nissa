@@ -13,26 +13,26 @@ void set_eo_geometry()
   //set half the vol, bord and edge size
   glb_volh=glb_vol/2;
   loc_volh=loc_vol/2;
-  loc_bordh=loc_bord/2;
-  loc_edgeh=loc_edge/2;
+  bord_volh=bord_vol/2;
+  edge_volh=edge_vol/2;
   
   //set the various time-slice types
-  loclx_parity=nissa_malloc("loclx_parity",loc_vol+loc_bord+loc_edge,int);
+  loclx_parity=nissa_malloc("loclx_parity",loc_vol+bord_vol+edge_vol,int);
   ignore_borders_communications_warning(loclx_parity);
   
-  loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+loc_bord+loc_edge,int);
+  loceo_of_loclx=nissa_malloc("loceo_of_loclx",loc_vol+bord_vol+edge_vol,int);
   ignore_borders_communications_warning(loceo_of_loclx);
   
-  for(int par=0;par<2;par++) loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",loc_volh+loc_bordh+loc_edgeh,int);
-  for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",loc_volh+loc_bordh+loc_edgeh,coords);
-  for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",loc_volh+loc_bordh+loc_edgeh,coords);
+  for(int par=0;par<2;par++) loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",loc_volh+bord_volh+edge_volh,int);
+  for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",loc_volh+bord_volh+edge_volh,coords);
+  for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",loc_volh+bord_volh+edge_volh,coords);
   for(int par=0;par<2;par++) ignore_borders_communications_warning(loclx_of_loceo[par]);
   for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighup[par]);
   for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighdw[par]);
 
   //Label the bulk sites
   int iloc_eo[2]={0,0};
-  for(int loclx=0;loclx<loc_vol+loc_bord+loc_edge;loclx++)
+  for(int loclx=0;loclx<loc_vol+bord_vol+edge_vol;loclx++)
     {
       //calculate global coord and parity
       int par=0;
@@ -51,7 +51,7 @@ void set_eo_geometry()
     }
   
   //Fix the movements among e/o ordered sites
-  for(int loclx=0;loclx<loc_vol+loc_bord;loclx++)
+  for(int loclx=0;loclx<loc_vol+bord_vol;loclx++)
     for(int mu=0;mu<4;mu++)
       {
 	//take parity and e/o corresponding site
@@ -61,12 +61,12 @@ void set_eo_geometry()
 	//up movements
 	int loclx_up=loclx_neighup[loclx][mu];
 	
-	if(loclx_up>=0 && loclx_up<loc_vol+loc_bord+loc_edge)
+	if(loclx_up>=0 && loclx_up<loc_vol+bord_vol+edge_vol)
 	  loceo_neighup[par][loceo][mu]=loceo_of_loclx[loclx_up];
 	
 	//dw movements
 	int loclx_dw=loclx_neighdw[loclx][mu];
-	if(loclx_dw>=0 && loclx_dw<loc_vol+loc_bord+loc_edge)
+	if(loclx_dw>=0 && loclx_dw<loc_vol+bord_vol+edge_vol)
 	  loceo_neighdw[par][loceo][mu]=loceo_of_loclx[loclx_dw];
 	else
 	  loceo_neighdw[par][loceo][mu]=loclx_dw;
@@ -184,10 +184,10 @@ void initialize_eo_edge_senders_of_kind(MPI_Datatype *MPI_EO_EDGES_SEND,MPI_Data
 		for(int iedge_eo=0;iedge_eo<eo_edge_size;iedge_eo++) single[iedge_eo]=1;
 
 		int iedge_site=0;
-		for(int b_eo=0;b_eo<loc_bordh;b_eo++)
+		for(int b_eo=0;b_eo<bord_volh;b_eo++)
 		  {
 		    int ivol=loclx_of_loceo[par][loc_volh+b_eo];
-		    if(loclx_neigh[!vmu][ivol][mu]>=0 && loclx_neigh[!vmu][ivol][mu]<loc_vol && loclx_neigh[vnu][ivol][nu]>=loc_vol+loc_bord) edge_pos_disp[iedge_site++]=b_eo;
+		    if(loclx_neigh[!vmu][ivol][mu]>=0 && loclx_neigh[!vmu][ivol][mu]<loc_vol && loclx_neigh[vnu][ivol][nu]>=loc_vol+bord_vol) edge_pos_disp[iedge_site++]=b_eo;
 		  }
 		if(iedge_site!=eo_edge_size) crash("iedge_site=%d did not arrive to eo_edge_size=%d",iedge_site,eo_edge_size);
 	       	
@@ -248,8 +248,8 @@ void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
   
   //work also on borders and edges if allocated and valid
   int ending=loc_volh;
-  if(check_borders_allocated(eo_conf[0]) && check_borders_allocated(eo_conf[1]) && check_borders_valid(eo_conf[0]) && check_borders_valid(eo_conf[1])) ending+=loc_bordh;
-  if(check_edges_allocated(eo_conf[0])   && check_edges_allocated(eo_conf[1])   && check_edges_valid(eo_conf[0])   && check_edges_valid(eo_conf[1]))   ending+=loc_edgeh;
+  if(check_borders_allocated(eo_conf[0]) && check_borders_allocated(eo_conf[1]) && check_borders_valid(eo_conf[0]) && check_borders_valid(eo_conf[1])) ending+=bord_volh;
+  if(check_edges_allocated(eo_conf[0])   && check_edges_allocated(eo_conf[1])   && check_edges_valid(eo_conf[0])   && check_edges_valid(eo_conf[1]))   ending+=edge_volh;
   
   for(int ieo=0;ieo<2;ieo++)
     for(int ivol_eo=0;ivol_eo<ending;ivol_eo++)
@@ -331,5 +331,9 @@ void split_lx_color_into_eo_parts(color **eo_out,color *lx_in)
 void split_lx_spincolor_into_eo_parts(spincolor **eo_out,spincolor *lx_in)
 {split_lx_vector_into_eo_parts((void**)eo_out,lx_in,sizeof(spincolor));}
 
+void paste_eo_parts_into_lx_conf(quad_su3 *out_lx,quad_su3 **in_eo)
+{paste_eo_parts_into_lx_vector(out_lx,(void**)in_eo,sizeof(quad_su3));}
+void paste_eo_parts_into_lx_color(color *out_lx,color **in_eo)
+{paste_eo_parts_into_lx_vector(out_lx,(void**)in_eo,sizeof(color));}
 void paste_eo_parts_into_lx_spincolor(spincolor *out_lx,spincolor **in_eo)
 {paste_eo_parts_into_lx_vector(out_lx,(void**)in_eo,sizeof(spincolor));}

@@ -4,7 +4,7 @@
 //Passed conf must NOT contain the backfield.
 //Of the result still need to be taken the TA
 //The approximation need to be already scaled, and must contain physical mass term
-void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,color *pf,rat_approx *appr,double residue)
+void summ_the_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **eo_conf,color *pf,quad_u1 **u1b,rat_approx *appr,double residue)
 {
   master_printf("Computing quark force\n");
   
@@ -12,8 +12,8 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
   color *v_o[appr->nterms],*chi_e[appr->nterms];
   for(int iterm=0;iterm<appr->nterms;iterm++)
     {
-      v_o[iterm]=nissa_malloc("v_o",loc_volh+loc_bordh,color);
-      chi_e[iterm]=nissa_malloc("chi_e",loc_volh+loc_bordh,color);
+      v_o[iterm]=nissa_malloc("v_o",loc_volh+bord_volh,color);
+      chi_e[iterm]=nissa_malloc("chi_e",loc_volh+bord_volh,color);
     }
   
   //add the background fields
@@ -62,16 +62,14 @@ void summ_the_rootst_eoimpr_force(quad_su3 **F,quad_su3 **eo_conf,quad_u1 **u1b,
 
 //Compute the full force for the rooted staggered theory with nfl flavors
 //Conf and pf borders are assumed to have been already communicated
-void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,double beta,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue)
+void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,double residue)
 {
   //First of all compute gluonic part of the force
-  add_backfield_to_conf(conf,u1b[0]);
-  wilson_force(F,conf,beta);
-  rem_backfield_from_conf(conf,u1b[0]);
+  wilson_force(F,conf,physic->beta);
   
   //Then summ the contributes coming from each flavor
-  for(int ifl=0;ifl<nfl;ifl++)
-    summ_the_rootst_eoimpr_force(F,conf,u1b[ifl],pf[ifl],&(appr[ifl]),residue);
+  for(int iflav=0;iflav<physic->nflavs;iflav++)
+    summ_the_rootst_eoimpr_quarks_force(F,conf,pf[iflav],physic->backfield[iflav],&(appr[iflav]),residue);
   
   //Finish the computation multiplying for the conf and taking TA
   for(int eo=0;eo<2;eo++)

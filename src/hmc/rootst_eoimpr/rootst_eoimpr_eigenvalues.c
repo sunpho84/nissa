@@ -39,9 +39,9 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
   
   double eig_max;
   
-  color *vec_in=nissa_malloc("vec_in",loc_volh+loc_bordh,color);
+  color *vec_in=nissa_malloc("vec_in",loc_volh+bord_volh,color);
   color *vec_out=nissa_malloc("vec_out",loc_volh,color);
-  color *tmp=nissa_malloc("tmp",loc_volh+loc_bordh,color);
+  color *tmp=nissa_malloc("tmp",loc_volh+bord_volh,color);
   
   //generate the random field
   nissa_loc_volh_loop(ivol)
@@ -69,48 +69,48 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
 
 //scale the rational expansion
 //assumes that the conf has already stag phases inside
-void scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_exp_actio,quad_su3 **eo_conf,quark_content *quark_pars,quad_u1 ***bf,int nquarks)
+void rootst_eoimpr_scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_exp_actio,quad_su3 **eo_conf,theory_pars *physic)
 {
-  //loop over each quark
-  for(int iquark=0;iquark<nquarks;iquark++)
+  //loop over each flav
+  for(int iflav=0;iflav<physic->nflavs;iflav++)
     {
-      //The expansion power for a n-degenerate set of quark is labelled by n-1
-      int irexp=quark_pars[iquark].deg-1;
+      //The expansion power for a n-degenerate set of flav is labelled by n-1
+      int irexp=physic->flav_pars[iflav].deg-1;
       
       //The expansion for a npf pseudofermions is labelled by npf-1
       int ipf=0;//for the moment, only 1 pf
       
       //Set scale factors
       //add the background field
-      add_backfield_to_conf(eo_conf,bf[iquark]);
-      double scale=max_eigenval(quark_pars,eo_conf,50)*1.1;
-      rem_backfield_from_conf(eo_conf,bf[iquark]);
+      add_backfield_to_conf(eo_conf,physic->backfield[iflav]);
+      double scale=max_eigenval(physic->flav_pars,eo_conf,50)*1.1;
+      rem_backfield_from_conf(eo_conf,physic->backfield[iflav]);
 
       double scale_pfgen=pow(scale,db_rat_exp_pfgen_degr[ipf][irexp]);
       double scale_actio=pow(scale,db_rat_exp_actio_degr[ipf][irexp]);
 
       //scale the rational approximation to generate pseudo-fermions
-      rat_exp_pfgen[iquark].exp_power=db_rat_exp_pfgen_degr[ipf][irexp];
-      rat_exp_pfgen[iquark].minimum=db_rat_exp_min*scale;
-      rat_exp_pfgen[iquark].maximum=db_rat_exp_max*scale;
-      rat_exp_pfgen[iquark].cons=db_rat_exp_pfgen_cons[ipf][irexp]*scale_pfgen;
+      rat_exp_pfgen[iflav].exp_power=db_rat_exp_pfgen_degr[ipf][irexp];
+      rat_exp_pfgen[iflav].minimum=db_rat_exp_min*scale;
+      rat_exp_pfgen[iflav].maximum=db_rat_exp_max*scale;
+      rat_exp_pfgen[iflav].cons=db_rat_exp_pfgen_cons[ipf][irexp]*scale_pfgen;
 
       //scale the rational approximation to compute action (and force)
-      rat_exp_actio[iquark].exp_power=db_rat_exp_actio_degr[ipf][irexp];
-      rat_exp_actio[iquark].minimum=db_rat_exp_min*scale;
-      rat_exp_actio[iquark].maximum=db_rat_exp_max*scale;
-      rat_exp_actio[iquark].cons=db_rat_exp_actio_cons[ipf][irexp]*scale_actio;
+      rat_exp_actio[iflav].exp_power=db_rat_exp_actio_degr[ipf][irexp];
+      rat_exp_actio[iflav].minimum=db_rat_exp_min*scale;
+      rat_exp_actio[iflav].maximum=db_rat_exp_max*scale;
+      rat_exp_actio[iflav].cons=db_rat_exp_actio_cons[ipf][irexp]*scale_actio;
 
       for(int iterm=0;iterm<db_rat_exp_nterms;iterm++)
         {
-          rat_exp_pfgen[iquark].poles[iterm]=db_rat_exp_pfgen_pole[ipf][irexp][iterm]*scale+pow(quark_pars[iquark].mass,2);
-          rat_exp_pfgen[iquark].weights[iterm]=db_rat_exp_pfgen_coef[ipf][irexp][iterm]*scale*scale_pfgen;
+          rat_exp_pfgen[iflav].poles[iterm]=db_rat_exp_pfgen_pole[ipf][irexp][iterm]*scale+pow(physic->flav_pars[iflav].mass,2);
+          rat_exp_pfgen[iflav].weights[iterm]=db_rat_exp_pfgen_coef[ipf][irexp][iterm]*scale*scale_pfgen;
 
-          rat_exp_actio[iquark].poles[iterm]=db_rat_exp_actio_pole[ipf][irexp][iterm]*scale+pow(quark_pars[iquark].mass,2);
-          rat_exp_actio[iquark].weights[iterm]=db_rat_exp_actio_coef[ipf][irexp][iterm]*scale*scale_actio;
+          rat_exp_actio[iflav].poles[iterm]=db_rat_exp_actio_pole[ipf][irexp][iterm]*scale+pow(physic->flav_pars[iflav].mass,2);
+          rat_exp_actio[iflav].weights[iterm]=db_rat_exp_actio_coef[ipf][irexp][iterm]*scale*scale_actio;
 	}
       
-      master_printf_rat_approx(&(rat_exp_pfgen[iquark]));
-      master_printf_rat_approx(&(rat_exp_actio[iquark]));
+      master_printf_rat_approx(&(rat_exp_pfgen[iflav]));
+      master_printf_rat_approx(&(rat_exp_actio[iflav]));
     }
 }

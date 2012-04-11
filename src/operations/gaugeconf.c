@@ -85,7 +85,7 @@ void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis)
   int d3=axis;
   
   //allocate a temporary conf with borders
-  quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+loc_bord,quad_su3);
+  quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol,quad_su3);
   memcpy(temp_conf,in,loc_vol*sizeof(quad_su3));
   communicate_lx_quad_su3_borders(temp_conf);
   
@@ -115,8 +115,8 @@ void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords
     }
   
   int nsite=loc_vol;
-  if(putonbords) nsite+=loc_bord;
-  if(putonedges) nsite+=loc_edge;
+  if(putonbords) nsite+=bord_vol;
+  if(putonedges) nsite+=edge_vol;
 
   for(int ivol=0;ivol<nsite;ivol++)
     for(int idir=0;idir<4;idir++) safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);

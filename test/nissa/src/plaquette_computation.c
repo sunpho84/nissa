@@ -7,7 +7,7 @@ int test_plaquette_computation()
   const double exp_plaq=0.6350055722288719;
   const double tolerance=1.e-14;
   
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   //read conf, compute plaquette, print it
   read_ildg_gauge_conf(conf,"../data/L4T8conf");

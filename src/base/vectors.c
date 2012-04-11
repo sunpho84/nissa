@@ -195,8 +195,8 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
     crash("memory alignment problem, vector %s has %d offset",tag,offset);
   
   //if borders or edges are allocated, set appropriate flag
-  if(nel==(loc_vol+loc_bord) || nel==(loc_volh+loc_bordh)) set_vec_flag(return_ptr,BORDERS_ALLOCATED);
-  if(nel==(loc_vol+loc_bord+loc_edge) || nel==(loc_volh+loc_bordh+loc_edgeh)) set_vec_flag(return_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
+  if(nel==(loc_vol+bord_vol) || nel==(loc_volh+bord_volh)) set_vec_flag(return_ptr,BORDERS_ALLOCATED);
+  if(nel==(loc_vol+bord_vol+edge_vol) || nel==(loc_volh+bord_volh+edge_volh)) set_vec_flag(return_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
   
   //Update the amount of required memory
   nissa_required_memory+=size;

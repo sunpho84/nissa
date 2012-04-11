@@ -154,7 +154,7 @@ int main(int narg,char **arg)
   /////////////////////////////////
   
   //read conf
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   read_ildg_gauge_conf(conf,conf_path);
   communicate_lx_quad_su3_borders(conf);
   master_printf(" read conf plaq: %.18g\n",global_plaquette_lx_conf(conf));

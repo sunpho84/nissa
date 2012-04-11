@@ -27,7 +27,7 @@ int main(int narg,char **arg)
   read_str_double("kappa",&(kappa));
 
   //Initialize the gauge configuration and read the path
-  quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord));
+  quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+bord_vol));
   char gauge_file[1024];
   read_str_str("GaugeConf",gauge_file,1024);
   

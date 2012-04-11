@@ -53,8 +53,8 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
-  quad_su3 *origi_conf=nissa_malloc("or_conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  quad_su3 *smear_conf=nissa_malloc("sm_conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *origi_conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  quad_su3 *smear_conf=nissa_malloc("sm_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   read_ildg_gauge_conf(origi_conf,"/home/francesco/Prace/nissa/nissa/test/gaugeconf_load/conf.0048");
   

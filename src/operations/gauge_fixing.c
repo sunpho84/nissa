@@ -468,7 +468,7 @@ double compute_landau_or_coulomb_gauge_fixing_quality(quad_su3 *conf,int nmu)
 void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double required_precision,int nmu)
 {
   //allocate working conf
-  quad_su3 *w_conf=nissa_malloc("Working conf",loc_vol+loc_bord,quad_su3);
+  quad_su3 *w_conf=nissa_malloc("Working conf",loc_vol+bord_vol,quad_su3);
   
   //set eo geometry, used to switch between different parity sites
   if(nissa_eo_geom_inited==0) set_eo_geometry();
@@ -633,7 +633,7 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision,int nmu)
 {
   //allocate fixing matrix
-  su3 *fixm=nissa_malloc("fixm",loc_vol+loc_bord,su3);
+  su3 *fixm=nissa_malloc("fixm",loc_vol+bord_vol,su3);
   
   //find fixing matrix
   find_landau_or_coulomb_gauge_fixing_matr(fixm,conf_in,precision,nmu);

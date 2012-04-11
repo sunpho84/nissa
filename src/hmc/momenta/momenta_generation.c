@@ -1,7 +1,7 @@
 #pragma once
 
 //generate momenta using guassian hermitean matrix generator
-void generate_momenta(quad_su3 **H)
+void generate_hmc_momenta(quad_su3 **H)
 {
   for(int eo=0;eo<2;eo++)
     {

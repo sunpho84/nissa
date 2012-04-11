@@ -62,9 +62,9 @@ int main(int narg,char **arg)
   quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol));
   read_ildg_gauge_conf(conf,filename);
   
-  spincolor *eta=allocate_spincolor(loc_vol+loc_bord,"eta");
-  spincolor *source=allocate_spincolor(loc_vol+loc_bord,"source");
-  spincolor *phi=allocate_spincolor(loc_vol+loc_bord,"phi");
+  spincolor *eta=allocate_spincolor(loc_vol+bord_vol,"eta");
+  spincolor *source=allocate_spincolor(loc_vol+bord_vol,"source");
+  spincolor *phi=allocate_spincolor(loc_vol+bord_vol,"phi");
   
   int ns=100;
   complex tr[ns];

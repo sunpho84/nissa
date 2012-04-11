@@ -299,8 +299,8 @@ void initialize_semileptonic(char *input_path)
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf, Pmunu and all the needed spincolor and colorspinspin
-  conf=nissa_malloc("or_conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  sme_conf=nissa_malloc("sm_conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol,quad_su3);
   Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
 
   //Allocate all the S0 colorspinspin vectors
@@ -314,7 +314,7 @@ void initialize_semileptonic(char *input_path)
     }
 
   //Allocate one spincolor for the source
-  source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   original_source=nissa_malloc("original_source",loc_vol,colorspinspin);
 
   //Allocate all the S1 colorspinspin vectors
@@ -424,7 +424,7 @@ void close_semileptonic()
 //smear addditivily a colorspinspin
 void smear_additive_colorspinspin(colorspinspin *out,colorspinspin *in,int ism_lev,int *jacobi_niter)
 {
-  spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   
   int nsme=jacobi_niter[ism_lev];
   if(ism_lev>0) nsme-=jacobi_niter[ism_lev-1];
@@ -454,7 +454,7 @@ void calculate_S0(int ism_lev_so)
   //Allocate nmass spincolors, for the cgmms solutions
   spincolor **cgmms_solution,*temp_vec[2];
   cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
+  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+bord_vol,spincolor);
   temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
   temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
   
@@ -523,7 +523,7 @@ void calculate_S1(int ispec,int ism_lev_se)
   //Allocate nmass spincolors, for the cgmms solutions
   spincolor **cgmms_solution,*temp_vec[2];
   cgmms_solution=nissa_malloc("cgmms_solution",nmass_3pts,spincolor*);
-  for(int imass=0;imass<nmass_3pts;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
+  for(int imass=0;imass<nmass_3pts;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+bord_vol,spincolor);
   temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
   temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
   

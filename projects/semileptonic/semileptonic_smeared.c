@@ -387,8 +387,8 @@ void initialize_semileptonic(char *input_path)
   ////////////////////////////////////// end of input reading/////////////////////////////////
   
   //allocate gauge conf, Pmunu and all the needed spincolor and propagators
-  conf=nissa_malloc("or_conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  sme_conf=nissa_malloc("sm_conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol,quad_su3);
   Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
   
   //Allocate all the S0 prop_type vectors
@@ -404,12 +404,12 @@ void initialize_semileptonic(char *input_path)
   //Allocate nmass spincolors, for the cgmms solutions
   ncgmms_solution=max_int(nmassS0,nmassS1);
   cgmms_solution=nissa_malloc("cgmms_solution",ncgmms_solution,spincolor*);
-  for(int imass=0;imass<ncgmms_solution;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+loc_bord,spincolor);
+  for(int imass=0;imass<ncgmms_solution;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+bord_vol,spincolor);
   temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
   temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
   
   //Allocate one spincolor for the source
-  source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   original_source=nissa_malloc("original_source",loc_vol,prop_type);
   
   //Allocate one prop_type for the chromo-contractions
@@ -522,7 +522,7 @@ void close_semileptonic()
 //smear addditivily a propagator
 void smear_additive_propagator(prop_type *out,prop_type *in,int ism_lev,int *jacobi_niter)
 {
-  spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   
   int nsme=jacobi_niter[ism_lev];
   if(ism_lev>0) nsme-=jacobi_niter[ism_lev-1];

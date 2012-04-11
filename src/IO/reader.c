@@ -426,7 +426,7 @@ void read_tm_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path
   int all=0;
   if(temp==NULL)
     {
-      temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);
+      temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
       all=1;
     }
   read_spincolor(temp,path);
@@ -445,7 +445,7 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,char *base_path,ch
   
   char filename[1024];
   spincolor *sc[2]={nissa_malloc("sc1",loc_vol,spincolor),nissa_malloc("sc3",loc_vol,spincolor)};
-  spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
 
   //Read the four spinor
   for(int id_source=0;id_source<4;id_source++) //dirac index of source

@@ -14,7 +14,7 @@ int compute_allocable_propagators(int nprop_list,int nch_contr,int nmin_req)
     {
       nmin_req++;
       
-      temp_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord+loc_edge));
+      temp_conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+bord_vol+edge_vol));
       if(temp_conf==NULL && rank>0)
 	{
 	  fprintf(stderr,"Unable to allocate the space for the gauge configuration!\n");

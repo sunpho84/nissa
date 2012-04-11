@@ -4,7 +4,7 @@
 //be sure not to have border condition added
 void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
 {
-  quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
   
   if(debug_lvl) master_printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
@@ -208,8 +208,8 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
     }
   else
     {
-      spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);//we do not know if smear_sc is allocated with bord
-      spincolor *H=nissa_malloc("H",loc_vol+loc_bord,spincolor);
+      spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);//we do not know if smear_sc is allocated with bord
+      spincolor *H=nissa_malloc("H",loc_vol+bord_vol,spincolor);
       double norm_fact=1/(1+6*kappa);
       communicate_lx_quad_su3_borders(conf);
 
@@ -290,7 +290,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
   
   //allocate dec2 conf
   su3 *dec2_conf[idec2_remap];
-  for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",loc_vol+loc_bord+loc_edge,su3);
+  for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",loc_vol+bord_vol+edge_vol,su3);
   
   //loop over external index
   for(int mu=0;mu<4;mu++)
@@ -346,7 +346,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
   
   //allocate dec1 conf
   su3 *dec1_conf[idec1_remap];
-  for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",loc_vol+loc_bord+loc_edge,su3);
+  for(int idec1=0;idec1<idec1_remap;idec1++) dec1_conf[idec1]=nissa_malloc("dec1_conf",loc_vol+bord_vol+edge_vol,su3);
   
   //loop over external index
   for(int mu=0;mu<4;mu++)

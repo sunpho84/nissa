@@ -141,7 +141,7 @@ void apply_tmQ2_128(spincolor_128 *out,quad_su3 *conf,double kappa,double mu,spi
   
   if(temp==NULL)
     {
-      temp=nissa_malloc("tempQ",loc_vol+loc_bord,spincolor_128);
+      temp=nissa_malloc("tempQ",loc_vol+bord_vol,spincolor_128);
       all=1;
     }
   

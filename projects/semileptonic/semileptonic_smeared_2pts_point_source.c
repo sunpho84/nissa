@@ -163,8 +163,8 @@ void initialize_semileptonic(char *input_path)
   ////////////////////////////////////// end of input reading/////////////////////////////////
   
   //allocate gauge conf and all the needed spincolor and su3spinspin
-  conf=nissa_malloc("or_conf",loc_vol+loc_bord,quad_su3);
-  sme_conf=nissa_malloc("sm_conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("or_conf",loc_vol+bord_vol,quad_su3);
+  sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol,quad_su3);
   
   //Allocate all the S0 su3spinspin vectors
   npropS0=nmass;
@@ -178,12 +178,12 @@ void initialize_semileptonic(char *input_path)
   
   //Allocate nmass spincolors, for the cgmms solutions
   cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution[imass]",loc_vol+loc_bord,spincolor);
-  temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol+loc_bord,spincolor);
-  temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol+loc_bord,spincolor);
+  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution[imass]",loc_vol+bord_vol,spincolor);
+  temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol+bord_vol,spincolor);
+  temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol+bord_vol,spincolor);
   
   //Allocate one spincolor for the source
-  source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   original_source=nissa_malloc("orig_source",loc_vol,su3spinspin);
 }
 

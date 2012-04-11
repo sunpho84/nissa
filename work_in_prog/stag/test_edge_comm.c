@@ -20,8 +20,8 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  quad_su3 *eo_conf[2]={nissa_malloc("ev_conf",loc_volh+loc_bordh+loc_edgeh,quad_su3),nissa_malloc("od_conf",loc_volh+loc_bordh+loc_edgeh,quad_su3)};
+  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  quad_su3 *eo_conf[2]={nissa_malloc("ev_conf",loc_volh+bord_volh+edge_volh,quad_su3),nissa_malloc("od_conf",loc_volh+bord_volh+edge_volh,quad_su3)};
 
   read_ildg_gauge_conf(lx_conf,"dat/conf_plain");
   split_lx_conf_into_eo_parts(eo_conf,lx_conf);
@@ -50,12 +50,12 @@ int main(int narg,char **arg)
   communicate_lx_quad_su3_edges(lx_conf);
   communicate_eo_quad_su3_edges(eo_conf);
   
-  for(int ibord=0;ibord<loc_vol+loc_bord;ibord++)
+  for(int ibord=0;ibord<loc_vol+bord_vol;ibord++)
     for(int vers=0;vers<2;vers++)
     for(int mu=0;mu<4;mu++)
       {
 	int iedge=loclx_neigh[vers][ibord][mu];
-	if(iedge>=loc_vol+loc_bord)
+	if(iedge>=loc_vol+bord_vol)
 	  {
 	    int par=loclx_parity[iedge];
 	    int ieo=loceo_of_loclx[iedge];

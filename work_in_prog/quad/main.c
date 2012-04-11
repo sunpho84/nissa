@@ -5,7 +5,7 @@
 double compute_tmQ2_residue_128(spincolor *residue,quad_su3 *conf,double kappa,double mass,spincolor_128 *temp,spincolor_128 *tot_sol,spincolor *tot_source)
 {
   //compute D*sol in quadruple precision
-  spincolor_128 *residue_128=nissa_malloc("residue_128",loc_vol+loc_bord,spincolor_128);
+  spincolor_128 *residue_128=nissa_malloc("residue_128",loc_vol+bord_vol,spincolor_128);
   apply_tmQ2_128(residue_128,conf,kappa,mass,temp,tot_sol);
   
   //compute the residue
@@ -45,9 +45,9 @@ void solution_add_128(spincolor_128 *tot_sol,spincolor *sol)
 void inv_tmQ2_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mass,int niter,double external_solver_residue,spincolor *source)
 {
   //allocate temporary vectorthe solution in 128 bit
-  spincolor *residue_source=nissa_malloc("residue_source",loc_vol+loc_bord,spincolor);
-  spincolor_128 *temp_128=nissa_malloc("temp",loc_vol+loc_bord,spincolor_128); 
-  spincolor_128 *sol_128=nissa_malloc("sol_128",loc_vol+loc_bord,spincolor_128);
+  spincolor *residue_source=nissa_malloc("residue_source",loc_vol+bord_vol,spincolor);
+  spincolor_128 *temp_128=nissa_malloc("temp",loc_vol+bord_vol,spincolor_128); 
+  spincolor_128 *sol_128=nissa_malloc("sol_128",loc_vol+bord_vol,spincolor_128);
   memset(sol_128,0,loc_vol*sizeof(spincolor_128));
   set_borders_invalid(sol_128);
   set_borders_invalid(temp_128);
@@ -120,17 +120,17 @@ int main(int narg,char **arg)
   close_input();
   
   //read conf
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   read_ildg_gauge_conf(conf,gauge_conf_path);
   
   //prepare the total source
-  spincolor *source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  spincolor *source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   memset(source,0,loc_vol*sizeof(spincolor));
   if(rank==0) source[0][0][0][0]=1;
   set_borders_invalid(source);
   
   //allocate solution
-  spincolor *sol=nissa_malloc("sol",loc_vol+loc_bord,spincolor);
+  spincolor *sol=nissa_malloc("sol",loc_vol+bord_vol,spincolor);
   
   inv_tmQ2_cg_128(sol,NULL,conf,kappa,mass,10000,residue,source);
   
