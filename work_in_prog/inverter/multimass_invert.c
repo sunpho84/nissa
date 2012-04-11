@@ -24,7 +24,7 @@ int main(int narg,char **arg)
   double kappa;
   read_str_double("kappa",&(kappa));
   //Initialize the gauge configuration and read the path
-  quad_su3 *conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   char gauge_file[1024];
   read_str_str("GaugeConf",gauge_file,1024);
   //read the thetas in multiples of 2*pi
@@ -41,13 +41,13 @@ int main(int narg,char **arg)
   communicate_lx_quad_su3_borders(conf);
 
   //initialize the source
-  spincolor *source=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+  spincolor *source=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+bord_vol));
   spincolor *source_reco=(spincolor*)malloc(sizeof(spincolor)*loc_vol);
   
   //initialize solution
   spincolor *solution[nmass];
   
-  for(int imass=0;imass<nmass;imass++) solution[imass]=nissa_malloc("solution",loc_vol+loc_bord,spincolor);
+  for(int imass=0;imass<nmass;imass++) solution[imass]=nissa_malloc("solution",loc_vol+bord_vol,spincolor);
   
   double residue,minimal_residue;
   read_str_double("Residue",&residue);

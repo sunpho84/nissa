@@ -214,7 +214,7 @@ void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 ////////////////////////// gauge configuration writing /////////////////////////////
 
 //Write the local part of the gauge configuration
-void write_gauge_conf(char *path,quad_su3 *in)
+void write_ildg_gauge_conf(char *path,quad_su3 *in)
 {
   double twrite=-take_time();
   quad_su3 *temp=nissa_malloc("temp_gauge_writer",loc_vol,quad_su3);
@@ -257,4 +257,13 @@ void write_gauge_conf(char *path,quad_su3 *in)
   
   MPI_File_close(writer_file);
   nissa_free(writer_file);
+}
+
+//read an ildg conf and split it into e/o parts
+void paste_eo_parts_and_write_ildg_gauge_conf(char *path,quad_su3 **eo_conf)
+{
+  quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
+  paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
+  write_ildg_gauge_conf(path,lx_conf);
+  nissa_free(lx_conf);
 }

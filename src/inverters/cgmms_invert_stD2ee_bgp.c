@@ -14,10 +14,10 @@ void inv_stD2ee_cgmm2s(color **sol,quad_su3 **conf,double *m2,int nmass,int nite
   double final_res[nmass];
   double source_norm;
   
-  color *t=nissa_malloc("DD_temp",loc_volh+loc_bordh,color);
+  color *t=nissa_malloc("DD_temp",loc_volh+bord_volh,color);
   color *s=nissa_malloc("s",loc_volh,color);
   color *r=nissa_malloc("r",loc_volh,color);
-  color *p=nissa_malloc("p",loc_volh+loc_bordh,color);
+  color *p=nissa_malloc("p",loc_volh+bord_volh,color);
   color *ps[nmass];
   for(int imass=0;imass<nmass;imass++) ps[imass]=nissa_malloc("ps",loc_volh,color);
   

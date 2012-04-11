@@ -22,7 +22,7 @@ int main(int narg,char **arg)
   init_grid(T,L);
 
   //Initialize the gauge configuration and read the path
-  quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+loc_bord));
+  quad_su3 *conf=(quad_su3*)malloc(sizeof(quad_su3)*(loc_vol+bord_vol));
   char gauge_file[1024];
   read_str_str("GaugeConf",gauge_file,1024);
   
@@ -36,7 +36,7 @@ int main(int narg,char **arg)
   communicate_lx_quad_su3_borders(conf);
 
   //initialize and load the DD+ solution
-  spincolor *source=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+  spincolor *source=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+bord_vol));
   char source_file[1024];
   read_str_str("Source",source_file,1024);
   read_spincolor(source,source_file);
@@ -58,11 +58,11 @@ int main(int narg,char **arg)
   communicate_lx_spincolor_borders(source);
 
   //initialize solution0
-  spincolor *solutionG=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-  spincolor *solution0=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-  spincolor *solutionP=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-  spincolor *solutionM=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
-  spincolor *solution3=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+loc_bord));
+  spincolor *solutionG=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+bord_vol));
+  spincolor *solution0=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+bord_vol));
+  spincolor *solutionP=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+bord_vol));
+  spincolor *solutionM=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+bord_vol));
+  spincolor *solution3=(spincolor*)malloc(sizeof(spincolor)*(loc_vol+bord_vol));
 
   theta[0]=1;theta[1]=theta[2]=theta[3]=0;
   put_boundaries_conditions(conf,theta,1,0);
@@ -74,7 +74,7 @@ int main(int narg,char **arg)
   communicate_lx_quad_su3_borders(conf);
   inv_Q2_cg(solutionP,source,solution0,conf,kappa,m,nitermax,1,residue);
 
-  for(int ivol=0;ivol<loc_vol+loc_bord;ivol++)
+  for(int ivol=0;ivol<loc_vol+bord_vol;ivol++)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
@@ -85,7 +85,7 @@ int main(int narg,char **arg)
   communicate_lx_quad_su3_borders(conf);
   inv_Q2_cg(solutionM,source,solutionG,conf,kappa,m,nitermax,1,residue);
 
-  for(int ivol=0;ivol<loc_vol+loc_bord;ivol++)
+  for(int ivol=0;ivol<loc_vol+bord_vol;ivol++)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)

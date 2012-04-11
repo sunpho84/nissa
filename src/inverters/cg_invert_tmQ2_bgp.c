@@ -11,9 +11,9 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 
   int riter=0;
   spincolor *s=nissa_malloc("s in gc",loc_vol,spincolor);
-  spincolor *p=nissa_malloc("p in gc",loc_vol+loc_bord,spincolor);
+  spincolor *p=nissa_malloc("p in gc",loc_vol+bord_vol,spincolor);
   spincolor *r=nissa_malloc("r in gc",loc_vol,spincolor);
-  spincolor *t=nissa_malloc("t in gc",loc_vol+loc_bord,spincolor); //temporary for internal calculation of DD
+  spincolor *t=nissa_malloc("t in gc",loc_vol+bord_vol,spincolor); //temporary for internal calculation of DD
 
   if(guess==NULL) memset(sol,0,sizeof(spincolor)*loc_vol);
   else memcpy(sol,guess,sizeof(spincolor)*loc_vol);

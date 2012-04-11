@@ -35,7 +35,7 @@ void apply_stDoe(color *out,quad_su3 **conf,color *in)
 	out[io][ic][ri]*=0.5;
 }
 
-void apply_st2Deo(color *out,quad_su3 **conf,color *in)
+void apply_stDeo_quarter(color *out,quad_su3 **conf,color *in)
 {
   communicate_eo_quad_su3_borders(conf);
   communicate_od_color_borders(in);
@@ -56,6 +56,8 @@ void apply_st2Deo(color *out,quad_su3 **conf,color *in)
 	  su3_dag_summ_the_prod_color(out[ie],conf[ODD][oddw][mu],in[oddw]);
 	  su3_subt_the_prod_color(    out[ie],conf[EVN][ie  ][mu],in[odup]);
 	}
+      
+      color_prod_double(out[ie],out[ie],0.25);      
     }
   
   set_borders_invalid(out);
@@ -75,13 +77,13 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
   
   //perform the off diagonal multiplication
   apply_st2Doe(temp,conf,in);
-  apply_st2Deo(out,conf,temp);
+  apply_stDeo_quarter(out,conf,temp);
   
-  //put the 0.25 and summ
+  //summ the mass
   nissa_loc_volh_loop(ivol)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
-	out[ivol][ic][ri]=mass2*in[ivol][ic][ri]+0.25*out[ivol][ic][ri];
+	out[ivol][ic][ri]+=mass2*in[ivol][ic][ri];
   
   set_borders_invalid(out);
 }

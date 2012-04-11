@@ -215,17 +215,17 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
   int riter=0;
   int rniter=5;
   spincolor *guess=NULL;
-  spincolor *p=nissa_malloc("p",loc_vol+loc_bord,spincolor);
+  spincolor *p=nissa_malloc("p",loc_vol+bord_vol,spincolor);
   spincolor *r=nissa_malloc("r",loc_vol,spincolor);
   spincolor *s=nissa_malloc("s",loc_vol,spincolor);
   
   ///////////////// prepare the internal source /////////////////
   
-  if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
+  if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+bord_vol));
   else
     {
       communicate_lx_spincolor_borders(guess);
-      memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));
+      memcpy(sol,guess,sizeof(spincolor)*(loc_vol+bord_vol));
     }
 
   //external loop, used if the internal exceed the maximal number of iterations
@@ -391,7 +391,7 @@ void init(char *input_path,double *mu,double *kappa)
   //set_eo_geometry();
   
   //Initialize the gauge configuration and read the path
-  conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   char gauge_file[1024];
   read_str_str("GaugeConf",gauge_file,1024);
   
@@ -410,7 +410,7 @@ void init(char *input_path,double *mu,double *kappa)
   communicate_lx_quad_su3_borders(conf);
 
   //initialize source to delta
-  glb_source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  glb_source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   memset(glb_source,0,sizeof(spincolor)*loc_vol);
   if(rank==0)
     {
@@ -443,8 +443,8 @@ int main(int narg,char **arg)
   init(arg[1],&mu,&kappa);
 
   //initialize solution
-  spincolor *solution_direct=nissa_malloc("direct_sol",loc_vol+loc_bord,spincolor);
-  spincolor *solution_improved=nissa_malloc("direct_sol",loc_vol+loc_bord,spincolor);
+  spincolor *solution_direct=nissa_malloc("direct_sol",loc_vol+bord_vol,spincolor);
+  spincolor *solution_improved=nissa_malloc("direct_sol",loc_vol+bord_vol,spincolor);
   
   ///////////////////////////////////////////
   

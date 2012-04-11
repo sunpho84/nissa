@@ -4,12 +4,12 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 {
   int riter=0;
   spincolor *s=nissa_malloc("s",loc_vol,spincolor);
-  spincolor *p=nissa_malloc("p",loc_vol+loc_bord,spincolor);
+  spincolor *p=nissa_malloc("p",loc_vol+bord_vol,spincolor);
   spincolor *r=nissa_malloc("r",loc_vol,spincolor);
-  spincolor *t=nissa_malloc("t",loc_vol+loc_bord,spincolor); //temporary for internal calculation of DD
+  spincolor *t=nissa_malloc("t",loc_vol+bord_vol,spincolor); //temporary for internal calculation of DD
 
-  if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+loc_bord));
-  else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+loc_bord));
+  if(guess==NULL) memset(sol,0,sizeof(spincolor)*(loc_vol+bord_vol));
+  else memcpy(sol,guess,sizeof(spincolor)*(loc_vol+bord_vol));
   set_borders_invalid(sol);  
   
   //external loop, used if the internal exceed the maximal number of iterations

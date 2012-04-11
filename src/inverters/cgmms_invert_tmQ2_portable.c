@@ -10,10 +10,10 @@ void inv_tmQ2_cgmms_RL(spincolor **sol,quad_su3 *conf,double kappa,double *m,int
   double final_res[nmass];
   double source_norm;
   
-  spincolor *t=nissa_malloc("DD_temp",loc_vol+loc_bord,spincolor);
+  spincolor *t=nissa_malloc("DD_temp",loc_vol+bord_vol,spincolor);
   spincolor *s=nissa_malloc("s",loc_vol,spincolor);
   spincolor *r=nissa_malloc("r",loc_vol,spincolor);
-  spincolor *p=nissa_malloc("p",loc_vol+loc_bord,spincolor);
+  spincolor *p=nissa_malloc("p",loc_vol+bord_vol,spincolor);
   spincolor *ps[nmass];
   for(int imass=0;imass<nmass;imass++) ps[imass]=nissa_malloc("ps",loc_vol,spincolor);
   

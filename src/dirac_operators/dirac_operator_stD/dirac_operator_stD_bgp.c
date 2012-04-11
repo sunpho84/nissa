@@ -51,7 +51,7 @@ void apply_stDoe(color *out,quad_su3 **conf,color *in)
       }
 }
 
-void apply_st2Deo(color *out,quad_su3 **conf,color *in)
+void apply_stDeo_quarter(color *out,quad_su3 **conf,color *in)
 {
   bgp_complex A0,A1,A2;
   
@@ -81,6 +81,7 @@ void apply_st2Deo(color *out,quad_su3 **conf,color *in)
 	  bgp_su3_load(C0,C1,C2,D0,D1,D2,E0,E1,E2, conf[ODD][dw][mu]);
 	  bgp_summ_the_su3_dag_prod_color(R0,R1,R2, C0,C1,C2,D0,D1,D2,E0,E1,E2, A0,A1,A2);
 	}
+      bgp_color_prod_double(R0,R1,R2, R0,R1,R2, 0.25);
       
       bgp_color_save(out[isink], R0,R1,R2);
     }
@@ -102,13 +103,13 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
   
   //perform the off diagonal multiplication
   apply_st2Doe(temp,conf,in);
-  apply_st2Deo(out,conf,temp);
+  apply_stDeo_quarter(out,conf,temp);
   
-  //put the 0.25 and summ
+  //summ the mass
   nissa_loc_volh_loop(ivol)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
-	out[ivol][ic][ri]=mass2*in[ivol][ic][ri]+0.25*out[ivol][ic][ri];
+	out[ivol][ic][ri]+=mass2*in[ivol][ic][ri];
   
   set_borders_invalid(out);
 }

@@ -168,7 +168,7 @@ void initialize_bubbles(char *input_path)
   
   //reading of gauge conf and computation of Pmunu
   read_str_str("GaugeConf",gaugeconf_file,1024);
-  conf=nissa_malloc("conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   read_ildg_gauge_conf(conf,gaugeconf_file);
 
   //calculate plaquette, Pmunu
@@ -177,8 +177,8 @@ void initialize_bubbles(char *input_path)
   Pmunu_term(Pmunu,conf);
   
   //allocate the source and the chromo-prop
-  source=nissa_malloc("source",loc_vol+loc_bord,colorspinspin);
-  inv_source=nissa_malloc("inv_source",loc_vol+loc_bord,spincolor);
+  source=nissa_malloc("source",loc_vol+bord_vol,colorspinspin);
+  inv_source=nissa_malloc("inv_source",loc_vol+bord_vol,spincolor);
   ch_prop=nissa_malloc("chromo-prop",loc_vol,colorspinspin);
   for(int idir=0;idir<3;idir++) edm_prop[idir]=nissa_malloc("edm_prop",loc_vol,colorspinspin);
   for(int r=0;r<2;r++) temp_vec[r]=nissa_malloc("temp_vec",loc_vol,spincolor);
@@ -212,7 +212,7 @@ void initialize_bubbles(char *input_path)
     {
       S[imass]=nissa_malloc("S[imass]",2,colorspinspin*);
       for(int r=0;r<2;r++) S[imass][r]=nissa_malloc("S",loc_vol,colorspinspin);
-      QQ[imass]=nissa_malloc("QQ[i]",loc_vol+loc_bord,spincolor);
+      QQ[imass]=nissa_malloc("QQ[i]",loc_vol+bord_vol,spincolor);
       read_double(&(mass[imass]));
     }
     

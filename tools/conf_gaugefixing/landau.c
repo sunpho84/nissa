@@ -27,8 +27,8 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////////
   
-  quad_su3 *conf=nissa_malloc("Conf",loc_vol+loc_bord,quad_su3);
-  quad_su3 *fix_conf=nissa_malloc("Conf2",loc_vol+loc_bord,quad_su3);
+  quad_su3 *conf=nissa_malloc("Conf",loc_vol+bord_vol,quad_su3);
+  quad_su3 *fix_conf=nissa_malloc("Conf2",loc_vol+bord_vol,quad_su3);
   
   read_ildg_gauge_conf(conf,conf_in_path);
   communicate_lx_quad_su3_borders(conf);

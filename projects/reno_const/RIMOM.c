@@ -202,8 +202,8 @@ void initialize_Zcomputation(char *input_path)
   ///////////////////////////////// end of input reading/////////////////////////////////
   
   //allocate gauge conf and all the needed spincolor and su3spinspin
-  conf=nissa_malloc("or_conf",loc_vol+loc_bord,quad_su3);
-  unfix_conf=nissa_malloc("unfix_conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("or_conf",loc_vol+bord_vol,quad_su3);
+  unfix_conf=nissa_malloc("unfix_conf",loc_vol+bord_vol,quad_su3);
   
   //Allocate all the S0 su3spinspin vectors
   npropS0=nmass;
@@ -237,7 +237,7 @@ void load_gauge_conf()
     {
       char temp[1024];
       sprintf(temp,"%s/fixed_conf",outfolder);
-      write_gauge_conf(temp,conf);
+      write_ildg_gauge_conf(temp,conf);
     }    
   
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));

@@ -116,12 +116,12 @@ double find_min_eigen(quad_su3 *conf,double kappa,spincolor *source,double mu,do
 {
   double eig_max;
   
-  spincolor *source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  spincolor *source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   generate_undiluted_source(source,RND_Z4,-1);
   vol_spincolor_normalize(source,source);
   
-  spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);
-  spincolor *result=nissa_malloc("result",loc_vol+loc_bord,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+  spincolor *result=nissa_malloc("result",loc_vol+bord_vol,spincolor);
   
   int niter=0;
   double diff=precision;
@@ -170,8 +170,8 @@ int main(int narg,char **arg)
 
   init_program(arg[1]);
 
-  spincolor *eigenvect=nissa_malloc("EigenVect",loc_vol+loc_bord,spincolor);
-  spincolor *source=nissa_malloc("Source",loc_vol+loc_bord,spincolor);
+  spincolor *eigenvect=nissa_malloc("EigenVect",loc_vol+bord_vol,spincolor);
+  spincolor *source=nissa_malloc("Source",loc_vol+bord_vol,spincolor);
   
   ///////////////////////////////////////////
   

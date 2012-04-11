@@ -8,11 +8,11 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **co
   int niter=nitermax;
   int riter=0;
   int rniter=5;
-  spincolor *p=nissa_malloc("p",loc_volh+loc_bordh,spincolor);
+  spincolor *p=nissa_malloc("p",loc_volh+bord_volh,spincolor);
   spincolor *r=nissa_malloc("r",loc_volh,spincolor);
   spincolor *s=nissa_malloc("s",loc_volh,spincolor);
-  spincolor *temp1=nissa_malloc("temp1",loc_volh+loc_bordh,spincolor);
-  spincolor *temp2=nissa_malloc("temp2",loc_volh+loc_bordh,spincolor);
+  spincolor *temp1=nissa_malloc("temp1",loc_volh+bord_volh,spincolor);
+  spincolor *temp2=nissa_malloc("temp2",loc_volh+bord_volh,spincolor);
   
   ///////////////// prepare the internal source /////////////////
   
@@ -134,27 +134,27 @@ void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 
 {
   //prepare the e/o split version of the source
   spincolor *source_eos[2];
-  source_eos[0]=nissa_malloc("source_eos0",loc_volh+loc_bordh,spincolor);
-  source_eos[1]=nissa_malloc("source_eos1",loc_volh+loc_bordh,spincolor);
+  source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spincolor);
+  source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spincolor);
   split_lx_spincolor_into_eo_parts(source_eos,source_lx);
   
   //prepare the e/o split version of the solution
   spincolor *solution_eos[2];
-  solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+loc_bordh,spincolor);
-  solution_eos[1]=nissa_malloc("solution_eos_0",loc_volh+loc_bordh,spincolor);
+  solution_eos[0]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
+  solution_eos[1]=nissa_malloc("solution_eos_0",loc_volh+bord_volh,spincolor);
   
   //prepare the e/o split version of the conf
   quad_su3 *conf_eos[2];
-  conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+loc_bordh,quad_su3);
-  conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+loc_bordh,quad_su3);
+  conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+bord_volh,quad_su3);
+  conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+bord_volh,quad_su3);
   split_lx_conf_into_eo_parts(conf_eos,conf_lx);
   
   ///////////////////////////////////// invert with e/o improvement ///////////////////////////////////
   
-  spincolor *varphi=nissa_malloc("varphi",loc_volh+loc_bordh,spincolor);
+  spincolor *varphi=nissa_malloc("varphi",loc_volh+bord_volh,spincolor);
   
   //Equation (8.a)
-  spincolor *temp=nissa_malloc("temp",loc_volh+loc_bordh,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
   inv_tmDee_or_oo_eos(temp,kappa,mu,source_eos[EVN]);
   
   //Equation (8.b)

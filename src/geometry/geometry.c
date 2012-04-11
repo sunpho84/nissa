@@ -9,7 +9,7 @@ void swap_lx_to_eo_or_eo_to_lx(char *vect_e,char *vect_o,char *vect_lx,int nbyte
   int tot_site=loc_vol;
   char *vect_eo[2]={vect_e,vect_o};
 
-  if(bord) tot_site+=loc_bord;
+  if(bord) tot_site+=bord_vol;
 
   for(int loclx=0;loclx<tot_site;loclx++)
     {

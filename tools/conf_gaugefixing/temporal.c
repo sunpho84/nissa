@@ -28,14 +28,14 @@ int main(int narg,char **arg)
 
   ///////////////////////////////////////////
 
-  quad_su3 *conf=nissa_malloc("Conf",loc_vol+loc_bord,quad_su3);
+  quad_su3 *conf=nissa_malloc("Conf",loc_vol+bord_vol,quad_su3);
   read_ildg_gauge_conf(conf,filename);  
   communicate_lx_quad_su3_borders(conf);
   
-  su3 *fixm=nissa_malloc("fixm",loc_vol+loc_bord,su3);
+  su3 *fixm=nissa_malloc("fixm",loc_vol+bord_vol,su3);
   find_temporal_gauge_fixing_matr(fixm,conf);
 
-  quad_su3 *fixed_conf=nissa_malloc("FixedConf",loc_vol+loc_bord,quad_su3);
+  quad_su3 *fixed_conf=nissa_malloc("FixedConf",loc_vol+bord_vol,quad_su3);
   gauge_transform_conf(fixed_conf,fixm,conf);
   communicate_lx_quad_su3_borders(fixed_conf);
   

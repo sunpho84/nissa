@@ -105,9 +105,9 @@ void set_lx_geometry()
   memcpy(rank_neigh[1],rank_neighup,sizeof(coords));
 
   loc_coord_of_loclx=nissa_malloc("loc_coord_of_loclx",loc_vol,coords);
-  glb_coord_of_loclx=nissa_malloc("glb_coord_of_loclx",loc_vol+loc_bord+loc_edge,coords);
-  loclx_neigh[0]=loclx_neighdw=nissa_malloc("loclx_neighdw",loc_vol+loc_bord,coords);
-  loclx_neigh[1]=loclx_neighup=nissa_malloc("loclx_neighup",loc_vol+loc_bord,coords);  
+  glb_coord_of_loclx=nissa_malloc("glb_coord_of_loclx",loc_vol+bord_vol+edge_vol,coords);
+  loclx_neigh[0]=loclx_neighdw=nissa_malloc("loclx_neighdw",loc_vol+bord_vol,coords);
+  loclx_neigh[1]=loclx_neighup=nissa_malloc("loclx_neighup",loc_vol+bord_vol,coords);  
   ignore_borders_communications_warning(loc_coord_of_loclx);
   ignore_borders_communications_warning(glb_coord_of_loclx);
   ignore_borders_communications_warning(loclx_neighup);
@@ -117,12 +117,12 @@ void set_lx_geometry()
   glblx_of_loclx=nissa_malloc("glblx_of_loclx",loc_vol,int);
       
   //borders
-  glblx_of_bordlx=nissa_malloc("glblx_of_bordlx",loc_bord,int);
-  loclx_of_bordlx=nissa_malloc("loclx_of_bordlx",loc_bord,int);
-  dir_of_bord=nissa_malloc("dir_of_bord",loc_bord,int);
+  glblx_of_bordlx=nissa_malloc("glblx_of_bordlx",bord_vol,int);
+  loclx_of_bordlx=nissa_malloc("loclx_of_bordlx",bord_vol,int);
+  dir_of_bord=nissa_malloc("dir_of_bord",bord_vol,int);
       
   //edges
-  glblx_of_edgelx=nissa_malloc("glblx_of_edgelx",loc_edge,int);
+  glblx_of_edgelx=nissa_malloc("glblx_of_edgelx",edge_vol,int);
   
   //Label the sites
   coords x,gx={0,0,0,0};
@@ -207,7 +207,7 @@ void set_lx_geometry()
 		      {
 			int raw_iedge=edge_offset[edge_numb[mu][nu]]+edgelx_of_coord(x,mu,nu);
 			//put the value of the neighbour
-			int iedge=loc_vol+loc_bord+raw_iedge;
+			int iedge=loc_vol+bord_vol+raw_iedge;
 			loclx_neighdw[ibord][nu]=iedge;
 			//number the elements of the edge
 			gx[mu]=(gx[mu]-1+glb_size[mu])%glb_size[mu];
@@ -229,10 +229,10 @@ void set_lx_geometry()
 		    else
 		      {
 			int raw_iedge=edge_offset[edge_numb[mu][nu]]+edgelx_of_coord(x,mu,nu);
-			if(mu<nu) raw_iedge+=loc_edge/4; //edge mu-nu+
-			else raw_iedge+=loc_edge/2; //edge nu+mu-
+			if(mu<nu) raw_iedge+=edge_vol/4; //edge mu-nu+
+			else raw_iedge+=edge_vol/2; //edge nu+mu-
 			//put the value of the neighbour
-			int iedge=loc_vol+loc_bord+raw_iedge;
+			int iedge=loc_vol+bord_vol+raw_iedge;
 			loclx_neighup[ibord][nu]=iedge;
 			//number the elements of the edge
 			gx[mu]=(gx[mu]-1+glb_size[mu])%glb_size[mu];
@@ -255,7 +255,7 @@ void set_lx_geometry()
 	    }
 	  else //border
 	    {
-	      int raw_ibord=loc_bord/2+bordlx_of_coord(x,mu)+bord_offset[mu];
+	      int raw_ibord=bord_vol/2+bordlx_of_coord(x,mu)+bord_offset[mu];
 	      int ibord=loc_vol+raw_ibord;
 	      loclx_neighup[ivol][mu]=ibord;
 	      loclx_neighdw[ibord][mu]=ivol;
@@ -280,17 +280,17 @@ void set_lx_geometry()
 		      {
 			int temp_xdir=x[nu];
 			x[nu]=(x[nu]+loc_size[nu]-1)%loc_size[nu];
-			int ibord2=loc_vol+bord_offset[mu]+loc_bord/2+bordlx_of_coord(x,mu);
+			int ibord2=loc_vol+bord_offset[mu]+bord_vol/2+bordlx_of_coord(x,mu);
 			x[nu]=temp_xdir;
 			loclx_neighdw[ibord][nu]=ibord2;
 		      }
 		    else //edge
 		      {
 			int raw_iedge=edge_offset[edge_numb[mu][nu]]+edgelx_of_coord(x,mu,nu);
-			if(mu<nu) raw_iedge+=loc_edge/2; //edge mu-nu+
-			else raw_iedge+=loc_edge/4; //edge nu+mu-
+			if(mu<nu) raw_iedge+=edge_vol/2; //edge mu-nu+
+			else raw_iedge+=edge_vol/4; //edge nu+mu-
 			//put the value of the neighbour
-			int iedge=loc_vol+loc_bord+raw_iedge;
+			int iedge=loc_vol+bord_vol+raw_iedge;
 			loclx_neighdw[ibord][nu]=iedge;
 			//number the elements of the edge
 			gx[mu]=(gx[mu]+1+glb_size[mu])%glb_size[mu];
@@ -305,15 +305,15 @@ void set_lx_geometry()
 		      {
 			int temp_xdir=x[nu];
 			x[nu]=(x[nu]+1)%loc_size[nu];
-			int ibord2=loc_vol+bord_offset[mu]+loc_bord/2+bordlx_of_coord(x,mu);
+			int ibord2=loc_vol+bord_offset[mu]+bord_vol/2+bordlx_of_coord(x,mu);
 			x[nu]=temp_xdir;
 			loclx_neighup[ibord][nu]=ibord2;
 		      }
 		    else //edge
 		      {
-			int raw_iedge=edge_offset[edge_numb[mu][nu]]+3*loc_edge/4+edgelx_of_coord(x,mu,nu);
+			int raw_iedge=edge_offset[edge_numb[mu][nu]]+3*edge_vol/4+edgelx_of_coord(x,mu,nu);
 			//put the value of the neighbour
-			int iedge=loc_vol+loc_bord+raw_iedge;
+			int iedge=loc_vol+bord_vol+raw_iedge;
 			loclx_neighup[ibord][nu]=iedge;
 			//number the elements of the edge
 			gx[mu]=(gx[mu]+1+glb_size[mu])%glb_size[mu];
@@ -333,7 +333,7 @@ void set_lx_geometry()
     if(paral_dir[mu]!=0)
       {
 	start_lx_bord_send_up[mu]=loclx_of_coord_list(0,0,0,0);
-	start_lx_bord_rece_up[mu]=(loc_vol+bord_offset[mu]+loc_bord/2);
+	start_lx_bord_rece_up[mu]=(loc_vol+bord_offset[mu]+bord_vol/2);
 	coords x;
 	for(int nu=0;nu<4;nu++)
 	  if(nu==mu) x[nu]=loc_size[mu]-1;

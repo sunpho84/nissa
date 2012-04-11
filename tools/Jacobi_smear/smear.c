@@ -33,16 +33,16 @@ int main(int narg,char **arg)
   
   //allocate and read conf
   read_str_str("GaugeConf",filename,1024);
-  quad_su3 *orig_conf=nissa_malloc("Ori_Conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *orig_conf=nissa_malloc("Ori_Conf",loc_vol+bord_vol+edge_vol,quad_su3);
   read_ildg_gauge_conf(orig_conf,filename);
   
   //smear the conf
-  quad_su3 *smea_conf=nissa_malloc("Smea_Conf",loc_vol+loc_bord+loc_edge,quad_su3);
+  quad_su3 *smea_conf=nissa_malloc("Smea_Conf",loc_vol+bord_vol+edge_vol,quad_su3);
   ape_spatial_smear_conf(smea_conf,orig_conf,ape_alpha,ape_niters);
   master_printf("gauge conf smeared\n");
   
   //allocate and generate the source
-  spincolor *sp=nissa_malloc("orig_spincolor",loc_vol+loc_bord,spincolor);
+  spincolor *sp=nissa_malloc("orig_spincolor",loc_vol+bord_vol,spincolor);
   memset(sp,0,sizeof(spincolor)*loc_vol);
 
   //put the source

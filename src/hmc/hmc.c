@@ -13,4 +13,5 @@
 #include "rootst_eoimpr/rootst_eoimpr_omelyan_integrator.c"
 #include "rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.c"
 #include "rootst_eoimpr/rootst_eoimpr_action.c"
+#include "rootst_eoimpr/rootst_eoimpr_rhmc_step.c"
 

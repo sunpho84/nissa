@@ -76,7 +76,7 @@ double contr_2pts_time=0;
 //smear a colorspinspin
 void smear_colorspinspin(colorspinspin *out,colorspinspin *in)
 {
-  spincolor *temp=nissa_malloc("temp",loc_vol+loc_bord,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   
   for(int id=0;id<4;id++)
     {
@@ -256,15 +256,15 @@ void initialize_semileptonic(char *input_path)
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
   //allocate gauge conf, Pmunu and all the needed spincolor and colorspinspin
-  conf=nissa_malloc("or_conf",loc_vol+loc_bord+loc_edge,quad_su3);
-  sme_conf=nissa_malloc("sm_conf",loc_vol+loc_bord,quad_su3);
+  conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol,quad_su3);
 
   //Allocate all the S0 colorspinspin vectors
   S0L=nissa_malloc("S0L",loc_vol,colorspinspin);
   S0C=nissa_malloc("S0C",loc_vol,colorspinspin);
   
   //Allocate one spincolor for the source
-  source=nissa_malloc("source",loc_vol+loc_bord,spincolor);
+  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
   original_source=nissa_malloc("original_source",loc_vol,colorspinspin);
 
   //Allocate all the S1 colorspinspin vectors
