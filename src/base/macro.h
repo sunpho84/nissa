@@ -21,9 +21,6 @@
 //sqrt(2)
 #define RAD2 1.414213562373095048801688724209l
 
-//level of debug
-#define debug_lvl 1
-
 //wrapper to the internal routines
 #define nissa_malloc(a,b,c) internal_nissa_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
 #define nissa_free(a) a=internal_nissa_free(a,__FILE__,__LINE__)
@@ -31,6 +28,11 @@
 #define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
 
 #define master_printf(...) master_fprintf(stdout,__VA_ARGS__)
+#define verbosity_master_printf(lv,...) if(nissa_verbosity>=lv) master_printf(__VA_ARGS__)
+#define verbosity_lv1_master_printf(...) verbosity_master_printf(1,__VA_ARGS__)
+#define verbosity_lv2_master_printf(...) verbosity_master_printf(2,__VA_ARGS__)
+#define verbosity_lv3_master_printf(...) verbosity_master_printf(3,__VA_ARGS__)
+
 #define if_nissa_vect_not_initialized() if(main_nissa_arr!=((char*)&main_nissa_vect)+sizeof(nissa_vect))
 
 //loops

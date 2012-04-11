@@ -182,7 +182,7 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
   last_nissa_vect->next=new;
   last_nissa_vect=new;
   
-  if(debug_lvl>1)
+  if(nissa_verbosity>=3)
     {
       master_printf("Allocated vector ");
       nissa_vect_content_printf(last_nissa_vect);
@@ -214,7 +214,7 @@ void* internal_nissa_free(void *arr,const char *file,int line)
       nissa_vect *prev=vect->prev;
       nissa_vect *next=vect->next;
       
-      if(debug_lvl>1)
+      if(nissa_verbosity>=3)
 	{
 	  master_printf("At line %d of file %s freeing vector ",line,file);
 	  nissa_vect_content_printf(vect);

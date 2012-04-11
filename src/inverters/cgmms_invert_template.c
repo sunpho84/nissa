@@ -69,13 +69,13 @@ int cgmm2s_check_residue(int *run_flag,double *residue_mass,int nrun,double rr,d
 	  }
       } 
   
-  if((iter%each==0) && (nissa_inverter_verbosity>=2))
+  if(iter%each==0)
     {    
-      master_printf(" cgmms iter %d rel. residues: ",iter);
+      verbosity_lv2_master_printf(" cgmms iter %d rel. residues: ",iter);
       for(int imass=0;imass<nmass;imass++)
 	if(run_flag[imass])
-	  master_printf("%1.4e  ",residue_mass[imass]);
-      master_printf("\n");
+	  verbosity_lv2_master_printf("%1.4e  ",residue_mass[imass]);
+      verbosity_lv2_master_printf("\n");
     }
   
   return nrun;
@@ -243,16 +243,13 @@ void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter
   
   //writes source norm
   double source_norm=rr;
-  if(nissa_inverter_verbosity>=2) master_printf(" Source norm: %lg\n",source_norm);
+  verbosity_lv2_master_printf(" Source norm: %lg\n",source_norm);
   if(source_norm==0 || isnan(source_norm)) crash("invalid norm: %lg",source_norm);
   
   //writes initial resiude
-  if(nissa_inverter_verbosity>=2)
-    {
-      master_printf(" cgmms iter 0 rel. residues: ");
-      for(int imass=0;imass<nmass;imass++) master_printf("%1.4e  ",1.0);
-      master_printf("\n");
-    }
+  verbosity_lv2_master_printf(" cgmms iter 0 rel. residues: ");
+  for(int imass=0;imass<nmass;imass++) verbosity_lv2_master_printf("%1.4e  ",1.0);
+  verbosity_lv2_master_printf("\n");
   
   //     -betaa=1
   double betaa=1;
@@ -360,11 +357,11 @@ void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter
 	w_res=w_res/weight*ndoubles_per_site*bulk_vol*rank_tot;
 	max_res*=ndoubles_per_site*bulk_vol*rank_tot;
 	
-	if(nissa_inverter_verbosity>=1) master_printf(" imass %d, rel residue true=%g approx=%g weighted=%g max=%g\n",imass,res/source_norm,final_res[imass],w_res,max_res);
+	verbosity_lv1_master_printf(" imass %d, rel residue true=%g approx=%g weighted=%g max=%g\n",imass,res/source_norm,final_res[imass],w_res,max_res);
       }
     }  
   
-  if(nissa_inverter_verbosity>=1) master_printf(" Total cgmms iterations: %d\n",iter);
+  verbosity_lv1_master_printf(" Total cgmms iterations: %d\n",iter);
   
   for(int imass=0;imass<nmass;imass++) nissa_free(ps[imass]);
   nissa_free(s);

@@ -7,11 +7,11 @@ void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alp
   quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
   
-  if(debug_lvl) master_printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
+  verbosity_lv1_master_printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
       
   for(int istep=0;istep<nstep;istep++)
     {
-      if(debug_lvl>1) master_printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
+      verbosity_lv3_master_printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
       memcpy(temp_conf,smear_conf,sizeof(quad_su3)*loc_vol);
       set_borders_invalid(temp_conf);
     
@@ -28,7 +28,7 @@ void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alp
 	      for(int nu=1;nu<4;nu++)                   //  E---F---C   
 		if(nu!=mu)                              //  |   |   | mu
 		  {                                     //  D---A---B   
-		    int A=ivol;                     //        nu    
+		    int A=ivol;                         //   nu    
 		    int B=loclx_neighup[A][nu];
 		    int F=loclx_neighup[A][mu];
 		    unsafe_su3_prod_su3(temp1,temp_conf[A][nu],temp_conf[B][mu]);
@@ -51,7 +51,6 @@ void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alp
 		    prop_link[icol1][icol2][ri]=temp_conf[ivol][mu][icol1][icol2][ri]+alpha*stap[icol1][icol2][ri];
 	      
 	      su3_unitarize_maximal_trace_projecting(smear_conf[ivol][mu],prop_link);
-	      //su3_unitarize_explicitly_inverting(smear_conf[ivol][mu],prop_link);
 	    }
 	}
     }
@@ -203,7 +202,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 {
   if(niter<1)
     {
-      if(debug_lvl>1) master_printf("Skipping smearing (0 iter required)\n");
+      verbosity_lv2_master_printf("Skipping smearing (0 iter required)\n");
       if(smear_sc!=origi_sc) memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
     }
   else
@@ -213,7 +212,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       double norm_fact=1/(1+6*kappa);
       communicate_lx_quad_su3_borders(conf);
 
-      if(debug_lvl>1) master_printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
+      verbosity_lv2_master_printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
       
       //iter 0
       memcpy(temp,origi_sc,sizeof(spincolor)*loc_vol);
@@ -222,7 +221,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       //loop over jacobi iterations
       for(int iter=0;iter<niter;iter++)
 	{
-	  if(debug_lvl>1) master_printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
+	  verbosity_lv2_master_printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
 	  
 	  //apply kappa*H
 	  smearing_apply_kappa_H(H,kappa,conf,temp);

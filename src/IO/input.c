@@ -51,11 +51,8 @@ int dir_exists(char *path)
     {
       exists=(stat(path,&st)==0);
 
-      if(debug_lvl>1)
-	{
-	  if(exists) master_printf("Directory \"%s\" is present\n",path);
-	  else master_printf("Directory \"%s\" is not present\n",path);
-	}
+      if(exists) verbosity_lv2_master_printf("Directory \"%s\" is present\n",path);
+      else verbosity_lv2_master_printf("Directory \"%s\" is not present\n",path);
     }
   
   MPI_Bcast(&exists,1,MPI_INT,0,MPI_COMM_WORLD);
@@ -70,7 +67,7 @@ void open_input(char *input_path)
       input_global=fopen(input_path,"r");
       if(input_global==NULL) crash("File '%s' not found",input_path);
       
-      if(debug_lvl) printf("File '%s' opened\n",input_path);
+      verbosity_lv1_master_printf("File '%s' opened\n",input_path);
     }	
 }
 
@@ -116,7 +113,7 @@ void read_str_int(const char *exp_str,int *in)
   expect_str(exp_str);
   read_int(in);
 
-  if(rank==0 && debug_lvl) printf("Read variable '%s' with value: %d\n",exp_str,(*in));
+  verbosity_lv1_master_printf("Read variable '%s' with value: %d\n",exp_str,(*in));
 }
 
 //Read a double checking the tag
@@ -125,7 +122,7 @@ void read_str_double(const char *exp_str,double *in)
   expect_str(exp_str);
   read_double(in);
 
-  if(rank==0 && debug_lvl) printf("Read variable '%s' with value: %g\n",exp_str,(*in));
+  verbosity_lv1_master_printf("Read variable '%s' with value: %g\n",exp_str,(*in));
 }
 
 //Read a string checking the tag
@@ -134,7 +131,7 @@ void read_str_str(const char *exp_str,char *in,int length)
   expect_str(exp_str);
   read_str(in,length);
 
-  if(rank==0 && debug_lvl) printf("Read variable '%s' with value: %s\n",exp_str,in);
+  verbosity_lv1_master_printf("Read variable '%s' with value: %s\n",exp_str,in);
 }
 
 //Read a list of double and its length, allocate the list
@@ -153,22 +150,18 @@ void read_list_of_var(char *tag,int *nentries,char **list,int size_of_el,const c
 void read_list_of_doubles(char *tag,int *nentries,double **list)
 {
   read_list_of_var(tag,nentries,(char**)list,sizeof(double),"%lg");
-  if(rank==0)
-    {
-      printf("List of %s:\t",tag);
-      for(int ientr=0;ientr<(*nentries);ientr++) printf("%lg\t",(*list)[ientr]);
-      printf("\n");
-    }
+  
+  master_printf("List of %s:\t",tag);
+  for(int ientr=0;ientr<(*nentries);ientr++) master_printf("%lg\t",(*list)[ientr]);
+  master_printf("\n");
 }
 
 //read a list of int
 void read_list_of_ints(char *tag,int *nentries,int **list)
 {
   read_list_of_var(tag,nentries,(char**)list,sizeof(int),"%d");
-  if(rank==0)
-    {
-      printf("List of %s:\t",tag);
-      for(int ientr=0;ientr<(*nentries);ientr++) printf("%d\t",(*list)[ientr]);
-      printf("\n");
-    }
+  
+  master_printf("List of %s:\t",tag);
+  for(int ientr=0;ientr<(*nentries);ientr++) master_printf("%d\t",(*list)[ientr]);
+  master_printf("\n");
 }

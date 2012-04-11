@@ -306,22 +306,17 @@ void init_grid(int T,int L)
   edge_vol*=4;
   
   //print information
-  if(rank==0)
-    {
-      printf("Local volume\t%dx%dx%dx%d = %d\n",loc_size[0],loc_size[1],loc_size[2],loc_size[3],loc_vol);
-      printf("Parallelized dirs: t=%d x=%d y=%d z=%d\n",paral_dir[0],paral_dir[1],paral_dir[2],paral_dir[3]);
-      printf("Border size: %d\n",bord_vol);
-      printf("Edge size: %d\n",edge_vol);
-      if(debug_lvl>2) 
-	for(int idir=0;idir<4;idir++)
-	  printf("Border offset for dir %d: %d\n",idir,bord_offset[idir]);
-      if(debug_lvl>2)
-	for(iedge=0;iedge<6;iedge++)
-	  printf("Border offset for edge %d: %d\n",iedge,edge_offset[iedge]);
-    }
+  master_printf("Local volume\t%dx%dx%dx%d = %d\n",loc_size[0],loc_size[1],loc_size[2],loc_size[3],loc_vol);
+  master_printf("Parallelized dirs: t=%d x=%d y=%d z=%d\n",paral_dir[0],paral_dir[1],paral_dir[2],paral_dir[3]);
+  master_printf("Border size: %d\n",bord_vol);
+  master_printf("Edge size: %d\n",edge_vol);
+  for(int idir=0;idir<4;idir++)
+    verbosity_lv3_master_printf("Border offset for dir %d: %d\n",idir,bord_offset[idir]);
+  for(iedge=0;iedge<6;iedge++)
+    verbosity_lv3_master_printf("Border offset for edge %d: %d\n",iedge,edge_offset[iedge]);
   
   //print orderd list of the processor names
-  if(debug_lvl>2)
+  if(nissa_verbosity>=3)
     {
       char proc_name[1024];
       int proc_name_length;
