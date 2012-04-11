@@ -54,7 +54,7 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
   
   for(int icontr=0;icontr<ncontr;icontr++) 
     {
-      if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
+      verbosity_lv3_master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       nissa_loc_vol_loop(ivol)
@@ -71,9 +71,9 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
     }
   
   //Final reduction
-  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1) master_printf("Reduction done\n");
+  verbosity_lv3_master_printf("Reduction done\n");
   
   nissa_free(loc_c);
 }
@@ -101,17 +101,14 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
   for(int icontr=0;icontr<ncontr && use_buf==0;icontr++) use_buf=(glb_c[icontr]!=glb_c_buf+icontr*glb_size[0]);
   if(use_buf)
     {
-      if(debug_lvl>1)
-        {
-          master_printf("Creating a temporary buffer for the contractions.\n");
-          master_printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
-        }
+      verbosity_lv2_master_printf("Creating a temporary buffer for the contractions.\n");
+      verbosity_lv2_master_printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
       glb_c_buf=nissa_malloc("glb_c_buf",ncontr*glb_size[0],complex);
     }
 
   for(int icontr=0;icontr<ncontr;icontr++)
     {
-      if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
+      verbosity_lv3_master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       nissa_loc_vol_loop(ivol)
@@ -138,9 +135,9 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
     }
 
   //Finale reduction
-  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c_buf,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1) master_printf("Reduction done\n");
+  verbosity_lv3_master_printf("Reduction done\n");
   
   //if a temporary buffer has been used, destory it after copyng data to the true one
   if(use_buf)
@@ -171,17 +168,14 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
   for(int icontr=0;icontr<ncontr && use_buf==0;icontr++) use_buf=(glb_c[icontr]!=glb_c_buf+icontr*glb_size[0]);
   if(use_buf)
     {
-      if(debug_lvl>1)
-        {
-          master_printf("Creating a temporary buffer for the contractions.\n");
-          master_printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
-        }
+      verbosity_lv1_master_printf("Creating a temporary buffer for the contractions.\n");
+      verbosity_lv1_master_printf("Avoid it passing a 'glb_c' pointing to a contiguos memory area\n");
       glb_c_buf=nissa_malloc("glb_c_buf",ncontr*glb_size[0],complex);
     }
 
   for(int icontr=0;icontr<ncontr;icontr++)
     {
-      if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
+      verbosity_lv3_master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       nissa_loc_vol_loop(ivol)
@@ -200,9 +194,9 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
     }
 
   //Final reduction
-  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c_buf,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1) master_printf("Reduction done\n");
+  verbosity_lv3_master_printf("Reduction done\n");
 
   //if a temporary buffer has been used, destory it after copyng data to the true one
   if(use_buf)
@@ -250,9 +244,9 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
     }
 
   //Final reduction
-  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1) master_printf("Reduction done\n");
+  verbosity_lv3_master_printf("Reduction done\n");
   
   nissa_free(loc_c);
 }
@@ -267,7 +261,7 @@ void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g1,su3spinspin *s1,dirac
   
   for(int icontr=0;icontr<ncontr;icontr++) 
     {
-      if(debug_lvl>1) master_printf("Contraction %d/%d\n",icontr+1,ncontr);
+      verbosity_lv3_master_printf("Contraction %d/%d\n",icontr+1,ncontr);
 
       //Local loop
       nissa_loc_vol_loop(ivol)
@@ -281,9 +275,9 @@ void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g1,su3spinspin *s1,dirac
     }
   
   //Final reduction
-  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1) master_printf("Reduction done\n");
+  verbosity_lv3_master_printf("Reduction done\n");
   
   nissa_free(loc_c);
 }
@@ -328,9 +322,9 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
     }
   
   //Final reduction
-  if(debug_lvl>1) master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  if(debug_lvl>1) master_printf("Reduction done\n");
+  verbosity_lv3_master_printf("Reduction done\n");
   
   nissa_free(loc_c);
 }

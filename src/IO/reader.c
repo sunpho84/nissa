@@ -55,7 +55,7 @@ int nissa_reader_search_record(nissa_reader *reader,const char *expected_record)
     {
       char *header=lemonReaderType(reader->lemon_reader);
 
-      if(debug_lvl>1) master_printf("found record: %s\n",header);
+      verbosity_lv3_master_printf("found record: %s\n",header);
       if(strcmp(expected_record,header)==0) found=1;
     }
   
@@ -326,19 +326,15 @@ void finalize_reading_gauge_conf(quad_su3 *conf,nissa_reader *reader)
 int read_binary_blob(void *out,char *path,const char *expected_record,int nmax_bytes_per_site)
 {
   //Take inital time
-  double time=(debug_lvl>1) ? -take_time() : 0;
+  double start_time=take_time();
   
   nissa_reader *reader=nissa_reader_start_reading(out,path,expected_record,nmax_bytes_per_site);
   checksum check;
   nissa_reader_finalize_reading(check,reader);
   int nbytes_per_site=reader->nbytes_per_site;
   
-  if(debug_lvl>1)
-    {
-      time+=take_time();
-      master_printf("Total time elapsed in reading %Ld bytes: %f s\n",nbytes_per_site*(long long int)glb_vol,time);
-    }  
-
+  verbosity_lv2_master_printf("Total time elapsed in reading %Ld bytes: %f s\n",nbytes_per_site*(long long int)glb_vol,take_time()-start_time);
+  
   return nbytes_per_site;
 }
 
@@ -346,17 +342,14 @@ int read_binary_blob(void *out,char *path,const char *expected_record,int nmax_b
 void read_real_vector(double *out,char *path,const char *expected_record,int nreals_per_site)
 {
   master_printf("Reading vector: %s\n",path);
+  
   //Take inital time
-  double time=(debug_lvl>1) ? -take_time() : 0;
+  double start_time=take_time();
   nissa_reader *reader=start_reading_real_vector(out,path,expected_record,nreals_per_site);  
   
   finalize_reading_real_vector(out,reader,nreals_per_site);
   
-  if(debug_lvl>1)
-    {
-      time+=take_time();
-      master_printf("Total time including possible conversion: %f s\n",time);
-    }
+  verbosity_lv2_master_printf("Total time elapsed including possible conversion: %f s\n",take_time()-start_time);
 }
 
 //read a color
@@ -440,8 +433,7 @@ void read_tm_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path
 //Read 4 spincolor and reconstruct them
 void read_tm_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char *end_path,quad_su3 *conf,double kappa,double mu)
 {
-  double time;
-  if(debug_lvl) time=-take_time();
+  double start_time=take_time();
   
   char filename[1024];
   spincolor *sc[2]={nissa_malloc("sc1",loc_vol,spincolor),nissa_malloc("sc3",loc_vol,spincolor)};
@@ -462,8 +454,7 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,char *base_path,ch
 	}
     }
 
-  time+=take_time();
-  master_printf("Time elapsed in reading file '%s': %f s\n",base_path,time);
+  verbosity_lv1_master_printf("Time elapsed in reading file '%s': %f s\n",base_path,take_time()-start_time);
 
   set_borders_invalid(css[0]);
   set_borders_invalid(css[1]);

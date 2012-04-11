@@ -36,7 +36,7 @@ void init_simulation(char *path)
   read_str_str("ObsPath",obs_path,1024);
   obs_file=open_file(obs_path,"wa");
   
-  //read the number of trajectory to perform
+  //read the number of trajectory to evolve
   read_str_int("NTrajectory",&nreq_traj);
   
   //read the number of undegenerate flavs
@@ -99,8 +99,6 @@ int metro_test(double arg)
   double tresh=(arg<=0) ? 1 : exp(-arg);
   double toss=rnd_get_unif(&glb_rnd_gen,0,1);
   
-  master_printf("%lg %lg\n",toss,tresh);
-  
   return toss<tresh;
 }
 
@@ -128,17 +126,21 @@ void close_simulation()
 }
 
 //generate a new conf (or, keep old one)
-int perform_rhmc_trajectory()
+int rhmc_trajectory(int test_traj)
 {
   double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,&physic,&simul);
   
-  //test new conf
-  int acc=1;//metro_test(diff_act);
   master_printf("Diff action: %lg, ",diff_act);
+  
+  //decide if to accept
+  int acc=1;
+  if(!test_traj) master_printf("(no test performed) ");
+  else  acc=metro_test(diff_act);
+
+  //copy conf
   if(acc)
     {
       master_printf("accetpted.\n");
-      //copy conf
       for(int par=0;par<2;par++)
 	{
 	  memcpy(conf[par],new_conf[par],loc_volh*sizeof(quad_su3));
@@ -164,13 +166,15 @@ void generate_cold_eo_conf(quad_su3 **conf)
 }
 
 //write gauge measures
-void perform_measurements(quad_su3 **conf,int iconf,int acc)
+void measurements(quad_su3 **conf,int iconf,int acc)
 {
   master_fprintf(obs_file,"%d %d %lg\n",iconf,acc,global_plaquette_eo_conf(conf));
 }
 
 int main(int narg,char **arg)
 {
+  int skip_test=0;
+  
   //basic mpi initialization
   init_nissa();
   
@@ -190,13 +194,16 @@ int main(int narg,char **arg)
     {
       master_printf("File %s not found, generating cold conf\n",in_conf_path);
       generate_cold_eo_conf(conf);
+      skip_test=20;
     }
   
-  //perform the required number of traj
+  //evolve for the required number of traj
   for(int itraj=0;itraj<nreq_traj;itraj++)
     {
-      int acc=perform_rhmc_trajectory();
-      perform_measurements(conf,itraj,acc);
+      int perform_test=((skip_test--)<=0);
+      
+      int acc=rhmc_trajectory(perform_test);
+      measurements(conf,itraj,acc);
     }
   
   //write the final conf

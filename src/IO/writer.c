@@ -5,7 +5,7 @@
 //Write the header for a record
 void write_header(LemonWriter *writer,char *header,uint64_t record_bytes)
 {
-  if(debug_lvl>1) master_printf("Writing: %Ld bytes\n",(long long int)record_bytes);
+  verbosity_lv3_master_printf("Writing: %Ld bytes\n",(long long int)record_bytes);
   LemonRecordHeader *lemon_header=lemonCreateHeader(1,1,header,record_bytes);
   lemonWriteRecordHeader(lemon_header,writer);
   lemonDestroyHeader(lemon_header);
@@ -69,7 +69,7 @@ void write_double_vector(LemonWriter *writer,char *data,char *header_message,int
   
   //take final time
   time+=take_time();
-  if(debug_lvl>1) master_printf("Time elapsed in writing: %f s\n",time);
+  verbosity_lv2_master_printf("Time elapsed in writing: %f s\n",time);
 }
 
 //Write a whole color vector
@@ -124,7 +124,7 @@ void write_color(char *path,color *v,int prec)
   write_double_vector(writer,(char*)temp,"scidac-binary-data",nreals_per_color,prec);
 
   nissa_free(temp);
-  if(debug_lvl>1) master_printf("File '%s' saved (probably...)\n",path);
+  verbosity_lv2_master_printf("File '%s' saved (probably...)\n",path);
   
   //Close the file
   lemonDestroyWriter(writer);
@@ -184,7 +184,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
   write_double_vector(writer,(char*)temp,"scidac-binary-data",nreals_per_spincolor,prec);
 
   nissa_free(temp);
-  if(debug_lvl>1) master_printf("File '%s' saved (probably...)\n",path);
+  verbosity_lv2_master_printf("File '%s' saved (probably...)\n",path);
   
   //Close the file
   lemonDestroyWriter(writer);
@@ -195,7 +195,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
 //Write a whole su3spinspin
 void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 {
-    double time_in=take_time();
+    double start_time=take_time();
     
     spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
     for(int id=0;id<4;id++)
@@ -208,7 +208,7 @@ void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 	}
     nissa_free(temp);
     
-    master_printf("Wrote su3spinspin in %lg sec\n",take_time()-time_in);
+    master_printf("Time elapsed in writing su3spinspin '%s': %f s\n",path,take_time()-start_time);
 }
 
 ////////////////////////// gauge configuration writing /////////////////////////////
@@ -216,7 +216,7 @@ void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 //Write the local part of the gauge configuration
 void write_ildg_gauge_conf(char *path,quad_su3 *in)
 {
-  double twrite=-take_time();
+  double start_time=take_time();
   quad_su3 *temp=nissa_malloc("temp_gauge_writer",loc_vol,quad_su3);
 
   int x[4],isour,idest;
@@ -249,11 +249,7 @@ void write_ildg_gauge_conf(char *path,quad_su3 *in)
   
   nissa_free(temp);
   
-  if(debug_lvl>1)
-    {
-      twrite+=take_time();
-      master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,twrite);
-    }
+  master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,take_time()-start_time);
   
   MPI_File_close(writer_file);
   nissa_free(writer_file);
