@@ -37,7 +37,7 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
 {
   communicate_eo_quad_su3_borders(eo_conf);
   
-  double eig_max;
+  double eig_max=0;
   
   color *vec_in=nissa_malloc("vec_in",loc_volh+bord_volh,color);
   color *vec_out=nissa_malloc("vec_out",loc_volh,color);

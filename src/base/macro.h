@@ -28,7 +28,7 @@
 #define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
 
 #define master_printf(...) master_fprintf(stdout,__VA_ARGS__)
-#define verbosity_master_printf(lv,...) if(nissa_verbosity>=lv) master_printf(__VA_ARGS__)
+#define verbosity_master_printf(lv,...) verb_call+=(nissa_verbosity>=lv && master_printf(__VA_ARGS__))
 #define verbosity_lv1_master_printf(...) verbosity_master_printf(1,__VA_ARGS__)
 #define verbosity_lv2_master_printf(...) verbosity_master_printf(2,__VA_ARGS__)
 #define verbosity_lv3_master_printf(...) verbosity_master_printf(3,__VA_ARGS__)
