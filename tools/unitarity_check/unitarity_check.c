@@ -27,7 +27,7 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
   
   glb_avg/=2*3*4*glb_vol;
   
-  if(rank==0) fprintf(fout,"%g Max %g Avg in %s\n",glb_max,glb_avg,filename);
+  master_fprintf(fout,"%g Max %g Avg in %s\n",glb_max,glb_avg,filename);
 }
 
 int main(int narg,char **arg)

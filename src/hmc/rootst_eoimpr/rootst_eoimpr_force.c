@@ -6,7 +6,7 @@
 //The approximation need to be already scaled, and must contain physical mass term
 void summ_the_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **eo_conf,color *pf,quad_u1 **u1b,rat_approx *appr,double residue)
 {
-  master_printf("Computing quark force\n");
+  verbosity_lv1_master_printf("Computing quark force\n");
   
   //allocate each terms of the expansion
   color *v_o[appr->nterms],*chi_e[appr->nterms];

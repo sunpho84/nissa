@@ -45,7 +45,7 @@ double global_plaquette_lx_conf(quad_su3 *conf)
 	}
   
   double totplaq;
-  MPI_Reduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Allreduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   
   return totplaq/glb_vol/6;
 }
@@ -69,9 +69,9 @@ double global_plaquette_variance_lx_conf(quad_su3 *conf)
         }
   
   double totplaq;
-  MPI_Reduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Allreduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   double totplaq2;
-  MPI_Reduce(&totlocplaq2,&totplaq2,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Allreduce(&totlocplaq2,&totplaq2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   
   totplaq/=glb_vol*6;
   totplaq2/=glb_vol*6;
@@ -110,7 +110,7 @@ double global_plaquette_eo_conf(quad_su3 **conf)
 	}
   
   double totplaq;
-  MPI_Reduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  MPI_Allreduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   
   return totplaq/glb_vol/3/6;
 }

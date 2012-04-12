@@ -294,7 +294,6 @@ void communicate_eo_borders(void **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_
 {
   int nrequest=0;
   MPI_Request request[32];
-  MPI_Status status[32];
   int imessage=63458729;
   for(int par=0;par<2;par++)
     {
@@ -313,42 +312,12 @@ void communicate_eo_borders(void **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_
 		MPI_Isend(data[par]+start_eo_bord_send_up[mu]*nbytes_per_site,1,MPI_EO_BORDS_SEND_TXY[mu],rank_neighdw[mu],imessage,
 			  cart_comm,&request[nrequest++]);
 
-		if(nrequest>0)
-		  {
-		    verbosity_lv3_master_printf("Waiting to finish %d requests for dir %d\n",nrequest);
-		    
-		    for(int ii=0;ii<nrequest;ii++)
-		      {
-			MPI_Status status;
-			int flag;
-			MPI_Request_get_status(request[ii],&flag,&status);
-			int count;
-			MPI_Get_count(&status,MPI_CHAR,&count);
-			master_printf("Request %d transmitted %d bytes\n",ii,count);
-		      }
-		    MPI_Waitall(nrequest,request,MPI_STATUS_IGNORE);
-		    master_printf("Finishing requests\n");
-		    nrequest=0;
-		  }
 		//sending the lower border to the upper node
 		imessage++;
 		MPI_Irecv(data[par]+start_eo_bord_rece_dw[mu]*nbytes_per_site,1,MPI_EO_BORDS_RECE[mu],rank_neighdw[mu],imessage, 
 			  cart_comm,&request[nrequest++]);
 		MPI_Isend(data[par]+start_eo_bord_send_dw[mu]*nbytes_per_site,1,MPI_EO_BORDS_SEND_TXY[mu],rank_neighup[mu],imessage,
 			  cart_comm,&request[nrequest++]);
-
-
-		if(nrequest>0)
-		  {
-		    verbosity_lv3_master_printf("Waiting to finish %d requests for dir %d\n",nrequest);
-		    for(int ii=0;ii<nrequest;ii++)
-		      {
-			MPI_Waitall(1,request+ii,MPI_STATUS_IGNORE);
-			master_printf("Finishing request %d\n",ii);
-		      }
-		    nrequest=0;
-		  }
-
 	      }
 	}
     }
@@ -385,9 +354,9 @@ void communicate_eo_borders(void **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_
   tot_nissa_comm_time-=take_time();
   if(nrequest>0)
     {
-      //verbosity_lv3_master_printf("Waiting to finish %d requests for dir %d\n",nrequest);
-      //MPI_Waitall(nrequest,request,MPI_STATUS_IGNORE);
-      //nrequest=0;
+      verbosity_lv3_master_printf("Waiting to finish %d requests\n",nrequest);
+      MPI_Waitall(nrequest,request,MPI_STATUS_IGNORE);
+      nrequest=0;
     }
   tot_nissa_comm_time+=take_time();
 

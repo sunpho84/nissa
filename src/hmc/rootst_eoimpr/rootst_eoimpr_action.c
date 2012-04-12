@@ -35,7 +35,7 @@ double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,colo
 //Passed conf must NOT contain the backfield.
 double full_rootst_eoimpr_action(quad_su3 **eo_conf,quad_su3 **H,color **pf,theory_pars *physic,rat_approx *appr,double residue)
 {
-  master_printf("Computing action\n");
+  verbosity_lv1_master_printf("Computing action\n");
 
   //compute the three parts of the action
   double quark_action=rootst_eoimpr_quark_action(eo_conf,physic->nflavs,physic->backfield,pf,appr,residue);

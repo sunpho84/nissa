@@ -251,31 +251,35 @@ void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
   if(check_borders_allocated(eo_conf[0]) && check_borders_allocated(eo_conf[1]) && check_borders_valid(eo_conf[0]) && check_borders_valid(eo_conf[1])) ending+=bord_volh;
   if(check_edges_allocated(eo_conf[0])   && check_edges_allocated(eo_conf[1])   && check_edges_valid(eo_conf[0])   && check_edges_valid(eo_conf[1]))   ending+=edge_volh;
   
-  for(int ieo=0;ieo<2;ieo++)
-    for(int ivol_eo=0;ivol_eo<ending;ivol_eo++)
-      {
-	int ivol_lx=loclx_of_loceo[ieo][ivol_eo];
-	
-	int d=0;
-	
-	//phase in direction 1 is always 0 so nothing has to be done in that dir
-	//if(d%2==1) su3_prod_double(eo_conf[ieo][ivol_eo][1],eo_conf[ieo][ivol_eo][1],-1);
-	
-	//direction 2
-	d+=glb_coord_of_loclx[ivol_lx][1];
-	if(d%2==1) su3_prod_double(eo_conf[ieo][ivol_eo][2],eo_conf[ieo][ivol_eo][2],-1);
-	
-	//direction 3
-	d+=glb_coord_of_loclx[ivol_lx][2];
-	if(d%2==1) su3_prod_double(eo_conf[ieo][ivol_eo][3],eo_conf[ieo][ivol_eo][3],-1);
-	
-	//direction 0
-	d+=glb_coord_of_loclx[ivol_lx][3];
-	//debug: putting the anti-periodic condition on the temporal border
-	//in future remove it!!!
-	if(glb_coord_of_loclx[ivol_lx][0]==glb_size[0]-1) d+=1;
-	if(d%2==1) su3_prod_double(eo_conf[ieo][ivol_eo][0],eo_conf[ieo][ivol_eo][0],-1);
-      }
+  for(int par=0;par<2;par++)
+    {
+      for(int ivol_eo=0;ivol_eo<ending;ivol_eo++)
+	{
+	  int ivol_lx=loclx_of_loceo[par][ivol_eo];
+	  
+	  int d=0;
+	  
+	  //phase in direction 1 is always 0 so nothing has to be done in that dir
+	  //if(d%2==1) su3_prod_double(eo_conf[par][ivol_eo][1],eo_conf[par][ivol_eo][1],-1);
+	  
+	  //direction 2
+	  d+=glb_coord_of_loclx[ivol_lx][1];
+	  if(d%2==1) su3_prod_double(eo_conf[par][ivol_eo][2],eo_conf[par][ivol_eo][2],-1);
+	  
+	  //direction 3
+	  d+=glb_coord_of_loclx[ivol_lx][2];
+	  if(d%2==1) su3_prod_double(eo_conf[par][ivol_eo][3],eo_conf[par][ivol_eo][3],-1);
+	  
+	  //direction 0
+	  d+=glb_coord_of_loclx[ivol_lx][3];
+	  //debug: putting the anti-periodic condition on the temporal border
+	  //in future remove it!!!
+	  if(glb_coord_of_loclx[ivol_lx][0]==glb_size[0]-1) d+=1;
+	  if(d%2==1) su3_prod_double(eo_conf[par][ivol_eo][0],eo_conf[par][ivol_eo][0],-1);
+	}
+      if(ending<loc_volh+bord_volh) set_borders_invalid(eo_conf[par]);
+      else if(ending<loc_volh+bord_volh+edge_volh) set_edges_invalid(eo_conf[par]);
+    }
 }
 
 //separate the even or odd part of a vector

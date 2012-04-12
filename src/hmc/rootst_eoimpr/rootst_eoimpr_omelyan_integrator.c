@@ -22,7 +22,7 @@ void eo_conf_unitarize_explicitely_inverting(quad_su3 **conf)
 // i.e calculate v(t+dt)=v(t)+a*dt
 void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,double residue,double dt)
 {
-  master_printf("Evolving momenta with force, dt=%lg\n",dt);
+  verbosity_lv2_master_printf("Evolving momenta with force, dt=%lg\n",dt);
 
   //allocate force
   quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
@@ -47,7 +47,7 @@ void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,c
 //this routine should be moved in a more general file
 void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 {
-  master_printf("Evolving conf with momenta, dt=%lg\n",dt);
+  verbosity_lv2_master_printf("Evolving conf with momenta, dt=%lg\n",dt);
   
   //evolve
   for(int par=0;par<2;par++)
@@ -99,7 +99,7 @@ void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theor
   //         Main loop
   for(int istep=0;istep<simul->nmd_steps;istep++)
     {
-      master_printf("Omelyan step %d/%d\n",istep+1,simul->nmd_steps);
+      verbosity_lv1_master_printf("Omelyan step %d/%d\n",istep+1,simul->nmd_steps);
       
       //decide if last step is final or not
       double last_dt=(istep==(simul->nmd_steps-1)) ? ldt : l2dt;

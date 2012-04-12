@@ -42,7 +42,7 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
   color *vec_in=nissa_malloc("vec_in",loc_volh+bord_volh,color);
   color *vec_out=nissa_malloc("vec_out",loc_volh,color);
   color *tmp=nissa_malloc("tmp",loc_volh+bord_volh,color);
-  master_printf("generating v\n");
+  
   //generate the random field
   nissa_loc_volh_loop(ivol)
     color_put_to_gauss(vec_in[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),3);
@@ -57,7 +57,7 @@ double max_eigenval(quark_content *pars,quad_su3 **eo_conf,int niters)
       //compute the norm
       eig_max=eo_color_normalize(vec_in,vec_out,glb_volh*3);
       
-      master_printf("max_eigen search, iter=%d, eig=%lg\n",iter,eig_max);
+      verbosity_lv2_master_printf("max_eigen search, iter=%d, eig=%lg\n",iter,eig_max);
     }
   
   nissa_free(tmp);
@@ -110,7 +110,10 @@ void rootst_eoimpr_scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_ex
           rat_exp_actio[iflav].weights[iterm]=db_rat_exp_actio_coef[ipf][irexp][iterm]*scale*scale_actio;
 	}
       
-      master_printf_rat_approx(&(rat_exp_pfgen[iflav]));
-      master_printf_rat_approx(&(rat_exp_actio[iflav]));
+      if(nissa_verbosity>=3)
+	{
+	  master_printf_rat_approx(&(rat_exp_pfgen[iflav]));
+	  master_printf_rat_approx(&(rat_exp_actio[iflav]));
+	}
     }
 }

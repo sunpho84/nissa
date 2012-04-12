@@ -34,7 +34,7 @@ void init_simulation(char *path)
   //read observable file
   char obs_path[1024];
   read_str_str("ObsPath",obs_path,1024);
-  obs_file=open_file(obs_path,"wa");
+  obs_file=open_file(obs_path,"a");
   
   //read the number of trajectory to evolve
   read_str_int("NTrajectory",&nreq_traj);
@@ -169,7 +169,6 @@ void generate_cold_eo_conf(quad_su3 **conf)
 void measurements(quad_su3 **conf,int iconf,int acc)
 {
   master_fprintf(obs_file,"%d %d %lg\n",iconf,acc,global_plaquette_eo_conf(conf));
-  master_printf("wrote obs\n");
 }
 
 int main(int narg,char **arg)
@@ -195,7 +194,7 @@ int main(int narg,char **arg)
     {
       master_printf("File %s not found, generating cold conf\n",in_conf_path);
       generate_cold_eo_conf(conf);
-      skip_test=20;
+      skip_test=30;
     }
   
   //evolve for the required number of traj
@@ -204,7 +203,7 @@ int main(int narg,char **arg)
       int perform_test=((skip_test--)<=0);
       
       master_printf("Starting trajectory %d\n",itraj);
-      master_printf("-------------------------------------\n");
+      master_printf("-----------------------\n");
       
       int acc=rhmc_trajectory(perform_test);
       measurements(conf,itraj,acc);

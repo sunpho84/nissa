@@ -63,7 +63,7 @@ void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter
       double zfs[nmass],betas[nmass];
       
       //     -s=Ap
-      //if(nrequest!=0) finish_communicating_ev_color_borders(&nrequest,request,p);
+      if(nrequest!=0) finish_communicating_ev_color_borders(&nrequest,request,p);
       apply_offdiagonal_operator(s,conf,t,p);
       
       //     -pap=(p,s)=(p,Ap)
@@ -101,7 +101,7 @@ void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter
       double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,bulk_vol*ndoubles_per_site);
       
       //start the communications of the border
-      //cgmm2s_start_communicating_borders(&nrequest,request,p);
+      cgmm2s_start_communicating_borders(&nrequest,request,p);
       
       //     calculate 
       //     -alphas=alpha*zfs*betas/zas*beta
