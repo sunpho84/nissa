@@ -15,6 +15,8 @@
 #include "base/communicate.c"
 #include "base/random.c"
 
+#include "linalgs/linalgs.c"
+
 #include "IO/checksum.c"
 #include "IO/writer.c"
 #include "IO/reader.c"

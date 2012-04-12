@@ -38,12 +38,4 @@
 //loops
 #define nissa_loc_volh_loop(a) for(int a=0;a<loc_volh;a++)
 #define nissa_loc_vol_loop(a) for(int a=0;a<loc_vol;a++)
-#define nissa_loc_vol_loop_double_reducing(a,b)				\
-  for(int istep=0;istep<2;istep++)					\
-    if(istep==1)							\
-      {									\
-	double loc_##b=b;						\
-	MPI_Allreduce(&loc_##b,&b,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);	\
-      }									\
-    else								\
-      nissa_loc_vol_loop(a)
+
