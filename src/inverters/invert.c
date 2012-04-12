@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cgmm2s_invert_stD2ee.c"
 #include "cgmms_invert_tmQ2_common.c"
 
 #ifdef BGP
@@ -13,11 +14,7 @@
 #include "cg_invert_tmQ2_portable.c"
 #include "cgmms_invert_tmQ2_portable.c"
 
-
 #endif
-
-#include "cgmm2s_invert_stD2ee.c"
-#include "cg_invert_tmQ2_common.c"
 
 ////////////////////////////////////// TWISTED MASS LIGHT DEGENERATE INVERTERS ///////////////////////////////
 
