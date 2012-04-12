@@ -55,6 +55,7 @@ double tot_nissa_time=0;
 double tot_nissa_comm_time=0;
 
 //verbosity
+int verb_call=0;
 const double nissa_default_verbosity=2;
 double nissa_verbosity=2;
 
