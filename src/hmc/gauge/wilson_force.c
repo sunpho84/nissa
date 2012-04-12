@@ -6,7 +6,7 @@
 void wilson_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
 {
   double r=beta/3;
-  master_printf("Computing Wilson force\n");
+  verbosity_lv1_master_printf("Computing Wilson force\n");
   
   nissa_loc_vol_loop(ivol)
     {

@@ -15,7 +15,7 @@ void init_backfield_to_id(quad_u1 **S)
 //multpiply the configuration for an additional u(1) field
 void add_backfield_to_conf(quad_su3 **conf,quad_u1 **u1)
 {
-  master_printf("Adding backfield\n");
+  verbosity_lv2_master_printf("Adding backfield\n");
   for(int par=0;par<2;par++)
     {
       nissa_loc_volh_loop(ivol)
@@ -28,7 +28,7 @@ void add_backfield_to_conf(quad_su3 **conf,quad_u1 **u1)
 //multpiply the configuration for an the conjugate of an u(1) field
 void rem_backfield_from_conf(quad_su3 **conf,quad_u1 **u1)
 {
-  master_printf("Removing backfield\n");
+  verbosity_lv2_master_printf("Removing backfield\n");
   for(int par=0;par<2;par++)
     {
       nissa_loc_volh_loop(ivol)

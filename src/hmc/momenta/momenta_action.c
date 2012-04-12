@@ -6,10 +6,10 @@ double momenta_action(quad_su3 **H)
   double loc_action=0;
   
   //summ the square of H
-  for(int eo=0;eo<2;eo++)
+  for(int par=0;par<2;par++)
     nissa_loc_volh_loop(ivol)
       for(int mu=0;mu<4;mu++)
-	loc_action+=real_part_of_trace_su3_prod_su3_dag(H[eo][ivol][mu],H[eo][ivol][mu]);
+	loc_action+=real_part_of_trace_su3_prod_su3_dag(H[par][ivol][mu],H[par][ivol][mu]);
   
   //global reducton
   double glb_action;

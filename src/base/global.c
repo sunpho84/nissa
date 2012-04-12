@@ -55,8 +55,8 @@ double tot_nissa_time=0;
 double tot_nissa_comm_time=0;
 
 //verbosity
-const double nissa_default_verbosity=3;
-double nissa_verbosity=nissa_default_verbosity;
+const double nissa_default_verbosity=1;
+double nissa_verbosity=1;
 
 //size of the border along the 4 dir,types for sending
 int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];

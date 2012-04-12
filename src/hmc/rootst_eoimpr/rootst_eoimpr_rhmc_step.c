@@ -11,9 +11,12 @@ double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_par
     H[par]=nissa_malloc("H",loc_volh,quad_su3);
   
   //copy the old conf into the new
-  for(int eo=0;eo<2;eo++)
-    memcpy(out_conf[eo],in_conf[eo],loc_volh*sizeof(quad_su3));
-
+  for(int par=0;par<2;par++)
+    {
+      memcpy(out_conf[par],in_conf[par],loc_volh*sizeof(quad_su3));
+      set_borders_invalid(out_conf[par]);
+    }
+  
   //initialize rational approximation for pf/action and force calculation
   rat_approx rat_exp_pfgen[physic->nflavs],rat_exp_actio[physic->nflavs];
   for(int iflav=0;iflav<physic->nflavs;iflav++)
@@ -41,14 +44,14 @@ double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_par
   
   //compute initial action
   double init_action=full_rootst_eoimpr_action(out_conf,H,pf,physic,rat_exp_actio,simul->pf_action_residue);
-  master_printf("Init action: %lg\n",init_action);
+  verbosity_lv2_master_printf("Init action: %lg\n",init_action);
   
   //evolve forward
   omelyan_rootst_eoimpr_evolver(H,out_conf,pf,physic,rat_exp_actio,simul);
   
   //compute final action
   double final_action=full_rootst_eoimpr_action(out_conf,H,pf,physic,rat_exp_actio,simul->pf_action_residue);
-  master_printf("Final action: %lg\n",final_action);
+  verbosity_lv2_master_printf("Final action: %lg\n",final_action);
   
   //compute the diff
   double diff_action=final_action-init_action;
@@ -61,7 +64,7 @@ double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_par
   for(int par=0;par<2;par++) nissa_free(H[par]);
   nissa_free(pf);
 
-  master_printf("Total time to perform rhmc step: %lg s\n",take_time()-start_time);
+  verbosity_lv1_master_printf("Total time to perform rhmc step: %lg s\n",take_time()-start_time);
   
   return diff_action;
 }
