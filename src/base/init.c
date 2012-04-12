@@ -8,6 +8,10 @@ void init_nissa()
   MPI_Init(NULL,NULL);
   tot_nissa_time-=take_time();
   
+  //set error handler for MPI_COMM_WORLD
+  MPI_Comm_create_errhandler(mpi_error_handler_function,&mpi_error_handler);
+  MPI_Comm_set_errhandler(MPI_COMM_WORLD,mpi_error_handler);
+  
   //get the number of rank and the id of the local one
   MPI_Comm_size(MPI_COMM_WORLD,&rank_tot);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);

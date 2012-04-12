@@ -169,6 +169,7 @@ void generate_cold_eo_conf(quad_su3 **conf)
 void measurements(quad_su3 **conf,int iconf,int acc)
 {
   master_fprintf(obs_file,"%d %d %lg\n",iconf,acc,global_plaquette_eo_conf(conf));
+  master_printf("wrote obs\n");
 }
 
 int main(int narg,char **arg)
@@ -201,6 +202,9 @@ int main(int narg,char **arg)
   for(int itraj=0;itraj<nreq_traj;itraj++)
     {
       int perform_test=((skip_test--)<=0);
+      
+      master_printf("Starting trajectory %d\n",itraj);
+      master_printf("-------------------------------------\n");
       
       int acc=rhmc_trajectory(perform_test);
       measurements(conf,itraj,acc);

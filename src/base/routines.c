@@ -182,3 +182,12 @@ int factorize(int *list,int N)
 
   return nfatt;
 }
+
+double glb_reduce_double(double in_loc)
+{
+  double out_glb;
+  
+  MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  
+  return out_glb;
+}

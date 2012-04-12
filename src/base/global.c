@@ -35,6 +35,9 @@ coords *loclx_neigh[2];
 #define numb_known_stopping_criterion 4
 char list_known_stopping_criterion[4][1024]={"standard","unilevel","weighted_norm2","weighted_norm_inf"};
 
+//error handler
+MPI_Errhandler mpi_error_handler;
+
 //basic mpi types
 MPI_Datatype MPI_FLOAT_128;
 MPI_Datatype MPI_SU3;
@@ -52,7 +55,7 @@ double tot_nissa_time=0;
 double tot_nissa_comm_time=0;
 
 //verbosity
-const double nissa_default_verbosity=2;
+const double nissa_default_verbosity=3;
 double nissa_verbosity=nissa_default_verbosity;
 
 //size of the border along the 4 dir,types for sending

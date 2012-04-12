@@ -4,6 +4,7 @@
 jvec effective_mass(jvec a)
 {
   int TH=a.nel-1;
+
   int njack=a.njack;
   
   jvec b(TH,a.njack);
@@ -13,6 +14,7 @@ jvec effective_mass(jvec a)
       jack temp=-log(a[t+1]/a[t]);
       double miniz=temp.med();
       double einiz=temp.err();
+      
       for(int ijack=0;ijack<=njack;ijack++)
 	{
 	  double m=miniz;
@@ -30,7 +32,12 @@ jvec effective_mass(jvec a)
 	      yl=cosh((m-e)*(TH-(t+1)))/cosh((m-e)*(TH-t))-targ;
 	      yr=cosh((m+e)*(TH-(t+1)))/cosh((m+e)*(TH-t))-targ;
 	      q=((yl<0 && yr<0) || (yl>=0 && yr>=0));
-	      if(q) e*=2;
+	      //cout<<t<<" "<<ijack<<" "<<yl<<" "<<yr<<" "<<e<<endl;
+	      if(q)
+		{
+		  e*=2;
+		  if(m<=e) m+=(e-m);
+		}
 	    }
 	  while(q);
 	  
@@ -44,9 +51,9 @@ jvec effective_mass(jvec a)
 		xl=m;
 	      else
 		xr=m;
+	      //cout<<t<<" "<<ijack<<" "<<m<<endl;
 	    }
 	  while(fabs(ym)>1.e-14);
-	  
 	  b.data[t].data[ijack]=m;
 	}
     }
