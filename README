@@ -36,7 +36,7 @@ Requirements
 ------------
 
 -Some sort of MPI distribution (at the moment also when running on scalar machine)
--Lemon library
+-Lemon library (see arXiv:1106.4177): http://www.itkp.uni-bonn.de/~urbach/lemon.tgz
 -C compiler
 
 
