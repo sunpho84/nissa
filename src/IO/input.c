@@ -38,6 +38,7 @@ int file_exists(const char *path)
     }
   
   MPI_Bcast(&status,1,MPI_INT,0,MPI_COMM_WORLD);
+  
   return status;
 }
 
@@ -60,6 +61,7 @@ int dir_exists(char *path)
   return exists;
 }
 
+//open an input file
 void open_input(char *input_path)
 {
   if(rank==0)
@@ -71,33 +73,34 @@ void open_input(char *input_path)
     }	
 }
 
+//close the input file
 void close_input()
 {
   if(rank==0) fclose(input_global);
 }
 
 //Read a var from the file
-int read_var_catcherr(char *in,const char *par,int size_of)
+int read_var_catcherr(char *out,const char *par,int size_of)
 {
-  int ok=(rank==0) ? fscanf(input_global,par,in) : 1;
-  MPI_Bcast(in,size_of,MPI_BYTE,0,MPI_COMM_WORLD);
+  int ok=(rank==0) ? fscanf(input_global,par,out) : 1;
+  MPI_Bcast(out,size_of,MPI_BYTE,0,MPI_COMM_WORLD);
   return ok;
 }
 
-void read_var(char *in,const char *par,int size_of)
-{if(!read_var_catcherr(in,par,size_of)) crash("Couldn't read from input file!!!");}
+void read_var(void *out,const char *par,int size_of)
+{if(!read_var_catcherr(out,par,size_of)) crash("Couldn't read from input file!!!");}
 
 //Read an integer from the file
-void read_int(int *in)
-{read_var((char*)in,"%d",sizeof(int));}
+void read_int(int *out)
+{read_var(out,"%d",sizeof(int));}
 
 //Read a double from the file
-void read_double(double *in)
-{read_var((char*)in,"%lg",sizeof(double));}
+void read_double(double *out)
+{read_var(out,"%lg",sizeof(double));}
 
 //Read a string from the file
 void read_str(char *str,int length)
-{read_var((char*)str,"%s",length);}
+{read_var(str,"%s",length);}
 
 //Read a string from the file and check against the argument
 void expect_str(const char *exp_str)
@@ -171,37 +174,42 @@ void read_list_of_ints(char *tag,int *nentries,int **list)
 //read the nissa configuration file
 void read_nissa_config_file()
 {
+  char path[1024]="nissa_config";
+  
   const int navail_tag=1;
   char tag_name[1][100]={"nissa_verbosity_lv"};
   void *tag_addr[1]={&nissa_verbosity};
   char tag_type[1][3]={"%d"};
   char tag_size[1]={4};
   
-  if(file_exists("nissa_config"))
+  if(file_exists(path))
     {
-      open_input("nissa_config");
-      int ok;
+      open_input(path);
+      int nr;
       
       do
         {
           char tag[100];
-	  ok=read_str_catherr(tag,100);
+	  nr=read_var_catcherr(tag,"%s",100);
 	  
-	  if(ok)
+	  if(nr>=1)
 	    {
 	      //find the tag
 	      int itag=0;
-	      while(itag<nvail_tag && strcasecmp(tag,tag_name[itag])!=0) itag++;
+	      while(itag<navail_tag && strcasecmp(tag,tag_name[itag])!=0) itag++;
 	      
 	      //check if tag found
-	      if(itag==nvail_tag) crash("unkwnown tag '%s'",tag);
+	      if(itag==navail_tag) crash("unkwnown parameter '%s'",tag);
 	      
 	      //read the tag
-	      read_var((char*)tag_addr[itag],tag_type[itag],tag_size[itag]);
+	      read_var(tag_addr+itag,tag_type[itag],tag_size[itag]);
+	      verbosity_lv1_master_printf("Read parameter '%s' with value ",tag);
+	      verbosity_lv1_master_printf(tag_type[itag],*(tag_addr+itag));
+	      verbosity_lv1_master_printf("\n");
 	    }
-	  else master_printf("Finished reading the file");
+	  else master_printf("Finished reading the file '%s'\n",path);
 	}
-      while(ok);
+      while(nr==1);
       
       close_input();
     }

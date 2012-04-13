@@ -29,7 +29,7 @@ void reconstruct_tm_doublet(spincolor *outminus,spincolor *outplus,quad_su3 *con
 }
 
 //Apply the Q+Q- operator to a spincolor
-void apply_tmQ2_RL(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *temp,int RL,spincolor *in)
+void apply_tmQ2_RL(spincolor *out,quad_su3 *conf,double kappa,spincolor *temp,int RL,double mu,spincolor *in)
 {
   int all=0;
 
@@ -55,8 +55,8 @@ void apply_tmQ2_RL(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolo
   set_borders_invalid(out);
 }
 
-void apply_tmQ2(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *temp,spincolor *in)
-{apply_tmQ2_RL(out,conf,kappa,mu,temp,0,in);}
+void apply_tmQ2(spincolor *out,quad_su3 *conf,double kappa,spincolor *temp,double mu,spincolor *in)
+{apply_tmQ2_RL(out,conf,kappa,temp,0,mu,in);}
 
-void apply_tmQ2_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *temp,spincolor *in)
-{apply_tmQ2_RL(out,conf,kappa,mu,temp,1,in);}
+void apply_tmQ2_left(spincolor *out,quad_su3 *conf,double kappa,spincolor *temp,double mu,spincolor *in)
+{apply_tmQ2_RL(out,conf,kappa,temp,1,mu,in);}

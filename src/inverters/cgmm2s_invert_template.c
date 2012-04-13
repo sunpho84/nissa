@@ -1,10 +1,10 @@
-#pragma once
-
-void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter,double st_res,double st_minres,int st_crit,basetype *source)
+void cgmm2s_invert(basetype **sol,cgmm2s_additional_parameters_proto double *m2,int nmass,int niter_max,double req_res,basetype *source)
 {
   const int each=10;
   
-  basetype *t=nissa_malloc("DD_temp",bulk_vol+bord_vol,basetype);
+  //macro to be defined externally, allocating all the required additional vectors
+  cgmm2s_additional_vectors_allocation();
+  
   basetype *s=nissa_malloc("s",bulk_vol,basetype);
   basetype *r=nissa_malloc("r",bulk_vol,basetype);
   basetype *p=nissa_malloc("p",bulk_vol+bord_vol,basetype);
@@ -62,8 +62,8 @@ void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter
   do
     {
       //     -s=Ap
-      if(nrequest!=0) finish_communicating_ev_color_borders(&nrequest,request,p);
-      apply_offdiagonal_operator(s,conf,t,p);
+      if(nrequest!=0) cgmm2s_finish_communicating_borders(&nrequest,request,p);
+      apply_offdiagonal_operator(s,cgmm2s_additional_offdiagonal_parameters p);
       
       //     -pap=(p,s)=(p,Ap)
       double pap=double_vector_glb_scalar_prod((double*)p,(double*)s,bulk_vol*ndoubles_per_site);
@@ -126,17 +126,11 @@ void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter
       for(int imass=0;imass<nmass;imass++)
 	if(run_flag[imass])
 	  {
-	    int fini=0;
-	    if(st_crit==sc_standard || st_crit==sc_unilevel)
-	      {
-		final_res[imass]=rr*zfs[imass]*zfs[imass]/source_norm;
-		if(st_crit==sc_standard) fini=(final_res[imass]<st_minres || final_res[0]<st_res);
-		else fini=final_res[imass]<st_res;
-		if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[imass]);
-	      }
-	    else crash("unkwnown stopping criterion");
+	    final_res[imass]=rr*zfs[imass]*zfs[imass]/source_norm;
+	    if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[imass]);
 	    
-	    if(fini)
+	    double stop_res=(imass==0) ? req_res : 1.e-20;
+	    if(final_res[imass]<stop_res)
 	      {
 		run_flag[imass]=0;
 		nrun_mass--;
@@ -144,14 +138,14 @@ void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter
 	  } 
       if(iter%each==0) verbosity_lv2_master_printf("\n");
     }
-  while(nrun_mass>0 && iter<niter);
+  while(run_flag[0] && nrun_mass>0 && iter<niter_max);
   
   //print the final true residue
   
   for(int imass=0;imass<nmass;imass++)
     {
       double res,w_res,weight,max_res;
-      apply_full_operator(s,conf,t,sqrt(m2[imass]),sol[imass]);
+      apply_full_operator(s,cgmm2s_additional_full_parameters sqrt(m2[imass]),sol[imass]);
       {
 	double loc_res=0;
 	double locw_res=0;
@@ -191,11 +185,11 @@ void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter
   nissa_free(s);
   nissa_free(p);
   nissa_free(r);
-  nissa_free(t);
+  cgmm2s_additional_vectors_free();
 }
 
 //return all the masses summed together
-void summ_src_and_all_inv_cgmm2s(basetype *sol,quad_su3 **conf,rat_approx *appr,int niter,double st_res,double st_minres,int st_crit,basetype *source)
+void summ_src_and_all_inv_cgmm2s(basetype *sol,cgmm2s_additional_parameters_proto rat_approx *appr,int niter_max,double req_res,basetype *source)
 {
   //allocate temporary single solutions
   basetype *temp[appr->nterms];
@@ -203,7 +197,7 @@ void summ_src_and_all_inv_cgmm2s(basetype *sol,quad_su3 **conf,rat_approx *appr,
     temp[iterm]=nissa_malloc("temp",bulk_vol+bord_vol,basetype);
   
   //call multi-mass solver
-  cgmm2s_invert(temp,conf,appr->poles,appr->nterms,niter,st_res,st_minres,st_crit,source);
+  cgmm2s_invert(temp,cgmm2s_additional_parameters_call appr->poles,appr->nterms,niter_max,req_res,source);
   
   //summ all the masses
   double *dsol=(double*)sol,*dsource=(double*)source;
@@ -232,4 +226,13 @@ void summ_src_and_all_inv_cgmm2s(basetype *sol,quad_su3 **conf,rat_approx *appr,
 #undef summ_src_and_all_inv_cgmm2s
 #undef cgmm2s_invert
 #undef cgmm2s_start_communicating_borders
+#undef cgmm2s_finish_communicating_borders
 #undef cgmm2s_npossible_requests
+
+#undef cgmm2s_additional_vectors_allocation
+#undef cgmm2s_additional_vectors_free
+
+#undef cgmm2s_additional_parameters_call
+#undef cgmm2s_additional_parameters_proto
+#undef cgmm2s_additional_offdiagonal_parameters
+#undef cgmm2s_additional_full_parameters

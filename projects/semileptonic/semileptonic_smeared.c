@@ -91,8 +91,6 @@ int ithetaS0_min,ithetaS0_max,nthetaS0;
 
 //cgmms inverter parameters
 double stopping_residue;
-double minimal_residue;
-int stopping_criterion;
 int niter_max;
 
 //two points contractions
@@ -275,26 +273,6 @@ void initialize_semileptonic(char *input_path)
   
   //Residue
   read_str_double("Residue",&stopping_residue);
-  //Stopping criterion
-  stopping_criterion=numb_known_stopping_criterion;
-  char str_stopping_criterion[1024];
-  read_str_str("StoppingCriterion",str_stopping_criterion,1024);
-  int isc=0;
-  do
-    {
-      if(strcasecmp(list_known_stopping_criterion[isc],str_stopping_criterion)==0) stopping_criterion=isc;
-      isc++;
-    }
-  while(isc<numb_known_stopping_criterion && stopping_criterion==numb_known_stopping_criterion);
-  
-  if(stopping_criterion==numb_known_stopping_criterion)
-    {
-      master_fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
-      master_fprintf(stderr,"List of known stopping criterions:\n");
-      for(int isc=0;isc<numb_known_stopping_criterion;isc++) master_fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
-      crash("check the input file");
-    }
-  if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
       
   //Number of iterations
   read_str_int("NiterMax",&niter_max);
@@ -592,7 +570,7 @@ void calculate_S0(int ism_lev_so)
 	    
 	    //inverting
 	    double part_time=-take_time();
-	    inv_tmQ2_cgmms(cgmms_solution,conf,kappa,massS0,nmassS0,niter_max,stopping_residue,minimal_residue,stopping_criterion,source);
+	    inv_tmQ2_cgmms(cgmms_solution,conf,kappa,massS0,nmassS0,niter_max,stopping_residue,source);
 	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
 #ifdef POINT_SOURCE_VERSION
 	    master_printf("Finished the inversion of S0 theta %d, color index %d, dirac index %d in %g sec\n",itheta,ic,id,part_time);
@@ -662,7 +640,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 	    adapt_theta(conf,old_theta,put_theta,1,1);
 	    
 	    double part_time=-take_time();
-	    inv_tmQ2_cgmms(cgmms_solution,conf,kappa,massS1,nmassS1,niter_max,stopping_residue,minimal_residue,stopping_criterion,source);
+	    inv_tmQ2_cgmms(cgmms_solution,conf,kappa,massS1,nmassS1,niter_max,stopping_residue,source);
 	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
 	    

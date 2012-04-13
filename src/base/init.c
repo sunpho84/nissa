@@ -58,7 +58,7 @@ void init_nissa()
   initialize_main_nissa_vect();
   
   //initialize global variables
-  nissa_verbosity=ynissa_default_verbosity;
+  nissa_verbosity=nissa_default_verbosity;
   nissa_lx_geom_inited=0;
   nissa_eo_geom_inited=0;
   nissa_loc_rnd_gen_inited=0;

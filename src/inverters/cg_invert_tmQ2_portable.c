@@ -20,7 +20,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       double delta;
       {
-	apply_tmQ2_RL(s,conf,kappa,m,t,RL,sol);
+	apply_tmQ2_RL(s,conf,kappa,t,RL,m,sol);
 	
 	double loc_delta=0,loc_source_norm=0;
 	double *dsource=(double*)source,*ds=(double*)s,*dp=(double*)p,*dr=(double*)r;
@@ -47,7 +47,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	  {
 	    double alpha;
 
-	    apply_tmQ2_RL(s,conf,kappa,m,t,RL,p);
+	    apply_tmQ2_RL(s,conf,kappa,t,RL,m,p);
 
 	    double loc_alpha=0;
 	    complex *cs=(complex*)s,*cp=(complex*)p;
@@ -102,7 +102,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
       
       //last calculation of residual, in the case iter>niter
       
-      apply_tmQ2_RL(s,conf,kappa,m,t,RL,sol);
+      apply_tmQ2_RL(s,conf,kappa,t,RL,m,sol);
       {
 	double loc_lambda=0;
 	double *ds=(double*)s,*dsource=(double*)source;
