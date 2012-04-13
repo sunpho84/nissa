@@ -43,6 +43,7 @@ void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter
   //     -zps=zas=1
   //     -alphas=0
   double zps[nmass],zas[nmass],alphas[nmass];
+  double zfs[nmass],betas[nmass];
   for(int imass=0;imass<nmass;imass++)
     {
       double_vector_copy((double*)(ps[imass]),(double*)source,bulk_vol*ndoubles_per_site);
@@ -60,8 +61,6 @@ void cgmm2s_invert(basetype **sol,quad_su3 **conf,double *m2,int nmass,int niter
   MPI_Request request[cgmm2s_npossible_requests];
   do
     {
-      double zfs[nmass],betas[nmass];
-      
       //     -s=Ap
       if(nrequest!=0) finish_communicating_ev_color_borders(&nrequest,request,p);
       apply_offdiagonal_operator(s,conf,t,p);

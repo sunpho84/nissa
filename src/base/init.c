@@ -58,6 +58,7 @@ void init_nissa()
   initialize_main_nissa_vect();
   
   //initialize global variables
+  nissa_verbosity=ynissa_default_verbosity;
   nissa_lx_geom_inited=0;
   nissa_eo_geom_inited=0;
   nissa_loc_rnd_gen_inited=0;
@@ -70,6 +71,9 @@ void init_nissa()
   check_endianess();
   if(little_endian) master_printf("System endianess: little.\n");
   else master_printf("System endianess: big.\n");
+  
+  //read the configuration file, if present
+  read_nissa_config_file();
   
   //initialize the base of the gamma matrices
   init_base_gamma();
