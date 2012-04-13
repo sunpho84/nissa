@@ -139,7 +139,7 @@ void read_str_str(const char *exp_str,char *in,int length)
   verbosity_lv1_master_printf("Read variable '%s' with value: %s\n",exp_str,in);
 }
 
-//Read a list of double and its length, allocate the list
+//Read a list of var, allocating the list
 void read_list_of_var(char *tag,int *nentries,char **list,int size_of_el,const char *par)
 {
   read_str_int(tag,nentries);
@@ -151,14 +151,39 @@ void read_list_of_var(char *tag,int *nentries,char **list,int size_of_el,const c
     }
 }
 
+//Read a list of pairs of var, allocating the list
+void read_list_of_var_pairs(char *tag,int *nentries,char **list1,char **list2,int size_of_el,const char *par)
+{
+  read_str_int(tag,nentries);
+  (*list1)=(char*)malloc((*nentries)*size_of_el);
+  (*list2)=(char*)malloc((*nentries)*size_of_el);
+  for(int ientr=0;ientr<(*nentries);ientr++)
+    {
+      char *in1=(*list1)+ientr*size_of_el;
+      char *in2=(*list2)+ientr*size_of_el;
+      read_var(in1,par,size_of_el);
+      read_var(in2,par,size_of_el);
+    }
+}
+
 //read a list of doubles
 void read_list_of_doubles(char *tag,int *nentries,double **list)
 {
   read_list_of_var(tag,nentries,(char**)list,sizeof(double),"%lg");
   
-  master_printf("List of %s:\t",tag);
-  for(int ientr=0;ientr<(*nentries);ientr++) master_printf("%lg\t",(*list)[ientr]);
-  master_printf("\n");
+  verbosity_lv1_master_printf("List of %s:\t",tag);
+  for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%lg\t",(*list)[ientr]);
+  verbosity_lv1_master_printf("\n");
+}
+
+//read a list of doubles
+void read_list_of_double_pairs(char *tag,int *nentries,double **list1,double **list2)
+{
+  read_list_of_var_pairs(tag,nentries,(char**)list1,(char**)list2,sizeof(double),"%lg");
+  
+  verbosity_lv1_master_printf("List of pairs of %s:\t",tag);
+  for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%lg %lg\t",(*list1)[ientr],(*list2)[ientr]);
+  verbosity_lv1_master_printf("\n");
 }
 
 //read a list of int
@@ -166,9 +191,9 @@ void read_list_of_ints(char *tag,int *nentries,int **list)
 {
   read_list_of_var(tag,nentries,(char**)list,sizeof(int),"%d");
   
-  master_printf("List of %s:\t",tag);
-  for(int ientr=0;ientr<(*nentries);ientr++) master_printf("%d\t",(*list)[ientr]);
-  master_printf("\n");
+  verbosity_lv1_master_printf("List of %s:\t",tag);
+  for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%d\t",(*list)[ientr]);
+  verbosity_lv1_master_printf("\n");
 }
 
 //read the nissa configuration file
@@ -176,11 +201,11 @@ void read_nissa_config_file()
 {
   char path[1024]="nissa_config";
   
-  const int navail_tag=1;
-  char tag_name[1][100]={"nissa_verbosity_lv"};
-  void *tag_addr[1]={&nissa_verbosity};
-  char tag_type[1][3]={"%d"};
-  char tag_size[1]={4};
+  const int navail_tag=2;
+  char tag_name[2][100]={"verbosity_lv","use_128_bit_precision"};
+  void *tag_addr[2]={&nissa_verbosity,&nissa_use_128_bit_precision};
+  char tag_type[2][3]={"%d","%d"};
+  char tag_size[2]={4,4};
   
   if(file_exists(path))
     {

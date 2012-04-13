@@ -20,7 +20,7 @@ void summ_the_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **eo_conf,color *
   add_backfield_to_conf(eo_conf,u1b);
 
   //invert the various terms
-  inv_stD2ee_cgmm2s(chi_e,eo_conf,appr->poles,appr->nterms,1000000,residue,pf);
+  inv_stD2ee_cgmm2s_run_hm_up_to_mach_prec(chi_e,eo_conf,appr->poles,appr->nterms,1000000,residue,pf);
   
   //summ all the terms performing appropriate elaboration
   //possible improvement by communicating more borders together

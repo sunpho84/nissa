@@ -1,4 +1,4 @@
-void cgmm2s_invert(basetype **sol,cgmm2s_additional_parameters_proto double *m2,int nmass,int niter_max,double req_res,basetype *source)
+void cgmm2s_invert(basetype **sol,cgmm2s_additional_parameters_proto double *m2,int nmass,int niter_max,double *req_res,basetype *source)
 {
   const int each=10;
   
@@ -129,8 +129,7 @@ void cgmm2s_invert(basetype **sol,cgmm2s_additional_parameters_proto double *m2,
 	    final_res[imass]=rr*zfs[imass]*zfs[imass]/source_norm;
 	    if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[imass]);
 	    
-	    double stop_res=(imass==0) ? req_res : 1.e-20;
-	    if(final_res[imass]<stop_res)
+	    if(final_res[imass]<req_res[imass])
 	      {
 		run_flag[imass]=0;
 		nrun_mass--;
@@ -188,6 +187,15 @@ void cgmm2s_invert(basetype **sol,cgmm2s_additional_parameters_proto double *m2,
   cgmm2s_additional_vectors_free();
 }
 
+//run higher masses up to machine precision
+void cgmm2s_invert_run_hm_up_to_mach_prec(basetype **sol,cgmm2s_additional_parameters_proto double *m2,int nmass,int niter_max,double req_res,basetype *source)
+{
+  double req_res_int[nmass];
+  req_res_int[0]=req_res;
+  for(int imass=1;imass<nmass;imass++) req_res_int[imass]=1.e-20;
+  cgmm2s_invert(sol,cgmm2s_additional_parameters_call m2,nmass,niter_max,req_res_int,source);
+}
+
 //return all the masses summed together
 void summ_src_and_all_inv_cgmm2s(basetype *sol,cgmm2s_additional_parameters_proto rat_approx *appr,int niter_max,double req_res,basetype *source)
 {
@@ -197,7 +205,7 @@ void summ_src_and_all_inv_cgmm2s(basetype *sol,cgmm2s_additional_parameters_prot
     temp[iterm]=nissa_malloc("temp",bulk_vol+bord_vol,basetype);
   
   //call multi-mass solver
-  cgmm2s_invert(temp,cgmm2s_additional_parameters_call appr->poles,appr->nterms,niter_max,req_res,source);
+  cgmm2s_invert_run_hm_up_to_mach_prec(temp,cgmm2s_additional_parameters_call appr->poles,appr->nterms,niter_max,req_res,source);
   
   //summ all the masses
   double *dsol=(double*)sol,*dsource=(double*)source;
@@ -223,6 +231,7 @@ void summ_src_and_all_inv_cgmm2s(basetype *sol,cgmm2s_additional_parameters_prot
 #undef apply_offdiagonal_operator
 #undef apply_full_operator
 
+#undef cgmm2s_invert_run_hm_up_to_mach_prec
 #undef summ_src_and_all_inv_cgmm2s
 #undef cgmm2s_invert
 #undef cgmm2s_start_communicating_borders

@@ -17,11 +17,13 @@
 
 #endif
 
+#include "cg_invert_tmQ2_common.c"
+
 ////////////////////////////////////////////////// full frontend //////////////////////////////////////////////
 
 //invert a set of propagators using the passed source
 //the output is stored in twisted basis, assuming that prop=su3spinspin[2][nmass][>=loc_vol]
-void compute_su3spinspin_propagators_multi_mass(su3spinspin ***prop,quad_su3 *conf,double kappa,double *mass,int nmass,int niter_max,double req_res,su3spinspin *source)
+void compute_su3spinspin_propagators_multi_mass(su3spinspin ***prop,quad_su3 *conf,double kappa,double *mass,int nmass,int niter_max,double *req_res,su3spinspin *source)
 {
   //allocate temporary source
   spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
