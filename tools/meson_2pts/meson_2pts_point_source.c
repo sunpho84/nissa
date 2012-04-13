@@ -398,7 +398,7 @@ int main(int narg,char **arg)
 		  if(nch_contr>0) print_contractions_to_file(fout,nch_contr,ch_op1,ch_op2,ch_contr,twall,"CHROMO-",1);
 		  
 		  fprintf(fout,"\n");
-		  if(debug_lvl>1) fflush(fout);
+		  if(nissa_verbosity>=3) fflush(fout);
 		}
 	    }
 	}

@@ -59,6 +59,10 @@ int verb_call=0;
 const double nissa_default_verbosity=2;
 double nissa_verbosity=2;
 
+//128 bit precision
+const int nissa_default_use_128_bit_precision=0;
+int nissa_use_128_bit_precision=0;
+
 //size of the border along the 4 dir,types for sending
 int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
 int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];

@@ -71,3 +71,45 @@ void double_vector_subt_double_vector_prod_double(double *a,double *b,double *c,
 //global reduction wrapper
 double double_vector_glb_scalar_prod(double *a,double *b,int n)
 {return glb_reduce_double(double_vector_loc_scalar_prod(a,b,n));}
+
+//////////////////////////////////////////////////////// quadruple precision ///////////////////////////////////////////
+
+//a=b
+void double_vector_from_quadruple_vector(double *a,float_128 *b,int n)
+{
+  for(int i=0;i<n;i++) a[i]=double_from_float_128(b[i]);
+
+  set_borders_invalid(a);
+}
+
+//a=a+b
+void quadruple_vector_summassign_double_vector(float_128 *a,double *b,int n)
+{
+  for(int i=0;i<n;i++) float_128_summassign_64(a[i],b[i]);
+
+  set_borders_invalid(a);
+}
+
+//a=b-c
+void quadruple_vector_subt_from_double_vector(float_128 *a,double *b,float_128 *c,int n)
+{
+  for(int i=0;i<n;i++) float_128_subt_from_64(a[i],b[i],c[i]);
+
+  set_borders_invalid(a);
+}
+
+//(a,b)
+void quadruple_vector_glb_scalar_prod(float_128 a,float_128 *b,float_128 *c,int n)
+{
+  float_128 loc_a={0,0};
+  for(int i=0;i<n;i++) float_128_summ_the_prod(loc_a,b[i],c[i]);
+  MPI_Allreduce(loc_a,a,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+}
+
+//(a,b)
+double double_conv_quadruple_vector_glb_scalar_prod(float_128 *a,float_128 *b,int n)
+{
+  float_128 out;
+  quadruple_vector_glb_scalar_prod(out,a,b,n);
+  return double_from_float_128(out);
+}

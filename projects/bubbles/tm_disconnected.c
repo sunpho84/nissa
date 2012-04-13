@@ -29,39 +29,14 @@ int source_pos[4];
 int nmass;
 double kappa,*mass;
 
-double residue,minimal_residue;
-int stopping_criterion,niter_max;
+double *stopping_residues;
+int niter_max=100000000;
 char outfile[1024];
 
 double tot_time=0,inv_time=0,contr_time=0;
 int ncontr_tot,ninv_tot;
 
 const double rad2=1.414213562373095048801688724209;
-
-//Read the stopping criterion
-void get_stopping_criterion(int *stopping_criterione,double *minimal_residue)
-{
-  int isc=0;
-  stopping_criterion=numb_known_stopping_criterion;
-  char str_stopping_criterion[1024];
-  read_str_str("StoppingCriterion",str_stopping_criterion,1024);
-  isc=0;
-  do
-    {
-      if(strcasecmp(list_known_stopping_criterion[isc],str_stopping_criterion)==0) stopping_criterion=isc;
-      isc++;
-    }
-  while(isc<numb_known_stopping_criterion && stopping_criterion==numb_known_stopping_criterion);
-  
-  if(stopping_criterion==numb_known_stopping_criterion && rank==0)
-    {
-      fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
-      fprintf(stderr,"List of known stopping criterions:\n");
-      for(int isc=0;isc<numb_known_stopping_criterion;isc++) fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
-  if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",minimal_residue);
-}
 
 //This function contract a source with a propagator putting the passed list of operators
 void contract_with_source(complex *corr,colorspinspin *prop,int *list_op,colorspinspin *source,int ncontr)
@@ -204,8 +179,7 @@ void initialize_bubbles(char *input_path)
   read_str_double("Kappa",&kappa);
   
   //Read the number of masses and allocate spinors for the cgmms
-  read_str_int("NMass",&nmass);
-  mass=nissa_malloc("mass",nmass,double);
+  read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
   S=nissa_malloc("S",nmass,colorspinspin**);
   QQ=nissa_malloc("QQ",nmass,spincolor*);
   for(int imass=0;imass<nmass;imass++)
@@ -213,16 +187,8 @@ void initialize_bubbles(char *input_path)
       S[imass]=nissa_malloc("S[imass]",2,colorspinspin*);
       for(int r=0;r<2;r++) S[imass][r]=nissa_malloc("S",loc_vol,colorspinspin);
       QQ[imass]=nissa_malloc("QQ[i]",loc_vol+bord_vol,spincolor);
-      read_double(&(mass[imass]));
     }
     
-  //Residue
-  read_str_double("Residue",&residue);
-  //Stopping criterion
-  get_stopping_criterion(&stopping_criterion,&minimal_residue);
-  //Number of iterations
-  read_str_int("NiterMax",&niter_max);
-  
   //Read path of output
   read_str_str("Output",outfile,1024);
   
@@ -255,7 +221,7 @@ void calculate_S()
 	}
       set_borders_invalid(inv_source);
       
-      inv_tmQ2_cgmms(QQ,conf,kappa,mass,nmass,niter_max,residue,minimal_residue,stopping_criterion,inv_source);
+      inv_tmQ2_cgmms(QQ,conf,kappa,mass,nmass,niter_max,stopping_residues,inv_source);
       ninv_tot++;
       //put the solution inside the S vector
       for(int imass=0;imass<nmass;imass++) 
@@ -379,7 +345,6 @@ void close_bubbles()
     }
   nissa_free(S);
   nissa_free(QQ);
-  nissa_free(mass);
   
   nissa_free(inv_source);
   nissa_free(ch_prop);

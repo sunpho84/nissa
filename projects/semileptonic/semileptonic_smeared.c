@@ -90,8 +90,9 @@ spincolor **cgmms_solution,*temp_vec[2];
 int ithetaS0_min,ithetaS0_max,nthetaS0;
 
 //cgmms inverter parameters
-double stopping_residue;
-int niter_max;
+double *stopping_residues_S0;
+double *stopping_residues_S1;
+int niter_max=100000;
 
 //two points contractions
 int ncontr_2pts;
@@ -266,18 +267,10 @@ void initialize_semileptonic(char *input_path)
   
   // 4) Read list of masses and of thetas
 
-  read_list_of_doubles("NMassS0",&nmassS0,&massS0);
+  read_list_of_double_pairs("MassResiduesS0",&nmassS0,&massS0,&stopping_residues_S0);
   read_list_of_doubles("NThetaS0",&nthetaS0,&thetaS0);
   
-  // 5) Info about the inverter
-  
-  //Residue
-  read_str_double("Residue",&stopping_residue);
-      
-  //Number of iterations
-  read_str_int("NiterMax",&niter_max);
-  
-  // 6) contraction list for two points
+  // 5) contraction list for two points
   
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
@@ -305,12 +298,12 @@ void initialize_semileptonic(char *input_path)
       master_printf(" ch-contr.%d %d %d\n",icontr,ch_op1_2pts[icontr],ch_op2_2pts[icontr]);
     }
   
-  // 7) Read list of masses and of thetas for S1
+  // 6) Read list of masses and of thetas for S1
   
-  read_list_of_doubles("NMassS1",&nmassS1,&massS1);
+  read_list_of_double_pairs("MassResiduesS1",&nmassS1,&massS1,&stopping_residues_S1);
   read_list_of_doubles("NThetaS1",&nthetaS1,&thetaS1);
   
-  // 8) three points functions
+  // 7) three points functions
   
   sequential_source=nissa_malloc("Sequential source",loc_vol,prop_type);
   read_str_int("TSep",&tsep);
@@ -570,7 +563,7 @@ void calculate_S0(int ism_lev_so)
 	    
 	    //inverting
 	    double part_time=-take_time();
-	    inv_tmQ2_cgmms(cgmms_solution,conf,kappa,massS0,nmassS0,niter_max,stopping_residue,source);
+	    inv_tmQ2_cgmms(cgmms_solution,conf,kappa,massS0,nmassS0,niter_max,stopping_residues_S0,source);
 	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
 #ifdef POINT_SOURCE_VERSION
 	    master_printf("Finished the inversion of S0 theta %d, color index %d, dirac index %d in %g sec\n",itheta,ic,id,part_time);
@@ -640,7 +633,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 	    adapt_theta(conf,old_theta,put_theta,1,1);
 	    
 	    double part_time=-take_time();
-	    inv_tmQ2_cgmms(cgmms_solution,conf,kappa,massS1,nmassS1,niter_max,stopping_residue,source);
+	    inv_tmQ2_cgmms(cgmms_solution,conf,kappa,massS1,nmassS1,niter_max,stopping_residues_S0,source);
 	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
 	    

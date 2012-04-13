@@ -33,10 +33,8 @@ int npropS0;
 su3spinspin **S0[2];
 
 //cgmms inverter parameters
-double stopping_residue;
-double minimal_residue;
-int stopping_criterion;
-int niter_max;
+double *stopping_residues;
+int niter_max=1000000;
 
 //two points contractions
 int ncontr_2pts;
@@ -134,36 +132,8 @@ void initialize_Zcomputation(char *input_path)
   // 2) Read information about the masses
   
   //Read the masses
-  read_list_of_doubles("NMass",&nmass,&mass);
+  read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
 
-  // 3) Info about the inverter
-
-  //Residue
-  read_str_double("Residue",&stopping_residue);
-  //Stopping criterion
-  stopping_criterion=numb_known_stopping_criterion;
-  char str_stopping_criterion[1024];
-  read_str_str("StoppingCriterion",str_stopping_criterion,1024);
-  int isc=0;
-  do
-    {
-      if(strcasecmp(list_known_stopping_criterion[isc],str_stopping_criterion)==0) stopping_criterion=isc;
-      isc++;
-    }
-  while(isc<numb_known_stopping_criterion && stopping_criterion==numb_known_stopping_criterion);
-  
-  if(stopping_criterion==numb_known_stopping_criterion && rank==0)
-    {
-      fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
-      fprintf(stderr,"List of known stopping criterions:\n");
-      for(int isc=0;isc<numb_known_stopping_criterion;isc++) fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
-  if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
-      
-  //Number of iterations
-  read_str_int("NiterMax",&niter_max);
-  
   // 4) contraction list for two points
   
   read_str_int("NContrTwoPoints",&ncontr_2pts);
@@ -285,7 +255,7 @@ void close_Zcomputation()
 void calculate_S0()
 {
   inv_time-=take_time();
-  compute_su3spinspin_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion,original_source);
+  compute_su3spinspin_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residues,original_source);
   inv_time+=take_time();
   ninv_tot+=12;
   

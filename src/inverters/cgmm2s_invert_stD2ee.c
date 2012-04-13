@@ -8,8 +8,9 @@
 #define apply_offdiagonal_operator apply_stD2ee_zero_mass
 #define apply_full_operator apply_stD2ee
 
-#define summ_src_and_all_inv_cgmm2s summ_src_and_all_inv_stD2ee_cgmm2s
 #define cgmm2s_invert inv_stD2ee_cgmm2s
+#define cgmm2s_invert_run_hm_up_to_mach_prec inv_stD2ee_cgmm2s_run_hm_up_to_mach_prec
+#define summ_src_and_all_inv_cgmm2s summ_src_and_all_inv_stD2ee_cgmm2s
 #define cgmm2s_npossible_requests 16
 
 #define cgmm2s_start_communicating_borders start_communicating_ev_color_borders

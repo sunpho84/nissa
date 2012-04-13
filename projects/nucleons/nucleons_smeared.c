@@ -29,10 +29,8 @@ su3spinspin **S1;
 
 //cgmms inverter spinors and parameters
 spincolor **solDD,*sol_reco[2];
-double stopping_residue;
-double minimal_residue;
-int stopping_criterion;
-int niter_max;
+double *stopping_residues;
+int niter_max=100000;
 
 //smearing parameters
 double jacobi_kappa,ape_alpha;
@@ -143,7 +141,7 @@ void initialize_nucleons(char *input_path)
   //Kappa
   read_str_double("Kappa",&(kappa));
   
-  // 2) Source position, masses and smerding parameters
+  // 2) Source position, masses and smearing parameters
 
   expect_str("SourcePosition");
   master_printf("Source position: ");
@@ -159,45 +157,17 @@ void initialize_nucleons(char *input_path)
   read_str_double("JacobiKappa",&jacobi_kappa);
   read_str_int("JacobiNiter",&jacobi_niter);
   //Mass
-  read_list_of_doubles("NMass",&nmass,&mass);
+  read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
   read_str_int("Ind3ptsMass",&(im_3pts));
   
-  // 3) inverter
-
-  //Residue
-  read_str_double("Residue",&stopping_residue);
-  //Stopping criterion
-  stopping_criterion=numb_known_stopping_criterion;
-  char str_stopping_criterion[1024];
-  read_str_str("StoppingCriterion",str_stopping_criterion,1024);
-  int isc=0;
-  do
-    {
-      if(strcasecmp(list_known_stopping_criterion[isc],str_stopping_criterion)==0) stopping_criterion=isc;
-      isc++;
-    }
-  while(isc<numb_known_stopping_criterion && stopping_criterion==numb_known_stopping_criterion);
-  
-  if(stopping_criterion==numb_known_stopping_criterion && rank==0)
-    {
-      fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
-      fprintf(stderr,"List of known stopping criterions:\n");
-      for(int isc=0;isc<numb_known_stopping_criterion;isc++) fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
-  if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
-  
-  //Number of iterations
-  read_str_int("NiterMax",&niter_max);
-  
-  // 4) 2pts and insertion info
+  // 3) 2pts and insertion info
   //compute also SL 2pts?
   read_str_int("ComputeAlsoSL2pts",&compute_also_SL_2pts);
   //tsink-tsource
   read_str_int("TSeparation",&tseparation);
   tsink=(source_pos[0]+tseparation)%glb_size[0];
   
-  // 5) three points computation infos
+  // 4) three points computation infos
   read_str_int("Compute3ptsLike0Dislike0",&(compute_3pts[0][0]));
   read_str_int("Compute3ptsLike0Dislike1",&(compute_3pts[0][1]));
   read_str_int("Compute3ptsLike1Dislike0",&(compute_3pts[1][0]));
@@ -332,7 +302,7 @@ void calculate_S0()
 	// 2) peform the inversion taking time
 
 	tinv-=take_time();
-	inv_tmQ2_cgmms(solDD,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion,source);
+	inv_tmQ2_cgmms(solDD,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
 	tinv+=take_time();
 
 	master_printf("inversions finished\n");
@@ -734,7 +704,7 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	
 	tinv-=take_time();
 	inv_tmQ2_cgmms_left(solDD,conf,kappa,mass,nmass,
-			    niter_max,stopping_residue,minimal_residue,stopping_criterion,source);
+			    niter_max,stopping_residues,source);
 	tinv+=take_time();
 	
 	//use sol_reco[0] as temporary storage. We solve for rdislike

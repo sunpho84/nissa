@@ -75,10 +75,8 @@ colorspinspin **S;
 spincolor **cgmms_solution,*temp_vec[2];
 
 //cgmms inverter parameters
-double stopping_residue;
-double minimal_residue;
-int stopping_criterion;
-int niter_max;
+double *stopping_residues;
+int niter_max=1000000;
 
 //ottos contractions
 complex *contr_otto,*contr_mezzotto;
@@ -151,7 +149,7 @@ void initialize_Bk(int narg,char **arg)
   //Read the noise type
   read_str_int("NoiseType",&noise_type);
   //Read list of masses
-  read_list_of_doubles("NMass",&nmass,&mass);
+  read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
   
   // 3) Smearing parameters
   
@@ -166,37 +164,7 @@ void initialize_Bk(int narg,char **arg)
     if((jlv<so_jnlv && so_jnit[jlv]<so_jnit[jlv-1])||(jlv<si_jnlv && si_jnit[jlv]<si_jnit[jlv-1]))
       crash("Error, jacobi levels have to be sorted in ascending order!");
   
-  // 4) Info about the inverter
-
-  //Residue
-  read_str_double("Residue",&stopping_residue);
-  //Stopping criterion
-  stopping_criterion=numb_known_stopping_criterion;
-  char str_stopping_criterion[1024];
-  read_str_str("StoppingCriterion",str_stopping_criterion,1024);
-  int isc=0;
-  do
-    {
-      if(strcasecmp(list_known_stopping_criterion[isc],str_stopping_criterion)==0) stopping_criterion=isc;
-      isc++;
-    }
-  while(isc<numb_known_stopping_criterion && stopping_criterion==numb_known_stopping_criterion);
-  
-  if(stopping_criterion==numb_known_stopping_criterion)
-    {
-      master_fprintf(stderr,"Unknown stopping criterion: %s\n",str_stopping_criterion);
-      master_fprintf(stderr,"List of known stopping criterions:\n");
-      for(int isc=0;isc<numb_known_stopping_criterion;isc++)
-	master_fprintf(stderr," %s\n",list_known_stopping_criterion[isc]);
-      MPI_Abort(MPI_COMM_WORLD,1);
-    }
-  
-  if(stopping_criterion==sc_standard) read_str_double("MinimalResidue",&minimal_residue);
-  
-  //Number of iterations
-  read_str_int("NiterMax",&niter_max);
-  
-  // 5) contraction list for eight
+  // 4) contraction list for eight
 
   contr_otto=nissa_malloc("contr_otto",16*glb_size[0],complex);
   contr_mezzotto=nissa_malloc("contr_mezzotto",16*glb_size[0],complex);
@@ -344,7 +312,7 @@ void calculate_S(int iwall)
 	  
 	  double part_time=-take_time();
 	  master_printf("\n");
-	  inv_tmQ2_cgmms(cgmms_solution,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion,source);
+	  inv_tmQ2_cgmms(cgmms_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
 	  part_time+=take_time();ntot_inv++;tot_inv_time+=part_time;
 	  master_printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
 			     iwall,id,so_jlv,part_time);
@@ -503,7 +471,7 @@ void calculate_all_contractions()
 	    {	    
 	      nissa_loc_vol_loop(ivol) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
 	      set_borders_invalid(source);
-	      if(debug_lvl>1) master_printf("Prop %d, id=%d ",iprop,id);
+	      verbosity_lv1_master_printf("Prop %d, id=%d ",iprop,id);
 	      jacobi_smearing(source,source,sme_conf,jacobi_kappa,si_jnit_to_app);
 	      nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
 	    }
