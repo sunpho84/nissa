@@ -39,37 +39,54 @@ and following, the negative direction borders
 */
 
 //Send the borders of the data
-void communicate_lx_borders(void *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site)
+void start_communicating_lx_borders(int *nrequest_ret,MPI_Request *request,void *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site)
 {
+  int nrequest=0;
+  
   crash_if_borders_not_allocated(data);
   
   if(!check_borders_valid(data))
-    {
-      int nrequest=0;
-      MPI_Request request[16];
-      MPI_Status status[16];
-      
-      for(int i=0;i<4;i++)
-	if(paral_dir[i]!=0)
-	  {
-	    //sending the upper border to the lower node
-	    MPI_Irecv(data+start_lx_bord_rece_up[i]*nbytes_per_site,1,MPI_BORDS_RECE[i],rank_neighup[i],83+i, 
-		      cart_comm,&request[nrequest++]);
-	    MPI_Isend(data+start_lx_bord_send_up[i]*nbytes_per_site,1,MPI_BORDS_SEND[i],rank_neighdw[i],83+i,
-		      cart_comm,&request[nrequest++]);
-	    
-	    //sending the lower border to the upper node
-	    MPI_Irecv(data+start_lx_bord_rece_dw[i]*nbytes_per_site,1,MPI_BORDS_RECE[i],rank_neighdw[i],87+i, 
-		      cart_comm,&request[nrequest++]);
-	    MPI_Isend(data+start_lx_bord_send_dw[i]*nbytes_per_site,1,MPI_BORDS_SEND[i],rank_neighup[i],87+i,
-		      cart_comm,&request[nrequest++]);
-	  }
-      
-      if(nrequest>0) MPI_Waitall(nrequest,request,status);
+    for(int i=0;i<4;i++)
+      if(paral_dir[i]!=0)
+	{
+	  //sending the upper border to the lower node
+	  MPI_Irecv(data+start_lx_bord_rece_up[i]*nbytes_per_site,1,MPI_BORDS_RECE[i],rank_neighup[i],83+i, 
+		    cart_comm,&request[nrequest++]);
+	  MPI_Isend(data+start_lx_bord_send_up[i]*nbytes_per_site,1,MPI_BORDS_SEND[i],rank_neighdw[i],83+i,
+		    cart_comm,&request[nrequest++]);
+	  
+	  //sending the lower border to the upper node
+	  MPI_Irecv(data+start_lx_bord_rece_dw[i]*nbytes_per_site,1,MPI_BORDS_RECE[i],rank_neighdw[i],87+i, 
+		    cart_comm,&request[nrequest++]);
+	  MPI_Isend(data+start_lx_bord_send_dw[i]*nbytes_per_site,1,MPI_BORDS_SEND[i],rank_neighup[i],87+i,
+		    cart_comm,&request[nrequest++]);
+	}
+  
+  *nrequest_ret=nrequest;
+}
 
-      set_edges_invalid(data);
-      set_borders_valid(data);
+//wait to finish communications
+void finish_communicating_lx_borders(int *nrequest,MPI_Request *request,void *data)
+{
+  tot_nissa_comm_time-=take_time();
+  if(*nrequest>0)
+    {
+      verbosity_lv3_master_printf("Waiting to finish communication of borders of vector %s\n",get_vec_name(data));
+      MPI_Waitall(*nrequest,request,MPI_STATUS_IGNORE);
+      *nrequest=0;
     }
+  set_borders_valid(data);
+  set_edges_invalid(data);
+  
+  tot_nissa_comm_time+=take_time();
+}
+
+void communicate_lx_borders(void *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site)
+{
+  MPI_Request request[16];
+  int nrequest;
+  start_communicating_lx_borders(&nrequest,request,data,MPI_BORDS_SEND,MPI_BORDS_RECE,nbytes_per_site);
+  finish_communicating_lx_borders(&nrequest,request,data);
 }
 
 /* and this is the shape of the edges
@@ -183,6 +200,12 @@ void communicate_lx_spincolor_borders(spincolor *s)
 void communicate_lx_spincolor_128_borders(spincolor_128 *s)
 {communicate_lx_borders(s,MPI_LX_SPINCOLOR_128_BORDS_SEND,MPI_LX_SPINCOLOR_128_BORDS_RECE,sizeof(spincolor_128));}
 
+//Separate spincolor start/stop communication
+void start_communicating_lx_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *s)
+{start_communicating_lx_borders(nrequest,request,s,MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,sizeof(spincolor));}
+void finish_communicating_lx_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *s)
+{finish_communicating_lx_borders(nrequest,request,s);}
+
 
 ///////////////////////////////////////////////// even/odd split vectors communicators ///////////////////////////////////
 
@@ -239,8 +262,8 @@ void start_communicating_ev_borders(int *nrequest_ret,MPI_Request *request,void 
 //Send the borders of the data
 void communicate_ev_borders(void *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_EV_BORDS_RECE,int nbytes_per_site)
 {
-  int nrequest=0;
   MPI_Request request[16];
+  int nrequest;
   start_communicating_ev_borders(&nrequest,request,ev_data,MPI_EV_BORDS_SEND_TXY,MPI_EV_BORDS_SEND_Z,MPI_EV_BORDS_RECE,nbytes_per_site);
   finish_communicating_ev_borders(&nrequest,request,ev_data);
 }

@@ -13,4 +13,15 @@
 #define cgmm2s_npossible_requests 16
 
 #define cgmm2s_start_communicating_borders start_communicating_ev_color_borders
+#define cgmm2s_finish_communicating_borders finish_communicating_ev_color_borders
+
+#define cgmm2s_additional_vectors_allocation()\
+  basetype *t=nissa_malloc("DD_temp",bulk_vol+bord_vol,basetype);
+#define cgmm2s_additional_vectors_free()	\
+  nissa_free(t);
+#define cgmm2s_additional_parameters_proto quad_su3 **conf,
+#define cgmm2s_additional_parameters_call conf,
+#define cgmm2s_additional_offdiagonal_parameters conf,t,
+#define cgmm2s_additional_full_parameters conf,t,
+
 #include "cgmm2s_invert_template.c"

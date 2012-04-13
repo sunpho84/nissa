@@ -202,7 +202,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
 {
   if(niter<1)
     {
-      verbosity_lv2_master_printf("Skipping smearing (0 iter required)\n");
+      verbosity_lv1_master_printf("Skipping smearing (0 iter required)\n");
       if(smear_sc!=origi_sc) memcpy(smear_sc,origi_sc,sizeof(spincolor)*loc_vol);
     }
   else
@@ -212,7 +212,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       double norm_fact=1/(1+6*kappa);
       communicate_lx_quad_su3_borders(conf);
 
-      verbosity_lv2_master_printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
+      verbosity_lv1_master_printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
       
       //iter 0
       memcpy(temp,origi_sc,sizeof(spincolor)*loc_vol);
@@ -221,7 +221,7 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       //loop over jacobi iterations
       for(int iter=0;iter<niter;iter++)
 	{
-	  verbosity_lv2_master_printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
+	  verbosity_lv3_master_printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
 	  
 	  //apply kappa*H
 	  smearing_apply_kappa_H(H,kappa,conf,temp);
