@@ -77,13 +77,15 @@ void close_input()
 }
 
 //Read a var from the file
-void read_var(char *in,const char *par,int size_of)
+int read_var_catcherr(char *in,const char *par,int size_of)
 {
   int ok=(rank==0) ? fscanf(input_global,par,in) : 1;
-  if(!ok) crash("Couldn't read from input file!!!");
-  
   MPI_Bcast(in,size_of,MPI_BYTE,0,MPI_COMM_WORLD);
+  return ok;
 }
+
+void read_var(char *in,const char *par,int size_of)
+{if(!read_var_catcherr(in,par,size_of)) crash("Couldn't read from input file!!!");}
 
 //Read an integer from the file
 void read_int(int *in)
@@ -164,4 +166,44 @@ void read_list_of_ints(char *tag,int *nentries,int **list)
   master_printf("List of %s:\t",tag);
   for(int ientr=0;ientr<(*nentries);ientr++) master_printf("%d\t",(*list)[ientr]);
   master_printf("\n");
+}
+
+//read the nissa configuration file
+void read_nissa_config_file()
+{
+  const int navail_tag=1;
+  char tag_name[1][100]={"nissa_verbosity_lv"};
+  void *tag_addr[1]={&nissa_verbosity};
+  char tag_type[1][3]={"%d"};
+  char tag_size[1]={4};
+  
+  if(file_exists("nissa_config"))
+    {
+      open_input("nissa_config");
+      int ok;
+      
+      do
+        {
+          char tag[100];
+	  ok=read_str_catherr(tag,100);
+	  
+	  if(ok)
+	    {
+	      //find the tag
+	      int itag=0;
+	      while(itag<nvail_tag && strcasecmp(tag,tag_name[itag])!=0) itag++;
+	      
+	      //check if tag found
+	      if(itag==nvail_tag) crash("unkwnown tag '%s'",tag);
+	      
+	      //read the tag
+	      read_var((char*)tag_addr[itag],tag_type[itag],tag_size[itag]);
+	    }
+	  else master_printf("Finished reading the file");
+	}
+      while(ok);
+      
+      close_input();
+    }
+  else master_printf("No 'nissa_config' file present, using standard configuration\n");
 }
