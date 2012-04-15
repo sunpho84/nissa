@@ -27,7 +27,7 @@ su3spinspin *seq_source;
 su3spinspin ***S0_SL,***S0_SS;
 su3spinspin **S1;
 
-//cgmms inverter spinors and parameters
+//cgm inverter spinors and parameters
 spincolor **solDD,*sol_reco[2];
 double *stopping_residues;
 int niter_max=100000;
@@ -302,7 +302,7 @@ void calculate_S0()
 	// 2) peform the inversion taking time
 
 	tinv-=take_time();
-	inv_tmQ2_cgmms(solDD,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
+	inv_tmQ2_cgm(solDD,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
 	tinv+=take_time();
 
 	master_printf("inversions finished\n");
@@ -703,7 +703,7 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	master_printf("\n(S1) %s, rlike=%d rdislike=%d, sink index: id=%d, ic=%d\n",tag[ld],rlike,rdislike,id_sink,ic_sink);
 	
 	tinv-=take_time();
-	inv_tmQ2_cgmms_left(solDD,conf,kappa,mass,nmass,
+	inv_tmQ2_left_cgm(solDD,conf,kappa,mass,nmass,
 			    niter_max,stopping_residues,source);
 	tinv+=take_time();
 	

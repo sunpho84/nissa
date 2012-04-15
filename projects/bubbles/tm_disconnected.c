@@ -178,7 +178,7 @@ void initialize_bubbles(char *input_path)
   //Read kappa
   read_str_double("Kappa",&kappa);
   
-  //Read the number of masses and allocate spinors for the cgmms
+  //Read the number of masses and allocate spinors for the cgm
   read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
   S=nissa_malloc("S",nmass,colorspinspin**);
   QQ=nissa_malloc("QQ",nmass,spincolor*);
@@ -221,7 +221,7 @@ void calculate_S()
 	}
       set_borders_invalid(inv_source);
       
-      inv_tmQ2_cgmms(QQ,conf,kappa,mass,nmass,niter_max,stopping_residues,inv_source);
+      inv_tmQ2_cgm(QQ,conf,kappa,mass,nmass,niter_max,stopping_residues,inv_source);
       ninv_tot++;
       //put the solution inside the S vector
       for(int imass=0;imass<nmass;imass++) 

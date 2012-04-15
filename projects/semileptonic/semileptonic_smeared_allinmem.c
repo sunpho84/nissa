@@ -29,7 +29,7 @@ int *jacobi_niter_se,nsm_lev_se;
 int npropS0;
 colorspinspin **S0[2];
 
-//cgmms inverter parameters
+//cgm inverter parameters
 double stopping_residue;
 double minimal_residue;
 int stopping_criterion;
@@ -451,10 +451,10 @@ void calculate_S0(int ism_lev_so)
   smear_additive_colorspinspin(original_source,original_source,ism_lev_so,jacobi_niter_so);
   master_printf("\n");
   
-  //Allocate nmass spincolors, for the cgmms solutions
-  spincolor **cgmms_solution,*temp_vec[2];
-  cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+bord_vol,spincolor);
+  //Allocate nmass spincolors, for the cgm solutions
+  spincolor **cgm_solution,*temp_vec[2];
+  cgm_solution=nissa_malloc("cgm_solution",nmass,spincolor*);
+  for(int imass=0;imass<nmass;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution",loc_vol+bord_vol,spincolor);
   temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
   temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
   
@@ -478,14 +478,14 @@ void calculate_S0(int ism_lev_so)
 	  
 	  //inverting
 	  double part_time=-take_time();
-	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	  inv_tmQ2_cgm(cgm_solution,source,conf,kappa,mass,nmass,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	  master_printf("Finished the inversion of S0 theta %d, dirac index %d in %g sec\n",itheta,id,part_time);
 
 	  //reconstruct the doublet
 	  for(int imass=0;imass<nmass;imass++)
 	    {
-	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgmms_solution[imass],conf,kappa,mass[imass]);
+	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],cgm_solution[imass],conf,kappa,mass[imass]);
 	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		nissa_loc_vol_loop(ivol)
@@ -503,8 +503,8 @@ void calculate_S0(int ism_lev_so)
   master_printf("\n");
   
   //free vectors
-  for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
-  nissa_free(cgmms_solution);
+  for(int imass=0;imass<nmass;imass++) nissa_free(cgm_solution[imass]);
+  nissa_free(cgm_solution);
   nissa_free(temp_vec[0]);nissa_free(temp_vec[1]);
 }
 
@@ -520,10 +520,10 @@ void calculate_S1(int ispec,int ism_lev_se)
   smear_additive_colorspinspin(sequential_source,sequential_source,ism_lev_se,jacobi_niter_se);
   master_printf("\n");
   
-  //Allocate nmass spincolors, for the cgmms solutions
-  spincolor **cgmms_solution,*temp_vec[2];
-  cgmms_solution=nissa_malloc("cgmms_solution",nmass_3pts,spincolor*);
-  for(int imass=0;imass<nmass_3pts;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+bord_vol,spincolor);
+  //Allocate nmass spincolors, for the cgm solutions
+  spincolor **cgm_solution,*temp_vec[2];
+  cgm_solution=nissa_malloc("cgm_solution",nmass_3pts,spincolor*);
+  for(int imass=0;imass<nmass_3pts;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution",loc_vol+bord_vol,spincolor);
   temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
   temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
   
@@ -540,7 +540,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 	  adapt_theta(conf,old_theta,put_theta,1,1);
 
 	  double part_time=-take_time();
-	  inv_tmQ2_cgmms(cgmms_solution,source,conf,kappa,mass_3pts,nmass_3pts,niter_max,stopping_residue,minimal_residue,stopping_criterion);
+	  inv_tmQ2_cgm(cgm_solution,source,conf,kappa,mass_3pts,nmass_3pts,niter_max,stopping_residue,minimal_residue,stopping_criterion);
 	  part_time+=take_time();ninv_tot++;inv_time+=part_time;
 	  master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
 	  
@@ -549,7 +549,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 	      double reco_mass=-mass[imass+start_imass3pts[ispec]];
 	      if(r_spec[ispec]==1) reco_mass=-reco_mass;
 	      //use temp_vec[0] as temporary storage
-	      apply_tmQ(temp_vec[0],cgmms_solution[imass],conf,kappa,reco_mass);
+	      apply_tmQ(temp_vec[0],cgm_solution[imass],conf,kappa,reco_mass);
 	      master_printf("Mass %d (%g) reconstructed \n",imass,mass_3pts[imass]);
 	      nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S1[iprop_of(itheta,imass+start_imass3pts[ispec])][ivol],temp_vec[0][ivol],id);
 	    }
@@ -565,8 +565,8 @@ void calculate_S1(int ispec,int ism_lev_se)
   master_printf("\n");
 
   //free vectors
-  for(int imass=0;imass<nmass_3pts;imass++) nissa_free(cgmms_solution[imass]);
-  nissa_free(cgmms_solution);
+  for(int imass=0;imass<nmass_3pts;imass++) nissa_free(cgm_solution[imass]);
+  nissa_free(cgm_solution);
   nissa_free(temp_vec[0]);nissa_free(temp_vec[1]);
 }
 

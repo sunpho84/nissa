@@ -4,10 +4,10 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //                              + -1
-// The inverter solve Scgmms=(DD )   in twisted basis    tw    +   + -1    +
-// The solution in the twisted basis can be obtained as S   = D (DD )   = D Scgmms
+// The inverter solve Scgm=(DD )   in twisted basis    tw    +   + -1    +
+// The solution in the twisted basis can be obtained as S   = D (DD )   = D Scgm
 //      tw                                                                       +                                    
-// --> S   = (1/2k +i g5 m) Scgmms (x) - 1/2 \sum   U   (x) ( 1 - g  )S(x+mu) + U (x-mu) (1 + g  ) S(x-mu)
+// --> S   = (1/2k +i g5 m) Scgm (x) - 1/2 \sum   U   (x) ( 1 - g  )S(x+mu) + U (x-mu) (1 + g  ) S(x-mu)
 //                                               mu  mu            mu                          mu
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 

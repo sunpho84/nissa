@@ -32,7 +32,7 @@ su3spinspin *original_source;
 int npropS0;
 su3spinspin **S0[2];
 
-//cgmms inverter parameters
+//cgm inverter parameters
 double *stopping_residues;
 int niter_max=1000000;
 
@@ -255,7 +255,7 @@ void close_Zcomputation()
 void calculate_S0()
 {
   inv_time-=take_time();
-  compute_su3spinspin_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residues,original_source);
+  compute_su3spinspin_tm_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residues,original_source);
   inv_time+=take_time();
   ninv_tot+=12;
   
