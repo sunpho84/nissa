@@ -102,7 +102,7 @@ int main(int narg,char **arg)
       
       //take initial time                                                                                                        
       double tinv=-take_time;
-      inv_Q2_cgmms(solution,source,NULL,conf,kappa,m,nmass,nitermax,residue,minimal_residue,stopping_criterion);
+      inv_Q2_cgm(solution,source,NULL,conf,kappa,m,nmass,nitermax,residue,minimal_residue,stopping_criterion);
       tinv+=take_time();
       
       master_printf("\nTotal time elapsed: %f s\n",tinv);

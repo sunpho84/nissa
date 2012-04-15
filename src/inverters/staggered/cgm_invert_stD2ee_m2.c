@@ -23,4 +23,4 @@
 #define cgm_additional_parameters_proto quad_su3 **conf,
 #define cgm_additional_parameters_call conf,
 
-#include "cgm_invert_template.c"
+#include "../templates/cgm_invert_template.c"

@@ -1,27 +1,5 @@
 #pragma once
 
-#include "cgm_invert_stD2ee_m2.c"
-
-#include "cgm_invert_tmQ2_m2.c"
-#include "cgm_invert_tmDQ.c"
-#include "cgm_invert_tmQ2.c"
-
-
-#ifdef BGP
-
-#include "cg_invert_tmQ2_bgp.c"
-
-#else
-
-#include "cg_invert_tmDeoimpr_portable.c"
-#include "cg_invert_tmQ2_portable.c"
-
-#endif
-
-#include "cg_invert_tmQ2_common.c"
-
-////////////////////////////////////////////////// full frontend //////////////////////////////////////////////
-
 //invert a set of propagators using the passed source
 //the output is stored in twisted basis, assuming that prop=su3spinspin[2][nmass][>=loc_vol]
 void compute_su3spinspin_tm_propagators_multi_mass(su3spinspin ***prop,quad_su3 *conf,double kappa,double *mass,int nmass,int niter_max,double *req_res,su3spinspin *source)

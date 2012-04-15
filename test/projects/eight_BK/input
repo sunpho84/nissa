@@ -9,19 +9,15 @@ Seed 100
 NSeparations 1
  4
 NoiseType 4
-NMass 2
- 0.50 0.60
+MassResidues 2
+ 0.50 1.e-24
+ 0.60 1.e-30
 
 ApeAlpha 0.5
 ApeNiter 5
 JacobiKappa 0.5
 SourceJacobiNiters 2   0 8
 SinkJacobiNiters   2   0 8
-
-Residue 1.e-24
-StoppingCriterion standard
-MinimalResidue 1.e-30
-NiterMax 1000
 
 NSpec 1
 
