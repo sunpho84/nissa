@@ -72,9 +72,9 @@ int ape_niter;
 //vectors for the spinor data
 int nprop;
 colorspinspin **S;
-spincolor **cgmms_solution,*temp_vec[2];
+spincolor **cgm_solution,*temp_vec[2];
 
-//cgmms inverter parameters
+//cgm inverter parameters
 double *stopping_residues;
 int niter_max=1000000;
 
@@ -196,9 +196,9 @@ void initialize_Bk(int narg,char **arg)
   S=nissa_malloc("S",nprop,colorspinspin*);
   for(int iprop=0;iprop<nprop;iprop++) S[iprop]=nissa_malloc("S[i]",loc_vol,colorspinspin);
   
-  //Allocate nmass spincolors, for the cgmms solutions
-  cgmms_solution=nissa_malloc("cgmms_solution",nmass,spincolor*);
-  for(int imass=0;imass<nmass;imass++) cgmms_solution[imass]=nissa_malloc("cgmms_solution",loc_vol+bord_vol,spincolor);
+  //Allocate nmass spincolors, for the cgm solutions
+  cgm_solution=nissa_malloc("cgm_solution",nmass,spincolor*);
+  for(int imass=0;imass<nmass;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution",loc_vol+bord_vol,spincolor);
   temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
   temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
 
@@ -312,14 +312,14 @@ void calculate_S(int iwall)
 	  
 	  double part_time=-take_time();
 	  master_printf("\n");
-	  inv_tmQ2_cgmms(cgmms_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
+	  inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
 	  part_time+=take_time();ntot_inv++;tot_inv_time+=part_time;
 	  master_printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
 			     iwall,id,so_jlv,part_time);
 	  
 	  for(int imass=0;imass<nmass;imass++)
 	    { //reconstruct the doublet
-	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgmms_solution[imass]);
+	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
 	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{
@@ -549,8 +549,8 @@ void close_Bk()
   nissa_free(op1_2pts);nissa_free(op2_2pts);
   nissa_free(contr_otto);nissa_free(contr_mezzotto);
   nissa_free(conf);nissa_free(sme_conf);nissa_free(contr_2pts);
-  for(int imass=0;imass<nmass;imass++) nissa_free(cgmms_solution[imass]);
-  nissa_free(cgmms_solution);
+  for(int imass=0;imass<nmass;imass++) nissa_free(cgm_solution[imass]);
+  nissa_free(cgm_solution);
   nissa_free(source);nissa_free(original_source);
   for(int iprop=0;iprop<nprop;iprop++) nissa_free(S[iprop]);
   nissa_free(S);
