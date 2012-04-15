@@ -32,6 +32,6 @@
 #include "operations/remap_vector.c"
 
 #include "dirac_operators/dirac_operators.c"
-#include "inverters/invert.c"
+#include "inverters/inverters.c"
 
 #include "hmc/hmc.c"
