@@ -5,7 +5,7 @@
   See "cgm_invert_tmQ2.c" as an example.
 */
 
-void cgm_invert(basetype **sol,cgm_additional_parameters_proto double *shift,int nshift,int niter_max,double *req_res,basetype *source)
+void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int nshift,int niter_max,double *req_res,basetype *source)
 {
   const int each=10;
   
@@ -73,7 +73,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto double *shift,int
       
       //     -s=Ap
       if(nrequest!=0) cgm_finish_communicating_borders(&nrequest,request,p);
-      apply_operator(s,cgm_operator_parameters 0,p);
+      apply_operator(s,cgm_operator_parameters,0,p);
       
       //     -pap=(p,s)=(p,Ap)
       double pap=double_vector_glb_scalar_prod((double*)p,(double*)s,bulk_vol*ndoubles_per_site);
@@ -145,13 +145,13 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto double *shift,int
 	  } 
       if(iter%each==0) verbosity_lv2_master_printf("\n");
     }
-  while(run_flag[0] && nrun_shift>0 && iter<niter_max);
+  while(nrun_shift>0 && iter<niter_max);
   
   //print the final true residue
   for(int ishift=0;ishift<nshift;ishift++)
     {
       double res,w_res,weight,max_res;
-      apply_operator(s,cgm_operator_parameters shift[ishift],sol[ishift]);
+      apply_operator(s,cgm_operator_parameters,shift[ishift],sol[ishift]);
       {
 	double loc_res=0;
 	double locw_res=0;
@@ -194,24 +194,25 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto double *shift,int
   cgm_additional_vectors_free();
   
 #ifdef cg_128_invert
+  verbosity_lv1_master_printf("\nRefining the solution in quaduple precision using cg solver\n");
   //if 128 bit precision required refine the solution
   if(nissa_use_128_bit_precision)
     for(int ishift=0;ishift<nshift;ishift++)
-      cg_128_invert(sol[ishift],sol[ishift],cgm_additional_parameters_call shift[ishift],req_res[ishift],source);
+      cg_128_invert(sol[ishift],sol[ishift],cg_128_additional_parameters_call,shift[ishift],niter_max,req_res[ishift],source);
 #endif
 }
 
 //run higher shifts up to machine precision
-void cgm_invert_run_hm_up_to_mach_prec(basetype **sol,cgm_additional_parameters_proto double *shift,int nshift,int niter_max,double req_res,basetype *source)
+void cgm_invert_run_hm_up_to_mach_prec(basetype **sol,cgm_additional_parameters_proto,double *shift,int nshift,int niter_max,double req_res,basetype *source)
 {
   double req_res_int[nshift];
   req_res_int[0]=req_res;
   for(int ishift=1;ishift<nshift;ishift++) req_res_int[ishift]=1.e-20;
-  cgm_invert(sol,cgm_additional_parameters_call shift,nshift,niter_max,req_res_int,source);
+  cgm_invert(sol,cgm_additional_parameters_call,shift,nshift,niter_max,req_res_int,source);
 }
 
 //return all the shifts summed together
-void summ_src_and_all_inv_cgm(basetype *sol,cgm_additional_parameters_proto rat_approx *appr,int niter_max,double req_res,basetype *source)
+void summ_src_and_all_inv_cgm(basetype *sol,cgm_additional_parameters_proto,rat_approx *appr,int niter_max,double req_res,basetype *source)
 {
   //allocate temporary single solutions
   basetype *temp[appr->nterms];
@@ -219,7 +220,7 @@ void summ_src_and_all_inv_cgm(basetype *sol,cgm_additional_parameters_proto rat_
     temp[iterm]=nissa_malloc("temp",bulk_vol+bord_vol,basetype);
   
   //call multi-shift solver
-  cgm_invert_run_hm_up_to_mach_prec(temp,cgm_additional_parameters_call appr->poles,appr->nterms,niter_max,req_res,source);
+  cgm_invert_run_hm_up_to_mach_prec(temp,cgm_additional_parameters_call,appr->poles,appr->nterms,niter_max,req_res,source);
   
   //summ all the shifts
   double *dsol=(double*)sol,*dsource=(double*)source;
@@ -257,3 +258,5 @@ void summ_src_and_all_inv_cgm(basetype *sol,cgm_additional_parameters_proto rat_
 #undef cgm_additional_parameters_call
 #undef cgm_additional_parameters_proto
 #undef cgm_operator_parameters
+
+#undef cg_128_invert

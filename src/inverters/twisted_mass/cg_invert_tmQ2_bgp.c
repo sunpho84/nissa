@@ -2,7 +2,7 @@
 
 #include "base/bgp_instructions.c"
 
-void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL,spincolor *source)
+void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,int RL,double m,int niter,int rniter,double residue,spincolor *source)
 {
   bgp_complex A00,A01,A02,A10,A11,A12,A20,A21,A22,A30,A31,A32;
   bgp_complex B00,B01,B02,B10,B11,B12,B20,B21,B22,B30,B31,B32;
@@ -53,8 +53,8 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 		
 	MPI_Allreduce(cloc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	MPI_Allreduce(cloc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	if(riter==0) master_printf("Source norm: %lg\n",source_norm);
-	master_printf("iter 0 relative residue: 1\n");
+	if(riter==0) verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
+	verbosity_lv2_master_printf("iter 0 relative residue: 1\n");
       }
 
       //main loop
@@ -131,7 +131,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 
 	  iter++;
 
-	  if(iter%10==0) master_printf("iter %d relative residue: %g\n",iter,lambda/source_norm);
+	  if(iter%10==0) verbosity_lv2_master_printf("iter %d relative residue: %g\n",iter,lambda/source_norm);
 	}
       while(lambda>(residue*source_norm) && iter<niter);
       
@@ -150,7 +150,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else lambda=loc_lambda;
 	
-	master_printf("\nfinal relative residue (after %d iters): %g where %g was required\n",iter,lambda/source_norm,residue);
+	verbosity_lv1_master_printf("\nfinal relative residue (after %d iters): %g where %g was required\n",iter,lambda/source_norm,residue);
       }
 
       riter++;

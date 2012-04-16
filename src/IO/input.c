@@ -227,7 +227,7 @@ void read_nissa_config_file()
 	      if(itag==navail_tag) crash("unkwnown parameter '%s'",tag);
 	      
 	      //read the tag
-	      read_var(tag_addr+itag,tag_type[itag],tag_size[itag]);
+	      read_var(tag_addr[itag],tag_type[itag],tag_size[itag]);
 	      verbosity_lv1_master_printf("Read parameter '%s' with value ",tag);
 	      verbosity_lv1_master_printf(tag_type[itag],*(tag_addr+itag));
 	      verbosity_lv1_master_printf("\n");
@@ -239,4 +239,8 @@ void read_nissa_config_file()
       close_input();
     }
   else master_printf("No 'nissa_config' file present, using standard configuration\n");
+  
+  verbosity_lv1_master_printf("Configuration:\n");
+  verbosity_lv1_master_printf(" verbosity_lv=%d\n",nissa_verbosity);
+  verbosity_lv1_master_printf(" use_128_bit_precision=%d\n",nissa_use_128_bit_precision);
 }

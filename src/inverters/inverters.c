@@ -2,6 +2,8 @@
 
 #include "staggered/cgm_invert_stD2ee_m2.c"
 
+#include "twisted_mass/cg_128_invert_tmQ2.c"
+#include "twisted_mass/cg_128_invert_tmQ2_m2.c"
 #include "twisted_mass/cgm_invert_tmQ2_m2.c"
 #include "twisted_mass/cgm_invert_tmDQ.c"
 #include "twisted_mass/cgm_invert_tmQ2.c"
