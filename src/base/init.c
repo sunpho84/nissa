@@ -9,8 +9,8 @@ void init_nissa()
   tot_nissa_time-=take_time();
   
   //set error handler for MPI_COMM_WORLD
-  MPI_Comm_create_errhandler(mpi_error_handler_function,&mpi_error_handler);
-  MPI_Comm_set_errhandler(MPI_COMM_WORLD,mpi_error_handler);
+  //MPI_Comm_create_errhandler(mpi_error_handler_function,&mpi_error_handler);
+  //MPI_Comm_set_errhandler(MPI_COMM_WORLD,mpi_error_handler);
   
   //get the number of rank and the id of the local one
   MPI_Comm_size(MPI_COMM_WORLD,&rank_tot);
@@ -231,7 +231,7 @@ void init_grid(int T,int L)
 {
   //take initial time
   double time_init=-take_time();
-  master_printf("\nInitializing MPI, geometry and communications\n");
+  master_printf("\nInitializing grid, geometry and communications\n");
   
   //set the volume
   glb_size[0]=T;
@@ -273,7 +273,7 @@ void init_grid(int T,int L)
   //takes rank and ccord of local rank
   MPI_Comm_rank(cart_comm,&cart_rank);
   MPI_Cart_coords(cart_comm,cart_rank,4,rank_coord);
-
+  
   //calculate the local volume
   for(int idir=0;idir<4;idir++) loc_size[idir]=glb_size[idir]/nrank_dir[idir];
   loc_vol=glb_vol/rank_tot;
