@@ -26,13 +26,13 @@ int file_exists(const char *path)
       FILE *f=fopen(path,"r");
       if(f!=NULL)
         {
-	  master_printf("File %s exists!\n",path);
+	  verbosity_lv2_master_printf("File '%s' exists!\n",path);
           status=1;
           fclose(f);
         }
       else
         {
-	  master_printf("File %s do not exist!\n",path);
+	  verbosity_lv2_master_printf("File '%s' do not exist!\n",path);
 	  status=0;
 	}
     }
@@ -229,7 +229,7 @@ void read_nissa_config_file()
 	      //read the tag
 	      read_var(tag_addr[itag],tag_type[itag],tag_size[itag]);
 	      verbosity_lv1_master_printf("Read parameter '%s' with value ",tag);
-	      verbosity_lv1_master_printf(tag_type[itag],*(tag_addr+itag));
+	      verbosity_lv1_master_printf(tag_type[itag],*((int*)tag_addr[itag]));
 	      verbosity_lv1_master_printf("\n");
 	    }
 	  else master_printf("Finished reading the file '%s'\n",path);
