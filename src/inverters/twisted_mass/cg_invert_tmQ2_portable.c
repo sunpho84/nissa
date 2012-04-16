@@ -1,6 +1,6 @@
 #pragma once
 
-void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double m,int niter,int rniter,double residue,int RL,spincolor *source)
+void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,int RL,double m,int niter,int rniter,double residue,spincolor *source)
 {
   int riter=0;
   spincolor *s=nissa_malloc("s",loc_vol,spincolor);
@@ -34,8 +34,8 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	  }
 	MPI_Allreduce(&loc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	MPI_Allreduce(&loc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	if(riter==0) master_printf("Source norm: %lg\n",source_norm);
-	master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
+	if(riter==0) verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
+	verbosity_lv2_master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
 	set_borders_invalid(p);
       }
 
@@ -96,7 +96,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 
 	  iter++;
 
-	  if(iter%10==0) master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
+	  if(iter%10==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
 	}
       while(lambda>(residue*source_norm) && iter<niter);
       
@@ -116,7 +116,7 @@ void inv_tmQ2_cg_RL(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else lambda=loc_lambda;
 	
-	master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);
+	verbosity_lv1_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);
       }
 
       riter++;

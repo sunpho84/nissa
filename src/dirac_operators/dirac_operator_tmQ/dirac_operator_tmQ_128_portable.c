@@ -134,27 +134,3 @@ void apply_tmQ_128(spincolor_128 *out,quad_su3 *conf,double kappa,double mu,spin
   
   set_borders_invalid(out);
 }
-
-void apply_tmQ2_128(spincolor_128 *out,quad_su3 *conf,double kappa,double mu,spincolor_128 *temp,spincolor_128 *in)
-{
-  int all=0;
-  
-  if(temp==NULL)
-    {
-      temp=nissa_malloc("tempQ",loc_vol+bord_vol,spincolor_128);
-      all=1;
-    }
-  
-  apply_tmQ_128(temp,conf,kappa,+mu,in);
-  
-  communicate_lx_spincolor_128_borders(temp);
-  apply_tmQ_128(out,conf,kappa,-mu,temp);
-  
-  if(all==1)
-    {
-      nissa_free(temp);
-      temp=NULL;
-    }
-  
-  set_borders_invalid(out);
-}

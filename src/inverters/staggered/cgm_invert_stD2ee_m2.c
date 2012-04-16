@@ -6,7 +6,7 @@
 #define bord_vol bord_volh
 
 #define apply_operator apply_stD2ee_m2
-#define cgm_operator_parameters conf,t,
+#define cgm_operator_parameters conf,t
 
 #define cgm_invert inv_stD2ee_m2_cgm
 #define cgm_invert_run_hm_up_to_mach_prec inv_stD2ee_m2_cgm_run_hm_up_to_mach_prec
@@ -20,7 +20,7 @@
   basetype *t=nissa_malloc("DD_temp",bulk_vol+bord_vol,basetype);
 #define cgm_additional_vectors_free()	\
   nissa_free(t);
-#define cgm_additional_parameters_proto quad_su3 **conf,
-#define cgm_additional_parameters_call conf,
+#define cgm_additional_parameters_proto quad_su3 **conf
+#define cgm_additional_parameters_call conf
 
 #include "../templates/cgm_invert_template.c"

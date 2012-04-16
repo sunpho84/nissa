@@ -58,7 +58,6 @@ void init_nissa()
   initialize_main_nissa_vect();
   
   //initialize global variables
-  nissa_verbosity=nissa_default_verbosity;
   nissa_lx_geom_inited=0;
   nissa_eo_geom_inited=0;
   nissa_loc_rnd_gen_inited=0;
@@ -71,6 +70,10 @@ void init_nissa()
   check_endianess();
   if(little_endian) master_printf("System endianess: little.\n");
   else master_printf("System endianess: big.\n");
+
+  //set default value for parameters
+  nissa_verbosity=nissa_default_verbosity;
+  nissa_use_128_bit_precision=nissa_default_use_128_bit_precision;
   
   //read the configuration file, if present
   read_nissa_config_file();
