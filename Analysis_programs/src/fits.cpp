@@ -83,13 +83,13 @@ jack mass_fit(jvec corr,int tmin,int tmax,const char *path=NULL)
 }
 
 //fit the mass and the matrix element
-void two_pts_fit(jack &E,jack &Z,jvec corr,int tmin,int tmax,const char *path1=NULL,const char *path2=NULL)
+void two_pts_fit(jack &E,jack &Z2,jvec corr,int tmin,int tmax,const char *path1=NULL,const char *path2=NULL)
 {
   E=mass_fit(corr,tmin,tmax,path1);
   jvec temp(corr.nel,corr.njack);
   int TH=temp.nel-1;
   for(int t=0;t<=TH;t++) temp[t]=corr[t]/exp(-E*TH)/cosh(E*(TH-t))*E;
-  Z=constant_fit(temp,tmin,tmax,path2);
+  Z2=constant_fit(temp,tmin,tmax,path2);
 }
 
 //fit the mass and the matrix element in SS and SL combo
