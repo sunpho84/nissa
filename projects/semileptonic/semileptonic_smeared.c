@@ -714,7 +714,8 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 		    for(int r1=0;r1<2;r1++)
 		      {
 			//header
-			master_fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d",massS0[im1],thetaS0[ith1],r1,massS0[im2],thetaS0[ith2],r2);
+			master_fprintf(fout," # m1=%lg th1=%lg res1=%lg r1=%d, m2=%lg th2=%lg res2=%lg r2=%d",massS0[im1],thetaS0[ith1],stopping_residues_S0[im1],r1,
+				       massS0[im2],thetaS0[ith2],stopping_residues_S0[im2],r2);
 			master_fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
 			
 			//compute contractions
