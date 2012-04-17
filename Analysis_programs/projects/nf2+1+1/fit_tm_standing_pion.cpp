@@ -7,7 +7,7 @@ char out_file[1024];
 char base_path[1024];
 int T,L,TH;
 int ntheta,nmass;
-int njack=16;
+int njack=15;
 int tmin,tmax;
 
 void read_ensemble_pars(char *base_path,int &T,int &nmass,int &ntheta,const char *data_list_file)
@@ -113,8 +113,8 @@ int main(int narg,char **arg)
   two_pts_fit(M,Z2,corr,tmin,tmax,"M_2steps.xmg","Z2_2steps.xmg");
   cout<<"M="<<M<<", Z2="<<Z2<<endl;
   
-  //two_pts_fit_minuit(M,Z2,corr);
-  //cout<<"M="<<M<<", Z2="<<Z2<<endl;
+  two_pts_fit_minuit(M,Z2,corr);
+  cout<<"M="<<M<<", Z2="<<Z2<<endl;
   
   M.write_to_binfile(out_file);
   Z2.append_to_binfile(out_file);
