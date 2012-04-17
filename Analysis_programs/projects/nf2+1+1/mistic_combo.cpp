@@ -31,7 +31,9 @@ int main()
       af[iens]=2*aml[iens]*sqrt(Z2[iens])/sqr(aM[iens]);
       mist[iens]=sqr(aM[iens])*pow(af[iens],1.5)/aml[iens];
     }
-
+  
+  jack m,q;
+  linear_fit(m,q,aml,mist,0,0.01,"mist.xmg");
   
   for(int iens=0;iens<nens;iens++) cout<<aml[iens]<<" "<<mist[iens]<<endl;
   

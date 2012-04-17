@@ -193,37 +193,58 @@ void two_pts_SL_fit(jack &M,jack &ZL,jack &ZS,jvec corrSL,jvec corrSS,int tminL,
   if(path2!=NULL) write_constant_fit_plot(path2,ecorrSS,M,tminS,tmaxS);
 }
 
-void linear_fit(jack &m,jack &q,jvec corr,int tmin,int tmax)
+void linear_fit(jack &m,jack &q,double *x,jvec corr,double xmin,double xmax,const char *plot_path=NULL)
 {
-  tmin=max(0,tmin);
-  tmax=min(tmax+1,corr.nel);
   int njack=corr.njack;
   jack Y(njack),XY(njack),Y2(njack);
   double X=0,W=0,X2=0;
 
   Y=XY=0;
-  for(int t=tmin;t<tmax;t++)
-    {
-      double err=corr[t].err();
-      double w=1/sqr(err);
+  for(int iel=0;iel<corr.nel;iel++)
+    if(x[iel]>=xmin && x[iel]<=xmax)
+      {
+	double err=corr[iel].err();
+	double w=1/sqr(err);
+	
+	W+=w;
+	
+	X+=x[iel]*w;
+	X2+=x[iel]*x[iel]*w;
       
-      W+=w;
-      
-      X+=t*w;
-      X2+=t*t*w;
-      
-      Y+=corr[t]*w;
-      Y2+=sqr(corr[t])*w;
-      
-      XY+=t*corr[t]*w;
-    }
-
+	Y+=corr[iel]*w;
+	Y2+=sqr(corr[iel])*w;
+	
+	XY+=x[iel]*corr[iel]*w;
+      }
+  
   XY-=X*Y/W;
   Y2-=Y*Y/W;
   X2-=X*X/W;
   
   m=XY/X2;
   q=(Y-m*X)/W;
+  
+  if(plot_path!=NULL)
+    {
+      ofstream plot_file(plot_path);
+      plot_file<<"@type xydy"<<endl;
+      for(int iel=0;iel<corr.nel;iel++)
+	plot_file<<x[iel]<<" "<<corr[iel]<<endl;
+      plot_file<<"&"<<endl<<"@type xy"<<endl;
+      plot_file<<xmin<<" "<<m[njack]*xmin+q[njack]<<endl;
+      plot_file<<xmax<<" "<<m[njack]*xmax+q[njack]<<endl;
+      plot_file<<"&"<<endl;
+    }
+}
+
+void linear_fit(jack &m,jack &q,jvec corr,int tmin,int tmax,const char *plot_path=NULL)
+{
+  double x[corr.nel];
+  for(int iel=0;iel<corr.nel;iel++) x[iel]=iel;
+  double xmin=max(0,tmin);
+  double xmax=min(tmax+1,corr.nel);
+  
+  linear_fit(m,q,x,corr,xmin,xmax);
 }
 
 bvec lin_solve(double *A,bvec b)
