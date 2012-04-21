@@ -358,15 +358,24 @@ void init_grid(int T,int L)
 	crash("Plan communicator has messed up coord: %d and rank %d (implement reorder!)",rank_of_coord(proj_rank_coord),plan_rank[mu]);
    }
   
-  //create communicator along t line
+  //create communicator along line
   for(int mu=0;mu<4;mu++)
     {
+      //split the communicator
       int split_line[4];
       memset(split_line,0,4*sizeof(int));
       split_line[mu]=1;
       MPI_Cart_sub(cart_comm,split_line,&(line_comm[mu]));
+      
+      //get rank id
       MPI_Comm_rank(line_comm[mu],&(line_rank[mu]));
-      if(line_rank[mu]!=rank_coord[mu]) crash("Line communicator has messed up coord and rank (implement reorder!)");
+      
+      //get rank coord along line comm
+      MPI_Cart_coords(line_comm[mu],line_rank[mu],1,&(line_coord_rank[mu]));
+      
+      //check communicator
+      if(line_rank[mu]!=rank_coord[mu] || line_rank[mu]!=line_coord_rank[mu])
+	crash("Line communicator has messed up coord and rank (implement reorder!)");
    }
   
   //////////////////////////////////////////////////////////////////////////////////////////
