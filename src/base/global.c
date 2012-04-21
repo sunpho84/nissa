@@ -51,8 +51,8 @@ MPI_Datatype MPI_REDSPINCOLOR;
 MPI_Op MPI_FLOAT_128_SUM;
 
 //timings
-double tot_nissa_time=2;
-double tot_nissa_comm_time=2;
+double tot_nissa_time=0;
+double tot_nissa_comm_time=0;
 
 //verbosity
 int verb_call=0;
@@ -97,7 +97,7 @@ coords paral_dir;
 coords nrank_dir;
 coords rank_coord;
 coords rank_neigh[2],rank_neighdw,rank_neighup;
-coords plan_rank,line_rank;
+coords plan_rank,line_coord_rank,line_rank;
 
 int little_endian;
 

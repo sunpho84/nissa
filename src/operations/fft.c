@@ -83,8 +83,12 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
   //allocate the buffer to send data
   complex *buf=nissa_malloc("buf",loc_size[mu]*ncpp,complex);
   
+  master_printf("FFT mu=%d\n",mu);
+
   ////////////////////////////// first part /////////////////////////////////
-  
+
+  master_printf("First part time: %lg\n",mu,take_time()+tot_nissa_time);
+
   //reorder data across the various rank: glb_iel_in=iel_blk_out*glb_nblk+glb_iblk_out_rev
   int nrequest0=0,nexp_request0=loc_size[mu]*2;
   MPI_Request request0[nexp_request0];
@@ -123,6 +127,8 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
   
   /////////////////////////// second part ////////////////////////////////////
   
+  master_printf("Second part, time %lg\n",mu,take_time()+tot_nissa_time);
+
   //perform the block fourier transform if needed
   if(blk_size==1) memcpy(out,buf,loc_size[mu]*ncpp*sizeof(complex));
   else
@@ -177,6 +183,8 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
   
   /////////////////////////////  third part ////////////////////////////
   
+  master_printf("Third part, time=%lg\n",mu,take_time()+tot_nissa_time);
+  
   //now perform the lanczos procedure up to when it does not need communications
   for(int delta=blk_size;delta<loc_size[mu];delta*=2)
     {
@@ -219,6 +227,8 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
     }
   
   ///////////////////////////////////// fourth part //////////////////////////////
+  
+  master_printf("Fourth part, time=%lg\n",mu,take_time()+tot_nissa_time);
   
   //now perform the lanczos procedure up to the end
   for(int delta_rank=1;delta_rank<nrank_dir[mu];delta_rank*=2) //this is rank width of delta
@@ -264,7 +274,7 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
       //fourier coefficient
       double wr=cos(pos_delta*theta);
       double wi=sin(pos_delta*theta);      
-      
+      master_printf(" Waiting all\n");
       //wait for communications to finish
       MPI_Waitall(2,request2,status2);
 
@@ -297,6 +307,8 @@ void fft1d(complex *out,complex *in,int ncpp,int mu,double sign,int normalize)
   if(normalize==1)
     for(int i=0;i<loc_size[mu]*ncpp;i++)
       for(int ri=0;ri<2;ri++) out[i][ri]/=glb_size[mu];
+  
+  master_printf("fft finished time=%lg\n",take_time()+tot_nissa_time);
   
   nissa_free(buf);
 }
