@@ -3,7 +3,7 @@
 int nens;
 double *aml;
 int *T;
-int njack=16;
+int njack=15;
 
 int main()
 {
@@ -34,8 +34,15 @@ int main()
   
   jack m,q;
   linear_fit(m,q,aml,mist,0,0.01,"mist.xmg");
+  cout<<"chir: "<<q<<endl;
   
   for(int iens=0;iens<nens;iens++) cout<<aml[iens]<<" "<<mist[iens]<<endl;
+  
+  {
+    ofstream fout("M2pi_fr_aml.xmg");
+    fout<<"@type xydy"<<endl;
+    for(int iens=0;iens<nens;iens++) fout<<aml[iens]<<" "<<aM[iens]*aM[iens]/aml[iens]<<endl;
+  }
   
   fclose(fin);
   

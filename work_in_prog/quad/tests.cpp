@@ -6,7 +6,7 @@
 using namespace std;
 
 //using gnu
-__float128 float128_sqrt_with_guess(__float128 in,__float128 guess)
+__float128 __float128_sqrt_with_guess(__float128 in,__float128 guess)
 {
  return guess+(in-guess*guess)/(2*guess);
 }
@@ -14,7 +14,10 @@ __float128 float128_sqrt_with_guess(__float128 in,__float128 guess)
 double conv_double(__float128 in)
 {return (double)in;}
 
-__float128 float128_sqrt(__float128 in)
+__float128 conv___float128(float128 in)
+{return (__float128)in.a+(__float128)in.b;}
+
+__float128 __float128_sqrt(__float128 in)
 {
   __float128 out;
   __float128 guess=sqrt(in);
@@ -22,10 +25,10 @@ __float128 float128_sqrt(__float128 in)
 
   do
     {
-      out=float128_sqrt_with_guess(in,guess);
+      out=__float128_sqrt_with_guess(in,guess);
       err=out-guess;
       guess=out;
-      cout<<"errf: "<<(double)err<<endl;
+      //cout<<"errf: "<<(double)err<<endl;
     }
   while(err>1.e-60||err<-1.e-60);
   
@@ -34,8 +37,13 @@ __float128 float128_sqrt(__float128 in)
 
 int main()
 {
-  cout<<(double)(float128_sqrt(3)-sqrt(3))<<endl;
-  
+  float128 sqrt3=float128_sqrt(3);
+  cout<<"float128 - double:      "<<conv_double(  float128_sqrt(  (float128)3)-sqrt(3))<<endl;
+  cout<<"__float128 - double:    "<<conv_double(__float128_sqrt((__float128)3)-sqrt(3))<<endl;
+  cout<<"__float128 vs float128: "<<conv_double((float128)__float128_sqrt((__float128)3)-float128_sqrt((float128)3))<<endl;
+  cout<<"__float128 vs float128: "<<conv_double(__float128_sqrt((__float128)3)-conv___float128(float128_sqrt((float128)3)))<<endl;
+
+  /*
   __float128 a=float128_sqrt(3),b=1;
   float128 sa=sqrt(float128(3)),sb=1;
   
@@ -45,9 +53,10 @@ int main()
       b/=2;
       sb/=2;
     }
-  
+  */
   __float128 one_third=1/(__float128)31;
   float128 one_third_sanfo=((float128)1/(float128)31);
-  cout<<conv_double((float128)one_third-one_third_sanfo)<<endl;
+  cout<<(double)(one_third-1.0/31)<<endl;
+  cout<<(double)(one_third-conv___float128(one_third_sanfo))<<endl;
   return 0;
 }
