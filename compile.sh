@@ -24,4 +24,4 @@ comp()
     $COMP $3 -o $1 $2 $COMP_FLAG $INC_PATH -lm -llemon -L$LEMON_PATH/lib/ -I$LEMON_PATH/include/ -Isrc -D SVN_VERS=\"$SVN_VERS\"
 }
 
-comp $1 $1.c
+comp $1 $1.cpp

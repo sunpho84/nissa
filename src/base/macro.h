@@ -22,8 +22,8 @@
 #define RAD2 1.414213562373095048801688724209l
 
 //wrapper to the internal routines
-#define nissa_malloc(a,b,c) internal_nissa_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
-#define nissa_free(a) a=internal_nissa_free(a,__FILE__,__LINE__)
+#define nissa_malloc(a,b,c) (c*)internal_nissa_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
+#define nissa_free(a) internal_nissa_free((char**)&a,__FILE__,__LINE__)
 #define crash(...) internal_crash(__LINE__,__FILE__,__VA_ARGS__)
 #define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
 
