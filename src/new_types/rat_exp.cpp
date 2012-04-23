@@ -1,4 +1,8 @@
-#pragma once
+#ifndef _RAT_EXP
+#define _RAT_EXP
+
+#include "new_types_definitions.h"
+#include "../base/routines.h"
 
 //allocate a new rat approx
 void rat_approx_create(rat_approx *appr,int nterms,const char *name)
@@ -25,3 +29,5 @@ void master_printf_rat_approx(rat_approx *appr)
   for(int iterm=0;iterm<appr->nterms;iterm++)
     master_printf("   %d) pole: %lg, weight: %lg\n",iterm,appr->poles[iterm],appr->weights[iterm]);
 }
+
+#endif

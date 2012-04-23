@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../new_types/new_types_definitions.h"
+
 //nomenclature: 
 //-glb is relative to the global grid
 //-loc to the local one

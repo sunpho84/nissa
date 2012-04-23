@@ -1,4 +1,9 @@
-#pragma once
+#ifndef _SPIN
+#define _SPIN
+
+#include "new_types_definitions.h"
+#include "complex.h"
+#include "spin.h"
 
 //saturate two anti-simmetric tensors
 void as2t_saturate(complex out,as2t a,as2t b)
@@ -85,3 +90,4 @@ void put_spincolor_into_su3spinspin(su3spinspin out,spincolor in,int id_source,i
 	out[ic_sink][ic_source][id_sink][id_source][1]=in[id_sink][ic_sink][1];
       }
 }
+#endif

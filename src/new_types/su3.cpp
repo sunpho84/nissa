@@ -1,20 +1,40 @@
-#pragma once
+#ifndef _SU3
+#define _SU3
+
+#include <math.h>
+
+#include "new_types_definitions.h"
+#include "../base/routines.h"
+#include "../base/random.h"
+#include "float128.h"
+#include "complex.h"
+#include "su3.h"
 
 //////////////////////////////////// Put to zero or 1 /////////////////////////////////
 
-void color_put_to_zero(color m){memset(m,0,sizeof(color));}
-void su3_put_to_zero(su3 m){memset(m,0,sizeof(su3));}
-void as2t_su3_put_to_zero(as2t_su3 m){memset(m,0,sizeof(as2t_su3));}
-void spincolor_put_to_zero(spincolor m){memset(m,0,sizeof(spincolor));}
-void su3spinspin_put_to_zero(su3spinspin m){memset(m,0,sizeof(su3spinspin));}
-void su3_put_to_id(su3 m){su3_put_to_zero(m);for(int ic=0;ic<3;ic++) m[ic][ic][0]=1;}
+void color_put_to_zero(color m)
+{memset(m,0,sizeof(color));}
+void su3_put_to_zero(su3 m)
+{memset(m,0,sizeof(su3));}
+void as2t_su3_put_to_zero(as2t_su3 m)
+{memset(m,0,sizeof(as2t_su3));}
+void spincolor_put_to_zero(spincolor m)
+{memset(m,0,sizeof(spincolor));}
+void su3spinspin_put_to_zero(su3spinspin m)
+{memset(m,0,sizeof(su3spinspin));}
+void su3_put_to_id(su3 m)
+{su3_put_to_zero(m);for(int ic=0;ic<3;ic++) m[ic][ic][0]=1;}
 
 //////////////////////////////////////// Copy /////////////////////////////////////
 
-void color_copy(color b,color a){memcpy(b,a,sizeof(color));}
-void su3_copy(su3 b,su3 a){memcpy(b,a,sizeof(su3));}
-void quad_su3_copy(quad_su3 b,quad_su3 a){memcpy(b,a,sizeof(quad_su3));}
-void spincolor_copy(spincolor b,spincolor a){memcpy(b,a,sizeof(spincolor));}
+void color_copy(color b,color a)
+{memcpy(b,a,sizeof(color));}
+void su3_copy(su3 b,su3 a)
+{memcpy(b,a,sizeof(su3));}
+void quad_su3_copy(quad_su3 b,quad_su3 a)
+{memcpy(b,a,sizeof(quad_su3));}
+void spincolor_copy(spincolor b,spincolor a)
+{memcpy(b,a,sizeof(spincolor));}
 
 ////////////////////////////////// Operations between colors //////////////////////////
 
@@ -825,3 +845,5 @@ void unsafe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex fact
 {for(int i=0;i<144;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
 void safe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor)
 {for(int i=0;i<144;i++) safe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
+
+#endif

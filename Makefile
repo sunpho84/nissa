@@ -1,11 +1,12 @@
 GCC=gcc
 CC=openmpicc
-CFLAGS=-O4 -Wall -DSVN_VERS=0
-INCLUDE_PATH=src ~/Prace/Programs/lemon/include 
+CFLAGS=-O2 -Wall -DSVN_VERS=0
+INCLUDE_PATH=src /Users/francesco/Prace/Programs/lemon/include /opt/local/include/openmpi/
 
-programs=semileptonic_smeared
+new_types=$(addprefix new_types/, complex dirac float128 rat_exp spin su3)
+modules=$(addprefix src/,$(new_types))
 
-all: dependencies
+all: objects
 
 #$(programs) : $(addsuffix .cpp,$(programs))
 #	$(CC) $(INCLUDE)-c $^ $(CFLAGS) -o $@
@@ -13,9 +14,17 @@ all: dependencies
 $(addsuffix .d,$(programs)): %.d: %.cpp Makefile
 	@ $(GCC) $< -MM $(addprefix -I,$(INCLUDE_PATH)) -o $@
 
+$(addsuffix .o,$(modules)): %.o: %.cpp Makefile
+	@ $(CC) $< $(addprefix -I,$(INCLUDE_PATH)) -c -o $@
 
-dependencies:  $(addsuffix .d,$(programs))
-	@ echo "generate tables of dependencies"
+
+#dependencies:  $(addsuffix .d,$(programs))
+#	@ echo "generate tables of dependencies"
+
+objects: $(addsuffix .o,$(modules))
 
 VPATH=projects/semileptonic
 
+clean:
+	@ rm -rvf $(addsuffix .d,$(modules)) $(addsuffix .o,$(modules))
+.PHONY: clean
