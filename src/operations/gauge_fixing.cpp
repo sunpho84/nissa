@@ -1,4 +1,17 @@
-#pragma once
+#ifndef _GAUGE_FIXING
+#define _GAUGE_FIXING
+
+#include <math.h>
+
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/complex.h"
+#include "../new_types/su3.h"
+#include "../base/global_variables.h"
+#include "../base/communicate.h"
+#include "../geometry/geometry_eo.h"
+#include "../geometry/geometry_lx.h"
+#include "../base/vectors.h"
+#include "../base/routines.h"
 
 //apply a gauge transformation to the conf
 void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
@@ -651,3 +664,4 @@ void landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
 void coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
 {landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,3);}
 
+#endif

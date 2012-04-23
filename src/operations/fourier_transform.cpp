@@ -1,4 +1,14 @@
-#pragma once
+#ifndef FOURIER_TRANSFORM
+#define FOURIER_TRANSFORM
+
+#include <math.h>
+
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/su3.h"
+#include "../base/global_variables.h"
+#include "../base/macros.h"
+#include "../base/debug.h"
+#include "../base/vectors.h"
 
 //produce the table of the momentum
 void Momentum(int **iP,double *bc,double *P2,double *SinP2,double **P,double **SinP,double *SinP4,int nmom)
@@ -71,3 +81,5 @@ void spincolor_FT(spincolor *S,spincolor *FT,double *theta,int **iP,int nmom)
     }
   nissa_free(P2);nissa_free(SinP2);nissa_free(SinP4);
 }
+
+#endif

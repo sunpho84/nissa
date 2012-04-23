@@ -1,7 +1,14 @@
-#pragma once
+#ifndef _VECTOR_GATHER
+#define _VECTOR_GATHERS
+
+#include "../base/global_variables.h"
+#include "../base/debug.h"
+#include "../base/vectors.h"
+#include "../base/routines.h"
+#include "../geometry/geometry_lx.h"
 
 //gahter the whole field on a single rank, reordering data
-void vector_gather(void *glb,void *loc,int bps,int dest_rank)
+void vector_gather(char *glb,char *loc,int bps,int dest_rank)
 {
   if(dest_rank==rank)
     {
@@ -126,3 +133,5 @@ void gathered_vector_cubic_symmetrize(double *vec,int dps)
 	    average_list_of_gathered_vector_sites(vec,ivol,6,dps);
 	  }
 }
+
+#endif

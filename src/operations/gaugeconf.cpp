@@ -1,4 +1,15 @@
-#pragma once
+#ifndef _GAUGECONF
+#define _GAUGECONF
+
+#include <math.h>
+
+#include "../base/global_variables.h"
+#include "../base/vectors.h"
+#include "../base/debug.h"
+#include "../base/communicate.h"
+#include "../base/routines.h"
+#include "../new_types/su3.h"
+#include "../operations/remap_vector.h"
 
 /*
   rotate a field anti-clockwise by 90 degrees
@@ -150,3 +161,5 @@ void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbor
       put_boundaries_conditions(conf,diff_theta,putonbords,putonedges);
     }
 }
+
+#endif
