@@ -1,4 +1,12 @@
-#pragma once
+#ifndef _FLOAT128
+#define _FLOAT128
+
+#include <stdint.h>
+#include <mpi.h>
+
+#include "../base/macros.h"
+#include "new_types_definitions.h"
+#include "complex.h"
 
 void float_128_uminus(float_128 b,float_128 a)
 {
@@ -272,3 +280,4 @@ void unsafe_su3_dag_prod_color_128(color_128 a,su3 b,color_128 c)
       for(int c2=1;c2<3;c2++) complex_summ_the_64_conj1_prod_128(a[c1],b[c2][c1],c[c2]);
     }
 }
+#endif

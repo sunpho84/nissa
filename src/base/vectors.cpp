@@ -1,4 +1,16 @@
-#pragma once
+#ifndef _VECTORS
+#define _VECTORS
+
+#include <stdio.h>
+#include <stdint.h>
+#include <mpi.h>
+#include <lemon.h>
+
+#include "macros.h"
+#include "global_variables.h"
+#include "routines.cpp"
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/float128.h"
 
 //return the pointer to the nissa vect
 nissa_vect* get_nissa_vec(void *v)
@@ -240,3 +252,5 @@ void internal_nissa_free(char **arr,const char *file,int line)
   
   *arr=NULL;
 }
+
+#endif

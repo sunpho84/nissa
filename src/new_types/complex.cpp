@@ -1,4 +1,9 @@
-#pragma once
+#ifndef _COMPLEX
+#define _COMPLEX
+
+#include <math.h>
+
+#include "new_types_definitions.h"
 
 //Assign
 void complex_copy(complex a,complex b)
@@ -303,3 +308,5 @@ void complex_pow(complex res,complex base,double exp)
   res[0]=module*cos(anomaly);
   res[1]=module*sin(anomaly);
 }
+
+#endif

@@ -1,5 +1,9 @@
 #pragma once
 
+#include <lemon.h>
+
+#include "../base/macros.h"
+
 ///////////////// New types ///////////////////
 
 typedef int coords[4];
