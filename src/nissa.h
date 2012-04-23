@@ -12,6 +12,9 @@
 #include <execinfo.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifdef BGP
+#include <builtins.h>
+#endif
 
 #include <lemon.h>
 
