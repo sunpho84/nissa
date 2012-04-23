@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _GEOMETRY_EO
+#define _GEOMETRY_EO
 
 //set the eo geometry
 void set_eo_geometry()
@@ -341,3 +342,5 @@ void paste_eo_parts_into_lx_color(color *out_lx,color **in_eo)
 {paste_eo_parts_into_lx_vector((char*)out_lx,(char**)in_eo,sizeof(color));}
 void paste_eo_parts_into_lx_spincolor(spincolor *out_lx,spincolor **in_eo)
 {paste_eo_parts_into_lx_vector((char*)out_lx,(char**)in_eo,sizeof(spincolor));}
+
+#endif

@@ -1,4 +1,10 @@
-#pragma once
+#ifndef _REMAP_VECTOR
+#define _REMAP_VECTOR
+
+#include "../base/global_variables.h"
+#include "../base/vectors.h"
+#include "../base/debug.h"
+#include "../geometry/geometry_lx.h"
 
 //remap a vector across all the ranks
 void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
@@ -107,3 +113,5 @@ void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
   nissa_free(out_buf);
   nissa_free(in_buf);
 }
+
+#endif

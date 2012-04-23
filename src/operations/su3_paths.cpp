@@ -1,4 +1,17 @@
-#pragma once
+#ifndef _SU3_PATHS
+#define _SU3_PATHS
+
+#include <math.h>
+
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/complex.h"
+#include "../new_types/su3.h"
+#include "../new_types/spin.h"
+#include "../base/global_variables.h"
+#include "../base/vectors.h"
+#include "../base/communicate.h"
+#include "../base/debug.h"
+#include "../geometry/geometry_lx.h"
 
 /////////////////////////////////////// Complicated things /////////////////////
 
@@ -656,3 +669,5 @@ void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmun
   //invalidate borders
   set_borders_invalid(out);
 }
+
+#endif

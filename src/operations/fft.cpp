@@ -1,4 +1,14 @@
-#pragma once
+#ifndef _FFT
+#define _FFT
+
+#include <math.h>
+
+#include "../new_types/new_types_definitions.h"
+#include "../base/global_variables.h"
+#include "../base/macros.h"
+#include "../base/debug.h"
+#include "../base/vectors.h"
+#include "../base/routines.h"
 
 //return the bit inverse of an int
 int bitrev(int in,int l2n)
@@ -318,3 +328,4 @@ void fft4d(complex *out,complex *in,int ncpp,double sign,int normalize)
     }
 }
 
+#endif
