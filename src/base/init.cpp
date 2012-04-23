@@ -358,7 +358,7 @@ void init_grid(int T,int L)
 	crash("Plan communicator has messed up coord: %d and rank %d (implement reorder!)",rank_of_coord(proj_rank_coord),plan_rank[mu]);
    }
   
-  //create communicator along t line
+  //create communicator along lines
   for(int mu=0;mu<4;mu++)
     {
       int split_line[4];
