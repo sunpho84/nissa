@@ -15,8 +15,22 @@
 #define EVN 0
 #define ODD 1
 
+//double per color, spincolor and quad_su3
+#define nreals_per_color 6
+#define nreals_per_spincolor 24
+#define nreals_per_quad_su3 72
+
 //random number generator table length
 #define ran2_ntab 32                                                                                                         
+
+//constants
+#define nissa_default_verbosity 2
+#define nissa_default_use_128_bit_precision 0
+
+//Pi
+#ifndef M_PI
+#define M_PI           3.14159265358979323846
+#endif
 
 //sqrt(2)
 #define RAD2 1.414213562373095048801688724209l

@@ -12,14 +12,11 @@
 #include <execinfo.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
 #ifdef BGP
 #include <builtins.h>
 #endif
 
 #include <lemon.h>
-
-#ifndef M_PI
-#define M_PI           3.14159265358979323846
-#endif
 
 #include "nissa.cpp"

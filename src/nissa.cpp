@@ -15,6 +15,10 @@
 #include "base/communicate.cpp"
 #include "base/random.cpp"
 
+#include "geometry/geometry_lx.cpp"
+#include "geometry/geometry_eo.cpp"
+#include "geometry/geometry.h"
+
 #include "linalgs/linalgs.cpp"
 
 #include "IO/checksum.cpp"
