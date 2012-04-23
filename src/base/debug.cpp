@@ -60,14 +60,3 @@ void internal_decript_MPI_error(int line,const char *file,int rc,const char *tem
     
     va_end(ap);
 }
-
-void mpi_error_handler_function(MPI_Comm *comm,int *rc,...)
-{
-  if(rank==0)
-    {
-      char err[1024];
-      int len=1024;
-      MPI_Error_string(*rc,err,&len);
-      crash("MPI raised error: %s",err);
-    }
-}

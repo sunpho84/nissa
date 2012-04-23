@@ -109,8 +109,8 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       //     calculate p'=r'+p*alpha
       double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,bulk_vol*ndoubles_per_site);
       
-      start the communications of the border
-      //cgm_start_communicating_borders(&nrequest,request,p);
+      //start the communications of the border
+      cgm_start_communicating_borders(&nrequest,request,p);
       
       //     calculate 
       //     -alphas=alpha*zfs*betas/zas*beta
