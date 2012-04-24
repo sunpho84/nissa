@@ -1,13 +1,16 @@
-#pragma once
+#include <math.h>
+
+#include "../../new_types/new_types_definitions.h"
+#include "../../new_types/su3.h"
+#include "../../base/vectors.h"
+#include "../../base/debug.h"
+#include "../../base/global_variables.h"
+#include "../../base/communicate.h"
 
 #ifdef BGP
-
-#include "dirac_operator_stD_bgp.cpp"
-
+ #include "dirac_operator_stD_bgp.cpp"
 #else
-
-#include "dirac_operator_stD_portable.cpp"
-
+ #include "dirac_operator_stD_portable.cpp"
 #endif
 
 void apply_stD2ee_zero_mass(color *out,quad_su3 **conf,color *temp,color *in)
