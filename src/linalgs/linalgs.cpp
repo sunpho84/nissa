@@ -1,4 +1,11 @@
-#pragma once
+#include <string.h>
+
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/float128.h"
+#include "../base/global_variables.h"
+#include "../base/vectors.h"
+#include "../base/routines.h"
+#include "../base/communicate.h"
 
 //set to zero
 void double_vector_init_to_zero(double *a,int n)

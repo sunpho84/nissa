@@ -1,4 +1,15 @@
-#pragma once
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/spin.h"
+#include "../dirac_operators/dirac_operator_tmQ/reconstruct_tm_doublet.h"
+#include "../base/global_variables.h"
+#include "../base/debug.h"
+#include "../base/routines.h"
+#include "../base/vectors.h"
+#include "../geometry/geometry_lx.h"
+#include "../geometry/geometry_eo.h"
+#include "../operations/su3_paths.h"
+#include "checksum.h"
+#include "endianess.h"
 
 //create an nissa reader
 nissa_reader *nissa_reader_create()

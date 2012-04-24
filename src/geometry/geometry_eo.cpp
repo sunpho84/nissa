@@ -1,5 +1,9 @@
-#ifndef _GEOMETRY_EO
-#define _GEOMETRY_EO
+#include "../base/global_variables.h"
+#include "../base/debug.h"
+#include "../base/vectors.h"
+#include "../base/routines.h"
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/su3.h"
 
 //set the eo geometry
 void set_eo_geometry()
@@ -342,5 +346,3 @@ void paste_eo_parts_into_lx_color(color *out_lx,color **in_eo)
 {paste_eo_parts_into_lx_vector((char*)out_lx,(char**)in_eo,sizeof(color));}
 void paste_eo_parts_into_lx_spincolor(spincolor *out_lx,spincolor **in_eo)
 {paste_eo_parts_into_lx_vector((char*)out_lx,(char**)in_eo,sizeof(spincolor));}
-
-#endif

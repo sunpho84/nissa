@@ -1,5 +1,3 @@
-#pragma once
-
 FILE *input_global;
 
 void file_touch(const char *path)
