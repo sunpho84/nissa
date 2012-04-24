@@ -1,6 +1,15 @@
-#pragma once
+#include <lemon.h>
 
-#include "endianess.cpp"
+#include "checksum.h"
+#include "endianess.h"
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/spin.h"
+#include "../base/global_variables.h"
+#include "../base/debug.h"
+#include "../base/vectors.h"
+#include "../base/routines.h"
+#include "../geometry/geometry_lx.h"
+#include "../geometry/geometry_eo.h"
 
 //Write the header for a record
 void write_header(LemonWriter *writer,const char *header,uint64_t record_bytes)

@@ -1,4 +1,7 @@
-#pragma once
+#include "../base/global_variables.h"
+#include "../base/vectors.h"
+#include "../base/debug.h"
+#include "../base/routines.h"
 
 //Return the index of site of coord x in the border mu,nu
 int edgelx_of_coord(int *x,int mu,int nu)

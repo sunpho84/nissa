@@ -1,4 +1,6 @@
-#pragma once
+#include "../base/global_variables.h"
+#include "../base/routines.h"
+#include "reader.h"
 
 //check the endianess of the machine
 void check_endianess()

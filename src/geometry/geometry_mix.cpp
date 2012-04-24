@@ -1,4 +1,4 @@
-#pragma once
+#include "../base/global_variables.h"
 
 //swap the data from lexical order to even odd
 void swap_lx_to_eo_or_eo_to_lx(char *vect_e,char *vect_o,char *vect_lx,int nbytes_per_site,int bord,int eotolx_lxtoeo)
