@@ -1,3 +1,8 @@
+#ifndef _COMMUNICATE_H
+#define _COMMUNICATE_H
+
+#include "../new_types/new_types_definitions.h"
+
 void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,int nbytes_per_site);
 void communicate_eo_color_borders(color **eos);
 void communicate_eo_edges(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site);
@@ -27,3 +32,5 @@ void start_communicating_ev_color_borders(int *nrequest,MPI_Request *request,col
 void start_communicating_ev_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *ev);
 void start_communicating_lx_borders(int *nrequest_ret,MPI_Request *request,char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site);
 void start_communicating_lx_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *s);
+
+#endif

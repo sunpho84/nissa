@@ -1,4 +1,11 @@
-#pragma once
+#include "../../new_types/new_types_definitions.h"
+#include "../../base/global_variables.h"
+#include "../../base/communicate.h"
+#include "../../base/debug.h"
+#include "../../base/vectors.h"
+
+#include "../dirac_operator_tmQ/dirac_operator_tmQ_128.h"
+
 
 void apply_tmQ2_RL_128(spincolor_128 *out,quad_su3 *conf,double kappa,spincolor_128 *temp,int RL,double mu,spincolor_128 *in)
 {

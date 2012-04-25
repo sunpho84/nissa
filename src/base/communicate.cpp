@@ -1,4 +1,11 @@
-#pragma once
+#include <mpi.h>
+
+#include "debug.h"
+#include "../geometry/geometry_lx.h"
+#include "../new_types/new_types_definitions.h"
+#include "global_variables.h"
+#include "routines.h"
+#include "vectors.h"
 
 /* This is the shape and ordering of the border in the memory, for a 3^4 lattice
 _______________________________________________________________________________________________________________________

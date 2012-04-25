@@ -1,14 +1,11 @@
-#ifndef _VECTORS
-#define _VECTORS
-
 #include <stdio.h>
 #include <stdint.h>
 #include <mpi.h>
 #include <lemon.h>
 
-#include "macros.h"
+#include "debug.h"
 #include "global_variables.h"
-#include "routines.cpp"
+#include "routines.h"
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/float128.h"
 
@@ -252,5 +249,3 @@ void internal_nissa_free(char **arr,const char *file,int line)
   
   *arr=NULL;
 }
-
-#endif

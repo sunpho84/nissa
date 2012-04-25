@@ -1,4 +1,7 @@
-#pragma once
+#ifndef _GEOMETRY_LX_H
+#define _GEOMETRY_LX_H
+
+#include "../new_types/new_types_definitions.h"
 
 int bordlx_of_coord(int *x,int mu);
 int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
@@ -20,3 +23,5 @@ void set_lx_bord_senders_and_receivers(MPI_Datatype *MPI_BORD_SEND,MPI_Datatype 
 void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
 void set_lx_geometry();
 void unset_lx_geometry();
+
+#endif

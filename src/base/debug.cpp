@@ -1,4 +1,10 @@
-#pragma once
+#include <mpi.h>
+#include <stdlib.h>
+#include <execinfo.h>
+
+#include "global_variables.h"
+#include "routines.h"
+#include "vectors.h"
 
 void print_backtrace_list()
 {
@@ -10,16 +16,6 @@ void print_backtrace_list()
   for(int i=0;i<frames;i++) master_printf("%s\n",strs[i]);
   
   free(strs);               
-}
-
-void terminate_sigsegv(int par)
-{
-  //if(par==11)
-    {
-      print_all_nissa_vect_content();
-      print_backtrace_list();
-      crash("Signal %d detected, exiting\n",par);
-    }
 }
 
 //crash
@@ -41,6 +37,16 @@ void internal_crash(int line,const char *file,const char *templ,...)
     }
     
     va_end(ap);
+}
+
+void terminate_sigsegv(int par)
+{
+  //if(par==11)
+    {
+      print_all_nissa_vect_content();
+      print_backtrace_list();
+      crash("Signal %d detected, exiting\n",par);
+    }
 }
 
 void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)

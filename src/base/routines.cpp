@@ -1,6 +1,15 @@
-#pragma once
-
 //to be moved elsewhere soon
+
+#include <mpi.h>
+#include <math.h>
+#include <sys/stat.h>
+
+#include "debug.h"
+#include "global_variables.h"
+#include "routines.h"
+#include "vectors.h"
+#include "../new_types/float128.h"
+#include "../new_types/new_types_definitions.h"
 
 double sqr(double a)
 {return a*a;}

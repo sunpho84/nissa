@@ -1,4 +1,14 @@
-#pragma once
+#include <math.h>
+
+#include "../new_types/complex.h"
+#include "../new_types/new_types_definitions.h"
+#include "../base/debug.h"
+#include "../base/global_variables.h"
+#include "../base/routines.h"
+#include "../base/vectors.h"
+#include "../geometry/geometry_lx.h"
+
+#include "random.h"
 
 //Initialize a random number generator
 void start_rnd_gen(rnd_gen *out,int seed)

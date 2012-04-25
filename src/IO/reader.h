@@ -1,6 +1,8 @@
 #ifndef _READER
 #define _READER
 
+#include "../new_types/new_types_definitions.h"
+
 int nissa_reader_search_record(nissa_reader *reader,const char *expected_record);
 int read_binary_blob(void *out,char *path,const char *expected_record,int nmax_bytes_per_site);
 nissa_reader **start_reading_colorspinspin(colorspinspin *out,char *base_path,char *end_path);

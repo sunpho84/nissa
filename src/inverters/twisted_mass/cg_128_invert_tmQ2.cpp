@@ -1,4 +1,13 @@
-#pragma once
+#include <math.h>
+
+#include "../../new_types/new_types_definitions.h"
+#include "../../linalgs/linalgs.h"
+#include "../../base/global_variables.h"
+#include "../../base/vectors.h"
+#include "../../base/routines.h"
+#include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
+#include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.h"
+#include "cg_invert_tmQ2.h"
 
 #define basetype spincolor
 #define basetype_128 spincolor_128
@@ -20,3 +29,5 @@
 void inv_tmQ2_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mass,int niter,double external_solver_residue,spincolor *external_source)
 {inv_tmQ2_RL_cg_128(sol,guess,conf,kappa,0,mass,niter,external_solver_residue,external_source);}
 
+void inv_tmQ2_m2_RL_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,int RL,double m2,int niter,double external_solver_residue,spincolor *external_source)
+{inv_tmQ2_RL_cg_128(sol,guess,conf,kappa,RL,sqrt(m2),niter,external_solver_residue,external_source);}

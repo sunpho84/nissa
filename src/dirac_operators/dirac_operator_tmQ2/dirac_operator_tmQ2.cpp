@@ -1,4 +1,11 @@
-#pragma once
+#include <math.h>
+
+#include "../../new_types/new_types_definitions.h"
+#include "../../base/global_variables.h"
+#include "../../base/communicate.h"
+#include "../../base/vectors.h"
+#include "../dirac_operator_tmQ/dirac_operator_tmQ.h"
+#include "../dirac_operator_tmQ_left/dirac_operator_tmQ_left.h"
 
 //Apply the Q+Q- operator to a spincolor
 void apply_tmQ2_RL(spincolor *out,quad_su3 *conf,double kappa,spincolor *temp,int RL,double mu,spincolor *in)

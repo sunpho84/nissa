@@ -9,7 +9,7 @@
 #include "../base/vectors.h"
 #include "../base/routines.h"
 #include "../geometry/geometry_lx.h"
-#include "../geometry/geometry_eo.h"
+#include "../geometry/geometry_mix.h"
 
 //Write the header for a record
 void write_header(LemonWriter *writer,const char *header,uint64_t record_bytes)
