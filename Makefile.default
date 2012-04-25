@@ -1,8 +1,9 @@
-GCC=gcc
-CC=openmpicxx
+GCC= #fill
+CC= #fill
+LEMON_PATH= #fill
 CFLAGS=-O2 -Wall -DSVN_VERS=0
-INCLUDE_PATH=src /Users/francesco/Prace/Programs/lemon/include /opt/local/include/openmpi/
-LIBRARY_PATH=/Users/francesco/Prace/Programs/lemon/lib
+INCLUDE_PATH=src $(LEMON_PATH)/include
+LIBRARY_PATH=$(LEMON_PATH)/lib
 
 VPATH=projects/semileptonic
 
