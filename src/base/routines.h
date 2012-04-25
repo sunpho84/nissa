@@ -1,3 +1,6 @@
+#ifndef _ROUTINES_H
+#define _ROUTINES_H
+
 FILE* open_file(char *outfile,const char *mode);
 FILE* open_text_file_for_output(char *outfile);
 double glb_reduce_double(double in_loc);
@@ -19,3 +22,5 @@ void master_printf_box(const char *templ,...);
 void reorder_vector(char *vect,int *order,int nel,int sel);
 void swap_doubles(double *d1,double *d2);
 void take_last_characters(char *out,const char *in,int size);
+
+#endif

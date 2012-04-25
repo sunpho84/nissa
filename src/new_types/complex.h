@@ -1,4 +1,7 @@
-#pragma once
+#ifndef _COMPLEX_H
+#define _COMPLEX_H
+
+#include "new_types_definitions.h"
 
 double squared_complex_norm(complex c);
 void assign_complex_prod_i(complex a);
@@ -55,3 +58,5 @@ void unsafe_complex_conj_conj_prod(complex a,complex b,complex c);
 void unsafe_complex_conj_conj_prod_minus(complex a,complex b,complex c);
 void unsafe_complex_prod(complex a,complex b,complex c);
 void unsafe_complex_prod_minus(complex a,complex b,complex c);
+
+#endif

@@ -14,13 +14,8 @@
 
 #ifdef BGP
 
-#include "twisted_mass/cg_invert_tmQ2_bgp.cpp"
-
 #else
 
 #include "twisted_mass/cg_invert_tmDeoimpr_portable.cpp"
-#include "twisted_mass/cg_invert_tmQ2_portable.cpp"
 
 #endif
-
-#include "twisted_mass/cg_invert_tmQ2_common.cpp"

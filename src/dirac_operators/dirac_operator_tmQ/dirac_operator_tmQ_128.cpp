@@ -1,4 +1,8 @@
-#pragma once
+#include "../../new_types/new_types_definitions.h"
+#include "../../new_types/float128.h"
+#include "../../base/global_variables.h"
+#include "../../base/communicate.h"
+#include "../../base/vectors.h"
 
 //Apply the Q=D*g5 operator to a spincolor
 

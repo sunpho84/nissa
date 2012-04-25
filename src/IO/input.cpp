@@ -1,3 +1,11 @@
+#include <stdio.h>
+#include <mpi.h>
+#include <sys/stat.h>
+
+#include "../base/debug.h"
+#include "../base/global_variables.h"
+#include "../base/routines.h"
+
 FILE *input_global;
 
 void file_touch(const char *path)

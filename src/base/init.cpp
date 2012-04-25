@@ -1,4 +1,16 @@
-#pragma once
+#include <mpi.h>
+
+#include "communicate.h"
+#include "debug.h"
+#include "global_variables.h"
+#include "routines.h"
+#include "vectors.h"
+#include "../new_types/dirac.h"
+#include "../IO/input.h"
+#include "../IO/endianess.h"
+#include "../geometry/geometry_eo.h"
+#include "../geometry/geometry_lx.h"
+#include "../new_types/new_types_definitions.h"
 
 void init_nissa()
 {
@@ -31,7 +43,7 @@ void init_nissa()
   MPI_Type_contiguous(4,MPI_SU3,&MPI_QUAD_SU3);
   MPI_Type_commit(&MPI_QUAD_SU3);
   
-  //a ncolor (6 doubles)
+  //a color (6 doubles)
   MPI_Type_contiguous(6,MPI_DOUBLE,&MPI_COLOR);
   MPI_Type_commit(&MPI_COLOR);
   

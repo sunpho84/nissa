@@ -1,4 +1,13 @@
-#pragma once
+#include <stdio.h>
+#include <mpi.h>
+
+#include "global_variables.h"
+#include "random.h"
+#include "routines.h"
+#include "vectors.h"
+#include "../new_types/new_types_definitions.h"
+#include "../geometry/geometry_eo.h"
+#include "../geometry/geometry_lx.h"
 
 void close_nissa()
 {

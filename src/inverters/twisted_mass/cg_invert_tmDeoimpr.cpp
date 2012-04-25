@@ -1,4 +1,9 @@
-#pragma once
+#include "../../new_types/new_types_definitions.h"
+#include "../../base/global_variables.h"
+#include "../../base/vectors.h"
+#include "../../base/routines.h"
+#include "../../geometry/geometry_mix.h"
+#include "../../dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h"
 
 //Refers to the doc: "doc/eo_inverter.lyx" for explenations
 
