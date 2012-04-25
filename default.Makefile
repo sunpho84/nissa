@@ -1,23 +1,22 @@
 #externally defined path and variables
-GCC=SED_GCC
-CC=SED_CC
-LEMON_PATH=SED_LEMON_PATH
-SVN_VERS=SED_SVN_VERS
-CFLAGS=SED_CFLAGS
+CC:=SED_CC
+LEMON_PATH:=SED_LEMON_PATH
+CFLAGS:=SED_CFLAGS
 
 #derived parameters
-MACROS=$(addprefix -D,SVN_VERS=$(SVN_VERS))
-INCLUDE_PATH=src $(addsuffix /include,$(LEMON_PATH))
-LIBRARY_PATH=$(addsuffix /lib,$(LEMON_PATH))
+SVN_VERS:=$(shell svnversion 2>/dev/null)
+MACROS:=$(addprefix -D,SVN_VERS=\"$(SVN_VERS))\"
+INCLUDE_PATH:=src $(addsuffix /include,$(LEMON_PATH))
+LIBRARY_PATH:=$(addsuffix /lib,$(LEMON_PATH))
 
 ################################################ define the programs ############################################
 
 #include all version of the same projects
-semileptonic=$(addprefix semileptonic/,semileptonic_smeared)
-eight_BK=$(addprefix eight_BK/,smeared_BK_all_in_one)
+semileptonic:=$(addprefix semileptonic/,semileptonic_smeared)
+eight_BK:=$(addprefix eight_BK/,smeared_BK_all_in_one)
 
 #collect all the projects
-projects=$(addprefix projects/, $(semileptonic) $(eight_BK))
+projects:=$(addprefix projects/, $(semileptonic) $(eight_BK))
 
 ################################################## global targets ###############################################
 
@@ -29,16 +28,17 @@ clean:
 ############################################# define the library pieces #########################################
 
 #add single files in pieces
-base=$(addprefix base/, close communicate debug global_variables init random routines vectors)
-dirac_operators=$(addprefix dirac_operators/dirac_operator_, stD/dirac_operator_stD tmDeoimpr/dirac_operator_tmDeoimpr tmQ/dirac_operator_tmQ tmQ_left/dirac_operator_tmQ_left tmQ2/dirac_operator_tmQ2 tmQ/dirac_operator_tmQ_128 tmQ/reconstruct_tm_doublet tmQ2/dirac_operator_tmQ2_128)
-geometry=$(addprefix geometry/, geometry_eo geometry_lx geometry_mix)
-inverters=$(addprefix inverters/twisted_mass/, cg_invert_tmDeoimpr cg_invert_tmQ2 cg_128_invert_tmQ2 cgm_invert_tmQ2 tm_frontends) 
-IO=$(addprefix IO/, checksum endianess input reader writer)
-new_types=$(addprefix new_types/, complex dirac float128 rat_exp spin su3)
-operations=$(addprefix operations/, contract fft fourier_transform gauge_fixing gaugeconf remap_vector smear su3_paths vector_gather)
+base:=$(addprefix base/, close communicate debug global_variables init random routines vectors)
+dirac_operators:=$(addprefix dirac_operators/dirac_operator_, stD/dirac_operator_stD tmDeoimpr/dirac_operator_tmDeoimpr tmQ/dirac_operator_tmQ \
+	tmQ_left/dirac_operator_tmQ_left tmQ2/dirac_operator_tmQ2 tmQ/dirac_operator_tmQ_128 tmQ/reconstruct_tm_doublet tmQ2/dirac_operator_tmQ2_128)
+geometry:=$(addprefix geometry/, geometry_eo geometry_lx geometry_mix)
+inverters:=$(addprefix inverters/twisted_mass/, cg_invert_tmDeoimpr cg_invert_tmQ2 cg_128_invert_tmQ2 cgm_invert_tmQ2 tm_frontends) 
+IO:=$(addprefix IO/, checksum endianess input reader writer)
+new_types:=$(addprefix new_types/, complex dirac float128 rat_exp spin su3)
+operations:=$(addprefix operations/, contract fft fourier_transform gauge_fixing gaugeconf remap_vector smear su3_paths vector_gather)
 
 #collect all pieces of the library and define targets for library pieces
-nissa_library_pieces=$(addprefix src/, $(base) $(dirac_operators) $(inverters) $(geometry) $(IO) $(new_types) $(operations) linalgs/linalgs)
+nissa_library_pieces:=$(addprefix src/, $(base) $(dirac_operators) $(inverters) $(geometry) $(IO) $(new_types) $(operations) linalgs/linalgs)
 nissa_library_objects: $(addsuffix .o,$(nissa_library_pieces))
 
 ################################## rules to produce objects, library and programs ################################
