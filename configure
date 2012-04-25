@@ -1,0 +1,72 @@
+#!/bin/bash
+
+#take SVN version
+SVN_VERS=$(svnversion -n 2>/dev/null)
+if [ $? != 0 ]
+then
+	SVN_VERS=undefined
+fi
+
+#parse parameters
+until [ -z "$1" ]
+do
+  
+  #take mpi c++ compiler
+  if [ ${1:0:3} == "CC=" ]
+  then
+  	cc=${1:3}
+  fi
+
+  #take gnu compiler
+  if [ ${1:0:4} == "GCC=" ]
+  then
+  	gcc=${1:4}
+  fi
+
+  #take lemon path
+  if [ ${1:0:11} == "LEMON_PATH=" ]
+  then
+  	lemon_path=${1:11}
+  fi
+
+  #take cflags
+  if [ ${1:0:7} == "CFLAGS=" ]
+  then
+  	cflags=${1:7}
+  fi
+
+  shift
+done
+
+#check mpi c++ compiler set
+if [ "$cc" == "" ]
+then
+	echo "Error, set the mpi c++ compiler through: \"CC=\""
+	exit
+fi
+
+#check gnu compiler set
+if [ "$gcc" == "" ]
+then
+	echo "Error, set the gnu compiler through: \"GCC=\""
+	exit
+fi
+
+#check lemon path set
+if [ "$lemon_path" == "" ]
+then
+	echo "Error, set the path the lemon through: \"LEMON_PATH=\""
+	exit
+fi
+
+
+#summarize
+echo "Using the following sets:"
+echo " CC=$cc"
+echo " GCC=$gcc"
+echo " LEMON_PATH=$lemon_path"
+echo " CFLAGS=$cflags"
+echo " SVN_VERS=$svn_vers"
+
+#preparing makefile
+sed "s/SED_GCC/$gcc/;s/SED_CC/$cc/;s|SED_LEMON_PATH|$lemon_path|;s/SED_CFLAGS/$cflags/" Makefile.default > Makefile
