@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _SU3_PATHS_H
+#define _SU3_PATHS_H
 
 double average_real_part_of_trace_of_rectangle_path(quad_su3 *conf,int mu,int nu,int nstep_mu,int nstep_nu,su3 *u);
 double global_plaquette_eo_conf(quad_su3 **conf);
@@ -16,3 +17,5 @@ void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,as2t_su3 *
 void unsafe_apply_chromo_operator_to_spincolor(spincolor *out,as2t_su3 *Pmunu,spincolor *in);
 void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmunu,su3spinspin *in);
 void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in);
+
+#endif

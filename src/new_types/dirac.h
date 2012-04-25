@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _DIRAC_H
+#define _DIRAC_H
 
 void dirac_prod(dirac_matr *out,dirac_matr *in1,dirac_matr *in2);
 void dirac_summ(dirac_matr *out,dirac_matr *in1,dirac_matr *in2);
@@ -14,3 +15,5 @@ void spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b);
 void summ_the_trace_prod_spinspins(complex c,spinspin a,spinspin b);
 void trace_prod_spinspins(complex c,spinspin a,spinspin b);
 void unsafe_dirac_compl_prod(dirac_matr *out,dirac_matr *in,complex c);
+
+#endif

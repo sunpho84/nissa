@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _MACROS_H
+#define _MACROS_H
 
 //vectors parameters
 #define nissa_vect_string_length 20
@@ -53,3 +54,4 @@
 #define nissa_loc_volh_loop(a) for(int a=0;a<loc_volh;a++)
 #define nissa_loc_vol_loop(a) for(int a=0;a<loc_vol;a++)
 
+#endif

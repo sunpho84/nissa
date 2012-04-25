@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _NEW_TYPES_DEFINITIONS_H
+#define _NEW_TYPES_DEFINITIONS_H
 
 #include <lemon.h>
 
@@ -139,3 +140,5 @@ typedef struct
   int ngauge_substeps;
   int *npseudo_fs;
 } evol_pars;
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef _SU3_H
+#define _SU3_H
+
 double real_part_of_trace_su3_prod_su3_dag(su3 a,su3 b);
 double su3_normq(su3 U);
 void as2t_su3_put_to_zero(as2t_su3 m);
@@ -96,3 +99,5 @@ void unsafe_su3_prod_su3(su3 a,su3 b,su3 c);
 void unsafe_su3_prod_su3_dag(su3 a,su3 b,su3 c);
 void unsafe_su3_taylor_exponentiate(su3 out,su3 in,int order);
 void unsafe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor);
+
+#endif

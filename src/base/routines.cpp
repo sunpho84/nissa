@@ -90,7 +90,7 @@ double take_time()
 }
 
 //Open a file checking it
-FILE* open_file(char *outfile,const char *mode)
+FILE* open_file(const char *outfile,const char *mode)
 {
   FILE *fout=NULL;
   
@@ -104,7 +104,7 @@ FILE* open_file(char *outfile,const char *mode)
 }
 
 //Open a text file for output
-FILE* open_text_file_for_output(char *outfile)
+FILE* open_text_file_for_output(const char *outfile)
 {return open_file(outfile,"w");}
 
 void take_last_characters(char *out,const char *in,int size)

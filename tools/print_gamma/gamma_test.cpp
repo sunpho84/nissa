@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "nissa.h"
 
 int main(int narg,char **arg)

@@ -1,5 +1,5 @@
-#ifndef _ENDIANESS
-#define _ENDIANESS
+#ifndef _ENDIANESS_H
+#define _ENDIANESS_H
 
 void check_endianess();
 void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndoubles);

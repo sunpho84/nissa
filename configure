@@ -10,9 +10,9 @@ then
     else
 	#read from Makefile
 	echo "Reading parameters from Makefile"
-	cc=$(awk -F := '$1=="CC"{print $2}' Makefile)
-	lemon_path=$(awk -F := '$1=="LEMON_PATH"{print $2}' Makefile)
-	cflags=$(awk -F := '$1=="CFLAGS"{print $2}' Makefile)
+	cc=$(awk -F = '$1=="CC"{print $2}' Makefile)
+	lemon_path=$(awk -F = '$1=="LEMON_PATH"{print $2}' Makefile)
+	cflags=$(awk -F = '$1=="CFLAGS"{print $2}' Makefile)
     fi
 else
     #parse arguments

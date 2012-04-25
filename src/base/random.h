@@ -1,3 +1,6 @@
+#ifndef _RANDOM_H
+#define _RANDOM_H
+
 double rnd_get_gauss(rnd_gen *gen,double ave,double sig);
 double rnd_get_unif(rnd_gen *gen,double min,double max);
 int rnd_get_pm_one(rnd_gen *gen);
@@ -14,3 +17,5 @@ void start_glb_rnd_gen(int seed);
 void start_loc_rnd_gen(int seed);
 void start_rnd_gen(rnd_gen *out,int seed);
 void stop_loc_rnd_gen();
+
+#endif

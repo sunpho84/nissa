@@ -1,3 +1,6 @@
+#ifndef _FLOAT128_H
+#define _FLOAT128_H
+
 double double_from_float_128(float_128 b);
 void color_128_copy(color_128 a,color_128 b);
 void color_128_isubt(color_128 a,color_128 b,color_128 c);
@@ -37,3 +40,5 @@ void unsafe_complex_64_conj1_prod_128(complex_128 a,complex b,complex_128 c);
 void unsafe_complex_64_prod_128(complex_128 a,complex b,complex_128 c);
 void unsafe_su3_dag_prod_color_128(color_128 a,su3 b,color_128 c);
 void unsafe_su3_prod_color_128(color_128 a,su3 b,color_128 c);
+
+#endif

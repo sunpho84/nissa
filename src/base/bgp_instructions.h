@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _BGP_INSTRUCTIONS_H
+#define _BGP_INSTRUCTIONS_H
 
 #ifdef BGP_EMU
 
@@ -638,3 +639,4 @@
     bgp_summassign_scalarprod_color(N0,N1,N2,D00,D01,D02,D10,D11,D12);	\
   }
 
+#endif

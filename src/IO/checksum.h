@@ -1,5 +1,5 @@
-#ifndef _CHECKSUM
-#define _CHECKSUM
+#ifndef _CHECKSUM_H
+#define _CHECKSUM_H
 
 uint32_t ildg_crc32(uint32_t crc,const unsigned char *buf,size_t len);
 uint32_t ildg_crc32_fix_endianess(uint32_t crc,const unsigned char *buf,size_t len);
