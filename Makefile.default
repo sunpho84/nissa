@@ -1,15 +1,23 @@
-GCC= #fill
-CC= #fill
-LEMON_PATH= #fill
-CFLAGS=-O2 -Wall -DSVN_VERS=0
-INCLUDE_PATH=src $(LEMON_PATH)/include
-LIBRARY_PATH=$(LEMON_PATH)/lib
+#externally defined path and variables
+GCC=SED_GCC
+CC=SED_CC
+LEMON_PATH=SED_LEMON_PATH
+SVN_VERS=SED_SVN_VERS
+CFLAGS=SED_CFLAGS
 
-VPATH=projects/semileptonic
+#derived parameters
+MACROS=$(addprefix -D,SVN_VERS=$(SVN_VERS))
+INCLUDE_PATH=src $(addsuffix /include,$(LEMON_PATH))
+LIBRARY_PATH=$(addsuffix /lib,$(LEMON_PATH))
 
 ################################################ define the programs ############################################
 
-programs=projects/semileptonic/semileptonic_smeared projects/eight_BK/smeared_BK_all_in_one
+#include all version of the same projects
+semileptonic=$(addprefix semileptonic/,semileptonic_smeared)
+eight_BK=$(addprefix eight_BK/,smeared_BK_all_in_one)
+
+#collect all the projects
+projects=$(addprefix projects/, $(semileptonic) $(eight_BK))
 
 ################################################## global targets ###############################################
 
@@ -17,10 +25,10 @@ all: src/libnissa.a $(programs)
 
 clean:
 	 rm -rf $(addsuffix .d,$(nissa_library_pieces)) $(addsuffix .o,$(nissa_library_pieces)) src/libnissa.a
-.PHONY: clean
 
 ############################################# define the library pieces #########################################
 
+#add single files in pieces
 base=$(addprefix base/, close communicate debug global_variables init random routines vectors)
 dirac_operators=$(addprefix dirac_operators/dirac_operator_, stD/dirac_operator_stD tmDeoimpr/dirac_operator_tmDeoimpr tmQ/dirac_operator_tmQ tmQ_left/dirac_operator_tmQ_left tmQ2/dirac_operator_tmQ2 tmQ/dirac_operator_tmQ_128 tmQ/reconstruct_tm_doublet tmQ2/dirac_operator_tmQ2_128)
 geometry=$(addprefix geometry/, geometry_eo geometry_lx geometry_mix)
@@ -29,24 +37,34 @@ IO=$(addprefix IO/, checksum endianess input reader writer)
 new_types=$(addprefix new_types/, complex dirac float128 rat_exp spin su3)
 operations=$(addprefix operations/, contract fft fourier_transform gauge_fixing gaugeconf remap_vector smear su3_paths vector_gather)
 
-#include all pieces in the library, define objects and target libary
+#collect all pieces of the library and define targets for library pieces
 nissa_library_pieces=$(addprefix src/, $(base) $(dirac_operators) $(inverters) $(geometry) $(IO) $(new_types) $(operations) linalgs/linalgs)
 nissa_library_objects: $(addsuffix .o,$(nissa_library_pieces))
 
-############################## rules to produce objects, library and programs ###################################
+################################## rules to produce objects, library and programs ################################
 
-$(programs): src/libnissa.a Makefile
-	$(CC) src/libnissa.a $(addprefix -I,$(INCLUDE_PATH)) $(addprefix -L,$(LIBRARY_PATH)) $(CFLAGS) -llemon -o $@ $(addsuffix .cpp, $@)
+$(addsuffix .o,$(nissa_library_pieces)): %.o: %.cpp Makefile
+	$(CC)				\
+	$(addprefix -I,$(INCLUDE_PATH)) \
+	$<				\
+	$(CFLAGS) 			\
+	$(MACROS) 			\
+	-c -o $@
 
-#$(addsuffix .d,$(programs)): %.d: %.cpp Makefile
-#	$(GCC) $< -MM $(addprefix -I,$(INCLUDE_PATH)) -o $@
-
-$(addsuffix .o,$(nissa_library_pieces)): %.o: %.cpp
-	$(CC) $(CFLAGS) $< $(addprefix -I,$(INCLUDE_PATH)) -c -o $@
-
-src/libnissa.a: nissa_library_objects
+src/libnissa.a: nissa_library_objects Makefile
 	ar cru src/libnissa.a $(addsuffix .o,$(nissa_library_pieces))
 
-#dependencies:  $(addsuffix .d,$(programs))
-#	@ echo "generate tables of dependencies"
+$(programs): src/libnissa.a Makefile
+	$(CC)                           \
+	$(addprefix -I,$(INCLUDE_PATH)) \
+	$(addprefix -L,$(LIBRARY_PATH)) \
+	$(CFLAGS)                       \
+	$(MACROS)                       \
+	-o $@                           \
+	$(addsuffix .cpp, $@)           \
+	src/libnissa.a 			\
+	-llemon
 
+############################################## phonyfyse the needed target ##########################################
+
+.PHONY: clean
