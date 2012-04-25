@@ -43,19 +43,9 @@ Requirements
 Compiling
 ---------
 
-At the moment, the compilation is home-made and ugly. Surely it is the most unpleasant part of the library, 
-I hope to improve it soon. Run once the script "compile.sh" in the main directory.
-This will create a file called "params.sh" that you must fill with the following information:
-
--COMP: the name of the compiler (e.g. mpicc)
--LEMON_PATH: the path to the main directory where lemon is installed
--INC_PATH, LIB_PATH: additional paths
--COMP_FLAG: additional flag to the compiler
-
-Then, to compile a certain program you must invoke "compile.sh" with the path of the specific programs, e.g.:
- bash compile.sh  projects/semileptonic/semileptonic_smeared
-
-The compilation is monolithic, so each time you compile a program, the whole library will be compiled together wit it.
+At the moment, the compilation is still partially home-made.
+Run the script "configure" and follow the instructions, then use the "make" command.
+In case of need adapt the "Makefile" to your needs.
 
 
 Directory structure
