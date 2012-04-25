@@ -1,4 +1,5 @@
-#pragma once
+#ifndef _SSE_INSTRUCTIONS_H
+#define _SSE_INSTRUCTIONS_H
 
 #define sse_c00 "0"
 #define sse_c01 "1"
@@ -42,3 +43,4 @@
   sse_color_load(d,e,f, H);				\
   sse_color_summassign(a,b,c, d,e,f);
 
+#endif

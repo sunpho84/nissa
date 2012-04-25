@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "nissa.h"
 
 void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
@@ -11,7 +13,7 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
   nissa_loc_vol_loop(ivol)
     for(int idir=0;idir<4;idir++)
       {  
-	su3_dag_prod_su3(prod,conf[ivol][idir],conf[ivol][idir]);
+	unsafe_su3_dag_prod_su3(prod,conf[ivol][idir],conf[ivol][idir]);
 	for(int ic=0;ic<3;ic++)
 	  {
 	    double dev_re=fabs(prod[ic][ic][0]-1);
@@ -55,7 +57,7 @@ int main(int narg,char **arg)
   int nconf;
   read_str_int("NGaugeConf",&nconf);
 
-  quad_su3 *conf=allocate_quad_su3(loc_vol,"conf");
+  quad_su3 *conf=nissa_malloc("conf",loc_vol,quad_su3);
 
   for(int iconf=0;iconf<nconf;iconf++)
     {

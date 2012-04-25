@@ -1,3 +1,6 @@
+#include <math.h>
+#include <stdio.h>
+
 #include "nissa.h"
 
 typedef spinspin sss[4];
@@ -752,7 +755,7 @@ void calculate_S1_dislike(int rlike,int rdislike)
 //this is needed to check 2pts
 void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
 {
-  complex *loc_contr=malloc(sizeof(complex)*glb_size[0]);
+  complex *loc_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
   memset(loc_contr,0,sizeof(complex)*glb_size[0]);
   
   nissa_loc_vol_loop(ivol)
@@ -771,7 +774,7 @@ void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
 void check_2pts_with_current_sequential_source(char *path)
 {
   FILE *fout=open_text_file_for_output(path);
-  complex *contr_2pts=malloc(sizeof(complex)*glb_size[0]);
+  complex *contr_2pts=(complex*)malloc(sizeof(complex)*glb_size[0]);
   
   for(int imass=0;imass<nmass;imass++)
     {

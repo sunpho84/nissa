@@ -1,5 +1,7 @@
+#include <math.h>
+#include <sys/stat.h>
+
 #include "nissa.h"
-#include "operations/vector_gather.cpp"
 
 typedef int int2[2];
 typedef int2 interv[2];
@@ -301,7 +303,7 @@ void compute_fft(double sign)
 }
 
 //filter the propagators
-void print_propagator_subsets(int nsubset,interv *inte,char *setname,int *do_iparr)
+void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *do_iparr)
 {
   filter_prop_time-=take_time();
   
