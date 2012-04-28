@@ -1,6 +1,7 @@
 #include <mpi.h>
 #include <stdlib.h>
 #include <execinfo.h>
+#include <stdarg.h>
 
 #include "global_variables.h"
 #include "routines.h"

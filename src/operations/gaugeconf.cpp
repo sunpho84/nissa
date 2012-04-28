@@ -1,7 +1,5 @@
-#ifndef _GAUGECONF
-#define _GAUGECONF
-
 #include <math.h>
+#include <string.h>
 
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
@@ -161,5 +159,3 @@ void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbor
       put_boundaries_conditions(conf,diff_theta,putonbords,putonedges);
     }
 }
-
-#endif

@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include <lemon.h>
 
 #include "checksum.h"

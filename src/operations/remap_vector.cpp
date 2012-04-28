@@ -1,5 +1,4 @@
-#ifndef _REMAP_VECTOR
-#define _REMAP_VECTOR
+#include <string.h>
 
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
@@ -114,4 +113,3 @@ void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
   nissa_free(in_buf);
 }
 
-#endif

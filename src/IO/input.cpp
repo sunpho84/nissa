@@ -1,3 +1,4 @@
+#include <string.h>
 #include <stdio.h>
 #include <mpi.h>
 #include <sys/stat.h>

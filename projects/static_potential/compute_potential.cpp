@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "nissa.h"
 
 //compute the static quark pair potential
