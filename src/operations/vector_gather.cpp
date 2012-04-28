@@ -1,5 +1,4 @@
-#ifndef _VECTOR_GATHER
-#define _VECTOR_GATHERS
+#include <string.h>
 
 #include "../base/global_variables.h"
 #include "../base/debug.h"
@@ -133,5 +132,3 @@ void gathered_vector_cubic_symmetrize(double *vec,int dps)
 	    average_list_of_gathered_vector_sites(vec,ivol,6,dps);
 	  }
 }
-
-#endif

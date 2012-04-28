@@ -2,6 +2,8 @@
 
 #include <mpi.h>
 #include <math.h>
+#include <stdarg.h>
+#include <string.h>
 #include <sys/stat.h>
 
 #include "debug.h"

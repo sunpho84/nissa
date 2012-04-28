@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <signal.h>
+#include <string.h>
 
 #include "communicate.h"
 #include "debug.h"

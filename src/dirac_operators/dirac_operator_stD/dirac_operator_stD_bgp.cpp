@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../base/bgp_instructions.h"
+
 void apply_st2Doe(color *out,quad_su3 **conf,color *in)
 {
   bgp_complex A0,A1,A2;

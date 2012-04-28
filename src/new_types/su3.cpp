@@ -1,7 +1,5 @@
-#ifndef _SU3
-#define _SU3
-
 #include <math.h>
+#include <string.h>
 
 #include "new_types_definitions.h"
 #include "../base/routines.h"
@@ -845,5 +843,3 @@ void unsafe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex fact
 {for(int i=0;i<144;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
 void safe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor)
 {for(int i=0;i<144;i++) safe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
-
-#endif

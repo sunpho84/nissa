@@ -1,7 +1,5 @@
-#ifndef _DIRAC
-#define _DIRAC
-
 #include <math.h>
+#include <string.h>
 
 #include "new_types_definitions.h"
 #include "complex.h"
@@ -229,6 +227,3 @@ void spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b)
 	for(int id=0;id<4;id++) complex_summ_the_prod(out[id1][id2],a[id1][id],b[id][id2]);
       }
 }
-
-
-#endif

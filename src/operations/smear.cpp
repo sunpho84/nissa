@@ -1,7 +1,5 @@
-#ifndef _SMEAR
-#define _SMEAR
-
 #include <math.h>
+#include <string.h>
 
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/su3.h"
@@ -9,6 +7,10 @@
 #include "../base/communicate.h"
 #include "../base/vectors.h"
 #include "../base/routines.h"
+
+#ifdef BGP
+ #include "../base/bgp_instructions.h"
+#endif
 
 //perform ape smearing
 //be sure not to have border condition added
@@ -480,5 +482,3 @@ void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1
 {
   hyp_smear_conf_dir(sm_conf,conf,alpha0,alpha1,alpha2,-1);
 }
-
-#endif

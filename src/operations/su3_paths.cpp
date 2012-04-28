@@ -1,6 +1,4 @@
-#ifndef _SU3_PATHS
-#define _SU3_PATHS
-
+#include <string.h>
 #include <math.h>
 
 #include "../new_types/new_types_definitions.h"
@@ -669,5 +667,3 @@ void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmun
   //invalidate borders
   set_borders_invalid(out);
 }
-
-#endif

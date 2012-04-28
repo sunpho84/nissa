@@ -1,5 +1,4 @@
-#ifndef _SPIN
-#define _SPIN
+#include <string.h>
 
 #include "new_types_definitions.h"
 #include "complex.h"
@@ -90,4 +89,3 @@ void put_spincolor_into_su3spinspin(su3spinspin out,spincolor in,int id_source,i
 	out[ic_sink][ic_source][id_sink][id_source][1]=in[id_sink][ic_sink][1];
       }
 }
-#endif

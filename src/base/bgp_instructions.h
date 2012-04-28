@@ -8,7 +8,10 @@
 #define __cimag(a) a[1]
 #define bgp_complex complex
 #define bgp_cache_touch_complex(c)
+
 #else
+
+#include <builtins.h>
 
 #define bgp_aligned __attribute__ ((aligned (16)))
 #define bgp_complex double static _Complex

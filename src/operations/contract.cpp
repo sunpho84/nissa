@@ -1,7 +1,5 @@
-#ifndef _CONTRACT
-#define _CONTRACT
-
 #include <math.h>
+#include <string.h>
 
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/complex.h"
@@ -11,6 +9,10 @@
 #include "../base/global_variables.h"
 #include "../base/routines.h"
 #include "../base/vectors.h"
+
+#ifdef BGP
+ #include "../base/bgp_instructions.h"
+#endif
 
 //Local trace of the product of gamma1 * spinspin1^dag * gamma2 * spinspin2
 void site_trace_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac_matr *g2,spinspin s2)
@@ -589,5 +591,3 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 
   nissa_free(loc_contr);
 }
-
-#endif

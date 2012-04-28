@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/spin.h"
 #include "../dirac_operators/dirac_operator_tmQ/reconstruct_tm_doublet.h"

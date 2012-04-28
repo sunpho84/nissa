@@ -9,6 +9,8 @@
 //  -basetype, basetype_128
 //  -ndoubles_per_site
 
+#include <string.h>
+
 void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int niter,double external_solver_residue,basetype *external_source)
 {
   //Allocate the solution in 128 bit and initialize it. If guess passed copy it.
@@ -31,7 +33,8 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
   basetype_128 *temp_128=nissa_malloc("temp",size_of_bulk+size_of_bord,basetype_128); 
   
   //invert until residue is lower than required
-  double current_residue;
+  double previous_residue=1,current_residue;
+  int esci=0;
   do
     {
       // 1) compute D*sol in quadruple precision
@@ -55,8 +58,14 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
 	  //add the approximated solution to the total one
 	  quadruple_vector_summassign_double_vector((float_128*)sol_128,(double*)sol,size_of_bulk*ndoubles_per_site);
 	}
+      if(!(current_residue<previous_residue))
+	  {
+	      esci=1;
+	      master_printf("Not converging\n");
+	  }
+      previous_residue=current_residue;
     }
-  while(current_residue>=external_solver_residue);
+  while(current_residue>=external_solver_residue && !esci);
   
   verbosity_lv1_master_printf("\nFinal residue: %lg\n\n",current_residue);
   

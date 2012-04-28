@@ -1,6 +1,8 @@
 #pragma once
 
-#include "base/bgp_instructions.cpp"
+#include <string.h>
+
+#include "../../base/bgp_instructions.h"
 
 void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,int RL,double m,int niter,int rniter,double residue,spincolor *source)
 {

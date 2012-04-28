@@ -1,5 +1,4 @@
-#ifndef _RAT_EXP
-#define _RAT_EXP
+#include <string.h>
 
 #include "new_types_definitions.h"
 #include "../base/routines.h"
@@ -29,5 +28,3 @@ void master_printf_rat_approx(rat_approx *appr)
   for(int iterm=0;iterm<appr->nterms;iterm++)
     master_printf("   %d) pole: %lg, weight: %lg\n",iterm,appr->poles[iterm],appr->weights[iterm]);
 }
-
-#endif

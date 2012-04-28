@@ -1,7 +1,5 @@
-#ifndef _FFT
-#define _FFT
-
 #include <math.h>
+#include <string.h>
 
 #include "../new_types/new_types_definitions.h"
 #include "../base/global_variables.h"
@@ -327,5 +325,3 @@ void fft4d(complex *out,complex *in,int ncpp,double sign,int normalize)
       data_coordinate_order_shift(out,ncpp,mu);
     }
 }
-
-#endif

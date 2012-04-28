@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "../../new_types/new_types_definitions.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
