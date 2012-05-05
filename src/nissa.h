@@ -5,6 +5,7 @@
 
 #ifdef BGP
  #include <builtins.h>
+ #include "base/bgp_instructions.h"
 #endif
 
 #include "IO/checksum.h"
@@ -13,7 +14,6 @@
 #include "IO/reader.h"
 #include "IO/writer.h"
 
-#include "base/bgp_instructions.h"
 #include "base/close.h"
 #include "base/communicate.h"
 #include "base/debug.h"

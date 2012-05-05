@@ -1,5 +1,6 @@
 #include <string.h>
 
+#include <stdio.h>
 #include "new_types_definitions.h"
 #include "complex.h"
 #include "spin.h"

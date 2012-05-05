@@ -2,6 +2,7 @@
 #define _NEW_TYPES_DEFINITIONS_H
 
 #include <lemon.h>
+#include <stdint.h>
 
 #include "../base/macros.h"
 
