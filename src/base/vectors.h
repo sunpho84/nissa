@@ -1,6 +1,8 @@
 #ifndef _VECTORS_H
 #define _VECTORS_H
 
+#include <stdio.h>
+
 char *get_vec_name(void *v);
 int check_borders_allocated(void *data);
 int check_borders_communicated_at_least_once(void *data);

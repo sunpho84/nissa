@@ -1,6 +1,8 @@
 #ifndef _ROUTINES_H
 #define _ROUTINES_H
 
+#include <stdio.h>
+
 FILE* open_file(const char *outfile,const char *mode);
 FILE* open_text_file_for_output(const char *outfile);
 double glb_reduce_double(double in_loc);
