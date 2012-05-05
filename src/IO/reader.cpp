@@ -66,7 +66,7 @@ int nissa_reader_search_record(nissa_reader *reader,const char *expected_record)
   int found=0;
   while(found==0 && lemonReaderNextRecord(reader->lemon_reader)!=LEMON_EOF)
     {
-      char *header=lemonReaderType(reader->lemon_reader);
+      const char *header=lemonReaderType(reader->lemon_reader);
 
       verbosity_lv3_master_printf("found record: %s\n",header);
       if(strcmp(expected_record,header)==0) found=1;
