@@ -4,32 +4,32 @@
 
 void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
 {
-  su3 prod;
   double loc_max=0,loc_avg=0;
-  double glb_max=0,glb_avg=0;
   
   read_ildg_gauge_conf(conf,filename);
   
   nissa_loc_vol_loop(ivol)
     for(int idir=0;idir<4;idir++)
-      {  
-	unsafe_su3_dag_prod_su3(prod,conf[ivol][idir],conf[ivol][idir]);
-	for(int ic=0;ic<3;ic++)
-	  {
-	    double dev_re=fabs(prod[ic][ic][0]-1);
-	    double dev_im=fabs(prod[ic][ic][1]);
-
-	    loc_avg+=dev_re+dev_im;
-	    loc_max=max_double(max_double(loc_max,dev_re),dev_im);
-	  }
+      {
+	su3 zero;
+	su3_put_to_id(zero);
+	su3_subt_the_prod_su3_dag(zero,conf[ivol][idir],conf[ivol][idir]);
+	
+	double r=real_part_of_trace_su3_prod_su3_dag(zero,zero)/18;
+	
+	loc_avg+=r;
+	if(loc_max<r) loc_max=r;
       }
   
+  double glb_max=0,glb_avg=0;
   MPI_Reduce(&loc_avg,&glb_avg,1,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  MPI_Reduce(&loc_max,&glb_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);
+  MPI_Reduce(&loc_max,&glb_max,1,MPI_DOUBLE,MPI_MAX,0,MPI_COMM_WORLD);  
+  glb_avg/=4*glb_vol;
   
-  glb_avg/=2*3*4*glb_vol;
+  glb_avg=sqrt(glb_avg);
+  glb_max=sqrt(glb_max);
   
-  master_fprintf(fout,"%g Max %g Avg in %s\n",glb_max,glb_avg,filename);
+  master_fprintf(fout,"%s, Max: %g, Avg: %g\n",fileanme,glb_max,glb_avg);
 }
 
 int main(int narg,char **arg)
@@ -71,7 +71,7 @@ int main(int narg,char **arg)
   
   if(rank==0) fclose(fout);
   
-  free(conf);
+  nissa_free(conf);
 
   close_nissa();
 

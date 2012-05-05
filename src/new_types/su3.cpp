@@ -263,6 +263,19 @@ void unsafe_su3_prod_su3_dag(su3 a,su3 b,su3 c)
 void safe_su3_prod_su3_dag(su3 a,su3 b,su3 c)
 {su3 d;unsafe_su3_prod_su3_dag(d,b,c);su3_copy(a,d);}
 
+//subtract the product
+void su3_subt_the_prod_su3_dag(su3 a,su3 b,su3 c)
+{
+  for(int ir_out=0;ir_out<3;ir_out++)
+    for(int ic_out=0;ic_out<3;ic_out++)
+      {
+	complex_subt_the_conj2_prod(a[ir_out][ic_out],b[ir_out][0],c[ic_out][0]);
+	complex_subt_the_conj2_prod(a[ir_out][ic_out],b[ir_out][1],c[ic_out][1]);
+	complex_subt_the_conj2_prod(a[ir_out][ic_out],b[ir_out][2],c[ic_out][2]);
+      }
+}
+
+
 //Trace of the product of two su3 matrices
 double real_part_of_trace_su3_prod_su3_dag(su3 a,su3 b)
 {
