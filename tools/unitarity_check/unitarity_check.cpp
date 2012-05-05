@@ -29,7 +29,7 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
   glb_avg=sqrt(glb_avg);
   glb_max=sqrt(glb_max);
   
-  master_fprintf(fout,"%s, Max: %g, Avg: %g\n",fileanme,glb_max,glb_avg);
+  master_fprintf(fout,"%s, Max: %g, Avg: %g\n",filename,glb_max,glb_avg);
 }
 
 int main(int narg,char **arg)
