@@ -59,6 +59,7 @@ void su3_put_to_zero(su3 m);
 void su3_subt(su3 a,su3 b,su3 c);
 void su3_subt_complex(su3 a,su3 b,complex c);
 void su3_subt_the_prod_color(color a,su3 b,color c);
+void su3_subt_the_prod_su3_dag(su3 a,su3 b,su3 c);
 void su3_summ(su3 a,su3 b,su3 c);
 void su3_summ_real(su3 a,su3 b,double c);
 void su3_summ_the_prod_color(color a,su3 b,color c);
