@@ -109,6 +109,8 @@ void quadruple_vector_subt_from_double_vector(float_128 *a,double *b,float_128 *
   set_borders_invalid(a);
 }
 
+/////////////////// scalar prodcut in quadruple /////////////////
+
 //(a,b)
 void quadruple_vector_glb_scalar_prod(float_128 a,float_128 *b,float_128 *c,int n)
 {
@@ -122,5 +124,23 @@ double double_conv_quadruple_vector_glb_scalar_prod(float_128 *a,float_128 *b,in
 {
   float_128 out;
   quadruple_vector_glb_scalar_prod(out,a,b,n);
+  return double_from_float_128(out);
+}
+
+//////////////// only quadruple accumulation //////////////////
+
+//(a,b)
+void quadruple_accumulate_double_vector_glb_scalar_prod(float_128 a,double *b,double *c,int n)
+{
+  float_128 loc_a={0,0};
+  for(int i=0;i<n;i++) float_128_summ_the_64_prod(loc_a,b[i],c[i]);
+  MPI_Allreduce(loc_a,a,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+}
+
+//(a,b)
+double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,double *b,int n)
+{
+  float_128 out;
+  quadruple_accumulate_double_vector_glb_scalar_prod(out,a,b,n);
   return double_from_float_128(out);
 }

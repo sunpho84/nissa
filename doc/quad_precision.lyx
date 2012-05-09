@@ -1,0 +1,681 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry true
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation portrait
+\suppress_date false
+\use_refstyle 1
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\leftmargin 2.5cm
+\topmargin 2.5cm
+\rightmargin 2.5cm
+\bottommargin 3cm
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation indent
+\paragraph_indentation default
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Title
+Note on quadruple precision
+\size small
+
+\begin_inset Newline newline
+\end_inset
+
+Version 1
+\end_layout
+
+\begin_layout Author
+Francesco Sanfilippo
+\end_layout
+
+\begin_layout Subsection*
+Definitions and naming
+\end_layout
+
+\begin_layout Standard
+We are interested in solving the set of linear system:
+\begin_inset Formula 
+\[
+Dx=\eta\,,
+\]
+
+\end_inset
+
+where:
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $\eta$
+\end_inset
+
+ is the source, which in our case is a vector of 
+\begin_inset Formula $N=L^{3}\times\left(T=2L\right)\times\left(4\,{\rm spin}\right)\times\left(3\,{\rm colors}\right)\times\left(2\,{\rm real-imag}\right)=48\times L^{4}$
+\end_inset
+
+ components,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $D$
+\end_inset
+
+ is the operator we are interested to invert, in our case the squared Twisted
+ mass dirac operator,
+\end_layout
+
+\begin_layout Itemize
+\begin_inset Formula $x$
+\end_inset
+
+ is the solution of the system.
+\end_layout
+
+\begin_layout Standard
+Let's also define:
+\end_layout
+
+\begin_layout Itemize
+the residue vector 
+\begin_inset Formula $r=\eta-Dx$
+\end_inset
+
+,
+\end_layout
+
+\begin_layout Itemize
+the residue squared norm 
+\begin_inset Formula $\left|r\right|^{2}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Let us call 
+\begin_inset Formula $\epsilon$
+\end_inset
+
+ the error on the result of a calculation (e.g.
+ a sum, a multiplication of two numbers) caused by the limited precision
+ of the machine.
+ 
+\end_layout
+
+\begin_layout Standard
+The error on a calculation grows with the square root of the number of operation
+ involved.
+\end_layout
+
+\begin_layout Standard
+As an effect of the presence of error in calculation, the residue norm cannot
+ be arbitrary low.
+ Let us try to figure out which is the minimal possible value 
+\begin_inset Formula ${\rm \left|r\right|_{min}^{2}}$
+\end_inset
+
+ for the of the solution of the system, performed in a finite precision
+ machine.
+\end_layout
+
+\begin_layout Subsection*
+Minimal possible residue in finite arithmetic
+\end_layout
+
+\begin_layout Standard
+Let us consider the case in which we had exactly computed the solution 
+\begin_inset Formula $x$
+\end_inset
+
+: if we could compute the residual in infinite precision, its norm would
+ be equal to zero.
+ 
+\end_layout
+
+\begin_layout Standard
+If we instead compute it in a finite precision machine, its value will not
+ be zero: in this case the components of 
+\begin_inset Formula $r$
+\end_inset
+
+ will correspond only to the error remaining from the cancellation between
+ 
+\begin_inset Formula $\eta$
+\end_inset
+
+ and 
+\begin_inset Formula $s=Dx$
+\end_inset
+
+.
+ Since the application of the squared Twisted Mass dirac operator involves
+ about 100 floating points operations for each of the 
+\begin_inset Formula $N$
+\end_inset
+
+ components of 
+\begin_inset Formula $s$
+\end_inset
+
+, each component of 
+\begin_inset Formula $r$
+\end_inset
+
+ will be of order 
+\begin_inset Formula $r_{i}=\epsilon\sqrt{100}=10\epsilon$
+\end_inset
+
+, and its square 
+\begin_inset Formula $r_{i}^{2}=100\epsilon^{2}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+When computing the global residue 
+\begin_inset Formula $ $
+\end_inset
+
+
+\begin_inset Formula $\left|r\right|^{2}$
+\end_inset
+
+ we sum overs the 
+\begin_inset Formula $N$
+\end_inset
+
+ different elements of the vector, so the minimal value of the residue is:
+ 
+\begin_inset Formula 
+\[
+{\rm \left|r\right|_{min}^{2}}=\sum_{i=1}^{N}\left|r_{i}\right|^{2}=100\epsilon^{2}\sqrt{N}\simeq700\cdot\epsilon^{2}\times L^{2}\,.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The CG algorithm minimize 
+\begin_inset Formula $\left|r\right|^{2}$
+\end_inset
+
+ by iteratively building an approximated solution, using 
+\begin_inset Formula $r$
+\end_inset
+
+ and 
+\begin_inset Formula $\left|r\right|^{2}$
+\end_inset
+
+ itself in this procedure.
+ Therefore it is clear that algorithm breaks when the residue approach this
+ minimal value: in that case the calculation error dominates the value of
+ 
+\begin_inset Formula $\left|r\right|^{2}$
+\end_inset
+
+, so that its value is not anymore useful to improve the solution.
+\end_layout
+
+\begin_layout Standard
+\begin_inset VSpace defskip
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In a double precision machine the error on a single floating point operation
+ is 
+\begin_inset Formula $\epsilon=2^{-53}\simeq10^{-16}$
+\end_inset
+
+, from which we can build the table of the minimal theoretical residue achievabl
+e at different lattices
+\end_layout
+
+\begin_layout Standard
+\align center
+\begin_inset Tabular
+<lyxtabular version="3" rows="4" columns="2">
+<features tabularvalignment="middle">
+<column alignment="center" valignment="top" width="0">
+<column alignment="center" valignment="top" width="0">
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $L$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $R_{min}^{teo}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+24
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $4\cdot10^{-27}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+32
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $7\cdot10^{-27}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+<row>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+48
+\end_layout
+
+\end_inset
+</cell>
+<cell alignment="center" valignment="top" topline="true" bottomline="true" leftline="true" rightline="true" usebox="none">
+\begin_inset Text
+
+\begin_layout Plain Layout
+\begin_inset Formula $1.6\cdot10^{-26}$
+\end_inset
+
+
+\end_layout
+
+\end_inset
+</cell>
+</row>
+</lyxtabular>
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+From my limited tests I find good agreement with theoretical predictions.
+ For example on 
+\begin_inset Formula $L=32$
+\end_inset
+
+ I found about 
+\begin_inset Formula $5\cdot10^{-27}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Subsection*
+Quadruple precision vs.
+ emulated quadruple precision
+\end_layout
+
+\begin_layout Standard
+With 
+\begin_inset Quotes eld
+\end_inset
+
+standard
+\begin_inset Quotes erd
+\end_inset
+
+ quadruple precision one can reach a precision of 
+\begin_inset Formula $\epsilon=2^{-112}\simeq10^{-34}$
+\end_inset
+
+ in a singe calculation.
+ This is actually more than just double the number of significant digits
+ of a double precision number (this is obtained by restricting the range
+ extension of the quadruple precision, e.g.
+ the largest number expressible in quadruple precision is smaller than the
+ squared of the largest number expressible in double precision).
+ 
+\end_layout
+
+\begin_layout Standard
+In 
+\begin_inset Quotes eld
+\end_inset
+
+Nissa
+\begin_inset Quotes erd
+\end_inset
+
+ library implement the quadruple precision is emulated by following the
+ lines of: 
+\end_layout
+
+\begin_layout Standard
+\align center
+
+\family typewriter
+http://web.mit.edu/tabbott/Public/quaddouble-debian/qd-2.3.4-old/docs/qd.pdf
+\end_layout
+
+\begin_layout Standard
+defining a quadruple number 
+\begin_inset Formula $q$
+\end_inset
+
+ as a pair of double number 
+\begin_inset Formula $q=\left(d_{1},\, d_{2}\right)$
+\end_inset
+
+.
+ The first double 
+\begin_inset Formula $d_{1}$
+\end_inset
+
+ is used to store the most significant part of the quadruple number, while
+ 
+\begin_inset Formula $d_{2}$
+\end_inset
+
+ store the less significant part, so that actually 
+\begin_inset Formula $q$
+\end_inset
+
+ is nothing more that 
+\begin_inset Formula $d_{1}+d_{2}$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+A double precision number 
+\begin_inset Formula $d$
+\end_inset
+
+ can be trivially converted into a quadruple 
+\begin_inset Formula $q$
+\end_inset
+
+ by assigning 
+\begin_inset Formula $q=\left(d,\,0\right)$
+\end_inset
+
+, and a quadruple precision 
+\begin_inset Formula $k=\left(e_{1},\, e_{2}\right)$
+\end_inset
+
+ number can be truncated to a double 
+\begin_inset Formula $f$
+\end_inset
+
+ by taking 
+\begin_inset Formula $ $
+\end_inset
+
+
+\begin_inset Formula $f=d_{1}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Operations such as sum and multiplications of two quadruple numbers 
+\begin_inset Formula $a$
+\end_inset
+
+ and 
+\begin_inset Formula $b$
+\end_inset
+
+ are carried out essentially by considering quadruple number as the sum
+ of their two double precision pieces, using distributive proprieties in
+ order to split the computation in operations which can be performed in
+ double precision, taking care of all the needed carry-over and normalizations.
+\end_layout
+
+\begin_layout Standard
+The precision on this emulation is essentially the square of the precision
+ of a double number, e.g.
+ the error on an operation is 
+\begin_inset Formula $\epsilon\simeq10^{-32}$
+\end_inset
+
+, while the largest and smaller expressible numbers are essentially the
+ same of the double precision.
+\end_layout
+
+\begin_layout Standard
+Recent versions of the GNU compiler (but not IBM compiler) support intrinsically
+ the quadruple precision number through the type: 
+\begin_inset Formula $\mathtt{\_\_float128}$
+\end_inset
+
+, which are emulated via software on machines that do not support this precision
+ (i.e.
+ on all current machine).
+ This implementation has been used to check the 
+\begin_inset Quotes eld
+\end_inset
+
+nissa
+\begin_inset Quotes erd
+\end_inset
+
+ emulation.
+\end_layout
+
+\begin_layout Subsection*
+Nissa implementation of quadruple precision multi-mass solver
+\end_layout
+
+\begin_layout Standard
+In order to reach smaller number than those available in double precision,
+ the inversion is now performed in a mixed-precision setup through two steps:
+\end_layout
+
+\begin_layout Description
+In
+\begin_inset space ~
+\end_inset
+
+the
+\begin_inset space ~
+\end_inset
+
+first
+\begin_inset space ~
+\end_inset
+
+step the inversion of all the needed masses propagator is carried out in
+ double precision using a CG multi-mass solver through 
+\family typewriter
+hep-lat/0507010
+\family default
+ (following Andrea's suggestion) up to reaching the required precision or
+ the limits imposed by double precision.
+ In this way we get the solution in double precision for a certain mass,
+ 
+\begin_inset Formula $x$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Description
+In
+\begin_inset space ~
+\end_inset
+
+the
+\begin_inset space ~
+\end_inset
+
+second
+\begin_inset space ~
+\end_inset
+
+step an iterative procedure is carried on in order to improve the solution
+ of each mass:
+\end_layout
+
+\begin_layout Enumerate
+The residual vector 
+\begin_inset Formula $r$
+\end_inset
+
+ of each mass is re-computed in quadruple precision:
+\begin_inset Formula 
+\[
+\underbrace{r=D\cdot x}_{quadruple}\,.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+If 
+\begin_inset Formula $\left|r\right|^{2}$
+\end_inset
+
+ is found to be greater than required, the solution is refined by taking
+ 
+\begin_inset Formula $r$
+\end_inset
+
+ as source for a CG inverter, such as to solve (in double precision):
+\begin_inset Formula 
+\[
+Dx'=r\,.
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+An improved solution is built by summing in quadruple precision: 
+\begin_inset Formula 
+\[
+x\leftarrow x+x'
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Enumerate
+The procedure is iterated.
+\end_layout
+
+\begin_layout Standard
+In this way a quadruple solution is obtained by making limited use of the
+ quadruple precision emulation, which is used only to compute the residual
+ of the external loop.
+\end_layout
+
+\end_body
+\end_document

@@ -117,6 +117,9 @@ void float_128_summ_the_prod(float_128 c,float_128 a,float_128 b)
   float_128_summassign(c,d);
 }
 
+void float_128_summ_the_64_prod(float_128 c,double a,double b)
+{float_128_summassign_64(c,a*b);}
+
 //128 prod 64
 #ifndef fake_128
 void float_128_prod_64(float_128 c,float_128 a,double b)

@@ -27,6 +27,7 @@ void float_128_subtassign(float_128 b,float_128 a);
 void float_128_summ(float_128 c,float_128 a,float_128 b);
 void float_128_summ_64(float_128 c,float_128 a,double b);
 void float_128_summ_the_prod(float_128 c,float_128 a,float_128 b);
+void float_128_summ_the_64_prod(float_128 c,double a,double b);
 void float_128_summassign(float_128 b,float_128 a);
 void float_128_summassign_64(float_128 b,double a);
 void float_128_uminus(float_128 b,float_128 a);

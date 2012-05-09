@@ -26,7 +26,12 @@ tools=$(addprefix tools/, endianess_check/endianess_check print_gamma/gamma_test
 
 ################################################## global targets ###############################################
 
-all: src/libnissa.a $(projects) $(tools)
+all: Makefile src/libnissa.a $(projects) $(tools)
+
+Makefile: default.Makefile configure
+	./configure; \
+	echo "WARNING: Makefile update, rerun it!!!!"; \
+	exit 1
 
 clean:
 	 rm -rf $(addsuffix .d,$(nissa_library_pieces)) $(addsuffix .o,$(nissa_library_pieces)) src/libnissa.a $(projects) $(tools)
@@ -47,9 +52,13 @@ operations=$(addprefix operations/, contract fft fourier_transform gauge_fixing 
 nissa_library_pieces=$(addprefix src/, $(base) $(dirac_operators) $(inverters) $(geometry) $(IO) $(new_types) $(operations) linalgs/linalgs)
 nissa_library_objects: $(addsuffix .o,$(nissa_library_pieces))
 
+#include table of dependencies
+-include $(addsuffix .d,$(nissa_library_pieces) $(projects) $(tools))
+
+
 ################################## rules to produce objects, library and projects ################################
 
-$(addsuffix .o,$(nissa_library_pieces)): %.o: %.cpp
+$(addsuffix .o,$(nissa_library_pieces) $(projects) $(tools)): %.o: %.cpp Makefile
 	$(CC)				\
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$<				\
@@ -57,10 +66,14 @@ $(addsuffix .o,$(nissa_library_pieces)): %.o: %.cpp
 	$(MACROS) 			\
 	-c -o $@
 
-src/libnissa.a: nissa_library_objects Makefile
+$(addsuffix .d,$(nissa_library_pieces) $(projects) $(tools)):
+	$(GCC) $< -MM $(addprefix -I,$(INCLUDE_PATH)) -o $@
+
+
+src/libnissa.a: $(addsuffix .o,$(nissa_library_pieces)) Makefile
 	ar cru src/libnissa.a $(addsuffix .o,$(nissa_library_pieces))
 
-$(projects) $(tools): src/libnissa.a Makefile
+$(projects) $(tools): %: %.cpp %.o %.d src/libnissa.a Makefile
 	$(CC)                           \
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$(addprefix -L,$(LIBRARY_PATH)) \
@@ -70,6 +83,8 @@ $(projects) $(tools): src/libnissa.a Makefile
 	$(addsuffix .cpp, $@)           \
 	src/libnissa.a 			\
 	-llemon
+
+
 
 ############################################## phonyfyse the needed target ##########################################
 
