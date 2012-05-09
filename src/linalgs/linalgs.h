@@ -13,5 +13,7 @@ void double_vector_summ_double_vector_prod_double(double *a,double *b,double *c,
 void quadruple_vector_glb_scalar_prod(float_128 a,float_128 *b,float_128 *c,int n);
 void quadruple_vector_subt_from_double_vector(float_128 *a,double *b,float_128 *c,int n);
 void quadruple_vector_summassign_double_vector(float_128 *a,double *b,int n);
+void quadruple_accumulate_double_vector_glb_scalar_prod(float_128 a,double *b,double *c,int n);
+double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,double *b,int n);
 
 #endif

@@ -73,7 +73,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       
       //     -s=Ap
       if(nrequest!=0) cgm_finish_communicating_borders(&nrequest,request,p);
-      apply_operator(s,cgm_operator_parameters,0,p);
+      apply_operator(s,cgm_operator_parameters,shift[0],p);
       
       //     -pap=(p,s)=(p,Ap)
       double pap=double_vector_glb_scalar_prod((double*)p,(double*)s,bulk_vol*ndoubles_per_site);
@@ -90,7 +90,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	{
 	  if(run_flag[ishift]==1)
 	    {
-	      zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-shift[ishift]*betaa));
+	      zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
 	      betas[ishift]=betaa*zfs[ishift]/zas[ishift];
 	      
 	      double_vector_subt_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),betas[ishift],bulk_vol*ndoubles_per_site);
@@ -101,7 +101,9 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       //     -r'=r+betaa*s=r+beta*Ap
       //     -rfrf=(r',r')
       double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,bulk_vol*ndoubles_per_site);
-      double rfrf=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
+      double rfrf;
+      if(nissa_use_128_bit_precision) rfrf=double_conv_quadruple_accumulate_double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
+      else                            rfrf=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
       
       //     calculate alpha=rfrf/rr=(r',r')/(r,r)
       alpha=rfrf/rr;
@@ -137,12 +139,13 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	    final_res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
 	    if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[ishift]);
 	    
-	    if(final_res[ishift]<req_res[ishift])
+	    if(final_res[ishift]<req_res[ishift]||final_res[ishift]<=1.e-32)
 	      {
 		run_flag[ishift]=0;
 		nrun_shift--;
 	      }
-	  } 
+	  }
+	else if(iter%each==0) verbosity_lv2_master_printf(" * ");
       if(iter%each==0) verbosity_lv2_master_printf("\n");
     }
   while(nrun_shift>0 && iter<niter_max);

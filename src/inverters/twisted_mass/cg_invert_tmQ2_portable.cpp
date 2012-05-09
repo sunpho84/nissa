@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string.h>
+
 void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,int RL,double m,int niter,int rniter,double residue,spincolor *source)
 {
   int riter=0;

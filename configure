@@ -5,7 +5,7 @@ then
     if [ ! -f Makefile ]
     then
 	#print help
-	echo "Error, use "$0" CC=(mpi c++ compiler) LEMON_PATH=(path to lemon installation) [CFLAGS=(additional flags)]"
+	echo "Error, use: "$0" CC=(mpi c++ compiler) LEMON_PATH=(path to lemon installation) [CFLAGS=(additional flags)]"
 	exit 1
     else
 	#read from Makefile
@@ -13,6 +13,12 @@ then
 	cc=$(awk -F = '$1=="CC"{print $2}' Makefile)
 	lemon_path=$(awk -F = '$1=="LEMON_PATH"{print $2}' Makefile)
 	cflags=$(awk -F = '$1=="CFLAGS"{print $2}' Makefile)
+	
+	if [ "$cc" == "" ] || [ "$lemon_path" == "" ] || [ "$cflags" == "" ]
+	then
+	    echo "Error in Makefile, recreate it by hand!"
+	    exit
+	fi
     fi
 else
     #parse arguments
