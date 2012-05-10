@@ -9,10 +9,7 @@ MACROS=$(addprefix -D,SVN_VERS=\"$(SVN_VERS))\"
 INCLUDE_PATH=src $(addsuffix /include,$(LEMON_PATH))
 LIBRARY_PATH=$(addsuffix /lib,$(LEMON_PATH))
 
-#check GCC
-ifeq ($(GCC),"")
-  GCC=gcc
-endif
+GCC=gcc
 
 ################################################ define the projects ############################################
 
