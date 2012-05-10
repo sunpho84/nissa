@@ -22,7 +22,7 @@ static_potential=$(addprefix static_potential/, compute_potential)
 
 #collect all the projects
 projects=$(addprefix projects/, $(bubbles) $(eight_BK) $(g) $(nucleons) $(reno_const) $(semileptonic) $(static_potential))
-tools=$(addprefix tools/, endianess_check/endianess_check print_gamma/gamma_test unitarity_check/unitarity_check)
+tools=$(addprefix tools/, endianess_check/endianess_check print_gamma/gamma_test unitarity_check/unitarity_check ../work_in_prog/x/test)
 
 ################################################## global targets ###############################################
 
@@ -55,10 +55,9 @@ nissa_library_objects: $(addsuffix .o,$(nissa_library_pieces))
 #include table of dependencies
 -include $(addsuffix .d,$(nissa_library_pieces) $(projects) $(tools))
 
-
 ################################## rules to produce objects, library and projects ################################
 
-$(addsuffix .o,$(nissa_library_pieces) $(projects) $(tools)): %.o: %.cpp Makefile
+$(addsuffix .o,$(nissa_library_pieces)): %.o: %.cpp %.d Makefile
 	$(CC)				\
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$<				\
@@ -66,14 +65,14 @@ $(addsuffix .o,$(nissa_library_pieces) $(projects) $(tools)): %.o: %.cpp Makefil
 	$(MACROS) 			\
 	-c -o $@
 
-$(addsuffix .d,$(nissa_library_pieces) $(projects) $(tools)):
-	$(GCC) $< -MM $(addprefix -I,$(INCLUDE_PATH)) -o $@
+$(addsuffix .d,$(nissa_library_pieces) $(projects) $(tools)): %.d: %.cpp Makefile
+	$(GCC) $< -MM -MT $(@:%.d=%.o) $(addprefix -I,$(INCLUDE_PATH)) -o $@
 
 
 src/libnissa.a: $(addsuffix .o,$(nissa_library_pieces)) Makefile
 	ar cru src/libnissa.a $(addsuffix .o,$(nissa_library_pieces))
 
-$(projects) $(tools): %: %.cpp %.o %.d src/libnissa.a Makefile
+$(projects) $(tools): %: %.cpp %.d src/libnissa.a Makefile
 	$(CC)                           \
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$(addprefix -L,$(LIBRARY_PATH)) \
