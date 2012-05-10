@@ -11,7 +11,7 @@ LIBRARY_PATH=$(addsuffix /lib,$(LEMON_PATH))
 
 #check GCC
 ifeq ($(CC),"")
-  GCC=gcc
+  CC=gcc
 endif
 
 ################################################ define the projects ############################################
