@@ -5,6 +5,7 @@
 
 int bordlx_of_coord(int *x,int mu);
 int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
+void define_local_momenta(momentum_t *k,double *k2,momentum_t *ktilde,double *ktilde2,momentum_t bc);
 int edgelx_of_coord(int *x,int mu,int nu);
 int glblx_of_coord(coords x);
 int glblx_of_coord_list(int x0,int x1,int x2,int x3);

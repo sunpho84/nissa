@@ -9,6 +9,7 @@
 ///////////////// New types ///////////////////
 
 typedef int coords[4];
+typedef double momentum_t[4];
 
 typedef int intpair[2];
 typedef uint32_t checksum[2];

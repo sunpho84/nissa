@@ -96,6 +96,14 @@ void unsafe_dirac_compl_prod(dirac_matr *out,dirac_matr *in,complex c)
     }
 }
 
+//Summ the passed gamma multiplied by a double to spinspin
+void spinspin_dirac_summ_the_prod_double(spinspin out,dirac_matr *in,double r)
+{
+  //This is the line on the matrix
+  for(int ig=0;ig<4;ig++)
+    complex_summ_the_prod_double(out[ig][in->pos[ig]],in->entr[ig],r);
+}
+
 //Assign to the first spinspin the product of the passed dirac matrix by the passed spinspin
 void spinspin_dirac_spinspin_prod(spinspin out,dirac_matr *m,spinspin in)
 {

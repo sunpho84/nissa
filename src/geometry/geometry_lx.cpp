@@ -1,3 +1,4 @@
+#include <math.h>
 #include <string.h>
 
 #include "../base/global_variables.h"
@@ -102,6 +103,9 @@ void get_loclx_and_rank_of_coord(int *ivol,int *rank,coords g)
 void set_lx_geometry()
 {
   if(nissa_lx_geom_inited==1) crash("cartesian geometry already intialized!");
+  nissa_lx_geom_inited=1;
+  
+  if(nissa_grid_inited!=1) crash("grid not initialized!");
   
   //find the rank of the neighbour in the various dir
   for(int mu=0;mu<4;mu++)
@@ -347,7 +351,6 @@ void set_lx_geometry()
 	start_lx_bord_rece_dw[mu]=loc_vol+bord_offset[mu];
       }
   
-  nissa_lx_geom_inited=1;
   master_printf("Cartesian geometry intialized\n");
 }
 
@@ -450,3 +453,24 @@ void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype 
   initialize_lx_edge_senders_of_kind(MPI_EDGE_SEND,base);
   initialize_lx_edge_receivers_of_kind(MPI_EDGE_RECE,base);
 }
+
+//define all the local lattice momenta
+void define_local_momenta(momentum_t *k,double *k2,momentum_t *ktilde,double *ktilde2,momentum_t bc)
+{
+  if(!nissa_lx_geom_inited) set_lx_geometry();
+  
+  //first of all, defines the local momenta for the various directions
+  nissa_loc_vol_loop(imom)
+    {
+      k2[imom]=ktilde2[imom]=0;
+      for(int mu=0;mu<4;mu++)
+	{
+	  k[imom][mu]=M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	  ktilde[imom][mu]=sin(k[imom][mu]);
+	  
+	  k2[imom]+=k[imom][mu]*k[imom][mu];
+	  ktilde2[imom]+=ktilde[imom][mu]*ktilde[imom][mu];
+	}
+    }
+}
+
