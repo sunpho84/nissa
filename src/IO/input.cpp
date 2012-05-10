@@ -202,6 +202,22 @@ void read_list_of_ints(const char *tag,int *nentries,int **list)
   verbosity_lv1_master_printf("\n");
 }
 
+//read a list of chars
+void read_list_of_chars(const char *tag,int *nentries,char ***list,int nchar_per_entry)
+{
+  read_str_int(tag,nentries);
+  (*list)=(char**)malloc((*nentries)*sizeof(char*));
+  for(int ientr=0;ientr<(*nentries);ientr++)
+    {
+      (*list)[ientr]=(char*)malloc(nchar_per_entry);
+      read_str((*list)[ientr],nchar_per_entry);
+    }
+  
+  verbosity_lv1_master_printf("List of %s:\t",tag);
+  for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%s\t",(*list)[ientr]);
+  verbosity_lv1_master_printf("\n");
+}
+
 //read the nissa configuration file
 void read_nissa_config_file()
 {

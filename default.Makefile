@@ -9,6 +9,11 @@ MACROS=$(addprefix -D,SVN_VERS=\"$(SVN_VERS))\"
 INCLUDE_PATH=src $(addsuffix /include,$(LEMON_PATH))
 LIBRARY_PATH=$(addsuffix /lib,$(LEMON_PATH))
 
+#check GCC
+ifeq ($(CC),"")
+  GCC=gcc
+endif
+
 ################################################ define the projects ############################################
 
 #include all version of the same projects
@@ -50,7 +55,7 @@ operations=$(addprefix operations/, contract fft fourier_transform gauge_fixing 
 
 #collect all pieces of the library and define targets for library pieces
 nissa_library_pieces=$(addprefix src/, $(base) $(dirac_operators) $(inverters) $(geometry) $(IO) $(new_types) $(operations) linalgs/linalgs)
-nissa_library_objects: $(addsuffix .o,$(nissa_library_pieces))
+nissa_library_objects: $(addsuffix .o,$(nissa_library_pieces)) Makefile
 
 #include table of dependencies
 -include $(addsuffix .d,$(nissa_library_pieces) $(projects) $(tools))

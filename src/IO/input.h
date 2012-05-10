@@ -10,6 +10,7 @@ void file_touch(const char *path);
 void open_input(char *input_path);
 void read_double(double *out);
 void read_int(int *out);
+void read_list_of_chars(const char *tag,int *nentries,char ***list,int nchar_per_entry);
 void read_list_of_double_pairs(const char *tag,int *nentries,double **list1,double **list2);
 void read_list_of_doubles(const char *tag,int *nentries,double **list);
 void read_list_of_ints(const char *tag,int *nentries,int **list);
