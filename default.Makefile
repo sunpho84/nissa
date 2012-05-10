@@ -10,8 +10,8 @@ INCLUDE_PATH=src $(addsuffix /include,$(LEMON_PATH))
 LIBRARY_PATH=$(addsuffix /lib,$(LEMON_PATH))
 
 #check GCC
-ifeq ($(CC),"")
-  CC=gcc
+ifeq ($(GCC),"")
+  GCC=gcc
 endif
 
 ################################################ define the projects ############################################
