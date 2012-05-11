@@ -202,8 +202,8 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
   //define returned pointer and check for its alignement
   void *return_ptr=(void*)(last_nissa_vect+1);
   int offset=((long long int)(return_ptr))%nissa_vect_alignment;
-  //if(offset!=0)
-  //crash("memory alignment problem, vector %s has %d offset",tag,offset);
+  if(offset!=0)
+    crash("memory alignment problem, vector %s has %d offset",tag,offset);
   
   //if borders or edges are allocated, set appropriate flag
   if(nel==(loc_vol+bord_vol) || nel==(loc_volh+bord_volh)) set_vec_flag(return_ptr,BORDERS_ALLOCATED);

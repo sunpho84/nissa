@@ -37,6 +37,10 @@ typedef colorspinspin su3spinspin[3];
 typedef complex as2t[6];
 typedef su3 as2t_su3[6];
 
+//this is just for avoid misleading, but is nothing more that a spinspin
+typedef complex spin1field[4];
+typedef spin1field spin1prop[4];
+
 //quadruple precision float
 typedef double float_128[2];
 typedef float_128 complex_128[2];

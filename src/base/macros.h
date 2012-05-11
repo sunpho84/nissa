@@ -16,6 +16,10 @@
 #define EVN 0
 #define ODD 1
 
+//real/imag
+#define RE 0
+#define IM 1
+
 //double per color, spincolor and quad_su3
 #define nreals_per_color 6
 #define nreals_per_spincolor 24
