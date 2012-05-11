@@ -24,7 +24,8 @@ static_potential=$(addprefix static_potential/, compute_potential)
 
 #collect all the projects
 projects=$(addprefix projects/, $(bubbles) $(eight_BK) $(g) $(nucleons) $(reno_const) $(semileptonic) $(static_potential))
-tools=$(addprefix tools/, endianess_check/endianess_check print_gamma/gamma_test unitarity_check/unitarity_check ../work_in_prog/x/test)
+tools=$(addprefix tools/, endianess_check/endianess_check print_gamma/gamma_test unitarity_check/unitarity_check meson_2pts/meson_2pts meson_2pts/meson_2pts_point_source)
+work_in_prog_exe=$(addprefix work_in_prog/, x/test_wilson_fermionic_prop x/test_wilson_gluonic_prop)
 
 ################################################## global targets ###############################################
 
@@ -35,8 +36,10 @@ Makefile: default.Makefile configure
 	echo "WARNING: Makefile update, rerun it!!!!"; \
 	exit 1
 
+work_in_prog: $(work_in_prog_exe)
+
 clean:
-	 rm -rf $(addsuffix .d,$(nissa_library_pieces)) $(addsuffix .o,$(nissa_library_pieces)) src/libnissa.a $(projects) $(tools)
+	 rm -rf $(addsuffix .d,$(nissa_library_pieces)) $(addsuffix .o,$(nissa_library_pieces)) src/libnissa.a $(projects) $(tools) $(work_in_prog)
 
 ############################################# define the library pieces #########################################
 
@@ -74,7 +77,7 @@ $(addsuffix .d,$(nissa_library_pieces) $(projects) $(tools)): %.d: %.cpp Makefil
 src/libnissa.a: $(addsuffix .o,$(nissa_library_pieces)) Makefile
 	ar cru src/libnissa.a $(addsuffix .o,$(nissa_library_pieces))
 
-$(projects) $(tools): %: %.cpp %.d src/libnissa.a Makefile
+$(projects) $(tools) $(work_in_prog_exe): %: %.cpp %.d src/libnissa.a Makefile
 	$(CC)                           \
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$(addprefix -L,$(LIBRARY_PATH)) \
