@@ -60,7 +60,7 @@ void close_x()
   close_nissa();
 }
 
-//compute the quark propagator in the momentum space according to P.Weisz
+//compute the wilson action gluon propagator in the momentum space according to P.Weisz
 void compute_mom_space_wilson_propagator(spin1prop *prop,double alpha,momentum_t bc)
 {
   //check absence of zero modes
@@ -84,7 +84,7 @@ void compute_mom_space_wilson_propagator(spin1prop *prop,double alpha,momentum_t
       for(int mu=0;mu<4;mu++)
 	{
 	  k[mu]=M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu]; //lattice momentum
-	  kt[mu]=2*sin(k[mu]/2); //eq 3.7
+	  kt[mu]=2*sin(k[mu]/2); //eq 3.7 (factor 2 and 1/2 coming from symmetrized derivative)
 	  kt2+=kt[mu]*kt[mu];
 	}
       
@@ -104,6 +104,76 @@ void compute_mom_space_wilson_propagator(spin1prop *prop,double alpha,momentum_t
 	    prop[imom][nu][ta][IM]=0;
 	  }
     }
+}
+
+/* klein gordon operator for wilson action, as in P.Weisz eq A.3:
+  out(i;mu)=K(i,j;mu,nu)*in(j;nu)
+ 
+ with K being the Klein Gordon operator:
+  K(i,j;mu,nu)=Sum_l{D(i,l;mu)*D(l,j;nu)/alpha+Sum_rh[D(i,l;rh)*kron(mu,nu)-D(i,l;nu)*kron(rh,nu)]q(mu,rh)*D(l,j;rh)}
+
+ where we have defined symmetric derivative operator D(i,j;mu)=[kron(j,i+mu)-kron(j,i-mu)]/2
+ and we defined: q_mu_nu=1-kron(mu,nu) (this will be different for tree level Symanzik and Iwasaki)
+
+ since this computation involves 2 neighbours it needs to be performed in 2 steps, in particular we will define
+  d1(i,mu,nu)=D(i,j;mu)*in(j,nu)
+
+ from which we can compute
+  out(i;mu)=D(i,j;mu)*[Sum_nu d1(j;nu,nu)]/alpha+Sum_rh_nu[D(i,j;rh)*kron(mu,nu)-D(i,j;nu)*kron(rh,nu)]*q(mu,rh)*d1(j;rh,nu)
+           =D(i,j;mu)*[Sum_nu d1(j;nu,nu)]/alpha+Sum_nu{D(i,j;nu)*q(mu,nu)*[d1(j;nu,mu)-d1(j;nu,nu)]}
+*/
+void klein_gordon_wilson_action_operator(spin1field *out,spin1field *in,double alpha,momentum_t bc)
+{
+  spin1prop *d1=nissa_malloc("d1",loc_vol+bord_vol,spin1prop);
+  
+  //compute the derivative d1
+  nissa_loc_vol_loop(ivol)
+    for(int mu=0;mu<4;mu++)
+      {
+	int up_mu=loclx_neighup[ivol][mu];
+	int dw_mu=loclx_neighdw[ivol][mu];
+	for(int nu=0;nu<4;nu++)
+	  {
+	    complex_subt(d1[ivol][mu][nu],in[up_mu][nu],in[dw_mu][nu]);
+	    complex_prodassign_double(d1[ivol][mu][nu],0.5);
+	  }
+      }
+  
+  //border to be communicated
+  
+  //second step of the computation
+  nissa_loc_vol_loop(ivol)
+    for(int mu=0;mu<4;mu++)
+      {
+	int up_mu=loclx_neighup[ivol][mu];
+	int dw_mu=loclx_neighdw[ivol][mu];
+	
+	//write gf term k_mu * k_nu /alpha
+	out[ivol][mu][RE]=out[ivol][mu][IM]=0;
+	//we must take diagonal part of the derivative, D
+	for(int nu=0;nu<4;nu++)
+	  {
+	    complex_summassign(out[ivol][mu],d1[up_mu][nu]);
+	    complex_subtassign(out[ivol][mu],d1[dw_mu][nu]);
+	  }
+	complex_prodassign_double(out[ivol][mu],0.5/alpha);
+	
+	//now if q[mu][nu]!=0, i.e. mu!=nu, add the other piece
+	for(int nu=0;nu<4;nu++)
+	  {
+	    complex_summassign(out[ivol][mu],d1[up_mu][nu]);
+	    complex_subtassign(out[ivol][mu],d1[dw_mu][nu]);
+	  }
+	complex_prodassign_double(out[ivol][mu],0.5/alpha);	
+      }
+  
+  nissa_free(d1);
+}
+
+//compute the x-space wilson action gluon propagator by inverting the klein-gordon operator
+void compute_x_space_wilson_propagator(spin1prop *prop,double alpha,momentum_t bc)
+{
+  
 }
 
 /*

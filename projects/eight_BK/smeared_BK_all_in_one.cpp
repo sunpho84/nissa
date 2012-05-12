@@ -102,7 +102,11 @@ int nspec;
 
 //return the index of the prop
 int iS(int iwall,int sm_lv,int imass,int r)
-{return r+2*(imass+nmass*(sm_lv+so_jnlv[iwall]*iwall));}
+{
+  int i=0;
+  for(int iwall_pass=0;iwall_pass<iwall;iwall_pass++) i+=so_jnlv[iwall_pass];
+  return r+2*(imass+nmass*(sm_lv+i));
+}
 
 //generate the source 
 void generate_source(int iwall)
@@ -337,7 +341,6 @@ void calculate_S(int iwall)
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{
 		  int iprop=iS(iwall,so_jlv,imass,r);
-		  printf("iprop=%d/%d\n",iprop,nprop);
 		  nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],temp_vec[r][ivol],id);
 		}
 	    }

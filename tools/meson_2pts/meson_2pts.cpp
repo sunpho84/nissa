@@ -31,6 +31,7 @@ source |------>---->----->---->| sink
 
 #include <mpi.h>
 #include <lemon.h>
+#include <string.h>
 
 #include "nissa.h"
 
