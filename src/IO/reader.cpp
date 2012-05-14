@@ -160,7 +160,7 @@ void read_checksum(checksum check_read,nissa_reader *reader)
     {
       uint64_t nbytes=lemonReaderBytes(reader->lemon_reader);
       char *mess=(char*)calloc(nbytes+1,sizeof(char));
-      if(lemonReaderReadData(mess,&nbytes,reader->lemon_reader)!=LEMON_SUCCESS) crash("Error while reading checksum");
+      if(lemonReaderReadData(mess,(LEMON_TYPE*)&nbytes,reader->lemon_reader)!=LEMON_SUCCESS) crash("Error while reading checksum");
       sscanf(strstr(mess,"<suma>")+6,"%x",&(check_read[0]));
       sscanf(strstr(mess,"<sumb>")+6,"%x",&(check_read[1]));
       

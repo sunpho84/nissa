@@ -45,7 +45,16 @@ then
     echo "Error, set the path the lemon through: \"LEMON_PATH=\""
     exit
 fi
-    
+
+#try to figure out what is the argument of lemon
+echo Trying to figure out what type of variable to use as lemon argument
+lemon_type=$(grep lemonReaderReadData $lemon_path/include/lemon_reader.h -m 1|awk '{print $4}')
+if [ "$lemon_type" == "" ]
+then
+    echo Error, could not determine type for lemon
+    exit 1
+fi
+echo Lemon type: $lemon_type
 
 #summarize
 echo
@@ -53,8 +62,9 @@ echo "Using the following parameters:"
 echo
 echo " CC=$cc"
 echo " LEMON_PATH=$lemon_path"
+echo " LEMON_TYPE=$lemon_type"
 echo " CFLAGS=$cflags"
 echo
 
 #preparing makefile
-sed "s|SED_CC|$cc|;s|SED_LEMON_PATH|$lemon_path|;s|SED_CFLAGS|$cflags|" default.Makefile > Makefile
+sed "s|SED_CC|$cc|;s|SED_LEMON_PATH|$lemon_path|;s|SED_CFLAGS|$cflags|;s|SED_LEMON_TYPE|$lemon_type|" default.Makefile > Makefile

@@ -1,11 +1,12 @@
 #externally defined path and variables
 CC=SED_CC
 LEMON_PATH=SED_LEMON_PATH
+LEMON_TYPE=SED_LEMON_TYPE
 CFLAGS=SED_CFLAGS
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
-MACROS=$(addprefix -D,SVN_VERS=\"$(SVN_VERS))\"
+MACROS=$(addprefix -D,SVN_VERS=\"$(SVN_VERS)\" LEMON_TYPE=$(LEMON_TYPE))
 INCLUDE_PATH=src $(addsuffix /include,$(LEMON_PATH))
 LIBRARY_PATH=$(addsuffix /lib,$(LEMON_PATH))
 
