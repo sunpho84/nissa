@@ -14,7 +14,7 @@ then
 	lemon_path=$(awk -F = '$1=="LEMON_PATH"{print $2}' Makefile)
 	cflags=$(awk -F = '$1=="CFLAGS"{print $2}' Makefile)
 	
-	if [ "$cc" == "" ] || [ "$lemon_path" == "" ] || [ "$cflags" == "" ]
+	if [ "$cc" == "" ] || [ "$lemon_path" == "" ] # || [ "$cflags" == "" ]
 	then
 	    echo "Error in Makefile, recreate it by hand!"
 	    exit
