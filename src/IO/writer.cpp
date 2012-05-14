@@ -38,7 +38,7 @@ void write_checksum(LemonWriter *writer,checksum check)
   sprintf(mess,"<?xml version=\"1.0\" encoding=\"UTF-8\"?><scidacChecksum><version>1.0</version><suma>%#010x</suma><sumb>%#010x</sumb></scidacChecksum>",check[0],check[1]);
   uint64_t nbytes=strlen(mess);
   write_header(writer,"scidac-checksum",nbytes);
-  if(lemonWriteRecordData(mess,&nbytes,writer)!=LEMON_SUCCESS) crash("Error while writing checksum");
+  if(lemonWriteRecordData(mess,(LEMON_TYPE*)&nbytes,writer)!=LEMON_SUCCESS) crash("Error while writing checksum");
 }
 
 //Write a vector of double, in 32 or 64 bits according to the argument
