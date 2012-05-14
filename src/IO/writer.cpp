@@ -27,7 +27,7 @@ void write_text_record(LemonWriter *writer,const char *header,const char *messag
 {
   uint64_t message_bytes=strlen(message);
   write_header(writer,header,message_bytes);
-  lemonWriteRecordData((void*)message,&message_bytes,writer);
+  lemonWriteRecordData((void*)message,(LEMON_TYPE*)&message_bytes,writer);
   lemonWriterCloseRecord(writer);
 }
 
