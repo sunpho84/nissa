@@ -49,9 +49,9 @@ void compute_mom_space_twisted_propagator(spinspin *prop,double kappa,double mas
 }
 
 //pass from p to x space
-void compute_x_space_twisted_propagator_by_fft(spinspin *prop,double kappa,double mu,momentum_t theta)
+void compute_x_space_twisted_propagator_by_fft(spinspin *prop,double kappa,double mass,momentum_t theta)
 {
-  compute_mom_space_twisted_propagator(prop,kappa,mu,theta);
+  compute_mom_space_twisted_propagator(prop,kappa,mass,theta);
     
   //compute the main part of the fft
   fft4d((complex*)prop,(complex*)prop,16,+1,1);
