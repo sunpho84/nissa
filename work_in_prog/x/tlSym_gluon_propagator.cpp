@@ -7,16 +7,18 @@
 #include "../../src/base/debug.h"
 #include "../../src/operations/fft.h"
 
+#include "types.h"
 
 //compute the tree level Symanzik gluon propagator in the momentum space according to P.Weisz
-void compute_mom_space_tlSym_gluon_propagator(spin1prop *prop,double alpha,double c1,momentum_t bc)
+void compute_mom_space_tlSym_gluon_propagator(spin1prop *prop,gluon_info gl)
 {
+  double c1=gl.c1;
   int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
   
   //check absence of zero modes
-  int zmp=1;
-  for(int mu=0;mu<4;mu++) zmp&=(bc[mu]==0);
-  if(zmp) crash("zero mode present, prop not defined");
+  int zmpres=1;
+  for(int mu=0;mu<4;mu++) zmpres&=(gl.bc[mu]==0);
+  if(zmpres) crash("zero mode present, prop not defined");
   
   //reset the propagator
   memset(prop,0,loc_vol*sizeof(spin1prop));
@@ -29,7 +31,7 @@ void compute_mom_space_tlSym_gluon_propagator(spin1prop *prop,double alpha,doubl
       double ktpo2[4][4],ktso2[4][4];
       for(int mu=0;mu<4;mu++)
 	{
-	  k[mu]=M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	  k[mu]=M_PI*(2*glb_coord_of_loclx[imom][mu]+gl.bc[mu])/glb_size[mu];
 	  kt[mu]=2*sin(k[mu]/2);
 	  kt2+=kt[mu]*kt[mu];
 	  kt4+=kt[mu]*kt[mu]*kt[mu]*kt[mu];
@@ -64,7 +66,7 @@ void compute_mom_space_tlSym_gluon_propagator(spin1prop *prop,double alpha,doubl
       for(int mu=0;mu<4;mu++)
 	for(int nu=0;nu<4;nu++)
 	  {
-	    prop[imom][mu][nu][RE]=alpha*kt[mu]*kt[nu];
+	    prop[imom][mu][nu][RE]=gl.alpha*kt[mu]*kt[nu];
 	    for(int si=0;si<4;si++)
 	      prop[imom][mu][nu][RE]+=(kt[si]*kron_delta[mu][nu]-kt[nu]*kron_delta[mu][si])*kt[si]*A[si][nu];
 	    
@@ -75,9 +77,9 @@ void compute_mom_space_tlSym_gluon_propagator(spin1prop *prop,double alpha,doubl
 }
 
 //compute the tree level Symanzik gluon propagator in the x space by taking the fft of that in momentum space
-void compute_x_space_tlSym_gluon_propagator_by_fft(spin1prop *prop,double alpha,double c1,momentum_t bc)
+void compute_x_space_tlSym_gluon_propagator_by_fft(spin1prop *prop,gluon_info gl)
 {
-  compute_mom_space_tlSym_gluon_propagator(prop,alpha,c1,bc);
+  compute_mom_space_tlSym_gluon_propagator(prop,gl);
   
   //multiply by exp(i\sum_mu p_mu/2)
   nissa_loc_vol_loop(imom)
@@ -96,7 +98,7 @@ void compute_x_space_tlSym_gluon_propagator_by_fft(spin1prop *prop,double alpha,
   
   //compute steps
   momentum_t steps;
-  for(int mu=0;mu<4;mu++) steps[mu]=bc[mu]*M_PI/glb_size[mu];
+  for(int mu=0;mu<4;mu++) steps[mu]=gl.bc[mu]*M_PI/glb_size[mu];
 
   //add the fractional phase
   nissa_loc_vol_loop(imom)

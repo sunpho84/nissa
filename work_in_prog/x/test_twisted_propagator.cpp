@@ -1,7 +1,9 @@
-#include "nissa.h"
-#include "twisted_propagator.h"
-
 #include <math.h>
+
+#include "nissa.h"
+
+#include "twisted_propagator.h"
+#include "types_routines.h"
 
 spinspin *prop_fft;
 spinspin *prop_inv;
@@ -57,6 +59,7 @@ int main(int narg,char **arg)
   //kappa and mass
   double kappa=0.177;
   double mass=0.01;
+  quark_info qu=create_twisted_quark_info(kappa,mass,theta);
   
   //pion correlator
   complex pion_corr_fft[glb_size[0]];
@@ -70,12 +73,12 @@ int main(int narg,char **arg)
   
   /////////////////////////////// propagator and pion computed analytically //////////////////////////
   
-  compute_x_space_twisted_propagator_by_fft(prop_fft,kappa,mass,theta);  
+  compute_x_space_twisted_propagator_by_fft(prop_fft,qu);  
   compute_pion_correlator(pion_corr_fft,prop_fft);
 
   /////////////////////////////// propagator and pion computed numerically //////////////////////////
   
-  compute_x_space_twisted_propagator_by_inverting(prop_inv,kappa,mass,theta);
+  compute_x_space_twisted_propagator_by_inverting(prop_inv,qu);
   compute_pion_correlator(pion_corr_inv,prop_inv);
 
   /////////////////////////////////////////// output ////////////////////////////////////////////////

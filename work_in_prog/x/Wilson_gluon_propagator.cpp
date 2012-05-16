@@ -6,15 +6,15 @@
 #include "../../src/new_types/complex.h"
 #include "../../src/base/debug.h"
 #include "../../src/operations/fft.h"
+#include "types.h"
 
-
-//compute the wilson action gluon propagator in the momentum space according to P.Weisz
-void compute_mom_space_wilson_gluon_propagator(spin1prop *prop,double alpha,momentum_t bc)
+//compute the Wilson action gluon propagator in the momentum space according to P.Weisz
+void compute_mom_space_Wilson_gluon_propagator(spin1prop *prop,gluon_info gl)
 {
   //check absence of zero modes
-  int zmp=1;
-  for(int mu=0;mu<4;mu++) zmp&=(bc[mu]==0);
-  if(zmp) crash("zero mode present, prop not defined");
+  int zmpres=1;
+  for(int mu=0;mu<4;mu++) zmpres&=(gl.bc[mu]==0);
+  if(zmpres) crash("zero mode present, prop not defined");
   
   //reset the propagator
   memset(prop,0,loc_vol*sizeof(spin1prop));
@@ -26,7 +26,7 @@ void compute_mom_space_wilson_gluon_propagator(spin1prop *prop,double alpha,mome
       double kt2=0;
       for(int mu=0;mu<4;mu++)
 	{
-	  k[mu]=M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu]; //lattice momentum
+	  k[mu]=M_PI*(2*glb_coord_of_loclx[imom][mu]+gl.bc[mu])/glb_size[mu]; //lattice momentum
 	  kt[mu]=2*sin(k[mu]/2);
 	  kt2+=kt[mu]*kt[mu];
 	}
@@ -35,16 +35,16 @@ void compute_mom_space_wilson_gluon_propagator(spin1prop *prop,double alpha,mome
 	for(int nu=0;nu<4;nu++)
 	  {
 	    if(mu==nu) prop[imom][mu][nu][RE]=1;
-	    prop[imom][mu][nu][RE]-=(1-alpha)*kt[mu]*kt[nu]/kt2;
+	    prop[imom][mu][nu][RE]-=(1-gl.alpha)*kt[mu]*kt[nu]/kt2;
 	    prop[imom][mu][nu][RE]/=kt2;
 	  }
     }
 }
 
-//compute the wilson action gluon propagator in the x space by taking the fft of that in momentum space
-void compute_x_space_wilson_gluon_propagator_by_fft(spin1prop *prop,double alpha,momentum_t bc)
+//compute the Wilson action gluon propagator in the x space by taking the fft of that in momentum space
+void compute_x_space_Wilson_gluon_propagator_by_fft(spin1prop *prop,gluon_info gl)
 {
-  compute_mom_space_wilson_gluon_propagator(prop,alpha,bc);
+  compute_mom_space_Wilson_gluon_propagator(prop,gl);
   
   //multiply by exp(i\sum_mu p_mu/2)
   nissa_loc_vol_loop(imom)
@@ -63,7 +63,7 @@ void compute_x_space_wilson_gluon_propagator_by_fft(spin1prop *prop,double alpha
   
   //compute steps
   momentum_t steps;
-  for(int mu=0;mu<4;mu++) steps[mu]=bc[mu]*M_PI/glb_size[mu];
+  for(int mu=0;mu<4;mu++) steps[mu]=gl.bc[mu]*M_PI/glb_size[mu];
 
   //add the fractional phase
   nissa_loc_vol_loop(imom)
