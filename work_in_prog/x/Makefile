@@ -15,12 +15,12 @@ GCC=gcc
 ################################################ define the objects ############################################
 
 #include all objects
-objects=twisted_propagator
+objects=twisted_propagator wilson_gluon_propagator tlSym_gluon_propagator
 
 ############################################# define the executables ############################################
 
 #collect all the executables
-executables=test_twisted_propagator
+executables=test_twisted_propagator test_wilson_gluon_propagator
 
 ################################################## global targets ###############################################
 
@@ -44,12 +44,12 @@ $(addsuffix .o,$(objects)): %.o: %.cpp %.d Makefile
 
 ######################################### rules to produce dependencies ##########################################
 
-$(addsuffix .d,$(projects) $(executables)): %.d: %.cpp Makefile
+$(addsuffix .d,$(objects) $(executables)): %.d: %.cpp Makefile
 	$(GCC) $< -MM -MT $(@:%.d=%.o) $(addprefix -I,$(INCLUDE_PATH)) -o $@
 
 ######################################### rules to produce executables ############################################
 
-$(executables): %: %.cpp %.d ../../src/libnissa.a Makefile
+$(executables): %: %.cpp %.d $(addsuffix .o,$(objects)) ../../src/libnissa.a Makefile
 	$(CC)                           \
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$(addprefix -L,$(LIBRARY_PATH)) \
