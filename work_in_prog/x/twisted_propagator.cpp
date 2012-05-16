@@ -12,7 +12,7 @@
 #include "../../src/inverters/twisted_mass/cg_invert_tmDeoimpr.h"
 
 //compute the twisted quark propagator in the momentum space
-void compute_mom_space_twisted_propagator(spinspin *prop,double kappa,double mass,momentum_t theta)
+void compute_mom_space_twisted_propagator(spinspin *prop,double kappa,double mass,momentum_t bc)
 {
   double M=1/(2*kappa)-4;
   
@@ -25,7 +25,7 @@ void compute_mom_space_twisted_propagator(spinspin *prop,double kappa,double mas
     double Mp=0,sin2_mom=0;
     for(int mu=0;mu<4;mu++)
       {
-	double p=M_PI*(2*glb_coord_of_loclx[imom][mu]+theta[mu])/glb_size[mu];
+	double p=M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
 	double ph=p/2;
 	sin_mom[mu]=sin(p);
 	double sinph=sin(ph);
@@ -49,36 +49,36 @@ void compute_mom_space_twisted_propagator(spinspin *prop,double kappa,double mas
 }
 
 //pass from p to x space
-void compute_x_space_twisted_propagator_by_fft(spinspin *prop,double kappa,double mass,momentum_t theta)
+void compute_x_space_twisted_propagator_by_fft(spinspin *prop,double kappa,double mass,momentum_t bc)
 {
-  compute_mom_space_twisted_propagator(prop,kappa,mass,theta);
+  compute_mom_space_twisted_propagator(prop,kappa,mass,bc);
     
   //compute the main part of the fft
   fft4d((complex*)prop,(complex*)prop,16,+1,1);
 
   //compute steps
   momentum_t steps;
-  for(int mu=0;mu<4;mu++) steps[mu]=theta[mu]*M_PI/glb_size[mu];
+  for(int mu=0;mu<4;mu++) steps[mu]=bc[mu]*M_PI/glb_size[mu];
 
   //add the fractional phase
   nissa_loc_vol_loop(imom)
     {
-      //compute local phase
+      //compute phase exponent
       double arg=0;
       for(int mu=0;mu<4;mu++) arg+=steps[mu]*glb_coord_of_loclx[imom][mu];
       
-      //compute the theta
-      complex theta={cos(arg),sin(arg)};
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
       
       //adapt the phase
       for(int id1=0;id1<4;id1++)
 	for(int id2=0;id2<4;id2++)
-	  safe_complex_prod(prop[imom][id1][id2],prop[imom][id1][id2],theta);
+	  safe_complex_prod(prop[imom][id1][id2],prop[imom][id1][id2],ph);
     }
 }
 
 //compute numerically the twisted propagator by making use of the already implmented inverters
-void compute_x_space_twisted_propagator_by_inverting(spinspin *prop,double kappa,double mass,momentum_t theta)
+void compute_x_space_twisted_propagator_by_inverting(spinspin *prop,double kappa,double mass,momentum_t bc)
 {
   //source and temp prop
   spincolor *source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
@@ -91,7 +91,7 @@ void compute_x_space_twisted_propagator_by_inverting(spinspin *prop,double kappa
       su3_put_to_id(conf[ivol][mu]);
   
   //put boundary condition
-  put_boundaries_conditions(conf,theta,0,0);
+  put_boundaries_conditions(conf,bc,0,0);
   
   //loop over the source index
   for(int id_so=0;id_so<4;id_so++)
@@ -112,7 +112,7 @@ void compute_x_space_twisted_propagator_by_inverting(spinspin *prop,double kappa
     {
       //compute the phase
       double arg=0;
-      for(int mu=0;mu<4;mu++) arg+=theta[mu]*glb_coord_of_loclx[ivol][mu]/glb_size[mu];
+      for(int mu=0;mu<4;mu++) arg+=bc[mu]*glb_coord_of_loclx[ivol][mu]/glb_size[mu];
       arg*=M_PI;
       complex phase={cos(arg),sin(arg)};
       
