@@ -15,12 +15,12 @@ GCC=gcc
 ################################################ define the objects ############################################
 
 #include all objects
-objects=twisted_propagator wilson_gluon_propagator tlSym_gluon_propagator
+objects=twisted_propagator Wilson_gluon_propagator tlSym_gluon_propagator types_routines
 
 ############################################# define the executables ############################################
 
 #collect all the executables
-executables=test_twisted_propagator test_wilson_gluon_propagator
+executables=test_twisted_propagator test_Wilson_gluon_propagator test_tlSym_gluon_propagator
 
 ################################################## global targets ###############################################
 
