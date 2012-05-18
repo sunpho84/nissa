@@ -20,7 +20,7 @@ objects=$(addprefix src/,twisted_propagator Wilson_gluon_propagator tlSym_gluon_
 ############################################# define the executables ############################################
 
 #collect all the executables
-tests=$(addprefix tests/,test_twisted_propagator test_Wilson_gluon_propagator test_tlSym_gluon_propagator)
+tests=$(addprefix tests/,test_twisted_propagator test_Wilson_gluon_propagator test_tlSym_gluon_propagator test_Wilson_Klein_Gordon_operator)
 progs=$(addprefix progs/,compute_tree_level_corrections average_corr)
 executables=$(tests) $(progs)
 
