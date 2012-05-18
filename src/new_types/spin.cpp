@@ -17,7 +17,7 @@ void print_spinspin(spinspin s)
 {
   for(int id1=0;id1<4;id1++)
     {
-      for(int id2=0;id2<4;id2++) printf("%+016.16f,%+016.16f\t",s[id1][id2][0],s[id1][id2][1]);
+      for(int id2=0;id2<4;id2++) printf("%+016.16le,%+016.16le\t",s[id1][id2][0],s[id1][id2][1]);
       printf("\n");
     }
 }
