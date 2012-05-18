@@ -15,12 +15,12 @@ GCC=gcc
 ################################################ define the objects ############################################
 
 #include all objects
-objects=twisted_propagator Wilson_gluon_propagator tlSym_gluon_propagator types_routines
+objects=twisted_propagator Wilson_gluon_propagator tlSym_gluon_propagator types_routines stochastic_source read_and_write fourier
 
 ############################################# define the executables ############################################
 
 #collect all the executables
-executables=test_twisted_propagator test_Wilson_gluon_propagator test_tlSym_gluon_propagator
+executables=test_twisted_propagator test_Wilson_gluon_propagator test_tlSym_gluon_propagator compute_tree_level_corrections average_corr
 
 ################################################## global targets ###############################################
 

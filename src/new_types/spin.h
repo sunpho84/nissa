@@ -7,7 +7,12 @@ void get_spincolor_from_su3spinspin(spincolor out,su3spinspin in,int id_source,i
 void print_spinspin(spinspin s);
 void put_spincolor_into_colorspinspin(colorspinspin out,spincolor in,int id_source);
 void put_spincolor_into_su3spinspin(su3spinspin out,spincolor in,int id_source,int ic_source);
-void spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b);
+void safe_spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b);
+void unsafe_spinspin_spin_prod(spin out,spinspin a,spin b);
+void safe_spinspin_spin_prod(spin out,spinspin a,spin b);
+void unsafe_spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b);
+void safe_spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b);
+void unsafe_spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b);
 void summ_the_trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b);
 void trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b);
 

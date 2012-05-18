@@ -12,6 +12,7 @@
 #include "../../src/inverters/twisted_mass/cg_invert_tmDeoimpr.h"
 
 #include "types.h"
+#include "fourier.h"
 
 //compute the twisted quark propagator in the momentum space
 void compute_mom_space_twisted_propagator(spinspin *prop,quark_info qu)
@@ -57,29 +58,7 @@ void compute_mom_space_twisted_propagator(spinspin *prop,quark_info qu)
 void compute_x_space_twisted_propagator_by_fft(spinspin *prop,quark_info qu)
 {
   compute_mom_space_twisted_propagator(prop,qu);
-    
-  //compute the main part of the fft
-  fft4d((complex*)prop,(complex*)prop,16,+1,1);
-
-  //compute steps
-  momentum_t steps;
-  for(int mu=0;mu<4;mu++) steps[mu]=qu.bc[mu]*M_PI/glb_size[mu];
-
-  //add the fractional phase
-  nissa_loc_vol_loop(imom)
-    {
-      //compute phase exponent
-      double arg=0;
-      for(int mu=0;mu<4;mu++) arg+=steps[mu]*glb_coord_of_loclx[imom][mu];
-      
-      //compute the phase
-      complex ph={cos(arg),sin(arg)};
-      
-      //adapt the phase
-      for(int id1=0;id1<4;id1++)
-	for(int id2=0;id2<4;id2++)
-	  safe_complex_prod(prop[imom][id1][id2],prop[imom][id1][id2],ph);
-    }
+  pass_spinspin_from_mom_to_x_space(prop,prop,qu.bc);
 }
 
 //compute numerically the twisted propagator by making use of the already implmented inverters
