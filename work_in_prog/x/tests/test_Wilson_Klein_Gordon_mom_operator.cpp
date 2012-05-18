@@ -1,10 +1,11 @@
-#include "nissa.h"
-#include "types.h"
-#include "types_routines.h"
-#include "Wilson_gluon_propagator.h"
-#include "tlSym_gluon_propagator.h"
-
 #include <math.h>
+
+#include "nissa.h"
+
+#include "../src/types.h"
+#include "../src/types_routines.h"
+#include "../src/Wilson_gluon_propagator.h"
+#include "../src/tlSym_gluon_propagator.h"
 
 spin1prop *prop_wi_fft;
 spin1prop *prop_tl_fft;
@@ -80,6 +81,32 @@ int main(int narg,char **arg)
   double glb_d=sqrt(glb_reduce_double(loc_d)/glb_vol);
   master_printf("\n\nAverage norm2 difference between Wilson fft and tlSym fft computed propagators: %lg\n\n",glb_d);
   
+  /////////////////////////// check Wilson Klein Gordon operator in momentum space //////////////////////
+  
+  compute_mom_space_Wilson_gluon_propagator(prop_tl_fft,gl);
+  
+  spin1field *temp=nissa_malloc("temo",loc_vol,spin1field);
+  
+  for(int nu=0;nu<4;nu++)
+    {
+      //take index nu of the propagator
+      for(int mu=0;mu<4;mu++)
+	nissa_loc_vol_loop(imom)
+	  memcpy(temp[imom][mu],prop_tl_fft[imom][mu][nu],sizeof(complex));
+      
+      //apply the KG operator in momentum space
+      apply_Wilson_gluon_mom_Klein_Gordon_operator(temp,temp,gl);
+      
+      //put back index nu of the propagator
+      for(int mu=0;mu<4;mu++)
+	nissa_loc_vol_loop(imom)
+	  memcpy(prop_wi_fft[imom][mu][nu],temp[imom][mu],sizeof(complex));
+    }
+  
+  print_spinspin(prop_wi_fft[0]);
+  
+  nissa_free(temp);
+    
   close_test();
   
   return 0;

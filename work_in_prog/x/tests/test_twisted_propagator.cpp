@@ -2,8 +2,8 @@
 
 #include "nissa.h"
 
-#include "twisted_propagator.h"
-#include "types_routines.h"
+#include "../src/twisted_propagator.h"
+#include "../src/types_routines.h"
 
 spinspin *prop_fft;
 spinspin *prop_inv;

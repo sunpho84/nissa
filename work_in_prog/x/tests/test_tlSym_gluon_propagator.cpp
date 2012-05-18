@@ -1,9 +1,11 @@
-#include "nissa.h"
-#include "types.h"
-#include "types_routines.h"
-#include "tlSym_gluon_propagator.h"
-
 #include <math.h>
+
+#include "nissa.h"
+
+#include "../src/types.h"
+#include "../src/types_routines.h"
+#include "../src/tlSym_gluon_propagator.h"
+
 
 spin1prop *prop_fft;
 spin1prop *prop_inv;

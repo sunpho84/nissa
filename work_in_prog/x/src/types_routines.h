@@ -1,7 +1,7 @@
 #ifndef _TYPES_ROUTINES_H
 #define _TYPES_ROUTINES_H
 
-#include "../../src/new_types/new_types_definitions.h"
+#include "../../../src/new_types/new_types_definitions.h"
 #include "types.h"
 
 gluon_info create_tlSym_gluon_info(double alpha,momentum_t bc,double c1=-1.0/12,double zmp=0);

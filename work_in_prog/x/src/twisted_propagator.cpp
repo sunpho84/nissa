@@ -1,18 +1,18 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../src/base/global_variables.h"
-#include "../../src/base/vectors.h"
-#include "../../src/geometry/geometry_lx.h"
-#include "../../src/new_types/new_types_definitions.h"
-#include "../../src/new_types/complex.h"
-#include "../../src/new_types/su3.h"
-#include "../../src/operations/fft.h"
-#include "../../src/operations/gaugeconf.h"
-#include "../../src/inverters/twisted_mass/cg_invert_tmDeoimpr.h"
+#include "../../../src/base/global_variables.h"
+#include "../../../src/base/vectors.h"
+#include "../../../src/geometry/geometry_lx.h"
+#include "../../../src/new_types/new_types_definitions.h"
+#include "../../../src/new_types/complex.h"
+#include "../../../src/new_types/su3.h"
+#include "../../../src/operations/fft.h"
+#include "../../../src/operations/gaugeconf.h"
+#include "../../../src/inverters/twisted_mass/cg_invert_tmDeoimpr.h"
 
-#include "types.h"
-#include "fourier.h"
+#include "../src/types.h"
+#include "../src/fourier.h"
 
 //compute the twisted quark propagator in the momentum space
 void compute_mom_space_twisted_propagator(spinspin *prop,quark_info qu)
