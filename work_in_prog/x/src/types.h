@@ -1,7 +1,7 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
-#include "../../src/new_types/new_types_definitions.h"
+#include "../../../src/new_types/new_types_definitions.h"
 
 typedef struct
 {

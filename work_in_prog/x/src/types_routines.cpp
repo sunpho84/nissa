@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "types.h"
+#include "../src/types.h"
 
 gluon_info create_tlSym_gluon_info(double alpha,momentum_t bc,double c1=-1.0/12,double zmp=0)
 {
