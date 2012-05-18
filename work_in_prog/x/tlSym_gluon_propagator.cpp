@@ -8,6 +8,7 @@
 #include "../../src/operations/fft.h"
 
 #include "types.h"
+#include "fourier.h"
 
 //compute the tree level Symanzik gluon propagator in the momentum space according to P.Weisz
 void compute_mom_space_tlSym_gluon_propagator(spin1prop *prop,gluon_info gl)
@@ -80,39 +81,5 @@ void compute_mom_space_tlSym_gluon_propagator(spin1prop *prop,gluon_info gl)
 void compute_x_space_tlSym_gluon_propagator_by_fft(spin1prop *prop,gluon_info gl)
 {
   compute_mom_space_tlSym_gluon_propagator(prop,gl);
-  
-  //multiply by exp(i\sum_mu p_mu/2)
-  nissa_loc_vol_loop(imom)
-    {
-      double s=0;
-      for(int mu=0;mu<4;mu++) s+=glb_coord_of_loclx[imom][mu];
-      s/=2;
-      complex ph={cos(s),sin(s)};
-      for(int id1=0;id1<4;id1++)
-	for(int id2=0;id2<4;id2++)
-	  safe_complex_prod(prop[imom][id1][id2],prop[imom][id1][id2],ph);
-    }
-  
-  //compute the main part of the fft
-  fft4d((complex*)prop,(complex*)prop,16,+1,1);
-  
-  //compute steps
-  momentum_t steps;
-  for(int mu=0;mu<4;mu++) steps[mu]=gl.bc[mu]*M_PI/glb_size[mu];
-
-  //add the fractional phase
-  nissa_loc_vol_loop(imom)
-    {
-      //compute phase exponent
-      double arg=0;
-      for(int mu=0;mu<4;mu++) arg+=steps[mu]*(glb_coord_of_loclx[imom][mu]+0.5);
-      
-      //compute the phase
-      complex ph={cos(arg),sin(arg)};
-      
-      //adapt the phase
-      for(int id1=0;id1<4;id1++)
-	for(int id2=0;id2<4;id2++)
-	  safe_complex_prod(prop[imom][id1][id2],prop[imom][id1][id2],ph);
-    }
+  pass_spin1prop_from_mom_to_x_space(prop,prop,gl.bc);
 }

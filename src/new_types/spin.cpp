@@ -35,7 +35,7 @@ void trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b)
 }
 
 //prouduct of two spinspins
-void spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b)
+void unsafe_spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b)
 {
   //This is the line on the matrix
   memset(out,0,sizeof(spinspin));
@@ -44,7 +44,45 @@ void spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b)
       for(int id=0;id<4;id++)
 	complex_summ_the_conj2_prod(out[id1][id2],a[id1][id],b[id2][id]);
 }
+void safe_spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b)
+{
+  spinspin c;
+  unsafe_spinspin_spinspindag_prod(c,a,b);
+  memcpy(out,c,sizeof(spinspin));
+}
 
+//prouduct of two spinspins
+void unsafe_spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b)
+{
+  //This is the line on the matrix
+  memset(out,0,sizeof(spinspin));
+  for(int id1=0;id1<4;id1++)
+    for(int id2=0;id2<4;id2++)
+      for(int id=0;id<4;id++)
+	complex_summ_the_prod(out[id1][id2],a[id1][id],b[id][id2]);
+}
+void safe_spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b)
+{
+  spinspin c;
+  unsafe_spinspin_spinspin_prod(c,a,b);
+  memcpy(out,c,sizeof(spinspin));
+}
+
+//prouduct of spinspin and spin
+void unsafe_spinspin_spin_prod(spin out,spinspin a,spin b)
+{
+  //This is the line on the matrix
+  memset(out,0,sizeof(spin));
+  for(int id1=0;id1<4;id1++)
+    for(int id2=0;id2<4;id2++)
+      complex_summ_the_prod(out[id1],a[id1][id2],b[id2]);
+}
+void safe_spinspin_spin_prod(spin out,spinspin a,spin b)
+{
+  spin c;
+  unsafe_spinspin_spin_prod(c,a,b);
+  memcpy(out,c,sizeof(spin));
+}
 
 //Get a spincolor from a colorspinspin
 //In a spinspin the sink index runs slower than the source

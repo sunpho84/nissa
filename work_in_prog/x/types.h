@@ -18,4 +18,6 @@ typedef struct
   double zmp;
 } gluon_info;
 
+typedef complex corr16[16];
+
 #endif

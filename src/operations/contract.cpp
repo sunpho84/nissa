@@ -32,11 +32,11 @@ void site_trace_g_sdag_g_s_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac
   
   spinspin_dirac_spinspindag_prod(t1,g1,s1);
   spinspin_dirac_spinspin_prod(t2,g2,s2);
-  spinspin_spinspin_prod(t12,t1,t2);
+  unsafe_spinspin_spinspin_prod(t12,t1,t2);
 
   spinspin_dirac_spinspindag_prod(t3,g3,s3);
   spinspin_dirac_spinspin_prod(t4,g4,s4);
-  spinspin_spinspin_prod(t34,t3,t4);
+  unsafe_spinspin_spinspin_prod(t34,t3,t4);
   
   trace_prod_spinspins(c,t12,t34);
 }
@@ -241,8 +241,8 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
       for(int icol1=0;icol1<3;icol1++)
 	for(int icol2=0;icol2<3;icol2++)
 	  {
-	    spinspin_spinspindag_prod(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
-	    spinspin_spinspindag_prod(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
+	    unsafe_spinspin_spinspindag_prod(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
+	    unsafe_spinspin_spinspindag_prod(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
 	    
 	    for(int icontr=0;icontr<ncontr;icontr++)
 	      {
@@ -317,8 +317,8 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
       for(int icol=0;icol<3;icol++)
 	{
 	  spinspin AL,AR;
-	  spinspin_spinspindag_prod(AL,s2L[ivol][icol],s1L[ivol][icol]);
-	  spinspin_spinspindag_prod(AR,s2R[ivol][icol],s1R[ivol][icol]);
+	  unsafe_spinspin_spinspindag_prod(AL,s2L[ivol][icol],s1L[ivol][icol]);
+	  unsafe_spinspin_spinspindag_prod(AR,s2R[ivol][icol],s1R[ivol][icol]);
 	  for(int icontr=0;icontr<ncontr;icontr++)
 	    {
 	      complex ctempL_color,ctempR_color;
