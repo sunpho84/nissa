@@ -2,9 +2,9 @@
 
 #include "nissa.h"
 
-#include "../src/twisted_propagator.h"
-#include "../src/types_routines.h"
-#include "../src/read_and_write.h"
+#include "../src/propagators/twisted_propagator.h"
+#include "../src/types/types_routines.h"
+#include "../src/routines/read_and_write.h"
 
 spinspin *prop;
 corr16 *corr;
@@ -58,7 +58,7 @@ int main(int narg,char **arg)
   nissa_loc_vol_loop(ivol)
     for(int igamma=0;igamma<16;igamma++)
       {
-	site_trace_g_sdag_g_s(corr[ivol][igamma],&(t1[igamma]),prop[ivol],&(t1[igamma]),prop[ivol]); 
+	site_trace_g_sdag_g_s(corr[ivol][igamma],&(t1[igamma]),prop[ivol],&(t2[igamma]),prop[ivol]); 
 	complex_prodassign_double(corr[ivol][igamma],3);
       }
   

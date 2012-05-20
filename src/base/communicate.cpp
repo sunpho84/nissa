@@ -418,6 +418,12 @@ void start_communicating_ev_spincolor_borders(int *nrequest,MPI_Request *request
 void finish_communicating_ev_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *ev)
 {finish_communicating_ev_borders(nrequest,request,(char*)ev);}
 
+void communicate_ev_spin_borders(spin *ev)
+{communicate_ev_borders((char*)ev,MPI_EO_SPIN_BORDS_SEND_TXY,MPI_EV_SPIN_BORDS_SEND_Z,MPI_EO_SPIN_BORDS_RECE,sizeof(spin));}
+void communicate_od_spin_borders(spin *od)
+{communicate_od_borders((char*)od,MPI_EO_SPIN_BORDS_SEND_TXY,MPI_OD_SPIN_BORDS_SEND_Z,MPI_EO_SPIN_BORDS_RECE,sizeof(spin));}
+
+
 //Send the edges of eo vector
 void communicate_eo_edges(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
 {

@@ -2,10 +2,11 @@
 
 #include "nissa.h"
 
-#include "../src/types.h"
-#include "../src/types_routines.h"
-#include "../src/Wilson_gluon_propagator.h"
-#include "../src/tlSym_gluon_propagator.h"
+#include "../src/types/types.h"
+#include "../src/types/types_routines.h"
+#include "../src/operators/Wilson_gluon_Klein_Gordon_operator.h"
+#include "../src/propagators/Wilson_gluon_propagator.h"
+#include "../src/propagators/tlSym_gluon_propagator.h"
 
 spin1prop *prop;
 spin1field *temp;
@@ -79,7 +80,7 @@ int main(int narg,char **arg)
   //gluon information
   gluon_info gl=create_Wilson_gluon_info(alpha,theta);
   
-   /////////////////////////// check Wilson Klein Gordon operator in momentum space //////////////////////
+   /////////////////////////// check Wilson gluon Klein Gordon operator in momentum space //////////////////////
   
   compute_mom_space_Wilson_gluon_propagator(prop,gl);
   
@@ -106,7 +107,7 @@ int main(int narg,char **arg)
   
   check_id_output();
   
-  /////////////////////////// check Wilson Klein Gordon operator in momentum space //////////////////////
+  /////////////////////////// check Wilson gluon Klein Gordon operator in momentum space //////////////////////
   
   compute_x_space_Wilson_gluon_propagator_by_fft(prop,gl);
   
@@ -126,7 +127,7 @@ int main(int narg,char **arg)
 	  for(int mu=0;mu<4;mu++)
 	    memcpy(check_id[ivol][mu][nu],temp[ivol][mu],sizeof(complex));
 	}
-
+      
       //subtract id from x=0
       check_id[0][nu][nu][0]-=1;
     }

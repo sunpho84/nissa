@@ -85,6 +85,8 @@ void split_lx_color_into_eo_parts(color **eo_out,color *lx_in)
 {split_lx_vector_into_eo_parts((char**)eo_out,(char*)lx_in,sizeof(color));}
 void split_lx_spincolor_into_eo_parts(spincolor **eo_out,spincolor *lx_in)
 {split_lx_vector_into_eo_parts((char**)eo_out,(char*)lx_in,sizeof(spincolor));}
+void split_lx_spin_into_eo_parts(spin **eo_out,spin *lx_in)
+{split_lx_vector_into_eo_parts((char**)eo_out,(char*)lx_in,sizeof(spin));}
 
 void paste_eo_parts_into_lx_conf(quad_su3 *out_lx,quad_su3 **in_eo)
 {paste_eo_parts_into_lx_vector((char*)out_lx,(char**)in_eo,sizeof(quad_su3));}
@@ -92,3 +94,5 @@ void paste_eo_parts_into_lx_color(color *out_lx,color **in_eo)
 {paste_eo_parts_into_lx_vector((char*)out_lx,(char**)in_eo,sizeof(color));}
 void paste_eo_parts_into_lx_spincolor(spincolor *out_lx,spincolor **in_eo)
 {paste_eo_parts_into_lx_vector((char*)out_lx,(char**)in_eo,sizeof(spincolor));}
+void paste_eo_parts_into_lx_spin(spin *out_lx,spin **in_eo)
+{paste_eo_parts_into_lx_vector((char*)out_lx,(char**)in_eo,sizeof(spin));}

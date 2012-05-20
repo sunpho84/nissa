@@ -15,12 +15,18 @@ GCC=gcc
 ################################################ define the objects ############################################
 
 #include all objects
-objects=$(addprefix src/,twisted_propagator Wilson_gluon_propagator tlSym_gluon_propagator types_routines stochastic_source read_and_write fourier)
+objects=$(addprefix src/, \
+	$(addprefix operators/, Wilson_gluon_Klein_Gordon_operator twisted_Dirac_eoprec_operator) \
+	$(addprefix inverters/, cg_eoprec_twisted_mass_free_operator) \
+	$(addprefix propagators/, twisted_propagator Wilson_gluon_propagator tlSym_gluon_propagator) \
+	$(addprefix routines/, read_and_write fourier) \
+	$(addprefix stochastic/, stochastic_source) \
+	$(addprefix types/, types_routines))
 
 ############################################# define the executables ############################################
 
 #collect all the executables
-tests=$(addprefix tests/,test_twisted_propagator test_Wilson_gluon_propagator test_tlSym_gluon_propagator test_Wilson_Klein_Gordon_operator)
+tests=$(addprefix tests/,test_twisted_propagator test_Wilson_gluon_propagator test_tlSym_gluon_propagator test_Wilson_gluon_Klein_Gordon_operator)
 progs=$(addprefix progs/,compute_tree_level_corrections average_corr)
 executables=$(tests) $(progs)
 

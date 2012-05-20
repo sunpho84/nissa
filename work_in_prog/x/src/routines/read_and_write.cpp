@@ -1,16 +1,16 @@
 #include <lemon.h>
 #include <mpi.h>
 
-#include "../../../src/new_types/new_types_definitions.h"
-#include "../../../src/IO/writer.h"
-#include "../../../src/IO/reader.h"
-#include "../../../src/base/global_variables.h"
-#include "../../../src/geometry/geometry_lx.h"
-#include "../../../src/base/debug.h"
-#include "../../../src/base/routines.h"
-#include "../../../src/base/vectors.h"
+#include "../../../../src/new_types/new_types_definitions.h"
+#include "../../../../src/IO/writer.h"
+#include "../../../../src/IO/reader.h"
+#include "../../../../src/base/global_variables.h"
+#include "../../../../src/geometry/geometry_lx.h"
+#include "../../../../src/base/debug.h"
+#include "../../../../src/base/routines.h"
+#include "../../../../src/base/vectors.h"
 
-#include "../src/types.h"
+#include "../types/types.h"
 
 void write_corr16(char *path,corr16 *v,int prec)
 {

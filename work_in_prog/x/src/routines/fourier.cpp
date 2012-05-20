@@ -1,9 +1,9 @@
 #include <math.h>
 
-#include "../../../src/new_types/new_types_definitions.h"
-#include "../../../src/new_types/complex.h"
-#include "../../../src/operations/fft.h"
-#include "../../../src/base/global_variables.h"
+#include "../../../../src/new_types/new_types_definitions.h"
+#include "../../../../src/new_types/complex.h"
+#include "../../../../src/operations/fft.h"
+#include "../../../../src/base/global_variables.h"
 
 void pass_spinspin_from_mom_to_x_space(spinspin *out,spinspin *in,momentum_t bc)
 {

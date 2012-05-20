@@ -2,10 +2,11 @@
 
 #include "nissa.h"
 
-#include "../src/types.h"
-#include "../src/types_routines.h"
-#include "../src/Wilson_gluon_propagator.h"
-#include "../src/tlSym_gluon_propagator.h"
+#include "../src/types/types.h"
+#include "../src/types/types_routines.h"
+#include "../src/propagators/Wilson_gluon_propagator.h"
+#include "../src/operators/Wilson_gluon_Klein_Gordon_operator.h"
+#include "../src/propagators/tlSym_gluon_propagator.h"
 
 spin1prop *prop_wi_fft;
 spin1prop *prop_tl_fft;

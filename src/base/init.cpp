@@ -49,6 +49,10 @@ void init_nissa()
   MPI_Type_contiguous(6,MPI_DOUBLE,&MPI_COLOR);
   MPI_Type_commit(&MPI_COLOR);
   
+  //a spin (8 doubles)
+  MPI_Type_contiguous(8,MPI_DOUBLE,&MPI_SPIN);
+  MPI_Type_commit(&MPI_SPIN);
+
   //a spincolor (24 doubles)
   MPI_Type_contiguous(24,MPI_DOUBLE,&MPI_SPINCOLOR);
   MPI_Type_commit(&MPI_SPINCOLOR);
@@ -408,6 +412,7 @@ void init_grid(int T,int L)
   set_eo_bord_senders_and_receivers(MPI_EO_QUAD_SU3_BORDS_SEND_TXY,MPI_EV_QUAD_SU3_BORDS_SEND_Z,MPI_OD_QUAD_SU3_BORDS_SEND_Z,MPI_EO_QUAD_SU3_BORDS_RECE,&MPI_QUAD_SU3);
   set_eo_bord_senders_and_receivers(MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_OD_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,&MPI_COLOR);
   set_eo_bord_senders_and_receivers(MPI_EO_SPINCOLOR_BORDS_SEND_TXY,MPI_EV_SPINCOLOR_BORDS_SEND_Z,MPI_OD_SPINCOLOR_BORDS_SEND_Z,MPI_EO_SPINCOLOR_BORDS_RECE,&MPI_SPINCOLOR);
+  set_eo_bord_senders_and_receivers(MPI_EO_SPIN_BORDS_SEND_TXY,MPI_EV_SPIN_BORDS_SEND_Z,MPI_OD_SPIN_BORDS_SEND_Z,MPI_EO_SPIN_BORDS_RECE,&MPI_SPIN);
   set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
   
   //take final time

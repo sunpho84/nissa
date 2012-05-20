@@ -1,13 +1,13 @@
-#include "../../../src/new_types/new_types_definitions.h"
-#include "../../../src/new_types/spin.h"
-#include "../../../src/base/global_variables.h"
-#include "../../../src/base/random.h"
-#include "../../../src/base/debug.h"
-#include "../../../src/base/vectors.h"
-#include "../../../src/operations/fft.h"
+#include "../../../../src/new_types/new_types_definitions.h"
+#include "../../../../src/new_types/spin.h"
+#include "../../../../src/base/global_variables.h"
+#include "../../../../src/base/random.h"
+#include "../../../../src/base/debug.h"
+#include "../../../../src/base/vectors.h"
+#include "../../../../src/operations/fft.h"
 
-#include "../src/tlSym_gluon_propagator.h"
-#include "../src/types.h"
+#include "../propagators/tlSym_gluon_propagator.h"
+#include "../types/types.h"
 
 void generate_stochastic_source_eta(spin1field *eta,int seed)
 {
