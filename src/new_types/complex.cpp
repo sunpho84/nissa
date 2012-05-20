@@ -26,6 +26,13 @@ void complex_summ(complex a,complex b,complex c)
   a[0]=b[0]+c[0];
   a[1]=b[1]+c[1];
 }
+void complex_isumm(complex a,complex b,complex c)
+{
+  a[0]=b[0]-c[1];
+  a[1]=b[1]+c[0];
+}
+void complex_isummassign(complex a,complex b)
+{complex_isumm(a,a,b);}
 void complex_summ_conj2(complex a,complex b,complex c)
 {
   a[0]=b[0]+c[0];
@@ -38,6 +45,13 @@ void complex_subt(complex a,complex b,complex c)
   a[0]=b[0]-c[0];
   a[1]=b[1]-c[1];
 }
+void complex_isubt(complex a,complex b,complex c)
+{
+  a[0]=b[0]+c[1];
+  a[1]=b[1]-c[0];
+}
+void complex_isubtassign(complex a,complex b)
+{complex_isubt(a,a,b);}
 void complex_subt_conj2(complex a,complex b,complex c)
 {
   a[0]=b[0]-c[0];

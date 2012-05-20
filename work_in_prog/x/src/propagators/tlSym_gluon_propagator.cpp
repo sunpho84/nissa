@@ -1,14 +1,14 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../src/base/global_variables.h"
-#include "../../../src/new_types/new_types_definitions.h"
-#include "../../../src/new_types/complex.h"
-#include "../../../src/base/debug.h"
-#include "../../../src/operations/fft.h"
+#include "../../../../src/base/global_variables.h"
+#include "../../../../src/new_types/new_types_definitions.h"
+#include "../../../../src/new_types/complex.h"
+#include "../../../../src/base/debug.h"
+#include "../../../../src/operations/fft.h"
 
-#include "../src/types.h"
-#include "../src/fourier.h"
+#include "../types/types.h"
+#include "../routines/fourier.h"
 
 //compute the tree level Symanzik gluon propagator in the momentum space according to P.Weisz
 void compute_mom_space_tlSym_gluon_propagator(spin1prop *prop,gluon_info gl)
