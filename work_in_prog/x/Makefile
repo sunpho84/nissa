@@ -16,8 +16,8 @@ GCC=gcc
 
 #include all objects
 objects=$(addprefix src/, \
+	$(addprefix inverters/, cg_eoprec_twisted_free_operator cg_Wilson_gluon_operator) \
 	$(addprefix operators/, Wilson_gluon_Klein_Gordon_operator twisted_Dirac_eoprec_operator) \
-	$(addprefix inverters/, cg_eoprec_twisted_mass_free_operator) \
 	$(addprefix propagators/, twisted_propagator Wilson_gluon_propagator tlSym_gluon_propagator) \
 	$(addprefix routines/, read_and_write fourier) \
 	$(addprefix stochastic/, stochastic_source) \

@@ -17,6 +17,7 @@ void communicate_lx_edges(char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *
 void communicate_lx_quad_su3_borders(quad_su3 *conf);
 void communicate_lx_quad_su3_edges(quad_su3 *conf);
 void communicate_lx_spincolor_128_borders(spincolor_128 *s);
+void communicate_lx_spin_borders(spin *s);
 void communicate_lx_spincolor_borders(spincolor *s);
 void communicate_lx_su3_borders(su3 *u);
 void communicate_lx_su3_edges(su3 *u);

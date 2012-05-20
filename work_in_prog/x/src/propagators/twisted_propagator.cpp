@@ -13,7 +13,7 @@
 
 #include "../types/types.h"
 #include "../routines/fourier.h"
-#include "../inverters/cg_eoprec_twisted_mass_free_operator.h"
+#include "../inverters/cg_eoprec_twisted_free_operator.h"
 
 //compute the twisted quark propagator in the momentum space
 void compute_mom_space_twisted_propagator(spinspin *prop,quark_info qu)

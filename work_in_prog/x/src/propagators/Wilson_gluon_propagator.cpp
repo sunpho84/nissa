@@ -10,6 +10,7 @@
 
 #include "../types/types.h"
 #include "../routines/fourier.h"
+#include "../inverters/cg_Wilson_gluon_operator.h"
 
 //compute the Wilson action gluon propagator in the momentum space according to P.Weisz
 void compute_mom_space_Wilson_gluon_propagator(spin1prop *prop,gluon_info gl)
@@ -49,4 +50,33 @@ void compute_x_space_Wilson_gluon_propagator_by_fft(spin1prop *prop,gluon_info g
 {
   compute_mom_space_Wilson_gluon_propagator(prop,gl);
   pass_spin1prop_from_mom_to_x_space(prop,prop,gl.bc);
+}
+
+//compute the Wilson action gluon propagator in the x space by inverting KG operator
+void compute_x_space_Wilson_gluon_propagator_by_inv(spin1prop *prop,gluon_info gl)
+{
+  //source and temp prop
+  spin1field *source=nissa_malloc("source",loc_vol+bord_vol,spin1field);
+  spin1field *tprop=nissa_malloc("tprop",loc_vol+bord_vol,spin1field);
+  
+  //loop over the source index
+  for(int mu_so=0;mu_so<4;mu_so++)
+    {
+      //prepare the source
+      memset(source,0,sizeof(spin1field)*loc_vol);
+      if(rank==0) source[0][mu_so][0]=1;
+      set_borders_invalid(source);
+
+      //invert and copy into the spinspin
+      inv_Wilson_gluon_Klein_Gordon_operator(tprop,NULL,gl,1000000,5,1.e-26,source);
+      nissa_loc_vol_loop(ivol)
+        for(int mu_si=0;mu_si<4;mu_si++)
+          memcpy(prop[ivol][mu_si][mu_so],tprop[ivol][mu_si],sizeof(complex));
+    }
+  
+  set_borders_invalid(prop);
+  
+  nissa_free(source);
+  nissa_free(tprop);
+
 }
