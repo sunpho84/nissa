@@ -9,6 +9,7 @@
 #include "../src/propagators/tlSym_gluon_propagator.h"
 
 spin1prop *prop_wi_fft;
+spin1prop *prop_wi_inv;
 spin1prop *prop_tl_fft;
 
 //initialize the program
@@ -22,6 +23,7 @@ void init_test()
   
   //allocatepropagators
   prop_wi_fft=nissa_malloc("prop_wi_fft",loc_vol,spin1prop);
+  prop_wi_inv=nissa_malloc("prop_wi_inv",loc_vol,spin1prop);
   prop_tl_fft=nissa_malloc("prop_tl_fft",loc_vol,spin1prop);
 }
 
@@ -29,6 +31,7 @@ void init_test()
 void close_test()
 {
   nissa_free(prop_wi_fft);
+  nissa_free(prop_wi_inv);
   nissa_free(prop_tl_fft);
   
   close_nissa();
@@ -55,6 +58,7 @@ int main(int narg,char **arg)
   /////////////////////////////// propagator and pion computed analytically //////////////////////////
   
   compute_x_space_Wilson_gluon_propagator_by_fft(prop_wi_fft,gl);
+  compute_x_space_Wilson_gluon_propagator_by_inv(prop_wi_inv,gl);
   
   /////////////////////////////// propagator and pion computed numerically //////////////////////////
   
@@ -64,23 +68,31 @@ int main(int narg,char **arg)
   
   if(rank==rx)
     {
-      printf("\n\nComparing the propagator on site of coordinates: (%d,%d,%d,%d), rank: %d\n",ix[0],ix[1],ix[2],ix[3],rx);
+      printf("\n\nComparing the propagator on site of coordinates: (%d,%d,%d,%d), rank: %d\n\n wi_fft:\n",ix[0],ix[1],ix[2],ix[3],rx);
       print_spinspin(prop_wi_fft[lx]);
-      printf("\n");
+      printf("\n wi_inv:\n");
+      print_spinspin(prop_wi_inv[lx]);
+      printf("\n tl_fft:\n");
       print_spinspin(prop_tl_fft[lx]);
     }
 
   //take the squared norm of the differnce between the two computed propagators
   
-  double loc_d=0;
+  double loc_d_tl_wi_fft=0;
+  double loc_d_wi_inv_fft=0;
   nissa_loc_vol_loop(ivol)
     for(int id=0;id<32;id++)
       {
 	double t=((double*)prop_wi_fft[ivol])[id]-((double*)prop_tl_fft[ivol])[id];
-	loc_d+=t*t;
+	loc_d_tl_wi_fft+=t*t;
+	
+	t=((double*)prop_wi_fft[ivol])[id]-((double*)prop_wi_inv[ivol])[id];
+	loc_d_wi_inv_fft+=t*t;
       }
-  double glb_d=sqrt(glb_reduce_double(loc_d)/glb_vol);
-  master_printf("\n\nAverage norm2 difference between Wilson fft and tlSym fft computed propagators: %lg\n\n",glb_d);
+  double glb_d_tl_wi_fft=sqrt(glb_reduce_double(loc_d_tl_wi_fft)/glb_vol);
+  double glb_d_wi_inv_fft=sqrt(glb_reduce_double(loc_d_wi_inv_fft)/glb_vol);
+  master_printf("\n\nAverage norm2 difference between Wilson fft and tlSym fft computed propagators: %lg\n",glb_d_tl_wi_fft);
+  master_printf("Average norm2 difference between Wilson fft and inv computed propagators: %lg\n\n",glb_d_wi_inv_fft);
   
   /////////////////////////// check Wilson Klein Gordon operator in momentum space //////////////////////
   
@@ -104,7 +116,7 @@ int main(int narg,char **arg)
 	  memcpy(prop_wi_fft[imom][mu][nu],temp[imom][mu],sizeof(complex));
     }
   
-  print_spinspin(prop_wi_fft[0]);
+  if(rank==0) print_spinspin(prop_wi_fft[0]);
   
   nissa_free(temp);
     

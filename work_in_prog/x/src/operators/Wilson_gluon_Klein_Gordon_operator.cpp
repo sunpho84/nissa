@@ -7,17 +7,21 @@
 #include "../../../../src/base/debug.h"
 #include "../../../../src/operations/fft.h"
 #include "../../../../src/base/vectors.h"
+#include "../../../../src/base/communicate.h"
 
 #include "../types/types.h"
 #include "../routines/fourier.h"
 
 void apply_Wilson_gluon_x_Klein_Gordon_operator(spin1field *out,spin1field *in,gluon_info gl)
 {
+  communicate_lx_spin_borders((spin*)in);
+  
   double rep_alpha=1/gl.alpha;
   
   //this is the field where we will store the backward derivative of the "in" field
   //the derivative is taken with respect to the first index
-  spin1prop *bder=nissa_malloc("bder",loc_vol+bord_vol,spin1prop);
+  spin1field *bder[4];
+  for(int mu=0;mu<4;mu++) bder[mu]=nissa_malloc("bder",loc_vol+bord_vol,spin1field);
   
   //compute the border phases
   complex phases[4];
@@ -46,10 +50,12 @@ void apply_Wilson_gluon_x_Klein_Gordon_operator(spin1field *out,spin1field *in,g
 	//loop on the four indices
 	for(int nu=0;nu<4;nu++)
 	  {
-	    complex_copy               (bder[ivol][mu][nu],in[ivol][nu]);
-	    complex_subt_the_conj2_prod(bder[ivol][mu][nu], in[idw][nu],fact);
+	    complex_copy               (bder[mu][ivol][nu],in[ivol][nu]);
+	    complex_subt_the_conj2_prod(bder[mu][ivol][nu], in[idw][nu],fact);
 	  }
       }
+
+  for(int mu=0;mu<4;mu++) communicate_lx_spin_borders(bder[mu]);
   
   nissa_loc_vol_loop(ivol)
     //index of the field
@@ -69,8 +75,8 @@ void apply_Wilson_gluon_x_Klein_Gordon_operator(spin1field *out,spin1field *in,g
 	    complex fact1={1,0};
 	    if(ubord) memcpy(fact1,phases[nu],sizeof(complex));
 
-	    complex_summ_the_prod(out[ivol][mu],bder [iup][nu][mu],fact1);
-	    complex_subtassign   (out[ivol][mu],bder[ivol][nu][mu]);
+	    complex_summ_the_prod(out[ivol][mu],bder[nu] [iup][mu],fact1);
+	    complex_subtassign   (out[ivol][mu],bder[nu][ivol][mu]);
 	    
 	    //part2: forward derivative on field index direction
 	    //derivative index: mu
@@ -81,8 +87,8 @@ void apply_Wilson_gluon_x_Klein_Gordon_operator(spin1field *out,spin1field *in,g
 	    double coef2=rep_alpha-1;
 	    complex fact2={coef2,0};
 	    if(ubord) safe_complex_prod(fact2,fact2,phases[mu]);
-	    complex_summ_the_prod       (out[ivol][mu],bder [iup][nu][nu],fact2);
-	    complex_subt_the_prod_double(out[ivol][mu],bder[ivol][nu][nu],coef2);
+	    complex_summ_the_prod       (out[ivol][mu],bder[nu] [iup][nu],fact2);
+	    complex_subt_the_prod_double(out[ivol][mu],bder[nu][ivol][nu],coef2);
 	  }
       }
   
@@ -91,7 +97,7 @@ void apply_Wilson_gluon_x_Klein_Gordon_operator(spin1field *out,spin1field *in,g
     for(int mu=0;mu<4;mu++)
       complex_prodassign_double(out[ivol][mu],-1);
   
-  nissa_free(bder);
+  for(int mu=0;mu<4;mu++) nissa_free(bder[mu]);
 }
 
 void apply_Wilson_gluon_mom_Klein_Gordon_operator(spin1field *out,spin1field *in,gluon_info gl)
