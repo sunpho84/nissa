@@ -9,7 +9,7 @@
 #include "../src/propagators/tlSym_gluon_propagator.h"
 
 spin1prop *prop;
-spin1field *temp;
+spin1field *temp1,*temp2;
 spin1prop *check_id;
 
 //initialize the program
@@ -23,7 +23,8 @@ void init_test()
   
   //allocatepropagators
   prop=nissa_malloc("prop",loc_vol,spin1prop);
-  temp=nissa_malloc("temo",loc_vol,spin1field);
+  temp1=nissa_malloc("temp1",loc_vol+bord_vol,spin1field);
+  temp2=nissa_malloc("temp2",loc_vol,spin1field);
   check_id=nissa_malloc("check_id",loc_vol,spin1prop);
 }
 
@@ -31,7 +32,8 @@ void init_test()
 void close_test()
 {
   nissa_free(prop);
-  nissa_free(temp);
+  nissa_free(temp1);
+  nissa_free(temp2);
   nissa_free(check_id);
   
   close_nissa();
@@ -89,16 +91,16 @@ int main(int narg,char **arg)
       //take index nu of the propagator
       nissa_loc_vol_loop(imom)
 	for(int mu=0;mu<4;mu++)
-	  memcpy(temp[imom][mu],prop[imom][mu][nu],sizeof(complex));
+	  memcpy(temp1[imom][mu],prop[imom][mu][nu],sizeof(complex));
       
       //apply the KG operator in momentum space
-      apply_Wilson_gluon_mom_Klein_Gordon_operator(temp,temp,gl);
+      apply_Wilson_gluon_mom_Klein_Gordon_operator(temp2,temp1,gl);
       
       //put back index nu of the propagator
       nissa_loc_vol_loop(imom)
         {
 	  for(int mu=0;mu<4;mu++)
-	    memcpy(check_id[imom][mu][nu],temp[imom][mu],sizeof(complex));
+	    memcpy(check_id[imom][mu][nu],temp2[imom][mu],sizeof(complex));
 	  
 	  //subtract id
 	  check_id[imom][nu][nu][0]-=1;
@@ -116,20 +118,21 @@ int main(int narg,char **arg)
       //take index nu of the propagator
       nissa_loc_vol_loop(ivol)
 	for(int mu=0;mu<4;mu++)
-	  memcpy(temp[ivol][mu],prop[ivol][mu][nu],sizeof(complex));
+	  memcpy(temp1[ivol][mu],prop[ivol][mu][nu],sizeof(complex));
+      set_borders_invalid(temp1);
       
       //apply the KG operator in momentum space
-      apply_Wilson_gluon_x_Klein_Gordon_operator(temp,temp,gl);
+      apply_Wilson_gluon_x_Klein_Gordon_operator(temp2,temp1,gl);
       
       //put back index nu of the propagator
       nissa_loc_vol_loop(ivol)
         {
 	  for(int mu=0;mu<4;mu++)
-	    memcpy(check_id[ivol][mu][nu],temp[ivol][mu],sizeof(complex));
+	    memcpy(check_id[ivol][mu][nu],temp2[ivol][mu],sizeof(complex));
 	}
       
       //subtract id from x=0
-      check_id[0][nu][nu][0]-=1;
+      if(rank==0) check_id[0][nu][nu][0]-=1;
     }
   
   check_id_output();

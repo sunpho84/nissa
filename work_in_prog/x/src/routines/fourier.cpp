@@ -156,3 +156,89 @@ void pass_spin1prop_from_x_to_mom_space(spin1prop *out,spin1prop *in,momentum_t 
 	  }
     }
 }
+
+void pass_spin1field_from_mom_to_x_space(spin1field *out,spin1field *in,momentum_t bc)
+{
+  //multiply by exp(i (p_mu-p_nu)/2)
+  nissa_loc_vol_loop(imom)
+    {
+      complex ph[4];
+      for(int mu=0;mu<4;mu++)
+	{
+	  double pmu=M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	  double pmuh=pmu*0.5;
+	  ph[mu][RE]=cos(pmuh);
+	  ph[mu][IM]=sin(pmuh);
+	}
+      
+      for(int mu=0;mu<4;mu++)
+	safe_complex_prod(out[imom][mu],in[imom][mu],ph[mu]);
+    }
+  
+  //compute the main part of the fft
+  fft4d((complex*)out,(complex*)out,4,+1,1);
+  
+  //compute steps
+  momentum_t steps;
+  for(int mu=0;mu<4;mu++)
+    steps[mu]=bc[mu]*M_PI/glb_size[mu];
+  
+  //add the fractional phase
+  nissa_loc_vol_loop(ivol)
+    {
+      //compute phase exponent
+      double arg=0;
+      for(int mu=0;mu<4;mu++)
+	arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
+      
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      
+      //adapt the phase
+      for(int mu=0;mu<4;mu++)
+	safe_complex_prod(out[ivol][mu],out[ivol][mu],ph);
+    }
+}
+
+void pass_spin1field_from_x_to_mom_space(spin1field *out,spin1field *in,momentum_t bc)
+{
+  //compute steps
+  momentum_t steps;
+  for(int mu=0;mu<4;mu++)
+    steps[mu]=-bc[mu]*M_PI/glb_size[mu];
+  
+  //add the fractional phase
+  nissa_loc_vol_loop(ivol)
+    {
+      //compute phase exponent
+      double arg=0;
+      for(int mu=0;mu<4;mu++)
+	arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
+      
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      
+      //adapt the phase
+      for(int mu=0;mu<4;mu++)
+	safe_complex_prod(out[ivol][mu],in[ivol][mu],ph);
+    }
+  
+  //compute the main part of the fft
+  fft4d((complex*)out,(complex*)out,4,-1,0);
+  
+  //multiply by exp(i -(p_mu-p_nu)/2)
+  nissa_loc_vol_loop(imom)
+    {
+      complex ph[4];
+      for(int mu=0;mu<4;mu++)
+	{
+	  double pmu=-M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	  double pmuh=pmu*0.5;
+	  ph[mu][RE]=cos(pmuh);
+	  ph[mu][IM]=sin(pmuh);
+	}
+      
+      for(int mu=0;mu<4;mu++)
+	safe_complex_prod(out[imom][mu],out[imom][mu],ph[mu]);
+    }
+}
