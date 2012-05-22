@@ -20,13 +20,13 @@ objects=$(addprefix src/, \
 	$(addprefix operators/, Wilson_gluon_Klein_Gordon_operator twisted_Dirac_eoprec_operator) \
 	$(addprefix propagators/, twisted_propagator Wilson_gluon_propagator tlSym_gluon_propagator) \
 	$(addprefix routines/, derivatives fourier read_and_write shift) \
-	$(addprefix stochastic/, stochastic_source stochastic_propagators) \
+	$(addprefix stochastic/, stochastic_source stochastic_tlSym_gluon_propagator stochastic_twisted_propagator) \
 	$(addprefix types/, types_routines))
 
 ############################################# define the executables ############################################
 
 #collect all the executables
-tests=$(addprefix tests/,test_twisted_propagator test_Wilson_gluon_propagator test_tlSym_gluon_propagator test_Wilson_gluon_Klein_Gordon_operator test_Wilson_gluon_stochastic_propagator)
+tests=$(addprefix tests/,test_twisted_propagator test_Wilson_gluon_propagator test_tlSym_gluon_propagator test_Wilson_gluon_Klein_Gordon_operator test_tlSym_gluon_stochastic_propagator)
 progs=$(addprefix progs/,compute_tree_level_corrections average_corr)
 executables=$(tests) $(progs)
 

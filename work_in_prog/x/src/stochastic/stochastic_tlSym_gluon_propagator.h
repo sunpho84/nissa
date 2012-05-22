@@ -1,5 +1,5 @@
-#ifndef _STOCHASTIC_PROPAGATORS_H
-#define _STOCHASTIC_PROPAGATORS_H
+#ifndef _STOCHASTIC_TLSYM_GLUON_PROPAGATOR_H
+#define _STOCHASTIC_TLSYM_GLUON_PROPAGATOR_H
 
 #include "../../../../src/new_types/new_types_definitions.h"
 

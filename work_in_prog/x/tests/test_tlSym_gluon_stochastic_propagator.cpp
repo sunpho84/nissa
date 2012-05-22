@@ -7,7 +7,7 @@
 #include "../src/propagators/Wilson_gluon_propagator.h"
 #include "../src/operators/Wilson_gluon_Klein_Gordon_operator.h"
 #include "../src/propagators/tlSym_gluon_propagator.h"
-#include "../src/stochastic/stochastic_propagators.h"
+#include "../src/stochastic/stochastic_tlSym_gluon_propagator.h"
 
 spin1prop *prop_wi;
 spin1prop *prop_wi_stoch;
