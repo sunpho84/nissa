@@ -91,6 +91,19 @@ void multiply_mom_space_tlSym_gluon_propagator(spin1field *out,spin1field *in,gl
   set_borders_invalid(out);
 }
 
+void multiply_x_space_tlSym_gluon_propagator_by_fft(spin1prop *out,spin1prop *in,gluon_info gl)
+{
+  pass_spin1prop_from_x_to_mom_space(out,in,gl.bc);
+  nissa_loc_vol_loop(imom)
+    {
+      spin1prop prop;
+      mom_space_tlSym_gluon_propagator_of_imom(prop,gl,imom);
+      safe_spinspin_spinspin_prod(out[imom],prop,out[imom]);
+    }
+  pass_spin1prop_from_mom_to_x_space(out,in,gl.bc);
+  set_borders_invalid(out);
+}
+
 //compute the tree level Symanzik gluon propagator in the x space by taking the fft of that in momentum space
 void compute_x_space_tlSym_gluon_propagator_by_fft(spin1prop *prop,gluon_info gl)
 {

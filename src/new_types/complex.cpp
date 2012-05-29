@@ -83,6 +83,12 @@ void complex_prodassign_double(complex a,double c)
 {
   complex_prod_double(a,a,c);
 }
+void complex_prodassign_idouble(complex a,double b)
+{
+  double a0=a[0]*b;
+  a[0]=-a[1]*b;
+  a[1]=   a0*b;
+}
 
 //summ the prod with real
 void complex_summ_the_prod_double(complex a,complex b,double c)
