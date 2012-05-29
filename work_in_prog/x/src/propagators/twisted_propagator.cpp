@@ -78,6 +78,8 @@ void compute_x_space_twisted_propagator_by_fft(spinspin *prop,quark_info qu)
 }
 
 //multiply the source for the twisted propagator by inverting twisted Dirac operator
+void multiply_x_space_twisted_propagator_by_inverting(spin *prop,spin *ext_source,quark_info qu)
+{inv_tmD_cg_eoprec_eos(prop,NULL,qu,1000000,1.e-28,ext_source);}
 void multiply_x_space_twisted_propagator_by_inverting(spinspin *prop,spinspin *ext_source,quark_info qu)
 {
   //source and temp prop
@@ -93,7 +95,7 @@ void multiply_x_space_twisted_propagator_by_inverting(spinspin *prop,spinspin *e
 	  memcpy(tsource[ivol][id_si],ext_source[ivol][id_si][id_so],sizeof(complex));
       
       //invert and copy into the spinspin
-      inv_tmD_cg_eoprec_eos(tprop,NULL,qu,1000000,1.e-28,tsource);
+      multiply_x_space_twisted_propagator_by_inverting(tprop,tsource,qu);
       nissa_loc_vol_loop(ivol)
 	for(int id_si=0;id_si<4;id_si++)
 	  memcpy(prop[ivol][id_si][id_so],tprop[ivol][id_si],sizeof(complex));

@@ -16,6 +16,7 @@ void complex_minus_conj(complex a,complex b);
 void complex_pow(complex res,complex base,double exp);
 void complex_prod_double(complex a,complex b,double c);
 void complex_prodassign_double(complex a,double c);
+void complex_prodassign_idouble(complex a,double c);
 void complex_reciprocal(complex rec,complex c);
 void complex_sqrt(complex res,complex base);
 void complex_subt(complex a,complex b,complex c);

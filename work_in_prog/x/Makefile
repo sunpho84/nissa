@@ -18,15 +18,26 @@ GCC=gcc
 objects=$(addprefix src/, \
 	$(addprefix inverters/, cg_eoprec_twisted_free_operator cg_Wilson_gluon_operator) \
 	$(addprefix operators/, Wilson_gluon_Klein_Gordon_operator twisted_Dirac_eoprec_operator) \
-	$(addprefix propagators/, twisted_propagator Wilson_gluon_propagator tlSym_gluon_propagator) \
+	$(addprefix propagators/, twisted_propagator twisted_propagator_g2_corr Wilson_gluon_propagator tlSym_gluon_propagator) \
 	$(addprefix routines/, derivatives fourier read_and_write shift) \
 	$(addprefix stochastic/, stochastic_source stochastic_tlSym_gluon_propagator stochastic_twisted_propagator) \
-	$(addprefix types/, types_routines))
+	$(addprefix types/, types_routines) \
+	$(addprefix vertex/, x_space_stochastic_qqg_vertex))
 
 ############################################# define the executables ############################################
 
 #collect all the executables
-tests=$(addprefix tests/,test_twisted_propagator test_Wilson_gluon_propagator test_tlSym_gluon_propagator test_Wilson_gluon_Klein_Gordon_operator test_tlSym_gluon_stochastic_propagator)
+tests=$(addprefix tests/, \
+	test_twisted_propagator \
+	test_Wilson_gluon_propagator \
+	test_tlSym_gluon_propagator \
+	test_Wilson_gluon_Klein_Gordon_operator \
+	test_tlSym_gluon_stochastic_propagator \
+	test_stochastic_qqg_vertex \
+	test_twisted_propagator_stochastic_correction \
+	test_twisted_propagator_correction \
+	test_propagator_shift)
+
 progs=$(addprefix progs/,compute_tree_level_corrections average_corr)
 executables=$(tests) $(progs)
 
