@@ -34,18 +34,21 @@ void mom_space_twisted_propagator_of_imom(spin1prop prop,quark_info qu,int imom)
       sin2_mom+=sin_mom[mu]*sin_mom[mu];
     }
   Mp=2*Mp+M;
+ 
+  double den=sin2_mom+Mp*Mp+mass*mass;
+  double rep_den=1/den;
   
-  double rep_den=1/(sin2_mom+Mp*Mp+mass*mass);
-  
-  for(int ig=0;ig<4;ig++)
-    {
-      complex_prod_double(          prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],Mp*rep_den);
-      complex_summ_the_prod_idouble(prop[ig][base_gamma[1].pos[ig]],base_gamma[1].entr[ig],-sin_mom[1]*rep_den);
-      complex_summ_the_prod_idouble(prop[ig][base_gamma[2].pos[ig]],base_gamma[2].entr[ig],-sin_mom[2]*rep_den);
-      complex_summ_the_prod_idouble(prop[ig][base_gamma[3].pos[ig]],base_gamma[3].entr[ig],-sin_mom[3]*rep_den);
-      complex_summ_the_prod_idouble(prop[ig][base_gamma[4].pos[ig]],base_gamma[4].entr[ig],-sin_mom[0]*rep_den);
-      complex_summ_the_prod_idouble(prop[ig][base_gamma[5].pos[ig]],base_gamma[5].entr[ig],-mass*rep_den);
-    }
+  spinspin_put_to_zero(prop);  
+  if(den!=0)
+    for(int ig=0;ig<4;ig++)
+      {
+	complex_prod_double(          prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],Mp*rep_den);
+	complex_summ_the_prod_idouble(prop[ig][base_gamma[1].pos[ig]],base_gamma[1].entr[ig],-sin_mom[1]*rep_den);
+	complex_summ_the_prod_idouble(prop[ig][base_gamma[2].pos[ig]],base_gamma[2].entr[ig],-sin_mom[2]*rep_den);
+	complex_summ_the_prod_idouble(prop[ig][base_gamma[3].pos[ig]],base_gamma[3].entr[ig],-sin_mom[3]*rep_den);
+	complex_summ_the_prod_idouble(prop[ig][base_gamma[4].pos[ig]],base_gamma[4].entr[ig],-sin_mom[0]*rep_den);
+	complex_summ_the_prod_idouble(prop[ig][base_gamma[5].pos[ig]],base_gamma[5].entr[ig],-mass*rep_den);
+      }
 }
 
 //compute the twisted quark propagator in the momentum space
@@ -78,9 +81,9 @@ void compute_x_space_twisted_propagator_by_fft(spinspin *prop,quark_info qu)
 }
 
 //multiply the source for the twisted propagator by inverting twisted Dirac operator
-void multiply_x_space_twisted_propagator_by_inverting(spin *prop,spin *ext_source,quark_info qu)
+void multiply_x_space_twisted_propagator_by_inv(spin *prop,spin *ext_source,quark_info qu)
 {inv_tmD_cg_eoprec_eos(prop,NULL,qu,1000000,1.e-28,ext_source);}
-void multiply_x_space_twisted_propagator_by_inverting(spinspin *prop,spinspin *ext_source,quark_info qu)
+void multiply_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,quark_info qu)
 {
   //source and temp prop
   spin *tsource=nissa_malloc("tsource",loc_vol+bord_vol,spin);
@@ -95,7 +98,7 @@ void multiply_x_space_twisted_propagator_by_inverting(spinspin *prop,spinspin *e
 	  memcpy(tsource[ivol][id_si],ext_source[ivol][id_si][id_so],sizeof(complex));
       
       //invert and copy into the spinspin
-      multiply_x_space_twisted_propagator_by_inverting(tprop,tsource,qu);
+      multiply_x_space_twisted_propagator_by_inv(tprop,tsource,qu);
       nissa_loc_vol_loop(ivol)
 	for(int id_si=0;id_si<4;id_si++)
 	  memcpy(prop[ivol][id_si][id_so],tprop[ivol][id_si],sizeof(complex));
@@ -107,13 +110,13 @@ void multiply_x_space_twisted_propagator_by_inverting(spinspin *prop,spinspin *e
   nissa_free(tprop);
 }
 
-void compute_x_space_twisted_propagator_by_inverting(spinspin *prop,quark_info qu)
+void compute_x_space_twisted_propagator_by_inv(spinspin *prop,quark_info qu)
 {
   spinspin *delta=nissa_malloc("delta",loc_vol+bord_vol,spinspin);
   memset(delta,0,sizeof(spinspin)*loc_vol);
   if(rank==0) for(int id=0;id<4;id++) delta[0][id][id][0]=1;
   
-  multiply_x_space_twisted_propagator_by_inverting(prop,delta,qu);
+  multiply_x_space_twisted_propagator_by_inv(prop,delta,qu);
   
   set_borders_invalid(prop);
   

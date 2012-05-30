@@ -18,7 +18,7 @@ void compute_mom_space_Wilson_gluon_propagator(spin1prop *prop,gluon_info gl)
   //check absence of zero modes
   int zmpres=1;
   for(int mu=0;mu<4;mu++) zmpres&=(gl.bc[mu]==0);
-  if(zmpres) crash("zero mode present, prop not defined");
+  //if(zmpres) crash("zero mode present, prop not defined");
   
   //reset the propagator
   memset(prop,0,loc_vol*sizeof(spin1prop));
@@ -37,11 +37,14 @@ void compute_mom_space_Wilson_gluon_propagator(spin1prop *prop,gluon_info gl)
       
       for(int mu=0;mu<4;mu++)
 	for(int nu=0;nu<4;nu++)
-	  {
-	    if(mu==nu) prop[imom][mu][nu][RE]=1;
-	    prop[imom][mu][nu][RE]-=(1-gl.alpha)*kt[mu]*kt[nu]/kt2;
-	    prop[imom][mu][nu][RE]/=kt2;
-	  }
+	  if(kt2!=0)
+	    {
+	      if(mu==nu) prop[imom][mu][nu][RE]=1;
+	      prop[imom][mu][nu][RE]-=(1-gl.alpha)*kt[mu]*kt[nu]/kt2;
+	      prop[imom][mu][nu][RE]/=kt2;
+	    }
+	  else
+	    prop[imom][mu][nu][RE]=prop[imom][mu][nu][IM]=0;
     }
 }
 

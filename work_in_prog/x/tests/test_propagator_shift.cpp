@@ -50,10 +50,12 @@ int main(int narg,char **arg)
   shift_spinspin_source_up(q_prop_sh,q_prop_sh,quark_theta,2);
   shift_spinspin_source_up(q_prop_sh,q_prop_sh,quark_theta,3);
   shift_spinspin_source_up(q_prop_sh,q_prop_sh,quark_theta,2);
+  shift_spinspin_sink_up(q_prop_sh,q_prop_sh,quark_theta,3);
+  shift_spinspin_sink_up(q_prop_sh,q_prop_sh,quark_theta,3);
   
   /////////////////////////////////////////////////////////
   
-  coords r={1,1,2,1};
+  coords r={1,1,2,-1};
   shift_spinspin_source(q_prop,q_prop,quark_theta,r);
 
   double d=0;
