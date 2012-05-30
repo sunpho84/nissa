@@ -65,13 +65,12 @@ int main(int narg,char **arg)
   init_test();
   
   double null_theta[4]={0,0,0,0};
-  double small=1.e-4;
+  double small=1.e-6;
   double small_theta[4]={small,small,small,small};
   double rand_theta[4]={0.1,0.3,0.6,0.4};
   
   //quark
-  //double quark_theta[4]={0.31,0.31,0.31,0.31};//{0.1,0.3,0.6,0.4};
-  double quark_theta[4];memcpy(quark_theta,small_theta,sizeof(double)*4);
+  double quark_theta[4];memcpy(quark_theta,rand_theta,sizeof(double)*4);
   double kappa=1.0/8;
   double mass=0;
   quark_info qu=create_twisted_quark_info(kappa,mass,quark_theta);
@@ -135,7 +134,7 @@ int main(int narg,char **arg)
 	summ_the_contribution(opg,q_prop_sh,g_prop_sh,nu,mu,opg,+1.0);
       }
 
-  //pass_spinspin_from_x_to_mom_space(corr_x,corr_x,qu.bc);
+  pass_spinspin_from_x_to_mom_space(corr_x,corr_x,qu.bc);
   
   ///////////////////////////////// correction in P ////////////////////////////  
   
@@ -144,8 +143,8 @@ int main(int narg,char **arg)
       memset(corr_p,0,sizeof(spinspin)*loc_vol);
       
       print_spinspin(g_prop[0]);
-      pass_spinspin_from_x_to_mom_space(q_prop,q_prop,qu.bc);
-      pass_spin1prop_from_x_to_mom_space(g_prop,g_prop,gl.bc);
+      compute_mom_space_twisted_propagator(q_prop,qu);
+      compute_mom_space_Wilson_gluon_propagator(g_prop,gl);
       
       nissa_loc_vol_loop(ip)
 	nissa_loc_vol_loop(iq)
@@ -156,16 +155,16 @@ int main(int narg,char **arg)
 	  //compute the weights and find pp
 	  for(int mu=0;mu<4;mu++)
 	    {
-	      //ppa=p+q,ppb=p-q
+	      //ppa=p-q
 	      ipp_mu[mu]=(glb_coord_of_loclx[ip][mu]-glb_coord_of_loclx[iq][mu]+glb_size[mu])%glb_size[mu];
 
 	      double p_mu=M_PI*(2*glb_coord_of_loclx[ip][mu]+qu.bc[mu])/glb_size[mu];
 	      double q_mu=M_PI*(2*glb_coord_of_loclx[iq][mu]+gl.bc[mu])/glb_size[mu];
 	      
-	      double arg_so=(2*p_mu+q_mu)/2;
+	      double arg_so=(2*p_mu-q_mu)/2;
 	      double co_so=cos(arg_so),si_so=sin(arg_so);
 	      
-	      double arg_si=(2*p_mu+q_mu)/2;
+	      double arg_si=(2*p_mu-q_mu)/2;
 	      double co_si=cos(arg_si),si_si=sin(arg_si);
 	      
 	      spinspin_dirac_prod_double(wso[mu],&(base_gamma[map_mu[mu]]),co_so);
@@ -187,7 +186,7 @@ int main(int narg,char **arg)
 	      }
 	}
       
-      pass_spinspin_from_mom_to_x_space(corr_p,corr_p,qu.bc);
+      //pass_spinspin_from_mom_to_x_space(corr_p,corr_p,qu.bc);
     }
   
   nissa_loc_vol_loop(ivol)
