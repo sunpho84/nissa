@@ -60,7 +60,7 @@ nissa_library_objects: $(addsuffix .o,$(nissa_library_pieces)) Makefile
 
 ################################## rules to produce objects, library and projects ################################
 
-$(addsuffix .o,$(nissa_library_pieces)): %.o: %.cpp %.d Makefile
+$(addsuffix .o,$(nissa_library_pieces) $(projects) $(tools)): %.o: %.cpp %.d Makefile
 	$(CC)				\
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$<				\
@@ -75,14 +75,14 @@ $(addsuffix .d,$(nissa_library_pieces) $(projects) $(tools)): %.d: %.cpp Makefil
 src/libnissa.a: $(addsuffix .o,$(nissa_library_pieces)) Makefile
 	ar cru src/libnissa.a $(addsuffix .o,$(nissa_library_pieces))
 
-$(projects) $(tools): %: %.cpp %.d src/libnissa.a Makefile
+$(projects) $(tools): %: %.o src/libnissa.a Makefile
 	$(CC)                           \
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$(addprefix -L,$(LIBRARY_PATH)) \
 	$(CFLAGS)                       \
 	$(MACROS)                       \
 	-o $@                           \
-	$(addsuffix .cpp, $@)           \
+	$(addsuffix .o, $@)             \
 	src/libnissa.a 			\
 	-llemon
 
