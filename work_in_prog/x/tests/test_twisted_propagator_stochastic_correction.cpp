@@ -49,13 +49,13 @@ int main(int narg,char **arg)
   init_test();
   
   //quark
-  double quark_theta[4]={1,0,0,0};
+  double quark_theta[4]={1.e-4,1.e-4,1.e-4,1.e-4};
   double kappa=1.0/8;
   double mass=0;
   quark_info qu=create_twisted_quark_info(kappa,mass,quark_theta);
   
   //gluon
-  double gluon_theta[4]={0,1,0,0};
+  double gluon_theta[4]={1.e-4,1.e-4,1.e-4,1.e-4};
   double alpha=0.3;
   gluon_info gl=create_Wilson_gluon_info(alpha,gluon_theta);
   
@@ -64,10 +64,7 @@ int main(int narg,char **arg)
   /////////////////////////////// S0 propagator=id //////////////////////////
   
   nissa_loc_vol_loop(ivol)
-    {
-      spinspin_put_to_id(prop_S0[ivol]);
-      spinspin_put_to_zero(d2_corr_ave[ivol]);
-    }
+    spinspin_put_to_zero(d2_corr_ave[ivol]);
   
   /////////////////////////////// D2 correction //////////////////////////
   

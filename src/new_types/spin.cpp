@@ -23,6 +23,19 @@ void spin_summ_the_complex_conj2_prod(spin a,spin b,complex c)
 void spin_subt_the_complex_conj2_prod(spin a,spin b,complex c)
 {for(int i=0;i<4;i++) complex_subt_the_conj2_prod(a[i],b[i],c);}
 
+void spinspin_copy(spinspin b,spinspin a)
+{memcpy(b,a,sizeof(spinspin));}
+
+void spinspin_put_to_zero(spinspin a)
+{memset(a,0,sizeof(spinspin));}
+
+void spinspin_put_to_id(spinspin a)
+{
+  spinspin_put_to_zero(a);
+  for(int id=0;id<4;id++)
+    a[id][id][RE]=1;
+}
+
 void spinspin_prod_double(spinspin a,spinspin b,double c)
 {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_prod_double(a[id1][id2],b[id1][id2],c);}
 
@@ -31,10 +44,22 @@ void spinspin_summ_the_complex_prod(spinspin a,spinspin b,complex c)
 void spinspin_subt_the_complex_prod(spinspin a,spinspin b,complex c)
 {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_subt_the_prod(a[id1][id2],b[id1][id2],c);}
 
-void spinspin_the_complex_conj2_prod(spinspin a,spinspin b,complex c)
+void spinspin_summ_the_complex_conj2_prod(spinspin a,spinspin b,complex c)
 {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ_the_conj2_prod(a[id1][id2],b[id1][id2],c);}
 void spinspin_subt_the_complex_conj2_prod(spinspin a,spinspin b,complex c)
 {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_subt_the_conj2_prod(a[id1][id2],b[id1][id2],c);}
+
+void unsafe_spinspin_complex_prod(spinspin a,spinspin b,complex c)
+{
+  spinspin_put_to_zero(a);
+  spinspin_summ_the_complex_prod(a,b,c);
+}
+void safe_spinspin_complex_prod(spinspin a,spinspin b,complex c)
+{
+  spinspin d;
+  unsafe_spinspin_complex_prod(d,b,c);
+  spinspin_copy(a,d);
+}
 
 //saturate two anti-simmetric tensors
 void as2t_saturate(complex out,as2t a,as2t b)
@@ -51,16 +76,6 @@ void print_spinspin(spinspin s)
       for(int id2=0;id2<4;id2++) printf("%+016.16le,%+016.16le\t",s[id1][id2][0],s[id1][id2][1]);
       printf("\n");
     }
-}
-
-void spinspin_put_to_zero(spinspin a)
-{memset(a,0,sizeof(spinspin));}
-
-void spinspin_put_to_id(spinspin a)
-{
-  spinspin_put_to_zero(a);
-  for(int id=0;id<4;id++)
-    a[id][id][RE]=1;
 }
 
 //trace of the product with a dirac matr of a spinspin
@@ -116,7 +131,6 @@ void safe_spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b)
 //prouduct of spinspin and spin
 void unsafe_spinspin_spin_prod(spin out,spinspin a,spin b)
 {
-  //This is the line on the matrix
   memset(out,0,sizeof(spin));
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)

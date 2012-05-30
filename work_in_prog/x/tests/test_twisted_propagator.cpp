@@ -53,8 +53,8 @@ int main(int narg,char **arg)
 {
   init_test();
   
-  //anti-periodic boundary condition in time
-  double theta[4]={1,0,0,0};
+  //boundary conditions
+  double theta[4]={0.3,0.5,0.1,0.9};
   
   //kappa and mass
   double kappa=0.177;
@@ -73,12 +73,12 @@ int main(int narg,char **arg)
   
   /////////////////////////////// propagator and pion computed analytically //////////////////////////
   
-  compute_x_space_twisted_propagator_by_fft(prop_fft,qu);  
+  compute_x_space_twisted_propagator_by_fft(prop_fft,qu);
   compute_pion_correlator(pion_corr_fft,prop_fft);
 
   /////////////////////////////// propagator and pion computed numerically //////////////////////////
   
-  compute_x_space_twisted_propagator_by_inverting(prop_inv,qu);
+  compute_x_space_twisted_propagator_by_inv(prop_inv,qu);
   compute_pion_correlator(pion_corr_inv,prop_inv);
 
   /////////////////////////////////////////// output ////////////////////////////////////////////////

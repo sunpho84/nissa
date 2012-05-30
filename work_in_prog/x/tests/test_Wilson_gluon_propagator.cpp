@@ -41,8 +41,8 @@ int main(int narg,char **arg)
 {
   init_test();
   
-  //anti-periodic boundary condition in one space direction
-  double theta[4]={0,1,0,0};
+  //boundary conditions
+  double theta[4]={0.6,0.4,0.2,0.1};
   
   //covariant gauge fixing constant
   double alpha=0.3;
