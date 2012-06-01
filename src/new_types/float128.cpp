@@ -1,6 +1,6 @@
+#include <mpi.h>
 #include <stdint.h>
 #include <string.h>
-#include <mpi.h>
 
 #include "../base/macros.h"
 #include "new_types_definitions.h"

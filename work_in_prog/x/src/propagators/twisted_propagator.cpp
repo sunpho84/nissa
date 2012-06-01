@@ -49,6 +49,9 @@ void mom_space_twisted_propagator_of_imom(spin1prop prop,quark_info qu,int imom)
 	complex_summ_the_prod_idouble(prop[ig][base_gamma[4].pos[ig]],base_gamma[4].entr[ig],-sin_mom[0]*rep_den);
 	complex_summ_the_prod_idouble(prop[ig][base_gamma[5].pos[ig]],base_gamma[5].entr[ig],-mass*rep_den);
       }
+  else
+    for(int ig=0;ig<4;ig++)
+      complex_prod_double(prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],qu.zmp);
 }
 
 //compute the twisted quark propagator in the momentum space
@@ -99,6 +102,40 @@ void multiply_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_sou
       
       //invert and copy into the spinspin
       multiply_x_space_twisted_propagator_by_inv(tprop,tsource,qu);
+      nissa_loc_vol_loop(ivol)
+	for(int id_si=0;id_si<4;id_si++)
+	  memcpy(prop[ivol][id_si][id_so],tprop[ivol][id_si],sizeof(complex));
+    }
+  
+  set_borders_invalid(prop);
+  
+  nissa_free(tsource);
+  nissa_free(tprop);
+}
+
+//multiply the source for the twisted propagator in the mom space
+void multiply_x_space_twisted_propagator_by_fft(spin *prop,spin *ext_source,quark_info qu)
+{
+  pass_spin_from_x_to_mom_space(prop,ext_source,qu.bc);
+  multiply_mom_space_twisted_propagator(prop,prop,qu);
+  pass_spin_from_mom_to_x_space(prop,prop,qu.bc);
+}
+void multiply_x_space_twisted_propagator_by_ifft(spinspin *prop,spinspin *ext_source,quark_info qu)
+{
+  //source and temp prop
+  spin *tsource=nissa_malloc("tsource",loc_vol+bord_vol,spin);
+  spin *tprop=nissa_malloc("tprop",loc_vol,spin);
+    
+  //loop over the source index
+  for(int id_so=0;id_so<4;id_so++)
+    {
+      //prepare the source
+      nissa_loc_vol_loop(ivol)
+	for(int id_si=0;id_si<4;id_si++)
+	  memcpy(tsource[ivol][id_si],ext_source[ivol][id_si][id_so],sizeof(complex));
+      
+      //invert and copy into the spinspin
+      multiply_x_space_twisted_propagator_by_fft(tprop,tsource,qu);
       nissa_loc_vol_loop(ivol)
 	for(int id_si=0;id_si<4;id_si++)
 	  memcpy(prop[ivol][id_si][id_so],tprop[ivol][id_si],sizeof(complex));
