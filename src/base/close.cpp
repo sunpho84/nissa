@@ -1,5 +1,5 @@
-#include <stdio.h>
 #include <mpi.h>
+#include <stdio.h>
 
 #include "global_variables.h"
 #include "random.h"

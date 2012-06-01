@@ -1,5 +1,5 @@
-#include <string.h>
 #include <mpi.h>
+#include <string.h>
 
 #include "nissa.h"
 

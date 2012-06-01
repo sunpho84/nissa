@@ -8,6 +8,7 @@ typedef struct
   double kappa;
   double mass;
   momentum_t bc;
+  double zmp;
 } quark_info;
 
 typedef struct

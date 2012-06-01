@@ -36,6 +36,11 @@ void spinspin_put_to_id(spinspin a)
     a[id][id][RE]=1;
 }
 
+void spinspin_summ(spinspin a,spinspin b,spinspin c)
+{for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ(a[id1][id2],b[id1][id2],c[id1][id2]);}
+void spinspin_subt(spinspin a,spinspin b,spinspin c)
+{for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_subt(a[id1][id2],b[id1][id2],c[id1][id2]);}
+
 void spinspin_prod_double(spinspin a,spinspin b,double c)
 {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_prod_double(a[id1][id2],b[id1][id2],c);}
 
@@ -126,6 +131,17 @@ void safe_spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b)
   spinspin c;
   unsafe_spinspin_spinspin_prod(c,a,b);
   memcpy(out,c,sizeof(spinspin));
+}
+
+double real_part_of_trace_spinspin_prod_spinspin_dag(spinspin a,spinspin b)
+{
+  double t=0;
+
+  for(int id1=0;id1<4;id1++)
+    for(int id2=0;id2<4;id2++)
+      t+=a[id1][id2][0]*b[id1][id2][0]+a[id1][id2][1]*b[id1][id2][1];
+  
+  return t;
 }
 
 //prouduct of spinspin and spin

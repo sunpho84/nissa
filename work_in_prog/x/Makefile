@@ -2,7 +2,7 @@
 CC=openmpicxx
 LEMON_PATH=/Users/francesco/Prace/Programs/lemon
 LEMON_TYPE=uint64_t
-CFLAGS=-ggdb3
+CFLAGS=-ggdb3 -O2
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
@@ -53,7 +53,7 @@ clean:
 
 ############################################ rules to produce objects ############################################
 
-$(addsuffix .o,$(objects)): %.o: %.cpp %.d Makefile
+$(addsuffix .o,$(objects) $(executables)): %.o: %.cpp %.d Makefile
 	$(CC)				\
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$<				\
@@ -68,14 +68,14 @@ $(addsuffix .d,$(objects) $(executables)): %.d: %.cpp Makefile
 
 ######################################### rules to produce executables ############################################
 
-$(executables): %: %.cpp %.d $(addsuffix .o,$(objects)) ../../src/libnissa.a Makefile
+$(executables): %: %.o $(addsuffix .o,$(objects)) ../../src/libnissa.a Makefile
 	$(CC)                           \
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$(addprefix -L,$(LIBRARY_PATH)) \
 	$(CFLAGS)                       \
 	$(MACROS)                       \
 	-o $@                           \
-	$(addsuffix .cpp, $@)           \
+	$(addsuffix .o, $@)           \
 	$(addsuffix .o, $(objects))     \
 	../../src/libnissa.a		\
 	-llemon

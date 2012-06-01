@@ -1,6 +1,6 @@
+#include <mpi.h>
 #include <string.h>
 #include <stdio.h>
-#include <mpi.h>
 #include <sys/stat.h>
 
 #include "../base/debug.h"

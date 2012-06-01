@@ -30,22 +30,6 @@ void stochastic_x_space_qqg_vertex_source(spin *q_out,spin *q_in,quark_info qu,s
     {
       dirac_matr gamma_mu=(mu==0)?base_gamma[4]:base_gamma[mu];
       
-      //shift=q_in_up_mu
-      shift_spin_dw(shift_q_in,q_in,qu.bc,mu);
-
-      nissa_loc_vol_loop(ivol)
-        {
-	  spin temp;
-	  
-	  //temp=(1-gamma_mu)*q_in_up_mu
-	  unsafe_dirac_prod_spin(temp,&gamma_mu,shift_q_in[ivol]);
-	  spin_subt(temp,shift_q_in[ivol],temp);
-	  
-	  //q_out+=temp*g_in_mu
-	  if(g_dag==false) spin_summ_the_complex_prod(q_out[ivol],temp,g_in[ivol][mu]);
-	  else             spin_summ_the_complex_conj2_prod(q_out[ivol],temp,g_in[ivol][mu]);
-	}
-
       //shift=q_in_dw_mu
       shift_spin_up(shift_q_in,q_in,qu.bc,mu);
       //shift=g_in_dw_mu_mu
@@ -55,20 +39,36 @@ void stochastic_x_space_qqg_vertex_source(spin *q_out,spin *q_in,quark_info qu,s
         {
 	  spin temp;
 	  
-	  //temp=(1+gamma_mu)*q_in_dw_mu
+	  //temp=(1-gamma_mu)*q_in_dw_mu
+	  unsafe_dirac_prod_spin(temp,&gamma_mu,shift_q_in[ivol]);
+	  spin_subt(temp,shift_q_in[ivol],temp);
+	  
+	  //q_out+=temp*g_in_dw_mu_mu
+	  if(g_dag==false) spin_summ_the_complex_prod(q_out[ivol],temp,shift_g_in[ivol][mu]);
+	  else             spin_summ_the_complex_conj2_prod(q_out[ivol],temp,shift_g_in[ivol][mu]);
+	}
+
+      //shift=q_in_up_mu
+      shift_spin_dw(shift_q_in,q_in,qu.bc,mu);
+
+      nissa_loc_vol_loop(ivol)
+        {
+	  spin temp;
+	  
+	  //temp=(1+gamma_mu)*q_in_up_mu
 	  unsafe_dirac_prod_spin(temp,&gamma_mu,shift_q_in[ivol]);
 	  spin_summ(temp,shift_q_in[ivol],temp);
 	  
-	  //q_out-=temp*g_in_dw_mu_mu
-	  if(g_dag==false) spin_subt_the_complex_prod(q_out[ivol],temp,shift_g_in[ivol][mu]);
-	  else             spin_subt_the_complex_conj2_prod(q_out[ivol],temp,shift_g_in[ivol][mu]);
+	  //q_out-=temp*g_in_mu
+	  if(g_dag==false) spin_subt_the_complex_prod(q_out[ivol],temp,g_in[ivol][mu]);
+	  else             spin_subt_the_complex_conj2_prod(q_out[ivol],temp,g_in[ivol][mu]);
 	}
     }
-
-  //put -i/2
+  
+  //put i/2
   nissa_loc_vol_loop(ivol)
     for(int id=0;id<4;id++)
-      complex_prodassign_idouble(q_out[ivol][id],-0.5);
+      complex_prodassign_idouble(q_out[ivol][id],0.5);
   
   set_borders_invalid(q_out);
   
@@ -106,7 +106,7 @@ void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_i
 void stochastic_x_space_qqg_vertex(spin *q_out,spin *q_in,quark_info qu,spin1field *g_in,gluon_info gl,bool g_dag=false)
 {
   stochastic_x_space_qqg_vertex_source(q_out,q_in,qu,g_in,gl,g_dag);
-  multiply_x_space_twisted_propagator_by_inv(q_out,q_out,qu);
+  multiply_x_space_twisted_propagator_by_fft(q_out,q_out,qu);
 }
 
 void stochastic_x_space_qqg_vertex(spinspin *q_out,spinspin *q_in,quark_info qu,spin1field *g_in,gluon_info gl,bool g_dag=false)
@@ -123,7 +123,7 @@ void stochastic_x_space_qqg_vertex(spinspin *q_out,spinspin *q_in,quark_info qu,
         for(int id_si=0;id_si<4;id_si++)
           complex_copy(tsource[ivol][id_si],q_in[ivol][id_si][id_so]);
       
-      //operate on single source index
+     //operate on single source index
       stochastic_x_space_qqg_vertex(tprop,tsource,qu,g_in,gl,g_dag);
       nissa_loc_vol_loop(ivol)
         for(int id_si=0;id_si<4;id_si++)
