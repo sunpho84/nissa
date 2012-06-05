@@ -16,7 +16,7 @@ void complex_minus_conj(complex a,complex b);
 void complex_pow(complex res,complex base,double exp);
 void complex_prod_double(complex a,complex b,double c);
 void complex_prodassign_double(complex a,double c);
-void complex_prodassign_idouble(complex a,double c);
+void complex_prodassign_idouble(complex a,double b);
 void complex_reciprocal(complex rec,complex c);
 void complex_sqrt(complex res,complex base);
 void complex_subt(complex a,complex b,complex c);
@@ -53,6 +53,7 @@ void safe_complex_conj2_prod(complex a,complex b,complex c);
 void safe_complex_conj2_prod_minus(complex a,complex b,complex c);
 void safe_complex_prod(complex a,complex b,complex c);
 void safe_complex_prod_i(complex a,complex b);
+void safe_complex_prod_idouble(complex a,complex b,double c);
 void safe_complex_prod_minus(complex a,complex b,complex c);
 void safe_complex_prod_minus_i(complex a,complex b);
 void unsafe_complex_conj1_prod(complex a,complex b,complex c);
@@ -62,6 +63,6 @@ void unsafe_complex_conj2_prod_minus(complex a,complex b,complex c);
 void unsafe_complex_conj_conj_prod(complex a,complex b,complex c);
 void unsafe_complex_conj_conj_prod_minus(complex a,complex b,complex c);
 void unsafe_complex_prod(complex a,complex b,complex c);
+void unsafe_complex_prod_idouble(complex a,complex b,double c);
 void unsafe_complex_prod_minus(complex a,complex b,complex c);
-
 #endif

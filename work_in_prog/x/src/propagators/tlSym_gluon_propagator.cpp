@@ -66,14 +66,14 @@ void mom_space_tlSym_gluon_propagator_of_imom(spin1prop prop,gluon_info gl,int i
 	    for(int si=0;si<4;si++)
 	      prop[mu][nu][RE]+=(kt[si]*kron_delta[mu][nu]-kt[nu]*kron_delta[mu][si])*kt[si]*A[si][nu];
 	    
-	    prop[mu][nu][RE]/=kt2*kt2;
+	    prop[mu][nu][RE]/=kt2*kt2*glb_vol;
 	    prop[mu][nu][IM]=0;
 	  }
     }
   else
     for(int mu=0;mu<4;mu++)
       for(int nu=0;nu<4;nu++)
-	prop[mu][nu][RE]=prop[mu][nu][IM]=gl.zmp;
+	prop[mu][nu][RE]=prop[mu][nu][IM]=gl.zmp/glb_vol;
 }
 
 void compute_mom_space_tlSym_gluon_propagator(spin1prop *prop,gluon_info gl)

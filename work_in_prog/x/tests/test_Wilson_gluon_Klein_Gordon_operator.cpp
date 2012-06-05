@@ -63,7 +63,8 @@ void check_id_output()
 	point_d+=t*t;
       }
     loc_d+=point_d;
-    //master_printf("%d %d %d %d %d  %lg\n",glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3],imom,point_d);
+    if(fabs(point_d)>1.e-10)
+      master_printf("%d %d %d %d %d  %lg\n",glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3],imom,point_d);
   }
   double glb_d=sqrt(glb_reduce_double(loc_d)/glb_vol);
   master_printf("\n\nAverage norm2 of K*G-1: %lg\n\n",glb_d);
@@ -83,6 +84,8 @@ int main(int narg,char **arg)
   gluon_info gl=create_Wilson_gluon_info(alpha,theta);
   
    /////////////////////////// check Wilson gluon Klein Gordon operator in momentum space //////////////////////
+  
+  master_printf("\nCheck in x space\n\n");
   
   compute_mom_space_Wilson_gluon_propagator(prop,gl);
   
@@ -111,6 +114,8 @@ int main(int narg,char **arg)
   
   /////////////////////////// check Wilson gluon Klein Gordon operator in momentum space //////////////////////
   
+  master_printf("\nCheck in momentum space\n\n");
+  
   compute_x_space_Wilson_gluon_propagator_by_fft(prop,gl);
   
   for(int nu=0;nu<4;nu++)
@@ -138,7 +143,6 @@ int main(int narg,char **arg)
   check_id_output();
   
   ////////////////////////////////////////////////////////////////////////////////////////////////////
-  
   
   close_test();
   

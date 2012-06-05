@@ -37,14 +37,18 @@ void compute_mom_space_Wilson_gluon_propagator(spin1prop *prop,gluon_info gl)
       
       for(int mu=0;mu<4;mu++)
 	for(int nu=0;nu<4;nu++)
-	  if(kt2!=0)
-	    {
-	      if(mu==nu) prop[imom][mu][nu][RE]=1;
-	      prop[imom][mu][nu][RE]-=(1-gl.alpha)*kt[mu]*kt[nu]/kt2;
-	      prop[imom][mu][nu][RE]/=kt2;
-	    }
-	  else
-	    prop[imom][mu][nu][RE]=prop[imom][mu][nu][IM]=0;
+	  {
+	    if(kt2!=0)
+	      {
+		if(mu==nu) prop[imom][mu][nu][RE]=1;
+		prop[imom][mu][nu][RE]-=(1-gl.alpha)*kt[mu]*kt[nu]/kt2;
+		prop[imom][mu][nu][RE]/=kt2;
+	      }
+	    else
+	      prop[imom][mu][nu][RE]=prop[imom][mu][nu][IM]=0;
+      
+	    complex_prodassign_double(prop[imom][mu][nu],1.0/glb_vol);
+	  }
     }
 }
 
