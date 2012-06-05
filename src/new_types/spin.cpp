@@ -52,6 +52,10 @@ void spinspin_summ(spinspin a,spinspin b,spinspin c)
 {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ(a[id1][id2],b[id1][id2],c[id1][id2]);}
 void spinspin_subt(spinspin a,spinspin b,spinspin c)
 {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_subt(a[id1][id2],b[id1][id2],c[id1][id2]);}
+void spinspin_summassign(spinspin a,spinspin b)
+{spinspin_summ(a,a,b);}
+void spinspin_subtassign(spinspin a,spinspin b)
+{spinspin_subt(a,a,b);}
 
 void spinspin_prod_double(spinspin a,spinspin b,double c)
 {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_prod_double(a[id1][id2],b[id1][id2],c);}
