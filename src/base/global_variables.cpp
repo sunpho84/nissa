@@ -136,3 +136,9 @@ EXTERN char gtag[16][3]
 ={"S0","V1","V2","V3","V0","P5","A1","A2","A3","A0","T1","T2","T3","B1","B2","B3"}
 #endif
 ;
+EXTERN int nissa_map_mu[4]
+#ifndef ONLY_INSTANTIATION
+={4,1,2,3};
+#endif
+;
+EXTERN spinspin nissa_opg[4],nissa_omg[4];

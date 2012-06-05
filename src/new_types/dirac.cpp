@@ -221,6 +221,16 @@ void init_base_gamma()
 	
 	smunu_pos[d1][imunu]=base_gamma[lmunu[imunu]].pos[d1];
       }
+
+  //1+gamma_mu, 1-gamma_mu
+  for(int mu=0;mu<4;mu++)
+    {
+      spinspin_put_to_id(nissa_opg[mu]);
+      spinspin_put_to_id(nissa_omg[mu]);
+
+      spinspin_dirac_summ_the_prod_double(nissa_opg[mu],&(base_gamma[nissa_map_mu[mu]]),+1);
+      spinspin_dirac_summ_the_prod_double(nissa_omg[mu],&(base_gamma[nissa_map_mu[mu]]),-1);
+    }
 }
 
 //Trace of the product of two spinspins
