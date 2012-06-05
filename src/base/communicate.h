@@ -1,6 +1,8 @@
 #ifndef _COMMUNICATE_H
 #define _COMMUNICATE_H
 
+#include <mpi.h>
+
 #include "../new_types/new_types_definitions.h"
 
 void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,int nbytes_per_site);

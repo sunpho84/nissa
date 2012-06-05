@@ -1,6 +1,8 @@
 #ifndef _WRITER_H
 #define _WRITER_H
 
+#include <mpi.h>
+
 void paste_eo_parts_and_write_ildg_gauge_conf(char *path,quad_su3 **eo_conf);
 void write_checksum(LemonWriter *writer,checksum check);
 void write_color(char *path,color *v,int prec);

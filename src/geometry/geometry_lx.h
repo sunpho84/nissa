@@ -1,6 +1,8 @@
 #ifndef _GEOMETRY_LX_H
 #define _GEOMETRY_LX_H
 
+#include <mpi.h>
+
 #include "../new_types/new_types_definitions.h"
 
 int bordlx_of_coord(int *x,int mu);

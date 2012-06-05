@@ -1,8 +1,10 @@
 #ifndef _NEW_TYPES_DEFINITIONS_H
 #define _NEW_TYPES_DEFINITIONS_H
 
-#include <lemon.h>
+#include <mpi.h>
 #include <stdint.h>
+
+#include <lemon.h>
 
 #include "../base/macros.h"
 
