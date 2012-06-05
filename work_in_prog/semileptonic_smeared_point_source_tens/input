@@ -1,0 +1,45 @@
+L 4
+T 8
+
+GaugeConfPath ../../test/data/L4T8conf
+
+Kappa 0.177000
+SourceCoordTXYZ 0 0 0 0
+
+ApeAlpha 0.5
+ApeNiter 10
+JacobiKappa 0.5
+JacobiNiterSo 2  0 30
+JacobiNiterSe 1 0
+JacobiNiterSi 2  0 30
+
+MassResidues 2
+0.5 1.e-12
+0.25 1.e-20
+
+NTheta 1
+0.00
+
+NContrTwoPoints 9
+1 1
+1 2
+1 3
+2 1
+2 2
+2 3
+3 1
+3 2
+3 3
+
+NChromoContrTwoPoints 0
+
+OutFileTwoPoints out_two_points
+NSpec 1
+
+ iThetaMassR 0 0 0
+
+NContrThreePoints 0
+
+NChromoContrThreePoints 0
+
+OutFileThreePoints out_three_points

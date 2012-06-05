@@ -198,11 +198,13 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
   cgm_additional_vectors_free();
   
 #ifdef cg_128_invert
-  verbosity_lv1_master_printf("\nRefining the solution in quaduple precision using cg solver\n");
   //if 128 bit precision required refine the solution
   if(nissa_use_128_bit_precision)
-    for(int ishift=0;ishift<nshift;ishift++)
-      cg_128_invert(sol[ishift],sol[ishift],cg_128_additional_parameters_call,shift[ishift],niter_max,req_res[ishift],source);
+    {
+      verbosity_lv1_master_printf("\nRefining the solution in quaduple precision using cg solver\n");
+      for(int ishift=0;ishift<nshift;ishift++)
+	cg_128_invert(sol[ishift],sol[ishift],cg_128_additional_parameters_call,shift[ishift],niter_max,req_res[ishift],source);
+    }
 #endif
 }
 

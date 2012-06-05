@@ -2,7 +2,7 @@
 CC=openmpicxx
 LEMON_PATH=/Users/francesco/Prace/Programs/lemon
 LEMON_TYPE=uint64_t
-CFLAGS=-ggdb3
+CFLAGS=-O2
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
