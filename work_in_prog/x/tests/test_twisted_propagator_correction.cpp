@@ -132,7 +132,10 @@ int main(int narg,char **arg)
 	shift_spinspin_source_dw(q_prop_sh,q_prop_sh,qu.bc,mu);
 	summ_the_contribution(opg,q_prop_sh,g_prop_sh,nu,mu,opg,+1.0);
       }
-
+  
+  nissa_loc_vol_loop(ivol)
+    spinspin_prod_double(corr_x[ivol],corr_x[ivol],0.25);
+  
   pass_spinspin_from_x_to_mom_space(corr_x,corr_x,qu.bc);
   
   ///////////////////////////////// correction in P ////////////////////////////  
@@ -153,12 +156,12 @@ int main(int narg,char **arg)
 	    {
 	      spinspin w[4];
 	      
-	      coords ipp_mu;
-	      //compute the weights and find pp
+	      coords ir_mu;
+	      //compute the weights and find r
 	      for(int mu=0;mu<4;mu++)
 		{
-		  //ppa=p-q
-		  ipp_mu[mu]=(glb_coord_of_loclx[ip][mu]-glb_coord_of_loclx[iq][mu]+glb_size[mu])%glb_size[mu];
+		  //r=p-q
+		  ir_mu[mu]=(glb_coord_of_loclx[ip][mu]-glb_coord_of_loclx[iq][mu]+glb_size[mu])%glb_size[mu];
 		  
 		  double p_mu=M_PI*(2*glb_coord_of_loclx[ip][mu]+qu.bc[mu])/glb_size[mu];
 		  double q_mu=M_PI*(2*glb_coord_of_loclx[iq][mu]+gl.bc[mu])/glb_size[mu];
@@ -170,14 +173,13 @@ int main(int narg,char **arg)
 		  spinspin_dirac_summ_the_prod_idouble(w[mu],&(base_gamma[0]),si);
 		}
 	      
-	      int ipp=glblx_of_coord(ipp_mu);
+	      int ir=glblx_of_coord(ir_mu);
 	      for(int mu=0;mu<4;mu++)
 		for(int nu=0;nu<4;nu++)
 		  {
 		    spinspin temp;
-		    unsafe_spinspin_spinspin_prod(temp,w[mu],q_prop[ipp]);
+		    unsafe_spinspin_spinspin_prod(temp,w[mu],q_prop[ir]);
 		    safe_spinspin_spinspin_prod(temp,temp,w[nu]);
-		    spinspin_prod_double(temp,temp,4.0/glb_vol);
 		    spinspin_summ_the_complex_prod(corr_p[ip],temp,g_prop[iq][mu][nu]);
 		  }
 	    }
@@ -220,6 +222,7 @@ int main(int narg,char **arg)
       //pass_spinspin_from_mom_to_x_space(corr_p,corr_p,qu.bc);
     }
   
+  if(comp)
   nissa_loc_vol_loop(ivol)
     {
       spinspin temp;
@@ -232,6 +235,10 @@ int main(int narg,char **arg)
 	{
 	  master_printf("%d %lg\n",ivol,t2);
 	  print_spinspin(temp);
+	  master_printf("x\n");
+	  print_spinspin(corr_x[ivol]);
+	  master_printf("p\n");
+	  print_spinspin(corr_p[ivol]);
 	}
     }
 

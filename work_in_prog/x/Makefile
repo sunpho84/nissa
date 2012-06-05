@@ -2,7 +2,7 @@
 CC=openmpicxx
 LEMON_PATH=/Users/francesco/Prace/Programs/lemon
 LEMON_TYPE=uint64_t
-CFLAGS=-ggdb3 -O2
+CFLAGS=-ggdb3
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
@@ -36,7 +36,9 @@ tests=$(addprefix tests/, \
 	test_stochastic_qqg_vertex \
 	test_twisted_propagator_stochastic_correction \
 	test_twisted_propagator_correction \
-	test_propagator_shift)
+	test_propagator_shift \
+	test_Fourier_transform \
+)
 
 progs=$(addprefix progs/,compute_tree_level_corrections average_corr)
 executables=$(tests) $(progs)

@@ -80,9 +80,19 @@ void complex_prod_double(complex a,complex b,double c)
   a[1]=b[1]*c;
 }
 void complex_prodassign_double(complex a,double c)
+{complex_prod_double(a,a,c);}
+void unsafe_complex_prod_idouble(complex a,complex b,double c)
 {
-  complex_prod_double(a,a,c);
+  a[0]=-b[1]*c;
+  a[1]= b[0]*c;
 }
+void safe_complex_prod_idouble(complex a,complex b,double c)
+{
+  complex t;
+  unsafe_complex_prod_idouble(t,b,c);
+  complex_copy(a,t);
+}
+
 void complex_prodassign_idouble(complex a,double b)
 {
   double a0=a[0]*b;
