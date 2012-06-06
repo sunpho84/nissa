@@ -4,8 +4,8 @@
 #include <lemon.h>
 
 #ifdef BGP
- #include <builtins.h>
- #include "base/bgp_instructions.h"
+  #include <builtins.h>
+  #include "base/bgp_instructions.h"
 #endif
 
 #include "IO/checksum.h"
