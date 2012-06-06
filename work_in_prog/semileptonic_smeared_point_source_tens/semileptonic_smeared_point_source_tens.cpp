@@ -269,10 +269,8 @@ void initialize_semileptonic(char *input_path)
   //prepare the smeared version and calculate plaquette
   ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
 
-  double gplaq=global_plaquette_lx_conf(conf);
-  master_printf("plaq: %.18g\n",gplaq);
-  gplaq=global_plaquette_lx_conf(sme_conf);
-  master_printf("smeared plaq: %.18g\n",gplaq);
+  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  master_printf("smeared plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
     
   //Put the anti-periodic condition on the temporal border
   put_theta[0]=1;
