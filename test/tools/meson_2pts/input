@@ -1,0 +1,20 @@
+L 4
+T 8
+TWall 0
+NPropFirstlist 1
+data_in/source_2.0003.00.inverted
+0.167
+0.0
+0
+1
+NPropSecondlist 1
+data_in/source_1.0003.00.inverted
+0.150
+0.0
+0
+1
+NContr 1
+5
+5
+NChromoContr 0
+Output out2_heavylight
