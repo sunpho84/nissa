@@ -386,20 +386,6 @@ void smear_additive_su3spinspin(su3spinspin *out,su3spinspin *in,int ism_lev,int
   nissa_free(temp);
 }
 
-//su3*spincolor
-void safe_su3_prod_spincolor(spincolor out,su3 U,spincolor in)
-{for(int is=0;is<4;is++) safe_su3_prod_color(out[is],U,in[is]);}
-
-//su3^*spincolor
-void safe_su3_dag_prod_spincolor(spincolor out,su3 U,spincolor in)
-{for(int is=0;is<4;is++) safe_su3_dag_prod_color(out[is],U,in[is]);}
-//
-void su3_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in)
-{for(int is=0;is<4;is++) su3_subt_the_prod_color(out[is],U,in[is]);}
-
-void su3_dag_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in)
-{for(int is=0;is<4;is++) su3_dag_subt_the_prod_color(out[is],U,in[is]);}
-
 //Apply the covariant derivative having direction mu on a spincolor
 void apply_nabla_i_spincolor(spincolor *out,spincolor *in,quad_su3 *conf,int mu)
 {
@@ -412,13 +398,14 @@ void apply_nabla_i_spincolor(spincolor *out,spincolor *in,quad_su3 *conf,int mu)
       Xup=loclx_neighup[ix][mu];
       Xdw=loclx_neighdw[ix][mu];
       
-      safe_su3_prod_spincolor(out[ix],conf[ix][mu],in[Xup]);
-      su3_dag_subt_the_prod_spincolor(out[ix],conf[Xdw][mu],in[Xdw]);
+      unsafe_su3_prod_spincolor(out[ix],conf[ix][mu],in[Xup]);
+      unsafe_su3_dag_subt_the_prod_spincolor(out[ix],conf[Xdw][mu],in[Xdw]);
     }
   
   set_borders_invalid(out);
 }
 
+/*
 void apply_nabla_dag_i_spincolor(spincolor *out,spincolor *in,quad_su3 *conf,int mu)
 {
   memset(out,0,loc_vol*sizeof(spincolor));
@@ -436,6 +423,7 @@ void apply_nabla_dag_i_spincolor(spincolor *out,spincolor *in,quad_su3 *conf,int
   
   set_borders_invalid(out);
 }
+*/
 
 //calculate the standard propagators
 void calculate_S0(int ism_lev_so)

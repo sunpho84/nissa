@@ -9,7 +9,7 @@
 #include "../src/types/types_routines.h"
 #include "../src/routines/shift.h"
 #include "../src/stochastic/stochastic_tlSym_gluon_propagator.h"
-#include "../src/diagrams/self.h"
+#include "../src/diagrams/propagator_self_energy.h"
 
 spinspin *d2_stoch_corr,*d2_stoch_corr_ave;
 spinspin *d2_corr,*temp_corr;
@@ -145,11 +145,10 @@ int main(int narg,char **arg)
 	  double rs=0,rd=0;
 	  nissa_loc_vol_loop(ivol)
 	  {
-	    spinspin ts,td;
-	    spinspin_summ(ts,d2_stoch_corr_ave[ivol],d2_corr[ivol]);
+	    spinspin td;
 	    spinspin_subt(td,d2_stoch_corr_ave[ivol],d2_corr[ivol]);
-	    rs+=real_part_of_trace_spinspin_prod_spinspin_dag(ts,ts);
 	    rd+=real_part_of_trace_spinspin_prod_spinspin_dag(td,td);
+	    rs+=real_part_of_trace_spinspin_prod_spinspin_dag(d2_corr[ivol],d2_corr[ivol]);
 	  }
 	  rs=glb_reduce_double(rs)/glb_vol;
 	  rd=glb_reduce_double(rd)/glb_vol;

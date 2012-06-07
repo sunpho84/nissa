@@ -19,17 +19,22 @@ INCLUDE_FLAGS=$(addprefix -I,$(INCLUDE_PATHS))
 LIBRARY_PATHS=$(LEMON_PATH)/lib $(NISSA_PATH)
 LIBRARY_FLAGS=$(addprefix -L,$(LIBRARY_PATHS))
 
-################################################## global targets ###############################################
+objects=semileptonic_smeared_point_source_tens semileptonic_smeared_tens
 
-all: semileptonic_smeared_point_source_tens
+all: $(objects)
 
-semileptonic_smeared_point_source_tens: semileptonic_smeared_point_source_tens.o $(NISSA_PATH)/libnissa.a
-	$(CC) -o semileptonic_smeared_point_source_tens semileptonic_smeared_point_source_tens.o $(LIBRARY_FLAGS) -llemon -lnissa
+-include $(addsuffix .d,$(objects))
 
-semileptonic_smeared_point_source_tens.o: semileptonic_smeared_point_source_tens.cpp
-	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c -o semileptonic_smeared_point_source_tens.o semileptonic_smeared_point_source_tens.cpp
+$(addsuffix .d,$(objects)): %.d: %.cpp
+	$(GCC) $< -MM -MT $(@:%.d=%.o) $(INCLUDE_FLAGS)-o $@
+
+$(addsuffix .o,$(objects)): %.o: %.cpp %.d
+	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c -o $@ $<
+
+$(objects): %: %.o $(NISSA_PATH)/libnissa.a
+	$(CC) -o $@ $@.o $(LIBRARY_FLAGS) -llemon -lnissa
 
 clean:
-	rm -fv semileptonic_smeared_point_source_tens.o semileptonic_smeared_point_source_tens
+	rm -fv $(objects) $(addsuffix .o,$(objects)) $(addsuffix .d,$(objects))
 
 .PHONY: clean
