@@ -65,6 +65,7 @@ void su3_summ_real(su3 a,su3 b,double c);
 void su3_summ_the_prod_color(color a,su3 b,color c);
 void su3_summ_the_prod_double(su3 a,su3 b,double r);
 void su3_summ_the_prod_spincolor(spincolor out,su3 U,spincolor in);
+void su3_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in);
 void su3_trace(complex tr,su3 m);
 void su3_traceless_anti_hermitian_part(su3 out,su3 in);
 void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link);
@@ -85,8 +86,10 @@ void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spinc
 void unsafe_su3_dag_dirac_summ_the_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in);
 void unsafe_su3_dag_prod_color(color a,su3 b,color c);
 void unsafe_su3_dag_prod_spincolor(spincolor out,su3 U,spincolor in);
+void safe_su3_dag_prod_spincolor(spincolor out,su3 U,spincolor in);
 void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c);
 void unsafe_su3_dag_prod_su3_dag(su3 a,su3 b,su3 c);
+void unsafe_su3_dag_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in);
 void unsafe_su3_dag_summ_the_prod_spincolor(spincolor out,su3 U,spincolor in);
 void unsafe_su3_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in);
 void unsafe_su3_dirac_subt_the_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in);

@@ -798,16 +798,21 @@ void safe_spincolor_prod_dirac(spincolor out,spincolor in,dirac_matr *m)
 //su3*spincolor
 void unsafe_su3_prod_spincolor(spincolor out,su3 U,spincolor in)
 {for(int is=0;is<4;is++) unsafe_su3_prod_color(out[is],U,in[is]);}
-
 void su3_summ_the_prod_spincolor(spincolor out,su3 U,spincolor in)
 {for(int is=0;is<4;is++) su3_summ_the_prod_color(out[is],U,in[is]);}
+void su3_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in)
+{for(int is=0;is<4;is++) su3_subt_the_prod_color(out[is],U,in[is]);}
 
 //su3^*spincolor
 void unsafe_su3_dag_prod_spincolor(spincolor out,su3 U,spincolor in)
 {for(int is=0;is<4;is++) unsafe_su3_dag_prod_color(out[is],U,in[is]);}
+void safe_su3_dag_prod_spincolor(spincolor out,su3 U,spincolor in)
+{spincolor temp;unsafe_su3_dag_prod_spincolor(temp,U,in);spincolor_copy(out,temp);}
 
 void unsafe_su3_dag_summ_the_prod_spincolor(spincolor out,su3 U,spincolor in)
 {for(int is=0;is<4;is++) su3_dag_summ_the_prod_color(out[is],U,in[is]);}
+void unsafe_su3_dag_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in)
+{for(int is=0;is<4;is++) su3_dag_subt_the_prod_color(out[is],U,in[is]);}
 
 //su3^*gamma*spincolor
 void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in)

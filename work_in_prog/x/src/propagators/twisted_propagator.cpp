@@ -140,3 +140,18 @@ void compute_x_space_twisted_propagator_by_inv(spinspin *prop,quark_info qu)
   
   nissa_free(delta);
 }
+
+//compute the twisted propagatr between two points - very slow!!!
+void compute_x_space_twisted_propagator_to_sink_from_source(spinspin prop,spinspin *q_prop,coords sink,coords source)
+{
+  coords diff,abs,n;
+  for(int mu=0;mu<4;mu++)
+    {  
+      diff[mu]=sink[mu]-source[mu];
+      n[mu]=0;
+      while(glb_size[mu]*n[mu]+diff[mu]<0) n[mu]++;
+      while(glb_size[mu]*n[mu]+diff[mu]>=glb_size[mu]) n[mu]--;
+      abs[mu]=diff[mu]-n[mu]*glb_size[mu];
+    }  
+}
+
