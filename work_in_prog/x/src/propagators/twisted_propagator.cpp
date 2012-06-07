@@ -142,16 +142,31 @@ void compute_x_space_twisted_propagator_by_inv(spinspin *prop,quark_info qu)
 }
 
 //compute the twisted propagatr between two points - very slow!!!
-void compute_x_space_twisted_propagator_to_sink_from_source(spinspin prop,spinspin *q_prop,coords sink,coords source)
+void compute_x_space_twisted_propagator_to_sink_from_source(spinspin prop,spinspin *q_prop,quark_info qu,coords sink,coords source)
 {
   coords diff,abs,n;
+  double th=0;
   for(int mu=0;mu<4;mu++)
     {  
       diff[mu]=sink[mu]-source[mu];
       n[mu]=0;
-      while(glb_size[mu]*n[mu]+diff[mu]<0) n[mu]++;
-      while(glb_size[mu]*n[mu]+diff[mu]>=glb_size[mu]) n[mu]--;
+      while(diff[mu]-glb_size[mu]*n[mu]<0) n[mu]--;
+      while(diff[mu]-glb_size[mu]*n[mu]>=glb_size[mu]) n[mu]++;
+      
+      //diff=abs+n*L
       abs[mu]=diff[mu]-n[mu]*glb_size[mu];
-    }  
+      //th=pi*theta_mu*n_mu
+      th+=M_PI*n[mu]*qu.bc[mu];
+    }
+  
+  //broadcast from the corresponding node
+  int rx,lx;
+  get_loclx_and_rank_of_coord(&lx,&rx,abs);
+  if(rx==rank)
+    {
+      complex ph={cos(th),sin(th)};
+      unsafe_spinspin_complex_prod(prop,q_prop[lx],ph);
+    }
+  MPI_Bcast(prop,4,MPI_SPIN,rx,MPI_COMM_WORLD);
 }
 
