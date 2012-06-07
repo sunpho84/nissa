@@ -48,7 +48,7 @@ source |------>---->----->---->| sink
 
 //gauge info
 int igauge_conf=0,ngauge_conf,nanalized_conf;
-char conf_path[1024];
+char conf_path[1024],outfolder[1024];
 quad_su3 *conf,*sme_conf;
 double kappa;
 
@@ -81,13 +81,11 @@ int niter_max=1000000;
 
 //ottos contractions
 complex *contr_otto,*contr_mezzotto;
-char basepath_bag[1024];
 
 //two points contractions
 int ncontr_2pts;
 complex *contr_2pts;
 int *op1_2pts,*op2_2pts;
-char basepath_2pts[1024];
 
 //timings
 int wall_time,ntot_inv=0;
@@ -226,38 +224,44 @@ void initialize_Bk(int narg,char **arg)
   original_source=nissa_malloc("original_source",loc_vol,colorspinspin);
 }
 
-//find a not yet analized conf
-int find_next_conf(char *check_path)
+//find a new conf
+int read_conf_parameters()
 {
-  int conf_found=0;
-  
+  int ok_conf;
+
   do
     {
-      //Read the conf path
+      //Gauge path
       read_str(conf_path,1024);
       
-      //Read position of first wall
+      //Source coord
       read_int(twall);
       
-      //Read outpaths
-      read_str(basepath_bag,1024);
-      read_str(basepath_2pts,1024);
+      //Out folder
+      read_str(outfolder,1024);
       
-      //Check wether the config is analized or not by searching for outputs
-      sprintf(check_path,"%s_w%s_%s_%02d_%02d",basepath_bag,wall_name[0],wall_name[1],so_jnit[0][0],so_jnit[0][0]);
-      master_printf("\nChecking \"%s\".\n",conf_path);
-      if(file_exists(check_path))
-	{
-	  conf_found=0;
-	  master_printf("\nConfiguration \"%s\" already analized.\n",conf_path);
-	}
+      //Check if the conf exist
+      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",outfolder,conf_path);
+      ok_conf=!(dir_exists(outfolder));
+      if(ok_conf)
+        {
+          int ris=create_dir(outfolder);
+          if(ris==0) master_printf(" Output path \"%s\" not present: configuration \"%s\" not yet analyzed, starting.\n",outfolder,conf_path);
+          else
+            {
+              ok_conf=0;
+              master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+            }
+        }
       else
-	  conf_found=1;
+        master_printf(" Output path \"%s\" already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
       igauge_conf++;
     }
-  while(conf_found==0 && igauge_conf<ngauge_conf);
+  while(!ok_conf && igauge_conf<ngauge_conf);
   
-  return conf_found;
+  master_printf("\n");
+  
+  return ok_conf;
 }
 
 //check if there is enough residual time for another conf
@@ -287,7 +291,7 @@ void load_gauge_conf()
   read_ildg_gauge_conf(conf,conf_path);
   time+=take_time();
   master_printf("\nTime needed to load conf %s: %g s.\n\n",conf_path,time);
-
+  
   //compute plaquette
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
   
@@ -435,7 +439,7 @@ void calculate_all_contractions()
 	for(int sm_lv_R=0;sm_lv_R<so_jnlv[iwR];sm_lv_R++)
 	  {
 	    char path_bag[1024];
-	    sprintf(path_bag,"%s_w%s_%s_%02d_%02d",basepath_bag,wall_name[iwL],wall_name[iwR],so_jnit[iwL][sm_lv_L],so_jnit[iwR][sm_lv_R]);
+	    sprintf(path_bag,"%s/otto_w%s_%s_%02d_%02d",outfolder,wall_name[iwL],wall_name[iwR],so_jnit[iwL][sm_lv_L],so_jnit[iwR][sm_lv_R]);
 	    FILE *fout_bag=open_text_file_for_output(path_bag);
 	    
 	    int tsepar=(twall[iwR]+glb_size[0]-twall[iwL])%glb_size[0];
@@ -497,7 +501,7 @@ void calculate_all_contractions()
 	for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
 	  {
 	    char path_2pts[1024];
-	    sprintf(path_2pts,"%s_w%s_%02d_%02d",basepath_2pts,wall_name[iwall],so_jnit[iwall][so_jlv],si_jnit[si_jlv]);
+	    sprintf(path_2pts,"%s/two_points_w%s_%02d_%02d",outfolder,wall_name[iwall],so_jnit[iwall][so_jlv],si_jnit[si_jlv]);
 	    FILE *fout_2pts=open_text_file_for_output(path_2pts);
 	    
 	    //loop over all the combos
@@ -586,14 +590,10 @@ int main(int narg,char **arg)
   //Loop over configurations
 
   //Find if there is another conf to analize and time to analize it
-  char check_path[1024];
-  while(find_next_conf(check_path) && check_residual_time())
+  while(read_conf_parameters() && check_residual_time())
     {
-      //take the conf
-      file_touch(check_path);
-
       //Load the gauge conf
-      load_gauge_conf();
+      load_gauge_conf();      
       
       //Analize it
       analize_conf();
