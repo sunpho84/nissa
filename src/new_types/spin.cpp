@@ -38,6 +38,19 @@ void spin_subt_the_complex_conj2_prod(spin a,spin b,complex c)
 void spinspin_copy(spinspin b,spinspin a)
 {memcpy(b,a,sizeof(spinspin));}
 
+void unsafe_spinspin_hermitian(spinspin b,spinspin a)
+{
+  for(int id1=0;id1<4;id1++)
+    for(int id2=0;id2<4;id2++)
+      complex_conj(b[id1][id2],a[id2][id1]);
+}
+void safe_spinspin_hermitian(spinspin b,spinspin a)
+{
+  spinspin temp;
+  unsafe_spinspin_hermitian(temp,a);
+  spinspin_copy(b,temp);
+}
+
 void spinspin_put_to_zero(spinspin a)
 {memset(a,0,sizeof(spinspin));}
 
