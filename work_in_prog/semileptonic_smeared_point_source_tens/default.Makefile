@@ -26,7 +26,7 @@ all: $(objects)
 -include $(addsuffix .d,$(objects))
 
 $(addsuffix .d,$(objects)): %.d: %.cpp
-	$(GCC) $< -MM -MT $(@:%.d=%.o) $(INCLUDE_FLAGS)-o $@
+	$(GCC) $< -MM -MT $(@:%.d=%.o) $(INCLUDE_FLAGS) -o $@
 
 $(addsuffix .o,$(objects)): %.o: %.cpp %.d
 	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c -o $@ $<

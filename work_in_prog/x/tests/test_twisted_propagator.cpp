@@ -106,7 +106,41 @@ int main(int narg,char **arg)
       }
   double glb_d=sqrt(glb_reduce_double(loc_d)/glb_vol);
   master_printf("\n\nAverage norm2 difference between fft and inv computed propagators: %lg\n\n",glb_d);
-      
+
+  ////////////////////////////////// check single point calculation //////////////////////////////
+  
+  coords sour={1,2,0,3},sink={3,1,2,1};
+  int isour=glblx_of_coord(sour),isink=glblx_of_coord(sink);
+  coords diff={sour[0]-sink[0],sour[1]-sink[1],sour[2]-sink[2],sour[3]-sink[3]};
+  master_printf("Checking computation of prop between points %d and %d\n",isour,isink);
+  
+  //take the backward propagator
+  spinspin bprop;
+  compute_x_space_twisted_propagator_to_sink_from_source(bprop,prop_inv,qu,sink,sour);
+  master_printf("\n backward prop:\n");
+  if(rank==0) print_spinspin(bprop);
+
+  //take g5*forw_prop^dag*g5
+  
+  //kappa and mass
+  //kappa=kappa;
+  mass=-mass;
+  qu=create_twisted_quark_info(kappa,mass,theta);
+  compute_x_space_twisted_propagator_by_fft(prop_fft,qu);  
+  int g;
+  g=glblx_of_coord(diff);
+  spinspin g5_fwprop_dag_g5;
+  compute_x_space_twisted_propagator_to_sink_from_source(g5_fwprop_dag_g5,prop_fft,qu,sour,sink);
+  safe_spinspin_prod_dirac(g5_fwprop_dag_g5,g5_fwprop_dag_g5,&(base_gamma[5]));
+  safe_dirac_prod_spinspin(g5_fwprop_dag_g5,&(base_gamma[5]),g5_fwprop_dag_g5);
+  safe_spinspin_hermitian(g5_fwprop_dag_g5,g5_fwprop_dag_g5);
+  master_printf("\n reverted forward prop:\n");
+  if(rank==0) print_spinspin(g5_fwprop_dag_g5);
+  
+  spinspin_subt(g5_fwprop_dag_g5,bprop,g5_fwprop_dag_g5);
+  master_printf("\n diff: %lg\n",sqrt(real_part_of_trace_spinspin_prod_spinspin_dag(g5_fwprop_dag_g5,g5_fwprop_dag_g5)));
+  //if(rank==0) print_spinspin(g5_fwprop_dag_g5);
+
   close_test();
   
   return 0;

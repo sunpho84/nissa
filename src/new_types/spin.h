@@ -25,6 +25,8 @@ void spin_summ(spin a,spin b,spin c);
 void spin_summ_the_complex_conj2_prod(spin a,spin b,complex c);
 void spin_summ_the_complex_prod(spin a,spin b,complex c);
 void spinspin_copy(spinspin b,spinspin a);
+void safe_spinspin_hermitian(spinspin b,spinspin a);
+void unsafe_spinspin_hermitian(spinspin b,spinspin a);
 void spinspin_prod_double(spinspin a,spinspin b,double c);
 void spinspin_prodassign_double(spinspin a,double b);
 void spinspin_prodassign_idouble(spinspin a,double b);
