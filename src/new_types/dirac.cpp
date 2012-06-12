@@ -106,14 +106,25 @@ void spinspin_dirac_summ_the_prod_double(spinspin out,dirac_matr *in,double r)
 }
 void spinspin_dirac_summ_the_prod_idouble(spinspin out,dirac_matr *in,double r)
 {
-  //This is the line on the matrix
   for(int ig=0;ig<4;ig++)
     complex_summ_the_prod_idouble(out[ig][in->pos[ig]],in->entr[ig],r);
+}
+void spinspin_dirac_summ_the_prod_complex(spinspin out,dirac_matr *in,complex c)
+{
+  for(int ig=0;ig<4;ig++)
+    complex_summ_the_prod(out[ig][in->pos[ig]],in->entr[ig],c);
+}
+void spinspin_dirac_subt_the_prod_complex(spinspin out,dirac_matr *in,complex c)
+{
+  for(int ig=0;ig<4;ig++)
+    complex_subt_the_prod(out[ig][in->pos[ig]],in->entr[ig],c);
 }
 void spinspin_dirac_prod_double(spinspin out,dirac_matr *in,double r)
 {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_double(out,in,r);}
 void spinspin_dirac_prod_idouble(spinspin out,dirac_matr *in,double r)
 {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_idouble(out,in,r);}
+void spinspin_dirac_prod_complex(spinspin out,dirac_matr *in,complex c)
+{spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_complex(out,in,c);}
 
 //Assign to the first spinspin the product of the passed dirac matrix by the passed spinspin
 void spinspin_dirac_spinspin_prod(spinspin out,dirac_matr *m,spinspin in)

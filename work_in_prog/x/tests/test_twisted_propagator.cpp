@@ -4,6 +4,7 @@
 
 #include "../src/propagators/twisted_propagator.h"
 #include "../src/types/types_routines.h"
+#include "../src/routines/shift.h"
 
 spinspin *prop_fft;
 spinspin *prop_inv;
@@ -116,7 +117,7 @@ int main(int narg,char **arg)
   
   //take the backward propagator
   spinspin bprop;
-  compute_x_space_twisted_propagator_to_sink_from_source(bprop,prop_inv,qu,sink,sour);
+  compute_x_space_propagator_to_sink_from_source(bprop,prop_inv,qu.bc,sink,sour);
   master_printf("\n backward prop:\n");
   if(rank==0) print_spinspin(bprop);
 
@@ -130,7 +131,7 @@ int main(int narg,char **arg)
   int g;
   g=glblx_of_coord(diff);
   spinspin g5_fwprop_dag_g5;
-  compute_x_space_twisted_propagator_to_sink_from_source(g5_fwprop_dag_g5,prop_fft,qu,sour,sink);
+  compute_x_space_propagator_to_sink_from_source(g5_fwprop_dag_g5,prop_fft,qu.bc,sour,sink);
   safe_spinspin_prod_dirac(g5_fwprop_dag_g5,g5_fwprop_dag_g5,&(base_gamma[5]));
   safe_dirac_prod_spinspin(g5_fwprop_dag_g5,&(base_gamma[5]),g5_fwprop_dag_g5);
   safe_spinspin_hermitian(g5_fwprop_dag_g5,g5_fwprop_dag_g5);

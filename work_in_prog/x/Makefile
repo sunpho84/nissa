@@ -22,7 +22,7 @@ objects=$(addprefix src/, \
 	$(addprefix routines/, derivatives fourier read_and_write shift) \
 	$(addprefix stochastic/, stochastic_source stochastic_tlSym_gluon_propagator stochastic_twisted_propagator) \
 	$(addprefix types/, types_routines) \
-	$(addprefix diagrams/, propagator_self_energy pion_self_energy) \
+	$(addprefix diagrams/, propagator_self_energy pion_self_energy tadpole) \
 	$(addprefix vertex/, x_space_stochastic_qqg_vertex))
 
 ############################################# define the executables ############################################

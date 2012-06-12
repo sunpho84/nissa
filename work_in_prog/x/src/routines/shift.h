@@ -19,5 +19,6 @@ void shift_spinspin_source_dw(spinspin *out,spinspin *in,momentum_t ext_bc,int m
 void shift_spinspin_sink_up(spinspin *out,spinspin *in,momentum_t ext_bc,int mu);
 void shift_spinspin_sink_dw(spinspin *out,spinspin *in,momentum_t ext_bc,int mu);
 void shift_spinspin_source(spinspin *out,spinspin *in,momentum_t ext_bc,coords r);
+void compute_x_space_propagator_to_sink_from_source(spinspin prop,spinspin *q_prop,momentum_t bc,coords sink,coords source);
 
 #endif
