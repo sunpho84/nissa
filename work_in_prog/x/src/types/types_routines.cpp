@@ -10,6 +10,7 @@ gluon_info create_tlSym_gluon_info(double alpha,momentum_t bc,double c1=-1.0/12,
   gluon_info out;
   memcpy(out.bc,bc,sizeof(momentum_t));
   out.alpha=alpha;
+  out.c1=c1;
   out.zmp=zmp;
   
   return out;

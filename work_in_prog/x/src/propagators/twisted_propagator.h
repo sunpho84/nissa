@@ -14,6 +14,5 @@ void multiply_x_space_twisted_propagator_by_fft(spinspin *prop,spinspin *ext_sou
 void multiply_x_space_twisted_propagator_by_inv(spin *prop,spin *ext_source,quark_info qu);
 void multiply_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,quark_info qu);
 void compute_x_space_twisted_propagator_by_inv(spinspin *prop,quark_info qu);
-void compute_x_space_twisted_propagator_to_sink_from_source(spinspin prop,spinspin *q_prop,quark_info qu,coords sink,coords source);
 
 #endif

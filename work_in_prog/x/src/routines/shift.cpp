@@ -1,11 +1,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../../src/new_types/complex.h"
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/base/communicate.h"
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/base/vectors.h"
+#include "../../../../src/nissa.h"
 
 #include "../types/types.h"
 #include "../types/types_routines.h"
@@ -126,4 +122,33 @@ void shift_spinspin_source(spinspin *out,spinspin *in,momentum_t bc,coords r)
 	  safe_complex_prod(out[imom][id1][id2],out[imom][id1][id2],ph);
     }
   pass_spinspin_from_mom_to_x_space(out,out,bc);
+}
+
+//compute a propagator between two points - very slow!!!
+void compute_x_space_propagator_to_sink_from_source(spin1prop out_prop,spin1prop *in_prop,momentum_t bc,coords sink,coords source)
+{
+  coords diff,abs,n;
+  double th=0;
+  for(int mu=0;mu<4;mu++)
+    {
+      diff[mu]=sink[mu]-source[mu];
+      n[mu]=0;
+      while(diff[mu]-glb_size[mu]*n[mu]<0) n[mu]--;
+      while(diff[mu]-glb_size[mu]*n[mu]>=glb_size[mu]) n[mu]++;
+
+      //compute diff=abs+n*L
+      abs[mu]=diff[mu]-n[mu]*glb_size[mu];
+      //compute th=pi*theta_mu*n_mu
+      th+=M_PI*n[mu]*bc[mu];
+    }
+
+  //broadcast from the corresponding node
+  int rx,lx;
+  get_loclx_and_rank_of_coord(&lx,&rx,abs);
+  if(rx==rank)
+    {
+      complex ph={cos(th),sin(th)};
+      unsafe_spinspin_complex_prod(out_prop,in_prop[lx],ph);
+    }
+  MPI_Bcast(out_prop,4,MPI_SPIN,rx,MPI_COMM_WORLD);
 }
