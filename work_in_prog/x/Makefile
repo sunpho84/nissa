@@ -16,18 +16,18 @@ GCC=gcc
 
 #include all objects
 objects=$(addprefix src/, \
+	$(addprefix diagrams/, propagator_self_energy tadpole) \
 	$(addprefix inverters/, cg_eoprec_twisted_free_operator cg_Wilson_gluon_operator) \
 	$(addprefix operators/, Wilson_gluon_Klein_Gordon_operator twisted_Dirac_eoprec_operator) \
 	$(addprefix propagators/, twisted_propagator twisted_propagator_g2_corr Wilson_gluon_propagator tlSym_gluon_propagator) \
-	$(addprefix routines/, derivatives fourier read_and_write shift) \
+	$(addprefix routines/, correlations derivatives fourier read_and_write shift) \
 	$(addprefix stochastic/, stochastic_source stochastic_tlSym_gluon_propagator stochastic_twisted_propagator) \
 	$(addprefix types/, types_routines) \
-	$(addprefix diagrams/, propagator_self_energy pion_self_energy tadpole) \
 	$(addprefix vertex/, x_space_stochastic_qqg_vertex))
 
 ############################################# define the executables ############################################
 
-#collect all the executables
+#test programs
 tests=$(addprefix tests/, \
 	test_twisted_propagator \
 	test_Wilson_gluon_propagator \
@@ -39,9 +39,18 @@ tests=$(addprefix tests/, \
 	test_twisted_propagator_correction \
 	test_propagator_shift \
 	test_Fourier_transform \
+	test_meson_self_energy_stochastic_correction \
 )
 
-progs=$(addprefix progs/,compute_tree_level_corrections average_corr)
+#full programs
+progs=$(addprefix progs/, \
+	compute_tree_level_corrections \
+	compute_self_energy_corrections \
+	compute_tadpole_corrections \
+	average_corr \
+)
+
+#collect all the executables
 executables=$(tests) $(progs)
 
 ################################################## global targets ###############################################

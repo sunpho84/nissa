@@ -31,9 +31,11 @@ void close_calc()
 int main(int narg,char **arg)
 {
   init_calc();
-  if(rank_tot>1) crash("only available in scalar");
   
-  read_corr16(unav_corr,"corr");
+  if(rank_tot>1) crash("only available in scalar");
+  if(narg<2) crash("use %s file_in",arg[0]);
+  
+  read_corr16(unav_corr,arg[1]);
   
   FILE *f00=open_file("corr00_tau32-0_L24_T48_free.dat","w");
   FILE *f07=open_file("corr07_tau32-0_L24_T48_free.dat","w");

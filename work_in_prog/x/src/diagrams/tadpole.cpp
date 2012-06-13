@@ -5,6 +5,8 @@
 #include "../types/types.h"
 #include "../propagators/tlSym_gluon_propagator.h"
 #include "../routines/shift.h"
+#include "../routines/fourier.h"
+#include "../propagators/twisted_propagator.h"
 
 void compute_tadpole_diagram_in_mom_space(spinspin *q_tad,quark_info qu,gluon_info gl)
 {
@@ -54,23 +56,21 @@ void compute_tadpole_diagram_in_x_space(spinspin *q_tad,spin1prop g_prop)
       x_up[mu]=1;
       x_dw[mu]=glb_size[mu]-1;
       
-      int ul,ur;
       int dl,dr;
-      get_loclx_and_rank_of_coord(&ul,&ur,x_up);
+      int ul,ur;
       get_loclx_and_rank_of_coord(&dl,&dr,x_dw);
-      
-      if(rank==ur)
-	{
-	  spinspin_dirac_summ_the_prod_complex(q_tad[ul],base_gamma+0,g_prop[mu][mu]);
-	  spinspin_dirac_subt_the_prod_complex(q_tad[ul],base_gamma+nissa_map_mu[mu],g_prop[mu][mu]);
-	  spinspin_prodassign_double(q_tad[ul],-0.25);
-	}
+      get_loclx_and_rank_of_coord(&ul,&ur,x_up);
       
       if(rank==dr)
 	{
-	  spinspin_dirac_summ_the_prod_complex(q_tad[dl],base_gamma+0,g_prop[mu][mu]);
-	  spinspin_dirac_summ_the_prod_complex(q_tad[dl],base_gamma+nissa_map_mu[mu],g_prop[mu][mu]);
+	  unsafe_spinspin_complex_prod(q_tad[dl],nissa_omg[mu],g_prop[mu][mu]);
 	  spinspin_prodassign_double(q_tad[dl],-0.25);
+	}
+      
+      if(rank==ur)
+	{
+	  unsafe_spinspin_complex_prod(q_tad[ul],nissa_opg[mu],g_prop[mu][mu]);
+	  spinspin_prodassign_double(q_tad[ul],-0.25);
 	}
     }
 }
@@ -89,4 +89,21 @@ void compute_tadpole_diagram_in_x_space(spinspin *q_tad,gluon_info gl)
   compute_tadpole_diagram_in_x_space(q_tad,g_prop_or);
   
   nissa_free(g_prop);
+}
+
+void compute_tadpole_twisted_propagator_in_x_space(spinspin *q_out,quark_info qu,gluon_info gl)
+{
+  compute_tadpole_diagram_in_x_space(q_out,gl);
+  pass_spinspin_from_x_to_mom_space(q_out,q_out,qu.bc);
+
+  nissa_loc_vol_loop(imom)
+  {
+    spinspin s,t;
+    mom_space_twisted_propagator_of_imom(s,qu,imom);
+    unsafe_spinspin_spinspin_prod(t,s,q_out[imom]);
+    unsafe_spinspin_spinspin_prod(q_out[imom],t,s);
+    spinspin_prodassign_double(q_out[imom],glb_vol*glb_vol);
+  }
+
+  pass_spinspin_from_mom_to_x_space(q_out,q_out,qu.bc);
 }

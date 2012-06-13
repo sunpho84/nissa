@@ -8,7 +8,7 @@
 #include "../routines/fourier.h"
 #include "../inverters/cg_eoprec_twisted_free_operator.h"
 
-void mom_space_twisted_propagator_of_imom(spin1prop prop,quark_info qu,int imom)
+void mom_space_twisted_propagator_of_imom(spinspin prop,quark_info qu,int imom)
 {
   double kappa=qu.kappa;
   double mass=qu.mass;
@@ -47,12 +47,11 @@ void mom_space_twisted_propagator_of_imom(spin1prop prop,quark_info qu,int imom)
       complex_prod_double(prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],qu.zmp);
 }
 
-//compute the twisted quark propagator in the momentum space
 void multiply_mom_space_twisted_propagator(spin *out,spin *in,quark_info qu)
 {
   nissa_loc_vol_loop(imom)
     {
-      spin1prop prop;
+      spinspin prop;
       mom_space_twisted_propagator_of_imom(prop,qu,imom);
       safe_spinspin_spin_prod(out[imom],prop,in[imom]);
     }
