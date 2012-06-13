@@ -1,6 +1,4 @@
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/base/vectors.h"
+#include "../../../../src/nissa.h"
 
 #include "../types/types.h"
 

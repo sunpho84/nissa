@@ -8,7 +8,7 @@
 #include "../routines/fourier.h"
 #include "../routines/shift.h"
 
-void summ_the_contribution_of_self_energy_twisted_propagator_in_x_space(spinspin *q_out,spinspin *osi,spinspin *q,spin1prop *g,int nu,int mu,spinspin *oso,double weight)
+void summ_the_contribution_of_self_energy_twisted_diagram_in_x_space(spinspin *q_out,spinspin *osi,spinspin *q,spin1prop *g,int nu,int mu,spinspin *oso,double weight)
 {
   nissa_loc_vol_loop(ivol)
     {
@@ -20,7 +20,7 @@ void summ_the_contribution_of_self_energy_twisted_propagator_in_x_space(spinspin
     }
 }
 
-void compute_self_energy_twisted_propagator_in_x_space(spinspin *q_out,spinspin *q_prop,quark_info qu,spin1prop *g_prop,gluon_info gl)
+void compute_self_energy_twisted_diagram_in_x_space(spinspin *q_out,spinspin *q_prop,quark_info qu,spin1prop *g_prop,gluon_info gl)
 {
   spin1prop *g_prop_sh=nissa_malloc("g_prop_sh",loc_vol,spin1prop);
   spinspin *q_prop_sh=nissa_malloc("q_prop_sh",loc_vol,spinspin);
@@ -37,35 +37,35 @@ void compute_self_energy_twisted_propagator_in_x_space(spinspin *q_out,spinspin 
 	shift_spinspin_source_dw(g_prop_sh,g_prop,gl.bc,mu);
 	shift_spinspin_sink_up(q_prop_sh,q_prop,qu.bc,nu);
 	shift_spinspin_source_dw(q_prop_sh,q_prop_sh,qu.bc,mu);
-        summ_the_contribution_of_self_energy_twisted_propagator_in_x_space(q_out,nissa_omg,q_prop_sh,g_prop_sh,nu,mu,nissa_omg,-0.25);
-
+        summ_the_contribution_of_self_energy_twisted_diagram_in_x_space(q_out,nissa_omg,q_prop_sh,g_prop_sh,nu,mu,nissa_omg,-0.25);
+	
 	//  term 2: -(1+gnu) G(x-nu,-mu) S(x-nu,-mu) (1-gmu)
 	shift_spinspin_sink_dw(g_prop_sh,g_prop,gl.bc,nu);
 	shift_spinspin_source_dw(g_prop_sh,g_prop_sh,gl.bc,mu);
 	shift_spinspin_sink_dw(q_prop_sh,q_prop,qu.bc,nu);
 	shift_spinspin_source_dw(q_prop_sh,q_prop_sh,qu.bc,mu);
-        summ_the_contribution_of_self_energy_twisted_propagator_in_x_space(q_out,nissa_opg,q_prop_sh,g_prop_sh,nu,mu,nissa_omg,+0.25);
+        summ_the_contribution_of_self_energy_twisted_diagram_in_x_space(q_out,nissa_opg,q_prop_sh,g_prop_sh,nu,mu,nissa_omg,+0.25);
 	
 	//  term 3: -(1-gnu) G(x,0)      S(x+nu,mu) (1+gmu)
 	//memcpy(g_prop_sh,g_prop,sizeof(spin1prop)*loc_vol);
 	//memcpy(g_prop_sh,g_prop_sh,sizeof(spin1prop)*loc_vol);
 	shift_spinspin_sink_up(q_prop_sh,q_prop,qu.bc,nu);
 	shift_spinspin_source_up(q_prop_sh,q_prop_sh,qu.bc,mu);
-        summ_the_contribution_of_self_energy_twisted_propagator_in_x_space(q_out,nissa_omg,q_prop_sh,g_prop,nu,mu,nissa_opg,+0.25);
+        summ_the_contribution_of_self_energy_twisted_diagram_in_x_space(q_out,nissa_omg,q_prop_sh,g_prop,nu,mu,nissa_opg,+0.25);
 	
 	//  term 4: +(1+gnu) G(x-nu,0)   S(x-nu,mu) (1+gmu)
 	shift_spinspin_sink_dw(g_prop_sh,g_prop,gl.bc,nu);
 	//memcpy(g_prop_sh,g_prop_sh,sizeof(spin1prop)*loc_vol);
 	shift_spinspin_sink_dw(q_prop_sh,q_prop,qu.bc,nu);
 	shift_spinspin_source_up(q_prop_sh,q_prop_sh,qu.bc,mu);
-        summ_the_contribution_of_self_energy_twisted_propagator_in_x_space(q_out,nissa_opg,q_prop_sh,g_prop_sh,nu,mu,nissa_opg,-0.25);
+        summ_the_contribution_of_self_energy_twisted_diagram_in_x_space(q_out,nissa_opg,q_prop_sh,g_prop_sh,nu,mu,nissa_opg,-0.25);
       }
   
   nissa_free(q_prop_sh);
   nissa_free(g_prop_sh);
 }
   
-void compute_self_energy_twisted_propagator_in_x_space(spinspin *q_out,quark_info qu,gluon_info gl)
+void compute_self_energy_twisted_diagram_in_x_space(spinspin *q_out,quark_info qu,gluon_info gl)
 {
   spin1prop *g_prop=nissa_malloc("g_prop",loc_vol,spin1prop);
   spinspin *q_prop=nissa_malloc("q_prop",loc_vol,spinspin);
@@ -73,13 +73,13 @@ void compute_self_energy_twisted_propagator_in_x_space(spinspin *q_out,quark_inf
   compute_x_space_twisted_propagator_by_fft(q_prop,qu);
   compute_x_space_tlSym_gluon_propagator_by_fft(g_prop,gl);
   
-  compute_self_energy_twisted_propagator_in_x_space(q_out,q_prop,qu,g_prop,gl);
+  compute_self_energy_twisted_diagram_in_x_space(q_out,q_prop,qu,g_prop,gl);
   
   nissa_free(q_prop);
   nissa_free(g_prop);
 }
 
-void compute_self_energy_twisted_propagator_in_mom_space(spinspin *q_out,spinspin *q_prop,quark_info qu,spin1prop *g_prop,gluon_info gl)
+void compute_self_energy_twisted_diagram_in_mom_space(spinspin *q_out,spinspin *q_prop,quark_info qu,spin1prop *g_prop,gluon_info gl)
 {
   if(rank_tot>1) crash("implemented only in scalar");
   
@@ -129,7 +129,7 @@ void compute_self_energy_twisted_propagator_in_mom_space(spinspin *q_out,spinspi
     crash("Non periodic boundary conditions not implemented yet!");  
 }
 
-void compute_self_energy_twisted_propagator_in_mom_space(spinspin *q_out,quark_info qu,gluon_info gl)
+void compute_self_energy_twisted_diagram_in_mom_space(spinspin *q_out,quark_info qu,gluon_info gl)
 {
   spin1prop *g_prop=nissa_malloc("g_prop",loc_vol+bord_vol,spin1prop);
   spinspin *q_prop=nissa_malloc("q_prop",loc_vol+bord_vol,spinspin);
@@ -137,8 +137,26 @@ void compute_self_energy_twisted_propagator_in_mom_space(spinspin *q_out,quark_i
   compute_mom_space_twisted_propagator(q_prop,qu);
   compute_mom_space_tlSym_gluon_propagator(g_prop,gl);
   
-  compute_self_energy_twisted_propagator_in_mom_space(q_out,q_prop,qu,g_prop,gl);
+  compute_self_energy_twisted_diagram_in_mom_space(q_out,q_prop,qu,g_prop,gl);
   
   nissa_free(q_prop);
   nissa_free(g_prop);
 }
+
+void compute_self_energy_twisted_propagator_in_x_space(spinspin *q_out,quark_info qu,gluon_info gl)
+{
+  compute_self_energy_twisted_diagram_in_x_space(q_out,qu,gl);
+  pass_spinspin_from_x_to_mom_space(q_out,q_out,qu.bc);
+
+  nissa_loc_vol_loop(imom)
+  {
+    spinspin s,t;
+    mom_space_twisted_propagator_of_imom(s,qu,imom);
+    unsafe_spinspin_spinspin_prod(t,q_out[imom],s);
+    unsafe_spinspin_spinspin_prod(q_out[imom],s,t);
+    spinspin_prodassign_double(q_out[imom],glb_vol*glb_vol);
+  }
+
+  pass_spinspin_from_mom_to_x_space(q_out,q_out,qu.bc);
+}
+

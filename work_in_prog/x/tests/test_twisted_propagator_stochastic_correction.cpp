@@ -100,7 +100,7 @@ int main(int narg,char **arg)
   int lx,rx;
   get_loclx_and_rank_of_coord(&lx,&rx,ix);
   
-  compute_self_energy_twisted_propagator_in_x_space(d2_corr,qu,gl);
+  compute_self_energy_twisted_diagram_in_x_space(d2_corr,qu,gl);
   pass_spinspin_from_x_to_mom_space(d2_corr,d2_corr,quark_theta);
   
   /////////////////////////////// S0 propagator=id //////////////////////////
