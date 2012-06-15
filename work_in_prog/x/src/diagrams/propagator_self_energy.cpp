@@ -154,9 +154,43 @@ void compute_self_energy_twisted_propagator_in_x_space(spinspin *q_out,quark_inf
     mom_space_twisted_propagator_of_imom(s,qu,imom);
     unsafe_spinspin_spinspin_prod(t,q_out[imom],s);
     unsafe_spinspin_spinspin_prod(q_out[imom],s,t);
-    spinspin_prodassign_double(q_out[imom],glb_vol*glb_vol);
+    spinspin_prodassign_double(q_out[imom],glb_vol2);
   }
-
+  
   pass_spinspin_from_mom_to_x_space(q_out,q_out,qu.bc);
+}
+
+
+void compute_self_energy_twisted_propagator_in_x_space_tough_way(spinspin *q_out,quark_info qu,gluon_info gl)
+{
+  spinspin *sigma2=nissa_malloc("sigma2",loc_vol+bord_vol,spinspin);
+  spinspin *q_prop=nissa_malloc("q_prop",loc_vol,spinspin);
+  
+  compute_x_space_twisted_propagator_by_fft(q_prop,qu);
+  compute_self_energy_twisted_diagram_in_x_space(sigma2,qu,gl);
+  
+  memset(q_out,0,sizeof(spinspin)*loc_vol);
+  
+  //iout -- A -- B -- 0
+  //     qa   si   qb
+  
+  nissa_loc_vol_loop(iout)
+  {
+    printf("%d\n",iout);
+    nissa_loc_vol_loop(A)
+      nissa_loc_vol_loop(B)
+        {
+	  spinspin qa,si,qb;
+	  compute_x_space_propagator_to_sink_from_source(qa,q_prop,qu.bc,glb_coord_of_loclx[iout],glb_coord_of_loclx[A]);
+	  compute_x_space_propagator_to_sink_from_source(si,sigma2,qu.bc,glb_coord_of_loclx[A],glb_coord_of_loclx[B]);
+	  compute_x_space_propagator_to_sink_from_source(qb,q_prop,qu.bc,glb_coord_of_loclx[B],glb_coord_of_loclx[0]);
+	  
+	  spinspin siqb;
+	  unsafe_spinspin_spinspin_prod(siqb,si,qb);
+	  spinspin_summ_the_spinspin_prod(q_out[iout],qa,siqb);
+	}
+  }
+  nissa_free(q_prop);
+  nissa_free(sigma2);
 }
 

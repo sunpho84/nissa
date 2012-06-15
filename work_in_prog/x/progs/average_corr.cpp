@@ -8,13 +8,19 @@
 corr16 *unav_corr;
 
 //initialize the program
-void init_calc()
+void init_calc(int narg,char **arg)
 {
   //Basic mpi initialization
   init_nissa();
   
+  if(rank_tot>1) crash("only available in scalar");
+  if(narg<4) crash("use %s file_in T L",arg[0]);
+  
+  int T=atoi(arg[2]);
+  int L=atoi(arg[3]);
+  
   //init the grid
-  init_grid(48,24);
+  init_grid(T,L);
   
   //allocate correlator
   unav_corr=nissa_malloc("corr",loc_vol,corr16);
@@ -30,10 +36,7 @@ void close_calc()
 
 int main(int narg,char **arg)
 {
-  init_calc();
-  
-  if(rank_tot>1) crash("only available in scalar");
-  if(narg<2) crash("use %s file_in",arg[0]);
+  init_calc(narg,arg);
   
   read_corr16(unav_corr,arg[1]);
   

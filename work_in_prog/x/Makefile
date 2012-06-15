@@ -16,7 +16,7 @@ GCC=gcc
 
 #include all objects
 objects=$(addprefix src/, \
-	$(addprefix diagrams/, propagator_self_energy tadpole) \
+	$(addprefix diagrams/, meson_exchange propagator_self_energy tadpole) \
 	$(addprefix inverters/, cg_eoprec_twisted_free_operator cg_Wilson_gluon_operator) \
 	$(addprefix operators/, Wilson_gluon_Klein_Gordon_operator twisted_Dirac_eoprec_operator) \
 	$(addprefix propagators/, twisted_propagator twisted_propagator_g2_corr Wilson_gluon_propagator tlSym_gluon_propagator) \
@@ -40,6 +40,7 @@ tests=$(addprefix tests/, \
 	test_propagator_shift \
 	test_Fourier_transform \
 	test_meson_self_energy_stochastic_correction \
+	test_meson_exchange_correction \
 )
 
 #full programs

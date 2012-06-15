@@ -267,6 +267,8 @@ void init_grid(int T,int L)
     }
   glb_spat_vol=glb_vol/glb_size[0];
   loc_spat_vol=loc_vol/loc_size[0];
+  glb_vol2=(double)glb_vol*glb_vol;
+  loc_vol2=(double)loc_vol*loc_vol;
   
   master_printf("Number of running ranks: %d\n",rank_tot);
   master_printf("Global lattice:\t%dx%dx%dx%d = %d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3],glb_vol);

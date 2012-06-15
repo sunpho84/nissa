@@ -3,17 +3,6 @@
 
 #include <lemon.h>
 
-#ifdef BGP
- #include <builtins.h>
- #include "base/bgp_instructions.h"
-#endif
-
-#include "IO/checksum.h"
-#include "IO/endianess.h"
-#include "IO/input.h"
-#include "IO/reader.h"
-#include "IO/writer.h"
-
 #include "base/close.h"
 #include "base/communicate.h"
 #include "base/debug.h"
@@ -24,6 +13,17 @@
 #include "base/routines.h"
 #include "base/sse_instructions.h"
 #include "base/vectors.h"
+
+#ifdef BGP
+ #include <builtins.h>
+ #include "base/bgp_instructions.h"
+#endif
+
+#include "IO/checksum.h"
+#include "IO/endianess.h"
+#include "IO/input.h"
+#include "IO/reader.h"
+#include "IO/writer.h"
 
 #include "dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
 #include "dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h"
