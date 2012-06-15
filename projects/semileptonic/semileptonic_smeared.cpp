@@ -40,7 +40,11 @@
   To avoid the calculation of three points and at the same time the inversion, specify:
    NContrThreePoints 0
    NChContrThreePoints 0
-   
+  
+  If specified, the program computes also the 2 points correlations funcions with derivative
+  operator on the source. It is possible to spcify to compute derivative-source propagator 
+  only for a subset of masses: the restriction is imposed to Q1.
+  
   The list of configurations must be specified in the format:
    [confname] [tsource] [outfolder]
    
