@@ -100,9 +100,9 @@ void compute_tadpole_twisted_propagator_in_x_space(spinspin *q_out,quark_info qu
   {
     spinspin s,t;
     mom_space_twisted_propagator_of_imom(s,qu,imom);
-    unsafe_spinspin_spinspin_prod(t,s,q_out[imom]);
-    unsafe_spinspin_spinspin_prod(q_out[imom],t,s);
-    spinspin_prodassign_double(q_out[imom],glb_vol*glb_vol);
+    unsafe_spinspin_spinspin_prod(t, s,q_out[imom]);
+    unsafe_spinspin_spinspin_prod(q_out[imom], t,s);
+    spinspin_prodassign_double(q_out[imom],glb_vol2);
   }
 
   pass_spinspin_from_mom_to_x_space(q_out,q_out,qu.bc);

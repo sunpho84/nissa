@@ -72,5 +72,5 @@ void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_i
 void stochastic_x_space_qqg_vertex(spinspin *q_out,spinspin *q_in,quark_info qu,spin1field *g_in,gluon_info gl,bool g_dag=false)
 {
   stochastic_x_space_qqg_vertex_source(q_out,q_in,qu,g_in,gl,g_dag);
-  multiply_x_space_twisted_propagator_by_fft(q_out,q_out,qu);
+  multiply_from_left_by_x_space_twisted_propagator_by_fft(q_out,q_out,qu);
 }

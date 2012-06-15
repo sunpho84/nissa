@@ -196,6 +196,21 @@ void safe_spinspin_spin_prod(spin out,spinspin a,spin b)
   memcpy(out,c,sizeof(spin));
 }
 
+//prouduct of spin and spinspin
+void unsafe_spin_spinspin_prod(spin out,spin a,spinspin b)
+{
+  memset(out,0,sizeof(spin));
+  for(int id1=0;id1<4;id1++)
+    for(int id2=0;id2<4;id2++)
+      complex_summ_the_prod(out[id1],a[id2],b[id2][id1]);
+}
+void safe_spin_spinspin_prod(spin out,spin a,spinspin b)
+{
+  spin c;
+  unsafe_spin_spinspin_prod(c,a,b);
+  memcpy(out,c,sizeof(spin));
+}
+
 //Get a spincolor from a colorspinspin
 //In a spinspin the sink index runs slower than the source
 void get_spincolor_from_colorspinspin(spincolor out,colorspinspin in,int id_source)

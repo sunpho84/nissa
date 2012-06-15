@@ -71,6 +71,9 @@ int nmassS0,nthetaS0;
 int nmassS1,nthetaS1;
 double *massS0,*thetaS0;
 double *massS1,*thetaS1;
+int start_massS0der;
+int nmassS0der;
+double *massS0der;
 
 //source data
 int seed,noise_type;
@@ -141,7 +144,10 @@ double contr_3pts_time=0;
 
 //return the position of the propagator of theta and mass
 int ipropS0(int itheta,int imass,int mu_der)
-{return (mu_der*nthetaS0+itheta)*nmassS0+imass;}
+{
+  if(mu_der==0) return itheta*nmassS0+imass;
+  else return nthetaS0*nmassS0+((mu_der-1)*nthetaS0+itheta)*nmassS0der+imass;
+}
 int ipropS1(int itheta,int imass)
 {return itheta*nmassS1+imass;}
 
@@ -356,8 +362,15 @@ void initialize_semileptonic(char *input_path)
   // 5) contraction list for two points
   
   read_str_int("ComputeDerivativeCorrelations",&compute_der);
-  if(compute_der==0) nmuS=1;
-  else nmuS=4;
+  if(compute_der)
+    {
+      nmuS=4;
+      read_str_int("StartDerivativeInversionFromIMass",&start_massS0der);
+      nmassS0der=nmassS0-start_massS0der;
+      massS0der=massS0+start_massS0der;
+    }
+      
+  else nmuS=1;
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
   op1_2pts=nissa_malloc("op1_2pts",ncontr_2pts,int);
@@ -449,7 +462,8 @@ void initialize_semileptonic(char *input_path)
   Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
   
   //Allocate all the S0 prop_type vectors
-  npropS0=nthetaS0*nmassS0*nmuS;
+  npropS0=nthetaS0*nmassS0;
+  if(compute_der) npropS0+=3*nthetaS0*nmassS0der;
   S0[0]=nissa_malloc("S0[0]",npropS0,prop_type*);
   S0[1]=nissa_malloc("S0[1]",npropS0,prop_type*);
   for(int iprop=0;iprop<npropS0;iprop++)
@@ -625,60 +639,67 @@ void calculate_S0(int ism_lev_so)
   
   //loop over derivative of the source
   for(int muS=0;muS<nmuS;muS++)
-    //loop over the source dirac index
+    {
+      //decide parameters of inverter
+      double *mass=(muS==0)?massS0:massS0der;
+      int nmass=(muS==0)?nmassS0:nmassS0der;
+      double *stopping_residues=(muS==0)?stopping_residues_S0:stopping_residues_S0+start_massS0der;
+      
+      //loop over the source dirac index
 #ifdef POINT_SOURCE_VERSION
-    for(int ic=0;ic<3;ic++)
+      for(int ic=0;ic<3;ic++)
 #endif
-      for(int id=0;id<4;id++)
-	{ 
-	  //put the g5
-	  nissa_loc_vol_loop(ivol)
-	  {
-#ifdef POINT_SOURCE_VERSION
-	    get_spincolor_from_su3spinspin(source[ivol],original_source[ivol],id,ic);
-#else
-	    get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
-#endif
-	    safe_dirac_prod_spincolor(source[ivol],&(base_gamma[5]),source[ivol]);
-	  }
-	  set_borders_invalid(source);
-	  
-	  //if needed apply nabla
-	  if(muS>0) apply_nabla_i(source,source,conf,muS);
-	  
-	  for(int itheta=0;itheta<nthetaS0;itheta++)
+	for(int id=0;id<4;id++)
+	  { 
+	    //put the g5
+	    nissa_loc_vol_loop(ivol)
 	    {
-	      //adapt the border condition
-	      put_theta[1]=put_theta[2]=put_theta[3]=thetaS0[itheta];
-	      adapt_theta(conf,old_theta,put_theta,1,1);
-	      
-	      //inverting
-	      double part_time=-take_time();
-	      inv_tmQ2_cgm(cgm_solution,conf,kappa,massS0,nmassS0,niter_max,stopping_residues_S0,source);
-	      part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	      master_printf("Finished the inversion of S0 theta %d, ",itheta);
-	      if(compute_der) master_printf("source derivative %d ",muS);
 #ifdef POINT_SOURCE_VERSION
-	      master_printf("color index %d ",ic);
-#endif	    
-	      master_printf("dirac index %d in %g sec\n",id,part_time);
-	      //reconstruct the doublet
-	      for(int imass=0;imass<nmassS0;imass++)
-		{
-		  reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,massS0[imass],cgm_solution[imass]);
-		  master_printf("Mass %d (%g) reconstructed \n",imass,massS0[imass]);
-		  for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
-		    nissa_loc_vol_loop(ivol)
-		    {
-#ifdef POINT_SOURCE_VERSION
-		      put_spincolor_into_su3spinspin(S0[r][ipropS0(itheta,imass,muS)][ivol],temp_vec[r][ivol],id,ic);
+	      get_spincolor_from_su3spinspin(source[ivol],original_source[ivol],id,ic);
 #else
-		      put_spincolor_into_colorspinspin(S0[r][ipropS0(itheta,imass,muS)][ivol],temp_vec[r][ivol],id);
+	      get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
 #endif
-		    }
-		}
+	      safe_dirac_prod_spincolor(source[ivol],&(base_gamma[5]),source[ivol]);
 	    }
-	}
+	    set_borders_invalid(source);
+	    
+	    //if needed apply nabla
+	    if(muS>0) apply_nabla_i(source,source,conf,muS);
+	    
+	    for(int itheta=0;itheta<nthetaS0;itheta++)
+	      {
+		//adapt the border condition
+		put_theta[1]=put_theta[2]=put_theta[3]=thetaS0[itheta];
+		adapt_theta(conf,old_theta,put_theta,1,1);
+		
+		//inverting
+		double part_time=-take_time();
+		inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
+		part_time+=take_time();ninv_tot++;inv_time+=part_time;
+		master_printf("Finished the inversion of S0 theta %d, ",itheta);
+		if(compute_der) master_printf("source derivative %d ",muS);
+#ifdef POINT_SOURCE_VERSION
+		master_printf("color index %d ",ic);
+#endif	    
+		master_printf("dirac index %d in %g sec\n",id,part_time);
+		//reconstruct the doublet
+		for(int imass=0;imass<nmass;imass++)
+		  {
+		    reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
+		    master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+		    for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
+		      nissa_loc_vol_loop(ivol)
+		      {
+#ifdef POINT_SOURCE_VERSION
+			put_spincolor_into_su3spinspin(S0[r][ipropS0(itheta,imass,muS)][ivol],temp_vec[r][ivol],id,ic);
+#else
+			put_spincolor_into_colorspinspin(S0[r][ipropS0(itheta,imass,muS)][ivol],temp_vec[r][ivol],id);
+#endif
+		      }
+		  }
+	      }
+	  }
+    }
   
   //rotate to physical basis
   for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
@@ -788,6 +809,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
       int ith1=ith_spec[ispec];
       for(int muS_source=0;muS_source<nmuS;muS_source++)
 	{
+	  //if source is derivative also sink is
 	  int start_muS_sink=(muS_source==0)?0:1;
 	  int end_muS_sink=  (muS_source==0)?1:4;
 	  
@@ -807,7 +829,12 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 #endif
 			}
 		      
-		      for(int im1=0;im1<nmassS0;im1++)
+		      //decide parameters of mass 1
+		      double *mass1=(muS_source==0)?massS0:massS0der;
+		      int nmass1=(muS_source==0)?nmassS0:nmassS0der;
+		      double *stopping_residues1=(muS_source==0)?stopping_residues_S0:stopping_residues_S0+start_massS0der;
+
+		      for(int im1=0;im1<nmass1;im1++)
 			{
 			  int ip1=ipropS0(ith1,im1,muS_source);
 
@@ -825,8 +852,8 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 			      
 			      //header
 			      master_fprintf(fout," # m1=%lg th1=%lg res1=%lg r1=%d, m2=%lg th2=%lg res2=%lg r2=%d der_source=%d der_sink=%d",
-					     massS0[im1],thetaS0[ith1],stopping_residues_S0[im1],r1,
-					     massS0[im2],thetaS0[ith2],stopping_residues_S0[im2],r2,
+					     mass1[im1], thetaS0[ith1],stopping_residues_S0[im1],r1,
+					     massS0[im2],thetaS0[ith2],stopping_residues1[im2],  r2,
 					     muS_source,muS_sink);
 			      master_fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
 			      

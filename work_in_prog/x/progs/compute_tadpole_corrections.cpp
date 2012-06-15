@@ -11,6 +11,8 @@
 spinspin *prop,*tad_prop;
 corr16 *corr;
 
+int L=24;
+
 //initialize the program
 void init_calc()
 {
@@ -18,7 +20,7 @@ void init_calc()
   init_nissa();
   
   //init the grid
-  init_grid(48,24);
+  init_grid(2*L,L);
   
   //allocate propagators
   prop=nissa_malloc("prop",loc_vol,spinspin);
