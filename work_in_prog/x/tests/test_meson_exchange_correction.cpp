@@ -14,7 +14,7 @@ spin1field *phi,*eta;
 spinspin *prop,*prop_phi,*prop_eta;
 corr16 *corr,*summ_corr,*temp_corr;
 
-int L=2;
+int L=12;
 
 //initialize the program
 void init_calc()
@@ -68,7 +68,7 @@ int main(int narg,char **arg)
   
   ////////////////////////////////////// compute correlation analytically ////////////////////////////
   
-  compute_meson_exchange_correction_analytically(corr,qu,gl);
+  //compute_meson_exchange_correction_analytically(corr,qu,gl);
   write_corr16("exchange_corr",corr,64);
   
   ////////////////////////////////////// compute correlation stochastically ////////////////////////////
@@ -83,7 +83,7 @@ int main(int narg,char **arg)
     {  
       generate_stochastic_source_and_tlSym_gluon_propagator(phi,eta,gl);
       generate_stochastic_A_twisted_propagator(prop_phi,prop,qu,phi,gl);
-      generate_stochastic_A_dag_twisted_propagator(prop_eta,prop,qu,eta,gl);
+      generate_stochastic_A_twisted_propagator(prop_eta,prop,qu,eta,gl);
       
       compute_all_2pts_qdagq_correlations(temp_corr,prop_phi,prop_eta);
       

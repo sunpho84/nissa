@@ -668,7 +668,14 @@ void calculate_S0(int ism_lev_so)
 	    set_borders_invalid(source);
 	    
 	    //if needed apply nabla
-	    if(muS>0) apply_nabla_i(source,source,conf,muS);
+	    if(muS>0)
+	      {
+		//remove the border condition
+		put_theta[1]=put_theta[2]=put_theta[3]=0;
+		adapt_theta(conf,old_theta,put_theta,1,1);
+		
+		apply_nabla_i(source,source,conf,muS);
+	      }
 	    
 	    for(int itheta=0;itheta<nthetaS0;itheta++)
 	      {

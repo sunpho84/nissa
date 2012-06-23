@@ -10,15 +10,21 @@
 
 spinspin *prop,*self_prop;
 corr16 *corr;
+double alpha=0;
 
 //initialize the program
-void init_calc()
+void init_calc(int narg,char **arg)
 {
   //Basic mpi initialization
   init_nissa();
   
+  if(narg<3) crash("use %s L T [alpha]",arg[0]);
+  int T=atoi(arg[1]);
+  int L=atoi(arg[2]);
+  if(narg>=4) sscanf(arg[3],"%lg",&alpha);
+  
   //init the grid
-  init_grid(48,24);
+  init_grid(T,L);
   
   //allocate propagators
   prop=nissa_malloc("prop",loc_vol,spinspin);
@@ -38,7 +44,7 @@ void close_calc()
 
 int main(int narg,char **arg)
 {
-  init_calc();
+  init_calc(narg,arg);
   
   //kappa and mass
   double kappa=1.0/8;
@@ -47,9 +53,9 @@ int main(int narg,char **arg)
   quark_info qu=create_twisted_quark_info(kappa,mass,quark_theta);
   
   //gluon
-  double alpha=0;
   double gluon_theta[4]={0,0,0,0};
   gluon_info gl=create_tlSym_gluon_info(alpha,gluon_theta);
+  master_printf("alpha=%lg\n",alpha);
   
   /////////////////////////////// propagator and pion computed analytically //////////////////////////
   

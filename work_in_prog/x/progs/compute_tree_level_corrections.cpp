@@ -5,20 +5,23 @@
 #include "../src/propagators/twisted_propagator.h"
 #include "../src/types/types_routines.h"
 #include "../src/routines/read_and_write.h"
+#include "../src/routines/correlations.h"
 
 spinspin *prop;
 corr16 *corr;
 
-int L=24;
-
 //initialize the program
-void init_calc()
+void init_calc(int narg,char **arg)
 {
   //Basic mpi initialization
   init_nissa();
   
+  if(narg<3) crash("use %s LT ",arg[0]);
+  int T=atoi(arg[1]);
+  int L=atoi(arg[2]);
+
   //init the grid
-  init_grid(2*L,L);
+  init_grid(T,L);
   
   //allocatepropagators
   prop=nissa_malloc("prop",loc_vol,spinspin);
@@ -36,7 +39,7 @@ void close_calc()
 
 int main(int narg,char **arg)
 {
-  init_calc();
+  init_calc(narg,arg);
   
   //anti-periodic boundary condition in time
   double theta[4]={1,0,0,0};
@@ -46,25 +49,10 @@ int main(int narg,char **arg)
   double mass=0.00;
   quark_info qu=create_twisted_quark_info(kappa,mass,theta);
   
-  /////////////////////////////// propagator and pion computed analytically //////////////////////////
-  
   compute_x_space_twisted_propagator_by_fft(prop,qu);  
+  compute_all_2pts_qdagq_correlations(corr,prop,prop);
   
-  dirac_matr t1[16],t2[16];
-  for(int igamma=0;igamma<16;igamma++)
-    {
-      dirac_prod(&(t1[igamma]),&(base_gamma[igamma]),&(base_gamma[5]));
-      dirac_prod(&(t2[igamma]),&(base_gamma[5]),&(base_gamma[igamma]));
-    }
-      
-  nissa_loc_vol_loop(ivol)
-    for(int igamma=0;igamma<16;igamma++)
-      {
-	site_trace_g_sdag_g_s(corr[ivol][igamma],&(t1[igamma]),prop[ivol],&(t2[igamma]),prop[ivol]); 
-	complex_prodassign_double(corr[ivol][igamma],3);
-      }
-  
-  write_corr16("corr",corr,64);
+  write_corr16("tree",corr,64);
   
   close_calc();
   
