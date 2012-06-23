@@ -132,6 +132,14 @@ void trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b)
   summ_the_trace_prod_dirac_spinspin(c,a,b);
 }
 
+void summ_the_trace_spinspin(complex c,spinspin a)
+{for(int id=0;id<4;id++) complex_summassign(c,a[id][id]);}
+void trace_spinspin(complex c,spinspin a)
+{
+  c[0]=c[1]=0;
+  summ_the_trace_spinspin(c,a);
+}
+
 //product of two spinspins
 void spinspin_summ_the_spinspindag_prod(spinspin out,spinspin a,spinspin b)
 {

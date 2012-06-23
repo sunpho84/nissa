@@ -45,6 +45,8 @@ void spinspin_summ_the_spinspin_prod(spinspin out,spinspin a,spinspin b);
 void spinspin_summ_the_spinspindag_prod(spinspin out,spinspin a,spinspin b);
 void summ_the_trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b);
 void trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b);
+void trace_spinspin(complex c,spinspin a);
+void summ_the_trace_spinspin(complex c,spinspin a);
 void unsafe_dirac_prod_spin(spin out,dirac_matr *m,spin in);
 void unsafe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in);
 void unsafe_spinspin_complex_prod(spinspin a,spinspin b,complex c);

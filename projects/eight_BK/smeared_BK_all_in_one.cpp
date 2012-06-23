@@ -590,7 +590,7 @@ int main(int narg,char **arg)
   //Loop over configurations
 
   //Find if there is another conf to analize and time to analize it
-  while(read_conf_parameters() && check_residual_time())
+  while(check_residual_time() && read_conf_parameters())
     {
       //Load the gauge conf
       load_gauge_conf();      

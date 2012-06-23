@@ -49,6 +49,7 @@ progs=$(addprefix progs/, \
 	compute_self_energy_corrections \
 	compute_tadpole_corrections \
 	average_corr \
+	combine \
 )
 
 #collect all the executables
