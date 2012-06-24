@@ -192,7 +192,7 @@ void set_lx_geometry()
 	      //number the elements of the border
 	      gx[mu]=(gx[mu]-1+glb_size[mu])%glb_size[mu];
 	      x[mu]=(x[mu]-1+loc_size[mu])%loc_size[mu];
-	      for(int mu=0;mu<4;mu++) glb_coord_of_loclx[ibord][mu]=gx[mu];
+	      for(int nu=0;nu<4;nu++) glb_coord_of_loclx[ibord][nu]=gx[nu];
 	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
 	      loclx_of_bordlx[raw_ibord]=loclx_of_coord(x);
 	      dir_of_bord[raw_ibord]=2*mu+1;
@@ -273,7 +273,7 @@ void set_lx_geometry()
 	      //number the elements of the border
 	      gx[mu]=(gx[mu]+1+glb_size[mu])%glb_size[mu];
 	      x[mu]=(x[mu]+1+loc_size[mu])%loc_size[mu];
-	      for(int mu=0;mu<4;mu++) glb_coord_of_loclx[ibord][mu]=gx[mu];
+	      for(int nu=0;nu<4;nu++) glb_coord_of_loclx[ibord][nu]=gx[nu];
 	      glblx_of_bordlx[raw_ibord]=glblx_of_coord(gx);
 	      loclx_of_bordlx[raw_ibord]=loclx_of_coord(x);
 	      dir_of_bord[raw_ibord]=2*mu;
