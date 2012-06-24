@@ -4,6 +4,7 @@
 
 #include "../src/types/types.h"
 #include "../src/types/types_routines.h"
+#include "../src/routines/fourier.h"
 #include "../src/propagators/tlSym_gluon_propagator.h"
 
 
@@ -38,7 +39,7 @@ int main(int narg,char **arg)
   init_test();
   
   //anti-periodic boundary condition in one space direction
-  double theta[4]={0,1,0,0};
+  double theta[4]={0,0,0,0};
   
   //covariant gauge fixing constant
   double alpha=0.3;
@@ -47,14 +48,15 @@ int main(int narg,char **arg)
   gluon_info gl=create_tlSym_gluon_info(alpha,theta);
   
   //compute the point to be printed
-  coords ix={1,2,1,2};
+  coords ix={3,3,2,1};
   int lx,rx;
   get_loclx_and_rank_of_coord(&lx,&rx,ix);
   
   /////////////////////////////// propagator and pion computed analytically //////////////////////////
   
   compute_x_space_tlSym_gluon_propagator_by_fft(prop_fft,gl);
-  
+  pass_spin1prop_from_x_to_mom_space(prop_fft,prop_fft,gl.bc);
+
   /////////////////////////////// propagator and pion computed numerically //////////////////////////
   
   //compute_x_space_tlSym_gluon_propagator_by_inv(prop_inv,gl);
