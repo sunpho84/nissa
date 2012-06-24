@@ -24,7 +24,7 @@ void init_test()
   init_nissa();
   
   //init the grid
-  init_grid(4,4);
+  init_grid(12,12);
   
   //allocate propagators
   id=nissa_malloc("1",loc_vol+bord_vol,spinspin);

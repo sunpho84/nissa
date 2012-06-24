@@ -34,20 +34,22 @@ void mom_space_tlSym_gluon_propagator_of_imom(spin1prop prop,gluon_info gl,int i
       kt2+=kt2_dir[mu];
       kt4+=kt4_dir[mu];
       kt6+=kt6_dir[mu];
-
-      //product and sums of kt2 over direction differents from mu and nu
-      for(int nu=0;nu<4;nu++)
-	{
-	  ktpo2[mu][nu]=1;
-	  ktso2[mu][nu]=0;
-	  for(int rho=0;rho<4;rho++)
-	    if(mu!=rho && nu!=rho)
-	      {
-		ktpo2[mu][nu]*=kt2_dir[rho];
-		ktso2[mu][nu]+=kt2_dir[rho];
-	      }
-	}
     }
+  
+  //product and sums of kt2 over direction differents from mu and nu
+  for(int mu=0;mu<4;mu++)
+    for(int nu=0;nu<4;nu++)
+      {
+	ktpo2[mu][nu]=1;
+	ktso2[mu][nu]=0;
+	for(int rho=0;rho<4;rho++)
+	  if(mu!=rho && nu!=rho)
+	    {
+	      ktpo2[mu][nu]*=kt2_dir[rho];
+	      ktso2[mu][nu]+=kt2_dir[rho];
+	    }
+      }
+  
   double kt22=kt2*kt2;
   double kt23=kt2*kt2*kt2;
   double kt42=kt4*kt4;
