@@ -14,7 +14,7 @@ spin1field *phi,*eta;
 spinspin *prop,*self_prop;//,*id;
 corr16 *corr,*summ_corr,*temp_corr;
 
-int L=24;
+int L=4;
 
 //initialize the program
 void init_calc()
@@ -104,7 +104,10 @@ int main(int narg,char **arg)
 	  d2+=codi*codi;
 	  t2+=cosu*cosu;
 	}
-      master_printf("isource=%d, diff=(%lg/%lg)=%lg\n",isource+1,d2,t2,d2/t2);
+      d2=glb_reduce_double(d2);
+      t2=glb_reduce_double(t2);
+
+      master_printf("time %d, isource=%d, diff=(%lg/%lg)=%lg\n",time(0),isource+1,d2,t2,d2/t2);
     }
   
   //////////////////////////////// compute correlation and write them on disk ////////////////////////
