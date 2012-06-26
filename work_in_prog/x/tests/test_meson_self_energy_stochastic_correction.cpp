@@ -80,7 +80,7 @@ int main(int narg,char **arg)
   
   //memset(id,0,sizeof(spinspin)*loc_vol);
   //spinspin_put_to_id(id[0]);
-  int nsources=100;
+  int nsources=1;
   
   start_loc_rnd_gen(100);
   memset(summ_corr,0,sizeof(corr16)*loc_vol);
