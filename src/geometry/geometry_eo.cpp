@@ -8,6 +8,7 @@
 //set the eo geometry
 void set_eo_geometry()
 {
+  if(!nissa_use_eo_geom) crash("E/O Geometry was not to be used!");
   if(nissa_eo_geom_inited) crash("E/O Geometry already initialized!");
   
   //check that all local sizes are multiples of 2

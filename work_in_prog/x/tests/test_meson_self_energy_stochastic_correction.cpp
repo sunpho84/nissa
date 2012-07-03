@@ -14,7 +14,7 @@ spin1field *phi,*eta;
 spinspin *prop,*self_prop;//,*id;
 corr16 *corr,*summ_corr,*temp_corr;
 
-int L=4;
+int L=2;
 
 //initialize the program
 void init_calc()
@@ -23,7 +23,7 @@ void init_calc()
   init_nissa();
   
   //init the grid
-  init_grid(2*L,L);
+  init_grid(L,L);
   
   //allocate propagators
   //id=nissa_malloc("id",loc_vol,spinspin);
@@ -66,17 +66,28 @@ int main(int narg,char **arg)
   double gluon_theta[4]={0,0,0,0};
   gluon_info gl=create_tlSym_gluon_info(alpha,gluon_theta);
   
-  ////////////////////////////////////// propagators computed analytically ////////////////////////////
+  /////////////////////////////////// propagators computed analytically //////////////////////////////
   
   compute_x_space_twisted_propagator_by_fft(prop,qu);
   compute_self_energy_twisted_propagator_in_x_space(self_prop,qu,gl);
   
-  //////////////////////////////// compute correlation and write them on disk ////////////////////////
+  ////////////////////////////// compute correlation and write them on disk //////////////////////////
 
   compute_all_2pts_qdagq_correlations(corr,prop,self_prop);
   write_corr16("self_energy_corr",corr,64);
   
-  ////////////////////////////////////// propagators computed stochastically ////////////////////////////
+  master_printf("%lg\n",corr[9][0][0]);
+    
+  /////////////////////////////////////////////// tough way /////////////////////////////////////////
+  
+  compute_self_energy_twisted_propagator_in_x_space_tough_way(self_prop,qu,gl);
+
+  compute_all_2pts_qdagq_correlations(corr,prop,self_prop);
+  write_corr16("self_energy_corr_tough",corr,64);
+  
+  master_printf("%lg\n",corr[9][0][0]);
+  
+  ////////////////////////////////// propagators computed stochastically ////////////////////////////
   
   //memset(id,0,sizeof(spinspin)*loc_vol);
   //spinspin_put_to_id(id[0]);

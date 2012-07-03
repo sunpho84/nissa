@@ -12,13 +12,20 @@ void print_spin(spin s)
   printf("\n");
 }
 
+void spin_put_to_zero(spin a)
+{memset(a,0,sizeof(spin));}
+
 void spin_copy(spin b,spin a)
 {memcpy(b,a,sizeof(spin));}
 
 void spin_summ(spin a,spin b,spin c)
 {for(int i=0;i<4;i++) complex_summ(a[i],b[i],c[i]);}
+void spin_summassign(spin a,spin b)
+{spin_summ(a,a,b);}
 void spin_subt(spin a,spin b,spin c)
 {for(int i=0;i<4;i++) complex_subt(a[i],b[i],c[i]);}
+void spin_subtassign(spin a,spin b)
+{spin_subt(a,a,b);}
 
 void spin_prod_double(spin a,spin b,double c)
 {for(int i=0;i<4;i++) complex_prod_double(a[i],b[i],c);}

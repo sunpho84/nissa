@@ -28,6 +28,7 @@ EXTERN int *loclx_of_loceo[2];
 EXTERN coords *loceo_neighup[2];
 EXTERN coords *loceo_neighdw[2];
 EXTERN int nissa_eo_geom_inited;
+EXTERN int nissa_use_eo_geom;
 
 //neighbours of local volume + borders
 EXTERN coords *loclx_neighdw,*loclx_neighup;
