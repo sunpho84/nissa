@@ -127,15 +127,15 @@ void shift_spinspin_source(spinspin *out,spinspin *in,momentum_t bc,coords r)
 //compute a propagator between two points - very slow!!!
 void compute_x_space_propagator_to_sink_from_source(spin1prop out_prop,spin1prop *in_prop,momentum_t bc,coords sink,coords source)
 {
-  coords diff,abs,n;
+  coords abs;
   double th=0;
   for(int mu=0;mu<4;mu++)
     {
+      coords diff,n;
       diff[mu]=sink[mu]-source[mu];
-      n[mu]=0;
-      while(diff[mu]-glb_size[mu]*n[mu]<0) n[mu]--;
-      while(diff[mu]-glb_size[mu]*n[mu]>=glb_size[mu]) n[mu]++;
-
+      if(diff[mu]>=0) n[mu]=diff[mu]/glb_size[mu];
+      else n[mu]=diff[mu]/glb_size[mu]-1;
+      
       //compute diff=abs+n*L
       abs[mu]=diff[mu]-n[mu]*glb_size[mu];
       //compute th=pi*theta_mu*n_mu

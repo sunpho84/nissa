@@ -34,6 +34,7 @@ tests=$(addprefix tests/, \
 	test_tlSym_gluon_propagator \
 	test_Wilson_gluon_Klein_Gordon_operator \
 	test_tlSym_gluon_stochastic_propagator \
+	test_tlSym_gluon_stochastic_propagator_no_null_mode \
 	test_stochastic_qqg_vertex \
 	test_twisted_propagator_stochastic_correction \
 	test_twisted_propagator_correction \
@@ -41,6 +42,7 @@ tests=$(addprefix tests/, \
 	test_Fourier_transform \
 	test_meson_self_energy_stochastic_correction \
 	test_meson_exchange_correction \
+	test_meson_tree_level_correction \
 )
 
 #full programs

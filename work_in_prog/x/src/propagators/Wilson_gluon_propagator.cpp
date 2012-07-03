@@ -1,12 +1,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/new_types/complex.h"
-#include "../../../../src/base/debug.h"
-#include "../../../../src/operations/fft.h"
-#include "../../../../src/base/vectors.h"
+#include "../../../../src/nissa.h"
 
 #include "../types/types.h"
 #include "../routines/fourier.h"
@@ -59,8 +54,8 @@ void compute_x_space_Wilson_gluon_propagator_by_fft(spin1prop *prop,gluon_info g
   pass_spin1prop_from_mom_to_x_space(prop,prop,gl.bc);
 }
 
-//compute the Wilson action gluon propagator in the x space by inverting KG operator
-void compute_x_space_Wilson_gluon_propagator_by_inv(spin1prop *prop,gluon_info gl)
+//multiply by the Wilson action gluon propagator in the x space by inverting KG operator
+void multiply_by_x_space_Wilson_gluon_propagator_by_inv(spin1prop *prop_out,spin1prop *prop_in,gluon_info gl)
 {
   //source and temp prop
   spin1field *source=nissa_malloc("source",loc_vol+bord_vol,spin1field);
@@ -69,21 +64,38 @@ void compute_x_space_Wilson_gluon_propagator_by_inv(spin1prop *prop,gluon_info g
   //loop over the source index
   for(int mu_so=0;mu_so<4;mu_so++)
     {
-      //prepare the source
-      memset(source,0,sizeof(spin1field)*loc_vol);
-      if(rank==0) source[0][mu_so][0]=1;
-      set_borders_invalid(source);
-
-      //invert and copy into the spinspin
-      inv_Wilson_gluon_Klein_Gordon_operator(tprop,NULL,gl,1000000,5,1.e-26,source);
+      //copy the in
       nissa_loc_vol_loop(ivol)
         for(int mu_si=0;mu_si<4;mu_si++)
-          memcpy(prop[ivol][mu_si][mu_so],tprop[ivol][mu_si],sizeof(complex));
+          memcpy(source[ivol][mu_si],prop_in[ivol][mu_si][mu_so],sizeof(complex));
+      set_borders_invalid(source);
+      
+      //invert
+      inv_Wilson_gluon_Klein_Gordon_operator(tprop,NULL,gl,1000000,5,1.e-26,source);
+      
+      //copy into the out
+      nissa_loc_vol_loop(ivol)
+        for(int mu_si=0;mu_si<4;mu_si++)
+          memcpy(prop_out[ivol][mu_si][mu_so],tprop[ivol][mu_si],sizeof(complex));
     }
   
-  set_borders_invalid(prop);
+  set_borders_invalid(prop_out);
   
   nissa_free(source);
   nissa_free(tprop);
+}
 
+//compute the Wilson action gluon propagator in the x space by inverting KG operator
+void compute_x_space_Wilson_gluon_propagator_by_inv(spin1prop *prop,gluon_info gl)
+{
+  spin1prop *source=nissa_malloc("source",loc_vol+bord_vol,spin1prop);
+  
+  //prepare the source
+  memset(source,0,sizeof(spin1prop)*loc_vol);
+  if(rank==0) spinspin_put_to_id(source[0]);
+  
+  //multiply
+  multiply_by_x_space_Wilson_gluon_propagator_by_inv(prop,source,gl);
+  
+  nissa_free(source);
 }

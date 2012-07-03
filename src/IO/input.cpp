@@ -223,11 +223,11 @@ void read_nissa_config_file()
 {
   char path[1024]="nissa_config";
   
-  const int navail_tag=2;
-  char tag_name[2][100]={"verbosity_lv","use_128_bit_precision"};
-  char *tag_addr[2]={(char*)&nissa_verbosity,(char*)&nissa_use_128_bit_precision};
-  char tag_type[2][3]={"%d","%d"};
-  char tag_size[2]={4,4};
+  const int navail_tag=3;
+  char tag_name[3][100]={"verbosity_lv","use_128_bit_precision","use_eo_geom"};
+  char *tag_addr[3]={(char*)&nissa_verbosity,(char*)&nissa_use_128_bit_precision,(char*)&nissa_use_eo_geom};
+  char tag_type[3][3]={"%d","%d","%d"};
+  char tag_size[3]={4,4,4};
   
   if(file_exists(path))
     {
