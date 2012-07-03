@@ -263,6 +263,6 @@ void read_nissa_config_file()
   else master_printf("No 'nissa_config' file present, using standard configuration\n");
   
   verbosity_lv1_master_printf("Configuration:\n");
-  verbosity_lv1_master_printf(" verbosity_lv=%d\n",nissa_verbosity);
-  verbosity_lv1_master_printf(" use_128_bit_precision=%d\n",nissa_use_128_bit_precision);
+  for(int itag=0;itag<navail_tag;itag++)
+    verbosity_lv1_master_printf(" %s=%d\n",tag_name[itag],*((int*)tag_addr[itag]));
 }
