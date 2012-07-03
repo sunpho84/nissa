@@ -95,17 +95,6 @@ struct nissa_vect
   char pad[nissa_vect_alignment-(3*sizeof(int)+2*sizeof(void*)+3*nissa_vect_string_length+sizeof(uint32_t))%nissa_vect_alignment];
 };
 
-//nissa file reader
-typedef struct
-{
-  int open;
-  int reading;
-  int nbytes_per_site;
-  char *buf;
-  MPI_File *reader_file;
-  LemonReader *lemon_reader;
-} nissa_reader;
-
 //rational approximation
 typedef struct
 {
