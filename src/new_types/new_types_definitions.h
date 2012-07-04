@@ -39,6 +39,9 @@ typedef colorspinspin su3spinspin[3];
 typedef complex as2t[6];
 typedef su3 as2t_su3[6];
 
+typedef MPI_Offset ILDG_Offset;
+typedef MPI_File ILDG_File;
+
 //this is just for avoid misleading, but is nothing more that a spinspin
 typedef complex spin1field[4];
 typedef spin1field spin1prop[4];
@@ -94,6 +97,16 @@ struct nissa_vect
   //padding to keep memory alignment
   char pad[nissa_vect_alignment-(3*sizeof(int)+2*sizeof(void*)+3*nissa_vect_string_length+sizeof(uint32_t))%nissa_vect_alignment];
 };
+
+//ILDG header
+typedef struct
+{
+  uint32_t magic_no;
+  uint16_t version;
+  uint16_t mbme;
+  uint64_t data_len;
+  char type[128];
+} ILDG_header;
 
 //rational approximation
 typedef struct

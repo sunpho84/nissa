@@ -83,8 +83,8 @@ void init_nissa()
   ONE[1]=I[0]=0;
   //check endianess
   check_endianess();
-  if(little_endian) master_printf("System endianess: little.\n");
-  else master_printf("System endianess: big.\n");
+  if(little_endian) master_printf("System endianess: little (ordinary machine).\n");
+  else master_printf("System endianess: big (BG, etc).\n");
 
   //set default value for parameters
   nissa_verbosity=nissa_default_verbosity;

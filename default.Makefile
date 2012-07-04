@@ -25,7 +25,13 @@ static_potential=$(addprefix static_potential/, compute_potential)
 
 #collect all the projects
 projects=$(addprefix projects/, $(bubbles) $(eight_BK) $(g) $(nucleons) $(reno_const) $(semileptonic) $(static_potential))
-tools=$(addprefix tools/, endianess_check/endianess_check print_gamma/gamma_test unitarity_check/unitarity_check meson_2pts/meson_2pts meson_2pts/meson_2pts_point_source conf_convert/ildg_to_eo)
+tools=$(addprefix tools/, \
+	endianess_check/endianess_check \
+	print_gamma/gamma_test \
+	unitarity_check/unitarity_check \
+	meson_2pts/meson_2pts \
+	meson_2pts/meson_2pts_point_source \
+	conf_convert/ildg_to_eo)
 
 ################################################## global targets ###############################################
 
@@ -47,7 +53,7 @@ dirac_operators=$(addprefix dirac_operators/dirac_operator_, stD/dirac_operator_
 	tmQ_left/dirac_operator_tmQ_left tmQ2/dirac_operator_tmQ2 tmQ/dirac_operator_tmQ_128 tmQ/reconstruct_tm_doublet tmQ2/dirac_operator_tmQ2_128)
 geometry=$(addprefix geometry/, geometry_eo geometry_lx geometry_mix)
 inverters=$(addprefix inverters/twisted_mass/, cg_invert_tmDeoimpr cg_invert_tmQ2 cg_128_invert_tmQ2 cgm_invert_tmQ2 tm_frontends) 
-IO=$(addprefix IO/, checksum endianess input reader writer)
+IO=$(addprefix IO/, checksum endianess ILDG_File input reader writer)
 new_types=$(addprefix new_types/, complex dirac float128 rat_exp spin su3)
 operations=$(addprefix operations/, contract fft fourier_transform gauge_fixing gaugeconf remap_vector smear su3_paths vector_gather)
 

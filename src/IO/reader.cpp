@@ -12,41 +12,9 @@
 #include "../operations/su3_paths.h"
 #include "checksum.h"
 #include "endianess.h"
-
-
-//search a particular record in a file
-int search_record(LemonReader *reader,const char *record_name)
-{
-  int found=0;
-  while(found==0 && lemonReaderNextRecord(reader)!=LEMON_EOF)
-    {
-      const char *header=lemonReaderType(reader);
-
-      verbosity_lv3_master_printf("found record: %s\n",header);
-      if(strcmp(record_name,header)==0) found=1;
-    }
-  
-  return found;
-}
+#include "ILDG_file.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-//read the checksum
-void read_checksum(checksum check_read,LemonReader *reader)
-{
-  int found=search_record(reader,"scidac-checksum");
-  if(found)
-    {
-      uint64_t nbytes=lemonReaderBytes(reader);
-      char *mess=(char*)calloc(nbytes+1,sizeof(char));
-      if(lemonReaderReadData(mess,(LEMON_TYPE*)&nbytes,reader)!=LEMON_SUCCESS) crash("Error while reading checksum");
-      sscanf(strstr(mess,"<suma>")+6,"%x",&(check_read[0]));
-      sscanf(strstr(mess,"<sumb>")+6,"%x",&(check_read[1]));
-      
-      free(mess);
-    }
-  else check_read[0]=check_read[1]=0;
-}
 
 //reorder a read color
 void reorder_read_color(color *c)
@@ -149,29 +117,22 @@ void read_real_vector(double *out,char *path,const char *record_name,int nreals_
   double start_time=take_time();
   
   //open file
-  MPI_File file;
-  if(MPI_File_open(cart_comm,path,MPI_MODE_RDONLY,MPI_INFO_NULL,&file)!=MPI_SUCCESS)
-    crash("Couldn't open for reading the file: '%s'",path);
+  ILDG_File file=ILDG_File_open_for_read_only(path);
 
-  //open lemon
-  LemonReader *reader=lemonCreateReader(&file,cart_comm);
-  
   //search the record
-  int found=search_record(reader,record_name);
+  ILDG_header header;
+  int found=ILDG_File_search_record(header,file,record_name);
   if(!found) crash("Error, record %s not found.\n",record_name);
   
   //check the size of the data block
-  uint64_t nbytes=lemonReaderBytes(reader);
+  uint64_t nbytes=header.data_len;
   int nbytes_per_site_read=nbytes/glb_vol;
   if(nbytes_per_site_read>nreals_per_site*sizeof(double))
     crash("Opsss! The file contain %d bytes per site and it is supposed to contain not more than %d!",
 	  nbytes_per_site_read,nreals_per_site*sizeof(double));
   
   //read
-  int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
-  int scidac_mapping[4]={0,3,2,1};
-  if(lemonReadLatticeParallelMapped(reader,out,nbytes_per_site_read,glb_dims,scidac_mapping)!=
-     LEMON_SUCCESS) crash("Error starting to read from a file!");
+  ILDG_File_read_ildg_data_all(out,file,header);
   
   //check read size
   int nbytes_per_site_float=nreals_per_site*sizeof(float);
@@ -179,7 +140,7 @@ void read_real_vector(double *out,char *path,const char *record_name,int nreals_
   
   //read the checksum
   checksum read_check={0,0};
-  read_checksum(read_check,reader);
+  ILDG_File_read_checksum(read_check,file);
   if(read_check[0]!=0||read_check[1]!=0)
     {
       master_printf("Checksums read:      %#010x %#010x\n",read_check[0],read_check[1]);
@@ -195,8 +156,7 @@ void read_real_vector(double *out,char *path,const char *record_name,int nreals_
   else master_printf("Data checksum not found.\n");
   
   //close the file
-  lemonDestroyReader(reader);
-  MPI_File_close(&file);
+  ILDG_File_close(file);
   
   if(nbytes_per_site_read!=nbytes_per_site_float && nbytes_per_site_read!=nbytes_per_site_double)
     crash("Opsss! The file contain %d bytes per site and it is supposed to contain: %d (single) or %d (double)",

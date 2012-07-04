@@ -21,6 +21,19 @@ int min_int(int a,int b)
 int max_int(int a,int b)
 {if(a>b) return a;else return b;}
 
+//take the different with folloeing multiple of eight
+MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos)
+{
+  MPI_Offset diff=pos%8;
+  if(diff!=0) diff=8-diff;
+
+  return diff;
+}
+
+//ceil to next multiple of eight
+MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos)
+{return pos+diff_with_next_eight_multiple(pos);}
+
 void MPI_FLOAT_128_SUM_routine(void *in,void *out,int *len,MPI_Datatype *type)
 {for(int i=0;i<(*len);i++) float_128_summassign(((float_128*)out)[i],((float_128*)in)[i]);}
 
