@@ -12,7 +12,7 @@ void set_mapped_types(MPI_Datatype &etype,MPI_Datatype &ftype,ILDG_Offset nbytes
 {
   //elementary type
   MPI_Type_contiguous(nbytes_per_site,MPI_BYTE,&etype);
-  MPI_Type_commit(&etype);
+  decript_MPI_error(MPI_Type_commit(&etype),"while committing etype");
   
   //remap coordinates and starting points to the scidac mapping
   coords mapped_start,mapped_glb_size,mapped_loc_size;
@@ -24,15 +24,15 @@ void set_mapped_types(MPI_Datatype &etype,MPI_Datatype &ftype,ILDG_Offset nbytes
     }
   
   //full type
-  MPI_Type_create_subarray(4,mapped_glb_size,mapped_loc_size,mapped_start,MPI_ORDER_C,etype,&ftype);
-  MPI_Type_commit(&ftype);
+  decript_MPI_error(MPI_Type_create_subarray(4,mapped_glb_size,mapped_loc_size,mapped_start,MPI_ORDER_C,etype,&ftype),"while creating subarray type");
+  decript_MPI_error(MPI_Type_commit(&ftype),"while committing ftype");
 }
 
 //unset the types to read mapped data
 void unset_mapped_types(MPI_Datatype &etype,MPI_Datatype &ftype)
 {
-  MPI_Type_free(&etype);
-  MPI_Type_free(&ftype);
+  decript_MPI_error(MPI_Type_free(&etype),"While freeing etype");
+  decript_MPI_error(MPI_Type_free(&ftype),"While freeing etype");
 }
 
 
@@ -46,8 +46,7 @@ bool get_ME_flag(ILDG_header &header)
 ILDG_File ILDG_File_open(char *path,int amode)
 {
   ILDG_File file;
-  int err=MPI_File_open(cart_comm,path,amode,MPI_INFO_NULL,&file);
-  if(err){decript_MPI_error(err,"attention");crash("while reading",path);}
+  decript_MPI_error(MPI_File_open(cart_comm,path,amode,MPI_INFO_NULL,&file),"while opening file %s",path);
   
   return file;
 }
@@ -57,18 +56,14 @@ ILDG_File ILDG_File_open_for_read_only(char *path)
 
 //skip the passed amount of bytes starting from curr position
 void ILDG_File_skip_nbytes(ILDG_File &file,ILDG_Offset nbytes)
-{
-  int err=MPI_File_seek(file,nbytes,MPI_SEEK_CUR);
-  if(err){decript_MPI_error(err,"MPI_File_seek");crash("refusing to continue");}
-}
+{decript_MPI_error(MPI_File_seek(file,nbytes,MPI_SEEK_CUR),"while seeking");}
 
 //get current position
 ILDG_Offset ILDG_File_get_position(ILDG_File &file)
 {
   ILDG_Offset pos;
   
-  int err=MPI_File_get_position(file,&pos);
-  if(err){decript_MPI_error(err,"MPI_File_get_position");crash("refusing to continue");}
+  decript_MPI_error(MPI_File_get_position(file,&pos),"while getting position");
   
   return pos;
 }
@@ -79,8 +74,7 @@ ILDG_Offset ILDG_File_get_size(ILDG_File &file)
   ILDG_Offset size;
   
   //get file size
-  int err=MPI_File_get_size(file,&size);
-  if(err){decript_MPI_error(err,"MPI_File_get_size");crash("refusing to continue");}
+  decript_MPI_error(MPI_File_get_size(file,&size),"while getting file size");
   
   return size;
 }
@@ -97,8 +91,7 @@ void ILDG_File_seek_to_next_eight_multiple(ILDG_File &file)
 //close an open file
 void ILDG_File_close(ILDG_File &file)
 {
-  int err=MPI_File_close(&file);
-  if(err){decript_MPI_error(err,"MPI_File_close");crash("refusing to continue");}
+  decript_MPI_error(MPI_File_close(&file),"while closing file");
   
   file=NULL;
 }
@@ -111,12 +104,11 @@ void ILDG_File_read_all(void *data,ILDG_File &file,int nbytes_req)
   
   //reading and taking status/error
   MPI_Status status;
-  int err=MPI_File_read_all(file,data,nbytes_req,MPI_BYTE,&status);
-  if(err){decript_MPI_error(err,"MPI_File_read_at_all");crash("refusing to continue");}
+  decript_MPI_error(MPI_File_read_all(file,data,nbytes_req,MPI_BYTE,&status),"while reading all");
   
   //count read bytes and check
   int nbytes_read;
-  MPI_Get_count(&status,MPI_BYTE,&nbytes_read);
+  decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_read),"while counting read bytes");
   if(nbytes_read!=nbytes_req)
     crash("read %d bytes instead of %d required",nbytes_read,nbytes_req);
   
@@ -196,32 +188,26 @@ void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header
   set_mapped_types(etype,ftype,header.data_len/glb_vol,scidac_mapping);
   
   //take original position and view
-  ILDG_Offset ori_pos=ILDG_File_get_position(file);
-  ILDG_Offset ori_view_pos;
+  ILDG_Offset ori_view_pos,ori_pos=ILDG_File_get_position(file);
   MPI_Datatype ori_etype,ori_ftype;
   char datarep[1024];
-  int err=MPI_File_get_view(file,&ori_view_pos,&ori_etype,&ori_etype,datarep);
-  if(err){decript_MPI_error(err,"attention");crash("while getting view");}
+  decript_MPI_error(MPI_File_get_view(file,&ori_view_pos,&ori_etype,&ori_etype,datarep),"while getting view");
   
   //set the view
-  err=MPI_File_set_view(file,ori_pos,etype,ftype,native_format,MPI_INFO_NULL);
-  if(err){decript_MPI_error(err,"attention");crash("while setting view");}
+  decript_MPI_error(MPI_File_set_view(file,ori_pos,etype,ftype,native_format,MPI_INFO_NULL),"while setting view");
   
   //read
   MPI_Status status;
-  err=MPI_File_read_at_all(file,0,data,loc_vol,etype,&status);
-  if(err){decript_MPI_error(err,"attention");crash("while reading");}
+  decript_MPI_error(MPI_File_read_at_all(file,0,data,loc_vol,etype,&status),"while reading");
   
   //put the view to original state and place at the end of the record, including padding
-  MPI_File_set_view(file,ori_view_pos,MPI_BYTE,MPI_BYTE,native_format,MPI_INFO_NULL);
+  decript_MPI_error(MPI_File_set_view(file,ori_view_pos,MPI_BYTE,MPI_BYTE,native_format,MPI_INFO_NULL),"while setting view");
   ILDG_Offset fin_pos=ceil_to_next_eight_multiple(ori_pos+header.data_len);
-  err=MPI_File_seek(file,fin_pos,MPI_SEEK_SET);
-  if(err){decript_MPI_error(err,"MPI_File_seed");crash("refusing to continue");}
+  decript_MPI_error(MPI_File_seek(file,fin_pos,MPI_SEEK_SET),"while seeking");
   
   //count read bytes
   int nbytes_read;
-  err=MPI_Get_count(&status,MPI_BYTE,&nbytes_read);
-  if(err){decript_MPI_error(err,"attention");crash("while counting read bytes");}
+  decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_read),"while counting read bytes");
   if(nbytes_read!=header.data_len/rank_tot) crash("read %d bytes instead than %d",nbytes_read,header.data_len/rank_tot);
     
   //reset mapped types
