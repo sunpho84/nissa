@@ -21,6 +21,7 @@
 
 #include "IO/checksum.h"
 #include "IO/endianess.h"
+#include "IO/ILDG_File.h"
 #include "IO/input.h"
 #include "IO/reader.h"
 #include "IO/writer.h"

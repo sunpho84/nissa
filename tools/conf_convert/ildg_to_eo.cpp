@@ -15,7 +15,7 @@ void conf_convert(char *outpath,char *inpath)
   
   {
       coords temp;
-      if(!little_endian) ints_to_ints_changing_endianess(temp,glb_size,4);
+      if(!little_endian) uint32s_to_uint32s_changing_endianess((uint32_t*)temp,(uint32_t*)glb_size,4);
       else                memcpy(temp,glb_size,sizeof(coords));
       if(rank==0)
 	{
