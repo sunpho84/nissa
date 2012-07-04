@@ -55,7 +55,7 @@ void internal_decript_MPI_error(int line,const char *file,int rc,const char *tem
   va_list ap;
   va_start(ap,templ);
   
-  if(rank==0)
+  if(rc!=MPI_SUCCESS && rank==0)
     {
       char err[1024];
       int len=1024;

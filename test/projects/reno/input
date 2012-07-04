@@ -14,7 +14,7 @@ NContrTwoPoints 3
 5 9
 9 5
 
-WriteFixedConf 0
+WriteFixedConf 1
 WorkInPhysicalBase 1
 FullXSpacePropPrec 0
 FullPSpacePropPrec 0
