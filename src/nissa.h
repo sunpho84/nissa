@@ -1,8 +1,6 @@
 #ifndef _NISSA_H
 #define _NISSA_H
 
-#include <lemon.h>
-
 #include "base/close.h"
 #include "base/communicate.h"
 #include "base/debug.h"

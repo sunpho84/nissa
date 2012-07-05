@@ -4,8 +4,6 @@
 #include <mpi.h>
 #include <stdint.h>
 
-#include <lemon.h>
-
 #include "../base/macros.h"
 
 ///////////////// New types ///////////////////

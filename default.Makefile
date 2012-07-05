@@ -1,14 +1,12 @@
 #externally defined path and variables
 CC=SED_CC
-LEMON_PATH=SED_LEMON_PATH
-LEMON_TYPE=SED_LEMON_TYPE
 CFLAGS=SED_CFLAGS
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
-MACROS=$(addprefix -D,SVN_VERS=\"$(SVN_VERS)\" LEMON_TYPE=$(LEMON_TYPE))
-INCLUDE_PATH=src $(addsuffix /include,$(LEMON_PATH))
-LIBRARY_PATH=$(addsuffix /lib,$(LEMON_PATH))
+MACROS=$(addprefix -D,SVN_VERS=\"$(SVN_VERS)\")
+INCLUDE_PATH=src
+LIBRARY_PATH=
 
 GCC=gcc
 
@@ -89,8 +87,7 @@ $(projects) $(tools): %: %.o src/libnissa.a Makefile
 	$(MACROS)                       \
 	-o $@                           \
 	$(addsuffix .o, $@)             \
-	src/libnissa.a 			\
-	-llemon
+	src/libnissa.a
 
 
 ############################################## phonyfyse the needed target ##########################################

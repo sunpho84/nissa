@@ -1,7 +1,5 @@
 #ifndef _READER_H
 #define _READER_H
-int search_record(LemonReader *reader,const char *record_name);
-void read_checksum(checksum check_read,LemonReader *reader);
 void read_color(color *c,char *path);
 void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path);
 void read_ildg_gauge_conf(quad_su3 *conf,char *path);
