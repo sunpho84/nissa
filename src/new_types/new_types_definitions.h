@@ -76,8 +76,6 @@ typedef struct
 } dirac_matr;
 
 //nissa vector
-struct nissa_vect;
-
 struct nissa_vect
 {
   int nel;
@@ -103,10 +101,21 @@ typedef struct
 {
   uint32_t magic_no;
   uint16_t version;
-  uint16_t mbme;
-  uint64_t data_len;
+  uint16_t mbme_flag;
+  uint64_t data_length;
   char type[128];
 } ILDG_header;
+
+//ILDG file view
+typedef struct
+{
+  MPI_Datatype etype;
+  MPI_Datatype ftype;
+  MPI_Offset view_pos;
+  MPI_Offset pos;
+  char format[100];
+} ILDG_File_view;
+
 
 //rational approximation
 typedef struct

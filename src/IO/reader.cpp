@@ -117,7 +117,7 @@ void read_real_vector(double *out,char *path,const char *record_name,int nreals_
   double start_time=take_time();
   
   //open file
-  ILDG_File file=ILDG_File_open_for_read_only(path);
+  ILDG_File file=ILDG_File_open_for_read(path);
 
   //search the record
   ILDG_header header;
@@ -125,7 +125,7 @@ void read_real_vector(double *out,char *path,const char *record_name,int nreals_
   if(!found) crash("Error, record %s not found.\n",record_name);
   
   //check the size of the data block
-  uint64_t nbytes=header.data_len;
+  uint64_t nbytes=header.data_length;
   int nbytes_per_site_read=nbytes/glb_vol;
   if(nbytes_per_site_read>nreals_per_site*sizeof(double))
     crash("Opsss! The file contain %d bytes per site and it is supposed to contain not more than %d!",

@@ -1,9 +1,8 @@
 #include <string.h>
 
-#include <lemon.h>
-
 #include "checksum.h"
 #include "endianess.h"
+#include "ILDG_File.h"
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/spin.h"
 #include "../base/global_variables.h"
@@ -13,67 +12,37 @@
 #include "../geometry/geometry_lx.h"
 #include "../geometry/geometry_mix.h"
 
-//Write the header for a record
-void write_header(LemonWriter *writer,const char *header,uint64_t record_bytes)
-{
-  verbosity_lv3_master_printf("Writing: %Ld bytes\n",(long long int)record_bytes);
-  LemonRecordHeader *lemon_header=lemonCreateHeader(1,1,(char*)header,record_bytes);
-  lemonWriteRecordHeader(lemon_header,writer);
-  lemonDestroyHeader(lemon_header);
-}
-
-//Write a text record
-void write_text_record(LemonWriter *writer,const char *header,const char *message)
-{
-  uint64_t message_bytes=strlen(message);
-  write_header(writer,header,message_bytes);
-  lemonWriteRecordData((void*)message,(LEMON_TYPE*)&message_bytes,writer);
-  lemonWriterCloseRecord(writer);
-}
-
-//Write the checksum
-void write_checksum(LemonWriter *writer,checksum check)
-{
-  char mess[1024];
-  sprintf(mess,"<?xml version=\"1.0\" encoding=\"UTF-8\"?><scidacChecksum><version>1.0</version><suma>%#010x</suma><sumb>%#010x</sumb></scidacChecksum>",check[0],check[1]);
-  uint64_t nbytes=strlen(mess);
-  write_header(writer,"scidac-checksum",nbytes);
-  if(lemonWriteRecordData(mess,(LEMON_TYPE*)&nbytes,writer)!=LEMON_SUCCESS) crash("Error while writing checksum");
-}
-
 //Write a vector of double, in 32 or 64 bits according to the argument
-void write_double_vector(LemonWriter *writer,char *data,const char *header_message,int nreals_per_site,int nbits)
+void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nbits,const char *header_message)
 {
   if(nbits!=32 && nbits!=64) crash("Error, asking %d precision, use instead 32 or 64\n",nbits);
   
   //take initial time
   double time=-take_time();
   
+  //compute float or double site
   int nreals_loc=nreals_per_site*loc_vol;
   int nbytes_per_site=nreals_per_site*nbits/8;
   uint64_t nbytes_glb=nbytes_per_site*glb_vol;
   
-  write_header(writer,header_message,nbytes_glb);
-  
+  //change endianess if needed
   char *buffer=NULL;
   if(little_endian || nbits==32) buffer=nissa_malloc("buffer",nreals_loc*sizeof(double),char);
   
   if(nbits==64)
     if(little_endian) doubles_to_doubles_changing_endianess((double*)buffer,(double*)data,nreals_loc);
-    else buffer=data;
+    else buffer=(char*)data;
   else
     if(little_endian) doubles_to_floats_changing_endianess((float*)buffer,(double*)data,nreals_loc);
     else doubles_to_floats_same_endianess((float*)buffer,(double*)data,nreals_loc);
-      
-  int glb_dims[4]={glb_size[0],glb_size[3],glb_size[2],glb_size[1]};
-  int scidac_mapping[4]={0,3,2,1};
-  lemonWriteLatticeParallelMapped(writer,buffer,nbytes_per_site,glb_dims,scidac_mapping);
-  lemonWriterCloseRecord(writer);
+  
+  //write
+  ILDG_File_write_ildg_data_all(file,data,nbytes_per_site,header_message);
   
   //append the checksum
   checksum check;
   checksum_compute_ildg_data(check,buffer,nbytes_per_site);
-  write_checksum(writer,check);
+  ILDG_File_write_checksum(file,check);
   
   //delete the swapped data, if created
   if(little_endian || nbits==32) nissa_free(buffer);
@@ -87,20 +56,12 @@ void write_double_vector(LemonWriter *writer,char *data,const char *header_messa
 void write_color(char *path,color *v,int prec)
 {
   //Open the file
-  MPI_File *writer_file=nissa_malloc("Writer_file",1,MPI_File);
-  int ok=MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
-  if(ok!=MPI_SUCCESS) crash("Couldn't open for writing the file: '%s'\n",path);
-  
-  MPI_File_set_size(*writer_file,0);
-  LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
+  ILDG_File file=ILDG_File_open_for_write(path);
   
   //Write the info on the propagator type
-  char propagator_type_header[]="propagator-type";
-  char propagator_type_message[]="ColorOnly";
-  write_text_record(writer,propagator_type_header,propagator_type_message);
+  ILDG_File_write_text_record(file,"propagator-type","ColorOnly");
   
   //Write the info on the propagator format
-  char propagator_format_header[]="stag-propagator-format";
   char propagator_format_message[1024];
   sprintf(propagator_format_message, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 	  "<etmcFormat>\n"
@@ -113,13 +74,12 @@ void write_color(char *path,color *v,int prec)
 	  "<lt>%d</lt>\n"
 	  "</etmcFormat>",
 	  prec,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
-  write_text_record(writer,propagator_format_header,propagator_format_message);
+  ILDG_File_write_text_record(file,"stag-propagator-format",propagator_format_message);
   
   //order things as expected
   color *temp=nissa_malloc("temp_write_prop",loc_vol,color);
   
-  int x[4],isour,idest;
-  
+  int x[4],isour,idest;  
   for(x[0]=0;x[0]<loc_size[0];x[0]++)
     for(x[1]=0;x[1]<loc_size[1];x[1]++)
       for(x[2]=0;x[2]<loc_size[2];x[2]++)
@@ -132,35 +92,25 @@ void write_color(char *path,color *v,int prec)
 	  }
   
   //Write the binary data
-  write_double_vector(writer,(char*)temp,"scidac-binary-data",nreals_per_color,prec);
+  write_double_vector(file,(double*)temp,nreals_per_color,prec,"scidac-binary-data");
 
   nissa_free(temp);
   verbosity_lv2_master_printf("File '%s' saved (probably...)\n",path);
   
   //Close the file
-  lemonDestroyWriter(writer);
-  MPI_File_close(writer_file);
-  nissa_free(writer_file);
+  ILDG_File_close(file);
 }
 
 //Write a whole spincolor
 void write_spincolor(char *path,spincolor *spinor,int prec)
 {
   //Open the file
-  MPI_File *writer_file=nissa_malloc("Writer_file",1,MPI_File);
-  int ok=MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
-  if(ok!=MPI_SUCCESS) crash("Couldn't open for writing the file: '%s'\n",path);
-  
-  MPI_File_set_size(*writer_file,0);
-  LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
+  ILDG_File file=ILDG_File_open_for_write(path);
   
   //Write the info on the propagator type
-  char propagator_type_header[]="propagator-type";
-  char propagator_type_message[]="DiracFermion_Sink";
-  write_text_record(writer,propagator_type_header,propagator_type_message);
+  ILDG_File_write_text_record(file,"propagator-type","DiracFermion_Sink");
   
   //Write the info on the propagator format
-  char propagator_format_header[]="etmc-propagator-format";
   char propagator_format_message[1024];
   sprintf(propagator_format_message, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 	  "<etmcFormat>\n"
@@ -173,7 +123,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
 	  "<lt>%d</lt>\n"
 	  "</etmcFormat>",
 	  prec,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
-  write_text_record(writer,propagator_format_header,propagator_format_message);
+  ILDG_File_write_text_record(file,"etmc-propagator-format",propagator_format_message);
   
   //order things as expected
   spincolor *temp=nissa_malloc("temp_write_prop",loc_vol,spincolor);
@@ -192,15 +142,13 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
 	  }
   
   //Write the binary data
-  write_double_vector(writer,(char*)temp,"scidac-binary-data",nreals_per_spincolor,prec);
+  write_double_vector(file,(double*)temp,nreals_per_spincolor,prec,"scidac-binary-data");
 
   nissa_free(temp);
   verbosity_lv2_master_printf("File '%s' saved (probably...)\n",path);
   
   //Close the file
-  lemonDestroyWriter(writer);
-  MPI_File_close(writer_file);
-  nissa_free(writer_file);
+  ILDG_File_close(file);
 }
 
 //Write a whole su3spinspin
@@ -225,7 +173,7 @@ void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 ////////////////////////// gauge configuration writing /////////////////////////////
 
 //Write the local part of the gauge configuration
-void write_ildg_gauge_conf(char *path,quad_su3 *in)
+void write_ildg_gauge_conf(char *path,quad_su3 *in,int prec)
 {
   double start_time=take_time();
   quad_su3 *temp=nissa_malloc("temp_gauge_writer",loc_vol,quad_su3);
@@ -250,27 +198,21 @@ void write_ildg_gauge_conf(char *path,quad_su3 *in)
 	  }
 
   //Open the file
-  MPI_File *writer_file=nissa_malloc("MPI_File",1,MPI_File);
-  int ok=MPI_File_open(cart_comm,path,MPI_MODE_WRONLY|MPI_MODE_CREATE,MPI_INFO_NULL,writer_file);
-  if(ok!=MPI_SUCCESS) crash("Couldn't open for writing the file: '%s'\n",path);
-
-  MPI_File_set_size(*writer_file,0);
-  LemonWriter *writer=lemonCreateWriter(writer_file,cart_comm);
-  write_double_vector(writer,(char*)temp,"ildg-binary-data",nreals_per_quad_su3,64);
+  ILDG_File file=ILDG_File_open_for_write(path);
+  write_double_vector(file,(double*)temp,nreals_per_quad_su3,prec,"ildg-binary-data");
   
   nissa_free(temp);
   
   master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,take_time()-start_time);
   
-  MPI_File_close(writer_file);
-  nissa_free(writer_file);
+  ILDG_File_close(file);
 }
 
 //read an ildg conf and split it into e/o parts
-void paste_eo_parts_and_write_ildg_gauge_conf(char *path,quad_su3 **eo_conf)
+void paste_eo_parts_and_write_ildg_gauge_conf(char *path,quad_su3 **eo_conf,int prec)
 {
   quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
   paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
-  write_ildg_gauge_conf(path,lx_conf);
+  write_ildg_gauge_conf(path,lx_conf,prec);
   nissa_free(lx_conf);
 }

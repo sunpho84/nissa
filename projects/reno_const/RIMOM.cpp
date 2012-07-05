@@ -210,7 +210,7 @@ void load_gauge_conf()
     {
       char temp[1024];
       sprintf(temp,"%s/fixed_conf",outfolder);
-      write_ildg_gauge_conf(temp,conf);
+      write_ildg_gauge_conf(temp,conf,64);
     }    
   
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
