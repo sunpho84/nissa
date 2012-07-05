@@ -10,18 +10,18 @@ void conf_convert(char *outpath,char *inpath)
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   read_ildg_gauge_conf(conf,inpath);
   
-  FILE *fout;
-  if(rank==0) fout=fopen(outpath,"w");
+  FILE *fout=NULL;
+  if(rank==0) fout=fopen(outpath,"w");  
   
   {
-      coords temp;
-      if(!little_endian) uint32s_to_uint32s_changing_endianess((uint32_t*)temp,(uint32_t*)glb_size,4);
-      else                memcpy(temp,glb_size,sizeof(coords));
-      if(rank==0)
-	{
-	  int nw=fwrite(temp,sizeof(coords),1,fout);
-	  if(nw!=1) crash("did not success in writing");
-	}
+    coords temp;
+    if(!little_endian) uint32s_to_uint32s_changing_endianess((uint32_t*)temp,(uint32_t*)glb_size,4);
+    else                memcpy(temp,glb_size,sizeof(coords));
+    if(rank==0)
+      {
+	int nw=fwrite(temp,sizeof(coords),1,fout);
+	if(nw!=1) crash("did not success in writing");
+      }
   }
   
   {
@@ -34,7 +34,7 @@ void conf_convert(char *outpath,char *inpath)
 	}
   }
    
-  if(rank==0) fclose(fout);   
+  if(rank==0) fclose(fout);
   
   {
     if(!little_endian) doubles_to_doubles_changing_endianess((double*)conf,(double*)conf,loc_vol*4*18);

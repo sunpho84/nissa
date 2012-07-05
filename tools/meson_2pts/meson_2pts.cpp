@@ -1,4 +1,3 @@
-
 //This program calculates a list of two-point functions contracting 
 //all the propagators in the first list with all the propagators in
 //the second list. The propagators of the second list are loaded one 
@@ -31,6 +30,7 @@ source |------>---->----->---->| sink
 
 #include <mpi.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "nissa.h"
 
