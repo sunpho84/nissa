@@ -70,12 +70,12 @@ int main(int narg,char **arg)
 	for(int i=0;i<nin;i++)
 	{
 	    er+=fread(&t,sizeof(double),1,f[i]);
-	    //change(&t,&t,1);
+	    change(&t,&t,1);
 	    a+=t;
 	}
 	a/=nin;
 	//printf("%lg\n",a);
-	//change(&a,&a,1);
+	change(&a,&a,1);
 	if(er==nin) fwrite(&a,sizeof(double),1,out);
     }
     while(er==nin);

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <dirent.h>
 
 #include "../base/debug.h"
 #include "../base/global_variables.h"
@@ -53,14 +54,18 @@ int file_exists(const char *path)
 //return 0 if the dir do not exists, 1 if exists, -1 if exist but is not a directory
 int dir_exists(char *path)
 {
-  struct stat st;
   int exists;
   
   if(rank==0)
     {
-      exists=(stat(path,&st)==0);
-
-      if(exists) verbosity_lv2_master_printf("Directory \"%s\" is present\n",path);
+      DIR *d=opendir(path);
+      exists=(d!=NULL);
+      
+      if(exists)
+        {
+	  verbosity_lv2_master_printf("Directory \"%s\" is present\n",path);
+	  closedir(d);
+	}
       else verbosity_lv2_master_printf("Directory \"%s\" is not present\n",path);
     }
   

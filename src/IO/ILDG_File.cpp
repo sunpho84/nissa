@@ -1,5 +1,6 @@
 #include <mpi.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../base/debug.h"
 #include "../base/macros.h"
