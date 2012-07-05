@@ -24,6 +24,7 @@ static_potential=$(addprefix static_potential/, compute_potential)
 #collect all the projects
 projects=$(addprefix projects/, $(bubbles) $(eight_BK) $(g) $(nucleons) $(reno_const) $(semileptonic) $(static_potential))
 tools=$(addprefix tools/, \
+	clusterize2 \
 	endianess_check/endianess_check \
 	print_gamma/gamma_test \
 	unitarity_check/unitarity_check \
