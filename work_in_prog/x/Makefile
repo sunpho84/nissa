@@ -1,14 +1,12 @@
 #externally defined path and variables
 CC=openmpicxx
-LEMON_PATH=/Users/francesco/Prace/Programs/lemon
-LEMON_TYPE=uint64_t
 CFLAGS=-O2
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
-MACROS=$(addprefix -D,SVN_VERS=\"$(SVN_VERS)\" LEMON_TYPE=$(LEMON_TYPE))
-INCLUDE_PATH=../../src $(addsuffix /include,$(LEMON_PATH))
-LIBRARY_PATH=$(addsuffix /lib,$(LEMON_PATH))
+MACROS=$(addprefix -D,SVN_VERS=\"$(SVN_VERS)\")
+INCLUDE_PATH=../../src
+LIBRARY_PATH=
 
 GCC=gcc
 
@@ -93,9 +91,7 @@ $(executables): %: %.o $(addsuffix .o,$(objects)) ../../src/libnissa.a Makefile
 	-o $@                           \
 	$(addsuffix .o, $@)           \
 	$(addsuffix .o, $(objects))     \
-	../../src/libnissa.a		\
-	-llemon
-
+	../../src/libnissa.a
 
 ############################################## phonyfyse the needed target ##########################################
 

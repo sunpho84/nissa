@@ -5,16 +5,15 @@ then
     if [ ! -f Makefile ]
     then
 	#print help
-	echo "Error, use: "$0" CC=(mpi c++ compiler) LEMON_PATH=(path to lemon installation) [CFLAGS=(additional flags)]"
+	echo "Error, use: "$0" CC=(mpi c++ compiler) [CFLAGS=(additional flags)]"
 	exit 1
     else
 	#read from Makefile
 	echo "Reading parameters from Makefile"
 	cc=$(awk -F = '$1=="CC"{print $2}' Makefile)
-	lemon_path=$(awk -F = '$1=="LEMON_PATH"{print $2}' Makefile)
 	cflags=$(awk -F = '$1=="CFLAGS"{print $2}' Makefile)
 	
-	if [ "$cc" == "" ] || [ "$lemon_path" == "" ] # || [ "$cflags" == "" ]
+	if [ "$cc" == "" ]
 	then
 	    echo "Error in Makefile, recreate it by hand!"
 	    exit
@@ -25,7 +24,6 @@ else
     until [ -z "$1" ]
     do
         if [ ${1:0:3} == "CC=" ];then cc=${1:3};fi                    #take mpi c++ compiler
-	if [ ${1:0:11} == "LEMON_PATH=" ];then lemon_path=${1:11};fi  #take lemon path
 	if [ ${1:0:7} == "CFLAGS=" ];then cflags=${1:7};fi            #take cflags
 	
 	shift #shift to next arguments
@@ -39,32 +37,13 @@ then
     exit
 fi
 
-#check lemon path set
-if [ "$lemon_path" == "" ]
-then
-    echo "Error, set the path the lemon through: \"LEMON_PATH=\""
-    exit
-fi
-
-#try to figure out what is the argument of lemon
-echo Trying to figure out what type of variable to use as lemon argument
-lemon_type=$(grep lemonReaderReadData $lemon_path/include/lemon_reader.h -m 1|awk '{print $4}')
-if [ "$lemon_type" == "" ]
-then
-    echo Error, could not determine type for lemon
-    exit 1
-fi
-echo Lemon type: $lemon_type
-
 #summarize
 echo
 echo "Using the following parameters:"
 echo
 echo " CC=$cc"
-echo " LEMON_PATH=$lemon_path"
-echo " LEMON_TYPE=$lemon_type"
 echo " CFLAGS=$cflags"
 echo
 
 #preparing makefile
-sed "s|SED_CC|$cc|;s|SED_LEMON_PATH|$lemon_path|;s|SED_CFLAGS|$cflags|;s|SED_LEMON_TYPE|$lemon_type|" default.Makefile > Makefile
+sed "s|SED_CC|$cc|;s|SED_CFLAGS|$cflags|" default.Makefile > Makefile
