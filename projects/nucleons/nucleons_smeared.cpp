@@ -1,6 +1,7 @@
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "nissa.h"
 
@@ -114,7 +115,7 @@ void initialize_nucleons(char *input_path)
       complex_prod_double(Proj[1][id1][id2],base_gamma[4].entr[id1],-0.5);
     }
 
-  for(int id1=0;id1<4;id1++) if(id1==0||id1==2) Proj[2][id1][id1][0]=Proj[2][id1][id1][0]=0.5;
+  for(int id1=0;id1<4;id1++) if(id1==0||id1==2) Proj[2][id1][id1][0]=0.5;
   Proj[2][0][2][0]=Proj[2][2][0][0]=-0.5; 
 
   open_input(input_path);

@@ -1,4 +1,5 @@
 #include <mpi.h>
+#include <stdlib.h>
 
 #include "../base/debug.h"
 #include "../base/macros.h"
@@ -299,7 +300,7 @@ void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header
   //count read bytes
   int nbytes_read;
   decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_read),"while counting read bytes");
-  if(nbytes_read!=header.data_length/rank_tot) crash("read %d bytes instead than %d",nbytes_read,header.data_length/rank_tot);
+  if((uint64_t)nbytes_read!=header.data_length/rank_tot) crash("read %d bytes instead than %d",nbytes_read,header.data_length/rank_tot);
     
   //reset mapped types
   unset_mapped_types(scidac_view.etype,scidac_view.ftype);
@@ -353,7 +354,7 @@ void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,int nbytes_per_sit
   //count wrote bytes
   int nbytes_wrote;
   decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_wrote),"while counting wrote bytes");
-  if(nbytes_wrote!=header.data_length/rank_tot) crash("wrote %d bytes instead than %d",nbytes_wrote,header.data_length/rank_tot);
+  if((uint64_t)nbytes_wrote!=header.data_length/rank_tot) crash("wrote %d bytes instead than %d",nbytes_wrote,header.data_length/rank_tot);
     
   //reset mapped types
   unset_mapped_types(scidac_view.etype,scidac_view.ftype);

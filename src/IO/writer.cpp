@@ -23,7 +23,6 @@ void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nb
   //compute float or double site
   int nreals_loc=nreals_per_site*loc_vol;
   int nbytes_per_site=nreals_per_site*nbits/8;
-  uint64_t nbytes_glb=nbytes_per_site*glb_vol;
   
   //change endianess if needed
   char *buffer=NULL;
