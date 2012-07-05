@@ -518,7 +518,7 @@ int read_conf_parameters(int *iconf)
       read_str(outfolder,1024);
       
       //Check if the conf exist
-      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",outfolder,conf_path);
+      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
       ok_conf=!(dir_exists(outfolder));
       if(ok_conf)
 	{
