@@ -1,6 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+int check_endianess()
+{
+  int big_endian=1;
+  big_endian=(int)(*(char*)(&big_endian));
+  return big_endian;
+}
+
 void change(double *dest,double *sour,int ndoubles)
 {
     char *cdest,*csour;
@@ -31,6 +38,8 @@ void change(double *dest,double *sour,int ndoubles)
 
 int main(int narg,char **arg)
 {
+    int end=check_endianess();
+
     if(narg<4)
       {	
 	fprintf(stderr,"Error,use %s n listin out\n",arg[0]);
@@ -70,12 +79,12 @@ int main(int narg,char **arg)
 	for(int i=0;i<nin;i++)
 	{
 	    er+=fread(&t,sizeof(double),1,f[i]);
-	    change(&t,&t,1);
+	    if(end==0) change(&t,&t,1);
 	    a+=t;
 	}
 	a/=nin;
 	//printf("%lg\n",a);
-	change(&a,&a,1);
+	if(end==0) change(&a,&a,1);
 	if(er==nin) fwrite(&a,sizeof(double),1,out);
     }
     while(er==nin);
