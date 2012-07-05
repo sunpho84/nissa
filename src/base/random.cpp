@@ -1,5 +1,6 @@
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 
 #include "../new_types/complex.h"
 #include "../new_types/new_types_definitions.h"

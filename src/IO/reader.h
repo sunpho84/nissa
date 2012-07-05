@@ -4,7 +4,7 @@ void read_color(color *c,char *path);
 void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path);
 void read_ildg_gauge_conf(quad_su3 *conf,char *path);
 void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,char *path);
-void read_real_vector(double *out,char *path,const char *record_name,int nreals_per_site);
+void read_real_vector(double *out,char *path,const char *record_name,uint64_t nreals_per_site);
 void read_spincolor(spincolor *sc,char *path);
 void read_su3spinspin(su3spinspin *ccss,char *base_path,char *end_path);
 void read_tm_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char *end_path,quad_su3 *conf,double kappa,double mu);

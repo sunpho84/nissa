@@ -1,6 +1,7 @@
 #include <mpi.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 
 #include "../base/debug.h"

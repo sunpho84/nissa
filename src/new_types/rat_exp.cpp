@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 
 #include "new_types_definitions.h"
 #include "../base/routines.h"

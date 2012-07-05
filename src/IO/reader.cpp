@@ -12,7 +12,7 @@
 #include "../operations/su3_paths.h"
 #include "checksum.h"
 #include "endianess.h"
-#include "ILDG_file.h"
+#include "ILDG_File.h"
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -109,7 +109,7 @@ void reorder_read_ildg_gauge_conf(quad_su3 *conf)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //read a real vector
-void read_real_vector(double *out,char *path,const char *record_name,int nreals_per_site)
+void read_real_vector(double *out,char *path,const char *record_name,uint64_t nreals_per_site)
 {
   master_printf("Reading vector: %s\n",path);
   
@@ -126,7 +126,7 @@ void read_real_vector(double *out,char *path,const char *record_name,int nreals_
   
   //check the size of the data block
   uint64_t nbytes=header.data_length;
-  int nbytes_per_site_read=nbytes/glb_vol;
+  uint64_t nbytes_per_site_read=nbytes/glb_vol;
   if(nbytes_per_site_read>nreals_per_site*sizeof(double))
     crash("Opsss! The file contain %d bytes per site and it is supposed to contain not more than %d!",
 	  nbytes_per_site_read,nreals_per_site*sizeof(double));
@@ -135,8 +135,8 @@ void read_real_vector(double *out,char *path,const char *record_name,int nreals_
   ILDG_File_read_ildg_data_all(out,file,header);
   
   //check read size
-  int nbytes_per_site_float=nreals_per_site*sizeof(float);
-  int nbytes_per_site_double=nreals_per_site*sizeof(double);
+  uint64_t nbytes_per_site_float=nreals_per_site*sizeof(float);
+  uint64_t nbytes_per_site_double=nreals_per_site*sizeof(double);
   
   //read the checksum
   checksum read_check={0,0};
