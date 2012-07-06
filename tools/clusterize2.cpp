@@ -1,14 +1,19 @@
 #include "nissa.h"
 
+//use at most this memory
+int max_mem_usable=128000000;
+
 typedef char sa_string[300];
 
 int T,ncorr,ncombo,ncorr_type;
+int ncombo_per_block;
 int njack,clust_size;
 int start_file_id,nfile,nfile_teo;
 char base_path_in[1024],base_path_out[1024];
 sa_string *corr_name,*outpath;
 double *data;
-int out_corr_ndouble,tot_out_ndouble;
+int mem_asked,nblock;
+int *pos;
 
 void parse_input(char *path)
 {
@@ -32,8 +37,6 @@ void parse_input(char *path)
   //compute real numb of files
   clust_size=nfile_teo/njack;
   nfile=clust_size*njack;
-
-  //allocate room for data
 }
 
 //count the number of combo
@@ -67,7 +70,9 @@ void count_corr(char *path)
   //alloc space for the name of corrs and outpath
   corr_name=nissa_malloc("corr_name",ncorr_type,sa_string);
   outpath=nissa_malloc("outpath",ncorr,sa_string);
-
+  pos=nissa_malloc("pos",nfile,int);
+  memset(pos,0,sizeof(int)*nfile);
+  
   //go to the file start and load all corr type names
   fseek(fin,0,SEEK_SET);  
   int icorr_type=0;
@@ -87,11 +92,35 @@ void count_corr(char *path)
     
   fclose(fin);
   
-  //allocate room for data and reset it
-  out_corr_ndouble=ncombo*2*T*(njack+1);
-  tot_out_ndouble=ncorr_type*out_corr_ndouble;
-  data=nissa_malloc("data",tot_out_ndouble,double);
-  memset(data,0,sizeof(double)*tot_out_ndouble);
+  //compute size of each combo
+  int combo_size=ncorr_type*2*T*(njack+1)*sizeof(double);
+  
+  //compute the total amount of memory needed
+  int max_mem_needed=ncombo*combo_size;
+  
+  //count number of blocks needed
+  nblock=max_mem_needed/max_mem_usable;
+  
+  //ceil
+  if(nblock*max_mem_usable<max_mem_needed) nblock++;
+  
+  //if ncombo not multiple of ncombo_per_block increase nblock
+  while(nblock*ncombo_per_block!=ncombo)
+    {
+      nblock++;
+      ncombo_per_block=ncombo/nblock;
+    }
+  if(nblock>ncombo) crash("boh");
+  
+  //compute the number of combo in each block and the memory asked
+  ncombo_per_block=ncombo/nblock;
+  mem_asked=ncombo_per_block*combo_size;
+  
+  printf("nblock: %d\n",nblock);
+  printf("ncombo per block: %d\n",ncombo_per_block);
+  
+  //allocate room for data
+  data=nissa_malloc("data",mem_asked/sizeof(double),double);
   
   //prepare the output names
   for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
@@ -109,22 +138,25 @@ void close_clust()
   nissa_free(corr_name);
   nissa_free(outpath);
   nissa_free(data);
+  nissa_free(pos);
   
   close_nissa();
 }
 
-void parse_file(int ifile,char *path)
+void parse_file(int ifile,char *path,int &start)
 {
   int iclust=ifile/clust_size;
   printf("clust: %d/%d\n",iclust,njack);
   
+  //open and seek
   FILE *file=open_file(path,"r");
+  if(fseek(file,start,SEEK_SET)) crash("while seeking on %s",path);
   
   char line[1024];
   
   int nread_corr=0,nread_line=0;
   
-  for(int icombo=0;icombo<ncombo;icombo++)
+  for(int icombo=0;icombo<ncombo_per_block;icombo++)
     for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
       {
 	//search the corr
@@ -147,16 +179,16 @@ void parse_file(int ifile,char *path)
 	      do if(line!=fgets(line,1024,file)) crash("error reading line, obtained: %s",line);
 	      while(strlen(line)<=1);
 	    
-	    //scanninf line
+	    //scanning line
 	    double t1,t2;
 	    int n=sscanf(line,"%lg %lg",&t1,&t2);
 	    if(n!=2) crash("scanning line %s obtained only %d numbers",line,n);
 	    nread_line++;
 	    
 	    //find output place
-	    int i1=iclust+(njack+1)*(t+T*(0+2*(icombo+ncombo*icorr_type)));
-	    int i2=iclust+(njack+1)*(t+T*(1+2*(icombo+ncombo*icorr_type)));
-
+	    int i1=iclust+(njack+1)*(t+T*(0+2*(icombo+ncombo_per_block*icorr_type)));
+	    int i2=iclust+(njack+1)*(t+T*(1+2*(icombo+ncombo_per_block*icorr_type)));
+	    
 	    //summ into the cluster
 	    data[i1]+=t1;
 	    data[i2]+=t2;
@@ -164,10 +196,13 @@ void parse_file(int ifile,char *path)
       }  
   
   //check to have finished the file
-  while(line==fgets(line,1024,file))
-    if(strlen(line)>1) crash("should have reached end and instead got: %s",line);
+  //while(line==fgets(line,1024,file))
+  //if(strlen(line)>1) crash("should have reached end and instead got: %s",line);
   
-  fclose(file);  
+  //get pos
+  start=ftell(file);
+  
+  fclose(file);
 }
 
 int main(int narg,char **arg)
@@ -184,55 +219,65 @@ int main(int narg,char **arg)
   sprintf(path,base_path_in,start_file_id);
   count_corr(path);
   
-  //loop over all the confs
-  int targ_file=0;
-  for(int ifile=0;ifile<nfile;ifile++)
+  //looping over blocks
+  for(int iblock=0;iblock<nblock;iblock++)
     {
-      printf("Considering file %d\n",ifile);
-        
-      //search existing file
-      int found;
-      do
-        {
-          sprintf(path,base_path_in,targ_file+start_file_id);
-          found=file_exists(path);
-	  if(!found)
+      //reset data
+      memset(data,0,mem_asked);
+      
+      //loop over all the confs
+      int targ_file=0;
+      for(int ifile=0;ifile<nfile;ifile++)
+	{
+	  printf("Considering file %d\n",ifile);
+	  
+	  //search existing file
+	  int found;
+	  do
 	    {
-	      master_printf("file %s not available, skipping",path);
-	      targ_file++;
-	      if(targ_file>=nfile_teo) crash("finished all available files");
+	      sprintf(path,base_path_in,targ_file+start_file_id);
+	      found=file_exists(path);
+	      if(!found)
+		{
+		  master_printf("file %s not available, skipping",path);
+		  targ_file++;
+		  if(targ_file>=nfile_teo) crash("finished all available files");
+		}
 	    }
+	  while(!found);
+	  
+	  //parse the file into data clusters
+	  parse_file(ifile,path,pos[targ_file]);
+	  
+	  //advance
+	  targ_file++;
 	}
-      while(!found);
       
-      //parse the file into data clusters
-      parse_file(ifile,path);
+      //make the jacknives
+      for(int icorr=0;icorr<ncombo_per_block*2*ncorr_type*T;icorr++)
+	{
+	  double *d=data+icorr*(njack+1);
+	  
+	  //compute average
+	  for(int iclust=0;iclust<njack;iclust++) d[njack]+=d[iclust];
+	  for(int ijack=0;ijack<njack;ijack++) d[ijack]=(d[njack]-d[ijack])/(nfile-nfile/njack);
+	  d[njack]/=nfile;
+	}
       
-      //advance
-      targ_file++;
-    }
-  
-  //make the jacknives
-  for(int icorr=0;icorr<tot_out_ndouble/(njack+1);icorr++)
-    {
-      double *d=data+icorr*(njack+1);
+      //if necessary change the endianess
+      if(!little_endian)
+	doubles_to_doubles_changing_endianess(data,data,mem_asked/sizeof(double));
       
-      //compute average
-      for(int iclust=0;iclust<njack;iclust++) d[njack]+=d[iclust];
-      for(int ijack=0;ijack<njack;ijack++) d[ijack]=(d[njack]-d[ijack])/(nfile-nfile/njack);
-      d[njack]/=nfile;
-    }
-  
-  //if necessary change the endianess
-  if(!little_endian)
-    doubles_to_doubles_changing_endianess(data,data,ncorr_type*2*ncombo*(njack+1));
-  
-  //write different files for each corr
-  for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
-    {
-      FILE *file=open_file(outpath[icorr_type],"w");
-      int n=fwrite((void*)(data+out_corr_ndouble*icorr_type),sizeof(double),out_corr_ndouble,file);
-      fclose(file);
+      //write different files for each corr
+      for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
+	{
+	  FILE *file;
+	  if(iblock==0) file=open_file(outpath[icorr_type],"w");
+	  else file=open_file(outpath[icorr_type],"a");
+	  
+	  int n=fwrite((void*)(data+ncombo_per_block*2*T*(njack+1)*icorr_type),sizeof(double),ncombo_per_block*2*T*(njack+1),file);
+	  fclose(file);
+	}
     }
   
   //exiting
