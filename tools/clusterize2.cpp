@@ -75,7 +75,7 @@ void count_corr(char *path)
   
   //go to the file start and load all corr type names
   fseek(fin,0,SEEK_SET);  
-  int icorr_type=0;
+  uint64_t icorr_type=0;
   while(fgets(line,1024,fin)==line && icorr_type<ncorr_type)
     if(line[1]=='#')
       {
@@ -85,7 +85,7 @@ void count_corr(char *path)
 	
 	if(ntest1>0 && ntest2<=0)
 	  {
-	    printf("Corr %d: %s\n",icorr_type,corr_name[icorr_type]);
+	    printf("Corr %llu: %s\n",icorr_type,corr_name[icorr_type]);
 	    icorr_type++;
 	  }
       }
@@ -93,10 +93,13 @@ void count_corr(char *path)
   fclose(fin);
   
   //compute size of each combo
-  int combo_size=ncorr_type*2*T*(njack+1)*sizeof(double);
+  uint64_t combo_size=ncorr_type*2*T*(njack+1)*sizeof(double);
   
   //compute the total amount of memory needed
-  int max_mem_needed=ncombo*combo_size;
+  uint64_t max_mem_needed=ncombo*combo_size;
+  
+  printf("Max memory needed: %llu\n",max_mem_needed);
+  printf("Max memory usable: %llu\n",max_mem_usable);
   
   //count number of blocks needed
   nblock=max_mem_needed/max_mem_usable;
