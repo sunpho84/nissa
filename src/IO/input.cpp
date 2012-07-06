@@ -93,7 +93,7 @@ void close_input()
 //Read a var from the file
 int read_var_catcherr(char *out,const char *par,int size_of)
 {
-  int ok=(rank==0) ? fscanf(input_global,par,out) : 1;
+  int ok=(rank==0) ? (fscanf(input_global,par,out)>0) : 1;
   MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
   MPI_Bcast(out,size_of,MPI_BYTE,0,MPI_COMM_WORLD);
   return ok;
