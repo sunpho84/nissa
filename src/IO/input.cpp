@@ -35,13 +35,13 @@ int file_exists(const char *path)
       FILE *f=fopen(path,"r");
       if(f!=NULL)
         {
-	  verbosity_lv2_master_printf("File '%s' exists!\n",path);
+	  verbosity_lv3_master_printf("File '%s' exists!\n",path);
           status=1;
           fclose(f);
         }
       else
         {
-	  verbosity_lv2_master_printf("File '%s' do not exist!\n",path);
+	  verbosity_lv3_master_printf("File '%s' do not exist!\n",path);
 	  status=0;
 	}
     }
