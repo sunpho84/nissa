@@ -27,7 +27,7 @@ void init_test()
   //allocate stoch field propagator
   eta=nissa_malloc("eta",loc_vol,spin1field);
   phi_fft=nissa_malloc("phi_fft",loc_vol,spin1field);
-  phi_inv=nissa_malloc("phi_inv",loc_vol,spin1field);
+  phi_inv=nissa_malloc("phi_inv",loc_vol+bord_vol,spin1field);
 }
 
 //close the program
@@ -79,6 +79,14 @@ int main(int narg,char **arg)
   
   //invert
   inv_Wilson_gluon_Klein_Gordon_operator(phi_inv,NULL,gl,1000000,5,1.e-26,eta);
+  
+  //compute value of the null mode of the invertion
+  spin_put_to_zero(loc_ave);
+  nissa_loc_vol_loop(ivol)
+    spin_summassign(loc_ave,eta[ivol]);
+  MPI_Allreduce(loc_ave,glb_ave,sizeof(spin1field)/sizeof(double),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  master_printf("null mode of the out: %lg\n",glb_ave[0][0]);
+  
   
   //take the squared norm of the difference between the two computed propagators  
   double loc_d=0;

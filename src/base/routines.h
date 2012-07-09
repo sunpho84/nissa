@@ -5,6 +5,7 @@ FILE* open_text_file_for_output(const char *outfile);
 MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
 MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos);
 double glb_reduce_double(double in_loc);
+int glb_reduce_int(int in_loc);
 double lfact(double n);
 double max_double(double a,double b);
 double min_double(double a,double b);

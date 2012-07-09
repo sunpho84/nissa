@@ -36,6 +36,7 @@ tests=$(addprefix tests/, \
 	test_stochastic_qqg_vertex \
 	test_twisted_propagator_stochastic_correction \
 	test_twisted_propagator_correction \
+	test_stochastic_source_null_mode \
 	test_propagator_shift \
 	test_Fourier_transform \
 	test_meson_self_energy_stochastic_correction \
