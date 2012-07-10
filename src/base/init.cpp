@@ -90,7 +90,9 @@ void init_nissa()
   nissa_verbosity=nissa_default_verbosity;
   nissa_use_128_bit_precision=nissa_default_use_128_bit_precision;
   nissa_use_eo_geom=nissa_default_use_eo_geom;
-  
+  nissa_warn_if_not_disallocated=nissa_default_warn_if_not_disallocated;
+  nissa_warn_if_not_communicated=nissa_default_warn_if_not_communicated;
+
   //read the configuration file, if present
   read_nissa_config_file();
   

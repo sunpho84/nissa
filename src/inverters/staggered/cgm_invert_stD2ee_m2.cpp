@@ -1,4 +1,13 @@
-#pragma once
+#include <math.h>
+
+#include "../../new_types/new_types_definitions.h"
+#include "../../base/global_variables.h"
+#include "../../base/communicate.h"
+#include "../../base/routines.h"
+#include "../../base/vectors.h"
+#include "../../base/debug.h"
+#include "../../linalgs/linalgs.h"
+#include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
 
 #define basetype color
 #define ndoubles_per_site 6

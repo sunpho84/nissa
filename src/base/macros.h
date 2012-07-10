@@ -37,6 +37,8 @@
 #define nissa_default_verbosity 2
 #define nissa_default_use_eo_geom 1
 #define nissa_default_use_128_bit_precision 0
+#define nissa_default_warn_if_not_disallocated 1
+#define nissa_default_warn_if_not_communicated 0
 
 //Pi
 #ifndef M_PI

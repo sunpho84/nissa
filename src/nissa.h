@@ -17,6 +17,17 @@
  #include "base/bgp_instructions.h"
 #endif
 
+#include "hmc/backfield.h"
+#include "hmc/gauge/wilson_force.h"
+#include "hmc/momenta/momenta_action.h"
+#include "hmc/momenta/momenta_generation.h"
+#include "hmc/rootst_eoimpr/rootst_eoimpr_action.h"
+#include "hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.h"
+#include "hmc/rootst_eoimpr/rootst_eoimpr_force.h"
+#include "hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.h"
+#include "hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.h"
+#include "hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.h"
+
 #include "IO/checksum.h"
 #include "IO/endianess.h"
 #include "IO/ILDG_File.h"

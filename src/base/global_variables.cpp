@@ -54,6 +54,8 @@ EXTERN double tot_nissa_comm_time;
 //verbosity
 EXTERN int verb_call;
 EXTERN int nissa_verbosity;
+EXTERN int nissa_warn_if_not_disallocated;
+EXTERN int nissa_warn_if_not_communicated;
 
 //128 bit precision
 EXTERN int nissa_use_128_bit_precision;

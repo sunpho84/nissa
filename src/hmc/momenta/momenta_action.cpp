@@ -1,4 +1,7 @@
-#pragma once
+#include "../../base/global_variables.h"
+#include "../../base/routines.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../new_types/su3.h"
 
 //compute the action of the momenta
 double momenta_action(quad_su3 **H)
@@ -12,8 +15,7 @@ double momenta_action(quad_su3 **H)
 	loc_action+=real_part_of_trace_su3_prod_su3_dag(H[par][ivol][mu],H[par][ivol][mu]);
   
   //global reducton
-  double glb_action;
-  MPI_Allreduce(&loc_action,&glb_action,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  double glb_action=glb_reduce_double(loc_action);
 
   return glb_action*0.5;  
 }

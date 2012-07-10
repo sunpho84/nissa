@@ -1,3 +1,5 @@
+#include <math.h>
+
 #include "nissa.h"
 
 FILE *obs_file;
@@ -210,7 +212,7 @@ int main(int narg,char **arg)
     }
   
   //write the final conf
-  paste_eo_parts_and_write_ildg_gauge_conf(out_conf_path,conf);
+  paste_eo_parts_and_write_ildg_gauge_conf(out_conf_path,conf,64);
   
   ///////////////////////////////////////
   
