@@ -1,0 +1,24 @@
+TODO-LIST (not in relevance order)
+
+-add fully the chemical potentials and magnetic fields, since they are not defined
+ in particular:
+ *define the u1 fields in the main file
+ *check that no additional operation is needed when applying dirac operator and computing force
+
+-decide whether to move staggered phase and/or boundary conditions into u1 fields
+
+-decide how to choose the number of pseudo-fermions
+
+-add self-tuning algorithm for number of MD steps
+
+-improve eigenvalues determination
+
+-add fermionic observables
+
+-add polyakov loop and topology measurement
+
+-add multi-step gauge integrator
+
+-add possibility to save produced confs
+
+-keep trace of trajectory id in the run

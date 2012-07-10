@@ -83,6 +83,9 @@ EXTERN MPI_Datatype MPI_EV_SPINCOLOR_BORDS_SEND_Z[2],MPI_OD_SPINCOLOR_BORDS_SEND
 
 EXTERN int bord_offset_eo[2][8]; //eo, 8 dirs
 
+//use async communication
+EXTERN int nissa_use_async_communications;
+
 //size of the edges along the 6 directions
 EXTERN int edge_dir_vol[6],edge_offset[6];
 EXTERN int edge_vol,edge_volh;

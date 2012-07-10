@@ -46,6 +46,8 @@ At the moment, the compilation is still partially home-made.
 Run the script "configure" and follow the instructions, then use the "make" command.
 In case of need adapt the "Makefile" to your needs.
 
+If you want to compile on BG/P add "-qarch -O2 -DBGP" as CGFLAS in the configure. 
+
 
 Directory structure
 -------------------

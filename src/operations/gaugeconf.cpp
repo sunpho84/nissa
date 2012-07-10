@@ -159,3 +159,16 @@ void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbor
       put_boundaries_conditions(conf,diff_theta,putonbords,putonedges);
     }
 }
+
+//generate an identical conf
+void generate_cold_eo_conf(quad_su3 **conf)
+{
+  for(int par=0;par<2;par++)
+    {
+      nissa_loc_volh_loop(ivol)
+        for(int mu=0;mu<4;mu++)
+          su3_put_to_id(conf[par][ivol][mu]);
+
+      set_borders_invalid(conf[par]);
+    }
+}

@@ -3,10 +3,8 @@
 #include "nissa.h"
 
 int main(int narg,char **arg)
-{
-
-  init_nissa();
-
+{  init_nissa();
+  
   if(rank==0)
     {
       //check of the first 0-5 gamma
@@ -144,8 +142,9 @@ int main(int narg,char **arg)
       printf("(b) obtained by making explicite computations\n");
       print_dirac(&gamma_Pminus);
       printf("\n");
-
     }
   
+  close_nissa();
+
   return 0;
 }

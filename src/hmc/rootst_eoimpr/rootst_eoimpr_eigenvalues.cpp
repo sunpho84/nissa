@@ -16,17 +16,14 @@
 //compute the norm2 of an even color vector
 double eo_color_norm2(color *v)
 {
-  double loc_norm2=0;
+  double norm2=0;
   
   nissa_loc_volh_loop(ivol)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
-	loc_norm2+=v[ivol][ic][ri]*v[ivol][ic][ri];
+	norm2+=v[ivol][ic][ri]*v[ivol][ic][ri];
   
-  double norm2;
-  MPI_Allreduce(&loc_norm2,&norm2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  
-  return norm2;
+  return glb_reduce_double(norm2);
 }
 
 //put the passed vector to the required norm

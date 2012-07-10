@@ -9,6 +9,7 @@ int glb_reduce_int(int in_loc);
 double lfact(double n);
 double max_double(double a,double b);
 double min_double(double a,double b);
+int metro_test(double arg);
 double sqr(double a);
 double take_time();
 int create_dir(char *path);

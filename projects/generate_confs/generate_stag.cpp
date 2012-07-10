@@ -1,18 +1,32 @@
+/*
+  This program can be used to generate gauge configurations
+  according to the rooted-staggered action in presence of 
+  electromagnetic fields and/or imaginary chemical potentials.
+  
+  The molecular dynamic routines are in the file:
+   ../../src/hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.cpp
+*/
+
 #include <math.h>
 
 #include "nissa.h"
 
+//handle for observables
 FILE *obs_file;
 
+//input and output path for confs
 char in_conf_path[1024];
 char out_conf_path[1024];
 
+//new and old conf
 quad_su3 *new_conf[2];
 quad_su3 *conf[2];
 
+//structures containing parameters
 theory_pars physic;
 evol_pars simul;
 
+//number of traj
 int nreq_traj;
 
 //initialize the simulation
@@ -23,7 +37,7 @@ void init_simulation(char *path)
   //open input file
   open_input(path);
   
-  //Init the MPI grid 
+  //init the grid 
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
@@ -40,6 +54,10 @@ void init_simulation(char *path)
   
   //read the number of trajectory to evolve
   read_str_int("NTrajectory",&nreq_traj);
+  
+  //read the seed
+  int seed;
+  read_str_int("Seed",&seed);
   
   //read the number of undegenerate flavs
   read_str_int("NFlavs",&(physic.nflavs));
@@ -86,22 +104,14 @@ void init_simulation(char *path)
   //////////////////////// initialize stuff ////////////////////
   
   //initialize the local random generators
-  start_loc_rnd_gen(0);
+  start_loc_rnd_gen(seed);
   
   //initialize background field to id
   for(int iflav=0;iflav<physic.nflavs;iflav++)
     {
       init_backfield_to_id(physic.backfield[iflav]);
+      //to be added magnetic fields and ch.pot
     }
-}
-
-//perform the metropolis test on passed value
-int metro_test(double arg)
-{
-  double tresh=(arg<=0) ? 1 : exp(-arg);
-  double toss=rnd_get_unif(&glb_rnd_gen,0,1);
-  
-  return toss<tresh;
 }
 
 //finalize everything
@@ -137,37 +147,20 @@ int rhmc_trajectory(int test_traj)
   //decide if to accept
   int acc=1;
   if(!test_traj) master_printf("(no test performed) ");
-  else  acc=metro_test(diff_act);
-
+  else acc=metro_test(diff_act);
+  
   //copy conf
   if(acc)
     {
       master_printf("accetpted.\n");
-      for(int par=0;par<2;par++)
-	{
-	  memcpy(conf[par],new_conf[par],loc_volh*sizeof(quad_su3));
-	  set_borders_invalid(conf[par]);
-	}
+      for(int par=0;par<2;par++) vector_copy(conf,new_conf);
     }
   else master_printf("rejected.\n");
   
   return acc;
 }
 
-//generate an identical conf
-void generate_cold_eo_conf(quad_su3 **conf)
-{
-  for(int par=0;par<2;par++)
-    {
-      nissa_loc_volh_loop(ivol)
-	for(int mu=0;mu<4;mu++)
-	  su3_put_to_id(conf[par][ivol][mu]);
-      
-      set_borders_invalid(conf[par]);
-    }
-}
-
-//write gauge measures
+//write measures
 void measurements(quad_su3 **conf,int iconf,int acc)
 {
   master_fprintf(obs_file,"%d %d %lg\n",iconf,acc,global_plaquette_eo_conf(conf));
@@ -177,7 +170,7 @@ int main(int narg,char **arg)
 {
   int skip_test=0;
   
-  //basic mpi initialization
+  //basic initialization
   init_nissa();
   
   if(narg<2) crash("Use: %s input_file",arg[0]);
@@ -202,12 +195,15 @@ int main(int narg,char **arg)
   //evolve for the required number of traj
   for(int itraj=0;itraj<nreq_traj;itraj++)
     {
-      int perform_test=((skip_test--)<=0);
-      
+      // 0) header
       master_printf("Starting trajectory %d\n",itraj);
       master_printf("-----------------------\n");
       
+      // 1) integrate
+      int perform_test=((skip_test--)<=0);      
       int acc=rhmc_trajectory(perform_test);
+      
+      // 2) measure
       measurements(conf,itraj,acc);
     }
   

@@ -72,7 +72,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       iter++;
       
       //     -s=Ap
-      if(nrequest!=0) cgm_finish_communicating_borders(&nrequest,request,p);
+      if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(&nrequest,request,p);
       apply_operator(s,cgm_operator_parameters,shift[0],p);
       
       //     -pap=(p,s)=(p,Ap)
@@ -113,7 +113,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,bulk_vol*ndoubles_per_site);
       
       //start the communications of the border
-      cgm_start_communicating_borders(&nrequest,request,p);
+      if(nissa_use_async_communications) cgm_start_communicating_borders(&nrequest,request,p);
       
       //     calculate 
       //     -alphas=alpha*zfs*betas/zas*beta
