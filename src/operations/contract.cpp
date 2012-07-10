@@ -1,5 +1,4 @@
 #include <math.h>
-#include <string.h>
 
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/complex.h"
@@ -231,7 +230,7 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
 {
   //Allocate a contiguous memory area where to store local results
   complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
-  memset(loc_c,0,sizeof(complex)*ncontr*glb_size[0]);
+  vector_reset(loc_c);//
 
   //Local loop
   spinspin AR,AL;
@@ -300,7 +299,7 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
 {
   //Allocate a contguous memory area where to store local results
   complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
-  memset(loc_c,0,sizeof(complex)*ncontr*glb_size[0]);
+  vector_reset(loc_c);
   
   //Local loop
   nissa_loc_vol_loop(ivol)
@@ -310,9 +309,9 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
       complex ctempR[ncontr];
       complex ctemp[ncontr];
       
-      memset(ctempL,0,sizeof(complex)*ncontr);
-      memset(ctempR,0,sizeof(complex)*ncontr);
-      memset(ctemp,0,sizeof(complex)*ncontr);
+      vector_reset(ctempL);
+      vector_reset(ctempR);
+      vector_reset(ctemp);
       
       for(int icol=0;icol<3;icol++)
 	{
@@ -425,7 +424,7 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
   
   //allocate local buffer
   complex *loc_contr=nissa_malloc("loc3pts",loc_buf_size,complex);
-  memset(loc_contr,0,sizeof(complex)*loc_buf_size);
+  vector_reset(loc_contr);
   
   //remap the operators listinto dirac matrixes, putting g5 to revert second prop
   //and compactifying the source/sink multiplication

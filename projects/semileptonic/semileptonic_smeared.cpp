@@ -577,7 +577,8 @@ void close_semileptonic()
   master_printf("   * %02.2f%s to save correlations\n",contr_save_time*100.0/contr_time,"%");
   
   nissa_free(Pmunu);nissa_free(conf);nissa_free(sme_conf);
-  for(int iprop=0;iprop<npropS0;iprop++){nissa_free(S0[0][iprop]);nissa_free(S0[1][iprop]);nissa_free(S1[iprop]);}
+  for(int iprop=0;iprop<npropS0;iprop++){nissa_free(S0[0][iprop]);nissa_free(S0[1][iprop]);}
+  for(int iprop=0;iprop<npropS1;iprop++) nissa_free(S1[iprop]);
   nissa_free(S0[0]);nissa_free(S0[1]);nissa_free(S1);
   nissa_free(temp_vec[0]);nissa_free(temp_vec[1]);
   nissa_free(ch_prop);nissa_free(sequential_source);

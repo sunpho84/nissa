@@ -15,6 +15,8 @@ int compute_nissa_vect_memory_usage();
 int get_vec_flag(void *v,int flag);
 nissa_vect* get_nissa_vec(void *v);
 void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *type,const char *file,int line);
+void internal_vector_copy(void *a,void *b);
+void internal_vector_reset(void *a);
 void crash_if_borders_not_allocated(void *v);
 void crash_if_edges_not_allocated(void *v);
 void ignore_borders_communications_warning(void *data);

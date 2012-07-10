@@ -53,6 +53,8 @@
 #define nissa_free(a) internal_nissa_free((char**)&a,__FILE__,__LINE__)
 #define crash(...) internal_crash(__LINE__,__FILE__,__VA_ARGS__)
 #define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
+#define vector_copy(a,b) internal_vector_copy((void*)a,(void*)b)
+#define vector_reset(a) internal_vector_reset((void*)a)
 
 #define master_printf(...) master_fprintf(stdout,__VA_ARGS__)
 #define verbosity_master_printf(lv,...) verb_call+=(nissa_verbosity>=lv && master_printf(__VA_ARGS__))
