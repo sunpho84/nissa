@@ -178,6 +178,8 @@ void ILDG_File_read_all(void *data,ILDG_File &file,int nbytes_req)
   
   //padding
   ILDG_File_seek_to_next_eight_multiple(file);  
+  
+  verbosity_lv3_master_printf("record read: %d bytes\n",nbytes_req);
 }
 
 //search next record
@@ -192,9 +194,12 @@ ILDG_header ILDG_File_get_next_record_header(ILDG_File &file)
   if(little_endian)
     {
       uint64s_to_uint64s_changing_endianess(&header.data_length,&header.data_length,1);
+      master_printf("record contains: %lld bytes (better?)\n",header.data_length);
       uint32s_to_uint32s_changing_endianess(&header.magic_no,&header.magic_no,1);
       uint16s_to_uint16s_changing_endianess(&header.version,&header.version,1);
     }
+  
+  verbosity_lv3_master_printf("record contains: %lld bytes\n",header.data_length);
   
   //control the magic number magic number
   if(header.magic_no!=ILDG_MAGIC_NO)
@@ -305,6 +310,8 @@ void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header
     
   //reset mapped types
   unset_mapped_types(scidac_view.etype,scidac_view.ftype);
+  
+  verbosity_lv3_master_printf("ildg data record read: %lld bytes\n",header.data_length);
 }
 
 //read the checksum
@@ -317,13 +324,13 @@ void ILDG_File_read_checksum(checksum check_read,ILDG_File &file)
   if(found)
     {
       uint64_t nbytes=header.data_length;
-      char *mess=(char*)calloc(nbytes+1,sizeof(char));
-      ILDG_File_read_all((void*)mess,file,sizeof(header));
+      char *mess=nissa_malloc("mess",nbytes+1,char);
+      ILDG_File_read_all((void*)mess,file,nbytes);
       
       sscanf(strstr(mess,"<suma>")+6,"%x",&check_read[0]);
       sscanf(strstr(mess,"<sumb>")+6,"%x",&check_read[1]);
       
-      free(mess);
+      nissa_free(mess);
     }
   else check_read[0]=check_read[1]=0;
 }
