@@ -575,6 +575,8 @@ void close_Bk()
   for(int iprop=0;iprop<nprop;iprop++) nissa_free(S[iprop]);
   nissa_free(S);
   nissa_free(temp_vec[1]);nissa_free(temp_vec[0]);
+  nissa_free(so_jnlv);
+  nissa_free(so_jnit);
   
   close_nissa();
 }

@@ -8,6 +8,7 @@
 
 #include "debug.h"
 #include "global_variables.h"
+#include "random.h"
 #include "routines.h"
 #include "vectors.h"
 #include "../new_types/float128.h"
@@ -21,13 +22,22 @@ int min_int(int a,int b)
 int max_int(int a,int b)
 {if(a>b) return a;else return b;}
 
-//take the different with folloeing multiple of eight
+//take the different with following multiple of eight
 MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos)
 {
   MPI_Offset diff=pos%8;
   if(diff!=0) diff=8-diff;
 
   return diff;
+}
+
+//perform the metropolis test on passed value
+int metro_test(double arg)
+{
+  double tresh=(arg<=0) ? 1 : exp(-arg);
+  double toss=rnd_get_unif(&glb_rnd_gen,0,1);
+
+  return toss<tresh;
 }
 
 //ceil to next multiple of eight

@@ -92,7 +92,8 @@ void init_nissa()
   nissa_use_eo_geom=nissa_default_use_eo_geom;
   nissa_warn_if_not_disallocated=nissa_default_warn_if_not_disallocated;
   nissa_warn_if_not_communicated=nissa_default_warn_if_not_communicated;
-
+  nissa_use_async_communications=nissa_default_use_async_communications;
+  
   //read the configuration file, if present
   read_nissa_config_file();
   
