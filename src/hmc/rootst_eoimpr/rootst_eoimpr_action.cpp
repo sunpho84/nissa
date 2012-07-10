@@ -1,4 +1,12 @@
-#pragma once
+#include "../../new_types/new_types_definitions.h"
+#include "../../base/global_variables.h"
+#include "../../base/vectors.h"
+#include "../../base/routines.h"
+#include "../../operations/su3_paths.h"
+#include "../../inverters/staggered/cgm_invert_stD2ee_m2.h"
+
+#include "../backfield.h"
+#include "../momenta/momenta_action.h"
 
 //compute quark action for a set of quark
 double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue)
@@ -22,8 +30,7 @@ double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,colo
     }
   
   //global reducton
-  double glb_action;
-  MPI_Allreduce(&loc_action,&glb_action,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  double glb_action=glb_reduce_double(loc_action);
   
   //free
   nissa_free(chi_e);

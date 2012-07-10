@@ -1,4 +1,13 @@
-#pragma once
+#include "../../base/global_variables.h"
+#include "../../base/routines.h"
+#include "../../base/vectors.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../geometry/geometry_eo.h"
+#include "../../new_types/complex.h"
+#include "../../new_types/su3.h"
+
+#include "rootst_eoimpr_force.h"
+
 
 //unitarize the conf by explicitely inverting it
 void eo_conf_unitarize_explicitely_inverting(quad_su3 **conf)

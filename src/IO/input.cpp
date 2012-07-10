@@ -9,8 +9,10 @@
 #include "../base/global_variables.h"
 #include "../base/routines.h"
 
+//this is input file handle
 FILE *input_global;
 
+//touch a file
 void file_touch(const char *path)
 {
   if(rank==0)
@@ -26,6 +28,7 @@ void file_touch(const char *path)
     }
 }
 
+//check if a file exists
 int file_exists(const char *path)
 {
   int status=1;
@@ -45,7 +48,8 @@ int file_exists(const char *path)
 	  status=0;
 	}
     }
-  
+
+  //broadcast the result
   MPI_Bcast(&status,1,MPI_INT,0,MPI_COMM_WORLD);
   
   return status;
@@ -229,11 +233,21 @@ void read_nissa_config_file()
 {
   char path[1024]="nissa_config";
   
-  const int navail_tag=3;
-  char tag_name[3][100]={"verbosity_lv","use_128_bit_precision","use_eo_geom"};
-  char *tag_addr[3]={(char*)&nissa_verbosity,(char*)&nissa_use_128_bit_precision,(char*)&nissa_use_eo_geom};
-  char tag_type[3][3]={"%d","%d","%d"};
-  char tag_size[3]={4,4,4};
+  const int navail_tag=5;
+  char tag_name[5][100]={
+    "verbosity_lv",
+    "use_128_bit_precision",
+    "use_eo_geom",
+    "nissa_warn_if_not_disallocated",
+    "nissa_warn_if_not_communicated"};
+  char *tag_addr[5]={
+    (char*)&nissa_verbosity,
+    (char*)&nissa_use_128_bit_precision,
+    (char*)&nissa_use_eo_geom,
+    (char*)&nissa_warn_if_not_disallocated,
+    (char*)&nissa_warn_if_not_communicated};
+  char tag_type[5][3]={"%d","%d","%d"};
+  char tag_size[5]={4,4,4,4,4};
   
   if(file_exists(path))
     {

@@ -1,4 +1,15 @@
-#pragma once
+#include "../../base/communicate.h"
+#include "../../base/global_variables.h"
+#include "../../base/routines.h"
+#include "../../base/vectors.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../new_types/su3.h"
+#include "../../new_types/complex.h"
+#include "../../inverters/staggered/cgm_invert_stD2ee_m2.h"
+#include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
+
+#include "../gauge/wilson_force.h"
+#include "../backfield.h"
 
 //Compute the fermionic force the rooted staggered e/o improved theory.
 //Passed conf must NOT contain the backfield.

@@ -1,4 +1,11 @@
-#pragma once
+#include "../../base/global_variables.h"
+#include "../../base/vectors.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../geometry/geometry_eo.h"
+#include "../../new_types/su3.h"
+#include "../../inverters/staggered/cgm_invert_stD2ee_m2.h"
+
+#include "../backfield.h"
 
 //generate pseudo-fermion using color vector generator
 void generate_pseudo_fermion(color *pf,quad_su3 **conf,quad_u1 **u1b,rat_approx *rat,double residue)

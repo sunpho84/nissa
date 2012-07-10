@@ -1,4 +1,17 @@
-#pragma once
+#include <math.h>
+
+#include "../../base/communicate.h"
+#include "../../base/global_variables.h"
+#include "../../base/routines.h"
+#include "../../base/vectors.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../new_types/rat_exp.h"
+#include "../../new_types/su3.h"
+#include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
+
+#include "../backfield.h"
+
+#include "rat_expansion_database.cpp"
 
 //compute the norm2 of an even color vector
 double eo_color_norm2(color *v)

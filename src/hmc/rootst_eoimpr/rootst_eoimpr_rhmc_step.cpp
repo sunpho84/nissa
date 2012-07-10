@@ -1,4 +1,17 @@
-#pragma once
+#include "../../base/global_variables.h"
+#include "../../base/routines.h"
+#include "../../geometry/geometry_eo.h"
+#include "../../base/vectors.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../new_types/rat_exp.h"
+
+#include "../momenta/momenta_generation.h"
+
+#include "rootst_eoimpr_action.h"
+#include "rootst_eoimpr_eigenvalues.h"
+#include "rootst_eoimpr_omelyan_integrator.h"
+#include "rootst_eoimpr_pseudofermions_generation.h"
+#include "rat_expansion_database.cpp"
 
 //perform a full hmc step and return the difference between final and original action
 double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars *physic,evol_pars *simul)
