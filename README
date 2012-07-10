@@ -28,8 +28,9 @@ Creator:       	  Francesco Sanfilippo - francesco.sanfilippo@th.u-psud.fr
 Contributors:	  Mariam Atoui
 	  	  Benoit Blossier
 		  Nuria Carrasco
+		  Silvano Simula
 
-This project is host at http://code.google.com/p/nissa
+This project is host at: http://code.google.com/p/nissa
 
 
 Requirements
@@ -62,3 +63,18 @@ test:          dedicated programs to check the library (inside "nissa" sub-drect
                 and also input files and reference data to check "tools" and "projects" programs
 
 work_in_prog:  scratch area where to develop new programs
+
+
+Copyright
+---------
+
+Nissa is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+Nissa is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License (that you can find in doc/license)
+for more details.

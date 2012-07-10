@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "../../base/global_variables.h"
 #include "../../base/routines.h"
 #include "../../geometry/geometry_eo.h"
