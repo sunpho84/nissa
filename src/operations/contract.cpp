@@ -230,7 +230,7 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
 {
   //Allocate a contiguous memory area where to store local results
   complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
-  vector_reset(loc_c);//
+  vector_reset(loc_c);
 
   //Local loop
   spinspin AR,AL;
@@ -308,10 +308,9 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
       complex ctempL[ncontr];
       complex ctempR[ncontr];
       complex ctemp[ncontr];
-      
-      vector_reset(ctempL);
-      vector_reset(ctempR);
-      vector_reset(ctemp);
+      memset(ctempL,0,ncontr*sizeof(complex));
+      memset(ctempR,0,ncontr*sizeof(complex));
+      memset(ctemp,0,ncontr*sizeof(complex));
       
       for(int icol=0;icol<3;icol++)
 	{
