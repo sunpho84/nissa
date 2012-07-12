@@ -96,7 +96,7 @@ void count_corr(char *path)
   int combo_size=ncorr_type*2*T*(njack+1)*sizeof(double);
   
   //compute the total amount of memory needed
-  int max_mem_needed=ncombo*combo_size;
+  uint64_t max_mem_needed=(uint64_t)ncombo*combo_size;
   
   printf("max memory needed: %d\n",max_mem_needed);
   printf("max memory usable: %llu\n",max_mem_usable);
