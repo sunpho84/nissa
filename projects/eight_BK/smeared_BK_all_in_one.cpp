@@ -267,19 +267,29 @@ int read_conf_parameters()
 //check if there is enough residual time for another conf
 int check_residual_time()
 {
-  double spent_time=take_time()+tot_time;
-  double remaining_time=wall_time-spent_time;
-  double ave_time=(nanalized_conf>0) ? (spent_time/nanalized_conf) : 0;
-  double pess_time=ave_time*1.1;
+  int enough_time;
   
-  int enough_time=(igauge_conf<ngauge_conf) ? (remaining_time>pess_time) : 1;
-  
-  master_printf("\n");
-  master_printf("-average running time: %lg secs per conf,\n",ave_time);
-  master_printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
-  master_printf("-remaining time: %lg secs per conf\n",remaining_time);
-  if(!enough_time) master_printf("Not enough time for another conf, so exiting.\n");
-  
+  if(igauge_conf<ngauge_conf)
+    {
+      double spent_time=take_time()+tot_time;
+      double remaining_time=wall_time-spent_time;
+      double ave_time=(nanalized_conf>0) ? (spent_time/nanalized_conf) : 0;
+      double pess_time=ave_time*1.1;
+      
+      enough_time=remaining_time>pess_time;
+      
+      master_printf("\n");
+      master_printf("-average running time: %lg secs per conf,\n",ave_time);
+      master_printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
+      master_printf("-remaining time: %lg secs per conf\n",remaining_time);
+      if(!enough_time) master_printf("Not enough time for another conf, so exiting.\n");
+    }
+  else
+    {
+      master_printf("Finished all the confs, so exiting.\n");
+      enough_time=0;
+    }
+
   return enough_time;
 }
 
@@ -483,19 +493,24 @@ void calculate_all_contractions()
     //loop over smearing levels of the sink
     for(int si_jlv=0;si_jlv<si_jnlv;si_jlv++)
       {
-	//smear all the propagators on the sink
+	//smear all the propagators of iwall on the sink
 	int si_jnit_to_app=((si_jlv==0) ? si_jnit[si_jlv] : (si_jnit[si_jlv]-si_jnit[si_jlv-1])); 
 	if(si_jnit_to_app!=0)
-	  for(int iprop=0;iprop<nprop;iprop++)
-	    for(int id=0;id<4;id++)
-	      {
-		//use source as temporary vector
-		nissa_loc_vol_loop(ivol) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
-		set_borders_invalid(source);
-		verbosity_lv1_master_printf("Prop %d, id=%d ",iprop,id);
-		jacobi_smearing(source,source,sme_conf,jacobi_kappa,si_jnit_to_app);
-		nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
-	      }
+	  for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
+	    for(int im=0;im<nmass;im++)
+	      for(int r=0;r<2;r++)
+		{
+		  int iprop=iS(iwall,so_jlv,im,r);
+		  for(int id=0;id<4;id++)
+		    {
+		      //use source as temporary vector
+		      nissa_loc_vol_loop(ivol) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
+		      set_borders_invalid(source);
+		      verbosity_lv1_master_printf("Prop %d, id=%d ",iprop,id);
+		      jacobi_smearing(source,source,sme_conf,jacobi_kappa,si_jnit_to_app);
+		      nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
+		    }
+		}
 	
 	//loop over all source smearing level
 	for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
@@ -503,7 +518,7 @@ void calculate_all_contractions()
 	    char path_2pts[1024];
 	    sprintf(path_2pts,"%s/two_points_w%s_%02d_%02d",outfolder,wall_name[iwall],so_jnit[iwall][so_jlv],si_jnit[si_jlv]);
 	    FILE *fout_2pts=open_text_file_for_output(path_2pts);
-	    
+	    master_printf("opening file %s\n",path_2pts);
 	    //loop over all the combos
 	    for(int im2=0;im2<nmass;im2++)
 	      for(int r2=0;r2<2;r2++)
@@ -519,7 +534,7 @@ void calculate_all_contractions()
 		      meson_two_points(S[iprop1],S[iprop2]);
 		      
 		      print_two_points_contractions_to_file(fout_2pts);
-		      
+		      master_printf("printing contractions between %d and %d\n",iprop1,iprop2);
 		      ntot_contr_2pts+=ncontr_2pts;
 		    }
 	    if(rank==0) fclose(fout_2pts);
