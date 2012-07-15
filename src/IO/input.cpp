@@ -239,8 +239,8 @@ void read_nissa_config_file()
     "use_128_bit_precision",
     "use_eo_geom",
     "use_async_communications",
-    "nissa_warn_if_not_disallocated",
-    "nissa_warn_if_not_communicated"};
+    "warn_if_not_disallocated",
+    "warn_if_not_communicated"};
   char *tag_addr[6]={
     (char*)&nissa_verbosity,
     (char*)&nissa_use_128_bit_precision,
