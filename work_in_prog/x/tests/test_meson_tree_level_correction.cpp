@@ -68,7 +68,7 @@ int main(int narg,char **arg)
       spinspin t;
       compute_x_space_propagator_to_sink_from_source(t,prop,qu.bc,glb_coord_of_loclx[0],glb_coord_of_loclx[P]);
       spinspin pr;
-      unsafe_spinspin_spinspin_prod(pr,prop[P],t);
+      unsafe_spinspin_prod_spinspin(pr,prop[P],t);
       complex c;
       trace_spinspin(c,pr);
       master_printf("%d %lg %lg\n",P,corr[P][0][0],c[0]);

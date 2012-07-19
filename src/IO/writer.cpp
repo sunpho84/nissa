@@ -36,11 +36,12 @@ void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nb
     else doubles_to_floats_same_endianess((float*)buffer,(double*)data,nreals_loc);
   
   //write
-  ILDG_File_write_ildg_data_all(file,data,nbytes_per_site,header_message);
+  ILDG_File_write_ildg_data_all(file,buffer,nbytes_per_site,header_message);
   
   //append the checksum
   checksum check;
   checksum_compute_ildg_data(check,buffer,nbytes_per_site);
+  
   ILDG_File_write_checksum(file,check);
   
   //delete the swapped data, if created

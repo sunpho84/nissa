@@ -194,12 +194,10 @@ ILDG_header ILDG_File_get_next_record_header(ILDG_File &file)
   if(little_endian)
     {
       uint64s_to_uint64s_changing_endianess(&header.data_length,&header.data_length,1);
-      master_printf("record contains: %lld bytes (better?)\n",header.data_length);
+      master_printf("record contains: %lld bytes\n",header.data_length);
       uint32s_to_uint32s_changing_endianess(&header.magic_no,&header.magic_no,1);
       uint16s_to_uint16s_changing_endianess(&header.version,&header.version,1);
     }
-  
-  verbosity_lv3_master_printf("record contains: %lld bytes\n",header.data_length);
   
   //control the magic number magic number
   if(header.magic_no!=ILDG_MAGIC_NO)
@@ -391,7 +389,7 @@ void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *te
   ILDG_File_write_record_header(file,header);
   
   //write the text
-  ILDG_File_master_write(file,(void*)text_out,1);
+  ILDG_File_master_write(file,(void*)text_out,text_len);
   
   nissa_free(text_out);
 }

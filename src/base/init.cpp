@@ -246,6 +246,8 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 }
 
 //initialize MPI grid
+//if you need non-homogeneus glb_size[i] pass L=T=0 and
+//set glb_size before calling the routine
 void init_grid(int T,int L)
 {
   //take initial time
@@ -256,8 +258,11 @@ void init_grid(int T,int L)
   nissa_grid_inited=1;
   
   //set the volume
-  glb_size[0]=T;
-  glb_size[3]=glb_size[2]=glb_size[1]=L;
+  if(T!=0 && L!=0)
+    {
+      glb_size[0]=T;
+      glb_size[3]=glb_size[2]=glb_size[1]=L;
+    }
   
   //broadcast the global sizes
   MPI_Bcast(glb_size,4,MPI_INT,0,MPI_COMM_WORLD);

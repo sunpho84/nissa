@@ -29,6 +29,7 @@ tools=$(addprefix tools/, \
 	clusterize2 \
 	endianess_check/endianess_check \
 	print_gamma/gamma_test \
+	print_gamma/gamma_comm \
 	unitarity_check/unitarity_check \
 	meson_2pts/meson_2pts \
 	meson_2pts/meson_2pts_point_source \

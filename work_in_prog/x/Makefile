@@ -18,7 +18,7 @@ objects=$(addprefix src/, \
 	$(addprefix inverters/, cg_eoprec_twisted_free_operator cg_Wilson_gluon_operator) \
 	$(addprefix operators/, Wilson_gluon_Klein_Gordon_operator twisted_Dirac_eoprec_operator) \
 	$(addprefix propagators/, twisted_propagator twisted_propagator_g2_corr Wilson_gluon_propagator tlSym_gluon_propagator) \
-	$(addprefix routines/, correlations derivatives fourier read_and_write shift) \
+	$(addprefix routines/, bmp correlations derivatives fourier read_and_write shift) \
 	$(addprefix stochastic/, stochastic_source stochastic_tlSym_gluon_propagator stochastic_twisted_propagator) \
 	$(addprefix types/, types_routines) \
 	$(addprefix vertex/, x_space_stochastic_qqg_vertex))
@@ -42,6 +42,7 @@ tests=$(addprefix tests/, \
 	test_meson_self_energy_stochastic_correction \
 	test_meson_exchange_correction \
 	test_meson_tree_level_correction \
+	test_nazario \
 )
 
 #full programs
@@ -50,6 +51,7 @@ progs=$(addprefix progs/, \
 	compute_self_energy_corrections \
 	compute_tadpole_corrections \
 	average_corr \
+	bmp_scramble \
 	combine \
 )
 

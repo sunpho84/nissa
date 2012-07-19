@@ -26,12 +26,12 @@
 void summ_the_exchange_contributionA(corr16 corr,spinspin OB,spinspin pB,spinspin BX,spinspin XA,spinspin pA,spinspin AO,complex AB,double w)
 {
   spinspin pO,XO; //upper line
-  unsafe_spinspin_spinspin_prod(pO, pA,AO);
-  unsafe_spinspin_spinspin_prod(XO, XA,pO);
+  unsafe_spinspin_prod_spinspin(pO, pA,AO);
+  unsafe_spinspin_prod_spinspin(XO, XA,pO);
   
   spinspin pX,OX; //lower line
-  unsafe_spinspin_spinspin_prod(pX, pB,BX);
-  unsafe_spinspin_spinspin_prod(OX, OB,pX);
+  unsafe_spinspin_prod_spinspin(pX, pB,BX);
+  unsafe_spinspin_prod_spinspin(OX, OB,pX);
   
   //no debug: commented product by AB
   complex wAB;
@@ -45,8 +45,8 @@ void summ_the_exchange_contributionA(corr16 corr,spinspin OB,spinspin pB,spinspi
   for(int ig=0;ig<16;ig++)
     {
       spinspin GOX,GXO_AB;
-      spinspin_dirac_spinspin_prod(GOX,base_gamma+ig,OX);
-      spinspin_dirac_spinspin_prod(GXO_AB,base_gamma+ig,XO_AB);
+      unsafe_dirac_prod_spinspin(GOX,base_gamma+ig,OX);
+      unsafe_dirac_prod_spinspin(GXO_AB,base_gamma+ig,XO_AB);
       summ_the_trace_prod_spinspins(corr[ig],GOX,GXO_AB);
     }
 }
@@ -111,12 +111,12 @@ void compute_meson_exchange_correction_analyticallyA(corr16 *corr,quark_info qu,
 void summ_the_exchange_contributionB(corr16 corr,spinspin XB,spinspin pB,spinspin BO,spinspin XA,spinspin pA,spinspin AO,complex AB,double w)
 {
   spinspin pO_up,XO_up; //upper line
-  unsafe_spinspin_spinspin_prod(pO_up, pA,AO);
-  unsafe_spinspin_spinspin_prod(XO_up, XA,pO_up);
+  unsafe_spinspin_prod_spinspin(pO_up, pA,AO);
+  unsafe_spinspin_prod_spinspin(XO_up, XA,pO_up);
   
   spinspin pO_dw,XO_dw; //lower line
-  unsafe_spinspin_spinspin_prod(pO_dw, pB,BO);
-  unsafe_spinspin_spinspin_prod(XO_dw, XB,pO_dw);
+  unsafe_spinspin_prod_spinspin(pO_dw, pB,BO);
+  unsafe_spinspin_prod_spinspin(XO_dw, XB,pO_dw);
   
   spinspin OX_dw; //revert lower line
   unsafe_spinspin_hermitian(OX_dw,XO_dw);
@@ -131,13 +131,13 @@ void summ_the_exchange_contributionB(corr16 corr,spinspin XB,spinspin pB,spinspi
     {
       //no debug: comment prodcut by wAB
       spinspin GOX_dw;
-      spinspin_dirac_spinspin_prod(GOX_dw,base_gamma+ig,OX_dw);
+      unsafe_dirac_prod_spinspin(GOX_dw,base_gamma+ig,OX_dw);
       
       spinspin GXO_up;
-      spinspin_dirac_spinspin_prod(GXO_up,base_gamma+ig,XO_up);
+      unsafe_dirac_prod_spinspin(GXO_up,base_gamma+ig,XO_up);
       
       spinspin t;
-      unsafe_spinspin_spinspin_prod(t,GXO_up,GOX_dw);
+      unsafe_spinspin_prod_spinspin(t,GXO_up,GOX_dw);
       complex c;
       trace_spinspin(c,t);
       complex_summ_the_prod(corr[ig],c,wAB);
@@ -255,12 +255,12 @@ void compute_meson_exchange_correction_analyticallyC(corr16 *corr,quark_info qu,
 	      mom_space_qq_vertex_function(vnu,site_comb(q,+1,r,+1),qu,nu);
 	      
 	      spinspin up;
-	      unsafe_spinspin_spinspin_prod(up,vmu,q_prop[ppq]);
-	      safe_spinspin_spinspin_prod(up,q_prop[ppr],up);
+	      unsafe_spinspin_prod_spinspin(up,vmu,q_prop[ppq]);
+	      safe_spinspin_prod_spinspin(up,q_prop[ppr],up);
 	      
 	      spinspin dw;
-	      unsafe_spinspin_spinspin_prod(dw,vnu,q_prop[r]);
-	      safe_spinspin_spinspin_prod(dw,q_prop[q],dw);
+	      unsafe_spinspin_prod_spinspin(dw,vnu,q_prop[r]);
+	      safe_spinspin_prod_spinspin(dw,q_prop[q],dw);
 	      
 	      spinspin up_w;
 	      unsafe_spinspin_complex_prod(up_w,up,g_prop[rmq][mu][nu]);
@@ -268,7 +268,7 @@ void compute_meson_exchange_correction_analyticallyC(corr16 *corr,quark_info qu,
 	      for(int ig=0;ig<16;ig++)
 		{
 		  spinspin gup_w,gupg_w;
-		  spinspin_dirac_spinspin_prod(gup_w,base_gamma+ig,up_w);
+		  unsafe_dirac_prod_spinspin(gup_w,base_gamma+ig,up_w);
 		  safe_spinspin_prod_dirac(gupg_w,gup_w,base_gamma+ig);
 		  summ_the_trace_prod_spinspins(corr[p][ig],gupg_w,dw);
 		}

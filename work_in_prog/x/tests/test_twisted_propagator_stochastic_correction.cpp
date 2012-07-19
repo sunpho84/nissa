@@ -63,8 +63,8 @@ void summ_the_stoch_contribution(spinspin *osi,spinspin *q,spin1field *phi,spin1
     unsafe_complex_conj2_prod(g,phi[ivol][nu],eta[0][mu]);
     
     spinspin t;
-    unsafe_spinspin_spinspin_prod(t,q[ivol],oso[mu]);
-    safe_spinspin_spinspin_prod(t,osi[nu],t);
+    unsafe_spinspin_prod_spinspin(t,q[ivol],oso[mu]);
+    safe_spinspin_prod_spinspin(t,osi[nu],t);
     spinspin_prod_double(t,t,-sign/4);
     spinspin_summ_the_complex_prod(d2_stoch_corr[ivol],t,g);
   }

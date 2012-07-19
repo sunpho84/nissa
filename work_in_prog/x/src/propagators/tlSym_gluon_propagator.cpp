@@ -97,7 +97,7 @@ void multiply_mom_space_tlSym_gluon_propagator(spin1field *out,spin1field *in,gl
     {
       spin1prop prop;
       mom_space_tlSym_gluon_propagator_of_imom(prop,gl,imom);
-      safe_spinspin_spin_prod(out[imom],prop,in[imom]);
+      safe_spinspin_prod_spin(out[imom],prop,in[imom]);
     }
   set_borders_invalid(out);
 }
@@ -109,7 +109,7 @@ void multiply_x_space_tlSym_gluon_propagator_by_fft(spin1prop *out,spin1prop *in
     {
       spin1prop prop;
       mom_space_tlSym_gluon_propagator_of_imom(prop,gl,imom);
-      safe_spinspin_spinspin_prod(out[imom],prop,out[imom]);
+      safe_spinspin_prod_spinspin(out[imom],prop,out[imom]);
     }
   pass_spin1prop_from_mom_to_x_space(out,in,gl.bc);
   set_borders_invalid(out);

@@ -13,8 +13,8 @@ void summ_the_contribution_of_self_energy_twisted_diagram_in_x_space(spinspin *q
   nissa_loc_vol_loop(ivol)
     {
       spinspin t;
-      unsafe_spinspin_spinspin_prod(t,q[ivol],oso[mu]);
-      safe_spinspin_spinspin_prod(t,osi[nu],t);
+      unsafe_spinspin_prod_spinspin(t,q[ivol],oso[mu]);
+      safe_spinspin_prod_spinspin(t,osi[nu],t);
       spinspin_prod_double(t,t,weight);
       spinspin_summ_the_complex_prod(q_out[ivol],t,g[ivol][nu][mu]);
     }
@@ -117,8 +117,8 @@ void compute_self_energy_twisted_diagram_in_mom_space(spinspin *q_out,spinspin *
 	  for(int nu=0;nu<4;nu++)
 	    {
 	      spinspin temp;
-	      unsafe_spinspin_spinspin_prod(temp,w[mu],q_prop[ir]);
-	      safe_spinspin_spinspin_prod(temp,temp,w[nu]);
+	      unsafe_spinspin_prod_spinspin(temp,w[mu],q_prop[ir]);
+	      safe_spinspin_prod_spinspin(temp,temp,w[nu]);
 	      spinspin_summ_the_complex_prod(q_out[ip],temp,g_prop[iq][mu][nu]);
 	    }
       }
@@ -152,8 +152,8 @@ void compute_self_energy_twisted_propagator_in_x_space(spinspin *q_out,quark_inf
   {
     spinspin s,t;
     mom_space_twisted_propagator_of_imom(s,qu,imom);
-    unsafe_spinspin_spinspin_prod(t,q_out[imom],s);
-    unsafe_spinspin_spinspin_prod(q_out[imom],s,t);
+    unsafe_spinspin_prod_spinspin(t,q_out[imom],s);
+    unsafe_spinspin_prod_spinspin(q_out[imom],s,t);
     spinspin_prodassign_double(q_out[imom],glb_vol2);
   }
   
@@ -186,7 +186,7 @@ void compute_self_energy_twisted_propagator_in_x_space_tough_way(spinspin *q_out
 	  compute_x_space_propagator_to_sink_from_source(qb,q_prop,qu.bc,glb_coord_of_loclx[B],glb_coord_of_loclx[0]);
 	  
 	  spinspin siqb;
-	  unsafe_spinspin_spinspin_prod(siqb,si,qb);
+	  unsafe_spinspin_prod_spinspin(siqb,si,qb);
 	  spinspin_summ_the_spinspin_prod(q_out[iout],qa,siqb);
 	}
   }

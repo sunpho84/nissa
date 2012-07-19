@@ -14,13 +14,13 @@
  #include "../base/bgp_instructions.h"
 #endif
 
-//Local trace of the product of gamma1 * spinspin1^dag * gamma2 * spinspin2
+//Tr[g1 * s1^dag * g2 * s2], useful for mesons 2 points
 void site_trace_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac_matr *g2,spinspin s2)
 {
   spinspin t1,t2;
   
-  spinspin_dirac_spinspindag_prod(t1,g1,s1);
-  spinspin_dirac_spinspin_prod(t2,g2,s2);
+  unsafe_dirac_prod_spinspin_dag(t1,g1,s1);
+  unsafe_dirac_prod_spinspin(t2,g2,s2);
 
   trace_prod_spinspins(c,t1,t2);
 }
@@ -30,13 +30,13 @@ void site_trace_g_sdag_g_s_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac
 {
   spinspin t1,t2,t12,t3,t4,t34;
   
-  spinspin_dirac_spinspindag_prod(t1,g1,s1);
-  spinspin_dirac_spinspin_prod(t2,g2,s2);
-  unsafe_spinspin_spinspin_prod(t12,t1,t2);
+  unsafe_dirac_prod_spinspin_dag(t1,g1,s1);
+  unsafe_dirac_prod_spinspin(t2,g2,s2);
+  unsafe_spinspin_prod_spinspin(t12,t1,t2);
 
-  spinspin_dirac_spinspindag_prod(t3,g3,s3);
-  spinspin_dirac_spinspin_prod(t4,g4,s4);
-  unsafe_spinspin_spinspin_prod(t34,t3,t4);
+  unsafe_dirac_prod_spinspin_dag(t3,g3,s3);
+  unsafe_dirac_prod_spinspin(t4,g4,s4);
+  unsafe_spinspin_prod_spinspin(t34,t3,t4);
   
   trace_prod_spinspins(c,t12,t34);
 }
@@ -51,8 +51,8 @@ void site_trace_g_ccss_dag_g_ccss(complex c,dirac_matr *g1,su3spinspin s1,dirac_
       {
 	spinspin t1,t2;
 	
-	spinspin_dirac_spinspindag_prod(t1,g1,s1[ic2][ic1]);
-	spinspin_dirac_spinspin_prod(t2,g2,s2[ic2][ic1]);
+	unsafe_dirac_prod_spinspin_dag(t1,g1,s1[ic2][ic1]);
+	unsafe_dirac_prod_spinspin(t2,g2,s2[ic2][ic1]);
 	
 	summ_the_trace_prod_spinspins(c,t1,t2);
       }
@@ -241,16 +241,16 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
       for(int icol1=0;icol1<3;icol1++)
 	for(int icol2=0;icol2<3;icol2++)
 	  {
-	    unsafe_spinspin_spinspindag_prod(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
-	    unsafe_spinspin_spinspindag_prod(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
+	    unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
+	    unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
 	    
 	    for(int icontr=0;icontr<ncontr;icontr++)
 	      {
                 complex ctemp;
 		spinspin ALg, ARg;
 		
-                spinspin_dirac_spinspin_prod(ALg,g2R+icontr,AL);
-                spinspin_dirac_spinspin_prod(ARg,g2L+icontr,AR);
+                unsafe_dirac_prod_spinspin(ALg,g2R+icontr,AL);
+                unsafe_dirac_prod_spinspin(ARg,g2L+icontr,AR);
                 trace_prod_spinspins(ctemp,ALg,ARg);
                 complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
 	      }
@@ -316,14 +316,14 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
       for(int icol=0;icol<3;icol++)
 	{
 	  spinspin AL,AR;
-	  unsafe_spinspin_spinspindag_prod(AL,s2L[ivol][icol],s1L[ivol][icol]);
-	  unsafe_spinspin_spinspindag_prod(AR,s2R[ivol][icol],s1R[ivol][icol]);
+	  unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol],s1L[ivol][icol]);
+	  unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol],s1R[ivol][icol]);
 	  for(int icontr=0;icontr<ncontr;icontr++)
 	    {
 	      complex ctempL_color,ctempR_color;
 
-	      trace_prod_dirac_spinspin(ctempL_color,g2R+icontr,AL);
-	      trace_prod_dirac_spinspin(ctempR_color,&(g2L[icontr]),AR);
+	      trace_dirac_prod_spinspin(ctempL_color,g2R+icontr,AL);
+	      trace_dirac_prod_spinspin(ctempR_color,&(g2L[icontr]),AR);
 
 	      complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
 	      complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
@@ -477,10 +477,10 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 	    //bufferize for each point all the propagators multiplied by all required gamma
 	    for(int ip=0;ip<npr[0];ip++)
 	      for(int im=0;im<nind_mult[0];im++)
-		spinspin_dirac_spinspindag_prod(ss[0][ip][im],&(d[0][im]),S0[ip][ivol][ic]);
+		unsafe_dirac_prod_spinspin_dag(ss[0][ip][im],&(d[0][im]),S0[ip][ivol][ic]);
 	    for(int ip=0;ip<npr[1];ip++)
 	      for(int im=0;im<nind_mult[1];im++)
-		spinspin_dirac_spinspin_prod_transp(ss[1][ip][im],&(d[1][im]),S1[ip][ivol][ic]);
+		unsafe_dirac_prod_spinspin(ss[1][ip][im],&(d[1][im]),S1[ip][ivol][ic]);
 	    
 	    int offset=t;
 	    //span all propagator combinations adding the full trace to the local contraction result
