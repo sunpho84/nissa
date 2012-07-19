@@ -143,7 +143,7 @@ int main(int narg,char **arg)
       print_dirac(&gamma_Pminus);
       printf("\n");
     }
-  
+    
   close_nissa();
 
   return 0;

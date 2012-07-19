@@ -128,15 +128,15 @@ void print_spinspin(spinspin s)
 }
 
 //trace of the product with a dirac matr of a spinspin
-void summ_the_trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b)
+void summ_the_trace_dirac_prod_spinspin(complex c,dirac_matr *a,spinspin b)
 {
   for(int id=0;id<4;id++)
     complex_summ_the_prod(c,a->entr[id],b[a->pos[id]][id]);
 }
-void trace_prod_dirac_spinspin(complex c,dirac_matr *a,spinspin b)
+void trace_dirac_prod_spinspin(complex c,dirac_matr *a,spinspin b)
 {
   c[0]=c[1]=0;
-  summ_the_trace_prod_dirac_spinspin(c,a,b);
+  summ_the_trace_dirac_prod_spinspin(c,a,b);
 }
 
 void summ_the_trace_spinspin(complex c,spinspin a)
@@ -148,22 +148,22 @@ void trace_spinspin(complex c,spinspin a)
 }
 
 //product of two spinspins
-void spinspin_summ_the_spinspindag_prod(spinspin out,spinspin a,spinspin b)
+void spinspin_summ_the_spinspin_dag_prod(spinspin out,spinspin a,spinspin b)
 {
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
       for(int id=0;id<4;id++)
 	complex_summ_the_conj2_prod(out[id1][id2],a[id1][id],b[id2][id]);
 }
-void unsafe_spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b)
+void unsafe_spinspin_prod_spinspin_dag(spinspin out,spinspin a,spinspin b)
 {
   memset(out,0,sizeof(spinspin));
-  spinspin_summ_the_spinspindag_prod(out,a,b);
+  spinspin_summ_the_spinspin_dag_prod(out,a,b);
 }
-void safe_spinspin_spinspindag_prod(spinspin out,spinspin a,spinspin b)
+void safe_spinspin_prod_spinspin_dag(spinspin out,spinspin a,spinspin b)
 {
   spinspin c;
-  unsafe_spinspin_spinspindag_prod(c,a,b);
+  unsafe_spinspin_prod_spinspin_dag(c,a,b);
   memcpy(out,c,sizeof(spinspin));
 }
 void spinspin_summ_the_spinspin_prod(spinspin out,spinspin a,spinspin b)
@@ -173,15 +173,15 @@ void spinspin_summ_the_spinspin_prod(spinspin out,spinspin a,spinspin b)
       for(int id=0;id<4;id++)
 	complex_summ_the_prod(out[id1][id2],a[id1][id],b[id][id2]);
 }
-void unsafe_spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b)
+void unsafe_spinspin_prod_spinspin(spinspin out,spinspin a,spinspin b)
 {
   memset(out,0,sizeof(spinspin));
   spinspin_summ_the_spinspin_prod(out,a,b);
 }
-void safe_spinspin_spinspin_prod(spinspin out,spinspin a,spinspin b)
+void safe_spinspin_prod_spinspin(spinspin out,spinspin a,spinspin b)
 {
   spinspin c;
-  unsafe_spinspin_spinspin_prod(c,a,b);
+  unsafe_spinspin_prod_spinspin(c,a,b);
   memcpy(out,c,sizeof(spinspin));
 }
 
@@ -197,32 +197,32 @@ double real_part_of_trace_spinspin_prod_spinspin_dag(spinspin a,spinspin b)
 }
 
 //prouduct of spinspin and spin
-void unsafe_spinspin_spin_prod(spin out,spinspin a,spin b)
+void unsafe_spinspin_prod_spin(spin out,spinspin a,spin b)
 {
   memset(out,0,sizeof(spin));
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
       complex_summ_the_prod(out[id1],a[id1][id2],b[id2]);
 }
-void safe_spinspin_spin_prod(spin out,spinspin a,spin b)
+void safe_spinspin_prod_spin(spin out,spinspin a,spin b)
 {
   spin c;
-  unsafe_spinspin_spin_prod(c,a,b);
+  unsafe_spinspin_prod_spin(c,a,b);
   memcpy(out,c,sizeof(spin));
 }
 
 //prouduct of spin and spinspin
-void unsafe_spin_spinspin_prod(spin out,spin a,spinspin b)
+void unsafe_spin_prod_spinspin(spin out,spin a,spinspin b)
 {
   memset(out,0,sizeof(spin));
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
       complex_summ_the_prod(out[id1],a[id2],b[id2][id1]);
 }
-void safe_spin_spinspin_prod(spin out,spin a,spinspin b)
+void safe_spin_prod_spinspin(spin out,spin a,spinspin b)
 {
   spin c;
-  unsafe_spin_spinspin_prod(c,a,b);
+  unsafe_spin_prod_spinspin(c,a,b);
   memcpy(out,c,sizeof(spin));
 }
 
@@ -276,8 +276,3 @@ void unsafe_dirac_prod_spin(spin out,dirac_matr *m,spin in)
 {for(int id1=0;id1<4;id1++) safe_complex_prod(out[id1],m->entr[id1],in[m->pos[id1]]);}
 void safe_dirac_prod_spin(spin out,dirac_matr *m,spin in)
 {spin tmp;unsafe_dirac_prod_spin(tmp,m,in);spin_copy(out,tmp);}
-//dirac*spin
-void unsafe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
-{for(int id2=0;id2<4;id2++) for(int id1=0;id1<4;id1++) safe_complex_prod(out[id1][id2],m->entr[id1],in[m->pos[id1]][id2]);}
-void safe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
-{spinspin tmp;unsafe_dirac_prod_spinspin(tmp,m,in);spinspin_copy(out,tmp);}

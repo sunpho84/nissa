@@ -41,6 +41,17 @@ void dirac_summ(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
     else 
       crash("The two matrix passed to sum have different positions");
 }
+void dirac_subt(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
+{
+  for(int ig=0;ig<4;ig++)
+    if(in1->pos[ig]==in2->pos[ig])
+      {
+	out->pos[ig]=in1->pos[ig];
+	complex_subt(out->entr[ig],in1->entr[ig],in2->entr[ig]);
+      }
+    else 
+      crash("The two matrix passed to sum have different positions");
+}
 
 //Assign to the first dirac matrixes the product of the second and the third
 void dirac_prod(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
@@ -126,45 +137,46 @@ void spinspin_dirac_prod_idouble(spinspin out,dirac_matr *in,double r)
 void spinspin_dirac_prod_complex(spinspin out,dirac_matr *in,complex c)
 {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_complex(out,in,c);}
 
-//Assign to the first spinspin the product of the passed dirac matrix by the passed spinspin
-void spinspin_dirac_spinspin_prod(spinspin out,dirac_matr *m,spinspin in)
+//out=m*in
+void unsafe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
 {
-  //This is the line on the matrix
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
       unsafe_complex_prod(out[id1][id2],m->entr[id1],in[m->pos[id1]][id2]);
 }
+void safe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
+{spinspin temp;safe_dirac_prod_spinspin(temp,m,in);spinspin_copy(out,temp);}
 
-//used in lot_of_mesonic_contractions
-void spinspin_dirac_spinspin_prod_transp(spinspin out,dirac_matr *m,spinspin in)
+//out=m*in^t
+void unsafe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)
 {
-  //This is the line on the matrix
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
-      unsafe_complex_prod(out[id2][id1],m->entr[id1],in[m->pos[id1]][id2]);
+      unsafe_complex_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
 }
+void safe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)
+{spinspin temp;safe_dirac_prod_spinspin_transp(temp,m,in);spinspin_copy(out,temp);}
 
-//Assign to the first spinspin the product of the passed dirac matrix by the passed spinspin
-void safe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m)
+//out=m*in^+
+void unsafe_dirac_prod_spinspin_dag(spinspin out,dirac_matr *m,spinspin in)
 {
-  spinspin temp;
-  memset(temp,0,sizeof(spinspin));
-  
-  for(int idso=0;idso<4;idso++)
-    for(int idsi=0;idsi<4;idsi++)
-      unsafe_complex_prod(temp[idsi][idso],m->entr[idso],in[idsi][m->pos[idso]]);
-  
-  memcpy(out,temp,sizeof(spinspin));
-}
-
-//Assign to the first spinspin the product of the passed dirac matrix by the passed spinspin
-void spinspin_dirac_spinspindag_prod(spinspin out,dirac_matr *m,spinspin in)
-{
-  //This is the line on the matrix
   for(int id1=0;id1<4;id1++)
     for(int id2=0;id2<4;id2++)
       unsafe_complex_conj2_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
 }
+void safe_dirac_prod_spinspin_dag(spinspin out,dirac_matr *m,spinspin in)
+{spinspin temp;safe_dirac_prod_spinspin_dag(temp,m,in);spinspin_copy(out,temp);}
+
+//out=in*m
+void unsafe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m)
+{
+  spinspin_put_to_zero(out);
+  for(int id1=0;id1<4;id1++)
+    for(int id2=0;id2<4;id2++)
+      unsafe_complex_prod(out[id1][m->pos[id2]],in[id1][id2],m->entr[id2]);
+}
+void safe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m)
+{spinspin temp;unsafe_spinspin_prod_dirac(temp,in,m);spinspin_copy(out,temp);}
 
 //Print the dirac marix passed as argument only on node 0
 void print_dirac(dirac_matr *in)

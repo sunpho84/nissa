@@ -32,16 +32,15 @@ void mom_space_twisted_propagator_of_imom(spinspin prop,quark_info qu,int imom)
   double rep_den=1/den/glb_vol;
   
   spinspin_put_to_zero(prop);  
-  if(den!=0)
-    for(int ig=0;ig<4;ig++)
-      {
-	complex_prod_double(          prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],Mp*rep_den);
-	complex_summ_the_prod_idouble(prop[ig][base_gamma[1].pos[ig]],base_gamma[1].entr[ig],-sin_mom[1]*rep_den);
-	complex_summ_the_prod_idouble(prop[ig][base_gamma[2].pos[ig]],base_gamma[2].entr[ig],-sin_mom[2]*rep_den);
-	complex_summ_the_prod_idouble(prop[ig][base_gamma[3].pos[ig]],base_gamma[3].entr[ig],-sin_mom[3]*rep_den);
-	complex_summ_the_prod_idouble(prop[ig][base_gamma[4].pos[ig]],base_gamma[4].entr[ig],-sin_mom[0]*rep_den);
-	complex_summ_the_prod_idouble(prop[ig][base_gamma[5].pos[ig]],base_gamma[5].entr[ig],-mass*rep_den);
-      }
+  if(fabs(den)>=1.e-14)
+    {
+      spinspin_dirac_summ_the_prod_double(prop,&base_gamma[0],Mp*rep_den);
+      spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[1],-sin_mom[1]*rep_den);
+      spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[2],-sin_mom[2]*rep_den);
+      spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[3],-sin_mom[3]*rep_den);
+      spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[4],-sin_mom[0]*rep_den);
+      spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[5],-mass*rep_den);
+    }
   else
     for(int ig=0;ig<4;ig++)
       complex_prod_double(prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],qu.zmp);
@@ -53,7 +52,7 @@ void multiply_from_left_by_mom_space_twisted_propagator(spin *out,spin *in,quark
     {
       spinspin prop;
       mom_space_twisted_propagator_of_imom(prop,qu,imom);
-      safe_spinspin_spin_prod(out[imom],prop,in[imom]);
+      safe_spinspin_prod_spin(out[imom],prop,in[imom]);
     }
   
   set_borders_invalid(out);
@@ -65,7 +64,7 @@ void multiply_from_right_by_mom_space_twisted_propagator(spin *out,spin *in,quar
     {
       spinspin prop;
       mom_space_twisted_propagator_of_imom(prop,qu,imom);
-      safe_spin_spinspin_prod(out[imom],in[imom],prop);
+      safe_spin_prod_spinspin(out[imom],in[imom],prop);
     }
   
   set_borders_invalid(out);
