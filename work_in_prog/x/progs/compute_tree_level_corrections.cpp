@@ -42,7 +42,7 @@ int main(int narg,char **arg)
   init_calc(narg,arg);
   
   //anti-periodic boundary condition in time
-  double theta[4]={1,0,0,0};
+  double theta[4]={1,1,1,1};
   
   //kappa and mass
   double kappa=1.0/8;

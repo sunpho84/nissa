@@ -75,7 +75,7 @@ int main(int narg,char **arg)
 		}
 	    spinspin_prodassign_double(*((spinspin*)&av),1.0/(16*6));
 	    
-	    if(d<=70)
+	    //if(d<=70)
 	      {
 		fprintf(f00,"%d %d %d %d %16.16le\n",x[1],x[2],x[3],x[0],av[5][0]);
 		fprintf(f07,"%d %d %d %d %16.16le\n",x[1],x[2],x[3],x[0],av[0][0]);
