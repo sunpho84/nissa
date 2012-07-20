@@ -31,6 +31,7 @@ tools=$(addprefix tools/, \
 	print_gamma/gamma_test \
 	print_gamma/gamma_comm \
 	unitarity_check/unitarity_check \
+	spincolor_compare/spincolor_compare \
 	meson_2pts/meson_2pts \
 	meson_2pts/meson_2pts_point_source \
 	conf_convert/ildg_to_eo)
