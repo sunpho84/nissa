@@ -152,7 +152,7 @@ void initialize_semileptonic(char *input_path)
   //Wall time
   read_str_int("WallTime",&wall_time);
   {
-    int spat_ranks=rank_tot/nrank_dir[0];
+    int spat_ranks=nissa_nranks/nrank_dir[0];
     if(rank%spat_ranks!=plan_rank[0]) crash("plan and proj rank do not agree");
   }
   //Kappa
@@ -585,7 +585,7 @@ void two_points(int ism_lev_so,int ism_lev_si)
   
   //find the number of propagator combinations to be hold on each x0=0 rank
   int nprop_combo=nspec*ntheta*nmass*nmass*2*2;
-  int nrank_x0=rank_tot/nrank_dir[0];
+  int nrank_x0=nissa_nranks/nrank_dir[0];
   int nprop_combo_per_rank_x0=(int)ceil((double)nprop_combo/nrank_x0);
   
   //allocate space for contractions
@@ -779,7 +779,7 @@ void three_points(int ispec,int ism_lev_so,int ism_lev_se)
   double *mass_3pts=mass+start_imass3pts[ispec];
   int nmass_3pts=nmass-start_imass3pts[ispec];
   int nprop_combo=ntheta*ntheta*nmass*nmass_3pts;
-  int nrank_x0=rank_tot/nrank_dir[0];
+  int nrank_x0=nissa_nranks/nrank_dir[0];
   int nprop_combo_per_rank_x0=(int)ceil((double)nprop_combo/nrank_x0);
   
   //allocate space for contractions

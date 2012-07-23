@@ -65,7 +65,7 @@ int main(int narg,char **arg)
 
   int Nmom_per_set[Nindexmom];
   //Comprueba si realmente necesito tener esta información en todos los nodos
-  for (int irank=0; irank<rank_tot; irank++){
+  for (int irank=0; irank<nissa_nranks; irank++){
     if(rank==irank)   for(int imom=0;imom<Nindexmom;imom++){
 		Nmom_per_set[imom]=1;
 		for(int idir=0; idir<4; idir++) Nmom_per_set[imom]=Nmom_per_set[imom]*(iP[imom][idir][1]-iP[imom][idir][0]+1);

@@ -80,7 +80,7 @@ void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	    bgp_square_norm_color(N0,N1,N2);
 	    bgp_complex_save(cloc_alpha,N0);
 	    
-	    if(rank_tot>0) MPI_Allreduce(cloc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    if(nissa_nranks>0) MPI_Allreduce(cloc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else alpha=cloc_alpha[0];
 
 	    omega=delta/alpha;
@@ -108,7 +108,7 @@ void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	      }
 	    bgp_square_norm_color(N0,N1,N2);
 	    bgp_complex_save(cloc_lambda,N0);
-	    if(rank_tot>0) MPI_Allreduce(cloc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    if(nissa_nranks>0) MPI_Allreduce(cloc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else lambda=cloc_lambda[0];
 	    set_borders_invalid(sol);
 	  }
@@ -149,7 +149,7 @@ void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	    
 	    dsource++;ds++;
 	  }
-	if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(nissa_nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else lambda=loc_lambda;
 	
 	verbosity_lv1_master_printf("\nfinal relative residue (after %d iters): %g where %g was required\n",iter,lambda/source_norm,residue);

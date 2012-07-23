@@ -99,7 +99,7 @@ void conf_convert(char *outpath,char *inpath)
 		}
       if(ibuf!=sizeof(quad_su3)*loc_vol) crash("did not arrive to the end: %d %d",ibuf,sizeof(quad_su3)*loc_vol);
   
-      for(int irank=0;irank<rank_tot;irank++)
+      for(int irank=0;irank<nissa_nranks;irank++)
 	{
 	  if(rank==irank)
 	    {
@@ -129,7 +129,7 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_nissa();
   
-  //if(rank_tot>1) crash("Cannot run in parallel");
+  //if(nissa_nranks>1) crash("Cannot run in parallel");
   
   if(narg<2) crash("Use: %s input",arg[0]);
   

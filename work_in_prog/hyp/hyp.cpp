@@ -3,7 +3,7 @@
 //level 2 decoration
 void hyp_single_rank_dec2_link(su3 link,quad_su3 *conf,int A,int mu,int nu,int rho,double alpha2)
 {
-  if(rank_tot>1) crash("Works only on single rank!");
+  if(nissa_nranks>1) crash("Works only on single rank!");
   if(mu==nu||nu==rho||mu==rho) crash("The three dirs must be different!");
   
   //find the remaining direction
@@ -40,7 +40,7 @@ void hyp_single_rank_dec2_link(su3 link,quad_su3 *conf,int A,int mu,int nu,int r
 //level 1 decoration
 void hyp_single_rank_dec1_link(su3 link,quad_su3 *conf,int A,int mu,int nu,double alpha1,double alpha2)
 {
-  if(rank_tot>1) crash("Works only on single rank!");
+  if(nissa_nranks>1) crash("Works only on single rank!");
   if(mu==nu) crash("The two dirs must be different!");
   
   //take original link
@@ -93,7 +93,7 @@ void hyp_single_rank_dec1_link(su3 link,quad_su3 *conf,int A,int mu,int nu,doubl
 //level 0 decoration
 void hyp_single_rank_dec0_link(su3 link,quad_su3 *conf,int A,int mu,double alpha0,double alpha1,double alpha2)
 {
-  if(rank_tot>1) crash("Works only on single rank!");
+  if(nissa_nranks>1) crash("Works only on single rank!");
   
   //take original link
   su3 temp0;
@@ -145,7 +145,7 @@ void hyp_single_rank_dec0_link(su3 link,quad_su3 *conf,int A,int mu,double alpha
 //smear a conf on a single rank
 void hyp_single_rank_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2)
 {
-  if(rank_tot>1) crash("Works only on single rank!");
+  if(nissa_nranks>1) crash("Works only on single rank!");
   
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int mu=0;mu<4;mu++)
@@ -176,7 +176,7 @@ int main(int narg,char **arg)
   //smear the conf with hyp
   double hyp_time=-take_time();
   quad_su3 *hyp_smeared_conf=nissa_malloc("hyp_smeared_conf",loc_vol+bord_vol,quad_su3);  
-  if(rank_tot==1) hyp_single_rank_smear_conf(hyp_smeared_conf,conf,alpha0,alpha1,alpha2);
+  if(nissa_nranks==1) hyp_single_rank_smear_conf(hyp_smeared_conf,conf,alpha0,alpha1,alpha2);
   hyp_time+=take_time();
   
   //smear the conf with hyp using fast routine
@@ -191,7 +191,7 @@ int main(int narg,char **arg)
   
   //compute plaquette
   master_printf("orig: plaq: %.18g, var: %.18g\n",global_plaquette_lx_conf(conf),global_plaquette_variance_lx_conf(conf));
-  if(rank_tot==1) master_printf("hyp:  plaq: %.18g, var: %.18g\n",global_plaquette_lx_conf(hyp_smeared_conf),global_plaquette_variance_lx_conf(hyp_smeared_conf));
+  if(nissa_nranks==1) master_printf("hyp:  plaq: %.18g, var: %.18g\n",global_plaquette_lx_conf(hyp_smeared_conf),global_plaquette_variance_lx_conf(hyp_smeared_conf));
   else            master_printf("hyp:  plaq: %.18g, var: %.18g\n",0.930002530940892247,0.0396775676154377671);
   master_printf("hypf: plaq: %.18g, var: %.18g\n",global_plaquette_lx_conf(hyp_fast_smeared_conf),global_plaquette_variance_lx_conf(hyp_fast_smeared_conf));
   master_printf("ape:  plaq: %.18g, var: %.18g\n",global_plaquette_lx_conf(ape_smeared_conf),global_plaquette_variance_lx_conf(ape_smeared_conf));

@@ -90,7 +90,7 @@ int main(int narg,char **arg)
   
   // test2
   
-  if(rank_tot>1) master_printf("test2 meaningful only in scalar, skipping\n");
+  if(nissa_nranks>1) master_printf("test2 meaningful only in scalar, skipping\n");
   else
     {
       //take a random point

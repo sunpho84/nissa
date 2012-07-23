@@ -135,7 +135,7 @@ int main(int narg,char **arg)
   init_grid(T,L);
   
   //check that we are not working in parallel
-  if(rank_tot>1) crash("scalar only code");
+  if(nissa_nranks>1) crash("scalar only code");
   
   char conf_path[1024];
   read_str_str("GaugePath",conf_path,1024);

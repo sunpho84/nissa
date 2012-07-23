@@ -31,7 +31,7 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_nissa();
   
-  //if(rank_tot>1) crash("Cannot run in parallel");
+  //if(nissa_nranks>1) crash("Cannot run in parallel");
   
   if(narg<2) crash("Use: %s input",arg[0]);
   

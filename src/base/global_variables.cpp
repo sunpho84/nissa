@@ -99,7 +99,7 @@ EXTERN MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[6],MPI_LX_QUAD_SU3_EDGES_RECE[6];
 EXTERN MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[6];
 
 //ranks
-EXTERN int rank,rank_tot,cart_rank;
+EXTERN int rank,nissa_nranks,cart_rank;
 EXTERN int nparal_dir;
 EXTERN coords paral_dir;
 EXTERN coords nrank_dir;
@@ -107,6 +107,9 @@ EXTERN coords rank_coord;
 EXTERN coords rank_neigh[2],rank_neighdw,rank_neighup;
 EXTERN coords plan_rank,line_rank,line_coord_rank;
 EXTERN int nissa_grid_inited;
+
+//threads
+EXTERN int nissa_nthreads;
 
 //endianess
 EXTERN int little_endian;
