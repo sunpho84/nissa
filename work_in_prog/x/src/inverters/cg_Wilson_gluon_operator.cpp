@@ -64,7 +64,7 @@ void inv_Wilson_gluon_Klein_Gordon_operator(spin1field *sol,spin1field *guess,gl
 
 		cs++;cp++;
 	      }
-	    if(rank_tot>0) MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    if(nissa_nranks>0) MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else alpha=loc_alpha;
 	    omega=delta/alpha;
 	  }
@@ -81,7 +81,7 @@ void inv_Wilson_gluon_Klein_Gordon_operator(spin1field *sol,spin1field *guess,gl
 
 		dsol++;ds++;dp++;dr++;
 	      }
-	    if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    if(nissa_nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else lambda=loc_lambda;
 	    set_borders_invalid(sol);
 	  }
@@ -120,7 +120,7 @@ void inv_Wilson_gluon_Klein_Gordon_operator(spin1field *sol,spin1field *guess,gl
 	    
 	    dsource++;ds++;
 	  }
-	if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(nissa_nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else lambda=loc_lambda;
 	
 	verbosity_lv1_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);

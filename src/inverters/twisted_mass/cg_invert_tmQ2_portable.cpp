@@ -59,7 +59,7 @@ void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 
 		cs++;cp++;
 	      }
-	    if(rank_tot>0) MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    if(nissa_nranks>0) MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else alpha=loc_alpha;
 	    omega=delta/alpha;
 	  }
@@ -76,7 +76,7 @@ void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 
 		dsol++;ds++;dp++;dr++;
 	      }
-	    if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    if(nissa_nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else lambda=loc_lambda;
 	    set_borders_invalid(sol);
 	  }
@@ -115,7 +115,7 @@ void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,
 	    
 	    dsource++;ds++;
 	  }
-	if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(nissa_nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else lambda=loc_lambda;
 	
 	verbosity_lv1_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);

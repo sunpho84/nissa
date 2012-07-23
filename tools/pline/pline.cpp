@@ -159,7 +159,7 @@ int main(int narg,char **arg)
 
   for (int rank_x0=0; rank_x0<nrank_dir[0]; rank_x0++) for (int rank_x1=0; rank_x1<nrank_dir[1]; rank_x1++) for (int rank_x2=0; rank_x2<nrank_dir[2]; rank_x2++) for (int rank_x3=0; rank_x3<nrank_dir[3]; rank_x3++){
     if(rank_coord[0]==rank_x0 && rank_coord[1]==rank_x1 && rank_coord[2]==rank_x2 && rank_coord[3]==rank_x3){
-  //for (int irank=0; irank<rank_tot ; irank++){ if(rank==irank){
+  //for (int irank=0; irank<nissa_nranks ; irank++){ if(rank==irank){
 	for(int ivol=0;ivol<loc_vol;ivol++){
   	printf("(t,x,y,z)=(%d,%d,%d,%d)\n",glb_coord_of_loclx[ivol][0],glb_coord_of_loclx[ivol][1],glb_coord_of_loclx[ivol][2],glb_coord_of_loclx[loc_site][3]);
 	  for (ic_in=0; ic_in<3; ic_in++){

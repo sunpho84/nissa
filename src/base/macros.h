@@ -40,6 +40,7 @@
 #define nissa_default_warn_if_not_disallocated 1
 #define nissa_default_warn_if_not_communicated 0
 #define nissa_default_use_async_communications 1
+#define nissa_default_nthreads 1
 
 //Pi
 #ifndef M_PI

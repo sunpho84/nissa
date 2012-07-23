@@ -517,7 +517,7 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
       }
 
   //find the number of propagator combinations to be hold on each x0=0 rank
-  int nrank_x0=rank_tot/nrank_dir[0];
+  int nrank_x0=nissa_nranks/nrank_dir[0];
   int npr_combo_per_rank_x0=(int)ceil((double)npr_combo/nrank_x0);
   int nrank_x0_tbu=(int)ceil((double)npr_combo/npr_combo_per_rank_x0);
   //master_printf("Ncombo tot=%d, ncombo_per_rank_x0=%d, nrank to be used: %d\n",npr_combo,npr_combo_per_rank_x0,nrank_x0_tbu);

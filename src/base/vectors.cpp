@@ -273,7 +273,7 @@ void internal_nissa_free(char **arr,const char *file,int line)
 	}
       
       if(nissa_warn_if_not_communicated)
-	if(rank_tot>1 && check_borders_allocated(*arr) && !check_borders_communicated_at_least_once(*arr))
+	if(nissa_nranks>1 && check_borders_allocated(*arr) && !check_borders_communicated_at_least_once(*arr))
 	  master_printf("Warning, you allocated borders for vector: %s on line %d of file %s, but never communicated them!\n",vect->tag,vect->line,vect->file);
       
       //detach from previous

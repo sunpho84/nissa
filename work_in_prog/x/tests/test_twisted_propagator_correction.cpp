@@ -200,7 +200,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////// correction in P ////////////////////////////  
   
-  if(comp_p && rank_tot==1)
+  if(comp_p && nissa_nranks==1)
     {
       compute_self_energy_twisted_diagram_in_mom_space(corr2_p,qu,gl);
 
@@ -294,7 +294,7 @@ int main(int narg,char **arg)
   master_printf("a2p2: %lg\n",a2p2);
   master_printf("att: %lg\n",pana_c2_id_corr(a2p2,gl));
   
-  if(rank_tot==1 && comp_p)
+  if(nissa_nranks==1 && comp_p)
     {
       master_printf("p-space: \n");
       print_spinspin(corr2_p[lx]);

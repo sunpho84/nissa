@@ -13,7 +13,7 @@ void init_calc(int narg,char **arg)
   //Basic mpi initialization
   init_nissa();
   
-  if(rank_tot>1) crash("only available in scalar");
+  if(nissa_nranks>1) crash("only available in scalar");
   if(narg<4) crash("use %s file_in T L",arg[0]);
   
   int T=atoi(arg[2]);

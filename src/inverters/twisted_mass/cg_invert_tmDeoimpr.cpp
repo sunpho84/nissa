@@ -120,7 +120,7 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **co
 		  double c1=source[ivol][id][ic][ri]-s[ivol][id][ic][ri];
 		  loc_lambda+=c1*c1;
 		}
-	if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(nissa_nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else lambda=loc_lambda;
       }
       master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);

@@ -1,6 +1,9 @@
 #include <mpi.h>
 #include <signal.h>
 #include <string.h>
+#ifdef OMP
+ #include <omp.h>
+#endif
 
 #include "communicate.h"
 #include "debug.h"
@@ -23,7 +26,7 @@ void init_nissa()
   verb_call=0;
   
   //get the number of rank and the id of the local one
-  MPI_Comm_size(MPI_COMM_WORLD,&rank_tot);
+  MPI_Comm_size(MPI_COMM_WORLD,&nissa_nranks);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
   
   //associate sigsegv with proper handle
@@ -32,6 +35,14 @@ void init_nissa()
   
   //print the version
   master_printf("Initializing nissa, version: %s.\n",SVN_VERS);
+  
+#ifdef OMP
+  if(nissa_nthreads>0)
+    {
+      master_printf("MP threads: %d\n",nissa_nthreads);
+      omp_set_num_threads(nissa_nthreads);
+    }
+#endif
   
   //128 bit float
   MPI_Type_contiguous(2,MPI_DOUBLE,&MPI_FLOAT_128);
@@ -93,6 +104,7 @@ void init_nissa()
   nissa_warn_if_not_disallocated=nissa_default_warn_if_not_disallocated;
   nissa_warn_if_not_communicated=nissa_default_warn_if_not_communicated;
   nissa_use_async_communications=nissa_default_use_async_communications;
+  nissa_nthreads=nissa_default_nthreads;
   
   //read the configuration file, if present
   read_nissa_config_file();
@@ -279,14 +291,14 @@ void init_grid(int T,int L)
   glb_vol2=(double)glb_vol*glb_vol;
   loc_vol2=(double)loc_vol*loc_vol;
   
-  master_printf("Number of running ranks: %d\n",rank_tot);
+  master_printf("Number of running ranks: %d\n",nissa_nranks);
   master_printf("Global lattice:\t%dx%dx%dx%d = %d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3],glb_vol);
   
   //find the grid minimizing the surface
-  find_minimal_surface_grid(nrank_dir,glb_size,rank_tot);
+  find_minimal_surface_grid(nrank_dir,glb_size,nissa_nranks);
   //check that lattice is commensurable with the grid
   //and check wether the idir dir is parallelized or not
-  int ok=(glb_vol%rank_tot==0);
+  int ok=(glb_vol%nissa_nranks==0);
   for(int idir=0;idir<4;idir++)
     {
       ok=ok && (nrank_dir[idir]>0);
@@ -305,7 +317,7 @@ void init_grid(int T,int L)
   
   //calculate the local volume
   for(int idir=0;idir<4;idir++) loc_size[idir]=glb_size[idir]/nrank_dir[idir];
-  loc_vol=glb_vol/rank_tot;
+  loc_vol=glb_vol/nissa_nranks;
   
   //calculate the border size
   bord_vol=0;
@@ -362,9 +374,9 @@ void init_grid(int T,int L)
       int proc_name_length;
       MPI_Get_processor_name(proc_name,&proc_name_length);
       
-      for(int irank=0;irank<rank_tot;irank++)
+      for(int irank=0;irank<nissa_nranks;irank++)
 	{
-	  if(rank==irank) printf("Rank %d of %d running on processor %s: %d (%d %d %d %d)\n",rank,rank_tot,
+	  if(rank==irank) printf("Rank %d of %d running on processor %s: %d (%d %d %d %d)\n",rank,nissa_nranks,
 				 proc_name,cart_rank,rank_coord[0],rank_coord[1],rank_coord[2],rank_coord[3]);
 	  fflush(stdout);
 	  MPI_Barrier(MPI_COMM_WORLD);

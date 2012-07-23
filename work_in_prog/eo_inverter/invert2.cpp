@@ -326,7 +326,7 @@ void inv_K(spincolor *sol,spincolor *source,double mu,double kappa)
 		    double c1=source[X][id][ic][ri]-s[X][id][ic][ri];
 		    loc_lambda+=c1*c1;
 		  }
-	if(rank_tot>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(nissa_nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else lambda=loc_lambda;
       }
 

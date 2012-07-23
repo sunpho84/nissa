@@ -15,9 +15,9 @@ void vector_gather(char *glb,char *loc,int bps,int dest_rank)
       memcpy(glb+rank*loc_vol*bps,loc,loc_vol*bps);
       
       //open incoming communications for non-local data
-      MPI_Request req[rank_tot-1];
+      MPI_Request req[nissa_nranks-1];
       int ireq=0;
-      for(int irank=0;irank<rank_tot;irank++)
+      for(int irank=0;irank<nissa_nranks;irank++)
 	if(irank!=rank)
 	    MPI_Irecv(glb+irank*loc_vol*bps,loc_vol*bps,MPI_CHAR,irank,239+irank,MPI_COMM_WORLD,&(req[ireq++]));
       //wait all incoming data
