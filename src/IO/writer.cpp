@@ -95,7 +95,7 @@ void write_color(char *path,color *v,int prec)
   write_double_vector(file,(double*)temp,nreals_per_color,prec,"scidac-binary-data");
 
   nissa_free(temp);
-  verbosity_lv2_master_printf("File '%s' saved (probably...)\n",path);
+  verbosity_lv2_master_printf("File '%s' saved\n",path);
   
   //Close the file
   ILDG_File_close(file);
@@ -149,6 +149,24 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
   
   //Close the file
   ILDG_File_close(file);
+}
+
+//Write a whole colorspinspin
+void write_colorspinspin(char *path,colorspinspin *prop,int prec)
+{
+    double start_time=take_time();
+    
+    spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
+    for(int id=0;id<4;id++)
+      {
+	char full_path[1024];
+	sprintf(full_path,"%s.%02d",path,id);
+	nissa_loc_vol_loop(ivol) get_spincolor_from_colorspinspin(temp[ivol],prop[ivol],id);
+	write_spincolor(full_path,temp,prec);
+      }
+    nissa_free(temp);
+    
+    master_printf("Time elapsed in writing su3spinspin '%s': %f s\n",path,take_time()-start_time);
 }
 
 //Write a whole su3spinspin

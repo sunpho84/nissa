@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include "nissa.h"
 
@@ -80,6 +81,7 @@ int nmassS0der;
 double *massS0der;
 
 //source data
+int save_source;
 int seed,noise_type;
 coords source_coord;
 spincolor *source;
@@ -205,6 +207,30 @@ void generate_source()
 #else
   enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
   generate_spindiluted_source(original_source,type[noise_type],source_coord[0]);
+  
+  //if asked, save the source
+  if(save_source)
+    {
+      char outpath[1024];
+      sprintf(outpath,"%s/source",outfolder);
+      write_colorspinspin(outpath,original_source,64);
+      
+      //check
+      double td=0;
+      colorspinspin *temp=nissa_malloc("temp",loc_vol,colorspinspin);
+      read_colorspinspin(temp,outpath,NULL);
+      nissa_loc_vol_loop(ivol)
+	for(int ic=0;ic<3;ic++)
+	  for(int id1=0;id1<4;id1++)
+	    for(int id2=0;id2<4;id2++)
+	      for(int ri=0;ri<2;ri++)
+		{
+		  double d=temp[ivol][ic][id1][id2][ri]-original_source[ivol][ic][id1][id2][ri];
+		  td+=d*d;
+		}
+      td=sqrt(glb_reduce_double(td)/glb_vol);
+      master_printf("Read and wrote difference: %lg\n",td);
+    }
 #endif
 }
 
@@ -338,6 +364,8 @@ void initialize_semileptonic(char *input_path)
   start_loc_rnd_gen(seed);
   //Read the noise type
   read_str_int("NoiseType",&noise_type);
+  //read whether we want to save the source
+  read_str_int("SaveSource",&save_source);
 
   // 3) Smearing parameters
   
