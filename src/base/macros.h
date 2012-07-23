@@ -70,4 +70,12 @@
 #define nissa_loc_volh_loop(a) for(int a=0;a<loc_volh;a++)
 #define nissa_loc_vol_loop(a) for(int a=0;a<loc_vol;a++)
 
+#ifdef OMP
+ #define nissa_loc_vol_parallel_loop(a) \
+  _Pragma("omp parallel for") \
+  nissa_loc_vol_loop(a)
+#else
+ #define nissa_loc_vol_parallel_loop(a) nissa_loc_vol_loop(a)
+#endif
+
 #endif

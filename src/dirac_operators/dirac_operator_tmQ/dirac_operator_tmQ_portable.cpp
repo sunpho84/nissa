@@ -1,5 +1,9 @@
 #pragma once
 
+#ifdef OMP
+ #include <omp.h>
+#endif
+
 //Apply the Q=D*g5 operator to a spincolor
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -18,10 +22,12 @@ void apply_tmQ(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *i
   communicate_lx_quad_su3_borders(conf);
   
   double kcf=1/(2*kappa);
-  int Xup,Xdw;
   
-  nissa_loc_vol_loop(X)
+  nissa_loc_vol_parallel_loop(X)
     {
+      int th_id = omp_get_thread_num();
+      printf("Hello World from thread %d, ivol=%d\n", th_id,X);
+      int Xup,Xdw;
       color temp_c0,temp_c1,temp_c2,temp_c3;
       
       //Forward 0
