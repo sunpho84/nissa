@@ -6,6 +6,7 @@ WallTime 1000
 Kappa 0.177000
 Seed 100
 NoiseType 4 
+SaveSource 1
 
 ApeAlpha 0.5
 ApeNiter 20
