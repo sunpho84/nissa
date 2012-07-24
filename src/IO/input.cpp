@@ -137,13 +137,23 @@ void read_str_int(const char *exp_str,int *in)
   verbosity_lv1_master_printf("Read variable '%s' with value: %d\n",exp_str,(*in));
 }
 
+//Read 4 doubles checking the tag
+void read_str_momentum_t(const char *exp_str,momentum_t in)
+{
+  expect_str(exp_str);
+  for(int i=0;i<4;i++)
+    read_double(in+i);
+  
+  verbosity_lv1_master_printf("Read variable '%s' with value: %lg %lg %lg %lg\n",exp_str,in[0],in[1],in[2],in[3]);
+}
+
 //Read a double checking the tag
 void read_str_double(const char *exp_str,double *in)
 {
   expect_str(exp_str);
   read_double(in);
 
-  verbosity_lv1_master_printf("Read variable '%s' with value: %g\n",exp_str,(*in));
+  verbosity_lv1_master_printf("Read variable '%s' with value: %lg\n",exp_str,(*in));
 }
 
 //Read a string checking the tag

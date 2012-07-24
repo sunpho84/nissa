@@ -47,6 +47,7 @@ tests=$(addprefix tests/, \
 
 #full programs
 progs=$(addprefix progs/, \
+	compute_corrections \
 	compute_tree_level_corrections \
 	compute_self_energy_corrections \
 	compute_tadpole_corrections \

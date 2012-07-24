@@ -25,8 +25,6 @@ void apply_tmQ(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *i
   
   nissa_loc_vol_parallel_loop(X)
     {
-      int th_id = omp_get_thread_num();
-      printf("Hello World from thread %d, ivol=%d\n", th_id,X);
       int Xup,Xdw;
       color temp_c0,temp_c1,temp_c2,temp_c3;
       

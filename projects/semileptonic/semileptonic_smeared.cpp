@@ -214,22 +214,6 @@ void generate_source()
       char outpath[1024];
       sprintf(outpath,"%s/source",outfolder);
       write_colorspinspin(outpath,original_source,64);
-      
-      //check
-      double td=0;
-      colorspinspin *temp=nissa_malloc("temp",loc_vol,colorspinspin);
-      read_colorspinspin(temp,outpath,NULL);
-      nissa_loc_vol_loop(ivol)
-	for(int ic=0;ic<3;ic++)
-	  for(int id1=0;id1<4;id1++)
-	    for(int id2=0;id2<4;id2++)
-	      for(int ri=0;ri<2;ri++)
-		{
-		  double d=temp[ivol][ic][id1][id2][ri]-original_source[ivol][ic][id1][id2][ri];
-		  td+=d*d;
-		}
-      td=sqrt(glb_reduce_double(td)/glb_vol);
-      master_printf("Read and wrote difference: %lg\n",td);
     }
 #endif
 }

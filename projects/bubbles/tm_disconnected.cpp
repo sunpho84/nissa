@@ -16,14 +16,15 @@ int ncontr,nch_contr;
 complex *contr,*ch_contr;
 int *op,*ch_op;
 
-char gaugeconf_file[1024];
+int wall_time;
 quad_su3 *conf;
 as2t_su3 *Pmunu;
 
 colorspinspin *source,*ch_prop,***S,*edm_prop[3];
 spincolor *inv_source,*temp_vec[2],**QQ;
 
-int seed,starting_source,ending_source,noise_type;
+int starting_source,ending_source,noise_type;
+int compute_edm;
 int source_pos[4];
 
 int nmass;
@@ -31,14 +32,16 @@ double kappa,*mass;
 
 double *stopping_residues;
 int niter_max=100000000;
-char outfile[1024];
+
+int ngauge_conf,nanalyzed_conf=0;
+char conf_path[1024],outfolder[1024];
 
 double tot_time=0,inv_time=0,contr_time=0;
 int ncontr_tot,ninv_tot;
 
 const double rad2=1.414213562373095048801688724209;
 
-//This function contract a source with a propagator putting the passed list of operators
+//contract a source with a propagator putting the passed list of operators
 void contract_with_source(complex *corr,colorspinspin *prop,int *list_op,colorspinspin *source,int ncontr)
 {
   //Temporary vector for the internal matrices
@@ -102,84 +105,69 @@ void initialize_bubbles(char *input_path)
   
   open_input(input_path);
   
-  //Read the volume
+  //read lattice size
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
   
-  //Init the MPI grid 
+  //init the grid 
   init_grid(T,L);
   
-  //Read the number of contractions
-  read_str_int("NContr",&ncontr);
-  master_printf("Number of contractions: %d\n",ncontr);
-
-  //Initialize the list of correlations and the list of operators
-  contr=nissa_malloc("contr",ncontr*glb_size[0],complex);
-  op=nissa_malloc("op",ncontr,int);
-  for(int icontr=0;icontr<ncontr;icontr++)
-    {
-      //Read the operator
-      read_int(&(op[icontr]));
-      
-      master_printf(" contr.%d %d\n",icontr,op[icontr]);
-    }
+  //read the walltime
+  read_str_int("WallTime",&wall_time);
+  //read kappa
+  read_str_double("Kappa",&kappa);
   
-  //Read the number of contractions with insertion of the chromo-magnetic operator
-  read_str_int("NChromoContr",&nch_contr);
-  master_printf("Number of chromo-contractions: %d\n",nch_contr);
-  
-  //Initialize the list of chromo correlations and the list of operators
-  //contiguous allocation
-  ch_contr=nissa_malloc("ch_contr",nch_contr*glb_size[0],complex);
-  ch_op=nissa_malloc("ch_op",nch_contr,int);
-  for(int ich_contr=0;ich_contr<nch_contr;ich_contr++)
-    {
-      //Read the operator
-      read_int(&(ch_op[ich_contr]));
-      
-      master_printf(" chromo contr.%d %d\n",ich_contr,ch_op[ich_contr]);
-    }
-  
-  //reading of gauge conf and computation of Pmunu
-  read_str_str("GaugeConf",gaugeconf_file,1024);
-  conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
-  read_ildg_gauge_conf(conf,gaugeconf_file);
-
-  //calculate plaquette, Pmunu
-  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
-  Pmunu=nissa_malloc("clover",loc_vol,as2t_su3);
-  Pmunu_term(Pmunu,conf);
-  
-  //allocate the source and the chromo-prop
-  source=nissa_malloc("source",loc_vol+bord_vol,colorspinspin);
-  inv_source=nissa_malloc("inv_source",loc_vol+bord_vol,spincolor);
-  ch_prop=nissa_malloc("chromo-prop",loc_vol,colorspinspin);
-  for(int idir=0;idir<3;idir++) edm_prop[idir]=nissa_malloc("edm_prop",loc_vol,colorspinspin);
-  for(int r=0;r<2;r++) temp_vec[r]=nissa_malloc("temp_vec",loc_vol,spincolor);
+  // 2) Read information about the source
   
   //read the seed
+  int seed;
   read_str_int("Seed",&seed);
-  //read the position of the source (for the edm)
-  expect_str("SourcePosition");
-  for(int idir=0;idir<4;idir++)
-    {
-      read_int(&(source_pos[idir]));
-      master_printf("%d ",source_pos[idir]);
-    }
-  
   //read the number of the starting sources
   read_str_int("StartingSource",&starting_source);
-  //read the number of the starting sources
+  //read the number of the ending sources
   read_str_int("EndingSource",&ending_source);
   //read the noise type
   read_str_int("NoiseType",&noise_type);
 
-  //Read kappa
-  read_str_double("Kappa",&kappa);
-  
-  //Read the number of masses and allocate spinors for the cgm
+  // 3) Read list of masses
+
+  //read the number of masses
   read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
+
+  // 4) Contractions
+  
+  //read the list of correlations and the list of operators
+  read_list_of_ints("NContr",&ncontr,&op);
+  read_list_of_ints("NChromoContr",&nch_contr,&ch_op);
+  //read whether we want to compute EDM
+  read_str_int("ComputeEDM",&compute_edm);
+  
+  read_str_int("NGaugeConf",&ngauge_conf);
+  
+  ////////////////////////////// allocation & initialization //////////////////////////
+  
+  //start loc rnd gen
+  start_loc_rnd_gen(seed);
+  
+  //allocate contr
+  contr=nissa_malloc("contr",ncontr*glb_size[0],complex);
+  if(nch_contr!=0) ch_contr=nissa_malloc("ch_contr",nch_contr*glb_size[0],complex);
+  
+  //allocate gauge conf and Pmunu
+  conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  if(compute_edm) Pmunu=nissa_malloc("clover",loc_vol,as2t_su3);
+  
+  //allocate the source and the chromo-prop
+  source=nissa_malloc("source",loc_vol+bord_vol,colorspinspin);
+  inv_source=nissa_malloc("inv_source",loc_vol+bord_vol,spincolor);
+  if(nch_contr!=0) ch_prop=nissa_malloc("chromo_prop",loc_vol,colorspinspin);
+  if(compute_edm) for(int idir=0;idir<3;idir++) edm_prop[idir]=nissa_malloc("edm_prop",loc_vol,colorspinspin);
+  
+  //temporary vectors
+  for(int r=0;r<2;r++) temp_vec[r]=nissa_malloc("temp_vec",loc_vol,spincolor);
+  
+  //allocate spinors for the cgm
   S=nissa_malloc("S",nmass,colorspinspin**);
   QQ=nissa_malloc("QQ",nmass,spincolor*);
   for(int imass=0;imass<nmass;imass++)
@@ -188,19 +176,16 @@ void initialize_bubbles(char *input_path)
       for(int r=0;r<2;r++) S[imass][r]=nissa_malloc("S",loc_vol,colorspinspin);
       QQ[imass]=nissa_malloc("QQ[i]",loc_vol+bord_vol,spincolor);
     }
-    
-  //Read path of output
-  read_str_str("Output",outfile,1024);
-  
-  close_input();
 }
 
+//wrapper
 void generate_volume_source(int isource)
 {
   enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
   generate_spindiluted_source(source,type[noise_type],-1);
 }
 
+//compute propagators
 void calculate_S()
 {
   inv_time-=take_time();
@@ -259,45 +244,52 @@ void apply_dipole_operator(colorspinspin *S_out,colorspinspin *S_in,int dir)
     }
 }
 
+//contract
 void calculate_all_contractions(int isource)
 {
   contr_time-=take_time();
   
   char outp[1024];
-  sprintf(outp,"%s%04d",outfile,isource);
+  sprintf(outp,"%s/bubble_%04d",outfolder,isource);
   FILE *fout=open_text_file_for_output(outp);
   
   for(int imass=0;imass<nmass;imass++)
     for(int r=0;r<2;r++)
       {
-	//apply the chromo magnetic operator to the second spinor
-	unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S[imass][r]);
-	
-	//apply the dipole operator to the spinor
-	for(int idir=0;idir<3;idir++) apply_dipole_operator(edm_prop[idir],S[imass][r],idir+1);
-	
+	//header
 	master_fprintf(fout," # mass=%g r=%d\n",mass[imass],r);
 	
 	//simple contractions
 	contract_with_source(contr,S[imass][r],op,source,ncontr);
 	print_bubbles_to_file(fout,ncontr,op,contr,"");
 	
-	//chromo contractions
-	contract_with_source(ch_contr,ch_prop,ch_op,source,nch_contr);
-	print_bubbles_to_file(fout,nch_contr,ch_op,ch_contr,"CHROMO-");
+	ncontr_tot+=ncontr;
 	
-	//edm contractions
-	for(int idir=0;idir<3;idir++)
+	//apply the chromo magnetic operator to the second spinor
+	if(nch_contr!=0)
 	  {
-	    int ninsertions=1;
-	    int dipole_insertion[1]={4};
-	    contract_with_source(contr,edm_prop[idir],dipole_insertion,source,ninsertions);
-	    char tag[1024];
-	    sprintf(tag,"EDM_%d",idir+1);
-	    print_bubbles_to_file(fout,ninsertions,dipole_insertion,contr,tag);
+	    unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S[imass][r]);
+	    contract_with_source(ch_contr,ch_prop,ch_op,source,nch_contr);
+	    print_bubbles_to_file(fout,nch_contr,ch_op,ch_contr,"CHROMO-");
+
+	    ncontr_tot+=nch_contr;
 	  }
 	
-	ncontr_tot+=nch_contr+ncontr;
+	//edm contractions
+	if(compute_edm)
+	  {
+	    for(int idir=0;idir<3;idir++) apply_dipole_operator(edm_prop[idir],S[imass][r],idir+1);
+	    
+	    for(int idir=0;idir<3;idir++)
+	      {
+		int ninsertions=1;
+		int dipole_insertion[1]={4};
+		contract_with_source(contr,edm_prop[idir],dipole_insertion,source,ninsertions);
+		char tag[1024];
+		sprintf(tag,"EDM_%d",idir+1);
+		print_bubbles_to_file(fout,ninsertions,dipole_insertion,contr,tag);
+	      }
+	  }
 	
 	//do everything with the chris-michael trick
 	if(r==0)
@@ -305,10 +297,15 @@ void calculate_all_contractions(int isource)
 	    contract_with_chris_michael(contr,op,S[imass][r],S[imass][r],ncontr,mass[imass]);
 	    print_bubbles_to_file(fout,ncontr,op,contr,"CHRIS-");
 	    
-	    contract_with_chris_michael(ch_contr,ch_op,ch_prop,S[imass][r],nch_contr,mass[imass]);
-	    print_bubbles_to_file(fout,nch_contr,ch_op,ch_contr,"CHROMO-CHRIS-");
+	    ncontr_tot+=ncontr;
 	    
-	    ncontr_tot+=nch_contr+ncontr;
+	    if(nch_contr!=0)
+	      {
+		contract_with_chris_michael(ch_contr,ch_op,ch_prop,S[imass][r],nch_contr,mass[imass]);
+		print_bubbles_to_file(fout,nch_contr,ch_op,ch_contr,"CHROMO-CHRIS-");
+		
+		ncontr_tot+=nch_contr;
+	      }
 	  }
       }
 
@@ -319,6 +316,7 @@ void calculate_all_contractions(int isource)
 
 void close_bubbles()
 {
+  close_input();
 
   //take final time
   tot_time+=take_time();
@@ -332,10 +330,11 @@ void close_bubbles()
   
   master_printf("\nEverything ok, exiting!\n");
   
-  nissa_free(contr);nissa_free(ch_contr);
-  nissa_free(op);nissa_free(ch_op);
+  nissa_free(contr);
   nissa_free(conf);
-  nissa_free(Pmunu);
+  if(compute_edm) nissa_free(Pmunu);
+  if(nch_contr!=0) nissa_free(ch_contr);
+  
   nissa_free(source);
   for(int imass=0;imass<nmass;imass++)
     {
@@ -347,11 +346,88 @@ void close_bubbles()
   nissa_free(QQ);
   
   nissa_free(inv_source);
-  nissa_free(ch_prop);
-  for(int idir=0;idir<3;idir++) nissa_free(edm_prop[idir]);
+  if(nch_contr!=0) nissa_free(ch_prop);
+  if(compute_edm) for(int idir=0;idir<3;idir++) nissa_free(edm_prop[idir]);
   for(int r=0;r<2;r++) nissa_free(temp_vec[r]);
   
   close_nissa();
+}
+
+int read_conf_parameters(int *iconf)
+{
+  int ok_conf;
+
+  do
+    {
+      //read path of conf and output
+      read_str(conf_path,1024);
+      read_str(outfolder,1024);
+      if(compute_edm)
+	{
+	  //read the position of the source (for the edm)
+	  expect_str("SourcePosition");
+	  for(int idir=0;idir<4;idir++)
+	    {
+	      read_int(&(source_pos[idir]));
+	      master_printf("%d ",source_pos[idir]);
+	    }
+	}
+
+      //check if the conf exist
+      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+      ok_conf=!(dir_exists(outfolder));
+      if(ok_conf)
+        {
+          int ris=create_dir(outfolder);
+          if(ris==0) master_printf(" Output path \"%s\" not present: configuration \"%s\" not yet analyzed, starting.\n",outfolder,conf_path);
+          else
+            {
+              ok_conf=0;
+              master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+            }
+        }
+      else
+        master_printf(" Output path \"%s\" already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
+      (*iconf)++;
+    }
+  while(!ok_conf && (*iconf)<ngauge_conf);
+  
+  master_printf("\n");
+  
+  return ok_conf;
+}
+
+//read the conf and setup it
+void setup_conf()
+{
+  //load conf, calculate plaquette and Pmunu
+  read_ildg_gauge_conf(conf,conf_path);
+  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  if(nch_contr!=0) Pmunu_term(Pmunu,conf);
+      
+  //put the anti-periodic condition on the temporal border
+  double put_theta[4],old_theta[4]={0,0,0,0};
+  put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
+  adapt_theta(conf,old_theta,put_theta,1,1);
+}
+
+//check if the time is enough
+int check_remaining_time()
+{
+  int enough_time;
+
+  //check remaining time                                                                                                                                                                        
+  double temp_time=take_time()+tot_time;
+  double ave_time=temp_time/nanalyzed_conf;
+  double left_time=wall_time-temp_time;
+  enough_time=left_time>(ave_time*1.1);
+
+  master_printf("Remaining time: %lg sec\n",left_time);
+  master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+  if(enough_time) master_printf("Continuing with next conf!\n");
+  else master_printf("Not enough time, exiting!\n");
+  
+  return enough_time;
 }
 
 int main(int narg,char **arg)
@@ -363,15 +439,25 @@ int main(int narg,char **arg)
   
   initialize_bubbles(arg[1]);
   
-  start_loc_rnd_gen(seed);
-  
-  //loop over the sources
-  for(int isource=starting_source;isource<ending_source;isource++)
+  //loop over the configs
+  int iconf=0,enough_time=1;
+  while(iconf<ngauge_conf && enough_time && read_conf_parameters(&iconf))
     {
-      generate_volume_source(isource);
-      calculate_S();
-      calculate_all_contractions(isource);
+      setup_conf();
+      
+      //loop over the sources
+      for(int isource=starting_source;isource<ending_source;isource++)
+	{
+	  generate_volume_source(isource);
+	  calculate_S();
+	  calculate_all_contractions(isource);
+	}
+      
+      //pass to the next conf if there is enough time
+      nanalyzed_conf++;
+      enough_time=check_remaining_time();
     }
+  if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
   
   close_bubbles();
   
