@@ -731,8 +731,7 @@ void calculate_S0(int ism_lev_so)
 		      sprintf(path,"%s/S0_QD_sosm%02d_iprop%d.id%02d",outfolder,ism_lev_so,ip,id);
 #endif
 		      if(save_S0) write_spincolor(path,cgm_solution[imass],64);
-		      else read_spincolor(cgm_solution[imass],path);
-
+		      else        read_spincolor(cgm_solution[imass],path);
 		    }
 
 		//reconstruct the doublet
@@ -763,6 +762,7 @@ void calculate_S0(int ism_lev_so)
 #else
 	rotate_vol_colorspinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
 #endif
+
       }
   master_printf("Propagators rotated\n");
 

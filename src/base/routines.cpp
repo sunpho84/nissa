@@ -158,6 +158,8 @@ void reorder_vector(char *vect,int *order,int nel,int sel)
 	order[dest]=dest;
       }
   
+  set_borders_invalid(vect);
+  
   nissa_free(buf);
 }
 
