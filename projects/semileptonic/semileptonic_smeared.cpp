@@ -97,6 +97,7 @@ int *jacobi_niter_se,nsm_lev_se;
 //vectors for the S0 props
 int compute_der,nmuS;
 int npropS0;
+int save_S0;
 prop_type **S0[2];
 int ncgm_solution;
 spincolor **cgm_solution,*temp_vec[2];
@@ -374,6 +375,7 @@ void initialize_semileptonic(char *input_path)
 
   read_list_of_double_pairs("MassResiduesS0",&nmassS0,&massS0,&stopping_residues_S0);
   read_list_of_doubles("NThetaS0",&nthetaS0,&thetaS0);
+  read_str_int("SaveS0",&save_S0);
   
   // 5) contraction list for two points
   
@@ -729,10 +731,15 @@ void calculate_S0(int ism_lev_so)
   for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
     for(int ipropS0=0;ipropS0<npropS0;ipropS0++) //put the (1+ig5)/sqrt(2) factor
       {
+	//output path for S0
+	char outpath[1024];
+	sprintf(outpath,"%s/S0_r%d_iprop%d",outfolder,r,ipropS0);
 #ifdef POINT_SOURCE_VERSION
 	rotate_vol_su3spinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
+	if(save_S0) write_su3spinspin(outpath,S0[r][ipropS0],64);
 #else
 	rotate_vol_colorspinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
+	if(save_S0) write_colorspinspin(outpath,S0[r][ipropS0],64);
 #endif
       }
   master_printf("Propagators rotated\n");
@@ -876,8 +883,8 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 			      
 			      //header
 			      master_fprintf(fout," # m1=%lg th1=%lg res1=%lg r1=%d, m2=%lg th2=%lg res2=%lg r2=%d der_source=%d der_sink=%d",
-					     mass1[im1], thetaS0[ith1],stopping_residues_S0[im1],r1,
-					     massS0[im2],thetaS0[ith2],stopping_residues1[im2],  r2,
+					     mass1[im1], thetaS0[ith1],stopping_residues1[im1],r1,
+					     massS0[im2],thetaS0[ith2],stopping_residues_S0[im2],  r2,
 					     muS_source,muS_sink);
 			      master_fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
 			      

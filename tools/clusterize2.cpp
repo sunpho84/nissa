@@ -6,9 +6,9 @@ uint64_t max_mem_usable=128000000;
 typedef char sa_string[300];
 
 int T,ncorr,ncombo,ncorr_type;
-int ncombo_per_block;
+int nfile_names,ncombo_per_block;
 int njack,clust_size,nblock;;
-int start_file_id,nfile,nfile_teo;
+int start_conf_id,nconfs,nconfs_teo;
 char base_path_in[1024],base_path_out[1024];
 sa_string *corr_name,*outpath;
 double *data;
@@ -19,24 +19,21 @@ void parse_input(char *path)
 {
   //Open input
   open_input(path);
-
+  
   //in pars
   read_str_int("T",&T);
-  read_str_str("BasePathIn",base_path_in,1024);
-  read_str_int("StartFileId",&start_file_id);
-
-  //nfiles
-  read_str_int("NFile",&nfile_teo);
+  read_str_int("StartConfId",&start_conf_id);
+  
+  //nconfs
+  read_str_int("Nconfs",&nconfs_teo);
   read_str_int("NJack",&njack);
   
-  //n corrs
-  read_str_str("BasePathOut",base_path_out,1024);
+  //n files
+  read_str_int("NFileNames",&nfile_names);
   
-  close_input();
-  
-  //compute real numb of files
-  clust_size=nfile_teo/njack;
-  nfile=clust_size*njack;
+  //compute real numb of confs
+  clust_size=nconfs_teo/njack;
+  nconfs=clust_size*njack;
 }
 
 //count the number of combo
@@ -44,7 +41,7 @@ void count_corr(char *path)
 {
   ncombo=ncorr=0;
   
-  printf("Considering file: %s\n",path);
+  printf("Considering conf: %s\n",path);
   
   FILE *fin=open_file(path,"r");
   
@@ -70,8 +67,8 @@ void count_corr(char *path)
   //alloc space for the name of corrs and outpath
   corr_name=nissa_malloc("corr_name",ncorr_type,sa_string);
   outpath=nissa_malloc("outpath",ncorr,sa_string);
-  pos=nissa_malloc("pos",nfile,int);
-  memset(pos,0,sizeof(int)*nfile);
+  pos=nissa_malloc("pos",nconfs,int);
+  memset(pos,0,sizeof(int)*nconfs);
   
   //go to the file start and load all corr type names
   fseek(fin,0,SEEK_SET);  
@@ -98,7 +95,7 @@ void count_corr(char *path)
   //compute the total amount of memory needed
   uint64_t max_mem_needed=(uint64_t)ncombo*combo_size;
   
-  printf("max memory needed: %d\n",max_mem_needed);
+  printf("max memory needed: %llu\n",max_mem_needed);
   printf("max memory usable: %llu\n",max_mem_usable);
   
   //count number of blocks needed
@@ -144,17 +141,14 @@ void count_corr(char *path)
 
 void close_clust()
 {
-  nissa_free(corr_name);
-  nissa_free(outpath);
-  nissa_free(data);
-  nissa_free(pos);
+  close_input();  
   
   close_nissa();
 }
 
-void parse_file(int ifile,char *path,int &start)
+void parse_conf(int iconf,char *path,int &start)
 {
-  int iclust=ifile/clust_size;
+  int iclust=iconf/clust_size;
   verbosity_lv3_master_printf("clust: %d/%d\n",iclust,njack);
   
   //open and seek
@@ -222,87 +216,98 @@ int main(int narg,char **arg)
   
   //read input and prepare structures
   parse_input(arg[1]);
-    
-  //create first file path
-  char path[1024];
-  sprintf(path,base_path_in,start_file_id);
-  count_corr(path);
   
-  //looping over blocks
-  for(int iblock=0;iblock<nblock;iblock++)
+  for(int ifile_name=0;ifile_name<nfile_names;ifile_name++)
     {
-      if(iblock>1) printf("Running on block %d/%d\n",iblock+1,nblock);
+      read_str_str("BasePathIn",base_path_in,1024);
+      read_str_str("BasePathOut",base_path_out,1024);
       
-      //reset data
-      memset(data,0,mem_asked);
+      //create first file path
+      char path[1024];
+      sprintf(path,base_path_in,start_conf_id);
+      count_corr(path);
       
-      //loop over all the confs
-      int targ_file=0;
-      for(int ifile=0;ifile<nfile;ifile++)
+      //looping over blocks
+      for(int iblock=0;iblock<nblock;iblock++)
 	{
-	  printf("Considering file %d/%d\n",ifile+1,nfile);
+	  if(iblock>1) printf("Running on block %d/%d\n",iblock+1,nblock);
 	  
-	  //search existing file
-	  int found;
-	  do
+	  //reset data
+	  memset(data,0,mem_asked);
+	  
+	  //loop over all the confs
+	  int targ_conf=0;
+	  for(int iconf=0;iconf<nconfs;iconf++)
 	    {
-	      sprintf(path,base_path_in,targ_file+start_file_id);
-	      found=file_exists(path);
-	      if(!found)
+	      printf("Considering conf %d/%d\n",iconf+1,nconfs);
+	      
+	      //search existing conf
+	      int found;
+	      do
 		{
-		  printf("file %s not available, skipping",path);
-		  targ_file++;
-		  if(targ_file>=nfile_teo) crash("finished all available files");
+		  sprintf(path,base_path_in,targ_conf+start_conf_id);
+		  found=file_exists(path);
+		  if(!found)
+		    {
+		      printf("conf %s not available, skipping",path);
+		      targ_conf++;
+		      if(targ_conf>=nconfs_teo) crash("finished all available confs");
+		    }
 		}
+	      while(!found);
+	      
+	      //parse the conf into data clusters
+	      parse_conf(iconf,path,pos[targ_conf]);
+	      
+	      //advance
+	      targ_conf++;
 	    }
-	  while(!found);
 	  
-	  //parse the file into data clusters
-	  parse_file(ifile,path,pos[targ_file]);
-	  
-	  //advance
-	  targ_file++;
-	}
-      
-      //make the jacknives
-      for(int icorr=0;icorr<ncombo_per_block*2*ncorr_type*T;icorr++)
-	{
-	  double *d=data+icorr*(njack+1);
-	  
-	  //compute average
-	  for(int iclust=0;iclust<njack;iclust++) d[njack]+=d[iclust];
-	  for(int ijack=0;ijack<njack;ijack++) d[ijack]=(d[njack]-d[ijack])/(nfile-nfile/njack);
-	  d[njack]/=nfile;
-	}
-      
-      //if necessary change the endianess
-      if(!little_endian)
-	doubles_to_doubles_changing_endianess(data,data,mem_asked/sizeof(double));
-      
-      printf("\n");
-      
-      //write different files for each corr
-      for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
-	{
-	  FILE *file;
-	  if(iblock==0)
+	  //make the jacknives
+	  for(int icorr=0;icorr<ncombo_per_block*2*ncorr_type*T;icorr++)
 	    {
-	      printf("Writing corr %s (%d/%d)\n",corr_name[icorr_type],icorr_type+1,ncorr_type);
-	      file=open_file(outpath[icorr_type],"w");
+	      double *d=data+icorr*(njack+1);
+	      
+	      //compute average
+	      for(int iclust=0;iclust<njack;iclust++) d[njack]+=d[iclust];
+	      for(int ijack=0;ijack<njack;ijack++) d[ijack]=(d[njack]-d[ijack])/(nconfs-nconfs/njack);
+	      d[njack]/=nconfs;
 	    }
-	  else
+	  
+	  //if necessary change the endianess
+	  if(!little_endian)
+	    doubles_to_doubles_changing_endianess(data,data,mem_asked/sizeof(double));
+	  
+	  printf("\n");
+	  
+	  //write different files for each corr
+	  for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
 	    {
-	      printf("Appending corr %s (%d/%d)\n",corr_name[icorr_type],icorr_type+1,ncorr_type);
-	      file=open_file(outpath[icorr_type],"a");
+	      FILE *file;
+	      if(iblock==0)
+		{
+		  printf("Writing corr %s (%d/%d)\n",corr_name[icorr_type],icorr_type+1,ncorr_type);
+		  file=open_file(outpath[icorr_type],"w");
+		}
+	      else
+		{
+		  printf("Appending corr %s (%d/%d)\n",corr_name[icorr_type],icorr_type+1,ncorr_type);
+		  file=open_file(outpath[icorr_type],"a");
+		}
+	      
+	      int n=fwrite((void*)(data+ncombo_per_block*2*T*(njack+1)*icorr_type),sizeof(double),ncombo_per_block*2*T*(njack+1),file);
+	      fclose(file);
 	    }
-
-	  int n=fwrite((void*)(data+ncombo_per_block*2*T*(njack+1)*icorr_type),sizeof(double),ncombo_per_block*2*T*(njack+1),file);
-	  fclose(file);
+	  
+	  printf("\n");
 	}
       
-      printf("\n");
+      //free
+      nissa_free(data);
+      nissa_free(corr_name);
+      nissa_free(outpath);
+      nissa_free(pos);
     }
-  
   
   //exiting
   close_clust();
