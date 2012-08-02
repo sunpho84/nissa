@@ -177,7 +177,7 @@ void ILDG_File_read_all(void *data,ILDG_File &file,int nbytes_req)
     crash("read %d bytes instead of %d required",nbytes_read,nbytes_req);
   
   //padding
-  ILDG_File_seek_to_next_eight_multiple(file);  
+  ILDG_File_seek_to_next_eight_multiple(file);
   
   verbosity_lv3_master_printf("record read: %d bytes\n",nbytes_req);
 }
@@ -230,6 +230,8 @@ void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req)
       if(nbytes_wrote!=nbytes_req)
 	crash("wrote %d bytes instead of %d required",nbytes_wrote,nbytes_req);
     }
+  else
+    ILDG_File_skip_nbytes(file,nbytes_req);
 }
 
 //build record header

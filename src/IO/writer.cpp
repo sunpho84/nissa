@@ -140,7 +140,7 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
 	    
 	    memcpy(temp[idest],spinor[isour],sizeof(spincolor));
 	  }
-  
+
   //Write the binary data
   write_double_vector(file,(double*)temp,nreals_per_spincolor,prec,"scidac-binary-data");
 
