@@ -20,6 +20,7 @@ projects=$(addprefix projects/, \
 	generate_confs/generate_stag \
 	nucleons/nucleons_smeared \
 	reno_const/RIMOM \
+	semileptonic/new_semileptonic \
 	semileptonic/semileptonic_smeared \
 	semileptonic/semileptonic_smeared_point_source \
 	static_potential/compute_potential)
