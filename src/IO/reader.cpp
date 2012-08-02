@@ -170,6 +170,8 @@ void read_real_vector(double *out,char *path,const char *record_name,uint64_t nr
   else //swap the endianess if needed
     if(little_endian) doubles_to_doubles_changing_endianess((double*)out,(double*)out,loc_nreals_tot);
   
+  set_borders_invalid(out);
+  
   verbosity_lv2_master_printf("Total time elapsed including possible conversion: %f s\n",take_time()-start_time);
 }
 
@@ -185,6 +187,7 @@ void read_spincolor(spincolor *sc,char *path)
 {
   read_real_vector((double*)sc,path,"scidac-binary-data",nreals_per_spincolor);
   reorder_read_spincolor(sc);
+  set_borders_invalid(sc);
 }
 
 //read a colorspinspin
