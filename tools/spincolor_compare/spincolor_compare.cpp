@@ -6,6 +6,7 @@ void compare_spincolor(char *a_path,char *b_path)
 {
   spincolor *a=nissa_malloc("a",loc_vol,spincolor);
   read_spincolor(a,a_path);
+  
   spincolor *b=nissa_malloc("b",loc_vol,spincolor);
   read_spincolor(b,b_path);
   

@@ -97,7 +97,7 @@ int *jacobi_niter_se,nsm_lev_se;
 //vectors for the S0 props
 int compute_der,nmuS;
 int npropS0;
-int save_S0;
+int load_S0,save_S0;
 prop_type **S0[2];
 int ncgm_solution;
 spincolor **cgm_solution,*temp_vec[2];
@@ -376,6 +376,8 @@ void initialize_semileptonic(char *input_path)
   read_list_of_double_pairs("MassResiduesS0",&nmassS0,&massS0,&stopping_residues_S0);
   read_list_of_doubles("NThetaS0",&nthetaS0,&thetaS0);
   read_str_int("SaveS0",&save_S0);
+  if(save_S0==0) read_str_int("LoadS0",&load_S0);
+  else load_S0=0;
   
   // 5) contraction list for two points
   
@@ -531,21 +533,24 @@ int read_conf_parameters(int *iconf)
       //Out folder
       read_str(outfolder,1024);
       
-      //Check if the conf exist
+      //Check if the conf has been finished
       master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
-      ok_conf=!(dir_exists(outfolder));
+      char fin_file[1024];
+      sprintf(fin_file,"%s/finished",outfolder);
+      ok_conf=!(file_exists(fin_file));
       if(ok_conf)
 	{
-	  int ris=create_dir(outfolder);
-	  if(ris==0) master_printf(" Output path \"%s\" not present: configuration \"%s\" not yet analyzed, starting.\n",outfolder,conf_path);
-	  else
+	  master_printf(" Configuration \"%s\" not yet analyzed, starting",conf_path);
+	  if(!dir_exists(outfolder))
 	    {
-	      ok_conf=0;
-	      master_printf(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+	      int ris=create_dir(outfolder);
+	      if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+	      else
+		crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 	    }
 	}
       else
-	master_printf(" Output path \"%s\" already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
+	master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
       (*iconf)++;
     }
   while(!ok_conf && (*iconf)<ngauge_conf);
@@ -699,15 +704,37 @@ void calculate_S0(int ism_lev_so)
 		adapt_theta(conf,old_theta,put_theta,1,1);
 		
 		//inverting
-		double part_time=-take_time();
-		inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
-		part_time+=take_time();ninv_tot++;inv_time+=part_time;
-		master_printf("Finished the inversion of S0 theta %d, ",itheta);
-		if(compute_der) master_printf("source derivative %d ",muS);
+		if(!load_S0)
+		  {
+		    double part_time=-take_time();
+		    inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
+		    part_time+=take_time();ninv_tot++;inv_time+=part_time;
+		    master_printf("Finished the inversion of S0 theta %d, ",itheta);
+		    if(compute_der) master_printf("source derivative %d ",muS);
+
 #ifdef POINT_SOURCE_VERSION
-		master_printf("color index %d ",ic);
+		    master_printf("color index %d ",ic);
 #endif	    
-		master_printf("dirac index %d in %g sec\n",id,part_time);
+		    master_printf("dirac index %d in %g sec\n",id,part_time);
+		  }
+		
+		if(save_S0||load_S0)
+		  for(int imass=0;imass<nmass;imass++)
+		    {
+		      int ip=ipropS0(itheta,imass,muS);
+		      
+		      //path for S0
+		      char path[1024];
+#ifdef POINT_SOURCE_VERSION
+		      sprintf(path,"%s/S0_QD_sosm%02d_iprop%d.id%02d.ic%02d",outfolder,ism_lev_so,ip,id,ic);
+#else
+		      sprintf(path,"%s/S0_QD_sosm%02d_iprop%d.id%02d",outfolder,ism_lev_so,ip,id);
+#endif
+		      if(save_S0) write_spincolor(path,cgm_solution[imass],64);
+		      else read_spincolor(cgm_solution[imass],path);
+
+		    }
+
 		//reconstruct the doublet
 		for(int imass=0;imass<nmass;imass++)
 		  {
@@ -726,20 +753,15 @@ void calculate_S0(int ism_lev_so)
 	      }
 	  }
     }
-  
+
   //rotate to physical basis
   for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
     for(int ipropS0=0;ipropS0<npropS0;ipropS0++) //put the (1+ig5)/sqrt(2) factor
       {
-	//output path for S0
-	char outpath[1024];
-	sprintf(outpath,"%s/S0_r%d_iprop%d",outfolder,r,ipropS0);
 #ifdef POINT_SOURCE_VERSION
 	rotate_vol_su3spinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
-	if(save_S0) write_su3spinspin(outpath,S0[r][ipropS0],64);
 #else
 	rotate_vol_colorspinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
-	if(save_S0) write_colorspinspin(outpath,S0[r][ipropS0],64);
 #endif
       }
   master_printf("Propagators rotated\n");
