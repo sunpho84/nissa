@@ -88,8 +88,8 @@ void init_simulation(char *path)
   ////////////////////////// allocate stuff ////////////////////////
    
   //allocate the conf
-  conf[0]=nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3);
-  conf[1]=nissa_malloc("conf_o",loc_volh+bord_volh,quad_su3);
+  conf[0]=nissa_malloc("conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
+  conf[1]=nissa_malloc("conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
   new_conf[0]=nissa_malloc("new_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
   new_conf[1]=nissa_malloc("new_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
   
