@@ -17,7 +17,7 @@ complex *contr,*ch_contr;
 int *op,*ch_op;
 
 int wall_time;
-quad_su3 *conf;
+quad_su3 *conf,*sme_conf;
 as2t_su3 *Pmunu;
 
 colorspinspin *source,*ch_prop,***S,*edm_prop[3];
@@ -38,6 +38,11 @@ char conf_path[1024],outfolder[1024];
 
 double tot_time=0,inv_time=0,contr_time=0;
 int ncontr_tot,ninv_tot;
+
+//smearing parameters
+double jacobi_kappa,ape_alpha;
+int ape_niter;
+int jacobi_niter;
 
 const double rad2=1.414213562373095048801688724209;
 
@@ -130,12 +135,17 @@ void initialize_bubbles(char *input_path)
   //read the noise type
   read_str_int("NoiseType",&noise_type);
 
-  // 3) Read list of masses
+  // 3) Smearing parameters
+  
+  read_str_double("ApeAlpha",&ape_alpha);
+  read_str_int("ApeNiter",&ape_niter);
+  read_str_double("JacobiKappa",&jacobi_kappa);
+  read_str_int("JacobiNiter",&jacobi_niter);
 
-  //read the number of masses
+  // 4) Masses
   read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
 
-  // 4) Contractions
+  // 5) Contractions
   
   //read the list of correlations and the list of operators
   read_list_of_ints("NContr",&ncontr,&op);
@@ -156,6 +166,7 @@ void initialize_bubbles(char *input_path)
   
   //allocate gauge conf and Pmunu
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   if(compute_edm) Pmunu=nissa_malloc("clover",loc_vol,as2t_su3);
   
   //allocate the source and the chromo-prop
@@ -183,6 +194,17 @@ void generate_volume_source(int isource)
 {
   enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
   generate_spindiluted_source(source,type[noise_type],-1);
+  
+  for(int idso=0;idso<4;idso++)
+    {
+      nissa_loc_vol_loop(ivol)
+	get_spincolor_from_colorspinspin(inv_source[ivol],source[ivol],idso);
+      set_borders_invalid(inv_source);
+      
+      jacobi_smearing(inv_source,inv_source,sme_conf,jacobi_kappa,jacobi_niter);
+      nissa_loc_vol_loop(ivol)
+	put_spincolor_into_colorspinspin(source[ivol],inv_source[ivol],idso);
+    }
 }
 
 //compute propagators
@@ -205,7 +227,7 @@ void calculate_S()
 		inv_source[ivol][idsi][icol][ri]=-inv_source[ivol][idsi][icol][ri];
 	}
       set_borders_invalid(inv_source);
-      
+
       inv_tmQ2_cgm(QQ,conf,kappa,mass,nmass,niter_max,stopping_residues,inv_source);
       ninv_tot++;
       //put the solution inside the S vector
@@ -332,6 +354,7 @@ void close_bubbles()
   
   nissa_free(contr);
   nissa_free(conf);
+  nissa_free(sme_conf);
   if(compute_edm) nissa_free(Pmunu);
   if(nch_contr!=0) nissa_free(ch_contr);
   
@@ -402,7 +425,10 @@ void setup_conf()
 {
   //load conf, calculate plaquette and Pmunu
   read_ildg_gauge_conf(conf,conf_path);
+  ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
+
   if(nch_contr!=0) Pmunu_term(Pmunu,conf);
       
   //put the anti-periodic condition on the temporal border

@@ -153,7 +153,7 @@ int rhmc_trajectory(int test_traj)
   if(acc)
     {
       master_printf("accetpted.\n");
-      for(int par=0;par<2;par++) vector_copy(conf,new_conf);
+      for(int par=0;par<2;par++) vector_copy(conf[par],new_conf[par]);
     }
   else master_printf("rejected.\n");
   

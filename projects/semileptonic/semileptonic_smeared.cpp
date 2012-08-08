@@ -1104,6 +1104,9 @@ int main(int narg,char **arg)
 	}
       
       //pass to the next conf if there is enough time
+      char fin_file[1024];
+      sprintf(fin_file,"%s/finished",outfolder);
+      file_touch(fin_file);
       nanalyzed_conf++;
       enough_time=check_remaining_time();
     }
