@@ -48,8 +48,13 @@ int main(int narg,char **arg)
   ///////////////////////////////////////
   
   communicate_lx_quad_su3_edges(lx_conf);
-  communicate_eo_quad_su3_edges(eo_conf);
   
+  for(int icomm=0;icomm<100;icomm++)
+    {
+      for(int par=0;par<2;par++)
+	set_edges_invalid(eo_conf[par]);
+      communicate_eo_quad_su3_edges(eo_conf);
+    }
   for(int ibord=0;ibord<loc_vol+bord_vol;ibord++)
     for(int vers=0;vers<2;vers++)
     for(int mu=0;mu<4;mu++)

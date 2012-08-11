@@ -432,13 +432,21 @@ void communicate_od_spin_borders(spin *od)
 void communicate_eo_edges(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
 {
   int nrequest=0;
-  MPI_Request request[96];
-  MPI_Status status[96];
+  int nrequest_tot=0;
+    for(int mu=0;mu<4;mu++)
+      for(int nu=mu+1;nu<4;nu++)
+	if(paral_dir[mu] && paral_dir[nu])
+	  nrequest_tot+=16;
+
+  MPI_Request request[nrequest_tot];
+  MPI_Status status[nrequest_tot];
   int imessage=0;
   
   if(!check_edges_valid(data[EVN])||!check_edges_valid(data[ODD]))
     {
       communicate_eo_borders(data,MPI_EO_BORDS_SEND_TXY,MPI_EV_BORDS_SEND_Z,MPI_OD_BORDS_SEND_Z,MPI_EO_BORDS_RECE,nbytes_per_site);
+      
+      verbosity_lv3_master_printf("Communicating edges\n");
       
       //check_edges_allocated(data);
       for(int par=0;par<2;par++)
@@ -472,6 +480,8 @@ void communicate_eo_edges(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Da
 	  
 	  set_edges_valid(data[par]);
 	}
+      
+      if(nrequest!=nrequest_tot) crash("something went wrong");
       
       if(nrequest>0) MPI_Waitall(nrequest,request,status);
     }
