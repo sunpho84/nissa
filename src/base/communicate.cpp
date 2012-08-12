@@ -209,7 +209,8 @@ void finish_communicating_ev_borders(int &nrequest,MPI_Request *request,char *ev
   if(nrequest>0)
     {
       verbosity_lv3_master_printf("Waiting to finish %d communication of ev borders of vector %s\n",nrequest,get_vec_name(ev_data));
-      MPI_Waitall(nrequest,request,MPI_STATUS_IGNORE);
+      MPI_Status status[nrequest];
+      MPI_Waitall(nrequest,request,status);
       nrequest=0;
     }
   set_borders_valid(ev_data);
@@ -378,14 +379,15 @@ void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_
   if(nrequest>0)
     {
       if(nrequest>0) verbosity_lv3_master_printf("Starting communication of borders of vector %s\n",get_vec_name(data[0]));
-      MPI_Waitall(nrequest,request,MPI_STATUS_IGNORE);
+      MPI_Status status[nrequest];
+      MPI_Waitall(nrequest,request,status);
       nrequest=0;
     }
   tot_nissa_comm_time+=take_time();
 
   set_borders_valid(data[EVN]);
   set_borders_valid(data[ODD]);
-  }
+}
 
 //Send the borders of the gauge configuration
 void communicate_eo_quad_su3_borders(quad_su3 **eo_conf)

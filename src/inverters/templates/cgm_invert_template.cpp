@@ -151,6 +151,8 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
     }
   while(nrun_shift>0 && iter<niter_max);
   
+  if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(nrequest,request,p);
+  
   //print the final true residue
   for(int ishift=0;ishift<nshift;ishift++)
     {
