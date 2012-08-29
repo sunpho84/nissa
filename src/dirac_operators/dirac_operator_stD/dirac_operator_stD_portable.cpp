@@ -1,5 +1,3 @@
-#pragma once
-
 void apply_st2Doe(color *out,quad_su3 **conf,color *in)
 {
   communicate_eo_quad_su3_borders(conf);
@@ -7,12 +5,15 @@ void apply_st2Doe(color *out,quad_su3 **conf,color *in)
   
   nissa_loc_volh_loop(io)
     {
+      //neighbours search
       int evup0=loceo_neighup[ODD][io][0];
       int evdw0=loceo_neighdw[ODD][io][0];
       
+      //derivative in the time direction - without self-summ
       unsafe_su3_prod_color(      out[io],conf[ODD][io   ][0],in[evup0]);
       su3_dag_subt_the_prod_color(out[io],conf[EVN][evdw0][0],in[evdw0]);
       
+      //derivatives in the spatial direction - with self summ
       for(int mu=1;mu<4;mu++)
 	{
 	  int evup=loceo_neighup[ODD][io][mu];
@@ -26,6 +27,7 @@ void apply_st2Doe(color *out,quad_su3 **conf,color *in)
   set_borders_invalid(out);
 }
 
+//put the 0.5 factor
 void apply_stDoe(color *out,quad_su3 **conf,color *in)
 {
   apply_st2Doe(out,conf,in);
@@ -35,6 +37,7 @@ void apply_stDoe(color *out,quad_su3 **conf,color *in)
 	out[io][ic][ri]*=0.5;
 }
 
+//multply also for 1/4
 void apply_stDeo_quarter(color *out,quad_su3 **conf,color *in)
 {
   communicate_eo_quad_su3_borders(conf);

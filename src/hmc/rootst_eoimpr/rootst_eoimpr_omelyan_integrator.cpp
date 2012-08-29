@@ -9,8 +9,8 @@
 #include "rootst_eoimpr_force.h"
 
 
-//unitarize the conf by explicitely inverting it
-void eo_conf_unitarize_explicitely_inverting(quad_su3 **conf)
+//unitarize the conf by explicitly inverting it
+void eo_conf_unitarize_explicitly_inverting(quad_su3 **conf)
 {
   addrem_stagphases_to_eo_conf(conf);
   
@@ -123,6 +123,6 @@ void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theor
        evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physic,appr,simul->md_residue,last_dt);
       
       //normalize the configuration
-      eo_conf_unitarize_explicitely_inverting(conf);
+      eo_conf_unitarize_explicitly_inverting(conf);
     }
 }

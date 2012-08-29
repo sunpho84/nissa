@@ -168,13 +168,16 @@ void measurements(quad_su3 **conf,int iconf,int acc)
 
 int main(int narg,char **arg)
 {
+  //useful for thermalization
   int skip_test=0;
   
   //basic initialization
   init_nissa();
   
+  //check argument
   if(narg<2) crash("Use: %s input_file",arg[0]);
   
+  //init simulation according to input file
   init_simulation(arg[1]);
   
   ///////////////////////////////////////
