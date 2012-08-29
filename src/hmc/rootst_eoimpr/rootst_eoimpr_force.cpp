@@ -29,7 +29,7 @@ void summ_the_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **eo_conf,color *
   
   //add the background fields
   add_backfield_to_conf(eo_conf,u1b);
-
+  
   //invert the various terms
   inv_stD2ee_m2_cgm_run_hm_up_to_mach_prec(chi_e,eo_conf,appr->poles,appr->nterms,1000000,residue,pf);
   
@@ -42,7 +42,7 @@ void summ_the_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **eo_conf,color *
   rem_backfield_from_conf(eo_conf,u1b);
   
   //communicate borders of v_o (could be improved...)
-  for(int iterm=0;iterm<appr->nterms;iterm++)  communicate_od_color_borders(v_o[iterm]);
+  for(int iterm=0;iterm<appr->nterms;iterm++) communicate_od_color_borders(v_o[iterm]);
   
   //conclude the calculation of the fermionic force
   nissa_loc_volh_loop(ivol)
@@ -52,15 +52,17 @@ void summ_the_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **eo_conf,color *
 	  for(int ic2=0;ic2<3;ic2++)
 	    {
 	      //chpot to be added
-	      complex temp;
+	      complex temp1,temp2;
 	      
 	      //this is for ivol=EVN
-	      unsafe_complex_conj2_prod(temp,v_o[iterm][loceo_neighup[EVN][ivol][mu]][ic1],chi_e[iterm][ivol][ic2]);
-	      complex_summ_the_prod_double(F[EVN][ivol][mu][ic1][ic2],temp,appr->weights[iterm]);
+	      unsafe_complex_conj2_prod(temp1,v_o[iterm][loceo_neighup[EVN][ivol][mu]][ic1],chi_e[iterm][ivol][ic2]);
+	      unsafe_complex_prod(temp2,temp1,u1b[EVN][ivol][mu]);
+	      complex_summ_the_prod_double(F[EVN][ivol][mu][ic1][ic2],temp2,appr->weights[iterm]);
 	      
 	      //this is for ivol=ODD
-	      unsafe_complex_conj2_prod(temp,chi_e[iterm][loceo_neighup[ODD][ivol][mu]][ic1],v_o[iterm][ivol][ic2]);
-	      complex_subt_the_prod_double(F[ODD][ivol][mu][ic1][ic2],temp,appr->weights[iterm]);
+	      unsafe_complex_conj2_prod(temp1,chi_e[iterm][loceo_neighup[ODD][ivol][mu]][ic1],v_o[iterm][ivol][ic2]);
+	      unsafe_complex_prod(temp2,temp1,u1b[ODD][ivol][mu]);
+	      complex_subt_the_prod_double(F[ODD][ivol][mu][ic1][ic2],temp2,appr->weights[iterm]);
 	    }
   
   //free
