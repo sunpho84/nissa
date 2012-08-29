@@ -1,4 +1,7 @@
+#include <math.h>
+
 #include "../new_types/new_types_definitions.h"
+#include "../new_types/complex.h"
 #include "../new_types/su3.h"
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
@@ -8,12 +11,29 @@
 void init_backfield_to_id(quad_u1 **S)
 {
   for(int par=0;par<2;par++)
-    nissa_loc_volh_loop(ivol)
-      for(int mu=0;mu<4;mu++)
-	{
-	  S[par][ivol][mu][0]=1;
-	  S[par][ivol][mu][1]=0;
-	}
+    {
+      nissa_loc_volh_loop(ivol)
+	for(int mu=0;mu<4;mu++)
+	  {
+	    S[par][ivol][mu][0]=1;
+	    S[par][ivol][mu][1]=0;
+	  }
+        set_borders_invalid(S[par]);
+    }
+}
+
+//multiply a background field by the imaginary chemical potential
+void add_im_pot_to_backfield(quad_u1 **S,quark_content &quark_info)
+{
+  double im_pot=quark_info.im_pot*M_PI/glb_size[0];
+  complex ph={cos(im_pot),sin(im_pot)};
+  
+  for(int par=0;par<2;par++)
+    {
+      nissa_loc_volh_loop(ieo)
+	safe_complex_prod(S[par][ieo][0],S[par][ieo][0],ph);
+      set_borders_invalid(S[par]);
+    }
 }
 
 //multpiply the configuration for an additional u(1) field

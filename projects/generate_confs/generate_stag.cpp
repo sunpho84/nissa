@@ -110,7 +110,7 @@ void init_simulation(char *path)
   for(int iflav=0;iflav<physic.nflavs;iflav++)
     {
       init_backfield_to_id(physic.backfield[iflav]);
-      //to be added magnetic fields and ch.pot
+      add_im_pot_to_backfield(physic.backfield[iflav],physic.flav_pars[iflav]);
     }
 }
 
