@@ -17,5 +17,7 @@ void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,as2t_su3 *
 void unsafe_apply_chromo_operator_to_spincolor(spincolor *out,as2t_su3 *Pmunu,spincolor *in);
 void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmunu,su3spinspin *in);
 void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in);
+void average_polyakov_loop(complex tra,quad_su3 *eo_conf,int mu);
+void average_polyakov_loop_of_eos_conf(complex tra,quad_su3 **eo_conf,int mu);
 
 #endif

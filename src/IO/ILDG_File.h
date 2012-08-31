@@ -12,10 +12,16 @@ ILDG_Offset ILDG_File_get_position(ILDG_File &file);
 ILDG_Offset ILDG_File_get_size(ILDG_File &file);
 ILDG_header ILDG_File_build_record_header(int MB_flag,int ME_flag,const char *type,uint64_t data_length);
 ILDG_header ILDG_File_get_next_record_header(ILDG_File &file);
+void ILDG_message_init_to_last(ILDG_message *mess);
+ILDG_message *ILDG_message_find_last(ILDG_message *mess);
+ILDG_message* ILDG_bin_message_append_to_last(ILDG_message *mess,const char *name,const char *data,uint64_t length);
+ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data);
+void ILDG_File_write_all_messages(ILDG_File &file,ILDG_message *mess);
+void ILDG_message_free_all(ILDG_message *mess);
 bool ILDG_File_reached_EOF(ILDG_File &file);
 bool get_MB_flag(ILDG_header &header);
 bool get_ME_flag(ILDG_header &header);
-int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *record_name);
+int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *record_name,ILDG_message *mess=NULL);
 void ILDG_File_close(ILDG_File &file);
 void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req);
 void ILDG_File_read_all(void *data,ILDG_File &file,int nbytes_req);
@@ -31,4 +37,5 @@ void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,int nbytes_per_sit
 void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write);
 void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
 void unset_mapped_types(MPI_Datatype &etype,MPI_Datatype &ftype);
+
 #endif

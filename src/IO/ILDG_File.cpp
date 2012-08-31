@@ -23,6 +23,67 @@ bool get_MB_flag(ILDG_header &header)
 bool get_ME_flag(ILDG_header &header)
 {return header.mbme_flag & ILDG_ME_MASK;}
 
+//////////////////////////////////////////////////// messages  ////////////////////////////////////////////////
+
+//initialize the message as last one
+void ILDG_message_init_to_last(ILDG_message *mess)
+{
+  mess->is_last=true;
+  mess->next=NULL;
+  mess->data=NULL;
+  mess->name=NULL;
+}
+
+//find last message
+ILDG_message *ILDG_message_find_last(ILDG_message *mess)
+{
+  ILDG_message *last_mess=mess;
+  
+  while(last_mess->is_last==false) last_mess=last_mess->next;
+  
+  return last_mess;
+}
+  
+//append a message to last
+ILDG_message* ILDG_bin_message_append_to_last(ILDG_message *first_mess,const char *name,const char *data,uint64_t length)
+{
+  //find last message and set it not to last
+  ILDG_message *last_mess=ILDG_message_find_last(first_mess);
+  last_mess->is_last=false;
+  
+  //copy name
+  last_mess->name=strdup(name);
+  
+  //copy data
+  last_mess->data=(char*)malloc(length);
+  memcpy(last_mess->data,data,length);
+  
+  //allocate new last message (empty)
+  last_mess->next=(ILDG_message*)malloc(sizeof(ILDG_message));
+  ILDG_message_init_to_last(last_mess->next);
+  
+  return last_mess->next;
+}
+
+ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data)
+{return ILDG_bin_message_append_to_last(mess,name,data,strlen(data));}
+
+//remove all message
+void ILDG_message_free_all(ILDG_message *mess)
+{
+  //if it is not terminating message
+  if(mess->is_last==false)
+    {
+      //chain free
+      ILDG_message_free_all(mess->next);
+      
+      //internally free
+      free(mess->name);
+      free(mess->data);
+      free(mess->next);
+    }
+}
+
 //////////////////////////////////////////// simple tasks on file /////////////////////////////////////
 
 //open a file
@@ -194,7 +255,7 @@ ILDG_header ILDG_File_get_next_record_header(ILDG_File &file)
   if(little_endian)
     {
       uint64s_to_uint64s_changing_endianess(&header.data_length,&header.data_length,1);
-      master_printf("record contains: %lld bytes\n",header.data_length);
+      verbosity_lv3_master_printf("record %s contains: %lld bytes\n",header.type,header.data_length);
       uint32s_to_uint32s_changing_endianess(&header.magic_no,&header.magic_no,1);
       uint16s_to_uint16s_changing_endianess(&header.version,&header.version,1);
     }
@@ -269,8 +330,10 @@ void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write)
 ////////////////////////////////////// more complicated tasks //////////////////////////////////////
 
 //search a particular record in a file
-int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *record_name)
+int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *record_name,ILDG_message *mess=NULL)
 {
+  ILDG_message *last_mess=mess;
+  
   int found=0;
   while(found==0 && !ILDG_File_reached_EOF(file))
     {
@@ -279,7 +342,16 @@ int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *reco
       verbosity_lv3_master_printf("found record: %s\n",header.type);
       
       if(strcmp(record_name,header.type)==0) found=1;
-      else ILDG_File_skip_record(file,header);      
+      else
+	if(mess==NULL) ILDG_File_skip_record(file,header); //ignore message
+	else
+	  {
+	    //load the message and pass to next
+	    char *data=(char*)malloc(header.data_length);
+	    ILDG_File_read_all((void*)data,file,header.data_length);
+	    last_mess=ILDG_bin_message_append_to_last(last_mess,header.type,data,header.data_length);
+	    free(data);
+	  }
     }
   
   return found;
@@ -405,4 +477,11 @@ void ILDG_File_write_checksum(ILDG_File &file,checksum check)
   
   //write the record
   ILDG_File_write_text_record(file,"scidac-checksum",mess);
+}
+
+//write all the passed message
+void ILDG_File_write_all_messages(ILDG_File &file,ILDG_message *mess)
+{
+  for(ILDG_message *last_mess=mess;last_mess->is_last==false;last_mess=last_mess->next)
+    ILDG_File_write_text_record(file,last_mess->name,last_mess->data);
 }

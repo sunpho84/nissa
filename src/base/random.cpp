@@ -12,7 +12,7 @@
 
 #include "random.h"
 
-//Initialize a random number generator
+//initialize a random number generator
 void start_rnd_gen(rnd_gen *out,int seed)
 {
   const int im1=2147483563,ia1=40014;
@@ -33,6 +33,37 @@ void start_rnd_gen(rnd_gen *out,int seed)
   out->iy=out->iv[0];
 }
 
+//print all the entries of the random generator into a string
+void convert_rnd_gen_to_text(char *text,rnd_gen *gen)
+{
+  int *ptr=(int*)gen;
+  
+  //init output text
+  sprintf(text,"%d",ptr[0]);
+
+  //append all the elements
+  for(int i=1;i<ran2_ntab+3;i++)
+    {
+      char temp[20];
+      sprintf(temp," %d",ptr[i]);
+      strcat(text,temp);
+    }
+}
+
+//read all the entries of the random generator from a string
+void convert_text_to_rnd_gen(rnd_gen *gen,char *text)
+{
+  int *ptr=(int*)gen;
+  
+  for(int i=0;i<ran2_ntab+3;i++)
+    {
+      char temp[20];
+      if(sscanf(text,"%s",temp)!=1) crash("while reading element %d from %s",i,text);
+      text+=1+strlen(temp);
+      if(sscanf(temp,"%d",ptr+i)!=1) crash("while converting to int %s",temp);
+    }
+}
+
 //initialize the global random generator
 void start_glb_rnd_gen(int seed)
 {
@@ -43,7 +74,17 @@ void start_glb_rnd_gen(int seed)
   master_printf("Global random generators initialized with seed: %d\n",seed);
 }
 
-//Initialize the grid of local random number generator
+//init from text
+void start_glb_rnd_gen(char *text)
+{
+  if(nissa_glb_rnd_gen_inited==1) crash("global random generator already initialized");
+  convert_text_to_rnd_gen(&(glb_rnd_gen),text);
+  
+  nissa_glb_rnd_gen_inited=1;
+  master_printf("Global random generators initialized from text\n");
+}
+
+//initialize the grid of local random number generator
 void start_loc_rnd_gen(int seed)
 {
   if(nissa_loc_rnd_gen_inited==1) crash("local random generator already initialized!");
@@ -63,7 +104,14 @@ void start_loc_rnd_gen(int seed)
   master_printf("Grid of local random generators initialized with internal seed: %d\n",internal_seed);
 }
 
-//Stop grid of local random generators
+//init from text
+void start_loc_rnd_gen(char *text)
+{
+  start_glb_rnd_gen(text);
+  start_loc_rnd_gen(0);
+}
+
+//stop grid of local random generators
 void stop_loc_rnd_gen()
 {
   if(nissa_loc_rnd_gen_inited==0) crash("local random generator not initialized");

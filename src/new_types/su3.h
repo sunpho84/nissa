@@ -67,6 +67,7 @@ void su3_summ_the_prod_double(su3 a,su3 b,double r);
 void su3_summ_the_prod_spincolor(spincolor out,su3 U,spincolor in);
 void su3_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in);
 void su3_trace(complex tr,su3 m);
+void su3_summ_the_trace(complex tr,su3 m);
 void su3_traceless_anti_hermitian_part(su3 out,su3 in);
 void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link);
 void su3_unitarize_maximal_trace_projecting(su3 U,su3 M);

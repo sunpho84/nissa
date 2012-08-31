@@ -13,13 +13,16 @@
 #include "../geometry/geometry_mix.h"
 
 //Write a vector of double, in 32 or 64 bits according to the argument
-void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nbits,const char *header_message)
+void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nbits,const char *header_message,ILDG_message *mess=NULL)
 {
   if(nbits!=32 && nbits!=64) crash("Error, asking %d precision, use instead 32 or 64\n",nbits);
   
   //take initial time
   double time=-take_time();
   
+  //write all the messages
+  if(mess!=NULL) ILDG_File_write_all_messages(file,mess);
+    
   //compute float or double site
   int nreals_loc=nreals_per_site*loc_vol;
   int nbytes_per_site=nreals_per_site*nbits/8;
@@ -191,7 +194,7 @@ void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 ////////////////////////// gauge configuration writing /////////////////////////////
 
 //Write the local part of the gauge configuration
-void write_ildg_gauge_conf(char *path,quad_su3 *in,int prec)
+void write_ildg_gauge_conf(char *path,quad_su3 *in,int prec,ILDG_message *mess=NULL)
 {
   double start_time=take_time();
   quad_su3 *temp=nissa_malloc("temp_gauge_writer",loc_vol,quad_su3);
@@ -217,7 +220,9 @@ void write_ildg_gauge_conf(char *path,quad_su3 *in,int prec)
 
   //Open the file
   ILDG_File file=ILDG_File_open_for_write(path);
-  write_double_vector(file,(double*)temp,nreals_per_quad_su3,prec,"ildg-binary-data");
+  
+  //write the lattice part
+  write_double_vector(file,(double*)temp,nreals_per_quad_su3,prec,"ildg-binary-data",mess);
   
   nissa_free(temp);
   
@@ -227,10 +232,10 @@ void write_ildg_gauge_conf(char *path,quad_su3 *in,int prec)
 }
 
 //read an ildg conf and split it into e/o parts
-void paste_eo_parts_and_write_ildg_gauge_conf(char *path,quad_su3 **eo_conf,int prec)
+void paste_eo_parts_and_write_ildg_gauge_conf(char *path,quad_su3 **eo_conf,int prec,ILDG_message *mess=NULL)
 {
   quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
   paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
-  write_ildg_gauge_conf(path,lx_conf,prec);
+  write_ildg_gauge_conf(path,lx_conf,prec,mess);
   nissa_free(lx_conf);
 }

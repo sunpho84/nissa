@@ -36,7 +36,7 @@ int metro_test(double arg)
 {
   double tresh=(arg<=0) ? 1 : exp(-arg);
   double toss=rnd_get_unif(&glb_rnd_gen,0,1);
-
+  
   return toss<tresh;
 }
 
@@ -218,6 +218,10 @@ int factorize(int *list,int N)
 
   return nfatt;
 }
+
+//reduce a complex
+void glb_reduce_complex(complex out_glb,complex in_loc)
+{MPI_Allreduce(in_loc,out_glb,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);}
 
 //reduce a double
 double glb_reduce_double(double in_loc)

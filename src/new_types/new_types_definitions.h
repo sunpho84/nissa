@@ -104,6 +104,16 @@ typedef struct
   char type[128];
 } ILDG_header;
 
+//store messages
+struct ILDG_message;
+struct ILDG_message
+{
+  bool is_last;
+  char *data;
+  char *name;
+  ILDG_message *next;
+};
+
 //ILDG file view
 typedef struct
 {
@@ -145,6 +155,8 @@ typedef struct
   int nflavs;
   quad_u1 ***backfield;
   quark_content *flav_pars;
+  double E[3];
+  double B[3];
 } theory_pars;
 
 //evolution parameters
