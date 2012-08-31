@@ -150,6 +150,14 @@ void su3_trace(complex tr,su3 m)
   complex_summ(tr,tr,m[2][2]);
 }
 
+//summ the trace to the input
+void su3_summ_the_trace(complex tr,su3 m)
+{
+  complex_summ(tr,tr,m[0][0]);
+  complex_summ(tr,tr,m[1][1]);
+  complex_summ(tr,tr,m[2][2]);
+}
+
 //return the anti-hermitian traceless part of an su3 matrix
 void su3_traceless_anti_hermitian_part(su3 out,su3 in)
 {

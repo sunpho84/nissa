@@ -7,9 +7,11 @@
 #include "../new_types/spin.h"
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
+#include "../base/routines.h"
 #include "../base/communicate.h"
 #include "../base/debug.h"
 #include "../geometry/geometry_lx.h"
+#include "../geometry/geometry_mix.h"
 
 /////////////////////////////////////// Complicated things /////////////////////
 
@@ -286,13 +288,8 @@ void average_trace_of_rectangle_path(complex tra,quad_su3 *conf,int mu,int nu,in
   
   //compute the trace
   complex loc_tra={0,0};
-  nissa_loc_vol_loop(ivol)
-    {
-      complex temp;
-      su3_trace(temp,u[ivol]);
-      complex_summ(loc_tra,loc_tra,temp);
-    }
-  MPI_Allreduce(loc_tra,tra,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  nissa_loc_vol_loop(ivol) su3_summ_the_trace(loc_tra,u[ivol]);
+  glb_reduce_complex(tra,loc_tra);
   
   //normalize
   complex_prod_double(tra,tra,1.0/glb_vol);
@@ -305,6 +302,49 @@ double average_real_part_of_trace_of_rectangle_path(quad_su3 *conf,int mu,int nu
   average_trace_of_rectangle_path(tra,conf,mu,nu,nstep_mu,nstep_nu,u);
   
   return tra[0];
+}
+
+//compute the polyakov loop
+void average_polyakov_loop(complex tra,quad_su3 *conf,int mu)
+{
+  su3 *u=nissa_malloc("u",loc_vol+bord_vol,su3);
+  
+  communicate_lx_quad_su3_borders(conf);
+  
+  //reset the link product
+  nissa_loc_vol_loop(ivol)
+    su3_put_to_id(u[ivol]);
+
+  //move along +mu
+  for(int i=0;i<glb_size[mu];i++)
+    {
+      //take the product
+      nissa_loc_vol_loop(ivol)
+	safe_su3_prod_su3(u[ivol],u[ivol],conf[ivol][mu]);
+      
+      su3_vec_single_shift(u,mu,+1);
+    }
+  
+  //compute the trace; since we reduce over all the volume there are glb_size[mu] replica
+  complex loc_tra={0,0};
+  nissa_loc_vol_loop(ivol)
+      su3_summ_the_trace(loc_tra,u[ivol]);
+  glb_reduce_complex(tra,loc_tra);
+  complex_prodassign_double(tra,1.0/glb_vol/3.0);
+  
+  nissa_free(u);
+}
+
+//definition in case of eos conf
+void average_polyakov_loop_of_eos_conf(complex tra,quad_su3 **eo_conf,int mu)
+{
+  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol,quad_su3);
+  paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
+  
+  average_polyakov_loop(tra,lx_conf,mu);
+  
+  nissa_free(lx_conf);
+
 }
 
 void Pline(su3 *Pline,quad_su3 *conf)

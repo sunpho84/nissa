@@ -35,7 +35,8 @@ tools=$(addprefix tools/, \
 	spincolor_compare/spincolor_compare \
 	meson_2pts/meson_2pts \
 	meson_2pts/meson_2pts_point_source \
-	conf_convert/ildg_to_eo)
+	conf_convert/ildg_to_eo \
+	conf_convert/generate_random)
 
 ############################################# define the library pieces #########################################
 

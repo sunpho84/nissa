@@ -36,6 +36,40 @@ void add_im_pot_to_backfield(quad_u1 **S,quark_content &quark_info)
     }
 }
 
+//multiply a background field by a constant em field
+//mu nu refers to the entry of F_mu_nu involved
+void add_em_field_to_backfield(quad_u1 **S,quark_content &quark_info,double em_str,int mu,int nu)
+{
+  double phase=2*em_str*quark_info.charge*M_PI/glb_size[mu]/glb_size[nu];
+  
+  for(int par=0;par<2;par++)
+    {
+      nissa_loc_volh_loop(ieo)
+        {
+	  int ivol=loclx_of_loceo[par][ieo];
+	  
+	  double arg[4]={0,0,0,0};
+	  
+	  //take absolute coords
+	  double xmu=glb_coord_of_loclx[ivol][mu];
+	  double xnu=glb_coord_of_loclx[ivol][nu];
+	  
+	  //define the arguments of exponentials
+	  if(xmu==(glb_size[mu]-1)) arg[mu]=-xnu*glb_size[mu];
+	  arg[nu]=xmu;
+	  
+	  //compute u1phase and multiply
+	  for(int rho=0;rho<4;rho++)
+	    {
+	      complex u1phase={cos(phase*arg[rho]),sin(phase*arg[rho])};
+	      safe_complex_prod(S[par][ieo][rho],S[par][ieo][rho],u1phase);
+	    }
+	}
+      
+      set_borders_invalid(S[par]);
+    }
+}
+
 //multpiply the configuration for an additional u(1) field
 void add_backfield_to_conf(quad_su3 **conf,quad_u1 **u1)
 {

@@ -109,7 +109,7 @@ void reorder_read_ildg_gauge_conf(quad_su3 *conf)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //read a real vector
-void read_real_vector(double *out,char *path,const char *record_name,uint64_t nreals_per_site)
+void read_real_vector(double *out,char *path,const char *record_name,uint64_t nreals_per_site,ILDG_message *mess=NULL)
 {
   master_printf("Reading vector: %s\n",path);
   
@@ -121,7 +121,7 @@ void read_real_vector(double *out,char *path,const char *record_name,uint64_t nr
 
   //search the record
   ILDG_header header;
-  int found=ILDG_File_search_record(header,file,record_name);
+  int found=ILDG_File_search_record(header,file,record_name,mess);
   if(!found) crash("Error, record %s not found.\n",record_name);
   
   //check the size of the data block
@@ -226,10 +226,10 @@ void read_su3spinspin(su3spinspin *ccss,char *base_path,char *end_path)
 }
 
 //read a gauge conf
-void read_ildg_gauge_conf(quad_su3 *conf,char *path)
+void read_ildg_gauge_conf(quad_su3 *conf,char *path,ILDG_message *mess=NULL)
 {
   master_printf("\nReading configuration from file: %s\n",path);
-  read_real_vector((double*)conf,path,"ildg-binary-data",nreals_per_quad_su3);
+  read_real_vector((double*)conf,path,"ildg-binary-data",nreals_per_quad_su3,mess);
   master_printf("Configuration read!\n\n");
   reorder_read_ildg_gauge_conf(conf);
   set_borders_invalid(conf);
@@ -290,10 +290,10 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,char *base_path,ch
 }
 
 //read an ildg conf and split it into e/o parts
-void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,char *path)
+void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,char *path,ILDG_message *mess=NULL)
 {
   quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
-  read_ildg_gauge_conf(lx_conf,path);
+  read_ildg_gauge_conf(lx_conf,path,mess);
   split_lx_conf_into_eo_parts(eo_conf,lx_conf);
   nissa_free(lx_conf);
 
