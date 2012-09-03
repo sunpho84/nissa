@@ -78,7 +78,10 @@ inverters=$(addprefix inverters/twisted_mass/, \
 	cg_128_invert_tmQ2 \
 	cgm_invert_tmQ2 tm_frontends) \
 	$(addprefix inverters/staggered/, \
-	cgm_invert_stD2ee_m2)
+	cgm_invert_stD2ee_m2 \
+	cg_invert_stD2ee_m2 \
+	cg_invert_stD2_m2 \
+	cg_invert_evn_stD)
 IO=$(addprefix IO/, \
 	checksum \
 	endianess \
@@ -117,7 +120,7 @@ Makefile: default.Makefile configure
 	exit 1
 
 #define targets for library pieces
-$(phony nissa_library_objects): $(addsuffix .o,$(nissa_library_pieces)) Makefile
+nissa_library_objects: $(addsuffix .o,$(nissa_library_pieces)) Makefile
 
 #include table of dependencies
 -include $(addsuffix .d,$(nissa_library_pieces) $(projects) $(tools))
@@ -149,6 +152,7 @@ $(addsuffix .d,$(nissa_library_pieces) $(projects) $(tools)): %.d: %.cpp Makefil
 	$(GCC) $< -MM -MT $(@:%.d=%.o) $(addprefix -I,$(INCLUDE_PATH)) -o $@
 
 
-$(phony clean):
+clean:
 	 rm -rf $(addsuffix .d,$(nissa_library_pieces)) $(addsuffix .o,$(nissa_library_pieces)) src/libnissa.a $(projects) $(tools)
 
+.PHONY: clean all nissa_library_objects

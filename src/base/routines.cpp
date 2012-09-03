@@ -97,6 +97,27 @@ int create_dir(char *path)
   return res;
 }
 
+//broadcast an int
+int master_broadcast(int in)
+{
+  MPI_Bcast(&in,1,MPI_INT,0,MPI_COMM_WORLD);
+  return in;
+}
+
+//copy a file
+int cp(char *path_out,char *path_in)
+{
+  int rc;
+  if(rank==0)
+    {
+      char command[1024];
+      sprintf(command,"cp %s %s",path_in,path_out);
+      rc=system(command);
+    }
+  
+  return master_broadcast(rc);
+}
+
 void fprintf_friendly_filesize(FILE *fout,int quant)
 {fprintf_friendly_units(fout,quant,1024,"Bytes");}
 

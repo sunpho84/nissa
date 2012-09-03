@@ -13,6 +13,8 @@ double min_double(double a,double b);
 int metro_test(double arg);
 double sqr(double a);
 double take_time();
+int master_broadcast(int in);
+int cp(char *path1,char *path2);
 int create_dir(char *path);
 int factorize(int *list,int N);
 int log2N(int N);

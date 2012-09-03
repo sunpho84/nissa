@@ -6,6 +6,7 @@
 #include "../../base/debug.h"
 #include "../../base/global_variables.h"
 #include "../../base/communicate.h"
+#include "../../linalgs/linalgs.h"
 
 #ifdef BGP
  #include "dirac_operator_stD_bgp.cpp"
@@ -32,3 +33,11 @@ void apply_stD2ee_zero_mass(color *out,quad_su3 **conf,color *temp,color *in)
 
 void apply_stD2ee_m2(color *out,quad_su3 **conf,color *temp,double m2,color *in)
 {apply_stD2ee(out,conf,temp,sqrt(m2),in);}
+
+//return the even part of the application of D to a vector
+void evn_apply_stD(color *out,quad_su3 **conf,double m,color **in)
+{
+  apply_stDeo_quarter(out,conf,in[ODD]);
+  double_vector_linear_comb((double*)out,(double*)in[EVN],m,(double*)out,4,6*loc_volh);
+  set_borders_invalid(out);
+}

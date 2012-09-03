@@ -8,6 +8,13 @@ void complex_copy(complex a,complex b)
   a[0]=b[0];
   a[1]=b[1];
 }
+void complex_put_to_real(complex a,double b)
+{
+  a[0]=b;
+  a[1]=0;
+}
+void complex_put_to_zero(complex a)
+{complex_put_to_real(a,0);}
 //Assign the conj
 void complex_conj(complex a,complex b)
 {

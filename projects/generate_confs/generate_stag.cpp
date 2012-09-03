@@ -15,8 +15,8 @@
 FILE *obs_file;
 
 //input and output path for confs
-char in_conf_path[1024];
-char out_conf_path[1024];
+char conf_path[1024];
+char store_conf_path[1024];
 
 //new and old conf
 quad_su3 *new_conf[2];
@@ -27,11 +27,57 @@ theory_pars physics;
 evol_pars simul;
 
 //number of traj
-int itraj,nreq_traj;
-int skip_test=30;
+int itraj,max_ntraj;
+int store_conf_each;
+int skip_mtest_ntraj;
 
-//seed to be used to start if not contained in the conf
-int seed;
+const int HOT=0,COLD=1;
+
+//write a conf adding info
+void write_conf(char *path,quad_su3 **conf)
+{
+  //messages
+  ILDG_message mess;
+  ILDG_message_init_to_last(&mess);
+  char text[1024];
+
+  //traj id
+  sprintf(text,"%d",itraj);
+  ILDG_string_message_append_to_last(&mess,"MD_traj",text);
+  
+  //glb_rnd_gen status
+  convert_rnd_gen_to_text(text,&glb_rnd_gen);
+  ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
+  
+  //write the conf
+  paste_eo_parts_and_write_ildg_gauge_conf(path,conf,64,&mess);
+  
+  //free messages
+  ILDG_message_free_all(&mess);
+}
+
+//read conf
+void read_conf(quad_su3 **conf,char *path)
+{
+  master_printf("Reading conf from file: %s\n",path);
+  
+  //init messages
+  ILDG_message mess;
+  ILDG_message_init_to_last(&mess);
+
+  //read the conf
+  read_ildg_gauge_conf_and_split_into_eo_parts(conf,path,&mess);
+  
+  //scan messages
+  itraj=-1;
+  for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
+    {  
+      if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
+      if(strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
+    }
+  
+  if(itraj==-1) crash("Record containing MD_traj not found");
+}
 
 //initialize the simulation
 void init_simulation(char *path)
@@ -48,22 +94,32 @@ void init_simulation(char *path)
   init_grid(T,L);
   
   //read in and out conf path
-  read_str_str("InConfPath",in_conf_path,1024);
-  read_str_str("OutConfPath",out_conf_path,1024);
+  read_str_str("ConfPath",conf_path,1024);
+  read_str_str("StoreConfPath",store_conf_path,1024);
+  read_str_int("StoreConfEach",&store_conf_each);
+  
+  //read if confifguration must be generated cold or hot
+  char start_conf_cond_str[1024];
+  read_str_str("StartConfCond",start_conf_cond_str,1024);
+  int start_conf_cond=-1;
+  if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT;
+  if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD;
+  if(start_conf_cond==-1) crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
   
   //read observable file
   char obs_path[1024];
   read_str_str("ObsPath",obs_path,1024);
-  obs_file=open_file(obs_path,"a");
   
   //read the number of trajectory to evolve
-  read_str_int("NTrajectory",&nreq_traj);
+  read_str_int("MaxNTraj",&max_ntraj);
+  read_str_int("SkipMTestNTraj",&skip_mtest_ntraj);
   
   //read the seed
+  int seed;
   read_str_int("Seed",&seed);
   
   //read the number of undegenerate flavs
-  read_str_int("NFlavs",&(physics.nflavs));
+  read_str_int("NDiffFlavs",&(physics.nflavs));
   physics.flav_pars=nissa_malloc("flav_pars",physics.nflavs,quark_content);
   
   //read each flav parameters
@@ -126,54 +182,39 @@ void init_simulation(char *path)
       add_em_field_to_backfield(physics.backfield[iflav],physics.flav_pars[iflav],physics.B[1],3,1);
       add_em_field_to_backfield(physics.backfield[iflav],physics.flav_pars[iflav],physics.B[2],1,2);      
     }
-}
-
-//write a conf adding info
-void write_conf(char *conf_path,quad_su3 **conf)
-{
-  master_printf("Writing conf to file: %s\n",conf_path);
   
-  //messages
-  ILDG_message mess;
-  ILDG_message_init_to_last(&mess);
-  char text[1024];
-
-  //traj id
-  sprintf(text,"%d",itraj);
-  ILDG_string_message_append_to_last(&mess,"MD_traj",text);
-  
-  //glb_rnd_gen status
-  convert_rnd_gen_to_text(text,&glb_rnd_gen);
-  ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
-  
-  //write the conf
-  paste_eo_parts_and_write_ildg_gauge_conf(conf_path,conf,64,&mess);
-  
-  //free messages
-  ILDG_message_free_all(&mess);
-}
-
-//read conf
-void read_conf(quad_su3 **conf,char *conf_path)
-{
-  master_printf("Reading conf from file: %s\n",conf_path);
-  
-  //init messages
-  ILDG_message mess;
-  ILDG_message_init_to_last(&mess);
-
-  //read the conf
-  read_ildg_gauge_conf_and_split_into_eo_parts(conf,conf_path,&mess);
-  
-  //scan messages
-  itraj=-1;
-  for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
-    {  
-      if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
-      if(strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
+  //load conf or generate it
+  if(file_exists(conf_path))
+    {
+      master_printf("File %s found, loading\n",conf_path);
+      read_conf(conf,conf_path);
+      
+      //open observable file for append
+      obs_file=open_file(obs_path,"a");
     }
-  
-  if(itraj==-1) crash("Record containing MD_traj not found");
+  else
+    {
+      //start the random generator using passed seed
+      start_loc_rnd_gen(seed);
+      
+      //generate
+      if(start_conf_cond==HOT)
+	{
+	  master_printf("File %s not found, generating hot conf\n",conf_path);
+	  generate_hot_eo_conf(conf);
+	}
+      else
+	{
+	  master_printf("File %s not found, generating cold conf\n",conf_path);
+	  generate_cold_eo_conf(conf);
+	}
+      
+      //reset conf id
+      itraj=0;
+      
+      //create new file for observables
+      obs_file=open_file(obs_path,"w");
+    }
 }
 
 //finalize everything
@@ -200,18 +241,19 @@ void close_simulation()
 }
 
 //generate a new conf (or, keep old one)
-int rhmc_trajectory(int test_traj)
+int rhmc_trajectory()
 {
+  int perform_test=(itraj>=skip_mtest_ntraj);
   double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,&physics,&simul);
   
   master_printf("Diff action: %lg, ",diff_act);
   
   //decide if to accept
   int acc=1;
-  if(!test_traj) master_printf("(no test performed) ");
+  if(!perform_test) master_printf("(no test performed) ");
   else acc=metro_test(diff_act);
   
-  //copy conf
+  //copy confif accepted
   if(acc)
     {
       master_printf("accepted.\n");
@@ -225,11 +267,32 @@ int rhmc_trajectory(int test_traj)
 //write measures
 void measurements(quad_su3 **conf,int iconf,int acc)
 {
-  double plaq=global_plaquette_eo_conf(conf);
+  //plaquette (temporal and spatial)
+  double plaq[2];
+  global_plaquette_eo_conf(plaq,conf);
+  
+  //polyakov loop
   complex pol;
   average_polyakov_loop_of_eos_conf(pol,conf,0);
   
-  master_fprintf(obs_file,"%d %d %lg %lg %lg\n",iconf,acc,plaq,pol[0],pol[1]);
+  master_fprintf(obs_file,"%d %d %lg %lg %lg %lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
+  
+  for(int ik=0;ik<10000;ik++)
+    {
+      cool_conf(conf);
+      master_printf("Topcharge: %lg\n",average_topological_charge(conf));
+    }
+}
+
+//store conf when appropriate
+void store_conf_if_necessary()
+{
+  if(store_conf_each!=0 && itraj%store_conf_each==0)
+    {
+      char path[1024];
+      sprintf(path,"%s.%05d",store_conf_path,itraj);
+      cp(path,conf_path);
+    }
 }
 
 int main(int narg,char **arg)
@@ -245,38 +308,33 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  //load conf or generate it
-  if(file_exists(in_conf_path)) read_conf(conf,in_conf_path);
-  else
-    {
-      master_printf("File %s not found, generating cold conf\n",in_conf_path);
-      
-      //start the random generator using passed seed
-      start_loc_rnd_gen(seed);
-      
-      //generate the conf
-      generate_cold_eo_conf(conf);
-      itraj=0;
-    }
-  
   //evolve for the required number of traj
-  for(int prod_traj=0;prod_traj<nreq_traj;prod_traj++)
+  int prod_ntraj=0;
+  master_printf("\n");
+  do
     {
       // 0) header
-      master_printf("Starting trajectory %d\n",itraj);
-      master_printf("-----------------------\n");
+      master_printf("Trajectory %d\n",itraj);
+      master_printf("-------------------------------\n");
       
-      // 1) integrate
-      int perform_test=(itraj>=skip_test);
-      int acc=rhmc_trajectory(perform_test);
+      // 1) produce new conf
+      int acc=1;//rhmc_trajectory();
       
       // 2) measure
       measurements(conf,itraj,acc);
       
+      // 3) increment id and write conf
       itraj++;
+      prod_ntraj++;
+      write_conf(conf_path,conf);  
+      
+      // 4) if conf is multiple of store_conf_each copy it
+      store_conf_if_necessary();
+      
+      // 5) spacing
+      master_printf("\n");
     }
-  
-  write_conf(out_conf_path,conf);  
+  while(prod_ntraj<max_ntraj);
   
   ///////////////////////////////////////
   
