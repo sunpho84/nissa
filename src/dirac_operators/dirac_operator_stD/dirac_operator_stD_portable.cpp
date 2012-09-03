@@ -90,3 +90,4 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
   
   set_borders_invalid(out);
 }
+

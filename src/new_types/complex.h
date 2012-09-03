@@ -8,6 +8,8 @@ void assign_complex_prod_i(complex a);
 void assign_complex_prod_minus_i(complex a);
 void complex_conj(complex a,complex b);
 void complex_copy(complex a,complex b);
+void complex_put_to_zero(complex a);
+void complex_put_to_real(complex a,double b);
 void complex_isubt(complex a,complex b,complex c);
 void complex_isubtassign(complex a,complex b);
 void complex_isumm(complex a,complex b,complex c);

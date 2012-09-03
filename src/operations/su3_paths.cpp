@@ -13,7 +13,7 @@
 #include "../geometry/geometry_lx.h"
 #include "../geometry/geometry_mix.h"
 
-/////////////////////////////////////// Complicated things /////////////////////
+////////////////////////// Complicated things /////////////////////
 
 //square (the proto-plaquette)
 /*
@@ -101,62 +101,79 @@ n |      |
 u |      | 
   A--mu--B
 
+  the temporal and spatial plaquette are computed separately
 */
-double global_plaquette_eo_conf(quad_su3 **conf)
+void global_plaquette_eo_conf(double *totplaq,quad_su3 **conf)
 {
   communicate_eo_quad_su3_borders(conf);
   
-  double totlocplaq=0;
+  double locplaq[2]={0,0};
   
   nissa_loc_volh_loop(A)
     for(int par=0;par<2;par++)
       for(int mu=0;mu<4;mu++)
-	for(int nu=mu+1;nu<4;nu++)
-	  {
-	    //ACD and ABD path
-	    su3 ABD,ACD;
-	    unsafe_su3_prod_su3(ABD,conf[par][A][mu],conf[!par][loceo_neighup[par][A][mu]][nu]);
-	    unsafe_su3_prod_su3(ACD,conf[par][A][nu],conf[!par][loceo_neighup[par][A][nu]][mu]);
-	    
-	    //compute tr(ABDC)
-	    totlocplaq+=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
+	{
+	  for(int nu=mu+1;nu<4;nu++)
+	    {
+	      //ACD and ABD path
+	      su3 ABD,ACD;
+	      unsafe_su3_prod_su3(ABD,conf[par][A][mu],conf[!par][loceo_neighup[par][A][mu]][nu]);
+	      unsafe_su3_prod_su3(ACD,conf[par][A][nu],conf[!par][loceo_neighup[par][A][nu]][mu]);
+	      
+	      //compute tr(ABDC)
+	      double tr=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
+	      if(mu==0) locplaq[0]+=tr;
+	      else      locplaq[1]+=tr;
+	    }
 	}
   
-  double totplaq;
-  MPI_Allreduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  //reduce double[2] as complex
+  glb_reduce_complex(totplaq,locplaq);
   
-  return totplaq/glb_vol/3/6;
+  //normalize
+  for(int ts=0;ts<2;ts++) totplaq[ts]/=glb_vol*3*3;
 }
 
-//compute the staples
-void compute_point_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
+//return the average between spatial and temporary plaquette
+double global_plaquette_eo_conf(quad_su3 **conf)
+{
+  double plaq[2];
+  
+  global_plaquette_eo_conf(plaq,conf);
+  
+  return (plaq[0]+plaq[1])/2;
+}
+
+//compute the staples along a particular dir
+void compute_point_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
 {
   communicate_eo_quad_su3_edges(eo_conf);
   
-  memset(staple,0,sizeof(quad_su3));
+  su3_put_to_zero(staple);
   
-  for(int mu=0;mu<4;mu++)
-    {
-      su3 temp1,temp2;
-      for(int nu=0;nu<4;nu++)                   //  E---F---C   
-	if(nu!=mu)                              //  |   |   | mu
-	  {                                     //  D---A---B   
-	    int p=loclx_parity[A];              //        nu    
-	    int B=loclx_neighup[A][nu];
-	    int F=loclx_neighup[A][mu];
-	    unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
-	    
-	    unsafe_su3_prod_su3_dag(temp2,temp1,                            eo_conf[!p][loceo_of_loclx[F]][nu]);
-	    su3_summ(staple[mu],staple[mu],temp2);
-	    
-	    int D=loclx_neighdw[A][nu];
-	    int E=loclx_neighup[D][mu];
-	    unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][loceo_of_loclx[D]][nu],eo_conf[!p][loceo_of_loclx[D]][mu]);
-	    unsafe_su3_prod_su3(    temp2,temp1,                             eo_conf[ p][loceo_of_loclx[E]][nu]);
-	    su3_summ(staple[mu],staple[mu],temp2);
-	  }
-    }
+  su3 temp1,temp2;
+  for(int nu=0;nu<4;nu++)                   //  E---F---C   
+    if(nu!=mu)                              //  |   |   | mu
+      {                                     //  D---A---B   
+	int p=loclx_parity[A];              //        nu    
+	int B=loclx_neighup[A][nu];
+	int F=loclx_neighup[A][mu];
+	unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
+	
+	unsafe_su3_prod_su3_dag(temp2,temp1,                            eo_conf[!p][loceo_of_loclx[F]][nu]);
+	su3_summ(staple,staple,temp2);
+	
+	int D=loclx_neighdw[A][nu];
+	int E=loclx_neighup[D][mu];
+	unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][loceo_of_loclx[D]][nu],eo_conf[!p][loceo_of_loclx[D]][mu]);
+	unsafe_su3_prod_su3(    temp2,temp1,                             eo_conf[ p][loceo_of_loclx[E]][nu]);
+	su3_summ(staple,staple,temp2);
+      }
 }
+
+//compute the staples along all the four dirs
+void compute_point_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
+{for(int mu=0;mu<4;mu++) compute_point_staples_eo_conf_single_dir(staple[mu],eo_conf,A,mu);}
 
 //shift an su3 vector of a single step along the mu axis, in the positive or negative dir
 void su3_vec_single_shift(su3 *u,int mu,int sign)
@@ -344,7 +361,6 @@ void average_polyakov_loop_of_eos_conf(complex tra,quad_su3 **eo_conf,int mu)
   average_polyakov_loop(tra,lx_conf,mu);
   
   nissa_free(lx_conf);
-
 }
 
 void Pline(su3 *Pline,quad_su3 *conf)
@@ -562,8 +578,10 @@ void Pline_backward(su3 *Pline, quad_su3 *conf)
   -----mu---->        |  3  | |  4  | 
   		      |     | |     | 
 		      E-->-- F -->--G 
+in order to have the anti-simmetric part, use
+the routine "Pmunu_term"
 */
-void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
+void four_leaves(as2t_su3 *Pmunu,quad_su3 *conf)
 {
   communicate_lx_quad_su3_edges(conf);
   
@@ -602,10 +620,10 @@ void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
 	      su3_summ(leaves_summ,leaves_summ,temp1);	                  //    X-->--A 
 	      
 	      //Leaf 2
-	      unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);     //   C--<--B
-	      unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);           //   |  2  | 
-	      unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);		  //   |     | 
-	      su3_summ(leaves_summ,leaves_summ,temp1);		          //   D-->--X
+	      unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);     //    C--<--B
+	      unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);           //    |  2  | 
+	      unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);		  //    |     | 
+	      su3_summ(leaves_summ,leaves_summ,temp1);		          //    D-->--X
 	      
 	      //Leaf 3
 	      unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
@@ -619,13 +637,7 @@ void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
 	      unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][mu]);             //  |     |  
 	      su3_summ(leaves_summ,leaves_summ,temp1);                      //  F-->--G 
 	      
-	      //calculate U-U^dagger
-	      for(int ic1=0;ic1<3;ic1++)
-		for(int ic2=0;ic2<3;ic2++)
-		  {
-		    Pmunu[X][munu][ic1][ic2][0]=(leaves_summ[ic1][ic2][0]-leaves_summ[ic2][ic1][0])/4;
-		    Pmunu[X][munu][ic1][ic2][1]=(leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1])/4;
-		  }
+	      su3_copy(Pmunu[X][munu],leaves_summ);
 	      
 	      munu++;
 	    }
@@ -633,6 +645,28 @@ void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
     }
   
   set_borders_invalid(Pmunu);
+}
+
+//takes the anti-simmetric part of the four-leaves
+void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
+{
+  four_leaves(Pmunu,conf);
+  
+  //calculate U-U^dagger
+  nissa_loc_vol_loop(X)
+    for(int munu=0;munu<6;munu++)
+      {
+	//bufferized antisimmetrization
+	su3 leaves_summ;
+	memcpy(leaves_summ,Pmunu[X][munu],sizeof(su3));
+	
+	for(int ic1=0;ic1<3;ic1++)
+	  for(int ic2=0;ic2<3;ic2++)
+	    {
+	      Pmunu[X][munu][ic1][ic2][0]=(leaves_summ[ic1][ic2][0]-leaves_summ[ic2][ic1][0])/4;
+	      Pmunu[X][munu][ic1][ic2][1]=(leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1])/4;
+	    }
+      }
 }
 
 //apply the chromo operator to the passed spinor site by site (not yet fully optimized)
@@ -706,4 +740,82 @@ void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmun
 
   //invalidate borders
   set_borders_invalid(out);
+}
+
+//measure the topological charge site by site
+void local_topological_charge(double *charge,quad_su3 *conf)
+{
+  double norm_fact=1/(128*M_PI*M_PI);
+  
+  as2t_su3 *leaves=nissa_malloc("leaves",loc_vol,as2t_su3);
+  
+  vector_reset(charge);
+  
+  //compute the clover-shape paths
+  four_leaves(leaves,conf);
+  
+  //list the three combinations of plans
+  int plan_id[3][2]={{0,5},{1,4},{2,3}};
+  int sign[3]={1,-1,1};
+  
+  //loop on the three different combinations of plans
+  for(int iperm=0;iperm<3;iperm++)
+    {
+      //take the index of the two plans
+      int ip0=plan_id[iperm][0];
+      int ip1=plan_id[iperm][1];
+      
+      nissa_loc_vol_loop(ivol)
+        {
+	  //products
+	  su3 clock,aclock;
+	  unsafe_su3_prod_su3_dag(clock,leaves[ivol][ip0],leaves[ivol][ip1]);
+	  unsafe_su3_prod_su3(aclock,leaves[ivol][ip0],leaves[ivol][ip1]);
+	  
+	  //take the trace
+	  complex tclock,taclock;
+	  su3_trace(tclock,clock);
+	  su3_trace(taclock,aclock);
+	  
+	  //takes the combination with appropriate sign
+	  charge[ivol]+=sign[iperm]*(tclock[RE]-taclock[RE])*norm_fact;
+	}
+    }
+  
+  set_borders_invalid(charge);
+  
+  nissa_free(leaves);
+}
+
+//average the topological charge
+double average_topological_charge(quad_su3 *conf)
+{
+  double *charge=nissa_malloc("charge",loc_vol,double);
+  
+  //compute local charge
+  local_topological_charge(charge,conf);
+  
+  //average over local volume
+  double ave_charge=0;
+  nissa_loc_vol_loop(ivol)
+    ave_charge+=charge[ivol];
+  
+  nissa_free(charge);
+  
+  //return the reduction over all nodes
+  return glb_reduce_double(ave_charge);
+}
+
+//wrapper for eos case
+double average_topological_charge(quad_su3 **eo_conf)
+{
+  //convert to lex
+  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
+  
+  double charge=average_topological_charge(lx_conf);
+  
+  nissa_free(lx_conf);
+  
+  return charge;
 }

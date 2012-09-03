@@ -169,7 +169,7 @@ void write_colorspinspin(char *path,colorspinspin *prop,int prec)
       }
     nissa_free(temp);
     
-    master_printf("Time elapsed in writing su3spinspin '%s': %f s\n",path,take_time()-start_time);
+    verbosity_lv2_master_printf("Time elapsed in writing su3spinspin '%s': %f s\n",path,take_time()-start_time);
 }
 
 //Write a whole su3spinspin
@@ -188,7 +188,7 @@ void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 	}
     nissa_free(temp);
     
-    master_printf("Time elapsed in writing su3spinspin '%s': %f s\n",path,take_time()-start_time);
+    verbosity_lv2_master_printf("Time elapsed in writing su3spinspin '%s': %f s\n",path,take_time()-start_time);
 }
 
 ////////////////////////// gauge configuration writing /////////////////////////////
@@ -226,7 +226,7 @@ void write_ildg_gauge_conf(char *path,quad_su3 *in,int prec,ILDG_message *mess=N
   
   nissa_free(temp);
   
-  master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,take_time()-start_time);
+  verbosity_lv2_master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,take_time()-start_time);
   
   ILDG_File_close(file);
 }

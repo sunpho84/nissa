@@ -1,6 +1,8 @@
 #ifndef _LINALGS_H
 #define _LINALGS_H
 
+#include "../new_types/new_types_definitions.h"
+
 double double_conv_quadruple_vector_glb_scalar_prod(float_128 *a,float_128 *b,int n);
 double double_vector_glb_scalar_prod(double *a,double *b,int n);
 double double_vector_loc_scalar_prod(double *a,double *b,int n);
