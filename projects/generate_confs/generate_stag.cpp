@@ -12,7 +12,7 @@
 #include "nissa.h"
 
 //handle for observables
-FILE *obs_file;
+FILE *obs_file,*top_file;
 
 //input and output path for confs
 char conf_path[1024];
@@ -215,6 +215,8 @@ void init_simulation(char *path)
       //create new file for observables
       obs_file=open_file(obs_path,"w");
     }
+  
+  top_file=open_file("top","a");
 }
 
 //finalize everything
@@ -265,7 +267,7 @@ int rhmc_trajectory()
 }
 
 //write measures
-void measurements(quad_su3 **conf,int iconf,int acc)
+void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
 {
   //plaquette (temporal and spatial)
   double plaq[2];
@@ -277,10 +279,15 @@ void measurements(quad_su3 **conf,int iconf,int acc)
   
   master_fprintf(obs_file,"%d %d %lg %lg %lg %lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
   
-  for(int ik=0;ik<10000;ik++)
+  vector_copy(temp[EVN],conf[EVN]);
+  vector_copy(temp[ODD],conf[ODD]);
+  
+  master_fprintf(top_file,"&\n");
+  for(int ik=0;ik<80;ik++)
     {
-      cool_conf(conf);
-      master_printf("Topcharge: %lg\n",average_topological_charge(conf));
+      cool_conf(temp);
+      master_fprintf(top_file,"%d %lg\n",ik,average_topological_charge(temp));
+      fflush(top_file);
     }
 }
 
@@ -318,10 +325,10 @@ int main(int narg,char **arg)
       master_printf("-------------------------------\n");
       
       // 1) produce new conf
-      int acc=1;//rhmc_trajectory();
+      int acc=rhmc_trajectory();
       
       // 2) measure
-      measurements(conf,itraj,acc);
+      measurements(new_conf,conf,itraj,acc);
       
       // 3) increment id and write conf
       itraj++;

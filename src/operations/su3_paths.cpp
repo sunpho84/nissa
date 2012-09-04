@@ -32,11 +32,11 @@ void squared_path(su3 square,quad_su3 *conf,int A,int mu,int nu)
   int B=loclx_neighup[A][mu];
   int C=loclx_neighup[A][nu];
 
-  su3 AB,AC;
+  su3 ABD,ACD;
 
-  unsafe_su3_prod_su3(AB,conf[A][mu],conf[B][nu]);
-  unsafe_su3_prod_su3(AC,conf[A][nu],conf[C][mu]);
-  unsafe_su3_prod_su3_dag(square,AB,AC);
+  unsafe_su3_prod_su3(ABD,conf[A][mu],conf[B][nu]);
+  unsafe_su3_prod_su3(ACD,conf[A][nu],conf[C][mu]);
+  unsafe_su3_prod_su3_dag(square,ABD,ACD);
 }
 
 //This calculate the global plaquette. It's not done in a very
@@ -144,7 +144,7 @@ double global_plaquette_eo_conf(quad_su3 **conf)
   return (plaq[0]+plaq[1])/2;
 }
 
-//compute the staples along a particular dir
+//compute the staples along a particular dir, for a single site
 void compute_point_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
 {
   communicate_eo_quad_su3_edges(eo_conf);
@@ -159,7 +159,6 @@ void compute_point_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int 
 	int B=loclx_neighup[A][nu];
 	int F=loclx_neighup[A][mu];
 	unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
-	
 	unsafe_su3_prod_su3_dag(temp2,temp1,                            eo_conf[!p][loceo_of_loclx[F]][nu]);
 	su3_summ(staple,staple,temp2);
 	
