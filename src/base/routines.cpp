@@ -4,6 +4,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdlib.h>
 #include <sys/stat.h>
 
 #include "debug.h"

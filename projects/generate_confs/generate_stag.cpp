@@ -11,8 +11,11 @@
 
 #include "nissa.h"
 
-//handle for observables
-FILE *obs_file,*top_file;
+//observables
+FILE *gauge_obs_file,*top_obs_file;
+int top_meas_flag,top_cool_overrelax_flag;
+double top_cool_overrelax_exp;
+int top_cool_nsteps,top_meas_each_nsteps;
 
 //input and output path for confs
 char conf_path[1024];
@@ -69,20 +72,18 @@ void read_conf(quad_su3 **conf,char *path)
   read_ildg_gauge_conf_and_split_into_eo_parts(conf,path,&mess);
   
   //scan messages
-  itraj=-1;
+  itraj=0;
   for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
       if(strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
     }
-  
-  if(itraj==-1) crash("Record containing MD_traj not found");
 }
 
 //initialize the simulation
 void init_simulation(char *path)
 {
-  //////////////////////////// read the input //////////////////////
+  //////////////////////////// read the input /////////////////////////
   
   //open input file
   open_input(path);
@@ -107,8 +108,20 @@ void init_simulation(char *path)
   if(start_conf_cond==-1) crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
   
   //read observable file
-  char obs_path[1024];
-  read_str_str("ObsPath",obs_path,1024);
+  char gauge_obs_path[1024];
+  read_str_str("GaugeObsPath",gauge_obs_path,1024);
+  
+  //read if we want to measure topological charge
+  read_str_int("MeasureTopology",&top_meas_flag);
+  char top_obs_path[1024];
+  if(top_meas_flag)
+    {
+      read_str_str("TopObsPath",top_obs_path,1024);
+      read_str_int("TopCoolNSteps",&top_cool_nsteps);
+      read_str_int("TopCoolOverrelaxing",&top_cool_overrelax_flag);
+      if(top_cool_overrelax_flag==1) read_str_double("TopCoolOverrelaxExp",&top_cool_overrelax_exp);
+      read_str_int("TopCoolMeasEachNSteps",&top_meas_each_nsteps);
+    }
   
   //read the number of trajectory to evolve
   read_str_int("MaxNTraj",&max_ntraj);
@@ -189,15 +202,16 @@ void init_simulation(char *path)
       master_printf("File %s found, loading\n",conf_path);
       read_conf(conf,conf_path);
       
-      //open observable file for append
-      obs_file=open_file(obs_path,"a");
+      //open observables file for append
+      gauge_obs_file=open_file(gauge_obs_path,"a");
+      if(top_meas_flag) top_obs_file=open_file(top_obs_path,"a");
     }
   else
     {
       //start the random generator using passed seed
       start_loc_rnd_gen(seed);
       
-      //generate
+      //generate hot or cold conf
       if(start_conf_cond==HOT)
 	{
 	  master_printf("File %s not found, generating hot conf\n",conf_path);
@@ -212,11 +226,10 @@ void init_simulation(char *path)
       //reset conf id
       itraj=0;
       
-      //create new file for observables
-      obs_file=open_file(obs_path,"w");
+      //create new files for observables
+      gauge_obs_file=open_file(gauge_obs_path,"w");
+      if(top_meas_flag) top_obs_file=open_file(top_obs_path,"w");
     }
-  
-  top_file=open_file("top","a");
 }
 
 //finalize everything
@@ -237,8 +250,11 @@ void close_simulation()
   nissa_free(physics.backfield);  
   nissa_free(physics.flav_pars);
   
-  if(rank==0) fclose(obs_file);
-  
+  if(rank==0)
+    {
+      fclose(gauge_obs_file);
+      if(top_meas_flag) fclose(top_obs_file);
+    }
   close_nissa();
 }
 
@@ -266,8 +282,8 @@ int rhmc_trajectory()
   return acc;
 }
 
-//write measures
-void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
+//measure plaquette and polyakov loop, writing also acceptance
+void measure_gauge_obs(FILE *file,quad_su3 **conf,int iconf,int acc)
 {
   //plaquette (temporal and spatial)
   double plaq[2];
@@ -277,18 +293,36 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
   complex pol;
   average_polyakov_loop_of_eos_conf(pol,conf,0);
   
-  master_fprintf(obs_file,"%d %d %lg %lg %lg %lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
-  
-  vector_copy(temp[EVN],conf[EVN]);
-  vector_copy(temp[ODD],conf[ODD]);
-  
-  master_fprintf(top_file,"&\n");
-  for(int ik=0;ik<80;ik++)
+  master_fprintf(file,"%d %d %lg %lg %lg %lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
+}
+
+//measure the topologycal charge
+void measure_topology(FILE *file,quad_su3 **uncooled_conf,int nsteps,int meas_each,int iconf)
+{
+  //allocate a temorary conf to be cooled
+  quad_su3 *cooled_conf[2];
+  for(int par=0;par<2;par++)
     {
-      cool_conf(temp);
-      master_fprintf(top_file,"%d %lg\n",ik,average_topological_charge(temp));
-      fflush(top_file);
+      cooled_conf[par]=nissa_malloc("cooled_conf",loc_volh+bord_volh+edge_volh,quad_su3);
+      vector_copy(cooled_conf[par],uncooled_conf[par]);
     }
+  
+  //print curent measure and cool
+  for(int istep=0;istep<=(nsteps/meas_each)*meas_each;istep++)
+    {
+      if(istep%meas_each==0) master_fprintf(file,"%d %d %lg\n",iconf,istep,average_topological_charge(cooled_conf));
+      if(istep!=nsteps) cool_conf(cooled_conf,top_cool_overrelax_flag,top_cool_overrelax_exp);
+    }
+  
+  //discard cooled conf
+  for(int par=0;par<2;par++) nissa_free(cooled_conf[par]);
+}
+
+//measures
+void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
+{
+  measure_gauge_obs(gauge_obs_file,conf,iconf,acc);
+  if(top_meas_flag) measure_topology(top_obs_file,conf,top_cool_nsteps,top_meas_each_nsteps,iconf);
 }
 
 //store conf when appropriate

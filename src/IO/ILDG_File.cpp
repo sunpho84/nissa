@@ -66,7 +66,7 @@ ILDG_message* ILDG_bin_message_append_to_last(ILDG_message *first_mess,const cha
 }
 
 ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data)
-{return ILDG_bin_message_append_to_last(mess,name,data,strlen(data));}
+{return ILDG_bin_message_append_to_last(mess,name,data,strlen(data)+1);}
 
 //remove all message
 void ILDG_message_free_all(ILDG_message *mess)

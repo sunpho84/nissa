@@ -202,18 +202,12 @@ void find_cooled_link(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu)
   su3 staple;
   compute_point_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
   
-  //compute the original plaquette
-  //double old_plaq=real_part_of_trace_su3_prod_su3_dag(staple,eo_conf[par][ieo][mu])/3/6;
-  //printf("Old plaq: %lg\n",old_plaq);
-  
+  //find the link that maximize the plaquette
   su3_unitarize_orthonormalizing(u,staple);
-  
-  //double new_plaq=real_part_of_trace_su3_prod_su3_dag(staple,u)/3/6;
-  //master_printf("New plaq: %lg\n\n",new_plaq);
 }
 
 //cool the configuration
-void cool_conf(quad_su3 **eo_conf)
+void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp)
 {
   //loop first on parity and then on directions
   for(int mu=0;mu<4;mu++)
@@ -224,8 +218,23 @@ void cool_conf(quad_su3 **eo_conf)
 	    //find the transformation
 	    su3 u;
 	    find_cooled_link(u,eo_conf,par,ieo,mu);
-	  
-	    //apply it
+	    
+	    //overrelax if needed
+	    if(over_flag)
+	      {
+		//find the transformation
+		su3 temp1;
+		unsafe_su3_prod_su3_dag(temp1,u,eo_conf[par][ieo][mu]);
+		
+		//exponentiate it and re-unitarize
+		su3 temp2;
+		su3_overrelax(temp2,temp1,over_exp);
+		
+		//find the transformed link
+		unsafe_su3_prod_su3(u,temp2,eo_conf[par][ieo][mu]);
+	      }
+	    
+	    //change the link
 	    su3_copy(eo_conf[par][ieo][mu],u);
 	  }
 	
@@ -233,36 +242,3 @@ void cool_conf(quad_su3 **eo_conf)
 	set_borders_invalid(eo_conf[par]);
       }
 }
-
-/*
-      complex c1,c2;
-      complex_summ_conj2(c1,cs[ic1][ic1],cs[ic2][ic2]);
-      complex_subt_conj2(c2,cs[ic1][ic2],cs[ic2][ic1]);
-      
-      double smod=1/sqrt(c1[0]*c1[0]+c1[1]*c1[1]+c2[0]*c2[0]+c2[1]*c2[1]);
-      double r0=c1[RE]*smod;
-      double r1=-c2[IM]*smod;
-      double r2=-c2[RE]*smod;
-      double r3=-c1[IM]*smod;
-      
-      //extract the subgroup to use
-      int igr=(int)rnd_get_unif(&glb_rnd_gen,0,2);
-      
-      //color indeces defining subgroup
-      int ic1=ic[igr][0];
-      int ic2=ic[igr][1];
-      
-      su3 change;
-      su3 change;
-      su3_put_to_id(change);
-      
-      change[ic1][ic1][RE]=r0;
-      change[ic1][ic1][IM]=r3;
-      change[ic1][ic2][RE]=r2;
-      change[ic1][ic2][IM]=r1;
-      change[ic2][ic1][RE]=-r2;
-      change[ic2][ic1][IM]=r1;
-      change[ic2][ic2][RE]=r0;
-      change[ic2][ic2][IM]=-r3;
-      
-*/
