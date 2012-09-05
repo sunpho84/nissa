@@ -1,6 +1,8 @@
 #ifndef _MACROS_H
 #define _MACROS_H
 
+#define SVN_VERS ""
+
 //vectors parameters
 #define nissa_vect_string_length 20
 #define nissa_vect_alignment 16
