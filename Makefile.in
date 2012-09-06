@@ -128,11 +128,12 @@ am__objects_1 = src/base/close.$(OBJEXT) \
 	src/operations/vector_gather.$(OBJEXT) \
 	src/linalgs/linalgs.$(OBJEXT)
 am__objects_2 =
-am_libnissa_a_OBJECTS = $(am__objects_1) $(am__objects_2)
+am_libnissa_a_OBJECTS = $(am__objects_1) $(am__objects_2) \
+	$(am__objects_2)
 libnissa_a_OBJECTS = $(am_libnissa_a_OBJECTS)
 PROGRAMS = $(bin_PROGRAMS)
 am__objects_3 = projects/generate_confs/generate_stag.$(OBJEXT)
-am_generate_stag_OBJECTS = $(am__objects_3)
+am_generate_stag_OBJECTS = $(am__objects_3) $(am__objects_2)
 generate_stag_OBJECTS = $(am_generate_stag_OBJECTS)
 generate_stag_LDADD = $(LDADD)
 generate_stag_DEPENDENCIES =
@@ -344,9 +345,10 @@ nissa_source_files = src/base/close.cpp src/base/communicate.cpp \
 	src/operations/remap_vector.cpp src/operations/smear.cpp \
 	src/operations/su3_paths.cpp src/operations/vector_gather.cpp \
 	src/linalgs/linalgs.cpp
+extra_headers = src/new_types/new_types_definitions.h src/base/macros.h
 generate_stag_source_files = projects/generate_confs/generate_stag.cpp
-libnissa_a_SOURCES = $(nissa_source_files) $(nissa_headers)
-generate_stag_SOURCES = $(generate_stag_source_files)
+libnissa_a_SOURCES = $(nissa_source_files) $(nissa_headers) $(extra_headers)
+generate_stag_SOURCES = $(generate_stag_source_files) $(extra_headers)
 all: all-am
 
 .SUFFIXES:
