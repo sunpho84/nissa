@@ -1,6 +1,5 @@
-AC_PREREQ([2.67])
 AC_INIT([nissa], [1.0], [francesco.sanfilippo@th.u-psud.fr])
-AM_INIT_AUTOMAKE([1.10 no-define foreign])
+AM_INIT_AUTOMAKE([1.0 no-define foreign])
 AC_CONFIG_SRCDIR([./src/nissa.h])
 AC_CONFIG_HEADERS([./src/config.h])
 
