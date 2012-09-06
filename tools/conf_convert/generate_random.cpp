@@ -1,5 +1,7 @@
 #include "nissa.h"
 
+#include <stdlib.h>
+
 int main(int narg,char **arg)
 {
   //basic mpi initialization
