@@ -32,6 +32,9 @@ typedef spinspin colorspinspin[3];
 typedef color su3[3];
 typedef su3 quad_su3[4];
 
+typedef complex color2[2];
+typedef color2 su2[2];
+
 typedef colorspinspin su3spinspin[3];
 
 typedef complex as2t[6];

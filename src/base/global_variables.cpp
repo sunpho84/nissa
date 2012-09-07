@@ -152,3 +152,9 @@ EXTERN int nissa_map_mu[4]
 #endif
 ;
 EXTERN spinspin nissa_opg[4],nissa_omg[4];
+
+EXTERN int su3_sub_gr_indices[3][2]
+#ifndef ONLY_INSTANTIATION
+={{0,1},{1,2},{0,2}};
+#endif
+;

@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "new_types_definitions.h"
+#include "../base/global_variables.h"
 #include "../base/routines.h"
 #include "../base/random.h"
 #include "float128.h"
@@ -81,7 +82,7 @@ void color_prod_double(color a,color b,double c)
 
 /////////////////////////////// Generate an hermitean matrix ///////////////////////
 
-//Taken from M.D'elia
+//Taken from M.D'Elia
 void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma)
 {
   const double one_by_sqrt2=0.707106781186547;
@@ -131,7 +132,7 @@ void su3_print(su3 U)
 	  for(int ri=0;ri<2;ri++)
 	    {
 	      master_printf("%16.16lg",U[icol1][icol2][ri]);
-	      if(ri==0) printf("\t");
+	      if(ri==0) master_printf("\t");
 	    }
 	  master_printf("\t");
 	}
@@ -148,6 +149,77 @@ void su3_trace(complex tr,su3 m)
 
   complex_summ(tr,tr,m[1][1]);
   complex_summ(tr,tr,m[2][2]);
+}
+
+//take projection of the su2 matrix over an su3 matrix
+//return the inverse modulo of the part parallel in the original matrix
+double su2_part_of_su3(double &A,double &B,double &C,double &D,su3 in,int isub_gr)
+{
+  //take indices of the subgroup
+  int a=su3_sub_gr_indices[isub_gr][0];
+  int b=su3_sub_gr_indices[isub_gr][1];
+
+  //extract part parallel to sigmas
+  A=in[a][a][0]+in[b][b][0];
+  B=in[a][b][1]+in[b][a][1];
+  C=in[a][b][0]-in[b][a][0];
+  D=in[a][a][1]-in[b][b][1];
+  
+  //normalize
+  double N=sqrt(A*A+B*B+C*C+D*D);
+  if(fabs(N)==0) N=A=1;
+  else
+    {
+      N=1/N;
+      A*=N;
+      B*=N;
+      C*=N;
+      D*=N;
+    }
+  
+  return N;
+}
+
+//return the same in a matrix
+double su2_part_of_su3(su2 out,su3 in,int isub_gr)
+{
+  double A,B,C,D;
+  double N=su2_part_of_su3(A,B,C,D,in,isub_gr);
+  
+  out=(su2){{{A,-D},{-C,-B}},{{C,-B},{ A, D}}};
+  
+  return N;
+}
+
+//multiply an su2 matrix and an su3 and assign to last
+void su2_prodassign_su3(su2 mod,int isub_gr,su3 in)
+{
+  int ic1=su3_sub_gr_indices[isub_gr][0];
+  int ic2=su3_sub_gr_indices[isub_gr][1];
+  
+  //create the two new rows of the matrix, column by column
+  for(int ic=0;ic<3;ic++)
+    {
+      //first row
+      complex row1;
+      safe_complex_prod    (row1,mod[0][0],in[ic1][ic]);
+      complex_summ_the_prod(row1,mod[0][1],in[ic2][ic]);
+      //second row
+      complex row2;      
+      safe_complex_prod    (row2,mod[1][0],in[ic1][ic]);
+      complex_summ_the_prod(row2,mod[1][1],in[ic2][ic]);
+      
+      //change the two lines in the matrix
+      complex_copy(in[ic1][ic],row1);
+      complex_copy(in[ic2][ic],row2);
+    }
+}
+
+//in the form A+B*i*sigma1+...
+void su2_prodassign_su3(double A,double B,double C,double D,int isub_gr,su3 in)
+{
+  su2 mod={{{A,D},{C,B}},{{-C,B},{A,-D}}};
+  su2_prodassign_su3(mod,isub_gr,in);
 }
 
 //summ the trace to the input
@@ -607,53 +679,19 @@ void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link)
 //by maximing the trace over three different subgroups of su3
 void su3_unitarize_maximal_trace_projecting_iteration(su3 U,su3 M)
 {
-  //two indices specifying subgroup
-  int sub_gr_index[3][2]={{0,1},{1,2},{0,2}};
   //loop over the three subgroups
   for(int isub_gr=0;isub_gr<3;isub_gr++)
     {
-      int a=sub_gr_index[isub_gr][0];
-      int b=sub_gr_index[isub_gr][1];
-      
       //compute the product
-      su3 P;
-      unsafe_su3_prod_su3_dag(P,U,M);
+      su3 prod;
+      unsafe_su3_prod_su3_dag(prod,U,M);
       
-      //take projection of prod
-      double A=P[a][a][0]+P[b][b][0];
-      double B=P[a][b][1]+P[b][a][1];
-      double C=P[a][b][0]-P[b][a][0];
-      double D=P[a][a][1]-P[b][b][1];
+      //take the subgroup isub_gr
+      su2 sub;
+      su2_part_of_su3(sub,prod,isub_gr);
       
-      //normalize
-      double N=sqrt(A*A+B*B+C*C+D*D);
-      if(fabs(N)==0) N=A=1;
-      else
-	{
-	  N=1/N;
-	  A*=N;
-	  B*=N;
-	  C*=N;
-	  D*=N;
-	}
-      
-      //define the su2 matrix
-      complex r[2][2]={{{A,-D},{-C,-B}},{{C,-B},{ A, D}}};
-      
-      //update the guess: one of the line do not change, the other two changes
-      for(int c=0;c<3;c++)
-	{
-	  complex t1,t2;
-	  
-	  unsafe_complex_prod(  t1,r[0][0],U[a][c]);
-	  complex_summ_the_prod(t1,r[0][1],U[b][c]);
-	  
-	  unsafe_complex_prod(  t2,r[1][0],U[a][c]);
-	  complex_summ_the_prod(t2,r[1][1],U[b][c]);
-	  
-	  complex_copy(U[a][c],t1);
-	  complex_copy(U[b][c],t2);
-	}
+      //modify the subgroup
+      su2_prodassign_su3(sub,isub_gr,U);
     }
 }
 
@@ -676,6 +714,61 @@ void su3_unitarize_maximal_trace_projecting(su3 U,su3 M)
       residue=2*fabs(new_trace-old_trace)/(new_trace+old_trace);
     }
   while(residue>1.e-15);
+}
+
+//return a single link after the heatbath procedure
+//routines to be shrinked!
+void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_steps,rnd_gen *gen)
+{
+  //compute the original contribution to the action due to the given link 
+  su3 prod;
+  unsafe_su3_prod_su3_dag(prod,in,staple);
+  
+  //copy in link to out
+  su3_copy(out,in);
+  
+  //iterate over heatbath steps
+  for(int istep=0;istep<nhb_steps;istep++)
+    //scan all the three possible subgroups
+    for(int isub_gr=0;isub_gr<3;isub_gr++)
+      {
+	//take the part of the su3 matrix
+	double r0,r1,r2,r3;
+	double smod=su2_part_of_su3(r0,r1,r2,r3,prod,isub_gr);
+	
+	double omega_f=beta/(3*smod);
+	double z_norm=exp(-2*omega_f);
+	omega_f=1/omega_f;
+	
+	double temp_f,z_f,a0;
+	do
+	  {
+	    double z_temp = (z_norm-1)*rnd_get_unif(gen,0,1)+1;
+	    a0     = 1+omega_f*log(z_temp);
+	    z_f    = 1-a0*a0;
+	    temp_f = sqr(rnd_get_unif(gen,0,1))-z_f;
+	  }
+	while(temp_f>0);
+	
+	double x_rat=sqrt(z_f);
+	
+	//generate an su2 matrix
+	double fi=rnd_get_unif(gen,0,2*M_PI);
+	double cteta=rnd_get_unif(gen,-1,1);
+	double steta=sqrt(1-cteta*cteta);
+	
+	double a1=steta*cos(fi)*x_rat;
+	double a2=steta*sin(fi)*x_rat;
+	double a3=cteta*x_rat;
+	
+	double x0 = a0*r0 + a1*r1 + a2*r2 + a3*r3;
+	double x1 = r0*a1 - a0*r1 + a2*r3 - r2*a3;
+	double x2 = r0*a2 - a0*r2 + a3*r1 - r3*a1;
+	double x3 = r0*a3 - a0*r3 + a1*r2 - r1*a2;
+
+	su2_prodassign_su3(x0,x1,x2,x3,isub_gr,prod);
+	su2_prodassign_su3(x0,x1,x2,x3,isub_gr,out);
+      }
 }
 
 ////////////////////// products between su3 and color //////////////////
@@ -786,7 +879,7 @@ void safe_color_prod_complex_conj(color out,color in,complex factor)
 void unsafe_color_prod_complex_conj(color out,color in,complex factor)
 {for(int i=0;i<3;i++) unsafe_complex_conj2_prod(((complex*)out)[i],((complex*)in)[i],factor);}
 
-////////////////////////////////// Operations between spincolor ///////////////////
+////////////////////////////////// Operations between spincolor ////////////////////////
 
 //summ two spincolors
 void spincolor_summ(spincolor a,spincolor b,spincolor c)

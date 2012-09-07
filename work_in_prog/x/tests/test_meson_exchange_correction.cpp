@@ -82,11 +82,20 @@ int main(int narg,char **arg)
 
   compute_meson_exchange_correction_analyticallyC(corrC,qu,gl);
   
+  //print the various determinations of P5P5
+  master_printf("%s\t%s\t%s\n","XA","XB","P");
+  nissa_loc_vol_loop(ivol)
+    {
+      int ig=5;
+      
+      master_printf("%lg\t%lg\t%lg\n",corrA[ivol][ig][0],corrB[ivol][ig][0],corrC[ivol][ig][0]);
+    }
+
   ////////////////////////////////////// compute correlation stochastically ////////////////////////////
   
   compute_x_space_twisted_propagator_by_fft(prop,qu);
   
-  int nsources=10000;
+  int nsources=1;
   const int corr_id=0;
   start_loc_rnd_gen(100);
   memset(summ_corr,0,sizeof(corr16)*loc_vol);
@@ -125,6 +134,7 @@ int main(int narg,char **arg)
     }
   
   //////////////////////////////// compute correlation and write them on disk ////////////////////////
+  
   write_corr16("exchange_stoch_corr",temp_corr,64);
   
   close_calc();
