@@ -244,9 +244,9 @@ void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp)
 }
 
 //heatbath algorithm for the quenched simulation case
-void heatbath_conf(quad_su3 **eo_conf,double beta,int nhb_steps)
+void heatbath_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars)
 {
-  //loop first on parity and then on directions
+  //loop on directions and on parity
   for(int mu=0;mu<4;mu++)
     for(int par=0;par<2;par++)
       {
@@ -262,7 +262,7 @@ void heatbath_conf(quad_su3 **eo_conf,double beta,int nhb_steps)
 	    
 	    //compute heatbath link
 	    su3 new_link;
-	    su3_find_heatbath(new_link,eo_conf[par][ieo][mu],staples,beta,nhb_steps,gen);
+	    su3_find_heatbath(new_link,eo_conf[par][ieo][mu],staples,physics->beta,pars->nhb_hits,gen);
 	    
 	    //change it
 	    su3_copy(eo_conf[par][ieo][mu],new_link);

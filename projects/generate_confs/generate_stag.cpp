@@ -27,7 +27,7 @@ quad_su3 *conf[2];
 
 //structures containing parameters
 theory_pars physics;
-evol_pars simul;
+evol_pars evol;
 
 //number of traj
 int itraj,max_ntraj;
@@ -156,13 +156,23 @@ void init_simulation(char *path)
   read_str_double("By",&(physics.B[1]));
   read_str_double("Bz",&(physics.B[2]));
   
-  //first guess for hmc evolution
-  read_str_double("HmcTrajLength",&simul.traj_length);
-  read_str_int("NmdSteps",&simul.nmd_steps);
-  read_str_int("NGaugeSubSteps",&simul.ngauge_substeps);
-  read_str_double("MdResidue",&simul.md_residue);
-  read_str_double("PfActionResidue",&simul.pf_action_residue);
-  
+  //load evolution info depending if is a quenched simulation or unquenched
+  if(physics.nflavs!=0)
+    {
+      //first guess for hmc evolution
+      read_str_double("HmcTrajLength",&evol.md_pars.traj_length);
+      read_str_int("NmdSteps",&evol.md_pars.nmd_steps);
+      read_str_int("NGaugeSubSteps",&evol.md_pars.ngauge_substeps);
+      read_str_double("MdResidue",&evol.md_pars.md_residue);
+      read_str_double("PfActionResidue",&evol.md_pars.pf_action_residue);
+    }
+  else
+    {
+      //heat bath parameters
+      read_str_int("NHbSweeps",&evol.pure_gauge_pars.nhb_sweeps);
+      read_str_int("NHbHits",&evol.pure_gauge_pars.nhb_hits);
+    }
+
   close_input();
   
   ////////////////////////// allocate stuff ////////////////////////
@@ -259,25 +269,43 @@ void close_simulation()
 }
 
 //generate a new conf (or, keep old one)
-int rhmc_trajectory()
+int generate_new_conf()
 {
-  int perform_test=(itraj>=skip_mtest_ntraj);
-  double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,&physics,&simul);
-  
-  master_printf("Diff action: %lg, ",diff_act);
-  
-  //decide if to accept
-  int acc=1;
-  if(!perform_test) master_printf("(no test performed) ");
-  else acc=metro_test(diff_act);
-  
-  //copy confif accepted
-  if(acc)
+  int acc;
+      
+  //if not quenched
+  if(physics.nflavs!=0)
     {
-      master_printf("accepted.\n");
-      for(int par=0;par<2;par++) vector_copy(conf[par],new_conf[par]);
+      int perform_test=(itraj>=skip_mtest_ntraj);
+      double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,&physics,&evol.md_pars);
+      
+      master_printf("Diff action: %lg, ",diff_act);
+      
+      //decide if to accept
+      if(!perform_test)
+	{
+	  acc=1;
+	  master_printf("(no test performed) ");
+	}
+      else acc=metro_test(diff_act);
+      
+      //copy conf if accepted
+      if(acc)
+	{
+	  master_printf("accepted.\n");
+	  for(int par=0;par<2;par++) vector_copy(conf[par],new_conf[par]);
+	}
+      else master_printf("rejected.\n");
     }
-  else master_printf("rejected.\n");
+  else
+    {
+      //now only heatbath, overrelax to be implemented
+      for(int ihb_sweep=0;ihb_sweep<evol.pure_gauge_pars.nhb_sweeps;ihb_sweep++)
+	heatbath_conf(conf,&physics,&evol.pure_gauge_pars);
+      
+      //always new conf
+      acc=1;
+    }
   
   return acc;
 }
@@ -359,8 +387,8 @@ int main(int narg,char **arg)
       master_printf("-------------------------------\n");
       
       // 1) produce new conf
-      int acc=1;//rhmc_trajectory();
-      heatbath_conf(conf,physics.beta,1);
+      int acc=generate_new_conf();
+      
       // 2) measure
       measurements(new_conf,conf,itraj,acc);
       
