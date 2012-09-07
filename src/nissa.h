@@ -69,6 +69,7 @@
 #include "new_types/su3.h"
 
 #include "operations/contract.h"
+#include "operations/contract_stag.h"
 #include "operations/fft.h"
 #include "operations/fourier_transform.h"
 #include "operations/gauge_fixing.h"

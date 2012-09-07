@@ -97,13 +97,17 @@ void close_input()
 //read a token from file
 int read_next_token(char *tok)
 {
-  int ok=1;
+  int ok=1,len;
   
   if(rank==0)
-    ok=fscanf(input_global,"%s",tok);
+    {
+      ok=fscanf(input_global,"%s",tok);
+      len=strlen(tok)+1;
+    }
   
   MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
-  MPI_Bcast(tok,strlen(tok)+1,MPI_BYTE,0,MPI_COMM_WORLD);
+  MPI_Bcast(&len,1,MPI_INT,0,MPI_COMM_WORLD);
+  MPI_Bcast(tok,len,MPI_BYTE,0,MPI_COMM_WORLD);
   
   return ok;
 }
