@@ -10,5 +10,5 @@ void inv_stD_cg(color **sol,quad_su3 **conf,double m,int niter,int rniter,double
 {
   inv_evn_stD_cg(sol[EVN],conf,m,niter,rniter,residue,source);
   apply_st2Doe(sol[ODD],conf,sol[EVN]);
-  double_vector_linear_comb((double*)(sol[ODD]),(double*)(source[ODD]),1/m,(double*)(sol[EVN]),0.5/m,loc_volh*6);
+  double_vector_linear_comb((double*)(sol[ODD]),(double*)(source[ODD]),1/m,(double*)(sol[ODD]),+0.5/m,loc_volh*6);
 }
