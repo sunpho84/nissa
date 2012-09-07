@@ -43,6 +43,7 @@ tests=$(addprefix tests/, \
 	test_meson_exchange_correction \
 	test_meson_tree_level_correction \
 	test_nazario \
+	test_nazario2 \
 )
 
 #full programs
@@ -86,7 +87,7 @@ $(addsuffix .d,$(objects) $(executables)): %.d: %.cpp Makefile
 
 ######################################### rules to produce executables ############################################
 
-$(executables): %: %.o $(addsuffix .o,$(objects)) ../../src/libnissa.a Makefile
+$(executables): %: %.o $(addsuffix .o,$(objects)) ../../libnissa.a Makefile
 	$(CC)                           \
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$(addprefix -L,$(LIBRARY_PATH)) \

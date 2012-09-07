@@ -9,5 +9,6 @@ void generate_hot_eo_conf(quad_su3 **conf);
 void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
 void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
 void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp);
+void heatbath_conf(quad_su3 **eo_conf,double beta,int nhb_steps);
 
 #endif

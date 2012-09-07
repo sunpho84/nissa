@@ -242,3 +242,33 @@ void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp)
 	set_borders_invalid(eo_conf[par]);
       }
 }
+
+//heatbath algorithm for the quenched simulation case
+void heatbath_conf(quad_su3 **eo_conf,double beta,int nhb_steps)
+{
+  //loop first on parity and then on directions
+  for(int mu=0;mu<4;mu++)
+    for(int par=0;par<2;par++)
+      {
+        nissa_loc_volh_loop(ieo)
+	  {
+	    //find the lex index of the point and catch the random gen
+	    int ilx=loclx_of_loceo[par][ieo];
+	    rnd_gen *gen=&(loc_rnd_gen[ilx]);
+	    
+	    //compute the staples
+	    su3 staples;
+	    compute_point_staples_eo_conf_single_dir(staples,eo_conf,ilx,mu);
+	    
+	    //compute heatbath link
+	    su3 new_link;
+	    su3_find_heatbath(new_link,eo_conf[par][ieo][mu],staples,beta,nhb_steps,gen);
+	    
+	    //change it
+	    su3_copy(eo_conf[par][ieo][mu],new_link);
+	  }
+	
+        //set the borders invalid: since we split conf in e/o, only now needed                                                                                              
+        set_borders_invalid(eo_conf[par]);
+      }
+}

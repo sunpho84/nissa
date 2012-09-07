@@ -11,8 +11,6 @@
 
 #include "nissa.h"
 
-#include "heatbath.cpp"
-
 //observables
 FILE *gauge_obs_file,*top_obs_file;
 int top_meas_flag,top_cool_overrelax_flag;
@@ -362,7 +360,7 @@ int main(int narg,char **arg)
       
       // 1) produce new conf
       int acc=1;//rhmc_trajectory();
-      heatbath(conf,physics.beta,10);
+      heatbath_conf(conf,physics.beta,1);
       // 2) measure
       measurements(new_conf,conf,itraj,acc);
       
@@ -374,7 +372,7 @@ int main(int narg,char **arg)
       // 4) if conf is multiple of store_conf_each copy it
       store_conf_if_necessary();
       
-      // 5) spacing
+      // 5) spacing between output
       master_printf("\n");
     }
   while(prod_ntraj<max_ntraj);
