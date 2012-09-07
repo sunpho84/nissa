@@ -16,6 +16,8 @@ FILE *chiral_obs_file,*gauge_obs_file,*top_obs_file;
 int chiral_meas_flag,top_meas_flag,top_cool_overrelax_flag;
 double top_cool_overrelax_exp;
 int top_cool_nsteps,top_meas_each_nsteps;
+double cond_meas_residue;
+int cond_meas_nhits;
 
 //input and output path for confs
 char conf_path[1024];
@@ -114,7 +116,12 @@ void init_simulation(char *path)
   //read if we want to measure chiral observables
   read_str_int("MeasureChiral",&chiral_meas_flag);
   char chiral_obs_path[1024];
-  if(chiral_meas_flag) read_str_str("ChiralObsPath",chiral_obs_path,1024);
+  if(chiral_meas_flag)
+    {
+      read_str_str("ChiralObsPath",chiral_obs_path,1024);
+      read_str_double("ChiralCondInvResidue",&cond_meas_residue);
+      read_str_int("ChiralCondNHits",&cond_meas_nhits);
+    }
   
   //read if we want to measure topological charge
   read_str_int("MeasureTopology",&top_meas_flag);
@@ -330,22 +337,31 @@ void measure_gauge_obs(FILE *file,quad_su3 **conf,int iconf,int acc)
   complex pol;
   average_polyakov_loop_of_eos_conf(pol,conf,0);
   
-  master_fprintf(file,"%d %d %lg %lg %lg %lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
+  master_fprintf(file,"%d %d %12.12lg %12.12lg %12.12lg %12.12lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
 }
 
 //measure chiral obs
-void measure_chiral_obs(FILE *file,quad_su3 **conf,int iconf)
+void measure_chiral_obs(FILE *file,quad_su3 **conf,int iconf,double residue,int nhits)
 {
   master_fprintf(file,"%d",iconf);
   
   //measure the condensate for each quark
   for(int iflav=0;iflav<physics.nflavs;iflav++)
     {
-      complex ccond;
-      double meas_residue=1.e-12;
-      chiral_condensate(ccond,conf,physics.backfield[iflav],physics.flav_pars[iflav].mass,meas_residue);
-
-      master_fprintf(file,"\t%lg",ccond[0]);
+      complex cond={0,0};
+      
+      //loop over hits
+      for(int hit=0;hit<nhits;hit++)
+	{
+	  verbosity_lv1_master_printf("Evaluating chiral condensate for flavor %d/%d, nhits %d/%d\n",iflav+1,physics.nflavs,hit+1,nhits);
+	  
+	  //compute and summ
+	  complex temp;
+	  chiral_condensate(temp,conf,physics.backfield[iflav],physics.flav_pars[iflav].mass,residue);
+	  complex_summ_the_prod_double(cond,temp,1.0/nhits);
+	}
+      
+      master_fprintf(file,"\t%12.12lg",cond[0]);
     }
 
   master_fprintf(file,"\n");
@@ -365,7 +381,7 @@ void measure_topology(FILE *file,quad_su3 **uncooled_conf,int nsteps,int meas_ea
   //print curent measure and cool
   for(int istep=0;istep<=(nsteps/meas_each)*meas_each;istep++)
     {
-      if(istep%meas_each==0) master_fprintf(file,"%d %d %lg\n",iconf,istep,average_topological_charge(cooled_conf));
+      if(istep%meas_each==0) master_fprintf(file,"%d %d %12.12lg\n",iconf,istep,average_topological_charge(cooled_conf));
       if(istep!=nsteps) cool_conf(cooled_conf,top_cool_overrelax_flag,top_cool_overrelax_exp);
     }
   
@@ -378,7 +394,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
 {
   measure_gauge_obs(gauge_obs_file,conf,iconf,acc);
   if(top_meas_flag) measure_topology(top_obs_file,conf,top_cool_nsteps,top_meas_each_nsteps,iconf);
-  if(chiral_meas_flag) measure_chiral_obs(chiral_obs_file,conf,iconf);
+  if(chiral_meas_flag) measure_chiral_obs(chiral_obs_file,conf,iconf,cond_meas_residue,cond_meas_nhits);
 }
 
 //store conf when appropriate
@@ -415,7 +431,9 @@ int main(int narg,char **arg)
       master_printf("-------------------------------\n");
       
       // 1) produce new conf
-      int acc=generate_new_conf();
+      int acc=1;
+      if(max_ntraj!=0)
+	acc=generate_new_conf();
       
       // 2) measure
       measurements(new_conf,conf,itraj,acc);

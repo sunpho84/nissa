@@ -37,8 +37,8 @@ void apply_stDoe(color *out,quad_su3 **conf,color *in)
 	out[io][ic][ri]*=0.5;
 }
 
-//multply also for 1/4
-void apply_stDeo_quarter(color *out,quad_su3 **conf,color *in)
+//multply also for an additional 1/2
+void apply_stDeo_half(color *out,quad_su3 **conf,color *in)
 {
   communicate_eo_quad_su3_borders(conf);
   communicate_od_color_borders(in);
@@ -80,7 +80,7 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
   
   //perform the off diagonal multiplication
   apply_st2Doe(temp,conf,in);
-  apply_stDeo_quarter(out,conf,temp);
+  apply_stDeo_half(out,conf,temp);
   
   //summ the mass
   nissa_loc_volh_loop(ivol)

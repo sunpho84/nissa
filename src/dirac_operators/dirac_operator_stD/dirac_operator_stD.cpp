@@ -26,7 +26,7 @@ void apply_stD2ee_zero_mass(color *out,quad_su3 **conf,color *temp,color *in)
   
   //perform the off diagonal multiplication
   apply_st2Doe(temp,conf,in);
-  apply_stDeo_quarter(out,conf,temp);
+  apply_stDeo_half(out,conf,temp);
   
   set_borders_invalid(out);
 }
@@ -37,7 +37,7 @@ void apply_stD2ee_m2(color *out,quad_su3 **conf,color *temp,double m2,color *in)
 //return the even part of the application of D to a vector
 void evn_apply_stD(color *out,quad_su3 **conf,double m,color **in)
 {
-  apply_stDeo_quarter(out,conf,in[ODD]);
-  double_vector_linear_comb((double*)out,(double*)in[EVN],m,(double*)out,4,6*loc_volh);
+  apply_stDeo_half(out,conf,in[ODD]);
+  double_vector_linear_comb((double*)out,(double*)in[EVN],m,(double*)out,2,6*loc_volh);
   set_borders_invalid(out);
 }
