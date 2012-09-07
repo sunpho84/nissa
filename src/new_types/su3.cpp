@@ -186,7 +186,14 @@ double su2_part_of_su3(su2 out,su3 in,int isub_gr)
   double A,B,C,D;
   double N=su2_part_of_su3(A,B,C,D,in,isub_gr);
   
-  out=(su2){{{A,-D},{-C,-B}},{{C,-B},{ A, D}}};
+  out[0][0][RE]=A;
+  out[0][0][IM]=-D;
+  out[0][1][RE]=-C;
+  out[0][1][IM]=-B;
+  out[1][0][RE]=C;
+  out[1][0][IM]=-B;
+  out[1][1][RE]=A;
+  out[1][1][IM]=D;
   
   return N;
 }
