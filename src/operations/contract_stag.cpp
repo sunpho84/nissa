@@ -20,9 +20,12 @@ void chiral_condensate(complex cond,quad_su3 **conf,quad_u1 **u1b,double m,doubl
   //to be moved in another smarter place
   for(int par=0;par<2;par++)
     {
-      nissa_loc_volh_loop(ivol)
-	for(int ic=0;ic<3;ic++)
-	  comp_get_rnd(rnd[par][ivol][ic],&(loc_rnd_gen[loclx_of_loceo[par][ivol]]),RND_Z4);
+      nissa_loc_volh_loop(ieo)
+        {
+	  int ilx=loclx_of_loceo[par][ieo];
+	  for(int ic=0;ic<3;ic++)
+	    comp_get_rnd(rnd[par][ieo][ic],&(loc_rnd_gen[ilx]),RND_Z4);
+	}
       set_borders_invalid(rnd[par]);
     }
   

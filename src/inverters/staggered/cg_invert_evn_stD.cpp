@@ -7,7 +7,7 @@
 
 void inv_evn_stD_cg(color *sol,quad_su3 **conf,double m,int niter,int rniter,double residue,color **source)
 {
-  color *temp=nissa_malloc("temp",loc_vol+bord_vol,color);
+  color *temp=nissa_malloc("temp",loc_volh+bord_volh,color);
   evn_apply_stD(temp,conf,m,source);
   inv_stD2ee_m2_cg(sol,NULL,conf,m,niter,rniter,residue,temp);
   nissa_free(temp);

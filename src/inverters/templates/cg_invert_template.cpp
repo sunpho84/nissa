@@ -11,9 +11,9 @@
 void cg_invert(basetype *sol,basetype *guess,cg_additional_parameters_proto,int niter,int rniter,double residue,basetype *source)
 {
   int riter=0;
-  basetype *s=nissa_malloc("s",loc_vol,basetype);
-  basetype *p=nissa_malloc("p",loc_vol+bord_vol,basetype);
-  basetype *r=nissa_malloc("r",loc_vol,basetype);
+  basetype *s=nissa_malloc("s",bulk_vol,basetype);
+  basetype *p=nissa_malloc("p",bulk_vol+bord_vol,basetype);
+  basetype *r=nissa_malloc("r",bulk_vol,basetype);
 
   //macro to be defined externally, allocating all the required additional vectors
   cg_additional_vectors_allocation();
