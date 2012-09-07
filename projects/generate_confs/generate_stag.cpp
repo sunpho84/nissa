@@ -12,8 +12,8 @@
 #include "nissa.h"
 
 //observables
-FILE *gauge_obs_file,*top_obs_file;
-int top_meas_flag,top_cool_overrelax_flag;
+FILE *chiral_obs_file,*gauge_obs_file,*top_obs_file;
+int chiral_meas_flag,top_meas_flag,top_cool_overrelax_flag;
 double top_cool_overrelax_exp;
 int top_cool_nsteps,top_meas_each_nsteps;
 
@@ -111,6 +111,11 @@ void init_simulation(char *path)
   char gauge_obs_path[1024];
   read_str_str("GaugeObsPath",gauge_obs_path,1024);
   
+  //read if we want to measure chiral observables
+  read_str_int("MeasureChiral",&chiral_meas_flag);
+  char chiral_obs_path[1024];
+  if(chiral_meas_flag) read_str_str("ChiralObsPath",chiral_obs_path,1024);
+  
   //read if we want to measure topological charge
   read_str_int("MeasureTopology",&top_meas_flag);
   char top_obs_path[1024];
@@ -207,14 +212,14 @@ void init_simulation(char *path)
     }
   
   //load conf or generate it
+  char ap_cr[2];
   if(file_exists(conf_path))
     {
       master_printf("File %s found, loading\n",conf_path);
       read_conf(conf,conf_path);
       
-      //open observables file for append
-      gauge_obs_file=open_file(gauge_obs_path,"a");
-      if(top_meas_flag) top_obs_file=open_file(top_obs_path,"a");
+      //mark to open observables file for append
+      sprintf(ap_cr,"a");
     }
   else
     {
@@ -236,10 +241,14 @@ void init_simulation(char *path)
       //reset conf id
       itraj=0;
       
-      //create new files for observables
-      gauge_obs_file=open_file(gauge_obs_path,"w");
-      if(top_meas_flag) top_obs_file=open_file(top_obs_path,"w");
+      //mark to open observables file
+      sprintf(ap_cr,"w");
     }
+  
+  //open creating or appending
+  gauge_obs_file=open_file(gauge_obs_path,ap_cr);
+  if(top_meas_flag) top_obs_file=open_file(top_obs_path,ap_cr);
+  if(chiral_meas_flag) chiral_obs_file=open_file(chiral_obs_path,ap_cr);
 }
 
 //finalize everything
@@ -324,6 +333,24 @@ void measure_gauge_obs(FILE *file,quad_su3 **conf,int iconf,int acc)
   master_fprintf(file,"%d %d %lg %lg %lg %lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
 }
 
+//measure chiral obs
+void measure_chiral_obs(FILE *file,quad_su3 **conf,int iconf)
+{
+  master_fprintf(file,"%d",iconf);
+  
+  //measure the condensate for each quark
+  for(int iflav=0;iflav<physics.nflavs;iflav++)
+    {
+      complex ccond;
+      double meas_residue=1.e-12;
+      chiral_condensate(ccond,conf,physics.backfield[iflav],physics.flav_pars[iflav].mass,meas_residue);
+
+      master_fprintf(file,"\t%lg",ccond[0]);
+    }
+
+  master_fprintf(file,"\n");
+}
+
 //measure the topologycal charge
 void measure_topology(FILE *file,quad_su3 **uncooled_conf,int nsteps,int meas_each,int iconf)
 {
@@ -351,6 +378,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
 {
   measure_gauge_obs(gauge_obs_file,conf,iconf,acc);
   if(top_meas_flag) measure_topology(top_obs_file,conf,top_cool_nsteps,top_meas_each_nsteps,iconf);
+  if(chiral_meas_flag) measure_chiral_obs(chiral_obs_file,conf,iconf);
 }
 
 //store conf when appropriate
