@@ -42,6 +42,8 @@ Some sort of MPI distribution (at the moment also when running on scalar machine
 Compiling
 ---------
 
+WARNING this part are out of data
+
 The program have to be compiled with c++.
 At the moment, the compilation is still partially home-made.
 Run the script "configure" and follow the instructions, then use the "make" command.

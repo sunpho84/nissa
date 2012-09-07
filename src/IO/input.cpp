@@ -94,12 +94,65 @@ void open_input(char *input_path)
 void close_input()
 {if(rank==0) fclose(input_global);}
 
-//Read a var from the file
+//read a token from file
+int read_next_token(char *tok)
+{
+  int ok=1;
+  
+  if(rank==0)
+    ok=fscanf(input_global,"%s",tok);
+  
+  MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
+  MPI_Bcast(tok,strlen(tok)+1,MPI_BYTE,0,MPI_COMM_WORLD);
+  
+  return ok;
+}
+
+//check whether a token starts or end a comment
+int check_tok_starts_comment(char *tok)
+{return strncasecmp(tok,"/*",2)==0;}
+int check_tok_ends_comment(char *tok)
+{return strncasecmp(tok+strlen(tok)-2,"*/",2)==0;}
+
+//read up to "*/"
+void read_up_to_end_of_comment()
+{
+  char tok[1024];
+  
+  do
+    {
+      int ok=read_next_token(tok);
+      if(ok!=1) crash("reached end of file without finding end of comment");
+    }
+  while(check_tok_ends_comment(tok)==0);
+}
+
+//read variable skipping comments
 int read_var_catcherr(char *out,const char *par,int size_of)
 {
-  int ok=(rank==0) ? (fscanf(input_global,par,out)>0) : 1;
-  MPI_Bcast(&ok,1,MPI_INT,0,MPI_COMM_WORLD);
-  MPI_Bcast(out,size_of,MPI_BYTE,0,MPI_COMM_WORLD);
+  char tok[1024];
+  int ok,comment_found;
+  
+  do
+    {
+      //read the token
+      ok=read_next_token(tok);
+      
+      //check if token comment
+      if(check_tok_starts_comment(tok))
+	{
+	  comment_found=1;
+	  //if the comments do not ends itself, read up to finding its end
+	  if(!check_tok_ends_comment(tok)) read_up_to_end_of_comment();
+	}
+      else comment_found=0;
+    }
+  while(comment_found);
+  
+  //parse the token
+  if(ok==1)
+    ok=(sscanf(tok,par,out)>0);
+  
   return ok;
 }
 

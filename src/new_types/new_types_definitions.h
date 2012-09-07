@@ -162,7 +162,7 @@ typedef struct
   double B[3];
 } theory_pars;
 
-//evolution parameters
+//evolution parameters for hybrid monte carlo
 typedef struct
 {
   double traj_length;
@@ -171,6 +171,18 @@ typedef struct
   int nmd_steps;
   int ngauge_substeps;
   int *npseudo_fs;
+} hmc_evol_pars;
+
+typedef struct
+{
+  int nhb_sweeps;
+  int nhb_hits;
+} pure_gauge_evol_pars;
+
+typedef union
+{
+  hmc_evol_pars md_pars;
+  pure_gauge_evol_pars pure_gauge_pars;
 } evol_pars;
 
 #endif

@@ -16,7 +16,7 @@
 #include "rat_expansion_database.cpp"
 
 //perform a full hmc step and return the difference between final and original action
-double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars *physic,evol_pars *simul)
+double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars *physic,hmc_evol_pars *simul)
 {
   double start_time=take_time();
   

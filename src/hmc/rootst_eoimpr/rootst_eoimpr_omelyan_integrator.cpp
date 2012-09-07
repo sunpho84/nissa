@@ -95,7 +95,7 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 //     v1 = v2 + a[r(t + dt)]*2*lambda*dt
 //    only last step:
 //     v(t + h) = v2 + a[r(t + dt)]*lambda*dt
-void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,evol_pars *simul)
+void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,hmc_evol_pars *simul)
 {
   //define step length ant its multiples
   const double lambda=0.1931833;

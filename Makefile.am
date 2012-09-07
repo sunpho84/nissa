@@ -1,24 +1,34 @@
 AUTOMAKE_OPTIONS=subdir-objects
 
-LDADD=@LIBS@ -lnissa
+#add where to find the library and tell to link
+AM_LDFLAGS=-L@top_builddir@
+LDADD=@LIBS@ libnissa.a
 
 #target library nissa
 lib_LIBRARIES=libnissa.a
 
-#generate stags
-bin_PROGRAMS=projects/generate_confs/generate_stag
-
+#headers and files for production of nissa
 nissa_headers=src/base/close.h src/base/communicate.h src/base/debug.h src/base/global_variables.h src/base/init.h src/base/random.h src/base/routines.h src/base/vectors.h src/dirac_operators/dirac_operator_stD/dirac_operator_stD.h src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ.h src/dirac_operators/dirac_operator_tmQ_left/dirac_operator_tmQ_left.h src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_128.h src/dirac_operators/dirac_operator_tmQ/reconstruct_tm_doublet.h src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.h src/geometry/geometry_eo.h src/geometry/geometry_lx.h src/geometry/geometry_mix.h src/hmc/backfield.h src/hmc/gauge/wilson_force.h src/hmc/momenta/momenta_generation.h src/hmc/momenta/momenta_action.h src/hmc/rootst_eoimpr/rootst_eoimpr_action.h src/hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.h src/hmc/rootst_eoimpr/rootst_eoimpr_force.h src/hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.h src/hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.h src/hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.h src/inverters/twisted_mass/cg_invert_tmDeoimpr.h src/inverters/twisted_mass/cg_invert_tmQ2.h src/inverters/twisted_mass/cg_128_invert_tmQ2.h src/inverters/twisted_mass/cgm_invert_tmQ2.h src/inverters/twisted_mass/tm_frontends.h src/inverters/staggered/cgm_invert_stD2ee_m2.h src/inverters/staggered/cg_invert_stD2ee_m2.h src/inverters/staggered/cg_invert_stD2_m2.h src/inverters/staggered/cg_invert_evn_stD.h src/IO/checksum.h src/IO/endianess.h src/IO/ILDG_File.h src/IO/input.h src/IO/reader.h src/IO/writer.h src/new_types/complex.h src/new_types/dirac.h src/new_types/float128.h src/new_types/rat_exp.h src/new_types/spin.h src/new_types/su3.h src/operations/contract.h src/operations/fft.h src/operations/fourier_transform.h src/operations/gauge_fixing.h src/operations/gaugeconf.h src/operations/remap_vector.h src/operations/smear.h src/operations/su3_paths.h src/operations/vector_gather.h src/linalgs/linalgs.h
 nissa_source_files=src/base/close.cpp src/base/communicate.cpp src/base/debug.cpp src/base/global_variables.cpp src/base/init.cpp src/base/random.cpp src/base/routines.cpp src/base/vectors.cpp src/dirac_operators/dirac_operator_stD/dirac_operator_stD.cpp src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.cpp src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ.cpp src/dirac_operators/dirac_operator_tmQ_left/dirac_operator_tmQ_left.cpp src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.cpp src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_128.cpp src/dirac_operators/dirac_operator_tmQ/reconstruct_tm_doublet.cpp src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.cpp src/geometry/geometry_eo.cpp src/geometry/geometry_lx.cpp src/geometry/geometry_mix.cpp src/hmc/backfield.cpp src/hmc/gauge/wilson_force.cpp src/hmc/momenta/momenta_generation.cpp src/hmc/momenta/momenta_action.cpp src/hmc/rootst_eoimpr/rootst_eoimpr_action.cpp src/hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp src/hmc/rootst_eoimpr/rootst_eoimpr_force.cpp src/hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.cpp src/hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.cpp src/hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.cpp src/inverters/twisted_mass/cg_invert_tmDeoimpr.cpp src/inverters/twisted_mass/cg_invert_tmQ2.cpp src/inverters/twisted_mass/cg_128_invert_tmQ2.cpp src/inverters/twisted_mass/cgm_invert_tmQ2.cpp src/inverters/twisted_mass/tm_frontends.cpp src/inverters/staggered/cgm_invert_stD2ee_m2.cpp src/inverters/staggered/cg_invert_stD2ee_m2.cpp src/inverters/staggered/cg_invert_stD2_m2.cpp src/inverters/staggered/cg_invert_evn_stD.cpp src/IO/checksum.cpp src/IO/endianess.cpp src/IO/ILDG_File.cpp src/IO/input.cpp src/IO/reader.cpp src/IO/writer.cpp src/new_types/complex.cpp src/new_types/dirac.cpp src/new_types/float128.cpp src/new_types/rat_exp.cpp src/new_types/spin.cpp src/new_types/su3.cpp src/operations/contract.cpp src/operations/fft.cpp src/operations/fourier_transform.cpp src/operations/gauge_fixing.cpp src/operations/gaugeconf.cpp src/operations/remap_vector.cpp src/operations/smear.cpp src/operations/su3_paths.cpp src/operations/vector_gather.cpp src/linalgs/linalgs.cpp
 extra_headers=src/new_types/new_types_definitions.h src/base/macros.h
 
-projects_generate_confs_generate_stag_source_files=projects/generate_confs/generate_stag.cpp
-
+#instruct how to build the library
 libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers)
 
-projects_generate_confs_generate_stag_SOURCES=$(projects_generate_confs_generate_stag_source_files) $(extra_headers) libnissa.a
+##########################################################################################################################################################
 
-EXTRA_DIST=README ./src/dirac_operators/dirac_operator_stD/dirac_operator_stD_portable.cpp ./src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_portable.cpp ./src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_portable.cpp ./src/dirac_operators/dirac_operator_tmQ_left/dirac_operator_tmQ_left_portable.cpp ./src/inverters/twisted_mass/cg_invert_tmQ2_portable.cpp ./src/dirac_operators/dirac_operator_stD/dirac_operator_stD_bgp.cpp ./src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgp.cpp ./src/dirac_operators/dirac_operator_tmQ_left/dirac_operator_tmQ_left_bgp.cpp ./src/inverters/twisted_mass/cg_invert_tmQ2_bgp.cpp src/hmc/rootst_eoimpr/rat_expansion_database.cpp src/inverters/twisted_mass/cg_invert_tmQ2_common.cpp src/nissa.h src/inverters/templates/cg_128_invert_template.cpp src/inverters/templates/cg_invert_template.cpp src/inverters/templates/cgm_invert_template.cpp src/base/sse_instructions.h src/base/bgp_instructions.h\
-projects/generate_confs/heatbath.cpp
+#list of all the programs
+bin_PROGRAMS=projects/generate_confs/generate_stag projects/semileptonic/semileptonic_smeared
+
+#program to generate confs
+projects_generate_confs_generate_stag_SOURCES=projects/generate_confs/generate_stag.cpp $(extra_headers)
+
+#program for semileptonic smeared 2 and 3 points
+projects_semileptonic_semileptonic_smeared_SOURCES=projects/semileptonic/semileptonic_smeared.cpp $(extra_headers)
+
+###########################################################################################################################################################
+
+#adds extra files to distribution
+EXTRA_DIST=README ./src/dirac_operators/dirac_operator_stD/dirac_operator_stD_portable.cpp ./src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_portable.cpp ./src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_portable.cpp ./src/dirac_operators/dirac_operator_tmQ_left/dirac_operator_tmQ_left_portable.cpp ./src/inverters/twisted_mass/cg_invert_tmQ2_portable.cpp ./src/dirac_operators/dirac_operator_stD/dirac_operator_stD_bgp.cpp ./src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgp.cpp ./src/dirac_operators/dirac_operator_tmQ_left/dirac_operator_tmQ_left_bgp.cpp ./src/inverters/twisted_mass/cg_invert_tmQ2_bgp.cpp src/hmc/rootst_eoimpr/rat_expansion_database.cpp src/inverters/twisted_mass/cg_invert_tmQ2_common.cpp src/nissa.h src/inverters/templates/cg_128_invert_template.cpp src/inverters/templates/cg_invert_template.cpp src/inverters/templates/cgm_invert_template.cpp src/base/sse_instructions.h src/base/bgp_instructions.h
 
 
