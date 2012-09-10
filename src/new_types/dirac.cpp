@@ -145,7 +145,7 @@ void unsafe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
       unsafe_complex_prod(out[id1][id2],m->entr[id1],in[m->pos[id1]][id2]);
 }
 void safe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
-{spinspin temp;safe_dirac_prod_spinspin(temp,m,in);spinspin_copy(out,temp);}
+{spinspin temp;unsafe_dirac_prod_spinspin(temp,m,in);spinspin_copy(out,temp);}
 
 //out=m*in^t
 void unsafe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)
@@ -155,7 +155,7 @@ void unsafe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)
       unsafe_complex_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
 }
 void safe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)
-{spinspin temp;safe_dirac_prod_spinspin_transp(temp,m,in);spinspin_copy(out,temp);}
+{spinspin temp;unsafe_dirac_prod_spinspin_transp(temp,m,in);spinspin_copy(out,temp);}
 
 //out=m*in^+
 void unsafe_dirac_prod_spinspin_dag(spinspin out,dirac_matr *m,spinspin in)
@@ -165,7 +165,7 @@ void unsafe_dirac_prod_spinspin_dag(spinspin out,dirac_matr *m,spinspin in)
       unsafe_complex_conj2_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
 }
 void safe_dirac_prod_spinspin_dag(spinspin out,dirac_matr *m,spinspin in)
-{spinspin temp;safe_dirac_prod_spinspin_dag(temp,m,in);spinspin_copy(out,temp);}
+{spinspin temp;unsafe_dirac_prod_spinspin_dag(temp,m,in);spinspin_copy(out,temp);}
 
 //out=in*m
 void unsafe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m)

@@ -11,6 +11,10 @@ void define_local_momenta(momentum_t *k,double *k2,momentum_t *ktilde,double *kt
 int edgelx_of_coord(int *x,int mu,int nu);
 int glblx_of_coord(coords x);
 int glblx_of_coord_list(int x0,int x1,int x2,int x3);
+int glblx_of_comb(int b,int wb,int c,int wc);
+int glblx_of_diff(int b,int c);
+int glblx_of_summ(int b,int c);
+int glblx_opp(int b);
 int loclx_of_coord(coords x);
 int loclx_of_coord_list(int x0,int x1,int x2,int x3);
 int lx_of_coord(coords x,coords s);

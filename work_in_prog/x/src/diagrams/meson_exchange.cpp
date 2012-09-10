@@ -6,6 +6,7 @@
 #include "../propagators/tlSym_gluon_propagator.h"
 #include "../routines/fourier.h"
 #include "../routines/shift.h"
+#include "../vertex/vertex.h"
 
 #include "propagator_self_energy.h"
 
@@ -120,8 +121,8 @@ void summ_the_exchange_contributionB(corr16 corr,spinspin XB,spinspin pB,spinspi
   
   spinspin OX_dw; //revert lower line
   unsafe_spinspin_hermitian(OX_dw,XO_dw);
-  //safe_spinspin_prod_dirac(OX_dw,OX_dw,base_gamma+5);
-  //safe_dirac_prod_spinspin(OX_dw,base_gamma+5,OX_dw);
+  safe_spinspin_prod_dirac(OX_dw,OX_dw,base_gamma+5);
+  safe_dirac_prod_spinspin(OX_dw,base_gamma+5,OX_dw);
   
   complex wAB;
   complex_prod_double(wAB,AB,w);
@@ -129,17 +130,20 @@ void summ_the_exchange_contributionB(corr16 corr,spinspin XB,spinspin pB,spinspi
   //trace
   for(int ig=0;ig<16;ig++)
     {
-      //no debug: comment prodcut by wAB
+      //no debug: comment product by wAB
       spinspin GOX_dw;
       unsafe_dirac_prod_spinspin(GOX_dw,base_gamma+ig,OX_dw);
       
       spinspin GXO_up;
       unsafe_dirac_prod_spinspin(GXO_up,base_gamma+ig,XO_up);
       
+      //close the diagram and trace
       spinspin t;
       unsafe_spinspin_prod_spinspin(t,GXO_up,GOX_dw);
       complex c;
       trace_spinspin(c,t);
+      
+      //multiply by gluon
       complex_summ_the_prod(corr[ig],c,wAB);
       //complex_summ_the_prod_double(corr[ig],c,w);
     }
@@ -214,19 +218,6 @@ int site_comb(int b,int wb,int c,int wc)
   return loclx_of_coord(co);
 }
 
-void mom_space_qq_vertex_function(spinspin v,int imom_sum,quark_info qu,int mu)
-{
-  if(mu<0||mu>3) crash("mu=%d",mu);
-
-  double p=M_PI*(2*glb_coord_of_loclx[imom_sum][mu]+qu.bc[mu])/glb_size[mu];
-  double ph=p/2;
-
-  spinspin_put_to_id(v);
-  spinspin_prodassign_double(v,-sin(ph));
-  spinspin_dirac_summ_the_prod_idouble(v,base_gamma+nissa_map_mu[mu],-cos(ph));
-  spinspin_prodassign_double(v,glb_vol);
-}
-
 void compute_meson_exchange_correction_analyticallyC(corr16 *corr,quark_info qu,gluon_info gl)
 {
   if(nissa_nranks>1) crash("works only on scalar");
@@ -246,26 +237,30 @@ void compute_meson_exchange_correction_analyticallyC(corr16 *corr,quark_info qu,
         for(int mu=0;mu<4;mu++)
 	  for(int nu=0;nu<4;nu++)
 	    {
-	      int ppq=site_comb(p,+1,q,+1);
-	      int ppr=site_comb(p,+1,r,+1);
-	      int rmq=site_comb(r,+1,q,-1);
+	      int pmq=site_comb(p,+1,q,-1);
+	      int pmr=site_comb(p,+1,r,-1);
+	      int qmr=site_comb(q,+1,r,-1);
 	      
 	      spinspin vmu,vnu;
-	      mom_space_qq_vertex_function(vmu,site_comb(ppq,+1,ppr,+1),qu,mu);
-	      mom_space_qq_vertex_function(vnu,site_comb(q,+1,r,+1),qu,nu);
-	      
+	      mom_space_qq_vertex_function(vmu,pmq,pmr,qu,mu);
+	      mom_space_qq_vertex_function(vnu,glblx_opp(q),glblx_opp(r),qu,nu);
+	     
+	      //up line
 	      spinspin up;
-	      unsafe_spinspin_prod_spinspin(up,vmu,q_prop[ppq]);
-	      safe_spinspin_prod_spinspin(up,q_prop[ppr],up);
+	      unsafe_spinspin_prod_spinspin(up,vmu,q_prop[pmq]);
+	      safe_spinspin_prod_spinspin(up,q_prop[pmr],up);
 	      
+	      //down line
 	      spinspin dw;
-	      unsafe_spinspin_prod_spinspin(dw,vnu,q_prop[r]);
-	      safe_spinspin_prod_spinspin(dw,q_prop[q],dw);
+	      unsafe_spinspin_prod_spinspin(dw,vnu,q_prop[glblx_opp(q)]);
+	      safe_spinspin_prod_spinspin(dw,q_prop[glblx_opp(r)],dw);
 	      
+	      //gluon line
 	      spinspin up_w;
-	      unsafe_spinspin_complex_prod(up_w,up,g_prop[rmq][mu][nu]);
+	      unsafe_spinspin_complex_prod(up_w,up,g_prop[qmr][mu][nu]);
 	      
 	      for(int ig=0;ig<16;ig++)
+		if(ig==5)
 		{
 		  spinspin gup_w,gupg_w;
 		  unsafe_dirac_prod_spinspin(gup_w,base_gamma+ig,up_w);

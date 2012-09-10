@@ -15,7 +15,7 @@ AC_PROG_CXX
 AC_PROG_RANLIB
 
 #check mpi.h
-AC_CHECK_HEADERS([mpi.h], , [AC_MSG_ERROR([MPI not found])] )
+#AC_CHECK_HEADERS([mpi.h], , [AC_MSG_ERROR([MPI not found])] )
 
 #create makefile
 AC_CONFIG_FILES([Makefile])

@@ -14,7 +14,7 @@ spin1field *phi,*eta;
 spinspin *prop,*prop_phi,*prop_eta;
 corr16 *corrA,*corrB,*corrC,*summ_corr,*temp_corr;
 
-int L=2;
+int L=2,T=2;
 
 //initialize the program
 void init_calc()
@@ -23,7 +23,7 @@ void init_calc()
   init_nissa();
   
   //init the grid
-  init_grid(L,L);
+  init_grid(T,L);
   
   //allocate propagators
   prop=nissa_malloc("prop",loc_vol,spinspin);
@@ -76,11 +76,13 @@ int main(int narg,char **arg)
   ////////////////////////////////////// compute correlation analytically ////////////////////////////
   
   compute_meson_exchange_correction_analyticallyA(corrA,qu,gl);
-  write_corr16("exchange_corr",corrA,64);
   
   compute_meson_exchange_correction_analyticallyB(corrB,qu,gl);
 
   compute_meson_exchange_correction_analyticallyC(corrC,qu,gl);
+  
+  //return 0;
+  write_corr16("exchange_corr",corrA,64);
   
   //print the various determinations of P5P5
   master_printf("%s\t%s\t%s\n","XA","XB","P");

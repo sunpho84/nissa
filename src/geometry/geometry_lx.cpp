@@ -67,6 +67,29 @@ int glblx_of_coord_list(int x0,int x1,int x2,int x3)
   coords x={x0,x1,x2,x3};
   return lx_of_coord(x,glb_size);
 }
+
+//combine two points
+int glblx_of_comb(int b,int wb,int c,int wc)
+{
+  coords co;
+  for(int mu=0;mu<4;mu++)
+    {
+      co[mu]=glb_coord_of_loclx[b][mu]*wb+glb_coord_of_loclx[c][mu]*wc;
+      while(co[mu]<0) co[mu]+=glb_size[mu];
+      co[mu]%=glb_size[mu];
+    }
+
+  return glblx_of_coord(co);
+}
+
+int glblx_of_diff(int b,int c)
+{return glblx_of_comb(b,+1,c,-1);}
+  
+int glblx_of_summ(int b,int c)
+{return glblx_of_comb(b,+1,c,+1);}
+
+int glblx_opp(int b)
+{return glblx_of_diff(0,b);}
   
 //Return the coordinate of the rank containing the global coord
 void rank_coord_of_site_of_coord(coords rank_coord,coords glb_coord)
@@ -473,4 +496,3 @@ void define_local_momenta(momentum_t *k,double *k2,momentum_t *ktilde,double *kt
 	}
     }
 }
-
