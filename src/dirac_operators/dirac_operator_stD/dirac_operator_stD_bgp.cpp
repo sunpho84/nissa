@@ -53,7 +53,7 @@ void apply_stDoe(color *out,quad_su3 **conf,color *in)
       }
 }
 
-void apply_stDeo_quarter(color *out,quad_su3 **conf,color *in)
+void apply_stDeo_half(color *out,quad_su3 **conf,color *in)
 {
   bgp_complex A0,A1,A2;
   
@@ -105,7 +105,7 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
   
   //perform the off diagonal multiplication
   apply_st2Doe(temp,conf,in);
-  apply_stDeo_quarter(out,conf,temp);
+  apply_stDeo_half(out,conf,temp);
   
   //summ the mass
   nissa_loc_volh_loop(ivol)
