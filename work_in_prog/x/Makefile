@@ -4,7 +4,7 @@ CFLAGS=-O2
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
-MACROS=$(addprefix -D,SVN_VERS=\"$(SVN_VERS)\")
+MACROS= #$(addprefix -D,SVN_VERS=\"$(SVN_VERS)\")
 INCLUDE_PATH=../../src
 LIBRARY_PATH=
 
@@ -21,7 +21,7 @@ objects=$(addprefix src/, \
 	$(addprefix routines/, bmp correlations derivatives fourier read_and_write shift) \
 	$(addprefix stochastic/, stochastic_source stochastic_tlSym_gluon_propagator stochastic_twisted_propagator) \
 	$(addprefix types/, types_routines) \
-	$(addprefix vertex/, x_space_stochastic_qqg_vertex))
+	$(addprefix vertex/, x_space_stochastic_qqg_vertex vertex))
 
 ############################################# define the executables ############################################
 
@@ -96,7 +96,7 @@ $(executables): %: %.o $(addsuffix .o,$(objects)) ../../libnissa.a Makefile
 	-o $@                           \
 	$(addsuffix .o, $@)           \
 	$(addsuffix .o, $(objects))     \
-	../../src/libnissa.a
+	../../libnissa.a
 
 ############################################## phonyfyse the needed target ##########################################
 
