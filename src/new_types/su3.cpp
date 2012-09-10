@@ -9,6 +9,10 @@
 #include "complex.h"
 #include "su3.h"
 
+#ifdef BGP
+#include "../base/bgp_instructions.h"
+#endif
+
 //////////////////////////////////// Put to zero or 1 /////////////////////////////////
 
 void color_put_to_zero(color m)
