@@ -165,7 +165,7 @@ void load_demo_ildg_corr(corr16 *out,char *path,bool average=false)
   //load all points
   corr16 *temp=nissa_malloc("temp",loc_vol,corr16);
   read_corr16(temp,path);
-  
+
   //copy only democratic points
   nissa_loc_vol_loop(ivol)
     {

@@ -1,7 +1,6 @@
 #include <string.h>
 
-#include "../../../../src/base/vectors.h"
-#include "../../../../src/base/global_variables.h"
+#include "../../../../src/nissa.h"
 
 #include "../types/types.h"
 
@@ -35,11 +34,23 @@ quark_info create_Wilson_quark_info(double kappa,momentum_t bc)
 
 void get_spin_from_spinspin(spin *out,spinspin *in,int id_so)
 {
-  nissa_loc_vol_loop(ivol)
+  int all=check_borders_allocated((void*)in);
+  
+  int ending;
+  if(all)
+    {
+      communicate_lx_spinspin_borders(in);
+      ending=loc_vol+bord_vol;
+    }
+  else
+    ending=loc_vol;
+  
+  for(int ivol=0;ivol<ending;ivol++)
     for(int id_si=0;id_si<4;id_si++)
       memcpy(out[ivol][id_si],in[ivol][id_si][id_so],sizeof(complex));
   
-  set_borders_invalid(out);
+  if(all) set_borders_valid(out);
+  else    set_borders_invalid(out);
 }
 
 void put_spin_into_spinspin(spinspin *out,spin *in,int id_so)
@@ -47,6 +58,5 @@ void put_spin_into_spinspin(spinspin *out,spin *in,int id_so)
   nissa_loc_vol_loop(ivol)
     for(int id_si=0;id_si<4;id_si++)
       memcpy(out[ivol][id_si][id_so],in[ivol][id_si],sizeof(complex));
-
   set_borders_invalid(out);
 }
