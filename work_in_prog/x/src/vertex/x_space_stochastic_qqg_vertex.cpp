@@ -22,8 +22,6 @@ void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_i
   
   for(int mu=0;mu<4;mu++)
     {
-      dirac_matr gamma_mu=(mu==0)?base_gamma[4]:base_gamma[mu];
-      
       //shift=q_in_up_mu
       shift_spinspin_sink_up(shift_q_in,q_in,qu.bc,mu);
 
@@ -32,7 +30,7 @@ void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_i
 	  spinspin temp;
 	  
 	  //temp=(1-gamma_mu)*q_in_up_mu
-	  unsafe_dirac_prod_spinspin(temp,&gamma_mu,shift_q_in[ivol]);
+	  unsafe_dirac_prod_spinspin(temp,base_gamma+nissa_map_mu[mu],shift_q_in[ivol]);
 	  spinspin_subt(temp,shift_q_in[ivol],temp);
 	  
 	  //q_out+=temp*g_in_mu
@@ -50,7 +48,7 @@ void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_i
 	  spinspin temp;
 	  
 	  //temp=(1+gamma_mu)*q_in_dw_mu
-	  unsafe_dirac_prod_spinspin(temp,&gamma_mu,shift_q_in[ivol]);
+	  unsafe_dirac_prod_spinspin(temp,base_gamma+nissa_map_mu[mu],shift_q_in[ivol]);
 	  spinspin_summ(temp,shift_q_in[ivol],temp);
 	  
 	  //q_out-=temp*g_in_dw_mu_mu

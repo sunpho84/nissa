@@ -4,9 +4,21 @@
 
 #include "../src/propagators/twisted_propagator.h"
 #include "../src/diagrams/propagator_self_energy.h"
+#include "../src/diagrams/meson_exchange.h"
+#include "../src/diagrams/tadpole.h"
 #include "../src/types/types_routines.h"
 #include "../src/routines/read_and_write.h"
 #include "../src/routines/correlations.h"
+#include "../src/stochastic/stochastic_tlSym_gluon_propagator.h"
+#include "../src/stochastic/stochastic_twisted_propagator.h"
+
+struct flags
+{
+  int tree;
+  int self;
+  int tad;
+  int exch;
+};
 
 void init_program(int narg,char **arg)
 {
@@ -18,7 +30,7 @@ void init_program(int narg,char **arg)
 }
 
 //initialize the program
-void parse_input(quark_info &quark,gluon_info &gluon,char *output_folder,char *input_path)
+void parse_input(quark_info &quark,gluon_info &gluon,char *output_folder,int &nests,flags &comp,char *input_path)
 {
   //open input
   open_input(input_path);
@@ -43,8 +55,23 @@ void parse_input(quark_info &quark,gluon_info &gluon,char *output_folder,char *i
   char gluon_type[1024];
   read_str_str("GluonType",gluon_type,1024);
   
+  //read what to compute
+  read_str_int("ComputeTree",&comp.tree);
+  read_str_int("ComputeSelf",&comp.self);
+  read_str_int("ComputeTad",&comp.tad);
+  read_str_int("ComputeExch",&comp.exch);
+  
+  int seed;
+  if(comp.exch)
+    {
+      //number of estimates
+      read_str_int("NEstimates",&nests);  
+      read_str_int("Seed",&seed);
+    }
+  
   //output path
   read_str_str("OutputFolder",output_folder,1024);
+  
   
   //close input
   close_input();
@@ -53,6 +80,9 @@ void parse_input(quark_info &quark,gluon_info &gluon,char *output_folder,char *i
   
   //init the grid
   init_grid(T,L);
+  
+  //init the random numbers generator
+  if(comp.exch) start_loc_rnd_gen(seed);
   
   //create quark info
   quark=create_twisted_quark_info(kappa,mass,quark_bc);
@@ -92,7 +122,7 @@ void compute_tree_level_corrections(char *output_folder,quark_info &quark)
 }
 
 //diagram of self energy (not tadpole)
-void compute_self_energy_corrections(char *output_folder,quark_info &quark,gluon_info &gluon)
+void compute_self_energy_corrections(char *output_folder,quark_info &quark,gluon_info &gluon,int nests=0)
 {
   master_printf("Computing self energy corrections\n");
   
@@ -102,8 +132,24 @@ void compute_self_energy_corrections(char *output_folder,quark_info &quark,gluon
  
   //compute self energy propagator
   spinspin *self_prop=nissa_malloc("self_prop",loc_vol,spinspin);
-  compute_self_energy_twisted_propagator_in_x_space(self_prop,quark,gluon);
-  
+  if(nests==0) compute_self_energy_twisted_propagator_in_x_space(self_prop,quark,gluon);
+  else
+    {
+      vector_reset(self_prop);
+      spinspin *self_stoch_prop=nissa_malloc("self_stoch_prop",loc_vol,spinspin);
+      spin1field *phi=nissa_malloc("phi",loc_vol+bord_vol,spin1field);
+      spin1field *eta=nissa_malloc("eta",loc_vol+bord_vol,spin1field);
+      for(int iest=0;iest<nests;iest++)
+	{
+	  master_printf("%d/%d\n",iest,nests);
+	  generate_stochastic_source_and_tlSym_gluon_propagator(phi,eta,gluon);
+	  generate_stochastic_A_B_dag_twisted_propagator(self_stoch_prop,prop,quark,phi,eta,gluon);
+	  double_vector_summ_double_vector_prod_double((double*)self_prop,(double*)self_prop,(double*)self_stoch_prop,1.0/nests,sizeof(corr16)/sizeof(double)*loc_vol);
+	}
+      nissa_free(eta);
+      nissa_free(phi);
+      nissa_free(self_stoch_prop);
+    }
   //compute correlators and write
   corr16 *corr=nissa_malloc("corr",loc_vol,corr16);
   compute_all_2pts_qdagq_correlations(corr,prop,self_prop);
@@ -113,6 +159,41 @@ void compute_self_energy_corrections(char *output_folder,quark_info &quark,gluon
   nissa_free(corr);
   nissa_free(self_prop);
   nissa_free(prop);
+}
+
+//diagram of tadpole
+void compute_tadpole_corrections(char *output_folder,quark_info &quark,gluon_info &gluon)
+{
+  master_printf("Computing tadpole corrections\n");
+  
+  //compute tree level propagator
+  spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
+  compute_x_space_twisted_propagator_by_fft(prop,quark);  
+  
+  //compute tadpole propagator
+  spinspin *tad_prop=nissa_malloc("tad_prop",loc_vol,spinspin);
+  compute_tadpole_twisted_propagator_in_x_space(tad_prop,quark,gluon);
+  
+  //compute correlators and write
+  corr16 *corr=nissa_malloc("corr",loc_vol,corr16);
+  compute_all_2pts_qdagq_correlations(corr,prop,tad_prop);
+  save_correlators(output_folder,"tad_corr",corr);
+  
+  //free
+  nissa_free(corr);
+  nissa_free(tad_prop);
+  nissa_free(prop);
+}
+
+//exchange diagram
+void compute_exchange_corrections(char *output_folder,quark_info &quark,gluon_info &gluon,int nests)
+{
+  master_printf("Computing exchange corrections with %d estimates\n",nests);
+
+  corr16 *corr=nissa_malloc("corr",loc_vol,corr16);
+  compute_meson_exchange_correction_stochastically(NULL,NULL,corr,NULL,quark,gluon,nests);
+  save_correlators(output_folder,"exch_corr",corr);
+  nissa_free(corr);
 }
 
 //close the program
@@ -130,11 +211,15 @@ int main(int narg,char **arg)
   quark_info quark;
   gluon_info gluon;
   char output_folder[1024];
-  parse_input(quark,gluon,output_folder,arg[1]);
+  int nests;
+  flags comp;
+  parse_input(quark,gluon,output_folder,nests,comp,arg[1]);
   
   //compute
-  compute_tree_level_corrections(output_folder,quark);
-  compute_self_energy_corrections(output_folder,quark,gluon);
+  if(comp.tree) compute_tree_level_corrections(output_folder,quark);
+  if(comp.self) compute_self_energy_corrections(output_folder,quark,gluon);
+  if(comp.tad)  compute_tadpole_corrections(output_folder,quark,gluon);
+  if(comp.exch) compute_exchange_corrections(output_folder,quark,gluon,nests);
   
   close_calc();
   
