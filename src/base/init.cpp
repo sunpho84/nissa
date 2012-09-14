@@ -64,6 +64,10 @@ void init_nissa()
   MPI_Type_contiguous(8,MPI_DOUBLE,&MPI_SPIN);
   MPI_Type_commit(&MPI_SPIN);
 
+  //a spinspin (32 doubles)
+  MPI_Type_contiguous(32,MPI_DOUBLE,&MPI_SPINSPIN);
+  MPI_Type_commit(&MPI_SPINSPIN);
+  
   //a spincolor (24 doubles)
   MPI_Type_contiguous(24,MPI_DOUBLE,&MPI_SPINCOLOR);
   MPI_Type_commit(&MPI_SPINCOLOR);
@@ -430,6 +434,7 @@ void init_grid(int T,int L)
   set_lx_bord_senders_and_receivers(MPI_LX_QUAD_SU3_BORDS_SEND,MPI_LX_QUAD_SU3_BORDS_RECE,&MPI_QUAD_SU3);
   set_lx_edge_senders_and_receivers(MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
   set_lx_bord_senders_and_receivers(MPI_LX_SPIN_BORDS_SEND,MPI_LX_SPIN_BORDS_RECE,&MPI_SPIN);
+  set_lx_bord_senders_and_receivers(MPI_LX_SPINSPIN_BORDS_SEND,MPI_LX_SPINSPIN_BORDS_RECE,&MPI_SPINSPIN);
   set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,&MPI_SPINCOLOR);
   set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_128_BORDS_SEND,MPI_LX_SPINCOLOR_128_BORDS_RECE,&MPI_SPINCOLOR_128);
   

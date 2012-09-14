@@ -52,17 +52,20 @@ void start_communicating_lx_borders(int &nrequest,MPI_Request *request,char *dat
   crash_if_borders_not_allocated(data);  
   
   if(!check_borders_valid(data))
-    for(int mu=0;mu<4;mu++)
-      if(paral_dir[mu]!=0)
-	{
-	  //sending the upper border to the lower node
-	  MPI_Irecv(data+start_lx_bord_rece_up[mu]*nbytes_per_site,1,MPI_BORDS_RECE[mu],rank_neighup[mu],imessage,cart_comm,request+(nrequest++));
-	  MPI_Isend(data+start_lx_bord_send_up[mu]*nbytes_per_site,1,MPI_BORDS_SEND[mu],rank_neighdw[mu],imessage++,cart_comm,request+(nrequest++));
-	  
-	  //sending the lower border to the upper node
-	  MPI_Irecv(data+start_lx_bord_rece_dw[mu]*nbytes_per_site,1,MPI_BORDS_RECE[mu],rank_neighdw[mu],imessage,cart_comm,request+(nrequest++));
-	  MPI_Isend(data+start_lx_bord_send_dw[mu]*nbytes_per_site,1,MPI_BORDS_SEND[mu],rank_neighup[mu],imessage++,cart_comm,request+(nrequest++));
-	}
+    {
+      verbosity_lv3_master_printf("Start communicating borders of %s\n",get_vec_name((void*)data));
+      for(int mu=0;mu<4;mu++)
+	if(paral_dir[mu]!=0)
+	  {
+	    //sending the upper border to the lower node
+	    MPI_Irecv(data+start_lx_bord_rece_up[mu]*nbytes_per_site,1,MPI_BORDS_RECE[mu],rank_neighup[mu],imessage,cart_comm,request+(nrequest++));
+	    MPI_Isend(data+start_lx_bord_send_up[mu]*nbytes_per_site,1,MPI_BORDS_SEND[mu],rank_neighdw[mu],imessage++,cart_comm,request+(nrequest++));
+	    
+	    //sending the lower border to the upper node
+	    MPI_Irecv(data+start_lx_bord_rece_dw[mu]*nbytes_per_site,1,MPI_BORDS_RECE[mu],rank_neighdw[mu],imessage,cart_comm,request+(nrequest++));
+	    MPI_Isend(data+start_lx_bord_send_dw[mu]*nbytes_per_site,1,MPI_BORDS_SEND[mu],rank_neighup[mu],imessage++,cart_comm,request+(nrequest++));
+	  }
+    }
 }
 
 //wait to finish communications
@@ -189,6 +192,10 @@ void communicate_lx_spincolor_borders(spincolor *s)
 //Send the borders of a spin vector
 void communicate_lx_spin_borders(spin *s)
 {communicate_lx_borders((char*)s,MPI_LX_SPIN_BORDS_SEND,MPI_LX_SPIN_BORDS_RECE,sizeof(spin));}
+
+//Send the borders of a spinspin vector
+void communicate_lx_spinspin_borders(spinspin *s)
+{communicate_lx_borders((char*)s,MPI_LX_SPINSPIN_BORDS_SEND,MPI_LX_SPINSPIN_BORDS_RECE,sizeof(spinspin));}
 
 //Send the borders of a spincolor_128 vector
 void communicate_lx_spincolor_128_borders(spincolor_128 *s)
