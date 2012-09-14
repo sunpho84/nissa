@@ -1,6 +1,6 @@
 #externally defined path and variables
-CC=openmpicxx
-CFLAGS=-O3
+CC=mpicxx
+CFLAGS=-O5
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
@@ -42,7 +42,6 @@ tests=$(addprefix tests/, \
 	test_meson_self_energy_stochastic_correction \
 	test_meson_exchange_correction \
 	test_meson_tree_level_correction \
-	test_corr16_read_write \
 	test_nazario \
 	test_nazario2 \
 )
