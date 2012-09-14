@@ -1,6 +1,6 @@
 #externally defined path and variables
 CC=openmpicxx
-CFLAGS=-O2
+CFLAGS=-O3
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
@@ -54,6 +54,7 @@ progs=$(addprefix progs/, \
 	compute_tadpole_corrections \
 	average_corr \
 	bmp_scramble \
+	correct \
 	combine \
 )
 
