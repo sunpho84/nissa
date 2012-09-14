@@ -191,7 +191,7 @@ void compute_exchange_corrections(char *output_folder,quark_info &quark,gluon_in
   master_printf("Computing exchange corrections with %d estimates\n",nests);
 
   corr16 *corr=nissa_malloc("corr",loc_vol,corr16);
-  compute_meson_exchange_correction_stochastically(NULL,NULL,corr,NULL,quark,gluon,nests);
+  compute_meson_exchange_correction_stochastically(corr,quark,gluon,nests);
   save_correlators(output_folder,"exch_corr",corr);
   nissa_free(corr);
 }

@@ -220,3 +220,30 @@ void compute_meson_exchange_correction_stochastically(corr16 *zm_ave,corr16 *zm_
   nissa_free(zm_corr);
   nissa_free(q_prop);
 }
+
+//multiple sources
+void compute_meson_exchange_correction_stochastically(corr16 *ave,quark_info qu,gluon_info gl,int n)
+{
+  spinspin *q_prop=nissa_malloc("q_prop",loc_vol+bord_vol,spinspin);
+  compute_x_space_twisted_propagator_by_fft(q_prop,qu);
+  corr16 *corr=nissa_malloc("corr",loc_vol,corr16);
+  
+  //reset the summs
+  vector_reset(ave);
+
+  //summs n estimates
+  for(int i=0;i<n;i++)
+    {
+      master_printf("Elaborating estimate %d of %d\n",i,n);
+      
+      compute_meson_exchange_correction_stochastically(corr,q_prop,qu,gl);
+
+      nissa_loc_vol_loop(ivol)
+	for(int ig=0;ig<16;ig++)
+	  for(int ri=0;ri<2;ri++)
+	    ave[ivol][ig][ri]+=corr[ivol][ig][ri]/n;
+    }
+  
+  nissa_free(corr);
+  nissa_free(q_prop);
+}
