@@ -44,66 +44,71 @@ void compute_tadpole_diagram_in_mom_space(spinspin *q_tad,quark_info qu,gluon_in
     }
 }
 
-void compute_tadpole_diagram_in_x_space(spinspin *q_tad,spin1prop g_prop)
+void compute_tadpole_diagram_in_x_space(spinspin *q_tad,quark_info qu,gluon_info gl)
 {
-  memset(q_tad,0,sizeof(spinspin)*loc_vol);
+  vector_reset(q_tad);
   
+  //compute the propagator
+  spin1prop *g_prop=nissa_malloc("g_prop",loc_vol+bord_vol,spin1prop);
+  compute_x_space_tlSym_gluon_propagator_by_fft(g_prop,gl);
+  nissa_loc_vol_loop(ivol)
+    if(glblx_of_loclx[ivol]!=0)
+      spinspin_put_to_zero(g_prop[ivol]);
+  
+  spin1prop *g_prop_sh=nissa_malloc("g_prop_sh",loc_vol,spin1prop);
   for(int mu=0;mu<4;mu++)
     {
-      coords x_up,x_dw;
-      memset(x_dw,0,sizeof(coords));
-      memset(x_up,0,sizeof(coords));
-      x_up[mu]=1;
-      x_dw[mu]=glb_size[mu]-1;
+      shift_spinspin_source_up(g_prop_sh,g_prop,qu.bc,mu);
       
-      int dl,dr;
-      int ul,ur;
-      get_loclx_and_rank_of_coord(&dl,&dr,x_dw);
-      get_loclx_and_rank_of_coord(&ul,&ur,x_up);
-      
-      if(rank==dr)
-	{
-	  unsafe_spinspin_complex_prod(q_tad[dl],nissa_omg[mu],g_prop[mu][mu]);
-	  spinspin_prodassign_double(q_tad[dl],-0.25);
-	}
-      
-      if(rank==ur)
-	{
-	  unsafe_spinspin_complex_prod(q_tad[ul],nissa_opg[mu],g_prop[mu][mu]);
-	  spinspin_prodassign_double(q_tad[ul],-0.25);
-	}
-    }
-}
+      nissa_loc_vol_loop(ivol)
+      {
+	spinspin temp;
+	unsafe_spinspin_complex_prod(temp,nissa_opg[mu],g_prop_sh[ivol][mu][mu]);
+	spinspin_prodassign_double(temp,-0.25);
+	spinspin_summassign(q_tad[ivol],temp);
+      }
 
-void compute_tadpole_diagram_in_x_space(spinspin *q_tad,gluon_info gl)
-{
-  //compute the propagator
-  spin1prop *g_prop=nissa_malloc("g_prop",loc_vol,spin1prop);
-  compute_x_space_tlSym_gluon_propagator_by_fft(g_prop,gl);
+      shift_spinspin_source_dw(g_prop_sh,g_prop,qu.bc,mu);
+      
+      nissa_loc_vol_loop(ivol)
+      {
+	spinspin temp;
+	unsafe_spinspin_complex_prod(temp,nissa_omg[mu],g_prop_sh[ivol][mu][mu]);
+	spinspin_prodassign_double(temp,-0.25);
+	spinspin_summassign(q_tad[ivol],temp);
+      }
+    }
   
-  //compute propagator in the origin
-  spin1prop g_prop_or;
-  coords origin={0,0,0,0};
-  compute_x_space_propagator_to_sink_from_source(g_prop_or,g_prop,gl.bc,origin,origin);
-  
-  compute_tadpole_diagram_in_x_space(q_tad,g_prop_or);
-  
+  nissa_free(g_prop_sh);
   nissa_free(g_prop);
 }
 
-void compute_tadpole_twisted_propagator_in_x_space(spinspin *q_out,quark_info qu,gluon_info gl)
+void finish_tadpole_computation(spinspin *q_out,quark_info qu)
 {
-  compute_tadpole_diagram_in_x_space(q_out,gl);
-  pass_spinspin_from_x_to_mom_space(q_out,q_out,qu.bc);
-
   nissa_loc_vol_loop(imom)
   {
-    spinspin s,t;
-    mom_space_twisted_propagator_of_imom(s,qu,imom);
-    unsafe_spinspin_prod_spinspin(t, s,q_out[imom]);
-    unsafe_spinspin_prod_spinspin(q_out[imom], t,s);
+    spinspin q_prop,t;
+    mom_space_twisted_propagator_of_imom(q_prop,qu,imom);
+    
+    unsafe_spinspin_prod_spinspin(t, q_prop,q_out[imom]);
+    unsafe_spinspin_prod_spinspin(q_out[imom], t,q_prop);
     spinspin_prodassign_double(q_out[imom],glb_vol2);
   }
 
   pass_spinspin_from_mom_to_x_space(q_out,q_out,qu.bc);
+}
+
+void compute_tadpole_twisted_propagator_in_x_space(spinspin *q_out,quark_info qu,gluon_info gl)
+{
+  compute_tadpole_diagram_in_x_space(q_out,qu,gl);
+  pass_spinspin_from_x_to_mom_space(q_out,q_out,qu.bc);
+  
+  finish_tadpole_computation(q_out,qu);
+}
+
+void compute_tadpole_twisted_propagator_in_mom_space(spinspin *q_out,quark_info qu,gluon_info gl)
+{
+  compute_tadpole_diagram_in_mom_space(q_out,qu,gl);
+
+  finish_tadpole_computation(q_out,qu);
 }
