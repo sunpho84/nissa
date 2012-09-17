@@ -41,6 +41,7 @@ tests=$(addprefix tests/, \
 	test_Fourier_transform \
 	test_meson_self_energy_stochastic_correction \
 	test_meson_exchange_correction \
+	test_meson_tad_pole_correction \
 	test_meson_tree_level_correction \
 	test_nazario \
 	test_nazario2 \

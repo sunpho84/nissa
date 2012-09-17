@@ -15,7 +15,8 @@ spin1field *phi,*eta;
 spinspin *prop,*self_prop;//,*id;
 corr16 *corr,*summ_corr,*temp_corr;
 
-int L=2;
+int L=4;
+int T=8;
 
 //initialize the program
 void init_calc()
@@ -24,7 +25,7 @@ void init_calc()
   init_nissa();
   
   //init the grid
-  init_grid(L,L);
+  init_grid(T,L);
   
   //allocate propagators
   //id=nissa_malloc("id",loc_vol,spinspin);

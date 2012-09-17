@@ -172,7 +172,7 @@ void compute_tadpole_corrections(char *output_folder,quark_info &quark,gluon_inf
   
   //compute tadpole propagator
   spinspin *tad_prop=nissa_malloc("tad_prop",loc_vol,spinspin);
-  compute_tadpole_twisted_propagator_in_x_space(tad_prop,quark,gluon);
+  compute_tadpole_twisted_propagator_in_mom_space(tad_prop,quark,gluon);
   
   //compute correlators and write
   corr16 *corr=nissa_malloc("corr",loc_vol,corr16);

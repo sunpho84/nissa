@@ -16,7 +16,7 @@ spinspin *corr2_x,*corr2_p;
 spinspin *corr1_x,*corr1_p;
 
 int comp_p=1;
-int comp_tad=0*1;
+int comp_tad=1;
 int L;
 
 double pana_c1_id_corr(double a2p2,gluon_info gl)
@@ -182,7 +182,7 @@ int main(int narg,char **arg)
   
   //gluon
   double gluon_theta[4];memcpy(gluon_theta,null_theta,sizeof(double)*4);
-  double alpha=0;
+  double alpha=1;
   gluon_info gl=create_tlSym_gluon_info(alpha,gluon_theta);
   
   /////////////////////////////////// correction D1 ///////////////////////////////////
@@ -190,7 +190,7 @@ int main(int narg,char **arg)
   if(comp_tad)
     {
       if(comp_p) compute_tadpole_diagram_in_mom_space(corr1_p,qu,gl);
-      compute_tadpole_diagram_in_x_space(corr1_x,gl);
+      compute_tadpole_diagram_in_x_space(corr1_x,qu,gl);
       pass_spinspin_from_x_to_mom_space(corr1_x,corr1_x,qu.bc);
     }
 
