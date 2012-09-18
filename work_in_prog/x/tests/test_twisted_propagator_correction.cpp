@@ -15,8 +15,8 @@
 spinspin *corr2_x,*corr2_p;
 spinspin *corr1_x,*corr1_p;
 
-int comp_p=1;
-int comp_tad=1;
+int comp_p=0;
+int comp_tad=0;
 int L;
 
 double pana_c1_id_corr(double a2p2,gluon_info gl)
@@ -183,7 +183,7 @@ int main(int narg,char **arg)
   //gluon
   double gluon_theta[4];memcpy(gluon_theta,null_theta,sizeof(double)*4);
   double alpha=1;
-  gluon_info gl=create_tlSym_gluon_info(alpha,gluon_theta);
+  gluon_info gl=create_Wilson_gluon_info(alpha,gluon_theta);
   
   /////////////////////////////////// correction D1 ///////////////////////////////////
   

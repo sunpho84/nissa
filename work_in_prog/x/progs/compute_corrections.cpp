@@ -88,9 +88,9 @@ void parse_input(quark_info &quark,gluon_info &gluon,char *output_folder,int &ne
   quark=create_twisted_quark_info(kappa,mass,quark_bc);
   
   //create gluon ino
-  if(strcasecmp(gluon_type,"tlSym")) gluon=create_tlSym_gluon_info(alpha,gluon_bc);
+  if(strcasecmp(gluon_type,"tlSym")==0) gluon=create_tlSym_gluon_info(alpha,gluon_bc);
   else
-    if(strcasecmp(gluon_type,"Wilson")) gluon=create_Wilson_gluon_info(alpha,gluon_bc);
+    if(strcasecmp(gluon_type,"Wilson")==0) gluon=create_Wilson_gluon_info(alpha,gluon_bc);
     else crash("Unknown gluon type %s",gluon_type);
 }
 
