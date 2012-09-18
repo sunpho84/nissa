@@ -321,18 +321,6 @@ int main(int narg,char **arg)
   sprintf(path,"%s/corrections/%d/",base_path,glb_size[1]);
   load_correction(first_corr_lat,path,"first");
 
-  //load the self energy diagram
-  corr16 *self_diag=nissa_malloc("self_diag",ndemo_points,corr16);
-  load_demo_ildg_corr(self_diag,(char*)"corrections/self_corr");
-  
-  //load the tadpole diagram
-  corr16 *tad_diag=nissa_malloc("tad_diag",ndemo_points,corr16);
-  load_demo_ildg_corr(tad_diag,(char*)"corrections/tad_corr");
-  
-  //load the exchange diagram
-  corr16 *exch_diag=nissa_malloc("exch_diag",ndemo_points,corr16);
-  load_demo_ildg_corr(exch_diag,(char*)"corrections/exch_corr",true);
-
   //correlations
   double *tree_cont=nissa_malloc("tree_cont",ndemo_points,double);
   double *tree_lat=nissa_malloc("tree_lat",ndemo_points,double);
@@ -416,13 +404,6 @@ int main(int narg,char **arg)
       //compute first order on lattice
       first_lat[idemo]=first_corr_lat[idemo][5][RE];
       
-      //compute first order on lattice
-      first_lat[idemo]=0;
-      first_lat[idemo]-=self_diag[idemo][5][RE]*4*2;
-      first_lat[idemo]-=tad_diag[idemo][5][RE]*4*2;
-      first_lat[idemo]-=exch_diag[idemo][5][RE]*4;
-      
-       
       //diff between first lat and first cont
       first_diff[idemo]=first_lat[idemo]-first_cont[idemo];      
       
@@ -452,7 +433,7 @@ int main(int narg,char **arg)
   write_O3averaged_demo("plots/full_tree_subtracted.xmg",full_tree_subt);
   write_O3averaged_demo("plots/full_tree_alt_subtracted.xmg",full_tree_alt_subt);
   write_O3averaged_demo("plots/full_tree_divided.xmg",full_tree_divided);
-  
+
   write_O3averaged_demo("plots/first_cont.xmg",first_cont);
   write_O3averaged_demo("plots/first_lat.xmg",first_lat);
   write_O3averaged_demo("plots/first_diff.xmg",first_diff);
@@ -467,12 +448,6 @@ int main(int narg,char **arg)
   write_O3averaged_demo("plots/Z_tree_divided.xmg",Z_tree_divided);
   write_O3averaged_demo("plots/Z_first_divided.xmg",Z_first_divided);
   
-
-  nissa_free(self_diag);
-  nissa_free(tad_diag);
-  nissa_free(exch_diag);
-
-
   nissa_free(full);
   nissa_free(tree_corr_lat);
   nissa_free(tree_cont);

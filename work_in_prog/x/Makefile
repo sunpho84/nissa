@@ -1,6 +1,6 @@
 #externally defined path and variables
-CC=mpicxx
-CFLAGS=-O5
+CC=openmpicxx
+CFLAGS=-O3
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
@@ -36,6 +36,8 @@ tests=$(addprefix tests/, \
 	test_stochastic_qqg_vertex \
 	test_twisted_propagator_stochastic_correction \
 	test_twisted_propagator_correction \
+	test_twisted_propagator_tadpole \
+	test_twisted_propagator_self \
 	test_stochastic_source_null_mode \
 	test_propagator_shift \
 	test_Fourier_transform \
