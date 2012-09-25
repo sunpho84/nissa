@@ -82,18 +82,19 @@ int main(int narg,char **arg)
     
   /////////////////////////////////////////////// tough way /////////////////////////////////////////
   
+  /*
   compute_self_energy_twisted_propagator_in_x_space_tough_way(self_prop,qu,gl);
 
   compute_all_2pts_qdagq_correlations(corr,prop,self_prop);
   write_corr16("self_energy_corr_tough",corr,64);
   
   master_printf("%lg\n",corr[9][0][0]);
-  
+  */
   ////////////////////////////////// propagators computed stochastically ////////////////////////////
   
   //memset(id,0,sizeof(spinspin)*loc_vol);
   //spinspin_put_to_id(id[0]);
-  int nsources=1;
+  int nsources=100;
   
   start_loc_rnd_gen(100);
   memset(summ_corr,0,sizeof(corr16)*loc_vol);
@@ -104,23 +105,30 @@ int main(int narg,char **arg)
       
       compute_all_2pts_qdagq_correlations(temp_corr,prop,self_prop);
       
-      double d2=0,t2=0;
+      double d2[16]={0},t2[16]={0};
       nissa_loc_vol_loop(ivol)
         {
 	  for(int ig=0;ig<16;ig++)
 	    {
 	      complex_summassign(summ_corr[ivol][ig],temp_corr[ivol][ig]);
 	      complex_prod_double(temp_corr[ivol][ig],summ_corr[ivol][ig],1.0/(isource+1));
+	      
+	      double codi=temp_corr[ivol][ig][0]-corr[ivol][ig][0];
+	      double cosu=corr[ivol][ig][0];
+	      d2[ig]+=codi*codi;
+	      t2[ig]+=cosu*cosu;
 	    }
-	  double codi=temp_corr[ivol][5][0]-corr[ivol][5][0];
-	  double cosu=corr[ivol][5][0];
-	  d2+=codi*codi;
-	  t2+=cosu*cosu;
 	}
-      d2=glb_reduce_double(d2);
-      t2=glb_reduce_double(t2);
-
-      master_printf("time %d, isource=%d, diff=(%lg/%lg)=%lg\n",time(0),isource+1,d2,t2,d2/t2);
+      
+      for(int ig=0;ig<16;ig++)
+	{
+	  d2[ig]=glb_reduce_double(d2[ig]);
+	  t2[ig]=glb_reduce_double(t2[ig]);
+	}
+      
+      if(isource+1==nsources)
+	for(int ig=0;ig<16;ig++)
+	  master_printf("time %d, isource=%d, diff[%d]=(%lg/%lg)=%lg\n",time(0),isource+1,ig,d2[ig],t2[ig],d2[ig]/t2[ig]);
     }
   
   //////////////////////////////// compute correlation and write them on disk ////////////////////////

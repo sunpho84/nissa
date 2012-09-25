@@ -30,9 +30,9 @@ void init_calc(int narg,char **arg)
   //allocate propagators
   prop=nissa_malloc("prop",loc_vol,spinspin);
   tad_prop=nissa_malloc("tad_prop",loc_vol,spinspin);
-  tad_prop_p=nissa_malloc("tad_prop_p",loc_vol,spinspin);
+  //tad_prop_p=nissa_malloc("tad_prop_p",loc_vol,spinspin);
   corr=nissa_malloc("corr",loc_vol,corr16);
-  corr_p=nissa_malloc("corr_p",loc_vol,corr16);
+  //corr_p=nissa_malloc("corr_p",loc_vol,corr16);
 }
 
 //close the program
@@ -40,9 +40,9 @@ void close_calc()
 {
   nissa_free(prop);
   nissa_free(tad_prop);
-  nissa_free(tad_prop_p);
+  //nissa_free(tad_prop_p);
   nissa_free(corr);
-  nissa_free(corr_p);
+  //nissa_free(corr_p);
   
   close_nissa();
 }
@@ -66,15 +66,15 @@ int main(int narg,char **arg)
   
   compute_x_space_twisted_propagator_by_fft(prop,qu);
   compute_tadpole_twisted_propagator_in_x_space(tad_prop,qu,gl);
-  compute_tadpole_twisted_propagator_in_mom_space(tad_prop_p,qu,gl);
+  //compute_tadpole_twisted_propagator_in_mom_space(tad_prop_p,qu,gl);
   
   //////////////////////////////// compute correlation and write them on disk ////////////////////////
 
   compute_all_2pts_qdagq_correlations(corr,prop,tad_prop);
-  compute_all_2pts_qdagq_correlations(corr_p,prop,tad_prop_p);
+  //compute_all_2pts_qdagq_correlations(corr_p,prop,tad_prop_p);
   
-  nissa_loc_vol_loop(P)
-    master_printf("%d %d %d %d %lg %lg\n",glb_coord_of_loclx[P][0],glb_coord_of_loclx[P][1],glb_coord_of_loclx[P][2],glb_coord_of_loclx[P][3],corr[P][5][0],corr_p[P][5][0]);
+  //nissa_loc_vol_loop(P)
+  //master_printf("%d %d %d %d %lg %lg\n",glb_coord_of_loclx[P][0],glb_coord_of_loclx[P][1],glb_coord_of_loclx[P][2],glb_coord_of_loclx[P][3],corr[P][5][0],corr_p[P][5][0]);
   
   write_corr16("tadpole_corr",corr,64);
   

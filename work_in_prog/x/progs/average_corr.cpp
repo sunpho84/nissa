@@ -85,8 +85,8 @@ void print_ave(const char *outf,const char *suff)
 		  }
 		else
 		  {
-		    nperm=1;
-		    npar=1;
+		    nperm=6;
+		    npar=16;
 		  }
 		
 		for(int iperm=0;iperm<nperm;iperm++)
@@ -111,8 +111,8 @@ void print_ave(const char *outf,const char *suff)
 	      {
 		double S0=-av[0][0];
 		double P5=av[5][0];
-		double V4=av[9][0],V1=av[6][0],V2=av[7][0],V3=av[8][0];
-		double A4=av[4][0],A1=av[1][0],A2=av[2][0],A3=av[3][0];
+		double V4=av[4][0],V1=av[1][0],V2=av[2][0],V3=av[3][0];
+		double A4=av[5][0],A1=av[6][0],A2=av[7][0],A3=av[8][0];
 		double Vi=V1+V2+V3;
 		double Ai=A1+A2+A3;
 		fprintf(f00,"%2d %2d %2d %2d %16.16le\n",x[1],x[2],x[3],x[0],P5);
@@ -136,6 +136,14 @@ void read_unave(corr16 *out,const char *name)
   read_corr16(out,path);
 }
 
+void write_unave(const char *name,corr16 *out)
+{
+  char path[1024];
+  sprintf(path,"%s_corr",name);
+  
+  write_corr16(path,out,64);
+}
+
 void summ_with_coeff(double c)
 {
   double_vector_summ_double_vector_prod_double((double*)unav_corr,(double*)unav_corr,(double*)temp_corr,c,sizeof(corr16)/sizeof(double)*loc_vol);
@@ -154,11 +162,11 @@ int main(int narg,char **arg)
   //prepare the first order corr
   vector_reset(unav_corr);
   read_unave(temp_corr,"self");
-  summ_with_coeff(-2*4);
+  summ_with_coeff(2*4.0);
   read_unave(temp_corr,"tad");
-  summ_with_coeff(-2*4);
+  summ_with_coeff(-2*4.0);
   read_unave(temp_corr,"exch");
-  summ_with_coeff(-1*4);
+  summ_with_coeff(1*4.0);
   print_ave("./","first");
   
   close_calc();
