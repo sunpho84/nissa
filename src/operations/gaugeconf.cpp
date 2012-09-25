@@ -195,21 +195,10 @@ void generate_hot_eo_conf(quad_su3 **conf)
     }
 }
 
-//return a cooled copy of the passed link
-void find_cooled_link(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu)
-{
-  //compute the staple
-  su3 staple;
-  compute_point_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
-  
-  //find the link that maximize the plaquette
-  su3_unitarize_orthonormalizing(u,staple);
-}
-
 //cool the configuration
 void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp)
 {
-  //loop first on parity and then on directions
+  //loop on parity and directions
   for(int mu=0;mu<4;mu++)
     for(int par=0;par<2;par++)
       {
@@ -217,7 +206,7 @@ void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp)
 	  {
 	    //find the transformation
 	    su3 u;
-	    find_cooled_link(u,eo_conf,par,ieo,mu);
+	    su3_find_cooled(u,eo_conf,par,ieo,mu);
 	    
 	    //overrelax if needed
 	    if(over_flag)
@@ -243,8 +232,8 @@ void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp)
       }
 }
 
-//heatbath algorithm for the quenched simulation case
-void heatbath_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars)
+//heatbath or overrelax algorithm for the quenched simulation case
+void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars,int heat_over)
 {
   //loop on directions and on parity
   for(int mu=0;mu<4;mu++)
@@ -260,9 +249,10 @@ void heatbath_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars 
 	    su3 staples;
 	    compute_point_staples_eo_conf_single_dir(staples,eo_conf,ilx,mu);
 	    
-	    //compute heatbath link
+	    //compute heatbath or overrelax link
 	    su3 new_link;
-	    su3_find_heatbath(new_link,eo_conf[par][ieo][mu],staples,physics->beta,pars->nhb_hits,gen);
+	    if(heat_over==0) su3_find_heatbath(new_link,eo_conf[par][ieo][mu],staples,physics->beta,pars->nhb_hits,gen);
+	    else             su3_find_overrelaxed(new_link,eo_conf[par][ieo][mu],staples,pars->nov_hits);
 	    
 	    //change it
 	    su3_copy(eo_conf[par][ieo][mu],new_link);
@@ -272,3 +262,11 @@ void heatbath_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars 
         set_borders_invalid(eo_conf[par]);
       }
 }
+
+//heatbath algorithm for the quenched simulation case
+void heatbath_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars)
+{heatbath_or_overrelax_conf(eo_conf,physics,pars,0);}
+
+//overrelax algorithm for the quenched simulation case
+void overrelax_conf(quad_su3 **eo_conf,pure_gauge_evol_pars *pars)
+{heatbath_or_overrelax_conf(eo_conf,NULL,pars,1);}

@@ -7,11 +7,17 @@
 #include "../src/types/types.h"
 #include "../src/routines/read_and_write.h"
 
-char P5P5_filename[]="corr00";
+const int plot_d2_max=70;
+const int PP=0,SS=1,VV=2,AA=3;
+char corr_name[4][8]={"00","07","0305","0406"};
+const int corr_entr[4]={5,0,1,6};
+const int corr_mult[4]={1,1,1,1};
+const int recompute_first=1;
+
 int *demo_of_loclx,*loclx_of_demo,*npoints_dist2;
 int *dist2;
 int ndemo_points,dist2_max;
-double beta,mass;
+double beta,mass,g2;
 const char base_path[]="/Users/francesco/QCD/LAVORI/X";
 
 //compute the maximal distance
@@ -46,7 +52,7 @@ int check_not_too_far(coords x,int max_dist)
 }
 
 //select democratic points
-void prepare_demo_table(double cut_angle,double max_dist)
+void prepare_demo_table(double cut_angle,int max_dist)
 {
   nissa_loc_vol_loop(ivol) demo_of_loclx[ivol]=-1;
   vector_reset(npoints_dist2);
@@ -56,8 +62,8 @@ void prepare_demo_table(double cut_angle,double max_dist)
   ndemo_points=0;
   for(x[0]=0;x[0]<=glb_size[0]/2;x[0]++)
     for(x[1]=0;x[1]<=glb_size[1]/2;x[1]++)
-      for(x[2]=0;x[2]<=glb_size[2]/2;x[2]++)
-	for(x[3]=0;x[3]<=glb_size[3]/2;x[3]++)
+      for(x[2]=x[1];x[2]<=glb_size[2]/2;x[2]++)
+	for(x[3]=x[2];x[3]<=glb_size[3]/2;x[3]++)
 	  {
 	    //take index of coords
 	    int ivol=glblx_of_coord(x);
@@ -102,12 +108,17 @@ void init_calc(int narg,char **arg)
   double cut_angle;
   read_str_double("CutAngle",&cut_angle);
   
-  double cut_dist;
-  read_str_double("CutDist",&cut_dist);
+  int cut_dist;
+  read_str_int("CutDist",&cut_dist);
   
   read_str_double("Beta",&beta);
   read_str_double("Mass",&mass);
   
+  double plaq;
+  read_str_double("Plaq",&plaq);
+  g2=6/beta/plaq;
+  master_printf("g2_boost: %lg\n",g2);
+
   //init the grid
   init_grid(T,L);
   
@@ -134,9 +145,38 @@ void close_calc()
   close_nissa();
 }
 
+double Zp_minus_one(double d2,int icorr)
+{
+  double Cf=4.0/3;
+  double tilde2=Cf/(16*M_PI*M_PI);
+  double egamma=0.5772156649015329;
+  
+  double Zpmo;
+  
+  switch(icorr)
+    {
+    case PP:
+      Zpmo=(-18.7333556530313-3*log(d2/4.0)-6*egamma);
+      break;
+    case SS:
+      Zpmo=(-10.606730862152009-3*log(d2/4.0)-6*egamma);
+      break;
+    case VV:
+      Zpmo=-18.102886492137763;
+      break;
+    case AA:
+      Zpmo=-14.039574096698127;
+      break;
+    }
+  
+  return tilde2*Zpmo;
+}
+
+
 //load the real part of democratic points of the correlator
 void load_demo_averaged_text_corr(double *out,char *path)
 {
+  master_printf("Opening: %d\n",path);
   FILE *fin=open_file(path,"r");
   
   coords x;
@@ -178,6 +218,11 @@ void load_demo_ildg_corr(corr16 *out,char *path,bool average=false)
   corr16 *temp=nissa_malloc("temp",loc_vol,corr16);
   read_corr16(temp,path);
 
+  int nperm=6;
+  int npar=16;
+  
+  if(average) master_printf("Averaging\n");
+  
   //copy only democratic points
   nissa_loc_vol_loop(ivol)
   {
@@ -188,8 +233,8 @@ void load_demo_ildg_corr(corr16 *out,char *path,bool average=false)
 	  spinspin av;
 	  spinspin_put_to_zero(av);
 	  //takes all the copies
-	  for(int iperm=0;iperm<6;iperm++)
-	    for(int ipar=0;ipar<16;ipar++)
+	  for(int iperm=0;iperm<nperm;iperm++)
+	    for(int ipar=0;ipar<npar;ipar++)
 	      {
 		int pel[6][4]={{0,1,2,3},{0,2,3,1},{0,3,1,2},{0,1,3,2},{0,3,2,1},{0,2,1,3}};
 		
@@ -203,7 +248,7 @@ void load_demo_ildg_corr(corr16 *out,char *path,bool average=false)
 		
 		spinspin_summassign(*((spinspin*)&av),*((spinspin*)(temp+glblx_of_coord(c))));
 	      }
-	  spinspin_prod_double(*((spinspin*)&out[idemo]),*((spinspin*)&av),1.0/(16*6));
+	  spinspin_prod_double(*((spinspin*)&out[idemo]),*((spinspin*)&av),1.0/(nperm*npar));
 	}
       else memcpy(out[idemo],temp[ivol],sizeof(corr16));
   }
@@ -211,13 +256,14 @@ void load_demo_ildg_corr(corr16 *out,char *path,bool average=false)
   nissa_free(temp);
 }
 
-void load_correction(corr16 *out,const char *inf,const char *suff)
+void load_correction(corr16 *out,const char *inf,int icorr,const char *suff)
 {
   vector_reset(out);
   
   char path[1024];
-  sprintf(path,"%s/corr00_tau32-0_L%2d_T%2d_%s.dat",inf,glb_size[1],glb_size[0],suff);
-  FILE *f00=open_file(path,"r");
+  sprintf(path,"%s/corr%s_tau32-0_L%2d_T%2d_%s.dat",inf,corr_name[icorr],glb_size[1],glb_size[0],suff);
+  master_printf("Opening: %s\n",path);
+  FILE *fin=open_file(path,"r");
   
   coords x;
   for(x[0]=0;x[0]<=glb_size[0]/2;x[0]++)
@@ -232,29 +278,53 @@ void load_correction(corr16 *out,const char *inf,const char *suff)
 	    double angle;
 	    compute_dist2_angle(d2,angle,x);
 	    
-	    //read only what needed
-	    if(d2<=70)
+	    //read only what really wrote
+	    if(d2<=70) //only 70 present
 	      {
 		coords y;
-		double temp_00;
-		int nr=fscanf(f00,"%d %d %d %d %lg",&y[1],&y[2],&y[3],&y[0],&temp_00);
+		double temp;
+		switch(icorr)
+		  {
+		    double dum1,dum2,dum3,dum4,dum5;
+		    int nr;
+		  case PP:
+		    nr=fscanf(fin,"%d %d %d %d %lg",&y[1],&y[2],&y[3],&y[0],&temp);
+		    if(nr!=5) crash("read %d",nr);
+		    break;
+		  case SS:
+		    nr=fscanf(fin,"%d %d %d %d %lg",&y[1],&y[2],&y[3],&y[0],&temp);
+		    if(nr!=5) crash("read %d",nr);
+		    break;
+		  case VV:
+		    nr=fscanf(fin,"%d %d %d %d %lg %lg %lg %lg %lg %lg",&y[1],&y[2],&y[3],&y[0],&dum1,&dum2,&dum3,&dum4,&dum5,&temp);
+		    if(nr!=10) crash("read %d",nr);
+		    break;
+		  case AA:
+		    nr=fscanf(fin,"%d %d %d %d %lg %lg %lg %lg %lg %lg",&y[1],&y[2],&y[3],&y[0],&dum1,&dum2,&dum3,&dum4,&dum5,&temp);
+		    if(nr!=10) crash("read %d",nr);
+		    break;
+		  }
+		
 		if(idemo!=-1)
-		  out[idemo][5][0]=temp_00;
+		  out[idemo][corr_entr[icorr]][0]=temp;
 	      }
 	  }
   
-  fclose(f00);
+  char fuf[1024];
+  if(fscanf(fin,"%s",fuf)==1) crash("not reached EOF!");
+  
+  fclose(fin);
 }
 
 //write parameters of plot
 void write_pars(FILE *fout)
 {
   fprintf(fout,"@s0 line type 0\n@s0 symbol 1\n@s0 symbol size 0.240000\n@s0 symbol fill pattern 1\n");
-  fprintf(fout,"@world 0, 1e-07, 70, 0.1\n@yaxes scale Logarithmic\n@yaxis  tick major 10\n@yaxis  tick minor ticks 9\n");
+  fprintf(fout,"@world 0, 1e-07, %d, 0.1\n@yaxes scale Logarithmic\n@yaxis  tick major 10\n@yaxis  tick minor ticks 9\n",plot_d2_max);
 }
 
 //write directly not averaging
-void write_O3averaged_demo(const char *path,double *c)
+void write_demo(const char *path,double *c)
 {
   FILE *fout=open_file(path,"w");
   
@@ -264,9 +334,10 @@ void write_O3averaged_demo(const char *path,double *c)
   for(int idemo=0;idemo<ndemo_points;idemo++)
     {
       int ivol=loclx_of_demo[idemo];
-      if(dist2[ivol]<=70)
+      if(dist2[ivol]<=plot_d2_max)
 	if(glb_coord_of_loclx[ivol][3]>=glb_coord_of_loclx[ivol][2]&&glb_coord_of_loclx[ivol][2]>=glb_coord_of_loclx[ivol][1])
-	  fprintf(fout,"%d %lg\n",dist2[ivol],c[idemo]);
+	  if(!isnan(c[idemo]))
+	    fprintf(fout,"%lg %lg\n",(double)(dist2[ivol]),c[idemo]);
     }
 
   fclose(fout);
@@ -293,44 +364,59 @@ void write_allaveraged_demo(const char *path,double *c)
     }
   
   //print
-  for(int d2=0;d2<=70;d2++)
+  for(int d2=0;d2<=plot_d2_max;d2++)
     if(npoints_dist2[d2]!=0)
-      fprintf(fout,"%d %lg\n",d2,cave[d2]);  
+      if(!isnan(cave[d2]))
+	fprintf(fout,"%d %lg\n",d2,cave[d2]);  
 
   fclose(fout);
 }
 
-int main(int narg,char **arg)
+void correct(int icorr)
 {
-  init_calc(narg,arg);
-
   //load uncorrected data
   double *full=nissa_malloc("full",ndemo_points,double);
   char uncorr_path[1024];
-  sprintf(uncorr_path,"%s/uncorrected_data/%1.2f/%2d/%1.4f/corr00_tau32-0_b%1.2f_mu%1.4f_L%2d_T%2d.dat",base_path,beta,glb_size[1],mass,beta,mass,glb_size[1],glb_size[0]);
+  sprintf(uncorr_path,"%s/uncorrected_data/%1.2f/%2d/%1.4f/corr%s_tau32-0_b%1.2f_mu%1.4f_L%2d_T%2d.dat",base_path,beta,glb_size[1],mass,corr_name[icorr],beta,mass,glb_size[1],glb_size[0]);
   load_demo_averaged_text_corr(full,uncorr_path);
   
   //load the tree level correlation on lattice
   char path[1024];
   corr16 *tree_corr_lat=nissa_malloc("tree_corr_lat",ndemo_points,corr16);
   sprintf(path,"%s/corrections/%d/",base_path,glb_size[1]);
-  load_correction(tree_corr_lat,path,"free");
-  
+  load_correction(tree_corr_lat,path,icorr,"free");
+
   //load the first order correlation on lattice
   corr16 *first_corr_lat=nissa_malloc("first_corr_lat",ndemo_points,corr16);
   sprintf(path,"%s/corrections/%d/",base_path,glb_size[1]);
-  load_correction(first_corr_lat,path,"first");
+  load_correction(first_corr_lat,path,icorr,"first");
+  
+  corr16 *exch_corr_lat=nissa_malloc("exch_corr_lat",ndemo_points,corr16);
+  sprintf(path,"%s/raw_corrections/%d/exch_corr",base_path,glb_size[1]);
+  if(recompute_first) load_demo_ildg_corr(exch_corr_lat,path,true);
+  
+  corr16 *self_corr_lat=nissa_malloc("self_corr_lat",ndemo_points,corr16);
+  sprintf(path,"%s/raw_corrections/%d/self_corr",base_path,glb_size[1]);
+  if(recompute_first) load_demo_ildg_corr(self_corr_lat,path);
 
+  corr16 *tad_corr_lat=nissa_malloc("tad_corr_lat",ndemo_points,corr16);
+  sprintf(path,"%s/raw_corrections/%d/tad_corr",base_path,glb_size[1]);
+  if(recompute_first) load_demo_ildg_corr(tad_corr_lat,path);
+  
   //correlations
   double *tree_cont=nissa_malloc("tree_cont",ndemo_points,double);
   double *tree_lat=nissa_malloc("tree_lat",ndemo_points,double);
+  double *slope_cont=nissa_malloc("slope_cont",ndemo_points,double);
+  double *slope_lat=nissa_malloc("slope_lat",ndemo_points,double);
   double *tree_diff=nissa_malloc("tree_diff",ndemo_points,double);
-  double *tree_alt_diff=nissa_malloc("tree_alt_diff",ndemo_points,double);
   double *tree_ratio=nissa_malloc("tree_ratio",ndemo_points,double);
   double *full_tree_subt=nissa_malloc("tree_subt",ndemo_points,double);
-  double *full_tree_alt_subt=nissa_malloc("tree_alt_subt",ndemo_points,double);
   double *full_tree_divided=nissa_malloc("tree_divided",ndemo_points,double);
+  double *first_in_lat=nissa_malloc("first_lat",ndemo_points,double);
   double *first_lat=nissa_malloc("first_lat",ndemo_points,double);
+  double *exch_lat=nissa_malloc("exch_lat",ndemo_points,double);
+  double *tad_lat=nissa_malloc("tad_lat",ndemo_points,double);
+  double *self_lat=nissa_malloc("self_lat",ndemo_points,double);
   double *first_cont=nissa_malloc("first_cont",ndemo_points,double);
   double *first_diff=nissa_malloc("first_diff",ndemo_points,double);
   double *first_ratio=nissa_malloc("first_ratio",ndemo_points,double);
@@ -341,18 +427,22 @@ int main(int narg,char **arg)
   
   double *Z_uncorr=nissa_malloc("Z_uncorr",ndemo_points,double);
   double *Z_tree_subt=nissa_malloc("Z_tree_subt",ndemo_points,double);
-  double *Z_tree_alt_subt=nissa_malloc("Z_tree_alt_subt",ndemo_points,double);
   double *Z_tree_divided=nissa_malloc("Z_tree_divided",ndemo_points,double);
   double *Z_first_divided=nissa_malloc("Z_first_divided",ndemo_points,double);
   
   for(int idemo=0;idemo<ndemo_points;idemo++)
     {
+      //add sign to full
+      if(icorr==SS) full[idemo]*=-1;
+      
       //take dist2
       int ivol=loclx_of_demo[idemo];
       int d2=dist2[ivol];
       
       //compute tree continuum function
-      tree_cont[idemo]=3/(M_PI*M_PI*M_PI*M_PI*d2*d2*d2);
+      const int cont_coeff[4]={3,3,6,6};
+      const int sign_corr[4]={1,1,1,1};
+      tree_cont[idemo]=cont_coeff[icorr]/(M_PI*M_PI*M_PI*M_PI*d2*d2*d2);
       
       //compute Z uncorr
       Z_uncorr[idemo]=sqrt(tree_cont[idemo]/full[idemo]);
@@ -360,22 +450,16 @@ int main(int narg,char **arg)
       //////////// tree corr //////////
       
       //compute tree lattice
-      tree_lat[idemo]=tree_corr_lat[idemo][5][RE];
-      
+      tree_lat[idemo]=sign_corr[icorr]*tree_corr_lat[idemo][corr_entr[icorr]][RE];
+
       //diff between tree lat and tree cont
       tree_diff[idemo]=tree_lat[idemo]-tree_cont[idemo];
-      
-      //compute alternative difference
-      tree_alt_diff[idemo]=tree_diff[idemo]*full[idemo]/tree_cont[idemo];
       
       //ratio between tree lat and tree cont
       tree_ratio[idemo]=tree_lat[idemo]/tree_cont[idemo];
 
       //subtract tree level discretization
-      full_tree_subt[idemo]=full[idemo]-tree_diff[idemo];
-      
-      //subtract tree level discretization with alternative def
-      full_tree_alt_subt[idemo]=full[idemo]-tree_alt_diff[idemo];
+      full_tree_subt[idemo]=full[idemo]-pow(Z_uncorr[icorr],2)*tree_diff[idemo];
       
       //divide by tree level discretization-continuum ratio
       full_tree_divided[idemo]=full[idemo]/tree_ratio[idemo];
@@ -383,32 +467,32 @@ int main(int narg,char **arg)
       //compute subtracted Z
       Z_tree_subt[idemo]=sqrt(tree_cont[idemo]/full_tree_subt[idemo]);
       
-      //compute alternative subtracted Z
-      Z_tree_alt_subt[idemo]=sqrt(tree_cont[idemo]/full_tree_alt_subt[idemo]);
-      
       //compute divided Z
       Z_tree_divided[idemo]=sqrt(tree_cont[idemo]/full_tree_divided[idemo]);
-      
+            
       ////////////// first ///////////
       
-      double g2=6/beta;
-      
-      //constants
-      double tilde2=1/(16*M_PI*M_PI);
-      double egamma=0.5772156649015329;
-      double Zp_minus_one=tilde2*(-18.7333556530313-3*log(d2/4.0)-6*egamma);
-      
       //compute first order in the continuum
-      first_cont[idemo]=-tree_cont[idemo]*2*Zp_minus_one;
+      first_cont[idemo]=-tree_cont[idemo]*2*Zp_minus_one(d2,icorr);
+      
+      //load corrections
+      self_lat[idemo]=self_corr_lat[idemo][corr_entr[icorr]][RE];
+      tad_lat[idemo]=tad_corr_lat[idemo][corr_entr[icorr]][RE];
+      exch_lat[idemo]=exch_corr_lat[idemo][corr_entr[icorr]][RE];
+      
+      //slope
+      slope_lat[idemo]=self_lat[idemo]/tree_lat[idemo];
+      slope_cont[idemo]=1+g2*Zp_minus_one(d2,icorr);
       
       //compute first order on lattice
-      first_lat[idemo]=first_corr_lat[idemo][5][RE];
+      //first_lat[idemo]=sign_corr[icorr]*first_corr_lat[idemo][corr_entr[icorr]][RE];
+      if(recompute_first) first_lat[idemo]=sign_corr[icorr]*4*(exch_lat[idemo]+2*self_lat[idemo]-2*tad_lat[idemo]);
       
       //diff between first lat and first cont
       first_diff[idemo]=first_lat[idemo]-first_cont[idemo];      
       
       //diff between first lat and first cont
-      full_first_subt[idemo]=full[idemo]-first_diff[idemo];      
+      full_first_subt[idemo]=full[idemo]-first_diff[idemo];
       
       //tree_plus_first_lat
       tree_plus_first_lat[idemo]=tree_lat[idemo]+g2*first_lat[idemo];
@@ -424,42 +508,58 @@ int main(int narg,char **arg)
       Z_first_divided[idemo]=sqrt(tree_cont[idemo]/full_first_divided[idemo]);
     }
   
-  write_O3averaged_demo("plots/full.xmg",full);
-  write_O3averaged_demo("plots/tree_cont.xmg",tree_cont);
-  write_O3averaged_demo("plots/tree_lat.xmg",tree_lat);
-  write_O3averaged_demo("plots/tree_diff.xmg",tree_diff);
-  write_O3averaged_demo("plots/tree_alt_diff.xmg",tree_alt_diff);
-  write_O3averaged_demo("plots/tree_ratio.xmg",tree_ratio);
-  write_O3averaged_demo("plots/full_tree_subtracted.xmg",full_tree_subt);
-  write_O3averaged_demo("plots/full_tree_alt_subtracted.xmg",full_tree_alt_subt);
-  write_O3averaged_demo("plots/full_tree_divided.xmg",full_tree_divided);
+  write_demo("plots/full.xmg",full);
+  write_allaveraged_demo("plots/tree_cont.xmg",tree_cont);
+  write_demo("plots/tree_lat.xmg",tree_lat);
+  write_demo("plots/tree_diff.xmg",tree_diff);
+  write_demo("plots/tree_ratio.xmg",tree_ratio);
+  write_demo("plots/full_tree_subtracted.xmg",full_tree_subt);
+  write_demo("plots/full_tree_divided.xmg",full_tree_divided);
 
-  write_O3averaged_demo("plots/first_cont.xmg",first_cont);
-  write_O3averaged_demo("plots/first_lat.xmg",first_lat);
-  write_O3averaged_demo("plots/first_diff.xmg",first_diff);
-  write_O3averaged_demo("plots/tree_plus_first_lat.xmg",tree_plus_first_lat);
-  write_O3averaged_demo("plots/tree_plus_first_cont.xmg",tree_plus_first_cont);
-  write_O3averaged_demo("plots/full_first_subtracted.xmg",full_first_subt);
-  write_O3averaged_demo("plots/full_first_divided.xmg",full_first_divided);
+  write_allaveraged_demo("plots/first_cont.xmg",first_cont);
+  write_demo("plots/slope_lat.xmg",slope_lat);
+  write_demo("plots/slope_cont.xmg",slope_cont);
+  write_demo("plots/self_lat.xmg",self_lat);
+  write_demo("plots/tad_lat.xmg",tad_lat);
+  write_demo("plots/exch_lat.xmg",exch_lat);
+  write_demo("plots/first_in_lat.xmg",first_in_lat);
+  write_demo("plots/first_lat.xmg",first_lat);
+  write_demo("plots/first_diff.xmg",first_diff);
+  write_demo("plots/first_ratio.xmg",first_ratio);
+  write_demo("plots/tree_plus_first_lat.xmg",tree_plus_first_lat);
+  write_demo("plots/tree_plus_first_cont.xmg",tree_plus_first_cont);
+  write_demo("plots/full_first_subtracted.xmg",full_first_subt);
+  write_demo("plots/full_first_divided.xmg",full_first_divided);
   
-  write_O3averaged_demo("plots/Z_uncorr.xmg",Z_uncorr);
-  write_O3averaged_demo("plots/Z_tree_subt.xmg",Z_tree_subt);
-  write_O3averaged_demo("plots/Z_tree_alt_subt.xmg",Z_tree_alt_subt);
-  write_O3averaged_demo("plots/Z_tree_divided.xmg",Z_tree_divided);
-  write_O3averaged_demo("plots/Z_first_divided.xmg",Z_first_divided);
+  write_demo("plots/Z_uncorr.xmg",Z_uncorr);
+  write_demo("plots/Z_tree_subt.xmg",Z_tree_subt);
+  write_demo("plots/Z_tree_divided.xmg",Z_tree_divided);
+  write_demo("plots/Z_first_divided.xmg",Z_first_divided);
+
+  write_allaveraged_demo("plots/Z_uncorr_ave.xmg",Z_uncorr);
+  write_allaveraged_demo("plots/Z_tree_subt_ave.xmg",Z_tree_subt);
+  write_allaveraged_demo("plots/Z_tree_divided_ave.xmg",Z_tree_divided);
+  write_allaveraged_demo("plots/Z_first_divided_ave.xmg",Z_first_divided);
   
   nissa_free(full);
   nissa_free(tree_corr_lat);
   nissa_free(tree_cont);
   nissa_free(tree_lat);
-  nissa_free(tree_alt_diff);
+  nissa_free(slope_lat);
+  nissa_free(slope_cont);
   nissa_free(tree_diff);
   nissa_free(tree_ratio);
-  nissa_free(full_tree_alt_subt);
   nissa_free(full_tree_subt);
   nissa_free(full_tree_divided);
   nissa_free(first_corr_lat);
+  nissa_free(exch_corr_lat);
+  nissa_free(tad_corr_lat);
+  nissa_free(self_corr_lat);
   nissa_free(first_lat);
+  nissa_free(first_in_lat);
+  nissa_free(self_lat);
+  nissa_free(exch_lat);
+  nissa_free(tad_lat);
   nissa_free(first_cont);
   nissa_free(first_diff);
   nissa_free(first_ratio);
@@ -470,9 +570,18 @@ int main(int narg,char **arg)
   
   nissa_free(Z_uncorr);
   nissa_free(Z_tree_subt);
-  nissa_free(Z_tree_alt_subt);
   nissa_free(Z_tree_divided);
   nissa_free(Z_first_divided);
+}
+
+int main(int narg,char **arg)
+{
+  init_calc(narg,arg);
+  
+  correct(PP);
+  //correct(SS);
+  //correct(VV);
+  //correct(AA);
   
   close_calc();
   

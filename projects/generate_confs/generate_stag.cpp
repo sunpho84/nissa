@@ -34,6 +34,7 @@ evol_pars evol;
 //number of traj
 int itraj,max_ntraj;
 int store_conf_each;
+int store_running_temp_conf;
 int skip_mtest_ntraj;
 
 const int HOT=0,COLD=1;
@@ -100,6 +101,7 @@ void init_simulation(char *path)
   read_str_str("ConfPath",conf_path,1024);
   read_str_str("StoreConfPath",store_conf_path,1024);
   read_str_int("StoreConfEach",&store_conf_each);
+  read_str_int("StoreRunningTempConf",&store_running_temp_conf);
   
   //read if confifguration must be generated cold or hot
   char start_conf_cond_str[1024];
@@ -137,7 +139,6 @@ void init_simulation(char *path)
   
   //read the number of trajectory to evolve
   read_str_int("MaxNTraj",&max_ntraj);
-  read_str_int("SkipMTestNTraj",&skip_mtest_ntraj);
   
   //read the seed
   int seed;
@@ -161,16 +162,22 @@ void init_simulation(char *path)
   read_str_double("Beta",&physics.beta);
   
   //read electric and magnetic field
-  read_str_double("Ex",&(physics.E[0]));
-  read_str_double("Ey",&(physics.E[1]));
-  read_str_double("Ez",&(physics.E[2]));
-  read_str_double("Bx",&(physics.B[0]));
-  read_str_double("By",&(physics.B[1]));
-  read_str_double("Bz",&(physics.B[2]));
+  read_str_int("PutBkgrdEMField",&(physics.use_bkgrd_em_field));
+  if(physics.use_bkgrd_em_field)
+    {
+      read_str_double("Ex",&(physics.E[0]));
+      read_str_double("Ey",&(physics.E[1]));
+      read_str_double("Ez",&(physics.E[2]));
+      read_str_double("Bx",&(physics.B[0]));
+      read_str_double("By",&(physics.B[1]));
+      read_str_double("Bz",&(physics.B[2]));
+    }
   
   //load evolution info depending if is a quenched simulation or unquenched
   if(physics.nflavs!=0)
     {
+      read_str_int("SkipMTestNTraj",&skip_mtest_ntraj);
+      
       //first guess for hmc evolution
       read_str_double("HmcTrajLength",&evol.md_pars.traj_length);
       read_str_int("NmdSteps",&evol.md_pars.nmd_steps);
@@ -183,6 +190,9 @@ void init_simulation(char *path)
       //heat bath parameters
       read_str_int("NHbSweeps",&evol.pure_gauge_pars.nhb_sweeps);
       read_str_int("NHbHits",&evol.pure_gauge_pars.nhb_hits);
+      //overrelax parameters
+      read_str_int("NOvSweeps",&evol.pure_gauge_pars.nov_sweeps);
+      read_str_int("NOvHits",&evol.pure_gauge_pars.nov_hits);
     }
 
   close_input();
@@ -261,6 +271,8 @@ void init_simulation(char *path)
 //finalize everything
 void close_simulation()
 {
+  if(!store_running_temp_conf) write_conf(conf_path,conf);
+  
   for(int iflav=0;iflav<physics.nflavs;iflav++)
     {
       for(int par=0;par<2;par++) nissa_free(physics.backfield[iflav][par]);
@@ -315,9 +327,12 @@ int generate_new_conf()
     }
   else
     {
-      //now only heatbath, overrelax to be implemented
+      //number of hb sweeps
       for(int ihb_sweep=0;ihb_sweep<evol.pure_gauge_pars.nhb_sweeps;ihb_sweep++)
 	heatbath_conf(conf,&physics,&evol.pure_gauge_pars);
+      //numer of overrelax sweeps
+      for(int iov_sweep=0;iov_sweep<evol.pure_gauge_pars.nov_sweeps;iov_sweep++)
+	overrelax_conf(conf,&evol.pure_gauge_pars);
       
       //always new conf
       acc=1;
@@ -404,7 +419,8 @@ void store_conf_if_necessary()
     {
       char path[1024];
       sprintf(path,"%s.%05d",store_conf_path,itraj);
-      cp(path,conf_path);
+      if(store_running_temp_conf) cp(path,conf_path);
+      else write_conf(path,conf);
     }
 }
 
@@ -441,7 +457,7 @@ int main(int narg,char **arg)
       // 3) increment id and write conf
       itraj++;
       prod_ntraj++;
-      write_conf(conf_path,conf);  
+      if(store_running_temp_conf) write_conf(conf_path,conf);
       
       // 4) if conf is multiple of store_conf_each copy it
       store_conf_if_necessary();

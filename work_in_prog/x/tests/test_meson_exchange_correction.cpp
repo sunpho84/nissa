@@ -40,7 +40,7 @@ int main(int narg,char **arg)
   double zmp=1;
   gluon_info gl=create_Wilson_gluon_info(alpha,gluon_theta,zmp);
   
-  print_corr(qu,gl,1000);
+  print_corr(qu,gl,100);
   
   close_nissa();
   

@@ -156,6 +156,7 @@ typedef struct
 {
   double beta;
   int nflavs;
+  int use_bkgrd_em_field;
   quad_u1 ***backfield;
   quark_content *flav_pars;
   double E[3];
@@ -175,8 +176,12 @@ typedef struct
 
 typedef struct
 {
+  //number of hb sweeps and hits per link
   int nhb_sweeps;
   int nhb_hits;
+  //the sam for overrelax
+  int nov_sweeps;
+  int nov_hits;
 } pure_gauge_evol_pars;
 
 typedef union

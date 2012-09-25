@@ -8,6 +8,7 @@
 #include "float128.h"
 #include "complex.h"
 #include "su3.h"
+#include "../operations/su3_paths.h"
 
 #ifdef BGP
 #include "../base/bgp_instructions.h"
@@ -729,7 +730,7 @@ void su3_unitarize_maximal_trace_projecting(su3 U,su3 M)
 
 //return a single link after the heatbath procedure
 //routines to be shrinked!
-void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_steps,rnd_gen *gen)
+void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen)
 {
   //compute the original contribution to the action due to the given link 
   su3 prod;
@@ -738,8 +739,8 @@ void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_steps,rnd_g
   //copy in link to out
   su3_copy(out,in);
   
-  //iterate over heatbath steps
-  for(int istep=0;istep<nhb_steps;istep++)
+  //iterate over heatbath hits
+  for(int ihit=0;ihit<nhb_hits;ihit++)
     //scan all the three possible subgroups
     for(int isub_gr=0;isub_gr<3;isub_gr++)
       {
@@ -747,6 +748,7 @@ void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_steps,rnd_g
 	double r0,r1,r2,r3;
 	double smod=su2_part_of_su3(r0,r1,r2,r3,prod,isub_gr);
 	
+	//omega is the coefficient of the plaquette, divided by the module of the su2 submatrix for normalization
 	double omega_f=beta/(3*smod);
 	double z_norm=exp(-2*omega_f);
 	omega_f=1/omega_f;
@@ -780,6 +782,48 @@ void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_steps,rnd_g
 	su2_prodassign_su3(x0,x1,x2,x3,isub_gr,prod);
 	su2_prodassign_su3(x0,x1,x2,x3,isub_gr,out);
       }
+}
+
+//return a single link after the overrelaxation procedure
+void su3_find_overrelaxed(su3 out,su3 in,su3 staple,int nov_hits)
+{
+  //compute the original contribution to the action due to the given link 
+  su3 prod;
+  unsafe_su3_prod_su3_dag(prod,in,staple);
+  
+  //copy in link to out
+  su3_copy(out,in);
+  
+  //iterate over overrelax hits
+  for(int ihit=0;ihit<nov_hits;ihit++)
+    //scan all the three possible subgroups
+    for(int isub_gr=0;isub_gr<3;isub_gr++)
+      {
+	//take the part of the su3 matrix
+	double r0,r1,r2,r3;
+	su2_part_of_su3(r0,r1,r2,r3,prod,isub_gr);
+	
+	//build the changing matrix
+	double x0=2*r0*r0-1;
+	double x1=-2*r0*r1;
+	double x2=-2*r0*r2;
+	double x3=-2*r0*r3;
+	
+	//change the link and optate the product
+	su2_prodassign_su3(x0,x1,x2,x3,isub_gr,prod);
+	su2_prodassign_su3(x0,x1,x2,x3,isub_gr,out);
+      }
+}
+
+//return a cooled copy of the passed link
+void su3_find_cooled(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu)
+{
+  //compute the staple
+  su3 staple;
+  compute_point_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
+
+  //find the link that maximize the plaquette
+  su3_unitarize_orthonormalizing(u,staple);
 }
 
 ////////////////////// products between su3 and color //////////////////
