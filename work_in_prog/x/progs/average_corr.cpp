@@ -16,7 +16,7 @@ void init_calc(int narg,char **arg)
   init_nissa();
   
   if(nissa_nranks>1) crash("only available in scalar");
-  if(narg<3) crash("use %s file_in T L",arg[0]);
+  if(narg<3) crash("use %s T L",arg[0]);
   
   int T=atoi(arg[1]);
   int L=atoi(arg[2]);
@@ -164,7 +164,7 @@ int main(int narg,char **arg)
   read_unave(temp_corr,"self");
   summ_with_coeff(2*4.0);
   read_unave(temp_corr,"tad");
-  summ_with_coeff(-2*4.0);
+  summ_with_coeff(2*4.0);
   read_unave(temp_corr,"exch");
   summ_with_coeff(1*4.0);
   print_ave("./","first");

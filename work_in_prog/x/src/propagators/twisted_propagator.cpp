@@ -86,6 +86,18 @@ void compute_x_space_twisted_propagator_by_fft(spinspin *prop,quark_info qu)
   pass_spinspin_from_mom_to_x_space(prop,prop,qu.bc);
 }
 
+//compute the squared propagator (scalar insertion)
+void compute_x_space_twisted_squared_propagator_by_fft(spinspin *sq_prop,quark_info qu)
+{
+  compute_mom_space_twisted_propagator(sq_prop,qu);
+  
+  //square
+  nissa_loc_vol_loop(imom)
+    safe_spinspin_prod_spinspin(sq_prop[imom],sq_prop[imom],sq_prop[imom]);
+  
+  pass_spinspin_from_mom_to_x_space(sq_prop,sq_prop,qu.bc);
+}
+
 //multiply the source for the twisted propagator by inverting twisted Dirac operator
 void multiply_from_left_by_x_space_twisted_propagator_by_inv(spin *prop,spin *ext_source,quark_info qu)
 {inv_tmD_cg_eoprec_eos(prop,NULL,qu,1000000,1.e-28,ext_source);}

@@ -12,7 +12,7 @@ const int PP=0,SS=1,VV=2,AA=3;
 char corr_name[4][8]={"00","07","0305","0406"};
 const int corr_entr[4]={5,0,1,6};
 const int corr_mult[4]={1,1,1,1};
-const int recompute_first=1;
+const int recompute_first=0;
 
 int *demo_of_loclx,*loclx_of_demo,*npoints_dist2;
 int *dist2;
@@ -378,7 +378,7 @@ void correct(int icorr)
   double *full=nissa_malloc("full",ndemo_points,double);
   char uncorr_path[1024];
   sprintf(uncorr_path,"%s/uncorrected_data/%1.2f/%2d/%1.4f/corr%s_tau32-0_b%1.2f_mu%1.4f_L%2d_T%2d.dat",base_path,beta,glb_size[1],mass,corr_name[icorr],beta,mass,glb_size[1],glb_size[0]);
-  load_demo_averaged_text_corr(full,uncorr_path);
+  //load_demo_averaged_text_corr(full,uncorr_path);
   
   //load the tree level correlation on lattice
   char path[1024];
@@ -386,6 +386,9 @@ void correct(int icorr)
   sprintf(path,"%s/corrections/%d/",base_path,glb_size[1]);
   load_correction(tree_corr_lat,path,icorr,"free");
 
+  //sprintf(path,"%s/raw_corrections/%d/tree_corr",base_path,glb_size[1]);
+  //if(recompute_first) load_demo_ildg_corr(tree_corr_lat,path);
+  
   //load the first order correlation on lattice
   corr16 *first_corr_lat=nissa_malloc("first_corr_lat",ndemo_points,corr16);
   sprintf(path,"%s/corrections/%d/",base_path,glb_size[1]);
@@ -473,7 +476,7 @@ void correct(int icorr)
       ////////////// first ///////////
       
       //compute first order in the continuum
-      first_cont[idemo]=-tree_cont[idemo]*2*Zp_minus_one(d2,icorr);
+      first_cont[idemo]=tree_cont[idemo]*(1/(1+2*g2*Zp_minus_one(d2,icorr))-1)/g2;
       
       //load corrections
       self_lat[idemo]=self_corr_lat[idemo][corr_entr[icorr]][RE];
@@ -485,8 +488,8 @@ void correct(int icorr)
       slope_cont[idemo]=1+g2*Zp_minus_one(d2,icorr);
       
       //compute first order on lattice
-      //first_lat[idemo]=sign_corr[icorr]*first_corr_lat[idemo][corr_entr[icorr]][RE];
-      if(recompute_first) first_lat[idemo]=sign_corr[icorr]*4*(exch_lat[idemo]+2*self_lat[idemo]-2*tad_lat[idemo]);
+      first_lat[idemo]=sign_corr[icorr]*first_corr_lat[idemo][corr_entr[icorr]][RE];
+      if(recompute_first) first_lat[idemo]=sign_corr[icorr]*4*(exch_lat[idemo]+2*self_lat[idemo]+2*tad_lat[idemo]);
       
       //diff between first lat and first cont
       first_diff[idemo]=first_lat[idemo]-first_cont[idemo];      
@@ -496,7 +499,7 @@ void correct(int icorr)
       
       //tree_plus_first_lat
       tree_plus_first_lat[idemo]=tree_lat[idemo]+g2*first_lat[idemo];
-      tree_plus_first_cont[idemo]=tree_cont[idemo]+g2*first_cont[idemo];
+      tree_plus_first_cont[idemo]=tree_cont[idemo]/(1+2*g2*Zp_minus_one(d2,icorr));
       
       //ratio between tree+first lat and tree+first cont
       first_ratio[idemo]=tree_plus_first_lat[idemo]/tree_plus_first_cont[idemo];
