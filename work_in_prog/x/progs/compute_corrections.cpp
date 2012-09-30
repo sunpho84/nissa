@@ -14,6 +14,7 @@
 
 struct flags
 {
+  int kappa;
   int tree;
   int self;
   int tad;
@@ -57,6 +58,7 @@ void parse_input(quark_info &quark,gluon_info &gluon,char *output_folder,int &ne
   
   //read what to compute
   read_str_int("ComputeTree",&comp.tree);
+  read_str_int("ComputeKappa",&comp.kappa);
   read_str_int("ComputeSelf",&comp.self);
   read_str_int("ComputeTad",&comp.tad);
   read_str_int("ComputeExch",&comp.exch);
@@ -119,6 +121,28 @@ void compute_tree_level_corrections(char *output_folder,quark_info &quark)
   //free
   nissa_free(corr);
   nissa_free(prop);
+}
+
+//compute diagram correcting for kappa retuning
+void compute_kappa_corrections(char *output_folder,quark_info &quark)
+{
+  master_printf("Computing kappa level corrections\n");
+  
+  //compute tree level propagator
+  spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
+  spinspin *sq_prop=nissa_malloc("sq_prop",loc_vol,spinspin);
+  compute_x_space_twisted_propagator_by_fft(prop,quark);
+  compute_x_space_twisted_squared_propagator_by_fft(sq_prop,quark);
+  
+  //compute correlators and write
+  corr16 *corr=nissa_malloc("corr",loc_vol,corr16);
+  compute_all_2pts_qdagq_correlations(corr,prop,sq_prop);
+  save_correlators(output_folder,"kappa_corr",corr);
+  
+  //free
+  nissa_free(corr);
+  nissa_free(prop);
+  nissa_free(sq_prop);
 }
 
 //diagram of self energy (not tadpole)
@@ -216,6 +240,7 @@ int main(int narg,char **arg)
   parse_input(quark,gluon,output_folder,nests,comp,arg[1]);
   
   //compute
+  if(comp.kappa) compute_kappa_corrections(output_folder,quark);
   if(comp.tree) compute_tree_level_corrections(output_folder,quark);
   if(comp.self) compute_self_energy_corrections(output_folder,quark,gluon);
   if(comp.tad)  compute_tadpole_corrections(output_folder,quark,gluon);
