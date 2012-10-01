@@ -93,7 +93,10 @@ void compute_x_space_twisted_squared_propagator_by_fft(spinspin *sq_prop,quark_i
   
   //square
   nissa_loc_vol_loop(imom)
-    safe_spinspin_prod_spinspin(sq_prop[imom],sq_prop[imom],sq_prop[imom]);
+    {
+      safe_spinspin_prod_spinspin(sq_prop[imom],sq_prop[imom],sq_prop[imom]);
+      spinspin_prodassign_double(sq_prop[imom],glb_vol);
+    }
   
   pass_spinspin_from_mom_to_x_space(sq_prop,sq_prop,qu.bc);
 }

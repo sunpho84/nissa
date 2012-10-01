@@ -51,6 +51,8 @@ void spincolor_summassign(spincolor a,spincolor b);
 void su2_prodassign_su3(double A,double B,double C,double D,int isub_gr,su3 in);
 void su2_prodassign_su3(su2 mod,int isub_gr,su3 in);
 void su3_copy(su3 b,su3 a);
+void quad_su3_nissa_to_ildg_reord(quad_su3 out,quad_su3 in);
+void quad_su3_ildg_to_nissa_reord(quad_su3 out,quad_su3 in);
 void su3_dag_subt_the_prod_color(color a,su3 b,color c);
 void su3_dag_summ_the_prod_color(color a,su3 b,color c);
 void su3_det(complex d,su3 U);

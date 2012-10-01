@@ -7,6 +7,7 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
   double loc_max=0,loc_avg=0;
   
   read_ildg_gauge_conf(conf,filename);
+  master_printf("Plaquette: %lg\n",global_plaquette_lx_conf(conf));
   
   nissa_loc_vol_loop(ivol)
     for(int idir=0;idir<4;idir++)
@@ -58,7 +59,7 @@ int main(int narg,char **arg)
   read_str_int("NGaugeConf",&nconf);
 
   quad_su3 *conf=nissa_malloc("conf",loc_vol,quad_su3);
-
+  
   for(int iconf=0;iconf<nconf;iconf++)
     {
       read_str(filename,1024);

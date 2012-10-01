@@ -1,10 +1,10 @@
 TODO-LIST (almost in relevance order)
 
 #measures:
--add fermionic observables
--add topology measurement
+-add extra observables
 
 #improvements:
+-add improved gauge action
 -add multi-step gauge integrator
 -decide how to choose the number of pseudo-fermions
 -add self-tuning algorithm for number of MD steps
