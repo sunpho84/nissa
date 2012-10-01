@@ -5,6 +5,7 @@
 #include "ILDG_File.h"
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/spin.h"
+#include "../new_types/su3.h"
 #include "../base/global_variables.h"
 #include "../base/debug.h"
 #include "../base/vectors.h"
@@ -25,19 +26,33 @@ void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nb
     
   //compute float or double site
   int nreals_loc=nreals_per_site*loc_vol;
-  int nbytes_per_site=nreals_per_site*nbits/8;
+  int nbytes_per_real=nbits/8;
+  int nbytes_per_site=nreals_per_site*nbytes_per_real;
   
-  //change endianess if needed
-  char *buffer=NULL;
-  if(little_endian || nbits==32) buffer=nissa_malloc("buffer",nreals_loc*sizeof(double),char);
+  //buffer to reorder data in ILDG format and change endianess
+  char *buffer=nissa_malloc("buffer",nreals_loc*nbytes_per_real,char);
   
-  if(nbits==64)
-    if(little_endian) doubles_to_doubles_changing_endianess((double*)buffer,(double*)data,nreals_loc);
-    else buffer=(char*)data;
-  else
-    if(little_endian) doubles_to_floats_changing_endianess((float*)buffer,(double*)data,nreals_loc);
-    else doubles_to_floats_same_endianess((float*)buffer,(double*)data,nreals_loc);
-  
+  //order things as expected
+  int x[4],isour,idest;  
+  for(x[0]=0;x[0]<loc_size[0];x[0]++)
+    for(x[1]=0;x[1]<loc_size[1];x[1]++)
+      for(x[2]=0;x[2]<loc_size[2];x[2]++)
+	for(x[3]=0;x[3]<loc_size[3];x[3]++)
+	  {
+	    idest=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
+	    isour=loclx_of_coord(x);
+	    
+	    char *out=buffer+idest*nbytes_per_site;
+	    double *in=data+isour*nreals_per_site;
+	    
+	    if(nbits==64)
+	      if(little_endian) doubles_to_doubles_changing_endianess((double*)out,in,nreals_per_site);
+	      else memcpy((double*)out,in,nbytes_per_site);
+	    else
+	      if(little_endian) doubles_to_floats_changing_endianess((float*)out,in,nreals_per_site);
+	      else doubles_to_floats_same_endianess((float*)out,in,nreals_per_site);
+	  }
+
   //write
   ILDG_File_write_ildg_data_all(file,buffer,nbytes_per_site,header_message);
   
@@ -47,8 +62,8 @@ void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nb
   
   ILDG_File_write_checksum(file,check);
   
-  //delete the swapped data, if created
-  if(little_endian || nbits==32) nissa_free(buffer);
+  //delete the swapped data
+  nissa_free(buffer);
   
   //take final time
   time+=take_time();
@@ -79,25 +94,9 @@ void write_color(char *path,color *v,int prec)
 	  prec,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
   ILDG_File_write_text_record(file,"stag-propagator-format",propagator_format_message);
   
-  //order things as expected
-  color *temp=nissa_malloc("temp_write_prop",loc_vol,color);
-  
-  int x[4],isour,idest;  
-  for(x[0]=0;x[0]<loc_size[0];x[0]++)
-    for(x[1]=0;x[1]<loc_size[1];x[1]++)
-      for(x[2]=0;x[2]<loc_size[2];x[2]++)
-	for(x[3]=0;x[3]<loc_size[3];x[3]++)
-	  {
-	    idest=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
-	    isour=loclx_of_coord(x);
-	    
-	    memcpy(temp[idest],v[isour],sizeof(color));
-	  }
-  
   //Write the binary data
-  write_double_vector(file,(double*)temp,nreals_per_color,prec,"scidac-binary-data");
+  write_double_vector(file,(double*)v,nreals_per_color,prec,"scidac-binary-data");
 
-  nissa_free(temp);
   verbosity_lv2_master_printf("File '%s' saved\n",path);
   
   //Close the file
@@ -128,26 +127,9 @@ void write_spincolor(char *path,spincolor *spinor,int prec)
 	  prec,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
   ILDG_File_write_text_record(file,"etmc-propagator-format",propagator_format_message);
   
-  //order things as expected
-  spincolor *temp=nissa_malloc("temp_write_prop",loc_vol,spincolor);
-  
-  int x[4],isour,idest;
-  
-  for(x[0]=0;x[0]<loc_size[0];x[0]++)
-    for(x[1]=0;x[1]<loc_size[1];x[1]++)
-      for(x[2]=0;x[2]<loc_size[2];x[2]++)
-	for(x[3]=0;x[3]<loc_size[3];x[3]++)
-	  {
-	    idest=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
-	    isour=loclx_of_coord(x);
-	    
-	    memcpy(temp[idest],spinor[isour],sizeof(spincolor));
-	  }
-
   //Write the binary data
-  write_double_vector(file,(double*)temp,nreals_per_spincolor,prec,"scidac-binary-data");
+  write_double_vector(file,(double*)spinor,nreals_per_spincolor,prec,"scidac-binary-data");
 
-  nissa_free(temp);
   verbosity_lv2_master_printf("File '%s' saved (probably...)\n",path);
   
   //Close the file
@@ -202,27 +184,19 @@ void write_ildg_gauge_conf(char *path,quad_su3 *in,int prec,ILDG_message *mess=N
   int x[4],isour,idest;
   quad_su3 buff;
 
-  for(x[0]=0;x[0]<loc_size[0];x[0]++)
-    for(x[1]=0;x[1]<loc_size[1];x[1]++)
-      for(x[2]=0;x[2]<loc_size[2];x[2]++)
-	for(x[3]=0;x[3]<loc_size[3];x[3]++)
-	  {
-	    idest=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
-	    isour=loclx_of_coord(x);
-
-	    memcpy(buff,in[isour],sizeof(quad_su3));
-
-	    memcpy(temp[idest][3],buff[0],sizeof(su3));
-	    memcpy(temp[idest][0],buff[1],sizeof(su3));
-	    memcpy(temp[idest][1],buff[2],sizeof(su3));
-	    memcpy(temp[idest][2],buff[3],sizeof(su3));
-	  }
-
   //Open the file
   ILDG_File file=ILDG_File_open_for_write(path);
+
+  //reorder in ILDG
+  nissa_loc_vol_loop(ivol)
+    quad_su3_nissa_to_ildg_reord(in[ivol],in[ivol]);
   
   //write the lattice part
   write_double_vector(file,(double*)temp,nreals_per_quad_su3,prec,"ildg-binary-data",mess);
+  
+  //reorder back
+  nissa_loc_vol_loop(ivol)
+    quad_su3_ildg_to_nissa_reord(in[ivol],in[ivol]);
   
   nissa_free(temp);
   

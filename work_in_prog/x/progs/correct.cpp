@@ -12,7 +12,7 @@ const int PP=0,SS=1,VV=2,AA=3;
 char corr_name[4][8]={"00","07","0305","0406"};
 const int corr_entr[4]={5,0,1,6};
 const int corr_mult[4]={1,1,1,1};
-const int recompute_first=0;
+const int recompute_first=1;
 
 int *demo_of_loclx,*loclx_of_demo,*npoints_dist2;
 int *dist2;
@@ -228,29 +228,38 @@ void load_demo_ildg_corr(corr16 *out,char *path,bool average=false)
   {
     int idemo=demo_of_loclx[ivol];
     if(idemo!=-1)
-      if(average)
-	{
-	  spinspin av;
-	  spinspin_put_to_zero(av);
-	  //takes all the copies
-	  for(int iperm=0;iperm<nperm;iperm++)
-	    for(int ipar=0;ipar<npar;ipar++)
-	      {
-		int pel[6][4]={{0,1,2,3},{0,2,3,1},{0,3,1,2},{0,1,3,2},{0,3,2,1},{0,2,1,3}};
-		
-		coords c;
-		for(int mu=0;mu<4;mu++)
-		  {
-		    int p=(ipar&(1<<mu));
-		    c[mu]=glb_coord_of_loclx[ivol][pel[iperm][mu]];
-		    if(p) c[mu]=(glb_size[mu]-c[mu])%glb_size[mu];
-		  }
-		
-		spinspin_summassign(*((spinspin*)&av),*((spinspin*)(temp+glblx_of_coord(c))));
-	      }
-	  spinspin_prod_double(*((spinspin*)&out[idemo]),*((spinspin*)&av),1.0/(nperm*npar));
-	}
-      else memcpy(out[idemo],temp[ivol],sizeof(corr16));
+      {
+	if(average)
+	  {
+	    spinspin av;
+	    spinspin_put_to_zero(av);
+	    //takes all the copies
+	    for(int iperm=0;iperm<nperm;iperm++)
+	      for(int ipar=0;ipar<npar;ipar++)
+		{
+		  int pel[6][4]={{0,1,2,3},{0,2,3,1},{0,3,1,2},{0,1,3,2},{0,3,2,1},{0,2,1,3}};
+		  
+		  coords c;
+		  for(int mu=0;mu<4;mu++)
+		    {
+		      int p=(ipar&(1<<mu));
+		      c[mu]=glb_coord_of_loclx[ivol][pel[iperm][mu]];
+		      if(p) c[mu]=(glb_size[mu]-c[mu])%glb_size[mu];
+		    }
+		  
+		  spinspin_summassign(*((spinspin*)&av),*((spinspin*)(temp+glblx_of_coord(c))));
+		}
+	    spinspin_prod_double(*((spinspin*)&out[idemo]),*((spinspin*)&av),1.0/(nperm*npar));
+	  }
+	else memcpy(out[idemo],temp[ivol],sizeof(corr16));
+	
+	//put 1+2+3+4 in 1
+	for(int imu=2;imu<=4;imu++)
+	  complex_summassign(out[idemo][1],out[idemo][imu]);
+	//put 6+7+8+9 in 6
+	for(int imu=7;imu<=9;imu++)
+	  complex_summassign(out[idemo][6],out[idemo][imu]);
+      }
   }
   
   nissa_free(temp);
@@ -378,7 +387,7 @@ void correct(int icorr)
   double *full=nissa_malloc("full",ndemo_points,double);
   char uncorr_path[1024];
   sprintf(uncorr_path,"%s/uncorrected_data/%1.2f/%2d/%1.4f/corr%s_tau32-0_b%1.2f_mu%1.4f_L%2d_T%2d.dat",base_path,beta,glb_size[1],mass,corr_name[icorr],beta,mass,glb_size[1],glb_size[0]);
-  //load_demo_averaged_text_corr(full,uncorr_path);
+  load_demo_averaged_text_corr(full,uncorr_path);
   
   //load the tree level correlation on lattice
   char path[1024];
@@ -393,6 +402,10 @@ void correct(int icorr)
   corr16 *first_corr_lat=nissa_malloc("first_corr_lat",ndemo_points,corr16);
   sprintf(path,"%s/corrections/%d/",base_path,glb_size[1]);
   load_correction(first_corr_lat,path,icorr,"first");
+  
+  corr16 *mass_corr_lat=nissa_malloc("mass_corr_lat",ndemo_points,corr16);
+  sprintf(path,"%s/raw_corrections/%d/mass_corr",base_path,glb_size[1]);
+  if(recompute_first) load_demo_ildg_corr(mass_corr_lat,path,true);
   
   corr16 *exch_corr_lat=nissa_malloc("exch_corr_lat",ndemo_points,corr16);
   sprintf(path,"%s/raw_corrections/%d/exch_corr",base_path,glb_size[1]);
@@ -417,6 +430,7 @@ void correct(int icorr)
   double *full_tree_divided=nissa_malloc("tree_divided",ndemo_points,double);
   double *first_in_lat=nissa_malloc("first_lat",ndemo_points,double);
   double *first_lat=nissa_malloc("first_lat",ndemo_points,double);
+  double *mass_lat=nissa_malloc("mass_lat",ndemo_points,double);
   double *exch_lat=nissa_malloc("exch_lat",ndemo_points,double);
   double *tad_lat=nissa_malloc("tad_lat",ndemo_points,double);
   double *self_lat=nissa_malloc("self_lat",ndemo_points,double);
@@ -450,7 +464,7 @@ void correct(int icorr)
       //compute Z uncorr
       Z_uncorr[idemo]=sqrt(tree_cont[idemo]/full[idemo]);
       
-      //////////// tree corr //////////
+      ////////////////////////////////////// tree corr //////////////////////////////////////////
       
       //compute tree lattice
       tree_lat[idemo]=sign_corr[icorr]*tree_corr_lat[idemo][corr_entr[icorr]][RE];
@@ -473,12 +487,13 @@ void correct(int icorr)
       //compute divided Z
       Z_tree_divided[idemo]=sqrt(tree_cont[idemo]/full_tree_divided[idemo]);
             
-      ////////////// first ///////////
+      ////////////////////////////////////////// first //////////////////////////////////////////
       
       //compute first order in the continuum
-      first_cont[idemo]=tree_cont[idemo]*(1/(1+2*g2*Zp_minus_one(d2,icorr))-1)/g2;
+      first_cont[idemo]=-2*tree_cont[idemo]*Zp_minus_one(d2,icorr);
       
       //load corrections
+      mass_lat[idemo]=mass_corr_lat[idemo][corr_entr[icorr]][RE];
       self_lat[idemo]=self_corr_lat[idemo][corr_entr[icorr]][RE];
       tad_lat[idemo]=tad_corr_lat[idemo][corr_entr[icorr]][RE];
       exch_lat[idemo]=exch_corr_lat[idemo][corr_entr[icorr]][RE];
@@ -488,8 +503,10 @@ void correct(int icorr)
       slope_cont[idemo]=1+g2*Zp_minus_one(d2,icorr);
       
       //compute first order on lattice
+      double mass_coef=0.25611505461400043720;
       first_lat[idemo]=sign_corr[icorr]*first_corr_lat[idemo][corr_entr[icorr]][RE];
-      if(recompute_first) first_lat[idemo]=sign_corr[icorr]*4*(exch_lat[idemo]+2*self_lat[idemo]+2*tad_lat[idemo]);
+      if(recompute_first) first_lat[idemo]=sign_corr[icorr]*4*(exch_lat[idemo]+2*self_lat[idemo]+2*tad_lat[idemo]+2*mass_coef*mass_lat[idemo]);
+      //if(recompute_first) first_lat[idemo]=sign_corr[icorr]*4*(exch_lat[idemo]+2*self_lat[idemo]-2*tad_lat[idemo]);
       
       //diff between first lat and first cont
       first_diff[idemo]=first_lat[idemo]-first_cont[idemo];      
@@ -499,7 +516,7 @@ void correct(int icorr)
       
       //tree_plus_first_lat
       tree_plus_first_lat[idemo]=tree_lat[idemo]+g2*first_lat[idemo];
-      tree_plus_first_cont[idemo]=tree_cont[idemo]/(1+2*g2*Zp_minus_one(d2,icorr));
+      tree_plus_first_cont[idemo]=tree_cont[idemo]+g2*first_cont[idemo];
       
       //ratio between tree+first lat and tree+first cont
       first_ratio[idemo]=tree_plus_first_lat[idemo]/tree_plus_first_cont[idemo];
@@ -522,6 +539,7 @@ void correct(int icorr)
   write_allaveraged_demo("plots/first_cont.xmg",first_cont);
   write_demo("plots/slope_lat.xmg",slope_lat);
   write_demo("plots/slope_cont.xmg",slope_cont);
+  write_demo("plots/mass_lat.xmg",mass_lat);
   write_demo("plots/self_lat.xmg",self_lat);
   write_demo("plots/tad_lat.xmg",tad_lat);
   write_demo("plots/exch_lat.xmg",exch_lat);
@@ -548,6 +566,7 @@ void correct(int icorr)
   nissa_free(tree_corr_lat);
   nissa_free(tree_cont);
   nissa_free(tree_lat);
+  nissa_free(mass_lat);
   nissa_free(slope_lat);
   nissa_free(slope_cont);
   nissa_free(tree_diff);
@@ -555,6 +574,7 @@ void correct(int icorr)
   nissa_free(full_tree_subt);
   nissa_free(full_tree_divided);
   nissa_free(first_corr_lat);
+  nissa_free(mass_corr_lat);
   nissa_free(exch_corr_lat);
   nissa_free(tad_corr_lat);
   nissa_free(self_corr_lat);

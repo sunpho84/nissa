@@ -1,6 +1,6 @@
 #externally defined path and variables
 CC=openmpicxx
-CFLAGS=-O3
+CFLAGS=-O0 -ggdb3
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)

@@ -40,6 +40,30 @@ void quad_su3_copy(quad_su3 b,quad_su3 a)
 void spincolor_copy(spincolor b,spincolor a)
 {memcpy(b,a,sizeof(spincolor));}
 
+//////////////////// Switch directions so to agree to ILDG ordering ////////////////////
+
+void quad_su3_nissa_to_ildg_reord(quad_su3 out,quad_su3 in)
+{
+  quad_su3 buff;
+  quad_su3_copy(buff,in);
+  
+  su3_copy(out[3],buff[0]);
+  su3_copy(out[0],buff[1]);
+  su3_copy(out[1],buff[2]);
+  su3_copy(out[2],buff[3]);
+}
+
+void quad_su3_ildg_to_nissa_reord(quad_su3 out,quad_su3 in)
+{
+  quad_su3 buff;
+  quad_su3_copy(buff,in);
+  
+  su3_copy(out[0],buff[3]);
+  su3_copy(out[1],buff[0]);
+  su3_copy(out[2],buff[1]);
+  su3_copy(out[3],buff[2]);
+}
+
 ////////////////////////////////// Operations between colors //////////////////////////
 
 //just print a color
