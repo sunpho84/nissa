@@ -22,8 +22,8 @@ MassResiduesS0 2
 NThetaS0 2
 0.00 0.10
 
-SaveS0 0
-LoadS0 1
+SaveS0 1
+/*LoadS0 1*/
 
 ComputeDerivativeCorrelations 1
 StartDerivativeInversionFromIMass 1
