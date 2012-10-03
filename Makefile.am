@@ -18,7 +18,7 @@ libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers)
 ##########################################################################################################################################################
 
 #list of all the programs
-bin_PROGRAMS=projects/generate_confs/generate_stag projects/semileptonic/semileptonic_smeared tools/err tools/unitarity_check/unitarity_check
+bin_PROGRAMS=projects/generate_confs/generate_stag projects/semileptonic/semileptonic_smeared tools/unitarity_check/unitarity_check
 
 #program to generate confs
 projects_generate_confs_generate_stag_SOURCES=projects/generate_confs/generate_stag.cpp $(extra_headers)
@@ -26,8 +26,7 @@ projects_generate_confs_generate_stag_SOURCES=projects/generate_confs/generate_s
 #program for semileptonic smeared 2 and 3 points
 projects_semileptonic_semileptonic_smeared_SOURCES=projects/semileptonic/semileptonic_smeared.cpp $(extra_headers)
 
-#computation of errors
-tools_err_SOURCES=tools/err.cpp $(extra_headers)
+#unitarity check
 tools_unitarity_check_unitarity_check_SOURCES=tools/unitarity_check/unitarity_check.cpp $(extra_headers)
 
 ###########################################################################################################################################################
