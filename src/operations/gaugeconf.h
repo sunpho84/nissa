@@ -7,7 +7,7 @@ void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp);
 void generate_cold_eo_conf(quad_su3 **conf);
 void generate_hot_eo_conf(quad_su3 **conf);
 void heatbath_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars);
-void overrelax_conf(quad_su3 **eo_conf,pure_gauge_evol_pars *pars);
+void overrelax_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars);
 void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
 void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
 #endif

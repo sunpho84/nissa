@@ -76,6 +76,7 @@
 #include "operations/gaugeconf.h"
 #include "operations/remap_vector.h"
 #include "operations/smear.h"
+#include "operations/source.h"
 #include "operations/su3_paths.h"
 #include "operations/vector_gather.h"
 

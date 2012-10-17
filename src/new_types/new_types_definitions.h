@@ -97,6 +97,16 @@ struct nissa_vect
   char pad[nissa_vect_alignment-(3*sizeof(int)+2*sizeof(void*)+3*nissa_vect_string_length+sizeof(uint32_t))%nissa_vect_alignment];
 };
 
+struct su3_path;
+struct su3_path
+{
+  int ivol;
+  int movements;
+  su3 data;
+  su3_path* next;
+};
+
+
 //ILDG header
 typedef struct
 {
@@ -152,6 +162,7 @@ typedef struct
 } quark_content;
 
 //theory content
+enum action_type{Wilson_action,tlSym_action};
 typedef struct
 {
   double beta;
@@ -160,6 +171,7 @@ typedef struct
   quad_u1 ***backfield;
   quark_content *flav_pars;
   double E[3];
+  action_type gac_type;
   double B[3];
 } theory_pars;
 

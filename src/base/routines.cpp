@@ -119,6 +119,20 @@ int cp(char *path_out,char *path_in)
   return master_broadcast(rc);
 }
 
+//remove a file
+int rm(char *path)
+{
+  int rc;
+  if(rank==0)
+    {
+      char command[1024];
+      sprintf(command,"rm %s",path);
+      rc=system(command);
+    }
+  
+  return master_broadcast(rc);
+}
+
 void fprintf_friendly_filesize(FILE *fout,int quant)
 {fprintf_friendly_units(fout,quant,1024,"Bytes");}
 
@@ -263,4 +277,12 @@ int glb_reduce_int(int in_loc)
   MPI_Allreduce(&in_loc,&out_glb,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
   
   return out_glb;
+}
+
+void set_gauge_action_type(theory_pars &physics,char *type)
+{
+  if(strcmp(type,"Wilson")==0) physics.gac_type=Wilson_action;
+  else
+    if(strcmp(type,"tlSym")==0) physics.gac_type=tlSym_action;
+    else crash("unknown gauge action: %s",type);
 }

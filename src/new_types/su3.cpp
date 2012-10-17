@@ -330,6 +330,7 @@ void unsafe_su3_hermitian(su3 out,su3 in)
 //summ two su3 matrixes
 void su3_summ(su3 a,su3 b,su3 c)
 {for(int i=0;i<18;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
+void su3_summassign(su3 a,su3 b){su3_summ(a,a,b);}
 void su3_summ_real(su3 a,su3 b,double c)
 {su3_copy(a,b);for(int i=0;i<3;i++) a[i][i][0]=b[i][i][0]+c;}
 void su3_subt(su3 a,su3 b,su3 c)

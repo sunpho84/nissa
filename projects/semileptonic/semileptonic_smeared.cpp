@@ -158,27 +158,6 @@ int ipropS0(int itheta,int imass,int mu_der)
 int ipropS1(int itheta,int imass)
 {return itheta*nmassS1+imass;}
 
-//This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
-void meson_two_points(complex *corr,int *list_op1,prop_type *s1,int *list_op2,prop_type *s2,int ncontr)
-{
-  //Temporary vectors for the internal gamma
-  dirac_matr t1[ncontr],t2[ncontr];
-  
-  for(int icontr=0;icontr<ncontr;icontr++)
-    {
-      //Put the two gamma5 needed for the revert of the first spinor
-      dirac_prod(&(t1[icontr]), &(base_gamma[list_op1[icontr]]),&(base_gamma[5]));
-      dirac_prod(&(t2[icontr]), &(base_gamma[5]),&(base_gamma[list_op2[icontr]]));
-    }
-  
-  //Call the routine which perform the contraction
-#ifdef POINT_SOURCE_VERSION
-  trace_g_ccss_dag_g_ccss(corr,t1,s1,t2,s2,ncontr);
-#else
-  trace_g_sdag_g_s(corr,t1,s1,t2,s2,ncontr);
-#endif
-}
-
 //This function contract a source with a sequential spinor putting the passed list of operators
 void contract_with_source(complex *corr,prop_type *S1,int *list_op,prop_type *source)
 {
@@ -224,10 +203,12 @@ void generate_sequential_source(int ispec)
 {
   int r=r_spec[ispec];
   
+  select_propagator_timeslice(sequential_source,sequential_source,0);
+  
   master_printf("\nCreating the sequential source for spectator %d\n",ispec);
   nissa_loc_vol_loop(ivol)
     {
-      //put to zero everything but the slice
+      //put to zero everywhere but on the slice
       if(glb_coord_of_loclx[ivol][0]!=(source_coord[0]+tsep)%glb_size[0])
 	memset(sequential_source[ivol],0,sizeof(prop_type));
       else
@@ -533,11 +514,14 @@ int read_conf_parameters(int *iconf)
       //Out folder
       read_str(outfolder,1024);
       
-      //Check if the conf has been finished
+      //Check if the conf has been finished or is already running
       master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
-      char fin_file[1024];
+      char fin_file[1024],run_file[1024];
       sprintf(fin_file,"%s/finished",outfolder);
-      ok_conf=!(file_exists(fin_file));
+      sprintf(run_file,"%s/running",outfolder);
+      ok_conf=!(file_exists(fin_file)) && !(file_exists(run_file));
+      
+      //if not finished
       if(ok_conf)
 	{
 	  master_printf(" Configuration \"%s\" not yet analyzed, starting",conf_path);
@@ -548,6 +532,7 @@ int read_conf_parameters(int *iconf)
 	      else
 		crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
 	    }
+	  file_touch(run_file);
 	}
       else
 	master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
@@ -911,7 +896,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 			      master_fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
 			      
 			      //compute contractions
-			      meson_two_points(contr_2pts,op1_2pts,S0_1,op2_2pts,S0[r2][ip2],ncontr_2pts);
+			      meson_two_points_Wilson_prop(contr_2pts,op1_2pts,S0_1,op2_2pts,S0[r2][ip2],ncontr_2pts);
 			      ncontr_tot+=ncontr_2pts;
 			      
 			      //write 
@@ -923,7 +908,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 			      if(nch_contr_2pts>0)
 				{
 				  //compute them
-				  meson_two_points(ch_contr_2pts,ch_op1_2pts,S0_1,ch_op2_2pts,ch_prop,nch_contr_2pts);
+				  meson_two_points_Wilson_prop(ch_contr_2pts,ch_op1_2pts,S0_1,ch_op2_2pts,ch_prop,nch_contr_2pts);
 				  ncontr_tot+=nch_contr_2pts;
 				  
 				  //print them
@@ -983,7 +968,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		master_fprintf(fout," smear_source=%d smear_seq=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
 		
 		//compute contractions
-		meson_two_points(contr_3pts,op1_3pts,S0[r1][ip1],op2_3pts,S1[ip2],ncontr_3pts);
+		meson_two_points_Wilson_prop(contr_3pts,op1_3pts,S0[r1][ip1],op2_3pts,S1[ip2],ncontr_3pts);
 		ncontr_tot+=ncontr_3pts;
 		
 		//write them
@@ -995,7 +980,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		if(nch_contr_3pts>0)
 		  {
 		    //compute them
-		    meson_two_points(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_prop,nch_contr_3pts);
+		    meson_two_points_Wilson_prop(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_prop,nch_contr_3pts);
 		    ncontr_tot+=nch_contr_3pts;
 		    
 		    //and write them
@@ -1104,9 +1089,12 @@ int main(int narg,char **arg)
 	}
       
       //pass to the next conf if there is enough time
-      char fin_file[1024];
+      char fin_file[1024],run_file[1024];
       sprintf(fin_file,"%s/finished",outfolder);
+      sprintf(run_file,"%s/running",outfolder);
       file_touch(fin_file);
+      rm(run_file);
+      
       nanalyzed_conf++;
       enough_time=check_remaining_time();
     }

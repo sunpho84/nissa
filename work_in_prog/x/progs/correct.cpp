@@ -12,7 +12,7 @@ const int PP=0,SS=1,VV=2,AA=3;
 char corr_name[4][8]={"00","07","0305","0406"};
 const int corr_entr[4]={5,0,1,6};
 const int corr_mult[4]={1,1,1,1};
-const int recompute_first=1;
+const int recompute_first=0;
 
 int *demo_of_loclx,*loclx_of_demo,*npoints_dist2;
 int *dist2;
@@ -73,7 +73,7 @@ void prepare_demo_table(double cut_angle,int max_dist)
 	    compute_dist2_angle(dist2[ivol],angle,x);
 	    
 	    //check if democratic and not too far
-	    if(angle<=cut_angle && check_not_too_far(x,max_dist))
+	    if(angle<=(cut_angle+1.e-6) && check_not_too_far(x,max_dist))
 	      {
 		demo_of_loclx[ivol]=ndemo_points++;
 		
@@ -395,8 +395,8 @@ void correct(int icorr)
   sprintf(path,"%s/corrections/%d/",base_path,glb_size[1]);
   load_correction(tree_corr_lat,path,icorr,"free");
 
-  //sprintf(path,"%s/raw_corrections/%d/tree_corr",base_path,glb_size[1]);
-  //if(recompute_first) load_demo_ildg_corr(tree_corr_lat,path);
+  sprintf(path,"%s/raw_corrections/%d/tree_corr",base_path,glb_size[1]);
+  if(recompute_first) load_demo_ildg_corr(tree_corr_lat,path);
   
   //load the first order correlation on lattice
   corr16 *first_corr_lat=nissa_malloc("first_corr_lat",ndemo_points,corr16);
@@ -468,6 +468,7 @@ void correct(int icorr)
       
       //compute tree lattice
       tree_lat[idemo]=sign_corr[icorr]*tree_corr_lat[idemo][corr_entr[icorr]][RE];
+      if(recompute_first) tree_lat[idemo]=sign_corr[icorr]*cont_coeff[icorr]*tree_corr_lat[idemo][corr_entr[icorr]][RE];
 
       //diff between tree lat and tree cont
       tree_diff[idemo]=tree_lat[idemo]-tree_cont[idemo];

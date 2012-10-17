@@ -151,6 +151,9 @@ void summ_with_coeff(double c)
 
 int main(int narg,char **arg)
 {
+  double mcrit=40.444;// is the AOKI calculation
+  //double mcrit=41.6487;
+  double mass_coef=mcrit/(16*M_PI*M_PI);
   init_calc(narg,arg);
     
   //prepare the tree coor
@@ -161,6 +164,8 @@ int main(int narg,char **arg)
 
   //prepare the first order corr
   vector_reset(unav_corr);
+  read_unave(temp_corr,"mass");
+  summ_with_coeff(2*4.0*mass_coef);
   read_unave(temp_corr,"self");
   summ_with_coeff(2*4.0);
   read_unave(temp_corr,"tad");

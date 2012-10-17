@@ -15,6 +15,75 @@
 
 ////////////////////////// Complicated things /////////////////////
 
+//this is the general framework where to compute paths along the conf
+//there are special routines are for optimized tasks
+
+//init an su3 path
+su3_path* su3_path_init(int ivol)
+{
+  su3_path *out=(su3_path*)malloc(sizeof(su3_path));
+  out->ivol=ivol;
+  su3_put_to_id(out->data);
+  out->movements=0;
+  out->next=NULL;
+  
+  return out;
+}
+
+//append to existing list of path
+void su3_path_append(su3_path *out,su3_path *in)
+{
+  if(in->next!=NULL) crash("in->next!=NULL");
+  if(out->next!=NULL) crash("out->next!=NULL");
+  
+  out->next=in;
+}
+
+//get the length of path
+int su3_path_get_length(su3_path *in)
+{return (in->movements)>>28;}
+
+//get all the movements
+int su3_path_get_movements(su3_path *in)
+{return (in->movements)&268435455;}
+
+//add a movement to su3_path
+void su3_path_push_movement(su3_path *in,int mov)
+{
+  if(mov<0||mov>=8) crash("mov=%d, must be between 0 an 7",mov);
+  
+  int len=su3_path_get_length(in);
+  int movements=mov<<(3*len)|su3_path_get_movements(in);
+  len++;
+  
+  if(len>8) crash("too long path!");
+  
+  in->movements=(len<<28)|movements;
+}
+
+//add a movement to su3_path
+void su3_path_pop_movement(su3_path *in)
+{
+  int len=su3_path_get_length(in)-1;
+  if(len==-1) crash("empty list of movements!");
+  
+  int movements=su3_path_get_movements(in)>>3;
+  
+  in->movements=(len<<28)|movements;
+}
+
+//check if su3_path is terminated
+int su3_path_check_finished(su3_path *in)
+{return su3_path_get_length(in)==0;}
+
+//take current movement
+int su3_path_get_current_movement(su3_path *in)
+{
+  if(su3_path_check_finished(in)) crash("finished path!");
+  
+  return su3_path_get_movements(in)&7;
+}
+
 //square (the proto-plaquette)
 /*
      
@@ -47,20 +116,17 @@ double global_plaquette_lx_conf(quad_su3 *conf)
   
   su3 square;
   complex pl;
-  double totlocplaq=0;
+  double totplaq=0;
   nissa_loc_vol_loop(ivol)
     for(int idir=0;idir<4;idir++)
       for(int jdir=idir+1;jdir<4;jdir++)
 	{
 	  squared_path(square,conf,ivol,idir,jdir);
 	  su3_trace(pl,square);
-	  totlocplaq+=pl[0]/3;
+	  totplaq+=pl[0];
 	}
   
-  double totplaq;
-  MPI_Allreduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  
-  return totplaq/glb_vol/6;
+  return glb_reduce_double(totplaq)/glb_vol/18;
 }
 
 //This calculate the variance of the global plaquette.
@@ -81,15 +147,8 @@ double global_plaquette_variance_lx_conf(quad_su3 *conf)
           totlocplaq2+=(pl[0]/3)*(pl[0]/3);
         }
   
-  double totplaq;
-  MPI_Allreduce(&totlocplaq,&totplaq,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  double totplaq2;
-  MPI_Allreduce(&totlocplaq2,&totplaq2,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  
-  totplaq/=glb_vol*6;
-  totplaq2/=glb_vol*6;
-  
-  totplaq2-=totplaq*totplaq;
+  double totplaq=glb_reduce_double(totlocplaq)/(6*glb_vol);
+  double totplaq2=glb_reduce_double(totlocplaq2)/(6*glb_vol)-totplaq*totplaq;
   
   return sqrt(totplaq2);
 }
@@ -174,6 +233,98 @@ void compute_point_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int 
 void compute_point_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
 {for(int mu=0;mu<4;mu++) compute_point_staples_eo_conf_single_dir(staple[mu],eo_conf,A,mu);}
 
+//Compute rectangle staples. The routine loops over A and compute staples for 
+//neighbouring points. If these are not on the local volume, they must be sent to the 
+void compute_rectangle_staples_eo_conf(quad_su3 **staple,quad_su3 **eo_conf)
+{
+  communicate_eo_quad_su3_edges(eo_conf);
+  
+  //reset the staples - also borders are resetted
+  for(int eo=0;eo<2;eo++) vector_reset(staple[eo]);
+  
+  nissa_loc_vol_loop(Alx)
+    for(int mu=0;mu<4;mu++)
+      for(int nu=mu+1;nu<4;nu++)
+	{
+	  int p=loclx_parity[Alx];
+	  int A=loceo_of_loclx[Alx];
+	  int B=loceo_neighup[p][A][nu];
+	  int D=loceo_neighdw[p][A][nu];
+	  int E=loceo_neighdw[!p][D][mu];
+	  int F=loceo_neighup[p][A][mu];
+	  
+	  //compute DAB
+	  su3 DAB;
+	  unsafe_su3_prod_su3(DAB,eo_conf[!p][D][nu],eo_conf[p][A][nu]);
+	  
+	  //compute DABC
+	  su3 DABC;
+	  unsafe_su3_prod_su3(DABC,DAB,eo_conf[!p][B][mu]);
+	  
+	  //compute EDABC
+	  su3 EDABC;
+	  unsafe_su3_dag_prod_su3(EDABC,eo_conf[!p][D][mu],DABC);
+	  
+	  //compute EFC
+	  su3 EFC;
+	  unsafe_su3_prod_su3(EFC,eo_conf[p][E][nu],eo_conf[!p][F][nu]);
+	  
+	  //compute DEFC
+	  su3 DEFC;
+	  unsafe_su3_prod_su3(DEFC,eo_conf[!p][D][mu],EFC);
+	  
+	  //compute DEFCB
+	  su3 DEFCB;
+	  unsafe_su3_prod_su3_dag(DEFCB,DEFC,eo_conf[!p][B][mu]);
+	  
+	  // first of all the 2 staples when we consider the "horizontal" rectangle
+	  //
+	  //  E---F---C   
+	  //  |   |   | mu
+	  //  D---A---B   
+	  //        nu    
+	  
+	  //closing with BC gives DABCFE staple     //  E-<-F-<-C
+	  su3 DABCFE;				    //          |
+	  unsafe_su3_prod_su3_dag(DABCFE,DABC,EFC); //  D->-A->-B
+	  su3_summassign(staple[!p][D][mu],DABCFE);
+	  
+	  //closing with DE gives BADEFC staple     //  E->-F->-C
+	  su3 BADEFC;				    //  |        
+	  unsafe_su3_dag_prod_su3(BADEFC,DAB,DEFC); //  D-<-A-<-B
+	  //su3_summassign(staple[!p][B][mu],BADEFC);
+	  
+	  // then the 4 staples when we consider the "vertical" one
+	  //
+	  //   B---C
+	  //   |   |
+	  //   A---F
+	  // nu|   | 
+	  //   D---E
+	  //     mu
+	  
+	  //closing with DA gives ADEFCB staple
+	  su3 ADEFCB;
+	  unsafe_su3_dag_prod_su3(ADEFCB,eo_conf[!p][D][nu],DEFCB);
+	  //su3_summassign(staple[p][A][nu],ADEFCB);
+	    
+	  //closing with AB gives DEFCBA staple
+	  su3 DEFCBA;
+	  unsafe_su3_prod_su3_dag(DEFCBA,DEFCB,eo_conf[p][A][nu]);
+	  //su3_summassign(staple[!p][D][nu],DEFCBA);
+	  
+	  //closing with EF gives FEDABC staple
+	  su3 FEDABC;
+	  unsafe_su3_dag_prod_su3(FEDABC,eo_conf[p][E][nu],EDABC);
+	  //su3_summassign(staple[!p][F][nu],FEDABC);
+	  
+	  //closing with FC gives EDABCF staple
+	  su3 EDABCF;
+	  unsafe_su3_prod_su3_dag(EDABCF,EDABC,eo_conf[!p][F][nu]);
+	  //su3_summassign(staple[p][E][nu],EDABCF);
+	}
+}
+
 //shift an su3 vector of a single step along the mu axis, in the positive or negative dir
 void su3_vec_single_shift(su3 *u,int mu,int sign)
 {
@@ -251,7 +402,6 @@ void su3_vec_single_shift(su3 *u,int mu,int sign)
   //invalidate borders
   set_borders_invalid(u);
 }
-
 
 //compute the real part of the trace of the rectangle of size nstep_mu X nstep_nu in th mu|nu plane
 void average_trace_of_rectangle_path(complex tra,quad_su3 *conf,int mu,int nu,int nstep_mu,int nstep_nu,su3 *u)

@@ -232,8 +232,8 @@ void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp)
       }
 }
 
-//heatbath or overrelax algorithm for the quenched simulation case
-void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars,int heat_over)
+//heatbath or overrelax algorithm for the quenched simulation case, Wilson action
+void heatbath_or_overrelax_conf_Wilson_action(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars,int heat_over)
 {
   //loop on directions and on parity
   for(int mu=0;mu<4;mu++)
@@ -263,10 +263,176 @@ void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gau
       }
 }
 
+//used below, to check if the square is to be asked and in the case (if at 2 iter) note it
+inline int check_add_square_staple(int *isquare_staples_to_ask,int &nsquare_staple_to_ask,int ivol,int dir,int verse,int iter)
+{
+  if(ivol>=loc_vol)
+    {
+      int *note=isquare_staples_to_ask+(nsquare_staple_to_ask++)*3;
+      if(iter==1)
+	{
+	  note[0]=ivol;
+	  note[1]=dir;
+	  note[2]=verse;
+	}
+      return 1;
+    }
+  else return 0;
+}
+
+//heatbath or overrelax algorithm for the quenched simulation case, tlSym action
+void heatbath_or_overrelax_conf_tlSym_action(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars,int heat_over)
+{
+  //check that local volume is a multpiple of 4
+  for(int mu=0;mu<4;mu++)
+    if(loc_size[mu]%4!=0)
+      crash("Direction %d has not local size multiple of 4",mu);
+  
+  //allocate the list of link to update
+  int nlinks_to_update_exp=loc_vol/8;
+  int *links_to_update=nissa_malloc("links_to_update",nlinks_to_update_exp,int);
+  
+  //allocate the 24 squared staples to be computed:
+  //-6 horizontal, 2 mu-perp verses, 3 mu-perp directions at distance 1mu-perp
+  //-6 horizontal, 2 mu-perp verses, 3 mu-perp directions at distance 2mu-perp
+  //-12 vertical,  2 mu-perm verses, 3 mu-perp directions, 2 mu-paral verses at distance 1mu-paral
+  int nsquare_staples=nlinks_to_update_exp*24;
+  su3 *square_staples=nissa_malloc("square_staples",nsquare_staples,su3);
+  
+  //space where to take not of staples to ask
+  int *isquare_staples_to_ask=NULL;
+  
+  //loop on directions
+  for(int mu=0;mu<4;mu++)
+    {
+      //take the other three directions
+      int nu=(mu+1)%4;
+      int rho=(nu+1)%4;
+      int sig=(rho+1)%4;
+      
+      //loop on parity of the mu coord direction
+      for(int eo_mu=0;eo_mu<2;eo_mu++)
+	//loop on quadruple parity
+	for(int qpar=0;qpar<4;qpar++)
+	  {
+	    //print debug info
+	    master_printf("mu=%d eo_mu=%d qpar=%d\n",mu,eo_mu,qpar);	   
+	    
+	    //find the links to be updated: the point having 
+	    //x_mu%2==eo_mu and (x'_nu+x'_rho+x'_sigma)%4==qpar
+	    //where x'=x%4
+	    vector_reset(links_to_update);
+	    int nlinks_to_update=0;
+	    nissa_loc_vol_loop(ivol)
+	      if(glb_coord_of_loclx[ivol][mu]%2==eo_mu && 
+		 (glb_coord_of_loclx[ivol][nu]%4+
+		  glb_coord_of_loclx[ivol][rho]%4+
+		  glb_coord_of_loclx[ivol][sig]%4)%4==qpar)
+		links_to_update[nlinks_to_update++]=ivol;
+	    
+	    //compute buffer size: needs to ask                   .. ..   
+	    //for a staple, among the dotted ones              ..:__:__:.. 
+	    //at first iteration count and allocate bu        :..|__I__|..: 
+	    //at second take iteration take note                 |__|__|
+	    int nsquare_to_ask_to_rank[8]={0}; //positives, than negative directions
+	    for(int de=0;de<4;de++)
+	      if(paral_dir[de])
+		{
+		  if(de!=mu) nsquare_to_ask_to_rank[de]=nsquare_to_ask_to_rank[4+de]=loc_vol/loc_size[de]/4/2;
+		  else
+		    {
+		      //only if points are on inner mu+ border needs external nu/rho/sigma 
+		      if(eo_mu==1) nsquare_to_ask_to_rank[mu]=2*3*loc_vol/loc_size[mu]/4; 
+		      nsquare_to_ask_to_rank[4+mu]=0;
+		    }
+		}
+	    
+	    for(int k=0;k<8;k++)
+	      master_printf("%d ",nsquare_to_ask_to_rank[k]);
+	    master_printf("\n");
+	    
+	    int nsquare_staple_to_ask=0;
+	    int iter=0;
+	    //recheck in another way
+	    for(int ilink=0;ilink<nlinks_to_update;ilink++)
+	      {
+		int ivol=links_to_update[ilink];
+
+		for(int nu=0;nu<4;nu++)
+		  if(nu!=mu)
+		    {
+		      //find Left, TopLeft, Top and Right points
+		      int L=loclx_neighdw[ivol][nu];
+		      int T=loclx_neighup[ivol][mu];
+		      int TL=loclx_neighdw[T][nu];
+		      int R=loclx_neighup[ivol][nu];
+		      
+		      //check left staple: it has to be asked if L is on the border
+		      if(check_add_square_staple(isquare_staples_to_ask,nsquare_staple_to_ask,L,mu,-1,iter)) nsquare_to_ask_to_rank[4+nu]--;
+		      
+		      //check top left staple: it has to be asked if TL is on border or edge
+		      if(check_add_square_staple(isquare_staples_to_ask,nsquare_staple_to_ask,TL,nu,+1,iter)) nsquare_to_ask_to_rank[mu]--;
+		      
+		      //check top right staple: it has to be asked it T is on border
+		      if(check_add_square_staple(isquare_staples_to_ask,nsquare_staple_to_ask,T,nu,+1,iter)) nsquare_to_ask_to_rank[mu]--;
+		      
+		      //check right staple: it has to be asked if R is on boder
+		      if(check_add_square_staple(isquare_staples_to_ask,nsquare_staple_to_ask,R,mu,+1,iter)) nsquare_to_ask_to_rank[nu]--;
+		    }
+	      }
+	    
+	    for(int k=0;k<8;k++)
+	      master_printf("%d ",nsquare_to_ask_to_rank[k]);
+	    master_printf("\n");
+	    
+	    //allocate 3 int per square staple ot ask
+	    //if(iter==0) isquare_staples_to_ask=nissa_malloc("istta",nsquare_staple_to_ask*3,int);
+	  }
+
+      
+      //initialize space for square staples to zero
+      //vector_reset(square_staples);
+      
+      //allocate the in and out buffers: they have the same size
+      
+      //compute the staples to be sent and store them in the buffer
+      //location of staples to be sent is just the same of the staples to 
+      //ask, since the lattice is translation invariant w.r.t nodes
+      
+      //start sending the staples
+      
+      //compute local staples
+      
+      //wait to receive staples
+      
+      //put incoming staples in place
+      
+      //compute rectangular staples
+    }
+  
+  nissa_free(links_to_update);
+}
+
+//heatbath or overrelax algorithm for the quenched simulation case
+void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars,int heat_over)
+{
+  switch(physics->gac_type)
+    {
+    case Wilson_action:
+      heatbath_or_overrelax_conf_Wilson_action(eo_conf,physics,pars,heat_over);
+      break;
+   case tlSym_action:
+      heatbath_or_overrelax_conf_tlSym_action(eo_conf,physics,pars,heat_over);
+      break;
+    default:
+      crash("Unknown action");
+    }
+}
+
 //heatbath algorithm for the quenched simulation case
 void heatbath_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars)
 {heatbath_or_overrelax_conf(eo_conf,physics,pars,0);}
 
 //overrelax algorithm for the quenched simulation case
-void overrelax_conf(quad_su3 **eo_conf,pure_gauge_evol_pars *pars)
-{heatbath_or_overrelax_conf(eo_conf,NULL,pars,1);}
+void overrelax_conf(quad_su3 **eo_conf,theory_pars *physics,pure_gauge_evol_pars *pars)
+{heatbath_or_overrelax_conf(eo_conf,physics,pars,1);}

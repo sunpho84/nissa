@@ -168,7 +168,6 @@ void sum_trace_g_sdag_g_s_times_trace_g_sdag_g_s(complex **glb_c, dirac_matr *g1
   nissa_free(loc_c);
 }
 
-
 void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin *s1L, dirac_matr *g2L, colorspinspin *s2L, dirac_matr *g1R,colorspinspin *s1R, dirac_matr *g2R, colorspinspin *s2R,const int ncontr)
 {
 //Allocate a contguous memory area where to store local results
@@ -589,4 +588,38 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
   nissa_free(ss[1]);
 
   nissa_free(loc_contr);
+}
+
+//This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
+void meson_two_points_Wilson_prop(complex *corr,int *list_op1,su3spinspin *s1,int *list_op2,su3spinspin *s2,int ncontr)
+{
+  //Temporary vectors for the internal gamma
+  dirac_matr t1[ncontr],t2[ncontr];
+  
+  for(int icontr=0;icontr<ncontr;icontr++)
+    {
+      //Put the two gamma5 needed for the revert of the first spinor
+      dirac_prod(&(t1[icontr]), &(base_gamma[list_op1[icontr]]),&(base_gamma[5]));
+      dirac_prod(&(t2[icontr]), &(base_gamma[5]),&(base_gamma[list_op2[icontr]]));
+    }
+  
+  //Call the routine which perform the contraction
+  trace_g_ccss_dag_g_ccss(corr,t1,s1,t2,s2,ncontr);
+}
+
+//same version for spin-diluted stochastic props
+void meson_two_points_Wilson_prop(complex *corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr)
+{
+  //Temporary vectors for the internal gamma
+  dirac_matr t1[ncontr],t2[ncontr];
+  
+  for(int icontr=0;icontr<ncontr;icontr++)
+    {
+      //Put the two gamma5 needed for the revert of the first spinor
+      dirac_prod(&(t1[icontr]), &(base_gamma[list_op1[icontr]]),&(base_gamma[5]));
+      dirac_prod(&(t2[icontr]), &(base_gamma[5]),&(base_gamma[list_op2[icontr]]));
+    }
+  
+  //Call the routine which perform the contraction
+  trace_g_sdag_g_s(corr,t1,s1,t2,s2,ncontr);
 }
