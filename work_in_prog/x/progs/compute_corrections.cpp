@@ -14,6 +14,7 @@
 
 struct flags
 {
+  int crit_mass;
   int mass;
   int tree;
   int self;
@@ -58,6 +59,7 @@ void parse_input(quark_info &quark,gluon_info &gluon,char *output_folder,int &ne
   
   //read what to compute
   read_str_int("ComputeTree",&comp.tree);
+  read_str_int("ComputeCritMass",&comp.crit_mass);
   read_str_int("ComputeMass",&comp.mass);
   read_str_int("ComputeSelf",&comp.self);
   read_str_int("ComputeTad",&comp.tad);
@@ -73,7 +75,6 @@ void parse_input(quark_info &quark,gluon_info &gluon,char *output_folder,int &ne
   
   //output path
   read_str_str("OutputFolder",output_folder,1024);
-  
   
   //close input
   close_input();
@@ -143,6 +144,37 @@ void compute_mass_corrections(char *output_folder,quark_info &quark)
   nissa_free(corr);
   nissa_free(prop);
   nissa_free(sq_prop);
+}
+
+//compute the critical mass
+void compute_crit_mass(quark_info &quark,gluon_info &gluon)
+{
+  master_printf("Computing critical mass\n");
+  
+  spinspin *temp=nissa_malloc("temp",loc_vol,spinspin);
+
+  //compute tadpole contribution
+  spinspin tad;
+  compute_tadpole_twisted_propagator_in_mom_space(temp,quark,gluon);
+  pass_spinspin_from_x_to_mom_space(temp,temp,quark.bc);
+  spinspin_copy(tad,temp[0]);
+  master_printf("Tadpole computed\n");
+  
+  //compute self energy contribution
+  spinspin self;
+  compute_self_energy_twisted_diagram_in_x_space(temp,quark,gluon);
+  pass_spinspin_from_x_to_mom_space(temp,temp,quark.bc);
+  spinspin_copy(self,temp[0]);
+  master_printf("Self energy computed\n");
+  nissa_free(temp);
+
+  //summ the trace of 0 momentum
+  double crit=0;
+  if(rank==0)
+    for(int id=0;id<4;id++)
+      crit+=(tad[id][id][RE]+self[id][id][RE])/4*glb_vol;
+  
+  master_printf("Critical mass: %lg\n",crit);
 }
 
 //diagram of self energy (not tadpole)
@@ -241,6 +273,7 @@ int main(int narg,char **arg)
   
   //compute
   if(comp.tree) compute_tree_level_corrections(output_folder,quark);
+  if(comp.crit_mass) compute_crit_mass(quark,gluon);
   if(comp.mass) compute_mass_corrections(output_folder,quark);
   if(comp.self) compute_self_energy_corrections(output_folder,quark,gluon);
   if(comp.tad)  compute_tadpole_corrections(output_folder,quark,gluon);

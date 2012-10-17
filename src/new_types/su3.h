@@ -73,6 +73,7 @@ void su3_subt_the_prod_color(color a,su3 b,color c);
 void su3_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in);
 void su3_subt_the_prod_su3_dag(su3 a,su3 b,su3 c);
 void su3_summ(su3 a,su3 b,su3 c);
+void su3_summassign(su3 a,su3 b);
 void su3_summ_real(su3 a,su3 b,double c);
 void su3_summ_the_prod_color(color a,su3 b,color c);
 void su3_summ_the_prod_double(su3 a,su3 b,double r);

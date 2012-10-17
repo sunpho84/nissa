@@ -111,6 +111,13 @@ void init_simulation(char *path)
   if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD;
   if(start_conf_cond==-1) crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
   
+  //kind of action
+  char gauge_action_type[1024];
+  read_str_str("GaugeAction",gauge_action_type,1024);
+  set_gauge_action_type(physics,gauge_action_type);
+  //beta for gauge action
+  read_str_double("Beta",&physics.beta);
+  
   //read observable file
   char gauge_obs_path[1024];
   read_str_str("GaugeObsPath",gauge_obs_path,1024);
@@ -158,9 +165,6 @@ void init_simulation(char *path)
       read_str_double("ElecCharge",&(physics.flav_pars[iflav].charge));
     }
 
-  //beta for Wilson action
-  read_str_double("Beta",&physics.beta);
-  
   //read electric and magnetic field
   read_str_int("PutBkgrdEMField",&(physics.use_bkgrd_em_field));
   if(physics.use_bkgrd_em_field)
@@ -332,7 +336,7 @@ int generate_new_conf()
 	heatbath_conf(conf,&physics,&evol.pure_gauge_pars);
       //numer of overrelax sweeps
       for(int iov_sweep=0;iov_sweep<evol.pure_gauge_pars.nov_sweeps;iov_sweep++)
-	overrelax_conf(conf,&evol.pure_gauge_pars);
+	overrelax_conf(conf,&physics,&evol.pure_gauge_pars);
       
       //always new conf
       acc=1;
