@@ -19,7 +19,6 @@ int count_corr(char *path,const char *line_to_find)
       fprintf(stderr,"Error opening file: %s\n",path);
       exit(1);
     }
-<<<<<<< .mine
 
     char line[1024];
     while(fgets(line,1024,fin)==line)
@@ -31,19 +30,6 @@ int count_corr(char *path,const char *line_to_find)
     printf("found %d entries\n",ncorr);
     
     return ncorr;
-=======
-  
-  char line[1024];
-  while(fgets(line,1024,fin)==line)
-    if(strcmp(line,line_to_find)==0)
-      ncorr++;
-  
-  fclose(fin);
-  
-  printf("%d\n",ncorr);
-  
-  return ncorr;
->>>>>>> .r662
 }
 
 void change(double *dest,double *sour,int ndoubles)
