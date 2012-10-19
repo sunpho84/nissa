@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 #include <math.h>
 
 #include "../new_types/new_types_definitions.h"

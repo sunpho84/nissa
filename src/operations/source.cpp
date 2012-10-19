@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdlib.h>
 
 #include "../new_types/new_types_definitions.h"
 
@@ -18,4 +19,6 @@ template<class prop_type> void select_propagator_timeslice_internal(prop_type *p
 }
 
 void select_propagator_timeslice(colorspinspin *prop_out,colorspinspin *prop_in,int timeslice)
+{select_propagator_timeslice_internal(prop_out,prop_in,timeslice);}
+void select_propagator_timeslice(su3spinspin *prop_out,su3spinspin *prop_in,int timeslice)
 {select_propagator_timeslice_internal(prop_out,prop_in,timeslice);}

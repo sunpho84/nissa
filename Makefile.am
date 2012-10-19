@@ -18,13 +18,17 @@ libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers)
 ##########################################################################################################################################################
 
 #list of all the programs
-bin_PROGRAMS=projects/generate_confs/generate_stag projects/semileptonic/semileptonic_smeared tools/unitarity_check/unitarity_check work_in_prog/paths/su3_paths
+bin_PROGRAMS=projects/generate_confs/generate_stag projects/semileptonic/semileptonic_smeared tools/unitarity_check/unitarity_check projects/eight_BK/smeared_BK_all_in_one projects/semileptonic/semileptonic_smeared_point_source
 
 #program to generate confs
 projects_generate_confs_generate_stag_SOURCES=projects/generate_confs/generate_stag.cpp $(extra_headers)
 
+#program to compute BK
+projects_eight_BK_smeared_BK_all_in_one_SOURCES=projects/eight_BK/smeared_BK_all_in_one.cpp $(extra_headers)
+
 #program for semileptonic smeared 2 and 3 points
 projects_semileptonic_semileptonic_smeared_SOURCES=projects/semileptonic/semileptonic_smeared.cpp $(extra_headers)
+projects_semileptonic_semileptonic_smeared_point_source_SOURCES=projects/semileptonic/semileptonic_smeared_point_source.cpp $(extra_headers)
 
 #unitarity check
 tools_unitarity_check_unitarity_check_SOURCES=tools/unitarity_check/unitarity_check.cpp $(extra_headers)

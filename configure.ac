@@ -9,6 +9,7 @@ if test x${ac_cv_env_CXXFLAGS_set} != xset; then
 fi 
 
 #check gcc
+AC_PROG_CC
 AC_PROG_CXX
 
 #check library creating package
