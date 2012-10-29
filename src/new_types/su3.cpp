@@ -1011,6 +1011,15 @@ void unsafe_spincolor_summassign_the_prod_idouble(spincolor out,spincolor in,dou
       ((double*)out)[i+1]+=((double*)in)[i  ]*factor;
     }
 }
+void spincolor_prodassign_idouble(spincolor out,double factor)
+{
+  for(int i=0;i<24;i+=2)
+    {
+      double temp=-((double*)out)[i+1]*factor;
+      ((double*)out)[i+1]=((double*)out)[i  ]*factor;
+      ((double*)out)[i  ]=temp;
+    }
+}
 
 //spincolor*i*real
 void unsafe_spincolor_summ_with_ifactor(spincolor out,spincolor a,spincolor b,double factor)

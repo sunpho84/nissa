@@ -7,6 +7,7 @@
 #include "../base/communicate.h"
 #include "../base/vectors.h"
 #include "../base/routines.h"
+#include "../linalgs/linalgs.h"
 
 #ifdef BGP
  #include "../base/bgp_instructions.h"
@@ -210,7 +211,7 @@ void vol_spincolor_prod_double(spincolor *out,spincolor *in,double r)
 }
 
 //jacobi smearing
-void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int niter)
+void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int niter,spincolor *ext_temp=NULL,spincolor *ext_H=NULL)
 {
   if(niter<1)
     {
@@ -219,8 +220,14 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
     }
   else
     {
-      spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);//we do not know if smear_sc is allocated with bord
-      spincolor *H=nissa_malloc("H",loc_vol+bord_vol,spincolor);
+      spincolor *temp;
+      if(ext_temp==NULL) temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);//we do not know if smear_sc is allocated with bord
+      else               temp=ext_temp;
+      
+      spincolor *H;
+      if(ext_H==NULL) H=nissa_malloc("H",loc_vol+bord_vol,spincolor);
+      else            H=ext_H;
+      
       double norm_fact=1/(1+6*kappa);
       communicate_lx_quad_su3_borders(conf);
 
@@ -268,7 +275,82 @@ void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,doub
       memcpy(smear_sc,temp,sizeof(spincolor)*loc_vol);
       set_borders_invalid(smear_sc);
       
-      nissa_free(H);
+      if(ext_H==NULL) nissa_free(H);
+      if(ext_temp==NULL) nissa_free(temp);
+    }
+}
+
+//wrapper
+void jacobi_smearing(colorspinspin *smear_css,colorspinspin *origi_css,quad_su3 *conf,double kappa,int niter,spincolor *temp1=NULL,spincolor *temp2=NULL,spincolor *temp3=NULL)
+{
+  spincolor *temp;
+  if(temp1==NULL) temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+  
+  //loop over dirac index
+  for(int id=0;id<4;id++)
+    {
+      get_spincolor_from_colorspinspin(temp,origi_css,id);
+      jacobi_smearing(temp,temp,conf,kappa,niter,temp2,temp3);
+      put_spincolor_into_colorspinspin(smear_css,temp,id);
+    }
+  
+  if(temp1==NULL) nissa_free(temp);
+}
+
+//smear with a polynomial of H
+void jacobi_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int nterm,double *coeff,int *exponent)
+{
+  if(nterm==0||(nterm==1&&exponent[0]==0&&coeff[0]==1)){if(smear_sc!=origi_sc) vector_copy(smear_sc,origi_sc);}
+  else
+    {
+      //copy to a temp buffer
+      spincolor *temp1=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+      vector_copy(temp1,origi_sc);
+      
+      //allocate two temp vectors for jacobi
+      spincolor *temp2=nissa_malloc("temp2",loc_vol+bord_vol,spincolor);
+      spincolor *temp3=nissa_malloc("temp3",loc_vol+bord_vol,spincolor);
+
+      //reset the output
+      vector_reset(smear_sc);
+      
+      for(int iterm=0;iterm<nterm;iterm++)
+	{
+	  //compute the number of smearing steps
+	  int nstep=exponent[iterm];
+	  if(iterm>0) nstep-=exponent[iterm-1];
+	  
+	  //smear
+	  jacobi_smearing(temp1,temp1,conf,kappa,nstep,temp2,temp3);
+	  
+	  //accumulate
+	  double_vector_summ_double_vector_prod_double((double*)smear_sc,(double*)smear_sc,(double*)temp1,coeff[iterm],loc_vol*sizeof(spincolor)/sizeof(double));
+	}
+      
+      set_borders_invalid(smear_sc);
+      
+      nissa_free(temp1);
+      nissa_free(temp2);
+      nissa_free(temp3);
+    }
+}
+
+//wrapper
+void jacobi_smearing(colorspinspin *smear_css,colorspinspin *origi_css,quad_su3 *conf,double kappa,int nterm,double *coeff,int *exponent)
+{
+  if(nterm==0||(nterm==1&&exponent[0]==0&&coeff[0]==1)){if(smear_css!=origi_css) vector_copy(smear_css,origi_css);}
+  else
+    {
+      spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+      
+      //loop over dirac index
+      for(int id=0;id<4;id++)
+	{
+	  get_spincolor_from_colorspinspin(temp,origi_css,id);
+	  jacobi_smearing(temp,temp,conf,kappa,nterm,coeff,exponent);
+	  put_spincolor_into_colorspinspin(smear_css,temp,id);
+	}
+      
       nissa_free(temp);
     }
 }

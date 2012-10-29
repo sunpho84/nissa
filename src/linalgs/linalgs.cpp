@@ -1,6 +1,8 @@
 #include <string.h>
 
 #include "../new_types/new_types_definitions.h"
+#include "../new_types/su3.h"
+#include "../new_types/spin.h"
 #include "../new_types/float128.h"
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
@@ -143,4 +145,28 @@ double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,
   float_128 out;
   quadruple_accumulate_double_vector_glb_scalar_prod(out,a,b,n);
   return double_from_float_128(out);
+}
+
+//////////////// colorspinspin put/get ////////////////////////
+
+void get_spincolor_from_colorspinspin(spincolor *out,colorspinspin *in,int id)
+{
+  nissa_loc_vol_loop(ivol)
+    get_spincolor_from_colorspinspin(out[ivol],in[ivol],id);
+  set_borders_invalid(out);
+}
+
+void put_spincolor_into_colorspinspin(colorspinspin *out,spincolor *in,int id)
+{
+  nissa_loc_vol_loop(ivol)
+    put_spincolor_into_colorspinspin(out[ivol],in[ivol],id);
+  set_borders_invalid(out);
+}
+
+// spincolor algebra
+void unsafe_dirac_prod_spincolor(spincolor *out,dirac_matr &m,spincolor *in)
+{
+  nissa_loc_vol_loop(ivol)
+    unsafe_dirac_prod_spincolor(out[ivol],&m,in[ivol]);
+  set_borders_invalid(out);
 }

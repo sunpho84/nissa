@@ -1,8 +1,5 @@
 #ifndef _SU3_PATHS_H
 #define _SU3_PATHS_H
-
-#include "../new_types/new_types_definitions.h"
-
 double average_real_part_of_trace_of_rectangle_path(quad_su3 *conf,int mu,int nu,int nstep_mu,int nstep_nu,su3 *u);
 double average_topological_charge(quad_su3 **eo_conf);
 double average_topological_charge(quad_su3 *conf);

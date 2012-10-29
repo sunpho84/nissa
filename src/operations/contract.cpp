@@ -346,11 +346,14 @@ void print_contraction_to_file(FILE *fout,int op1,int op2,complex *contr,int twa
 {
   if(rank==0)
     {
-      fprintf(fout," # %s%s%s\n",tag,gtag[op2],gtag[op1]);
+      if(op1>=0 && op2>=0) fprintf(fout," # %s%s%s\n",tag,gtag[op2],gtag[op1]);
       for(int tempt=0;tempt<glb_size[0];tempt++)
 	{
 	  int t=tempt+twall;
 	  if(t>=glb_size[0]) t-=glb_size[0];
+	  
+	  if(fabs(contr[t][0])<1.e-250) contr[t][0]=0;
+	  if(fabs(contr[t][1])<1.e-250) contr[t][1]=0;
 	  
 	  fprintf(fout,"%+016.16g\t%+016.16g\n",contr[t][0]*norm,contr[t][1]*norm);
 	}

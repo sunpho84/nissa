@@ -133,7 +133,11 @@ EXTERN rnd_gen glb_rnd_gen;
 EXTERN int nissa_glb_rnd_gen_inited;
 EXTERN rnd_gen *loc_rnd_gen;
 EXTERN int nissa_loc_rnd_gen_inited;
-
+EXTERN enum rnd_type nissa_rnd_type_map[5]
+#ifndef ONLY_INSTANTIATION
+={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4}
+#endif
+;
 EXTERN as2t smunu_entr[4];   //these are the sigma matrices entries
 EXTERN int smunu_pos[4][6];  //and positions
 

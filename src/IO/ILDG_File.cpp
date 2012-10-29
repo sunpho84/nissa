@@ -87,18 +87,20 @@ void ILDG_message_free_all(ILDG_message *mess)
 //////////////////////////////////////////// simple tasks on file /////////////////////////////////////
 
 //open a file
-ILDG_File ILDG_File_open(char *path,int amode)
+ILDG_File ILDG_File_open(const char *path,int amode)
 {
   ILDG_File file;
-  decript_MPI_error(MPI_File_open(cart_comm,path,amode,MPI_INFO_NULL,&file),"while opening file %s",path);
+  char in_path[1024];
+  sprintf(in_path,"%s",path);
+  decript_MPI_error(MPI_File_open(cart_comm,in_path,amode,MPI_INFO_NULL,&file),"while opening file %s",path);
   
   return file;
 }
 
-ILDG_File ILDG_File_open_for_read(char *path)
+ILDG_File ILDG_File_open_for_read(const char *path)
 {return ILDG_File_open(path,MPI_MODE_RDONLY);}
 
-ILDG_File ILDG_File_open_for_write(char *path)
+ILDG_File ILDG_File_open_for_write(const char *path)
 {
   ILDG_File file=ILDG_File_open(path,MPI_MODE_WRONLY|MPI_MODE_CREATE);
   decript_MPI_error(MPI_File_set_size(file,0),"while resizing to 0 the file %s",path);

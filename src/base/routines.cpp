@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <sys/stat.h>
+#include <string>
 
 #include "debug.h"
 #include "global_variables.h"
@@ -120,13 +121,27 @@ int cp(char *path_out,char *path_in)
 }
 
 //remove a file
-int rm(char *path)
+int rm(const char *path)
 {
   int rc;
   if(rank==0)
     {
       char command[1024];
       sprintf(command,"rm %s",path);
+      rc=system(command);
+    }
+  
+  return master_broadcast(rc);
+}
+
+//pass to the folder
+int cd(const char *path)
+{
+  int rc;
+  if(rank==0)
+    {
+      char command[1024];
+      sprintf(command,"cd %s",path);
       rc=system(command);
     }
   
@@ -285,4 +300,16 @@ void set_gauge_action_type(theory_pars &physics,char *type)
   else
     if(strcmp(type,"tlSym")==0) physics.gac_type=tlSym_action;
     else crash("unknown gauge action: %s",type);
+}
+
+std::string combine(const char *format,...)
+{
+  char buffer[1024];
+  va_list args;
+  
+  va_start(args,format);
+  vsprintf(buffer,format,args);
+  va_end(args);
+  
+  return std::string(buffer);
 }
