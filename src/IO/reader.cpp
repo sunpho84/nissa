@@ -109,7 +109,7 @@ void reorder_read_ildg_gauge_conf(quad_su3 *conf)
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //read a real vector
-void read_real_vector(double *out,char *path,const char *record_name,uint64_t nreals_per_site,ILDG_message *mess=NULL)
+void read_real_vector(double *out,const char *path,const char *record_name,uint64_t nreals_per_site,ILDG_message *mess=NULL)
 {
   master_printf("Reading vector: %s\n",path);
   
@@ -176,14 +176,14 @@ void read_real_vector(double *out,char *path,const char *record_name,uint64_t nr
 }
 
 //read a color
-void read_color(color *c,char *path)
+void read_color(color *c,const char *path)
 {
   read_real_vector((double*)c,path,"scidac-binary-data",nreals_per_color);
   reorder_read_color(c);
 }
 
 //read a spincolor
-void read_spincolor(spincolor *sc,char *path)
+void read_spincolor(spincolor *sc,const char *path)
 {
   read_real_vector((double*)sc,path,"scidac-binary-data",nreals_per_spincolor);
   reorder_read_spincolor(sc);
@@ -191,7 +191,7 @@ void read_spincolor(spincolor *sc,char *path)
 }
 
 //read a colorspinspin
-void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
+void read_colorspinspin(colorspinspin *css,const char *base_path,const char *end_path)
 {
   spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
   for(int so=0;so<4;so++)
@@ -208,7 +208,7 @@ void read_colorspinspin(colorspinspin *css,char *base_path,char *end_path)
 }
 
 //read an su3spinspin
-void read_su3spinspin(su3spinspin *ccss,char *base_path,char *end_path)
+void read_su3spinspin(su3spinspin *ccss,const char *base_path,const char *end_path)
 {
   spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
   for(int id=0;id<4;id++)
@@ -226,7 +226,7 @@ void read_su3spinspin(su3spinspin *ccss,char *base_path,char *end_path)
 }
 
 //read a gauge conf
-void read_ildg_gauge_conf(quad_su3 *conf,char *path,ILDG_message *mess=NULL)
+void read_ildg_gauge_conf(quad_su3 *conf,const char *path,ILDG_message *mess=NULL)
 {
   master_printf("\nReading configuration from file: %s\n",path);
   read_real_vector((double*)conf,path,"ildg-binary-data",nreals_per_quad_su3,mess);
@@ -238,7 +238,7 @@ void read_ildg_gauge_conf(quad_su3 *conf,char *path,ILDG_message *mess=NULL)
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //Read a spincolor and reconstruct the doublet
-void read_tm_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path,quad_su3 *conf,double kappa,double mu)
+void read_tm_spincolor_reconstructing(spincolor **out,spincolor *temp,const char *path,quad_su3 *conf,double kappa,double mu)
 {
   int all=0;
   if(temp==NULL)
@@ -255,7 +255,7 @@ void read_tm_spincolor_reconstructing(spincolor **out,spincolor *temp,char *path
 }  
 
 //Read 4 spincolor and reconstruct them
-void read_tm_colorspinspin_reconstructing(colorspinspin **css,char *base_path,char *end_path,quad_su3 *conf,double kappa,double mu)
+void read_tm_colorspinspin_reconstructing(colorspinspin **css,const char *base_path,const char *end_path,quad_su3 *conf,double kappa,double mu)
 {
   double start_time=take_time();
   
@@ -290,7 +290,7 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,char *base_path,ch
 }
 
 //read an ildg conf and split it into e/o parts
-void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,char *path,ILDG_message *mess=NULL)
+void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,const char *path,ILDG_message *mess=NULL)
 {
   quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
   read_ildg_gauge_conf(lx_conf,path,mess);

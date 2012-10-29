@@ -159,7 +159,7 @@ void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbor
   
   if(adapt)
     {
-      master_printf("Necesary to add boundary condition: %f %f %f %f\n",diff_theta[0],diff_theta[1],diff_theta[2],diff_theta[3]);
+      master_printf("Necessary to add boundary condition: %f %f %f %f\n",diff_theta[0],diff_theta[1],diff_theta[2],diff_theta[3]);
       put_boundaries_conditions(conf,diff_theta,putonbords,putonedges);
     }
 }

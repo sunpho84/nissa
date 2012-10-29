@@ -185,8 +185,7 @@ void generate_source()
 #ifdef POINT_SOURCE_VERSION
   generate_delta_source(original_source,source_coord);
 #else
-  enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
-  generate_spindiluted_source(original_source,type[noise_type],source_coord[0]);
+  generate_spindiluted_source(original_source,nissa_rnd_type_map[noise_type],source_coord[0]);
   
   //if asked, save the source
   if(save_source)

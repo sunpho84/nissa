@@ -95,6 +95,7 @@ void unsafe_spincolor_prod_complex(spincolor out,spincolor in,complex factor);
 void unsafe_spincolor_prod_dirac(spincolor out,spincolor in,dirac_matr *m);
 void unsafe_spincolor_summ_with_ifactor(spincolor out,spincolor a,spincolor b,double factor);
 void unsafe_spincolor_summassign_the_prod_idouble(spincolor out,spincolor in,double factor);
+void spincolor_prodassign_idouble(spincolor out,double factor);
 void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in);
 void unsafe_su3_dag_dirac_summ_the_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in);
 void unsafe_su3_dag_prod_color(color a,su3 b,color c);

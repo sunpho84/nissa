@@ -102,7 +102,7 @@ void safe_complex_prod_idouble(complex a,complex b,double c)
 
 void complex_prodassign_idouble(complex a,double b)
 {
-  double a0=a[0]*b;
+  double a0=a[0];
   a[0]=-a[1]*b;
   a[1]=   a0*b;
 }

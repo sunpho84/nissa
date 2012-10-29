@@ -15,7 +15,8 @@ double sqr(double a);
 double take_time();
 int master_broadcast(int in);
 int cp(char *path1,char *path2);
-int rm(char *path);
+int rm(const char *path);
+int cd(const char *path);
 int create_dir(char *path);
 int factorize(int *list,int N);
 int log2N(int N);
@@ -30,4 +31,5 @@ void reorder_vector(char *vect,int *order,int nel,int sel);
 void swap_doubles(double *d1,double *d2);
 void take_last_characters(char *out,const char *in,int size);
 void set_gauge_action_type(theory_pars &physics,char *type);
+std::string combine(const char *format,...);
 #endif
