@@ -512,6 +512,20 @@ void corr_command_t::exec()
       double *mass2=pair->second->mass_res->mass;
       double *res2=pair->second->mass_res->residues;
       
+      int ncontr=two_pts_corr_group->corr_name.size();
+		
+      //prepare the list of contractions
+      int source_op[ncontr];
+      int sink_op[ncontr];
+      double coeff[ncontr];
+      for(int icontr=0;icontr<ncontr;icontr++)
+	{
+	  source_op[icontr]=two_pts_corr_group->contr_list[icontr].source_op;
+	  sink_op[icontr]=two_pts_corr_group->contr_list[icontr].sink_op;
+	  coeff[icontr]=two_pts_corr_group->contr_list[icontr].coeff;
+	}
+      complex *buf=nissa_malloc("buf",2*ncontr*glb_size[0],complex);
+      
       for(int itheta1=0;itheta1<ntheta1;itheta1++)
 	for(int imass1=0;imass1<nmass1;imass1++)
 	  for(int itheta2=0;itheta2<ntheta2;itheta2++)
@@ -520,32 +534,32 @@ void corr_command_t::exec()
 		master_fprintf(fout," # group_pair=%d, m1=%lg th1=%lg res1=%lg (reverted), m2=%lg th2=%lg res2=%lg\n\n",
 			       ipair,mass1[imass1],theta1[itheta1],res1[imass1],mass2[imass2],theta2[itheta2],res2[imass2]);
 		
+		//contract
+		for(int r=0;r<2;r++)
+		  {
+		    int iprop1=pair->first->iprop(itheta1,imass1,r);
+		    int iprop2=pair->second->iprop(itheta2,imass2,r);
+		    meson_two_points_Wilson_prop(buf+r*glb_size[0]*ncontr,sink_op,pair->first->S[iprop1],source_op,pair->second->S[iprop2],ncontr);
+		  }
+		
+		//add the contraction to build correlation functions
+		int icontr=0;
 		std::vector<two_pts_contr_pars_t>::const_iterator contr=two_pts_corr_group->contr_list.begin();
 		std::vector<std::string>::const_iterator corr=two_pts_corr_group->corr_name.begin();
-		
 		do
 		  {
+		    //reset the corr
 		    complex data[glb_size[0]];
 		    memset(data,0,sizeof(complex)*glb_size[0]);
 		    
+		    //loop on contr
 		    do
 		      {
-			int source_op=contr->source_op;
-			int sink_op=contr->sink_op;
-			double coeff=contr->coeff;
-			
 			for(int r=0;r<2;r++)
-			  {
-			    int iprop1=pair->first->iprop(itheta1,imass1,r);
-			    int iprop2=pair->second->iprop(itheta2,imass2,r);
-			    
-			    complex buf[glb_size[0]];
-			    
-			    meson_two_points_Wilson_prop(buf,&sink_op,pair->first->S[iprop1],&source_op,pair->second->S[iprop2],1);
-			    for(int t=0;t<glb_size[0];t++)
-			      complex_summ_the_prod_double(data[t],buf[t],0.5*coeff);
-			  }
+			  for(int t=0;t<glb_size[0];t++)
+			    complex_summ_the_prod_double(data[t],buf[t+glb_size[0]*(icontr+r*ncontr)],0.5*coeff[icontr]);
 			contr++;
+			icontr++;
 		      }
 		    while(contr!=two_pts_corr_group->contr_list.end() && !contr->starting);
 		    
@@ -557,6 +571,8 @@ void corr_command_t::exec()
 		  }
 		while(corr!=two_pts_corr_group->corr_name.end());
 	      }
+      
+      nissa_free(buf);
     }
   
   if(rank==0) fclose(fout);
