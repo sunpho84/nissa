@@ -1,5 +1,6 @@
 #ifndef _ROUTINES_H
 #define _ROUTINES_H
+#include <string>
 FILE* open_file(const char *outfile,const char *mode);
 FILE* open_text_file_for_output(const char *outfile);
 MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
