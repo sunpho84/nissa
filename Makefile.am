@@ -33,7 +33,7 @@ projects_semileptonic_test_SOURCES=projects/semileptonic/test.cpp projects/semil
 #unitarity check
 tools_unitarity_check_unitarity_check_SOURCES=tools/unitarity_check/unitarity_check.cpp $(extra_headers)
 
-work_in_prog_paths_su3_paths_SOURCES=work_in_prog/paths/su3_paths.cpp $(extra_headers)
+#work_in_prog_paths_su3_paths_SOURCES=work_in_prog/paths/su3_paths.cpp $(extra_headers)
 
 ###########################################################################################################################################################
 
