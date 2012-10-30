@@ -172,8 +172,8 @@ void analysis(char *path,int tsource,char *out_path)
   if(load_base_source) source[0].read(combine("%s/%s",base_out_folder,base_source_path).c_str());
   else
     {
-      source[0].fill(nissa_rnd_type_map[RND_Z4],0);
-      if(save_base_source) source[0].write(base_source_path);
+      source[0].fill(nissa_rnd_type_map[RND_Z4],tsource);
+      if(save_base_source) source[0].write(combine("%s/%s",base_out_folder,base_source_path).c_str());
     }
   
   //generate all the additional sources
