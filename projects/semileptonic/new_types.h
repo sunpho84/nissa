@@ -265,7 +265,7 @@ struct gauge_conf_t
   //reset theta
   void reset_theta() {for(int mu=0;mu<4;mu++) theta[mu]=0;}
   //adapt theta
-  void adapt_theta(momentum_t t) {ext_adapt_theta(U,theta,t,0,0);}
+  void adapt_theta(momentum_t t) {ext_adapt_theta(U,theta,t,1,1);}
   void adapt_spatial_theta(double t) {momentum_t th={theta[0],t,t,t};adapt_theta(th);}
   //put antiperiodic tetha
   void set_antiperodic_theta() {momentum_t anti={1,theta[1],theta[2],theta[3]};adapt_theta(anti);}
