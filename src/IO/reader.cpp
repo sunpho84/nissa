@@ -9,6 +9,7 @@
 #include "../base/vectors.h"
 #include "../geometry/geometry_mix.h"
 #include "../geometry/geometry_lx.h"
+#include "../linalgs/linalgs.h"
 #include "../operations/su3_paths.h"
 #include "checksum.h"
 #include "endianess.h"
@@ -247,7 +248,6 @@ void read_tm_spincolor_reconstructing(spincolor **out,spincolor *temp,const char
       all=1;
     }
   read_spincolor(temp,path);
-  set_borders_invalid(temp);
 
   reconstruct_tm_doublet(out[0],out[1],conf,kappa,mu,temp);
 
@@ -260,7 +260,7 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,const char *base_p
   double start_time=take_time();
   
   char filename[1024];
-  spincolor *sc[2]={nissa_malloc("sc1",loc_vol,spincolor),nissa_malloc("sc3",loc_vol,spincolor)};
+  spincolor *sc[2]={nissa_malloc("sc1",loc_vol,spincolor),nissa_malloc("sc2",loc_vol,spincolor)};
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
 
   //Read the four spinor
@@ -271,18 +271,12 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,const char *base_p
       read_tm_spincolor_reconstructing(sc,temp,filename,conf,kappa,mu);
       
       //Switch the spincolor into the colorspin. 
-      nissa_loc_vol_loop(ivol)
-	{
-	  put_spincolor_into_colorspinspin(css[0][ivol],sc[0][ivol],id_source);
-	  put_spincolor_into_colorspinspin(css[1][ivol],sc[1][ivol],id_source);
-	}
+      put_spincolor_into_colorspinspin(css[0],sc[0],id_source);
+      put_spincolor_into_colorspinspin(css[1],sc[1],id_source);
     }
 
   verbosity_lv1_master_printf("Time elapsed in reading file '%s': %f s\n",base_path,take_time()-start_time);
 
-  set_borders_invalid(css[0]);
-  set_borders_invalid(css[1]);
-  
   //Destroy the temp
   nissa_free(sc[0]);
   nissa_free(sc[1]);

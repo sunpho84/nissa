@@ -170,23 +170,6 @@ void write_tm_spincolor_anti_reconstructing(const char *path,spincolor **doublet
       spincolor_prodassign_idouble(QQ[ivol],1/(2*mu));
     }
   
-  spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
-  apply_tmQ(temp,conf,kappa,mu,QQ);
-  int ivol1=8,id1=2,ic1=1,ri1=1,mu1=1;
-  master_printf(" theta=[%lg,%lg,%lg,%lg], mu=%lg kappa=%lg QQ=%lg; Q*QQ=%lg Q_ori-=%lg Q_ori+=%lg; conf=%lg\n",
-		theta[0],
-		theta[1],
-		theta[2],
-		theta[3],
-		mu,
-		kappa,
-		QQ[ivol1][id1][ic1][ri1],
-		temp[ivol1][id1][ic1][ri1],
-		doublet[0][ivol1][id1][ic1][ri1],
-		doublet[1][ivol1][id1][ic1][ri1],
-		conf[ivol1][mu1][ic1][ic1][ri1]);
-  nissa_free(temp);
-  
   write_spincolor(path,QQ,prec);
   
   nissa_free(QQ);

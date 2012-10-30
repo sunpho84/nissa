@@ -221,10 +221,6 @@ void prop_group_t::write(const char *ext_template_path,int save_reconstructing,i
       int ivol1=8,id1=2,ic1=1,ri1=1,mu1=1;
       int ip0=iprop(itheta,imass,0);
       int ip1=iprop(itheta,imass,1);
-
-      master_printf("[extrachamber] CHECK CHECK Q_ori-=%lg Q_ori+=%lg\n",
-		    S[ip0][ivol1][ic1][id1][id][ri1],
-		    S[ip1][ivol1][ic1][id1][id][ri1]);
     }
   
   for(int itheta=0;itheta<ntheta;itheta++)
