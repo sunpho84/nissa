@@ -169,7 +169,7 @@ void analysis(char *path,int tsource,char *out_path)
   conf[1].ape_smear(ape_smear_pars);
   
   //if needed load the base source
-  if(load_base_source) source[0].read(base_source_path);
+  if(load_base_source) source[0].read(combine("%s/%s",base_out_folder,base_source_path).c_str());
   else
     {
       source[0].fill(nissa_rnd_type_map[RND_Z4],0);
