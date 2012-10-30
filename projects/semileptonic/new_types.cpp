@@ -368,10 +368,22 @@ void gauss_smear_pars_t::read()
 
 void two_pts_corr_group_t::add_corr(const char *what)
 {
+  //use the same order as in the correlator (sink, source) ALWAYS
+  
   if(strcmp("S0S0",what)==0)
     {
       corr_name.push_back(std::string(what));
       contr_list.push_back(two_pts_contr_pars_t(1,0,0,1.0));
+    }
+  if(strcmp("S0P5",what)==0)
+    {
+      corr_name.push_back(std::string(what));
+      contr_list.push_back(two_pts_contr_pars_t(1,0,5,1.0));
+    }
+  if(strcmp("P5S0",what)==0)
+    {
+      corr_name.push_back(std::string(what));
+      contr_list.push_back(two_pts_contr_pars_t(1,5,0,1.0));
     }
   if(strcmp("VKVK",what)==0)
     {
@@ -379,6 +391,20 @@ void two_pts_corr_group_t::add_corr(const char *what)
       contr_list.push_back(two_pts_contr_pars_t(1,1,1,1.0/3));
       contr_list.push_back(two_pts_contr_pars_t(0,2,2,1.0/3));
       contr_list.push_back(two_pts_contr_pars_t(0,3,3,1.0/3));
+    }
+  if(strcmp("AKVK",what)==0)
+    {
+      corr_name.push_back(std::string(what));
+      contr_list.push_back(two_pts_contr_pars_t(1,6,1,1.0/3));
+      contr_list.push_back(two_pts_contr_pars_t(0,7,2,1.0/3));
+      contr_list.push_back(two_pts_contr_pars_t(0,8,3,1.0/3));
+    }
+  if(strcmp("VKAK",what)==0)
+    {
+      corr_name.push_back(std::string(what));
+      contr_list.push_back(two_pts_contr_pars_t(1,1,6,1.0/3));
+      contr_list.push_back(two_pts_contr_pars_t(0,2,7,1.0/3));
+      contr_list.push_back(two_pts_contr_pars_t(0,3,8,1.0/3));
     }
   if(strcmp("V0V0",what)==0)
     {
@@ -512,8 +538,8 @@ void corr_command_t::exec()
 			
 			for(int r=0;r<2;r++)
 			  {
-			    int iprop1=pair->first->iprop(itheta1,imass1,0);
-			    int iprop2=pair->second->iprop(itheta2,imass2,0);
+			    int iprop1=pair->first->iprop(itheta1,imass1,r);
+			    int iprop2=pair->second->iprop(itheta2,imass2,r);
 			    
 			    complex buf[glb_size[0]];
 			    meson_two_points_Wilson_prop(data,&sink_op,pair->first->S[iprop1],&source_op,pair->second->S[iprop2],1);
