@@ -63,8 +63,7 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
 {
   //Allocate a contiguous memory area where to store local node results
   complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
-  for(int icontr=0;icontr<ncontr;icontr++)
-    for(int glb_t=0;glb_t<glb_size[0];glb_t++) loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
+  vector_reset(loc_c);
   
   for(int icontr=0;icontr<ncontr;icontr++) 
     {
@@ -85,7 +84,9 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
     }
   
   //Final reduction
-  verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+  //printf("RANK: %d\n",rank);
+  //fflush(stdout);
+  verbosity_lv3_master_printf("Performing final reduction of %d double\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   verbosity_lv3_master_printf("Reduction done\n");
   
