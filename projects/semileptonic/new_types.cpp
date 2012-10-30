@@ -499,6 +499,8 @@ void corr_command_t::exec()
   int ipair=0;
   for(std::vector<prop_group_pair_t>::const_iterator pair=pair_list.begin();pair!=pair_list.end();pair++,ipair++)
     {
+      master_printf("Starting contraction of group %d\n",ipair);
+      
       int ntheta1=pair->first->theta->ntheta;
       double *theta1=pair->first->theta->theta;
       int ntheta2=pair->second->theta->ntheta;
@@ -538,7 +540,8 @@ void corr_command_t::exec()
 			    int iprop2=pair->second->iprop(itheta2,imass2,r);
 			    
 			    complex buf[glb_size[0]];
-			    meson_two_points_Wilson_prop(data,&sink_op,pair->first->S[iprop1],&source_op,pair->second->S[iprop2],1);
+			    
+			    meson_two_points_Wilson_prop(buf,&sink_op,pair->first->S[iprop1],&source_op,pair->second->S[iprop2],1);
 			    for(int t=0;t<glb_size[0];t++)
 			      complex_summ_the_prod_double(data[t],buf[t],0.5*coeff);
 			  }
