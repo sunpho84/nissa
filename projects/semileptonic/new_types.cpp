@@ -365,88 +365,107 @@ void gauss_smear_pars_t::read()
 
 // #################################### two_pts_corr_group_t ##############################
 
-void two_pts_corr_group_t::add_corr(const char *what)
+void two_pts_corr_group_t::add_corr(std::vector<two_pts_contr_pars_t> &buf_contr_list,std::vector<std::string> &buf_corr_name,const char *what)
 {
   //use the same order as in the correlator (sink, source) ALWAYS
   
   if(strcmp("S0S0",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,0,0,1.0));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,0,0,1.0));
     }
   if(strcmp("S0P5",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,0,5,1.0));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,0,5,1.0));
     }
   if(strcmp("P5S0",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,5,0,1.0));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,5,0,1.0));
     }
   if(strcmp("VKVK",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,1,1,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,2,2,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,3,3,1.0/3));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,1,1,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,2,2,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,3,3,1.0/3));
     }
   if(strcmp("AKVK",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,6,1,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,7,2,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,8,3,1.0/3));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,6,1,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,7,2,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,8,3,1.0/3));
     }
   if(strcmp("VKAK",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,1,6,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,2,7,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,3,8,1.0/3));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,1,6,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,2,7,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,3,8,1.0/3));
     }
   if(strcmp("V0V0",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,4,4,1.0));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,4,4,1.0));
     }
   if(strcmp("P5P5",what)==0)
     {
-      contr_list.push_back(two_pts_contr_pars_t(1,5,5,1));
-      corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,5,5,1));
+      buf_corr_name.push_back(std::string(what));
     }
   if(strcmp("AKAK",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,6,6,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,7,7,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,8,8,1.0/3));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,6,6,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,7,7,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,8,8,1.0/3));
     }
   if(strcmp("A0A0",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,9,9,1.0));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,9,9,1.0));
     }
   if(strcmp("TKTK",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,10,10,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,11,11,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,12,12,1.0/3));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,10,10,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,11,11,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,12,12,1.0/3));
     }
   if(strcmp("BKBK",what)==0)
     {
-      corr_name.push_back(std::string(what));
-      contr_list.push_back(two_pts_contr_pars_t(1,13,13,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,14,14,1.0/3));
-      contr_list.push_back(two_pts_contr_pars_t(0,15,15,1.0/3));
+      buf_corr_name.push_back(std::string(what));
+      buf_contr_list.push_back(two_pts_contr_pars_t(1,13,13,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,14,14,1.0/3));
+      buf_contr_list.push_back(two_pts_contr_pars_t(0,15,15,1.0/3));
     }
+}
+
+void two_pts_corr_group_t::create(std::vector<two_pts_contr_pars_t> &buf_contr_list,std::vector<std::string> &buf_corr_name)
+{
+  //unbuffer corr
+  corr_name=nissa_malloc("CorrList*",buf_corr_name.size(),char*);
+  for(int icorr=0;icorr<buf_corr_name.size();icorr++)
+    {
+      corr_name[icorr]=(char*)malloc(10);
+      sprintf(corr_name[icorr],"%s",buf_corr_name[icorr].c_str());
+    }
+  
+  //unbuffer contr
+  contr_list=nissa_malloc("ContrList",buf_contr_list.size(),two_pts_contr_pars_t);
+  ncontr=buf_contr_list.size();
+  for(int icontr=0;icontr<buf_contr_list.size();icontr++)
+    contr_list[icontr]=buf_contr_list[icontr];  
 }
 
 void two_pts_corr_group_t::read()
 {
+  std::vector<two_pts_contr_pars_t> buf_contr_list;
+  std::vector<std::string> buf_corr_name;
+  
   //read the number of corr
-  int ncorr;
   read_str_int("NCorr",&ncorr);
   
   //read the corr one by one
@@ -454,13 +473,15 @@ void two_pts_corr_group_t::read()
     {
       char corr_name[1024];
       read_str(corr_name,1024);
-      add_corr(corr_name);
+      add_corr(buf_contr_list,buf_corr_name,corr_name);
     }
+  
+  create(buf_contr_list,buf_corr_name);
 }
 
 // ###################################### corr_command_t ###################################
 
-void corr_command_t::read_prop_group_pair(int nprop_group,prop_group_t *prop_group)
+void corr_command_t::read_prop_group_pair(int nprop_group,prop_group_t *prop_group,int ipair)
 {
   //the first is reverted
   int first,second;
@@ -470,9 +491,7 @@ void corr_command_t::read_prop_group_pair(int nprop_group,prop_group_t *prop_gro
   if(first<0||first>=nprop_group) crash("first group %d must be in the interval [0,%d)",first,nprop_group);
   if(second<0||second>=nprop_group) crash("second group %d must be in the interval [0,%d)",second,nprop_group);
   
-  master_printf("Adding %d %d to %d element long array\n",first,second,pair_list.size());
-  
-  pair_list.push_back(prop_group_pair_t(prop_group[first],prop_group[second]));
+  pair_list[ipair]=prop_group_pair_t(prop_group[first],prop_group[second]);
 }
 
 void corr_command_t::read_corr_group(int ntwo_pts_corr_group_avail,two_pts_corr_group_t *ext_two_pts_corr_group)
@@ -490,34 +509,34 @@ void corr_command_t::read(int ntwo_pts_group_avail,two_pts_corr_group_t *ext_two
   
   read_corr_group(ntwo_pts_group_avail,ext_two_pts_corr_group);
   
-  int nprop_group_pair;
   read_str_int("NPropGroupPair",&nprop_group_pair);
+  pair_list=nissa_malloc("PairList",nprop_group_pair,prop_group_pair_t);
   
   for(int ipair=0;ipair<nprop_group_pair;ipair++)
-    read_prop_group_pair(nprop_group,prop_group);
+    read_prop_group_pair(nprop_group,prop_group,ipair);
 }
 
 void corr_command_t::exec()
 {
   FILE *fout=open_file(combine("%s/%s",base_out_folder,path).c_str(),"w");
   
-  int ipair=0;
-  for(std::vector<prop_group_pair_t>::const_iterator pair=pair_list.begin();pair!=pair_list.end();pair++)
+  for(int ipair=0;ipair<nprop_group_pair;ipair++)
     {
-      master_printf("Starting contraction of group %d\n",ipair);
+      master_printf("Starting contraction of group %d/%d\n",ipair,nprop_group_pair);
       
-      int ntheta1=pair->first->theta->ntheta;
-      double *theta1=pair->first->theta->theta;
-      int ntheta2=pair->second->theta->ntheta;
-      double *theta2=pair->second->theta->theta;
-      int nmass1=pair->first->mass_res->nmass;
-      double *mass1=pair->first->mass_res->mass;
-      double *res1=pair->first->mass_res->residues;
-      int nmass2=pair->second->mass_res->nmass;
-      double *mass2=pair->second->mass_res->mass;
-      double *res2=pair->second->mass_res->residues;
+      int ntheta1=pair_list[ipair].first->theta->ntheta;
+      double *theta1=pair_list[ipair].first->theta->theta;
+      int ntheta2=pair_list[ipair].second->theta->ntheta;
+      double *theta2=pair_list[ipair].second->theta->theta;
+      int nmass1=pair_list[ipair].first->mass_res->nmass;
+      double *mass1=pair_list[ipair].first->mass_res->mass;
+      double *res1=pair_list[ipair].first->mass_res->residues;
+      int nmass2=pair_list[ipair].second->mass_res->nmass;
+      double *mass2=pair_list[ipair].second->mass_res->mass;
+      double *res2=pair_list[ipair].second->mass_res->residues;
       
-      int ncontr=two_pts_corr_group->corr_name.size();
+      int ncontr=two_pts_corr_group->ncontr;
+      int ncorr=two_pts_corr_group->ncorr;
 		
       //prepare the list of contractions
       int source_op[ncontr];
@@ -542,15 +561,15 @@ void corr_command_t::exec()
 		//contract
 		for(int r=0;r<2;r++)
 		  {
-		    int iprop1=pair->first->iprop(itheta1,imass1,r);
-		    int iprop2=pair->second->iprop(itheta2,imass2,r);
-		    meson_two_points_Wilson_prop(buf+r*glb_size[0]*ncontr,sink_op,pair->first->S[iprop1],source_op,pair->second->S[iprop2],ncontr);
+		    int iprop1=pair_list[ipair].first->iprop(itheta1,imass1,r);
+		    int iprop2=pair_list[ipair].second->iprop(itheta2,imass2,r);
+		    meson_two_points_Wilson_prop(buf+r*glb_size[0]*ncontr,sink_op,pair_list[ipair].first->S[iprop1],source_op,pair_list[ipair].second->S[iprop2],ncontr);
 		  }
 		
 		//add the contraction to build correlation functions
-		int icontr=0;
-		std::vector<two_pts_contr_pars_t>::const_iterator contr=two_pts_corr_group->contr_list.begin();
-		std::vector<std::string>::const_iterator corr=two_pts_corr_group->corr_name.begin();
+		int icontr=0,icorr=0;
+		two_pts_contr_pars_t *contr=two_pts_corr_group->contr_list;
+		char **corr_name=two_pts_corr_group->corr_name;
 		do
 		  {
 		    //reset the corr
@@ -563,21 +582,19 @@ void corr_command_t::exec()
 			for(int r=0;r<2;r++)
 			  for(int t=0;t<glb_size[0];t++)
 			    complex_summ_the_prod_double(data[t],buf[t+glb_size[0]*(icontr+r*ncontr)],0.5*coeff[icontr]);
-			contr++;
 			icontr++;
 		      }
-		    while(contr!=two_pts_corr_group->contr_list.end() && !contr->starting);
+		    while(icontr!=ncontr && !contr->starting);
 		    
-		    master_fprintf(fout," # %s\n",corr->c_str());
+		    master_fprintf(fout," # %s\n",corr_name[icorr]);
 		    print_contraction_to_file(fout,-1,-1,data,shift,"",1);
 		    master_fprintf(fout,"\n");
 		    
-		    corr++;
+		    icorr++;
 		  }
-		while(corr!=two_pts_corr_group->corr_name.end());
+		while(icorr!=ncorr);
 	      }
      
-      ipair++;
       nissa_free(buf);
     }
   
