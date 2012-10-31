@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <vector>
 #include "../../src/nissa.h"
 
 struct mass_res_group_t;
@@ -192,37 +191,42 @@ struct prop_group_command_t
   void exec();
 };
 
-// ######################################################## two_pts_contr_pars_t ###############################################
+// ######################################################## two_pts_corr_pars_t ###############################################
 
-struct two_pts_contr_pars_t
+struct two_pts_corr_pars_t
 {
-  int source_op;
-  int sink_op;
-  double coeff;
-  int starting;
+  char name[10];
+  int ncontr;
+  int *source_op;
+  int *sink_op;
+  double *coeff;
   
-  two_pts_contr_pars_t(int ext_starting,int ext_sink_op,int ext_source_op,double ext_coeff) : starting(ext_starting),sink_op(ext_sink_op),source_op(ext_source_op),coeff(ext_coeff) {}
+  two_pts_corr_pars_t(const char *what,double c1,int si1,int so1,double c2,int si2,int so2,double c3,int si3,int so3); 
+  two_pts_corr_pars_t(const char *what,double c1,int si1,int so1);
 };
+
+extern const int navail_two_pts_corr;
+extern two_pts_corr_pars_t *avail_two_pts_corr[12];
+
+two_pts_corr_pars_t *unroll_corr_to_contr(const char *what);
 
 // ######################################################## two_pts_corr_group_t ###############################################
 
 struct two_pts_corr_group_t
 {
-  int ncorr,ncontr;
-  two_pts_contr_pars_t *contr_list;
-  char **corr_name;
+  int ncorr,ntot_contr;
+  two_pts_corr_pars_t **corr_list;
   
   //create unallocated and empty
-  void reset() {contr_list=NULL;corr_name=NULL;}
+  void reset() {corr_list=NULL;}
   two_pts_corr_group_t() {reset();}
   //create allocated and fill
-  void create(std::vector<two_pts_contr_pars_t> &buf_contr_list,std::vector<std::string> &buf_corr_name);
+  void create(int ext_ncorr);
   //check if it is allocated
-  int is_allocated() {return !(corr_name==NULL);}
+  int is_allocated() {return !(corr_list==NULL);}
   //destroy
-  void destroy() {if(is_allocated()) {for(int icorr=0;icorr<ncorr;icorr++) free((void*)corr_name[icorr]);nissa_free(corr_name);nissa_free(contr_list);}}
+  void destroy() {if(is_allocated()) nissa_free(corr_list);}
   ~two_pts_corr_group_t() {destroy();}
-  void add_corr(std::vector<two_pts_contr_pars_t> &contr_list,std::vector<std::string> &corr_name,const char *what);
   void read();
 };
 

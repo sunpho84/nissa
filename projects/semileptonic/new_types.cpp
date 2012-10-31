@@ -363,120 +363,101 @@ void gauss_smear_pars_t::read()
     }
 }
 
-// #################################### two_pts_corr_group_t ##############################
+// #################################### two_pts_corr_pars_t ###############################
 
-void two_pts_corr_group_t::add_corr(std::vector<two_pts_contr_pars_t> &buf_contr_list,std::vector<std::string> &buf_corr_name,const char *what)
+two_pts_corr_pars_t::two_pts_corr_pars_t(const char *what,double c1,int si1,int so1)
 {
-  //use the same order as in the correlator (sink, source) ALWAYS
+  ncontr=1;
+  strcpy(name,what);
+  source_op=new int[1];
+  sink_op=new int[1];
+  coeff=new double[1];
   
-  if(strcmp("S0S0",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,0,0,1.0));
-    }
-  if(strcmp("S0P5",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,0,5,1.0));
-    }
-  if(strcmp("P5S0",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,5,0,1.0));
-    }
-  if(strcmp("VKVK",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,1,1,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,2,2,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,3,3,1.0/3));
-    }
-  if(strcmp("AKVK",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,6,1,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,7,2,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,8,3,1.0/3));
-    }
-  if(strcmp("VKAK",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,1,6,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,2,7,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,3,8,1.0/3));
-    }
-  if(strcmp("V0V0",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,4,4,1.0));
-    }
-  if(strcmp("P5P5",what)==0)
-    {
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,5,5,1));
-      buf_corr_name.push_back(std::string(what));
-    }
-  if(strcmp("AKAK",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,6,6,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,7,7,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,8,8,1.0/3));
-    }
-  if(strcmp("A0A0",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,9,9,1.0));
-    }
-  if(strcmp("TKTK",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,10,10,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,11,11,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,12,12,1.0/3));
-    }
-  if(strcmp("BKBK",what)==0)
-    {
-      buf_corr_name.push_back(std::string(what));
-      buf_contr_list.push_back(two_pts_contr_pars_t(1,13,13,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,14,14,1.0/3));
-      buf_contr_list.push_back(two_pts_contr_pars_t(0,15,15,1.0/3));
-    }
+  source_op[0]=so1;
+  sink_op[0]=si1;
+  coeff[0]=c1;
 }
 
-void two_pts_corr_group_t::create(std::vector<two_pts_contr_pars_t> &buf_contr_list,std::vector<std::string> &buf_corr_name)
+two_pts_corr_pars_t::two_pts_corr_pars_t(const char *what,double c1,int si1,int so1,double c2,int si2,int so2,double c3,int si3,int so3)
 {
-  //unbuffer corr
-  corr_name=nissa_malloc("CorrList*",buf_corr_name.size(),char*);
-  for(int icorr=0;icorr<buf_corr_name.size();icorr++)
-    {
-      corr_name[icorr]=(char*)malloc(10);
-      sprintf(corr_name[icorr],"%s",buf_corr_name[icorr].c_str());
-    }
+  ncontr=3;
+  strcpy(name,what);
+  source_op=new int[3];
+  sink_op=new int[3];
+  coeff=new double[3];
   
-  //unbuffer contr
-  contr_list=nissa_malloc("ContrList",buf_contr_list.size(),two_pts_contr_pars_t);
-  ncontr=buf_contr_list.size();
-  for(int icontr=0;icontr<buf_contr_list.size();icontr++)
-    contr_list[icontr]=buf_contr_list[icontr];  
+  source_op[0]=so1;
+  sink_op[0]=si1;
+  coeff[0]=c1;
+  source_op[1]=so2;
+  sink_op[1]=si2;
+  coeff[1]=c2;
+  source_op[2]=so3;
+  sink_op[2]=si3;
+  coeff[2]=c3;
+}
+
+two_pts_corr_pars_t *unroll_corr_to_contr(const char *what)
+{
+  int icorr=0;
+  while(icorr<navail_two_pts_corr && strcmp(avail_two_pts_corr[icorr]->name,what)!=0) icorr++;
+
+  if(icorr==navail_two_pts_corr) crash("Unknown corr: %s",what);
+  
+  return avail_two_pts_corr[icorr];
+}
+
+two_pts_corr_pars_t two_pts_corr_pars_S0S0("S0S0",1.0,0,0);
+two_pts_corr_pars_t two_pts_corr_pars_VKVK("VKVK",1.0/3,1,1, 1.0/3,2,2, 1.0/3,3,3);
+two_pts_corr_pars_t two_pts_corr_pars_V0V0("V0V0",1.0,4,4);
+two_pts_corr_pars_t two_pts_corr_pars_P5P5("P5P5",1.0,5,5);
+two_pts_corr_pars_t two_pts_corr_pars_AKAK("AKAK",1.0/3,6,6, 1.0/3,7,7, 1.0/3,8,8);
+two_pts_corr_pars_t two_pts_corr_pars_A0A0("A0A0",1.0,9,9);
+two_pts_corr_pars_t two_pts_corr_pars_TKTK("TKTK",1.0/3,10,10, 1.0/3,11,11, 1.0/3,12,12);
+two_pts_corr_pars_t two_pts_corr_pars_BKBK("BKBK",1.0/3,13,13, 1.0/3,14,14, 1.0/3,15,15);
+two_pts_corr_pars_t two_pts_corr_pars_S0P5("S0P5",1.0,0,5);
+two_pts_corr_pars_t two_pts_corr_pars_P5S0("P5S0",1.0,5,0);
+two_pts_corr_pars_t two_pts_corr_pars_AKVK("AKVK",1.0/3,6,1, 1.0/3,7,2, 1.0/3,8,3);
+two_pts_corr_pars_t two_pts_corr_pars_VKAK("VKAK",1.0/3,1,6, 1.0/3,2,7, 1.0/3,3,8);
+
+const int navail_two_pts_corr=12;
+two_pts_corr_pars_t *avail_two_pts_corr[navail_two_pts_corr]={
+  &two_pts_corr_pars_S0S0,
+  &two_pts_corr_pars_VKVK,
+  &two_pts_corr_pars_V0V0,
+  &two_pts_corr_pars_P5P5,
+  &two_pts_corr_pars_AKAK,
+  &two_pts_corr_pars_A0A0,
+  &two_pts_corr_pars_TKTK,
+  &two_pts_corr_pars_BKBK,
+  &two_pts_corr_pars_S0P5,
+  &two_pts_corr_pars_P5S0,
+  &two_pts_corr_pars_AKVK,
+  &two_pts_corr_pars_VKAK
+};
+// #################################### two_pts_corr_group_t ##############################
+
+void two_pts_corr_group_t::create(int ext_ncorr)
+{
+  ncorr=ext_ncorr;
+  corr_list=nissa_malloc("CorrList*",ncorr,two_pts_corr_pars_t*);
 }
 
 void two_pts_corr_group_t::read()
 {
-  std::vector<two_pts_contr_pars_t> buf_contr_list;
-  std::vector<std::string> buf_corr_name;
-  
   //read the number of corr
-  read_str_int("NCorr",&ncorr);
+  read_str_int("NCorr",&ncorr);  
+  create(ncorr);
   
   //read the corr one by one
+  ntot_contr=0;
   for(int icorr=0;icorr<ncorr;icorr++)
     {
       char corr_name[1024];
       read_str(corr_name,1024);
-      add_corr(buf_contr_list,buf_corr_name,corr_name);
+      corr_list[icorr]=unroll_corr_to_contr(corr_name);
+      ntot_contr+=corr_list[icorr]->ncontr;
     }
-  
-  create(buf_contr_list,buf_corr_name);
 }
 
 // ###################################### corr_command_t ###################################
@@ -535,20 +516,32 @@ void corr_command_t::exec()
       double *mass2=pair_list[ipair].second->mass_res->mass;
       double *res2=pair_list[ipair].second->mass_res->residues;
       
-      int ncontr=two_pts_corr_group->ncontr;
+      int ntot_contr=two_pts_corr_group->ntot_contr;
       int ncorr=two_pts_corr_group->ncorr;
-		
+      
       //prepare the list of contractions
-      int source_op[ncontr];
-      int sink_op[ncontr];
-      double coeff[ncontr];
-      for(int icontr=0;icontr<ncontr;icontr++)
-	{
-	  source_op[icontr]=two_pts_corr_group->contr_list[icontr].source_op;
-	  sink_op[icontr]=two_pts_corr_group->contr_list[icontr].sink_op;
-	  coeff[icontr]=two_pts_corr_group->contr_list[icontr].coeff;
-	}
-      complex *buf=nissa_malloc("buf",2*ncontr*glb_size[0],complex);
+      int source_op[ntot_contr];
+      int sink_op[ntot_contr];
+      double coeff[ntot_contr];
+      
+      {
+	int icontr=0;
+	for(int icorr=0;icorr<ncorr;icorr++)
+	  {
+	    two_pts_corr_pars_t *corr=two_pts_corr_group->corr_list[icorr];
+	    for(int iloc_contr=0;iloc_contr<corr->ncontr;iloc_contr++)
+	      {
+		source_op[icontr]=corr->source_op[iloc_contr];
+		sink_op[icontr]=corr->sink_op[iloc_contr];
+		coeff[icontr]=corr->coeff[iloc_contr];
+		
+		icontr++;
+	      }
+	  }
+      }
+      
+      //buffer where to store all the contractions
+      complex *buf=nissa_malloc("buf",2*ntot_contr*glb_size[0],complex);
       
       for(int itheta1=0;itheta1<ntheta1;itheta1++)
 	for(int imass1=0;imass1<nmass1;imass1++)
@@ -563,38 +556,34 @@ void corr_command_t::exec()
 		  {
 		    int iprop1=pair_list[ipair].first->iprop(itheta1,imass1,r);
 		    int iprop2=pair_list[ipair].second->iprop(itheta2,imass2,r);
-		    meson_two_points_Wilson_prop(buf+r*glb_size[0]*ncontr,sink_op,pair_list[ipair].first->S[iprop1],source_op,pair_list[ipair].second->S[iprop2],ncontr);
+		    meson_two_points_Wilson_prop(buf+r*glb_size[0]*ntot_contr,sink_op,pair_list[ipair].first->S[iprop1],source_op,pair_list[ipair].second->S[iprop2],ntot_contr);
 		  }
 		
 		//add the contraction to build correlation functions
-		int icontr=0,icorr=0;
-		two_pts_contr_pars_t *contr=two_pts_corr_group->contr_list;
-		char **corr_name=two_pts_corr_group->corr_name;
-		do
+		int icontr=0;
+		for(int icorr=0;icorr<ncorr;icorr++)
 		  {
 		    //reset the corr
 		    complex data[glb_size[0]];
 		    memset(data,0,sizeof(complex)*glb_size[0]);
 		    
+		    two_pts_corr_pars_t *corr=two_pts_corr_group->corr_list[icorr];
+		    char *corr_name=corr->name;
 		    //loop on contr
-		    do
+		    for(int iloc_contr=0;iloc_contr<corr->ncontr;iloc_contr++)
 		      {
 			for(int r=0;r<2;r++)
 			  for(int t=0;t<glb_size[0];t++)
-			    complex_summ_the_prod_double(data[t],buf[t+glb_size[0]*(icontr+r*ncontr)],0.5*coeff[icontr]);
+			    complex_summ_the_prod_double(data[t],buf[t+glb_size[0]*(icontr+r*ntot_contr)],0.5*coeff[icontr]);
 			icontr++;
 		      }
-		    while(icontr!=ncontr && !contr->starting);
 		    
-		    master_fprintf(fout," # %s\n",corr_name[icorr]);
+		    master_fprintf(fout," # %s\n",corr_name);
 		    print_contraction_to_file(fout,-1,-1,data,shift,"",1);
 		    master_fprintf(fout,"\n");
-		    
-		    icorr++;
 		  }
-		while(icorr!=ncorr);
 	      }
-     
+      
       nissa_free(buf);
     }
   
