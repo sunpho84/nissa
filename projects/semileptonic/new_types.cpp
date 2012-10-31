@@ -65,7 +65,7 @@ void prop_group_t::create(theta_group_t &t,mass_res_group_t &m,TMR r)
   
   int n=nprop();
   S=nissa_malloc("S*",n,colorspinspin*);
-  for(int i=0;i<n;i++) S[i]=nissa_malloc("S",loc_vol,colorspinspin);
+  for(int i=0;i<n;i++) S[i]=nissa_malloc("S",loc_vol+bord_vol,colorspinspin);
 }
 
 void prop_group_t::read_pars(int ntheta_group,theta_group_t *theta_group,int nmass_res_group,mass_res_group_t *mass_res_group)
@@ -256,6 +256,9 @@ void prop_group_command_t::read_command(prop_group_t &ext_prop_group_out,source_
   
   if(get_inverting)
     {
+      //we will not read
+      get_reading=0;
+      
       //read which source to use
       int obtain_inverting_isource;
       read_str_int("ObtainInvertingSourceId",&obtain_inverting_isource);
@@ -466,6 +469,8 @@ void corr_command_t::read_prop_group_pair(int nprop_group,prop_group_t *prop_gro
   
   if(first<0||first>=nprop_group) crash("first group %d must be in the interval [0,%d)",first,nprop_group);
   if(second<0||second>=nprop_group) crash("second group %d must be in the interval [0,%d)",second,nprop_group);
+  
+  master_printf("Adding %d %d to %d element long array\n",first,second,pair_list.size());
   
   pair_list.push_back(prop_group_pair_t(prop_group[first],prop_group[second]));
 }

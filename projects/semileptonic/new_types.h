@@ -23,12 +23,12 @@ struct mass_res_group_t
   //create unallocated and empty
   mass_res_group_t() {mass=residues=NULL;}
   //create allocated but empty
-  void create(int n) {nmass=n;mass=(double*)malloc(sizeof(double)*n);residues=(double*)malloc(sizeof(double)*n);}
+  void create(int n) {nmass=n;mass=nissa_malloc("mass",n,double);residues=nissa_malloc("residues",n,double);}
   mass_res_group_t(int n) {create(n);}
   //check if it is allocated
   int is_allocated() {return !(mass==residues && mass==NULL);}
   //destroy
-  void destroy() {if(is_allocated()){free((void*)mass);free((void*)residues);}}
+  void destroy() {if(is_allocated()){nissa_free(mass);nissa_free(residues);}}
   ~mass_res_group_t() {destroy();}
   //read from input file
   void read() {destroy();int n;read_str_int("NMassRes",&n);create(n);for(int i=0;i<n;i++){read_double(&mass[i]);read_double(&residues[i]);}}

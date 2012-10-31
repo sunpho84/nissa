@@ -84,8 +84,6 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
     }
   
   //Final reduction
-  //printf("RANK: %d\n",rank);
-  //fflush(stdout);
   verbosity_lv3_master_printf("Performing final reduction of %d double\n",2*glb_size[0]*ncontr);
   MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   verbosity_lv3_master_printf("Reduction done\n");
