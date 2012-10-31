@@ -502,7 +502,7 @@ void corr_command_t::exec()
   FILE *fout=open_file(combine("%s/%s",base_out_folder,path).c_str(),"w");
   
   int ipair=0;
-  for(std::vector<prop_group_pair_t>::const_iterator pair=pair_list.begin();pair!=pair_list.end();pair++,ipair++)
+  for(std::vector<prop_group_pair_t>::const_iterator pair=pair_list.begin();pair!=pair_list.end();pair++)
     {
       master_printf("Starting contraction of group %d\n",ipair);
       
@@ -576,7 +576,8 @@ void corr_command_t::exec()
 		  }
 		while(corr!=two_pts_corr_group->corr_name.end());
 	      }
-      
+     
+      ipair++;
       nissa_free(buf);
     }
   
