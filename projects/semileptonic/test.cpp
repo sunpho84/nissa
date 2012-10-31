@@ -141,6 +141,7 @@ void initialize_semileptonic(char *input_path)
   
   for(int igroup=0;igroup<ntwo_pts_corr_group;igroup++)
     {
+      memset(&(two_pts_corr_group[igroup]),0,sizeof(two_pts_corr_group_t));
       expect_str(combine("CorrGroup%d",igroup).c_str());
       two_pts_corr_group[igroup].read();
     }
