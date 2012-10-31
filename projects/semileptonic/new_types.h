@@ -208,10 +208,21 @@ struct two_pts_contr_pars_t
 
 struct two_pts_corr_group_t
 {
-  std::vector<two_pts_contr_pars_t> contr_list;
-  std::vector<std::string> corr_name;
+  int ncorr,ncontr;
+  two_pts_contr_pars_t *contr_list;
+  char **corr_name;
   
-  void add_corr(const char *what);
+  //create unallocated and empty
+  void reset() {contr_list=NULL;corr_name=NULL;}
+  two_pts_corr_group_t() {reset();}
+  //create allocated and fill
+  void create(std::vector<two_pts_contr_pars_t> &buf_contr_list,std::vector<std::string> &buf_corr_name);
+  //check if it is allocated
+  int is_allocated() {return !(corr_name==NULL);}
+  //destroy
+  void destroy() {if(is_allocated()) {for(int icorr=0;icorr<ncorr;icorr++) free((void*)corr_name[icorr]);nissa_free(corr_name);nissa_free(contr_list);}}
+  ~two_pts_corr_group_t() {destroy();}
+  void add_corr(std::vector<two_pts_contr_pars_t> &contr_list,std::vector<std::string> &corr_name,const char *what);
   void read();
 };
 
@@ -231,11 +242,22 @@ struct corr_command_t
 {
   char path[1024];
   two_pts_corr_group_t *two_pts_corr_group;
-  std::vector<prop_group_pair_t> pair_list;
+  int nprop_group_pair;
+  prop_group_pair_t *pair_list;
   int shift;
 
+  //create unallocated and empty
+  void reset() {pair_list=NULL;}
+  corr_command_t() {reset();}
+  //create allocated but empty
+  void create(int ext_nprop_group_pair) {if(!is_allocated()) {nprop_group_pair=ext_nprop_group_pair;pair_list=nissa_malloc("PairList",nprop_group_pair,prop_group_pair_t);}}
+  //check if it is allocated
+  int is_allocated() {return !(pair_list==NULL);}
+  //destroy
+  void destroy() {if(is_allocated()) nissa_free(pair_list);}
+  ~corr_command_t() {destroy();}
   void read_corr_group(int ntwo_pts_corr_group_avail,two_pts_corr_group_t *ext_two_pts_corr_group);
-  void read_prop_group_pair(int nprop_group,prop_group_t *prop_group);
+  void read_prop_group_pair(int nprop_group,prop_group_t *prop_group,int ipair);
   void read(int ntwo_pts_group_avail,two_pts_corr_group_t *ext_two_pts_corr_group,int nprop_group,prop_group_t *prop_group);
   void exec();
 };

@@ -141,7 +141,7 @@ void initialize_semileptonic(char *input_path)
   
   for(int igroup=0;igroup<ntwo_pts_corr_group;igroup++)
     {
-      memset(&(two_pts_corr_group[igroup]),0,sizeof(two_pts_corr_group_t));
+      two_pts_corr_group[igroup].reset();
       expect_str(combine("CorrGroup%d",igroup).c_str());
       two_pts_corr_group[igroup].read();
     }
@@ -153,7 +153,7 @@ void initialize_semileptonic(char *input_path)
   
   for(int icomm=0;icomm<ncorr_command;icomm++)
     {
-      memset(&(corr_command[icomm]),0,sizeof(corr_command_t));
+      corr_command[icomm].reset();
       expect_str(combine("CorrCommand%d",icomm).c_str());
       corr_command[icomm].read(ntwo_pts_corr_group,two_pts_corr_group,nprop_group,prop_group);
     }
@@ -212,11 +212,15 @@ void close_semileptonic()
   nissa_free(gauss_sm_op);
   nissa_free(obtain_source_from);
   nissa_free(obtain_source_applying_sm_op);
+  for(int igroup=0;igroup<ntwo_pts_corr_group;igroup++)
+    two_pts_corr_group[igroup].destroy();
   nissa_free(two_pts_corr_group);
   conf[0].destroy();
   conf[1].destroy();
+  for(int icomm=0;icomm<ncorr_command;icomm++)
+    corr_command[icomm].destroy();
   nissa_free(corr_command);
-  
+
   close_nissa();
 }
 
