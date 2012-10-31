@@ -152,6 +152,7 @@ void initialize_semileptonic(char *input_path)
   
   for(int icomm=0;icomm<ncorr_command;icomm++)
     {
+      memset(&(corr_command[icomm]),0,sizeof(corr_command_t));
       expect_str(combine("CorrCommand%d",icomm).c_str());
       corr_command[icomm].read(ntwo_pts_corr_group,two_pts_corr_group,nprop_group,prop_group);
     }
@@ -197,6 +198,7 @@ void analysis(char *path,int tsource,char *out_path)
 
 void close_semileptonic()
 {
+  for(int imass_res_group=0;imass_res_group<nmass_res_group;imass_res_group++) mass_res_group[imass_res_group].destroy();
   nissa_free(mass_res_group);
   for(int iso=0;iso<nsource;iso++) source[iso].destroy();
   nissa_free(source);
@@ -226,11 +228,6 @@ int main(int narg,char **arg)
   if(narg<2) crash("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
   
-  mass_res_group[0].printf();
-  theta_group[0].printf();
-  
-  master_printf("id of 0,0,0: %d\n",prop_group[0].iprop(0,0,0));
-  
   int ngauge_conf;
   read_str_int("NGaugeConf",&ngauge_conf);
   
@@ -254,6 +251,7 @@ int main(int narg,char **arg)
 	  rm(combine("%s/running",out_folder).c_str());
 	  file_touch(combine("%s/finished",out_folder).c_str());
 	}
+      else master_printf("Configuration %s already analized, skipping\n",out_folder);
     }
 
   close_input();
