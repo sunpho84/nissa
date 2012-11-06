@@ -164,9 +164,9 @@ void put_spincolor_into_colorspinspin(colorspinspin *out,spincolor *in,int id)
 }
 
 // spincolor algebra
-void unsafe_dirac_prod_spincolor(spincolor *out,dirac_matr &m,spincolor *in)
+void safe_dirac_prod_spincolor(spincolor *out,dirac_matr &m,spincolor *in)
 {
   nissa_loc_vol_loop(ivol)
-    unsafe_dirac_prod_spincolor(out[ivol],&m,in[ivol]);
+    safe_dirac_prod_spincolor(out[ivol],&m,in[ivol]);
   set_borders_invalid(out);
 }

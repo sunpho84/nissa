@@ -46,13 +46,18 @@ source |------>---->----->---->| sink
 
 #include "nissa.h"
 
+//use or not use static limit
+int include_static;
+double hyp_alpha0,hyp_alpha1,hyp_alpha2;
+
 //gauge info
 int igauge_conf=0,ngauge_conf,nanalized_conf;
 char conf_path[1024],outfolder[1024];
-quad_su3 *conf,*sme_conf;
+quad_su3 *conf,*sme_conf,*hyp_conf;
 double kappa;
 
-int nmass;
+//masses and theta
+int ndyn_mass,nmass;
 double *mass;
 double put_theta[4],old_theta[4]={0,0,0,0};
 
@@ -157,7 +162,29 @@ void initialize_Bk(int narg,char **arg)
   read_str_int("NoiseType",&noise_type);
   //Read list of masses
   read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
+  ndyn_mass=nmass;
+  //Read if to include static limit
+  read_str_int("IncludeStatic",&include_static);
+  if(include_static)
+    {
+      read_str_double("HypAlpha0",&hyp_alpha0);
+      read_str_double("HypAlpha1",&hyp_alpha1);
+      read_str_double("HypAlpha2",&hyp_alpha2);
+    }
   
+  //If needed add the static point
+  if(include_static)
+    {
+      nmass++;
+      
+      mass=(double*)reallocf((void*)mass,(nmass)*sizeof(double));
+      stopping_residues=(double*)reallocf((void*)stopping_residues,(nmass)*sizeof(double));
+      
+      //Add the static point
+      mass[ndyn_mass]=1000000;
+      stopping_residues[ndyn_mass]=1.e-300;
+    }
+    
   // 3) Smearing parameters
   
   //Smearing parameters
@@ -200,9 +227,10 @@ void initialize_Bk(int narg,char **arg)
   
   ////////////////////////////////////// end of input reading/////////////////////////////////
 
-  //allocate gauge conf
-  conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  //Allocate gauge conf
+  conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol,quad_su3);
+  if(include_static) hyp_conf=nissa_malloc("hyp_conf",loc_vol+bord_vol,quad_su3);
   
   //Allocate all the propagators colorspinspin vectors
   nprop=0;
@@ -212,8 +240,8 @@ void initialize_Bk(int narg,char **arg)
   for(int iprop=0;iprop<nprop;iprop++) S[iprop]=nissa_malloc("S[i]",loc_vol,colorspinspin);
   
   //Allocate nmass spincolors, for the cgm solutions
-  cgm_solution=nissa_malloc("cgm_solution",nmass,spincolor*);
-  for(int imass=0;imass<nmass;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution",loc_vol+bord_vol,spincolor);
+  cgm_solution=nissa_malloc("cgm_solution",ndyn_mass,spincolor*);
+  for(int imass=0;imass<ndyn_mass;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution",loc_vol+bord_vol,spincolor);
   temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);
   temp_vec[1]=nissa_malloc("temp_vec[1]",loc_vol,spincolor);
 
@@ -307,7 +335,7 @@ void load_gauge_conf()
   
   //prepare the smerded version
   ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
-
+  
   //calculate smerded plaquette
   master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
   
@@ -315,22 +343,27 @@ void load_gauge_conf()
   old_theta[0]=0;
   put_theta[0]=1;
   adapt_theta(conf,old_theta,put_theta,1,0);
+  
+  //prepare the hypped conf if needed
+  if(include_static)
+    {
+      master_printf("Hypping the conf\n");
+      hyp_smear_conf_dir(hyp_conf,conf,hyp_alpha0,hyp_alpha1,hyp_alpha2,0);
+    }
 }
 
 //calculate the propagators
 void calculate_S(int iwall)
 {
+  color *stat_source=nissa_malloc("StatSource",loc_vol+bord_vol,color);
+  
   master_printf("\n");
   
   for(int id=0;id<4;id++)
-    { //loop over the source dirac index
-      nissa_loc_vol_loop(ivol)
-	{
-	  get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
-	  //put the g5
-	  for(int id1=2;id1<4;id1++) for(int ic=0;ic<3;ic++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic][ri]*=-1;
-	}
-      set_borders_invalid(source);
+    {
+      //loop over the source dirac index
+      get_spincolor_from_colorspinspin(source,original_source,id);
+      safe_dirac_prod_spincolor(source,base_gamma[5],source);
       
       //loop over smerding levels of the source
       for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
@@ -343,14 +376,15 @@ void calculate_S(int iwall)
 	  
 	  double part_time=-take_time();
 	  master_printf("\n");
-	  inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
+	  inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,ndyn_mass,niter_max,stopping_residues,source);
 	  part_time+=take_time();ntot_inv++;tot_inv_time+=part_time;
 	  master_printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
 			     iwall,id,so_jlv,part_time);
 	  
-	  for(int imass=0;imass<nmass;imass++)
+	  for(int imass=0;imass<ndyn_mass;imass++)
 	    { //reconstruct the doublet
 	      reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
+	      
 	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{
@@ -358,16 +392,35 @@ void calculate_S(int iwall)
 		  nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],temp_vec[r][ivol],id);
 		}
 	    }
+	  
+	  //compute static prop, if needed
+	  if(include_static && id==0)
+	    {
+	      master_printf("\nComputing static prop\n");
+	      //take the source: at id 0 the gamma5 is not present
+	      nissa_loc_vol_loop(ivol)
+		for(int ic=0;ic<3;ic++)
+		  complex_copy(stat_source[ivol][ic],source[ivol][id][ic]);
+	      set_borders_invalid(stat_source);
+	      
+	      //compute for r=0 and copy in r=1
+	      compute_Wstat_stoch_prop(S[iS(iwall,so_jlv,ndyn_mass,0)],hyp_conf,0,twall[iwall],stat_source);
+	      vector_copy(S[iS(iwall,so_jlv,ndyn_mass,1)],S[iS(iwall,so_jlv,ndyn_mass,0)]);
+	    }
 	}
     }
   
+  //rotate dynamical quarks to physical basis
+  master_printf("\nRotating propagators\n");
   for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-      for(int imass=0;imass<nmass;imass++) //put the (1+ig5)/sqrt(2) factor
+      for(int imass=0;imass<ndyn_mass;imass++) //put the (1+ig5)/sqrt(2) factor
 	{
 	  int iprop=iS(iwall,so_jlv,imass,r);
 	  rotate_vol_colorspinspin_to_physical_basis(S[iprop],!r,!r);
 	}
+  
+  nissa_free(stat_source);
 }
 
 //Compute the connected part of bag correlator
@@ -405,7 +458,7 @@ void meson_two_points(colorspinspin *s1,colorspinspin *s2)
 //print all the passed contractions to the file
 void print_ottos_contractions_to_file(FILE *fout)
 {
-  double norm=1.0;
+  double norm=glb_vol/glb_size[0];
   
   if(rank==0)
     {
@@ -439,6 +492,7 @@ void print_two_points_contractions_to_file(FILE *fout)
 //Calculate and print to file all the contractions
 void calculate_all_contractions()
 {
+  master_printf("Computing all contractions\n");
   tot_contr_3pts_time-=take_time();
   
   //loop over left-right wall combo
@@ -584,7 +638,8 @@ void close_Bk()
   nissa_free(op1_2pts);nissa_free(op2_2pts);
   nissa_free(contr_otto);nissa_free(contr_mezzotto);
   nissa_free(conf);nissa_free(sme_conf);nissa_free(contr_2pts);
-  for(int imass=0;imass<nmass;imass++) nissa_free(cgm_solution[imass]);
+  if(include_static) nissa_free(hyp_conf);
+  for(int imass=0;imass<ndyn_mass;imass++) nissa_free(cgm_solution[imass]);
   nissa_free(cgm_solution);
   nissa_free(source);nissa_free(original_source);
   for(int iprop=0;iprop<nprop;iprop++) nissa_free(S[iprop]);

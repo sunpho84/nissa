@@ -3,17 +3,17 @@
 //  -apply_operator
 //  -cg_invert
 //  -cg_parameters_proto
-//  -cg_inner_solver
+//  -cg_inner_parameters_call
 //  -size_of_bulk, size_of_bord
 //  -basetype
 //  -ndoubles_per_site
 
-void cg_invert(basetype *sol,basetype *guess,cg_additional_parameters_proto,int niter,int rniter,double residue,basetype *source)
+void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int rniter,double residue,basetype *source)
 {
   int riter=0;
-  basetype *s=nissa_malloc("s",bulk_vol,basetype);
-  basetype *p=nissa_malloc("p",bulk_vol+bord_vol,basetype);
-  basetype *r=nissa_malloc("r",bulk_vol,basetype);
+  basetype *s=nissa_malloc("s",size_of_bulk,basetype);
+  basetype *p=nissa_malloc("p",size_of_bulk+size_of_bord,basetype);
+  basetype *r=nissa_malloc("r",size_of_bulk,basetype);
 
   //macro to be defined externally, allocating all the required additional vectors
   cg_additional_vectors_allocation();
@@ -26,12 +26,12 @@ void cg_invert(basetype *sol,basetype *guess,cg_additional_parameters_proto,int 
   do
     {
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
-      apply_operator(s,cg_operator_parameters,sol);
+      apply_operator(s,cg_inner_parameters_call,sol);
       
-      double_vector_subt_double_vector_prod_double((double*)r,(double*)source,(double*)s,1,bulk_vol*ndoubles_per_site);
-      double_vector_copy((double*)p,(double*)r,bulk_vol*ndoubles_per_site);
-      source_norm=double_vector_glb_scalar_prod((double*)source,(double*)source,bulk_vol*ndoubles_per_site);
-      double delta=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
+      double_vector_subt_double_vector_prod_double((double*)r,(double*)source,(double*)s,1,size_of_bulk*ndoubles_per_site);
+      double_vector_copy((double*)p,(double*)r,size_of_bulk*ndoubles_per_site);
+      source_norm=double_vector_glb_scalar_prod((double*)source,(double*)source,size_of_bulk*ndoubles_per_site);
+      double delta=double_vector_glb_scalar_prod((double*)r,(double*)r,size_of_bulk*ndoubles_per_site);
       
       if(riter==0) verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
       if(source_norm==0 || isnan(source_norm)) crash("invalid norm: %lg",source_norm);
@@ -43,24 +43,24 @@ void cg_invert(basetype *sol,basetype *guess,cg_additional_parameters_proto,int 
       do
 	{	  
 	  //(r_k,r_k)/(p_k*DD*p_k)
-	  apply_operator(s,cg_operator_parameters,p);
+	  apply_operator(s,cg_inner_parameters_call,p);
 	  
-	  double alpha=double_vector_glb_scalar_prod((double*)s,(double*)p,bulk_vol*ndoubles_per_site);
+	  double alpha=double_vector_glb_scalar_prod((double*)s,(double*)p,size_of_bulk*ndoubles_per_site);
 	  double omega=delta/alpha;
 	  
 	  //sol_(k+1)=x_k+omega*p_k
-	  double_vector_summ_double_vector_prod_double((double*)sol,(double*)sol,(double*)p,omega,bulk_vol*ndoubles_per_site);
+	  double_vector_summ_double_vector_prod_double((double*)sol,(double*)sol,(double*)p,omega,size_of_bulk*ndoubles_per_site);
 	  //r_(k+1)=x_k-omega*p_k
-	  double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,-omega,bulk_vol*ndoubles_per_site);
+	  double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,-omega,size_of_bulk*ndoubles_per_site);
 	  //(r_(k+1),r_(k+1))
-	  lambda=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
+	  lambda=double_vector_glb_scalar_prod((double*)r,(double*)r,size_of_bulk*ndoubles_per_site);
 
 	  //(r_(k+1),r_(k+1))/(r_k,r_k)
 	  double gammag=lambda/delta;
 	  delta=lambda;
 	  
 	  //p_(k+1)=r_(k+1)+gammag*p_k
-	  double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,gammag,bulk_vol*ndoubles_per_site);
+	  double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,gammag,size_of_bulk*ndoubles_per_site);
 	  
 	  iter++;
 
@@ -69,9 +69,9 @@ void cg_invert(basetype *sol,basetype *guess,cg_additional_parameters_proto,int 
       while(lambda>(residue*source_norm) && iter<niter);
       
       //last calculation of residual, in the case iter>niter
-      apply_operator(s,cg_operator_parameters,sol);
-      double_vector_subt_double_vector_prod_double((double*)r,(double*)source,(double*)s,1,bulk_vol*ndoubles_per_site);
-      lambda=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
+      apply_operator(s,cg_inner_parameters_call,sol);
+      double_vector_subt_double_vector_prod_double((double*)r,(double*)source,(double*)s,1,size_of_bulk*ndoubles_per_site);
+      lambda=double_vector_glb_scalar_prod((double*)r,(double*)r,size_of_bulk*ndoubles_per_site);
       
       verbosity_lv1_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);
       
@@ -95,7 +95,6 @@ void cg_invert(basetype *sol,basetype *guess,cg_additional_parameters_proto,int 
 #undef apply_operator
 #undef cg_operator_parameters
 #undef cg_invert
-#undef cg_additional_parameters_proto
 #undef cg_additional_vectors_free
 #undef cg_additional_vectors_allocation
 

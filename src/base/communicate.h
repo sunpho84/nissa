@@ -20,6 +20,7 @@ void communicate_lx_quad_su3_borders(quad_su3 *conf);
 void communicate_lx_quad_su3_edges(quad_su3 *conf);
 void communicate_lx_spincolor_128_borders(spincolor_128 *s);
 void communicate_lx_spin_borders(spin *s);
+void communicate_lx_color_borders(color *s);
 void communicate_lx_spinspin_borders(spinspin *s);
 void communicate_lx_spincolor_borders(spincolor *s);
 void communicate_lx_su3_borders(su3 *u);

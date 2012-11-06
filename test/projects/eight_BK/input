@@ -14,6 +14,11 @@ MassResidues 2
  0.50 1.e-24
  0.60 1.e-30
 
+IncludeStatic 1
+HypAlpha0 1.0
+HypAlpha1 1.0
+HypAlpha2 0.5 
+
 ApeAlpha 0.5
 ApeNiter 5
 JacobiKappa 0.5
