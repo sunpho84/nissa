@@ -177,8 +177,8 @@ void initialize_Bk(int narg,char **arg)
     {
       nmass++;
       
-      mass=(double*)reallocf((void*)mass,(nmass)*sizeof(double));
-      stopping_residues=(double*)reallocf((void*)stopping_residues,(nmass)*sizeof(double));
+      mass=(double*)realloc((void*)mass,(nmass)*sizeof(double));
+      stopping_residues=(double*)realloc((void*)stopping_residues,(nmass)*sizeof(double));
       
       //Add the static point
       mass[ndyn_mass]=1000000;
