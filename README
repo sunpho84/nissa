@@ -36,27 +36,28 @@ This project is host at: http://code.google.com/p/nissa
 Requirements
 ------------
 
-Some sort of MPI distribution (at the moment also when running on scalar machine)
+Some sort of MPI distribution (at the moment also when running on scalar machine).
 
 
 Compiling
 ---------
 
-WARNING this part are out of data
+Run "./configure" with usual parameters to generate the "Makefile".
+Then use "make" to compile.
+The suite is not meant (at the moment) to be installed, so don't try "make install".
 
-The program have to be compiled with c++.
-At the moment, the compilation is still partially home-made.
-Run the script "configure" and follow the instructions, then use the "make" command.
-In case of need adapt the "Makefile" to your needs.
-
-If you want to compile on BG/P add "-qarch -O2 -DBGP" as CGFLAS in the configure. 
-
+The program have to be compiled with C++ including all the libraries and header necessary 
+for MPI. Typically you can use some wrapper of the system compiler to avoid having to pass
+all the paths and flags needed by MPI. Pass the name of such compiler wrapper through "CXX" 
+parameter, e.g: "./configure CXX=mpicxx". If you want to compile on BG/P add also 
+"-qarch -DBGP" as CXXGFLAS in the configure. 
+Optimization flags can be passed as well, for example: "CXXFLAGS=-O5".
 
 Structure
 ---------
 
-The package is divided in various piecese, namely the "library", contained in 
-"src" directory, and various projects and tools. This is the content of the 
+The package is divided in various piecese, namely the "library", whose source are 
+contained in "src" directory, and various projects and tools. This is the content of the 
 various directories:
 
 -doc: in principle this should contain documentation to each and everything, but at the moment
@@ -74,7 +75,7 @@ various directories:
 -work_in_prog: scratch area where to develop new programs
 
 
-Let's describe in more details the src directory:
+Detailed content of "src" directory:
 
 -base: all the routines needed to initialize and close the package and
  communicate data, use vector, debug and generate random numbers; file 
@@ -86,7 +87,7 @@ Let's describe in more details the src directory:
 
 -geometry: routines to move around on the lattice
 
--hmc: routines to generate new confs with hybrid monte carlo methods, staggered theory only
+-hmc: routines to generate new confs with hybrid monte carlo methods, staggered and quenched theories only
 
 -inverters: multi-mass (cgm) and single mass (cg) inverters for twisted mass and staggered 
  Dirac operators, in double and quadruple precisions
@@ -104,8 +105,8 @@ Let's describe in more details the src directory:
 
 
 All the files contained in the "src" directory are compiled and put together in the 
-"libissa.a" file. The program that want to use the "nissa" library should link it and
-include "nissa.h".
+"libissa.a" library, in the main nissa directory. The program that want to use the "nissa"
+library should link it and include "nissa.h" (located inside "src").
 
 Copyright
 ---------

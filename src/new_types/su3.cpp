@@ -28,6 +28,8 @@ void su3spinspin_put_to_zero(su3spinspin m)
 {memset(m,0,sizeof(su3spinspin));}
 void su3_put_to_id(su3 m)
 {su3_put_to_zero(m);for(int ic=0;ic<3;ic++) m[ic][ic][0]=1;}
+void su3_put_to_diag(su3 m,color in)
+{su3_put_to_zero(m);for(int ic=0;ic<3;ic++) complex_copy(m[ic][ic],in[ic]);}
 
 //////////////////////////////////////// Copy /////////////////////////////////////
 

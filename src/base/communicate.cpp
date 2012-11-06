@@ -193,6 +193,10 @@ void communicate_lx_spincolor_borders(spincolor *s)
 void communicate_lx_spin_borders(spin *s)
 {communicate_lx_borders((char*)s,MPI_LX_SPIN_BORDS_SEND,MPI_LX_SPIN_BORDS_RECE,sizeof(spin));}
 
+//Send the borders of a color vector
+void communicate_lx_color_borders(color *s)
+{communicate_lx_borders((char*)s,MPI_LX_COLOR_BORDS_SEND,MPI_LX_COLOR_BORDS_RECE,sizeof(color));}
+
 //Send the borders of a spinspin vector
 void communicate_lx_spinspin_borders(spinspin *s)
 {communicate_lx_borders((char*)s,MPI_LX_SPINSPIN_BORDS_SEND,MPI_LX_SPINSPIN_BORDS_RECE,sizeof(spinspin));}

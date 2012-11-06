@@ -140,7 +140,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	    final_res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
 	    if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[ishift]);
 	    
-	    if(final_res[ishift]<req_res[ishift]||final_res[ishift]<=1.e-32)
+	    if(final_res[ishift]<req_res[ishift])
 	      {
 		run_flag[ishift]=0;
 		nrun_shift--;
@@ -187,7 +187,8 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	
 	w_res=w_res/weight;
 	
-	verbosity_lv2_master_printf(" ishift %d, rel residue true=%g approx=%g weighted=%g max=%g\n",ishift,res/source_norm,final_res[ishift],w_res,max_res);
+	verbosity_lv2_master_printf(" ishift %d, rel residue true=%lg approx=%lg commanded=%lg weighted=%lg max=%lg\n",
+				    ishift,res/source_norm,final_res[ishift],req_res[ishift],w_res,max_res);
       }
     }  
   
