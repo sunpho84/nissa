@@ -163,7 +163,24 @@ void put_spincolor_into_colorspinspin(colorspinspin *out,spincolor *in,int id)
   set_borders_invalid(out);
 }
 
-// spincolor algebra
+//////////////// su3spinspin put/get ////////////////////////
+
+void get_spincolor_from_su3spinspin(spincolor *out,su3spinspin *in,int id,int ic)
+{
+  nissa_loc_vol_loop(ivol)
+    get_spincolor_from_su3spinspin(out[ivol],in[ivol],id,ic);
+  set_borders_invalid(out);
+}
+
+void put_spincolor_into_su3spinspin(su3spinspin *out,spincolor *in,int id,int ic)
+{
+  nissa_loc_vol_loop(ivol)
+    put_spincolor_into_su3spinspin(out[ivol],in[ivol],id,ic);
+  set_borders_invalid(out);
+}
+
+////////////////// spincolor algebra/////////////////////
+
 void safe_dirac_prod_spincolor(spincolor *out,dirac_matr &m,spincolor *in)
 {
   nissa_loc_vol_loop(ivol)

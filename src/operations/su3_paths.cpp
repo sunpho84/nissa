@@ -539,10 +539,10 @@ void compute_Pline(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
 	  int x_back=loclx_neighdw[x][mu];
 	  int x_forw=loclx_neighup[x][mu];
 	  
-	  //consider -xmu_shift point
-	  if((glb_coord_of_loclx[x][mu]+xmu_shift)%glb_size[mu]==xmu_start) unsafe_su3_prod_su3_dag(pline[x],pline[x_forw],conf[x][mu]);
 	  //consider +xmu_shift point
 	  if(glb_coord_of_loclx[x][mu]==(xmu_start+xmu_shift)%glb_size[mu]) unsafe_su3_prod_su3(pline[x],conf[x_back][mu],pline[x_back]);
+	  //consider -xmu_shift point
+	  if((glb_coord_of_loclx[x][mu]+xmu_shift)%glb_size[mu]==xmu_start) unsafe_su3_dag_prod_su3(pline[x],conf[x][mu],pline[x_forw]);
 	}
       
       set_borders_invalid(pline);
@@ -570,10 +570,10 @@ void compute_stoch_Pline(color *pline,quad_su3 *conf,int mu,int xmu_start,color 
 	  int x_back=loclx_neighdw[x][mu];
 	  int x_forw=loclx_neighup[x][mu];
 	  
-	  //consider -xmu_shift point
-	  if((glb_coord_of_loclx[x][mu]+xmu_shift)%glb_size[mu]==xmu_start) unsafe_color_prod_su3_dag(pline[x],pline[x_forw],conf[x][mu]);
 	  //consider +xmu_shift point
 	  if(glb_coord_of_loclx[x][mu]==(xmu_start+xmu_shift)%glb_size[mu]) unsafe_su3_prod_color(pline[x],conf[x_back][mu],pline[x_back]);
+	  //consider -xmu_shift point
+	  if((glb_coord_of_loclx[x][mu]+xmu_shift)%glb_size[mu]==xmu_start) unsafe_su3_dag_prod_color(pline[x],conf[x][mu],pline[x_forw]);
 	}
       
       set_borders_invalid(pline);
@@ -598,7 +598,8 @@ void compute_Wstat_prop(su3spinspin *prop,quad_su3 *conf,int mu,int xmu_start)
     {
       int xmu=glb_coord_of_loclx[x][mu];
       int dist=fabs(xmu-xmu_start);
-      int ord=xmu>=xmu_start;
+      int ori=(xmu==xmu_start);
+      int ord=(xmu>=xmu_start);
       
       for(int ic1=0;ic1<3;ic1++)
 	for(int ic2=0;ic2<3;ic2++)
@@ -606,10 +607,13 @@ void compute_Wstat_prop(su3spinspin *prop,quad_su3 *conf,int mu,int xmu_start)
 	    spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],base_gamma+0,pline[x][ic1][ic2]);
 	    
 	    //sign of 1+-gamma_mu
-	    if(ord==1 && dist<=glb_size[0]/2) spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //forward
-	    else                              spinspin_dirac_subt_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //backward
-	    
-	    spinspin_prodassign_double(prop[x][ic1][ic2],0.5);
+	    //if(!ori)
+	      {
+		if(ord==1 && dist<=glb_size[mu]/2) spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //forward
+		else                               spinspin_dirac_subt_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //backward
+		
+		spinspin_prodassign_double(prop[x][ic1][ic2],0.5);
+	      }
 	  }
     }
   
@@ -636,15 +640,15 @@ void compute_Wstat_stoch_prop(colorspinspin *prop,quad_su3 *conf,int mu,int xmu_
   {
     int xmu=glb_coord_of_loclx[x][mu];
     int dist=fabs(xmu-xmu_start);
-    int ord=xmu>=xmu_start;
+    int ord=(xmu>=xmu_start);
 
     for(int ic=0;ic<3;ic++)
       {
 	spinspin_dirac_summ_the_prod_complex(prop[x][ic],base_gamma+0,pline[x][ic]);
 
 	//sign of 1+-gamma_mu
-	if(ord==1 && dist<=glb_size[0]/2) spinspin_dirac_summ_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //forward
-	else                              spinspin_dirac_subt_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //backward
+	if(ord==1 && dist<=glb_size[mu]/2) spinspin_dirac_summ_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //forward
+	else                               spinspin_dirac_subt_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //backward
 	
 	spinspin_prodassign_double(prop[x][ic],0.5);
       }
