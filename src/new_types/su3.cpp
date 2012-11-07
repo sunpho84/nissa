@@ -71,15 +71,7 @@ void quad_su3_ildg_to_nissa_reord(quad_su3 out,quad_su3 in)
 //just print a color
 void color_print(color c)
 {
-  for(int icol=0;icol<3;icol++)
-    {
-      for(int ri=0;ri<2;ri++)
-	{
-	  master_printf("%16.16lg",c[icol][ri]);
-	  if(ri==0) printf("\t");
-	}
-      master_printf("\n");
-    }
+  for(int ic=0;ic<3;ic++) printf("%+016.16le,%+016.16le\t",c[ic][0],c[ic][1]);
   master_printf("\n");
 }
 
@@ -156,17 +148,9 @@ void color_put_to_gauss(color H,rnd_gen *gen,double sigma)
 //just print an su3 matrix
 void su3_print(su3 U)
 {
-  for(int icol1=0;icol1<3;icol1++)
+  for(int ic1=0;ic1<3;ic1++)
     {
-      for(int icol2=0;icol2<3;icol2++)
-	{
-	  for(int ri=0;ri<2;ri++)
-	    {
-	      master_printf("%16.16lg",U[icol1][icol2][ri]);
-	      if(ri==0) master_printf("\t");
-	    }
-	  master_printf("\t");
-	}
+      for(int ic2=0;ic2<3;ic2++) printf("%+016.16le,%+016.16le\t",U[ic1][ic2][0],U[ic1][ic2][1]);
       master_printf("\n");
     }
   master_printf("\n");
@@ -963,6 +947,18 @@ void unsafe_color_prod_complex_conj(color out,color in,complex factor)
 
 ////////////////////////////////// Operations between spincolor ////////////////////////
 
+//just print a spincolor
+void spincolor_print(spincolor c)
+{
+  for(int id=0;id<4;id++)
+    {
+      for(int ic=0;ic<3;ic++) printf("%+016.16le,%+016.16le\t",c[id][ic][0],c[id][ic][1]);
+      master_printf("\n");
+    }
+  master_printf("\n");
+}
+
+
 //summ two spincolors
 void spincolor_summ(spincolor a,spincolor b,spincolor c)
 {for(int i=0;i<24;i++) ((double*)a)[i]=((double*)b)[i]+((double*)c)[i];}
@@ -1075,6 +1071,11 @@ void unsafe_su3_dag_summ_the_prod_spincolor(spincolor out,su3 U,spincolor in)
 {for(int is=0;is<4;is++) su3_dag_summ_the_prod_color(out[is],U,in[is]);}
 void unsafe_su3_dag_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in)
 {for(int is=0;is<4;is++) su3_dag_subt_the_prod_color(out[is],U,in[is]);}
+
+void safe_su3_dag_summ_the_prod_spincolor(spincolor out,su3 U,spincolor in)
+{spincolor temp;unsafe_su3_dag_summ_the_prod_spincolor(temp,U,in);spincolor_copy(out,temp);}
+void safe_su3_dag_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in)
+{spincolor temp;unsafe_su3_dag_subt_the_prod_spincolor(temp,U,in);spincolor_copy(out,temp);}
 
 //su3^*gamma*spincolor
 void unsafe_su3_dag_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in)

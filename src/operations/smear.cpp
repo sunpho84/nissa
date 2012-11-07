@@ -381,6 +381,8 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
   
   /////////////////////////////////////// second level decoration /////////////////////////////////
   
+  master_printf("Second level decoration\n");
+  
   //allocate dec2 conf
   su3 *dec2_conf[idec2_remap];
   for(int idec2=0;idec2<idec2_remap;idec2++) dec2_conf[idec2]=nissa_malloc("dec2_conf",loc_vol+bord_vol+edge_vol,su3);
@@ -436,6 +438,8 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
 	  }
   
   /////////////////////////////////////// first level decoration /////////////////////////////////
+  
+  master_printf("First level decoration\n");
   
   //allocate dec1 conf
   su3 *dec1_conf[idec1_remap];
@@ -500,6 +504,8 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
   for(int idec2=0;idec2<idec2_remap;idec2++) nissa_free(dec2_conf[idec2]);
   
   /////////////////////////////////////// zero level decoration /////////////////////////////////
+  
+  master_printf("Zero level decoration\n");
   
   //loop over external index
   for(int mu=0;mu<4;mu++)

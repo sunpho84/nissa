@@ -19,6 +19,8 @@ void quadruple_accumulate_double_vector_glb_scalar_prod(float_128 a,double *b,do
 double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,double *b,int n);
 void get_spincolor_from_colorspinspin(spincolor *out,colorspinspin *in,int id);
 void put_spincolor_into_colorspinspin(colorspinspin *out,spincolor *in,int id);
+void get_spincolor_from_su3spinspin(spincolor *out,su3spinspin *in,int id,int ic);
+void put_spincolor_into_su3spinspin(su3spinspin *out,spincolor *in,int id,int ic);
 void safe_dirac_prod_spincolor(spincolor *out,dirac_matr &m,spincolor *in);
 
 #endif

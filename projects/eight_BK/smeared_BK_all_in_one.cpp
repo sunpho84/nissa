@@ -309,7 +309,7 @@ int check_residual_time()
       master_printf("\n");
       master_printf("-average running time: %lg secs per conf,\n",ave_time);
       master_printf("-pessimistical estimate: %lg secs per conf\n",pess_time);
-      master_printf("-remaining time: %lg secs per conf\n",remaining_time);
+      master_printf("-remaining time: %lg secsf\n",remaining_time);
       if(!enough_time) master_printf("Not enough time for another conf, so exiting.\n");
     }
   else

@@ -6,7 +6,7 @@
 #include "spin.h"
 
 //Print a spin
-void print_spin(spin s)
+void spin_print(spin s)
 {
   for(int id=0;id<4;id++) printf("%+016.16le,%+016.16le\t",s[id][0],s[id][1]);
   printf("\n");
@@ -118,7 +118,7 @@ void as2t_saturate(complex out,as2t a,as2t b)
 }
 
 //Print a spinspin
-void print_spinspin(spinspin s)
+void spinspin_print(spinspin s)
 {
   for(int id1=0;id1<4;id1++)
     {
