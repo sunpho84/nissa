@@ -521,15 +521,7 @@ void average_polyakov_loop_of_eos_conf(complex tra,quad_su3 **eo_conf,int mu)
 //At (xmu_start-glb_size[mu]/2) is done twice and left with the forward
 void compute_Pline(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
 {
-  if(0)
-    {
   communicate_lx_quad_su3_borders(conf);
-  
-  //Reset the link product, putting id at xmu_start
-  vector_reset(pline);
-  nissa_loc_vol_loop(ivol)
-    if(glb_coord_of_loclx[ivol][mu]==xmu_start)
-      su3_put_to_id(pline[ivol]);
   
   //Loop simultaneously forward and backward
   for(int xmu_shift=1;xmu_shift<=glb_size[mu]/2;xmu_shift++)
@@ -542,27 +534,37 @@ void compute_Pline(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
 	  int x_forw=loclx_neighup[x][mu];
 	  
 	  //consider +xmu_shift point
-	  if(glb_coord_of_loclx[x][mu]==(xmu_start+xmu_shift)%glb_size[mu]) unsafe_su3_prod_su3(pline[x],conf[x_back][mu],pline[x_back]);
+	  if(glb_coord_of_loclx[x][mu]==(xmu_start+xmu_shift)%glb_size[mu]) unsafe_su3_dag_prod_su3(pline[x],conf[x_back][mu],pline[x_back]);
 	  //consider -xmu_shift point
-	  if((glb_coord_of_loclx[x][mu]+xmu_shift)%glb_size[mu]==xmu_start) unsafe_su3_dag_prod_su3(pline[x],conf[x][mu],pline[x_forw]);
+	  if((glb_coord_of_loclx[x][mu]+xmu_shift)%glb_size[mu]==xmu_start) unsafe_su3_prod_su3(pline[x],conf[x][mu],pline[x_forw]);
 	}
       
       set_borders_invalid(pline);
     }
-    }
-  else
-    {
+}
 
-  for(int t=0;t<loc_size[0];t++)
-    nissa_loc_vol_loop(ivol)
-      if(t==glb_coord_of_loclx[ivol][0])
-	{
-	  int back=loclx_neighdw[ivol][0];
-	  
-	  if(t==0) su3_put_to_id(pline[ivol]);
-	  else     unsafe_su3_prod_su3(pline[ivol],pline[back],conf[back][0]);
-	}
-    }
+///compute the pline stemming from the all the points at xmu=xmu_start along dir mu
+void compute_Pline(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
+{
+  //reset the link product, putting id at x such that xmu==xmu_start
+  vector_reset(pline);
+  nissa_loc_vol_loop(x) if(glb_coord_of_loclx[x][mu]==xmu_start) su3_put_to_id(pline[x]);
+
+  compute_Pline(pline,conf,mu,x_start);
+}
+
+//compute the Pline stemming from x_start along dir mu
+void compute_Pline(su3 *pline,quad_su3 *conf,int mu,coords glb_x_start)
+{
+  //get the rank and loc site x
+  int loc_x_start,rank_hosting_x;
+  get_loclx_and_rank_of_coord(&loc_x_start,&rank_hosting_x,glb_x_start);
+  
+  //reset the link product, putting id at x_start
+  vector_reset(pline);
+  if(rank==rx) su3_put_to_id(pline[x]);
+  
+  compute_Pline(pline,conf,mu,x_start[mu]);
 }
 
 //Compute the stochastic Pline, using a color as source
