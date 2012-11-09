@@ -44,6 +44,8 @@ source |------>---->----->---->| sink
 
 */
 
+#include <stdlib.h>
+
 #include "nissa.h"
 
 //use or not use static limit
