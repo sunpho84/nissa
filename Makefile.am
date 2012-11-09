@@ -18,7 +18,8 @@ libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers)
 ##########################################################################################################################################################
 
 #list of all the programs
-bin_PROGRAMS=projects/generate_confs/generate_stag projects/semileptonic/semileptonic_smeared tools/unitarity_check/unitarity_check projects/eight_BK/smeared_BK_all_in_one projects/semileptonic/test
+bin_PROGRAMS=projects/generate_confs/generate_stag projects/semileptonic/semileptonic_smeared tools/unitarity_check/unitarity_check projects/eight_BK/smeared_BK_all_in_one projects/semileptonic/test projects/static_potential/compute_potential
+
 #program to generate confs
 projects_generate_confs_generate_stag_SOURCES=projects/generate_confs/generate_stag.cpp $(extra_headers)
 
@@ -29,6 +30,9 @@ projects_eight_BK_smeared_BK_all_in_one_SOURCES=projects/eight_BK/smeared_BK_all
 projects_semileptonic_semileptonic_smeared_SOURCES=projects/semileptonic/semileptonic_smeared.cpp projects/semileptonic/new_types.cpp projects/semileptonic/new_types.h $(extra_headers)
 projects_semileptonic_test_SOURCES=projects/semileptonic/test.cpp projects/semileptonic/new_types.cpp projects/semileptonic/new_types.h $(extra_headers)
 #projects_semileptonic_semileptonic_smeared_point_source_SOURCES=projects/semileptonic/semileptonic_smeared_point_source.cpp $(extra_headers)
+
+#compute static potential
+projects_static_potential_compute_potential_SOURCES=projects/static_potential/compute_potential.cpp $(extra_headers)
 
 #unitarity check
 tools_unitarity_check_unitarity_check_SOURCES=tools/unitarity_check/unitarity_check.cpp $(extra_headers)

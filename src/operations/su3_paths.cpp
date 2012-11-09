@@ -521,6 +521,8 @@ void average_polyakov_loop_of_eos_conf(complex tra,quad_su3 **eo_conf,int mu)
 //At (xmu_start-glb_size[mu]/2) is done twice and left with the forward
 void compute_Pline(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
 {
+  if(0)
+    {
   communicate_lx_quad_su3_borders(conf);
   
   //Reset the link product, putting id at xmu_start
@@ -546,6 +548,20 @@ void compute_Pline(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
 	}
       
       set_borders_invalid(pline);
+    }
+    }
+  else
+    {
+
+  for(int t=0;t<loc_size[0];t++)
+    nissa_loc_vol_loop(ivol)
+      if(t==glb_coord_of_loclx[ivol][0])
+	{
+	  int back=loclx_neighdw[ivol][0];
+	  
+	  if(t==0) su3_put_to_id(pline[ivol]);
+	  else     unsafe_su3_prod_su3(pline[ivol],pline[back],conf[back][0]);
+	}
     }
 }
 

@@ -349,14 +349,13 @@ void load_gauge_conf()
     {
       master_printf("Hypping the conf\n");
       hyp_smear_conf_dir(hyp_conf,conf,hyp_alpha0,hyp_alpha1,hyp_alpha2,0);
+      master_printf("hypped plaq: %.18g\n",global_plaquette_lx_conf(hyp_conf));
     }
 }
 
 //calculate the propagators
 void calculate_S(int iwall)
 {
-  color *stat_source=nissa_malloc("StatSource",loc_vol+bord_vol,color);
-  
   master_printf("\n");
   
   for(int id=0;id<4;id++)
@@ -371,7 +370,6 @@ void calculate_S(int iwall)
 	  master_printf("\n");
 	  
 	  int so_jnit_to_app=((so_jlv==0) ? so_jnit[iwall][so_jlv] : (so_jnit[iwall][so_jlv]-so_jnit[iwall][so_jlv-1]));
-	  
 	  jacobi_smearing(source,source,sme_conf,jacobi_kappa,so_jnit_to_app);
 	  
 	  double part_time=-take_time();
@@ -392,21 +390,6 @@ void calculate_S(int iwall)
 		  nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],temp_vec[r][ivol],id);
 		}
 	    }
-	  
-	  //compute static prop, if needed
-	  if(include_static && id==0)
-	    {
-	      master_printf("\nComputing static prop\n");
-	      //take the source: at id 0 the gamma5 is not present
-	      nissa_loc_vol_loop(ivol)
-		for(int ic=0;ic<3;ic++)
-		  complex_copy(stat_source[ivol][ic],source[ivol][id][ic]);
-	      set_borders_invalid(stat_source);
-	      
-	      //compute for r=0 and copy in r=1
-	      compute_Wstat_stoch_prop(S[iS(iwall,so_jlv,ndyn_mass,0)],hyp_conf,0,twall[iwall],stat_source);
-	      vector_copy(S[iS(iwall,so_jlv,ndyn_mass,1)],S[iS(iwall,so_jlv,ndyn_mass,0)]);
-	    }
 	}
     }
   
@@ -420,7 +403,28 @@ void calculate_S(int iwall)
 	  rotate_vol_colorspinspin_to_physical_basis(S[iprop],!r,!r);
 	}
   
-  nissa_free(stat_source);
+  //compute static prop, if needed
+  if(include_static)
+    {
+      color *stat_source=nissa_malloc("StatSource",loc_vol+bord_vol,color);
+      
+      master_printf("\nComputing static prop\n");
+      get_color_from_colorspinspin(stat_source,original_source,0,0);
+
+      for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
+	{
+	  master_printf("\n");
+	  
+	  int so_jnit_to_app=((so_jlv==0) ? so_jnit[iwall][so_jlv] : (so_jnit[iwall][so_jlv]-so_jnit[iwall][so_jlv-1]));
+	  jacobi_smearing(stat_source,stat_source,sme_conf,jacobi_kappa,so_jnit_to_app);
+	  
+	  //compute for r=0 and copy in r=1
+	  compute_Wstat_stoch_prop(S[iS(iwall,so_jlv,ndyn_mass,0)],hyp_conf,0,twall[iwall],stat_source);
+	  vector_copy(S[iS(iwall,so_jlv,ndyn_mass,1)],S[iS(iwall,so_jlv,ndyn_mass,0)]);
+	}
+      
+      nissa_free(stat_source);
+    }
 }
 
 //Compute the connected part of bag correlator

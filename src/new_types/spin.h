@@ -2,10 +2,12 @@
 #define _SPIN_H
 double real_part_of_trace_spinspin_prod_spinspin_dag(spinspin a,spinspin b);
 void as2t_saturate(complex out,as2t a,as2t b);
+void get_color_from_colorspinspin(color out,colorspinspin in,int id1,int id2);
 void get_spincolor_from_colorspinspin(spincolor out,colorspinspin in,int id_source);
 void get_spincolor_from_su3spinspin(spincolor out,su3spinspin in,int id_source,int ic_source);
 void spin_print(spin s);
 void spinspin_print(spinspin s);
+void put_color_into_colorspinspin(colorspinspin out,color in,int id1,int id2);
 void put_spincolor_into_colorspinspin(colorspinspin out,spincolor in,int id_source);
 void put_spincolor_into_su3spinspin(su3spinspin out,spincolor in,int id_source,int ic_source);
 void safe_dirac_prod_spin(spin out,dirac_matr *m,spin in);

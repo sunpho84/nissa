@@ -226,6 +226,16 @@ void safe_spin_prod_spinspin(spin out,spin a,spinspin b)
   memcpy(out,c,sizeof(spin));
 }
 
+//Get a color from a colorspinspin
+void get_color_from_colorspinspin(color out,colorspinspin in,int id1,int id2)
+{
+  for(int ic_sink=0;ic_sink<3;ic_sink++)
+      {
+	out[ic_sink][0]=in[ic_sink][id1][id2][0];
+	out[ic_sink][1]=in[ic_sink][id1][id2][1];
+      }
+}
+
 //Get a spincolor from a colorspinspin
 //In a spinspin the sink index runs slower than the source
 void get_spincolor_from_colorspinspin(spincolor out,colorspinspin in,int id_source)
@@ -247,6 +257,16 @@ void get_spincolor_from_su3spinspin(spincolor out,su3spinspin in,int id_source,i
 	out[id_sink][ic_sink][0]=in[ic_sink][ic_source][id_sink][id_source][0];
 	out[id_sink][ic_sink][1]=in[ic_sink][ic_source][id_sink][id_source][1];
       }
+}
+
+//Put a color into a colorspinspin
+void put_color_into_colorspinspin(colorspinspin out,color in,int id1,int id2)
+{
+  for(int ic_sink=0;ic_sink<3;ic_sink++)
+    {
+      out[ic_sink][id1][id2][0]=in[ic_sink][0];
+      out[ic_sink][id1][id2][1]=in[ic_sink][1];
+    }
 }
 
 //Put a spincolor into a colorspinspin
