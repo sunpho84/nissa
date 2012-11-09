@@ -519,7 +519,8 @@ void average_polyakov_loop_of_eos_conf(complex tra,quad_su3 **eo_conf,int mu)
 //Between xmu_start and (xmu_start+glb_size[mu]/2) it contains forward line
 //Between xmu_start and (xmu_start-glb_size[mu]/2) it contains backward line
 //At (xmu_start-glb_size[mu]/2) is done twice and left with the forward
-void compute_Pline(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
+//Actually since what is needed for Wprop is the revert, it is dag
+void compute_Pline_dag_internal(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
 {
   communicate_lx_quad_su3_borders(conf);
   
@@ -543,18 +544,18 @@ void compute_Pline(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
     }
 }
 
-///compute the pline stemming from the all the points at xmu=xmu_start along dir mu
-void compute_Pline(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
+///compute the pline daggered stemming from the all the points at xmu=xmu_start along dir mu
+void compute_Pline_dag_wall(su3 *pline,quad_su3 *conf,int mu,int xmu_start)
 {
   //reset the link product, putting id at x such that xmu==xmu_start
   vector_reset(pline);
   nissa_loc_vol_loop(x) if(glb_coord_of_loclx[x][mu]==xmu_start) su3_put_to_id(pline[x]);
 
-  compute_Pline(pline,conf,mu,x_start);
+  compute_Pline_dag_internal(pline,conf,mu,xmu_start);
 }
 
-//compute the Pline stemming from x_start along dir mu
-void compute_Pline(su3 *pline,quad_su3 *conf,int mu,coords glb_x_start)
+//compute the Pline daggered_stemming from x_start along dir mu
+void compute_Pline_dag_point(su3 *pline,quad_su3 *conf,int mu,coords glb_x_start)
 {
   //get the rank and loc site x
   int loc_x_start,rank_hosting_x;
@@ -562,13 +563,13 @@ void compute_Pline(su3 *pline,quad_su3 *conf,int mu,coords glb_x_start)
   
   //reset the link product, putting id at x_start
   vector_reset(pline);
-  if(rank==rx) su3_put_to_id(pline[x]);
+  if(rank==rank_hosting_x) su3_put_to_id(pline[loc_x_start]);
   
-  compute_Pline(pline,conf,mu,x_start[mu]);
+  compute_Pline_dag_internal(pline,conf,mu,glb_x_start[mu]);
 }
 
 //Compute the stochastic Pline, using a color as source
-void compute_stoch_Pline(color *pline,quad_su3 *conf,int mu,int xmu_start,color *source)
+void compute_stoch_Pline_dag(color *pline,quad_su3 *conf,int mu,int xmu_start,color *source)
 {
   communicate_lx_quad_su3_borders(conf);
   
@@ -589,9 +590,9 @@ void compute_stoch_Pline(color *pline,quad_su3 *conf,int mu,int xmu_start,color 
 	  int x_forw=loclx_neighup[x][mu];
 	  
 	  //consider +xmu_shift point
-	  if(glb_coord_of_loclx[x][mu]==(xmu_start+xmu_shift)%glb_size[mu]) unsafe_su3_prod_color(pline[x],conf[x_back][mu],pline[x_back]);
+	  if(glb_coord_of_loclx[x][mu]==(xmu_start+xmu_shift)%glb_size[mu]) unsafe_su3_dag_prod_color(pline[x],conf[x_back][mu],pline[x_back]);
 	  //consider -xmu_shift point
-	  if((glb_coord_of_loclx[x][mu]+xmu_shift)%glb_size[mu]==xmu_start) unsafe_su3_dag_prod_color(pline[x],conf[x][mu],pline[x_forw]);
+	  if((glb_coord_of_loclx[x][mu]+xmu_shift)%glb_size[mu]==xmu_start) unsafe_su3_prod_color(pline[x],conf[x][mu],pline[x_forw]);
 	}
       
       set_borders_invalid(pline);
@@ -599,13 +600,8 @@ void compute_stoch_Pline(color *pline,quad_su3 *conf,int mu,int xmu_start,color 
 }
 
 //compute the static propagator, putting the 1+gamma_mu in place
-void compute_Wstat_prop(su3spinspin *prop,quad_su3 *conf,int mu,int xmu_start)
+void compute_Wstat_prop_finalize(su3spinspin *prop,quad_su3 *conf,int mu,int xmu_start,su3 *pline)
 {
-  su3 *pline=nissa_malloc("pline",loc_vol+bord_vol,su3);
-  
-  //compute stocasthic pline
-  compute_Pline(pline,conf,mu,xmu_start);
-  
   //reset the output
   vector_reset(prop);
   
@@ -625,17 +621,38 @@ void compute_Wstat_prop(su3spinspin *prop,quad_su3 *conf,int mu,int xmu_start)
 	    spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],base_gamma+0,pline[x][ic1][ic2]);
 	    
 	    //sign of 1+-gamma_mu
-	    //if(!ori)
-	      {
-		if(ord==1 && dist<=glb_size[mu]/2) spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //forward
-		else                               spinspin_dirac_subt_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //backward
-		
-		spinspin_prodassign_double(prop[x][ic1][ic2],0.5);
-	      }
+	    if(ord==1 && dist<=glb_size[mu]/2) spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //forward
+	    else                               spinspin_dirac_subt_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //backward
+	    
+	    spinspin_prodassign_double(prop[x][ic1][ic2],0.5);
 	  }
     }
   
   set_borders_invalid(prop);
+}
+
+//compute the static propagator
+void compute_Wstat_prop_wall(su3spinspin *prop,quad_su3 *conf,int mu,int xmu_start)
+{
+  su3 *pline=nissa_malloc("pline",loc_vol+bord_vol,su3);
+  
+  //version with pline stemming from a wall
+  compute_Pline_dag_wall(pline,conf,mu,xmu_start);
+  
+  compute_Wstat_prop_finalize(prop,conf,mu,xmu_start,pline);
+
+  nissa_free(pline);
+}
+
+//version with pline by a point
+void compute_Wstat_prop_point(su3spinspin *prop,quad_su3 *conf,int mu,coords x_start)
+{
+  su3 *pline=nissa_malloc("pline",loc_vol+bord_vol,su3);
+
+  //compute pline stemming from a point
+  compute_Pline_dag_point(pline,conf,mu,x_start);
+  
+  compute_Wstat_prop_finalize(prop,conf,mu,x_start[mu],pline);
 
   nissa_free(pline);
 }
@@ -646,7 +663,7 @@ void compute_Wstat_stoch_prop(colorspinspin *prop,quad_su3 *conf,int mu,int xmu_
   color *pline=nissa_malloc("pline",loc_vol+bord_vol,color);
 
   //compute stocasthic pline
-  compute_stoch_Pline(pline,conf,mu,xmu_start,source);
+  compute_stoch_Pline_dag(pline,conf,mu,xmu_start,source);
 
   //reset the output
   vector_reset(prop);
@@ -676,213 +693,6 @@ void compute_Wstat_stoch_prop(colorspinspin *prop,quad_su3 *conf,int mu,int xmu_
 
   nissa_free(pline);
 }
-
-/*
-void Pline(su3 *Pline,quad_su3 *conf)
-{
-  communicate_lx_quad_su3_borders(conf);
-  
-  int X,iX[4],T=loc_size[0];
-  
-  su3 *U0=nissa_malloc("U0",loc_size[0]+1,su3);
-  su3 *plf=nissa_malloc("plf",loc_size[0]+1,su3);
-  su3 *plb=nissa_malloc("plb",loc_size[0]+1,su3);
-  
-  MPI_Status status_f,status_b;
-  int tag_f=0,tag_b=1;
-  su3 aux,plf_dw_buffer,plb_up_buffer;
-  
-  //local loop
-  for(iX[1]=0;iX[1]<loc_size[1];iX[1]++)
-    for(iX[2]=0;iX[2]<loc_size[2];iX[2]++)
-      for(iX[3]=0;iX[3]<loc_size[3];iX[3]++)
-	{
-	  //forward line
-	  for(iX[0]=0;iX[0]<T;iX[0]++)
-	    {
-	      X=loclx_of_coord(iX);
-	      unsafe_su3_hermitian(U0[iX[0]+1],conf[X][0]);
-             }
-            su3_copy(plf[1],U0[1]);
-            for(int t=2;t<=T;t++) unsafe_su3_prod_su3(plf[t],U0[t],plf[t-1]);
-
-	    if(rank_coord[0]<nrank_dir[0]-1)
-	      {
-		MPI_Send(plf[T],1,MPI_SU3,rank_neighup[0],tag_f,MPI_COMM_WORLD);
-		MPI_Recv(plb_up_buffer,1,MPI_SU3,rank_neighup[0],tag_b,MPI_COMM_WORLD,&status_b);
-	      }
-
-	    //backward line
-            for(iX[0]=0;iX[0]<T;iX[0]++)
-	      {
-		X=loclx_of_coord(iX);
-		su3_copy(U0[iX[0]+1],conf[X][0]);
-	      }
-            su3_copy(plb[T],U0[T]);
-            for(int t=1;t<T;t++) unsafe_su3_prod_su3(plb[T-t],U0[T-t],plb[T-t+1]);
-
-	   if(rank_coord[0]>0)
-	     {
-	       MPI_Send(plb[1],1,MPI_SU3,rank_neighdw[0],tag_b,MPI_COMM_WORLD);
-	       MPI_Recv(plf_dw_buffer,1,MPI_SU3,rank_neighdw[0],tag_f,MPI_COMM_WORLD,&status_f);
-	     }
-
-	    //forward P-line
-            iX[0]=0;
-            X=loclx_of_coord(iX);
-            su3_put_to_id(Pline[X]); //if glb_t=0 -> P-line=Identity
-            if(glb_coord_of_loclx[X][0]>0 && glb_coord_of_loclx[X][0]<=(glb_size[0]/2-1))
-	      { //if 0<t<=T/2-1 
-		unsafe_su3_prod_su3(aux,Pline[X],plf_dw_buffer);
-		su3_copy(Pline[X],aux);
-	      }
-            for(iX[0]=1;iX[0]<T;iX[0]++)
-	      {
-                int t=iX[0];
-                X=loclx_of_coord(iX);
-                //This is a "local" P-line
-                if(glb_coord_of_loclx[X][0]<=(glb_size[0]/2-1))
-		  {
-		    su3_copy(Pline[X],plf[t]);
-		    if(rank_coord[0]>0)
-		      {
-			unsafe_su3_prod_su3(aux,Pline[X],plf_dw_buffer);
-			su3_copy(Pline[X],aux);
-		      }
-		  }
-	      }
-
-	    //backward P-line
-	   for(iX[0]=T-1;iX[0]>=0;iX[0]--)
-	     {
-	       int t=iX[0];
-	       X=loclx_of_coord(iX);
-	       if(glb_coord_of_loclx[X][0]>(glb_size[0]/2-1))
-		 {
-		   su3_copy(Pline[X],plb[t+1]);
-		   if(rank_coord[0]<(nrank_dir[0]-1))
-		     {
-		       unsafe_su3_prod_su3(aux,Pline[X],plb_up_buffer);
-		       su3_copy(Pline[X],aux);
-		     }
-		 }
-	     }	
-	}
-  
-  nissa_free(U0);nissa_free(plf);nissa_free(plb);
-}
-
-void Pline_forward(su3 *Pline, quad_su3 *conf)
-{
-  communicate_lx_quad_su3_borders(conf);
-  
-  int X,iX[4],T=loc_size[0];
-  
-  su3 *U0=nissa_malloc("U0",loc_size[0]+1,su3);
-  su3 *plf=nissa_malloc("plf",loc_size[0]+1,su3);
-  
-  MPI_Status status_f;
-  int tag_f=0;
-  su3 aux,plf_dw_buffer;
-  
-  //local loop
-  for(iX[1]=0;iX[1]<loc_size[1];iX[1]++)
-    for(iX[2]=0;iX[2]<loc_size[2];iX[2]++)
-      for(iX[3]=0;iX[3]<loc_size[3];iX[3]++)
-	{
-	  for(iX[0]=0;iX[0]<T;iX[0]++)
-	    {
-	      X=loclx_of_coord(iX);
-	      unsafe_su3_hermitian(U0[iX[0]+1],conf[X][0]);
-	    }
-           su3_copy(plf[1],U0[1]);
-           for(int t=2;t<=T;t++) unsafe_su3_prod_su3(plf[t],U0[t],plf[t-1]);
-
-           if(rank_coord[0]<nrank_dir[0]-1)
-	     {
-	       su3_copy(plf_dw_buffer,plf[T]);
-	       MPI_Send(plf_dw_buffer,1,MPI_SU3,rank_neighup[0],tag_f,MPI_COMM_WORLD);
-	     }
-           if(rank_coord[0]>0) MPI_Recv(plf_dw_buffer,1,MPI_SU3,rank_neighdw[0],tag_f,MPI_COMM_WORLD,&status_f);
-
-	   iX[0]=0;
-	   X=loclx_of_coord(iX);
-	   su3_put_to_id(Pline[X]);
-	   if(rank_coord[0]>0)
-	     {
-	       unsafe_su3_prod_su3(aux,Pline[X],plf_dw_buffer);
-	       su3_copy(Pline[X],aux);
-	     }
-
-           for(iX[0]=1;iX[0]<T;iX[0]++)
-	     {
-	       X=loclx_of_coord(iX);
-	       //This is a "local" P-line
-	       su3_copy(Pline[X],plf[iX[0]]);
-	       //Here I acummulate the global P-line 
-	       if(rank_coord[0]>0)
-		 {
-		   unsafe_su3_prod_su3(aux,Pline[X],plf_dw_buffer);
-		   su3_copy(Pline[X],aux);
-		 }
-	     }
-        }
-
-  nissa_free(U0);nissa_free(plf);
-}
-
-void Pline_backward(su3 *Pline, quad_su3 *conf)
-{
-  communicate_lx_quad_su3_borders(conf);
-  
-  int X,iX[4],T=loc_size[0];
-  
-  su3 *U0=nissa_malloc("U0",loc_size[0]+1,su3);
-  su3 *plb=nissa_malloc("plb",loc_size[0]+1,su3);
-  
-  MPI_Status status_b;
-  int tag_b=1;
-  su3 aux,plb_up_buffer;
-  
-  //local loop
-  for(iX[1]=0;iX[1]<loc_size[1];iX[1]++)
-    for(iX[2]=0;iX[2]<loc_size[2];iX[2]++)
-      for(iX[3]=0;iX[3]<loc_size[3];iX[3]++)
-	{
-	  for(iX[0]=0;iX[0]<T;iX[0]++)
-	    {
-	      X=loclx_of_coord(iX);
-	      su3_copy(U0[iX[0]+1],conf[X][0]);
-            }
-            su3_copy(plb[T],U0[T]);
-            for(int t=1;t<T;t++) unsafe_su3_prod_su3(plb[T-t],U0[T-t],plb[T-t+1]);
-
-           if(rank_coord[0]<nrank_dir[0]-1)
-	     MPI_Recv(plb_up_buffer,1,MPI_SU3,rank_neighup[0],tag_b,MPI_COMM_WORLD,&status_b);
-	   
-           if(rank_coord[0]>0)
-	     {
-	       su3_copy(plb_up_buffer,plb[1]);
-	       MPI_Send(plb_up_buffer,1,MPI_SU3,rank_neighdw[0],tag_b,MPI_COMM_WORLD);
-	     }
-
-            //backward P-line
-	   for(iX[0]=T-1;iX[0]>=0;iX[0]--)
-	     {
-	       int t=iX[0];
-	       X=loclx_of_coord(iX);
-	       su3_copy(Pline[X],plb[t+1]);
-	       if(rank_coord[0]<nrank_dir[0]-1)
-		 {
-		   unsafe_su3_prod_su3(aux,Pline[X],plb_up_buffer);
-		   su3_copy(Pline[X],aux);
-		 }
-	     }
-	}
-
-  nissa_free(U0);nissa_free(plb);
-}
-*/
 
 //This will calculate 2*a^2*ig*P_{mu,nu}
 /*

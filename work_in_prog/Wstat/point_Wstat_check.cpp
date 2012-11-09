@@ -44,7 +44,7 @@ void make_point_test(quad_su3 *conf)
   int ivol=glblx_of_coord_list(1,1,1,1);
   
   //compute the prop
-  compute_Wstat_prop(prop,conf,0,0);
+  compute_Wstat_prop_point(prop,conf,0,source_coord);
   
   //take a dirac-color index
   int id=0,ic=0;
@@ -192,7 +192,7 @@ void calculate_S()
   
   master_printf("Propagators rotated\n");
 
-  compute_Wstat_prop(S[0][nmass],conf,0,source_coord[0]);
+  compute_Wstat_prop_point(S[0][nmass],conf,0,source_coord);
   vector_copy(S[1][nmass],S[0][nmass]);
   
   complex cc={0,0};
@@ -219,7 +219,7 @@ void setup_conf()
   
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
-  landau_gauge_fix(conf,conf,1.e-28);
+  //landau_gauge_fix(conf,conf,1.e-28);
   
   //put the anti-periodic condition on the temporal border
   old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
