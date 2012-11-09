@@ -14,7 +14,7 @@ void make_point_test(quad_su3 *conf)
   int ivol=glblx_of_coord_list(1,1,1,1);
   
   //compute the prop
-  compute_Wstat_prop(prop,conf,0,0);
+  compute_Wstat_prop_wall(prop,conf,0,0);
   
   //take a dirac-color index
   int id=0,ic=0;
