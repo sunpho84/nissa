@@ -376,71 +376,17 @@ void jacobi_smearing(colorspinspin *smear_css,colorspinspin *origi_css,quad_su3 
   if(temp1==NULL) nissa_free(temp);
 }
 
-//jacobi smearing
+//jacobi smearing on color, obtained promoting to spincolor
 void jacobi_smearing(color *smear_c,color *origi_c,quad_su3 *conf,double kappa,int niter,color *ext_temp=NULL,color *ext_H=NULL)
 {
-  if(niter<1)
-    {
-      verbosity_lv1_master_printf("Skipping smearing (0 iter required)\n");
-      if(smear_c!=origi_c) memcpy(smear_c,origi_c,sizeof(color)*loc_vol);
-    }
-  else
-    {
-      color *temp;
-      if(ext_temp==NULL) temp=nissa_malloc("temp",loc_vol+bord_vol,color);//we do not know if smear_c is allocated with bord
-      else               temp=ext_temp;
-      
-      color *H;
-      if(ext_H==NULL) H=nissa_malloc("H",loc_vol+bord_vol,color);
-      else            H=ext_H;
-      
-      double norm_fact=1/(1+6*kappa);
-      communicate_lx_quad_su3_borders(conf);
-
-      verbosity_lv1_master_printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
-      
-      //iter 0
-      memcpy(temp,origi_c,sizeof(color)*loc_vol);
-      set_borders_invalid(temp);
-      
-      //loop over jacobi iterations
-      for(int iter=0;iter<niter;iter++)
-	{
-	  verbosity_lv3_master_printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
-	  
-	  //apply kappa*H
-	  smearing_apply_kappa_H(H,kappa,conf,temp);
-#ifndef BGP
-	  //add kappa*H
-	  vol_color_summassign(temp,H);
-	  //dynamic normalization  
-	  vol_color_prod_double(temp,temp,norm_fact);
-#else
-	  bgp_complex A0,A1,A2;
-	  bgp_complex B0,B1,B2;
-	  bgp_complex C0,C1,C2;
-	  
-	  nissa_loc_vol_loop(ivol)
-	    {
-	      bgp_cache_touch_color(temp[ivol]);
-	      bgp_cache_touch_color(H[ivol]);
-	      
-	      bgp_color_load(A0,A1,A2,temp[ivol]);
-	      bgp_color_load(B0,B1,B2,H[ivol]);
-	      bgp_color_prod_double(C0,C1,C2,A0,A1,A2,norm_fact);
-	      bgp_summassign_color_prod_double(C0,C1,C2,B0,B1,B2,norm_fact);
-	      bgp_color_save(temp[ivol],C0,C1,C2);
-	    }
-	  set_borders_invalid(temp);
-#endif
-	}
-      
-      memcpy(smear_c,temp,sizeof(color)*loc_vol);
-      set_borders_invalid(smear_c);
-      
-      if(ext_H==NULL) nissa_free(H);
-      if(ext_temp==NULL) nissa_free(temp);
-    }
+  spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
+  vector_reset(temp);
+  
+  put_color_into_spincolor(temp,origi_c,0);
+  jacobi_smearing(temp,temp,conf,kappa,niter);
+  get_color_from_spincolor(smear_c,temp,0);
+  
+  nissa_free(temp);
 }
 
 //smear with a polynomial of H
