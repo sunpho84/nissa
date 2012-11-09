@@ -296,6 +296,7 @@ void close_simulation()
     {
       fclose(gauge_obs_file);
       if(top_meas_flag) fclose(top_obs_file);
+      if(chiral_meas_flag) fclose(chiral_obs_file);
     }
   close_nissa();
 }

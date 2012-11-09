@@ -147,6 +147,22 @@ double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,
   return double_from_float_128(out);
 }
 
+//////////////// color put/get ////////////////////////
+
+void get_color_from_colorspinspin(color *out,colorspinspin *in,int id1,int id2)
+{
+  nissa_loc_vol_loop(ivol)
+    get_color_from_colorspinspin(out[ivol],in[ivol],id1,id2);
+  set_borders_invalid(out);
+}
+
+void put_color_into_colorspinspin(colorspinspin *out,color *in,int id1,int id2)
+{
+  nissa_loc_vol_loop(ivol)
+    put_color_into_colorspinspin(out[ivol],in[ivol],id1,id2);
+  set_borders_invalid(out);
+}
+
 //////////////// colorspinspin put/get ////////////////////////
 
 void get_spincolor_from_colorspinspin(spincolor *out,colorspinspin *in,int id)

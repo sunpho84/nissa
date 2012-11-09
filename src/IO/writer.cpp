@@ -230,10 +230,6 @@ void write_su3spinspin(char *path,su3spinspin *prop,int prec)
 void write_ildg_gauge_conf(const char *path,quad_su3 *in,int prec,ILDG_message *mess=NULL)
 {
   double start_time=take_time();
-  quad_su3 *temp=nissa_malloc("temp_gauge_writer",loc_vol,quad_su3);
-
-  int x[4],isour,idest;
-  quad_su3 buff;
 
   //Open the file
   ILDG_File file=ILDG_File_open_for_write(path);
@@ -243,13 +239,11 @@ void write_ildg_gauge_conf(const char *path,quad_su3 *in,int prec,ILDG_message *
     quad_su3_nissa_to_ildg_reord(in[ivol],in[ivol]);
   
   //write the lattice part
-  write_double_vector(file,(double*)temp,nreals_per_quad_su3,prec,"ildg-binary-data",mess);
+  write_double_vector(file,(double*)in,nreals_per_quad_su3,prec,"ildg-binary-data",mess);
   
   //reorder back
   nissa_loc_vol_loop(ivol)
     quad_su3_ildg_to_nissa_reord(in[ivol],in[ivol]);
-  
-  nissa_free(temp);
   
   verbosity_lv2_master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,take_time()-start_time);
   

@@ -193,6 +193,73 @@ void smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *
   
   set_borders_invalid(H);
 }
+//just to a color
+void smearing_apply_kappa_H(color *H,double kappa,quad_su3 *conf,color *smear_c)
+{
+  communicate_lx_color_borders(smear_c);
+  
+  memset(H,0,sizeof(color)*loc_vol);
+  
+#ifndef BGP
+  nissa_loc_vol_loop(ivol)
+    for(int mu=1;mu<4;mu++)
+      {
+	int ivup=loclx_neighup[ivol][mu];
+	int ivdw=loclx_neighdw[ivol][mu];
+	
+	su3_summ_the_prod_color    (H[ivol],conf[ivol][mu],smear_c[ivup]);
+	su3_dag_summ_the_prod_color(H[ivol],conf[ivdw][mu],smear_c[ivdw]);
+	
+	color_prod_double(H[ivol],H[ivol],kappa);
+      }
+#else
+  bgp_complex H0,H1,H2;
+  bgp_complex A0,A1,A2;
+  bgp_complex B0,B1,B2;
+  
+  bgp_complex U00,U01,U02;
+  bgp_complex U10,U11,U12;
+  bgp_complex U20,U21,U22;
+
+  bgp_complex V00,V01,V02;
+  bgp_complex V10,V11,V12;
+  bgp_complex V20,V21,V22;
+  
+  nissa_loc_vol_loop(ivol)
+    {
+      for(int mu=1;mu<4;mu++)
+	{
+	  int ivup=loclx_neighup[ivol][mu];
+	  int ivdw=loclx_neighdw[ivol][mu];
+	  
+	  bgp_cache_touch_su3(conf[ivol][mu]);
+	  bgp_cache_touch_su3(conf[ivdw][mu]);
+	  bgp_cache_touch_color(H[ivol]);
+	  bgp_cache_touch_color(smear_s[ivup]);
+	  bgp_cache_touch_color(smear_s[ivdw]);
+	  
+	  bgp_su3_load(U00,U01,U02,U10,U11,U12,U20,U21,U22,conf[ivol][mu]);
+	  bgp_su3_load(V00,V01,V02,V10,V11,V12,V20,V21,V22,conf[ivdw][mu]);
+	  
+	  bgp_color_load(H0,H1,H2,H[ivol]);
+	  bgp_color_load(A0,A1,A2,smear_s[ivup]);
+	  bgp_color_load(B0,B1,B2,smear_s[ivdw]);
+	  
+	  bgp_summ_the_su3_prod_color(H0,H1,H2,U00,U01,U02,U10,U11,U12,U20,U21,U22,A0,A1,A2);
+	  bgp_summ_the_su3_dag_prod_color(H0,H1,H2,V00,V01,V02,V10,V11,V12,V20,V21,V22,B0,B1,B2);
+	  
+	  bgp_color_save(H[ivol],H0,H1,H2);
+	}
+      
+      bgp_cache_touch_color(H[ivol]);  
+      bgp_color_load(A0,A1,A2,H[ivol]);
+      bgp_color_prod_double(B0,B1,B2,A0,A1,A2,kappa);
+      bgp_color_save(H[ivol],B0,B1,B2);
+    }
+#endif
+  
+  set_borders_invalid(H);
+}
 
 //summ
 void vol_spincolor_summassign(spincolor *smear_sc,spincolor *H)
@@ -201,12 +268,24 @@ void vol_spincolor_summassign(spincolor *smear_sc,spincolor *H)
     spincolor_summ(smear_sc[ivol],smear_sc[ivol],H[ivol]);
   set_borders_invalid(smear_sc);
 }
+void vol_color_summassign(color *smear_c,color *H)
+{
+  nissa_loc_vol_loop(ivol)
+    color_summ(smear_c[ivol],smear_c[ivol],H[ivol]);
+  set_borders_invalid(smear_c);
+}
 
 //prod with double
 void vol_spincolor_prod_double(spincolor *out,spincolor *in,double r)
 {
   nissa_loc_vol_loop(ivol)
     spincolor_prod_double(out[ivol],in[ivol],r);
+  set_borders_invalid(out);
+}
+void vol_color_prod_double(color *out,color *in,double r)
+{
+  nissa_loc_vol_loop(ivol)
+    color_prod_double(out[ivol],in[ivol],r);
   set_borders_invalid(out);
 }
 
@@ -295,6 +374,73 @@ void jacobi_smearing(colorspinspin *smear_css,colorspinspin *origi_css,quad_su3 
     }
   
   if(temp1==NULL) nissa_free(temp);
+}
+
+//jacobi smearing
+void jacobi_smearing(color *smear_c,color *origi_c,quad_su3 *conf,double kappa,int niter,color *ext_temp=NULL,color *ext_H=NULL)
+{
+  if(niter<1)
+    {
+      verbosity_lv1_master_printf("Skipping smearing (0 iter required)\n");
+      if(smear_c!=origi_c) memcpy(smear_c,origi_c,sizeof(color)*loc_vol);
+    }
+  else
+    {
+      color *temp;
+      if(ext_temp==NULL) temp=nissa_malloc("temp",loc_vol+bord_vol,color);//we do not know if smear_c is allocated with bord
+      else               temp=ext_temp;
+      
+      color *H;
+      if(ext_H==NULL) H=nissa_malloc("H",loc_vol+bord_vol,color);
+      else            H=ext_H;
+      
+      double norm_fact=1/(1+6*kappa);
+      communicate_lx_quad_su3_borders(conf);
+
+      verbosity_lv1_master_printf("JACOBI smearing with kappa=%g, %d iterations\n",kappa,niter);
+      
+      //iter 0
+      memcpy(temp,origi_c,sizeof(color)*loc_vol);
+      set_borders_invalid(temp);
+      
+      //loop over jacobi iterations
+      for(int iter=0;iter<niter;iter++)
+	{
+	  verbosity_lv3_master_printf("JACOBI smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
+	  
+	  //apply kappa*H
+	  smearing_apply_kappa_H(H,kappa,conf,temp);
+#ifndef BGP
+	  //add kappa*H
+	  vol_color_summassign(temp,H);
+	  //dynamic normalization  
+	  vol_color_prod_double(temp,temp,norm_fact);
+#else
+	  bgp_complex A0,A1,A2;
+	  bgp_complex B0,B1,B2;
+	  bgp_complex C0,C1,C2;
+	  
+	  nissa_loc_vol_loop(ivol)
+	    {
+	      bgp_cache_touch_color(temp[ivol]);
+	      bgp_cache_touch_color(H[ivol]);
+	      
+	      bgp_color_load(A0,A1,A2,temp[ivol]);
+	      bgp_color_load(B0,B1,B2,H[ivol]);
+	      bgp_color_prod_double(C0,C1,C2,A0,A1,A2,norm_fact);
+	      bgp_summassign_color_prod_double(C0,C1,C2,B0,B1,B2,norm_fact);
+	      bgp_color_save(temp[ivol],C0,C1,C2);
+	    }
+	  set_borders_invalid(temp);
+#endif
+	}
+      
+      memcpy(smear_c,temp,sizeof(color)*loc_vol);
+      set_borders_invalid(smear_c);
+      
+      if(ext_H==NULL) nissa_free(H);
+      if(ext_temp==NULL) nissa_free(temp);
+    }
 }
 
 //smear with a polynomial of H
