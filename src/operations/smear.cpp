@@ -235,15 +235,15 @@ void smearing_apply_kappa_H(color *H,double kappa,quad_su3 *conf,color *smear_c)
 	  bgp_cache_touch_su3(conf[ivol][mu]);
 	  bgp_cache_touch_su3(conf[ivdw][mu]);
 	  bgp_cache_touch_color(H[ivol]);
-	  bgp_cache_touch_color(smear_s[ivup]);
-	  bgp_cache_touch_color(smear_s[ivdw]);
+	  bgp_cache_touch_color(smear_c[ivup]);
+	  bgp_cache_touch_color(smear_c[ivdw]);
 	  
 	  bgp_su3_load(U00,U01,U02,U10,U11,U12,U20,U21,U22,conf[ivol][mu]);
 	  bgp_su3_load(V00,V01,V02,V10,V11,V12,V20,V21,V22,conf[ivdw][mu]);
 	  
 	  bgp_color_load(H0,H1,H2,H[ivol]);
-	  bgp_color_load(A0,A1,A2,smear_s[ivup]);
-	  bgp_color_load(B0,B1,B2,smear_s[ivdw]);
+	  bgp_color_load(A0,A1,A2,smear_c[ivup]);
+	  bgp_color_load(B0,B1,B2,smear_c[ivdw]);
 	  
 	  bgp_summ_the_su3_prod_color(H0,H1,H2,U00,U01,U02,U10,U11,U12,U20,U21,U22,A0,A1,A2);
 	  bgp_summ_the_su3_dag_prod_color(H0,H1,H2,V00,V01,V02,V10,V11,V12,V20,V21,V22,B0,B1,B2);
