@@ -3,6 +3,7 @@
 
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/su3.h"
+#include "../new_types/spin.h"
 #include "../base/global_variables.h"
 #include "../base/communicate.h"
 #include "../base/vectors.h"
