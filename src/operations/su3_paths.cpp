@@ -621,8 +621,8 @@ void compute_Wstat_prop_finalize(su3spinspin *prop,quad_su3 *conf,int mu,int xmu
 	    spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],base_gamma+0,pline[x][ic1][ic2]);
 	    
 	    //sign of 1+-gamma_mu
-	    if(ord==1 && dist<=glb_size[mu]/2) spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //forward
-	    else                               spinspin_dirac_subt_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //backward
+	    if((ord==1 && dist<=glb_size[mu]/2)||(ord==0 && dist>=glb_size[mu]/2)) spinspin_dirac_summ_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //forward
+	    else                                                                   spinspin_dirac_subt_the_prod_complex(prop[x][ic1][ic2],gamma_mu,pline[x][ic1][ic2]); //backward
 	    
 	    spinspin_prodassign_double(prop[x][ic1][ic2],0.5);
 	  }
@@ -681,9 +681,8 @@ void compute_Wstat_stoch_prop(colorspinspin *prop,quad_su3 *conf,int mu,int xmu_
       {
 	spinspin_dirac_summ_the_prod_complex(prop[x][ic],base_gamma+0,pline[x][ic]);
 
-	//sign of 1+-gamma_mu
-	if(ord==1 && dist<=glb_size[mu]/2) spinspin_dirac_summ_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //forward
-	else                               spinspin_dirac_subt_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //backward
+	if((ord==1 && dist<=glb_size[mu]/2)||(ord==0 && dist>=glb_size[mu]/2)) spinspin_dirac_summ_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //forward
+	else                                                                   spinspin_dirac_subt_the_prod_complex(prop[x][ic],gamma_mu,pline[x][ic]); //backward
 	
 	spinspin_prodassign_double(prop[x][ic],0.5);
       }
