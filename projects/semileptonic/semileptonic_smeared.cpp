@@ -687,7 +687,7 @@ void calculate_S0(int ism_lev_so)
 		put_theta[1]=put_theta[2]=put_theta[3]=thetaS0[itheta];
 		adapt_theta(conf,old_theta,put_theta,1,1);
 		
-		//inverting
+		//invert
 		if(!load_S0)
 		  {
 		    double part_time=-take_time();
@@ -702,6 +702,7 @@ void calculate_S0(int ism_lev_so)
 		    master_printf("dirac index %d in %g sec\n",id,part_time);
 		  }
 		
+		//read or writ, if needed
 		if(save_S0||load_S0)
 		  for(int imass=0;imass<nmass;imass++)
 		    {

@@ -417,8 +417,8 @@ void calculate_S(int iwall)
 	{
 	  master_printf("\n");
 	  
-	  //int so_jnit_to_app=((so_jlv==0) ? so_jnit[iwall][so_jlv] : (so_jnit[iwall][so_jlv]-so_jnit[iwall][so_jlv-1]));
-	  //jacobi_smearing(stat_source,stat_source,sme_conf,jacobi_kappa,so_jnit_to_app);
+	  int so_jnit_to_app=((so_jlv==0) ? so_jnit[iwall][so_jlv] : (so_jnit[iwall][so_jlv]-so_jnit[iwall][so_jlv-1]));
+	  jacobi_smearing(stat_source,stat_source,sme_conf,jacobi_kappa,so_jnit_to_app);
 	  
 	  //compute for r=0 and copy in r=1
 	  compute_Wstat_stoch_prop(S[iS(iwall,so_jlv,ndyn_mass,0)],hyp_conf,0,twall[iwall],stat_source);
@@ -437,7 +437,7 @@ void Bk_eights(colorspinspin *SL1,colorspinspin *SL2,colorspinspin *SR1,colorspi
   for(int igamma=0;igamma<16;igamma++)
     {
       //Put the two gamma5 needed for the revert of the d spinor
-      //tsource[igamma]=base_gamma[0]; //g5*g5
+      //tsource[igamma]=base_gamma[0]; //g5*g5, so commented and never used
       dirac_prod(&(tsink[igamma]),&(base_gamma[5]),&(base_gamma[igamma]));
     }
   
@@ -557,7 +557,7 @@ void calculate_all_contractions()
 	int si_jnit_to_app=((si_jlv==0) ? si_jnit[si_jlv] : (si_jnit[si_jlv]-si_jnit[si_jlv-1])); 
 	if(si_jnit_to_app!=0)
 	  for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
-	    for(int im=0;im<ndyn_mass;im++)
+	    for(int im=0;im<nmass;im++)
 	      for(int r=0;r<2;r++)
 		{
 		  int iprop=iS(iwall,so_jlv,im,r);
