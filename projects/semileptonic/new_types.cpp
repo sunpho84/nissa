@@ -73,13 +73,13 @@ void prop_group_t::read_pars(int ntheta_group,theta_group_t *theta_group,int nma
   //read the id of the list of masses and residues
   int imass_res_group;
   read_str_int("iMassResGroup",&imass_res_group);
-  if(imass_res_group<0||imass_res_group>nmass_res_group)
+  if(imass_res_group<0||imass_res_group>=nmass_res_group)
     crash("mass_res group chosen %d is not in the interval [0,%d)",imass_res_group,nmass_res_group);
       
   //read the id of the list of theta
   int itheta_group;
   read_str_int("iThetaGroup",&itheta_group);
-  if(itheta_group<0||itheta_group>ntheta_group)
+  if(itheta_group<0||itheta_group>=ntheta_group)
     crash("theta group chosen %d is not in the interval [0,%d)",itheta_group,ntheta_group);
   
   //read which r
