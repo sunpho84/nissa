@@ -417,8 +417,8 @@ void calculate_S(int iwall)
 	{
 	  master_printf("\n");
 	  
-	  int so_jnit_to_app=((so_jlv==0) ? so_jnit[iwall][so_jlv] : (so_jnit[iwall][so_jlv]-so_jnit[iwall][so_jlv-1]));
-	  jacobi_smearing(stat_source,stat_source,sme_conf,jacobi_kappa,so_jnit_to_app);
+	  //int so_jnit_to_app=((so_jlv==0) ? so_jnit[iwall][so_jlv] : (so_jnit[iwall][so_jlv]-so_jnit[iwall][so_jlv-1]));
+	  //jacobi_smearing(stat_source,stat_source,sme_conf,jacobi_kappa,so_jnit_to_app);
 	  
 	  //compute for r=0 and copy in r=1
 	  compute_Wstat_stoch_prop(S[iS(iwall,so_jlv,ndyn_mass,0)],hyp_conf,0,twall[iwall],stat_source);
@@ -557,19 +557,11 @@ void calculate_all_contractions()
 	int si_jnit_to_app=((si_jlv==0) ? si_jnit[si_jlv] : (si_jnit[si_jlv]-si_jnit[si_jlv-1])); 
 	if(si_jnit_to_app!=0)
 	  for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
-	    for(int im=0;im<nmass;im++)
+	    for(int im=0;im<ndyn_mass;im++)
 	      for(int r=0;r<2;r++)
 		{
 		  int iprop=iS(iwall,so_jlv,im,r);
-		  for(int id=0;id<4;id++)
-		    {
-		      //use source as temporary vector
-		      nissa_loc_vol_loop(ivol) get_spincolor_from_colorspinspin(source[ivol],S[iprop][ivol],id);
-		      set_borders_invalid(source);
-		      verbosity_lv1_master_printf("Prop %d, id=%d ",iprop,id);
-		      jacobi_smearing(source,source,sme_conf,jacobi_kappa,si_jnit_to_app);
-		      nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],source[ivol],id);
-		    }
+		  jacobi_smearing(S[iprop],S[iprop],sme_conf,jacobi_kappa,si_jnit_to_app);
 		}
 	
 	//loop over all source smearing level
