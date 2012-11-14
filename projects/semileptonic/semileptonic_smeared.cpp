@@ -72,7 +72,7 @@ double kappa;
 double put_theta[4],old_theta[4]={0,0,0,0};
 
 //list of masses and theta
-int which_r_S0;
+int which_r_S0,use_cgm_S1;
 int nmassS0,nthetaS0;
 int nmassS1,nthetaS1;
 double *massS0,*thetaS0;
@@ -377,6 +377,7 @@ void initialize_semileptonic(char *input_path)
   
   // 6) Read list of masses and of thetas for S1
   
+  read_str_int("UseCgmS1",&use_cgm_S1);
   read_list_of_double_pairs("MassResiduesS1",&nmassS1,&massS1,&stopping_residues_S1);
   read_list_of_doubles("NThetaS1",&nthetaS1,&thetaS1);
   
@@ -780,13 +781,13 @@ void calculate_S1(int ispec,int ism_lev_se)
 	    double part_time=-take_time();
 	    
 	    //decide to use one or the other inverters
-	    if(which_r_S0==2) inv_tmQ2_cgm(cgm_solution,conf,kappa,massS1,nmassS1,niter_max,stopping_residues_S1,source);
+	    if(use_cgm_S1) inv_tmQ2_cgm(cgm_solution,conf,kappa,massS1,nmassS1,niter_max,stopping_residues_S1,source);
 	    else
 	      for(int imass=0;imass<nmassS1;imass++)
 		{
 		  //since r0==0 implicates r1=1, mass=-mass when r0=1
 		  double m=massS1[imass];
-		  if(which_r_S0==1) m*=-1;
+		  if(r_spec[ispec]==1) m*=-1;
 		  
 		  inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,stopping_residues_S1[imass],source);
 		}
@@ -800,7 +801,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 		double reco_mass=-massS1[imass];
 		if(r_spec[ispec]==1) reco_mass=-reco_mass;
 		//use temp_vec[0] as temporary storage
-		if(which_r_S0==2)
+		if(use_cgm_S1)
 		  {
 		    apply_tmQ(temp_vec[0],conf,kappa,reco_mass,cgm_solution[imass]);
 		    master_printf("Mass %d (%g) reconstructed \n",imass,massS1[imass]);
