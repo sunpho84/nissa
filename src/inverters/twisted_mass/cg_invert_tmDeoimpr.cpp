@@ -6,6 +6,7 @@
 #include "../../base/routines.h"
 #include "../../geometry/geometry_mix.h"
 #include "../../dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h"
+#include "cg_128_invert_tmDeoimpr.h"
 
 //Refers to the doc: "doc/eo_inverter.lyx" for explenations
 
@@ -136,6 +137,10 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **co
   nissa_free(temp2);
 }
 
+//hack for template, which require rniter
+void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mu,int nitermax,int rniter,double residue,spincolor *source)
+{inv_tmDkern_eoprec_square_eos(sol,guess,conf,kappa,mu,nitermax,residue,source);}
+
 //Invert twisted mass operator using e/o preconditioning.
 void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mu,int nitermax,double residue,spincolor *source_lx)
 {
@@ -177,7 +182,8 @@ void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 
   set_borders_invalid(varphi);
   
   //Equation (9) using solution_eos[EVN] as temporary vector
-  inv_tmDkern_eoprec_square_eos(temp,guess_Koo,conf_eos,kappa,mu,nitermax,residue,varphi);
+  if(nissa_use_128_bit_precision) inv_tmDkern_eoprec_square_eos_128(temp,guess_Koo,conf_eos,kappa,mu,nitermax,residue,varphi);
+  else inv_tmDkern_eoprec_square_eos(temp,guess_Koo,conf_eos,kappa,mu,nitermax,residue,varphi);
   tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,-mu,temp);
   if(guess_Koo!=NULL) memcpy(guess_Koo,temp,sizeof(spincolor)*loc_volh); //if a guess was passed, return new one
   nissa_free(temp);

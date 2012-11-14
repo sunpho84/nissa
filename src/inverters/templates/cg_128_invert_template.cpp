@@ -5,6 +5,8 @@
 //  -cg_128_parameters_proto
 //  -cg_128_inner_solver
 //  -cg_128_inner_parameters_call
+//  -cg_additional_vectors_allocation
+//  -cg_additional_vectors_free
 //  -size_of_bulk, size_of_bord
 //  -basetype, basetype_128
 //  -ndoubles_per_site
@@ -18,6 +20,8 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
   memset(sol_128,0,size_of_bulk*sizeof(basetype_128));
   if(guess!=NULL) quadruple_vector_summassign_double_vector((float_128*)sol_128,(double*)guess,size_of_bulk*ndoubles_per_site);
   set_borders_invalid(sol_128);
+  
+  cg_additional_vectors_allocation();
   
   //compute and print source norm
   double source_norm=double_vector_glb_scalar_prod((double*)external_source,(double*)external_source,size_of_bulk*ndoubles_per_site);
@@ -34,7 +38,7 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
   
   //invert until residue is lower than required
   double previous_residue=1,current_residue;
-  int esci=0;
+  int esci=0,ext_iter=0;
   do
     {
       // 1) compute D*sol in quadruple precision
@@ -44,7 +48,7 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
       quadruple_vector_subt_from_double_vector((float_128*)residue_128,(double*)external_source,(float_128*)residue_128,size_of_bulk*ndoubles_per_site);
       double_vector_from_quadruple_vector((double*)internal_source,(float_128*)residue_128,size_of_bulk*ndoubles_per_site);
       current_residue=double_conv_quadruple_vector_glb_scalar_prod((float_128*)residue_128,(float_128*)residue_128,size_of_bulk*ndoubles_per_site)/source_norm;
-      verbosity_lv2_master_printf("\nExternal loop relative residue: %lg\n\n",current_residue);
+      verbosity_lv2_master_printf("\nExternal loop iter %d relative residue: %lg\n\n",ext_iter,current_residue);
       
       // 3) calibrate inner solver stopping condition
       double inner_solver_residue=max_double(1.e-20,external_solver_residue/current_residue);
@@ -58,12 +62,14 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
 	  //add the approximated solution to the total one
 	  quadruple_vector_summassign_double_vector((float_128*)sol_128,(double*)sol,size_of_bulk*ndoubles_per_site);
 	}
-      if(!(current_residue<previous_residue))
+      if(ext_iter!=0 && !(current_residue<previous_residue))
 	  {
-	      esci=1;
-	      master_printf("Not converging\n");
+	    esci=1;
+	    master_printf("Previous residue %lg, current residue %lg. Not converging, quitting loop\n",previous_residue,current_residue);
 	  }
       previous_residue=current_residue;
+      
+      ext_iter++;
     }
   while(current_residue>=external_solver_residue && !esci);
   
@@ -71,6 +77,8 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
   
   //copy the solution in 128 bit to the 64 bit
   double_vector_from_quadruple_vector((double*)sol,(float_128*)sol_128,size_of_bulk*ndoubles_per_site);
+  
+  cg_additional_vectors_free();
   
   nissa_free(residue_128);
   nissa_free(temp_128);
@@ -90,4 +98,5 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
 #undef cg_128_parameters_proto
 #undef cg_128_inner_parameters_call
 #undef cg_128_inner_solver
-
+#undef cg_additional_vectors_free
+#undef cg_additional_vectors_allocate

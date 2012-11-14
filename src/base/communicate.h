@@ -29,6 +29,8 @@ void communicate_od_borders(char *od_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MP
 void communicate_od_color_borders(color *od);
 void communicate_od_spin_borders(spin *od);
 void communicate_od_spincolor_borders(spincolor *od);
+void communicate_ev_spincolor_128_borders(spincolor_128 *ev);
+void communicate_od_spincolor_128_borders(spincolor_128 *od);
 void finish_communicating_ev_borders(int &nrequest,MPI_Request *request,char *ev_data);
 void finish_communicating_ev_color_borders(int &nrequest,MPI_Request *request,color *ev);
 void finish_communicating_ev_spincolor_borders(int &nrequest,MPI_Request *request,spincolor *ev);
