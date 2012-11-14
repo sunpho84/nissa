@@ -15,6 +15,8 @@ JacobiNiterSo 2  0 30
 JacobiNiterSe 2  0 30
 JacobiNiterSi 2  0 30
 
+WhichRS0 2
+
 MassResiduesS0 2
 0.50 1.e-24
 0.60 1.e-40

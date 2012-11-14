@@ -24,6 +24,9 @@
 #define cg_128_inner_parameters_call conf,kappa,RL,mass
 #define cg_128_inner_solver inv_tmQ2_RL_cg
 
+#define cg_additional_vectors_allocation()
+#define cg_additional_vectors_free()
+
 #include "../templates/cg_128_invert_template.cpp"
 
 void inv_tmQ2_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mass,int niter,double external_solver_residue,spincolor *external_source)
