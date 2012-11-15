@@ -134,6 +134,7 @@ int npropS1;
 prop_type **S1;
 
 //three points contractions
+int contr_3pts_up_to_S0_mass;
 int ncontr_3pts;
 complex *contr_3pts;
 int *op1_3pts,*op2_3pts;
@@ -387,6 +388,7 @@ void initialize_semileptonic(char *input_path)
   read_str_int("UseCgmS1",&use_cgm_S1);
   read_list_of_double_pairs("MassResiduesS1",&nmassS1,&massS1,&stopping_residues_S1);
   read_list_of_doubles("NThetaS1",&nthetaS1,&thetaS1);
+  read_str_int("ContrThreePointsUpToS0Mass",&contr_3pts_up_to_S0_mass);
   
   // 7) three points functions
   
@@ -979,7 +981,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 	  }
 	
 	for(int ith1=0;ith1<nthetaS0;ith1++)
-	    for(int im1=0;im1<nmassS0;im1++)
+	    for(int im1=0;im1<contr_3pts_up_to_S0_mass;im1++)
 	      {
 		int ip1=ipropS0(ith1,im1,0);
 		
