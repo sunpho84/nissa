@@ -653,7 +653,7 @@ void calculate_S0(int ism_lev_so)
 #else
 	    get_spincolor_from_colorspinspin(source,original_source,id);
 #endif
-	    if(use_cgm_S0==2) safe_dirac_prod_spincolor(source,base_gamma[5],source);
+	    if(use_cgm_S0) safe_dirac_prod_spincolor(source,base_gamma[5],source);
 	    
 	    //if needed apply nabla
 	    if(muS>0)
@@ -677,7 +677,7 @@ void calculate_S0(int ism_lev_so)
 		    double part_time=-take_time();
 		    
 		    //decide if to use multimass or single mass
-		    if(use_cgm_S0==2) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
+		    if(use_cgm_S0) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
 		    else
 			for(int imass=0;imass<nmass;imass++)
 			  {
@@ -718,7 +718,7 @@ void calculate_S0(int ism_lev_so)
 		//reconstruct the doublet
 		for(int imass=0;imass<nmass;imass++)
 		  {
-		    if(use_cgm_S0==2)
+		    if(use_cgm_S0)
 		      {
 			reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
 			master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
