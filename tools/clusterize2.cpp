@@ -1,9 +1,15 @@
-#include "nissa.h"
+#include <stdio.h>
+#include <string.h>
+#include <stdarg.h>
+#include <stdlib.h>
+#include <stdint.h>
 
 //use at most this memory
 uint64_t max_mem_usable=128000000;
 
 typedef char sa_string[300];
+
+FILE *input_global;
 
 int T,ncorr,ncombo,ncorr_type;
 int nfile_names,ncombo_per_block;
@@ -14,6 +20,207 @@ sa_string *corr_name,*outpath;
 double *data;
 uint64_t mem_asked;
 int *pos;
+int little_endian;
+
+//check the endianess of the machine
+void check_endianess()
+{
+  little_endian=1;
+  little_endian=(int)(*(char*)(&little_endian));
+}
+
+//fucking tool to revert the endianess of doubles
+void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndoubles)
+{
+  char *cdest,*csour;
+  char temp;
+  
+  if(dest==sour)
+    for(int idouble=0;idouble<ndoubles;idouble++)
+      {
+        cdest=(char*)(dest+idouble);
+        csour=(char*)(sour+idouble);
+        
+        temp=csour[7];
+        csour[7]=cdest[0];
+        cdest[0]=temp;
+
+        temp=csour[6];
+        csour[6]=cdest[1];
+        cdest[1]=temp;
+
+        temp=csour[5];
+        csour[5]=cdest[2];
+        cdest[2]=temp;
+
+        temp=csour[4];
+        csour[4]=cdest[3];
+        cdest[3]=temp;
+      }
+  else
+    for(int idouble=0;idouble<ndoubles;idouble++)
+      {
+        cdest=(char*)(dest+idouble);
+        csour=(char*)(sour+idouble);
+        
+        cdest[0]=csour[7];
+        cdest[1]=csour[6];
+        cdest[2]=csour[5];
+        cdest[3]=csour[4];
+        cdest[4]=csour[3];
+        cdest[5]=csour[2];
+        cdest[6]=csour[1];
+        cdest[7]=csour[0];
+
+      }
+}
+
+void crash(const char *templ,...)
+{
+  va_list ap;
+  va_start(ap,templ);
+  
+  char mess[1024];
+  vsprintf(mess,templ,ap);
+  va_end(ap);
+  
+  fprintf(stderr,"%s\n",mess);  
+  
+  exit(1);
+}
+
+//read a token from file
+int read_next_token(char *tok)
+{
+  int ok=fscanf(input_global,"%s",tok);
+
+  return ok;
+}
+
+//check whether a token starts or end a comment
+int check_tok_starts_comment(char *tok)
+{return strncasecmp(tok,"/*",2)==0;}
+int check_tok_ends_comment(char *tok)
+{return strncasecmp(tok+strlen(tok)-2,"*/",2)==0;}
+
+//read up to "*/"
+void read_up_to_end_of_comment()
+{
+  char tok[1024];
+  
+  do
+    {
+      int ok=read_next_token(tok);
+      if(ok!=1) crash("reached end of file without finding end of comment");
+    }
+  while(check_tok_ends_comment(tok)==0);
+}
+
+int read_var_catcherr(char *out,const char *par,int size_of)
+{
+  char tok[1024];
+  int ok,comment_found;
+  
+  do
+    {
+      //read the token
+      ok=read_next_token(tok);
+      
+      //check if token comment
+      if(check_tok_starts_comment(tok))
+        {
+          comment_found=1;
+          //if the comments do not ends itself, read up to finding its end
+          if(!check_tok_ends_comment(tok)) read_up_to_end_of_comment();
+        }
+      else comment_found=0;
+    }
+  while(comment_found);
+  
+  //parse the token
+  if(ok==1)
+    ok=(sscanf(tok,par,out)>0);
+  
+  return ok;
+}
+
+void read_var(char *out,const char *par,int size_of)
+{if(!read_var_catcherr(out,par,size_of)) crash("Couldn't read from input file!!!");}
+
+//Read an integer from the file
+void read_int(int *out)
+{read_var((char*)out,"%d",sizeof(int));}
+
+//Read a double from the file
+void read_double(double *out)
+{read_var((char*)out,"%lg",sizeof(double));}
+
+//Read a string from the file
+void read_str(char *str,int length)
+{read_var(str,"%s",length);}
+
+//Read a string from the file and check against the argument
+void expect_str(const char *exp_str)
+{
+  char obt_str[1024];
+  
+  read_str(obt_str,1024);
+  
+  if(strcasecmp(exp_str,obt_str)!=0) crash("Error, expexcted '%s' in input file, obtained: '%s'",exp_str,obt_str);
+}
+
+//Read an int checking the tag
+void read_str_int(const char *exp_str,int *in)
+{
+  expect_str(exp_str);
+  read_int(in);
+}
+
+//Read a double checking the tag
+void read_str_double(const char *exp_str,double *in)
+{
+  expect_str(exp_str);
+  read_double(in);
+}
+
+//Read a string checking the tag
+void read_str_str(const char *exp_str,char *in,int length)
+{
+  expect_str(exp_str);
+  read_str(in,length);
+}
+
+FILE* open_file(const char *outfile,const char *mode)
+{
+  FILE *fout=NULL;
+  
+  fout=fopen(outfile,mode);
+  if(fout==NULL) crash("Couldn't open the file: %s for mode: %s",outfile,mode);
+  
+  return fout;
+}
+
+//check if a file exists
+int file_exists(const char *path)
+{
+  int status=1;
+  
+  FILE *f=fopen(path,"r");
+  if(f!=NULL)
+    {
+      status=1;
+      fclose(f);
+    }
+  else status=0;
+
+  return status;
+}
+
+void open_input(char *input_path)
+{
+  input_global=fopen(input_path,"r");
+  if(input_global==NULL) crash("File '%s' not found",input_path);
+}
 
 void parse_input(char *path)
 {
@@ -65,9 +272,9 @@ void count_corr(char *path)
   printf("ncorr_type: %d\n",ncorr_type);
   
   //alloc space for the name of corrs and outpath
-  corr_name=nissa_malloc("corr_name",ncorr_type,sa_string);
-  outpath=nissa_malloc("outpath",ncorr,sa_string);
-  pos=nissa_malloc("pos",nconfs,int);
+  corr_name=(sa_string*)malloc(ncorr_type*sizeof(sa_string));
+  outpath=(sa_string*)malloc(ncorr*sizeof(sa_string));
+  pos=(int*)malloc(nconfs*sizeof(int));
   memset(pos,0,sizeof(int)*nconfs);
   
   //go to the file start and load all corr type names
@@ -126,7 +333,7 @@ void count_corr(char *path)
   printf("\n");
   
   //allocate room for data
-  data=nissa_malloc("data",mem_asked/sizeof(double),double);
+  data=(double*)malloc(mem_asked);
   
   //prepare the output names
   for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
@@ -139,17 +346,9 @@ void count_corr(char *path)
 	crash("%d corr outpath %s is equal to %d outpath, %s",icorr_type,outpath[icorr_type],jcorr_type,outpath[jcorr_type]);
 }
 
-void close_clust()
-{
-  close_input();  
-  
-  close_nissa();
-}
-
 void parse_conf(int iconf,char *path,int &start)
 {
   int iclust=iconf/clust_size;
-  verbosity_lv3_master_printf("clust: %d/%d\n",iclust,njack);
   
   //open and seek
   FILE *file=open_file(path,"r");
@@ -210,9 +409,9 @@ void parse_conf(int iconf,char *path,int &start)
 
 int main(int narg,char **arg)
 {
-  init_nissa();
-  
   if(narg<2) crash("use %s input",arg[0]);
+  
+  check_endianess();
   
   //read input and prepare structures
   parse_input(arg[1]);
@@ -303,14 +502,11 @@ int main(int narg,char **arg)
 	}
       
       //free
-      nissa_free(data);
-      nissa_free(corr_name);
-      nissa_free(outpath);
-      nissa_free(pos);
+      free((void*)data);
+      free((void*)corr_name);
+      free((void*)outpath);
+      free((void*)pos);
     }
-  
-  //exiting
-  close_clust();
   
   return 0;
 }
