@@ -112,6 +112,8 @@ int niter_max=100000;
 
 //two points contractions
 int ncontr_2pts;
+int only_standing_2pts;
+int only_charged_2pts;
 complex *contr_2pts;
 int *op1_2pts,*op2_2pts;
 
@@ -350,8 +352,10 @@ void initialize_semileptonic(char *input_path)
       nmassS0der=nmassS0-start_massS0der;
       massS0der=massS0+start_massS0der;
     }
-      
   else nmuS=1;
+  
+  read_str_int("OnlyStandingTwoPoints",&only_standing_2pts);
+  read_str_int("OnlyChargedTwoPoints",&only_charged_2pts);
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
   op1_2pts=nissa_malloc("op1_2pts",ncontr_2pts,int);
@@ -866,78 +870,79 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 	  
 	  for(int muS_sink=start_muS_sink;muS_sink<end_muS_sink;muS_sink++)
 	    for(int ith2=0;ith2<nthetaS0;ith2++)
-	      for(int im2=0;im2<nmassS0;im2++)
-		{
-		  int ip2=ipropS0(ith2,im2,0); //ip2 is not shifted
-		  for(int r2=0;r2<2;r2++)
-		    if(which_r_S0==2||which_r_S0==r2)
-		      {
-			if(nch_contr_2pts>0)
-			  {
-#ifdef POINT_SOURCE_VERSION
-			    unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S0[r2][ip2]);
-#else
-			    unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S0[r2][ip2]);
-#endif
-			  }
-		      
-		      //decide parameters of mass 1
-		      double *mass1=(muS_source==0)?massS0:massS0der;
-		      int nmass1=(muS_source==0)?nmassS0:nmassS0der;
-		      double *stopping_residues1=(muS_source==0)?stopping_residues_S0:stopping_residues_S0+start_massS0der;
-
-		      for(int im1=0;im1<nmass1;im1++)
+	      if(!only_standing_2pts||ith2==ith1)
+		for(int im2=0;im2<nmassS0;im2++)
+		  {
+		    int ip2=ipropS0(ith2,im2,0); //ip2 is not shifted
+		    for(int r2=0;r2<2;r2++)
+		      if(which_r_S0==2||which_r_S0==r2)
 			{
-			  int ip1=ipropS0(ith1,im1,muS_source);
-
-			  for(int r1=0;r1<2;r1++)
-			    if(which_r_S0==2||which_r_S0==r1)
-			      {
-				prop_type *S0_1;
-				
-				//if no derivative on the sink use S0, else derive the sink
-				if(muS_sink==0) S0_1=S0[r1][ip1];
-				else
-				  {
-				    apply_nabla_i(temp_der,S0[r1][ip1],conf,muS_sink);
-				    S0_1=temp_der;
-				  }
-				
-				//header
-				master_fprintf(fout," # m1=%lg th1=%lg res1=%lg r1=%d, m2=%lg th2=%lg res2=%lg r2=%d der_source=%d der_sink=%d",
-					       mass1[im1], thetaS0[ith1],stopping_residues1[im1],r1,
-					       massS0[im2],thetaS0[ith2],stopping_residues_S0[im2],  r2,
-					       muS_source,muS_sink);
-				master_fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
-				
-				//compute contractions
-				meson_two_points_Wilson_prop(contr_2pts,op1_2pts,S0_1,op2_2pts,S0[r2][ip2],ncontr_2pts);
-				ncontr_tot+=ncontr_2pts;
-				
-				//write 
-				contr_save_time-=take_time();
-				print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1.0);
-				contr_save_time+=take_time();
-				
-				//if chromo contractions
-				if(nch_contr_2pts>0)
-				  {
-				    //compute them
-				    meson_two_points_Wilson_prop(ch_contr_2pts,ch_op1_2pts,S0_1,ch_op2_2pts,ch_prop,nch_contr_2pts);
-				    ncontr_tot+=nch_contr_2pts;
-				    
-				    //print them
-				    contr_save_time-=take_time();
-				    print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,source_coord[0],"CHROMO-",1.0);
-				    contr_save_time+=take_time();
-				  }
-				master_fprintf(fout,"\n");
-			      }
+			  if(nch_contr_2pts>0)
+			    {
+#ifdef POINT_SOURCE_VERSION
+			      unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S0[r2][ip2]);
+#else
+			      unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S0[r2][ip2]);
+#endif
+			    }
 			  
-			  ncontr_tot+=nch_contr_2pts;
+			  //decide parameters of mass 1
+			  double *mass1=(muS_source==0)?massS0:massS0der;
+			  int nmass1=(muS_source==0)?nmassS0:nmassS0der;
+			  double *stopping_residues1=(muS_source==0)?stopping_residues_S0:stopping_residues_S0+start_massS0der;
+			  
+			  for(int im1=0;im1<nmass1;im1++)
+			    {
+			      int ip1=ipropS0(ith1,im1,muS_source);
+			      
+			      for(int r1=0;r1<2;r1++)
+				if((which_r_S0==2&&(!only_charged_2pts||r2==r1))||which_r_S0==r1)
+				  {
+				    prop_type *S0_1;
+				    
+				    //if no derivative on the sink use S0, else derive the sink
+				    if(muS_sink==0) S0_1=S0[r1][ip1];
+				    else
+				      {
+					apply_nabla_i(temp_der,S0[r1][ip1],conf,muS_sink);
+					S0_1=temp_der;
+				      }
+				    
+				    //header
+				    master_fprintf(fout," # m1=%lg th1=%lg res1=%lg r1=%d, m2=%lg th2=%lg res2=%lg r2=%d der_source=%d der_sink=%d",
+						   mass1[im1], thetaS0[ith1],stopping_residues1[im1],r1,
+						   massS0[im2],thetaS0[ith2],stopping_residues_S0[im2],  r2,
+						   muS_source,muS_sink);
+				    master_fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
+				    
+				    //compute contractions
+				    meson_two_points_Wilson_prop(contr_2pts,op1_2pts,S0_1,op2_2pts,S0[r2][ip2],ncontr_2pts);
+				    ncontr_tot+=ncontr_2pts;
+				    
+				    //write 
+				    contr_save_time-=take_time();
+				    print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1.0);
+				    contr_save_time+=take_time();
+				    
+				    //if chromo contractions
+				    if(nch_contr_2pts>0)
+				      {
+					//compute them
+					meson_two_points_Wilson_prop(ch_contr_2pts,ch_op1_2pts,S0_1,ch_op2_2pts,ch_prop,nch_contr_2pts);
+					ncontr_tot+=nch_contr_2pts;
+					
+					//print them
+					contr_save_time-=take_time();
+					print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,source_coord[0],"CHROMO-",1.0);
+					contr_save_time+=take_time();
+				      }
+				    master_fprintf(fout,"\n");
+				  }
+			      
+			      ncontr_tot+=nch_contr_2pts;
+			    }
 			}
-		      }
-		}
+		  }
 	}
     }
   
