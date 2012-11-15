@@ -72,7 +72,8 @@ double kappa;
 double put_theta[4],old_theta[4]={0,0,0,0};
 
 //list of masses and theta
-int which_r_S0,use_cgm_S1;
+int which_r_S0;
+int use_cgm_S0,use_cgm_S1;
 int nmassS0,nthetaS0;
 int nmassS1,nthetaS1;
 double *massS0,*thetaS0;
@@ -331,6 +332,8 @@ void initialize_semileptonic(char *input_path)
   // 4) Read list of masses and of thetas
 
   read_str_int("WhichRS0",&which_r_S0);
+  if(which_r_S0!=2) read_str_int("UseCgmS0",&use_cgm_S0);
+  else use_cgm_S0=1;
   read_list_of_double_pairs("MassResiduesS0",&nmassS0,&massS0,&stopping_residues_S0);
   read_list_of_doubles("NThetaS0",&nthetaS0,&thetaS0);
   read_str_int("SaveS0",&save_S0);
@@ -646,7 +649,7 @@ void calculate_S0(int ism_lev_so)
 #else
 	    get_spincolor_from_colorspinspin(source,original_source,id);
 #endif
-	    if(which_r_S0==2) safe_dirac_prod_spincolor(source,base_gamma[5],source);
+	    if(use_cgm_S0==2) safe_dirac_prod_spincolor(source,base_gamma[5],source);
 	    
 	    //if needed apply nabla
 	    if(muS>0)
@@ -670,7 +673,7 @@ void calculate_S0(int ism_lev_so)
 		    double part_time=-take_time();
 		    
 		    //decide if to use multimass or single mass
-		    if(which_r_S0==2) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
+		    if(use_cgm_S0==2) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
 		    else
 			for(int imass=0;imass<nmass;imass++)
 			  {
@@ -711,7 +714,7 @@ void calculate_S0(int ism_lev_so)
 		//reconstruct the doublet
 		for(int imass=0;imass<nmass;imass++)
 		  {
-		    if(which_r_S0==2)
+		    if(use_cgm_S0==2)
 		      {
 			reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
 			master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
