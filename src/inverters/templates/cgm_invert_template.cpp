@@ -206,7 +206,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
     {
       verbosity_lv1_master_printf("\nRefining the solution in quaduple precision using cg solver\n");
       for(int ishift=0;ishift<nshift;ishift++)
-	cg_128_invert(sol[ishift],sol[ishift],cg_128_additional_parameters_call,shift[ishift],niter_max,req_res[ishift],source);
+	cg_128_invert(sol[ishift],sol[ishift],cg_128_additional_parameters_call,shift[ishift],niter_max,5,req_res[ishift],source);
     }
 #endif
 }

@@ -17,7 +17,9 @@
 #endif
 
 #ifdef BGP
- #include <builtins.h>
+ #ifndef BGP_EMU
+  #include <builtins.h>
+ #endif
  #include "base/bgp_instructions.h"
 #endif
 
