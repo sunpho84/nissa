@@ -11,11 +11,10 @@
 //Refers to the doc: "doc/eo_inverter.lyx" for explenations
 
 //invert Koo defined in equation (7)
-void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mu,int nitermax,double residue,spincolor *source)
+void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mu,int nitermax,int rniter,double residue,spincolor *source)
 {
   int niter=nitermax;
   int riter=0;
-  int rniter=5;
   spincolor *p=nissa_malloc("p",loc_volh+bord_volh,spincolor);
   spincolor *r=nissa_malloc("r",loc_volh,spincolor);
   spincolor *s=nissa_malloc("s",loc_volh,spincolor);
@@ -137,12 +136,8 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **co
   nissa_free(temp2);
 }
 
-//hack for template, which require rniter
-void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mu,int nitermax,int rniter,double residue,spincolor *source)
-{inv_tmDkern_eoprec_square_eos(sol,guess,conf,kappa,mu,nitermax,residue,source);}
-
 //Invert twisted mass operator using e/o preconditioning.
-void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mu,int nitermax,double residue,spincolor *source_lx)
+void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mu,int nitermax,int rniter,double residue,spincolor *source_lx)
 {
   //prepare the e/o split version of the source
   spincolor *source_eos[2];
@@ -182,8 +177,8 @@ void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 
   set_borders_invalid(varphi);
   
   //Equation (9) using solution_eos[EVN] as temporary vector
-  if(nissa_use_128_bit_precision) inv_tmDkern_eoprec_square_eos_128(temp,guess_Koo,conf_eos,kappa,mu,nitermax,residue,varphi);
-  else inv_tmDkern_eoprec_square_eos(temp,guess_Koo,conf_eos,kappa,mu,nitermax,residue,varphi);
+  if(nissa_use_128_bit_precision) inv_tmDkern_eoprec_square_eos_128(temp,guess_Koo,conf_eos,kappa,mu,nitermax,rniter,residue,varphi);
+  else inv_tmDkern_eoprec_square_eos(temp,guess_Koo,conf_eos,kappa,mu,nitermax,rniter,residue,varphi);
   tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,-mu,temp);
   if(guess_Koo!=NULL) memcpy(guess_Koo,temp,sizeof(spincolor)*loc_volh); //if a guess was passed, return new one
   nissa_free(temp);

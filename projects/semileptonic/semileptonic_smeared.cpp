@@ -681,15 +681,15 @@ void calculate_S0(int ism_lev_so)
 		    //decide if to use multimass or single mass
 		    if(use_cgm_S0) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
 		    else
-			for(int imass=0;imass<nmass;imass++)
-			  {
-			    //the sign of mass depends on r
-			    double m=mass[imass];
-			    if(which_r_S0==0) m*=-1;
-			    
-			    inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,stopping_residues[imass],source);
-			    master_printf("Finished submass[%d]=%lg\n",imass,m);
-			  }
+		      for(int imass=0;imass<nmass;imass++)
+			{
+			  //the sign of mass depends on r
+			  double m=mass[imass];
+			  if(which_r_S0==0) m*=-1;
+			  
+			  inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stopping_residues[imass],source);
+			  master_printf("Finished submass[%d]=%lg\n",imass,m);
+			}
 		    part_time+=take_time();ninv_tot++;inv_time+=part_time;
 		    master_printf("Finished the inversion of S0 theta %d, ",itheta);
 		    if(compute_der) master_printf("source derivative %d ",muS);
@@ -798,7 +798,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 		  double m=massS1[imass];
 		  if(r_spec[ispec]==1) m*=-1;
 		  
-		  inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,stopping_residues_S1[imass],source);
+		  inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stopping_residues_S1[imass],source);
 		}
 	    
 	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
