@@ -104,17 +104,26 @@ void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theor
   double dt;
   int nsteps;
   hmc_force_piece force_piece;
-  if(multilev==MACRO_STEP)
+  if(simul->ngauge_substeps>1)
     {
-      dt=simul->traj_length/simul->nmd_steps;
-      force_piece=QUARK_ONLY_FORCE;
-      nsteps=simul->nmd_steps;
+      if(multilev==MACRO_STEP)
+	{
+	  dt=simul->traj_length/simul->nmd_steps;
+	  force_piece=QUARK_FORCE_ONLY;
+	  nsteps=simul->nmd_steps;
+	}
+      else
+	{
+	  dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2;
+	  force_piece=GAUGE_FORCE_ONLY;
+	  nsteps=simul->ngauge_substeps;
+	}
     }
   else
     {
-      dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2;
-      force_piece=GAUGE_ONLY_FORCE;
-      nsteps=simul->ngauge_substeps;
+      dt=simul->traj_length/simul->nmd_steps;
+      force_piece=BOTH_FORCE_PIECES;
+      nsteps=simul->nmd_steps;
     }
   
   double ldt=dt*lambda,l2dt=2*lambda*dt,uml2dt=(1-2*lambda)*dt;
@@ -132,12 +141,12 @@ void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theor
       double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 
       //     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
-      if(multilev==MICRO_STEP) evolve_conf_with_momenta(conf,H,dth);
+      if(multilev==MICRO_STEP||simul->ngauge_substeps<=1) evolve_conf_with_momenta(conf,H,dth);
       else omelyan_rootst_eoimpr_evolver(H,conf,pf,physic,appr,simul,MICRO_STEP);
       //     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
       evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physic,appr,simul->md_residue,uml2dt,force_piece);
       //     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
-      if(multilev==MICRO_STEP) evolve_conf_with_momenta(conf,H,dth);
+      if(multilev==MICRO_STEP||simul->ngauge_substeps<=1) evolve_conf_with_momenta(conf,H,dth);
       else omelyan_rootst_eoimpr_evolver(H,conf,pf,physic,appr,simul,MICRO_STEP);
       //     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
       evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physic,appr,simul->md_residue,last_dt,force_piece);
