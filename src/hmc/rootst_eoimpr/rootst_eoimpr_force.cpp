@@ -78,14 +78,11 @@ void summ_the_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **eo_conf,color *
 void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,double residue,hmc_force_piece piece)
 {
   //First of all compute gluonic part of the force
-  if(piece==GAUGE_ONLY_FORCE||piece==BOTH_FORCE_PARTS)
-    wilson_force(F,conf,physic->beta);
-  else
-    for(int eo=0;eo<2;eo++)
-      vector_reset(F[eo]);
+  if(piece==GAUGE_FORCE_ONLY||piece==BOTH_FORCE_PIECES) wilson_force(F,conf,physic->beta);
+  else for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
 
   //Then summ the contributes coming from each flavor
-  if(piece==QUARK_ONLY_FORCE||piece==BOTH_FORCE_PARTS)
+  if(piece==QUARK_FORCE_ONLY||piece==BOTH_FORCE_PIECES)
     for(int iflav=0;iflav<physic->nflavs;iflav++)
       summ_the_rootst_eoimpr_quarks_force(F,conf,pf[iflav],physic->backfield[iflav],&(appr[iflav]),residue);
   
