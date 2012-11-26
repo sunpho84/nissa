@@ -57,6 +57,10 @@ typedef color_128 spincolor_128[4];
 enum rnd_type{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z4,RND_GAUSS};
 //Source type
 enum source_type{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
+//The three possibilities of quark computation
+enum hmc_force_piece{GAUGE_ONLY_FORCE,QUARK_ONLY_FORCE,BOTH_FORCE_PARTS};
+enum multistep_level{MACRO_STEP,MICRO_STEP};
+
 
 ///////////////////// New structures //////////////
 

@@ -75,14 +75,19 @@ void summ_the_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **eo_conf,color *
 
 //Compute the full force for the rooted staggered theory with nfl flavors
 //Conf and pf borders are assumed to have been already communicated
-void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,double residue)
+void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,double residue,hmc_force_piece piece)
 {
   //First of all compute gluonic part of the force
-  wilson_force(F,conf,physic->beta);
-  
+  if(piece==GAUGE_ONLY_FORCE||piece==BOTH_FORCE_PARTS)
+    wilson_force(F,conf,physic->beta);
+  else
+    for(int eo=0;eo<2;eo++)
+      vector_reset(F[eo]);
+
   //Then summ the contributes coming from each flavor
-  for(int iflav=0;iflav<physic->nflavs;iflav++)
-    summ_the_rootst_eoimpr_quarks_force(F,conf,pf[iflav],physic->backfield[iflav],&(appr[iflav]),residue);
+  if(piece==QUARK_ONLY_FORCE||piece==BOTH_FORCE_PARTS)
+    for(int iflav=0;iflav<physic->nflavs;iflav++)
+      summ_the_rootst_eoimpr_quarks_force(F,conf,pf[iflav],physic->backfield[iflav],&(appr[iflav]),residue);
   
   //Finish the computation multiplying for the conf and taking TA
   for(int eo=0;eo<2;eo++)
