@@ -19,7 +19,7 @@
 void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
 {
   quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
+  if(origi_conf!=smear_conf) memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
   
   verbosity_lv1_master_printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
       
@@ -38,7 +38,7 @@ void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alp
 	    {
 	      //calculate staples
 	      su3 stap,temp1,temp2;
-	      memset(stap,0,sizeof(su3));
+	      su3_put_to_zero(stap);
 	      for(int nu=1;nu<4;nu++)                   //  E---F---C   
 		if(nu!=mu)                              //  |   |   | mu
 		  {                                     //  D---A---B   
