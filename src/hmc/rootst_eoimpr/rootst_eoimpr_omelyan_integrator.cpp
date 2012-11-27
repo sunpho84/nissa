@@ -29,7 +29,7 @@ void eo_conf_unitarize_explicitly_inverting(quad_su3 **conf)
 // Evolve momenta according to the rooted staggered force
 // calculate H=H-F*dt to evolve link momenta
 // i.e calculate v(t+dt)=v(t)+a*dt
-void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,double residue,double dt,hmc_force_piece force_piece)
+void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,double residue,double dt,hmc_force_piece force_piece=BOTH_FORCE_PIECES)
 {
   verbosity_lv2_master_printf("Evolving momenta with force, dt=%lg\n",dt);
 
@@ -73,33 +73,10 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
     }
 }
 
-// Omelyan integrator(cond-mat/0110438v1) for rooted staggered theory
-// in summary, at each step it should compute:
-//
-//     v1 = v(t) + a[r(t)]*lambda*dt
-//     r1 = r(t) + v1*dt/2
-//     v2 = v1 + a[r1]*(1 -2*lambda)*dt
-//     r(t + dt) = r1 + v2*dt/2
-//     v(t + h) = v2 + a[r(t + dt)]*lambda*dt.
-//
-// But it is sligthly optimized putting together first and last operations.
-// This requires to distinguish first and last step from others:
-//
-//     only 1st step:
-//      v1 = v(t) + a[r(t)]*lambda*dt
-//     all the steps:
-//      r1 = r(t) + v1*dt/2
-//      v2 = v1 + a[r1]*(1 -2*lambda)*dt
-//      r(t + dt) = r1 + v2*dt/2
-//    not last step:
-//     v1 = v2 + a[r(t + dt)]*2*lambda*dt
-//    only last step:
-//     v(t + h) = v2 + a[r(t + dt)]*lambda*dt
-void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,hmc_evol_pars *simul,multistep_level multilev)
+void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,hmc_evol_pars *simul,multistep_level multilev)                                                                                                                            
 {
   //define step length ant its multiples
   const double lambda=0.1931833;
-  
   //macro step or micro step
   double dt;
   int nsteps;
@@ -125,9 +102,8 @@ void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theor
       force_piece=BOTH_FORCE_PIECES;
       nsteps=simul->nmd_steps;
     }
-  
-  double ldt=dt*lambda,l2dt=2*lambda*dt,uml2dt=(1-2*lambda)*dt;
-  int dth=dt/2;
+  double dth=dt/2;
+  double ldt=dt*lambda,l2dt=2*lambda*dt,uml2dt=(1-2*lambda)*dt;  
   
   //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
   evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physic,appr,simul->md_residue,ldt,force_piece);
