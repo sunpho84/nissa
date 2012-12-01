@@ -1186,13 +1186,11 @@ void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
 	safe_su3_prod_su3(u_ran,u_l,u_ran);
       }
 }
-//exponential of antihermitian traceless matrix, as in hep­lat/0311018
-void anti_hermitian_Peardon_exponentiate(su3 out,su3 in)
+
+//exact exponential of i times the passed anti-symmetric matrix Q
+//algorithm taken from hep­lat/0311018
+void unsafe_anti_symmetric_exact_i_exponentiate(su3 out,su3 Q)
 {
-  //definition of Q=-i*in, to remove the i (see before eq. 13)
-  su3 Q;
-  su3_prod_with_idouble(Q,in,-1);
-  
   //compute the real part of the determinant (eq. 14)
   double c0=su3_real_det(Q);
   
@@ -1203,7 +1201,7 @@ void anti_hermitian_Peardon_exponentiate(su3 out,su3 in)
       sign=1;
       c0=-c0;
     }
-
+  
   //takes the square of Q
   su3 Q2;
   unsafe_su3_prod_su3(Q2,Q,Q);
@@ -1213,7 +1211,7 @@ void anti_hermitian_Peardon_exponentiate(su3 out,su3 in)
   
   //compute c0_max (eq. 17)
   double c0_max=2*pow(c1/3,1.5);
-
+  
   //(eqs. 23-24)
   double theta=acos(c0/c0_max);
   double u=sqrt(c1/3)*cos(theta/3);
@@ -1275,4 +1273,13 @@ void anti_hermitian_Peardon_exponentiate(su3 out,su3 in)
   su3_put_to_diag(out,f0);
   su3_summ_the_prod_complex(out,Q,f1);
   su3_summ_the_prod_complex(out,Q2,f2);
+}
+
+//can be used for an anti-hermitian matrix
+void safe_anti_hermitian_exact_exponentiate(su3 out,su3 in)
+{
+  su3 Q;
+  su3_prod_with_idouble(Q,in,-1);
+  
+  unsafe_anti_symmetric_exact_i_exponentiate(out,Q);
 }
