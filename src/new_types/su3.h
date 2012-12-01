@@ -123,6 +123,7 @@ void unsafe_su3_prod_spincolor(spincolor out,su3 U,spincolor in);
 void unsafe_su3_prod_su3(su3 a,su3 b,su3 c);
 void unsafe_su3_prod_su3_dag(su3 a,su3 b,su3 c);
 void unsafe_su3_taylor_exponentiate(su3 out,su3 in,int order);
-void anti_hermitian_Peardon_exponentiate(su3 out,su3 in);
+void unsafe_anti_symmetric_exact_i_exponentiate(su3 out,su3 Q);
+void safe_anti_hermitian_exact_exponentiate(su3 out,su3 in);
 void unsafe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor);
 #endif
