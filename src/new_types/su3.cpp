@@ -30,6 +30,8 @@ void su3_put_to_id(su3 m)
 {su3_put_to_zero(m);for(int ic=0;ic<3;ic++) m[ic][ic][0]=1;}
 void su3_put_to_diag(su3 m,color in)
 {su3_put_to_zero(m);for(int ic=0;ic<3;ic++) complex_copy(m[ic][ic],in[ic]);}
+void su3_put_to_diag(su3 m,complex in)
+{su3_put_to_zero(m);for(int ic=0;ic<3;ic++) complex_copy(m[ic][ic],in);}
 
 //////////////////////////////////////// Copy /////////////////////////////////////
 
@@ -166,6 +168,10 @@ void su3_trace(complex tr,su3 m)
   complex_summ(tr,tr,m[2][2]);
 }
 
+//return only the real part of an su3 matrix
+double su3_real_trace(su3 m)
+{return m[0][0][RE]+m[1][1][RE]+m[2][2][RE];}
+
 //take projection of the su2 matrix over an su3 matrix
 //return the inverse modulo of the part parallel in the original matrix
 double su2_part_of_su3(double &A,double &B,double &C,double &D,su3 in,int isub_gr)
@@ -289,6 +295,18 @@ void su3_det(complex d,su3 U)
   unsafe_complex_prod(a,U[1][0],U[2][1]);
   complex_subt_the_prod(a,U[1][1],U[2][0]);
   complex_summ_the_prod(d,U[0][2],a);
+}
+
+//calculate the real part of the determinant of an su3 matrix
+double su3_real_det(su3 u)
+{
+  return
+    u[0][2][IM]*(u[1][1][RE]*u[2][0][IM]+u[1][1][IM]*u[2][0][RE]-u[1][0][RE]*u[2][1][IM]-u[1][0][IM]*u[2][1][RE])+
+    u[0][2][RE]*(u[1][1][IM]*u[2][0][IM]-u[1][1][RE]*u[2][0][RE]-u[1][0][IM]*u[2][1][IM]+u[1][0][RE]*u[2][1][RE])+
+    u[0][1][IM]*(u[1][0][RE]*u[2][2][IM]-u[1][2][RE]*u[2][0][IM]-u[1][2][IM]*u[2][0][RE]+u[1][0][IM]*u[2][2][RE])+
+    u[0][1][RE]*(u[1][0][IM]*u[2][2][IM]-u[1][2][IM]*u[2][0][IM]+u[1][2][RE]*u[2][0][RE]-u[1][0][RE]*u[2][2][RE])+
+    u[0][0][IM]*(u[1][2][RE]*u[2][1][IM]+u[1][2][IM]*u[2][1][RE]-u[1][1][RE]*u[2][2][IM]-u[1][1][IM]*u[2][2][RE])+
+    u[0][0][RE]*(u[1][2][IM]*u[2][1][IM]-u[1][2][RE]*u[2][1][RE]-u[1][1][IM]*u[2][2][IM]+u[1][1][RE]*u[2][2][RE]);
 }
 
 //return the hemitian su3 matrix
@@ -466,6 +484,14 @@ void su3_summ_the_prod_double(su3 a,su3 b,double r)
   double *db=(double*)b;
 
   for(int i=0;i<18;i++) da[i]+=db[i]*r;
+}
+
+//summ the prod of su3 with complex
+void su3_summ_the_prod_complex(su3 a,su3 b,complex c)
+{
+  for(int i=0;i<3;i++)
+    for(int j=0;j<3;j++)
+      complex_summ_the_prod(a[i][j],b[i][j],c);
 }
 
 //calculate explicitely the inverse
@@ -1159,4 +1185,94 @@ void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
 
 	safe_su3_prod_su3(u_ran,u_l,u_ran);
       }
+}
+//exponential of antihermitian traceless matrix, as in hep­lat/0311018
+void anti_hermitian_Peardon_exponentiate(su3 out,su3 in)
+{
+  //definition of Q=-i*in, to remove the i (see before eq. 13)
+  su3 Q;
+  su3_prod_with_idouble(Q,in,-1);
+  
+  //compute the real part of the determinant (eq. 14)
+  double c0=su3_real_det(Q);
+  
+  //take its module and write separately its sign (see note after eq. 34)
+  int sign=0;
+  if(c0<0)
+    {
+      sign=1;
+      c0=-c0;
+    }
+
+  //takes the square of Q
+  su3 Q2;
+  unsafe_su3_prod_su3(Q2,Q,Q);
+  
+  //takes 1/2 of the real part of the trace of Q2 (eq. 15)
+  double c1=su3_real_trace(Q2)/2; 
+  
+  //compute c0_max (eq. 17)
+  double c0_max=2*pow(c1/3,1.5);
+
+  //(eqs. 23-24)
+  double theta=acos(c0/c0_max);
+  double u=sqrt(c1/3)*cos(theta/3);
+  double w=sqrt(c1)*sin(theta/3);
+  
+  //auxiliary variables for the computation of h0, h1, h2
+  double u2=u*u,w2=w*w,u2mw2=u2-w2,w2p3u2=w2+3*u2,w2m3u2=w2-3*u2;
+  double cu=cos(u),c2u=cos(2*u);
+  double su=sin(u),s2u=sin(2*u);
+  double cw=cos(w);
+  
+  //compute xi function defined after (eq. 33)
+  double xiw;
+  if(fabs(w)<0.05)
+    {
+      double temp0=w*w,temp1=1-temp0/42,temp2=1.0-temp0/20*temp1;
+      xiw=1-temp0/6*temp2;
+    }
+  else xiw=sin(w)/w;
+  
+  //computation of h0, h1, h2 (eqs. 30-32)
+  complex h0={
+    u2mw2*c2u+ //(u2-w2)*cos(2u)
+    cu*8*u2*cw+ //cos(u)*8*u2*cos(w)
+    2*su*u*w2p3u2*xiw, //sin(u)*2*mu*(3*u2+w2)*xi(w)
+    u2mw2*s2u+ //(u2-w2)*sin(2u)
+    -su*8*u2*cw+ //-sin(u)*8*u2*cos(w)
+    cu*2*u*w2p3u2*xiw}; //cos(u)*2*u*(3*u2+w2)*xi(w)
+  complex h1={
+    2*u*c2u+ //2*u*cos(2u)
+    -cu*2*u*cw+ //cos(u)*2*u*cos(w)
+    -su*w2m3u2*xiw, //sin(u)*(u2-3*w2)*xi(w)
+    2*u*s2u+ //2*u*sin(2u)
+    su*2*u*cos(w)+ //sin(u)*2*u*cos(w)
+    -cu*w2m3u2*xiw};//cos(u)*(3*u2-w2)*xi(w)
+  complex h2={
+    c2u+ //cos(2u)
+    -cu*cw+ //-cos(u)*cos(w)
+    -3*su*u*xiw, //-3*sin(u)*u*xi(w)
+    s2u+ //sin(2u)
+    su*cw+ //sin(w)*cos(w)
+    -cu*3*u*xiw};//-cos(u)*3*u*xi(w)
+  
+  //build f (eq. 29)
+  double fact=1/(9*u*u-w*w);
+  complex f0={h0[RE]*fact,h0[IM]*fact};
+  complex f1={h1[RE]*fact,h1[IM]*fact};
+  complex f2={h2[RE]*fact,h2[IM]*fact};
+  
+  //change sign to f according to (eq. 34)
+  if(sign!=0)
+    {
+      f0[IM]=-f0[IM];
+      f1[RE]=-f1[RE];
+      f2[IM]=-f2[IM];
+    }
+  
+  //compute out according to (eq. 13)
+  su3_put_to_diag(out,f0);
+  su3_summ_the_prod_complex(out,Q,f1);
+  su3_summ_the_prod_complex(out,Q2,f2);
 }
