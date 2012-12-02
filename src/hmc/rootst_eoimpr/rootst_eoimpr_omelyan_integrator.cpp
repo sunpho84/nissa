@@ -65,8 +65,9 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 	for(int mu=0;mu<4;mu++)
 	  {
 	    su3 t1,t2;
-	    su3_prod_with_idouble(t1,H[par][ivol][mu],dt);
-	    unsafe_su3_taylor_exponentiate(t2,t1,6);
+	    su3_prod_double(t1,H[par][ivol][mu],dt);
+	    unsafe_anti_symmetric_exact_i_exponentiate(t2,t1);
+	    
 	    safe_su3_prod_su3(eo_conf[par][ivol][mu],t2,eo_conf[par][ivol][mu]);
 	  }
       set_borders_invalid(eo_conf[par]);

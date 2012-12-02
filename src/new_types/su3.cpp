@@ -466,7 +466,7 @@ void su3_hermitian_prod_double(su3 a,su3 b,double r)
 }
 
 //summ the prod of su3 with imag
-void su3_prod_with_idouble(su3 a,su3 b,double r)
+void su3_prod_idouble(su3 a,su3 b,double r)
 {
   for(int i=0;i<3;i++)
     for(int j=0;j<3;j++)
@@ -1279,7 +1279,7 @@ void unsafe_anti_symmetric_exact_i_exponentiate(su3 out,su3 Q)
 void safe_anti_hermitian_exact_exponentiate(su3 out,su3 in)
 {
   su3 Q;
-  su3_prod_with_idouble(Q,in,-1);
+  su3_prod_idouble(Q,in,-1);
   
   unsafe_anti_symmetric_exact_i_exponentiate(out,Q);
 }
