@@ -1214,10 +1214,9 @@ void unsafe_anti_hermitian_exact_i_exponentiate(su3 out,su3 Q)
   
   //takes 1/2 of the real part of the trace of Q2 (eq. 15)
   double c1=su3_real_trace(Q2)/2; 
-  
   //compute c0_max (eq. 17)
   double c0_max=2*pow(c1/3,1.5);
-  
+
   //(eqs. 23-24)
   double theta=acos(c0/c0_max);
   double u=sqrt(c1/3)*cos(theta/3);

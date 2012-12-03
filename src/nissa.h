@@ -81,6 +81,7 @@
 #include "operations/remap_vector.h"
 #include "operations/smearing/APE.h"
 #include "operations/smearing/HYP.h"
+#include "operations/smearing/stout.h"
 #include "operations/smearing/gaussian.h"
 #include "operations/source.h"
 #include "operations/su3_paths.h"

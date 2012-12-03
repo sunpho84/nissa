@@ -43,6 +43,8 @@ typedef su3 as2t_su3[6];
 typedef MPI_Offset ILDG_Offset;
 typedef MPI_File ILDG_File;
 
+typedef momentum_t stout_pars[4];
+
 //this is just for avoid misleading, but is nothing more that a spinspin
 typedef complex spin1field[4];
 typedef spin1field spin1prop[4];
