@@ -15,7 +15,7 @@ char base_out_folder[1024];
 // ########################################################### source_t #####################################################
 
 void source_t::smear(gauge_conf_t &conf,gauss_smear_pars_t &pars)
-{jacobi_smearing(eta,eta,conf.U,pars.kappa,pars.nterm,pars.coeff,pars.expnt);}
+{gaussian_smearing(eta,eta,conf.U,pars.kappa,pars.nterm,pars.coeff,pars.expnt);}
 
 // ######################################################### prop_group_t ###################################################
 
@@ -154,7 +154,7 @@ void prop_group_t::smear(gauge_conf_t &conf,gauss_smear_pars_t &pars)
   int n=nprop();
   
   for(int i=0;i<n;i++)
-    jacobi_smearing(S[i],S[i],conf.U,pars.kappa,pars.nterm,pars.coeff,pars.expnt);
+    gaussian_smearing(S[i],S[i],conf.U,pars.kappa,pars.nterm,pars.coeff,pars.expnt);
 }
 
 void prop_group_t::get_smearing(gauge_conf_t &conf,gauss_smear_pars_t &pars,prop_group_t &in)
@@ -164,7 +164,7 @@ void prop_group_t::get_smearing(gauge_conf_t &conf,gauss_smear_pars_t &pars,prop
   if(nout!=nin) crash("in group has %d elements, out prop has %d",nin,nout);
   
   for(int i=0;i<nin;i++)
-    jacobi_smearing(S[i],in.S[i],conf.U,pars.kappa,pars.nterm,pars.coeff,pars.expnt);
+    gaussian_smearing(S[i],in.S[i],conf.U,pars.kappa,pars.nterm,pars.coeff,pars.expnt);
 }
 
 void prop_group_t::get_reading(const char *ext_template_path,gauge_conf_t &conf,int load_reconstructing,int rotate_to_physical_basis)

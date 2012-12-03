@@ -21,10 +21,10 @@ HypAlpha2 0.5
 
 ApeAlpha 0.5
 ApeNiter 5
-JacobiKappa 0.5
-Source0JacobiNiters 2   0 8
-Source1JacobiNiters 2   0 8
-SinkJacobiNiters   2   0 8
+GaussianKappa 0.5
+Source0GaussianNiters 2   0 8
+Source1GaussianNiters 2   0 8
+SinkGaussianNiters   2   0 8
 
 NSpec 3
 

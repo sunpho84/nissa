@@ -27,6 +27,27 @@ void double_vector_copy(double *a,double *b,int n)
   set_borders_invalid(a);
 }
 
+//summ
+void double_vector_summassign(double *out,double *in,int n)
+{
+  for(int i=0;i<n;i++) out[i]+=in[i];
+  set_borders_invalid(out);
+}
+
+//prod with double
+void double_vector_prod_double(double *out,double *in,double r,int n)
+{
+  for(int i=0;i<n;i++) out[i]=r*in[i];
+  set_borders_invalid(out);
+}
+
+//prod with double of the summ
+void double_vector_prod_the_summ_double(double *out,double r,double *in1,double *in2,int n)
+{
+  for(int i=0;i<n;i++) out[i]=r*(in1[i]+in2[i]);
+  set_borders_invalid(out);
+}
+
 //scalar product between a and b
 double double_vector_loc_scalar_prod(double *a,double *b,int n)
 {
