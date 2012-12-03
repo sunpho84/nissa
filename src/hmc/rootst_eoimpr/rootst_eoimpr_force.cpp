@@ -93,6 +93,6 @@ void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,color **pf,theory_par
 	{
 	  su3 temp;
 	  unsafe_su3_prod_su3(temp,conf[eo][ivol][mu],F[eo][ivol][mu]);
-	  su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
+	  unsafe_su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
 	}
 }

@@ -72,9 +72,9 @@ spincolor *source;
 colorspinspin *original_source;
 
 //smearing parameters
-double jacobi_kappa,ape_alpha;
-int **so_jnit,*so_jnlv; //one per wall
-int *si_jnit,si_jnlv;
+double gaussian_kappa,ape_alpha;
+int **so_gnit,*so_gnlv; //one per wall
+int *si_gnit,si_gnlv;
 int ape_niter;
 
 //vectors for the spinor data
@@ -109,7 +109,7 @@ int nspec;
 int iS(int iwall,int sm_lv,int imass,int r)
 {
   int i=0;
-  for(int iwall_pass=0;iwall_pass<iwall;iwall_pass++) i+=so_jnlv[iwall_pass];
+  for(int iwall_pass=0;iwall_pass<iwall;iwall_pass++) i+=so_gnlv[iwall_pass];
   return r+2*(imass+nmass*(sm_lv+i));
 }
 
@@ -157,8 +157,8 @@ void initialize_Bk(int narg,char **arg)
   //Allocate twall space
   if(nwall!=nsepa+1) crash("nwall=%d != nsepa+1=%d",nwall,nsepa+1);
   twall=nissa_malloc("twal",nwall,int);
-  so_jnlv=nissa_malloc("so_jnlv",nwall,int);
-  so_jnit=nissa_malloc("so_jnit",nwall,int*);
+  so_gnlv=nissa_malloc("so_gnlv",nwall,int);
+  so_gnit=nissa_malloc("so_gnit",nwall,int*);
 
   //Read the noise type
   read_str_int("NoiseType",&noise_type);
@@ -192,20 +192,20 @@ void initialize_Bk(int narg,char **arg)
   //Smearing parameters
   read_str_double("ApeAlpha",&ape_alpha);
   read_str_int("ApeNiter",&ape_niter);
-  read_str_double("JacobiKappa",&jacobi_kappa);
+  read_str_double("GaussianKappa",&gaussian_kappa);
   for(int iwall=0;iwall<nwall;iwall++)
     {
       char tag_source[100];
-      sprintf(tag_source,"Source%01dJacobiNiters",iwall);
-      read_list_of_ints(tag_source,&(so_jnlv[iwall]),&(so_jnit[iwall]));
-      for(int jlv=1;jlv<so_jnlv[iwall];jlv++)
-	if(so_jnit[iwall][jlv]<so_jnit[iwall][jlv-1])
-	  crash("jacobi levels have to be sorted in ascending order, but this is not the case for %02 wall!",iwall);
+      sprintf(tag_source,"Source%01dGaussianNiters",iwall);
+      read_list_of_ints(tag_source,&(so_gnlv[iwall]),&(so_gnit[iwall]));
+      for(int glv=1;glv<so_gnlv[iwall];glv++)
+	if(so_gnit[iwall][glv]<so_gnit[iwall][glv-1])
+	  crash("gaussian levels have to be sorted in ascending order, but this is not the case for %02 wall!",iwall);
     }
-  read_list_of_ints("SinkJacobiNiters",&si_jnlv,&si_jnit);
-  for(int jlv=1;jlv<si_jnlv;jlv++)
-    if(si_jnit[jlv]<si_jnit[jlv-1])
-      crash("jacobi levels have to be sorted in ascending order, but this is not the case for sink!");
+  read_list_of_ints("SinkGaussianNiters",&si_gnlv,&si_gnit);
+  for(int glv=1;glv<si_gnlv;glv++)
+    if(si_gnit[glv]<si_gnit[glv-1])
+      crash("gaussian levels have to be sorted in ascending order, but this is not the case for sink!");
   
   // 4) contraction list for eight
 
@@ -236,7 +236,7 @@ void initialize_Bk(int narg,char **arg)
   
   //Allocate all the propagators colorspinspin vectors
   nprop=0;
-  for(int iwall=0;iwall<nwall;iwall++) nprop+=2*so_jnlv[iwall]*nmass;
+  for(int iwall=0;iwall<nwall;iwall++) nprop+=2*so_gnlv[iwall]*nmass;
   master_printf("Number of propagator to be allocated: %d\n",nprop);
   S=nissa_malloc("S",nprop,colorspinspin*);
   for(int iprop=0;iprop<nprop;iprop++) S[iprop]=nissa_malloc("S[i]",loc_vol,colorspinspin);
@@ -367,19 +367,19 @@ void calculate_S(int iwall)
       safe_dirac_prod_spincolor(source,base_gamma[5],source);
       
       //loop over smerding levels of the source
-      for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
+      for(int so_glv=0;so_glv<so_gnlv[iwall];so_glv++)
 	{
 	  master_printf("\n");
 	  
-	  int so_jnit_to_app=((so_jlv==0) ? so_jnit[iwall][so_jlv] : (so_jnit[iwall][so_jlv]-so_jnit[iwall][so_jlv-1]));
-	  jacobi_smearing(source,source,sme_conf,jacobi_kappa,so_jnit_to_app);
+	  int so_gnit_to_app=((so_glv==0) ? so_gnit[iwall][so_glv] : (so_gnit[iwall][so_glv]-so_gnit[iwall][so_glv-1]));
+	  gaussian_smearing(source,source,sme_conf,gaussian_kappa,so_gnit_to_app);
 	  
 	  double part_time=-take_time();
 	  master_printf("\n");
 	  inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,ndyn_mass,niter_max,stopping_residues,source);
 	  part_time+=take_time();ntot_inv++;tot_inv_time+=part_time;
 	  master_printf("\nFinished the wall %d inversion, dirac index %d, sm lev %d in %g sec\n\n",
-			     iwall,id,so_jlv,part_time);
+			     iwall,id,so_glv,part_time);
 	  
 	  for(int imass=0;imass<ndyn_mass;imass++)
 	    { //reconstruct the doublet
@@ -388,7 +388,7 @@ void calculate_S(int iwall)
 	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{
-		  int iprop=iS(iwall,so_jlv,imass,r);
+		  int iprop=iS(iwall,so_glv,imass,r);
 		  nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],temp_vec[r][ivol],id);
 		}
 	    }
@@ -397,11 +397,11 @@ void calculate_S(int iwall)
   
   //rotate dynamical quarks to physical basis
   master_printf("\nRotating propagators\n");
-  for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
+  for(int so_glv=0;so_glv<so_gnlv[iwall];so_glv++)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
       for(int imass=0;imass<ndyn_mass;imass++) //put the (1+ig5)/sqrt(2) factor
 	{
-	  int iprop=iS(iwall,so_jlv,imass,r);
+	  int iprop=iS(iwall,so_glv,imass,r);
 	  rotate_vol_colorspinspin_to_physical_basis(S[iprop],!r,!r);
 	}
   
@@ -413,16 +413,16 @@ void calculate_S(int iwall)
       master_printf("\nComputing static prop\n");
       get_color_from_colorspinspin(stat_source,original_source,0,0);
 
-      for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
+      for(int so_glv=0;so_glv<so_gnlv[iwall];so_glv++)
 	{
 	  master_printf("\n");
 	  
-	  int so_jnit_to_app=((so_jlv==0) ? so_jnit[iwall][so_jlv] : (so_jnit[iwall][so_jlv]-so_jnit[iwall][so_jlv-1]));
-	  jacobi_smearing(stat_source,stat_source,sme_conf,jacobi_kappa,so_jnit_to_app);
+	  int so_gnit_to_app=((so_glv==0) ? so_gnit[iwall][so_glv] : (so_gnit[iwall][so_glv]-so_gnit[iwall][so_glv-1]));
+	  gaussian_smearing(stat_source,stat_source,sme_conf,gaussian_kappa,so_gnit_to_app);
 	  
 	  //compute for r=0 and copy in r=1
-	  compute_Wstat_stoch_prop(S[iS(iwall,so_jlv,ndyn_mass,0)],hyp_conf,0,twall[iwall],stat_source);
-	  vector_copy(S[iS(iwall,so_jlv,ndyn_mass,1)],S[iS(iwall,so_jlv,ndyn_mass,0)]);
+	  compute_Wstat_stoch_prop(S[iS(iwall,so_glv,ndyn_mass,0)],hyp_conf,0,twall[iwall],stat_source);
+	  vector_copy(S[iS(iwall,so_glv,ndyn_mass,1)],S[iS(iwall,so_glv,ndyn_mass,0)]);
 	}
       
       nissa_free(stat_source);
@@ -505,11 +505,11 @@ void calculate_all_contractions()
   for(int iwL=0;iwL<nwall;iwL++)
     for(int iwR=iwL+1;iwR<nwall;iwR++)
       //loop over smearing of the left and right wall
-      for(int sm_lv_L=0;sm_lv_L<so_jnlv[iwL];sm_lv_L++)
-	for(int sm_lv_R=0;sm_lv_R<so_jnlv[iwR];sm_lv_R++)
+      for(int sm_lv_L=0;sm_lv_L<so_gnlv[iwL];sm_lv_L++)
+	for(int sm_lv_R=0;sm_lv_R<so_gnlv[iwR];sm_lv_R++)
 	  {
 	    char path_bag[1024];
-	    sprintf(path_bag,"%s/otto_w%s_%s_%02d_%02d",outfolder,wall_name[iwL],wall_name[iwR],so_jnit[iwL][sm_lv_L],so_jnit[iwR][sm_lv_R]);
+	    sprintf(path_bag,"%s/otto_w%s_%s_%02d_%02d",outfolder,wall_name[iwL],wall_name[iwR],so_gnit[iwL][sm_lv_L],so_gnit[iwR][sm_lv_R]);
 	    FILE *fout_bag=open_text_file_for_output(path_bag);
 	    
 	    int tsepar=(twall[iwR]+glb_size[0]-twall[iwL])%glb_size[0];
@@ -551,24 +551,24 @@ void calculate_all_contractions()
   //loop over the wall
   for(int iwall=0;iwall<nwall;iwall++)
     //loop over smearing levels of the sink
-    for(int si_jlv=0;si_jlv<si_jnlv;si_jlv++)
+    for(int si_glv=0;si_glv<si_gnlv;si_glv++)
       {
 	//smear all the propagators of iwall on the sink
-	int si_jnit_to_app=((si_jlv==0) ? si_jnit[si_jlv] : (si_jnit[si_jlv]-si_jnit[si_jlv-1])); 
-	if(si_jnit_to_app!=0)
-	  for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
+	int si_gnit_to_app=((si_glv==0) ? si_gnit[si_glv] : (si_gnit[si_glv]-si_gnit[si_glv-1])); 
+	if(si_gnit_to_app!=0)
+	  for(int so_glv=0;so_glv<so_gnlv[iwall];so_glv++)
 	    for(int im=0;im<nmass;im++)
 	      for(int r=0;r<2;r++)
 		{
-		  int iprop=iS(iwall,so_jlv,im,r);
-		  jacobi_smearing(S[iprop],S[iprop],sme_conf,jacobi_kappa,si_jnit_to_app);
+		  int iprop=iS(iwall,so_glv,im,r);
+		  gaussian_smearing(S[iprop],S[iprop],sme_conf,gaussian_kappa,si_gnit_to_app);
 		}
 	
 	//loop over all source smearing level
-	for(int so_jlv=0;so_jlv<so_jnlv[iwall];so_jlv++)
+	for(int so_glv=0;so_glv<so_gnlv[iwall];so_glv++)
 	  {
 	    char path_2pts[1024];
-	    sprintf(path_2pts,"%s/two_points_w%s_%02d_%02d",outfolder,wall_name[iwall],so_jnit[iwall][so_jlv],si_jnit[si_jlv]);
+	    sprintf(path_2pts,"%s/two_points_w%s_%02d_%02d",outfolder,wall_name[iwall],so_gnit[iwall][so_glv],si_gnit[si_glv]);
 	    FILE *fout_2pts=open_text_file_for_output(path_2pts);
 	    master_printf("opening file %s\n",path_2pts);
 	    //loop over all the combos
@@ -578,10 +578,10 @@ void calculate_all_contractions()
 		  for(int r1=0;r1<2;r1++)
 		    {
 		      master_fprintf(fout_2pts," # m1=%f r1=%d , m2=%f r2=%d , wall=%d , ",mass[im1],r1,mass[im2],r2,iwall);
-		      master_fprintf(fout_2pts," sme_source=%d sme_sink=%d\n",so_jnit[iwall][so_jlv],si_jnit[si_jlv]);
+		      master_fprintf(fout_2pts," sme_source=%d sme_sink=%d\n",so_gnit[iwall][so_glv],si_gnit[si_glv]);
 		      
-		      int iprop1=iS(iwall,so_jlv,im1,r1);
-		      int iprop2=iS(iwall,so_jlv,im2,r2);
+		      int iprop1=iS(iwall,so_glv,im1,r1);
+		      int iprop2=iS(iwall,so_glv,im2,r2);
 		      
 		      meson_two_points(S[iprop1],S[iprop2]);
 		      
@@ -643,8 +643,8 @@ void close_Bk()
   for(int iprop=0;iprop<nprop;iprop++) nissa_free(S[iprop]);
   nissa_free(S);
   nissa_free(temp_vec[1]);nissa_free(temp_vec[0]);
-  nissa_free(so_jnlv);
-  nissa_free(so_jnit);
+  nissa_free(so_gnlv);
+  nissa_free(so_gnit);
   
   close_nissa();
 }

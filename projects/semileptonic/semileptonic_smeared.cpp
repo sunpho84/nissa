@@ -90,11 +90,11 @@ spincolor *source;
 prop_type *original_source;
 
 //smearing parameters
-double jacobi_kappa,ape_alpha;
+double gaussian_kappa,ape_alpha;
 int ape_niter;
-int *jacobi_niter_so,nsm_lev_so;
-int *jacobi_niter_si,nsm_lev_si;
-int *jacobi_niter_se,nsm_lev_se;
+int *gaussian_niter_so,nsm_lev_so;
+int *gaussian_niter_si,nsm_lev_si;
+int *gaussian_niter_se,nsm_lev_se;
 
 //vectors for the S0 props
 int compute_der,nmuS;
@@ -318,19 +318,19 @@ void initialize_semileptonic(char *input_path)
   //Smearing parameters
   read_str_double("ApeAlpha",&ape_alpha);
   read_str_int("ApeNiter",&ape_niter);
-  read_str_double("JacobiKappa",&jacobi_kappa);
-  read_list_of_ints("JacobiNiterSo",&nsm_lev_so,&jacobi_niter_so);
+  read_str_double("GaussianKappa",&gaussian_kappa);
+  read_list_of_ints("GaussianNiterSo",&nsm_lev_so,&gaussian_niter_so);
   for(int iter=1;iter<nsm_lev_so;iter++)
-    if(jacobi_niter_so[iter]<jacobi_niter_so[iter-1])
-      crash("Error, jacobi lev sou %d minor than %d (%d, %d)!\n",iter,iter-1,jacobi_niter_so[iter],jacobi_niter_so[iter-1]);
-  read_list_of_ints("JacobiNiterSe",&nsm_lev_se,&jacobi_niter_se);
+    if(gaussian_niter_so[iter]<gaussian_niter_so[iter-1])
+      crash("Error, gaussian lev sou %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_so[iter],gaussian_niter_so[iter-1]);
+  read_list_of_ints("GaussianNiterSe",&nsm_lev_se,&gaussian_niter_se);
   for(int iter=1;iter<nsm_lev_se;iter++)
-    if(jacobi_niter_se[iter]<jacobi_niter_se[iter-1])
-      crash("Error, jacobi lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,jacobi_niter_se[iter],jacobi_niter_se[iter-1]);
-  read_list_of_ints("JacobiNiterSi",&nsm_lev_si,&jacobi_niter_si);
+    if(gaussian_niter_se[iter]<gaussian_niter_se[iter-1])
+      crash("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_se[iter],gaussian_niter_se[iter-1]);
+  read_list_of_ints("GaussianNiterSi",&nsm_lev_si,&gaussian_niter_si);
   for(int iter=1;iter<nsm_lev_si;iter++)
-    if(jacobi_niter_si[iter]<jacobi_niter_si[iter-1])
-      crash("Error, jacobi lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,jacobi_niter_si[iter],jacobi_niter_si[iter-1]);
+    if(gaussian_niter_si[iter]<gaussian_niter_si[iter-1])
+      crash("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_si[iter],gaussian_niter_si[iter-1]);
   
   // 4) Read list of masses and of thetas
 
@@ -589,12 +589,12 @@ void close_semileptonic()
 }
 
 //smear addditivily a propagator
-void smear_additive_propagator(prop_type *out,prop_type *in,int ism_lev,int *jacobi_niter)
+void smear_additive_propagator(prop_type *out,prop_type *in,int ism_lev,int *gaussian_niter)
 {
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   
-  int nsme=jacobi_niter[ism_lev];
-  if(ism_lev>0) nsme-=jacobi_niter[ism_lev-1];
+  int nsme=gaussian_niter[ism_lev];
+  if(ism_lev>0) nsme-=gaussian_niter[ism_lev-1];
   
   //loop over dirac index
 #ifdef POINT_SOURCE_VERSION
@@ -612,7 +612,7 @@ void smear_additive_propagator(prop_type *out,prop_type *in,int ism_lev,int *jac
 	  }
 	set_borders_invalid(temp);
 	
-	jacobi_smearing(temp,temp,sme_conf,jacobi_kappa,nsme);
+	gaussian_smearing(temp,temp,sme_conf,gaussian_kappa,nsme);
 	
 	nissa_loc_vol_loop(ivol)
 	  {
@@ -632,7 +632,7 @@ void calculate_S0(int ism_lev_so)
 {
   //smear additively the source
   master_printf("\nSource Smearing level: %d\n",ism_lev_so);
-  smear_additive_propagator(original_source,original_source,ism_lev_so,jacobi_niter_so);
+  smear_additive_propagator(original_source,original_source,ism_lev_so,gaussian_niter_so);
   master_printf("\n");
   
   //loop over derivative of the source
@@ -761,8 +761,8 @@ void calculate_S1(int ispec,int ism_lev_se)
 {
   //smear additively the seq
   master_printf("\nSeq Smearing level: %d (will be applied twice!)\n",ism_lev_se);
-  smear_additive_propagator(sequential_source,sequential_source,ism_lev_se,jacobi_niter_se);
-  smear_additive_propagator(sequential_source,sequential_source,ism_lev_se,jacobi_niter_se);
+  smear_additive_propagator(sequential_source,sequential_source,ism_lev_se,gaussian_niter_se);
+  smear_additive_propagator(sequential_source,sequential_source,ism_lev_se,gaussian_niter_se);
   master_printf("\n");
   
   //loop over seq
@@ -851,14 +851,14 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
   for(int r=0;r<2;r++)
     if(which_r_S0==2||which_r_S0==r)
       for(int iprop=0;iprop<npropS0;iprop++)
-	smear_additive_propagator(S0[r][iprop],S0[r][iprop],ism_lev_si,jacobi_niter_si);
+	smear_additive_propagator(S0[r][iprop],S0[r][iprop],ism_lev_si,gaussian_niter_si);
   
   double temp_time=take_time();
   smear_time+=temp_time;
   contr_2pts_time-=temp_time;
   
   char path[1024];
-  sprintf(path,"%s/2pts_%02d_%02d",outfolder,jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
+  sprintf(path,"%s/2pts_%02d_%02d",outfolder,gaussian_niter_so[ism_lev_so],gaussian_niter_si[ism_lev_si]);
   FILE *fout=open_text_file_for_output(path);
   
   for(int ispec=0;ispec<nspec;ispec++)
@@ -915,7 +915,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 						   mass1[im1], thetaS0[ith1],stopping_residues1[im1],r1,
 						   massS0[im2],thetaS0[ith2],stopping_residues_S0[im2],  r2,
 						   muS_source,muS_sink);
-				    master_fprintf(fout," smear_source=%d smear_sink=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_si[ism_lev_si]);
+				    master_fprintf(fout," smear_source=%d smear_sink=%d\n",gaussian_niter_so[ism_lev_so],gaussian_niter_si[ism_lev_si]);
 				    
 				    //compute contractions
 				    meson_two_points_Wilson_prop(contr_2pts,op1_2pts,S0_1,op2_2pts,S0[r2][ip2],ncontr_2pts);
@@ -959,7 +959,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 {
   char path[1024];
   
-  sprintf(path,"%s/3pts_sp%d_%02d_%02d",outfolder,ispec,jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
+  sprintf(path,"%s/3pts_sp%d_%02d_%02d",outfolder,ispec,gaussian_niter_so[ism_lev_so],gaussian_niter_se[ism_lev_se]);
   
   FILE *fout=open_text_file_for_output(path);
   
@@ -987,7 +987,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		
 		//header
 		master_fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d,",massS0[im1],thetaS0[ith1],r1,massS1[im2],thetaS1[ith2],r2);
-		master_fprintf(fout," smear_source=%d smear_seq=%d\n",jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
+		master_fprintf(fout," smear_source=%d smear_seq=%d\n",gaussian_niter_so[ism_lev_so],gaussian_niter_se[ism_lev_se]);
 		
 		//compute contractions
 		meson_two_points_Wilson_prop(contr_3pts,op1_3pts,S0[r1][ip1],op2_3pts,S1[ip2],ncontr_3pts);
@@ -1024,7 +1024,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
 {
   char path[1024];
-  sprintf(path,"%s/2pts_check_sp%d_%02d_%02d",outfolder,ispec,jacobi_niter_so[ism_lev_so],jacobi_niter_se[ism_lev_se]);
+  sprintf(path,"%s/2pts_check_sp%d_%02d_%02d",outfolder,ispec,gaussian_niter_so[ism_lev_so],gaussian_niter_se[ism_lev_se]);
   FILE *fout=open_text_file_for_output(path);
 
   for(int ith2=0;ith2<nthetaS1;ith2++)

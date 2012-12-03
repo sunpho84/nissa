@@ -259,7 +259,7 @@ void su3_summ_the_trace(complex tr,su3 m)
 }
 
 //return the anti-hermitian traceless part of an su3 matrix
-void su3_traceless_anti_hermitian_part(su3 out,su3 in)
+void unsafe_su3_traceless_anti_hermitian_part(su3 out,su3 in)
 {
   double trace_im_third=(in[0][0][1]+in[1][1][1]+in[2][2][1])/3;
   
@@ -341,6 +341,12 @@ void su3_subt(su3 a,su3 b,su3 c)
 {for(int i=0;i<18;i++) ((double*)a)[i]=((double*)b)[i]-((double*)c)[i];}
 void su3_subt_complex(su3 a,su3 b,complex c)
 {for(int i=0;i<3;i++) for(int ri=0;ri<2;ri++) a[i][i][ri]=b[i][i][ri]-c[ri];}
+void unsafe_su3_subt_su3_dag(su3 a,su3 b,su3 c)
+{
+  for(int i=0;i<3;i++)
+    for(int j=0;j<3;j++)
+      complex_subt_conj2(a[i][j],b[i][j],c[j][i]);
+}
 
 //Product of two su3 matrixes
 void unsafe_su3_prod_su3(su3 a,su3 b,su3 c)
@@ -1187,9 +1193,9 @@ void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
       }
 }
 
-//exact exponential of i times the passed anti-symmetric matrix Q
+//exact exponential of i times the passed anti-hermitian matrix Q
 //algorithm taken from hep­lat/0311018
-void unsafe_anti_symmetric_exact_i_exponentiate(su3 out,su3 Q)
+void unsafe_anti_hermitian_exact_i_exponentiate(su3 out,su3 Q)
 {
   //compute the real part of the determinant (eq. 14)
   double c0=su3_real_det(Q);
@@ -1275,11 +1281,11 @@ void unsafe_anti_symmetric_exact_i_exponentiate(su3 out,su3 Q)
   su3_summ_the_prod_complex(out,Q2,f2);
 }
 
-//can be used for an anti-hermitian matrix
-void safe_anti_hermitian_exact_exponentiate(su3 out,su3 in)
+//can be used for an hermitian matrix
+void safe_hermitian_exact_exponentiate(su3 out,su3 in)
 {
   su3 Q;
   su3_prod_idouble(Q,in,-1);
   
-  unsafe_anti_symmetric_exact_i_exponentiate(out,Q);
+  unsafe_anti_hermitian_exact_i_exponentiate(out,Q);
 }

@@ -10,10 +10,10 @@ SaveSource 1
 
 ApeAlpha 0.5
 ApeNiter 20
-JacobiKappa 4
-JacobiNiterSo 2  0 30
-JacobiNiterSe 2  0 30
-JacobiNiterSi 2  0 30
+GaussianKappa 4
+GaussianNiterSo 2  0 30
+GaussianNiterSe 2  0 30
+GaussianNiterSi 2  0 30
 
 WhichRS0 2
 
@@ -29,6 +29,9 @@ LoadS0 0
 
 ComputeDerivativeCorrelations 0
 
+OnlyStandingTwoPoints 0
+OnlyChargedTwoPoints 0
+
 NContrTwoPoints 3
  5  5
  4  5
@@ -36,6 +39,8 @@ NContrTwoPoints 3
 NChromoContrTwoPoints 2
  5  5
  4  5
+
+UseCgmS1 1
  
 MassResiduesS1 2
 0.60 1.e-24
@@ -43,6 +48,8 @@ MassResiduesS1 2
 
 NThetaS1 2
 0.05 0.10
+
+ContrThreePointsUpToS0Mass 1
 
 TSep 4
 NSpec 2
