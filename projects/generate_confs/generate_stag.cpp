@@ -118,6 +118,27 @@ void init_simulation(char *path)
   //beta for gauge action
   read_str_double("Beta",&physics.beta);
   
+  //Stouting parameters
+  read_str_int("NStoutingLevel",&physics.nstout_lev);
+  if(physics.nstout_lev!=0)
+    {
+      //isotropic or not?
+      int iso;
+      read_str_int("IsotropicStouting",&iso);
+      
+      //only iso implemented
+      if(iso)
+	{
+	  double rho;
+	  read_str_double("StoutRho",&rho);
+	  for(int i=0;i<4;i++)
+	    for(int j=0;j<4;j++)
+	      if(i==j) physics.stout_rho[i][j]=rho;
+	      else     physics.stout_rho[i][j]=0;
+	}
+      else crash("Anisotropic stouting not yet implemented");
+    }
+  
   //read observable file
   char gauge_obs_path[1024];
   read_str_str("GaugeObsPath",gauge_obs_path,1024);

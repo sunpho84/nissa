@@ -179,6 +179,8 @@ typedef struct
   double E[3];
   action_type gac_type;
   double B[3];
+  stout_pars stout_rho;
+  int nstout_lev;
 } theory_pars;
 
 //evolution parameters for hybrid monte carlo
