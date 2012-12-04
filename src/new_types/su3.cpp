@@ -310,17 +310,6 @@ double su3_real_det(su3 u)
 }
 
 //return the hemitian su3 matrix
-void safe_su3_hermitian(su3 out,su3 in)
-{
-  su3 tmp;
-  for(int ic_in=0;ic_in<3;ic_in++)
-    for(int ic_out=0;ic_out<3;ic_out++)
-      {
-	tmp[ic_in][ic_out][0]= in[ic_out][ic_in][0];
-	tmp[ic_in][ic_out][1]=-in[ic_out][ic_in][1];
-      }
-  su3_copy(out,tmp);
-}
 void unsafe_su3_hermitian(su3 out,su3 in)
 {
   for(int ic_in=0;ic_in<3;ic_in++)
@@ -329,6 +318,29 @@ void unsafe_su3_hermitian(su3 out,su3 in)
 	out[ic_in][ic_out][0]= in[ic_out][ic_in][0];
 	out[ic_in][ic_out][1]=-in[ic_out][ic_in][1];
       }
+}
+void safe_su3_hermitian(su3 out,su3 in)
+{
+  su3 tmp;
+  unsafe_su3_hermitian(tmp,in);
+  su3_copy(out,tmp);
+}
+
+//return the transposed su3 matrix
+void unsafe_su3_transpose(su3 out,su3 in)
+{
+  for(int ic_in=0;ic_in<3;ic_in++)
+    for(int ic_out=0;ic_out<3;ic_out++)
+      {
+	out[ic_in][ic_out][0]=in[ic_out][ic_in][0];
+	out[ic_in][ic_out][1]=in[ic_out][ic_in][1];
+      }
+}
+void safe_su3_transpose(su3 out,su3 in)
+{
+  su3 tmp;
+  unsafe_su3_transpose(tmp,in);
+  su3_copy(out,tmp);
 }
 
 //summ two su3 matrixes
