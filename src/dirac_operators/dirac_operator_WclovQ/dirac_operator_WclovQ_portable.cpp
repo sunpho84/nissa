@@ -2,7 +2,7 @@
 
 //Apply the Q=D*g5 operator to a spincolor
 
-void apply_WclovQ(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t *Pmunu,spincolor *in)
+void apply_WclovQ(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,spincolor *in)
 {
   communicate_lx_spincolor_borders(in);
   communicate_lx_quad_su3_borders(conf);
@@ -12,7 +12,6 @@ void apply_WclovQ(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t *Pm
   double_vector_prod_double((double*)out,(double*)out,csw,loc_vol*24);
   
   double kcf=1/(2*kappa);
-  
   nissa_loc_vol_parallel_loop(X)
     {
       int Xup,Xdw;
