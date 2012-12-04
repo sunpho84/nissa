@@ -6,4 +6,8 @@
 #include "../../operations/su3_paths.cpp"
 #include "../../linalgs/linalgs.h"
 
-#include "dirac_operator_WclovQ_portable.cpp"
+#ifdef BGP
+ #include "dirac_operator_WclovQ_bgp.cpp"
+#else
+ #include "dirac_operator_WclovQ_portable.cpp"
+#endif
