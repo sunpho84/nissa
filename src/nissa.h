@@ -50,6 +50,7 @@
 #include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.h"
 #include "dirac_operators/dirac_operator_tmQ_left/dirac_operator_tmQ_left.h"
 #include "dirac_operators/dirac_operator_Wstat/dirac_operator_Wstat.h"
+#include "dirac_operators/dirac_operator_WclovQ/dirac_operator_WclovQ.h"
 
 #include "geometry/geometry_eo.h"
 #include "geometry/geometry_lx.h"
@@ -61,6 +62,7 @@
 #include "inverters/twisted_mass/cgm_invert_tmQ2.h"
 #include "inverters/twisted_mass/tm_frontends.h"
 #include "inverters/Wstat/cg_invert_Wstat.h"
+#include "inverters/Wclov/cg_invert_WclovQ.h"
 
 #include "linalgs/linalgs.h"
 
