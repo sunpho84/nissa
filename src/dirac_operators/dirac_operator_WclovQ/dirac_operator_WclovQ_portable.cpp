@@ -10,7 +10,7 @@ void apply_WclovQ(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t_su3
   //put the clover term
   unsafe_apply_chromo_operator_to_spincolor(out,Pmunu,in);
   double_vector_prod_double((double*)out,(double*)out,csw,loc_vol*24);
-  
+  master_printf("Kappa: %lg, csw: %lg, out[0]: %lg\n",kappa,csw,out[0][0][0][0]);
   double kcf=1/(2*kappa);
   nissa_loc_vol_parallel_loop(X)
     {

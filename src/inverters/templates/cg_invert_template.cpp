@@ -64,7 +64,7 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
 	  
 	  iter++;
 
-	  if(iter%10==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
+	  if(iter%1==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
 	}
       while(lambda>(residue*source_norm) && iter<niter);
       
