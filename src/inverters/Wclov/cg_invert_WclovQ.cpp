@@ -11,4 +11,5 @@ void inv_WclovQ_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,d
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   vector_copy(temp,sol);
   apply_WclovQ(sol,conf,kappa,csw,Pmunu,temp);
+  nissa_free(temp);
 }
