@@ -135,7 +135,8 @@ src/operations/smearing/APE.o: src/operations/smearing/APE.cpp \
   src/operations/smearing/../../new_types/../base/global_variables.cpp \
   src/operations/smearing/../../base/communicate.h \
   src/operations/smearing/../../base/vectors.h \
-  src/operations/smearing/../../base/routines.h
+  src/operations/smearing/../../base/routines.h \
+  src/operations/smearing/../../operations/su3_paths.h
 
 src/operations/smearing/../../new_types/new_types_definitions.h:
 
@@ -498,3 +499,5 @@ src/operations/smearing/../../base/communicate.h:
 src/operations/smearing/../../base/vectors.h:
 
 src/operations/smearing/../../base/routines.h:
+
+src/operations/smearing/../../operations/su3_paths.h:

@@ -112,23 +112,40 @@ void squared_path(su3 square,quad_su3 *conf,int A,int mu,int nu)
 
 //This calculate the global plaquette. It's not done in a very
 //efficient way, but it's ok for our scope.
-double global_plaquette_lx_conf(quad_su3 *conf)
+void global_plaquette_lx_conf(double *totplaq,quad_su3 *conf)
 {
   communicate_lx_quad_su3_borders(conf);
   
-  su3 square;
-  complex pl;
-  double totplaq=0;
+  double locplaq[2]={0,0};
+  
   nissa_loc_vol_loop(ivol)
     for(int idir=0;idir<4;idir++)
       for(int jdir=idir+1;jdir<4;jdir++)
 	{
+	  su3 square;
 	  squared_path(square,conf,ivol,idir,jdir);
+	  
+	  complex pl;
 	  su3_trace(pl,square);
-	  totplaq+=pl[0];
+
+	  if(idir==0) locplaq[0]+=pl[0];
+	  else        locplaq[1]+=pl[0];
 	}
   
-  return glb_reduce_double(totplaq)/glb_vol/18;
+  //reduce double[2] as complex
+  glb_reduce_complex(totplaq,locplaq);
+  
+  //normalize
+  for(int ts=0;ts<2;ts++) totplaq[ts]/=glb_vol*3*3;
+}
+
+double global_plaquette_lx_conf(quad_su3 *conf)
+{
+  double plaq[2];
+  
+  global_plaquette_lx_conf(plaq,conf);
+  
+  return (plaq[0]+plaq[1])/2;
 }
 
 //This calculate the variance of the global plaquette.
@@ -173,20 +190,18 @@ void global_plaquette_eo_conf(double *totplaq,quad_su3 **conf)
   nissa_loc_volh_loop(A)
     for(int par=0;par<2;par++)
       for(int mu=0;mu<4;mu++)
-	{
-	  for(int nu=mu+1;nu<4;nu++)
-	    {
-	      //ACD and ABD path
-	      su3 ABD,ACD;
-	      unsafe_su3_prod_su3(ABD,conf[par][A][mu],conf[!par][loceo_neighup[par][A][mu]][nu]);
-	      unsafe_su3_prod_su3(ACD,conf[par][A][nu],conf[!par][loceo_neighup[par][A][nu]][mu]);
-	      
-	      //compute tr(ABDC)
-	      double tr=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
-	      if(mu==0) locplaq[0]+=tr;
-	      else      locplaq[1]+=tr;
-	    }
-	}
+	for(int nu=mu+1;nu<4;nu++)
+	  {
+	    //ACD and ABD path
+	    su3 ABD,ACD;
+	    unsafe_su3_prod_su3(ABD,conf[par][A][mu],conf[!par][loceo_neighup[par][A][mu]][nu]);
+	    unsafe_su3_prod_su3(ACD,conf[par][A][nu],conf[!par][loceo_neighup[par][A][nu]][mu]);
+	    
+	    //compute tr(ABDC)
+	    double tr=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
+	    if(mu==0) locplaq[0]+=tr;
+	    else      locplaq[1]+=tr;
+	  }
   
   //reduce double[2] as complex
   glb_reduce_complex(totplaq,locplaq);
