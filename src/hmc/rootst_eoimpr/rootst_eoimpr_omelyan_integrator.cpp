@@ -29,7 +29,7 @@ void eo_conf_unitarize_explicitly_inverting(quad_su3 **conf)
 // Evolve momenta according to the rooted staggered force
 // calculate H=H-F*dt to evolve link momenta
 // i.e calculate v(t+dt)=v(t)+a*dt
-void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,double residue,double dt,hmc_force_piece force_piece=BOTH_FORCE_PIECES)
+void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physics,rat_approx *appr,double residue,double dt,hmc_force_piece force_piece=BOTH_FORCE_PIECES)
 {
   verbosity_lv2_master_printf("Evolving momenta with force, dt=%lg\n",dt);
 
@@ -37,7 +37,7 @@ void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,c
   quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
   
   //compute the force
-  full_rootst_eoimpr_force(F,conf,pf,physic,appr,residue,force_piece);
+  full_rootst_eoimpr_force(F,conf,pf,physics,appr,residue,force_piece);
   
   //evolve  
   for(int par=0;par<2;par++)
@@ -74,7 +74,7 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
     }
 }
 
-void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physic,rat_approx *appr,hmc_evol_pars *simul,multistep_level multilev)                                                                                                                            
+void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physics,rat_approx *appr,hmc_evol_pars *simul,multistep_level multilev)                                                                                                                            
 {
   //define step length ant its multiples
   const double lambda=0.1931833;
@@ -107,7 +107,7 @@ void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theor
   double ldt=dt*lambda,l2dt=2*lambda*dt,uml2dt=(1-2*lambda)*dt;  
   
   //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-  evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physic,appr,simul->md_residue,ldt,force_piece);
+  evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physics,appr,simul->md_residue,ldt,force_piece);
   
   //         Main loop
   for(int istep=0;istep<nsteps;istep++)
@@ -119,14 +119,14 @@ void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theor
 
       //     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
       if(multilev==MICRO_STEP||simul->ngauge_substeps<=1) evolve_conf_with_momenta(conf,H,dth);
-      else omelyan_rootst_eoimpr_evolver(H,conf,pf,physic,appr,simul,MICRO_STEP);
+      else omelyan_rootst_eoimpr_evolver(H,conf,pf,physics,appr,simul,MICRO_STEP);
       //     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
-      evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physic,appr,simul->md_residue,uml2dt,force_piece);
+      evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physics,appr,simul->md_residue,uml2dt,force_piece);
       //     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
       if(multilev==MICRO_STEP||simul->ngauge_substeps<=1) evolve_conf_with_momenta(conf,H,dth);
-      else omelyan_rootst_eoimpr_evolver(H,conf,pf,physic,appr,simul,MICRO_STEP);
+      else omelyan_rootst_eoimpr_evolver(H,conf,pf,physics,appr,simul,MICRO_STEP);
       //     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
-      evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physic,appr,simul->md_residue,last_dt,force_piece);
+      evolve_momenta_with_full_rootst_eoimpr_force(H,conf,pf,physics,appr,simul->md_residue,last_dt,force_piece);
       
       //normalize the configuration
       eo_conf_unitarize_explicitly_inverting(conf);

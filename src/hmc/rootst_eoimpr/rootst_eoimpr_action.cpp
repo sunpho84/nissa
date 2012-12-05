@@ -40,18 +40,21 @@ double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,colo
 
 //Compute the total action of the rooted staggered e/o improved theory.
 //Passed conf must NOT contain the backfield.
-double full_rootst_eoimpr_action(quad_su3 **eo_conf,quad_su3 **H,color **pf,theory_pars *physic,rat_approx *appr,double residue)
+double full_rootst_eoimpr_action(quad_su3 **eo_conf,quad_su3 **sme_conf,quad_su3 **H,color **pf,theory_pars *physic,rat_approx *appr,double residue)
 {
   verbosity_lv1_master_printf("Computing action\n");
 
   //compute the three parts of the action
-  double quark_action=rootst_eoimpr_quark_action(eo_conf,physic->nflavs,physic->backfield,pf,appr,residue);
+  double quark_action=rootst_eoimpr_quark_action(sme_conf,physic->nflavs,physic->backfield,pf,appr,residue);
+  verbosity_lv2_master_printf("Quark_action: %16.16lg\n",quark_action);
   
   //gauge action
   double gluon_action=physic->beta*6*(1+global_plaquette_eo_conf(eo_conf))*glb_vol;
+  verbosity_lv2_master_printf("Gluon_action: %16.16lg\n",gluon_action);
   
   //momenta action
   double mom_action=momenta_action(H);
+  verbosity_lv2_master_printf("Mom_action: %16.16lg\n",mom_action);
   
   return quark_action+gluon_action+mom_action;
 }

@@ -133,8 +133,7 @@ void init_simulation(char *path)
 	  read_str_double("StoutRho",&rho);
 	  for(int i=0;i<4;i++)
 	    for(int j=0;j<4;j++)
-	      if(i==j) physics.stout_rho[i][j]=rho;
-	      else     physics.stout_rho[i][j]=0;
+	      physics.stout_rho[i][j]=rho;
 	}
       else crash("Anisotropic stouting not yet implemented");
     }

@@ -28,6 +28,7 @@ void compute_rectangle_staples_eo_conf(quad_su3 **staple,quad_su3 **eo_conf);
 void compute_stoch_Pline_dag(color *pline,quad_su3 *conf,int mu,int xmu_start,color *source);
 void four_leaves(as2t_su3 *Pmunu,quad_su3 *conf);
 void global_plaquette_eo_conf(double *totplaq,quad_su3 **conf);
+void global_plaquette_lx_conf(double *p,quad_su3 *conf);
 void local_topological_charge(double *charge,quad_su3 *conf);
 void squared_path(su3 square,quad_su3 *conf,int A,int mu,int nu);
 void su3_path_append(su3_path *out,su3_path *in);
