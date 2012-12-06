@@ -66,7 +66,7 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 	  {
 	    su3 t1,t2;
 	    su3_prod_double(t1,H[par][ivol][mu],dt);
-	    unsafe_anti_hermitian_exact_i_exponentiate(t2,t1);
+	    safe_anti_hermitian_exact_i_exponentiate(t2,t1);
 	    
 	    safe_su3_prod_su3(eo_conf[par][ivol][mu],t2,eo_conf[par][ivol][mu]);
 	  }
