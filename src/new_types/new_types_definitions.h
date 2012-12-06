@@ -112,6 +112,15 @@ struct su3_path
   su3_path* next;
 };
 
+//used to exponentiate for stouting
+struct anti_hermitian_exp_ingredients
+{
+  int sign;
+  su3 Q,Q2;
+  double u,w,theta;
+  double xi0w;
+  complex f0,f1,f2;
+};
 
 //ILDG header
 typedef struct

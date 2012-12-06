@@ -1207,32 +1207,34 @@ void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
 
 //exact exponential of i times the passed anti-hermitian matrix Q
 //algorithm taken from hep­lat/0311018
-void unsafe_anti_hermitian_exact_i_exponentiate(su3 out,su3 Q)
+void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredients &out,su3 Q)
 {
+  //copy Q
+  su3_copy(out.Q,Q);
+
   //compute the real part of the determinant (eq. 14)
   double c0=su3_real_det(Q);
   
   //take its module and write separately its sign (see note after eq. 34)
-  int sign=0;
+  out.sign=0;
   if(c0<0)
     {
-      sign=1;
+      out.sign=1;
       c0=-c0;
     }
   
   //takes the square of Q
-  su3 Q2;
-  unsafe_su3_prod_su3(Q2,Q,Q);
+  unsafe_su3_prod_su3(out.Q2,Q,Q);
   
   //takes 1/2 of the real part of the trace of Q2 (eq. 15)
-  double c1=su3_real_trace(Q2)/2; 
+  double c1=su3_real_trace(out.Q2)/2; 
   //compute c0_max (eq. 17)
   double c0_max=2*pow(c1/3,1.5);
-
+  
   //(eqs. 23-24)
-  double theta=acos(c0/c0_max);
-  double u=sqrt(c1/3)*cos(theta/3);
-  double w=sqrt(c1)*sin(theta/3);
+  double theta=out.theta=acos(c0/c0_max);
+  double u=out.u=sqrt(c1/3)*cos(theta/3);
+  double w=out.w=sqrt(c1)*sin(theta/3);
   
   //auxiliary variables for the computation of h0, h1, h2
   double u2=u*u,w2=w*w,u2mw2=u2-w2,w2p3u2=w2+3*u2,w2m3u2=w2-3*u2;
@@ -1241,55 +1243,66 @@ void unsafe_anti_hermitian_exact_i_exponentiate(su3 out,su3 Q)
   double cw=cos(w);
   
   //compute xi function defined after (eq. 33)
-  double xiw;
+  double xi0w;
   if(fabs(w)<0.05)
     {
       double temp0=w*w,temp1=1-temp0/42,temp2=1.0-temp0/20*temp1;
-      xiw=1-temp0/6*temp2;
+      xi0w=1-temp0/6*temp2;
     }
-  else xiw=sin(w)/w;
+  else xi0w=sin(w)/w;
+  out.xi0w=xi0w;
   
   //computation of h0, h1, h2 (eqs. 30-32)
   complex h0={
     u2mw2*c2u+ //(u2-w2)*cos(2u)
     cu*8*u2*cw+ //cos(u)*8*u2*cos(w)
-    2*su*u*w2p3u2*xiw, //sin(u)*2*mu*(3*u2+w2)*xi(w)
+    2*su*u*w2p3u2*xi0w, //sin(u)*2*mu*(3*u2+w2)*xi0(w)
     u2mw2*s2u+ //(u2-w2)*sin(2u)
     -su*8*u2*cw+ //-sin(u)*8*u2*cos(w)
-    cu*2*u*w2p3u2*xiw}; //cos(u)*2*u*(3*u2+w2)*xi(w)
+    cu*2*u*w2p3u2*xi0w}; //cos(u)*2*u*(3*u2+w2)*xi0(w)
   complex h1={
     2*u*c2u+ //2*u*cos(2u)
     -cu*2*u*cw+ //cos(u)*2*u*cos(w)
-    -su*w2m3u2*xiw, //sin(u)*(u2-3*w2)*xi(w)
+    -su*w2m3u2*xi0w, //sin(u)*(u2-3*w2)*xi0(w)
     2*u*s2u+ //2*u*sin(2u)
     su*2*u*cos(w)+ //sin(u)*2*u*cos(w)
-    -cu*w2m3u2*xiw};//cos(u)*(3*u2-w2)*xi(w)
+    -cu*w2m3u2*xi0w};//cos(u)*(3*u2-w2)*xi0(w)
   complex h2={
     c2u+ //cos(2u)
     -cu*cw+ //-cos(u)*cos(w)
-    -3*su*u*xiw, //-3*sin(u)*u*xi(w)
+    -3*su*u*xi0w, //-3*sin(u)*u*xi0(w)
     s2u+ //sin(2u)
     su*cw+ //sin(w)*cos(w)
-    -cu*3*u*xiw};//-cos(u)*3*u*xi(w)
+    -cu*3*u*xi0w};//-cos(u)*3*u*xi0(w)
   
   //build f (eq. 29)
   double fact=1/(9*u*u-w*w);
-  complex f0={h0[RE]*fact,h0[IM]*fact};
-  complex f1={h1[RE]*fact,h1[IM]*fact};
-  complex f2={h2[RE]*fact,h2[IM]*fact};
+  complex_prod_double(out.f0,h0,fact);
+  complex_prod_double(out.f1,h1,fact);
+  complex_prod_double(out.f2,h2,fact);
   
   //change sign to f according to (eq. 34)
-  if(sign!=0)
+  if(out.sign!=0)
     {
-      f0[IM]=-f0[IM];
-      f1[RE]=-f1[RE];
-      f2[IM]=-f2[IM];
+      out.f0[IM]=-out.f0[IM];
+      out.f1[RE]=-out.f1[RE];
+      out.f2[IM]=-out.f2[IM];
     }
-  
+}
+
+//build the exponential from the ingredients
+void safe_anti_hermitian_exact_i_exponentiate(su3 out,anti_hermitian_exp_ingredients &ing)
+{
   //compute out according to (eq. 13)
-  su3_put_to_diag(out,f0);
-  su3_summ_the_prod_complex(out,Q,f1);
-  su3_summ_the_prod_complex(out,Q2,f2);
+  su3_put_to_diag(out,ing.f0);
+  su3_summ_the_prod_complex(out,ing.Q,ing.f1);
+  su3_summ_the_prod_complex(out,ing.Q2,ing.f2);
+}
+void safe_anti_hermitian_exact_i_exponentiate(su3 out,su3 Q)
+{
+  anti_hermitian_exp_ingredients ing;
+  anti_hermitian_exact_i_exponentiate_ingredients(ing,Q);
+  safe_anti_hermitian_exact_i_exponentiate(out,ing);
 }
 
 //can be used for an hermitian matrix
@@ -1298,5 +1311,5 @@ void safe_hermitian_exact_exponentiate(su3 out,su3 in)
   su3 Q;
   su3_prod_idouble(Q,in,-1);
   
-  unsafe_anti_hermitian_exact_i_exponentiate(out,Q);
+  safe_anti_hermitian_exact_i_exponentiate(out,Q);
 }

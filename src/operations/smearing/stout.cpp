@@ -6,6 +6,56 @@
 #include "../../new_types/su3.h"
 #include "../../linalgs/linalgs.h"
 
+struct stout_link_ingredients
+{
+  su3 C;
+  su3 Omega;
+  su3 Q;
+};
+
+//compute the staples for the link U_A_mu weighting them with rho
+//warning! no border check performed
+void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,stout_pars rho)
+{
+  //put staples to zero
+  su3_put_to_zero(staples);
+  
+  //summ the 6 staples, each weighted with rho (eq. 1)
+  su3 temp1,temp2;
+  for(int nu=0;nu<4;nu++)                   //  E---F---C   
+    if(nu!=mu)                              //  |   |   | mu
+      {                                     //  D---A---B   
+	int B=loceo_neighup[p][A][nu];         //        nu    
+	int F=loceo_neighup[p][A][mu];
+	unsafe_su3_prod_su3(    temp1,conf[p][A][nu],conf[!p][B][mu]);
+	unsafe_su3_prod_su3_dag(temp2,temp1,         conf[!p][F][nu]);
+	su3_summ_the_prod_double(staples,temp2,rho[mu][nu]);
+	
+	int D=loceo_neighdw[p][A][nu];
+	int E=loceo_neighup[!p][D][mu];
+	unsafe_su3_dag_prod_su3(temp1,conf[!p][D][nu],conf[!p][D][mu]);
+	unsafe_su3_prod_su3(    temp2,temp1,          conf[ p][E][nu]);
+	su3_summ_the_prod_double(staples,temp2,rho[mu][nu]);
+      }
+}
+
+//compute the parameters needed to smear a link, that can be used to smear it or to compute the 
+//partial derivative of the force
+void stout_smear_compute_ingredients(stout_link_ingredients &out,quad_su3 **conf,int p,int A,int mu,stout_pars rho)
+{
+  //compute the staples
+  stout_smear_compute_weighted_staples(out.C,conf,p,A,mu,rho);
+  
+  //build Omega (eq. 2.b)
+  unsafe_su3_prod_su3_dag(out.Omega,out.C,conf[p][A][mu]);
+  
+  //compute Q (eq. 2.a)
+  su3 iQ;
+  unsafe_su3_traceless_anti_hermitian_part(iQ,out.Omega);
+  su3_prod_idouble(out.Q,iQ,-1);
+}
+
+//smear the configuration according to Peardon paper
 void stout_smear(quad_su3 **out,quad_su3 **ext_in,stout_pars rho)
 {
   //allocate a temporary conf if going to smear iteratively or out==ext_in
@@ -21,48 +71,19 @@ void stout_smear(quad_su3 **out,quad_su3 **ext_in,stout_pars rho)
   //communicate the edges
   communicate_eo_quad_su3_edges(in);
 
-  nissa_loc_vol_loop(A)
-    for(int mu=0;mu<4;mu++)
-      {
-	int p=loclx_parity[A];
-	
-	//put C to zero
-	su3 C;
-	su3_put_to_zero(C);
-	
-	//summ the 6 staples to C, each weighted with rho (eq. 1)
-	su3 temp1,temp2;
-	for(int nu=0;nu<4;nu++)                   //  E---F---C   
-	  if(nu!=mu)                              //  |   |   | mu
-	    {                                     //  D---A---B   
-	      int B=loclx_neighup[A][nu];         //        nu    
-	      int F=loclx_neighup[A][mu];
-	      unsafe_su3_prod_su3(    temp1,in[p][loceo_of_loclx[A]][nu],in[!p][loceo_of_loclx[B]][mu]);
-	      unsafe_su3_prod_su3_dag(temp2,temp1,                       in[!p][loceo_of_loclx[F]][nu]);
-	      su3_summ_the_prod_double(C,temp2,rho[mu][nu]);
-	      
-	      int D=loclx_neighdw[A][nu];
-	      int E=loclx_neighup[D][mu];
-	      unsafe_su3_dag_prod_su3(temp1,in[!p][loceo_of_loclx[D]][nu],in[!p][loceo_of_loclx[D]][mu]);
-	      unsafe_su3_prod_su3(    temp2,temp1,                        in[ p][loceo_of_loclx[E]][nu]);
-	      su3_summ_the_prod_double(C,temp2,rho[mu][nu]);
-	    }
-	
-	//build Omega (eq. 2.b)
-	su3 Omega;
-	unsafe_su3_prod_su3_dag(Omega,C,in[p][loceo_of_loclx[A]][mu]);
-	
-	//compute Q (eq. 2.a)
-	su3 iQ,Q;
-	unsafe_su3_traceless_anti_hermitian_part(iQ,Omega);
-	su3_prod_idouble(Q,iQ,-1);
-	unsafe_su3_hermitian(temp1,Q);
-	
-	//exp(iQ)*U (eq. 3)
-	su3 expiQ;
-	unsafe_anti_hermitian_exact_i_exponentiate(expiQ,Q);
-	unsafe_su3_prod_su3(out[p][loceo_of_loclx[A]][mu],expiQ,in[p][loceo_of_loclx[A]][mu]);
-     }
+  for(int p=0;p<2;p++)
+    nissa_loc_volh_loop(A)
+      for(int mu=0;mu<4;mu++)
+	{
+	  //compute the infgredients needed to smear
+	  stout_link_ingredients ingr;
+	  stout_smear_compute_ingredients(ingr,in,p,A,mu,rho);
+	  
+	  //exp(iQ)*U (eq. 3)
+	  su3 expiQ;
+	  safe_anti_hermitian_exact_i_exponentiate(expiQ,ingr.Q);
+	  unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
+	}
   
   //invalid the border and free allocated memory, if any
   for(int eo=0;eo<2;eo++)
