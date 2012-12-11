@@ -82,6 +82,16 @@ int glblx_of_comb(int b,int wb,int c,int wc)
   return glblx_of_coord(co);
 }
 
+void glb_coord_of_glblx(coords x,int gx)
+{
+  for(int mu=3;mu>=0;mu--)
+    {
+      int next=gx/glb_size[mu];
+      x[mu]=gx-next*glb_size[mu];
+      gx=next;
+    }
+}
+
 int glblx_of_diff(int b,int c)
 {return glblx_of_comb(b,+1,c,-1);}
   
@@ -106,6 +116,13 @@ int rank_hosting_site_of_coord(coords x)
   rank_coord_of_site_of_coord(p,x);
   
   return rank_of_coord(p);
+}
+//Retrun the rank containing the glblx passed
+int rank_hosting_glblx(int gx)
+{
+  coords c;
+  glb_coord_of_glblx(c,gx);
+  return rank_hosting_site_of_coord(c);
 }
 
 //Return the local site and rank containing the global coordinates
@@ -375,6 +392,32 @@ void set_lx_geometry()
       }
   
   master_printf("Cartesian geometry intialized\n");
+}
+
+//global movements
+int glblx_neighup(int gx,int mu)
+{
+  coords c;
+  glb_coord_of_glblx(c,gx);
+  c[mu]=(c[mu]+1)%glb_size[mu];
+  
+  return glblx_of_coord(c);
+}
+int glblx_neighdw(int gx,int mu)
+{
+  coords c;
+  glb_coord_of_glblx(c,gx);
+  c[mu]=(c[mu]+glb_size[mu]-1)%glb_size[mu];
+  
+  return glblx_of_coord(c);
+}
+
+//wrapper for a previous defined function
+void get_loclx_and_rank_of_glblx(int *lx,int *rx,int gx)
+{
+  coords c;
+  glb_coord_of_glblx(c,gx);
+  get_loclx_and_rank_of_coord(lx,rx,c);
 }
 
 //unset cartesian geometry

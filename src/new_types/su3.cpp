@@ -153,9 +153,9 @@ void su3_print(su3 U)
   for(int ic1=0;ic1<3;ic1++)
     {
       for(int ic2=0;ic2<3;ic2++) printf("%+016.16le,%+016.16le\t",U[ic1][ic2][0],U[ic1][ic2][1]);
-      master_printf("\n");
+      printf("\n");
     }
-  master_printf("\n");
+  printf("\n");
 }
 
 //return the trace of an su3 matrix
@@ -279,6 +279,27 @@ void unsafe_su3_traceless_anti_hermitian_part(su3 out,su3 in)
   out[2][1][1]=out[1][2][1]=(in[1][2][1]+in[2][1][1])/2;
 }
 
+//return the hermitian traceless part of an su3 matrix
+void unsafe_su3_traceless_hermitian_part(su3 out,su3 in)
+{
+  double trace_re_third=(in[0][0][0]+in[1][1][0]+in[2][2][0])/3;
+  
+  //imag part of diagonal: 0
+  out[0][0][1]=out[1][1][1]=out[2][2][1]=0;
+  //real part of diagonal: subtract the trace
+  out[0][0][0]=in[0][0][0]-trace_re_third;
+  out[1][1][0]=in[1][1][0]-trace_re_third;
+  out[2][2][0]=in[2][2][0]-trace_re_third;
+  //out-of-diag real part
+  out[1][0][0]=out[0][1][0]=(in[0][1][0]+in[1][0][0])/2;
+  out[2][0][0]=out[0][2][0]=(in[0][2][0]+in[2][0][0])/2;
+  out[2][1][0]=out[1][2][0]=(in[1][2][0]+in[2][1][0])/2;
+  //out-of-diag imag part
+  out[1][0][1]=-(out[0][1][1]=(in[0][1][1]-in[1][0][1])/2);
+  out[2][0][1]=-(out[0][2][1]=(in[0][2][1]-in[2][0][1])/2);
+  out[2][1][1]=-(out[1][2][1]=(in[1][2][1]-in[2][1][1])/2);
+}
+
 //calculate the determinant of an su3 matrix
 void su3_det(complex d,su3 U)
 {
@@ -373,6 +394,13 @@ void unsafe_su3_prod_su3(su3 a,su3 b,su3 c)
 }
 void safe_su3_prod_su3(su3 a,su3 b,su3 c)
 {su3 d;unsafe_su3_prod_su3(d,b,c);su3_copy(a,d);}
+void su3_summ_the_prod_su3(su3 a,su3 b,su3 c)
+{
+  for(int ir_out=0;ir_out<3;ir_out++)
+    for(int ic_out=0;ic_out<3;ic_out++)
+      for(int itemp=0;itemp<3;itemp++)
+	complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
+}
 
 //Product of two su3 matrixes
 void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c)
@@ -387,6 +415,13 @@ void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c)
 }
 void safe_su3_dag_prod_su3(su3 a,su3 b,su3 c)
 {su3 d;unsafe_su3_dag_prod_su3(d,b,c);su3_copy(a,d);}
+void su3_dag_summ_the_prod_su3(su3 a,su3 b,su3 c)
+{
+  for(int ir_out=0;ir_out<3;ir_out++)
+    for(int ic_out=0;ic_out<3;ic_out++)
+      for(int itemp=0;itemp<3;itemp++)
+	complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
+}
 
 //Product of two su3 matrixes
 void unsafe_su3_prod_su3_dag(su3 a,su3 b,su3 c)
@@ -414,7 +449,6 @@ void su3_subt_the_prod_su3_dag(su3 a,su3 b,su3 c)
       }
 }
 
-
 //Trace of the product of two su3 matrices
 double real_part_of_trace_su3_prod_su3_dag(su3 a,su3 b)
 {
@@ -425,6 +459,15 @@ double real_part_of_trace_su3_prod_su3_dag(su3 a,su3 b)
       t+=a[ic1][ic2][0]*b[ic1][ic2][0]+a[ic1][ic2][1]*b[ic1][ic2][1];
   
   return t;
+}
+
+//Trace of the product of two su3 matrices
+void trace_su3_prod_su3(complex t,su3 a,su3 b)
+{
+  t[RE]=t[IM]=0;
+  for(int ic1=0;ic1<3;ic1++)
+    for(int ic2=0;ic2<3;ic2++)
+      complex_summ_the_prod(t,a[ic1][ic2],b[ic2][ic1]);
 }
 
 //Product of two su3 matrixes
@@ -1238,9 +1281,9 @@ void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredie
   
   //auxiliary variables for the computation of h0, h1, h2
   double u2=u*u,w2=w*w,u2mw2=u2-w2,w2p3u2=w2+3*u2,w2m3u2=w2-3*u2;
-  double cu=cos(u),c2u=cos(2*u);
-  double su=sin(u),s2u=sin(2*u);
-  double cw=cos(w);
+  double cu=out.cu=cos(u),c2u=out.c2u=cos(2*u);
+  double su=out.su=sin(u),s2u=out.s2u=sin(2*u);
+  double cw=out.cw=cos(w);
   
   //compute xi function defined after (eq. 33)
   double xi0w;
@@ -1277,16 +1320,16 @@ void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredie
   
   //build f (eq. 29)
   double fact=1/(9*u*u-w*w);
-  complex_prod_double(out.f0,h0,fact);
-  complex_prod_double(out.f1,h1,fact);
-  complex_prod_double(out.f2,h2,fact);
+  complex_prod_double(out.f[0],h0,fact);
+  complex_prod_double(out.f[1],h1,fact);
+  complex_prod_double(out.f[2],h2,fact);
   
   //change sign to f according to (eq. 34)
   if(out.sign!=0)
     {
-      out.f0[IM]=-out.f0[IM];
-      out.f1[RE]=-out.f1[RE];
-      out.f2[IM]=-out.f2[IM];
+      out.f[0][IM]=-out.f[0][IM];
+      out.f[1][RE]=-out.f[1][RE];
+      out.f[2][IM]=-out.f[2][IM];
     }
 }
 
@@ -1294,9 +1337,9 @@ void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredie
 void safe_anti_hermitian_exact_i_exponentiate(su3 out,anti_hermitian_exp_ingredients &ing)
 {
   //compute out according to (eq. 13)
-  su3_put_to_diag(out,ing.f0);
-  su3_summ_the_prod_complex(out,ing.Q,ing.f1);
-  su3_summ_the_prod_complex(out,ing.Q2,ing.f2);
+  su3_put_to_diag(out,ing.f[0]);
+  su3_summ_the_prod_complex(out,ing.Q,ing.f[1]);
+  su3_summ_the_prod_complex(out,ing.Q2,ing.f[2]);
 }
 void safe_anti_hermitian_exact_i_exponentiate(su3 out,su3 Q)
 {
