@@ -116,10 +116,13 @@ struct su3_path
 struct anti_hermitian_exp_ingredients
 {
   int sign;
+  double cu,su;
+  double c2u,s2u;
   su3 Q,Q2;
   double u,w,theta;
   double xi0w;
-  complex f0,f1,f2;
+  double cw;
+  complex f[3];
 };
 
 //ILDG header
