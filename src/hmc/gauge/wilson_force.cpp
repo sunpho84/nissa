@@ -3,7 +3,7 @@
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../base/routines.h"
-#include "../../operations/su3_paths.h"
+#include "../../operations/su3_paths/plaquette.h"
 
 //Compute the gluonic force for the wilson plaquette action and summ to the output
 //Passed conf must NOT(?) contain the backfield.

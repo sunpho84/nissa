@@ -1,6 +1,7 @@
 #include "../../base/communicate.h"
-#include "../../base/global_variables.h"
 #include "../../base/debug.h"
+#include "../../geometry/geometry_eo.h"
+#include "../../base/global_variables.h"
 #include "../../base/routines.h"
 #include "../../base/vectors.h"
 #include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
@@ -115,18 +116,21 @@ void full_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **conf,color **pf,the
   if(nlev==0) full_rootst_eoimpr_quarks_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
   else
     {
-      //allocate the stack of confs: conf is passed and binded to sme_conf[0]
+      //allocate the stack of confs: conf is binded to sme_conf[0]
       quad_su3 ***sme_conf;
       stout_smear_conf_stack_allocate(sme_conf,conf,nlev);
       
       //smear iteratively retaining all the stack
+      addrem_stagphases_to_eo_conf(sme_conf[0]); //remove
       stout_smear(sme_conf,conf,physics->stout_rho,nlev);
       
       //compute the force in terms of the most smeared conf
-      full_rootst_eoimpr_quarks_force_no_stout_remapping(F,sme_conf[nlev-1],pf,physics,appr,residue);
+      addrem_stagphases_to_eo_conf(sme_conf[nlev]); //add
+      full_rootst_eoimpr_quarks_force_no_stout_remapping(F,sme_conf[nlev],pf,physics,appr,residue);
       
       //remap the force backward
       stouted_force_remap(F,sme_conf,physics->stout_rho,nlev);
+      addrem_stagphases_to_eo_conf(sme_conf[0]); //add again
       
       //now free the stack of confs
       stout_smear_conf_stack_free(sme_conf,nlev);

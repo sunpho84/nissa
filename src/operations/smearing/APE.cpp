@@ -5,8 +5,6 @@
 #include "../../base/vectors.h"
 #include "../../base/routines.h"
 
-#include "../../operations/su3_paths.h"
-
 #ifdef BGP
  #include "../../base/bgp_instructions.h"
 #endif

@@ -8,7 +8,7 @@
 #include "float128.h"
 #include "complex.h"
 #include "su3.h"
-#include "../operations/su3_paths.h"
+#include "../operations/su3_paths/plaquette.h"
 
 #ifdef BGP
 #include "../base/bgp_instructions.h"
@@ -535,6 +535,15 @@ void su3_prod_idouble(su3 a,su3 b,double r)
 	double c=b[i][j][0]*r;
 	a[i][j][0]=-b[i][j][1]*r;
 	a[i][j][1]=c;
+      }
+}
+void su3_summ_the_prod_idouble(su3 a,su3 b,double r)
+{
+  for(int i=0;i<3;i++)
+    for(int j=0;j<3;j++)
+      {
+       	a[i][j][0]-=b[i][j][1]*r;
+	a[i][j][1]+=b[i][j][0]*r;
       }
 }
 
@@ -1327,10 +1336,10 @@ void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredie
   //change sign to f according to (eq. 34)
   if(out.sign!=0)
     {
-      out.f[0][IM]=-out.f[0][IM];
-      out.f[1][RE]=-out.f[1][RE];
-      out.f[2][IM]=-out.f[2][IM];
-    }
+      out.f[0][IM]*=-1;
+      out.f[1][RE]*=-1;
+      out.f[2][IM]*=-1;
+    }  
 }
 
 //build the exponential from the ingredients

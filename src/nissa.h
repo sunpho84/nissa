@@ -25,6 +25,7 @@
 
 #include "hmc/backfield.h"
 #include "hmc/gauge/wilson_force.h"
+#include "hmc/gauge/tree_level_Symanzik_force.h"
 #include "hmc/momenta/momenta_action.h"
 #include "hmc/momenta/momenta_generation.h"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_action.h"
@@ -81,12 +82,18 @@
 #include "operations/gauge_fixing.h"
 #include "operations/gaugeconf.h"
 #include "operations/remap_vector.h"
+#include "operations/shift.h"
 #include "operations/smearing/APE.h"
 #include "operations/smearing/HYP.h"
 #include "operations/smearing/stout.h"
 #include "operations/smearing/gaussian.h"
 #include "operations/source.h"
-#include "operations/su3_paths.h"
+
+#include "operations/su3_paths/arbitrary.h"
+#include "operations/su3_paths/plaquette.h"
+#include "operations/su3_paths/pline.h"
+#include "operations/su3_paths/topological_charge.h"
+
 #include "operations/vector_gather.h"
 
 #endif

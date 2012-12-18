@@ -7,7 +7,7 @@
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/rat_exp.h"
 #include "../../operations/smearing/stout.h"
-#include "../../operations/su3_paths.h"
+#include "../../operations/su3_paths/plaquette.h"
 
 #include "../momenta/momenta_generation.h"
 

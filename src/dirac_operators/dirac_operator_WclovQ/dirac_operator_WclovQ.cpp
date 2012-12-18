@@ -3,7 +3,7 @@
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../base/communicate.h"
-#include "../../operations/su3_paths.cpp"
+#include "../../operations/su3_paths/topological_charge.h"
 #include "../../linalgs/linalgs.h"
 
 #ifdef BGP
