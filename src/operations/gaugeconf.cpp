@@ -10,7 +10,7 @@
 #include "../new_types/complex.h"
 #include "../new_types/su3.h"
 #include "../operations/remap_vector.h"
-#include "../operations/su3_paths.h"
+#include "../operations/su3_paths/plaquette.h"
 #include "../geometry/geometry_mix.h"
 
 /*

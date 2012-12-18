@@ -77,6 +77,7 @@ void su3_overrelax(su3 out,su3 in,double w);
 void su3_print(su3 U);
 void su3_prod_double(su3 a,su3 b,double r);
 void su3_prod_idouble(su3 a,su3 b,double r);
+void su3_summ_the_prod_idouble(su3 a,su3 b,double r);
 void su3_put_to_diag(su3 m,color in);
 void su3_put_to_diag(su3 m,complex in);
 void su3_put_to_id(su3 m);

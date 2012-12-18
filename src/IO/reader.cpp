@@ -10,7 +10,7 @@
 #include "../geometry/geometry_mix.h"
 #include "../geometry/geometry_lx.h"
 #include "../linalgs/linalgs.h"
-#include "../operations/su3_paths.h"
+#include "../operations/su3_paths/plaquette.h"
 #include "checksum.h"
 #include "endianess.h"
 #include "ILDG_File.h"

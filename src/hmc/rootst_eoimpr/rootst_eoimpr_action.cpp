@@ -2,7 +2,7 @@
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../base/routines.h"
-#include "../../operations/su3_paths.h"
+#include "../../operations/su3_paths/plaquette.h"
 #include "../../inverters/staggered/cgm_invert_stD2ee_m2.h"
 
 #include "../backfield.h"
