@@ -152,6 +152,7 @@ void stout_smear_conf_stack_free(quad_su3 ***&out,int niters)
       for(int eo=0;eo<2;eo++) nissa_free(out[i][eo]);
       nissa_free(out[i]);
     }
+  nissa_free(out);
 }
 
 //smear iteratively retainig all the stack
@@ -169,104 +170,143 @@ void stout_smear(quad_su3 ***out,quad_su3 **in,stout_pars rho,int niters)
 void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingredients &ing)
 {
   static int debug=1;
-  //copy back the stored variables
-  double u=ing.u;
-  double w=ing.w;
-  double xi0w=ing.xi0w;
-  double cu=ing.cu,c2u=ing.c2u;
-  double su=ing.su,s2u=ing.s2u;
-  double cw=ing.cw;
   
-  //debug
-  if(debug) printf("u: %lg, w: %lg, xi0w: %lg, cu: %lg, c2u: %lg, su: %lg, s2u: %lg, cw: %lg\n",u,w,xi0w,cu,c2u,su,s2u,cw);
-  
-  //compute additional variables
-  double u2=u*u,w2=w*w;
-  double xi1w; //eq. (67)
-  if(fabs(w)<0.05) xi1w=-(1-w2*(1-w2*(1-w2/54)/28)/10)/3;
-  else xi1w=cw/w2-sin(w)/(w2*w);
-  
-  //debug
-  if(debug) printf("u2: %lg, w2: %lg, xi1w: %lg\n",u2,w2,xi1w);
-  
-  //eq. (60-65)
-  complex r[2][3]=
-    {{{2*c2u*u+s2u*(-2*u2+2*w2)+2*cu*u*(8*cw+3*u2*xi0w+w2*xi0w)+su*(-8*cw*u2+18*u2*xi0w+2*w2*xi0w),
-       -8*cw*(2*su*u+cu*u2)+2*(s2u*u+c2u*u2-c2u*w2)+2*(9*cu*u2-3*su*u*u2+cu*w2 -su*u*w2)*xi0w},
-      {2*c2u-4*s2u*u+su*(2*cw*u+6*u*xi0w)+cu*(-2*cw+3*u2*xi0w-w2*xi0w),
-       2*s2u+4*c2u*u+2*cw*(su+cu*u)+(6*cu*u-3*su*u2+su*w2)*xi0w},
-      {-2*s2u+cw*su-3*(su+cu*u)*xi0w,
-       2*c2u+cu*cw+(-3*cu+3*su*u)*xi0w}},
-     {{-2*c2u+2*cw*su*u+2*su*u*xi0w-8*cu*u2*xi0w+6*su*u*u2*xi1w,
-       2*(-s2u+4*su*u2*xi0w+cu*u*(cw+xi0w+3*u2*xi1w))},
-      {2*cu*u*xi0w+su*(-cw-xi0w+3*u2*xi1w),
-       -2*su*u*xi0w-cu*(cw+xi0w-3*u2*xi1w)},
-      {cu*xi0w-3*su*u*xi1w,
-       -(su*xi0w)-3*cu*u*xi1w}}};
-
-  //debug
-  if(debug)
-    {
-      std::complex<double> e2iu(cos(2*u),sin(2*u));
-      std::complex<double> emiu(cos(u),sin(-u));
-      std::complex<double> i(0,1);
-      
-      //00
-      {
-	std::complex<double> d=2.0*(u+i*(u2-w2))*e2iu+2.0*emiu*(4*u*(2.0-i*u)*cos(w)+i*(9*u2+w2-i*u*(3.0*u2+w2))*xi0w);
-	printf("recomp r[0][0]: (%lg,%lg)\n",d.real()-r[0][0][RE],d.imag()-r[0][0][IM]);
-      }
-      //01
-      {
-	std::complex<double> d=2.0*(1.0+2.0*i*u)*e2iu+emiu*(-2.0*(1.0-i*u)*cos(w)+i*(6.0*u+i*(w2-3*u2))*xi0w);
-	printf("recomp r[0][1]: (%lg,%lg)\n",d.real()-r[0][1][RE],d.imag()-r[0][1][IM]);
-      }
-      //02
-      {
-	std::complex<double> d=2.0*i*e2iu+i*emiu*(cos(w)-3.0*(1.0-i*u)*xi0w);
-	printf("recomp r[0][2]: (%lg,%lg)\n",d.real()-r[0][2][RE],d.imag()-r[0][2][IM]);
-      }
-      //10
-      {
-	std::complex<double> d=-2.0*e2iu+2.0*i*u*emiu*(cos(w)+(1.0+4.0*i*u)*xi0w+3.0*u2*xi1w);
-	printf("recomp r[1][0]: (%lg,%lg)\n",d.real()-r[1][0][RE],d.imag()-r[1][0][IM]);
-      }
-      //11
-      {
-	std::complex<double> d=-i*emiu*(cos(w)+(1.0+2.0*i*u)*xi0w-3*u2*xi1w);
-	printf("recomp r[1][1]: (%lg,%lg)\n",d.real()-r[1][1][RE],d.imag()-r[1][1][IM]);
-      }
-      //12
-      {
-	std::complex<double> d=emiu*(xi0w-3.0*i*u*xi1w);
-	printf("recomp r[1][2]: (%lg,%lg)\n",d.real()-r[1][2][RE],d.imag()-r[1][2][IM]);
-      }
-    }
-  
-  //compute b
-  double t1=9*u2-w2,t2=1/(2*t1*t1);
-  //debug
-  if(debug) printf("t1: %lg, t2: %lg\n",t1,t2);
   complex b[2][3];
-  for(int j=0;j<3;j++)
+  
+  if(debug) printf("c0: %lg, c1: %lg\n",ing.c0,ing.c1);
+  
+  if(ing.c1<4e-3)
     {
-      //eq. (57-58)
-      for(int ri=0;ri<2;ri++)
+      double c0=ing.c0,c1=ing.c1;
+      b[1][0][RE]=-c0/360;
+      b[1][0][IM]=-1.0/6*(1-c1/20*(1-c1/42));
+      b[0][0][RE]=0;
+      b[0][0][IM]=c0/120*(1-c1/21);
+      b[1][1][RE]=1.0/24*(1-c1/15*(1-3*c1/112));
+      b[1][1][IM]=-c0/2520;
+      b[0][1][RE]=-c0/360*(1-3*c1/56);
+      b[0][1][IM]=-1.0/6*(1-c1/10*(1.0-c1/28));
+      b[1][2][RE]=0.5*c0/10080;
+      b[1][2][IM]=0.5*(1.0/60*(1-c1/21*(1-c1/48)));
+      b[0][2][RE]=0.5*(1.0/12*(1-2*c1/30*(1-3*c1/112))); 
+      b[0][2][IM]=0.5*(-c0/1260*(1-c1/24));
+    }
+  else
+    {
+      //copy back the stored variables
+      double u=ing.u;
+      double w=ing.w;
+      double xi0w=ing.xi0w;
+      double cu=ing.cu,c2u=ing.c2u;
+      double su=ing.su,s2u=ing.s2u;
+      double cw=ing.cw;
+      
+      //debug
+      if(debug) printf("u: %lg, w: %lg, xi0w: %lg, cu: %lg, c2u: %lg, su: %lg, s2u: %lg, cw: %lg\n",u,w,xi0w,cu,c2u,su,s2u,cw);
+      
+      //compute additional variables
+      double u2=u*u,w2=w*w;
+      double xi1w; //eq. (67)
+      if(fabs(w)<0.05) xi1w=-(1-w2*(1-w2*(1-w2/54)/28)/10)/3;
+      else xi1w=cw/w2-sin(w)/(w2*w);
+      
+      //debug
+      if(debug) printf("u2: %lg, w2: %lg, xi1w: %lg\n",u2,w2,xi1w);
+      
+      //eq. (60-65)
+      complex r[2][3]=
+	{{{2*c2u*u+s2u*(-2*u2+2*w2)+2*cu*u*(8*cw+3*u2*xi0w+w2*xi0w)+su*(-8*cw*u2+18*u2*xi0w+2*w2*xi0w),
+	   -8*cw*(2*su*u+cu*u2)+2*(s2u*u+c2u*u2-c2u*w2)+2*(9*cu*u2-3*su*u*u2+cu*w2 -su*u*w2)*xi0w},
+	  {2*c2u-4*s2u*u+su*(2*cw*u+6*u*xi0w)+cu*(-2*cw+3*u2*xi0w-w2*xi0w),
+	   2*s2u+4*c2u*u+2*cw*(su+cu*u)+(6*cu*u-3*su*u2+su*w2)*xi0w},
+	  {-2*s2u+cw*su-3*(su+cu*u)*xi0w,
+	   2*c2u+cu*cw+(-3*cu+3*su*u)*xi0w}},
+	 {{-2*c2u+2*cw*su*u+2*su*u*xi0w-8*cu*u2*xi0w+6*su*u*u2*xi1w,
+	   2*(-s2u+4*su*u2*xi0w+cu*u*(cw+xi0w+3*u2*xi1w))},
+	  {2*cu*u*xi0w+su*(-cw-xi0w+3*u2*xi1w),
+	   -2*su*u*xi0w-cu*(cw+xi0w-3*u2*xi1w)},
+	  {cu*xi0w-3*su*u*xi1w,
+	   -(su*xi0w)-3*cu*u*xi1w}}};
+      
+      //debug
+      if(debug)
 	{
-	  b[0][j][ri]=(2*u*r[0][j][ri]+(3*u2-w2)*r[1][j][ri]-2*(15*u2+w2)*ing.f[j][ri])*t2;
-	  b[1][j][ri]=(r[1][j][ri]-3*u*r[1][j][ri]-24*u*ing.f[j][ri])*t2;
+	  std::complex<double> e2iu(cos(2*u),sin(2*u));
+	  std::complex<double> emiu(cos(u),sin(-u));
+	  std::complex<double> i(0,1);
+	  
+	  //00
+	  {
+	    std::complex<double> d=2.0*(u+i*(u2-w2))*e2iu+2.0*emiu*(4*u*(2.0-i*u)*cos(w)+i*(9*u2+w2-i*u*(3.0*u2+w2))*xi0w);
+	    printf("recomp r[0][0]: (%lg,%lg)\n",d.real()-r[0][0][RE],d.imag()-r[0][0][IM]);
+	  }
+	  //01
+	  {
+	    std::complex<double> d=2.0*(1.0+2.0*i*u)*e2iu+emiu*(-2.0*(1.0-i*u)*cos(w)+i*(6.0*u+i*(w2-3*u2))*xi0w);
+	    printf("recomp r[0][1]: (%lg,%lg)\n",d.real()-r[0][1][RE],d.imag()-r[0][1][IM]);
+	  }
+	  //02
+	  {
+	    std::complex<double> d=2.0*i*e2iu+i*emiu*(cos(w)-3.0*(1.0-i*u)*xi0w);
+	    printf("recomp r[0][2]: (%lg,%lg)\n",d.real()-r[0][2][RE],d.imag()-r[0][2][IM]);
+	  }
+	  //10
+	  {
+	    std::complex<double> d=-2.0*e2iu+2.0*i*u*emiu*(cos(w)+(1.0+4.0*i*u)*xi0w+3.0*u2*xi1w);
+	    printf("recomp r[1][0]: (%lg,%lg)\n",d.real()-r[1][0][RE],d.imag()-r[1][0][IM]);
+	  }
+	  //11
+	  {
+	    std::complex<double> d=-i*emiu*(cos(w)+(1.0+2.0*i*u)*xi0w-3*u2*xi1w);
+	    printf("recomp r[1][1]: (%lg,%lg)\n",d.real()-r[1][1][RE],d.imag()-r[1][1][IM]);
+	  }
+	  //12
+	  {
+	    std::complex<double> d=emiu*(xi0w-3.0*i*u*xi1w);
+	    printf("recomp r[1][2]: (%lg,%lg)\n",d.real()-r[1][2][RE],d.imag()-r[1][2][IM]);
+	  }
 	}
       
-      //take into account the sign of c0, eq. (70)
+      //change sign to the f if needed
       if(ing.sign!=0)
-	for(int i=0;i<2;i++)
-	  {
-	    //change the sign to real or imag part
-	    int ri=(i+j+1)%2;
-	    b[i][j][ri]=-b[i][j][ri];
-	  }
+	{
+	  ing.f[0][IM]*=-1;
+	  ing.f[1][RE]*=-1;
+	  ing.f[2][IM]*=-1;
+	}
+      
+      //compute b
+      double t1=9*u2-w2,t2=1/(2*t1*t1);
+      //debug
+      if(debug) printf("t1: %lg, t2: %lg\n",t1,t2);
+      for(int j=0;j<3;j++)
+	{
+	  //eq. (57-58)
+	  for(int ri=0;ri<2;ri++)
+	    {
+	      b[0][j][ri]=(2*u*r[0][j][ri]+(3*u2-w2)*r[1][j][ri]-2*(15*u2+w2)*ing.f[j][ri])*t2;
+	      b[1][j][ri]=(r[1][j][ri]-3*u*r[1][j][ri]-24*u*ing.f[j][ri])*t2;
+	    }
+	  
+	  //take into account the sign of c0, eq. (70)
+	  if(ing.sign!=0)
+	    for(int i=0;i<2;i++)
+	      {
+		//change the sign to real or imag part
+		int ri=(i+j+1)%2;
+		b[i][j][ri]=-b[i][j][ri];
+	      }
+	}
+      
+      //change back sign to the f if needed
+      if(ing.sign!=0)
+	{
+	  ing.f[0][IM]*=-1;
+	  ing.f[1][RE]*=-1;
+	  ing.f[2][IM]*=-1;
+	}
     }
-  
+
   //debug
   if(debug)
     for(int i=0;i<2;i++)
@@ -334,6 +374,10 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
     nissa_loc_volh_loop(A)
       for(int mu=0;mu<4;mu++)
         {
+	  //su3 temp;
+	  //su3_copy(temp,F[p][A][mu]);
+	  //unsafe_su3_traceless_anti_hermitian_part(F[p][A][mu],temp);
+
           //compute the ingredients needed to smear
 	  stout_link_staples sto_ste;
           stout_smear_compute_staples(sto_ste,conf,p,A,mu,rho);
@@ -414,8 +458,8 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 	      unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
 	      su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho[mu][nu]);
 	      
-	      unsafe_su3_traceless_anti_hermitian_part(temp1,F[p][A][mu]);
-	      su3_copy(F[p][A][mu],temp1);
+	      //su3_copy(temp3,F[p][A][mu]);
+	      //unsafe_su3_traceless_anti_hermitian_part(F[p][A][mu],temp3);
 	    }
   
   for(int eo=0;eo<2;eo++) nissa_free(Lambda[eo]);

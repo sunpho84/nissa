@@ -7,7 +7,8 @@
 #define START_PATH_FLAG 1
 #define DAG_LINK_FLAG 2
 #define NONLOC_LINK_FLAG 4
-#define nposs_path_flags 3
+#define SUMM_TO_PREVIOUS_PATH_FLAG 8
+#define nposs_path_flags 4
 
 struct movement_link_id
 {
@@ -93,15 +94,21 @@ struct paths_calculation_structure
   void start_new_path_from_loclx(int lx) {
     pos=glblx_of_loclx[lx];
     link_for_movements[cur_mov]=START_PATH_FLAG;};
+    void summ_to_previous_path() {
+      if(cur_path==0) crash("cannot summ to path number 0");
+      //if not already set, diminuish the number of paths
+      if(!(link_for_movements[cur_mov]&SUMM_TO_PREVIOUS_PATH_FLAG)) cur_path--;
+      link_for_movements[cur_mov]+=SUMM_TO_PREVIOUS_PATH_FLAG;      
+    }
   void switch_to_next_step() {
     cur_mov++;
-    if(cur_mov>ntot_mov) crash("exceded the number of allocatec movements, %d",ntot_mov);
+    if(cur_mov>ntot_mov) crash("exceded (%d) the number of allocatec movements, %d",cur_mov,ntot_mov);
     link_for_movements[cur_mov]=0;}
   void move_forward(int mu);
   void move_backward(int mu);
   void stop_current_path() {
     cur_path++;
-    if(cur_path>npaths) crash("exceded the number of allocated paths, %d",npaths);
+    if(cur_path>npaths) crash("exceded (%d) the number of allocated paths, %d",cur_path,npaths);
   }
   void finished_last_path();
   void gather_nonloc_start(MPI_Request *request,int &irequest,su3 *nonloc_links);

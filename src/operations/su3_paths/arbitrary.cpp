@@ -24,7 +24,7 @@ int compare_movement_link_id(const void *a,const void *b)
 void paths_calculation_structure::move_forward(int mu)
 {
   //check not to have passed the max number of steps
-  if(cur_mov==ntot_mov) crash("exceded the number of allocated movements, %d",ntot_mov);
+  if(cur_mov==ntot_mov) crash("exceded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
   //find global pos
   int nx=glblx_neighup(pos,mu);
   //search rank hosting site and loclx
@@ -49,7 +49,7 @@ void paths_calculation_structure::move_backward(int mu)
   //mark backward move
   link_for_movements[cur_mov]+=DAG_LINK_FLAG;
   //check not to have passed the max number of steps
-  if(cur_mov==ntot_mov) crash("exceded the number of allocated movements, %d",ntot_mov);
+  if(cur_mov==ntot_mov) crash("exceeded (%d) the number of allocated movements, %d",cur_mov,ntot_mov);
   //find global pos
   int nx=glblx_neighdw(pos,mu);
   //search rank hosting site and loclx
@@ -281,6 +281,10 @@ void paths_calculation_structure::compute_lx(su3 *paths,quad_su3 *conf)
   //gather non local links
   gather_nonloc_lx(nonloc_links,conf);
   
+  //running path
+  su3 cur_path;
+  su3_put_to_zero(cur_path);
+  
   //compute the paths one by one
   int ipath=0;
   for(int imov=0;imov<ntot_mov;imov++)
@@ -292,13 +296,28 @@ void paths_calculation_structure::compute_lx(su3 *paths,quad_su3 *conf)
       int start=tag&START_PATH_FLAG;
       int herm=tag&DAG_LINK_FLAG;
       int nonloc=tag&NONLOC_LINK_FLAG;
+      int summ_to_previous=tag&SUMM_TO_PREVIOUS_PATH_FLAG;
       
       //check if starting a new path
       if(start==1)
 	{
 	  //if not the first mov, start the new path
-	  if(imov!=0) ipath++;
-	  su3_put_to_id(paths[ipath]);
+	  if(imov!=0)
+	    {
+	      //summ the ultimated path in its place
+	      su3_summassign(paths[ipath],cur_path);
+	      
+	      //we are already looking at new mov flags
+	      if(!summ_to_previous)
+		{
+		  ipath++;
+		  su3_put_to_zero(paths[ipath]);
+		}
+	    }
+	  else su3_put_to_zero(paths[ipath]);
+
+	  //reset the path
+	  su3_put_to_id(cur_path);
 	}
 
       //look whether we need to use local or non-local buffer
@@ -307,9 +326,14 @@ void paths_calculation_structure::compute_lx(su3 *paths,quad_su3 *conf)
       else       links=(su3*)conf;
       
       //multiply for the link or the link daggered
-      if(herm) safe_su3_prod_su3_dag(paths[ipath],paths[ipath],links[ilink]);
-      else     safe_su3_prod_su3    (paths[ipath],paths[ipath],links[ilink]);
+      if(herm) safe_su3_prod_su3_dag(cur_path,cur_path,links[ilink]);
+      else     safe_su3_prod_su3    (cur_path,cur_path,links[ilink]);
     }
+  
+  //summ last path
+  su3_summassign(paths[npaths-1],cur_path);
+  
+  if(ipath!=npaths-1) crash("finished the movements at path %d while expecting %d",ipath,npaths);
   
   nissa_free(nonloc_links);
 }
@@ -322,6 +346,10 @@ void paths_calculation_structure::compute_eo(su3 *paths,quad_su3 **conf)
   //gather non local links
   gather_nonloc_eo(nonloc_links,conf);
   
+  //running path
+  su3 cur_path;
+  su3_put_to_zero(cur_path);
+  
   //compute the paths one by one
   int ipath=0;
   for(int imov=0;imov<ntot_mov;imov++)
@@ -333,13 +361,28 @@ void paths_calculation_structure::compute_eo(su3 *paths,quad_su3 **conf)
       int start=tag&START_PATH_FLAG;
       int herm=tag&DAG_LINK_FLAG;
       int nonloc=tag&NONLOC_LINK_FLAG;
+      int summ_to_previous=tag&SUMM_TO_PREVIOUS_PATH_FLAG;
       
       //check if starting a new path
       if(start==1)
 	{
 	  //if not the first mov, start the new path
-	  if(imov!=0) ipath++;
-	  su3_put_to_id(paths[ipath]);
+	  if(imov!=0)
+	    {
+	      //summ the ultimated path in its place
+	      su3_summassign(paths[ipath],cur_path);
+	      
+	      //we are already looking at new mov flags
+	      if(!summ_to_previous)
+		{
+		  ipath++;
+		  su3_put_to_zero(paths[ipath]);
+		}
+	    }
+	  else su3_put_to_zero(paths[ipath]);
+	  
+	  //reset the path
+	  su3_put_to_id(cur_path);
 	}
 
       //look whether we need to use local or non-local buffer
@@ -354,9 +397,14 @@ void paths_calculation_structure::compute_eo(su3 *paths,quad_su3 **conf)
 	}
       
       //multiply for the link or the link daggered
-      if(herm) safe_su3_prod_su3_dag(paths[ipath],paths[ipath],*link);
-      else     safe_su3_prod_su3    (paths[ipath],paths[ipath],*link);
+      if(herm) safe_su3_prod_su3_dag(cur_path,cur_path,*link);
+      else     safe_su3_prod_su3    (cur_path,cur_path,*link);
     }
+  
+  //summ last path
+  su3_summassign(paths[npaths-1],cur_path);
+  
+  if(ipath!=npaths-1) crash("finished the movements at path %d while expecting %d",ipath,npaths);
   
   nissa_free(nonloc_links);
 }

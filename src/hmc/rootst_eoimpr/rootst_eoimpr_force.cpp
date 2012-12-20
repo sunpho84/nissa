@@ -13,6 +13,7 @@
 #include "../../operations/smearing/stout.h"
 
 #include "../gauge/wilson_force.h"
+#include "../gauge/tree_level_Symanzik_force.h"
 #include "../backfield.h"
 
 //Compute the fermionic force the rooted staggered e/o improved theory.
@@ -93,7 +94,13 @@ void full_rootst_eoimpr_force_finish_computation(quad_su3 **F,quad_su3 **conf)
 //compute only the gauge part
 void full_rootst_eoimpr_gluons_force(quad_su3 **F,quad_su3 **conf,theory_pars *physics)
 {
-  wilson_force(F,conf,physics->beta);
+  switch(physics->gac_type)
+    {
+    case Wilson_action: Wilson_force(F,conf,physics->beta);break;
+    case tlSym_action: tree_level_Symanzik_force(F,conf,physics->beta);break;
+    default: crash("Unknown action");
+    }
+  
   full_rootst_eoimpr_force_finish_computation(F,conf);
 }
 
@@ -103,8 +110,6 @@ void full_rootst_eoimpr_quarks_force_no_stout_remapping(quad_su3 **F,quad_su3 **
   for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
   for(int iflav=0;iflav<physics->nflavs;iflav++)
     summ_the_rootst_eoimpr_quark_force(F,conf,pf[iflav],physics->backfield[iflav],&(appr[iflav]),residue);
-  
-  full_rootst_eoimpr_force_finish_computation(F,conf);
 }
 
 //take into account the stout remapping procedure
@@ -121,20 +126,22 @@ void full_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **conf,color **pf,the
       stout_smear_conf_stack_allocate(sme_conf,conf,nlev);
       
       //smear iteratively retaining all the stack
-      addrem_stagphases_to_eo_conf(sme_conf[0]); //remove
+      addrem_stagphases_to_eo_conf(sme_conf[0]); //remove the staples
       stout_smear(sme_conf,conf,physics->stout_rho,nlev);
       
       //compute the force in terms of the most smeared conf
-      addrem_stagphases_to_eo_conf(sme_conf[nlev]); //add
+      addrem_stagphases_to_eo_conf(sme_conf[nlev]); //add to most smeared conf
       full_rootst_eoimpr_quarks_force_no_stout_remapping(F,sme_conf[nlev],pf,physics,appr,residue);
       
       //remap the force backward
       stouted_force_remap(F,sme_conf,physics->stout_rho,nlev);
-      addrem_stagphases_to_eo_conf(sme_conf[0]); //add again
+      addrem_stagphases_to_eo_conf(sme_conf[0]); //add back again to the original conf
       
       //now free the stack of confs
       stout_smear_conf_stack_free(sme_conf,nlev);
     }
+  
+  full_rootst_eoimpr_force_finish_computation(F,conf);
 }
 
 //Compute the full force for the rooted staggered theory with nfl flavors

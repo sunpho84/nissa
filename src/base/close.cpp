@@ -8,6 +8,8 @@
 #include "../new_types/new_types_definitions.h"
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
+#include "../hmc/gauge/tree_level_Symanzik_force.h"
+#include "../hmc/gauge/tree_level_Symanzik_action.h"
 
 void close_nissa()
 {
@@ -21,6 +23,10 @@ void close_nissa()
   
   //stop the random generator
   if(nissa_loc_rnd_gen_inited) stop_loc_rnd_gen();
+  
+  //stop the tree level Symanzik action calculation structures
+  stop_Symanzik_action();
+  stop_Symanzik_staples();
   
   //print information over the maximum amount of memory used
   master_printf("Maximal memory used during the run: %d bytes (",nissa_max_required_memory);
