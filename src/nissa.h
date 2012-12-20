@@ -26,6 +26,7 @@
 #include "hmc/backfield.h"
 #include "hmc/gauge/wilson_force.h"
 #include "hmc/gauge/tree_level_Symanzik_force.h"
+#include "hmc/gauge/tree_level_Symanzik_action.h"
 #include "hmc/momenta/momenta_action.h"
 #include "hmc/momenta/momenta_generation.h"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_action.h"

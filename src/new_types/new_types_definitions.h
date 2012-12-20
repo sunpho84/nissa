@@ -116,6 +116,7 @@ struct su3_path
 struct anti_hermitian_exp_ingredients
 {
   int sign;
+  double c0,c1;
   double cu,su;
   double c2u,s2u;
   su3 Q,Q2;
