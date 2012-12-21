@@ -118,11 +118,9 @@ void tree_level_Symanzik_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
 {
   verbosity_lv1_master_printf("Computing tree level Symanzik force\n");
   
-  addrem_stagphases_to_eo_conf(eo_conf);
-  
   //coefficient of rectangles and squares, including beta
   double b1=-1.0/12,b0=1-8*b1;
-  double c1=-b1*beta/3,c0=-b0*beta/3;
+  double c1=-b1*beta/3,c0=b0*beta/3; //the stag phases add (-1)^area
   
   //if never started init the staples
   if(compute_Symanzik_staples==NULL) init_Symanzik_staples();
@@ -156,18 +154,9 @@ void tree_level_Symanzik_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
   
   if(istaple!=loc_vol*8) crash("something went wrong");
   
-  master_printf("plaq during force: %16.16lg\n",pl/loc_vol/72);
-  master_printf("rect during force: %16.16lg\n",re/loc_vol/216);
-  
   nissa_free(staples);
 
   for(int par=0;par<2;par++) set_borders_invalid(F[par]);
-  
-  printf("F[0]:\n");
-  su3_print(F[0][0][0]);
-
-  addrem_stagphases_to_eo_conf(eo_conf);
-  addrem_stagphases_to_eo_conf(F);
 }
 
 //free the structure

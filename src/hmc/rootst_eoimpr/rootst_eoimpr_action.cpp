@@ -67,7 +67,7 @@ double full_rootst_eoimpr_action(quad_su3 **eo_conf,quad_su3 **sme_conf,quad_su3
       crash("Unknown action");
     }
   
-  /*verbosity_lv2_*/ master_printf("Gluon_action: %16.16lg\n",gluon_action);
+  verbosity_lv2_master_printf("Gluon_action: %16.16lg\n",gluon_action);
   
   //momenta action
   double mom_action=momenta_action(H);

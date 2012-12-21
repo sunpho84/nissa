@@ -81,6 +81,9 @@ void summ_the_rootst_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,color *p
 //Finish the computation multiplying for the conf and taking TA
 void full_rootst_eoimpr_force_finish_computation(quad_su3 **F,quad_su3 **conf)
 {
+  //remove the staggered phase from the conf, since it is already implemented in the force
+  addrem_stagphases_to_eo_conf(conf);
+
   for(int eo=0;eo<2;eo++)
     nissa_loc_volh_loop(ivol)
       for(int mu=0;mu<4;mu++)
@@ -89,6 +92,9 @@ void full_rootst_eoimpr_force_finish_computation(quad_su3 **F,quad_su3 **conf)
 	  unsafe_su3_prod_su3(temp,conf[eo][ivol][mu],F[eo][ivol][mu]);
 	  unsafe_su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
 	}
+  
+  //readd
+  addrem_stagphases_to_eo_conf(conf);
 }
 
 //compute only the gauge part
@@ -101,6 +107,9 @@ void full_rootst_eoimpr_gluons_force(quad_su3 **F,quad_su3 **conf,theory_pars *p
     default: crash("Unknown action");
     }
   
+  //add the stag phases to the force term, to cancel the one entering the force
+  addrem_stagphases_to_eo_conf(F);
+
   full_rootst_eoimpr_force_finish_computation(F,conf);
 }
 
@@ -110,6 +119,9 @@ void full_rootst_eoimpr_quarks_force_no_stout_remapping(quad_su3 **F,quad_su3 **
   for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
   for(int iflav=0;iflav<physics->nflavs;iflav++)
     summ_the_rootst_eoimpr_quark_force(F,conf,pf[iflav],physics->backfield[iflav],&(appr[iflav]),residue);
+  
+  //add the stag phases to the force term, coming from the disappered link in dS/d(U)
+  addrem_stagphases_to_eo_conf(F);
 }
 
 //take into account the stout remapping procedure
@@ -126,7 +138,7 @@ void full_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **conf,color **pf,the
       stout_smear_conf_stack_allocate(sme_conf,conf,nlev);
       
       //smear iteratively retaining all the stack
-      addrem_stagphases_to_eo_conf(sme_conf[0]); //remove the staples
+      addrem_stagphases_to_eo_conf(sme_conf[0]); //remove the staggered phases
       stout_smear(sme_conf,conf,physics->stout_rho,nlev);
       
       //compute the force in terms of the most smeared conf

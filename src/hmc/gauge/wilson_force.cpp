@@ -13,19 +13,12 @@ void Wilson_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
   double r=beta/3;
   verbosity_lv1_master_printf("Computing Wilson force\n");
   
-  double p=0;
-  
   nissa_loc_vol_loop(ivol)
     {
       quad_su3 staples;
       compute_point_staples_eo_conf(staples,eo_conf,ivol);
-      for(int mu=0;mu<4;mu++){ su3_hermitian_prod_double(F[loclx_parity[ivol]][loceo_of_loclx[ivol]][mu],staples[mu],r);
-	p+=real_part_of_trace_su3_prod_su3_dag(staples[mu],eo_conf[loclx_parity[ivol]][loceo_of_loclx[ivol]][mu]);}
+      for(int mu=0;mu<4;mu++) su3_hermitian_prod_double(F[loclx_parity[ivol]][loceo_of_loclx[ivol]][mu],staples[mu],r);
     }
-  printf("plaq during force: %16.16lg\n",p/loc_vol/72);
   
   for(int par=0;par<2;par++) set_borders_invalid(F[par]);
-  
-  printf("F[0]:\n");
-  su3_print(F[0][0][0]);
 }

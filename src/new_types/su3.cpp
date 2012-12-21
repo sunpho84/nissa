@@ -2,9 +2,10 @@
 #include <string.h>
 
 #include "new_types_definitions.h"
+#include "../base/debug.h"
 #include "../base/global_variables.h"
-#include "../base/routines.h"
 #include "../base/random.h"
+#include "../base/routines.h"
 #include "float128.h"
 #include "complex.h"
 #include "su3.h"
@@ -1266,8 +1267,6 @@ void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
 //the stored f are relative to c0
 void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredients &out,su3 Q)
 {
-  static int debug=1;
-  
   //copy Q
   su3_copy(out.Q,Q);
 
@@ -1291,8 +1290,6 @@ void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredie
       out.f[1][IM]=1-c1*(1-c1*(1-c1/42)/20)/6-c0*c0/5040;
       out.f[2][RE]=0.5*(-1+c1*(1-c1*(1-c1/56)/30)/12+c0*c0/20160);
       out.f[2][IM]=0.5*(c0*(1-c1*(1-c1/48)/21)/60);
-      
-      if(debug) printf("c0: %lg, c1: %lg, c0_max: %lg\n",c0,c1,c0_max);
     }
   else
     {
@@ -1368,11 +1365,7 @@ void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredie
 	  out.f[1][RE]*=-1;
 	  out.f[2][IM]*=-1;
 	}
-  
-      if(debug) printf("|c0|: %lg, sign: %d, c1: %lg, c0_max: %lg, theta: %lg, u: %lg, w: %lg, xi0w: %lg\n",c0,out.sign,c1,c0_max,theta,u,w,xi0w);
     }
-  
-  debug=0;
 }
 
 //build the exponential from the ingredients
