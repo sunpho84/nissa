@@ -158,22 +158,18 @@ void stout_smear_conf_stack_free(quad_su3 ***&out,int niters)
 //smear iteratively retainig all the stack
 void stout_smear(quad_su3 ***out,quad_su3 **in,stout_pars rho,int niters)
 {
-  master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
+  verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
   for(int i=1;i<=niters;i++)
     {
       stout_smear(out[i],out[i-1],rho);
-      master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
+      verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
     }
 }
 
 //compute the lambda entering the force remapping
 void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingredients &ing)
 {
-  static int debug=1;
-  
   complex b[2][3];
-  
-  if(debug) printf("c0: %lg, c1: %lg\n",ing.c0,ing.c1);
   
   if(ing.c1<4e-3)
     {
@@ -201,17 +197,11 @@ void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingr
       double su=ing.su,s2u=ing.s2u;
       double cw=ing.cw;
       
-      //debug
-      if(debug) printf("u: %lg, w: %lg, xi0w: %lg, cu: %lg, c2u: %lg, su: %lg, s2u: %lg, cw: %lg\n",u,w,xi0w,cu,c2u,su,s2u,cw);
-      
       //compute additional variables
       double u2=u*u,w2=w*w;
       double xi1w; //eq. (67)
       if(fabs(w)<0.05) xi1w=-(1-w2*(1-w2*(1-w2/54)/28)/10)/3;
       else xi1w=cw/w2-sin(w)/(w2*w);
-      
-      //debug
-      if(debug) printf("u2: %lg, w2: %lg, xi1w: %lg\n",u2,w2,xi1w);
       
       //eq. (60-65)
       complex r[2][3]=
@@ -228,45 +218,6 @@ void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingr
 	  {cu*xi0w-3*su*u*xi1w,
 	   -(su*xi0w)-3*cu*u*xi1w}}};
       
-      //debug
-      if(debug)
-	{
-	  std::complex<double> e2iu(cos(2*u),sin(2*u));
-	  std::complex<double> emiu(cos(u),sin(-u));
-	  std::complex<double> i(0,1);
-	  
-	  //00
-	  {
-	    std::complex<double> d=2.0*(u+i*(u2-w2))*e2iu+2.0*emiu*(4*u*(2.0-i*u)*cos(w)+i*(9*u2+w2-i*u*(3.0*u2+w2))*xi0w);
-	    printf("recomp r[0][0]: (%lg,%lg)\n",d.real()-r[0][0][RE],d.imag()-r[0][0][IM]);
-	  }
-	  //01
-	  {
-	    std::complex<double> d=2.0*(1.0+2.0*i*u)*e2iu+emiu*(-2.0*(1.0-i*u)*cos(w)+i*(6.0*u+i*(w2-3*u2))*xi0w);
-	    printf("recomp r[0][1]: (%lg,%lg)\n",d.real()-r[0][1][RE],d.imag()-r[0][1][IM]);
-	  }
-	  //02
-	  {
-	    std::complex<double> d=2.0*i*e2iu+i*emiu*(cos(w)-3.0*(1.0-i*u)*xi0w);
-	    printf("recomp r[0][2]: (%lg,%lg)\n",d.real()-r[0][2][RE],d.imag()-r[0][2][IM]);
-	  }
-	  //10
-	  {
-	    std::complex<double> d=-2.0*e2iu+2.0*i*u*emiu*(cos(w)+(1.0+4.0*i*u)*xi0w+3.0*u2*xi1w);
-	    printf("recomp r[1][0]: (%lg,%lg)\n",d.real()-r[1][0][RE],d.imag()-r[1][0][IM]);
-	  }
-	  //11
-	  {
-	    std::complex<double> d=-i*emiu*(cos(w)+(1.0+2.0*i*u)*xi0w-3*u2*xi1w);
-	    printf("recomp r[1][1]: (%lg,%lg)\n",d.real()-r[1][1][RE],d.imag()-r[1][1][IM]);
-	  }
-	  //12
-	  {
-	    std::complex<double> d=emiu*(xi0w-3.0*i*u*xi1w);
-	    printf("recomp r[1][2]: (%lg,%lg)\n",d.real()-r[1][2][RE],d.imag()-r[1][2][IM]);
-	  }
-	}
-      
       //change sign to the f if needed
       if(ing.sign!=0)
 	{
@@ -277,15 +228,13 @@ void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingr
       
       //compute b
       double t1=9*u2-w2,t2=1/(2*t1*t1);
-      //debug
-      if(debug) printf("t1: %lg, t2: %lg\n",t1,t2);
       for(int j=0;j<3;j++)
 	{
 	  //eq. (57-58)
 	  for(int ri=0;ri<2;ri++)
 	    {
 	      b[0][j][ri]=(2*u*r[0][j][ri]+(3*u2-w2)*r[1][j][ri]-2*(15*u2+w2)*ing.f[j][ri])*t2;
-	      b[1][j][ri]=(r[1][j][ri]-3*u*r[1][j][ri]-24*u*ing.f[j][ri])*t2;
+	      b[1][j][ri]=(r[0][j][ri]-3*u*r[1][j][ri]-24*u*ing.f[j][ri])*t2;
 	    }
 	  
 	  //take into account the sign of c0, eq. (70)
@@ -307,12 +256,6 @@ void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingr
 	}
     }
 
-  //debug
-  if(debug)
-    for(int i=0;i<2;i++)
-      for(int j=0;j<3;j++)
-	printf("b[%d][%d]: (%lg,%lg)\n",i,j,b[i][j][RE],b[i][j][IM]);
-  
   //compute B eq. (69)
   su3 B[2];
   for(int i=0;i<2;i++)
@@ -322,26 +265,11 @@ void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingr
       su3_summ_the_prod_complex(B[i],ing.Q2,b[i][2]);
     }
   
-  //debug
-  if(debug)
-    {
-      printf("B[0]:\n");
-      su3_print(B[0]);
-      printf("B[1]:\n");
-      su3_print(B[1]);
-    }
-  
   //compute Gamma (eq. 74)
   su3 Gamma;
   //compute U*Sigma', to be used many times
   su3 aux;
   unsafe_su3_prod_su3(aux,U,F);
-  //debug
-  if(debug)
-    {
-      printf("aux:\n");
-      su3_print(aux);
-    }
   //compute the trace of U*Sigma'*B[j]
   complex we[2];
   for(int j=0;j<2;j++) trace_su3_prod_su3(we[j],aux,B[j]);
@@ -359,8 +287,6 @@ void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingr
   
   //compute Lambda (eq. 73)
   unsafe_su3_traceless_hermitian_part(Lambda,Gamma);
-  
-  debug=0;
 }
 
 //remap the force to one smearing level less
@@ -374,10 +300,6 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
     nissa_loc_volh_loop(A)
       for(int mu=0;mu<4;mu++)
         {
-	  //su3 temp;
-	  //su3_copy(temp,F[p][A][mu]);
-	  //unsafe_su3_traceless_anti_hermitian_part(F[p][A][mu],temp);
-
           //compute the ingredients needed to smear
 	  stout_link_staples sto_ste;
           stout_smear_compute_staples(sto_ste,conf,p,A,mu,rho);
@@ -457,9 +379,6 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 	      unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][f2][mu]);
 	      unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
 	      su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho[mu][nu]);
-	      
-	      //su3_copy(temp3,F[p][A][mu]);
-	      //unsafe_su3_traceless_anti_hermitian_part(F[p][A][mu],temp3);
 	    }
   
   for(int eo=0;eo<2;eo++) nissa_free(Lambda[eo]);
@@ -467,14 +386,4 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 
 //remap iteratively the force, adding the missing pieces of the chain rule derivation
 void stouted_force_remap(quad_su3 **F,quad_su3 ***sme_conf,stout_pars rho,int niters)
-{
-  printf("force before remapping\n");
-  su3_print(F[0][0][0]);
-  for(int i=niters-1;i>=0;i--)
-    {
-      master_printf("Remapping using conf %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(sme_conf[i]));
-      stouted_force_remap_step(F,sme_conf[i],rho);
-    }
-  printf("force after remapping\n");
-  su3_print(F[0][0][0]);
-}
+{for(int i=niters-1;i>=0;i--) stouted_force_remap_step(F,sme_conf[i],rho);}

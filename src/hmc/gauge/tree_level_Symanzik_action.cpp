@@ -74,9 +74,9 @@ double tree_level_Symanzik_action(quad_su3 **eo_conf,double beta)
   compute_Symanzik_action->compute_eo(paths,eo_conf);
   
   //compute the total action
-  printf("squares: %lg\n",su3_real_trace(paths[0]));
-  printf("rectangles: %lg\n",su3_real_trace(paths[1]));
-  double action=beta/3*(b0*(18*loc_vol-su3_real_trace(paths[0]))+b1*(36*loc_vol-su3_real_trace(paths[1])));
+  double action=beta/3*(
+			b0*(18*glb_vol-glb_reduce_double(su3_real_trace(paths[0])))+
+			b1*(36*glb_vol-glb_reduce_double(su3_real_trace(paths[1]))));
   
   return action;
 }
