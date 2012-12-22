@@ -81,7 +81,7 @@ void summ_the_rootst_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,color *p
 //Finish the computation multiplying for the conf and taking TA
 void full_rootst_eoimpr_force_finish_computation(quad_su3 **F,quad_su3 **conf)
 {
-  //remove the staggered phase from the conf, since it is already implemented in the force
+  //remove the staggered phase from the conf, since they are already implemented in the force
   addrem_stagphases_to_eo_conf(conf);
 
   for(int eo=0;eo<2;eo++)

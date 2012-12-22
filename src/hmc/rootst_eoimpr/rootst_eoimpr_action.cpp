@@ -23,7 +23,7 @@ double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,colo
     {
       //compute chi with background field
       add_backfield_to_conf(eo_conf,u1b[ifl]);
-      summ_src_and_all_inv_stD2ee_m2_cgm(chi_e,eo_conf,appr,1000000,residue,pf[ifl]);
+      summ_src_and_all_inv_stD2ee_m2_cgm(chi_e,eo_conf,appr+ifl,1000000,residue,pf[ifl]);
       rem_backfield_from_conf(eo_conf,u1b[ifl]);
       
       //compute scalar product
