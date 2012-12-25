@@ -1094,7 +1094,7 @@ int check_remaining_time()
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   tot_time-=take_time();
   
   //initialize the program

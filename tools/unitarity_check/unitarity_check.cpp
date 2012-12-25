@@ -38,7 +38,7 @@ int main(int narg,char **arg)
   char filename[1024];
 
   //basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
 
   if(narg<2) crash("Use: %s input_file",arg[0]);
 

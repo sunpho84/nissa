@@ -652,7 +652,7 @@ void close_Bk()
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
 
   //Inner initialization
   initialize_Bk(narg,arg);
