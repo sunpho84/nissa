@@ -227,7 +227,7 @@ void close_semileptonic()
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //initialize the program
   if(narg<2) crash("Use: %s input_file",arg[0]);

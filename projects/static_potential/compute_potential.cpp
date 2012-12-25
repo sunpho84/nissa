@@ -122,7 +122,7 @@ void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hy
 
 int main(int narg,char **arg)
 {
-  init_nissa();
+  init_nissa(narg,arg);
 
   //open input
   if(narg<2) crash("Use: %s input_file",arg[0]);

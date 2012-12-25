@@ -452,7 +452,7 @@ void store_conf_if_necessary()
 int main(int narg,char **arg)
 {
   //basic initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //check argument
   if(narg<2) crash("Use: %s input_file",arg[0]);

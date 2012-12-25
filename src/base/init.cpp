@@ -17,10 +17,11 @@
 #include "../geometry/geometry_lx.h"
 #include "../new_types/new_types_definitions.h"
 
-void init_nissa()
+void init_nissa(int narg,char **arg)
 {
   //init base things
-  MPI_Init(NULL,NULL);
+  int provided;
+  MPI_Init_thread(&narg,&arg,MPI_THREAD_SERIALIZED,&provided);
   tot_nissa_time=-take_time();
   tot_nissa_comm_time=0;
   verb_call=0;
