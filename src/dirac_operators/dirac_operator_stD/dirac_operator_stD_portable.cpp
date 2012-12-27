@@ -1,10 +1,18 @@
+#include "../../base/routines.h"
+#include <omp.h>
+
+double app_time=0;
+int napp=0;
+
 void apply_st2Doe(color *out,quad_su3 **conf,color *in)
 {
   communicate_eo_quad_su3_borders(conf);
   communicate_ev_color_borders(in);
   
+  //#pragma omp parallel for
   nissa_loc_volh_loop(io)
     {
+      //printf("nthreads: %d\n",omp_get_num_threads());
       //neighbours search
       int evup0=loceo_neighup[ODD][io][0];
       int evdw0=loceo_neighdw[ODD][io][0];
@@ -31,6 +39,7 @@ void apply_st2Doe(color *out,quad_su3 **conf,color *in)
 void apply_stDoe(color *out,quad_su3 **conf,color *in)
 {
   apply_st2Doe(out,conf,in);
+
   nissa_loc_volh_loop(io)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
@@ -43,6 +52,7 @@ void apply_stDeo_half(color *out,quad_su3 **conf,color *in)
   communicate_eo_quad_su3_borders(conf);
   communicate_od_color_borders(in);
   
+  //#pragma omp parallel for
   nissa_loc_volh_loop(ie)
     {
       int odup0=loceo_neighup[EVN][ie][0];
@@ -68,6 +78,8 @@ void apply_stDeo_half(color *out,quad_su3 **conf,color *in)
 
 void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
 {
+  app_time-=take_time();
+  
   communicate_eo_quad_su3_borders(conf);
   communicate_ev_color_borders(in);
   
@@ -89,5 +101,7 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
 	out[ivol][ic][ri]+=mass2*in[ivol][ic][ri];
   
   set_borders_invalid(out);
-}
 
+  app_time+=take_time();
+  napp++;
+}

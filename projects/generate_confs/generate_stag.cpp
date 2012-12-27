@@ -11,6 +11,9 @@
 
 #include "nissa.h"
 
+extern double app_time;
+extern int napp;
+
 //observables
 FILE *chiral_obs_file,*gauge_obs_file,*top_obs_file;
 int chiral_meas_flag,top_meas_flag,top_cool_overrelax_flag;
@@ -493,6 +496,8 @@ int main(int narg,char **arg)
   while(prod_ntraj<max_ntraj);
   
   ///////////////////////////////////////
+  
+  master_printf("time to apply: %lg\n",app_time/napp);
   
   close_simulation();
   
