@@ -1,9 +1,10 @@
-src/operations/smearing/HYP.o: src/operations/smearing/HYP.cpp \
+src/operations/smearing/HYP.o src/operations/smearing/HYP.o:  \
+ src/operations/smearing/HYP.cpp \
   src/operations/smearing/../../new_types/new_types_definitions.h \
-  /opt/local/include/openmpi/mpi.h \
-  /usr/bin/../lib/clang/4.1/include/stddef.h \
-  /opt/local/include/openmpi/mpi_portable_platform.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/mpicxx.h \
+  /usr/local/include/mpi.h \
+  /usr/llvm-gcc-4.2/bin/../lib/gcc/i686-apple-darwin11/4.2.1/include/stddef.h \
+  /usr/local/include/mpi_portable_platform.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/mpicxx.h \
   /usr/include/c++/4.2.1/map /usr/include/c++/4.2.1/bits/stl_tree.h \
   /usr/include/c++/4.2.1/bits/stl_algobase.h \
   /usr/include/c++/4.2.1/bits/c++config.h \
@@ -19,11 +20,14 @@ src/operations/smearing/HYP.o: src/operations/smearing/HYP.cpp \
   /usr/include/c++/4.2.1/cstring /usr/include/c++/4.2.1/cstddef \
   /usr/include/string.h /usr/include/strings.h \
   /usr/include/c++/4.2.1/climits \
-  /usr/bin/../lib/clang/4.1/include/limits.h /usr/include/limits.h \
-  /usr/include/machine/limits.h /usr/include/i386/limits.h \
-  /usr/include/i386/_limits.h /usr/include/sys/syslimits.h \
-  /usr/include/c++/4.2.1/cstdlib /usr/include/stdlib.h \
-  /usr/include/sys/wait.h /usr/include/sys/signal.h \
+  /usr/llvm-gcc-4.2/bin/../lib/gcc/i686-apple-darwin11/4.2.1/include/limits.h \
+  /usr/llvm-gcc-4.2/bin/../lib/gcc/i686-apple-darwin11/4.2.1/include/syslimits.h \
+  /Applications/Xcode.app/Contents/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/include/limits.h \
+  /Applications/Xcode.app/Contents/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/include/syslimits.h \
+  /usr/include/limits.h /usr/include/machine/limits.h \
+  /usr/include/i386/limits.h /usr/include/i386/_limits.h \
+  /usr/include/sys/syslimits.h /usr/include/c++/4.2.1/cstdlib \
+  /usr/include/stdlib.h /usr/include/sys/wait.h /usr/include/sys/signal.h \
   /usr/include/machine/signal.h /usr/include/i386/signal.h \
   /usr/include/i386/_structs.h /usr/include/machine/_structs.h \
   /usr/include/mach/i386/_structs.h /usr/include/sys/resource.h \
@@ -31,11 +35,12 @@ src/operations/smearing/HYP.o: src/operations/smearing/HYP.cpp \
   /usr/include/sys/_endian.h /usr/include/libkern/_OSByteOrder.h \
   /usr/include/libkern/i386/_OSByteOrder.h /usr/include/alloca.h \
   /usr/include/machine/types.h /usr/include/i386/types.h \
-  /usr/include/c++/4.2.1/iosfwd /usr/include/c++/4.2.1/bits/c++locale.h \
-  /usr/include/c++/4.2.1/clocale /usr/include/locale.h \
-  /usr/include/_locale.h /usr/include/c++/4.2.1/cstdio \
-  /usr/include/stdio.h /usr/include/c++/4.2.1/cstdarg \
-  /usr/bin/../lib/clang/4.1/include/stdarg.h \
+  /usr/include/i386/_types.h /usr/include/c++/4.2.1/iosfwd \
+  /usr/include/c++/4.2.1/bits/c++locale.h /usr/include/c++/4.2.1/clocale \
+  /usr/include/locale.h /usr/include/_locale.h \
+  /usr/include/c++/4.2.1/cstdio /usr/include/stdio.h \
+  /usr/include/c++/4.2.1/cstdarg \
+  /usr/llvm-gcc-4.2/bin/../lib/gcc/i686-apple-darwin11/4.2.1/include/stdarg.h \
   /usr/include/c++/4.2.1/bits/c++io.h /usr/include/c++/4.2.1/bits/gthr.h \
   /usr/include/c++/4.2.1/bits/gthr-default.h /usr/include/pthread.h \
   /usr/include/pthread_impl.h /usr/include/sched.h /usr/include/time.h \
@@ -44,13 +49,12 @@ src/operations/smearing/HYP.o: src/operations/smearing/HYP.cpp \
   /usr/include/c++/4.2.1/bits/stringfwd.h \
   /usr/include/c++/4.2.1/bits/postypes.h /usr/include/c++/4.2.1/cwchar \
   /usr/include/c++/4.2.1/ctime /usr/include/wchar.h \
-  /usr/include/_wctype.h /usr/bin/../lib/clang/4.1/include/stdint.h \
-  /usr/include/stdint.h /usr/include/c++/4.2.1/bits/functexcept.h \
+  /usr/include/_wctype.h /usr/include/stdint.h \
+  /usr/include/c++/4.2.1/bits/functexcept.h \
   /usr/include/c++/4.2.1/exception_defines.h \
   /usr/include/c++/4.2.1/bits/stl_pair.h \
   /usr/include/c++/4.2.1/bits/cpp_type_traits.h \
-  /usr/include/c++/4.2.1/ext/type_traits.h \
-  /usr/include/c++/4.2.1/utility \
+  /usr/include/c++/4.2.1/ext/type_traits.h /usr/include/c++/4.2.1/utility \
   /usr/include/c++/4.2.1/bits/stl_relops.h \
   /usr/include/c++/4.2.1/bits/stl_iterator_base_types.h \
   /usr/include/c++/4.2.1/bits/stl_iterator_base_funcs.h \
@@ -78,8 +82,7 @@ src/operations/smearing/HYP.o: src/operations/smearing/HYP.cpp \
   /usr/include/c++/4.2.1/limits \
   /usr/include/c++/4.2.1/bits/ostream_insert.h \
   /usr/include/c++/4.2.1/bits/basic_string.h \
-  /usr/include/c++/4.2.1/algorithm \
-  /usr/include/c++/4.2.1/bits/stl_algo.h \
+  /usr/include/c++/4.2.1/algorithm /usr/include/c++/4.2.1/bits/stl_algo.h \
   /usr/include/c++/4.2.1/bits/stl_heap.h \
   /usr/include/c++/4.2.1/bits/stl_tempbuf.h \
   /usr/include/c++/4.2.1/bits/basic_string.tcc \
@@ -99,53 +102,54 @@ src/operations/smearing/HYP.o: src/operations/smearing/HYP.cpp \
   /usr/include/c++/4.2.1/bits/locale_facets.tcc \
   /usr/include/c++/4.2.1/typeinfo /usr/include/c++/4.2.1/istream \
   /usr/include/c++/4.2.1/bits/istream.tcc \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/constants.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/functions.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/datatype.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/exception.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/op.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/status.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/request.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/group.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/comm.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/win.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/file.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/errhandler.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/intracomm.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/topology.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/intercomm.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/info.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/datatype_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/functions_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/request_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/comm_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/intracomm_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/topology_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/intercomm_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/group_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/op_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/errhandler_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/status_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/info_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/win_inln.h \
-  /opt/local/include/openmpi/openmpi/ompi/mpi/cxx/file_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/constants.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/functions.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/datatype.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/exception.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/op.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/status.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/request.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/group.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/comm.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/win.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/file.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/errhandler.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/intracomm.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/topology.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/intercomm.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/info.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/datatype_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/functions_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/request_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/comm_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/intracomm_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/topology_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/intercomm_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/group_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/op_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/errhandler_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/status_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/info_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/win_inln.h \
+  /usr/local/include/openmpi/ompi/mpi/cxx/file_inln.h \
   src/operations/smearing/../../new_types/../base/macros.h \
   src/operations/smearing/../../new_types/su3.h \
   src/operations/smearing/../../base/global_variables.h \
-  src/operations/smearing/../../new_types/../base/global_variables.cpp \
+  src/operations/smearing/../../base/global_variables.cpp \
+  src/operations/smearing/../../base/../new_types/new_types_definitions.h \
   src/operations/smearing/../../base/communicate.h \
   src/operations/smearing/../../base/vectors.h \
   src/operations/smearing/../../base/routines.h
 
 src/operations/smearing/../../new_types/new_types_definitions.h:
 
-/opt/local/include/openmpi/mpi.h:
+/usr/local/include/mpi.h:
 
-/usr/bin/../lib/clang/4.1/include/stddef.h:
+/usr/llvm-gcc-4.2/bin/../lib/gcc/i686-apple-darwin11/4.2.1/include/stddef.h:
 
-/opt/local/include/openmpi/mpi_portable_platform.h:
+/usr/local/include/mpi_portable_platform.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/mpicxx.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/mpicxx.h:
 
 /usr/include/c++/4.2.1/map:
 
@@ -199,7 +203,13 @@ src/operations/smearing/../../new_types/new_types_definitions.h:
 
 /usr/include/c++/4.2.1/climits:
 
-/usr/bin/../lib/clang/4.1/include/limits.h:
+/usr/llvm-gcc-4.2/bin/../lib/gcc/i686-apple-darwin11/4.2.1/include/limits.h:
+
+/usr/llvm-gcc-4.2/bin/../lib/gcc/i686-apple-darwin11/4.2.1/include/syslimits.h:
+
+/Applications/Xcode.app/Contents/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/include/limits.h:
+
+/Applications/Xcode.app/Contents/Developer/usr/llvm-gcc-4.2/lib/gcc/i686-apple-darwin11/4.2.1/include/syslimits.h:
 
 /usr/include/limits.h:
 
@@ -247,6 +257,8 @@ src/operations/smearing/../../new_types/new_types_definitions.h:
 
 /usr/include/i386/types.h:
 
+/usr/include/i386/_types.h:
+
 /usr/include/c++/4.2.1/iosfwd:
 
 /usr/include/c++/4.2.1/bits/c++locale.h:
@@ -263,7 +275,7 @@ src/operations/smearing/../../new_types/new_types_definitions.h:
 
 /usr/include/c++/4.2.1/cstdarg:
 
-/usr/bin/../lib/clang/4.1/include/stdarg.h:
+/usr/llvm-gcc-4.2/bin/../lib/gcc/i686-apple-darwin11/4.2.1/include/stdarg.h:
 
 /usr/include/c++/4.2.1/bits/c++io.h:
 
@@ -298,8 +310,6 @@ src/operations/smearing/../../new_types/new_types_definitions.h:
 /usr/include/wchar.h:
 
 /usr/include/_wctype.h:
-
-/usr/bin/../lib/clang/4.1/include/stdint.h:
 
 /usr/include/stdint.h:
 
@@ -425,65 +435,65 @@ src/operations/smearing/../../new_types/new_types_definitions.h:
 
 /usr/include/c++/4.2.1/bits/istream.tcc:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/constants.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/constants.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/functions.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/functions.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/datatype.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/datatype.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/exception.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/exception.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/op.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/op.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/status.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/status.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/request.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/request.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/group.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/group.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/comm.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/comm.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/win.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/win.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/file.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/file.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/errhandler.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/errhandler.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/intracomm.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/intracomm.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/topology.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/topology.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/intercomm.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/intercomm.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/info.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/info.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/datatype_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/datatype_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/functions_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/functions_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/request_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/request_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/comm_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/comm_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/intracomm_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/intracomm_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/topology_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/topology_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/intercomm_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/intercomm_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/group_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/group_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/op_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/op_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/errhandler_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/errhandler_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/status_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/status_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/info_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/info_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/win_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/win_inln.h:
 
-/opt/local/include/openmpi/openmpi/ompi/mpi/cxx/file_inln.h:
+/usr/local/include/openmpi/ompi/mpi/cxx/file_inln.h:
 
 src/operations/smearing/../../new_types/../base/macros.h:
 
@@ -491,7 +501,9 @@ src/operations/smearing/../../new_types/su3.h:
 
 src/operations/smearing/../../base/global_variables.h:
 
-src/operations/smearing/../../new_types/../base/global_variables.cpp:
+src/operations/smearing/../../base/global_variables.cpp:
+
+src/operations/smearing/../../base/../new_types/new_types_definitions.h:
 
 src/operations/smearing/../../base/communicate.h:
 
