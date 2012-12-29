@@ -14,6 +14,15 @@
 extern double app_time;
 extern int napp;
 
+extern int nsto;
+extern double sto_time;
+
+extern int nsto_remap;
+extern double sto_remap_time;
+
+extern int nglu_comp=0;
+extern double glu_comp_time=0;
+
 //observables
 FILE *chiral_obs_file,*gauge_obs_file,*top_obs_file;
 int chiral_meas_flag,top_meas_flag,top_cool_overrelax_flag;
@@ -497,7 +506,10 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  master_printf("time to apply: %lg\n",app_time/napp);
+  master_printf("time to apply %d times: %lg, %lg per iter\n",napp,app_time,app_time/napp);
+  master_printf("time to stout sme %d times: %lg, %lg per iter\n",nsto,sto_time,sto_time/nsto);
+  master_printf("time to stout remap %d times: %lg, %lg per iter\n",nsto_remap,sto_remap_time,sto_remap_time/nsto_remap);
+  master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",nglu_comp,glu_comp_time,glu_comp_time/nglu_comp);
   
   close_simulation();
   

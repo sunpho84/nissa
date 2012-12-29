@@ -362,13 +362,17 @@ void parse_conf(int iconf,char *path,int &start)
     for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
       {
 	//search the corr
+	int nonblank;
 	do
 	  {
 	    char *succ=fgets(line,1024,file);
 	    nread_line++;
 	    if(succ!=line) crash("file ended before finishing reading");
+
+	    nonblank=0;
+	    for(int i=0;i<strlen(line)-1;i++) nonblank+=(line[i]!=' ');
 	  }
-	while(line[1]=='#' || strlen(line)<=1);
+	while(line[1]=='#' || strlen(line)<= 1||!nonblank);
 	
 	//advance the corr read
 	nread_corr++;
@@ -378,13 +382,21 @@ void parse_conf(int iconf,char *path,int &start)
 	  {
 	    //if not t==0, read line
 	    if(t>0)
-	      do if(line!=fgets(line,1024,file)) crash("error reading line, obtained: %s",line);
-	      while(strlen(line)<=1);
+	      {
+		int nonblank;
+		do
+		  {
+		    if(line!=fgets(line,1024,file)) crash("error reading line, obtained: %s",line);
+		    nonblank=0;
+		    for(int i=0;i<strlen(line)-1;i++) nonblank+=(line[i]!=' ');
+		  }
+		while(strlen(line)<=1||!nonblank);
+	      }
 	    
 	    //scanning line
 	    double t1,t2;
 	    int n=sscanf(line,"%lg %lg",&t1,&t2);
-	    if(n!=2) crash("scanning line %s obtained only %d numbers",line,n);
+	    if(n!=2) crash("scanning line '%s' obtained only %d numbers",line,n);
 	    nread_line++;
 	    
 	    //find output place

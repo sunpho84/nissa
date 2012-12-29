@@ -1,9 +1,7 @@
 #include <mpi.h>
 #include <signal.h>
 #include <string.h>
-#ifdef OMP
- #include <omp.h>
-#endif
+#include <omp.h>
 
 #include "communicate.h"
 #include "debug.h"
@@ -37,13 +35,8 @@ void init_nissa(int narg,char **arg)
   //print the version
   master_printf("Initializing nissa, version: %s.\n",SVN_VERS);
   
-#ifdef OMP
-  if(nissa_nthreads>0)
-    {
-      master_printf("MP threads: %d\n",nissa_nthreads);
-      omp_set_num_threads(nissa_nthreads);
-    }
-#endif
+#pragma omp parallel
+  master_printf("MP threads: %d\n",omp_get_num_threads());
   
   //128 bit float
   MPI_Type_contiguous(2,MPI_DOUBLE,&MPI_FLOAT_128);
