@@ -12,10 +12,6 @@
 #include "base/sse_instructions.h"
 #include "base/vectors.h"
 
-#ifdef OMP
- #include <omp.h>
-#endif
-
 #ifdef BGP
  #ifndef BGP_EMU
   #include <builtins.h>

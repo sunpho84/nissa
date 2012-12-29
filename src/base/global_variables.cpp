@@ -113,9 +113,6 @@ EXTERN coords rank_neigh[2],rank_neighdw,rank_neighup;
 EXTERN coords plan_rank,line_rank,line_coord_rank;
 EXTERN int nissa_grid_inited;
 
-//threads
-EXTERN int nissa_nthreads;
-
 //endianess
 EXTERN int little_endian;
 
