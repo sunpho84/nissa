@@ -16,6 +16,9 @@
 #include "../gauge/tree_level_Symanzik_force.h"
 #include "../backfield.h"
 
+int nglu_comp=0;
+double glu_comp_time=0;
+
 //Compute the fermionic force the rooted staggered e/o improved theory.
 //Passed conf must NOT contain the backfield.
 //Of the result still need to be taken the TA
@@ -100,6 +103,9 @@ void full_rootst_eoimpr_force_finish_computation(quad_su3 **F,quad_su3 **conf)
 //compute only the gauge part
 void full_rootst_eoimpr_gluons_force(quad_su3 **F,quad_su3 **conf,theory_pars *physics)
 {
+  nglu_comp++;
+  glu_comp_time-=take_time();
+  
   switch(physics->gac_type)
     {
     case Wilson_action: Wilson_force(F,conf,physics->beta);break;
@@ -111,6 +117,8 @@ void full_rootst_eoimpr_gluons_force(quad_su3 **F,quad_su3 **conf,theory_pars *p
   addrem_stagphases_to_eo_conf(F);
 
   full_rootst_eoimpr_force_finish_computation(F,conf);
+
+  glu_comp_time+=take_time();
 }
 
 //compute only the quark part, without stouting reampping

@@ -9,9 +9,14 @@
 
 #include "../su3_paths/plaquette.h"
 
-
 #include <math.h>
 #include <complex>
+
+int nsto=0;
+double sto_time=0;
+
+int nsto_remap=0;
+double sto_remap_time=0;
 
 struct stout_link_staples
 {
@@ -65,6 +70,8 @@ void stout_smear_compute_staples(stout_link_staples &out,quad_su3 **conf,int p,i
 //smear the configuration according to Peardon paper
 void stout_smear(quad_su3 **out,quad_su3 **ext_in,stout_pars rho)
 {
+  sto_time-=take_time();
+  
   //allocate a temporary conf if going to smear iteratively or out==ext_in
   quad_su3 *in[2];
   for(int eo=0;eo<2;eo++)
@@ -98,6 +105,10 @@ void stout_smear(quad_su3 **out,quad_su3 **ext_in,stout_pars rho)
       set_borders_invalid(out[eo]);
       if(out==ext_in) nissa_free(in[eo]);
     }
+
+  
+  nsto++;
+  sto_time+=take_time();
 }
 
 //smear n times, using only one additional vectors
@@ -386,4 +397,10 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 
 //remap iteratively the force, adding the missing pieces of the chain rule derivation
 void stouted_force_remap(quad_su3 **F,quad_su3 ***sme_conf,stout_pars rho,int niters)
-{for(int i=niters-1;i>=0;i--) stouted_force_remap_step(F,sme_conf[i],rho);}
+{
+  sto_remap_time-=take_time();
+  for(int i=niters-1;i>=0;i--) stouted_force_remap_step(F,sme_conf[i],rho);
+  sto_remap_time+=take_time();
+  
+  nsto_remap++;
+}

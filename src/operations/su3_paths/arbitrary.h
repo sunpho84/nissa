@@ -1,6 +1,8 @@
 #ifndef _ARBITRARY_H
 #define _ARBITRARY_H
 
+#include <stdlib.h>
+
 #include "../../base/debug.h"
 #include "../../geometry/geometry_lx.h"
 
