@@ -36,6 +36,7 @@ void init_nissa(int narg,char **arg)
   master_printf("Initializing nissa, version: %s.\n",SVN_VERS);
   
 #pragma omp parallel
+#pragma omp single
   master_printf("MP threads: %d\n",omp_get_num_threads());
   
   //128 bit float
@@ -102,7 +103,6 @@ void init_nissa(int narg,char **arg)
   nissa_warn_if_not_disallocated=nissa_default_warn_if_not_disallocated;
   nissa_warn_if_not_communicated=nissa_default_warn_if_not_communicated;
   nissa_use_async_communications=nissa_default_use_async_communications;
-  nissa_nthreads=nissa_default_nthreads;
   
   //read the configuration file, if present
   read_nissa_config_file();

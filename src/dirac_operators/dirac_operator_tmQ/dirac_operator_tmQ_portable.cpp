@@ -1,9 +1,5 @@
 #pragma once
 
-#ifdef OMP
- #include <omp.h>
-#endif
-
 //Apply the Q=D*g5 operator to a spincolor
 
 void apply_tmQ(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)

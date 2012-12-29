@@ -20,8 +20,8 @@ extern double sto_time;
 extern int nsto_remap;
 extern double sto_remap_time;
 
-extern int nglu_comp=0;
-extern double glu_comp_time=0;
+extern int nglu_comp;
+extern double glu_comp_time;
 
 //observables
 FILE *chiral_obs_file,*gauge_obs_file,*top_obs_file;

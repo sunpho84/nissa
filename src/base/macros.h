@@ -42,7 +42,6 @@
 #define nissa_default_warn_if_not_disallocated 1
 #define nissa_default_warn_if_not_communicated 0
 #define nissa_default_use_async_communications 1
-#define nissa_default_nthreads 1
 
 //Pi
 #ifndef M_PI
@@ -72,12 +71,8 @@
 #define nissa_loc_volh_loop(a) for(int a=0;a<loc_volh;a++)
 #define nissa_loc_vol_loop(a) for(int a=0;a<loc_vol;a++)
 
-#ifdef OMP
- #define nissa_loc_vol_parallel_loop(a) \
-  _Pragma("omp parallel for") \
-  nissa_loc_vol_loop(a)
-#else
- #define nissa_loc_vol_parallel_loop(a) nissa_loc_vol_loop(a)
-#endif
+#define nissa_loc_vol_parallel_loop(a)		\
+  _Pragma("omp parallel for")			\
+    nissa_loc_vol_loop(a)
 
 #endif

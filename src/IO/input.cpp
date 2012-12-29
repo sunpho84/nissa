@@ -300,25 +300,23 @@ void read_nissa_config_file()
 {
   char path[1024]="nissa_config";
   
-  const int navail_tag=7;
-  char tag_name[7][100]={
+  const int navail_tag=6;
+  char tag_name[6][100]={
     "verbosity_lv",
     "use_128_bit_precision",
     "use_eo_geom",
     "use_async_communications",
     "warn_if_not_disallocated",
-    "warn_if_not_communicated",
-    "nthreads"};
-  char *tag_addr[7]={
+    "warn_if_not_communicated"};
+  char *tag_addr[6]={
     (char*)&nissa_verbosity,
     (char*)&nissa_use_128_bit_precision,
     (char*)&nissa_use_eo_geom,
     (char*)&nissa_use_async_communications,
     (char*)&nissa_warn_if_not_disallocated,
-    (char*)&nissa_warn_if_not_communicated,
-    (char*)&nissa_nthreads};
-  char tag_type[7][3]={"%d","%d","%d","%d","%d","%d","%d"};
-  char tag_size[7]={4,4,4,4,4,4,4};
+    (char*)&nissa_warn_if_not_communicated};
+  char tag_type[6][3]={"%d","%d","%d","%d","%d","%d"};
+  char tag_size[6]={4,4,4,4,4,4};
   
   if(file_exists(path))
     {
