@@ -150,6 +150,46 @@ double global_plaquette_eo_conf(quad_su3 **conf)
   
   return (plaq[0]+plaq[1])/2;
 }
+void global_plaquette_eo_conf_edges(double *totplaq,quad_su3 **conf)
+{
+  communicate_eo_quad_su3_borders(conf);
+  
+  double locplaq[2]={0,0};
+  
+  nissa_loc_volh_loop(A)
+    for(int par=0;par<2;par++)
+      for(int mu=0;mu<4;mu++)
+	for(int nu=mu+1;nu<4;nu++)
+	  {
+	    //ACD and ABD path
+	    su3 ABD,ACD;
+	    int B=loceo_neighdw[par][A][mu];
+	    int C=loceo_neighdw[!par][B][nu];
+	    unsafe_su3_prod_su3(ABD,conf[!par][B][mu],conf[par][A][nu]);
+	    unsafe_su3_prod_su3(ACD,conf[!par][B][nu],conf[par][C][mu]);
+	    
+	    //compute tr(ABDC)
+	    double tr=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
+	    if(mu==0) locplaq[0]+=tr;
+	    else      locplaq[1]+=tr;
+	  }
+  
+  //reduce double[2] as complex
+  glb_reduce_complex(totplaq,locplaq);
+  
+  //normalize
+  for(int ts=0;ts<2;ts++) totplaq[ts]/=glb_vol*3*3;
+}
+
+//return the average between spatial and temporary plaquette
+double global_plaquette_eo_conf_edges(quad_su3 **conf)
+{
+  double plaq[2];
+  
+  global_plaquette_eo_conf(plaq,conf);
+  
+  return (plaq[0]+plaq[1])/2;
+}
 
 //compute the staples along a particular dir, for a single site
 void compute_point_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)

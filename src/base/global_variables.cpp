@@ -12,7 +12,6 @@
 EXTERN int glb_size[4],glb_vol,glb_spat_vol,glb_volh;
 EXTERN int loc_size[4],loc_vol,loc_spat_vol,loc_volh;
 EXTERN double glb_vol2,loc_vol2;
-EXTERN int *dir_of_bord;
 //-lx is lexicografic
 EXTERN coords *glb_coord_of_loclx;
 EXTERN coords *loc_coord_of_loclx;
