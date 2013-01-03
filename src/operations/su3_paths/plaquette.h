@@ -1,6 +1,7 @@
 #ifndef _PLAQUETTE_H
 #define _PLAQUETTE_H
 double global_plaquette_eo_conf(quad_su3 **conf);
+double global_plaquette_eo_conf_edges(quad_su3 **conf);
 double global_plaquette_lx_conf(quad_su3 *conf);
 double global_plaquette_variance_lx_conf(quad_su3 *conf);
 void compute_point_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A);

@@ -1,9 +1,10 @@
+#include "../../base/communicate.h"
+#include "../../base/global_variables.h"
+#include "../../base/routines.h"
+#include "../../base/vectors.h"
+#include "../../geometry/geometry_eo.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../base/routines.h"
-#include "../../geometry/geometry_eo.h"
 #include "../../operations/su3_paths/plaquette.h"
 #include "../../operations/su3_paths/arbitrary.h"
 
@@ -151,7 +152,6 @@ void tree_level_Symanzik_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
 	}
     }
   
-  
   if(istaple!=loc_vol*8) crash("something went wrong");
   
   nissa_free(staples);
@@ -164,4 +164,42 @@ void stop_Symanzik_staples()
 {
   if(compute_Symanzik_staples!=NULL)
     delete compute_Symanzik_staples;
+}
+
+//compute the tree level Symanzik force
+void tree_level_Symanzik_force(quad_su3 *F,quad_su3 *conf,double beta)
+{
+  verbosity_lv1_master_printf("Computing tree level Symanzik force\n");
+  
+  //coefficient of rectangles and squares, including beta
+  double b1=-1.0/12,b0=1-8*b1;
+  double c1=-b1*beta/3,c0=b0*beta/3; //the stag phases add (-1)^area
+  
+  //allocate the product of forward links
+  quad_su3 *bi_link[3];
+  for(int inu=0;inu<3;inu++) bi_link[inu]=nissa_malloc("bi_link",loc_vol+bord_vol,quad_su3);
+  
+  //reset the force (check that needed)
+  for(int par=0;par<2;par++) vector_reset(F[par]);
+  
+  //communicate the borders and edges
+  communicate_lx_quad_su3_edges(conf);
+  
+  //compute all the products of forward links, that is, ABC
+  nissa_loc_vol_loop(A)
+    for(int mu=0;mu<4;mu++)
+      for(int inu=0;inu<3;inu++)                 //  E---F---C   
+	{			                 //  |   |   | mu
+	  int nu=(inu<mu)?inu:inu+1;             //  D---A---B   
+	  			                 //        nu    
+	  int B=loclx_neighup[A][nu];
+	    
+	  unsafe_su3_prod_su3(bi_link[inu][A][mu],conf[A][nu],conf[B][mu]);
+	}
+  
+  //free the bilinks
+  for(int inu=0;inu<3;inu++) nissa_free(bi_link[inu]);
+  
+  //mark the force as not communicated (why!?)
+  for(int par=0;par<2;par++) set_borders_invalid(F[par]);
 }

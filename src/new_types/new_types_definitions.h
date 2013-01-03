@@ -40,6 +40,8 @@ typedef colorspinspin su3spinspin[3];
 typedef complex as2t[6];
 typedef su3 as2t_su3[6];
 
+typedef quad_su3 squared_staples[6];
+
 typedef MPI_Offset ILDG_Offset;
 typedef MPI_File ILDG_File;
 

@@ -1,13 +1,15 @@
 #include "../../base/communicate.h"
+#include "../../base/debug.h"
 #include "../../base/global_variables.h"
 #include "../../base/routines.h"
 #include "../../base/vectors.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/complex.h"
-#include "../../new_types/su3.h"
 #include "../../linalgs/linalgs.h"
+#include "../../new_types/complex.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../new_types/su3.h"
 
 #include "../su3_paths/plaquette.h"
+#include "../../hmc/momenta/momenta_action.h"
 
 #include <math.h>
 #include <complex>
@@ -26,9 +28,11 @@ struct stout_link_staples
 };
 
 //compute the staples for the link U_A_mu weighting them with rho
-//warning! no border check performed
 void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,stout_pars rho)
 {
+  //communicate the edges
+  communicate_eo_quad_su3_edges(conf);
+
   //put staples to zero
   su3_put_to_zero(staples);
   
@@ -82,9 +86,6 @@ void stout_smear(quad_su3 **out,quad_su3 **ext_in,stout_pars rho)
       }
     else in[eo]=ext_in[eo];
   
-  //communicate the edges
-  communicate_eo_quad_su3_edges(in);
-
   for(int p=0;p<2;p++)
     nissa_loc_volh_loop(A)
       for(int mu=0;mu<4;mu++)
@@ -105,7 +106,6 @@ void stout_smear(quad_su3 **out,quad_su3 **ext_in,stout_pars rho)
       set_borders_invalid(out[eo]);
       if(out==ext_in) nissa_free(in[eo]);
     }
-
   
   nsto++;
   sto_time+=take_time();
@@ -303,41 +303,48 @@ void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingr
 //remap the force to one smearing level less
 void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 {
+  communicate_eo_quad_su3_edges(conf);
+  
   quad_su3 *Lambda[2];
   for(int eo=0;eo<2;eo++)
     Lambda[eo]=nissa_malloc("Lambda",loc_volh+bord_volh+edge_volh,quad_su3);
   
   for(int p=0;p<2;p++)
-    nissa_loc_volh_loop(A)
-      for(int mu=0;mu<4;mu++)
-        {
-          //compute the ingredients needed to smear
-	  stout_link_staples sto_ste;
-          stout_smear_compute_staples(sto_ste,conf,p,A,mu,rho);
+    {
+      nissa_loc_volh_loop(A)
+	for(int mu=0;mu<4;mu++)
+	  {
+	    //compute the ingredients needed to smear
+	    stout_link_staples sto_ste;
+	    stout_smear_compute_staples(sto_ste,conf,p,A,mu,rho);
+	    
+	    //compute the ingredients needed to exponentiate
+	    anti_hermitian_exp_ingredients ing;
+	    anti_hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
+	    
+	    //compute the Lambda
+	    stouted_force_compute_Lambda(Lambda[p][A][mu],conf[p][A][mu],F[p][A][mu],ing);
+	    
+	    //exp(iQ)
+	    su3 expiQ;
+	    safe_anti_hermitian_exact_i_exponentiate(expiQ,ing.Q);
 	  
-	  //compute the ingredients needed to exponentiate
-	  anti_hermitian_exp_ingredients ing;
-	  anti_hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
-	  
-	  //compute the Lambda
-	  stouted_force_compute_Lambda(Lambda[p][A][mu],conf[p][A][mu],F[p][A][mu],ing);
-	  
-          //exp(iQ)
-          su3 expiQ;
-          safe_anti_hermitian_exact_i_exponentiate(expiQ,ing.Q);
-	  
-	  //first piece of eq. (75)
-	  su3 temp1;
-	  unsafe_su3_prod_su3(temp1,F[p][A][mu],expiQ);
-	  //second piece of eq. (75)
-	  su3 temp2,temp3;
-	  unsafe_su3_dag_prod_su3(temp2,sto_ste.C,Lambda[p][A][mu]);
-	  su3_prod_idouble(temp3,temp2,1);
-	  
-	  //put together first and second piece
-	  su3_summ(F[p][A][mu],temp1,temp3);
-	}
-  
+	    //first piece of eq. (75)
+	    su3 temp1;
+	    unsafe_su3_prod_su3(temp1,F[p][A][mu],expiQ);
+	    //second piece of eq. (75)
+	    su3 temp2,temp3;
+	    unsafe_su3_dag_prod_su3(temp2,sto_ste.C,Lambda[p][A][mu]);
+	    su3_prod_idouble(temp3,temp2,1);
+	    
+	    //put together first and second piece
+	    su3_summ(F[p][A][mu],temp1,temp3);
+	  }
+      set_borders_invalid(Lambda[p]);
+    }
+  master_printf("Lambda norm2: %16.16lg\n",momenta_action(Lambda));
+  master_printf("F temp norm2: %16.16lg\n",momenta_action(F));
+  master_printf("Lambda plaq: %16.16lg\n",global_plaquette_eo_conf_edges(Lambda));
   //compute the third piece of eq. (75)
   communicate_eo_quad_su3_edges(Lambda);
   for(int p=0;p<2;p++)
@@ -353,14 +360,28 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 	      int b2=loceo_neighdw[ p][b1][mu];
 	      int b3=b2;
 	      
+	      int Alx=loclx_of_loceo[p][A];
+	      int f1lx=loclx_neighup[Alx][mu];
+	      int f2lx=loclx_neighup[Alx][nu];
+	      int b1lx=loclx_neighdw[f1lx][nu];
+	      int b2lx=loclx_neighdw[Alx][nu];
+	      int b2lx_alt=loclx_neighdw[b1lx][mu];
+	      if(loceo_of_loclx[f1lx]!=f1) crash("f1");
+	      if(loceo_of_loclx[f2lx]!=f2) crash("f2");
+	      if(loceo_of_loclx[b1lx]!=b1) crash("b1");
+	      if(loceo_of_loclx[b2lx]!=b2) 
+		{
+		  for(int r=0;r<4;r++) master_printf("%d %d/%d\n",r,glb_coord_of_loclx[Alx][r],loc_size[r]);
+		  master_printf("b2: Alx=%d/%d, A=%d/%d, b1=%d/(%d+%d+%d=%d), mu=%d, nu=%d, lx_mov: %d, lx_mov alt: %d, eo_mov: %d\n",Alx,loc_vol,A,loc_volh,b1,loc_volh,bord_volh,edge_volh,loc_volh+bord_volh+edge_volh,mu,nu,loceo_of_loclx[b2lx],loceo_of_loclx[b2lx_alt],b2);
+		}
 	      su3 temp1,temp2,temp3;
-	      
+
 	      //first term, insertion on f3 along nu
 	      unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
 	      unsafe_su3_prod_su3_dag(temp2,temp1,conf[p][f3][nu]);
 	      unsafe_su3_prod_su3(temp3,temp2,Lambda[p][f3][nu]);
 	      su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho[nu][mu]);
-	
+	      
 	      //second term, insertion on b2 along mu
 	      unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
 	      unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b2][mu]);
@@ -391,7 +412,8 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 	      unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
 	      su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho[mu][nu]);
 	    }
-  
+  master_printf("F temp norm2 bis: %16.16lg\n",momenta_action(F));
+  crash("");
   for(int eo=0;eo<2;eo++) nissa_free(Lambda[eo]);
 }
 
@@ -399,7 +421,12 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 void stouted_force_remap(quad_su3 **F,quad_su3 ***sme_conf,stout_pars rho,int niters)
 {
   sto_remap_time-=take_time();
-  for(int i=niters-1;i>=0;i--) stouted_force_remap_step(F,sme_conf[i],rho);
+  for(int i=niters-1;i>=0;i--)
+    {
+      verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i,niters-1);
+      master_printf("Force norm2: %16.16lg\n",momenta_action(F));
+      stouted_force_remap_step(F,sme_conf[i],rho);
+    }
   sto_remap_time+=take_time();
   
   nsto_remap++;

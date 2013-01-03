@@ -36,7 +36,7 @@ void set_eo_geometry()
   for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighup[par]);
   for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighdw[par]);
 
-  //Label the bulk sites
+  //Label the sites
   int iloc_eo[2]={0,0};
   for(int loclx=0;loclx<loc_vol+bord_vol+edge_vol;loclx++)
     {
@@ -44,7 +44,6 @@ void set_eo_geometry()
       int par=0;
       for(int mu=0;mu<4;mu++)
 	par+=glb_coord_of_loclx[loclx][mu];
-      
       par%=2;
       
       //fix parity of local index
@@ -57,7 +56,7 @@ void set_eo_geometry()
     }
   
   //Fix the movements among e/o ordered sites
-  for(int loclx=0;loclx<loc_vol+bord_vol;loclx++)
+  for(int loclx=0;loclx<loc_vol+bord_vol+edge_vol;loclx++)
     for(int mu=0;mu<4;mu++)
       {
 	//take parity and e/o corresponding site
@@ -66,7 +65,6 @@ void set_eo_geometry()
 	
 	//up movements
 	int loclx_up=loclx_neighup[loclx][mu];
-	
 	if(loclx_up>=0 && loclx_up<loc_vol+bord_vol+edge_vol)
 	  loceo_neighup[par][loceo][mu]=loceo_of_loclx[loclx_up];
 	
@@ -74,8 +72,6 @@ void set_eo_geometry()
 	int loclx_dw=loclx_neighdw[loclx][mu];
 	if(loclx_dw>=0 && loclx_dw<loc_vol+bord_vol+edge_vol)
 	  loceo_neighdw[par][loceo][mu]=loceo_of_loclx[loclx_dw];
-	else
-	  loceo_neighdw[par][loceo][mu]=loclx_dw;
       }
   
   //init sender and receiver points for borders
