@@ -58,8 +58,9 @@ double max_eigenval(quark_content &pars,quad_su3 **eo_conf,int niters)
   //generate the random field
   nissa_loc_volh_loop(ivol)
     color_put_to_gauss(vec_in[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),3);
-  
   set_borders_invalid(vec_in);
+  
+  verbosity_lv3_master_printf("Init norm: %lg\n",eo_color_normalize(vec_in,vec_in,glb_volh*3));
   
   //apply the vector niter times normalizing at each iter
   for(int iter=0;iter<niters;iter++)

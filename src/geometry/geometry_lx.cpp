@@ -139,15 +139,24 @@ void get_loclx_and_rank_of_coord(int *ivol,int *rank,coords g)
   (*ivol)=loclx_of_coord(l);
 }
 
-//return the index of the site of passed "local" coordinate
+//return the index of the site of passed "pseudolocal" coordinate
 //if the coordinates are local, return the index according to the function loclx_of_coord
 //if exactly one of the coordinate is just out return its index according to bordlx_of_coord, incremented of previous border and loc_vol
 //if exactly two coordinates are outside, return its index according to edgelx_of_coord, incremented as before stated
-int full_lx_of_coords(coords x)
+int full_lx_of_coords(coords ext_x)
 {
   int ort_dir_bord[4][3]={{1,2,3},{0,2,3},{0,1,3},{0,1,2}};
   int ort_dir_edge[6][2]={{2,3},{1,3},{1,2},{0,3},{0,2},{0,1}};
-
+  
+  //pseudo-localize it
+  coords x;
+  for(int mu=0;mu<4;mu++)
+    {
+      x[mu]=ext_x[mu];
+      while(x[mu]<0) x[mu]+=glb_size[mu];
+      while(x[mu]>=glb_size[mu]) x[mu]-=glb_size[mu];
+    }
+  
   //check locality
   int isloc=1;
   for(int mu=0;mu<4;mu++)
@@ -163,16 +172,19 @@ int full_lx_of_coords(coords x)
   for(int mu=0;mu<4;mu++)
     {
       isbord[mu]=0;
-      if(x[mu]==-1) isbord[mu]=-1;
-      if(x[mu]==loc_size[mu]) isbord[mu]=+1;
+      if(paral_dir[mu])
+	{
+	  if(x[mu]==glb_size[mu]-1) isbord[mu]=-1;
+	  if(x[mu]==loc_size[mu]) isbord[mu]=+1;
+	}
     }
   
   //check if it is in one of the 4 forward or backward borders
   for(int mu=0;mu<4;mu++)
     if((isbord[ort_dir_bord[mu][0]]==0)&&(isbord[ort_dir_bord[mu][1]]==0)&&(isbord[ort_dir_bord[mu][2]]==0))
       {
-	if(isbord[mu]==+1) {int r=loc_vol+bord_offset[mu]+bordlx_of_coord(x,mu); /*master_printf("fb %d\n",r);*/return r;         }  //forward border
-	if(isbord[mu]==-1) {int r=loc_vol+bord_vol/2+bord_offset[mu]+bordlx_of_coord(x,mu); /*master_printf("bb %d\n",r);*/return r;         }//backward border
+	if(isbord[mu]==+1) return loc_vol+bord_vol/2+bord_offset[mu]+bordlx_of_coord(x,mu);  //forward border
+	if(isbord[mu]==-1) return loc_vol+bord_offset[mu]+bordlx_of_coord(x,mu);             //backward border
       }
   
   //check if it is in one of the 6 --,-+,+-,++ edges
@@ -188,8 +200,8 @@ int full_lx_of_coords(coords x)
 	
 	if((isbord[ort_dir_edge[iedge][0]]==0)&&(isbord[ort_dir_edge[iedge][1]]==0))
 	  {
-	    if((isbord[al]==-1)&&(isbord[be]==-1)) return loc_vol+bord_vol+edge_offset[iedge]+edgelx_of_coord(x,mu,nu);
-	    if((isbord[al]==-1)&&(isbord[be]==+1)) return loc_vol+bord_vol+edge_offset[iedge]+edge_vol/4+edgelx_of_coord(x,mu,nu);
+	    if((isbord[al]==-1)&&(isbord[be]==-1)) return loc_vol+bord_vol+edge_offset[iedge]+0*edge_vol/4+edgelx_of_coord(x,mu,nu);
+	    if((isbord[al]==-1)&&(isbord[be]==+1)) return loc_vol+bord_vol+edge_offset[iedge]+1*edge_vol/4+edgelx_of_coord(x,mu,nu);
 	    if((isbord[al]==+1)&&(isbord[be]==-1)) return loc_vol+bord_vol+edge_offset[iedge]+2*edge_vol/4+edgelx_of_coord(x,mu,nu);
 	    if((isbord[al]==+1)&&(isbord[be]==+1)) return loc_vol+bord_vol+edge_offset[iedge]+3*edge_vol/4+edgelx_of_coord(x,mu,nu);
 	  }
@@ -209,19 +221,22 @@ void label_all_sites()
 	for(x[3]=-paral_dir[3];x[3]<loc_size[3]+paral_dir[3];x[3]++) 
 	  {
 	    //check if it is defined
-	    int iloc=full_lx_of_coords(x);      
+	    int iloc=full_lx_of_coords(x);
 	    if(iloc!=-1)
 	      {
 		//compute global coordinates, assigning
 		for(int nu=0;nu<4;nu++)
-		  {
-		    //if it is on the bulk store it
-		    if(iloc<loc_vol) loc_coord_of_loclx[iloc][nu]=x[nu];
-		    glb_coord_of_loclx[iloc][nu]=(x[nu]+rank_coord[nu]*loc_size[nu])%glb_size[nu];
-		  }
+		  glb_coord_of_loclx[iloc][nu]=(x[nu]+rank_coord[nu]*loc_size[nu]+glb_size[nu])%glb_size[nu];
 		
 		//find the global index
 		int iglb=glblx_of_coord(glb_coord_of_loclx[iloc]);
+		
+		//if it is on the bulk store it
+		if(iloc<loc_vol)
+		  {
+		    for(int nu=0;nu<4;nu++) loc_coord_of_loclx[iloc][nu]=x[nu];
+		    glblx_of_loclx[iloc]=iglb;
+		  }
 		
 		//if it is on the border store it
 		if(iloc>=loc_vol&&iloc<loc_vol+bord_vol)
@@ -245,33 +260,25 @@ void label_all_sites()
 //find the neighbours
 void find_neighbouring_sites()
 {
+  //loop over the four directions
   for(int ivol=0;ivol<loc_vol+bord_vol+edge_vol;ivol++)
-    {
-      //copy the coords
-      coords n;
-      for(int mu=0;mu<4;mu++) n[mu]=glb_coord_of_loclx[ivol][mu]-loc_size[mu]*rank_coord[mu];
-      
-      //loop over the four directions
-      for(int mu=0;mu<4;mu++)
-	{
-	  //move forward
-	  n[mu]++;
-	  if(!paral_dir[mu]) n[mu]%=loc_size[mu]; 
-	  int nup=full_lx_of_coords(n);
-	  //move backward twice
-	  n[mu]-=2;
-	  if(!paral_dir[mu]) n[mu]=(n[mu]+loc_size[mu])%loc_size[mu]; 
-	  int ndw=full_lx_of_coords(n);
-	  n[mu]++;
-	  if(!paral_dir[mu]) n[mu]%=loc_size[mu]; 
-
-	  //if "local" assign it (automatically -1 otherwise)
-	  loclx_neighup[ivol][mu]=nup;
-	  loclx_neighdw[ivol][mu]=ndw;
-	  
-	  master_printf("ivol=%d mu=%d f=%d b=%d\n",ivol,mu,nup,ndw);
-	}
-    }
+    for(int mu=0;mu<4;mu++)
+      {
+	//copy the coords
+	coords n;
+	for(int nu=0;nu<4;nu++) n[nu]=glb_coord_of_loclx[ivol][nu]-loc_size[nu]*rank_coord[nu];
+	
+	//move forward
+	n[mu]++;
+	int nup=full_lx_of_coords(n);
+	//move backward
+	n[mu]-=2;
+	int ndw=full_lx_of_coords(n);
+	
+	//if "local" assign it (automatically -1 otherwise)
+	loclx_neighup[ivol][mu]=nup;
+	loclx_neighdw[ivol][mu]=ndw;
+      }
 }
 
 //indexes run as t,x,y,z (faster:z)
@@ -310,7 +317,7 @@ void set_lx_geometry()
   //label the sites and neighbours
   label_all_sites();
   find_neighbouring_sites();
-
+  
   //init sender and receiver points for borders
   for(int mu=0;mu<4;mu++)
     if(paral_dir[mu]!=0)

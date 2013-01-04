@@ -7,8 +7,6 @@
 #include "../../new_types/su3.h"
 
 #include "../gauge/tree_level_Symanzik_action.h"
-#include "../../operations/su3_paths/plaquette.h"
-#include "../momenta/momenta_action.h"
 
 #include "rootst_eoimpr_force.h"
 
@@ -41,7 +39,6 @@ void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,c
   
   //compute the force
   full_rootst_eoimpr_force(F,conf,pf,physics,appr,residue,force_piece);
-  master_printf("Momenta action: %16.16lg, force norm2: %16.16lg\n",momenta_action(H),momenta_action(F));
   
   //evolve  
   for(int par=0;par<2;par++)
@@ -54,7 +51,6 @@ void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,c
       
       nissa_free(F[par]);
     }
-  master_printf("Momenta action: %16.16lg\n",momenta_action(H));
 }
 
 //eolve the configuration by using the computed momenta
@@ -62,7 +58,7 @@ void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,c
 void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 {
   verbosity_lv2_master_printf("Evolving conf with momenta, dt=%lg\n",dt);
-  master_printf("Action: %16.16lg, plaquette: %16.16lg\n",tree_level_Symanzik_action(eo_conf,1),global_plaquette_eo_conf(eo_conf));
+  
   //evolve
   for(int par=0;par<2;par++)
     {
@@ -77,8 +73,6 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 	  }
       set_borders_invalid(eo_conf[par]);
     }
-  
-  master_printf("Action: %16.16lg, plaquette: %16.16lg\n",tree_level_Symanzik_action(eo_conf,1),global_plaquette_eo_conf(eo_conf));
 }
 
 void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars *physics,rat_approx *appr,hmc_evol_pars *simul,multistep_level multilev)                                                                                                                            

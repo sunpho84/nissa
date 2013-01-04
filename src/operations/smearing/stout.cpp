@@ -9,7 +9,6 @@
 #include "../../new_types/su3.h"
 
 #include "../su3_paths/plaquette.h"
-#include "../../hmc/momenta/momenta_action.h"
 
 #include <math.h>
 #include <complex>
@@ -342,9 +341,7 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 	  }
       set_borders_invalid(Lambda[p]);
     }
-  master_printf("Lambda norm2: %16.16lg\n",momenta_action(Lambda));
-  master_printf("F temp norm2: %16.16lg\n",momenta_action(F));
-  master_printf("Lambda plaq: %16.16lg\n",global_plaquette_eo_conf_edges(Lambda));
+
   //compute the third piece of eq. (75)
   communicate_eo_quad_su3_edges(Lambda);
   for(int p=0;p<2;p++)
@@ -360,20 +357,6 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 	      int b2=loceo_neighdw[ p][b1][mu];
 	      int b3=b2;
 	      
-	      int Alx=loclx_of_loceo[p][A];
-	      int f1lx=loclx_neighup[Alx][mu];
-	      int f2lx=loclx_neighup[Alx][nu];
-	      int b1lx=loclx_neighdw[f1lx][nu];
-	      int b2lx=loclx_neighdw[Alx][nu];
-	      int b2lx_alt=loclx_neighdw[b1lx][mu];
-	      if(loceo_of_loclx[f1lx]!=f1) crash("f1");
-	      if(loceo_of_loclx[f2lx]!=f2) crash("f2");
-	      if(loceo_of_loclx[b1lx]!=b1) crash("b1");
-	      if(loceo_of_loclx[b2lx]!=b2) 
-		{
-		  for(int r=0;r<4;r++) master_printf("%d %d/%d\n",r,glb_coord_of_loclx[Alx][r],loc_size[r]);
-		  master_printf("b2: Alx=%d/%d, A=%d/%d, b1=%d/(%d+%d+%d=%d), mu=%d, nu=%d, lx_mov: %d, lx_mov alt: %d, eo_mov: %d\n",Alx,loc_vol,A,loc_volh,b1,loc_volh,bord_volh,edge_volh,loc_volh+bord_volh+edge_volh,mu,nu,loceo_of_loclx[b2lx],loceo_of_loclx[b2lx_alt],b2);
-		}
 	      su3 temp1,temp2,temp3;
 
 	      //first term, insertion on f3 along nu
@@ -412,8 +395,7 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 	      unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
 	      su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho[mu][nu]);
 	    }
-  master_printf("F temp norm2 bis: %16.16lg\n",momenta_action(F));
-  crash("");
+  
   for(int eo=0;eo<2;eo++) nissa_free(Lambda[eo]);
 }
 
@@ -424,7 +406,6 @@ void stouted_force_remap(quad_su3 **F,quad_su3 ***sme_conf,stout_pars rho,int ni
   for(int i=niters-1;i>=0;i--)
     {
       verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i,niters-1);
-      master_printf("Force norm2: %16.16lg\n",momenta_action(F));
       stouted_force_remap_step(F,sme_conf[i],rho);
     }
   sto_remap_time+=take_time();
