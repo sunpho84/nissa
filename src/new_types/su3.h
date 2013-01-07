@@ -97,6 +97,7 @@ void su3_summ_the_prod_double(su3 a,su3 b,double r);
 void su3_summ_the_prod_spincolor(spincolor out,su3 U,spincolor in);
 void su3_summ_the_trace(complex tr,su3 m);
 void su3_dag_summ_the_prod_su3(su3 a,su3 b,su3 c);
+void su3_dag_summ_the_prod_double(su3 a,su3 b,double r);
 void su3_summassign(su3 a,su3 b);
 void su3_trace(complex tr,su3 m);
 void su3_unitarize_explicitly_inverting(su3 new_link,su3 prop_link);

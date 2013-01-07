@@ -20,7 +20,7 @@
 
 #define summ_src_and_all_inv_cgm summ_src_and_all_inv_tmQ2_m2_RL_cgm
 #define cgm_invert inv_tmQ2_m2_RL_cgm
-#define cgm_invert_run_hm_up_to_mach_prec inv_tmQ2_m2_RL_cgm_run_hm_up_to_mach_prec
+#define cgm_invert_run_hm_up_to_comm_prec inv_tmQ2_m2_RL_cgm_run_hm_up_to_comm_prec
 #define cgm_npossible_requests 16
 
 #define cgm_start_communicating_borders start_communicating_lx_spincolor_borders

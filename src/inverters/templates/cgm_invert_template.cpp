@@ -211,12 +211,11 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 #endif
 }
 
-//run higher shifts up to machine precision
-void cgm_invert_run_hm_up_to_mach_prec(basetype **sol,cgm_additional_parameters_proto,double *shift,int nshift,int niter_max,double req_res,basetype *source)
+//run higher shifts up to common precision
+void cgm_invert_run_hm_up_to_comm_prec(basetype **sol,cgm_additional_parameters_proto,double *shift,int nshift,int niter_max,double req_res,basetype *source)
 {
   double req_res_int[nshift];
-  req_res_int[0]=req_res;
-  for(int ishift=1;ishift<nshift;ishift++) req_res_int[ishift]=1.e-20;
+  for(int ishift=0;ishift<nshift;ishift++) req_res_int[ishift]=req_res;
   cgm_invert(sol,cgm_additional_parameters_call,shift,nshift,niter_max,req_res_int,source);
 }
 
@@ -229,7 +228,7 @@ void summ_src_and_all_inv_cgm(basetype *sol,cgm_additional_parameters_proto,rat_
     temp[iterm]=nissa_malloc("temp",bulk_vol+bord_vol,basetype);
   
   //call multi-shift solver
-  cgm_invert_run_hm_up_to_mach_prec(temp,cgm_additional_parameters_call,appr->poles,appr->nterms,niter_max,req_res,source);
+  cgm_invert_run_hm_up_to_comm_prec(temp,cgm_additional_parameters_call,appr->poles,appr->nterms,niter_max,req_res,source);
   
   //summ all the shifts
   double *dsol=(double*)sol,*dsource=(double*)source;
@@ -254,7 +253,7 @@ void summ_src_and_all_inv_cgm(basetype *sol,cgm_additional_parameters_proto,rat_
 
 #undef apply_operator
 
-#undef cgm_invert_run_hm_up_to_mach_prec
+#undef cgm_invert_run_hm_up_to_comm_prec
 #undef summ_src_and_all_inv_cgm
 #undef cgm_invert
 #undef cgm_start_communicating_borders

@@ -557,6 +557,17 @@ void su3_summ_the_prod_double(su3 a,su3 b,double r)
   for(int i=0;i<18;i++) da[i]+=db[i]*r;
 }
 
+//summ the prod of the dag su3 with real
+void su3_dag_summ_the_prod_double(su3 a,su3 b,double r)
+{
+  for(int i=0;i<3;i++)
+    for(int j=0;j<3;j++)
+      {
+	a[i][j][RE]+=b[j][i][RE]*r;
+	a[i][j][IM]-=b[j][i][IM]*r;
+      }
+}
+
 //combine linearly two su3 elements
 void su3_linear_comb(su3 a,su3 b,double cb,su3 c,double cc)
 {for(int i=0;i<18;i++) ((double*)a)[i]=((double*)b)[i]*cb+((double*)c)[i]*cc;}

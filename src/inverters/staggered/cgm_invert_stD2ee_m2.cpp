@@ -18,7 +18,7 @@
 #define cgm_operator_parameters conf,t
 
 #define cgm_invert inv_stD2ee_m2_cgm
-#define cgm_invert_run_hm_up_to_mach_prec inv_stD2ee_m2_cgm_run_hm_up_to_mach_prec
+#define cgm_invert_run_hm_up_to_comm_prec inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec
 #define summ_src_and_all_inv_cgm summ_src_and_all_inv_stD2ee_m2_cgm
 #define cgm_npossible_requests 16
 

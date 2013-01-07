@@ -51,6 +51,15 @@ int skip_mtest_ntraj;
 
 const int HOT=0,COLD=1;
 
+void read_quark_content(quark_content &pars)
+{
+  read_str_int("Degeneracy",&(pars.deg));
+  read_str_double("Mass",&(pars.mass));
+  read_str_double("RePotCh",&(pars.re_pot));
+  read_str_double("ImPotCh",&(pars.im_pot));
+  read_str_double("ElecCharge",&(pars.charge));
+}
+
 //write a conf adding info
 void write_conf(char *path,quad_su3 **conf)
 {
@@ -189,13 +198,7 @@ void init_simulation(char *path)
   
   //read each flav parameters
   for(int iflav=0;iflav<physics.nflavs;iflav++)
-    {
-      read_str_int("Degeneracy",&(physics.flav_pars[iflav].deg));
-      read_str_double("Mass",&(physics.flav_pars[iflav].mass));
-      read_str_double("RePotCh",&(physics.flav_pars[iflav].re_pot));
-      read_str_double("ImPotCh",&(physics.flav_pars[iflav].im_pot));
-      read_str_double("ElecCharge",&(physics.flav_pars[iflav].charge));
-    }
+    read_quark_content(physics.flav_pars[iflav]);
 
   //read electric and magnetic field
   read_str_int("PutBkgrdEMField",&(physics.use_bkgrd_em_field));
@@ -230,7 +233,7 @@ void init_simulation(char *path)
       read_str_int("NOvSweeps",&evol.pure_gauge_pars.nov_sweeps);
       read_str_int("NOvHits",&evol.pure_gauge_pars.nov_hits);
     }
-
+  
   close_input();
   
   ////////////////////////// allocate stuff ////////////////////////
