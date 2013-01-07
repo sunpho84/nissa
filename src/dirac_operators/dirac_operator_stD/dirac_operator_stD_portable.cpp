@@ -179,6 +179,7 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
   apply_stDeo_half(out,conf,temp);
   
   //summ the mass
+#pragma omp parallel for
   nissa_loc_volh_loop(ivol)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)

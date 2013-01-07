@@ -112,6 +112,7 @@ void init_Symanzik_staples()
 	      first=0;
 	    }
       }
+  
   compute_Symanzik_staples->finished_last_path();
 }
 
@@ -179,6 +180,12 @@ void new_tree_level_Symanzik_force(quad_su3 *Force,quad_su3 *conf,double beta)
   //reset the force, including the border
   memset(Force,0,sizeof(quad_su3)*(loc_vol+bord_vol+edge_vol));
   
+  //define the staples
+  enum STAPLE_TYPE{QUAD_STAPLE,EF_STAPLE,FC_STAPLE,BC_STAPLE,AB_STAPLE,DA_STAPLE,DE_STAPLE};
+  quad_su3 *staples[7];
+  for(int istaple=0;istaple<7;istaple++)
+    staples[istaple]=nissa_malloc("staples",loc_vol+bord_vol+edge_vol,quad_su3);
+  
   //communicate the edges
   communicate_lx_quad_su3_edges(conf);
   
@@ -204,42 +211,30 @@ void new_tree_level_Symanzik_force(quad_su3 *Force,quad_su3 *conf,double beta)
 	  unsafe_su3_dag_prod_su3(ADEF,conf[D][nu],DEF);
 	  
 	  //summ the staples
-	  su3_dag_summ_the_prod_double(Force[A][mu],ABCF,c0);
-	  su3_dag_summ_the_prod_double(Force[A][mu],ADEF,c0);
+	  su3_dag_summ_the_prod_double(staples[QUAD_STAPLE][A][mu],ABCF,c0);
+	  su3_dag_summ_the_prod_double(staples[QUAD_STAPLE][A][mu],ADEF,c0);
 	  
 	  //compute DABCF and ABCFE
 	  su3 DABCF,ABCFE;
 	  unsafe_su3_prod_su3(DABCF,conf[D][nu],ABCF);
 	  unsafe_su3_prod_su3_dag(ABCFE,ABCF,conf[E][nu]);
 	  //compute DABCFE, that is DE rect staple
-	  su3 DABCFE;
-	  unsafe_su3_prod_su3_dag(DABCFE,DABCF,conf[E][nu]);
-	  su3_dag_summ_the_prod_double(Force[D][mu],DABCFE,c1);
+	  unsafe_su3_prod_su3_dag(staples[DE_STAPLE][D][mu],DABCF,conf[E][nu]);
 	  //compute EDABCF, that is EF rect staple
-	  su3 EDABCF;
-	  unsafe_su3_dag_prod_su3(EDABCF,conf[D][mu],DABCF);
-	  su3_dag_summ_the_prod_double(Force[E][nu],EDABCF,c1);
+	  unsafe_su3_dag_prod_su3(staples[EF_STAPLE][E][nu],conf[D][mu],DABCF);
 	  //compute DEFCBA, that is, DA rect staple
-	  su3 DEFCBA;
-	  unsafe_su3_prod_su3_dag(DEFCBA,conf[D][mu],ABCFE);
-	  su3_dag_summ_the_prod_double(Force[D][nu],DEFCBA,c1);
+	  unsafe_su3_prod_su3_dag(staples[DA_STAPLE][D][nu],conf[D][mu],ABCFE);
 	  
 	  //compute BADEF and ADEFC
 	  su3 BADEF,ADEFC;
 	  unsafe_su3_dag_prod_su3(BADEF,conf[A][nu],ADEF);
 	  unsafe_su3_prod_su3(ADEFC,ADEF,conf[F][nu]);
 	  //BADEFC, that is BC staple
-	  su3 BADEFC;
-	  unsafe_su3_prod_su3(BADEFC,BADEF,conf[F][nu]);
-	  su3_dag_summ_the_prod_double(Force[B][mu],BADEFC,c1);
+	  unsafe_su3_prod_su3(staples[BC_STAPLE][B][mu],BADEF,conf[F][nu]);
 	  //FEDABC, that is FC staple
-	  su3 FEDABC;
-	  unsafe_su3_dag_prod_su3(FEDABC,BADEF,conf[B][mu]);
-	  su3_dag_summ_the_prod_double(Force[F][nu],FEDABC,c1);
+	  unsafe_su3_dag_prod_su3(staples[FC_STAPLE][F][nu],BADEF,conf[B][mu]);
 	  //ADEFCB, that is AB staple
-	  su3 ADEFCB;
-	  unsafe_su3_prod_su3_dag(ADEFCB,ADEFC,conf[B][mu]);
-	  su3_dag_summ_the_prod_double(Force[A][nu],ADEFCB,c1);
+	  unsafe_su3_prod_su3_dag(staples[AB_STAPLE][A][nu],ADEFC,conf[B][mu]);
 	}
 }
 

@@ -99,8 +99,8 @@ void rootst_eoimpr_scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_ex
       //Set scale factors
       //add the background field
       add_backfield_to_conf(eo_conf,physics->backfield[iflav]);
-      double scale=max_eigenval(physics->flav_pars[iflav],eo_conf,50)*2;
-      if(db_rat_exp_min*scale>=pow(physics->flav_pars[iflav].mass,2)) crash("approx not valid");
+      double scale=max_eigenval(physics->flav_pars[iflav],eo_conf,50)*1.1;
+      if(db_rat_exp_min*scale>=pow(physics->flav_pars[iflav].mass,2)) crash("approx not valid, eig min: %lg %lg",db_rat_exp_min*scale,pow(physics->flav_pars[iflav].mass,2));
       rem_backfield_from_conf(eo_conf,physics->backfield[iflav]);
 
       double scale_pfgen=pow(scale,db_rat_exp_pfgen_degr[ipf][irexp]);
