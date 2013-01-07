@@ -3,6 +3,7 @@
 #include "../../base/routines.h"
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_eo.h"
+#include "../../geometry/geometry_mix.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../operations/su3_paths/plaquette.h"
@@ -115,7 +116,7 @@ void init_Symanzik_staples()
 }
 
 //compute the tree level Symanzik force
-void tree_level_Symanzik_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
+void old_tree_level_Symanzik_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
 {
   verbosity_lv1_master_printf("Computing tree level Symanzik force\n");
   
@@ -167,7 +168,7 @@ void stop_Symanzik_staples()
 }
 
 //compute the tree level Symanzik force
-void tree_level_Symanzik_force(quad_su3 *F,quad_su3 *conf,double beta)
+void new_tree_level_Symanzik_force(quad_su3 *Force,quad_su3 *conf,double beta)
 {
   verbosity_lv1_master_printf("Computing tree level Symanzik force\n");
   
@@ -175,31 +176,87 @@ void tree_level_Symanzik_force(quad_su3 *F,quad_su3 *conf,double beta)
   double b1=-1.0/12,b0=1-8*b1;
   double c1=-b1*beta/3,c0=b0*beta/3; //the stag phases add (-1)^area
   
-  //allocate the product of forward links
-  quad_su3 *bi_link[3];
-  for(int inu=0;inu<3;inu++) bi_link[inu]=nissa_malloc("bi_link",loc_vol+bord_vol,quad_su3);
+  //reset the force, including the border
+  memset(Force,0,sizeof(quad_su3)*(loc_vol+bord_vol+edge_vol));
   
-  //reset the force (check that needed)
-  for(int par=0;par<2;par++) vector_reset(F[par]);
-  
-  //communicate the borders and edges
+  //communicate the edges
   communicate_lx_quad_su3_edges(conf);
   
-  //compute all the products of forward links, that is, ABC
+  //compute all the locally computable squares and rectangular staples
   nissa_loc_vol_loop(A)
     for(int mu=0;mu<4;mu++)
-      for(int inu=0;inu<3;inu++)                 //  E---F---C   
-	{			                 //  |   |   | mu
-	  int nu=(inu<mu)?inu:inu+1;             //  D---A---B   
-	  			                 //        nu    
-	  int B=loclx_neighup[A][nu];
-	    
-	  unsafe_su3_prod_su3(bi_link[inu][A][mu],conf[A][nu],conf[B][mu]);
+      for(int inu=0;inu<3;inu++)
+	{
+	  int nu=(inu<mu)?inu:inu+1;
+	  
+	  int B=loclx_neighup[A][nu];            //  E---F---C   
+	  int D=loclx_neighdw[A][nu];            //  |   |   | mu
+	  int F=loclx_neighup[A][mu];            //  D---A---B   
+	  int E=loclx_neighup[D][mu];            //        nu    
+	  
+	  //compute the forward parts, ABC and DEF
+	  su3 ABC,DEF;
+	  unsafe_su3_prod_su3(ABC,conf[A][nu],conf[B][mu]);
+	  unsafe_su3_prod_su3(DEF,conf[D][mu],conf[E][nu]);
+	  //compute the forward and backward staples
+	  su3 ABCF,ADEF;
+	  unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
+	  unsafe_su3_dag_prod_su3(ADEF,conf[D][nu],DEF);
+	  
+	  //summ the staples
+	  su3_dag_summ_the_prod_double(Force[A][mu],ABCF,c0);
+	  su3_dag_summ_the_prod_double(Force[A][mu],ADEF,c0);
+	  
+	  //compute DABCF and ABCFE
+	  su3 DABCF,ABCFE;
+	  unsafe_su3_prod_su3(DABCF,conf[D][nu],ABCF);
+	  unsafe_su3_prod_su3_dag(ABCFE,ABCF,conf[E][nu]);
+	  //compute DABCFE, that is DE rect staple
+	  su3 DABCFE;
+	  unsafe_su3_prod_su3_dag(DABCFE,DABCF,conf[E][nu]);
+	  su3_dag_summ_the_prod_double(Force[D][mu],DABCFE,c1);
+	  //compute EDABCF, that is EF rect staple
+	  su3 EDABCF;
+	  unsafe_su3_dag_prod_su3(EDABCF,conf[D][mu],DABCF);
+	  su3_dag_summ_the_prod_double(Force[E][nu],EDABCF,c1);
+	  //compute DEFCBA, that is, DA rect staple
+	  su3 DEFCBA;
+	  unsafe_su3_prod_su3_dag(DEFCBA,conf[D][mu],ABCFE);
+	  su3_dag_summ_the_prod_double(Force[D][nu],DEFCBA,c1);
+	  
+	  //compute BADEF and ADEFC
+	  su3 BADEF,ADEFC;
+	  unsafe_su3_dag_prod_su3(BADEF,conf[A][nu],ADEF);
+	  unsafe_su3_prod_su3(ADEFC,ADEF,conf[F][nu]);
+	  //BADEFC, that is BC staple
+	  su3 BADEFC;
+	  unsafe_su3_prod_su3(BADEFC,BADEF,conf[F][nu]);
+	  su3_dag_summ_the_prod_double(Force[B][mu],BADEFC,c1);
+	  //FEDABC, that is FC staple
+	  su3 FEDABC;
+	  unsafe_su3_dag_prod_su3(FEDABC,BADEF,conf[B][mu]);
+	  su3_dag_summ_the_prod_double(Force[F][nu],FEDABC,c1);
+	  //ADEFCB, that is AB staple
+	  su3 ADEFCB;
+	  unsafe_su3_prod_su3_dag(ADEFCB,ADEFC,conf[B][mu]);
+	  su3_dag_summ_the_prod_double(Force[A][nu],ADEFCB,c1);
 	}
-  
-  //free the bilinks
-  for(int inu=0;inu<3;inu++) nissa_free(bi_link[inu]);
-  
-  //mark the force as not communicated (why!?)
-  for(int par=0;par<2;par++) set_borders_invalid(F[par]);
+}
+
+void tree_level_Symanzik_force(quad_su3 **F_eo,quad_su3 **conf_eo,double beta)
+{
+  if(0)
+    {
+      quad_su3 *F_lx=nissa_malloc("F_lx",loc_vol+bord_vol+edge_vol,quad_su3);
+      quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
+      
+      paste_eo_parts_into_lx_conf(conf_lx,conf_eo);
+      new_tree_level_Symanzik_force(F_lx,conf_lx,beta);
+      split_lx_conf_into_eo_parts(F_eo,F_lx);
+
+      nissa_free(F_lx);
+      nissa_free(conf_lx);
+    }
+  else
+    old_tree_level_Symanzik_force(F_eo,conf_eo,beta);
 }

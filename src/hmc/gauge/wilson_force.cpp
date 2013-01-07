@@ -13,6 +13,7 @@ void Wilson_force(quad_su3 **F,quad_su3 **eo_conf,double beta)
   double r=beta/3;
   verbosity_lv1_master_printf("Computing Wilson force\n");
   
+#pragma omp parallel for
   nissa_loc_vol_loop(ivol)
     {
       quad_su3 staples;

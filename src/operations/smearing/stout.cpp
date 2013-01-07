@@ -85,8 +85,9 @@ void stout_smear(quad_su3 **out,quad_su3 **ext_in,stout_pars rho)
       }
     else in[eo]=ext_in[eo];
   
-  for(int p=0;p<2;p++)
-    nissa_loc_volh_loop(A)
+#pragma omp parallel for
+  nissa_loc_volh_loop(A)
+    for(int p=0;p<2;p++)
       for(int mu=0;mu<4;mu++)
 	{
 	  //compute the staples needed to smear
@@ -308,9 +309,9 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
   for(int eo=0;eo<2;eo++)
     Lambda[eo]=nissa_malloc("Lambda",loc_volh+bord_volh+edge_volh,quad_su3);
   
-  for(int p=0;p<2;p++)
-    {
-      nissa_loc_volh_loop(A)
+#pragma omp parallel for
+  nissa_loc_volh_loop(A)
+    for(int p=0;p<2;p++)
 	for(int mu=0;mu<4;mu++)
 	  {
 	    //compute the ingredients needed to smear
@@ -339,13 +340,14 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 	    //put together first and second piece
 	    su3_summ(F[p][A][mu],temp1,temp3);
 	  }
-      set_borders_invalid(Lambda[p]);
-    }
+  
+  for(int p=0;p<2;p++) set_borders_invalid(Lambda[p]);
 
   //compute the third piece of eq. (75)
   communicate_eo_quad_su3_edges(Lambda);
-  for(int p=0;p<2;p++)
-    nissa_loc_volh_loop(A)
+#pragma omp parallel for
+  nissa_loc_volh_loop(A)
+    for(int p=0;p<2;p++)
       for(int mu=0;mu<4;mu++)
 	for(int nu=0;nu<4;nu++)
 	  if(mu!=nu)                                 //   b1 --<-- f1 -->-- +
