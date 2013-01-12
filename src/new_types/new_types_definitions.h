@@ -181,7 +181,7 @@ struct quark_content_type
 
 struct chiral_meas_pars_type
 {
-  char chiral_obs_path[1024];
+  char chiral_cond_path[1024];
   double cond_meas_residue;
   int cond_meas_nhits;
 };
