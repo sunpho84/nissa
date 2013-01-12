@@ -26,7 +26,7 @@ extern double glu_comp_time;
 #define SEA 0
 
 //observables
-FILE *chiral_obs_file,*gauge_obs_file,*top_obs_file;
+FILE *gauge_obs_file,*top_obs_file;
 int gauge_meas_flag,top_meas_flag,top_cool_overrelax_flag;
 double top_cool_overrelax_exp;
 int top_cool_nsteps,top_meas_each_nsteps;
@@ -122,10 +122,10 @@ void read_theory_pars(theory_pars_type &theory_pars)
     }
 
   //read if we want to measure chiral observables
-  read_str_int("MeasureChiralObs",&theory_pars.chiral_meas_flag);
+  read_str_int("MeasureChiralCond",&theory_pars.chiral_meas_flag);
   if(theory_pars.chiral_meas_flag)
     {
-      read_str_str("ChiralObsPath",theory_pars.chiral_meas_pars.chiral_obs_path,1024);
+      read_str_str("ChiralCondPath",theory_pars.chiral_meas_pars.chiral_cond_path,1024);
       read_str_double("ChiralCondInvResidue",&theory_pars.chiral_meas_pars.cond_meas_residue);
       read_str_int("ChiralCondNHits",&theory_pars.chiral_meas_pars.cond_meas_nhits);
     }
@@ -215,16 +215,16 @@ void init_simulation(char *path)
   init_grid(T,L);
   
   //read number of additional theory to read
-  int nadditional_theories;
-  read_str_int("NAdditionalTheories",&nadditional_theories);
-  ntheories=nadditional_theories+1;
+  int nvalence_theories;
+  read_str_int("NValenceTheories",&nvalence_theories);
+  ntheories=nvalence_theories+1;
   theory_pars=nissa_malloc("theory_pars",ntheories,theory_pars_type);
   
   //read physical theory: theory 0 is the sea (simulated one)
   for(int itheory=0;itheory<ntheories;itheory++)
     {
       if(itheory==0) master_printf("Reading info on sea theory\n");
-      else           master_printf("Reading info on additional (valence) theory %d/%d\n",itheory,nadditional_theories);
+      else           master_printf("Reading info on additional (valence) theory %d/%d\n",itheory,nvalence_theories);
       read_theory_pars(theory_pars[itheory]);
     }
   
@@ -437,10 +437,10 @@ void measure_gauge_obs(FILE *file,quad_su3 **conf,int iconf,int acc)
   master_fprintf(file,"%d %d %12.12lg %12.12lg %12.12lg %12.12lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
 }
 
-//measure chiral obs
-void measure_chiral_obs(quad_su3 **conf,theory_pars_type &theory_pars,int iconf)
+//measure chiral cond
+void measure_chiral_cond(quad_su3 **conf,theory_pars_type &theory_pars,int iconf)
 {
-  FILE *file=open_file(theory_pars.chiral_meas_pars.chiral_obs_path,(iconf==0)?"w":"a");
+  FILE *file=open_file(theory_pars.chiral_meas_pars.chiral_cond_path,(iconf==0)?"w":"a");
 
   master_fprintf(file,"%d",iconf);
   
@@ -467,7 +467,7 @@ void measure_chiral_obs(quad_su3 **conf,theory_pars_type &theory_pars,int iconf)
 
   master_fprintf(file,"\n");
   
-  if(rank==0) fclose(chiral_obs_file);
+  if(rank==0) fclose(file);
 }
 
 //measure the topologycal charge
@@ -499,7 +499,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
   if(top_meas_flag) measure_topology(top_obs_file,conf,top_cool_nsteps,top_meas_each_nsteps,iconf);
   for(int itheory=0;itheory<ntheories;itheory++)
     if(theory_pars[itheory].chiral_meas_flag)
-      measure_chiral_obs(conf,theory_pars[itheory],iconf);
+      measure_chiral_cond(conf,theory_pars[itheory],iconf);
 }
 
 //store conf when appropriate
