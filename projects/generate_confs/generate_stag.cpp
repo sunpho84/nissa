@@ -498,8 +498,14 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
   measure_gauge_obs(gauge_obs_file,conf,iconf,acc);
   if(top_meas_flag) measure_topology(top_obs_file,conf,top_cool_nsteps,top_meas_each_nsteps,iconf);
   for(int itheory=0;itheory<ntheories;itheory++)
-    if(theory_pars[itheory].chiral_meas_flag)
-      measure_chiral_cond(conf,theory_pars[itheory],iconf);
+    {
+      if(theory_pars[itheory].chiral_meas_flag)
+	{
+	  master_printf("Measuring chiral condensate for theory %d/%d\n",itheory+1,ntheories);
+	  measure_chiral_cond(conf,theory_pars[itheory],iconf);
+	}
+      else master_printf("Skipping measure of chiral condensate for theory %d/%d\n",itheory+1,ntheories);
+    }
 }
 
 //store conf when appropriate
