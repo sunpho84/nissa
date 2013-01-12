@@ -5,16 +5,24 @@ NValenceTheories       1               /* allow to specify additional theory use
 
 /* ///////////// Simulated theory //////////// */
 
+/* apart for the background field, this is the cruc setup */
+
 GaugeAction            tlSym           /* either Wilson or tlSym */
 Beta                   3.550           /* coupling */
 
-NDiffFlavs             2               /* number of different flavors */
+NDiffFlavs             3               /* number of different flavors */
 
-Degeneracy             2               /* degeneracy of the first flavor (1,2,3,4 available) */
+Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
 Mass                   0.03374
 RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
 ImPotCh                0               /* in units of Pi/T ? */
 ElecCharge             2               /* charge in multiples of e/3 */
+
+Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
+Mass                   0.03374
+RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
+ImPotCh                0               /* in units of Pi/T ? */
+ElecCharge             -1              /* charge in multiples of e/3 */
 
 Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
 Mass                   0.10234
@@ -23,19 +31,19 @@ ImPotCh                0               /* in unit of Pi/T ? */
 ElecCharge             -1              /* charge in multiples of e/3 */
 
 StoutingNLevel         2               /* number of stouting level*/
-IsotropicStouting      1               /* do not modify 1 */
+IsotropicStouting      1               /* do not modify, only isotropic stouting available */
 StoutRho               0.15            /* strength of the stouting */
 
-PutBkgrdEMField        1               /* Ex, Ey, Ez and Bx, By Bz are asked only if put 1  */
+PutBkgrdEMField        1               /* Ex, Ey, Ez and Bx, By Bz are asked only if this is 1  */
 Ex 0  Ey 0  Ez 0
 Bx 0  By 0  Bz 4
 
 MeasureChiralCond      1               /* chiral condensate (following question only if 1 chosen) */
-ChiralCondPath          chiral          /* output for chiral condensate */
+ChiralCondPath         chiral          /* output for chiral condensate */
 ChiralCondInvResidue   1.e-12          /* residue for inversion of chiral condensate */
 ChiralCondNHits        1               /* number of sources for chiral cond evaluation */
 
-/* ////// Valence quark for measure ////// */
+/* ////// Valence theory used to measure the condensate without the back field ////// */
 
 GaugeAction            tlSym           /* either Wilson or tlSym */
 Beta                   3.550           /* coupling */
@@ -55,10 +63,10 @@ ImPotCh                0               /* in unit of Pi/T ? */
 ElecCharge             0               /* charge in multiples of e/3 */
 
 StoutingNLevel         2               /* number of stouting level*/
-IsotropicStouting      1               /* do not modify 1 */
+IsotropicStouting      1               /* do not modify, only isotropic stouting available */
 StoutRho               0.15            /* strength of the stouting */
 
-PutBkgrdEMField        0               /* Ex, Ey, Ez and Bx, By Bz are asked only if put 1  */
+PutBkgrdEMField        0               /* Ex, Ey, Ez and Bx, By Bz are asked only if this is 1  */
 
 MeasureChiralCond      1               /* chiral condensate (following question only if 1 chosen) */
 ChiralCondPath         chiral_noB      /* output for chiral condensate */
