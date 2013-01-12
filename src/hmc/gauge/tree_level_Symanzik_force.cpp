@@ -180,67 +180,98 @@ void new_tree_level_Symanzik_force(quad_su3 *Force,quad_su3 *conf,double beta)
   //reset the force, including the border
   memset(Force,0,sizeof(quad_su3)*(loc_vol+bord_vol+edge_vol));
   
-  //define the staples
-  enum STAPLE_TYPE{QUAD_STAPLE,EF_STAPLE,FC_STAPLE,BC_STAPLE,AB_STAPLE,DA_STAPLE,DE_STAPLE};
-  quad_su3 *staples[7];
-  for(int istaple=0;istaple<7;istaple++)
-    staples[istaple]=nissa_malloc("staples",loc_vol+bord_vol+edge_vol,quad_su3);
+  //squared staples are always local
+  quad_su3 *squared_staples=nissa_malloc("squared_staples",loc_vol,quad_su3);
+  vector_reset(squared_staples);
   
   //communicate the edges
   communicate_lx_quad_su3_edges(conf);
   
   //compute all the locally computable squares and rectangular staples
-  nissa_loc_vol_loop(A)
+  for(int mu=0;mu<4;mu++)
+    for(int inu=0;inu<3;inu++)
+      {
+	int nu=(inu<mu)?inu:inu+1;
+	
+#pragma omp parallel for
+	nissa_loc_vol_loop(A)
+	  {
+	    int B=loclx_neighup[A][nu];            //  E---F---C   
+	    int D=loclx_neighdw[A][nu];            //  |   |   | mu
+	    int F=loclx_neighup[A][mu];            //  D---A---B   
+	    int E=loclx_neighup[D][mu];            //        nu    
+	    
+	    //compute the forward parts, ABC and DEF
+	    su3 ABC,DEF;
+	    unsafe_su3_prod_su3(ABC,conf[A][nu],conf[B][mu]);
+	    unsafe_su3_prod_su3(DEF,conf[D][mu],conf[E][nu]);
+	    //compute the forward and backward staples
+	    su3 ABCF,ADEF;
+	    unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
+	    unsafe_su3_dag_prod_su3(ADEF,conf[D][nu],DEF);
+	    
+	    //summ the squared staples into the force
+	    su3_summassign(squared_staples[A][mu],ABCF);
+	    su3_summassign(squared_staples[A][mu],ADEF);
+	    
+	    //compute DABCF and ABCFE
+	    su3 DABCF,ABCFE;
+	    unsafe_su3_prod_su3(DABCF,conf[D][nu],ABCF);
+	    unsafe_su3_prod_su3_dag(ABCFE,ABCF,conf[E][nu]);
+	    //compute DABCFE, that is DE rect staple
+	    su3_summ_the_prod_su3_dag(Force[D][mu],DABCF,conf[E][nu]);
+	    //compute EDABCF, that is EF rect staple
+	    su3_summ_the_dag_prod_su3(Force[E][nu],conf[D][mu],DABCF);
+	    //compute DEFCBA, that is, DA rect staple
+	    su3_summ_the_prod_su3_dag(Force[D][nu],conf[D][mu],ABCFE);
+	    
+	    //compute BADEF and ADEFC
+	    su3 BADEF,ADEFC;
+	    unsafe_su3_dag_prod_su3(BADEF,conf[A][nu],ADEF);
+	    unsafe_su3_prod_su3(ADEFC,ADEF,conf[F][nu]);
+	    //BADEFC, that is BC staple
+	    su3_summ_the_prod_su3(Force[B][mu],BADEF,conf[F][nu]);
+	    //FEDABC, that is FC staple
+	    su3_summ_the_dag_prod_su3(Force[F][nu],BADEF,conf[B][mu]);
+	    //ADEFCB, that is AB staple
+	    su3_summ_the_prod_su3_dag(Force[A][nu],ADEFC,conf[B][mu]);
+	  }
+      }
+  
+/*
+  
+   |   |   |   |   |   |   
+   X---X---O---O---X---X---
+   |   |   |   |   |   |   
+   X---X---O---O---X---X---
+   |   |   |   |   |   |   
+   O---O---X---X---O---O---
+   |   |   |   |   |   |   
+   O---O---X---X---O---O---
+   |   |   |   |   |   |   
+   X---X---O---O---X---X---
+   |   |   |   |   |   |   
+   X---X---O---O---X---X---
+   
+*/
+  
+  //summ together the staples for each link
+#pragma omp parallel for
+  nissa_loc_vol_loop(ivol)
     for(int mu=0;mu<4;mu++)
-      for(int inu=0;inu<3;inu++)
-	{
-	  int nu=(inu<mu)?inu:inu+1;
-	  
-	  int B=loclx_neighup[A][nu];            //  E---F---C   
-	  int D=loclx_neighdw[A][nu];            //  |   |   | mu
-	  int F=loclx_neighup[A][mu];            //  D---A---B   
-	  int E=loclx_neighup[D][mu];            //        nu    
-	  
-	  //compute the forward parts, ABC and DEF
-	  su3 ABC,DEF;
-	  unsafe_su3_prod_su3(ABC,conf[A][nu],conf[B][mu]);
-	  unsafe_su3_prod_su3(DEF,conf[D][mu],conf[E][nu]);
-	  //compute the forward and backward staples
-	  su3 ABCF,ADEF;
-	  unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
-	  unsafe_su3_dag_prod_su3(ADEF,conf[D][nu],DEF);
-	  
-	  //summ the staples
-	  su3_dag_summ_the_prod_double(staples[QUAD_STAPLE][A][mu],ABCF,c0);
-	  su3_dag_summ_the_prod_double(staples[QUAD_STAPLE][A][mu],ADEF,c0);
-	  
-	  //compute DABCF and ABCFE
-	  su3 DABCF,ABCFE;
-	  unsafe_su3_prod_su3(DABCF,conf[D][nu],ABCF);
-	  unsafe_su3_prod_su3_dag(ABCFE,ABCF,conf[E][nu]);
-	  //compute DABCFE, that is DE rect staple
-	  unsafe_su3_prod_su3_dag(staples[DE_STAPLE][D][mu],DABCF,conf[E][nu]);
-	  //compute EDABCF, that is EF rect staple
-	  unsafe_su3_dag_prod_su3(staples[EF_STAPLE][E][nu],conf[D][mu],DABCF);
-	  //compute DEFCBA, that is, DA rect staple
-	  unsafe_su3_prod_su3_dag(staples[DA_STAPLE][D][nu],conf[D][mu],ABCFE);
-	  
-	  //compute BADEF and ADEFC
-	  su3 BADEF,ADEFC;
-	  unsafe_su3_dag_prod_su3(BADEF,conf[A][nu],ADEF);
-	  unsafe_su3_prod_su3(ADEFC,ADEF,conf[F][nu]);
-	  //BADEFC, that is BC staple
-	  unsafe_su3_prod_su3(staples[BC_STAPLE][B][mu],BADEF,conf[F][nu]);
-	  //FEDABC, that is FC staple
-	  unsafe_su3_dag_prod_su3(staples[FC_STAPLE][F][nu],BADEF,conf[B][mu]);
-	  //ADEFCB, that is AB staple
-	  unsafe_su3_prod_su3_dag(staples[AB_STAPLE][A][nu],ADEFC,conf[B][mu]);
-	}
+      {
+	su3 tot;
+	su3_linear_comb(tot,squared_staples[ivol][mu],c0,Force[ivol][mu],c1);
+	unsafe_su3_hermitian(Force[ivol][mu],tot);
+      }
+  
+  //free
+  nissa_free(squared_staples);
 }
 
 void tree_level_Symanzik_force(quad_su3 **F_eo,quad_su3 **conf_eo,double beta)
 {
-  if(0)
+  if(1)
     {
       quad_su3 *F_lx=nissa_malloc("F_lx",loc_vol+bord_vol+edge_vol,quad_su3);
       quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -255,3 +286,4 @@ void tree_level_Symanzik_force(quad_su3 **F_eo,quad_su3 **conf_eo,double beta)
   else
     old_tree_level_Symanzik_force(F_eo,conf_eo,beta);
 }
+

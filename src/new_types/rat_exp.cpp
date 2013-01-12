@@ -5,7 +5,7 @@
 #include "../base/routines.h"
 
 //allocate a new rat approx
-void rat_approx_create(rat_approx *appr,int nterms,const char *name)
+void rat_approx_create(rat_approx_type *appr,int nterms,const char *name)
 {
   memcpy(appr->name,name,20);
   appr->nterms=nterms;
@@ -14,13 +14,13 @@ void rat_approx_create(rat_approx *appr,int nterms,const char *name)
 }
 
 //free a rational approx
-void rat_approx_destroy(rat_approx *appr)
+void rat_approx_destroy(rat_approx_type *appr)
 {
   free(appr->poles);
 }
 
 //print a rational approximation
-void master_printf_rat_approx(rat_approx *appr)
+void master_printf_rat_approx(rat_approx_type *appr)
 {
   master_printf("Rational approximation %s of x^%lg:\n",appr->name,appr->exp_power);
   master_printf("  valid in the interval: %lg %lg\n",appr->minimum,appr->maximum);

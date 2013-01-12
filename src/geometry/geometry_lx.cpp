@@ -183,8 +183,8 @@ int full_lx_of_coords(coords ext_x)
   for(int mu=0;mu<4;mu++)
     if((isbord[ort_dir_bord[mu][0]]==0)&&(isbord[ort_dir_bord[mu][1]]==0)&&(isbord[ort_dir_bord[mu][2]]==0))
       {
-	if(isbord[mu]==+1) return loc_vol+bord_vol/2+bord_offset[mu]+bordlx_of_coord(x,mu);  //forward border
-	if(isbord[mu]==-1) return loc_vol+bord_offset[mu]+bordlx_of_coord(x,mu);             //backward border
+	if(isbord[mu]==-1) return loc_vol+bord_offset[mu]+bordlx_of_coord(x,mu);             //backward border comes first
+	if(isbord[mu]==+1) return loc_vol+bord_vol/2+bord_offset[mu]+bordlx_of_coord(x,mu);  //forward border comes after
       }
   
   //check if it is in one of the 6 --,-+,+-,++ edges

@@ -45,7 +45,7 @@ double eo_color_normalize(color *out,color *in,double norm)
 
 //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
 //assumes that the passed conf already has stag phases inside it
-double max_eigenval(quark_content &pars,quad_su3 **eo_conf,int niters)
+double max_eigenval(quark_content_type &quark_content,quad_su3 **eo_conf,int niters)
 {
   communicate_eo_quad_su3_borders(eo_conf);
   
@@ -65,43 +65,44 @@ double max_eigenval(quark_content &pars,quad_su3 **eo_conf,int niters)
   //apply the vector niter times normalizing at each iter
   for(int iter=0;iter<niters;iter++)
     {
-      //inv_stD2ee_m2_cg(vec_out,NULL,eo_conf,pars.mass,10000,5,1.e-13,vec_in);
-      apply_stD2ee(vec_out,eo_conf,tmp,pars.mass,vec_in);
+      //inv_stD2ee_m2_cg(vec_out,NULL,eo_conf,quark_content.mass,10000,5,1.e-13,vec_in);
+      apply_stD2ee(vec_out,eo_conf,tmp,quark_content.mass,vec_in);
       
       //compute the norm
       eig_max=eo_color_normalize(vec_in,vec_out,glb_volh*3);
       
-      verbosity_lv2_master_printf("max_eigen search mass %lg, iter=%d, eig=%lg\n",pars.mass,iter,eig_max);
+      verbosity_lv2_master_printf("max_eigen search mass %lg, iter=%d, eig=%lg\n",quark_content.mass,iter,eig_max);
     }
   
   nissa_free(tmp);
   nissa_free(vec_out);
   nissa_free(vec_in);
   
-  master_printf("max_eigen mass %lg: %lg\n",pars.mass,eig_max);
+  master_printf("max_eigen mass %lg: %lg\n",quark_content.mass,eig_max);
   
   return eig_max;
 }
 
 //scale the rational expansion
 //assumes that the conf has already stag phases inside
-void rootst_eoimpr_scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_exp_actio,quad_su3 **eo_conf,theory_pars *physics)
+void rootst_eoimpr_scale_expansions(rat_approx_type *rat_exp_pfgen,rat_approx_type *rat_exp_actio,quad_su3 **eo_conf,theory_pars_type *theory_pars)
 {
   //loop over each flav
-  for(int iflav=0;iflav<physics->nflavs;iflav++)
+  for(int iflav=0;iflav<theory_pars->nflavs;iflav++)
     {
       //The expansion power for a n-degenerate set of flav is labelled by n-1
-      int irexp=physics->flav_pars[iflav].deg-1;
+      int irexp=theory_pars->quark_content[iflav].deg-1;
       
       //The expansion for a npf pseudofermions is labelled by npf-1
       int ipf=0;//for the moment, only 1 pf
       
       //Set scale factors
       //add the background field
-      add_backfield_to_conf(eo_conf,physics->backfield[iflav]);
-      double scale=max_eigenval(physics->flav_pars[iflav],eo_conf,50)*1.1;
-      if(db_rat_exp_min*scale>=pow(physics->flav_pars[iflav].mass,2)) crash("approx not valid, eig min: %lg %lg",db_rat_exp_min*scale,pow(physics->flav_pars[iflav].mass,2));
-      rem_backfield_from_conf(eo_conf,physics->backfield[iflav]);
+      add_backfield_to_conf(eo_conf,theory_pars->backfield[iflav]);
+      double scale=max_eigenval(theory_pars->quark_content[iflav],eo_conf,50)*1.1;
+      if(db_rat_exp_min*scale>=pow(theory_pars->quark_content[iflav].mass,2))
+	crash("approx not valid, scaled lower range: %lg, min eig: %lg",db_rat_exp_min*scale,pow(theory_pars->quark_content[iflav].mass,2));
+      rem_backfield_from_conf(eo_conf,theory_pars->backfield[iflav]);
 
       double scale_pfgen=pow(scale,db_rat_exp_pfgen_degr[ipf][irexp]);
       double scale_actio=pow(scale,db_rat_exp_actio_degr[ipf][irexp]);
@@ -120,10 +121,10 @@ void rootst_eoimpr_scale_expansions(rat_approx *rat_exp_pfgen,rat_approx *rat_ex
 
       for(int iterm=0;iterm<db_rat_exp_nterms;iterm++)
         {
-          rat_exp_pfgen[iflav].poles[iterm]=db_rat_exp_pfgen_pole[ipf][irexp][iterm]*scale+pow(physics->flav_pars[iflav].mass,2);
+          rat_exp_pfgen[iflav].poles[iterm]=db_rat_exp_pfgen_pole[ipf][irexp][iterm]*scale+pow(theory_pars->quark_content[iflav].mass,2);
           rat_exp_pfgen[iflav].weights[iterm]=db_rat_exp_pfgen_coef[ipf][irexp][iterm]*scale*scale_pfgen;
 
-          rat_exp_actio[iflav].poles[iterm]=db_rat_exp_actio_pole[ipf][irexp][iterm]*scale+pow(physics->flav_pars[iflav].mass,2);
+          rat_exp_actio[iflav].poles[iterm]=db_rat_exp_actio_pole[ipf][irexp][iterm]*scale+pow(theory_pars->quark_content[iflav].mass,2);
           rat_exp_actio[iflav].weights[iterm]=db_rat_exp_actio_coef[ipf][irexp][iterm]*scale*scale_actio;
 	}
       

@@ -23,9 +23,11 @@ extern double sto_remap_time;
 extern int nglu_comp;
 extern double glu_comp_time;
 
+#define SEA 0
+
 //observables
 FILE *chiral_obs_file,*gauge_obs_file,*top_obs_file;
-int chiral_meas_flag,top_meas_flag,top_cool_overrelax_flag;
+int gauge_meas_flag,top_meas_flag,top_cool_overrelax_flag;
 double top_cool_overrelax_exp;
 int top_cool_nsteps,top_meas_each_nsteps;
 double cond_meas_residue;
@@ -40,8 +42,9 @@ quad_su3 *new_conf[2];
 quad_su3 *conf[2];
 
 //structures containing parameters
-theory_pars physics;
-evol_pars evol;
+int ntheories;
+theory_pars_type *theory_pars;
+evol_pars_type evol_pars;
 
 //number of traj
 int itraj,max_ntraj;
@@ -51,13 +54,106 @@ int skip_mtest_ntraj;
 
 const int HOT=0,COLD=1;
 
-void read_quark_content(quark_content &pars)
+//read degeneracy, mass, chpot and charge
+void read_quark_content(quark_content_type &quark_content)
 {
-  read_str_int("Degeneracy",&(pars.deg));
-  read_str_double("Mass",&(pars.mass));
-  read_str_double("RePotCh",&(pars.re_pot));
-  read_str_double("ImPotCh",&(pars.im_pot));
-  read_str_double("ElecCharge",&(pars.charge));
+  read_str_int("Degeneracy",&(quark_content.deg));
+  read_str_double("Mass",&(quark_content.mass));
+  read_str_double("RePotCh",&(quark_content.re_pot));
+  read_str_double("ImPotCh",&(quark_content.im_pot));
+  read_str_double("ElecCharge",&(quark_content.charge));
+}
+
+//read the theory_pars parameters of the theory
+void read_theory_pars(theory_pars_type &theory_pars)
+{
+  //kind of action
+  char gauge_action_type[1024];
+  read_str_str("GaugeAction",gauge_action_type,1024);
+  set_gauge_action_type(theory_pars,gauge_action_type);
+  
+  //beta for gauge action
+  read_str_double("Beta",&theory_pars.beta);
+  
+  //read the number of undegenerate flavs
+  read_str_int("NDiffFlavs",&(theory_pars.nflavs));
+  theory_pars.quark_content=nissa_malloc("quark_content",theory_pars.nflavs,quark_content_type);
+  
+  //read each flav parameters
+  for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    read_quark_content(theory_pars.quark_content[iflav]);
+
+  //if there are fermions in the theory, ask if 
+  //to put electromagnetic field and how to stout
+  if(theory_pars.nflavs!=0)
+    {
+      //Stouting parameters
+      read_str_int("StoutingNLevel",&theory_pars.stout_nlev);
+      if(theory_pars.stout_nlev!=0)
+	{
+	  //isotropic or not?
+	  int iso;
+	  read_str_int("IsotropicStouting",&iso);
+	  
+	  //only iso implemented
+	  if(iso)
+	    {
+	      double rho;
+	      read_str_double("StoutRho",&rho);
+	      for(int i=0;i<4;i++)
+		for(int j=0;j<4;j++)
+		  theory_pars.stout_rho[i][j]=rho;
+	    }
+	  else crash("Anisotropic stouting not yet implemented");
+	}
+
+      //read electric and magnetic field
+      int use_bkgrd_em_field;
+      read_str_int("PutBkgrdEMField",&use_bkgrd_em_field);
+      if(use_bkgrd_em_field)
+	{
+	  read_str_double("Ex",&(theory_pars.E[0]));
+	  read_str_double("Ey",&(theory_pars.E[1]));
+	  read_str_double("Ez",&(theory_pars.E[2]));
+	  read_str_double("Bx",&(theory_pars.B[0]));
+	  read_str_double("By",&(theory_pars.B[1]));
+	  read_str_double("Bz",&(theory_pars.B[2]));
+	}  
+    }
+
+  //read if we want to measure chiral observables
+  read_str_int("MeasureChiralObs",&theory_pars.chiral_meas_flag);
+  if(theory_pars.chiral_meas_flag)
+    {
+      read_str_str("ChiralObsPath",theory_pars.chiral_meas_pars.chiral_obs_path,1024);
+      read_str_double("ChiralCondInvResidue",&theory_pars.chiral_meas_pars.cond_meas_residue);
+      read_str_int("ChiralCondNHits",&theory_pars.chiral_meas_pars.cond_meas_nhits);
+    }
+}
+
+//initialize background field and so on
+void init_theory_pars(theory_pars_type &theory_pars)
+{
+  //allocate the u1 background field
+  theory_pars.backfield=nissa_malloc("back**",theory_pars.nflavs,quad_u1**);
+  for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    {
+      theory_pars.backfield[iflav]=nissa_malloc("back*",2,quad_u1*);
+      for(int par=0;par<2;par++) theory_pars.backfield[iflav][par]=nissa_malloc("back_eo",loc_volh,quad_u1);
+    }
+  
+  //initialize background field to id
+  for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    {
+      init_backfield_to_id(theory_pars.backfield[iflav]);
+      add_im_pot_to_backfield(theory_pars.backfield[iflav],theory_pars.quark_content[iflav]);
+      add_em_field_to_backfield(theory_pars.backfield[iflav],theory_pars.quark_content[iflav],theory_pars.E[0],0,1);
+      add_em_field_to_backfield(theory_pars.backfield[iflav],theory_pars.quark_content[iflav],theory_pars.E[1],0,2);
+      add_em_field_to_backfield(theory_pars.backfield[iflav],theory_pars.quark_content[iflav],theory_pars.E[2],0,3);
+      add_em_field_to_backfield(theory_pars.backfield[iflav],theory_pars.quark_content[iflav],theory_pars.B[0],2,3);
+      add_em_field_to_backfield(theory_pars.backfield[iflav],theory_pars.quark_content[iflav],theory_pars.B[1],3,1);
+      add_em_field_to_backfield(theory_pars.backfield[iflav],theory_pars.quark_content[iflav],theory_pars.B[2],1,2);      
+    }
 }
 
 //write a conf adding info
@@ -118,60 +214,24 @@ void init_simulation(char *path)
   read_str_int("T",&T);
   init_grid(T,L);
   
-  //read in and out conf path
-  read_str_str("ConfPath",conf_path,1024);
-  read_str_str("StoreConfPath",store_conf_path,1024);
-  read_str_int("StoreConfEach",&store_conf_each);
-  read_str_int("StoreRunningTempConf",&store_running_temp_conf);
+  //read number of additional theory to read
+  int nadditional_theories;
+  read_str_int("NAdditionalTheories",&nadditional_theories);
+  ntheories=nadditional_theories+1;
+  theory_pars=nissa_malloc("theory_pars",ntheories,theory_pars_type);
   
-  //read if confifguration must be generated cold or hot
-  char start_conf_cond_str[1024];
-  read_str_str("StartConfCond",start_conf_cond_str,1024);
-  int start_conf_cond=-1;
-  if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT;
-  if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD;
-  if(start_conf_cond==-1) crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
-  
-  //kind of action
-  char gauge_action_type[1024];
-  read_str_str("GaugeAction",gauge_action_type,1024);
-  set_gauge_action_type(physics,gauge_action_type);
-  //beta for gauge action
-  read_str_double("Beta",&physics.beta);
-  
-  //Stouting parameters
-  read_str_int("NStoutingLevel",&physics.nstout_lev);
-  if(physics.nstout_lev!=0)
+  //read physical theory: theory 0 is the sea (simulated one)
+  for(int itheory=0;itheory<ntheories;itheory++)
     {
-      //isotropic or not?
-      int iso;
-      read_str_int("IsotropicStouting",&iso);
-      
-      //only iso implemented
-      if(iso)
-	{
-	  double rho;
-	  read_str_double("StoutRho",&rho);
-	  for(int i=0;i<4;i++)
-	    for(int j=0;j<4;j++)
-	      physics.stout_rho[i][j]=rho;
-	}
-      else crash("Anisotropic stouting not yet implemented");
+      if(itheory==0) master_printf("Reading info on sea theory\n");
+      else           master_printf("Reading info on additional (valence) theory %d/%d\n",itheory,nadditional_theories);
+      read_theory_pars(theory_pars[itheory]);
     }
   
-  //read observable file
+  //read if we want to measure gauge obs
+  read_str_int("MeasureGaugeObs",&gauge_meas_flag);
   char gauge_obs_path[1024];
   read_str_str("GaugeObsPath",gauge_obs_path,1024);
-  
-  //read if we want to measure chiral observables
-  read_str_int("MeasureChiral",&chiral_meas_flag);
-  char chiral_obs_path[1024];
-  if(chiral_meas_flag)
-    {
-      read_str_str("ChiralObsPath",chiral_obs_path,1024);
-      read_str_double("ChiralCondInvResidue",&cond_meas_residue);
-      read_str_int("ChiralCondNHits",&cond_meas_nhits);
-    }
   
   //read if we want to measure topological charge
   read_str_int("MeasureTopology",&top_meas_flag);
@@ -192,47 +252,41 @@ void init_simulation(char *path)
   int seed;
   read_str_int("Seed",&seed);
   
-  //read the number of undegenerate flavs
-  read_str_int("NDiffFlavs",&(physics.nflavs));
-  physics.flav_pars=nissa_malloc("flav_pars",physics.nflavs,quark_content);
-  
-  //read each flav parameters
-  for(int iflav=0;iflav<physics.nflavs;iflav++)
-    read_quark_content(physics.flav_pars[iflav]);
-
-  //read electric and magnetic field
-  read_str_int("PutBkgrdEMField",&(physics.use_bkgrd_em_field));
-  if(physics.use_bkgrd_em_field)
-    {
-      read_str_double("Ex",&(physics.E[0]));
-      read_str_double("Ey",&(physics.E[1]));
-      read_str_double("Ez",&(physics.E[2]));
-      read_str_double("Bx",&(physics.B[0]));
-      read_str_double("By",&(physics.B[1]));
-      read_str_double("Bz",&(physics.B[2]));
-    }
-  
   //load evolution info depending if is a quenched simulation or unquenched
-  if(physics.nflavs!=0)
+  if(theory_pars[SEA].nflavs!=0)
     {
       read_str_int("SkipMTestNTraj",&skip_mtest_ntraj);
       
       //first guess for hmc evolution
-      read_str_double("HmcTrajLength",&evol.md_pars.traj_length);
-      read_str_int("NmdSteps",&evol.md_pars.nmd_steps);
-      read_str_int("NGaugeSubSteps",&evol.md_pars.ngauge_substeps);
-      read_str_double("MdResidue",&evol.md_pars.md_residue);
-      read_str_double("PfActionResidue",&evol.md_pars.pf_action_residue);
+      read_str_double("HmcTrajLength",&evol_pars.hmc_evol_pars.traj_length);
+      read_str_int("NmdSteps",&evol_pars.hmc_evol_pars.nmd_steps);
+      read_str_int("NGaugeSubSteps",&evol_pars.hmc_evol_pars.ngauge_substeps);
+      read_str_double("MdResidue",&evol_pars.hmc_evol_pars.md_residue);
+      read_str_double("PfActionResidue",&evol_pars.hmc_evol_pars.pf_action_residue);
     }
   else
     {
       //heat bath parameters
-      read_str_int("NHbSweeps",&evol.pure_gauge_pars.nhb_sweeps);
-      read_str_int("NHbHits",&evol.pure_gauge_pars.nhb_hits);
+      read_str_int("NHbSweeps",&evol_pars.pure_gauge_evol_pars.nhb_sweeps);
+      read_str_int("NHbHits",&evol_pars.pure_gauge_evol_pars.nhb_hits);
       //overrelax parameters
-      read_str_int("NOvSweeps",&evol.pure_gauge_pars.nov_sweeps);
-      read_str_int("NOvHits",&evol.pure_gauge_pars.nov_hits);
+      read_str_int("NOvSweeps",&evol_pars.pure_gauge_evol_pars.nov_sweeps);
+      read_str_int("NOvHits",&evol_pars.pure_gauge_evol_pars.nov_hits);
     }
+  
+  //read in and out conf path
+  read_str_str("ConfPath",conf_path,1024);
+  read_str_str("StoreConfPath",store_conf_path,1024);
+  read_str_int("StoreConfEach",&store_conf_each);
+  read_str_int("StoreRunningTempConf",&store_running_temp_conf);
+  
+  //read if confifguration must be generated cold or hot
+  char start_conf_cond_str[1024];
+  read_str_str("StartConfCond",start_conf_cond_str,1024);
+  int start_conf_cond=-1;
+  if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT;
+  if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD;
+  if(start_conf_cond==-1) crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
   
   close_input();
   
@@ -244,28 +298,10 @@ void init_simulation(char *path)
   new_conf[0]=nissa_malloc("new_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
   new_conf[1]=nissa_malloc("new_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
   
-  //allocate the u1 background field
-  physics.backfield=nissa_malloc("back**",physics.nflavs,quad_u1**);
-  for(int iflav=0;iflav<physics.nflavs;iflav++)
-    {
-      physics.backfield[iflav]=nissa_malloc("back*",2,quad_u1*);
-      for(int par=0;par<2;par++) physics.backfield[iflav][par]=nissa_malloc("back_eo",loc_volh,quad_u1);
-    }
-  
   //////////////////////// initialize stuff ////////////////////
   
-  //initialize background field to id
-  for(int iflav=0;iflav<physics.nflavs;iflav++)
-    {
-      init_backfield_to_id(physics.backfield[iflav]);
-      add_im_pot_to_backfield(physics.backfield[iflav],physics.flav_pars[iflav]);
-      add_em_field_to_backfield(physics.backfield[iflav],physics.flav_pars[iflav],physics.E[0],0,1);
-      add_em_field_to_backfield(physics.backfield[iflav],physics.flav_pars[iflav],physics.E[1],0,2);
-      add_em_field_to_backfield(physics.backfield[iflav],physics.flav_pars[iflav],physics.E[2],0,3);
-      add_em_field_to_backfield(physics.backfield[iflav],physics.flav_pars[iflav],physics.B[0],2,3);
-      add_em_field_to_backfield(physics.backfield[iflav],physics.flav_pars[iflav],physics.B[1],3,1);
-      add_em_field_to_backfield(physics.backfield[iflav],physics.flav_pars[iflav],physics.B[2],1,2);      
-    }
+  //initialize the theory_pars theory to simulate
+  for(int itheory=0;itheory<ntheories;itheory++) init_theory_pars(theory_pars[itheory]);
   
   //load conf or generate it
   char ap_cr[2];
@@ -302,9 +338,21 @@ void init_simulation(char *path)
     }
   
   //open creating or appending
-  gauge_obs_file=open_file(gauge_obs_path,ap_cr);
+  if(gauge_meas_flag) gauge_obs_file=open_file(gauge_obs_path,ap_cr);
   if(top_meas_flag) top_obs_file=open_file(top_obs_path,ap_cr);
-  if(chiral_meas_flag) chiral_obs_file=open_file(chiral_obs_path,ap_cr);
+}
+
+//unset the background field
+void unset_theory_pars(theory_pars_type &theory_pars)
+{
+  for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    {
+      for(int par=0;par<2;par++) nissa_free(theory_pars.backfield[iflav][par]);
+      nissa_free(theory_pars.backfield[iflav]);
+    }
+
+  nissa_free(theory_pars.backfield);  
+  nissa_free(theory_pars.quark_content);
 }
 
 //finalize everything
@@ -312,11 +360,9 @@ void close_simulation()
 {
   if(!store_running_temp_conf) write_conf(conf_path,conf);
   
-  for(int iflav=0;iflav<physics.nflavs;iflav++)
-    {
-      for(int par=0;par<2;par++) nissa_free(physics.backfield[iflav][par]);
-      nissa_free(physics.backfield[iflav]);
-    }
+  for(int itheory=0;itheory<ntheories;itheory++)
+    unset_theory_pars(theory_pars[itheory]);
+  nissa_free(theory_pars);
   
   for(int par=0;par<2;par++)
     {
@@ -324,14 +370,10 @@ void close_simulation()
       nissa_free(conf[par]);
     }
   
-  nissa_free(physics.backfield);  
-  nissa_free(physics.flav_pars);
-  
   if(rank==0)
     {
       fclose(gauge_obs_file);
       if(top_meas_flag) fclose(top_obs_file);
-      if(chiral_meas_flag) fclose(chiral_obs_file);
     }
   close_nissa();
 }
@@ -342,10 +384,10 @@ int generate_new_conf()
   int acc;
       
   //if not quenched
-  if(physics.nflavs!=0)
+  if(theory_pars[SEA].nflavs!=0)
     {
       int perform_test=(itraj>=skip_mtest_ntraj);
-      double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,&physics,&evol.md_pars);
+      double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,&theory_pars[SEA],&evol_pars.hmc_evol_pars);
       
       master_printf("Diff action: %lg, ",diff_act);
       
@@ -368,11 +410,11 @@ int generate_new_conf()
   else
     {
       //number of hb sweeps
-      for(int ihb_sweep=0;ihb_sweep<evol.pure_gauge_pars.nhb_sweeps;ihb_sweep++)
-	heatbath_conf(conf,&physics,&evol.pure_gauge_pars);
+      for(int ihb_sweep=0;ihb_sweep<evol_pars.pure_gauge_evol_pars.nhb_sweeps;ihb_sweep++)
+	heatbath_conf(conf,&theory_pars[SEA],&evol_pars.pure_gauge_evol_pars);
       //numer of overrelax sweeps
-      for(int iov_sweep=0;iov_sweep<evol.pure_gauge_pars.nov_sweeps;iov_sweep++)
-	overrelax_conf(conf,&physics,&evol.pure_gauge_pars);
+      for(int iov_sweep=0;iov_sweep<evol_pars.pure_gauge_evol_pars.nov_sweeps;iov_sweep++)
+	overrelax_conf(conf,&theory_pars[SEA],&evol_pars.pure_gauge_evol_pars);
       
       //always new conf
       acc=1;
@@ -396,23 +438,27 @@ void measure_gauge_obs(FILE *file,quad_su3 **conf,int iconf,int acc)
 }
 
 //measure chiral obs
-void measure_chiral_obs(FILE *file,quad_su3 **conf,int iconf,double residue,int nhits)
+void measure_chiral_obs(quad_su3 **conf,theory_pars_type &theory_pars,int iconf)
 {
+  FILE *file=open_file(theory_pars.chiral_meas_pars.chiral_obs_path,(iconf==0)?"w":"a");
+
   master_fprintf(file,"%d",iconf);
   
   //measure the condensate for each quark
-  for(int iflav=0;iflav<physics.nflavs;iflav++)
+  for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
     {
       complex cond={0,0};
       
       //loop over hits
+      int nhits=theory_pars.chiral_meas_pars.cond_meas_nhits;
       for(int hit=0;hit<nhits;hit++)
 	{
-	  verbosity_lv1_master_printf("Evaluating chiral condensate for flavor %d/%d, nhits %d/%d\n",iflav+1,physics.nflavs,hit+1,nhits);
+	  verbosity_lv1_master_printf("Evaluating chiral condensate for flavor %d/%d, nhits %d/%d\n",iflav+1,theory_pars.nflavs,hit+1,nhits);
 	  
 	  //compute and summ
 	  complex temp;
-	  chiral_condensate(temp,conf,physics.backfield[iflav],physics.flav_pars[iflav].mass,residue);
+	  chiral_condensate(temp,conf,theory_pars.backfield[iflav],
+			    theory_pars.quark_content[iflav].mass,theory_pars.chiral_meas_pars.cond_meas_residue);
 	  complex_summ_the_prod_double(cond,temp,1.0/nhits);
 	}
       
@@ -420,6 +466,8 @@ void measure_chiral_obs(FILE *file,quad_su3 **conf,int iconf,double residue,int 
     }
 
   master_fprintf(file,"\n");
+  
+  if(rank==0) fclose(chiral_obs_file);
 }
 
 //measure the topologycal charge
@@ -449,7 +497,9 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
 {
   measure_gauge_obs(gauge_obs_file,conf,iconf,acc);
   if(top_meas_flag) measure_topology(top_obs_file,conf,top_cool_nsteps,top_meas_each_nsteps,iconf);
-  if(chiral_meas_flag) measure_chiral_obs(chiral_obs_file,conf,iconf,cond_meas_residue,cond_meas_nhits);
+  for(int itheory=0;itheory<ntheories;itheory++)
+    if(theory_pars[itheory].chiral_meas_flag)
+      measure_chiral_obs(conf,theory_pars[itheory],iconf);
 }
 
 //store conf when appropriate

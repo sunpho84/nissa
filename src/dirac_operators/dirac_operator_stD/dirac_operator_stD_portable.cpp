@@ -87,7 +87,7 @@ void apply_stD2ee_old(color *out,quad_su3 **conf,color *temp,double mass,color *
   if(out==temp) crash("out==temp!");
   if(temp==in)  crash("temp==in!");
   
-  double mass2=mass*mass;
+  const double mass2=mass*mass;
   
   //perform the off diagonal multiplication
   apply_st2Doe(temp,conf,in);
@@ -118,7 +118,7 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
   if(out==temp) crash("out==temp!");
   if(temp==in)  crash("temp==in!");
   
-  double mass2=mass*mass;
+  const double mass2=mass*mass;
   
   //perform the off diagonal multiplication
   communicate_eo_quad_su3_borders(conf);

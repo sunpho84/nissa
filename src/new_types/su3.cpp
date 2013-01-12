@@ -402,6 +402,20 @@ void su3_summ_the_prod_su3(su3 a,su3 b,su3 c)
       for(int itemp=0;itemp<3;itemp++)
 	complex_summ_the_prod(a[ir_out][ic_out],b[ir_out][itemp],c[itemp][ic_out]);
 }
+void su3_summ_the_prod_su3_dag(su3 a,su3 b,su3 c)
+{
+  for(int ir_out=0;ir_out<3;ir_out++)
+    for(int ic_out=0;ic_out<3;ic_out++)
+      for(int itemp=0;itemp<3;itemp++)
+	complex_summ_the_conj2_prod(a[ir_out][ic_out],b[ir_out][itemp],c[ic_out][itemp]);
+}
+void su3_summ_the_dag_prod_su3(su3 a,su3 b,su3 c)
+{
+  for(int ir_out=0;ir_out<3;ir_out++)
+    for(int ic_out=0;ic_out<3;ic_out++)
+      for(int itemp=0;itemp<3;itemp++)
+	complex_summ_the_conj1_prod(a[ir_out][ic_out],b[itemp][ir_out],c[itemp][ic_out]);
+}
 
 //Product of two su3 matrixes
 void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c)

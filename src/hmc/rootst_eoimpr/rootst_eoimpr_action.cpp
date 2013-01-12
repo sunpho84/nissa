@@ -12,7 +12,7 @@
 #include "../momenta/momenta_action.h"
 
 //compute quark action for a set of quark
-double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,color **pf,rat_approx *appr,double residue)
+double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,color **pf,rat_approx_type *appr,double residue)
 {  
   //allocate chi
   color *chi_e=nissa_malloc("chi_e",loc_volh,color);
@@ -43,24 +43,24 @@ double rootst_eoimpr_quark_action(quad_su3 **eo_conf,int nfl,quad_u1 ***u1b,colo
 
 //Compute the total action of the rooted staggered e/o improved theory.
 //Passed conf must NOT contain the backfield, but contains the stagphases so remove it.
-double full_rootst_eoimpr_action(quad_su3 **eo_conf,quad_su3 **sme_conf,quad_su3 **H,color **pf,theory_pars *physics,rat_approx *appr,double residue)
+double full_rootst_eoimpr_action(quad_su3 **eo_conf,quad_su3 **sme_conf,quad_su3 **H,color **pf,theory_pars_type *theory_pars,rat_approx_type *appr,double residue)
 {
   verbosity_lv1_master_printf("Computing action\n");
 
   //compute the three parts of the action
-  double quark_action=rootst_eoimpr_quark_action(sme_conf,physics->nflavs,physics->backfield,pf,appr,residue);
+  double quark_action=rootst_eoimpr_quark_action(sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,appr,residue);
   verbosity_lv2_master_printf("Quark_action: %16.16lg\n",quark_action);
   
   //gauge action
   double gluon_action;
-  switch(physics->gac_type)
+  switch(theory_pars->gac_type)
     {
     case Wilson_action: 
-      gluon_action=physics->beta*6*(1+global_plaquette_eo_conf(eo_conf))*glb_vol;
+      gluon_action=theory_pars->beta*6*(1+global_plaquette_eo_conf(eo_conf))*glb_vol;
       break;
     case tlSym_action:
       addrem_stagphases_to_eo_conf(eo_conf);
-      gluon_action=tree_level_Symanzik_action(eo_conf,physics->beta);
+      gluon_action=tree_level_Symanzik_action(eo_conf,theory_pars->beta);
       addrem_stagphases_to_eo_conf(eo_conf);
       break;
     default:
