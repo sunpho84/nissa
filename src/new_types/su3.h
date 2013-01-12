@@ -49,6 +49,8 @@ void safe_su3_prod_complex(su3 a,su3 b,complex c);
 void safe_su3_prod_conj_complex(su3 a,su3 b,complex c);
 void safe_su3_prod_su3(su3 a,su3 b,su3 c);
 void su3_summ_the_prod_su3(su3 a,su3 b,su3 c);
+void su3_summ_the_prod_su3_dag(su3 a,su3 b,su3 c);
+void su3_summ_the_dag_prod_su3(su3 a,su3 b,su3 c);
 void safe_su3_prod_su3_dag(su3 a,su3 b,su3 c);
 void safe_su3_transpose(su3 out,su3 in);
 void safe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor);

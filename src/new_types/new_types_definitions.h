@@ -65,24 +65,23 @@ enum source_type{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED
 enum hmc_force_piece{GAUGE_FORCE_ONLY,QUARK_FORCE_ONLY,BOTH_FORCE_PIECES};
 enum multistep_level{MACRO_STEP,MICRO_STEP};
 
-
 ///////////////////// New structures //////////////
 
 //The structure for the random generator
-typedef struct
+struct rnd_gen
 {
   int idum;
   int idum2;
   int iv[ran2_ntab];
   int iy;
-} rnd_gen;
+};
 
 //The structure for gamma matrix
-typedef struct
+struct dirac_matr
 {
   int pos[4];
   complex entr[4];
-} dirac_matr;
+};
 
 //nissa vector
 struct nissa_vect
@@ -129,17 +128,16 @@ struct anti_hermitian_exp_ingredients
 };
 
 //ILDG header
-typedef struct
+struct ILDG_header
 {
   uint32_t magic_no;
   uint16_t version;
   uint16_t mbme_flag;
   uint64_t data_length;
   char type[128];
-} ILDG_header;
+};
 
 //store messages
-struct ILDG_message;
 struct ILDG_message
 {
   bool is_last;
@@ -149,18 +147,17 @@ struct ILDG_message
 };
 
 //ILDG file view
-typedef struct
+struct ILDG_File_view
 {
   MPI_Datatype etype;
   MPI_Datatype ftype;
   MPI_Offset view_pos;
   MPI_Offset pos;
   char format[100];
-} ILDG_File_view;
-
+};
 
 //rational approximation
-typedef struct
+struct rat_approx_type
 {
   char name[20];
   double minimum;
@@ -170,36 +167,45 @@ typedef struct
   int nterms;
   double *poles;
   double *weights;
-} rat_approx;
+};
 
 //quark content
-typedef struct
+struct quark_content_type
 {
   int deg;
   double mass;
   double re_pot;
   double im_pot;
   double charge;
-} quark_content;
+};
+
+struct chiral_meas_pars_type
+{
+  char chiral_obs_path[1024];
+  double cond_meas_residue;
+  int cond_meas_nhits;
+};
 
 //theory content
 enum action_type{Wilson_action,tlSym_action};
-typedef struct
+struct theory_pars_type
 {
   double beta;
   int nflavs;
-  int use_bkgrd_em_field;
+  //int use_bkgrd_em_field;
   quad_u1 ***backfield;
-  quark_content *flav_pars;
-  double E[3];
+  quark_content_type *quark_content;
   action_type gac_type;
+  double E[3];
   double B[3];
   stout_pars stout_rho;
-  int nstout_lev;
-} theory_pars;
+  int stout_nlev;
+  int chiral_meas_flag;
+  chiral_meas_pars_type chiral_meas_pars;
+};
 
 //evolution parameters for hybrid monte carlo
-typedef struct
+struct hmc_evol_pars_type
 {
   double traj_length;
   double pf_action_residue;
@@ -207,9 +213,10 @@ typedef struct
   int nmd_steps;
   int ngauge_substeps;
   int *npseudo_fs;
-} hmc_evol_pars;
+};
 
-typedef struct
+//parameters for pure gauge theory
+struct pure_gauge_evol_pars_type
 {
   //number of hb sweeps and hits per link
   int nhb_sweeps;
@@ -217,12 +224,12 @@ typedef struct
   //the sam for overrelax
   int nov_sweeps;
   int nov_hits;
-} pure_gauge_evol_pars;
+};
 
-typedef union
+union evol_pars_type
 {
-  hmc_evol_pars md_pars;
-  pure_gauge_evol_pars pure_gauge_pars;
-} evol_pars;
+  hmc_evol_pars_type hmc_evol_pars;
+  pure_gauge_evol_pars_type pure_gauge_evol_pars;
+};
 
 #endif

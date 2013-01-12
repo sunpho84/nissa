@@ -294,11 +294,11 @@ int glb_reduce_int(int in_loc)
   return out_glb;
 }
 
-void set_gauge_action_type(theory_pars &physics,char *type)
+void set_gauge_action_type(theory_pars_type &theory_pars,char *type)
 {
-  if(strcmp(type,"Wilson")==0) physics.gac_type=Wilson_action;
+  if(strcmp(type,"Wilson")==0) theory_pars.gac_type=Wilson_action;
   else
-    if(strcmp(type,"tlSym")==0) physics.gac_type=tlSym_action;
+    if(strcmp(type,"tlSym")==0) theory_pars.gac_type=tlSym_action;
     else crash("unknown gauge action: %s",type);
 }
 

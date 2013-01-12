@@ -31,6 +31,6 @@ void master_printf_box(const char *templ,...);
 void reorder_vector(char *vect,int *order,int nel,int sel);
 void swap_doubles(double *d1,double *d2);
 void take_last_characters(char *out,const char *in,int size);
-void set_gauge_action_type(theory_pars &physics,char *type);
+void set_gauge_action_type(theory_pars_type &theory_pars,char *type);
 std::string combine(const char *format,...);
 #endif

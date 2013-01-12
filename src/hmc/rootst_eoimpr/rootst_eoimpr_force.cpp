@@ -23,7 +23,7 @@ double glu_comp_time=0;
 //Passed conf must NOT contain the backfield.
 //Of the result still need to be taken the TA
 //The approximation need to be already scaled, and must contain physical mass term
-void summ_the_rootst_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,color *pf,quad_u1 **u1b,rat_approx *appr,double residue)
+void summ_the_rootst_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,color *pf,quad_u1 **u1b,rat_approx_type *appr,double residue)
 {
   verbosity_lv1_master_printf("Computing quark force\n");
   
@@ -101,7 +101,7 @@ void full_rootst_eoimpr_force_finish_computation(quad_su3 **F,quad_su3 **conf)
 }
 
 //compute only the gauge part
-void full_rootst_eoimpr_gluons_force(quad_su3 **F,quad_su3 **conf,theory_pars *physics)
+void full_rootst_eoimpr_gluons_force(quad_su3 **F,quad_su3 **conf,theory_pars_type *physics)
 {
   nglu_comp++;
   glu_comp_time-=take_time();
@@ -122,20 +122,20 @@ void full_rootst_eoimpr_gluons_force(quad_su3 **F,quad_su3 **conf,theory_pars *p
 }
 
 //compute only the quark part, without stouting reampping
-void full_rootst_eoimpr_quarks_force_no_stout_remapping(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars *physics,rat_approx *appr,double residue)
+void full_rootst_eoimpr_quarks_force_no_stout_remapping(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars_type *theory_pars,rat_approx_type *appr,double residue)
 {
   for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
-  for(int iflav=0;iflav<physics->nflavs;iflav++)
-    summ_the_rootst_eoimpr_quark_force(F,conf,pf[iflav],physics->backfield[iflav],&(appr[iflav]),residue);
+  for(int iflav=0;iflav<theory_pars->nflavs;iflav++)
+    summ_the_rootst_eoimpr_quark_force(F,conf,pf[iflav],theory_pars->backfield[iflav],&(appr[iflav]),residue);
   
   //add the stag phases to the force term, coming from the disappered link in dS/d(U)
   addrem_stagphases_to_eo_conf(F);
 }
 
 //take into account the stout remapping procedure
-void full_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars *physics,rat_approx *appr,double residue)
+void full_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars_type *physics,rat_approx_type *appr,double residue)
 {
-  int nlev=physics->nstout_lev;
+  int nlev=physics->stout_nlev;
   
   //first of all we take care of the trivial case
   if(nlev==0) full_rootst_eoimpr_quarks_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
@@ -165,20 +165,20 @@ void full_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **conf,color **pf,the
 }
 
 //Compute the full force for the rooted staggered theory with nfl flavors
-void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars *physics,rat_approx *appr,double residue,hmc_force_piece piece)
+void full_rootst_eoimpr_force(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars_type *theory_pars,rat_approx_type *appr,double residue,hmc_force_piece piece)
 {
   //First of all compute gluonic part of the force
   switch(piece)
     {
-    case GAUGE_FORCE_ONLY: full_rootst_eoimpr_gluons_force(F,conf,physics);break;
-    case QUARK_FORCE_ONLY: full_rootst_eoimpr_quarks_force(F,conf,pf,physics,appr,residue);break;
+    case GAUGE_FORCE_ONLY: full_rootst_eoimpr_gluons_force(F,conf,theory_pars);break;
+    case QUARK_FORCE_ONLY: full_rootst_eoimpr_quarks_force(F,conf,pf,theory_pars,appr,residue);break;
     case BOTH_FORCE_PIECES:
       //allocate an additional vector where to store fermionic pieces
       quad_su3 *F1[2]={nissa_malloc("F1[e]",loc_volh,quad_su3),nissa_malloc("F1[e]",loc_volh,quad_su3)};
       
       //compute the two pieces
-      full_rootst_eoimpr_gluons_force(F,conf,physics);
-      full_rootst_eoimpr_quarks_force(F1,conf,pf,physics,appr,residue);
+      full_rootst_eoimpr_gluons_force(F,conf,theory_pars);
+      full_rootst_eoimpr_quarks_force(F1,conf,pf,theory_pars,appr,residue);
   
       //summ the two pieces
       for(int eo=0;eo<2;eo++)

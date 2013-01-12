@@ -156,7 +156,6 @@ void compute_Wstat_prop_finalize(su3spinspin *prop,quad_su3 *conf,int mu,int xmu
   {
     int xmu=glb_coord_of_loclx[x][mu];
     int dist=fabs(xmu-xmu_start);
-    int ori=(xmu==xmu_start);
     int ord=(xmu>=xmu_start);
       
     for(int ic1=0;ic1<3;ic1++)
