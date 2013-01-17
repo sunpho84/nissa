@@ -45,8 +45,6 @@ typedef quad_su3 squared_staples[6];
 typedef MPI_Offset ILDG_Offset;
 typedef MPI_File ILDG_File;
 
-typedef momentum_t stout_pars[4];
-
 //this is just for avoid misleading, but is nothing more that a spinspin
 typedef complex spin1field[4];
 typedef spin1field spin1prop[4];
@@ -179,11 +177,58 @@ struct quark_content_type
   double charge;
 };
 
-struct chiral_meas_pars_type
+//parameters to compute the chiral condensate
+struct chiral_cond_pars_type
 {
-  char chiral_cond_path[1024];
-  double cond_meas_residue;
-  int cond_meas_nhits;
+  int flag;
+  char path[1024];
+  double residue;
+  int nhits;
+};
+
+//parameters to compute time pseduoscalar correlator
+struct pseudo_corr_pars_type
+{
+  int flag;
+  char path[1024];
+  double residue;
+  int nhits;
+};
+
+//parameters to measure topology properties
+struct top_meas_pars_type
+{
+  int flag;
+  char path[1024];
+  int cool_nsteps;
+  int cool_overrelax_flag;
+  double cool_overrelax_exp;
+  int meas_each;
+};
+
+typedef momentum_t stout_coeff_type[4];
+
+//structure to store data for stouting
+struct stout_link_staples
+{
+  su3 C;
+  su3 Omega;
+  su3 Q;
+};
+
+//parameters to stout
+struct stout_pars_type
+{
+  int nlev;
+  stout_coeff_type rho;
+};
+
+//background em field parameters
+struct em_field_pars_type
+{
+  int flag;
+  double E[3];
+  double B[3];
 };
 
 //theory content
@@ -192,16 +237,13 @@ struct theory_pars_type
 {
   double beta;
   int nflavs;
-  //int use_bkgrd_em_field;
   quad_u1 ***backfield;
   quark_content_type *quark_content;
   action_type gac_type;
-  double E[3];
-  double B[3];
-  stout_pars stout_rho;
-  int stout_nlev;
-  int chiral_meas_flag;
-  chiral_meas_pars_type chiral_meas_pars;
+  stout_pars_type stout_pars;
+  em_field_pars_type em_field_pars;
+  chiral_cond_pars_type chiral_cond_pars;
+  pseudo_corr_pars_type pseudo_corr_pars;
 };
 
 //evolution parameters for hybrid monte carlo

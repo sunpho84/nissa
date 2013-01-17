@@ -2,14 +2,16 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/complex.h"
-#include "../../new_types/su3.h"
-#include "../../new_types/spin.h"
+#include "../gaugeconf.h"
+
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../base/routines.h"
 #include "../../base/communicate.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../new_types/complex.h"
+#include "../../new_types/spin.h"
+#include "../../new_types/su3.h"
 #include "../../geometry/geometry_mix.h"
 
 //This will calculate 2*a^2*ig*P_{mu,nu}
@@ -262,4 +264,30 @@ double average_topological_charge(quad_su3 **eo_conf)
   nissa_free(lx_conf);
   
   return charge;
+}
+
+//measure the topologycal charge
+void measure_topology(top_meas_pars_type &pars,quad_su3 **uncooled_conf,int iconf)
+{
+  FILE *file=open_file(pars.path,(iconf==0)?"w":"a");
+  
+  //allocate a temorary conf to be cooled
+  quad_su3 *cooled_conf[2];
+  for(int par=0;par<2;par++)
+    {
+      cooled_conf[par]=nissa_malloc("cooled_conf",loc_volh+bord_volh+edge_volh,quad_su3);
+      vector_copy(cooled_conf[par],uncooled_conf[par]);
+    }
+  
+  //print curent measure and cool
+  for(int istep=0;istep<=(pars.cool_nsteps/pars.meas_each)*pars.meas_each;istep++)
+    {
+      if(istep%pars.meas_each==0) master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,average_topological_charge(cooled_conf));
+      if(istep!=pars.cool_nsteps) cool_conf(cooled_conf,pars.cool_overrelax_flag,pars.cool_overrelax_exp);
+    }
+  
+  //discard cooled conf
+  for(int par=0;par<2;par++) nissa_free(cooled_conf[par]);
+  
+  if(rank==0) fclose(file);
 }

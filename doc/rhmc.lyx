@@ -1,0 +1,877 @@
+#LyX 2.0 created this file. For more info see http://www.lyx.org/
+\lyxformat 413
+\begin_document
+\begin_header
+\textclass article
+\use_default_options true
+\maintain_unincluded_children false
+\language english
+\language_package default
+\inputencoding auto
+\fontencoding global
+\font_roman default
+\font_sans default
+\font_typewriter default
+\font_default_family default
+\use_non_tex_fonts false
+\font_sc false
+\font_osf false
+\font_sf_scale 100
+\font_tt_scale 100
+
+\graphics default
+\default_output_format default
+\output_sync 0
+\bibtex_command default
+\index_command default
+\paperfontsize default
+\spacing single
+\use_hyperref false
+\papersize default
+\use_geometry false
+\use_amsmath 1
+\use_esint 1
+\use_mhchem 1
+\use_mathdots 1
+\cite_engine basic
+\use_bibtopic false
+\use_indices false
+\paperorientation landscape
+\suppress_date false
+\use_refstyle 0
+\index Index
+\shortcut idx
+\color #008000
+\end_index
+\secnumdepth 3
+\tocdepth 3
+\paragraph_separation skip
+\defskip medskip
+\quotes_language english
+\papercolumns 1
+\papersides 1
+\paperpagestyle default
+\tracking_changes false
+\output_changes false
+\html_math_output 0
+\html_css_as_file 0
+\html_be_strict false
+\end_header
+
+\begin_body
+
+\begin_layout Standard
+Starting point is staggered expression for partition function of QCD with
+ one flavor:
+\end_layout
+
+\begin_layout Standard
+\begin_inset Formula 
+\[
+\mathcal{Z}=\int\prod_{l;\mu}dU_{l;\mu}\left(\det M\right)^{1/4}e^{-S_{E,L}^{Wil}\left[U\right]}
+\]
+
+\end_inset
+
+where: 
+\begin_inset Formula 
+\[
+M_{i,j}=\hat{m}\delta_{i,j}+\frac{1}{2}\underset{\mu}{\sum}\eta_{i;\mu}\left(U_{i;\mu}\delta_{i,j-\hat{\mu}}-U_{i-\hat{\mu};\mu}^{\dagger}\delta_{i-\hat{\mu},j}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The variables 
+\begin_inset Formula $U$
+\end_inset
+
+ are element of 
+\begin_inset Formula $SU\left(3\right)$
+\end_inset
+
+ group.
+ Color (group) indexes are omitted for simplicity.
+\end_layout
+
+\begin_layout Standard
+We want to perform integrals of the kind: 
+\begin_inset Formula 
+\[
+\left\langle \hat{O}\right\rangle =\frac{\int\mathcal{D}\left[U\right]\,\det M\, e^{-S_{E,L}^{Wil}\left[U\right]}\,\hat{O}\left[U\right]}{\mathcal{Z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It is possible to show that 
+\begin_inset Formula $\det M$
+\end_inset
+
+ is real and positive, so that this expression can be regarded as average
+ value of 
+\begin_inset Formula $\hat{O}$
+\end_inset
+
+ over the configuration space of 
+\begin_inset Formula $U$
+\end_inset
+
+ with distribution function: 
+\begin_inset Formula 
+\[
+P\left[U\right]=\frac{\det M\, e^{-S_{E,L}^{Wil}\left[U\right]}}{\mathcal{Z}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Our problem is to sample the configuration space according to this distribution.
+ Let's start.
+\end_layout
+
+\begin_layout Standard
+First of all we can see that 
+\begin_inset Formula $M$
+\end_inset
+
+ matrix connect only even site with odd ones.
+ By reordering sites in even-odd order the matrix is of the form:
+\begin_inset Formula 
+\[
+M=\left(\begin{array}{cc}
+m & D_{eo}\\
+D_{oe} & m
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It is immediate to show that 
+\begin_inset Formula $D_{eo}^{\dagger}=-D_{oe}$
+\end_inset
+
+, so that 
+\begin_inset Formula 
+\[
+M^{\dagger}M=\left(\begin{array}{cc}
+m^{2}-D_{eo}D_{oe} & 0\\
+0 & m^{2}-D_{oe}D_{eo}
+\end{array}\right)\equiv\left(\begin{array}{cc}
+M_{ee}^{2} & 0\\
+0 & M_{oo}^{2}
+\end{array}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It is possible to show that 
+\begin_inset Formula $\det\left(M_{ee}^{2}\right)=\det\left(M_{oo}^{2}\right)$
+\end_inset
+
+ so that 
+\begin_inset Formula $\det\left(M^{\dagger}M\right)=\det^{2}\left(M_{ee}^{2}\right)$
+\end_inset
+
+.
+ From the other side as 
+\begin_inset Formula $\det M$
+\end_inset
+
+ is real and positive, 
+\begin_inset Formula $\det\left(M^{\dagger}M\right)=\det^{2}\left(M\right)$
+\end_inset
+
+ so that 
+\begin_inset Formula 
+\[
+\det\left(M_{ee}^{2}\right)=\det\left(M\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In this way the partition function can be rewritten as:
+\begin_inset Formula 
+\[
+\mathcal{Z}=\int\prod_{l;\mu}dU_{l;\mu}\left(\det\left(M^{\dagger}M\right)_{ee}\right)^{1/4}e^{-S_{E,L}^{Wil}\left[U\right]}
+\]
+
+\end_inset
+
+(by now on we will omit the 
+\begin_inset Formula $ee$
+\end_inset
+
+).
+\end_layout
+
+\begin_layout Standard
+By introducing a complex scalar field 
+\begin_inset Formula $\phi$
+\end_inset
+
+ (pseudofermion field) we can rewrite the determinant in an integral form:
+\begin_inset Formula 
+\[
+\det\,\left(M^{\dagger}M\right)^{1/4}=c\int\mathcal{D}\left[\phi,\phi^{*}\right]\, e^{-\phi^{*}\left(M^{\dagger}M\right)^{-1/4}\phi}
+\]
+
+\end_inset
+
+(as the constant is inessential, we will omit it).
+\end_layout
+
+\begin_layout Standard
+After all this changes the observable will be calculated as 
+\begin_inset Formula 
+\[
+\left\langle \hat{O}\right\rangle =\int\mathcal{D}\left[U,\phi,\phi^{*}\right]\, P\left[U\right]e^{-\phi^{*}\left(M^{\dagger}M\right)^{-1/4}\phi}\hat{O}\left[U\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+It is possible to generate 
+\begin_inset Formula $\phi$
+\end_inset
+
+ fields with heat bath by factoring out 
+\begin_inset Formula $U$
+\end_inset
+
+ distribution: 
+\begin_inset Formula $P\left[U,\phi,\phi^{*}\right]=P\left[\left.\phi,\phi^{*}\right|U\right]\, P\left[U\right]$
+\end_inset
+
+ where: 
+\begin_inset Formula 
+\[
+P\left[\left.\phi,\phi^{*}\right|U\right]\equiv e^{-\phi^{*}\left(M^{\dagger}M\right)^{-1/4}\phi}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To obtain 
+\begin_inset Formula $\phi$
+\end_inset
+
+ distributed as 
+\begin_inset Formula $e^{-\phi^{*}\left(M^{\dagger}M\right)^{-1/4}\phi}$
+\end_inset
+
+ we have to define the vector 
+\begin_inset Formula $R=\left(M^{\dagger}M\right)^{-1/8}\phi$
+\end_inset
+
+.
+ We can generate 
+\begin_inset Formula $R$
+\end_inset
+
+ field with distribution 
+\begin_inset Formula $e^{-R^{*}R}$
+\end_inset
+
+ by extracting each 
+\begin_inset Formula $R_{i}$
+\end_inset
+
+ component from gaussian distribution 
+\begin_inset Formula $P\left(R_{i}\right)=\frac{1}{N}e^{-R_{i}R_{i}^{*}}$
+\end_inset
+
+, and construct form it 
+\begin_inset Formula $\phi=\left(M^{\dagger}M\right)^{1/8}R$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+To generate 
+\begin_inset Formula $U$
+\end_inset
+
+ field we introduce a new filed 
+\begin_inset Formula $H$
+\end_inset
+
+, which has the rule of conjugate moment of 
+\begin_inset Formula $U$
+\end_inset
+
+ field:
+\begin_inset Formula 
+\[
+\dot{U}_{j;\,\mu}=iH_{j;\,\mu}U_{j;\,\mu}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+In order to leave 
+\begin_inset Formula $U$
+\end_inset
+
+ as an 
+\begin_inset Formula $SU\left(3\right)$
+\end_inset
+
+ group element, 
+\begin_inset Formula $H$
+\end_inset
+
+ has to be an hermitian matrix with null trace.
+ This new field will have distribution 
+\begin_inset Formula $P\left(H\right)\equiv e^{-\frac{1}{2}\mathrm{Tr}\, H^{2}}$
+\end_inset
+
+ where: 
+\begin_inset Formula $\mathrm{Tr}\, H^{2}=\underset{j;\,\mu}{\sum}\mathrm{Tr}\, H_{j;\,\mu}^{2}$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+In this way we will rewrite:
+\begin_inset Formula 
+\[
+Z=\int\mathcal{D}\left[H,U,\phi,\phi^{*}\right]\, e^{-\phi^{*}\left(M^{\dagger}M\right)^{-1/4}\phi}\, e^{-S_{E,L}^{Wil}\left[U\right]}\, e^{-\frac{1}{2}\mathrm{Tr}\, H^{2}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+By defining 
+\begin_inset Formula $\mathcal{H}\left(U,\phi,\phi^{*},H\right)\equiv\phi^{*}\left(M^{\dagger}M\right)^{-1/4}\phi+S_{E,L}^{Wil}\left[U\right]+\frac{1}{2}\mathrm{Tr}\, H^{2}=S_{pseudo}+S_{gauge}+S_{mom}$
+\end_inset
+
+ we rewrite: 
+\begin_inset Formula 
+\[
+Z=\int\mathcal{D}\left[H,U,\phi,\phi^{*}\right]\, e^{-\mathcal{H}\left(U,\phi,\phi^{*},H\right)}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+We can extract 
+\begin_inset Formula $H$
+\end_inset
+
+ with an Heath-Bath, by writing 
+\begin_inset Formula $H=\underset{\alpha}{\sum}\lambda_{\alpha}H^{\alpha}$
+\end_inset
+
+ where 
+\begin_inset Formula $\lambda_{\alpha}$
+\end_inset
+
+ are the 8 generators of 
+\begin_inset Formula $SU\left(3\right)$
+\end_inset
+
+, with normalization 
+\begin_inset Formula $\mathrm{Tr}\left(\lambda_{\alpha}\lambda_{\beta}\right)=2\delta_{\alpha\beta}$
+\end_inset
+
+, and extracting each real and imaginary component of 
+\begin_inset Formula $H^{\alpha}$
+\end_inset
+
+ from gaussian distribution with standard deviation 
+\begin_inset Formula $1/\sqrt{2}$
+\end_inset
+
+.
+ 
+\end_layout
+
+\begin_layout Standard
+To generate 
+\begin_inset Formula $U$
+\end_inset
+
+ field we can use molecular dynamics technique, by treating 
+\begin_inset Formula $\mathcal{H}\left(U,\phi,\phi^{*},H\right)$
+\end_inset
+
+ as the hamiltonian ruling evolution of 
+\begin_inset Formula $U,H$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+Let's impose the invariance of 
+\begin_inset Formula $\mathcal{H}$
+\end_inset
+
+ over molecular-dynamics time: 
+\begin_inset Formula 
+\[
+0=\dot{\mathcal{H}}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let's start by differentiating the momentum part.
+ By putting explicit the color indices:
+\begin_inset Formula 
+\[
+\dot{S}_{mom}=\frac{1}{2}\frac{d}{dt}\,\underset{j;\,\mu;\alpha,\beta}{\sum}\left(H_{j;\mu;\alpha,\beta}\right)^{2}=\underset{j;\,\mu;\alpha,\beta}{\sum}H_{j;\mu;\alpha,\beta}\dot{H}_{j;\mu;\alpha,\beta}=\sum_{j;\mu}Tr\left(H_{j;\mu}\dot{H}_{j;\mu}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Pure gauge part is: 
+\begin_inset Formula 
+\[
+S_{gauge}=\beta\underset{j;\mu>\nu}{\sum}\left(1-\frac{1}{3}\mathrm{Re}\,\mathrm{Tr}\underset{j;\mu,\nu}{\prod}\right)=\frac{\beta}{3}\underset{j;\mu>\nu}{\sum}Re\mathrm{Tr}\underset{j;\mu,\nu}{\prod}=\frac{\beta}{6}\underset{j;\mu>\nu}{\sum}\mathrm{Tr}\left(\underset{j;\mu,\nu}{\prod}+\left(\underset{j;\mu,\nu}{\prod}\right)^{\dagger}\right)
+\]
+
+\end_inset
+
+we can see that: 
+\begin_inset Formula $\left(\underset{j;\mu,\nu}{\prod}\right)^{\dagger}=\left(U_{j;\mu}U_{j+\hat{\mu};\nu}U_{j+\hat{\nu};\,\mu}^{\dagger}U_{j;\nu}^{\dagger}\right)^{\dagger}=U_{j;\nu}U_{j+\hat{\nu};\,\mu}U_{j+\hat{\mu};\nu}^{\dagger}U_{j;\mu}^{\dagger}=\underset{j;\nu,\mu}{\prod}$
+\end_inset
+
+ so that by rearranging the summ:
+\begin_inset Formula 
+\[
+S_{gauge}=\frac{\beta}{6}\underset{j;\mu\neq\nu}{\sum}\mathrm{Tr}\left(U_{j;\nu}U_{j+\hat{\nu};\,\mu}U_{j+\hat{\mu};\nu}^{\dagger}U_{j;\mu}^{\dagger}\right)
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The derivative with respect to the time can act over each of the four 
+\begin_inset Formula $U$
+\end_inset
+
+ link:
+\begin_inset Formula 
+\[
+\dot{S}_{gauge}=\frac{\beta}{6}\underset{j;\mu\neq\nu}{\sum}\mathrm{Tr}\left(\dot{U}_{j;\nu}U_{j+\hat{\nu};\mu}U_{j+\hat{\mu};\nu}^{\dagger}U_{j;\mu}^{\dagger}+U_{j;\nu}\dot{U}_{j+\hat{\nu};\mu}U_{j+\hat{\mu};\nu}^{\dagger}U_{j;\mu}^{\dagger}+U_{j;\nu}U_{j+\hat{\nu};\mu}\dot{U}_{j+\hat{\mu};\nu}^{\dagger}U_{j;\mu}^{\dagger}+U_{j;\nu}U_{j+\hat{\nu};\,\mu}U_{j+\hat{\mu};\nu}^{\dagger}\dot{U}_{j;\mu}^{\dagger}\right)=
+\]
+
+\end_inset
+
+by making use of trace cyclic propriety we can reorder it:
+\begin_inset Formula 
+\[
+=\frac{\beta}{6}\underset{j;\mu\neq\nu}{\sum}\mathrm{Tr}\left(\dot{U}_{j;\nu}U_{j+\hat{\nu};\mu}U_{j+\hat{\mu};\nu}^{\dagger}U_{j;\mu}^{\dagger}+\dot{U}_{j+\hat{\nu};\mu}U_{j+\hat{\mu};\nu}^{\dagger}U_{j;\mu}^{\dagger}U_{j;\nu}+U_{j;\mu}^{\dagger}U_{j;\nu}U_{j+\hat{\nu};\mu}\dot{U}_{j+\hat{\mu};\nu}^{\dagger}+U_{j;\nu}U_{j+\hat{\nu};\mu}U_{j+\hat{\mu};\nu}^{\dagger}\dot{U}_{j;\mu}^{\dagger}\right)=
+\]
+
+\end_inset
+
+now we exchange 
+\begin_inset Formula $\mu$
+\end_inset
+
+ with 
+\begin_inset Formula $\nu$
+\end_inset
+
+ in the first an third addends,
+\begin_inset Formula 
+\[
+=\frac{\beta}{6}\underset{j;\mu\neq\nu}{\sum}\mathrm{Tr}\left(\dot{U}_{j;\mu}U_{j+\hat{\mu};\nu}U_{j+\hat{\nu};\mu}^{\dagger}U_{j;\nu}^{\dagger}+\dot{U}_{j+\hat{\nu};\mu}U_{j+\hat{\mu};\nu}^{\dagger}U_{j;\mu}^{\dagger}U_{j;\nu}+U_{j;\nu}^{\dagger}U_{j;\mu}U_{j+\hat{\mu};\nu}\dot{U}_{j+\hat{\nu};\mu}^{\dagger}+U_{j;\nu}U_{j+\hat{\nu};\,\mu}U_{j+\hat{\mu};\nu}^{\dagger}\dot{U}_{j;\mu}^{\dagger}\right)=
+\]
+
+\end_inset
+
+and by changing 
+\begin_inset Formula $j\rightarrow j-\hat{\nu}$
+\end_inset
+
+ in the second and third addends: 
+\begin_inset Formula 
+\[
+=\frac{\beta}{6}\underset{j;\mu\neq\nu}{\sum}\mathrm{Tr}\left(\dot{U}_{j;\mu}U_{j+\hat{\mu};\nu}U_{j+\hat{\nu};\mu}^{\dagger}U_{j;\nu}^{\dagger}+\dot{U}_{j;\mu}U_{j+\hat{\mu}-\hat{\nu};\nu}^{\dagger}U_{j-\hat{\nu};\mu}^{\dagger}U_{j-\hat{\nu};\nu}+U_{j-\hat{\nu};\nu}^{\dagger}U_{j-\hat{\nu};\mu}U_{j+\hat{\mu}-\hat{\nu};\nu}\dot{U}_{j;\mu}^{\dagger}+U_{j;\nu}U_{j+\hat{\nu};\,\mu}U_{j+\hat{\mu};\nu}^{\dagger}\dot{U}_{j;\mu}^{\dagger}\right)=
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+so we can collect the first two addends together, and the last two addends
+ together: 
+\begin_inset Formula 
+\[
+=\frac{\beta}{6}\underset{j;\mu}{\sum}\mathrm{Tr}\left(\dot{U}_{j;\mu}\sum_{\nu\neq\mu}\left(U_{j+\hat{\mu};\nu}U_{j+\hat{\nu};\mu}^{\dagger}U_{j;\nu}^{\dagger}+U_{j+\hat{\mu}-\hat{\nu};\nu}^{\dagger}U_{j-\hat{\nu};\mu}^{\dagger}U_{j-\hat{\nu};\nu}\right)+\sum_{\nu\neq\mu}\left(U_{j-\hat{\nu};\nu}^{\dagger}U_{j-\hat{\nu};\mu}U_{j+\hat{\mu}-\hat{\nu};\nu}+U_{j;\nu}U_{j+\hat{\nu};\,\mu}U_{j+\hat{\mu};\nu}^{\dagger}\right)\dot{U}_{j;\mu}^{\dagger}\right)=
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Lastly, by defining: 
+\begin_inset Formula 
+\[
+V_{j;\mu}\equiv\sum_{\nu\neq\mu}\left(U_{j+\hat{\mu};\nu}U_{j+\hat{\nu};\mu}^{\dagger}U_{j;\nu}^{\dagger}+U_{j+\hat{\mu}-\hat{\nu};\nu}^{\dagger}U_{j-\hat{\nu};\mu}^{\dagger}U_{j-\hat{\nu};\nu}\right)
+\]
+
+\end_inset
+
+we can rewrite:
+\family roman
+\series medium
+\shape up
+\size normal
+\emph off
+\bar no
+\noun off
+\color none
+
+\begin_inset Formula 
+\[
+\dot{S}_{gauge}=\frac{\beta}{6}\underset{j;\mu}{\sum}\mathrm{Tr}\left(\dot{U}_{j;\mu}V_{j;\mu}+V_{j;\mu}^{\dagger}\dot{U}_{j;\mu}^{\dagger}\right)
+\]
+
+\end_inset
+
+and by recalling that 
+\begin_inset Formula $\dot{U}_{i;\mu}=iH_{i;\mu}U_{i;\mu}$
+\end_inset
+
+ and making use of cyclic proprieties of the trace:
+\begin_inset Formula 
+\[
+\dot{S}_{gauge}=\underset{j;\mu}{\sum}\mathrm{Tr}\left[iH_{j;\mu}\frac{\beta}{6}\left(U_{j;\mu}V_{j;\mu}-V_{j;\mu}^{\dagger}U_{j;\mu}^{\dagger}\right)\right]
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now we derive last part, 
+\begin_inset Formula 
+\[
+S_{pseudo}=\phi^{*}\left(M^{\dagger}M\right)^{-1/4}\phi
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+To deal with the fourth root we have to expand it in a rational approximation,
+ like:
+\begin_inset Formula 
+\[
+x^{-1/4}=c^{(0)}+\underset{l=1}{\overset{k}{\sum}}c^{(l)}\left(x+p^{(l)}\right)^{-1}
+\]
+
+\end_inset
+
+so we have:
+\begin_inset Formula 
+\[
+S_{pseudo}=\phi^{*}\left(c^{(0)}+\underset{l=1}{\overset{k}{\sum}}c^{(l)}\left(M^{\dagger}M+p^{(l)}\right)^{-1}\right)\phi=c^{(0)}\phi^{*}\phi+\underset{l=1}{\overset{k}{\sum}}c^{(l)}\phi^{*}\left(M^{\dagger}M+p^{(l)}\right)^{-1}\phi
+\]
+
+\end_inset
+
+now we can derive it: 
+\begin_inset Formula 
+\[
+\dot{S}_{pseudo}=\underset{l=1}{\overset{k}{\sum}}c^{(l)}\phi^{*}\frac{d}{dt}\left(M^{\dagger}M+p^{(l)}\right)^{-1}\phi=
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let's understand how to derive the inverse of a matrix:
+\begin_inset Formula 
+\[
+0=\frac{d}{dt}1=\frac{d}{dt}\left(XX^{-1}\right)=\dot{X}\left(X^{-1}\right)+X\frac{d}{dt}X^{-1}\rightarrow\frac{d}{dt}X^{-1}=-\left(X^{-1}\right)\dot{X}\left(X^{-1}\right)
+\]
+
+\end_inset
+
+so 
+\begin_inset Formula 
+\[
+=\underset{l=1}{\overset{k}{\sum}}c^{(l)}\phi^{*}\left(M^{\dagger}M+p^{(l)}\right)^{-1}\frac{d}{dt}\left(M^{\dagger}M\right)\left(M^{\dagger}M+p^{(l)}\right)^{-1}\phi=
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Let's define 
+\begin_inset Formula $X^{(l)}\equiv\left(M^{\dagger}M+p^{(l)}\right)^{-1}\phi$
+\end_inset
+
+.
+ It is worth stressing that, as 
+\begin_inset Formula $M^{\dagger}M$
+\end_inset
+
+ is hermitian, 
+\begin_inset Formula $X^{(l)*}=\phi^{*}\left(M^{\dagger}M+p^{(l)}\right)^{-1}$
+\end_inset
+
+, 
+\begin_inset Formula 
+\[
+=\underset{l=1}{\overset{k}{\sum}}c^{(l)}X^{(l)*}\frac{d}{dt}\left(M^{\dagger}M\right)X^{(l)}=\underset{l=1}{\overset{k}{\sum}}c^{(l)}X^{(l)*}\left(\frac{dM^{\dagger}}{dt}M+M^{\dagger}\frac{dM}{dt}\right)X^{(l)}=
+\]
+
+\end_inset
+
+by introducing the direct product matrix: 
+\begin_inset Formula $P_{i,j}^{(l)}\equiv X_{i}^{(l)}X_{j}^{(l)*}$
+\end_inset
+
+ we can rewrite it as 
+\begin_inset Formula 
+\[
+=\underset{l=1}{\overset{k}{\sum}}c^{(l)}Tr\left[P^{(l)}\left(\frac{dM^{\dagger}}{dt}M+M^{\dagger}\frac{dM}{dt}\right)\right]=
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+The derivative act like:
+\begin_inset Formula 
+\[
+\frac{dM}{dt}=\sum_{i;\mu}\left(\frac{dM}{dU_{i;\mu}}\dot{U}_{i;\mu}+\frac{dM}{dU_{i;\mu}^{\dagger}}\dot{U}_{i;\mu}^{\dagger}\right)=i\sum_{i;\mu}\left[\left(\frac{dM}{dU_{i;\mu}^{\phantom{\dagger}}}H_{i;\mu}U_{i;\mu}-\frac{dM}{dU_{i;\mu}^{\dagger}}U_{i;\mu}^{\dagger}H_{i;\mu}\right)\right]
+\]
+
+\end_inset
+
+where we have used the relation and similarly for 
+\begin_inset Formula $M^{\dagger}$
+\end_inset
+
+.
+ By making use of the cyclic proprieties we rewrite it as:
+\begin_inset Formula 
+\[
+=\sum_{i;\mu}Tr\left\{ iH_{i;\mu}\sum_{l=1}^{k}c_{l}\left[MP^{(l)}\left(U_{i;\mu}\frac{dM^{\dagger}}{dU_{i;\mu}^{\phantom{\dagger}}}-\frac{dM^{\dagger}}{dU_{i;\mu}^{\dagger}}U_{i;\mu}^{\dagger}\right)+P^{(l)}M^{\dagger}\left(U_{i;\mu}\frac{dM}{dU_{i;\mu}^{\phantom{\dagger}}}-\frac{dM}{dU_{i;\mu}^{\dagger}}U_{i;\mu}^{\dagger}\right)\right]\right\} =
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now we are ready to collect everything: 
+\begin_inset Formula 
+\[
+0=\sum_{j;\mu}Tr\left\{ H_{j;\mu}\left\{ \dot{H}_{j;\mu}+i\frac{\beta}{6}\left(U_{j;\mu}V_{j;\mu}-V_{j;\mu}^{\dagger}U_{j;\mu}^{\dagger}\right)+i\sum_{l=1}^{k}c_{l}\left[MP^{(l)}\left(U_{j;\mu}\frac{dM^{\dagger}}{dU_{j;\mu}^{\phantom{\dagger}}}-\frac{dM^{\dagger}}{dU_{j;\mu}^{\dagger}}U_{i;\mu}^{\dagger}\right)+P^{(l)}M^{\dagger}\left(U_{j;\mu}\frac{dM}{dU_{j;\mu}^{\phantom{\dagger}}}-\frac{dM}{dU_{j;\mu}^{\dagger}}U_{j;\mu}^{\dagger}\right)\right]\right\} \right\} 
+\]
+
+\end_inset
+
+as 
+\begin_inset Formula $H$
+\end_inset
+
+ are independent traceless matrices, this relation is satisfied only if
+ the quantity that multiplied by 
+\begin_inset Formula $H_{i;\mu}$
+\end_inset
+
+ is proportional to the identity matrix:
+\begin_inset Formula 
+\[
+i\dot{H}_{j;\mu}=\left[\frac{\beta}{6}U_{j;\mu}V_{j;\mu}+\sum_{l=1}^{k}c_{l}\left(M_{s,t}P_{t,u}^{(l)}U_{j;\mu}\frac{dM_{u,s}^{\dagger}}{dU_{j;\mu}^{\phantom{\dagger}}}+P_{s,t}^{(l)}M_{t,u}^{\dagger}U_{j;\mu}\frac{dM_{u,s}}{dU_{j;\mu}^{\phantom{\dagger}}}\right)\right]-h.c.+f
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+As the l.h.s of the equation is traceless, the value of 
+\begin_inset Formula $f$
+\end_inset
+
+ has to be equal to 
+\begin_inset Formula $-1/3$
+\end_inset
+
+ of the trace of the remaining part of the r.h.s.
+ By defining 
+\begin_inset Formula $A_{TA}=\frac{1}{2}\left(A-A^{\dagger}\right)-\frac{1}{6}Tr\left(A-A^{\dagger}\right)$
+\end_inset
+
+ we can rewrite it as:
+\begin_inset Formula 
+\[
+i\dot{H}_{j;\mu}=\left[\frac{\beta}{3}U_{j;\mu}V_{j;\mu}+2\sum_{l=1}^{k}c_{l}\left(M_{s,t}P_{t,u}^{(l)}U_{j;\mu}\frac{dM_{u,s}^{\dagger}}{dU_{j;\mu}^{\phantom{\dagger}}}+P_{s,t}^{(l)}M_{t,u}^{\dagger}U_{j;\mu}\frac{dM_{u,s}}{dU_{j;\mu}^{\phantom{\dagger}}}\right)\right]_{TA}
+\]
+
+\end_inset
+
+now as we have not done it enough, let's cycle everything another time:
+\begin_inset Formula 
+\[
+i\dot{H}_{j;\mu}=\left\{ U_{j;\mu}\left[\frac{\beta}{3}V_{j;\mu}+2\sum_{l=1}^{k}c_{l}\left(\frac{dM_{u,s}^{\dagger}}{dU_{j;\mu}^{\phantom{\dagger}}}M_{s,t}P_{t,u}^{(l)}+\frac{dM_{u,s}}{dU_{j;\mu}^{\phantom{\dagger}}}P_{s,t}^{(l)}M_{t,u}^{\dagger}\right)\right]\right\} _{TA}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+Now let's explicit out the derivative of 
+\begin_inset Formula $M$
+\end_inset
+
+:
+\begin_inset Formula 
+\[
+\frac{dM_{u,s}}{dU_{j;\mu}}=\frac{1}{2}\delta_{u,s-\hat{\mu}}\delta_{j,u},\qquad\frac{dM_{u,s}^{\dagger}}{dU_{j;\mu}}=-\frac{1}{2}\delta_{u,s-\hat{\mu}}\delta_{j,u}
+\]
+
+\end_inset
+
+
+\begin_inset Formula 
+\[
+i\dot{H}_{j;\mu}=\left\{ U_{j;\mu}\left[\frac{\beta}{3}V_{j;\mu}-\sum_{l=1}^{k}c_{l}\left(P_{j+\hat{\mu},t}^{(l)}M_{t,j}^{\dagger}-M_{j+\hat{\mu},t}P_{t,j}^{(l)}\right)\right]\right\} _{TA}
+\]
+
+\end_inset
+
+As 
+\begin_inset Formula $P$
+\end_inset
+
+ connect only even sites (
+\begin_inset Formula $X$
+\end_inset
+
+ is definite only over even sites), the two addends inside the rounded bracket
+ are not in force at the same time.
+ In particular, the first one is present only if 
+\begin_inset Formula $j$
+\end_inset
+
+ is an odd site, while the second one is present only if 
+\begin_inset Formula $j$
+\end_inset
+
+ is an even site.
+\end_layout
+
+\begin_layout Standard
+In order to obtain the explicit form of 
+\begin_inset Formula $i\dot{H}$
+\end_inset
+
+ we have to distinguish between the two cases and to perform the implicit
+ summ over 
+\begin_inset Formula $t$
+\end_inset
+
+.
+\end_layout
+
+\begin_layout Standard
+If 
+\begin_inset Formula $j$
+\end_inset
+
+ is an even site: 
+\begin_inset Formula 
+\[
+i\dot{H}_{j;\mu}=\left\{ U_{j;\mu}\left[\frac{\beta}{3}V_{j;\mu}+\frac{1}{2}\sum_{l=1}^{k}c_{l}\underset{\nu}{\sum}\left(U_{j+\hat{\mu};\nu}P_{j+\hat{\mu}+\hat{\nu},j}^{(l)}-U_{j+\hat{\mu}-\hat{\nu};\nu}^{\dagger}P_{j+\hat{\mu}-\hat{\nu},j}^{(l)}\right)\right]\right\} _{TA}
+\]
+
+\end_inset
+
+while if 
+\begin_inset Formula $j$
+\end_inset
+
+ is an odd site:
+\begin_inset Formula 
+\[
+i\dot{H}_{j;\mu}=\left\{ U_{j;\mu}\left[\frac{\beta}{3}V_{j;\mu}-\frac{1}{2}\sum_{l=1}^{k}c_{l}\underset{\nu}{\sum}\left(P_{j+\hat{\mu},j-\hat{\nu}}^{(l)}U_{j-\hat{\nu};\nu}-P_{j+\hat{\mu},j+\hat{\nu}}^{(l)}U_{j;\nu}^{\dagger}\right)\right]\right\} _{TA}
+\]
+
+\end_inset
+
+
+\end_layout
+
+\begin_layout Standard
+CHECK EVEN SITES
+\end_layout
+
+\end_body
+\end_document

@@ -284,6 +284,14 @@ double glb_reduce_double(double in_loc)
   return out_glb;
 }
 
+//reduce a double vector
+void glb_reduce_double_vect(double *out_glb,double *in_loc,int nel)
+{MPI_Allreduce(in_loc,out_glb,nel,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);}
+
+//reduce a complex vector
+void glb_reduce_complex_vect(complex *out_glb,complex *in_loc,int nel)
+{MPI_Allreduce((double*)in_loc,(double*)out_glb,2*nel,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);}
+
 //reduce an int
 int glb_reduce_int(int in_loc)
 {
