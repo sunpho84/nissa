@@ -9,6 +9,7 @@ void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_type rtype);
 void generate_delta_source(su3spinspin *source,int *x);
 void generate_spindiluted_source(colorspinspin *source,enum rnd_type rtype,int twall);
 void generate_undiluted_source(spincolor *source,enum rnd_type rtype,int twall);
+void generate_fully_undiluted_source(color **source,enum rnd_type rtype,int twall);
 void rnd_fill_pm_one_loc_vector(double *v,int nps);
 void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
 void rnd_get_Z2(complex out,rnd_gen *gen);

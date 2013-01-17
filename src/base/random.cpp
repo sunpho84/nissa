@@ -270,6 +270,24 @@ void generate_undiluted_source(spincolor *source,enum rnd_type rtype,int twall)
   set_borders_invalid(source);
 }
 
+//generate a fully undiluted source
+void generate_fully_undiluted_source(color **source,enum rnd_type rtype,int twall)
+{
+  for(int par=0;par<2;par++)
+    {
+      vector_reset(source[par]);
+      
+      nissa_loc_volh_loop(ieo)
+        {
+	  int ilx=loclx_of_loceo[par][ieo];
+	  if(glb_coord_of_loclx[ilx][0]==twall||twall<0)
+	    for(int ic=0;ic<3;ic++)
+	      comp_get_rnd(source[par][ieo][ic],&(loc_rnd_gen[ilx]),rtype);
+	}
+      set_borders_invalid(source[par]);
+    }
+}
+
 //generate a delta source
 void generate_delta_source(su3spinspin *source,int *x)
 { //reset

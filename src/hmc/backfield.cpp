@@ -70,6 +70,17 @@ void add_em_field_to_backfield(quad_u1 **S,quark_content_type &quark_content,dou
     }
 }
 
+//set up all the 6 components
+void add_em_field_to_backfield(quad_u1 **S,quark_content_type &quark_content,em_field_pars_type &em_field_pars)
+{
+  add_em_field_to_backfield(S,quark_content,em_field_pars.E[0],0,1);
+  add_em_field_to_backfield(S,quark_content,em_field_pars.E[1],0,2);
+  add_em_field_to_backfield(S,quark_content,em_field_pars.E[2],0,3);
+  add_em_field_to_backfield(S,quark_content,em_field_pars.B[0],2,3);
+  add_em_field_to_backfield(S,quark_content,em_field_pars.B[1],3,1);
+  add_em_field_to_backfield(S,quark_content,em_field_pars.B[2],1,2);
+}
+
 //multpiply the configuration for an additional u(1) field
 void add_backfield_to_conf(quad_su3 **conf,quad_u1 **u1)
 {

@@ -283,3 +283,17 @@ void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
       else if(ending<loc_volh+bord_volh+edge_volh) set_edges_invalid(eo_conf[par]);
     }
 }
+
+//filter the points retaining only those having all the coord even
+void filter_hypercube_origin_sites(color **vec)
+{
+  nissa_loc_vol_loop(ivol)
+    {
+      int save=1;
+      for(int mu=0;mu<4;mu++)
+	save=save and glb_coord_of_loclx[ivol][mu]%2==0;
+      
+      if(!save)
+	memset(vec[loclx_parity[ivol]][loceo_of_loclx[ivol]],0,sizeof(color));
+    }
+}

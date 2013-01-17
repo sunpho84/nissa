@@ -135,7 +135,7 @@ void full_rootst_eoimpr_quarks_force_no_stout_remapping(quad_su3 **F,quad_su3 **
 //take into account the stout remapping procedure
 void full_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars_type *physics,rat_approx_type *appr,double residue)
 {
-  int nlev=physics->stout_nlev;
+  int nlev=physics->stout_pars.nlev;
   
   //first of all we take care of the trivial case
   if(nlev==0) full_rootst_eoimpr_quarks_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
@@ -147,14 +147,14 @@ void full_rootst_eoimpr_quarks_force(quad_su3 **F,quad_su3 **conf,color **pf,the
       
       //smear iteratively retaining all the stack
       addrem_stagphases_to_eo_conf(sme_conf[0]); //remove the staggered phases
-      stout_smear(sme_conf,conf,physics->stout_rho,nlev);
+      stout_smear(sme_conf,conf,physics->stout_pars);
       
       //compute the force in terms of the most smeared conf
       addrem_stagphases_to_eo_conf(sme_conf[nlev]); //add to most smeared conf
       full_rootst_eoimpr_quarks_force_no_stout_remapping(F,sme_conf[nlev],pf,physics,appr,residue);
       
       //remap the force backward
-      stouted_force_remap(F,sme_conf,physics->stout_rho,nlev);
+      stouted_force_remap(F,sme_conf,physics->stout_pars);
       addrem_stagphases_to_eo_conf(sme_conf[0]); //add back again to the original conf
       
       //now free the stack of confs

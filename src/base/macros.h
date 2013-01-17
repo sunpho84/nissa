@@ -27,6 +27,9 @@
 #define RE 0
 #define IM 1
 
+//hmc
+#define SEA_THEORY 0
+
 //double per color, spincolor and quad_su3
 #define nreals_per_color 6
 #define nreals_per_spincolor 24

@@ -6,6 +6,8 @@ FILE* open_text_file_for_output(const char *outfile);
 MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
 MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos);
 void glb_reduce_complex(complex out_glb,complex in_loc);
+void glb_reduce_double_vect(double *out_glb,double *in_loc,int nel);
+void glb_reduce_complex_vect(complex *out_glb,complex *in_loc,int nel);
 double glb_reduce_double(double in_loc);
 int glb_reduce_int(int in_loc);
 double lfact(double n);

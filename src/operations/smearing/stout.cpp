@@ -19,15 +19,8 @@ double sto_time=0;
 int nsto_remap=0;
 double sto_remap_time=0;
 
-struct stout_link_staples
-{
-  su3 C;
-  su3 Omega;
-  su3 Q;
-};
-
 //compute the staples for the link U_A_mu weighting them with rho
-void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,stout_pars rho)
+void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,stout_coeff_type rho)
 {
   //communicate the edges
   communicate_eo_quad_su3_edges(conf);
@@ -56,7 +49,7 @@ void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int 
 
 //compute the parameters needed to smear a link, that can be used to smear it or to compute the 
 //partial derivative of the force
-void stout_smear_compute_staples(stout_link_staples &out,quad_su3 **conf,int p,int A,int mu,stout_pars rho)
+void stout_smear_compute_staples(stout_link_staples &out,quad_su3 **conf,int p,int A,int mu,stout_coeff_type rho)
 {
   //compute the staples
   stout_smear_compute_weighted_staples(out.C,conf,p,A,mu,rho);
@@ -71,7 +64,7 @@ void stout_smear_compute_staples(stout_link_staples &out,quad_su3 **conf,int p,i
 }
 
 //smear the configuration according to Peardon paper
-void stout_smear(quad_su3 **out,quad_su3 **ext_in,stout_pars rho)
+void stout_smear(quad_su3 **out,quad_su3 **ext_in,stout_coeff_type rho)
 {
   sto_time-=take_time();
   
@@ -112,12 +105,12 @@ void stout_smear(quad_su3 **out,quad_su3 **ext_in,stout_pars rho)
 }
 
 //smear n times, using only one additional vectors
-void stout_smear(quad_su3 **ext_out,quad_su3 **ext_in,stout_pars rho,int niters)
+void stout_smear(quad_su3 **ext_out,quad_su3 **ext_in,stout_pars_type &stout_pars)
 {
-  switch(niters)
+  switch(stout_pars.nlev)
     {
     case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
-    case 1: stout_smear(ext_out,ext_in,rho);break;
+    case 1: stout_smear(ext_out,ext_in,stout_pars.rho);break;
     default:
       //allocate temp
       quad_su3 *ext_temp[2];
@@ -126,12 +119,12 @@ void stout_smear(quad_su3 **ext_out,quad_su3 **ext_in,stout_pars rho,int niters)
       quad_su3 **in=ext_in,**ptr[2]={ext_temp,ext_out};
       
       //if the distance is even, first pass must use temp as out
-      quad_su3 **out=ptr[!(niters%2==0)];
-      quad_su3 **temp=ptr[(niters%2==0)];
+      quad_su3 **out=ptr[!(stout_pars.nlev%2==0)];
+      quad_su3 **temp=ptr[(stout_pars.nlev%2==0)];
       
-      for(int i=0;i<niters;i++)
+      for(int i=0;i<stout_pars.nlev;i++)
 	{
-	  stout_smear(out,in,rho);
+	  stout_smear(out,in,stout_pars.rho);
 	  //next input is current output
 	  in=out;
 	  //exchange out and temp
@@ -144,11 +137,11 @@ void stout_smear(quad_su3 **ext_out,quad_su3 **ext_in,stout_pars rho,int niters)
 }
 
 //allocate all the stack for smearing
-void stout_smear_conf_stack_allocate(quad_su3 ***&out,quad_su3 **in,int niters)
+void stout_smear_conf_stack_allocate(quad_su3 ***&out,quad_su3 **in,int nlev)
 {
-  out=nissa_malloc("out**",niters+1,quad_su3**);
+  out=nissa_malloc("out**",nlev+1,quad_su3**);
   out[0]=in;
-  for(int i=1;i<=niters;i++)
+  for(int i=1;i<=nlev;i++)
     {
       out[i]=nissa_malloc("out*",2,quad_su3*);
       for(int eo=0;eo<2;eo++) out[i][eo]=nissa_malloc("out",loc_volh+bord_volh+edge_volh,quad_su3);
@@ -156,9 +149,9 @@ void stout_smear_conf_stack_allocate(quad_su3 ***&out,quad_su3 **in,int niters)
 }
 
 //free all the stack of allocated smeared conf
-void stout_smear_conf_stack_free(quad_su3 ***&out,int niters)
+void stout_smear_conf_stack_free(quad_su3 ***&out,int nlev)
 {
-  for(int i=1;i<=niters;i++)
+  for(int i=1;i<=nlev;i++)
     {
       for(int eo=0;eo<2;eo++) nissa_free(out[i][eo]);
       nissa_free(out[i]);
@@ -167,12 +160,12 @@ void stout_smear_conf_stack_free(quad_su3 ***&out,int niters)
 }
 
 //smear iteratively retainig all the stack
-void stout_smear(quad_su3 ***out,quad_su3 **in,stout_pars rho,int niters)
+void stout_smear(quad_su3 ***out,quad_su3 **in,stout_pars_type &stout_pars)
 {
   verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
-  for(int i=1;i<=niters;i++)
+  for(int i=1;i<=stout_pars.nlev;i++)
     {
-      stout_smear(out[i],out[i-1],rho);
+      stout_smear(out[i],out[i-1],stout_pars.rho);
       verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
     }
 }
@@ -301,7 +294,7 @@ void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingr
 }
 
 //remap the force to one smearing level less
-void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
+void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_coeff_type rho)
 {
   communicate_eo_quad_su3_edges(conf);
   
@@ -402,13 +395,13 @@ void stouted_force_remap_step(quad_su3 **F,quad_su3 **conf,stout_pars rho)
 }
 
 //remap iteratively the force, adding the missing pieces of the chain rule derivation
-void stouted_force_remap(quad_su3 **F,quad_su3 ***sme_conf,stout_pars rho,int niters)
+void stouted_force_remap(quad_su3 **F,quad_su3 ***sme_conf,stout_pars_type &stout_pars)
 {
   sto_remap_time-=take_time();
-  for(int i=niters-1;i>=0;i--)
+  for(int i=stout_pars.nlev-1;i>=0;i--)
     {
-      verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i,niters-1);
-      stouted_force_remap_step(F,sme_conf[i],rho);
+      verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i,stout_pars.nlev-1);
+      stouted_force_remap_step(F,sme_conf[i],stout_pars.rho);
     }
   sto_remap_time+=take_time();
   
