@@ -31,11 +31,23 @@ void read_quark_content(quark_content_type &quark_content)
 //read the parameters relevant for hmc evolution
 void read_hmc_evol_pars(hmc_evol_pars_type &pars)
 {
+  read_str_int("SkipMTestNTraj",&pars.skip_mtest_ntraj);
   read_str_double("HmcTrajLength",&pars.traj_length);
   read_str_int("NmdSteps",&pars.nmd_steps);
   read_str_int("NGaugeSubSteps",&pars.ngauge_substeps);
   read_str_double("MdResidue",&pars.md_residue);
   read_str_double("PfActionResidue",&pars.pf_action_residue);
+}
+
+//read the parameters relevant for pure gauge evolution
+void read_pure_gauge_evol_pars(pure_gauge_evol_pars_type &pars)
+{
+  //heat bath parameters                                                                                                                           
+  read_str_int("NHbSweeps",&pars.nhb_sweeps);
+  read_str_int("NHbHits",&pars.nhb_hits);
+  //overrelax parameters                                                                                                                           
+  read_str_int("NOvSweeps",&pars.nov_sweeps);
+  read_str_int("NOvHits",&pars.nov_hits);
 }
 
 //read parameters to stout gauge action
@@ -80,26 +92,26 @@ void read_em_field_pars(em_field_pars_type &em_field_pars)
 }
 
 //read parameters to measure chiral condensate
-void read_chiral_cond_pars(chiral_cond_pars_type &chiral_cond_pars)
+void read_chiral_cond_pars(chiral_cond_pars_type &pars)
 {
-  read_str_int("MeasureChiralCond",&chiral_cond_pars.flag);
-  if(chiral_cond_pars.flag)
+  read_str_int("MeasureChiralCond",&pars.flag);
+  if(pars.flag)
     {
-      read_str_str("ChiralCondPath",chiral_cond_pars.path,1024);
-      read_str_double("ChiralCondInvResidue",&chiral_cond_pars.residue);
-      read_str_int("ChiralCondNHits",&chiral_cond_pars.nhits);
+      read_str_str("ChiralCondPath",pars.path,1024);
+      read_str_double("ChiralCondInvResidue",&pars.residue);
+      read_str_int("ChiralCondNHits",&pars.nhits);
     }
 }
 
 //read parameters to measure pseudoscalar correlators
-void read_pseudo_corr_pars(pseudo_corr_pars_type &pseudo_corr_pars)
+void read_pseudo_corr_pars(pseudo_corr_pars_type &pars)
 {
-  read_str_int("MeasurePseudoCorr",&pseudo_corr_pars.flag);
-  if(pseudo_corr_pars.flag)
+  read_str_int("MeasurePseudoCorr",&pars.flag);
+  if(pars.flag)
     {
-      read_str_str("PseudoCorrPath",pseudo_corr_pars.path,1024);
-      read_str_double("PseudoCorrInvResidue",&pseudo_corr_pars.residue);
-      read_str_int("PseudoCorrNHits",&pseudo_corr_pars.nhits);
+      read_str_str("PseudoCorrPath",pars.path,1024);
+      read_str_double("PseudoCorrInvResidue",&pars.residue);
+      read_str_int("PseudoCorrNHits",&pars.nhits);
     }
 }
 

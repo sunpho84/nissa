@@ -8,14 +8,18 @@
 
 void apply_tmQ_128(spincolor_128 *out,quad_su3 *conf,double kappa,double mu,spincolor_128 *in)
 {
-  communicate_lx_spincolor_128_borders(in);
-  communicate_lx_quad_su3_borders(conf);
-  
+#pragma omp single
+  {
+    communicate_lx_spincolor_128_borders(in);
+    communicate_lx_quad_su3_borders(conf);
+  }
+
   double kcf=1/(2*kappa);
-  int Xup,Xdw;
   
+#pragma omp for
   nissa_loc_vol_loop(X)
     {
+      int Xup,Xdw;
       color_128 temp_c0,temp_c1,temp_c2,temp_c3;
       
       //Forward 0
@@ -126,5 +130,6 @@ void apply_tmQ_128(spincolor_128 *out,quad_su3 *conf,double kappa,double mu,spin
 	}
     }
   
+#pragma omp single
   set_borders_invalid(out);
 }

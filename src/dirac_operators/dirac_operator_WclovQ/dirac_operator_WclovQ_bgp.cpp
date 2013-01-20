@@ -18,15 +18,18 @@ void apply_WclovQ(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t_su3
 {
   complex cpumass={1/(2*kappa),0};
   
+#pragma omp single
   communicate_lx_spincolor_borders(in);
+#pragma omp single
   communicate_lx_quad_su3_borders(conf);
-
+  
   //put the clover term
   unsafe_apply_chromo_operator_to_spincolor(out,Pmunu,in);
   double_vector_prod_double((double*)out,(double*)out,csw/2,loc_vol*24);
   
   double kcf=1/(2*kappa);
-  nissa_loc_vol_parallel_loop(X)
+#pragma omp for
+  nissa_loc_vol_loop(X)
     {
       int Xup,Xdw;
       
@@ -240,5 +243,6 @@ void apply_WclovQ(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t_su3
       bgp_color_save(out[X][3],R30,R31,R32);
     }
   
+#pragma omp single
   set_borders_invalid(out);
 }

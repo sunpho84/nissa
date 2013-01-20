@@ -16,18 +16,22 @@
 
 void apply_stD2ee_zero_mass(color *out,quad_su3 **conf,color *temp,color *in)
 {
-  communicate_eo_quad_su3_borders(conf);
-  communicate_ev_color_borders(in);
-  
-  //check arguments
-  if(out==in)   crash("out==in!");
-  if(out==temp) crash("out==temp!");
-  if(temp==in)  crash("temp==in!");
-  
+#pragma omp single
+  {
+    communicate_eo_quad_su3_borders(conf);
+    communicate_ev_color_borders(in);
+    
+    //check arguments
+    if(out==in)   crash("out==in!");
+    if(out==temp) crash("out==temp!");
+    if(temp==in)  crash("temp==in!");
+  }
+    
   //perform the off diagonal multiplication
   apply_st2Doe(temp,conf,in);
   apply_stDeo_half(out,conf,temp);
   
+#pragma omp single
   set_borders_invalid(out);
 }
 
@@ -39,5 +43,6 @@ void evn_apply_stD(color *out,quad_su3 **conf,double m,color **in)
 {
   apply_stDeo_half(out,conf,in[ODD]);
   double_vector_linear_comb((double*)out,(double*)in[EVN],m,(double*)out,2,6*loc_volh);
+#pragma omp single
   set_borders_invalid(out);
 }

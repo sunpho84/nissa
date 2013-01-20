@@ -5,14 +5,16 @@
 //apply even-odd or odd-even part of tmD, multiplied by -2
 void tmn2Deo_or_tmn2Doe_eos(spincolor *out,quad_su3 **conf,int eooe,spincolor *in)
 {
-  int Xup,Xdw;
-  
+#pragma omp single
   communicate_eo_quad_su3_borders(conf);
+#pragma omp single
   if(eooe==0) communicate_od_spincolor_borders(in);
   else        communicate_ev_spincolor_borders(in);
   
+#pragma omp for
   nissa_loc_volh_loop(X)
     {
+      int Xup,Xdw;
       color temp_c0,temp_c1,temp_c2,temp_c3;
       
       //Forward 0
@@ -102,6 +104,7 @@ void tmn2Deo_or_tmn2Doe_eos(spincolor *out,quad_su3 **conf,int eooe,spincolor *i
       color_isubtassign(out[X][3],temp_c3);
     }
   
+#pragma omp single
   set_borders_invalid(out);
 }
 
@@ -112,33 +115,41 @@ void tmn2Deo_eos(spincolor *out,quad_su3 **conf,spincolor *in){tmn2Deo_or_tmn2Do
 //implement ee or oo part of Dirac operator, equation(3)
 void tmDee_or_oo_eos(spincolor *out,double kappa,double mu,spincolor *in)
 {
-  if(in==out) crash("in==out!");
   complex z={1/(2*kappa),mu};
-  
-  for(int X=0;X<loc_volh;X++)
+
+#pragma omp single
+  if(in==out) crash("in==out!");
+
+#pragma omp for
+  nissa_loc_volh_loop(X)
     for(int ic=0;ic<3;ic++)
       {
 	for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
 	for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
       }
   
+#pragma omp single
   set_borders_invalid(out);
 }
 
 //inverse
 void inv_tmDee_or_oo_eos(spincolor *out,double kappa,double mu,spincolor *in)
 {
-  if(in==out) crash("in==out!");
   double a=1/(2*kappa),b=mu,nrm=a*a+b*b;
   complex z={+a/nrm,-b/nrm};
   
-  for(int X=0;X<loc_volh;X++)
+#pragma omp single
+  if(in==out) crash("in==out!");
+
+#pragma omp for
+  nissa_loc_volh_loop(X)
     for(int ic=0;ic<3;ic++)
       {
 	for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id][ic],in[X][id][ic],z);
 	for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id][ic],in[X][id][ic],z);
       }
   
+#pragma omp single
   set_borders_invalid(out);
 }
 
@@ -151,7 +162,8 @@ void tmDkern_eoprec_eos(spincolor *out,spincolor *temp,quad_su3** conf,double ka
   inv_tmDee_or_oo_eos(temp,kappa,mu,out);
   tmDee_or_oo_eos(temp,kappa,mu,in);
   
-  for(int ivol=0;ivol<loc_volh;ivol++)
+#pragma omp for
+  nissa_loc_volh_loop(ivol)
     for(int id=0;id<2;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
@@ -160,6 +172,7 @@ void tmDkern_eoprec_eos(spincolor *out,spincolor *temp,quad_su3** conf,double ka
 	    out[ivol][id+2][ic][ri]=-temp[ivol][id+2][ic][ri]+out[ivol][id+2][ic][ri]*0.25;
 	  }
   
+#pragma omp single
   set_borders_invalid(out);
 }
 

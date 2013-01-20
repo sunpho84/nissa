@@ -249,6 +249,7 @@ struct theory_pars_type
 //evolution parameters for hybrid monte carlo
 struct hmc_evol_pars_type
 {
+  int skip_mtest_ntraj;
   double traj_length;
   double pf_action_residue;
   double md_residue;

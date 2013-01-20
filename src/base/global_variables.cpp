@@ -47,6 +47,12 @@ EXTERN MPI_Datatype MPI_REDSPINCOLOR;
 //float 128 summ
 EXTERN MPI_Op MPI_FLOAT_128_SUM;
 
+//reducing buffers
+EXTERN float_128 reduce_float_128;
+EXTERN complex reduce_complex;
+EXTERN double reduce_double;
+EXTERN int reduce_int;
+
 //timings
 EXTERN double tot_nissa_time;
 EXTERN double tot_nissa_comm_time;

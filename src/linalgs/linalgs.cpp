@@ -16,85 +16,80 @@
 //set to zero
 void double_vector_init_to_zero(double *a,int n)
 {
+#pragma omp single
   memset(a,0,n*sizeof(double));
+  
   set_borders_invalid(a);
 }
 
 //copy
 void double_vector_copy(double *a,double *b,int n)
 {
+#pragma omp single
   memcpy(a,b,n*sizeof(double));
+  
   set_borders_invalid(a);
 }
 
 //summ
 void double_vector_summassign(double *out,double *in,int n)
 {
-  for(int i=0;i<n;i++) out[i]+=in[i];
+#pragma omp for
+  for(int i=0;i<n;i++)
+    out[i]+=in[i];
+  
   set_borders_invalid(out);
 }
 
 //prod with double
 void double_vector_prod_double(double *out,double *in,double r,int n)
 {
-  for(int i=0;i<n;i++) out[i]=r*in[i];
+#pragma omp for
+  for(int i=0;i<n;i++)
+    out[i]=r*in[i];
+  
   set_borders_invalid(out);
 }
 
 //prod with double of the summ
 void double_vector_prod_the_summ_double(double *out,double r,double *in1,double *in2,int n)
 {
-  for(int i=0;i<n;i++) out[i]=r*(in1[i]+in2[i]);
+#pragma omp for
+  for(int i=0;i<n;i++)
+    out[i]=r*(in1[i]+in2[i]);
+  
   set_borders_invalid(out);
 }
 
 //scalar product between a and b
 double double_vector_loc_scalar_prod(double *a,double *b,int n)
 {
-  double out=0;
+#pragma omp single
+  reduce_double=0;
+#pragma omp for reduction(+:reduce_double)
+  for(int i=0;i<n;i++)
+    reduce_double+=a[i]*b[i];
   
-  int i=0;
-  
-#ifdef BGP
-  bgp_complex N0,N1,N2;
-  bgp_color_put_to_zero(N0,N1,N2);
-  while(i+24<n)
-    {
-      bgp_complex A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,AA,AB;
-      bgp_complex B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,BA,BB;
-      bgp_spincolor_load(A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,AA,AB,(*((spincolor*)(a+i))));
-      bgp_spincolor_load(B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,BA,BB,(*((spincolor*)(b+i))));
-      bgp_summassign_color_realscalarprod_spincolor(N0,N1,N2, A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,AA,AB, B0,B1,B2,B3,B4,B5,B6,B7,B8,B9,BA,BB);
-      
-      i+=24;
-    }
-  bgp_square_norm_color(N0,N1,N2);
-  complex cout;
-  bgp_complex_save(cout,N0);
-  out=cout[0];
-#endif
-  
-  //reduce the remaining data (or all if not on bgp)
-  while(i<n)
-    {
-      out+=a[i]*b[i];
-      i++;
-    }
-  
-  return out;
+  return reduce_double;
 }
 
 //a[]=b[]+c[]*d
 void double_vector_summ_double_vector_prod_double(double *a,double *b,double *c,double d,int n)
 {
-  for(int i=0;i<n;i++) a[i]=b[i]+c[i]*d;
+#pragma omp for
+  for(int i=0;i<n;i++)
+    a[i]=b[i]+c[i]*d;
+  
   set_borders_invalid(a);
 }
 
 //a[]=b[]*c+d[]*e
 void double_vector_linear_comb(double *a,double *b,double c,double *d,double e,int n)
 {
-  for(int i=0;i<n;i++) a[i]=b[i]*c+d[i]*e;
+#pragma omp for
+  for(int i=0;i<n;i++)
+    a[i]=b[i]*c+d[i]*e;
+  
   set_borders_invalid(a);
 }
 
@@ -111,15 +106,19 @@ double double_vector_glb_scalar_prod(double *a,double *b,int n)
 //a=b
 void double_vector_from_quadruple_vector(double *a,float_128 *b,int n)
 {
-  for(int i=0;i<n;i++) a[i]=double_from_float_128(b[i]);
-
+#pragma omp for
+  for(int i=0;i<n;i++)
+    a[i]=double_from_float_128(b[i]);
+  
   set_borders_invalid(a);
 }
 
 //a=a+b
 void quadruple_vector_summassign_double_vector(float_128 *a,double *b,int n)
 {
-  for(int i=0;i<n;i++) float_128_summassign_64(a[i],b[i]);
+#pragma omp for
+  for(int i=0;i<n;i++)
+    float_128_summassign_64(a[i],b[i]);
 
   set_borders_invalid(a);
 }
@@ -127,7 +126,9 @@ void quadruple_vector_summassign_double_vector(float_128 *a,double *b,int n)
 //a=b-c
 void quadruple_vector_subt_from_double_vector(float_128 *a,double *b,float_128 *c,int n)
 {
-  for(int i=0;i<n;i++) float_128_subt_from_64(a[i],b[i],c[i]);
+#pragma omp for
+  for(int i=0;i<n;i++)
+    float_128_subt_from_64(a[i],b[i],c[i]);
 
   set_borders_invalid(a);
 }
@@ -137,9 +138,14 @@ void quadruple_vector_subt_from_double_vector(float_128 *a,double *b,float_128 *
 //(a,b)
 void quadruple_vector_glb_scalar_prod(float_128 a,float_128 *b,float_128 *c,int n)
 {
-  float_128 loc_a={0,0};
-  for(int i=0;i<n;i++) float_128_summ_the_prod(loc_a,b[i],c[i]);
-  MPI_Allreduce(loc_a,a,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+#pragma omp single
+  {
+    float_128 loc_acc={0,0};
+    for(int i=0;i<n;i++) float_128_summ_the_prod(loc_acc,b[i],c[i]);
+    glb_reduce_float_128(reduce_float_128,loc_acc);
+  }
+  
+  float_128_copy(a,reduce_float_128);
 }
 
 //(a,b)
@@ -147,6 +153,7 @@ double double_conv_quadruple_vector_glb_scalar_prod(float_128 *a,float_128 *b,in
 {
   float_128 out;
   quadruple_vector_glb_scalar_prod(out,a,b,n);
+  
   return double_from_float_128(out);
 }
 
@@ -155,9 +162,15 @@ double double_conv_quadruple_vector_glb_scalar_prod(float_128 *a,float_128 *b,in
 //(a,b)
 void quadruple_accumulate_double_vector_glb_scalar_prod(float_128 a,double *b,double *c,int n)
 {
-  float_128 loc_a={0,0};
-  for(int i=0;i<n;i++) float_128_summ_the_64_prod(loc_a,b[i],c[i]);
-  MPI_Allreduce(loc_a,a,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+#pragma omp single
+  {
+    float_128 loc_acc={0,0};
+
+    for(int i=0;i<n;i++) float_128_summ_the_64_prod(loc_acc,b[i],c[i]);
+    glb_reduce_float_128(reduce_float_128,loc_acc);
+  }
+  
+  float_128_copy(a,reduce_float_128);
 }
 
 //(a,b)
@@ -165,6 +178,7 @@ double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,
 {
   float_128 out;
   quadruple_accumulate_double_vector_glb_scalar_prod(out,a,b,n);
+  
   return double_from_float_128(out);
 }
 
@@ -172,15 +186,19 @@ double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,
 
 void get_color_from_colorspinspin(color *out,colorspinspin *in,int id1,int id2)
 {
+  #pragma omp for
   nissa_loc_vol_loop(ivol)
     get_color_from_colorspinspin(out[ivol],in[ivol],id1,id2);
+  
   set_borders_invalid(out);
 }
 
 void put_color_into_colorspinspin(colorspinspin *out,color *in,int id1,int id2)
 {
+#pragma omp for
   nissa_loc_vol_loop(ivol)
     put_color_into_colorspinspin(out[ivol],in[ivol],id1,id2);
+  
   set_borders_invalid(out);
 }
 
@@ -188,15 +206,19 @@ void put_color_into_colorspinspin(colorspinspin *out,color *in,int id1,int id2)
 
 void get_color_from_spincolor(color *out,spincolor *in,int id)
 {
+#pragma omp for
   nissa_loc_vol_loop(ivol)
     get_color_from_spincolor(out[ivol],in[ivol],id);
+  
   set_borders_invalid(out);
 }
 
 void put_color_into_spincolor(spincolor *out,color *in,int id)
 {
+#pragma omp for
   nissa_loc_vol_loop(ivol)
     put_color_into_spincolor(out[ivol],in[ivol],id);
+  
   set_borders_invalid(out);
 }
 
@@ -204,15 +226,19 @@ void put_color_into_spincolor(spincolor *out,color *in,int id)
 
 void get_spincolor_from_colorspinspin(spincolor *out,colorspinspin *in,int id)
 {
+#pragma omp for
   nissa_loc_vol_loop(ivol)
     get_spincolor_from_colorspinspin(out[ivol],in[ivol],id);
+  
   set_borders_invalid(out);
 }
 
 void put_spincolor_into_colorspinspin(colorspinspin *out,spincolor *in,int id)
 {
+#pragma omp for
   nissa_loc_vol_loop(ivol)
     put_spincolor_into_colorspinspin(out[ivol],in[ivol],id);
+  
   set_borders_invalid(out);
 }
 
@@ -220,15 +246,19 @@ void put_spincolor_into_colorspinspin(colorspinspin *out,spincolor *in,int id)
 
 void get_spincolor_from_su3spinspin(spincolor *out,su3spinspin *in,int id,int ic)
 {
+#pragma omp for
   nissa_loc_vol_loop(ivol)
     get_spincolor_from_su3spinspin(out[ivol],in[ivol],id,ic);
+  
   set_borders_invalid(out);
 }
 
 void put_spincolor_into_su3spinspin(su3spinspin *out,spincolor *in,int id,int ic)
 {
+#pragma omp for
   nissa_loc_vol_loop(ivol)
     put_spincolor_into_su3spinspin(out[ivol],in[ivol],id,ic);
+  
   set_borders_invalid(out);
 }
 
@@ -236,7 +266,9 @@ void put_spincolor_into_su3spinspin(su3spinspin *out,spincolor *in,int id,int ic
 
 void safe_dirac_prod_spincolor(spincolor *out,dirac_matr &m,spincolor *in)
 {
+#pragma omp for
   nissa_loc_vol_loop(ivol)
     safe_dirac_prod_spincolor(out[ivol],&m,in[ivol]);
+  
   set_borders_invalid(out);
 }

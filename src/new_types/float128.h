@@ -18,6 +18,7 @@ void complex_128_summ(complex_128 a,complex_128 b,complex_128 c);
 void complex_128_summassign(complex_128 a,complex_128 b);
 void complex_summ_the_64_conj1_prod_128(complex_128 a,complex b,complex_128 c);
 void complex_summ_the_64_prod_128(complex_128 a,complex b,complex_128 c);
+void float_128_copy(float_128 b,float_128 a);
 void float_128_from_double(float_128 b,double a);
 void float_128_prod(float_128 c,float_128 a,float_128 b);
 void float_128_prod_64(float_128 c,float_128 a,double b);
