@@ -14,33 +14,34 @@
 
 void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
 {
-  int Xup,Xdw;
-
-  bgp_complex A0,A1,A2;
-  bgp_complex B0,B1,B2;
-
-  bgp_complex C0,C1,C2;
-  bgp_complex D0,D1,D2;
-  bgp_complex E0,E1,E2;
-
-  bgp_complex T0,T1,T2;
-
-  bgp_complex R00,R01,R02;
-  bgp_complex R10,R11,R12;
-  bgp_complex R20,R21,R22;
-  bgp_complex R30,R31,R32;
-
-  bgp_complex mass;
-
   complex cpumass={1/(2*kappa),mu};
-  
+  bgp_complex mass;  
   bgp_complex_load(mass,cpumass);
   
+#pragma omp single
   communicate_lx_spincolor_borders(in);
+#pragma omp single
   communicate_lx_quad_su3_borders(conf);
-  
+
+#pragma omp for
   nissa_loc_vol_loop(X)
     {
+      int Xup,Xdw;
+      
+      bgp_complex A0,A1,A2;
+      bgp_complex B0,B1,B2;
+      
+      bgp_complex C0,C1,C2;
+      bgp_complex D0,D1,D2;
+      bgp_complex E0,E1,E2;
+      
+      bgp_complex T0,T1,T2;
+      
+      bgp_complex R00,R01,R02;
+      bgp_complex R10,R11,R12;
+      bgp_complex R20,R21,R22;
+      bgp_complex R30,R31,R32;
+
       //Forward 0
       Xdw=loclx_neighdw[X][0];
       
@@ -236,5 +237,6 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
       bgp_color_save(out[X][3],R30,R31,R32);
     }
   
+#pragma omp single
   set_borders_invalid(out);
 }

@@ -4,19 +4,23 @@
 
 void apply_st2Doe(color *out,quad_su3 **conf,color *in)
 {
-  bgp_complex A0,A1,A2;
-  
-  bgp_complex C0,C1,C2;
-  bgp_complex D0,D1,D2;
-  bgp_complex E0,E1,E2;
-  
-  bgp_complex R0,R1,R2;
-  
-  communicate_eo_quad_su3_borders(conf);
-  communicate_ev_color_borders(in);
-    
+#pragma omp single
+  {
+    communicate_eo_quad_su3_borders(conf);
+    communicate_ev_color_borders(in);
+  }
+
+#pragma omp for
   nissa_loc_volh_loop(isink)
     {
+      bgp_complex A0,A1,A2;
+      
+      bgp_complex C0,C1,C2;
+      bgp_complex D0,D1,D2;
+      bgp_complex E0,E1,E2;
+      
+      bgp_complex R0,R1,R2;
+  
       bgp_color_put_to_zero(R0,R1,R2);
       
       for(int mu=0;mu<4;mu++)
@@ -36,17 +40,21 @@ void apply_st2Doe(color *out,quad_su3 **conf,color *in)
       bgp_color_save(out[isink], R0,R1,R2);
     }
   
+
+#pragma omp single
   set_borders_invalid(out);
 }
 
 void apply_stDoe(color *out,quad_su3 **conf,color *in)
 {
-  bgp_complex C,D;
-  
   apply_st2Doe(out,conf,in);
+  
+#pragma omp for
   nissa_loc_volh_loop(io)
     for(int ic=0;ic<3;ic++)
       {
+	bgp_complex C,D;
+	
 	bgp_complex_load(C,out[io][ic]);
 	bgp_complex_prod_double(D,C,0.5);
 	bgp_complex_save(out[io][ic],D);
@@ -55,19 +63,23 @@ void apply_stDoe(color *out,quad_su3 **conf,color *in)
 
 void apply_stDeo_half(color *out,quad_su3 **conf,color *in)
 {
-  bgp_complex A0,A1,A2;
-  
-  bgp_complex C0,C1,C2;
-  bgp_complex D0,D1,D2;
-  bgp_complex E0,E1,E2;
-  
-  bgp_complex R0,R1,R2;
-  
-  communicate_eo_quad_su3_borders(conf);
-  communicate_od_color_borders(in);
-    
+#pragma omp single
+  {
+    communicate_eo_quad_su3_borders(conf);
+    communicate_od_color_borders(in);
+  }
+
+#pragma omp for
   nissa_loc_volh_loop(isink)
     {
+      bgp_complex A0,A1,A2;
+      
+      bgp_complex C0,C1,C2;
+      bgp_complex D0,D1,D2;
+      bgp_complex E0,E1,E2;
+      
+      bgp_complex R0,R1,R2;
+  
       bgp_color_put_to_zero(R0,R1,R2);
       
       for(int mu=0;mu<4;mu++)
@@ -88,18 +100,22 @@ void apply_stDeo_half(color *out,quad_su3 **conf,color *in)
       bgp_color_save(out[isink], R0,R1,R2);
     }
   
+#pragma omp single
   set_borders_invalid(out);
 }
 
 void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
 {
-  communicate_eo_quad_su3_borders(conf);
-  communicate_ev_color_borders(in);
-  
-  //check arguments
-  if(out==in)   crash("out==in!");
-  if(out==temp) crash("out==temp!");
-  if(temp==in)  crash("temp==in!");
+#pragma omp single
+  {
+    communicate_eo_quad_su3_borders(conf);
+    communicate_ev_color_borders(in);
+
+    //check arguments
+    if(out==in)   crash("out==in!");
+    if(out==temp) crash("out==temp!");
+    if(temp==in)  crash("temp==in!");
+  }
   
   double mass2=mass*mass;
   
@@ -108,10 +124,12 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
   apply_stDeo_half(out,conf,temp);
   
   //summ the mass
+#pragma omp for
   nissa_loc_volh_loop(ivol)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	out[ivol][ic][ri]+=mass2*in[ivol][ic][ri];
   
+#pragma omp single
   set_borders_invalid(out);
 }

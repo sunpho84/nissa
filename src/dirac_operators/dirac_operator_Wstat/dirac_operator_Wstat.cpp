@@ -10,10 +10,13 @@
 
 void apply_Wstat(spincolor *out,quad_su3 *conf,spincolor *in,int mu,int xmu_start)
 {
+#pragma omp single
   communicate_lx_spincolor_borders(in);
+#pragma omp single
   communicate_lx_quad_su3_borders(conf);
-  
-  nissa_loc_vol_parallel_loop(x)
+    
+#pragma omp for
+  nissa_loc_vol_loop(x)
     {
       int xmu=glb_coord_of_loclx[x][mu];
       int dist=fabs(xmu-xmu_start);
@@ -34,6 +37,7 @@ void apply_Wstat(spincolor *out,quad_su3 *conf,spincolor *in,int mu,int xmu_star
 	}
     }
   
+#pragma omp single
   set_borders_invalid(out);
 }
 
@@ -44,9 +48,11 @@ void reconstruct_Wstat(spincolor *outminus,spincolor *outplus,quad_su3 *conf,spi
   //apply_Wstat(outminus,conf,in);
   vector_copy(outplus,outminus);
   
-  set_borders_invalid(outminus);
-  set_borders_invalid(outplus);
-
+#pragma omp single
+  {
+    set_borders_invalid(outminus);
+    set_borders_invalid(outplus);
+  }
 }
 
 void apply_Wstat2(spincolor *out,quad_su3 *conf,spincolor *temp,spincolor *in)

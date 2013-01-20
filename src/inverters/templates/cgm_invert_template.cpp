@@ -1,3 +1,5 @@
+#include <omp.h>
+
 /*
   This is the prorotipe for a multi-shift inverter.
   The calls to the operator, the internal vectors definitions and the additional parameters must be defined thorugh macro.
@@ -66,90 +68,106 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
   double final_res[nshift];
   int nrequest=0;
   MPI_Request request[cgm_npossible_requests];
-  do
-    {
-      //     this is already iteration 0
-      iter++;
-      
-      //     -s=Ap
-      if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(nrequest,request,p);
-      apply_operator(s,cgm_operator_parameters,shift[0],p);
-      
-      //     -pap=(p,s)=(p,Ap)
-      double pap=double_vector_glb_scalar_prod((double*)p,(double*)s,bulk_vol*ndoubles_per_site);
-      
-      //     calculate betaa=rr/pap=(r,r)/(p,Ap)
-      double betap=betaa;
-      betaa=-rr/pap;
-      
-      //     calculate 
-      //     -zfs
-      //     -betas
-      //     -x
-      for(int ishift=0;ishift<nshift;ishift++)
-	{
-	  if(run_flag[ishift]==1)
-	    {
-	      zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
-	      betas[ishift]=betaa*zfs[ishift]/zas[ishift];
-	      
-	      double_vector_subt_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),betas[ishift],bulk_vol*ndoubles_per_site);
-	    }
-	}
-
-      //     calculate
-      //     -r'=r+betaa*s=r+beta*Ap
-      //     -rfrf=(r',r')
-      double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,bulk_vol*ndoubles_per_site);
-      double rfrf;
-      //if(nissa_use_128_bit_precision) rfrf=double_conv_quadruple_accumulate_double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
-      //else
-      rfrf=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
-      
-      //     calculate alpha=rfrf/rr=(r',r')/(r,r)
-      alpha=rfrf/rr;
-      
-      //     calculate p'=r'+p*alpha
-      double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,bulk_vol*ndoubles_per_site);
-      
-      //start the communications of the border
-      if(nissa_use_async_communications) cgm_start_communicating_borders(nrequest,request,p);
-      
-      //     calculate 
-      //     -alphas=alpha*zfs*betas/zas*beta
-      //     -ps'=r'+alpha*ps
-      for(int ishift=0;ishift<nshift;ishift++)
-	if(run_flag[ishift]==1)
+  
+#pragma omp parallel
+  {
+    do
+      {
+	//     this is already iteration 0
+#pragma omp single
+	iter++;
+	
+	//     -s=Ap
+#pragma omp single
+	if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(nrequest,request,p);
+	
+	apply_operator(s,cgm_operator_parameters,shift[0],p);
+	
+	//     -pap=(p,s)=(p,Ap)
+	double pap=double_vector_glb_scalar_prod((double*)p,(double*)s,bulk_vol*ndoubles_per_site);
+	//     calculate betaa=rr/pap=(r,r)/(p,Ap)
+	double betap=betaa;
+	betaa=-rr/pap;
+	
+	//     calculate 
+	//     -zfs
+	//     -betas
+	//     -x
+	for(int ishift=0;ishift<nshift;ishift++)
 	  {
-	    alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
-	    double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],bulk_vol*ndoubles_per_site);
-
-	    // shift z
-	    zps[ishift]=zas[ishift];
-	    zas[ishift]=zfs[ishift];
-	  }
-      
-      //shift rr
-      rr=rfrf;
-      
-      //check over residual
-      if(iter%each==0) verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
-      for(int ishift=0;ishift<nshift;ishift++)
-	if(run_flag[ishift])
-	  {
-	    final_res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
-	    if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[ishift]);
-	    
-	    if(final_res[ishift]<req_res[ishift])
+	    if(run_flag[ishift]==1)
 	      {
-		run_flag[ishift]=0;
-		nrun_shift--;
+#pragma omp single
+		{
+		  zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
+		  betas[ishift]=betaa*zfs[ishift]/zas[ishift];
+		}
+		
+		double_vector_subt_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),betas[ishift],bulk_vol*ndoubles_per_site);
 	      }
 	  }
-	else if(iter%each==0) verbosity_lv2_master_printf(" * ");
-      if(iter%each==0) verbosity_lv2_master_printf("\n");
-    }
-  while(nrun_shift>0 && iter<niter_max);
+	
+	//     calculate
+	//     -r'=r+betaa*s=r+beta*Ap
+	//     -rfrf=(r',r')
+	double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,bulk_vol*ndoubles_per_site);
+	double rfrf;
+	rfrf=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
+	
+	//     calculate alpha=rfrf/rr=(r',r')/(r,r)
+	alpha=rfrf/rr;
+	
+	//     calculate p'=r'+p*alpha
+	double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,bulk_vol*ndoubles_per_site);
+	
+	//start the communications of the border
+#pragma omp single
+	if(nissa_use_async_communications) cgm_start_communicating_borders(nrequest,request,p);
+	
+	//     calculate 
+	//     -alphas=alpha*zfs*betas/zas*beta
+	//     -ps'=r'+alpha*ps
+	for(int ishift=0;ishift<nshift;ishift++)
+	  if(run_flag[ishift]==1)
+	   {
+#pragma omp single
+	    alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
+	    
+	    double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],bulk_vol*ndoubles_per_site);
+	     
+	    // shift z
+#pragma omp single
+	    {
+	      zps[ishift]=zas[ishift];
+	      zas[ishift]=zfs[ishift];
+	    }
+	   }
+	
+#pragma omp single
+	{
+	  //shift rr
+	  rr=rfrf;
+	  
+	  //check over residual
+	  if(iter%each==0) verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
+	  for(int ishift=0;ishift<nshift;ishift++)
+	    if(run_flag[ishift])
+	      {
+		final_res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
+		if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[ishift]);
+		
+		if(final_res[ishift]<req_res[ishift])
+		  {
+		    run_flag[ishift]=0;
+		    nrun_shift--;
+		  }
+	      }
+	    else if(iter%each==0) verbosity_lv2_master_printf(" * ");
+	  if(iter%each==0) verbosity_lv2_master_printf("\n");
+	}
+      }
+    while(nrun_shift>0 && iter<niter_max);
+  }
   
   if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(nrequest,request,p);
   

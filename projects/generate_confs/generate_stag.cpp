@@ -24,76 +24,9 @@ extern int nglu_comp;
 extern double glu_comp_time;
 
 //observables
-FILE *gauge_obs_file;
+char gauge_obs_path[1024];
 int gauge_meas_flag;
 top_meas_pars_type top_meas_pars;
-
-//compute the pion correlator
-void measure_time_pion_corr(FILE *fuf,quad_su3 **conf,theory_pars_type &theory_pars,double residue)
-{
-  int nflavs=theory_pars.nflavs;
-  
-  //allocate source and propagators
-  color *source[2]={nissa_malloc("prop",loc_volh,color),nissa_malloc("source",loc_volh,color)};
-  color *prop[nflavs][2];
-  for(int iflav=0;iflav<nflavs;iflav++)
-    for(int EO=0;EO<2;EO++)
-      prop[iflav][EO]=nissa_malloc("prop",loc_volh,color);
-  
-  //allocate local and global contraction
-  complex *loc_contr=nissa_malloc("loc_contr",glb_size[0]*nflavs*(nflavs+1)/2,complex);
-  complex *glb_contr=nissa_malloc("loc_contr",glb_size[0]*nflavs*(nflavs+1)/2,complex);
-  vector_reset(loc_contr);
-  
-  //generate the source on an even site
-  int twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2)*2;
-  master_printf("twall=%d\n",twall);
-  generate_fully_undiluted_source(source,RND_Z4,twall);
-  filter_hypercube_origin_sites(source);
-  
-  //compute propagators
-  for(int iflav=0;iflav<nflavs;iflav++)
-    get_propagator(prop[iflav],conf,theory_pars.backfield[iflav],theory_pars.quark_content[iflav].mass,residue,source);
-  
-  //contract the propagators
-  int icombo=0;
-  for(int iflav=0;iflav<nflavs;iflav++)
-    for(int jflav=0;jflav<=iflav;jflav++)
-      {
-	for(int eo=0;eo<2;eo++)
-	  nissa_loc_volh_loop(ieo)
-	    {
-	      int ilx=loclx_of_loceo[eo][ieo];
-	      int t=(glb_coord_of_loclx[ilx][0]+glb_size[0]-twall)%glb_size[0];
-	      for(int ic=0;ic<3;ic++)
-		complex_summ_the_conj2_prod(loc_contr[icombo*glb_size[0]+t],prop[iflav][eo][ieo][ic],prop[jflav][eo][ieo][ic]);
-	    }
-	icombo++;
-      }
-  
-  //reduce
-  glb_reduce_complex_vect(glb_contr,loc_contr,glb_size[0]*nflavs*(nflavs+1)/2);
-  
-  //print
-  icombo=0;
-  for(int iflav=0;iflav<nflavs;iflav++)
-    for(int jflav=0;jflav<=iflav;jflav++)
-      {
-	for(int t=0;t<glb_size[0];t++)
-	  master_printf("%d %16.16lg %16.16lg\n",t,glb_contr[icombo*glb_size[0]+t][0],glb_contr[icombo*glb_size[0]+t][1]);
-	icombo++;
-      }
-  
-  //free everything
-  for(int EO=0;EO<2;EO++)
-    {    
-      for(int iflav=0;iflav<nflavs;iflav++)
-	nissa_free(prop[iflav][EO]);
-      nissa_free(source[EO]);
-    }
-  nissa_free(loc_contr);
-  nissa_free(glb_contr);
-}
 
 //input and output path for confs
 char conf_path[1024];
@@ -109,10 +42,10 @@ theory_pars_type *theory_pars;
 evol_pars_type evol_pars;
 
 //number of traj
+int prod_ntraj;
 int itraj,max_ntraj;
 int store_conf_each;
 int store_running_temp_conf;
-int skip_mtest_ntraj;
 
 const int HOT=0,COLD=1;
 
@@ -214,8 +147,7 @@ void init_simulation(char *path)
   
   //read if we want to measure gauge obs
   read_str_int("MeasureGaugeObs",&gauge_meas_flag);
-  char gauge_obs_path[1024];
-  read_str_str("GaugeObsPath",gauge_obs_path,1024);
+  if(gauge_meas_flag) read_str_str("GaugeObsPath",gauge_obs_path,1024);
   
   //read if we want to measure topological charge
   read_top_meas_pars(top_meas_pars);
@@ -228,22 +160,8 @@ void init_simulation(char *path)
   read_str_int("Seed",&seed);
   
   //load evolution info depending if is a quenched simulation or unquenched
-  if(theory_pars[SEA_THEORY].nflavs!=0)
-    {
-      read_str_int("SkipMTestNTraj",&skip_mtest_ntraj);
-      
-      //first guess for hmc evolution
-      read_hmc_evol_pars(evol_pars.hmc_evol_pars);
-    }
-  else
-    {
-      //heat bath parameters
-      read_str_int("NHbSweeps",&evol_pars.pure_gauge_evol_pars.nhb_sweeps);
-      read_str_int("NHbHits",&evol_pars.pure_gauge_evol_pars.nhb_hits);
-      //overrelax parameters
-      read_str_int("NOvSweeps",&evol_pars.pure_gauge_evol_pars.nov_sweeps);
-      read_str_int("NOvHits",&evol_pars.pure_gauge_evol_pars.nov_hits);
-    }
+  if(theory_pars[SEA_THEORY].nflavs!=0) read_hmc_evol_pars(evol_pars.hmc_evol_pars);
+  else read_pure_gauge_evol_pars(evol_pars.pure_gauge_evol_pars);
   
   //read in and out conf path
   read_str_str("ConfPath",conf_path,1024);
@@ -260,7 +178,7 @@ void init_simulation(char *path)
   if(start_conf_cond==-1) crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
   
   close_input();
-  
+
   ////////////////////////// allocate stuff ////////////////////////
    
   //allocate the conf
@@ -275,14 +193,10 @@ void init_simulation(char *path)
   for(int itheory=0;itheory<ntheories;itheory++) init_theory_pars(theory_pars[itheory]);
   
   //load conf or generate it
-  char ap_cr[2];
   if(file_exists(conf_path))
     {
       master_printf("File %s found, loading\n",conf_path);
       read_conf(conf,conf_path);
-      
-      //mark to open observables file for append
-      sprintf(ap_cr,"a");
     }
   else
     {
@@ -303,13 +217,7 @@ void init_simulation(char *path)
       
       //reset conf id
       itraj=0;
-      
-      //mark to open observables file
-      sprintf(ap_cr,"w");
-    }
-  
-  //open creating or appending
-  if(gauge_meas_flag) gauge_obs_file=open_file(gauge_obs_path,ap_cr);
+    }  
 }
 
 //unset the background field
@@ -328,7 +236,7 @@ void unset_theory_pars(theory_pars_type &theory_pars)
 //finalize everything
 void close_simulation()
 {
-  if(!store_running_temp_conf) write_conf(conf_path,conf);
+  if(!store_running_temp_conf && prod_ntraj!=0) write_conf(conf_path,conf);
   
   for(int itheory=0;itheory<ntheories;itheory++)
     unset_theory_pars(theory_pars[itheory]);
@@ -339,9 +247,6 @@ void close_simulation()
       nissa_free(new_conf[par]);
       nissa_free(conf[par]);
     }
-  
-  if(rank==0)
-    fclose(gauge_obs_file);
   
   close_nissa();
 }
@@ -354,7 +259,7 @@ int generate_new_conf()
   //if not quenched
   if(theory_pars[SEA_THEORY].nflavs!=0)
     {
-      int perform_test=(itraj>=skip_mtest_ntraj);
+      int perform_test=(itraj>=evol_pars.hmc_evol_pars.skip_mtest_ntraj);
       double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,&theory_pars[SEA_THEORY],&evol_pars.hmc_evol_pars);
       
       master_printf("Diff action: %lg, ",diff_act);
@@ -394,8 +299,11 @@ int generate_new_conf()
 }
 
 //measure plaquette and polyakov loop, writing also acceptance
-void measure_gauge_obs(FILE *file,quad_su3 **conf,int iconf,int acc)
+void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc)
 {
+  //open creating or appending
+  FILE *file=open_file(path,(iconf==0)?"w":"a");
+
   //plaquette (temporal and spatial)
   double plaq[2];
   global_plaquette_eo_conf(plaq,conf);
@@ -404,24 +312,36 @@ void measure_gauge_obs(FILE *file,quad_su3 **conf,int iconf,int acc)
   complex pol;
   average_polyakov_loop_of_eos_conf(pol,conf,0);
   
-  master_fprintf(file,"%d %d %16.16lg %16.16lg %16.16lg %16.16lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
+  master_fprintf(file,"%d %d %016.16lg %016.16lg %016.16lg %016.16lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
+  
+  if(rank==0) fclose(file);
 }
 
 //measures
 void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
 {
-  if(gauge_meas_flag) measure_gauge_obs(gauge_obs_file,conf,iconf,acc);
+  if(gauge_meas_flag) measure_gauge_obs(gauge_obs_path,conf,iconf,acc);
   if(top_meas_pars.flag) measure_topology(top_meas_pars,conf,iconf);
+  
   for(int itheory=0;itheory<ntheories;itheory++)
     {
+      //if needed stout
+      quad_su3 **temp_conf=(theory_pars[itheory].stout_pars.nlev==0)?conf:new_conf;
+      stout_smear(temp_conf,conf,theory_pars[itheory].stout_pars);
+      
       if(theory_pars[itheory].chiral_cond_pars.flag)
 	{
 	  verbosity_lv2_master_printf("Measuring chiral condensate for theory %d/%d\n",itheory+1,ntheories);
-	  measure_chiral_cond(conf,theory_pars[itheory],iconf);
+	  measure_chiral_cond(temp_conf,theory_pars[itheory],iconf);
 	}
       else verbosity_lv2_master_printf("Skipping measure of chiral condensate for theory %d/%d\n",itheory+1,ntheories);
       
-      measure_time_pion_corr(NULL,conf,theory_pars[itheory],1.e-10);
+      if(theory_pars[itheory].pseudo_corr_pars.flag)
+	{
+	  verbosity_lv2_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
+	  measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf);
+	}
+      else verbosity_lv2_master_printf("Skipping measure of pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
     }
 }
 
@@ -451,7 +371,7 @@ int main(int narg,char **arg)
   ///////////////////////////////////////
   
   //evolve for the required number of traj
-  int prod_ntraj=0;
+  prod_ntraj=0;
   master_printf("\n");
   do
     {
@@ -462,14 +382,16 @@ int main(int narg,char **arg)
       // 1) produce new conf
       int acc=1;
       if(max_ntraj!=0)
-	acc=generate_new_conf();
+	{
+	  acc=generate_new_conf();
+	  prod_ntraj++;
+	  itraj++;
+	}
       
       // 2) measure
       measurements(new_conf,conf,itraj,acc);
       
       // 3) increment id and write conf
-      itraj++;
-      prod_ntraj++;
       if(store_running_temp_conf) write_conf(conf_path,conf);
       
       // 4) if conf is multiple of store_conf_each copy it

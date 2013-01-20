@@ -18,5 +18,6 @@ void apply_tmQ_RL(spincolor *out,quad_su3 *conf,double kappa,double mu,int RL,sp
   if(RL==0) apply_tmQ(out,conf,kappa,mu,in);
   else apply_tmQ_left(out,conf,kappa,mu,in);
 
+#pragma omp single
   set_borders_invalid(out);
 }

@@ -2,6 +2,7 @@
 #define _READ_NEW_TYPES_H
 void read_chiral_cond_pars(chiral_cond_pars_type &chiral_cond_pars);
 void read_em_field_pars(em_field_pars_type &em_field_pars);
+void read_pure_gauge_evol_pars(pure_gauge_evol_pars_type &pars);
 void read_hmc_evol_pars(hmc_evol_pars_type &pars);
 void read_pseudo_corr_pars(pseudo_corr_pars_type &pseudo_corr_pars);
 void read_quark_content(quark_content_type &quark_content);

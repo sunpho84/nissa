@@ -75,10 +75,89 @@ void measure_chiral_cond(quad_su3 **conf,theory_pars_type &theory_pars,int iconf
           complex_summ_the_prod_double(cond,temp,1.0/nhits);
         }
       
-      master_fprintf(file,"\t%16.16lg",cond[0]);
+      master_fprintf(file,"\t%016.16lg",cond[0]);
     }
 
   master_fprintf(file,"\n");
+  
+  if(rank==0) fclose(file);
+}
+
+//compute the local pseudoscalar correlator
+void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_type &theory_pars,int iconf)
+{
+  FILE *file=open_file(theory_pars.pseudo_corr_pars.path,(iconf==0)?"w":"a");
+  
+  int nflavs=theory_pars.nflavs;
+  
+  //allocate source and propagators
+  color *source[2]={nissa_malloc("prop",loc_volh,color),nissa_malloc("source",loc_volh,color)};
+  color *prop[nflavs][2];
+  for(int iflav=0;iflav<nflavs;iflav++)
+    for(int EO=0;EO<2;EO++)
+      prop[iflav][EO]=nissa_malloc("prop",loc_volh,color);
+  
+  //allocate local and global contraction
+  complex *loc_contr=nissa_malloc("loc_contr",glb_size[0]*nflavs*(nflavs+1)/2,complex);
+  complex *glb_contr=nissa_malloc("loc_contr",glb_size[0]*nflavs*(nflavs+1)/2,complex);
+  vector_reset(loc_contr);
+  
+  //loop over the hits
+  int nhits=theory_pars.pseudo_corr_pars.nhits;
+  for(int hit=0;hit<nhits;hit++)
+    {
+      //generate the source on an even site
+      int twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2)*2;
+      generate_fully_undiluted_source(source,RND_Z4,twall);
+      filter_hypercube_origin_sites(source);
+      
+      //compute propagators
+      for(int iflav=0;iflav<nflavs;iflav++)
+	get_propagator(prop[iflav],conf,theory_pars.backfield[iflav],theory_pars.quark_content[iflav].mass,
+		       theory_pars.pseudo_corr_pars.residue,source);
+      
+      //contract the propagators
+      int icombo=0;
+      for(int iflav=0;iflav<nflavs;iflav++)
+	for(int jflav=0;jflav<=iflav;jflav++)
+	  {
+	    for(int eo=0;eo<2;eo++)
+	      nissa_loc_volh_loop(ieo)
+	      {
+		int ilx=loclx_of_loceo[eo][ieo];
+		int t=(glb_coord_of_loclx[ilx][0]+glb_size[0]-twall)%glb_size[0];
+		for(int ic=0;ic<3;ic++)
+		  complex_summ_the_conj2_prod(loc_contr[icombo*glb_size[0]+t],prop[iflav][eo][ieo][ic],prop[jflav][eo][ieo][ic]);
+	      }
+	    icombo++;
+	  }
+    }
+
+  //reduce
+  glb_reduce_complex_vect(glb_contr,loc_contr,glb_size[0]*nflavs*(nflavs+1)/2);
+  
+  //print
+  double norm=nhits*glb_vol/(8*glb_size[0]);
+  int icombo=0;
+  for(int iflav=0;iflav<nflavs;iflav++)
+    for(int jflav=0;jflav<=iflav;jflav++)
+      {
+	master_fprintf(file," # iconf %d , m1 = %lg , m2 = %lg\n",iconf,theory_pars.quark_content[iflav].mass,theory_pars.quark_content[jflav].mass);
+	
+        for(int t=0;t<glb_size[0];t++)
+          master_fprintf(file,"%d %016.16lg\n",t,glb_contr[icombo*glb_size[0]+t][RE]/norm);
+        icombo++;
+      }
+  
+  //free everything
+  for(int EO=0;EO<2;EO++)
+    {    
+      for(int iflav=0;iflav<nflavs;iflav++)
+        nissa_free(prop[iflav][EO]);
+      nissa_free(source[EO]);
+    }
+  nissa_free(loc_contr);
+  nissa_free(glb_contr);
   
   if(rank==0) fclose(file);
 }

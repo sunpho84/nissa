@@ -6,6 +6,12 @@
 #include "new_types_definitions.h"
 #include "complex.h"
 
+void float_128_copy(float_128 b,float_128 a)
+{
+  b[0]=a[0];
+  b[1]=a[1];
+}
+
 void float_128_uminus(float_128 b,float_128 a)
 {
   b[0]=-a[0];
