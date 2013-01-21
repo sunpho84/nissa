@@ -215,6 +215,7 @@ void reorder_vector(char *vect,int *order,int nel,int sel)
   nissa_free(buf);
 }
 
+//only master rank and thread print
 int master_fprintf(FILE *stream,const char *format,...)
 {
   int ret=0;

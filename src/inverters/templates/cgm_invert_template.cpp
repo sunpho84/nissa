@@ -1,5 +1,3 @@
-#include <omp.h>
-
 /*
   This is the prorotipe for a multi-shift inverter.
   The calls to the operator, the internal vectors definitions and the additional parameters must be defined thorugh macro.
@@ -20,23 +18,22 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
   basetype *ps[nshift];
   for(int ishift=0;ishift<nshift;ishift++) ps[ishift]=nissa_malloc("ps",bulk_vol,basetype);
   
-  //sol[*]=0
-  int run_flag[nshift],nrun_shift=nshift;
+  //     -sol[*]=0
+  //     -ps[*]=source
   for(int ishift=0;ishift<nshift;ishift++)
     {
+      double_vector_copy((double*)(ps[ishift]),(double*)source,bulk_vol*ndoubles_per_site);
       double_vector_init_to_zero((double*)(sol[ishift]),bulk_vol*ndoubles_per_site);
-      run_flag[ishift]=1;
     }
   
   //     -p=source
   //     -r=source
-  //     -calculate Rr=(r,r)
+  //     -calculate source_norm=(r,r)
   double_vector_copy((double*)p,(double*)source,bulk_vol*ndoubles_per_site);
   double_vector_copy((double*)r,(double*)source,bulk_vol*ndoubles_per_site);
-  double rr=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
+  double source_norm=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
   
   //writes source norm
-  double source_norm=rr;
   verbosity_lv2_master_printf(" Source norm: %lg\n",source_norm);
   if(source_norm==0 || isnan(source_norm)) crash("invalid norm: %lg",source_norm);
   
@@ -45,33 +42,37 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
   for(int ishift=0;ishift<nshift;ishift++) verbosity_lv2_master_printf("%1.4e  ",1.0);
   verbosity_lv2_master_printf("\n");
   
-  //     -betaa=1
-  double betaa=1;
-  
-  //     -ps=source
-  //     -zps=zas=1
-  //     -alphas=0
-  double zps[nshift],zas[nshift],alphas[nshift];
-  double zfs[nshift],betas[nshift];
-  for(int ishift=0;ishift<nshift;ishift++)
-    {
-      double_vector_copy((double*)(ps[ishift]),(double*)source,bulk_vol*ndoubles_per_site);
-      
-      zps[ishift]=zas[ishift]=1;
-      alphas[ishift]=0;
-    }
-  
-  //     -alpha=0
-  double alpha=0;
-  
-  double rfrf,pap,betap;
-  int iter=0;
-  double final_res[nshift];
   int nrequest=0;
+  int iter=0;
   MPI_Request request[cgm_npossible_requests];
+  double final_res[nshift];
   
 #pragma omp parallel
   {
+    //     -betaa=1
+    double betaa=1;
+    
+    //     -zps=zas=1
+    //     -alphas=0
+    double zps[nshift],zas[nshift],alphas[nshift];
+    double zfs[nshift],betas[nshift];
+    int run_flag[nshift],nrun_shift=nshift;
+    for(int ishift=0;ishift<nshift;ishift++)
+      {
+	zps[ishift]=zas[ishift]=1;
+	alphas[ishift]=0;
+	run_flag[ishift]=1;
+      }
+
+    //     -alpha=0
+    double alpha=0;
+    
+    //     -rr=(r,r)=source_norm
+    double rr=source_norm;
+    
+    double rfrf,pap,betap;
+    double res[nshift];
+
     do
       {
 	//     this is already iteration 0
@@ -143,23 +144,21 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 #pragma omp single
 	if(iter%each==0) verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
 	for(int ishift=0;ishift<nshift;ishift++)
-	    if(run_flag[ishift])
-	      {
-		final_res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
+	  if(run_flag[ishift])
+	    {
+	      final_res[ishift]=res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
 #pragma omp single
+	      if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",res[ishift]);
+	      
+	      if(res[ishift]<req_res[ishift])
 		{
-		  if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[ishift]);
-		  
-		  if(final_res[ishift]<req_res[ishift])
-		    {
-		      run_flag[ishift]=0;
-		      nrun_shift--;
-		    }
+		  run_flag[ishift]=0;
+		  nrun_shift--;
 		}
-	      }
-	    else
+	    }
+	  else
 #pragma omp single
-	      if(iter%each==0) verbosity_lv2_master_printf(" * ");
+	    if(iter%each==0) verbosity_lv2_master_printf(" * ");
 #pragma omp single
 	if(iter%each==0) verbosity_lv2_master_printf("\n");
       }
