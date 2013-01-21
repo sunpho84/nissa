@@ -21,10 +21,11 @@ void apply_tmQ(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *i
   bgp_complex_load(mass,cpumass);    
   
 #pragma omp single
-  communicate_lx_spincolor_borders(in);
-#pragma omp single
-  communicate_lx_quad_su3_borders(conf);
-  
+  {
+    communicate_lx_spincolor_borders(in);
+    communicate_lx_quad_su3_borders(conf);
+  }
+
 #pragma omp for
   nissa_loc_vol_loop(X)
     {
