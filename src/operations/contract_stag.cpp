@@ -75,7 +75,7 @@ void measure_chiral_cond(quad_su3 **conf,theory_pars_type &theory_pars,int iconf
           complex_summ_the_prod_double(cond,temp,1.0/nhits);
         }
       
-      master_fprintf(file,"\t%016.16lg",cond[0]);
+      master_fprintf(file,"\t%+016.16lg",cond[0]);
     }
 
   master_fprintf(file,"\n");
@@ -145,7 +145,7 @@ void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_type &theory_pars,int 
 	master_fprintf(file," # iconf %d , m1 = %lg , m2 = %lg\n",iconf,theory_pars.quark_content[iflav].mass,theory_pars.quark_content[jflav].mass);
 	
         for(int t=0;t<glb_size[0];t++)
-          master_fprintf(file,"%d %016.16lg\n",t,glb_contr[icombo*glb_size[0]+t][RE]/norm);
+          master_fprintf(file,"%d %+016.16lg\n",t,glb_contr[icombo*glb_size[0]+t][RE]/norm);
         icombo++;
       }
   
