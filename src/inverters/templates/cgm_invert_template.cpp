@@ -147,13 +147,15 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	      {
 		final_res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
 #pragma omp single
-		if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[ishift]);
-		
-		if(final_res[ishift]<req_res[ishift])
-		  {
-		    run_flag[ishift]=0;
-		    nrun_shift--;
-		  }
+		{
+		  if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[ishift]);
+		  
+		  if(final_res[ishift]<req_res[ishift])
+		    {
+		      run_flag[ishift]=0;
+		      nrun_shift--;
+		    }
+		}
 	      }
 	    else
 #pragma omp single
