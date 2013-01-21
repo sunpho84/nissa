@@ -63,7 +63,8 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
   
   //     -alpha=0
   double alpha=0;
-      
+  
+  double rfrf,pap,betap;
   int iter=0;
   double final_res[nshift];
   int nrequest=0;
@@ -84,9 +85,9 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	apply_operator(s,cgm_operator_parameters,shift[0],p);
 	
 	//     -pap=(p,s)=(p,Ap)
-	double pap=double_vector_glb_scalar_prod((double*)p,(double*)s,bulk_vol*ndoubles_per_site);
+	pap=double_vector_glb_scalar_prod((double*)p,(double*)s,bulk_vol*ndoubles_per_site);
 	//     calculate betaa=rr/pap=(r,r)/(p,Ap)
-	double betap=betaa;
+	betap=betaa;
 	betaa=-rr/pap;
 	
 	//     calculate 
@@ -97,11 +98,8 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	  {
 	    if(run_flag[ishift]==1)
 	      {
-#pragma omp single
-		{
-		  zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
-		  betas[ishift]=betaa*zfs[ishift]/zas[ishift];
-		}
+		zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
+		betas[ishift]=betaa*zfs[ishift]/zas[ishift];
 		
 		double_vector_subt_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),betas[ishift],bulk_vol*ndoubles_per_site);
 	      }
@@ -111,7 +109,6 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	//     -r'=r+betaa*s=r+beta*Ap
 	//     -rfrf=(r',r')
 	double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,bulk_vol*ndoubles_per_site);
-	double rfrf;
 	rfrf=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
 	
 	//     calculate alpha=rfrf/rr=(r',r')/(r,r)
@@ -130,30 +127,26 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	for(int ishift=0;ishift<nshift;ishift++)
 	  if(run_flag[ishift]==1)
 	   {
-#pragma omp single
 	    alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
 	    
 	    double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],bulk_vol*ndoubles_per_site);
 	     
 	    // shift z
-#pragma omp single
-	    {
-	      zps[ishift]=zas[ishift];
-	      zas[ishift]=zfs[ishift];
-	    }
+	    zps[ishift]=zas[ishift];
+	    zas[ishift]=zfs[ishift];
 	   }
 	
+	//shift rr
+	rr=rfrf;
+	
+	//check over residual
 #pragma omp single
-	{
-	  //shift rr
-	  rr=rfrf;
-	  
-	  //check over residual
-	  if(iter%each==0) verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
-	  for(int ishift=0;ishift<nshift;ishift++)
+	if(iter%each==0) verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
+	for(int ishift=0;ishift<nshift;ishift++)
 	    if(run_flag[ishift])
 	      {
 		final_res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
+#pragma omp single
 		if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",final_res[ishift]);
 		
 		if(final_res[ishift]<req_res[ishift])
@@ -162,9 +155,11 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 		    nrun_shift--;
 		  }
 	      }
-	    else if(iter%each==0) verbosity_lv2_master_printf(" * ");
-	  if(iter%each==0) verbosity_lv2_master_printf("\n");
-	}
+	    else
+#pragma omp single
+	      if(iter%each==0) verbosity_lv2_master_printf(" * ");
+#pragma omp single
+	if(iter%each==0) verbosity_lv2_master_printf("\n");
       }
     while(nrun_shift>0 && iter<niter_max);
   }
