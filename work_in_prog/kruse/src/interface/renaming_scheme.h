@@ -7,6 +7,8 @@
 #define LZ loc_size[3]
 #define VOLUME loc_vol
 #define RAND   bord_vol
+//WARNING
+#define VOLUMEPLUSRAND (loc_vol+bord_vol)
 #define T_global glb_size[0] 
 #define N_PROC_X nrank_dir[1]
 #define N_PROC_Y nrank_dir[2]
@@ -14,6 +16,14 @@
 #define g_proc_coords rank_coord
 #define g_coord glb_coord_of_loclx
 #define g_proc_id rank
+#define g_nb_t_dn rank_neighdw[0]
+#define g_nb_x_dn rank_neighdw[1]
+#define g_nb_y_dn rank_neighdw[2]
+#define g_nb_z_dn rank_neighdw[3]
+#define g_nb_t_up rank_neighup[0]
+#define g_nb_x_up rank_neighup[1]
+#define g_nb_y_up rank_neighup[2]
+#define g_nb_z_up rank_neighup[3]
 
 #define su3 tmlQCD_su3
 

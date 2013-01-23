@@ -18,7 +18,8 @@
 //#include <time.h> // nanosleep() system call
 #endif
 
-#include "../global.h"
+//#include "../global.h"
+#include "../interface/internal_interface.h"
 
 #include <omp.h>
 #include <assert.h>
