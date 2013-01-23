@@ -14,8 +14,10 @@
 #include "bgq_comm.h"
 #include "bgq_workers.h"
 
-#include "../geometry_eo.h"
-#include "../read_input.h"
+#include "../interface/internal_interface.h"
+
+//#include "../geometry_eo.h"
+//#include "../read_input.h"
 
 #include <execinfo.h>
 #include <mpi.h>

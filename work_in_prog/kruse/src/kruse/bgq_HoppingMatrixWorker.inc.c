@@ -4,7 +4,7 @@
 #include "bgq_HoppingMatrix.h"
 #include "bgq_gaugefield.h"
 
-#include "../boundary.h"
+#include "../interface/internal_interface.h"
 
 #include <stdbool.h>
 

@@ -9,8 +9,10 @@
 #include "bgq_workers.h"
 #include "bgq_gaugefield.h"
 
-#include "../boundary.h"
-#include "../update_backward_gauge.h"
+#include "../interface/internal_interface.h"
+
+//#include "../boundary.h"
+//#include "../update_backward_gauge.h"
 
 #include <stdbool.h>
 #include <stddef.h>
