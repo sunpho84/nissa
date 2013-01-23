@@ -1,3 +1,5 @@
+#include <omp.h>
+
 /*
   This is the prorotipe for a multi-shift inverter.
   The calls to the operator, the internal vectors definitions and the additional parameters must be defined thorugh macro.
@@ -43,12 +45,14 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
   verbosity_lv2_master_printf("\n");
   
   int nrequest=0;
-  int iter=0;
+  int final_iter;
   MPI_Request request[cgm_npossible_requests];
   double final_res[nshift];
   
 #pragma omp parallel
   {
+    int iter=0;
+    
     //     -betaa=1
     double betaa=1;
     
@@ -76,8 +80,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
     do
       {
 	//     this is already iteration 0
-#pragma omp single
-	iter++;
+	final_iter=(++iter);
 	
 	//     -s=Ap
 #pragma omp single
@@ -129,7 +132,9 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	  if(run_flag[ishift]==1)
 	   {
 	    alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
-	    
+	    printf("rank %d thread %d, alpha %lg, alphas %lg, zfs %lg, betas %lg, zas %lg, betaa %lg\n",
+		   rank,omp_get_thread_num(),alpha,alphas[ishift],zfs[ishift],betas[ishift],zas[ishift],betaa);
+
 	    double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],bulk_vol*ndoubles_per_site);
 	     
 	    // shift z
@@ -141,14 +146,16 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	rr=rfrf;
 	
 	//check over residual
+	if(iter%each==0)
 #pragma omp single
-	if(iter%each==0) verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
+	  verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
 	for(int ishift=0;ishift<nshift;ishift++)
 	  if(run_flag[ishift])
 	    {
 	      final_res[ishift]=res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
+	      if(iter%each==0)
 #pragma omp single
-	      if(iter%each==0) verbosity_lv2_master_printf("%1.4e  ",res[ishift]);
+		verbosity_lv2_master_printf("%1.4e  ",res[ishift]);
 	      
 	      if(res[ishift]<req_res[ishift])
 		{
@@ -157,10 +164,12 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 		}
 	    }
 	  else
+	    if(iter%each==0)
 #pragma omp single
-	    if(iter%each==0) verbosity_lv2_master_printf(" * ");
+	      verbosity_lv2_master_printf(" * ");
+	if(iter%each==0)
 #pragma omp single
-	if(iter%each==0) verbosity_lv2_master_printf("\n");
+	  verbosity_lv2_master_printf("\n");
       }
     while(nrun_shift>0 && iter<niter_max);
   }
@@ -206,7 +215,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       }
     }  
   
-  verbosity_lv1_master_printf(" Total cgm iterations: %d\n",iter);
+  verbosity_lv1_master_printf(" Total cgm iterations: %d\n",final_iter);
   
   for(int ishift=0;ishift<nshift;ishift++) nissa_free(ps[ishift]);
   nissa_free(s);

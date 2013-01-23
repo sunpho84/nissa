@@ -404,7 +404,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  master_printf("time to apply %d times: %lg, %lg per iter\n",napp,app_time,app_time/napp);
+  master_printf("time to apply %d times: %lg, %lg per iter, %lg MFlop/s\n",napp,app_time,app_time/napp,1026.0e-6*glb_vol*napp/app_time);
   master_printf("time to stout sme %d times: %lg, %lg per iter\n",nsto,sto_time,sto_time/nsto);
   master_printf("time to stout remap %d times: %lg, %lg per iter\n",nsto_remap,sto_remap_time,sto_remap_time/nsto_remap);
   master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",nglu_comp,glu_comp_time,glu_comp_time/nglu_comp);
