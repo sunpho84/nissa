@@ -168,7 +168,7 @@ CFLAGS = -std=c99 -Wall -DBGQ_UNVECTORIZE=0 -fopenmp -ggdb3
 CPPFLAGS = 
 CXX = mpicxx
 CXXDEPMODE = depmode=gcc3
-CXXFLAGS = -Wall -fopenmp -ggdb3
+CXXFLAGS = -Wall -fopenmp -ggdb3 -DBGQ_UNVECTORIZE=1
 CYGPATH_W = echo
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
