@@ -120,6 +120,8 @@ void read_conf(quad_su3 **conf,char *path)
 //initialize the simulation
 void init_simulation(char *path)
 {
+  ninv=0;
+  inv_over_time=0;
   //////////////////////////// read the input /////////////////////////
   
   //open input file
@@ -400,11 +402,12 @@ int main(int narg,char **arg)
       // 5) spacing between output
       master_printf("\n");
     }
-  while(prod_ntraj<max_ntraj);
+  while(prod_ntraj<max_ntraj && !file_exists("stop") && !file_exists("restart"));
   
   ///////////////////////////////////////
   
   master_printf("time to apply %d times: %lg, %lg per iter, %lg MFlop/s\n",napp,app_time,app_time/napp,1026.0e-6*glb_vol*napp/app_time);
+  master_printf("overhead time to invert %d times: %lg, %lg per inv\n",ninv,inv_over_time,inv_over_time/ninv);
   master_printf("time to stout sme %d times: %lg, %lg per iter\n",nsto,sto_time,sto_time/nsto);
   master_printf("time to stout remap %d times: %lg, %lg per iter\n",nsto_remap,sto_remap_time,sto_remap_time/nsto_remap);
   master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",nglu_comp,glu_comp_time,glu_comp_time/nglu_comp);
