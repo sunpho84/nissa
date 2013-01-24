@@ -1,5 +1,8 @@
 #include <omp.h>
 
+extern double inv_over_time;
+extern int ninv;
+
 /*
   This is the prorotipe for a multi-shift inverter.
   The calls to the operator, the internal vectors definitions and the additional parameters must be defined thorugh macro.
@@ -9,6 +12,9 @@
 
 void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int nshift,int niter_max,double *req_res,basetype *source)
 {
+  ninv++;
+  inv_over_time-=take_time();
+  
   const int each=10;
   
   //macro to be defined externally, allocating all the required additional vectors
@@ -84,9 +90,15 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	
 	//     -s=Ap
 #pragma omp single
-	if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(nrequest,request,p);
+	{
+	  if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(nrequest,request,p);
+	  inv_over_time+=take_time();
+	}
 	
 	apply_operator(s,cgm_operator_parameters,shift[0],p);
+	
+#pragma omp single
+	inv_over_time-=take_time();
 	
 	//     -pap=(p,s)=(p,Ap)
 	pap=double_vector_glb_scalar_prod((double*)p,(double*)s,bulk_vol*ndoubles_per_site);
@@ -222,6 +234,8 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
   nissa_free(p);
   nissa_free(r);
   cgm_additional_vectors_free();
+  
+  inv_over_time+=take_time();
   
 #ifdef cg_128_invert
   //if 128 bit precision required refine the solution
