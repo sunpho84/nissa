@@ -138,7 +138,7 @@ static void bgq_gaugefield_worker_transferfrom(void *arg_untyped, size_t tid, si
 				}
 
 				size_t ix = Index(t, x, y, z);/* lexic coordinate; g_ipt[t][x][y][z] is not defined for -1 coordinates */
-				su3_array64 *m = (su3_array64*) &sourcefield[ix][dim];
+				su3_array64 *m = (su3_array64*) &sourcefield[ix*4+dim];
 				for (size_t i = 0; i < 3; i += 1) {
 					for (size_t l = 0; l < 3; l += 1) {
 						COMPLEX_PRECISION val = m->c[i][l];

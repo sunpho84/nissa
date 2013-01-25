@@ -210,6 +210,13 @@ int full_lx_of_coords(coords ext_x)
   return -1;
 }
 
+//wrapper
+extern "C" int full_lx_of_coords_list(const int t,const int x,const int y,const int z)
+{
+  coords c={t,x,y,z};
+  return full_lx_of_coords(c);
+}
+
 //label all the sites: bulk, border and edge
 void label_all_sites()
 {

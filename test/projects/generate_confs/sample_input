@@ -85,16 +85,11 @@ ChiralCondNHits        1               /* number of sources for chiral cond eval
 MeasureGaugeObs        1               /* measure or not gauge obs */
 GaugeObsPath           obs             /* output file for gauge obs */
 
-MeasureTopology        1               /* topology (other questions only if 1 is chosen) */
-TopPath                topo            /* output file for topology charge measurement */
-TopCoolNsteps          40              /* number of steps of cooling */
-TopCoolOverrelaxing    1               /* use or not overrelaxion (=taking the power ot the local transf) */
-TopCoolOverrelaxExp    1.7             /* exponent of power of the local su3 transformation */
-TopCoolMeasEachNSteps  10              /* number of steps between measurement */
+MeasureTopology        0               /* topology (other questions only if 1 is chosen) */
 
 /* /////////////// HMC parameters //////////// */
 
-MaxNTraj               0               /* number of traj per run */
+MaxNTraj               2               /* number of traj per run */
 
 Seed                   17294           /* used to init generator, only for 1st traj */
 

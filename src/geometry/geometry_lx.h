@@ -5,6 +5,7 @@
 int bordlx_of_coord(int *x,int mu);
 int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
 int edgelx_of_coord(int *x,int mu,int nu);
+int full_lx_of_coords_list(const int t,const int x,const int y,const int z);
 int glblx_neighdw(int gx,int mu);
 int glblx_neighup(int gx,int mu);
 int glblx_of_comb(int b,int wb,int c,int wc);

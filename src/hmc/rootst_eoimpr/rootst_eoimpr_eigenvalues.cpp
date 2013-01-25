@@ -78,7 +78,7 @@ double max_eigenval(quark_content_type &quark_content,quad_su3 **eo_conf,int nit
   nissa_free(vec_out);
   nissa_free(vec_in);
   
-  master_printf("max_eigen mass %lg: %lg\n",quark_content.mass,eig_max);
+  verbosity_lv2_master_printf("max_eigen mass %lg: %lg\n",quark_content.mass,eig_max);
   
   return eig_max;
 }
