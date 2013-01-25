@@ -144,8 +144,6 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	  if(run_flag[ishift]==1)
 	   {
 	    alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
-	    printf("rank %d thread %d, alpha %lg, alphas %lg, zfs %lg, betas %lg, zas %lg, betaa %lg\n",
-		   rank,omp_get_thread_num(),alpha,alphas[ishift],zfs[ishift],betas[ishift],zas[ishift],betaa);
 
 	    double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],bulk_vol*ndoubles_per_site);
 	     
