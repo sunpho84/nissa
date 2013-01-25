@@ -8,6 +8,9 @@
 //  -basetype
 //  -ndoubles_per_site
 
+extern double cg_inv_over_time;
+extern int ncg_inv;
+
 void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int rniter,double residue,basetype *source)
 {
   int riter=0;
@@ -20,6 +23,11 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
   
   if(guess==NULL) vector_reset(sol);
   else vector_copy(sol,guess);
+  
+  ncg_inv++;
+  cg_inv_over_time-=take_time();
+  
+  const int each=10;
   
   //external loop, used if the internal exceed the maximal number of iterations
   double source_norm,lambda;
@@ -43,7 +51,9 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
       do
 	{	  
 	  //(r_k,r_k)/(p_k*DD*p_k)
+	  cg_inv_over_time+=take_time();
 	  apply_operator(s,cg_inner_parameters_call,p);
+	  cg_inv_over_time-=take_time();
 	  
 	  double alpha=double_vector_glb_scalar_prod((double*)s,(double*)p,size_of_bulk*ndoubles_per_site);
 	  double omega=delta/alpha;
@@ -64,7 +74,7 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
 	  
 	  iter++;
 
-	  if(iter%10==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
+	  if(iter%each==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
 	}
       while(lambda>(residue*source_norm) && iter<niter);
       
@@ -78,6 +88,8 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
       riter++;
     }
   while(lambda>(residue*source_norm) && riter<rniter);
+  
+  cg_inv_over_time+=take_time();
   
   nissa_free(s);
   nissa_free(p);

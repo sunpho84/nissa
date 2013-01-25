@@ -54,8 +54,8 @@ EXTERN double reduce_double;
 EXTERN int reduce_int;
 
 //timings
-EXTERN int ninv;
-EXTERN double inv_over_time;
+EXTERN int ncgm_inv,ncg_inv;
+EXTERN double cgm_inv_over_time,cg_inv_over_time;
 EXTERN double tot_nissa_time;
 EXTERN double tot_nissa_comm_time;
 
