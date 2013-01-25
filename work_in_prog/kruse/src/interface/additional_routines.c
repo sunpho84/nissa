@@ -37,11 +37,6 @@ void update_backward_gauge(tmlQCD_su3 **gf)
 
 }
 
-int Index(const int x0, const int x1, const int x2, const int x3)
-{
-  return 0;
-}
-
 void unset_additional_variables()
 {
   for(int t=0;t<loc_size[0];t++)

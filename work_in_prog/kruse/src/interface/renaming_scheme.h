@@ -1,5 +1,5 @@
-#ifndef _RENAMING_H
-#define _RENAMING_H
+#ifndef _RENAMING_SCHEME_H
+#define _RENAMING_SCHEME_H
 
 #define  T loc_size[0]
 #define LX loc_size[1]
@@ -24,7 +24,13 @@
 #define g_nb_x_up rank_neighup[1]
 #define g_nb_y_up rank_neighup[2]
 #define g_nb_z_up rank_neighup[3]
+#define g_cart_id cart_rank
+#define g_cart_grid cart_comm
 
+//types
 #define su3 tmlQCD_su3
+
+//routines
+#define Index full_lx_of_coords_list
 
 #endif

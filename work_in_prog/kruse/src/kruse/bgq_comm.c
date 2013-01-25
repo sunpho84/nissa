@@ -16,7 +16,10 @@
 #include "../DirectPut.h"
 #include <upci/upc_atomic.h>
 #endif
-#include "../global.h"
+
+#include "../interface/internal_interface.h"
+
+//#include "../global.h"
 
 #include <mpi.h>
 

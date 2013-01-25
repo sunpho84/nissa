@@ -422,7 +422,7 @@ EXTERN_INLINE void bgq_weylvec_expect(bgq_weyl_vec_double weyl, ucoord t1, ucoor
 
 
 bgq_spinor bgq_legacy_getspinor(spinor *spinor, ucoord t, ucoord x, ucoord y, ucoord z);
-bgq_spinor bgq_spinorfield_getspinor(bgq_weylfield_controlblock *field, size_t t, size_t x, size_t y, size_t z) ;
+bgq_spinor bgq_spinorfield_getspinor(bgq_weylfield_controlblock *field, ucoord t, ucoord x, ucoord y, ucoord z) ;
 
 void bgq_weylveck_written_double(bgq_weyl_vec_double *targetweyl, ucoord k, ucoord t, ucoord x, ucoord y, ucoord z, bgq_direction d, bool isSrc);
 void bgq_weylveck_written_float(bgq_weyl_vec_float *targetweyl, ucoord k, ucoord t, ucoord x, ucoord y, ucoord z, bgq_direction d, bool isSrc);

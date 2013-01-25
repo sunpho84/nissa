@@ -28,7 +28,7 @@ void chiral_condensate(complex cond,quad_su3 **conf,quad_u1 **u1b,double m,doubl
   
   //generate the source and the propagator
   generate_fully_undiluted_source(rnd,RND_Z4,-1);
-  get_propagator(rnd,conf,u1b,m,residue,rnd);
+  get_propagator(chi,conf,u1b,m,residue,rnd);
   
   //compute the condensate
   complex loc_cond={0,0};
@@ -36,8 +36,8 @@ void chiral_condensate(complex cond,quad_su3 **conf,quad_u1 **u1b,double m,doubl
     nissa_loc_volh_loop(ivol)
       for(int icol=0;icol<3;icol++)
 	complex_summ_the_conj2_prod(loc_cond,chi[par][ivol][icol],rnd[par][ivol][icol]);
-  
-  //global reduction
+
+  //global reduction  
   glb_reduce_complex(cond,loc_cond);
   
   //add normalization: 1/4vol
@@ -75,7 +75,7 @@ void measure_chiral_cond(quad_su3 **conf,theory_pars_type &theory_pars,int iconf
           complex_summ_the_prod_double(cond,temp,1.0/nhits);
         }
       
-      master_fprintf(file,"\t%+016.16lg",cond[0]);
+      master_fprintf(file,"\t%+016.16lg",cond[RE]);
     }
 
   master_fprintf(file,"\n");
@@ -109,7 +109,7 @@ void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_type &theory_pars,int 
       //generate the source on an even site
       int twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2)*2;
       generate_fully_undiluted_source(source,RND_Z4,twall);
-      filter_hypercube_origin_sites(source);
+      //filter_hypercube_origin_sites(source); //this is in conjunction with factor "8"
       
       //compute propagators
       for(int iflav=0;iflav<nflavs;iflav++)
@@ -137,7 +137,7 @@ void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_type &theory_pars,int 
   glb_reduce_complex_vect(glb_contr,loc_contr,glb_size[0]*nflavs*(nflavs+1)/2);
   
   //print
-  double norm=nhits*glb_vol/(8*glb_size[0]);
+  double norm=nhits*glb_vol/(/*8**/glb_size[0]);
   int icombo=0;
   for(int iflav=0;iflav<nflavs;iflav++)
     for(int jflav=0;jflav<=iflav;jflav++)

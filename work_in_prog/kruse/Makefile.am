@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS=subdir-objects
 
 #add where to find the library and tell to link
 AM_LDFLAGS=-L@top_builddir@ -L/Users/francesco/Prace/nissa/
-LDADD=@LIBS@ libinterface.a ../../libnissa.a
+LDADD=@LIBS@ libinterface.a ../../libnissa.a libkruse.a
 
 #target library nissa
 lib_LIBRARIES=libinterface.a libkruse.a
@@ -21,8 +21,6 @@ libkruse_a_SOURCES=	\
 	src/kruse/bgq_reduction.inc.c \
 	src/kruse/bgq_stdoperators.c \
 	src/kruse/bgq_operator.inc.c \
-	src/kruse/asm1.c \
-	src/kruse/asm2.c \
 	src/kruse/bgq_qpx.c \
 	src/kruse/bgq_gaugefield.c \
 	src/kruse/bgq_spinorfield.c \
@@ -32,6 +30,9 @@ libkruse_a_SOURCES=	\
 	src/kruse/bgq_HoppingMatrix.c \
 	src/kruse/bgq_dispatch.c \
 	src/kruse/mypapi.c
+
+#	src/kruse/asm1.c
+#	src/kruse/asm2.c
 
 #bgq_legacy bgq_workers.inc bgq_workers_double bgq_workers_float bgq_ReadWeyllayout.inc bgq_HoppingMatrixWorker.inc bgq_ComputeWeyl.inc bgq_stdreductions bgq_reduction.inc bgq_stdoperators bgq_operator.inc asm1 asm2 bgq_qpx bgq_gaugefield bgq_spinorfield bgq_comm bgq_utils bgq_field bgq_HoppingMatrix bgq_dispatch mypapi
 

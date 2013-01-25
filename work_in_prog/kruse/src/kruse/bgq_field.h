@@ -1046,7 +1046,7 @@ EXTERN_INLINE size_t bgq_weyl_section_offset(bgq_weylfield_section section) {
 	assert(g_bgq_indices_initialized);
 	size_t result = 0;
 //TODO: This func is called quite often, make it a table lookup
-	for (bgq_weylfield_section sec = 0; sec < sec_end; sec += 1) {
+	for (bgq_weylfield_section sec = 0; sec < sec_end; sec = (bgq_weylfield_section) ((int) sec+1)) {
 		assert(result % BGQ_ALIGNMENT_L2 == 0);
 		if (section == sec)
 			return result;
@@ -1121,7 +1121,7 @@ EXTERN_INLINE size_t bgq_spinorfield_indexOfSection(bgq_weylfield_section sec) {
 
 
 EXTERN_INLINE bgq_weylfield_section bgq_sectionOfOffset(size_t offset) {
-	for (bgq_weylfield_section sec = 0; sec < sec_end; sec+=1) {
+  for (bgq_weylfield_section sec = 0; sec < sec_end; sec = (bgq_weylfield_section) ((int) sec+1)) {
 		if ((bgq_weyl_section_offset(sec) <= offset) && (offset < bgq_weyl_section_offset(sec+1)))
 			return sec;
 	}
@@ -1524,7 +1524,8 @@ EXTERN_INLINE tristate tristate_combine3(tristate tri1, tristate tri2, tristate 
 EXTERN_INLINE tristate tristate_invert(tristate tri) {
 	if (tri==tri_unknown)
 		return tri_unknown;
-	return !tri;
+	if (tri==tri_true) return tri_false;
+	else return tri_true;
 }
 
 #undef EXTERN_INLINE

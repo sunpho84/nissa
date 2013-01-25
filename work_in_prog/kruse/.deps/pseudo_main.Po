@@ -1,9 +1,5 @@
-pseudo_main.o: pseudo_main.cpp src/interface/interface.h \
- src/interface/external_variables.h src/interface/nissa_types.h \
- src/interface/external_routines.h src/interface/additional_variables.h \
- src/interface/tmlQCD_types.h src/interface/additional_routines.h \
- ../../src/nissa.h ../../src/base/close.h ../../src/base/communicate.h \
- /usr/local/include/mpi.h \
+pseudo_main.o: pseudo_main.cpp ../../src/nissa.h ../../src/base/close.h \
+ ../../src/base/communicate.h /usr/local/include/mpi.h \
  /sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/include/stddef.h \
  /usr/local/include/mpi_portable_platform.h \
  /usr/local/include/openmpi/ompi/mpi/cxx/mpicxx.h \
@@ -197,21 +193,24 @@ pseudo_main.o: pseudo_main.cpp src/interface/interface.h \
  ../../src/operations/su3_paths/plaquette.h \
  ../../src/operations/su3_paths/pline.h \
  ../../src/operations/su3_paths/topological_charge.h \
- ../../src/operations/vector_gather.h
-
-src/interface/interface.h:
-
-src/interface/external_variables.h:
-
-src/interface/nissa_types.h:
-
-src/interface/external_routines.h:
-
-src/interface/additional_variables.h:
-
-src/interface/tmlQCD_types.h:
-
-src/interface/additional_routines.h:
+ ../../src/operations/vector_gather.h src/interface/external_interface.h \
+ src/interface/interface.h src/interface/external_variables.h \
+ src/interface/nissa_types.h src/interface/external_routines.h \
+ src/interface/additional_variables.h src/interface/tmlQCD_types.h \
+ src/interface/additional_routines.h \
+ src/interface/../kruse/bgq_gaugefield.h \
+ src/interface/../kruse/bgq_utils.h /usr/include/assert.h \
+ src/interface/../kruse/bgq_field.h \
+ src/interface/../kruse/../interface/internal_interface.h \
+ src/interface/../kruse/../interface/nissa_types.h \
+ src/interface/../kruse/../interface/renaming_scheme.h \
+ src/interface/../kruse/../interface/interface.h \
+ src/interface/../kruse/../interface/tmlQCD_types.h \
+ src/interface/../kruse/bgq_qpx.h \
+ /sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/../../../../include/c++/4.7.2/complex.h \
+ /usr/include/complex.h /usr/include/sys/cdefs.h \
+ /sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/include/omp.h \
+ /sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/include/stdbool.h
 
 ../../src/nissa.h:
 
@@ -690,3 +689,49 @@ src/interface/additional_routines.h:
 ../../src/operations/su3_paths/topological_charge.h:
 
 ../../src/operations/vector_gather.h:
+
+src/interface/external_interface.h:
+
+src/interface/interface.h:
+
+src/interface/external_variables.h:
+
+src/interface/nissa_types.h:
+
+src/interface/external_routines.h:
+
+src/interface/additional_variables.h:
+
+src/interface/tmlQCD_types.h:
+
+src/interface/additional_routines.h:
+
+src/interface/../kruse/bgq_gaugefield.h:
+
+src/interface/../kruse/bgq_utils.h:
+
+/usr/include/assert.h:
+
+src/interface/../kruse/bgq_field.h:
+
+src/interface/../kruse/../interface/internal_interface.h:
+
+src/interface/../kruse/../interface/nissa_types.h:
+
+src/interface/../kruse/../interface/renaming_scheme.h:
+
+src/interface/../kruse/../interface/interface.h:
+
+src/interface/../kruse/../interface/tmlQCD_types.h:
+
+src/interface/../kruse/bgq_qpx.h:
+
+/sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/../../../../include/c++/4.7.2/complex.h:
+
+/usr/include/complex.h:
+
+/usr/include/sys/cdefs.h:
+
+/sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/include/omp.h:
+
+/sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/include/stdbool.h:
