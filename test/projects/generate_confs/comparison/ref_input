@@ -1,0 +1,115 @@
+L 4
+T 4
+
+NValenceTheories       1               /* allow to specify additional theory used only for measures */
+
+/* ///////////// Simulated theory //////////// */
+
+/* apart for the background field, this is the cruc setup */
+
+GaugeAction            tlSym           /* either Wilson or tlSym */
+Beta                   3.550           /* coupling */
+
+NDiffFlavs             3               /* number of different flavors */
+
+Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
+Mass                   0.03374
+RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
+ImPotCh                0               /* in units of Pi/T ? */
+ElecCharge             2               /* charge in multiples of e/3 */
+
+Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
+Mass                   0.03374
+RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
+ImPotCh                0               /* in units of Pi/T ? */
+ElecCharge             -1              /* charge in multiples of e/3 */
+
+Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
+Mass                   0.10234
+RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
+ImPotCh                0               /* in unit of Pi/T ? */
+ElecCharge             -1              /* charge in multiples of e/3 */
+
+StoutingNLevel         2               /* number of stouting level*/
+IsotropicStouting      1               /* do not modify, only isotropic stouting available */
+StoutRho               0.15            /* strength of the stouting */
+
+PutBkgrdEMField        1               /* Ex, Ey, Ez and Bx, By Bz are asked only if this is 1  */
+Ex 0  Ey 0  Ez 0
+Bx 0  By 0  Bz 4
+
+MeasurePseudoCorr      1
+PseudoCorrPath         output/pseudo_corr
+PseudoCorrInvResidue   1.e-12
+PseudoCorrNHits        1
+
+MeasureChiralCond      1               /* chiral condensate (following question only if 1 chosen) */
+ChiralCondPath         output/chiral   /* output for chiral condensate */
+ChiralCondInvResidue   1.e-12          /* residue for inversion of chiral condensate */
+ChiralCondNHits        2               /* number of sources for chiral cond evaluation */
+
+/* ////// Valence theory used to measure the condensate without the back field ////// */
+
+GaugeAction            tlSym           /* either Wilson or tlSym */
+Beta                   3.550           /* coupling */
+
+NDiffFlavs             2               /* number of different flavors */
+
+Degeneracy             2               /* degeneracy of the first flavor (1,2,3,4 available) */
+Mass                   0.03374
+RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
+ImPotCh                0               /* in units of Pi/T ? */
+ElecCharge             0               /* charge in multiples of e/3 */
+
+Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
+Mass                   0.10234
+RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
+ImPotCh                0               /* in unit of Pi/T ? */
+ElecCharge             0               /* charge in multiples of e/3 */
+
+StoutingNLevel         2               /* number of stouting level*/
+IsotropicStouting      1               /* do not modify, only isotropic stouting available */
+StoutRho               0.15            /* strength of the stouting */
+
+PutBkgrdEMField        0               /* Ex, Ey, Ez and Bx, By Bz are asked only if this is 1  */
+
+MeasurePseudoCorr      1
+PseudoCorrPath         output/pseudo_corr
+PseudoCorrInvResidue   1.e-12
+PseudoCorrNHits        1
+
+MeasureChiralCond      1                  /* chiral condensate (following question only if 1 chosen) */
+ChiralCondPath         output/chiral_noB  /* output for chiral condensate */
+ChiralCondInvResidue   1.e-12             /* residue for inversion of chiral condensate */
+ChiralCondNHits        1                  /* number of sources for chiral cond evaluation */
+
+/* ////// Gauge and Topo Measures //////// */
+
+MeasureGaugeObs        1                  /* measure or not gauge obs */
+GaugeObsPath           output/gauge_obs   /* output file for gauge obs */
+
+MeasureTopology        1                  /* topology (other questions only if 1 is chosen) */
+TopPath                output/topo_obs    /* output file for topology charge measurement */
+TopCoolNsteps          40                 /* number of steps of cooling */
+TopCoolOverrelaxing    1                  /* use or not overrelaxion (=taking the power ot the local transf) */
+TopCoolOverrelaxExp    1.7                /* exponent of power of the local su3 transformation */
+TopCoolMeasEachNSteps  10                 /* number of steps between measurement */
+
+/* /////////////// HMC parameters //////////// */
+
+MaxNTraj               80              /* number of traj per run */
+
+Seed                   17294           /* used to init generator, only for 1st traj */
+
+SkipMTestNTraj         20              /* skip the Metropolis test for the first trajectory (useful to speed up thermalization) */
+HmcTrajLength          1               /* traj length in unit of MD time */
+NmdSteps               6               /* number of steps */
+NGaugeSubSteps         6               /* multiStep not yet implemented, so keep 1 */
+MdResidue              1.e-6           /* residue (squared) for MD inversions */
+PfActionResidue        1.e-12          /* residues for the fixed point evaluation */
+
+ConfPath               conf            /* file where to store running conf */
+StoreConfPath          stored_conf     /* a 5 digit number id will be appended to this string */
+StoreConfEach          1000000000      /* also 0 should work to avoid storing */
+StoreRunningTempConf   0               /* if you put 1, it will store conf at each traj */
+StartConfCond          HOT             /* HOT or COLD (used only if no conf present at ConfPath) */

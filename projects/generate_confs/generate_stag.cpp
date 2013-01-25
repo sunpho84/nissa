@@ -120,8 +120,10 @@ void read_conf(quad_su3 **conf,char *path)
 //initialize the simulation
 void init_simulation(char *path)
 {
-  ninv=0;
-  inv_over_time=0;
+  ncgm_inv=0;
+  cgm_inv_over_time=0;
+  ncg_inv=0;
+  cg_inv_over_time=0;
   //////////////////////////// read the input /////////////////////////
   
   //open input file
@@ -406,8 +408,9 @@ int main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  master_printf("time to apply %d times: %lg, %lg per iter, %lg MFlop/s\n",napp,app_time,app_time/napp,1026.0e-6*glb_vol*napp/app_time);
-  master_printf("overhead time to invert %d times: %lg, %lg per inv\n",ninv,inv_over_time,inv_over_time/ninv);
+  master_printf("time to apply %d times: %lg, %lg per iter, %lg MFlop/s\n",napp,app_time,app_time/napp,1158.0e-6*glb_volh*napp/app_time);
+  master_printf("overhead time to cgm invert %d times: %lg, %lg per inv\n",ncgm_inv,cgm_inv_over_time,cgm_inv_over_time/ncgm_inv);
+  master_printf("overhead time to cg invert %d times: %lg, %lg per inv\n",ncg_inv,cg_inv_over_time,cg_inv_over_time/ncg_inv);
   master_printf("time to stout sme %d times: %lg, %lg per iter\n",nsto,sto_time,sto_time/nsto);
   master_printf("time to stout remap %d times: %lg, %lg per iter\n",nsto_remap,sto_remap_time,sto_remap_time/nsto_remap);
   master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",nglu_comp,glu_comp_time,glu_comp_time/nglu_comp);
