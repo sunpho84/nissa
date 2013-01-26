@@ -97,7 +97,7 @@ TopCoolMeasEachNSteps  10                 /* number of steps between measurement
 
 /* /////////////// HMC parameters //////////// */
 
-MaxNTraj               80              /* number of traj per run */
+MaxNTraj               0              /* number of traj per run */
 
 Seed                   17294           /* used to init generator, only for 1st traj */
 
