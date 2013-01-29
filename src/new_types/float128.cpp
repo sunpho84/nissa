@@ -1,8 +1,10 @@
 #include <mpi.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
 #include "../base/macros.h"
+#include "../base/debug.h"
 #include "new_types_definitions.h"
 #include "complex.h"
 
@@ -21,11 +23,14 @@ void float_128_uminus(float_128 b,float_128 a)
   b[1]=-a[1];
 }
 
-void float_128_from_double(float_128 b,double a)
+void float_128_from_64(float_128 b,double a)
 {
   b[0]=a;
   b[1]=0;
 }
+
+void float_128_put_to_zero(float_128 a)
+{a[0]=a[1]=0;}
 
 double double_from_float_128(float_128 b)
 {return b[0]+b[1];}
@@ -77,6 +82,25 @@ void float_128_summ_64(float_128 c,float_128 a,double b)
   c[1]=0;
 }
 #endif
+
+//64 summ 64
+#ifndef fake_128
+void float_128_64_summ_64(float_128 c,double a,double b)
+{
+  double t1=a+b;
+  double e=t1-a;
+  double t2=((b-e)+(a-(t1-e)));
+  
+  c[0]=t1+t2;
+  c[1]=t2-(c[0]-t1);
+}
+#else
+void float_128_64_summ_64(float_128 c,double a,double b)
+{
+  c[0]=a+b;
+  c[1]=0;
+}
+#endif
 void float_128_summassign_64(float_128 b,double a)
 {float_128_summ_64(b,b,a);}
 void float_128_subt_from_64(float_128 c,double a,float_128 b)
@@ -124,6 +148,12 @@ void float_128_summ_the_prod(float_128 c,float_128 a,float_128 b)
   float_128 d;
   float_128_prod(d,a,b);
   float_128_summassign(c,d);
+}
+void float_128_subt_the_prod(float_128 c,float_128 a,float_128 b)
+{
+  float_128 d;
+  float_128_prod(d,a,b);
+  float_128_subtassign(c,d);
 }
 
 void float_128_summ_the_64_prod(float_128 c,double a,double b)
@@ -178,6 +208,107 @@ void float_subt_the_64_prod_128(float_128 c,double a,float_128 b)
 }
 void float_128_prodassign(float_128 out,float_128 in)
 {float_128_prod(out,out,in);}
+
+//divide two float_128
+void float_128_div(float_128 div,float_128 a,float_128 b)
+{
+  //compute approx div
+  float_128 div1;
+  float_128_prod_64(div1,a,1/b[0]);
+  //compute remaining
+  float_128 rem;
+  float_128_prod(rem,div1,b);
+  float_128_subt(rem,a,rem);
+  //compute the second piece
+  float_128 div2;
+  float_128_prod_64(div2,rem,1/b[0]);
+  //summ the two pieces
+  float_128_summ(div,div1,div2);
+}
+
+//integer power
+void float_128_pow_int(float_128 out,float_128 in,int d)
+{
+  if(d<0) crash("not yet implemented");
+  
+  //case o
+  if(d==0) float_128_from_64(out,1);
+  else
+    {
+      float_128_copy(out,in);
+      for(int i=2;i<=d;i++) float_128_prodassign(out,in);
+    }
+}
+
+//frac power
+void float_128_pow_int_frac(float_128 out,float_128 in,int n,int d)
+{
+  //compute by solving out^d=in^n=ref
+  float_128 ref;
+  float_128_pow_int(ref,in,n);
+  
+  //let's start from a reasonable approx
+  double r=(double)n/d;
+  double sto=pow(in[0],r-1);
+  float_128_64_summ_64(out,sto*in[0],sto*r*in[1]);
+  //another possible approach
+  //float_128_from_64(out,1+(in[0]-1)*r);
+
+  //(out+err)^d=in^n -> err=out*rel_err, rel_err=(ref/out^d-1)/d
+  float_128 rel_err;
+   do
+     {
+       //compute out^d
+       float_128 outd;
+       float_128_pow_int(outd,out,d);
+      
+       //divide ref by out^d and subtract 1
+       float_128_div(rel_err,ref,outd);
+       float_128_summassign_64(rel_err,-1);
+       float_128_prod_64(rel_err,rel_err,1.0/d);
+       
+       //printf("rel err: ");
+       //float_128_print(rel_err);
+       //printf("\n");
+       
+       //total err
+       float_128 err;
+       float_128_prod(err,rel_err,out);
+            
+       float_128_summassign(out,err);
+     }
+   while(fabs(rel_err[0])>3.e-32);
+}
+
+//a>b?
+int float_128_is_greater(float_128 a,float_128 b)
+{
+  if(a[0]>b[0]) return true;
+  if(a[0]<b[0]) return false;
+  
+  if(a[1]>b[1]) return true;
+		  
+  return false;
+}
+
+//a<b?
+int float_128_is_smaller(float_128 a,float_128 b)
+{
+  if(a[0]<b[0]) return true;
+  if(a[0]>b[0]) return false;
+  
+  if(a[1]<b[1]) return true;
+		  
+  return false;
+}
+
+void float_128_abs(float_128 a,float_128 b)
+{
+  if(b[0]>0||(b[0]==0&&b[1]>0)) float_128_copy(a,b);
+  else float_128_uminus(a,b);
+}
+
+//////////////////////////////////////////////////////
 
 //c128 summ c128
 void complex_128_summ(complex_128 a,complex_128 b,complex_128 c)

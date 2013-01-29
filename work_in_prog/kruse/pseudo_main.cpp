@@ -56,7 +56,11 @@ int main(int narg,char **arg)
   tmn2Doe_eos(test_dest,eo_conf,legacy_source);
   master_printf("%lg\n",test_dest[ip][0][0][0]);
   
+  //apply OE
   bgq_HoppingMatrix(ODD,&(dest->controlblocks[0]),&(source->controlblocks[0]),hm_nokamul);
+  
+  bgq_HoppingMatrix(EVN,&(third->controlblocks[0]),&(dest->controlblocks[0]),hm_nokamul);
+  
   bgq_spinorfield_prepareRead(&(dest->controlblocks[0]),(tristate)ODD,false,false,false,false,true);
   master_printf("%lg\n",legacy_dest[ip][0][0][0]);
   
