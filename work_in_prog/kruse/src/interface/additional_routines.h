@@ -2,21 +2,14 @@
 #define _ADDITIONAL_ROUTINES
 
 #ifdef __cplusplus 
-
 extern "C" {
+#endif
   void init_additional_variables();
   void unset_additional_variables();
-  //to be wrote
-  void update_backward_gauge(tmlQCD_su3 **gf);
+  //to be removed
+  //void update_backward_gauge(tmlQCD_su3 **gf);
+#ifdef __cplusplus 
 }
-
-#else
-
-void init_additional_variables();
-void unset_additional_variables();
-//to be wrote
-void update_backward_gauge(tmlQCD_su3 **gf);
-
 #endif
 
 #endif

@@ -110,7 +110,7 @@ int master_broadcast(int in)
 //copy a file
 int cp(char *path_out,char *path_in)
 {
-  int rc;
+  int rc=0;
   if(rank==0)
     {
       char command[1024];
@@ -124,7 +124,7 @@ int cp(char *path_out,char *path_in)
 //remove a file
 int rm(const char *path)
 {
-  int rc;
+  int rc=0;
   if(rank==0)
     {
       char command[1024];
@@ -138,7 +138,7 @@ int rm(const char *path)
 //pass to the folder
 int cd(const char *path)
 {
-  int rc;
+  int rc=0;
   if(rank==0)
     {
       char command[1024];
@@ -153,11 +153,19 @@ void fprintf_friendly_filesize(FILE *fout,int quant)
 {fprintf_friendly_units(fout,quant,1024,"Bytes");}
 
 //swap two doubles
-void swap_doubles(double *d1,double *d2)
+void swap_doubles(double &d1,double &d2)
 {
-  double tmp=(*d1);
-  (*d1)=(*d2);
-  (*d2)=tmp;
+  double tmp=d1;
+  d1=d2;
+  d2=tmp;
+}
+
+//swap two ints
+void swap_ints(int &i1,int &i2)
+{
+  double tmp=i1;
+  i1=i2;
+  i2=tmp;
 }
 
 double take_time()

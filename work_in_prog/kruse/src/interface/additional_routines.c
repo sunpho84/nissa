@@ -3,10 +3,15 @@
 #include "external_variables.h"
 #include "external_routines.h"
 #include "additional_variables.h"
+#include "renaming_scheme.h"
 
 void init_additional_variables()
 {
+  g_eo2lexic=(int*)malloc((VOLUME+RAND)*sizeof(int));
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    g_eo2lexic[g_lexic2eosub[ivol]+loclx_parity[ivol]*(VOLUME+RAND)/2] = ivol;
   
+  /*  
   //g_update_gauge_copy
   
   g_update_gauge_copy=1;
@@ -30,15 +35,21 @@ void init_additional_variables()
       for(int y=0;y<loc_size[2];y++)
 	for(int z=0;z<loc_size[3];z++)
 	  g_ipt[t][x][y][z]=loclx_of_coord_list(t,x,y,z);
+  */
 }
 
+/*
 void update_backward_gauge(tmlQCD_su3 **gf)
 {
 
 }
+*/
 
 void unset_additional_variables()
 {
+  free(g_eo2lexic);
+  
+  /*
   for(int t=0;t<loc_size[0];t++)
     {
       for(int x=0;x<loc_size[1];x++)
@@ -50,4 +61,6 @@ void unset_additional_variables()
       free(g_ipt[t]);
     }
   free(g_ipt);
+
+*/
 }

@@ -119,13 +119,13 @@ static double bgq_spinorfield_legacy_compare(bool isOdd, bgq_weylfield_controlbl
 					if (bgq_local2isOdd(t, x, y, z) != isOdd)
 						continue;
 
-					const int ix = g_ipt[t][x][y][z]; /* lexic coordinate */
-					assert(ix == Index(t,x,y,z));
-					int iy = g_lexic2eo[ix]; /* even/odd coordinate (even and odd sites in two different fields of size VOLUME/2, first even field followed by odd) */
-					assert(0 <= iy && iy < (VOLUME+RAND));
+					const int ix = Index(t,x,y,z); /* lexic coordinate */
+				//assert(ix == Index(t,x,y,z));
+					//int iy = g_lexic2eo[ix]; /* even/odd coordinate (even and odd sites in two different fields of size VOLUME/2, first even field followed by odd) */
+					//assert(0 <= iy && iy < (VOLUME+RAND));
 					int icx = g_lexic2eosub[ix]; /*  even/odd coordinate relative to field base */
 					assert(0 <= icx && icx < VOLUME/2);
-					assert(icx == iy - (isOdd ? (VOLUME+RAND)/2 : 0));
+					//assert(icx == iy - (isOdd ? (VOLUME+RAND)/2 : 0));
 					spinor_array64 *sp = (spinor_array64*) &reffield[icx];
 
 					size_t ic = bgq_local2collapsed(t, x, y, z);
@@ -594,7 +594,7 @@ void bgq_spinorfield_enableLayout(bgq_weylfield_controlblock *field, tristate is
 		assert(field->legacy_field);
 		if (!preserveData) {
 #ifndef NDEBUG
-		memset(field->legacy_field, 0xFF, VOLUMEPLUSRAND/2 * sizeof(*field->legacy_field));
+		  //memset(field->legacy_field, 0xFF, VOLUMEPLUSRAND/2 * sizeof(*field->legacy_field));
 #endif
 #ifndef NVALGRIND
 		VALGRIND_MEMPOOL_FREE(field->collectionBase->legacy_base, field->legacy_field);
@@ -616,10 +616,10 @@ bgq_spinor bgq_legacy_getspinor(spinor *spinor, ucoord t, ucoord x, ucoord y, uc
 	assert(0 <= y && y < LOCAL_LY);
 	assert(0 <= z && z < LOCAL_LZ);
 	spinorfield_enable(spinor, true, false);
-	int ix = g_ipt[t][x][y][z]; /* lexic coordinate */
+	int ix = Index(t,x,y,z); /* lexic coordinate */
 	assert(ix == Index(t,x,y,z));
-	int iy = g_lexic2eo[ix]; /* even/odd coordinate (even and odd sites in two different fields of size VOLUME/2, first even field followed by odd) */
-	assert(0 <= iy && iy < (VOLUME+RAND));
+	//int iy = g_lexic2eo[ix]; /* even/odd coordinate (even and odd sites in two different fields of size VOLUME/2, first even field followed by odd) */
+	//assert(0 <= iy && iy < (VOLUME+RAND));
 	int icx = g_lexic2eosub[ix]; /*  even/odd coordinate relative to field base */
 	assert(0 <= icx && icx < VOLUME/2);
 

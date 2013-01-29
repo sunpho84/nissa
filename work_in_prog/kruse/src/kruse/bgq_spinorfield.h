@@ -14,6 +14,10 @@
 
 #include <stdbool.h>
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #ifndef BGQ_SPINORFIELD_C_
 #define EXTERN_INLINE EXTERN_INLINE_DECLARATION
 #define EXTERN_FIELD extern
@@ -130,7 +134,6 @@ typedef struct bgq_weylfield_collection {
 	struct bgq_weylfield_collection *next;
 	bgq_weylfield_controlblock controlblocks[];
 } bgq_weylfield_collection;
-
 
 void bgq_spinorfields_init(void);
 bgq_weylfield_collection *bgq_spinorfields_allocate(size_t count, spinor *legacyFields, size_t fieldLength);
@@ -781,5 +784,9 @@ void spinorfield_dump(const spinor *field, char *desc);
 #undef EXTERN_INLINE
 #undef EXTERN_FIELD
 #undef EXTERN_INIT
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BGQ_SPINORFIELD_H_ */

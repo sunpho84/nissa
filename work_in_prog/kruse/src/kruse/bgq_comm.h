@@ -7,6 +7,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 #ifndef BGQ_COMM_C_
 #define EXTERN_INLINE EXTERN_INLINE_DECLARATION
 #define EXTERN_FIELD extern
@@ -56,5 +60,10 @@ EXTERN_FIELD bgq_weyl_vec_float *g_bgq_sec_temp_tdown_float;
 #undef EXTERN_INLINE
 #undef EXTERN_FIELD
 #undef EXTERN_INIT
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* BGQ_COMM_H_ */
