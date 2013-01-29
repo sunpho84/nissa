@@ -210,7 +210,11 @@ pseudo_main.o: pseudo_main.cpp ../../src/nissa.h ../../src/base/close.h \
  /sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/../../../../include/c++/4.7.2/complex.h \
  /usr/include/complex.h /usr/include/sys/cdefs.h \
  /sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/include/omp.h \
- /sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/include/stdbool.h
+ /sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/include/stdbool.h \
+ src/kruse/bgq_field.h src/kruse/bgq_comm.h src/kruse/bgq_spinorfield.h \
+ src/kruse/bgq_field.h src/kruse/bgq_utils.h src/kruse/bgq_qpx.h \
+ src/kruse/bgq_ReadWeyllayout.inc.c src/kruse/bgq_spinorfield.h \
+ src/kruse/bgq_HoppingMatrix.h
 
 ../../src/nissa.h:
 
@@ -735,3 +739,21 @@ src/interface/../kruse/bgq_qpx.h:
 /sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/include/omp.h:
 
 /sw/lib/gcc4.7/lib/gcc/x86_64-apple-darwin11.4.2/4.7.2/include/stdbool.h:
+
+src/kruse/bgq_field.h:
+
+src/kruse/bgq_comm.h:
+
+src/kruse/bgq_spinorfield.h:
+
+src/kruse/bgq_field.h:
+
+src/kruse/bgq_utils.h:
+
+src/kruse/bgq_qpx.h:
+
+src/kruse/bgq_ReadWeyllayout.inc.c:
+
+src/kruse/bgq_spinorfield.h:
+
+src/kruse/bgq_HoppingMatrix.h:

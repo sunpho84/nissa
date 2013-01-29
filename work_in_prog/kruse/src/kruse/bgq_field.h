@@ -21,6 +21,9 @@
 #include <stdint.h>
 #include <assert.h>
 
+#ifdef __cplusplus 
+extern "C"{
+#endif
 
 #ifndef BGQ_FIELD_C_
 #define EXTERN_INLINE EXTERN_INLINE_DECLARATION
@@ -515,7 +518,7 @@ typedef enum {
 
 
 
-struct bgq_weylfield_controlblock;
+//struct bgq_weylfield_controlblock;
 
 
 
@@ -1476,13 +1479,13 @@ EXTERN_INLINE int bgq_collapsed2eosub(bool isOdd, ucoord ic, ucoord k) {
 	ucoord y = bgq_halfvolume2y(ih);
 	ucoord z = bgq_halfvolume2z(ih);
 
-	int lexic = g_ipt[t][x][y][z]; /* lexic coordinate */
-	assert(lexic == Index(t,x,y,z));
-	int eo = g_lexic2eo[lexic]; /* even/odd coordinate (even and odd sites in two different fields of size VOLUME/2, first even field followed by odd) */
-	assert(0 <= eo && eo < (VOLUME+RAND));
+	int lexic = Index(t,x,y,z); /* lexic coordinate */
+	//assert(lexic == Index(t,x,y,z));
+	//int eo = g_lexic2eo[lexic]; /* even/odd coordinate (even and odd sites in two different fields of size VOLUME/2, first even field followed by odd) */
+	//assert(0 <= eo && eo < (VOLUME+RAND));
 	int eosub = g_lexic2eosub[lexic]; /*  even/odd coordinate relative to field base */
 	assert(0 <= eosub && eosub < VOLUME/2);
-	assert(eosub == eo - (isOdd ? (VOLUME+RAND)/2 : 0));
+	//assert(eosub == eo - (isOdd ? (VOLUME+RAND)/2 : 0));
 
 #if 0
 	int lexic = Index(t, x, y, z);
@@ -1531,6 +1534,10 @@ EXTERN_INLINE tristate tristate_invert(tristate tri) {
 #undef EXTERN_INLINE
 #undef EXTERN_FIELD
 #undef EXTERN_INIT
+
+#ifdef __cplusplus 
+}
+#endif
 
 #endif /* BGQ_FIELD_H_ */
 

@@ -8,6 +8,7 @@
 void rat_approx_create(rat_approx_type *appr,int nterms,const char *name)
 {
   memcpy(appr->name,name,20);
+  appr->minimum=appr->maximum=0;
   appr->nterms=nterms;
   appr->poles=(double*)malloc(sizeof(double)*2*nterms);
   appr->weights=appr->poles+nterms;

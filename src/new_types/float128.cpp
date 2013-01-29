@@ -6,6 +6,9 @@
 #include "new_types_definitions.h"
 #include "complex.h"
 
+void float_128_print(float_128 a)
+{printf("(%16.16lg + %16.16lg)",a[0],a[1]);}
+
 void float_128_copy(float_128 b,float_128 a)
 {
   b[0]=a[0];
@@ -173,6 +176,8 @@ void float_subt_the_64_prod_128(float_128 c,double a,float_128 b)
   float_64_prod_128(d,a,b);
   float_128_subtassign(c,d);
 }
+void float_128_prodassign(float_128 out,float_128 in)
+{float_128_prod(out,out,in);}
 
 //c128 summ c128
 void complex_128_summ(complex_128 a,complex_128 b,complex_128 c)

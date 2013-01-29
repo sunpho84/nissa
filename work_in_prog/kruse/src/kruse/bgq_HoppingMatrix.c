@@ -188,9 +188,9 @@ void bgq_HoppingMatrix(bool isOdd, bgq_weylfield_controlblock *targetfield, bgq_
 	bgq_spinorfield_prepareWrite(targetfield, isOdd, floatprecision ? ly_weyl_float : ly_weyl_double, targetfield==spinorfield);
 
 
-	if(g_update_gauge_copy) {
-		update_backward_gauge(g_gauge_field);
-	}
+	//if(g_update_gauge_copy) {
+	//update_backward_gauge(g_gauge_field);
+	//}
 
 
 	// 0. Expect data from other neighbor node

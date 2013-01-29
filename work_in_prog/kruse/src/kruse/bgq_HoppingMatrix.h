@@ -23,7 +23,9 @@
 #endif
 
 
-
+#ifdef __cplusplus
+extern "C" 
+#endif
 void bgq_HoppingMatrix(bool isOdd, bgq_weylfield_controlblock *targetfield, bgq_weylfield_controlblock *spinorfield, bgq_hmflags opts);
 
 
