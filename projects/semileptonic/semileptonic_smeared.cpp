@@ -808,7 +808,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 	safe_dirac_prod_spincolor(source,base_gamma[5],source);
 	
 	//if inverting Q
-	if(Wclov_tm==0||use_cgm_S1) safe_dirac_prod_spincolor(source,base_gamma[5],source); 
+	if(Wclov_tm==0||use_cgm_S1||(Wclov_tm==1&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma[5],source); 
 	
 	for(int itheta=0;itheta<nthetaS1;itheta++)
 	  {
@@ -819,7 +819,11 @@ void calculate_S1(int ispec,int ism_lev_se)
 	    double part_time=-take_time();
 	    
 	    //decide to use one or the other inverters
-	    if(use_cgm_S1) inv_tmQ2_cgm(cgm_solution,conf,kappa,massS1,nmassS1,niter_max,stopping_residues_S1,source);
+	    if(use_cgm_S1)
+	      {
+		if(cSW==0) inv_tmQ2_cgm(cgm_solution,conf,kappa,massS1,nmassS1,niter_max,stopping_residues_S1,source);
+		else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,cSW,Pmunu,massS1,nmassS1,niter_max,stopping_residues_S1,source);
+	      }
 	    else
 	      for(int imass=0;imass<nmassS1;imass++)
 		{
@@ -828,7 +832,8 @@ void calculate_S1(int ispec,int ism_lev_se)
 		  if(Wclov_tm==1)
 		    {
 		      if(r_spec[ispec]==1) m*=-1;
-		      inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stopping_residues_S1[imass],source);
+		      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stopping_residues_S1[imass],source);
+		      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,5,stopping_residues_S1[imass],source);
 		    }
 		  else inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,5,stopping_residues_S1[imass],source);
 		}
