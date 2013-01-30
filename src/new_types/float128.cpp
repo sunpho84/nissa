@@ -214,16 +214,25 @@ void float_128_div(float_128 div,float_128 a,float_128 b)
 {
   //compute approx div
   float_128 div1;
-  float_128_prod_64(div1,a,1/b[0]);
-  //compute remaining
+  float_128_prod_64(div1,a,1/(b[0]+b[1]));
+  //compute first remaining
   float_128 rem;
   float_128_prod(rem,div1,b);
   float_128_subt(rem,a,rem);
   //compute the second piece
   float_128 div2;
-  float_128_prod_64(div2,rem,1/b[0]);
+  float_128_prod_64(div2,rem,1/(b[0]+b[1]));
   //summ the two pieces
-  float_128_summ(div,div1,div2);
+  float_128 div12;
+  float_128_summ(div12,div1,div2);
+  //second remaining
+  float_128_prod(rem,div12,b);
+  float_128_subt(rem,a,rem);
+  //compute the third piece
+  float_128 div3;
+  float_128_prod_64(div3,rem,1/(b[0]+b[1]));
+  //summ the two pieces
+  float_128_summ(div,div12,div3);
 }
 
 //integer power
