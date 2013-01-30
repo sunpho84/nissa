@@ -309,7 +309,7 @@ void initialize_semileptonic(char *input_path)
   read_str_int("TwistedMassRun",&Wclov_tm);
   //Kappa is read really only for tm
   if(Wclov_tm==1) read_str_double("Kappa",&kappa);
-  else read_str_double("cSW",&cSW);
+  read_str_double("cSW",&cSW);
   
   // 2) Read information about the source
   
@@ -671,7 +671,7 @@ void calculate_S0(int ism_lev_so)
 	    get_spincolor_from_colorspinspin(source,original_source,id);
 #endif
 	    //add gamma5 apart if using cg or tm 
-	    if(Wclov_tm==0||use_cgm_S0) safe_dirac_prod_spincolor(source,base_gamma[5],source);
+	    if(Wclov_tm==0||use_cgm_S0||(Wclov_tm==1&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma[5],source);
 	    
 	    //if needed apply nabla
 	    if(muS>0)
@@ -695,7 +695,11 @@ void calculate_S0(int ism_lev_so)
 		    double part_time=-take_time();
 		    
 		    //decide if to use multimass or single mass
-		    if(use_cgm_S0) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
+		    if(use_cgm_S0)
+		      {
+			if(cSW==0) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
+			else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,cSW,Pmunu,mass,nmass,niter_max,stopping_residues,source);
+		      }
 		    else
 		      for(int imass=0;imass<nmass;imass++)
 			{
@@ -705,9 +709,13 @@ void calculate_S0(int ism_lev_so)
 			    {
 			      master_printf("Ma no!\n");
 			      if(which_r_S0==0) m*=-1;
-			      inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stopping_residues[imass],source);
+			      
+			      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stopping_residues[imass],source);
+			      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,5,stopping_residues[imass],source);
 			    }
-			  else inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,5,stopping_residues[imass],source);
+			  else //m=kappa
+			    inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,5,stopping_residues[imass],source);
+			  
 			  master_printf("Finished submass[%d]=%lg\n",imass,m);
 			}
 		    part_time+=take_time();ninv_tot++;inv_time+=part_time;
