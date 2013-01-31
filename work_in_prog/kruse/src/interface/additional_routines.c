@@ -5,11 +5,19 @@
 #include "additional_variables.h"
 #include "renaming_scheme.h"
 
-void init_additional_variables()
+void init_interface()
 {
   g_eo2lexic=(int*)malloc((VOLUME+RAND)*sizeof(int));
   for(int ivol=0;ivol<loc_vol;ivol++)
     g_eo2lexic[g_lexic2eosub[ivol]+loclx_parity[ivol]*(VOLUME+RAND)/2] = ivol;
+  
+  bgq_gaugefield_init();
+  bgq_indices_init();
+  bgq_comm_mpi_init();
+  bgq_comm_spi_init();
+  bgq_spinorfields_init();
+
+  ka0=ka1=ka2=ka3=1;
   
   /*  
   //g_update_gauge_copy
@@ -45,7 +53,7 @@ void update_backward_gauge(tmlQCD_su3 **gf)
 }
 */
 
-void unset_additional_variables()
+void unset_interface()
 {
   free(g_eo2lexic);
   

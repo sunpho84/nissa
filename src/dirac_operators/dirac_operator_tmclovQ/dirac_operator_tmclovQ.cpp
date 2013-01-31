@@ -11,10 +11,11 @@
 void apply_tmclovQ(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double mu,spincolor *in)
 {
 #pragma omp single
-  communicate_lx_spincolor_borders(in);
-#pragma omp single
-  communicate_lx_quad_su3_borders(conf);
-    
+  {
+    communicate_lx_spincolor_borders(in);
+    communicate_lx_quad_su3_borders(conf);
+  }
+  
   //put the clover term
   unsafe_apply_chromo_operator_to_spincolor(out,Pmunu,in);
   double_vector_prod_double((double*)out,(double*)out,csw/2,loc_vol*24);
