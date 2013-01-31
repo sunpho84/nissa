@@ -1,6 +1,8 @@
 #ifndef _MACROS_H
 #define _MACROS_H
 
+#include <stdio.h>
+
 #define SVN_VERS ""
 
 //vectors parameters

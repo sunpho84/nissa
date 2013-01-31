@@ -53,6 +53,8 @@ parameter, e.g: "./configure CXX=mpicxx". If you want to compile on BG/P add als
 "-qarch -DBGP" as CXXGFLAS in the configure. 
 Optimization flags can be passed as well, for example: "CXXFLAGS=-O5".
 
+When compiling using mpi intel compiler please set the flag: "CXXFLAGS=-DMPICH_IGNORE_CXX_SEEK"
+
 Structure
 ---------
 

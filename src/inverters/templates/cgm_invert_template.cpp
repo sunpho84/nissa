@@ -135,7 +135,9 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	
 	//start the communications of the border
 #pragma omp single
-	if(nissa_use_async_communications) cgm_start_communicating_borders(nrequest,request,p);
+	{
+	  if(nissa_use_async_communications) cgm_start_communicating_borders(nrequest,request,p);
+	}
 	
 	//     calculate 
 	//     -alphas=alpha*zfs*betas/zas*beta
@@ -156,16 +158,20 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	rr=rfrf;
 	
 	//check over residual
-	if(iter%each==0)
 #pragma omp single
-	  verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
+	{
+	  if(iter%each==0) verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
+	}
+	
 	for(int ishift=0;ishift<nshift;ishift++)
 	  if(run_flag[ishift])
 	    {
 	      final_res[ishift]=res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
 	      if(iter%each==0)
 #pragma omp single
-		verbosity_lv2_master_printf("%1.4e  ",res[ishift]);
+		{
+		  verbosity_lv2_master_printf("%1.4e  ",res[ishift]);
+		}
 	      
 	      if(res[ishift]<req_res[ishift])
 		{
@@ -176,10 +182,15 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	  else
 	    if(iter%each==0)
 #pragma omp single
-	      verbosity_lv2_master_printf(" * ");
+	      {
+		verbosity_lv2_master_printf(" * ");
+	      }
+	
 	if(iter%each==0)
 #pragma omp single
-	  verbosity_lv2_master_printf("\n");
+	  {
+	    verbosity_lv2_master_printf("\n");
+	  }
       }
     while(nrun_shift>0 && iter<niter_max);
   }
