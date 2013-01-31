@@ -9,6 +9,8 @@
 #include "../../operations/su3_paths/plaquette.h"
 #include "../../operations/su3_paths/arbitrary.h"
 
+#include <string.h>
+
 paths_calculation_structure *compute_Symanzik_staples=NULL;
 
 //allocate the structure for computing staples relevant for tree level Symanzik gauge action

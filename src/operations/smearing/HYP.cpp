@@ -5,6 +5,8 @@
 #include "../../base/vectors.h"
 #include "../../base/routines.h"
 
+#include <string.h>
+
 //smear a conf using hyp
 //warning, the input conf needs to have edges allocate!
 void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2,int req_mu)

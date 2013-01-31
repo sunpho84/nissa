@@ -5,6 +5,8 @@
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/su3.h"
 
+#include <string.h>
+
 //set the eo geometry
 void set_eo_geometry()
 {

@@ -1,6 +1,11 @@
 #ifndef _ROUTINES_H
 #define _ROUTINES_H
+
+#include "../new_types/new_types_definitions.h"
+
 #include <string>
+#include <stdio.h>
+
 FILE* open_file(const char *outfile,const char *mode);
 FILE* open_text_file_for_output(const char *outfile);
 MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
@@ -37,4 +42,5 @@ void swap_ints(int &i1,int &i2);
 void take_last_characters(char *out,const char *in,int size);
 void set_gauge_action_type(theory_pars_type &theory_pars,char *type);
 std::string combine(const char *format,...);
+
 #endif

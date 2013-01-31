@@ -3,13 +3,14 @@
 #include <string.h>
 #include <math.h>
 
-#include "../base/macros.h"
 #include "../base/debug.h"
+#include "../base/macros.h"
+#include "../base/routines.h"
 #include "new_types_definitions.h"
 #include "complex.h"
 
 void float_128_print(float_128 a)
-{printf("(%16.16lg + %16.16lg)",a[0],a[1]);}
+{master_printf("(%16.16lg + %16.16lg)",a[0],a[1]);}
 
 void float_128_copy(float_128 b,float_128 a)
 {
