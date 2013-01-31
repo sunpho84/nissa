@@ -407,7 +407,7 @@ void initialize_semileptonic(char *input_path)
   
   // 7) three points functions
   
-  sequential_source=nissa_malloc("Sequential source",loc_vol,prop_type);
+  if(ncontr_3pts!=0 || nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,prop_type);
   read_str_int("TSep",&tsep);
   read_str_int("NSpec",&nspec);
   if(nspec==0) crash("it has no meaning to specify 0 spectators");
@@ -462,7 +462,8 @@ void initialize_semileptonic(char *input_path)
   
   //allocate gauge conf, Pmunu and all the needed spincolor and propagators
   conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol,quad_su3);
+  if(ape_niter!=0) sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol,quad_su3);
+  else sme_conf=conf;
   Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
   
   //Allocate all the S0 prop_type vectors
@@ -486,7 +487,7 @@ void initialize_semileptonic(char *input_path)
   original_source=nissa_malloc("original_source",loc_vol,prop_type);
   
   //Allocate one prop_type for the chromo-contractions
-  ch_prop=nissa_malloc("chromo-prop",loc_vol,prop_type);
+  if(nch_contr_2pts!=0 && nch_contr_3pts!=0) ch_prop=nissa_malloc("chromo-prop",loc_vol,prop_type);
   
   //Allocate all the S1 prop_type vectors
   npropS1=nthetaS1*nmassS1;
@@ -554,11 +555,11 @@ void setup_conf()
   Pmunu_term(Pmunu,conf);
   
   //prepare the smerded version
-  ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
+  if(ape_niter!=0) ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
   
   //compute plaquette
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
-  master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
+  if(ape_niter!=0) master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
   
   //put the anti-periodic condition on the temporal border
   old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
@@ -581,14 +582,15 @@ void close_semileptonic()
   master_printf("   * %02.2f%s to compute three points\n",contr_3pts_time*100.0/contr_time,"%");
   master_printf("   * %02.2f%s to save correlations\n",contr_save_time*100.0/contr_time,"%");
   
-  nissa_free(Pmunu);nissa_free(conf);nissa_free(sme_conf);
+  nissa_free(Pmunu);nissa_free(conf);if(ape_niter!=0) nissa_free(sme_conf);
   for(int iprop=0;iprop<npropS0;iprop++)
     for(int r=0;r<2;r++)
       if(which_r_S0==2||which_r_S0==r) nissa_free(S0[r][iprop]);
   for(int iprop=0;iprop<npropS1;iprop++) nissa_free(S1[iprop]);
   nissa_free(S0[0]);nissa_free(S0[1]);nissa_free(S1);
   nissa_free(temp_vec[0]);nissa_free(temp_vec[1]);
-  nissa_free(ch_prop);nissa_free(sequential_source);
+  if(nch_contr_2pts!=0 && nch_contr_3pts!=0) nissa_free(ch_prop);
+  if(ncontr_3pts!=0 || nch_contr_3pts!=0) nissa_free(sequential_source);
   nissa_free(contr_2pts);nissa_free(ch_contr_2pts);
   nissa_free(contr_3pts);nissa_free(ch_contr_3pts);
   nissa_free(op1_2pts);nissa_free(op2_2pts);

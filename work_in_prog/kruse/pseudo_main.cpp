@@ -6,7 +6,39 @@
 #include "src/kruse/bgq_spinorfield.h"
 #include "src/kruse/bgq_HoppingMatrix.h"
 
-int main(int narg,char **arg)
+int bgq_field_initted=false;
+bgq_weylfield_collection *bgq_source,*bgq_temp,*bgq_dest;
+
+//allocate the internal vector
+void allocate_bgq_field(spincolor *dest,spincolor *temp,spincolor *source)
+{
+  bgq_field_initted=true;
+  
+  bgq_source=bgq_spinorfields_allocate(1,(spinor*)source,loc_volh);
+  bgq_temp=bgq_spinorfields_allocate(1,(spinor*)temp,loc_volh);
+  bgq_dest=bgq_spinorfields_allocate(1,(spinor*)dest,loc_volh);
+}
+
+void app(spincolor *legacy_dest,spincolor *legacy_temp,spincolor *legacy_source,spincolor *ext_source=NULL)
+{
+  if(!bgq_field_initted) allocate_bgq_field(legacy_dest,legacy_temp,legacy_source);
+
+  //if an ext source is passed, copy it
+  if(ext_source!=NULL)
+    {
+      //prepare the source to be wrote
+      bgq_spinorfield_prepareWrite(&(bgq_source->controlblocks[0]),(tristate)EVN,ly_legacy,false);
+      //write inside
+      vector_copy(legacy_source,ext_source);
+    }
+  
+  //apply OE
+  bgq_HoppingMatrix(ODD,&(bgq_temp->controlblocks[0]),&(bgq_source->controlblocks[0]),hm_nokamul);
+  //apply EO
+  bgq_HoppingMatrix(EVN,&(bgq_dest->controlblocks[0]),&(bgq_temp->controlblocks[0]),hm_nokamul);
+}
+
+void init(int narg,char **arg)
 {
   init_nissa(narg,arg);
   
@@ -14,8 +46,13 @@ int main(int narg,char **arg)
   int time=8,space=4;
   init_grid(time,space);
   
-  //init interface additional variables (still incomplete)
-  init_additional_variables();
+  //init interface
+  init_interface();
+}
+
+int main(int narg,char **arg)
+{
+  init(narg,arg);
   
   //////////////////////////////////
   
@@ -23,53 +60,59 @@ int main(int narg,char **arg)
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);  
   quad_su3 *eo_conf[2]={nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3),nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3)};
   read_ildg_gauge_conf(conf,"/Users/francesco/Prace/nissa/test/data/L4T8conf");
+  vector_reset(conf);
+  su3_put_to_id(conf[0][3]);
+  
   split_lx_conf_into_eo_parts(eo_conf,conf);
   master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
-  
-  //initialize bgq field
-  bgq_gaugefield_init();
-  bgq_indices_init();
-  bgq_comm_mpi_init();
-  bgq_spinorfields_init();
-  
-  ka0=ka1=ka2=ka3=1;
   
   //convert
   bgq_gaugefield_transferfrom((tmlQCD_su3**)conf);
   
   //allocate the spinors
   spincolor *legacy_source=nissa_malloc("legacy_source",loc_volh,spincolor);
+  spincolor *legacy_temp=nissa_malloc("legacy_temp",loc_volh,spincolor);
   spincolor *legacy_dest=nissa_malloc("legacy_dest",loc_volh,spincolor);
-  //allocate the internal vector
-  bgq_weylfield_collection *source=bgq_spinorfields_allocate(1,(spinor*)legacy_source,loc_volh);
-  bgq_weylfield_collection *dest=bgq_spinorfields_allocate(1,(spinor*)legacy_dest,loc_volh);
+  spincolor *ori_source=nissa_malloc("ori_source",loc_volh,spincolor);
   
   //prepare the source
-  bgq_spinorfield_prepareWrite(&(source->controlblocks[0]),(tristate)EVN,ly_legacy,false);
-  memset(legacy_source,0,loc_volh*sizeof(spincolor));
-  legacy_source[0][0][0][0]=1;
-  
-  int ip=loceo_neighup[0][0][0];
+  vector_reset(ori_source);
+  ori_source[0][0][0][0]=1;
   
   //test
-  spincolor *test_dest=nissa_malloc("legacy_dest",loc_volh,spincolor);
-  tmn2Doe_eos(test_dest,eo_conf,legacy_source);
-  master_printf("%lg\n",test_dest[ip][0][0][0]);
+  tmn2Doe_eos(legacy_temp,eo_conf,ori_source);
+  for(int mu=0;mu<4;mu++)
+    {
+      int ip=loceo_neighup[EVN][0][mu];
+      master_printf("leg %d ip %d %lg\n",mu,ip,legacy_temp[ip][0][0][0]);
+      ip=loceo_neighdw[EVN][0][mu];
+      master_printf("leg %d, ip %d %lg\n",mu,ip,legacy_temp[ip][0][0][0]);
+    }
+  tmn2Deo_eos(legacy_dest,eo_conf,legacy_temp);
   
-  //apply OE
-  bgq_HoppingMatrix(ODD,&(dest->controlblocks[0]),&(source->controlblocks[0]),hm_nokamul);
   
-  bgq_HoppingMatrix(EVN,&(third->controlblocks[0]),&(dest->controlblocks[0]),hm_nokamul);
+  app(legacy_dest,legacy_temp,legacy_source,ori_source);
+  bgq_spinorfield_prepareRead(&(bgq_temp->controlblocks[0]),(tristate)ODD,false,false,false,false,true);
+  bgq_spinorfield_prepareRead(&(bgq_dest->controlblocks[0]),(tristate)EVN,false,false,false,false,true);
   
-  bgq_spinorfield_prepareRead(&(dest->controlblocks[0]),(tristate)ODD,false,false,false,false,true);
-  master_printf("%lg\n",legacy_dest[ip][0][0][0]);
+  for(int mu=0;mu<4;mu++)
+    {
+      int ip=loceo_neighup[EVN][0][mu];
+      master_printf("new %d %lg\n",mu,legacy_temp[ip][0][0][0]);
+      ip=loceo_neighdw[EVN][0][mu];
+      master_printf("new %d %lg\n",mu,legacy_temp[ip][0][0][0]);
+    }
+  
+  for(int ivol=0;ivol<loc_volh;ivol++)
+    if(legacy_temp[ivol][0][0][0]!=0)
+      printf("%d\n",ivol);
   
   //////////////////////////////////
   
   nissa_free(conf);
   nissa_free(legacy_source);
   
-  unset_additional_variables();
+  unset_interface();
   
   close_nissa();
   

@@ -152,6 +152,9 @@ pseudo_main.o: pseudo_main.cpp ../../src/nissa.h ../../src/base/close.h \
  ../../src/dirac_operators/dirac_operator_tmQ_left/dirac_operator_tmQ_left.h \
  ../../src/dirac_operators/dirac_operator_Wstat/dirac_operator_Wstat.h \
  ../../src/dirac_operators/dirac_operator_WclovQ/dirac_operator_WclovQ.h \
+ ../../src/dirac_operators/dirac_operator_WclovQ2/dirac_operator_WclovQ2.h \
+ ../../src/dirac_operators/dirac_operator_tmclovQ/dirac_operator_tmclovQ.h \
+ ../../src/dirac_operators/dirac_operator_tmclovQ2/dirac_operator_tmclovQ2.h \
  ../../src/geometry/geometry_eo.h \
  ../../src/geometry/../new_types/new_types_definitions.h \
  ../../src/geometry/geometry_lx.h ../../src/geometry/geometry_mix.h \
@@ -162,7 +165,12 @@ pseudo_main.o: pseudo_main.cpp ../../src/nissa.h ../../src/base/close.h \
  ../../src/inverters/twisted_mass/cgm_invert_tmQ2.h \
  ../../src/inverters/twisted_mass/tm_frontends.h \
  ../../src/inverters/Wstat/cg_invert_Wstat.h \
- ../../src/inverters/Wclov/cg_invert_WclovQ.h ../../src/linalgs/linalgs.h \
+ ../../src/inverters/Wclov/cg_invert_WclovQ2.h \
+ ../../src/inverters/Wclov/cg_invert_WclovQ.h \
+ ../../src/inverters/tmclov/cg_invert_tmclovQ2.h \
+ ../../src/inverters/tmclov/cg_invert_tmclovQ.h \
+ ../../src/inverters/tmclov/cgm_invert_tmclovQ2.h \
+ ../../src/linalgs/linalgs.h \
  ../../src/linalgs/../new_types/new_types_definitions.h \
  ../../src/new_types/complex.h \
  ../../src/new_types/new_types_definitions.h ../../src/new_types/dirac.h \
@@ -570,6 +578,12 @@ pseudo_main.o: pseudo_main.cpp ../../src/nissa.h ../../src/base/close.h \
 
 ../../src/dirac_operators/dirac_operator_WclovQ/dirac_operator_WclovQ.h:
 
+../../src/dirac_operators/dirac_operator_WclovQ2/dirac_operator_WclovQ2.h:
+
+../../src/dirac_operators/dirac_operator_tmclovQ/dirac_operator_tmclovQ.h:
+
+../../src/dirac_operators/dirac_operator_tmclovQ2/dirac_operator_tmclovQ2.h:
+
 ../../src/geometry/geometry_eo.h:
 
 ../../src/geometry/../new_types/new_types_definitions.h:
@@ -592,7 +606,15 @@ pseudo_main.o: pseudo_main.cpp ../../src/nissa.h ../../src/base/close.h \
 
 ../../src/inverters/Wstat/cg_invert_Wstat.h:
 
+../../src/inverters/Wclov/cg_invert_WclovQ2.h:
+
 ../../src/inverters/Wclov/cg_invert_WclovQ.h:
+
+../../src/inverters/tmclov/cg_invert_tmclovQ2.h:
+
+../../src/inverters/tmclov/cg_invert_tmclovQ.h:
+
+../../src/inverters/tmclov/cgm_invert_tmclovQ2.h:
 
 ../../src/linalgs/linalgs.h:
 

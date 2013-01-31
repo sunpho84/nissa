@@ -469,6 +469,7 @@ void bgq_spinorfield_enableLayout(bgq_weylfield_controlblock *field, tristate is
 				if (isSloppy) {
 					field->consptr_float[isOdd][d] = malloc_aligned(bgq_physical_halo_sites(dim) * sizeof(*field->consptr_float[isOdd][d]), BGQ_ALIGNMENT_L2);
 				} else {
+				  //printf("%ld\n",bgq_physical_halo_sites(dim) * sizeof(*field->consptr_double[isOdd][d]));
 					field->consptr_double[isOdd][d] = malloc_aligned(bgq_physical_halo_sites(dim) * sizeof(*field->consptr_double[isOdd][d]), BGQ_ALIGNMENT_L2);
 				}
 			}

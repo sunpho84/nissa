@@ -4,10 +4,8 @@
 #ifdef __cplusplus 
 extern "C" {
 #endif
-  void init_additional_variables();
-  void unset_additional_variables();
-  //to be removed
-  //void update_backward_gauge(tmlQCD_su3 **gf);
+  void init_interface();
+  void unset_interface();
 #ifdef __cplusplus 
 }
 #endif
