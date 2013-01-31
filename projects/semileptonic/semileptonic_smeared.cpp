@@ -752,7 +752,8 @@ void calculate_S0(int ism_lev_so)
 		  {
 		    if(Wclov_tm==1&&use_cgm_S0)
 		      {
-			reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
+			if(cSW==0) reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
+			else reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,cSW,Pmunu,mass[imass],cgm_solution[imass]);
 			master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 		      }
 		    else memcpy(temp_vec[which_r_S0],cgm_solution[imass],sizeof(spincolor)*loc_vol);
@@ -851,7 +852,8 @@ void calculate_S1(int ispec,int ism_lev_se)
 		//use temp_vec[0] as temporary storage
 		if(Wclov_tm==1&&use_cgm_S1)
 		  {
-		    apply_tmQ(temp_vec[0],conf,kappa,reco_mass,cgm_solution[imass]);
+		    if(cSW==0) apply_tmQ(temp_vec[0],conf,kappa,reco_mass,cgm_solution[imass]);
+		    else       apply_tmclovQ(temp_vec[0],conf,kappa,cSW,Pmunu,reco_mass,cgm_solution[imass]);
 		    master_printf("Mass %d (%g) reconstructed \n",imass,massS1[imass]);
 		  }
 		else memcpy(temp_vec[0],cgm_solution[imass],sizeof(spincolor)*loc_vol);
