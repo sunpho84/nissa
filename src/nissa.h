@@ -51,6 +51,7 @@
 #include "dirac_operators/dirac_operator_WclovQ/dirac_operator_WclovQ.h"
 #include "dirac_operators/dirac_operator_WclovQ2/dirac_operator_WclovQ2.h"
 #include "dirac_operators/dirac_operator_tmclovQ/dirac_operator_tmclovQ.h"
+#include "dirac_operators/dirac_operator_tmclovQ/reconstruct_tmclov_doublet.h"
 #include "dirac_operators/dirac_operator_tmclovQ2/dirac_operator_tmclovQ2.h"
 
 #include "geometry/geometry_eo.h"
