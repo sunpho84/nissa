@@ -65,6 +65,7 @@
 
 //Wilson clover or Tm?
 int Wclov_tm;
+int rotate_to_phys_basis;
 double cSW;
 
 //gauge info
@@ -223,7 +224,7 @@ void generate_sequential_source(int ispec)
 	{
 	  //avoid to put g5, beacuse commutate with (i+-g5)/sqrt(2) and cancel with those of the QQ
 	  memcpy(sequential_source[ivol],S0[r][ipropS0(ith_spec[ispec],imass_spec[ispec],0)][ivol],sizeof(prop_type));
-	  if(Wclov_tm==1) //if doing tm
+	  if(Wclov_tm && rotate_to_phys_basis) //if doing tm and want to rotate
 	    for(int c=0;c<3;c++) //rotate as r because it's D^-1
 	      {
 #ifdef POINT_SOURCE_VERSION
@@ -307,8 +308,10 @@ void initialize_semileptonic(char *input_path)
   read_str_int("WallTime",&wall_time);
   //Decide if twisted(1) or clover run
   read_str_int("TwistedMassRun",&Wclov_tm);
+  //Decide if to rotate to phsyical basis
+  if(Wclov_tm)read_str_int("RotateToPhysBasis",&rotate_to_phys_basis);
   //Kappa is read really only for tm
-  if(Wclov_tm==1) read_str_double("Kappa",&kappa);
+  if(Wclov_tm) read_str_double("Kappa",&kappa);
   read_str_double("cSW",&cSW);
   
   // 2) Read information about the source
@@ -673,7 +676,7 @@ void calculate_S0(int ism_lev_so)
 	    get_spincolor_from_colorspinspin(source,original_source,id);
 #endif
 	    //add gamma5 apart if using cg or tm 
-	    if(Wclov_tm==0||use_cgm_S0||(Wclov_tm==1&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma[5],source);
+	    if(!Wclov_tm||use_cgm_S0||(Wclov_tm&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma[5],source);
 	    
 	    //if needed apply nabla
 	    if(muS>0)
@@ -707,7 +710,7 @@ void calculate_S0(int ism_lev_so)
 			{
 			  //the sign of mass depends on r
 			  double m=mass[imass];
-			  if(Wclov_tm==1)
+			  if(Wclov_tm)
 			    {
 			      master_printf("Ma no!\n");
 			      if(which_r_S0==0) m*=-1;
@@ -750,7 +753,7 @@ void calculate_S0(int ism_lev_so)
 		//reconstruct the doublet
 		for(int imass=0;imass<nmass;imass++)
 		  {
-		    if(Wclov_tm==1&&use_cgm_S0)
+		    if(Wclov_tm&&use_cgm_S0)
 		      {
 			if(cSW==0) reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
 			else reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,cSW,Pmunu,mass[imass],cgm_solution[imass]);
@@ -772,18 +775,20 @@ void calculate_S0(int ism_lev_so)
     }
 
   //rotate to physical basis if doing tm
-  if(Wclov_tm==1)
-    for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-      if(which_r_S0==r||which_r_S0==2)
-	for(int ipropS0=0;ipropS0<npropS0;ipropS0++) //put the (1+ig5)/sqrt(2) factor
-	  {
+  if(Wclov_tm && rotate_to_phys_basis)
+    {
+      for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
+	if(which_r_S0==r||which_r_S0==2)
+	  for(int ipropS0=0;ipropS0<npropS0;ipropS0++) //put the (1+ig5)/sqrt(2) factor
+	    {
 #ifdef POINT_SOURCE_VERSION
-	    rotate_vol_su3spinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
+	      rotate_vol_su3spinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
 #else
-	    rotate_vol_colorspinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
+	      rotate_vol_colorspinspin_to_physical_basis(S0[r][ipropS0],!r,!r);
 #endif
-	  }
-  master_printf("Propagators rotated\n");
+	    }
+      master_printf("Propagators rotated\n");
+    }
   
   master_printf("\n");
 }
@@ -811,7 +816,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 	safe_dirac_prod_spincolor(source,base_gamma[5],source);
 	
 	//if inverting Q
-	if(Wclov_tm==0||use_cgm_S1||(Wclov_tm==1&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma[5],source); 
+	if(!Wclov_tm||use_cgm_S1||(Wclov_tm&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma[5],source); 
 	
 	for(int itheta=0;itheta<nthetaS1;itheta++)
 	  {
@@ -832,7 +837,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 		{
 		  //since r0==0 implicates r1=1, mass=-mass when r0=1
 		  double m=massS1[imass];
-		  if(Wclov_tm==1)
+		  if(Wclov_tm)
 		    {
 		      if(r_spec[ispec]==1) m*=-1;
 		      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stopping_residues_S1[imass],source);
@@ -850,7 +855,7 @@ void calculate_S1(int ispec,int ism_lev_se)
 		double reco_mass=-massS1[imass];
 		if(r_spec[ispec]==1) reco_mass=-reco_mass;
 		//use temp_vec[0] as temporary storage
-		if(Wclov_tm==1&&use_cgm_S1)
+		if(Wclov_tm&&use_cgm_S1)
 		  {
 		    if(cSW==0) apply_tmQ(temp_vec[0],conf,kappa,reco_mass,cgm_solution[imass]);
 		    else       apply_tmclovQ(temp_vec[0],conf,kappa,cSW,Pmunu,reco_mass,cgm_solution[imass]);
@@ -868,17 +873,18 @@ void calculate_S1(int ispec,int ism_lev_se)
       }
   
   //put the (1+-ig5)/sqrt(2) factor if tm. On the source rotate as r_spec, on the sink as !r_spec
-  if(Wclov_tm==1)
-    for(int ipropS1=0;ipropS1<npropS1;ipropS1++) //but, being D^-1, everything is swapped
-      {
+  if(Wclov_tm && rotate_to_phys_basis)
+    {
+      for(int ipropS1=0;ipropS1<npropS1;ipropS1++) //but, being D^-1, everything is swapped
+	{
 #ifdef POINT_SOURCE_VERSION
-	rotate_vol_su3spinspin_to_physical_basis(S1[ipropS1],!(r_spec[ispec]),(r_spec[ispec]));
+	  rotate_vol_su3spinspin_to_physical_basis(S1[ipropS1],!(r_spec[ispec]),(r_spec[ispec]));
 #else
-	rotate_vol_colorspinspin_to_physical_basis(S1[ipropS1],!(r_spec[ispec]),(r_spec[ispec]));
+	  rotate_vol_colorspinspin_to_physical_basis(S1[ipropS1],!(r_spec[ispec]),(r_spec[ispec]));
 #endif
-      }
-  
-  master_printf("Propagators rotated\n");
+	}
+      master_printf("Propagators rotated\n");
+    }
   
   master_printf("\n");
 }

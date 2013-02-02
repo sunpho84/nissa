@@ -18,6 +18,14 @@ void float_128_copy(float_128 b,float_128 a)
   b[1]=a[1];
 }
 
+void float_128_swap(float_128 b,float_128 a)
+{
+  float_128 c;
+  float_128_copy(c,b);
+  float_128_copy(b,a);
+  float_128_copy(a,c);
+}
+
 void float_128_uminus(float_128 b,float_128 a)
 {
   b[0]=-a[0];
@@ -213,16 +221,18 @@ void float_128_prodassign(float_128 out,float_128 in)
 //divide two float_128
 void float_128_div(float_128 div,float_128 a,float_128 b)
 {
+  //compute dividing factor
+  double c=1/(b[0]+b[1]);
   //compute approx div
   float_128 div1;
-  float_128_prod_64(div1,a,1/(b[0]+b[1]));
+  float_128_prod_64(div1,a,c);
   //compute first remaining
   float_128 rem;
   float_128_prod(rem,div1,b);
   float_128_subt(rem,a,rem);
   //compute the second piece
   float_128 div2;
-  float_128_prod_64(div2,rem,1/(b[0]+b[1]));
+  float_128_prod_64(div2,rem,c);
   //summ the two pieces
   float_128 div12;
   float_128_summ(div12,div1,div2);
@@ -231,7 +241,35 @@ void float_128_div(float_128 div,float_128 a,float_128 b)
   float_128_subt(rem,a,rem);
   //compute the third piece
   float_128 div3;
-  float_128_prod_64(div3,rem,1/(b[0]+b[1]));
+  float_128_prod_64(div3,rem,c);
+  //summ the two pieces
+  float_128_summ(div,div12,div3);
+}
+
+//divide a float_128 by a double
+void float_128_div_64(float_128 div,float_128 a,double b)
+{
+  //compute dividing factor
+  double c=1/b;
+  //compute approx div
+  float_128 div1;
+  float_128_prod_64(div1,a,c);
+  //compute first remaining
+  float_128 rem;
+  float_128_prod_64(rem,div1,b);
+  float_128_subt(rem,a,rem);
+  //compute the second piece
+  float_128 div2;
+  float_128_prod_64(div2,rem,c);
+  //summ the two pieces
+  float_128 div12;
+  float_128_summ(div12,div1,div2);
+  //second remaining
+  float_128_prod_64(rem,div12,b);
+  float_128_subt(rem,a,rem);
+  //compute the third piece
+  float_128 div3;
+  float_128_prod_64(div3,rem,c);
   //summ the two pieces
   float_128_summ(div,div12,div3);
 }
@@ -239,10 +277,22 @@ void float_128_div(float_128 div,float_128 a,float_128 b)
 //integer power
 void float_128_pow_int(float_128 out,float_128 in,int d)
 {
-  if(d<0) crash("not yet implemented");
-  
-  //case o
-  if(d==0) float_128_from_64(out,1);
+  //negative or null case
+  if(d<=0)
+    {
+      float_128_from_64(out,1);
+      //if negative
+      if(d<0)
+	{
+	  //compute inv and assign to out
+	  float_128 inv;
+	  float_128_div(inv,out,in);
+	  float_128_copy(out,inv);
+	  //multiply the remaining numer of times
+	  for(int i=2;i<=-d;i++) float_128_prodassign(out,inv);
+	}
+    }
+  //positive case
   else
     {
       float_128_copy(out,in);
