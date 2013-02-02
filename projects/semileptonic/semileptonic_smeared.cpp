@@ -410,7 +410,6 @@ void initialize_semileptonic(char *input_path)
   
   // 7) three points functions
   
-  if(ncontr_3pts!=0 || nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,prop_type);
   read_str_int("TSep",&tsep);
   read_str_int("NSpec",&nspec);
   if(nspec==0) crash("it has no meaning to specify 0 spectators");
@@ -433,6 +432,8 @@ void initialize_semileptonic(char *input_path)
     }
   read_str_int("NContrThreePoints",&ncontr_3pts);
   contr_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glb_size[0],complex); 
+  if(ncontr_3pts!=0 || nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,prop_type);
+  
   op1_3pts=nissa_malloc("op1_3pts",ncontr_3pts,int);
   op2_3pts=nissa_malloc("op2_3pts",ncontr_3pts,int);
   for(int icontr=0;icontr<ncontr_3pts;icontr++)
