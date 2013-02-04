@@ -56,7 +56,8 @@ typedef complex_128 color_128[3];
 typedef color_128 spincolor_128[4];
 
 //octpuple
-typedef float_128 float_256[2];
+typedef double float_256[4];
+typedef double float_256_unr[5];
 
 //Random types
 enum rnd_type{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z4,RND_GAUSS};
