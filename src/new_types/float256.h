@@ -2,6 +2,7 @@
 #define _FLOAT_256_H
 double float_256_most_sign_part(float_256 b);
 int float_256_is_greater(float_256 a,float_256 b);
+int float_256_is_greater(float_256 a,double b);
 int float_256_is_smaller(float_256 a,float_256 b);
 void float_128_from_256(float_128 a,float_256 b);
 void float_128_prod_256(float_256 c,float_128 a,float_256 b);
