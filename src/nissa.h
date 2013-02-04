@@ -75,6 +75,7 @@
 #include "new_types/complex.h"
 #include "new_types/dirac.h"
 #include "new_types/float128.h"
+#include "new_types/float256.h"
 #include "new_types/new_types_definitions.h"
 #include "new_types/rat_exp.h"
 #include "new_types/read_new_types.h"
