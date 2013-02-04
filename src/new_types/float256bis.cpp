@@ -51,8 +51,7 @@ void renormalize(float_256 b,float_256_unr a)
   //printf("before: ");
   //for(int i=0;i<5;i++) printf("%lg ",a[i]);
   //printf("\n");
-  
-  double s0,s1,s2,s3;
+  double s0=0,s1=0,s2=0,s3=0;
   double c0,c1,c2,c3,c4;
   quick_two_summ(s0,c4,a[3],a[4]);
   quick_two_summ(s0,c3,a[2],s0);
