@@ -78,15 +78,15 @@ void float_256_div(float_256 c,float_256 a,float_256 b)
   for(int i=0;i<4;i++)
     {
       q[i]=r[0]/b[0];
-      printf("remaining %d, ",i);
-      float_256_print(r);
-      printf("\n");
+      //printf("remaining %d, ",i);
+      //float_256_print(r);
+      //printf("\n");
       float_256 s;
       float_256_prod_double(s,b,-q[i]);
       float_256_summassign(r,s);
-      printf("summing ");
-      float_256_print(s);
-      printf("\n");
+      //printf("summing ");
+      //float_256_print(s);
+      //printf("\n");
     }
   
   q[4]=r[0]/b[0];
@@ -156,9 +156,9 @@ void float_256_pow_int_frac(float_256 out,float_256 ext_in,int n,int d)
   float_256_from_double(tempd,d);
   float_256_div(recd,recd,tempd);
 
-      printf("  recd: ");
-      float_256_print(recd);
-      printf("\n");
+  //printf("  recd: ");
+  //float_256_print(recd);
+  //printf("\n");
   
   //(out+err)^d=in^n -> err=out*rel_err, rel_err=(ref/out^d-1)/d
 
