@@ -165,8 +165,9 @@ struct rat_approx_type
   double minimum;
   double maximum;
   double cons;
+  int num,den;
   double exp_power;
-  int nterms;
+  int degree;
   double *poles;
   double *weights;
 };

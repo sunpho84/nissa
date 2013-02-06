@@ -1,6 +1,8 @@
 #ifndef _FLOAT128_H
 #define _FLOAT128_H
 
+#include "new_types_definitions.h"
+
 double double_from_float_128(float_128 b);
 void color_128_copy(color_128 a,color_128 b);
 void color_128_isubt(color_128 a,color_128 b,color_128 c);

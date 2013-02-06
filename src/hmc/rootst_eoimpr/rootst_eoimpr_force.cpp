@@ -28,8 +28,8 @@ void summ_the_rootst_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,color *p
   verbosity_lv1_master_printf("Computing quark force\n");
   
   //allocate each terms of the expansion
-  color *v_o[appr->nterms],*chi_e[appr->nterms];
-  for(int iterm=0;iterm<appr->nterms;iterm++)
+  color *v_o[appr->degree],*chi_e[appr->degree];
+  for(int iterm=0;iterm<appr->degree;iterm++)
     {
       v_o[iterm]=nissa_malloc("v_o",loc_volh+bord_volh,color);
       chi_e[iterm]=nissa_malloc("chi_e",loc_volh+bord_volh,color);
@@ -39,23 +39,23 @@ void summ_the_rootst_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,color *p
   add_backfield_to_conf(eo_conf,u1b);
   
   //invert the various terms
-  inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec(chi_e,eo_conf,appr->poles,appr->nterms,1000000,residue,pf);
+  inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec(chi_e,eo_conf,appr->poles,appr->degree,1000000,residue,pf);
   
   //summ all the terms performing appropriate elaboration
   //possible improvement by communicating more borders together
-  for(int iterm=0;iterm<appr->nterms;iterm++)
+  for(int iterm=0;iterm<appr->degree;iterm++)
     apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
   
   //remove the background fields
   rem_backfield_from_conf(eo_conf,u1b);
   
   //communicate borders of v_o (could be improved...)
-  for(int iterm=0;iterm<appr->nterms;iterm++) communicate_od_color_borders(v_o[iterm]);
+  for(int iterm=0;iterm<appr->degree;iterm++) communicate_od_color_borders(v_o[iterm]);
   
   //conclude the calculation of the fermionic force
   nissa_loc_volh_loop(ivol)
     for(int mu=0;mu<4;mu++)
-      for(int iterm=0;iterm<appr->nterms;iterm++)
+      for(int iterm=0;iterm<appr->degree;iterm++)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++)
 	    {
@@ -74,7 +74,7 @@ void summ_the_rootst_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,color *p
 	    }
   
   //free
-  for(int iterm=0;iterm<appr->nterms;iterm++)
+  for(int iterm=0;iterm<appr->degree;iterm++)
     {
       nissa_free(v_o[iterm]);
       nissa_free(chi_e[iterm]);

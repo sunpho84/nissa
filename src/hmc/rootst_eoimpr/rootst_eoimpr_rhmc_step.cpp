@@ -5,7 +5,7 @@
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_eo.h"
 #include "../../new_types/new_types_definitions.h"
-#include "../../new_types/rat_exp.h"
+#include "../../new_types/rat_approx.h"
 #include "../../operations/smearing/stout.h"
 #include "../../operations/su3_paths/plaquette.h"
 
