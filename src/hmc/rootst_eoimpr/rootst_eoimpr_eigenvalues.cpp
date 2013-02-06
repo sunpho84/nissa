@@ -7,7 +7,7 @@
 #include "../../base/vectors.h"
 #include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
 #include "../../new_types/new_types_definitions.h"
-#include "../../new_types/rat_exp.h"
+#include "../../new_types/rat_approx.h"
 #include "../../new_types/su3.h"
 #include "../../inverters/staggered/cg_invert_stD2ee_m2.h"
 

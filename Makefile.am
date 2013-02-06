@@ -74,7 +74,7 @@ nissa_headers=src/base/close.h \
 	src/new_types/dirac.h \
 	src/new_types/float128.h \
 	src/new_types/float256.h \
-	src/new_types/rat_exp.h \
+	src/new_types/rat_approx.h \
 	src/new_types/read_new_types.h \
 	src/new_types/spin.h \
 	src/new_types/su3.h \
@@ -85,6 +85,7 @@ nissa_headers=src/base/close.h \
 	src/operations/gauge_fixing.h \
 	src/operations/gaugeconf.h \
 	src/operations/remap_vector.h \
+	src/operations/remez/remez_algorithm.h \
 	src/operations/shift.h \
 	src/operations/source.h \
 	src/operations/smearing/APE.h \
@@ -163,7 +164,7 @@ nissa_source_files=src/base/close.cpp \
 	src/new_types/dirac.cpp \
 	src/new_types/float128.cpp \
 	src/new_types/float256.cpp \
-	src/new_types/rat_exp.cpp \
+	src/new_types/rat_approx.cpp \
 	src/new_types/read_new_types.cpp \
 	src/new_types/spin.cpp \
 	src/new_types/su3.cpp \
@@ -174,6 +175,7 @@ nissa_source_files=src/base/close.cpp \
 	src/operations/gauge_fixing.cpp \
 	src/operations/gaugeconf.cpp \
 	src/operations/remap_vector.cpp \
+	src/operations/remez/remez_algorithm.cpp \
 	src/operations/shift.cpp \
 	src/operations/source.cpp \
 	src/operations/smearing/APE.cpp \

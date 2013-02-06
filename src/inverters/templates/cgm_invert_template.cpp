@@ -269,26 +269,26 @@ void cgm_invert_run_hm_up_to_comm_prec(basetype **sol,cgm_additional_parameters_
 void summ_src_and_all_inv_cgm(basetype *sol,cgm_additional_parameters_proto,rat_approx_type *appr,int niter_max,double req_res,basetype *source)
 {
   //allocate temporary single solutions
-  basetype *temp[appr->nterms];
-  for(int iterm=0;iterm<appr->nterms;iterm++)
+  basetype *temp[appr->degree];
+  for(int iterm=0;iterm<appr->degree;iterm++)
     temp[iterm]=nissa_malloc("temp",bulk_vol+bord_vol,basetype);
   
   //call multi-shift solver
-  cgm_invert_run_hm_up_to_comm_prec(temp,cgm_additional_parameters_call,appr->poles,appr->nterms,niter_max,req_res,source);
+  cgm_invert_run_hm_up_to_comm_prec(temp,cgm_additional_parameters_call,appr->poles,appr->degree,niter_max,req_res,source);
   
   //summ all the shifts
   double *dsol=(double*)sol,*dsource=(double*)source;
   for(int i=0;i<bulk_vol*ndoubles_per_site;i++)
     {
       dsol[i]=appr->cons*dsource[i];
-      for(int iterm=0;iterm<appr->nterms;iterm++)
+      for(int iterm=0;iterm<appr->degree;iterm++)
 	dsol[i]+=appr->weights[iterm]*(((double*)(temp[iterm]))[i]);
     }
   
   set_borders_invalid(sol);
   
   //free temp vectors
-  for(int iterm=0;iterm<appr->nterms;iterm++)
+  for(int iterm=0;iterm<appr->degree;iterm++)
     nissa_free(temp[iterm]);
 }
 

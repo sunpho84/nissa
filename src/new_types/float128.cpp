@@ -10,7 +10,7 @@
 #include "complex.h"
 
 void float_128_print(float_128 a)
-{master_printf("(%16.16lg + %16.16lg)",a[0],a[1]);}
+{master_printf("(%17.17lg + %17.17lg)",a[0],a[1]);}
 
 void float_128_copy(float_128 b,float_128 a)
 {
