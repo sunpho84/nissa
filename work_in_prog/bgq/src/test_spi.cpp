@@ -7,20 +7,26 @@
 //#include <hwi/include/bqc/MU_PacketCommon.h>
 #include <firmware/include/personality.h>
 //#include <spi/include/mu/Descriptor.h>
-//#include <spi/include/mu/Descriptor_inlines.h>
+#include <spi/include/mu/Descriptor_inlines.h>
 //#include <spi/include/mu/InjFifo.h>
 //#include <spi/include/mu/Addressing.h>
 //#include <spi/include/mu/Addressing_inlines.h>
 //#include <spi/include/mu/GIBarrier.h>
-//#include <spi/include/kernel/MU.h>
+#include <spi/include/kernel/MU.h>
 //#include <spi/include/kernel/process.h>
 #include <spi/include/kernel/location.h>
 
+//the eights directions are: t-,t+,x-,x+,etc
+
+//type to hold the 5D coordinates
 typedef uint8_t coords_5D[5];
 
 //spi rank, coordinates and size of 5D grid
 int spi_rank;
 coords_5D spi_rank_coord,nspi_rank_dir;
+
+//neighbours int the 4 dirs
+MUHWI_Destination_t spi_neigh[2][4];
 
 //compute the spi rank of passed coord
 int spi_rank_of_coords(coords_5D c)
@@ -53,14 +59,28 @@ void set_spi_coord_size_rank(Personality_t &pers)
   //compute the local spi rank
   spi_rank=spi_rank_of_coords(spi_rank_coord);
   
-  master_printf("spi grid:\n");
-  for(int i=0;i<5;i++)
-    master_printf("Dir %d, size: %d\n",i,nspi_rank_dir[i]);
-  fflush(stdout);
-  
-  MPI_Barrier(MPI_COMM_WORLD);
-  
-  printf("rank %d spi_rank %d\n",rank,spi_rank);
+  //print out the spi grid size
+  verbosity_lv2_master_printf("Spi grid: %d ",nspi_rank_dir[0]);
+  for(int i=1;i<5;i++)
+    verbosity_lv2_master_printf("x %d",nspi_rank_dir[i]);
+  verbosity_lv2_master_printf("\n");
+}
+
+//set the spi neighboirs using MPI communicators
+void set_spi_neighbours()
+{
+  //loop on the 8 dirs
+  for(int mu=0;mu<4;mu++)
+    for(int bf=0;bf<2;bf++) //backward(0) or forward(1)
+      {
+	//send to one dir, receive from the other
+	coords_5D c;
+	MPI_Sendrecv(spi_rank_coord,sizeof(coords_5D),MPI_BYTE,rank_neigh[bf][mu],0,
+		     c,sizeof(coords_5D),MPI_BYTE,rank_neigh[!bf][mu],0,
+		     cart_comm,MPI_STATUS_IGNORE);
+	//setup what just received
+	MUSPI_SetUpDestination(&spi_neigh[!bf][mu],c[0],c[1],c[2],c[3],c[4]);
+      }
 }
 
 //initialize the spi communications
@@ -85,7 +105,8 @@ void init_spi()
       //get coordinates, size and rank in the 5D grid
       set_spi_coord_size_rank(pers);
       
-      //int rc=0;
+      //set the spi neighbours
+      set_spi_neighbours();
     }
 }
 
