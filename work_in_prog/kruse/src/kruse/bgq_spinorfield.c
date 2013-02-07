@@ -1600,6 +1600,7 @@ bgq_weylfield_controlblock *bgq_translate_spinorfield(const spinor *legacy_field
 		}
 		ptrdiff_t offset = legacyField - legacyBase;
 		if (offset >= count * fieldsize) {
+			printf("ciao %p %p %d %d\n",legacyField,legacyBase,count,fieldsize);
 			collection = collection->next;
 			continue;
 		}

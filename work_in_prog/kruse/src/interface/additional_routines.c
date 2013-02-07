@@ -11,11 +11,12 @@ void init_interface()
   for(int ivol=0;ivol<loc_vol;ivol++)
     g_eo2lexic[g_lexic2eosub[ivol]+loclx_parity[ivol]*(VOLUME+RAND)/2] = ivol;
   
-  bgq_gaugefield_init();
   bgq_indices_init();
   bgq_comm_mpi_init();
   bgq_comm_spi_init();
+  bgq_initbgqref_impl();
   bgq_spinorfields_init();
+  bgq_gaugefield_init();
 
   ka0=ka1=ka2=ka3=1;
   
