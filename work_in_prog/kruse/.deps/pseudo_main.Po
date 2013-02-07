@@ -175,16 +175,21 @@ pseudo_main.o: pseudo_main.cpp ../../src/nissa.h ../../src/base/close.h \
  ../../src/linalgs/../new_types/new_types_definitions.h \
  ../../src/new_types/complex.h \
  ../../src/new_types/new_types_definitions.h ../../src/new_types/dirac.h \
- ../../src/new_types/float128.h \
+ ../../src/new_types/float128.h ../../src/new_types/float256.h \
  ../../src/new_types/new_types_definitions.h \
- ../../src/new_types/rat_exp.h ../../src/new_types/read_new_types.h \
+ ../../src/new_types/rat_approx.h ../../src/new_types/read_new_types.h \
  ../../src/new_types/spin.h ../../src/new_types/su3.h \
  ../../src/operations/contract.h ../../src/operations/contract_stag.h \
  ../../src/operations/fft.h ../../src/operations/fourier_transform.h \
  ../../src/operations/gauge_fixing.h ../../src/operations/gaugeconf.h \
  ../../src/operations/../new_types/new_types_definitions.h \
- ../../src/operations/remap_vector.h ../../src/operations/shift.h \
- ../../src/operations/smearing/APE.h ../../src/operations/smearing/HYP.h \
+ ../../src/operations/remap_vector.h \
+ ../../src/operations/remez/remez_algorithm.h \
+ ../../src/operations/remez/../../new_types/new_types_definitions.h \
+ ../../src/operations/remez/../../new_types/float256.h \
+ ../../src/operations/remez/../../base/vectors.h \
+ ../../src/operations/shift.h ../../src/operations/smearing/APE.h \
+ ../../src/operations/smearing/HYP.h \
  ../../src/operations/smearing/stout.h \
  ../../src/operations/smearing/gaussian.h ../../src/operations/source.h \
  ../../src/operations/su3_paths/arbitrary.h /usr/include/stdlib.h \
@@ -631,9 +636,11 @@ pseudo_main.o: pseudo_main.cpp ../../src/nissa.h ../../src/base/close.h \
 
 ../../src/new_types/float128.h:
 
+../../src/new_types/float256.h:
+
 ../../src/new_types/new_types_definitions.h:
 
-../../src/new_types/rat_exp.h:
+../../src/new_types/rat_approx.h:
 
 ../../src/new_types/read_new_types.h:
 
@@ -656,6 +663,14 @@ pseudo_main.o: pseudo_main.cpp ../../src/nissa.h ../../src/base/close.h \
 ../../src/operations/../new_types/new_types_definitions.h:
 
 ../../src/operations/remap_vector.h:
+
+../../src/operations/remez/remez_algorithm.h:
+
+../../src/operations/remez/../../new_types/new_types_definitions.h:
+
+../../src/operations/remez/../../new_types/float256.h:
+
+../../src/operations/remez/../../base/vectors.h:
 
 ../../src/operations/shift.h:
 
