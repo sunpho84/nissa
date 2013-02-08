@@ -120,7 +120,7 @@ static double bgq_spinorfield_legacy_compare(bool isOdd, bgq_weylfield_controlbl
 						continue;
 
 					const int ix = Index(t,x,y,z); /* lexic coordinate */
-				//assert(ix == Index(t,x,y,z));
+					assert(ix == Index(t,x,y,z));
 					//int iy = g_lexic2eo[ix]; /* even/odd coordinate (even and odd sites in two different fields of size VOLUME/2, first even field followed by odd) */
 					//assert(0 <= iy && iy < (VOLUME+RAND));
 					int icx = g_lexic2eosub[ix]; /*  even/odd coordinate relative to field base */
@@ -297,6 +297,7 @@ void bgq_spinorveck_written_float(bgq_spinorsite_float *targetspinor, ucoord k, 
 	if (targetspinor->s[0][0][0] == 0)
 		assert(targetspinor->s[0][0][1] != 1); // For valgrind
 #ifdef BGQ_COORDCHECK
+	printf("ciao\n");
 	bgq_spinor coord = bgq_spinor_coord_encode(t,x,y,z);
 	bgq_spinorveck_write_float(targetspinor, k, coord);
 #endif
@@ -342,6 +343,7 @@ static void bgq_weylveck_write_float(bgq_weyl_vec_float *target, ucoord k, bgq_w
 #define bgq_weylveck_written NAME2(bgq_weylveck_written,PRECISION)
 void bgq_weylveck_written_double(bgq_weyl_vec_double *targetweyl, ucoord k, ucoord t, ucoord x, ucoord y, ucoord z, bgq_direction d, bool isSrc) {
 #ifdef BGQ_COORDCHECK
+  //printf("writing tloc: %d, tglob: %d\n",t,bgq_local2global_t(t));
 	bgq_weyl_nonvec coord = bgq_weyl_coord_encode(t,x,y,z,d,isSrc);
 	bgq_weylveck_write_double(targetweyl, k, coord);
 #endif
@@ -469,7 +471,6 @@ void bgq_spinorfield_enableLayout(bgq_weylfield_controlblock *field, tristate is
 				if (isSloppy) {
 					field->consptr_float[isOdd][d] = malloc_aligned(bgq_physical_halo_sites(dim) * sizeof(*field->consptr_float[isOdd][d]), BGQ_ALIGNMENT_L2);
 				} else {
-				  //printf("%ld\n",bgq_physical_halo_sites(dim) * sizeof(*field->consptr_double[isOdd][d]));
 					field->consptr_double[isOdd][d] = malloc_aligned(bgq_physical_halo_sites(dim) * sizeof(*field->consptr_double[isOdd][d]), BGQ_ALIGNMENT_L2);
 				}
 			}
@@ -595,7 +596,7 @@ void bgq_spinorfield_enableLayout(bgq_weylfield_controlblock *field, tristate is
 		assert(field->legacy_field);
 		if (!preserveData) {
 #ifndef NDEBUG
-		  //memset(field->legacy_field, 0xFF, VOLUMEPLUSRAND/2 * sizeof(*field->legacy_field));
+		memset(field->legacy_field, 0xFF, VOLUMEPLUSRAND/2 * sizeof(*field->legacy_field));
 #endif
 #ifndef NVALGRIND
 		VALGRIND_MEMPOOL_FREE(field->collectionBase->legacy_base, field->legacy_field);

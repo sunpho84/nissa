@@ -66,12 +66,10 @@ static void bgq_gaugeveck_written(bgq_gaugesu3 *target, ucoord k, ucoord t, ucoo
 
 
 
-typedef struct {
-	double _Complex c[3][3];
-} su3_array64;
+typedef double _Complex su3_array64[3][3];
 
 static void bgq_gaugefield_worker_transferfrom(void *arg_untyped, size_t tid, size_t threads) {
-	su3 **sourcefield = (su3**)arg_untyped;
+	su3_array64 *sourcefield = (su3_array64*)arg_untyped;
 
 	const size_t workload = PHYSICAL_VOLUME * PHYSICAL_LP;
 	const size_t threadload = (workload + threads - 1) / threads;
@@ -138,10 +136,25 @@ static void bgq_gaugefield_worker_transferfrom(void *arg_untyped, size_t tid, si
 				}
 
 				size_t ix = Index(t, x, y, z);/* lexic coordinate; g_ipt[t][x][y][z] is not defined for -1 coordinates */
-				su3_array64 *m = (su3_array64*) &sourcefield[ix*4+dim];
+				su3_array64 *m =sourcefield+(ix*4+dim);
+				/*
+				double a=0;
+				for(int ic=0;ic<3;ic++)
+				for(int jc=0;jc<3;jc++)
+				  {
+				    if(ic==jc) a=1;
+				    else a=0;
+				    if((*m)[ic][jc]!=a)
+				      {
+					//printf("ix=%zu, ic=%d jc=%d obt=(%lg,%lg) when expecting %lg\n",ix,ic,jc,creal((*m)[ic][jc]),
+					//cimag((*m)[ic][jc]),a);
+					//exit(1);
+				      }
+				  }
+				*/
 				for (size_t i = 0; i < 3; i += 1) {
 					for (size_t l = 0; l < 3; l += 1) {
-						COMPLEX_PRECISION val = m->c[i][l];
+					  COMPLEX_PRECISION val = (*m)[i][l];
 						g_bgq_gaugefield_fromCollapsed[isOdd][ic_src].su3[d_dst].c[i][l][k_src] = val;
 					}
 				}
@@ -150,7 +163,7 @@ static void bgq_gaugefield_worker_transferfrom(void *arg_untyped, size_t tid, si
 		}
 	}
 }
-void bgq_gaugefield_transferfrom(su3 **sourcefield) {
+void bgq_gaugefield_transferfrom(su3 *sourcefield) {
 	bgq_master_call(&bgq_gaugefield_worker_transferfrom, sourcefield);
 }
 

@@ -63,7 +63,10 @@ void bgq_HoppingMatrix_worker(void *arg, size_t tid, size_t threads, bool kamul,
 		ucoord z = bgq_halfvolume2z(ih);
 #endif
 		bgq_weyl_ptr_t * restrict targetptrs = &targetfield->BGQ_SENDPTR[isOdd_dst][ic];
-
+if(t1==0&&x==1&&y==0&&z==0)
+{
+	int a=0;
+}
 		//TODO: Check inlining
 		bgq_su3_spinor_decl(spinor);
 

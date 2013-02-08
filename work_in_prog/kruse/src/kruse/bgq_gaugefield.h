@@ -48,10 +48,10 @@ EXTERN_FIELD bgq_gaugesite *g_bgq_gaugefield_fromBody[PHYSICAL_LP];//deprecated
 
 #ifdef __cplusplus
 extern "C" void bgq_gaugefield_init();
-extern "C" void bgq_gaugefield_transferfrom(su3 **sourcefield);
+extern "C" void bgq_gaugefield_transferfrom(su3 *sourcefield);
 #else
 void bgq_gaugefield_init();
-void bgq_gaugefield_transferfrom(su3 **sourcefield);
+void bgq_gaugefield_transferfrom(su3 *sourcefield);
 #endif
 
 #define bgq_gauge_fromqpx(gaugeqpx,k) bgq_gauge_fromqpx_raw(bgq_su3_mvars(gaugeqpx),k)
