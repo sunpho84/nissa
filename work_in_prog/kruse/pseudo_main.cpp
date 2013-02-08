@@ -34,6 +34,7 @@ void app(spincolor *legacy_dest,spincolor *legacy_temp,spincolor *legacy_source,
   
   //apply OE
   bgq_HoppingMatrix(ODD,&(bgq_temp->controlblocks[0]),&(bgq_source->controlblocks[0]),hm_nokamul);
+
   //apply EO
   bgq_HoppingMatrix(EVN,&(bgq_dest->controlblocks[0]),&(bgq_temp->controlblocks[0]),hm_nokamul);
 }
@@ -43,7 +44,7 @@ void init(int narg,char **arg)
   init_nissa(narg,arg);
   
   //init geometry and communication structures
-  int time=16,space=16;
+  int time=8,space=4;
   init_grid(time,space);
   
   //init interface
@@ -59,16 +60,17 @@ int main(int narg,char **arg)
   //read configuration and compute plaquette
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);  
   quad_su3 *eo_conf[2]={nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3),nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3)};
-  //read_ildg_gauge_conf(conf,"/Users/francesco/Prace/nissa/test/data/L4T8conf");
-  vector_reset(conf);
-  nissa_loc_vol_loop(ivol)
-    su3_put_to_id(conf[ivol][3]);
+  read_ildg_gauge_conf(conf,"/Users/francesco/Prace/nissa/test/data/L4T8conf");
+  //vector_reset(conf);
+  //nissa_loc_vol_loop(ivol)
+  //for(int i=0;i<4;i++)
+  //su3_put_to_id(conf[ivol][i]);
   
   split_lx_conf_into_eo_parts(eo_conf,conf);
   master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
   
   //convert
-  bgq_gaugefield_transferfrom((tmlQCD_su3**)conf);
+  bgq_gaugefield_transferfrom((su3*)conf);
   
   //allocate the spinors
   spincolor *legacy_source=nissa_malloc("legacy_source",loc_volh+bord_volh,spincolor);
@@ -78,36 +80,36 @@ int main(int narg,char **arg)
   
   //prepare the source
   vector_reset(ori_source);
-    ori_source[0][0][0][0]=1;
+  ori_source[0][0][0][0]=1;
+  
+  //vector_reset(ori_source);
+  //nissa_loc_volh_loop(ivol)
+  //for(int mu=0;mu<4;mu++)
+  //ori_source[ivol][mu/3][mu%3][0]=glb_coord_of_loclx[loclx_of_loceo[EVN][ivol]][mu];
   
   //test
   tmn2Doe_eos(legacy_temp,eo_conf,ori_source);
+  tmn2Deo_eos(legacy_dest,eo_conf,legacy_temp);
+  
   for(int mu=0;mu<4;mu++)
     {
-      int ip=loceo_neighup[EVN][0][mu];
-      master_printf("leg %d ip %d %lg\n",mu,ip,legacy_temp[ip][0][0][0]);
-      ip=loceo_neighdw[EVN][0][mu];
-      master_printf("leg %d, ip %d %lg\n",mu,ip,legacy_temp[ip][0][0][0]);
+      int ip=loceo_neighup[ODD][0][mu];
+      master_printf("leg %d ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
+      ip=loceo_neighdw[ODD][0][mu];
+      master_printf("leg %d, ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
     }
   
   app(legacy_dest,legacy_temp,legacy_source,ori_source);
   bgq_spinorfield_prepareRead(&(bgq_temp->controlblocks[0]),(tristate)ODD,false,false,false,false,true);
   bgq_spinorfield_prepareRead(&(bgq_dest->controlblocks[0]),(tristate)EVN,false,false,false,false,true);
   
-  tmn2Deo_eos(legacy_dest,eo_conf,legacy_temp);
-  
   for(int mu=0;mu<4;mu++)
     {
-      int ip=loceo_neighup[EVN][0][mu];
-      master_printf("new %d %lg\n",mu,legacy_temp[ip][0][0][0]);
-      ip=loceo_neighdw[EVN][0][mu];
-      master_printf("new %d %lg\n",mu,legacy_temp[ip][0][0][0]);
+      int ip=loceo_neighup[ODD][0][mu];
+      master_printf("new %d ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
+      ip=loceo_neighdw[ODD][0][mu];
+      master_printf("new %d ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
     }
-  
-  if(0)
-  for(int ivol=0;ivol<loc_volh;ivol++)
-    if(legacy_temp[ivol][0][0][0]!=0)
-      printf("%d\n",ivol);
   
   //////////////////////////////////
   

@@ -757,7 +757,7 @@ void bgq_copyFromLegacy_worker(void *arg_untyped, size_t tid, size_t threads) {
 		bgq_qvstfcuxa(spinor_v3_c0,targetaddr,2*PRECISION_COMPLEX_SIZEOF);
 		bgq_qvstfcuxa(spinor_v3_c1,targetaddr,2*PRECISION_COMPLEX_SIZEOF);
 		bgq_qvstfcuxa(spinor_v3_c2,targetaddr,2*PRECISION_COMPLEX_SIZEOF);
-				bgq_spinorveck_expect(targetfield->BGQ_SEC_FULLLAYOUT[ic], k, t, x, y, z);
+		//bgq_spinorveck_expect(targetfield->BGQ_SEC_FULLLAYOUT[ic], k, t, x, y, z);
 	}
 }
 

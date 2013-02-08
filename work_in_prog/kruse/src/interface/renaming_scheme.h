@@ -7,6 +7,7 @@
 #define LZ (loc_size[3])
 #define VOLUME loc_vol
 #define RAND   bord_vol
+#define VOLUMEPLUSRAND (loc_vol+bord_vol)
 #define T_global (glb_size[0])
 #define N_PROC_X (nrank_dir[1])
 #define N_PROC_Y (nrank_dir[2])

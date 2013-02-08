@@ -287,6 +287,11 @@ EXTERN_INLINE void bgq_spinor_expect(bgq_spinor spinor, scoord t, scoord x, scoo
 	ucoord y_global = bgq_local2global_y(y);
 	ucoord z_global = bgq_local2global_z(z);
 
+	printf("t_global: %d, spinor: %lg\n",t_global,creal(spinor.v[0].c[0]));
+	printf("x_global: %d, spinor: %lg\n",x_global,creal(spinor.v[0].c[1]));
+	printf("y_global: %d, spinor: %lg\n",y_global,creal(spinor.v[0].c[2]));
+	printf("z_global: %d, spinor: %lg\n",z_global,creal(spinor.v[1].c[0]));
+	
 	assert(spinor.v[0].c[0] == t_global);
 	assert(spinor.v[0].c[1] == x_global);
 	assert(spinor.v[0].c[2] == y_global);
@@ -299,6 +304,7 @@ EXTERN_INLINE void bgq_spinor_expect(bgq_spinor spinor, scoord t, scoord x, scoo
 	assert(spinor.v[3].c[0] == 0);
 	assert(spinor.v[3].c[1] == 0);
 	assert(spinor.v[3].c[2] == 0);
+	
 #endif
 }
 

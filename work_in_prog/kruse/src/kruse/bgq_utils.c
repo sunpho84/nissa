@@ -18,6 +18,7 @@
 
 void *malloc_aligned(size_t size, size_t alignment) {
 	void *result = NULL;
+	if(size==0) size=1;
 	int errcode = posix_memalign(&result, alignment, size);
 	if (errcode != 0) {
 		fprintf(stderr, "malloc returned %d\n", errcode);
