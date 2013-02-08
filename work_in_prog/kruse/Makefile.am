@@ -11,6 +11,7 @@ lib_LIBRARIES=libinterface.a libkruse.a
 
 libinterface_a_SOURCES=src/interface/additional_routines.c src/interface/additional_variables.c 
 libkruse_a_SOURCES=	\
+	src/kruse/DirectPut.c \
 	src/kruse/bgq_workers.inc.c \
 	src/kruse/bgq_workers_double.c \
 	src/kruse/bgq_workers_float.c \

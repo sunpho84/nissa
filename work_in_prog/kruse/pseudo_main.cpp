@@ -44,7 +44,7 @@ void init(int narg,char **arg)
   init_nissa(narg,arg);
   
   //init geometry and communication structures
-  int time=8,space=4;
+  int time=32,space=16;
   init_grid(time,space);
   
   //init interface
@@ -60,7 +60,7 @@ int main(int narg,char **arg)
   //read configuration and compute plaquette
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);  
   quad_su3 *eo_conf[2]={nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3),nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3)};
-  read_ildg_gauge_conf(conf,"/Users/francesco/Prace/nissa/test/data/L4T8conf");
+  read_ildg_gauge_conf(conf,"conf");
   //vector_reset(conf);
   //nissa_loc_vol_loop(ivol)
   //for(int i=0;i<4;i++)
