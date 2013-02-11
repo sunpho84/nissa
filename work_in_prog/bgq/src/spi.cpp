@@ -19,7 +19,7 @@
 #include <spi/include/kernel/location.h>
 
 //get the spi coord and grid size
-void get_spi_coord()
+void get_SPI_coord()
 {
   //get the personality
   Personality_t pers;
@@ -34,7 +34,7 @@ void get_spi_coord()
 }
 
 //set the spi neighboirs using MPI communicators
-void set_spi_neighbours()
+void set_SPI_neighbours()
 {
   //loop on the 8 dirs
   for(int mu=0;mu<4;mu++)
@@ -52,7 +52,7 @@ void set_spi_neighbours()
 }
 
 //initialize the spi communications
-void init_spi()
+void init_SPI()
 {
   //flag for spi initialization
   static int nissa_spi_inited=false;
@@ -67,10 +67,10 @@ void init_spi()
       nissa_spi_inited=true;
       
       //get coordinates, size and rank in the 5D grid
-      get_spi_coord();
+      get_SPI_coord();
       
       //set the spi neighbours
-      set_spi_neighbours();
+      set_SPI_neighbours();
       
       ////////////////////////////////// init the fifos ///////////////////////////////////
       
@@ -107,13 +107,14 @@ void init_spi()
 
 struct spi_buff_t
 {
-  uint64_t buffer_size;
+  uint64_t buf_size;
   char *recv_buf;
   char *send_buf;
   volatile uint64_t recv_counter;
   uint64_t send_buf_phys_addr;
 };
 
+//create the base address table
 void create_SPI_bat(spi_buff_t &in)
 {
   //////////////////////////////// allocate base address table (bat) /////////////////////////////
@@ -125,7 +126,7 @@ void create_SPI_bat(spi_buff_t &in)
 				   
   //get physical address of receiving buffer
   Kernel_MemoryRegion_t mem_region;
-  if(Kernel_CreateMemoryRegion(&mem_region,in.recv_buf,in.buffer_size)) crash("creating memory region");
+  if(Kernel_CreateMemoryRegion(&mem_region,in.recv_buf,in.buf_size)) crash("creating memory region");
   
   //set the physical address
   if(MUSPI_SetBaseAddress(&spi_bat_gr,0,(uint64_t)in.recv_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa))
@@ -139,11 +140,27 @@ void create_SPI_bat(spi_buff_t &in)
 						 MUHWI_ATOMIC_OPCODE_STORE_ADD))) crash("setting base addr");
   
   //get the send buffer physical address
-  if(Kernel_CreateMemoryRegion(&mem_region,in.send_buf,in.buffer_size)) crash("creating memory region");
+  if(Kernel_CreateMemoryRegion(&mem_region,in.send_buf,in.buf_size)) crash("creating memory region");
   in.send_buf_phys_addr=(uint64_t)in.send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
 }
 
-     
-  //create the descriptors
+//allocate the buffers
+void create_SPI_buffers(spi_buff_t &in,int buf_size)
+{
+  //copy sizeand allocate
+  in.buf_size=buf_size;
+  in.recv_buf=(char*)memalign(64,buf_size);
+  in.send_buf=(char*)memalign(64,buf_size);
+}
+
+void test_SPI_comm()
+{
+  spi_buff_t a;
+  create_SPI_buffers(a,64);
+  create_SPI_bat(a);
+  master_printf("test passed\n");
+}
+
+//create the descriptors
 //spi_descriptors=(char*)memalign(64,sizeof(MUHWI_Descriptor_t)*8);
   
