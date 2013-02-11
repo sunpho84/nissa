@@ -584,7 +584,7 @@ PACKAGE_STRING='nissa 1.0'
 PACKAGE_BUGREPORT='francesco.sanfilippo@th.u-psud.fr'
 PACKAGE_URL=''
 
-ac_unique_file="./src/nissa.h"
+ac_unique_file="src"
 ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
@@ -613,6 +613,8 @@ CPPFLAGS
 LDFLAGS
 CFLAGS
 CC
+ENABLE_BGQ_FALSE
+ENABLE_BGQ_TRUE
 am__untar
 am__tar
 AMTAR
@@ -677,6 +679,7 @@ SHELL'
 ac_subst_files=''
 ac_user_opts='
 enable_option_checking
+enable_bgq
 enable_dependency_tracking
 '
       ac_precious_vars='build_alias
@@ -1304,6 +1307,7 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
+  --enable-bgq            Enable bgq stuff (ony for BG/Q)
   --enable-dependency-tracking
                           do not reject slow dependency extractors
   --disable-dependency-tracking
@@ -2341,8 +2345,31 @@ am__tar='$${TAR-tar} chof - "$$tardir"' am__untar='$${TAR-tar} xf -'
 
 
 
-ac_config_headers="$ac_config_headers ./src/config.h"
+ac_config_headers="$ac_config_headers src/config.h:src/config.h.in"
 
+
+#bgq
+# Check whether --enable-bgq was given.
+if test "${enable_bgq+set}" = set; then :
+  enableval=$enable_bgq; enable_bgq="yes"
+else
+  enable_bgq="no"
+fi
+
+
+if test "$enable_bgq" == "yes";then
+$as_echo "#define ENABLE_BGQ 1" >>confdefs.h
+ fi
+ if test "$enable_bgq" == "yes" ; then
+  ENABLE_BGQ_TRUE=
+  ENABLE_BGQ_FALSE='#'
+else
+  ENABLE_BGQ_TRUE='#'
+  ENABLE_BGQ_FALSE=
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling bgq... $enable_bgq" >&5
+$as_echo "enabling bgq... $enable_bgq" >&6; }
 
 #overwrite default flags
 if test x${ac_cv_env_CXXFLAGS_set} != xset; then
@@ -3943,6 +3970,10 @@ else
   am__EXEEXT_FALSE=
 fi
 
+if test -z "${ENABLE_BGQ_TRUE}" && test -z "${ENABLE_BGQ_FALSE}"; then
+  as_fn_error $? "conditional \"ENABLE_BGQ\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 if test -z "${AMDEP_TRUE}" && test -z "${AMDEP_FALSE}"; then
   as_fn_error $? "conditional \"AMDEP\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
@@ -4547,7 +4578,7 @@ cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
 for ac_config_target in $ac_config_targets
 do
   case $ac_config_target in
-    "./src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS ./src/config.h" ;;
+    "src/config.h") CONFIG_HEADERS="$CONFIG_HEADERS src/config.h:src/config.h.in" ;;
     "depfiles") CONFIG_COMMANDS="$CONFIG_COMMANDS depfiles" ;;
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
 

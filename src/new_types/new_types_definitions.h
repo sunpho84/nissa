@@ -67,7 +67,7 @@ enum source_type{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED
 enum hmc_force_piece{GAUGE_FORCE_ONLY,QUARK_FORCE_ONLY,BOTH_FORCE_PIECES};
 enum multistep_level{MACRO_STEP,MICRO_STEP};
 
-///////////////////// New structures //////////////
+///////////////////// New structures ////////////////////
 
 //The structure for the random generator
 struct rnd_gen

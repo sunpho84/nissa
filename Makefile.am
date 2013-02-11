@@ -1,5 +1,12 @@
 AUTOMAKE_OPTIONS=subdir-objects
 
+#compile or not bgq stuff
+if ENABLE_BGQ
+bgq_src_file=src/bgq/spi.cpp
+else
+bgq_src_file=""
+endif
+
 #add where to find the library and tell to link
 AM_LDFLAGS=-L@top_builddir@
 LDADD=@LIBS@ libnissa.a
@@ -104,6 +111,7 @@ nissa_source_files=src/base/close.cpp \
 	src/base/global_variables.cpp \
 	src/base/init.cpp \
 	src/base/random.cpp \
+	$(bgq_src_file) \
 	src/base/routines.cpp \
 	src/base/vectors.cpp \
 	src/dirac_operators/dirac_operator_stD/dirac_operator_stD.cpp \

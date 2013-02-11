@@ -3,14 +3,15 @@ AM_INIT_AUTOMAKE([1.0 no-define foreign])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([src/config.h:src/config.h.in])
 
-#spi
-AC_ARG_ENABLE(spi,
-	AS_HELP_STRING([--enable-spi],[Enable spi (ony for BG/Q)]),
-	enable_spi="yes",
-	enable_spi="no")
+#bgq
+AC_ARG_ENABLE(bgq,
+	AS_HELP_STRING([--enable-bgq],[Enable bgq stuff (ony for BG/Q)]),
+	enable_bgq="yes",
+	enable_bgq="no")
 
-if test "$enable_spi" == "yes";then AC_DEFINE([ENABLE_SPI],1,[Enable spi]) fi
-AC_MSG_RESULT([enabling spi... $enable_spi])
+if test "$enable_bgq" == "yes";then AC_DEFINE([ENABLE_BGQ],1,[Enable bgq]) fi
+AM_CONDITIONAL([ENABLE_BGQ],[test "$enable_bgq" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling bgq... $enable_bgq])
 
 #overwrite default flags
 if test x${ac_cv_env_CXXFLAGS_set} != xset; then
