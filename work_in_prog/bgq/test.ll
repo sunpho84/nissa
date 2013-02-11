@@ -2,7 +2,7 @@
 # @ error            = $(job_name).$(jobid).err
 # @ output           = $(job_name).$(jobid).out
 # @ environment      = COPY_ALL
-# @ wall_clock_limit = 00:01:00
+# @ wall_clock_limit = 00:30:00
 # @ job_type         = BLUEGENE
 # @ bg_size          = 64
 # @ notification     = never
@@ -20,4 +20,22 @@ EXE=/gpfs/scratch/userexternal/fsanfili/programs/nissa/work_in_prog/bgq/test_spi
 ARGS=""
 
 #launch
-runjob --envs OMP_NUM_THREADS=64 --ranks-per-node 1 --np 64 $ARGS --exe $EXE
+touch run
+
+inst=0
+
+while [ -f run ]
+do
+    sleep 1
+    if [ -f start ]
+    then
+        rm -fr start
+	date
+        echo "===========================starting============================"
+	runjob --envs OMP_NUM_THREADS=64 --ranks-per-node 1 --np 64 $ARGS --exe $EXE --timeout 8 > out_$inst
+	inst=$(($inst+1))
+    else
+        echo "not starting"
+    fi
+done
+

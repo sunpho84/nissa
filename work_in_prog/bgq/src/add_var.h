@@ -22,6 +22,8 @@ struct spi_comm_t
   volatile uint64_t recv_counter;
   //descriptors
   MUHWI_Descriptor_t *descriptors;
+  //bat
+  MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
 };
 
 /////////////// new vars /////////////////
