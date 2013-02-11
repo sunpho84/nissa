@@ -18,6 +18,18 @@
 //#include <spi/include/kernel/process.h>
 #include <spi/include/kernel/location.h>
 
+//global barrier for spi
+void spi_global_barrier()
+{
+  if(MUSPI_GIBarrierEnter(&spi_barrier)) crash("while entering spi barrier");
+  if(MUSPI_GIBarrierPollWithTimeout(&spi_barrier,60UL*1600000000))
+    {
+      DelayTimeBase(200000000000UL);
+      crash("while waiting for barrier to finish");
+    }
+}
+
+
 //get the spi coord and grid size
 void get_spi_coord()
 {
@@ -113,6 +125,9 @@ void init_spi()
 //create the spi buffer
 void allocate_spi_comm(spi_comm_t &in,int buf_size)
 {
+  //reset comm in progress
+  in.comm_in_prog=0;
+  
   /////////////////////////////////////// allocate buffers ///////////////////////////////////////
   
   in.buf_size=buf_size;
@@ -190,17 +205,56 @@ void set_lx_spi_comm(spi_comm_t &in,int bytes_per_site)
       }
 }
 
+//wait a communication to finish
+void spi_comm_wait(spi_comm_t &in)
+{
+  //wait to recive everything
+  if(in.comm_in_prog)
+    while(in.recv_counter>0)
+      master_printf("%llu bytes still to be received\n",in.recv_counter);
+  
+  //wait to send everything
+  while(in.comm_in_prog)
+    for(int idir=0;idir<8;idir++)
+      {
+	int o=MUSPI_CheckDescComplete(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),spi_desc_count[idir]);
+	in.comm_in_prog|=!o;
+	master_printf("o[%d]=%d\n",idir,o);
+      }
+}
+
+//start sending
+void spi_start_sending(spi_comm_t &in)
+{
+  //wait for any previous communication to finish and mark as new started 
+  spi_comm_wait(in);
+  in.comm_in_prog=1;
+  
+  //reset the counter
+  in.recv_counter=in.buf_size;
+  
+  //wait that all have resetted
+  spi_global_barrier();
+  
+  //start the injection
+  for(int idir=0;idir<8;idir++)
+    {
+      spi_desc_count[idir]=MUSPI_InjFifoInject(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),in.descriptors);
+      if(spi_desc_count[idir]==-1) crash("msg_InjFifoInject failed, most likely because there is no room in the fifo");
+    }
+}
+
 void test_spi_comm()
 {
   spi_comm_t a;
   set_lx_spi_comm(a,sizeof(double));
   
+  //fill in the surface the rank
   for(int ivol=0;ivol<bord_vol;ivol++)
-    ((double*)a.in.send_buf)[ivol]=glblx_of_bordlx
+    ((double*)a.send_buf)[ivol]=rank;
+  
+  spi_start_sending(a);
+  spi_comm_wait(a);
   
   master_printf("test passed\n");
 }
-
-//create the descriptors
-//spi_descriptors=(char*)memalign(64,sizeof(MUHWI_Descriptor_t)*8);
-  
