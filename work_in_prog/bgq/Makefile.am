@@ -10,4 +10,5 @@ LDADD=@LIBS@ ../../libnissa.a
 bin_PROGRAMS=test_spi
 
 #program to generate confs
-test_spi_SOURCES=src/test_spi.cpp
+test_spidir=src
+test_spi_SOURCES=src/test_spi.cpp src/spi.cpp src/spi.h src/add_var.h
