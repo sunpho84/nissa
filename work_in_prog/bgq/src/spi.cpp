@@ -19,7 +19,7 @@
 #include <spi/include/kernel/location.h>
 
 //get the spi coord and grid size
-void get_SPI_coord()
+void get_spi_coord()
 {
   //get the personality
   Personality_t pers;
@@ -34,7 +34,7 @@ void get_SPI_coord()
 }
 
 //set the spi neighboirs using MPI communicators
-void set_SPI_neighbours()
+void set_spi_neighbours()
 {
   //loop on the 8 dirs
   for(int mu=0;mu<4;mu++)
@@ -51,8 +51,15 @@ void set_SPI_neighbours()
       }
 }
 
+//find coordinates and set neighbours map
+void set_spi_geometry()
+{
+  get_spi_coord();
+  set_spi_neighbours();      
+}
+
 //initialize the spi communications
-void init_SPI()
+void init_spi()
 {
   //flag for spi initialization
   static int nissa_spi_inited=false;
@@ -67,22 +74,17 @@ void init_SPI()
       nissa_spi_inited=true;
       
       //get coordinates, size and rank in the 5D grid
-      get_SPI_coord();
-      
-      //set the spi neighbours
-      set_SPI_neighbours();
+      set_spi_geometry();
       
       ////////////////////////////////// init the fifos ///////////////////////////////////
       
       //alloc space for the 8 injection fifos
       uint32_t fifo_size=64*8;
-      for(int idir=0;idir<8;idir++)
-	spi_fifo[idir]=(uint64_t*)memalign(64,fifo_size);
+      for(int idir=0;idir<8;idir++) spi_fifo[idir]=(uint64_t*)memalign(64,fifo_size);
       
       //set default attributes for inj fifo
       Kernel_InjFifoAttributes_t fifo_attrs[8];
-      for(int idir=0;idir<8;idir++)
-	memset(&fifo_attrs[idir],0,sizeof(Kernel_InjFifoAttributes_t));
+      for(int idir=0;idir<8;idir++) memset(&fifo_attrs[idir],0,sizeof(Kernel_InjFifoAttributes_t));
       
       //initialize them with default attributes
       uint32_t fifo_id[8]={0,1,2,3,4,5,6,7};
@@ -103,20 +105,20 @@ void init_SPI()
       //activate the fifos
       if(Kernel_InjFifoActivate(&spi_fifo_sg_ptr,8,fifo_id,KERNEL_INJ_FIFO_ACTIVATE)) crash("activating fifo");
     }
+  
+  //init the barrier
+  if(MUSPI_GIBarrierInit(&spi_barrier,0)) crash("initialing the barrier");
 }
 
-struct spi_buff_t
+//create the spi buffer
+void allocate_spi_comm(spi_comm_t &in,int buf_size)
 {
-  uint64_t buf_size;
-  char *recv_buf;
-  char *send_buf;
-  volatile uint64_t recv_counter;
-  uint64_t send_buf_phys_addr;
-};
-
-//create the base address table
-void create_SPI_bat(spi_buff_t &in)
-{
+  /////////////////////////////////////// allocate buffers ///////////////////////////////////////
+  
+  in.buf_size=buf_size;
+  in.recv_buf=(char*)memalign(64,buf_size);
+  in.send_buf=(char*)memalign(64,buf_size);
+  
   //////////////////////////////// allocate base address table (bat) /////////////////////////////
   
   //allocate the bat entries
@@ -138,26 +140,64 @@ void create_SPI_bat(spi_buff_t &in)
   if(MUSPI_SetBaseAddress(&spi_bat_gr,1,
 			  MUSPI_GetAtomicAddress((uint64_t)&in.recv_counter-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa,
 						 MUHWI_ATOMIC_OPCODE_STORE_ADD))) crash("setting base addr");
+}
+
+//set up a communicator for lx borders
+void set_lx_spi_comm(spi_comm_t &in,int bytes_per_site)
+{
+  //allocate in and out buffers
+  allocate_spi_comm(in,bytes_per_site*bord_vol);
   
   //get the send buffer physical address
+  Kernel_MemoryRegion_t mem_region;
   if(Kernel_CreateMemoryRegion(&mem_region,in.send_buf,in.buf_size)) crash("creating memory region");
-  in.send_buf_phys_addr=(uint64_t)in.send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
+  uint64_t send_buf_phys_addr=(uint64_t)in.send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
+  
+  //create one descriptor per direction
+  int idir=0;
+  uint64_t offset=0;
+  for(int bf=0;bf<2;bf++) //direction of the halo in receiving node: surface is ordered as halo
+    for(int mu=0;mu<4;mu++)
+      {
+	//reset the info
+	MUSPI_Pt2PtDirectPutDescriptorInfo_t dinfo;
+	memset(&dinfo,0,sizeof(MUSPI_Pt2PtDirectPutDescriptorInfo_t));
+	
+	//set the parameters
+	dinfo.Base.Payload_Address=send_buf_phys_addr+offset;
+	dinfo.Base.Message_Length=bord_dir_vol[mu]*bytes_per_site;
+	dinfo.Base.Torus_FIFO_Map=MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AP|
+	  MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CM|
+	  MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DP|
+	  MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EP;
+	dinfo.Base.Dest=spi_neigh[!bf][mu];
+	dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE;	
+	dinfo.Pt2Pt.Misc2=MUHWI_PACKET_VIRTUAL_CHANNEL_DETERMINISTIC;
+	dinfo.Pt2Pt.Skip=8; //for checksumming, skip the header
+	dinfo.DirectPut.Rec_Payload_Base_Address_Id=0;
+	dinfo.DirectPut.Rec_Payload_Offset=offset;
+	dinfo.DirectPut.Rec_Counter_Base_Address_Id=1;
+	dinfo.DirectPut.Rec_Counter_Offset=0;
+	dinfo.DirectPut.Pacing=MUHWI_PACKET_DIRECT_PUT_IS_NOT_PACED;
+	
+	//increment the offset
+	offset+=bord_dir_vol[mu]*bytes_per_site;
+
+	//create the descriptor
+	if(MUSPI_CreatePt2PtDirectPutDescriptor(&in.descriptors[idir],&dinfo)) crash("creating the descriptor");
+	
+	idir++;
+      }
 }
 
-//allocate the buffers
-void create_SPI_buffers(spi_buff_t &in,int buf_size)
+void test_spi_comm()
 {
-  //copy sizeand allocate
-  in.buf_size=buf_size;
-  in.recv_buf=(char*)memalign(64,buf_size);
-  in.send_buf=(char*)memalign(64,buf_size);
-}
-
-void test_SPI_comm()
-{
-  spi_buff_t a;
-  create_SPI_buffers(a,64);
-  create_SPI_bat(a);
+  spi_comm_t a;
+  set_lx_spi_comm(a,sizeof(double));
+  
+  for(int ivol=0;ivol<bord_vol;ivol++)
+    ((double*)a.in.send_buf)[ivol]=glblx_of_bordlx
+  
   master_printf("test passed\n");
 }
 

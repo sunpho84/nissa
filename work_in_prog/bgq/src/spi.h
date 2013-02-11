@@ -1,8 +1,8 @@
 #ifndef _SPI_H
 #define _SPI_H
 
-void init_SPI();
+void init_spi();
 
-void test_SPI_comm();
+void test_spi_comm();
 
 #endif

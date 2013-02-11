@@ -8,9 +8,9 @@ int main(int narg,char **arg)
   
   init_grid(16,16);
   
-  init_SPI();
+  init_spi();
   
-  test_SPI_comm();
+  test_spi_comm();
   
   close_nissa();
   
