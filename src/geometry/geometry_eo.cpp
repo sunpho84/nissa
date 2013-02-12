@@ -81,15 +81,12 @@ void set_eo_geometry()
 	  loceo_neighdw[par][loceo][mu]=loceo_of_loclx[loclx_dw];
       }
   
-  /*
   //finds how to fill the borders with surface
-  nissa_loc_vol_loop(loclx)
-    for(int mu=0;mu<4;mu++)
-      {
-	int borldx=bordlx_of_surflx(loclx,mu);
-	if(bordlx!=-1) surflx_of_loclx[bordlx]=loclx;
-      }
-  */
+  for(int bordlx=0;bordlx<bord_vol;bordlx++)
+    {
+      int surflx=surflx_of_bordlx[bordlx];
+      surfeo_of_bordeo[loclx_parity[surflx]][loceo_of_loclx[bordlx+loc_vol]-loc_volh]=loceo_of_loclx[surflx];
+    }
 
   //init sender and receiver points for borders
   for(int mu=0;mu<4;mu++)

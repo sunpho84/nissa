@@ -449,7 +449,7 @@ void init_grid(int T,int L)
 #ifdef BGQ
   init_spi();
   set_lx_spi_comm(spi_lx_spincolor_comm,sizeof(spincolor));
-  set_lx_spi_comm(spi_lx_color_comm,sizeof(color));
+  set_eo_spi_comm(spi_eo_color_comm,sizeof(color));
 #endif
   
   if(nissa_use_eo_geom)
