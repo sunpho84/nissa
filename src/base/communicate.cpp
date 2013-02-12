@@ -432,9 +432,21 @@ void communicate_eo_quad_su3_borders(quad_su3 **eo_conf)
 
 //Send the borders of an even color
 void communicate_ev_color_borders(color *ev)
-{communicate_ev_borders((char*)ev,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));}
+{
+#ifdef BGQ
+  spi_communicate_ev_or_od_borders(ev,spi_eo_color_comm,sizeof(color),EVN);
+#else
+  communicate_ev_borders((char*)ev,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));
+#endif
+}
 void communicate_od_color_borders(color *od)
-{communicate_od_borders((char*)od,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_OD_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));}
+{
+#ifdef BGQ
+  spi_communicate_ev_or_od_borders(od,spi_eo_color_comm,sizeof(color),ODD);
+#else
+  communicate_od_borders((char*)od,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_OD_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));
+#endif
+}
 void communicate_eo_color_borders(color **eos)
 {communicate_eo_borders((char**)eos,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_OD_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));}
 void start_communicating_ev_color_borders(int &nrequest,MPI_Request *request,color *ev)

@@ -309,6 +309,7 @@ struct spi_comm_t
   MUHWI_Descriptor_t *descriptors;
   //bat
   MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
+  uint32_t bat_id[2];
 };
 
 #endif

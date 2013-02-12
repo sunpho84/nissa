@@ -9,15 +9,16 @@
 //#include <hwi/include/bqc/A2_core.h>
 //#include <hwi/include/bqc/A2_inlines.h>
 //#include <hwi/include/bqc/MU_PacketCommon.h>
-#include <firmware/include/personality.h>
 //#include <spi/include/mu/Descriptor.h>
-#include <spi/include/mu/Descriptor_inlines.h>
 //#include <spi/include/mu/InjFifo.h>
 //#include <spi/include/mu/Addressing.h>
-#include <spi/include/mu/Addressing_inlines.h>
 //#include <spi/include/mu/GIBarrier.h>
-#include <spi/include/kernel/MU.h>
 //#include <spi/include/kernel/process.h>
+
+#include <firmware/include/personality.h>
+#include <spi/include/mu/Descriptor_inlines.h>
+#include <spi/include/mu/Addressing_inlines.h>
+#include <spi/include/kernel/MU.h>
 #include <spi/include/kernel/location.h>
 
 //global barrier for spi
@@ -65,44 +66,6 @@ void set_spi_geometry()
 {
   get_spi_coord();
   set_spi_neighbours();      
-}
-
-//create the spi buffer
-void set_spi_comm(spi_comm_t &in,int buf_size)
-{
-  /////////////////////////////////////// allocate buffers ///////////////////////////////////////
-  
-  in.comm_in_prog=0;
-  in.buf_size=buf_size;
-  
-  in.recv_buf=(char*)memalign(64,buf_size);
-  in.send_buf=(char*)memalign(64,buf_size);
-  in.descriptors=(MUHWI_Descriptor_t*)memalign(64,8*sizeof(MUHWI_Descriptor_t));
-  
-  //////////////////////////////// allocate base address table (bat) /////////////////////////////
-  
-  //allocate the bat entries
-  uint32_t bat_id[2]={spi_nallocated_bat+0,spi_nallocated_bat+1};
-  spi_nallocated_bat+=2;
-  if(Kernel_AllocateBaseAddressTable(0,&in.spi_bat_gr,2,bat_id,0)) crash("allocating bat");
-  
-  //get physical address of receiving buffer
-  Kernel_MemoryRegion_t mem_region;
-  if(Kernel_CreateMemoryRegion(&mem_region,in.recv_buf,in.buf_size)) crash("creating memory region");
-  
-  //set the physical address
-  if(MUSPI_SetBaseAddress(&in.spi_bat_gr,bat_id[0],(uint64_t)in.recv_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa))
-    crash("setting base address");
-  
-  //set receive counter bat to MU style atomic PA addr of the receive counter
-  if((uint64_t)(&in.recv_counter)&0x7) crash("recv counter not 8 byte aligned");
-  if(Kernel_CreateMemoryRegion(&mem_region,(void*)&in.recv_counter,sizeof(uint64_t))) crash("creating memory region");  
-  if(MUSPI_SetBaseAddress(&in.spi_bat_gr,bat_id[1],
-			  MUSPI_GetAtomicAddress((uint64_t)&in.recv_counter-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa,
-						 MUHWI_ATOMIC_OPCODE_STORE_ADD))) crash("setting base addr");
-  
-  //reset number of byte to be received
-  in.recv_counter=0;
 }
 
 //initialize the spi communications
@@ -162,53 +125,116 @@ void init_spi()
     }
 }
 
-//set up a communicator for lx borders
-void set_lx_spi_comm(spi_comm_t &in,int nbytes_per_site)
+//general set of spi comm
+void set_spi_comm(spi_comm_t &in,int buf_size,int *payload_address_offset,int *message_length,MUHWI_Destination *dest,int *rec_payload_offset)
 {
-  //allocate in and out buffers
-  set_spi_comm(in,nbytes_per_site*bord_vol);
+  /////////////////////////////////////// allocate buffers ///////////////////////////////////////
+  
+  in.comm_in_prog=0;
+  in.buf_size=buf_size;
+  
+  in.recv_buf=(char*)memalign(64,buf_size);
+  in.send_buf=(char*)memalign(64,buf_size);
+  in.descriptors=(MUHWI_Descriptor_t*)memalign(64,8*sizeof(MUHWI_Descriptor_t));
+  
+  //////////////////////////////// allocate base address table (bat) /////////////////////////////
+  
+  //allocate the bat entries
+  in.bat_id[0]=spi_nallocated_bat+0;
+  in.bat_id[1]=spi_nallocated_bat+1;
+  spi_nallocated_bat+=2;
+  if(Kernel_AllocateBaseAddressTable(0,&in.spi_bat_gr,2,in.bat_id,0)) crash("allocating bat");
+  
+  //get physical address of receiving buffer
+  Kernel_MemoryRegion_t mem_region;
+  if(Kernel_CreateMemoryRegion(&mem_region,in.recv_buf,in.buf_size)) crash("creating memory region");
+  
+  //set the physical address
+  if(MUSPI_SetBaseAddress(&in.spi_bat_gr,in.bat_id[0],(uint64_t)in.recv_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa))
+    crash("setting base address");
+  
+  //set receive counter bat to MU style atomic PA addr of the receive counter
+  if((uint64_t)(&in.recv_counter)&0x7) crash("recv counter not 8 byte aligned");
+  if(Kernel_CreateMemoryRegion(&mem_region,(void*)&in.recv_counter,sizeof(uint64_t))) crash("creating memory region");  
+  if(MUSPI_SetBaseAddress(&in.spi_bat_gr,in.bat_id[1],
+			  MUSPI_GetAtomicAddress((uint64_t)&in.recv_counter-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa,
+						 MUHWI_ATOMIC_OPCODE_STORE_ADD))) crash("setting base addr");
+  
+  //reset number of byte to be received
+  in.recv_counter=0;
+
+  //////////////////////////////// prepares the descriptors /////////////////////////////
   
   //get the send buffer physical address
-  Kernel_MemoryRegion_t mem_region;
-  if(Kernel_CreateMemoryRegion(&mem_region,in.send_buf,in.buf_size)) crash("creating memory region");
+  if(Kernel_CreateMemoryRegion(&mem_region,in.send_buf,buf_size)) crash("creating memory region");
   uint64_t send_buf_phys_addr=(uint64_t)in.send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
   
   //create one descriptor per direction
-  for(int bf=0;bf<2;bf++) //direction of the halo in receiving node: surface is ordered opposite of halo
-    for(int mu=0;mu<4;mu++)
-      {
-	//reset the info
-	MUSPI_Pt2PtDirectPutDescriptorInfo_t dinfo;
-	memset(&dinfo,0,sizeof(MUSPI_Pt2PtDirectPutDescriptorInfo_t));
-	
-	//set the parameters
-	dinfo.Base.Payload_Address=send_buf_phys_addr+(bord_offset[mu]+bord_vol/2*(!bf))*nbytes_per_site;
-	dinfo.Base.Message_Length=bord_dir_vol[mu]*nbytes_per_site;
+  for(int idir=0;idir<8;idir++)
+    {
+      //reset the info
+      MUSPI_Pt2PtDirectPutDescriptorInfo_t dinfo;
+      memset(&dinfo,0,sizeof(MUSPI_Pt2PtDirectPutDescriptorInfo_t));
+      
+      //set the parameters
+      dinfo.Base.Payload_Address=send_buf_phys_addr+payload_address_offset[idir];
+      dinfo.Base.Message_Length=message_length[idir];
 	dinfo.Base.Torus_FIFO_Map=MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AP|
 	  MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CM|
 	  MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DP|
 	  MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EP;
-	dinfo.Base.Dest=spi_neigh[!bf][mu];
-	dinfo.Pt2Pt.Hints_ABCD=0;
-	dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE;	
-	dinfo.Pt2Pt.Misc2=MUHWI_PACKET_VIRTUAL_CHANNEL_DETERMINISTIC;
-	dinfo.Pt2Pt.Skip=8; //for checksumming, skip the header
-	dinfo.DirectPut.Rec_Payload_Base_Address_Id=0;
-	dinfo.DirectPut.Rec_Payload_Offset=(bord_offset[mu]+bord_vol/2*bf)*nbytes_per_site;
-	dinfo.DirectPut.Rec_Counter_Base_Address_Id=1;
-	dinfo.DirectPut.Rec_Counter_Offset=0;
-	dinfo.DirectPut.Pacing=MUHWI_PACKET_DIRECT_PUT_IS_NOT_PACED;
-	
-	//create the descriptor //bf*4+mu
-	if(MUSPI_CreatePt2PtDirectPutDescriptor(&in.descriptors[bf*4+mu],&dinfo)) crash("creating the descriptor");
-      }
+      dinfo.Base.Dest=dest[idir];
+      dinfo.Pt2Pt.Hints_ABCD=0;
+      dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE;	
+      dinfo.Pt2Pt.Misc2=MUHWI_PACKET_VIRTUAL_CHANNEL_DETERMINISTIC;
+      dinfo.Pt2Pt.Skip=8; //for checksumming, skip the header
+      dinfo.DirectPut.Rec_Payload_Base_Address_Id=in.bat_id[0];
+      dinfo.DirectPut.Rec_Payload_Offset=rec_payload_offset[idir];
+      dinfo.DirectPut.Rec_Counter_Base_Address_Id=in.bat_id[1];
+      dinfo.DirectPut.Rec_Counter_Offset=0;
+      dinfo.DirectPut.Pacing=MUHWI_PACKET_DIRECT_PUT_IS_NOT_PACED;
+      
+      //create the descriptor
+      if(MUSPI_CreatePt2PtDirectPutDescriptor(&in.descriptors[idir],&dinfo)) crash("creating the descriptor");
+    }
 }
+
+//set up a communicator for lx or eo borders
+void set_lx_or_eo_spi_comm(spi_comm_t &in,int nbytes_per_site,int lx_eo)
+{
+  int div_coeff=(lx_eo==0)?1:2; //dividing coeff
+  int tot_buf_size=nbytes_per_site*bord_vol/div_coeff;
+  int payload_address_offset[8],message_length[8],rec_payload_offset[8];
+  MUHWI_Destination dest[8];
+  
+  //direction of the halo in receiving node: surface is ordered opposite of halo
+  for(int bf=0;bf<2;bf++) 
+    for(int mu=0;mu<4;mu++)
+      {
+	int idir=bf*4+mu;
+	
+	//set the parameters
+	payload_address_offset[idir]=(bord_offset[mu]+bord_vol/2*(!bf))*nbytes_per_site/div_coeff;
+	message_length[idir]=bord_dir_vol[mu]*nbytes_per_site/div_coeff;
+	dest[idir]=spi_neigh[!bf][mu];
+	rec_payload_offset[idir]=(bord_offset[mu]+bord_vol/2*bf)*nbytes_per_site/div_coeff;
+      }
+  
+  set_spi_comm(in,tot_buf_size,payload_address_offset,message_length,dest,rec_payload_offset);
+}
+
+void set_lx_spi_comm(spi_comm_t &in,int nbytes_per_site) {set_lx_or_eo_spi_comm(in,nbytes_per_site,0);}
+void set_eo_spi_comm(spi_comm_t &in,int nbytes_per_site) {set_lx_or_eo_spi_comm(in,nbytes_per_site,1);}
 
 //wait a communication to finish
 void spi_comm_wait(spi_comm_t &in)
 {
   //wait to receive everything
-  if(in.comm_in_prog) while(in.recv_counter>0);
+  if(in.comm_in_prog)
+    {
+      verbosity_lv2_master_printf("Waiting to finish receiving data with spi\n");
+      while(in.recv_counter>0);
+    }
   
   //wait to send everything
   while(in.comm_in_prog)
@@ -228,7 +254,6 @@ void spi_start_comm(spi_comm_t &in)
   
   //reset the counter and wait thar all have resetted
   in.recv_counter=in.buf_size;
-
   spi_global_barrier();
   
   //start the injection
@@ -249,6 +274,8 @@ void unset_spi_comm(spi_comm_t &in)
   free(in.recv_buf);
   free(in.send_buf);
 }
+
+/////////////////////////////////////// communicating lx vec ///////////////////////////////////
 
 //fill the sending buf using the data inside an lx vec
 void fill_spi_sending_buf_with_lx_vec(spi_comm_t &a,void *vec,int nbytes_per_site)
@@ -287,7 +314,7 @@ void spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_s
   spi_start_comm(a);
 }
 
-//finish commuincating
+//finish communicating
 void spi_finish_communicating_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
 {
   //wait communication to finish
@@ -302,4 +329,60 @@ void spi_communicate_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
 {
   spi_start_communicating_lx_borders(a,vec,nbytes_per_site);
   spi_finish_communicating_lx_borders(vec,a,nbytes_per_site);
+}
+
+/////////////////////////////////////// communicating e/o vec //////////////////////////////////////
+
+//fill the sending buf using the data inside an ev or odd vec
+void fill_spi_sending_buf_with_ev_or_od_vec(spi_comm_t &a,void *vec,int nbytes_per_site,int eo)
+{
+  //check buffer size matching
+  if(a.buf_size!=nbytes_per_site*bord_volh) crash("wrong buffer size (%d) for %d border)",a.buf_size,nbytes_per_site*bord_volh);
+  
+  //copy one by one the surface of vec inside the sending buffer
+  char *send_buf=a.send_buf;
+  for(int ibord=0;ibord<bord_volh;ibord++)
+    {
+      memcpy(send_buf,(char*)vec+surfeo_of_bordeo[eo][ibord]*nbytes_per_site,nbytes_per_site);
+      send_buf+=nbytes_per_site;
+    }
+}
+
+//extract the information from receiving buffer and put them inside an even or odd vec
+void fill_ev_or_od_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbytes_per_site)
+{
+  crash_if_borders_not_allocated(vec);
+  
+  //check buffer size matching
+  if(a.buf_size!=nbytes_per_site*bord_volh) crash("wrong buffer size (%d) for %d border)",a.buf_size,nbytes_per_site*bord_volh);
+  
+  //the buffer is already ordered as the vec border
+  memcpy((char*)vec+loc_volh*nbytes_per_site,a.recv_buf,a.buf_size);
+}
+
+//start communication using an ev or od border
+void spi_start_communicating_ev_or_od_borders(spi_comm_t &a,void *vec,int nbytes_per_site,int eo)
+{
+  //fill the communicator buffer
+  fill_spi_sending_buf_with_ev_or_od_vec(a,vec,nbytes_per_site,eo);
+  
+  //start the communication and wait for them to finish
+  spi_start_comm(a);
+}
+
+//finish communicating
+void spi_finish_communicating_ev_or_od_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
+{
+  //wait communication to finish
+  spi_comm_wait(a);
+  
+  //fill back the vector
+  fill_ev_or_od_bord_with_spi_receiving_buf(vec,a,nbytes_per_site);
+}
+
+//merge the two
+void spi_communicate_ev_or_od_borders(void *vec,spi_comm_t &a,int nbytes_per_site,int eo)
+{
+  spi_start_communicating_ev_or_od_borders(a,vec,nbytes_per_site,eo);
+  spi_finish_communicating_ev_or_od_borders(vec,a,nbytes_per_site);
 }
