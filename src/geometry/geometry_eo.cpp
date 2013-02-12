@@ -34,6 +34,7 @@ void set_eo_geometry()
   for(int par=0;par<2;par++) loclx_of_loceo[par]=nissa_malloc("loclx_of_loceo",loc_volh+bord_volh+edge_volh,int);
   for(int par=0;par<2;par++) loceo_neighup[par]=nissa_malloc("loceo_neighup",loc_volh+bord_volh+edge_volh,coords);
   for(int par=0;par<2;par++) loceo_neighdw[par]=nissa_malloc("loceo_neighdw",loc_volh+bord_volh+edge_volh,coords);
+  for(int par=0;par<2;par++) surfeo_of_bordeo[par]=nissa_malloc("surfeo_of_bordeo",bord_volh,int);
   for(int par=0;par<2;par++) ignore_borders_communications_warning(loclx_of_loceo[par]);
   for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighup[par]);
   for(int par=0;par<2;par++) ignore_borders_communications_warning(loceo_neighdw[par]);
@@ -76,6 +77,16 @@ void set_eo_geometry()
 	  loceo_neighdw[par][loceo][mu]=loceo_of_loclx[loclx_dw];
       }
   
+  /*
+  //finds how to fill the borders with surface
+  nissa_loc_vol_loop(loclx)
+    for(int mu=0;mu<4;mu++)
+      {
+	int borldx=bordlx_of_surflx(loclx,mu);
+	if(bordlx!=-1) surflx_of_loclx[bordlx]=loclx;
+      }
+  */
+
   //init sender and receiver points for borders
   for(int mu=0;mu<4;mu++)
     if(paral_dir[mu]!=0)
@@ -236,6 +247,7 @@ void unset_eo_geometry()
   for(int par=0;par<2;par++)
     {
       nissa_free(loclx_of_loceo[par]);
+      nissa_free(surfeo_of_bordeo[par]);
       nissa_free(loceo_neighup[par]);
       nissa_free(loceo_neighdw[par]);
     }

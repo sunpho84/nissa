@@ -18,12 +18,14 @@ EXTERN coords *loc_coord_of_loclx;
 EXTERN int *glblx_of_loclx;
 EXTERN int *glblx_of_bordlx;
 EXTERN int *loclx_of_bordlx;
+EXTERN int *surflx_of_bordlx;
 EXTERN int *glblx_of_edgelx;
 EXTERN int nissa_lx_geom_inited;
 //-eo is even-odd
 EXTERN int *loclx_parity;
 EXTERN int *loceo_of_loclx;
 EXTERN int *loclx_of_loceo[2];
+EXTERN int *surfeo_of_bordeo[2];
 EXTERN coords *loceo_neighup[2];
 EXTERN coords *loceo_neighdw[2];
 EXTERN int nissa_eo_geom_inited;

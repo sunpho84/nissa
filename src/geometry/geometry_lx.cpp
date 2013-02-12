@@ -210,6 +210,32 @@ int full_lx_of_coords(coords ext_x)
   return -1;
 }
 
+//return the border site of opposite sites at surface
+int bordlx_of_surflx(int loclx,int mu)
+{
+  if(!paral_dir[mu]) return -1;
+  if(loc_size[mu]<2) crash("not working if one dir is smaller than 2");
+  
+  //copy the coords
+  coords x={loc_coord_of_loclx[loclx][0],loc_coord_of_loclx[loclx][1],loc_coord_of_loclx[loclx][2],loc_coord_of_loclx[loclx][3]};
+  
+  //dw surf
+  if(x[mu]==0) 
+    {
+      x[mu]=loc_size[mu];
+      return full_lx_of_coords(x);
+    }
+
+  //up surf
+  if(x[mu]==loc_size[mu]-1)
+    {
+      x[mu]=-1;
+      return full_lx_of_coords(x);
+    }
+  
+  return -1;
+}
+
 //wrapper
 extern "C" int full_lx_of_coords_list(const int t,const int x,const int y,const int z)
 {
@@ -288,6 +314,17 @@ void find_neighbouring_sites()
       }
 }
 
+//finds how to fill the borders with opposite surface (up b->dw s)
+void find_surf_of_bord()
+{
+  nissa_loc_vol_loop(loclx)
+    for(int mu=0;mu<4;mu++)
+      {
+        int bordlx=bordlx_of_surflx(loclx,mu);
+        if(bordlx!=-1) surflx_of_bordlx[bordlx]=loclx;
+      }
+}
+
 //indexes run as t,x,y,z (faster:z)
 void set_lx_geometry()
 {
@@ -317,13 +354,17 @@ void set_lx_geometry()
   //borders
   glblx_of_bordlx=nissa_malloc("glblx_of_bordlx",bord_vol,int);
   loclx_of_bordlx=nissa_malloc("loclx_of_bordlx",bord_vol,int);
-      
+  surflx_of_bordlx=nissa_malloc("surflx_of_bordlx",bord_vol,int);
+  
   //edges
   glblx_of_edgelx=nissa_malloc("glblx_of_edgelx",edge_vol,int);
   
   //label the sites and neighbours
   label_all_sites();
   find_neighbouring_sites();
+  
+  //matches surface and opposite border
+  find_surf_of_bord();
   
   //init sender and receiver points for borders
   for(int mu=0;mu<4;mu++)
@@ -384,6 +425,7 @@ void unset_lx_geometry()
   nissa_free(glblx_of_loclx);
   nissa_free(glblx_of_bordlx);
   nissa_free(loclx_of_bordlx);
+  nissa_free(surflx_of_bordlx);
   nissa_free(glblx_of_edgelx);
 }
 

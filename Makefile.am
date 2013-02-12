@@ -12,7 +12,7 @@ AM_LDFLAGS=-L@top_builddir@
 LDADD=libnissa.a
 
 #add macros
-CXXFLAGS=@DEFS@
+CXXFLAGS=@CXXFLAGS@ @DEFS@
 
 #target library nissa
 lib_LIBRARIES=libnissa.a
