@@ -2,6 +2,9 @@
 #include <spi/include/mu/InjFifo.h>
 #include <spi/include/mu/GIBarrier.h>
 
+#include "bgq_types.h"
+
+//to be used to declare extern
 #ifndef EXTERN
 #define EXTERN
 #endif

@@ -302,6 +302,7 @@ void init_grid(int T,int L)
       ok=ok && (nrank_dir[idir]>0);
       ok=ok && (glb_size[idir]%nrank_dir[idir]==0);
       paral_dir[idir]=(nrank_dir[idir]>1);
+      nparal_dir+=paral_dir[idir];
     }
   if(!ok) crash("The lattice is incommensurable with the total ranks amount!");
   else master_printf("Creating grid:\t%dx%dx%dx%d\n",nrank_dir[0],nrank_dir[1],nrank_dir[2],nrank_dir[3]);  

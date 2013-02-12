@@ -1,6 +1,11 @@
 #ifndef _NISSA_H
 #define _NISSA_H
 
+//including config.h
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include "base/close.h"
 #include "base/communicate.h"
 #include "base/debug.h"
@@ -12,6 +17,12 @@
 #include "base/sse_instructions.h"
 #include "base/vectors.h"
 
+//include bg/q specifics
+#ifdef BGQ
+ #include "bgq/bgq.h"
+#endif
+
+//include bg/p specifics
 #ifdef BGP
  #ifndef BGP_EMU
   #include <builtins.h>

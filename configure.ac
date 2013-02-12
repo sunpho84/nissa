@@ -9,8 +9,8 @@ AC_ARG_ENABLE(bgq,
 	enable_bgq="yes",
 	enable_bgq="no")
 
-if test "$enable_bgq" == "yes";then AC_DEFINE([ENABLE_BGQ],1,[Enable bgq]) fi
-AM_CONDITIONAL([ENABLE_BGQ],[test "$enable_bgq" == "yes" ],[true],[false])
+if test "$enable_bgq" == "yes";then AC_DEFINE([BGQ],1,[Enable bgq]) fi
+AM_CONDITIONAL([BGQ],[test "$enable_bgq" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq... $enable_bgq])
 
 #overwrite default flags

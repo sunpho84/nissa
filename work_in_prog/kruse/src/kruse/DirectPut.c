@@ -17,6 +17,8 @@
  * along with tmLQCD.  If not, see <http://www.gnu.org/licenses/>.
  ***********************************************************************/
 
+#include "../interface/internal_interface.h"
+
 #ifdef HAVE_CONFIG_H
 #  include "config.h"
 #endif
@@ -373,6 +375,7 @@ int msg_InjFifoInit ( msg_InjFifoHandle_t *injFifoHandlePtr,
     // - attributes
     for (unsigned int i = 0; i < numFifosInSubgroup; i++) {
       fifoIds[i] = startingFifoId + i;
+      printf("%d %d\n",i,fifoIds[i]);
       memcpy(&attrs[i], injFifoAttrs, sizeof(attrs[i]));
     }
     
@@ -382,10 +385,13 @@ int msg_InjFifoInit ( msg_InjFifoHandle_t *injFifoHandlePtr,
 				  numFifosInSubgroup,
 				  fifoIds,
 				  attrs);
+    //HERE
+    printf("out: %d\n",info->subgroup[subgroupId]);
     if ( rc ) {
       printf("msg_InjFifoInit: Kernel_AllocateInjFifos failed with rc=%d\n",rc);
       return rc;
     }
+    printf("subgroupId: %d, numFifosInSubgroup: %d\n",subgroupId,numFifosInSubgroup);
     
     // Init the MU MMIO for the fifos.
     for (unsigned int i = 0; i < numFifosInSubgroup; i++) {
