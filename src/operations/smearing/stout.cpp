@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include "../../base/communicate.h"
 #include "../../base/debug.h"
 #include "../../base/global_variables.h"

@@ -32,7 +32,7 @@ do
         rm -fr start
 	date
         echo "===========================starting============================"
-	runjob --envs OMP_NUM_THREADS=64 --ranks-per-node 1 --np 64 $ARGS --exe $EXE --timeout 8 > out_$inst
+	runjob --envs OMP_NUM_THREADS=64 --ranks-per-node 1 --np 64 $ARGS --exe $EXE --timeout 60 > out_$inst 2>&1
 	inst=$(($inst+1))
     else
         echo "not starting"

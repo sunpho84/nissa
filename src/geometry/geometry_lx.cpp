@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include <math.h>
 #include <string.h>
 
@@ -210,28 +214,14 @@ int full_lx_of_coords(coords ext_x)
   return -1;
 }
 
-//return the border site of opposite sites at surface
+//return the border site adiacent at surface
 int bordlx_of_surflx(int loclx,int mu)
 {
   if(!paral_dir[mu]) return -1;
   if(loc_size[mu]<2) crash("not working if one dir is smaller than 2");
   
-  //copy the coords
-  coords x={loc_coord_of_loclx[loclx][0],loc_coord_of_loclx[loclx][1],loc_coord_of_loclx[loclx][2],loc_coord_of_loclx[loclx][3]};
-  
-  //dw surf
-  if(x[mu]==0) 
-    {
-      x[mu]=loc_size[mu];
-      return full_lx_of_coords(x);
-    }
-
-  //up surf
-  if(x[mu]==loc_size[mu]-1)
-    {
-      x[mu]=-1;
-      return full_lx_of_coords(x);
-    }
+  if(loc_coord_of_loclx[loclx][mu]==0) return loclx_neighdw[loclx][mu]-loc_vol;
+  if(loc_coord_of_loclx[loclx][mu]==loc_size[mu]-1) return loclx_neighup[loclx][mu]-loc_vol;
   
   return -1;
 }

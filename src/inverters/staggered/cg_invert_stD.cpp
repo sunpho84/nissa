@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include "cg_invert_stD2ee_m2.h"
 #include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
 #include "../../new_types/new_types_definitions.h"

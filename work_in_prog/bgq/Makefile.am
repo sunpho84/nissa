@@ -5,7 +5,7 @@ AM_LDFLAGS=-L@top_builddir@ -L../nissa/
 LDADD=../../libnissa.a
 
 #macro
-CXXFLAGS=@DEFS@
+CXXFLAGS=@CXXFLAGS@ @DEFS@
 
 ###################################################################################################################################
 

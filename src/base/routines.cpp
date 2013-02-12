@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 //to be moved elsewhere soon
 
 #include <mpi.h>

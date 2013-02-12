@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include "cg_64_invert_tmQ2.h"
 #include "cg_128_invert_tmQ2.h"
 

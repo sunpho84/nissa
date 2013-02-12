@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include <omp.h>
 
 extern double cgm_inv_over_time;
