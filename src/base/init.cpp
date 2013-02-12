@@ -223,6 +223,12 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	    }
 	  while(valid_partitioning==1 && ifactX>=0);
 	  
+#ifdef BGQ
+	  //check that all directions have at leas 2 nodes
+	  if(valid_partitioning)
+	    for(int mu=0;mu<4;mu++)
+	      valid_partitioning&=consider_reciprocal?(X[mu]>=2):(X[mu]/L[mu]>=2);
+#endif
 	  //if it is a valid partitioning
 	  if(valid_partitioning)
 	    {
