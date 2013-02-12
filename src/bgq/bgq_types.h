@@ -1,11 +1,9 @@
-#ifndef _ADD_VAR_H
-#define _ADD_VAR_H
+#ifndef _BGQ_TYPES_H
+#define _BGQ_TYPES_H
 
 #include <spi/include/kernel/MU.h>
-#include <spi/include/mu/InjFifo.h>
-#include <spi/include/mu/GIBarrier.h>
 
-//////////////// new types ///////////////
+//////////////// new types /////////////////
 
 //type to hold the 5D coordinates
 typedef uint8_t coords_5D[5];
@@ -25,20 +23,5 @@ struct spi_comm_t
   //bat
   MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
 };
-
-/////////////// new vars /////////////////
-
-//spi rank coordinates
-coords_5D spi_rank_coord;
-
-//neighbours int the 4 dirs
-MUHWI_Destination_t spi_neigh[2][4];
-
-//spi fifo and counters for bytes
-uint64_t *spi_fifo[8],spi_desc_count[8];
-MUSPI_InjFifoSubGroup_t spi_fifo_sg_ptr;
-
-//spi barrier
-MUSPI_GIBarrier_t spi_barrier;
 
 #endif

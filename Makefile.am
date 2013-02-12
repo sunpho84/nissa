@@ -1,15 +1,18 @@
 AUTOMAKE_OPTIONS=subdir-objects
 
 #compile or not bgq stuff
-if ENABLE_BGQ
-bgq_src_file=src/bgq/spi.cpp
+if BGQ
+bgq_src_file=src/bgq/spi.cpp src/bgq/bgq_vars.cpp
 else
-bgq_src_file=""
+bgq_src_file=
 endif
 
 #add where to find the library and tell to link
 AM_LDFLAGS=-L@top_builddir@
-LDADD=@LIBS@ libnissa.a
+LDADD=libnissa.a
+
+#add macros
+CXXFLAGS=@DEFS@
 
 #target library nissa
 lib_LIBRARIES=libnissa.a
@@ -111,7 +114,6 @@ nissa_source_files=src/base/close.cpp \
 	src/base/global_variables.cpp \
 	src/base/init.cpp \
 	src/base/random.cpp \
-	$(bgq_src_file) \
 	src/base/routines.cpp \
 	src/base/vectors.cpp \
 	src/dirac_operators/dirac_operator_stD/dirac_operator_stD.cpp \
@@ -199,9 +201,9 @@ nissa_source_files=src/base/close.cpp \
 extra_headers=src/new_types/new_types_definitions.h src/base/macros.h
 
 #instruct how to build the library
-libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers)
+libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) $(bgq_src_file)
 
-##########################################################################################################################################################
+#####################################################################################################################################
 
 #list of all the programs
 bin_PROGRAMS=projects/generate_confs/generate_stag projects/semileptonic/semileptonic_smeared tools/unitarity_check/unitarity_check projects/eight_BK/smeared_BK_all_in_one projects/semileptonic/test projects/static_potential/compute_potential

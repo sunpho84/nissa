@@ -13,7 +13,7 @@
 #include "bgq_workers.h"
 
 #ifdef SPI
-#include "../DirectPut.h"
+#include "DirectPut.h"
 #include <upci/upc_atomic.h>
 #endif
 

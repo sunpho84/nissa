@@ -568,7 +568,7 @@ bgq_weyl_vec_double *bgq_section_baseptr_double(bgq_weylfield_controlblock *fiel
 bgq_weyl_vec_float *bgq_section_baseptr_float(bgq_weylfield_controlblock *field, bgq_weylfield_section section);
 
 
-
+#ifndef __cplusplus
 EXTERN_INLINE void bgq_spinorfield_streamSpinor(bgq_weylfield_controlblock *field, tristate isOdd, ucoord ic_begin, bool readWeyllayout, bool sloppy, bool mul, bool legacy) {
 	if (legacy) {
 		// No prefetch for legacy field
@@ -590,7 +590,7 @@ EXTERN_INLINE void bgq_spinorfield_streamSpinor(bgq_weylfield_controlblock *fiel
 		}
 	}
 }
-
+#endif
 
 EXTERN_INLINE void bgq_spinorfield_prefetchSpinor(bgq_weylfield_controlblock *field, tristate isOdd, ucoord ic, bool readWeyllayout, bool sloppy, bool mul, bool legacy) {
 	if (legacy) {

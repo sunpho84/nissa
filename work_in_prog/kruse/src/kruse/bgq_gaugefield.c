@@ -10,7 +10,6 @@
 
 #include "bgq_dispatch.h"
 
-//#include "geometry_eo.h"
 
 
 static bool g_bgq_gaugefield_initialized = false;
@@ -93,6 +92,7 @@ static void bgq_gaugefield_worker_transferfrom(void *arg_untyped, size_t tid, si
 			//bool isSurface = bgq_halfvolume2isSurface(isOdd_src, ih_src);
 
 			for (size_t d_src = 0; d_src < PHYSICAL_LD; d_src += 1) {
+			  printf("rank %d thread %d it=%d, k_src=%d, d_src=%d\n",rank,tid,it,k_src,d_src);
 				bgq_dimension dim = bgq_direction2dimension(d_src);
 				bgq_direction d_dst = bgq_direction_revert(d_src);
 

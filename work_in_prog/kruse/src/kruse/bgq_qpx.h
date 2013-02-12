@@ -64,7 +64,7 @@ typedef struct {
 	_Complex float q[2];
 } v2cf;
 
-#ifdef __IBMC__
+#if defined(__IBMC__)||defined(__IBMCPP__)
 	#define BGQ_VECTOR4DOUBLE_SUBSCRIPT(addr,idx) ( (*((vector4double*)(addr)))[(idx)] ) /* allows subscript like an array */
 #else
 	typedef v4d vector4double;

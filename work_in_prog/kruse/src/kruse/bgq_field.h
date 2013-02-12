@@ -238,7 +238,7 @@ typedef enum {
 
 
 EXTERN_INLINE bgq_dimension bgq_direction2dimension(bgq_direction d) {
-	return d/2;
+  return (bgq_dimension)(d/2);
 }
 
 EXTERN_FIELD bool g_bgq_indices_initialized EXTERN_INIT(false);
@@ -285,6 +285,7 @@ EXTERN_INLINE bgq_direction bgq_dimenstion2direction_up(bgq_dimension dim) {
 	default:
 		UNREACHABLE
 	}
+	return (bgq_direction)1;
 }
 EXTERN_INLINE bgq_direction bgq_dimenstion2direction_down(bgq_dimension dim) {
 	switch (dim) {
@@ -299,6 +300,7 @@ EXTERN_INLINE bgq_direction bgq_dimenstion2direction_down(bgq_dimension dim) {
 	default:
 		UNREACHABLE
 	}
+	return (bgq_direction)1;
 }
 
 
@@ -435,6 +437,7 @@ EXTERN_INLINE bgq_direction bgq_section2direction(bgq_weylfield_section sec) {
 		assert(!"This section has no direction");
 		UNREACHABLE
 	}
+	return (bgq_direction)1;
 }
 
 EXTERN_INLINE bool bgq_section2isSend(bgq_weylfield_section sec) {
@@ -1042,6 +1045,7 @@ EXTERN_INLINE bgq_weylfield_section bgq_direction2section(bgq_direction d, bool 
 	default:
 		UNREACHABLE
 	}
+	return (bgq_weylfield_section)1;
 }
 
 
@@ -1049,7 +1053,7 @@ EXTERN_INLINE size_t bgq_weyl_section_offset(bgq_weylfield_section section) {
 	assert(g_bgq_indices_initialized);
 	size_t result = 0;
 //TODO: This func is called quite often, make it a table lookup
-	for (bgq_weylfield_section sec = 0; sec < sec_end; sec = (bgq_weylfield_section) ((int) sec+1)) {
+	for (bgq_weylfield_section sec = (bgq_weylfield_section)0; sec < sec_end; sec = (bgq_weylfield_section) ((int) sec+1)) {
 		assert(result % BGQ_ALIGNMENT_L2 == 0);
 		if (section == sec)
 			return result;
@@ -1122,19 +1126,17 @@ EXTERN_INLINE size_t bgq_spinorfield_indexOfSection(bgq_weylfield_section sec) {
 	return bgq_weyl_section_offset(sec)/sizeof(bgq_weyl_vec_double);
 }
 
-
 EXTERN_INLINE bgq_weylfield_section bgq_sectionOfOffset(size_t offset) {
-  for (bgq_weylfield_section sec = 0; sec < sec_end; sec = (bgq_weylfield_section) ((int) sec+1)) {
-		if ((bgq_weyl_section_offset(sec) <= offset) && (offset < bgq_weyl_section_offset(sec+1)))
+  for (bgq_weylfield_section sec = (bgq_weylfield_section)0; sec < sec_end; sec = (bgq_weylfield_section) ((int) sec+1)) {
+    if ((bgq_weyl_section_offset(sec) <= offset) && (offset < bgq_weyl_section_offset((bgq_weylfield_section) ((int) sec+1))))
 			return sec;
 	}
 	assert(!"Out of range");
 	return sec_end;
 }
 
-
 EXTERN_INLINE bgq_direction bgq_direction_revert(bgq_direction d) {
-	return d^1;
+  return (bgq_direction)(d^1);
 }
 
 
@@ -1419,18 +1421,18 @@ EXTERN_INLINE ucoord bgq_offset2collapsed(bool isOdd, size_t offset, ucoord k) {
 EXTERN_FIELD size_t g_bgq_spinorfields_count;
 
 EXTERN_INLINE size_t bgq_section_size(bgq_weylfield_section sec) {
-	return bgq_weyl_section_offset(sec+1) - bgq_weyl_section_offset(sec);
+  return bgq_weyl_section_offset((bgq_weylfield_section)((int)sec+1)) - bgq_weyl_section_offset(sec);
 }
 
 EXTERN_INLINE size_t bgq_sectionrange_size(bgq_weylfield_section sec_begin, bgq_weylfield_section sec_stop/*inclusive*/) {
-	return bgq_weyl_section_offset(sec_stop+1) - bgq_weyl_section_offset(sec_stop);
+  return bgq_weyl_section_offset((bgq_weylfield_section)((int)sec_stop+1)) - bgq_weyl_section_offset(sec_stop);
 }
 
 EXTERN_FIELD uint64_t flopaccumulator EXTERN_INIT(0);
 
 
 EXTERN_INLINE bgq_direction bgq_direction_compose(bgq_dimension dim, bool isDown) {
-	return 2*dim + isDown;
+  return (bgq_direction)(2*(int)dim + isDown);
 }
 
 

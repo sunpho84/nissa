@@ -21,13 +21,16 @@ void allocate_bgq_field(spincolor *dest,spincolor *temp,spincolor *source)
 
 void app(spincolor *legacy_dest,spincolor *legacy_temp,spincolor *legacy_source,spincolor *ext_source=NULL)
 {
+  master_printf("Allocaating the source\n");
   if(!bgq_field_initted) allocate_bgq_field(legacy_dest,legacy_temp,legacy_source);
 
   //if an ext source is passed, copy it
   if(ext_source!=NULL)
     {
+      master_printf("Preparing the source\n");
       //prepare the source to be wrote
       bgq_spinorfield_prepareWrite(&(bgq_source->controlblocks[0]),(tristate)EVN,ly_legacy,false);
+      master_printf("Copying the source\n");
       //write inside
       vector_copy(legacy_source,ext_source);
     }
@@ -69,9 +72,6 @@ int main(int narg,char **arg)
   split_lx_conf_into_eo_parts(eo_conf,conf);
   master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
   
-  //convert
-  bgq_gaugefield_transferfrom((su3*)conf);
-  
   //allocate the spinors
   spincolor *legacy_source=nissa_malloc("legacy_source",loc_volh+bord_volh,spincolor);
   spincolor *legacy_temp=nissa_malloc("legacy_temp",loc_volh+bord_volh,spincolor);
@@ -80,7 +80,7 @@ int main(int narg,char **arg)
   
   //prepare the source
   vector_reset(ori_source);
-  ori_source[0][0][0][0]=1;
+  if(rank==0) ori_source[0][0][0][0]=1;
   
   //vector_reset(ori_source);
   //nissa_loc_volh_loop(ivol)
@@ -98,6 +98,10 @@ int main(int narg,char **arg)
       ip=loceo_neighdw[ODD][0][mu];
       master_printf("leg %d, ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
     }
+  
+  //convert
+  master_printf("starting gauge transfer\n");
+  bgq_gaugefield_transferfrom((su3*)conf);
   
   app(legacy_dest,legacy_temp,legacy_source,ori_source);
   bgq_spinorfield_prepareRead(&(bgq_temp->controlblocks[0]),(tristate)ODD,false,false,false,false,true);
