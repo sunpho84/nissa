@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../base/global_variables.h"

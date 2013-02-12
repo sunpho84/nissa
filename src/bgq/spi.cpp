@@ -1,6 +1,8 @@
-#include "nissa.h"
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
 
-#include "bgq_vars.h"
+#include "nissa.h"
 
 #include <malloc.h>
 
@@ -65,15 +67,52 @@ void set_spi_geometry()
   set_spi_neighbours();      
 }
 
+//create the spi buffer
+void set_spi_comm(spi_comm_t &in,int buf_size)
+{
+  /////////////////////////////////////// allocate buffers ///////////////////////////////////////
+  
+  in.comm_in_prog=0;
+  in.buf_size=buf_size;
+  
+  in.recv_buf=(char*)memalign(64,buf_size);
+  in.send_buf=(char*)memalign(64,buf_size);
+  in.descriptors=(MUHWI_Descriptor_t*)memalign(64,8*sizeof(MUHWI_Descriptor_t));
+  
+  //////////////////////////////// allocate base address table (bat) /////////////////////////////
+  
+  //allocate the bat entries
+  uint32_t bat_id[2]={spi_nallocated_bat+0,spi_nallocated_bat+1};
+  spi_nallocated_bat+=2;
+  if(Kernel_AllocateBaseAddressTable(0,&in.spi_bat_gr,2,bat_id,0)) crash("allocating bat");
+  
+  //get physical address of receiving buffer
+  Kernel_MemoryRegion_t mem_region;
+  if(Kernel_CreateMemoryRegion(&mem_region,in.recv_buf,in.buf_size)) crash("creating memory region");
+  
+  //set the physical address
+  if(MUSPI_SetBaseAddress(&in.spi_bat_gr,bat_id[0],(uint64_t)in.recv_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa))
+    crash("setting base address");
+  
+  //set receive counter bat to MU style atomic PA addr of the receive counter
+  if((uint64_t)(&in.recv_counter)&0x7) crash("recv counter not 8 byte aligned");
+  if(Kernel_CreateMemoryRegion(&mem_region,(void*)&in.recv_counter,sizeof(uint64_t))) crash("creating memory region");  
+  if(MUSPI_SetBaseAddress(&in.spi_bat_gr,bat_id[1],
+			  MUSPI_GetAtomicAddress((uint64_t)&in.recv_counter-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa,
+						 MUHWI_ATOMIC_OPCODE_STORE_ADD))) crash("setting base addr");
+  
+  //reset number of byte to be received
+  in.recv_counter=0;
+}
+
 //initialize the spi communications
 void init_spi()
 {
-  //flag for spi initialization
-  static int nissa_spi_inited=false;
-  
   //check not to have initialized
   if(!nissa_spi_inited)
     {
+      verbosity_lv2_master_printf("Starting spi\n");
+      
       //check that we have parallelized all the dirs
       if(nparal_dir!=4) crash("all directions must be parallelized (only %d resulting parallelized)",nparal_dir);
       
@@ -86,12 +125,15 @@ void init_spi()
       //get coordinates, size and rank in the 5D grid
       set_spi_geometry();
       
+      //reset the number of allocated bat
+      spi_nallocated_bat=0;
+      
       ////////////////////////////////// init the fifos ///////////////////////////////////
       
       //alloc space for the 8 injection fifos
       uint32_t fifo_size=64*8;
       for(int idir=0;idir<8;idir++) spi_fifo[idir]=(uint64_t*)memalign(64,fifo_size);
-      
+
       //set default attributes for inj fifo
       Kernel_InjFifoAttributes_t fifo_attrs[8];
       for(int idir=0;idir<8;idir++) memset(&fifo_attrs[idir],0,sizeof(Kernel_InjFifoAttributes_t));
@@ -114,54 +156,17 @@ void init_spi()
       
       //activate the fifos
       if(Kernel_InjFifoActivate(&spi_fifo_sg_ptr,8,fifo_id,KERNEL_INJ_FIFO_ACTIVATE)) crash("activating fifo");
+  
+      //init the barrier
+      if(MUSPI_GIBarrierInit(&spi_barrier,0)) crash("initializing the barrier");
     }
-  
-  //init the barrier
-  if(MUSPI_GIBarrierInit(&spi_barrier,0)) crash("initializing the barrier");
-}
-
-//create the spi buffer
-void allocate_spi_comm(spi_comm_t &in,int buf_size)
-{
-  /////////////////////////////////////// allocate buffers ///////////////////////////////////////
-  
-  in.comm_in_prog=0;
-  in.buf_size=buf_size;
-  
-  in.recv_buf=(char*)memalign(64,buf_size);
-  in.send_buf=(char*)memalign(64,buf_size);
-  in.descriptors=(MUHWI_Descriptor_t*)memalign(64,8*sizeof(MUHWI_Descriptor_t));
-  
-  //////////////////////////////// allocate base address table (bat) /////////////////////////////
-  
-  //allocate the bat entries
-  uint32_t bat_id[2]={0,1};
-  if(Kernel_AllocateBaseAddressTable(0,&in.spi_bat_gr,2,bat_id,0)) crash("allocating bat");
-  
-  //get physical address of receiving buffer
-  Kernel_MemoryRegion_t mem_region;
-  if(Kernel_CreateMemoryRegion(&mem_region,in.recv_buf,in.buf_size)) crash("creating memory region");
-  
-  //set the physical address
-  if(MUSPI_SetBaseAddress(&in.spi_bat_gr,0,(uint64_t)in.recv_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa))
-    crash("setting base address");
-  
-  //set receive counter bat to MU style atomic PA addr of the receive counter
-  if((uint64_t)(&in.recv_counter)&0x7) crash("recv counter not 8 byte aligned");
-  if(Kernel_CreateMemoryRegion(&mem_region,(void*)&in.recv_counter,sizeof(uint64_t))) crash("creating memory region");  
-  if(MUSPI_SetBaseAddress(&in.spi_bat_gr,1,
-			  MUSPI_GetAtomicAddress((uint64_t)&in.recv_counter-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa,
-						 MUHWI_ATOMIC_OPCODE_STORE_ADD))) crash("setting base addr");
-  
-  //reset number of byte to be received
-  in.recv_counter=0;
 }
 
 //set up a communicator for lx borders
 void set_lx_spi_comm(spi_comm_t &in,int nbytes_per_site)
 {
   //allocate in and out buffers
-  allocate_spi_comm(in,nbytes_per_site*bord_vol);
+  set_spi_comm(in,nbytes_per_site*bord_vol);
   
   //get the send buffer physical address
   Kernel_MemoryRegion_t mem_region;
@@ -223,6 +228,7 @@ void spi_start_comm(spi_comm_t &in)
   
   //reset the counter and wait thar all have resetted
   in.recv_counter=in.buf_size;
+
   spi_global_barrier();
   
   //start the injection
@@ -242,4 +248,58 @@ void unset_spi_comm(spi_comm_t &in)
   //free buffers
   free(in.recv_buf);
   free(in.send_buf);
+}
+
+//fill the sending buf using the data inside an lx vec
+void fill_spi_sending_buf_with_lx_vec(spi_comm_t &a,void *vec,int nbytes_per_site)
+{
+  //check buffer size matching
+  if(a.buf_size!=nbytes_per_site*bord_vol) crash("wrong buffer size (%d) for %d large border)",a.buf_size,nbytes_per_site*bord_vol);
+  
+  //copy one by one the surface of vec inside the sending buffer
+  char *send_buf=a.send_buf;
+  for(int ibord=0;ibord<bord_vol;ibord++)
+    {
+      memcpy(send_buf,(char*)vec+surflx_of_bordlx[ibord]*nbytes_per_site,nbytes_per_site);
+      send_buf+=nbytes_per_site;
+    }
+}
+
+//extract the information from receiving buffer and put them inside an lx vec
+void fill_lx_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbytes_per_site)
+{
+  crash_if_borders_not_allocated(vec);
+  
+  //check buffer size matching
+  if(a.buf_size!=nbytes_per_site*bord_vol) crash("wrong buffer size (%d) for %d large border)",a.buf_size,nbytes_per_site*bord_vol);
+  
+  //the buffer is already ordered as the vec border
+  memcpy((char*)vec+loc_vol*nbytes_per_site,a.recv_buf,a.buf_size);
+}
+
+//start communication using an lx border
+void spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_site)
+{
+  //fill the communicator buffer
+  fill_spi_sending_buf_with_lx_vec(a,vec,nbytes_per_site);
+  
+  //start the communication and wait for them to finish
+  spi_start_comm(a);
+}
+
+//finish commuincating
+void spi_finish_communicating_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
+{
+  //wait communication to finish
+  spi_comm_wait(a);
+  
+  //fill back the vector
+  fill_lx_bord_with_spi_receiving_buf(vec,a,nbytes_per_site);
+}
+
+//merge the two
+void spi_communicate_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
+{
+  spi_start_communicating_lx_borders(a,vec,nbytes_per_site);
+  spi_finish_communicating_lx_borders(vec,a,nbytes_per_site);
 }

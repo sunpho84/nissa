@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include "../base/global_variables.h"
 #include "../base/routines.h"
 #include "reader.h"

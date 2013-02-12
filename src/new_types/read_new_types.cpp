@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include "new_types_definitions.h"
 #include "../base/debug.h"
 #include "../base/routines.h"

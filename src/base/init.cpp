@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include <mpi.h>
 #include <signal.h>
 #include <string.h>
@@ -14,6 +18,10 @@
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
 #include "../new_types/new_types_definitions.h"
+
+#ifdef BGQ
+ #include "../bgq/spi.h"
+#endif
 
 void init_nissa(int narg,char **arg)
 {
@@ -87,6 +95,9 @@ void init_nissa(int narg,char **arg)
   nissa_loc_rnd_gen_inited=0;
   nissa_glb_rnd_gen_inited=0;
   nissa_grid_inited=0;
+#ifdef BGQ
+  nissa_spi_inited=0;
+#endif
   memset(rank_coord,0,4*sizeof(int));
   memset(nrank_dir,0,4*sizeof(int));
   ONE[0]=I[1]=1;
@@ -434,6 +445,12 @@ void init_grid(int T,int L)
   set_lx_bord_senders_and_receivers(MPI_LX_SPINSPIN_BORDS_SEND,MPI_LX_SPINSPIN_BORDS_RECE,&MPI_SPINSPIN);
   set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,&MPI_SPINCOLOR);
   set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_128_BORDS_SEND,MPI_LX_SPINCOLOR_128_BORDS_RECE,&MPI_SPINCOLOR_128);
+
+#ifdef BGQ
+  init_spi();
+  set_lx_spi_comm(spi_lx_spincolor_comm,sizeof(spincolor));
+  set_lx_spi_comm(spi_lx_color_comm,sizeof(color));
+#endif
   
   if(nissa_use_eo_geom)
     {

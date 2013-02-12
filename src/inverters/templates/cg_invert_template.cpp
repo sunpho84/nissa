@@ -11,6 +11,10 @@
 extern double cg_inv_over_time;
 extern int ncg_inv;
 
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include <omp.h>
 
 void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int rniter,double residue,basetype *source)

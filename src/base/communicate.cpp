@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include <mpi.h>
 
 #include "debug.h"
@@ -6,6 +10,10 @@
 #include "global_variables.h"
 #include "routines.h"
 #include "vectors.h"
+
+#ifdef BGQ
+ #include "../bgq/spi.h"
+#endif
 
 /* This is the shape and ordering of the border in the memory, for a 3^4 lattice
 _______________________________________________________________________________________________________________________
@@ -187,7 +195,13 @@ void communicate_lx_quad_su3_edges(quad_su3 *conf)
 
 //Send the borders of a spincolor vector
 void communicate_lx_spincolor_borders(spincolor *s)
-{communicate_lx_borders((char*)s,MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,sizeof(spincolor));}
+{
+#ifdef BGQ
+  spi_communicate_lx_borders(s,spi_lx_spincolor_comm,sizeof(spincolor));
+#else
+  communicate_lx_borders((char*)s,MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,sizeof(spincolor));
+#endif
+}
 
 //Send the borders of a spin vector
 void communicate_lx_spin_borders(spin *s)
@@ -207,10 +221,22 @@ void communicate_lx_spincolor_128_borders(spincolor_128 *s)
 
 //Separate spincolor start/stop communication
 void start_communicating_lx_spincolor_borders(int &nrequest,MPI_Request *request,spincolor *s)
-{start_communicating_lx_borders(nrequest,request,(char*)s,MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,sizeof(spincolor));}
+{
+#ifdef BGQ
+  spi_start_communicating_lx_borders(spi_lx_spincolor_comm,s,sizeof(spincolor));
+  nrequest=8;
+#else
+ start_communicating_lx_borders(nrequest,request,(char*)s,MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,sizeof(spincolor));
+#endif
+}
 void finish_communicating_lx_spincolor_borders(int &nrequest,MPI_Request *request,spincolor *s)
-{finish_communicating_lx_borders(nrequest,request,(char*)s);}
-
+{
+#ifdef BGQ
+  spi_finish_communicating_lx_borders(s,spi_lx_spincolor_comm,sizeof(spincolor));
+#else
+  finish_communicating_lx_borders(nrequest,request,(char*)s);
+#endif
+}
 
 ///////////////////////////////////////////////// even/odd split vectors communicators ///////////////////////////////////
 

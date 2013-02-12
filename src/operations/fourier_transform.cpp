@@ -1,5 +1,6 @@
-#ifndef FOURIER_TRANSFORM
-#define FOURIER_TRANSFORM
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
 
 #include <math.h>
 
@@ -81,5 +82,3 @@ void spincolor_FT(spincolor *S,spincolor *FT,double *theta,int **iP,int nmom)
     }
   nissa_free(P2);nissa_free(SinP2);nissa_free(SinP4);
 }
-
-#endif

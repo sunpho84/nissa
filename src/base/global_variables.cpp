@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include "../new_types/new_types_definitions.h"
 
 #ifdef ONLY_INSTANTIATION
@@ -173,3 +177,36 @@ EXTERN int su3_sub_gr_indices[3][2]
 ={{0,1},{1,2},{0,2}};
 #endif
 ;
+
+/////////////////////////////////////////// BGQ specifics //////////////////////////////////
+
+#ifdef BGQ
+
+#include <spi/include/kernel/MU.h>
+#include <spi/include/mu/InjFifo.h>
+#include <spi/include/mu/GIBarrier.h>
+
+//flag to remember if spi has been initialized
+EXTERN int nissa_spi_inited;
+
+//spi rank coordinates
+EXTERN coords_5D spi_rank_coord;
+
+//neighbours int the 4 dirs
+EXTERN MUHWI_Destination_t spi_neigh[2][4];
+
+//spi fifo and counters for bytes
+EXTERN uint64_t *spi_fifo[8],spi_desc_count[8];
+EXTERN MUSPI_InjFifoSubGroup_t spi_fifo_sg_ptr;
+
+//spi barrier
+EXTERN MUSPI_GIBarrier_t spi_barrier;
+
+//communicator for spincolor
+EXTERN spi_comm_t spi_lx_spincolor_comm;
+EXTERN spi_comm_t spi_lx_color_comm;
+
+//number of allocated bat
+EXTERN int spi_nallocated_bat;
+
+#endif

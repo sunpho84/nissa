@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS=subdir-objects
 
 #compile or not bgq stuff
 if BGQ
-bgq_src_file=src/bgq/spi.cpp src/bgq/bgq_vars.cpp
+bgq_src_file=src/bgq/spi.cpp
 else
 bgq_src_file=
 endif
