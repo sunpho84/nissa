@@ -168,6 +168,31 @@ int compute_border_variance(int *L,int *X,int consider_reciprocal)
 //find the grid minimizing the surface
 void find_minimal_surface_grid(int *mP,int *L,int NP)
 {
+  ////////////////////////////// set all the bounds ///////////////////////////////////
+  
+  int check_all_dir_parallelized;
+  
+#ifdef BGQ
+  check_all_dir_parallelized=1;
+#endif
+  
+  
+  /////////////////////////////////// basic checks ///////////////////////////////////
+  
+  //check that all direction are parallelizable, if requested
+  if(check_all_dir_parallelized)
+    {
+      //check that at least 16 ranks are present and is a multiple of 16
+      if(nissa_nranks<16) crash("in order to paralellize all the direcion, at least 16 ranks must be present");
+      if(nissa_nranks%16) crash("in order to paralellize all the direcion, the number of ranks must be a multiple of 16");
+    }
+  
+  //check that the global lattice is a multiple of the number of ranks
+  if(glb_vol%nissa_nranks) crash("global volume must be a multiple of ranks number");
+  
+  
+  //////////////////// find the partitioning which minmize the surface /////////////////////
+  
   //treat simple cases
   if(NP==1||NP==glb_vol)
     {
@@ -223,12 +248,12 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	    }
 	  while(valid_partitioning==1 && ifactX>=0);
 	  
-#ifdef BGQ
-	  //check that all directions have at leas 2 nodes
-	  if(valid_partitioning)
-	    for(int mu=0;mu<4;mu++)
-	      valid_partitioning&=consider_reciprocal?(X[mu]>=2):(X[mu]/L[mu]>=2);
-#endif
+	  //check that all directions have at least 2 nodes
+	  if(check_all_dir_parallelized)
+	    if(valid_partitioning)
+	      for(int mu=0;mu<4;mu++)
+		valid_partitioning&=consider_reciprocal?(X[mu]>=2):(X[mu]/L[mu]>=2);
+	  
 	  //if it is a valid partitioning
 	  if(valid_partitioning)
 	    {
