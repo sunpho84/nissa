@@ -223,8 +223,7 @@ void communicate_lx_spincolor_128_borders(spincolor_128 *s)
 void start_communicating_lx_spincolor_borders(int &nrequest,MPI_Request *request,spincolor *s)
 {
 #ifdef BGQ
-  spi_start_communicating_lx_borders(spi_lx_spincolor_comm,s,sizeof(spincolor));
-  nrequest=8;
+  nrequest=spi_start_communicating_lx_borders(spi_lx_spincolor_comm,s,sizeof(spincolor))
 #else
  start_communicating_lx_borders(nrequest,request,(char*)s,MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,sizeof(spincolor));
 #endif
