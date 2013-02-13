@@ -307,9 +307,9 @@ void fill_lx_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbytes_per_
 //start communication using an lx border
 int spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_site)
 {
-  if(!check_borders_valid(data))
+  if(!check_borders_valid(vec))
     {
-      verbosity_lv3_master_printf("Start communicating borders of %s\n",get_vec_name((void*)data));
+      verbosity_lv3_master_printf("Start communicating borders of %s\n",get_vec_name((void*)vec));
       
       //fill the communicator buffer
       fill_spi_sending_buf_with_lx_vec(a,vec,nbytes_per_site);
@@ -339,7 +339,7 @@ void spi_communicate_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
 {
   if(!check_borders_valid(vec))
     {
-      verbosity_lv3_master_printf("Communicating borders of %s\n",get_vec_name((void*)data));
+      verbosity_lv3_master_printf("Communicating borders of %s\n",get_vec_name((void*)vec));
       
       spi_start_communicating_lx_borders(a,vec,nbytes_per_site);
       spi_finish_communicating_lx_borders(vec,a,nbytes_per_site);

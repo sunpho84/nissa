@@ -1,5 +1,6 @@
 #ifndef _SPI_H
 #define _SPI_H
+int spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_site);
 void fill_ev_or_od_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbytes_per_site);
 void fill_lx_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbytes_per_site);
 void fill_spi_sending_buf_with_ev_or_od_vec(spi_comm_t &a,void *vec,int nbytes_per_site,int eo);
@@ -20,6 +21,5 @@ void spi_finish_communicating_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_
 void spi_global_barrier();
 void spi_start_comm(spi_comm_t &in);
 void spi_start_communicating_ev_or_od_borders(spi_comm_t &a,void *vec,int nbytes_per_site,int eo);
-void spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_site);
 void unset_spi_comm(spi_comm_t &in);
 #endif
