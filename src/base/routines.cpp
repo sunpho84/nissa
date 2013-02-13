@@ -77,22 +77,6 @@ void fprintf_friendly_units(FILE *fout,int quant,int orders,const char *units)
   master_fprintf(fout,"%d %s%s",quant,units_prefix[iord],units);
 }
 
-void master_printf_box(const char *templ,...)
-{
-  char temp_out[1024];
-  va_list ap;
-  va_start(ap,templ);
-  vsnprintf(temp_out,1024,templ,ap);
-  va_end(ap);
-  int l=strlen(temp_out);
-  
-  master_printf("\n /");
-  for(int i=0;i<l;i++) master_printf("-");
-  printf("\\\n |%s|\n \\",temp_out);
-  for(int i=0;i<l;i++) master_printf("-");
-  master_printf("/\n");
-}
-
 //create a dir
 int create_dir(char *path)
 {
