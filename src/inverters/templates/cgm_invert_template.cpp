@@ -19,7 +19,9 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
   ncgm_inv++;
   cgm_inv_over_time-=take_time();
   
-  const int each=10;
+  int each_list[4]={0,100,10,1},each;
+  if(nissa_verbosity>=3) each=1;
+  else each=each_list[nissa_verbosity];
   
   //macro to be defined externally, allocating all the required additional vectors
   cgm_additional_vectors_allocation();
