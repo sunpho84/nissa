@@ -20,6 +20,6 @@ void spi_finish_communicating_ev_or_od_borders(void *vec,spi_comm_t &a,int nbyte
 void spi_finish_communicating_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site);
 void spi_global_barrier();
 void spi_start_comm(spi_comm_t &in);
-void spi_start_communicating_ev_or_od_borders(spi_comm_t &a,void *vec,int nbytes_per_site,int eo);
+int spi_start_communicating_ev_or_od_borders(spi_comm_t &a,void *vec,int nbytes_per_site,int eo);
 void unset_spi_comm(spi_comm_t &in);
 #endif

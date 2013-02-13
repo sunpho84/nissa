@@ -144,6 +144,7 @@ void set_spi_comm(spi_comm_t &in,int buf_size,int *payload_address_offset,int *m
   in.bat_id[1]=spi_nallocated_bat+1;
   spi_nallocated_bat+=2;
   if(Kernel_AllocateBaseAddressTable(0,&in.spi_bat_gr,2,in.bat_id,0)) crash("allocating bat");
+  verbosity_lv3_master_printf("number of spi allocated bat: %d\n",spi_nallocated_bat);
   
   //get physical address of receiving buffer
   Kernel_MemoryRegion_t mem_region;
@@ -229,20 +230,24 @@ void set_eo_spi_comm(spi_comm_t &in,int nbytes_per_site) {set_lx_or_eo_spi_comm(
 //wait a communication to finish
 void spi_comm_wait(spi_comm_t &in)
 {
-  //wait to receive everything
+  verbosity_lv3_master_printf("Entering spi comm wait\n");
+
   if(in.comm_in_prog)
     {
-      verbosity_lv2_master_printf("Waiting to finish receiving data with spi\n");
-      while(in.recv_counter>0);
+      //wait to send everything
+      while(in.comm_in_prog)
+	{
+	  verbosity_lv3_master_printf("Waiting to finish sending data with spi\n");
+	  in.comm_in_prog=0;
+	  for(int idir=0;idir<8;idir++)
+	    in.comm_in_prog|=!MUSPI_CheckDescComplete(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),spi_desc_count[idir]);
+	}
+
+      //wait to receive everything
+      verbosity_lv3_master_printf("Waiting to finish receiving data with spi\n");
+      while(in.recv_counter>0) verbosity_lv3_master_printf("%d/%d bytes remaining to be received\n",in.recv_counter,in.buf_size);  
     }
-  
-  //wait to send everything
-  while(in.comm_in_prog)
-    {
-      in.comm_in_prog=0;
-      for(int idir=0;idir<8;idir++)
-	in.comm_in_prog|=!MUSPI_CheckDescComplete(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),spi_desc_count[idir]);
-    }
+  else verbosity_lv3_master_printf("Did not have to wait for any spi comm\n");
 }
 
 //start the communications
@@ -259,6 +264,7 @@ void spi_start_comm(spi_comm_t &in)
   //start the injection
   for(int idir=0;idir<8;idir++)
     {
+      verbosity_lv3_master_printf("Injecting %d\n",idir);
       spi_desc_count[idir]=MUSPI_InjFifoInject(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),&in.descriptors[idir]);
       if(spi_desc_count[idir]==-1) crash("msg_InjFifoInject failed, most likely because there is no room in the fifo");
     }
@@ -310,7 +316,7 @@ int spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_si
   if(!check_borders_valid(vec))
     {
       tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Start communicating borders of %s\n",get_vec_name((void*)vec));
+      verbosity_lv3_master_printf("Start spi communication of lx borders of %s\n",get_vec_name((void*)vec));
       
       //fill the communicator buffer and start the communication
       fill_spi_sending_buf_with_lx_vec(a,vec,nbytes_per_site);
@@ -326,17 +332,17 @@ int spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_si
 //finish communicating
 void spi_finish_communicating_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
 {
-  if(!check_borders_valid && a.comm_in_prog)
+  if(!check_borders_valid(vec) && a.comm_in_prog)
     {
       tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Finish communicating borders of %s\n",get_vec_name((void*)data));
+      verbosity_lv3_master_printf("Finish spi communication of lx borders of %s\n",get_vec_name((void*)vec));
 
       //wait communication to finish and fill back the vector
       spi_comm_wait(a);
       fill_lx_bord_with_spi_receiving_buf(vec,a,nbytes_per_site);
       
       set_borders_valid(vec);
-
+      
       tot_nissa_comm_time+=take_time();
     }
 }
@@ -346,7 +352,7 @@ void spi_communicate_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
 {
   if(!check_borders_valid(vec))
     {
-      verbosity_lv3_master_printf("Communicating borders of %s\n",get_vec_name((void*)vec));
+      verbosity_lv3_master_printf("Sync spi communication of lx borders of %s\n",get_vec_name((void*)vec));
       
       spi_start_communicating_lx_borders(a,vec,nbytes_per_site);
       spi_finish_communicating_lx_borders(vec,a,nbytes_per_site);
@@ -385,28 +391,52 @@ void fill_ev_or_od_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbyte
 }
 
 //start communication using an ev or od border
-void spi_start_communicating_ev_or_od_borders(spi_comm_t &a,void *vec,int nbytes_per_site,int eo)
+int spi_start_communicating_ev_or_od_borders(spi_comm_t &a,void *vec,int nbytes_per_site,int eo)
 {
-  //fill the communicator buffer
-  fill_spi_sending_buf_with_ev_or_od_vec(a,vec,nbytes_per_site,eo);
-  
-  //start the communication and wait for them to finish
-  spi_start_comm(a);
+  if(!check_borders_valid(vec))
+    {
+      tot_nissa_comm_time-=take_time();
+      verbosity_lv3_master_printf("Starting spi communication of ev or od borders of %s\n",get_vec_name((void*)vec));
+      
+      //fill the communicator buffer and start the communication
+      fill_spi_sending_buf_with_ev_or_od_vec(a,vec,nbytes_per_site,eo);
+      spi_start_comm(a);
+
+      tot_nissa_comm_time+=take_time();
+      
+      return 1;
+    }
+  else return 0;
 }
 
 //finish communicating
 void spi_finish_communicating_ev_or_od_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
 {
-  //wait communication to finish
-  spi_comm_wait(a);
-  
-  //fill back the vector
-  fill_ev_or_od_bord_with_spi_receiving_buf(vec,a,nbytes_per_site);
+  if(!check_borders_valid(vec) && a.comm_in_prog)
+    {
+      tot_nissa_comm_time-=take_time();
+      verbosity_lv3_master_printf("Finish spi communication of ev or od borders of %s\n",get_vec_name((void*)vec));
+      
+      //wait communication to finish and fill back the vector
+      spi_comm_wait(a);
+      fill_ev_or_od_bord_with_spi_receiving_buf(vec,a,nbytes_per_site);
+      
+      set_borders_valid(vec);
+      
+      tot_nissa_comm_time+=take_time();
+    }
 }
 
 //merge the two
 void spi_communicate_ev_or_od_borders(void *vec,spi_comm_t &a,int nbytes_per_site,int eo)
 {
-  spi_start_communicating_ev_or_od_borders(a,vec,nbytes_per_site,eo);
-  spi_finish_communicating_ev_or_od_borders(vec,a,nbytes_per_site);
+  if(!check_borders_valid(vec))
+    {
+      verbosity_lv3_master_printf("Sync spi communication of ev or od borders of %s\n",get_vec_name((void*)vec));
+      
+      spi_start_communicating_ev_or_od_borders(a,vec,nbytes_per_site,eo);
+      spi_finish_communicating_ev_or_od_borders(vec,a,nbytes_per_site);
+       
+      set_borders_valid(vec);
+    }
 }

@@ -414,9 +414,8 @@ void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_
   tot_nissa_comm_time-=take_time();
   if(nrequest>0)
     {
-      if(nrequest>0) verbosity_lv3_master_printf("Starting communication of borders of vector %s\n",get_vec_name(data[0]));
-      MPI_Status status[nrequest];
-      MPI_Waitall(nrequest,request,status);
+      if(nrequest>0) verbosity_lv3_master_printf("Communication of evn and odd borders of vector %s\n",get_vec_name(data[0]));
+      MPI_Waitall(nrequest,request,MPI_STATUS_IGNORE);
       nrequest=0;
     }
   tot_nissa_comm_time+=take_time();
