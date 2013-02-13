@@ -309,13 +309,14 @@ int spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_si
 {
   if(!check_borders_valid(vec))
     {
+      tot_nissa_comm_time-=take_time();
       verbosity_lv3_master_printf("Start communicating borders of %s\n",get_vec_name((void*)vec));
       
-      //fill the communicator buffer
+      //fill the communicator buffer and start the communication
       fill_spi_sending_buf_with_lx_vec(a,vec,nbytes_per_site);
-      
-      //start the communication and wait for them to finish
       spi_start_comm(a);
+      
+      tot_nissa_comm_time+=take_time();
       
       return 1;
     }
@@ -325,13 +326,19 @@ int spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_si
 //finish communicating
 void spi_finish_communicating_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
 {
-  //wait communication to finish
-  spi_comm_wait(a);
-  
-  //fill back the vector
-  fill_lx_bord_with_spi_receiving_buf(vec,a,nbytes_per_site);
-  
-  set_borders_valid(vec);
+  if(!check_borders_valid && a.comm_in_prog)
+    {
+      tot_nissa_comm_time-=take_time();
+      verbosity_lv3_master_printf("Finish communicating borders of %s\n",get_vec_name((void*)data));
+
+      //wait communication to finish and fill back the vector
+      spi_comm_wait(a);
+      fill_lx_bord_with_spi_receiving_buf(vec,a,nbytes_per_site);
+      
+      set_borders_valid(vec);
+
+      tot_nissa_comm_time+=take_time();
+    }
 }
 
 //merge the two
