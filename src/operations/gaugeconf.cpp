@@ -10,12 +10,12 @@
 #include "../base/debug.h"
 #include "../base/communicate.h"
 #include "../base/random.h"
-#include "../base/routines.h"
+#include "../geometry/geometry_mix.h"
 #include "../new_types/complex.h"
 #include "../new_types/su3.h"
 #include "../operations/remap_vector.h"
 #include "../operations/su3_paths/plaquette.h"
-#include "../geometry/geometry_mix.h"
+#include "../routines/ios.h"
 
 /*
   rotate a field anti-clockwise by 90 degrees

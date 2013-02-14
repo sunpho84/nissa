@@ -4,6 +4,8 @@
 
 #include <omp.h>
 
+#include "../../routines/ios.h"
+
 extern double cgm_inv_over_time;
 extern int ncgm_inv;
 

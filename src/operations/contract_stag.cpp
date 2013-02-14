@@ -2,16 +2,17 @@
  #include "config.h"
 #endif
 
-#include "../new_types/new_types_definitions.h"
-#include "../new_types/complex.h"
 #include "../base/global_variables.h"
 #include "../base/macros.h"
 #include "../base/random.h"
-#include "../base/routines.h"
 #include "../base/vectors.h"
 #include "../geometry/geometry_eo.h"
 #include "../hmc/backfield.h"
 #include "../inverters/staggered/cg_invert_stD.h"
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/complex.h"
+#include "../routines/ios.h"
+#include "../routines/mpi.h"
 
 //get a propagator
 void get_propagator(color **prop,quad_su3 **conf,quad_u1 **u1b,double m,double residue,color **source)

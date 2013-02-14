@@ -5,11 +5,10 @@
 #include <math.h>
 #include <string.h>
 
-#include "new_types_definitions.h"
 #include "complex.h"
+#include "new_types_definitions.h"
 #include "spin.h"
-#include "../base/routines.h"
-#include "../base/routines.h"
+
 #include "../base/debug.h"
 #include "../base/global_variables.h"
 

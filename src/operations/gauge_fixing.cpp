@@ -5,15 +5,16 @@
 #include <math.h>
 #include <string.h>
 
-#include "../new_types/new_types_definitions.h"
-#include "../new_types/complex.h"
-#include "../new_types/su3.h"
-#include "../base/global_variables.h"
 #include "../base/communicate.h"
+#include "../base/debug.h"
+#include "../base/global_variables.h"
+#include "../base/vectors.h"
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
-#include "../base/vectors.h"
-#include "../base/routines.h"
+#include "../new_types/complex.h"
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/su3.h"
+#include "../routines/ios.h"
 
 #ifdef BGP
  #include "../base/bgp_instructions.h"

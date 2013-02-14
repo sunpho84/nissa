@@ -2,14 +2,14 @@
  #include "config.h"
 #endif
 
+#include <string.h>
+
 #include "../base/global_variables.h"
 #include "../base/debug.h"
 #include "../base/vectors.h"
-#include "../base/routines.h"
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/su3.h"
-
-#include <string.h>
+#include "../routines/ios.h"
 
 //set the eo geometry
 void set_eo_geometry()

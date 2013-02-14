@@ -2,13 +2,14 @@
  #include "config.h"
 #endif
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/su3.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
-#include "../../base/routines.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../new_types/su3.h"
 #include "../../operations/su3_paths/plaquette.h"
 #include "../../operations/su3_paths/arbitrary.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../routines/mpi.h"
 
 paths_calculation_structure *compute_Symanzik_action=NULL;
 

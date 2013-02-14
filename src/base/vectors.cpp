@@ -8,11 +8,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "../new_types/float128.h"
+#include "../new_types/new_types_definitions.h"
+#include "../routines/ios.h"
+#include "../routines/math.h"
+
 #include "debug.h"
 #include "global_variables.h"
-#include "routines.h"
-#include "../new_types/new_types_definitions.h"
-#include "../new_types/float128.h"
 
 //return the pointer to the nissa vect
 nissa_vect* get_nissa_vec(void *v)
@@ -295,4 +297,27 @@ void internal_nissa_free(char **arr,const char *file,int line)
   else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
   
   *arr=NULL;
+}
+
+//reorder a vector according to the specified order (the order is destroyed)
+void reorder_vector(char *vect,int *order,int nel,int sel)
+{
+  char *buf=(char*)nissa_malloc("buf",sel,char);
+  
+  for(int sour=0;sour<nel;sour++)
+    while(sour!=order[sour])
+      {
+        int dest=order[sour];
+        
+        memcpy(buf,vect+sour*sel,sel);
+        memcpy(vect+sour*sel,vect+dest*sel,sel);
+        memcpy(vect+dest*sel,buf,sel);
+        
+        order[sour]=order[dest];
+        order[dest]=dest;
+      }
+  
+  set_borders_invalid(vect);
+  
+  nissa_free(buf);
 }

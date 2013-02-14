@@ -8,9 +8,15 @@
 #include <stdarg.h>
 
 #include "global_variables.h"
-#include "routines.h"
 #include "vectors.h"
 
+#include "../routines/ios.h"
+
+//take the time
+double take_time()
+{return MPI_Wtime();}
+
+//write the list of called routines
 void print_backtrace_list()
 {
   void *callstack[128];
@@ -44,6 +50,7 @@ void internal_crash(int line,const char *file,const char *templ,...)
     va_end(ap);
 }
 
+//called when terminated
 void terminate_sigsegv(int par)
 {
   //if(par==11)
@@ -54,6 +61,7 @@ void terminate_sigsegv(int par)
     }
 }
 
+//decript the MPI error
 void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
 {
   va_list ap;

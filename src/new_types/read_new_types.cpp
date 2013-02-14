@@ -4,7 +4,6 @@
 
 #include "new_types_definitions.h"
 #include "../base/debug.h"
-#include "../base/routines.h"
 #include "../base/vectors.h"
 #include "../IO/input.h"
 
@@ -125,7 +124,10 @@ void read_theory_pars(theory_pars_type &theory_pars)
   //kind of action
   char gauge_action_type[1024];
   read_str_str("GaugeAction",gauge_action_type,1024);
-  set_gauge_action_type(theory_pars,gauge_action_type);
+  if(strcmp(gauge_action_type,"Wilson")==0) theory_pars.gac_type=Wilson_action;
+  else
+    if(strcmp(gauge_action_type,"tlSym")==0) theory_pars.gac_type=tlSym_action;
+    else crash("unknown gauge action: %s",gauge_action_type);
   
   //beta for gauge action
   read_str_double("Beta",&theory_pars.beta);

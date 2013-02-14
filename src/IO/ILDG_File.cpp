@@ -7,10 +7,11 @@
 #include <string.h>
 
 #include "../base/debug.h"
+#include "../base/global_variables.h"
 #include "../base/macros.h"
 #include "../base/vectors.h"
-#include "../base/global_variables.h"
-#include "../base/routines.h"
+#include "../routines/ios.h"
+#include "../routines/mpi.h"
 
 #include "endianess.h"
 
