@@ -6,15 +6,16 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "../new_types/complex.h"
-#include "../new_types/new_types_definitions.h"
 #include "../base/debug.h"
 #include "../base/global_variables.h"
-#include "../base/routines.h"
 #include "../base/vectors.h"
 #include "../geometry/geometry_lx.h"
+#include "../new_types/complex.h"
+#include "../new_types/new_types_definitions.h"
+#include "../routines/ios.h"
+#include "../routines/math.h"
 
-#include "random.h"
+double rnd_get_unif(rnd_gen *gen,double min,double max);
 
 //initialize a random number generator
 void start_rnd_gen(rnd_gen *out,int seed)

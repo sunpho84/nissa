@@ -5,15 +5,17 @@
 #include <math.h>
 #include <string.h>
 
-#include "new_types_definitions.h"
 #include "../base/debug.h"
 #include "../base/global_variables.h"
 #include "../base/random.h"
-#include "../base/routines.h"
-#include "float128.h"
-#include "complex.h"
-#include "su3.h"
 #include "../operations/su3_paths/plaquette.h"
+#include "../routines/ios.h"
+#include "../routines/math.h"
+
+#include "complex.h"
+#include "new_types_definitions.h"
+#include "float128.h"
+#include "su3.h"
 
 #ifdef BGP
 #include "../base/bgp_instructions.h"

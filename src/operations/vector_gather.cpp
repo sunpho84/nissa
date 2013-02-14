@@ -4,10 +4,9 @@
 
 #include <string.h>
 
-#include "../base/global_variables.h"
 #include "../base/debug.h"
+#include "../base/global_variables.h"
 #include "../base/vectors.h"
-#include "../base/routines.h"
 #include "../geometry/geometry_lx.h"
 
 //gahter the whole field on a single rank, reordering data

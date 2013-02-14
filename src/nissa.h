@@ -13,7 +13,6 @@
 #include "base/init.h"
 #include "base/macros.h"
 #include "base/random.h"
-#include "base/routines.h"
 #include "base/sse_instructions.h"
 #include "base/vectors.h"
 
@@ -114,5 +113,9 @@
 #include "operations/su3_paths/topological_charge.h"
 
 #include "operations/vector_gather.h"
+
+#include "routines/ios.h"
+#include "routines/math.h"
+#include "routines/mpi.h"
 
 #endif

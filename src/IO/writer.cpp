@@ -4,21 +4,22 @@
 
 #include <string.h>
 
-#include "checksum.h"
-#include "endianess.h"
-#include "ILDG_File.h"
+#include "../base/global_variables.h"
+#include "../base/debug.h"
+#include "../base/vectors.h"
+#include "../geometry/geometry_lx.h"
+#include "../geometry/geometry_mix.h"
+#include "../linalgs/linalgs.h"
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/complex.h"
 #include "../new_types/spin.h"
 #include "../new_types/su3.h"
-#include "../base/global_variables.h"
-#include "../base/debug.h"
-#include "../base/vectors.h"
-#include "../base/routines.h"
-#include "../linalgs/linalgs.h"
-#include "../geometry/geometry_lx.h"
-#include "../geometry/geometry_mix.h"
 #include "../operations/contract.h"
+#include "../routines/ios.h"
+
+#include "checksum.h"
+#include "endianess.h"
+#include "ILDG_File.h"
 
 //Write a vector of double, in 32 or 64 bits according to the argument
 void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nbits,const char *header_message,ILDG_message *mess=NULL)

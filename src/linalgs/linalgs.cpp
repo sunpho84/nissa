@@ -4,14 +4,14 @@
 
 #include <string.h>
 
-#include "../new_types/new_types_definitions.h"
-#include "../new_types/su3.h"
-#include "../new_types/spin.h"
-#include "../new_types/float128.h"
+#include "../base/communicate.h"
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
-#include "../base/routines.h"
-#include "../base/communicate.h"
+#include "../new_types/float128.h"
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/spin.h"
+#include "../new_types/su3.h"
+#include "../routines/mpi.h"
 
 #ifdef BGP
  #include "../base/bgp_instructions.h"

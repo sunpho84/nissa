@@ -26,6 +26,7 @@ void last_nissa_vect_content_printf();
 void nissa_vect_content_fprintf(FILE *fout,nissa_vect *vect);
 void nissa_vect_content_printf(nissa_vect *vect);
 void print_all_nissa_vect_content();
+void reorder_vector(char *vect,int *order,int nel,int sel);
 void set_borders_invalid(void *data);
 void set_borders_valid(void *data);
 void set_edges_invalid(void *data);

@@ -6,18 +6,18 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/complex.h"
-#include "../../new_types/su3.h"
-#include "../../new_types/dirac.h"
-#include "../../new_types/spin.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../base/routines.h"
 #include "../../base/communicate.h"
 #include "../../base/debug.h"
+#include "../../base/global_variables.h"
+#include "../../base/vectors.h"
 #include "../../geometry/geometry_lx.h"
 #include "../../geometry/geometry_mix.h"
+#include "../../new_types/complex.h"
+#include "../../new_types/dirac.h"
+#include "../../new_types/new_types_definitions.h"
+#include "../../new_types/spin.h"
+#include "../../new_types/su3.h"
+#include "../../routines/mpi.h"
 
 ////////////////////////// Complicated things /////////////////////
 

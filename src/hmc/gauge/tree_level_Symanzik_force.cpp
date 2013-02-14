@@ -2,9 +2,10 @@
  #include "config.h"
 #endif
 
+#include <string.h>
+
 #include "../../base/communicate.h"
 #include "../../base/global_variables.h"
-#include "../../base/routines.h"
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_eo.h"
 #include "../../geometry/geometry_mix.h"
@@ -12,8 +13,7 @@
 #include "../../new_types/su3.h"
 #include "../../operations/su3_paths/plaquette.h"
 #include "../../operations/su3_paths/arbitrary.h"
-
-#include <string.h>
+#include "../../routines/ios.h"
 
 paths_calculation_structure *compute_Symanzik_staples=NULL;
 

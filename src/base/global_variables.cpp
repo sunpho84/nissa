@@ -129,6 +129,9 @@ EXTERN int nissa_grid_inited;
 //endianess
 EXTERN int little_endian;
 
+//global input file handle
+EXTERN FILE *input_global;
+
 //volume, plan and line communicator
 EXTERN MPI_Comm cart_comm;
 EXTERN MPI_Comm plan_comm[4];

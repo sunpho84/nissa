@@ -5,15 +5,16 @@
 #include <mpi.h>
 #include <stdio.h>
 
+#include "debug.h"
 #include "global_variables.h"
 #include "random.h"
-#include "routines.h"
 #include "vectors.h"
 #include "../new_types/new_types_definitions.h"
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
 #include "../hmc/gauge/tree_level_Symanzik_force.h"
 #include "../hmc/gauge/tree_level_Symanzik_action.h"
+#include "../routines/ios.h"
 
 void close_nissa()
 {

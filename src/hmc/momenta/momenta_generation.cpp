@@ -3,9 +3,7 @@
 #endif
 
 #include "../../base/global_variables.h"
-#include "../../base/routines.h"
 #include "../../base/vectors.h"
-//#include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 
 //generate momenta using guassian hermitean matrix generator

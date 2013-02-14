@@ -6,7 +6,8 @@
 #include <stdlib.h>
 
 #include "new_types_definitions.h"
-#include "../base/routines.h"
+
+#include "../routines/ios.h"
 
 //allocate a new rat approx
 void rat_approx_create(rat_approx_type *appr,int degree,const char *name)

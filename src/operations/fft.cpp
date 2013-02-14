@@ -5,12 +5,11 @@
 #include <math.h>
 #include <string.h>
 
-#include "../new_types/new_types_definitions.h"
 #include "../base/global_variables.h"
 #include "../base/macros.h"
 #include "../base/debug.h"
 #include "../base/vectors.h"
-#include "../base/routines.h"
+#include "../new_types/new_types_definitions.h"
 
 //return the bit inverse of an int
 int bitrev(int in,int l2n)

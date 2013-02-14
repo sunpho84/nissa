@@ -2,20 +2,20 @@
  #include "config.h"
 #endif
 
+#include <math.h>
+#include <complex>
+
+#include "../su3_paths/plaquette.h"
+
 #include "../../base/communicate.h"
 #include "../../base/debug.h"
 #include "../../base/global_variables.h"
-#include "../../base/routines.h"
 #include "../../base/vectors.h"
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/complex.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
-
-#include "../su3_paths/plaquette.h"
-
-#include <math.h>
-#include <complex>
+#include "../../routines/ios.h"
 
 int nsto=0;
 double sto_time=0;

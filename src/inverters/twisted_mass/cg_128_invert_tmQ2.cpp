@@ -1,13 +1,12 @@
 #include <math.h>
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../linalgs/linalgs.h"
+#include "cg_invert_tmQ2.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
-#include "../../base/routines.h"
 #include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
 #include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.h"
-#include "cg_invert_tmQ2.h"
+#include "../../linalgs/linalgs.h"
+#include "../../new_types/new_types_definitions.h"
 
 #define basetype spincolor
 #define basetype_128 spincolor_128

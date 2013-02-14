@@ -6,15 +6,14 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../new_types/new_types_definitions.h"
-#include "../new_types/complex.h"
-#include "../new_types/su3.h"
-#include "../base/global_variables.h"
-#include "../base/vectors.h"
-#include "../base/routines.h"
 #include "../base/communicate.h"
 #include "../base/debug.h"
+#include "../base/global_variables.h"
+#include "../base/vectors.h"
 #include "../geometry/geometry_lx.h"
+#include "../new_types/complex.h"
+#include "../new_types/new_types_definitions.h"
+#include "../new_types/su3.h"
 
 //shift an su3 vector of a single step along the mu axis, in the positive or negative dir
 void su3_vec_single_shift(su3 *u,int mu,int sign)

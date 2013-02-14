@@ -10,14 +10,17 @@
 #include "communicate.h"
 #include "debug.h"
 #include "global_variables.h"
-#include "routines.h"
 #include "vectors.h"
-#include "../new_types/dirac.h"
+
 #include "../IO/input.h"
 #include "../IO/endianess.h"
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
+#include "../new_types/dirac.h"
 #include "../new_types/new_types_definitions.h"
+#include "../routines/ios.h"
+#include "../routines/math.h"
+#include "../routines/mpi.h"
 
 #ifdef BGQ
  #include "../bgq/spi.h"
@@ -170,7 +173,7 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 {
   ////////////////////////////// set all the bounds ///////////////////////////////////
   
-  int check_all_dir_parallelized;
+  int check_all_dir_parallelized=0;
   
 #ifdef BGQ
   check_all_dir_parallelized=1;

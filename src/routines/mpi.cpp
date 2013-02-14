@@ -2,9 +2,12 @@
  #include "config.h"
 #endif
 
-//to be moved elsewhere soon
-
 #include <mpi.h>
+
+#include "../base/global_variables.h"
+#include "../new_types/complex.h"
+#include "../new_types/float128.h"
+#include "../new_types/new_types_definitions.h"
 
 //take the different with following multiple of eight
 MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos)

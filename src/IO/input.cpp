@@ -11,10 +11,7 @@
 
 #include "../base/debug.h"
 #include "../base/global_variables.h"
-#include "../base/routines.h"
-
-//this is input file handle
-FILE *input_global;
+#include "../routines/ios.h"
 
 //touch a file
 void file_touch(const char *path)
