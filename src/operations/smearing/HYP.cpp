@@ -106,55 +106,57 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
     //loop over the first decoration index
     for(int nu=0;nu<4;nu++)
       if(nu!=mu && (req_mu<0 || req_mu>3 || mu==req_mu || nu==req_mu))
-	//loop over local volume
-	nissa_loc_vol_loop(A)
-	  {
-	    //take original link
-	    su3 temp0;
-	    su3_prod_double(temp0,conf[A][mu],1-alpha1);
-	    
-	    //reset the staple
-	    su3 stap;
-	    memset(stap,0,sizeof(su3));
-	    
-	    //find the remapped index
-	    int ire0=dec1_remap_index[mu][nu];
-	    
-	    //loop over the second decoration index
-	    for(int rho=0;rho<4;rho++)
-	      if(rho!=mu && rho!=nu)
-		{
-		  su3 temp1,temp2;
-		  
-		  //find the two remampped indices
-		  int ire1=dec2_remap_index[rho][nu][mu];
-		  int ire2=dec2_remap_index[mu][rho][nu];
-		  
-		  //staple in the positive dir
-		  int B=loclx_neighup[A][rho];
-		  int F=loclx_neighup[A][mu];
-		  unsafe_su3_prod_su3(temp1,dec2_conf[ire1][A],dec2_conf[ire2][B]);
-		  unsafe_su3_prod_su3_dag(temp2,temp1,dec2_conf[ire1][F]);
-		  su3_summ(stap,stap,temp2);
-		  
-		  //staple in the negative dir
-		  int D=loclx_neighdw[A][rho];
-		  int E=loclx_neighup[D][mu];
-		  unsafe_su3_dag_prod_su3(temp1,dec2_conf[ire1][D],dec2_conf[ire2][D]);
-		  unsafe_su3_prod_su3(temp2,temp1,dec2_conf[ire1][E]);
-		  su3_summ(stap,stap,temp2);
-		  
-		  //summ the two staples with appropriate coef
-		  su3_summ_the_prod_double(temp0,stap,alpha1/4);
-		}
-	    
-	    //project the resulting link onto su3
-	    su3_unitarize_maximal_trace_projecting(dec1_conf[ire0][A],temp0);
-	    
-	    //communicate borders for future usage
-	    set_borders_invalid(dec1_conf[ire0]);
-	    communicate_lx_su3_edges(dec1_conf[ire0]);
-	  }
+	{
+	  //find the remapped index
+	  int ire0=dec1_remap_index[mu][nu];
+	      
+	  //loop over local volume
+	  nissa_loc_vol_loop(A)
+	    {
+	      //take original link
+	      su3 temp0;
+	      su3_prod_double(temp0,conf[A][mu],1-alpha1);
+	      
+	      //reset the staple
+	      su3 stap;
+	      memset(stap,0,sizeof(su3));
+	      
+	      //loop over the second decoration index
+	      for(int rho=0;rho<4;rho++)
+		if(rho!=mu && rho!=nu)
+		  {
+		    su3 temp1,temp2;
+		    
+		    //find the two remampped indices
+		    int ire1=dec2_remap_index[rho][nu][mu];
+		    int ire2=dec2_remap_index[mu][rho][nu];
+		    
+		    //staple in the positive dir
+		    int B=loclx_neighup[A][rho];
+		    int F=loclx_neighup[A][mu];
+		    unsafe_su3_prod_su3(temp1,dec2_conf[ire1][A],dec2_conf[ire2][B]);
+		    unsafe_su3_prod_su3_dag(temp2,temp1,dec2_conf[ire1][F]);
+		    su3_summ(stap,stap,temp2);
+		    
+		    //staple in the negative dir
+		    int D=loclx_neighdw[A][rho];
+		    int E=loclx_neighup[D][mu];
+		    unsafe_su3_dag_prod_su3(temp1,dec2_conf[ire1][D],dec2_conf[ire2][D]);
+		    unsafe_su3_prod_su3(temp2,temp1,dec2_conf[ire1][E]);
+		    su3_summ(stap,stap,temp2);
+		    
+		    //summ the two staples with appropriate coef
+		    su3_summ_the_prod_double(temp0,stap,alpha1/4);
+		  }
+	      
+	      //project the resulting link onto su3
+	      su3_unitarize_maximal_trace_projecting(dec1_conf[ire0][A],temp0);
+	    }
+	  
+	  //communicate borders for future usage
+	  set_borders_invalid(dec1_conf[ire0]);
+	  communicate_lx_su3_edges(dec1_conf[ire0]);
+	}
   
   //free dec2
   for(int idec2=0;idec2<idec2_remap;idec2++) nissa_free(dec2_conf[idec2]);
