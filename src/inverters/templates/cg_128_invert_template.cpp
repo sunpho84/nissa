@@ -58,7 +58,7 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
       verbosity_lv2_master_printf("\nExternal loop iter %d relative residue: %lg\n\n",ext_iter,current_residue);
       
       // 3) calibrate inner solver stopping condition
-      double inner_solver_residue=max_double(1.e-20,external_solver_residue/current_residue);
+      double inner_solver_residue=max_double(1.e-16,external_solver_residue/current_residue);
       
       // 3) if residue not reached, compute the new approximated solution
       if(current_residue>=external_solver_residue)
