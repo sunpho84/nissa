@@ -223,7 +223,7 @@ void gaussian_smearing(colorspinspin *smear_css,colorspinspin *origi_css,quad_su
 //gaussian smearing on color, obtained promoting to spincolor
 void gaussian_smearing(color *smear_c,color *origi_c,quad_su3 *conf,double kappa,int niter,color *ext_temp=NULL,color *ext_H=NULL)
 {
-  spincolor *temp=nissa_malloc("temp",loc_vol,spincolor);
+  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
   vector_reset(temp);
   
   put_color_into_spincolor(temp,origi_c,0);

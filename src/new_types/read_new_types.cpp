@@ -2,6 +2,8 @@
  #include "config.h"
 #endif
 
+#include <string.h>
+
 #include "new_types_definitions.h"
 #include "../base/debug.h"
 #include "../base/vectors.h"
