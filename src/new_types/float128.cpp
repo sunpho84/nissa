@@ -50,23 +50,20 @@ double double_from_float_128(float_128 b)
 {return b[0]+b[1];}
 
 //128 summ 128
-#ifndef fake_128
 void float_128_summ(float_128 c,float_128 a,float_128 b)
 {
+#ifndef fake_128
   double t1=a[0]+b[0];
   double e=t1-a[0];
   double t2=((b[0]-e)+(a[0]-(t1-e)))+a[1]+b[1];
   
   c[0]=t1+t2;
   c[1]=t2-(c[0]-t1);
-}
 #else
-void float_128_summ(float_128 c,float_128 a,float_128 b)
-{
   c[0]=a[0]+b[0];
   c[1]=0;
-}
 #endif
+}
 void float_128_summassign(float_128 b,float_128 a)
 {float_128_summ(b,b,a);}
 void float_128_subt(float_128 c,float_128 a,float_128 b)
@@ -79,42 +76,36 @@ void float_128_subtassign(float_128 b,float_128 a)
 {float_128_subt(b,b,a);}
 
 //128 summ 64
-#ifndef fake_128
 void float_128_summ_64(float_128 c,float_128 a,double b)
 {
+#ifndef fake_128
   double t1=a[0]+b;
   double e=t1-a[0];
   double t2=((b-e)+(a[0]-(t1-e)))+a[1];
   
   c[0]=t1+t2;
   c[1]=t2-(c[0]-t1);
-}
 #else
-void float_128_summ_64(float_128 c,float_128 a,double b)
-{
   c[0]=a[0]+b;
   c[1]=0;
-}
 #endif
+}
 
 //64 summ 64
-#ifndef fake_128
 void float_128_64_summ_64(float_128 c,double a,double b)
 {
+#ifndef fake_128
   double t1=a+b;
   double e=t1-a;
   double t2=((b-e)+(a-(t1-e)));
   
   c[0]=t1+t2;
   c[1]=t2-(c[0]-t1);
-}
 #else
-void float_128_64_summ_64(float_128 c,double a,double b)
-{
   c[0]=a+b;
   c[1]=0;
-}
 #endif
+}
 void float_128_summassign_64(float_128 b,double a)
 {float_128_summ_64(b,b,a);}
 void float_128_subt_from_64(float_128 c,double a,float_128 b)
@@ -125,9 +116,9 @@ void float_128_subt_from_64(float_128 c,double a,float_128 b)
 }
 
 //128 prod 128
-#ifndef fake_128
 void float_128_prod(float_128 c,float_128 a,float_128 b)
 {
+#ifndef fake_128
   double split=134217729;
   
   double cona=a[0]*split;
@@ -149,14 +140,11 @@ void float_128_prod(float_128 c,float_128 a,float_128 b)
   
   c[0]=t1+t2;
   c[1]=t2-(c[0]-t1);
-}
 #else
-void float_128_prod(float_128 c,float_128 a,float_128 b)
-{
   c[0]=a[0]*b[0];
   c[1]=0;
-}
 #endif
+}
 void float_128_summ_the_prod(float_128 c,float_128 a,float_128 b)
 {
   float_128 d;
@@ -174,9 +162,9 @@ void float_128_summ_the_64_prod(float_128 c,double a,double b)
 {float_128_summassign_64(c,a*b);}
 
 //128 prod 64
-#ifndef fake_128
 void float_128_prod_64(float_128 c,float_128 a,double b)
 {
+#ifndef fake_128
   double split=134217729;
   
   double cona=a[0]*split;
@@ -198,14 +186,11 @@ void float_128_prod_64(float_128 c,float_128 a,double b)
   
   c[0]=t1+t2;
   c[1]=t2-(c[0]-t1);
-}
 #else
-void float_128_prod_64(float_128 c,float_128 a,double b)
-{
   c[0]=a[0]*b;
   c[1]=0;
-}
 #endif
+}
 void float_64_prod_128(float_128 c,double a,float_128 b)
 {float_128_prod_64(c,b,a);}
 void float_summ_the_64_prod_128(float_128 c,double a,float_128 b)

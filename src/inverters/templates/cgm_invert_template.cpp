@@ -16,8 +16,27 @@ extern int ncgm_inv;
   See "cgm_invert_tmQ2.c" as an example.
 */
 
-void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int nshift,int niter_max,double *req_res,basetype *source)
+void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int nshift,int niter_max,double *ext_req_res,basetype *source)
 {
+#ifdef cg_128_invert
+  //used for inner solver in the case of 128 bit precision
+  double inn_req_res[nshift];
+  for(int ishift=0;ishift<nshift;ishift++)
+    if(nissa_use_128_bit_precision)
+      {
+	//limit inner solver precision
+	double max_inner_solver=1.0e-25;
+	if(ext_req_res[ishift]<max_inner_solver)
+	  {
+	    verbosity_lv2_master_printf("changing the inner solver residue for shift %d to %lg\n",ishift,max_inner_solver);
+	    inn_req_res[ishift]=max_inner_solver;
+	  }
+	else inn_req_res[ishift]=ext_req_res[ishift];
+      }
+#else
+  double *inn_req_res=ext_req_res;
+#endif
+	
   ncgm_inv++;
   cgm_inv_over_time-=take_time();
   
@@ -181,7 +200,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 		  verbosity_lv2_master_printf("%1.4e  ",res[ishift]);
 		}
 	      
-	      if(res[ishift]<req_res[ishift])
+	      if(res[ishift]<inn_req_res[ishift])
 		{
 		  run_flag[ishift]=0;
 		  nrun_shift--;
@@ -240,7 +259,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	w_res=w_res/weight;
 	
 	verbosity_lv2_master_printf(" ishift %d, rel residue true=%lg approx=%lg commanded=%lg weighted=%lg max=%lg\n",
-				    ishift,res/source_norm,final_res[ishift],req_res[ishift],w_res,max_res);
+				    ishift,res/source_norm,final_res[ishift],inn_req_res[ishift],w_res,max_res);
       }
     }  
   
@@ -260,7 +279,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
     {
       verbosity_lv1_master_printf("\nRefining the solution in quaduple precision using cg solver\n");
       for(int ishift=0;ishift<nshift;ishift++)
-	cg_128_invert(sol[ishift],sol[ishift],cg_128_additional_parameters_call,shift[ishift],niter_max,5,req_res[ishift],source);
+	cg_128_invert(sol[ishift],sol[ishift],cg_128_additional_parameters_call,shift[ishift],niter_max,5,ext_req_res[ishift],source);
     }
 #endif
 }
