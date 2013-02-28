@@ -119,7 +119,7 @@ void float_128_subt_from_64(float_128 c,double a,float_128 b)
 void float_128_prod(float_128 c,float_128 a,float_128 b)
 {
 #ifndef fake_128
-  double split=134217729;
+  const double split=134217729;
   
   double cona=a[0]*split;
   double conb=b[0]*split;
@@ -165,7 +165,7 @@ void float_128_summ_the_64_prod(float_128 c,double a,double b)
 void float_128_prod_64(float_128 c,float_128 a,double b)
 {
 #ifndef fake_128
-  double split=134217729;
+  const double split=134217729;
   
   double cona=a[0]*split;
   double conb=b*split;

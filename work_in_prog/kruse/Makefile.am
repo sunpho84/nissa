@@ -2,7 +2,7 @@ AUTOMAKE_OPTIONS=subdir-objects
 
 #add where to find the library and tell to link
 AM_LDFLAGS=-L@top_builddir@ -L/Users/francesco/Prace/nissa/
-LDADD=libinterface.a ../../libnissa.a libkruse.a @LIBS@
+LDADD=libinterface.a ../../libnissa.a ../../lib128.a libkruse.a @LIBS@
 
 #target library nissa
 lib_LIBRARIES=libinterface.a libkruse.a

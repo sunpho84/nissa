@@ -63,11 +63,11 @@ int main(int narg,char **arg)
   //read configuration and compute plaquette
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);  
   quad_su3 *eo_conf[2]={nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3),nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3)};
-  read_ildg_gauge_conf(conf,"conf");
-  //vector_reset(conf);
-  //nissa_loc_vol_loop(ivol)
-  //for(int i=0;i<4;i++)
-  //su3_put_to_id(conf[ivol][i]);
+  //read_ildg_gauge_conf(conf,"conf");
+  vector_reset(conf);
+  nissa_loc_vol_loop(ivol)
+    for(int i=0;i<4;i++)
+      su3_put_to_id(conf[ivol][i]);
   
   split_lx_conf_into_eo_parts(eo_conf,conf);
   master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
@@ -102,6 +102,7 @@ int main(int narg,char **arg)
   //convert
   master_printf("starting gauge transfer\n");
   bgq_gaugefield_transferfrom((su3*)conf);
+  master_printf("conf transferred\n");
   
   app(legacy_dest,legacy_temp,legacy_source,ori_source);
   bgq_spinorfield_prepareRead(&(bgq_temp->controlblocks[0]),(tristate)ODD,false,false,false,false,true);

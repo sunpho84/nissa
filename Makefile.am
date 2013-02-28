@@ -11,11 +11,11 @@ endif
 AM_LDFLAGS=-L@top_builddir@
 LDADD=libnissa.a
 
-#add macros
-CXXFLAGS=@CXXFLAGS@ @DEFS@
-
 #target library nissa
 lib_LIBRARIES=libnissa.a
+
+#add macros
+AM_CPPFLAGS=@DEFS@
 
 #headers and files for production of nissa
 nissa_headers=src/base/close.h \
@@ -30,16 +30,16 @@ nissa_headers=src/base/close.h \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ.h \
 	src/dirac_operators/dirac_operator_tmQ_left/dirac_operator_tmQ_left.h \
 	src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h \
-	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_128.h \
-	src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.h \
 	src/dirac_operators/dirac_operator_tmQ/reconstruct_tm_doublet.h \
 	src/dirac_operators/dirac_operator_tmclovQ/reconstruct_tmclov_doublet.h \
-	src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.h \
 	src/dirac_operators/dirac_operator_Wstat/dirac_operator_Wstat.h \
 	src/dirac_operators/dirac_operator_WclovQ/dirac_operator_WclovQ.h \
 	src/dirac_operators/dirac_operator_WclovQ2/dirac_operator_WclovQ2.h \
 	src/dirac_operators/dirac_operator_tmclovQ/dirac_operator_tmclovQ.h \
 	src/dirac_operators/dirac_operator_tmclovQ2/dirac_operator_tmclovQ2.h \
+	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_128.h \
+	src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.h \
+	src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.h \
 	src/geometry/geometry_eo.h \
 	src/geometry/geometry_lx.h \
 	src/geometry/geometry_mix.h \
@@ -58,11 +58,8 @@ nissa_headers=src/base/close.h \
 	src/inverters/twisted_mass/cg_invert_tmDeoimpr.h \
 	src/inverters/twisted_mass/cg_invert_tmQ2.h \
 	src/inverters/twisted_mass/cg_64_invert_tmQ2.h \
-	src/inverters/twisted_mass/cg_128_invert_tmQ2.h \
-	src/inverters/twisted_mass/cg_128_invert_tmQ2.h \
 	src/inverters/twisted_mass/cgm_invert_tmQ2.h \
 	src/inverters/tmclov/cgm_invert_tmclovQ2.h \
-	src/inverters/twisted_mass/cg_128_invert_tmDeoimpr.h \
 	src/inverters/twisted_mass/tm_frontends.h \
 	src/inverters/staggered/cgm_invert_stD2ee_m2.h \
 	src/inverters/staggered/cg_invert_stD2ee_m2.h \
@@ -73,6 +70,9 @@ nissa_headers=src/base/close.h \
 	src/inverters/Wclov/cg_invert_WclovQ2.h \
 	src/inverters/tmclov/cg_invert_tmclovQ.h \
 	src/inverters/tmclov/cg_invert_tmclovQ2.h \
+	src/inverters/twisted_mass/cg_128_invert_tmQ2.h \
+	src/inverters/twisted_mass/cg_128_invert_tmQ2.h \
+	src/inverters/twisted_mass/cg_128_invert_tmDeoimpr.h \
 	src/IO/checksum.h \
 	src/IO/endianess.h \
 	src/IO/ILDG_File.h \
@@ -80,6 +80,7 @@ nissa_headers=src/base/close.h \
 	src/IO/reader.h \
 	src/IO/writer.h \
 	src/linalgs/linalgs.h \
+	src/linalgs/linalgs128.h \
 	src/new_types/complex.h \
 	src/new_types/dirac.h \
 	src/new_types/float128.h \
@@ -122,16 +123,16 @@ nissa_source_files=src/base/close.cpp \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ.cpp \
 	src/dirac_operators/dirac_operator_tmQ_left/dirac_operator_tmQ_left.cpp \
 	src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.cpp \
-	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_128.cpp \
-	src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.cpp \
 	src/dirac_operators/dirac_operator_tmQ/reconstruct_tm_doublet.cpp \
 	src/dirac_operators/dirac_operator_tmclovQ/reconstruct_tmclov_doublet.cpp \
-	src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.cpp \
 	src/dirac_operators/dirac_operator_Wstat/dirac_operator_Wstat.cpp \
 	src/dirac_operators/dirac_operator_WclovQ/dirac_operator_WclovQ.cpp \
 	src/dirac_operators/dirac_operator_WclovQ2/dirac_operator_WclovQ2.cpp \
 	src/dirac_operators/dirac_operator_tmclovQ/dirac_operator_tmclovQ.cpp \
 	src/dirac_operators/dirac_operator_tmclovQ2/dirac_operator_tmclovQ2.cpp \
+	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_128.cpp \
+	src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.cpp \
+	src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.cpp \
 	src/geometry/geometry_eo.cpp \
 	src/geometry/geometry_lx.cpp \
 	src/geometry/geometry_mix.cpp \
@@ -150,11 +151,8 @@ nissa_source_files=src/base/close.cpp \
 	src/inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
 	src/inverters/twisted_mass/cg_invert_tmQ2.cpp \
 	src/inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
-	src/inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
-	src/inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
 	src/inverters/twisted_mass/cgm_invert_tmQ2.cpp \
 	src/inverters/tmclov/cgm_invert_tmclovQ2.cpp \
-	src/inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
 	src/inverters/twisted_mass/tm_frontends.cpp \
 	src/inverters/staggered/cgm_invert_stD2ee_m2.cpp \
 	src/inverters/staggered/cg_invert_stD2ee_m2.cpp \
@@ -165,6 +163,9 @@ nissa_source_files=src/base/close.cpp \
 	src/inverters/Wclov/cg_invert_WclovQ2.cpp \
 	src/inverters/tmclov/cg_invert_tmclovQ.cpp \
 	src/inverters/tmclov/cg_invert_tmclovQ2.cpp \
+	src/inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
+	src/inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
+	src/inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
 	src/IO/checksum.cpp \
 	src/IO/endianess.cpp \
 	src/IO/ILDG_File.cpp \
@@ -172,6 +173,7 @@ nissa_source_files=src/base/close.cpp \
 	src/IO/reader.cpp \
 	src/IO/writer.cpp \
 	src/linalgs/linalgs.cpp \
+	src/linalgs/linalgs128.cpp \
 	src/new_types/complex.cpp \
 	src/new_types/dirac.cpp \
 	src/new_types/float128.cpp \
