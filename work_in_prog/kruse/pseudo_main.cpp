@@ -60,15 +60,21 @@ int main(int narg,char **arg)
   
   //////////////////////////////////
   
+  start_loc_rnd_gen(1234);
+  
   //read configuration and compute plaquette
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);  
   quad_su3 *eo_conf[2]={nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3),nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3)};
-  //read_ildg_gauge_conf(conf,"conf");
+  
+  read_ildg_gauge_conf(conf,"conf");
+  
+  /*
   vector_reset(conf);
   nissa_loc_vol_loop(ivol)
     for(int i=0;i<4;i++)
-      su3_put_to_id(conf[ivol][i]);
-  
+      su3_put_to_rnd(conf[ivol][i],loc_rnd_gen[ivol]);
+  */
+
   split_lx_conf_into_eo_parts(eo_conf,conf);
   master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
   
@@ -94,9 +100,9 @@ int main(int narg,char **arg)
   for(int mu=0;mu<4;mu++)
     {
       int ip=loceo_neighup[ODD][0][mu];
-      master_printf("leg %d ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
+      master_printf("leg u%d ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
       ip=loceo_neighdw[ODD][0][mu];
-      master_printf("leg %d, ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
+      master_printf("leg d%d ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
     }
   
   //convert
@@ -111,9 +117,9 @@ int main(int narg,char **arg)
   for(int mu=0;mu<4;mu++)
     {
       int ip=loceo_neighup[ODD][0][mu];
-      master_printf("new %d ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
+      master_printf("new u%d ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
       ip=loceo_neighdw[ODD][0][mu];
-      master_printf("new %d ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
+      master_printf("new d%d ip %d %lg\n",mu,ip,legacy_dest[ip][0][0][0]);
     }
   
   //////////////////////////////////

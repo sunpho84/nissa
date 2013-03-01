@@ -257,7 +257,7 @@ void spi_start_comm(spi_comm_t &in)
   spi_comm_wait(in);
   in.comm_in_prog=1;
   
-  //reset the counter and wait thar all have resetted
+  //reset the counter and wait thar all have reset
   in.recv_counter=in.buf_size;
   spi_global_barrier();
   
@@ -266,7 +266,7 @@ void spi_start_comm(spi_comm_t &in)
     {
       verbosity_lv3_master_printf("Injecting %d\n",idir);
       spi_desc_count[idir]=MUSPI_InjFifoInject(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),&in.descriptors[idir]);
-      if(spi_desc_count[idir]==-1) crash("msg_InjFifoInject failed, most likely because there is no room in the fifo");
+      if(spi_desc_count[idir]!=1) crash("msg_InjFifoInject returned %llu when expecting 1, most likely because there is no room in the fifo",spi_desc_count[idir]);
     }
 }
 
