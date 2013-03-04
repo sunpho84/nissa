@@ -116,7 +116,9 @@ ILDG_File ILDG_File_open_for_write(const char *path)
 //close an open file
 void ILDG_File_close(ILDG_File &file)
 {
+  MPI_Barrier(MPI_COMM_WORLD);
   decript_MPI_error(MPI_File_close(&file),"while closing file");
+  MPI_Barrier(MPI_COMM_WORLD);
   
   file=NULL;
 }
