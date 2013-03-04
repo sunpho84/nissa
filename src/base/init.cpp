@@ -169,6 +169,8 @@ int compute_border_variance(int *L,int *X,int consider_reciprocal)
 //find the grid minimizing the surface
 void find_minimal_surface_grid(int *mP,int *L,int NP)
 {
+  int something_found=1;
+  
   ////////////////////////////// set all the bounds ///////////////////////////////////
   
   int check_all_dir_parallelized=0;
@@ -176,7 +178,6 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 #ifdef BGQ
   check_all_dir_parallelized=1;
 #endif
-  
   
   /////////////////////////////////// basic checks ///////////////////////////////////
   
@@ -190,7 +191,6 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
   
   //check that the global lattice is a multiple of the number of ranks
   if(glb_vol%nissa_nranks) crash("global volume must be a multiple of ranks number");
-  
   
   //////////////////// find the partitioning which minmize the surface /////////////////////
   
@@ -288,6 +288,7 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 		  minsurfVL=surfVL;
 		  for(int mu=0;mu<4;mu++)
 		    mP[mu]=consider_reciprocal ? X[mu] : L[mu]/X[mu];
+		  something_found=1;
 		}
 	      
 	      icomboX++;
@@ -296,6 +297,8 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	}
       while(icomboX<ncomboX);
     }
+  
+  if(!something_found) crash("no valid partitioning found");
 }
 
 //initialize MPI grid
