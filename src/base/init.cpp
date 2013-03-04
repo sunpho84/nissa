@@ -21,11 +21,13 @@
 #include "../routines/ios.h"
 #include "../routines/math.h"
 #include "../routines/mpi.h"
+#include "../routines/openmp.h"
 
 #ifdef BGQ
  #include "../bgq/spi.h"
 #endif
 
+//init nissa
 void init_nissa(int narg,char **arg)
 {
   //init base things
@@ -45,10 +47,6 @@ void init_nissa(int narg,char **arg)
   
   //print the version
   master_printf("Initializing nissa, version: %s.\n",SVN_VERS);
-  
-#pragma omp parallel
-#pragma omp single
-  master_printf("MP threads: %d\n",omp_get_num_threads());
   
   //128 bit float
   MPI_Type_contiguous(2,MPI_DOUBLE,&MPI_FLOAT_128);
@@ -342,15 +340,18 @@ void init_grid(int T,int L)
   //check that lattice is commensurable with the grid
   //and check wether the idir dir is parallelized or not
   int ok=(glb_vol%nissa_nranks==0);
+  if(!ok) crash("The lattice is incommensurable with the total ranks amount!");
   for(int idir=0;idir<4;idir++)
     {
       ok=ok && (nrank_dir[idir]>0);
+      if(!ok) crash("dir nranks[%d]: %d",idir,nrank_dir[idir]);
       ok=ok && (glb_size[idir]%nrank_dir[idir]==0);
+      if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",idir,idir,glb_size[idir]%nrank_dir[idir]);
       paral_dir[idir]=(nrank_dir[idir]>1);
       nparal_dir+=paral_dir[idir];
     }
-  if(!ok) crash("The lattice is incommensurable with the total ranks amount!");
-  else master_printf("Creating grid:\t%dx%dx%dx%d\n",nrank_dir[0],nrank_dir[1],nrank_dir[2],nrank_dir[3]);  
+
+  master_printf("Creating grid:\t%dx%dx%dx%d\n",nrank_dir[0],nrank_dir[1],nrank_dir[2],nrank_dir[3]);  
   
   //creates the grid
   int periods[4]={1,1,1,1};
