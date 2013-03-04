@@ -1,4 +1,9 @@
-#include "nissa.h"
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+
+#include "common_tools.cpp"
 
 int read_size;
 double *data=NULL,*ave_data=NULL;
@@ -77,6 +82,7 @@ void average(char *read_line)
   //get outpath
   char outpath[1024];
   if(read_next(outpath,read_line)<0) crash("reading output path");
+  printf("outpath: %s\n",outpath);
   
   //allocated size
   int allo_size;
@@ -90,14 +96,15 @@ void average(char *read_line)
 	{
 	  //get file size
 	  read_size=get_file_ndouble(inpath);
+	  printf("Adding %s\n",inpath);
 	  
 	  //if first file
 	  if(nin==0)
 	    {
 	      allo_size=read_size;
 	      //allocate data
-	      data=nissa_malloc("data",allo_size,double);
-	      ave_data=nissa_malloc("ave_data",allo_size,double);
+	      data=(double*)malloc(allo_size*sizeof(double));
+	      ave_data=(double*)malloc(allo_size*sizeof(double));
 	      memset(ave_data,0,sizeof(double)*allo_size);
 	    }
 	  else
@@ -106,28 +113,29 @@ void average(char *read_line)
 	  
 	  //read the file and summ it
 	  read_file(inpath);
+	  nin++;
 	}
       else if(nin==0) crash("while reading first inpath");
-      nin++;
     }
   while(read_line!=NULL);
   
   //average
+  printf("Averaging %d file\n",nin);
   for(int i=0;i<read_size;i++) ave_data[i]/=nin;
   
   //write file
   write_file(outpath);
   
-  nissa_free(data);
-  nissa_free(ave_data);
+  free(data);
+  free(ave_data);
 }
 
 int main(int narg,char **arg)
 {
-  init_nissa();
-  
   if(narg<2) crash("use %s file",arg[0]);
 
+  check_endianess();
+  
   //Open input
   FILE *finput;
   if(arg[1][0]=='-') finput=stdin;
@@ -141,8 +149,6 @@ int main(int narg,char **arg)
       int len=strlen(read_line);
       if(len>1) average(read_line);
     }
-  
-  close_nissa();
   
   return 0;
 }
