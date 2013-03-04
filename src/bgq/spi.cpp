@@ -242,7 +242,9 @@ void spi_comm_wait(spi_comm_t &in)
 	  for(int idir=0;idir<8;idir++)
 	    in.comm_in_prog|=!MUSPI_CheckDescComplete(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),spi_desc_count[idir]);
 	}
-
+      
+      spi_global_barrier();
+      
       //wait to receive everything
       verbosity_lv3_master_printf("Waiting to finish receiving data with spi\n");
       while(in.recv_counter>0) verbosity_lv3_master_printf("%d/%d bytes remaining to be received\n",in.recv_counter,in.buf_size);  
@@ -257,7 +259,8 @@ void spi_start_comm(spi_comm_t &in)
   spi_comm_wait(in);
   in.comm_in_prog=1;
   
-  //reset the counter and wait thar all have reset
+  //reset the counter and wait that all have reset
+  spi_global_barrier();
   in.recv_counter=in.buf_size;
   spi_global_barrier();
   
@@ -266,7 +269,7 @@ void spi_start_comm(spi_comm_t &in)
     {
       verbosity_lv3_master_printf("Injecting %d\n",idir);
       spi_desc_count[idir]=MUSPI_InjFifoInject(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),&in.descriptors[idir]);
-      if(spi_desc_count[idir]!=1) crash("msg_InjFifoInject returned %llu when expecting 1, most likely because there is no room in the fifo",spi_desc_count[idir]);
+      if(spi_desc_count[idir]>(1ll<<57)) crash("msg_InjFifoInject returned %llu when expecting 1, most likely because there is no room in the fifo",spi_desc_count[idir]);
     }
 }
 

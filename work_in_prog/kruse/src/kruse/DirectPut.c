@@ -442,7 +442,7 @@ int msg_InjFifoInit ( msg_InjFifoHandle_t *injFifoHandlePtr,
 MUSPI_GIBarrier_t GIBarrier;
 void global_barrier() {
   int rc = 0;
-  uint64_t timeoutCycles = 60UL * 1600000000UL; // about 60 sec at 1.6 ghz
+  uint64_t timeoutCycles = 10UL * 1600000000UL; // about 60 sec at 1.6 ghz
   rc = MUSPI_GIBarrierEnter ( &GIBarrier );
   if (rc) {
     printf("MUSPI_GIBarrierEnter failed returned rc = %d\n", rc);

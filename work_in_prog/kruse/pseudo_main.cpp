@@ -51,7 +51,7 @@ void init(int narg,char **arg)
   init_grid(time,space);
   
   //init interface
-  init_interface();
+  //init_interface();
 }
 
 int main(int narg,char **arg)
@@ -66,6 +66,8 @@ int main(int narg,char **arg)
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);  
   quad_su3 *eo_conf[2]={nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3),nissa_malloc("conf_e",loc_volh+bord_volh,quad_su3)};
   
+  init_interface();
+
   read_ildg_gauge_conf(conf,"conf");
   
   /*
@@ -113,6 +115,8 @@ int main(int narg,char **arg)
   app(legacy_dest,legacy_temp,legacy_source,ori_source);
   bgq_spinorfield_prepareRead(&(bgq_temp->controlblocks[0]),(tristate)ODD,false,false,false,false,true);
   bgq_spinorfield_prepareRead(&(bgq_dest->controlblocks[0]),(tristate)EVN,false,false,false,false,true);
+  
+  
   
   for(int mu=0;mu<4;mu++)
     {
