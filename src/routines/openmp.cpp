@@ -32,14 +32,14 @@ void thread_pool()
 }
 
 //execute a function using all threads
-void threaded_function(void(*function))
+void threaded_function_exec(void(*function)(void))
 {
   //set external function pointer and release threads
   threaded_function_ptr=function;
   thread_barrier();
   
   //execute the function
-  threaded_function();
+  threaded_function_ptr();
 }
 
 //delete the thread pool

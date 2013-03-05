@@ -126,6 +126,11 @@ EXTERN coords rank_neigh[2],rank_neighdw,rank_neighup;
 EXTERN coords plan_rank,line_rank,line_coord_rank;
 EXTERN int nissa_grid_inited;
 
+//thread
+EXTERN int thread_id,thread_stay_in_pool;
+#pragma omp threadprivate(thread_id)
+EXTERN void(*threaded_function_ptr)(void);
+
 //endianess
 EXTERN int little_endian;
 
