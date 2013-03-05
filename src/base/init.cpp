@@ -232,6 +232,7 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
       int minsurfVL=-1;
       mP[0]=mP[1]=mP[2]=mP[3]=-1;
       int icomboX=0;
+      
       do
 	{
 	  //find the partioning of P corresponding to combo ic
@@ -252,8 +253,8 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	  //check that all directions have at least 2 nodes
 	  if(check_all_dir_parallelized)
 	    if(valid_partitioning)
-	      for(int mu=0;mu<4;mu++)
-		valid_partitioning&=consider_reciprocal?(X[mu]>=2):(X[mu]/L[mu]>=2);
+		for(int mu=0;mu<4;mu++)
+		  valid_partitioning&=consider_reciprocal ? (X[mu]/L[mu]>=2) : (X[mu]>=2);
 	  
 	  //if it is a valid partitioning
 	  if(valid_partitioning)
