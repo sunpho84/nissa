@@ -10,6 +10,7 @@
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/su3.h"
 #include "../routines/ios.h"
+#include "../routines/openmp.h"
 
 //set the eo geometry
 void set_eo_geometry()
@@ -259,10 +260,8 @@ void unset_eo_geometry()
 }
 
 //add or remove staggered phases to/from a conf
-void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
+THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_eo_conf, quad_su3**,eo_conf)
 {
-  if(!nissa_eo_geom_inited) set_eo_geometry();
-  
   //work also on borders and edges if allocated and valid
   int ending=loc_volh;
   if(check_borders_allocated(eo_conf[0]) && check_borders_allocated(eo_conf[1]) && check_borders_valid(eo_conf[0]) && check_borders_valid(eo_conf[1])) ending+=bord_volh;
@@ -270,7 +269,7 @@ void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
   
   for(int par=0;par<2;par++)
     {
-      for(int ivol_eo=0;ivol_eo<ending;ivol_eo++)
+      NISSA_PARALLEL_LOOP(ivol_eo,ending)
 	{
 	  int ivol_lx=loclx_of_loceo[par][ivol_eo];
 	  
@@ -295,9 +294,11 @@ void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf)
 	  if(d%2==1) su3_prod_double(eo_conf[par][ivol_eo][0],eo_conf[par][ivol_eo][0],-1);
 	}
       if(ending<loc_volh+bord_volh) set_borders_invalid(eo_conf[par]);
-      else if(ending<loc_volh+bord_volh+edge_volh) set_edges_invalid(eo_conf[par]);
+      else
+	if(ending<loc_volh+bord_volh+edge_volh) set_edges_invalid(eo_conf[par]);
+	else thread_barrier(ADDREM_STAGPHASES_BARRIER);
     }
-}
+}}
 
 //filter the points retaining only those having all the coord even
 void filter_hypercube_origin_sites(color **vec)

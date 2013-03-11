@@ -2,21 +2,18 @@
  #include "config.h"
 #endif
 
-#include <omp.h>
+#include "../../base/openmp_macros.h"
+#include "../../routines/openmp.h"
 
 double app_time=0;
 int napp=0;
 
-void apply_st2Doe(color *out,quad_su3 **conf,color *in)
+THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, quad_su3**,conf, color*,in)
 {
-#pragma omp single
-  {
-    communicate_eo_quad_su3_borders(conf);
-    communicate_ev_color_borders(in);
-  }
+  communicate_eo_quad_su3_borders(conf);
+  communicate_ev_color_borders(in);
   
-#pragma omp for
-  nissa_loc_volh_loop(io)
+  NISSA_PARALLEL_LOOP(io,loc_volh)
     {
       //neighbours search
       int evup0=loceo_neighup[ODD][io][0];
@@ -37,33 +34,29 @@ void apply_st2Doe(color *out,quad_su3 **conf,color *in)
 	}
     }
   
-#pragma omp single
   set_borders_invalid(out);
-}
+}}
 
 //put the 0.5 factor
-void apply_stDoe(color *out,quad_su3 **conf,color *in)
+THREADABLE_FUNCTION_3ARG(apply_stDoe, color*,out, quad_su3**,conf, color*,in)
 {
   apply_st2Doe(out,conf,in);
   
-#pragma omp for
-  nissa_loc_volh_loop(io)
+  NISSA_PARALLEL_LOOP(io,loc_volh)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	out[io][ic][ri]*=0.5;
-}
+  
+  set_borders_invalid(out);
+}}
 
 //multiply also for an additional 1/2
-void apply_stDeo_half(color *out,quad_su3 **conf,color *in)
+THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,in)
 {
-#pragma omp single
-  {
-    communicate_eo_quad_su3_borders(conf);
-    communicate_od_color_borders(in);
-  }
+  communicate_eo_quad_su3_borders(conf);
+  communicate_od_color_borders(in);
 
-#pragma omp for
-  nissa_loc_volh_loop(ie)
+  NISSA_PARALLEL_LOOP(ie,loc_volh)
     {
       int odup0=loceo_neighup[EVN][ie][0];
       int oddw0=loceo_neighdw[EVN][ie][0];
@@ -83,29 +76,28 @@ void apply_stDeo_half(color *out,quad_su3 **conf,color *in)
       color_prod_double(out[ie],out[ie],0.25);      
     }
   
-#pragma omp single
   set_borders_invalid(out);
-}
+}}
 
-void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
+#include <unistd.h>
+
+THREADABLE_FUNCTION_5ARG(apply_stD2ee, color*,out, quad_su3**,conf, color*,temp, double,mass, color*,in)
 {
   const double mass2=mass*mass;
   
-#pragma omp single
-  {
-    app_time-=take_time();
-    //check arguments
-    if(out==in)   crash("out==in!");
-    if(out==temp) crash("out==temp!");
-    if(temp==in)  crash("temp==in!");
-    
-    communicate_eo_quad_su3_borders(conf);
-    
-    communicate_ev_color_borders(in);
-  }
+  if(IS_MASTER_THREAD)
+    {
+      app_time-=take_time();
+      //check arguments
+      if(out==in)   crash("out==in!");
+      if(out==temp) crash("out==temp!");
+      if(temp==in)  crash("temp==in!");
+    }
   
-#pragma omp for
-  nissa_loc_volh_loop(io)
+  communicate_eo_quad_su3_borders(conf);
+  communicate_ev_color_borders(in);
+  
+  NISSA_PARALLEL_LOOP(io,loc_volh)
     {
       //neighbours search
       int evup0=loceo_neighup[ODD][io][0];
@@ -126,14 +118,10 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
 	}
     }
   
-#pragma omp single
-  {
-    set_borders_invalid(temp);
-    communicate_od_color_borders(temp);
-  }
+  set_borders_invalid(temp);
+  communicate_od_color_borders(temp);
 
-#pragma omp for
-  nissa_loc_volh_loop(ie)
+  NISSA_PARALLEL_LOOP(ie,loc_volh)
     {
       int odup0=loceo_neighup[EVN][ie][0];
       int oddw0=loceo_neighdw[EVN][ie][0];
@@ -155,11 +143,11 @@ void apply_stD2ee(color *out,quad_su3 **conf,color *temp,double mass,color *in)
 	  out[ie][ic][ri]=mass2*in[ie][ic][ri]+out[ie][ic][ri]*0.25;
     }
   
-#pragma omp single
-  {
-    set_borders_invalid(out);
-    
-    app_time+=take_time();
-    napp++;
-  }
-}
+  set_borders_invalid(out);
+      
+  if(IS_MASTER_THREAD)
+    {
+      app_time+=take_time();
+      napp++;
+    }
+}}

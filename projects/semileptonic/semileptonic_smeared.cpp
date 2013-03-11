@@ -677,7 +677,7 @@ void calculate_S0(int ism_lev_so)
 	    get_spincolor_from_colorspinspin(source,original_source,id);
 #endif
 	    //add gamma5 apart if using cg or tm 
-	    if(!Wclov_tm||use_cgm_S0||(Wclov_tm&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma[5],source);
+	    if(!Wclov_tm||use_cgm_S0||(Wclov_tm&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma+5,source);
 	    
 	    //if needed apply nabla
 	    if(muS>0)
@@ -814,10 +814,10 @@ void calculate_S1(int ispec,int ism_lev_se)
 #else
 	get_spincolor_from_colorspinspin(source,sequential_source,id);
 #endif
-	safe_dirac_prod_spincolor(source,base_gamma[5],source);
+	safe_dirac_prod_spincolor(source,base_gamma+5,source);
 	
 	//if inverting Q
-	if(!Wclov_tm||use_cgm_S1||(Wclov_tm&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma[5],source); 
+	if(!Wclov_tm||use_cgm_S1||(Wclov_tm&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma+5,source); 
 	
 	for(int itheta=0;itheta<nthetaS1;itheta++)
 	  {

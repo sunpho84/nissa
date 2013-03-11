@@ -5,6 +5,13 @@
 
 #define SVN_VERS ""
 
+//argument contactenation and naming
+#define _CONCAT(X,Y) X##Y
+#define CONCAT(X,Y) _CONCAT(X,Y)
+#define CONCAT2(s1,s2) CONCAT(s1,s2)
+#define CONCAT3(s1,s2,s3) CONCAT(CONCAT2(s1,s2),s3)
+#define NAME2(s1,s2) CONCAT3(s1,_,s2)
+
 //vectors parameters
 #define nissa_vect_string_length 20
 #define nissa_vect_alignment 16
@@ -28,6 +35,17 @@
 //real/imag
 #define RE 0
 #define IM 1
+
+//barriers
+#define LOCK_POOL_BARRIER 1
+#define UNLOCK_POOL_BARRIER 2
+#define SET_VEC_FLAG_BARRIER 3
+#define UNSET_VEC_FLAG_BARRIER 4
+#define ADDREM_STAGPHASES_BARRIER 5
+#define DOUBLE_REDUCE_FIRST_BARRIER 6
+#define DOUBLE_REDUCE_SECOND_BARRIER 7
+#define INTERNAL_NISSA_MALLOC_BARRIER 8
+#define INTERNAL_NISSA_FREE_BARRIER 9
 
 //hmc
 #define SEA_THEORY 0

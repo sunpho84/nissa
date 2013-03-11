@@ -80,7 +80,6 @@ nissa_headers=src/base/close.h \
 	src/IO/reader.h \
 	src/IO/writer.h \
 	src/linalgs/linalgs.h \
-	src/linalgs/linalgs128.h \
 	src/new_types/complex.h \
 	src/new_types/dirac.h \
 	src/new_types/float128.h \
@@ -174,7 +173,6 @@ nissa_source_files=src/base/close.cpp \
 	src/IO/reader.cpp \
 	src/IO/writer.cpp \
 	src/linalgs/linalgs.cpp \
-	src/linalgs/linalgs128.cpp \
 	src/new_types/complex.cpp \
 	src/new_types/dirac.cpp \
 	src/new_types/float128.cpp \

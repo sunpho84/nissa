@@ -198,7 +198,7 @@ double global_plaquette_eo_conf_edges(quad_su3 **conf)
 //compute the staples along a particular dir, for a single site
 void compute_point_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
 {
-  communicate_eo_quad_su3_edges(eo_conf);
+  if(!check_borders_valid(eo_conf[0])||!check_borders_valid(eo_conf[1])) crash("communicate border externally");
   
   su3_put_to_zero(staple);
   

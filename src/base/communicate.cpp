@@ -11,6 +11,7 @@
 #include "../geometry/geometry_lx.h"
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
+#include "../routines/openmp.h"
 
 #ifdef BGQ
  #include "../bgq/spi.h"
@@ -57,41 +58,48 @@ void start_communicating_lx_borders(int &nrequest,MPI_Request *request,char *dat
 {
   int imessage=654325;
   nrequest=0;
-  
-  crash_if_borders_not_allocated(data);  
-  
-  if(!check_borders_valid(data))
+      
+  if(IS_MASTER_THREAD)
     {
-      verbosity_lv3_master_printf("Start communicating borders of %s\n",get_vec_name((void*)data));
-      for(int mu=0;mu<4;mu++)
-	if(paral_dir[mu]!=0)
-	  {
-	    //sending the upper border to the lower node
-	    MPI_Irecv(data+start_lx_bord_rece_up[mu]*nbytes_per_site,1,MPI_BORDS_RECE[mu],rank_neighup[mu],imessage,cart_comm,request+(nrequest++));
-	    MPI_Isend(data+start_lx_bord_send_up[mu]*nbytes_per_site,1,MPI_BORDS_SEND[mu],rank_neighdw[mu],imessage++,cart_comm,request+(nrequest++));
-	    
-	    //sending the lower border to the upper node
-	    MPI_Irecv(data+start_lx_bord_rece_dw[mu]*nbytes_per_site,1,MPI_BORDS_RECE[mu],rank_neighdw[mu],imessage,cart_comm,request+(nrequest++));
-	    MPI_Isend(data+start_lx_bord_send_dw[mu]*nbytes_per_site,1,MPI_BORDS_SEND[mu],rank_neighup[mu],imessage++,cart_comm,request+(nrequest++));
-	  }
+      crash_if_borders_not_allocated(data);  
+      
+      if(!check_borders_valid(data))
+	{
+	  verbosity_lv3_master_printf("Start communicating borders of %s\n",get_vec_name((void*)data));
+	  for(int mu=0;mu<4;mu++)
+	    if(paral_dir[mu]!=0)
+	      {
+		//sending the upper border to the lower node
+		MPI_Irecv(data+start_lx_bord_rece_up[mu]*nbytes_per_site,1,MPI_BORDS_RECE[mu],rank_neighup[mu],imessage,cart_comm,request+(nrequest++));
+		MPI_Isend(data+start_lx_bord_send_up[mu]*nbytes_per_site,1,MPI_BORDS_SEND[mu],rank_neighdw[mu],imessage++,cart_comm,request+(nrequest++));
+		
+		//sending the lower border to the upper node
+		MPI_Irecv(data+start_lx_bord_rece_dw[mu]*nbytes_per_site,1,MPI_BORDS_RECE[mu],rank_neighdw[mu],imessage,cart_comm,request+(nrequest++));
+		MPI_Isend(data+start_lx_bord_send_dw[mu]*nbytes_per_site,1,MPI_BORDS_SEND[mu],rank_neighup[mu],imessage++,cart_comm,request+(nrequest++));
+	      }
+	}
     }
 }
 
 //wait to finish communications
 void finish_communicating_lx_borders(int &nrequest,MPI_Request *request,char *data)
 {
-  tot_nissa_comm_time-=take_time();
-  if(nrequest>0)
+  if(IS_MASTER_THREAD)
     {
-      verbosity_lv3_master_printf("Waiting to finish %d communication of borders of vector %s\n",nrequest,get_vec_name(data));
-      MPI_Status status[nrequest];
-      MPI_Waitall(nrequest,request,status);
-      nrequest=0;
+      tot_nissa_comm_time-=take_time();
+      if(nrequest>0)
+	{
+	  verbosity_lv3_master_printf("Waiting to finish %d communication of borders of vector %s\n",nrequest,get_vec_name(data));
+	  MPI_Status status[nrequest];
+	  MPI_Waitall(nrequest,request,status);
+	  nrequest=0;
+	}
+      tot_nissa_comm_time+=take_time();
     }
+  
+  //this are collective operations and automatically syncs
   set_borders_valid(data);
   set_edges_invalid(data);
-  
-  tot_nissa_comm_time+=take_time();
 }
 
 void communicate_lx_borders(char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site)
@@ -128,54 +136,57 @@ void communicate_lx_edges(char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *
   
   if(!check_edges_valid(data))
     {
-      int nrequest=0;
-      MPI_Request request[48];
-      MPI_Status status[48];
-      int send,rece;
-      int imessage=4532543;
-      int x[4]={0,0,0,0};
-      
-      for(int idir=0;idir<4;idir++)
-	for(int jdir=idir+1;jdir<4;jdir++)
-	  if(paral_dir[idir] && paral_dir[jdir])
-	    {
-	      int iedge=edge_numb[idir][jdir];
-	      int pos_edge_offset;
-	      
-	      //take the starting point of the border
-	      x[jdir]=loc_size[jdir]-1;
-	      pos_edge_offset=bordlx_of_coord(x,idir);
-	      x[jdir]=0;
-	      
-	      //Send the i-j- internal edge to the j- rank as i-j+ external edge
-	      send=(loc_vol+bord_offset[idir])*nbytes_per_site;
-	      rece=(loc_vol+bord_vol+edge_offset[iedge]+edge_vol/4)*nbytes_per_site;
-	      MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
-	      MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
-	      
-	      //Send the i-j+ internal edge to the j+ rank as i-j- external edge
-	      send=(loc_vol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
-	      rece=(loc_vol+bord_vol+edge_offset[iedge])*nbytes_per_site;
-	      MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
-	      MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
-	      
-	      //Send the i+j- internal edge to the j- rank as i+j+ external edge
-	      send=(loc_vol+bord_offset[idir]+bord_vol/2)*nbytes_per_site;
-	      rece=(loc_vol+bord_vol+edge_offset[iedge]+3*edge_vol/4)*nbytes_per_site;
-	      MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
-	      MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
-	      
-	      //Send the i+j+ internal edge to the j+ rank as i+j- external edge
-	      send=(loc_vol+bord_offset[idir]+bord_vol/2+pos_edge_offset)*nbytes_per_site;
-	      rece=(loc_vol+bord_vol+edge_offset[iedge]+edge_vol/2)*nbytes_per_site;
-	      MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
-	      MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
-	      imessage++;
-	    }
-      
-      if(nrequest>0) MPI_Waitall(nrequest,request,status);
+      if(IS_MASTER_THREAD)
+	{
+	  int nrequest=0;
+	  MPI_Request request[48];
+	  MPI_Status status[48];
+	  int send,rece;
+	  int imessage=4532543;
+	  int x[4]={0,0,0,0};
+	  
+	  for(int idir=0;idir<4;idir++)
+	    for(int jdir=idir+1;jdir<4;jdir++)
+	      if(paral_dir[idir] && paral_dir[jdir])
+		{
+		  int iedge=edge_numb[idir][jdir];
+		  int pos_edge_offset;
+		  
+		  //take the starting point of the border
+		  x[jdir]=loc_size[jdir]-1;
+		  pos_edge_offset=bordlx_of_coord(x,idir);
+		  x[jdir]=0;
+		  
+		  //Send the i-j- internal edge to the j- rank as i-j+ external edge
+		  send=(loc_vol+bord_offset[idir])*nbytes_per_site;
+		  rece=(loc_vol+bord_vol+edge_offset[iedge]+edge_vol/4)*nbytes_per_site;
+		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
+		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
+		  
+		  //Send the i-j+ internal edge to the j+ rank as i-j- external edge
+		  send=(loc_vol+bord_offset[idir]+pos_edge_offset)*nbytes_per_site;
+		  rece=(loc_vol+bord_vol+edge_offset[iedge])*nbytes_per_site;
+		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
+		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
+		  
+		  //Send the i+j- internal edge to the j- rank as i+j+ external edge
+		  send=(loc_vol+bord_offset[idir]+bord_vol/2)*nbytes_per_site;
+		  rece=(loc_vol+bord_vol+edge_offset[iedge]+3*edge_vol/4)*nbytes_per_site;
+		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighup[jdir],imessage,cart_comm,request+(nrequest++));
+		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighdw[jdir],imessage++,cart_comm,request+(nrequest++));
+		  
+		  //Send the i+j+ internal edge to the j+ rank as i+j- external edge
+		  send=(loc_vol+bord_offset[idir]+bord_vol/2+pos_edge_offset)*nbytes_per_site;
+		  rece=(loc_vol+bord_vol+edge_offset[iedge]+edge_vol/2)*nbytes_per_site;
+		  MPI_Irecv(data+rece,1,MPI_EDGES_RECE[iedge],rank_neighdw[jdir],imessage,cart_comm,request+(nrequest++));
+		  MPI_Isend(data+send,1,MPI_EDGES_SEND[iedge],rank_neighup[jdir],imessage++,cart_comm,request+(nrequest++));
+		  imessage++;
+		}
+	  
+	  if(nrequest>0) MPI_Waitall(nrequest,request,status);
+	} //end IS_MASTER_THREAD
       set_edges_valid(data);
-    }  
+    }
 }
 
 //Useful for gauge fixing and hyp
@@ -242,17 +253,19 @@ void finish_communicating_lx_spincolor_borders(int &nrequest,MPI_Request *reques
 
 void finish_communicating_ev_borders(int &nrequest,MPI_Request *request,char *ev_data)
 {
-  tot_nissa_comm_time-=take_time();
-  if(nrequest>0)
-    {
-      verbosity_lv3_master_printf("Waiting to finish %d communication of ev borders of vector %s\n",nrequest,get_vec_name(ev_data));
-      MPI_Status status[nrequest];
-      MPI_Waitall(nrequest,request,status);
-      nrequest=0;
-    }
+  if(IS_MASTER_THREAD)
+    if(nrequest>0)
+      {
+	tot_nissa_comm_time-=take_time();
+	verbosity_lv3_master_printf("Waiting to finish %d communication of ev borders of vector %s\n",nrequest,get_vec_name(ev_data));
+	MPI_Status status[nrequest];
+	MPI_Waitall(nrequest,request,status);
+	nrequest=0;
+	tot_nissa_comm_time+=take_time();
+      }
+  
   set_borders_valid(ev_data);
   set_edges_invalid(ev_data);
-  tot_nissa_comm_time+=take_time();
 }
 
 //Send the borders of the data
@@ -260,36 +273,39 @@ void start_communicating_ev_borders(int &nrequest,MPI_Request *request,char *ev_
 {
   nrequest=0;
   
-  crash_if_borders_not_allocated(ev_data);
-  
-  if(!check_borders_valid(ev_data))
+  if(IS_MASTER_THREAD)
     {
-      int imessage=534245;
+      crash_if_borders_not_allocated(ev_data);
       
-      for(int mu=0;mu<3;mu++)
-	if(paral_dir[mu]!=0)
-	  {
-	    //sending the upper border to the lower node
-	    MPI_Irecv(ev_data+start_eo_bord_rece_up[mu]*nbytes_per_site,1,MPI_EV_BORDS_RECE[mu],rank_neighup[mu],imessage,cart_comm,request+(nrequest++));
-	    MPI_Isend(ev_data+start_eo_bord_send_up[mu]*nbytes_per_site,1,MPI_EV_BORDS_SEND_TXY[mu],rank_neighdw[mu],imessage++,cart_comm,request+(nrequest++));
-	    
-	    //sending the lower border to the upper node
-	    MPI_Irecv(ev_data+start_eo_bord_rece_dw[mu]*nbytes_per_site,1,MPI_EV_BORDS_RECE[mu],rank_neighdw[mu],imessage,cart_comm,request+(nrequest++));
-	    MPI_Isend(ev_data+start_eo_bord_send_dw[mu]*nbytes_per_site,1,MPI_EV_BORDS_SEND_TXY[mu],rank_neighup[mu],imessage++,cart_comm,request+(nrequest++));
-	  }
-      
-      if(paral_dir[3]!=0)
+      if(!check_borders_valid(ev_data))
 	{
-	  //sending the upper border to the lower node
-	  MPI_Irecv(ev_data+start_eo_bord_rece_up[3]*nbytes_per_site,1,MPI_EV_BORDS_RECE[3],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
-	  MPI_Isend(ev_data,1,MPI_EV_BORDS_SEND_Z[0],rank_neighdw[3],imessage++,cart_comm,request+(nrequest++));
+	  int imessage=534245;
 	  
-	  //sending the lower border to the upper node
-	  MPI_Irecv(ev_data+start_eo_bord_rece_dw[3]*nbytes_per_site,1,MPI_EV_BORDS_RECE[3],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
-	  MPI_Isend(ev_data,1,MPI_EV_BORDS_SEND_Z[1],rank_neighup[3],imessage++,cart_comm,request+(nrequest++));
+	  for(int mu=0;mu<3;mu++)
+	    if(paral_dir[mu]!=0)
+	      {
+		//sending the upper border to the lower node
+		MPI_Irecv(ev_data+start_eo_bord_rece_up[mu]*nbytes_per_site,1,MPI_EV_BORDS_RECE[mu],rank_neighup[mu],imessage,cart_comm,request+(nrequest++));
+		MPI_Isend(ev_data+start_eo_bord_send_up[mu]*nbytes_per_site,1,MPI_EV_BORDS_SEND_TXY[mu],rank_neighdw[mu],imessage++,cart_comm,request+(nrequest++));
+		
+		//sending the lower border to the upper node
+		MPI_Irecv(ev_data+start_eo_bord_rece_dw[mu]*nbytes_per_site,1,MPI_EV_BORDS_RECE[mu],rank_neighdw[mu],imessage,cart_comm,request+(nrequest++));
+		MPI_Isend(ev_data+start_eo_bord_send_dw[mu]*nbytes_per_site,1,MPI_EV_BORDS_SEND_TXY[mu],rank_neighup[mu],imessage++,cart_comm,request+(nrequest++));
+	      }
+	  
+	  if(paral_dir[3]!=0)
+	    {
+	      //sending the upper border to the lower node
+	      MPI_Irecv(ev_data+start_eo_bord_rece_up[3]*nbytes_per_site,1,MPI_EV_BORDS_RECE[3],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
+	      MPI_Isend(ev_data,1,MPI_EV_BORDS_SEND_Z[0],rank_neighdw[3],imessage++,cart_comm,request+(nrequest++));
+	      
+	      //sending the lower border to the upper node
+	      MPI_Irecv(ev_data+start_eo_bord_rece_dw[3]*nbytes_per_site,1,MPI_EV_BORDS_RECE[3],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
+	      MPI_Isend(ev_data,1,MPI_EV_BORDS_SEND_Z[1],rank_neighup[3],imessage++,cart_comm,request+(nrequest++));
+	    }
+	  
+	  if(nrequest>0) verbosity_lv3_master_printf("Starting communication of ev borders of vector %s\n",get_vec_name(ev_data));
 	}
-      
-      if(nrequest>0) verbosity_lv3_master_printf("Starting communication of ev borders of vector %s\n",get_vec_name(ev_data));
     }
 }
 
@@ -305,124 +321,124 @@ void communicate_ev_borders(char *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MP
 //Send the borders of the data
 void communicate_od_borders(char *od_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EV_BORDS_RECE,int nbytes_per_site)
 {
-  crash_if_borders_not_allocated(od_data);
-  
   if(!check_borders_valid(od_data))
     {
-      tot_nissa_comm_time-=take_time();
-
-      int nrequest=0;
-      int imessage=349234;
-      MPI_Request request[16];
-      MPI_Status status[16];
+      crash_if_borders_not_allocated(od_data);
       
-      for(int mu=0;mu<3;mu++)
-	if(paral_dir[mu]!=0)
-	  {
-	    //sending the upper border to the lower node
-	    MPI_Irecv(od_data+start_eo_bord_rece_up[mu]*nbytes_per_site,1,MPI_EV_BORDS_RECE[mu],rank_neighup[mu],imessage,cart_comm,request+(nrequest++));
-	    MPI_Isend(od_data+start_eo_bord_send_up[mu]*nbytes_per_site,1,MPI_EV_BORDS_SEND_TXY[mu],rank_neighdw[mu],imessage++,cart_comm,request+(nrequest++));
-	    
-	    //sending the lower border to the upper node
-	    MPI_Irecv(od_data+start_eo_bord_rece_dw[mu]*nbytes_per_site,1,MPI_EV_BORDS_RECE[mu],rank_neighdw[mu],imessage,cart_comm,request+(nrequest++));
-	    MPI_Isend(od_data+start_eo_bord_send_dw[mu]*nbytes_per_site,1,MPI_EV_BORDS_SEND_TXY[mu],rank_neighup[mu],imessage++,cart_comm,request+(nrequest++));
-	  }
-      
-      if(paral_dir[3]!=0)
+      if(IS_MASTER_THREAD)
 	{
-	  //sending the upper border to the lower node
-	  MPI_Irecv(od_data+start_eo_bord_rece_up[3]*nbytes_per_site,1,MPI_EV_BORDS_RECE[3],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
-	  MPI_Isend(od_data,1,MPI_OD_BORDS_SEND_Z[0],rank_neighdw[3],imessage++,cart_comm,request+(nrequest++));
+	  tot_nissa_comm_time-=take_time();
 	  
-	  //sending the lower border to the upper node
-	  MPI_Irecv(od_data+start_eo_bord_rece_dw[3]*nbytes_per_site,1,MPI_EV_BORDS_RECE[3],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
-	  MPI_Isend(od_data,1,MPI_OD_BORDS_SEND_Z[1],rank_neighup[3],imessage++,cart_comm,request+(nrequest++));
-	}
-      
-      if(nrequest>0)
-	{
-	  verbosity_lv3_master_printf("Communicating od borders of vector %s, nrequest: %d\n",get_vec_name(od_data),nrequest);
-	  MPI_Waitall(nrequest,request,status);
+	  int nrequest=0;
+	  int imessage=349234;
+	  MPI_Request request[16];
+	  MPI_Status status[16];
+	  
+	  for(int mu=0;mu<3;mu++)
+	    if(paral_dir[mu]!=0)
+	      {
+		//sending the upper border to the lower node
+		MPI_Irecv(od_data+start_eo_bord_rece_up[mu]*nbytes_per_site,1,MPI_EV_BORDS_RECE[mu],rank_neighup[mu],imessage,cart_comm,request+(nrequest++));
+		MPI_Isend(od_data+start_eo_bord_send_up[mu]*nbytes_per_site,1,MPI_EV_BORDS_SEND_TXY[mu],rank_neighdw[mu],imessage++,cart_comm,request+(nrequest++));
+		
+		//sending the lower border to the upper node
+		MPI_Irecv(od_data+start_eo_bord_rece_dw[mu]*nbytes_per_site,1,MPI_EV_BORDS_RECE[mu],rank_neighdw[mu],imessage,cart_comm,request+(nrequest++));
+		MPI_Isend(od_data+start_eo_bord_send_dw[mu]*nbytes_per_site,1,MPI_EV_BORDS_SEND_TXY[mu],rank_neighup[mu],imessage++,cart_comm,request+(nrequest++));
+	      }
+	  
+	  if(paral_dir[3]!=0)
+	    {
+	      //sending the upper border to the lower node
+	      MPI_Irecv(od_data+start_eo_bord_rece_up[3]*nbytes_per_site,1,MPI_EV_BORDS_RECE[3],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
+	      MPI_Isend(od_data,1,MPI_OD_BORDS_SEND_Z[0],rank_neighdw[3],imessage++,cart_comm,request+(nrequest++));
+	      
+	      //sending the lower border to the upper node
+	      MPI_Irecv(od_data+start_eo_bord_rece_dw[3]*nbytes_per_site,1,MPI_EV_BORDS_RECE[3],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
+	      MPI_Isend(od_data,1,MPI_OD_BORDS_SEND_Z[1],rank_neighup[3],imessage++,cart_comm,request+(nrequest++));
+	    }
+	  
+	  if(nrequest>0)
+	    {
+	      verbosity_lv3_master_printf("Communicating od borders of vector %s, nrequest: %d\n",get_vec_name(od_data),nrequest);
+	      MPI_Waitall(nrequest,request,status);
+	    }
+	  tot_nissa_comm_time+=take_time();
 	}
       
       set_borders_valid(od_data);
       set_edges_invalid(od_data);
-      tot_nissa_comm_time+=take_time();
     }
 }
 
 //Send the borders of the data
 void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,int nbytes_per_site)
 {
-  int nrequest=0;
-  MPI_Request request[32];
-  int imessage=63458729;
-  for(int par=0;par<2;par++)
+  if(!check_borders_valid(data[EVN])||!check_borders_valid(data[ODD]))
     {
-      crash_if_borders_not_allocated(data[par]);
-      
-      if(!check_borders_valid(data[par]))
+      if(IS_MASTER_THREAD)
 	{
-	  for(int mu=0;mu<3;mu++) //0,1,2
-	    if(paral_dir[mu]!=0)
-	      {
-		//sending the upper border to the lower node
-		imessage++;
-		MPI_Irecv(data[par]+start_eo_bord_rece_up[mu]*nbytes_per_site,1,MPI_EO_BORDS_RECE[mu],rank_neighup[mu],imessage,
-			  cart_comm,request+(nrequest++));
-		MPI_Isend(data[par]+start_eo_bord_send_up[mu]*nbytes_per_site,1,MPI_EO_BORDS_SEND_TXY[mu],rank_neighdw[mu],imessage,
-			  cart_comm,request+(nrequest++));
-
-		//sending the lower border to the upper node
-		imessage++;
-		MPI_Irecv(data[par]+start_eo_bord_rece_dw[mu]*nbytes_per_site,1,MPI_EO_BORDS_RECE[mu],rank_neighdw[mu],imessage, 
-			  cart_comm,request+(nrequest++));
-		MPI_Isend(data[par]+start_eo_bord_send_dw[mu]*nbytes_per_site,1,MPI_EO_BORDS_SEND_TXY[mu],rank_neighup[mu],imessage,
-			  cart_comm,request+(nrequest++));
-	      }
-	}
-    }
-
-  if(paral_dir[3]!=0)
-    {
-      if(!check_borders_valid(data[EVN]))
-	{
-	  //sending the upper border to the lower node
-	  imessage++;
-	  MPI_Irecv(data[EVN]+start_eo_bord_rece_up[3]*nbytes_per_site,1,MPI_EO_BORDS_RECE[3],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
-	  MPI_Isend(data[EVN],1,MPI_EV_BORDS_SEND_Z[0],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
+	  int nrequest=0;
+	  MPI_Request request[32];
+	  int imessage=63458729;
+	  for(int par=0;par<2;par++)
+	    {
+	      crash_if_borders_not_allocated(data[par]);
+	      
+	      for(int mu=0;mu<3;mu++) //0,1,2
+		if(paral_dir[mu]!=0)
+		  {
+		    //sending the upper border to the lower node
+		    imessage++;
+		    MPI_Irecv(data[par]+start_eo_bord_rece_up[mu]*nbytes_per_site,1,MPI_EO_BORDS_RECE[mu],rank_neighup[mu],imessage,
+			      cart_comm,request+(nrequest++));
+		    MPI_Isend(data[par]+start_eo_bord_send_up[mu]*nbytes_per_site,1,MPI_EO_BORDS_SEND_TXY[mu],rank_neighdw[mu],imessage,
+			      cart_comm,request+(nrequest++));
+		    
+		    //sending the lower border to the upper node
+		    imessage++;
+		    MPI_Irecv(data[par]+start_eo_bord_rece_dw[mu]*nbytes_per_site,1,MPI_EO_BORDS_RECE[mu],rank_neighdw[mu],imessage, 
+			      cart_comm,request+(nrequest++));
+		    MPI_Isend(data[par]+start_eo_bord_send_dw[mu]*nbytes_per_site,1,MPI_EO_BORDS_SEND_TXY[mu],rank_neighup[mu],imessage,
+				  cart_comm,request+(nrequest++));
+		  }
+	    }
 	  
-	  //sending the lower border to the upper node
-	  imessage++;
-	  MPI_Irecv(data[EVN]+start_eo_bord_rece_dw[3]*nbytes_per_site,1,MPI_EO_BORDS_RECE[3],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
-	  MPI_Isend(data[EVN],1,MPI_EV_BORDS_SEND_Z[1],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
+	  if(paral_dir[3]!=0)
+	    {
+	      //sending the upper border to the lower node
+	      imessage++;
+	      MPI_Irecv(data[EVN]+start_eo_bord_rece_up[3]*nbytes_per_site,1,MPI_EO_BORDS_RECE[3],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
+	      MPI_Isend(data[EVN],1,MPI_EV_BORDS_SEND_Z[0],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
+	      
+	      //sending the lower border to the upper node
+	      imessage++;
+	      MPI_Irecv(data[EVN]+start_eo_bord_rece_dw[3]*nbytes_per_site,1,MPI_EO_BORDS_RECE[3],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
+	      MPI_Isend(data[EVN],1,MPI_EV_BORDS_SEND_Z[1],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
+	  
+	      //sending the upper border to the lower node
+	      imessage++;
+	      MPI_Irecv(data[ODD]+start_eo_bord_rece_up[3]*nbytes_per_site,1,MPI_EO_BORDS_RECE[3],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
+	      MPI_Isend(data[ODD],1,MPI_OD_BORDS_SEND_Z[0],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
+	      
+	      //sending the lower border to the upper node
+	      imessage++;
+	      MPI_Irecv(data[ODD]+start_eo_bord_rece_dw[3]*nbytes_per_site,1,MPI_EO_BORDS_RECE[3],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
+	      MPI_Isend(data[ODD],1,MPI_OD_BORDS_SEND_Z[1],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
+	    }
+	
+	  tot_nissa_comm_time-=take_time();
+	  if(nrequest>0)
+	    {
+	      if(nrequest>0) verbosity_lv3_master_printf("Communication of evn and odd borders of vector %s\n",get_vec_name(data[0]));
+	      MPI_Waitall(nrequest,request,MPI_STATUS_IGNORE);
+	      nrequest=0;
+	    }
+	  tot_nissa_comm_time+=take_time();
 	}
       
-      if(!check_borders_valid(data[ODD]))
-	{
-	  //sending the upper border to the lower node
-	  imessage++;
-	  MPI_Irecv(data[ODD]+start_eo_bord_rece_up[3]*nbytes_per_site,1,MPI_EO_BORDS_RECE[3],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
-	  MPI_Isend(data[ODD],1,MPI_OD_BORDS_SEND_Z[0],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
-	  
-	  //sending the lower border to the upper node
-	  imessage++;
-	  MPI_Irecv(data[ODD]+start_eo_bord_rece_dw[3]*nbytes_per_site,1,MPI_EO_BORDS_RECE[3],rank_neighdw[3],imessage,cart_comm,request+(nrequest++));
-	  MPI_Isend(data[ODD],1,MPI_OD_BORDS_SEND_Z[1],rank_neighup[3],imessage,cart_comm,request+(nrequest++));
-	}
+      set_borders_valid(data[EVN]);
+      set_borders_valid(data[ODD]);
     }
-  
-  tot_nissa_comm_time-=take_time();
-  if(nrequest>0)
-    {
-      if(nrequest>0) verbosity_lv3_master_printf("Communication of evn and odd borders of vector %s\n",get_vec_name(data[0]));
-      MPI_Waitall(nrequest,request,MPI_STATUS_IGNORE);
-      nrequest=0;
-    }
-  tot_nissa_comm_time+=take_time();
-
-  set_borders_valid(data[EVN]);
-  set_borders_valid(data[ODD]);
 }
 
 //Send the borders of the gauge configuration
@@ -476,57 +492,60 @@ void communicate_od_spincolor_128_borders(spincolor_128 *od)
 //Send the edges of eo vector
 void communicate_eo_edges(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
 {
-  int nrequest=0;
-  int nrequest_tot=0;
-    for(int mu=0;mu<4;mu++)
-      for(int nu=mu+1;nu<4;nu++)
-	if(paral_dir[mu] && paral_dir[nu])
-	  nrequest_tot+=16;
-
-  MPI_Request request[nrequest_tot];
-  MPI_Status status[nrequest_tot];
-  int imessage=8534240;
-  
   if(!check_edges_valid(data[EVN])||!check_edges_valid(data[ODD]))
     {
-      communicate_eo_borders(data,MPI_EO_BORDS_SEND_TXY,MPI_EV_BORDS_SEND_Z,MPI_OD_BORDS_SEND_Z,MPI_EO_BORDS_RECE,nbytes_per_site);
-      
-      verbosity_lv3_master_printf("Communicating edges\n");
-      
-      //check_edges_allocated(data);
-      for(int par=0;par<2;par++)
+      if(IS_MASTER_THREAD)
 	{
-	  crash_if_edges_not_allocated(data[par]);
+	  int nrequest=0;
+	  int nrequest_tot=0;
+	  for(int mu=0;mu<4;mu++)
+	    for(int nu=mu+1;nu<4;nu++)
+	      if(paral_dir[mu] && paral_dir[nu])
+		nrequest_tot+=16;
 	  
-	  //"v" refer to the verse of the dir
-	  for(int vmu=0;vmu<2;vmu++)
-	    for(int mu=0;mu<4;mu++)
-	      for(int vnu=0;vnu<2;vnu++)
-		for(int nu=mu+1;nu<4;nu++)
-		  if(paral_dir[mu] && paral_dir[nu])
-		    {
-		      int iedge=edge_numb[mu][nu];
-		      
-		      //communicators verse refers to the internal edge 
-		      int icomm_send=((par*2+vmu)*2+vnu)*6+iedge;
-		      int icomm_recv=iedge;
-		      
-		      //Send the (mu,nu) internal edge to the nu rank as (mu,-nu) external edge
-		      //Receive the (mu,-nu) external edge from the -nu rank (mu,nu) internal edge
-		      int ext_edge_recv_start=(loc_volh+bord_volh+edge_volh/4*(vmu*2+!vnu)+edge_offset[iedge]/2)*nbytes_per_site;
-		      int int_edge_send_start=loc_volh*nbytes_per_site;
-		      MPI_Irecv(data[par]+ext_edge_recv_start,1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu][nu],imessage,cart_comm,request+(nrequest++));
-		      MPI_Isend(data[par]+int_edge_send_start,1,MPI_EDGES_SEND[icomm_send],rank_neigh[vnu][nu],imessage,cart_comm,request+(nrequest++));
-		  
-		      imessage++;
-		    }
+	  MPI_Request request[nrequest_tot];
+	  MPI_Status status[nrequest_tot];
+	  int imessage=8534240;
 	  
-	  set_edges_valid(data[par]);
+	  communicate_eo_borders(data,MPI_EO_BORDS_SEND_TXY,MPI_EV_BORDS_SEND_Z,MPI_OD_BORDS_SEND_Z,MPI_EO_BORDS_RECE,nbytes_per_site);
+	  
+	  verbosity_lv3_master_printf("Communicating edges\n");
+	  
+	  //check_edges_allocated(data);
+	  for(int par=0;par<2;par++)
+	    {
+	      crash_if_edges_not_allocated(data[par]);
+	      
+	      //"v" refer to the verse of the dir
+	      for(int vmu=0;vmu<2;vmu++)
+		for(int mu=0;mu<4;mu++)
+		  for(int vnu=0;vnu<2;vnu++)
+		    for(int nu=mu+1;nu<4;nu++)
+		      if(paral_dir[mu] && paral_dir[nu])
+			{
+			  int iedge=edge_numb[mu][nu];
+			  
+			  //communicators verse refers to the internal edge 
+			  int icomm_send=((par*2+vmu)*2+vnu)*6+iedge;
+			  int icomm_recv=iedge;
+			  
+			  //Send the (mu,nu) internal edge to the nu rank as (mu,-nu) external edge
+			  //Receive the (mu,-nu) external edge from the -nu rank (mu,nu) internal edge
+			  int ext_edge_recv_start=(loc_volh+bord_volh+edge_volh/4*(vmu*2+!vnu)+edge_offset[iedge]/2)*nbytes_per_site;
+			  int int_edge_send_start=loc_volh*nbytes_per_site;
+			  MPI_Irecv(data[par]+ext_edge_recv_start,1,MPI_EDGES_RECE[icomm_recv],rank_neigh[!vnu][nu],imessage,cart_comm,request+(nrequest++));
+			  MPI_Isend(data[par]+int_edge_send_start,1,MPI_EDGES_SEND[icomm_send],rank_neigh[vnu][nu],imessage,cart_comm,request+(nrequest++));
+			  
+			  imessage++;
+			}
+	    }
+	  
+	  if(nrequest!=nrequest_tot) crash("something went wrong");
+	  
+	  if(nrequest>0) MPI_Waitall(nrequest,request,status);
 	}
       
-      if(nrequest!=nrequest_tot) crash("something went wrong");
-      
-      if(nrequest>0) MPI_Waitall(nrequest,request,status);
+      for(int par=0;par<2;par++) set_edges_valid(data[par]);
     }
 }
 

@@ -56,43 +56,37 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
       
       int final_iter;
       
-#pragma omp parallel
-      {
-	//main loop
-	int iter=0;
-	double alpha,omega,gammag,internal_lambda,internal_delta=delta;
-	do
-	  {	  
-	    //(r_k,r_k)/(p_k*DD*p_k)
-#pragma omp single
-	    cg_inv_over_time+=take_time();
-	    apply_operator(s,cg_inner_parameters_call,p);
-#pragma omp single
-	    cg_inv_over_time-=take_time();
-	    
-	    alpha=double_vector_glb_scalar_prod((double*)s,(double*)p,size_of_bulk*ndoubles_per_site);
-	    omega=internal_delta/alpha;
-	    
-	    //sol_(k+1)=x_k+omega*p_k
-	    double_vector_summ_double_vector_prod_double((double*)sol,(double*)sol,(double*)p,omega,size_of_bulk*ndoubles_per_site);
-	    //r_(k+1)=x_k-omega*p_k
-	    double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,-omega,size_of_bulk*ndoubles_per_site);
-	    //(r_(k+1),r_(k+1))
-	    internal_lambda=double_vector_glb_scalar_prod((double*)r,(double*)r,size_of_bulk*ndoubles_per_site);
-	    
-	    //(r_(k+1),r_(k+1))/(r_k,r_k)
-	    gammag=internal_lambda/internal_delta;
-	    internal_delta=internal_lambda;
-	    
-	    //p_(k+1)=r_(k+1)+gammag*p_k
-	    double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,gammag,size_of_bulk*ndoubles_per_site);
-	    
-	    final_iter=(++iter);
-#pragma omp single
-	    if(iter%each==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,internal_lambda/source_norm);
-	  }
-	while(internal_lambda>(residue*source_norm) && iter<niter);
-      }
+      //main loop
+      int iter=0;
+      double alpha,omega,gammag,internal_lambda,internal_delta=delta;
+      do
+	{	  
+	  //(r_k,r_k)/(p_k*DD*p_k)
+	  cg_inv_over_time+=take_time();
+	  apply_operator(s,cg_inner_parameters_call,p);
+	  cg_inv_over_time-=take_time();
+	  
+	  alpha=double_vector_glb_scalar_prod((double*)s,(double*)p,size_of_bulk*ndoubles_per_site);
+	  omega=internal_delta/alpha;
+	  
+	  //sol_(k+1)=x_k+omega*p_k
+	  double_vector_summ_double_vector_prod_double((double*)sol,(double*)sol,(double*)p,omega,size_of_bulk*ndoubles_per_site);
+	  //r_(k+1)=x_k-omega*p_k
+	  double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,-omega,size_of_bulk*ndoubles_per_site);
+	  //(r_(k+1),r_(k+1))
+	  internal_lambda=double_vector_glb_scalar_prod((double*)r,(double*)r,size_of_bulk*ndoubles_per_site);
+	  
+	  //(r_(k+1),r_(k+1))/(r_k,r_k)
+	  gammag=internal_lambda/internal_delta;
+	  internal_delta=internal_lambda;
+	  
+	  //p_(k+1)=r_(k+1)+gammag*p_k
+	  double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,gammag,size_of_bulk*ndoubles_per_site);
+	  
+	  final_iter=(++iter);
+	  if(iter%each==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,internal_lambda/source_norm);
+	}
+      while(internal_lambda>(residue*source_norm) && iter<niter);
       
       //last calculation of residual, in the case iter>niter
       apply_operator(s,cg_inner_parameters_call,sol);

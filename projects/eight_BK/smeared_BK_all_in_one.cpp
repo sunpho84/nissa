@@ -364,7 +364,7 @@ void calculate_S(int iwall)
     {
       //loop over the source dirac index
       get_spincolor_from_colorspinspin(source,original_source,id);
-      safe_dirac_prod_spincolor(source,base_gamma[5],source);
+      safe_dirac_prod_spincolor(source,base_gamma+5,source);
       
       //loop over smerding levels of the source
       for(int so_glv=0;so_glv<so_gnlv[iwall];so_glv++)

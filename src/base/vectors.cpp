@@ -12,6 +12,7 @@
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
 #include "../routines/math.h"
+#include "../routines/openmp.h"
 
 #include "debug.h"
 #include "global_variables.h"
@@ -47,13 +48,27 @@ void last_nissa_vect_content_printf()
   nissa_vect_content_printf(last_nissa_vect);
 }
 
-//set a flag
+//set a flag: we need to be sure that all the threads are consistent
 void set_vec_flag(void *v,int flag)
-{get_nissa_vec(v)->flag |= flag;}
+{
+#ifdef DEBUG
+  printf("set_vec_flag for vect %s allocated in file %s line %d, thread_id: %d, thread_pool_locked: %d\n",
+	 get_vec_name(v),get_nissa_vec(v)->file,get_nissa_vec(v)->line,thread_id,thread_pool_locked);
+#endif
+  if(!thread_pool_locked) thread_barrier(SET_VEC_FLAG_BARRIER); 
+  get_nissa_vec(v)->flag |= flag;
+}
 
-//unset a flag
+//unset a flag (idem)
 void unset_vec_flag(void *v,int flag)
-{get_nissa_vec(v)->flag &= ~flag;}
+{
+#ifdef DEBUG
+  printf("unset_vec_flag for vect %s allocated in file %s line %d, thread_id: %d, thread_pool_locked: %d\n",
+	 get_vec_name(v),get_nissa_vec(v)->file,get_nissa_vec(v)->line,thread_id,thread_pool_locked);
+#endif
+  if(!thread_pool_locked) thread_barrier(UNSET_VEC_FLAG_BARRIER);
+  get_nissa_vec(v)->flag &= ~flag;
+}
 
 //get a flag
 int get_vec_flag(void *v,int flag)
@@ -174,52 +189,58 @@ void initialize_main_nissa_vect()
 //allocate an nissa vector 
 void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *type,const char *file,int line)
 {
-  if_nissa_vect_not_initialized() initialize_main_nissa_vect();
-  
-  int size=nel*size_per_el;
-  //try to allocate the new vector
-  nissa_vect *nv=(nissa_vect*)malloc(size+sizeof(nissa_vect));
-  if(nv==NULL)
-    crash("could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) request on line %d of file %s"
-	  ,                                  tag,    nel,                type,           size,                     line,      file);
-  
-  //fill the vector with information supplied
-  nv->line=line;
-  nv->nel=nel;
-  nv->size_per_el=size_per_el;
-  nv->flag=0;
-  take_last_characters(nv->file,file,nissa_vect_string_length);
-  take_last_characters(nv->tag,tag,nissa_vect_string_length);
-  take_last_characters(nv->type,type,nissa_vect_string_length);
-  
-  //append the new vector to the list
-  nv->next=NULL;
-  nv->prev=last_nissa_vect;
-  
-  last_nissa_vect->next=nv;
-  last_nissa_vect=nv;
-  
-  if(nissa_verbosity>=3)
+  if(IS_MASTER_THREAD)
     {
-      master_printf("Allocated vector ");
-      nissa_vect_content_printf(last_nissa_vect);
+      if_nissa_vect_not_initialized() initialize_main_nissa_vect();
+      
+      int size=nel*size_per_el;
+      //try to allocate the new vector
+      nissa_vect *nv=(nissa_vect*)malloc(size+sizeof(nissa_vect));
+      if(nv==NULL)
+	crash("could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) request on line %d of file %s"
+	      ,                                  tag,    nel,                type,           size,                     line,      file);
+      
+      //fill the vector with information supplied
+      nv->line=line;
+      nv->nel=nel;
+      nv->size_per_el=size_per_el;
+      nv->flag=0;
+      take_last_characters(nv->file,file,nissa_vect_string_length);
+      take_last_characters(nv->tag,tag,nissa_vect_string_length);
+      take_last_characters(nv->type,type,nissa_vect_string_length);
+      
+      //append the new vector to the list
+      nv->next=NULL;
+      nv->prev=last_nissa_vect;
+      
+      last_nissa_vect->next=nv;
+      last_nissa_vect=nv;
+      
+      if(nissa_verbosity>=3)
+	{
+	  master_printf("Allocated vector ");
+	  nissa_vect_content_printf(last_nissa_vect);
+	}
+      
+      //define returned pointer and check for its alignement
+      return_nissa_malloc_ptr=(void*)(last_nissa_vect+1);
+      int offset=((long long int)(return_nissa_malloc_ptr))%nissa_vect_alignment;
+      if(offset!=0)
+	crash("memory alignment problem, vector %s has %d offset",tag,offset);
+      
+      //if borders or edges are allocated, set appropriate flag
+      if(nel==(loc_vol+bord_vol) || nel==(loc_volh+bord_volh)) set_vec_flag(return_nissa_malloc_ptr,BORDERS_ALLOCATED);
+      if(nel==(loc_vol+bord_vol+edge_vol) || nel==(loc_volh+bord_volh+edge_volh)) set_vec_flag(return_nissa_malloc_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
+      
+      //Update the amount of required memory
+      nissa_required_memory+=size;
+      nissa_max_required_memory=max_int(nissa_max_required_memory,nissa_required_memory);
     }
   
-  //define returned pointer and check for its alignement
-  void *return_ptr=(void*)(last_nissa_vect+1);
-  int offset=((long long int)(return_ptr))%nissa_vect_alignment;
-  if(offset!=0)
-    crash("memory alignment problem, vector %s has %d offset",tag,offset);
+  //sync so all thread see the same returned ptr
+  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_MALLOC_BARRIER);
   
-  //if borders or edges are allocated, set appropriate flag
-  if(nel==(loc_vol+bord_vol) || nel==(loc_volh+bord_volh)) set_vec_flag(return_ptr,BORDERS_ALLOCATED);
-  if(nel==(loc_vol+bord_vol+edge_vol) || nel==(loc_volh+bord_volh+edge_volh)) set_vec_flag(return_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
-  
-  //Update the amount of required memory
-  nissa_required_memory+=size;
-  nissa_max_required_memory=max_int(nissa_max_required_memory,nissa_required_memory);
-  
-  return return_ptr;
+  return return_nissa_malloc_ptr;
 }
 
 //copy one vector into another
@@ -266,37 +287,43 @@ void internal_vector_reset(void *a)
 //release a vector
 void internal_nissa_free(char **arr,const char *file,int line)
 {
-  if(arr!=NULL)
+  if(IS_MASTER_THREAD)
     {
-      nissa_vect *vect=(nissa_vect*)((char*)(*arr)-sizeof(nissa_vect));
-      nissa_vect *prev=vect->prev;
-      nissa_vect *next=vect->next;
-      
-      if(nissa_verbosity>=3)
+      if(arr!=NULL)
 	{
-	  master_printf("At line %d of file %s freeing vector ",line,file);
-	  nissa_vect_content_printf(vect);
+	  nissa_vect *vect=(nissa_vect*)((char*)(*arr)-sizeof(nissa_vect));
+	  nissa_vect *prev=vect->prev;
+	  nissa_vect *next=vect->next;
+	  
+	  if(nissa_verbosity>=3)
+	    {
+	      master_printf("At line %d of file %s freeing vector ",line,file);
+	      nissa_vect_content_printf(vect);
+	    }
+	  
+	  if(nissa_warn_if_not_communicated)
+	    if(nissa_nranks>1 && check_borders_allocated(*arr) && !check_borders_communicated_at_least_once(*arr))
+	      master_printf("Warning, you allocated borders for vector: %s on line %d of file %s, but never communicated them!\n",vect->tag,vect->line,vect->file);
+	  
+	  //detach from previous
+	  prev->next=next;
+	  
+	  //if not last element
+	  if(next!=NULL) next->prev=prev;
+	  else last_nissa_vect=prev;
+	  
+	  //update the nissa required memory
+	  nissa_required_memory-=(vect->size_per_el*vect->nel);
+	  
+	  free(vect);
 	}
+      else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
       
-      if(nissa_warn_if_not_communicated)
-	if(nissa_nranks>1 && check_borders_allocated(*arr) && !check_borders_communicated_at_least_once(*arr))
-	  master_printf("Warning, you allocated borders for vector: %s on line %d of file %s, but never communicated them!\n",vect->tag,vect->line,vect->file);
-      
-      //detach from previous
-      prev->next=next;
-      
-      //if not last element
-      if(next!=NULL) next->prev=prev;
-      else last_nissa_vect=prev;
-      
-      //update the nissa required memory
-      nissa_required_memory-=(vect->size_per_el*vect->nel);
-      
-      free(vect);
+      *arr=NULL;
     }
-  else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
   
-  *arr=NULL;
+  //sync so all thread see have deallocated
+  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_FREE_BARRIER);
 }
 
 //reorder a vector according to the specified order (the order is destroyed)

@@ -199,7 +199,6 @@ void new_tree_level_Symanzik_force(quad_su3 *Force,quad_su3 *conf,double beta)
       {
 	int nu=(inu<mu)?inu:inu+1;
 	
-#pragma omp parallel for
 	nissa_loc_vol_loop(A)
 	  {
 	    int B=loclx_neighup[A][nu];            //  E---F---C   
@@ -262,7 +261,6 @@ void new_tree_level_Symanzik_force(quad_su3 *Force,quad_su3 *conf,double beta)
 */
   
   //summ together the staples for each link
-#pragma omp parallel for
   nissa_loc_vol_loop(ivol)
     for(int mu=0;mu<4;mu++)
       {

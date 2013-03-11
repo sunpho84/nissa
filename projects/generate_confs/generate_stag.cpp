@@ -124,6 +124,7 @@ void init_simulation(char *path)
   cgm_inv_over_time=0;
   ncg_inv=0;
   cg_inv_over_time=0;
+  
   //////////////////////////// read the input /////////////////////////
   
   //open input file
@@ -361,11 +362,8 @@ void store_conf_if_necessary()
     }
 }
 
-int main(int narg,char **arg)
+void in_main(int narg,char **arg)
 {
-  //basic initialization
-  init_nissa(narg,arg);
-  
   //check argument
   if(narg<2) crash("Use: %s input_file",arg[0]);
   
@@ -416,6 +414,11 @@ int main(int narg,char **arg)
   master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",nglu_comp,glu_comp_time,glu_comp_time/nglu_comp);
   
   close_simulation();
-  
+}
+
+int main(int narg,char **arg)
+{
+  init_nissa_threaded(narg,arg,in_main);
+    
   return 0;
 }

@@ -110,7 +110,7 @@ void prop_group_t::get_inverting(source_t &source,gauge_conf_t &gauge_conf,int r
       //extract index of the source
       get_spincolor_from_colorspinspin(temp_source,source.eta,id);
       //put the g5
-      safe_dirac_prod_spincolor(temp_source,base_gamma[5],temp_source);
+      safe_dirac_prod_spincolor(temp_source,base_gamma+5,temp_source);
       
       for(int itheta=0;itheta<ntheta;itheta++)
 	{

@@ -29,7 +29,7 @@ double eo_color_norm2(color *v)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	norm2+=v[ivol][ic][ri]*v[ivol][ic][ri];
-  
+
   return glb_reduce_double(norm2);
 }
 
@@ -37,7 +37,6 @@ double eo_color_norm2(color *v)
 double eo_color_normalize(color *out,color *in,double norm)
 {
   double fact=sqrt(norm/eo_color_norm2(in));
-  
   nissa_loc_volh_loop(ivol)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
@@ -64,7 +63,7 @@ double max_eigenval(quark_content_type &quark_content,quad_su3 **eo_conf,int nit
   nissa_loc_volh_loop(ivol)
     color_put_to_gauss(vec_in[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),3);
   set_borders_invalid(vec_in);
-  
+
   verbosity_lv3_master_printf("Init norm: %lg\n",eo_color_normalize(vec_in,vec_in,glb_volh*3));
   
   //apply the vector niter times normalizing at each iter
@@ -75,7 +74,6 @@ double max_eigenval(quark_content_type &quark_content,quad_su3 **eo_conf,int nit
       
       //compute the norm
       eig_max=eo_color_normalize(vec_in,vec_out,glb_volh*3);
-      
       verbosity_lv2_master_printf("max_eigen search mass %lg, iter=%d, eig=%lg\n",quark_content.mass,iter,eig_max);
     }
   
