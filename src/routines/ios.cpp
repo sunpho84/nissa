@@ -13,13 +13,14 @@
 #include "../base/global_variables.h"
 
 #include "mpi.h"
+#include "openmp.h"
 
 //only master rank and thread print
 int master_fprintf(FILE *stream,const char *format,...)
 {
   int ret=0;
   
-  if(rank==0)
+  if(rank==0 && IS_MASTER_THREAD)
     {
       va_list ap;
       va_start(ap,format);

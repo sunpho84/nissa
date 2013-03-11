@@ -15,6 +15,7 @@
 #include "../../new_types/complex.h"
 #include "../../operations/smearing/stout.h"
 #include "../../routines/ios.h"
+#include "../../routines/openmp.h"
 
 #include "../gauge/wilson_force.h"
 #include "../gauge/tree_level_Symanzik_force.h"
@@ -22,6 +23,37 @@
 
 int nglu_comp=0;
 double glu_comp_time=0;
+
+//internal part to run in parallel (to be expanded)
+THREADABLE_FUNCTION_6ARG(summ_the_rootst_eoimpr_quark_force_internal, quad_su3**,F, quad_su3**,eo_conf, quad_u1**,u1b, color**,v_o, color**,chi_e, rat_approx_type*,appr)
+{
+  //remove the background fields
+  rem_backfield_from_conf(eo_conf,u1b);
+  
+  //communicate borders of v_o (could be improved...)
+  for(int iterm=0;iterm<appr->degree;iterm++) communicate_od_color_borders(v_o[iterm]);
+  
+  //conclude the calculation of the fermionic force
+  NISSA_PARALLEL_LOOP(ivol,loc_volh)
+    for(int mu=0;mu<4;mu++)
+      for(int iterm=0;iterm<appr->degree;iterm++)
+	for(int ic1=0;ic1<3;ic1++)
+	  for(int ic2=0;ic2<3;ic2++)
+	    {
+	      //chpot to be added
+	      complex temp1,temp2;
+	      
+	      //this is for ivol=EVN
+	      unsafe_complex_conj2_prod(temp1,v_o[iterm][loceo_neighup[EVN][ivol][mu]][ic1],chi_e[iterm][ivol][ic2]);
+	      unsafe_complex_prod(temp2,temp1,u1b[EVN][ivol][mu]);
+  	      complex_summ_the_prod_double(F[EVN][ivol][mu][ic1][ic2],temp2,appr->weights[iterm]);
+	      
+	      //this is for ivol=ODD
+	      unsafe_complex_conj2_prod(temp1,chi_e[iterm][loceo_neighup[ODD][ivol][mu]][ic1],v_o[iterm][ivol][ic2]);
+	      unsafe_complex_prod(temp2,temp1,u1b[ODD][ivol][mu]);
+	      complex_subt_the_prod_double(F[ODD][ivol][mu][ic1][ic2],temp2,appr->weights[iterm]);
+	    }
+}}
 
 //Compute the fermionic force the rooted staggered e/o improved theory.
 //Passed conf must NOT contain the backfield.
@@ -50,32 +82,8 @@ void summ_the_rootst_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,color *p
   for(int iterm=0;iterm<appr->degree;iterm++)
     apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
   
-  //remove the background fields
-  rem_backfield_from_conf(eo_conf,u1b);
-  
-  //communicate borders of v_o (could be improved...)
-  for(int iterm=0;iterm<appr->degree;iterm++) communicate_od_color_borders(v_o[iterm]);
-  
-  //conclude the calculation of the fermionic force
-  nissa_loc_volh_loop(ivol)
-    for(int mu=0;mu<4;mu++)
-      for(int iterm=0;iterm<appr->degree;iterm++)
-	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
-	    {
-	      //chpot to be added
-	      complex temp1,temp2;
-	      
-	      //this is for ivol=EVN
-	      unsafe_complex_conj2_prod(temp1,v_o[iterm][loceo_neighup[EVN][ivol][mu]][ic1],chi_e[iterm][ivol][ic2]);
-	      unsafe_complex_prod(temp2,temp1,u1b[EVN][ivol][mu]);
-  	      complex_summ_the_prod_double(F[EVN][ivol][mu][ic1][ic2],temp2,appr->weights[iterm]);
-	      
-	      //this is for ivol=ODD
-	      unsafe_complex_conj2_prod(temp1,chi_e[iterm][loceo_neighup[ODD][ivol][mu]][ic1],v_o[iterm][ivol][ic2]);
-	      unsafe_complex_prod(temp2,temp1,u1b[ODD][ivol][mu]);
-	      complex_subt_the_prod_double(F[ODD][ivol][mu][ic1][ic2],temp2,appr->weights[iterm]);
-	    }
+  //perform internal computation in parallel (to be expanded)
+  summ_the_rootst_eoimpr_quark_force_internal(F,eo_conf,u1b,v_o,chi_e,appr);
   
   //free
   for(int iterm=0;iterm<appr->degree;iterm++)
@@ -86,29 +94,34 @@ void summ_the_rootst_eoimpr_quark_force(quad_su3 **F,quad_su3 **eo_conf,color *p
 }
 
 //Finish the computation multiplying for the conf and taking TA
-void full_rootst_eoimpr_force_finish_computation(quad_su3 **F,quad_su3 **conf)
+THREADABLE_FUNCTION_2ARG(full_rootst_eoimpr_force_finish_computation, quad_su3**,F, quad_su3**,conf)
 {
   //remove the staggered phase from the conf, since they are already implemented in the force
   addrem_stagphases_to_eo_conf(conf);
 
   for(int eo=0;eo<2;eo++)
-    nissa_loc_volh_loop(ivol)
-      for(int mu=0;mu<4;mu++)
-	{
-	  su3 temp;
-	  unsafe_su3_prod_su3(temp,conf[eo][ivol][mu],F[eo][ivol][mu]);
-	  unsafe_su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
-	}
+    {
+      NISSA_PARALLEL_LOOP(ivol,loc_volh)
+	for(int mu=0;mu<4;mu++)
+	  {
+	    su3 temp;
+	    unsafe_su3_prod_su3(temp,conf[eo][ivol][mu],F[eo][ivol][mu]);
+	    unsafe_su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
+	  }
+    }
   
   //readd
   addrem_stagphases_to_eo_conf(conf);
-}
+}}
 
 //compute only the gauge part
-void full_rootst_eoimpr_gluons_force(quad_su3 **F,quad_su3 **conf,theory_pars_type *physics)
+THREADABLE_FUNCTION_3ARG(full_rootst_eoimpr_gluons_force, quad_su3**,F, quad_su3**,conf, theory_pars_type*,physics)
 {
-  nglu_comp++;
-  glu_comp_time-=take_time();
+  if(IS_MASTER_THREAD)
+    {
+      nglu_comp++;
+      glu_comp_time-=take_time();
+    }
   
   switch(physics->gac_type)
     {
@@ -122,8 +135,8 @@ void full_rootst_eoimpr_gluons_force(quad_su3 **F,quad_su3 **conf,theory_pars_ty
 
   full_rootst_eoimpr_force_finish_computation(F,conf);
 
-  glu_comp_time+=take_time();
-}
+  if(IS_MASTER_THREAD) glu_comp_time+=take_time();
+}}
 
 //compute only the quark part, without stouting reampping
 void full_rootst_eoimpr_quarks_force_no_stout_remapping(quad_su3 **F,quad_su3 **conf,color **pf,theory_pars_type *theory_pars,rat_approx_type *appr,double residue)

@@ -472,7 +472,7 @@ void init_grid(int T,int L)
   
   //set the cartesian and eo geometry
   set_lx_geometry();
-  
+
   if(nissa_use_eo_geom) set_eo_geometry();
   
   set_lx_bord_senders_and_receivers(MPI_LX_SU3_BORDS_SEND,MPI_LX_SU3_BORDS_RECE,&MPI_SU3);

@@ -9,11 +9,11 @@
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
+#include "../../routines/openmp.h"
 
 #include "../gauge/tree_level_Symanzik_action.h"
 
 #include "rootst_eoimpr_force.h"
-
 
 //unitarize the conf by explicitly inverting it
 void eo_conf_unitarize_explicitly_inverting(quad_su3 **conf)
@@ -32,41 +32,53 @@ void eo_conf_unitarize_explicitly_inverting(quad_su3 **conf)
   addrem_stagphases_to_eo_conf(conf);
 }
 
+THREADABLE_FUNCTION_3ARG(evolve_momenta_internal, quad_su3**,H, quad_su3**,F, double,dt)
+{
+  for(int par=0;par<2;par++)
+    {
+      NISSA_PARALLEL_LOOP(ivol,loc_volh)
+	for(int mu=0;mu<4;mu++)
+	  for(int ic1=0;ic1<3;ic1++)
+	    for(int ic2=0;ic2<3;ic2++)
+	      complex_subt_the_prod_idouble(H[par][ivol][mu][ic1][ic2],F[par][ivol][mu][ic1][ic2],dt);
+    }
+}}
+
+//THREADABLE_FUNCTION_8ARG(evolve_momenta_with_full_rootst_eoimpr_force2, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue, double,dt, hmc_force_piece,force_piece)
+void evolve_momenta_with_full_rootst_eoimpr_force2(quad_su3** H,quad_su3** conf,color** pf,theory_pars_type *theory_pars,rat_approx_type *appr,double residue,double dt,hmc_force_piece force_piece)
+{
+  verbosity_lv2_master_printf("Evolving momenta with force, dt=%lg\n",dt);
+  //allocate force
+  quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
+ 
+  //compute the force
+  full_rootst_eoimpr_force(F,conf,pf,theory_pars,appr,residue,force_piece);
+ 
+  //evolve
+  evolve_momenta_internal(H,F,dt);
+
+  for(int par=0;par<2;par++) nissa_free(F[par]);
+}
+//}
+
 // Evolve momenta according to the rooted staggered force
 // calculate H=H-F*dt to evolve link momenta
 // i.e calculate v(t+dt)=v(t)+a*dt
 void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars_type *theory_pars,rat_approx_type *appr,double residue,double dt,hmc_force_piece force_piece=BOTH_FORCE_PIECES)
 {
-  verbosity_lv2_master_printf("Evolving momenta with force, dt=%lg\n",dt);
-  //allocate force
-  quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
-  
-  //compute the force
-  full_rootst_eoimpr_force(F,conf,pf,theory_pars,appr,residue,force_piece);
-  
-  //evolve  
-  for(int par=0;par<2;par++)
-    {
-      nissa_loc_volh_loop(ivol)
-	for(int mu=0;mu<4;mu++)
-	  for(int ic1=0;ic1<3;ic1++)
-	    for(int ic2=0;ic2<3;ic2++)
-	      complex_subt_the_prod_idouble(H[par][ivol][mu][ic1][ic2],F[par][ivol][mu][ic1][ic2],dt);
-      
-      nissa_free(F[par]);
-    }
+  evolve_momenta_with_full_rootst_eoimpr_force2(H,conf,pf,theory_pars,appr,residue,dt,force_piece);
 }
 
 //eolve the configuration by using the computed momenta
 //this routine should be moved in a more general file
-void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
+THREADABLE_FUNCTION_3ARG(evolve_conf_with_momenta, quad_su3**,eo_conf, quad_su3**,H, double,dt)
 {
   verbosity_lv2_master_printf("Evolving conf with momenta, dt=%lg\n",dt);
   
   //evolve
   for(int par=0;par<2;par++)
     {
-      nissa_loc_volh_loop(ivol)
+      NISSA_PARALLEL_LOOP(ivol,loc_volh)
 	for(int mu=0;mu<4;mu++)
 	  {
 	    su3 t1,t2;
@@ -77,7 +89,7 @@ void evolve_conf_with_momenta(quad_su3 **eo_conf,quad_su3 **H,double dt)
 	  }
       set_borders_invalid(eo_conf[par]);
     }
-}
+}}
 
 void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars_type *theory_pars,rat_approx_type *appr,hmc_evol_pars_type *simul,multistep_level multilev=MACRO_STEP)
 {
@@ -117,7 +129,8 @@ void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theor
   //         Main loop
   for(int istep=0;istep<nsteps;istep++)
     {
-      verbosity_lv1_master_printf("Omelyan step %d/%d\n",istep+1,nsteps);
+      char mami_flag[3]="ia";
+      verbosity_lv1_master_printf("Omelyan m%ccro-step %d/%d\n",mami_flag[multilev==MACRO_STEP],istep+1,nsteps);
       
       //decide if last step is final or not
       double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;

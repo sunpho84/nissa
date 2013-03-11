@@ -81,7 +81,6 @@
 #include "inverters/tmclov/cgm_invert_tmclovQ2.h"
 
 #include "linalgs/linalgs.h"
-#include "linalgs/linalgs128.h"
 
 #include "new_types/complex.h"
 #include "new_types/dirac.h"

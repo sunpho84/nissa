@@ -56,7 +56,6 @@ EXTERN MPI_Op MPI_FLOAT_128_SUM;
 //reducing buffers
 EXTERN float_128 reduce_float_128;
 EXTERN complex reduce_complex;
-EXTERN double reduce_double;
 EXTERN int reduce_int;
 
 //timings
@@ -127,9 +126,15 @@ EXTERN coords plan_rank,line_rank,line_coord_rank;
 EXTERN int nissa_grid_inited;
 
 //thread
-EXTERN int thread_id,thread_stay_in_pool;
+EXTERN int glb_barr_id;
+#ifndef ONLY_INSTANTIATION
+int thread_pool_locked=false,thread_id=0,nthreads=1;
+#else
+EXTERN int thread_pool_locked,thread_id,nthreads;
+#endif  
+
 #pragma omp threadprivate(thread_id)
-EXTERN void(*threaded_function_ptr)(void);
+EXTERN void(*threaded_function_ptr)();
 
 //endianess
 EXTERN int little_endian;
@@ -148,6 +153,7 @@ EXTERN int nissa_required_memory;
 EXTERN void *main_nissa_arr;
 EXTERN nissa_vect main_nissa_vect;
 EXTERN nissa_vect *last_nissa_vect;
+EXTERN void *return_nissa_malloc_ptr;
 
 //random generator stuff
 EXTERN rnd_gen glb_rnd_gen;
