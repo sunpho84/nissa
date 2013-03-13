@@ -6,15 +6,6 @@
 
 #include <malloc.h>
 
-//#include <hwi/include/bqc/A2_core.h>
-//#include <hwi/include/bqc/A2_inlines.h>
-//#include <hwi/include/bqc/MU_PacketCommon.h>
-//#include <spi/include/mu/Descriptor.h>
-//#include <spi/include/mu/InjFifo.h>
-//#include <spi/include/mu/Addressing.h>
-//#include <spi/include/mu/GIBarrier.h>
-//#include <spi/include/kernel/process.h>
-
 #include <firmware/include/personality.h>
 #include <spi/include/mu/Descriptor_inlines.h>
 #include <spi/include/mu/Addressing_inlines.h>
