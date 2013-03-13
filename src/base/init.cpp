@@ -256,15 +256,8 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	  //check that all directions have at least 2 nodes
 	  if(check_all_dir_parallelized)
 	    if(valid_partitioning)
-	      {
-		master_printf("Studying partition: ");
-		for(int mu=0;mu<4;mu++)
-		  {
-		    valid_partitioning&=(P[mu]>=2);
-		    master_printf("%d ",P[mu]);
-		  }
-		master_printf(", valid: %d\n",valid_partitioning);
-	      }
+	      for(int mu=0;mu<4;mu++)
+		valid_partitioning&=(P[mu]>=2);
 	  
 	  //if it is a valid partitioning
 	  if(valid_partitioning)
