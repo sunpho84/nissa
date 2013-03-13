@@ -3,6 +3,7 @@
 #endif
 
 #include <string.h>
+#include <math.h>
 
 #include "../base/communicate.h"
 #include "../base/global_variables.h"
@@ -21,7 +22,7 @@
 //set to zero
 void double_vector_init_to_zero(double *a,int n)
 {
-  memset(a,0,n*sizeof(double));
+  if(IS_MASTER_THREAD) memset(a,0,n*sizeof(double));
   
   set_borders_invalid(a);
 }
@@ -29,7 +30,7 @@ void double_vector_init_to_zero(double *a,int n)
 //copy
 void double_vector_copy(double *a,double *b,int n)
 {
-  memcpy(a,b,n*sizeof(double));
+  if(IS_MASTER_THREAD) memcpy(a,b,n*sizeof(double));
   
   set_borders_invalid(a);
 }
@@ -47,48 +48,40 @@ THREADABLE_FUNCTION_5ARG(double_vector_prod_the_summ_double, double*,out, double
 {NISSA_PARALLEL_LOOP(i,n) out[i]=r*(in1[i]+in2[i]);set_borders_invalid(out);}}
 
 //internal summ
-THREADABLE_FUNCTION_4ARG(double_vector_loc_scalar_prod_internal, double*,res, double*,a, double*,b, int,n)
+THREADABLE_FUNCTION_4ARG(double_vector_glb_scalar_prod, double*,glb_res, double*,a, double*,b, int,n)
 {
+#if 0
   //perform thread summ
-  res[thread_id]=0;
+  double loc_thread_res=0;
   NISSA_PARALLEL_LOOP(i,n)
-    res[thread_id]+=a[i]*b[i];
-
-  //sync all the threads
-  thread_barrier(DOUBLE_REDUCE_FIRST_BARRIER);
+    loc_thread_res+=a[i]*b[i];
   
-  //within master thread summ all the pieces
-  if(IS_MASTER_THREAD) for(int ith=1;ith<nthreads;ith++) res[0]+=res[ith];
+  (*glb_res)=glb_reduce_double(loc_thread_res);
+#else
+  //perform thread summ
+  float_128 loc_thread_res={0,0};
+  NISSA_PARALLEL_LOOP(i,n)
+    float_128_summassign_64(loc_thread_res,a[i]*b[i]);
   
-  //resync, since we must ensure that all threads see the same reduced value
-  thread_barrier(DOUBLE_REDUCE_SECOND_BARRIER);
+  float_128 temp;
+  glb_reduce_float_128(temp,loc_thread_res);
+  (*glb_res)=temp[0];
+#endif
 }}
 
-/*
-//to be removed
-double double_vector_loc_scalar_prod_internal(double *a,double *b,int n)
+//put the passed vector to the new norm, returning the reciprocal of normalizating factor
+THREADABLE_FUNCTION_5ARG(double_vector_normalize, double*,ratio, double*,out, double*,in, double,norm, int,n)
 {
-  double res=0;
-  for(int i=0;i<n;i++) res+=a[i]*b[i];
-  return res;
-}
-
-//global scalar product between a and b
-double double_vector_glb_scalar_prod_old(double *a,double *b,int n)
-{
-  return glb_reduce_double(double_vector_loc_scalar_prod_internal(a,b,n));
-}
-*/
-
-//global scalar product between a and b
-double double_vector_glb_scalar_prod(double *a,double *b,int n)
-{
-  double res[nthreads];
+  //compute current norm
+  double old_norm;
+  double_vector_glb_scalar_prod(&old_norm,in,in,n);
   
-  double_vector_loc_scalar_prod_internal(res,a,b,n);
-
-  return glb_reduce_double(res[0]);
-}
+  //compute normalizing factor
+  double fact=sqrt(norm/old_norm);
+  double_vector_prod_double(out,in,fact,n);
+  
+  if(ratio!=NULL) (*ratio)=1/fact;
+}}
 
 //a[]=b[]+c[]*d
 THREADABLE_FUNCTION_5ARG(double_vector_summ_double_vector_prod_double, double*,a, double*,b, double*,c, double,d, int,n)

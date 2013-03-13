@@ -18,7 +18,7 @@ THREADABLE_FUNCTION_3ARG(Wilson_force, quad_su3**,F, quad_su3**,eo_conf, double,
 {
   double r=beta/3;
   verbosity_lv1_master_printf("Computing Wilson force\n");
-  communicate_eo_quad_su3_borders(eo_conf);
+  communicate_eo_quad_su3_edges(eo_conf);
   
   NISSA_PARALLEL_LOOP(ivol,loc_vol)
     {

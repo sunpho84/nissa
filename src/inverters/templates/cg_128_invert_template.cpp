@@ -31,7 +31,8 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
   cg_additional_vectors_allocation();
   
   //compute and print source norm
-  double source_norm=double_vector_glb_scalar_prod((double*)external_source,(double*)external_source,size_of_bulk*ndoubles_per_site);
+  double source_norm;
+  double_vector_glb_scalar_prod(&source_norm,(double*)external_source,(double*)external_source,size_of_bulk*ndoubles_per_site);
   verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
   
   //internal inverter source

@@ -79,7 +79,8 @@ double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_par
   generate_hmc_momenta(H);
   
   //compute initial action
-  double init_action=full_rootst_eoimpr_action(out_conf,sme_conf,H,pf,theory_pars,rat_exp_actio,simul->pf_action_residue);
+  double init_action;
+  full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,pf,theory_pars,rat_exp_actio,simul->pf_action_residue);
   verbosity_lv2_master_printf("Init action: %lg\n",init_action);
   
   //evolve forward
@@ -96,7 +97,8 @@ double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_par
     }
   
   //compute final action using sme_conf (see previous note)
-  double final_action=full_rootst_eoimpr_action(out_conf,sme_conf,H,pf,theory_pars,rat_exp_actio,simul->pf_action_residue);
+  double final_action;
+  full_rootst_eoimpr_action(&final_action,out_conf,sme_conf,H,pf,theory_pars,rat_exp_actio,simul->pf_action_residue);
   verbosity_lv2_master_printf("Final action: %lg\n",final_action);
   
   //compute the diff

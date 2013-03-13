@@ -31,6 +31,7 @@ void float_128_print(float_128 a);
 void float_128_prod(float_128 c,float_128 a,float_128 b);
 void float_128_prodassign(float_128 out,float_128 in);
 void float_128_prod_64(float_128 c,float_128 a,double b);
+void float_128_64_prod_64(float_128 c,double a,double b);
 void float_128_pow_int_frac(float_128 out,float_128 in,int n,int d);
 void float_128_pow_int(float_128 out,float_128 in,int d);
 void float_128_div_64(float_128 div,float_128 a,double b);

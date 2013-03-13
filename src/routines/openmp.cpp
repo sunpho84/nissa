@@ -1,4 +1,5 @@
 #include <omp.h>
+#include <stdlib.h>
 
 #include "../base/debug.h"
 #include "../base/global_variables.h"
@@ -7,7 +8,7 @@
 #include "../base/openmp_macros.h"
 #include "ios.h"
 
- #include <unistd.h>
+//#define DEBUG
 
 //put a barrier between threads
 void thread_barrier(int barr_id)
@@ -15,9 +16,8 @@ void thread_barrier(int barr_id)
 #ifdef DEBUG
   if(IS_MASTER_THREAD) glb_barr_id=barr_id;
 #endif
-
 #pragma omp barrier
-
+  
 #ifdef DEBUG
   if(!IS_MASTER_THREAD)
     if(glb_barr_id!=barr_id) crash("Thread %d found barrier %d when waiting for %d",thread_id,barr_id,glb_barr_id);
@@ -30,7 +30,7 @@ void thread_pool_unlock()
 {
   thread_barrier(UNLOCK_POOL_BARRIER);
 #ifdef DEBUG
-  printf("thread %d unlocking the pool\n",thread_id);
+  if(rank==0) printf("thread %d unlocking the pool\n",thread_id);
 #endif
   thread_pool_locked=false;
 }
@@ -40,7 +40,7 @@ void thread_pool_lock()
 {
   thread_pool_locked=true;
 #ifdef DEBUG
-  printf("thread %d locking the pool\n",thread_id);
+  if(rank==0) printf("thread %d locking the pool\n",thread_id);
 #endif
   thread_barrier(LOCK_POOL_BARRIER);
 }
@@ -72,7 +72,7 @@ void thread_pool()
 void start_threaded_function(void(*function)(void))
 {
 #ifdef DEBUG
-  printf("----------Start working thread pool--------\n");
+  if(rank==0) printf("----------Start working thread pool--------\n");
 #endif
   //set external function pointer and unlock pool threads
   threaded_function_ptr=function;
@@ -83,7 +83,7 @@ void start_threaded_function(void(*function)(void))
   thread_pool_lock();
   
 #ifdef DEBUG
-  printf("----------Finished working in the thread pool--------\n");
+  if(rank==0) printf("----------Finished working in the thread pool--------\n");
 #endif
 }
 
@@ -102,13 +102,23 @@ void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char 
 {
   //get the number of threads
   nthreads=omp_get_num_threads();
-  master_printf("Starting %d threads\n",nthreads);
+  
+  //initialize reducing buffers
+  glb_double_reduction_buf=(double*)malloc(nthreads*sizeof(double));
+  glb_float_128_reduction_buf=(float_128*)malloc(nthreads*sizeof(float_128));
   
   //initialize nissa
   init_nissa(narg,arg);
   
+  //now master rank has been identified
+  master_printf("Starting %d threads\n",nthreads);
+  
   //launch the main function
   main_function(narg,arg);
+  
+  //free global reduction buffers
+  free(glb_double_reduction_buf);
+  free(glb_float_128_reduction_buf);
   
   //exit the thread pool
   thread_pool_stop();
@@ -120,9 +130,8 @@ void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char 
 {
 #pragma omp parallel
   {
-    //take thread id and mark all thread but master as locked
+    //take thread id
     thread_id=omp_get_thread_num();
-    thread_pool_locked=true;
     
     //distinguish master thread from the others
     if(thread_id!=0) thread_pool();

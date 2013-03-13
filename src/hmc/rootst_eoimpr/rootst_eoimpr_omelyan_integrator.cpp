@@ -42,6 +42,8 @@ THREADABLE_FUNCTION_3ARG(evolve_momenta_internal, quad_su3**,H, quad_su3**,F, do
 	    for(int ic2=0;ic2<3;ic2++)
 	      complex_subt_the_prod_idouble(H[par][ivol][mu][ic1][ic2],F[par][ivol][mu][ic1][ic2],dt);
     }
+
+  for(int par=0;par<2;par++) nissa_free(F[par]);
 }}
 
 //THREADABLE_FUNCTION_8ARG(evolve_momenta_with_full_rootst_eoimpr_force2, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue, double,dt, hmc_force_piece,force_piece)
@@ -56,8 +58,6 @@ void evolve_momenta_with_full_rootst_eoimpr_force2(quad_su3** H,quad_su3** conf,
  
   //evolve
   evolve_momenta_internal(H,F,dt);
-
-  for(int par=0;par<2;par++) nissa_free(F[par]);
 }
 //}
 

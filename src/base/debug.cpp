@@ -6,11 +6,13 @@
 #include <stdlib.h>
 #include <execinfo.h>
 #include <stdarg.h>
+#include <unistd.h>
 
 #include "global_variables.h"
 #include "vectors.h"
 
 #include "../routines/ios.h"
+#include "../base/openmp_macros.h"
 
 //take the time
 double take_time()
@@ -23,10 +25,14 @@ void print_backtrace_list()
   int frames=backtrace(callstack,128);
   char **strs=backtrace_symbols(callstack,frames);
   
-  master_printf("Backtracing...\n");
-  for(int i=0;i<frames;i++) master_printf("%s\n",strs[i]);
+  //only master rank, but not master thread
+  if(rank==0)
+    {
+      printf("Backtracing...\n");
+      for(int i=0;i<frames;i++) printf("%s\n",strs[i]);
+    }
   
-  free(strs);               
+  free(strs);
 }
 
 //crash
@@ -37,6 +43,9 @@ void internal_crash(int line,const char *file,const char *templ,...)
   
   fflush(stdout);
   fflush(stderr);
+  
+  //give time to master thread to crash, if possible
+  if(!IS_MASTER_THREAD) sleep(1);
   
   if(rank==0)
     {
