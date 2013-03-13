@@ -292,6 +292,8 @@ void fill_spi_sending_buf_with_lx_vec(spi_comm_t &a,void *vec,int nbytes_per_sit
   //copy one by one the surface of vec inside the sending buffer
   NISSA_PARALLEL_LOOP(ibord,bord_vol)
     memcpy(a.send_buf+nbytes_per_site*ibord,(char*)vec+surflx_of_bordlx[ibord]*nbytes_per_site,nbytes_per_site);
+
+  thread_barrier(91000);
 }
 
 //extract the information from receiving buffer and put them inside an lx vec
@@ -378,6 +380,8 @@ void fill_spi_sending_buf_with_ev_or_od_vec(spi_comm_t &a,void *vec,int nbytes_p
   //copy one by one the surface of vec inside the sending buffer
   NISSA_PARALLEL_LOOP(ibord,bord_volh)
       memcpy(a.send_buf+ibord*nbytes_per_site,(char*)vec+surfeo_of_bordeo[eo][ibord]*nbytes_per_site,nbytes_per_site);
+
+  thread_barrier(91003);
 }
 
 //extract the information from receiving buffer and put them inside an even or odd vec
@@ -393,7 +397,7 @@ void fill_ev_or_od_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbyte
       //the buffer is already ordered as the vec border
       memcpy((char*)vec+loc_volh*nbytes_per_site,a.recv_buf,a.buf_size);
     }
-  thread_barrier(91003);
+  thread_barrier(91004);
 }
 
 //start communication using an ev or od border
@@ -416,7 +420,7 @@ int spi_start_communicating_ev_or_od_borders(spi_comm_t &a,void *vec,int nbytes_
 	  tot_nissa_comm_time+=take_time();
 	}
       
-      thread_barrier(91004);
+      thread_barrier(91005);
   
       return 1;
     }
