@@ -141,7 +141,7 @@ int bulk_volume(int *L)
   return intvol;
 }
 
-//compute the bulk volume of the reciprocal lattice L/P
+//compute the bulk volume of the local lattice, given by L/P
 int bulk_recip_lat_volume(int *P,int *L)
 {
   int X[4]={L[0]/P[0],L[1]/P[1],L[2]/P[2],L[3]/P[3]};
@@ -149,13 +149,13 @@ int bulk_recip_lat_volume(int *P,int *L)
 }
 
 //compute the variance of the border
-int compute_border_variance(int *L,int *X,int consider_reciprocal)
+int compute_border_variance(int *L,int *P,int factorize_processor)
 {
   int S2B=0,SB=0;
   for(int ib=0;ib<4;ib++)
     {
       int B=1;
-      for(int mu=0;mu<4;mu++) if(mu!=ib) B*=(consider_reciprocal) ? L[mu]/X[mu] : X[mu];
+      for(int mu=0;mu<4;mu++) if(mu!=ib) B*=(factorize_processor) ? L[mu]/P[mu] : P[mu];
       SB+=B;
       S2B+=B*B;
     }
@@ -198,9 +198,7 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
   if(NP==1||NP==glb_vol)
     {
       if(NP==1) mP[0]=mP[1]=mP[2]=mP[3]=1;
-      else 
-	for(int mu=0;mu<4;mu++)
-	  mP[mu]=L[mu];
+      else for(int mu=0;mu<4;mu++) mP[mu]=L[mu];
     }
   else
     {
@@ -212,69 +210,82 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
       int VL=V/NP;
       
       //factorize the local volume
-      int list_factVL[log2N(VL)];
-      int nfactVL=factorize(list_factVL,VL);
+      int list_fact_VL[log2N(VL)];
+      int nfact_VL=factorize(list_fact_VL,VL);
       
       //factorize the number of rank
-      int list_factNP[log2N(NP)];
-      int nfactNP=factorize(list_factNP,NP);
+      int list_fact_NP[log2N(NP)];
+      int nfact_NP=factorize(list_fact_NP,NP);
       
-      //if nfactVL>=nfactNP factorize the reciprocal lattice
-      int consider_reciprocal=(nfactVL>=nfactNP);
-      int nfactX=(consider_reciprocal) ? nfactNP : nfactVL;
-      int *list_factX=(consider_reciprocal) ? list_factNP : list_factVL;
+      //if nfact_VL>=nfact_NP factorize the number of processor, otherwise the local volume
+      int factorize_processor=(nfact_VL>=nfact_NP);
+      int nfact=(factorize_processor) ? nfact_NP : nfact_VL;
+      int *list_fact=(factorize_processor) ? list_fact_NP : list_fact_VL;
       
-      //compute the number of combinations
-      int ncomboX=1;
-      for(int ifactX=0;ifactX<nfactX;ifactX++) ncomboX*=4;
+      //compute the number of combinations: this is given by 4^nfact
+      int ncombo=1;
+      for(int ifact=0;ifact<nfact;ifact++) ncombo*=4;
       
       //find the partition which minimize the surface and the surface variance
-      int minsurfVL=-1;
+      int min_surf_VL=-1;
+      int icombo=0;
       mP[0]=mP[1]=mP[2]=mP[3]=-1;
-      int icomboX=0;
       
       do
 	{
-	  //find the partioning of P corresponding to combo ic
-	  int X[4]={1,1,1,1};
-	  int ifactX=nfactX-1;
+	  //processor number
+	  int P[4]={1,1,1,1};
+	  
+	  //find the partioning corresponding to icombo
+	  int ifact=nfact-1;
 	  int valid_partitioning=1;
 	  do
 	    {
-	      int mu=(icomboX>>(2*ifactX)) & 0x3;
-	      X[mu]*=list_factX[ifactX];
+	      //find the direction: this is given by the ifact digit of icombo wrote in base 4
+	      int mu=(icombo>>(2*ifact)) & 0x3;
 	      
-	      valid_partitioning=(L[mu]%X[mu]==0);
+	      //if we are factorizing local lattice, processor factor is given by list_fact, otherwise L/list_fact
+	      P[mu]*=factorize_processor ? list_fact_NP[ifact] : L[mu]/list_fact_VL[ifact];	      
 	      
-	      if(valid_partitioning) ifactX--;
+	      //check that the total volume L is a multiple and it is larger than the number of proc
+	      valid_partitioning=(L[mu]%P[mu]==0 && L[mu]>=P[mu]);
+	      
+	      if(valid_partitioning) ifact--;
 	    }
-	  while(valid_partitioning==1 && ifactX>=0);
+	  while(valid_partitioning==1 && ifact>=0);
 	  
 	  //check that all directions have at least 2 nodes
 	  if(check_all_dir_parallelized)
 	    if(valid_partitioning)
+	      {
+		master_printf("Studying partition: ");
 		for(int mu=0;mu<4;mu++)
-		  valid_partitioning&=consider_reciprocal ? (X[mu]/L[mu]>=2) : (X[mu]>=2);
+		  {
+		    valid_partitioning&=(P[mu]>=2);
+		    master_printf("%d ",P[mu]);
+		  }
+		master_printf(", valid: %d\n",valid_partitioning);
+	      }
 	  
 	  //if it is a valid partitioning
 	  if(valid_partitioning)
 	    {
 	      //compute the surface=loc_vol-bulk_volume
-	      int BL=consider_reciprocal ? bulk_recip_lat_volume(X,L) : bulk_volume(X);
-	      int surfVL=VL-BL;
+	      int BL=factorize_processor ? bulk_recip_lat_volume(P,L) : bulk_volume(P);
+	      int surf_VL=VL-BL;
 	      
 	      //look if this is the new minimal surface
 	      int new_minimal=0;
 	      //if it is the minimal surface (or first valid combo) copy it and compute the border size
-	      if(surfVL<minsurfVL||minsurfVL==-1)
+	      if(surf_VL<min_surf_VL||min_surf_VL==-1)
 		{
 		  new_minimal=1;
-		  mBV=compute_border_variance(L,X,consider_reciprocal);
+		  mBV=compute_border_variance(L,P,factorize_processor);
 		}
 	      //if it is equal to previous found surface, consider borders variance
-	      if(surfVL==minsurfVL)
+	      if(surf_VL==min_surf_VL)
 		{
-		  int BV=compute_border_variance(L,X,consider_reciprocal);
+		  int BV=compute_border_variance(L,P,factorize_processor);
 		  //if borders are more homogeneus consider this grid
 		  if(BV<mBV)
 		    {
@@ -286,17 +297,17 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	      //save it as new minimal
 	      if(new_minimal)
 		{
-		  minsurfVL=surfVL;
-		  for(int mu=0;mu<4;mu++)
-		    mP[mu]=consider_reciprocal ? X[mu] : L[mu]/X[mu];
+		  min_surf_VL=surf_VL;
+		  for(int mu=0;mu<4;mu++) mP[mu]=P[mu];
 		  something_found=1;
 		}
 	      
-	      icomboX++;
+	      icombo++;
 	    }
-	  else icomboX+=(ifactX>1) ? 1<<(2*(ifactX-1)) : 1;
+	  //skip all remaining factorization using the same structure
+	  else icombo+=(ifact>1) ? 1<<(2*(ifact-1)) : 1;
 	}
-      while(icomboX<ncomboX);
+      while(icombo<ncombo);
     }
   
   if(!something_found) crash("no valid partitioning found");

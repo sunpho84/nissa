@@ -470,7 +470,7 @@ void communicate_eo_color_borders(color **eos)
 void start_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev)
 {
 #ifdef BGQ
-  (*nrequest)=spi_start_communicating_ev_or_od_borders(spi_eo_color_comm,ev,sizeof(color));
+  (*nrequest)=spi_start_communicating_ev_or_od_borders(spi_eo_color_comm,ev,sizeof(color),EVN);
 #else
   start_communicating_ev_borders(nrequest,request,(char*)ev,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));
 #endif
@@ -478,7 +478,7 @@ void start_communicating_ev_color_borders(int *nrequest,MPI_Request *request,col
 void finish_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev)
 {
 #ifdef BGQ
-  spi_finish_communicating_ev_or_od_borders(ev,spi_eo_color_comm,sizeof(color),EVN);
+  spi_finish_communicating_ev_or_od_borders(ev,spi_eo_color_comm,sizeof(color));
 #else
   finish_communicating_ev_borders(nrequest,request,(char*)ev);
 #endif
