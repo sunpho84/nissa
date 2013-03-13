@@ -220,7 +220,6 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
       //if nfact_VL>=nfact_NP factorize the number of processor, otherwise the local volume
       int factorize_processor=(nfact_VL>=nfact_NP);
       int nfact=(factorize_processor) ? nfact_NP : nfact_VL;
-      int *list_fact=(factorize_processor) ? list_fact_NP : list_fact_VL;
       
       //compute the number of combinations: this is given by 4^nfact
       int ncombo=1;

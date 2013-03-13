@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include <omp.h>
 #include <stdlib.h>
 
@@ -13,15 +17,26 @@
 //put a barrier between threads
 void thread_barrier(int barr_id)
 {
+  //debug: copy the barrier id to the global ref
 #ifdef DEBUG
   if(IS_MASTER_THREAD) glb_barr_id=barr_id;
 #endif
-#pragma omp barrier
-  
+
+#ifdef BGQ
+  L2_Barrier(&bgq_barrier,nthreads);
+#else
+  #pragma omp barrier
+#endif
+
+  //debug: check that the local id correspond to global one
 #ifdef DEBUG
   if(!IS_MASTER_THREAD)
     if(glb_barr_id!=barr_id) crash("Thread %d found barrier %d when waiting for %d",thread_id,barr_id,glb_barr_id);
-#pragma omp barrier
+#ifdef BGQ
+  L2_Barrier(&bgq_barrier,nthreads);
+#else
+  #pragma omp barrier
+#endif
 #endif
 }
 
@@ -100,18 +115,21 @@ void thread_pool_stop()
 //start the master thread, locking all the other threads
 void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg))
 {
+  //initialize nissa
+  init_nissa(narg,arg);
+  
   //get the number of threads
   nthreads=omp_get_num_threads();
+  master_printf("Starting %d threads\n",nthreads);
   
   //initialize reducing buffers
   glb_double_reduction_buf=(double*)malloc(nthreads*sizeof(double));
   glb_float_128_reduction_buf=(float_128*)malloc(nthreads*sizeof(float_128));
-  
-  //initialize nissa
-  init_nissa(narg,arg);
-  
-  //now master rank has been identified
-  master_printf("Starting %d threads\n",nthreads);
+    
+  //if BGQ, define appropriate barrier
+#ifdef BGQ
+  Kernel_L2AtomicsAllocate(&bgq_barrier,sizeof(L2_Barrier_t));
+#endif
   
   //launch the main function
   main_function(narg,arg);
