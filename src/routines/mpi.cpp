@@ -5,9 +5,11 @@
 #include <mpi.h>
 
 #include "../base/global_variables.h"
+#include "../base/openmp_macros.h"
 #include "../new_types/complex.h"
 #include "../new_types/float128.h"
 #include "../new_types/new_types_definitions.h"
+#include "../routines/openmp.h"
 
 //take the different with following multiple of eight
 MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos)
@@ -44,16 +46,50 @@ void glb_reduce_complex(complex out_glb,complex in_loc)
 //reduce a float_128
 void glb_reduce_float_128(float_128 out_glb,float_128 in_loc)
 {
-  MPI_Allreduce(in_loc,reduce_float_128,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
-  
-  float_128_copy(out_glb,reduce_float_128);
+  if(thread_pool_locked) MPI_Allreduce(in_loc,out_glb,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+  else
+    {
+      //copy loc in the buf and sync all the threads
+      float_128_copy(glb_float_128_reduction_buf[thread_id],in_loc);
+      thread_barrier(FLOAT_128_REDUCE_FIRST_BARRIER);
+      
+      //within master thread summ all the pieces and between MPI
+      if(IS_MASTER_THREAD)
+	{
+	  for(int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_float_128_reduction_buf[ith]);
+	  MPI_Allreduce(in_loc,glb_float_128_reduction_buf[0],1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+	}
+      
+      //read glb val
+      THREAD_ATOMIC_EXEC(float_128_copy(out_glb,glb_float_128_reduction_buf[0]););
+    }
 }
 
 //reduce a double
 double glb_reduce_double(double in_loc)
 {
   double out_glb;
-  MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  
+  if(thread_pool_locked) MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  else
+    {
+      //copy loc in the buf and sync all the threads
+      glb_double_reduction_buf[thread_id]=in_loc;
+      thread_barrier(DOUBLE_REDUCE_FIRST_BARRIER);
+      
+      //within master thread summ all the pieces and between MPI
+      if(IS_MASTER_THREAD)
+	{
+	  for(int ith=1;ith<nthreads;ith++) in_loc+=glb_double_reduction_buf[ith];
+	  MPI_Allreduce(&in_loc,&(glb_double_reduction_buf[0]),1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	}
+      
+      //resync, since we must ensure that all threads see the same reduced value
+      thread_barrier(DOUBLE_REDUCE_SECOND_BARRIER);
+      
+      //read glb val
+      out_glb=glb_double_reduction_buf[0];
+    }
   
   return out_glb;
 }

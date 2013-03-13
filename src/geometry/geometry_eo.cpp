@@ -262,10 +262,13 @@ void unset_eo_geometry()
 //add or remove staggered phases to/from a conf
 THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_eo_conf, quad_su3**,eo_conf)
 {
+  //we must ensure that nobody is using the conf
+  thread_barrier(ADDREM_STAGPHASES_FIRST_BARRIER);
+ 
   //work also on borders and edges if allocated and valid
   int ending=loc_volh;
   if(check_borders_allocated(eo_conf[0]) && check_borders_allocated(eo_conf[1]) && check_borders_valid(eo_conf[0]) && check_borders_valid(eo_conf[1])) ending+=bord_volh;
-  if(check_edges_allocated(eo_conf[0])   && check_edges_allocated(eo_conf[1])   && check_edges_valid(eo_conf[0])   && check_edges_valid(eo_conf[1]))   ending+=edge_volh;
+  if(check_edges_allocated(eo_conf[0])   && check_edges_allocated(eo_conf[1])   && check_edges_valid(eo_conf[0])   && check_edges_valid(eo_conf[1])) ending+=edge_volh;
   
   for(int par=0;par<2;par++)
     {
@@ -293,14 +296,12 @@ THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_eo_conf, quad_su3**,eo_conf)
 	  if(glb_coord_of_loclx[ivol_lx][0]==glb_size[0]-1) d+=1;
 	  if(d%2==1) su3_prod_double(eo_conf[par][ivol_eo][0],eo_conf[par][ivol_eo][0],-1);
 	}
-      if(ending<loc_volh+bord_volh) set_borders_invalid(eo_conf[par]);
-      else
-	if(ending<loc_volh+bord_volh+edge_volh) set_edges_invalid(eo_conf[par]);
-	else thread_barrier(ADDREM_STAGPHASES_BARRIER);
     }
+  
+  thread_barrier(ADDREM_STAGPHASES_SECOND_BARRIER);
 }}
 
-//filter the points retaining only those having all the coord even
+//filter the points retaining only those having all even coord
 void filter_hypercube_origin_sites(color **vec)
 {
   nissa_loc_vol_loop(ivol)

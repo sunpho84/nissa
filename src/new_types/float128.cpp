@@ -205,6 +205,29 @@ void float_subt_the_64_prod_128(float_128 c,double a,float_128 b)
   float_64_prod_128(d,a,b);
   float_128_subtassign(c,d);
 }
+void float_128_64_prod_64(float_128 c,double a,double b)
+{
+#ifndef fake_128
+  const double split=134217729;
+  
+  double cona=a*split;
+  double conb=b*split;
+  
+  double a1=cona-(cona-a);
+  double b1=conb-(conb-b);
+  double a2=a-a1;
+  double b2=b-b1;
+  
+  double c11=a*b;
+  double c21=a2*b2+(a2*b1+(a1*b2+(a1*b1-c11)));
+  
+  c[0]=c11+c21;
+  c[1]=c21-(c[0]-c11);
+#else
+  c[0]=a*b;
+  c[1]=0;
+#endif
+}
 void float_128_prodassign(float_128 out,float_128 in)
 {float_128_prod(out,out,in);}
 

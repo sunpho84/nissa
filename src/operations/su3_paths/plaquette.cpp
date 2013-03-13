@@ -14,10 +14,12 @@
 #include "../../geometry/geometry_mix.h"
 #include "../../new_types/complex.h"
 #include "../../new_types/dirac.h"
+#include "../../new_types/float128.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/spin.h"
 #include "../../new_types/su3.h"
 #include "../../routines/mpi.h"
+#include "../../routines/openmp.h"
 
 ////////////////////////// Complicated things /////////////////////
 
@@ -116,40 +118,50 @@ u |      |
 
   the temporal and spatial plaquette are computed separately
 */
-void global_plaquette_eo_conf(double *totplaq,quad_su3 **conf)
+THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, quad_su3**,conf)
 {
   communicate_eo_quad_su3_borders(conf);
   
-  double locplaq[2]={0,0};
+  float_128 locplaq[2]={{0,0},{0,0}};
   
-  nissa_loc_volh_loop(A)
-    for(int par=0;par<2;par++)
-      for(int mu=0;mu<4;mu++)
-	for(int nu=mu+1;nu<4;nu++)
-	  {
-	    //ACD and ABD path
-	    su3 ABD,ACD;
-	    unsafe_su3_prod_su3(ABD,conf[par][A][mu],conf[!par][loceo_neighup[par][A][mu]][nu]);
-	    unsafe_su3_prod_su3(ACD,conf[par][A][nu],conf[!par][loceo_neighup[par][A][nu]][mu]);
-	    
-	    //compute tr(ABDC)
-	    double tr=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
-	    if(mu==0) locplaq[0]+=tr;
-	    else      locplaq[1]+=tr;
-	  }
+  //loop over all the lattice
+  for(int par=0;par<2;par++)
+      {
+	NISSA_PARALLEL_LOOP(A,loc_volh)
+	  for(int mu=0;mu<4;mu++)
+	    for(int nu=mu+1;nu<4;nu++)
+	      {
+		//ACD and ABD path
+		su3 ABD,ACD;
+		unsafe_su3_prod_su3(ABD,conf[par][A][mu],conf[!par][loceo_neighup[par][A][mu]][nu]);
+		unsafe_su3_prod_su3(ACD,conf[par][A][nu],conf[!par][loceo_neighup[par][A][nu]][mu]);
+		
+		//compute tr(ABDC)
+		double tr=real_part_of_trace_su3_prod_su3_dag(ABD,ACD);
+		
+		//summ to the time or spatial cumule
+		int ts=(mu!=0&&nu!=0);
+		float_128_summassign_64(locplaq[ts],tr);
+	      }
+      }
   
-  //reduce double[2] as complex
-  glb_reduce_complex(totplaq,locplaq);
-  
-  //normalize
-  for(int ts=0;ts<2;ts++) totplaq[ts]/=glb_vol*3*3;
-}
+  //separately reduce and normalize time and spatial plaquette
+  for(int ts=0;ts<2;ts++)
+    {
+      //reduce
+      float_128 temp;
+      glb_reduce_float_128(temp,locplaq[ts]);
+      
+      //normalize
+      totplaq[ts]=temp[0]/(glb_vol*3*3);
+    }
+}}
 
 //return the average between spatial and temporary plaquette
 double global_plaquette_eo_conf(quad_su3 **conf)
 {
+  //compute the two plaquettes
   double plaq[2];
-  
   global_plaquette_eo_conf(plaq,conf);
   
   return (plaq[0]+plaq[1])/2;
@@ -198,7 +210,7 @@ double global_plaquette_eo_conf_edges(quad_su3 **conf)
 //compute the staples along a particular dir, for a single site
 void compute_point_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
 {
-  if(!check_borders_valid(eo_conf[0])||!check_borders_valid(eo_conf[1])) crash("communicate border externally");
+  if(!check_edges_valid(eo_conf[0])||!check_edges_valid(eo_conf[1])) crash("communicate edges externally");
   
   su3_put_to_zero(staple);
   

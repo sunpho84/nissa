@@ -17,6 +17,8 @@
 #include "debug.h"
 #include "global_variables.h"
 
+//#define DEBUG
+
 //return the pointer to the nissa vect
 nissa_vect* get_nissa_vec(void *v)
 {return (nissa_vect*)v-1;}
@@ -49,29 +51,44 @@ void last_nissa_vect_content_printf()
 }
 
 //set a flag: we need to be sure that all the threads are consistent
-void set_vec_flag(void *v,int flag)
+void set_vec_flag_non_blocking(void *v,unsigned int flag)
+{get_nissa_vec(v)->flag|=flag;}
+void set_vec_flag(void *v,unsigned int flag)
 {
 #ifdef DEBUG
   printf("set_vec_flag for vect %s allocated in file %s line %d, thread_id: %d, thread_pool_locked: %d\n",
 	 get_vec_name(v),get_nissa_vec(v)->file,get_nissa_vec(v)->line,thread_id,thread_pool_locked);
+  print_backtrace_list();
 #endif
-  if(!thread_pool_locked) thread_barrier(SET_VEC_FLAG_BARRIER); 
-  get_nissa_vec(v)->flag |= flag;
+  //update atomically
+  if((get_nissa_vec(v)->flag & flag)!=flag)
+    {
+      if(!thread_pool_locked) thread_barrier(SET_VEC_FLAG_FIRST_BARRIER);
+      get_nissa_vec(v)->flag|=flag;
+    }
+  if(!thread_pool_locked) thread_barrier(SET_VEC_FLAG_SECOND_BARRIER);
 }
 
 //unset a flag (idem)
-void unset_vec_flag(void *v,int flag)
+void unset_vec_flag_non_blocking(void *v,unsigned int flag)
+{get_nissa_vec(v)->flag &= ~flag;}
+void unset_vec_flag(void *v,unsigned int flag)
 {
 #ifdef DEBUG
   printf("unset_vec_flag for vect %s allocated in file %s line %d, thread_id: %d, thread_pool_locked: %d\n",
 	 get_vec_name(v),get_nissa_vec(v)->file,get_nissa_vec(v)->line,thread_id,thread_pool_locked);
 #endif
-  if(!thread_pool_locked) thread_barrier(UNSET_VEC_FLAG_BARRIER);
-  get_nissa_vec(v)->flag &= ~flag;
+  //update atomically
+  if(((~get_nissa_vec(v)->flag)&flag)!=flag)
+    {
+      if(!thread_pool_locked) thread_barrier(UNSET_VEC_FLAG_FIRST_BARRIER);
+      get_nissa_vec(v)->flag&=~flag;
+    }
+  if(!thread_pool_locked) thread_barrier(UNSET_VEC_FLAG_SECOND_BARRIER);
 }
 
 //get a flag
-int get_vec_flag(void *v,int flag)
+int get_vec_flag(void *v,unsigned int flag)
 {return get_nissa_vec(v)->flag & flag;}
 
 //check if edges are valid
@@ -229,18 +246,22 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
 	crash("memory alignment problem, vector %s has %d offset",tag,offset);
       
       //if borders or edges are allocated, set appropriate flag
-      if(nel==(loc_vol+bord_vol) || nel==(loc_volh+bord_volh)) set_vec_flag(return_nissa_malloc_ptr,BORDERS_ALLOCATED);
-      if(nel==(loc_vol+bord_vol+edge_vol) || nel==(loc_volh+bord_volh+edge_volh)) set_vec_flag(return_nissa_malloc_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
+      if(nel==(loc_vol+bord_vol) || nel==(loc_volh+bord_volh)) set_vec_flag_non_blocking(return_nissa_malloc_ptr,BORDERS_ALLOCATED);
+      if(nel==(loc_vol+bord_vol+edge_vol) || nel==(loc_volh+bord_volh+edge_volh)) set_vec_flag_non_blocking(return_nissa_malloc_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
       
       //Update the amount of required memory
       nissa_required_memory+=size;
       nissa_max_required_memory=max_int(nissa_max_required_memory,nissa_required_memory);
     }
   
-  //sync so all thread see the same returned ptr
-  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_MALLOC_BARRIER);
+  //sync so we are sure that master thread allocated
+  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_MALLOC_FIRST_BARRIER);
+  void *res=return_nissa_malloc_ptr;
   
-  return return_nissa_malloc_ptr;
+  //resync so all threads return the same pointer
+  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_MALLOC_SECOND_BARRIER);
+  
+  return res;
 }
 
 //copy one vector into another
@@ -287,6 +308,9 @@ void internal_vector_reset(void *a)
 //release a vector
 void internal_nissa_free(char **arr,const char *file,int line)
 {
+  //sync so all thread are not using the vector
+  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_FREE_FIRST_BARRIER);
+
   if(IS_MASTER_THREAD)
     {
       if(arr!=NULL)
@@ -315,6 +339,7 @@ void internal_nissa_free(char **arr,const char *file,int line)
 	  //update the nissa required memory
 	  nissa_required_memory-=(vect->size_per_el*vect->nel);
 	  
+	  //really free
 	  free(vect);
 	}
       else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
@@ -322,8 +347,8 @@ void internal_nissa_free(char **arr,const char *file,int line)
       *arr=NULL;
     }
   
-  //sync so all thread see have deallocated
-  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_FREE_BARRIER);
+  //sync so all thread see that have deallocated
+  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_FREE_SECOND_BARRIER);
 }
 
 //reorder a vector according to the specified order (the order is destroyed)

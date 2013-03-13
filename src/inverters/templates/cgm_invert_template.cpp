@@ -67,7 +67,8 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
   //     -calculate source_norm=(r,r)
   double_vector_copy((double*)p,(double*)source,bulk_vol*ndoubles_per_site);
   double_vector_copy((double*)r,(double*)source,bulk_vol*ndoubles_per_site);
-  double source_norm=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
+  double source_norm;
+  double_vector_glb_scalar_prod(&source_norm,(double*)r,(double*)r,bulk_vol*ndoubles_per_site);
   
   //writes source norm
   verbosity_lv2_master_printf(" Source norm: %lg\n",source_norm);
@@ -123,7 +124,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       cgm_inv_over_time-=take_time();
       
       //     -pap=(p,s)=(p,Ap)
-      pap=double_vector_glb_scalar_prod((double*)p,(double*)s,bulk_vol*ndoubles_per_site);
+      double_vector_glb_scalar_prod(&pap,(double*)p,(double*)s,bulk_vol*ndoubles_per_site);
       //     calculate betaa=rr/pap=(r,r)/(p,Ap)
       betap=betaa;
       betaa=-rr/pap;
@@ -147,7 +148,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       //     -r'=r+betaa*s=r+beta*Ap
       //     -rfrf=(r',r')
       double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,bulk_vol*ndoubles_per_site);
-      rfrf=double_vector_glb_scalar_prod((double*)r,(double*)r,bulk_vol*ndoubles_per_site);
+      double_vector_glb_scalar_prod(&rfrf,(double*)r,(double*)r,bulk_vol*ndoubles_per_site);
 	
       //     calculate alpha=rfrf/rr=(r',r')/(r,r)
       alpha=rfrf/rr;
