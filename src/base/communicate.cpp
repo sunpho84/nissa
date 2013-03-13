@@ -468,9 +468,21 @@ void communicate_od_color_borders(color *od)
 void communicate_eo_color_borders(color **eos)
 {communicate_eo_borders((char**)eos,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_OD_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));}
 void start_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev)
-{start_communicating_ev_borders(nrequest,request,(char*)ev,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));}
+{
+#ifdef BGQ
+  (*nrequest)=spi_start_communicating_ev_or_od_borders(spi_eo_color_comm,ev,sizeof(color));
+#else
+  start_communicating_ev_borders(nrequest,request,(char*)ev,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));
+#endif
+}
 void finish_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev)
-{finish_communicating_ev_borders(nrequest,request,(char*)ev);}
+{
+#ifdef BGQ
+  spi_finish_communicating_ev_or_od_borders(ev,spi_eo_color_comm,sizeof(color),EVN);
+#else
+  finish_communicating_ev_borders(nrequest,request,(char*)ev);
+#endif
+}
 
 //Send the borders of an even spincolor
 void communicate_ev_spincolor_borders(spincolor *ev)
