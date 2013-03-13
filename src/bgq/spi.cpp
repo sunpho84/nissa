@@ -244,6 +244,9 @@ void spi_comm_wait(spi_comm_t &in)
 	}
       else verbosity_lv3_master_printf("Did not have to wait for any spi comm\n");
     }
+  
+  //all threads must wait
+  thread_barrier(SPI_COMM_WAIT_BARRIER);
 }
 
 //start the communications
@@ -293,7 +296,8 @@ void fill_spi_sending_buf_with_lx_vec(spi_comm_t &a,void *vec,int nbytes_per_sit
   NISSA_PARALLEL_LOOP(ibord,bord_vol)
     memcpy(a.send_buf+nbytes_per_site*ibord,(char*)vec+surflx_of_bordlx[ibord]*nbytes_per_site,nbytes_per_site);
 
-  thread_barrier(91000);
+  //wait that all threads filled their portion
+  thread_barrier(SPI_LX_SENDING_BUF_FILL);
 }
 
 //extract the information from receiving buffer and put them inside an lx vec
@@ -309,7 +313,8 @@ void fill_lx_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbytes_per_
       //the buffer is already ordered as the vec border
       memcpy((char*)vec+loc_vol*nbytes_per_site,a.recv_buf,a.buf_size);
     }
-  thread_barrier(91001);
+  
+  //we do not sync, because typically we will set borders as valid
 }
 
 //start communication using an lx border
@@ -317,19 +322,14 @@ int spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_si
 {
   if(!check_borders_valid(vec))
     {
+      //take time and write some debug output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
       verbosity_lv3_master_printf("Start spi communication of lx borders of %s\n",get_vec_name((void*)vec));
       
-      //fill the communicator buffer and start the communication
+      //fill the communicator buffer, start the communication and take time
       fill_spi_sending_buf_with_lx_vec(a,vec,nbytes_per_site);
-      
-      if(IS_MASTER_THREAD)
-	{
-	  spi_start_comm(a);
-	  tot_nissa_comm_time+=take_time();
-	}
-      
-      thread_barrier(91002);
+      spi_start_comm(a);
+      if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
       return 1;
     }
@@ -341,18 +341,16 @@ void spi_finish_communicating_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_
 {
   if(!check_borders_valid(vec) && a.comm_in_prog)
     {
-      if(IS_MASTER_THREAD)
-	{
-	  tot_nissa_comm_time-=take_time();
-	  verbosity_lv3_master_printf("Finish spi communication of lx borders of %s\n",get_vec_name((void*)vec));
+      //take time and write some output
+      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      verbosity_lv3_master_printf("Finish spi communication of lx borders of %s\n",get_vec_name((void*)vec));
 
-	  //wait communication to finish and fill back the vector
-	  spi_comm_wait(a);
-	}
-      
+      //wait communication to finish, fill back the vector and take time
+      spi_comm_wait(a);
       fill_lx_bord_with_spi_receiving_buf(vec,a,nbytes_per_site);
-      
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
+      
+      //set border not valid: this auto sync
       set_borders_valid(vec);
     }
 }
@@ -381,7 +379,8 @@ void fill_spi_sending_buf_with_ev_or_od_vec(spi_comm_t &a,void *vec,int nbytes_p
   NISSA_PARALLEL_LOOP(ibord,bord_volh)
       memcpy(a.send_buf+ibord*nbytes_per_site,(char*)vec+surfeo_of_bordeo[eo][ibord]*nbytes_per_site,nbytes_per_site);
 
-  thread_barrier(91003);
+  //wait that all threads filled their portion
+  thread_barrier(SPI_EV_OR_OD_SENDING_BUF_FILL);
 }
 
 //extract the information from receiving buffer and put them inside an even or odd vec
@@ -392,12 +391,14 @@ void fill_ev_or_od_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbyte
       crash_if_borders_not_allocated(vec);
       
       //check buffer size matching
-      if(a.buf_size!=nbytes_per_site*bord_volh) crash("wrong buffer size (%d) for %d border)",a.buf_size,nbytes_per_site*bord_volh);
+      if(a.buf_size!=nbytes_per_site*bord_volh)
+	crash("wrong buffer size (%d) for %d border)",a.buf_size,nbytes_per_site*bord_volh);
       
       //the buffer is already ordered as the vec border
       memcpy((char*)vec+loc_volh*nbytes_per_site,a.recv_buf,a.buf_size);
     }
-  thread_barrier(91004);
+  
+  //we do not sync, because typically we will set borders as valid
 }
 
 //start communication using an ev or od border
@@ -405,23 +406,15 @@ int spi_start_communicating_ev_or_od_borders(spi_comm_t &a,void *vec,int nbytes_
 {
   if(!check_borders_valid(vec))
     {
-      if(IS_MASTER_THREAD)
-	{
-	  tot_nissa_comm_time-=take_time();
-	  verbosity_lv3_master_printf("Starting spi communication of ev or od borders of %s\n",get_vec_name((void*)vec));
-	}
+      //take time and output debugging info
+      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      verbosity_lv3_master_printf("Starting spi communication of ev or od borders of %s\n",get_vec_name((void*)vec));
 
-      //fill the communicator buffer and start the communication
+      //fill the communicator buffer, start the communication and take time
       fill_spi_sending_buf_with_ev_or_od_vec(a,vec,nbytes_per_site,eo);
+      spi_start_comm(a);
+      if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
-      if(IS_MASTER_THREAD)
-	{
-	  spi_start_comm(a);
-	  tot_nissa_comm_time+=take_time();
-	}
-      
-      thread_barrier(91005);
-  
       return 1;
     }
   else return 0;
@@ -432,17 +425,13 @@ void spi_finish_communicating_ev_or_od_borders(void *vec,spi_comm_t &a,int nbyte
 {
   if(!check_borders_valid(vec) && a.comm_in_prog)
     {
-      if(IS_MASTER_THREAD)
-	{
-	  tot_nissa_comm_time-=take_time();
-	  verbosity_lv3_master_printf("Finish spi communication of ev or od borders of %s\n",get_vec_name((void*)vec));
+      //take time and make some output
+      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      verbosity_lv3_master_printf("Finish spi communication of ev or od borders of %s\n",get_vec_name((void*)vec));
 	  
-	  //wait communication to finish and fill back the vector
-	  spi_comm_wait(a);
-	}
-      
+      //wait communication to finish, fill back the vector and take time
+      spi_comm_wait(a);
       fill_ev_or_od_bord_with_spi_receiving_buf(vec,a,nbytes_per_site);
-	  
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
       set_borders_valid(vec);

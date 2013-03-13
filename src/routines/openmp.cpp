@@ -17,27 +17,31 @@
 //put a barrier between threads
 void thread_barrier(int barr_id)
 {
-  //debug: copy the barrier id to the global ref
+  if(!thread_pool_locked)
+    {
+      //debug: copy the barrier id to the global ref
 #ifdef DEBUG
-  if(IS_MASTER_THREAD) glb_barr_id=barr_id;
+      if(IS_MASTER_THREAD) glb_barr_id=barr_id;
 #endif
-
+      
+      //barrier
 #ifdef BGQ
-  L2_Barrier(&bgq_barrier,nthreads);
+      L2_Barrier(&bgq_barrier,nthreads);
 #else
-  #pragma omp barrier
+      #pragma omp barrier
 #endif
-
-  //debug: check that the local id correspond to global one
+      
+      //debug: check that the local id correspond to global one
 #ifdef DEBUG
-  if(!IS_MASTER_THREAD)
-    if(glb_barr_id!=barr_id) crash("Thread %d found barrier %d when waiting for %d",thread_id,barr_id,glb_barr_id);
+      if(!IS_MASTER_THREAD)
+	if(glb_barr_id!=barr_id) crash("Thread %d found barrier %d when waiting for %d",thread_id,barr_id,glb_barr_id);
 #ifdef BGQ
-  L2_Barrier(&bgq_barrier,nthreads);
+      L2_Barrier(&bgq_barrier,nthreads);
 #else
-  #pragma omp barrier
+      #pragma omp barrier
 #endif
 #endif
+    }
 }
 
 //unlock the thread pool
