@@ -204,7 +204,7 @@ EXTERN int su3_sub_gr_indices[3][2]
 #include <l2/barrier.h>
 
 //bgq specific barrier
-EXTERN static L2_Barrier_t bgq_barrier
+EXTERN L2_Barrier_t bgq_barrier
 #ifndef ONLY_INSTANTIATION
 =L2_BARRIER_INITIALIZER
 #endif
