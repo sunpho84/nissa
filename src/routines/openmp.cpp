@@ -14,19 +14,26 @@
 
 //#define DEBUG
 
+//put in the external bgq_barrier.c file, to avoid alignement problem
+#ifdef BGQ
+extern "C" void bgq_barrier(int n);
+extern "C" void bgq_barrier_define();
+#endif
+
 //put a barrier between threads
 void thread_barrier(int barr_id)
 {
-  if(!thread_pool_locked)
+  if(thread_id!=0 || !thread_pool_locked || barr_id==LOCK_POOL_BARRIER || barr_id==UNLOCK_POOL_BARRIER)
     {
       //debug: copy the barrier id to the global ref
 #ifdef DEBUG
+      if(rank==0) printf("thread %d entering %d pool\n",thread_id,barr_id);
       if(IS_MASTER_THREAD) glb_barr_id=barr_id;
 #endif
       
       //barrier
 #ifdef BGQ
-      L2_Barrier(&bgq_barrier,nthreads);
+      bgq_barrier(nthreads);
 #else
       #pragma omp barrier
 #endif
@@ -36,7 +43,7 @@ void thread_barrier(int barr_id)
       if(!IS_MASTER_THREAD)
 	if(glb_barr_id!=barr_id) crash("Thread %d found barrier %d when waiting for %d",thread_id,barr_id,glb_barr_id);
 #ifdef BGQ
-      L2_Barrier(&bgq_barrier,nthreads);
+      bgq_barrier(nthreads);
 #else
       #pragma omp barrier
 #endif
@@ -119,22 +126,10 @@ void thread_pool_stop()
 //start the master thread, locking all the other threads
 void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg))
 {
-  //initialize nissa
-  init_nissa(narg,arg);
-  
-  //get the number of threads
-  nthreads=omp_get_num_threads();
-  master_printf("Starting %d threads\n",nthreads);
-  
   //initialize reducing buffers
   glb_double_reduction_buf=(double*)malloc(nthreads*sizeof(double));
   glb_float_128_reduction_buf=(float_128*)malloc(nthreads*sizeof(float_128));
     
-  //if BGQ, define appropriate barrier
-#ifdef BGQ
-  Kernel_L2AtomicsAllocate(&bgq_barrier,sizeof(L2_Barrier_t));
-#endif
-  
   //launch the main function
   main_function(narg,arg);
   
@@ -150,11 +145,25 @@ void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char 
 //thread pool and issuing the main function
 void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg))
 {
+  //if BGQ, define appropriate barrier
+#ifdef BGQ
+  bgq_barrier_define();
+#endif
+
+  //get the number of threads
+#pragma omp parallel
+  nthreads=omp_get_num_threads();
+  
+  //initialize nissa
+  init_nissa(narg,arg);
+  
 #pragma omp parallel
   {
+    master_printf("Starting %d threads\n",nthreads);
+    
     //take thread id
     thread_id=omp_get_thread_num();
-    
+  
     //distinguish master thread from the others
     if(thread_id!=0) thread_pool();
     else thread_master_start(narg,arg,main_function);
