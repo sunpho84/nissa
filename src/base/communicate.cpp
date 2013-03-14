@@ -432,21 +432,36 @@ void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_
 	  tot_nissa_comm_time-=take_time();
 	  if(nrequest>0)
 	    {
-	      if(nrequest>0) verbosity_lv3_master_printf("Communication of evn and odd borders of vector %s\n",get_vec_name(data[0]));
-	      MPI_Waitall(nrequest,request,MPI_STATUS_IGNORE);
+	      if(nrequest>0)
+		{
+		  verbosity_lv3_master_printf("Communication of evn & odd borders of vector %s\n",get_vec_name(data[0]));
+		  MPI_Waitall(nrequest,request,MPI_STATUS_IGNORE);
+		  verbosity_lv3_master_printf("Communication finished\n",get_vec_name(data[0]));
+		}
 	      nrequest=0;
 	    }
 	  tot_nissa_comm_time+=take_time();
 	}
       
+      /*verbosity_lv3_master_*/printf("Rank %d thread %d Setting EVN borders valid (thread_pool_locked: %d)\n",rank,thread_id,thread_pool_locked);
       set_borders_valid(data[EVN]);
+      verbosity_lv3_master_printf("Setting ODD borders valid\n");
       set_borders_valid(data[ODD]);
     }
+  else
+    /*verbosity_lv3_master_*/printf("Rank %d thread %d saw %s borders valid\n",rank,thread_id,get_vec_name(data[0]));
 }
 
 //Send the borders of the gauge configuration
 void communicate_eo_quad_su3_borders(quad_su3 **eo_conf)
-{communicate_eo_borders((char**)eo_conf,MPI_EO_QUAD_SU3_BORDS_SEND_TXY,MPI_EV_QUAD_SU3_BORDS_SEND_Z,MPI_OD_QUAD_SU3_BORDS_SEND_Z,MPI_EO_QUAD_SU3_BORDS_RECE,sizeof(quad_su3));}
+{
+  printf("Rank %d thread %d entering quad_su3 comm\n",rank,thread_id);
+  //#ifdef BGQ
+  //for(int par=0;par<2;par++) spi_communicate_ev_or_od_borders(eo_conf[par],spi_eo_quad_su3_comm,sizeof(quad_su3),par);
+  //#else
+  communicate_eo_borders((char**)eo_conf,MPI_EO_QUAD_SU3_BORDS_SEND_TXY,MPI_EV_QUAD_SU3_BORDS_SEND_Z,MPI_OD_QUAD_SU3_BORDS_SEND_Z,MPI_EO_QUAD_SU3_BORDS_RECE,sizeof(quad_su3));
+  //#endif
+}
 
 //Send the borders of an even color
 void communicate_ev_color_borders(color *ev)
