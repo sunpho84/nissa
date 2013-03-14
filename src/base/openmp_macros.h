@@ -5,6 +5,8 @@
 
 //////////////////////////////////////////////////////////////////////////////////////
 
+#define THREAD_BARRIER_FORCE(a) thread_barrier(a,true)
+
 #define IS_MASTER_THREAD (thread_id==0)
 
 #define NISSA_PARALLEL_LOOP(INDEX,WORKLOAD)                             \

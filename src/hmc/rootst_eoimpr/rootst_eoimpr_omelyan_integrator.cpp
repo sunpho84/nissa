@@ -16,13 +16,13 @@
 #include "rootst_eoimpr_force.h"
 
 //unitarize the conf by explicitly inverting it
-void eo_conf_unitarize_explicitly_inverting(quad_su3 **conf)
+THREADABLE_FUNCTION_1ARG(eo_conf_unitarize_explicitly_inverting, quad_su3**,conf)
 {
   addrem_stagphases_to_eo_conf(conf);
   
   for(int par=0;par<2;par++)
     {
-      nissa_loc_volh_loop(ivol)
+      NISSA_PARALLEL_LOOP(ivol,loc_volh)
 	for(int mu=0;mu<4;mu++)
 	  su3_unitarize_explicitly_inverting(conf[par][ivol][mu],conf[par][ivol][mu]);
       
@@ -30,10 +30,22 @@ void eo_conf_unitarize_explicitly_inverting(quad_su3 **conf)
     }
       
   addrem_stagphases_to_eo_conf(conf);
-}
+}}
 
-THREADABLE_FUNCTION_3ARG(evolve_momenta_internal, quad_su3**,H, quad_su3**,F, double,dt)
+// Evolve momenta according to the rooted staggered force
+// calculate H=H-F*dt to evolve link momenta
+// i.e calculate v(t+dt)=v(t)+a*dt
+THREADABLE_FUNCTION_8ARG(evolve_momenta_with_full_rootst_eoimpr_force, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue, double,dt, hmc_force_piece,force_piece)
 {
+  verbosity_lv2_master_printf("Evolving momenta with force, dt=%lg\n",dt);
+  
+  //allocate force
+  quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
+ 
+  //compute the force
+  full_rootst_eoimpr_force(F,conf,pf,theory_pars,appr,residue,force_piece);
+ 
+  //evolve
   for(int par=0;par<2;par++)
     {
       NISSA_PARALLEL_LOOP(ivol,loc_volh)
@@ -45,29 +57,6 @@ THREADABLE_FUNCTION_3ARG(evolve_momenta_internal, quad_su3**,H, quad_su3**,F, do
 
   for(int par=0;par<2;par++) nissa_free(F[par]);
 }}
-
-//THREADABLE_FUNCTION_8ARG(evolve_momenta_with_full_rootst_eoimpr_force2, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue, double,dt, hmc_force_piece,force_piece)
-void evolve_momenta_with_full_rootst_eoimpr_force2(quad_su3** H,quad_su3** conf,color** pf,theory_pars_type *theory_pars,rat_approx_type *appr,double residue,double dt,hmc_force_piece force_piece)
-{
-  verbosity_lv2_master_printf("Evolving momenta with force, dt=%lg\n",dt);
-  //allocate force
-  quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
- 
-  //compute the force
-  full_rootst_eoimpr_force(F,conf,pf,theory_pars,appr,residue,force_piece);
- 
-  //evolve
-  evolve_momenta_internal(H,F,dt);
-}
-//}
-
-// Evolve momenta according to the rooted staggered force
-// calculate H=H-F*dt to evolve link momenta
-// i.e calculate v(t+dt)=v(t)+a*dt
-void evolve_momenta_with_full_rootst_eoimpr_force(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars_type *theory_pars,rat_approx_type *appr,double residue,double dt,hmc_force_piece force_piece=BOTH_FORCE_PIECES)
-{
-  evolve_momenta_with_full_rootst_eoimpr_force2(H,conf,pf,theory_pars,appr,residue,dt,force_piece);
-}
 
 //eolve the configuration by using the computed momenta
 //this routine should be moved in a more general file
@@ -91,7 +80,7 @@ THREADABLE_FUNCTION_3ARG(evolve_conf_with_momenta, quad_su3**,eo_conf, quad_su3*
     }
 }}
 
-void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theory_pars_type *theory_pars,rat_approx_type *appr,hmc_evol_pars_type *simul,multistep_level multilev=MACRO_STEP)
+THREADABLE_FUNCTION_7ARG(omelyan_rootst_eoimpr_evolver, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, hmc_evol_pars_type*,simul, multistep_level,multilev)
 {
   //define step length ant its multiples
   const double lambda=0.1931833;
@@ -149,4 +138,4 @@ void omelyan_rootst_eoimpr_evolver(quad_su3 **H,quad_su3 **conf,color **pf,theor
       //normalize the configuration
       eo_conf_unitarize_explicitly_inverting(conf);
     }
-}
+}}
