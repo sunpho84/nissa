@@ -99,7 +99,7 @@
   if(nthreads>1 && thread_pool_locked)						\
     {
 #define THREADABLE_FUNCTION_TRAMPOLINE_PT2(FUNC_NAME)	    \
-        start_threaded_function(NAME2(FUNC_NAME,SUMMONER)); \
+      start_threaded_function(NAME2(FUNC_NAME,SUMMONER),#FUNC_NAME);	    \
     } 						            \
   else
 

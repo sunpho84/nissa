@@ -56,8 +56,8 @@ void set_vec_flag_non_blocking(void *v,unsigned int flag)
 void set_vec_flag(void *v,unsigned int flag)
 {
 #ifdef DEBUG
-  printf("set_vec_flag for vect %s allocated in file %s line %d, thread_id: %d, thread_pool_locked: %d\n",
-	 get_vec_name(v),get_nissa_vec(v)->file,get_nissa_vec(v)->line,thread_id,thread_pool_locked);
+  printf("set_vec_flag for vect %s allocated in file %s line %d, rank %d thread_id: %d, thread_pool_locked: %d\n",
+	 get_vec_name(v),get_nissa_vec(v)->file,get_nissa_vec(v)->line,rank,thread_id,thread_pool_locked);
   print_backtrace_list();
 #endif
   //update atomically
@@ -75,8 +75,8 @@ void unset_vec_flag_non_blocking(void *v,unsigned int flag)
 void unset_vec_flag(void *v,unsigned int flag)
 {
 #ifdef DEBUG
-  printf("unset_vec_flag for vect %s allocated in file %s line %d, thread_id: %d, thread_pool_locked: %d\n",
-	 get_vec_name(v),get_nissa_vec(v)->file,get_nissa_vec(v)->line,thread_id,thread_pool_locked);
+  printf("unset_vec_flag for vect %s allocated in file %s line %d, rank %d thread_id: %d, thread_pool_locked: %d\n",
+	 get_vec_name(v),get_nissa_vec(v)->file,get_nissa_vec(v)->line,rank,thread_id,thread_pool_locked);
 #endif
   //update atomically
   if(((~get_nissa_vec(v)->flag)&flag)!=flag)
