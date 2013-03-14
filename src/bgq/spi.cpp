@@ -252,12 +252,12 @@ void spi_comm_wait(spi_comm_t &in)
 //start the communications
 void spi_start_comm(spi_comm_t &in)
 {
+  //wait for any previous communication to finish and mark as new started 
+  spi_comm_wait(in);
+  in.comm_in_prog=1;
+  
   if(IS_MASTER_THREAD)
     {
-      //wait for any previous communication to finish and mark as new started 
-      spi_comm_wait(in);
-      in.comm_in_prog=1;
-      
       //reset the counter and wait that all have reset
       spi_global_barrier();
       in.recv_counter=in.buf_size;
