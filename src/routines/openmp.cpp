@@ -12,7 +12,7 @@
 #include "../base/openmp_macros.h"
 #include "ios.h"
 
-//#define DEBUG
+#define DEBUG
 
 //put in the external bgq_barrier.c file, to avoid alignement problem
 #ifdef BGQ
@@ -159,11 +159,10 @@ void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char 
   
 #pragma omp parallel
   {
-    master_printf("Starting %d threads\n",nthreads);
-    
     //take thread id
     thread_id=omp_get_thread_num();
-  
+    master_printf("Starting %d threads\n",nthreads);
+      
     //distinguish master thread from the others
     if(thread_id!=0) thread_pool();
     else thread_master_start(narg,arg,main_function);
