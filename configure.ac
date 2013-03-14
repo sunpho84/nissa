@@ -3,6 +3,29 @@ AM_INIT_AUTOMAKE([1.0 no-define foreign])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([src/config.h:src/config.h.in])
 
+# Get SVN Revision - idea from xfce-power-manager (C) 2007 by B.Tarricone
+dnl get svn revision
+AC_MSG_CHECKING([code revision])
+SVN=`which svn`
+SVN_REVISION=0
+if test -n "$SVN" -a -x "$SVN"; then
+    SVN_REVISION=`LC_ALL=C svn info -R "$srcdir" | awk 'BEGIN { x=0 } /^Revision: / { if($2>x) x=$2; } END { printf "%d\n",x }'`
+    if test "$SVN_REVISION" -ne "0" ; then
+        AC_MSG_RESULT([from svn info: $SVN_REVISION])
+    fi
+fi
+if test "$SVN_REVISION" -eq 0 -a -e "$srcdir/ChangeLog"; then
+    SVN_REVISION=`awk 'BEGIN { x=0 } /Revision: / { if($2>x) x=$2; } END { printf "%d\n",x }' "$srcdir/ChangeLog"`
+    if test "$SVN_REVISION" -ne "0" ; then
+        AC_MSG_RESULT([from ChangeLog: $SVN_REVISION])
+    fi
+fi
+if test "$SVN_REVISION" -eq "0" ; then
+    AC_MSG_RESULT([unknown, using 0])
+fi
+AC_DEFINE_UNQUOTED([SVN_REVISION], "$SVN_REVISION", [subversion revision number])
+AC_SUBST([SVN_REVISION])
+
 #bgq
 AC_ARG_ENABLE(bgq,
 	AS_HELP_STRING([--enable-bgq],[Enable bgq stuff (ony for BG/Q)]),

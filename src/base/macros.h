@@ -3,8 +3,6 @@
 
 #include <stdio.h>
 
-#define SVN_VERS ""
-
 //argument contactenation and naming
 #define _CONCAT(X,Y) X##Y
 #define CONCAT(X,Y) _CONCAT(X,Y)
