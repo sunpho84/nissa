@@ -63,10 +63,10 @@ void set_vec_flag(void *v,unsigned int flag)
   //update atomically
   if((get_nissa_vec(v)->flag & flag)!=flag)
     {
-      if(!thread_pool_locked) thread_barrier(SET_VEC_FLAG_FIRST_BARRIER);
+      thread_barrier(SET_VEC_FLAG_FIRST_BARRIER);
       get_nissa_vec(v)->flag|=flag;
     }
-  if(!thread_pool_locked) thread_barrier(SET_VEC_FLAG_SECOND_BARRIER);
+  thread_barrier(SET_VEC_FLAG_SECOND_BARRIER);
 }
 
 //unset a flag (idem)
@@ -81,10 +81,10 @@ void unset_vec_flag(void *v,unsigned int flag)
   //update atomically
   if(((~get_nissa_vec(v)->flag)&flag)!=flag)
     {
-      if(!thread_pool_locked) thread_barrier(UNSET_VEC_FLAG_FIRST_BARRIER);
+      thread_barrier(UNSET_VEC_FLAG_FIRST_BARRIER);
       get_nissa_vec(v)->flag&=~flag;
     }
-  if(!thread_pool_locked) thread_barrier(UNSET_VEC_FLAG_SECOND_BARRIER);
+  thread_barrier(UNSET_VEC_FLAG_SECOND_BARRIER);
 }
 
 //get a flag
@@ -199,7 +199,7 @@ void initialize_main_nissa_vect()
       main_nissa_vect.line=__LINE__;
       main_nissa_arr=(char*)last_nissa_vect+sizeof(nissa_vect);
 
-      master_printf("Vector memory manager started.\n");
+      master_printf("Vector memory manager started\n");
     }
 }
 
@@ -255,11 +255,11 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
     }
   
   //sync so we are sure that master thread allocated
-  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_MALLOC_FIRST_BARRIER);
+  thread_barrier(INTERNAL_NISSA_MALLOC_FIRST_BARRIER);
   void *res=return_nissa_malloc_ptr;
   
   //resync so all threads return the same pointer
-  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_MALLOC_SECOND_BARRIER);
+  thread_barrier(INTERNAL_NISSA_MALLOC_SECOND_BARRIER);
   
   return res;
 }
@@ -309,7 +309,7 @@ void internal_vector_reset(void *a)
 void internal_nissa_free(char **arr,const char *file,int line)
 {
   //sync so all thread are not using the vector
-  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_FREE_FIRST_BARRIER);
+  thread_barrier(INTERNAL_NISSA_FREE_FIRST_BARRIER);
 
   if(IS_MASTER_THREAD)
     {
@@ -348,7 +348,7 @@ void internal_nissa_free(char **arr,const char *file,int line)
     }
   
   //sync so all thread see that have deallocated
-  if(!thread_pool_locked) thread_barrier(INTERNAL_NISSA_FREE_SECOND_BARRIER);
+  thread_barrier(INTERNAL_NISSA_FREE_SECOND_BARRIER);
 }
 
 //reorder a vector according to the specified order (the order is destroyed)

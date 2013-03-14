@@ -12,7 +12,7 @@
 #include "../base/openmp_macros.h"
 #include "ios.h"
 
-#define DEBUG
+//#define DEBUG
 
 //put in the external bgq_barrier.c file, to avoid alignement problem
 #ifdef BGQ
@@ -21,9 +21,9 @@ extern "C" void bgq_barrier_define();
 #endif
 
 //put a barrier between threads
-void thread_barrier(int barr_id)
+void thread_barrier(int barr_id,int force_barrier=false)
 {
-  if(thread_id!=0 || !thread_pool_locked || barr_id==LOCK_POOL_BARRIER || barr_id==UNLOCK_POOL_BARRIER)
+  if(!thread_pool_locked||force_barrier)
     {
       //debug: copy the barrier id to the global ref
 #ifdef DEBUG
@@ -54,11 +54,10 @@ void thread_barrier(int barr_id)
 //unlock the thread pool
 void thread_pool_unlock()
 {
-  thread_barrier(UNLOCK_POOL_BARRIER);
 #ifdef DEBUG
   if(rank==0) printf("thread %d unlocking the pool\n",thread_id);
 #endif
-  thread_pool_locked=false;
+  THREAD_BARRIER_FORCE(UNLOCK_POOL_BARRIER);
 }
 
 //lock the thread pool
@@ -68,7 +67,7 @@ void thread_pool_lock()
 #ifdef DEBUG
   if(rank==0) printf("thread %d locking the pool\n",thread_id);
 #endif
-  thread_barrier(LOCK_POOL_BARRIER);
+  THREAD_BARRIER_FORCE(LOCK_POOL_BARRIER);
 }
 
 //thread pool (executed by non-master threads)
@@ -102,6 +101,7 @@ void start_threaded_function(void(*function)(void))
 #endif
   //set external function pointer and unlock pool threads
   threaded_function_ptr=function;
+  thread_pool_locked=false;
   thread_pool_unlock();
   
   //execute the function and relock the pool, so we are sure that they are not reading the work-to-do
@@ -150,19 +150,17 @@ void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char 
   bgq_barrier_define();
 #endif
 
-  //get the number of threads
-#pragma omp parallel
-  nthreads=omp_get_num_threads();
-  
-  //initialize nissa
-  init_nissa(narg,arg);
-  
 #pragma omp parallel
   {
-    //take thread id
+    //initialize nissa (master thread only)
+#pragma omp master
+    init_nissa(narg,arg);
+  
+    //get the number of threads and thread id
+    nthreads=omp_get_num_threads();
     thread_id=omp_get_thread_num();
-    master_printf("Starting %d threads\n",nthreads);
-      
+    master_printf("Using %d threads\n",nthreads);
+  
     //distinguish master thread from the others
     if(thread_id!=0) thread_pool();
     else thread_master_start(narg,arg,main_function);
