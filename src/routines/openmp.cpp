@@ -12,7 +12,7 @@
 #include "../base/openmp_macros.h"
 #include "ios.h"
 
-//#define DEBUG
+#define DEBUG
 
 //put in the external bgq_barrier.c file, to avoid alignement problem
 #ifdef BGQ
@@ -27,7 +27,6 @@ void thread_barrier(int barr_id,int force_barrier=false)
     {
       //debug: copy the barrier id to the global ref
 #ifdef DEBUG
-      if(rank==0) printf("thread %d entering %d pool\n",thread_id,barr_id);
       if(IS_MASTER_THREAD) glb_barr_id=barr_id;
 #endif
       
