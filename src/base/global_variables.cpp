@@ -128,14 +128,14 @@ EXTERN int nissa_grid_inited;
 //thread
 EXTERN int glb_barr_id;
 #ifndef ONLY_INSTANTIATION
-int thread_pool_locked=true,thread_id=0,nthreads=1;
+int thread_pool_locked=true,/*thread_id=0,*/nthreads=1;
 #else
-EXTERN int thread_pool_locked,thread_id,nthreads;
+EXTERN int thread_pool_locked,/*thread_id,*/nthreads;
 #endif
 EXTERN double *glb_double_reduction_buf;
 EXTERN float_128 *glb_float_128_reduction_buf;
 
-#pragma omp threadprivate(thread_id)
+//#pragma omp threadprivate(thread_id)
 EXTERN void(*threaded_function_ptr)();
 
 //endianess

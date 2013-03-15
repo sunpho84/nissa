@@ -23,13 +23,16 @@ extern "C" void bgq_barrier_define();
 //put a barrier between threads
 void thread_barrier(int barr_id,int force_barrier=false)
 {
-  int ent=(!thread_pool_locked||force_barrier);
-  //printf("thread %d rank %d entering(%d) barrier %d (thread_pool_locked: %d, force_barrier: %d\n",thread_id,rank,ent,barr_id,thread_pool_locked,force_barrier);
-  if(ent)
+
+  if(!thread_pool_locked||force_barrier)
     {
 #ifdef DEBUG
       //debug: copy the barrier id to the global ref
-      if(IS_MASTER_THREAD) glb_barr_id=barr_id;
+      if(IS_MASTER_THREAD)
+	{
+	  glb_barr_id=barr_id;
+#pragma omp flush(glb_barr_id)
+	}
 #endif
       
       //barrier
@@ -56,10 +59,11 @@ void thread_barrier(int barr_id,int force_barrier=false)
 void thread_pool_unlock()
 {
   THREAD_BARRIER_FORCE(UNLOCK_POOL_BARRIER);
-  //#ifdef DEBUG
+#ifdef DEBUG
   if(rank==0) printf("thread %d unlocking the pool\n",thread_id);
-  //#endif
+#endif
   thread_pool_locked=false;
+#pragma omp flush(thread_pool_locked)
 }
 
 //lock the thread pool
@@ -67,9 +71,10 @@ void thread_pool_lock()
 {
   THREAD_BARRIER_FORCE(LOCK_POOL_BARRIER);
   thread_pool_locked=true;
-  //#ifdef DEBUG
+#pragma omp flush(thread_pool_locked)
+#ifdef DEBUG
   if(rank==0) printf("thread %d locking the pool\n",thread_id);
-  //#endif
+#endif
 }
 
 //thread pool (executed by non-master threads)
@@ -98,9 +103,9 @@ void thread_pool()
 //execute a function using all threads
 void start_threaded_function(void(*function)(void),char *name)
 {
-  //#ifdef DEBUG
+#ifdef DEBUG
   if(rank==0) printf("----------Start working %s thread pool--------\n",name);
-  //#endif
+#endif
   //set external function pointer and unlock pool threads
   threaded_function_ptr=function;
   thread_pool_unlock();
@@ -160,7 +165,6 @@ void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char 
   
     //get the number of threads and thread id
     nthreads=omp_get_num_threads();
-    thread_id=omp_get_thread_num();
     master_printf("Using %d threads\n",nthreads);
     
     //distinguish master thread from the others
