@@ -2,8 +2,10 @@
 #define _OPENMP_MACROS_H
 
 #include "debug.h"
-
+#include <omp.h>
 //////////////////////////////////////////////////////////////////////////////////////
+
+#define thread_id (omp_get_thread_num())
 
 #define THREAD_BARRIER_FORCE(a) thread_barrier(a,true)
 
@@ -12,7 +14,7 @@
 #define NISSA_PARALLEL_LOOP(INDEX,WORKLOAD)                             \
   if(WORKLOAD%nthreads)                                                 \
     crash("workload %d not multiple of thread number %d",WORKLOAD,nthreads); \
-  for(int INDEX=thread_id*(WORKLOAD/nthreads);INDEX<(thread_id+1)*(WORKLOAD/nthreads);INDEX++)
+  for(int tid=thread_id,load=WORKLOAD/nthreads,start=tid*load,end=start+load,INDEX=start;INDEX<end;INDEX++)
 
 //////////////////////////////////////////////////////////////////////////////////////
 

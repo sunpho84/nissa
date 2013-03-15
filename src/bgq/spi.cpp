@@ -276,12 +276,15 @@ void spi_start_comm(spi_comm_t &in)
 //unset everything
 void unset_spi_comm(spi_comm_t &in)
 {
-  //wait for any communication to finish
-  spi_comm_wait(in);
-  
-  //free buffers
-  free(in.recv_buf);
-  free(in.send_buf);
+  if(IS_MASTER_THREAD)
+    {
+      //wait for any communication to finish
+      spi_comm_wait(in);
+      
+      //free buffers
+      free(in.recv_buf);
+      free(in.send_buf);
+    }
 }
 
 /////////////////////////////////////// communicating lx vec ///////////////////////////////////
@@ -377,7 +380,7 @@ void fill_spi_sending_buf_with_ev_or_od_vec(spi_comm_t &a,void *vec,int nbytes_p
   
   //copy one by one the surface of vec inside the sending buffer
   NISSA_PARALLEL_LOOP(ibord,bord_volh)
-      memcpy(a.send_buf+ibord*nbytes_per_site,(char*)vec+surfeo_of_bordeo[eo][ibord]*nbytes_per_site,nbytes_per_site);
+    memcpy(a.send_buf+ibord*nbytes_per_site,(char*)vec+surfeo_of_bordeo[eo][ibord]*nbytes_per_site,nbytes_per_site);
 
   //wait that all threads filled their portion
   thread_barrier(SPI_EV_OR_OD_SENDING_BUF_FILL);

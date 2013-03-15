@@ -58,6 +58,7 @@ void glb_reduce_float_128(float_128 out_glb,float_128 in_loc)
 	{
 	  for(int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_float_128_reduction_buf[ith]);
 	  MPI_Allreduce(in_loc,glb_float_128_reduction_buf[0],1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+#pragma omp flush
 	}
       
       //read glb val
@@ -82,13 +83,11 @@ double glb_reduce_double(double in_loc)
 	{
 	  for(int ith=1;ith<nthreads;ith++) in_loc+=glb_double_reduction_buf[ith];
 	  MPI_Allreduce(&in_loc,&(glb_double_reduction_buf[0]),1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+#pragma omp flush
 	}
       
-      //resync, since we must ensure that all threads see the same reduced value
-      thread_barrier(DOUBLE_REDUCE_SECOND_BARRIER);
-      
       //read glb val
-      out_glb=glb_double_reduction_buf[0];
+      THREAD_ATOMIC_EXEC(out_glb=glb_double_reduction_buf[0];);
     }
   
   return out_glb;
