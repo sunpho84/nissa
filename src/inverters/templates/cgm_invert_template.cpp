@@ -20,22 +20,20 @@ extern int ncgm_inv;
 void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int nshift,int niter_max,double *ext_req_res,basetype *source)
 {
 #ifdef cg_128_invert
+  //limit inner solver precision
+  double max_inner_solver=1.0e-25;
   //used for inner solver in the case of 128 bit precision
   double inn_req_res[nshift];
   for(int ishift=0;ishift<nshift;ishift++)
-    if(nissa_use_128_bit_precision)
+    if(nissa_use_128_bit_precision && ext_req_res[ishift]<max_inner_solver)
       {
-	//limit inner solver precision
-	double max_inner_solver=1.0e-25;
-	if(ext_req_res[ishift]<max_inner_solver)
-	  {
-	    verbosity_lv2_master_printf("changing the inner solver residue for shift %d to %lg\n",ishift,max_inner_solver);
-	    inn_req_res[ishift]=max_inner_solver;
-	  }
-	else inn_req_res[ishift]=ext_req_res[ishift];
+	verbosity_lv2_master_printf("changing the inner solver residue for shift %d to %lg\n",ishift,max_inner_solver);
+	inn_req_res[ishift]=max_inner_solver;
       }
+    else inn_req_res[ishift]=ext_req_res[ishift];
 #else
   double *inn_req_res=ext_req_res;
+  printf("ishift %d, %lg\n",0,inn_req_res[0]);
 #endif
 	
   ncgm_inv++;

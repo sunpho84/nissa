@@ -31,20 +31,17 @@ THREADABLE_FUNCTION_7ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, double*,shift, int,
 #endif
 {
 #ifdef CG_128_INVERT
+  //limit inner solver precision
+  double max_inner_solver=1.0e-25;
   //used for inner solver in the case of 128 bit precision
   double inn_req_res[nshift];
   for(int ishift=0;ishift<nshift;ishift++)
-    if(nissa_use_128_bit_precision)
+    if(nissa_use_128_bit_precision && ext_req_res[ishift]<max_inner_solver)
       {
-	//limit inner solver precision
-	double max_inner_solver=1.0e-25;
-	if(ext_req_res[ishift]<max_inner_solver)
-	  {
-	    verbosity_lv2_master_printf("changing the inner solver residue for shift %d to %lg\n",ishift,max_inner_solver);
-	    inn_req_res[ishift]=max_inner_solver;
-	  }
-	else inn_req_res[ishift]=ext_req_res[ishift];
+	verbosity_lv2_master_printf("changing the inner solver residue for shift %d to %lg\n",ishift,max_inner_solver);
+	inn_req_res[ishift]=max_inner_solver;
       }
+    else inn_req_res[ishift]=ext_req_res[ishift];
 #else
   double *inn_req_res=ext_req_res;
 #endif
@@ -132,9 +129,7 @@ THREADABLE_FUNCTION_7ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, double*,shift, int,
       //     -s=Ap
       if(nissa_use_async_communications) CGM_FINISH_COMMUNICATING_BORDERS(&nrequest,request,p);
       if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
-      
       APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS shift[0],p);
-      
       if(IS_MASTER_THREAD) cgm_inv_over_time-=take_time();
       
       //     -pap=(p,s)=(p,Ap)

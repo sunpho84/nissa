@@ -27,6 +27,8 @@ void thread_barrier(int barr_id,int force_barrier=false)
   if(!thread_pool_locked||force_barrier)
     {
 #ifdef DEBUG
+      printf("thread %d rank %d barrier %d (thread_pool_locked: %d, force_barrier: %d\n",
+	     thread_id,rank,barr_id,thread_pool_locked,force_barrier);
       //debug: copy the barrier id to the global ref
       if(IS_MASTER_THREAD)
 	{
@@ -101,7 +103,7 @@ void thread_pool()
 }
 
 //execute a function using all threads
-void start_threaded_function(void(*function)(void),char *name)
+void start_threaded_function(void(*function)(void),const char *name)
 {
 #ifdef DEBUG
   if(rank==0) printf("----------Start working %s thread pool--------\n",name);

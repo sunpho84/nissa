@@ -14,7 +14,8 @@
 #define NISSA_PARALLEL_LOOP(INDEX,WORKLOAD)                             \
   if(WORKLOAD%nthreads)                                                 \
     crash("workload %d not multiple of thread number %d",WORKLOAD,nthreads); \
-  for(int tid=thread_id,load=WORKLOAD/nthreads,start=tid*load,end=start+load,INDEX=start;INDEX<end;INDEX++)
+  else									\
+    for(int tid=thread_id,load=WORKLOAD/nthreads,start=tid*load,end=start+load,INDEX=start;INDEX<end;INDEX++)
 
 //////////////////////////////////////////////////////////////////////////////////////
 

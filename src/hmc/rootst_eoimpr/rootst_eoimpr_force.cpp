@@ -154,22 +154,22 @@ THREADABLE_FUNCTION_6ARG(full_rootst_eoimpr_quarks_force, quad_su3**,F, quad_su3
       crash("not yet threaded");
       //allocate the stack of confs: conf is binded to sme_conf[0]
       quad_su3 ***sme_conf;
-      stout_smear_conf_stack_allocate(sme_conf,conf,nlev);
+      stout_smear_conf_stack_allocate(&sme_conf,conf,nlev);
       
       //smear iteratively retaining all the stack
       addrem_stagphases_to_eo_conf(sme_conf[0]); //remove the staggered phases
-      stout_smear(sme_conf,conf,physics->stout_pars);
+      stout_smear_whole_stack(sme_conf,conf,&(physics->stout_pars));
       
       //compute the force in terms of the most smeared conf
       addrem_stagphases_to_eo_conf(sme_conf[nlev]); //add to most smeared conf
       full_rootst_eoimpr_quarks_force_no_stout_remapping(F,sme_conf[nlev],pf,physics,appr,residue);
       
       //remap the force backward
-      stouted_force_remap(F,sme_conf,physics->stout_pars);
+      stouted_force_remap(F,sme_conf,&(physics->stout_pars));
       addrem_stagphases_to_eo_conf(sme_conf[0]); //add back again to the original conf
       
       //now free the stack of confs
-      stout_smear_conf_stack_free(sme_conf,nlev);
+      stout_smear_conf_stack_free(&sme_conf,nlev);
     }
   
   full_rootst_eoimpr_force_finish_computation(F,conf);
