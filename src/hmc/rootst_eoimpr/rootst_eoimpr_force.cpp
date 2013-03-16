@@ -58,9 +58,9 @@ THREADABLE_FUNCTION_6ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, quad_
   for(int iterm=0;iterm<appr->degree;iterm++) communicate_od_color_borders(v_o[iterm]);
   
   //conclude the calculation of the fermionic force
-  NISSA_PARALLEL_LOOP(ivol,loc_volh)
-    for(int mu=0;mu<4;mu++)
-      for(int iterm=0;iterm<appr->degree;iterm++)
+  for(int iterm=0;iterm<appr->degree;iterm++)
+    NISSA_PARALLEL_LOOP(ivol,loc_volh)
+      for(int mu=0;mu<4;mu++)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++)
 	    {
@@ -151,7 +151,6 @@ THREADABLE_FUNCTION_6ARG(full_rootst_eoimpr_quarks_force, quad_su3**,F, quad_su3
   if(nlev==0) full_rootst_eoimpr_quarks_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
   else
     {
-      crash("not yet threaded");
       //allocate the stack of confs: conf is binded to sme_conf[0]
       quad_su3 ***sme_conf;
       stout_smear_conf_stack_allocate(&sme_conf,conf,nlev);
