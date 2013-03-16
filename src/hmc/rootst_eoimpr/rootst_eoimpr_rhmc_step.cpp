@@ -57,7 +57,7 @@ double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_par
   if(theory_pars->stout_pars.nlev!=0)
     {
       verbosity_lv2_master_printf("Stouting the links for pseudo-fermions generation and initial action computation\n");
-      stout_smear(sme_conf,out_conf,theory_pars->stout_pars);
+      stout_smear(sme_conf,out_conf,&(theory_pars->stout_pars));
       
       verbosity_lv2_master_printf("Original plaquette: %16.16lg\n",global_plaquette_eo_conf(out_conf));
       verbosity_lv2_master_printf("Stouted plaquette: %16.16lg\n",global_plaquette_eo_conf(sme_conf));
@@ -91,7 +91,7 @@ double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_par
     {
       verbosity_lv2_master_printf("Stouting the links for final action computation\n");
       addrem_stagphases_to_eo_conf(out_conf);
-      stout_smear(sme_conf,out_conf,theory_pars->stout_pars);
+      stout_smear(sme_conf,out_conf,&(theory_pars->stout_pars));
       addrem_stagphases_to_eo_conf(out_conf);
       addrem_stagphases_to_eo_conf(sme_conf);
     }

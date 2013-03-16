@@ -332,7 +332,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
     {
       //if needed stout
       quad_su3 **temp_conf=(theory_pars[itheory].stout_pars.nlev==0)?conf:new_conf;
-      stout_smear(temp_conf,conf,theory_pars[itheory].stout_pars);
+      stout_smear(temp_conf,conf,&(theory_pars[itheory].stout_pars));
       
       if(theory_pars[itheory].chiral_cond_pars.flag)
 	{
