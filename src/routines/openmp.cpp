@@ -16,8 +16,7 @@
 
 //put in the external bgq_barrier.c file, to avoid alignement problem
 #ifdef BGQ
-extern "C" void bgq_barrier(int n);
-extern "C" void bgq_barrier_define();
+ #include "../bgq/bgq_barrier.h"
 #endif
 
 //put a barrier between threads
