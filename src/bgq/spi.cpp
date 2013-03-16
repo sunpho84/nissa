@@ -219,28 +219,28 @@ void set_lx_spi_comm(spi_comm_t &in,int nbytes_per_site) {set_lx_or_eo_spi_comm(
 void set_eo_spi_comm(spi_comm_t &in,int nbytes_per_site) {set_lx_or_eo_spi_comm(in,nbytes_per_site,1);}
 
 //wait a communication to finish
-void spi_comm_wait(spi_comm_t &in)
+void spi_comm_wait(spi_comm_t *in)
 {
   if(IS_MASTER_THREAD)
     {
       verbosity_lv3_master_printf("Entering spi comm wait\n");
       
-      if(in.comm_in_prog)
+      if(in->comm_in_prog)
 	{
 	  //wait to send everything
-	  while(in.comm_in_prog)
+	  while(in->comm_in_prog)
 	    {
 	      verbosity_lv3_master_printf("Waiting to finish sending data with spi\n");
-	      in.comm_in_prog=0;
+	      in->comm_in_prog=0;
 	      for(int idir=0;idir<8;idir++)
-		in.comm_in_prog|=!MUSPI_CheckDescComplete(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),spi_desc_count[idir]);
+		in->comm_in_prog|=!MUSPI_CheckDescComplete(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),spi_desc_count[idir]);
 	    }
 	  
 	  spi_global_barrier();
 	  
 	  //wait to receive everything
 	  verbosity_lv3_master_printf("Waiting to finish receiving data with spi\n");
-	  while(in.recv_counter>0) verbosity_lv3_master_printf("%d/%d bytes remaining to be received\n",in.recv_counter,in.buf_size);  
+	  while(in->recv_counter>0) verbosity_lv3_master_printf("%d/%d bytes remaining to be received\n",in->recv_counter,in->buf_size);  
 	}
       else verbosity_lv3_master_printf("Did not have to wait for any spi comm\n");
     }
@@ -250,78 +250,79 @@ void spi_comm_wait(spi_comm_t &in)
 }
 
 //start the communications
-void spi_start_comm(spi_comm_t &in)
+void spi_start_comm(spi_comm_t *in)
 {
   //wait for any previous communication to finish and mark as new started 
   spi_comm_wait(in);
-  in.comm_in_prog=1;
   
   if(IS_MASTER_THREAD)
     {
       //reset the counter and wait that all have reset
       spi_global_barrier();
-      in.recv_counter=in.buf_size;
+      in->recv_counter=in->buf_size;
       spi_global_barrier();
       
       //start the injection
       for(int idir=0;idir<8;idir++)
 	{
 	  verbosity_lv3_master_printf("Injecting %d\n",idir);
-	  spi_desc_count[idir]=MUSPI_InjFifoInject(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),&in.descriptors[idir]);
+	  spi_desc_count[idir]=MUSPI_InjFifoInject(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),&in->descriptors[idir]);
 	  if(spi_desc_count[idir]>(1ll<<57)) crash("msg_InjFifoInject returned %llu when expecting 1, most likely because there is no room in the fifo",spi_desc_count[idir]);
 	}
+      
+      in->comm_in_prog=1;
     }
 }
 
 //unset everything
-void unset_spi_comm(spi_comm_t &in)
+void unset_spi_comm(spi_comm_t *in)
 {
+  //wait for any communication to finish
+  spi_comm_wait(in);
+  
+  //free buffers
   if(IS_MASTER_THREAD)
     {
-      //wait for any communication to finish
-      spi_comm_wait(in);
-      
-      //free buffers
-      free(in.recv_buf);
-      free(in.send_buf);
+      free(in->recv_buf);
+      free(in->send_buf);
     }
 }
 
 /////////////////////////////////////// communicating lx vec ///////////////////////////////////
 
 //fill the sending buf using the data inside an lx vec
-void fill_spi_sending_buf_with_lx_vec(spi_comm_t &a,void *vec,int nbytes_per_site)
+void fill_spi_sending_buf_with_lx_vec(spi_comm_t *a,void *vec,int nbytes_per_site)
 {
   //check buffer size matching
-  if(a.buf_size!=nbytes_per_site*bord_vol) crash("wrong buffer size (%d) for %d large border)",a.buf_size,nbytes_per_site*bord_vol);
+  if(a->buf_size!=nbytes_per_site*bord_vol) crash("wrong buffer size (%d) for %d large border)",a->buf_size,nbytes_per_site*bord_vol);
   
   //copy one by one the surface of vec inside the sending buffer
   NISSA_PARALLEL_LOOP(ibord,bord_vol)
-    memcpy(a.send_buf+nbytes_per_site*ibord,(char*)vec+surflx_of_bordlx[ibord]*nbytes_per_site,nbytes_per_site);
+    memcpy(a->send_buf+nbytes_per_site*ibord,(char*)vec+surflx_of_bordlx[ibord]*nbytes_per_site,nbytes_per_site);
 
   //wait that all threads filled their portion
   thread_barrier(SPI_LX_SENDING_BUF_FILL);
 }
 
 //extract the information from receiving buffer and put them inside an lx vec
-void fill_lx_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbytes_per_site)
+void fill_lx_bord_with_spi_receiving_buf(void *vec,spi_comm_t *a,int nbytes_per_site)
 {
   if(IS_MASTER_THREAD)
     {
       crash_if_borders_not_allocated(vec);
       
       //check buffer size matching
-      if(a.buf_size!=nbytes_per_site*bord_vol) crash("wrong buffer size (%d) for %d large border)",a.buf_size,nbytes_per_site*bord_vol);
+      if(a->buf_size!=nbytes_per_site*bord_vol) crash("wrong buffer size (%d) for %d large border)",a->buf_size,nbytes_per_site*bord_vol);
       
       //the buffer is already ordered as the vec border
-      memcpy((char*)vec+loc_vol*nbytes_per_site,a.recv_buf,a.buf_size);
+      memcpy((char*)vec+loc_vol*nbytes_per_site,a->recv_buf,a->buf_size);
     }
   
   //we do not sync, because typically we will set borders as valid
 }
 
 //start communication using an lx border
-int spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_site)
+void spi_start_communicating_lx_borders(int *nrequest,spi_comm_t *a,void *vec,int nbytes_per_site)
 {
   if(!check_borders_valid(vec))
     {
@@ -334,15 +335,15 @@ int spi_start_communicating_lx_borders(spi_comm_t &a,void *vec,int nbytes_per_si
       spi_start_comm(a);
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
-      return 1;
+      (*nrequest)=8;
     }
-  else return 0;
+  else (*nrequest)=0;
 }
 
 //finish communicating
-void spi_finish_communicating_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
+void spi_finish_communicating_lx_borders(int *nrequest,void *vec,spi_comm_t *a,int nbytes_per_site)
 {
-  if(!check_borders_valid(vec) && a.comm_in_prog)
+  if(!check_borders_valid(vec) && (*nrequest==8))
     {
       //take time and write some output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
@@ -355,57 +356,60 @@ void spi_finish_communicating_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_
       
       //set border not valid: this auto sync
       set_borders_valid(vec);
+      
+      (*nrequest)=0;
     }
 }
 
 //merge the two
-void spi_communicate_lx_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
+void spi_communicate_lx_borders(void *vec,spi_comm_t *a,int nbytes_per_site)
 {
   if(!check_borders_valid(vec))
     {
       verbosity_lv3_master_printf("Sync spi communication of lx borders of %s\n",get_vec_name((void*)vec));
       
-      spi_start_communicating_lx_borders(a,vec,nbytes_per_site);
-      spi_finish_communicating_lx_borders(vec,a,nbytes_per_site);
+      int nrequest;
+      spi_start_communicating_lx_borders(&nrequest,a,vec,nbytes_per_site);
+      spi_finish_communicating_lx_borders(&nrequest,vec,a,nbytes_per_site);
     }
 }
 
 /////////////////////////////////////// communicating e/o vec //////////////////////////////////////
 
 //fill the sending buf using the data inside an ev or odd vec
-void fill_spi_sending_buf_with_ev_or_od_vec(spi_comm_t &a,void *vec,int nbytes_per_site,int eo)
+void fill_spi_sending_buf_with_ev_or_od_vec(spi_comm_t *a,void *vec,int nbytes_per_site,int eo)
 {
   //check buffer size matching
-  if(a.buf_size!=nbytes_per_site*bord_volh) crash("wrong buffer size (%d) for %d border)",a.buf_size,nbytes_per_site*bord_volh);
+  if(a->buf_size!=nbytes_per_site*bord_volh) crash("wrong buffer size (%d) for %d border)",a->buf_size,nbytes_per_site*bord_volh);
   
   //copy one by one the surface of vec inside the sending buffer
   NISSA_PARALLEL_LOOP(ibord,bord_volh)
-    memcpy(a.send_buf+ibord*nbytes_per_site,(char*)vec+surfeo_of_bordeo[eo][ibord]*nbytes_per_site,nbytes_per_site);
+    memcpy(a->send_buf+ibord*nbytes_per_site,(char*)vec+surfeo_of_bordeo[eo][ibord]*nbytes_per_site,nbytes_per_site);
 
   //wait that all threads filled their portion
   thread_barrier(SPI_EV_OR_OD_SENDING_BUF_FILL);
 }
 
 //extract the information from receiving buffer and put them inside an even or odd vec
-void fill_ev_or_od_bord_with_spi_receiving_buf(void *vec,spi_comm_t &a,int nbytes_per_site)
+void fill_ev_or_od_bord_with_spi_receiving_buf(void *vec,spi_comm_t *a,int nbytes_per_site)
 {
   if(IS_MASTER_THREAD)
     {
       crash_if_borders_not_allocated(vec);
       
       //check buffer size matching
-      if(a.buf_size!=nbytes_per_site*bord_volh)
-	crash("wrong buffer size (%d) for %d border)",a.buf_size,nbytes_per_site*bord_volh);
+      if(a->buf_size!=nbytes_per_site*bord_volh)
+	crash("wrong buffer size (%d) for %d border)",a->buf_size,nbytes_per_site*bord_volh);
       
       //the buffer is already ordered as the vec border
-      memcpy((char*)vec+loc_volh*nbytes_per_site,a.recv_buf,a.buf_size);
+      memcpy((char*)vec+loc_volh*nbytes_per_site,a->recv_buf,a->buf_size);
     }
   
   //we do not sync, because typically we will set borders as valid
 }
 
 //start communication using an ev or od border
-int spi_start_communicating_ev_or_od_borders(spi_comm_t &a,void *vec,int nbytes_per_site,int eo)
+void spi_start_communicating_ev_or_od_borders(int *nrequest,spi_comm_t *a,void *vec,int nbytes_per_site,int eo)
 {
   if(!check_borders_valid(vec))
     {
@@ -418,15 +422,15 @@ int spi_start_communicating_ev_or_od_borders(spi_comm_t &a,void *vec,int nbytes_
       spi_start_comm(a);
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
-      return 1;
+      (*nrequest)=8;
     }
-  else return 0;
+  else (*nrequest)=0;
 }
 
 //finish communicating
-void spi_finish_communicating_ev_or_od_borders(void *vec,spi_comm_t &a,int nbytes_per_site)
+void spi_finish_communicating_ev_or_od_borders(int *nrequest,void *vec,spi_comm_t *a,int nbytes_per_site)
 {
-  if(!check_borders_valid(vec) && a.comm_in_prog)
+  if(!check_borders_valid(vec) && (*nrequest==8))
     {
       //take time and make some output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
@@ -438,17 +442,20 @@ void spi_finish_communicating_ev_or_od_borders(void *vec,spi_comm_t &a,int nbyte
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
       set_borders_valid(vec);
+      
+      (*nrequest)=0;
     }
 }
 
 //merge the two
-void spi_communicate_ev_or_od_borders(void *vec,spi_comm_t &a,int nbytes_per_site,int eo)
+void spi_communicate_ev_or_od_borders(void *vec,spi_comm_t *a,int nbytes_per_site,int eo)
 {
   if(!check_borders_valid(vec))
     {
       verbosity_lv3_master_printf("Sync spi communication of ev or od borders of %s\n",get_vec_name((void*)vec));
       
-      spi_start_communicating_ev_or_od_borders(a,vec,nbytes_per_site,eo);
-      spi_finish_communicating_ev_or_od_borders(vec,a,nbytes_per_site);
+      int nrequest;
+      spi_start_communicating_ev_or_od_borders(&nrequest,a,vec,nbytes_per_site,eo);
+      spi_finish_communicating_ev_or_od_borders(&nrequest,vec,a,nbytes_per_site);
     }  
 }

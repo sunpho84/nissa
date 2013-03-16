@@ -209,7 +209,7 @@ void communicate_lx_quad_su3_edges(quad_su3 *conf)
 void communicate_lx_spincolor_borders(spincolor *s)
 {
 #ifdef BGQ
-  spi_communicate_lx_borders(s,spi_lx_spincolor_comm,sizeof(spincolor));
+  spi_communicate_lx_borders(s,&spi_lx_spincolor_comm,sizeof(spincolor));
 #else
   communicate_lx_borders((char*)s,MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,sizeof(spincolor));
 #endif
@@ -235,7 +235,7 @@ void communicate_lx_spincolor_128_borders(spincolor_128 *s)
 void start_communicating_lx_spincolor_borders(int &nrequest,MPI_Request *request,spincolor *s)
 {
 #ifdef BGQ
-  nrequest=spi_start_communicating_lx_borders(spi_lx_spincolor_comm,s,sizeof(spincolor));
+  spi_start_communicating_lx_borders(&nrequest,&spi_lx_spincolor_comm,s,sizeof(spincolor));
 #else
  start_communicating_lx_borders(nrequest,request,(char*)s,MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,sizeof(spincolor));
 #endif
@@ -243,7 +243,7 @@ void start_communicating_lx_spincolor_borders(int &nrequest,MPI_Request *request
 void finish_communicating_lx_spincolor_borders(int &nrequest,MPI_Request *request,spincolor *s)
 {
 #ifdef BGQ
-  spi_finish_communicating_lx_borders(s,spi_lx_spincolor_comm,sizeof(spincolor));
+  spi_finish_communicating_lx_borders(&nrequest,s,&spi_lx_spincolor_comm,sizeof(spincolor));
 #else
   finish_communicating_lx_borders(nrequest,request,(char*)s);
 #endif
@@ -456,7 +456,7 @@ void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_
 void communicate_eo_quad_su3_borders(quad_su3 **eo_conf)
 {
 #ifdef BGQ
-  for(int par=0;par<2;par++) spi_communicate_ev_or_od_borders(eo_conf[par],spi_eo_quad_su3_comm,sizeof(quad_su3),par);
+  for(int par=0;par<2;par++) spi_communicate_ev_or_od_borders(eo_conf[par],&spi_eo_quad_su3_comm,sizeof(quad_su3),par);
 #else
   communicate_eo_borders((char**)eo_conf,MPI_EO_QUAD_SU3_BORDS_SEND_TXY,MPI_EV_QUAD_SU3_BORDS_SEND_Z,MPI_OD_QUAD_SU3_BORDS_SEND_Z,MPI_EO_QUAD_SU3_BORDS_RECE,sizeof(quad_su3));
 #endif
@@ -466,7 +466,7 @@ void communicate_eo_quad_su3_borders(quad_su3 **eo_conf)
 void communicate_ev_color_borders(color *ev)
 {
 #ifdef BGQ
-  spi_communicate_ev_or_od_borders(ev,spi_eo_color_comm,sizeof(color),EVN);
+  spi_communicate_ev_or_od_borders(ev,&spi_eo_color_comm,sizeof(color),EVN);
 #else
   communicate_ev_borders((char*)ev,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));
 #endif
@@ -474,7 +474,7 @@ void communicate_ev_color_borders(color *ev)
 void communicate_od_color_borders(color *od)
 {
 #ifdef BGQ
-  spi_communicate_ev_or_od_borders(od,spi_eo_color_comm,sizeof(color),ODD);
+  spi_communicate_ev_or_od_borders(od,&spi_eo_color_comm,sizeof(color),ODD);
 #else
   communicate_od_borders((char*)od,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_OD_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));
 #endif
@@ -484,7 +484,7 @@ void communicate_eo_color_borders(color **eos)
 void start_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev)
 {
 #ifdef BGQ
-  (*nrequest)=spi_start_communicating_ev_or_od_borders(spi_eo_color_comm,ev,sizeof(color),EVN);
+  spi_start_communicating_ev_or_od_borders(nrequest,&spi_eo_color_comm,ev,sizeof(color),EVN);
 #else
   start_communicating_ev_borders(nrequest,request,(char*)ev,MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,sizeof(color));
 #endif
@@ -492,7 +492,7 @@ void start_communicating_ev_color_borders(int *nrequest,MPI_Request *request,col
 void finish_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev)
 {
 #ifdef BGQ
-  spi_finish_communicating_ev_or_od_borders(ev,spi_eo_color_comm,sizeof(color));
+  spi_finish_communicating_ev_or_od_borders(nrequest,ev,&spi_eo_color_comm,sizeof(color));
 #else
   finish_communicating_ev_borders(nrequest,request,(char*)ev);
 #endif
