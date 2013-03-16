@@ -72,6 +72,8 @@ THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ex
 {
   if(IS_MASTER_THREAD) sto_time-=take_time();
   
+  communicate_eo_quad_su3_edges(ext_in);
+  
   //allocate a temporary conf if going to smear iteratively or out==ext_in
   quad_su3 *in[2];
   for(int eo=0;eo<2;eo++)
