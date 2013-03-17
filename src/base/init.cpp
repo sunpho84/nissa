@@ -220,6 +220,7 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
       //if nfact_VL>=nfact_NP factorize the number of processor, otherwise the local volume
       int factorize_processor=(nfact_VL>=nfact_NP);
       int nfact=(factorize_processor) ? nfact_NP : nfact_VL;
+      int *list_fact=factorize_processor ? list_fact_NP : list_fact_VL;
       
       //compute the number of combinations: this is given by 4^nfact
       int ncombo=1;
@@ -244,14 +245,18 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	      int mu=(icombo>>(2*ifact)) & 0x3;
 	      
 	      //if we are factorizing local lattice, processor factor is given by list_fact, otherwise L/list_fact
-	      P[mu]*=factorize_processor ? list_fact_NP[ifact] : L[mu]/list_fact_VL[ifact];	      
+	      P[mu]*=list_fact[ifact];
 	      
 	      //check that the total volume L is a multiple and it is larger than the number of proc
 	      valid_partitioning=(L[mu]%P[mu]==0 && L[mu]>=P[mu]);
-	      
 	      if(valid_partitioning) ifact--;
 	    }
 	  while(valid_partitioning==1 && ifact>=0);
+	  
+          //pass again to processor grid if factorizing reciprocal
+          if(valid_partitioning && !factorize_processor)
+            for(int mu=0;mu<4;mu++)
+              P[mu]=L[mu]/P[mu];
 	  
 	  //check that all directions have at least 2 nodes
 	  if(check_all_dir_parallelized)
