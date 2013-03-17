@@ -4,6 +4,7 @@
 double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,double *b,int n);
 double double_conv_quadruple_vector_glb_scalar_prod(float_128 *a,float_128 *b,int n);
 void double_vector_glb_scalar_prod(double *res,double *a,double *b,int n);
+void complex_vector_glb_scalar_prod(complex res,complex *a,complex *b,int n);
 void double_vector_copy(double *a,double *b,int n);
 void double_vector_from_quadruple_vector(double *a,float_128 *b,int n);
 void double_vector_init_to_zero(double *a,int n);

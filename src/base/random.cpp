@@ -14,6 +14,7 @@
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
 #include "../routines/math.h"
+#include "../routines/openmp.h"
 
 double rnd_get_unif(rnd_gen *gen,double min,double max);
 
@@ -221,68 +222,74 @@ void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_type rtype)
 }
 
 //fill a grid of vectors with numbers between 0 and 1
-void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max)
+THREADABLE_FUNCTION_4ARG(rnd_fill_unif_loc_vector, double*,v, int,dps, double,min, double,max)
 {
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,loc_vol)
     for(int i=0;i<dps;i++)
       v[ivol*dps+i]=rnd_get_unif(&(loc_rnd_gen[ivol]),min,max);
-}
+  
+  set_borders_invalid(v);
+}}
 
 //return a grid of +-x numbers
-void rnd_fill_pm_one_loc_vector(double *v,int nps)
+THREADABLE_FUNCTION_2ARG(rnd_fill_pm_one_loc_vector, double*,v, int,nps)
 {
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,loc_vol)
     for(int i=0;i<nps;i++)
       v[ivol*nps+i]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
   
   set_borders_invalid(v);
-}
+}}
 
 //generate a spindiluted vector according to the passed type
-void generate_spindiluted_source(colorspinspin *source,enum rnd_type rtype,int twall)
-{ //reset
-  memset(source,0,sizeof(colorspinspin)*loc_vol);
+THREADABLE_FUNCTION_3ARG(generate_spindiluted_source, colorspinspin*,source, enum rnd_type,rtype, int,twall)
+{
+  //reset
+  vector_reset(source);
   
   //compute normalization norm: spat vol if twall>=0, glb_vol else
   int norm2=glb_vol;
   if(twall>=0) norm2/=glb_size[0];
   double inv_sqrt_norm2=1.0/sqrt(norm2);
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,loc_vol)
     if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
       for(int ic=0;ic<3;ic++)
-	{ //generate the id_sink==id_source==0 entry
+	{
+	  //generate the id_sink==id_source==0 entry
 	  comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
 	  complex_prod_double(source[ivol][ic][0][0],source[ivol][ic][0][0],inv_sqrt_norm2);
-	  for(int d=1;d<4;d++) //copy the other three dirac indexes
+	  //copy the other three dirac indexes
+	  for(int d=1;d<4;d++)
 	    memcpy(source[ivol][ic][d][d],source[ivol][ic][0][0],sizeof(complex));
 	}
   
   set_borders_invalid(source);
-}
+}}
 
 //generate an undiluted vector according to the passed type
-void generate_undiluted_source(spincolor *source,enum rnd_type rtype,int twall)
-{ //reset
-  memset(source,0,sizeof(spincolor)*loc_vol);
+THREADABLE_FUNCTION_3ARG(generate_undiluted_source, spincolor*,source, enum rnd_type,rtype, int,twall)
+{
+  //reset
+  vector_reset(source);
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,loc_vol)
     if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
       for(int id=0;id<4;id++)
 	for(int ic=0;ic<3;ic++)
 	  comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
   
   set_borders_invalid(source);
-}
+}}
 
 //generate a fully undiluted source
-void generate_fully_undiluted_source(color **source,enum rnd_type rtype,int twall)
+THREADABLE_FUNCTION_3ARG(generate_fully_undiluted_source, color**,source, enum rnd_type,rtype, int,twall)
 {
   for(int par=0;par<2;par++)
     {
       vector_reset(source[par]);
       
-      nissa_loc_volh_loop(ieo)
+      NISSA_PARALLEL_LOOP(ieo,loc_volh)
         {
 	  int ilx=loclx_of_loceo[par][ieo];
 	  if(glb_coord_of_loclx[ilx][0]==twall||twall<0)
@@ -291,12 +298,13 @@ void generate_fully_undiluted_source(color **source,enum rnd_type rtype,int twal
 	}
       set_borders_invalid(source[par]);
     }
-}
+}}
 
 //generate a delta source
-void generate_delta_source(su3spinspin *source,int *x)
-{ //reset
-  memset(source,0,sizeof(su3spinspin)*loc_vol);
+THREADABLE_FUNCTION_2ARG(generate_delta_source, su3spinspin*,source, int*,x)
+{
+  //reset
+  vector_reset(source);
 
   int islocal=1,lx[4];
   for(int idir=0;idir<4;idir++)
@@ -312,4 +320,4 @@ void generate_delta_source(su3spinspin *source,int *x)
         source[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
   
   set_borders_invalid(source);
-}
+}}
