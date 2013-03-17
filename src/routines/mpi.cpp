@@ -35,37 +35,6 @@ int master_broadcast(int in)
   return in;
 }
 
-//reduce a complex
-void glb_reduce_complex(complex out_glb,complex in_loc)
-{
-  MPI_Allreduce(in_loc,reduce_complex,2,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-
-  complex_copy(out_glb,reduce_complex);
-}
-
-//reduce a float_128
-void glb_reduce_float_128(float_128 out_glb,float_128 in_loc)
-{
-  if(thread_pool_locked) MPI_Allreduce(in_loc,out_glb,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
-  else
-    {
-      //copy loc in the buf and sync all the threads
-      float_128_copy(glb_float_128_reduction_buf[thread_id],in_loc);
-      thread_barrier(FLOAT_128_REDUCE_FIRST_BARRIER);
-      
-      //within master thread summ all the pieces and between MPI
-      if(IS_MASTER_THREAD)
-	{
-	  for(int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_float_128_reduction_buf[ith]);
-	  MPI_Allreduce(in_loc,glb_float_128_reduction_buf[0],1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
-#pragma omp flush
-	}
-      
-      //read glb val
-      THREAD_ATOMIC_EXEC(float_128_copy(out_glb,glb_float_128_reduction_buf[0]););
-    }
-}
-
 //reduce a double
 double glb_reduce_double(double in_loc)
 {
@@ -100,6 +69,37 @@ int glb_reduce_int(int in_loc)
   
   return reduce_int;
 }
+
+//reduce a complex
+void glb_reduce_complex(complex out_glb,complex in_loc)
+{for(int ri=0;ri<2;ri++) out_glb[ri]=glb_reduce_double(in_loc[ri]);}
+
+//reduce a float_128
+void glb_reduce_float_128(float_128 out_glb,float_128 in_loc)
+{
+  if(thread_pool_locked) MPI_Allreduce(in_loc,out_glb,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+  else
+    {
+      //copy loc in the buf and sync all the threads
+      float_128_copy(glb_float_128_reduction_buf[thread_id],in_loc);
+      thread_barrier(FLOAT_128_REDUCE_FIRST_BARRIER);
+      
+      //within master thread summ all the pieces and between MPI
+      if(IS_MASTER_THREAD)
+	{
+	  for(int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_float_128_reduction_buf[ith]);
+	  MPI_Allreduce(in_loc,glb_float_128_reduction_buf[0],1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+#pragma omp flush
+	}
+      
+      //read glb val
+      THREAD_ATOMIC_EXEC(float_128_copy(out_glb,glb_float_128_reduction_buf[0]););
+    }
+}
+
+//reduce a complex 128
+void glb_reduce_complex_128(complex_128 out_glb,complex_128 in_loc)
+{for(int ri=0;ri<2;ri++) glb_reduce_float_128(out_glb[ri],in_loc[ri]);}
 
 //reduce a double vector
 void glb_reduce_double_vect(double *out_glb,double *in_loc,int nel)

@@ -388,6 +388,8 @@ void complex_128_summ(complex_128 a,complex_128 b,complex_128 c)
 {for(int ri=0;ri<2;ri++) float_128_summ(a[ri],b[ri],c[ri]);}
 void complex_128_summassign(complex_128 a,complex_128 b)
 {complex_128_summ(a,a,b);}
+void complex_128_summassign_64(complex_128 a,complex b)
+{for(int ri=0;ri<2;ri++) float_128_summassign_64(a[ri],b[ri]);}
 void complex_128_subt(complex_128 a,complex_128 b,complex_128 c)
 {for(int ri=0;ri<2;ri++) float_128_subt(a[ri],b[ri],c[ri]);}
 

@@ -8,6 +8,7 @@
 #include "../base/communicate.h"
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
+#include "../new_types/complex.h"
 #include "../new_types/float128.h"
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/spin.h"
@@ -47,10 +48,10 @@ THREADABLE_FUNCTION_4ARG(double_vector_prod_double, double*,out, double*,in, dou
 THREADABLE_FUNCTION_5ARG(double_vector_prod_the_summ_double, double*,out, double,r, double*,in1, double*,in2, int,n)
 {NISSA_PARALLEL_LOOP(i,n) out[i]=r*(in1[i]+in2[i]);set_borders_invalid(out);}}
 
-//internal summ
+//scalar product
 THREADABLE_FUNCTION_4ARG(double_vector_glb_scalar_prod, double*,glb_res, double*,a, double*,b, int,n)
 {
-#if 0
+#ifndef REPRODUCIBLE_RUN
   //perform thread summ
   double loc_thread_res=0;
   NISSA_PARALLEL_LOOP(i,n)
@@ -68,6 +69,40 @@ THREADABLE_FUNCTION_4ARG(double_vector_glb_scalar_prod, double*,glb_res, double*
   (*glb_res)=temp[0];
 #endif
 }}
+
+//complex version
+THREADABLE_FUNCTION_4ARG(complex_vector_glb_scalar_prod, complex*,glb_res, complex*,a, complex*,b, int,n)
+{
+#ifndef REPRODUCIBLE_RUN
+  //perform thread summ
+  complex loc_thread_res={0,0};
+  NISSA_PARALLEL_LOOP(i,n)
+    complex_summ_the_conj2_prod(loc_thread_res,a[i],b[i]);
+  
+  for(int ri=0;ri<2;ri++)
+    (*glb_res)[ri]=glb_reduce_double(loc_thread_res[ri]);
+#else
+  //perform thread summ
+  complex_128 loc_thread_res={{0,0},{0,0}};
+  NISSA_PARALLEL_LOOP(i,n)
+    {
+      complex temp;
+      unsafe_complex_conj2_prod(temp,a[i],b[i]);
+      complex_128_summassign_64(loc_thread_res,temp);
+    }
+  
+  //drop back to complex after reducing all threads and ranks
+  for(int ri=0;ri<2;ri++)
+    {
+      float_128 temp;
+      glb_reduce_float_128(temp,loc_thread_res[ri]);
+      (*glb_res)[ri]=temp[0];
+    }
+#endif
+}}
+//workaround
+void complex_vector_glb_scalar_prod(complex res,complex *a,complex *b,int n)
+{complex_vector_glb_scalar_prod((complex*)&res,a,b,n);}
 
 //put the passed vector to the new norm, returning the reciprocal of normalizating factor
 THREADABLE_FUNCTION_5ARG(double_vector_normalize, double*,ratio, double*,out, double*,in, double,norm, int,n)

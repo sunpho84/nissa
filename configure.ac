@@ -29,12 +29,20 @@ AC_SUBST([SVN_REVISION])
 #bgq
 AC_ARG_ENABLE(bgq,
 	AS_HELP_STRING([--enable-bgq],[Enable bgq stuff (ony for BG/Q)]),
-	enable_bgq="yes",
+	enable_bgq="${enableval}",
 	enable_bgq="no")
-
 if test "$enable_bgq" == "yes";then AC_DEFINE([BGQ],1,[Enable bgq]) fi
 AM_CONDITIONAL([BGQ],[test "$enable_bgq" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq... $enable_bgq])
+
+#repropducible run
+AC_ARG_ENABLE(reproducible-run,
+	AS_HELP_STRING([--enable-reproducible-run],[Enable reproducibilty of runs (reductions, etc)]),
+	enable_reproducible_run="${enableval}",
+	enable_reproducible_run="yes")
+if test "$enable_reproducible_run" == "yes";then AC_DEFINE([REPRODUCIBLE_RUN],1,[Enable reproducible run]) fi
+AM_CONDITIONAL([REPRODUCIBLE_RUN],[test "$enable_reproducible_run" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling reproducibile run... $enable_reproducible_run])
 
 #overwrite default flags
 if test x${ac_cv_env_CXXFLAGS_set} != xset; then

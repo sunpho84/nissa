@@ -17,6 +17,7 @@ void complex_128_isubt(complex_128 a,complex_128 b,complex_128 c);
 void complex_128_isumm(complex_128 a,complex_128 b,complex_128 c);
 void complex_128_subt(complex_128 a,complex_128 b,complex_128 c);
 void complex_128_summ(complex_128 a,complex_128 b,complex_128 c);
+void complex_128_summassign_64(complex_128 a,complex b);
 void complex_128_summassign(complex_128 a,complex_128 b);
 void complex_summ_the_64_conj1_prod_128(complex_128 a,complex b,complex_128 c);
 void complex_summ_the_64_prod_128(complex_128 a,complex b,complex_128 c);
