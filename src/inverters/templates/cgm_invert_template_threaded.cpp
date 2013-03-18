@@ -138,7 +138,7 @@ THREADABLE_FUNCTION_7ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, double*,shift, int,
       //     calculate betaa=rr/pap=(r,r)/(p,Ap)
       betap=betaa;
       betaa=-rr/pap;
-	
+      
       //     calculate 
       //     -zfs
       //     -betas
@@ -149,15 +149,15 @@ THREADABLE_FUNCTION_7ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, double*,shift, int,
 	    {
 	      zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
 	      betas[ishift]=betaa*zfs[ishift]/zas[ishift];
-		
-	      double_vector_subt_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),betas[ishift],BULK_VOL*NDOUBLES_PER_SITE);
+	      
+	      double_vector_summ_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),-betas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
 	    }
 	}
 	
       //     calculate
       //     -r'=r+betaa*s=r+beta*Ap
       //     -rfrf=(r',r')
-      double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,BULK_VOL*NDOUBLES_PER_SITE);
+      double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
       double_vector_glb_scalar_prod(&rfrf,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
       
       //     calculate alpha=rfrf/rr=(r',r')/(r,r)
@@ -165,10 +165,10 @@ THREADABLE_FUNCTION_7ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, double*,shift, int,
 	
       //     calculate p'=r'+p*alpha
       double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,BULK_VOL*NDOUBLES_PER_SITE);
-	
+      
       //start the communications of the border
       if(nissa_use_async_communications) CGM_START_COMMUNICATING_BORDERS(&nrequest,request,p);
-	
+      
       //     calculate 
       //     -alphas=alpha*zfs*betas/zas*beta
       //     -ps'=r'+alpha*ps
@@ -177,7 +177,7 @@ THREADABLE_FUNCTION_7ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, double*,shift, int,
 	  {
 	    alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
 
-	    double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],BULK_VOL*NDOUBLES_PER_SITE);
+	    double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
 	     
 	    // shift z
 	    zps[ishift]=zas[ishift];

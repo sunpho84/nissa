@@ -138,7 +138,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	      zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
 	      betas[ishift]=betaa*zfs[ishift]/zas[ishift];
 		
-	      double_vector_subt_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),betas[ishift],bulk_vol*ndoubles_per_site);
+	      double_vector_summ_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),-betas[ishift],bulk_vol*ndoubles_per_site);
 	    }
 	}
 	
@@ -177,7 +177,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
 	
       //check over residual
       if(iter%each==0) verbosity_lv2_master_printf(" cgm iter %d rel. residues: ",iter);
-	
+      
       for(int ishift=0;ishift<nshift;ishift++)
 	if(run_flag[ishift])
 	  {

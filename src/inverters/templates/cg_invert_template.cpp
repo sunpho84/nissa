@@ -44,7 +44,7 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       apply_operator(s,cg_inner_parameters_call,sol);
       
-      double_vector_subt_double_vector_prod_double((double*)r,(double*)source,(double*)s,1,size_of_bulk*ndoubles_per_site);
+      double_vector_subt((double*)r,(double*)source,(double*)s,size_of_bulk*ndoubles_per_site);
       double_vector_copy((double*)p,(double*)r,size_of_bulk*ndoubles_per_site);
       double_vector_glb_scalar_prod(&source_norm,(double*)source,(double*)source,size_of_bulk*ndoubles_per_site);
       double delta;
@@ -91,7 +91,7 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
       
       //last calculation of residual, in the case iter>niter
       apply_operator(s,cg_inner_parameters_call,sol);
-      double_vector_subt_double_vector_prod_double((double*)r,(double*)source,(double*)s,1,size_of_bulk*ndoubles_per_site);
+      double_vector_subt((double*)r,(double*)source,(double*)s,size_of_bulk*ndoubles_per_site);
       double_vector_glb_scalar_prod(&lambda,(double*)r,(double*)r,size_of_bulk*ndoubles_per_site);
       
       verbosity_lv1_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",final_iter,lambda/source_norm,residue);

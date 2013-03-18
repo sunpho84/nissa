@@ -58,7 +58,7 @@ THREADABLE_FUNCTION_8ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       APPLY_OPERATOR(s,CG_OPERATOR_PARAMETERS sol);
       
-      double_vector_subt_double_vector_prod_double((double*)r,(double*)source,(double*)s,1,BULK_VOL*NDOUBLES_PER_SITE);
+      double_vector_subt((double*)r,(double*)source,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
       double_vector_copy((double*)p,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
       double delta;
       double_vector_glb_scalar_prod(&delta,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
@@ -105,7 +105,7 @@ THREADABLE_FUNCTION_8ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,
       
       //last calculation of residual, in the case iter>niter
       APPLY_OPERATOR(s,CG_OPERATOR_PARAMETERS sol);
-      double_vector_subt_double_vector_prod_double((double*)r,(double*)source,(double*)s,1,BULK_VOL*NDOUBLES_PER_SITE);
+      double_vector_subt((double*)r,(double*)source,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
       double_vector_glb_scalar_prod(&lambda,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
       
       verbosity_lv1_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",final_iter,lambda/source_norm,residue);

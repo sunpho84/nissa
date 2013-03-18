@@ -20,6 +20,7 @@
 #define EDGES_ALLOCATED 4
 #define EDGES_VALID 8
 #define BORDERS_COMMUNICATED_AT_LEAST_ONCE 16
+#define DO_NOT_SET_FLAGS 1
 
 //ILDG files
 #define ILDG_MAGIC_NO                   0x456789ab
