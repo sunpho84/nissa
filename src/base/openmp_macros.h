@@ -39,11 +39,12 @@
 
 #define IS_MASTER_THREAD (thread_id==0)
 
-#define NISSA_PARALLEL_LOOP(INDEX,WORKLOAD)                             \
-  if(WORKLOAD%nthreads)                                                 \
-    crash("workload %d not multiple of thread number %d",WORKLOAD,nthreads); \
-  else									\
-    for(int tid=thread_id,load=WORKLOAD/nthreads,start=tid*load,end=start+load,INDEX=start;INDEX<end;INDEX++)
+#define NISSA_PARALLEL_LOOP(INDEX,WORKLOAD)	\
+  for(int tid=thread_id,						\
+	load=(WORKLOAD+(WORKLOAD%nthreads ? nthreads-1 : 0))/nthreads,	\
+	start=tid*load,							\
+	end=start+load<WORKLOAD ? start+load : WORKLOAD,		\
+	INDEX=start;INDEX<end;INDEX++)
 
 //////////////////////////////////////////////////////////////////////////////////////
 
