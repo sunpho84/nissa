@@ -90,7 +90,6 @@ THREADABLE_FUNCTION_4ARG(complex_vector_glb_scalar_prod, complex*,glb_res, compl
       unsafe_complex_conj2_prod(temp,a[i],b[i]);
       complex_128_summassign_64(loc_thread_res,temp);
     }
-  
   //drop back to complex after reducing all threads and ranks
   for(int ri=0;ri<2;ri++)
     {
@@ -100,9 +99,6 @@ THREADABLE_FUNCTION_4ARG(complex_vector_glb_scalar_prod, complex*,glb_res, compl
     }
 #endif
 }}
-//workaround
-void complex_vector_glb_scalar_prod(complex res,complex *a,complex *b,int n)
-{complex_vector_glb_scalar_prod((complex*)&res,a,b,n);}
 
 //put the passed vector to the new norm, returning the reciprocal of normalizating factor
 THREADABLE_FUNCTION_5ARG(double_vector_normalize, double*,ratio, double*,out, double*,in, double,norm, int,n)

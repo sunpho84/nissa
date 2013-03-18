@@ -37,7 +37,6 @@ THREADABLE_FUNCTION_8ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,
 
   //macro to be defined externally, allocating all the required additional vectors
   CG_ADDITIONAL_VECTORS_ALLOCATION();
-  
   if(guess==NULL) vector_reset(sol);
   else vector_copy(sol,guess);
   
@@ -47,24 +46,25 @@ THREADABLE_FUNCTION_8ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,
       cg_inv_over_time-=take_time();
     }
   
-  const int each=10;
+  int each_list[4]={0,100,10,1},each;
+  if(nissa_verbosity>=3) each=1;
+  else each=each_list[nissa_verbosity];
   
   //external loop, used if the internal exceed the maximal number of iterations
   double source_norm,lambda;
   do
     {
+      double_vector_glb_scalar_prod(&source_norm,(double*)source,(double*)source,BULK_VOL*NDOUBLES_PER_SITE);
       //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
       APPLY_OPERATOR(s,CG_OPERATOR_PARAMETERS sol);
       
       double_vector_subt_double_vector_prod_double((double*)r,(double*)source,(double*)s,1,BULK_VOL*NDOUBLES_PER_SITE);
       double_vector_copy((double*)p,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
-      double_vector_glb_scalar_prod(&source_norm,(double*)source,(double*)source,BULK_VOL*NDOUBLES_PER_SITE);
       double delta;
       double_vector_glb_scalar_prod(&delta,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
       
       if(riter==0) verbosity_lv2_master_printf("Source norm: %lg\n",source_norm);
       if(source_norm==0 || isnan(source_norm)) crash("invalid norm: %lg",source_norm);
-      
       verbosity_lv2_master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
       
       int final_iter;
