@@ -480,7 +480,7 @@ void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_
 void communicate_eo_quad_su3_borders(quad_su3 **eo_conf,int OPT=SEND_BACKWARD_BORD|SEND_FORWARD_BORD)
 {
 #ifdef BGQ
-  spi_communicate_ev_and_od_borders(eo_conf,&spi_lx_quad_su3_comm,sizeof(quad_su3));
+  spi_communicate_ev_and_od_borders((void**)eo_conf,&spi_lx_quad_su3_comm,sizeof(quad_su3));
 #else
   communicate_eo_borders((char**)eo_conf,MPI_EO_QUAD_SU3_BORDS_SEND_TXY,MPI_EV_QUAD_SU3_BORDS_SEND_Z,MPI_OD_QUAD_SU3_BORDS_SEND_Z,MPI_EO_QUAD_SU3_BORDS_RECE,sizeof(quad_su3),OPT);
 #endif

@@ -472,10 +472,10 @@ void fill_spi_sending_buf_with_ev_and_od_vec(spi_comm_t *a,void **vec,int nbytes
   NISSA_PARALLEL_LOOP(ibord_lx,bord_vol)
     {
       //convert lx indexing to eo
-      int source_lx=surflx_of_loclx[ibord_lx];
+      int source_lx=surflx_of_bordlx[ibord_lx];
       int par=loclx_parity[source_lx];
       int source_eo=loceo_of_loclx[source_lx];
-      memcpy(a->send_buf+ibord_lx*nbytes_per_site,(char*)(vec[eo])+source_eo*nbytes_per_site,nbytes_per_site);
+      memcpy(a->send_buf+ibord_lx*nbytes_per_site,(char*)(vec[par])+source_eo*nbytes_per_site,nbytes_per_site);
     }
   
   //wait that all threads filled their portion
@@ -498,7 +498,7 @@ void fill_ev_and_od_bord_with_spi_receiving_buf(void **vec,spi_comm_t *a,int nby
       int dest_lx=ibord_lx+bord_vol;
       int par=loclx_parity[dest_lx];
       int dest_eo=loceo_of_loclx[dest_lx];
-      memcpy((char*)(vec[eo])+dest_eo*nbytes_per_site,a->send_buf+ibord_lx*nbytes_per_site,nbytes_per_site);
+      memcpy((char*)(vec[par])+dest_eo*nbytes_per_site,a->send_buf+ibord_lx*nbytes_per_site,nbytes_per_site);
     }
   
   //we do not sync, because typically we will set borders as valid
@@ -524,9 +524,9 @@ void spi_start_communicating_ev_and_od_borders(int *nrequest,spi_comm_t *a,void 
 }
 
 //finish communicating
-void spi_finish_communicating_ev_and_od_borders(int *nrequest,void *vec,spi_comm_t *a,int nbytes_per_site)
+void spi_finish_communicating_ev_and_od_borders(int *nrequest,void **vec,spi_comm_t *a,int nbytes_per_site)
 {
-  if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && (*nrequest==8))
+  if(((!check_borders_valid(vec[EVN]))||(!check_borders_valid(vec[ODD]))) && (*nrequest==8))
     {
       //take time and make some output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
@@ -548,6 +548,6 @@ void spi_finish_communicating_ev_and_od_borders(int *nrequest,void *vec,spi_comm
 void spi_communicate_ev_and_od_borders(void **vec,spi_comm_t *a,int nbytes_per_site)
 {
   int nrequest;
-  spi_start_communicating_ev_or_od_borders(&nrequest,a,vec,nbytes_per_site,eo);
-  spi_finish_communicating_ev_or_od_borders(&nrequest,vec,a,nbytes_per_site);
+  spi_start_communicating_ev_and_od_borders(&nrequest,a,vec,nbytes_per_site);
+  spi_finish_communicating_ev_and_od_borders(&nrequest,vec,a,nbytes_per_site);
 }
