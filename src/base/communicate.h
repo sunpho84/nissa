@@ -5,7 +5,7 @@
 void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,int nbytes_per_site);
 void communicate_eo_color_borders(color **eos);
 void communicate_eo_edges(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site);
-void communicate_eo_quad_su3_borders(quad_su3 **eo_conf);
+void communicate_eo_quad_su3_borders(quad_su3 **eo_conf,int OPT=SEND_BACKWARD_BORD|SEND_FORWARD_BORD);
 void communicate_eo_quad_su3_edges(quad_su3 **conf);
 void communicate_ev_borders(char *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_EV_BORDS_RECE,int nbytes_per_site);
 void communicate_ev_color_borders(color *ev);
