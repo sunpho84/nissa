@@ -34,29 +34,6 @@
 #define RE 0
 #define IM 1
 
-//barriers
-#define LOCK_POOL_BARRIER 1
-#define UNLOCK_POOL_BARRIER 2
-#define SET_VEC_FLAG_FIRST_BARRIER 3
-#define SET_VEC_FLAG_SECOND_BARRIER 4
-#define UNSET_VEC_FLAG_FIRST_BARRIER 5
-#define UNSET_VEC_FLAG_SECOND_BARRIER 6
-#define ADDREM_STAGPHASES_FIRST_BARRIER 7
-#define ADDREM_STAGPHASES_SECOND_BARRIER 8
-#define DOUBLE_REDUCE_FIRST_BARRIER 9
-#define DOUBLE_REDUCE_SECOND_BARRIER 10
-#define FLOAT_128_REDUCE_FIRST_BARRIER 11
-#define FLOAT_128_REDUCE_SECOND_BARRIER 12
-#define INTERNAL_NISSA_MALLOC_FIRST_BARRIER 13
-#define INTERNAL_NISSA_MALLOC_SECOND_BARRIER 14
-#define INTERNAL_NISSA_FREE_FIRST_BARRIER 15
-#define INTERNAL_NISSA_FREE_SECOND_BARRIER 16
-#define SPI_COMM_WAIT_BARRIER 17
-#define SPI_LX_SENDING_BUF_FILL 18
-#define SPI_EV_OR_OD_SENDING_BUF_FILL 19
-#define ATOMIC_FIRST_BARRIER 100
-#define ATOMIC_SECOND_BARRIER 101
-
 //hmc
 #define SEA_THEORY 0
 
@@ -89,8 +66,6 @@
 #define nissa_free(a) internal_nissa_free((char**)&(a),__FILE__,__LINE__)
 #define crash(...) internal_crash(__LINE__,__FILE__,__VA_ARGS__)
 #define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
-#define vector_copy(a,b) internal_vector_copy((void*)(a),(void*)(b))
-#define vector_reset(a) internal_vector_reset((void*)(a))
 
 #define master_printf(...) master_fprintf(stdout,__VA_ARGS__)
 #define verbosity_master_printf(lv,...) verb_call+=(nissa_verbosity>=lv && master_printf(__VA_ARGS__))

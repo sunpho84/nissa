@@ -117,14 +117,18 @@ void color_prod_double(color a,color b,double c)
 //Taken from M.D'Elia
 void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma)
 {
-  const double one_by_sqrt2=0.707106781186547;
   const double one_by_sqrt3=0.577350269189626;
   const double two_by_sqrt3=1.15470053837925;
   
   double r[8];
-  for(int ir=0;ir<8;ir++)
-    r[ir]=rnd_get_gauss(gen,0,sigma*one_by_sqrt2);
-
+  for(int ir=0;ir<4;ir++)
+    {
+      complex rc,ave={0,0};
+      rnd_get_gauss_complex(rc,gen,ave,sigma);
+      r[ir*2+0]=rc[0];
+      r[ir*2+1]=rc[1];
+    }
+  
   //real part of diagonal elements
   H[0][0][0]= r[2]+one_by_sqrt3*r[7];
   H[1][1][0]=-r[2]+one_by_sqrt3*r[7];
@@ -1089,7 +1093,6 @@ void spincolor_print(spincolor c)
     }
   master_printf("\n");
 }
-
 
 //summ two spincolors
 void spincolor_summ(spincolor a,spincolor b,spincolor c)

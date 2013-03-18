@@ -139,7 +139,6 @@ void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmun
 //apply the chromo operator to the passed spinor to the whole volume
 void unsafe_apply_chromo_operator_to_spincolor(spincolor *out,as2t_su3 *Pmunu,spincolor *in)
 {
-#pragma omp for
   nissa_loc_vol_loop(ivol)
     unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
 }

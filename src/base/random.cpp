@@ -176,34 +176,18 @@ void rnd_get_Z4(complex out,rnd_gen *gen)
   out[1]=rnd_get_pm_one(gen)/RAD2;
 }
 
-//return a gaussian real
-double rnd_get_gauss(rnd_gen *gen,double ave,double sig)
-{
-  double q,r,x;
-  static double y;
-  static int flag=1;
-  
-  if(flag)
-    {
-      r=sqrt(-2*log(1-rnd_get_unif(gen,0,1)));
-      q=2*M_PI*rnd_get_unif(gen,0,1);
-      
-      x=r*cos(q);
-      y=r*sin(q);
-    }
-  else x=y;
-  
-  flag=!flag;
-  
-  return x*sig+ave;
-}
-
-//return a gaussian complex whose module has sigma sig
+//return a gaussian complex
 void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig)
 {
   const double one_by_sqrt2=0.707106781186547;
-  out[0]=rnd_get_gauss(gen,ave[0],sig*one_by_sqrt2);
-  out[1]=rnd_get_gauss(gen,ave[1],sig*one_by_sqrt2);
+  double norm=sig*one_by_sqrt2;
+  double q,r;
+  
+  r=sqrt(-2*log(1-rnd_get_unif(gen,0,1)));
+  q=2*M_PI*rnd_get_unif(gen,0,1);
+  
+  out[0]=r*cos(q)*norm+ave[0];
+  out[1]=r*sin(q)*norm+ave[1];
 }
 
 //return a complex number of appropriate type
@@ -283,22 +267,22 @@ THREADABLE_FUNCTION_3ARG(generate_undiluted_source, spincolor*,source, enum rnd_
 }}
 
 //generate a fully undiluted source
-THREADABLE_FUNCTION_3ARG(generate_fully_undiluted_source, color**,source, enum rnd_type,rtype, int,twall)
+THREADABLE_FUNCTION_4ARG(generate_fully_undiluted_eo_source, color*,source, enum rnd_type,rtype, int,twall, int,par)
 {
-  for(int par=0;par<2;par++)
+  vector_reset(source);
+  
+  NISSA_PARALLEL_LOOP(ieo,loc_volh)
     {
-      vector_reset(source[par]);
-      
-      NISSA_PARALLEL_LOOP(ieo,loc_volh)
-        {
-	  int ilx=loclx_of_loceo[par][ieo];
-	  if(glb_coord_of_loclx[ilx][0]==twall||twall<0)
-	    for(int ic=0;ic<3;ic++)
-	      comp_get_rnd(source[par][ieo][ic],&(loc_rnd_gen[ilx]),rtype);
-	}
-      set_borders_invalid(source[par]);
+      int ilx=loclx_of_loceo[par][ieo];
+      if(glb_coord_of_loclx[ilx][0]==twall||twall<0)
+	for(int ic=0;ic<3;ic++)
+	  comp_get_rnd(source[ieo][ic],&(loc_rnd_gen[ilx]),rtype);
     }
+  
+  set_borders_invalid(source);
 }}
+void generate_fully_undiluted_eo_source(color **source,enum rnd_type rtype,int twall)
+{for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par);}
 
 //generate a delta source
 THREADABLE_FUNCTION_2ARG(generate_delta_source, su3spinspin*,source, int*,x)
