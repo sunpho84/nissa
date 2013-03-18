@@ -21,6 +21,8 @@
 #define EDGES_VALID 8
 #define BORDERS_COMMUNICATED_AT_LEAST_ONCE 16
 #define DO_NOT_SET_FLAGS 1
+#define SEND_BACKWARD_BORD 1
+#define SEND_FORWARD_BORD 2
 
 //ILDG files
 #define ILDG_MAGIC_NO                   0x456789ab
