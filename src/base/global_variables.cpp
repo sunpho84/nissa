@@ -220,6 +220,7 @@ EXTERN MUSPI_GIBarrier_t spi_barrier;
 
 //spi communicators
 EXTERN spi_comm_t spi_lx_spincolor_comm;
+EXTERN spi_comm_t spi_lx_quad_su3_comm;
 EXTERN spi_comm_t spi_eo_color_comm;
 EXTERN spi_comm_t spi_eo_quad_su3_comm;
 
