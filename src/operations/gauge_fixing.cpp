@@ -16,10 +16,6 @@
 #include "../new_types/su3.h"
 #include "../routines/ios.h"
 
-#ifdef BGP
- #include "../base/bgp_instructions.h"
-#endif
-
 //apply a gauge transformation to the conf
 void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
 {
@@ -99,35 +95,6 @@ void compute_landau_or_coulomb_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
 {
   int b=loclx_neighdw[ivol][0];
 
-#ifdef BGP
-
-  bgp_complex g00,g01,g02,g10,g11,g12,g20,g21,g22;
-  bgp_complex c00,c01,c02,c10,c11,c12,c20,c21,c22;
-  bgp_complex b00,b01,b02,b10,b11,b12,b20,b21,b22;
-
-  //first dir: reset and sum
-  bgp_su3_load(c00,c01,c02,c10,c11,c12,c20,c21,c22, conf[ivol][0]);
-  bgp_su3_load(b00,b01,b02,b10,b11,b12,b20,b21,b22, conf[b][0]);
-  bgp_su3_summ_su3_dag(g00,g01,g02,g10,g11,g12,g20,g21,g22,
-		       c00,c01,c02,c10,c11,c12,c20,c21,c22,
-		       b00,b01,b02,b10,b11,b12,b20,b21,b22);
-  //remaining dirs
-  for(int mu=1;mu<nmu;mu++)
-    {
-      b=loclx_neighdw[ivol][mu];
-      
-      bgp_su3_load(c00,c01,c02,c10,c11,c12,c20,c21,c22, conf[ivol][mu]);
-      bgp_su3_load(b00,b01,b02,b10,b11,b12,b20,b21,b22, conf[b][mu]);
-      bgp_su3_summassign_su3(g00,g01,g02,g10,g11,g12,g20,g21,g22,
-			     c00,c01,c02,c10,c11,c12,c20,c21,c22);
-      bgp_su3_summassign_su3_dag(g00,g01,g02,g10,g11,g12,g20,g21,g22,
-				 b00,b01,b02,b10,b11,b12,b20,b21,b22);
-    }
-
-  bgp_su3_save(g, g00,g01,g02,g10,g11,g12,g20,g21,g22);
-
-#else
-
   //first dir: reset and sum
   for(int ic1=0;ic1<3;ic1++)
     for(int ic2=0;ic2<3;ic2++)
@@ -147,9 +114,6 @@ void compute_landau_or_coulomb_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
 	    g[ic1][ic2][1]+=conf[ivol][mu][ic1][ic2][1]-conf[b][mu][ic2][ic1][1];
 	  }
     }
-
-#endif
-
 }
 
 //horrible, horrifying routine of unknown meaning copied from APE
@@ -308,35 +272,14 @@ void find_local_landau_or_coulomb_gauge_fixing_transformation(su3 g,quad_su3 *co
 //apply the passed transformation to the point
 void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
 {
-#ifdef BGP
-  bgp_complex g00,g01,g02,g10,g11,g12,g20,g21,g22;
-  bgp_complex o00,o01,o02,o10,o11,o12,o20,o21,o22;
-  bgp_complex i00,i01,i02,i10,i11,i12,i20,i21,i22;
-  bgp_su3_load(g00,g01,g02,g10,g11,g12,g20,g21,g22,g);
-#endif
-
   // for each dir...
   for(int mu=0;mu<4;mu++)
     {
       int b=loclx_neighdw[ivol][mu];
       
       //perform local gauge transform
-#ifdef BGP
-      bgp_su3_load(i00,i01,i02,i10,i11,i12,i20,i21,i22,conf[ivol][mu]);
-      bgp_su3_prod_su3(o00,o01,o02,o10,o11,o12,o20,o21,o22,
-		       g00,g01,g02,g10,g11,g12,g20,g21,g22, 
-		       i00,i01,i02,i10,i11,i12,i20,i21,i22);
-      bgp_su3_save(conf[ivol][mu], o00,o01,o02,o10,o11,o12,o20,o21,o22);
-      
-      bgp_su3_load(i00,i01,i02,i10,i11,i12,i20,i21,i22,conf[b][mu]);
-      bgp_su3_prod_su3_dag(o00,o01,o02,o10,o11,o12,o20,o21,o22,
-			   i00,i01,i02,i10,i11,i12,i20,i21,i22,
-			   g00,g01,g02,g10,g11,g12,g20,g21,g22);
-      bgp_su3_save(conf[b][mu], o00,o01,o02,o10,o11,o12,o20,o21,o22);
-#else
       safe_su3_prod_su3(conf[ivol][mu],g,conf[ivol][mu]);
       safe_su3_prod_su3_dag(conf[b][mu],conf[b][mu],g);
-#endif
     }
 }
 

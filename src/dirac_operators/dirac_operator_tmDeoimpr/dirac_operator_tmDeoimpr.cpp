@@ -9,5 +9,6 @@
 #include "../../base/communicate.h"
 #include "../../base/debug.h"
 #include "../../base/vectors.h"
+#include "../../routines/openmp.h"
 
 #include "dirac_operator_tmDeoimpr_portable.cpp"

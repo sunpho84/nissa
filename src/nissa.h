@@ -13,20 +13,11 @@
 #include "base/init.h"
 #include "base/macros.h"
 #include "base/random.h"
-#include "base/sse_instructions.h"
 #include "base/vectors.h"
 
 //include bg/q specifics
 #ifdef BGQ
  #include "bgq/bgq.h"
-#endif
-
-//include bg/p specifics
-#ifdef BGP
- #ifndef BGP_EMU
-  #include <builtins.h>
- #endif
- #include "base/bgp_instructions.h"
 #endif
 
 #include "hmc/backfield.h"
