@@ -40,6 +40,10 @@ void double_vector_copy(double *a,double *b,int n)
 THREADABLE_FUNCTION_3ARG(double_vector_summassign, double*,out, double*,in, int,n)
 {NISSA_PARALLEL_LOOP(i,n) out[i]+=in[i];set_borders_invalid(out);}}
 
+//subt
+THREADABLE_FUNCTION_4ARG(double_vector_subt, double*,out, double*,in1, double*,in2, int,n)
+{NISSA_PARALLEL_LOOP(i,n) out[i]=in1[i]-in2[i];set_borders_invalid(out);}}
+
 //prod with double
 THREADABLE_FUNCTION_4ARG(double_vector_prod_double, double*,out, double*,in, double,r, int,n)
 {NISSA_PARALLEL_LOOP(i,n) out[i]=r*in[i];set_borders_invalid(out);}}
@@ -115,16 +119,12 @@ THREADABLE_FUNCTION_5ARG(double_vector_normalize, double*,ratio, double*,out, do
 }}
 
 //a[]=b[]+c[]*d
-THREADABLE_FUNCTION_5ARG(double_vector_summ_double_vector_prod_double, double*,a, double*,b, double*,c, double,d, int,n)
-{NISSA_PARALLEL_LOOP(i,n) a[i]=b[i]+c[i]*d;set_borders_invalid(a);}}
+THREADABLE_FUNCTION_6ARG(double_vector_summ_double_vector_prod_double, double*,a, double*,b, double*,c, double,d, int,n, int,OPT)
+{NISSA_PARALLEL_LOOP(i,n) a[i]=b[i]+c[i]*d;if(!(OPT&DO_NOT_SET_FLAGS)) set_borders_invalid(a);}}
 
 //a[]=b[]*c+d[]*e
-THREADABLE_FUNCTION_6ARG(double_vector_linear_comb, double*,a, double*,b, double,c, double*,d, double,e, int,n)
-{NISSA_PARALLEL_LOOP(i,n) a[i]=b[i]*c+d[i]*e;set_borders_invalid(a);}}
-
-//a[]=b[]-c[]*d
-void double_vector_subt_double_vector_prod_double(double *a,double *b,double *c,double d,int n)
-{double_vector_summ_double_vector_prod_double(a,b,c,-d,n);}
+THREADABLE_FUNCTION_7ARG(double_vector_linear_comb, double*,a, double*,b, double,c, double*,d, double,e, int,n, int,OPT)
+{NISSA_PARALLEL_LOOP(i,n) a[i]=b[i]*c+d[i]*e;if(!(OPT&DO_NOT_SET_FLAGS)) set_borders_invalid(a);}}
 
 //////////////////////////////////////////////////////// quadruple precision ///////////////////////////////////////////
 
