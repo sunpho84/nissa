@@ -495,7 +495,7 @@ void fill_ev_and_od_bord_with_spi_receiving_buf(void **vec,spi_comm_t *a,int nby
   //the buffer is lx ordered
   NISSA_PARALLEL_LOOP(ibord_lx,bord_vol)
     {
-      int dest_lx=ibord_lx+bord_vol;
+      int dest_lx=loc_vol+ibord_lx;
       int par=loclx_parity[dest_lx];
       int dest_eo=loceo_of_loclx[dest_lx];
       memcpy((char*)(vec[par])+dest_eo*nbytes_per_site,a->send_buf+ibord_lx*nbytes_per_site,nbytes_per_site);
