@@ -12,17 +12,14 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //in this version we apply (1+gmu)/2 before the multiplication by U
-void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
+THREADABLE_FUNCTION_5ARG(apply_tmQ_left, spincolor*,out, quad_su3*,conf, double,kappa, double,mu, spincolor*,in)
 {
   double kcf=1/(2*kappa);
   
-#pragma omp single
   communicate_lx_spincolor_borders(in);
-#pragma omp single
   communicate_lx_quad_su3_borders(conf);
   
-#pragma omp for
-  nissa_loc_vol_loop(X)
+  NISSA_PARALLEL_LOOP(X,loc_vol)
     {
       int Xup,Xdw;
       color temp_c0,temp_c1,temp_c2,temp_c3;
@@ -128,6 +125,5 @@ void apply_tmQ_left(spincolor *out,quad_su3 *conf,double kappa,double mu,spincol
 	}
     }
   
-#pragma omp single
   set_borders_invalid(out);
-}
+}}

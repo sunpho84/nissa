@@ -17,10 +17,6 @@
 #include "float128.h"
 #include "su3.h"
 
-#ifdef BGP
-#include "../base/bgp_instructions.h"
-#endif
-
 //////////////////////////////////// Put to zero or 1 /////////////////////////////////
 
 void color_put_to_zero(color m)
@@ -674,48 +670,6 @@ void su3_overrelax(su3 out,su3 in,double w)
   double coef[5]={1,w,w*(w-1)/2,w*(w-1)*(w-2)/6,w*(w-1)*(w-2)*(w-3)/24};
   su3 t[5];
 
-#ifdef BGP
-  bgp_complex f00,f01,f02,f10,f11,f12,f20,f21,f22;
-  bgp_complex o00,o01,o02,o10,o11,o12,o20,o21,o22;
-  bgp_complex t00,t01,t02,t10,t11,t12,t20,t21,t22;
-  bgp_complex r0,r1,r2;
-  bgp_complex buno;
-  
-  //prepare multiplicative factor
-  bgp_su3_load(f00,f01,f02,f10,f11,f12,f20,f21,f22,in);
-  complex uno={1,0};
-  bgp_complex_load(buno,uno);
-  bgp_subtassign_complex(f00,buno);
-  bgp_subtassign_complex(f11,buno);
-  bgp_subtassign_complex(f22,buno);
-  
-  //order 0-1
-
-  bgp_su3_prod_double(o00,o01,o02,o10,o11,o12,o20,o21,o22, f00,f01,f02,f10,f11,f12,f20,f21,f22, coef[1]);
-  bgp_summassign_complex(o00,buno);bgp_summassign_complex(o11,buno);bgp_summassign_complex(o22,buno);
-  bgp_su3_save(t[1],f00,f01,f02,f10,f11,f12,f20,f21,f22);
-
-  for(int iord=2;iord<5;iord++)
-    {
-      bgp_su3_load(t00,t01,t02,t10,t11,t12,t20,t21,t22, t[iord-1]);
-      
-      //t'_0i = t_0j * f_ji ; o_0i+=t'_0i*c
-      bgp_color_prod_su3(r0,r1,r2, t00,t01,t02, f00,f01,f02,f10,f11,f12,f20,f21,f22);
-      bgp_color_save(t[iord][0], r0,r1,r2);
-      bgp_summassign_color_prod_double(o00,o01,o02, r0,r1,r2, coef[iord]);
-
-      //t'_1i = t_1j * f_ji ; o_1i+=t'_1i*c
-      bgp_color_prod_su3(r0,r1,r2, t10,t11,t12, f00,f01,f02,f10,f11,f12,f20,f21,f22);
-      bgp_color_save(t[iord][1], r0,r1,r2);
-      bgp_summassign_color_prod_double(o10,o11,o12, r0,r1,r2, coef[iord]);
-
-      //t'_2i = t_2j * f_ji ; o_2i+=t'_2i*c
-      bgp_color_prod_su3(r0,r1,r2, t20,t21,t22, f00,f01,f02,f10,f11,f12,f20,f21,f22);
-      bgp_color_save(t[iord][2], r0,r1,r2);
-      bgp_summassign_color_prod_double(o20,o21,o22, r0,r1,r2, coef[iord]);
-    }
-  bgp_su3_save(out, o00,o01,o02,o10,o11,o12,o20,o21,o22);
-#else
   su3 f;
   su3_summ_real(f,in,-1);   //subtract 1 from in
 
@@ -732,7 +686,6 @@ void su3_overrelax(su3 out,su3 in,double w)
       unsafe_su3_prod_su3(t[iord],t[iord-1],f);
       su3_summ_the_prod_double(out,t[iord],coef[iord]);
     }
-#endif
 
   //unitarize
   su3_unitarize_orthonormalizing(out,out);

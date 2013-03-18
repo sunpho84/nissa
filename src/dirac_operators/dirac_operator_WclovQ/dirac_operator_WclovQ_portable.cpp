@@ -2,11 +2,9 @@
 
 //Apply the Q=D*g5 operator to a spincolor
 
-void apply_WclovQ(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,spincolor *in)
+THREADABLE_FUNCTION_6ARG(apply_WclovQ, spincolor*,out, quad_su3*,conf, double,kappa, double,csw, as2t_su3*,Pmunu, spincolor*,in)
 {
-#pragma omp single
   communicate_lx_spincolor_borders(in);
-#pragma omp single
   communicate_lx_quad_su3_borders(conf);
     
   //put the clover term
@@ -14,8 +12,7 @@ void apply_WclovQ(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t_su3
   double_vector_prod_double((double*)out,(double*)out,csw/2,loc_vol*24);
   
   double kcf=1/(2*kappa);
-#pragma omp for
-  nissa_loc_vol_loop(X)
+  NISSA_PARALLEL_LOOP(X,loc_vol)
     {
       int Xup,Xdw;
       color temp_c0,temp_c1,temp_c2,temp_c3;
@@ -123,6 +120,5 @@ void apply_WclovQ(spincolor *out,quad_su3 *conf,double kappa,double csw,as2t_su3
 	}
     }
   
-#pragma omp single
   set_borders_invalid(out);
-}
+}}

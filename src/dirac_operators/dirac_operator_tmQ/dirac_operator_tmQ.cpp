@@ -4,15 +4,12 @@
 
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
-#include "../../base/global_variables.h"
 #include "../../base/communicate.h"
+#include "../../base/global_variables.h"
 #include "../../base/vectors.h"
+#include "../../routines/openmp.h"
 
-#ifdef BGP
- #include "dirac_operator_tmQ_bgp.cpp"
-#else
- #include "dirac_operator_tmQ_portable.cpp"
-#endif
+#include "dirac_operator_tmQ_portable.cpp"
 
 #include "../dirac_operator_tmQ_left/dirac_operator_tmQ_left.h"
 
@@ -22,6 +19,5 @@ void apply_tmQ_RL(spincolor *out,quad_su3 *conf,double kappa,double mu,int RL,sp
   if(RL==0) apply_tmQ(out,conf,kappa,mu,in);
   else apply_tmQ_left(out,conf,kappa,mu,in);
 
-#pragma omp single
   set_borders_invalid(out);
 }

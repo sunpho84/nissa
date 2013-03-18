@@ -11,10 +11,6 @@
 
 #include "../../routines/ios.h"
 
-#ifdef BGP
- #include "../../base/bgp_instructions.h"
-#endif
-
 //apply kappa*H to a spincolor
 void gaussian_smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *smear_sc)
 {
@@ -23,7 +19,6 @@ void gaussian_smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,sp
   
   vector_reset(H);
   
-#ifndef BGP
   nissa_loc_vol_loop(ivol)
     for(int id=0;id<4;id++)
       {
@@ -37,57 +32,6 @@ void gaussian_smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,sp
 	  }
 	color_prod_double(H[ivol][id],H[ivol][id],kappa);
       }
-#else
-  bgp_complex H0,H1,H2;
-  bgp_complex A0,A1,A2;
-  bgp_complex B0,B1,B2;
-  
-  bgp_complex U00,U01,U02;
-  bgp_complex U10,U11,U12;
-  bgp_complex U20,U21,U22;
-
-  bgp_complex V00,V01,V02;
-  bgp_complex V10,V11,V12;
-  bgp_complex V20,V21,V22;
-  
-  nissa_loc_vol_loop(ivol)
-    {
-      for(int mu=1;mu<4;mu++)
-	{
-	  int ivup=loclx_neighup[ivol][mu];
-	  int ivdw=loclx_neighdw[ivol][mu];
-	  
-	  bgp_cache_touch_su3(conf[ivol][mu]);
-	  bgp_cache_touch_su3(conf[ivdw][mu]);
-	  bgp_cache_touch_spincolor(H[ivol]);
-	  bgp_cache_touch_spincolor(smear_sc[ivup]);
-	  bgp_cache_touch_spincolor(smear_sc[ivdw]);
-	  
-	  bgp_su3_load(U00,U01,U02,U10,U11,U12,U20,U21,U22,conf[ivol][mu]);
-	  bgp_su3_load(V00,V01,V02,V10,V11,V12,V20,V21,V22,conf[ivdw][mu]);
-	  
-	  for(int id=0;id<4;id++)
-	    {
-	      bgp_color_load(H0,H1,H2,H[ivol][id]);
-	      bgp_color_load(A0,A1,A2,smear_sc[ivup][id]);
-	      bgp_color_load(B0,B1,B2,smear_sc[ivdw][id]);
-	      
-	      bgp_summ_the_su3_prod_color(H0,H1,H2,U00,U01,U02,U10,U11,U12,U20,U21,U22,A0,A1,A2);
-	      bgp_summ_the_su3_dag_prod_color(H0,H1,H2,V00,V01,V02,V10,V11,V12,V20,V21,V22,B0,B1,B2);
-
-	      bgp_color_save(H[ivol][id],H0,H1,H2);
-	    }
-	}
-      
-      bgp_cache_touch_spincolor(H[ivol]);  
-      for(int id=0;id<4;id++)
-	{
-	  bgp_color_load(A0,A1,A2,H[ivol][id]);  
-	  bgp_color_prod_double(B0,B1,B2,A0,A1,A2,kappa);
-	  bgp_color_save(H[ivol][id],B0,B1,B2);
-	}
-    }
-#endif
   
   set_borders_invalid(H);
 }
@@ -99,7 +43,6 @@ void gaussian_smearing_apply_kappa_H(color *H,double kappa,quad_su3 *conf,color 
   
   vector_reset(H);
   
-#ifndef BGP
   nissa_loc_vol_loop(ivol)
     for(int mu=1;mu<4;mu++)
       {
@@ -111,51 +54,6 @@ void gaussian_smearing_apply_kappa_H(color *H,double kappa,quad_su3 *conf,color 
 	
 	color_prod_double(H[ivol],H[ivol],kappa);
       }
-#else
-  bgp_complex H0,H1,H2;
-  bgp_complex A0,A1,A2;
-  bgp_complex B0,B1,B2;
-  
-  bgp_complex U00,U01,U02;
-  bgp_complex U10,U11,U12;
-  bgp_complex U20,U21,U22;
-
-  bgp_complex V00,V01,V02;
-  bgp_complex V10,V11,V12;
-  bgp_complex V20,V21,V22;
-  
-  nissa_loc_vol_loop(ivol)
-    {
-      for(int mu=1;mu<4;mu++)
-	{
-	  int ivup=loclx_neighup[ivol][mu];
-	  int ivdw=loclx_neighdw[ivol][mu];
-	  
-	  bgp_cache_touch_su3(conf[ivol][mu]);
-	  bgp_cache_touch_su3(conf[ivdw][mu]);
-	  bgp_cache_touch_color(H[ivol]);
-	  bgp_cache_touch_color(smear_c[ivup]);
-	  bgp_cache_touch_color(smear_c[ivdw]);
-	  
-	  bgp_su3_load(U00,U01,U02,U10,U11,U12,U20,U21,U22,conf[ivol][mu]);
-	  bgp_su3_load(V00,V01,V02,V10,V11,V12,V20,V21,V22,conf[ivdw][mu]);
-	  
-	  bgp_color_load(H0,H1,H2,H[ivol]);
-	  bgp_color_load(A0,A1,A2,smear_c[ivup]);
-	  bgp_color_load(B0,B1,B2,smear_c[ivdw]);
-	  
-	  bgp_summ_the_su3_prod_color(H0,H1,H2,U00,U01,U02,U10,U11,U12,U20,U21,U22,A0,A1,A2);
-	  bgp_summ_the_su3_dag_prod_color(H0,H1,H2,V00,V01,V02,V10,V11,V12,V20,V21,V22,B0,B1,B2);
-	  
-	  bgp_color_save(H[ivol],H0,H1,H2);
-	}
-      
-      bgp_cache_touch_color(H[ivol]);  
-      bgp_color_load(A0,A1,A2,H[ivol]);
-      bgp_color_prod_double(B0,B1,B2,A0,A1,A2,kappa);
-      bgp_color_save(H[ivol],B0,B1,B2);
-    }
-#endif
   
   set_borders_invalid(H);
 }

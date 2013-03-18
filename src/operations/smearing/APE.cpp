@@ -11,10 +11,6 @@
 
 #include <string.h>
 
-#ifdef BGP
- #include "../../base/bgp_instructions.h"
-#endif
-
 //perform ape smearing
 //be sure not to have border condition added
 void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)

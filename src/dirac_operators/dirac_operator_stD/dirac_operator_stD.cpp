@@ -12,11 +12,7 @@
 #include "../../base/communicate.h"
 #include "../../linalgs/linalgs.h"
 
-#ifdef BGP
- #include "dirac_operator_stD_bgp.cpp"
-#else
- #include "dirac_operator_stD_portable.cpp"
-#endif
+#include "dirac_operator_stD_portable.cpp"
 
 void apply_stD2ee_zero_mass(color *out,quad_su3 **conf,color *temp,color *in)
 {

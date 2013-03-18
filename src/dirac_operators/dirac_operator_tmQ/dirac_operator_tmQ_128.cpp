@@ -2,25 +2,22 @@
  #include "config.h"
 #endif
 
-#include "../../new_types/new_types_definitions.h"
 #include "../../new_types/float128.h"
-#include "../../base/global_variables.h"
+#include "../../new_types/new_types_definitions.h"
 #include "../../base/communicate.h"
+#include "../../base/global_variables.h"
 #include "../../base/vectors.h"
+#include "../../routines/openmp.h"
 
 //Apply the Q=D*g5 operator to a spincolor
 
-void apply_tmQ_128(spincolor_128 *out,quad_su3 *conf,double kappa,double mu,spincolor_128 *in)
+THREADABLE_FUNCTION_5ARG(apply_tmQ_128, spincolor_128*,out, quad_su3*,conf, double,kappa, double,mu, spincolor_128*,in)
 {
-#pragma omp single
-  {
-    communicate_lx_spincolor_128_borders(in);
-    communicate_lx_quad_su3_borders(conf);
-  }
+  communicate_lx_spincolor_128_borders(in);
+  communicate_lx_quad_su3_borders(conf);
 
   double kcf=1/(2*kappa);
   
-#pragma omp for
   nissa_loc_vol_loop(X)
     {
       int Xup,Xdw;
@@ -134,6 +131,5 @@ void apply_tmQ_128(spincolor_128 *out,quad_su3 *conf,double kappa,double mu,spin
 	}
     }
   
-#pragma omp single
   set_borders_invalid(out);
-}
+}}

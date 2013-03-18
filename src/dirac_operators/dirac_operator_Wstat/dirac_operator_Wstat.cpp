@@ -6,21 +6,19 @@
 
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
-#include "../../base/global_variables.h"
 #include "../../base/communicate.h"
+#include "../../base/global_variables.h"
 #include "../../base/vectors.h"
+#include "../../routines/openmp.h"
 
 //Apply the static operator to a spincolor
 
-void apply_Wstat(spincolor *out,quad_su3 *conf,spincolor *in,int mu,int xmu_start)
+THREADABLE_FUNCTION_5ARG(apply_Wstat, spincolor*,out, quad_su3*,conf, spincolor*,in, int,mu, int,xmu_start)
 {
-#pragma omp single
   communicate_lx_spincolor_borders(in);
-#pragma omp single
   communicate_lx_quad_su3_borders(conf);
     
-#pragma omp for
-  nissa_loc_vol_loop(x)
+  NISSA_PARALLEL_LOOP(x,loc_vol)
     {
       int xmu=glb_coord_of_loclx[x][mu];
       int dist=fabs(xmu-xmu_start);
@@ -41,26 +39,5 @@ void apply_Wstat(spincolor *out,quad_su3 *conf,spincolor *in,int mu,int xmu_star
 	}
     }
   
-#pragma omp single
   set_borders_invalid(out);
-}
-
-//fake
-
-void reconstruct_Wstat(spincolor *outminus,spincolor *outplus,quad_su3 *conf,spincolor *in)
-{
-  //apply_Wstat(outminus,conf,in);
-  vector_copy(outplus,outminus);
-  
-#pragma omp single
-  {
-    set_borders_invalid(outminus);
-    set_borders_invalid(outplus);
-  }
-}
-
-void apply_Wstat2(spincolor *out,quad_su3 *conf,spincolor *temp,spincolor *in)
-{
-  //apply_Wstat(temp,conf,in);
-  //apply_Wstat(out,conf,temp);
-}
+}}

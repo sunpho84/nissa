@@ -2,18 +2,14 @@
 
 //Apply the Q=D*g5 operator to a spincolor
 
-void apply_tmQ(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
+THREADABLE_FUNCTION_5ARG(apply_tmQ, spincolor*,out, quad_su3*,conf, double,kappa, double,mu, spincolor*,in)
 {
-#pragma omp single
-  {
-    communicate_lx_spincolor_borders(in);
-    communicate_lx_quad_su3_borders(conf);
-  }
+  if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
+  if(!check_borders_valid(in)) communicate_lx_spincolor_borders(in);
   
   double kcf=1/(2*kappa);
   
-#pragma omp for
-  nissa_loc_vol_loop(X)
+  NISSA_PARALLEL_LOOP(X,loc_vol)
     {
       int Xup,Xdw;
       color temp_c0,temp_c1,temp_c2,temp_c3;
@@ -119,9 +115,8 @@ void apply_tmQ(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *i
 	}
     }
   
-#pragma omp single
   set_borders_invalid(out);
-}
+}}
 
 /*
 void apply_tmQ_v1(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)

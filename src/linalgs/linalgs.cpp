@@ -16,10 +16,6 @@
 #include "../routines/mpi.h"
 #include "../routines/openmp.h"
 
-#ifdef BGP
- #include "../base/bgp_instructions.h"
-#endif
-
 //set to zero
 void double_vector_init_to_zero(double *a,int n)
 {

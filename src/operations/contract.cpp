@@ -13,10 +13,6 @@
 #include "../new_types/dirac.h"
 #include "../routines/ios.h"
 
-#ifdef BGP
- #include "../base/bgp_instructions.h"
-#endif
-
 //Tr[g1 * s1^dag * g2 * s2], useful for mesons 2 points
 void site_trace_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac_matr *g2,spinspin s2)
 {
@@ -492,26 +488,8 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 	      for(int icontr=0;icontr<ncontr;icontr++)
 		{
 		  complex *A=(complex*)ss[0][pr_combo[ipr_combo][0]][eq_to_mult[0][icontr]],*B=(complex*)ss[1][pr_combo[ipr_combo][1]][eq_to_mult[1][icontr]];
-#ifdef BGP
-		  bgp_complex cpu_out,cpu_A,cpu_B;
-		  bgp_complex_load(cpu_out,loc_contr[offset]);
-#pragma unroll(15)
-		  for(int i=0;i<15;i++)
-		    {
-		      bgp_complex_load(cpu_A,A[i]);
-		      bgp_complex_load(cpu_B,B[i]);
-		      bgp_complex_summ_the_prod(cpu_out,cpu_out,cpu_A,cpu_B);
-		      bgp_cache_touch_complex(A[i+1]);
-		      bgp_cache_touch_complex(B[i+1]);
-		    }
-		  bgp_complex_load(cpu_A,A[15]);
-		  bgp_complex_load(cpu_B,B[15]);
-		  bgp_complex_summ_the_prod(cpu_out,cpu_out,cpu_A,cpu_B);
-		  bgp_complex_save(loc_contr[offset],cpu_out);
-#else
 		  for(int i=0;i<16;i++)
 		    complex_summ_the_prod(loc_contr[offset],A[i],B[i]);
-#endif
 		  
 		  //increment the offset of the buffer
 		  offset+=loc_size[0];
