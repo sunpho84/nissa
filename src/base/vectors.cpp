@@ -267,7 +267,7 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
 }
 
 //copy one vector into another
-void internal_vector_copy(void *a,void *b)
+void vector_copy(void *a,void *b)
 {
   //control that a!=b
   if(a==b) crash("while copying, vector1 and vector2 are the same");
@@ -299,12 +299,21 @@ void internal_vector_copy(void *a,void *b)
 }
 
 //reset a vector
-void internal_vector_reset(void *a)
+void vector_reset(void *a)
 {
-  nissa_vect *nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
-  int nel_a=nissa_a->nel;
-  int size_per_el_a=nissa_a->size_per_el;
-  memset(a,0,size_per_el_a*nel_a);
+  //sync so all thread are not using the vector
+  thread_barrier(INTERNAL_VECTOR_RESET_FIRST_BARRIER);
+  
+  if(IS_MASTER_THREAD)
+    {
+      nissa_vect *nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
+      int nel_a=nissa_a->nel;
+      int size_per_el_a=nissa_a->size_per_el;
+      memset(a,0,size_per_el_a*nel_a);
+    }
+  
+  //sync so all thread see that have been reset
+  thread_barrier(INTERNAL_VECTOR_RESET_SECOND_BARRIER);
 }
 
 //release a vector
@@ -357,6 +366,7 @@ void internal_nissa_free(char **arr,const char *file,int line)
 //reorder a vector according to the specified order (the order is destroyed)
 void reorder_vector(char *vect,int *order,int nel,int sel)
 {
+  if(!IS_MASTER_THREAD) crash("not threaded yet");
   char *buf=(char*)nissa_malloc("buf",sel,char);
   
   for(int sour=0;sour<nel;sour++)

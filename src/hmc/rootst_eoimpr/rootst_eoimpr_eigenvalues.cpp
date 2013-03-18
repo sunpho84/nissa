@@ -64,7 +64,7 @@ THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_type*,quar
 
 //scale the rational expansion
 //assumes that the conf has already stag phases inside
-void rootst_eoimpr_scale_expansions(rat_approx_type *rat_exp_pfgen,rat_approx_type *rat_exp_actio,quad_su3 **eo_conf,theory_pars_type *theory_pars)
+THREADABLE_FUNCTION_4ARG(rootst_eoimpr_scale_expansions, rat_approx_type*,rat_exp_pfgen, rat_approx_type*,rat_exp_actio, quad_su3**,eo_conf, theory_pars_type*,theory_pars)
 {
   //loop over each flav
   for(int iflav=0;iflav<theory_pars->nflavs;iflav++)
@@ -84,30 +84,36 @@ void rootst_eoimpr_scale_expansions(rat_approx_type *rat_exp_pfgen,rat_approx_ty
       if(db_rat_exp_min*scale>=pow(theory_pars->quark_content[iflav].mass,2))
 	crash("approx not valid, scaled lower range: %lg, min eig: %lg",db_rat_exp_min*scale,pow(theory_pars->quark_content[iflav].mass,2));
       rem_backfield_from_conf(eo_conf,theory_pars->backfield[iflav]);
-
-      double scale_pfgen=pow(scale,db_rat_exp_pfgen_degr[ipf][irexp]);
-      double scale_actio=pow(scale,db_rat_exp_actio_degr[ipf][irexp]);
-
-      //scale the rational approximation to generate pseudo-fermions
-      rat_exp_pfgen[iflav].exp_power=db_rat_exp_pfgen_degr[ipf][irexp];
-      rat_exp_pfgen[iflav].minimum=db_rat_exp_min*scale;
-      rat_exp_pfgen[iflav].maximum=db_rat_exp_max*scale;
-      rat_exp_pfgen[iflav].cons=db_rat_exp_pfgen_cons[ipf][irexp]*scale_pfgen;
-
-      //scale the rational approximation to compute action (and force)
-      rat_exp_actio[iflav].exp_power=db_rat_exp_actio_degr[ipf][irexp];
-      rat_exp_actio[iflav].minimum=db_rat_exp_min*scale;
-      rat_exp_actio[iflav].maximum=db_rat_exp_max*scale;
-      rat_exp_actio[iflav].cons=db_rat_exp_actio_cons[ipf][irexp]*scale_actio;
-
-      for(int iterm=0;iterm<db_rat_exp_nterms;iterm++)
-        {
-          rat_exp_pfgen[iflav].poles[iterm]=db_rat_exp_pfgen_pole[ipf][irexp][iterm]*scale+pow(theory_pars->quark_content[iflav].mass,2);
-          rat_exp_pfgen[iflav].weights[iterm]=db_rat_exp_pfgen_coef[ipf][irexp][iterm]*scale*scale_pfgen;
-
-          rat_exp_actio[iflav].poles[iterm]=db_rat_exp_actio_pole[ipf][irexp][iterm]*scale+pow(theory_pars->quark_content[iflav].mass,2);
-          rat_exp_actio[iflav].weights[iterm]=db_rat_exp_actio_coef[ipf][irexp][iterm]*scale*scale_actio;
+      
+      if(IS_MASTER_THREAD)
+	{
+	  double scale_pfgen=pow(scale,db_rat_exp_pfgen_degr[ipf][irexp]);
+	  double scale_actio=pow(scale,db_rat_exp_actio_degr[ipf][irexp]);
+	  
+	  //scale the rational approximation to generate pseudo-fermions
+	  rat_exp_pfgen[iflav].exp_power=db_rat_exp_pfgen_degr[ipf][irexp];
+	  rat_exp_pfgen[iflav].minimum=db_rat_exp_min*scale;
+	  rat_exp_pfgen[iflav].maximum=db_rat_exp_max*scale;
+	  rat_exp_pfgen[iflav].cons=db_rat_exp_pfgen_cons[ipf][irexp]*scale_pfgen;
+	  
+	  //scale the rational approximation to compute action (and force)
+	  rat_exp_actio[iflav].exp_power=db_rat_exp_actio_degr[ipf][irexp];
+	  rat_exp_actio[iflav].minimum=db_rat_exp_min*scale;
+	  rat_exp_actio[iflav].maximum=db_rat_exp_max*scale;
+	  rat_exp_actio[iflav].cons=db_rat_exp_actio_cons[ipf][irexp]*scale_actio;
+	  
+	  for(int iterm=0;iterm<db_rat_exp_nterms;iterm++)
+	    {
+	      rat_exp_pfgen[iflav].poles[iterm]=db_rat_exp_pfgen_pole[ipf][irexp][iterm]*scale+pow(theory_pars->quark_content[iflav].mass,2);
+	      rat_exp_pfgen[iflav].weights[iterm]=db_rat_exp_pfgen_coef[ipf][irexp][iterm]*scale*scale_pfgen;
+	      
+	      rat_exp_actio[iflav].poles[iterm]=db_rat_exp_actio_pole[ipf][irexp][iterm]*scale+pow(theory_pars->quark_content[iflav].mass,2);
+	      rat_exp_actio[iflav].weights[iterm]=db_rat_exp_actio_coef[ipf][irexp][iterm]*scale*scale_actio;
+	    }
 	}
+      
+      //sync
+      thread_barrier(HMC_SCALE_BARRIER);
       
       if(nissa_verbosity>=3)
 	{
@@ -115,4 +121,4 @@ void rootst_eoimpr_scale_expansions(rat_approx_type *rat_exp_pfgen,rat_approx_ty
 	  master_printf_rat_approx(&(rat_exp_actio[iflav]));
 	}
     }
-}
+}}

@@ -34,7 +34,7 @@ THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad
   color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
   
   //generate the source and the propagator
-  generate_fully_undiluted_source(rnd,RND_Z4,-1);
+  generate_fully_undiluted_eo_source(rnd,RND_Z4,-1);
   get_propagator(chi,conf,u1b,m,residue,rnd);
   
   //summ the scalar prod of EVN and ODD parts
@@ -111,7 +111,7 @@ void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_type &theory_pars,int 
     {
       //generate the source on an even site
       int twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2)*2;
-      generate_fully_undiluted_source(source,RND_Z4,twall);
+      generate_fully_undiluted_eo_source(source,RND_Z4,twall);
       //filter_hypercube_origin_sites(source); //this is in conjunction with factor "8"
       
       //compute propagators
