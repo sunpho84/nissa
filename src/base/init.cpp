@@ -496,6 +496,7 @@ void init_grid(int T,int L)
 #ifdef BGQ
   init_spi();
   set_lx_spi_comm(spi_lx_spincolor_comm,sizeof(spincolor));
+  set_lx_spi_comm(spi_lx_quad_su3_comm,sizeof(quad_su3));
   set_eo_spi_comm(spi_eo_color_comm,sizeof(color));
   set_eo_spi_comm(spi_eo_quad_su3_comm,sizeof(quad_su3));
 #endif

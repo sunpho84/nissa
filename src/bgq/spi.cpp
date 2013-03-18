@@ -459,3 +459,95 @@ void spi_communicate_ev_or_od_borders(void *vec,spi_comm_t *a,int nbytes_per_sit
       spi_finish_communicating_ev_or_od_borders(&nrequest,vec,a,nbytes_per_site);
     }  
 }
+
+/////////////////////////////////////// communicating e&o vec //////////////////////////////////////
+
+//fill the sending buf using the data inside an ev and odd vec, using lx style inside buf
+void fill_spi_sending_buf_with_ev_and_od_vec(spi_comm_t *a,void **vec,int nbytes_per_site)
+{
+  //check buffer size matching
+  if(a->buf_size!=nbytes_per_site*bord_vol) crash("wrong buffer size (%d) for %d border)",a->buf_size,nbytes_per_site*bord_vol);
+  
+  //copy one by one the surface of vec inside the sending buffer
+  NISSA_PARALLEL_LOOP(ibord_lx,bord_vol)
+    {
+      //convert lx indexing to eo
+      int source_lx=surflx_of_loclx[ibord_lx];
+      int par=loclx_parity[source_lx];
+      int source_eo=loceo_of_loclx[source_lx];
+      memcpy(a->send_buf+ibord_lx*nbytes_per_site,(char*)(vec[eo])+source_eo*nbytes_per_site,nbytes_per_site);
+    }
+  
+  //wait that all threads filled their portion
+  thread_barrier(SPI_EV_AND_OD_SENDING_BUF_FILL);
+}
+
+//extract the information from receiving buffer and put them inside an even or odd vec
+void fill_ev_and_od_bord_with_spi_receiving_buf(void **vec,spi_comm_t *a,int nbytes_per_site)
+{
+  crash_if_borders_not_allocated(vec[EVN]);
+  crash_if_borders_not_allocated(vec[ODD]);
+  
+  //check buffer size matching
+  if(a->buf_size!=nbytes_per_site*bord_vol)
+    crash("wrong buffer size (%d) for %d border)",a->buf_size,nbytes_per_site*bord_vol);
+  
+  //the buffer is lx ordered
+  NISSA_PARALLEL_LOOP(ibord_lx,bord_vol)
+    {
+      int dest_lx=ibord_lx+bord_vol;
+      int par=loclx_parity[dest_lx];
+      int dest_eo=loceo_of_loclx[dest_lx];
+      memcpy((char*)(vec[eo])+dest_eo*nbytes_per_site,a->send_buf+ibord_lx*nbytes_per_site,nbytes_per_site);
+    }
+  
+  //we do not sync, because typically we will set borders as valid
+}
+
+//start communication using an ev and od border
+void spi_start_communicating_ev_and_od_borders(int *nrequest,spi_comm_t *a,void **vec,int nbytes_per_site)
+{
+  if(!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD]))
+    {
+      //take time and output debugging info
+      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      verbosity_lv3_master_printf("Starting spi communication of ev or od borders of %s\n",get_vec_name((void*)(*vec)));
+
+      //fill the communicator buffer, start the communication and take time
+      fill_spi_sending_buf_with_ev_and_od_vec(a,vec,nbytes_per_site);
+      spi_start_comm(a);
+      if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
+      
+      (*nrequest)=8;
+    }
+  else (*nrequest)=0;
+}
+
+//finish communicating
+void spi_finish_communicating_ev_and_od_borders(int *nrequest,void *vec,spi_comm_t *a,int nbytes_per_site)
+{
+  if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && (*nrequest==8))
+    {
+      //take time and make some output
+      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      verbosity_lv3_master_printf("Finish spi communication of ev or od borders of %s\n",get_vec_name((void*)(*vec)));
+	  
+      //wait communication to finish, fill back the vector and take time
+      spi_comm_wait(a);
+      fill_ev_and_od_bord_with_spi_receiving_buf(vec,a,nbytes_per_site);
+      if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
+      
+      set_borders_valid(vec[EVN]);
+      set_borders_valid(vec[ODD]);
+      
+      (*nrequest)=0;
+    }
+}
+
+//merge the two
+void spi_communicate_ev_and_od_borders(void **vec,spi_comm_t *a,int nbytes_per_site)
+{
+  int nrequest;
+  spi_start_communicating_ev_or_od_borders(&nrequest,a,vec,nbytes_per_site,eo);
+  spi_finish_communicating_ev_or_od_borders(&nrequest,vec,a,nbytes_per_site);
+}
