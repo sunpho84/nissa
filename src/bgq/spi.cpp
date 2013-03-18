@@ -301,7 +301,7 @@ void fill_spi_sending_buf_with_lx_vec(spi_comm_t *a,void *vec,int nbytes_per_sit
     memcpy(a->send_buf+nbytes_per_site*ibord,(char*)vec+surflx_of_bordlx[ibord]*nbytes_per_site,nbytes_per_site);
 
   //wait that all threads filled their portion
-  thread_barrier(SPI_LX_SENDING_BUF_FILL);
+  thread_barrier(SPI_LX_SENDING_BUF_FILL_BARRIER);
 }
 
 //extract the information from receiving buffer and put them inside an lx vec
@@ -387,7 +387,7 @@ void fill_spi_sending_buf_with_ev_or_od_vec(spi_comm_t *a,void *vec,int nbytes_p
     memcpy(a->send_buf+ibord*nbytes_per_site,(char*)vec+surfeo_of_bordeo[eo][ibord]*nbytes_per_site,nbytes_per_site);
 
   //wait that all threads filled their portion
-  thread_barrier(SPI_EV_OR_OD_SENDING_BUF_FILL);
+  thread_barrier(SPI_EV_OR_OD_SENDING_BUF_FILL_BARRIER);
 }
 
 //extract the information from receiving buffer and put them inside an even or odd vec
@@ -479,7 +479,7 @@ void fill_spi_sending_buf_with_ev_and_od_vec(spi_comm_t *a,void **vec,int nbytes
     }
   
   //wait that all threads filled their portion
-  thread_barrier(SPI_EV_AND_OD_SENDING_BUF_FILL);
+  thread_barrier(SPI_EV_AND_OD_SENDING_BUF_FILL_BARRIER);
 }
 
 //extract the information from receiving buffer and put them inside an even or odd vec
@@ -498,7 +498,7 @@ void fill_ev_and_od_bord_with_spi_receiving_buf(void **vec,spi_comm_t *a,int nby
       int dest_lx=loc_vol+ibord_lx;
       int par=loclx_parity[dest_lx];
       int dest_eo=loceo_of_loclx[dest_lx];
-      memcpy((char*)(vec[par])+dest_eo*nbytes_per_site,a->send_buf+ibord_lx*nbytes_per_site,nbytes_per_site);
+      memcpy((char*)(vec[par])+dest_eo*nbytes_per_site,a->recv_buf+ibord_lx*nbytes_per_site,nbytes_per_site);
     }
   
   //we do not sync, because typically we will set borders as valid
