@@ -10,8 +10,8 @@ int napp=0;
 
 THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, quad_su3**,conf, color*,in)
 {
-  communicate_eo_quad_su3_borders(conf);
-  communicate_ev_color_borders(in);
+  if(!check_borders_valid(conf)) communicate_eo_quad_su3_borders(conf);
+  if(!check_borders_valid(in)) communicate_ev_color_borders(in);
   
   NISSA_PARALLEL_LOOP(io,loc_volh)
     {
@@ -53,8 +53,8 @@ THREADABLE_FUNCTION_3ARG(apply_stDoe, color*,out, quad_su3**,conf, color*,in)
 //multiply also for an additional 1/2
 THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,in)
 {
-  communicate_eo_quad_su3_borders(conf);
-  communicate_od_color_borders(in);
+  if(!check_borders_valid(conf)) communicate_eo_quad_su3_borders(conf);
+  if(!check_borders_valid(in)) communicate_ev_color_borders(in);
 
   NISSA_PARALLEL_LOOP(ie,loc_volh)
     {
@@ -94,8 +94,8 @@ THREADABLE_FUNCTION_5ARG(apply_stD2ee, color*,out, quad_su3**,conf, color*,temp,
       if(temp==in)  crash("temp==in!");
     }
   
-  communicate_eo_quad_su3_borders(conf);
-  communicate_ev_color_borders(in);
+  if(!check_borders_valid(conf)) communicate_eo_quad_su3_borders(conf);
+  if(!check_borders_valid(in)) communicate_ev_color_borders(in);
   
   NISSA_PARALLEL_LOOP(io,loc_volh)
     {
