@@ -13,11 +13,13 @@
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_mix.h"
 #include "../../new_types/complex.h"
+#include "../../new_types/float128.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/spin.h"
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
 #include "../../routines/mpi.h"
+#include "../../routines/openmp.h"
 
 //This will calculate 2*a^2*ig*P_{mu,nu}
 /*
@@ -32,7 +34,7 @@
 in order to have the anti-simmetric part, use
 the routine "Pmunu_term"
 */
-void four_leaves(as2t_su3 *Pmunu,quad_su3 *conf)
+THREADABLE_FUNCTION_2ARG(four_leaves, as2t_su3*,Pmunu, quad_su3*,conf)
 {
   communicate_lx_quad_su3_edges(conf);
   
@@ -41,7 +43,7 @@ void four_leaves(as2t_su3 *Pmunu,quad_su3 *conf)
 
   su3 temp1,temp2,leaves_summ;
 
-  nissa_loc_vol_loop(X)
+  NISSA_PARALLEL_LOOP(X,loc_vol)
     {
       as2t_su3_put_to_zero(Pmunu[X]);
 
@@ -96,15 +98,15 @@ void four_leaves(as2t_su3 *Pmunu,quad_su3 *conf)
     }
   
   set_borders_invalid(Pmunu);
-}
+}}
 
 //takes the anti-simmetric part of the four-leaves
-void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
+THREADABLE_FUNCTION_2ARG(Pmunu_term, as2t_su3*,Pmunu,quad_su3*,conf)
 {
   four_leaves(Pmunu,conf);
   
   //calculate U-U^dagger
-  nissa_loc_vol_loop(X)
+  NISSA_PARALLEL_LOOP(X,loc_vol)
     for(int munu=0;munu<6;munu++)
       {
 	//bufferized antisimmetrization
@@ -118,7 +120,7 @@ void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf)
 	      Pmunu[X][munu][ic1][ic2][1]=(leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1])/4;
 	    }
       }
-}
+}}
 
 //apply the chromo operator to the passed spinor site by site (not yet fully optimized)
 void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in)
@@ -137,19 +139,19 @@ void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmun
 }
 
 //apply the chromo operator to the passed spinor to the whole volume
-void unsafe_apply_chromo_operator_to_spincolor(spincolor *out,as2t_su3 *Pmunu,spincolor *in)
+THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_spincolor, spincolor*,out, as2t_su3*,Pmunu, spincolor*,in)
 {
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,loc_vol)
     unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
-}
+}}
 
 //apply the chromo operator to the passed colorspinspin
 //normalization as in ape next
-void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,as2t_su3 *Pmunu,colorspinspin *in)
+THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_colorspinspin, colorspinspin*,out, as2t_su3*,Pmunu, colorspinspin*,in)
 {
   spincolor temp1,temp2;
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,loc_vol)
     {
       //Loop over the four source dirac indexes
       for(int id_source=0;id_source<4;id_source++) //dirac index of source
@@ -166,15 +168,15 @@ void unsafe_apply_chromo_operator_to_colorspinspin(colorspinspin *out,as2t_su3 *
   
   //invalidate borders
   set_borders_invalid(out);
-}
+}}
 
 //apply the chromo operator to the passed su3spinspin
 //normalization as in ape next
-void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmunu,su3spinspin *in)
+THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_su3spinspin, su3spinspin*,out, as2t_su3*,Pmunu, su3spinspin*,in)
 {
   spincolor temp1,temp2;
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,loc_vol)
     {
       //Loop over the four source dirac indexes
       for(int id_source=0;id_source<4;id_source++) //dirac index of source
@@ -192,10 +194,10 @@ void unsafe_apply_chromo_operator_to_su3spinspin(su3spinspin *out,as2t_su3 *Pmun
 
   //invalidate borders
   set_borders_invalid(out);
-}
+}}
 
 //measure the topological charge site by site
-void local_topological_charge(double *charge,quad_su3 *conf)
+THREADABLE_FUNCTION_2ARG(local_topological_charge, double*,charge, quad_su3*,conf)
 {
   double norm_fact=1/(128*M_PI*M_PI);
   
@@ -217,7 +219,7 @@ void local_topological_charge(double *charge,quad_su3 *conf)
       int ip0=plan_id[iperm][0];
       int ip1=plan_id[iperm][1];
       
-      nissa_loc_vol_loop(ivol)
+      NISSA_PARALLEL_LOOP(ivol,loc_vol)
         {
 	  //products
 	  su3 clock,aclock;
@@ -237,10 +239,10 @@ void local_topological_charge(double *charge,quad_su3 *conf)
   set_borders_invalid(charge);
   
   nissa_free(leaves);
-}
+}}
 
 //average the topological charge
-double average_topological_charge(quad_su3 *conf)
+THREADABLE_FUNCTION_2ARG(average_topological_charge, double*,ave_charge, quad_su3*,conf)
 {
   double *charge=nissa_malloc("charge",loc_vol,double);
   
@@ -248,29 +250,35 @@ double average_topological_charge(quad_su3 *conf)
   local_topological_charge(charge,conf);
   
   //average over local volume
-  double ave_charge=0;
+#ifndef REPRODUCIBLE_RUN
+  (*ave_charge)=0;
   nissa_loc_vol_loop(ivol)
-    ave_charge+=charge[ivol];
+    (*ave_charge)+=charge[ivol];
+#else
+  //perform thread summ
+  float_128 loc_thread_res={0,0};
+  NISSA_PARALLEL_LOOP(ivol,loc_vol)
+    float_128_summassign_64(loc_thread_res,charge[ivol]);
+  
+  float_128 temp;
+  glb_reduce_float_128(temp,loc_thread_res);
+  (*ave_charge)=temp[0];
+#endif
   
   nissa_free(charge);
-  
-  //return the reduction over all nodes
-  return glb_reduce_double(ave_charge);
-}
+}}
 
 //wrapper for eos case
-double average_topological_charge(quad_su3 **eo_conf)
+THREADABLE_FUNCTION_2ARG(average_topological_charge_eo, double*,ave_charge, quad_su3**,eo_conf)
 {
-  //convert to lex
+  //convert to lx
   quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
   
-  double charge=average_topological_charge(lx_conf);
+  average_topological_charge(ave_charge,lx_conf);
   
   nissa_free(lx_conf);
-  
-  return charge;
-}
+}}
 
 //measure the topologycal charge
 void measure_topology(top_meas_pars_type &pars,quad_su3 **uncooled_conf,int iconf)
@@ -288,12 +296,17 @@ void measure_topology(top_meas_pars_type &pars,quad_su3 **uncooled_conf,int icon
   //print curent measure and cool
   for(int istep=0;istep<=(pars.cool_nsteps/pars.meas_each)*pars.meas_each;istep++)
     {
-      if(istep%pars.meas_each==0) master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,average_topological_charge(cooled_conf));
+      if(istep%pars.meas_each==0)
+	{
+	  double ave_charge;
+	  average_topological_charge_eo(&ave_charge,cooled_conf);
+	  master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,ave_charge);
+	}
       if(istep!=pars.cool_nsteps) cool_conf(cooled_conf,pars.cool_overrelax_flag,pars.cool_overrelax_exp);
     }
   
   //discard cooled conf
   for(int par=0;par<2;par++) nissa_free(cooled_conf[par]);
   
-  if(rank==0) fclose(file);
+  close_file(file);
 }

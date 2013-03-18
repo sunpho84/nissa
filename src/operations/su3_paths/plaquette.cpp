@@ -243,7 +243,7 @@ void compute_rectangle_staples_eo_conf(quad_su3 **staple,quad_su3 **eo_conf)
 {
   communicate_eo_quad_su3_edges(eo_conf);
   
-  //reset the staples - also borders are resetted
+  //reset the staples - also borders are reset
   for(int eo=0;eo<2;eo++) vector_reset(staple[eo]);
   
   nissa_loc_vol_loop(Alx)
