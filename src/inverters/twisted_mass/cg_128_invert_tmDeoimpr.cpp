@@ -10,30 +10,36 @@
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/new_types_definitions.h"
 
-#define basetype spincolor
-#define basetype_128 spincolor_128
+#define BASETYPE spincolor
+#define BASETYPE_128 spincolor_128
 
-#define ndoubles_per_site 24
-#define size_of_bulk loc_volh
-#define size_of_bord bord_volh
+#define NDOUBLES_PER_SITE 24
+#define BULK_SIZE loc_volh
+#define BORD_SIZE bord_volh
 
-#define apply_operator_128 tmDkern_eoprec_square_eos_128
+#define APPLY_OPERATOR_128 tmDkern_eoprec_square_eos_128
 //parameters of the operator
-#define cg_operator_128_parameters temp1,temp2,conf,kappa,mu
+#define CG_OPERATOR_128_PARAMETERS temp1,temp2,conf,kappa,mu,
 
 //name of the inverter, externally accedable
-#define cg_128_invert inv_tmDkern_eoprec_square_eos_128
+#define CG_128_INVERT inv_tmDkern_eoprec_square_eos_128
 //parameters to be passed externally to the 128 inverter
-#define cg_128_parameters_proto quad_su3 **conf,double kappa,double mu
+#define CG_NARG 3
+#define AT1 quad_su3**
+#define A1 conf
+#define AT2 double
+#define A2 kappa
+#define AT3 double
+#define A3 mu
 //name of the inner solver
-#define cg_128_inner_solver inv_tmDkern_eoprec_square_eos
+#define CG_128_INNER_SOLVER inv_tmDkern_eoprec_square_eos
 //parameters of the inner solver
-#define cg_128_inner_parameters_call conf,kappa,mu
+#define CG_128_INNER_PARAMETERS_CALL conf,kappa,mu,
 
-#define cg_additional_vectors_allocation()	\
-  basetype_128 *temp1=nissa_malloc("temp1",size_of_bulk+size_of_bord,basetype_128); \
-  basetype_128 *temp2=nissa_malloc("temp2",size_of_bulk+size_of_bord,basetype_128);
-#define cg_additional_vectors_free()	\
+#define CG_ADDITIONAL_VECTORS_ALLOCATION()	\
+  BASETYPE_128 *temp1=nissa_malloc("temp1",BULK_SIZE+BORD_SIZE,BASETYPE_128); \
+  BASETYPE_128 *temp2=nissa_malloc("temp2",BULK_SIZE+BORD_SIZE,BASETYPE_128);
+#define CG_ADDITIONAL_VECTORS_FREE()	\
   nissa_free(temp1);			\
   nissa_free(temp2);
-#include "../templates/cg_128_invert_template.cpp"
+#include "../templates/cg_128_invert_template_threaded.cpp"

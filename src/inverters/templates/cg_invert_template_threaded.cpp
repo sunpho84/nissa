@@ -18,15 +18,15 @@ extern int ncg_inv;
 #include "../../routines/ios.h"
 #include "../../routines/openmp.h"
 
-#if CGM_NARG >= 3
+#if CG_NARG >= 3
  #error not supported
 #endif
 
-#if CGM_NARG == 0
+#if CG_NARG == 0
 THREADABLE_FUNCTION_6ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, int,niter, int,rniter, double,residue, BASETYPE*,source)
-#elif CGM_NARG == 1
+#elif CG_NARG == 1
 THREADABLE_FUNCTION_7ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, int,niter, int,rniter, double,residue, BASETYPE*,source)
-#elif CGM_NARG == 2
+#elif CG_NARG == 2
 THREADABLE_FUNCTION_8ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, int,niter, int,rniter, double,residue, BASETYPE*,source)
 #endif
 {

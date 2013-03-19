@@ -139,40 +139,40 @@ THREADABLE_FUNCTION_4ARG(quadruple_vector_subt_from_double_vector, float_128*,a,
 /////////////////// scalar prodcut in quadruple /////////////////
 
 //(a,b)
-void quadruple_vector_glb_scalar_prod(float_128 a,float_128 *b,float_128 *c,int n)
+THREADABLE_FUNCTION_4ARG(quadruple_vector_glb_scalar_prod, float_128*,glb_res, float_128*,a, float_128*,b, int,n)
 {
-  float_128 loc_acc={0,0};
-  for(int i=0;i<n;i++) float_128_summ_the_prod(loc_acc,b[i],c[i]);
-  glb_reduce_float_128(reduce_float_128,loc_acc);
+  //perform thread summ
+  float_128 loc_thread_res={0,0};
+  NISSA_PARALLEL_LOOP(i,n)
+    float_128_summ_the_prod(loc_thread_res,a[i],b[i]);
   
-  float_128_copy(a,reduce_float_128);
-}
+  glb_reduce_float_128(*glb_res,loc_thread_res);
+}}
 
 //(a,b)
-double double_conv_quadruple_vector_glb_scalar_prod(float_128 *a,float_128 *b,int n)
+void double_conv_quadruple_vector_glb_scalar_prod(double *out,float_128 *a,float_128 *b,int n)
 {
-  float_128 out;
-  quadruple_vector_glb_scalar_prod(out,a,b,n);
-  
-  return double_from_float_128(out);
+  float_128 out_128;
+  quadruple_vector_glb_scalar_prod(&out_128,a,b,n);
+  *out=out_128[0];
 }
 
 //////////////// only quadruple accumulation //////////////////
 
 //(a,b)
-void quadruple_accumulate_double_vector_glb_scalar_prod(float_128 a,double *b,double *c,int n)
+THREADABLE_FUNCTION_4ARG(quadruple_accumulate_double_vector_glb_scalar_prod, float_128*,a, double*,b, double*,c ,int,n)
 {
-  float_128 loc_acc={0,0};
+  //perform thread summ
+  float_128 loc_thread_res={0,0};
+  NISSA_PARALLEL_LOOP(i,n)
+    float_128_summassign_64(loc_thread_res,b[i]*c[i]);
   
-  for(int i=0;i<n;i++) float_128_summ_the_64_prod(loc_acc,b[i],c[i]);
-  glb_reduce_float_128(reduce_float_128,loc_acc);
-  
-  float_128_copy(a,reduce_float_128);
-}
+  glb_reduce_float_128(*a,loc_thread_res);
+}}
 
 //(a,b)
 double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,double *b,int n)
-{float_128 out;quadruple_accumulate_double_vector_glb_scalar_prod(out,a,b,n);return double_from_float_128(out);}
+{float_128 out;quadruple_accumulate_double_vector_glb_scalar_prod(&out,a,b,n);return double_from_float_128(out);}
 
 //////////////// color put/get from colorspinspin////////////////////////
 

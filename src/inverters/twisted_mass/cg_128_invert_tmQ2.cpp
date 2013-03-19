@@ -8,25 +8,41 @@
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/new_types_definitions.h"
 
-#define basetype spincolor
-#define basetype_128 spincolor_128
+#define BASETYPE spincolor
+#define BASETYPE_128 spincolor_128
 
-#define ndoubles_per_site 24
-#define size_of_bulk loc_vol
-#define size_of_bord bord_vol
+#define NDOUBLES_PER_SITE 24
+#define BULK_SIZE loc_vol
+#define BORD_SIZE bord_vol
 
-#define apply_operator_128 apply_tmQ2_RL_128
-#define cg_operator_128_parameters conf,kappa,temp_128,RL,mass
+#define APPLY_OPERATOR_128 apply_tmQ2_RL_128
+//parameters of the operator
+#define CG_OPERATOR_128_PARAMETERS conf,kappa,temp_128,RL,mass,
 
-#define cg_128_invert inv_tmQ2_RL_cg_128
-#define cg_128_parameters_proto quad_su3 *conf,double kappa,int RL,double mass
-#define cg_128_inner_parameters_call conf,kappa,RL,mass
-#define cg_128_inner_solver inv_tmQ2_RL_cg
+//name of the inverter, externally accedable
+#define CG_128_INVERT inv_tmQ2_RL_cg_128
+//parameters to be passed externally to the 128 inverter
+#define CG_NARG 4
+#define AT1 quad_su3*
+#define A1 conf
+#define AT2 double
+#define A2 kappa
+#define AT3 int
+#define A3 RL
+#define AT4 double
+#define A4 mass
+//name of the inner solver
+#define CG_128_INNER_SOLVER inv_tmQ2_RL_cg
+//parameters of the inner solver
+#define CG_128_INNER_PARAMETERS_CALL conf,kappa,RL,mass,
 
-#define cg_additional_vectors_allocation()
-#define cg_additional_vectors_free()
-
-#include "../templates/cg_128_invert_template.cpp"
+#define CG_ADDITIONAL_VECTORS_ALLOCATION()	\
+  BASETYPE_128 *temp1=nissa_malloc("temp1",BULK_SIZE+BORD_SIZE,BASETYPE_128); \
+  BASETYPE_128 *temp2=nissa_malloc("temp2",BULK_SIZE+BORD_SIZE,BASETYPE_128);
+#define CG_ADDITIONAL_VECTORS_FREE()	\
+  nissa_free(temp1);			\
+  nissa_free(temp2);
+#include "../templates/cg_128_invert_template_threaded.cpp"
 
 void inv_tmQ2_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mass,int niter,int rniter,double external_solver_residue,spincolor *external_source)
 {inv_tmQ2_RL_cg_128(sol,guess,conf,kappa,0,mass,niter,rniter,external_solver_residue,external_source);}

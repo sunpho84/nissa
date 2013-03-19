@@ -29,7 +29,7 @@
   nissa_free(t);
 
 //additional parameters
-#define CGM_NARG 2
+#define CG_NARG 2
 #define AT1 quad_su3**
 #define A1 conf
 #define AT2 double

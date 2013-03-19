@@ -12,6 +12,7 @@
 #include "../new_types/spin.h"
 #include "../new_types/dirac.h"
 #include "../routines/ios.h"
+#include "../routines/openmp.h"
 
 //Tr[g1 * s1^dag * g2 * s2], useful for mesons 2 points
 void site_trace_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac_matr *g2,spinspin s2)
@@ -57,22 +58,17 @@ void site_trace_g_ccss_dag_g_ccss(complex c,dirac_matr *g1,su3spinspin s1,dirac_
       }
 }
 
-//Trace the product of gamma1 * spinspin1^dag * gamma2 * spinspin2,
-void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,const int ncontr)
+//threaded version
+THREADABLE_FUNCTION_6ARG(trace_g_s_dag_g_s_internal, complex*,loc_c, dirac_matr*,g1, colorspinspin*,s1, dirac_matr*,g2, colorspinspin*,s2, int,ncontr)
 {
-  //Allocate a contiguous memory area where to store local node results
-  complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
-  vector_reset(loc_c);
-  
-  for(int icontr=0;icontr<ncontr;icontr++) 
+  NISSA_PARALLEL_LOOP(ibase,ncontr*loc_size[0])
     {
-      verbosity_lv3_master_printf("Contraction %d/%d\n",icontr+1,ncontr);
-
-      //Local loop
-      nissa_loc_vol_loop(ivol)
-	{
-	  int glb_t=glb_coord_of_loclx[ivol][0];
-	  //Color loop
+      int icontr=ibase/loc_size[0];
+      int t=ibase-icontr*loc_size[0];
+      for(int ivol=t*loc_spat_vol;ivol<(t+1)*loc_spat_vol;ivol++)
+        {
+          int glb_t=glb_coord_of_loclx[ivol][0];
+	  
 	  for(int ic=0;ic<3;ic++)
 	    {
 	      complex ctemp;
@@ -81,6 +77,19 @@ void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr
 	    }
 	}
     }
+  
+  thread_barrier(CONTRACT_BARRIER);
+}}
+
+//Trace the product of gamma1 * spinspin1^dag * gamma2 * spinspin2,
+void trace_g_sdag_g_s(complex *glb_c,dirac_matr *g1,colorspinspin *s1,dirac_matr *g2,colorspinspin *s2,int ncontr)
+{
+  //Allocate a contiguous memory area where to store local node results
+  complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
+  vector_reset(loc_c);
+  
+  //perform the reduction using threads
+  trace_g_s_dag_g_s_internal(loc_c,g1,s1,g2,s2,ncontr);
   
   //Final reduction
   verbosity_lv3_master_printf("Performing final reduction of %d double\n",2*glb_size[0]*ncontr);
@@ -262,20 +271,15 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
   nissa_free(loc_c);
 }
 
-//Trace the product of gamma1 * su3spinspin1^dag * gamma2 * su3spinspin2,
-void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g1,su3spinspin *s1,dirac_matr *g2,su3spinspin *s2,const int ncontr)
+//threaded version
+THREADABLE_FUNCTION_6ARG(trace_g_ccss_dag_g_ccss_internal, complex*,loc_c, dirac_matr*,g1, su3spinspin*,s1, dirac_matr*,g2, su3spinspin*,s2, int,ncontr)
 {
-  //Allocate a contiguous memory area where to store local node results
-  complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
-  for(int icontr=0;icontr<ncontr;icontr++)
-    for(int glb_t=0;glb_t<glb_size[0];glb_t++) loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
-  
-  for(int icontr=0;icontr<ncontr;icontr++) 
+  NISSA_PARALLEL_LOOP(ibase,ncontr*loc_size[0])
     {
-      verbosity_lv3_master_printf("Contraction %d/%d\n",icontr+1,ncontr);
+      int icontr=ibase/loc_size[0];
+      int t=ibase-icontr*loc_size[0];
 
-      //Local loop
-      nissa_loc_vol_loop(ivol)
+      for(int ivol=t*loc_spat_vol;ivol<(t+1)*loc_spat_vol;ivol++)
         {
           int glb_t=glb_coord_of_loclx[ivol][0];
 	  
@@ -284,6 +288,19 @@ void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g1,su3spinspin *s1,dirac
 	  complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
         }
     }
+  
+  thread_barrier(CONTRACT_BARRIER);
+}}
+
+//Trace the product of gamma1 * su3spinspin1^dag * gamma2 * su3spinspin2,
+void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g1,su3spinspin *s1,dirac_matr *g2,su3spinspin *s2,int ncontr)
+{
+  //Allocate a contiguous memory area where to store local node results
+  complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
+  for(int icontr=0;icontr<ncontr;icontr++)
+    for(int glb_t=0;glb_t<glb_size[0];glb_t++) loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
+  
+  trace_g_ccss_dag_g_ccss_internal(loc_c,g1,s1,g2,s2,ncontr);
   
   //Final reduction
   verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);

@@ -55,7 +55,8 @@ void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int nit
       // 2) compute the new internal_source = external_source - OP * sol_128, and residue module
       quadruple_vector_subt_from_double_vector((float_128*)residue_128,(double*)external_source,(float_128*)residue_128,size_of_bulk*ndoubles_per_site);
       double_vector_from_quadruple_vector((double*)internal_source,(float_128*)residue_128,size_of_bulk*ndoubles_per_site);
-      current_residue=double_conv_quadruple_vector_glb_scalar_prod((float_128*)residue_128,(float_128*)residue_128,size_of_bulk*ndoubles_per_site)/source_norm;
+      double_conv_quadruple_vector_glb_scalar_prod(&current_residue,(float_128*)residue_128,(float_128*)residue_128,size_of_bulk*ndoubles_per_site);
+      current_residue/=source_norm;
       verbosity_lv2_master_printf("\nExternal loop iter %d relative residue: %lg\n\n",ext_iter,current_residue);
       
       // 3) calibrate inner solver stopping condition

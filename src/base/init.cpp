@@ -340,9 +340,7 @@ void init_grid(int T,int L)
       glb_vol*=glb_size[idir];
     }
   glb_spat_vol=glb_vol/glb_size[0];
-  loc_spat_vol=loc_vol/loc_size[0];
   glb_vol2=(double)glb_vol*glb_vol;
-  loc_vol2=(double)loc_vol*loc_vol;
   
   master_printf("Number of running ranks: %d\n",nissa_nranks);
   master_printf("Global lattice:\t%dx%dx%dx%d = %d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3],glb_vol);
@@ -375,6 +373,23 @@ void init_grid(int T,int L)
   //calculate the local volume
   for(int idir=0;idir<4;idir++) loc_size[idir]=glb_size[idir]/nrank_dir[idir];
   loc_vol=glb_vol/nissa_nranks;
+  loc_spat_vol=loc_vol/loc_size[0];
+  loc_vol2=(double)loc_vol*loc_vol;
+  
+  //calculate bulk size
+  bulk_vol=bulk_plus_fw_surf_vol=1;
+  for(int idir=0;idir<4;idir++)
+    if(paral_dir[idir])
+      {
+	bulk_vol*=loc_size[idir]-2;
+	bulk_plus_fw_surf_vol*=loc_size[idir]-1;
+      }
+    else
+      {
+	bulk_vol*=loc_size[idir];
+	bulk_plus_fw_surf_vol*=loc_size[idir];
+      }
+  bulk_plus_bw_surf_vol=bulk_plus_fw_surf_vol;
   
   //calculate the border size
   bord_vol=0;
@@ -391,8 +406,8 @@ void init_grid(int T,int L)
       //summ of the border extent up to dir idir
       if(idir>0) bord_offset[idir]=bord_offset[idir-1]+bord_dir_vol[idir-1];
     }
-  bord_vol*=2;
-  
+  bord_vol*=2;  
+
   //calculate the egdes size
   edge_vol=0;
   edge_offset[0]=0;
