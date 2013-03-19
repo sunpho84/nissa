@@ -315,6 +315,29 @@ void find_surf_of_bord()
       }
 }
 
+//index all the sites on bulk
+void find_bulk_sites()
+{
+  //check surfacity
+  int ibulk=0,ibulk_plus_fw_surf=0,ibulk_plus_bw_surf=0;
+  nissa_loc_vol_loop(ivol)
+    {
+      //find if it is on bulk or fw or bw surf
+      int is_bulk=true,is_bulk_plus_fw_surf=true,is_bulk_plus_bw_surf=true;
+      for(int mu=0;mu<4;mu++)
+	if(paral_dir[mu])
+	  {
+	    if(loc_coord_of_loclx[ivol][mu]==loc_size[mu]-1) is_bulk=is_bulk_plus_bw_surf=false;
+	    if(loc_coord_of_loclx[ivol][mu]==0)              is_bulk=is_bulk_plus_fw_surf=false;
+	  }
+      
+      //mark it
+      if(is_bulk) loclx_of_bulklx[ibulk++]=ivol;
+      if(is_bulk_plus_bw_surf) loclx_of_bulk_plus_bw_surflx[ibulk_plus_bw_surf++]=ivol;
+      if(is_bulk_plus_fw_surf) loclx_of_bulk_plus_fw_surflx[ibulk_plus_fw_surf++]=ivol;      
+    }
+}  
+
 //indexes run as t,x,y,z (faster:z)
 void set_lx_geometry()
 {
@@ -346,6 +369,11 @@ void set_lx_geometry()
   loclx_of_bordlx=nissa_malloc("loclx_of_bordlx",bord_vol,int);
   surflx_of_bordlx=nissa_malloc("surflx_of_bordlx",bord_vol,int);
   
+  //bulk and surfs
+  loclx_of_bulklx=nissa_malloc("loclx_of_bulklx",bulk_vol,int);
+  loclx_of_bulk_plus_fw_surflx=nissa_malloc("loclx_of_bulk_plus_fw_surflx",bulk_plus_fw_surf_vol,int);
+  loclx_of_bulk_plus_bw_surflx=nissa_malloc("loclx_of_bulk_plus_bw_surflx",bulk_plus_bw_surf_vol,int);
+  
   //edges
   glblx_of_edgelx=nissa_malloc("glblx_of_edgelx",edge_vol,int);
   
@@ -355,6 +383,9 @@ void set_lx_geometry()
   
   //matches surface and opposite border
   find_surf_of_bord();
+  
+  //find bulk sites
+  find_bulk_sites();
   
   //init sender and receiver points for borders
   for(int mu=0;mu<4;mu++)

@@ -38,40 +38,66 @@ THREADABLE_FUNCTION_3ARG(Wilson_force_lx, quad_su3*,F, quad_su3*,conf, double,be
   //reset force
   vector_reset(F);
   
-  //we must copy forward border trasversal links
-  communicate_lx_quad_su3_borders(conf);
+  //allocate or take from SPI the buffer where to exchange fw border and back staples
+  quad_su3 *send_buf,*recv_buf;
+#ifdef BGQ
+  send_buf=(quad_su3*)(spi_eo_quad_su3_comm->send_buf);
+  recv_buf=(quad_su3*)(spi_eo_quad_su3_comm->recv_buf);
+#else
+  send_buf=nissa_malloc("Wforce_send_buf",bord_vol,quad_su3);
+  recv_buf=nissa_malloc("Wforce_recv_buf",bord_vol,quad_su3);
+#endif
   
-  //while we copy fw border we compute backward staples
-  //to be sent to up sites
-  su3 *bw_staple=nissa_malloc("bw_staple",3*bord_vol/2,su3);
+  //copy bw border into sending buf to be sent to dw nodes
+  NISSA_PARALLEL_LOOP(ibord,bord_volh)
+      quad_su3_copy(send+ibord,conf+surflx_of_bordlx[ibord]);
+  
+  //compute backward staples to be sent to up nodes
   for(int nu=0;nu<4;nu++) //staple and fw bord direction
-    for(int imu=0;imu<3;imu++) //link direction
-      {
-	int mu=(nu+imu)%4;
+    for(int mu=0;mu<4;mu++) //link direction
+      if(mu!=nu)
 	NISSA_PARALLEL_LOOP(ibord_nu,bord_dir_vol[nu])
 	  {
 	    int ibord=bord_offset[nu]+ibord_nu;
-	    int A=loc_vol+bord_vol/2+ibord;
+	    int A=loc_vol+bord_volh+ibord;
 	    su3 temp;
 	    int D=loclx_neighdw[A][nu];
 	    int E=loclx_neighup[D][mu];
 	    unsafe_su3_dag_prod_su3(temp,conf[D][nu],conf[D][mu]);
-	    unsafe_su3_prod_su3(bw_staple[3*(bord_offset[nu]+ibord)+imu],temp,conf[E][nu]);
+	    unsafe_su3_prod_su3(send_buf[bord_offset[nu]+ibord][mu],temp,conf[E][nu]);
 	  }
-      }  
   
-  //now compute bulk
+  //start communication of buf
+#ifdef BGQ
+#else
+#endif
+  
+  //compute bulk + fw surf backward staples that are always local
   for(int mu=0;mu<4;mu++) //link direction
     for(int nu=0;nu<4;nu++) //staple direction
       if(mu!=nu)
-	NISSA_PARALLEL_LOOP(A,loc_vol)
+	NISSA_PARALLEL_LOOP(ibulk,bulk_plus_fw_surf_vol)
 	  {
-	    su3 temp1,temp2;
-	    int D=loclx_neighdw[A][nu];
-	    int E=loclx_neighup[D][mu];
-	    unsafe_su3_dag_prod_su3(temp1,conf[D][nu],conf[D][mu]);
-	    unsafe_su3_prod_su3(    temp2,temp1,conf[E][nu]);
-	    su3_summ(F[A][mu],F[A][mu],temp2);
+	    int A=loclx_of_bulk_plus_fw_surflx[ibulk],D=loclx_neighdw[A][nu],E=loclx_neighup[D][mu];
+	    unsafe_su3_dag_prod_su3(temp,conf[D][nu],conf[D][mu]);
+	    su3_summ_the_prod_su3(F[A][mu],temp,conf[E][nu]);
+	  }
+  
+  //finish communication of buf
+#ifdef BGQ
+#else
+#endif
+  
+  //compute forward staples: we have received fw borders, so we can compute all of them
+  for(int mu=0;mu<4;mu++) //link direction
+    for(int nu=0;nu<4;nu++) //staple direction
+      if(mu!=nu)
+	NISSA_PARALLEL_LOOP(ibulk,bulk_plus_bw_surf_vol)
+	  {
+	    int A=loclx_of_bulk_plus_bw_surflx[ibulk],B=loclx_neighup[A][nu],F=loclx_neighup[A][mu];
+	    su3 temp;
+	    unsafe_su3_prod_su3(    temp,conf[A][nu],conf[B][mu]);
+	    su3_summ_the_prod_su3_dag(F[A][mu],temp,conf[F][nu]);
 	  }
   
 #endif

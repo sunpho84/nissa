@@ -623,26 +623,19 @@ void smear_additive_propagator(prop_type *out,prop_type *in,int ism_lev,int *gau
 #endif
     for(int id=0;id<4;id++)
       {
-	nissa_loc_vol_loop(ivol)
-	  {
 #ifdef POINT_SOURCE_VERSION
-	    get_spincolor_from_su3spinspin(temp[ivol],in[ivol],id,ic);
+	get_spincolor_from_su3spinspin(temp,in,id,ic);
 #else
-	    get_spincolor_from_colorspinspin(temp[ivol],in[ivol],id);
+	get_spincolor_from_colorspinspin(temp,in,id);
 #endif
-	  }
-	set_borders_invalid(temp);
 	
 	gaussian_smearing(temp,temp,sme_conf,gaussian_kappa,nsme);
 	
-	nissa_loc_vol_loop(ivol)
-	  {
 #ifdef POINT_SOURCE_VERSION
-	    put_spincolor_into_su3spinspin(out[ivol],temp[ivol],id,ic);
+	put_spincolor_into_su3spinspin(out,temp,id,ic);
 #else
-	    put_spincolor_into_colorspinspin(out[ivol],temp[ivol],id);
+	put_spincolor_into_colorspinspin(out,temp,id);
 #endif
-	  }
       }
   
   nissa_free(temp);
@@ -1115,10 +1108,9 @@ int check_remaining_time()
   return enough_time;
 }
 
-int main(int narg,char **arg)
+void in_main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa(narg,arg);
   tot_time-=take_time();
   
   //initialize the program
@@ -1174,6 +1166,11 @@ int main(int narg,char **arg)
   
   tot_time+=take_time();
   close_semileptonic();
-  
+}
+
+int main(int narg,char **arg)
+{
+  init_nissa_threaded(narg,arg,in_main);
+    
   return 0;
 }

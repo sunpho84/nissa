@@ -18,7 +18,7 @@ THREADABLE_FUNCTION_5ARG(apply_tmQ_128, spincolor_128*,out, quad_su3*,conf, doub
 
   double kcf=1/(2*kappa);
   
-  nissa_loc_vol_loop(X)
+  NISSA_PARALLEL_LOOP(X,loc_vol)
     {
       int Xup,Xdw;
       color_128 temp_c0,temp_c1,temp_c2,temp_c3;

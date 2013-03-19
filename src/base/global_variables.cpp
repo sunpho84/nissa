@@ -15,6 +15,7 @@
 //-loc to the local one
 EXTERN int glb_size[4],glb_vol,glb_spat_vol,glb_volh;
 EXTERN int loc_size[4],loc_vol,loc_spat_vol,loc_volh;
+EXTERN int bulk_vol,bulk_plus_fw_surf_vol,bulk_plus_bw_surf_vol;
 EXTERN double glb_vol2,loc_vol2;
 //-lx is lexicografic
 EXTERN coords *glb_coord_of_loclx;
@@ -24,6 +25,9 @@ EXTERN int *glblx_of_bordlx;
 EXTERN int *loclx_of_bordlx;
 EXTERN int *surflx_of_bordlx;
 EXTERN int *glblx_of_edgelx;
+EXTERN int *loclx_of_bulklx;
+EXTERN int *loclx_of_bulk_plus_fw_surflx;
+EXTERN int *loclx_of_bulk_plus_bw_surflx;
 EXTERN int nissa_lx_geom_inited;
 //-eo is even-odd
 EXTERN int *loclx_parity;
