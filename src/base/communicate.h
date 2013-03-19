@@ -31,11 +31,11 @@ void communicate_od_spincolor_borders(spincolor *od);
 void finish_communicating_ev_borders(int *nrequest,MPI_Request *request,char *ev_data);
 void finish_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev);
 void finish_communicating_ev_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *ev);
-void finish_communicating_lx_borders(int &nrequest,MPI_Request *request,char *data);
-void finish_communicating_lx_spincolor_borders(int &nrequest,MPI_Request *request,spincolor *s);
+void finish_communicating_lx_borders(int *nrequest,MPI_Request *request,char *data);
+void finish_communicating_lx_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *s);
 void start_communicating_ev_borders(int *nrequest,MPI_Request *request,char *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_EV_BORDS_RECE,int nbytes_per_site);
 void start_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev);
 void start_communicating_ev_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *ev);
-void start_communicating_lx_borders(int &nrequest,MPI_Request *request,char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site);
-void start_communicating_lx_spincolor_borders(int &nrequest,MPI_Request *request,spincolor *s);
+void start_communicating_lx_borders(int *nrequest,MPI_Request *request,char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site);
+void start_communicating_lx_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *s);
 #endif
