@@ -10,34 +10,37 @@
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/new_types_definitions.h"
 
-#define basetype spincolor
-#define ndoubles_per_site 24
-#define bulk_vol loc_vol
-#define bord_vol bord_vol
+#define BASETYPE spincolor
+#define NDOUBLES_PER_SITE 24
+#define BULK_VOL loc_vol
+#define BORD_VOL bord_vol
 
-#define apply_operator apply_tmQ2_m2_RL
-#define cgm_operator_parameters conf,kappa,t,RL
+#define APPLY_OPERATOR apply_tmQ2_m2_RL
+#define CGM_OPERATOR_PARAMETERS conf,kappa,t,RL,
 
-#define summ_src_and_all_inv_cgm summ_src_and_all_inv_tmQ2_m2_RL_cgm
-#define cgm_invert inv_tmQ2_m2_RL_cgm
-#define cgm_invert_run_hm_up_to_comm_prec inv_tmQ2_m2_RL_cgm_run_hm_up_to_comm_prec
-#define cgm_npossible_requests 16
+#define CGM_INVERT inv_tmQ2_m2_RL_cgm
+#define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_tmQ2_m2_RL_cgm_run_hm_up_to_comm_prec
+#define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_tmQ2_m2_RL_cgm
+#define CGM_NPOSSIBLE_REQUESTS 16
 
-#define cgm_start_communicating_borders start_communicating_lx_spincolor_borders
-#define cgm_finish_communicating_borders finish_communicating_lx_spincolor_borders
+#define CGM_START_COMMUNICATING_BORDERS start_communicating_lx_spincolor_borders
+#define CGM_FINISH_COMMUNICATING_BORDERS finish_communicating_lx_spincolor_borders
 
-#define cgm_additional_vectors_allocation()				\
-  basetype *t=nissa_malloc("DD_temp",bulk_vol+bord_vol,basetype);
-#define cgm_additional_vectors_free()		\
-  nissa_free(t);
-#define cgm_additional_parameters_proto quad_su3 *conf,double kappa,int RL
-#define cgm_additional_parameters_call conf,kappa,RL
+#define CGM_ADDITIONAL_VECTORS_ALLOCATION() BASETYPE *t=nissa_malloc("DD_temp",BULK_VOL+BORD_VOL,BASETYPE);
+#define CGM_ADDITIONAL_VECTORS_FREE() nissa_free(t);
 
-#define cg_128_invert inv_tmQ2_m2_RL_cg_128
-#define cg_128_additional_parameters_call conf,kappa,RL
+//additional parameters
+#define CGM_NARG 3
+#define AT1 quad_su3*
+#define A1 conf
+#define AT2 double
+#define A2 kappa
+#define AT3 int
+#define A3 RL
+#define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,RL,
 
-#include "../templates/cgm_invert_template.cpp"
 
+#include "../templates/cgm_invert_template_threaded.cpp"
 
 void inv_tmQ2_RL_cgm(spincolor **sol,quad_su3 *conf,double kappa,int RL,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
 {
@@ -64,4 +67,3 @@ void inv_tmDQ_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmas
 {inv_tmDQ_RL_cgm(sol,conf,kappa,0,m,nmass,niter_max,req_res,source);}
 void inv_tmDQ_cgm_left(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
 {inv_tmDQ_RL_cgm(sol,conf,kappa,1,m,nmass,niter_max,req_res,source);}
-

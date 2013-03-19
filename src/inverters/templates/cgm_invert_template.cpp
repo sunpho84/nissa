@@ -114,7 +114,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       final_iter=(++iter);
       
       //     -s=Ap
-      if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(nrequest,request,p);
+      if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(&nrequest,request,p);
       cgm_inv_over_time+=take_time();
       
       apply_operator(s,cgm_operator_parameters,shift[0],p);
@@ -155,7 +155,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,bulk_vol*ndoubles_per_site);
 	
       //start the communications of the border
-      if(nissa_use_async_communications) cgm_start_communicating_borders(nrequest,request,p);
+      if(nissa_use_async_communications) cgm_start_communicating_borders(&nrequest,request,p);
 	
       //     calculate 
       //     -alphas=alpha*zfs*betas/zas*beta
@@ -201,7 +201,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
     }
   while(nrun_shift>0 && iter<niter_max);
   
-  if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(nrequest,request,p);
+  if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(&nrequest,request,p);
   
   //print the final true residue
   for(int ishift=0;ishift<nshift;ishift++)
