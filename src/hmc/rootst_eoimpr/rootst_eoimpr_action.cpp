@@ -52,7 +52,7 @@ THREADABLE_FUNCTION_8ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3
   //compute the three parts of the action
   double quark_action;
   rootst_eoimpr_quark_action(&quark_action,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,appr,residue);
-  verbosity_lv2_master_printf("Thread %d Quark_action: %16.16lg\n",thread_id,quark_action);
+  verbosity_lv2_master_printf("Quark_action: %16.16lg\n",quark_action);
   
   //gauge action
   double gluon_action;

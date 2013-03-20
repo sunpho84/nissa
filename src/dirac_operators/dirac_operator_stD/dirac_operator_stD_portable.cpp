@@ -13,7 +13,8 @@ THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, quad_su3**,conf, color*,in)
   if(!check_borders_valid(conf)) communicate_eo_quad_su3_borders(conf);
   if(!check_borders_valid(in)) communicate_ev_color_borders(in);
   
-  NISSA_PARALLEL_LOOP(io,loc_volh)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(io,0,loc_volh)
     {
       //neighbours search
       int evup0=loceo_neighup[ODD][io][0];
@@ -42,7 +43,8 @@ THREADABLE_FUNCTION_3ARG(apply_stDoe, color*,out, quad_su3**,conf, color*,in)
 {
   apply_st2Doe(out,conf,in);
   
-  NISSA_PARALLEL_LOOP(io,loc_volh)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(io,0,loc_volh)
     for(int ic=0;ic<3;ic++)
       for(int ri=0;ri<2;ri++)
 	out[io][ic][ri]*=0.5;
@@ -56,7 +58,8 @@ THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,i
   if(!check_borders_valid(conf)) communicate_eo_quad_su3_borders(conf);
   if(!check_borders_valid(in)) communicate_ev_color_borders(in);
 
-  NISSA_PARALLEL_LOOP(ie,loc_volh)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ie,0,loc_volh)
     {
       int odup0=loceo_neighup[EVN][ie][0];
       int oddw0=loceo_neighdw[EVN][ie][0];
@@ -85,6 +88,7 @@ THREADABLE_FUNCTION_5ARG(apply_stD2ee, color*,out, quad_su3**,conf, color*,temp,
 {
   const double mass2=mass*mass;
   
+  GET_THREAD_ID();
   if(IS_MASTER_THREAD)
     {
       app_time-=take_time();
@@ -97,7 +101,7 @@ THREADABLE_FUNCTION_5ARG(apply_stD2ee, color*,out, quad_su3**,conf, color*,temp,
   if(!check_borders_valid(conf)) communicate_eo_quad_su3_borders(conf);
   if(!check_borders_valid(in)) communicate_ev_color_borders(in);
   
-  NISSA_PARALLEL_LOOP(io,loc_volh)
+  NISSA_PARALLEL_LOOP(io,0,loc_volh)
     {
       //neighbours search
       int evup0=loceo_neighup[ODD][io][0];
@@ -121,7 +125,7 @@ THREADABLE_FUNCTION_5ARG(apply_stD2ee, color*,out, quad_su3**,conf, color*,temp,
   set_borders_invalid(temp);
   communicate_od_color_borders(temp);
 
-  NISSA_PARALLEL_LOOP(ie,loc_volh)
+  NISSA_PARALLEL_LOOP(ie,0,loc_volh)
     {
       int odup0=loceo_neighup[EVN][ie][0];
       int oddw0=loceo_neighdw[EVN][ie][0];

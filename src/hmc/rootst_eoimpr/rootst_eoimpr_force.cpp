@@ -30,6 +30,8 @@ double glu_comp_time=0;
 //The approximation need to be already scaled, and must contain physical mass term
 THREADABLE_FUNCTION_6ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,eo_conf, color*,pf, quad_u1**,u1b, rat_approx_type*,appr, double,residue)
 {
+  GET_THREAD_ID();
+  
   verbosity_lv1_master_printf("Computing quark force\n");
   
   //allocate each terms of the expansion
@@ -59,7 +61,7 @@ THREADABLE_FUNCTION_6ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, quad_
   
   //conclude the calculation of the fermionic force
   for(int iterm=0;iterm<appr->degree;iterm++)
-    NISSA_PARALLEL_LOOP(ivol,loc_volh)
+    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
       for(int mu=0;mu<4;mu++)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++)
@@ -89,12 +91,14 @@ THREADABLE_FUNCTION_6ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, quad_
 //Finish the computation multiplying for the conf and taking TA
 THREADABLE_FUNCTION_2ARG(full_rootst_eoimpr_force_finish_computation, quad_su3**,F, quad_su3**,conf)
 {
+  GET_THREAD_ID();
+  
   //remove the staggered phase from the conf, since they are already implemented in the force
   addrem_stagphases_to_eo_conf(conf);
 
   for(int eo=0;eo<2;eo++)
     {
-      NISSA_PARALLEL_LOOP(ivol,loc_volh)
+      NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	for(int mu=0;mu<4;mu++)
 	  {
 	    su3 temp;
@@ -110,6 +114,8 @@ THREADABLE_FUNCTION_2ARG(full_rootst_eoimpr_force_finish_computation, quad_su3**
 //compute only the gauge part
 THREADABLE_FUNCTION_3ARG(full_rootst_eoimpr_gluons_force, quad_su3**,F, quad_su3**,conf, theory_pars_type*,physics)
 {
+  GET_THREAD_ID();
+  
   if(IS_MASTER_THREAD)
     {
       nglu_comp++;

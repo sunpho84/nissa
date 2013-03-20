@@ -61,7 +61,8 @@ void site_trace_g_ccss_dag_g_ccss(complex c,dirac_matr *g1,su3spinspin s1,dirac_
 //threaded version
 THREADABLE_FUNCTION_6ARG(trace_g_s_dag_g_s_internal, complex*,loc_c, dirac_matr*,g1, colorspinspin*,s1, dirac_matr*,g2, colorspinspin*,s2, int,ncontr)
 {
-  NISSA_PARALLEL_LOOP(ibase,ncontr*loc_size[0])
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])
     {
       int icontr=ibase/loc_size[0];
       int t=ibase-icontr*loc_size[0];
@@ -274,7 +275,8 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
 //threaded version
 THREADABLE_FUNCTION_6ARG(trace_g_ccss_dag_g_ccss_internal, complex*,loc_c, dirac_matr*,g1, su3spinspin*,s1, dirac_matr*,g2, su3spinspin*,s2, int,ncontr)
 {
-  NISSA_PARALLEL_LOOP(ibase,ncontr*loc_size[0])
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])
     {
       int icontr=ibase/loc_size[0];
       int t=ibase-icontr*loc_size[0];

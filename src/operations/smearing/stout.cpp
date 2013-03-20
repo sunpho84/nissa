@@ -70,6 +70,7 @@ void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,i
 //smear the configuration according to Peardon paper
 THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, stout_coeff_type*,rho)
 {
+  GET_THREAD_ID();
   if(IS_MASTER_THREAD) sto_time-=take_time();
   
   communicate_eo_quad_su3_edges(ext_in);
@@ -86,7 +87,7 @@ THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ex
   
   for(int p=0;p<2;p++)
     for(int mu=0;mu<4;mu++)
-      NISSA_PARALLEL_LOOP(A,loc_volh)
+      NISSA_PARALLEL_LOOP(A,0,loc_volh)
 	{
 	  //compute the staples needed to smear
 	  stout_link_staples sto_ste;
@@ -304,6 +305,7 @@ void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingr
 //remap the force to one smearing level less
 THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf, stout_coeff_type*,rho)
 {
+  GET_THREAD_ID();
   communicate_eo_quad_su3_edges(conf);
   
   quad_su3 *Lambda[2];
@@ -312,7 +314,7 @@ THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf
   
   for(int p=0;p<2;p++)
     for(int mu=0;mu<4;mu++)
-      NISSA_PARALLEL_LOOP(A,loc_volh)
+      NISSA_PARALLEL_LOOP(A,0,loc_volh)
 	{
 	  //compute the ingredients needed to smear
 	  stout_link_staples sto_ste;
@@ -351,7 +353,7 @@ THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf
 	for(int nu=0;nu<4;nu++)
 	  if(mu!=nu)
 	    {
-	      NISSA_PARALLEL_LOOP(A,loc_volh)          //   b1 --<-- f1 -->-- +
+	      NISSA_PARALLEL_LOOP(A,0,loc_volh)          //   b1 --<-- f1 -->-- +
 		{                                      //    |        |       |
 		  int f1=loceo_neighup[ p][ A][mu];    //    V   B    |   F   V     ^
 		  int f2=loceo_neighup[ p][ A][nu];    //    |        |       |     m

@@ -208,7 +208,8 @@ void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_type rtype)
 //fill a grid of vectors with numbers between 0 and 1
 THREADABLE_FUNCTION_4ARG(rnd_fill_unif_loc_vector, double*,v, int,dps, double,min, double,max)
 {
-  NISSA_PARALLEL_LOOP(ivol,loc_vol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int i=0;i<dps;i++)
       v[ivol*dps+i]=rnd_get_unif(&(loc_rnd_gen[ivol]),min,max);
   
@@ -218,7 +219,8 @@ THREADABLE_FUNCTION_4ARG(rnd_fill_unif_loc_vector, double*,v, int,dps, double,mi
 //return a grid of +-x numbers
 THREADABLE_FUNCTION_2ARG(rnd_fill_pm_one_loc_vector, double*,v, int,nps)
 {
-  NISSA_PARALLEL_LOOP(ivol,loc_vol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int i=0;i<nps;i++)
       v[ivol*nps+i]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
   
@@ -236,7 +238,8 @@ THREADABLE_FUNCTION_3ARG(generate_spindiluted_source, colorspinspin*,source, enu
   if(twall>=0) norm2/=glb_size[0];
   double inv_sqrt_norm2=1.0/sqrt(norm2);
   
-  NISSA_PARALLEL_LOOP(ivol,loc_vol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
       for(int ic=0;ic<3;ic++)
 	{
@@ -257,7 +260,8 @@ THREADABLE_FUNCTION_3ARG(generate_undiluted_source, spincolor*,source, enum rnd_
   //reset
   vector_reset(source);
   
-  NISSA_PARALLEL_LOOP(ivol,loc_vol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
       for(int id=0;id<4;id++)
 	for(int ic=0;ic<3;ic++)
@@ -271,7 +275,8 @@ THREADABLE_FUNCTION_4ARG(generate_fully_undiluted_eo_source, color*,source, enum
 {
   vector_reset(source);
   
-  NISSA_PARALLEL_LOOP(ieo,loc_volh)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
     {
       int ilx=loclx_of_loceo[par][ieo];
       if(glb_coord_of_loclx[ilx][0]==twall||twall<0)

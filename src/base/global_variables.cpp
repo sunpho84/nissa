@@ -57,11 +57,6 @@ EXTERN MPI_Datatype MPI_REDSPINCOLOR;
 //float 128 summ
 EXTERN MPI_Op MPI_FLOAT_128_SUM;
 
-//reducing buffers
-EXTERN float_128 reduce_float_128;
-EXTERN complex reduce_complex;
-EXTERN int reduce_int;
-
 //timings
 EXTERN int ncgm_inv,ncg_inv;
 EXTERN double cgm_inv_over_time,cg_inv_over_time;
@@ -132,14 +127,13 @@ EXTERN int nissa_grid_inited;
 //thread
 EXTERN int glb_barr_id;
 #ifndef ONLY_INSTANTIATION
-int thread_pool_locked=true,/*thread_id=0,*/nthreads=1;
+int thread_pool_locked=true,nthreads=1;
 #else
-EXTERN int thread_pool_locked,/*thread_id,*/nthreads;
+EXTERN int thread_pool_locked,nthreads;
 #endif
 EXTERN double *glb_double_reduction_buf;
 EXTERN float_128 *glb_float_128_reduction_buf;
 
-//#pragma omp threadprivate(thread_id)
 EXTERN void(*threaded_function_ptr)();
 
 //endianess

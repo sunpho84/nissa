@@ -31,7 +31,7 @@ THREADABLE_FUNCTION_10ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1,
   BASETYPE_128 *sol_128=nissa_malloc("sol_128",BULK_SIZE+BORD_SIZE,BASETYPE_128);
   CG_ADDITIONAL_VECTORS_ALLOCATION();
   if(guess==NULL) vector_reset(sol_128);
-  else quadruple_vector_summassign_double_vector((float_128*)sol_128,(double*)guess,BULK_SIZE*NDOUBLES_PER_SITE);
+  else quadruple_vector_from_double_vector((float_128*)sol_128,(double*)guess,BULK_SIZE*NDOUBLES_PER_SITE);
   
   //compute and print source norm
   double source_norm;
@@ -57,6 +57,7 @@ THREADABLE_FUNCTION_10ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1,
       
       // 2) compute the new internal_source = external_source - OP * sol_128, and residue module
       quadruple_vector_subt_from_double_vector((float_128*)residue_128,(double*)external_source,(float_128*)residue_128,BULK_SIZE*NDOUBLES_PER_SITE);
+      
       double_vector_from_quadruple_vector((double*)internal_source,(float_128*)residue_128,BULK_SIZE*NDOUBLES_PER_SITE);
       
       double_conv_quadruple_vector_glb_scalar_prod(&current_residue,(float_128*)residue_128,(float_128*)residue_128,BULK_SIZE*NDOUBLES_PER_SITE);

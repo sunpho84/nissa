@@ -36,6 +36,7 @@ the routine "Pmunu_term"
 */
 THREADABLE_FUNCTION_2ARG(four_leaves, as2t_su3*,Pmunu, quad_su3*,conf)
 {
+  GET_THREAD_ID();
   communicate_lx_quad_su3_edges(conf);
   
   int A,B,C,D,E,F,G;
@@ -43,7 +44,7 @@ THREADABLE_FUNCTION_2ARG(four_leaves, as2t_su3*,Pmunu, quad_su3*,conf)
 
   su3 temp1,temp2,leaves_summ;
 
-  NISSA_PARALLEL_LOOP(X,loc_vol)
+  NISSA_PARALLEL_LOOP(X,0,loc_vol)
     {
       as2t_su3_put_to_zero(Pmunu[X]);
 
@@ -103,10 +104,11 @@ THREADABLE_FUNCTION_2ARG(four_leaves, as2t_su3*,Pmunu, quad_su3*,conf)
 //takes the anti-simmetric part of the four-leaves
 THREADABLE_FUNCTION_2ARG(Pmunu_term, as2t_su3*,Pmunu,quad_su3*,conf)
 {
+  GET_THREAD_ID();
   four_leaves(Pmunu,conf);
   
   //calculate U-U^dagger
-  NISSA_PARALLEL_LOOP(X,loc_vol)
+  NISSA_PARALLEL_LOOP(X,0,loc_vol)
     for(int munu=0;munu<6;munu++)
       {
 	//bufferized antisimmetrization
@@ -141,7 +143,8 @@ void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmun
 //apply the chromo operator to the passed spinor to the whole volume
 THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_spincolor, spincolor*,out, as2t_su3*,Pmunu, spincolor*,in)
 {
-  NISSA_PARALLEL_LOOP(ivol,loc_vol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
 }}
 
@@ -151,7 +154,8 @@ THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_colorspinspin, colorspi
 {
   spincolor temp1,temp2;
   
-  NISSA_PARALLEL_LOOP(ivol,loc_vol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
       //Loop over the four source dirac indexes
       for(int id_source=0;id_source<4;id_source++) //dirac index of source
@@ -176,7 +180,8 @@ THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_su3spinspin, su3spinspi
 {
   spincolor temp1,temp2;
   
-  NISSA_PARALLEL_LOOP(ivol,loc_vol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
       //Loop over the four source dirac indexes
       for(int id_source=0;id_source<4;id_source++) //dirac index of source
@@ -213,13 +218,14 @@ THREADABLE_FUNCTION_2ARG(local_topological_charge, double*,charge, quad_su3*,con
   int sign[3]={1,-1,1};
   
   //loop on the three different combinations of plans
+  GET_THREAD_ID();
   for(int iperm=0;iperm<3;iperm++)
     {
       //take the index of the two plans
       int ip0=plan_id[iperm][0];
       int ip1=plan_id[iperm][1];
       
-      NISSA_PARALLEL_LOOP(ivol,loc_vol)
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
         {
 	  //products
 	  su3 clock,aclock;
@@ -244,6 +250,7 @@ THREADABLE_FUNCTION_2ARG(local_topological_charge, double*,charge, quad_su3*,con
 //average the topological charge
 THREADABLE_FUNCTION_2ARG(average_topological_charge, double*,ave_charge, quad_su3*,conf)
 {
+  GET_THREAD_ID();
   double *charge=nissa_malloc("charge",loc_vol,double);
   
   //compute local charge
@@ -252,12 +259,14 @@ THREADABLE_FUNCTION_2ARG(average_topological_charge, double*,ave_charge, quad_su
   //average over local volume
 #ifndef REPRODUCIBLE_RUN
   (*ave_charge)=0;
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     (*ave_charge)+=charge[ivol];
+
+  glb_reduce_double(ave_charge,*ave_charge);
 #else
   //perform thread summ
   float_128 loc_thread_res={0,0};
-  NISSA_PARALLEL_LOOP(ivol,loc_vol)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     float_128_summassign_64(loc_thread_res,charge[ivol]);
   
   float_128 temp;

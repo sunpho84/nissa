@@ -18,6 +18,7 @@
 //only master rank and thread print
 int master_fprintf(FILE *stream,const char *format,...)
 {
+  GET_THREAD_ID();
   int ret=0;
   
   if(rank==0 && IS_MASTER_THREAD)

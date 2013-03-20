@@ -36,18 +36,18 @@
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-#define thread_id (omp_get_thread_num())
+#define GET_THREAD_ID() int thread_id=omp_get_thread_num();
 
 #define THREAD_BARRIER_FORCE(a) thread_barrier(a,true)
 
-#define IS_MASTER_THREAD (thread_id==0)
+#define IS_MASTER_THREAD (!thread_id)
 
-#define NISSA_PARALLEL_LOOP(INDEX,WORKLOAD)	\
-  for(int tid=thread_id,						\
-	load=(WORKLOAD+(WORKLOAD%nthreads ? nthreads-1 : 0))/nthreads,	\
-	start=tid*load,							\
-	end=start+load<WORKLOAD ? start+load : WORKLOAD,		\
-	INDEX=start;INDEX<end;INDEX++)
+#define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END)			\
+  for(int WORKLOAD=EXT_END-EXT_START,					\
+	THREAD_LOAD=(WORKLOAD+nthreads-1)/nthreads,			\
+	START=EXT_START+thread_id*THREAD_LOAD,				\
+	END=START+THREAD_LOAD< EXT_END ? START+THREAD_LOAD : EXT_END,	\
+	INDEX=START;INDEX<END;INDEX++)
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -57,15 +57,17 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 //external argument to exchange info between function and worker
-#define EXTERNAL_ARG(FUNC_NAME,ARG_TYPE,ARG) ARG_TYPE NAME2(FUNC_NAME,ARG);
-#define EXPORT_ARG(FUNC_NAME,ARG) NAME2(FUNC_NAME,ARG)=ARG;
-#define IMPORT_ARG(FUNC_NAME,ARG_TYPE,ARG) ARG_TYPE ARG=NAME2(FUNC_NAME,ARG);
+#define EXTERNAL_ARG(FUNC_NAME,ARG_TYPE,ARG) ARG_TYPE NAME3(FUNC_NAME,EXT_ARG,ARG);
+#define EXPORT_ARG(FUNC_NAME,ARG) NAME3(FUNC_NAME,EXT_ARG,ARG)=ARG;
+#define IMPORT_ARG(FUNC_NAME,ARG_TYPE,ARG) ARG_TYPE ARG=NAME3(FUNC_NAME,EXT_ARG,ARG);
 
 //////////////////////////////////////////////////////////////////////////////////////
 
 //headers: external parameters
+#define THREADABLE_FUNCTION_0ARG_EXTERNAL_ARGS(FUNC_NAME)
 #define THREADABLE_FUNCTION_1ARG_EXTERNAL_ARGS(FUNC_NAME,AT1,A1)	\
   EXTERNAL_ARG(FUNC_NAME,AT1,A1)
+  THREADABLE_FUNCTION_0ARG_EXTERNAL_ARGS(FUNC_NAME)
 #define THREADABLE_FUNCTION_2ARG_EXTERNAL_ARGS(FUNC_NAME,AT1,A1,AT2,A2)	\
   EXTERNAL_ARG(FUNC_NAME,AT2,A2)					\
   THREADABLE_FUNCTION_1ARG_EXTERNAL_ARGS(FUNC_NAME,AT1,A1)
@@ -97,7 +99,9 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 
 //external function: exportation (last line is most external)
+#define THREADABLE_FUNCTION_0ARG_EXPORT(FUNC_NAME)
 #define THREADABLE_FUNCTION_1ARG_EXPORT(FUNC_NAME,AT1,A1)		\
+  THREADABLE_FUNCTION_0ARG_EXPORT(FUNC_NAME)				\
   EXPORT_ARG(FUNC_NAME,A1)
 #define THREADABLE_FUNCTION_2ARG_EXPORT(FUNC_NAME,AT1,A1,AT2,A2)	\
   THREADABLE_FUNCTION_1ARG_EXPORT(FUNC_NAME,AT1,A1)			\
@@ -183,7 +187,7 @@
   THREADABLE_FUNCTION_10ARG_EXPORT(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8,AT9,A9,AT10,A10) \
   THREADABLE_FUNCTION_TRAMPOLINE_PT2(FUNC_NAME)
 
-//////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////// summoner ///////////////////////////////////////////////////
 
 #define THREADABLE_FUNCTION_0ARG_SUMMONER(FUNC_NAME)	\
   void NAME2(FUNC_NAME,SUMMONER)()			\

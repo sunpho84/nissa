@@ -26,6 +26,7 @@
 //assumes that the passed conf already has stag phases inside it
 THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_type*,quark_content, quad_su3**,eo_conf, int,niters)
 {
+  GET_THREAD_ID();
   communicate_eo_quad_su3_borders(eo_conf);
   (*eig_max)=0;
   
@@ -66,6 +67,8 @@ THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_type*,quar
 //assumes that the conf has already stag phases inside
 THREADABLE_FUNCTION_4ARG(rootst_eoimpr_scale_expansions, rat_approx_type*,rat_exp_pfgen, rat_approx_type*,rat_exp_actio, quad_su3**,eo_conf, theory_pars_type*,theory_pars)
 {
+  GET_THREAD_ID();
+  
   //loop over each flav
   for(int iflav=0;iflav<theory_pars->nflavs;iflav++)
     {

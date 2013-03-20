@@ -22,10 +22,10 @@
 //put a barrier between threads
 void thread_barrier(int barr_id,int force_barrier=false)
 {
-
   if(!thread_pool_locked||force_barrier)
     {
 #ifdef DEBUG
+      GET_THREAD_ID();
       printf("thread %d rank %d barrier %d (thread_pool_locked: %d, force_barrier: %d\n",
 	     thread_id,rank,barr_id,thread_pool_locked,force_barrier);
       //debug: copy the barrier id to the global ref
@@ -81,6 +81,8 @@ void thread_pool_lock()
 //thread pool (executed by non-master threads)
 void thread_pool()
 {
+  GET_THREAD_ID();
+  
   //check that thread 0 is not inside the pool
   if(thread_id==0) crash("thread 0 cannot enter the pool");
   
@@ -123,6 +125,8 @@ void start_threaded_function(void(*function)(void),const char *name)
 //delete the thread pool
 void thread_pool_stop()
 {
+  GET_THREAD_ID();
+  
   //check to be thread 0
   if(thread_id!=0) crash("only thread 0 can stop the pool");
   
@@ -169,6 +173,7 @@ void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char 
     master_printf("Using %d threads\n",nthreads);
     
     //distinguish master thread from the others
+    GET_THREAD_ID();
     if(thread_id!=0) thread_pool();
     else thread_master_start(narg,arg,main_function);
   }

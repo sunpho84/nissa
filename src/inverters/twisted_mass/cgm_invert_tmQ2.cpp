@@ -39,6 +39,8 @@
 #define A3 RL
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,RL,
 
+#define CG_128_INVERT inv_tmQ2_m2_RL_cg_128
+#define CG_128_ADDITIONAL_PARAMETERS_CALL conf,kappa,RL,
 
 #include "../templates/cgm_invert_template_threaded.cpp"
 

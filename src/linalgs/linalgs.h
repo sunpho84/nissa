@@ -6,6 +6,7 @@ void double_vector_glb_scalar_prod(double *res,double *a,double *b,int n);
 void complex_vector_glb_scalar_prod(complex *res,complex *a,complex *b,int n);
 void double_vector_copy(double *a,double *b,int n);
 void double_vector_from_quadruple_vector(double *a,float_128 *b,int n);
+void quadruple_vector_from_double_vector(float_128 *a,double *b,int n);
 void double_vector_init_to_zero(double *a,int n);
 void double_vector_linear_comb(double *a,double *b,double c,double *d,double e,int n,int OPT=0);
 void double_vector_prod_double(double *out,double *in,double r,int n);

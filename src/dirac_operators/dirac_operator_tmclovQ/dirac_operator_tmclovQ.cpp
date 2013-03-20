@@ -24,7 +24,8 @@ THREADABLE_FUNCTION_7ARG(apply_tmclovQ, spincolor*,out, quad_su3*,conf, double,k
   
   double kcf=1/(2*kappa);
 
-  NISSA_PARALLEL_LOOP(X,loc_vol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(X,0,loc_vol)
     {
       int Xup,Xdw;
       color temp_c0,temp_c1,temp_c2,temp_c3;
