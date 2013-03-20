@@ -34,6 +34,8 @@ THREADABLE_FUNCTION_8ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, double*,shi
 THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, double*,shift, int,nshift, int,niter_max, double*,ext_req_res, BASETYPE*,source)
 #endif
 {
+  GET_THREAD_ID();
+  
 #ifdef CG_128_INVERT
   //limit inner solver precision
   double max_inner_solver=1.0e-25;
@@ -228,7 +230,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
       APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS shift[ishift],sol[ishift]);
 
       double loc_res=0,locw_res=0,locmax_res=0,loc_weight=0;
-      NISSA_PARALLEL_LOOP(i,BULK_VOL*NDOUBLES_PER_SITE)
+      NISSA_PARALLEL_LOOP(i,0,BULK_VOL*NDOUBLES_PER_SITE)
 	{
 	  double pdiff=((double*)s)[i]-((double*)source)[i];
 	  double psol=((double*)sol[ishift])[i];
@@ -263,7 +265,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
   
   if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
   
-#ifdef cg_128_invert
+#ifdef CG_128_INVERT
   //if 128 bit precision required refine the solution
   if(nissa_use_128_bit_precision)
     {
@@ -301,6 +303,8 @@ THREADABLE_FUNCTION_7ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2
 THREADABLE_FUNCTION_8ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2, AT3,A3, rat_approx_type*,appr, int,niter_max, double,req_res, BASETYPE*,source)
 #endif
 {
+  GET_THREAD_ID();
+  
   //allocate temporary single solutions
   BASETYPE *temp[appr->degree];
   for(int iterm=0;iterm<appr->degree;iterm++)
@@ -310,7 +314,7 @@ THREADABLE_FUNCTION_8ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2
   CGM_INVERT_RUN_HM_UP_TO_COMM_PREC(temp,CGM_ADDITIONAL_PARAMETERS_CALL appr->poles,appr->degree,niter_max,req_res,source);
   
   //summ all the shifts
-  NISSA_PARALLEL_LOOP(i,BULK_VOL*NDOUBLES_PER_SITE)
+  NISSA_PARALLEL_LOOP(i,0,BULK_VOL*NDOUBLES_PER_SITE)
     {
       ((double*)sol)[i]=appr->cons*((double*)source)[i];
       for(int iterm=0;iterm<appr->degree;iterm++)

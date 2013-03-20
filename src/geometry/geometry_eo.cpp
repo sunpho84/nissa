@@ -270,9 +270,10 @@ THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_eo_conf, quad_su3**,eo_conf)
   if(check_borders_allocated(eo_conf[0]) && check_borders_allocated(eo_conf[1]) && check_borders_valid(eo_conf[0]) && check_borders_valid(eo_conf[1])) ending+=bord_volh;
   if(check_edges_allocated(eo_conf[0])   && check_edges_allocated(eo_conf[1])   && check_edges_valid(eo_conf[0])   && check_edges_valid(eo_conf[1])) ending+=edge_volh;
   
+  GET_THREAD_ID();
   for(int par=0;par<2;par++)
     {
-      NISSA_PARALLEL_LOOP(ivol_eo,ending)
+      NISSA_PARALLEL_LOOP(ivol_eo,0,ending)
 	{
 	  int ivol_lx=loclx_of_loceo[par][ivol_eo];
 	  

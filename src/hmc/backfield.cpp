@@ -90,13 +90,12 @@ void add_em_field_to_backfield(quad_u1 **S,quark_content_type &quark_content,em_
 THREADABLE_FUNCTION_2ARG(add_backfield_to_conf, quad_su3**,conf, quad_u1**,u1)
 {
   verbosity_lv2_master_printf("Adding backfield\n");
+  GET_THREAD_ID();
   for(int par=0;par<2;par++)
     {
-      NISSA_PARALLEL_LOOP(ivol,loc_volh)
-	{
-	  for(int mu=0;mu<4;mu++)
-	    safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
-	}
+      NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	for(int mu=0;mu<4;mu++)
+	  safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
       set_borders_invalid(conf[par]);
     }
 }}
@@ -105,13 +104,12 @@ THREADABLE_FUNCTION_2ARG(add_backfield_to_conf, quad_su3**,conf, quad_u1**,u1)
 THREADABLE_FUNCTION_2ARG(rem_backfield_from_conf, quad_su3**,conf, quad_u1**,u1)
 {
   verbosity_lv2_master_printf("Removing backfield\n");
+  GET_THREAD_ID();
   for(int par=0;par<2;par++)
     {
-      NISSA_PARALLEL_LOOP(ivol,loc_volh)
-	{
-	  for(int mu=0;mu<4;mu++)
-	    safe_su3_prod_conj_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
-	}
+      NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+	for(int mu=0;mu<4;mu++)
+	  safe_su3_prod_conj_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
       set_borders_invalid(conf[par]);
     }
 }}

@@ -58,6 +58,8 @@ void start_communicating_lx_borders(int *nrequest,MPI_Request *request,char *dat
 {
   if(!check_borders_valid(data))
     {
+      GET_THREAD_ID();
+      
       if(!IS_MASTER_THREAD) (*nrequest)=4*nparal_dir;
       else
 	{
@@ -88,6 +90,8 @@ void finish_communicating_lx_borders(int *nrequest,MPI_Request *request,char *da
 {
   if((*nrequest)>0)
     {
+      GET_THREAD_ID();
+      
       if(IS_MASTER_THREAD)
 	{
 	  tot_nissa_comm_time-=take_time();
@@ -137,6 +141,8 @@ void communicate_lx_edges(char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *
   
   if(!check_edges_valid(data))
     {
+      GET_THREAD_ID();
+      
       if(IS_MASTER_THREAD)
 	{
 	  int nrequest=0;
@@ -262,6 +268,8 @@ void finish_communicating_ev_borders(int *nrequest,MPI_Request *request,char *ev
 {
   if((*nrequest)>0)
     {
+      GET_THREAD_ID();
+      
       if(IS_MASTER_THREAD)
 	{
 	  tot_nissa_comm_time-=take_time();
@@ -282,6 +290,8 @@ void start_communicating_ev_borders(int *nrequest,MPI_Request *request,char *ev_
 {
   if(!check_borders_valid(ev_data))
     {
+      GET_THREAD_ID();
+      
       if(!IS_MASTER_THREAD) (*nrequest)=4*nparal_dir;
       else
 	{
@@ -335,6 +345,8 @@ void communicate_od_borders(char *od_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MP
     {
       crash_if_borders_not_allocated(od_data);
       
+      GET_THREAD_ID();
+      
       if(IS_MASTER_THREAD)
 	{
 	  tot_nissa_comm_time-=take_time();
@@ -385,6 +397,8 @@ void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_
 {
   if(!check_borders_valid(data[EVN])||!check_borders_valid(data[ODD]))
     {
+      GET_THREAD_ID();
+      
       if(IS_MASTER_THREAD)
 	{
 	  int nrequest=0;
@@ -551,6 +565,8 @@ void communicate_eo_edges(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Da
       //first make sure that borders are communicated
       communicate_eo_borders(data,MPI_EO_BORDS_SEND_TXY,MPI_EV_BORDS_SEND_Z,MPI_OD_BORDS_SEND_Z,MPI_EO_BORDS_RECE,nbytes_per_site);
 	  
+      GET_THREAD_ID();
+      
       if(IS_MASTER_THREAD)
 	{
 	  int nrequest=0;

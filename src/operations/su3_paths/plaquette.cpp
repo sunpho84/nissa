@@ -120,6 +120,7 @@ u |      |
 */
 THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, quad_su3**,conf)
 {
+  GET_THREAD_ID();
   communicate_eo_quad_su3_borders(conf);
   
   float_128 locplaq[2]={{0,0},{0,0}};
@@ -127,7 +128,7 @@ THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, quad_su3**,c
   //loop over all the lattice
   for(int par=0;par<2;par++)
       {
-	NISSA_PARALLEL_LOOP(A,loc_volh)
+	NISSA_PARALLEL_LOOP(A,0,loc_volh)
 	  for(int mu=0;mu<4;mu++)
 	    for(int nu=mu+1;nu<4;nu++)
 	      {

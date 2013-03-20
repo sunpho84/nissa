@@ -22,7 +22,8 @@ THREADABLE_FUNCTION_4ARG(tmn2Deo_or_tmn2Doe_eos_128, spincolor_128*,out, quad_su
   if(eooe==0) communicate_od_spincolor_128_borders(in);
   else        communicate_ev_spincolor_128_borders(in);
   
-  NISSA_PARALLEL_LOOP(X,loc_volh)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(X,0,loc_volh)
     {
       int Xup,Xdw;
       color_128 temp_c0,temp_c1,temp_c2,temp_c3;
@@ -129,7 +130,8 @@ THREADABLE_FUNCTION_4ARG(tmDee_or_oo_eos_128, spincolor_128*,out, double,kappa, 
 
   if(in==out) crash("in==out!");
   
-  NISSA_PARALLEL_LOOP(X,loc_volh)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(X,0,loc_volh)
     for(int ic=0;ic<3;ic++)
       {
 	for(int id=0;id<2;id++) unsafe_complex_64_prod_128(out[X][id][ic],z,in[X][id][ic]);
@@ -148,7 +150,8 @@ THREADABLE_FUNCTION_4ARG(inv_tmDee_or_oo_eos_128, spincolor_128*,out, double,kap
   
   if(in==out) crash("in==out!");
   
-  NISSA_PARALLEL_LOOP(X,loc_volh)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(X,0,loc_volh)
     for(int ic=0;ic<3;ic++)
       {
 	for(int id=0;id<2;id++) unsafe_complex_64_prod_128(out[X][id][ic],z,in[X][id][ic]);
@@ -167,7 +170,8 @@ THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos_128, spincolor_128*,out, spincolor_1
   inv_tmDee_or_oo_eos_128(temp,kappa,mu,out);
   tmDee_or_oo_eos_128(temp,kappa,mu,in);
   
-  NISSA_PARALLEL_LOOP(ivol,loc_volh)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
     for(int id=0;id<2;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)

@@ -16,6 +16,7 @@
 #define BORD_SIZE bord_vol
 
 #define APPLY_OPERATOR_128 apply_tmQ2_RL_128
+#define APPLY_OPERATOR apply_tmQ2_RL
 //parameters of the operator
 #define CG_OPERATOR_128_PARAMETERS conf,kappa,temp_128,RL,mass,
 

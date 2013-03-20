@@ -30,6 +30,7 @@ THREADABLE_FUNCTION_7ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, int,
 THREADABLE_FUNCTION_8ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, int,niter, int,rniter, double,residue, BASETYPE*,source)
 #endif
 {
+  GET_THREAD_ID();
   int riter=0;
   BASETYPE *s=nissa_malloc("s",BULK_VOL,BASETYPE);
   BASETYPE *p=nissa_malloc("p",BULK_VOL+BORD_VOL,BASETYPE);

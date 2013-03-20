@@ -56,6 +56,7 @@ void set_vec_flag_non_blocking(void *v,unsigned int flag)
 void set_vec_flag(void *v,unsigned int flag)
 {
 #ifdef DEBUG
+  GET_THREAD_ID();
   printf("set_vec_flag for vect %s allocated in file %s line %d, rank %d thread_id: %d, thread_pool_locked: %d\n",
 	 get_vec_name(v),get_nissa_vec(v)->file,get_nissa_vec(v)->line,rank,thread_id,thread_pool_locked);
   print_backtrace_list();
@@ -206,6 +207,7 @@ void initialize_main_nissa_vect()
 //allocate an nissa vector 
 void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *type,const char *file,int line)
 {
+  GET_THREAD_ID();
   if(IS_MASTER_THREAD)
     {
       if_nissa_vect_not_initialized() initialize_main_nissa_vect();
@@ -304,6 +306,7 @@ void vector_reset(void *a)
   //sync so all thread are not using the vector
   thread_barrier(INTERNAL_VECTOR_RESET_FIRST_BARRIER);
   
+  GET_THREAD_ID();
   if(IS_MASTER_THREAD)
     {
       nissa_vect *nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
@@ -322,6 +325,7 @@ void internal_nissa_free(char **arr,const char *file,int line)
   //sync so all thread are not using the vector
   thread_barrier(INTERNAL_NISSA_FREE_FIRST_BARRIER);
 
+  GET_THREAD_ID();
   if(IS_MASTER_THREAD)
     {
       if(arr!=NULL)
@@ -366,6 +370,7 @@ void internal_nissa_free(char **arr,const char *file,int line)
 //reorder a vector according to the specified order (the order is destroyed)
 void reorder_vector(char *vect,int *order,int nel,int sel)
 {
+  GET_THREAD_ID();
   if(!IS_MASTER_THREAD) crash("not threaded yet");
   char *buf=(char*)nissa_malloc("buf",sel,char);
   

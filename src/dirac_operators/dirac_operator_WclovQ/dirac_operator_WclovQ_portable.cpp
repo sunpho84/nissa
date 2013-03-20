@@ -12,7 +12,8 @@ THREADABLE_FUNCTION_6ARG(apply_WclovQ, spincolor*,out, quad_su3*,conf, double,ka
   double_vector_prod_double((double*)out,(double*)out,csw/2,loc_vol*24);
   
   double kcf=1/(2*kappa);
-  NISSA_PARALLEL_LOOP(X,loc_vol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(X,0,loc_vol)
     {
       int Xup,Xdw;
       color temp_c0,temp_c1,temp_c2,temp_c3;

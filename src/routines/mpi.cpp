@@ -43,6 +43,8 @@ double glb_reduce_double(double in_loc)
   if(thread_pool_locked) MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   else
     {
+      GET_THREAD_ID();
+      
       //copy loc in the buf and sync all the threads
       glb_double_reduction_buf[thread_id]=in_loc;
       thread_barrier(DOUBLE_REDUCE_FIRST_BARRIER);
@@ -63,11 +65,10 @@ double glb_reduce_double(double in_loc)
 }
 
 //reduce an int
-int glb_reduce_int(int in_loc)
+void glb_reduce_int(int *out_glb,int in_loc)
 {
-  MPI_Allreduce(&in_loc,&reduce_int,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-  
-  return reduce_int;
+  if(thread_pool_locked) MPI_Allreduce(&in_loc,out_glb,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
+  else crash("not threaded yet");
 }
 
 //reduce a complex
@@ -80,6 +81,8 @@ void glb_reduce_float_128(float_128 out_glb,float_128 in_loc)
   if(thread_pool_locked) MPI_Allreduce(in_loc,out_glb,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
   else
     {
+      GET_THREAD_ID();
+      
       //copy loc in the buf and sync all the threads
       float_128_copy(glb_float_128_reduction_buf[thread_id],in_loc);
       thread_barrier(FLOAT_128_REDUCE_FIRST_BARRIER);
