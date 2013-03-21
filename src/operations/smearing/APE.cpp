@@ -8,28 +8,28 @@
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
-
-#include <string.h>
+#include "../../routines/openmp.h"
 
 //perform ape smearing
 //be sure not to have border condition added
-void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
+THREADABLE_FUNCTION_4ARG(ape_spatial_smear_conf, quad_su3*,smear_conf, quad_su3*,origi_conf, double,alpha, int,nstep)
 {
+  GET_THREAD_ID();  
+
   quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  if(origi_conf!=smear_conf) memcpy(smear_conf,origi_conf,sizeof(quad_su3)*loc_vol);
+  if(origi_conf!=smear_conf) vector_copy(smear_conf,origi_conf);
   
   verbosity_lv1_master_printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
       
   for(int istep=0;istep<nstep;istep++)
     {
       verbosity_lv3_master_printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
-      memcpy(temp_conf,smear_conf,sizeof(quad_su3)*loc_vol);
-      set_borders_invalid(temp_conf);
+      vector_copy(temp_conf,smear_conf);
     
       //communicate the borders
       communicate_lx_quad_su3_edges(temp_conf);
       
-      nissa_loc_vol_loop(ivol)
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	{
 	  for(int mu=1;mu<4;mu++)
 	    {
@@ -64,9 +64,9 @@ void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alp
 	      su3_unitarize_maximal_trace_projecting(smear_conf[ivol][mu],prop_link);
 	    }
 	}
+      
+      set_borders_invalid(smear_conf);
     }
   
-  set_borders_invalid(smear_conf);
-  
   nissa_free(temp_conf);
-}
+}}

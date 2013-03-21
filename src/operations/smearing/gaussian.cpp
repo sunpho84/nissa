@@ -8,18 +8,20 @@
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
-
 #include "../../routines/ios.h"
+#include "../../routines/openmp.h"
 
 //apply kappa*H to a spincolor
-void gaussian_smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,spincolor *smear_sc)
+THREADABLE_FUNCTION_4ARG(gaussian_smearing_apply_kappa_H_spincolor, spincolor*,H, double,kappa, quad_su3*,conf, spincolor*,smear_sc)
 {
+  GET_THREAD_ID();
+  
   communicate_lx_spincolor_borders(smear_sc);
   communicate_lx_quad_su3_borders(conf);
   
   vector_reset(H);
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int id=0;id<4;id++)
       {
 	for(int mu=1;mu<4;mu++)
@@ -34,16 +36,19 @@ void gaussian_smearing_apply_kappa_H(spincolor *H,double kappa,quad_su3 *conf,sp
       }
   
   set_borders_invalid(H);
-}
+}}
+
 //just to a color
-void gaussian_smearing_apply_kappa_H(color *H,double kappa,quad_su3 *conf,color *smear_c)
+THREADABLE_FUNCTION_4ARG(gaussian_smearing_apply_kappa_H_color, color*,H, double,kappa, quad_su3*,conf, color*,smear_c)
 {
+  GET_THREAD_ID();
+  
   communicate_lx_color_borders(smear_c);
   communicate_lx_quad_su3_borders(conf);
   
   vector_reset(H);
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int mu=1;mu<4;mu++)
       {
 	int ivup=loclx_neighup[ivol][mu];
@@ -56,10 +61,10 @@ void gaussian_smearing_apply_kappa_H(color *H,double kappa,quad_su3 *conf,color 
       }
   
   set_borders_invalid(H);
-}
+}}
 
 //gaussian smearing
-void gaussian_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,double kappa,int niter,spincolor *ext_temp=NULL,spincolor *ext_H=NULL)
+THREADABLE_FUNCTION_7ARG(gaussian_smearing, spincolor*,smear_sc, spincolor*,origi_sc, quad_su3*,conf, double,kappa, int,niter, spincolor*,ext_temp, spincolor*,ext_H)
 {
   if(niter<1)
     {
@@ -89,7 +94,7 @@ void gaussian_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,do
 	  verbosity_lv3_master_printf("GAUSSIAN smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter);
 	  
 	  //apply kappa*H
-	  gaussian_smearing_apply_kappa_H(H,kappa,conf,temp);
+	  gaussian_smearing_apply_kappa_H_spincolor(H,kappa,conf,temp);
 	  //add kappa*H and dynamic normalize
 	  double_vector_prod_the_summ_double((double*)temp,norm_fact,(double*)temp,(double*)H,24*loc_vol);
 	}
@@ -99,7 +104,7 @@ void gaussian_smearing(spincolor *smear_sc,spincolor *origi_sc,quad_su3 *conf,do
       if(ext_H==NULL) nissa_free(H);
       if(ext_temp==NULL) nissa_free(temp);
     }
-}
+}}
 
 //wrapper
 void gaussian_smearing(colorspinspin *smear_css,colorspinspin *origi_css,quad_su3 *conf,double kappa,int niter,spincolor *temp1=NULL,spincolor *temp2=NULL,spincolor *temp3=NULL)
@@ -125,7 +130,7 @@ void gaussian_smearing(color *smear_c,color *origi_c,quad_su3 *conf,double kappa
   vector_reset(temp);
   
   put_color_into_spincolor(temp,origi_c,0);
-  gaussian_smearing(temp,temp,conf,kappa,niter);
+  gaussian_smearing(temp,temp,conf,kappa,niter,NULL,NULL);
   get_color_from_spincolor(smear_c,temp,0);
   
   nissa_free(temp);
