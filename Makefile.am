@@ -249,6 +249,7 @@ EXTRA_DIST=README \
 	src/inverters/templates/cg_128_invert_template.cpp \
 	src/inverters/templates/cg_invert_template.cpp \
 	src/inverters/templates/cgm_invert_template.cpp \
+	src/inverters/templates/cg_128_invert_template_threaded.cpp \
 	src/inverters/templates/cg_invert_template_threaded.cpp \
 	src/inverters/templates/cgm_invert_template_threaded.cpp \
 	tools/clusterize.cpp \

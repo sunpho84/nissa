@@ -537,7 +537,7 @@ void su3_prod_double(su3 a,su3 b,double r)
 }
 
 //hermitian of su3 matrix times a real
-void su3_hermitian_prod_double(su3 a,su3 b,double r)
+void unsafe_su3_hermitian_prod_double(su3 a,su3 b,double r)
 {
   for(int i=0;i<3;i++)
     for(int j=0;j<3;j++)
@@ -545,6 +545,23 @@ void su3_hermitian_prod_double(su3 a,su3 b,double r)
 	a[i][j][0]= r*b[j][i][0];
 	a[i][j][1]=-r*b[j][i][1];
       }
+}
+void safe_su3_hermitian_prod_double(su3 a,su3 b,double r)
+{
+  for(int i=0;i<3;i++)
+    {
+      a[i][i][0]=+r*b[i][i][0];
+      a[i][i][1]=-r*b[i][i][1];
+      for(int j=i+1;j<3;j++)
+	{
+	  double a_i_j_0=+r*b[j][i][0];
+	  double a_i_j_1=-r*b[j][i][1];
+	  a[j][i][0]=+r*b[i][j][0];
+	  a[j][i][1]=-r*b[i][j][1];
+	  a[i][j][0]=a_i_j_0;
+	  a[i][j][1]=a_i_j_1;
+	}
+    }
 }
 
 //summ the prod of su3 with imag
