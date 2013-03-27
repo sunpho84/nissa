@@ -231,8 +231,8 @@ void initialize_Bk(int narg,char **arg)
 
   //Allocate gauge conf
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol,quad_su3);
-  if(include_static) hyp_conf=nissa_malloc("hyp_conf",loc_vol+bord_vol,quad_su3);
+  sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  if(include_static) hyp_conf=nissa_malloc("hyp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   //Allocate all the propagators colorspinspin vectors
   nprop=0;
