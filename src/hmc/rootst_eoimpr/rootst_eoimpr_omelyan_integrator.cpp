@@ -5,6 +5,7 @@
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_eo.h"
+#include "../../geometry/geometry_lx.h"
 #include "../../geometry/geometry_mix.h"
 #include "../../new_types/complex.h"
 #include "../../new_types/new_types_definitions.h"
@@ -17,15 +18,17 @@
 #include "rootst_eoimpr_quark_force.h"
 
 //unitarize the conf by explicitly inverting it
-THREADABLE_FUNCTION_2ARG(lx_conf_unitarize_explicitly_inverting, quad_su3*,conf, int,addrem_eo_phases)
+THREADABLE_FUNCTION_1ARG(lx_conf_unitarize_explicitly_inverting, quad_su3*,conf)
 {
   GET_THREAD_ID();
   
-  if(addrem_eo_phases) crash("not implemented");
+  addrem_stagphases_to_lx_conf(conf);
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int mu=0;mu<4;mu++)
       su3_unitarize_explicitly_inverting(conf[ivol][mu],conf[ivol][mu]);
+  
+  addrem_stagphases_to_lx_conf(conf);
   
   set_borders_invalid(conf);
 }}
@@ -101,7 +104,7 @@ THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_s
       evolve_lx_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt);
       
       //normalize the configuration
-      lx_conf_unitarize_explicitly_inverting(lx_conf,false);
+      lx_conf_unitarize_explicitly_inverting(lx_conf);
     }
 }}
 
@@ -116,6 +119,9 @@ void omelyan_pure_gauge_evolver_eo_conf(quad_su3 **H_eo,quad_su3 **conf_eo,theor
   
   omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
   
+  split_lx_conf_into_eo_parts(H_eo,H_lx);
+  split_lx_conf_into_eo_parts(conf_eo,conf_lx);
+  
   nissa_free(conf_lx);
   nissa_free(H_lx);
 }
@@ -123,11 +129,11 @@ void omelyan_pure_gauge_evolver_eo_conf(quad_su3 **H_eo,quad_su3 **conf_eo,theor
 /////////////////////////////////////// QUARK E/O PART ////////////////////////////////////////////////
 
 //unitarize the conf by explicitly inverting it
-THREADABLE_FUNCTION_2ARG(eo_conf_unitarize_explicitly_inverting, quad_su3**,conf, int,addrem_eo_phases)
+THREADABLE_FUNCTION_1ARG(eo_conf_unitarize_explicitly_inverting, quad_su3**,conf)
 {
   GET_THREAD_ID();
   
-  if(addrem_eo_phases) addrem_stagphases_to_eo_conf(conf);
+  addrem_stagphases_to_eo_conf(conf);
   
   for(int par=0;par<2;par++)
     {
@@ -138,37 +144,14 @@ THREADABLE_FUNCTION_2ARG(eo_conf_unitarize_explicitly_inverting, quad_su3**,conf
       set_borders_invalid(conf[par]);
     }
       
-  if(addrem_eo_phases) addrem_stagphases_to_eo_conf(conf);
-}}
-
-//evolve the configuration by using the computed momenta
-THREADABLE_FUNCTION_3ARG(evolve_eo_conf_with_momenta, quad_su3**,eo_conf, quad_su3**,H, double,dt)
-{
-  GET_THREAD_ID();
-  
-  verbosity_lv2_master_printf("Evolving conf with momenta, dt=%lg\n",dt);
-  
-  //evolve
-  for(int par=0;par<2;par++)
-    {
-      NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	for(int mu=0;mu<4;mu++)
-	  {
-	    su3 t1,t2;
-	    su3_prod_double(t1,H[par][ivol][mu],dt);
-	    safe_anti_hermitian_exact_i_exponentiate(t2,t1);
-	    
-	    safe_su3_prod_su3(eo_conf[par][ivol][mu],t2,eo_conf[par][ivol][mu]);
-	  }
-      set_borders_invalid(eo_conf[par]);
-    }
+  addrem_stagphases_to_eo_conf(conf);
 }}
 
 // Evolve momenta according to the rooted staggered force
 THREADABLE_FUNCTION_7ARG(evolve_momenta_with_quark_rootst_eoimpr_force, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue, double,dt)
 {
   GET_THREAD_ID();
-  
+
   verbosity_lv2_master_printf("Evolving momenta with force, dt=%lg\n",dt);
   
   //allocate force
@@ -214,7 +197,7 @@ THREADABLE_FUNCTION_6ARG(omelyan_rootst_eoimpr_evolver, quad_su3**,H, quad_su3**
       evolve_momenta_with_quark_rootst_eoimpr_force(H,conf,pf,theory_pars,appr,simul->md_residue,last_dt);
       
       //normalize the configuration
-      eo_conf_unitarize_explicitly_inverting(conf,true);
+      eo_conf_unitarize_explicitly_inverting(conf);
     }
 }}
 
