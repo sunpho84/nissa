@@ -21,6 +21,7 @@
 #endif
 
 #include "hmc/backfield.h"
+#include "hmc/gauge/gluonic_force.h"
 #include "hmc/gauge/wilson_force.h"
 #include "hmc/gauge/tree_level_Symanzik_force.h"
 #include "hmc/gauge/tree_level_Symanzik_action.h"
@@ -28,7 +29,7 @@
 #include "hmc/momenta/momenta_generation.h"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_action.h"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.h"
-#include "hmc/rootst_eoimpr/rootst_eoimpr_force.h"
+#include "hmc/rootst_eoimpr/rootst_eoimpr_quark_force.h"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.h"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.h"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.h"
@@ -101,6 +102,7 @@
 #include "operations/su3_paths/arbitrary.h"
 #include "operations/su3_paths/plaquette.h"
 #include "operations/su3_paths/pline.h"
+#include "operations/su3_paths/squared_staples.h"
 #include "operations/su3_paths/topological_charge.h"
 
 #include "operations/vector_gather.h"

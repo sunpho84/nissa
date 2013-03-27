@@ -4,11 +4,12 @@
 
 #include <string.h>
 
-#include "../../new_types/new_types_definitions.h"
+#include "../../base/debug.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
-#include "../../geometry/geometry_mix.h"
 #include "../../dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h"
+#include "../../geometry/geometry_mix.h"
+#include "../../new_types/new_types_definitions.h"
 #include "../../routines/ios.h"
 
 #include "cg_128_invert_tmDeoimpr.h"
@@ -144,6 +145,8 @@ void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **co
 //Invert twisted mass operator using e/o preconditioning.
 void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mu,int nitermax,int rniter,double residue,spincolor *source_lx)
 {
+  if(!nissa_use_eo_geom) crash("eo geometry needed to use cg_eoprec");
+  
   //prepare the e/o split version of the source
   spincolor *source_eos[2];
   source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spincolor);

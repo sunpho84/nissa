@@ -22,7 +22,7 @@ void spi_finish_communicating_ev_and_od_borders(int *nrequest,void *vec,spi_comm
 void spi_finish_communicating_ev_or_od_borders(int *nrequest,void *vec,spi_comm_t *a,int nbytes_per_site);
 void spi_finish_communicating_lx_borders(int *nrequest,void *vec,spi_comm_t *a,int nbytes_per_site);
 void spi_global_barrier();
-void spi_start_comm(spi_comm_t *in);
+void spi_start_comm(spi_comm_t *in,int *dir_comm=NULL,int tot_size=-1);
 void spi_start_communicating_ev_and_od_borders(int *nrequest,spi_comm_t *a,void **vec,int nbytes_per_site);
 void spi_start_communicating_ev_or_od_borders(int *nrequest,spi_comm_t *a,void *vec,int nbytes_per_site,int eo);
 void spi_start_communicating_lx_borders(int *nrequest,spi_comm_t *a,void *vec,int nbytes_per_site);

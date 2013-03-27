@@ -271,33 +271,45 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
 //copy one vector into another
 void vector_copy(void *a,void *b)
 {
-  //control that a!=b
-  if(a==b) crash("while copying, vector1 and vector2 are the same");
+  GET_THREAD_ID();
   
-  //get nissa-vector pointers
-  nissa_vect *nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
-  nissa_vect *nissa_b=(nissa_vect*)((char*)b-sizeof(nissa_vect));
+  //sync so we are sure that all threads are here
+  thread_barrier(VECTOR_COPY_FIRST_BARRIER);
   
-  //get nentries
-  int nel_a=nissa_a->nel;
-  int nel_b=nissa_b->nel;
-  
-  //get nentries per site
-  int size_per_el_a=nissa_a->size_per_el;
-  int size_per_el_b=nissa_b->size_per_el;
-  
-  //check size agreement
-  if(nel_a!=nel_b) crash("while copying, vector %s contains %d and vector %s contains %d",nissa_a->tag,nel_a,nissa_b->tag,nel_b);
-  
-  //check type agreement
-  if(size_per_el_a!=size_per_el_b)
-    crash("while copying, vector %s contains %d bytes per el and vector %s contains %d",nissa_a->tag,size_per_el_a,nissa_b->tag,size_per_el_b);
-  
-  //perform the copy
-  memcpy(a,b,size_per_el_a*nel_a);
-  
-  //copy the flag
-  nissa_a->flag=nissa_b->flag;
+  if(IS_MASTER_THREAD)
+    {
+      
+      //control that a!=b
+      if(a==b) crash("while copying, vector1 and vector2 are the same");
+      
+      //get nissa-vector pointers
+      nissa_vect *nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
+      nissa_vect *nissa_b=(nissa_vect*)((char*)b-sizeof(nissa_vect));
+      
+      //get nentries
+      int nel_a=nissa_a->nel;
+      int nel_b=nissa_b->nel;
+      
+      //get nentries per site
+      int size_per_el_a=nissa_a->size_per_el;
+      int size_per_el_b=nissa_b->size_per_el;
+      
+      //check size agreement
+      if(nel_a!=nel_b) crash("while copying, vector %s contains %d and vector %s contains %d",nissa_a->tag,nel_a,nissa_b->tag,nel_b);
+      
+      //check type agreement
+      if(size_per_el_a!=size_per_el_b)
+	crash("while copying, vector %s contains %d bytes per el and vector %s contains %d",nissa_a->tag,size_per_el_a,nissa_b->tag,size_per_el_b);
+      
+      //perform the copy
+      memcpy(a,b,size_per_el_a*nel_a);
+      
+      //copy the flag
+      nissa_a->flag=nissa_b->flag;
+    }
+
+  //sync so we are sure that all threads are here
+  thread_barrier(VECTOR_COPY_SECOND_BARRIER);      
 }
 
 //reset a vector

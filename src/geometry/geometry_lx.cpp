@@ -8,7 +8,9 @@
 #include "../base/debug.h"
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
+#include "../new_types/su3.h"
 #include "../routines/ios.h"
+#include "../routines/openmp.h"
 
 //Return the index of site of coord x in the border mu,nu
 int edgelx_of_coord(int *x,int mu,int nu)
@@ -319,22 +321,26 @@ void find_surf_of_bord()
 void find_bulk_sites()
 {
   //check surfacity
-  int ibulk=0,ibulk_plus_fw_surf=0,ibulk_plus_bw_surf=0;
+  int ibulk=0,inon_fw_surf=0,inon_bw_surf=0;
+  int isurf=0,ifw_surf=0,ibw_surf=0;
   nissa_loc_vol_loop(ivol)
     {
-      //find if it is on bulk or fw or bw surf
-      int is_bulk=true,is_bulk_plus_fw_surf=true,is_bulk_plus_bw_surf=true;
+      //find if it is on bulk or non_fw or non_bw surf
+      int is_bulk=true,is_non_fw_surf=true,is_non_bw_surf=true;
       for(int mu=0;mu<4;mu++)
 	if(paral_dir[mu])
 	  {
-	    if(loc_coord_of_loclx[ivol][mu]==loc_size[mu]-1) is_bulk=is_bulk_plus_bw_surf=false;
-	    if(loc_coord_of_loclx[ivol][mu]==0)              is_bulk=is_bulk_plus_fw_surf=false;
+	    if(loc_coord_of_loclx[ivol][mu]==loc_size[mu]-1) is_bulk=is_non_fw_surf=false;
+	    if(loc_coord_of_loclx[ivol][mu]==0)              is_bulk=is_non_bw_surf=false;
 	  }
       
       //mark it
       if(is_bulk) loclx_of_bulklx[ibulk++]=ivol;
-      if(is_bulk_plus_bw_surf) loclx_of_bulk_plus_bw_surflx[ibulk_plus_bw_surf++]=ivol;
-      if(is_bulk_plus_fw_surf) loclx_of_bulk_plus_fw_surflx[ibulk_plus_fw_surf++]=ivol;      
+      else        loclx_of_surflx[isurf++]=ivol;
+      if(is_non_fw_surf) loclx_of_non_fw_surflx[inon_fw_surf++]=ivol;
+      else               loclx_of_fw_surflx[ifw_surf++]=ivol;
+      if(is_non_bw_surf) loclx_of_non_bw_surflx[inon_bw_surf++]=ivol;
+      else               loclx_of_bw_surflx[ibw_surf++]=ivol;
     }
 }  
 
@@ -371,8 +377,11 @@ void set_lx_geometry()
   
   //bulk and surfs
   loclx_of_bulklx=nissa_malloc("loclx_of_bulklx",bulk_vol,int);
-  loclx_of_bulk_plus_fw_surflx=nissa_malloc("loclx_of_bulk_plus_fw_surflx",bulk_plus_fw_surf_vol,int);
-  loclx_of_bulk_plus_bw_surflx=nissa_malloc("loclx_of_bulk_plus_bw_surflx",bulk_plus_bw_surf_vol,int);
+  loclx_of_surflx=nissa_malloc("loclx_of_surflx",surf_vol,int);
+  loclx_of_non_bw_surflx=nissa_malloc("loclx_of_non_bw_surflx",non_bw_surf_vol,int);
+  loclx_of_non_fw_surflx=nissa_malloc("loclx_of_non_fw_surflx",non_fw_surf_vol,int);
+  loclx_of_bw_surflx=nissa_malloc("loclx_of_bw_surflx",bw_surf_vol,int);
+  loclx_of_fw_surflx=nissa_malloc("loclx_of_fw_surflx",fw_surf_vol,int);
   
   //edges
   glblx_of_edgelx=nissa_malloc("glblx_of_edgelx",edge_vol,int);
@@ -448,6 +457,13 @@ void unset_lx_geometry()
   nissa_free(loclx_of_bordlx);
   nissa_free(surflx_of_bordlx);
   nissa_free(glblx_of_edgelx);
+  
+  nissa_free(loclx_of_bulklx);
+  nissa_free(loclx_of_surflx);
+  nissa_free(loclx_of_non_fw_surflx);
+  nissa_free(loclx_of_fw_surflx);
+  nissa_free(loclx_of_non_bw_surflx);
+  nissa_free(loclx_of_bw_surflx);
 }
 
 //definitions of lexical ordered sender for borders
@@ -549,3 +565,41 @@ void define_local_momenta(momentum_t *k,double *k2,momentum_t *ktilde,double *kt
 	}
     }
 }
+
+//multiply the whole conf for stag phases
+THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_lx_conf, quad_su3*,lx_conf)
+{
+  //we must ensure that nobody is using the conf
+  thread_barrier(ADDREM_STAGPHASES_FIRST_BARRIER);
+ 
+  //work also on borders and edges if allocated and valid
+  int ending=loc_vol;
+  if(check_borders_allocated(lx_conf) && check_borders_valid(lx_conf)) ending+=bord_vol;
+  if(check_edges_allocated(lx_conf) && check_edges_valid(lx_conf)) ending+=edge_vol;
+  
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,ending)
+    {
+      int d=0;
+      
+      //phase in direction 1 is always 0 so nothing has to be done in that dir
+      //if(d%2==1) su3_prod_double(lx_conf[ivol][1],lx_conf[ivol][1],-1);
+      
+      //direction 2
+      d+=glb_coord_of_loclx[ivol][1];
+      if(d%2==1) su3_prod_double(lx_conf[ivol][2],lx_conf[ivol][2],-1);
+          
+      //direction 3
+      d+=glb_coord_of_loclx[ivol][2];
+      if(d%2==1) su3_prod_double(lx_conf[ivol][3],lx_conf[ivol][3],-1);
+          
+      //direction 0
+      d+=glb_coord_of_loclx[ivol][3];
+      //debug: putting the anti-periodic condition on the temporal border
+      //in future remove it!!!
+      if(glb_coord_of_loclx[ivol][0]==glb_size[0]-1) d+=1;
+      if(d%2==1) su3_prod_double(lx_conf[ivol][0],lx_conf[ivol][0],-1);
+    }
+  
+  thread_barrier(ADDREM_STAGPHASES_SECOND_BARRIER);
+}}

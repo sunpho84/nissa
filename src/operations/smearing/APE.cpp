@@ -25,7 +25,7 @@ THREADABLE_FUNCTION_4ARG(ape_spatial_smear_conf, quad_su3*,smear_conf, quad_su3*
     {
       verbosity_lv3_master_printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
       vector_copy(temp_conf,smear_conf);
-    
+      
       //communicate the borders
       communicate_lx_quad_su3_edges(temp_conf);
       

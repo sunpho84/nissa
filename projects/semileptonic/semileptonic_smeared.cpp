@@ -466,7 +466,7 @@ void initialize_semileptonic(char *input_path)
   
   //allocate gauge conf, Pmunu and all the needed spincolor and propagators
   conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  if(ape_niter!=0) sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol,quad_su3);
+  if(ape_niter!=0) sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   else sme_conf=conf;
   Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
   
@@ -556,14 +556,15 @@ void setup_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
+  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
   Pmunu_term(Pmunu,conf);
   
-  //prepare the smerded version
-  if(ape_niter!=0) ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
-  
-  //compute plaquette
-  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
-  if(ape_niter!=0) master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
+  //prepare the smerded version and compute plaquette
+  if(ape_niter!=0)
+    {
+      ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
+      master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
+    }
   
   //put the anti-periodic condition on the temporal border
   old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;

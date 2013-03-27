@@ -192,6 +192,7 @@ void set_spi_comm(spi_comm_t &in,int buf_size,int *payload_address_offset,int *m
 }
 
 //set up a communicator for lx or eo borders
+//first 4 communicate to forward nodes, last four to backward nodes
 void set_lx_or_eo_spi_comm(spi_comm_t &in,int nbytes_per_site,int lx_eo)
 {
   int div_coeff=(lx_eo==0)?1:2; //dividing coeff
@@ -221,6 +222,8 @@ void set_eo_spi_comm(spi_comm_t &in,int nbytes_per_site) {set_lx_or_eo_spi_comm(
 //wait a communication to finish
 void spi_comm_wait(spi_comm_t *in)
 {
+  GET_THREAD_ID();
+  
   if(IS_MASTER_THREAD)
     {
       verbosity_lv3_master_printf("Entering spi comm wait\n");
@@ -250,8 +253,10 @@ void spi_comm_wait(spi_comm_t *in)
 }
 
 //start the communications
-void spi_start_comm(spi_comm_t *in)
+void spi_start_comm(spi_comm_t *in,int *dir_comm,int tot_size)
 {
+  GET_THREAD_ID();
+  
   //wait for any previous communication to finish and mark as new started 
   spi_comm_wait(in);
   
@@ -259,16 +264,18 @@ void spi_start_comm(spi_comm_t *in)
     {
       //reset the counter and wait that all have reset
       spi_global_barrier();
-      in->recv_counter=in->buf_size;
+      if(tot_size==-1) in->recv_counter=in->buf_size;
+      else in->recv_counter=tot_size;
       spi_global_barrier();
       
       //start the injection
       for(int idir=0;idir<8;idir++)
-	{
-	  verbosity_lv3_master_printf("Injecting %d\n",idir);
-	  spi_desc_count[idir]=MUSPI_InjFifoInject(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),&in->descriptors[idir]);
-	  if(spi_desc_count[idir]>(1ll<<57)) crash("msg_InjFifoInject returned %llu when expecting 1, most likely because there is no room in the fifo",spi_desc_count[idir]);
-	}
+	if(dir_comm==NULL||dir_comm[idir])
+	  {
+	    verbosity_lv3_master_printf("Injecting %d\n",idir);
+	    spi_desc_count[idir]=MUSPI_InjFifoInject(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),&in->descriptors[idir]);
+	    if(spi_desc_count[idir]>(1ll<<57)) crash("msg_InjFifoInject returned %llu when expecting 1, most likely because there is no room in the fifo",spi_desc_count[idir]);
+	  }
       
       in->comm_in_prog=1;
     }
@@ -277,6 +284,8 @@ void spi_start_comm(spi_comm_t *in)
 //unset everything
 void unset_spi_comm(spi_comm_t *in)
 {
+  GET_THREAD_ID();
+  
   //wait for any communication to finish
   spi_comm_wait(in);
   
@@ -293,11 +302,13 @@ void unset_spi_comm(spi_comm_t *in)
 //fill the sending buf using the data inside an lx vec
 void fill_spi_sending_buf_with_lx_vec(spi_comm_t *a,void *vec,int nbytes_per_site)
 {
+  GET_THREAD_ID();
+  
   //check buffer size matching
   if(a->buf_size!=nbytes_per_site*bord_vol) crash("wrong buffer size (%d) for %d large border)",a->buf_size,nbytes_per_site*bord_vol);
   
   //copy one by one the surface of vec inside the sending buffer
-  NISSA_PARALLEL_LOOP(ibord,bord_vol)
+  NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
     memcpy(a->send_buf+nbytes_per_site*ibord,(char*)vec+surflx_of_bordlx[ibord]*nbytes_per_site,nbytes_per_site);
 
   //wait that all threads filled their portion
@@ -307,6 +318,8 @@ void fill_spi_sending_buf_with_lx_vec(spi_comm_t *a,void *vec,int nbytes_per_sit
 //extract the information from receiving buffer and put them inside an lx vec
 void fill_lx_bord_with_spi_receiving_buf(void *vec,spi_comm_t *a,int nbytes_per_site)
 {
+  GET_THREAD_ID();
+  
   if(IS_MASTER_THREAD)
     {
       crash_if_borders_not_allocated(vec);
@@ -326,6 +339,8 @@ void spi_start_communicating_lx_borders(int *nrequest,spi_comm_t *a,void *vec,in
 {
   if(!check_borders_valid(vec))
     {
+      GET_THREAD_ID();
+      
       //take time and write some debug output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
       verbosity_lv3_master_printf("Start spi communication of lx borders of %s\n",get_vec_name((void*)vec));
@@ -345,6 +360,8 @@ void spi_finish_communicating_lx_borders(int *nrequest,void *vec,spi_comm_t *a,i
 {
   if(!check_borders_valid(vec) && (*nrequest==8))
     {
+      GET_THREAD_ID();
+      
       //take time and write some output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
       verbosity_lv3_master_printf("Finish spi communication of lx borders of %s\n",get_vec_name((void*)vec));
@@ -379,11 +396,13 @@ void spi_communicate_lx_borders(void *vec,spi_comm_t *a,int nbytes_per_site)
 //fill the sending buf using the data inside an ev or odd vec
 void fill_spi_sending_buf_with_ev_or_od_vec(spi_comm_t *a,void *vec,int nbytes_per_site,int eo)
 {
+  GET_THREAD_ID();
+  
   //check buffer size matching
   if(a->buf_size!=nbytes_per_site*bord_volh) crash("wrong buffer size (%d) for %d border)",a->buf_size,nbytes_per_site*bord_volh);
   
   //copy one by one the surface of vec inside the sending buffer
-  NISSA_PARALLEL_LOOP(ibord,bord_volh)
+  NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
     memcpy(a->send_buf+ibord*nbytes_per_site,(char*)vec+surfeo_of_bordeo[eo][ibord]*nbytes_per_site,nbytes_per_site);
 
   //wait that all threads filled their portion
@@ -393,6 +412,8 @@ void fill_spi_sending_buf_with_ev_or_od_vec(spi_comm_t *a,void *vec,int nbytes_p
 //extract the information from receiving buffer and put them inside an even or odd vec
 void fill_ev_or_od_bord_with_spi_receiving_buf(void *vec,spi_comm_t *a,int nbytes_per_site)
 {
+  GET_THREAD_ID();
+  
   if(IS_MASTER_THREAD)
     {
       crash_if_borders_not_allocated(vec);
@@ -413,6 +434,8 @@ void spi_start_communicating_ev_or_od_borders(int *nrequest,spi_comm_t *a,void *
 {
   if(!check_borders_valid(vec))
     {
+      GET_THREAD_ID();
+      
       //take time and output debugging info
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
       verbosity_lv3_master_printf("Starting spi communication of ev or od borders of %s\n",get_vec_name((void*)vec));
@@ -432,6 +455,8 @@ void spi_finish_communicating_ev_or_od_borders(int *nrequest,void *vec,spi_comm_
 {
   if(!check_borders_valid(vec) && (*nrequest==8))
     {
+      GET_THREAD_ID();
+      
       //take time and make some output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
       verbosity_lv3_master_printf("Finish spi communication of ev or od borders of %s\n",get_vec_name((void*)vec));
@@ -465,11 +490,13 @@ void spi_communicate_ev_or_od_borders(void *vec,spi_comm_t *a,int nbytes_per_sit
 //fill the sending buf using the data inside an ev and odd vec, using lx style inside buf
 void fill_spi_sending_buf_with_ev_and_od_vec(spi_comm_t *a,void **vec,int nbytes_per_site)
 {
+  GET_THREAD_ID();
+  
   //check buffer size matching
   if(a->buf_size!=nbytes_per_site*bord_vol) crash("wrong buffer size (%d) for %d border)",a->buf_size,nbytes_per_site*bord_vol);
   
   //copy one by one the surface of vec inside the sending buffer
-  NISSA_PARALLEL_LOOP(ibord_lx,bord_vol)
+  NISSA_PARALLEL_LOOP(ibord_lx,0,bord_vol)
     {
       //convert lx indexing to eo
       int source_lx=surflx_of_bordlx[ibord_lx];
@@ -485,6 +512,8 @@ void fill_spi_sending_buf_with_ev_and_od_vec(spi_comm_t *a,void **vec,int nbytes
 //extract the information from receiving buffer and put them inside an even or odd vec
 void fill_ev_and_od_bord_with_spi_receiving_buf(void **vec,spi_comm_t *a,int nbytes_per_site)
 {
+  GET_THREAD_ID();
+  
   crash_if_borders_not_allocated(vec[EVN]);
   crash_if_borders_not_allocated(vec[ODD]);
   
@@ -493,7 +522,7 @@ void fill_ev_and_od_bord_with_spi_receiving_buf(void **vec,spi_comm_t *a,int nby
     crash("wrong buffer size (%d) for %d border)",a->buf_size,nbytes_per_site*bord_vol);
   
   //the buffer is lx ordered
-  NISSA_PARALLEL_LOOP(ibord_lx,bord_vol)
+  NISSA_PARALLEL_LOOP(ibord_lx,0,bord_vol)
     {
       int dest_lx=loc_vol+ibord_lx;
       int par=loclx_parity[dest_lx];
@@ -509,6 +538,8 @@ void spi_start_communicating_ev_and_od_borders(int *nrequest,spi_comm_t *a,void 
 {
   if(!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD]))
     {
+      GET_THREAD_ID();
+      
       //take time and output debugging info
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
       verbosity_lv3_master_printf("Starting spi communication of ev or od borders of %s\n",get_vec_name((void*)(*vec)));
@@ -528,6 +559,8 @@ void spi_finish_communicating_ev_and_od_borders(int *nrequest,void **vec,spi_com
 {
   if(((!check_borders_valid(vec[EVN]))||(!check_borders_valid(vec[ODD]))) && (*nrequest==8))
     {
+      GET_THREAD_ID();
+      
       //take time and make some output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
       verbosity_lv3_master_printf("Finish spi communication of ev or od borders of %s\n",get_vec_name((void*)(*vec)));

@@ -189,6 +189,10 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
       if(nissa_nranks%16) crash("in order to paralellize all the direcion, the number of ranks must be a multiple of 16");
     }
   
+  //check that all directions can bemade even, if requested
+  if(nissa_use_eo_geom)
+    if((glb_vol/nissa_nranks)%16!=0) crash("in order to use eo geometry, local size must be a multiple of 16");
+    
   //check that the global lattice is a multiple of the number of ranks
   if(glb_vol%nissa_nranks) crash("global volume must be a multiple of ranks number");
   
@@ -263,6 +267,12 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	    if(valid_partitioning)
 	      for(int mu=0;mu<4;mu++)
 		valid_partitioning&=(P[mu]>=2);
+	  
+	  //check that lattice size is even in all directions
+	  if(nissa_use_eo_geom)
+	    if(valid_partitioning)
+	      for(int mu=0;mu<4;mu++)
+		valid_partitioning&=((L[mu]/P[mu])%2==0);
 	  
 	  //if it is a valid partitioning
 	  if(valid_partitioning)
@@ -377,19 +387,21 @@ void init_grid(int T,int L)
   loc_vol2=(double)loc_vol*loc_vol;
   
   //calculate bulk size
-  bulk_vol=bulk_plus_fw_surf_vol=1;
+  bulk_vol=non_bw_surf_vol=1;
   for(int idir=0;idir<4;idir++)
     if(paral_dir[idir])
       {
 	bulk_vol*=loc_size[idir]-2;
-	bulk_plus_fw_surf_vol*=loc_size[idir]-1;
+	non_bw_surf_vol*=loc_size[idir]-1;
       }
     else
       {
 	bulk_vol*=loc_size[idir];
-	bulk_plus_fw_surf_vol*=loc_size[idir];
+	non_bw_surf_vol*=loc_size[idir];
       }
-  bulk_plus_bw_surf_vol=bulk_plus_fw_surf_vol;
+  non_fw_surf_vol=non_bw_surf_vol;
+  fw_surf_vol=bw_surf_vol=loc_vol-non_bw_surf_vol;
+  surf_vol=loc_vol-bulk_vol;
   
   //calculate the border size
   bord_vol=0;

@@ -44,6 +44,7 @@ nissa_headers=src/base/close.h \
 	src/geometry/geometry_lx.h \
 	src/geometry/geometry_mix.h \
 	src/hmc/backfield.h \
+	src/hmc/gauge/gluonic_force.h \
 	src/hmc/gauge/tree_level_Symanzik_force.h \
 	src/hmc/gauge/tree_level_Symanzik_action.h \
 	src/hmc/gauge/wilson_force.h \
@@ -51,7 +52,7 @@ nissa_headers=src/base/close.h \
 	src/hmc/momenta/momenta_action.h \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_action.h \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.h \
-	src/hmc/rootst_eoimpr/rootst_eoimpr_force.h \
+	src/hmc/rootst_eoimpr/rootst_eoimpr_quark_force.h \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.h \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.h \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.h \
@@ -105,6 +106,7 @@ nissa_headers=src/base/close.h \
 	src/operations/su3_paths/arbitrary.h \
 	src/operations/su3_paths/plaquette.h \
 	src/operations/su3_paths/pline.h \
+	src/operations/su3_paths/squared_staples.h \
 	src/operations/su3_paths/topological_charge.h \
 	src/operations/vector_gather.h \
 	src/routines/ios.h \
@@ -137,6 +139,7 @@ nissa_source_files=src/base/close.cpp \
 	src/geometry/geometry_lx.cpp \
 	src/geometry/geometry_mix.cpp \
 	src/hmc/backfield.cpp \
+	src/hmc/gauge/gluonic_force.cpp \
 	src/hmc/gauge/tree_level_Symanzik_force.cpp \
 	src/hmc/gauge/tree_level_Symanzik_action.cpp \
 	src/hmc/gauge/wilson_force.cpp \
@@ -144,7 +147,7 @@ nissa_source_files=src/base/close.cpp \
 	src/hmc/momenta/momenta_action.cpp \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_action.cpp \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
-	src/hmc/rootst_eoimpr/rootst_eoimpr_force.cpp \
+	src/hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.cpp \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.cpp \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.cpp \
@@ -198,6 +201,7 @@ nissa_source_files=src/base/close.cpp \
 	src/operations/su3_paths/arbitrary.cpp \
 	src/operations/su3_paths/plaquette.cpp \
 	src/operations/su3_paths/pline.cpp \
+	src/operations/su3_paths/squared_staples.cpp \
 	src/operations/su3_paths/topological_charge.cpp \
 	src/operations/vector_gather.cpp \
 	src/routines/ios.cpp \
