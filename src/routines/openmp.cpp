@@ -61,6 +61,7 @@ void thread_pool_unlock()
 {
   THREAD_BARRIER_FORCE(UNLOCK_POOL_BARRIER);
 #ifdef DEBUG
+  GET_THREAD_ID();
   if(rank==0) printf("thread %d unlocking the pool\n",thread_id);
 #endif
   thread_pool_locked=false;
@@ -74,6 +75,7 @@ void thread_pool_lock()
   thread_pool_locked=true;
 #pragma omp flush(thread_pool_locked)
 #ifdef DEBUG
+  GET_THREAD_ID();
   if(rank==0) printf("thread %d locking the pool\n",thread_id);
 #endif
 }

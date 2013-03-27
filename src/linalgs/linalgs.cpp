@@ -106,6 +106,59 @@ THREADABLE_FUNCTION_4ARG(complex_vector_glb_scalar_prod, complex*,glb_res, compl
 #endif
 }}
 
+//summ all points
+THREADABLE_FUNCTION_3ARG(double_vector_glb_collapse, double*,glb_res, double*,a, int,n)
+{
+#ifndef REPRODUCIBLE_RUN
+  //perform thread summ
+  double loc_thread_res=0;
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(i,0,n)
+    loc_thread_res+=a[i];
+  
+  (*glb_res)=glb_reduce_double(loc_thread_res);
+#else
+  //perform thread summ
+  float_128 loc_thread_res={0,0};
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(i,0,n)
+    float_128_summassign_64(loc_thread_res,a[i]);
+  
+  float_128 temp;
+  glb_reduce_float_128(temp,loc_thread_res);
+  (*glb_res)=temp[0];
+#endif
+}}
+
+//complex version
+THREADABLE_FUNCTION_3ARG(complex_vector_glb_collapse, double*,glb_res, complex*,a, int,n)
+{
+#ifndef REPRODUCIBLE_RUN
+  //perform thread summ
+  complex loc_thread_res={0,0};
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(i,0,n)
+    complex_summassign(loc_thread_res,a[i]);
+  
+  for(int ri=0;ri<2;ri++)
+    glb_res[ri]=glb_reduce_double(loc_thread_res[ri]);
+#else
+  //perform thread summ
+  complex_128 loc_thread_res={{0,0},{0,0}};
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(i,0,n)
+    complex_128_summassign_64(loc_thread_res,a[i]);
+  
+  //drop back to complex after reducing all threads and ranks
+  for(int ri=0;ri<2;ri++)
+    {
+      float_128 temp;
+      glb_reduce_float_128(temp,loc_thread_res[ri]);
+      glb_res[ri]=temp[0];
+    }
+#endif
+}}
+
 //put the passed vector to the new norm, returning the reciprocal of normalizating factor
 THREADABLE_FUNCTION_5ARG(double_vector_normalize, double*,ratio, double*,out, double*,in, double,norm, int,n)
 {

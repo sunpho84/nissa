@@ -83,6 +83,7 @@ void su3_prod_idouble(su3 a,su3 b,double r);
 void su3_summ_the_prod_idouble(su3 a,su3 b,double r);
 void su3_put_to_diag(su3 m,color in);
 void su3_put_to_diag(su3 m,complex in);
+void su3_put_to_diag(su3 m,double in);
 void su3_put_to_id(su3 m);
 void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd);
 void su3_put_to_zero(su3 m);

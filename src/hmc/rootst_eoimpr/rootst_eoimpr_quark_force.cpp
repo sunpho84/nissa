@@ -2,27 +2,19 @@
  #include "config.h"
 #endif
 
+#include "../backfield.h"
+
 #include "../../base/communicate.h"
-#include "../../base/debug.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
-#include "../../geometry/geometry_eo.h"
 #include "../../inverters/staggered/cgm_invert_stD2ee_m2.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/su3.h"
+#include "../../geometry/geometry_eo.h"
 #include "../../new_types/complex.h"
+#include "../../new_types/su3.h"
 #include "../../operations/smearing/stout.h"
 #include "../../routines/ios.h"
 #include "../../routines/openmp.h"
-
-#include "../gauge/wilson_force.h"
-#include "../gauge/tree_level_Symanzik_force.h"
-#include "../backfield.h"
-
-int nglu_comp=0;
-double glu_comp_time=0;
 
 //Compute the fermionic force the rooted staggered e/o improved theory.
 //Passed conf must NOT contain the backfield.
@@ -89,7 +81,7 @@ THREADABLE_FUNCTION_6ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, quad_
 }}
 
 //Finish the computation multiplying for the conf and taking TA
-THREADABLE_FUNCTION_2ARG(full_rootst_eoimpr_force_finish_computation, quad_su3**,F, quad_su3**,conf)
+THREADABLE_FUNCTION_2ARG(compute_rootst_eoimpr_quark_force_finish_computation, quad_su3**,F, quad_su3**,conf)
 {
   GET_THREAD_ID();
   
@@ -111,34 +103,8 @@ THREADABLE_FUNCTION_2ARG(full_rootst_eoimpr_force_finish_computation, quad_su3**
   addrem_stagphases_to_eo_conf(conf);
 }}
 
-//compute only the gauge part
-THREADABLE_FUNCTION_3ARG(full_rootst_eoimpr_gluons_force, quad_su3**,F, quad_su3**,conf, theory_pars_type*,physics)
-{
-  GET_THREAD_ID();
-  
-  if(IS_MASTER_THREAD)
-    {
-      nglu_comp++;
-      glu_comp_time-=take_time();
-    }
-  
-  switch(physics->gac_type)
-    {
-    case Wilson_action: Wilson_force(F,conf,physics->beta);break;
-    case tlSym_action: crash("not yet threaded"); tree_level_Symanzik_force(F,conf,physics->beta);break;
-    default: crash("Unknown action");
-    }
-  
-  //add the stag phases to the force term, to cancel the one entering the force
-  addrem_stagphases_to_eo_conf(F);
-
-  full_rootst_eoimpr_force_finish_computation(F,conf);
-
-  if(IS_MASTER_THREAD) glu_comp_time+=take_time();
-}}
-
-//compute only the quark part, without stouting reampping
-THREADABLE_FUNCTION_6ARG(full_rootst_eoimpr_quarks_force_no_stout_remapping, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue)
+//compute the quark force, without stouting reampping
+THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue)
 {
   for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
   for(int iflav=0;iflav<theory_pars->nflavs;iflav++)
@@ -149,12 +115,12 @@ THREADABLE_FUNCTION_6ARG(full_rootst_eoimpr_quarks_force_no_stout_remapping, qua
 }}
 
 //take into account the stout remapping procedure
-THREADABLE_FUNCTION_6ARG(full_rootst_eoimpr_quarks_force, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_type*,physics, rat_approx_type*,appr, double,residue)
+THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_type*,physics, rat_approx_type*,appr, double,residue)
 {
   int nlev=physics->stout_pars.nlev;
   
   //first of all we take care of the trivial case
-  if(nlev==0) full_rootst_eoimpr_quarks_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
+  if(nlev==0) compute_rootst_eoimpr_quark_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
   else
     {
       //allocate the stack of confs: conf is binded to sme_conf[0]
@@ -167,7 +133,7 @@ THREADABLE_FUNCTION_6ARG(full_rootst_eoimpr_quarks_force, quad_su3**,F, quad_su3
       
       //compute the force in terms of the most smeared conf
       addrem_stagphases_to_eo_conf(sme_conf[nlev]); //add to most smeared conf
-      full_rootst_eoimpr_quarks_force_no_stout_remapping(F,sme_conf[nlev],pf,physics,appr,residue);
+      compute_rootst_eoimpr_quark_force_no_stout_remapping(F,sme_conf[nlev],pf,physics,appr,residue);
       
       //remap the force backward
       stouted_force_remap(F,sme_conf,&(physics->stout_pars));
@@ -177,31 +143,5 @@ THREADABLE_FUNCTION_6ARG(full_rootst_eoimpr_quarks_force, quad_su3**,F, quad_su3
       stout_smear_conf_stack_free(&sme_conf,nlev);
     }
   
-  full_rootst_eoimpr_force_finish_computation(F,conf);
-}}
-
-//Compute the full force for the rooted staggered theory with nfl flavors
-THREADABLE_FUNCTION_7ARG(full_rootst_eoimpr_force, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue, hmc_force_piece,piece)
-{
-  //First of all compute gluonic part of the force
-  switch(piece)
-    {
-    case GAUGE_FORCE_ONLY: full_rootst_eoimpr_gluons_force(F,conf,theory_pars);break;
-    case QUARK_FORCE_ONLY: full_rootst_eoimpr_quarks_force(F,conf,pf,theory_pars,appr,residue);break;
-    case BOTH_FORCE_PIECES:
-      //allocate an additional vector where to store fermionic pieces
-      quad_su3 *F1[2]={nissa_malloc("F1[e]",loc_volh,quad_su3),nissa_malloc("F1[e]",loc_volh,quad_su3)};
-      
-      //compute the two pieces
-      full_rootst_eoimpr_gluons_force(F,conf,theory_pars);
-      full_rootst_eoimpr_quarks_force(F1,conf,pf,theory_pars,appr,residue);
-  
-      //summ the two pieces
-      for(int eo=0;eo<2;eo++)
-	{
-	  double_vector_summassign((double*)F[eo],(double*)F1[eo],loc_volh*sizeof(quad_su3)/sizeof(double));
-	  nissa_free(F1[eo]);
-	}
-      break;
-    }
+  compute_rootst_eoimpr_quark_force_finish_computation(F,conf);
 }}

@@ -8,7 +8,7 @@
 #include "../base/debug.h"
 #include "../base/global_variables.h"
 #include "../base/random.h"
-#include "../operations/su3_paths/plaquette.h"
+#include "../operations/su3_paths/squared_staples.h"
 #include "../routines/ios.h"
 #include "../routines/math.h"
 
@@ -35,6 +35,8 @@ void su3_put_to_diag(su3 m,color in)
 {su3_put_to_zero(m);for(int ic=0;ic<3;ic++) complex_copy(m[ic][ic],in[ic]);}
 void su3_put_to_diag(su3 m,complex in)
 {su3_put_to_zero(m);for(int ic=0;ic<3;ic++) complex_copy(m[ic][ic],in);}
+void su3_put_to_diag(su3 m,double in)
+{su3_put_to_zero(m);for(int ic=0;ic<3;ic++) m[ic][ic][0]=in;}
 
 //////////////////////////////////////// Copy /////////////////////////////////////
 
@@ -937,7 +939,7 @@ void su3_find_cooled(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu)
 {
   //compute the staple
   su3 staple;
-  compute_point_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
+  compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
 
   //find the link that maximize the plaquette
   su3_unitarize_orthonormalizing(u,staple);

@@ -14,7 +14,7 @@
 #include "../new_types/complex.h"
 #include "../new_types/su3.h"
 #include "../operations/remap_vector.h"
-#include "../operations/su3_paths/plaquette.h"
+#include "../operations/su3_paths/squared_staples.h"
 #include "../routines/ios.h"
 
 /*
@@ -214,7 +214,7 @@ void heatbath_or_overrelax_conf_Wilson_action(quad_su3 **eo_conf,theory_pars_typ
 	    
 	    //compute the staples
 	    su3 staples;
-	    compute_point_staples_eo_conf_single_dir(staples,eo_conf,ilx,mu);
+	    compute_point_summed_squared_staples_eo_conf_single_dir(staples,eo_conf,ilx,mu);
 	    
 	    //compute heatbath or overrelax link
 	    su3 new_link;
