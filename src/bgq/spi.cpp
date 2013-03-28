@@ -12,6 +12,10 @@
 #include <spi/include/kernel/MU.h>
 #include <spi/include/kernel/location.h>
 
+#ifdef BGQ
+ #include "../bgq/spi.h"
+#endif
+
 //global barrier for spi
 void spi_global_barrier()
 {

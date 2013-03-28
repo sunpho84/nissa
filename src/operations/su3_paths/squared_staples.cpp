@@ -13,6 +13,10 @@
 #include "../../new_types/su3.h"
 #include "../../routines/openmp.h"
 
+#ifdef BGQ
+ #include "../../bgq/spi.h"
+#endif
+
 //compute the staples along a particular dir, for a single site
 void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
 {
@@ -64,8 +68,8 @@ int perp_dir[4][3]={{1,2,3},{0,2,3},{0,1,3},{0,1,2}};
 void squared_staples_lx_conf_allocate_buffers(quad_su3 **send_buf,quad_su3 **recv_buf)
 {
 #ifdef BGQ
-  *send_buf=(quad_su3*)(spi_eo_quad_su3_comm.send_buf);
-  *recv_buf=(quad_su3*)(spi_eo_quad_su3_comm.recv_buf);
+  *send_buf=(quad_su3*)(spi_lx_quad_su3_comm.send_buf);
+  *recv_buf=(quad_su3*)(spi_lx_quad_su3_comm.recv_buf);
 #else
   *send_buf=nissa_malloc("Wforce_send_buf",bord_vol,quad_su3);
   *recv_buf=nissa_malloc("Wforce_recv_buf",bord_vol,quad_su3);
@@ -84,10 +88,10 @@ void squared_staples_lx_conf_start_communicating_lower_surface(quad_su3 *send_bu
   //start communication of lower surf to backward nodes
   if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
 #ifdef BGQ
-  int dir_comm_1[8]={0,0,0,0,1,1,1,1},tot_size_1=bord_volh;
-  spi_start_comm(&spi_eo_quad_su3_comm,dir_comm_1,tot_size_1);
+  int dir_comm[8]={0,0,0,0,1,1,1,1},tot_size=bord_volh*sizeof(quad_su3);
+  spi_start_comm(&spi_lx_quad_su3_comm,dir_comm,tot_size);
 #else
-  int imessage_1=654325;  
+  int imessage=654325;  
   //wait that all threads filled their part
   thread_barrier(WILSON_STAPLE_BARRIER);
   if(IS_MASTER_THREAD)
@@ -97,8 +101,8 @@ void squared_staples_lx_conf_start_communicating_lower_surface(quad_su3 *send_bu
 	if(paral_dir[mu]!=0)
 	  {
 	    //exchanging the lower surface, from the first half of sending node to the second half of receiving node
-	    MPI_Irecv(recv_buf+bord_offset[mu]+bord_volh,bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighup[mu],imessage_1,cart_comm,request+(*nrequest)++);
-	    MPI_Isend(send_buf+bord_offset[mu],bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighdw[mu],imessage_1++,cart_comm,request+(*nrequest)++);
+	    MPI_Irecv(recv_buf+bord_offset[mu]+bord_volh,bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighup[mu],imessage,cart_comm,request+(*nrequest)++);
+	    MPI_Isend(send_buf+bord_offset[mu],bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighdw[mu],imessage++,cart_comm,request+(*nrequest)++);
 	  }	
     }
 #endif
@@ -126,7 +130,7 @@ void squared_staples_lx_conf_finish_communicating_lower_surface(quad_su3 *conf,q
 {
   if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
 #ifdef BGQ
-  spi_comm_wait(&spi_eo_quad_su3_comm);
+  spi_comm_wait(&spi_lx_quad_su3_comm);
 #else
   if(IS_MASTER_THREAD) MPI_Waitall((*nrequest),request,MPI_STATUS_IGNORE);
 #endif
@@ -173,12 +177,12 @@ void squared_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(
   //start communication of fw surf backward staples to forward nodes
   if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
 #ifdef BGQ
-  int dir_comm_2[8]={1,1,1,1,0,0,0,0},tot_size_2=bord_volh;
-  spi_start_comm(&spi_eo_quad_su3_comm,dir_comm_2,tot_size_2);
+  int dir_comm[8]={1,1,1,1,0,0,0,0},tot_size=bord_volh*sizeof(quad_su3);
+  spi_start_comm(&spi_lx_quad_su3_comm,dir_comm,tot_size);
 #else
   //wait that all threads filled their part
   thread_barrier(WILSON_STAPLE_BARRIER);
-  int imessage_2=653432;
+  int imessage=653432;
   if(IS_MASTER_THREAD)
     {
       (*nrequest)=0;
@@ -187,8 +191,8 @@ void squared_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(
 	if(paral_dir[mu]!=0)
 	  {
 	    //exchanging the backward staples, from the second half of sending node to the first half of receiving node
-	    MPI_Irecv(recv_buf+bord_offset[mu],bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighdw[mu],imessage_2,cart_comm,request+(*nrequest)++);
-	    MPI_Isend(send_buf+bord_offset[mu]+bord_volh,bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighup[mu],imessage_2++,cart_comm,request+(*nrequest)++);
+	    MPI_Irecv(recv_buf+bord_offset[mu],bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighdw[mu],imessage,cart_comm,request+(*nrequest)++);
+	    MPI_Isend(send_buf+bord_offset[mu]+bord_volh,bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighup[mu],imessage++,cart_comm,request+(*nrequest)++);
 	  }
     }
 #endif
@@ -237,7 +241,7 @@ void squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(squared_sta
 {
   if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
 #ifdef BGQ
-  spi_comm_wait(&spi_eo_quad_su3_comm);
+  spi_comm_wait(&spi_lx_quad_su3_comm);
 #else
   if(IS_MASTER_THREAD) MPI_Waitall((*nrequest),request,MPI_STATUS_IGNORE);
   //wait that all threads filled their part
