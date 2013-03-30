@@ -47,7 +47,7 @@ nissa_headers=src/base/close.h \
 	src/hmc/gauge/gluonic_force.h \
 	src/hmc/gauge/tree_level_Symanzik_force.h \
 	src/hmc/gauge/tree_level_Symanzik_action.h \
-	src/hmc/gauge/wilson_force.h \
+	src/hmc/gauge/Wilson_force.h \
 	src/hmc/momenta/momenta_generation.h \
 	src/hmc/momenta/momenta_action.h \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_action.h \
@@ -142,7 +142,7 @@ nissa_source_files=src/base/close.cpp \
 	src/hmc/gauge/gluonic_force.cpp \
 	src/hmc/gauge/tree_level_Symanzik_force.cpp \
 	src/hmc/gauge/tree_level_Symanzik_action.cpp \
-	src/hmc/gauge/wilson_force.cpp \
+	src/hmc/gauge/Wilson_force.cpp \
 	src/hmc/momenta/momenta_generation.cpp \
 	src/hmc/momenta/momenta_action.cpp \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_action.cpp \

@@ -7,7 +7,7 @@
 #include "../../new_types/su3.h"
 #include "../../routines/openmp.h"
 
-#include "../gauge/wilson_force.h"
+#include "../gauge/Wilson_force.h"
 #include "../gauge/tree_level_Symanzik_force.h"
 #include "../backfield.h"
 
