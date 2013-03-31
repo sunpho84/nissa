@@ -37,7 +37,7 @@ THREADABLE_FUNCTION_3ARG(Wilson_force_eo_conf, quad_su3**,F, quad_su3**,eo_conf,
     }
 }}
 
-//lx version: please pass from outside squared_staples
+//lx version
 THREADABLE_FUNCTION_3ARG(Wilson_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta)
 {
   GET_THREAD_ID();
