@@ -17,130 +17,43 @@
  #include "../../bgq/spi.h"
 #endif
 
-//compute the staples along a particular dir, for a single site
-void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
-{
-  if(!check_edges_valid(eo_conf[0])||!check_edges_valid(eo_conf[1])) crash("communicate edges externally");
-  
-  su3_put_to_zero(staple);
-  
-  su3 temp1,temp2;
-  for(int nu=0;nu<4;nu++)                   //  E---F---C   
-    if(nu!=mu)                              //  |   |   | mu
-      {                                     //  D---A---B   
-	int p=loclx_parity[A];              //        nu    
-	int B=loclx_neighup[A][nu];
-	int F=loclx_neighup[A][mu];
-	unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
-	unsafe_su3_prod_su3_dag(temp2,temp1,                            eo_conf[!p][loceo_of_loclx[F]][nu]);
-	su3_summ(staple,staple,temp2);
-	
-	int D=loclx_neighdw[A][nu];
-	int E=loclx_neighup[D][mu];
-	unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][loceo_of_loclx[D]][nu],eo_conf[!p][loceo_of_loclx[D]][mu]);
-	unsafe_su3_prod_su3(    temp2,temp1,                             eo_conf[ p][loceo_of_loclx[E]][nu]);
-	su3_summ(staple,staple,temp2);
-      }
-}
+#define COMPUTE_RECT_FW_STAPLE(OUT,A,B,C,TEMP)	\
+  unsafe_su3_prod_su3(TEMP,A,B);		\
+  unsafe_su3_prod_su3_dag(OUT,TEMP,C);
 
-//compute the staples along all the four dirs
-void compute_point_summed_squared_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
-{for(int mu=0;mu<4;mu++) compute_point_summed_squared_staples_eo_conf_single_dir(staple[mu],eo_conf,A,mu);}
+#define COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu) \
+  COMPUTE_RECT_FW_STAPLE(out[A][mu][3+inu][0],sq_staples[A][inu],conf[B][mu],conf[F][nu]); /*bk sq staple*/ \
+  COMPUTE_RECT_FW_STAPLE(out[A][mu][3+inu][1],conf[A][nu],sq_staples[B][3+imu],conf[F][nu]); /*fw sq staple*/ \
+  COMPUTE_RECT_FW_STAPLE(out[A][mu][3+inu][2],conf[A][nu],conf[B][mu],sq_staples[F][3+inu]); /*fw sq staple*/
 
-//compute the summ of all the staples for the whole conf
-THREADABLE_FUNCTION_2ARG(compute_summed_squared_staples_eo_conf, quad_su3**,F, quad_su3**,eo_conf)
-{
-  GET_THREAD_ID();
-  
-  communicate_eo_quad_su3_edges(eo_conf);
-  
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    compute_point_summed_squared_staples_eo_conf(F[loclx_parity[ivol]][loceo_of_loclx[ivol]],eo_conf,ivol);
-  
-  for(int par=0;par<2;par++) set_borders_invalid(F[par]);
-}}
+#define COMPUTE_RECT_BW_STAPLE(OUT,A,B,C,TEMP)		\
+  unsafe_su3_dag_prod_su3(TEMP,A,B); \
+  unsafe_su3_prod_su3(OUT,TEMP,C);
 
-///////////////////////////////// lx version ///////////////////////////////////////////
+#define COMPUTE_POINT_RECT_BW_STAPLES(out,conf,sq_staples,A,D,E,imu,mu,inu,nu) \
+  COMPUTE_RECT_BW_STAPLE(out[A][mu][inu][0],sq_staples[D][inu],conf[D][mu],conf[E][nu]); /*bk sq staple*/ \
+  COMPUTE_RECT_BW_STAPLE(out[A][mu][inu][1],conf[D][nu],sq_staples[D][3+imu],conf[E][nu]); /*fk sq staple*/ \
+  COMPUTE_RECT_BW_STAPLE(out[A][mu][inu][2],conf[D][nu],conf[D][mu],sq_staples[E][3+inu]); /*fw sq staple*/
 
-int perp_dir[4][3]={{1,2,3},{0,2,3},{0,1,3},{0,1,2}};
-
-// 0) allocate or take from SPI the buffer where to exchange fw border and back staples
-void squared_staples_lx_conf_allocate_buffers(quad_su3 **send_buf,quad_su3 **recv_buf)
-{
-#ifdef BGQ
-  *send_buf=(quad_su3*)(spi_lx_quad_su3_comm.send_buf);
-  *recv_buf=(quad_su3*)(spi_lx_quad_su3_comm.recv_buf);
-#else
-  *send_buf=nissa_malloc("Wforce_send_buf",bord_vol,quad_su3);
-  *recv_buf=nissa_malloc("Wforce_recv_buf",bord_vol,quad_su3);
-#endif
-}
-
-// 1) start communicating lower surface
-void squared_staples_lx_conf_start_communicating_lower_surface(quad_su3 *send_buf,quad_su3 *recv_buf,quad_su3 *conf,int (*nrequest),MPI_Request *request,int thread_id)
-{
- //copy lower surface into sending buf to be sent to dw nodes
-  //obtained scanning on first half of the border, and storing them
-  //in the first half of sending buf
-  NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
-      quad_su3_copy(send_buf[ibord],conf[surflx_of_bordlx[ibord]]);
-
-  //start communication of lower surf to backward nodes
-  if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
-#ifdef BGQ
-  int dir_comm[8]={0,0,0,0,1,1,1,1},tot_size=bord_volh*sizeof(quad_su3);
-  spi_start_comm(&spi_lx_quad_su3_comm,dir_comm,tot_size);
-#else
-  int imessage=654325;  
-  //wait that all threads filled their part
-  thread_barrier(WILSON_STAPLE_BARRIER);
-  if(IS_MASTER_THREAD)
-    {
-      (*nrequest)=0;
-      for(int mu=0;mu<4;mu++)
-	if(paral_dir[mu]!=0)
-	  {
-	    //exchanging the lower surface, from the first half of sending node to the second half of receiving node
-	    MPI_Irecv(recv_buf+bord_offset[mu]+bord_volh,bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighup[mu],imessage,cart_comm,request+(*nrequest)++);
-	    MPI_Isend(send_buf+bord_offset[mu],bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighdw[mu],imessage++,cart_comm,request+(*nrequest)++);
-	  }	
-    }
-#endif
-}
-
-// 2) compute non_fwsurf fw staples that are always local
-void squared_staples_lx_conf_compute_non_fw_surf_fw_staples(squared_staples_t *out,quad_su3 *conf,int thread_id)
+// 1) compute non_fwsurf fw staples that are always local
+void rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(rectangular_staples_t *out,quad_su3 *conf,squared_staples_t *sq_staples,int thread_id)
 {
   for(int mu=0;mu<4;mu++) //link direction
     for(int inu=0;inu<3;inu++) //staple direction
       {
 	int nu=perp_dir[mu][inu];
+	int imu=(mu<nu)?nu:nu-1;
+	if(mu!=per_mu[nu][imu]) crash("");
 	NISSA_PARALLEL_LOOP(ibulk,0,non_fw_surf_vol)
 	  {
-	    su3 temp;
+	    su3 temp; //three staples in clocwise order
 	    int A=loclx_of_non_fw_surflx[ibulk],B=loclx_neighup[A][nu],F=loclx_neighup[A][mu];
-	    unsafe_su3_prod_su3(    temp,conf[A][nu],conf[B][mu]);
-	    unsafe_su3_prod_su3_dag(out[A][mu][3+inu],temp,conf[F][nu]);
+	    COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu);
 	  }
       }
 }
 
-// 3) finish communication of lower surface
-void squared_staples_lx_conf_finish_communicating_lower_surface(quad_su3 *conf,quad_su3 *recv_buf,int (*nrequest),MPI_Request *request,int thread_id)
-{
-  if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
-#ifdef BGQ
-  spi_comm_wait(&spi_lx_quad_su3_comm);
-#else
-  if(IS_MASTER_THREAD) MPI_Waitall((*nrequest),request,MPI_STATUS_IGNORE);
-#endif
-  
-  //copy the received forward border (stored in the second half of receiving buf) on its destination
-  if(IS_MASTER_THREAD) memcpy(conf+loc_vol+bord_volh,recv_buf+bord_volh,sizeof(quad_su3)*bord_volh);  
-  thread_barrier(WILSON_STAPLE_BARRIER);
-}
-
-// 4) compute backward staples to be sent to up nodes and send them
+// 2) compute backward staples to be sent to up nodes and send them
 void squared_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(quad_su3 *send_buf,quad_su3 *recv_buf,squared_staples_t *out,quad_su3 *conf,int (*nrequest),MPI_Request *request,int thread_id)
 {
   //compute backward staples to be sent to up nodes
