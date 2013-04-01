@@ -48,7 +48,7 @@ THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,c
   switch(physics->gac_type)
     {
     case Wilson_action: Wilson_force_lx_conf(F,conf,physics->beta);break;
-      //case tlSym_action: crash("not yet threaded"); tree_level_Symanzik_force_lx_conf(F,conf,physics->beta);break;
+    case tlSym_action: tree_level_Symanzik_force_lx_conf(F,conf,physics->beta);break;
     default: crash("Unknown action");
     }
   

@@ -4,16 +4,14 @@
 
 #include <string.h>
 
-#include "../../base/communicate.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
-#include "../../geometry/geometry_eo.h"
-#include "../../geometry/geometry_mix.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
-#include "../../operations/su3_paths/plaquette.h"
-#include "../../operations/su3_paths/arbitrary.h"
+#include "../../operations/su3_paths/rectangular_staples.h"
+#include "../../operations/su3_paths/squared_staples.h"
 #include "../../routines/ios.h"
+#include "../../routines/openmp.h"
 
 THREADABLE_FUNCTION_3ARG(tree_level_Symanzik_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta)
 {
@@ -29,12 +27,28 @@ THREADABLE_FUNCTION_3ARG(tree_level_Symanzik_force_lx_conf, quad_su3*,out, quad_
   squared_staples_t *squared_staples=nissa_malloc("squared_staples",loc_vol+bord_vol,squared_staples_t);
   compute_squared_staples_lx_conf(squared_staples,conf);
 
-  //compute the squared staples
-  compute_summed_squared_staples_lx_conf(out,conf);
+  //compute rectangular pieces
+  rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",loc_vol+bord_vol,rectangular_staples_t);
+  compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
 
-  //take hermitian*r
-  double r=beta/3;
+  //summ the six terms of squares
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int mu=0;mu<4;mu++)
-      safe_su3_hermitian_prod_double(out[ivol][mu],out[ivol][mu],r);
+      {
+	su3_summ(out[ivol][mu],squared_staples[ivol][mu][0],squared_staples[ivol][mu][1]);
+	for(int iterm=2;iterm<6;iterm++) su3_summassign(out[ivol][mu],squared_staples[ivol][mu][iterm]);
+	safe_su3_hermitian_prod_double(out[ivol][mu],out[ivol][mu],c0);
+      }
+
+  //summ the six terms of rectangles
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int mu=0;mu<4;mu++)
+      {
+	su3 temp;
+	su3_summ(temp,squared_staples[ivol][mu][0],squared_staples[ivol][mu][1]);
+	for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,squared_staples[ivol][mu][iterm]);
+	su3_summ_the_hermitian_prod_double(out[ivol][mu],temp,c1);
+      }
+  
+  set_borders_invalid(out);
 }}

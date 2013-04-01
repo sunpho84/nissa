@@ -172,6 +172,13 @@ EXTERN enum rnd_type nissa_rnd_type_map[5]
 EXTERN as2t smunu_entr[4];   //these are the sigma matrices entries
 EXTERN int smunu_pos[4][6];  //and positions
 
+//perpendicular dir
+EXTERN int perp_dir[4][3]
+#ifndef ONLY_INSTANTIATION
+={{1,2,3},{0,2,3},{0,1,3},{0,1,2}}
+#endif
+;
+
 //the real amd imaginary unit
 EXTERN complex ONE,I;
 

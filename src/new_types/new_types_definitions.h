@@ -46,7 +46,7 @@ typedef su3 as2t_su3[6];
 
 typedef su3 squared_staples_t[4][6];
 
-typedef su3 rectangular_staples_t[4][6][3];
+typedef squared_staples_t rectangular_staples_t;
 
 typedef MPI_Offset ILDG_Offset;
 typedef MPI_File ILDG_File;

@@ -565,6 +565,15 @@ void safe_su3_hermitian_prod_double(su3 a,su3 b,double r)
 	}
     }
 }
+void su3_summ_the_hermitian_prod_double(su3 a,su3 b,double r)
+{
+  for(int i=0;i<3;i++)
+    for(int j=0;j<3;j++)
+      {
+	a[i][j][0]+= r*b[j][i][0];
+	a[i][j][1]+=-r*b[j][i][1];
+      }
+}
 
 //summ the prod of su3 with imag
 void su3_prod_idouble(su3 a,su3 b,double r)
