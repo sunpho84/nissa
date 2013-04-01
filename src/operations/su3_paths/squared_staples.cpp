@@ -62,8 +62,6 @@ THREADABLE_FUNCTION_2ARG(compute_summed_squared_staples_eo_conf, quad_su3**,F, q
 
 ///////////////////////////////// lx version ///////////////////////////////////////////
 
-int perp_dir[4][3]={{1,2,3},{0,2,3},{0,1,3},{0,1,2}};
-
 // 0) allocate or take from SPI the buffer where to exchange fw border and back staples
 void squared_staples_lx_conf_allocate_buffers(quad_su3 **send_buf,quad_su3 **recv_buf)
 {

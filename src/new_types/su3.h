@@ -76,6 +76,7 @@ void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_ge
 void su3_find_overrelaxed(su3 out,su3 in,su3 staple,int nov_hits);
 void safe_su3_hermitian_prod_double(su3 a,su3 b,double r);
 void unsafe_su3_hermitian_prod_double(su3 a,su3 b,double r);
+void su3_summ_the_hermitian_prod_double(su3 a,su3 b,double r);
 void su3_overrelax(su3 out,su3 in,double w);
 void su3_print(su3 U);
 void su3_prod_double(su3 a,su3 b,double r);
