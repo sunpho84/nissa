@@ -100,7 +100,7 @@ void rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(rectangular_stap
     for(int inu=0;inu<3;inu++) //staple direction
       {
 	int nu=perp_dir[mu][inu];
-	int imu=(mu<nu)?nu:nu-1;
+	int imu=(mu<nu)?mu:mu-1;
 	if(mu!=perp_dir[nu][imu]) crash("");
 	NISSA_PARALLEL_LOOP(ibulk,0,non_fw_surf_vol)
 	  {
@@ -145,7 +145,7 @@ void rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_stap
     for(int mu=0;mu<4;mu++) //link direction
       {
 	int nu=perp_dir[mu][inu];
-        int imu=(mu<nu)?nu:nu-1;
+        int imu=(mu<nu)?mu:mu-1;
 	NISSA_PARALLEL_LOOP(ifw_surf,0,fw_surf_vol)
 	  {
 	    su3 temp;
@@ -201,7 +201,7 @@ void rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(rectangular_stap
     for(int inu=0;inu<3;inu++) //staple direction
       {
 	int nu=perp_dir[mu][inu];
-	int imu=(mu<nu)?nu:nu-1;
+	int imu=(mu<nu)?mu:mu-1;
 	
 	//obtained scanning D on fw_surf
 	NISSA_PARALLEL_LOOP(inon_fw_surf,0,non_fw_surf_vol)
@@ -220,7 +220,7 @@ void rectangular_staples_lx_conf_compute_fw_surf_fw_staples(rectangular_staples_
     for(int inu=0;inu<3;inu++) //staple direction
       {
 	int nu=perp_dir[mu][inu];
-	int imu=(mu<nu)?nu:nu-1;
+	int imu=(mu<nu)?mu:mu-1;
 	
 	//obtained looping A on forward surface
 	NISSA_PARALLEL_LOOP(ifw_surf,0,fw_surf_vol)
