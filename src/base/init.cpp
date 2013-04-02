@@ -520,14 +520,6 @@ void init_grid(int T,int L)
   set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,&MPI_SPINCOLOR);
   set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_128_BORDS_SEND,MPI_LX_SPINCOLOR_128_BORDS_RECE,&MPI_SPINCOLOR_128);
 
-#ifdef BGQ
-  init_spi();
-  set_lx_spi_comm(spi_lx_spincolor_comm,sizeof(spincolor));
-  set_lx_spi_comm(spi_lx_quad_su3_comm,sizeof(quad_su3));
-  set_eo_spi_comm(spi_eo_color_comm,sizeof(color));
-  set_eo_spi_comm(spi_eo_quad_su3_comm,sizeof(quad_su3));
-#endif
-  
   if(nissa_use_eo_geom)
     {
       set_eo_bord_senders_and_receivers(MPI_EO_QUAD_SU3_BORDS_SEND_TXY,MPI_EV_QUAD_SU3_BORDS_SEND_Z,MPI_OD_QUAD_SU3_BORDS_SEND_Z,MPI_EO_QUAD_SU3_BORDS_RECE,&MPI_QUAD_SU3);
@@ -538,6 +530,14 @@ void init_grid(int T,int L)
       set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
     }
 
+#ifdef BGQ
+  init_spi();
+  set_lx_spi_comm(spi_lx_spincolor_comm,sizeof(spincolor));
+  set_lx_spi_comm(spi_lx_quad_su3_comm,sizeof(quad_su3));
+  set_eo_spi_comm(spi_eo_color_comm,sizeof(color));
+  set_eo_spi_comm(spi_eo_quad_su3_comm,sizeof(quad_su3));
+#endif
+  
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());
 }

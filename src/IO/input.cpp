@@ -98,7 +98,9 @@ void close_input()
 //read a token from file
 int read_next_token(char *tok)
 {
-  int ok=1,len;
+  //avoid warnings
+  int ok=1,len=0;
+  tok[0]='\0';
   
   if(rank==0)
     {

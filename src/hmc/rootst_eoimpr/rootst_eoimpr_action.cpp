@@ -62,10 +62,9 @@ THREADABLE_FUNCTION_8ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3
       gluon_action=theory_pars->beta*6*(1+global_plaquette_eo_conf(eo_conf))*glb_vol;
       break;
     case tlSym_action:
-      crash("not threaded yet");
-      addrem_stagphases_to_eo_conf(eo_conf);
-      gluon_action=tree_level_Symanzik_action(eo_conf,theory_pars->beta);
-      addrem_stagphases_to_eo_conf(eo_conf);
+      gluon_action=theory_pars->beta*6*(1+global_plaquette_eo_conf(eo_conf))*glb_vol;
+      printf("debug: %16.16lg\n",gluon_action);
+      tree_level_Symanzik_action(&gluon_action,eo_conf,theory_pars->beta,1);
       break;
     default:
       crash("Unknown action");

@@ -98,7 +98,7 @@ THREADABLE_FUNCTION_5ARG(apply_stD2ee, color*,out, quad_su3**,conf, color*,temp,
       if(temp==in)  crash("temp==in!");
     }
   
-  if(!check_borders_valid(conf)) communicate_eo_quad_su3_borders(conf);
+  if(!check_borders_valid(conf[EVN])) communicate_eo_quad_su3_borders(conf);
   if(!check_borders_valid(in)) communicate_ev_color_borders(in);
   
   NISSA_PARALLEL_LOOP(io,0,loc_volh)

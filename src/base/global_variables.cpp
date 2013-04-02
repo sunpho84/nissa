@@ -217,7 +217,7 @@ EXTERN int nissa_spi_inited;
 //spi rank coordinates
 EXTERN coords_5D spi_rank_coord;
 
-//neighbours int the 4 dirs
+//neighbours in the 4 dirs
 EXTERN MUHWI_Destination_t spi_neigh[2][4];
 
 //spi fifo and counters for bytes
