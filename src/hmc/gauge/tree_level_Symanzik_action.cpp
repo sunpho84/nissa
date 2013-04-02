@@ -21,7 +21,7 @@ THREADABLE_FUNCTION_4ARG(tree_level_Symanzik_action, double*,action, quad_su3**,
   
   //coefficient of rectangles and squares
   double b1=-1.0/12,b0=1-8*b1;
-  
+  b0=0;
   communicate_eo_quad_su3_edges(conf);
 
   //summ squares and rectangles separately
@@ -37,22 +37,22 @@ THREADABLE_FUNCTION_4ARG(tree_level_Symanzik_action, double*,action, quad_su3**,
 	      int ivol=loclx_of_loceo[par][A];
 	      
 	      //compute forward staple starting from A
-	      int B=loceo_neighup[par][A][nu],C=loceo_neighup[par][A][mu];
-	      su3 ABD,ABDC;
-	      unsafe_su3_prod_su3(ABD,conf[par][A][nu],conf[!par][B][mu]);
-	      unsafe_su3_prod_su3_dag(ABDC,ABD,conf[!par][C][nu]);
+	      int B=loceo_neighup[par][A][nu],D=loceo_neighdw[par][A][nu];
+	      int E=loceo_neighup[!par][D][mu],F=loceo_neighup[par][A][mu];
+	      su3 ABC,ABCF;
+	      unsafe_su3_prod_su3(ABC,conf[par][A][nu],conf[!par][B][mu]);
+	      unsafe_su3_prod_su3_dag(ABCF,ABC,conf[!par][F][nu]);
 	      
 	      //taking the trace we summ to plaq_summ (only if nu>mu)
-	      if(nu>mu) point_shapes[ivol][RE]+=real_part_of_trace_su3_prod_su3_dag(ABDC,conf[par][A][mu]);
+	      if(nu>mu) point_shapes[ivol][RE]+=real_part_of_trace_su3_prod_su3_dag(ABCF,conf[par][A][mu]);
 	      
 	      //compute backward staple starting from A
-	      int D=loceo_neighdw[par][A][nu],E=loceo_neighup[!par][D][mu];
-	      su3 ADE,ADEC;
+	      su3 ADE,ADEF;
 	      unsafe_su3_dag_prod_su3(ADE,conf[!par][D][nu],conf[!par][D][mu]);
-	      unsafe_su3_prod_su3_dag(ADEC,ADE,conf[par][E][nu]);
-
+	      unsafe_su3_prod_su3(ADEF,ADE,conf[par][E][nu]);
+	      
 	      //taking the trace we summ to rect_summ
-	      point_shapes[ivol][IM]+=real_part_of_trace_su3_prod_su3_dag(ABDC,ADEC);
+	      point_shapes[ivol][IM]+=real_part_of_trace_su3_prod_su3_dag(ABCF,ADEF);
 	    }
   
   //reduce and free

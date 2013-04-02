@@ -49,6 +49,9 @@ THREADABLE_FUNCTION_3ARG(tree_level_Symanzik_force_lx_conf, quad_su3*,out, quad_
 	for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,squared_staples[ivol][mu][iterm]);
 	su3_summ_the_hermitian_prod_double(out[ivol][mu],temp,c1);
       }
+
+  nissa_free(squared_staples);
+  nissa_free(rectangular_staples);
   
   set_borders_invalid(out);
 }}
