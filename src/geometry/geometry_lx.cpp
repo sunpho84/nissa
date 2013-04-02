@@ -27,9 +27,10 @@ int edgelx_of_coord(int *x,int mu,int nu)
 //Return the index of site of coord x in the border mu
 int bordlx_of_coord(int *x,int mu)
 {
-  int ilx=0;
-  
-  for(int nu=0;nu<4;nu++) if(nu!=mu) ilx=ilx*loc_size[nu]+x[nu];
+  int ilx=0;  
+  for(int nu=0;nu<4;nu++)
+    if(nu!=mu)
+      ilx=ilx*loc_size[nu]+x[nu];
   
   return ilx;
 }
@@ -38,6 +39,7 @@ int bordlx_of_coord(int *x,int mu)
 int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu)
 {
   coords x={x0,x1,x2,x3};
+  
   return bordlx_of_coord(x,mu);
 }
 
@@ -342,6 +344,13 @@ void find_bulk_sites()
       if(is_non_bw_surf) loclx_of_non_bw_surflx[inon_bw_surf++]=ivol;
       else               loclx_of_bw_surflx[ibw_surf++]=ivol;
     }
+  
+  if(ibulk!=bulk_vol) crash("mismatch in bulk id");
+  if(isurf!=surf_vol) crash("mismatch in surf id");
+  if(inon_fw_surf!=non_fw_surf_vol) crash("mismatch in non_fw_surf id");
+  if(inon_bw_surf!=non_bw_surf_vol) crash("mismatch in non_bw_surf id");
+  if(ifw_surf!=fw_surf_vol) crash("mismatch in fw_surf id");
+  if(ibw_surf!=bw_surf_vol) crash("mismatch in bw_surf id");
 }  
 
 //indexes run as t,x,y,z (faster:z)

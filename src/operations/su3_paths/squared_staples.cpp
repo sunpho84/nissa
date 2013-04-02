@@ -101,7 +101,7 @@ void squared_staples_lx_conf_start_communicating_lower_surface(quad_su3 *send_bu
 	    //exchanging the lower surface, from the first half of sending node to the second half of receiving node
 	    MPI_Irecv(recv_buf+bord_offset[mu]+bord_volh,bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighup[mu],imessage,cart_comm,request+(*nrequest)++);
 	    MPI_Isend(send_buf+bord_offset[mu],bord_dir_vol[mu],MPI_QUAD_SU3,rank_neighdw[mu],imessage++,cart_comm,request+(*nrequest)++);
-	  }	
+	  }
     }
 #endif
 }
