@@ -20,7 +20,6 @@ THREADABLE_FUNCTION_3ARG(tree_level_Symanzik_force_lx_conf, quad_su3*,out, quad_
   //coefficient of rectangles and squares, including beta
   double b1=-1.0/12,b0=1-8*b1;
   double c1=-b1*beta/3,c0=b0*beta/3; //the stag phases add (-1)^area
-  
   GET_THREAD_ID();
   
   //compute squared pieces
@@ -45,8 +44,8 @@ THREADABLE_FUNCTION_3ARG(tree_level_Symanzik_force_lx_conf, quad_su3*,out, quad_
     for(int mu=0;mu<4;mu++)
       {
 	su3 temp;
-	su3_summ(temp,squared_staples[ivol][mu][0],squared_staples[ivol][mu][1]);
-	for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,squared_staples[ivol][mu][iterm]);
+	su3_summ(temp,rectangular_staples[ivol][mu][0],rectangular_staples[ivol][mu][1]);
+	for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,rectangular_staples[ivol][mu][iterm]);
 	su3_summ_the_hermitian_prod_double(out[ivol][mu],temp,c1);
       }
 
