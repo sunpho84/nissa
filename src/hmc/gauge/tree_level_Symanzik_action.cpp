@@ -21,7 +21,6 @@ THREADABLE_FUNCTION_4ARG(tree_level_Symanzik_action, double*,action, quad_su3**,
   
   //coefficient of rectangles and squares
   double b1=-1.0/12,b0=1-8*b1;
-  b0=0;
   communicate_eo_quad_su3_edges(conf);
 
   //summ squares and rectangles separately

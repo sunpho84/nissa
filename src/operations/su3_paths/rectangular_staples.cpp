@@ -26,8 +26,8 @@
 
 #define COMPUTE_POINT_RECT_FW_STAPLES(out,conf,sq_staples,A,B,F,imu,mu,inu,nu,temp) \
   COMPUTE_RECT_FW_STAPLE(out[A][mu][3+inu],sq_staples[A][nu][imu],conf[B][mu],conf[F][nu],temp); /*bw sq staple*/ \
-  SUMM_RECT_FW_STAPLE(out[A][mu][3+inu],conf[A][nu],sq_staples[B][mu][3+inu],conf[F][nu],temp); /*fw sq staple*/ \
-  SUMM_RECT_FW_STAPLE(out[A][mu][3+inu],conf[A][nu],conf[B][mu],sq_staples[F][nu][3+imu],temp); /*fw sq staple*/
+  SUMM_RECT_FW_STAPLE(out[A][mu][3+inu],conf[A][nu],sq_staples[B][mu][3+inu],conf[F][nu],temp);  /*fw sq staple*/ \
+  SUMM_RECT_FW_STAPLE(out[A][mu][3+inu],conf[A][nu],conf[B][mu],sq_staples[F][nu][3+imu],temp);  /*fw sq staple*/
 
 #define COMPUTE_RECT_BW_STAPLE(OUT,A,B,C,TEMP)	\
   unsafe_su3_dag_prod_su3(TEMP,A,B);		\
@@ -65,7 +65,7 @@ void rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_st
         {
           int mu=perp_dir[nu][imu];
           int inu=(nu<mu)?nu:nu-1;
-
+	  
           NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
             su3_copy(send_buf[ibord][mu],sq_staples[loc_vol+ibord][mu][3+inu]); //one contribution per link in the border
         }
@@ -101,7 +101,7 @@ void rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(rectangular_stap
       {
 	int nu=perp_dir[mu][inu];
 	int imu=(mu<nu)?mu:mu-1;
-	if(mu!=perp_dir[nu][imu]) crash("");
+
 	NISSA_PARALLEL_LOOP(ibulk,0,non_fw_surf_vol)
 	  {
 	    su3 temp; //three staples in clocwise order
@@ -128,7 +128,7 @@ void rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_s
         {
           int mu=perp_dir[nu][imu];
           int inu=(nu<mu)?nu:nu-1;
-          
+
           NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
             su3_copy(sq_staples[loc_vol+ibord][mu][inu],recv_buf[ibord][mu]); //one contribution per link in the border
         }
@@ -146,6 +146,7 @@ void rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_stap
       {
 	int nu=perp_dir[mu][inu];
         int imu=(mu<nu)?mu:mu-1;
+	
 	NISSA_PARALLEL_LOOP(ifw_surf,0,fw_surf_vol)
 	  {
 	    su3 temp;
@@ -294,6 +295,7 @@ THREADABLE_FUNCTION_3ARG(compute_rectangular_staples_lx_conf, rectangular_staple
   rectangular_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,sq_staples,thread_id);
   rectangular_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,sq_staples,thread_id);
   rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,recv_buf,&nrequest,request,thread_id);
-
+  
+  //free buffers (auto sync)
   rectangular_staples_lx_conf_free_buffers(send_buf,recv_buf);
 }}
