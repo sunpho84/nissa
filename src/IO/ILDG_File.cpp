@@ -158,6 +158,7 @@ ILDG_File_view ILDG_File_get_current_view(ILDG_File &file)
 //set the view
 void ILDG_File_set_view(ILDG_File &file,ILDG_File_view &view)
 {
+  MPI_Barrier(MPI_COMM_WORLD);
   decript_MPI_error(MPI_File_set_view(file,view.view_pos,view.etype,view.ftype,view.format,MPI_INFO_NULL),"while setting view");
   ILDG_File_set_position(file,view.pos,MPI_SEEK_SET);
 }
@@ -302,6 +303,10 @@ void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req)
     }
   else
     ILDG_File_skip_nbytes(file,nbytes_req);
+
+  //sync
+  MPI_File_sync(file);
+  MPI_Barrier(MPI_COMM_WORLD);
 }
 
 //build record header
@@ -435,6 +440,10 @@ void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,int nbytes_per_sit
   //write
   MPI_Status status;
   decript_MPI_error(MPI_File_write_at_all(file,0,data,loc_vol,scidac_view.etype,&status),"while writing");
+  
+  //sync
+  MPI_File_sync(file);
+  MPI_Barrier(MPI_COMM_WORLD);
   
   //put the view to original state and place at the end of the record, including padding
   normal_view.pos+=ceil_to_next_eight_multiple(header.data_length);
