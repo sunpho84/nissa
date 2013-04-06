@@ -1,4 +1,9 @@
 AC_INIT([nissa], [1.0], [francesco.sanfilippo@th.u-psud.fr])
+
+#include all config flags
+config_flags="$*"
+AC_DEFINE_UNQUOTED([CONFIG_FLAGS],["$config_flags"],[Flags passed to configure])
+
 AM_INIT_AUTOMAKE([1.0 no-define foreign])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([src/config.h:src/config.h.in])

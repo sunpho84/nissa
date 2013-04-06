@@ -47,6 +47,7 @@ void init_nissa(int narg,char **arg)
   
   //print the version
   master_printf("Initializing nissa, version: %s\n",SVN_REVISION);
+  master_printf("Compiled with flags: %s\n",CONFIG_FLAGS);
   
   //128 bit float
   MPI_Type_contiguous(2,MPI_DOUBLE,&MPI_FLOAT_128);
