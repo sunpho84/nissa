@@ -3,6 +3,9 @@
 /* Enable bgq */
 #undef BGQ
 
+/* Flags passed to configure */
+#undef CONFIG_FLAGS
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 
