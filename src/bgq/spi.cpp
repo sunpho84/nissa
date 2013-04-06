@@ -2,8 +2,6 @@
  #include "config.h"
 #endif
 
-#include "nissa.h"
-
 #include <malloc.h>
 
 #include <firmware/include/personality.h>
@@ -12,9 +10,10 @@
 #include <spi/include/kernel/MU.h>
 #include <spi/include/kernel/location.h>
 
-#ifdef BGQ
- #include "../bgq/spi.h"
-#endif
+#include "../src/base/global_variables.h"
+#include "../src/base/vectors.h"
+#include "../src/routines/ios.h"
+#include "../src/routines/openmp.h"
 
 //global barrier for spi
 void spi_global_barrier()
