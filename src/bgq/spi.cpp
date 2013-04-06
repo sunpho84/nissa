@@ -45,7 +45,7 @@ void set_spi_neighbours()
     for(int bf=0;bf<2;bf++) //backward(0) or forward(1)
       {
 	//send to one dir, receive from the opposite
-	coords_5D c;
+	coords_5D c={0,0,0,0,0};
 	MPI_Sendrecv(spi_rank_coord,sizeof(coords_5D),MPI_BYTE,rank_neigh[bf][mu],0,
 		     c,sizeof(coords_5D),MPI_BYTE,rank_neigh[!bf][mu],0,
 		     cart_comm,MPI_STATUS_IGNORE);
@@ -93,7 +93,7 @@ void init_spi()
 
       //set default attributes for inj fifo
       Kernel_InjFifoAttributes_t fifo_attrs[8];
-      for(int idir=0;idir<8;idir++) memset(&fifo_attrs[idir],0,sizeof(Kernel_InjFifoAttributes_t));
+      for(int idir=0;idir<8;idir++) memset(fifo_attrs,0,8*sizeof(Kernel_InjFifoAttributes_t));
       
       //initialize them with default attributes
       uint32_t fifo_id[8]={0,1,2,3,4,5,6,7};
