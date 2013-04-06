@@ -256,7 +256,7 @@ void spi_comm_wait(spi_comm_t *in)
 }
 
 //start the communications
-void spi_start_comm(spi_comm_t *in,int *dir_comm,int tot_size)
+void spi_start_comm(spi_comm_t *in,int *dir_comm=NULL,int tot_size=-1)
 {
   GET_THREAD_ID();
   
