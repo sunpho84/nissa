@@ -106,6 +106,7 @@ nissa_headers=src/base/close.h \
 	src/operations/su3_paths/arbitrary.h \
 	src/operations/su3_paths/plaquette.h \
 	src/operations/su3_paths/pline.h \
+	src/operations/su3_paths/rectangles.h \
 	src/operations/su3_paths/rectangular_staples.h \
 	src/operations/su3_paths/squared_staples.h \
 	src/operations/su3_paths/topological_charge.h \
@@ -202,6 +203,7 @@ nissa_source_files=src/base/close.cpp \
 	src/operations/su3_paths/arbitrary.cpp \
 	src/operations/su3_paths/plaquette.cpp \
 	src/operations/su3_paths/pline.cpp \
+	src/operations/su3_paths/rectangles.cpp \
 	src/operations/su3_paths/rectangular_staples.cpp \
 	src/operations/su3_paths/squared_staples.cpp \
 	src/operations/su3_paths/topological_charge.cpp \

@@ -304,28 +304,31 @@ int generate_new_conf()
 }
 
 //measure plaquette and polyakov loop, writing also acceptance
-void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc)
+void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,action_type gac_type)
 {
   //open creating or appending
   FILE *file=open_file(path,(iconf==0)?"w":"a");
 
-  //plaquette (temporal and spatial)
-  double plaq[2];
-  global_plaquette_eo_conf(plaq,conf);
+  //paths
+  double paths[2];
+  
+  //Wilson case: temporal and spatial plaquette
+  if(gac_type==Wilson_action)global_plaquette_eo_conf(paths,conf);
+  else global_plaquette_and_rectangles_eo_conf(paths,conf);
   
   //polyakov loop
   complex pol;
   average_polyakov_loop_of_eos_conf(pol,conf,0);
   
-  master_fprintf(file,"%d\t%d\t%016.16lg\t%016.16lg\t%+016.16lg\t%+016.16lg\n",iconf,acc,plaq[0],plaq[1],pol[0],pol[1]);
+  master_fprintf(file,"%d\t%d\t%016.16lg\t%016.16lg\t%+016.16lg\t%+016.16lg\n",iconf,acc,paths[0],paths[1],pol[0],pol[1]);
   
   if(rank==0) fclose(file);
 }
 
 //measures
-void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc)
+void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,action_type gac_type)
 {
-  if(gauge_meas_flag) measure_gauge_obs(gauge_obs_path,conf,iconf,acc);
+  if(gauge_meas_flag) measure_gauge_obs(gauge_obs_path,conf,iconf,acc,gac_type);
   if(top_meas_pars.flag) measure_topology(top_meas_pars,conf,iconf);
   
   for(int itheory=0;itheory<ntheories;itheory++)
@@ -391,7 +394,7 @@ void in_main(int narg,char **arg)
 	}
       
       // 2) measure
-      measurements(new_conf,conf,itraj,acc);
+      measurements(new_conf,conf,itraj,acc,theory_pars[SEA_THEORY].gac_type);
       
       // 3) increment id and write conf
       if(store_running_temp_conf) write_conf(conf_path,conf);
