@@ -1,4 +1,4 @@
-AC_INIT([nissa], [1.0], [francesco.sanfilippo@th.u-psud.fr])
+AC_INIT([nissa],[1.0],[francesco.sanfilippo@th.u-psud.fr])
 
 #include all config flags
 config_flags="$*"
