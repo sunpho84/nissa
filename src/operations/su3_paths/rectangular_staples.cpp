@@ -67,7 +67,7 @@ void rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_st
           int inu=(nu<mu)?nu:nu-1;
 	  
           NISSA_PARALLEL_LOOP(ibord,bord_offset[nu],bord_offset[nu]+bord_dir_vol[nu])
-            su3_copy(send_buf[ibord][mu],sq_staples[loc_vol+ibord][mu][3+inu]); //one contribution per link in the border
+	    su3_copy(send_buf[ibord][mu],sq_staples[surflx_of_bordlx[ibord]][mu][3+inu]); //one contribution per link in the border
         }
 
   //start communication of lower surf to backward nodes
@@ -121,7 +121,7 @@ void rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_s
   if(IS_MASTER_THREAD) MPI_Waitall((*nrequest),request,MPI_STATUS_IGNORE);
 #endif
   
-  //copy the received forward border (stored in the second half of receiving buf) on its destination
+  //copy the received forward border (stored in the second half of receiving buf) to its destination
   for(int nu=0;nu<4;nu++) //border and staple direction
     if(paral_dir[nu])
       for(int imu=0;imu<3;imu++) //link direction
@@ -130,7 +130,7 @@ void rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_s
           int inu=(nu<mu)?nu:nu-1;
 
           NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
-            su3_copy(sq_staples[loc_vol+ibord][mu][inu],recv_buf[ibord][mu]); //one contribution per link in the border
+	    su3_copy(sq_staples[loc_vol+ibord][mu][3+inu],recv_buf[ibord][mu]); //one contribution per link in the border
         }
 
   thread_barrier(WILSON_STAPLE_BARRIER);
