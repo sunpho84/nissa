@@ -36,7 +36,7 @@ THREADABLE_FUNCTION_1ARG(lx_conf_unitarize_explicitly_inverting, quad_su3*,conf)
 // Evolve momenta according to the pure gauge force
 // calculate H=H-F*dt to evolve link momenta
 // i.e calculate v(t+dt)=v(t)+a*dt
-THREADABLE_FUNCTION_4ARG(evolve_lx_momenta_with_pure_gauge_force, quad_su3*,H, quad_su3*,conf, theory_pars_type*,theory_pars, double,dt)
+THREADABLE_FUNCTION_4ARG(evolve_lx_momenta_with_pure_gauge_force, quad_su3*,H, quad_su3*,conf, theory_pars_t*,theory_pars, double,dt)
 {
   GET_THREAD_ID();
   
@@ -76,7 +76,7 @@ THREADABLE_FUNCTION_3ARG(evolve_lx_conf_with_momenta, quad_su3*,lx_conf, quad_su
 }}
 
 //evolve the configuration according to pure gauge
-THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_su3*,lx_conf, theory_pars_type*,theory_pars, hmc_evol_pars_type*,simul)
+THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_su3*,lx_conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul)
 {
   //macro step or micro step
   double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
@@ -109,7 +109,7 @@ THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_s
 }}
 
 //wrapper
-void omelyan_pure_gauge_evolver_eo_conf(quad_su3 **H_eo,quad_su3 **conf_eo,theory_pars_type *theory_pars,hmc_evol_pars_type *simul)
+void omelyan_pure_gauge_evolver_eo_conf(quad_su3 **H_eo,quad_su3 **conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
 {
   quad_su3 *H_lx=nissa_malloc("H_lx",loc_vol,quad_su3);
   quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol,quad_su3);
@@ -148,7 +148,7 @@ THREADABLE_FUNCTION_1ARG(eo_conf_unitarize_explicitly_inverting, quad_su3**,conf
 }}
 
 // Evolve momenta according to the rooted staggered force
-THREADABLE_FUNCTION_7ARG(evolve_momenta_with_quark_rootst_eoimpr_force, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue, double,dt)
+THREADABLE_FUNCTION_7ARG(evolve_momenta_with_quark_rootst_eoimpr_force, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue, double,dt)
 {
   GET_THREAD_ID();
 
@@ -173,7 +173,7 @@ THREADABLE_FUNCTION_7ARG(evolve_momenta_with_quark_rootst_eoimpr_force, quad_su3
 
 ////////////////////////////////////// MACRO OMELYAN ////////////////////////////////////////////////
 
-THREADABLE_FUNCTION_6ARG(omelyan_rootst_eoimpr_evolver, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, hmc_evol_pars_type*,simul)
+THREADABLE_FUNCTION_6ARG(omelyan_rootst_eoimpr_evolver, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, hmc_evol_pars_t*,simul)
 {
   //macro step or micro step
   double dt=simul->traj_length/simul->nmd_steps,

@@ -26,7 +26,7 @@ extern double glu_comp_time;
 //observables
 char gauge_obs_path[1024];
 int gauge_meas_flag;
-top_meas_pars_type top_meas_pars;
+top_meas_pars_t top_meas_pars;
 
 //input and output path for confs
 char conf_path[1024];
@@ -38,8 +38,8 @@ quad_su3 *conf[2];
 
 //structures containing parameters
 int ntheories;
-theory_pars_type *theory_pars;
-evol_pars_type evol_pars;
+theory_pars_t *theory_pars;
+evol_pars_t evol_pars;
 
 //number of traj
 int prod_ntraj;
@@ -50,7 +50,7 @@ int store_running_temp_conf;
 const int HOT=0,COLD=1;
 
 //initialize background field and so on
-void init_theory_pars(theory_pars_type &theory_pars)
+void init_theory_pars(theory_pars_t &theory_pars)
 {
   //allocate the u1 background field
   theory_pars.backfield=nissa_malloc("back**",theory_pars.nflavs,quad_u1**);
@@ -140,7 +140,7 @@ void init_simulation(char *path)
   int nvalence_theories;
   read_str_int("NValenceTheories",&nvalence_theories);
   ntheories=nvalence_theories+1;
-  theory_pars=nissa_malloc("theory_pars",ntheories,theory_pars_type);
+  theory_pars=nissa_malloc("theory_pars",ntheories,theory_pars_t);
   
   //read physical theory: theory 0 is the sea (simulated one)
   for(int itheory=0;itheory<ntheories;itheory++)
@@ -226,7 +226,7 @@ void init_simulation(char *path)
 }
 
 //unset the background field
-void unset_theory_pars(theory_pars_type &theory_pars)
+void unset_theory_pars(theory_pars_t &theory_pars)
 {
   for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
     {
@@ -304,7 +304,7 @@ int generate_new_conf()
 }
 
 //measure plaquette and polyakov loop, writing also acceptance
-void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,action_type gac_type)
+void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   //open creating or appending
   FILE *file=open_file(path,(iconf==0)?"w":"a");
@@ -313,7 +313,7 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,action_type 
   double paths[2];
   
   //Wilson case: temporal and spatial plaquette
-  if(gac_type==Wilson_action)global_plaquette_eo_conf(paths,conf);
+  if(gauge_action_name==Wilson_action)global_plaquette_eo_conf(paths,conf);
   else global_plaquette_and_rectangles_eo_conf(paths,conf);
   
   //polyakov loop
@@ -326,9 +326,9 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,action_type 
 }
 
 //measures
-void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,action_type gac_type)
+void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
-  if(gauge_meas_flag) measure_gauge_obs(gauge_obs_path,conf,iconf,acc,gac_type);
+  if(gauge_meas_flag) measure_gauge_obs(gauge_obs_path,conf,iconf,acc,gauge_action_name);
   if(top_meas_pars.flag) measure_topology(top_meas_pars,conf,iconf);
   
   for(int itheory=0;itheory<ntheories;itheory++)
@@ -394,7 +394,7 @@ void in_main(int narg,char **arg)
 	}
       
       // 2) measure
-      measurements(new_conf,conf,itraj,acc,theory_pars[SEA_THEORY].gac_type);
+      measurements(new_conf,conf,itraj,acc,theory_pars[SEA_THEORY].gauge_action_name);
       
       // 3) increment id and write conf
       if(store_running_temp_conf) write_conf(conf_path,conf);

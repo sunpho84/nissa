@@ -19,7 +19,7 @@
 #include "../momenta/momenta_action.h"
 
 //compute quark action for a set of quark
-THREADABLE_FUNCTION_7ARG(rootst_eoimpr_quark_action, double*,glb_action, quad_su3**,eo_conf, int,nfl, quad_u1***,u1b, color**,pf, rat_approx_type*,appr, double,residue)
+THREADABLE_FUNCTION_7ARG(rootst_eoimpr_quark_action, double*,glb_action, quad_su3**,eo_conf, int,nfl, quad_u1***,u1b, color**,pf, rat_approx_t*,appr, double,residue)
 {  
   //allocate chi
   color *chi_e=nissa_malloc("chi_e",loc_volh,color);
@@ -45,7 +45,7 @@ THREADABLE_FUNCTION_7ARG(rootst_eoimpr_quark_action, double*,glb_action, quad_su
 
 //Compute the total action of the rooted staggered e/o improved theory.
 //Passed conf must NOT contain the backfield, but contains the stagphases so remove it.
-THREADABLE_FUNCTION_8ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue)
+THREADABLE_FUNCTION_8ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue)
 {
   verbosity_lv1_master_printf("Computing action\n");
 
@@ -56,7 +56,7 @@ THREADABLE_FUNCTION_8ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3
   
   //gauge action
   double gluon_action;
-  switch(theory_pars->gac_type)
+  switch(theory_pars->gauge_action_name)
     {
     case Wilson_action:
       gluon_action=theory_pars->beta*6*(1+global_plaquette_eo_conf(eo_conf))*glb_vol;

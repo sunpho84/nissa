@@ -55,7 +55,7 @@ THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad
 }}
 
 //measure chiral cond
-void measure_chiral_cond(quad_su3 **conf,theory_pars_type &theory_pars,int iconf)
+void measure_chiral_cond(quad_su3 **conf,theory_pars_t &theory_pars,int iconf)
 {
   FILE *file=open_file(theory_pars.chiral_cond_pars.path,(iconf==0)?"w":"a");
 
@@ -87,7 +87,7 @@ void measure_chiral_cond(quad_su3 **conf,theory_pars_type &theory_pars,int iconf
 }
 
 //compute the local pseudoscalar correlator
-void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_type &theory_pars,int iconf)
+void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int iconf)
 {
   FILE *file=open_file(theory_pars.pseudo_corr_pars.path,(iconf==0)?"w":"a");
   

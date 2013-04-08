@@ -116,7 +116,7 @@ int iS(int iwall,int sm_lv,int imass,int r)
 //generate the source 
 void generate_source(int iwall)
 {
-  enum rnd_type type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
+  enum rnd_t type[5]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4};
   generate_spindiluted_source(original_source,type[noise_type],twall[iwall]);
 }
 

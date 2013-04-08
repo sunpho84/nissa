@@ -28,7 +28,7 @@ void init_backfield_to_id(quad_u1 **S)
 }
 
 //multiply a background field by the imaginary chemical potential
-void add_im_pot_to_backfield(quad_u1 **S,quark_content_type &quark_content)
+void add_im_pot_to_backfield(quad_u1 **S,quark_content_t &quark_content)
 {
   double im_pot=quark_content.im_pot*M_PI/glb_size[0];
   complex ph={cos(im_pot),sin(im_pot)};
@@ -43,7 +43,7 @@ void add_im_pot_to_backfield(quad_u1 **S,quark_content_type &quark_content)
 
 //multiply a background field by a constant em field
 //mu nu refers to the entry of F_mu_nu involved
-void add_em_field_to_backfield(quad_u1 **S,quark_content_type &quark_content,double em_str,int mu,int nu)
+void add_em_field_to_backfield(quad_u1 **S,quark_content_t &quark_content,double em_str,int mu,int nu)
 {
   double phase=2*em_str*quark_content.charge*M_PI/glb_size[mu]/glb_size[nu];
   
@@ -76,7 +76,7 @@ void add_em_field_to_backfield(quad_u1 **S,quark_content_type &quark_content,dou
 }
 
 //set up all the 6 components
-void add_em_field_to_backfield(quad_u1 **S,quark_content_type &quark_content,em_field_pars_type &em_field_pars)
+void add_em_field_to_backfield(quad_u1 **S,quark_content_t &quark_content,em_field_pars_t &em_field_pars)
 {
   add_em_field_to_backfield(S,quark_content,em_field_pars.E[0],0,1);
   add_em_field_to_backfield(S,quark_content,em_field_pars.E[1],0,2);

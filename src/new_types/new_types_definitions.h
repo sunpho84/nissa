@@ -66,9 +66,9 @@ typedef double float_256[4];
 typedef double float_256_unr[5];
 
 //Random types
-enum rnd_type{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z4,RND_GAUSS};
+enum rnd_t{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z4,RND_GAUSS};
 //Source type
-enum source_type{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
+enum source_t{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SOURCE,SPINCOLOR_DILUTED_SOURCE};
 //The three possibilities of quark computation
 enum hmc_force_piece{GAUGE_FORCE_ONLY,QUARK_FORCE_ONLY,BOTH_FORCE_PIECES};
 enum multistep_level{MACRO_STEP,MICRO_STEP};
@@ -165,7 +165,7 @@ struct ILDG_File_view
 };
 
 //rational approximation
-struct rat_approx_type
+struct rat_approx_t
 {
   char name[20];
   double minimum;
@@ -179,7 +179,7 @@ struct rat_approx_type
 };
 
 //quark content
-struct quark_content_type
+struct quark_content_t
 {
   int deg;
   double mass;
@@ -189,7 +189,16 @@ struct quark_content_type
 };
 
 //parameters to compute the chiral condensate
-struct chiral_cond_pars_type
+struct chiral_cond_pars_t
+{
+  int flag;
+  char path[1024];
+  double residue;
+  int nhits;
+};
+
+//parameters to compute the magnetization
+struct magnetization_pars_t
 {
   int flag;
   char path[1024];
@@ -198,7 +207,7 @@ struct chiral_cond_pars_type
 };
 
 //parameters to compute time pseduoscalar correlator
-struct pseudo_corr_pars_type
+struct pseudo_corr_pars_t
 {
   int flag;
   char path[1024];
@@ -207,7 +216,7 @@ struct pseudo_corr_pars_type
 };
 
 //parameters to measure topology properties
-struct top_meas_pars_type
+struct top_meas_pars_t
 {
   int flag;
   char path[1024];
@@ -217,7 +226,7 @@ struct top_meas_pars_type
   int meas_each;
 };
 
-typedef momentum_t stout_coeff_type[4];
+typedef momentum_t stout_coeff_t[4];
 
 //structure to store data for stouting
 struct stout_link_staples
@@ -228,14 +237,14 @@ struct stout_link_staples
 };
 
 //parameters to stout
-struct stout_pars_type
+struct stout_pars_t
 {
   int nlev;
-  stout_coeff_type rho;
+  stout_coeff_t rho;
 };
 
 //background em field parameters
-struct em_field_pars_type
+struct em_field_pars_t
 {
   int flag;
   double E[3];
@@ -243,22 +252,23 @@ struct em_field_pars_type
 };
 
 //theory content
-enum action_type{Wilson_action,tlSym_action};
-struct theory_pars_type
+enum gauge_action_name_t{Wilson_action,tlSym_action};
+struct theory_pars_t
 {
   double beta;
   int nflavs;
   quad_u1 ***backfield;
-  quark_content_type *quark_content;
-  action_type gac_type;
-  stout_pars_type stout_pars;
-  em_field_pars_type em_field_pars;
-  chiral_cond_pars_type chiral_cond_pars;
-  pseudo_corr_pars_type pseudo_corr_pars;
+  quark_content_t *quark_content;
+  gauge_action_name_t gauge_action_name;
+  stout_pars_t stout_pars;
+  em_field_pars_t em_field_pars;
+  chiral_cond_pars_t chiral_cond_pars;
+  magnetization_pars_t magnetization_pars;
+  pseudo_corr_pars_t pseudo_corr_pars;
 };
 
 //evolution parameters for hybrid monte carlo
-struct hmc_evol_pars_type
+struct hmc_evol_pars_t
 {
   int skip_mtest_ntraj;
   double traj_length;
@@ -270,7 +280,7 @@ struct hmc_evol_pars_type
 };
 
 //parameters for pure gauge theory
-struct pure_gauge_evol_pars_type
+struct pure_gauge_evol_pars_t
 {
   //number of hb sweeps and hits per link
   int nhb_sweeps;
@@ -280,10 +290,10 @@ struct pure_gauge_evol_pars_type
   int nov_hits;
 };
 
-union evol_pars_type
+union evol_pars_t
 {
-  hmc_evol_pars_type hmc_evol_pars;
-  pure_gauge_evol_pars_type pure_gauge_evol_pars;
+  hmc_evol_pars_t hmc_evol_pars;
+  pure_gauge_evol_pars_t pure_gauge_evol_pars;
 };
 
 //////////////////////////////////////// BGQ specifics ///////////////////////////////////

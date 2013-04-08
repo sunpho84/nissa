@@ -14,7 +14,7 @@ char base_source_path[1024];
 int nsource;
 int *obtain_source_from;
 int *obtain_source_applying_sm_op;
-source_t *source;
+in_source_t *source;
 
 //list of masses ant thetas
 int nmass_res_group,ntheta_group;
@@ -89,7 +89,7 @@ void initialize_semileptonic(char *input_path)
   read_str_int("NAddSource",&nsource);
   nsource++;
   //Allocate the sources and read how to obtain additional sources
-  source=nissa_malloc("source*",nsource,source_t);
+  source=nissa_malloc("source*",nsource,in_source_t);
   obtain_source_from=nissa_malloc("obtain",nsource,int);
   obtain_source_applying_sm_op=nissa_malloc("applying",nsource,int);
   for(int iso=1;iso<nsource;iso++)

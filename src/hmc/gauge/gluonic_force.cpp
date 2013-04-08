@@ -35,7 +35,7 @@ THREADABLE_FUNCTION_2ARG(gluonic_force_finish_computation, quad_su3*,F, quad_su3
 }}
 
 //compute only the gauge part
-THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_type*,physics)
+THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics)
 {
   GET_THREAD_ID();
   
@@ -45,7 +45,7 @@ THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,c
       glu_comp_time-=take_time();
     }
   
-  switch(physics->gac_type)
+  switch(physics->gauge_action_name)
     {
     case Wilson_action: Wilson_force_lx_conf(F,conf,physics->beta);break;
     case tlSym_action: tree_level_Symanzik_force_lx_conf(F,conf,physics->beta);break;

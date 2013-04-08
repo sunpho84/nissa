@@ -20,7 +20,7 @@
 //Passed conf must NOT contain the backfield.
 //Of the result still need to be taken the TA
 //The approximation need to be already scaled, and must contain physical mass term
-THREADABLE_FUNCTION_6ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,eo_conf, color*,pf, quad_u1**,u1b, rat_approx_type*,appr, double,residue)
+THREADABLE_FUNCTION_6ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,eo_conf, color*,pf, quad_u1**,u1b, rat_approx_t*,appr, double,residue)
 {
   GET_THREAD_ID();
   
@@ -104,7 +104,7 @@ THREADABLE_FUNCTION_2ARG(compute_rootst_eoimpr_quark_force_finish_computation, q
 }}
 
 //compute the quark force, without stouting reampping
-THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_type*,theory_pars, rat_approx_type*,appr, double,residue)
+THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue)
 {
   for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
   for(int iflav=0;iflav<theory_pars->nflavs;iflav++)
@@ -115,7 +115,7 @@ THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, q
 }}
 
 //take into account the stout remapping procedure
-THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_type*,physics, rat_approx_type*,appr, double,residue)
+THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_t*,physics, rat_approx_t*,appr, double,residue)
 {
   int nlev=physics->stout_pars.nlev;
   

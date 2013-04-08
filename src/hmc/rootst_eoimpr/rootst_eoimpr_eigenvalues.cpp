@@ -24,7 +24,7 @@
 
 //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
 //assumes that the passed conf already has stag phases inside it
-THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_type*,quark_content, quad_su3**,eo_conf, int,niters)
+THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark_content, quad_su3**,eo_conf, int,niters)
 {
   GET_THREAD_ID();
   communicate_eo_quad_su3_borders(eo_conf);
@@ -65,7 +65,7 @@ THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_type*,quar
 
 //scale the rational expansion
 //assumes that the conf has already stag phases inside
-THREADABLE_FUNCTION_4ARG(rootst_eoimpr_scale_expansions, rat_approx_type*,rat_exp_pfgen, rat_approx_type*,rat_exp_actio, quad_su3**,eo_conf, theory_pars_type*,theory_pars)
+THREADABLE_FUNCTION_4ARG(rootst_eoimpr_scale_expansions, rat_approx_t*,rat_exp_pfgen, rat_approx_t*,rat_exp_actio, quad_su3**,eo_conf, theory_pars_t*,theory_pars)
 {
   GET_THREAD_ID();
   

@@ -25,7 +25,7 @@ int nsto_remap=0;
 double sto_remap_time=0;
 
 //compute the staples for the link U_A_mu weighting them with rho
-void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,stout_coeff_type rho)
+void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,stout_coeff_t rho)
 {
   if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("communicate edges externally");
 
@@ -53,7 +53,7 @@ void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int 
 
 //compute the parameters needed to smear a link, that can be used to smear it or to compute the 
 //partial derivative of the force
-void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,int A,int mu,stout_coeff_type rho)
+void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,int A,int mu,stout_coeff_t rho)
 {
   //compute the staples
   stout_smear_compute_weighted_staples(out->C,conf,p,A,mu,rho);
@@ -68,7 +68,7 @@ void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,i
 }
 
 //smear the configuration according to Peardon paper
-THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, stout_coeff_type*,rho)
+THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, stout_coeff_t*,rho)
 {
   GET_THREAD_ID();
   if(IS_MASTER_THREAD) sto_time-=take_time();
@@ -114,7 +114,7 @@ THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ex
 }}
 
 //smear n times, using only one additional vectors
-THREADABLE_FUNCTION_3ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_type*,stout_pars)
+THREADABLE_FUNCTION_3ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars)
 {
   switch(stout_pars->nlev)
     {
@@ -169,7 +169,7 @@ THREADABLE_FUNCTION_2ARG(stout_smear_conf_stack_free, quad_su3****,out, int,nlev
 }}
 
 //smear iteratively retainig all the stack
-THREADABLE_FUNCTION_3ARG(stout_smear_whole_stack, quad_su3***,out, quad_su3**,in, stout_pars_type*,stout_pars)
+THREADABLE_FUNCTION_3ARG(stout_smear_whole_stack, quad_su3***,out, quad_su3**,in, stout_pars_t*,stout_pars)
 {
   verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
   for(int i=1;i<=stout_pars->nlev;i++)
@@ -303,7 +303,7 @@ void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingr
 }
 
 //remap the force to one smearing level less
-THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf, stout_coeff_type*,rho)
+THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf, stout_coeff_t*,rho)
 {
   GET_THREAD_ID();
   communicate_eo_quad_su3_edges(conf);
@@ -406,7 +406,7 @@ THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf
 }}
 
 //remap iteratively the force, adding the missing pieces of the chain rule derivation
-THREADABLE_FUNCTION_3ARG(stouted_force_remap, quad_su3**,F, quad_su3***,sme_conf, stout_pars_type*,stout_pars)
+THREADABLE_FUNCTION_3ARG(stouted_force_remap, quad_su3**,F, quad_su3***,sme_conf, stout_pars_t*,stout_pars)
 {
   sto_remap_time-=take_time();
   for(int i=stout_pars->nlev-1;i>=0;i--)

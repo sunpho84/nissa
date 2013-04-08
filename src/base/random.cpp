@@ -191,7 +191,7 @@ void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig)
 }
 
 //return a complex number of appropriate type
-void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_type rtype)
+void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_t rtype)
 {
   complex z={0,0};
   switch(rtype)
@@ -228,7 +228,7 @@ THREADABLE_FUNCTION_2ARG(rnd_fill_pm_one_loc_vector, double*,v, int,nps)
 }}
 
 //generate a spindiluted vector according to the passed type
-THREADABLE_FUNCTION_3ARG(generate_spindiluted_source, colorspinspin*,source, enum rnd_type,rtype, int,twall)
+THREADABLE_FUNCTION_3ARG(generate_spindiluted_source, colorspinspin*,source, enum rnd_t,rtype, int,twall)
 {
   //reset
   vector_reset(source);
@@ -255,7 +255,7 @@ THREADABLE_FUNCTION_3ARG(generate_spindiluted_source, colorspinspin*,source, enu
 }}
 
 //generate an undiluted vector according to the passed type
-THREADABLE_FUNCTION_3ARG(generate_undiluted_source, spincolor*,source, enum rnd_type,rtype, int,twall)
+THREADABLE_FUNCTION_3ARG(generate_undiluted_source, spincolor*,source, enum rnd_t,rtype, int,twall)
 {
   //reset
   vector_reset(source);
@@ -271,7 +271,7 @@ THREADABLE_FUNCTION_3ARG(generate_undiluted_source, spincolor*,source, enum rnd_
 }}
 
 //generate a fully undiluted source
-THREADABLE_FUNCTION_4ARG(generate_fully_undiluted_eo_source, color*,source, enum rnd_type,rtype, int,twall, int,par)
+THREADABLE_FUNCTION_4ARG(generate_fully_undiluted_eo_source, color*,source, enum rnd_t,rtype, int,twall, int,par)
 {
   vector_reset(source);
   
@@ -286,7 +286,7 @@ THREADABLE_FUNCTION_4ARG(generate_fully_undiluted_eo_source, color*,source, enum
   
   set_borders_invalid(source);
 }}
-void generate_fully_undiluted_eo_source(color **source,enum rnd_type rtype,int twall)
+void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall)
 {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par);}
 
 //generate a delta source

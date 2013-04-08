@@ -12,9 +12,9 @@ char base_out_folder[1024];
 
 // ######################################################### ape_smear_t ####################################################
 
-// ########################################################### source_t #####################################################
+// ########################################################### in_source_t #####################################################
 
-void source_t::smear(gauge_conf_t &conf,gauss_smear_pars_t &pars)
+void in_source_t::smear(gauge_conf_t &conf,gauss_smear_pars_t &pars)
 {gaussian_smearing(eta,eta,conf.U,pars.kappa,pars.nterm,pars.coeff,pars.expnt);}
 
 // ######################################################### prop_group_t ###################################################
@@ -92,7 +92,7 @@ void prop_group_t::read_pars(int ntheta_group,theta_group_t *theta_group,int nma
   create(theta_group[itheta_group],mass_res_group[imass_res_group],(TMR)which_r);
 }
 
-void prop_group_t::get_inverting(source_t &source,gauge_conf_t &gauge_conf,int rotate_to_physical_basis)
+void prop_group_t::get_inverting(in_source_t &source,gauge_conf_t &gauge_conf,int rotate_to_physical_basis)
 {
   //get ntheta,nmass,nr
   int nmass,ntheta,nr;
@@ -246,7 +246,7 @@ void prop_group_t::write(const char *ext_template_path,int save_reconstructing,i
 
 // #################################### prop_group_command_t ##################################
 
-void prop_group_command_t::read_command(prop_group_t &ext_prop_group_out,source_t *ext_source,prop_group_t *ext_prop_group_in,gauge_conf_t *ext_conf,gauss_smear_pars_t *ext_smear_pars)
+void prop_group_command_t::read_command(prop_group_t &ext_prop_group_out,in_source_t *ext_source,prop_group_t *ext_prop_group_in,gauge_conf_t *ext_conf,gauss_smear_pars_t *ext_smear_pars)
 {
   //copy reference group
   prop_group_out=&ext_prop_group_out;
