@@ -15,11 +15,17 @@
 #include "../src/routines/ios.h"
 #include "../src/routines/openmp.h"
 
+//#define SPI_BARRIER
+
 //global barrier for spi
 void spi_global_barrier()
 {
+#ifdef SPI_BARRIER
   if(MUSPI_GIBarrierEnter(&spi_barrier)) crash("while entering spi barrier");
   if(MUSPI_GIBarrierPollWithTimeout(&spi_barrier,60UL*1600000000)) crash("while waiting for barrier to finish");
+#else
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
 }
 
 //get the spi coord and grid size
@@ -114,8 +120,10 @@ void init_spi()
       //activate the fifos
       if(Kernel_InjFifoActivate(&spi_fifo_sg_ptr,8,fifo_id,KERNEL_INJ_FIFO_ACTIVATE)) crash("activating fifo");
   
+#ifdef SPI_BARRIER
       //init the barrier
       if(MUSPI_GIBarrierInit(&spi_barrier,0)) crash("initializing the barrier");
+#endif
     }
 }
 
