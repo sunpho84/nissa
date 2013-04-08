@@ -10,7 +10,7 @@
 #include "../IO/input.h"
 
 //read parameters to study topology
-void read_top_meas_pars(top_meas_pars_type &top_meas_pars)
+void read_top_meas_pars(top_meas_pars_t &top_meas_pars)
 {
   read_str_int("MeasureTopology",&top_meas_pars.flag);
   if(top_meas_pars.flag)
@@ -24,7 +24,7 @@ void read_top_meas_pars(top_meas_pars_type &top_meas_pars)
 }
 
 //read degeneracy, mass, chpot and charge
-void read_quark_content(quark_content_type &quark_content)
+void read_quark_content(quark_content_t &quark_content)
 {
   read_str_int("Degeneracy",&(quark_content.deg));
   read_str_double("Mass",&(quark_content.mass));
@@ -34,7 +34,7 @@ void read_quark_content(quark_content_type &quark_content)
 }
 
 //read the parameters relevant for hmc evolution
-void read_hmc_evol_pars(hmc_evol_pars_type &pars)
+void read_hmc_evol_pars(hmc_evol_pars_t &pars)
 {
   read_str_int("SkipMTestNTraj",&pars.skip_mtest_ntraj);
   read_str_double("HmcTrajLength",&pars.traj_length);
@@ -45,7 +45,7 @@ void read_hmc_evol_pars(hmc_evol_pars_type &pars)
 }
 
 //read the parameters relevant for pure gauge evolution
-void read_pure_gauge_evol_pars(pure_gauge_evol_pars_type &pars)
+void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
 {
   //heat bath parameters                                                                                                                           
   read_str_int("NHbSweeps",&pars.nhb_sweeps);
@@ -56,7 +56,7 @@ void read_pure_gauge_evol_pars(pure_gauge_evol_pars_type &pars)
 }
 
 //read parameters to stout gauge action
-void read_stout_pars(stout_pars_type &stout_pars)
+void read_stout_pars(stout_pars_t &stout_pars)
 {
   read_str_int("StoutingNLevel",&stout_pars.nlev);
   if(stout_pars.nlev!=0)
@@ -79,7 +79,7 @@ void read_stout_pars(stout_pars_type &stout_pars)
 }
 
 //read parameters of the background em field
-void read_em_field_pars(em_field_pars_type &em_field_pars)
+void read_em_field_pars(em_field_pars_t &em_field_pars)
 {
   read_str_int("PutBkgrdEMField",&em_field_pars.flag);
   if(em_field_pars.flag)
@@ -97,7 +97,7 @@ void read_em_field_pars(em_field_pars_type &em_field_pars)
 }
 
 //read parameters to measure chiral condensate
-void read_chiral_cond_pars(chiral_cond_pars_type &pars)
+void read_chiral_cond_pars(chiral_cond_pars_t &pars)
 {
   read_str_int("MeasureChiralCond",&pars.flag);
   if(pars.flag)
@@ -109,7 +109,7 @@ void read_chiral_cond_pars(chiral_cond_pars_type &pars)
 }
 
 //read parameters to measure pseudoscalar correlators
-void read_pseudo_corr_pars(pseudo_corr_pars_type &pars)
+void read_pseudo_corr_pars(pseudo_corr_pars_t &pars)
 {
   read_str_int("MeasurePseudoCorr",&pars.flag);
   if(pars.flag)
@@ -121,22 +121,22 @@ void read_pseudo_corr_pars(pseudo_corr_pars_type &pars)
 }
 
 //read the theory_pars parameters of the theory
-void read_theory_pars(theory_pars_type &theory_pars)
+void read_theory_pars(theory_pars_t &theory_pars)
 {
   //kind of action
-  char gauge_action_type[1024];
-  read_str_str("GaugeAction",gauge_action_type,1024);
-  if(strcmp(gauge_action_type,"Wilson")==0) theory_pars.gac_type=Wilson_action;
+  char gauge_action_name[1024];
+  read_str_str("GaugeAction",gauge_action_name,1024);
+  if(strcmp(gauge_action_name,"Wilson")==0) theory_pars.gauge_action_name=Wilson_action;
   else
-    if(strcmp(gauge_action_type,"tlSym")==0) theory_pars.gac_type=tlSym_action;
-    else crash("unknown gauge action: %s",gauge_action_type);
+    if(strcmp(gauge_action_name,"tlSym")==0) theory_pars.gauge_action_name=tlSym_action;
+    else crash("unknown gauge action: %s",gauge_action_name);
   
   //beta for gauge action
   read_str_double("Beta",&theory_pars.beta);
   
   //read the number of undegenerate flavs
   read_str_int("NDiffFlavs",&(theory_pars.nflavs));
-  theory_pars.quark_content=nissa_malloc("quark_content",theory_pars.nflavs,quark_content_type);
+  theory_pars.quark_content=nissa_malloc("quark_content",theory_pars.nflavs,quark_content_t);
   
   //read each flav parameters
   for(int iflav=0;iflav<theory_pars.nflavs;iflav++)

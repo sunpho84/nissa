@@ -6,7 +6,7 @@ struct mass_res_group_t;
 struct theta_group_t;
 struct ape_smear_pars_t;
 struct gauss_smear_pars_t;
-struct source_t;
+struct in_source_t;
 struct prop_group_t;
 struct prop_group_command_t;
 struct gauge_conf_t;
@@ -97,32 +97,32 @@ struct gauss_smear_pars_t
   void set_kappa(double ext_kappa) {kappa=ext_kappa;}
 };
 
-// ########################################################## source_t ###################################################
+// ########################################################## in_source_t ###################################################
 
-struct source_t
+struct in_source_t
 {
   colorspinspin *eta;
   
   //create unallocated and empty
   void reset() {eta=NULL;}
-  source_t() {reset();}
+  in_source_t() {reset();}
   //create allocated but empty
   void create() {if(!is_allocated()) eta=nissa_malloc("eta",loc_vol+bord_vol,colorspinspin);}
   //copy and assignement
-  void copy(const source_t &in) {create();vector_copy(eta,in.eta);}
-  source_t(const source_t &in) {copy(in);}
-  source_t& operator=(const source_t &in) {copy(in);return *this;}
+  void copy(const in_source_t &in) {create();vector_copy(eta,in.eta);}
+  in_source_t(const in_source_t &in) {copy(in);}
+  in_source_t& operator=(const in_source_t &in) {copy(in);return *this;}
   //check if it is allocated
   int is_allocated() {return !(eta==NULL);}
   //destroy
   void destroy() {if(is_allocated()) nissa_free(eta);}
-  ~source_t() {destroy();}
+  ~in_source_t() {destroy();}
   //read from file
   void read(const char *name) {create();read_colorspinspin(eta,name,NULL);}
   //write to file
   void write(const char *name) {write_colorspinspin(name,eta,64);}
   //fill a particular timeslice
-  void fill(rnd_type noise_type,int twall) {create();generate_spindiluted_source(eta,noise_type,twall);}
+  void fill(rnd_t noise_type,int twall) {create();generate_spindiluted_source(eta,noise_type,twall);}
   //smear using a gaussian smearing operator
   void smear(gauge_conf_t &conf,gauss_smear_pars_t &pars);
 };
@@ -158,7 +158,7 @@ struct prop_group_t
   void destroy() {if(is_allocated()) {for(int i=0,n=nprop();i<n;i++) nissa_free(S[i]);nissa_free(S);}}
   ~prop_group_t() {destroy();}
   //invert
-  void get_inverting(source_t &source,gauge_conf_t &gauge_conf,int rotate_to_physical_basis);
+  void get_inverting(in_source_t &source,gauge_conf_t &gauge_conf,int rotate_to_physical_basis);
   //smear
   void get_smearing(gauge_conf_t &conf,gauss_smear_pars_t &pars,prop_group_t &in);
   void smear(gauge_conf_t &conf,gauss_smear_pars_t &pars);
@@ -177,7 +177,7 @@ struct prop_group_command_t
   prop_group_t *prop_group_out;
   prop_group_t *prop_group_in;
   gauge_conf_t *conf;
-  source_t *source;
+  in_source_t *source;
   gauss_smear_pars_t *smear_pars;
   int get_inverting;
   int get_reading;
@@ -187,7 +187,7 @@ struct prop_group_command_t
   int rotate_to_physical_basis;
   char template_path[1024];
   
-  void read_command(prop_group_t &ext_prop_group_out,source_t *ext_source,prop_group_t *ext_prop_group_in,gauge_conf_t *ext_conf,gauss_smear_pars_t *ext_smear_pars);
+  void read_command(prop_group_t &ext_prop_group_out,in_source_t *ext_source,prop_group_t *ext_prop_group_in,gauge_conf_t *ext_conf,gauss_smear_pars_t *ext_smear_pars);
   void exec();
 };
 

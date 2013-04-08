@@ -272,7 +272,7 @@ void cgm_invert_run_hm_up_to_comm_prec(basetype **sol,cgm_additional_parameters_
 }
 
 //return all the shifts summed together
-void summ_src_and_all_inv_cgm(basetype *sol,cgm_additional_parameters_proto,rat_approx_type *appr,int niter_max,double req_res,basetype *source)
+void summ_src_and_all_inv_cgm(basetype *sol,cgm_additional_parameters_proto,rat_approx_t *appr,int niter_max,double req_res,basetype *source)
 {
   //allocate temporary single solutions
   basetype *temp[appr->degree];

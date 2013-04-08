@@ -23,7 +23,7 @@
 #include "rat_expansion_database.cpp"
 
 //perform a full hmc step and return the difference between final and original action
-double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_type *theory_pars,hmc_evol_pars_type *simul)
+double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
 {
   double start_time=take_time();
   
@@ -40,7 +40,7 @@ double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_par
     }
   
   //initialize rational approximation for pf/action and force calculation
-  rat_approx_type rat_exp_pfgen[theory_pars->nflavs],rat_exp_actio[theory_pars->nflavs];
+  rat_approx_t rat_exp_pfgen[theory_pars->nflavs],rat_exp_actio[theory_pars->nflavs];
   for(int iflav=0;iflav<theory_pars->nflavs;iflav++)
     {
       rat_approx_create(&(rat_exp_pfgen[iflav]),db_rat_exp_nterms,"pfgen");

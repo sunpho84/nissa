@@ -14,7 +14,7 @@
 #include "../backfield.h"
 
 //generate pseudo-fermion using color vector generator
-THREADABLE_FUNCTION_5ARG(generate_pseudo_fermion, color*,pf, quad_su3**,conf, quad_u1**,u1b, rat_approx_type*,rat, double,residue)
+THREADABLE_FUNCTION_5ARG(generate_pseudo_fermion, color*,pf, quad_su3**,conf, quad_u1**,u1b, rat_approx_t*,rat, double,residue)
 {
   //generate the random field
   color *pf_hb_vec=nissa_malloc("pf_hb_vec",loc_volh,color);

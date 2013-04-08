@@ -200,7 +200,7 @@ void generate_hot_eo_conf(quad_su3 **conf)
 }
 
 //heatbath or overrelax algorithm for the quenched simulation case, Wilson action
-void heatbath_or_overrelax_conf_Wilson_action(quad_su3 **eo_conf,theory_pars_type *theory_pars,pure_gauge_evol_pars_type *evol_pars,int heat_over)
+void heatbath_or_overrelax_conf_Wilson_action(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over)
 {
   //loop on directions and on parity
   for(int mu=0;mu<4;mu++)
@@ -285,7 +285,7 @@ inline int check_add_square_staple(int *isquare_staples_to_ask,int &nsquare_stap
 }
 
 //heatbath or overrelax algorithm for the quenched simulation case, tlSym action
-void heatbath_or_overrelax_conf_tlSym_action(quad_su3 **eo_conf,theory_pars_type *theory_pars,pure_gauge_evol_pars_type *evol_pars,int heat_over)
+void heatbath_or_overrelax_conf_tlSym_action(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over)
 {
   //check that local volume is a multpiple of 4
   for(int mu=0;mu<4;mu++)
@@ -418,9 +418,9 @@ void heatbath_or_overrelax_conf_tlSym_action(quad_su3 **eo_conf,theory_pars_type
 }
 
 //heatbath or overrelax algorithm for the quenched simulation case
-void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars_type *theory_pars,pure_gauge_evol_pars_type *evol_pars,int heat_over)
+void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over)
 {
-  switch(theory_pars->gac_type)
+  switch(theory_pars->gauge_action_name)
     {
     case Wilson_action:
       heatbath_or_overrelax_conf_Wilson_action(eo_conf,theory_pars,evol_pars,heat_over);
@@ -434,9 +434,9 @@ void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars_type *theory_pars
 }
 
 //heatbath algorithm for the quenched simulation case
-void heatbath_conf(quad_su3 **eo_conf,theory_pars_type *theory_pars,pure_gauge_evol_pars_type *evol_pars)
+void heatbath_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars)
 {heatbath_or_overrelax_conf(eo_conf,theory_pars,evol_pars,0);}
 
 //overrelax algorithm for the quenched simulation case
-void overrelax_conf(quad_su3 **eo_conf,theory_pars_type *theory_pars,pure_gauge_evol_pars_type *evol_pars)
+void overrelax_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars)
 {heatbath_or_overrelax_conf(eo_conf,theory_pars,evol_pars,1);}

@@ -294,13 +294,13 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1,
 
 //return all the shifts summed together
 #if CGM_NARG == 0
-THREADABLE_FUNCTION_5ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, rat_approx_type*,appr, int,niter_max, double,req_res, BASETYPE*,source)
+THREADABLE_FUNCTION_5ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, rat_approx_t*,appr, int,niter_max, double,req_res, BASETYPE*,source)
 #elif CGM_NARG == 1
-THREADABLE_FUNCTION_6ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, rat_approx_type*,appr, int,niter_max, double,req_res, BASETYPE*,source)
+THREADABLE_FUNCTION_6ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, rat_approx_t*,appr, int,niter_max, double,req_res, BASETYPE*,source)
 #elif CGM_NARG == 2
-THREADABLE_FUNCTION_7ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2, rat_approx_type*,appr, int,niter_max, double,req_res, BASETYPE*,source)
+THREADABLE_FUNCTION_7ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2, rat_approx_t*,appr, int,niter_max, double,req_res, BASETYPE*,source)
 #elif CGM_NARG == 3
-THREADABLE_FUNCTION_8ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2, AT3,A3, rat_approx_type*,appr, int,niter_max, double,req_res, BASETYPE*,source)
+THREADABLE_FUNCTION_8ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2, AT3,A3, rat_approx_t*,appr, int,niter_max, double,req_res, BASETYPE*,source)
 #endif
 {
   GET_THREAD_ID();
