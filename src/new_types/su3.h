@@ -18,6 +18,7 @@ void color_print(color c);
 void color_prod_double(color a,color b,double c);
 void color_put_to_gauss(color H,rnd_gen *gen,double sigma);
 void color_put_to_zero(color m);
+void color_scalar_prod(complex out,color a,color b);
 void color_subt(color a,color b,color c);
 void color_subtassign(color a,color b);
 void color_summ(color a,color b,color c);

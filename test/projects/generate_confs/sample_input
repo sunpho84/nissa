@@ -68,7 +68,9 @@ StoutingNLevel         2               /* number of stouting level*/
 IsotropicStouting      1               /* do not modify, only isotropic stouting available */
 StoutRho               0.15            /* strength of the stouting */
 
-PutBkgrdEMField        0               /* Ex, Ey, Ez and Bx, By Bz are asked only if this is 1  */
+PutBkgrdEMField        1               /* Ex, Ey, Ez and Bx, By Bz are asked only if this is 1  */
+Ex 0 Ey 0 Ez 0
+Bx 0 By 0 Bz 1
 
 MeasurePseudoCorr      1
 PseudoCorrPath         pseudo_corr
@@ -80,6 +82,11 @@ ChiralCondPath         chiral_noB      /* output for chiral condensate */
 ChiralCondInvResidue   1.e-12          /* residue for inversion of chiral condensate */
 ChiralCondNHits        1               /* number of sources for chiral cond evaluation */
 
+MeasureMagnetization    1               /* magnetization (following question only if 1 chosen) */
+MagnetizationPath       magnetization   /* output for magnetization */
+MagnetizationInvResidue 1.e-12          /* residue for inversion of magnetization */
+MagnetizationNHits      128               /* number of sources for magnetization evaluation */
+
 /* ////// Gauge and Topo Measures //////// */
 
 MeasureGaugeObs        1               /* measure or not gauge obs */
@@ -89,7 +96,7 @@ MeasureTopology        0               /* topology (other questions only if 1 is
 
 /* /////////////// HMC parameters //////////// */
 
-MaxNTraj               2               /* number of traj per run */
+MaxNTraj               20              /* number of traj per run */
 
 Seed                   17294           /* used to init generator, only for 1st traj */
 

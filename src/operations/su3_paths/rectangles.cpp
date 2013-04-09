@@ -50,10 +50,11 @@ THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_eo_conf, double*,glb_sh
 	    }
   
   //reduce and free
-  complex_vector_glb_collapse(glb_shapes,point_shapes,loc_vol);
+  complex coll_shapes;
+  complex_vector_glb_collapse(coll_shapes,point_shapes,loc_vol);
   nissa_free(point_shapes);
   
-  //normalize
-  glb_shapes[RE]/=18*glb_vol;
-  glb_shapes[IM]/=36*glb_vol;
+  //normalize (passing throug additional var because of external unkwnon env)
+  glb_shapes[RE]=coll_shapes[RE]/(18*glb_vol);
+  glb_shapes[IM]=coll_shapes[IM]/(36*glb_vol);
 }}

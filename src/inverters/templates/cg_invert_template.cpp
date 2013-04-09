@@ -35,7 +35,9 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
   ncg_inv++;
   cg_inv_over_time-=take_time();
   
-  const int each=10;
+  int each_list[4]={0,100,10,1},each;
+  if(nissa_verbosity>=3) each=1;
+  else each=each_list[nissa_verbosity];
   
   //external loop, used if the internal exceed the maximal number of iterations
   double source_norm,lambda;
