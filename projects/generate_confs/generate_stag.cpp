@@ -337,6 +337,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       quad_su3 **temp_conf=(theory_pars[itheory].stout_pars.nlev==0)?conf:new_conf;
       stout_smear(temp_conf,conf,&(theory_pars[itheory].stout_pars));
       
+      //chiral condensate
       if(theory_pars[itheory].chiral_cond_pars.flag)
 	{
 	  verbosity_lv2_master_printf("Measuring chiral condensate for theory %d/%d\n",itheory+1,ntheories);
@@ -344,6 +345,15 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	}
       else verbosity_lv2_master_printf("Skipping measure of chiral condensate for theory %d/%d\n",itheory+1,ntheories);
       
+      //magnetization
+      if(theory_pars[itheory].magnetization_pars.flag)
+	{
+	  verbosity_lv2_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,ntheories);
+	  measure_magnetization(temp_conf,theory_pars[itheory],iconf);
+	}
+      else verbosity_lv2_master_printf("Skipping measure of magnetization for theory %d/%d\n",itheory+1,ntheories);
+      
+      //pseudoscalar meson time corr
       if(theory_pars[itheory].pseudo_corr_pars.flag)
 	{
 	  verbosity_lv2_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);

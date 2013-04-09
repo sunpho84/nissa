@@ -41,6 +41,21 @@ void add_im_pot_to_backfield(quad_u1 **S,quark_content_t &quark_content)
     }
 }
 
+//compute args for 1/L2 quantization
+void get_args_of_one_over_L2_quantization(coords x,int ivol,int mu,int nu)
+{
+  //reset
+  x[0]=x[1]=x[2]=x[3]=0;
+
+  //take absolute coords
+  double xmu=glb_coord_of_loclx[ivol][mu];
+  double xnu=glb_coord_of_loclx[ivol][nu];
+  
+  //define the arguments of exponentials
+  if(xmu==(glb_size[mu]-1)) x[mu]=-xnu*glb_size[mu];
+  x[nu]=xmu;
+}
+
 //multiply a background field by a constant em field
 //mu nu refers to the entry of F_mu_nu involved
 void add_em_field_to_backfield(quad_u1 **S,quark_content_t &quark_content,double em_str,int mu,int nu)
@@ -51,17 +66,9 @@ void add_em_field_to_backfield(quad_u1 **S,quark_content_t &quark_content,double
     {
       nissa_loc_volh_loop(ieo)
         {
-	  int ivol=loclx_of_loceo[par][ieo];
-	  
-	  double arg[4]={0,0,0,0};
-	  
-	  //take absolute coords
-	  double xmu=glb_coord_of_loclx[ivol][mu];
-	  double xnu=glb_coord_of_loclx[ivol][nu];
-	  
-	  //define the arguments of exponentials
-	  if(xmu==(glb_size[mu]-1)) arg[mu]=-xnu*glb_size[mu];
-	  arg[nu]=xmu;
+	  //compute arg
+	  coords arg;
+	  get_args_of_one_over_L2_quantization(arg,loclx_of_loceo[par][ieo],mu,nu);
 	  
 	  //compute u1phase and multiply
 	  for(int rho=0;rho<4;rho++)

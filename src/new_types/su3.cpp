@@ -110,6 +110,13 @@ void color_isubtassign(color a,color b)
 void color_prod_double(color a,color b,double c)
 {for(int i=0;i<6;i++) ((double*)a)[i]=((double*)b)[i]*c;}
 
+void color_scalar_prod(complex out,color a,color b)
+{
+  unsafe_complex_conj2_prod(out,a[0],b[0]);
+  complex_summ_the_conj2_prod(out,a[1],b[1]);
+  complex_summ_the_conj2_prod(out,a[2],b[2]);
+}
+
 /////////////////////////////// Generate an hermitean matrix ///////////////////////
 
 //Taken from M.D'Elia

@@ -108,6 +108,18 @@ void read_chiral_cond_pars(chiral_cond_pars_t &pars)
     }
 }
 
+//read parameters to measure magnetization
+void read_magnetization_pars(magnetization_pars_t &pars)
+{
+  read_str_int("MeasureMagnetization",&pars.flag);
+  if(pars.flag)
+    {
+      read_str_str("MagnetizationPath",pars.path,1024);
+      read_str_double("MagnetizationInvResidue",&pars.residue);
+      read_str_int("MagnetizationNHits",&pars.nhits);
+    }
+}
+
 //read parameters to measure pseudoscalar correlators
 void read_pseudo_corr_pars(pseudo_corr_pars_t &pars)
 {
@@ -151,10 +163,9 @@ void read_theory_pars(theory_pars_t &theory_pars)
       //read electric and magnetic field
       read_em_field_pars(theory_pars.em_field_pars);
       
-      //read info on pseudoscalar meson correlators
+      //read info on pseudoscalar meson correlators, condensate and magnetization measure
       read_pseudo_corr_pars(theory_pars.pseudo_corr_pars);
-      
-      //read info on chiral condensate measure
       read_chiral_cond_pars(theory_pars.chiral_cond_pars);
+      read_magnetization_pars(theory_pars.magnetization_pars);
     }
 }
