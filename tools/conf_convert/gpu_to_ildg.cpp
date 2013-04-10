@@ -1,0 +1,120 @@
+#include "nissa.h"
+
+#include <math.h>
+
+int L,T;
+
+int snum(int x,int y,int z,int t)
+{return (x+y*L+z*L*L+t*L*L*L)/2;}
+
+void read_complex(complex out,FILE *in)
+{
+  char temp[100];
+  fscanf(in,"%s",temp);
+  if(sscanf(temp,"(%lg,%lg)",out+0,out+1)!=2) crash("reading complex");
+}
+
+void read_su3(su3 out,FILE *in)
+{
+  for(int i=0;i<3;i++)
+    for(int j=0;j<3;j++)
+      read_complex(out[i][j],in);
+}
+
+int main(int narg,char **arg)
+{
+  //basic mpi initialization
+  init_nissa(narg,arg);
+  
+  if(nissa_nranks>1) crash("cannot run in parallel");
+  
+  if(narg<5) crash("use: %s L T file_in file_out",arg[0]);
+
+  L=atoi(arg[1]);
+  T=atoi(arg[2]);
+
+  //Init the MPI grid 
+  init_grid(T,L);
+
+  ///////////////////////////////////////////
+
+  su3 *in_conf=nissa_malloc("in_conf",4*loc_vol,su3);
+  quad_su3 *out_conf=nissa_malloc("out_conf",loc_vol,quad_su3);
+  
+  //open the file
+  FILE *fin=fopen(arg[3],"r");
+  if(fin==NULL) crash("while opening %s",arg[3]);
+
+  //read header
+  int nx,ny,nz,nt,nflav,ntraj;
+  double beta,mass;
+  if(fscanf(fin,"%d %d %d %d %lg %lg %d %d",&nx,&ny,&nz,&nt,&beta,&mass,&nflav,&ntraj)!=8) crash("reading header");
+  
+  //read the file
+  nissa_loc_vol_loop(ivol)
+    for(int mu=0;mu<4;mu++)
+      read_su3(in_conf[ivol*4+mu],fin);
+  
+  //close the file
+  fclose(fin);
+  
+  /////////////////////////////////// reorder conf /////////////////////////
+  
+  vector_reset(out_conf);
+  
+  int map_mu[4]={1,2,3,0};
+  for(int t=0;t<T;t++)
+    for(int z=0;z<L;z++)
+      for(int y=0;y<L;y++)
+	for(int x=0;x<L;x++)
+	  {
+	    int sum=x+y+z+t;
+	    int even=sum%2;
+	    int num=even*loc_volh + snum(x,y,z,t);
+	    
+	    coords c={t,x,y,z};
+	    int ivol=loclx_of_coord(c);
+	    
+	    for(int mu=0;mu<4;mu++)
+	      su3_copy(out_conf[ivol][map_mu[mu]],in_conf[mu*loc_vol+num]);
+	  }
+  
+  //remove phases
+  addrem_stagphases_to_lx_conf(out_conf);
+ 
+  /////////////////////////////// check everything ///////////////////////////
+  
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int mu=0;mu<4;mu++)
+      {
+	//check U(3)
+	double t=real_part_of_trace_su3_prod_su3_dag(out_conf[ivol][mu],out_conf[ivol][mu]);
+	if(fabs(t-3)>3.e-15)
+	  {
+	    printf("%d %d, %lg\n",ivol,mu,t-3);
+	    su3_print(out_conf[ivol][mu]);
+	  }
+	
+	//check SU(3)
+	complex c;
+	su3_det(c,out_conf[ivol][mu]);
+	if(fabs(c[RE]-1)>3.e-15||fabs(c[IM])>3.e-15)
+	  {
+	    printf("%d %d, %lg %lg\n",ivol,mu,c[RE]-1,c[IM]);
+            su3_print(out_conf[ivol][mu]);
+	  }
+      }
+  
+  //print the plaquette and write the conf
+  master_printf("Global plaquette: %lg\n",global_plaquette_lx_conf(out_conf));
+  write_ildg_gauge_conf(arg[4],out_conf,64);
+
+  nissa_free(in_conf);
+  nissa_free(out_conf);
+  
+  ///////////////////////////////////////////
+
+  close_nissa();
+
+  return 0;
+}
