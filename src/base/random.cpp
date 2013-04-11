@@ -114,7 +114,7 @@ void start_loc_rnd_gen(int seed)
 void start_loc_rnd_gen(char *text)
 {
   start_glb_rnd_gen(text);
-  start_loc_rnd_gen(0);
+  start_loc_rnd_gen(0); //glb grid already started so does not matter
 }
 
 //stop grid of local random generators

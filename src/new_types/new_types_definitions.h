@@ -226,6 +226,23 @@ struct top_meas_pars_t
   int meas_each;
 };
 
+//parameters to measure all rectangles path
+struct all_rect_meas_pars_t
+{
+  int flag;
+  char path[1024];
+  
+  //hyp pars
+  double hyp_alpha0,hyp_alpha1,hyp_alpha2;
+  
+  //ape pars
+  double ape_alpha;
+  int nape_levls,*nape_iters;
+  
+  //intervals for rectangles
+  int Tmin,Tmax,Dmin,Dmax;
+};
+
 typedef momentum_t stout_coeff_t[4];
 
 //structure to store data for stouting

@@ -27,6 +27,7 @@ extern double glu_comp_time;
 char gauge_obs_path[1024];
 int gauge_meas_flag;
 top_meas_pars_t top_meas_pars;
+all_rect_meas_pars_t all_rect_meas_pars;
 
 //input and output path for confs
 char conf_path[1024];
@@ -41,11 +42,13 @@ int ntheories;
 theory_pars_t *theory_pars;
 evol_pars_t evol_pars;
 
-//number of traj
+//traj
 int prod_ntraj;
 int itraj,max_ntraj;
 int store_conf_each;
 int store_running_temp_conf;
+int conf_created;
+int seed;
 
 const int HOT=0,COLD=1;
 
@@ -109,11 +112,17 @@ void read_conf(quad_su3 **conf,char *path)
   read_ildg_gauge_conf_and_split_into_eo_parts(conf,path,&mess);
   
   //scan messages
-  itraj=0;
   for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
       if(strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
+    }
+  
+  //if message with string not found start from input seed
+  if(nissa_loc_rnd_gen_inited==0)
+    {
+      master_printf("RND_gen status not found inside conf, starting from input passed seed\n");
+      start_loc_rnd_gen(seed);
     }
 }
 
@@ -157,11 +166,13 @@ void init_simulation(char *path)
   //read if we want to measure topological charge
   read_top_meas_pars(top_meas_pars);
   
+  //read if we want to measure all rectangles
+  read_all_rect_meas_pars(all_rect_meas_pars);
+  
   //read the number of trajectory to evolve
   read_str_int("MaxNTraj",&max_ntraj);
   
   //read the seed
-  int seed;
   read_str_int("Seed",&seed);
   
   //load evolution info depending if is a quenched simulation or unquenched
@@ -174,7 +185,7 @@ void init_simulation(char *path)
   read_str_int("StoreConfEach",&store_conf_each);
   read_str_int("StoreRunningTempConf",&store_running_temp_conf);
   
-  //read if confifguration must be generated cold or hot
+  //read if configuration must be generated cold or hot
   char start_conf_cond_str[1024];
   read_str_str("StartConfCond",start_conf_cond_str,1024);
   int start_conf_cond=-1;
@@ -202,9 +213,12 @@ void init_simulation(char *path)
     {
       master_printf("File %s found, loading\n",conf_path);
       read_conf(conf,conf_path);
+      conf_created=false;
     }
   else
     {
+      conf_created=true;
+      
       //start the random generator using passed seed
       start_loc_rnd_gen(seed);
       
@@ -307,7 +321,7 @@ int generate_new_conf()
 void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   //open creating or appending
-  FILE *file=open_file(path,(iconf==0)?"w":"a");
+  FILE *file=open_file(path,conf_created?"w":"a");
 
   //paths
   double paths[2];
@@ -329,7 +343,8 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action
 void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   if(gauge_meas_flag) measure_gauge_obs(gauge_obs_path,conf,iconf,acc,gauge_action_name);
-  if(top_meas_pars.flag) measure_topology(top_meas_pars,conf,iconf);
+  if(top_meas_pars.flag) measure_topology(top_meas_pars,conf,iconf,conf_created);
+  if(all_rect_meas_pars.flag) measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
   
   for(int itheory=0;itheory<ntheories;itheory++)
     {
@@ -341,7 +356,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       if(theory_pars[itheory].chiral_cond_pars.flag)
 	{
 	  verbosity_lv2_master_printf("Measuring chiral condensate for theory %d/%d\n",itheory+1,ntheories);
-	  measure_chiral_cond(temp_conf,theory_pars[itheory],iconf);
+	  measure_chiral_cond(temp_conf,theory_pars[itheory],iconf,conf_created);
 	}
       else verbosity_lv2_master_printf("Skipping measure of chiral condensate for theory %d/%d\n",itheory+1,ntheories);
       
@@ -349,7 +364,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       if(theory_pars[itheory].magnetization_pars.flag)
 	{
 	  verbosity_lv2_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,ntheories);
-	  measure_magnetization(temp_conf,theory_pars[itheory],iconf);
+	  measure_magnetization(temp_conf,theory_pars[itheory],iconf,conf_created);
 	}
       else verbosity_lv2_master_printf("Skipping measure of magnetization for theory %d/%d\n",itheory+1,ntheories);
       
@@ -357,7 +372,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       if(theory_pars[itheory].pseudo_corr_pars.flag)
 	{
 	  verbosity_lv2_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
-	  measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf);
+	  measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,conf_created);
 	}
       else verbosity_lv2_master_printf("Skipping measure of pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
     }
@@ -417,14 +432,19 @@ void in_main(int narg,char **arg)
     }
   while(prod_ntraj<max_ntraj && !file_exists("stop") && !file_exists("restart"));
   
-  ///////////////////////////////////////
+  /////////////////////////////////////// timings /////////////////////////////////
   
-  master_printf("time to apply %d times: %lg, %lg per iter, %lg MFlop/s\n",napp,app_time,app_time/napp,1158.0e-6*glb_volh*napp/app_time);
-  master_printf("overhead time to cgm invert %d times: %lg, %lg per inv\n",ncgm_inv,cgm_inv_over_time,cgm_inv_over_time/ncgm_inv);
-  master_printf("overhead time to cg invert %d times: %lg, %lg per inv\n",ncg_inv,cg_inv_over_time,cg_inv_over_time/ncg_inv);
-  master_printf("time to stout sme %d times: %lg, %lg per iter\n",nsto,sto_time,sto_time/nsto);
-  master_printf("time to stout remap %d times: %lg, %lg per iter\n",nsto_remap,sto_remap_time,sto_remap_time/nsto_remap);
-  master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",nglu_comp,glu_comp_time,glu_comp_time/nglu_comp);
+  master_printf("time to apply %d times: %lg, %lg per iter, %lg MFlop/s\n",
+		napp,app_time,app_time/(napp?napp:1),1158.0e-6*glb_volh*napp/(app_time?app_time:1));
+  master_printf("overhead time to cgm invert %d times: %lg, %lg per inv\n",
+		ncgm_inv,cgm_inv_over_time,cgm_inv_over_time/(ncgm_inv?ncgm_inv:1));
+  master_printf("overhead time to cg invert %d times: %lg, %lg per inv\n",
+		ncg_inv,cg_inv_over_time,cg_inv_over_time/(ncg_inv?ncg_inv:1));
+  master_printf("time to stout sme %d times: %lg, %lg per iter\n",nsto,sto_time,sto_time/(nsto?nsto:1));
+  master_printf("time to stout remap %d times: %lg, %lg per iter\n",
+		nsto_remap,sto_remap_time,sto_remap_time/(nsto_remap?nsto_remap:1));
+  master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",
+		nglu_comp,glu_comp_time,glu_comp_time/(nglu_comp?nglu_comp:1));
   
   close_simulation();
 }

@@ -290,9 +290,9 @@ THREADABLE_FUNCTION_2ARG(average_topological_charge_eo, double*,ave_charge, quad
 }}
 
 //measure the topologycal charge
-void measure_topology(top_meas_pars_t &pars,quad_su3 **uncooled_conf,int iconf)
+void measure_topology(top_meas_pars_t &pars,quad_su3 **uncooled_conf,int iconf,int conf_created)
 {
-  FILE *file=open_file(pars.path,(iconf==0)?"w":"a");
+  FILE *file=open_file(pars.path,conf_created?"w":"a");
   
   //allocate a temorary conf to be cooled
   quad_su3 *cooled_conf[2];

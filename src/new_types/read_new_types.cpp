@@ -132,6 +132,28 @@ void read_pseudo_corr_pars(pseudo_corr_pars_t &pars)
     }
 }
 
+//read parameters to measure all rectangles
+void read_all_rect_meas_pars(all_rect_meas_pars_t &pars)
+{
+  read_str_int("MeasureAllRect",&pars.flag);
+  if(pars.flag)
+    {
+      read_str_str("AllRectPath",pars.path,1024);
+      
+      read_str_double("HYPAlpha0",&pars.hyp_alpha0);
+      read_str_double("HYPAlpha1",&pars.hyp_alpha1);
+      read_str_double("HYPAlpha2",&pars.hyp_alpha2);
+      
+      read_str_double("APEAlpha",&pars.ape_alpha);
+      read_list_of_ints("APENlevels",&pars.nape_levls,&pars.nape_iters);
+
+      read_str_int("Tint",&pars.Tmin);
+      read_int(&pars.Tmax);
+      read_str_int("Dint",&pars.Dmin);
+      read_int(&pars.Dmax);
+    }
+}
+
 //read the theory_pars parameters of the theory
 void read_theory_pars(theory_pars_t &theory_pars)
 {
