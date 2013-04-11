@@ -28,7 +28,7 @@ THREADABLE_FUNCTION_6ARG(get_propagator, color**,prop, quad_su3**,conf, quad_u1*
 }}
 
 //compute the chiral condensate
-THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad_u1**,u1b, double,m, double,residue)
+THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
 {
   //allocate
   color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
@@ -36,16 +36,16 @@ THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad
   
   //generate the source and the propagator
   generate_fully_undiluted_eo_source(rnd,RND_Z4,-1);
-  get_propagator(chi,conf,u1b,m,residue,rnd);
+  get_propagator(chi,conf,u1b,quark->mass,residue,rnd);
   
   //summ the scalar prod of EVN and ODD parts
-  complex temp[2];
+  complex temp[2],tot;
   for(int eo=0;eo<2;eo++)
     complex_vector_glb_scalar_prod(temp+eo,(complex*)(rnd[eo]),(complex*)(chi[eo]),3*loc_volh);
-  complex_summ(*cond,temp[0],temp[ODD]);
+  complex_summ(tot,temp[EVN],temp[ODD]);
   
   //add normalization: 1/4vol
-  complex_prodassign_double(*cond,1.0/(4*glb_vol));
+  complex_prod_double(*cond,tot,quark->deg/(4*glb_vol));
   
   //free
   for(int par=0;par<2;par++)
@@ -75,7 +75,7 @@ void measure_chiral_cond(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,in
           
           //compute and summ
           complex temp;
-          chiral_condensate(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content[iflav].mass,theory_pars.chiral_cond_pars.residue);
+          chiral_condensate(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,theory_pars.chiral_cond_pars.residue);
           complex_summ_the_prod_double(cond,temp,1.0/nhits);
         }
       
