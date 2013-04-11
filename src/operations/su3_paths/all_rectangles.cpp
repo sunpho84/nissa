@@ -25,7 +25,7 @@ THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pa
   if(rank==0 && thread_id==0) fout=open_file(pars->path,conf_created?"w":"a");
   
   //hypped and APE spatial smeared conf
-  quad_su3 *sme_conf=nissa_malloc("sme_conf",loc_vol,quad_su3);
+  quad_su3 *sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   //allocate time path, time-spatial paths, closing paths and point contribution
   su3 *T_path=nissa_malloc("T_path",loc_vol+bord_vol,su3);

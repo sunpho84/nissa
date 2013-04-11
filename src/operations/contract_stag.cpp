@@ -45,7 +45,7 @@ THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad
   complex_summ(tot,temp[EVN],temp[ODD]);
   
   //add normalization: 1/4vol
-  complex_prod_double(*cond,tot,quark->deg/(4*glb_vol));
+  complex_prod_double(*cond,tot,quark->deg/(4.0*glb_vol));
   
   //free
   for(int par=0;par<2;par++)
@@ -60,8 +60,6 @@ void measure_chiral_cond(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,in
 {
   FILE *file=open_file(theory_pars.chiral_cond_pars.path,conf_created?"w":"a");
 
-  master_fprintf(file,"%d",iconf);
-  
   //measure the condensate for each quark
   for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
     {
@@ -208,11 +206,11 @@ void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int ico
   int nflavs=theory_pars.nflavs;
   
   //allocate source and propagators
-  color *source[2]={nissa_malloc("prop",loc_volh,color),nissa_malloc("source",loc_volh,color)};
+  color *source[2]={nissa_malloc("source_e",loc_volh+bord_volh,color),nissa_malloc("source_o",loc_volh+bord_volh,color)};
   color *prop[nflavs][2];
   for(int iflav=0;iflav<nflavs;iflav++)
     for(int EO=0;EO<2;EO++)
-      prop[iflav][EO]=nissa_malloc("prop",loc_volh,color);
+      prop[iflav][EO]=nissa_malloc("prop",loc_volh+bord_volh,color);
   
   //allocate local and global contraction
   complex *loc_contr=nissa_malloc("loc_contr",glb_size[0]*nflavs*(nflavs+1)/2,complex);
