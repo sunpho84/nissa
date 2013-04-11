@@ -43,7 +43,12 @@ MeasurePseudoCorr      0
 MeasureChiralCond      1               /* chiral condensate (following question only if 1 chosen) */
 ChiralCondPath         chiral          /* output for chiral condensate */
 ChiralCondInvResidue   1.e-12          /* residue for inversion of chiral condensate */
-ChiralCondNHits        2               /* number of sources for chiral cond evaluation */
+ChiralCondNHits        1               /* number of sources for chiral cond evaluation */
+
+MeasureMagnetization    1               /* magnetization (following question only if 1 chosen) */
+MagnetizationPath       magnetization   /* output for magnetization */
+MagnetizationInvResidue 1.e-12          /* residue for inversion of magnetization */
+MagnetizationNHits      1               /* number of sources for magnetization evaluation */
 
 /* ////// Valence theory used to measure the condensate without the back field ////// */
 
@@ -93,6 +98,16 @@ MeasureGaugeObs        1               /* measure or not gauge obs */
 GaugeObsPath           obs             /* output file for gauge obs */
 
 MeasureTopology        0               /* topology (other questions only if 1 is chosen) */
+
+MeasureAllRect         1
+AllRectPath            rects
+HYPAlpha0              0.75
+HYPAlpha1              0.6
+HYPAlpha2              0.3
+APEAlpha               0.7
+APENlevels             1  1
+Tint                   0 8
+Dint                   0 8
 
 /* /////////////// HMC parameters //////////// */
 
