@@ -99,6 +99,7 @@
 #include "operations/smearing/gaussian.h"
 #include "operations/source.h"
 
+#include "operations/su3_paths/all_rectangles.h"
 #include "operations/su3_paths/arbitrary.h"
 #include "operations/su3_paths/plaquette.h"
 #include "operations/su3_paths/pline.h"

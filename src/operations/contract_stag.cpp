@@ -56,9 +56,9 @@ THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad
 }}
 
 //measure chiral cond
-void measure_chiral_cond(quad_su3 **conf,theory_pars_t &theory_pars,int iconf)
+void measure_chiral_cond(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
 {
-  FILE *file=open_file(theory_pars.chiral_cond_pars.path,(iconf==0)?"w":"a");
+  FILE *file=open_file(theory_pars.chiral_cond_pars.path,conf_created?"w":"a");
 
   master_fprintf(file,"%d",iconf);
   
@@ -111,6 +111,9 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   //generate the source and the propagator
   generate_fully_undiluted_eo_source(rnd,RND_Z4,-1);
   get_propagator(chi,conf,u1b,quark->mass,residue,rnd);
+
+  //put again stag phases
+  addrem_stagphases_to_eo_conf(conf);
   
   //summ the scalar prod of EVN and ODD parts
   for(int par=0;par<2;par++)
@@ -123,7 +126,8 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
 	for(int irho=0;irho<2;irho++)
 	  {
 	    int rho=rho_list[irho];
-	    int iup_eo=loceo_neighup[par][ieo][rho],iup_lx=loclx_of_loceo[!par][iup_eo];
+	    int iup_eo=loceo_neighup[par][ieo][rho];
+	    int iup_lx=loclx_of_loceo[!par][iup_eo];
 	    
 	    color v;
 	    complex t;
@@ -139,6 +143,9 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
 	    complex_summ_the_prod_double(point_magn[ivol],t,arg[iup_lx][rho]);
 	  }
       }
+  
+  //remove stag phases
+  addrem_stagphases_to_eo_conf(conf);
   
   //reduce across all nodes and threads
   complex temp;
@@ -162,9 +169,9 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
 }}
 
 //measure magnetization
-void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,int iconf)
+void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
 {
-  FILE *file=open_file(theory_pars.magnetization_pars.path,(iconf==0)?"w":"a");
+  FILE *file=open_file(theory_pars.magnetization_pars.path,conf_created?"w":"a");
 
   master_fprintf(file,"%d",iconf);
   
@@ -194,9 +201,9 @@ void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,int iconf)
 }
 
 //compute the local pseudoscalar correlator
-void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int iconf)
+void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
 {
-  FILE *file=open_file(theory_pars.pseudo_corr_pars.path,(iconf==0)?"w":"a");
+  FILE *file=open_file(theory_pars.pseudo_corr_pars.path,conf_created?"w":"a");
   
   int nflavs=theory_pars.nflavs;
   

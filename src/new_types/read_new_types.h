@@ -3,6 +3,7 @@
 void read_chiral_cond_pars(chiral_cond_pars_t &chiral_cond_pars);
 void read_em_field_pars(em_field_pars_t &em_field_pars);
 void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars);
+void read_all_rect_meas_pars(all_rect_meas_pars_t &pars);
 void read_hmc_evol_pars(hmc_evol_pars_t &pars);
 void read_pseudo_corr_pars(pseudo_corr_pars_t &pseudo_corr_pars);
 void read_quark_content(quark_content_t &quark_content);

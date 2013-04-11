@@ -8,21 +8,25 @@
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
+#include "../../routines/openmp.h"
 
 #include <string.h>
 
 //smear a conf using hyp
 //warning, the input conf needs to have edges allocate!
-void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2,int req_mu)
+THREADABLE_FUNCTION_6ARG(hyp_smear_conf_dir, quad_su3*,sm_conf, quad_su3*,conf, double,alpha0, double,alpha1, double,alpha2, int,req_mu)
 {
+  GET_THREAD_ID();
+  
   //fill the dec2 remapping table
   int dec2_remap_index[4][4][4];
   int idec2_remap=0;
   for(int mu=0;mu<4;mu++)
     for(int nu=0;nu<4;nu++)
       for(int rho=0;rho<4;rho++)
-	if(mu==nu || mu==rho || nu==rho || (req_mu>=0 && req_mu<=3 && mu!=req_mu && nu!=req_mu && rho!=req_mu)) dec2_remap_index[mu][nu][rho]=-1;
-	else                                                                                                    dec2_remap_index[mu][nu][rho]=idec2_remap++;
+	if(mu==nu || mu==rho || nu==rho || (req_mu>=0 && req_mu<=3 && mu!=req_mu && nu!=req_mu && rho!=req_mu))
+	  dec2_remap_index[mu][nu][rho]=-1;
+	else dec2_remap_index[mu][nu][rho]=idec2_remap++;
   
   //fill the dec1 remapping table
   int dec1_remap_index[4][4];
@@ -59,7 +63,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
 	    int ire0=dec2_remap_index[mu][nu][rho];
 	    
 	    //loop over local volume
-	    nissa_loc_vol_loop(A)
+	    NISSA_PARALLEL_LOOP(A,0,loc_vol)
 	      {
 		//take original link
 		su3 temp0;
@@ -111,7 +115,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
 	  int ire0=dec1_remap_index[mu][nu];
 	      
 	  //loop over local volume
-	  nissa_loc_vol_loop(A)
+	  NISSA_PARALLEL_LOOP(A,0,loc_vol)
 	    {
 	      //take original link
 	      su3 temp0;
@@ -119,7 +123,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
 	      
 	      //reset the staple
 	      su3 stap;
-	      memset(stap,0,sizeof(su3));
+	      su3_put_to_zero(stap);
 	      
 	      //loop over the second decoration index
 	      for(int rho=0;rho<4;rho++)
@@ -168,7 +172,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
   //loop over external index
   for(int mu=0;mu<4;mu++)
     //loop over local volume
-    nissa_loc_vol_loop(A)
+    NISSA_PARALLEL_LOOP(A,0,loc_vol)
       {
 	//take original link
 	su3 temp0;
@@ -181,7 +185,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
 	    
 	    //reset the staple
 	    su3 stap;
-	    memset(stap,0,sizeof(su3));
+	    su3_put_to_zero(stap);
 	    
 	    //loop over the first decoration index
 	    for(int nu=0;nu<4;nu++)
@@ -221,7 +225,7 @@ void hyp_smear_conf_dir(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double al
   
   //free dec1
   for(int idec1=0;idec1<idec1_remap;idec1++) nissa_free(dec1_conf[idec1]);
-}
+}}
 
 //hyp smear all the dirs
 void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2)

@@ -18,7 +18,7 @@ extern int ncg_inv;
 #include "../../routines/ios.h"
 #include "../../routines/openmp.h"
 
-#if CG_NARG >= 3
+#if CG_NARG >= 6
  #error not supported
 #endif
 
@@ -28,6 +28,12 @@ THREADABLE_FUNCTION_6ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, int,niter, i
 THREADABLE_FUNCTION_7ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, int,niter, int,rniter, double,residue, BASETYPE*,source)
 #elif CG_NARG == 2
 THREADABLE_FUNCTION_8ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, int,niter, int,rniter, double,residue, BASETYPE*,source)
+#elif CG_NARG == 3
+THREADABLE_FUNCTION_9ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, int,niter, int,rniter, double,residue, BASETYPE*,source)
+#elif CG_NARG == 4
+THREADABLE_FUNCTION_10ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, int,niter, int,rniter, double,residue, BASETYPE*,source)
+#elif CG_NARG == 5
+THREADABLE_FUNCTION_11ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, AT5,A5, int,niter, int,rniter, double,residue, BASETYPE*,source)
 #endif
 {
   GET_THREAD_ID();

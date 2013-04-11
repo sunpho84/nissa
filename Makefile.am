@@ -103,6 +103,7 @@ nissa_headers=src/base/close.h \
 	src/operations/smearing/HYP.h \
 	src/operations/smearing/stout.h \
 	src/operations/smearing/gaussian.h \
+	src/operations/su3_paths/all_rectangles.h \
 	src/operations/su3_paths/arbitrary.h \
 	src/operations/su3_paths/plaquette.h \
 	src/operations/su3_paths/pline.h \
@@ -200,6 +201,7 @@ nissa_source_files=src/base/close.cpp \
 	src/operations/smearing/HYP.cpp \
 	src/operations/smearing/stout.cpp \
 	src/operations/smearing/gaussian.cpp \
+	src/operations/su3_paths/all_rectangles.cpp \
 	src/operations/su3_paths/arbitrary.cpp \
 	src/operations/su3_paths/plaquette.cpp \
 	src/operations/su3_paths/pline.cpp \
