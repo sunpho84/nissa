@@ -173,11 +173,13 @@ EXTERN as2t smunu_entr[4];   //these are the sigma matrices entries
 EXTERN int smunu_pos[4][6];  //and positions
 
 //perpendicular dir
-EXTERN int perp_dir[4][3]
-#ifndef ONLY_INSTANTIATION
-={{1,2,3},{0,2,3},{0,1,3},{0,1,2}}
+#ifdef ONLY_INSTANTIATION
+EXTERN int perp_dir[4][3],perp2_dir[4][3][2],perp3_dir[4][3][2];
+#else
+int perp_dir[4][3]={{1,2,3},{0,2,3},{0,1,3},{0,1,2}};
+int perp2_dir[4][3][2]={{{2,3},{1,3},{1,2}},{{2,3},{0,3},{2,3}},{{1,3},{0,3},{0,1}},{{1,2},{0,2},{0,1}}};
+int perp3_dir[4][3][2]={{{3,2},{3,1},{2,1}},{{3,2},{3,0},{3,2}},{{3,1},{3,0},{1,0}},{{2,1},{2,0},{1,0}}};
 #endif
-;
 
 //the real amd imaginary unit
 EXTERN complex ONE,I;

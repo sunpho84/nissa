@@ -612,3 +612,23 @@ THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_lx_conf, quad_su3*,lx_conf)
   
   thread_barrier(ADDREM_STAGPHASES_SECOND_BARRIER);
 }}
+
+//return the index inside the 2^4 hypercube
+int hyp_parity(int ivol)
+{
+  int ipar=0;
+  for(int mu=0;mu<4;mu++)
+    ipar=ipar*2+(loc_coord_of_loclx[ivol][mu]%2);
+
+  return ipar;
+}
+
+//return the lx vertex of 2^4 hypercube
+int hyp_vertex_of_loclx(int ivol)
+{
+  int ive=0;
+  for(int mu=0;mu<4;mu++)
+    ive=ive*loc_size[mu]+loc_coord_of_loclx[ivol][mu]-loc_coord_of_loclx[ivol][mu]%2;
+
+  return ive;
+}

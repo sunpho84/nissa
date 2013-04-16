@@ -105,6 +105,7 @@
 #include "operations/su3_paths/pline.h"
 #include "operations/su3_paths/rectangles.h"
 #include "operations/su3_paths/squared_staples.h"
+#include "operations/su3_paths/shortest_hypercubic_paths.h"
 #include "operations/su3_paths/topological_charge.h"
 
 #include "operations/vector_gather.h"

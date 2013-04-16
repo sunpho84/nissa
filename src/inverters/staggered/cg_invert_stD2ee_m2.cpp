@@ -14,7 +14,7 @@
 #define BORD_VOL bord_volh
 
 #define APPLY_OPERATOR apply_stD2ee_m2
-#define CG_OPERATOR_PARAMETERS conf,t,m*m,
+#define CG_OPERATOR_PARAMETERS conf,t,m2,
 
 #define CG_INVERT inv_stD2ee_m2_cg
 #define CG_NPOSSIBLE_REQUESTS 16
@@ -33,6 +33,6 @@
 #define AT1 quad_su3**
 #define A1 conf
 #define AT2 double
-#define A2 m
+#define A2 m2
 
 #include "../templates/cg_invert_template_threaded.cpp"

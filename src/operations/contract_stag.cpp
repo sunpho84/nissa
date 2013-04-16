@@ -7,6 +7,7 @@
 #include "../base/random.h"
 #include "../base/vectors.h"
 #include "../geometry/geometry_eo.h"
+#include "../geometry/geometry_lx.h"
 #include "../hmc/backfield.h"
 #include "../inverters/staggered/cg_invert_stD.h"
 #include "../linalgs/linalgs.h"
@@ -16,6 +17,8 @@
 #include "../routines/ios.h"
 #include "../routines/mpi.h"
 #include "../routines/openmp.h"
+
+#include "su3_paths/shortest_hypercubic_paths.h"
 
 //get a propagator
 THREADABLE_FUNCTION_6ARG(get_propagator, color**,prop, quad_su3**,conf, quad_u1**,u1b, double,m, double,residue, color**,source)
@@ -35,7 +38,8 @@ THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad
   color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
   
   //generate the source and the propagator
-  generate_fully_undiluted_eo_source(rnd,RND_Z4,-1);
+  master_printf("WARNING using always 1 source\n");
+  generate_fully_undiluted_eo_source(rnd,RND_ALL_PLUS_ONE,-1);
   get_propagator(chi,conf,u1b,quark->mass,residue,rnd);
   
   //summ the scalar prod of EVN and ODD parts
@@ -91,7 +95,7 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   GET_THREAD_ID();
   
   //fixed to Z magnetization
-  int mu=2,nu=3;
+  int mu=1,nu=2;
   
   //allocate source and propagator
   color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
@@ -107,25 +111,33 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   vector_reset(point_magn);
   
   //generate the source and the propagator
-  generate_fully_undiluted_eo_source(rnd,RND_Z4,-1);
-  get_propagator(chi,conf,u1b,quark->mass,residue,rnd);
+  master_printf("WARNING using always 1 source\n");
+  generate_fully_undiluted_eo_source(rnd,RND_ALL_PLUS_ONE,-1);
 
-  //put again stag phases
+  //we add stagphases and backfield externally because we need them for derivative
   addrem_stagphases_to_eo_conf(conf);
+  add_backfield_to_conf(conf,u1b);
   
-  //summ the scalar prod of EVN and ODD parts
+  //invert
+  inv_stD_cg(chi,conf,quark->mass,10000,5,residue,rnd);
+  
+  printf("(%lg,%lg) (%lg,%lg)\n",chi[EVN][0][0][RE],chi[EVN][0][0][IM],chi[ODD][0][0][RE],chi[ODD][0][0][IM]);
+  
+  //summ the results of the derivative
   for(int par=0;par<2;par++)
     NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
       {
 	int ivol=loclx_of_loceo[par][ieo];
 	
-	//summ the derivative with respect to mu and nu
+	//summ the contribution of the derivative in mu and nu directions
 	int rho_list[2]={mu,nu};
 	for(int irho=0;irho<2;irho++)
 	  {
 	    int rho=rho_list[irho];
+	    
 	    int iup_eo=loceo_neighup[par][ieo][rho];
-	    int iup_lx=loclx_of_loceo[!par][iup_eo];
+	    int idw_eo=loceo_neighdw[par][ieo][rho];
+	    int idw_lx=loclx_neighdw[ivol][rho];
 	    
 	    color v;
 	    complex t;
@@ -135,14 +147,15 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
 	    color_scalar_prod(t,v,rnd[par][ieo]);
 	    complex_summ_the_prod_double(point_magn[ivol],t,arg[ivol][rho]);
 	    
-	    //backward derivative (the dagger is done on U*rnd)
-	    unsafe_su3_prod_color(v,conf[par][ieo][rho],rnd[!par][iup_eo]);
-	    color_scalar_prod(t,chi[par][ieo],v);
-	    complex_summ_the_prod_double(point_magn[ivol],t,arg[iup_lx][rho]);
+	    //backward derivative: note that we should multiply for -arg*(-U^+)
+	    unsafe_su3_dag_prod_color(v,conf[!par][idw_eo][rho],chi[!par][idw_eo]);
+	    color_scalar_prod(t,v,rnd[par][ieo]);
+	    complex_summ_the_prod_double(point_magn[ivol],t,arg[idw_lx][rho]);
 	  }
       }
   
-  //remove stag phases
+  //remove stag phases and u1 field
+  rem_backfield_from_conf(conf,u1b);
   addrem_stagphases_to_eo_conf(conf);
   
   //reduce across all nodes and threads
@@ -154,7 +167,8 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   //-1/vol coming from stochastic trace
   //-1/2 coming from dirac operator
   //-i*2*(quark_charge/3)*M_PI/glb_size[mu]/glb_size[nu] coming EM potential prefactor in front of "b"
-  unsafe_complex_prod_idouble(*magn,temp,quark->deg*2*M_PI*quark->charge/(4*glb_vol*2*3*glb_size[mu]*glb_size[nu]));
+  //and a minus because F=-logZ
+  unsafe_complex_prod_idouble(*magn,temp,-quark->deg*2*M_PI*quark->charge/(4*glb_vol*2*3*glb_size[mu]*glb_size[nu]));
   
   //free
   for(int par=0;par<2;par++)
@@ -186,7 +200,8 @@ void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,
           
           //compute and summ
           complex temp;
-          magnetization(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,theory_pars.magnetization_pars.residue);
+          magnetization(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
+			theory_pars.magnetization_pars.residue);
           complex_summ_the_prod_double(magn,temp,1.0/nhits);
         }
       
@@ -197,7 +212,7 @@ void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,
   
   if(rank==0) fclose(file);
 }
-
+ 
 //compute the local pseudoscalar correlator
 void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
 {
@@ -214,7 +229,7 @@ void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int ico
   
   //allocate local and global contraction
   complex *loc_contr=nissa_malloc("loc_contr",glb_size[0]*nflavs*(nflavs+1)/2,complex);
-  complex *glb_contr=nissa_malloc("loc_contr",glb_size[0]*nflavs*(nflavs+1)/2,complex);
+  complex *glb_contr=nissa_malloc("glb_contr",glb_size[0]*nflavs*(nflavs+1)/2,complex);
   vector_reset(loc_contr);
   
   //loop over the hits
@@ -276,3 +291,55 @@ void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int ico
   
   if(rank==0) fclose(file);
 }
+
+/*
+//compute the local pseudoscalar correlator
+THREADABLE_FUNCTION_4ARG(measure_time_meson_corr, quad_su3**,conf, theory_pars_t*,theory_pars, int,iconf, int,conf_created)
+{
+  GET_THREAD_ID();
+  
+  int nflavs=theory_pars->nflavs;
+  
+  //allocate source and propagators
+  color *ori_source[2]={nissa_malloc("ori_source_e",loc_volh,color),nissa_malloc("ori_source_o",loc_volh,color)};
+  color *source[2]={nissa_malloc("source_e",loc_volh+bord_volh,color),nissa_malloc("source_o",loc_volh+bord_volh,color)};
+  color *prop[16][nflavs][2];
+  for(int icube=0;icube<16;icube++)
+    for(int iflav=0;iflav<nflavs;iflav++)
+      for(int EO=0;EO<2;EO++)
+	prop[icube][iflav][EO]=nissa_malloc("prop",loc_volh+bord_volh,color);
+  
+  //generate the source on hypercube vertex
+  int twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2)*2;
+  generate_fully_undiluted_eo_source(ori_source,RND_Z4,twall);
+  filter_hypercube_origin_sites(ori_source);
+      
+  //compute propagators
+  for(int icube=0;icube<16;icube++)
+    {
+      //transport the source
+      vector_reset(source[EVN]);vector_reset(source[ODD]);      
+      NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
+	if(hyp_parity(ivol_lx)==icube)
+	  {
+	    int ipar=loclx_parity[ivol_lx];
+	    int ivol_eo=loceo_of_loclx[ivol_lx];
+	    
+	    int hyp_vertex=hyp_vertex_of_loclx(ivol_lx);
+	  }
+      
+      for(int iflav=0;iflav<nflavs;iflav++)
+	get_propagator(prop[icube][iflav],conf,theory_pars->backfield[iflav],theory_pars->quark_content[iflav].mass,
+		       theory_pars->pseudo_corr_pars.residue,source);
+    }
+  
+  //free everything  
+  for(int icube=0;icube<16;icube++)
+    for(int iflav=0;iflav<nflavs;iflav++)
+      for(int EO=0;EO<2;EO++)
+	nissa_free(prop[icube][iflav][EO]);
+  nissa_free(source[EVN]);nissa_free(source[ODD]);
+  nissa_free(ori_source[EVN]);nissa_free(ori_source[ODD]);
+  nissa_free(shortest[EVN]);nissa_free(shortest[ODD]); 
+}}
+*/

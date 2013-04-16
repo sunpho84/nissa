@@ -15,6 +15,8 @@ int glblx_of_coord_list(int x0,int x1,int x2,int x3);
 int glblx_of_diff(int b,int c);
 int glblx_of_summ(int b,int c);
 int glblx_opp(int b);
+int hyp_parity(int ivol);
+int hyp_vertex_of_loclx(int ivol);
 int loclx_of_coord(coords x);
 int loclx_of_coord_list(int x0,int x1,int x2,int x3);
 int lx_of_coord(coords x,coords s);

@@ -408,13 +408,19 @@ THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf
 //remap iteratively the force, adding the missing pieces of the chain rule derivation
 THREADABLE_FUNCTION_3ARG(stouted_force_remap, quad_su3**,F, quad_su3***,sme_conf, stout_pars_t*,stout_pars)
 {
-  sto_remap_time-=take_time();
+  GET_THREAD_ID();
+  
+  if(IS_MASTER_THREAD) sto_remap_time-=take_time();
+
   for(int i=stout_pars->nlev-1;i>=0;i--)
     {
       verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i,stout_pars->nlev-1);
       stouted_force_remap_step(F,sme_conf[i],&(stout_pars->rho));
     }
-  sto_remap_time+=take_time();
   
-  nsto_remap++;
+  if(IS_MASTER_THREAD)
+    {
+      sto_remap_time+=take_time();  
+      nsto_remap++;
+    }
 }}

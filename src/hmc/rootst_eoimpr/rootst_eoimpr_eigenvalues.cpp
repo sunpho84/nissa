@@ -48,7 +48,7 @@ THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark_c
   //apply the vector niter times normalizing at each iter
   for(int iter=0;iter<niters;iter++)
     {
-      //inv_stD2ee_m2_cg(vec_out,NULL,eo_conf,quark_content.mass,10000,5,1.e-13,vec_in);
+      //inv_stD2ee_m2_cg(vec_out,NULL,eo_conf,sqr(quark_content.mass),10000,5,1.e-13,vec_in);
       apply_stD2ee(vec_out,eo_conf,tmp,quark_content->mass,vec_in);
       
       //compute the norm

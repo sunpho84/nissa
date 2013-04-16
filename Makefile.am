@@ -109,6 +109,7 @@ nissa_headers=src/base/close.h \
 	src/operations/su3_paths/pline.h \
 	src/operations/su3_paths/rectangles.h \
 	src/operations/su3_paths/rectangular_staples.h \
+	src/operations/su3_paths/shortest_hypercubic_paths.h \
 	src/operations/su3_paths/squared_staples.h \
 	src/operations/su3_paths/topological_charge.h \
 	src/operations/vector_gather.h \
@@ -207,6 +208,7 @@ nissa_source_files=src/base/close.cpp \
 	src/operations/su3_paths/pline.cpp \
 	src/operations/su3_paths/rectangles.cpp \
 	src/operations/su3_paths/rectangular_staples.cpp \
+	src/operations/su3_paths/shortest_hypercubic_paths.cpp \
 	src/operations/su3_paths/squared_staples.cpp \
 	src/operations/su3_paths/topological_charge.cpp \
 	src/operations/vector_gather.cpp \
