@@ -64,16 +64,16 @@ THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,i
       int odup0=loceo_neighup[EVN][ie][0];
       int oddw0=loceo_neighdw[EVN][ie][0];
       
-      unsafe_su3_dag_prod_color(out[ie],conf[ODD][oddw0][0],in[oddw0]);
-      su3_subt_the_prod_color(  out[ie],conf[EVN][ie   ][0],in[odup0]);
+      unsafe_su3_prod_color(      out[ie],conf[EVN][ie   ][0],in[odup0]);
+      su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw0][0],in[oddw0]);
       
       for(int mu=1;mu<4;mu++)
 	{
 	  int odup=loceo_neighup[EVN][ie][mu];
 	  int oddw=loceo_neighdw[EVN][ie][mu];
 	  
-	  su3_dag_summ_the_prod_color(out[ie],conf[ODD][oddw][mu],in[oddw]);
-	  su3_subt_the_prod_color(    out[ie],conf[EVN][ie  ][mu],in[odup]);
+	  su3_summ_the_prod_color(    out[ie],conf[EVN][ie  ][mu],in[odup]);
+	  su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw][mu],in[oddw]);
 	}
       
       color_prod_double(out[ie],out[ie],0.25);      
@@ -124,27 +124,28 @@ THREADABLE_FUNCTION_5ARG(apply_stD2ee, color*,out, quad_su3**,conf, color*,temp,
   
   set_borders_invalid(temp);
   communicate_od_color_borders(temp);
-
+  
+  //we stil apply Deo, but then we put a - because we should apply Doe^+=-Deo
   NISSA_PARALLEL_LOOP(ie,0,loc_volh)
     {
       int odup0=loceo_neighup[EVN][ie][0];
       int oddw0=loceo_neighdw[EVN][ie][0];
       
-      unsafe_su3_dag_prod_color(out[ie],conf[ODD][oddw0][0],temp[oddw0]);
-      su3_subt_the_prod_color(  out[ie],conf[EVN][ie   ][0],temp[odup0]);
+      unsafe_su3_prod_color(      out[ie],conf[EVN][ie   ][0],temp[odup0]);
+      su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw0][0],temp[oddw0]);
       
       for(int mu=1;mu<4;mu++)
 	{
 	  int odup=loceo_neighup[EVN][ie][mu];
 	  int oddw=loceo_neighdw[EVN][ie][mu];
 	  
-	  su3_dag_summ_the_prod_color(out[ie],conf[ODD][oddw][mu],temp[oddw]);
-	  su3_subt_the_prod_color(    out[ie],conf[EVN][ie  ][mu],temp[odup]);
+	  su3_summ_the_prod_color(    out[ie],conf[EVN][ie  ][mu],temp[odup]);
+	  su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw][mu],temp[oddw]);
 	}
       
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
-	  out[ie][ic][ri]=mass2*in[ie][ic][ri]+out[ie][ic][ri]*0.25;
+	  out[ie][ic][ri]=mass2*in[ie][ic][ri]-out[ie][ic][ri]*0.25;
     }
   
   set_borders_invalid(out);

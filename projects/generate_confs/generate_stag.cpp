@@ -255,7 +255,7 @@ void unset_theory_pars(theory_pars_t &theory_pars)
 //finalize everything
 void close_simulation()
 {
-  if(!store_running_temp_conf && prod_ntraj!=0) write_conf(conf_path,conf);
+  if(!store_running_temp_conf) write_conf(conf_path,conf);
   
   for(int itheory=0;itheory<ntheories;itheory++)
     unset_theory_pars(theory_pars[itheory]);
@@ -429,6 +429,9 @@ void in_main(int narg,char **arg)
       
       // 5) spacing between output
       master_printf("\n");
+      
+      //surely now we have created conf
+      conf_created=0;
     }
   while(prod_ntraj<max_ntraj && !file_exists("stop") && !file_exists("restart"));
   
@@ -440,7 +443,8 @@ void in_main(int narg,char **arg)
 		ncgm_inv,cgm_inv_over_time,cgm_inv_over_time/(ncgm_inv?ncgm_inv:1));
   master_printf("overhead time to cg invert %d times: %lg, %lg per inv\n",
 		ncg_inv,cg_inv_over_time,cg_inv_over_time/(ncg_inv?ncg_inv:1));
-  master_printf("time to stout sme %d times: %lg, %lg per iter\n",nsto,sto_time,sto_time/(nsto?nsto:1));
+  master_printf("time to stout sme %d times: %lg, %lg per iter\n",
+		nsto,sto_time,sto_time/(nsto?nsto:1));
   master_printf("time to stout remap %d times: %lg, %lg per iter\n",
 		nsto_remap,sto_remap_time,sto_remap_time/(nsto_remap?nsto_remap:1));
   master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",
