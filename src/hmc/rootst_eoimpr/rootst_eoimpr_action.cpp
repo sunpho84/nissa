@@ -13,7 +13,7 @@
 #include "../../hmc/gauge/tree_level_Symanzik_action.h"
 #include "../../routines/ios.h"
 #include "../../routines/mpi.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 #include "../backfield.h"
 #include "../momenta/momenta_action.h"

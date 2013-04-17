@@ -9,7 +9,7 @@
 #include "../base/global_variables.h"
 #include "../base/init.h"
 #include "../base/macros.h"
-#include "../base/openmp_macros.h"
+#include "../base/thread_macros.h"
 #include "ios.h"
 
 //#define DEBUG

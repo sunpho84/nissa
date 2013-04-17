@@ -2,8 +2,8 @@
  #include "config.h"
 #endif
 
-#include "../../base/openmp_macros.h"
-#include "../../routines/openmp.h"
+#include "../../base/thread_macros.h"
+#include "../../routines/thread.h"
 
 double app_time=0;
 int napp=0;

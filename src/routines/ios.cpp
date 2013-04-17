@@ -13,7 +13,7 @@
 #include "../base/global_variables.h"
 
 #include "mpi.h"
-#include "openmp.h"
+#include "thread.h"
 
 //only master rank and thread print
 int master_fprintf(FILE *stream,const char *format,...)

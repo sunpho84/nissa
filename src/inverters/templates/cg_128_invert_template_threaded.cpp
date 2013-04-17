@@ -9,7 +9,7 @@
 
 #include "../../routines/ios.h"
 #include "../../routines/math.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 #if CG_NARG >= 5
  #error not supported

@@ -1,5 +1,5 @@
 #include "nissa.h"
-#include "../../src/base/openmp_macros.h"
+#include "../../src/base/thread_macros.h"
 
 #include <unistd.h>
 

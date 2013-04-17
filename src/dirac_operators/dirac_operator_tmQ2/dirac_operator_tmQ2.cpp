@@ -11,7 +11,7 @@
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../new_types/new_types_definitions.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 //Apply the Q+Q- operator to a spincolor
 THREADABLE_FUNCTION_7ARG(apply_tmQ2_RL, spincolor*,out, quad_su3*,conf, double,kappa, spincolor*,ext_temp, int,RL, double,mu, spincolor*,in)

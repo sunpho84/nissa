@@ -9,7 +9,7 @@
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 //compute plaquettes and rectangles
 THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_eo_conf, double*,glb_shapes, quad_su3**,conf)

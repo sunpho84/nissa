@@ -12,7 +12,7 @@
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
 #include "../routines/math.h"
-#include "../routines/openmp.h"
+#include "../routines/thread.h"
 
 #include "debug.h"
 #include "global_variables.h"

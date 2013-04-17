@@ -11,7 +11,7 @@
 #include "../../operations/su3_paths/rectangular_staples.h"
 #include "../../operations/su3_paths/squared_staples.h"
 #include "../../routines/ios.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 THREADABLE_FUNCTION_3ARG(tree_level_Symanzik_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta)
 {

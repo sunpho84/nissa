@@ -11,7 +11,7 @@
 #include "../geometry/geometry_lx.h"
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
-#include "../routines/openmp.h"
+#include "../routines/thread.h"
 
 #ifdef BGQ
  #include "../bgq/spi.h"

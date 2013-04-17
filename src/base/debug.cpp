@@ -12,7 +12,7 @@
 #include "vectors.h"
 
 #include "../routines/ios.h"
-#include "../base/openmp_macros.h"
+#include "../base/thread_macros.h"
 
 //take the time
 double take_time()

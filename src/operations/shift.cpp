@@ -14,7 +14,7 @@
 #include "../new_types/complex.h"
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/su3.h"
-#include "../routines/openmp.h"
+#include "../routines/thread.h"
 
 //shift an su3 vector of a single step along the mu axis, in the positive or negative dir
 THREADABLE_FUNCTION_3ARG(su3_vec_single_shift, su3*,u, int,mu, int,sign)

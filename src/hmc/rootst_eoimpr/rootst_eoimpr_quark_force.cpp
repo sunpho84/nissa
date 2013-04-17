@@ -14,7 +14,7 @@
 #include "../../new_types/su3.h"
 #include "../../operations/smearing/stout.h"
 #include "../../routines/ios.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 //Compute the fermionic force the rooted staggered e/o improved theory.
 //Passed conf must NOT contain the backfield.

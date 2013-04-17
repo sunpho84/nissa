@@ -9,7 +9,7 @@
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 //apply kappa*H to a spincolor
 THREADABLE_FUNCTION_4ARG(gaussian_smearing_apply_kappa_H_spincolor, spincolor*,H, double,kappa, quad_su3*,conf, spincolor*,smear_sc)

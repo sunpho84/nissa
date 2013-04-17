@@ -6,9 +6,9 @@
  #include <unistd.h>
 
 #include "../../routines/ios.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 #include "../../routines/mpi.h"
-#include "../../base/openmp_macros.h"
+#include "../../base/thread_macros.h"
 
 extern double cgm_inv_over_time;
 extern int ncgm_inv;

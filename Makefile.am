@@ -116,7 +116,7 @@ nissa_headers=src/base/close.h \
 	src/routines/ios.h \
 	src/routines/math.h \
 	src/routines/mpi.h \
-	src/routines/openmp.h
+	src/routines/thread.h
 nissa_source_files=src/base/close.cpp \
 	src/base/communicate.cpp \
 	src/base/debug.cpp \
@@ -215,7 +215,7 @@ nissa_source_files=src/base/close.cpp \
 	src/routines/ios.cpp \
 	src/routines/math.cpp \
 	src/routines/mpi.cpp \
-	src/routines/openmp.cpp
+	src/routines/thread.cpp
 extra_headers=src/new_types/new_types_definitions.h src/base/macros.h src/base/openmp_macros.h
 
 #instruct how to build the library

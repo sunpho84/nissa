@@ -5,7 +5,7 @@
 #include <omp.h>
 
 #include "../../routines/ios.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 extern double cgm_inv_over_time;
 extern int ncgm_inv;

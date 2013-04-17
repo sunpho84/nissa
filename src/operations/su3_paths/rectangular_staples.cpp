@@ -11,7 +11,7 @@
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../new_types/su3.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 #ifdef BGQ
  #include "../../bgq/spi.h"

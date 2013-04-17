@@ -3,7 +3,7 @@
 #include "../../base/communicate.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 #include "dirac_operator_tmQ_left_portable.cpp"
 

@@ -10,7 +10,7 @@
 #include "../base/vectors.h"
 #include "../new_types/su3.h"
 #include "../routines/ios.h"
-#include "../routines/openmp.h"
+#include "../routines/thread.h"
 
 //Return the index of site of coord x in the border mu,nu
 int edgelx_of_coord(int *x,int mu,int nu)
