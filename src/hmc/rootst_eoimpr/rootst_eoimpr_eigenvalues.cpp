@@ -49,7 +49,7 @@ THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark_c
   for(int iter=0;iter<niters;iter++)
     {
       //inv_stD2ee_m2_cg(vec_out,NULL,eo_conf,sqr(quark_content.mass),10000,5,1.e-13,vec_in);
-      apply_stD2ee(vec_out,eo_conf,tmp,quark_content->mass,vec_in);
+      apply_stD2ee_m2(vec_out,eo_conf,tmp,quark_content->mass*quark_content->mass,vec_in);
       
       //compute the norm
       double_vector_normalize(eig_max,(double*)vec_in,(double*)vec_out,glb_volh*3,6*loc_volh);

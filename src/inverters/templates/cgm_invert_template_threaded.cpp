@@ -58,7 +58,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
       cgm_inv_over_time-=take_time();
     }
   
-  int each_list[4]={0,100,10,1},each;
+  int each_list[4]={10000000,100,10,1},each;
   if(nissa_verbosity>=3) each=1;
   else each=each_list[nissa_verbosity];
   
