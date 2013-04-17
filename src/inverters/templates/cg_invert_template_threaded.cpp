@@ -16,7 +16,7 @@ extern int ncg_inv;
 #endif
 
 #include "../../routines/ios.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 #if CG_NARG >= 6
  #error not supported

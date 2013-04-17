@@ -30,30 +30,40 @@ Contributors:	  Mariam Atoui
 		  Nuria Carrasco
 		  Silvano Simula
 
+Thread pool ideas, SPI and BGQ optimization taken from M.Kruse work
+
 This project is host at: http://code.google.com/p/nissa
 
 
 Requirements
 ------------
 
-Some sort of MPI distribution (at the moment also when running on scalar machine).
+-MPI distribution (at the moment also when running on scalar machine).
+-Support for threads in the compiler.
+-Autotools to generate configure and Makefile.
 
 
 Compiling
 ---------
 
-Run "./configure" with usual parameters to generate the "Makefile".
+Run autoreconf to produce "configure" script.
+Then run "./configure" with suitable parameters to generate the "Makefile".
+Available options:
+	  --enable-bgq			to activate SPI communications and (in the future) BGQ geometry
+	  --enable-reproducible-run 	to make the run fully geometry and threadization independent
+	  
 Then use "make" to compile.
-The suite is not meant (at the moment) to be installed, so don't try "make install".
 
 The program have to be compiled with C++ including all the libraries and header necessary 
 for MPI. Typically you can use some wrapper of the system compiler to avoid having to pass
 all the paths and flags needed by MPI. Pass the name of such compiler wrapper through "CXX" 
-parameter, e.g: "./configure CXX=mpicxx". If you want to compile on BG/P add also 
-"-qarch -DBGP" as CXXGFLAS in the configure. 
-Optimization flags can be passed as well, for example: "CXXFLAGS=-O5".
+parameter, e.g: "./configure CXX=mpicxx".
+
+On BGQ machine (Turing and Fermi) use:
+ ./configure CC=mpixlc_r CXX=mpixlcxx_r CXXFLAGS="-qsmp=omp -O5 -qstrict=all" LIBS=-lxlsmp --enable-bgq
 
 When compiling using mpi intel compiler please set the flag: "CXXFLAGS=-DMPICH_IGNORE_CXX_SEEK"
+
 
 Structure
 ---------
@@ -65,7 +75,7 @@ various directories:
 -doc: in principle this should contain documentation to each and everything, but at the moment
  only notes on some particular routine
 
--src: contains the library and all the routines common to the various programs
+-src: contains the library and all the routines common to the various programs (see below)
 
 -tools: simple programs like converters, data check, etc
 
@@ -89,7 +99,7 @@ Detailed content of "src" directory:
 
 -geometry: routines to move around on the lattice
 
--hmc: routines to generate new confs with hybrid monte carlo methods, staggered and quenched theories only
+-hmc: routines to generate new confs with hybrid monte carlo methods, stout staggered and quenched theories only
 
 -inverters: multi-mass (cgm) and single mass (cg) inverters for twisted mass and staggered 
  Dirac operators, in double and quadruple precisions
@@ -109,6 +119,7 @@ Detailed content of "src" directory:
 All the files contained in the "src" directory are compiled and put together in the 
 "libissa.a" library, in the main nissa directory. The program that want to use the "nissa"
 library should link it and include "nissa.h" (located inside "src").
+
 
 Copyright
 ---------

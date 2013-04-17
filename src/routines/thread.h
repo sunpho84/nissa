@@ -1,7 +1,7 @@
 #ifndef _OPENMP_H
 #define _OPENMP_H
 
-#include "../base/openmp_macros.h"
+#include "../base/thread_macros.h"
 
 void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg));
 void start_threaded_function(void(*function)(void),const char *name);

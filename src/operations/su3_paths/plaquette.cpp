@@ -20,7 +20,7 @@
 #include "../../new_types/spin.h"
 #include "../../new_types/su3.h"
 #include "../../routines/mpi.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 /*
      

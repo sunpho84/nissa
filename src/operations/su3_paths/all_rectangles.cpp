@@ -11,7 +11,7 @@
 #include "../../new_types/su3.h"
 #include "../../operations/shift.h"
 #include "../../routines/ios.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 #include "../smearing/APE.h"
 #include "../smearing/HYP.h"

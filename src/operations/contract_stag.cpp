@@ -16,7 +16,7 @@
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
 #include "../routines/mpi.h"
-#include "../routines/openmp.h"
+#include "../routines/thread.h"
 
 #include "su3_paths/plaquette.h"
 #include "../IO/reader.h"

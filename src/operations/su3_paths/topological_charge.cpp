@@ -19,7 +19,7 @@
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
 #include "../../routines/mpi.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 //This will calculate 2*a^2*ig*P_{mu,nu}
 /*

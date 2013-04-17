@@ -9,7 +9,7 @@
 #include "../../base/vectors.h"
 #include "../../linalgs/linalgs.h"
 #include "../../operations/su3_paths/topological_charge.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 #include "dirac_operator_WclovQ_portable.cpp"
 

@@ -10,7 +10,7 @@
 #include "../../base/communicate.h"
 #include "../../base/debug.h"
 #include "../../base/vectors.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 //Refers to the doc: "doc/eo_inverter.lyx" for explenations
 

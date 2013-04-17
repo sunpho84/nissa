@@ -10,7 +10,7 @@
 #include "../../new_types/su3.h"
 #include "../../operations/su3_paths/squared_staples.h"
 #include "../../routines/ios.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 #ifdef BGQ
  #include "../../bgq/spi.h"

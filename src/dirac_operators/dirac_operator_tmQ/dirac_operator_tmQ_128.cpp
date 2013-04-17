@@ -7,7 +7,7 @@
 #include "../../base/communicate.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 //Apply the Q=D*g5 operator to a spincolor
 

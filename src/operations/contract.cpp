@@ -12,7 +12,7 @@
 #include "../new_types/spin.h"
 #include "../new_types/dirac.h"
 #include "../routines/ios.h"
-#include "../routines/openmp.h"
+#include "../routines/thread.h"
 
 //Tr[g1 * s1^dag * g2 * s2], useful for mesons 2 points
 void site_trace_g_sdag_g_s(complex c,dirac_matr *g1,spinspin s1,dirac_matr *g2,spinspin s2)

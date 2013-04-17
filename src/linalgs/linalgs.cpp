@@ -14,7 +14,7 @@
 #include "../new_types/spin.h"
 #include "../new_types/su3.h"
 #include "../routines/mpi.h"
-#include "../routines/openmp.h"
+#include "../routines/thread.h"
 
 //set to zero
 void double_vector_init_to_zero(double *a,int n)

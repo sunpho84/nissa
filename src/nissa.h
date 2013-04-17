@@ -113,6 +113,6 @@
 #include "routines/ios.h"
 #include "routines/math.h"
 #include "routines/mpi.h"
-#include "routines/openmp.h"
+#include "routines/thread.h"
 
 #endif

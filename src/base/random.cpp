@@ -14,7 +14,7 @@
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
 #include "../routines/math.h"
-#include "../routines/openmp.h"
+#include "../routines/thread.h"
 
 double rnd_get_unif(rnd_gen *gen,double min,double max);
 

@@ -13,7 +13,7 @@
 #include "../src/base/global_variables.h"
 #include "../src/base/vectors.h"
 #include "../src/routines/ios.h"
-#include "../src/routines/openmp.h"
+#include "../src/routines/thread.h"
 
 //#define SPI_BARRIER
 

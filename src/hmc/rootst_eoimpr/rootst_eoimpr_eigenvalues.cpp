@@ -16,7 +16,7 @@
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
 #include "../../routines/mpi.h"
-#include "../../routines/openmp.h"
+#include "../../routines/thread.h"
 
 #include "../backfield.h"
 
