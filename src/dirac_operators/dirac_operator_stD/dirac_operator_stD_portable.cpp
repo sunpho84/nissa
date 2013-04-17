@@ -82,12 +82,8 @@ THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,i
   set_borders_invalid(out);
 }}
 
-#include <unistd.h>
-
-THREADABLE_FUNCTION_5ARG(apply_stD2ee, color*,out, quad_su3**,conf, color*,temp, double,mass, color*,in)
+THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, quad_su3**,conf, color*,temp, double,mass2, color*,in)
 {
-  const double mass2=mass*mass;
-  
   GET_THREAD_ID();
   if(IS_MASTER_THREAD)
     {

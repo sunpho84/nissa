@@ -18,7 +18,8 @@
 #include "../routines/mpi.h"
 #include "../routines/openmp.h"
 
-#include "su3_paths/shortest_hypercubic_paths.h"
+#include "su3_paths/plaquette.h"
+#include "../IO/reader.h"
 
 //get a propagator
 THREADABLE_FUNCTION_6ARG(get_propagator, color**,prop, quad_su3**,conf, quad_u1**,u1b, double,m, double,residue, color**,source)
@@ -38,8 +39,7 @@ THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad
   color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
   
   //generate the source and the propagator
-  master_printf("WARNING using always 1 source\n");
-  generate_fully_undiluted_eo_source(rnd,RND_ALL_PLUS_ONE,-1);
+  generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
   get_propagator(chi,conf,u1b,quark->mass,residue,rnd);
   
   //summ the scalar prod of EVN and ODD parts
@@ -111,8 +111,7 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   vector_reset(point_magn);
   
   //generate the source and the propagator
-  master_printf("WARNING using always 1 source\n");
-  generate_fully_undiluted_eo_source(rnd,RND_ALL_PLUS_ONE,-1);
+  generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
 
   //we add stagphases and backfield externally because we need them for derivative
   addrem_stagphases_to_eo_conf(conf);
@@ -120,8 +119,6 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   
   //invert
   inv_stD_cg(chi,conf,quark->mass,10000,5,residue,rnd);
-  
-  printf("(%lg,%lg) (%lg,%lg)\n",chi[EVN][0][0][RE],chi[EVN][0][0][IM],chi[ODD][0][0][RE],chi[ODD][0][0][IM]);
   
   //summ the results of the derivative
   for(int par=0;par<2;par++)
@@ -167,8 +164,8 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   //-1/vol coming from stochastic trace
   //-1/2 coming from dirac operator
   //-i*2*(quark_charge/3)*M_PI/glb_size[mu]/glb_size[nu] coming EM potential prefactor in front of "b"
-  //and a minus because F=-logZ
-  unsafe_complex_prod_idouble(*magn,temp,-quark->deg*2*M_PI*quark->charge/(4*glb_vol*2*3*glb_size[mu]*glb_size[nu]));
+  //and a minus because F=-logZ //added a factor 6 for compatibility with GPU: 3 absent, 2 unknown
+  unsafe_complex_prod_idouble(*magn,temp,-quark->deg*2*M_PI*quark->charge*6/(3*4.0*glb_vol*2*glb_size[mu]*glb_size[nu]));
   
   //free
   for(int par=0;par<2;par++)

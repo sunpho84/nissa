@@ -52,8 +52,9 @@ void get_args_of_one_over_L2_quantization(coords x,int ivol,int mu,int nu)
   double xnu=glb_coord_of_loclx[ivol][nu];
   
   //define the arguments of exponentials
-  if(xmu==(glb_size[mu]-1)) x[mu]=-xnu*glb_size[mu];
-  x[nu]=xmu;
+  //added +1 for compatibilty with fortran code
+  if(xmu==(glb_size[mu]-1)) x[mu]=-(xnu+1)*glb_size[mu];
+  x[nu]=xmu+1;
 }
 
 //multiply a background field by a constant em field
