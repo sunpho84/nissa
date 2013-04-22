@@ -7,7 +7,7 @@
 #include "../../../../src/base/debug.h"
 #include "../../../../src/operations/fft.h"
 #include "../../../../src/base/vectors.h"
-#include "../../../../src/base/communicate.h"
+#include "../../../../src/communicate/communicate.h"
 
 #include "../types/types.h"
 #include "../routines/derivatives.h"

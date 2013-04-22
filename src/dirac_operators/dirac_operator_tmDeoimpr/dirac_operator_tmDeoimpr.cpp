@@ -6,7 +6,7 @@
 #include "../../new_types/complex.h"
 #include "../../new_types/su3.h"
 #include "../../base/global_variables.h"
-#include "../../base/communicate.h"
+#include "../../communicate/communicate.h"
 #include "../../base/debug.h"
 #include "../../base/vectors.h"
 #include "../../routines/thread.h"

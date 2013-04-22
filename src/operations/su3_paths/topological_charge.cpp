@@ -8,7 +8,7 @@
 
 #include "../gaugeconf.h"
 
-#include "../../base/communicate.h"
+#include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_mix.h"

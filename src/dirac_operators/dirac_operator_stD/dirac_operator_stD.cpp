@@ -9,7 +9,7 @@
 #include "../../base/vectors.h"
 #include "../../base/debug.h"
 #include "../../base/global_variables.h"
-#include "../../base/communicate.h"
+#include "../../communicate/communicate.h"
 #include "../../linalgs/linalgs.h"
 
 #include "dirac_operator_stD_portable.cpp"

@@ -7,7 +7,7 @@
 #include <string.h>
 #include <omp.h>
 
-#include "communicate.h"
+#include "../communicate/communicate.h"
 #include "debug.h"
 #include "global_variables.h"
 #include "vectors.h"

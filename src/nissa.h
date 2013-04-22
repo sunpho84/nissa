@@ -7,7 +7,6 @@
 #endif
 
 #include "base/close.h"
-#include "base/communicate.h"
 #include "base/debug.h"
 #include "base/global_variables.h"
 #include "base/init.h"
@@ -19,6 +18,8 @@
 #ifdef BGQ
  #include "bgq/bgq.h"
 #endif
+
+#include "communicate/communicate.h"
 
 #include "hmc/backfield.h"
 #include "hmc/gauge/gluonic_force.h"

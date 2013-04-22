@@ -3,7 +3,7 @@
 #include "cg_128_invert_tmQ2.h"
 
 #include "../../base/global_variables.h"
-#include "../../base/communicate.h"
+#include "../../communicate/communicate.h"
 #include "../../base/vectors.h"
 #include "../../base/debug.h"
 #include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"

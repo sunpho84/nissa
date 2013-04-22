@@ -5,7 +5,7 @@
 #include <math.h>
 #include <string.h>
 
-#include "../base/communicate.h"
+#include "../communicate/communicate.h"
 #include "../base/debug.h"
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
