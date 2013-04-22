@@ -4,7 +4,7 @@
 
 #include "../../new_types/new_types_definitions.h"
 #include "../../base/vectors.h"
-#include "../../base/communicate.h"
+#include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
 
 #include "../dirac_operator_WclovQ/dirac_operator_WclovQ.h"

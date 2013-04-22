@@ -1,7 +1,7 @@
 #include <math.h>
 
 #include "../../base/debug.h"
-#include "../../base/communicate.h"
+#include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"

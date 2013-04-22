@@ -2,7 +2,7 @@
 
 #include "../../../../src/new_types/new_types_definitions.h"
 #include "../../../../src/new_types/complex.h"
-#include "../../../../src/base/communicate.h"
+#include "../../../../src/communicate/communicate.h"
 #include "../../../../src/base/debug.h"
 #include "../../../../src/base/global_variables.h"
 #include "../../../../src/base/vectors.h"

@@ -3,7 +3,7 @@
 #endif
 
 #include "../../base/global_variables.h"
-#include "../../base/communicate.h"
+#include "../../communicate/communicate.h"
 #include "../../base/vectors.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"

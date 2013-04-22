@@ -7,7 +7,7 @@
 
 #include "../su3_paths/plaquette.h"
 
-#include "../../base/communicate.h"
+#include "../../communicate/communicate.h"
 #include "../../base/debug.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
@@ -27,7 +27,7 @@ double sto_remap_time=0;
 //compute the staples for the link U_A_mu weighting them with rho
 void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,stout_coeff_t rho)
 {
-  if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("communicate edges externally");
+  if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("../communicate/communicate edges externally");
 
   //put staples to zero
   su3_put_to_zero(staples);

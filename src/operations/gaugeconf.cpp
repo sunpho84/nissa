@@ -8,7 +8,7 @@
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
 #include "../base/debug.h"
-#include "../base/communicate.h"
+#include "../communicate/communicate.h"
 #include "../base/random.h"
 #include "../geometry/geometry_mix.h"
 #include "../new_types/complex.h"
