@@ -205,7 +205,22 @@ EXTERN int su3_sub_gr_indices[3][2]
 #endif
 ;
 
-/////////////////////////////////////////// BGQ specifics //////////////////////////////////
+/////////////////////////////////////////// buffered comm ///////////////////////////////////
+
+EXTERN int nbuffered_comm_allocated;
+EXTERN int buffered_comm_in_prog;
+
+//buffers
+EXTERN size_t nissa_buff_size;
+EXTERN char *nissa_recv_buf,*nissa_send_buf;
+
+//buffered communicators
+EXTERN buffered_comm_t buffered_lx_spincolor_comm;
+EXTERN buffered_comm_t buffered_lx_quad_su3_comm;
+EXTERN buffered_comm_t buffered_eo_color_comm;
+EXTERN buffered_comm_t buffered_eo_quad_su3_comm;
+
+/////////////////////////////////////////// BGQ specifics ///////////////////////////////////
 
 #ifdef BGQ
 
@@ -229,13 +244,9 @@ EXTERN MUSPI_InjFifoSubGroup_t spi_fifo_sg_ptr;
 //spi barrier
 EXTERN MUSPI_GIBarrier_t spi_barrier;
 
-//spi communicators
-EXTERN spi_comm_t spi_lx_spincolor_comm;
-EXTERN spi_comm_t spi_lx_quad_su3_comm;
-EXTERN spi_comm_t spi_eo_color_comm;
-EXTERN spi_comm_t spi_eo_quad_su3_comm;
-
 //number of allocated bat
 EXTERN int spi_nallocated_bat;
 
 #endif
+
+#undef EXTERN

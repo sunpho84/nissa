@@ -533,11 +533,22 @@ void init_grid(int T,int L)
 
 #ifdef BGQ
   init_spi();
-  set_lx_spi_comm(spi_lx_spincolor_comm,sizeof(spincolor));
-  set_lx_spi_comm(spi_lx_quad_su3_comm,sizeof(quad_su3));
-  set_eo_spi_comm(spi_eo_color_comm,sizeof(color));
-  set_eo_spi_comm(spi_eo_quad_su3_comm,sizeof(quad_su3));
 #endif
+  
+  /////////////////////////////////////start buffered communicators /////////////////////////////////
+  
+  nbuffered_comm_allocated=0;
+  
+  //allocate a buffer large enough to allow communications of quad_su3 lx border
+  nissa_buff_size=bord_vol*sizeof(quad_su3);
+  nissa_recv_buf=nissa_malloc("nissa_recv_buf",nissa_buff_size,char);
+  nissa_send_buf=nissa_malloc("nissa_send_buf",nissa_buff_size,char);
+  
+  //setup all needed buffered communicators
+  set_lx_buffered_comm(buffered_lx_spincolor_comm,sizeof(spincolor));
+  set_lx_buffered_comm(buffered_lx_quad_su3_comm,sizeof(quad_su3));
+  set_eo_buffered_comm(buffered_eo_color_comm,sizeof(color));
+  set_eo_buffered_comm(buffered_eo_quad_su3_comm,sizeof(quad_su3));
   
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());

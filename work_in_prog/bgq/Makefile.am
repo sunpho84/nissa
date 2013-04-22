@@ -10,11 +10,10 @@ CXXFLAGS=@CXXFLAGS@ @DEFS@
 ###################################################################################################################################
 
 #list of all the programs
-bin_PROGRAMS=test_spi test_omp
+bin_PROGRAMS=test_dirac
 
-#program to generate confs
-test_spidir=src
-test_spi_SOURCES=src/test_spi.cpp
-
-test_ompdir=src
-test_omp_SOURCES=src/test_omp.cpp
+test_dirac_SOURCES= \
+	src/dirac_operator_tmQ2_bgq.cpp \
+	src/geometry_bgq.cpp \
+	src/new_vars_and_types.cpp \
+	src/test_dirac.cpp

@@ -302,7 +302,7 @@ struct pure_gauge_evol_pars_t
   //number of hb sweeps and hits per link
   int nhb_sweeps;
   int nhb_hits;
-  //the sam for overrelax
+  //the same for overrelax
   int nov_sweeps;
   int nov_hits;
 };
@@ -311,6 +311,35 @@ union evol_pars_t
 {
   hmc_evol_pars_t hmc_evol_pars;
   pure_gauge_evol_pars_t pure_gauge_evol_pars;
+};
+
+//out and in buffer
+struct buffered_comm_t
+{
+  //communication in progress
+  int comm_in_prog;
+  //size of the message
+  uint64_t tot_mess_size;
+  //offsets
+  int send_offset[8],message_length[8],recv_offset[8];
+  
+  //bgq specific structures, in alternative to ordinary MPI
+#ifdef BGQ
+  //counter for received bytes
+  volatile uint64_t recv_counter;
+  //descriptors
+  MUHWI_Descriptor_t descriptors[8];
+  //bat
+  MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
+  uint32_t bat_id[2];
+#else
+  //destinations and source ranks
+  int send_rank[8],recv_rank[8];
+  //requests and message
+  int nrequest;
+  MPI_Request requests[16];
+  int imessage;
+#endif
 };
 
 //////////////////////////////////////// BGQ specifics ///////////////////////////////////
@@ -323,23 +352,6 @@ union evol_pars_t
 
 //type to hold the 5D coordinates
 typedef uint8_t coords_5D[5];
-
-//structure used to hold spi buffers 
-struct spi_comm_t
-{
-  //communication in progress
-  int comm_in_prog;
-  //size of the buffers, buffers
-  uint64_t buf_size;
-  char *send_buf,*recv_buf;
-  //counter for received bytes
-  volatile uint64_t recv_counter;
-  //descriptors
-  MUHWI_Descriptor_t *descriptors;
-  //bat
-  MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
-  uint32_t bat_id[2];
-};
 
 #endif
 

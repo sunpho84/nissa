@@ -1,19 +1,11 @@
-#ifndef _COMMUNICATE_H
-#define _COMMUNICATE_H
-#include <mpi.h>
+#ifndef _UNBUFFERED_BORDERS_H
+#define _UNBUFFERED_BORDERS_H
+
 #include "../new_types/new_types_definitions.h"
-void buffered_comm_start(buffered_comm_t *in,int *dir_comm=NULL,int tot_size=-1);
-void buffered_comm_wait(buffered_comm_t *in);
-void buffered_communicate_ev_and_od_borders(void **vec,buffered_comm_t *a,int nbytes_per_site);
-void buffered_communicate_ev_or_od_borders(void *vec,buffered_comm_t *a,int nbytes_per_site,int eo);
-void buffered_communicate_lx_borders(void *vec,buffered_comm_t *a,int nbytes_per_site);
-void buffered_finish_communicating_ev_and_od_borders(void **vec,buffered_comm_t *a,int nbytes_per_site);
-void buffered_start_communicating_ev_and_od_borders(buffered_comm_t *a,void **vec,unsigned int nbytes_per_site);
+
 void communicate_eo_borders(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,int nbytes_per_site,int OPT=SEND_BACKWARD_BORD|SEND_FORWARD_BORD);
 void communicate_eo_color_borders(color **eos);
-void communicate_eo_edges(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site);
 void communicate_eo_quad_su3_borders(quad_su3 **eo_conf,int OPT=SEND_BACKWARD_BORD|SEND_FORWARD_BORD);
-void communicate_eo_quad_su3_edges(quad_su3 **conf);
 void communicate_ev_borders(char *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_EV_BORDS_RECE,int nbytes_per_site);
 void communicate_ev_color_borders(color *ev);
 void communicate_ev_spin_borders(spin *ev);
@@ -21,43 +13,25 @@ void communicate_ev_spincolor_128_borders(spincolor_128 *ev);
 void communicate_ev_spincolor_borders(spincolor *ev);
 void communicate_lx_borders(char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site);
 void communicate_lx_color_borders(color *s);
-void communicate_lx_edges(char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site);
 void communicate_lx_quad_su3_borders(quad_su3 *conf);
-void communicate_lx_quad_su3_edges(quad_su3 *conf);
 void communicate_lx_spin_borders(spin *s);
 void communicate_lx_spincolor_128_borders(spincolor_128 *s);
 void communicate_lx_spincolor_borders(spincolor *s);
 void communicate_lx_spinspin_borders(spinspin *s);
 void communicate_lx_su3_borders(su3 *u);
-void communicate_lx_su3_edges(su3 *u);
 void communicate_od_borders(char *od_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EV_BORDS_RECE,int nbytes_per_site);
 void communicate_od_color_borders(color *od);
 void communicate_od_spin_borders(spin *od);
 void communicate_od_spincolor_128_borders(spincolor_128 *od);
 void communicate_od_spincolor_borders(spincolor *od);
-void fill_buffered_sending_buf_with_ev_and_od_vec(buffered_comm_t *a,void **vec,unsigned int nbytes_per_site);
-void fill_buffered_sending_buf_with_ev_or_od_vec(buffered_comm_t *a,void *vec,unsigned int nbytes_per_site,int eo);
-void fill_buffered_sending_buf_with_lx_vec(buffered_comm_t *a,void *vec,unsigned int nbytes_per_site);
-void fill_ev_and_od_bord_with_buffered_receiving_buf(void **vec,buffered_comm_t *a,unsigned int nbytes_per_site);
-void fill_ev_or_od_bord_with_buffered_receiving_buf(void *vec,buffered_comm_t *a,unsigned int nbytes_per_site);
-void fill_lx_bord_with_buffered_receiving_buf(void *vec,buffered_comm_t *a,unsigned int nbytes_per_site);
-void finish_buffered_communicating_ev_or_od_borders(void *vec,buffered_comm_t *a,int nbytes_per_site);
-void finish_buffered_communicating_lx_borders(void *vec,buffered_comm_t *a,int nbytes_per_site);
 void finish_communicating_ev_borders(int *nrequest,MPI_Request *request,char *ev_data);
 void finish_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev);
 void finish_communicating_ev_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *ev);
 void finish_communicating_lx_borders(int *nrequest,MPI_Request *request,char *data);
 void finish_communicating_lx_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *s);
-void set_buffered_comm(buffered_comm_t &in);
-void set_eo_buffered_comm(buffered_comm_t &in,int nbytes_per_site);
-void set_lx_buffered_comm(buffered_comm_t &in,int nbytes_per_site);
-void set_lx_or_eo_buffered_comm(buffered_comm_t &in,int nbytes_per_site,int lx_eo);
-void start_buffered_communicating_ev_or_od_borders(buffered_comm_t *a,void *vec,int nbytes_per_site,int eo);
-void start_buffered_communicating_lx_borders(buffered_comm_t *a,void *vec,int nbytes_per_site);
 void start_communicating_ev_borders(int *nrequest,MPI_Request *request,char *ev_data,MPI_Datatype *MPI_EV_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_EV_BORDS_RECE,int nbytes_per_site);
 void start_communicating_ev_color_borders(int *nrequest,MPI_Request *request,color *ev);
 void start_communicating_ev_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *ev);
 void start_communicating_lx_borders(int *nrequest,MPI_Request *request,char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site);
 void start_communicating_lx_spincolor_borders(int *nrequest,MPI_Request *request,spincolor *s);
-void unset_buffered_comm(buffered_comm_t *in);
 #endif
