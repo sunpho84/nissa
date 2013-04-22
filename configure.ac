@@ -99,6 +99,7 @@ AC_PROG_RANLIB
 
 #create makefile
 AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([work_in_prog/bgq/Makefile])
 
 #create config.h
 AC_OUTPUT

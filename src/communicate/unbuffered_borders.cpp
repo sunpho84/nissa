@@ -1,3 +1,115 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
+#include <mpi.h>
+
+#include "../base/debug.h"
+#include "../base/global_variables.h"
+#include "../base/vectors.h"
+#include "../geometry/geometry_lx.h"
+#include "../new_types/new_types_definitions.h"
+#include "../routines/ios.h"
+#include "../routines/thread.h"
+
+/* This is the shape and ordering of the border in the memory, for a 3^4 lattice
+_______________________________________________________________________________________________________________________
+|___________________________________________________dir____=_____0____________________________________________________|
+|_______________x__=__0_______________|||_______________x__=__1_______________|||_______________x__=__2_______________|
+|____y=0____||____y=1____||____y=2____|||____y=0____||____y=1____||____y=2____|||____y=0____||____y=1____||____y=2____|
+| z | z | z || z | z | z || z | z | z ||| z | z | z || z | z | z || z | z | z ||| z | z | z || z | z | z || z | z | z |
+|012|012|012||012|012|012||012|012|012|||012|012|012||012|012|012||012|012|012|||012|012|012||012|012|012||012|012|012|
+-----------------------------------------------------------------------------------------------------------------------
+
+_______________________________________________________________________________________________________________________
+|___________________________________________________dir____=_____1____________________________________________________|
+|_______________t__=__0_______________|||_______________t__=__1_______________|||_______________t__=__2_______________|
+|____y=0____||____y=1____||____y=2____|||____y=0____||____y=1____||____y=2____|||____y=0____||____y=1____||____y=2____|
+| z | z | z || z | z | z || z | z | z ||| z | z | z || z | z | z || z | z | z ||| z | z | z || z | z | z || z | z | z |
+|012|012|012||012|012|012||012|012|012|||012|012|012||012|012|012||012|012|012|||012|012|012||012|012|012||012|012|012|
+-----------------------------------------------------------------------------------------------------------------------
+
+_______________________________________________________________________________________________________________________
+|___________________________________________________dir____=_____2____________________________________________________|
+|_______________t__=__0_______________|||_______________t__=__1_______________|||_______________t__=__2_______________|
+|____x=0____||____x=1____||____x=2____|||____x=0____||____x=1____||____x=2____|||____x=0____||____x=1____||____x=2____|
+| z | z | z || z | z | z || z | z | z ||| z | z | z || z | z | z || z | z | z ||| z | z | z || z | z | z || z | z | z |
+|012|012|012||012|012|012||012|012|012|||012|012|012||012|012|012||012|012|012|||012|012|012||012|012|012||012|012|012|
+-----------------------------------------------------------------------------------------------------------------------
+
+_______________________________________________________________________________________________________________________
+|___________________________________________________dir____=_____3____________________________________________________|
+|_______________t__=__0_______________|||_______________t__=__1_______________|||_______________t__=__2_______________|
+|____x=0____||____x=1____||____x=2____|||____x=0____||____x=1____||____x=2____|||____x=0____||____x=1____||____x=2____|
+| y | y | y || y | y | y || y | y | y ||| y | y | y || y | y | y || y | y | y ||| y | y | y || y | y | y || y | y | y |
+|012|012|012||012|012|012||012|012|012|||012|012|012||012|012|012||012|012|012|||012|012|012||012|012|012||012|012|012|
+-----------------------------------------------------------------------------------------------------------------------
+
+and following, the positive (forward sending) direction borders
+*/
+
+//Send the borders of the data
+void start_communicating_lx_borders(int *nrequest,MPI_Request *request,char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site)
+{
+  if(!check_borders_valid(data))
+    {
+      GET_THREAD_ID();
+      
+      if(!IS_MASTER_THREAD) (*nrequest)=4*nparal_dir;
+      else
+	{
+	  (*nrequest)=0;
+	  crash_if_borders_not_allocated(data);  
+  
+	  int imessage=654325;
+	  
+	  verbosity_lv3_master_printf("Start communicating borders of %s\n",get_vec_name((void*)data));
+	  for(int mu=0;mu<4;mu++)
+	    if(paral_dir[mu]!=0)
+	      {
+		//sending the upper border to the lower node
+		MPI_Irecv(data+start_lx_bord_rece_up[mu]*nbytes_per_site,1,MPI_BORDS_RECE[mu],rank_neighup[mu],imessage,cart_comm,request+((*nrequest)++));
+		MPI_Isend(data+start_lx_bord_send_up[mu]*nbytes_per_site,1,MPI_BORDS_SEND[mu],rank_neighdw[mu],imessage++,cart_comm,request+((*nrequest)++));
+		
+		//sending the lower border to the upper node
+		MPI_Irecv(data+start_lx_bord_rece_dw[mu]*nbytes_per_site,1,MPI_BORDS_RECE[mu],rank_neighdw[mu],imessage,cart_comm,request+((*nrequest)++));
+		MPI_Isend(data+start_lx_bord_send_dw[mu]*nbytes_per_site,1,MPI_BORDS_SEND[mu],rank_neighup[mu],imessage++,cart_comm,request+((*nrequest)++));
+	      }
+	}
+    }
+  else (*nrequest)=0;
+}
+
+//wait to finish communications
+void finish_communicating_lx_borders(int *nrequest,MPI_Request *request,char *data)
+{
+  if((*nrequest)>0)
+    {
+      GET_THREAD_ID();
+      
+      if(IS_MASTER_THREAD)
+	{
+	  tot_nissa_comm_time-=take_time();
+	  verbosity_lv3_master_printf("Waiting to finish %d communication of borders of vector %s\n",*nrequest,get_vec_name(data));
+	  MPI_Status status[*nrequest];
+	  MPI_Waitall(*nrequest,request,status);
+	  tot_nissa_comm_time+=take_time();
+	}
+      
+      set_borders_valid(data);
+      (*nrequest)=0;
+      set_edges_invalid(data);
+    }
+}
+
+//merge start and finish
+void communicate_lx_borders(char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,int nbytes_per_site)
+{
+  MPI_Request request[16];
+  int nrequest;
+  start_communicating_lx_borders(&nrequest,request,data,MPI_BORDS_SEND,MPI_BORDS_RECE,nbytes_per_site);
+  finish_communicating_lx_borders(&nrequest,request,data);
+}
 
 //Useful for gauge fixing and hyp
 void communicate_lx_su3_borders(su3 *u)

@@ -42,10 +42,10 @@ void add_im_pot_to_backfield(quad_u1 **S,quark_content_t &quark_content)
 }
 
 //compute args for 1/L2 quantization
-void get_args_of_one_over_L2_quantization(coords x,int ivol,int mu,int nu)
+void get_args_of_one_over_L2_quantization(coords phase,int ivol,int mu,int nu)
 {
   //reset
-  x[0]=x[1]=x[2]=x[3]=0;
+  phase[0]=phase[1]=phase[2]=phase[3]=0;
 
   //take absolute coords
   double xmu=glb_coord_of_loclx[ivol][mu];
@@ -53,8 +53,8 @@ void get_args_of_one_over_L2_quantization(coords x,int ivol,int mu,int nu)
   
   //define the arguments of exponentials
   //added +1 for compatibilty with fortran code
-  if(xmu==(glb_size[mu]-1)) x[mu]=-(xnu+1)*glb_size[mu];
-  x[nu]=xmu+1;
+  if(xmu==(glb_size[mu]-1)) phase[mu]=-(xnu+1)*glb_size[mu];
+  phase[nu]=xmu+1;
 }
 
 //multiply a background field by a constant em field

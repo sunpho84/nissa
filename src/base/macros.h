@@ -86,4 +86,7 @@
 #define nissa_loc_volh_loop(a) for(int a=0;a<loc_volh;a++)
 #define nissa_loc_vol_loop(a) for(int a=0;a<loc_vol;a++)
 
+#define CRASH_IF_NOT_ALIGNED(a,b)		\
+  if(((int)a)%b!=0) crash("alignement problem");
+
 #endif
