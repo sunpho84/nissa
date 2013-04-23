@@ -202,7 +202,7 @@ void buffered_comm_start(buffered_comm_t *in,int *dir_comm=NULL,int tot_size=-1)
       in->nrequest=0;
       
       for(int idir=0;idir<8;idir++)
-	if(dir_comm==NULL||dir_comm[idir])
+	if(paral_dir[idir%4] &&(dir_comm==NULL||dir_comm[idir]))
 	  {
 	    //exchanging the lower surface, from the first half of sending node to the second half of receiving node
 	    MPI_Irecv(nissa_recv_buf+in->recv_offset[idir],in->message_length[idir],MPI_CHAR,in->recv_rank[idir],
@@ -236,7 +236,7 @@ void fill_buffered_sending_buf_with_lx_vec(buffered_comm_t *a,void *vec,size_t n
   //copy one by one the surface of vec inside the sending buffer
   NISSA_PARALLEL_LOOP(ibord,0,bord_vol)
     memcpy(nissa_send_buf+nbytes_per_site*ibord,(char*)vec+surflx_of_bordlx[ibord]*nbytes_per_site,nbytes_per_site);
-
+  
   //wait that all threads filled their portion
   thread_barrier(BUFFERED_COMM_LX_SENDING_BUF_FILL_BARRIER);
 }

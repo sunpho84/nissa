@@ -12,7 +12,7 @@
 #include "../base/thread_macros.h"
 #include "ios.h"
 
-//#define DEBUG
+//#define THREAD_DEBUG
 
 //put in the external bgq_barrier.c file, to avoid alignement problem
 #ifdef BGQ
@@ -24,9 +24,9 @@ void thread_barrier(int barr_id,int force_barrier=false)
 {
   if(!thread_pool_locked||force_barrier)
     {
-#ifdef DEBUG
+#ifdef THREAD_DEBUG
       GET_THREAD_ID();
-      printf("thread %d rank %d barrier %d (thread_pool_locked: %d, force_barrier: %d\n",
+      printf("thread %d rank %d barrier %d (thread_pool_locked: %d, force_barrier: %d)\n",
 	     thread_id,rank,barr_id,thread_pool_locked,force_barrier);
       //debug: copy the barrier id to the global ref
       if(IS_MASTER_THREAD)
@@ -43,10 +43,10 @@ void thread_barrier(int barr_id,int force_barrier=false)
       #pragma omp barrier
 #endif
       
-#ifdef DEBUG
+#ifdef THREAD_DEBUG
       //debug: check that the local id correspond to global one
       if(!IS_MASTER_THREAD)
-	if(glb_barr_id!=barr_id) crash("Thread %d found barrier %d when waiting for %d",thread_id,barr_id,glb_barr_id);
+	if(glb_barr_id!=barr_id) crash("Thread %d found barrier %d when waiting for %d)",thread_id,barr_id,glb_barr_id);
 #ifdef BGQ
       bgq_barrier(nthreads);
 #else
@@ -60,7 +60,7 @@ void thread_barrier(int barr_id,int force_barrier=false)
 void thread_pool_unlock()
 {
   THREAD_BARRIER_FORCE(UNLOCK_POOL_BARRIER);
-#ifdef DEBUG
+#ifdef THREAD_DEBUG
   GET_THREAD_ID();
   if(rank==0) printf("thread %d unlocking the pool\n",thread_id);
 #endif
@@ -74,7 +74,7 @@ void thread_pool_lock()
   THREAD_BARRIER_FORCE(LOCK_POOL_BARRIER);
   thread_pool_locked=true;
 #pragma omp flush(thread_pool_locked)
-#ifdef DEBUG
+#ifdef THREAD_DEBUG
   GET_THREAD_ID();
   if(rank==0) printf("thread %d locking the pool\n",thread_id);
 #endif
@@ -100,7 +100,7 @@ void thread_pool()
     }
   while(threaded_function_ptr!=NULL);
   
-#ifdef DEBUG
+#ifdef THREAD_DEBUG
   printf("thread %d exit pool\n",thread_id);
 #endif
 }
@@ -108,7 +108,7 @@ void thread_pool()
 //execute a function using all threads
 void start_threaded_function(void(*function)(void),const char *name)
 {
-#ifdef DEBUG
+#ifdef THREAD_DEBUG
   if(rank==0) printf("----------Start working %s thread pool--------\n",name);
 #endif
   //set external function pointer and unlock pool threads
@@ -119,7 +119,7 @@ void start_threaded_function(void(*function)(void),const char *name)
   if(threaded_function_ptr!=NULL) threaded_function_ptr();
   thread_pool_lock();
   
-#ifdef DEBUG
+#ifdef THREAD_DEBUG
   if(rank==0) printf("----------Finished working in the thread pool--------\n");
 #endif
 }
