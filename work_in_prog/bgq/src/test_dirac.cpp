@@ -47,6 +47,13 @@ void in_main(int narg,char **arg)
     for(int mu=0;mu<4;mu++)
       su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
   
+  //testing
+  buffered_communicate_lx_borders(conf,&buffered_lx_quad_su3_comm,sizeof(quad_su3));  
+  master_printf("plaq_marc: %lg\n",global_plaquette_lx_conf(conf));
+  set_borders_invalid(conf);
+  communicate_lx_quad_su3_borders(conf);
+  master_printf("plaq_true: %lg\n",global_plaquette_lx_conf(conf));
+  
   //remap
   lx_conf_remap_to_bgqlx(bgq_conf,conf);
   

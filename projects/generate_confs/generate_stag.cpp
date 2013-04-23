@@ -327,7 +327,7 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action
   double paths[2];
   
   //Wilson case: temporal and spatial plaquette
-  if(gauge_action_name==Wilson_action)global_plaquette_eo_conf(paths,conf);
+  if(gauge_action_name==Wilson_action) global_plaquette_eo_conf(paths,conf);
   else global_plaquette_and_rectangles_eo_conf(paths,conf);
   
   //polyakov loop
