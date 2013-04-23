@@ -10,6 +10,10 @@
 
 #include "../base/macros.h"
 
+#ifdef BGQ
+ #include <spi/include/kernel/MU.h>
+#endif
+
 ///////////////// New types ///////////////////
 
 typedef int coords[4];
@@ -72,6 +76,8 @@ enum source_t{POINT_SOURCE,UNDILUTED_SOURCE,COLOR_DILUTED_SOURCE,SPIN_DILUTED_SO
 //The three possibilities of quark computation
 enum hmc_force_piece{GAUGE_FORCE_ONLY,QUARK_FORCE_ONLY,BOTH_FORCE_PIECES};
 enum multistep_level{MACRO_STEP,MICRO_STEP};
+
+typedef uint8_t coords_5D[5];
 
 ///////////////////// New structures ////////////////////
 
@@ -318,6 +324,8 @@ struct buffered_comm_t
 {
   //communication in progress
   int comm_in_prog;
+  //local size
+  size_t nbytes_per_site;
   //size of the message
   uint64_t tot_mess_size;
   //offsets
@@ -332,27 +340,15 @@ struct buffered_comm_t
   //bat
   MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
   uint32_t bat_id[2];
+  MUHWI_Destination spi_dest[8];
 #else
   //destinations and source ranks
   int send_rank[8],recv_rank[8];
   //requests and message
-  int nrequest;
   MPI_Request requests[16];
   int imessage;
 #endif
+  int nrequest;
 };
-
-//////////////////////////////////////// BGQ specifics ///////////////////////////////////
-
-#ifdef BGQ
-
-#include <spi/include/kernel/MU.h>
-
-//////////////// new types /////////////////
-
-//type to hold the 5D coordinates
-typedef uint8_t coords_5D[5];
-
-#endif
 
 #endif
