@@ -3,6 +3,7 @@
 
 #include "new_types_definitions.h"
 
+void complex_print(complex a);
 double squared_complex_norm(complex c);
 void assign_complex_prod_i(complex a);
 void assign_complex_prod_minus_i(complex a);

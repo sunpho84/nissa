@@ -59,7 +59,7 @@ int loclx_of_coord(coords x)
 {return lx_of_coord(x,loc_size);}
   
 //wrappers
-extern "C" int loclx_of_coord_list(int x0,int x1,int x2,int x3)
+int loclx_of_coord_list(int x0,int x1,int x2,int x3)
 {
   coords x={x0,x1,x2,x3};
   return lx_of_coord(x,loc_size);

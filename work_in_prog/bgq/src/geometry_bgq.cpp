@@ -60,7 +60,7 @@ void define_bgq_lx_ordering()
   Define output index of sink-applied hopping matrix for non-eo preco operator.
   First we put T border, which is always present and of the same size of the 
   true node T border, then other three borders which are only half the size of the
-  true node border. As always, forward border comes after backward one.
+  true node border. Border to be sent backward comes before forward one.
   Also backward derivative output comes before forward.
 */
 void define_bgq_hopping_matrix_output_index()
@@ -74,15 +74,15 @@ void define_bgq_hopping_matrix_output_index()
   //allocate out hopping matrix index
   bgq_hopping_matrix_output_index=nissa_malloc("bgq_hopping_matrix_output_index",8*loc_volh,int);
   
-  //for debug
+  /* debug
   for(int i=0;i<8*loc_volh;i++)
-    bgq_hopping_matrix_output_index[i]=-1;
+    bgq_hopping_matrix_output_index[i]=-1;*/
   
   for(int ibgqlx=0;ibgqlx<loc_volh;ibgqlx++)
     {
       int iloclx=loclx_of_bgqlx[ibgqlx];
       
-      //t direction bw derivative
+      //t direction bw scattering
       bgq_hopping_matrix_output_index[ibgqlx*8+0]=(loc_coord_of_loclx[iloclx][0]==0)?
 	iloclx:                                                       //we move in other vnode
 	bgqlx_vbord_vol+8*bgqlx_of_loclx[loclx_neighdw[iloclx][0]];   //we are still in the same vnode
@@ -90,7 +90,7 @@ void define_bgq_hopping_matrix_output_index()
 	master_printf("A (%d) bgq_hopping_matrix_output_index[%d]: %d\n",loc_coord_of_loclx[iloclx][0]==0,ibgqlx*8+0,
 	bgq_hopping_matrix_output_index[ibgqlx*8+0]);*/
       
-      //t direction fw derivative
+      //t direction fw scattering
       bgq_hopping_matrix_output_index[ibgqlx*8+4]=(loc_coord_of_loclx[iloclx][0]==loc_size[0]/2-1)?
 	bgqlx_vbord_vol/2+loclx_neighup[iloclx][0]-loc_volh:           //we moved in another vnode
 	bgqlx_vbord_vol+8*bgqlx_of_loclx[loclx_neighup[iloclx][0]]+4;  //we are still in the same vnode
@@ -107,7 +107,7 @@ void define_bgq_hopping_matrix_output_index()
 	    bgqlx_t_vbord_vol+(bord_offset[idir]-bord_offset[1])/2+
 	    (loc_coord_of_loclx[iloclx][perp_dir[idir][2]]+loc_size[perp_dir[idir][2]]*
 	     (loc_coord_of_loclx[iloclx][perp_dir[idir][1]]+loc_size[perp_dir[idir][1]]*
-	      (loc_coord_of_loclx[iloclx][0]))):           //we moved in another vnode
+	      (loc_coord_of_loclx[iloclx][0]))):           //we moved to another vnode
 	    bgqlx_vbord_vol+bgqlx_of_loclx[bw]*8+idir;     //we are still in local vnode
 	  
 	  /*debug
@@ -124,8 +124,8 @@ void define_bgq_hopping_matrix_output_index()
 	    bgqlx_vbord_vol/2+bgqlx_t_vbord_vol+(bord_offset[idir]-bord_offset[1])/2+
 	    (loc_coord_of_loclx[iloclx][perp_dir[idir][2]]+loc_size[perp_dir[idir][2]]*
 	     (loc_coord_of_loclx[iloclx][perp_dir[idir][1]]+loc_size[perp_dir[idir][1]]*
-	      (loc_coord_of_loclx[iloclx][0]))):  //we moved in another vnode
-	    bgqlx_vbord_vol+bgqlx_of_loclx[fw]*8+4+idir;                               //we are still in local vnode
+	      (loc_coord_of_loclx[iloclx][0]))):           //we moved in another vnode
+	    bgqlx_vbord_vol+bgqlx_of_loclx[fw]*8+4+idir;   //we are still in local vnode
 	  
 	  /*debug
 	    master_printf("D (%d) bgq_hopping_matrix_output_index[%d]: %d\n",fw>=loc_vol,ibgqlx*8+4+idir,
@@ -141,7 +141,11 @@ void define_bgq_hopping_matrix_output_index()
     master_printf("site*8+dirversed %d will output to index %d\n",i,bgq_hopping_matrix_output_index[i]);*/    
 }
 
-//we must put together the 8 links to be applied to a single point
+/*
+  put together the 8 links to be applied to a single point
+  first comes the links needed to scatter backward the signal (not to be daggered)
+  then the ones needed to scatter it forward (to be daggered)
+*/
 THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_bgqlx, bi_oct_su3*,out, quad_su3*,in)
 {
   GET_THREAD_ID();
@@ -159,10 +163,9 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_bgqlx, bi_oct_su3*,out, quad_su3*,in)
 	int isrc_lx=ibase+vn_fw_dst_bgqlx*loc_volh;
 	int ifw_dst_bgqlx=bgqlx_of_loclx[ibase];
 	
-	//we put together the four forward links
 	for(int mu=0;mu<4;mu++)
 	  {
-	    //catch fw links
+	    //catch links needed to scatter signal forward
 	    SU3_TO_BI_SU3(out[ifw_dst_bgqlx][4+mu],in[isrc_lx][mu],vn_fw_dst_bgqlx);
 
 	    /*debug
@@ -170,8 +173,8 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_bgqlx, bi_oct_su3*,out, quad_su3*,in)
 	      ifw_dst_bgqlx,4+mu,vn_fw_dst_bgqlx);
 	      tot_fixed++;*/
 	    
-	    //catch bw links
-	    int idst_lx=loclx_neighup[isrc_lx][mu]; //bw links are used by fw sites bw der
+	    //catch links needed to scatter signal backward 
+	    int idst_lx=loclx_neighup[isrc_lx][mu];
 	    int vn_bw_dst_bgqlx=(idst_lx/loc_volh); //1 only if idst_lx is in the first node, 2 if in boder
 	    
 	    //discard border out
@@ -188,7 +191,7 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_bgqlx, bi_oct_su3*,out, quad_su3*,in)
 	  }
       }
   
-  //scan the backward borders (first half of lx border)
+  //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
   for(int mu=0;mu<4;mu++) //border and link direction
     if(paral_dir[mu])
       NISSA_PARALLEL_LOOP(ibord,loc_vol+bord_offset[mu],loc_vol+bord_offset[mu]+bord_dir_vol[mu])
