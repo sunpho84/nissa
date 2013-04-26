@@ -142,13 +142,11 @@ void buffered_comm_wait(buffered_comm_t *in)
   
   if(IS_MASTER_THREAD)
     {
-      verbosity_lv3_master_printf("Entering "
 #ifdef BGQ
-				  "SPI"
-#else 
-				  "MPI"
+      verbosity_lv3_master_printf("Entering SPI comm wait\n");
+#else
+      verbosity_lv3_master_printf("Entering MPI comm wait\n");
 #endif
-				  " comm wait\n");
       
       if(in->comm_in_prog)
 	{

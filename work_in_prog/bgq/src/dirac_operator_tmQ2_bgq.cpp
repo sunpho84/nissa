@@ -9,6 +9,45 @@
 #include "new_vars_and_types.h"
 #include "bgq_macros.h"
 
+void perform_bgq_Wilson_hopping_matrix_bw_T_comm(bi_halfspincolor *out)
+{
+  GET_THREAD_ID();
+  
+  if(paral_dir[0])
+    {
+      //split bw T border: 0 VN node goes to bw out border, 1 VN goes to VN 0
+    }
+  else
+    {
+      //we have only to transpose between VN
+      NISSA_PARALLEL_LOOP(isrc,0,bgqlx_t_vbord_vol)
+	{
+	  int idst=8*loclx_neighdw[isrc+loc_volh][0]+bgqlx_vbord_vol;
+	  BI_HALFSPINCOLOR_TRANSPOSE(out[idst],out[isrc]);
+	}
+    }
+}
+
+void perform_bgq_Wilson_hopping_matrix_fw_T_comm(bi_halfspincolor *out)
+{
+  GET_THREAD_ID();
+  
+  if(paral_dir[0])
+    {
+      //split fw T border: 1 VN node goes to fw out border, 0 VN goes to VN 1
+    }
+  else
+    {
+      //we have only to transpose between VN
+      NISSA_PARALLEL_LOOP(base_src,0,bgqlx_t_vbord_vol)
+	{
+	  int idst=8*base_src+4+bgqlx_vbord_vol;
+	  int isrc=base_src+bgqlx_vbord_vol/2;
+	  BI_HALFSPINCOLOR_TRANSPOSE(out[idst],out[isrc]);
+	}
+    }
+}
+
 /*
   In bgq version we merge to different virtual nodes along t directions,
   so that only site with time coordinate between 0 and T/2-1 must be considered.
@@ -84,7 +123,16 @@ THREADABLE_FUNCTION_3ARG(apply_bgq_Wilson_hopping_matrix, bi_halfspincolor*,out,
   
   /////////////////////////////////// perform VN communications ////////////////////////////
   
-  //split bw T border: 0 VN node goes to bw out border, 1 VN goes to VN 0
+  perform_bgq_Wilson_hopping_matrix_bw_T_comm(out);
+  perform_bgq_Wilson_hopping_matrix_fw_T_comm(out);
+  
+  /*debug
+  thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
+  if(IS_MASTER_THREAD) //check bulk: it must all be filled
+  for(int ivol=bgqlx_vbord_vol;ivol<bgqlx_vbord_vol+8*loc_volh;ivol++)
+  CHECK_BI_SPINCOLOR_DIFF_FROM_ZERO(out[ivol],ivol);*/
+  
+  thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
   
   
 }}

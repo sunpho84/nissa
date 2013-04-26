@@ -265,3 +265,26 @@
     BI_COLOR_ISUBT(OUT[0],IN[0],IN[2]);		\
     BI_COLOR_ISUMM(OUT[1],IN[1],IN[3]);		\
   }
+
+/////////////////////////////////////////////////////////////////////////////////////
+
+#define BI_COMPLEX_TRANSPOSE(A,B)		\
+  {						\
+    A[0][0]=B[1][0];				\
+    A[0][1]=B[1][1];				\
+    A[1][0]=B[0][0];				\
+    A[1][1]=B[0][1];				\
+  }
+
+#define BI_COLOR_TRANSPOSE(A,B)			\
+  {						\
+    BI_COMPLEX_TRANSPOSE(A[0],B[0]);		\
+    BI_COMPLEX_TRANSPOSE(A[1],B[1]);		\
+    BI_COMPLEX_TRANSPOSE(A[2],B[2]);		\
+  }
+
+#define BI_HALFSPINCOLOR_TRANSPOSE(A,B)		\
+  {						\
+    BI_COLOR_TRANSPOSE(A[0],B[0]);		\
+    BI_COLOR_TRANSPOSE(A[1],B[1]);		\
+  }
