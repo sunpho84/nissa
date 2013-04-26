@@ -142,7 +142,13 @@ void buffered_comm_wait(buffered_comm_t *in)
   
   if(IS_MASTER_THREAD)
     {
-      verbosity_lv3_master_printf("Entering spi comm wait\n");
+      verbosity_lv3_master_printf("Entering "
+#ifdef BGQ
+				  "SPI"
+#else 
+				  "MPI"
+#endif
+				  " comm wait\n");
       
       if(in->comm_in_prog)
 	{
@@ -181,9 +187,6 @@ void buffered_comm_start(buffered_comm_t *in,int *dir_comm=NULL,int tot_size=-1)
 {
   GET_THREAD_ID();
   
-  //check that no other buffered communication is in progress
-  if(buffered_comm_in_prog) crash("not more than one buffered communication per time possible!");
-  
   if(IS_MASTER_THREAD)
     {
 #ifdef BGQ
@@ -214,7 +217,6 @@ void buffered_comm_start(buffered_comm_t *in,int *dir_comm=NULL,int tot_size=-1)
 		      in->imessage,cart_comm,in->requests+(in->nrequest++));
 	  }
 #endif
-      in->comm_in_prog=buffered_comm_in_prog=1;
     }
 }
 
@@ -241,6 +243,9 @@ void fill_buffered_sending_buf_with_lx_vec(buffered_comm_t *a,void *vec)
     memcpy(nissa_send_buf+a->nbytes_per_site*ibord,
 	   (char*)vec+surflx_of_bordlx[ibord]*a->nbytes_per_site,
 	   a->nbytes_per_site);
+  
+  //mark communication as in progress
+  a->comm_in_prog=1;
   
   //wait that all threads filled their portion
   thread_barrier(BUFFERED_COMM_LX_SENDING_BUF_FILL_BARRIER);
@@ -269,7 +274,7 @@ void fill_lx_bord_with_buffered_receiving_buf(void *vec,buffered_comm_t *a)
 //start communication using an lx border
 void buffered_start_communicating_lx_borders(buffered_comm_t *a,void *vec)
 {
-  if(!check_borders_valid(vec))
+  if(!check_borders_valid(vec) && nparal_dir>0)
     {
       GET_THREAD_ID();
       
@@ -287,7 +292,7 @@ void buffered_start_communicating_lx_borders(buffered_comm_t *a,void *vec)
 //finish communicating
 void buffered_finish_communicating_lx_borders(void *vec,buffered_comm_t *a)
 {
-  if(!check_borders_valid(vec) && (a->nrequest!=0))
+  if(!check_borders_valid(vec) && nparal_dir>0)
     {
       GET_THREAD_ID();
       
@@ -302,9 +307,6 @@ void buffered_finish_communicating_lx_borders(void *vec,buffered_comm_t *a)
       
       //set border not valid: this auto sync
       set_borders_valid(vec);
-      
-      //mark that no communication is in progress
-      if(IS_MASTER_THREAD) buffered_comm_in_prog=0;
     }
 }
 
@@ -336,6 +338,9 @@ void fill_buffered_sending_buf_with_ev_or_od_vec(buffered_comm_t *a,void *vec,in
     memcpy(nissa_send_buf+ibord*a->nbytes_per_site,
 	   (char*)vec+surfeo_of_bordeo[eo][ibord]*a->nbytes_per_site,a->nbytes_per_site);
 
+  //mark communication as in progress
+  a->comm_in_prog=1;
+  
   //wait that all threads filled their portion
   thread_barrier(BUFFERED_COMM_EV_OR_OD_SENDING_BUF_FILL_BARRIER);
 }
@@ -363,7 +368,7 @@ void fill_ev_or_od_bord_with_buffered_receiving_buf(void *vec,buffered_comm_t *a
 //start communication using an ev or od border
 void buffered_start_communicating_ev_or_od_borders(buffered_comm_t *a,void *vec,int eo)
 {
-  if(!check_borders_valid(vec))
+  if(!check_borders_valid(vec) && nparal_dir>0)
     {
       GET_THREAD_ID();
       
@@ -381,7 +386,7 @@ void buffered_start_communicating_ev_or_od_borders(buffered_comm_t *a,void *vec,
 //finish communicating
 void buffered_finish_communicating_ev_or_od_borders(void *vec,buffered_comm_t *a)
 {
-  if(!check_borders_valid(vec) && a->nrequest!=0)
+  if(!check_borders_valid(vec) && nparal_dir>0)
     {
       GET_THREAD_ID();
       
@@ -394,6 +399,7 @@ void buffered_finish_communicating_ev_or_od_borders(void *vec,buffered_comm_t *a
       fill_ev_or_od_bord_with_buffered_receiving_buf(vec,a);
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
+      //set border not valid: this auto sync
       set_borders_valid(vec);
     }
 }
@@ -401,7 +407,7 @@ void buffered_finish_communicating_ev_or_od_borders(void *vec,buffered_comm_t *a
 //merge the two
 void buffered_communicate_ev_or_od_borders(void *vec,buffered_comm_t *a,int eo)
 {
-  if(!check_borders_valid(vec))
+  if(!check_borders_valid(vec) && nparal_dir>0)
     {
       verbosity_lv3_master_printf("Sync buffered communication of ev or od borders of %s\n",get_vec_name((void*)vec));
       
@@ -464,7 +470,7 @@ void fill_ev_and_od_bord_with_buffered_receiving_buf(void **vec,buffered_comm_t 
 //start communication using an ev and od border
 void buffered_start_communicating_ev_and_od_borders(buffered_comm_t *a,void **vec)
 {
-  if(!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD]))
+  if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && nparal_dir>0)
     {
       GET_THREAD_ID();
       
@@ -482,7 +488,7 @@ void buffered_start_communicating_ev_and_od_borders(buffered_comm_t *a,void **ve
 //finish communicating
 void buffered_finish_communicating_ev_and_od_borders(void **vec,buffered_comm_t *a)
 {
-  if(a->comm_in_prog && a->nrequest!=0)
+  if(a->comm_in_prog && nparal_dir>0)
     {
       GET_THREAD_ID();
       
@@ -495,6 +501,7 @@ void buffered_finish_communicating_ev_and_od_borders(void **vec,buffered_comm_t 
       fill_ev_and_od_bord_with_buffered_receiving_buf(vec,a);
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
+      //set border not valid: this auto sync
       set_borders_valid(vec[EVN]);
       set_borders_valid(vec[ODD]);
     }

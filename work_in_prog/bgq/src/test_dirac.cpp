@@ -3,6 +3,13 @@
 #include "geometry_bgq.h"
 #include "dirac_operator_tmQ2_bgq.h"
 
+void unset_bgq_geometry()
+{
+  nissa_free(bgqlx_of_loclx);
+  nissa_free(loclx_of_bgqlx);
+  nissa_free(matrix_output_index);
+}
+
 void in_main(int narg,char **arg)
 {
   //init the grid 
@@ -48,7 +55,7 @@ void in_main(int narg,char **arg)
       su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
   
   //testing
-  buffered_communicate_lx_borders(conf,&buffered_lx_quad_su3_comm,sizeof(quad_su3));  
+  buffered_communicate_lx_borders(conf,&buffered_lx_quad_su3_comm);
   master_printf("plaq_marc: %lg\n",global_plaquette_lx_conf(conf));
   set_borders_invalid(conf);
   communicate_lx_quad_su3_borders(conf);
@@ -71,6 +78,8 @@ void in_main(int narg,char **arg)
   nissa_free(bgq_sc_out);
   nissa_free(bgq_sc_in);
   nissa_free(sc_in);
+  
+  unset_bgq_geometry();
   
   close_nissa();  
 }

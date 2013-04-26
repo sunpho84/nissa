@@ -21,8 +21,8 @@
 #define cgm_invert_run_hm_up_to_comm_prec inv_tmclovQ2_m2_cgm_run_hm_up_to_comm_prec
 #define cgm_npossible_requests 16
 
-#define cgm_start_communicating_borders start_communicating_lx_spincolor_borders
-#define cgm_finish_communicating_borders finish_communicating_lx_spincolor_borders
+#define cgm_start_communicating_borders buffered_start_communicating_lx_spincolor_borders
+#define cgm_finish_communicating_borders buffered_finish_communicating_lx_spincolor_borders
 
 #define cgm_additional_vectors_allocation()				\
   basetype *t=nissa_malloc("DD_temp",bulk_vol+bord_vol,basetype);

@@ -2,8 +2,10 @@
  #include "config.h"
 #endif
 
+#include "../base/debug.h"
 #include "../base/global_variables.h"
 #include "../routines/ios.h"
+
 #include "reader.h"
 
 //check the endianess of the machine
@@ -21,7 +23,7 @@ void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndouble
   char *cdest,*csour;
   char temp;
   
-  verbosity_lv3_master_printf("Reverting the endianess ot the data\n");
+  verbosity_lv3_master_printf("Reverting the endianess of the data\n");
   
   if(dest==sour)
     for(int idouble=0;idouble<ndoubles;idouble++)

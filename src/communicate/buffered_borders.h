@@ -1,5 +1,6 @@
 #ifndef _BUFFERED_BORDERS_H
 #define _BUFFERED_BORDERS_H
+#include "../new_types/new_types_definitions.h"
 void buffered_comm_start(buffered_comm_t *in,int *dir_comm=NULL,int tot_size=-1);
 void buffered_communicate_ev_and_od_borders(void **vec,buffered_comm_t *a);
 void buffered_communicate_ev_or_od_borders(void *vec,buffered_comm_t *a,int eo);

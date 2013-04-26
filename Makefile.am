@@ -221,7 +221,7 @@ nissa_source_files=src/base/close.cpp \
 	src/routines/math.cpp \
 	src/routines/mpi.cpp \
 	src/routines/thread.cpp
-extra_headers=src/new_types/new_types_definitions.h src/base/macros.h src/base/openmp_macros.h
+extra_headers=src/new_types/new_types_definitions.h src/base/macros.h src/base/thread_macros.h
 
 #instruct how to build the library
 libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) $(bgq_src_file)

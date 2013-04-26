@@ -19,5 +19,8 @@ void trace_g_sdag_g_s_g_sdag_g_s(complex **glb_c, dirac_matr *g1L,colorspinspin 
 void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr);
 void meson_two_points_Wilson_prop(complex *corr,int *list_op1,su3spinspin *s1,int *list_op2,su3spinspin *s2,int ncontr);
 void meson_two_points_Wilson_prop(complex *corr,int *list_op1,colorspinspin *s1,int *list_op2,colorspinspin *s2,int ncontr);
+void apply_nabla_i(spincolor *out,spincolor *in,quad_su3 *conf,int mu);
+void apply_nabla_i(colorspinspin *out,colorspinspin *in,quad_su3 *conf,int mu);
+void apply_nabla_i(su3spinspin *out,su3spinspin *in,quad_su3 *conf,int mu);
 
 #endif

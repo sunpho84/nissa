@@ -77,9 +77,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
   for(int ishift=0;ishift<nshift;ishift++) verbosity_lv2_master_printf("%1.4e  ",1.0);
   verbosity_lv2_master_printf("\n");
   
-  int nrequest=0;
   int final_iter;
-  MPI_Request request[cgm_npossible_requests];
   double final_res[nshift];
   
   int iter=0;
@@ -114,7 +112,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       final_iter=(++iter);
       
       //     -s=Ap
-      if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(&nrequest,request,p);
+      if(nissa_use_async_communications) cgm_finish_communicating_borders(p);
       cgm_inv_over_time+=take_time();
       
       apply_operator(s,cgm_operator_parameters,shift[0],p);
@@ -155,7 +153,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
       double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,bulk_vol*ndoubles_per_site);
 	
       //start the communications of the border
-      if(nissa_use_async_communications) cgm_start_communicating_borders(&nrequest,request,p);
+      if(nissa_use_async_communications) cgm_start_communicating_borders(p);
 	
       //     calculate 
       //     -alphas=alpha*zfs*betas/zas*beta
@@ -201,7 +199,7 @@ void cgm_invert(basetype **sol,cgm_additional_parameters_proto,double *shift,int
     }
   while(nrun_shift>0 && iter<niter_max);
   
-  if(nissa_use_async_communications && nrequest!=0) cgm_finish_communicating_borders(&nrequest,request,p);
+  if(nissa_use_async_communications) cgm_finish_communicating_borders(p);
   
   //print the final true residue
   for(int ishift=0;ishift<nshift;ishift++)

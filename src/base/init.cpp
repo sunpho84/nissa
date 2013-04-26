@@ -539,13 +539,15 @@ void init_grid(int T,int L)
   
   nbuffered_comm_allocated=0;
   
-  //allocate a buffer large enough to allow communications of quad_su3 lx border
-  nissa_buff_size=bord_vol*sizeof(quad_su3);
+  //allocate a buffer large enough to allow communications of su3spinspin lx border
+  nissa_buff_size=bord_vol*sizeof(su3spinspin);
   nissa_recv_buf=nissa_malloc("nissa_recv_buf",nissa_buff_size,char);
   nissa_send_buf=nissa_malloc("nissa_send_buf",nissa_buff_size,char);
   
   //setup all needed buffered communicators
   set_lx_buffered_comm(buffered_lx_spincolor_comm,sizeof(spincolor));
+  set_lx_buffered_comm(buffered_lx_colorspinspin_comm,sizeof(colorspinspin));
+  set_lx_buffered_comm(buffered_lx_su3spinspin_comm,sizeof(su3spinspin));
   set_lx_buffered_comm(buffered_lx_quad_su3_comm,sizeof(quad_su3));
   set_eo_buffered_comm(buffered_eo_color_comm,sizeof(color));
   set_eo_buffered_comm(buffered_eo_quad_su3_comm,sizeof(quad_su3));
