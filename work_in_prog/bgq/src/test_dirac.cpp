@@ -3,11 +3,17 @@
 #include "geometry_bgq.h"
 #include "dirac_operator_tmQ2_bgq.h"
 
+void set_bgq_geometry()
+{
+  define_bgq_lx_ordering();
+  define_bgq_hopping_matrix_output_index();
+}
+
 void unset_bgq_geometry()
 {
   nissa_free(bgqlx_of_loclx);
   nissa_free(loclx_of_bgqlx);
-  nissa_free(matrix_output_index);
+  nissa_free(bgq_hopping_matrix_output_index);
 }
 
 void in_main(int narg,char **arg)
@@ -15,13 +21,10 @@ void in_main(int narg,char **arg)
   //init the grid 
   int L=8,T=8;
   init_grid(T,L);
+  set_bgq_geometry();
   
   //start loc rnd gen
   start_loc_rnd_gen(100);
-  
-  //to be moved in a more general bgq_geometry_init routine
-  define_bgq_lx_ordering();
-  define_bgq_hopping_matrix_output_index();
   
   //allocate sc
   spincolor *sc_in=nissa_malloc("sc_in",loc_vol,spincolor);
