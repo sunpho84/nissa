@@ -8,7 +8,8 @@
 
 #include <math.h>
 
-#define CHECK_SU3_DIFF_FROM_ZERO(U)					\
+#define CHECK_SU3_DIFF_FROM_ZERO(U)					
+  /*
   {                                                                     \
     for(int ic1=0;ic1<3;ic1++)						\
       {									\
@@ -19,8 +20,9 @@
 	  crash("su3 not unitary, vn %d, ic1 %d, d=%lg!",ic1,d[0]);	\
       }									\
   }
-
-#define CHECK_BI_SU3_DIFF_FROM_ZERO(U)					\
+  */
+#define CHECK_BI_SU3_DIFF_FROM_ZERO(U)					
+/*
   {									\
     for(int vn=0;vn<2;vn++)						\
       for(int ic1=0;ic1<3;ic1++)					\
@@ -32,8 +34,10 @@
 	    crash("not unitary, vn %d, ic1 %d, d=%lg!",vn,ic1,d[0]);	\
 	}								\
   }
+*/
 
-#define CHECK_BI_SPINCOLOR_DIFF_FROM_ZERO(S,ivol)			\
+#define CHECK_BI_SPINCOLOR_DIFF_FROM_ZERO(S,ivol)			
+/*
   {									\
     for(int id=0;id<2;id++)						\
       for(int ic=0;ic<3;ic++)						\
@@ -42,7 +46,7 @@
 	    if(fabs(S[id][ic][vn][ri])<1.e-14)				\
 	      crash("ivol: %d id %d ic: %d vn: %d ri: %d is empty (%lg)",ivol,id,ic,vn,ri,out[ivol][id][ic][vn][ri]); \
   }
-
+*/
 ////////////////////////////// convert normal complex to bi_complex //////////////////////////
 
 #define COMPLEX_TO_BI_COMPLEX(A,B,VN)		\
@@ -61,6 +65,12 @@
     COLOR_TO_BI_COLOR(A[1],B[1],VN);		\
     COLOR_TO_BI_COLOR(A[2],B[2],VN);		\
   }
+#define HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(A,B,VN)	\
+  {							\
+    COLOR_TO_BI_COLOR(A[0],B[0],VN);			\
+    COLOR_TO_BI_COLOR(A[1],B[1],VN);			\
+  }
+
 #define SPINCOLOR_TO_BI_SPINCOLOR(A,B,VN)	\
   {						\
     COLOR_TO_BI_COLOR(A[0],B[0],VN);		\
@@ -88,6 +98,12 @@
     BI_COLOR_TO_COLOR(A[1],B[1],C[1]);		\
     BI_COLOR_TO_COLOR(A[2],B[2],C[2]);		\
   }
+#define BI_HALFSPINCOLOR_TO_HALFSPINCOLOR(A,B,C)	\
+  {							\
+    BI_COLOR_TO_COLOR(A[0],B[0],C[0]);			\
+    BI_COLOR_TO_COLOR(A[1],B[1],C[1]);			\
+  }
+
 #define BI_SPINCOLOR_TO_SPINCOLOR(A,B,C)	\
   {						\
     BI_COLOR_TO_COLOR(A[0],B[0],C[0]);		\
@@ -97,6 +113,12 @@
   }
 
 //////////////////////////////////// basic operation on BI types ////////////////////////////////
+
+#define BI_COMPLEX_PRINT(A)			\
+  {						\
+    complex_print(A[0]);			\
+    complex_print(A[1]);			\
+  }
 
 #define BI_COMPLEX_SUBT(A,B,C)                    \
   {						  \
@@ -149,6 +171,17 @@
     BI_COMPLEX_ISUMM(A[1],B[1],C[1]);		\
     BI_COMPLEX_ISUMM(A[2],B[2],C[2]);		\
   }
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#define BI_HALFSPINCOLOR_SUMM(A,B,C)		\
+  {						\
+    BI_COLOR_SUMM(A[0],B[0],C[0]);		\
+    BI_COLOR_SUMM(A[1],B[1],C[1]);		\
+  }
+
+#define BI_HALFSPINCOLOR_SUMMASSIGN(A,B)	\
+  BI_HALFSPINCOLOR_SUMM(A,A,B);
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 

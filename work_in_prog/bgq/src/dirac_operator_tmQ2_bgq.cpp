@@ -77,37 +77,37 @@ THREADABLE_FUNCTION_3ARG(apply_bgq_Wilson_hopping_matrix, bi_halfspincolor*,out,
       int *ind=bgq_hopping_matrix_output_index+ibgqlx*8;
       bi_su3 *links=(bi_su3*)(conf+ibgqlx);
       
-      //T backward derivative
-      HOPMATR_TBW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(out[ind[0]],links[0],temp);
-      
-      //X backward derivative
-      HOPMATR_XBW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(out[ind[1]],links[1],temp);
-      
-      //Y backward derivative
-      HOPMATR_YBW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(out[ind[2]],links[2],temp);
-      
-      //Z backward derivative
-      HOPMATR_ZBW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(out[ind[3]],links[3],temp);
-      
-      //T forward derivative
+      //T backward scatter (forward derivative)
       HOPMATR_TFW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_PROD_BI_HALFSPINCOLOR(out[ind[4]],links[4],temp);
+      BI_SU3_PROD_BI_HALFSPINCOLOR(out[ind[0]],links[0],temp);
       
-      //X forward derivative
+      //X backward scatter (forward derivative)
       HOPMATR_XFW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_PROD_BI_HALFSPINCOLOR(out[ind[5]],links[5],temp);
+      BI_SU3_PROD_BI_HALFSPINCOLOR(out[ind[1]],links[1],temp);
       
-      //Y forward derivative
+      //Y backward scatter (forward derivative)
       HOPMATR_YFW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_PROD_BI_HALFSPINCOLOR(out[ind[6]],links[6],temp);
+      BI_SU3_PROD_BI_HALFSPINCOLOR(out[ind[2]],links[2],temp);
       
-      //Z forward derivative
+      //Z backward scatter (forward derivative)
       HOPMATR_ZFW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_PROD_BI_HALFSPINCOLOR(out[ind[7]],links[7],temp);
+      BI_SU3_PROD_BI_HALFSPINCOLOR(out[ind[3]],links[3],temp);
+      
+      //T forward scatter (backward derivative)
+      HOPMATR_TBW_PROJ(temp,in[ibgqlx]);
+      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(out[ind[4]],links[4],temp);
+      
+      //X forward scatter (backward derivative)
+      HOPMATR_XBW_PROJ(temp,in[ibgqlx]);
+      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(out[ind[5]],links[5],temp);
+      
+      //Y forward scatter (backward derivative)
+      HOPMATR_YBW_PROJ(temp,in[ibgqlx]);
+      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(out[ind[6]],links[6],temp);
+      
+      //Z forward scatter (backward derivative)
+      HOPMATR_ZBW_PROJ(temp,in[ibgqlx]);
+      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(out[ind[7]],links[7],temp);
       
       /*debug
 	for(int i=0;i<8;i++)

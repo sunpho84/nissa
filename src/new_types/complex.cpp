@@ -6,6 +6,12 @@
 
 #include "new_types_definitions.h"
 
+//print
+void complex_print(complex a)
+{
+  printf("(%16.16lg,%16.16lg)\n",a[0],a[1]);
+}
+
 //Assign
 void complex_copy(complex a,complex b)
 {

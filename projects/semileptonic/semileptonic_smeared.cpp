@@ -120,12 +120,12 @@ int ncontr_2pts;
 int only_standing_2pts;
 int only_charged_2pts;
 complex *contr_2pts;
-int *op1_2pts,*op2_2pts;
+int *op_source_2pts,*op_sink_2pts;
 
 //two points chromo contractions
 int nch_contr_2pts;
 complex *ch_contr_2pts;
-int *ch_op1_2pts,*ch_op2_2pts;
+int *ch_op_source_2pts,*ch_op_sink_2pts;
 prop_type *ch_prop;
 
 //sequential props info
@@ -142,12 +142,12 @@ prop_type **S1;
 int contr_3pts_up_to_S0_mass;
 int ncontr_3pts;
 complex *contr_3pts;
-int *op1_3pts,*op2_3pts;
+int *op_source_3pts,*op_sink_3pts;
 
 //two points chromo contractions
 int nch_contr_3pts;
 complex *ch_contr_3pts;
-int *ch_op1_3pts,*ch_op2_3pts;
+int *ch_op_source_3pts,*ch_op_sink_3pts;
 
 //timings
 int ninv_tot=0,ncontr_tot=0;
@@ -324,28 +324,28 @@ void initialize_semileptonic(char *input_path)
   read_str_int("OnlyChargedTwoPoints",&only_charged_2pts);
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
-  op1_2pts=nissa_malloc("op1_2pts",ncontr_2pts,int);
-  op2_2pts=nissa_malloc("op2_2pts",ncontr_2pts,int);
+  op_source_2pts=nissa_malloc("op_source_2pts",ncontr_2pts,int);
+  op_sink_2pts=nissa_malloc("op_sink_2pts",ncontr_2pts,int);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
     {
       //Read the operator pairs
-      read_int(&(op1_2pts[icontr]));
-      read_int(&(op2_2pts[icontr]));
+      read_int(&(op_source_2pts[icontr]));
+      read_int(&(op_sink_2pts[icontr]));
       
-      master_printf(" contr.%d %d %d\n",icontr,op1_2pts[icontr],op2_2pts[icontr]);
+      master_printf(" contr.%d %d %d\n",icontr,op_source_2pts[icontr],op_sink_2pts[icontr]);
     }
   
   read_str_int("NChromoContrTwoPoints",&nch_contr_2pts);
   ch_contr_2pts=nissa_malloc("ch_contr_2pts",nch_contr_2pts*glb_size[0],complex);
-  ch_op1_2pts=nissa_malloc("ch_op1_2pts",ncontr_2pts,int);
-  ch_op2_2pts=nissa_malloc("ch_op2_2pts",ncontr_2pts,int);
+  ch_op_source_2pts=nissa_malloc("ch_op_source_2pts",ncontr_2pts,int);
+  ch_op_sink_2pts=nissa_malloc("ch_op_sink_2pts",ncontr_2pts,int);
   for(int icontr=0;icontr<nch_contr_2pts;icontr++)
     {
       //Read the operator pairs
-      read_int(&(ch_op1_2pts[icontr]));
-      read_int(&(ch_op2_2pts[icontr]));
+      read_int(&(ch_op_source_2pts[icontr]));
+      read_int(&(ch_op_sink_2pts[icontr]));
       
-      master_printf(" ch-contr.%d %d %d\n",icontr,ch_op1_2pts[icontr],ch_op2_2pts[icontr]);
+      master_printf(" ch-contr.%d %d %d\n",icontr,ch_op_source_2pts[icontr],ch_op_sink_2pts[icontr]);
     }
   
   // 6) Read list of masses and of thetas for S1
@@ -381,28 +381,28 @@ void initialize_semileptonic(char *input_path)
   contr_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glb_size[0],complex); 
   if(ncontr_3pts!=0 || nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,prop_type);
   
-  op1_3pts=nissa_malloc("op1_3pts",ncontr_3pts,int);
-  op2_3pts=nissa_malloc("op2_3pts",ncontr_3pts,int);
+  op_source_3pts=nissa_malloc("op_source_3pts",ncontr_3pts,int);
+  op_sink_3pts=nissa_malloc("op_sink_3pts",ncontr_3pts,int);
   for(int icontr=0;icontr<ncontr_3pts;icontr++)
     {
       //Read the operator pairs
-      read_int(&(op1_3pts[icontr]));
-      read_int(&(op2_3pts[icontr]));
+      read_int(&(op_source_3pts[icontr]));
+      read_int(&(op_sink_3pts[icontr]));
       
-      master_printf(" contr.%d %d %d\n",icontr,op1_3pts[icontr],op2_3pts[icontr]);
+      master_printf(" contr.%d %d %d\n",icontr,op_source_3pts[icontr],op_sink_3pts[icontr]);
     }
   
   read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
   ch_contr_3pts=nissa_malloc("ch_contr_3pts",nch_contr_3pts*glb_size[0],complex);
-  ch_op1_3pts=nissa_malloc("ch_op1_3pts",nch_contr_3pts,int);
-  ch_op2_3pts=nissa_malloc("ch_op2_3pts",nch_contr_3pts,int);
+  ch_op_source_3pts=nissa_malloc("ch_op_source_3pts",nch_contr_3pts,int);
+  ch_op_sink_3pts=nissa_malloc("ch_op_sink_3pts",nch_contr_3pts,int);
   for(int icontr=0;icontr<nch_contr_3pts;icontr++)
     {
       //Read the operator pairs
-      read_int(&(ch_op1_3pts[icontr]));
-      read_int(&(ch_op2_3pts[icontr]));
+      read_int(&(ch_op_source_3pts[icontr]));
+      read_int(&(ch_op_sink_3pts[icontr]));
       
-      master_printf(" ch-contr.%d %d %d\n",icontr,ch_op1_3pts[icontr],ch_op2_3pts[icontr]);
+      master_printf(" ch-contr.%d %d %d\n",icontr,ch_op_source_3pts[icontr],ch_op_sink_3pts[icontr]);
     }
   
   read_str_int("NGaugeConf",&ngauge_conf);
@@ -545,10 +545,10 @@ void close_semileptonic()
   if(ncontr_3pts!=0 || nch_contr_3pts!=0) nissa_free(sequential_source);
   nissa_free(contr_2pts);nissa_free(ch_contr_2pts);
   nissa_free(contr_3pts);nissa_free(ch_contr_3pts);
-  nissa_free(op1_2pts);nissa_free(op2_2pts);
-  nissa_free(op1_3pts);nissa_free(op2_3pts);
-  nissa_free(ch_op1_2pts);nissa_free(ch_op2_2pts);
-  nissa_free(ch_op1_3pts);nissa_free(ch_op2_3pts);
+  nissa_free(op_source_2pts);nissa_free(op_sink_2pts);
+  nissa_free(op_source_3pts);nissa_free(op_sink_3pts);
+  nissa_free(ch_op_source_2pts);nissa_free(ch_op_sink_2pts);
+  nissa_free(ch_op_source_3pts);nissa_free(ch_op_sink_3pts);
   nissa_free(ith_spec);nissa_free(r_spec);nissa_free(imass_spec);
   for(int imass=0;imass<ncgm_solution;imass++) nissa_free(cgm_solution[imass]);
   nissa_free(cgm_solution);
@@ -621,14 +621,7 @@ void calculate_S0(int ism_lev_so)
 	    if(!Wclov_tm||use_cgm_S0||(Wclov_tm&&cSW!=0)) safe_dirac_prod_spincolor(source,base_gamma+5,source);
 	    
 	    //if needed apply nabla
-	    if(muS>0)
-	      {
-		//remove the border condition
-		put_theta[1]=put_theta[2]=put_theta[3]=0;
-		adapt_theta(conf,old_theta,put_theta,1,1);
-		
-		apply_nabla_i(source,source,conf,muS);
-	      }
+	    if(muS>0) apply_nabla_i(source,source,sme_conf,muS);
 	    
 	    for(int itheta=0;itheta<nthetaS0;itheta++)
 	      {
@@ -891,36 +884,37 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 				  if(muS_sink==0) S0_1=S0[r1][ip1];
 				  else
 				    {
-				      apply_nabla_i(temp_der,S0[r1][ip1],conf,muS_sink);
+				      apply_nabla_i(temp_der,S0[r1][ip1],sme_conf,muS_sink);
 				      S0_1=temp_der;
 				    }
 				  
 				  //header
 				  master_fprintf(fout," # m1=%lg th1=%lg res1=%lg r1=%d, m2=%lg th2=%lg res2=%lg r2=%d der_source=%d der_sink=%d",
-						 mass1[im1], thetaS0[ith1],stopping_residues1[im1],r1,
-						 massS0[im2],thetaS0[ith2],stopping_residues_S0[im2],  r2,
+						 mass1[im1], thetaS0[ith1],  stopping_residues1[im1],r1,
+						 massS0[im2],thetaS0[ith2],stopping_residues_S0[im2],r2,
 						 muS_source,muS_sink);
-				  master_fprintf(fout," smear_source=%d smear_sink=%d\n",gaussian_niter_so[ism_lev_so],gaussian_niter_si[ism_lev_si]);
+				  master_fprintf(fout," smear_source=%d smear_sink=%d\n",
+						 gaussian_niter_so[ism_lev_so],gaussian_niter_si[ism_lev_si]);
 				  
 				  //compute contractions
-				  meson_two_points_Wilson_prop(contr_2pts,op1_2pts,S0_1,op2_2pts,S0[r2][ip2],ncontr_2pts);
+				  meson_two_points_Wilson_prop(contr_2pts,op_source_2pts,S0_1,op_sink_2pts,S0[r2][ip2],ncontr_2pts);
 				  ncontr_tot+=ncontr_2pts;
 				  
 				  //write 
 				  contr_save_time-=take_time();
-				  print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1.0);
+				  print_contractions_to_file(fout,ncontr_2pts,op_source_2pts,op_sink_2pts,contr_2pts,source_coord[0],"",1.0);
 				  contr_save_time+=take_time();
 				  
 				  //if chromo contractions
 				  if(nch_contr_2pts>0)
 				    {
 				      //compute them
-				      meson_two_points_Wilson_prop(ch_contr_2pts,ch_op1_2pts,S0_1,ch_op2_2pts,ch_prop,nch_contr_2pts);
+				      meson_two_points_Wilson_prop(ch_contr_2pts,ch_op_source_2pts,S0_1,ch_op_sink_2pts,ch_prop,nch_contr_2pts);
 				      ncontr_tot+=nch_contr_2pts;
 				      
 				      //print them
 				      contr_save_time-=take_time();
-				      print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,source_coord[0],"CHROMO-",1.0);
+				      print_contractions_to_file(fout,nch_contr_2pts,ch_op_source_2pts,ch_op_sink_2pts,ch_contr_2pts,source_coord[0],"CHROMO-",1.0);
 				      contr_save_time+=take_time();
 				    }
 				  master_fprintf(fout,"\n");
@@ -974,24 +968,24 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		master_fprintf(fout," smear_source=%d smear_seq=%d\n",gaussian_niter_so[ism_lev_so],gaussian_niter_se[ism_lev_se]);
 		
 		//compute contractions
-		meson_two_points_Wilson_prop(contr_3pts,op1_3pts,S0[r1][ip1],op2_3pts,S1[ip2],ncontr_3pts);
+		meson_two_points_Wilson_prop(contr_3pts,op_source_3pts,S0[r1][ip1],op_sink_3pts,S1[ip2],ncontr_3pts);
 		ncontr_tot+=ncontr_3pts;
 		
 		//write them
 		contr_save_time-=take_time();
-		print_contractions_to_file(fout,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,source_coord[0],"",1.0);
+		print_contractions_to_file(fout,ncontr_3pts,op_source_3pts,op_sink_3pts,contr_3pts,source_coord[0],"",1.0);
 		contr_save_time+=take_time();
 		
 		//if chromo contractions
 		if(nch_contr_3pts>0)
 		  {
 		    //compute them
-		    meson_two_points_Wilson_prop(ch_contr_3pts,ch_op1_3pts,S0[r1][ip1],ch_op2_3pts,ch_prop,nch_contr_3pts);
+		    meson_two_points_Wilson_prop(ch_contr_3pts,ch_op_source_3pts,S0[r1][ip1],ch_op_sink_3pts,ch_prop,nch_contr_3pts);
 		    ncontr_tot+=nch_contr_3pts;
 		    
 		    //and write them
 		    contr_save_time-=take_time();
-		    print_contractions_to_file(fout,nch_contr_3pts,ch_op1_3pts,ch_op2_3pts,ch_contr_3pts,source_coord[0],"CHROMO-",1.0);
+		    print_contractions_to_file(fout,nch_contr_3pts,ch_op_source_3pts,ch_op_sink_3pts,ch_contr_3pts,source_coord[0],"CHROMO-",1.0);
 		    contr_save_time+=take_time();
 		  }
 		
@@ -1015,7 +1009,7 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
     for(int im2=0;im2<nmassS1;im2++)
       {
 	int ip2=ipropS1(ith2,im2);
-	contract_with_source(contr_2pts,S1[ip2],op2_2pts,original_source);
+	contract_with_source(contr_2pts,S1[ip2],op_sink_2pts,original_source);
 	
 	master_fprintf(fout," # m1=%f th1=%f r1=%d , m2=%f th2=%f r2=%d\n",
 		       massS0[imass_spec[ispec]],thetaS0[ith_spec[ispec]],r_spec[ispec],massS1[im2],thetaS1[ith2],r_spec[ispec]);
@@ -1023,8 +1017,8 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
 	master_fprintf(fout,"\n");
 	
 	for(int icontr=0;icontr<ncontr_2pts;icontr++)
-	  if(op1_2pts[icontr]==5)
-	    master_fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op2_2pts[icontr]],(contr_2pts+icontr*glb_size[0])[source_coord[0]][0],(contr_2pts+icontr*glb_size[0])[source_coord[0]][1]);
+	  if(op_source_2pts[icontr]==5)
+	    master_fprintf(fout," # P5%s\t%+016.16g\t%+016.16g\n",gtag[op_sink_2pts[icontr]],(contr_2pts+icontr*glb_size[0])[source_coord[0]][0],(contr_2pts+icontr*glb_size[0])[source_coord[0]][1]);
 	master_fprintf(fout,"\n");
       }
   
