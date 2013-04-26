@@ -127,16 +127,6 @@ void communicate_lx_quad_su3_borders(quad_su3 *conf)
 #endif
 }
 
-//Send the borders of a spincolor vector
-void communicate_lx_spincolor_borders(spincolor *s)
-{
-#ifdef BGQ
-  buffered_communicate_lx_borders(s,&buffered_lx_spincolor_comm);
-#else
-  communicate_lx_borders((char*)s,MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,sizeof(spincolor));
-#endif
-}
-
 //Send the borders of a spin vector
 void communicate_lx_spin_borders(spin *s)
 {communicate_lx_borders((char*)s,MPI_LX_SPIN_BORDS_SEND,MPI_LX_SPIN_BORDS_RECE,sizeof(spin));}

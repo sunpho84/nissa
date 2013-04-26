@@ -456,6 +456,9 @@ void unset_lx_geometry()
   master_printf("Unsetting cartesian geometry\n");
   nissa_lx_geom_inited=0;
   
+  nissa_free(nissa_recv_buf);
+  nissa_free(nissa_send_buf);
+  
   nissa_free(loc_coord_of_loclx);
   nissa_free(glb_coord_of_loclx);
   nissa_free(loclx_neighup);

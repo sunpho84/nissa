@@ -120,7 +120,7 @@ void start_threaded_function(void(*function)(void),const char *name)
   thread_pool_lock();
   
 #ifdef THREAD_DEBUG
-  if(rank==0) printf("----------Finished working in the thread pool--------\n");
+  if(rank==0) printf("----------Finished working %s thread pool--------\n",name);
 #endif
 }
 

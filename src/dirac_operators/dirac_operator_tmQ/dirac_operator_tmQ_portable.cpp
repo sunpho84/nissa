@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../../routines/ios.h"
+
 //Apply the Q=D*g5 operator to a spincolor
 
 THREADABLE_FUNCTION_5ARG(apply_tmQ, spincolor*,out, quad_su3*,conf, double,kappa, double,mu, spincolor*,in)

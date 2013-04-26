@@ -216,6 +216,8 @@ EXTERN char *nissa_recv_buf,*nissa_send_buf;
 
 //buffered communicators
 EXTERN buffered_comm_t buffered_lx_spincolor_comm;
+EXTERN buffered_comm_t buffered_lx_colorspinspin_comm;
+EXTERN buffered_comm_t buffered_lx_su3spinspin_comm;
 EXTERN buffered_comm_t buffered_lx_quad_su3_comm;
 EXTERN buffered_comm_t buffered_eo_color_comm;
 EXTERN buffered_comm_t buffered_eo_quad_su3_comm;

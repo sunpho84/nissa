@@ -10,6 +10,7 @@
 #define CONCAT3(s1,s2,s3) CONCAT(CONCAT2(s1,s2),s3)
 #define NAME2(s1,s2) CONCAT3(s1,_,s2)
 #define NAME3(s1,s2,s3) NAME2(CONCAT3(s1,_,s2),s3)
+#define NAME4(s1,s2,s3,s4) NAME3(CONCAT3(s1,_,s2),s3,s4)
 
 //vectors parameters
 #define nissa_vect_string_length 20

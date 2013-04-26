@@ -144,4 +144,6 @@ void unsafe_su3_traceless_anti_hermitian_part(su3 out,su3 in);
 void unsafe_su3_traceless_hermitian_part(su3 out,su3 in);
 void unsafe_su3_transpose(su3 out,su3 in);
 void unsafe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor);
+void unsafe_su3_prod_colorspinspin(colorspinspin a,su3 b,colorspinspin c);
+void unsafe_su3_dag_subt_the_prod_colorspinspin(colorspinspin a,su3 b,colorspinspin c);
 #endif
