@@ -531,10 +531,6 @@ void init_grid(int T,int L)
       set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
     }
 
-#ifdef BGQ
-  init_spi();
-#endif
-  
   /////////////////////////////////////start buffered communicators /////////////////////////////////
   
   nbuffered_comm_allocated=0;
@@ -544,6 +540,10 @@ void init_grid(int T,int L)
   nissa_recv_buf=nissa_malloc("nissa_recv_buf",nissa_buff_size,char);
   nissa_send_buf=nissa_malloc("nissa_send_buf",nissa_buff_size,char);
   
+#ifdef BGQ
+  init_spi();
+#endif
+    
   //setup all needed buffered communicators
   set_lx_buffered_comm(buffered_lx_spincolor_comm,sizeof(spincolor));
   set_lx_buffered_comm(buffered_lx_colorspinspin_comm,sizeof(colorspinspin));
@@ -551,7 +551,7 @@ void init_grid(int T,int L)
   set_lx_buffered_comm(buffered_lx_quad_su3_comm,sizeof(quad_su3));
   set_eo_buffered_comm(buffered_eo_color_comm,sizeof(color));
   set_eo_buffered_comm(buffered_eo_quad_su3_comm,sizeof(quad_su3));
-  
+
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());
 }

@@ -361,11 +361,11 @@ void sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(complex *glb_c,colorspinspin 
 }
 
 //print a single contraction to the file
-void print_contraction_to_file(FILE *fout,int op_source,int op_sink,complex *contr,int twall,const char *tag,double norm)
+void print_contraction_to_file(FILE *fout,int op1,int op2,complex *contr,int twall,const char *tag,double norm)
 {
   if(rank==0)
     {
-      if(op_source>=0 && op_sink>=0) fprintf(fout," # %s%s%s\n",tag,gtag[op_sink],gtag[op_source]);
+      if(op1>=0 && op2>=0) fprintf(fout," # %s%s%s\n",tag,gtag[op2],gtag[op1]);
       for(int tempt=0;tempt<glb_size[0];tempt++)
 	{
 	  int t=tempt+twall;
@@ -380,13 +380,13 @@ void print_contraction_to_file(FILE *fout,int op_source,int op_sink,complex *con
 }
 
 //print all the passed contractions to the file
-void print_contractions_to_file(FILE *fout,int ncontr,int *op_source,int *op_sink,complex *contr,int twall,const char *tag,double norm)
+void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex *contr,int twall,const char *tag,double norm)
 {
   if(rank==0)
     for(int icontr=0;icontr<ncontr;icontr++)
       {
 	fprintf(fout,"\n");
-	print_contraction_to_file(fout,op_source[icontr],op_sink[icontr],contr+icontr*glb_size[0],twall,tag,norm);
+	print_contraction_to_file(fout,op1[icontr],op2[icontr],contr+icontr*glb_size[0],twall,tag,norm);
       }
 }
 
@@ -633,9 +633,11 @@ void meson_two_points_Wilson_prop(complex *corr,int *list_op1,colorspinspin *s1,
   {									\
     GET_THREAD_ID();							\
 									\
+    NAME3(communicate_lx,TYPE,borders)(in);				\
+    communicate_lx_quad_su3_borders(conf);				\
+									\
     TYPE *temp=nissa_malloc("temp",loc_vol+bord_vol,TYPE);		\
     vector_reset(temp);							\
-    NAME3(communicate_lx,TYPE,borders)(in);				\
 									\
     NISSA_PARALLEL_LOOP(ix,0,loc_vol)					\
       {									\
