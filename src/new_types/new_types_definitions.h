@@ -322,6 +322,19 @@ union evol_pars_t
 //out and in buffer
 struct buffered_comm_t
 {
+  //bgq specific structures, in alternative to ordinary MPI
+#ifdef BGQ
+  //descriptors
+  MUHWI_Descriptor_t *descriptors;
+  MUHWI_Destination spi_dest[8];
+#else
+  //destinations and source ranks
+  int send_rank[8],recv_rank[8];
+  //requests and message
+  MPI_Request requests[16];
+  int imessage;
+#endif
+  
   //communication in progress
   int comm_in_prog;
   //local size
@@ -331,23 +344,6 @@ struct buffered_comm_t
   //offsets
   int send_offset[8],message_length[8],recv_offset[8];
   
-  //bgq specific structures, in alternative to ordinary MPI
-#ifdef BGQ
-  //counter for received bytes
-  volatile uint64_t recv_counter;
-  //descriptors
-  MUHWI_Descriptor_t descriptors[8];
-  //bat
-  MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
-  uint32_t bat_id[2];
-  MUHWI_Destination spi_dest[8];
-#else
-  //destinations and source ranks
-  int send_rank[8],recv_rank[8];
-  //requests and message
-  MPI_Request requests[16];
-  int imessage;
-#endif
   int nrequest;
 };
 

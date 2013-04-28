@@ -13,6 +13,7 @@
 #include "../routines/thread.h"
 
 #ifdef BGQ
+ #include <stdlib.h>
  #include <malloc.h>
  #include "../bgq/spi.h"
 #include <spi/include/mu/Addressing_inlines.h>
@@ -30,38 +31,8 @@ void install_buffered_comm(buffered_comm_t &in)
   
   //bgq replacements and original MPI initialization
 #ifdef BGQ
-  //check alignment
-  CRASH_IF_NOT_ALIGNED(nissa_recv_buf,64);
-  CRASH_IF_NOT_ALIGNED(nissa_send_buf,64);
+  posix_memalign((void**)&in.descriptors,64,8*sizeof(MUHWI_Descriptor_t));
   CRASH_IF_NOT_ALIGNED(in.descriptors,64);
-  
-  //allocate the bat entries
-  in.bat_id[0]=spi_nallocated_bat+0;
-  in.bat_id[1]=spi_nallocated_bat+1;
-  spi_nallocated_bat+=2;
-  if(Kernel_AllocateBaseAddressTable(0,&in.spi_bat_gr,2,in.bat_id,0)) crash("allocating bat");
-  verbosity_lv3_master_printf("number of spi allocated bat: %d\n",spi_nallocated_bat);
-  
-  //get physical address of receiving buffer
-  Kernel_MemoryRegion_t mem_region;
-  if(Kernel_CreateMemoryRegion(&mem_region,nissa_recv_buf,in.tot_mess_size)) crash("creating memory region");
-  
-  //set the physical address
-  if(MUSPI_SetBaseAddress(&in.spi_bat_gr,in.bat_id[0],(uint64_t)nissa_recv_buf-
-			  (uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa))
-    crash("setting base address");
-  
-  //set receive counter bat to MU style atomic PA addr of the receive counter
-  if((uint64_t)(&in.recv_counter)&0x7) crash("recv counter not 8 byte aligned");
-  if(Kernel_CreateMemoryRegion(&mem_region,(void*)&in.recv_counter,sizeof(uint64_t))) crash("creating memory region");  
-  if(MUSPI_SetBaseAddress(&in.spi_bat_gr,in.bat_id[1],MUSPI_GetAtomicAddress((uint64_t)&in.recv_counter-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa,MUHWI_ATOMIC_OPCODE_STORE_ADD))) crash("setting base addr");
-  
-  //reset number of byte to be received
-  in.recv_counter=0;
-
-  //get the send buffer physical address
-  if(Kernel_CreateMemoryRegion(&mem_region,nissa_send_buf,in.tot_mess_size)) crash("creating memory region");
-  uint64_t send_buf_phys_addr=(uint64_t)nissa_send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
   
   //create one descriptor per direction
   for(int idir=0;idir<8;idir++)
@@ -71,7 +42,7 @@ void install_buffered_comm(buffered_comm_t &in)
       memset(&dinfo,0,sizeof(MUSPI_Pt2PtDirectPutDescriptorInfo_t));
       
       //set the parameters
-      dinfo.Base.Payload_Address=send_buf_phys_addr+in.send_offset[idir];
+      dinfo.Base.Payload_Address=spi_send_buf_phys_addr+in.send_offset[idir];
       dinfo.Base.Message_Length=in.message_length[idir];
       dinfo.Base.Torus_FIFO_Map=MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AP|
 	MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CM|
@@ -82,9 +53,9 @@ void install_buffered_comm(buffered_comm_t &in)
       dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE;	
       dinfo.Pt2Pt.Misc2=MUHWI_PACKET_VIRTUAL_CHANNEL_DETERMINISTIC;
       dinfo.Pt2Pt.Skip=8; //for checksumming, skip the header
-      dinfo.DirectPut.Rec_Payload_Base_Address_Id=in.bat_id[0];
+      dinfo.DirectPut.Rec_Payload_Base_Address_Id=spi_bat_id[0];
       dinfo.DirectPut.Rec_Payload_Offset=in.recv_offset[idir];
-      dinfo.DirectPut.Rec_Counter_Base_Address_Id=in.bat_id[1];
+      dinfo.DirectPut.Rec_Counter_Base_Address_Id=spi_bat_id[1];
       dinfo.DirectPut.Rec_Counter_Offset=0;
       dinfo.DirectPut.Pacing=MUHWI_PACKET_DIRECT_PUT_IS_NOT_PACED;
       
@@ -164,8 +135,8 @@ void buffered_comm_wait(buffered_comm_t *in)
 	  
 	  //wait to receive everything
 	  verbosity_lv3_master_printf("Waiting to finish receiving data with spi\n");
-	  while(in->recv_counter>0)
-	    verbosity_lv3_master_printf("%d/%d bytes remaining to be received\n",in->recv_counter,in->tot_mess_size);
+	  while(spi_recv_counter>0)
+	    verbosity_lv3_master_printf("%d/%d bytes remaining to be received\n",spi_recv_counter,in->tot_mess_size);
 #else
 	  verbosity_lv3_master_printf("Waiting for %d MPI request\n",in->nrequest);
 	  MPI_Waitall(in->nrequest,in->requests,MPI_STATUS_IGNORE);
@@ -190,8 +161,8 @@ void buffered_comm_start(buffered_comm_t *in,int *dir_comm=NULL,int tot_size=-1)
 #ifdef BGQ
       //reset the counter and wait that all have reset
       spi_global_barrier();
-      if(tot_size==-1) in->recv_counter=in->tot_mess_size;
-      else in->recv_counter=tot_size;
+      if(tot_size==-1) spi_recv_counter=in->tot_mess_size;
+      else spi_recv_counter=tot_size;
       spi_global_barrier();
       
       //start the injection
@@ -223,6 +194,10 @@ void uninstall_buffered_comm(buffered_comm_t *in)
 {
   //wait for any communication to finish
   buffered_comm_wait(in);
+  
+#ifdef BGQ
+  free(in->descriptors);
+#endif
 }
 
 /////////////////////////////////////// communicating lx vec ///////////////////////////////////

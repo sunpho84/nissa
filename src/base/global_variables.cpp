@@ -246,8 +246,15 @@ EXTERN MUSPI_InjFifoSubGroup_t spi_fifo_sg_ptr;
 //spi barrier
 EXTERN MUSPI_GIBarrier_t spi_barrier;
 
-//number of allocated bat
-EXTERN int spi_nallocated_bat;
+//bats
+EXTERN MUSPI_BaseAddressTableSubGroup_t spi_bat_gr;
+EXTERN uint32_t spi_bat_id[2];
+
+//counter
+EXTERN volatile uint64_t spi_recv_counter;
+
+//physical address
+EXTERN uint64_t spi_send_buf_phys_addr;
 
 #endif
 
