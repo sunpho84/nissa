@@ -16,6 +16,7 @@ void complex_isumm(complex a,complex b,complex c);
 void complex_isummassign(complex a,complex b);
 void complex_minus_conj(complex a,complex b);
 void complex_pow(complex res,complex base,double exp);
+void complex_print(complex a);
 void complex_prod_double(complex a,complex b,double c);
 void complex_prodassign_double(complex a,double c);
 void complex_prodassign_idouble(complex a,double b);
