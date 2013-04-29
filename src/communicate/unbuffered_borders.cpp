@@ -117,16 +117,6 @@ void communicate_lx_borders(char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype
 void communicate_lx_su3_borders(su3 *u)
 {communicate_lx_borders((char*)u,MPI_LX_SU3_BORDS_SEND,MPI_LX_SU3_BORDS_RECE,sizeof(su3));}
 
-//Send the borders of the gauge configuration
-void communicate_lx_quad_su3_borders(quad_su3 *conf)
-{
-#ifdef BGQ
-  buffered_communicate_lx_borders(conf,&buffered_lx_quad_su3_comm);
-#else
-  communicate_lx_borders((char*)conf,MPI_LX_QUAD_SU3_BORDS_SEND,MPI_LX_QUAD_SU3_BORDS_RECE,sizeof(quad_su3));
-#endif
-}
-
 //Send the borders of a spin vector
 void communicate_lx_spin_borders(spin *s)
 {communicate_lx_borders((char*)s,MPI_LX_SPIN_BORDS_SEND,MPI_LX_SPIN_BORDS_RECE,sizeof(spin));}

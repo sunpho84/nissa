@@ -3,6 +3,7 @@
 #endif
 
 #include <malloc.h>
+#include <stdlib.h>
 
 #include <firmware/include/personality.h>
 #include <spi/include/mu/Descriptor_inlines.h>
@@ -139,7 +140,8 @@ void init_spi()
   
       //set receive counter bat to MU style atomic PA addr of the receive counter
       if((uint64_t)(&spi_recv_counter)&0x7) crash("recv counter not 8 byte aligned");
-      if(Kernel_CreateMemoryRegion(&mem_region,(void*)&spi_recv_counter,sizeof(uint64_t))) crash("creating memory region");  
+      if(Kernel_CreateMemoryRegion(&mem_region,(void*)&spi_recv_counter,sizeof(uint64_t)))
+	crash("creating memory region");  
       if(MUSPI_SetBaseAddress(&spi_bat_gr,spi_bat_id[1],MUSPI_GetAtomicAddress((uint64_t)&spi_recv_counter-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa,MUHWI_ATOMIC_OPCODE_STORE_ADD))) crash("setting base addr");
   
       //reset number of byte to be received
@@ -154,4 +156,87 @@ void init_spi()
       if(MUSPI_GIBarrierInit(&spi_barrier,0)) crash("initializing the barrier");
 #endif
     }
+}
+
+/////////////////////////////////////// single communicators ///////////////////////////////////
+
+//install spi descriptors, needed for communticaions
+void spi_descriptor_setup(buffered_comm_t &in)
+{
+  posix_memalign((void**)&in.descriptors,64,8*sizeof(MUHWI_Descriptor_t));
+  CRASH_IF_NOT_ALIGNED(in.descriptors,64);
+  
+  //create one descriptor per direction
+  for(int idir=0;idir<8;idir++)
+    {
+      //reset the info
+      MUSPI_Pt2PtDirectPutDescriptorInfo_t dinfo;
+      memset(&dinfo,0,sizeof(MUSPI_Pt2PtDirectPutDescriptorInfo_t));
+      
+      //set the parameters
+      dinfo.Base.Payload_Address=spi_send_buf_phys_addr+in.send_offset[idir];
+      dinfo.Base.Message_Length=in.message_length[idir];
+      dinfo.Base.Torus_FIFO_Map=MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AP|
+        MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CM|
+        MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DP|
+        MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EP;
+      dinfo.Base.Dest=in.spi_dest[idir];
+      dinfo.Pt2Pt.Hints_ABCD=0;
+      dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE;    
+      dinfo.Pt2Pt.Misc2=MUHWI_PACKET_VIRTUAL_CHANNEL_DETERMINISTIC;
+      dinfo.Pt2Pt.Skip=8; //for checksumming, skip the header
+      dinfo.DirectPut.Rec_Payload_Base_Address_Id=spi_bat_id[0];
+      dinfo.DirectPut.Rec_Payload_Offset=in.recv_offset[idir];
+      dinfo.DirectPut.Rec_Counter_Base_Address_Id=spi_bat_id[1];
+      dinfo.DirectPut.Rec_Counter_Offset=0;
+      dinfo.DirectPut.Pacing=MUHWI_PACKET_DIRECT_PUT_IS_NOT_PACED;
+      
+      //create the descriptor
+      if(MUSPI_CreatePt2PtDirectPutDescriptor(&in.descriptors[idir],&dinfo)) crash("creating the descriptor");
+    }
+}
+
+//start spi communication
+vid spi_comm_start(buffered_comm_t &in,int *dir_comm,int tot_size)
+{
+  //reset the counter and wait that all have reset
+  spi_global_barrier();
+  if(tot_size==-1) spi_recv_counter=in.tot_mess_size;
+  else spi_recv_counter=tot_size;
+  spi_global_barrier();
+  
+  //start the injection
+  for(int idir=0;idir<8;idir++)
+    if(dir_comm==NULL||dir_comm[idir])
+      {
+	verbosity_lv3_master_printf("Injecting %d\n",idir);
+	spi_desc_count[idir]=MUSPI_InjFifoInject(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),&in.descriptors[idir]);
+	if(spi_desc_count[idir]>(1ll<<57)) crash("msg_InjFifoInject returned %llu when expecting 1, most likely because there is no room in the fifo",spi_desc_count[idir]);
+      }
+}
+
+//wait communication end
+void spi_comm_wait(buffered_comm_t &in)
+{
+  //wait to send everything
+  while(in.comm_in_prog)
+    {
+      verbosity_lv3_master_printf("Waiting to finish sending data with spi\n");
+      in.comm_in_prog=0;
+      for(int idir=0;idir<8;idir++)
+	in.comm_in_prog|=!MUSPI_CheckDescComplete(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),spi_desc_count[idir]);
+    }
+  
+  spi_global_barrier();
+  
+  //wait to receive everything
+  verbosity_lv3_master_printf("Waiting to finish receiving data with spi\n");
+  while(spi_recv_counter>0)
+    verbosity_lv3_master_printf("%d/%d bytes remaining to be received\n",spi_recv_counter,in.tot_mess_size);
+}
+
+//free communicator (one day unset also them)
+void spi_descriptor_unset(buffered_comm_t &in)
+{
+  free(in.descriptors);
 }

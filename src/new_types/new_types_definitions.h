@@ -30,6 +30,7 @@ typedef complex color[3];
 
 typedef spin colorspin[3];
 typedef color spincolor[4];
+typedef color halfspincolor[2];
 
 typedef colorspin spincolorspin[4];
 typedef spincolorspin colorspincolorspin[3];
@@ -332,7 +333,7 @@ struct buffered_comm_t
   int send_rank[8],recv_rank[8];
   //requests and message
   MPI_Request requests[16];
-  int imessage;
+  int nrequest,imessage;
 #endif
   
   //communication in progress
@@ -343,8 +344,6 @@ struct buffered_comm_t
   uint64_t tot_mess_size;
   //offsets
   int send_offset[8],message_length[8],recv_offset[8];
-  
-  int nrequest;
 };
 
 #endif

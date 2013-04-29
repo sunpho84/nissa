@@ -22,14 +22,27 @@ void define_bgq_lx_ordering()
   bgqlx_of_loclx=nissa_malloc("bgqlx_of_loclx",loc_volh,int);
   loclx_of_bgqlx=nissa_malloc("loclx_of_bgqlx",loc_volh,int);
   
-  //scan surface
+  //reset bgqlx index
   int bgqlx=0;
+  
+  //scan T surface
+  for(int loclx=0;loclx<loc_volh;loclx++)
+    //check that we are on T==0 or T==loc_size[0]/2-1
+    if(loc_coord_of_loclx[loclx][0]==0||loc_coord_of_loclx[loclx][0]==loc_size[0]/2-1)
+      {
+	loclx_of_bgqlx[bgqlx]=loclx;
+	bgqlx_of_loclx[loclx]=bgqlx;
+	
+	bgqlx++;
+      }
+  
+  //scan non-T surface
   for(int isurflx=0;isurflx<surf_vol;isurflx++)
     {
       int loclx=loclx_of_surflx[isurflx];
       
-      //check that we are on first half of time direction
-      if(loc_coord_of_loclx[loclx][0]<loc_size[0]/2)
+      //check that we are on first half of time direction, and that we are not on T==0 or T==loc_size[0]/2-1
+      if(loc_coord_of_loclx[loclx][0]!=0 && loc_coord_of_loclx[loclx][0]<loc_size[0]/2-1)
 	{
 	  loclx_of_bgqlx[bgqlx]=loclx;
 	  bgqlx_of_loclx[loclx]=bgqlx;
@@ -38,13 +51,16 @@ void define_bgq_lx_ordering()
 	}
     }
 
+  //take not of the total virtual and non-virtual surface
+  bgq_vsurf_vol=bgqlx;
+  
   //scan bulk
   for(int ibulklx=0;ibulklx<bulk_vol;ibulklx++)
     {
       int loclx=loclx_of_bulklx[ibulklx];
       
-      //check that we are on first half of time direction
-      if(loc_coord_of_loclx[loclx][0]<loc_size[0]/2)
+      //check that we are on first half of time direction, and that we are not on T==0 or T==loc_size[0]/2-1
+      if(loc_coord_of_loclx[loclx][0]!=0 && loc_coord_of_loclx[loclx][0]<loc_size[0]/2-1)
 	{
 	  loclx_of_bgqlx[bgqlx]=loclx;
 	  bgqlx_of_loclx[loclx]=bgqlx;
@@ -53,92 +69,55 @@ void define_bgq_lx_ordering()
 	}
     }
   
-  if(bgqlx!=loc_volh) crash("defining bgq_lx ordering");
+  if(bgqlx!=loc_volh) crash("defining bgq_lx ordering: %d!=%d",bgqlx,loc_volh);
 }
 
 /*
   Define output index of sink-applied hopping matrix for non-eo preco operator.
-  First we put T border, which is always present and of the same size of the 
-  true node T border, then other three borders which are only half the size of the
-  true node border. Border to be sent backward comes before forward one.
-  Also backward derivative output comes before forward.
+  For T border we must stored two different indices, one pointing to the communication buffer and the other to
+  other virtual node buffer.
+  The other three borders points directly to communication borders.
 */
-void define_bgq_hopping_matrix_output_index()
+void define_bgq_hopping_matrix_lx_output_pointers_and_T_buffers(bi_halfspincolor *binded)
 {
-  bgqlx_t_vbord_vol=loc_vol/loc_size[0]; //t dir is at least virtually parallelized
-  bgqlx_vbord_vol=2*(bgqlx_t_vbord_vol+(bord_dir_vol[1]+bord_dir_vol[2]+bord_dir_vol[3])/2);
+  bgqlx_t_vbord_vol=2*loc_vol/loc_size[0]; //t dir is at least virtually parallelized
   
-  /*debug
-    master_printf("bgqlx_t_vbord_vol %d, bgqlx_vbord_vol %d\n",bgqlx_t_vbord_vol,bgqlx_vbord_vol);*/
+  //bind
+  bgq_hopping_matrix_output_binded=binded;
   
-  //allocate out hopping matrix index
-  bgq_hopping_matrix_output_index=nissa_malloc("bgq_hopping_matrix_output_index",8*loc_volh,int);
-  
-  /* debug
-  for(int i=0;i<8*loc_volh;i++)
-    bgq_hopping_matrix_output_index[i]=-1;*/
+  //allocate hopping matrix output pointer
+  bgq_hopping_matrix_output_pointer=nissa_malloc("bgq_hopping_matrix_output_pointer",8*loc_volh,bi_halfspincolor*);
+  bgq_hopping_matrix_output_T_buffer=nissa_malloc("bgq_hopping_matrix_output_T_buffr",bgqlx_t_vbord_vol,bi_halfspincolor);
   
   for(int ibgqlx=0;ibgqlx<loc_volh;ibgqlx++)
     {
       int iloclx=loclx_of_bgqlx[ibgqlx];
       
       //t direction bw scattering
-      bgq_hopping_matrix_output_index[ibgqlx*8+0]=(loc_coord_of_loclx[iloclx][0]==0)?
-	iloclx:                                                       //we move in other vnode
-	bgqlx_vbord_vol+8*bgqlx_of_loclx[loclx_neighdw[iloclx][0]];   //we are still in the same vnode
-      /*debug
-	master_printf("A (%d) bgq_hopping_matrix_output_index[%d]: %d\n",loc_coord_of_loclx[iloclx][0]==0,ibgqlx*8+0,
-	bgq_hopping_matrix_output_index[ibgqlx*8+0]);*/
+      bgq_hopping_matrix_output_pointer[ibgqlx*8+0]=(loc_coord_of_loclx[iloclx][0]==0)?
+	bgq_hopping_matrix_output_T_buffer+iloclx:           //we move in other vnode
+	binded+8*bgqlx_of_loclx[loclx_neighdw[iloclx][0]];   //we are still in the same vnode
       
       //t direction fw scattering
-      bgq_hopping_matrix_output_index[ibgqlx*8+4]=(loc_coord_of_loclx[iloclx][0]==loc_size[0]/2-1)?
-	bgqlx_vbord_vol/2+loclx_neighup[iloclx][0]-loc_volh:           //we moved in another vnode
-	bgqlx_vbord_vol+8*bgqlx_of_loclx[loclx_neighup[iloclx][0]]+4;  //we are still in the same vnode
-      /*debug
-	master_printf("B (%d) bgq_hopping_matrix_output_index[%d]: %d\n",loc_coord_of_loclx[iloclx][0]==loc_size[0]/2-1,
-	ibgqlx*8+4,
-	bgq_hopping_matrix_output_index[ibgqlx*8+4]);*/
+      bgq_hopping_matrix_output_pointer[ibgqlx*8+4]=(loc_coord_of_loclx[iloclx][0]==loc_size[0]/2-1)?
+	//we moved in another vnode
+	bgq_hopping_matrix_output_T_buffer+bgqlx_t_vbord_vol/2+loclx_neighup[iloclx][0]-loc_volh:
+	binded+bgqlx_vbord_vol+8*bgqlx_of_loclx[loclx_neighup[iloclx][0]]+4;  //we are still in the same vnode
       
       //other direction derivatives
       for(int idir=1;idir<4;idir++)
 	{
 	  int bw=loclx_neighdw[iloclx][idir];
-	  bgq_hopping_matrix_output_index[ibgqlx*8+0+idir]=(bw>=loc_vol)?
-	    bgqlx_t_vbord_vol+(bord_offset[idir]-bord_offset[1])/2+
-	    (loc_coord_of_loclx[iloclx][perp_dir[idir][2]]+loc_size[perp_dir[idir][2]]*
-	     (loc_coord_of_loclx[iloclx][perp_dir[idir][1]]+loc_size[perp_dir[idir][1]]*
-	      (loc_coord_of_loclx[iloclx][0]))):           //we moved to another vnode
-	    bgqlx_vbord_vol+bgqlx_of_loclx[bw]*8+idir;     //we are still in local vnode
-	  
-	  /*debug
-	    master_printf("C (%d  %d dir, %d %d %d) bgq_hopping_matrix_output_index[%d]: %d\n",bw>=loc_vol,
-	    idir,
-	    loc_coord_of_loclx[iloclx][0],
-	    loc_coord_of_loclx[iloclx][perp_dir[idir][1]],
-	    loc_coord_of_loclx[iloclx][perp_dir[idir][2]],
-	    ibgqlx*8+0+idir,
-	    bgq_hopping_matrix_output_index[ibgqlx*8+0+idir]);*/
+	  bgq_hopping_matrix_output_pointer[ibgqlx*8+0+idir]=(bw>=loc_vol)?
+	    (bi_halfspincolor*)nissa_send_buf+bord_vol/2+bw-loc_vol:   //we moved to another vnode
+	    binded+bgqlx_of_loclx[bw]*8+idir;                          //we are still in local vnode
 	  
 	  int fw=loclx_neighup[iloclx][idir];
-	  bgq_hopping_matrix_output_index[ibgqlx*8+4+idir]=(fw>=loc_vol)?
-	    bgqlx_vbord_vol/2+bgqlx_t_vbord_vol+(bord_offset[idir]-bord_offset[1])/2+
-	    (loc_coord_of_loclx[iloclx][perp_dir[idir][2]]+loc_size[perp_dir[idir][2]]*
-	     (loc_coord_of_loclx[iloclx][perp_dir[idir][1]]+loc_size[perp_dir[idir][1]]*
-	      (loc_coord_of_loclx[iloclx][0]))):           //we moved in another vnode
-	    bgqlx_vbord_vol+bgqlx_of_loclx[fw]*8+4+idir;   //we are still in local vnode
-	  
-	  /*debug
-	    master_printf("D (%d) bgq_hopping_matrix_output_index[%d]: %d\n",fw>=loc_vol,ibgqlx*8+4+idir,
-	    bgq_hopping_matrix_output_index[ibgqlx*8+4+idir]);*/
+	  bgq_hopping_matrix_output_pointer[ibgqlx*8+4+idir]=(fw>=loc_vol)?
+	    (bi_halfspincolor*)nissa_send_buf+fw-loc_vol:              //we moved in another vnode
+	    binded+bgqlx_of_loclx[fw]*8+4+idir;                        //we are still in local vnode
 	}
     }
-  
-  /*debug
-    for(int i=0;i<8*loc_volh;i++)
-    if(bgq_hopping_matrix_output_index[i]==-1) crash("index %d was not properly defined");
-    
-    for(int i=0;i<8*loc_volh;i++)
-    master_printf("site*8+dirversed %d will output to index %d\n",i,bgq_hopping_matrix_output_index[i]);*/    
 }
 
 /*
@@ -240,3 +219,16 @@ THREADABLE_FUNCTION_2ARG(bgqlx_spincolor_remap_to_lx, spincolor*,out, bi_spincol
   
   thread_barrier(REMAP_BARRIER);
 }}
+
+//set bgq geometry
+void set_bgq_geometry()
+{
+  define_bgq_lx_ordering();
+}
+
+//unset it
+void unset_bgq_geometry()
+{
+  nissa_free(bgqlx_of_loclx);
+  nissa_free(loclx_of_bgqlx);
+}

@@ -79,6 +79,38 @@
     COLOR_TO_BI_COLOR(A[3],B[3],VN);		\
   }
 
+//////////////////////////////// extract component of bi_complex ////////////////////////////////
+
+#define COMPLEX_OF_BI_COMPLEX(A,B,VN)		\
+  complex_copy(A,B[VN]);
+
+#define COLOR_OF_BI_COLOR(A,B,VN)		\
+  {						\
+    COMPLEX_OF_BI_COMPLEX(A[0],B[0],VN);	\
+    COMPLEX_OF_BI_COMPLEX(A[1],B[1],VN);	\
+    COMPLEX_OF_BI_COMPLEX(A[2],B[2],VN);	\
+  }
+#define SU3_OF_BI_SU3(A,B,VN)			\
+  {						\
+    CHECK_SU3_DIFF_FROM_ZERO(B);		\
+    COLOR_OF_BI_COLOR(A[0],B[0],VN);		\
+    COLOR_OF_BI_COLOR(A[1],B[1],VN);		\
+    COLOR_OF_BI_COLOR(A[2],B[2],VN);		\
+  }
+#define HALFSPINCOLOR_OF_BI_HALFSPINCOLOR(A,B,VN)	\
+  {							\
+    COLOR_OF_BI_COLOR(A[0],B[0],VN);			\
+    COLOR_OF_BI_COLOR(A[1],B[1],VN);			\
+  }
+
+#define SPINCOLOR_OF_BI_SPINCOLOR(A,B,VN)	\
+  {						\
+    COLOR_OF_BI_COLOR(A[0],B[0],VN);		\
+    COLOR_OF_BI_COLOR(A[1],B[1],VN);		\
+    COLOR_OF_BI_COLOR(A[2],B[2],VN);		\
+    COLOR_OF_BI_COLOR(A[3],B[3],VN);		\
+  }
+
 /////////////////////////////////// bi_complex to normal type ///////////////////////////////////
 
 #define BI_COMPLEX_TO_COMPLEX(A,B,C)		\
@@ -259,20 +291,20 @@
 
 #define HOPMATR_XBW_PROJ(OUT,IN)		\
   {						\
-    BI_COLOR_ISUBT(OUT[0],IN[0],IN[2]);		\
-    BI_COLOR_ISUBT(OUT[1],IN[1],IN[3]);		\
+    BI_COLOR_ISUBT(OUT[0],IN[0],IN[3]);		\
+    BI_COLOR_ISUBT(OUT[1],IN[1],IN[2]);		\
   }
 
 #define HOPMATR_YBW_PROJ(OUT,IN)		\
   {						\
-    BI_COLOR_SUBT(OUT[0],IN[0],IN[2]);		\
-    BI_COLOR_SUMM(OUT[1],IN[1],IN[3]);		\
+    BI_COLOR_SUBT(OUT[0],IN[0],IN[3]);		\
+    BI_COLOR_SUMM(OUT[1],IN[1],IN[2]);		\
   }
 
 #define HOPMATR_ZBW_PROJ(OUT,IN)		\
   {						\
-    BI_COLOR_ISUMM(OUT[0],IN[0],IN[2]);		\
-    BI_COLOR_ISUBT(OUT[1],IN[1],IN[3]);		\
+    BI_COLOR_ISUBT(OUT[0],IN[0],IN[2]);		\
+    BI_COLOR_ISUMM(OUT[1],IN[1],IN[3]);		\
   }
 
 #define HOPMATR_TFW_PROJ(OUT,IN)		\
@@ -283,20 +315,20 @@
 
 #define HOPMATR_XFW_PROJ(OUT,IN)		\
   {						\
-    BI_COLOR_ISUMM(OUT[0],IN[0],IN[2]);		\
-    BI_COLOR_ISUMM(OUT[1],IN[1],IN[3]);		\
+    BI_COLOR_ISUMM(OUT[0],IN[0],IN[3]);		\
+    BI_COLOR_ISUMM(OUT[1],IN[1],IN[2]);		\
   }
 
 #define HOPMATR_YFW_PROJ(OUT,IN)		\
   {						\
-    BI_COLOR_SUMM(OUT[0],IN[0],IN[2]);		\
-    BI_COLOR_SUBT(OUT[1],IN[1],IN[3]);		\
+    BI_COLOR_SUMM(OUT[0],IN[0],IN[3]);		\
+    BI_COLOR_SUBT(OUT[1],IN[1],IN[2]);		\
   }
 
 #define HOPMATR_ZFW_PROJ(OUT,IN)		\
   {						\
-    BI_COLOR_ISUBT(OUT[0],IN[0],IN[2]);		\
-    BI_COLOR_ISUMM(OUT[1],IN[1],IN[3]);		\
+    BI_COLOR_ISUMM(OUT[0],IN[0],IN[2]);		\
+    BI_COLOR_ISUBT(OUT[1],IN[1],IN[3]);		\
   }
 
 /////////////////////////////////////////////////////////////////////////////////////

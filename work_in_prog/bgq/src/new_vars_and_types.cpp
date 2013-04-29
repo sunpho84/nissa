@@ -24,5 +24,7 @@ typedef bi_color bi_halfspincolor[2];
 #define HOPPING_MATRIX_APPLICATION_BARRIER 100329
  
 EXTERN int *bgqlx_of_loclx,*loclx_of_bgqlx;
-EXTERN int *bgq_hopping_matrix_output_index;
-EXTERN int bgqlx_t_vbord_vol,bgqlx_vbord_vol;
+EXTERN bi_halfspincolor *bgq_hopping_matrix_output_binded;
+EXTERN bi_halfspincolor **bgq_hopping_matrix_output_pointer;
+EXTERN bi_halfspincolor *bgq_hopping_matrix_output_T_buffer;
+EXTERN int bgqlx_t_vbord_vol,bgqlx_vbord_vol,bgq_vsurf_vol;
