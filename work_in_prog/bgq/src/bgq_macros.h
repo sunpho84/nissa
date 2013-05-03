@@ -50,8 +50,9 @@
 ////////////////////////////// convert normal complex to bi_complex //////////////////////////
 
 #define COMPLEX_TO_BI_COMPLEX(A,B,VN)		\
-  complex_copy(A[VN],B);
-
+  {						\
+    complex_copy(A[VN],B);			\
+  }
 #define COLOR_TO_BI_COLOR(A,B,VN)		\
   {						\
     COMPLEX_TO_BI_COMPLEX(A[0],B[0],VN);	\
@@ -70,7 +71,6 @@
     COLOR_TO_BI_COLOR(A[0],B[0],VN);			\
     COLOR_TO_BI_COLOR(A[1],B[1],VN);			\
   }
-
 #define SPINCOLOR_TO_BI_SPINCOLOR(A,B,VN)	\
   {						\
     COLOR_TO_BI_COLOR(A[0],B[0],VN);		\
@@ -82,8 +82,9 @@
 //////////////////////////////// extract component of bi_complex ////////////////////////////////
 
 #define COMPLEX_OF_BI_COMPLEX(A,B,VN)		\
-  complex_copy(A,B[VN]);
-
+  {						\
+    complex_copy(A,B[VN]);			\
+  }
 #define COLOR_OF_BI_COLOR(A,B,VN)		\
   {						\
     COMPLEX_OF_BI_COMPLEX(A[0],B[0],VN);	\
@@ -102,13 +103,44 @@
     COLOR_OF_BI_COLOR(A[0],B[0],VN);			\
     COLOR_OF_BI_COLOR(A[1],B[1],VN);			\
   }
-
 #define SPINCOLOR_OF_BI_SPINCOLOR(A,B,VN)	\
   {						\
     COLOR_OF_BI_COLOR(A[0],B[0],VN);		\
     COLOR_OF_BI_COLOR(A[1],B[1],VN);		\
     COLOR_OF_BI_COLOR(A[2],B[2],VN);		\
     COLOR_OF_BI_COLOR(A[3],B[3],VN);		\
+  }
+
+//////////////////////////////// copy bi_complex ////////////////////////////////
+
+#define BI_COMPLEX_COPY(A,B)			\
+  {						\
+    complex_copy(A[0],B[0]);			\
+    complex_copy(A[1],B[1]);			\
+  }
+#define BI_COLOR_COPY(A,B)			\
+  {						\
+    BI_COMPLEX_COPY(A[0],B[0]);			\
+    BI_COMPLEX_COPY(A[1],B[1]);			\
+    BI_COMPLEX_COPY(A[2],B[2]);			\
+  }
+#define BI_SU3_COPY(A,B)			\
+  {						\
+    BI_COLOR_COPY(A[0],B[0]);			\
+    BI_COLOR_COPY(A[1],B[1]);			\
+    BI_COLOR_COPY(A[2],B[2]);			\
+  }
+#define BI_HALFSPINCOLOR_COPY(A,B)		\
+  {						\
+    BI_COLOR_COPY(A[0],B[0]);			\
+    BI_COLOR_COPY(A[1],B[1]);			\
+  }
+#define BI_SPINCOLOR_COPY(A,B)			\
+  {						\
+    BI_COLOR_COPY(A[0],B[0]);			\
+    BI_COLOR_COPY(A[1],B[1]);			\
+    BI_COLOR_COPY(A[2],B[2]);			\
+    BI_COLOR_COPY(A[3],B[3]);			\
   }
 
 /////////////////////////////////// bi_complex to normal type ///////////////////////////////////
@@ -135,7 +167,6 @@
     BI_COLOR_TO_COLOR(A[0],B[0],C[0]);			\
     BI_COLOR_TO_COLOR(A[1],B[1],C[1]);			\
   }
-
 #define BI_SPINCOLOR_TO_SPINCOLOR(A,B,C)	\
   {						\
     BI_COLOR_TO_COLOR(A[0],B[0],C[0]);		\
@@ -157,7 +188,6 @@
     complex_subt(A[0],B[0],C[0]);		  \
     complex_subt(A[1],B[1],C[1]);		  \
   }
-
 #define BI_COMPLEX_SUMM(A,B,C)                    \
   {						  \
     complex_summ(A[0],B[0],C[0]);		  \

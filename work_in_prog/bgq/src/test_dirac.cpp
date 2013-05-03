@@ -105,7 +105,7 @@ void apply_tmQ_portable(spincolor *out,quad_su3 *conf,double kappa,double mu,spi
 void in_main(int narg,char **arg)
 {
   //init the grid 
-  int L=8,T=8;
+  int L=8,T=16;
   init_grid(T,L);
   set_bgq_geometry();
   
