@@ -27,4 +27,4 @@ EXTERN int *bgqlx_of_loclx,*loclx_of_bgqlx;
 EXTERN bi_halfspincolor *bgq_hopping_matrix_output_binded;
 EXTERN bi_halfspincolor **bgq_hopping_matrix_output_pointer;
 EXTERN bi_halfspincolor *bgq_hopping_matrix_output_T_buffer;
-EXTERN int bgqlx_t_vbord_vol,bgqlx_vbord_vol,bgq_vsurf_vol;
+EXTERN int bgqlx_t_vbord_vol,bgq_vsurf_vol;

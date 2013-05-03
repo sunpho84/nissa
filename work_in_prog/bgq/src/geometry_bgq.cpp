@@ -14,8 +14,7 @@
   always by ivol and ivol+loc_volh, so mapping array are defined 
   only for first half of the lattice
   
-  We first scan surface, then bulk.
-  Backward links are (0,1,2,3), forward links are (4,5,6,7)
+  We first scan T bw and fw surface, other surfaces (if present), then bulk.
 */
 void define_bgq_lx_ordering()
 {
@@ -74,8 +73,9 @@ void define_bgq_lx_ordering()
 
 /*
   Define output index of sink-applied hopping matrix for non-eo preco operator.
-  For T border we must stored two different indices, one pointing to the communication buffer and the other to
-  other virtual node buffer.
+  For T border we must store two different indices, one pointing to the communication buffer and the other to
+  other virtual node buffer. In T buffer data is ordered as for buffered communication send buffer, that is,
+  in reversed order with respect to border geometry.
   The other three borders points directly to communication borders.
 */
 void define_bgq_hopping_matrix_lx_output_pointers_and_T_buffers(bi_halfspincolor *binded)
@@ -95,27 +95,27 @@ void define_bgq_hopping_matrix_lx_output_pointers_and_T_buffers(bi_halfspincolor
       
       //t direction bw scattering
       bgq_hopping_matrix_output_pointer[ibgqlx*8+0]=(loc_coord_of_loclx[iloclx][0]==0)?
-	bgq_hopping_matrix_output_T_buffer+iloclx:           //we move in other vnode
-	binded+8*bgqlx_of_loclx[loclx_neighdw[iloclx][0]];   //we are still in the same vnode
+	bgq_hopping_matrix_output_T_buffer+iloclx:  //we move in other vnode
+	binded+8*bgqlx_of_loclx[loclx_neighdw[iloclx][0]]+0;            //we are still in the same vnode
       
       //t direction fw scattering
       bgq_hopping_matrix_output_pointer[ibgqlx*8+4]=(loc_coord_of_loclx[iloclx][0]==loc_size[0]/2-1)?
 	//we moved in another vnode
 	bgq_hopping_matrix_output_T_buffer+bgqlx_t_vbord_vol/2+loclx_neighup[iloclx][0]-loc_volh:
-	binded+bgqlx_vbord_vol+8*bgqlx_of_loclx[loclx_neighup[iloclx][0]]+4;  //we are still in the same vnode
+	binded+8*bgqlx_of_loclx[loclx_neighup[iloclx][0]]+4;  //we are still in the same vnode
       
       //other direction derivatives
       for(int idir=1;idir<4;idir++)
 	{
 	  int bw=loclx_neighdw[iloclx][idir];
 	  bgq_hopping_matrix_output_pointer[ibgqlx*8+0+idir]=(bw>=loc_vol)?
-	    (bi_halfspincolor*)nissa_send_buf+bord_vol/2+bw-loc_vol:   //we moved to another vnode
-	    binded+bgqlx_of_loclx[bw]*8+idir;                          //we are still in local vnode
+	    (bi_halfspincolor*)nissa_send_buf+bw-loc_vol-bord_offset[idir]/2:   //we moved to another vnode
+	    binded+8*bgqlx_of_loclx[bw]+0+idir;                        //we are still in local vnode
 	  
 	  int fw=loclx_neighup[iloclx][idir];
 	  bgq_hopping_matrix_output_pointer[ibgqlx*8+4+idir]=(fw>=loc_vol)?
-	    (bi_halfspincolor*)nissa_send_buf+fw-loc_vol:              //we moved in another vnode
-	    binded+bgqlx_of_loclx[fw]*8+4+idir;                        //we are still in local vnode
+	    (bi_halfspincolor*)nissa_send_buf+fw-loc_vol-bord_volh/2-bord_offset[idir]/2:              //we moved in another vnode
+	    binded+8*bgqlx_of_loclx[fw]+4+idir;                        //we are still in local vnode
 	}
     }
 }
