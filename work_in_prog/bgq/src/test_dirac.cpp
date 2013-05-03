@@ -9,6 +9,8 @@ void apply_tmQ_portable(spincolor *out,quad_su3 *conf,double kappa,double mu,spi
   if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
   if(!check_borders_valid(in)) communicate_lx_spincolor_borders(in);
   
+  double kcf=1/(2*kappa);
+  
   nissa_loc_vol_loop(X)
     {
       int Xup,Xdw;
@@ -99,7 +101,23 @@ void apply_tmQ_portable(spincolor *out,quad_su3 *conf,double kappa,double mu,spi
       color_summassign(out[X][1],temp_c3);
       color_isummassign(out[X][2],temp_c2);
       color_isubtassign(out[X][3],temp_c3);
+  
+      //Put the -1/2 factor on derivative, the gamma5, and the imu
+      //ok this is horrible, but fast
+      double fac=0.5;
+      for(int c=0;c<3;c++)
+        {
+          out[X][0][c][0]=-fac*out[X][0][c][0]+kcf*in[X][0][c][0]-mu*in[X][0][c][1];
+          out[X][0][c][1]=-fac*out[X][0][c][1]+kcf*in[X][0][c][1]+mu*in[X][0][c][0];
+          out[X][1][c][0]=-fac*out[X][1][c][0]+kcf*in[X][1][c][0]-mu*in[X][1][c][1];
+          out[X][1][c][1]=-fac*out[X][1][c][1]+kcf*in[X][1][c][1]+mu*in[X][1][c][0];
+          out[X][2][c][0]=+fac*out[X][2][c][0]-kcf*in[X][2][c][0]-mu*in[X][2][c][1];
+          out[X][2][c][1]=+fac*out[X][2][c][1]-kcf*in[X][2][c][1]+mu*in[X][2][c][0];
+          out[X][3][c][0]=+fac*out[X][3][c][0]-kcf*in[X][3][c][0]-mu*in[X][3][c][1];
+          out[X][3][c][1]=+fac*out[X][3][c][1]-kcf*in[X][3][c][1]+mu*in[X][3][c][0];
+        }
     }
+
 }
 
 void in_main(int narg,char **arg)
@@ -134,6 +152,9 @@ void in_main(int narg,char **arg)
   
   ////////////////////////////////// prepare the conf //////////////////////////////////////
   
+  double kappa=0.12376;
+  double mass=0.4324;
+  
   //fill the conf with random su3 elements
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);  
   nissa_loc_vol_loop(ivol)
@@ -146,15 +167,19 @@ void in_main(int narg,char **arg)
   
   //apply Dirac operator, portable version
   spincolor *sc_out_vportable=nissa_malloc("sc_out_vportable",loc_vol,spincolor);
-  apply_tmQ_portable(sc_out_vportable,conf,0,0,sc_in);
+  apply_tmQ_portable(sc_out_vportable,conf,kappa,mass,sc_in);
 
   //apply Dirac operator, bgq version
+  bi_spincolor *bgq_sc_out_vbgq=nissa_malloc("bgq_sc_out_vbgq",loc_volh,bi_spincolor);
+  apply_tmQ_bgq(bgq_sc_out_vbgq,bgq_conf,kappa,mass,bgq_sc_in);
+  
+  //remap
   spincolor *sc_out_vbgq=nissa_malloc("sc_out_vbgq",loc_vol,spincolor);
-  apply_tmQ_bgq(sc_out_vbgq,bgq_conf,0,0,bgq_sc_in);
+  bgqlx_spincolor_remap_to_lx(sc_out_vbgq,bgq_sc_out_vbgq);
   
   //check
   nissa_loc_vol_loop(ivol)
-    for(int id=0;id<2;id++)
+    for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
 	  if(fabs(sc_out_vportable[ivol][id][ic][ri]-sc_out_vbgq[ivol][id][ic][ri])>1.e-14)
@@ -168,6 +193,7 @@ void in_main(int narg,char **arg)
   //free
   nissa_free(sc_out_vportable);
   nissa_free(sc_out_vbgq);
+  nissa_free(bgq_sc_out_vbgq);
   nissa_free(bgq_conf);
   nissa_free(conf);
   nissa_free(bgq_sc_in);

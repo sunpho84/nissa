@@ -3,6 +3,6 @@
 
 #include "new_vars_and_types.h"
 
-void apply_tmQ_bgq(spincolor *out,bi_oct_su3 *conf,double kappa,double mu,bi_spincolor *in);
+void apply_tmQ_bgq(bi_spincolor *out,bi_oct_su3 *conf,double kappa,double mu,bi_spincolor *in);
 
 #endif

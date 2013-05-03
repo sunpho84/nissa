@@ -234,6 +234,25 @@
     BI_COMPLEX_ISUMM(A[2],B[2],C[2]);		\
   }
 
+#define BI_COLOR_PROD_COMPLEX(A,B,C)		\
+  {						\
+    BI_COMPLEX_PROD(A[0],B[0],C);		\
+    BI_COMPLEX_PROD(A[1],B[1],C);		\
+    BI_COMPLEX_PROD(A[2],B[2],C);		\
+  }
+
+#define BI_COLOR_PROD_DOUBLE(A,B,C)		\
+  {						\
+    BI_COMPLEX_PROD_DOUBLE(A[0],B[0],C);	\
+    BI_COMPLEX_PROD_DOUBLE(A[1],B[1],C);	\
+    BI_COMPLEX_PROD_DOUBLE(A[2],B[2],C);	\
+  }
+
+#define BI_COLOR_SUMMASSIGN(A,B) BI_COLOR_SUMM(A,A,B)
+#define BI_COLOR_SUBTASSIGN(A,B) BI_COLOR_SUBT(A,A,B)
+#define BI_COLOR_ISUMMASSIGN(A,B) BI_COLOR_ISUMM(A,A,B)
+#define BI_COLOR_ISUBTASSIGN(A,B) BI_COLOR_ISUBT(A,A,B)
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define BI_HALFSPINCOLOR_SUMM(A,B,C)		\
@@ -244,6 +263,14 @@
 
 #define BI_HALFSPINCOLOR_SUMMASSIGN(A,B)	\
   BI_HALFSPINCOLOR_SUMM(A,A,B);
+
+#define BI_SPINCOLOR_PROD_DOUBLE(A,B,C)					\
+  {									\
+    BI_COLOR_PROD_DOUBLE(A[0],B[0],C);					\
+    BI_COLOR_PROD_DOUBLE(A[1],B[1],C);					\
+    BI_COLOR_PROD_DOUBLE(A[2],B[2],C);					\
+    BI_COLOR_PROD_DOUBLE(A[3],B[3],C);					\
+  }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -257,6 +284,12 @@
   {						\
     unsafe_complex_prod(A[0],B[0],C[0]);	\
     unsafe_complex_prod(A[1],B[1],C[1]);	\
+  }
+
+#define BI_COMPLEX_PROD_DOUBLE(A,B,C);		\
+  {						\
+    complex_prod_double(A[0],B[0],C);		\
+    complex_prod_double(A[1],B[1],C);		\
   }
 
 #define BI_COMPLEX_SUMM_THE_CONJ1_PROD(A,B,C);		\
@@ -383,3 +416,78 @@
     BI_COLOR_TRANSPOSE(A[0],B[0]);		\
     BI_COLOR_TRANSPOSE(A[1],B[1]);		\
   }
+
+///////////////////////////////////////////// expand halfspincolors ///////////////////////////////////////
+
+#define DIAG_TMQ(OUT,DIAG,IN)				\
+  {							\
+    BI_COLOR_PROD_COMPLEX(OUT[0],IN[0],DIAG[0]);	\
+    BI_COLOR_PROD_COMPLEX(OUT[1],IN[1],DIAG[0]);	\
+    BI_COLOR_PROD_COMPLEX(OUT[2],IN[2],DIAG[1]);	\
+    BI_COLOR_PROD_COMPLEX(OUT[3],IN[3],DIAG[1]);	\
+  }
+
+#define TFW_DER_TMQ_EXP(OUT,IN)				\
+  {							\
+    BI_COLOR_SUMMASSIGN(OUT[0],IN[0]);			\
+    BI_COLOR_SUMMASSIGN(OUT[1],IN[1]);			\
+    BI_COLOR_SUBTASSIGN(OUT[2],IN[0]);			\
+    BI_COLOR_SUBTASSIGN(OUT[3],IN[1]);			\
+  }
+
+#define XFW_DER_TMQ_EXP(OUT,IN)				\
+  {							\
+    BI_COLOR_SUMMASSIGN(OUT[0],IN[0]);			\
+    BI_COLOR_SUMMASSIGN(OUT[1],IN[1]);			\
+    BI_COLOR_ISUMMASSIGN(OUT[2],IN[1]);			\
+    BI_COLOR_ISUMMASSIGN(OUT[3],IN[0]);			\
+  }
+
+#define YFW_DER_TMQ_EXP(OUT,IN)				\
+  {							\
+    BI_COLOR_SUMMASSIGN(OUT[0],IN[0]);			\
+    BI_COLOR_SUMMASSIGN(OUT[1],IN[1]);			\
+    BI_COLOR_SUMMASSIGN(OUT[2],IN[1]);			\
+    BI_COLOR_SUBTASSIGN(OUT[3],IN[0]);			\
+  }
+
+#define ZFW_DER_TMQ_EXP(OUT,IN)				\
+  {							\
+    BI_COLOR_SUMMASSIGN(OUT[0],IN[0]);			\
+    BI_COLOR_SUMMASSIGN(OUT[1],IN[1]);			\
+    BI_COLOR_ISUMMASSIGN(OUT[2],IN[0]);			\
+    BI_COLOR_ISUBTASSIGN(OUT[3],IN[1]);			\
+  }
+
+#define TBW_DER_TMQ_EXP(OUT,IN)				\
+  {							\
+    BI_COLOR_SUMMASSIGN(OUT[0],IN[0]);			\
+    BI_COLOR_SUMMASSIGN(OUT[1],IN[1]);			\
+    BI_COLOR_SUMMASSIGN(OUT[2],IN[0]);			\
+    BI_COLOR_SUMMASSIGN(OUT[3],IN[1]);			\
+  }
+
+#define XBW_DER_TMQ_EXP(OUT,IN)				\
+  {							\
+    BI_COLOR_SUMMASSIGN(OUT[0],IN[0]);			\
+    BI_COLOR_SUMMASSIGN(OUT[1],IN[1]);			\
+    BI_COLOR_ISUBTASSIGN(OUT[2],IN[1]);			\
+    BI_COLOR_ISUBTASSIGN(OUT[3],IN[0]);			\
+  }
+
+#define YBW_DER_TMQ_EXP(OUT,IN)				\
+  {							\
+    BI_COLOR_SUMMASSIGN(OUT[0],IN[0]);			\
+    BI_COLOR_SUMMASSIGN(OUT[1],IN[1]);			\
+    BI_COLOR_SUBTASSIGN(OUT[2],IN[1]);			\
+    BI_COLOR_SUMMASSIGN(OUT[3],IN[0]);			\
+  }
+
+#define ZBW_DER_TMQ_EXP(OUT,IN)				\
+  {							\
+    BI_COLOR_SUMMASSIGN(OUT[0],IN[0]);			\
+    BI_COLOR_SUMMASSIGN(OUT[1],IN[1]);			\
+    BI_COLOR_ISUBTASSIGN(OUT[2],IN[0]);			\
+    BI_COLOR_ISUMMASSIGN(OUT[3],IN[1]);			\
+  }
+
