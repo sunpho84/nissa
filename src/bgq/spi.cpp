@@ -197,7 +197,7 @@ void spi_descriptor_setup(buffered_comm_t &in)
 }
 
 //start spi communication
-vid spi_comm_start(buffered_comm_t &in,int *dir_comm,int tot_size)
+void spi_comm_start(buffered_comm_t &in,int *dir_comm,int tot_size)
 {
   //reset the counter and wait that all have reset
   spi_global_barrier();

@@ -11,12 +11,12 @@ endif
 
 #compile or not bgq stuff
 if BGQ
-if !BGQ_EMU
+if BGQ_EMU
+bgq_barrier_src_file=
+else
 bgq_barrier_src_file=\
 	src/bgq/bgq_barrier.c \
 	src/bgq/bgq_barrier.h
-else
-bgq_barrier_src_file=
 endif
 bgq_src_file=$(bgq_barrier_src_file) \
 	src/bgq/geometry_bgq.h \
