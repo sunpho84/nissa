@@ -20,7 +20,6 @@
  #include "../bgq/geometry_bgq.h"
 #endif
 #include "../new_types/dirac.h"
-#include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
 #include "../routines/math.h"
 #include "../routines/mpi.h"
