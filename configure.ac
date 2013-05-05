@@ -64,6 +64,15 @@ fi
 AC_DEFINE_UNQUOTED([SVN_REVISION], "$SVN_REVISION", [subversion revision number])
 AC_SUBST([SVN_REVISION])
 
+#spi
+AC_ARG_ENABLE(spi,
+	AS_HELP_STRING([--enable-spi],[Enable spi stuff (ony for BG/Q)]),
+	enable_spi="${enableval}",
+	enable_spi="no")
+if test "$enable_spi" == "yes";then AC_DEFINE([SPI],1,[Enable spi]) fi
+AM_CONDITIONAL([SPI],[test "$enable_spi" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling spi... $enable_spi])
+
 #bgq
 AC_ARG_ENABLE(bgq,
 	AS_HELP_STRING([--enable-bgq],[Enable bgq stuff (ony for BG/Q)]),
@@ -72,6 +81,15 @@ AC_ARG_ENABLE(bgq,
 if test "$enable_bgq" == "yes";then AC_DEFINE([BGQ],1,[Enable bgq]) fi
 AM_CONDITIONAL([BGQ],[test "$enable_bgq" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq... $enable_bgq])
+
+#bgq emulation mode
+AC_ARG_ENABLE(bgq_emu,
+	AS_HELP_STRING([--enable-bgq_emu],[Enable bgq_emu stuff (ony for BG/Q)]),
+	enable_bgq_emu="${enableval}",
+	enable_bgq_emu="no")
+if test "$enable_bgq_emu" == "yes";then AC_DEFINE([BGQ_EMU],1,[Enable bgq_emu]) fi
+AM_CONDITIONAL([BGQ_EMU],[test "$enable_bgq_emu" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling bgq_emu... $enable_bgq_emu])
 
 #repropducible run
 AC_ARG_ENABLE(reproducible-run,

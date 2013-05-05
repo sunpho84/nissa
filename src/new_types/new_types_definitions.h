@@ -10,7 +10,7 @@
 
 #include "../base/macros.h"
 
-#ifdef BGQ
+#ifdef SPI
  #include <spi/include/kernel/MU.h>
 #endif
 
@@ -53,7 +53,7 @@ typedef su3 squared_staples_t[4][6];
 
 typedef squared_staples_t rectangular_staples_t;
 
-#ifndef BGQ
+#ifdef BGQ_EMU
 typedef complex bi_complex[2];
 #else
 typedef vector4double bi_complex;
@@ -336,7 +336,7 @@ union evol_pars_t
 struct buffered_comm_t
 {
   //bgq specific structures, in alternative to ordinary MPI
-#ifdef BGQ
+#ifdef SPI
   //descriptors
   MUHWI_Descriptor_t *descriptors;
   MUHWI_Destination spi_dest[8];

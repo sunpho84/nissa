@@ -9,4 +9,10 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+inline void bgq_barrier(int n)
+{L2_Barrier(&bgq_barrier_ptr,n);}
+
+
+
 #endif

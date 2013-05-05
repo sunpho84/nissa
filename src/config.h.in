@@ -3,6 +3,9 @@
 /* Enable bgq */
 #undef BGQ
 
+/* Enable bgq_emu */
+#undef BGQ_EMU
+
 /* Flags passed to configure */
 #undef CONFIG_FLAGS
 
@@ -118,6 +121,9 @@
 
 /* Enable reproducible run */
 #undef REPRODUCIBLE_RUN
+
+/* Enable spi */
+#undef SPI
 
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
