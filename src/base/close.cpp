@@ -12,6 +12,9 @@
 #include "../new_types/new_types_definitions.h"
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
+#ifdef BGQ
+#endif
+#include "../bgq/geometry_bgq.h"
 #include "../hmc/gauge/tree_level_Symanzik_force.h"
 #include "../hmc/gauge/tree_level_Symanzik_action.h"
 #include "../routines/ios.h"
@@ -25,6 +28,10 @@ void close_nissa()
   
   //unset eo geometry
   if(nissa_eo_geom_inited) unset_eo_geometry();
+
+#ifdef BGQ
+#endif
+  unset_bgq_geometry();
   
   //stop the random generator
   if(nissa_loc_rnd_gen_inited) stop_loc_rnd_gen();

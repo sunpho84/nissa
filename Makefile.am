@@ -4,7 +4,14 @@ AUTOMAKE_OPTIONS=subdir-objects
 if BGQ
 bgq_src_file=src/bgq/spi.cpp src/bgq/spi.h src/bgq/bgq.h src/bgq/bgq_barrier.c src/bgq/bgq_barrier.h
 else
-bgq_src_file=
+bgq_src_file=\
+	src/bgq/geometry_bgq.h \
+	src/bgq/geometry_bgq.cpp \
+	src/bgq/hopping_matrix_bgq.cpp \
+	src/bgq/hopping_matrix_bgq.h \
+	src/bgq/bgq_macros.h \
+	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.cpp \
+	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h
 endif
 
 #add where to find the library and tell to link

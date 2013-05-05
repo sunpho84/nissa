@@ -17,6 +17,17 @@
  #include "../bgq/spi.h"
 #endif
 
+/*
+  general reemark: fill the send buf exactly in the same way in which the local border is ordered
+  (low surface before up surfaca): the exchanging routines will automatically take care of reverting
+  order, putting up-surface from sending node in dw-border of receiving one, see the 1D example:
+  
+  send buf N0    send buf N1    ...              recv buf N0    recv buf N1
+   ---- ----      ---- ----     ...     --->      ---- ----      ---- ---- 
+  | L0 | H0 |    | L1 | H1 |    ...              | H* | L1 |    | H0 | L2 |
+   ---- ----      ---- ----                       ---- ----      ---- ----
+*/
+
 //general set of bufered comm
 void buffered_comm_setup(buffered_comm_t &comm)
 {
@@ -81,6 +92,9 @@ void buffered_comm_start(buffered_comm_t &comm,int *dir_comm=NULL,int tot_size=-
   
   if(IS_MASTER_THREAD)
     {
+      //mark communication as in progress
+      comm.comm_in_prog=1;
+  
 #ifdef BGQ
       spi_comm_start(comm,dir_comm,tot_size);
 #else
@@ -157,9 +171,6 @@ void fill_buffered_sending_buf_with_lx_vec(buffered_comm_t &comm,void *vec)
     memcpy(nissa_send_buf+comm.nbytes_per_site*ibord,
 	   (char*)vec+surflx_of_bordlx[ibord]*comm.nbytes_per_site,
 	   comm.nbytes_per_site);
-  
-  //mark communication as in progress
-  comm.comm_in_prog=1;
   
   //wait that all threads filled their portion
   thread_barrier(BUFFERED_COMM_LX_SENDING_BUF_FILL_BARRIER);
@@ -252,9 +263,6 @@ void fill_buffered_sending_buf_with_ev_or_od_vec(buffered_comm_t &comm,void *vec
     memcpy(nissa_send_buf+ibord*comm.nbytes_per_site,
 	   (char*)vec+surfeo_of_bordeo[eo][ibord]*comm.nbytes_per_site,comm.nbytes_per_site);
 
-  //mark communication as in progress
-  comm.comm_in_prog=1;
-  
   //wait that all threads filled their portion
   thread_barrier(BUFFERED_COMM_EV_OR_OD_SENDING_BUF_FILL_BARRIER);
 }

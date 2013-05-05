@@ -13,8 +13,9 @@ CXXFLAGS=@CXXFLAGS@ @DEFS@
 bin_PROGRAMS=test_dirac
 
 test_dirac_SOURCES= \
-	src/dirac_operator_tmQ2_bgq.cpp \
-	src/geometry_bgq.cpp \
-	src/hopping_matrix_bgq.cpp \
-	src/new_vars_and_types.cpp \
 	src/test_dirac.cpp
+
+#	src/new_vars_and_types.cpp 
+#	src/dirac_operator_tmQ2_bgq.cpp 
+#	src/geometry_bgq.cpp 
+#	src/hopping_matrix_bgq.cpp 

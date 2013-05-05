@@ -18,6 +18,8 @@
 #ifdef BGQ
  #include "bgq/bgq.h"
 #endif
+#include "bgq/geometry_bgq.h"
+#include "dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h"
 
 #include "communicate/communicate.h"
 

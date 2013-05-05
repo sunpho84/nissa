@@ -216,6 +216,7 @@ EXTERN char *nissa_recv_buf,*nissa_send_buf;
 
 //buffered communicators
 EXTERN buffered_comm_t buffered_lx_spincolor_comm;
+EXTERN buffered_comm_t buffered_lx_halfspincolor_comm;
 EXTERN buffered_comm_t buffered_lx_colorspinspin_comm;
 EXTERN buffered_comm_t buffered_lx_su3spinspin_comm;
 EXTERN buffered_comm_t buffered_lx_quad_su3_comm;
@@ -223,6 +224,12 @@ EXTERN buffered_comm_t buffered_eo_color_comm;
 EXTERN buffered_comm_t buffered_eo_quad_su3_comm;
 
 /////////////////////////////////////////// BGQ specifics ///////////////////////////////////
+
+EXTERN int *bgqlx_of_loclx,*loclx_of_bgqlx;
+EXTERN bi_halfspincolor *bgq_hopping_matrix_output_data;
+EXTERN bi_halfspincolor **bgq_hopping_matrix_output_pointer;
+EXTERN bi_halfspincolor *bgq_hopping_matrix_output_T_buffer;
+EXTERN int bgqlx_t_vbord_vol,bgq_vsurf_vol;
 
 #ifdef BGQ
 

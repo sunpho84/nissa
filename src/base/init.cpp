@@ -16,6 +16,9 @@
 #include "../IO/endianess.h"
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
+#ifdef BGQ
+#endif
+ #include "../bgq/geometry_bgq.h"
 #include "../new_types/dirac.h"
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
@@ -508,8 +511,12 @@ void init_grid(int T,int L)
   
   //set the cartesian and eo geometry
   set_lx_geometry();
-
+  
   if(nissa_use_eo_geom) set_eo_geometry();
+  
+  set_bgq_geometry();
+#ifdef BGQ
+#endif
   
   set_lx_bord_senders_and_receivers(MPI_LX_SU3_BORDS_SEND,MPI_LX_SU3_BORDS_RECE,&MPI_SU3);
   set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,&MPI_SU3);
@@ -535,17 +542,13 @@ void init_grid(int T,int L)
   
   nbuffered_comm_allocated=0;
   
-  //allocate a buffer large enough to allow communications of su3spinspin lx border
-  nissa_buff_size=bord_vol*sizeof(su3spinspin);
-  nissa_recv_buf=nissa_malloc("nissa_recv_buf",nissa_buff_size,char);
-  nissa_send_buf=nissa_malloc("nissa_send_buf",nissa_buff_size,char);
-  
 #ifdef BGQ
   init_spi();
 #endif
     
   //setup all needed buffered communicators
   set_lx_buffered_comm(buffered_lx_spincolor_comm,sizeof(spincolor));
+  set_lx_buffered_comm(buffered_lx_halfspincolor_comm,sizeof(halfspincolor));
   set_lx_buffered_comm(buffered_lx_colorspinspin_comm,sizeof(colorspinspin));
   set_lx_buffered_comm(buffered_lx_su3spinspin_comm,sizeof(su3spinspin));
   set_lx_buffered_comm(buffered_lx_quad_su3_comm,sizeof(quad_su3));
