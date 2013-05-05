@@ -1,8 +1,6 @@
 #include "nissa.h"
 
-#include "bgq_macros.h"
-#include "dirac_operator_tmQ2_bgq.h"
-#include "geometry_bgq.h"
+#include <math.h>
 
 void apply_tmQ_portable(spincolor *out,quad_su3 *conf,double kappa,double mu,spincolor *in)
 {
@@ -125,7 +123,6 @@ void in_main(int narg,char **arg)
   //init the grid 
   int L=8,T=16;
   init_grid(T,L);
-  set_bgq_geometry();
   
   //start loc rnd gen
   start_loc_rnd_gen(100);
@@ -198,8 +195,6 @@ void in_main(int narg,char **arg)
   nissa_free(conf);
   nissa_free(bgq_sc_in);
   nissa_free(sc_in);
-  
-  unset_bgq_geometry();
   
   close_nissa();  
 }

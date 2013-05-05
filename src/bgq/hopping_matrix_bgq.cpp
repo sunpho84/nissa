@@ -2,15 +2,14 @@
  #include "config.h"
 #endif
 
- #include <math.h>
+#include "../base/global_variables.h"
+#include "../base/thread_macros.h"
+#include "../communicate/buffered_borders.h"
+#include "../new_types/complex.h"
+#include "../new_types/new_types_definitions.h"
+#include "../routines/thread.h"
 
-#include "nissa.h"
-
-#include "new_vars_and_types.h"
 #include "bgq_macros.h"
-
-/*debug
-  double A=0.2036914980460318;*/
 
 /*
   In bgq version we merge to different virtual nodes along t directions,
@@ -25,7 +24,7 @@
 THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier, bi_oct_su3*,conf, int,istart, int,iend, bi_spincolor*,in)
 {
   GET_THREAD_ID();
-  
+
   NISSA_PARALLEL_LOOP(ibgqlx,istart,iend)
     {
       //take short access to link and output indexing
@@ -91,7 +90,7 @@ void bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill()
 	  halfspincolor temp;
 	  BI_HALFSPINCOLOR_TO_HALFSPINCOLOR(((halfspincolor*)nissa_send_buf)[idst_buf], //take VN=0
 	  				    temp,bgq_hopping_matrix_output_T_buffer[isrc]);
-	  HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_binded[idst_loc],temp,0); //copy VN=1 to VN=0
+	  HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst_loc],temp,0); //copy VN=1 to VN=0
 	}
     }
   else
@@ -100,7 +99,7 @@ void bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill()
       {
 	//look at previous idst_loc for explanation
 	int idst=8*bgqlx_of_loclx[loclx_neighdw[isrc+loc_volh][0]];
-	BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_binded[idst],bgq_hopping_matrix_output_T_buffer[isrc]);
+	BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_T_buffer[isrc]);
       }
   
   ///////////////////////// fw scattered T derivative (bw derivative)  ////////////////////////
@@ -121,7 +120,7 @@ void bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill()
 	  
 	  BI_HALFSPINCOLOR_TO_HALFSPINCOLOR(temp,((halfspincolor*)nissa_send_buf)[idst_buf],
 					    bgq_hopping_matrix_output_T_buffer[isrc]);
-	  HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_binded[idst_loc],temp,1); //copy VN=0 to VN=1
+	  HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst_loc],temp,1); //copy VN=0 to VN=1
 	}
     }
   else
@@ -132,7 +131,7 @@ void bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill()
 	int isrc=base_isrc+bgqlx_t_vbord_vol/2;
 	//look at previous VN=0 for explanation
 	int idst=8*(bord_volh+base_isrc)+4;
-	BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_binded[idst],bgq_hopping_matrix_output_T_buffer[isrc]);
+	BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_T_buffer[isrc]);
       }
 }
 
@@ -141,22 +140,6 @@ void start_Wilson_hopping_matrix_bgq_binded_communications()
 {
   //shuffle data between virtual nodes and fill T out buffer
   bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill();
-  
-  /*debug:
-  GET_THREAD_ID();
-  //check that all sending buffer is filled
-  NISSA_PARALLEL_LOOP(i,0,bgqlx_vbord_vol*2*3*2)
-  if(((complex*)nissa_send_buf)[i]) crash("");*/
-
-  /*debug
-  GET_THREAD_ID();
-  //check that all sending buffer is filled
-  NISSA_PARALLEL_LOOP(i,0,bord_vol)
-    {
-      double B=((bi_halfspincolor*)nissa_send_buf)[i][0][0][0][0];
-      if(fabs(A-B)<1.e-10) printf("Found before send on rank %d pos %d\n",rank,i);
-    }
-  */
   
   //after the barrier, all the buffers are filled and communications can start
   thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
@@ -173,17 +156,12 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
   //wait the end of communications
   buffered_comm_wait(buffered_lx_halfspincolor_comm);
   
-  /*debug:
-  //check that all sending buffer is filled
-  NISSA_PARALLEL_LOOP(i,0,bgqlx_vbord_vol*2*3*2)
-  if(((complex*)nissa_recv_buf)[i]) crash("");*/
-
   //T bw border (bw derivative): data goes to VN 0
   if(paral_dir[0])
     NISSA_PARALLEL_LOOP(isrc,0,bgqlx_t_vbord_vol/2)
       {
 	int idst=8*bgqlx_of_loclx[isrc]+4; //bw derivative contributions start from 4
-	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_binded[idst],
+	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst],
 					  ((halfspincolor*)nissa_recv_buf)[isrc],0);
       }
   
@@ -194,17 +172,9 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
 	{
 	  int isrc=bord_offset[mu]/2+base_isrc;
 	  int idst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_offset[mu]+base_isrc]]+4+mu;
-	  BI_HALFSPINCOLOR_COPY(bgq_hopping_matrix_output_binded[idst],
+	  BI_HALFSPINCOLOR_COPY(bgq_hopping_matrix_output_data[idst],
 				((bi_halfspincolor*)nissa_recv_buf)[isrc]);
       }
-  
-  /*debug
-  NISSA_PARALLEL_LOOP(i,0,bord_vol)
-    {
-      double B=((bi_halfspincolor*)nissa_recv_buf)[i][0][0][0][0];
-      if(fabs(A-B)<1.e-10) printf("Found in reading buf on rank %d pos %d\n",rank,i);
-    }
-  */
   
   //T fw border (fw derivative): data goes to VN 1
   if(paral_dir[0])
@@ -212,7 +182,7 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
       {
 	int isrc=bord_volh+base_isrc; //we are considering bi_halfspincolor as 2 halfspincolor, so full bord_vol
 	int idst=8*bgqlx_of_loclx[loclx_neighdw[base_isrc+loc_volh][0]]; //fw derivative contributions start from 0
-	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_binded[idst],
+	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst],
 					  ((halfspincolor*)nissa_recv_buf)[isrc],1);
       }
   
@@ -223,27 +193,7 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
 	{
 	  int isrc=bord_volh/2+bord_offset[mu]/2+base_isrc;
 	  int idst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_volh+bord_offset[mu]+base_isrc]]+mu;
-	  BI_HALFSPINCOLOR_COPY(bgq_hopping_matrix_output_binded[idst],
+	  BI_HALFSPINCOLOR_COPY(bgq_hopping_matrix_output_data[idst],
 				((bi_halfspincolor*)nissa_recv_buf)[isrc]);
       }
-  
-  /*debug
-  NISSA_PARALLEL_LOOP(ivol,0,8*loc_volh)
-    {
-      double B=bgq_hopping_matrix_output_binded[ivol][0][0][0][0];
-      //((bi_halfspincolor*)nissa_send_buf)[ivol][0][0][0][0];
-      if(fabs(A-B)<1.e-10) printf("Found on binded rank %d pos %d\n",rank,ivol);
-    }
-  */
-  
-  /*debug
-  if(rank==0)
-  NISSA_PARALLEL_LOOP(i,0,loc_volh*8)
-    for(int id=0;id<2;id++)
-      for(int ic=0;ic<3;ic++)
-	for(int vn=0;vn<2;vn++)
-	  for(int ri=0;ri<2;ri++)
-	    if(bgq_hopping_matrix_output_binded[i][id][ic][vn][ri]==0)
-	      printf("null %d (%d,%d), id=%d, ic=%d, vn=%d, ri=%d\n",i,i/8,i%8,id,ic,vn,ri);
-  */
 }
