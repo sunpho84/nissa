@@ -16,10 +16,12 @@
 
 //include bg/q specifics
 #ifdef BGQ
- #include "bgq/bgq.h"
+ #include "bgq/geometry_bgq.h"
+ #include "dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h"
 #endif
-#include "bgq/geometry_bgq.h"
-#include "dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h"
+#ifdef SPI
+ #include "bgq/spi.h"
+#endif
 
 #include "communicate/communicate.h"
 

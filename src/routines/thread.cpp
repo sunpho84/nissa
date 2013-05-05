@@ -15,7 +15,7 @@
 //#define THREAD_DEBUG
 
 //put in the external bgq_barrier.c file, to avoid alignement problem
-#ifdef BGQ
+#if defined BGQ && (! defined BGQ_EMU)
  #include "../bgq/bgq_barrier.h"
 #endif
 
@@ -37,7 +37,7 @@ void thread_barrier(int barr_id,int force_barrier=false)
 #endif
       
       //barrier
-#ifdef BGQ
+#if defined BGQ && (! defined BGQ_EMU)
       bgq_barrier(nthreads);
 #else
       #pragma omp barrier
@@ -47,7 +47,7 @@ void thread_barrier(int barr_id,int force_barrier=false)
       //debug: check that the local id correspond to global one
       if(!IS_MASTER_THREAD)
 	if(glb_barr_id!=barr_id) crash("Thread %d found barrier %d when waiting for %d)",thread_id,barr_id,glb_barr_id);
-#ifdef BGQ
+#if defined BGQ && (! defined BGQ_EMU)
       bgq_barrier(nthreads);
 #else
       #pragma omp barrier
@@ -159,7 +159,7 @@ void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char 
 void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg))
 {
   //if BGQ, define appropriate barrier
-#ifdef BGQ
+#if defined BGQ && (! defined BGQ_EMU)
   bgq_barrier_define();
 #endif
 

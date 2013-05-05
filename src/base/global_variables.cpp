@@ -225,13 +225,20 @@ EXTERN buffered_comm_t buffered_eo_quad_su3_comm;
 
 /////////////////////////////////////////// BGQ specifics ///////////////////////////////////
 
+#ifdef BGQ
+
+//indices of remapping and output hopping matrix
 EXTERN int *bgqlx_of_loclx,*loclx_of_bgqlx;
 EXTERN bi_halfspincolor *bgq_hopping_matrix_output_data;
 EXTERN bi_halfspincolor **bgq_hopping_matrix_output_pointer;
 EXTERN bi_halfspincolor *bgq_hopping_matrix_output_T_buffer;
 EXTERN int bgqlx_t_vbord_vol,bgq_vsurf_vol;
 
-#ifdef BGQ
+#endif
+
+/////////////////////////////////////////// SPI specifics ///////////////////////////////////
+
+#ifdef SPI
 
 #include <spi/include/kernel/MU.h>
 #include <spi/include/mu/InjFifo.h>

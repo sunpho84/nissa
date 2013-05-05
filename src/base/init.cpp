@@ -17,8 +17,8 @@
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
 #ifdef BGQ
-#endif
  #include "../bgq/geometry_bgq.h"
+#endif
 #include "../new_types/dirac.h"
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
@@ -26,7 +26,7 @@
 #include "../routines/mpi.h"
 #include "../routines/thread.h"
 
-#ifdef BGQ
+#ifdef SPI
  #include "../bgq/spi.h"
 #endif
 
@@ -100,7 +100,7 @@ void init_nissa(int narg,char **arg)
   nissa_loc_rnd_gen_inited=0;
   nissa_glb_rnd_gen_inited=0;
   nissa_grid_inited=0;
-#ifdef BGQ
+#ifdef SPI
   nissa_spi_inited=0;
 #endif
   memset(rank_coord,0,4*sizeof(int));
@@ -179,7 +179,7 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
   
   int check_all_dir_parallelized=0;
   
-#ifdef BGQ
+#ifdef SPI
   check_all_dir_parallelized=1;
 #endif
   
@@ -514,8 +514,8 @@ void init_grid(int T,int L)
   
   if(nissa_use_eo_geom) set_eo_geometry();
   
-  set_bgq_geometry();
 #ifdef BGQ
+  set_bgq_geometry();
 #endif
   
   set_lx_bord_senders_and_receivers(MPI_LX_SU3_BORDS_SEND,MPI_LX_SU3_BORDS_RECE,&MPI_SU3);
@@ -542,7 +542,7 @@ void init_grid(int T,int L)
   
   nbuffered_comm_allocated=0;
   
-#ifdef BGQ
+#ifdef SPI
   init_spi();
 #endif
     

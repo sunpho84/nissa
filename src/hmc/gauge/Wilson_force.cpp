@@ -12,10 +12,6 @@
 #include "../../routines/ios.h"
 #include "../../routines/thread.h"
 
-#ifdef BGQ
- #include "../../bgq/spi.h"
-#endif
-
 //Compute the gluonic force for the Wilson plaquette action and summ to the output
 //Passed conf must NOT(?) contain the backfield.
 //Of the result still need to be taken the TA

@@ -1,10 +1,24 @@
 AUTOMAKE_OPTIONS=subdir-objects
 
+#compile or not spi stuff
+if SPI
+spi_src_file=\
+	src/bgq/spi.cpp \
+	src/bgq/spi.h
+else
+spi_src_file=
+endif
+
 #compile or not bgq stuff
 if BGQ
-bgq_src_file=src/bgq/spi.cpp src/bgq/spi.h src/bgq/bgq.h src/bgq/bgq_barrier.c src/bgq/bgq_barrier.h
+if !BGQ_EMU
+bgq_barrier_src_file=\
+	src/bgq/bgq_barrier.c \
+	src/bgq/bgq_barrier.h
 else
-bgq_src_file=\
+bgq_barrier_src_file=
+endif
+bgq_src_file=$(bgq_barrier_src_file) \
 	src/bgq/geometry_bgq.h \
 	src/bgq/geometry_bgq.cpp \
 	src/bgq/hopping_matrix_bgq.cpp \
@@ -12,6 +26,8 @@ bgq_src_file=\
 	src/bgq/bgq_macros.h \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.cpp \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h
+else
+bgq_src_file=
 endif
 
 #add where to find the library and tell to link
@@ -231,7 +247,7 @@ nissa_source_files=src/base/close.cpp \
 extra_headers=src/new_types/new_types_definitions.h src/base/macros.h src/base/thread_macros.h
 
 #instruct how to build the library
-libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) $(bgq_src_file)
+libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) $(bgq_src_file) $(spi_src_file)
 
 #####################################################################################################################################
 

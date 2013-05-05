@@ -12,7 +12,7 @@
 #include "../routines/ios.h"
 #include "../routines/thread.h"
 
-#ifdef BGQ
+#ifdef SPI
  #include <stdlib.h>
  #include "../bgq/spi.h"
 #endif
@@ -39,7 +39,7 @@ void buffered_comm_setup(buffered_comm_t &comm)
   comm.comm_in_prog=0;
   
   //bgq replacements and original MPI initialization
-#ifdef BGQ
+#ifdef SPI
   spi_descriptor_setup(comm);
 #else
   comm.nrequest=0;
@@ -69,7 +69,7 @@ void set_lx_or_eo_buffered_comm(buffered_comm_t &comm,int lx_eo,int nbytes_per_s
 	comm.send_offset[idir]=(bord_offset[mu]+bord_vol/2*(!bf))*comm.nbytes_per_site/div_coeff;
 	comm.message_length[idir]=bord_dir_vol[mu]*comm.nbytes_per_site/div_coeff;
 	comm.recv_offset[idir]=(bord_offset[mu]+bord_vol/2*bf)*comm.nbytes_per_site/div_coeff;
-#ifdef BGQ
+#ifdef SPI
 	comm.spi_dest[idir]=spi_neigh[!bf][mu];
 #else	
 	comm.recv_rank[idir]=rank_neigh [bf][mu];
@@ -95,7 +95,7 @@ void buffered_comm_start(buffered_comm_t &comm,int *dir_comm=NULL,int tot_size=-
       //mark communication as in progress
       comm.comm_in_prog=1;
   
-#ifdef BGQ
+#ifdef SPI
       spi_comm_start(comm,dir_comm,tot_size);
 #else
       comm.nrequest=0;
@@ -120,7 +120,7 @@ void buffered_comm_wait(buffered_comm_t &comm)
   
   if(IS_MASTER_THREAD)
     {
-#ifdef BGQ
+#ifdef SPI
       verbosity_lv3_master_printf("Entering SPI comm wait\n");
 #else
       verbosity_lv3_master_printf("Entering MPI comm wait\n");
@@ -128,7 +128,7 @@ void buffered_comm_wait(buffered_comm_t &comm)
       
       if(comm.comm_in_prog)
 	{
-#ifdef BGQ
+#ifdef SPI
 	  spi_comm_wait(comm);
 #else
 	  verbosity_lv3_master_printf("Waiting for %d MPI request\n",comm.nrequest);
@@ -150,7 +150,7 @@ void buffered_comm_unset(buffered_comm_t &comm)
   //wait for any communication to finish
   buffered_comm_wait(comm);
   
-#ifdef BGQ
+#ifdef SPI
   spi_descriptor_unset(comm);
 #endif
 }
