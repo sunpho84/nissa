@@ -89,7 +89,9 @@ double *massS0der;
 
 //source data
 int save_source;
+#ifndef POINT_SOURCE_VERSION
 int seed,noise_type;
+#endif
 coords source_coord;
 spincolor *source;
 prop_type *original_source;
@@ -263,11 +265,13 @@ void initialize_semileptonic(char *input_path)
   
   // 2) Read information about the source
   
+#ifndef POINT_SOURCE_VERSION
   //Read the seed and initialize the random generator
   read_str_int("Seed",&seed);
   start_loc_rnd_gen(seed);
   //Read the noise type
   read_str_int("NoiseType",&noise_type);
+#endif
   //read whether we want to save the source
   read_str_int("SaveSource",&save_source);
 
@@ -505,6 +509,18 @@ void setup_conf()
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+
+#if 1
+  
+#ifdef POINT_SOURCE_VERSION
+  start_loc_rnd_gen(100);
+#endif
+
+  //perform_random_gauge_transform(conf,conf);
+  //master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  
+#endif
+  
   Pmunu_term(Pmunu,conf);
   
   //prepare the smerded version and compute plaquette

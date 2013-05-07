@@ -90,7 +90,7 @@ ChiralCondNHits        1               /* number of sources for chiral cond eval
 MeasureMagnetization    1               /* magnetization (following question only if 1 chosen) */
 MagnetizationPath       magnetization   /* output for magnetization */
 MagnetizationInvResidue 1.e-12          /* residue for inversion of magnetization */
-MagnetizationNHits      128               /* number of sources for magnetization evaluation */
+MagnetizationNHits      1               /* number of sources for magnetization evaluation */
 
 /* ////// Gauge and Topo Measures //////// */
 
@@ -111,7 +111,7 @@ Dint                   0 8
 
 /* /////////////// HMC parameters //////////// */
 
-MaxNTraj               20              /* number of traj per run */
+MaxNTraj               1               /* number of traj per run */
 
 Seed                   17294           /* used to init generator, only for 1st traj */
 

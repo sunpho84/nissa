@@ -25,7 +25,11 @@ bgq_src_file=$(bgq_barrier_src_file) \
 	src/bgq/hopping_matrix_bgq.h \
 	src/bgq/bgq_macros.h \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.cpp \
-	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h
+	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h \
+	src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.cpp \
+	src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.h \
+	src/inverters/twisted_mass/cgm_invert_tmQ2_bgq.cpp \
+	src/inverters/twisted_mass/cgm_invert_tmQ2_bgq.h
 else
 bgq_src_file=
 endif
@@ -249,10 +253,18 @@ extra_headers=src/new_types/new_types_definitions.h src/base/macros.h src/base/t
 #instruct how to build the library
 libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) $(bgq_src_file) $(spi_src_file)
 
-#####################################################################################################################################
+#########################################################################################################################
 
 #list of all the programs
-bin_PROGRAMS=projects/generate_confs/generate_stag projects/semileptonic/semileptonic_smeared tools/unitarity_check/unitarity_check projects/eight_BK/smeared_BK_all_in_one projects/semileptonic/test projects/static_potential/compute_potential
+bin_PROGRAMS=\
+	projects/generate_confs/generate_stag \
+	projects/semileptonic/semileptonic_smeared \
+	projects/semileptonic/semileptonic_smeared_point_source \
+	projects/eight_BK/smeared_BK_all_in_one \
+	tools/unitarity_check/unitarity_check
+
+#	projects/semileptonic/test 
+#	projects/static_potential/compute_potential
 
 #program to generate confs
 projects_generate_confs_generate_stag_SOURCES=projects/generate_confs/generate_stag.cpp $(extra_headers)
@@ -261,12 +273,13 @@ projects_generate_confs_generate_stag_SOURCES=projects/generate_confs/generate_s
 projects_eight_BK_smeared_BK_all_in_one_SOURCES=projects/eight_BK/smeared_BK_all_in_one.cpp $(extra_headers)
 
 #program for semileptonic smeared 2 and 3 points
-projects_semileptonic_semileptonic_smeared_SOURCES=projects/semileptonic/semileptonic_smeared.cpp projects/semileptonic/new_types.cpp projects/semileptonic/new_types.h $(extra_headers)
-projects_semileptonic_test_SOURCES=projects/semileptonic/test.cpp projects/semileptonic/new_types.cpp projects/semileptonic/new_types.h $(extra_headers)
+projects_semileptonic_semileptonic_smeared_SOURCES=projects/semileptonic/semileptonic_smeared.cpp $(extra_headers)
+projects_semileptonic_semileptonic_smeared_point_source_SOURCES=projects/semileptonic/semileptonic_smeared_point_source.cpp $(extra_headers)
+#projects_semileptonic_test_SOURCES=projects/semileptonic/test.cpp projects/semileptonic/new_types.cpp projects/semileptonic/new_types.h $(extra_headers)
 #projects_semileptonic_semileptonic_smeared_point_source_SOURCES=projects/semileptonic/semileptonic_smeared_point_source.cpp $(extra_headers)
 
 #compute static potential
-projects_static_potential_compute_potential_SOURCES=projects/static_potential/compute_potential.cpp $(extra_headers)
+#projects_static_potential_compute_potential_SOURCES=projects/static_potential/compute_potential.cpp $(extra_headers)
 
 #unitarity check
 tools_unitarity_check_unitarity_check_SOURCES=tools/unitarity_check/unitarity_check.cpp $(extra_headers)
