@@ -13,5 +13,6 @@ void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin);
 void landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision);
 void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision,int nmu);
 void local_gauge_transform(quad_su3 *conf,su3 g,int ivol);
+void perform_random_gauge_transform(quad_su3 *conf_out,quad_su3 *conf_in);
 
 #endif

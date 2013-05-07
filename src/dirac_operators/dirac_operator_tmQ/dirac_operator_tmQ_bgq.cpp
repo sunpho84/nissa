@@ -15,8 +15,7 @@
    2) start communications
    3) hopping matrix on the bulk
    4) finish communications
-  then the application of Q requires to expand the halfspincolor into full
-  spincolor and summ the diagonal part
+  then the application of Q requires to expand the halfspincolor into full spincolor and summ the diagonal part
 */
 
 THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binded, bi_spincolor*,out, double,kappa, double,mu, bi_spincolor*,in)
@@ -47,16 +46,21 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
       YBW_DER_TMQ_EXP(temp,piece[6]);
       ZBW_DER_TMQ_EXP(temp,piece[7]);
 
-      //put final 0.5
+      //put final -0.5
       BI_SPINCOLOR_PROD_DOUBLE(out[i],temp,-0.5);
     }
 }}
 
 THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, double,mu, bi_spincolor*,in)
 {
+  //compute on the surface and start communications
   apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier(conf,0,bgq_vsurf_vol,in);
   start_Wilson_hopping_matrix_bgq_binded_communications();
+  
+  //compute on the bulk and finish communications
   apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier(conf,bgq_vsurf_vol,loc_volh,in);
   finish_Wilson_hopping_matrix_bgq_binded_communications();
+  
+  //put together all the 8 pieces
   hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binded(out,kappa,mu,in);
 }}

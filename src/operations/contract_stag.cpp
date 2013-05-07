@@ -64,6 +64,8 @@ void measure_chiral_cond(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,in
 {
   FILE *file=open_file(theory_pars.chiral_cond_pars.path,conf_created?"w":"a");
 
+  master_fprintf(file,"%d",iconf);
+  
   //measure the condensate for each quark
   for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
     {

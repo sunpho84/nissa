@@ -655,6 +655,7 @@ void meson_two_points_Wilson_prop(complex *corr,int *list_op1,colorspinspin *s1,
     set_borders_invalid(out);						\
   }}
 
-//instantiate the application function - su3spinspin for point_version missing
+//instantiate the application function
 APPLY_NABLA_I(spincolor);
 APPLY_NABLA_I(colorspinspin);
+APPLY_NABLA_I(su3spinspin);

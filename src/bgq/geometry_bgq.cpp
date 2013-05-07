@@ -79,12 +79,13 @@ void define_bgq_lx_ordering()
   Define output index of sink-applied hopping matrix for non-eo preco operator.
   For T border we must store two different indices, one pointing to the communication buffer and the other to
   other virtual node buffer. In T buffer data is ordered as for buffered communication send buffer, that is,
-  in reversed order with respect to border geometry.
-  The other three borders points directly to communication borders.
+  in the same order as explained in "communicate.h"
+  Other three borders points directly to communication borders.
 */
 void define_bgq_hopping_matrix_lx_output_pointers_and_T_buffers()
 {
-  bgqlx_t_vbord_vol=2*loc_vol/loc_size[0]; //t dir is at least virtually parallelized
+ //t dir is at least virtually parallelized
+  bgqlx_t_vbord_vol=2*loc_vol/loc_size[0];
   
   //allocate hopping matrix output pointer
   bgq_hopping_matrix_output_pointer=nissa_malloc("bgq_hopping_matrix_output_pointer",8*loc_volh,bi_halfspincolor*);
@@ -131,7 +132,7 @@ void define_bgq_hopping_matrix_lx_output_pointers_and_T_buffers()
 /*
   put together the 8 links to be applied to a single point
   first comes the links needed to scatter backward the signal (not to be daggered)
-  then the ones needed to scatter it forward (to be daggered)
+  then those needed to scatter it forward (to be daggered)
 */
 THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_bgqlx, bi_oct_su3*,out, quad_su3*,in)
 {
@@ -152,11 +153,12 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_bgqlx, bi_oct_su3*,out, quad_su3*,in)
 	    //catch links needed to scatter signal forward
 	    SU3_TO_BI_SU3(out[ifw_dst_bgqlx][4+mu],in[isrc_lx][mu],vn_fw_dst_bgqlx);
 
-	    //catch links needed to scatter signal backward 
+	    //copy links also where they are needed to scatter the signal backward, if 
+	    //sites that need them are not in the border (that would mean that computation must be 
+	    //done in another node
 	    int idst_lx=loclx_neighup[isrc_lx][mu];
-	    int vn_bw_dst_bgqlx=(idst_lx/loc_volh); //1 only if idst_lx is in the first node, 2 if in boder
-	    
-	    //discard border out
+	    //1 only if idst_lx is in the first node, 2 if in boder
+	    int vn_bw_dst_bgqlx=(idst_lx/loc_volh);
 	    if(vn_bw_dst_bgqlx<2)
 	      {
 		int idst_bgqlx=bgqlx_of_loclx[idst_lx%loc_volh];

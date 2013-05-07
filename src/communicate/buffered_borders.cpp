@@ -18,9 +18,9 @@
 #endif
 
 /*
-  general reemark: fill the send buf exactly in the same way in which the local border is ordered
-  (low surface before up surfaca): the exchanging routines will automatically take care of reverting
-  order, putting up-surface from sending node in dw-border of receiving one, see the 1D example:
+  general remark: fill the send buf exactly in the same way in which the local border is ordered (bw{0,1,2,3},
+  fw{0,1,2,3}, see "communicate.h"), because the exchanging routines will automatically take care of reverting
+  order, putting up-surface from sending node in dw-border of receiving one. See this 1D example:
   
   send buf N0    send buf N1    ...              recv buf N0    recv buf N1
    ---- ----      ---- ----     ...     --->      ---- ----      ---- ---- 

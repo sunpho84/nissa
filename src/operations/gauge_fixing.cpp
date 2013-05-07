@@ -88,7 +88,7 @@ void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
   if(nrank_dir[0]>1) nissa_free(buf);
 }
 
-//////////////////////////////////////////// landau or coulomb gauges //////////////////////////////////////////////////////////////
+//////////////////////////////////////// landau or coulomb gauges ///////////////////////////////////////////////////////
 
 //compute g=\sum_mu U_mu(x)+U^dag_mu(x-mu)
 void compute_landau_or_coulomb_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
@@ -287,7 +287,7 @@ void local_gauge_transform(quad_su3 *conf,su3 g,int ivol)
 void compute_landau_or_coulomb_quality_delta(su3 g,quad_su3 *conf,int ivol,int nmu)
 {
   //reset g
-  memset(g,0,sizeof(su3));
+  su3_put_to_zero(g);
   
   //Calculate \sum_mu(U_mu(x-mu)-U_mu(x-mu)^dag-U_mu(x)+U^dag_mu(x))
   //and subtract the trace. It is computed just as the TA (traceless anti-herm)
@@ -544,3 +544,20 @@ void landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
 {landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,4);}
 void coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
 {landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,3);}
+
+//perform a random gauge transformation
+void perform_random_gauge_transform(quad_su3 *conf_out,quad_su3 *conf_in)
+{
+  //allocate fixing matrix
+  su3 *fixm=nissa_malloc("fixm",loc_vol+bord_vol,su3);
+  
+  //extract random SU(3) matrix
+  nissa_loc_vol_loop(ivol)
+    su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
+  
+  //apply the transformation
+  gauge_transform_conf(conf_out,fixm,conf_in);
+  
+  //free fixing matrix
+  nissa_free(fixm);
+}

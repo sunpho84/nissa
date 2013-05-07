@@ -12,13 +12,14 @@
 #include "bgq_macros.h"
 
 /*
-  In bgq version we merge to different virtual nodes along t directions,
+  In bgq version we merge two sites along t directions, that is, (t,x,y,z) and (t+T/2,x,y,z),
   so that only site with time coordinate between 0 and T/2-1 must be considered.
-  Since we want to load everything sequentially, we need to duplicate the gauge
-  configuration.
+  Since we want to load everything sequentially, we need to duplicate the gauge configuration.
 
-  We apply first time the hopping matrix scanning on sink index, then store the 8 contributions
-  to each source separately.
+  We apply hopping matrix scanning on sink index, then store the 8 contributions to each source separately.
+  They can be summed outside according to external usage.
+  
+  We do not sync and do not perform any communication, so this must be done outside.
 */
 
 THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier, bi_oct_su3*,conf, int,istart, int,iend, bi_spincolor*,in)
@@ -67,7 +68,7 @@ THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier
     }
 }}
   
-//swap border between VN and if T is paral fill send buffers
+//swap border between VN and, if T is really parallelized, fill send buffers
 void bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill()
 {
   GET_THREAD_ID();
@@ -88,7 +89,7 @@ void bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill()
 	  //non-local shuffling: must enter bw buffer for direction 0
 	  int idst_buf=isrc;
 	  halfspincolor temp;
-	  BI_HALFSPINCOLOR_TO_HALFSPINCOLOR(((halfspincolor*)nissa_send_buf)[idst_buf], //take VN=0
+	  BI_HALFSPINCOLOR_TO_HALFSPINCOLOR(((halfspincolor*)nissa_send_buf)[idst_buf],        //take VN=0
 	  				    temp,bgq_hopping_matrix_output_T_buffer[isrc]);
 	  HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst_loc],temp,0); //copy VN=1 to VN=0
 	}
@@ -97,7 +98,7 @@ void bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill()
     //we have only to transpose between VN, and no real communication happens
     NISSA_PARALLEL_LOOP(isrc,0,bgqlx_t_vbord_vol/2)
       {
-	//look at previous idst_loc for explanation
+	//look at previous idst_loc for explenation
 	int idst=8*bgqlx_of_loclx[loclx_neighdw[isrc+loc_volh][0]];
 	BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_T_buffer[isrc]);
       }
@@ -129,7 +130,7 @@ void bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill()
       {
 	//the source starts at the middle of result border buffer
 	int isrc=base_isrc+bgqlx_t_vbord_vol/2;
-	//look at previous VN=0 for explanation
+	//look at previous VN=0 for explenation
 	int idst=8*(bord_volh+base_isrc)+4;
 	BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_T_buffer[isrc]);
       }
@@ -141,7 +142,7 @@ void start_Wilson_hopping_matrix_bgq_binded_communications()
   //shuffle data between virtual nodes and fill T out buffer
   bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill();
   
-  //after the barrier, all the buffers are filled and communications can start
+  //after the barrier, all buffers are filled and communications can start
   thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
   
   //start buffered communications of scattered data to other nodes
@@ -153,7 +154,7 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
 {
   GET_THREAD_ID();
   
-  //wait the end of communications
+  //wait communications end
   buffered_comm_wait(buffered_lx_halfspincolor_comm);
   
   //T bw border (bw derivative): data goes to VN 0
@@ -161,8 +162,7 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
     NISSA_PARALLEL_LOOP(isrc,0,bgqlx_t_vbord_vol/2)
       {
 	int idst=8*bgqlx_of_loclx[isrc]+4; //bw derivative contributions start from 4
-	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst],
-					  ((halfspincolor*)nissa_recv_buf)[isrc],0);
+	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst],((halfspincolor*)nissa_recv_buf)[isrc],0);
       }
   
   //other 3 bw borders
@@ -172,8 +172,7 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
 	{
 	  int isrc=bord_offset[mu]/2+base_isrc;
 	  int idst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_offset[mu]+base_isrc]]+4+mu;
-	  BI_HALFSPINCOLOR_COPY(bgq_hopping_matrix_output_data[idst],
-				((bi_halfspincolor*)nissa_recv_buf)[isrc]);
+	  BI_HALFSPINCOLOR_COPY(bgq_hopping_matrix_output_data[idst],((bi_halfspincolor*)nissa_recv_buf)[isrc]);
       }
   
   //T fw border (fw derivative): data goes to VN 1
@@ -182,8 +181,7 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
       {
 	int isrc=bord_volh+base_isrc; //we are considering bi_halfspincolor as 2 halfspincolor, so full bord_vol
 	int idst=8*bgqlx_of_loclx[loclx_neighdw[base_isrc+loc_volh][0]]; //fw derivative contributions start from 0
-	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst],
-					  ((halfspincolor*)nissa_recv_buf)[isrc],1);
+	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst],((halfspincolor*)nissa_recv_buf)[isrc],1);
       }
   
   //other 3 fw borders
@@ -193,7 +191,6 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
 	{
 	  int isrc=bord_volh/2+bord_offset[mu]/2+base_isrc;
 	  int idst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_volh+bord_offset[mu]+base_isrc]]+mu;
-	  BI_HALFSPINCOLOR_COPY(bgq_hopping_matrix_output_data[idst],
-				((bi_halfspincolor*)nissa_recv_buf)[isrc]);
+	  BI_HALFSPINCOLOR_COPY(bgq_hopping_matrix_output_data[idst],((bi_halfspincolor*)nissa_recv_buf)[isrc]);
       }
 }
