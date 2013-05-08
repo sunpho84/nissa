@@ -23,7 +23,14 @@ bgq_src_file=$(bgq_barrier_src_file) \
 	src/bgq/geometry_bgq.cpp \
 	src/bgq/hopping_matrix_bgq.cpp \
 	src/bgq/hopping_matrix_bgq.h \
-	src/bgq/bgq_macros.h \
+	src/bgq/bgq_macros.h
+else
+bgq_src_file=
+endif
+
+#experimental bgq
+if EXP_BGQ
+exp_bgq_src_file= \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.cpp \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h \
 	src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.cpp \
@@ -31,7 +38,7 @@ bgq_src_file=$(bgq_barrier_src_file) \
 	src/inverters/twisted_mass/cgm_invert_tmQ2_bgq.cpp \
 	src/inverters/twisted_mass/cgm_invert_tmQ2_bgq.h
 else
-bgq_src_file=
+exp_bgq_src_file=
 endif
 
 #add where to find the library and tell to link

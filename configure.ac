@@ -91,6 +91,15 @@ if test "$enable_bgq_emu" == "yes";then AC_DEFINE([BGQ_EMU],1,[Enable bgq_emu]) 
 AM_CONDITIONAL([BGQ_EMU],[test "$enable_bgq_emu" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq_emu... $enable_bgq_emu])
 
+#bgq
+AC_ARG_ENABLE(exp_bgq,
+	AS_HELP_STRING([--enable-exp-bgq],[Enable experimental bgq stuff (ony for BG/Q)]),
+	enable_exp_bgq="${enableval}",
+	enable_exp_bgq="no")
+if test "$enable_exp_bgq" == "yes";then AC_DEFINE([EXP_BGQ],1,[Enable exp_bgq]) fi
+AM_CONDITIONAL([EXP_BGQ],[test "$enable_exp_bgq" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling experimental bgq... $enable_exp_bgq])
+
 #repropducible run
 AC_ARG_ENABLE(reproducible-run,
 	AS_HELP_STRING([--enable-reproducible-run],[Enable reproducibilty of runs (reductions, etc)]),
