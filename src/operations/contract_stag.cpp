@@ -165,9 +165,9 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   //-quark_deg/4 coming from the determinant
   //-1/vol coming from stochastic trace
   //-1/2 coming from dirac operator
-  //-i*2*(quark_charge/3)*M_PI/glb_size[mu]/glb_size[nu] coming EM potential prefactor in front of "b"
-  //and a minus because F=-logZ //added a factor 6 for compatibility with GPU: 3 absent, 2 unknown
-  unsafe_complex_prod_idouble(*magn,temp,-quark->deg*2*M_PI*quark->charge*6/(3*4.0*glb_vol*2*glb_size[mu]*glb_size[nu]));
+  //-i*2*quark_charge*M_PI/glb_size[mu]/glb_size[nu] coming EM potential prefactor in front of "b"
+  //and a minus because F=-logZ
+  unsafe_complex_prod_idouble(*magn,temp,-quark->deg*2*M_PI*quark->charge/(4.0*glb_vol*2*glb_size[mu]*glb_size[nu]));
   
   //free
   for(int par=0;par<2;par++)

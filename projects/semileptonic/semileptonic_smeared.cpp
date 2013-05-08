@@ -510,17 +510,6 @@ void setup_conf()
   read_ildg_gauge_conf(conf,conf_path);
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
 
-#if 1
-  
-#ifdef POINT_SOURCE_VERSION
-  start_loc_rnd_gen(100);
-#endif
-
-  //perform_random_gauge_transform(conf,conf);
-  //master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
-  
-#endif
-  
   Pmunu_term(Pmunu,conf);
   
   //prepare the smerded version and compute plaquette
