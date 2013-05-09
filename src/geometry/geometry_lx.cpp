@@ -421,14 +421,9 @@ void set_lx_geometry()
   
   //allocate a buffer large enough to allow communications of su3spinspin lx border
   nissa_buff_size=bord_vol*sizeof(su3spinspin);
-#ifdef BGQ
-  nissa_recv_buf=(char*)memalign(64,nissa_buff_size);
-  nissa_send_buf=(char*)memalign(64,nissa_buff_size);
-#else
   nissa_recv_buf=nissa_malloc("nissa_recv_buf",nissa_buff_size,char);
   nissa_send_buf=nissa_malloc("nissa_send_buf",nissa_buff_size,char);
-#endif
-
+  
   master_printf("Cartesian geometry intialized\n");
 }
 
@@ -466,14 +461,9 @@ void unset_lx_geometry()
   master_printf("Unsetting cartesian geometry\n");
   nissa_lx_geom_inited=0;
   
-#ifdef BGQ
-  free(nissa_recv_buf);
-  free(nissa_send_buf);
-#else
   nissa_free(nissa_recv_buf);
   nissa_free(nissa_send_buf);
-#endif
-
+  
   nissa_free(loc_coord_of_loclx);
   nissa_free(glb_coord_of_loclx);
   nissa_free(loclx_neighup);
