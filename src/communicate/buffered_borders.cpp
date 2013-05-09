@@ -90,11 +90,11 @@ void buffered_comm_start(buffered_comm_t &comm,int *dir_comm=NULL,int tot_size=-
 {
   GET_THREAD_ID();
   
+  //mark communication as in progress
+  comm.comm_in_prog=1;
+  
   if(IS_MASTER_THREAD)
     {
-      //mark communication as in progress
-      comm.comm_in_prog=1;
-  
 #ifdef SPI
       spi_comm_start(comm,dir_comm,tot_size);
 #else
@@ -133,8 +133,6 @@ void buffered_comm_wait(buffered_comm_t &comm)
 #else
 	  verbosity_lv3_master_printf("Waiting for %d MPI request\n",comm.nrequest);
 	  MPI_Waitall(comm.nrequest,comm.requests,MPI_STATUS_IGNORE);
-	  comm.comm_in_prog=0;
-	  comm.nrequest=0;
 #endif
 	}
       else verbosity_lv3_master_printf("Did not have to wait for any buffered comm\n");
@@ -142,6 +140,12 @@ void buffered_comm_wait(buffered_comm_t &comm)
   
   //all threads must wait
   thread_barrier(BUFFERED_COMM_WAIT_BARRIER);
+  
+  //set communications as finished
+  comm.comm_in_prog=0;
+#ifndef SPI
+  comm.nrequest=0;
+#endif
 }
 
 //unset everything
@@ -315,7 +319,7 @@ void buffered_finish_communicating_ev_or_od_borders(void *vec,buffered_comm_t &c
       //take time and make some output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
       verbosity_lv3_master_printf("Finish buffered communication of ev or od borders of %s\n",get_vec_name((void*)vec));
-	  
+      
       //wait communication to finish, fill back the vector and take time
       buffered_comm_wait(comm);
       fill_ev_or_od_bord_with_buffered_receiving_buf(vec,comm);
@@ -398,7 +402,8 @@ void buffered_start_communicating_ev_and_od_borders(buffered_comm_t &comm,void *
       
       //take time and output debugging info
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Starting buffered communication of ev or od borders of %s\n",get_vec_name((void*)(*vec)));
+      verbosity_lv3_master_printf("Starting buffered communication of ev or and borders of %s\n",
+				  get_vec_name((void*)(*vec)));
 
       //fill the communicator buffer, start the communication and take time
       fill_buffered_sending_buf_with_ev_and_od_vec(comm,vec);
@@ -416,7 +421,7 @@ void buffered_finish_communicating_ev_and_od_borders(void **vec,buffered_comm_t 
       
       //take time and make some output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Finish buffered communication of ev or od borders of %s\n",get_vec_name((void*)(*vec)));
+      verbosity_lv3_master_printf("Finish buffered communication of ev and od borders of %s\n",get_vec_name((void*)(*vec)));
 	  
       //wait communication to finish, fill back the vector and take time
       buffered_comm_wait(comm);

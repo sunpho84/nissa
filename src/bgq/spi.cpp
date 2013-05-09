@@ -219,12 +219,13 @@ void spi_comm_start(buffered_comm_t &in,int *dir_comm,int tot_size)
 void spi_comm_wait(buffered_comm_t &in)
 {
   //wait to send everything
-  while(in.comm_in_prog)
+  int wait=1;
+  while(wait)
     {
       verbosity_lv3_master_printf("Waiting to finish sending data with spi\n");
-      in.comm_in_prog=0;
+      wait=0;
       for(int idir=0;idir<8;idir++)
-	in.comm_in_prog|=!MUSPI_CheckDescComplete(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),spi_desc_count[idir]);
+	wait|=!MUSPI_CheckDescComplete(MUSPI_IdToInjFifo(idir,&spi_fifo_sg_ptr),spi_desc_count[idir]);
     }
   
   spi_global_barrier();
