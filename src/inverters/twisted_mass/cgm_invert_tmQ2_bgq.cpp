@@ -22,13 +22,13 @@
 #define APPLY_OPERATOR apply_tmQ2_bgq
 #define CGM_OPERATOR_PARAMETERS conf,kappa,
 
-#define CGM_INVERT inv_tmQ2_bgq
+#define CGM_INVERT inv_tmQ2_cgm_bgq
 #define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_tmQ2_bgq_cgm_run_hm_up_to_comm_prec
 #define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_tmQ2_bgq_cgm
 #define CGM_NPOSSIBLE_REQUESTS 0
 
-#define CGM_START_COMMUNICATING_BORDERS(a,b,c) 
-#define CGM_FINISH_COMMUNICATING_BORDERS(a,b,c)
+#define CGM_START_COMMUNICATING_BORDERS(A) 
+#define CGM_FINISH_COMMUNICATING_BORDERS(A)
 
 #define CGM_ADDITIONAL_VECTORS_ALLOCATION() 
 #define CGM_ADDITIONAL_VECTORS_FREE() 

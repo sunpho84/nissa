@@ -21,8 +21,8 @@
 #define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_stD2ee_m2_cgm
 #define CGM_NPOSSIBLE_REQUESTS 16
 
-#define CGM_START_COMMUNICATING_BORDERS start_communicating_ev_color_borders
-#define CGM_FINISH_COMMUNICATING_BORDERS finish_communicating_ev_color_borders
+#define CGM_START_COMMUNICATING_BORDERS(A) buffered_start_communicating_ev_or_od_color_borders(A,EVN)
+#define CGM_FINISH_COMMUNICATING_BORDERS(A) buffered_finish_communicating_ev_or_od_color_borders(A)
 
 #define CGM_ADDITIONAL_VECTORS_ALLOCATION() BASETYPE *t=nissa_malloc("DD_temp",BULK_VOL+BORD_VOL,BASETYPE);
 #define CGM_ADDITIONAL_VECTORS_FREE() nissa_free(t);
