@@ -96,9 +96,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
   for(int ishift=0;ishift<nshift;ishift++) verbosity_lv2_master_printf("%1.4e  ",1.0);
   verbosity_lv2_master_printf("\n");
   
-  int nrequest=0;
   int final_iter;
-  MPI_Request request[CGM_NPOSSIBLE_REQUESTS];
   double final_res[nshift];
   
   int iter=0;
@@ -133,7 +131,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
       final_iter=(++iter);
       
       //     -s=Ap
-      if(nissa_use_async_communications) CGM_FINISH_COMMUNICATING_BORDERS(&nrequest,request,p);
+      if(nissa_use_async_communications && iter>1) CGM_FINISH_COMMUNICATING_BORDERS(p);
       if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
       APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS shift[0],p);
       if(IS_MASTER_THREAD) cgm_inv_over_time-=take_time();
@@ -173,7 +171,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
       double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,BULK_VOL*NDOUBLES_PER_SITE);
       
       //start the communications of the border
-      if(nissa_use_async_communications) CGM_START_COMMUNICATING_BORDERS(&nrequest,request,p);
+      if(nissa_use_async_communications) CGM_START_COMMUNICATING_BORDERS(p);
       
       //     calculate 
       //     -alphas=alpha*zfs*betas/zas*beta
@@ -221,7 +219,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
     }
   while(nrun_shift>0 && iter<niter_max);
   
-  if(nissa_use_async_communications) CGM_FINISH_COMMUNICATING_BORDERS(&nrequest,request,p);
+  if(nissa_use_async_communications) CGM_FINISH_COMMUNICATING_BORDERS(p);
   
   //print the final true residue
   for(int ishift=0;ishift<nshift;ishift++)

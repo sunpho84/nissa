@@ -7,12 +7,12 @@
 
 #include "../base/global_variables.h"
 
-inline void communicate_lx_colorspinspin_borders(colorspinspin *s)
-{buffered_communicate_lx_borders(s,buffered_lx_colorspinspin_comm);}
-inline void buffered_start_communicating_lx_colorspinspin_borders(colorspinspin *s)
-{buffered_start_communicating_lx_borders(buffered_lx_colorspinspin_comm,s);}
-inline void buffered_finish_communicating_lx_colorspinspin_borders(colorspinspin *s)
-{buffered_finish_communicating_lx_borders(s,buffered_lx_colorspinspin_comm);}
+inline void communicate_ev_or_od_borders(color *s,int eo)
+{buffered_communicate_ev_or_od_borders(s,buffered_eo_color_comm,eo);}
+inline void buffered_start_communicating_ev_or_od_color_borders(color *s,int eo)
+{buffered_start_communicating_ev_or_od_borders(buffered_eo_color_comm,s,eo);}
+inline void buffered_finish_communicating_ev_or_od_color_borders(color *s)
+{buffered_finish_communicating_ev_or_od_borders(s,buffered_eo_color_comm);}
 
 inline void communicate_lx_spincolor_borders(spincolor *s)
 {buffered_communicate_lx_borders(s,buffered_lx_spincolor_comm);}
@@ -20,6 +20,13 @@ inline void buffered_start_communicating_lx_spincolor_borders(spincolor *s)
 {buffered_start_communicating_lx_borders(buffered_lx_spincolor_comm,s);}
 inline void buffered_finish_communicating_lx_spincolor_borders(spincolor *s)
 {buffered_finish_communicating_lx_borders(s,buffered_lx_spincolor_comm);}
+
+inline void communicate_lx_colorspinspin_borders(colorspinspin *s)
+{buffered_communicate_lx_borders(s,buffered_lx_colorspinspin_comm);}
+inline void buffered_start_communicating_lx_colorspinspin_borders(colorspinspin *s)
+{buffered_start_communicating_lx_borders(buffered_lx_colorspinspin_comm,s);}
+inline void buffered_finish_communicating_lx_colorspinspin_borders(colorspinspin *s)
+{buffered_finish_communicating_lx_borders(s,buffered_lx_colorspinspin_comm);}
 
 inline void communicate_lx_su3spinspin_borders(su3spinspin *s)
 {buffered_communicate_lx_borders(s,buffered_lx_su3spinspin_comm);}

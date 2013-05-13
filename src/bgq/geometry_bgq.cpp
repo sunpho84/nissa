@@ -183,25 +183,51 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_bgqlx, bi_oct_su3*,out, quad_su3*,in)
 }}
 
 //remap a spincolor from lx to bgqlx layout
-THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_bgqlx, bi_spincolor*,out, spincolor*,in)
+THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_bgqlx, bi_spincolor*,ext_out, spincolor*,in)
 {
   GET_THREAD_ID();
+    
+  //bufferize if needed
+  int bufferize=(void*)ext_out==(void*)in;
+  bi_spincolor *out=bufferize?nissa_malloc("out",loc_volh,bi_spincolor):ext_out;
   
+  //copy the two VN
   for(int vn=0;vn<2;vn++)
-  NISSA_PARALLEL_LOOP(ivol_lx,0,loc_volh)
-    SPINCOLOR_TO_BI_SPINCOLOR(out[bgqlx_of_loclx[ivol_lx]],in[ivol_lx+vn*loc_volh],vn);
-
+    NISSA_PARALLEL_LOOP(ivol_lx,0,loc_volh)
+      SPINCOLOR_TO_BI_SPINCOLOR(out[bgqlx_of_loclx[ivol_lx]],in[ivol_lx+vn*loc_volh],vn);
+  
+  //wait filling
   thread_barrier(REMAP_BARRIER);
+  
+  //unbuffer if needed
+  if(bufferize)
+    {
+      vector_copy(ext_out,out);
+      nissa_free(out);
+    }
 }}
 //reverse
-THREADABLE_FUNCTION_2ARG(bgqlx_spincolor_remap_to_lx, spincolor*,out, bi_spincolor*,in)
+THREADABLE_FUNCTION_2ARG(bgqlx_spincolor_remap_to_lx, spincolor*,ext_out, bi_spincolor*,in)
 {
   GET_THREAD_ID();
   
+  //buffer if needed
+  int bufferize=(void*)ext_out==(void*)in;
+  spincolor *out=bufferize?nissa_malloc("out",loc_vol,spincolor):ext_out;
+
+  //split to the two VN
   NISSA_PARALLEL_LOOP(ivol_bgqlx,0,loc_volh)
     BI_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_bgqlx[ivol_bgqlx]],out[loc_volh+loclx_of_bgqlx[ivol_bgqlx]],in[ivol_bgqlx]);
   
+  //wait filling
   thread_barrier(REMAP_BARRIER);
+
+  //unbuffer if needed
+  if(bufferize)
+    {
+      vector_copy(ext_out,out);
+      nissa_free(out);
+    }
 }}
 
 //set bgq geometry

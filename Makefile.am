@@ -258,7 +258,7 @@ nissa_source_files=src/base/close.cpp \
 extra_headers=src/new_types/new_types_definitions.h src/base/macros.h src/base/thread_macros.h
 
 #instruct how to build the library
-libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) $(bgq_src_file) $(spi_src_file)
+libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) $(bgq_src_file) $(exp_bgq_src_file) $(spi_src_file)
 
 #########################################################################################################################
 

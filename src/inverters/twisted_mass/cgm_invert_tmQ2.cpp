@@ -2,13 +2,18 @@
 
 #include "cg_128_invert_tmQ2.h"
 
-#include "../../base/global_variables.h"
-#include "../../communicate/communicate.h"
-#include "../../base/vectors.h"
 #include "../../base/debug.h"
+#include "../../base/global_variables.h"
+#include "../../base/vectors.h"
+#include "../../communicate/communicate.h"
 #include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/new_types_definitions.h"
+
+#ifdef BGQ
+ #include "../../bgq/geometry_bgq.h"
+ #include "inverters/twisted_mass/cgm_invert_tmQ2_bgq.h"
+#endif
 
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
@@ -23,8 +28,8 @@
 #define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_tmQ2_m2_RL_cgm
 #define CGM_NPOSSIBLE_REQUESTS 16
 
-#define CGM_START_COMMUNICATING_BORDERS start_communicating_lx_spincolor_borders
-#define CGM_FINISH_COMMUNICATING_BORDERS finish_communicating_lx_spincolor_borders
+#define CGM_START_COMMUNICATING_BORDERS(A) buffered_start_communicating_lx_spincolor_borders(A)
+#define CGM_FINISH_COMMUNICATING_BORDERS(A) buffered_finish_communicating_lx_spincolor_borders(A)
 
 #define CGM_ADDITIONAL_VECTORS_ALLOCATION() BASETYPE *t=nissa_malloc("DD_temp",BULK_VOL+BORD_VOL,BASETYPE);
 #define CGM_ADDITIONAL_VECTORS_FREE() nissa_free(t);
@@ -52,11 +57,29 @@ void inv_tmQ2_RL_cgm(spincolor **sol,quad_su3 *conf,double kappa,int RL,double *
 }
 void inv_tmQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
 {
-  //#ifndef BGQ
+#if defined BGQ && defined EXP_BGQ
+  //bufferize and remap
+  bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
+  lx_conf_remap_to_bgqlx(bi_conf,conf);
+  bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh,bi_spincolor);
+  lx_spincolor_remap_to_bgqlx(bi_source,source);
+  bi_spincolor *bi_sol[nmass];
+  for(int imass=0;imass<nmass;imass++)
+    bi_sol[imass]=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
+
+  inv_tmQ2_cgm_bgq(bi_sol,bi_conf,kappa,m,nmass,niter_max,req_res,bi_source);
+  
+  //unmap and free
+  for(int imass=0;imass<nmass;imass++)
+    {
+      bgqlx_spincolor_remap_to_lx(sol[imass],bi_sol[imass]);
+      nissa_free(bi_sol[imass]);
+    }
+  nissa_free(bi_source);
+  nissa_free(bi_conf);  
+#else
   inv_tmQ2_RL_cgm(sol,conf,kappa,0,m,nmass,niter_max,req_res,source);
-  //#else
-  //inv_tmQ2_cgm_bgq(bi_sol,bi_conf,kappa,m,nmass,niter_max,req_res,source);
-  //#endif
+#endif
 }
 void inv_tmQ2_left_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
 {inv_tmQ2_RL_cgm(sol,conf,kappa,1,m,nmass,niter_max,req_res,source);}
