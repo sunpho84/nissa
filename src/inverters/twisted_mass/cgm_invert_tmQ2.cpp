@@ -56,7 +56,7 @@ void inv_tmQ2_RL_cgm(spincolor **sol,quad_su3 *conf,double kappa,int RL,double *
 }
 void inv_tmQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
 {
-#if 0 && defined BGQ && defined EXP_BGQ
+#if defined BGQ && defined EXP_BGQ
   //bufferize and remap
   bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
   lx_conf_remap_to_bgqlx(bi_conf,conf);
@@ -65,8 +65,10 @@ void inv_tmQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmas
   bi_spincolor *bi_sol[nmass];
   for(int imass=0;imass<nmass;imass++)
     bi_sol[imass]=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
-
-  inv_tmQ2_cgm_bgq(bi_sol,bi_conf,kappa,m,nmass,niter_max,req_res,bi_source);
+  double m2[nmass];
+  for(int imass=0;imass<nmass;imass++) m2[imass]=m[imass]*m[imass];
+  
+  inv_tmQ2_m2_cgm_bgq(bi_sol,bi_conf,kappa,m2,nmass,niter_max,req_res,bi_source);
   
   //unmap and free
   for(int imass=0;imass<nmass;imass++)
