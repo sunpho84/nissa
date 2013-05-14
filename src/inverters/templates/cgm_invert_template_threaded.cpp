@@ -20,7 +20,7 @@ extern int ncgm_inv;
   See "cgm_invert_tmQ2.c" as an example.
 */
 
-#if CGM_NARG >= 4
+#if CGM_NARG >= 5
  #error not supported
 #endif
 
@@ -51,7 +51,16 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
 #else
   double *inn_req_res=ext_req_res;
 #endif
-	
+  
+#ifdef SQRT_SHIFT
+  double sqrt_shift[nshift];
+  for(int ishift=0;ishift<nshift;ishift++)
+    sqrt_shift[ishift]=sqrt(shift[ishift]);
+  #define IN_SHIFT sqrt_shift
+#else
+  #define IN_SHIFT shift
+#endif
+  
   if(IS_MASTER_THREAD)
     {
       ncgm_inv++;
@@ -121,6 +130,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
   
   //     -rr=(r,r)=source_norm
   double rr=source_norm;
+  //master_printf("rr: %16.16lg\n",rr);
   
   double rfrf,pap,betap;
   double res[nshift];
@@ -132,16 +142,19 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
       
       //     -s=Ap
       if(nissa_use_async_communications && iter>1) CGM_FINISH_COMMUNICATING_BORDERS(p);
+      
       if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
-      APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS shift[0],p);
+      APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS IN_SHIFT[0],p);
       if(IS_MASTER_THREAD) cgm_inv_over_time-=take_time();
       
       //     -pap=(p,s)=(p,Ap)
       double_vector_glb_scalar_prod(&pap,(double*)p,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
+      //master_printf("pap: %16.16lg\n",pap);
       
       //     calculate betaa=rr/pap=(r,r)/(p,Ap)
       betap=betaa;
       betaa=-rr/pap;
+      //master_printf("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
       
       //     calculate 
       //     -zfs
@@ -154,8 +167,8 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
 	      zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
 	      betas[ishift]=betaa*zfs[ishift]/zas[ishift];
 	      
-	      //printf("ishift %d zas: %16.16lg, zps: %16.16lg, zfs: %16.16lg, betas: %16.16lg\n",
-	      //ishift,zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
+	      //master_printf("ishift %d [%lg] zas: %16.16lg, zps: %16.16lg, zfs: %16.16lg, betas: %16.16lg\n",
+	      //ishift,shift[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 	      double_vector_summ_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),-betas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
 	    }
 	}
@@ -173,7 +186,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
       double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,BULK_VOL*NDOUBLES_PER_SITE);
       
       //start the communications of the border
-      if(nissa_use_async_communications) CGM_START_COMMUNICATING_BORDERS(p);
+      if(nissa_use_async_communications)  CGM_START_COMMUNICATING_BORDERS(p);
       
       //     calculate 
       //     -alphas=alpha*zfs*betas/zas*beta
@@ -182,7 +195,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
 	if(run_flag[ishift]==1)
 	  {
 	    alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
-	    //printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
+	    //master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
 	    double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
 	    
 	    // shift z
@@ -227,7 +240,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
   for(int ishift=0;ishift<nshift;ishift++)
     {
       double res,w_res,weight,max_res;
-      APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS shift[ishift],sol[ishift]);
+      APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS IN_SHIFT[ishift],sol[ishift]);
 
       double loc_res=0,locw_res=0,locmax_res=0,loc_weight=0;
       NISSA_PARALLEL_LOOP(i,0,BULK_VOL*NDOUBLES_PER_SITE)
