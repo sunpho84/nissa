@@ -74,38 +74,6 @@ THREADABLE_FUNCTION_4ARG(double_vector_glb_scalar_prod, double*,glb_res, double*
 #endif
 }}
 
-//complex version
-THREADABLE_FUNCTION_4ARG(complex_vector_glb_scalar_prod, complex*,glb_res, complex*,a, complex*,b, int,n)
-{
-#ifndef REPRODUCIBLE_RUN
-  //perform thread summ
-  complex loc_thread_res={0,0};
-  GET_THREAD_ID();
-  NISSA_PARALLEL_LOOP(i,0,n)
-    complex_summ_the_conj2_prod(loc_thread_res,a[i],b[i]);
-  
-  for(int ri=0;ri<2;ri++)
-    (*glb_res)[ri]=glb_reduce_double(loc_thread_res[ri]);
-#else
-  //perform thread summ
-  complex_128 loc_thread_res={{0,0},{0,0}};
-  GET_THREAD_ID();
-  NISSA_PARALLEL_LOOP(i,0,n)
-    {
-      complex temp;
-      unsafe_complex_conj2_prod(temp,a[i],b[i]);
-      complex_128_summassign_64(loc_thread_res,temp);
-    }
-  //drop back to complex after reducing all threads and ranks
-  for(int ri=0;ri<2;ri++)
-    {
-      float_128 temp;
-      glb_reduce_float_128(temp,loc_thread_res[ri]);
-      (*glb_res)[ri]=temp[0];
-    }
-#endif
-}}
-
 //summ all points
 THREADABLE_FUNCTION_3ARG(double_vector_glb_collapse, double*,glb_res, double*,a, int,n)
 {

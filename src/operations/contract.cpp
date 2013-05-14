@@ -275,7 +275,7 @@ void trace_id_sdag_g_s_id_sdag_g_s(complex *glb_c,colorspinspin *s1L,dirac_matr 
 }
 
 //threaded version
-THREADABLE_FUNCTION_6ARG(trace_g_ccss_dag_g_ccss_internal, complex*,loc_c, dirac_matr*,g1, su3spinspin*,s1, dirac_matr*,g2, su3spinspin*,s2, int,ncontr)
+THREADABLE_FUNCTION_6ARG(trace_g_ccss_dag_g_ccss_internal, complex*,loc_c, dirac_matr*,g_source, su3spinspin*,s1, dirac_matr*,g_sink, su3spinspin*,s2, int,ncontr)
 {
   GET_THREAD_ID();
   NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])
@@ -288,7 +288,7 @@ THREADABLE_FUNCTION_6ARG(trace_g_ccss_dag_g_ccss_internal, complex*,loc_c, dirac
           int glb_t=glb_coord_of_loclx[ivol][0];
 	  
 	  complex ctemp;
-	  site_trace_g_ccss_dag_g_ccss(ctemp,&(g1[icontr]),s1[ivol],&(g2[icontr]),s2[ivol]);
+	  site_trace_g_ccss_dag_g_ccss(ctemp,&(g_source[icontr]),s1[ivol],&(g_sink[icontr]),s2[ivol]);
 	  complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
         }
     }
@@ -297,14 +297,14 @@ THREADABLE_FUNCTION_6ARG(trace_g_ccss_dag_g_ccss_internal, complex*,loc_c, dirac
 }}
 
 //Trace the product of gamma1 * su3spinspin1^dag * gamma2 * su3spinspin2,
-void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g1,su3spinspin *s1,dirac_matr *g2,su3spinspin *s2,int ncontr)
+void trace_g_ccss_dag_g_ccss(complex *glb_c,dirac_matr *g_source,su3spinspin *s1,dirac_matr *g_sink,su3spinspin *s2,int ncontr)
 {
   //Allocate a contiguous memory area where to store local node results
   complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
   for(int icontr=0;icontr<ncontr;icontr++)
     for(int glb_t=0;glb_t<glb_size[0];glb_t++) loc_c[icontr*glb_size[0]+glb_t][0]=loc_c[icontr*glb_size[0]+glb_t][1]=0;
   
-  trace_g_ccss_dag_g_ccss_internal(loc_c,g1,s1,g2,s2,ncontr);
+  trace_g_ccss_dag_g_ccss_internal(loc_c,g_source,s1,g_sink,s2,ncontr);
   
   //Final reduction
   verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
@@ -595,20 +595,20 @@ void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspi
 }
 
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
-void meson_two_points_Wilson_prop(complex *corr,int *list_op1,su3spinspin *s1,int *list_op2,su3spinspin *s2,int ncontr)
+void meson_two_points_Wilson_prop(complex *corr,int *list_op_source,su3spinspin *s1,int *list_op_sink,su3spinspin *s2,int ncontr)
 {
   //Temporary vectors for the internal gamma
-  dirac_matr t1[ncontr],t2[ncontr];
+  dirac_matr tsource[ncontr],tsink[ncontr];
   
   for(int icontr=0;icontr<ncontr;icontr++)
     {
       //Put the two gamma5 needed for the revert of the first spinor
-      dirac_prod(&(t1[icontr]), &(base_gamma[list_op1[icontr]]),&(base_gamma[5]));
-      dirac_prod(&(t2[icontr]), &(base_gamma[5]),&(base_gamma[list_op2[icontr]]));
+      dirac_prod(&(tsource[icontr]), &(base_gamma[list_op_source[icontr]]),&(base_gamma[5]));
+      dirac_prod(&(tsink[icontr]), &(base_gamma[5]),&(base_gamma[list_op_sink[icontr]]));
     }
   
   //Call the routine which perform the contraction
-  trace_g_ccss_dag_g_ccss(corr,t1,s1,t2,s2,ncontr);
+  trace_g_ccss_dag_g_ccss(corr,tsource,s1,tsink,s2,ncontr);
 }
 
 //same version for spin-diluted stochastic props

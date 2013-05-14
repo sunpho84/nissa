@@ -32,7 +32,7 @@ THREADABLE_FUNCTION_6ARG(get_propagator, color**,prop, quad_su3**,conf, quad_u1*
 }}
 
 //compute the chiral condensate
-THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
+THREADABLE_FUNCTION_5ARG(chiral_condensate, double*,cond, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
 {
   //allocate
   color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
@@ -43,13 +43,12 @@ THREADABLE_FUNCTION_5ARG(chiral_condensate, complex*,cond, quad_su3**,conf, quad
   get_propagator(chi,conf,u1b,quark->mass,residue,rnd);
   
   //summ the scalar prod of EVN and ODD parts
-  complex temp[2],tot;
+  double temp[2];
   for(int eo=0;eo<2;eo++)
-    complex_vector_glb_scalar_prod(temp+eo,(complex*)(rnd[eo]),(complex*)(chi[eo]),3*loc_volh);
-  complex_summ(tot,temp[EVN],temp[ODD]);
+    double_vector_glb_scalar_prod(temp+eo,(double*)(rnd[eo]),(double*)(chi[eo]),3*loc_volh*2);
   
-  //add normalization: 1/4vol
-  complex_prod_double(*cond,tot,quark->deg/(4.0*glb_vol));
+  //add normalization: deg/4vol
+  (*cond)=(temp[EVN]+temp[ODD])*quark->deg/(4.0*glb_vol);
   
   //free
   for(int par=0;par<2;par++)
@@ -69,7 +68,7 @@ void measure_chiral_cond(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,in
   //measure the condensate for each quark
   for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
     {
-      complex cond={0,0};
+      double cond=0;
       
       //loop over hits
       int nhits=theory_pars.chiral_cond_pars.nhits;
@@ -78,12 +77,12 @@ void measure_chiral_cond(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,in
           verbosity_lv1_master_printf("Evaluating chiral condensate for flavor %d/%d, nhits %d/%d\n",iflav+1,theory_pars.nflavs,hit+1,nhits);
           
           //compute and summ
-          complex temp;
+          double temp;
           chiral_condensate(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,theory_pars.chiral_cond_pars.residue);
-          complex_summ_the_prod_double(cond,temp,1.0/nhits);
+	  cond+=temp/nhits;
         }
       
-      master_fprintf(file,"\t%+016.16lg",cond[RE]);
+      master_fprintf(file,"\t%+016.16lg",cond);
     }
 
   master_fprintf(file,"\n");

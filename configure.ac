@@ -11,35 +11,35 @@ AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([src/config.h:src/config.h.in])
 
 #checking for functions, headers and other stuff
-AC_CHECK_FUNCS([memset])
-AC_CHECK_FUNCS([mkdir])
-AC_CHECK_FUNCS([pow])
-AC_CHECK_FUNCS([sqrt])
-AC_CHECK_FUNCS([strcasecmp])
-AC_CHECK_FUNCS([strdup])
-AC_CHECK_FUNCS([strncasecmp])
-AC_CHECK_FUNCS([strstr])
-AC_CHECK_HEADERS([inttypes.h])
-AC_CHECK_HEADERS([libintl.h])
-AC_CHECK_HEADERS([malloc.h])
-AC_CHECK_HEADERS([stddef.h])
-AC_CHECK_HEADERS([stdint.h])
-AC_CHECK_HEADERS([stdlib.h])
-AC_CHECK_HEADERS([string.h])
-AC_CHECK_HEADERS([unistd.h])
-AC_C_INLINE
-AC_HEADER_STDBOOL
-AC_TYPE_SIZE_T
-AC_FUNC_ALLOCA
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
-AC_TYPE_INT16_T
-AC_TYPE_INT32_T
-AC_TYPE_INT8_T
-AC_TYPE_UINT16_T
-AC_TYPE_UINT32_T
-AC_TYPE_UINT64_T
-AC_TYPE_UINT8_T
+#AC_CHECK_FUNCS([memset])
+#AC_CHECK_FUNCS([mkdir])
+#AC_CHECK_FUNCS([pow])
+#AC_CHECK_FUNCS([sqrt])
+#AC_CHECK_FUNCS([strcasecmp])
+#AC_CHECK_FUNCS([strdup])
+#AC_CHECK_FUNCS([strncasecmp])
+#AC_CHECK_FUNCS([strstr])
+#AC_CHECK_HEADERS([inttypes.h])
+#AC_CHECK_HEADERS([libintl.h])
+#AC_CHECK_HEADERS([malloc.h])
+#AC_CHECK_HEADERS([stddef.h])
+#AC_CHECK_HEADERS([stdint.h])
+#AC_CHECK_HEADERS([stdlib.h])
+#AC_CHECK_HEADERS([string.h])
+#AC_CHECK_HEADERS([unistd.h])
+#AC_C_INLINE
+#AC_HEADER_STDBOOL
+#AC_TYPE_SIZE_T
+#AC_FUNC_ALLOCA
+#AC_FUNC_MALLOC
+#AC_FUNC_REALLOC
+#AC_TYPE_INT16_T
+#AC_TYPE_INT32_T
+#AC_TYPE_INT8_T
+#AC_TYPE_UINT16_T
+#AC_TYPE_UINT32_T
+#AC_TYPE_UINT64_T
+#AC_TYPE_UINT8_T
 
 # Get SVN Revision - idea from xfce-power-manager (C) 2007 by B.Tarricone
 dnl get svn revision

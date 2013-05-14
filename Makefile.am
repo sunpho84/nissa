@@ -265,6 +265,7 @@ libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) $(bgq
 #list of all the programs
 bin_PROGRAMS=\
 	projects/generate_confs/generate_stag \
+	projects/semileptonic/test_cov \
 	projects/semileptonic/semileptonic_smeared \
 	projects/semileptonic/semileptonic_smeared_point_source \
 	projects/eight_BK/smeared_BK_all_in_one \
@@ -281,6 +282,7 @@ projects_eight_BK_smeared_BK_all_in_one_SOURCES=projects/eight_BK/smeared_BK_all
 
 #program for semileptonic smeared 2 and 3 points
 projects_semileptonic_semileptonic_smeared_SOURCES=projects/semileptonic/semileptonic_smeared.cpp $(extra_headers)
+projects_semileptonic_test_cov_SOURCES=projects/semileptonic/test_cov.cpp $(extra_headers)
 projects_semileptonic_semileptonic_smeared_point_source_SOURCES=projects/semileptonic/semileptonic_smeared_point_source.cpp $(extra_headers)
 #projects_semileptonic_test_SOURCES=projects/semileptonic/test.cpp projects/semileptonic/new_types.cpp projects/semileptonic/new_types.h $(extra_headers)
 #projects_semileptonic_semileptonic_smeared_point_source_SOURCES=projects/semileptonic/semileptonic_smeared_point_source.cpp $(extra_headers)

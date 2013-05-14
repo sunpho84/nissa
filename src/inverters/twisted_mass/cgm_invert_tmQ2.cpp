@@ -26,7 +26,6 @@
 #define CGM_INVERT inv_tmQ2_m2_RL_cgm
 #define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_tmQ2_m2_RL_cgm_run_hm_up_to_comm_prec
 #define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_tmQ2_m2_RL_cgm
-#define CGM_NPOSSIBLE_REQUESTS 16
 
 #define CGM_START_COMMUNICATING_BORDERS(A) buffered_start_communicating_lx_spincolor_borders(A)
 #define CGM_FINISH_COMMUNICATING_BORDERS(A) buffered_finish_communicating_lx_spincolor_borders(A)
@@ -57,7 +56,7 @@ void inv_tmQ2_RL_cgm(spincolor **sol,quad_su3 *conf,double kappa,int RL,double *
 }
 void inv_tmQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
 {
-#if defined BGQ && defined EXP_BGQ
+#if 0 && defined BGQ && defined EXP_BGQ
   //bufferize and remap
   bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
   lx_conf_remap_to_bgqlx(bi_conf,conf);
