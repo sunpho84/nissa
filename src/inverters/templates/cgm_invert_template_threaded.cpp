@@ -154,6 +154,8 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
 	      zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
 	      betas[ishift]=betaa*zfs[ishift]/zas[ishift];
 	      
+	      //printf("ishift %d zas: %16.16lg, zps: %16.16lg, zfs: %16.16lg, betas: %16.16lg\n",
+	      //ishift,zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 	      double_vector_summ_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),-betas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
 	    }
 	}
@@ -166,7 +168,7 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
       
       //     calculate alpha=rfrf/rr=(r',r')/(r,r)
       alpha=rfrf/rr;
-	
+      
       //     calculate p'=r'+p*alpha
       double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,alpha,BULK_VOL*NDOUBLES_PER_SITE);
       
@@ -180,9 +182,9 @@ THREADABLE_FUNCTION_9ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, dou
 	if(run_flag[ishift]==1)
 	  {
 	    alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
-
+	    //printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
 	    double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
-	     
+	    
 	    // shift z
 	    zps[ishift]=zas[ishift];
 	    zas[ishift]=zfs[ishift];

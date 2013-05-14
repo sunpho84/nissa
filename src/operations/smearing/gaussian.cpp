@@ -68,7 +68,7 @@ THREADABLE_FUNCTION_7ARG(gaussian_smearing, spincolor*,smear_sc, spincolor*,orig
 {
   if(niter<1)
     {
-      verbosity_lv1_master_printf("Skipping smearing (0 iter required)\n");
+      verbosity_lv2_master_printf("Skipping smearing (0 iter required)\n");
       if(smear_sc!=origi_sc) vector_copy(smear_sc,origi_sc);
     }
   else
@@ -83,7 +83,7 @@ THREADABLE_FUNCTION_7ARG(gaussian_smearing, spincolor*,smear_sc, spincolor*,orig
       
       double norm_fact=1/(1+6*kappa);
 
-      verbosity_lv1_master_printf("GAUSSIAN smearing with kappa=%g, %d iterations\n",kappa,niter);
+      verbosity_lv2_master_printf("GAUSSIAN smearing with kappa=%g, %d iterations\n",kappa,niter);
       
       //iter 0
       vector_copy(temp,origi_sc);
