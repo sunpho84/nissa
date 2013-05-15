@@ -24,7 +24,7 @@ int test_eo_geometry()
   
   double plaq_lx=global_plaquette_lx_conf(lx_conf);
   double plaq_eo=global_plaquette_eo_conf(eo_conf[0],eo_conf[1]);
-  communicate_eo_quad_su3_borders(eo_conf[0],eo_conf[1]);
+  communicate_ev_and_od_quad_su3_borders(eo_conf[0],eo_conf[1]);
   double plaq_eo_eo_comm=global_plaquette_eo_conf(eo_conf[0],eo_conf[1]);
   double plaq_reco=global_plaquette_lx_conf(lx_conf_reco);
   master_printf("lx plaquette: %16.16lg, eo comp %16.16lg, eo comm comp %16.16lg, reconstructed: %16.16lg\n",plaq_lx,plaq_eo,plaq_eo_eo_comm,plaq_reco);

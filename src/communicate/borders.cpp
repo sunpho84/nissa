@@ -29,7 +29,7 @@
 */
 
 //general set of bufered comm
-void buffered_comm_setup(buffered_comm_t &comm)
+void comm_setup(comm_t &comm)
 {
   //check that buffers are large enough
   if(comm.tot_mess_size>nissa_buff_size)
@@ -43,15 +43,15 @@ void buffered_comm_setup(buffered_comm_t &comm)
   spi_descriptor_setup(comm);
 #else
   comm.nrequest=0;
-  comm.imessage=nbuffered_comm_allocated;
+  comm.imessage=ncomm_allocated;
 #endif
   
-  nbuffered_comm_allocated++;
+  ncomm_allocated++;
 }
 
 //set up a communicator for lx or eo borders
 //first 4 communicate to forward nodes, last four to backward nodes
-void set_lx_or_eo_buffered_comm(buffered_comm_t &comm,int lx_eo,int nbytes_per_site)
+void set_lx_or_eo_comm(comm_t &comm,int lx_eo,int nbytes_per_site)
 {
   int div_coeff=(lx_eo==0)?1:2; //dividing coeff
   
@@ -77,16 +77,16 @@ void set_lx_or_eo_buffered_comm(buffered_comm_t &comm,int lx_eo,int nbytes_per_s
 #endif
       }
   
-  buffered_comm_setup(comm);
+  comm_setup(comm);
 }
 
-void set_lx_buffered_comm(buffered_comm_t &comm,int nbytes_per_site)
-{set_lx_or_eo_buffered_comm(comm,0,nbytes_per_site);}
-void set_eo_buffered_comm(buffered_comm_t &comm,int nbytes_per_site)
-{set_lx_or_eo_buffered_comm(comm,1,nbytes_per_site);}
+void set_lx_comm(comm_t &comm,int nbytes_per_site)
+{set_lx_or_eo_comm(comm,0,nbytes_per_site);}
+void set_eo_comm(comm_t &comm,int nbytes_per_site)
+{set_lx_or_eo_comm(comm,1,nbytes_per_site);}
 
 //start the communications
-void buffered_comm_start(buffered_comm_t &comm,int *dir_comm=NULL,int tot_size=-1)
+void comm_start(comm_t &comm,int *dir_comm=NULL,int tot_size=-1)
 {
   GET_THREAD_ID();
   
@@ -114,7 +114,7 @@ void buffered_comm_start(buffered_comm_t &comm,int *dir_comm=NULL,int tot_size=-
 }
 
 //wait a communication to finish
-void buffered_comm_wait(buffered_comm_t &comm)
+void comm_wait(comm_t &comm)
 {
   GET_THREAD_ID();
   
@@ -149,10 +149,10 @@ void buffered_comm_wait(buffered_comm_t &comm)
 }
 
 //unset everything
-void buffered_comm_unset(buffered_comm_t &comm)
+void comm_unset(comm_t &comm)
 {
   //wait for any communication to finish
-  buffered_comm_wait(comm);
+  comm_wait(comm);
   
 #ifdef SPI
   spi_descriptor_unset(comm);
@@ -162,7 +162,7 @@ void buffered_comm_unset(buffered_comm_t &comm)
 /////////////////////////////////////// communicating lx vec ///////////////////////////////////
 
 //fill the sending buf using the data inside an lx vec
-void fill_buffered_sending_buf_with_lx_vec(buffered_comm_t &comm,void *vec)
+void fill_sending_buf_with_lx_vec(comm_t &comm,void *vec)
 {
   GET_THREAD_ID();
   
@@ -181,7 +181,7 @@ void fill_buffered_sending_buf_with_lx_vec(buffered_comm_t &comm,void *vec)
 }
 
 //extract the information from receiving buffer and put them inside an lx vec
-void fill_lx_bord_with_buffered_receiving_buf(void *vec,buffered_comm_t &comm)
+void fill_lx_bord_with_receiving_buf(void *vec,comm_t &comm)
 {
   GET_THREAD_ID();
   
@@ -201,7 +201,7 @@ void fill_lx_bord_with_buffered_receiving_buf(void *vec,buffered_comm_t &comm)
 }
 
 //start communication using an lx border
-void buffered_start_communicating_lx_borders(buffered_comm_t &comm,void *vec)
+void start_communicating_lx_borders(comm_t &comm,void *vec)
 {
   if(!check_borders_valid(vec) && nparal_dir>0)
     {
@@ -209,17 +209,17 @@ void buffered_start_communicating_lx_borders(buffered_comm_t &comm,void *vec)
       
       //take time and write some debug output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Start buffered communication of lx borders of %s\n",get_vec_name((void*)vec));
+      verbosity_lv3_master_printf("Start communication of lx borders of %s\n",get_vec_name((void*)vec));
       
       //fill the communicator buffer, start the communication and take time
-      fill_buffered_sending_buf_with_lx_vec(comm,vec);
-      buffered_comm_start(comm);
+      fill_sending_buf_with_lx_vec(comm,vec);
+      comm_start(comm);
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
     }
 }
 
 //finish communicating
-void buffered_finish_communicating_lx_borders(void *vec,buffered_comm_t &comm)
+void finish_communicating_lx_borders(void *vec,comm_t &comm)
 {
   if(!check_borders_valid(vec) && nparal_dir>0)
     {
@@ -227,11 +227,11 @@ void buffered_finish_communicating_lx_borders(void *vec,buffered_comm_t &comm)
       
       //take note of passed time and write some debug info
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Finish buffered communication of lx borders of %s\n",get_vec_name((void*)vec));
+      verbosity_lv3_master_printf("Finish communication of lx borders of %s\n",get_vec_name((void*)vec));
 
       //wait communication to finish, fill back the vector and take time
-      buffered_comm_wait(comm);
-      fill_lx_bord_with_buffered_receiving_buf(vec,comm);
+      comm_wait(comm);
+      fill_lx_bord_with_receiving_buf(vec,comm);
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
       //set border not valid: this auto sync
@@ -240,21 +240,21 @@ void buffered_finish_communicating_lx_borders(void *vec,buffered_comm_t &comm)
 }
 
 //merge the two
-void buffered_communicate_lx_borders(void *vec,buffered_comm_t &comm)
+void communicate_lx_borders(void *vec,comm_t &comm)
 {
   if(!check_borders_valid(vec))
     {
-      verbosity_lv3_master_printf("Sync buffered communication of lx borders of %s\n",get_vec_name((void*)vec));
+      verbosity_lv3_master_printf("Sync communication of lx borders of %s\n",get_vec_name((void*)vec));
       
-      buffered_start_communicating_lx_borders(comm,vec);
-      buffered_finish_communicating_lx_borders(vec,comm);
+      start_communicating_lx_borders(comm,vec);
+      finish_communicating_lx_borders(vec,comm);
     }
 }
 
 /////////////////////////////////////// communicating e/o vec //////////////////////////////////////
 
 //fill the sending buf using the data inside an ev or odd vec
-void fill_buffered_sending_buf_with_ev_or_od_vec(buffered_comm_t &comm,void *vec,int eo)
+void fill_sending_buf_with_ev_or_od_vec(comm_t &comm,void *vec,int eo)
 {
   GET_THREAD_ID();
   
@@ -272,7 +272,7 @@ void fill_buffered_sending_buf_with_ev_or_od_vec(buffered_comm_t &comm,void *vec
 }
 
 //extract the information from receiving buffer and put them inside an even or odd vec
-void fill_ev_or_od_bord_with_buffered_receiving_buf(void *vec,buffered_comm_t &comm)
+void fill_ev_or_od_bord_with_receiving_buf(void *vec,comm_t &comm)
 {
   GET_THREAD_ID();
   
@@ -292,7 +292,7 @@ void fill_ev_or_od_bord_with_buffered_receiving_buf(void *vec,buffered_comm_t &c
 }
 
 //start communication using an ev or od border
-void buffered_start_communicating_ev_or_od_borders(buffered_comm_t &comm,void *vec,int eo)
+void start_communicating_ev_or_od_borders(comm_t &comm,void *vec,int eo)
 {
   if(!check_borders_valid(vec) && nparal_dir>0)
     {
@@ -300,17 +300,17 @@ void buffered_start_communicating_ev_or_od_borders(buffered_comm_t &comm,void *v
       
       //take time and output debugging info
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Starting buffered communication of ev or od borders of %s\n",get_vec_name((void*)vec));
+      verbosity_lv3_master_printf("Starting communication of ev or od borders of %s\n",get_vec_name((void*)vec));
 
       //fill the communicator buffer, start the communication and take time
-      fill_buffered_sending_buf_with_ev_or_od_vec(comm,vec,eo);
-      buffered_comm_start(comm);
+      fill_sending_buf_with_ev_or_od_vec(comm,vec,eo);
+      comm_start(comm);
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
     }
 }
 
 //finish communicating
-void buffered_finish_communicating_ev_or_od_borders(void *vec,buffered_comm_t &comm)
+void finish_communicating_ev_or_od_borders(void *vec,comm_t &comm)
 {
   if(!check_borders_valid(vec) && nparal_dir>0)
     {
@@ -318,11 +318,11 @@ void buffered_finish_communicating_ev_or_od_borders(void *vec,buffered_comm_t &c
       
       //take time and make some output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Finish buffered communication of ev or od borders of %s\n",get_vec_name((void*)vec));
+      verbosity_lv3_master_printf("Finish communication of ev or od borders of %s\n",get_vec_name((void*)vec));
       
       //wait communication to finish, fill back the vector and take time
-      buffered_comm_wait(comm);
-      fill_ev_or_od_bord_with_buffered_receiving_buf(vec,comm);
+      comm_wait(comm);
+      fill_ev_or_od_bord_with_receiving_buf(vec,comm);
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
       //set border not valid: this auto sync
@@ -331,21 +331,21 @@ void buffered_finish_communicating_ev_or_od_borders(void *vec,buffered_comm_t &c
 }
 
 //merge the two
-void buffered_communicate_ev_or_od_borders(void *vec,buffered_comm_t &comm,int eo)
+void communicate_ev_or_od_borders(void *vec,comm_t &comm,int eo)
 {
   if(!check_borders_valid(vec) && nparal_dir>0)
     {
-      verbosity_lv3_master_printf("Sync buffered communication of ev or od borders of %s\n",get_vec_name((void*)vec));
+      verbosity_lv3_master_printf("Sync communication of ev or od borders of %s\n",get_vec_name((void*)vec));
       
-      buffered_start_communicating_ev_or_od_borders(comm,vec,eo);
-      buffered_finish_communicating_ev_or_od_borders(vec,comm);
+      start_communicating_ev_or_od_borders(comm,vec,eo);
+      finish_communicating_ev_or_od_borders(vec,comm);
     }  
 }
 
 /////////////////////////////////////// communicating e&o vec //////////////////////////////////////
 
 //fill the sending buf using the data inside an ev and odd vec, using lx style inside buf
-void fill_buffered_sending_buf_with_ev_and_od_vec(buffered_comm_t &comm,void **vec)
+void fill_sending_buf_with_ev_and_od_vec(comm_t &comm,void **vec)
 {
   GET_THREAD_ID();
   
@@ -369,7 +369,7 @@ void fill_buffered_sending_buf_with_ev_and_od_vec(buffered_comm_t &comm,void **v
 }
 
 //extract the information from receiving buffer and put them inside an even or odd vec
-void fill_ev_and_od_bord_with_buffered_receiving_buf(void **vec,buffered_comm_t &comm)
+void fill_ev_and_od_bord_with_receiving_buf(void **vec,comm_t &comm)
 {
   GET_THREAD_ID();
   
@@ -394,7 +394,7 @@ void fill_ev_and_od_bord_with_buffered_receiving_buf(void **vec,buffered_comm_t 
 }
 
 //start communication using an ev and od border
-void buffered_start_communicating_ev_and_od_borders(buffered_comm_t &comm,void **vec)
+void start_communicating_ev_and_od_borders(comm_t &comm,void **vec)
 {
   if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && nparal_dir>0)
     {
@@ -402,18 +402,17 @@ void buffered_start_communicating_ev_and_od_borders(buffered_comm_t &comm,void *
       
       //take time and output debugging info
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Starting buffered communication of ev or and borders of %s\n",
-				  get_vec_name((void*)(*vec)));
+      verbosity_lv3_master_printf("Starting communication of ev or and borders of %s\n",get_vec_name((void*)(*vec)));
 
       //fill the communicator buffer, start the communication and take time
-      fill_buffered_sending_buf_with_ev_and_od_vec(comm,vec);
-      buffered_comm_start(comm);
+      fill_sending_buf_with_ev_and_od_vec(comm,vec);
+      comm_start(comm);
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
     }
 }
 
 //finish communicating
-void buffered_finish_communicating_ev_and_od_borders(void **vec,buffered_comm_t &comm)
+void finish_communicating_ev_and_od_borders(void **vec,comm_t &comm)
 {
   if(comm.comm_in_prog && nparal_dir>0)
     {
@@ -421,11 +420,11 @@ void buffered_finish_communicating_ev_and_od_borders(void **vec,buffered_comm_t 
       
       //take time and make some output
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Finish buffered communication of ev and od borders of %s\n",get_vec_name((void*)(*vec)));
+      verbosity_lv3_master_printf("Finish communication of ev and od borders of %s\n",get_vec_name((void*)(*vec)));
 	  
       //wait communication to finish, fill back the vector and take time
-      buffered_comm_wait(comm);
-      fill_ev_and_od_bord_with_buffered_receiving_buf(vec,comm);
+      comm_wait(comm);
+      fill_ev_and_od_bord_with_receiving_buf(vec,comm);
       if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
       
       //set border not valid: this auto sync
@@ -435,8 +434,8 @@ void buffered_finish_communicating_ev_and_od_borders(void **vec,buffered_comm_t 
 }
 
 //merge the two
-void buffered_communicate_ev_and_od_borders(void **vec,buffered_comm_t &comm)
+void communicate_ev_and_od_borders(void **vec,comm_t &comm)
 {
-  buffered_start_communicating_ev_and_od_borders(comm,vec);
-  buffered_finish_communicating_ev_and_od_borders(vec,comm);
+  start_communicating_ev_and_od_borders(comm,vec);
+  finish_communicating_ev_and_od_borders(vec,comm);
 }

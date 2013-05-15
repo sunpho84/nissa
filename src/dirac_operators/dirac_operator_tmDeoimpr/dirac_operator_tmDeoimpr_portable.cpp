@@ -5,7 +5,7 @@
 //apply even-odd or odd-even part of tmD, multiplied by -2
 THREADABLE_FUNCTION_4ARG(tmn2Deo_or_tmn2Doe_eos, spincolor*,out, quad_su3**,conf, int,eooe, spincolor*,in)
 {
-  communicate_eo_quad_su3_borders(conf);
+  communicate_ev_and_od_quad_su3_borders(conf);
   
   if(eooe==0) communicate_od_spincolor_borders(in);
   else        communicate_ev_spincolor_borders(in);

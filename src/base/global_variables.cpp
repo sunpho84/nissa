@@ -210,21 +210,24 @@ EXTERN int su3_sub_gr_indices[3][2]
 
 /////////////////////////////////////////// buffered comm ///////////////////////////////////
 
-EXTERN int nbuffered_comm_allocated;
-EXTERN int buffered_comm_in_prog;
+EXTERN int ncomm_allocated;
+EXTERN int comm_in_prog;
 
 //buffers
 EXTERN size_t nissa_buff_size;
 EXTERN char *nissa_recv_buf,*nissa_send_buf;
 
-//buffered communicators
-EXTERN buffered_comm_t buffered_lx_spincolor_comm;
-EXTERN buffered_comm_t buffered_lx_halfspincolor_comm;
-EXTERN buffered_comm_t buffered_lx_colorspinspin_comm;
-EXTERN buffered_comm_t buffered_lx_su3spinspin_comm;
-EXTERN buffered_comm_t buffered_lx_quad_su3_comm;
-EXTERN buffered_comm_t buffered_eo_color_comm;
-EXTERN buffered_comm_t buffered_eo_quad_su3_comm;
+//communicators
+EXTERN comm_t lx_spin_comm,eo_spin_comm;
+EXTERN comm_t lx_color_comm,eo_color_comm;
+EXTERN comm_t lx_spincolor_comm,eo_spincolor_comm;
+EXTERN comm_t lx_spincolor_128_comm,eo_spincolor_128_comm;
+EXTERN comm_t lx_halfspincolor_comm,eo_halfspincolor_comm;
+EXTERN comm_t lx_colorspinspin_comm,eo_colorspinspin_comm;
+EXTERN comm_t lx_spinspin_comm,eo_spinspin_comm;
+EXTERN comm_t lx_su3spinspin_comm,eo_su3spinspin_comm;
+EXTERN comm_t lx_su3_comm,eo_su3_comm;
+EXTERN comm_t lx_quad_su3_comm,eo_quad_su3_comm;
 
 /////////////////////////////////////////// BGQ specifics ///////////////////////////////////
 

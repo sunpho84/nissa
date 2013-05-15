@@ -98,7 +98,7 @@ THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, quad_su3**,c
   
   //summ temporal and spatial separately
   complex *point_plaq=nissa_malloc("point_plaq",loc_vol,complex);
-  communicate_eo_quad_su3_borders(conf);
+  communicate_ev_and_od_quad_su3_borders(conf);
   
   //loop over all the lattice
   for(int par=0;par<2;par++)

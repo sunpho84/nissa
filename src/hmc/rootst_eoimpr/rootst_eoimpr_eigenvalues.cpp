@@ -27,7 +27,7 @@
 THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark_content, quad_su3**,eo_conf, int,niters)
 {
   GET_THREAD_ID();
-  communicate_eo_quad_su3_borders(eo_conf);
+  communicate_ev_and_od_quad_su3_borders(eo_conf);
   (*eig_max)=0;
   
   color *vec_in=nissa_malloc("vec_in",loc_volh+bord_volh,color);

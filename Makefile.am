@@ -58,10 +58,9 @@ nissa_headers=src/base/close.h \
 	src/base/init.h \
 	src/base/random.h \
 	src/base/vectors.h \
-	src/communicate/buffered_borders.h \
+	src/communicate/borders.h \
 	src/communicate/communicate.h \
 	src/communicate/edges.h \
-	src/communicate/unbuffered_borders.h \
 	src/dirac_operators/dirac_operator_stD/dirac_operator_stD.h \
 	src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ.h \
@@ -160,9 +159,8 @@ nissa_source_files=src/base/close.cpp \
 	src/base/init.cpp \
 	src/base/random.cpp \
 	src/base/vectors.cpp \
-	src/communicate/buffered_borders.cpp \
+	src/communicate/borders.cpp \
 	src/communicate/edges.cpp \
-	src/communicate/unbuffered_borders.cpp \
 	src/dirac_operators/dirac_operator_stD/dirac_operator_stD.cpp \
 	src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ.cpp \
