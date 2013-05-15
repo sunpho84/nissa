@@ -116,7 +116,7 @@ THREADABLE_FUNCTION_4ARG(rootst_eoimpr_scale_expansions, rat_approx_t*,rat_exp_p
 	}
       
       //sync
-      thread_barrier(HMC_SCALE_BARRIER);
+      THREAD_BARRIER();
       
       if(nissa_verbosity>=3)
 	{

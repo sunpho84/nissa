@@ -47,7 +47,7 @@ double glb_reduce_double(double in_loc)
       
       //copy loc in the buf and sync all the threads
       glb_double_reduction_buf[thread_id]=in_loc;
-      thread_barrier(DOUBLE_REDUCE_FIRST_BARRIER);
+      THREAD_BARRIER();
       
       //within master thread summ all the pieces and between MPI
       if(IS_MASTER_THREAD)
@@ -85,7 +85,7 @@ void glb_reduce_float_128(float_128 out_glb,float_128 in_loc)
       
       //copy loc in the buf and sync all the threads
       float_128_copy(glb_float_128_reduction_buf[thread_id],in_loc);
-      thread_barrier(FLOAT_128_REDUCE_FIRST_BARRIER);
+      THREAD_BARRIER();
       
       //within master thread summ all the pieces and between MPI
       if(IS_MASTER_THREAD)

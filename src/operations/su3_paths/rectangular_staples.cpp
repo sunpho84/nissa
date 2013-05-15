@@ -96,7 +96,7 @@ void rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_s
 	    su3_copy(sq_staples[loc_vol+ibord][mu][3+inu],((quad_su3*)nissa_recv_buf)[ibord][mu]); //one contribution per link in the border
         }
 
-  thread_barrier(WILSON_STAPLE_BARRIER);
+  THREAD_BARRIER();
 }
 
 // 4) compute backward staples to be sent to up nodes and send them
@@ -119,7 +119,7 @@ void rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_stap
       }
   
   //wait that everything is computed
-  thread_barrier(WILSON_STAPLE_BARRIER);
+  THREAD_BARRIER();
   
   //copy in send buf, obtained scanning second half of each parallelized direction external border and
   //copying the three perpendicular links staple
@@ -196,7 +196,7 @@ void rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(rectang
 	    su3_copy(out[surflx_of_bordlx[ibord]][mu][inu],((quad_su3*)nissa_recv_buf)[ibord][mu]);//one contribution per link in the border
 	}
   
-  thread_barrier(WILSON_STAPLE_BARRIER);
+  THREAD_BARRIER();
 }
 
 //compute rectangular staples using overlap between computation and communications, and avoiding using edges
@@ -215,5 +215,5 @@ THREADABLE_FUNCTION_3ARG(compute_rectangular_staples_lx_conf, rectangular_staple
   rectangular_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,sq_staples,thread_id);
   rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,thread_id);
   
-  thread_barrier(WILSON_STAPLE_BARRIER);
+  THREAD_BARRIER();
 }}

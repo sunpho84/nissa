@@ -263,7 +263,7 @@ void unset_eo_geometry()
 THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_eo_conf, quad_su3**,eo_conf)
 {
   //we must ensure that nobody is using the conf
-  thread_barrier(ADDREM_STAGPHASES_FIRST_BARRIER);
+  THREAD_BARRIER();
  
   //work also on borders and edges if allocated and valid
   int ending=loc_volh;
@@ -299,7 +299,7 @@ THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_eo_conf, quad_su3**,eo_conf)
 	}
     }
   
-  thread_barrier(ADDREM_STAGPHASES_SECOND_BARRIER);
+  THREAD_BARRIER();
 }}
 
 //filter the points retaining only those having all even coord

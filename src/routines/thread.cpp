@@ -12,26 +12,30 @@
 #include "../base/thread_macros.h"
 #include "ios.h"
 
-//#define THREAD_DEBUG
-
 //put in the external bgq_barrier.c file, to avoid alignement problem
 #if defined BGQ && (! defined BGQ_EMU)
  #include "../bgq/bgq_barrier.h"
 #endif
 
 //put a barrier between threads
-void thread_barrier(int barr_id,int force_barrier=false)
+#ifdef THREAD_DEBUG
+void thread_barrier(char *file,int line,int force_barrier)
+#else
+void thread_barrier(int force_barrier)
+#endif
 {
   if(!thread_pool_locked||force_barrier)
     {
 #ifdef THREAD_DEBUG
       GET_THREAD_ID();
-      printf("thread %d rank %d barrier %d (thread_pool_locked: %d, force_barrier: %d)\n",
-	     thread_id,rank,barr_id,thread_pool_locked,force_barrier);
+      if(nissa_verbosity>=3)
+	printf("thread %d rank %d barrier %d (thread_pool_locked: %d, force_barrier: %d)\n",
+	       thread_id,rank,barr_id,thread_pool_locked,force_barrier);
       //debug: copy the barrier id to the global ref
       if(IS_MASTER_THREAD)
 	{
-	  glb_barr_id=barr_id;
+	  strcpy(glb_barr_file,file);
+	  glb_barr_line=line;
 #pragma omp flush(glb_barr_id)
 	}
 #endif
@@ -46,7 +50,9 @@ void thread_barrier(int barr_id,int force_barrier=false)
 #ifdef THREAD_DEBUG
       //debug: check that the local id correspond to global one
       if(!IS_MASTER_THREAD)
-	if(glb_barr_id!=barr_id) crash("Thread %d found barrier %d when waiting for %d)",thread_id,barr_id,glb_barr_id);
+	if(glb_barr_line!=barr_line||strcmp(glb_barr_file,file))
+	  crash("Thread %d found barrier on line %d of file %s when master thread invoked it at line %d of file %s)",
+		thread_id,,glb_barr_id,line,file,glb_barr_line,glb_barr_file);
 #if defined BGQ && (! defined BGQ_EMU)
       bgq_barrier(nthreads);
 #else
@@ -59,7 +65,7 @@ void thread_barrier(int barr_id,int force_barrier=false)
 //unlock the thread pool
 void thread_pool_unlock()
 {
-  THREAD_BARRIER_FORCE(UNLOCK_POOL_BARRIER);
+  THREAD_BARRIER_FORCE();
 #ifdef THREAD_DEBUG
   GET_THREAD_ID();
   if(rank==0) printf("thread %d unlocking the pool\n",thread_id);
@@ -71,7 +77,7 @@ void thread_pool_unlock()
 //lock the thread pool
 void thread_pool_lock()
 {
-  THREAD_BARRIER_FORCE(LOCK_POOL_BARRIER);
+  THREAD_BARRIER_FORCE();
   thread_pool_locked=true;
 #pragma omp flush(thread_pool_locked)
 #ifdef THREAD_DEBUG

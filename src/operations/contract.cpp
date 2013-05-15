@@ -81,7 +81,7 @@ THREADABLE_FUNCTION_6ARG(trace_g_s_dag_g_s_internal, complex*,loc_c, dirac_matr*
 	}
     }
   
-  thread_barrier(CONTRACT_BARRIER);
+  THREAD_BARRIER();
 }}
 
 //Trace the product of gamma1 * spinspin1^dag * gamma2 * spinspin2,
@@ -293,7 +293,7 @@ THREADABLE_FUNCTION_6ARG(trace_g_ccss_dag_g_ccss_internal, complex*,loc_c, dirac
         }
     }
   
-  thread_barrier(CONTRACT_BARRIER);
+  THREAD_BARRIER();
 }}
 
 //Trace the product of gamma1 * su3spinspin1^dag * gamma2 * su3spinspin2,
