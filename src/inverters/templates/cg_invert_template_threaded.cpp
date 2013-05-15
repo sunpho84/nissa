@@ -115,7 +115,7 @@ THREADABLE_FUNCTION_11ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2
       double_vector_subt((double*)r,(double*)source,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
       double_vector_glb_scalar_prod(&lambda,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
       
-      verbosity_lv1_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",final_iter,lambda/source_norm,residue);
+      verbosity_lv2_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",final_iter,lambda/source_norm,residue);
       
       riter++;
     }

@@ -16,7 +16,7 @@
 #include <stdint.h>
 
 #if BGQ_QPX
-#include <hwi/include/bqc/A2_inlines.h>
+//#include <hwi/include/bqc/A2_inlines.h>
 #else
 #include <mpi.h>
 #endif

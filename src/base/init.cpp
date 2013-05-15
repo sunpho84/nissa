@@ -270,7 +270,7 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	    if(valid_partitioning)
 	      for(int mu=0;mu<4;mu++)
 		valid_partitioning&=(P[mu]>=2);
-	  
+
 	  //check that lattice size is even in all directions
 	  if(nissa_use_eo_geom)
 	    if(valid_partitioning)

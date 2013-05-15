@@ -52,21 +52,23 @@ THREADABLE_FUNCTION_3ARG(apply_stDoe, color*,out, quad_su3**,conf, color*,in)
   set_borders_invalid(out);
 }}
 
-//multiply also for an additional 1/2
 THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,in)
 {
   if(!check_borders_valid(conf)) communicate_ev_and_od_quad_su3_borders(conf);
-  if(!check_borders_valid(in)) communicate_ev_color_borders(in);
-
+  if(!check_borders_valid(in)) communicate_od_color_borders(in);
+  
   GET_THREAD_ID();
   NISSA_PARALLEL_LOOP(ie,0,loc_volh)
     {
+      //neighbours search
       int odup0=loceo_neighup[EVN][ie][0];
       int oddw0=loceo_neighdw[EVN][ie][0];
       
+      //derivative in the time direction - without self-summ
       unsafe_su3_prod_color(      out[ie],conf[EVN][ie   ][0],in[odup0]);
       su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw0][0],in[oddw0]);
       
+      //derivatives in the spatial direction - with self summ
       for(int mu=1;mu<4;mu++)
 	{
 	  int odup=loceo_neighup[EVN][ie][mu];
@@ -76,6 +78,7 @@ THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,i
 	  su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw][mu],in[oddw]);
 	}
       
+      //Doe contains 1/2, we put an additional one
       color_prod_double(out[ie],out[ie],0.25);      
     }
   
@@ -121,7 +124,7 @@ THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, quad_su3**,conf, color*,te
   set_borders_invalid(temp);
   communicate_od_color_borders(temp);
   
-  //we stil apply Deo, but then we put a - because we should apply Doe^+=-Deo
+  //we still apply Deo, but then we put a - because we should apply Doe^+=-Deo
   NISSA_PARALLEL_LOOP(ie,0,loc_volh)
     {
       int odup0=loceo_neighup[EVN][ie][0];

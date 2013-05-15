@@ -402,7 +402,7 @@ void start_communicating_ev_and_od_borders(comm_t &comm,void **vec)
       
       //take time and output debugging info
       if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
-      verbosity_lv3_master_printf("Starting communication of ev or and borders of %s\n",get_vec_name((void*)(*vec)));
+      verbosity_lv3_master_printf("Starting communication of ev and od borders of %s\n",get_vec_name((void*)(*vec)));
 
       //fill the communicator buffer, start the communication and take time
       fill_sending_buf_with_ev_and_od_vec(comm,vec);
