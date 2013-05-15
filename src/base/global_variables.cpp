@@ -131,7 +131,7 @@ EXTERN int nissa_grid_inited;
 //thread
 #ifdef THREAD_DEBUG
 EXTERN int glb_barr_line;
-EXTERN char *glb_barr_file;
+EXTERN char glb_barr_file[1024];
 #endif
 #ifndef ONLY_INSTANTIATION
 int thread_pool_locked=true,nthreads=1;
