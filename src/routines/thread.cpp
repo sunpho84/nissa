@@ -19,7 +19,7 @@
 
 //put a barrier between threads
 #ifdef THREAD_DEBUG
-void thread_barrier(char *file,int line,int force_barrier)
+void thread_barrier(const char *barr_file,int barr_line,int force_barrier)
 #else
 void thread_barrier(int force_barrier)
 #endif
@@ -29,14 +29,14 @@ void thread_barrier(int force_barrier)
 #ifdef THREAD_DEBUG
       GET_THREAD_ID();
       if(nissa_verbosity>=3)
-	printf("thread %d rank %d barrier %d (thread_pool_locked: %d, force_barrier: %d)\n",
-	       thread_id,rank,barr_id,thread_pool_locked,force_barrier);
+	printf("thread %d rank %d barrier call on line %d of file %s (thread_pool_locked: %d, force_barrier: %d)\n",
+	       thread_id,rank,barr_line,barr_file,thread_pool_locked,force_barrier);
       //debug: copy the barrier id to the global ref
       if(IS_MASTER_THREAD)
 	{
-	  strcpy(glb_barr_file,file);
-	  glb_barr_line=line;
-#pragma omp flush(glb_barr_id)
+	  strcpy(glb_barr_file,barr_file);
+	  glb_barr_line=barr_line;
+#pragma omp flush
 	}
 #endif
       
@@ -50,9 +50,9 @@ void thread_barrier(int force_barrier)
 #ifdef THREAD_DEBUG
       //debug: check that the local id correspond to global one
       if(!IS_MASTER_THREAD)
-	if(glb_barr_line!=barr_line||strcmp(glb_barr_file,file))
+	if(glb_barr_line!=barr_line||strcmp(glb_barr_file,barr_file))
 	  crash("Thread %d found barrier on line %d of file %s when master thread invoked it at line %d of file %s)",
-		thread_id,,glb_barr_id,line,file,glb_barr_line,glb_barr_file);
+		thread_id,barr_line,barr_file,glb_barr_line,glb_barr_file);
 #if defined BGQ && (! defined BGQ_EMU)
       bgq_barrier(nthreads);
 #else
