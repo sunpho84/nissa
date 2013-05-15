@@ -152,7 +152,7 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
 	  }
       }
   
-  //remove stag phases and u1 field
+  //remove stag phases and u1 field, and automatically barrier before collapsing
   rem_backfield_from_conf(conf,u1b);
   addrem_stagphases_to_eo_conf(conf);
   

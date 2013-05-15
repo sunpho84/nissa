@@ -299,6 +299,7 @@ THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_eo_conf, quad_su3**,eo_conf)
 	}
     }
   
+  //now the conf is again available
   THREAD_BARRIER();
 }}
 

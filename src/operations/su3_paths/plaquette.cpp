@@ -83,6 +83,8 @@ THREADABLE_FUNCTION_2ARG(global_plaquette_lx_conf, double*,totplaq, quad_su3*,co
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     point_plaquette_lx_conf((double*)(point_plaq[ivol]),conf,ivol);
   
+  //no need to barrier because collapsing is lx-wise
+  
   //reduce as complex and normalize
   double temp[2];
   complex_vector_glb_collapse(temp,point_plaq,loc_vol);  
@@ -102,6 +104,9 @@ THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, quad_su3**,c
   for(int par=0;par<2;par++)
     NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
       point_plaquette_eo_conf((double*)point_plaq[loclx_of_loceo[par][ieo]],conf,par,ieo);
+  
+  //we need to barrier because collpasing is lx-wise
+  THREAD_BARRIER();
   
   //reduce as complex and normalize
   double temp[2];
