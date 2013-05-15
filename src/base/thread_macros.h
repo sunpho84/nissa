@@ -1,48 +1,24 @@
 #ifndef _OPENMP_MACROS_H
 #define _OPENMP_MACROS_H
 
+#ifdef HAVE_CONFIG_H
+ #include "config.h"
+#endif
+
 #include "debug.h"
 #include <omp.h>
-
-///////////////////////////////////// barriers ////////////////////////////////////////
-
-#define LOCK_POOL_BARRIER 1
-#define UNLOCK_POOL_BARRIER 2
-#define SET_VEC_FLAG_FIRST_BARRIER 3
-#define SET_VEC_FLAG_SECOND_BARRIER 4
-#define UNSET_VEC_FLAG_FIRST_BARRIER 5
-#define UNSET_VEC_FLAG_SECOND_BARRIER 6
-#define ADDREM_STAGPHASES_FIRST_BARRIER 7
-#define ADDREM_STAGPHASES_SECOND_BARRIER 8
-#define DOUBLE_REDUCE_FIRST_BARRIER 9
-#define DOUBLE_REDUCE_SECOND_BARRIER 10
-#define FLOAT_128_REDUCE_FIRST_BARRIER 11
-#define FLOAT_128_REDUCE_SECOND_BARRIER 12
-#define INTERNAL_NISSA_MALLOC_FIRST_BARRIER 13
-#define INTERNAL_NISSA_MALLOC_SECOND_BARRIER 14
-#define INTERNAL_NISSA_FREE_FIRST_BARRIER 15
-#define INTERNAL_NISSA_FREE_SECOND_BARRIER 16
-#define BUFFERED_COMM_WAIT_BARRIER 17
-#define BUFFERED_COMM_LX_SENDING_BUF_FILL_BARRIER 18
-#define BUFFERED_COMM_EV_OR_OD_SENDING_BUF_FILL_BARRIER 19
-#define BUFFERED_COMM_EV_AND_OD_SENDING_BUF_FILL_BARRIER 20
-#define INTERNAL_VECTOR_RESET_FIRST_BARRIER 21
-#define INTERNAL_VECTOR_RESET_SECOND_BARRIER 22
-#define HMC_SCALE_BARRIER 23
-#define WILSON_STAPLE_BARRIER 24
-#define CONTRACT_BARRIER 25
-#define VECTOR_COPY_FIRST_BARRIER 26
-#define VECTOR_COPY_SECOND_BARRIER 27
-#define HOPPING_MATRIX_APPLICATION_BARRIER 28
-#define REMAP_BARRIER 29
-#define ATOMIC_FIRST_BARRIER 100
-#define ATOMIC_SECOND_BARRIER 101
 
 //////////////////////////////////////////////////////////////////////////////////////
 
 #define GET_THREAD_ID() int thread_id=omp_get_thread_num()
 
-#define THREAD_BARRIER_FORCE(a) thread_barrier(a,true)
+#ifdef THREAD_DEBUG
+ #define THREAD_BARRIER_FORCE() thread_barrier(__FILE__,__LINE__,true)
+ #define THREAD_BARRIER()       thread_barrier(__FILE__,__LINE__,false)
+#else
+ #define THREAD_BARRIER_FORCE() thread_barrier(true)
+ #define THREAD_BARRIER()       thread_barrier(false)
+#endif
 
 #define IS_MASTER_THREAD (!thread_id)
 
@@ -57,7 +33,7 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 #define THREAD_ATOMIC_EXEC(inst)					\
-  {thread_barrier(ATOMIC_FIRST_BARRIER);inst;thread_barrier(ATOMIC_SECOND_BARRIER);}
+  {THREAD_BARRIER();inst;THREAD_BARRIER();}
 
 //////////////////////////////////////////////////////////////////////////////////////
 

@@ -602,7 +602,7 @@ void define_local_momenta(momentum_t *k,double *k2,momentum_t *ktilde,double *kt
 THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_lx_conf, quad_su3*,lx_conf)
 {
   //we must ensure that nobody is using the conf
-  thread_barrier(ADDREM_STAGPHASES_FIRST_BARRIER);
+  THREAD_BARRIER();
  
   //work also on borders and edges if allocated and valid
   int ending=loc_vol;
@@ -633,7 +633,7 @@ THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_lx_conf, quad_su3*,lx_conf)
       if(d%2==1) su3_prod_double(lx_conf[ivol][0],lx_conf[ivol][0],-1);
     }
   
-  thread_barrier(ADDREM_STAGPHASES_SECOND_BARRIER);
+  THREAD_BARRIER();
 }}
 
 //return the index inside the 2^4 hypercube

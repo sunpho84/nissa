@@ -26,7 +26,7 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
   bi_complex diag[2]={{{+A,B},{+A,B}},{{-A,B},{-A,B}}};
   
   //wait that all the terms are put in place
-  thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
+  THREAD_BARRIER();
   
   NISSA_PARALLEL_LOOP(i,0,loc_volh)
     {

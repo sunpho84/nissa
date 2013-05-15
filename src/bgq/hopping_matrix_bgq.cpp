@@ -74,7 +74,7 @@ void bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill()
   GET_THREAD_ID();
   
   //T buffers might have been filled in another order
-  thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
+  THREAD_BARRIER();
   
   ///////////////////////// bw scattered T derivative (fw derivative)  ////////////////////////
   
@@ -143,7 +143,7 @@ void start_Wilson_hopping_matrix_bgq_binded_communications()
   bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill();
   
   //after the barrier, all buffers are filled and communications can start
-  thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
+  THREAD_BARRIER();
   
   //start buffered communications of scattered data to other nodes
   buffered_comm_start(buffered_lx_halfspincolor_comm);

@@ -98,7 +98,7 @@ void squared_staples_lx_conf_finish_communicating_lower_surface(quad_su3 *conf,i
   
   //copy the received forward border (stored in the second half of receiving buf) on its destination
   if(IS_MASTER_THREAD) memcpy(conf+loc_vol+bord_volh,((quad_su3*)nissa_recv_buf)+bord_volh,sizeof(quad_su3)*bord_volh);  
-  thread_barrier(WILSON_STAPLE_BARRIER);
+  THREAD_BARRIER();
 }
 
 // 4) compute backward staples to be sent to up nodes and send them
@@ -120,7 +120,7 @@ void squared_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_staples(
       }
   
   //wait that everything is computed
-  thread_barrier(WILSON_STAPLE_BARRIER);
+  THREAD_BARRIER();
   
   //copy in send buf, obtained scanning second half of each parallelized direction external border and
   //copying the three perpendicular links staple
@@ -197,7 +197,7 @@ void squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(squared_sta
 	    su3_copy(out[surflx_of_bordlx[ibord]][mu][inu],((quad_su3*)nissa_recv_buf)[ibord][mu]); //one contribution per linkin the border
 	}
   
-  thread_barrier(WILSON_STAPLE_BARRIER);
+  THREAD_BARRIER();
 }
 
 //compute squared staples using overlap between computation and communications, and avoiding using edges

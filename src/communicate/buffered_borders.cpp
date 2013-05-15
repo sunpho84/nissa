@@ -139,7 +139,7 @@ void buffered_comm_wait(buffered_comm_t &comm)
     }
   
   //all threads must wait
-  thread_barrier(BUFFERED_COMM_WAIT_BARRIER);
+  THREAD_BARRIER();
   
   //set communications as finished
   comm.comm_in_prog=0;
@@ -177,7 +177,7 @@ void fill_buffered_sending_buf_with_lx_vec(buffered_comm_t &comm,void *vec)
 	   comm.nbytes_per_site);
   
   //wait that all threads filled their portion
-  thread_barrier(BUFFERED_COMM_LX_SENDING_BUF_FILL_BARRIER);
+  THREAD_BARRIER();
 }
 
 //extract the information from receiving buffer and put them inside an lx vec
@@ -268,7 +268,7 @@ void fill_buffered_sending_buf_with_ev_or_od_vec(buffered_comm_t &comm,void *vec
 	   (char*)vec+surfeo_of_bordeo[eo][ibord]*comm.nbytes_per_site,comm.nbytes_per_site);
 
   //wait that all threads filled their portion
-  thread_barrier(BUFFERED_COMM_EV_OR_OD_SENDING_BUF_FILL_BARRIER);
+  THREAD_BARRIER();
 }
 
 //extract the information from receiving buffer and put them inside an even or odd vec
@@ -365,7 +365,7 @@ void fill_buffered_sending_buf_with_ev_and_od_vec(buffered_comm_t &comm,void **v
     }
   
   //wait that all threads filled their portion
-  thread_barrier(BUFFERED_COMM_EV_AND_OD_SENDING_BUF_FILL_BARRIER);
+  THREAD_BARRIER();
 }
 
 //extract the information from receiving buffer and put them inside an even or odd vec

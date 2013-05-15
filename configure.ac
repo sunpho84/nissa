@@ -83,7 +83,7 @@ AM_CONDITIONAL([BGQ],[test "$enable_bgq" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq... $enable_bgq])
 
 #bgq emulation mode
-AC_ARG_ENABLE(bgq_emu,
+AC_ARG_ENABLE(bgq-emu,
 	AS_HELP_STRING([--enable-bgq_emu],[Enable bgq_emu stuff (ony for BG/Q)]),
 	enable_bgq_emu="${enableval}",
 	enable_bgq_emu="no")
@@ -91,8 +91,8 @@ if test "$enable_bgq_emu" == "yes";then AC_DEFINE([BGQ_EMU],1,[Enable bgq_emu]) 
 AM_CONDITIONAL([BGQ_EMU],[test "$enable_bgq_emu" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq_emu... $enable_bgq_emu])
 
-#bgq
-AC_ARG_ENABLE(exp_bgq,
+#experimental bgq
+AC_ARG_ENABLE(exp-bgq,
 	AS_HELP_STRING([--enable-exp-bgq],[Enable experimental bgq stuff (ony for BG/Q)]),
 	enable_exp_bgq="${enableval}",
 	enable_exp_bgq="no")
@@ -108,6 +108,15 @@ AC_ARG_ENABLE(reproducible-run,
 if test "$enable_reproducible_run" == "yes";then AC_DEFINE([REPRODUCIBLE_RUN],1,[Enable reproducible run]) fi
 AM_CONDITIONAL([REPRODUCIBLE_RUN],[test "$enable_reproducible_run" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling reproducibile run... $enable_reproducible_run])
+
+#thread debug
+AC_ARG_ENABLE(thread-debug,
+	AS_HELP_STRING([--enable-thread-debug],[Enable thread debugging]),
+	enable_thread_debug="${enableval}",
+	enable_thread_debug="no")
+if test "$enable_thread_debug" == "yes";then AC_DEFINE([THREAD_DEBUG],1,[Enable thread_debug]) fi
+AM_CONDITIONAL([THREAD_DEBUG],[test "$enable_thread_debug" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling thread debug... $enable_thread_debug])
 
 #overwrite default flags
 if test x${ac_cv_env_CXXFLAGS_set} != xset; then

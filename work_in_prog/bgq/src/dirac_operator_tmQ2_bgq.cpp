@@ -29,7 +29,7 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
   bi_complex diag[2]={{{+A,B},{+A,B}},{{-A,B},{-A,B}}};
   
   //wait that all the terms are put in place
-  thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
+  THREAD_BARRIER();
   
   NISSA_PARALLEL_LOOP(i,0,loc_volh)
     {
@@ -72,7 +72,7 @@ THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, dou
   ((bi_halfspincolor*)nissa_recv_buf)[ibord][0][0][0][0]=-2;
   ((bi_halfspincolor*)nissa_send_buf)[ibord][0][0][0][0]=-3;
   }
-  thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
+  THREAD_BARRIER();
   */  
   ////////////////////////////////////////// core /////////////////////////////////////////
   
@@ -93,7 +93,7 @@ THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, dou
     master_printf("i %d, %16.16lg\n",i,temp[ib*8+i][0][0][ivn][0]);
     
     //summ the 8 components of the output
-    thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
+    THREAD_BARRIER();
     NISSA_PARALLEL_LOOP(X,0,loc_volh)
     {
     bi_spincolor t;
@@ -103,7 +103,7 @@ THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, dou
     BI_HALFSPINCOLOR_TO_HALFSPINCOLOR(out[loclx_of_bgqlx[X]],out[loclx_of_bgqlx[X]+loc_volh],t);
     }
     
-    thread_barrier(HOPPING_MATRIX_APPLICATION_BARRIER);
+    THREAD_BARRIER();
     
     master_printf("tot: %lg\n",out[io][0][0][0]);
   */

@@ -187,7 +187,7 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_bgqlx, bi_oct_su3*,out, quad_su3*,in)
 	    tot_fixed++;*/
 	}
   
-  thread_barrier(REMAP_BARRIER);
+  THREAD_BARRIER();
   
   /*debug
     if(tot_fixed!=8*loc_vol) crash("fixed only %d when expectd %d",tot_fixed,8*loc_vol);
@@ -207,7 +207,7 @@ THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_bgqlx, bi_spincolor*,out, spincol
   NISSA_PARALLEL_LOOP(ivol_lx,0,loc_volh)
     SPINCOLOR_TO_BI_SPINCOLOR(out[bgqlx_of_loclx[ivol_lx]],in[ivol_lx+vn*loc_volh],vn);
 
-  thread_barrier(REMAP_BARRIER);
+  THREAD_BARRIER();
 }}
 //reverse
 THREADABLE_FUNCTION_2ARG(bgqlx_spincolor_remap_to_lx, spincolor*,out, bi_spincolor*,in)
@@ -217,7 +217,7 @@ THREADABLE_FUNCTION_2ARG(bgqlx_spincolor_remap_to_lx, spincolor*,out, bi_spincol
   NISSA_PARALLEL_LOOP(ivol_bgqlx,0,loc_volh)
     BI_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_bgqlx[ivol_bgqlx]],out[loc_volh+loclx_of_bgqlx[ivol_bgqlx]],in[ivol_bgqlx]);
   
-  thread_barrier(REMAP_BARRIER);
+  THREAD_BARRIER();
 }}
 
 //set bgq geometry

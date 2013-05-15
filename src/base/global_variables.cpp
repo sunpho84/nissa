@@ -129,7 +129,10 @@ EXTERN coords plan_rank,line_rank,line_coord_rank;
 EXTERN int nissa_grid_inited;
 
 //thread
-EXTERN int glb_barr_id;
+#ifdef THREAD_DEBUG
+EXTERN int glb_barr_line;
+EXTERN char *glb_barr_file;
+#endif
 #ifndef ONLY_INSTANTIATION
 int thread_pool_locked=true,nthreads=1;
 #else
