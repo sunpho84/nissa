@@ -333,7 +333,7 @@ union evol_pars_t
 };
 
 //out and in buffer
-struct buffered_comm_t
+struct comm_t
 {
   //bgq specific structures, in alternative to ordinary MPI
 #ifdef SPI

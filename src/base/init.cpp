@@ -517,42 +517,41 @@ void init_grid(int T,int L)
   set_bgq_geometry();
 #endif
   
-  set_lx_bord_senders_and_receivers(MPI_LX_SU3_BORDS_SEND,MPI_LX_SU3_BORDS_RECE,&MPI_SU3);
-  set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,&MPI_SU3);
-  set_lx_bord_senders_and_receivers(MPI_LX_QUAD_SU3_BORDS_SEND,MPI_LX_QUAD_SU3_BORDS_RECE,&MPI_QUAD_SU3);
-  set_lx_edge_senders_and_receivers(MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
-  set_lx_bord_senders_and_receivers(MPI_LX_SPIN_BORDS_SEND,MPI_LX_SPIN_BORDS_RECE,&MPI_SPIN);
-  set_lx_bord_senders_and_receivers(MPI_LX_COLOR_BORDS_SEND,MPI_LX_COLOR_BORDS_RECE,&MPI_COLOR);
-  set_lx_bord_senders_and_receivers(MPI_LX_SPINSPIN_BORDS_SEND,MPI_LX_SPINSPIN_BORDS_RECE,&MPI_SPINSPIN);
-  set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_BORDS_SEND,MPI_LX_SPINCOLOR_BORDS_RECE,&MPI_SPINCOLOR);
-  set_lx_bord_senders_and_receivers(MPI_LX_SPINCOLOR_128_BORDS_SEND,MPI_LX_SPINCOLOR_128_BORDS_RECE,&MPI_SPINCOLOR_128);
 
-  if(nissa_use_eo_geom)
-    {
-      set_eo_bord_senders_and_receivers(MPI_EO_QUAD_SU3_BORDS_SEND_TXY,MPI_EV_QUAD_SU3_BORDS_SEND_Z,MPI_OD_QUAD_SU3_BORDS_SEND_Z,MPI_EO_QUAD_SU3_BORDS_RECE,&MPI_QUAD_SU3);
-      set_eo_bord_senders_and_receivers(MPI_EO_COLOR_BORDS_SEND_TXY,MPI_EV_COLOR_BORDS_SEND_Z,MPI_OD_COLOR_BORDS_SEND_Z,MPI_EO_COLOR_BORDS_RECE,&MPI_COLOR);
-      set_eo_bord_senders_and_receivers(MPI_EO_SPINCOLOR_BORDS_SEND_TXY,MPI_EV_SPINCOLOR_BORDS_SEND_Z,MPI_OD_SPINCOLOR_BORDS_SEND_Z,MPI_EO_SPINCOLOR_BORDS_RECE,&MPI_SPINCOLOR);
-      set_eo_bord_senders_and_receivers(MPI_EO_SPINCOLOR_128_BORDS_SEND_TXY,MPI_EV_SPINCOLOR_128_BORDS_SEND_Z,MPI_OD_SPINCOLOR_128_BORDS_SEND_Z,MPI_EO_SPINCOLOR_128_BORDS_RECE,&MPI_SPINCOLOR_128);
-      set_eo_bord_senders_and_receivers(MPI_EO_SPIN_BORDS_SEND_TXY,MPI_EV_SPIN_BORDS_SEND_Z,MPI_OD_SPIN_BORDS_SEND_Z,MPI_EO_SPIN_BORDS_RECE,&MPI_SPIN);
-      set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
-    }
-
-  /////////////////////////////////////start buffered communicators /////////////////////////////////
+  ///////////////////////////////////// start communicators /////////////////////////////////
   
-  nbuffered_comm_allocated=0;
+  ncomm_allocated=0;
   
 #ifdef SPI
   init_spi();
 #endif
     
-  //setup all needed buffered communicators
-  set_lx_buffered_comm(buffered_lx_spincolor_comm,sizeof(spincolor));
-  set_lx_buffered_comm(buffered_lx_halfspincolor_comm,sizeof(halfspincolor));
-  set_lx_buffered_comm(buffered_lx_colorspinspin_comm,sizeof(colorspinspin));
-  set_lx_buffered_comm(buffered_lx_su3spinspin_comm,sizeof(su3spinspin));
-  set_lx_buffered_comm(buffered_lx_quad_su3_comm,sizeof(quad_su3));
-  set_eo_buffered_comm(buffered_eo_color_comm,sizeof(color));
-  set_eo_buffered_comm(buffered_eo_quad_su3_comm,sizeof(quad_su3));
+  //setup all lx borders communicators
+  set_lx_comm(lx_su3_comm,sizeof(su3));
+  set_lx_comm(lx_quad_su3_comm,sizeof(quad_su3));
+  set_lx_comm(lx_spin_comm,sizeof(spin));
+  set_lx_comm(lx_color_comm,sizeof(color));
+  set_lx_comm(lx_spinspin_comm,sizeof(spinspin));
+  set_lx_comm(lx_spincolor_comm,sizeof(spincolor));
+  set_lx_comm(lx_spincolor_128_comm,sizeof(spincolor_128));
+  set_lx_comm(lx_halfspincolor_comm,sizeof(halfspincolor));
+  set_lx_comm(lx_colorspinspin_comm,sizeof(colorspinspin));
+  set_lx_comm(lx_su3spinspin_comm,sizeof(su3spinspin));
+
+  //setup all lx edges communicators
+  set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,&MPI_SU3);
+  set_lx_edge_senders_and_receivers(MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
+
+  if(nissa_use_eo_geom)
+    {
+      set_eo_comm(eo_spin_comm,sizeof(spin));
+      set_eo_comm(eo_spincolor_comm,sizeof(spincolor));
+      set_eo_comm(eo_spincolor_128_comm,sizeof(spincolor_128));
+      set_eo_comm(eo_color_comm,sizeof(color));
+      set_eo_comm(eo_quad_su3_comm,sizeof(quad_su3));
+      
+      set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
+    }
 
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());

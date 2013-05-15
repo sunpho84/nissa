@@ -1,38 +1,11 @@
 #ifndef COMMUNICATE_H
 #define COMMUNICATE_H
 
-#include "buffered_borders.h"
+#include "borders.h"
 #include "edges.h"
-#include "unbuffered_borders.h"
 
 #include "../base/global_variables.h"
-
-inline void communicate_ev_or_od_borders(color *s,int eo)
-{buffered_communicate_ev_or_od_borders(s,buffered_eo_color_comm,eo);}
-inline void buffered_start_communicating_ev_or_od_color_borders(color *s,int eo)
-{buffered_start_communicating_ev_or_od_borders(buffered_eo_color_comm,s,eo);}
-inline void buffered_finish_communicating_ev_or_od_color_borders(color *s)
-{buffered_finish_communicating_ev_or_od_borders(s,buffered_eo_color_comm);}
-
-inline void communicate_lx_spincolor_borders(spincolor *s)
-{buffered_communicate_lx_borders(s,buffered_lx_spincolor_comm);}
-inline void buffered_start_communicating_lx_spincolor_borders(spincolor *s)
-{buffered_start_communicating_lx_borders(buffered_lx_spincolor_comm,s);}
-inline void buffered_finish_communicating_lx_spincolor_borders(spincolor *s)
-{buffered_finish_communicating_lx_borders(s,buffered_lx_spincolor_comm);}
-
-inline void communicate_lx_colorspinspin_borders(colorspinspin *s)
-{buffered_communicate_lx_borders(s,buffered_lx_colorspinspin_comm);}
-inline void buffered_start_communicating_lx_colorspinspin_borders(colorspinspin *s)
-{buffered_start_communicating_lx_borders(buffered_lx_colorspinspin_comm,s);}
-inline void buffered_finish_communicating_lx_colorspinspin_borders(colorspinspin *s)
-{buffered_finish_communicating_lx_borders(s,buffered_lx_colorspinspin_comm);}
-
-inline void communicate_lx_su3spinspin_borders(su3spinspin *s)
-{buffered_communicate_lx_borders(s,buffered_lx_su3spinspin_comm);}
-
-inline void communicate_lx_quad_su3_borders(quad_su3 *data)
-{buffered_communicate_lx_borders(data,buffered_lx_quad_su3_comm);}
+#include "../base/macros.h"
 
 /*
   Order in memory of borders for a 3^4 lattice.
@@ -86,5 +59,42 @@ inline void communicate_lx_quad_su3_borders(quad_su3 *data)
  --------------------------------------------------------------------------------------------------------------------- 
 
 */
+
+#define DEFINE_EO_BORDERS_ROUTINES(TYPE)				\
+  inline void NAME3(communicate_ev_and_od,TYPE,borders)(TYPE **s)	\
+  {communicate_ev_and_od_borders((void**)s,NAME3(lx,TYPE,comm));}	\
+  inline void NAME3(communicate_ev_or_od,TYPE,borders)(TYPE *s,int eo)	\
+  {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),eo);}		\
+  inline void NAME3(start_communicating_ev_or_od,TYPE,borders)(TYPE *s,int eo) \
+  {start_communicating_ev_or_od_borders(NAME3(eo,TYPE,comm),s,eo);}	\
+  inline void NAME3(finish_communicating_ev_or_od,TYPE,borders)(TYPE *s) \
+  {finish_communicating_ev_or_od_borders(s,NAME3(eo,TYPE,comm));}	\
+  inline void NAME3(communicate_ev,TYPE,borders)(TYPE *s)		\
+  {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),EVN);}		\
+  inline void NAME3(communicate_od,TYPE,borders)(TYPE *s)		\
+  {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),ODD);}
+
+#define DEFINE_LX_BORDERS_ROUTINES(TYPE)		\
+  inline void NAME3(communicate_lx,TYPE,borders)(TYPE *s)	\
+  {communicate_lx_borders(s,NAME3(lx,TYPE,comm));}		\
+  inline void NAME3(start_communicating_lx,TYPE,borders)(TYPE *s)	\
+  {start_communicating_lx_borders(NAME3(lx,TYPE,comm),s);}		\
+  inline void NAME3(finish_communicating_lx,TYPE,borders)(TYPE *s)	\
+  {finish_communicating_lx_borders(s,NAME3(lx,TYPE,comm));}
+
+#define DEFINE_BORDERS_ROUTINES(TYPE)		\
+  DEFINE_LX_BORDERS_ROUTINES(TYPE)		\
+  DEFINE_EO_BORDERS_ROUTINES(TYPE)
+
+DEFINE_BORDERS_ROUTINES(spin)
+DEFINE_BORDERS_ROUTINES(color)
+DEFINE_BORDERS_ROUTINES(spincolor)
+DEFINE_BORDERS_ROUTINES(spincolor_128)
+DEFINE_BORDERS_ROUTINES(halfspincolor)
+DEFINE_BORDERS_ROUTINES(colorspinspin)
+DEFINE_BORDERS_ROUTINES(spinspin)
+DEFINE_BORDERS_ROUTINES(su3spinspin)
+DEFINE_BORDERS_ROUTINES(su3)
+DEFINE_BORDERS_ROUTINES(quad_su3)
 
 #endif

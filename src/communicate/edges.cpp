@@ -4,7 +4,7 @@
 
 #include <mpi.h>
 
-#include "unbuffered_borders.h"
+#include "communicate.h"
 
 #include "../base/debug.h"
 #include "../base/global_variables.h"
@@ -33,10 +33,10 @@ then follows all the i-j+ edges, the i+j- and after the i+j+
 */
 
 //Send the edges of lx vector
-void communicate_lx_edges(char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *MPI_BORDS_RECE,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
+void communicate_lx_edges(char *data,comm_t &bord_comm,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
 {
   check_edges_allocated(data);
-  communicate_lx_borders(data,MPI_BORDS_SEND,MPI_BORDS_RECE,nbytes_per_site);
+  communicate_lx_borders(data,bord_comm);
   
   if(!check_edges_valid(data))
     {
@@ -97,21 +97,21 @@ void communicate_lx_edges(char *data,MPI_Datatype *MPI_BORDS_SEND,MPI_Datatype *
 
 //Send the edges u su3: usefuls for hyp
 void communicate_lx_su3_edges(su3 *u)
-{communicate_lx_edges((char*)u,MPI_LX_SU3_BORDS_SEND,MPI_LX_SU3_BORDS_RECE,MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,sizeof(su3));}
+{communicate_lx_edges((char*)u,lx_su3_comm,MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,sizeof(su3));}
 
 //Send the edges of the gauge configuration
 void communicate_lx_quad_su3_edges(quad_su3 *conf)
-{communicate_lx_edges((char*)conf,MPI_LX_QUAD_SU3_BORDS_SEND,MPI_LX_QUAD_SU3_BORDS_RECE,MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
+{communicate_lx_edges((char*)conf,lx_quad_su3_comm,MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
 
 ///////////////////////////////////////////// e/o geometry /////////////////////////////////////////
 
 //Send the edges of eo vector
-void communicate_eo_edges(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Datatype *MPI_EV_BORDS_SEND_Z,MPI_Datatype *MPI_OD_BORDS_SEND_Z,MPI_Datatype *MPI_EO_BORDS_RECE,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
+void communicate_eo_edges(char **data,comm_t &bord_comm,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
 {
   if(!check_edges_valid(data[EVN])||!check_edges_valid(data[ODD]))
     {
       //first make sure that borders are communicated
-      communicate_eo_borders(data,MPI_EO_BORDS_SEND_TXY,MPI_EV_BORDS_SEND_Z,MPI_OD_BORDS_SEND_Z,MPI_EO_BORDS_RECE,nbytes_per_site);
+      communicate_ev_and_od_borders((void**)data,bord_comm);
 	  
       GET_THREAD_ID();
       
@@ -170,4 +170,4 @@ void communicate_eo_edges(char **data,MPI_Datatype *MPI_EO_BORDS_SEND_TXY,MPI_Da
 
 //Send the edges of the gauge configuration
 void communicate_eo_quad_su3_edges(quad_su3 **conf)
-{communicate_eo_edges((char**)conf,MPI_EO_QUAD_SU3_BORDS_SEND_TXY,MPI_EV_QUAD_SU3_BORDS_SEND_Z,MPI_OD_QUAD_SU3_BORDS_SEND_Z,MPI_EO_QUAD_SU3_BORDS_RECE,MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
+{communicate_eo_edges((char**)conf,eo_quad_su3_comm,MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}

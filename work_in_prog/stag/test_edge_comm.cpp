@@ -29,7 +29,7 @@ int main(int narg,char **arg)
   ///////////////////////////////////////
   
   communicate_lx_quad_su3_borders(lx_conf);
-  communicate_eo_quad_su3_borders(eo_conf);
+  communicate_ev_and_od_quad_su3_borders(eo_conf);
   
   for(int ibulk=0;ibulk<loc_vol;ibulk++)
     for(int vers=0;vers<2;vers++)

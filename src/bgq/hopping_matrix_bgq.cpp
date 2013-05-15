@@ -4,7 +4,7 @@
 
 #include "../base/global_variables.h"
 #include "../base/thread_macros.h"
-#include "../communicate/buffered_borders.h"
+#include "../communicate/borders.h"
 #include "../new_types/complex.h"
 #include "../new_types/new_types_definitions.h"
 #include "../routines/thread.h"
@@ -145,8 +145,8 @@ void start_Wilson_hopping_matrix_bgq_binded_communications()
   //after the barrier, all buffers are filled and communications can start
   THREAD_BARRIER();
   
-  //start buffered communications of scattered data to other nodes
-  buffered_comm_start(buffered_lx_halfspincolor_comm);
+  //start communications of scattered data to other nodes
+  comm_start(lx_halfspincolor_comm);
 }
 
 //finish the communications and put in place the communicated data
@@ -155,7 +155,7 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
   GET_THREAD_ID();
   
   //wait communications end
-  buffered_comm_wait(buffered_lx_halfspincolor_comm);
+  comm_wait(lx_halfspincolor_comm);
   
   //T bw border (bw derivative): data goes to VN 0
   if(paral_dir[0])
