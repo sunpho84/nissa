@@ -161,7 +161,7 @@ void init_spi()
 /////////////////////////////////////// single communicators ///////////////////////////////////
 
 //install spi descriptors, needed for communticaions
-void spi_descriptor_setup(buffered_comm_t &in)
+void spi_descriptor_setup(comm_t &in)
 {
   posix_memalign((void**)&in.descriptors,64,8*sizeof(MUHWI_Descriptor_t));
   CRASH_IF_NOT_ALIGNED(in.descriptors,64);
@@ -197,7 +197,7 @@ void spi_descriptor_setup(buffered_comm_t &in)
 }
 
 //start spi communication
-void spi_comm_start(buffered_comm_t &in,int *dir_comm,int tot_size)
+void spi_comm_start(comm_t &in,int *dir_comm,int tot_size)
 {
   //reset the counter and wait that all have reset
   spi_global_barrier();
@@ -216,7 +216,7 @@ void spi_comm_start(buffered_comm_t &in,int *dir_comm,int tot_size)
 }
 
 //wait communication end
-void spi_comm_wait(buffered_comm_t &in)
+void spi_comm_wait(comm_t &in)
 {
   //wait to send everything
   int wait=1;
@@ -237,7 +237,7 @@ void spi_comm_wait(buffered_comm_t &in)
 }
 
 //free communicator (one day unset also them)
-void spi_descriptor_unset(buffered_comm_t &in)
+void spi_descriptor_unset(comm_t &in)
 {
   free(in.descriptors);
 }
