@@ -16,5 +16,6 @@ void fprintf_friendly_filesize(FILE *fout,int quant);
 void fprintf_friendly_units(FILE *fout,int quant,int orders,const char *units);
 void take_last_characters(char *out,const char *in,int size);
 int count_file_lines(const char *path);
+int get_file_size(const char *path);
 
 #endif

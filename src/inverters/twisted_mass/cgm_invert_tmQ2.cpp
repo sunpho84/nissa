@@ -52,36 +52,36 @@ void inv_tmQ2_RL_cgm(spincolor **sol,quad_su3 *conf,double kappa,int RL,double *
 {
   double m2[nmass];
   for(int imass=0;imass<nmass;imass++) m2[imass]=m[imass]*m[imass];
-  inv_tmQ2_m2_RL_cgm(sol,conf,kappa,RL,m2,nmass,niter_max,req_res,source);
+
+#if defined BGQ && defined EXP_BGQ
+  if(RL==0)
+    {
+      //bufferize and remap
+      bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
+      lx_conf_remap_to_bgqlx(bi_conf,conf);
+      bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh,bi_spincolor);
+      lx_spincolor_remap_to_bgqlx(bi_source,source);
+      bi_spincolor *bi_sol[nmass];
+      for(int imass=0;imass<nmass;imass++)
+	bi_sol[imass]=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
+      
+      inv_tmQ2_m2_cgm_bgq(bi_sol,bi_conf,kappa,m2,nmass,niter_max,req_res,bi_source);
+      
+      //unmap and free
+      for(int imass=0;imass<nmass;imass++)
+	{
+	  bgqlx_spincolor_remap_to_lx(sol[imass],bi_sol[imass]);
+	  nissa_free(bi_sol[imass]);
+	}
+      nissa_free(bi_source);
+      nissa_free(bi_conf);
+    }
+  else
+#endif
+    inv_tmQ2_m2_RL_cgm(sol,conf,kappa,RL,m2,nmass,niter_max,req_res,source);
 }
 void inv_tmQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
-{
-#if defined BGQ && defined EXP_BGQ
-  //bufferize and remap
-  bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
-  lx_conf_remap_to_bgqlx(bi_conf,conf);
-  bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh,bi_spincolor);
-  lx_spincolor_remap_to_bgqlx(bi_source,source);
-  bi_spincolor *bi_sol[nmass];
-  for(int imass=0;imass<nmass;imass++)
-    bi_sol[imass]=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
-  double m2[nmass];
-  for(int imass=0;imass<nmass;imass++) m2[imass]=m[imass]*m[imass];
-  
-  inv_tmQ2_m2_cgm_bgq(bi_sol,bi_conf,kappa,m2,nmass,niter_max,req_res,bi_source);
-  
-  //unmap and free
-  for(int imass=0;imass<nmass;imass++)
-    {
-      bgqlx_spincolor_remap_to_lx(sol[imass],bi_sol[imass]);
-      nissa_free(bi_sol[imass]);
-    }
-  nissa_free(bi_source);
-  nissa_free(bi_conf);  
-#else
-  inv_tmQ2_RL_cgm(sol,conf,kappa,0,m,nmass,niter_max,req_res,source);
-#endif
-}
+{inv_tmQ2_RL_cgm(sol,conf,kappa,0,m,nmass,niter_max,req_res,source);}
 void inv_tmQ2_left_cgm(spincolor **sol,quad_su3 *conf,double kappa,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
 {inv_tmQ2_RL_cgm(sol,conf,kappa,1,m,nmass,niter_max,req_res,source);}
 
