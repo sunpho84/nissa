@@ -90,6 +90,8 @@
 #include "new_types/su3.h"
 
 #include "operations/contract/mesons_2pts.h"
+#include "operations/contract/mesons_eight.h"
+#include "operations/contract/site_contract.h"
 #include "operations/contract/stag.h"
 #include "operations/covariant_derivative.h"
 #include "operations/fft.h"
