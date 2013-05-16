@@ -2,24 +2,18 @@
  #include "config.h"
 #endif
 
-#include "../base/global_variables.h"
-#include "../base/macros.h"
-#include "../base/random.h"
-#include "../base/vectors.h"
-#include "../geometry/geometry_eo.h"
-#include "../geometry/geometry_lx.h"
-#include "../hmc/backfield.h"
-#include "../inverters/staggered/cg_invert_stD.h"
-#include "../linalgs/linalgs.h"
-#include "../new_types/complex.h"
-#include "../new_types/su3.h"
-#include "../new_types/new_types_definitions.h"
-#include "../routines/ios.h"
-#include "../routines/mpi.h"
-#include "../routines/thread.h"
-
-#include "su3_paths/plaquette.h"
-#include "../IO/reader.h"
+#include "../../base/global_variables.h"
+#include "../../base/random.h"
+#include "../../base/vectors.h"
+#include "../../geometry/geometry_eo.h"
+#include "../../hmc/backfield.h"
+#include "../../new_types/complex.h"
+#include "../../inverters/staggered/cg_invert_stD.h"
+#include "../../linalgs/linalgs.h"
+#include "../../new_types/su3.h"
+#include "../../routines/ios.h"
+#include "../../routines/mpi.h"
+#include "../../routines/thread.h"
 
 //get a propagator
 THREADABLE_FUNCTION_6ARG(get_propagator, color**,prop, quad_su3**,conf, quad_u1**,u1b, double,m, double,residue, color**,source)

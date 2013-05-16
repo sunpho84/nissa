@@ -14,7 +14,6 @@
 #include "../new_types/complex.h"
 #include "../new_types/spin.h"
 #include "../new_types/su3.h"
-#include "../operations/contract.h"
 #include "../routines/ios.h"
 
 #include "checksum.h"

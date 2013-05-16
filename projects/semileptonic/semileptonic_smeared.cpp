@@ -187,7 +187,7 @@ void contract_with_source(complex *corr,prop_type *S1,int *list_op,prop_type *so
 #ifdef POINT_SOURCE_VERSION
   trace_g_ccss_dag_g_ccss(corr,t1,S1,t2,source,ncontr_2pts);
 #else
-  trace_g_sdag_g_s(corr,t1,S1,t2,source,ncontr_2pts);
+  trace_g_css_dag_g_css(corr,t1,S1,t2,source,ncontr_2pts);
 #endif
 }
 

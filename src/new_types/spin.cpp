@@ -320,3 +320,32 @@ void unsafe_dirac_prod_spin(spin out,dirac_matr *m,spin in)
 {for(int id1=0;id1<4;id1++) safe_complex_prod(out[id1],m->entr[id1],in[m->pos[id1]]);}
 void safe_dirac_prod_spin(spin out,dirac_matr *m,spin in)
 {spin tmp;unsafe_dirac_prod_spin(tmp,m,in);spin_copy(out,tmp);}
+
+//Rotate left and right by (1+-ig5)/sqrt(2)
+//We distinguish for types of rotations, ir=rsink*2+rsource
+//We divide the spinspin into 4 blocks, according to id<2
+// -------------------------------
+// | div |  0  |  1  |  2  |  3  |
+// -------------------------------
+// | 0 1 | + 1 | 1 + | 1 - | - 1 |
+// | 2 3 | 1 - | - 1 | + 1 | 1 + |
+// -------------------------------
+// so just have to specify which is the block which rotate as +-i
+void rotate_spinspin_to_physical_basis(spinspin s,int rsi,int rso)
+{
+  const int list_prb[4]={0,1,2,3},list_mrb[4]={3,2,1,0}; //plus and minus rotating blocks
+  const int so_shft[4]={0,2,0,2},si_shft[4]={0,0,2,2};   //start of dirac indexes defining blocks
+  
+  int ir=rsi*2+rso,prb=list_prb[ir],mrb=list_mrb[ir];
+  
+  for(int dso=0;dso<2;dso++)
+    for(int dsi=0;dsi<2;dsi++)
+      {
+        int pso=dso+so_shft[prb],psi=dsi+si_shft[prb];
+        int mso=dso+so_shft[mrb],msi=dsi+si_shft[mrb];
+        
+        // rotation with +,-
+        assign_complex_prod_i(s[pso][psi]);
+        assign_complex_prod_minus_i(s[mso][msi]);
+      }
+}

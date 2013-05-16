@@ -213,6 +213,7 @@ void start_communicating_lx_borders(comm_t &comm,void *vec)
       
       //fill the communicator buffer, start the communication and take time
       fill_sending_buf_with_lx_vec(comm,vec);
+      comm_start(comm);
       STOP_COMMUNICATIONS_TIMING();
     }
 }

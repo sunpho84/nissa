@@ -125,8 +125,9 @@ nissa_headers=src/base/close.h \
 	src/new_types/read_new_types.h \
 	src/new_types/spin.h \
 	src/new_types/su3.h \
-	src/operations/contract.h \
-	src/operations/contract_stag.h \
+	src/operations/contract/mesons_2pts.h \
+	src/operations/contract/stag.h \
+	src/operations/covariant_derivative.h \
 	src/operations/fft.h \
 	src/operations/fourier_transform.h \
 	src/operations/gauge_fixing.h \
@@ -225,8 +226,9 @@ nissa_source_files=src/base/close.cpp \
 	src/new_types/read_new_types.cpp \
 	src/new_types/spin.cpp \
 	src/new_types/su3.cpp \
-	src/operations/contract.cpp \
-	src/operations/contract_stag.cpp \
+	src/operations/contract/mesons_2pts.cpp \
+	src/operations/contract/stag.cpp \
+	src/operations/covariant_derivative.cpp \
 	src/operations/fft.cpp \
 	src/operations/fourier_transform.cpp \
 	src/operations/gauge_fixing.cpp \
@@ -267,9 +269,9 @@ bin_PROGRAMS=\
 	projects/semileptonic/test_proj \
 	projects/semileptonic/semileptonic_smeared \
 	projects/semileptonic/semileptonic_smeared_point_source \
-	projects/eight_BK/smeared_BK_all_in_one \
 	tools/unitarity_check/unitarity_check
 
+#	projects/eight_BK/smeared_BK_all_in_one 
 #	projects/semileptonic/test 
 #	projects/static_potential/compute_potential
 
@@ -277,7 +279,7 @@ bin_PROGRAMS=\
 projects_generate_confs_generate_stag_SOURCES=projects/generate_confs/generate_stag.cpp $(extra_headers)
 
 #program to compute BK
-projects_eight_BK_smeared_BK_all_in_one_SOURCES=projects/eight_BK/smeared_BK_all_in_one.cpp $(extra_headers)
+#projects_eight_BK_smeared_BK_all_in_one_SOURCES=projects/eight_BK/smeared_BK_all_in_one.cpp $(extra_headers)
 
 #program for semileptonic smeared 2 and 3 points
 projects_semileptonic_semileptonic_smeared_SOURCES=projects/semileptonic/semileptonic_smeared.cpp $(extra_headers)
