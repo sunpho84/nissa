@@ -60,4 +60,6 @@ void unsafe_spinspin_prod_idouble(spinspin a,spinspin b,double c);
 void unsafe_spinspin_prod_spin(spin out,spinspin a,spin b);
 void unsafe_spinspin_prod_spinspin(spinspin out,spinspin a,spinspin b);
 void unsafe_spinspin_prod_spinspin_dag(spinspin out,spinspin a,spinspin b);
+void rotate_spinspin_to_physical_basis(spinspin s,int rsi,int rso);
+
 #endif

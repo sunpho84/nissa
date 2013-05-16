@@ -1,7 +1,6 @@
 #ifndef _CONTRACT_H
 #define _CONTRACT_H
 
-void lot_of_mesonic_contractions(complex *glb_contr,int **op,int ncontr,colorspinspin **S0,colorspinspin **S1,intpair npr,intpair *pr_combo,int npr_combo,int twall);
 void print_contraction_to_file(FILE *fout,int op1,int op2,complex *contr,int twall,const char *tag,double norm);
 void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex *contr,int twall,const char *tag,double norm);
 void rotate_spinspin_to_physical_basis(spinspin s,int rsi,int rso);
