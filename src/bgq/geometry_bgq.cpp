@@ -233,6 +233,12 @@ THREADABLE_FUNCTION_2ARG(bgqlx_spincolor_remap_to_lx, spincolor*,ext_out, bi_spi
 //set bgq geometry
 void set_bgq_geometry()
 {
+  if(!nissa_eo_geom_inited)
+    {
+      if(!nissa_use_eo_geom) crash("eo geometry must be enabled in order to use bgq one");
+      crash("initialize eo_geometry before bgq one");
+    }
+  
   define_bgq_lx_ordering();
 
   //allocate a temporary vector to apply hopping matrix

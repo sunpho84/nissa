@@ -6,6 +6,9 @@
 /* Enable bgq_emu */
 #undef BGQ_EMU
 
+/* Enable comm_bench */
+#undef COMM_BENCH
+
 /* Flags passed to configure */
 #undef CONFIG_FLAGS
 

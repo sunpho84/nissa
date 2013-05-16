@@ -36,7 +36,9 @@ void init_nissa(int narg,char **arg)
   int provided;
   MPI_Init_thread(&narg,&arg,MPI_THREAD_SERIALIZED,&provided);
   tot_nissa_time=-take_time();
+#ifdef COMM_BENCH
   tot_nissa_comm_time=0;
+#endif
   verb_call=0;
   
   //get the number of rank and the id of the local one

@@ -55,7 +55,7 @@ void rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_st
         }
 
   //start communication of lower surf to backward nodes
-  if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+  START_COMMUNICATIONS_TIMING();
   int dir_comm[8]={0,0,0,0,1,1,1,1},tot_size=bord_volh*sizeof(quad_su3);
   comm_start(lx_quad_su3_comm,dir_comm,tot_size);
 }
@@ -81,9 +81,9 @@ void rectangular_staples_lx_conf_compute_non_fw_surf_fw_staples(rectangular_stap
 // 3) finish communication of lower surface fw squared staples
 void rectangular_staples_lx_conf_finish_communicating_lower_surface_fw_squared_staples(squared_staples_t *sq_staples,int thread_id)
 {
-  if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
   comm_wait(lx_quad_su3_comm);
-  
+  STOP_COMMUNICATIONS_TIMING();
+ 
   //copy the received forward border (stored in the second half of receiving buf) to its destination
   for(int nu=0;nu<4;nu++) //border and staple direction
     if(paral_dir[nu])
@@ -135,7 +135,7 @@ void rectangular_staples_lx_conf_compute_and_start_communicating_fw_surf_bw_stap
 	}
   
   //start communication of fw surf backward staples to forward nodes
-  if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+  START_COMMUNICATIONS_TIMING();
   int dir_comm[8]={1,1,1,1,0,0,0,0},tot_size=bord_volh*sizeof(quad_su3);
   comm_start(lx_quad_su3_comm,dir_comm,tot_size);
 }
@@ -181,9 +181,9 @@ void rectangular_staples_lx_conf_compute_fw_surf_fw_staples(rectangular_staples_
 // 7) finish communication of fw_surf bw staples
 void rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(rectangular_staples_t *out,int thread_id)
 {
-  if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
   comm_wait(lx_quad_su3_comm);
-
+  STOP_COMMUNICATIONS_TIMING();
+  
   //copy the received backward staples (stored on first half of receiving buf) on bw_surf sites
   for(int nu=0;nu<4;nu++) //staple and fw bord direction
     if(paral_dir[nu])

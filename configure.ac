@@ -117,6 +117,15 @@ if test "$enable_thread_debug" == "yes";then AC_DEFINE([THREAD_DEBUG],1,[Enable 
 AM_CONDITIONAL([THREAD_DEBUG],[test "$enable_thread_debug" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling thread debug... $enable_thread_debug])
 
+#benchmark communications
+AC_ARG_ENABLE(comm-bench,
+	AS_HELP_STRING([--enable-comm-bench],[Enable benchmark of communications]),
+	enable_comm_bench="${enableval}",
+	enable_comm_bench="no")
+if test "$enable_comm_bench" == "yes";then AC_DEFINE([COMM_BENCH],1,[Enable comm_bench]) fi
+AM_CONDITIONAL([COMM_BENCH],[test "$enable_comm_bench" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling communication benchmark... $enable_comm_bench])
+
 #overwrite default flags
 if test x${ac_cv_env_CXXFLAGS_set} != xset; then
   CXXFLAGS=''

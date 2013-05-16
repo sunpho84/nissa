@@ -51,7 +51,9 @@ void close_nissa()
 
   tot_nissa_time+=take_time();
   master_printf("Total time: %lg s\n",tot_nissa_time);
+#ifdef COMM_BENCH
   master_printf("Total communication time: %lg s\n",tot_nissa_comm_time);
+#endif
 
   MPI_Barrier(MPI_COMM_WORLD);
   master_printf("   Ciao!\n\n");
