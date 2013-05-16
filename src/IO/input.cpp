@@ -104,6 +104,7 @@ int read_next_token(char *tok)
   
   if(rank==0)
     {
+      if(feof(input_global)) crash("reached EOF while scanning input file");
       ok=fscanf(input_global,"%s",tok);
       len=strlen(tok)+1;
     }

@@ -298,7 +298,9 @@ tools_unitarity_check_unitarity_check_SOURCES=tools/unitarity_check/unitarity_ch
 ###########################################################################################################################################################
 
 #adds extra files to distribution
-EXTRA_DIST=README \
+EXTRA_DIST= \
+	svn_revision \
+	README \
 	src/dirac_operators/dirac_operator_WclovQ/dirac_operator_WclovQ_portable.cpp \
 	src/dirac_operators/dirac_operator_stD/dirac_operator_stD_portable.cpp \
 	src/dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_portable.cpp \

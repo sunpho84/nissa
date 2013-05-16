@@ -155,6 +155,24 @@ int count_file_lines(const char *path)
   return master_broadcast(n);
 }
 
+//get the size of a file
+int get_file_size(const char *path)
+{
+  //return -1 if file does not exist
+  if(!file_exists(path)) return -1;
+  
+  //scan the file
+  FILE *fin=open_text_file_for_input(path);
+  int file_size;
+  if(rank==0)
+    {
+      if(fseek(fin,0,SEEK_END)) crash("while seeking");
+      file_size=ftell(fin);
+    }
+  
+  return master_broadcast(file_size);
+}
+
 //take the last characters of the passed string
 void take_last_characters(char *out,const char *in,int size)
 {
