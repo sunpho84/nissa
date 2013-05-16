@@ -11,6 +11,7 @@
 
 #include "../base/debug.h"
 #include "../base/global_variables.h"
+#include "../IO/input.h"
 
 #include "mpi.h"
 #include "thread.h"
@@ -123,9 +124,36 @@ FILE* open_file(const char *outfile,const char *mode)
 FILE* open_text_file_for_output(const char *outfile)
 {return open_file(outfile,"w");}
 
+//Open a text file for input
+FILE* open_text_file_for_input(const char *infile)
+{return open_file(infile,"r");}
+
 //close an open file
 void close_file(FILE *file)
 {if(rank==0) fclose(file);}
+
+//count the number of lines in a file
+int count_file_lines(const char *path)
+{
+  //return -1 if file does not exist
+  if(!file_exists(path)) return -1;
+  
+  //scan the file
+  FILE *fin=open_text_file_for_input(path);
+  int n=0;
+  if(rank==0)
+    {
+      char *line=NULL;
+      size_t linecap=0;
+      while((getline(&line,&linecap,fin))>0) n++;
+      free(line);
+    }
+  
+  //close file and broadcast n
+  close_file(fin);
+  
+  return master_broadcast(n);
+}
 
 //take the last characters of the passed string
 void take_last_characters(char *out,const char *in,int size)
