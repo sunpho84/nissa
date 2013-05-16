@@ -49,6 +49,16 @@
 
 //random number generator table length
 #define ran2_ntab 32                                                                                                         
+//communications benchmark
+#ifdef BENCH_COMM
+ #define START_COMMUNICATIONS_TIMING() {if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();}
+ #define STOP_COMMUNICATIONS_TIMING() {if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();}
+ #define GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS() {GET_THREAD_ID();}
+#else
+ #define START_COMMUNICATIONS_TIMING()
+ #define STOP_COMMUNICATIONS_TIMING()
+ #define GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS()
+#endif
 
 //constants
 #define nissa_default_verbosity 2

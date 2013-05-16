@@ -205,16 +205,15 @@ void start_communicating_lx_borders(comm_t &comm,void *vec)
 {
   if(!check_borders_valid(vec) && nparal_dir>0)
     {
-      GET_THREAD_ID();
+      GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
       
       //take time and write some debug output
-      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      START_COMMUNICATIONS_TIMING();
       verbosity_lv3_master_printf("Start communication of lx borders of %s\n",get_vec_name((void*)vec));
       
       //fill the communicator buffer, start the communication and take time
       fill_sending_buf_with_lx_vec(comm,vec);
-      comm_start(comm);
-      if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
+      STOP_COMMUNICATIONS_TIMING();
     }
 }
 
@@ -223,16 +222,16 @@ void finish_communicating_lx_borders(void *vec,comm_t &comm)
 {
   if(!check_borders_valid(vec) && nparal_dir>0)
     {
-      GET_THREAD_ID();
+      GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
       
       //take note of passed time and write some debug info
-      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      START_COMMUNICATIONS_TIMING();
       verbosity_lv3_master_printf("Finish communication of lx borders of %s\n",get_vec_name((void*)vec));
 
       //wait communication to finish, fill back the vector and take time
       comm_wait(comm);
       fill_lx_bord_with_receiving_buf(vec,comm);
-      if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
+      STOP_COMMUNICATIONS_TIMING();
       
       //set border not valid: this auto sync
       set_borders_valid(vec);
@@ -296,16 +295,16 @@ void start_communicating_ev_or_od_borders(comm_t &comm,void *vec,int eo)
 {
   if(!check_borders_valid(vec) && nparal_dir>0)
     {
-      GET_THREAD_ID();
+      GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
       
       //take time and output debugging info
-      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      START_COMMUNICATIONS_TIMING();
       verbosity_lv3_master_printf("Starting communication of ev or od borders of %s\n",get_vec_name((void*)vec));
 
       //fill the communicator buffer, start the communication and take time
       fill_sending_buf_with_ev_or_od_vec(comm,vec,eo);
       comm_start(comm);
-      if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
+      STOP_COMMUNICATIONS_TIMING();
     }
 }
 
@@ -314,16 +313,16 @@ void finish_communicating_ev_or_od_borders(void *vec,comm_t &comm)
 {
   if(!check_borders_valid(vec) && nparal_dir>0)
     {
-      GET_THREAD_ID();
+      GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
       
       //take time and make some output
-      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      START_COMMUNICATIONS_TIMING();
       verbosity_lv3_master_printf("Finish communication of ev or od borders of %s\n",get_vec_name((void*)vec));
       
       //wait communication to finish, fill back the vector and take time
       comm_wait(comm);
       fill_ev_or_od_bord_with_receiving_buf(vec,comm);
-      if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
+      STOP_COMMUNICATIONS_TIMING();
       
       //set border not valid: this auto sync
       set_borders_valid(vec);
@@ -398,16 +397,16 @@ void start_communicating_ev_and_od_borders(comm_t &comm,void **vec)
 {
   if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && nparal_dir>0)
     {
-      GET_THREAD_ID();
+      GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
       
       //take time and output debugging info
-      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      START_COMMUNICATIONS_TIMING();
       verbosity_lv3_master_printf("Starting communication of ev and od borders of %s\n",get_vec_name((void*)(*vec)));
 
       //fill the communicator buffer, start the communication and take time
       fill_sending_buf_with_ev_and_od_vec(comm,vec);
       comm_start(comm);
-      if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
+      STOP_COMMUNICATIONS_TIMING();
     }
 }
 
@@ -416,16 +415,16 @@ void finish_communicating_ev_and_od_borders(void **vec,comm_t &comm)
 {
   if(comm.comm_in_prog && nparal_dir>0)
     {
-      GET_THREAD_ID();
+      GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
       
       //take time and make some output
-      if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();
+      START_COMMUNICATIONS_TIMING();
       verbosity_lv3_master_printf("Finish communication of ev and od borders of %s\n",get_vec_name((void*)(*vec)));
 	  
       //wait communication to finish, fill back the vector and take time
       comm_wait(comm);
       fill_ev_and_od_bord_with_receiving_buf(vec,comm);
-      if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();
+      STOP_COMMUNICATIONS_TIMING();
       
       //set border not valid: this auto sync
       set_borders_valid(vec[EVN]);

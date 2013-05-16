@@ -65,7 +65,9 @@ EXTERN MPI_Op MPI_FLOAT_128_SUM;
 EXTERN int ncgm_inv,ncg_inv;
 EXTERN double cgm_inv_over_time,cg_inv_over_time;
 EXTERN double tot_nissa_time;
+#ifdef BENCH_COMM
 EXTERN double tot_nissa_comm_time;
+#endif
 
 //verbosity
 EXTERN int verb_call;
