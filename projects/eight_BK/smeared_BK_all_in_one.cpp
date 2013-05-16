@@ -442,8 +442,8 @@ void Bk_eights(colorspinspin *SL1,colorspinspin *SL2,colorspinspin *SR1,colorspi
     }
   
   //Call the routine which does the real contraction for the Mezzotto and the Otto
-  trace_id_sdag_g_s_id_sdag_g_s(contr_otto,SL1,tsink,SL2,SR1,tsink,SR2,16);
-  sum_trace_id_sdag_g_s_times_trace_id_sdag_g_s(contr_mezzotto,SL1,tsink,SL2,SR1,tsink,SR2,16);
+  trace_id_css_dag_g_css_id_css_dag_g_css(contr_otto,SL1,tsink,SL2,SR1,tsink,SR2,16);
+  trace_id_css_dag_g_css_times_trace_id_css_dag_g_css(contr_mezzotto,SL1,tsink,SL2,SR1,tsink,SR2,16);
 }
 
 //Compute mesonic two points
@@ -458,7 +458,7 @@ void meson_two_points(colorspinspin *s1,colorspinspin *s2)
       dirac_prod(&(t2[icontr]),&(base_gamma[5]),&(base_gamma[op2_2pts[icontr]]));
     }
   //Call for the routine which perform actually real contraction
-  trace_g_sdag_g_s(contr_2pts,t1,s1,t2,s2,ncontr_2pts);
+  trace_g_css_dag_g_css(contr_2pts,t1,s1,t2,s2,ncontr_2pts);
 }
 
 //print all the passed contractions to the file

@@ -2,9 +2,6 @@
  #include "config.h"
 #endif
 
-#include <math.h>
-#include <string.h>
-
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../new_types/complex.h"
@@ -13,49 +10,7 @@
 #include "../../routines/ios.h"
 #include "../../routines/thread.h"
 
-//take Tr[g1 * s1^dag * g2 * s2], useful for mesons 2 points
-void trace_g_ss_dag_g_ss(complex c,dirac_matr *g1,spinspin s1,dirac_matr *g2,spinspin s2)
-{
-  spinspin t1,t2;
-  
-  unsafe_dirac_prod_spinspin_dag(t1,g1,s1);
-  unsafe_dirac_prod_spinspin(t2,g2,s2);
-
-  trace_prod_spinspins(c,t1,t2);
-}
-void trace_g_css_dag_g_css(complex c,dirac_matr *g1,colorspinspin s1,dirac_matr *g2,colorspinspin s2)
-{
-  //reset out
-  c[0]=c[1]=0;
-  
-  //loop over color indices
-  for(int ic=0;ic<3;ic++)
-    {
-      spinspin t1,t2;
-      
-      unsafe_dirac_prod_spinspin_dag(t1,g1,s1[ic]);
-      unsafe_dirac_prod_spinspin(t2,g2,s2[ic]);
-      
-      summ_the_trace_prod_spinspins(c,t1,t2);
-    }
-}
-void trace_g_ccss_dag_g_ccss(complex c,dirac_matr *g1,su3spinspin s1,dirac_matr *g2,su3spinspin s2)
-{
-  //reset out
-  c[0]=c[1]=0;
-  
-  //loop over color indices
-  for(int ic1=0;ic1<3;ic1++)
-    for(int ic2=0;ic2<3;ic2++)
-      {
-	spinspin t1,t2;
-	
-	unsafe_dirac_prod_spinspin_dag(t1,g1,s1[ic2][ic1]);
-	unsafe_dirac_prod_spinspin(t2,g2,s2[ic2][ic1]);
-	
-	summ_the_trace_prod_spinspins(c,t1,t2);
-      }
-}
+#include "site_contract.h"
 
 #define DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(TYPE,SHORTTYPE)	\
   THREADABLE_FUNCTION_6ARG(NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE), complex*,glb_c, dirac_matr*,g1, TYPE*,s1, dirac_matr*,g2, TYPE*,s2, int,ncontr) \
@@ -64,6 +19,7 @@ void trace_g_ccss_dag_g_ccss(complex c,dirac_matr *g1,su3spinspin s1,dirac_matr 
     									\
     /*local buffer*/							\
     complex *loc_c=nissa_malloc("loc_c",glb_size[0]*ncontr,complex);	\
+    vector_reset(loc_c);						\
 									\
     /*loop over time and number of contractions*/			\
     NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])			\
