@@ -48,7 +48,8 @@
 #define nreals_per_quad_su3 72
 
 //random number generator table length
-#define ran2_ntab 32                                                                                                         
+#define ran2_ntab 32
+
 //communications benchmark
 #ifdef COMM_BENCH
  #define START_COMMUNICATIONS_TIMING() {if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();}
@@ -70,7 +71,7 @@
 
 //Pi
 #ifndef M_PI
-#define M_PI           3.14159265358979323846
+ #define M_PI           3.14159265358979323846
 #endif
 
 //Omelyan lambda
@@ -78,6 +79,9 @@
 
 //sqrt(2)
 #define RAD2 1.414213562373095048801688724209l
+
+//avoid spilling
+#define REORDER_BARRIER() __asm volatile ("")
 
 //wrapper to the internal routines
 #define nissa_malloc(a,b,c) (c*)internal_nissa_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
@@ -96,8 +100,7 @@
 //loops
 #define nissa_loc_volh_loop(a) for(int a=0;a<loc_volh;a++)
 #define nissa_loc_vol_loop(a) for(int a=0;a<loc_vol;a++)
-
-#define CRASH_IF_NOT_ALIGNED(a,b)		\
-  if((long long int)(void*)a%b!=0) crash("alignement problem");
+    
+#define CRASH_IF_NOT_ALIGNED(a,b) if((long long int)(void*)a%b!=0) crash("alignement problem");
 
 #endif

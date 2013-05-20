@@ -255,7 +255,7 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
       nissa_required_memory+=size;
       nissa_max_required_memory=max_int(nissa_max_required_memory,nissa_required_memory);
 
-#pragma omp flush(return_nissa_malloc_ptr)
+      cache_flush();
     }
   
   //sync so we are sure that master thread allocated
@@ -372,7 +372,7 @@ void internal_nissa_free(char **arr,const char *file,int line)
       else crash("Error, trying to delocate a NULL vector on line: %d of file: %s\n",line,file);
       
       *arr=NULL;
-#pragma omp flush
+      cache_flush();
     }
   
   //sync so all thread see that have deallocated
