@@ -5,8 +5,13 @@
  #include "config.h"
 #endif
 
+#include "global_variables.h"
 #include "debug.h"
 #include <omp.h>
+
+#if defined BGQ && !defined BGQ_EMU
+ #include "../bgq/bgq_barrier.h"
+#endif
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -33,7 +38,7 @@
 //////////////////////////////////////////////////////////////////////////////////////
 
 #define THREAD_ATOMIC_EXEC(inst)					\
-  {THREAD_BARRIER();inst;THREAD_BARRIER();}
+  do{THREAD_BARRIER();inst;THREAD_BARRIER();}while(0)
 
 //////////////////////////////////////////////////////////////////////////////////////
 
@@ -431,5 +436,30 @@
   THREADABLE_FUNCTION_10ARG_INSIDE(FUNC_NAME,__LINE__,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8,AT9,A9,AT10,A10)
 #define THREADABLE_FUNCTION_11ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8,AT9,A9,AT10,A10,AT11,A11) \
   THREADABLE_FUNCTION_11ARG_INSIDE(FUNC_NAME,__LINE__,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8,AT9,A9,AT10,A10,AT11,A11)
+
+//flush the cache
+inline void cache_flush()
+{
+#if defined BGQ
+ #if ! defined BGQ_EMU
+  mbar();
+ #else
+  __sync_synchronize();
+ #endif
+#else
+ #pragma omp flush
+#endif
+}
+
+//barrier without any possible checking
+inline void thread_barrier_internal()
+{
+#if defined BGQ && (! defined BGQ_EMU)
+  bgq_barrier(nthreads);
+#else
+  #pragma omp barrier
+#endif
+}
+
 
 #endif

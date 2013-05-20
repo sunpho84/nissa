@@ -443,7 +443,7 @@ void initialize_semileptonic(char *input_path)
   original_source=nissa_malloc("original_source",loc_vol,prop_type);
   
   //Allocate one prop_type for the chromo-contractions
-  if(nch_contr_2pts!=0 && nch_contr_3pts!=0) ch_prop=nissa_malloc("chromo-prop",loc_vol,prop_type);
+  if(nch_contr_2pts!=0 || nch_contr_3pts!=0) ch_prop=nissa_malloc("chromo-prop",loc_vol,prop_type);
   
   //Allocate all the S1 prop_type vectors
   npropS1=nthetaS1*nmassS1;
@@ -547,7 +547,7 @@ void close_semileptonic()
   for(int iprop=0;iprop<npropS1;iprop++) nissa_free(S1[iprop]);
   nissa_free(S0[0]);nissa_free(S0[1]);nissa_free(S1);
   nissa_free(temp_vec[0]);nissa_free(temp_vec[1]);
-  if(nch_contr_2pts!=0 && nch_contr_3pts!=0) nissa_free(ch_prop);
+  if(nch_contr_2pts!=0 || nch_contr_3pts!=0) nissa_free(ch_prop);
   if(ncontr_3pts!=0 || nch_contr_3pts!=0) nissa_free(sequential_source);
   nissa_free(contr_2pts);nissa_free(ch_contr_2pts);
   nissa_free(contr_3pts);nissa_free(ch_contr_3pts);
@@ -957,7 +957,8 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 	if(nch_contr_3pts>0)
 	  {
 #ifdef POINT_SOURCE_VERSION
-	    unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S1[ip2]);
+	    //unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S1[ip2]);
+	    apply_nabla_i(ch_prop,S1[ip2],conf,1);
 #else
 	    unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S1[ip2]);
 #endif

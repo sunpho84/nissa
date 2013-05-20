@@ -26,38 +26,31 @@ void thread_barrier(int force_barrier)
 {
   if(!thread_pool_locked||force_barrier)
     {
+      ////////////////////////////////////// debug part 1 ///////////////////////////////////////////
 #ifdef THREAD_DEBUG
       GET_THREAD_ID();
       if(nissa_verbosity>=3)
 	printf("thread %d rank %d barrier call on line %d of file %s (thread_pool_locked: %d, force_barrier: %d)\n",
 	       thread_id,rank,barr_line,barr_file,thread_pool_locked,force_barrier);
-      //debug: copy the barrier id to the global ref
+      //copy the barrier id to the global ref
       if(IS_MASTER_THREAD)
 	{
 	  strcpy(glb_barr_file,barr_file);
 	  glb_barr_line=barr_line;
-#pragma omp flush
+	  cache_flush();
 	}
 #endif
       
-      //barrier
-#if defined BGQ && (! defined BGQ_EMU)
-      bgq_barrier(nthreads);
-#else
-      #pragma omp barrier
-#endif
+      thread_barrier_internal();
       
+      //////////////////////////////////// debug part 2 ///////////////////////////////////////////////
 #ifdef THREAD_DEBUG
-      //debug: check that the local id correspond to global one
+      //check that the local id correspond to global one
       if(!IS_MASTER_THREAD)
 	if(glb_barr_line!=barr_line||strcmp(glb_barr_file,barr_file))
 	  crash("Thread %d found barrier on line %d of file %s when master thread invoked it at line %d of file %s)",
 		thread_id,barr_line,barr_file,glb_barr_line,glb_barr_file);
-#if defined BGQ && (! defined BGQ_EMU)
-      bgq_barrier(nthreads);
-#else
-      #pragma omp barrier
-#endif
+      thread_barrier_internal();
 #endif
     }
 }
@@ -71,7 +64,7 @@ void thread_pool_unlock()
   if(rank==0) printf("thread %d unlocking the pool\n",thread_id);
 #endif
   thread_pool_locked=false;
-#pragma omp flush(thread_pool_locked)
+  cache_flush();
 }
 
 //lock the thread pool
@@ -79,7 +72,7 @@ void thread_pool_lock()
 {
   THREAD_BARRIER_FORCE();
   thread_pool_locked=true;
-#pragma omp flush(thread_pool_locked)
+  cache_flush();
 #ifdef THREAD_DEBUG
   GET_THREAD_ID();
   if(rank==0) printf("thread %d locking the pool\n",thread_id);
