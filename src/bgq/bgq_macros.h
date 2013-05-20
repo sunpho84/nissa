@@ -345,6 +345,17 @@
     BI_COLOR_ISUBT(OUT[1],IN[1],IN[3]);		\
   }
 
+///////////////////////////////////// Wilson derivatives ////////////////////////////
+
+#define WILSON_HOPMATR_TBW(OUT,TEMP,LINK,IN)			\
+  do								\
+    {								\
+      REORDER_BARRIER();					\
+      HOPMATR_TBW((TEMP),(IN));					\
+      BI_SU3_PROD_BI_HALFSPINCOLOR((OUT),(LINK),(TEMP));	\
+    }								\
+  while(0)
+
 /////////////////////////////////////////////////////////////////////////////////////
 
 #define BI_COMPLEX_TRANSPOSE(A,B)		\
