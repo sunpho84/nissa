@@ -51,7 +51,8 @@ void init_nissa(int narg,char **arg)
   
   //print the version
   master_printf("Initializing nissa, version: %s\n",SVN_REVISION);
-  master_printf("Compiled with flags: %s\n",CONFIG_FLAGS);
+  master_printf("Comnfigured with flags: %s\n",CONFIG_FLAGS);
+  master_printf("Compiled att %s of %s\n",__TIME__,__DATE__);
   
   //128 bit float
   MPI_Type_contiguous(2,MPI_DOUBLE,&MPI_FLOAT_128);
@@ -518,7 +519,6 @@ void init_grid(int T,int L)
 #ifdef BGQ
   set_bgq_geometry();
 #endif
-  
 
   ///////////////////////////////////// start communicators /////////////////////////////////
   
