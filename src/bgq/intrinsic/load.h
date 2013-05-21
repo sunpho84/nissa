@@ -11,19 +11,10 @@
 
 #if defined(XLC)
  #define CACHE_PREFETCH(addr)           __dcbt(addr)
- #define CACHE_PREFETCH_FOR_WRITE(addr) __dcbtst(addr)
- #define CACHE_L1_ZERO(addr)            __dcbz(addr)
- #define CACHE_LINE_FLUSH(addr)         __dcbf(addr)
 #elif defined(__GNUC__)
  #define CACHE_PREFETCH(addr)           __builtin_prefetch((addr),0)
- #define CACHE_PREFETCH_FOR_WRITE(addr) __builtin_prefetch((addr),1)
- #define CACHE_L1_ZERO(addr)
- #define CACHE_LINE_FLUSH(addr)
 #else
  #define CACHE_PREFETCH(addr)
- #define CACHE_PREFETCH_FOR_WRITE(addr)
- #define CACHE_L1_ZERO(addr)
- #define CACHE_LINE_FLUSH(addr)
 #endif
 
 #if defined BGQ && !defined BGQ_EMU
@@ -99,7 +90,7 @@
    do									\
      {									\
        (addr)=(void*)((uintptr_t)(addr)+(offset));			\
-       BI_COMPLEX_COPY(dest,(*((bi_complex*)((char*)addr+offset))));	\
+       BI_COMPLEX_COPY(dest,(*((bi_complex*)addr)));	\
      }									\
    while(0)
 #else

@@ -11,6 +11,9 @@
 
 #include "bgq_macros.h"
 
+ #include <unistd.h>
+ #include <math.h>
+
 /*
   In bgq version we merge two sites along t directions, that is, (t,x,y,z) and (t+T/2,x,y,z),
   so that only site with time coordinate between 0 and T/2-1 must be considered.
@@ -35,17 +38,32 @@ THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier
       //declare
       DECLARE_REG_BI_SPINCOLOR(reg_in);
       DECLARE_REG_BI_HALFSPINCOLOR(reg_proj);
-      DECLARE_REG_BI_HALFSPINCOLOR(reg_out);
       
       //load in
       REG_LOAD_BI_SPINCOLOR(reg_in,in[ibgqlx]);
       
       //T backward scatter (forward derivative)
       REORDER_BARRIER();
-      REG_BI_COLOR_SUBT(reg_proj_s0,reg_in_s0,reg_in_s2);
-      REG_BI_COLOR_SUBT(reg_proj_s1,reg_in_s1,reg_in_s3);
-      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[1])),links[0],reg_proj);
+      REG_BI_COLOR_SUMM(reg_proj_s0,reg_in_s0,reg_in_s2);
+      REG_BI_COLOR_SUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
+      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[0])),links[0],reg_proj);
       
+#if 0
+      //check
+      for(int id=0;id<2;id++)
+	for(int ic=0;ic<3;ic++)
+	  for(int vn=0;vn<2;vn++)
+	    for(int ri=0;ri<2;ri++)
+	      {
+		double a=temp_sure[id][ic][vn][ri];
+		double b=(*(out[0]))[id][ic][vn][ri];
+		double c=0;
+		
+		if(fabs(a-b)>1.e-10)
+		  printf("ivol %d thread %d proj%d%d%d%d %lg %lg %lg %lg\n",
+			 ibgqlx,thread_id,id,ic,vn,ri,a,b,a-b,c);
+	      }
+#endif 
       bi_halfspincolor temp;
       
       //X backward scatter (forward derivative)
