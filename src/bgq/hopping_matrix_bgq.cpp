@@ -32,11 +32,21 @@ THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier
       bi_halfspincolor **out=bgq_hopping_matrix_output_pointer+ibgqlx*8;
       bi_su3 *links=(bi_su3*)(conf+ibgqlx);
       
-      bi_halfspincolor temp;
+      //declare
+      DECLARE_REG_BI_SPINCOLOR(reg_in);
+      DECLARE_REG_BI_HALFSPINCOLOR(reg_proj);
+      DECLARE_REG_BI_HALFSPINCOLOR(reg_out);
+      
+      //load in
+      REG_LOAD_BI_SPINCOLOR(reg_in,in[ibgqlx]);
       
       //T backward scatter (forward derivative)
-      HOPMATR_TFW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_PROD_BI_HALFSPINCOLOR((*(out[0])),links[0],temp);
+      REORDER_BARRIER();
+      REG_BI_COLOR_SUBT(reg_proj_s0,reg_in_s0,reg_in_s2);
+      REG_BI_COLOR_SUBT(reg_proj_s1,reg_in_s1,reg_in_s3);
+      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[1])),links[0],reg_proj);
+      
+      bi_halfspincolor temp;
       
       //X backward scatter (forward derivative)
       HOPMATR_XFW_PROJ(temp,in[ibgqlx]);

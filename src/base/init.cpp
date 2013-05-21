@@ -49,10 +49,10 @@ void init_nissa(int narg,char **arg)
   signal(SIGSEGV,terminate_sigsegv);
   signal(SIGFPE,terminate_sigsegv);
   
-  //print the version
+  //print SVN version and configuration and compilation time
   master_printf("Initializing nissa, version: %s\n",SVN_REVISION);
-  master_printf("Comnfigured with flags: %s\n",CONFIG_FLAGS);
-  master_printf("Compiled att %s of %s\n",__TIME__,__DATE__);
+  master_printf("Configured at %s with flags: %s\n",CONFIG_TIME,CONFIG_FLAGS);
+  master_printf("Compiled at %s of %s\n",__TIME__,__DATE__);
   
   //128 bit float
   MPI_Type_contiguous(2,MPI_DOUBLE,&MPI_FLOAT_128);

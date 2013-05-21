@@ -4,6 +4,12 @@ AC_INIT([nissa],[1.0],[francesco.sanfilippo@th.u-psud.fr])
 config_flags="$*"
 AC_DEFINE_UNQUOTED([CONFIG_FLAGS],["$config_flags"],[Flags passed to configure])
 
+#get configuration time
+AC_MSG_CHECKING([configuration date and time])
+CONFIG_DATE=`date`
+AC_DEFINE_UNQUOTED([CONFIG_TIME], "$CONFIG_TIME", [time when configured])
+AC_MSG_RESULT([$CONFIG_DATE])
+
 #parameters definition
 AM_PROG_CC_C_O
 AM_INIT_AUTOMAKE([1.0 no-define foreign])
