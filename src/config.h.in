@@ -3,7 +3,7 @@
 /* Enable bgq */
 #undef BGQ
 
-/* Enable bgq_emu */
+/* Enable bgq emulation */
 #undef BGQ_EMU
 
 /* Enable comm_bench */
