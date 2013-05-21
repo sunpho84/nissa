@@ -5,29 +5,31 @@
  #include "config.h"
 #endif
 
+#include "../src/base/macros.h"
+
 ///////////////////////////////// prefetching ////////////////////////////////
 
 #if defined(XLC)
- #define cache_prefetch(addr)           __dcbt(addr)
- #define cache_prefetch_for_write(addr) __dcbtst(addr)
- #define cache_l1_zero(addr)            __dcbz(addr) /* sets 128 bytes (L2 cache line size) to zero */
- #define cache_flush(addr)              __dcbf(addr)
+ #define CACHE_PREFETCH(addr)           __dcbt(addr)
+ #define CACHE_PREFETCH_FOR_WRITE(addr) __dcbtst(addr)
+ #define CACHE_L1_ZERO(addr)            __dcbz(addr)
+ #define CACHE_LINE_FLUSH(addr)         __dcbf(addr)
 #elif defined(__GNUC__)
- #define cache_prefetch(addr)           __builtin_prefetch((addr),0/*read*/)
- #define cache_prefetch_for_write(addr) __builtin_prefetch((addr),1/*write*/)
- #define cache_l1_zero(addr)
- #define cache_flush(addr)
+ #define CACHE_PREFETCH(addr)           __builtin_prefetch((addr),0)
+ #define CACHE_PREFETCH_FOR_WRITE(addr) __builtin_prefetch((addr),1)
+ #define CACHE_L1_ZERO(addr)
+ #define CACHE_LINE_FLUSH(addr)
 #else
- #define cache_prefetch(addr)
- #define cache_prefetch_for_write(addr)
- #define cache_l1_zero(addr)
- #define cache_flush(addr)
+ #define CACHE_PREFETCH(addr)
+ #define CACHE_PREFETCH_FOR_WRITE(addr)
+ #define CACHE_L1_ZERO(addr)
+ #define CACHE_LINE_FLUSH(addr)
 #endif
 
 #if defined BGQ && !defined BGQ_EMU
 
 //prefetch a bi_spincolor
-#define bi_spincolor_prefetch(addr)	\
+#define BI_SPINCOLOR_PREFETCH(addr)	\
   do					\
     {					\
       void *ptr=(addr);			\
@@ -48,7 +50,7 @@
   while(0)
 
 //prefetch a bi_halfspincolor
-#define bi_halfspincolor_prefetch(addr)	\
+#define BI_HALFSPINCOLOR_PREFETCH(addr)	\
   do					\
     {					\
       void *ptr = (addr);		\
@@ -65,112 +67,111 @@
 #else
 
 //prefetch a bi_spincolor
-#define bi_spincolor_prefetch(addr)		\
+#define BI_SPINCOLOR_PREFETCH(addr)		\
   do						\
     {						\
-      bgq_prefetch((char*)(addr)+  0);		\
-      bgq_prefetch((char*)(addr)+ 64);		\
-      bgq_prefetch((char*)(addr)+128);		\
-      bgq_prefetch((char*)(addr)+192);		\
-      bgq_prefetch((char*)(addr)+256);		\
-      bgq_prefetch((char*)(addr)+320);		\
+      BGQ_PREFETCH((char*)(addr)+  0);		\
+      BGQ_PREFETCH((char*)(addr)+ 64);		\
+      BGQ_PREFETCH((char*)(addr)+128);		\
+      BGQ_PREFETCH((char*)(addr)+192);		\
+      BGQ_PREFETCH((char*)(addr)+256);		\
+      BGQ_PREFETCH((char*)(addr)+320);		\
     }						\
   while(0)
 
 //prefetch a bi_halfspincolor
-#define bi_halfspincolor_prefetch_double(addr)	\
+#define BI_HALFSPINCOLOR_PREFETCH_DOUBLE(addr)	\
   do						\
     {						\
-      bgq_prefetch((char*)(addr)+ 0);		\
-      bgq_prefetch((char*)(addr)+ 64);		\
-      bgq_prefetch((char*)(addr)+128);		\
+      BGQ_PREFETCH((char*)(addr)+ 0);		\
+      BGQ_PREFETCH((char*)(addr)+ 64);		\
+      BGQ_PREFETCH((char*)(addr)+128);		\
     }						\
   while(0)
 
 #endif
-
 
 ////////////////////////////////////loading //////////////////////////////////
 
 //load *after* increment the address of a certain amount
 #ifdef BGQ_EMU
- #define bgq_qvlfduxa(dest,addr,offset)			\
-   do							\
-     {							\
-       (addr)=(void*)((uintptr_t)(addr)+(offset));	\
-       BI_COMPLEX_COPY(dest,(*((bi_complex*)((char*)addr+offset))))
-     }							\
+ #define BGQ_QVLFDUXA(dest,addr,offset)					\
+   do									\
+     {									\
+       (addr)=(void*)((uintptr_t)(addr)+(offset));			\
+       BI_COMPLEX_COPY(dest,(*((bi_complex*)((char*)addr+offset))));	\
+     }									\
    while(0)
 #else
- #define bgq_qvlfduxa(dest,addr,offset)					\
+ #define BGQ_QVLFDUXA(dest,addr,offset)					\
    asm ("qvlfduxa %[v4d],%[ptr],%[off]  \n" : [v4d] "=v" (dest), [ptr] "+b" (addr) : [off] "r" (offset) )
 #endif
 
 //load without advancing
-#define bgq_load_without_advancing(out,in) bgq_qvlfduxa(out,in,0)
+#define REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVLFDUXA(out,in,0)
 
 //load after advancing to next bi_complex
-#define bgq_load_after_advancing(out,in) bgq_qvlfduxa(out,in,32)
+#define REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVLFDUXA(out,in,32)
 
 //load a bi_spincolor
-#define bgq_load_bi_spincolor(out,in)				  \
+#define REG_LOAD_BI_SPINCOLOR(out,in)				  \
   do								  \
     {								  \
       void *ptr=(in);						  \
-      bgq_qvlfduxa(NAME2(out,s0_c0),ptr);			  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s0_c1),ptr);  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s0_c2),ptr);  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s1_c0),ptr);  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s1_c1),ptr);  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s1_c2),ptr);  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s2_c0),ptr);  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s2_c1),ptr);  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s2_c2),ptr);  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s3_c0),ptr);  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s3_c1),ptr);  \
-      bgq_load_bi_complex_after_advancing(NAME2(out,s3_c2),ptr);  \
+      REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(NAME2(out,s0_c0),ptr);\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s0_c1),ptr);  \
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s0_c2),ptr);  \
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s1_c0),ptr);  \
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s1_c1),ptr);  \
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s1_c2),ptr);  \
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s2_c0),ptr);  \
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s2_c1),ptr);  \
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s2_c2),ptr);  \
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s3_c0),ptr);  \
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s3_c1),ptr);  \
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s3_c2),ptr);  \
     }								  \
   while(0)
 
 //load a bi_halfspincolor
-#define bgq_load_bi_halfspincolor(out,in)				\
+#define REG_LOAD_BI_HALFSPINCOLOR(out,in)				\
   do									\
     {									\
       void *ptr=(in);							\
-      bgq_load_bi_complex_without_advancing(NAME2(out,s0_c0),ptr);	\
-      bgq_load_bi_complex_after_advancing(NAME2(out,s0_c1),ptr);	\
-      bgq_load_bi_complex_after_advancing(NAME2(out,s0_c2),ptr);	\
-      bgq_load_bi_complex_after_advancing(NAME2(out,s1_c0),ptr);	\
-      bgq_load_bi_complex_after_advancing(NAME2(out,s1_c1),ptr);	\
-      bgq_load_bi_complex_after_advancing(NAME2(out,s1_c2),ptr);	\
+      REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(NAME2(out,s0_c0),ptr);	\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s0_c1),ptr);	\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s0_c2),ptr);	\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s1_c0),ptr);	\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s1_c1),ptr);	\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s1_c2),ptr);	\
     }									\
   while(0)
 
 //load a bi_color
-#define bgq_load_bi_color(out,in)					\
+#define REG_LOAD_BI_COLOR(out,in)					\
   do									\
     {									\
       void *ptr=(in);							\
-      bgq_load_bi_complex_without_advancing(NAME2(out,c0),ptr);		\
-      bgq_load_bi_complex_after_advancing(NAME2(out,c1),ptr);		\
-      bgq_load_bi_complex_after_advancing(NAME2(out,c2),ptr);		\
+      REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(NAME2(out,c0),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c1),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c2),ptr);		\
     }									\
   while(0)
 
 //load a bi_su3
-#define bgq_load_bi_su3(out,in)						\
+#define REG_LOAD_BI_SU3(out,in)						\
   do									\
     {									\
       void *ptr=(in);							\
-      bgq_load_bi_complex_without_advancing(NAME2(out,c00),ptr);	\
-      bgq_load_bi_complex_after_advancing(NAME2(out,c01),ptr);		\
-      bgq_load_bi_complex_after_advancing(NAME2(out,c02),ptr);		\
-      bgq_load_bi_complex_after_advancing(NAME2(out,c10),ptr);		\
-      bgq_load_bi_complex_after_advancing(NAME2(out,c11),ptr);		\
-      bgq_load_bi_complex_after_advancing(NAME2(out,c12),ptr);		\
-      bgq_load_bi_complex_after_advancing(NAME2(out,c20),ptr);		\
-      bgq_load_bi_complex_after_advancing(NAME2(out,c21),ptr);		\
-      bgq_load_bi_complex_after_advancing(NAME2(out,c22),ptr);		\
+      REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(NAME2(out,c00),ptr);	\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c01),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c02),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c10),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c11),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c12),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c20),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c21),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c22),ptr);		\
     }									\
   while(0)
 

@@ -33,7 +33,7 @@ The square path P_{mu,nu} is defined as U(A,mu)U(B,nu)U^(C,mu)U^(A,nu)=
 =U(A,mu)U(B,nu)(U(A,nu)U^(C,mu))^=U(AB,munu)*U^(AC,numu)
 */
 
-void point_plaquette_lx_conf(double *loc_plaq,quad_su3 *conf,int A)
+void point_plaquette_lx_conf(complex loc_plaq,quad_su3 *conf,int A)
 {
   loc_plaq[0]=loc_plaq[1]=0;
   for(int mu=0;mu<4;mu++)
@@ -51,7 +51,7 @@ void point_plaquette_lx_conf(double *loc_plaq,quad_su3 *conf,int A)
 	}
     }
 }
-void point_plaquette_eo_conf(double *loc_plaq,quad_su3 **conf,int par,int A)
+void point_plaquette_eo_conf(complex loc_plaq,quad_su3 **conf,int par,int A)
 {
   loc_plaq[0]=loc_plaq[1]=0;
   for(int mu=0;mu<4;mu++)
@@ -81,13 +81,13 @@ THREADABLE_FUNCTION_2ARG(global_plaquette_lx_conf, double*,totplaq, quad_su3*,co
   
   //loop over all the lattice
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    point_plaquette_lx_conf((double*)(point_plaq[ivol]),conf,ivol);
+    point_plaquette_lx_conf(point_plaq[ivol],conf,ivol);
   
   //wait to have filled all the point array
   THREAD_BARRIER();
   
   //reduce as complex and normalize
-  double temp[2];
+  complex temp;
   complex_vector_glb_collapse(temp,point_plaq,loc_vol);  
   for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glb_vol*3*3);
   
@@ -104,13 +104,13 @@ THREADABLE_FUNCTION_2ARG(global_plaquette_eo_conf, double*,totplaq, quad_su3**,c
   //loop over all the lattice
   for(int par=0;par<2;par++)
     NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-      point_plaquette_eo_conf((double*)point_plaq[loclx_of_loceo[par][ieo]],conf,par,ieo);
+      point_plaquette_eo_conf(point_plaq[loclx_of_loceo[par][ieo]],conf,par,ieo);
   
   //wait to have filled all the point array
   THREAD_BARRIER();
   
   //reduce as complex and normalize
-  double temp[2];
+  complex temp;
   complex_vector_glb_collapse(temp,point_plaq,loc_vol);  
   for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glb_vol*3*3);
 

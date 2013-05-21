@@ -2,6 +2,8 @@
  #include "config.h"
 #endif
 
+#include "intrinsic.h"
+
 ////////////////////////////// convert normal complex to BI //////////////////////////
 
 #define COMPLEX_TO_BI_COMPLEX(A,B,VN)		\
@@ -206,6 +208,13 @@
 #define BI_COLOR_ISUMMASSIGN(A,B) BI_COLOR_ISUMM(A,A,B)
 #define BI_COLOR_ISUBTASSIGN(A,B) BI_COLOR_ISUBT(A,A,B)
 
+#define REG_BI_COLOR_SUBT(A,B,C)					\
+  {									\
+    BI_COMPLEX_SUBT(NAME2(A,c0),NAME2(B,c0),NAME2(C,c0));		\
+    BI_COMPLEX_SUBT(NAME2(A,c1),NAME2(B,c1),NAME2(C,c1));		\
+    BI_COMPLEX_SUBT(NAME2(A,c2),NAME2(B,c2),NAME2(C,c2));		\
+  }
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
 #define BI_HALFSPINCOLOR_SUMM(A,B,C)		\
@@ -291,70 +300,73 @@
 
 #define BI_SU3_PROD_BI_HALFSPINCOLOR(A,B,C)	\
   {						\
-    BI_SU3_PROD_BI_COLOR(A[0],B,C[0]);	\
-    BI_SU3_PROD_BI_COLOR(A[1],B,C[1]);	\
+    BI_SU3_PROD_BI_COLOR(A[0],B,C[0]);		\
+    BI_SU3_PROD_BI_COLOR(A[1],B,C[1]);		\
+  }
+
+///////////////////////////////////////////// registered version ///////////////////////////////////
+
+#define REG_BI_SU3_PROD_BI_COLOR(out,u,in)				\
+  {									\
+    REG_BI_COMPLEX_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0));	\
+    REG_BI_COMPLEX_PROD(NAME2(out,c1),NAME2(u,c10),NAME2(in,c0));	\
+    REG_BI_COMPLEX_PROD(NAME2(out,c2),NAME2(u,c20),NAME2(in,c0));	\
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c0),NAME2(u,c01),NAME2(in,c1)); \
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c1),NAME2(u,c11),NAME2(in,c1)); \
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c2),NAME2(u,c21),NAME2(in,c1)); \
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c0),NAME2(u,c02),NAME2(in,c2)); \
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c1),NAME2(u,c12),NAME2(in,c2)); \
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c2),NAME2(u,c22),NAME2(in,c2)); \
+  }
+
+#define REG_BI_SU3_PROD_BI_HALFSPINCOLOR(reg_out,reg_link,reg_in)	\
+  {									\
+    REG_BI_SU3_PROD_BI_COLOR(NAME2(reg_out,s0),reg_link,NAME2(reg_in,s0)); \
+    REG_BI_SU3_PROD_BI_COLOR(NAME2(reg_out,s1),reg_link,NAME2(reg_in,s1)); \
+  }
+
+#define REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out,link,reg_in)	\
+  {									\
+    DECLARE_REG_BI_SU3(reg_link);					\
+    DECLARE_REG_BI_HALFSPINCOLOR(reg_out);					\
+    REG_LOAD_BI_SU3(reg_link,link);					\
+    REG_BI_SU3_PROD_BI_HALFSPINCOLOR(reg_out,reg_link,reg_in);		\
+    STORE_REG_BI_HALFSPINCOLOR(out,reg_out);				\
   }
 
 ///////////////////////////////////////////// projectors /////////////////////////////////////////
 
 #define HOPMATR_TBW_PROJ(OUT,IN)		\
-  {						\
-    BI_COLOR_SUBT(OUT[0],IN[0],IN[2]);		\
-    BI_COLOR_SUBT(OUT[1],IN[1],IN[3]);		\
-  }
+  BI_COLOR_SUBT(OUT[0],IN[0],IN[2]);		\
+  BI_COLOR_SUBT(OUT[1],IN[1],IN[3])
 
 #define HOPMATR_XBW_PROJ(OUT,IN)		\
-  {						\
-    BI_COLOR_ISUBT(OUT[0],IN[0],IN[3]);		\
-    BI_COLOR_ISUBT(OUT[1],IN[1],IN[2]);		\
-  }
+  BI_COLOR_ISUBT(OUT[0],IN[0],IN[3]);		\
+  BI_COLOR_ISUBT(OUT[1],IN[1],IN[2])
 
 #define HOPMATR_YBW_PROJ(OUT,IN)		\
-  {						\
-    BI_COLOR_SUBT(OUT[0],IN[0],IN[3]);		\
-    BI_COLOR_SUMM(OUT[1],IN[1],IN[2]);		\
-  }
+  BI_COLOR_SUBT(OUT[0],IN[0],IN[3]);		\
+  BI_COLOR_SUMM(OUT[1],IN[1],IN[2])
 
 #define HOPMATR_ZBW_PROJ(OUT,IN)		\
-  {						\
-    BI_COLOR_ISUBT(OUT[0],IN[0],IN[2]);		\
-    BI_COLOR_ISUMM(OUT[1],IN[1],IN[3]);		\
-  }
+  BI_COLOR_ISUBT(OUT[0],IN[0],IN[2]);		\
+  BI_COLOR_ISUMM(OUT[1],IN[1],IN[3])
 
 #define HOPMATR_TFW_PROJ(OUT,IN)		\
-  {						\
-    BI_COLOR_SUMM(OUT[0],IN[0],IN[2]);		\
-    BI_COLOR_SUMM(OUT[1],IN[1],IN[3]);		\
-  }
+  BI_COLOR_SUMM(OUT[0],IN[0],IN[2]);		\
+  BI_COLOR_SUMM(OUT[1],IN[1],IN[3])
 
 #define HOPMATR_XFW_PROJ(OUT,IN)		\
-  {						\
-    BI_COLOR_ISUMM(OUT[0],IN[0],IN[3]);		\
-    BI_COLOR_ISUMM(OUT[1],IN[1],IN[2]);		\
-  }
+  BI_COLOR_ISUMM(OUT[0],IN[0],IN[3]);		\
+  BI_COLOR_ISUMM(OUT[1],IN[1],IN[2])
 
 #define HOPMATR_YFW_PROJ(OUT,IN)		\
-  {						\
-    BI_COLOR_SUMM(OUT[0],IN[0],IN[3]);		\
-    BI_COLOR_SUBT(OUT[1],IN[1],IN[2]);		\
-  }
+  BI_COLOR_SUMM(OUT[0],IN[0],IN[3]);		\
+  BI_COLOR_SUBT(OUT[1],IN[1],IN[2])
 
 #define HOPMATR_ZFW_PROJ(OUT,IN)		\
-  {						\
-    BI_COLOR_ISUMM(OUT[0],IN[0],IN[2]);		\
-    BI_COLOR_ISUBT(OUT[1],IN[1],IN[3]);		\
-  }
-
-///////////////////////////////////// Wilson derivatives ////////////////////////////
-
-#define WILSON_HOPMATR_TBW(OUT,TEMP,LINK,IN)			\
-  do								\
-    {								\
-      REORDER_BARRIER();					\
-      HOPMATR_TBW((TEMP),(IN));					\
-      BI_SU3_PROD_BI_HALFSPINCOLOR((OUT),(LINK),(TEMP));	\
-    }								\
-  while(0)
+  BI_COLOR_ISUMM(OUT[0],IN[0],IN[2]);		\
+  BI_COLOR_ISUBT(OUT[1],IN[1],IN[3])
 
 /////////////////////////////////////////////////////////////////////////////////////
 
