@@ -957,8 +957,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 	if(nch_contr_3pts>0)
 	  {
 #ifdef POINT_SOURCE_VERSION
-	    //unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S1[ip2]);
-	    apply_nabla_i(ch_prop,S1[ip2],conf,1);
+	    unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S1[ip2]);
 #else
 	    unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S1[ip2]);
 #endif
