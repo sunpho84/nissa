@@ -30,14 +30,34 @@ void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
   //scan all local sites to see where to send and from where to expect data
   nissa_loc_vol_loop(ivol)
     {
-      //compute destination site, and destination and origin rank
+      //compute destination site and destination rank
       get_loclx_and_rank_of_coord(&(ivol_to[ivol]),&(rank_to[ivol]),xto[ivol]);
-      rank_fr[ivol]=rank_hosting_site_of_coord(xfr[ivol]);
+      if(rank_to[ivol]>=nissa_nranks||rank_to[ivol]<0)
+	crash("index %d should go to exceeding rank %d",ivol,rank_to[ivol]);
       
-      //count data to be sent and to be received from each rank
-      nfr[rank_fr[ivol]]++;
+      //count data to be sent to each rank
       nto[rank_to[ivol]]++;
     }
+  
+  //if we were provided with info on what to expect
+  if(xfr!=NULL)
+    nissa_loc_vol_loop(ivol)
+    {
+      //compute origin rank
+      rank_fr[ivol]=rank_hosting_site_of_coord(xfr[ivol]);
+      //count data to be received from each rank
+      nfr[rank_fr[ivol]]++;
+    }
+  else
+    for(int delta_rank=0;delta_rank<nissa_nranks;delta_rank++)
+      {
+	//we must sort it out: send to +delta, receive from -delta
+	int dest_rank=(rank+nissa_nranks+delta_rank)%nissa_nranks;
+	int recv_rank=(rank+nissa_nranks-delta_rank)%nissa_nranks;
+	MPI_Sendrecv(nto+dest_rank,1,MPI_INT,dest_rank,0,
+		     nfr+recv_rank,1,MPI_INT,recv_rank,0,
+		     MPI_COMM_WORLD,MPI_STATUS_IGNORE);
+      }
   
   //allocate starting position of out going buffer
   char **out_buf_rank=nissa_malloc("out_buf_rank",nissa_nranks,char*);

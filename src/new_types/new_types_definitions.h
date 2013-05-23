@@ -65,8 +65,13 @@ typedef bi_su3 bi_oct_su3[8];
 typedef bi_color bi_spincolor[4];
 typedef bi_color bi_halfspincolor[2];
 
+#ifdef USE_MPI_IO
 typedef MPI_Offset ILDG_Offset;
 typedef MPI_File ILDG_File;
+#else
+typedef off_t ILDG_Offset;
+typedef FILE* ILDG_File;
+#endif
 
 //this is just for avoid misleading, but is nothing more that a spinspin
 typedef complex spin1field[4];

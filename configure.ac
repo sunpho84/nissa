@@ -78,6 +78,15 @@ if test "$enable_spi" == "yes";then AC_DEFINE([SPI],1,[Enable spi]) fi
 AM_CONDITIONAL([SPI],[test "$enable_spi" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling spi... $enable_spi])
 
+#MPI I/O
+AC_ARG_ENABLE(mpi-io,
+	AS_HELP_STRING([--disable-mpi-io],[Enable MPI I/O]),
+	enable_mpi_io="${enableval}",
+	enable_mpi_io="yes")
+if test "$enable_mpi_io" == "yes";then AC_DEFINE([USE_MPI_IO],1,[Enable MPI I/O]) fi
+AM_CONDITIONAL([USE_MPI_IO],[test "$enable_mpi_io" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling MPI I/O... $enable_mpi_io])
+
 #bgq
 AC_ARG_ENABLE(bgq,
 	AS_HELP_STRING([--enable-bgq],[Enable bgq stuff (ony for BG/Q)]),

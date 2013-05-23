@@ -44,55 +44,77 @@ THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier
       
       //T backward scatter (forward derivative)
       REORDER_BARRIER();
+      CACHE_PREFETCH(out+0));
+      BI_SU3_PREFETCH_NEXT(links[0]);
       REG_BI_COLOR_SUMM(reg_proj_s0,reg_in_s0,reg_in_s2);
       REG_BI_COLOR_SUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
       REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[0])),links[0],reg_proj);
       
+      //X backward scatter (forward derivative)
+      REORDER_BARRIER();
+      REG_BI_COLOR_ISUMM(reg_proj_s0,reg_in_s0,reg_in_s3);
+      REG_BI_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s2);
+      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[1])),links[1],reg_proj);
+      
+      //Y backward scatter (forward derivative)
+      REORDER_BARRIER();
+      REG_BI_COLOR_SUMM(reg_proj_s0,reg_in_s0,reg_in_s3);
+      REG_BI_COLOR_SUBT(reg_proj_s1,reg_in_s1,reg_in_s2);
+      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[2])),links[2],reg_proj);
+      
+      //Z backward scatter (forward derivative)
+      REORDER_BARRIER();
+      REG_BI_COLOR_ISUMM(reg_proj_s0,reg_in_s0,reg_in_s2);
+      REG_BI_COLOR_ISUBT(reg_proj_s1,reg_in_s1,reg_in_s3);
+      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[3])),links[3],reg_proj);
+      
+      //T forward scatter (backward derivative)
+      REORDER_BARRIER();
+      REG_BI_COLOR_SUBT(reg_proj_s0,reg_in_s0,reg_in_s2);
+      REG_BI_COLOR_SUBT(reg_proj_s1,reg_in_s1,reg_in_s3);
+      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[4])),links[4],reg_proj);
+      
+      //X forward scatter (backward derivative)
+      REORDER_BARRIER();
+      REG_BI_COLOR_ISUBT(reg_proj_s0,reg_in_s0,reg_in_s3);
+      REG_BI_COLOR_ISUBT(reg_proj_s1,reg_in_s1,reg_in_s2);
+      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[5])),links[5],reg_proj);
+
+      //Y forward scatter (backward derivative)
+      REORDER_BARRIER();
+      REG_BI_COLOR_SUBT(reg_proj_s0,reg_in_s0,reg_in_s3);
+      REG_BI_COLOR_SUMM(reg_proj_s1,reg_in_s1,reg_in_s2);
+      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[6])),links[6],reg_proj);
+      
+      //Z forward scatter (backward derivative)
+      REORDER_BARRIER();
+      REG_BI_COLOR_ISUBT(reg_proj_s0,reg_in_s0,reg_in_s2);
+      REG_BI_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
+      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[7])),links[7],reg_proj);
+      
 #if 0
+      bi_halfspincolor temp;
+      bi_halfspincolor out_sure;
+
+      //Z forward scatter (backward derivative)
+      HOPMATR_ZBW_PROJ(temp,in[ibgqlx]);
+      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(out_sure,links[7],temp);
+      
       //check
       for(int id=0;id<2;id++)
 	for(int ic=0;ic<3;ic++)
 	  for(int vn=0;vn<2;vn++)
 	    for(int ri=0;ri<2;ri++)
 	      {
-		double a=temp_sure[id][ic][vn][ri];
-		double b=(*(out[0]))[id][ic][vn][ri];
+		double a=out_sure[id][ic][vn][ri];
+		double b=(*(out[7]))[id][ic][vn][ri];
 		double c=0;
 		
 		if(fabs(a-b)>1.e-10)
 		  printf("ivol %d thread %d proj%d%d%d%d %lg %lg %lg %lg\n",
 			 ibgqlx,thread_id,id,ic,vn,ri,a,b,a-b,c);
 	      }
-#endif 
-      bi_halfspincolor temp;
-      
-      //X backward scatter (forward derivative)
-      HOPMATR_XFW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_PROD_BI_HALFSPINCOLOR((*(out[1])),links[1],temp);
-      
-      //Y backward scatter (forward derivative)
-      HOPMATR_YFW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_PROD_BI_HALFSPINCOLOR((*(out[2])),links[2],temp);
-      
-      //Z backward scatter (forward derivative)
-      HOPMATR_ZFW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_PROD_BI_HALFSPINCOLOR((*(out[3])),links[3],temp);
-      
-      //T forward scatter (backward derivative)
-      HOPMATR_TBW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR((*(out[4])),links[4],temp);
-      
-      //X forward scatter (backward derivative)
-      HOPMATR_XBW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR((*(out[5])),links[5],temp);
-      
-      //Y forward scatter (backward derivative)
-      HOPMATR_YBW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR((*(out[6])),links[6],temp);
-      
-      //Z forward scatter (backward derivative)
-      HOPMATR_ZBW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR((*(out[7])),links[7],temp);
+#endif
     }
 }}
   

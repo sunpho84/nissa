@@ -87,6 +87,7 @@
 #define nissa_malloc(a,b,c) (c*)internal_nissa_malloc(a,b,sizeof(c),#c,__FILE__,__LINE__)
 #define nissa_free(a) internal_nissa_free((char**)&(a),__FILE__,__LINE__)
 #define crash(...) internal_crash(__LINE__,__FILE__,__VA_ARGS__)
+#define crash_printing_error(code,...) internal_crash_printing_error(__LINE__,__FILE__,code,__VA_ARGS__)
 #define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
 
 #define master_printf(...) master_fprintf(stdout,__VA_ARGS__)

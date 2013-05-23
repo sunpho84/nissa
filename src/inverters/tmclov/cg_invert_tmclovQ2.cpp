@@ -17,7 +17,6 @@
 #define CG_OPERATOR_PARAMETERS conf,kappa,csw,Pmunu,temp,mu,
 
 #define CG_INVERT inv_tmclovQ2_cg
-#define CG_NPOSSIBLE_REQUESTS 16
 
 //maybe one day async comm
 //#define cg_start_communicating_borders start_communicating_lx_spincolor_borders

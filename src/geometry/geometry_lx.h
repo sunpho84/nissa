@@ -5,6 +5,7 @@
 void addrem_stagphases_to_lx_conf(quad_su3 *conf);
 int bordlx_of_coord(int *x,int mu);
 int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
+void coord_of_rank(coords c,int irank);
 int edgelx_of_coord(int *x,int mu,int nu);
 int full_lx_of_coords_list(const int t,const int x,const int y,const int z);
 int glblx_neighdw(int gx,int mu);
@@ -25,6 +26,7 @@ int rank_hosting_site_of_coord(coords x);
 int rank_of_coord(coords x);
 void get_loclx_and_rank_of_coord(int *ivol,int *rank,coords g);
 void get_loclx_and_rank_of_glblx(int *lx,int *rx,int gx);
+int get_glblx_of_rank_and_loclx(int irank,int loclx);
 void glb_coord_of_glblx(coords x,int gx);
 void initialize_lx_bord_receivers_of_kind(MPI_Datatype *MPI_BORD_RECE,MPI_Datatype *base);
 void initialize_lx_bord_senders_of_kind(MPI_Datatype *MPI_BORD_SEND,MPI_Datatype *base);

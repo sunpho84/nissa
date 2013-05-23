@@ -50,3 +50,6 @@
 
 /* Enable thread_debug */
 #undef THREAD_DEBUG
+
+/* Enable MPI I/O */
+#undef USE_MPI_IO

@@ -92,7 +92,7 @@ uint32_t ildg_crc32_fix_endianess(uint32_t crc,const unsigned char *buf,size_t l
   if(little_endian)
     {
       double temp_buf[len/sizeof(double)];
-      doubles_to_doubles_changing_endianess(temp_buf,(double*)buf,len/sizeof(double));
+      doubles_to_doubles_changing_endianess(temp_buf,(double*)buf,len/sizeof(double),0);
       return ildg_crc32(crc,(unsigned char *)temp_buf,len);
     }
   else
