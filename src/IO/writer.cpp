@@ -39,34 +39,31 @@ void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nb
   //buffer to reorder data in ILDG format and change endianess
   char *buffer=nissa_malloc("buffer",nreals_loc*nbytes_per_real,char);
   
-  //order things as expected
-  int x[4],isour,idest;  
-  for(x[0]=0;x[0]<loc_size[0];x[0]++)
-    for(x[1]=0;x[1]<loc_size[1];x[1]++)
-      for(x[2]=0;x[2]<loc_size[2];x[2]++)
-	for(x[3]=0;x[3]<loc_size[3];x[3]++)
-	  {
-	    idest=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
-	    isour=loclx_of_coord(x);
-	    
-	    char *out=buffer+idest*nbytes_per_site;
-	    double *in=data+isour*nreals_per_site;
-	    
-	    if(nbits==64)
-	      if(little_endian) doubles_to_doubles_changing_endianess((double*)out,in,nreals_per_site);
-	      else memcpy((double*)out,in,nbytes_per_site);
-	    else
-	      if(little_endian) doubles_to_floats_changing_endianess((float*)out,in,nreals_per_site);
-	      else doubles_to_floats_same_endianess((float*)out,in,nreals_per_site);
-	  }
-
+  //possibly reduce to 32 bit
+  nissa_loc_vol_loop(ivol)
+    {
+      char *out=buffer+ivol*nbytes_per_site;
+      double *in=data+ivol*nreals_per_site;
+      
+      if(nbits==64) memcpy((double*)out,in,nbytes_per_site);
+      else for(int i=0;i<nreals_loc;i++) ((float*)out)[i]=in[i];
+    }
+  
+  //compute the checksum
+  checksum check;
+  checksum_compute_nissa_data(check,buffer,nbytes_per_site);
+  
+  //change endianess if needed
+  if(little_endian)
+    {
+      if(nbits==64) doubles_to_doubles_changing_endianess((double*)buffer,(double*)buffer,nreals_loc);
+      else floats_to_floats_changing_endianess((float*)buffer,(float*)buffer,nreals_loc);
+    }
+  
   //write
   ILDG_File_write_ildg_data_all(file,buffer,nbytes_per_site,header_message);
   
   //append the checksum
-  checksum check;
-  checksum_compute_ildg_data(check,buffer,nbytes_per_site);
-  
   ILDG_File_write_checksum(file,check);
   
   //delete the swapped data

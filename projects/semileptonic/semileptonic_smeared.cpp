@@ -447,7 +447,7 @@ void initialize_semileptonic(char *input_path)
   
   //Allocate all the S1 prop_type vectors
   npropS1=nthetaS1*nmassS1;
-  S1=nissa_malloc("S1",loc_vol,prop_type*);
+  S1=nissa_malloc("S1",npropS1,prop_type*);
   for(int iprop=0;iprop<npropS1;iprop++) S1[iprop]=nissa_malloc("S1[i]",loc_vol,prop_type);
 }
 

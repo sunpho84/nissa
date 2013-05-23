@@ -38,9 +38,6 @@ void print_backtrace_list()
 //crash
 void internal_crash(int line,const char *file,const char *templ,...)
 {
-  va_list ap;
-  va_start(ap,templ);
-  
   fflush(stdout);
   fflush(stderr);
   
@@ -50,14 +47,37 @@ void internal_crash(int line,const char *file,const char *templ,...)
   
   if(rank==0)
     {
+      //expand error message
       char mess[1024];
+      va_list ap;
+      va_start(ap,templ);
       vsprintf(mess,templ,ap);
+      va_end(ap);
+
       fprintf(stderr,"ERROR on line %d of file \"%s\", message error: \"%s\".\n",line,file,mess);
       print_backtrace_list();
       MPI_Abort(MPI_COMM_WORLD,1);
     }
-    
-    va_end(ap);
+}
+#include <errno.h>
+
+void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...)
+{
+  if(err_code)
+    {
+      //print error code
+      char str1[1024];
+      sprintf(str1,"returned code %d",err_code);
+      
+      //expand error message
+      char str2[1024];
+      va_list ap;
+      va_start(ap,templ);
+      vsprintf(str2,templ,ap);
+      va_end(ap);
+      
+      internal_crash(line,file,"%s %s",str1,str2);
+    }
 }
 
 //called when terminated

@@ -10,10 +10,17 @@
 #include "../base/global_variables.h"
 #include "../base/macros.h"
 #include "../base/vectors.h"
+#include "../geometry/geometry_lx.h"
+#include "../operations/remap_vector.h"
 #include "../routines/ios.h"
 #include "../routines/mpi.h"
 
 #include "endianess.h"
+
+//mapping of ILDG data
+coords scidac_mapping={0,3,2,1};
+
+#ifdef USE_MPI_IO
 
 //unset the types to read mapped data
 void unset_mapped_types(MPI_Datatype &etype,MPI_Datatype &ftype)
@@ -21,6 +28,8 @@ void unset_mapped_types(MPI_Datatype &etype,MPI_Datatype &ftype)
   decript_MPI_error(MPI_Type_free(&etype),"While freeing etype");
   decript_MPI_error(MPI_Type_free(&ftype),"While freeing ftype");
 }
+
+#endif
 
 //take the two flags out of a header
 bool get_MB_flag(ILDG_header &header)
@@ -92,24 +101,43 @@ void ILDG_message_free_all(ILDG_message *mess)
 //////////////////////////////////////////// simple tasks on file /////////////////////////////////////
 
 //open a file
+#ifdef USE_MPI_IO
 ILDG_File ILDG_File_open(const char *path,int amode)
+#else
+ILDG_File ILDG_File_open(const char *path,const char *mode)
+#endif
 {
   ILDG_File file;
   char in_path[1024];
   sprintf(in_path,"%s",path);
+#ifdef USE_MPI_IO
   decript_MPI_error(MPI_File_open(cart_comm,in_path,amode,MPI_INFO_NULL,&file),"while opening file %s",path);
+#else
+  file=fopen(in_path,mode);
+  if(file==NULL) crash("while opening file %s",path);
+#endif
   
   return file;
 }
 
 ILDG_File ILDG_File_open_for_read(const char *path)
-{return ILDG_File_open(path,MPI_MODE_RDONLY);}
+{
+#ifdef USE_MPI_IO
+  return ILDG_File_open(path,MPI_MODE_RDONLY);
+#else
+  return ILDG_File_open(path,"r");
+#endif
+}
 
 ILDG_File ILDG_File_open_for_write(const char *path)
 {
-  ILDG_File file=ILDG_File_open(path,MPI_MODE_WRONLY|MPI_MODE_CREATE);
+  ILDG_File file;
+#ifdef USE_MPI_IO
+  file=ILDG_File_open(path,MPI_MODE_WRONLY|MPI_MODE_CREATE);
   decript_MPI_error(MPI_File_set_size(file,0),"while resizing to 0 the file %s",path);
-  
+#else
+  file=ILDG_File_open(path,"w");
+#endif
   return file;
 }
 
@@ -117,7 +145,11 @@ ILDG_File ILDG_File_open_for_write(const char *path)
 void ILDG_File_close(ILDG_File &file)
 {
   MPI_Barrier(MPI_COMM_WORLD);
+#ifdef USE_MPI_IO
   decript_MPI_error(MPI_File_close(&file),"while closing file");
+#else
+  crash_printing_error(fclose(file),"while closing file");
+#endif
   MPI_Barrier(MPI_COMM_WORLD);
   
   file=NULL;
@@ -127,23 +159,40 @@ void ILDG_File_close(ILDG_File &file)
 
 //skip the passed amount of bytes starting from curr position
 void ILDG_File_skip_nbytes(ILDG_File &file,ILDG_Offset nbytes)
-{decript_MPI_error(MPI_File_seek(file,nbytes,MPI_SEEK_CUR),"while seeking");}
+{
+#ifdef USE_MPI_IO
+  decript_MPI_error(MPI_File_seek(file,nbytes,MPI_SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
+#else
+  crash_printing_error(fseek(file,nbytes,SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
+}
 
 //get current position
 ILDG_Offset ILDG_File_get_position(ILDG_File &file)
 {
   ILDG_Offset pos;
   
+#ifdef USE_MPI_IO
   decript_MPI_error(MPI_File_get_position(file,&pos),"while getting position");
-  
+#else
+  pos=ftell(file);
+#endif
   return pos;
 }
 
 //set position
 void ILDG_File_set_position(ILDG_File &file,ILDG_Offset pos,int amode)
 {
+#ifdef USE_MPI_IO
   decript_MPI_error(MPI_File_seek(file,pos,amode),"while seeking");
+#else
+  crash_printing_error(fseek(file,pos,amode),"while seeking");
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
 }
+
+#ifdef USE_MPI_IO
 
 //get the view
 ILDG_File_view ILDG_File_get_current_view(ILDG_File &file)
@@ -163,14 +212,22 @@ void ILDG_File_set_view(ILDG_File &file,ILDG_File_view &view)
   ILDG_File_set_position(file,view.pos,MPI_SEEK_SET);
 }
 
+#endif
+
 //get file size
 ILDG_Offset ILDG_File_get_size(ILDG_File &file)
 {
   ILDG_Offset size;
   
   //get file size
+#ifdef USE_MPI_IO
   decript_MPI_error(MPI_File_get_size(file,&size),"while getting file size");
-  
+#else
+  int ori_pos=ILDG_File_get_position(file);
+  ILDG_File_set_position(file,0,SEEK_END);
+  size=ILDG_File_get_position(file);
+  ILDG_File_set_position(file,ori_pos,SEEK_SET);
+#endif
   return size;
 }
 
@@ -179,7 +236,6 @@ void ILDG_File_seek_to_next_eight_multiple(ILDG_File &file)
 {
   //seek to the next multiple of eight
   ILDG_Offset pos=ILDG_File_get_position(file);
-
   ILDG_File_skip_nbytes(file,diff_with_next_eight_multiple(pos));
 }
 
@@ -192,14 +248,13 @@ bool ILDG_File_reached_EOF(ILDG_File &file)
   return pos>=size;
 }
 
+#ifdef USE_MPI_IO
+
 //set the types needed to read mapped data
 ILDG_File_view ILDG_File_create_scidac_mapped_view(ILDG_File &file,ILDG_Offset nbytes_per_site)
 {
   //create the view
   ILDG_File_view view;
-  
-  //mapping of ILDG data
-  coords scidac_mapping={0,3,2,1};
   
   //elementary type
   MPI_Type_contiguous(nbytes_per_site,MPI_BYTE,&view.etype);
@@ -229,6 +284,49 @@ ILDG_File_view ILDG_File_create_scidac_mapped_view(ILDG_File &file,ILDG_Offset n
   return view;
 }
 
+#else
+
+//define the reampping from lx in order to have in each rank a consecutive block of data
+//holding a consecutive piece of ildg data
+void define_to_ILDG_remapping(coords *c)
+{
+  nissa_loc_vol_loop(iloc_lx)
+    {
+      //find global index in ildg transposed ordering
+      int iglb_ILDG=0;
+      for(int mu=0;mu<4;mu++)
+	iglb_ILDG=iglb_ILDG*glb_size[scidac_mapping[mu]]+glb_coord_of_loclx[iloc_lx][scidac_mapping[mu]];
+      
+      //find rank and loclx
+      int irank_ILDG=iglb_ILDG/loc_vol;
+      int loclx_ILDG=iglb_ILDG%loc_vol;
+      
+      //get glb coord
+      coord_of_rank(c[iloc_lx],irank_ILDG);
+      for(int mu=0;mu<4;mu++) c[iloc_lx][mu]=c[iloc_lx][mu]*loc_size[mu]+loc_coord_of_loclx[loclx_ILDG][mu];
+    }
+}
+
+//define the reampping from the layout having in each rank a consecutive block of data holding a 
+//consecutive piece of ildg data to canonical lx
+void define_from_ILDG_remapping(coords *xto)
+{
+  nissa_loc_vol_loop(iloc_ILDG)
+    {
+      int iglb_ILDG=rank*loc_vol+iloc_ILDG;
+      
+      //find global coords in ildg ordering
+      for(int mu=3;mu>=0;mu--)
+	{
+	  int nu=scidac_mapping[mu];
+	  xto[iloc_ILDG][nu]=iglb_ILDG%glb_size[nu];
+	  iglb_ILDG/=glb_size[nu];
+	}
+    }
+}
+
+#endif
+
 ////////////////////////////////////////////////// read and write ////////////////////////////////////////
 
 //simultaneous read from all node
@@ -236,7 +334,8 @@ void ILDG_File_read_all(void *data,ILDG_File &file,int nbytes_req)
 {
   //padding
   ILDG_File_seek_to_next_eight_multiple(file);  
-  
+
+#ifdef USE_MPI_IO
   //reading and taking status/error
   MPI_Status status;
   decript_MPI_error(MPI_File_read_all(file,data,nbytes_req,MPI_BYTE,&status),"while reading all");
@@ -244,6 +343,10 @@ void ILDG_File_read_all(void *data,ILDG_File &file,int nbytes_req)
   //count read bytes and check
   int nbytes_read;
   decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_read),"while counting read bytes");
+#else
+  int nbytes_read=fread(data,1,nbytes_req,file);
+#endif
+  
   if(nbytes_read!=nbytes_req)
     crash("read %d bytes instead of %d required",nbytes_read,nbytes_req);
   
@@ -291,6 +394,7 @@ void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req)
 {
   if(rank==0)
     {
+#ifdef USE_MPI_IO
       //write data
       MPI_Status status;
       decript_MPI_error(MPI_File_write(file,data,nbytes_req,MPI_BYTE,&status),"while writing from first node");
@@ -298,6 +402,11 @@ void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req)
       //check to have wrote 
       int nbytes_wrote;
       decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_wrote),"while counting wrote bytes");
+#else
+      int nbytes_wrote=fwrite(data,1,nbytes_req,file);
+      MPI_Barrier(MPI_COMM_WORLD);
+#endif
+      
       if(nbytes_wrote!=nbytes_req)
 	crash("wrote %d bytes instead of %d required",nbytes_wrote,nbytes_req);
     }
@@ -305,7 +414,11 @@ void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req)
     ILDG_File_skip_nbytes(file,nbytes_req);
 
   //sync
+#ifdef USE_MPI_IO
   MPI_File_sync(file);
+#else
+  fflush(file);
+#endif
   MPI_Barrier(MPI_COMM_WORLD);
 }
 
@@ -374,6 +487,7 @@ int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *reco
 //read the data according to ILDG mapping
 void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header)
 {
+#ifdef USE_MPI_IO
   //take original position and view
   ILDG_File_view normal_view=ILDG_File_get_current_view(file);
   
@@ -385,17 +499,59 @@ void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header
   MPI_Status status;
   decript_MPI_error(MPI_File_read_at_all(file,0,data,loc_vol,scidac_view.etype,&status),"while reading");
   
-  //put the view to original state and place at the end of the record, including padding
-  normal_view.pos+=ceil_to_next_eight_multiple(header.data_length);
-  ILDG_File_set_view(file,normal_view);
-  
   //count read bytes
   int nbytes_read;
   decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_read),"while counting read bytes");
   if((uint64_t)nbytes_read!=header.data_length/nissa_nranks) crash("read %d bytes instead than %d",nbytes_read,header.data_length/nissa_nranks);
     
+  //put the view to original state and place at the end of the record, including padding
+  normal_view.pos+=ceil_to_next_eight_multiple(header.data_length);
+  ILDG_File_set_view(file,normal_view);
+  
   //reset mapped types
   unset_mapped_types(scidac_view.etype,scidac_view.ftype);
+  
+  //reorder
+  int *order=nissa_malloc("order",loc_vol,int);
+  nissa_loc_vol_loop(idest)
+    {
+      int isour=0;
+      for(int mu=0;mu<4;mu++)
+	{
+	  int nu=scidac_mapping[mu];
+	  isour=isour*loc_size[nu]+loc_coord_of_loclx[idest][nu];
+	}
+      order[isour]=idest;
+    }
+  reorder_vector((char*)data,order,loc_vol,header.data_length/glb_vol);
+  nissa_free(order);
+#else
+  //allocate a buffer
+  int nbytes_per_rank_exp=header.data_length/nissa_nranks;
+  char *buf=nissa_malloc("buf",nbytes_per_rank_exp,char);
+  
+  //take original position
+  int ori_pos=ILDG_File_get_position(file);
+  
+  //find starting point
+  int new_pos=ori_pos+rank*nbytes_per_rank_exp;
+  ILDG_File_set_position(file,new_pos,SEEK_SET);
+  
+  //read
+  int nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
+  if(nbytes_read!=nbytes_per_rank_exp) crash("read %d bytes instead of %d",nbytes_read,nbytes_per_rank_exp);
+  
+  //place at the end of the record, including padding
+  ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
+  
+  //reorder data to the appropriate place
+  coords *ord=nissa_malloc("ord",loc_vol,coords);
+  define_from_ILDG_remapping(ord);
+  remap_vector((char*)data,buf,ord,NULL,header.data_length/glb_vol);
+  
+  nissa_free(buf);
+  nissa_free(ord);
+#endif
   
   verbosity_lv3_master_printf("ildg data record read: %lld bytes\n",header.data_length);
 }
@@ -430,6 +586,7 @@ void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,int nbytes_per_sit
   ILDG_header header=ILDG_File_build_record_header(0,0,type,nbytes_per_site*glb_vol);
   ILDG_File_write_record_header(file,header);
   
+#ifdef USE_MPI_IO
   //take original position and view
   ILDG_File_view normal_view=ILDG_File_get_current_view(file);
   
@@ -437,9 +594,28 @@ void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,int nbytes_per_sit
   ILDG_File_view scidac_view=ILDG_File_create_scidac_mapped_view(file,nbytes_per_site);
   ILDG_File_set_view(file,scidac_view);
   
-  //write
+  //reorder
+  int nbytes_per_rank_exp=header.data_length/nissa_nranks;
+  char *buf=nissa_malloc("buf",nbytes_per_rank_exp,char);
+  memcpy(buf,data,nbytes_per_rank_exp);
+  int *order=nissa_malloc("order",loc_vol,int);
+  nissa_loc_vol_loop(isour)
+    {
+      int idest=0;
+      for(int mu=0;mu<4;mu++)
+	{
+	  int nu=scidac_mapping[mu];
+	  idest=idest*loc_size[nu]+loc_coord_of_loclx[isour][nu];
+	}
+      order[isour]=idest;
+    }
+  reorder_vector(buf,order,loc_vol,header.data_length/glb_vol);
+  nissa_free(order);
+  
+  //write and free buf
   MPI_Status status;
-  decript_MPI_error(MPI_File_write_at_all(file,0,data,loc_vol,scidac_view.etype,&status),"while writing");
+  decript_MPI_error(MPI_File_write_at_all(file,0,buf,loc_vol,scidac_view.etype,&status),"while writing");
+  nissa_free(buf);
   
   //sync
   MPI_File_sync(file);
@@ -452,11 +628,39 @@ void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,int nbytes_per_sit
   //count wrote bytes
   int nbytes_wrote;
   decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_wrote),"while counting wrote bytes");
-  if((uint64_t)nbytes_wrote!=header.data_length/nissa_nranks) crash("wrote %d bytes instead than %d",nbytes_wrote,header.data_length/nissa_nranks);
-    
+  if((uint64_t)nbytes_wrote!=header.data_length/nissa_nranks)
+    crash("wrote %d bytes instead than %d",nbytes_wrote,header.data_length/nissa_nranks);
+  
   //reset mapped types
   unset_mapped_types(scidac_view.etype,scidac_view.ftype);
+#else
+  int nbytes_per_rank_exp=header.data_length/nissa_nranks;
+  char *buf=nissa_malloc("buf",nbytes_per_rank_exp,char);
   
+  //take original position
+  int ori_pos=ILDG_File_get_position(file);
+  
+  //find starting point
+  int new_pos=ori_pos+rank*nbytes_per_rank_exp;
+  ILDG_File_set_position(file,new_pos,SEEK_SET);
+  
+  //reorder data to the appropriate place
+  coords *ord=nissa_malloc("ord",loc_vol,coords);
+  define_to_ILDG_remapping(ord);
+  remap_vector(buf,(char*)data,ord,NULL,header.data_length/glb_vol);
+  
+  //write
+  int nbytes_wrote=fwrite(buf,1,nbytes_per_rank_exp,file);
+  if(nbytes_wrote!=nbytes_per_rank_exp) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank_exp);
+  
+  //free buf and ord
+  nissa_free(ord);
+  nissa_free(buf);
+  
+  //place at the end of the record, including padding
+  ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
+#endif
+
   //pad if necessary
   int pad_diff=header.data_length%8;
   if(pad_diff!=0)

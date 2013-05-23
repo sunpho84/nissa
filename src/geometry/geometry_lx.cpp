@@ -58,6 +58,14 @@ int lx_of_coord(coords x,coords s)
   
   return ilx;
 }
+void coord_of_lx(coords x,int ilx,coords s)
+{
+  for(int mu=3;mu>=0;mu--)
+    {
+      x[mu]=ilx%s[mu];
+      ilx/=s[mu];
+    }
+}
 
 //wrappers
 int loclx_of_coord(coords x)
@@ -121,6 +129,8 @@ void rank_coord_of_site_of_coord(coords rank_coord,coords glb_coord)
 //Return the rank of passed coord
 int rank_of_coord(coords x)
 {return lx_of_coord(x,nrank_dir);}
+void coord_of_rank(coords c,int x)
+{coord_of_lx(c,x,nrank_dir);}
 
 //Return the rank containing the global coordinates
 int rank_hosting_site_of_coord(coords x)
@@ -130,7 +140,7 @@ int rank_hosting_site_of_coord(coords x)
   
   return rank_of_coord(p);
 }
-//Retrun the rank containing the glblx passed
+//Return the rank containing the glblx passed
 int rank_hosting_glblx(int gx)
 {
   coords c;
@@ -150,6 +160,19 @@ void get_loclx_and_rank_of_coord(int *ivol,int *rank,coords g)
   
   (*rank)=rank_of_coord(p);
   (*ivol)=loclx_of_coord(l);
+}
+
+//Return the global index of site addressed by rank and loclx
+int get_glblx_of_rank_and_loclx(int irank,int loclx)
+{
+  coords p;
+  coord_of_rank(p,irank);
+  
+  int iglblx=0;
+  for(int mu=0;mu<4;mu++)
+    iglblx=iglblx*glb_size[mu]+loc_coord_of_loclx[loclx][mu];
+
+  return iglblx;
 }
 
 //return the index of the site of passed "pseudolocal" coordinate

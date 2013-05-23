@@ -18,12 +18,12 @@ void check_endianess()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //fucking tool to revert the endianess of doubles
-void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndoubles)
+void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndoubles,int verbose=1)
 {
   char *cdest,*csour;
   char temp;
   
-  verbosity_lv3_master_printf("Reverting the endianess of the data\n");
+  if(verbose) verbosity_lv3_master_printf("Reverting the endianess of the data\n");
   
   if(dest==sour)
     for(int idouble=0;idouble<ndoubles;idouble++)
@@ -65,12 +65,12 @@ void doubles_to_doubles_changing_endianess(double *dest,double *sour,int ndouble
     }
 }
 
-void floats_to_floats_changing_endianess(float *dest,float *sour,int nfloats)
+void floats_to_floats_changing_endianess(float *dest,float *sour,int nfloats,int verbose=1)
 {
   char *cdest,*csour;
   char temp;
   
-  verbosity_lv3_master_printf("Reverting the endianess ot the data\n");
+  if(verbose) verbosity_lv3_master_printf("Reverting the endianess of the data\n");
 
   if(dest==sour)
     for(int ifloat=0;ifloat<nfloats;ifloat++)
@@ -99,18 +99,18 @@ void floats_to_floats_changing_endianess(float *dest,float *sour,int nfloats)
     }
 }
 
-void uint64s_to_uint64s_changing_endianess(uint64_t *dest,uint64_t *sour,int nints)
-{doubles_to_doubles_changing_endianess((double*)dest,(double*)sour,nints);}
+void uint64s_to_uint64s_changing_endianess(uint64_t *dest,uint64_t *sour,int nints,int verbose=1)
+{doubles_to_doubles_changing_endianess((double*)dest,(double*)sour,nints,verbose);}
 
-void uint32s_to_uint32s_changing_endianess(uint32_t *dest,uint32_t *sour,int nints)
-{floats_to_floats_changing_endianess((float*)dest,(float*)sour,nints);}
+void uint32s_to_uint32s_changing_endianess(uint32_t *dest,uint32_t *sour,int nints,int verbose=1)
+{floats_to_floats_changing_endianess((float*)dest,(float*)sour,nints,verbose);}
 
-void uint16s_to_uint16s_changing_endianess(uint16_t *dest,uint16_t *sour,int nshorts)
+void uint16s_to_uint16s_changing_endianess(uint16_t *dest,uint16_t *sour,int nshorts,int verbose=1)
 {
   char *cdest,*csour;
   char temp;
   
-  verbosity_lv3_master_printf("Reverting the endianess ot the data\n");
+  if(verbose) verbosity_lv3_master_printf("Reverting the endianess of the data\n");
 
   if(dest==sour)
     for(int ishort=0;ishort<nshorts;ishort++)
@@ -136,20 +136,20 @@ void uint16s_to_uint16s_changing_endianess(uint16_t *dest,uint16_t *sour,int nsh
 ////////////////////Copy a vector of floats to doubles. Sweep is reversed to avoid overwriting////////////////
 
 //Do not change endianess
-void floats_to_doubles_same_endianess(double *dest,float *sour,int n)
+void floats_to_doubles_same_endianess(double *dest,float *sour,int n,int verbose=1)
 {
-  verbosity_lv3_master_printf("Converting %d floats to doubles\n",n);
+  if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles\n",n);
   
   for(int i=n-1;i>=0;i--) dest[i]=(double)(sour[i]);
 }
 
 //Change endianess
-void floats_to_doubles_changing_endianess(double *dest,float *sour,int n)
+void floats_to_doubles_changing_endianess(double *dest,float *sour,int n,int verbose=1)
 {
   char *c;
   char temp;
 
-  verbosity_lv3_master_printf("Converting %d floats to doubles changing endianess\n",n);
+  if(verbose) verbosity_lv3_master_printf("Converting %d floats to doubles changing endianess\n",n);
 
   for(int i=n-1;i>=0;i--)
     {
@@ -170,20 +170,20 @@ void floats_to_doubles_changing_endianess(double *dest,float *sour,int n)
 ////////////////////Copy a vector of doubles to floats. Sweep is direct, to avoid overwriting////////////////
 
 //Do not change the endianess
-void doubles_to_floats_same_endianess(float *dest,double *sour,int n)
+void doubles_to_floats_same_endianess(float *dest,double *sour,int n,int verbose=1)
 {
-  verbosity_lv3_master_printf("Converting %d doubles to floats\n",n);
+  if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats\n",n);
 
   for(int i=0;i<n;i++) dest[i]=(float)(sour[i]);
 }
 
 //Change endianess
-void doubles_to_floats_changing_endianess(float *dest,double *sour,int n)
+void doubles_to_floats_changing_endianess(float *dest,double *sour,int n,int verbose=1)
 {
   char *c;
   char temp;
 
-  verbosity_lv3_master_printf("Converting %d doubles to floats changing endianess\n",n);
+  if(verbose) verbosity_lv3_master_printf("Converting %d doubles to floats changing endianess\n",n);
 
   for(int i=0;i<n;i++)
     {
