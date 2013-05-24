@@ -81,12 +81,12 @@
 #define BI_SPINCOLOR_PREFETCH(addr)		\
   do						\
     {						\
-      CACHE_PREFETCH((char*)(addr)+  0);		\
-      CACHE_PREFETCH((char*)(addr)+ 64);		\
-      CACHE_PREFETCH((char*)(addr)+128);		\
-      CACHE_PREFETCH((char*)(addr)+192);		\
-      CACHE_PREFETCH((char*)(addr)+256);		\
-      CACHE_PREFETCH((char*)(addr)+320);		\
+      CACHE_PREFETCH((char*)(addr)+  0);	\
+      CACHE_PREFETCH((char*)(addr)+ 64);	\
+      CACHE_PREFETCH((char*)(addr)+128);	\
+      CACHE_PREFETCH((char*)(addr)+192);	\
+      CACHE_PREFETCH((char*)(addr)+256);	\
+      CACHE_PREFETCH((char*)(addr)+320);	\
     }						\
   while(0)
 
