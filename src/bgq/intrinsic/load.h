@@ -95,8 +95,8 @@
   do						\
     {						\
       CACHE_PREFETCH((char*)(addr)+ 0);		\
-      CACHE_PREFETCH((char*)(addr)+ 64);		\
-      CACHE_PREFETCH((char*)(addr)+128);		\
+      CACHE_PREFETCH((char*)(addr)+ 64);        \
+      CACHE_PREFETCH((char*)(addr)+128);	\
     }						\
   while(0)
 
