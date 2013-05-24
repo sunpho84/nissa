@@ -284,6 +284,13 @@ struct stout_pars_t
   stout_coeff_t rho;
 };
 
+//parameters to ape smear
+struct ape_pars_t
+{
+  int nlev;
+  double alpha;
+};
+
 //background em field parameters
 struct em_field_pars_t
 {

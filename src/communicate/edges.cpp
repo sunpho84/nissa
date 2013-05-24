@@ -170,4 +170,4 @@ void communicate_eo_edges(char **data,comm_t &bord_comm,MPI_Datatype *MPI_EDGES_
 
 //Send the edges of the gauge configuration
 void communicate_eo_quad_su3_edges(quad_su3 **conf)
-{communicate_eo_edges((char**)conf,eo_quad_su3_comm,MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
+{communicate_eo_edges((char**)conf,lx_quad_su3_comm,MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
