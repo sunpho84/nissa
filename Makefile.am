@@ -23,7 +23,12 @@ bgq_src_file=$(bgq_barrier_src_file) \
 	src/bgq/geometry_bgq.cpp \
 	src/bgq/hopping_matrix_bgq.cpp \
 	src/bgq/hopping_matrix_bgq.h \
-	src/bgq/bgq_macros.h
+	src/bgq/bgq_macros.h \
+	src/bgq/intrinsic/declare.h \
+	src/bgq/intrinsic/load.h \
+	src/bgq/intrinsic/oper.h \
+	src/bgq/intrinsic/store.h \
+	src/bgq/intrinsic.h
 else
 bgq_src_file=
 endif
