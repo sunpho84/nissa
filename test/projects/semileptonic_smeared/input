@@ -12,12 +12,18 @@ Seed 100
 NoiseType 4 
 SaveSource 1
 
-ApeAlpha 0.5
-ApeNiter 20
 GaussianKappa 4
 GaussianNiterSo 2  0 30
 GaussianNiterSe 2  0 30
 GaussianNiterSi 2  0 30
+
+ConfSmearingType APE
+/*
+StoutingNLevel 12
+IsotropicStouting 1
+StoutRho 0.15*/
+ApeNlevel 20
+ApeAlpha 0.5
 
 WhichRS0 2
 

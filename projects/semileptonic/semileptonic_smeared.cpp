@@ -97,8 +97,11 @@ spincolor *source;
 prop_type *original_source;
 
 //smearing parameters
-double gaussian_kappa,ape_alpha;
-int ape_niter;
+enum conf_smearing_t{no_conf_smearing,ape_conf_smearing,stout_conf_smearing};
+conf_smearing_t conf_smearing;
+ape_pars_t ape_smearing_pars;
+stout_pars_t stout_smearing_pars;
+double gaussian_kappa;
 int *gaussian_niter_so,nsm_lev_so;
 int *gaussian_niter_si,nsm_lev_si;
 int *gaussian_niter_se,nsm_lev_se;
@@ -169,6 +172,28 @@ int ipropS0(int itheta,int imass,int mu_der)
 }
 int ipropS1(int itheta,int imass)
 {return itheta*nmassS1+imass;}
+
+//read the parameters to smear the conf entering covariant stuff
+void read_conf_smearing_pars()
+{
+  //read the string
+  char conf_smearing_str[100];
+  read_str_str("ConfSmearingType",conf_smearing_str,100);
+  if(strcasecmp(conf_smearing_str,"no")==0) conf_smearing=no_conf_smearing;
+  else
+    if(strcasecmp(conf_smearing_str,"ape")==0)
+      {
+	conf_smearing=ape_conf_smearing;
+	read_ape_pars(ape_smearing_pars);
+      }
+    else
+    if(strcasecmp(conf_smearing_str,"stout")==0)
+      {
+	conf_smearing=stout_conf_smearing;
+	read_stout_pars(stout_smearing_pars);
+      }
+    else crash("Unkown conf smearing type: %s\n",conf_smearing_str);
+}
 
 //This function contract a source with a sequential spinor putting the passed list of operators
 void contract_with_source(complex *corr,prop_type *S1,int *list_op,prop_type *source)
@@ -278,8 +303,6 @@ void initialize_semileptonic(char *input_path)
   // 3) Smearing parameters
   
   //Smearing parameters
-  read_str_double("ApeAlpha",&ape_alpha);
-  read_str_int("ApeNiter",&ape_niter);
   read_str_double("GaussianKappa",&gaussian_kappa);
   read_list_of_ints("GaussianNiterSo",&nsm_lev_so,&gaussian_niter_so);
   for(int iter=1;iter<nsm_lev_so;iter++)
@@ -293,6 +316,7 @@ void initialize_semileptonic(char *input_path)
   for(int iter=1;iter<nsm_lev_si;iter++)
     if(gaussian_niter_si[iter]<gaussian_niter_si[iter-1])
       crash("Error, gaussian lev seq %d minor than %d (%d, %d)!\n",iter,iter-1,gaussian_niter_si[iter],gaussian_niter_si[iter-1]);
+  read_conf_smearing_pars();
   
   // 4) Read list of masses and of thetas
 
@@ -417,7 +441,7 @@ void initialize_semileptonic(char *input_path)
   
   //allocate gauge conf, Pmunu and all the needed spincolor and propagators
   conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  if(ape_niter!=0) sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  if(conf_smearing!=no_conf_smearing) sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   else sme_conf=conf;
   Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
   
@@ -513,11 +537,30 @@ void setup_conf()
   Pmunu_term(Pmunu,conf);
   
   //prepare the smerded version and compute plaquette
-  if(ape_niter!=0)
+  switch(conf_smearing)
     {
-      ape_spatial_smear_conf(sme_conf,conf,ape_alpha,ape_niter);
-      master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
+    case no_conf_smearing:
+      break;
+    case ape_conf_smearing:
+      ape_spatial_smear_conf(sme_conf,conf,ape_smearing_pars.alpha,ape_smearing_pars.nlev);
+      break;
+    case stout_conf_smearing:
+      //workaround because stout is implemented only for eo conf
+      quad_su3 *eo_conf[2];
+      eo_conf[EVN]=nissa_malloc("new_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
+      eo_conf[ODD]=nissa_malloc("new_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
+      split_lx_conf_into_eo_parts(eo_conf,conf);
+      stout_smear(eo_conf,eo_conf,&(stout_smearing_pars));
+      paste_eo_parts_into_lx_conf(sme_conf,eo_conf);
+      nissa_free(eo_conf[EVN]);
+      nissa_free(eo_conf[ODD]);
+      break;
+    default:
+      crash("unknown conf smearing type %d",(int)conf_smearing);
+      break;
     }
+  
+  if(conf_smearing!=no_conf_smearing) master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
   
   //put the anti-periodic condition on the temporal border
   old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
@@ -540,7 +583,7 @@ void close_semileptonic()
   master_printf("   * %02.2f%s to compute three points\n",contr_3pts_time*100.0/contr_time,"%");
   master_printf("   * %02.2f%s to save correlations\n",contr_save_time*100.0/contr_time,"%");
   
-  nissa_free(Pmunu);nissa_free(conf);if(ape_niter!=0) nissa_free(sme_conf);
+  nissa_free(Pmunu);nissa_free(conf);if(conf_smearing!=no_conf_smearing) nissa_free(sme_conf);
   for(int iprop=0;iprop<npropS0;iprop++)
     for(int r=0;r<2;r++)
       if(which_r_S0==2||which_r_S0==r) nissa_free(S0[r][iprop]);

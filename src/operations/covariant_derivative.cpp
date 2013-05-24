@@ -25,8 +25,8 @@
         Xup=loclx_neighup[ix][mu];                                      \
         Xdw=loclx_neighdw[ix][mu];                                      \
                                                                         \
-        NAME2(unsafe_su3_prod,TYPE)(             temp[ix],conf[ix][mu] ,in[Xup]); \
-        NAME2(unsafe_su3_dag_subt_the_prod,TYPE)(temp[ix],conf[Xdw][mu],in[Xdw]); \
+        NAME2(unsafe_su3_prod,TYPE)(      temp[ix],conf[ix][mu] ,in[Xup]); \
+        NAME2(su3_dag_subt_the_prod,TYPE)(temp[ix],conf[Xdw][mu],in[Xdw]); \
       }                                                                 \
                                                                         \
     vector_copy(out,temp);                                              \

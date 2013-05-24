@@ -35,7 +35,7 @@ THREADABLE_FUNCTION_5ARG(apply_Wstat, spincolor*,out, quad_su3*,conf, spincolor*
 	  if(!ori)
 	    {
 	      if(ord==1 && dist<=glb_size[mu]/2) su3_subt_the_prod_spincolor(out[x],conf[xdw][mu],in[xdw]);
-	      else                               unsafe_su3_dag_subt_the_prod_spincolor(out[x],conf[x][mu],in[xup]);
+	      else                               su3_dag_subt_the_prod_spincolor(out[x],conf[x][mu],in[xup]);
 	    }
 	}
     }

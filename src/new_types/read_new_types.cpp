@@ -55,7 +55,7 @@ void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
   read_str_int("NOvHits",&pars.nov_hits);
 }
 
-//read parameters to stout gauge action
+//read parameters to stout smear gauge action
 void read_stout_pars(stout_pars_t &stout_pars)
 {
   read_str_int("StoutingNLevel",&stout_pars.nlev);
@@ -76,6 +76,13 @@ void read_stout_pars(stout_pars_t &stout_pars)
 	}
       else crash("Anisotropic stouting not yet implemented");
     }
+}
+
+//read parameters to ape smear gauge action
+void read_ape_pars(ape_pars_t &ape_pars)
+{
+  read_str_int("ApeNLevel",&ape_pars.nlev);
+  read_str_double("ApeAlpha",&ape_pars.alpha);
 }
 
 //read parameters of the background em field
