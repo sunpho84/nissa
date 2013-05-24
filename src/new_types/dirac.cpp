@@ -232,10 +232,14 @@ void init_base_gamma()
   init_dirac(base_gamma+13,  1,0,1  , 0,0,1  , 3,0,1  , 2,0,1 );
   init_dirac(base_gamma+14,  1,1,0  , 0,-1,0 , 3,1,0  , 2,-1,0);
   init_dirac(base_gamma+15,  0,0,1  , 1,0,-1 , 2,0,1  , 3,0,-1);
-
+  
   init_dirac(&Pplus ,          0,rad2,rad2  , 1,rad2,rad2  , 2,rad2,-rad2 , 3,rad2,-rad2);
   init_dirac(&Pminus,          0,rad2,-rad2 , 1,rad2,-rad2 , 2,rad2,rad2  , 3,rad2,rad2 );
-
+  
+  dirac_prod(base_gamma+16,base_gamma+4,base_gamma+6);
+  dirac_prod(base_gamma+17,base_gamma+4,base_gamma+7);
+  dirac_prod(base_gamma+18,base_gamma+4,base_gamma+8);
+  
   //the sigma mu nu in an anti-simmetric tensor
   int lmunu[6]={10,11,12,15,14,13};
   int cmunu[6]={1,1,1,1,-1,1};

@@ -182,12 +182,12 @@ int perp3_dir[4][3][2]={{{3,2},{3,1},{2,1}},{{3,2},{3,0},{3,2}},{{3,1},{3,0},{1,
 //the real amd imaginary unit
 EXTERN complex ONE,I;
 
-//The base of the 16 gamma matrixes and the two rotators
-EXTERN dirac_matr base_gamma[16];
+//The base of the 16 gamma matrixes, the two rotators and Ci=G0*Gi*G5
+EXTERN dirac_matr base_gamma[19];
 EXTERN dirac_matr Pplus,Pminus;
-EXTERN char gtag[16][3]
+EXTERN char gtag[19][3]
 #ifndef ONLY_INSTANTIATION
-={"S0","V1","V2","V3","V0","P5","A1","A2","A3","A0","T1","T2","T3","B1","B2","B3"}
+={"S0","V1","V2","V3","V0","P5","A1","A2","A3","A0","T1","T2","T3","B1","B2","B3","C1","C2","C3"}
 #endif
 ;
 EXTERN int nissa_map_mu[4]

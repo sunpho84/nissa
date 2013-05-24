@@ -10,6 +10,7 @@
 #include <omp.h>
 
 #if defined BGQ && !defined BGQ_EMU
+ #include <bgpm/include/bgpm.h>
  #include "../bgq/bgq_barrier.h"
 #endif
 
