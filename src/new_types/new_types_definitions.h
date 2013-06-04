@@ -53,17 +53,19 @@ typedef su3 squared_staples_t[4][6];
 
 typedef squared_staples_t rectangular_staples_t;
 
-#ifdef BGQ_EMU
-typedef complex bi_complex[2];
-#else
-typedef vector4double bi_complex;
-#endif
+#ifdef BGQ
+ #ifdef BGQ_EMU
+  typedef complex bi_complex[2];
+ #else
+  typedef vector4double bi_complex;
+ #endif
 
-typedef bi_complex bi_color[3];
-typedef bi_color bi_su3[3];
-typedef bi_su3 bi_oct_su3[8];
-typedef bi_color bi_spincolor[4];
-typedef bi_color bi_halfspincolor[2];
+ typedef bi_complex bi_color[3];
+ typedef bi_color bi_su3[3];
+ typedef bi_su3 bi_oct_su3[8];
+ typedef bi_color bi_spincolor[4];
+ typedef bi_color bi_halfspincolor[2];
+#endif
 
 #ifdef USE_MPI_IO
 typedef MPI_Offset ILDG_Offset;

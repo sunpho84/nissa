@@ -116,8 +116,8 @@ spincolor **cgm_solution,*temp_vec[2];
 int ithetaS0_min,ithetaS0_max;
 
 //cgm inverter parameters
-double *stopping_residues_S0;
-double *stopping_residues_S1;
+double *stop_res_S0;
+double *stop_res_S1;
 int niter_max=100000;
 
 //two points contractions
@@ -330,7 +330,7 @@ void initialize_semileptonic(char *input_path)
     if(which_r_S0!=2) read_str_int("UseCgmS0",&use_cgm_S0);
     else use_cgm_S0=1;
   
-  read_list_of_double_pairs("MassResiduesS0",&nmassS0,&massS0,&stopping_residues_S0);
+  read_list_of_double_pairs("MassResiduesS0",&nmassS0,&massS0,&stop_res_S0);
   read_list_of_doubles("NThetaS0",&nthetaS0,&thetaS0);
   read_str_int("SaveS0",&save_S0);
   if(save_S0==0) read_str_int("LoadS0",&load_S0);
@@ -379,7 +379,7 @@ void initialize_semileptonic(char *input_path)
   // 6) Read list of masses and of thetas for S1
   
   if(Wclov_tm==1) read_str_int("UseCgmS1",&use_cgm_S1);
-  read_list_of_double_pairs("MassResiduesS1",&nmassS1,&massS1,&stopping_residues_S1);
+  read_list_of_double_pairs("MassResiduesS1",&nmassS1,&massS1,&stop_res_S1);
   read_list_of_doubles("NThetaS1",&nthetaS1,&thetaS1);
   read_str_int("ContrThreePointsUpToS0Mass",&contr_3pts_up_to_S0_mass);
   
@@ -652,7 +652,7 @@ void calculate_S0(int ism_lev_so)
       //decide parameters of inverter
       double *mass=(muS==0)?massS0:massS0der;
       int nmass=(muS==0)?nmassS0:nmassS0der;
-      double *stopping_residues=(muS==0)?stopping_residues_S0:stopping_residues_S0+start_massS0der;
+      double *stop_res=(muS==0)?stop_res_S0:stop_res_S0+start_massS0der;
       
       //loop over the source dirac index
 #ifdef POINT_SOURCE_VERSION
@@ -686,8 +686,8 @@ void calculate_S0(int ism_lev_so)
 		    //decide if to use multimass or single mass
 		    if(use_cgm_S0)
 		      {
-			if(cSW==0) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stopping_residues,source);
-			else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,cSW,Pmunu,mass,nmass,niter_max,stopping_residues,source);
+			if(cSW==0) inv_tmQ2_cgm(cgm_solution,conf,kappa,mass,nmass,niter_max,stop_res,source);
+			else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,cSW,Pmunu,mass,nmass,niter_max,stop_res,source);
 		      }
 		    else
 		      for(int imass=0;imass<nmass;imass++)
@@ -699,11 +699,11 @@ void calculate_S0(int ism_lev_so)
 			      master_printf("Ma no!\n");
 			      if(which_r_S0==0) m*=-1;
 			      
-			      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stopping_residues[imass],source);
-			      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,5,stopping_residues[imass],source);
+			      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stop_res[imass],source);
+			      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,5,stop_res[imass],source);
 			    }
 			  else //m=kappa
-			    inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,5,stopping_residues[imass],source);
+			    inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,5,stop_res[imass],source);
 			  
 			  master_printf("Finished submass[%d]=%lg\n",imass,m);
 			}
@@ -813,8 +813,8 @@ void calculate_S1(int ispec,int ism_lev_se)
 	    //decide to use one or the other inverters
 	    if(use_cgm_S1)
 	      {
-		if(cSW==0) inv_tmQ2_cgm(cgm_solution,conf,kappa,massS1,nmassS1,niter_max,stopping_residues_S1,source);
-		else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,cSW,Pmunu,massS1,nmassS1,niter_max,stopping_residues_S1,source);
+		if(cSW==0) inv_tmQ2_cgm(cgm_solution,conf,kappa,massS1,nmassS1,niter_max,stop_res_S1,source);
+		else inv_tmclovQ2_cgm(cgm_solution,conf,kappa,cSW,Pmunu,massS1,nmassS1,niter_max,stop_res_S1,source);
 	      }
 	    else
 	      for(int imass=0;imass<nmassS1;imass++)
@@ -824,10 +824,10 @@ void calculate_S1(int ispec,int ism_lev_se)
 		  if(Wclov_tm)
 		    {
 		      if(r_spec[ispec]==1) m*=-1;
-		      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stopping_residues_S1[imass],source);
-		      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,5,stopping_residues_S1[imass],source);
+		      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stop_res_S1[imass],source);
+		      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,5,stop_res_S1[imass],source);
 		    }
-		  else inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,5,stopping_residues_S1[imass],source);
+		  else inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,5,stop_res_S1[imass],source);
 		}
 	    
 	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
@@ -876,10 +876,11 @@ void calculate_S1(int ispec,int ism_lev_se)
 //Calculate and print to file the 2pts
 void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 {
-  prop_type *temp_der=(compute_der==1)?nissa_malloc("temp_der",loc_vol+bord_vol,prop_type):NULL;
+  prop_type *temp_der1=(compute_der>=1)?nissa_malloc("temp_der1",loc_vol+bord_vol,prop_type):NULL;
+  prop_type *temp_der2=(compute_der>=2)?nissa_malloc("temp_der2",loc_vol+bord_vol,prop_type):NULL;
   
   smear_time-=take_time();
-    
+  
   for(int r=0;r<2;r++)
     if(which_r_S0==2||which_r_S0==r)
       for(int iprop=0;iprop<npropS0;iprop++)
@@ -893,88 +894,105 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
   sprintf(path,"%s/2pts_%02d_%02d",outfolder,gaussian_niter_so[ism_lev_so],gaussian_niter_si[ism_lev_si]);
   FILE *fout=open_text_file_for_output(path);
   
+  //choose if to derive or not
+  int nmuS1=(compute_der>=1)?4:1;
+  int nmuS2=(compute_der>=2)?4:1;
+  
   for(int ispec=0;ispec<nspec;ispec++)
     {
       int ith1=ith_spec[ispec];
-      for(int muS_source=0;muS_source<nmuS;muS_source++)
-	for(int muS_sink=0;muS_sink<nmuS;muS_sink++)
-	  for(int ith2=0;ith2<nthetaS0;ith2++)
-	    if(!only_standing_2pts||ith2==ith1)
-	      for(int im2=0;im2<nmassS0;im2++)
-		{
-		  int ip2=ipropS0(ith2,im2,0); //ip2 is not shifted
-		  for(int r2=0;r2<2;r2++)
-		    if(which_r_S0==2||which_r_S0==r2)
+      for(int muS_source2=0;muS_source2<nmuS2;muS_source2++)
+	for(int muS_sink2=0;muS_sink2<nmuS2;muS_sink2++)
+	  for(int muS_source1=0;muS_source1<nmuS1;muS_source1++)
+	    for(int muS_sink1=0;muS_sink1<nmuS1;muS_sink1++)
+	      for(int ith2=0;ith2<nthetaS0;ith2++)
+		if(!only_standing_2pts||ith2==ith1)
+		  {
+		    //decide parameters of mass 2
+		    double *mass2=(muS_source2==0)?massS0:massS0der;
+		    int nmass2=(muS_source2==0)?nmassS0:nmassS0der;
+		    double *stop_res2=(muS_source2==0)?stop_res_S0:stop_res_S0+start_massS0der;
+		    
+		    for(int im2=0;im2<nmass2;im2++)
 		      {
-			if(nch_contr_2pts>0)
-			  {
-#ifdef POINT_SOURCE_VERSION
-			    unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S0[r2][ip2]);
-#else
-			    unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S0[r2][ip2]);
-#endif
-			  }
-			
-			//decide parameters of mass 1
-			double *mass1=(muS_source==0)?massS0:massS0der;
-			int nmass1=(muS_source==0)?nmassS0:nmassS0der;
-			double *stopping_residues1=(muS_source==0)?stopping_residues_S0:stopping_residues_S0+start_massS0der;
-			
-			for(int im1=0;im1<nmass1;im1++)
-			  {
-			    int ip1=ipropS0(ith1,im1,muS_source);
-			    
-			    for(int r1=0;r1<2;r1++)
-			      if((which_r_S0==2&&(!only_charged_2pts||r2==r1))||which_r_S0==r1)
+			int ip2=ipropS0(ith2,im2,muS_source2);
+			for(int r2=0;r2<2;r2++)
+			  if(which_r_S0==2||which_r_S0==r2)
+			    {
+			      //if no derivative on the sink use S0, else derive the sink
+			      prop_type *S0_2=(muS_sink2==0)?S0[r2][ip2]:temp_der2;
+			      if(muS_sink2!=0) apply_nabla_i(temp_der2,S0[r2][ip2],sme_conf,muS_sink2);
+			      
+			      if(nch_contr_2pts>0)
 				{
-				  prop_type *S0_1;
-				  
-				  //if no derivative on the sink use S0, else derive the sink
-				  if(muS_sink==0) S0_1=S0[r1][ip1];
-				  else
-				    {
-				      apply_nabla_i(temp_der,S0[r1][ip1],sme_conf,muS_sink);
-				      S0_1=temp_der;
-				    }
-				  
-				  //header
-				  master_fprintf(fout," # m1=%lg th1=%lg res1=%lg r1=%d, m2=%lg th2=%lg res2=%lg r2=%d der_source=%d der_sink=%d",
-						 mass1[im1], thetaS0[ith1],stopping_residues1[im1],r1,
-						 massS0[im2],thetaS0[ith2],stopping_residues_S0[im2],  r2,
-						 muS_source,muS_sink);
-				  master_fprintf(fout," smear_source=%d smear_sink=%d\n",gaussian_niter_so[ism_lev_so],gaussian_niter_si[ism_lev_si]);
-				  
-				  //compute contractions
-				  meson_two_points_Wilson_prop(contr_2pts,op1_2pts,S0_1,op2_2pts,S0[r2][ip2],ncontr_2pts);
-				  ncontr_tot+=ncontr_2pts;
-				  
-				  //write 
-				  contr_save_time-=take_time();
-				  print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1.0);
-				  contr_save_time+=take_time();
-				  
-				  //if chromo contractions
-				  if(nch_contr_2pts>0)
-				    {
-				      //compute them
-				      meson_two_points_Wilson_prop(ch_contr_2pts,ch_op1_2pts,S0_1,ch_op2_2pts,ch_prop,nch_contr_2pts);
-				      ncontr_tot+=nch_contr_2pts;
-				      
-				      //print them
-				      contr_save_time-=take_time();
-				      print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,ch_contr_2pts,source_coord[0],"CHROMO-",1.0);
-				      contr_save_time+=take_time();
-				    }
-				  master_fprintf(fout,"\n");
+#ifdef POINT_SOURCE_VERSION
+				  unsafe_apply_chromo_operator_to_su3spinspin(ch_prop,Pmunu,S0_2);
+#else
+				  unsafe_apply_chromo_operator_to_colorspinspin(ch_prop,Pmunu,S0_2);
+#endif
 				}
+			      
+			      //decide parameters of mass 1
+			      double *mass1=(muS_source1==0)?massS0:massS0der;
+			      int nmass1=(muS_source1==0)?nmassS0:nmassS0der;
+			      double *stop_res1=(muS_source1==0)?stop_res_S0:stop_res_S0+start_massS0der;
 			    
-			    ncontr_tot+=nch_contr_2pts;
-			  }
+			      for(int im1=0;im1<nmass1;im1++)
+				{
+				  int ip1=ipropS0(ith1,im1,muS_source1);
+				  
+				  for(int r1=0;r1<2;r1++)
+				    if((which_r_S0==2&&(!only_charged_2pts||r2==r1))||which_r_S0==r1)
+				      {
+					//if no derivative on the sink use S0, else derive the sink
+					prop_type *S0_1=(muS_sink1==0)?S0[r1][ip1]:temp_der1;
+					if(muS_sink1!=0) apply_nabla_i(temp_der1,S0[r1][ip1],sme_conf,muS_sink1);
+					
+					//header
+					master_fprintf(fout," # m1=%lg th1=%lg res1=%lg r1=%d,"
+  						              " m2=%lg th2=%lg res2=%lg r2=%d,",
+						       mass1[im1],thetaS0[ith1],stop_res1[im1],r1,
+						       mass2[im2],thetaS0[ith2],stop_res2[im2],r2);
+					master_fprintf(fout," dsrc1=%d dsrc2=%d, dsnk1=%d dsnk2=%d,",
+						      muS_source1,muS_source2,muS_sink1,muS_sink2);
+					master_fprintf(fout," sm_src=%d sm_snk=%d\n",
+						       gaussian_niter_so[ism_lev_so],gaussian_niter_si[ism_lev_si]);
+					
+					//compute contractions
+					meson_two_points_Wilson_prop(contr_2pts,op1_2pts,S0_1,op2_2pts,S0_2,ncontr_2pts);
+					ncontr_tot+=ncontr_2pts;
+					
+					//write 
+					contr_save_time-=take_time();
+					print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,
+								   contr_2pts,source_coord[0],"",1.0);
+					contr_save_time+=take_time();
+					
+					//if chromo contractions
+					if(nch_contr_2pts>0)
+					  {
+					    //compute them
+					    meson_two_points_Wilson_prop(ch_contr_2pts,ch_op1_2pts,S0_1,
+									 ch_op2_2pts,ch_prop,nch_contr_2pts);
+					    ncontr_tot+=nch_contr_2pts;
+					    
+					    //print them
+					    contr_save_time-=take_time();
+					    print_contractions_to_file(fout,nch_contr_2pts,ch_op1_2pts,ch_op2_2pts,
+								       ch_contr_2pts,source_coord[0],"CHROMO-",1.0);
+					    contr_save_time+=take_time();
+					  }
+					master_fprintf(fout,"\n");
+				      }
+				  ncontr_tot+=nch_contr_2pts;
+				}
+			    }
 		      }
-		}
+		  }
     }
   
-  if(compute_der) nissa_free(temp_der);
+  if(compute_der>=1) nissa_free(temp_der1);
+  if(compute_der>=2) nissa_free(temp_der2);
   
   contr_2pts_time+=take_time();
   if(rank==0) fclose(fout);
