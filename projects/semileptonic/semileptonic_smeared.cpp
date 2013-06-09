@@ -903,7 +903,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
       int ith1=ith_spec[ispec];
       for(int muS_source2=0;muS_source2<nmuS2;muS_source2++)
 	for(int muS_sink2=0;muS_sink2<nmuS2;muS_sink2++)
-	  for(int muS_source1=0;muS_source1<nmuS1;muS_source1++)
+	  for(int muS_source1=(muS_source2==0)?0:muS_source2+1;muS_source1<nmuS1;muS_source1++)
 	    for(int muS_sink1=0;muS_sink1<nmuS1;muS_sink1++)
 	      for(int ith2=0;ith2<nthetaS0;ith2++)
 		if(!only_standing_2pts||ith2==ith1)
