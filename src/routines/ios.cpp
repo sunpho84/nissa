@@ -163,7 +163,7 @@ int get_file_size(const char *path)
   
   //scan the file
   FILE *fin=open_text_file_for_input(path);
-  int file_size;
+  int file_size=0;
   if(rank==0)
     {
       if(fseek(fin,0,SEEK_END)) crash("while seeking");

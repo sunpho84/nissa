@@ -18,6 +18,7 @@
 #ifdef BGQ
  #include "bgq/geometry_bgq.h"
  #include "dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h"
+ #include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.h"
 #endif
 #ifdef SPI
  #include "bgq/spi.h"
