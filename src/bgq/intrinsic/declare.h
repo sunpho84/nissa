@@ -3,7 +3,7 @@
 
 #include "../src/base/macros.h"
 
-#define DECLARE_REG_BI_COMPLEX(A) bi_complex A
+#define DECLARE_REG_BI_COMPLEX(A) reg_bi_complex A
 
 #define DECLARE_REG_BI_COLOR(A)			\
   DECLARE_REG_BI_COMPLEX(NAME2(A,c0));		\
