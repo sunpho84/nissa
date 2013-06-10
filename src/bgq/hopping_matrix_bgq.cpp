@@ -34,7 +34,7 @@
 THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier, bi_oct_su3*,conf, int,istart, int,iend, bi_spincolor*,in)
 {
   GET_THREAD_ID();
-
+  
   NISSA_PARALLEL_LOOP(ibgqlx,istart,iend)
     {
       //take short access to link and output indexing
@@ -95,30 +95,6 @@ THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier
       REG_BI_COLOR_ISUBT(reg_proj_s0,reg_in_s0,reg_in_s2);
       REG_BI_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
       REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[7])),links[7],reg_proj);
-      
-#if 0
-      bi_halfspincolor temp;
-      bi_halfspincolor out_sure;
-
-      //Z forward scatter (backward derivative)
-      HOPMATR_ZBW_PROJ(temp,in[ibgqlx]);
-      BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(out_sure,links[7],temp);
-      
-      //check
-      for(int id=0;id<2;id++)
-	for(int ic=0;ic<3;ic++)
-	  for(int vn=0;vn<2;vn++)
-	    for(int ri=0;ri<2;ri++)
-	      {
-		double a=out_sure[id][ic][vn][ri];
-		double b=(*(out[7]))[id][ic][vn][ri];
-		double c=0;
-		
-		if(fabs(a-b)>1.e-10)
-		  printf("ivol %d thread %d proj%d%d%d%d %lg %lg %lg %lg\n",
-			 ibgqlx,thread_id,id,ic,vn,ri,a,b,a-b,c);
-	      }
-#endif
     }
 }}
   
