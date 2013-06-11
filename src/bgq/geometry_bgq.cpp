@@ -89,8 +89,10 @@ void define_bgq_hopping_matrix_lx_output_pointers_and_T_buffers()
   
   //allocate hopping matrix output pointer
   bgq_hopping_matrix_output_pointer=nissa_malloc("bgq_hopping_matrix_output_pointer",8*loc_volh,bi_halfspincolor*);
-  bgq_hopping_matrix_output_T_buffer=nissa_malloc("bgq_hopping_matrix_output_T_buffr",bgqlx_t_vbord_vol,bi_halfspincolor);
-  
+  bgq_hopping_matrix_output_T_buffer=nissa_malloc("bgq_hopping_matrix_output_T_buff",bgqlx_t_vbord_vol,bi_halfspincolor);
+  //T dir contains one pointer per true lattice site, others only half
+  bgq_hopping_matrix_final_output=nissa_malloc("bgq_hopping_matrix_final_output",2*(bord_vol/2+bord_dir_vol[0]),bi_halfspincolor*);
+
   for(int ibgqlx=0;ibgqlx<loc_volh;ibgqlx++)
     {
       int iloclx=loclx_of_bgqlx[ibgqlx];
@@ -127,6 +129,45 @@ void define_bgq_hopping_matrix_lx_output_pointers_and_T_buffers()
 	    bgq_hopping_matrix_output_data+8*bgqlx_of_loclx[fw]+4+idir;
 	}
     }
+  
+  int max_src=0,max_dst=0;
+  for(int base_src=0;base_src<bord_dir_vol[0];base_src++)
+    {
+      //T bw border (bw derivative): data goes to VN 0
+      //contributions start from 4
+      int bw_src=base_src;
+      int bw_dst=8*bgqlx_of_loclx[base_src]+4;
+      bgq_hopping_matrix_final_output[bw_src]=bgq_hopping_matrix_output_data+bw_dst;
+      
+      //T fw border (fw derivative): data goes to VN 1
+      //we are considering bi_halfspincolor as 2 halfspincolor, so full bord_vol
+      //fw derivative contributions start from 0
+      int fw_src=bord_volh+base_src; 
+      int fw_dst=8*bgqlx_of_loclx[loclx_neighdw[base_src+loc_volh][0]]; 
+      bgq_hopping_matrix_final_output[fw_src]=bgq_hopping_matrix_output_data+fw_dst;
+      
+      max_src=std::max(std::max(fw_src,bw_src),max_src);
+      max_dst=std::max(std::max(fw_dst,bw_dst),max_dst);
+    }
+  
+  for(int mu=1;mu<4;mu++)
+    for(int base_src=0;base_src<bord_dir_vol[mu]/2;base_src++)
+      {
+	//other 3 bw borders
+	int bw_src=bord_offset[mu]/2+base_src;
+	int bw_dst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_offset[mu]+base_src]]+4+mu;
+	bgq_hopping_matrix_final_output[bw_src]=bgq_hopping_matrix_output_data+bw_dst;
+	
+	//other 3 fw borders
+	int fw_src=bord_volh/2+bord_offset[mu]/2+base_src;
+	int fw_dst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_volh+bord_offset[mu]+base_src]]+mu;
+	bgq_hopping_matrix_final_output[fw_src]=bgq_hopping_matrix_output_data+fw_dst;
+	
+	max_src=std::max(std::max(fw_src,bw_src),max_src);
+	max_dst=std::max(std::max(fw_dst,bw_dst),max_dst);
+      }
+  
+  printf("max_src: %d, max_dst: %d\n",max_src,max_dst);
 }
 
 /*
@@ -244,7 +285,7 @@ void set_bgq_geometry()
   //allocate a temporary vector to apply hopping matrix
   bgq_hopping_matrix_output_data=nissa_malloc("bgq_hopping_matrix_output_data",8*loc_volh,bi_halfspincolor);
 
-  //define output index pointer
+  //define output index pointers
   define_bgq_hopping_matrix_lx_output_pointers_and_T_buffers();
 }
 
@@ -257,4 +298,5 @@ void unset_bgq_geometry()
   nissa_free(bgq_hopping_matrix_output_pointer);
   nissa_free(bgq_hopping_matrix_output_T_buffer);
   nissa_free(bgq_hopping_matrix_output_data);
+  nissa_free(bgq_hopping_matrix_final_output);
 }
