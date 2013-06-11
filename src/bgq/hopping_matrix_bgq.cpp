@@ -188,39 +188,28 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
   comm_wait(lx_halfspincolor_comm);
   
   //T bw border (bw derivative): data goes to VN 0
-  if(paral_dir[0])
-    NISSA_PARALLEL_LOOP(isrc,0,bgqlx_t_vbord_vol/2)
-      {
-	int idst=8*bgqlx_of_loclx[isrc]+4; //bw derivative contributions start from 4
-	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst],((halfspincolor*)nissa_recv_buf)[isrc],0);
-      }
+  NISSA_PARALLEL_LOOP(isrc,0,bord_dir_vol[0])
+    HALFSPINCOLOR_TO_BI_HALFSPINCOLOR((*(bgq_hopping_matrix_final_output[isrc])),
+				      ((halfspincolor*)nissa_recv_buf)[isrc],0);
+  if(thread_id==0){printf("here 0\n"); MPI_Barrier(MPI_COMM_WORLD);}
+  THREAD_BARRIER();
   
   //other 3 bw borders
-  for(int mu=1;mu<4;mu++)
-    if(paral_dir[mu])
-      NISSA_PARALLEL_LOOP(base_isrc,0,bord_dir_vol[mu]/2)
-	{
-	  int isrc=bord_offset[mu]/2+base_isrc;
-	  int idst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_offset[mu]+base_isrc]]+4+mu;
-	  BI_HALFSPINCOLOR_COPY(bgq_hopping_matrix_output_data[idst],((bi_halfspincolor*)nissa_recv_buf)[isrc]);
-      }
-  
+  NISSA_PARALLEL_LOOP(isrc,bord_dir_vol[0],bord_dir_vol[0]/2+bord_vol/4)
+    BI_HALFSPINCOLOR_COPY((*(bgq_hopping_matrix_final_output[isrc])),((bi_halfspincolor*)nissa_recv_buf)[isrc]);
+  if(thread_id==0){printf("here 1\n"); MPI_Barrier(MPI_COMM_WORLD);}
+  THREAD_BARRIER();
+
   //T fw border (fw derivative): data goes to VN 1
-  if(paral_dir[0])
-    NISSA_PARALLEL_LOOP(base_isrc,0,bgqlx_t_vbord_vol/2)
-      {
-	int isrc=bord_volh+base_isrc; //we are considering bi_halfspincolor as 2 halfspincolor, so full bord_vol
-	int idst=8*bgqlx_of_loclx[loclx_neighdw[base_isrc+loc_volh][0]]; //fw derivative contributions start from 0
-	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst],((halfspincolor*)nissa_recv_buf)[isrc],1);
-      }
+  NISSA_PARALLEL_LOOP(isrc,bord_dir_vol[0]/2+bord_vol/4,bord_dir_vol[0]+bord_vol/4)
+    HALFSPINCOLOR_TO_BI_HALFSPINCOLOR((*(bgq_hopping_matrix_final_output[isrc])),
+				      ((halfspincolor*)nissa_recv_buf)[isrc],1);
+  if(thread_id==0){printf("here 2\n"); MPI_Barrier(MPI_COMM_WORLD);}
+  THREAD_BARRIER();
   
   //other 3 fw borders
-  for(int mu=1;mu<4;mu++)
-    if(paral_dir[mu])
-      NISSA_PARALLEL_LOOP(base_isrc,0,bord_dir_vol[mu]/2)
-	{
-	  int isrc=bord_volh/2+bord_offset[mu]/2+base_isrc;
-	  int idst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_volh+bord_offset[mu]+base_isrc]]+mu;
-	  BI_HALFSPINCOLOR_COPY(bgq_hopping_matrix_output_data[idst],((bi_halfspincolor*)nissa_recv_buf)[isrc]);
-      }
+  NISSA_PARALLEL_LOOP(isrc,bord_dir_vol[0]+bord_vol/4,bord_dir_vol[0]+bord_vol/2)
+    BI_HALFSPINCOLOR_COPY((*(bgq_hopping_matrix_final_output[isrc])),((bi_halfspincolor*)nissa_recv_buf)[isrc]);
+  if(thread_id==0){printf("here 3\n"); MPI_Barrier(MPI_COMM_WORLD);}
+  THREAD_BARRIER();
 }
