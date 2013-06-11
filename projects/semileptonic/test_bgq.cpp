@@ -8,8 +8,6 @@ double mu=0.03,kappa=0.137;
 
 void in_main(int narg,char **arg)
 {
-  GET_THREAD_ID();
-  
   //init
   init_grid(T,L); 
   start_loc_rnd_gen(seed);
@@ -23,9 +21,7 @@ void in_main(int narg,char **arg)
   
   //create random in vector
   spincolor *in=nissa_malloc("in",loc_vol+bord_vol,spincolor);
-  vector_reset(in);
-  if(rank==0 && thread_id==0) in[0][0][0][0]=1;
-  set_borders_invalid(in);
+  generate_undiluted_source(in,RND_Z4,-1);
   
   //apply a fixed number of time
   spincolor *out=nissa_malloc("out",loc_vol+bord_vol,spincolor);
