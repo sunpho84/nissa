@@ -130,44 +130,32 @@ void define_bgq_hopping_matrix_lx_output_pointers_and_T_buffers()
 	}
     }
   
-  int max_src=0,max_dst=0;
   for(int base_src=0;base_src<bord_dir_vol[0];base_src++)
     {
-      //T bw border (bw derivative): data goes to VN 0
-      //contributions start from 4
+      //T bw border (bw derivative): contributions start from 4
       int bw_src=base_src;
       int bw_dst=8*bgqlx_of_loclx[base_src]+4;
       bgq_hopping_matrix_final_output[bw_src]=bgq_hopping_matrix_output_data+bw_dst;
       
-      //T fw border (fw derivative): data goes to VN 1
-      //we are considering bi_halfspincolor as 2 halfspincolor, so full bord_vol
-      //fw derivative contributions start from 0
-      int fw_src=bord_volh+base_src; 
+      //T fw border (fw derivative): contributions start from 0
+      int fw_src=bord_vol/4+bord_dir_vol[0]/2+base_src; 
       int fw_dst=8*bgqlx_of_loclx[loclx_neighdw[base_src+loc_volh][0]]; 
       bgq_hopping_matrix_final_output[fw_src]=bgq_hopping_matrix_output_data+fw_dst;
-      
-      max_src=std::max(std::max(fw_src,bw_src),max_src);
-      max_dst=std::max(std::max(fw_dst,bw_dst),max_dst);
     }
-  
+      
   for(int mu=1;mu<4;mu++)
     for(int base_src=0;base_src<bord_dir_vol[mu]/2;base_src++)
       {
 	//other 3 bw borders
-	int bw_src=bord_offset[mu]/2+base_src;
+	int bw_src=bord_dir_vol[0]/2+bord_offset[mu]/2+base_src;
 	int bw_dst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_offset[mu]+base_src]]+4+mu;
 	bgq_hopping_matrix_final_output[bw_src]=bgq_hopping_matrix_output_data+bw_dst;
 	
 	//other 3 fw borders
-	int fw_src=bord_volh/2+bord_offset[mu]/2+base_src;
+	int fw_src=bord_vol/4+bord_dir_vol[0]+bord_offset[mu]/2+base_src;
 	int fw_dst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_volh+bord_offset[mu]+base_src]]+mu;
 	bgq_hopping_matrix_final_output[fw_src]=bgq_hopping_matrix_output_data+fw_dst;
-	
-	max_src=std::max(std::max(fw_src,bw_src),max_src);
-	max_dst=std::max(std::max(fw_dst,bw_dst),max_dst);
       }
-  
-  printf("max_src: %d, max_dst: %d\n",max_src,max_dst);
 }
 
 /*
