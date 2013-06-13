@@ -2,6 +2,8 @@
  #include "config.h"
 #endif
 
+#include <string.h>
+
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
 #include "../../new_types/complex.h"
