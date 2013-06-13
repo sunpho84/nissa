@@ -149,13 +149,11 @@ void define_bgq_hopping_matrix_lx_output_pointers_and_T_buffers()
 	//other 3 bw borders
 	int bw_src=bord_dir_vol[0]/2+bord_offset[mu]/2+base_src;
 	int bw_dst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_offset[mu]+base_src]]+4+mu;
-	if(rank==0) printf("mu %d base_src %d bw_src %d bw_dst %d\n",mu,base_src,bw_src,bw_dst);
 	bgq_hopping_matrix_final_output[bw_src]=bgq_hopping_matrix_output_data+bw_dst;
 	
 	//other 3 fw borders
 	int fw_src=bord_vol/4+bord_dir_vol[0]+bord_offset[mu]/2+base_src;
 	int fw_dst=8*bgqlx_of_loclx[surflx_of_bordlx[bord_volh+bord_offset[mu]+base_src]]+mu;
-	//if(rank==0) printf("mu %d base_src %d fw_src %d fw_dst %d\n",mu,base_src,fw_src,fw_dst);
 	bgq_hopping_matrix_final_output[fw_src]=bgq_hopping_matrix_output_data+fw_dst;
       }
 }
