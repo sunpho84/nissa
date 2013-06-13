@@ -51,6 +51,19 @@
 	  [c128] "b" (128));		\
   }
 
+//prefetch a bi_halfspincolor
+#define BI_HALFSPINCOLOR_PREFETCH_NEXT(addr)	\
+  {						\
+    void *ptr=(addr);				\
+    asm("dcbt      0 ,%[ptr]  \n"		\
+	"dcbt  %[c64],%[ptr]  \n"		\
+	"dcbt %[c128],%[ptr]  \n"		\
+	: :					\
+	  [ptr]  "r" (ptr),			\
+	  [c64]  "b" (64),			\
+	  [c128] "b" (128));			\
+  }
+
 //prefetch next bi_su3
 #define BI_SU3_PREFETCH_NEXT(addr)	\
   {					\
@@ -81,7 +94,7 @@
   CACHE_PREFETCH((char*)(addr)+320);		\
 
 //prefetch a bi_halfspincolor
-#define BI_HALFSPINCOLOR_PREFETCH_DOUBLE(addr)	\
+#define BI_HALFSPINCOLOR_PREFETCH(addr)	\
   CACHE_PREFETCH((char*)(addr)+ 0);		\
   CACHE_PREFETCH((char*)(addr)+ 64);		\
   CACHE_PREFETCH((char*)(addr)+128);		\
@@ -96,7 +109,13 @@
 
 #endif
 
-////////////////////////////////////loading //////////////////////////////////
+//////////////////////////////////// loading //////////////////////////////////
+
+#ifdef BGQ_EMU
+ #define REG_LOAD_BI_COMPLEX(out,in) BI_COMPLEX_COPY(out,in);
+#else
+ #define REG_LOAD_BI_COMPLEX(out,in) out=vec_ld(0,(double*)&(in));
+#endif
 
 //load *after* increment the address of a certain amount
 #ifdef BGQ_EMU

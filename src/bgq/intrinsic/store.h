@@ -56,4 +56,23 @@
     }									\
   while(0)
 
+#define STORE_REG_BI_SPINCOLOR(addr,in)					\
+  do									\
+    {									\
+      void *ptr=(addr);							\
+      REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0_c0));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c1));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s0_c2));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c0));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c0));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c1));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s2_c2));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c0));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c1));	\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c2));	\
+    }									\
+  while(0)
+
 #endif

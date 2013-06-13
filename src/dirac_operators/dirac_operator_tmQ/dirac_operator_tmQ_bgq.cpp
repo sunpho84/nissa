@@ -18,6 +18,14 @@
   then the application of Q requires to expand the halfspincolor into full spincolor and summ the diagonal part
 */
 
+#define DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_tmp,piece)			\
+  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(reg_tmp,s0_c1),piece);	\
+  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(reg_tmp,s0_c2),piece);	\
+  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(reg_tmp,s1_c0),piece);	\
+  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(reg_tmp,s1_c1),piece);	\
+  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(reg_tmp,s1_c2),piece);	\
+  REG_BI_HALFSPINCOLOR_SUMM(reg_out,reg_out,reg_temp);
+
 THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binded, bi_spincolor*,out, double,kappa, double,mu, bi_spincolor*,in)
 {
   GET_THREAD_ID();
@@ -41,86 +49,66 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
   
   NISSA_PARALLEL_LOOP(i,0,loc_volh)
     {
-      bi_halfspincolor *piece=bgq_hopping_matrix_output_data+i*8;
-      
 #ifdef BGQ
       DECLARE_REG_BI_SPINCOLOR(reg_out);
-      DECLARE_REG_BI_SPINCOLOR(reg_in);
 
       //multiply in by the diagonal part
-      //REORDER_BARRIER();
-      REG_LOAD_BI_SPINCOLOR(reg_in,in[i]);
-      REG_BI_COLOR_PROD_COMPLEX(reg_out_s0,reg_in_s0,reg_diag_0);
-      REG_BI_COLOR_PROD_COMPLEX(reg_out_s1,reg_in_s1,reg_diag_0);
-      REG_BI_COLOR_PROD_COMPLEX(reg_out_s2,reg_in_s2,reg_diag_1);
-      REG_BI_COLOR_PROD_COMPLEX(reg_out_s3,reg_in_s3,reg_diag_1);
-      
-      //TFW
-      //REORDER_BARRIER();
-      REG_LOAD_BI_SPINCOLOR(reg_in,piece[0]);
-      REG_BI_COLOR_SUMM(reg_out_s0,reg_out_s0,reg_in_s0);
-      REG_BI_COLOR_SUMM(reg_out_s1,reg_out_s1,reg_in_s1);
-      REG_BI_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_in_s0);
-      REG_BI_COLOR_SUBT(reg_out_s3,reg_out_s3,reg_in_s1);
-      
-      //XFW
-      //REORDER_BARRIER();
-      REG_LOAD_BI_SPINCOLOR(reg_in,piece[1]);
-      REG_BI_COLOR_SUMM(reg_out_s0,reg_out_s0,reg_in_s0);
-      REG_BI_COLOR_SUMM(reg_out_s1,reg_out_s1,reg_in_s1);
-      REG_BI_COLOR_ISUMM(reg_out_s2,reg_out_s2,reg_in_s1);
-      REG_BI_COLOR_ISUMM(reg_out_s3,reg_out_s3,reg_in_s0);
-      
-      //YFW
-      //REORDER_BARRIER();
-      REG_LOAD_BI_SPINCOLOR(reg_in,piece[2]);
-      REG_BI_COLOR_SUMM(reg_out_s0,reg_out_s0,reg_in_s0);
-      REG_BI_COLOR_SUMM(reg_out_s1,reg_out_s1,reg_in_s1);
-      REG_BI_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_in_s1);
-      REG_BI_COLOR_SUBT(reg_out_s3,reg_out_s3,reg_in_s0);
-      
-      //ZFW
-      //REORDER_BARRIER();
-      REG_LOAD_BI_SPINCOLOR(reg_in,piece[3]);
-      REG_BI_COLOR_SUMM(reg_out_s0,reg_out_s0,reg_in_s0);
-      REG_BI_COLOR_SUMM(reg_out_s1,reg_out_s1,reg_in_s1);
-      REG_BI_COLOR_ISUMM(reg_out_s2,reg_out_s2,reg_in_s0);
-      REG_BI_COLOR_ISUBT(reg_out_s3,reg_out_s3,reg_in_s1);
-      
-      //TBW
-      //REORDER_BARRIER();
-      REG_LOAD_BI_SPINCOLOR(reg_in,piece[4]);
-      REG_BI_COLOR_SUMM(reg_out_s0,reg_out_s0,reg_in_s0);
-      REG_BI_COLOR_SUMM(reg_out_s1,reg_out_s1,reg_in_s1);
-      REG_BI_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_in_s0);
-      REG_BI_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_in_s1);
-      
-      //XBW
-      //REORDER_BARRIER();
-      REG_LOAD_BI_SPINCOLOR(reg_in,piece[5]);
-      REG_BI_COLOR_SUMM(reg_out_s0,reg_out_s0,reg_in_s0);
-      REG_BI_COLOR_SUMM(reg_out_s1,reg_out_s1,reg_in_s1);
-      REG_BI_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_in_s1);
-      REG_BI_COLOR_ISUBT(reg_out_s3,reg_out_s3,reg_in_s0);
-      
-      //YBW
-      //REORDER_BARRIER();
-      REG_LOAD_BI_SPINCOLOR(reg_in,piece[6]);
-      REG_BI_COLOR_SUMM(reg_out_s0,reg_out_s0,reg_in_s0);
-      REG_BI_COLOR_SUMM(reg_out_s1,reg_out_s1,reg_in_s1);
-      REG_BI_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_in_s1);
-      REG_BI_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_in_s0);
-      
-      //ZBW
-      //REORDER_BARRIER();
-      REG_LOAD_BI_SPINCOLOR(reg_in,piece[7]);
-      REG_BI_COLOR_SUMM(reg_out_s0,reg_out_s0,reg_in_s0);
-      REG_BI_COLOR_SUMM(reg_out_s1,reg_out_s1,reg_in_s1);
-      REG_BI_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_in_s0);
-      REG_BI_COLOR_ISUMM(reg_out_s3,reg_out_s3,reg_in_s1);
+      {
+	DECLARE_REG_BI_SPINCOLOR(reg_in);
+	REG_LOAD_BI_HALFSPINCOLOR(reg_in,in[i]);
+	REG_BI_COLOR_PROD_COMPLEX(reg_out_s0,reg_in_s0,reg_diag_0);
+	REG_BI_COLOR_PROD_COMPLEX(reg_out_s1,reg_in_s1,reg_diag_0);
+	REG_BI_COLOR_PROD_COMPLEX(reg_out_s2,reg_in_s2,reg_diag_1);
+	REG_BI_COLOR_PROD_COMPLEX(reg_out_s3,reg_in_s3,reg_diag_1);
+      }
+
+      //8 pieces
+      {
+	void *piece=bgq_hopping_matrix_output_data+i*8;      
+	DECLARE_REG_BI_HALFSPINCOLOR(reg_temp);
+	
+	//TFW
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	REG_BI_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_temp_s0);
+	REG_BI_COLOR_SUBT(reg_out_s3,reg_out_s3,reg_temp_s1);
+	
+	//XFW
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	REG_BI_COLOR_ISUMM(reg_out_s2,reg_out_s2,reg_temp_s1);
+	REG_BI_COLOR_ISUMM(reg_out_s3,reg_out_s3,reg_temp_s0);
+	
+	//YFW
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	REG_BI_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_temp_s1);
+	REG_BI_COLOR_SUBT(reg_out_s3,reg_out_s3,reg_temp_s0);
+	
+	//ZFW
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	REG_BI_COLOR_ISUMM(reg_out_s2,reg_out_s2,reg_temp_s0);
+	REG_BI_COLOR_ISUBT(reg_out_s3,reg_out_s3,reg_temp_s1);
+	
+	//TBW
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	REG_BI_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_temp_s0);
+	REG_BI_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_temp_s1);
+	
+	//XBW
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	REG_BI_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_temp_s1);
+	REG_BI_COLOR_ISUBT(reg_out_s3,reg_out_s3,reg_temp_s0);
+	
+	//YBW
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	REG_BI_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_temp_s1);
+	REG_BI_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_temp_s0);
+	
+	//ZBW
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	REG_BI_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_temp_s0);
+	REG_BI_COLOR_ISUMM(reg_out_s3,reg_out_s3,reg_temp_s1);
+      }
       
       //put final -0.5
-      REORDER_BARRIER();
       REG_BI_SPINCOLOR_PROD_4DOUBLE(reg_out,reg_out,reg_mone_half);
       STORE_REG_BI_SPINCOLOR(&(out[i]),reg_out);
 #else

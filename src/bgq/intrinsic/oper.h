@@ -14,6 +14,7 @@
 #define REG_BI_COMPLEX_ISUMM(out,op1,op2)                out=vec_xxnpmadd(op2,(vector4double)(1),op1)
 #define REG_BI_COMPLEX_ISUBT(out,op1,op2)                out=vec_xxcpnmadd(op2,(vector4double)(1),op1)
 #define REG_BI_COMPLEX_PROD(out,op1,op2)                 out=vec_xxnpmadd(op1,op2,vec_xmul(op2,op1))
+#define REG_BI_COMPLEX_PROD_4DOUBLE(out,op1,op2)         out=vec_mul(op1,op2);
 #define REG_BI_COMPLEX_CONJ1_PROD(out,op1,op2)           out=vec_xxcpnmadd(op2,op1,vec_xmul(op1,op2))
 #define REG_BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)        out=vec_xxnpmadd(op1,op2,vec_xmadd(op2,op1,out))
 #define REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)  out=vec_xxcpnmadd(op2,op1,vec_xmadd(op1,op2,out))
@@ -25,6 +26,7 @@
 #define REG_BI_COMPLEX_ISUMM(out,op1,op2)               BI_COMPLEX_ISUMM(out,op1,op2)
 #define REG_BI_COMPLEX_ISUBT(out,op1,op2)               BI_COMPLEX_ISUBT(out,op1,op2)
 #define REG_BI_COMPLEX_PROD(out,op1,op2)                BI_COMPLEX_PROD(out,op1,op2)
+#define REG_BI_COMPLEX_PROD_4DOUBLE(out,op1,op2)        BI_COMPLEX_PROD_4DOUBLE(out,op1,op2)
 #define REG_BI_COMPLEX_CONJ1_PROD(out,op1,op2)          BI_COMPLEX_CONJ1_PROD(out,op1,op2)
 #define REG_BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)       BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)
 #define REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2) BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)
@@ -57,6 +59,36 @@
     REG_BI_COMPLEX_ISUBT(NAME2(A,c0),NAME2(B,c0),NAME2(C,c0));		\
     REG_BI_COMPLEX_ISUBT(NAME2(A,c1),NAME2(B,c1),NAME2(C,c1));		\
     REG_BI_COMPLEX_ISUBT(NAME2(A,c2),NAME2(B,c2),NAME2(C,c2));		\
+  }
+
+#define REG_BI_COLOR_PROD_COMPLEX(A,B,C)				\
+  {                                                                     \
+    REG_BI_COMPLEX_PROD(NAME2(A,c0),NAME2(B,c0),C);			\
+    REG_BI_COMPLEX_PROD(NAME2(A,c1),NAME2(B,c1),C);			\
+    REG_BI_COMPLEX_PROD(NAME2(A,c2),NAME2(B,c2),C);			\
+  }
+
+///
+
+#define REG_BI_COLOR_PROD_4DOUBLE(A,B,C)				\
+  {                                                                     \
+    REG_BI_COMPLEX_PROD_4DOUBLE(NAME2(A,c0),NAME2(B,c0),C);		\
+    REG_BI_COMPLEX_PROD_4DOUBLE(NAME2(A,c1),NAME2(B,c1),C);		\
+    REG_BI_COMPLEX_PROD_4DOUBLE(NAME2(A,c2),NAME2(B,c2),C);		\
+  }
+
+#define REG_BI_SPINCOLOR_PROD_4DOUBLE(A,B,C)				\
+  {                                                                     \
+    REG_BI_COLOR_PROD_4DOUBLE(NAME2(A,s0),NAME2(B,s0),C);		\
+    REG_BI_COLOR_PROD_4DOUBLE(NAME2(A,s1),NAME2(B,s1),C);		\
+    REG_BI_COLOR_PROD_4DOUBLE(NAME2(A,s2),NAME2(B,s2),C);		\
+    REG_BI_COLOR_PROD_4DOUBLE(NAME2(A,s3),NAME2(B,s3),C);		\
+  }
+
+#define REG_BI_HALFSPINCOLOR_SUMM(A,B,C)				\
+  {                                                                     \
+    REG_BI_COLOR_SUMM(NAME2(A,s0),NAME2(B,s0),NAME2(C,s0));		\
+    REG_BI_COLOR_SUMM(NAME2(A,s1),NAME2(B,s1),NAME2(C,s1));		\
   }
 
 /////////////////////////////////// su3 prod color ////////////////////////////////
