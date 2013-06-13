@@ -2,7 +2,7 @@
 
 int seed=100;
 int napp=100;
-int L=16,T=L*2;
+int L=8,T=L*2;
 coords source_coord={0,0,0,0};
 double mu=0.03,kappa=0.137;
 

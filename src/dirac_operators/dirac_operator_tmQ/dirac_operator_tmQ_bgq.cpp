@@ -19,11 +19,7 @@
 */
 
 #define DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_tmp,piece)			\
-  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(reg_tmp,s0_c1),piece);	\
-  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(reg_tmp,s0_c2),piece);	\
-  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(reg_tmp,s1_c0),piece);	\
-  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(reg_tmp,s1_c1),piece);	\
-  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(reg_tmp,s1_c2),piece);	\
+  REG_LOAD_BI_HALFSPINCOLOR(reg_tmp,piece);				\
   REG_BI_HALFSPINCOLOR_SUMM(reg_out,reg_out,reg_temp);
 
 THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binded, bi_spincolor*,out, double,kappa, double,mu, bi_spincolor*,in)
@@ -55,7 +51,7 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
       //multiply in by the diagonal part
       {
 	DECLARE_REG_BI_SPINCOLOR(reg_in);
-	REG_LOAD_BI_HALFSPINCOLOR(reg_in,in[i]);
+	REG_LOAD_BI_SPINCOLOR(reg_in,in[i]);
 	REG_BI_COLOR_PROD_COMPLEX(reg_out_s0,reg_in_s0,reg_diag_0);
 	REG_BI_COLOR_PROD_COMPLEX(reg_out_s1,reg_in_s1,reg_diag_0);
 	REG_BI_COLOR_PROD_COMPLEX(reg_out_s2,reg_in_s2,reg_diag_1);
@@ -64,46 +60,46 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
 
       //8 pieces
       {
-	void *piece=bgq_hopping_matrix_output_data+i*8;      
+	bi_halfspincolor *piece=bgq_hopping_matrix_output_data+i*8;
 	DECLARE_REG_BI_HALFSPINCOLOR(reg_temp);
 	
 	//TFW
-	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[0]);
 	REG_BI_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_temp_s0);
 	REG_BI_COLOR_SUBT(reg_out_s3,reg_out_s3,reg_temp_s1);
 	
 	//XFW
-	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[1]);
 	REG_BI_COLOR_ISUMM(reg_out_s2,reg_out_s2,reg_temp_s1);
 	REG_BI_COLOR_ISUMM(reg_out_s3,reg_out_s3,reg_temp_s0);
 	
 	//YFW
-	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[2]);
 	REG_BI_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_temp_s1);
 	REG_BI_COLOR_SUBT(reg_out_s3,reg_out_s3,reg_temp_s0);
 	
 	//ZFW
-	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[3]);
 	REG_BI_COLOR_ISUMM(reg_out_s2,reg_out_s2,reg_temp_s0);
 	REG_BI_COLOR_ISUBT(reg_out_s3,reg_out_s3,reg_temp_s1);
 	
 	//TBW
-	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[4]);
 	REG_BI_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_temp_s0);
 	REG_BI_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_temp_s1);
 	
 	//XBW
-	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[5]);
 	REG_BI_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_temp_s1);
 	REG_BI_COLOR_ISUBT(reg_out_s3,reg_out_s3,reg_temp_s0);
 	
 	//YBW
-	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[6]);
 	REG_BI_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_temp_s1);
 	REG_BI_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_temp_s0);
 	
 	//ZBW
-	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece);
+	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[7]);
 	REG_BI_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_temp_s0);
 	REG_BI_COLOR_ISUMM(reg_out_s3,reg_out_s3,reg_temp_s1);
       }
