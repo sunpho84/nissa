@@ -141,6 +141,15 @@ if test "$enable_comm_bench" == "yes";then AC_DEFINE([COMM_BENCH],1,[Enable comm
 AM_CONDITIONAL([COMM_BENCH],[test "$enable_comm_bench" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling communication benchmark... $enable_comm_bench])
 
+#max verbosity lv
+AC_ARG_ENABLE(max-verbosity-lv,
+        AS_HELP_STRING([--enable-max-verbosity-lv=lv],[Set max verbosity lv]),
+        max_verbosity_lv="${enableval}",
+        max_verbosity_lv=2)
+if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then AC_MSG_ERROR([String $max_verbosity_lv is not a number]); fi
+AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
+AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
+
 #overwrite default flags
 if test x${ac_cv_env_CXXFLAGS_set} != xset; then
   CXXFLAGS=''
