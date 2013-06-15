@@ -2,7 +2,7 @@
 
 int seed=100;
 int napp=100;
-int L=8,T=L*2;
+int L=16,T=L*2;
 coords source_coord={0,0,0,0};
 double mu=0.03,kappa=0.137;
 
@@ -22,6 +22,31 @@ void in_main(int narg,char **arg)
   //create random in vector
   spincolor *in=nissa_malloc("in",loc_vol+bord_vol,spincolor);
   generate_undiluted_source(in,RND_Z4,-1);
+  
+  //benchmark communications in the 8 dirs
+  double time[8];
+  for(int idir=0;idir<8;idir++)
+    if(paral_dir[idir%4])
+      {
+	//set dir
+	int comm_dir[8];
+	for(int jdir=0;jdir<8;jdir++) comm_dir[jdir]=0;
+	comm_dir[idir]=1;
+	
+	//take time of n comms
+	int ncomm=100;
+	time[idir]=-take_time();
+	for(int ibench=0;ibench<ncomm;ibench++)
+	  {
+	    comm_start(lx_spincolor_comm,comm_dir);
+	    comm_wait(lx_spincolor_comm);
+	  }
+	time[idir]+=take_time();
+	
+	//print out
+	double size=bord_dir_vol[idir%4]*sizeof(spincolor)/1024.0/1024*ncomm;
+	printf("Rank %d, speed in %d dir: %lg Mb / %lg sec = %lg Mb/sec\n",rank,idir,size,time[idir%4],size/time[idir]);
+      }
   
   //apply a fixed number of time
   spincolor *out=nissa_malloc("out",loc_vol+bord_vol,spincolor);
