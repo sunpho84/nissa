@@ -30,6 +30,20 @@
   CACHE_PREFETCH(out+A);			\
   BI_SU3_PREFETCH_NEXT(links[A])
 
+#ifdef BGQ
+ #define BORDER_SITE_COPY(base_out,base_in,isrc)	\
+  {							\
+    void *in=base_in+isrc;				\
+    CACHE_PREFETCH(base_out+isrc);			\
+    DECLARE_REG_BI_HALFSPINCOLOR(reg_temp);		\
+    BI_HALFSPINCOLOR_PREFETCH_NEXT(in);			\
+    REG_LOAD_BI_HALFSPINCOLOR(reg_temp,in);		\
+    void *out=base_out[isrc];				\
+    STORE_REG_BI_HALFSPINCOLOR(out,reg_temp);		\
+  }
+#else
+ #define BORDER_SITE_COPY(base_out,base_in,isrc) BI_HALFSPINCOLOR_COPY((*(base_out[isrc])),base_in[isrc]);
+#endif
 
 THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier, bi_oct_su3*,conf, int,istart, int,iend, bi_spincolor*,in)
 {
@@ -198,7 +212,7 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
   {
     bi_halfspincolor **base_out=bgq_hopping_matrix_final_output+bord_dir_vol[0];
     bi_halfspincolor *base_in=(bi_halfspincolor*)(nissa_recv_buf+sizeof(bi_halfspincolor)*bord_dir_vol[0]/2);
-    NISSA_PARALLEL_LOOP(isrc,0,bord_vol/4-bord_dir_vol[0]/2) BI_HALFSPINCOLOR_COPY((*(base_out[isrc])),base_in[isrc]);
+    NISSA_PARALLEL_LOOP(isrc,0,bord_vol/4-bord_dir_vol[0]/2) BORDER_SITE_COPY(base_out,base_in,isrc);
   }
   
   //T fw border (fw derivative): data goes to VN 1
@@ -212,6 +226,6 @@ void finish_Wilson_hopping_matrix_bgq_binded_communications()
   {
     bi_halfspincolor **base_out=bgq_hopping_matrix_final_output+3*bord_dir_vol[0]/2+bord_vol/4;
     bi_halfspincolor *base_in=(bi_halfspincolor*)(nissa_recv_buf+sizeof(bi_halfspincolor)*(bord_dir_vol[0]/2+bord_vol/4));
-    NISSA_PARALLEL_LOOP(isrc,0,bord_vol/4-bord_dir_vol[0]/2) BI_HALFSPINCOLOR_COPY((*(base_out[isrc])),base_in[isrc]);
+    NISSA_PARALLEL_LOOP(isrc,0,bord_vol/4-bord_dir_vol[0]/2) BORDER_SITE_COPY(base_out,base_in,isrc);
   }
 }

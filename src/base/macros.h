@@ -92,23 +92,9 @@
 
 #define master_printf(...) master_fprintf(stdout,__VA_ARGS__)
 #define verbosity_master_printf(lv,...) verb_call+=(nissa_verbosity>=lv && master_printf(__VA_ARGS__))
-
-//define verbosity
-#if NISSA_MAX_VERBOSITY_LV >= 1
- #define verbosity_lv1_master_printf(...) verbosity_master_printf(1,__VA_ARGS__)
-#else
- #define verbosity_lv1_master_printf(...)
-#endif
-#if NISSA_MAX_VERBOSITY_LV >= 2
- #define verbosity_lv2_master_printf(...) verbosity_master_printf(2,__VA_ARGS__)
-#else
- #define verbosity_lv2_master_printf(...)
-#endif
-#if NISSA_MAX_VERBOSITY_LV >= 3
- #define verbosity_lv3_master_printf(...) verbosity_master_printf(3,__VA_ARGS__)
-#else
- #define verbosity_lv3_master_printf(...)
-#endif
+#define verbosity_lv1_master_printf(...) verbosity_master_printf(1,__VA_ARGS__)
+#define verbosity_lv2_master_printf(...) verbosity_master_printf(2,__VA_ARGS__)
+#define verbosity_lv3_master_printf(...) verbosity_master_printf(3,__VA_ARGS__)
 
 #define if_nissa_vect_not_initialized() if(main_nissa_arr!=((char*)&main_nissa_vect)+sizeof(nissa_vect))
 

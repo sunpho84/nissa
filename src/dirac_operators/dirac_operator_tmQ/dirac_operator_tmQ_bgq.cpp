@@ -20,6 +20,7 @@
 
 #define DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_tmp,piece)			\
   REG_LOAD_BI_HALFSPINCOLOR(reg_tmp,piece);				\
+  BI_HALFSPINCOLOR_PREFETCH_NEXT(piece);				\
   REG_BI_HALFSPINCOLOR_SUMM(reg_out,reg_out,reg_temp);
 
 THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binded, bi_spincolor*,out, double,kappa, double,mu, bi_spincolor*,in)
@@ -57,7 +58,7 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
 	REG_BI_COLOR_PROD_COMPLEX(reg_out_s2,reg_in_s2,reg_diag_1);
 	REG_BI_COLOR_PROD_COMPLEX(reg_out_s3,reg_in_s3,reg_diag_1);
       }
-
+      
       //8 pieces
       {
 	bi_halfspincolor *piece=bgq_hopping_matrix_output_data+i*8;
@@ -97,6 +98,8 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
 	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[6]);
 	REG_BI_COLOR_SUBT(reg_out_s2,reg_out_s2,reg_temp_s1);
 	REG_BI_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_temp_s0);
+	
+	BI_SPINCOLOR_PREFETCH_NEXT(in[i]);
 	
 	//ZBW
 	DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_temp,piece[7]);

@@ -7,12 +7,17 @@
 
 #include "../src/base/macros.h"
 
+#ifndef BGQ_EMU
+ #include <builtins.h>
+#endif
+
 ///////////////////////////////// prefetching ////////////////////////////////
 
-#if defined(XLC)
- #define CACHE_PREFETCH(addr)           __dcbt(addr)
+#if defined(__IBMC__) || defined(__IBMCPP__)
+#define CACHE_PREFETCH(addr)
+//__dcbt(addr); not seems to work
 #elif defined(__GNUC__)
- #define CACHE_PREFETCH(addr)           __builtin_prefetch((addr),0)
+ #define CACHE_PREFETCH(addr) __builtin_prefetch((addr),0)
 #else
  #define CACHE_PREFETCH(addr)
 #endif
@@ -55,13 +60,33 @@
 #define BI_HALFSPINCOLOR_PREFETCH_NEXT(addr)	\
   {						\
     void *ptr=(addr);				\
-    asm("dcbt      0 ,%[ptr]  \n"		\
+    asm("dcbt   %[c0],%[ptr]  \n"		\
 	"dcbt  %[c64],%[ptr]  \n"		\
 	"dcbt %[c128],%[ptr]  \n"		\
 	: :					\
 	  [ptr]  "r" (ptr),			\
-	  [c64]  "b" (64),			\
-	  [c128] "b" (128));			\
+	  [c0]  "b" (192+0),			\
+	  [c64]  "b" (192+64),			\
+	  [c128] "b" (192+128));		\
+  }
+
+//prefetch a halfspincolor
+#define BI_SPINCOLOR_PREFETCH_NEXT(addr)	     \
+  {						     \
+    void *ptr=(addr);				     \
+    asm("dcbt   %[c0],%[ptr]  \n"		     \
+	"dcbt  %[c64],%[ptr]  \n"		     \
+	"dcbt %[c128],%[ptr]  \n"		     \
+	"dcbt %[c192],%[ptr]  \n"		     \
+	"dcbt %[c256],%[ptr]  \n"		     \
+	"dcbt %[c320],%[ptr]  \n"		     \
+	: : [ptr] "r" (ptr),			     \
+	  [c0] "b" (384+0),			     \
+	  [c64] "b" (384+64),			     \
+	  [c128] "b" (384+128),			     \
+	  [c192] "b" (384+192),			     \
+	  [c256] "b" (384+256),			     \
+	  [c320] "b" (384+320));		     \
   }
 
 //prefetch next bi_su3
@@ -91,13 +116,27 @@
   CACHE_PREFETCH((char*)(addr)+128);		\
   CACHE_PREFETCH((char*)(addr)+192);		\
   CACHE_PREFETCH((char*)(addr)+256);		\
-  CACHE_PREFETCH((char*)(addr)+320);		\
+  CACHE_PREFETCH((char*)(addr)+320);
 
 //prefetch a bi_halfspincolor
-#define BI_HALFSPINCOLOR_PREFETCH(addr)	\
+#define BI_HALFSPINCOLOR_PREFETCH(addr)		\
   CACHE_PREFETCH((char*)(addr)+ 0);		\
   CACHE_PREFETCH((char*)(addr)+ 64);		\
-  CACHE_PREFETCH((char*)(addr)+128);		\
+  CACHE_PREFETCH((char*)(addr)+128);
+
+//prefetch a bi_halfspincolor
+#define BI_HALFSPINCOLOR_PREFETCH_NEXT(addr)	\
+  CACHE_PREFETCH((char*)(addr)+192+ 0);         \
+  CACHE_PREFETCH((char*)(addr)+192+ 64);        \
+  CACHE_PREFETCH((char*)(addr)+192+128);        \
+
+//prefetch a bi_spincolor
+#define BI_SPINCOLOR_PREFETCH_NEXT(addr)	\
+  CACHE_PREFETCH((char*)(addr)+384+ 0);         \
+  CACHE_PREFETCH((char*)(addr)+384+ 64);        \
+  CACHE_PREFETCH((char*)(addr)+384+128);        \
+  CACHE_PREFETCH((char*)(addr)+384+192);        \
+  CACHE_PREFETCH((char*)(addr)+384+256);
 
 //prefetch next bi_su3
 #define BI_SU3_PREFETCH_NEXT(addr)		\
@@ -105,7 +144,7 @@
   CACHE_PREFETCH((char*)(addr)+288+ 64);	\
   CACHE_PREFETCH((char*)(addr)+288+128);	\
   CACHE_PREFETCH((char*)(addr)+288+192);	\
-  CACHE_PREFETCH((char*)(addr)+288+256);	\
+  CACHE_PREFETCH((char*)(addr)+288+256);
 
 #endif
 
