@@ -39,3 +39,13 @@ void inv_tmclovQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,double csw,as2
   for(int imass=0;imass<nmass;imass++) m2[imass]=m[imass]*m[imass];
   inv_tmclovQ2_m2_cgm(sol,conf,kappa,csw,Pmunu,m2,nmass,niter_max,req_res,source);
 }
+
+void inv_tmclovDQ_cgm(spincolor **sol,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
+{
+  //put the g5
+  nissa_loc_vol_loop(ivol) for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
+  set_borders_invalid(source);
+  inv_tmclovDQ_cgm(sol,conf,kappa,csw,Pmunu,m,nmass,niter_max,req_res,source);
+  nissa_loc_vol_loop(ivol) for(int id1=2;id1<4;id1++) for(int ic1=0;ic1<3;ic1++) for(int ri=0;ri<2;ri++) source[ivol][id1][ic1][ri]*=-1;
+  set_borders_invalid(source);
+}

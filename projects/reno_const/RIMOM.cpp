@@ -11,7 +11,8 @@ typedef int2 interv[2];
 int ngauge_conf,nanalized_conf;
 char conf_path[1024];
 quad_su3 *conf,*unfix_conf;
-double kappa;
+double kappa,csw;
+as2t_su3 *Pmunu;
 
 //mass list
 int nmass;
@@ -131,6 +132,8 @@ void initialize_Zcomputation(char *input_path)
   read_str_int("WallTime",&wall_time);
   //Kappa
   read_str_double("Kappa",&kappa);
+  //csw
+  read_str_double("csw",&csw);
   
   // 2) Read information about the masses
   
@@ -188,6 +191,8 @@ void initialize_Zcomputation(char *input_path)
       S0[1][iprop]=nissa_malloc("S0[1][iprop]",loc_vol,su3spinspin);
     }
   
+  if(csw!=0) Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
+  
   //Allocate one su3spinspsin for the source
   original_source=nissa_malloc("orig_source",loc_vol,su3spinspin);
 }
@@ -199,12 +204,16 @@ void load_gauge_conf()
   load_time-=take_time();
   read_ildg_gauge_conf(unfix_conf,conf_path);
   load_time+=take_time();
+  
   //prepare the fixed version and calculate plaquette
   double elaps_time=-take_time();
   landau_gauge_fix(conf,unfix_conf,1.e-20);
   elaps_time+=take_time();
   fix_time+=elaps_time;
   master_printf("Fixed conf in %lg sec\n",elaps_time);
+  
+  //compute Pmunu
+  if(csw!=0) Pmunu_term(Pmunu,conf);
   
   if(write_fixed_conf)
     {
@@ -241,6 +250,7 @@ void close_Zcomputation()
   nissa_free(P_interv[0]);
   nissa_free(X_interv[1]);
   nissa_free(P_interv[1]);
+  if(csw!=0) nissa_free(Pmunu);
   
   master_printf("\n");
   master_printf("Total time: %lg sec (%lg average per conf), of which:\n",tot_time,tot_time/nanalized_conf);
@@ -258,7 +268,8 @@ void close_Zcomputation()
 void calculate_S0()
 {
   inv_time-=take_time();
-  compute_su3spinspin_tm_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residues,original_source);
+  if(csw==0) compute_su3spinspin_tm_propagators_multi_mass(S0,conf,kappa,mass,nmass,niter_max,stopping_residues,original_source);
+  else compute_su3spinspin_tmclov_propagators_multi_mass(S0,conf,kappa,csw,Pmunu,mass,nmass,niter_max,stopping_residues,original_source);
   inv_time+=take_time();
   ninv_tot+=12;
   
@@ -384,8 +395,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 		      }
 	    }
 	
-	for(int r=0;r<2;r++)
-	  MPI_File_close(&(fout[r]));
+	for(int r=0;r<2;r++) MPI_File_close(&(fout[r]));
       }
   
   filter_prop_time+=take_time();
@@ -499,7 +509,7 @@ int check_remaining_time()
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   if(narg<2) crash("Use: %s input_file",arg[0]);
   

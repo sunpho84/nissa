@@ -105,7 +105,9 @@ nissa_headers=src/base/close.h \
 	src/inverters/twisted_mass/cg_invert_tmQ2.h \
 	src/inverters/twisted_mass/cg_64_invert_tmQ2.h \
 	src/inverters/twisted_mass/cgm_invert_tmQ2.h \
-	src/inverters/tmclov/cgm_invert_tmclovQ2.h \
+	src/inverters/twisted_mass/cg_128_invert_tmQ2.h \
+	src/inverters/twisted_mass/cg_128_invert_tmQ2.h \
+	src/inverters/twisted_mass/cg_128_invert_tmDeoimpr.h \
 	src/inverters/twisted_mass/tm_frontends.h \
 	src/inverters/staggered/cgm_invert_stD2ee_m2.h \
 	src/inverters/staggered/cg_invert_stD2ee_m2.h \
@@ -116,9 +118,8 @@ nissa_headers=src/base/close.h \
 	src/inverters/Wclov/cg_invert_WclovQ2.h \
 	src/inverters/tmclov/cg_invert_tmclovQ.h \
 	src/inverters/tmclov/cg_invert_tmclovQ2.h \
-	src/inverters/twisted_mass/cg_128_invert_tmQ2.h \
-	src/inverters/twisted_mass/cg_128_invert_tmQ2.h \
-	src/inverters/twisted_mass/cg_128_invert_tmDeoimpr.h \
+	src/inverters/tmclov/cgm_invert_tmclovQ2.h \
+	src/inverters/tmclov/tmclov_frontends.h \
 	src/IO/checksum.h \
 	src/IO/endianess.h \
 	src/IO/ILDG_File.h \
@@ -209,7 +210,9 @@ nissa_source_files=src/base/close.cpp \
 	src/inverters/twisted_mass/cg_invert_tmQ2.cpp \
 	src/inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
 	src/inverters/twisted_mass/cgm_invert_tmQ2.cpp \
-	src/inverters/tmclov/cgm_invert_tmclovQ2.cpp \
+	src/inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
+	src/inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
+	src/inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
 	src/inverters/twisted_mass/tm_frontends.cpp \
 	src/inverters/staggered/cgm_invert_stD2ee_m2.cpp \
 	src/inverters/staggered/cg_invert_stD2ee_m2.cpp \
@@ -220,9 +223,8 @@ nissa_source_files=src/base/close.cpp \
 	src/inverters/Wclov/cg_invert_WclovQ2.cpp \
 	src/inverters/tmclov/cg_invert_tmclovQ.cpp \
 	src/inverters/tmclov/cg_invert_tmclovQ2.cpp \
-	src/inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
-	src/inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
-	src/inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
+	src/inverters/tmclov/cgm_invert_tmclovQ2.cpp \
+	src/inverters/tmclov/tmclov_frontends.cpp \
 	src/IO/checksum.cpp \
 	src/IO/endianess.cpp \
 	src/IO/ILDG_File.cpp \
@@ -284,6 +286,7 @@ bin_PROGRAMS=\
 	projects/semileptonic/test_proj \
 	projects/semileptonic/semileptonic_smeared \
 	projects/semileptonic/semileptonic_smeared_point_source \
+	projects/reno_const/RIMOM \
 	projects/eight_BK/smeared_BK_all_in_one \
 	tools/unitarity_check/unitarity_check
 
@@ -310,6 +313,9 @@ projects_semileptonic_semileptonic_smeared_point_source_SOURCES=projects/semilep
 
 #unitarity check
 tools_unitarity_check_unitarity_check_SOURCES=tools/unitarity_check/unitarity_check.cpp $(extra_headers)
+
+#RIMOM
+projects_reno_const_RIMOM_SOURCES=projects/reno_const/RIMOM.cpp $(extra_headers)
 
 #work_in_prog_paths_su3_paths_SOURCES=work_in_prog/paths/su3_paths.cpp $(extra_headers)
 

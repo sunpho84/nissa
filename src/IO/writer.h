@@ -7,7 +7,7 @@ void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nb
 void write_ildg_gauge_conf(const char *path,quad_su3 *in,int prec,ILDG_message *mess=NULL);
 void write_spincolor(const char *path,spincolor *spinor,int prec);
 void write_colorspinspin(const char *path,colorspinspin *prop,int prec);
-void write_su3spinspin(const char *path,su3spinspin *prop,int prec);
+void write_su3spinspin(char *path,su3spinspin *prop,int prec);
 void write_tm_spincolor_anti_reconstructing(const char *path,spincolor **doublet,double mu,int prec);
 void write_tm_spincolor_anti_reconstructing(const char *path,spincolor *prop_minus,spincolor *prop_plus,int is_rotated,double mu,int prec);
 void write_tm_colorspinspin_anti_reconstructing(const char *path,colorspinspin **doublet,int is_rotated,double mu,int prec,quad_su3 *conf,double kappa);
