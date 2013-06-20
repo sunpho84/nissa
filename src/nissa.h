@@ -77,6 +77,7 @@
 #include "inverters/tmclov/cg_invert_tmclovQ2.h"
 #include "inverters/tmclov/cg_invert_tmclovQ.h"
 #include "inverters/tmclov/cgm_invert_tmclovQ2.h"
+#include "inverters/tmclov/tmclov_frontends.h"
 
 #include "linalgs/linalgs.h"
 
