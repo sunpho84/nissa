@@ -14,6 +14,9 @@ quad_su3 *conf,*unfix_conf;
 double kappa,csw;
 as2t_su3 *Pmunu;
 
+//gauge fixing
+double fixing_precision;
+
 //mass list
 int nmass;
 double *mass;
@@ -130,16 +133,19 @@ void initialize_Zcomputation(char *input_path)
   init_grid(T,L); 
   //Wall_time
   read_str_int("WallTime",&wall_time);
+
+  // 2) Gauge fixing
+  read_str_double("FixingPrecision",&fixing_precision);
+  
+  // 3) Read information about the masses
+  
   //Kappa
   read_str_double("Kappa",&kappa);
   //csw
   read_str_double("csw",&csw);
-  
-  // 2) Read information about the masses
-  
   //Read the masses
   read_list_of_double_pairs("MassResidues",&nmass,&mass,&stopping_residues);
-
+  
   // 4) contraction list for two points
   
   read_str_int("NContrTwoPoints",&ncontr_2pts);
@@ -207,7 +213,7 @@ void load_gauge_conf()
   
   //prepare the fixed version and calculate plaquette
   double elaps_time=-take_time();
-  landau_gauge_fix(conf,unfix_conf,1.e-20);
+  landau_gauge_fix(conf,unfix_conf,fixing_precision);
   elaps_time+=take_time();
   fix_time+=elaps_time;
   master_printf("Fixed conf in %lg sec\n",elaps_time);
