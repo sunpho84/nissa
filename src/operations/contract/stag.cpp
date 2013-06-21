@@ -6,6 +6,7 @@
 #include "../../base/random.h"
 #include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
+#include "../../communicate/communicate.h"
 #include "../../geometry/geometry_eo.h"
 #include "../../hmc/backfield.h"
 #include "../../new_types/complex.h"
@@ -100,8 +101,8 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
   
   //we need to store phases
-  coords *arg=nissa_malloc("arg",loc_vol,coords);
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+  coords *arg=nissa_malloc("arg",loc_vol+bord_vol,coords);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol+bord_vol)
     get_args_of_one_over_L2_quantization(arg[ivol],ivol,mu,nu);
   
   //array to store magnetization on single site (actually storing backward contrib at displaced site)
@@ -117,6 +118,7 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   
   //invert
   inv_stD_cg(chi,conf,quark->mass,10000,5,residue,rnd);
+  communicate_ev_and_od_color_borders(chi);
   
   //summ the results of the derivative
   for(int par=0;par<2;par++)
@@ -147,6 +149,7 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
 	    color_scalar_prod(t,v,rnd[par][ieo]);
 	    complex_summ_the_prod_double(point_magn[ivol],t,arg[idw_lx][rho]);
 	  }
+  printf("glblx %d, %lg %lg\n",glblx_of_loclx[ivol],point_magn[ivol][RE],point_magn[ivol][IM]);
       }
   
   //remove stag phases and u1 field, and automatically barrier before collapsing

@@ -7,6 +7,7 @@
 #include "../communicate/communicate.h"
 #include "../base/debug.h"
 #include "../base/global_variables.h"
+#include "../base/thread_macros.h"
 #include "../base/vectors.h"
 #include "../new_types/complex.h"
 #ifdef USE_THREADS
