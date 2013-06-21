@@ -3,6 +3,8 @@ T 8
 
 Walltime 100
 
+FixingPrecision 1.e-20
+
 Kappa 0.177000
 csw 0.1
 MassResidues 3
