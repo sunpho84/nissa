@@ -9,9 +9,12 @@
 #include "../../communicate/communicate.h"
 #include "../../base/debug.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../new_types/su3.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 #define COMPUTE_RECT_FW_STAPLE(OUT,A,B,C,TEMP)	\
   unsafe_su3_prod_su3(TEMP,A,B);		\
@@ -202,7 +205,11 @@ void rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(rectang
 //compute rectangular staples using overlap between computation and communications, and avoiding using edges
 THREADABLE_FUNCTION_3ARG(compute_rectangular_staples_lx_conf, rectangular_staples_t*,out, quad_su3*,conf, squared_staples_t*,sq_staples)
 {
+#ifdef USE_THREADS
   GET_THREAD_ID();
+#else
+  int thread_id=0;
+#endif
   
   //compute non_fw_surf fw staples
   rectangular_staples_lx_conf_start_communicating_lower_surface_fw_squared_staples(sq_staples,thread_id);

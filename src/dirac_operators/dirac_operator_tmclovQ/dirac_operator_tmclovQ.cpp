@@ -7,9 +7,12 @@
 #include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
+#include "../../base/thread_macros.h"
 #include "../../linalgs/linalgs.h"
 #include "../../operations/su3_paths/topological_charge.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //Apply the Q=D*g5 operator to a spincolor
 

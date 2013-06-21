@@ -12,10 +12,13 @@
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
 #include "../routines/math.h"
-#include "../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../routines/thread.h"
+#endif
 
 #include "debug.h"
 #include "global_variables.h"
+#include "thread_macros.h"
 
 //#define DEBUG
 

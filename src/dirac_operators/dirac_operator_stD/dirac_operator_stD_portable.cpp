@@ -3,7 +3,9 @@
 #endif
 
 #include "../../base/thread_macros.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 double app_time=0;
 int napp=0;

@@ -152,30 +152,3 @@ void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char 
   //exit the thread pool
   thread_pool_stop();
 }
-
-//start nissa in a threaded environment, sending all threads but first in the 
-//thread pool and issuing the main function
-void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg))
-{
-  //if BGQ, define appropriate barrier
-#if defined BGQ && (! defined BGQ_EMU)
-  bgq_barrier_define();
-#endif
-
-#pragma omp parallel
-  {
-    //initialize nissa (master thread only)
-#pragma omp master
-    init_nissa(narg,arg);
-#pragma omp barrier
-  
-    //get the number of threads and thread id
-    nthreads=omp_get_num_threads();
-    master_printf("Using %d threads\n",nthreads);
-    
-    //distinguish master thread from the others
-    GET_THREAD_ID();
-    if(thread_id!=0) thread_pool();
-    else thread_master_start(narg,arg,main_function);
-  }
-}

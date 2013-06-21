@@ -87,6 +87,15 @@ if test "$enable_mpi_io" == "yes";then AC_DEFINE([USE_MPI_IO],1,[Enable MPI I/O]
 AM_CONDITIONAL([USE_MPI_IO],[test "$enable_mpi_io" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling MPI I/O... $enable_mpi_io])
 
+#THREADS
+AC_ARG_ENABLE(threads,
+	AS_HELP_STRING([--disable-threads],[Enable threads]),
+	enable_threads="${enableval}",
+	enable_threads="yes")
+if test "$enable_threads" == "yes";then AC_DEFINE([USE_THREADS],1,[Enable threads]) fi
+AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling threads... $enable_threads])
+
 #bgq
 AC_ARG_ENABLE(bgq,
 	AS_HELP_STRING([--enable-bgq],[Enable bgq stuff (ony for BG/Q)]),

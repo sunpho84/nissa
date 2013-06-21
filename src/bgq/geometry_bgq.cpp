@@ -9,7 +9,9 @@
 #include "../base/global_variables.h"
 #include "../base/vectors.h"
 #include "../new_types/complex.h"
-#include "../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../routines/thread.h"
+#endif
 
 /*
   Define bgq ordering: surface sites comes first, then bulk sites

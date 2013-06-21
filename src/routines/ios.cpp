@@ -12,10 +12,13 @@
 
 #include "../base/debug.h"
 #include "../base/global_variables.h"
+#include "../base/thread_macros.h"
 #include "../IO/input.h"
 
 #include "mpi.h"
-#include "thread.h"
+#ifdef USE_THREADS
+ #include "thread.h"
+#endif
 
 //only master rank and thread print
 int master_fprintf(FILE *stream,const char *format,...)

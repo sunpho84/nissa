@@ -2,14 +2,17 @@
  #include "config.h"
 #endif
 
-#include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
+#include "../../communicate/communicate.h"
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //compute plaquettes and rectangles
 THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_eo_conf, double*,glb_shapes, quad_su3**,conf)

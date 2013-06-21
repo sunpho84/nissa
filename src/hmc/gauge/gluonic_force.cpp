@@ -5,7 +5,10 @@
 #include "../../base/global_variables.h"
 #include "../../geometry/geometry_lx.h"
 #include "../../new_types/su3.h"
-#include "../../routines/thread.h"
+#include "../../base/thread_macros.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 #include "../gauge/Wilson_force.h"
 #include "../gauge/tree_level_Symanzik_force.h"

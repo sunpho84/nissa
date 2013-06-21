@@ -9,12 +9,15 @@
 #include "../communicate/communicate.h"
 #include "../base/debug.h"
 #include "../base/global_variables.h"
+#include "../base/thread_macros.h"
 #include "../base/vectors.h"
 #include "../geometry/geometry_lx.h"
 #include "../new_types/complex.h"
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/su3.h"
-#include "../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../routines/thread.h"
+#endif
 
 //shift an su3 vector of a single step along the mu axis, in the positive or negative dir
 THREADABLE_FUNCTION_3ARG(su3_vec_single_shift, su3*,u, int,mu, int,sign)

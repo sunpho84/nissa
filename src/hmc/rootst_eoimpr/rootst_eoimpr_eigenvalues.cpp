@@ -7,6 +7,7 @@
 #include "../../communicate/communicate.h"
 #include "../../base/debug.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
 #include "../../inverters/staggered/cg_invert_stD2ee_m2.h"
@@ -16,7 +17,9 @@
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
 #include "../../routines/mpi.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 #include "../backfield.h"
 

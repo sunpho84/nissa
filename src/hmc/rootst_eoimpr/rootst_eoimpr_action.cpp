@@ -4,6 +4,7 @@
 
 #include "../../base/debug.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_eo.h"
 #include "../../inverters/staggered/cgm_invert_stD2ee_m2.h"
@@ -13,7 +14,9 @@
 #include "../../hmc/gauge/tree_level_Symanzik_action.h"
 #include "../../routines/ios.h"
 #include "../../routines/mpi.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 #include "../backfield.h"
 #include "../momenta/momenta_action.h"

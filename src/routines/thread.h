@@ -13,7 +13,6 @@
  void thread_barrier(int force_barrier);
 #endif
 
-void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg));
 void start_threaded_function(void(*function)(void),const char *name);
 void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg));
 void thread_pool();

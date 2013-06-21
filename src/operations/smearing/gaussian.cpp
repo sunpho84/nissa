@@ -3,13 +3,16 @@
 #endif
 
 #include "../../base/global_variables.h"
-#include "../../communicate/communicate.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
+#include "../../communicate/communicate.h"
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //apply kappa*H
 #define DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(TYPE)			\

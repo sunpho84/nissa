@@ -4,6 +4,7 @@
 
 #include "../../base/global_variables.h"
 #include "../../base/random.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_eo.h"
 #include "../../hmc/backfield.h"
@@ -13,7 +14,9 @@
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
 #include "../../routines/mpi.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //get a propagator
 THREADABLE_FUNCTION_6ARG(get_propagator, color**,prop, quad_su3**,conf, quad_u1**,u1b, double,m, double,residue, color**,source)
@@ -107,7 +110,7 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
   
   //generate the source and the propagator
   generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
-
+  
   //we add stagphases and backfield externally because we need them for derivative
   addrem_stagphases_to_eo_conf(conf);
   add_backfield_to_conf(conf,u1b);
@@ -133,7 +136,7 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
 	    
 	    color v;
 	    complex t;
-
+	    
 	    //forward derivative
 	    unsafe_su3_prod_color(v,conf[par][ieo][rho],chi[!par][iup_eo]);
 	    color_scalar_prod(t,v,rnd[par][ieo]);

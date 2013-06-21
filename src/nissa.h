@@ -12,6 +12,7 @@
 #include "base/init.h"
 #include "base/macros.h"
 #include "base/random.h"
+#include "base/thread_macros.h"
 #include "base/vectors.h"
 
 //include bg/q specifics
@@ -123,6 +124,8 @@
 #include "routines/ios.h"
 #include "routines/math.h"
 #include "routines/mpi.h"
-#include "routines/thread.h"
+#ifdef USE_THREADS
+ #include "routines/thread.h"
+#endif
 
 #endif

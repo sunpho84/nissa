@@ -4,13 +4,16 @@
 
 #include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_mix.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../operations/su3_paths/squared_staples.h"
 #include "../../routines/ios.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //Compute the gluonic force for the Wilson plaquette action and summ to the output
 //Passed conf must NOT(?) contain the backfield.

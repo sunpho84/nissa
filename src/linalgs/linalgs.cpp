@@ -7,6 +7,7 @@
 
 #include "../communicate/communicate.h"
 #include "../base/global_variables.h"
+#include "../base/thread_macros.h"
 #include "../base/vectors.h"
 #include "../new_types/complex.h"
 #include "../new_types/float128.h"
@@ -14,7 +15,9 @@
 #include "../new_types/spin.h"
 #include "../new_types/su3.h"
 #include "../routines/mpi.h"
-#include "../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../routines/thread.h"
+#endif
 
 //set to zero
 void double_vector_init_to_zero(double *a,int n)

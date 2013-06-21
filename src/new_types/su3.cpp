@@ -700,30 +700,37 @@ void unsafe_su3_taylor_exponentiate(su3 out,su3 in,int order)
 }
 
 //overrelax the link
-void su3_overrelax(su3 out,su3 in,double w)
+void su3_overrelax(su3 out,su3 in,double w,double *coeff,const int ord)
 {
-  double coef[5]={1,w,w*(w-1)/2,w*(w-1)*(w-2)/6,w*(w-1)*(w-2)*(w-3)/24};
-  su3 t[5];
+  su3 t[ord];
 
+  //subtract 1 from in
   su3 f;
-  su3_summ_real(f,in,-1);   //subtract 1 from in
+  su3_summ_real(f,in,-1);
 
   //ord 0
   su3_put_to_id(out);       //output init
   
   //ord 1
   su3_copy(t[1],f);
-  su3_summ_the_prod_double(out,t[1],coef[1]);
+  su3_summ_the_prod_double(out,t[1],coeff[1]);
 
-  //ord 2-4
-  for(int iord=2;iord<5;iord++)
+  //ord 2-ord
+  for(int iord=2;iord<ord;iord++)
     {
       unsafe_su3_prod_su3(t[iord],t[iord-1],f);
-      su3_summ_the_prod_double(out,t[iord],coef[iord]);
+      su3_summ_the_prod_double(out,t[iord],coeff[iord]);
     }
 
   //unitarize
   su3_unitarize_orthonormalizing(out,out);
+}
+
+//overrelax the link using approximated exponentiation
+void su3_overrelax(su3 out,su3 in,double w)
+{
+  double coeff[5]={1,w,w*(w-1)/2,w*(w-1)*(w-2)/6,w*(w-1)*(w-2)*(w-3)/24};
+  su3_overrelax(out,in,w,coeff,5);
 }
 
 //summ of the squared norm of the entries

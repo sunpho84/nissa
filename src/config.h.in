@@ -56,3 +56,6 @@
 
 /* Enable MPI I/O */
 #undef USE_MPI_IO
+
+/* Enable threads */
+#undef USE_THREADS

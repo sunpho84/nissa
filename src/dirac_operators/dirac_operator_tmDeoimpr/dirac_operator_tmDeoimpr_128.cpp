@@ -9,8 +9,11 @@
 #include "../../base/global_variables.h"
 #include "../../communicate/communicate.h"
 #include "../../base/debug.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //Refers to the doc: "doc/eo_inverter.lyx" for explenations
 
