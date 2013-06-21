@@ -11,9 +11,10 @@
 #include <spi/include/kernel/MU.h>
 #include <spi/include/kernel/location.h>
 
-#include "../src/base/global_variables.h"
-#include "../src/base/vectors.h"
-#include "../src/routines/ios.h"
+#include "../base/global_variables.h"
+#include "../base/thread_macros.h"
+#include "../base/vectors.h"
+#include "../routines/ios.h"
 #ifdef USE_THREADS
  #include "../src/routines/thread.h"
 #endif

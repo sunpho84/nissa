@@ -119,7 +119,7 @@ THREADABLE_FUNCTION_3ARG(complex_vector_glb_collapse, double*,glb_res, complex*,
   GET_THREAD_ID();
   NISSA_PARALLEL_LOOP(i,0,n)
     complex_128_summassign_64(loc_thread_res,a[i]);
-  
+
   //drop back to complex after reducing all threads and ranks
   for(int ri=0;ri<2;ri++)
     {
