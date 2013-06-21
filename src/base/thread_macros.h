@@ -16,39 +16,55 @@
 
 //////////////////////////////////////////////////////////////////////////////////////
 
-#define GET_THREAD_ID() int thread_id=omp_get_thread_num()
+#ifdef USE_THREADS
 
-#ifdef THREAD_DEBUG
- #define THREAD_BARRIER_FORCE() thread_barrier(__FILE__,__LINE__,true)
- #define THREAD_BARRIER()       thread_barrier(__FILE__,__LINE__,false)
+ #define GET_THREAD_ID() int thread_id=omp_get_thread_num()
+ 
+ #ifdef THREAD_DEBUG
+  #define THREAD_BARRIER_FORCE() thread_barrier(__FILE__,__LINE__,true)
+  #define THREAD_BARRIER()       thread_barrier(__FILE__,__LINE__,false)
+ #else
+  #define THREAD_BARRIER_FORCE() thread_barrier(true)
+  #define THREAD_BARRIER()       thread_barrier(false)
+ #endif
+ 
+ #define IS_MASTER_THREAD (!thread_id)
+ 
+ #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END)			\
+    for(int WORKLOAD=EXT_END-EXT_START,					\
+	  NCHUNKS=(thread_pool_locked)?1:nthreads,			\
+	  THREAD_LOAD=(WORKLOAD+NCHUNKS-1)/NCHUNKS,			\
+	  START=EXT_START+thread_id*THREAD_LOAD,			\
+	  END=START+THREAD_LOAD< EXT_END ? START+THREAD_LOAD : EXT_END,	\
+	  INDEX=START;INDEX<END;INDEX++)
+ 
+ #define THREAD_ATOMIC_EXEC(inst) do{THREAD_BARRIER();inst;THREAD_BARRIER();}while(0)
+
 #else
- #define THREAD_BARRIER_FORCE() thread_barrier(true)
- #define THREAD_BARRIER()       thread_barrier(false)
+
+ #define GET_THREAD_ID()
+ #define THREAD_BARRIER_FORCE()
+ #define THREAD_BARRIER()
+ #define IS_MASTER_THREAD (1)
+ #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) for(int INDEX=EXT_START;INDEX<EXT_END;INDEX++)
+ #define THREAD_ATOMIC_EXEC(inst) inst
+
 #endif
 
-#define IS_MASTER_THREAD (!thread_id)
-
-#define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END)			\
-  for(int WORKLOAD=EXT_END-EXT_START,					\
-	NCHUNKS=(thread_pool_locked)?1:nthreads,			\
-	THREAD_LOAD=(WORKLOAD+NCHUNKS-1)/NCHUNKS,			\
-	START=EXT_START+thread_id*THREAD_LOAD,				\
-	END=START+THREAD_LOAD< EXT_END ? START+THREAD_LOAD : EXT_END,	\
-	INDEX=START;INDEX<END;INDEX++)
-
 //////////////////////////////////////////////////////////////////////////////////////
 
-#define THREAD_ATOMIC_EXEC(inst)					\
-  do{THREAD_BARRIER();inst;THREAD_BARRIER();}while(0)
-
-//////////////////////////////////////////////////////////////////////////////////////
+#ifdef USE_THREADS
 
 //external argument to exchange info between function and worker
 #define EXTERNAL_ARG(FUNC_NAME,LINE,ARG_TYPE,ARG) ARG_TYPE NAME4(FUNC_NAME,LINE,EXT_ARG,ARG);
 #define EXPORT_ARG(FUNC_NAME,LINE,ARG) NAME4(FUNC_NAME,LINE,EXT_ARG,ARG)=ARG;
 #define IMPORT_ARG(FUNC_NAME,LINE,ARG_TYPE,ARG) ARG_TYPE ARG=NAME4(FUNC_NAME,LINE,EXT_ARG,ARG);
 
+#endif
+
 //////////////////////////////////////////////////////////////////////////////////////
+
+#ifdef USE_THREADS
 
 //headers: external parameters
 #define THREADABLE_FUNCTION_0ARG_EXTERNAL_ARGS(FUNC_NAME,LINE)
@@ -462,5 +478,23 @@ inline void thread_barrier_internal()
 #endif
 }
 
+#else
+
+#define THREADABLE_FUNCTION_0ARG(FUNC_NAME) void FUNC_NAME(){
+#define THREADABLE_FUNCTION_1ARG(FUNC_NAME,AT1,A1) void FUNC_NAME(AT1 A1){
+#define THREADABLE_FUNCTION_2ARG(FUNC_NAME,AT1,A1,AT2,A2) void FUNC_NAME(AT1 A1,AT2 A2){
+#define THREADABLE_FUNCTION_3ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3) void FUNC_NAME(AT1 A1,AT2 A2,AT3 A3){
+#define THREADABLE_FUNCTION_4ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4) void FUNC_NAME(AT1 A1,AT2 A2,AT3 A3,AT4 A4){
+#define THREADABLE_FUNCTION_5ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5) void FUNC_NAME(AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5){
+#define THREADABLE_FUNCTION_6ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6) void FUNC_NAME(AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,AT6 A6){
+#define THREADABLE_FUNCTION_7ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7) void FUNC_NAME(AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,AT6 A6,AT7 A7){
+#define THREADABLE_FUNCTION_8ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8) void FUNC_NAME(AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,AT6 A6,AT7 A7,AT8 A8){
+#define THREADABLE_FUNCTION_9ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8,AT9,A9) void FUNC_NAME(AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,AT6 A6,AT7 A7,AT8 A8,AT9 A9){
+#define THREADABLE_FUNCTION_10ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8,AT9,A9,AT10,A10) void FUNC_NAME(AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,AT6 A6,AT7 A7,AT8 A8,AT9 A9,AT10 A10){
+#define THREADABLE_FUNCTION_11ARG(FUNC_NAME,AT1,A1,AT2,A2,AT3,A3,AT4,A4,AT5,A5,AT6,A6,AT7,A7,AT8,A8,AT9,A9,AT10,A10,AT11,A11) void FUNC_NAME(AT1 A1,AT2 A2,AT3 A3,AT4 A4,AT5 A5,AT6 A6,AT7 A7,AT8 A8,AT9 A9,AT10 A10,AT11 A11){
+
+#define cache_flush()
+
+#endif //use_threads
 
 #endif

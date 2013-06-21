@@ -4,13 +4,16 @@
 
 #include "../../base/global_variables.h"
 #include "../../base/random.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_eo.h"
 #include "../../inverters/staggered/cgm_invert_stD2ee_m2.h"
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 #include "../backfield.h"
 
 //generate pseudo-fermion using color vector generator

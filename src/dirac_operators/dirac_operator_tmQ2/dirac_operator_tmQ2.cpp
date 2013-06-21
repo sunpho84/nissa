@@ -9,9 +9,12 @@
 
 #include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../new_types/new_types_definitions.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //Apply the Q+Q- operator to a spincolor
 THREADABLE_FUNCTION_7ARG(apply_tmQ2_RL, spincolor*,out, quad_su3*,conf, double,kappa, spincolor*,ext_temp, int,RL, double,mu, spincolor*,in)

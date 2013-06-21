@@ -6,8 +6,11 @@
 #include "../../new_types/su3.h"
 #include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 #include "dirac_operator_tmQ_portable.cpp"
 

@@ -6,7 +6,9 @@
  #include <unistd.h>
 
 #include "../../routines/ios.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 #include "../../routines/mpi.h"
 #include "../../base/thread_macros.h"
 

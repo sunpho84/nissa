@@ -5,13 +5,16 @@
 #include <string.h>
 
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../operations/su3_paths/rectangular_staples.h"
 #include "../../operations/su3_paths/squared_staples.h"
 #include "../../routines/ios.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 THREADABLE_FUNCTION_3ARG(tree_level_Symanzik_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta)
 {

@@ -8,9 +8,10 @@
 
 #include "../gaugeconf.h"
 
-#include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
+#include "../../communicate/communicate.h"
 #include "../../geometry/geometry_mix.h"
 #include "../../new_types/complex.h"
 #include "../../new_types/float128.h"
@@ -19,7 +20,9 @@
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
 #include "../../routines/mpi.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //This will calculate 2*a^2*ig*P_{mu,nu}
 /*

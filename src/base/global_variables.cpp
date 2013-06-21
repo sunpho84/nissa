@@ -124,19 +124,23 @@ EXTERN coords plan_rank,line_rank,line_coord_rank;
 EXTERN int nissa_grid_inited;
 
 //thread
-#ifdef THREAD_DEBUG
-EXTERN int glb_barr_line;
-EXTERN char glb_barr_file[1024];
-#endif
-#ifndef ONLY_INSTANTIATION
-int thread_pool_locked=true,nthreads=1;
-#else
-EXTERN int thread_pool_locked,nthreads;
-#endif
-EXTERN double *glb_double_reduction_buf;
-EXTERN float_128 *glb_float_128_reduction_buf;
+#ifdef USE_THREADS
 
-EXTERN void(*threaded_function_ptr)();
+ #ifdef THREAD_DEBUG
+  EXTERN int glb_barr_line;
+  EXTERN char glb_barr_file[1024];
+ #endif
+
+ #ifndef ONLY_INSTANTIATION
+  int thread_pool_locked=true,nthreads=1;
+ #else
+  EXTERN int thread_pool_locked,nthreads;
+ #endif
+ EXTERN double *glb_double_reduction_buf;
+ EXTERN float_128 *glb_float_128_reduction_buf;
+
+ EXTERN void(*threaded_function_ptr)();
+#endif
 
 //endianess
 EXTERN int little_endian;

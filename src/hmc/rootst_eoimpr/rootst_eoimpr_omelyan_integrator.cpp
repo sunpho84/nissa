@@ -3,6 +3,7 @@
 #endif
 
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../geometry/geometry_eo.h"
 #include "../../geometry/geometry_lx.h"
@@ -11,7 +12,9 @@
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 #include "../gauge/gluonic_force.h"
 

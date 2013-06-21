@@ -2,16 +2,19 @@
  #include "config.h"
 #endif
 
-#include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
+#include "../../communicate/communicate.h"
 #include "../../geometry/geometry_mix.h"
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/su3.h"
 #include "../../operations/shift.h"
 #include "../../routines/ios.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 #include "../smearing/APE.h"
 #include "../smearing/HYP.h"
@@ -22,7 +25,7 @@ THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pa
   GET_THREAD_ID();
   
   FILE *fout=NULL;
-  if(rank==0 && thread_id==0) fout=open_file(pars->path,conf_created?"w":"a");
+  if(rank==0 && IS_MASTER_THREAD) fout=open_file(pars->path,conf_created?"w":"a");
   
   //hypped and APE spatial smeared conf
   quad_su3 *sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -127,14 +130,14 @@ THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pa
 	      }
 	  
 	  //print all the Dmax contributions, with ncol*nspat_dir*glb_vol normalization
-	  if(rank==0 && thread_id==0)
+	  if(rank==0 && IS_MASTER_THREAD)
 	    for(int d=pars->Dmin;d<pars->Dmax;d++)
 	      fprintf(fout,"%d %d  %d %d %16.16lg\n",iconf,iape,t,d,paths[d]/(9*glb_vol));
 	}
     }
   
   //close file
-  if(rank==0 && thread_id==0) fclose(fout);
+  if(rank==0 && IS_MASTER_THREAD) fclose(fout);
   
   //free stuff
   nissa_free(sme_conf);

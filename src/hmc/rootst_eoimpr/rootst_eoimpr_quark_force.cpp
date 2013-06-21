@@ -6,6 +6,7 @@
 
 #include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
 #include "../../inverters/staggered/cgm_invert_stD2ee_m2.h"
@@ -14,7 +15,9 @@
 #include "../../new_types/su3.h"
 #include "../../operations/smearing/stout.h"
 #include "../../routines/ios.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //Compute the fermionic force the rooted staggered e/o improved theory.
 //Passed conf must NOT contain the backfield.

@@ -7,7 +7,9 @@
 #include "../communicate/borders.h"
 #include "../new_types/complex.h"
 #include "../new_types/new_types_definitions.h"
-#include "../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../routines/thread.h"
+#endif
 
 #include "bgq_macros.h"
 

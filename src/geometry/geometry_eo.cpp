@@ -6,11 +6,14 @@
 
 #include "../base/global_variables.h"
 #include "../base/debug.h"
+#include "../base/thread_macros.h"
 #include "../base/vectors.h"
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/su3.h"
 #include "../routines/ios.h"
-#include "../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../routines/thread.h"
+#endif
 
 //set the eo geometry
 void set_eo_geometry()

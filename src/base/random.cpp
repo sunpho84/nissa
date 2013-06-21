@@ -8,13 +8,16 @@
 
 #include "../base/debug.h"
 #include "../base/global_variables.h"
+#include "../base/thread_macros.h"
 #include "../base/vectors.h"
 #include "../geometry/geometry_lx.h"
 #include "../new_types/complex.h"
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
 #include "../routines/math.h"
-#include "../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../routines/thread.h"
+#endif
 
 double rnd_get_unif(rnd_gen *gen,double min,double max);
 

@@ -6,10 +6,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../communicate/communicate.h"
 #include "../../base/debug.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
+#include "../../communicate/communicate.h"
 #include "../../geometry/geometry_lx.h"
 #include "../../geometry/geometry_mix.h"
 #include "../../linalgs/linalgs.h"
@@ -20,7 +21,9 @@
 #include "../../new_types/spin.h"
 #include "../../new_types/su3.h"
 #include "../../routines/mpi.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 /*
      

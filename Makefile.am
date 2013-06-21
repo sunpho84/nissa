@@ -9,6 +9,12 @@ else
 spi_src_file=
 endif
 
+#compile or not thread support
+if USE_THREADS
+thread_src=src/routines/thread.cpp
+thread_hdr=src/routines/thread.h
+endif
+
 #compile or not bgq stuff
 if BGQ
 test_bgq_targ=projects/semileptonic/test_bgq
@@ -167,7 +173,7 @@ nissa_headers=src/base/close.h \
 	src/routines/ios.h \
 	src/routines/math.h \
 	src/routines/mpi.h \
-	src/routines/thread.h
+	$(thread_hdr)
 nissa_source_files=src/base/close.cpp \
 	src/base/debug.cpp \
 	src/base/global_variables.cpp \
@@ -271,7 +277,7 @@ nissa_source_files=src/base/close.cpp \
 	src/routines/ios.cpp \
 	src/routines/math.cpp \
 	src/routines/mpi.cpp \
-	src/routines/thread.cpp
+	$(thread_src)
 extra_headers=src/new_types/new_types_definitions.h src/base/macros.h src/base/thread_macros.h
 
 #instruct how to build the library

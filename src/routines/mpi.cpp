@@ -9,7 +9,10 @@
 #include "../new_types/complex.h"
 #include "../new_types/float128.h"
 #include "../new_types/new_types_definitions.h"
-#include "../routines/thread.h"
+
+#ifdef USE_THREADS
+  #include "../routines/thread.h"
+#endif
 
 //take the different with following multiple of eight
 MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos)
@@ -40,8 +43,8 @@ double glb_reduce_double(double in_loc)
 {
   double out_glb;
   
-  if(thread_pool_locked) MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-  else
+#ifdef USE_THREADS
+  if(!thread_pool_locked)
     {
       GET_THREAD_ID();
       
@@ -60,15 +63,21 @@ double glb_reduce_double(double in_loc)
       //read glb val
       THREAD_ATOMIC_EXEC(out_glb=glb_double_reduction_buf[0];);
     }
-  
+  else
+#endif
+    MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+
   return out_glb;
 }
 
 //reduce an int
 void glb_reduce_int(int *out_glb,int in_loc)
 {
-  if(thread_pool_locked) MPI_Allreduce(&in_loc,out_glb,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
-  else crash("not threaded yet");
+#ifdef USE_THREADS
+  if(!thread_pool_locked) crash("not threaded yet");
+  else
+#endif
+    MPI_Allreduce(&in_loc,out_glb,1,MPI_INT,MPI_SUM,MPI_COMM_WORLD);
 }
 
 //reduce a complex
@@ -78,8 +87,8 @@ void glb_reduce_complex(complex out_glb,complex in_loc)
 //reduce a float_128
 void glb_reduce_float_128(float_128 out_glb,float_128 in_loc)
 {
-  if(thread_pool_locked) MPI_Allreduce(in_loc,out_glb,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
-  else
+#ifdef USE_THREADS
+  if(!thread_pool_locked)
     {
       GET_THREAD_ID();
       
@@ -98,6 +107,9 @@ void glb_reduce_float_128(float_128 out_glb,float_128 in_loc)
       //read glb val
       THREAD_ATOMIC_EXEC(float_128_copy(out_glb,glb_float_128_reduction_buf[0]););
     }
+  else
+#endif
+    MPI_Allreduce(in_loc,out_glb,1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
 }
 
 //reduce a complex 128

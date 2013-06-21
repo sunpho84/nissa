@@ -3,9 +3,12 @@
 #endif
 
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../new_types/su3.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //generate momenta using guassian hermitean matrix generator
 THREADABLE_FUNCTION_1ARG(generate_hmc_momenta, quad_su3**,H)

@@ -7,7 +7,9 @@
 #include "../../bgq/bgq_macros.h"
 #include "../../bgq/hopping_matrix_bgq.h"
 #include "../../new_types/complex.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 /*
   application of hopping matrix goes among the following steps:

@@ -31,7 +31,7 @@ void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
 	unsafe_su3_prod_su3(uout[ivol][mu],g[ivol],temp);
       }
   
-  //invaidate borders
+  //invalidate borders
   set_borders_invalid(uout);
 }
 

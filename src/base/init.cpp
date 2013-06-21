@@ -23,7 +23,9 @@
 #include "../routines/ios.h"
 #include "../routines/math.h"
 #include "../routines/mpi.h"
-#include "../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../routines/thread.h"
+#endif
 
 #ifdef SPI
  #include "../bgq/spi.h"
@@ -129,6 +131,39 @@ void init_nissa(int narg,char **arg)
   init_base_gamma();
   
   master_printf("Nissa initialized!\n");
+}
+
+//start nissa in a threaded environment, sending all threads but first in the 
+//thread pool and issuing the main function
+void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg))
+{
+#ifdef USE_THREADS
+
+  //if BGQ, define appropriate barrier
+#if defined BGQ && (! defined BGQ_EMU)
+  bgq_barrier_define();
+#endif
+
+#pragma omp parallel
+  {
+    //initialize nissa (master thread only)
+#pragma omp master
+    init_nissa(narg,arg);
+#pragma omp barrier
+  
+    //get the number of threads and thread id
+    nthreads=omp_get_num_threads();
+    master_printf("Using %d threads\n",nthreads);
+    
+    //distinguish master thread from the others
+    GET_THREAD_ID();
+    if(thread_id!=0) thread_pool();
+    else thread_master_start(narg,arg,main_function);
+  }
+#else
+  init_nissa(narg,arg);
+  main_function(narg,arg);
+#endif
 }
 
 //compute internal volume

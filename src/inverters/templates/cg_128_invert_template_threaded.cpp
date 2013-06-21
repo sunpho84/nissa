@@ -7,9 +7,12 @@
 
 #include <string.h>
 
+#include "../../base/thread_macros.h"
 #include "../../routines/ios.h"
 #include "../../routines/math.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 #if CG_NARG >= 5
  #error not supported

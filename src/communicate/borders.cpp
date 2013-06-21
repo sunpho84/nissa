@@ -7,11 +7,14 @@
 
 #include "../base/debug.h"
 #include "../base/global_variables.h"
+#include "../base/thread_macros.h"
 #include "../base/vectors.h"
 #include "../geometry/geometry_lx.h"
 #include "../new_types/new_types_definitions.h"
 #include "../routines/ios.h"
-#include "../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../routines/thread.h"
+#endif
 
 #ifdef SPI
  #include <stdlib.h>

@@ -6,12 +6,15 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../communicate/communicate.h"
 #include "../../base/debug.h"
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
+#include "../../communicate/communicate.h"
 #include "../../new_types/su3.h"
-#include "../../routines/thread.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 //compute the staples along a particular dir, for a single site
 void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
@@ -203,7 +206,11 @@ void squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(squared_sta
 //compute squared staples using overlap between computation and communications, and avoiding using edges
 THREADABLE_FUNCTION_2ARG(compute_squared_staples_lx_conf, squared_staples_t*,out, quad_su3*,conf)
 {
+#ifdef USE_THREADS
   GET_THREAD_ID();
+#else
+  int thread_id=0;
+#endif
   
   //compute non_fw_surf fw staples
   squared_staples_lx_conf_start_communicating_lower_surface(conf,thread_id);

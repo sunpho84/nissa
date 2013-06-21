@@ -14,7 +14,9 @@
 #include "../src/base/global_variables.h"
 #include "../src/base/vectors.h"
 #include "../src/routines/ios.h"
-#include "../src/routines/thread.h"
+#ifdef USE_THREADS
+ #include "../src/routines/thread.h"
+#endif
 
 //#define SPI_BARRIER
 

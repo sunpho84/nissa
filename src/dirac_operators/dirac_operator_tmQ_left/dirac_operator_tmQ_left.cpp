@@ -3,7 +3,10 @@
 #include "../../communicate/communicate.h"
 #include "../../base/global_variables.h"
 #include "../../base/vectors.h"
-#include "../../routines/thread.h"
+#include "../../base/thread_macros.h"
+#ifdef USE_THREADS
+ #include "../../routines/thread.h"
+#endif
 
 #include "dirac_operator_tmQ_left_portable.cpp"
 
