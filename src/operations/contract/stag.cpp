@@ -149,7 +149,6 @@ THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1*
 	    color_scalar_prod(t,v,rnd[par][ieo]);
 	    complex_summ_the_prod_double(point_magn[ivol],t,arg[idw_lx][rho]);
 	  }
-  printf("glblx %d, %lg %lg\n",glblx_of_loclx[ivol],point_magn[ivol][RE],point_magn[ivol][IM]);
       }
   
   //remove stag phases and u1 field, and automatically barrier before collapsing
