@@ -210,6 +210,7 @@ void load_gauge_conf()
   load_time-=take_time();
   read_ildg_gauge_conf(unfix_conf,conf_path);
   load_time+=take_time();
+  master_printf("unfix plaq: %.18g\n",global_plaquette_lx_conf(unfix_conf));
   
   //prepare the fixed version and calculate plaquette
   double elaps_time=-take_time();
@@ -229,8 +230,7 @@ void load_gauge_conf()
     }    
   
   master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
-  master_printf("unfix plaq: %.18g\n",global_plaquette_lx_conf(unfix_conf));
-
+  
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;
   put_theta[0]=1;
@@ -512,11 +512,8 @@ int check_remaining_time()
   return enough_time;
 }
 
-int main(int narg,char **arg)
+void in_main(int narg,char **arg)
 {
-  //Basic mpi initialization
-  init_nissa(narg,arg);
-  
   if(narg<2) crash("Use: %s input_file",arg[0]);
   
   tot_time-=take_time();
@@ -548,6 +545,11 @@ int main(int narg,char **arg)
 
   tot_time+=take_time();
   close_Zcomputation();
-  
+}
+
+int main(int narg,char **arg)
+{
+  init_nissa_threaded(narg,arg,in_main);
+    
   return 0;
 }
