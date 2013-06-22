@@ -3,6 +3,7 @@
 #endif
 
 #include "../../base/global_variables.h"
+#include "../../base/thread_macros.h"
 #include "../../base/vectors.h"
 #include "../../bgq/bgq_macros.h"
 #include "../../bgq/hopping_matrix_bgq.h"

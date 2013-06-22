@@ -8,6 +8,7 @@
 #include "../communicate/communicate.h"
 #include "../base/debug.h"
 #include "../base/global_variables.h"
+#include "../base/thread_macros.h"
 #include "../base/vectors.h"
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
@@ -15,16 +16,22 @@
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/su3.h"
 #include "../routines/ios.h"
+#include "../routines/mpi.h"
+#ifdef USE_THREADS
+ #include "../routines/thread.h"
+#endif
 
 //apply a gauge transformation to the conf
-void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
+THREADABLE_FUNCTION_3ARG(gauge_transform_conf, quad_su3*,uout, su3*,g, quad_su3*,uin)
 {
+  GET_THREAD_ID();
+  
   //communicate borders
   communicate_lx_su3_borders(g);
 
   //transform
   su3 temp;
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int mu=0;mu<4;mu++)
       {
 	unsafe_su3_prod_su3_dag(temp,uin[ivol][mu],g[loclx_neighup[ivol][mu]]);
@@ -33,7 +40,7 @@ void gauge_transform_conf(quad_su3 *uout,su3 *g,quad_su3 *uin)
   
   //invalidate borders
   set_borders_invalid(uout);
-}
+}}
 
 //determine the gauge transformation bringing to temporal gauge with T-1 timeslice diferent from id
 void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
@@ -339,10 +346,12 @@ void compute_landau_or_coulomb_quality_delta(su3 g,quad_su3 *conf,int ivol,int n
 //compute the quality of the landau or coulomb gauge fixing
 double compute_landau_or_coulomb_gauge_fixing_quality(quad_su3 *conf,int nmu)
 {
+  GET_THREAD_ID();
+  
   communicate_lx_quad_su3_borders(conf);
 
   double loc_omega=0;
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
       su3 delta;
       compute_landau_or_coulomb_quality_delta(delta,conf,ivol,nmu);
@@ -352,26 +361,31 @@ double compute_landau_or_coulomb_gauge_fixing_quality(quad_su3 *conf,int nmu)
     }
   
   //global reduction
-  double glb_omega;
-  MPI_Allreduce(&loc_omega,&glb_omega,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  double glb_omega=glb_reduce_double(loc_omega);
   
   return glb_omega/glb_vol/3;
 }
 
 //find the transformation bringing to the landau or coulomb gauge
-void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double required_precision,int nmu)
+THREADABLE_FUNCTION_4ARG(find_landau_or_coulomb_gauge_fixing_matr, su3*,fixm, quad_su3*,conf, double,required_precision, int,nmu)
 {
+  GET_THREAD_ID();
+
   //allocate working conf
   quad_su3 *w_conf=nissa_malloc("Working conf",loc_vol+bord_vol,quad_su3);
   
   //set eo geometry, used to switch between different parity sites
-  if(nissa_eo_geom_inited==0) set_eo_geometry();
+  if(nissa_eo_geom_inited==0)
+    {
+      if(IS_MASTER_THREAD) set_eo_geometry();
+      THREAD_BARRIER();
+    }
   
   //count even and odd elements on each external inferior and internal
   //superior border so to allocate room for buffers
   int bpar_dw_size[4][2]={{0,0},{0,0},{0,0},{0,0}};
   int bpar_up_size[4][2]={{0,0},{0,0},{0,0},{0,0}};
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int mu=0;mu<4;mu++)
       {
 	int b=loclx_neighdw[ivol][mu];
@@ -392,7 +406,9 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	}
   
   //reset fixing transformation to unity
-  nissa_loc_vol_loop(ivol) su3_put_to_id(fixm[ivol]);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    su3_put_to_id(fixm[ivol]);
+  set_borders_invalid(fixm);
   
   //fix iteratively up to reaching required precision, performing a
   //macro-loop in which the fixing is effectively applied to the original
@@ -424,7 +440,7 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	      int isend_dw[4]={0,0,0,0};
 	      int isend_up[4]={0,0,0,0};
 	      
-	      nissa_loc_vol_loop(ivol)
+	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		if(loclx_parity[ivol]==par)
 		  {
 		    su3 g;
@@ -455,23 +471,27 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	      double intermediate_time=take_time();
 	      
 	      //communicate the borders
-	      int nrequest=0;
-	      MPI_Request request[16];
-	      MPI_Status status[16];
-	      for(int mu=0;mu<4;mu++)
-		if(paral_dir[mu])
-		  {
-		    MPI_Isend((void*)buf_up[mu][ par],bpar_up_size[mu][ par],MPI_SU3,rank_neighup[mu],87+4+mu,cart_comm,&request[nrequest++]);
-		    MPI_Irecv((void*)buf_up[mu][!par],bpar_up_size[mu][!par],MPI_SU3,rank_neighup[mu],87+  mu,cart_comm,&request[nrequest++]);
-		    MPI_Irecv((void*)buf_dw[mu][ par],bpar_dw_size[mu][ par],MPI_SU3,rank_neighdw[mu],87+4+mu,cart_comm,&request[nrequest++]);
-		    MPI_Isend((void*)buf_dw[mu][!par],bpar_dw_size[mu][!par],MPI_SU3,rank_neighdw[mu],87+  mu,cart_comm,&request[nrequest++]);
-		  }
-	      if(nrequest>0) MPI_Waitall(nrequest,request,status);
+	      if(IS_MASTER_THREAD)
+		{
+		  int nrequest=0;
+		  MPI_Request request[16];
+		  MPI_Status status[16];
+		  for(int mu=0;mu<4;mu++)
+		    if(paral_dir[mu])
+		      {
+			MPI_Isend((void*)buf_up[mu][ par],bpar_up_size[mu][ par],MPI_SU3,rank_neighup[mu],87+4+mu,cart_comm,&request[nrequest++]);
+			MPI_Irecv((void*)buf_up[mu][!par],bpar_up_size[mu][!par],MPI_SU3,rank_neighup[mu],87+  mu,cart_comm,&request[nrequest++]);
+			MPI_Irecv((void*)buf_dw[mu][ par],bpar_dw_size[mu][ par],MPI_SU3,rank_neighdw[mu],87+4+mu,cart_comm,&request[nrequest++]);
+			MPI_Isend((void*)buf_dw[mu][!par],bpar_dw_size[mu][!par],MPI_SU3,rank_neighdw[mu],87+  mu,cart_comm,&request[nrequest++]);
+		      }
+		  if(nrequest>0) MPI_Waitall(nrequest,request,status);
+		}
+	      THREAD_BARRIER();
 	      
-	      //now unpack the receive borders
+	      //now unpack the received borders
 	      int irecv_dw[4]={0,0,0,0};
 	      int irecv_up[4]={0,0,0,0};
-	      nissa_loc_vol_loop(ivol)
+	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		if(loclx_parity[ivol]!=par)
 		  for(int mu=0;mu<4;mu++)
 		    {
@@ -502,7 +522,8 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	}
       
       //normalize the transformation
-      nissa_loc_vol_loop(ivol) su3_unitarize_explicitly_inverting(fixm[ivol],fixm[ivol]);
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	su3_unitarize_explicitly_inverting(fixm[ivol],fixm[ivol]);
       
       //go to the beginning and check the quality of the macro iteration
       set_borders_invalid(fixm);
@@ -521,7 +542,7 @@ void find_landau_or_coulomb_gauge_fixing_matr(su3 *fixm,quad_su3 *conf,double re
 	}
   
   nissa_free(w_conf);
-}
+}}
 
 //perform the landau or coulomb gauge fixing
 void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision,int nmu)
@@ -548,12 +569,15 @@ void coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
 //perform a random gauge transformation
 void perform_random_gauge_transform(quad_su3 *conf_out,quad_su3 *conf_in)
 {
+  GET_THREAD_ID(); 
+  
   //allocate fixing matrix
   su3 *fixm=nissa_malloc("fixm",loc_vol+bord_vol,su3);
   
   //extract random SU(3) matrix
-  nissa_loc_vol_loop(ivol)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
+  set_borders_invalid(fixm);
   
   //apply the transformation
   gauge_transform_conf(conf_out,fixm,conf_in);

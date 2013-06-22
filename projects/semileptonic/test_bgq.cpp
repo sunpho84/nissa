@@ -91,7 +91,7 @@ void in_main(int narg,char **arg)
 	  
 	  //print out
 	  double size=bord_dir_vol[idir]*sizeof(spincolor)/1024.0/1024*nbench;
-	  if(rank==0 && thread_id==0) printf("Rank %d, speed in %d dir: %lg Mb / %lg sec = %lg Mb/sec\n",rank,idir,size,time,size/time);
+	  if(rank==0 && IS_MASTER_THREAD) printf("Rank %d, speed in %d dir: %lg Mb / %lg sec = %lg Mb/sec\n",rank,idir,size,time,size/time);
 	}
     }
   

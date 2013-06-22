@@ -8,30 +8,37 @@
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/new_types_definitions.h"
 
-#define basetype spincolor
-#define ndoubles_per_site 24
-#define bulk_vol loc_vol
-#define bord_vol bord_vol
+#define BASETYPE spincolor
+#define NDOUBLES_PER_SITE 24
+#define BULK_VOL loc_vol
+#define BORD_VOL bord_vol
 
-#define apply_operator apply_tmclovQ2_m2
-#define cgm_operator_parameters conf,kappa,csw,Pmunu,t
+#define APPLY_OPERATOR apply_tmclovQ2_m2
+#define CGM_OPERATOR_PARAMETERS conf,kappa,csw,Pmunu,t,
 
-#define summ_src_and_all_inv_cgm summ_src_and_all_inv_tmclovQ2_m2_cgm
-#define cgm_invert inv_tmclovQ2_m2_cgm
-#define cgm_invert_run_hm_up_to_comm_prec inv_tmclovQ2_m2_cgm_run_hm_up_to_comm_prec
-#define cgm_npossible_requests 16
+#define CGM_INVERT inv_tmclovQ2_m2_cgm
+#define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_tmclovQ2_m2_cgm_run_hm_up_to_comm_prec
+#define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_tmclovQ2_m2_cgm
 
-#define cgm_start_communicating_borders start_communicating_lx_spincolor_borders
-#define cgm_finish_communicating_borders finish_communicating_lx_spincolor_borders
+#define CGM_START_COMMUNICATING_BORDERS(A) start_communicating_lx_spincolor_borders(A)
+#define CGM_FINISH_COMMUNICATING_BORDERS(A) finish_communicating_lx_spincolor_borders(A)
 
-#define cgm_additional_vectors_allocation()				\
-  basetype *t=nissa_malloc("DD_temp",bulk_vol+bord_vol,basetype);
-#define cgm_additional_vectors_free()		\
-  nissa_free(t);
-#define cgm_additional_parameters_proto quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu
-#define cgm_additional_parameters_call conf,kappa,csw,Pmunu
+#define CGM_ADDITIONAL_VECTORS_ALLOCATION() BASETYPE *t=nissa_malloc("DD_temp",BULK_VOL+BORD_VOL,BASETYPE);
+#define CGM_ADDITIONAL_VECTORS_FREE() nissa_free(t);
 
-#include "../templates/cgm_invert_template.cpp"
+//additional parameters
+#define CGM_NARG 4
+#define AT1 quad_su3*
+#define A1 conf
+#define AT2 double
+#define A2 kappa
+#define AT3 double
+#define A3 csw
+#define AT4 as2t_su3*
+#define A4 Pmunu
+#define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,csw,Pmunu,
+
+#include "../templates/cgm_invert_template_threaded.cpp"
 
 void inv_tmclovQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
 {
