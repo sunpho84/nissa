@@ -51,6 +51,7 @@ THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_eo_conf, double*,glb_sh
 	      //taking the trace we summ to rect_summ
 	      point_shapes[ivol][IM]+=real_part_of_trace_su3_prod_su3_dag(ABCF,ADEF);
 	    }
+  THREAD_BARRIER();
   
   //reduce and free
   complex coll_shapes;
