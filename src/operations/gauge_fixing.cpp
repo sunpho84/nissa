@@ -381,33 +381,8 @@ THREADABLE_FUNCTION_4ARG(find_landau_or_coulomb_gauge_fixing_matr, su3*,fixm, qu
       THREAD_BARRIER();
     }
   
-  //count even and odd elements on each external inferior and internal
-  //superior border so to allocate room for buffers
-  int bpar_dw_size[4][2]={{0,0},{0,0},{0,0},{0,0}};
-  int bpar_up_size[4][2]={{0,0},{0,0},{0,0},{0,0}};
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int mu=0;mu<4;mu++)
-      {
-	int b=loclx_neighdw[ivol][mu];
-	int f=loclx_neighup[ivol][mu];
-	if(b>=loc_vol) bpar_dw_size[mu][loclx_parity[b]]++;
-	if(f>=loc_vol) bpar_up_size[mu][loclx_parity[ivol]]++;
-      }
-  
-  //allocate buffer for sending borders
-  su3 *buf_up[4][2];
-  su3 *buf_dw[4][2];
-  for(int mu=0;mu<4;mu++)
-    if(paral_dir[mu])
-      for(int par=0;par<2;par++)
-	{
-	  buf_dw[mu][par]=nissa_malloc("Buf_dw",bpar_dw_size[mu][par],su3);
-	  buf_up[mu][par]=nissa_malloc("Buf_up",bpar_up_size[mu][par],su3);
-	}
-  
   //reset fixing transformation to unity
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    su3_put_to_id(fixm[ivol]);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_put_to_id(fixm[ivol]);
   set_borders_invalid(fixm);
   
   //fix iteratively up to reaching required precision, performing a
@@ -423,8 +398,10 @@ THREADABLE_FUNCTION_4ARG(find_landau_or_coulomb_gauge_fixing_matr, su3*,fixm, qu
       //compute initial precision
       true_precision=compute_landau_or_coulomb_gauge_fixing_quality(w_conf,nmu);
       
-      if(macro_iter==0) master_printf("Iter 0 [macro: 0], quality: %lg (%lg req)\n",true_precision,required_precision);
-      else master_printf("Finished macro iter %d, true quality: %lg (%lg req)\n",macro_iter-1,true_precision,required_precision);
+      if(macro_iter==0)
+	master_printf("Iter 0 [macro: 0], quality: %16.16lg (%lg req)\n",true_precision,required_precision);
+      else master_printf("Finished macro iter %d, true quality: %16.16lg (%lg req)\n",
+			 macro_iter-1,true_precision,required_precision);
       macro_iter++;
       
       //loop fixing iteratively the working conf
@@ -436,9 +413,6 @@ THREADABLE_FUNCTION_4ARG(find_landau_or_coulomb_gauge_fixing_matr, su3*,fixm, qu
 	  for(int par=0;par<2;par++)
 	    {
 	      double initial_time=take_time();
-	      
-	      int isend_dw[4]={0,0,0,0};
-	      int isend_up[4]={0,0,0,0};
 	      
 	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		if(loclx_parity[ivol]==par)
@@ -463,43 +437,27 @@ THREADABLE_FUNCTION_4ARG(find_landau_or_coulomb_gauge_fixing_matr, su3*,fixm, qu
 		      {
 			int f=loclx_neighup[ivol][mu];
 			int b=loclx_neighdw[ivol][mu];
-			if(f>=loc_vol) su3_copy(buf_up[mu][par][isend_up[mu]++],w_conf[ivol][mu]);
-			if(b>=loc_vol) su3_copy(buf_dw[mu][!par][isend_dw[mu]++],w_conf[b][mu]); //indeed parity is of b
+			if(f>=loc_vol) su3_copy(((su3*)nissa_send_buf)[loceo_of_loclx[f]-loc_volh],w_conf[ivol][mu]);
+			if(b>=loc_vol) su3_copy(((su3*)nissa_send_buf)[loceo_of_loclx[b]-loc_volh],w_conf[b][mu]);
 		      }
 		  }
-	      
-	      double intermediate_time=take_time();
-	      
-	      //communicate the borders
-	      if(IS_MASTER_THREAD)
-		{
-		  int nrequest=0;
-		  MPI_Request request[16];
-		  MPI_Status status[16];
-		  for(int mu=0;mu<4;mu++)
-		    if(paral_dir[mu])
-		      {
-			MPI_Isend((void*)buf_up[mu][ par],bpar_up_size[mu][ par],MPI_SU3,rank_neighup[mu],87+4+mu,cart_comm,&request[nrequest++]);
-			MPI_Irecv((void*)buf_up[mu][!par],bpar_up_size[mu][!par],MPI_SU3,rank_neighup[mu],87+  mu,cart_comm,&request[nrequest++]);
-			MPI_Irecv((void*)buf_dw[mu][ par],bpar_dw_size[mu][ par],MPI_SU3,rank_neighdw[mu],87+4+mu,cart_comm,&request[nrequest++]);
-			MPI_Isend((void*)buf_dw[mu][!par],bpar_dw_size[mu][!par],MPI_SU3,rank_neighdw[mu],87+  mu,cart_comm,&request[nrequest++]);
-		      }
-		  if(nrequest>0) MPI_Waitall(nrequest,request,status);
-		}
 	      THREAD_BARRIER();
 	      
-	      //now unpack the received borders
-	      int irecv_dw[4]={0,0,0,0};
-	      int irecv_up[4]={0,0,0,0};
+	      //communicate
+	      double intermediate_time=take_time();
+	      comm_start(eo_su3_comm);
+	      comm_wait(eo_su3_comm);
+	      
 	      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		if(loclx_parity[ivol]!=par)
 		  for(int mu=0;mu<4;mu++)
 		    {
 		      int f=loclx_neighup[ivol][mu];
 		      int b=loclx_neighdw[ivol][mu];
-		      if(f>=loc_vol) su3_copy(w_conf[ivol][mu],buf_up[mu][!par][irecv_up[mu]++]);
-		      if(b>=loc_vol) su3_copy(w_conf[b][mu],buf_dw[mu][par][irecv_dw[mu]++]); //indeed parity is of b
+		      if(f>=loc_vol) su3_copy(w_conf[ivol][mu],((su3*)nissa_recv_buf)[loceo_of_loclx[f]-loc_volh]);
+		      if(b>=loc_vol) su3_copy(w_conf[b][mu],((su3*)nissa_recv_buf)[loceo_of_loclx[b]-loc_volh]);
 		    }
+	      THREAD_BARRIER();
 	      
 	      double final_time=take_time();
 	      
@@ -531,15 +489,6 @@ THREADABLE_FUNCTION_4ARG(find_landau_or_coulomb_gauge_fixing_matr, su3*,fixm, qu
   while(true_precision>=required_precision);
   
   master_printf("Final quality: %16.16lg\n",true_precision);
-  
-  //free buffers
-  for(int mu=0;mu<4;mu++)
-    if(paral_dir[mu])
-      for(int par=0;par<2;par++)
-	{
-	  nissa_free(buf_dw[mu][par]);
-	  nissa_free(buf_up[mu][par]);
-	}
   
   nissa_free(w_conf);
 }}
