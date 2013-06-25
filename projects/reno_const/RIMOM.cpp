@@ -184,8 +184,8 @@ void initialize_Zcomputation(char *input_path)
   ///////////////////////////////// end of input reading/////////////////////////////////
   
   //allocate gauge conf and all the needed spincolor and su3spinspin
-  conf=nissa_malloc("or_conf",loc_vol+bord_vol,quad_su3);
-  unfix_conf=nissa_malloc("unfix_conf",loc_vol+bord_vol,quad_su3);
+  conf=nissa_malloc("or_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  unfix_conf=nissa_malloc("unfix_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   //Allocate all the S0 su3spinspin vectors
   npropS0=nmass;
@@ -210,7 +210,6 @@ void load_gauge_conf()
   load_time-=take_time();
   read_ildg_gauge_conf(unfix_conf,conf_path);
   load_time+=take_time();
-  //master_printf("unfix plaq: %.18g\n",global_plaquette_lx_conf(unfix_conf));
   
   //prepare the fixed version and calculate plaquette
   double elaps_time=-take_time();
@@ -222,6 +221,7 @@ void load_gauge_conf()
   //compute Pmunu
   if(csw!=0) Pmunu_term(Pmunu,conf);
   
+  //write conf is asked
   if(write_fixed_conf)
     {
       char temp[1024];
@@ -229,7 +229,8 @@ void load_gauge_conf()
       write_ildg_gauge_conf(temp,conf,64);
     }    
   
-  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  master_printf("Unfixed conf plaquette: %.18g\n",global_plaquette_lx_conf(unfix_conf));
+  master_printf("Fixed conf plaquette: %.18g\n",global_plaquette_lx_conf(conf));
   
   //Put the anti-periodic condition on the temporal border
   old_theta[0]=0;
@@ -384,7 +385,8 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 				  for(int id_so=0;id_so<4;id_so++)
 				    for(int ic_si=0;ic_si<3;ic_si++)
 				      for(int id_si=0;id_si<4;id_si++)
-					memcpy(buf[ic_so][id_so][ic_si][id_si],S0[r][imass][ilp][ic_si][ic_so][id_si][id_so],
+					memcpy(buf[ic_so][id_so][ic_si][id_si],
+					       S0[r][imass][ilp][ic_si][ic_so][id_si][id_so],
 					       sizeof(complex));
 				
 				//if required change endianess in order to stick with APE

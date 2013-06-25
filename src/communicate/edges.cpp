@@ -38,7 +38,7 @@ then follows all the i-j+ edges, the i+j- and after the i+j+
 //Send the edges of lx vector
 void communicate_lx_edges(char *data,comm_t &bord_comm,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site)
 {
-  check_edges_allocated(data);
+  crash_if_edges_not_allocated(data);
   communicate_lx_borders(data,bord_comm);
   
   if(!check_edges_valid(data))

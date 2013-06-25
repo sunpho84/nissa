@@ -219,8 +219,8 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
       //try to allocate the new vector
       nissa_vect *nv=(nissa_vect*)malloc(size+sizeof(nissa_vect));
       if(nv==NULL)
-	crash("could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) request on line %d of file %s"
-	      ,                                  tag,    nel,                type,           size,                     line,      file);
+	crash("could not allocate vector named \"%s\" of %d elements of type %s (total size: %d bytes) "
+	      "request on line %d of file %s",tag,nel,type,size,line,file);
       
       //fill the vector with information supplied
       nv->line=line;
@@ -251,8 +251,10 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
 	crash("memory alignment problem, vector %s has %d offset",tag,offset);
       
       //if borders or edges are allocated, set appropriate flag
-      if(nel==(loc_vol+bord_vol) || nel==(loc_volh+bord_volh)) set_vec_flag_non_blocking(return_nissa_malloc_ptr,BORDERS_ALLOCATED);
-      if(nel==(loc_vol+bord_vol+edge_vol) || nel==(loc_volh+bord_volh+edge_volh)) set_vec_flag_non_blocking(return_nissa_malloc_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
+      if(nel==(loc_vol+bord_vol) || nel==(loc_volh+bord_volh))
+	set_vec_flag_non_blocking(return_nissa_malloc_ptr,BORDERS_ALLOCATED);
+      if(nel==(loc_vol+bord_vol+edge_vol) || nel==(loc_volh+bord_volh+edge_volh))
+	set_vec_flag_non_blocking(return_nissa_malloc_ptr,BORDERS_ALLOCATED|EDGES_ALLOCATED);
       
       //Update the amount of required memory
       nissa_required_memory+=size;
