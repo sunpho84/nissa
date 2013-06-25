@@ -210,7 +210,7 @@ void load_gauge_conf()
   load_time-=take_time();
   read_ildg_gauge_conf(unfix_conf,conf_path);
   load_time+=take_time();
-  master_printf("unfix plaq: %.18g\n",global_plaquette_lx_conf(unfix_conf));
+  //master_printf("unfix plaq: %.18g\n",global_plaquette_lx_conf(unfix_conf));
   
   //prepare the fixed version and calculate plaquette
   double elaps_time=-take_time();

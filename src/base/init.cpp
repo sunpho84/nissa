@@ -586,6 +586,7 @@ void init_grid(int T,int L)
       set_eo_comm(eo_spincolor_128_comm,sizeof(spincolor_128));
       set_eo_comm(eo_color_comm,sizeof(color));
       set_eo_comm(eo_quad_su3_comm,sizeof(quad_su3));
+      set_eo_comm(eo_su3_comm,sizeof(su3));
       
       set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
     }
