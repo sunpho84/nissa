@@ -398,10 +398,10 @@ THREADABLE_FUNCTION_4ARG(find_landau_or_coulomb_gauge_fixing_matr, su3*,fixm, qu
       //compute initial precision
       true_precision=compute_landau_or_coulomb_gauge_fixing_quality(w_conf,nmu);
       
-      if(macro_iter==0)
-	master_printf("Iter 0 [macro: 0], quality: %16.16lg (%lg req)\n",true_precision,required_precision);
-      else master_printf("Finished macro iter %d, true quality: %16.16lg (%lg req)\n",
-			 macro_iter-1,true_precision,required_precision);
+      if(macro_iter==0) verbosity_lv2_master_printf("Iter 0 [macro: 0], quality: %16.16lg (%lg req)\n",
+						    true_precision,required_precision);
+      else verbosity_lv2_master_printf("Finished macro iter %d, true quality: %16.16lg (%lg req)\n",
+				       macro_iter-1,true_precision,required_precision);
       macro_iter++;
       
       //loop fixing iteratively the working conf
@@ -471,8 +471,8 @@ THREADABLE_FUNCTION_4ARG(find_landau_or_coulomb_gauge_fixing_matr, su3*,fixm, qu
 	  if(iter%10==0 && iter!=0)
 	    {
 	      precision=compute_landau_or_coulomb_gauge_fixing_quality(w_conf,nmu);	  
-	      master_printf("Iter %d [macro: %d], quality: %16.16lg (%lg req), compute time %lg sec, comm time %lg sec\n",
-			    iter,macro_iter-1,precision,required_precision,computer_time,communic_time);
+	      verbosity_lv2_master_printf("Iter %d [macro: %d], quality: %16.16lg (%lg req), compute time %lg sec,"
+		  " comm time %lg sec\n",iter,macro_iter-1,precision,required_precision,computer_time,communic_time);
 	      communic_time=computer_time=0;
 	    }
 	  
@@ -488,7 +488,7 @@ THREADABLE_FUNCTION_4ARG(find_landau_or_coulomb_gauge_fixing_matr, su3*,fixm, qu
     }
   while(true_precision>=required_precision);
   
-  master_printf("Final quality: %16.16lg\n",true_precision);
+  verbosity_lv1_master_printf("Final quality: %16.16lg\n",true_precision);
   
   nissa_free(w_conf);
 }}
