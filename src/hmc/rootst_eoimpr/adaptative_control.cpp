@@ -24,7 +24,7 @@ void copy_key(hmc_evol_pars_t &out,const std::pair<int,int> &in)
 void random_increase(int &x)
 {
   if(x==1) x=2;
-  else x+=(int)(2*rnd_get_unif(&glb_rnd_gen,0,2)-1);
+  else x+=2*(int)rnd_get_unif(&glb_rnd_gen,0,2)-1;
 }
 
 //compute derivative around x
@@ -120,6 +120,7 @@ void choose_hmc_traj_pars(hmc_evol_pars_t &in,adaptative_algorithm_pars_t &pars,
   if(IS_MASTER_THREAD)
     {
       hmc_traj_stat_t *stat=&(pars.stat);
+      int nentries=stat->size();
       copy_key(in,pars.current);
       
       //header
@@ -127,7 +128,8 @@ void choose_hmc_traj_pars(hmc_evol_pars_t &in,adaptative_algorithm_pars_t &pars,
       if(itraj<0) master_printf("Not yet thermalized, skipping adaptation\n");
       if(itraj>=pars.use_for) master_printf("Thermalized traj %d passed adaptation time (%d),"
 					    " fixing to best choice\n",itraj,pars.use_for);
-      
+      if(nentries==0 && itraj>=0 && itraj<pars.use_for)
+	master_printf("No previous history recorderd, using default settings");
       /*
 	1) find if there is at least one entry
 	   otherwise, we cannot but use default settings
@@ -140,7 +142,6 @@ void choose_hmc_traj_pars(hmc_evol_pars_t &in,adaptative_algorithm_pars_t &pars,
       */
       
       // 1) if there is at least one entry we can start discussing it
-      int nentries=stat->size();
       if(nentries>=1 && itraj>=0)
 	{
 	  master_printf("Adaptative hmc parameters, nentries: %d\n",nentries);

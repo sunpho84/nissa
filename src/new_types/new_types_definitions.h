@@ -9,6 +9,7 @@
 #include <math.h>
 #include <map>
 #include <stdint.h>
+#include <string>
 
 #include "../base/macros.h"
 
