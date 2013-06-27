@@ -48,10 +48,14 @@ int log2N(int N)
   return log2N;
 }
 
+//compute treshold
+double metro_tresh(double arg)
+{return (arg<=0) ? 1 : exp(-arg);}
+
 //perform the metropolis test on passed value
 int metro_test(double arg)
 {
-  double tresh=(arg<=0) ? 1 : exp(-arg);
+  double tresh=metro_tresh(arg);
   double toss=rnd_get_unif(&glb_rnd_gen,0,1);
   
   return toss<tresh;

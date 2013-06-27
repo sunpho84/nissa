@@ -102,6 +102,7 @@ nissa_headers=src/base/close.h \
 	src/hmc/gauge/Wilson_force.h \
 	src/hmc/momenta/momenta_generation.h \
 	src/hmc/momenta/momenta_action.h \
+	src/hmc/rootst_eoimpr/adaptative_control.h \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_action.h \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.h \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_quark_force.h \
@@ -207,6 +208,7 @@ nissa_source_files=src/base/close.cpp \
 	src/hmc/gauge/Wilson_force.cpp \
 	src/hmc/momenta/momenta_generation.cpp \
 	src/hmc/momenta/momenta_action.cpp \
+	src/hmc/rootst_eoimpr/adaptative_control.cpp \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_action.cpp \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
 	src/hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
