@@ -119,12 +119,25 @@ void choose_hmc_traj_pars(hmc_evol_pars_t &in,adaptative_algorithm_pars_t &pars,
   
   if(IS_MASTER_THREAD)
     {
+      master_printf("----------- Self adapting HMC algorithm -----------\n");
       hmc_traj_stat_t *stat=&(pars.stat);
+      
+      //check consistency
+      for(hmc_traj_stat_t::iterator it=stat->begin();it!=stat->end();it++)
+	  {
+	    int n=it->second.n;
+	    int sx=it->second.sx;
+	    int s2x=it->second.s2x;
+	    if(s2x*n<sx*sx)
+	      {
+		master_printf("Error found in entry %d %d: %d %lg %lg\n",it->first.first,it->first.second,n,sx,s2x);
+		stat->erase(it->first);
+	      }
+	  }
+      
       int nentries=stat->size();
       copy_key(in,pars.current);
       
-      //header
-      master_printf("----------- Self adapting HMC algorithm -----------\n");
       if(itraj<0) master_printf("Not yet thermalized, skipping adaptation\n");
       if(itraj>=pars.use_for) master_printf("Thermalized traj %d passed adaptation time (%d),"
 					    " fixing to best choice\n",itraj,pars.use_for);
