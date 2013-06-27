@@ -27,6 +27,11 @@ void random_increase(int &x)
   else x+=2*(int)rnd_get_unif(&glb_rnd_gen,0,2)-1;
 }
 
+//check that it is last
+template <typename Iter> Iter next(Iter iter) {return ++iter;}
+template <typename Iter, typename Cont> bool is_last(Iter iter,const Cont& cont)
+{return (iter!=cont.end())&&(next(iter)==cont.end());}
+
 //compute derivative around x
 void compute_second_derivative_around(std::pair<int,std::pair<double,double> > *der,std::map<int,std::pair<double,double> > &slice,int x)
 {
@@ -38,11 +43,11 @@ void compute_second_derivative_around(std::pair<int,std::pair<double,double> > *
       der[2]=*(it++);
     }
   else
-    if(it==slice.end())
+    if(is_last(it,slice))
       {
-      der[2]=*(it--);
-      der[1]=*(it--);
-      der[0]=*(it--);
+	der[2]=*(it--);
+	der[1]=*(it--);
+	der[0]=*(it--);
       }
     else
       {
@@ -126,13 +131,14 @@ void choose_hmc_traj_pars(hmc_evol_pars_t &in,adaptative_algorithm_pars_t &pars,
       for(hmc_traj_stat_t::iterator it=stat->begin();it!=stat->end();it++)
 	  {
 	    int n=it->second.n;
-	    int sx=it->second.sx;
-	    int s2x=it->second.s2x;
+	    double sx=it->second.sx;
+	    double s2x=it->second.s2x;
 	    if(s2x*n<sx*sx)
 	      {
 		master_printf("Error found in entry %d %d: %d %lg %lg\n",it->first.first,it->first.second,n,sx,s2x);
 		stat->erase(it->first);
 	      }
+	    else master_printf("Checking %d %d: %d %lg %lg\n",it->first.first,it->first.second,n,sx,s2x);
 	  }
       
       int nentries=stat->size();
