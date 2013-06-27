@@ -4,6 +4,7 @@
 double lfact(double n);
 double max_double(double a,double b);
 double min_double(double a,double b);
+double metro_tresh(double arg);
 int metro_test(double arg);
 double sqr(double a);
 int factorize(int *list,int N);

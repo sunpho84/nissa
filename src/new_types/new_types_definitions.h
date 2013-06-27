@@ -6,6 +6,8 @@
 #endif
 
 #include <mpi.h>
+#include <math.h>
+#include <map>
 #include <stdint.h>
 
 #include "../base/macros.h"
@@ -318,6 +320,20 @@ struct theory_pars_t
   pseudo_corr_pars_t pseudo_corr_pars;
 };
 
+//The structure to hold trajectory statistics
+struct hmc_traj_stat_el_t
+{
+  int n;
+  double sx;
+  double s2x;
+hmc_traj_stat_el_t(int n,double sx,double s2x) : n(n),sx(sx),s2x(s2x) {}
+hmc_traj_stat_el_t() : n(0),sx(0),s2x(0) {}
+  hmc_traj_stat_el_t operator+=(double x){n++;sx+=x;s2x+=x*x;return (*this);}
+  void ave_err(double &ave,double &err){ave=sx;err=0;if(n>=2){ave=sx/n;err=s2x/n;err=sqrt((err-ave*ave)/(n-1));}}
+};
+typedef std::pair<int,int> hmc_traj_stat_pars_t;
+typedef std::map<hmc_traj_stat_pars_t,hmc_traj_stat_el_t> hmc_traj_stat_t;
+
 //evolution parameters for hybrid monte carlo
 struct hmc_evol_pars_t
 {
@@ -328,6 +344,19 @@ struct hmc_evol_pars_t
   int nmd_steps;
   int ngauge_substeps;
   int *npseudo_fs;
+};
+
+//parameters to adapt the algorithm
+struct adaptative_algorithm_pars_t
+{
+  int use_for;
+  hmc_traj_stat_t stat;
+  hmc_traj_stat_pars_t current;
+  void init_from_text(char *text);
+  std::string save_to_text();
+  void add(int a,int b,double x) {stat[std::make_pair(a,b)]+=x;}
+  void set(int a,int b,int n,double sx,double s2x) {stat[std::make_pair(a,b)]=hmc_traj_stat_el_t(n,sx,s2x);}
+  void set_current(hmc_evol_pars_t &a) {current=std::make_pair(a.nmd_steps,a.ngauge_substeps);}
 };
 
 //parameters for pure gauge theory
