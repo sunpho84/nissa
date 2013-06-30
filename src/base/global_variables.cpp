@@ -114,6 +114,7 @@ EXTERN MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[6],MPI_LX_QUAD_SU3_EDGES_RECE[6];
 EXTERN MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[6];
 
 //ranks
+EXTERN coords nissa_set_nranks;
 EXTERN int rank,nissa_nranks,cart_rank;
 EXTERN int nparal_dir;
 EXTERN coords paral_dir;
@@ -255,12 +256,18 @@ EXTERN int nissa_spi_inited;
 
 //spi rank coordinates
 EXTERN coords_5D spi_rank_coord;
+EXTERN coords_5D spi_dir_is_torus,spi_dir_size;
+
+//destination coords
+EXTERN MUHWI_Destination spi_dest[8];
+EXTERN coords_5D spi_dest_coord[8];
 
 //neighbours in the 4 dirs
 EXTERN MUHWI_Destination_t spi_neigh[2][4];
 
 //spi fifo and counters for bytes
-EXTERN uint64_t *spi_fifo[8],spi_desc_count[8];
+#define nspi_fifo 8
+EXTERN uint64_t *spi_fifo[nspi_fifo],spi_desc_count[nspi_fifo];
 EXTERN MUSPI_InjFifoSubGroup_t spi_fifo_sg_ptr;
 
 //spi barrier

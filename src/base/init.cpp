@@ -123,6 +123,7 @@ void init_nissa(int narg,char **arg)
   nissa_warn_if_not_disallocated=nissa_default_warn_if_not_disallocated;
   nissa_warn_if_not_communicated=nissa_default_warn_if_not_communicated;
   nissa_use_async_communications=nissa_default_use_async_communications;
+  for(int mu=0;mu<4;mu++) nissa_set_nranks[mu]=0;
   
   //read the configuration file, if present
   read_nissa_config_file();
@@ -182,10 +183,10 @@ int bulk_volume(int *L)
   return intvol;
 }
 
-//compute the bulk volume of the local lattice, given by L/P
-int bulk_recip_lat_volume(int *P,int *L)
+//compute the bulk volume of the local lattice, given by L/R
+int bulk_recip_lat_volume(int *R,int *L)
 {
-  int X[4]={L[0]/P[0],L[1]/P[1],L[2]/P[2],L[3]/P[3]};
+  int X[4]={L[0]/R[0],L[1]/R[1],L[2]/R[2],L[3]/R[3]};
   return bulk_volume(X);
 }
 
@@ -208,8 +209,21 @@ int compute_border_variance(int *L,int *P,int factorize_processor)
 }
 
 //find the grid minimizing the surface
-void find_minimal_surface_grid(int *mP,int *L,int NP)
+void find_minimal_surface_grid(int *mR,int *ext_L,int NR)
 {
+  int additionally_parallelize_dir[4]={0,0,0,0};
+#ifdef SPI
+  additionally_parallelize_dir[0]=1;
+#endif
+
+  //if we want to repartition one dir we must take this into account
+  int L[4];
+  for(int mu=0;mu<4;mu++) L[mu]=additionally_parallelize_dir[mu]?ext_L[mu]/2:ext_L[mu];
+
+  //compute total and local volume
+  int V=L[0]*L[1]*L[2]*L[3];
+  int LV=V/NR;
+      
   int something_found=1;
   
   ////////////////////////////// set all the bounds ///////////////////////////////////
@@ -217,7 +231,7 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
   int check_all_dir_parallelized=0;
   
 #ifdef SPI
-  check_all_dir_parallelized=1;
+  //check_all_dir_parallelized=1;
 #endif
   
   /////////////////////////////////// basic checks ///////////////////////////////////
@@ -226,60 +240,57 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
   if(check_all_dir_parallelized)
     {
       //check that at least 16 ranks are present and is a multiple of 16
-      if(nissa_nranks<16) crash("in order to paralellize all the direcion, at least 16 ranks must be present");
-      if(nissa_nranks%16) crash("in order to paralellize all the direcion, the number of ranks must be a multiple of 16");
+      if(NR<16) crash("in order to paralellize all the direcion, at least 16 ranks must be present");
+      if(NR%16) crash("in order to paralellize all the direcion, the number of ranks must be a multiple of 16");
     }
   
   //check that all directions can bemade even, if requested
-  if(nissa_use_eo_geom)
-    if((glb_vol/nissa_nranks)%16!=0) crash("in order to use eo geometry, local size must be a multiple of 16");
+  if(nissa_use_eo_geom) if((V/NR)%16!=0) crash("in order to use eo geometry, local size must be a multiple of 16");
     
   //check that the global lattice is a multiple of the number of ranks
-  if(glb_vol%nissa_nranks) crash("global volume must be a multiple of ranks number");
+  if(V%NR) crash("global volume must be a multiple of ranks number");
   
   //////////////////// find the partitioning which minmize the surface /////////////////////
   
   //treat simple cases
-  if(NP==1||NP==glb_vol)
+  if(NR==1||NR==V)
     {
-      if(NP==1) mP[0]=mP[1]=mP[2]=mP[3]=1;
-      else for(int mu=0;mu<4;mu++) mP[mu]=L[mu];
+      if(NR==1) mR[0]=mR[1]=mR[2]=mR[3]=1;
+      else for(int mu=0;mu<4;mu++) mR[mu]=L[mu];
     }
   else
     {
       //minimal variance border
       int mBV=-1;
       
-      //compute total and local volume
-      int V=L[0]*L[1]*L[2]*L[3];
-      int VL=V/NP;
-      
       //factorize the local volume
-      int list_fact_VL[log2N(VL)];
-      int nfact_VL=factorize(list_fact_VL,VL);
+      int list_fact_LV[log2N(LV)];
+      int nfact_LV=factorize(list_fact_LV,LV);
       
       //factorize the number of rank
-      int list_fact_NP[log2N(NP)];
-      int nfact_NP=factorize(list_fact_NP,NP);
+      int list_fact_NR[log2N(NR)];
+      int nfact_NR=factorize(list_fact_NR,NR);
       
-      //if nfact_VL>=nfact_NP factorize the number of processor, otherwise the local volume
-      int factorize_processor=(nfact_VL>=nfact_NP);
-      int nfact=(factorize_processor) ? nfact_NP : nfact_VL;
-      int *list_fact=factorize_processor ? list_fact_NP : list_fact_VL;
+      //if nfact_LV>=nfact_NR factorize the number of rank, otherwise the local volume
+      //in the first case we find the best way to assign the ranks to different directions
+      //in the second case we find how many sites per direction to assign to each rank
+      int factorize_rank=(nfact_LV>=nfact_NR);
+      int nfact=factorize_rank ? nfact_NR : nfact_LV;
+      int *list_fact=factorize_rank ? list_fact_NR : list_fact_LV;
       
       //compute the number of combinations: this is given by 4^nfact
       int ncombo=1;
       for(int ifact=0;ifact<nfact;ifact++) ncombo*=4;
       
       //find the partition which minimize the surface and the surface variance
-      int min_surf_VL=-1;
+      int min_surf_LV=-1;
       int icombo=0;
-      mP[0]=mP[1]=mP[2]=mP[3]=-1;
+      mR[0]=mR[1]=mR[2]=mR[3]=-1;
       
       do
 	{
-	  //processor number
-	  int P[4]={1,1,1,1};
+	  //number of ranks in each direction for current partitioning
+	  int R[4]={1,1,1,1};
 	  
 	  //find the partioning corresponding to icombo
 	  int ifact=nfact-1;
@@ -289,51 +300,47 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	      //find the direction: this is given by the ifact digit of icombo wrote in base 4
 	      int mu=(icombo>>(2*ifact)) & 0x3;
 	      
-	      //if we are factorizing local lattice, processor factor is given by list_fact, otherwise L/list_fact
-	      P[mu]*=list_fact[ifact];
+	      //if we are factorizing local lattice, rank factor is given by list_fact, otherwise L/list_fact
+	      R[mu]*=list_fact[ifact];
 	      
 	      //check that the total volume L is a multiple and it is larger than the number of proc
-	      valid_partitioning=(L[mu]%P[mu]==0 && L[mu]>=P[mu]);
+	      valid_partitioning=(L[mu]%R[mu]==0 && L[mu]>=R[mu]);
 	      if(valid_partitioning) ifact--;
 	    }
-	  while(valid_partitioning==1 && ifact>=0);
+	  while(valid_partitioning && ifact>=0);
 	  
-          //pass again to processor grid if factorizing reciprocal
-          if(valid_partitioning && !factorize_processor)
-            for(int mu=0;mu<4;mu++)
-              P[mu]=L[mu]/P[mu];
-	  
-	  //check that all directions have at least 2 nodes
-	  if(check_all_dir_parallelized)
-	    if(valid_partitioning)
-	      for(int mu=0;mu<4;mu++)
-		valid_partitioning&=(P[mu]>=2);
-
-	  //check that lattice size is even in all directions
-	  if(nissa_use_eo_geom)
-	    if(valid_partitioning)
-	      for(int mu=0;mu<4;mu++)
-		valid_partitioning&=((L[mu]/P[mu])%2==0);
-	  
-	  //if it is a valid partitioning
 	  if(valid_partitioning)
+	    for(int mu=0;mu<4;mu++)
+	      {
+		//if we are factorizing reciprocal lattice, convert back to rank grid
+		if(!factorize_rank)  R[mu]=L[mu]/R[mu];
+		//check that all directions have at least 2 nodes
+		if(check_all_dir_parallelized) valid_partitioning&=(R[mu]>=2);
+		//check that lattice size is even in all directions
+		if(nissa_use_eo_geom) valid_partitioning&=((L[mu]/R[mu])%2==0);
+		//check that we match the possibly fixed dir
+		if(nissa_set_nranks[mu]) valid_partitioning&=(nissa_set_nranks[mu]==R[mu]);
+	      }
+	  
+	  //validity coulde have changed
+          if(valid_partitioning)
 	    {
 	      //compute the surface=loc_vol-bulk_volume
-	      int BL=factorize_processor ? bulk_recip_lat_volume(P,L) : bulk_volume(P);
-	      int surf_VL=VL-BL;
+	      int BV=bulk_recip_lat_volume(R,L);
+	      int surf_LV=LV-BV;
 	      
 	      //look if this is the new minimal surface
 	      int new_minimal=0;
 	      //if it is the minimal surface (or first valid combo) copy it and compute the border size
-	      if(surf_VL<min_surf_VL||min_surf_VL==-1)
+	      if(surf_LV<min_surf_LV||min_surf_LV==-1)
 		{
 		  new_minimal=1;
-		  mBV=compute_border_variance(L,P,factorize_processor);
+		  mBV=compute_border_variance(L,R,factorize_rank);
 		}
 	      //if it is equal to previous found surface, consider borders variance
-	      if(surf_VL==min_surf_VL)
+	      if(surf_LV==min_surf_LV)
 		{
-		  int BV=compute_border_variance(L,P,factorize_processor);
+		  int BV=compute_border_variance(L,R,factorize_rank);
 		  //if borders are more homogeneus consider this grid
 		  if(BV<mBV)
 		    {
@@ -345,8 +352,8 @@ void find_minimal_surface_grid(int *mP,int *L,int NP)
 	      //save it as new minimal
 	      if(new_minimal)
 		{
-		  min_surf_VL=surf_VL;
-		  for(int mu=0;mu<4;mu++) mP[mu]=P[mu];
+		  min_surf_LV=surf_LV;
+		  for(int mu=0;mu<4;mu++) mR[mu]=R[mu];
 		  something_found=1;
 		}
 	      
@@ -492,7 +499,7 @@ void init_grid(int T,int L)
   for(iedge=0;iedge<6;iedge++)
     verbosity_lv3_master_printf("Border offset for edge %d: %d\n",iedge,edge_offset[iedge]);
   
-  //print orderd list of the processor names
+  //print orderd list of the rank names
   if(nissa_verbosity>=3)
     {
       char proc_name[1024];

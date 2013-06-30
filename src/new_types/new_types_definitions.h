@@ -384,7 +384,6 @@ struct comm_t
 #ifdef SPI
   //descriptors
   MUHWI_Descriptor_t *descriptors;
-  MUHWI_Destination spi_dest[8];
 #else
   //destinations and source ranks
   int send_rank[8],recv_rank[8];
