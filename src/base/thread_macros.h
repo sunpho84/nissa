@@ -16,6 +16,13 @@
 
 //////////////////////////////////////////////////////////////////////////////////////
 
+#define NISSA_CHUNK_LOOP(INDEX,EXT_START,EXT_END,CHUNK_ID,NCHUNKS)	\
+  for(int WORKLOAD=EXT_END-EXT_START,					\
+	CHUNK_LOAD=(WORKLOAD+NCHUNKS-1)/NCHUNKS,			\
+	START=EXT_START+CHUNK_ID*CHUNK_LOAD,				\
+	END=START+CHUNK_LOAD< EXT_END ? START+CHUNK_LOAD : EXT_END,	\
+	INDEX=START;INDEX<END;INDEX++)
+
 #ifdef USE_THREADS
 
  #define GET_THREAD_ID() int thread_id=omp_get_thread_num()
@@ -30,14 +37,9 @@
  
  #define IS_MASTER_THREAD (!thread_id)
  
- #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END)			\
-    for(int WORKLOAD=EXT_END-EXT_START,					\
-	  NCHUNKS=(thread_pool_locked)?1:nthreads,			\
-	  THREAD_LOAD=(WORKLOAD+NCHUNKS-1)/NCHUNKS,			\
-	  START=EXT_START+thread_id*THREAD_LOAD,			\
-	  END=START+THREAD_LOAD< EXT_END ? START+THREAD_LOAD : EXT_END,	\
-	  INDEX=START;INDEX<END;INDEX++)
- 
+ #define NISSA_PARALLEL_LOOP(INDEX,START,END)				\
+NISSA_CHUNK_LOOP(INDEX,START,END,thread_id,((thread_pool_locked)?1:nthreads))
+
  #define THREAD_ATOMIC_EXEC(inst) do{THREAD_BARRIER();inst;THREAD_BARRIER();}while(0)
 
 #else
@@ -497,4 +499,27 @@ inline void thread_barrier_internal()
 
 #endif //use_threads
 
+#define FORM_TWO_THREAD_TEAMS()						\
+  int is_in_first_team,is_in_second_team;				\
+  int nthreads_in_team,thread_in_team_id;				\
+  if(thread_pool_locked||nthreads==1)					\
+    {									\
+      is_in_first_team=is_in_second_team=nthreads_in_team=1;		\
+      thread_in_team_id=0;						\
+    }									\
+  else									\
+    {									\
+      is_in_first_team=thread_id<nthreads/2;				\
+      is_in_second_team=!is_in_first_team;				\
+      if(is_in_first_team)						\
+	{								\
+	  nthreads_in_team=nthreads/2;					\
+	  thread_in_team_id=thread_id;					\
+	}								\
+      else								\
+	{								\
+	  nthreads_in_team=nthreads-nthreads/2;				\
+	  thread_in_team_id=thread_id-nthreads/2;			\
+	}								\
+    }
 #endif

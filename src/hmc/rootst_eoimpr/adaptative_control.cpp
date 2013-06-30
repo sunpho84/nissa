@@ -33,9 +33,9 @@ template <typename Iter, typename Cont> bool is_last(Iter iter,const Cont& cont)
 {return (iter!=cont.end())&&(next(iter)==cont.end());}
 
 //compute derivative around x
-void compute_second_derivative_around(std::pair<int,std::pair<double,double> > *der,std::map<int,std::pair<double,double> > &slice,int x)
+void compute_second_derivative_around(std::pair<int,double> *der,std::map<int,double> &slice,int x)
 {
-  std::map<int,std::pair<double,double> >::iterator it=slice.find(x);
+  std::map<int,double>::iterator it=slice.find(x);
   if(it==slice.begin())
     {
       der[0]=*(it++);
@@ -59,12 +59,12 @@ void compute_second_derivative_around(std::pair<int,std::pair<double,double> > *
 }
 
 //move around
-void move_around(std::map<int,std::pair<double,double> > slice,int &x,const char *tag)
+void move_around(std::map<int,double> slice,int &x,const char *tag)
 {
   //header
   master_printf("Checking %s timeslice around %d\n",tag,x);
-  for(std::map<int,std::pair<double,double> >::iterator it=slice.begin();it!=slice.end();it++)
-    master_printf(" %d %lg %lg is on the same %s timelsice\n",it->first,it->second.first,it->second.second,tag);
+  for(std::map<int,double>::iterator it=slice.begin();it!=slice.end();it++)
+    master_printf(" %d %lg is on the same %s timelsice\n",it->first,it->second,tag);
   
   // take a random step in one direction
   if(slice.size()<=1)
@@ -76,11 +76,11 @@ void move_around(std::map<int,std::pair<double,double> > slice,int &x,const char
     {
       if(slice.size()>=3) //compute symmetric derivative
 	{
-	  std::pair<int,std::pair<double,double> > der[3];
+	  std::pair<int,double> der[3];
 	  compute_second_derivative_around(der,slice,x);
 	  
 	  int x0=der[0].first,x1=der[1].first,x2=der[2].first;
-	  double y0=der[0].second.first,y1=der[1].second.first,y2=der[2].second.first;
+	  double y0=der[0].second,y1=der[1].second,y2=der[2].second;
 	  double a=((y0-y1)/(x0-x1)-(y1-y2)/(x1-x2))/(x0-x2);
 	  double b=((y0-a*x0*x0)-(y1-a*x1*x1))/(x0-x1);
 	  //double c=y0-a*x0*x0-b*x0;
@@ -108,7 +108,7 @@ void move_around(std::map<int,std::pair<double,double> > slice,int &x,const char
       else //compute first order derivative 
 	{
 	  int x0=slice.begin()->first,x1=slice.rbegin()->first;
-	  double y0=slice.begin()->second.first,y1=slice.rbegin()->second.first;
+	  double y0=slice.begin()->second,y1=slice.rbegin()->second;
 	  double der=(y0-y1)/(x0-x1);
 	  master_printf(" First order derivative: (%lg-%lg)/(%d-%d)=%lg\n",y0,y1,x0,x1,der);
 	  if(der>0) x++;
@@ -217,17 +217,18 @@ void choose_hmc_traj_pars(hmc_evol_pars_t &in,adaptative_algorithm_pars_t &pars,
 		  // 5) find the entry with the larger rate of production taking into account error
 		  complex extracted_rate,zero={0,0};
 		  double max_rate=0;
+		  double rate[nentries];
 		  int ientry=0;
 		  hmc_traj_stat_t::iterator it_max_rate;
 		  for(hmc_traj_stat_t::iterator it=stat->begin();it!=stat->end();it++)
 		    {
 		      //extract a gaussian number
 		      if(ientry%2==0) rnd_get_gauss_complex(extracted_rate,&glb_rnd_gen,zero,1);
-		      double rate=extracted_rate[ientry%2]*err[ientry]+ave[ientry];
-		      master_printf(" %d ientry: %lg\n",ientry,rate);
-		      if(ientry==0||max_rate<rate)
+		      rate[ientry]=extracted_rate[ientry%2]*err[ientry]+ave[ientry];
+		      master_printf(" %d ientry: %lg\n",ientry,rate[ientry]);
+		      if(ientry==0||max_rate<rate[ientry])
 			{
-			  max_rate=rate;
+			  max_rate=rate[ientry];
 			  it_max_rate=it;
 			}
 		      
@@ -239,12 +240,11 @@ void choose_hmc_traj_pars(hmc_evol_pars_t &in,adaptative_algorithm_pars_t &pars,
 		  master_printf("max rate: %d %d\n",in.nmd_steps,in.ngauge_substeps);
 		  
 		  // 6) explore neighbourhood and update
-		  std::map<int,std::pair<double,double> > nmd_slice,ngss_slice;
+		  std::map<int,double> nmd_slice,ngss_slice;
 		  for(int ientry=0;ientry<nentries;ientry++)
 		    {
-		      if(nmd[ientry]==in.nmd_steps) ngss_slice[ngss[ientry]]=std::make_pair(ave[ientry],err[ientry]);
-		      if(ngss[ientry]==in.ngauge_substeps)
-			nmd_slice[nmd[ientry]]=std::make_pair(ave[ientry],err[ientry]);
+		      if(nmd[ientry]==in.nmd_steps) ngss_slice[ngss[ientry]]=rate[ientry];
+		      if(ngss[ientry]==in.ngauge_substeps) nmd_slice[nmd[ientry]]=rate[ientry];
 		    }        
 		  move_around(nmd_slice,in.nmd_steps,"nmd");
 		  move_around(ngss_slice,in.ngauge_substeps,"ngss");
