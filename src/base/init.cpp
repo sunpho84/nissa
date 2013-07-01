@@ -213,7 +213,8 @@ void find_minimal_surface_grid(int *mR,int *ext_L,int NR)
 {
   int additionally_parallelize_dir[4]={0,0,0,0};
 #ifdef SPI
-  additionally_parallelize_dir[0]=1;
+  //switched off: conflict with E/O
+  //additionally_parallelize_dir[0]=1;
 #endif
 
   //if we want to repartition one dir we must take this into account
@@ -249,6 +250,23 @@ void find_minimal_surface_grid(int *mR,int *ext_L,int NR)
     
   //check that the global lattice is a multiple of the number of ranks
   if(V%NR) crash("global volume must be a multiple of ranks number");
+  
+  //check that we did not asked to fix in an impossible way
+  int res_NR=NR;
+  for(int mu=0;mu<4;mu++)
+    {
+      int nmin_dir=1;
+      if(nissa_use_eo_geom) nmin_dir*=2;
+      if(additionally_parallelize_dir[mu]) nmin_dir*=2;
+      
+      if(nissa_set_nranks[mu])
+	{
+	  if(L[mu]%nissa_set_nranks[mu]||L[mu]<nmin_dir)
+	    crash("asked to fix dir % in an impossible way",mu);
+	  res_NR/=nissa_set_nranks[mu];
+	}
+    }
+  if(res_NR<1) crash("overfixed the ranks per direction");
   
   //////////////////// find the partitioning which minmize the surface /////////////////////
   

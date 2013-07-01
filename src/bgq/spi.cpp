@@ -21,6 +21,8 @@
 
 //#define SPI_BARRIER
 
+//#define HINTS_DEBUG
+
 //global barrier for spi
 void spi_global_barrier()
 {
@@ -87,6 +89,91 @@ void set_spi_geometry()
   set_spi_neighbours();      
 }
 
+//set the hints
+void set_spi_hints()
+{
+  //database
+  const uint64_t fifo_mapP[5]={MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AP,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BP,
+	MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CP,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DP,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EP};
+  const uint64_t fifo_mapM[5]={MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AM,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BM,
+        MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CM,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DM,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EM};
+  const uint8_t hintP[4]={MUHWI_PACKET_HINT_AP,MUHWI_PACKET_HINT_BP,MUHWI_PACKET_HINT_CP,MUHWI_PACKET_HINT_DP};
+  const uint8_t hintM[4]={MUHWI_PACKET_HINT_AM,MUHWI_PACKET_HINT_BM,MUHWI_PACKET_HINT_CM,MUHWI_PACKET_HINT_DM};
+	
+  for(int idir=0;idir<8;idir++)
+    if(paral_dir[idir%4])
+      {
+	//reset fifo map
+	spi_fifo_map[idir]=fifo_mapP[0]|fifo_mapP[1]|fifo_mapP[2]|fifo_mapP[3]|fifo_mapP[4]|
+ 	                   fifo_mapM[0]|fifo_mapM[1]|fifo_mapM[2]|fifo_mapM[3]|fifo_mapM[4];
+	spi_hint_ABCD[idir]=0;
+	
+	//search ABCD hints
+	for(int tdir=0;tdir<4;tdir++)
+	  {
+#ifdef DEBUG_HINTS
+	    char FLAG[]="ABCD";
+	    master_printf(" checking flag %c\n",FLAG[tdir]);
+#endif
+	    //check that all but tdir (in ABCD) are equals
+	    int ort_eq=1;
+	    for(int sdir=0;sdir<5;sdir++)
+	      if(tdir!=sdir)
+		ort_eq&=(spi_dest_coord[idir][sdir]==spi_rank_coord[sdir]);
+	    
+	    //if are equals, check that we are neighbours
+	    if(ort_eq)
+	      {
+		if((spi_dest_coord[idir][tdir]==spi_rank_coord[tdir]-1)||
+		   (spi_dir_is_torus[tdir]&&spi_dest_coord[idir][tdir]==spi_dir_size[tdir]-1&&spi_rank_coord[tdir]==0))
+		  {
+#ifdef DEBUG_HINTS
+		    master_printf(" found 1\n");
+#endif
+		    spi_hint_ABCD[idir]=hintM[tdir];
+		    spi_fifo_map[idir]=fifo_mapM[tdir];
+		  }
+		if((spi_dest_coord[idir][tdir]==spi_rank_coord[tdir]+1)||
+		   (spi_dir_is_torus[tdir]&&spi_dest_coord[idir][tdir]==0&&spi_rank_coord[tdir]==spi_dir_size[tdir]-1))
+		  {
+#ifdef DEBUG_HINTS
+		    master_printf(" found 2\n");
+#endif
+		    spi_hint_ABCD[idir]=hintP[tdir];
+		    spi_fifo_map[idir]=fifo_mapP[tdir];
+		  }
+	      }
+#ifdef DEBUG_HINTS
+	    master_printf("Ext dir %d, spi dir %d, ort_eq %d\n",idir,tdir,ort_eq);
+#endif
+	  }
+#ifdef DEBUG_HINTS
+	master_printf(" hints ABCD: %u\n",spi_hint_ABCD[idir]);
+	for(int kdir=0;kdir<4;kdir++)
+	  master_printf(" dir %d, %u %u\n",kdir,hintP[kdir],hintM[kdir]);
+#endif
+	
+	//find if all but E are equals
+	int ort_E_eq=1;
+	for(int sdir=0;sdir<4;sdir++) ort_E_eq&=(spi_dest_coord[idir][sdir]==spi_rank_coord[sdir]);
+
+	//fix E hint
+	if(ort_E_eq)
+	  {
+	    if(idir<4)
+	      {
+		spi_hint_E[idir]=MUHWI_PACKET_HINT_EP;
+		spi_fifo_map[idir]=fifo_mapP[4];
+	      }
+	    else
+	      {
+		spi_hint_E[idir]=MUHWI_PACKET_HINT_EM;
+		spi_fifo_map[idir]=fifo_mapM[4];
+	      }
+	  }
+      }
+}
+
 //initialize the spi communications
 void init_spi()
 {
@@ -114,16 +201,16 @@ void init_spi()
       //alloc space for the injection fifos
       uint32_t fifo_size=64*nspi_fifo;
       for(int ififo=0;ififo<nspi_fifo;ififo++) spi_fifo[ififo]=(uint64_t*)memalign(64,fifo_size);
-      verbosity_lv2_master_printf("%d fifo mallocated\n",nspi_fifo);
+      
       //set default attributes for inj fifo
       Kernel_InjFifoAttributes_t fifo_attrs[nspi_fifo];
       memset(fifo_attrs,0,nspi_fifo*sizeof(Kernel_InjFifoAttributes_t));
-                    verbosity_lv2_master_printf("fifo attr reset\n");
+      
       //initialize them with default attributes
       uint32_t fifo_id[nspi_fifo];
       for(int ififo=0;ififo<nspi_fifo;ififo++) fifo_id[ififo]=ififo;
       if(Kernel_AllocateInjFifos(0,&spi_fifo_sg_ptr,nspi_fifo,fifo_id,fifo_attrs)) crash("allocating inj fifos");
-              verbosity_lv2_master_printf("fifo explicitely allocated\n");
+
       //init the MU MMIO for the fifos
       for(int ififo=0;ififo<nspi_fifo;ififo++)
 	{
@@ -136,12 +223,11 @@ void init_spi()
 	  if(Kernel_InjFifoInit(&spi_fifo_sg_ptr,fifo_id[ififo],&mem_region,
          	(uint64_t)spi_fifo[nspi_fifo-1-ififo]-(uint64_t)mem_region.BaseVa,fifo_size-1))
 	    crash("initializing fifo");
-	  verbosity_lv2_master_printf("fifo %d initialized\n",ififo);
 	}
       
       //activate the fifos
       if(Kernel_InjFifoActivate(&spi_fifo_sg_ptr,nspi_fifo,fifo_id,KERNEL_INJ_FIFO_ACTIVATE)) crash("activating fifo");
-        verbosity_lv2_master_printf("fifo activated\n");
+      
       //check alignment
       CRASH_IF_NOT_ALIGNED(nissa_recv_buf,64);
       CRASH_IF_NOT_ALIGNED(nissa_send_buf,64);
@@ -169,6 +255,9 @@ void init_spi()
       if(Kernel_CreateMemoryRegion(&mem_region,nissa_send_buf,nissa_buff_size)) crash("creating memory region");
       spi_send_buf_phys_addr=(uint64_t)nissa_send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
       
+      //find hints for descriptors
+      set_spi_hints();
+      
 #ifdef SPI_BARRIER
       //init the barrier
       if(MUSPI_GIBarrierInit(&spi_barrier,0)) crash("initializing the barrier");
@@ -176,8 +265,6 @@ void init_spi()
       verbosity_lv2_master_printf("spi initialized\n");      
     }
 }
-
-/////////////////////////////////////// single communicators ///////////////////////////////////
 
 //install spi descriptors, needed for communticaions
 void spi_descriptor_setup(comm_t &in)
@@ -193,84 +280,14 @@ void spi_descriptor_setup(comm_t &in)
 	MUSPI_Pt2PtDirectPutDescriptorInfo_t dinfo;
 	memset(&dinfo,0,sizeof(MUSPI_Pt2PtDirectPutDescriptorInfo_t));
 	
-	//set ABCD dir hints and fifo map
-	uint8_t hintP[4]={MUHWI_PACKET_HINT_AP,MUHWI_PACKET_HINT_BP,MUHWI_PACKET_HINT_CP,MUHWI_PACKET_HINT_DP};
-	uint8_t hintM[4]={MUHWI_PACKET_HINT_AM,MUHWI_PACKET_HINT_BM,MUHWI_PACKET_HINT_CM,MUHWI_PACKET_HINT_DM};
-	uint64_t fifo_mapP[5]={MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AP,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BP,
-			       MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CP,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DP,
-			       MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EP};
-	uint64_t fifo_mapM[5]={MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AM,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BM,
-			       MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CM,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DM,
-			       MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EM};
-
 	//set the parameters
 	dinfo.Base.Payload_Address=spi_send_buf_phys_addr+in.send_offset[idir];
 	dinfo.Base.Message_Length=in.message_length[idir];
-	dinfo.Base.Torus_FIFO_Map=fifo_mapP[0]|fifo_mapP[1]|fifo_mapP[2]|fifo_mapP[3]|fifo_mapP[4]|
-	  fifo_mapM[0]|fifo_mapM[1]|fifo_mapM[2]|fifo_mapM[3]|fifo_mapM[4];
+	dinfo.Base.Torus_FIFO_Map=spi_fifo_map[idir];
 	dinfo.Base.Dest=spi_dest[idir];
-	dinfo.Pt2Pt.Hints_ABCD=0;
-	dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE;    
+	dinfo.Pt2Pt.Hints_ABCD=spi_hint_ABCD[idir];
+	dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE|spi_hint_E[idir];
 	dinfo.Pt2Pt.Misc2=MUHWI_PACKET_VIRTUAL_CHANNEL_DETERMINISTIC;
-	
-	//ABCD hints not working
-	//master_printf("Dest: %d",spi_dest_coord[idir][0]);
-	//for(int tdir=1;tdir<5;tdir++) master_printf(" %d",spi_dest_coord[idir][tdir]);
-	//master_printf("\n");
-	
-	//char FLAG[]="ABCD";
-	
-	for(int tdir=0;tdir<4;tdir++)
-	  {
-	    //master_printf(" checking flag %c\n",FLAG[tdir]);
-	    //check that all but tdir (in ABCD) are equals
-	    int ort_eq=1;
-	    for(int sdir=0;sdir<5;sdir++)
-	      if(tdir!=sdir)
-		ort_eq&=(spi_dest_coord[idir][sdir]==spi_rank_coord[sdir]);
-	    
-	    //if are equals, check that we are neighbours
-	    if(ort_eq)
-	      {
-		if((spi_dest_coord[idir][tdir]==spi_rank_coord[tdir]-1)||
-		   (spi_dir_is_torus[tdir]&&spi_dest_coord[idir][tdir]==spi_dir_size[tdir]-1&&spi_rank_coord[tdir]==0))
-		  {
-		    //master_printf(" found 1\n");
-		    dinfo.Pt2Pt.Hints_ABCD=hintM[tdir];
-		    dinfo.Base.Torus_FIFO_Map=fifo_mapM[tdir];
-		  }
-		if((spi_dest_coord[idir][tdir]==spi_rank_coord[tdir]+1)||
-		   (spi_dir_is_torus[tdir]&&spi_dest_coord[idir][tdir]==0&&spi_rank_coord[tdir]==spi_dir_size[tdir]-1))
-		  {
-		    //master_printf(" found 2\n");
-		    dinfo.Pt2Pt.Hints_ABCD=hintP[tdir];
-		    dinfo.Base.Torus_FIFO_Map=fifo_mapP[tdir];
-		  }
-	      }
-	    //master_printf("Ext dir %d, spi dir %d, ort_eq %d\n",idir,tdir,ort_eq);
-	  }
-	//master_printf(" hints ABCD: %u\n",dinfo.Pt2Pt.Hints_ABCD);
-	//for(int idir=0;idir<4;idir++)
-	//master_printf(" idir %d, %u %u\n",idir,hintP[idir],hintM[idir]);
-	//#endif
-	
-	//fix E hint
-	int ort_E_eq=1;
-	for(int sdir=0;sdir<4;sdir++) ort_E_eq&=(spi_dest_coord[idir][sdir]==spi_rank_coord[sdir]);
-	if(ort_E_eq)
-	  {
-	    if(idir<4)
-	      {
-		dinfo.Pt2Pt.Misc1|=MUHWI_PACKET_HINT_EP;
-		dinfo.Base.Torus_FIFO_Map=fifo_mapP[4];
-	      }
-	    else
-	      {
-		dinfo.Pt2Pt.Misc1|=MUHWI_PACKET_HINT_EM;
-		dinfo.Base.Torus_FIFO_Map=fifo_mapM[4];
-	      }
-	  }
-
 	dinfo.Pt2Pt.Skip=8; //for checksumming, skip the header
 	dinfo.DirectPut.Rec_Payload_Base_Address_Id=spi_bat_id[0];
 	dinfo.DirectPut.Rec_Payload_Offset=in.recv_offset[idir];

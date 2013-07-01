@@ -269,7 +269,9 @@ EXTERN MUHWI_Destination_t spi_neigh[2][4];
 #define nspi_fifo 8
 EXTERN uint64_t *spi_fifo[nspi_fifo],spi_desc_count[nspi_fifo];
 EXTERN MUSPI_InjFifoSubGroup_t spi_fifo_sg_ptr;
-
+EXTERN uint64_t spi_fifo_map[8];
+EXTERN uint8_t spi_hint_ABCD[8],spi_hint_E[8];
+ 
 //spi barrier
 EXTERN MUSPI_GIBarrier_t spi_barrier;
 
