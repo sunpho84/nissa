@@ -76,6 +76,8 @@ void set_lx_or_eo_comm(comm_t &comm,int lx_eo,int nbytes_per_site)
 #ifndef SPI
 	comm.recv_rank[idir]=rank_neigh [bf][mu];
 	comm.send_rank[idir]=rank_neigh[!bf][mu];
+#else
+	comm.spi_dest[idir]=spi_neigh[!bf][mu];
 #endif
       }
   
