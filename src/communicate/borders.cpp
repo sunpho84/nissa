@@ -70,9 +70,9 @@ void set_lx_or_eo_comm(comm_t &comm,int lx_eo,int nbytes_per_site)
 	int idir=bf*4+mu;
 	
 	//set the parameters
-	comm.send_offset[idir]=(bord_offset[mu]+bord_vol/2*(!bf))*comm.nbytes_per_site/div_coeff;
+	comm.send_offset[idir]=(bord_offset[mu]+bord_volh*(!bf))*comm.nbytes_per_site/div_coeff;
 	comm.message_length[idir]=bord_dir_vol[mu]*comm.nbytes_per_site/div_coeff;
-	comm.recv_offset[idir]=(bord_offset[mu]+bord_vol/2*bf)*comm.nbytes_per_site/div_coeff;
+	comm.recv_offset[idir]=(bord_offset[mu]+bord_volh*bf)*comm.nbytes_per_site/div_coeff;
 #ifndef SPI
 	comm.recv_rank[idir]=rank_neigh [bf][mu];
 	comm.send_rank[idir]=rank_neigh[!bf][mu];

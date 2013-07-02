@@ -231,10 +231,6 @@ void find_minimal_surface_grid(int *mR,int *ext_L,int NR)
   
   int check_all_dir_parallelized=0;
   
-#ifdef SPI
-  //check_all_dir_parallelized=1;
-#endif
-  
   /////////////////////////////////// basic checks ///////////////////////////////////
   
   //check that all direction are parallelizable, if requested
