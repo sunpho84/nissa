@@ -21,7 +21,7 @@
 
 //#define SPI_BARRIER
 
-//#define HINTS_DEBUG
+#define HINTS_DEBUG
 
 //global barrier for spi
 void spi_global_barrier()
@@ -75,7 +75,6 @@ void set_spi_neighbours()
 	  
 	  //setup the neighbours and destination
 	  MUSPI_SetUpDestination(&spi_neigh[!bf][mu],c[0],c[1],c[2],c[3],c[4]);
-	  MUSPI_SetUpDestination(&spi_dest[(!bf)*4+mu],c[0],c[1],c[2],c[3],c[4]);
 	  
 	  //copy coords
 	  for(int tdir=0;tdir<5;tdir++) spi_dest_coord[(!bf)*4+mu][tdir]=c[tdir];
@@ -86,7 +85,7 @@ void set_spi_neighbours()
 void set_spi_geometry()
 {
   get_spi_coord();
-  set_spi_neighbours();      
+  set_spi_neighbours();
 }
 
 //set the hints
@@ -99,7 +98,7 @@ void set_spi_hints()
         MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CM,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DM,MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EM};
   const uint8_t hintP[4]={MUHWI_PACKET_HINT_AP,MUHWI_PACKET_HINT_BP,MUHWI_PACKET_HINT_CP,MUHWI_PACKET_HINT_DP};
   const uint8_t hintM[4]={MUHWI_PACKET_HINT_AM,MUHWI_PACKET_HINT_BM,MUHWI_PACKET_HINT_CM,MUHWI_PACKET_HINT_DM};
-	
+  
   for(int idir=0;idir<8;idir++)
     if(paral_dir[idir%4])
       {
@@ -111,7 +110,7 @@ void set_spi_hints()
 	//search ABCD hints
 	for(int tdir=0;tdir<4;tdir++)
 	  {
-#ifdef DEBUG_HINTS
+#ifdef HINTS_DEBUG
 	    char FLAG[]="ABCD";
 	    master_printf(" checking flag %c\n",FLAG[tdir]);
 #endif
@@ -127,7 +126,7 @@ void set_spi_hints()
 		if((spi_dest_coord[idir][tdir]==spi_rank_coord[tdir]-1)||
 		   (spi_dir_is_torus[tdir]&&spi_dest_coord[idir][tdir]==spi_dir_size[tdir]-1&&spi_rank_coord[tdir]==0))
 		  {
-#ifdef DEBUG_HINTS
+#ifdef HINTS_DEBUG
 		    master_printf(" found 1\n");
 #endif
 		    spi_hint_ABCD[idir]=hintM[tdir];
@@ -136,18 +135,18 @@ void set_spi_hints()
 		if((spi_dest_coord[idir][tdir]==spi_rank_coord[tdir]+1)||
 		   (spi_dir_is_torus[tdir]&&spi_dest_coord[idir][tdir]==0&&spi_rank_coord[tdir]==spi_dir_size[tdir]-1))
 		  {
-#ifdef DEBUG_HINTS
+#ifdef HINTS_DEBUG
 		    master_printf(" found 2\n");
 #endif
 		    spi_hint_ABCD[idir]=hintP[tdir];
 		    spi_fifo_map[idir]=fifo_mapP[tdir];
 		  }
 	      }
-#ifdef DEBUG_HINTS
+#ifdef HINTS_DEBUG
 	    master_printf("Ext dir %d, spi dir %d, ort_eq %d\n",idir,tdir,ort_eq);
 #endif
 	  }
-#ifdef DEBUG_HINTS
+#ifdef HINTS_DEBUG
 	master_printf(" hints ABCD: %u\n",spi_hint_ABCD[idir]);
 	for(int kdir=0;kdir<4;kdir++)
 	  master_printf(" dir %d, %u %u\n",kdir,hintP[kdir],hintM[kdir]);
@@ -219,7 +218,7 @@ void init_spi()
 	  if(Kernel_CreateMemoryRegion(&mem_region,spi_fifo[nspi_fifo-1-ififo],fifo_size))
 	    crash("creating memory region %d",ififo);
 
-	  //initialise the fifos
+	  //initialize the fifos
 	  if(Kernel_InjFifoInit(&spi_fifo_sg_ptr,fifo_id[ififo],&mem_region,
          	(uint64_t)spi_fifo[nspi_fifo-1-ififo]-(uint64_t)mem_region.BaseVa,fifo_size-1))
 	    crash("initializing fifo");
@@ -256,7 +255,7 @@ void init_spi()
       spi_send_buf_phys_addr=(uint64_t)nissa_send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
       
       //find hints for descriptors
-      set_spi_hints();
+      //set_spi_hints();
       
 #ifdef SPI_BARRIER
       //init the barrier
@@ -283,10 +282,13 @@ void spi_descriptor_setup(comm_t &in)
 	//set the parameters
 	dinfo.Base.Payload_Address=spi_send_buf_phys_addr+in.send_offset[idir];
 	dinfo.Base.Message_Length=in.message_length[idir];
-	dinfo.Base.Torus_FIFO_Map=spi_fifo_map[idir];
-	dinfo.Base.Dest=spi_dest[idir];
-	dinfo.Pt2Pt.Hints_ABCD=spi_hint_ABCD[idir];
-	dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE|spi_hint_E[idir];
+	dinfo.Base.Torus_FIFO_Map=MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AP|
+        MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CM|
+        MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DP|
+	  MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EP;//spi_fifo_map[idir];
+	dinfo.Base.Dest=in.spi_dest[idir];
+	dinfo.Pt2Pt.Hints_ABCD=0;//spi_hint_ABCD[idir];
+	dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE;//|spi_hint_E[idir];
 	dinfo.Pt2Pt.Misc2=MUHWI_PACKET_VIRTUAL_CHANNEL_DETERMINISTIC;
 	dinfo.Pt2Pt.Skip=8; //for checksumming, skip the header
 	dinfo.DirectPut.Rec_Payload_Base_Address_Id=spi_bat_id[0];
