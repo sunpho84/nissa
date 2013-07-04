@@ -30,6 +30,7 @@ typedef complex quad_u1[4];
 
 typedef complex spin[4];
 typedef complex color[3];
+typedef complex halfspin[2];
 
 typedef spin colorspin[3];
 typedef color spincolor[4];
@@ -63,6 +64,7 @@ typedef squared_staples_t rectangular_staples_t;
  typedef bi_su3 bi_oct_su3[8];
  typedef bi_color bi_spincolor[4];
  typedef bi_color bi_halfspincolor[2];
+ typedef bi_complex bi_halfspin[2];
 
  #ifdef BGQ_EMU
   typedef bi_complex reg_bi_complex;

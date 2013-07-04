@@ -70,6 +70,25 @@
 	  [c128] "b" (192+128));		\
   }
 
+//prefetch a bi_halfspin
+#define BI_HALFSPIN_PREFETCH_NEXT(addr)		\
+  {						\
+    void *ptr=(addr);				\
+    asm("dcbt   %[c0],%[ptr]  \n"		\
+	: :					\
+	  [ptr]  "r" (ptr),			\
+	  [c0]  "b" (64+0));			\
+  }
+
+#define BI_HALFSPIN_PREFETCH_NEXT_NEXT(addr)	\
+  {						\
+    void *ptr=(addr);				\
+    asm("dcbt   %[c0],%[ptr]  \n"		\
+	: :					\
+	  [ptr]  "r" (ptr),			\
+	  [c0]  "b" (128+0));			\
+  }
+
 //prefetch a halfspincolor
 #define BI_SPINCOLOR_PREFETCH_NEXT(addr)	     \
   {						     \
@@ -151,6 +170,18 @@
 //////////////////////////////////// loading //////////////////////////////////
 
 #ifdef BGQ_EMU
+ #define REG_SPLAT_BI_COMPLEX(out,in) BI_COMPLEX_SPLAT(out,in);
+#else
+ #define REG_SPLAT_BI_COMPLEX(out,in) out=vec_splats(in);
+#endif
+
+#define REG_SPLAT_BI_HALFSPIN(out,in)			\
+  {							\
+    REG_SPLAT_BI_COMPLEX(NAME2(out,s0),in);		\
+    REG_SPLAT_BI_COMPLEX(NAME2(out,s1),in);		\
+  }
+
+#ifdef BGQ_EMU
  #define REG_LOAD_BI_COMPLEX(out,in) BI_COMPLEX_COPY(out,in);
 #else
  #define REG_LOAD_BI_COMPLEX(out,in) out=vec_ld(0,(double*)&(in));
@@ -218,6 +249,16 @@
       REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(NAME2(out,c0),ptr);		\
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c1),ptr);		\
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c2),ptr);		\
+    }									\
+  while(0)
+
+//load a bi_halfspin
+#define REG_LOAD_BI_HALFSPIN(out,in)					\
+  do									\
+    {									\
+      void *ptr=(in);							\
+      REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(NAME2(out,s0),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s1),ptr);		\
     }									\
   while(0)
 

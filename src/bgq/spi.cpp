@@ -112,7 +112,7 @@ void set_spi_hints()
 	  {
 #ifdef HINTS_DEBUG
 	    char FLAG[]="ABCD";
-	    master_printf(" checking flag %c\n",FLAG[tdir]);
+	    master_printf(" checking hint %c\n",FLAG[tdir]);
 #endif
 	    //check that all but tdir (in ABCD) are equals
 	    int ort_eq=1;
@@ -146,12 +146,10 @@ void set_spi_hints()
 	    master_printf("Ext dir %d, spi dir %d, ort_eq %d\n",idir,tdir,ort_eq);
 #endif
 	  }
-#ifdef HINTS_DEBUG
-	master_printf(" hints ABCD: %u\n",spi_hint_ABCD[idir]);
-	for(int kdir=0;kdir<4;kdir++)
-	  master_printf(" dir %d, %u %u\n",kdir,hintP[kdir],hintM[kdir]);
-#endif
 	
+#ifdef HINTS_DEBUG
+	master_printf(" checking hint E\n");
+#endif
 	//find if all but E are equals
 	int ort_E_eq=1;
 	for(int sdir=0;sdir<4;sdir++) ort_E_eq&=(spi_dest_coord[idir][sdir]==spi_rank_coord[sdir]);
@@ -161,14 +159,23 @@ void set_spi_hints()
 	  {
 	    if(idir<4)
 	      {
+#ifdef HINTS_DEBUG
+		master_printf(" found 1\n");
+#endif
 		spi_hint_E[idir]=MUHWI_PACKET_HINT_EP;
 		spi_fifo_map[idir]=fifo_mapP[4];
 	      }
 	    else
 	      {
+#ifdef HINTS_DEBUG
+		master_printf(" found 2\n");
+#endif
 		spi_hint_E[idir]=MUHWI_PACKET_HINT_EM;
 		spi_fifo_map[idir]=fifo_mapM[4];
 	      }
+#ifdef HINTS_DEBUG
+	    master_printf(" hint E: %u\n",spi_hint_E[idir]);
+#endif
 	  }
       }
 }
@@ -255,7 +262,7 @@ void init_spi()
       spi_send_buf_phys_addr=(uint64_t)nissa_send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
       
       //find hints for descriptors
-      //set_spi_hints();
+      set_spi_hints();
       
 #ifdef SPI_BARRIER
       //init the barrier

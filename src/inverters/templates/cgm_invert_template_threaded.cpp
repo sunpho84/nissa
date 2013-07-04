@@ -2,8 +2,9 @@
 #include "config.h"
 #endif
 
+//#define DEBUG_CGM
+
 #include <omp.h>
- #include <unistd.h>
 
 #include "../../routines/ios.h"
 #ifdef USE_THREADS
@@ -134,7 +135,9 @@ THREADABLE_FUNCTION_10ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT
   
   //     -rr=(r,r)=source_norm
   double rr=source_norm;
-  //master_printf("rr: %16.16lg\n",rr);
+#ifdef DEBUG_CGM
+  master_printf("rr: %16.16lg\n",rr);
+#endif
   
   double rfrf,pap,betap;
   double res[nshift];
@@ -153,12 +156,18 @@ THREADABLE_FUNCTION_10ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT
       
       //     -pap=(p,s)=(p,Ap)
       double_vector_glb_scalar_prod(&pap,(double*)p,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
-      //master_printf("pap: %16.16lg\n",pap);
-      
+#ifdef DEBUG_CGM
+      master_printf("pap: %16.16lg\n",pap);
+      if(rank==0 && IS_MASTER_THREAD)
+        for(int i=0;i<BULK_VOL*NDOUBLES_PER_SITE;i++)
+          printf("%d %lg\n",i,((double*)s)[i]);
+#endif
       //     calculate betaa=rr/pap=(r,r)/(p,Ap)
       betap=betaa;
       betaa=-rr/pap;
-      //master_printf("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
+#ifdef DEBUG_CGM
+      master_printf("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
+#endif
       
       //     calculate 
       //     -zfs
@@ -171,16 +180,19 @@ THREADABLE_FUNCTION_10ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT
 	      zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
 	      betas[ishift]=betaa*zfs[ishift]/zas[ishift];
 	      
-	      //master_printf("ishift %d [%lg] zas: %16.16lg, zps: %16.16lg, zfs: %16.16lg, betas: %16.16lg\n",
-	      //ishift,shift[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
+#ifdef DEBUG_CGM
+	      master_printf("ishift %d [%lg] zas: %16.16lg, zps: %16.16lg, zfs: %16.16lg, betas: %16.16lg\n",
+			    ishift,shift[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
+#endif
 	      double_vector_summ_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),-betas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
 	    }
+	  THREAD_BARRIER();
 	}
 	
       //     calculate
       //     -r'=r+betaa*s=r+beta*Ap
       //     -rfrf=(r',r')
-      double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
+      double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,BULK_VOL*NDOUBLES_PER_SITE);
       double_vector_glb_scalar_prod(&rfrf,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
       
       //     calculate alpha=rfrf/rr=(r',r')/(r,r)
@@ -196,16 +208,21 @@ THREADABLE_FUNCTION_10ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT
       //     -alphas=alpha*zfs*betas/zas*beta
       //     -ps'=r'+alpha*ps
       for(int ishift=0;ishift<nshift;ishift++)
-	if(run_flag[ishift]==1)
-	  {
-	    alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
-	    //master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
-	    double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
-	    
-	    // shift z
-	    zps[ishift]=zas[ishift];
-	    zas[ishift]=zfs[ishift];
-	  }
+	{
+	  if(run_flag[ishift]==1)
+	    {
+	      alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
+#ifdef DEBUG_CGM
+	      master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
+#endif
+	      double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
+	      
+	      // shift z
+	      zps[ishift]=zas[ishift];
+	      zas[ishift]=zfs[ishift];
+	    }
+	  THREAD_BARRIER();
+	}
 	
       //shift rr
       rr=rfrf;

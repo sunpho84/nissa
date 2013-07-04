@@ -20,6 +20,7 @@
  #include "../bgq/geometry_bgq.h"
 #endif
 #include "../new_types/dirac.h"
+ #include "../new_types/su3.h"
 #include "../routines/ios.h"
 #include "../routines/math.h"
 #include "../routines/mpi.h"
@@ -599,7 +600,7 @@ void init_grid(int T,int L)
   //setup all lx edges communicators
   set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,&MPI_SU3);
   set_lx_edge_senders_and_receivers(MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
-
+  
   if(nissa_use_eo_geom)
     {
       set_eo_comm(eo_spin_comm,sizeof(spin));
@@ -611,6 +612,21 @@ void init_grid(int T,int L)
       
       set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
     }
+  
+  //check that everything is fine
+  quad_su3 *testing=nissa_malloc("testing",loc_vol+bord_vol+edge_vol,quad_su3);
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    for(int mu=0;mu<4;mu++)
+      su3_put_to_diag(testing[ivol][mu],glblx_of_loclx[ivol]);
+  communicate_lx_quad_su3_borders(testing);
+  for(int ivol=loc_vol;ivol<loc_vol+bord_vol;ivol++)
+    for(int mu=0;mu<4;mu++)
+      {
+	int expe=glblx_of_bordlx[ivol-loc_vol];
+	int obte=(int)testing[ivol][mu][0][0][0];
+	if(expe!=obte) crash("expecting %d, obtained %d on rank %d",expe,obte,rank);
+      }
+  nissa_free(testing);
 
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());
