@@ -261,11 +261,11 @@ THREADABLE_FUNCTION_2ARG(average_topological_charge, double*,ave_charge, quad_su
   
   //average over local volume
 #ifndef REPRODUCIBLE_RUN
-  (*ave_charge)=0;
+  double temp=0;
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    (*ave_charge)+=charge[ivol];
-
-  glb_reduce_double(ave_charge,*ave_charge);
+    temp+=charge[ivol];
+  
+  *ave_charge=glb_reduce_double(temp);
 #else
   //perform thread summ
   float_128 loc_thread_res={0,0};

@@ -213,6 +213,18 @@ THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill)
 	  int idst=8*(bord_volh+base_isrc)+4;
 	  BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_T_buffer[isrc]);
 	}
+
+  
+  ///////////// debugging 
+#if 0
+  thread_barrier();
+  for(int ivol=0;ivol<bord_vol;ivol++)
+    for(int idouble=0;idouble<sizeof(halfspincolor)/sizeof(double);idouble++)
+      {
+	double a=((double*)(((halfspincolor*)nissa_send_buf)[ivol]))[idouble];
+	if(isnan(a)) crash("idouble %d ivol %d",idouble,ivol);
+      }
+#endif
 }}
 
 //perform communications between VN and start all the communications between nodes

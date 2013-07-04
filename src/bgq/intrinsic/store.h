@@ -37,6 +37,12 @@
   asm ("qvstfduxa %[v4d],%[ptr],%[off]  \n" : [ptr] "+b" (addr) : [v4d] "v" (data), [off] "r" (offset) )
 #endif
 
+#ifdef BGQ_EMU
+ #define STORE_REG_BI_COMPLEX(addr,in) BI_COMPLEX_COPY((*((bi_complex*)(addr))),in)
+#else
+ #define STORE_REG_BI_COMPLEX(addr,in) vec_st(in,0,(double*)addr)
+#endif
+
 //store without advancing
 #define REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFDUXA(out,in,0)
 
@@ -53,6 +59,15 @@
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c0));	\
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
+    }									\
+  while(0)
+
+#define STORE_REG_BI_HALFSPIN(addr,in)					\
+  do									\
+    {									\
+      void *ptr=(addr);							\
+      REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0));		\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1));		\
     }									\
   while(0)
 

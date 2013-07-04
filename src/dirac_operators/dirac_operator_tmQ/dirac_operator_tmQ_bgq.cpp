@@ -133,6 +133,9 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
       BI_SPINCOLOR_PROD_DOUBLE(out[i],temp,-0.5);
 #endif
     }
+
+  //final sync
+  set_borders_invalid(out);
 }}
 
 THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, double,mu, bi_spincolor*,in)

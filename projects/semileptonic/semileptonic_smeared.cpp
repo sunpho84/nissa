@@ -577,6 +577,8 @@ void close_semileptonic()
   master_printf("Inverted %d configurations.\n",nanalyzed_conf);
   master_printf("Total time: %g s, of which:\n",tot_time);
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
+  master_printf("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
+		ninv_tot,cgm_inv_over_time/ninv_tot);
   master_printf(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_time,"%");
   master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg) of which:\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
   master_printf("   * %02.2f%s to compute two points\n",contr_2pts_time*100.0/contr_time,"%");
