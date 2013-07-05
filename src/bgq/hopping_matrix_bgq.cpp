@@ -128,33 +128,20 @@ THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill)
     if(paral_dir[0])
       {
 	//split bw T border: VN 0 goes to bw out border (first half), VN 1 goes to VN 0 fw surf
-	NISSA_CHUNK_LOOP(isrc,0,bgqlx_t_vbord_vol/2,thread_in_team_id,nthreads_in_team)
+	NISSA_CHUNK_LOOP(isrc,0,bgqlx_t_vbord_vol/4,thread_in_team_id,nthreads_in_team)
 	  {
 	    //non-local shuffling: must enter bw buffer for direction 0
-	    int idst_buf=isrc;
-#ifndef EXP_BGQ
-	    //local shuffling: inside the result border buffer, data is stored as in the border, so isrc access to t-face
-	    //summing loc_volh we get to the loc_size[0]/2 plane, and its backward neighbour is the destination
-	    int idst_loc=8*bgqlx_of_loclx[loclx_neighdw[isrc+loc_volh][0]];
-	    halfspincolor temp;
-	    BI_HALFSPINCOLOR_TO_HALFSPINCOLOR(((halfspincolor*)nissa_send_buf)[idst_buf],       //take VN=0
-					      temp,bgq_hopping_matrix_output_T_buffer[isrc]);
-	    HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst_loc],temp,0); //copy VN=1 to VN=0
-#else
+	    int idst_buf=2*isrc;
 	    //load the first
 	    DECLARE_REG_BI_HALFSPINCOLOR(in0);
-	    REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[isrc]);
+	    REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[2*isrc]);
 	    //load the second
 	    DECLARE_REG_BI_HALFSPINCOLOR(in1);
-	    REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_T_buffer[isrc+1]);
+	    REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_T_buffer[2*isrc+1]);
 	    //merge the two and save
 	    DECLARE_REG_BI_HALFSPINCOLOR(to_buf);
 	    REG_BI_HALFSPINCOLOR_V0_MERGE(to_buf,in0,in1);
 	    STORE_REG_BI_HALFSPINCOLOR(((halfspincolor*)nissa_send_buf)[idst_buf],to_buf);
-	    
-	    //paired
-	    isrc++;
-#endif
 	  }
       }
     else
@@ -172,21 +159,12 @@ THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill)
     if(paral_dir[0])
       {
 	//split fw T border: VN 1 goes to fw out border (second half), VN 0 goes to VN 1 of t=0 surf
-	NISSA_CHUNK_LOOP(base_isrc,0,bgqlx_t_vbord_vol/2,thread_in_team_id,nthreads_in_team)
+	NISSA_CHUNK_LOOP(base_isrc,0,bgqlx_t_vbord_vol/4,thread_in_team_id,nthreads_in_team)
 	  {
 	    //the source starts at the middle of result border buffer
-	    int isrc=base_isrc+bgqlx_t_vbord_vol/2;
+	    int isrc=2*base_isrc+bgqlx_t_vbord_vol/2;
 	    //non-local shuffling: must enter fw buffer for direction 0
-	    int idst_buf=bord_volh+base_isrc;
-#ifndef EXP_BGQ
-	    //local shuffling: inside the result border buffer, data is stored as in the border, so base_isrc
-	    //points to the correct destination, but we must shift for terms of bw der
-	    int idst_loc=8*base_isrc+4;
-	    halfspincolor temp;
-	    BI_HALFSPINCOLOR_TO_HALFSPINCOLOR(temp,((halfspincolor*)nissa_send_buf)[idst_buf],
-					      bgq_hopping_matrix_output_T_buffer[isrc]);
-	    HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(bgq_hopping_matrix_output_data[idst_loc],temp,1); //copy VN=0 to VN=1
-#else
+	    int idst_buf=bord_volh+2*base_isrc;
 	    //load the first
 	    DECLARE_REG_BI_HALFSPINCOLOR(in0);
 	    REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[isrc]);
@@ -197,10 +175,6 @@ THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill)
 	    DECLARE_REG_BI_HALFSPINCOLOR(to_buf);
 	    REG_BI_HALFSPINCOLOR_V1_MERGE(to_buf,in0,in1);
 	    STORE_REG_BI_HALFSPINCOLOR(((halfspincolor*)nissa_send_buf)[idst_buf],to_buf);
-	    
-	    //paired
-	    base_isrc++;
-#endif
 	  }
       }
     else
@@ -213,18 +187,6 @@ THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill)
 	  int idst=8*(bord_volh+base_isrc)+4;
 	  BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_T_buffer[isrc]);
 	}
-
-  
-  ///////////// debugging 
-#if 0
-  thread_barrier();
-  for(int ivol=0;ivol<bord_vol;ivol++)
-    for(int idouble=0;idouble<sizeof(halfspincolor)/sizeof(double);idouble++)
-      {
-	double a=((double*)(((halfspincolor*)nissa_send_buf)[ivol]))[idouble];
-	if(isnan(a)) crash("idouble %d ivol %d",idouble,ivol);
-      }
-#endif
 }}
 
 //perform communications between VN and start all the communications between nodes
@@ -255,33 +217,25 @@ THREADABLE_FUNCTION_0ARG(finish_Wilson_hopping_matrix_bgq_binded_communications)
       bi_halfspincolor **base_out=bgq_hopping_matrix_final_output;
       halfspincolor *base_in=(halfspincolor*)nissa_recv_buf;
       
-#ifndef EXP_BGQ
-      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[0],thread_in_team_id,nthreads_in_team)
-	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR((*(base_out[isrc])),base_in[isrc],0);
-#else
-      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[0],thread_in_team_id,nthreads_in_team)
+      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[0]/2,thread_in_team_id,nthreads_in_team)
 	{
 	  //VN=0 must be filled with border
 	  DECLARE_REG_BI_HALFSPINCOLOR(in0);
-	  REG_LOAD_BI_HALFSPINCOLOR(in0,base_in[isrc]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in0,base_in[2*isrc]);
 	  //VN=1 with buf0
 	  DECLARE_REG_BI_HALFSPINCOLOR(in1);
-	  REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_T_buffer[isrc+bgqlx_t_vbord_vol/2]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_T_buffer[2*isrc+bgqlx_t_vbord_vol/2]);
 	  //merge and save
 	  DECLARE_REG_BI_HALFSPINCOLOR(to_dest);
 	  REG_BI_HALFSPINCOLOR_V0_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[isrc])),to_dest);
-	  
-	  //paired
-	  isrc++;
+	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[2*isrc])),to_dest);
 	  
 	  //VN=1 with buf1
-	  REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_T_buffer[isrc+bgqlx_t_vbord_vol/2]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_T_buffer[2*isrc+1+bgqlx_t_vbord_vol/2]);
 	  //merge and save
 	  REG_BI_HALFSPINCOLOR_V10_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[isrc])),to_dest);
+	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[2*isrc+1])),to_dest);
 	}
-#endif
     }
   
   //other 3 bw borders
@@ -298,33 +252,26 @@ THREADABLE_FUNCTION_0ARG(finish_Wilson_hopping_matrix_bgq_binded_communications)
     {
       bi_halfspincolor **base_out=bgq_hopping_matrix_final_output+bord_dir_vol[0]/2+bord_vol/4;
       halfspincolor *base_in=(halfspincolor*)(nissa_recv_buf+sizeof(bi_halfspincolor)*bord_vol/4);
-#ifndef EXP_BGQ
-      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[0],thread_in_team_id,nthreads_in_team)
-	HALFSPINCOLOR_TO_BI_HALFSPINCOLOR((*(base_out[isrc])),base_in[isrc],1);
-#else
-      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[0],thread_in_team_id,nthreads_in_team)
+      
+      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[0]/2,thread_in_team_id,nthreads_in_team)
 	{
 	  //VN=0 with buf1
 	  DECLARE_REG_BI_HALFSPINCOLOR(in0);
-	  REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[isrc]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[2*isrc]);
 	  //VN=1 must be filled with border 0
 	  DECLARE_REG_BI_HALFSPINCOLOR(in1);
-	  REG_LOAD_BI_HALFSPINCOLOR(in1,base_in[isrc]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in1,base_in[2*isrc]);
 	  //merge and save
 	  DECLARE_REG_BI_HALFSPINCOLOR(to_dest);
 	  REG_BI_HALFSPINCOLOR_V10_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[isrc])),to_dest);
-	  
-	  //paired
-	  isrc++;
+	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[2*isrc])),to_dest);
 	  
 	  //VN=0 with buf1
-	  REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[isrc]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[2*isrc+1]);
 	  //merge and save
 	  REG_BI_HALFSPINCOLOR_V1_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[isrc])),to_dest);
+	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[2*isrc+1])),to_dest);
 	}
-#endif
     }
   
   //other 3 fw borders
