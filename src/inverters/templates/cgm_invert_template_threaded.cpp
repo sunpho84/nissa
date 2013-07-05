@@ -194,7 +194,10 @@ THREADABLE_FUNCTION_10ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT
       //     -rfrf=(r',r')
       double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,BULK_VOL*NDOUBLES_PER_SITE);
       double_vector_glb_scalar_prod(&rfrf,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
-      
+#ifdef DEBUG_CGM
+      master_printf("rfrf: %16.16lg\n",rfrf);
+#endif
+
       //     calculate alpha=rfrf/rr=(r',r')/(r,r)
       alpha=rfrf/rr;
       

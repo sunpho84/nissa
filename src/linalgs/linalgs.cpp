@@ -64,7 +64,7 @@ THREADABLE_FUNCTION_4ARG(double_vector_glb_scalar_prod, double*,glb_res, double*
   double loc_thread_res=0;
   GET_THREAD_ID();
   
-#ifndef BGQA
+#ifndef BGQ
   NISSA_PARALLEL_LOOP(i,0,n)
     loc_thread_res+=a[i]*b[i];
 #else
@@ -186,7 +186,7 @@ THREADABLE_FUNCTION_5ARG(double_vector_normalize, double*,ratio, double*,out, do
 THREADABLE_FUNCTION_6ARG(double_vector_summ_double_vector_prod_double, double*,a, double*,b, double*,c, double,d, int,n, int,OPT)
 {
   GET_THREAD_ID();
-#ifndef BGQa
+#ifndef BGQ
   NISSA_PARALLEL_LOOP(i,0,n) a[i]=b[i]+c[i]*d;
 #else
   int max_n=n/8;
