@@ -15,19 +15,21 @@ thread_src=src/routines/thread.cpp
 thread_hdr=src/routines/thread.h
 endif
 
-#compile or not bgq stuff
+#compile or not bgq test and source
 if BGQ
+
+#test target
 test_bgq_targ=projects/semileptonic/test_bgq
 test_bgq_src=projects/semileptonic/test_bgq.cpp
-#barrier
+
+#bgq barrier
 if BGQ_EMU
 bgq_barrier_src_file=
 else
-bgq_barrier_src_file=\
-	src/bgq/bgq_barrier.c \
-	src/bgq/bgq_barrier.h
+bgq_barrier_src_file=src/bgq/bgq_barrier.c src/bgq/bgq_barrier.h
 endif
 
+#source
 bgq_src_file=$(bgq_barrier_src_file) \
 	src/bgq/geometry_bgq.h \
 	src/bgq/geometry_bgq.cpp \
@@ -39,14 +41,7 @@ bgq_src_file=$(bgq_barrier_src_file) \
 	src/bgq/intrinsic/mergesplit.h \
 	src/bgq/intrinsic/oper.h \
 	src/bgq/intrinsic/store.h \
-	src/bgq/intrinsic.h
-else
-bgq_src_file=
-endif
-
-#experimental bgq
-if EXP_BGQ
-exp_bgq_src_file= \
+	src/bgq/intrinsic.h \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.cpp \
 	src/dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h \
 	src/dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.cpp \
@@ -54,7 +49,7 @@ exp_bgq_src_file= \
 	src/inverters/twisted_mass/cgm_invert_tmQ2_bgq.cpp \
 	src/inverters/twisted_mass/cgm_invert_tmQ2_bgq.h
 else
-exp_bgq_src_file=
+bgq_src_file=
 endif
 
 #add where to find the library and tell to link

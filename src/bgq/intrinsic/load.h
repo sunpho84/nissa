@@ -184,7 +184,7 @@
 #ifdef BGQ_EMU
  #define REG_LOAD_BI_COMPLEX(out,in) BI_COMPLEX_COPY(out,in);
 #else
- #define REG_LOAD_BI_COMPLEX(out,in) out=vec_ld(0,(double*)&(in));
+ #define REG_LOAD_BI_COMPLEX(out,in) out=vec_ld(0,(double*)(in));
 #endif
 
 //load *after* increment the address of a certain amount
