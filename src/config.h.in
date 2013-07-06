@@ -15,9 +15,6 @@
 /* time when configured */
 #undef CONFIG_TIME
 
-/* Enable exp_bgq */
-#undef EXP_BGQ
-
 /* Max_verbosity_lv */
 #undef MAX_VERBOSITY_LV
 

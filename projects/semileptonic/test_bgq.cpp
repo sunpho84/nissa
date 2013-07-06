@@ -139,6 +139,115 @@ THREADABLE_FUNCTION_0ARG(bench_thread_barrier)
   master_printf("thread barrier: %lg sec/barr, %lg sec/omp_barr\n",barr_time,omp_barr_time);
 }}
 
+THREADABLE_FUNCTION_0ARG(bench_scalar_prod)
+{
+  GET_THREAD_ID();
+  spincolor *in=nissa_malloc("in",loc_vol,spincolor);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+	for(int ri=0;ri<2;ri++)
+	  in[ivol][id][ic][ri]=glblx_of_loclx[ivol];
+  set_borders_invalid(in);
+  
+  double sc_time=-take_time();
+  double sc;
+  for(int ibench=0;ibench<nbench;ibench++)
+    double_vector_glb_scalar_prod(&sc,(double*)in,(double*)in,loc_vol*sizeof(spincolor)/sizeof(double));
+  sc_time+=take_time();
+  sc_time/=nbench;
+  
+  int nflops=2*loc_vol*sizeof(spincolor)/sizeof(double);
+  master_printf("time to make a global scalar product (%lg): %lg (%lg Mflops)\n",sc,sc_time,nflops/sc_time*1.e-6);
+  
+  nissa_free(in);
+}}
+
+THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
+{
+  GET_THREAD_ID();
+  spincolor *in=nissa_malloc("in",loc_vol,spincolor);
+  spincolor *out=nissa_malloc("out",loc_vol,spincolor);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+        for(int ri=0;ri<2;ri++)
+          in[ivol][id][ic][ri]=glblx_of_loclx[ivol];
+  set_borders_invalid(in);
+  int nbytes=sizeof(spincolor)*loc_vol;
+  
+  double c_time=-take_time();
+  switch(mode)
+    {
+    case 0:
+      for(int ibench=0;ibench<nbench;ibench++)
+	{
+	  if(IS_MASTER_THREAD) memcpy(out,in,nbytes);
+	  THREAD_BARRIER();
+	}
+      break;
+    case 1:
+      for(int ibench=0;ibench<nbench;ibench++)
+	{
+	  DECLARE_REG_BI_HALFSPINCOLOR(reg);
+	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    {
+	      REG_LOAD_BI_HALFSPINCOLOR(reg,in[ivol]);
+	      STORE_REG_BI_HALFSPINCOLOR(out[ivol],reg);
+	    }
+	}
+      break;
+    default:
+      crash("unknown method");
+    }
+  c_time+=take_time();
+  
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+        for(int ri=0;ri<2;ri++)
+          if(in[ivol][id][ic][ri]!=out[ivol][id][ic][ri])
+	    crash("%d %d %d %d expcted %lg obtained %lg",ivol,id,ic,ri,in[ivol][id][ic][ri],out[ivol][id][ic][ri]);
+  
+  master_printf("time to copy %d bytes: %lg, %lg Mbyte/s\n",nbytes,c_time,nbytes/c_time*1.e-6);
+		  
+  nissa_free(in);
+  nissa_free(out);
+}}
+
+THREADABLE_FUNCTION_0ARG(bench_linear_comb)
+{
+  GET_THREAD_ID();
+  spincolor *in1=nissa_malloc("in",loc_vol,spincolor);
+  spincolor *in2=nissa_malloc("in",loc_vol,spincolor);
+  spincolor *in3=nissa_malloc("in",loc_vol,spincolor);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<3;ic++)
+	for(int ri=0;ri<2;ri++)
+	  in1[ivol][id][ic][ri]=glblx_of_loclx[ivol];
+  set_borders_invalid(in1);
+  
+  vector_copy(in2,in1);
+  vector_copy(in3,in1);
+  
+  double lc_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    double_vector_linear_comb((double*)in3,(double*)in1,1.0,(double*)in2,2.0,loc_vol*sizeof(spincolor)/sizeof(double));
+  lc_time+=take_time();
+  lc_time/=nbench;
+
+  double sc;
+  double_vector_glb_scalar_prod(&sc,(double*)in3,(double*)in3,loc_vol*sizeof(spincolor)/sizeof(double));
+  
+  int nflops=3*loc_vol*sizeof(spincolor)/sizeof(double);
+  master_printf("time to make a linear combination (%lg): %lg (%lg Mflops)\n",sc,lc_time,nflops/lc_time*1.e-6);
+  
+  nissa_free(in1);
+  nissa_free(in2);
+  nissa_free(in3);
+}}
+
 void bench_comm()
 {
   double saved_time[8];
@@ -273,6 +382,10 @@ void in_main(int narg,char **arg)
 
   bench_comm();
   
+  bench_scalar_prod();
+  bench_linear_comb();
+  for(int mode=0;mode<3;mode++) bench_vector_copy(mode);
+  
   //apply a fixed number of time
   spincolor *out=nissa_malloc("out",loc_vol+bord_vol,spincolor);
   spincolor *tmp=nissa_malloc("tmp",loc_vol+bord_vol,spincolor);
@@ -284,8 +397,6 @@ void in_main(int narg,char **arg)
   
   //////////////////////////////////////
 
-#ifdef EXP_BGQ
-  
   //remap conf to bgq
   bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_vol+bord_vol,bi_oct_su3);
   lx_conf_remap_to_bgqlx(bi_conf,conf);
@@ -381,7 +492,6 @@ void in_main(int narg,char **arg)
   nissa_free(bi_in);
   nissa_free(bi_out);
   nissa_free(un_out);
-#endif
 
   ////////////////////////////////
   
@@ -389,9 +499,7 @@ void in_main(int narg,char **arg)
 		(loc_vol*(sizeof(quad_su3)+sizeof(spincolor))+8*loc_volh*sizeof(bi_halfspincolor*))/1024.0/1024.0);
   master_printf("Time to apply %d time:\n",nbench);
   master_printf(" %lg sec in port mode\n",port_time);
-#ifdef EXP_BGQ
   master_printf(" %lg sec in bgq mode\n",bgq_time);
-#endif
 
   nissa_free(conf);
   nissa_free(in);
