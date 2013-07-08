@@ -157,9 +157,9 @@ int *ch_op1_3pts,*ch_op2_3pts;
 //timings
 int ninv_tot=0,ncontr_tot=0;
 int wall_time;
-double tot_time=0,inv_time=0;
+double tot_time=0,inv_time=0,conf_smear_time=0;
 double smear_time=0;
-double load_time=0,contr_time;
+double load_save_S0_time=0;
 double contr_save_time=0;
 double contr_2pts_time=0;
 double contr_3pts_time=0;
@@ -536,6 +536,7 @@ void setup_conf()
 
   Pmunu_term(Pmunu,conf);
   
+  conf_smear_time-=take_time();
   //prepare the smerded version and compute plaquette
   switch(conf_smearing)
     {
@@ -559,6 +560,7 @@ void setup_conf()
       crash("unknown conf smearing type %d",(int)conf_smearing);
       break;
     }
+  conf_smear_time+=take_time();
   
   if(conf_smearing!=no_conf_smearing) master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
   
@@ -571,7 +573,7 @@ void setup_conf()
 //Finalization
 void close_semileptonic()
 {
-  contr_time=contr_2pts_time+contr_3pts_time+contr_save_time;
+  double contr_time=contr_2pts_time+contr_3pts_time+contr_save_time;
   
   master_printf("\n");
   master_printf("Inverted %d configurations.\n",nanalyzed_conf);
@@ -579,7 +581,9 @@ void close_semileptonic()
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
   master_printf("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
 		ninv_tot,cgm_inv_over_time/ninv_tot);
+  master_printf(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_time,"%");
   master_printf(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_time,"%");
+  master_printf(" - %02.2f%s to load or save propagators\n",load_save_S0_time*100.0/tot_time,"%");
   master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg) of which:\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
   master_printf("   * %02.2f%s to compute two points\n",contr_2pts_time*100.0/contr_time,"%");
   master_printf("   * %02.2f%s to compute three points\n",contr_3pts_time*100.0/contr_time,"%");
@@ -732,8 +736,11 @@ void calculate_S0(int ism_lev_so)
 #else
 		      sprintf(path,"%s/S0_QD_sosm%02d_iprop%d.id%02d",outfolder,ism_lev_so,ip,id);
 #endif
+		      
+		      load_save_S0_time-=take_time();
 		      if(save_S0) write_spincolor(path,cgm_solution[imass],64);
 		      else        read_spincolor(cgm_solution[imass],path);
+		      load_save_S0_time+=take_time();
 		    }
 
 		//reconstruct the doublet
@@ -887,7 +894,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
     if(which_r_S0==2||which_r_S0==r)
       for(int iprop=0;iprop<npropS0;iprop++)
 	smear_additive_propagator(S0[r][iprop],S0[r][iprop],ism_lev_si,gaussian_niter_si);
-  
+
   double temp_time=take_time();
   smear_time+=temp_time;
   contr_2pts_time-=temp_time;

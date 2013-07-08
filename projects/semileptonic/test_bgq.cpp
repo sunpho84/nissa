@@ -167,6 +167,7 @@ THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
 {
   GET_THREAD_ID();
   spincolor *in=nissa_malloc("in",loc_vol,spincolor);
+  spincolor *in1=nissa_malloc("in1",loc_vol,spincolor);
   spincolor *out=nissa_malloc("out",loc_vol,spincolor);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int id=0;id<4;id++)
@@ -175,6 +176,8 @@ THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
           in[ivol][id][ic][ri]=glblx_of_loclx[ivol];
   set_borders_invalid(in);
   int nbytes=sizeof(spincolor)*loc_vol;
+  vector_reset(out);
+  vector_copy(in1,in);
   
   double c_time=-take_time();
   switch(mode)
@@ -182,35 +185,62 @@ THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
     case 0:
       for(int ibench=0;ibench<nbench;ibench++)
 	{
-	  if(IS_MASTER_THREAD) memcpy(out,in,nbytes);
+	  int morso=nbytes/nthreads;
+	  memcpy((char*)out+thread_id*morso,(char*)in+thread_id*morso,morso);
 	  THREAD_BARRIER();
 	}
       break;
     case 1:
       for(int ibench=0;ibench<nbench;ibench++)
 	{
-	  DECLARE_REG_BI_HALFSPINCOLOR(reg);
+	  DECLARE_REG_BI_SPINCOLOR(reg);
 	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	    {
-	      REG_LOAD_BI_HALFSPINCOLOR(reg,in[ivol]);
-	      STORE_REG_BI_HALFSPINCOLOR(out[ivol],reg);
+	      REG_LOAD_BI_SPINCOLOR(reg,in[ivol]);
+	      STORE_REG_BI_SPINCOLOR(out[ivol],reg);
 	    }
 	}
+      break;
+    case 2:
+      for(int ibench=0;ibench<nbench;ibench++)
+        {
+          int morso=loc_vol*sizeof(spincolor)/sizeof(double)/nthreads;
+          double *x=(double*)in,*y=(double*)out;
+          int is=thread_id*morso,ie=is+morso;
+
+          for(int i=is;i<ie;i+=4) vec_st(vec_ld(0,x+i),0,y+i);
+        }
+      break;
+    case 3:
+      for(int ibench=0;ibench<nbench;ibench++)
+        {
+          int morso=loc_vol*sizeof(spincolor)/sizeof(double)/nthreads;
+          double *x=(double*)in,*y=(double*)out,*z=(double*)in1;
+          int is=thread_id*morso,ie=is+morso;
+	  
+          for(int i=is;i<ie;i+=4)
+	    {
+	      vector4double reg;
+	      vec_st(vec_madd(vec_ld(0,x+i),vec_splats(1.0),vec_mul(vec_ld(0,z+i),vec_splats(1.0))),0,y+i);
+	    }
+        }
       break;
     default:
       crash("unknown method");
     }
   c_time+=take_time();
+  c_time/=nbench;
   
+  master_printf("time to copy %d bytes: %lg, %lg Mbyte/s\n",nbytes,c_time,nbytes/c_time*1.e-6);
+		  
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
         for(int ri=0;ri<2;ri++)
-          if(in[ivol][id][ic][ri]!=out[ivol][id][ic][ri])
+          if(in[ivol][id][ic][ri]*(1+(mode==3))!=out[ivol][id][ic][ri])
 	    crash("%d %d %d %d expcted %lg obtained %lg",ivol,id,ic,ri,in[ivol][id][ic][ri],out[ivol][id][ic][ri]);
   
-  master_printf("time to copy %d bytes: %lg, %lg Mbyte/s\n",nbytes,c_time,nbytes/c_time*1.e-6);
-		  
+  nissa_free(in1);
   nissa_free(in);
   nissa_free(out);
 }}
@@ -384,7 +414,7 @@ void in_main(int narg,char **arg)
   
   bench_scalar_prod();
   bench_linear_comb();
-  for(int mode=0;mode<3;mode++) bench_vector_copy(mode);
+  for(int mode=0;mode<4;mode++) bench_vector_copy(mode);
   
   //apply a fixed number of time
   spincolor *out=nissa_malloc("out",loc_vol+bord_vol,spincolor);

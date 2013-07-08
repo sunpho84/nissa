@@ -211,7 +211,7 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_bgqlx, bi_oct_su3*,out, quad_su3*,in)
 	  SU3_TO_BI_SU3(out[idst_bgqlx][mu],in[ibord][mu],vn_dst_bgqlx);
 	}
   
-  THREAD_BARRIER();
+  set_borders_invalid(out);
 }}
 
 //remap a spincolor from lx to bgqlx layout
@@ -229,7 +229,7 @@ THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_bgqlx, bi_spincolor*,ext_out, spi
       SPINCOLOR_TO_BI_SPINCOLOR(out[bgqlx_of_loclx[ivol_lx]],in[ivol_lx+vn*loc_volh],vn);
   
   //wait filling
-  THREAD_BARRIER();
+  set_borders_invalid(out);
   
   //unbuffer if needed
   if(bufferize)
@@ -252,7 +252,7 @@ THREADABLE_FUNCTION_2ARG(bgqlx_spincolor_remap_to_lx, spincolor*,ext_out, bi_spi
     BI_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_bgqlx[ivol_bgqlx]],out[loc_volh+loclx_of_bgqlx[ivol_bgqlx]],in[ivol_bgqlx]);
   
   //wait filling
-  THREAD_BARRIER();
+  set_borders_invalid(out);
 
   //unbuffer if needed
   if(bufferize)
