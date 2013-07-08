@@ -180,6 +180,8 @@ THREADABLE_FUNCTION_5ARG(double_vector_normalize, double*,ratio, double*,out, do
   double_vector_prod_double(out,in,fact,n);
   
   if(ratio!=NULL) (*ratio)=1/fact;
+  
+  set_borders_invalid(out);
 }}
 
 //a[]=b[]+c[]*d
@@ -382,17 +384,21 @@ THREADABLE_FUNCTION_3ARG(safe_dirac_prod_spincolor, spincolor*,out, dirac_matr*,
 
 ///////////////////// rotations ////////////////////////
 
-void rotate_vol_colorspinspin_to_physical_basis(colorspinspin *s,int rsi,int rso)
+THREADABLE_FUNCTION_3ARG(rotate_vol_colorspinspin_to_physical_basis, colorspinspin*,s, int,rsi, int,rso)
 {
-  nissa_loc_vol_loop(ivol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int ic=0;ic<3;ic++)
       rotate_spinspin_to_physical_basis(s[ivol][ic],rsi,rso);
-}
+  set_borders_invalid(s);
+}}
 
-void rotate_vol_su3spinspin_to_physical_basis(su3spinspin *s,int rsi,int rso)
+THREADABLE_FUNCTION_3ARG(rotate_vol_su3spinspin_to_physical_basis, su3spinspin*,s, int,rsi, int,rso)
 {
-  nissa_loc_vol_loop(ivol)
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     for(int ic1=0;ic1<3;ic1++)
       for(int ic2=0;ic2<3;ic2++)
         rotate_spinspin_to_physical_basis(s[ivol][ic1][ic2],rsi,rso);
-}
+  set_borders_invalid(s);
+}}
