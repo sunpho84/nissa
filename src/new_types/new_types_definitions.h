@@ -44,6 +44,7 @@ typedef spinspin colorspinspin[3];
 
 typedef color su3[3];
 typedef su3 quad_su3[4];
+typedef su3 oct_su3[8];
 
 typedef complex color2[2];
 typedef color2 su2[2];
@@ -143,8 +144,8 @@ struct nissa_vect
   //padding to keep memory alignment
   char pad[nissa_vect_alignment-(3*sizeof(int)+2*sizeof(void*)+3*nissa_vect_string_length+sizeof(uint32_t))%nissa_vect_alignment];
 };
+#include "../base/vectors.h"
 
-struct su3_path;
 struct su3_path
 {
   int ivol;
@@ -194,6 +195,24 @@ struct ILDG_File_view
   MPI_Offset view_pos;
   MPI_Offset pos;
   char format[100];
+};
+
+// Type to hold the position of output data (see "two_stage_computations" doc for explenations)
+struct two_stage_computation_pos_t
+{
+  int *inter_fr_in_pos; //offset for intermediate result
+  int *final_fr_inter_pos; //offset for final result from intermediate
+  int *inter_fr_recv_pos; //offset for intermediate from nissa_recv_buf
+  two_stage_computation_pos_t()
+  {
+    inter_fr_in_pos=final_fr_inter_pos=inter_fr_recv_pos=NULL;
+  }
+  ~two_stage_computation_pos_t()
+  {
+    if(inter_fr_in_pos!=NULL) nissa_free(inter_fr_in_pos);
+    if(final_fr_inter_pos!=NULL) nissa_free(final_fr_inter_pos);
+    if(inter_fr_recv_pos!=NULL) nissa_free(inter_fr_recv_pos);
+  }
 };
 
 //rational approximation

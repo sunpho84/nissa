@@ -25,6 +25,10 @@ EXTERN int *glblx_of_loclx;
 EXTERN int *glblx_of_bordlx;
 EXTERN int *loclx_of_bordlx;
 EXTERN int *surflx_of_bordlx;
+EXTERN int *Wsklx_of_loclx;
+EXTERN int *loclx_of_Wsklx;
+//EXTERN int *Wsklx_hopping_matrix_output_pointer;
+//EXTERN int *Wsklx_hopping_matrix_final_output;
 EXTERN int *glblx_of_edgelx;
 EXTERN int *loclx_of_bulklx;
 EXTERN int *loclx_of_surflx;
@@ -33,6 +37,7 @@ EXTERN int *loclx_of_non_fw_surflx;
 EXTERN int *loclx_of_bw_surflx;
 EXTERN int *loclx_of_fw_surflx;
 EXTERN int nissa_lx_geom_inited;
+EXTERN int nissa_Wsklx_order_inited;
 //-eo is even-odd
 EXTERN int *loclx_parity;
 EXTERN int *loceo_of_loclx;
@@ -83,6 +88,11 @@ EXTERN int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
 EXTERN int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
 EXTERN int bord_dir_vol[4],bord_offset[4];
 EXTERN int bord_vol,bord_volh;
+EXTERN int nissa_vnode_paral_dir;
+#ifdef USE_VNODES
+EXTERN int vnode_lx_offset;
+EXTERN int vbord_vol,vbord_volh;
+#endif
 EXTERN int start_eo_bord_send_up[4],start_eo_bord_rece_up[4];
 EXTERN int start_eo_bord_send_dw[4],start_eo_bord_rece_dw[4];
 EXTERN MPI_Datatype MPI_EO_QUAD_SU3_BORDS_SEND_TXY[4],MPI_EO_QUAD_SU3_BORDS_RECE[4];
@@ -214,7 +224,7 @@ EXTERN int ncomm_allocated;
 EXTERN int comm_in_prog;
 
 //buffers
-EXTERN size_t nissa_buff_size;
+EXTERN size_t nissa_recv_buf_size,nissa_send_buf_size;
 EXTERN char *nissa_recv_buf,*nissa_send_buf;
 
 //communicators
@@ -228,6 +238,13 @@ EXTERN comm_t lx_spinspin_comm,eo_spinspin_comm;
 EXTERN comm_t lx_su3spinspin_comm,eo_su3spinspin_comm;
 EXTERN comm_t lx_su3_comm,eo_su3_comm;
 EXTERN comm_t lx_quad_su3_comm,eo_quad_su3_comm;
+
+////////////////////////////////////// two stage computations ///////////////////////////////
+
+EXTERN two_stage_computation_pos_t Wsklx_hopping_matrix_output_pos;
+#ifdef USE_VNODES
+EXTERN two_stage_computation_pos_t virlx_hopping_matrix_output_pos;
+#endif
 
 /////////////////////////////////////////// BGQ specifics ///////////////////////////////////
 

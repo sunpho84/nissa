@@ -101,8 +101,9 @@ AC_ARG_ENABLE(bgq,
 	AS_HELP_STRING([--enable-bgq],[Enable bgq stuff (ony for BG/Q)]),
 	enable_bgq="${enableval}",
 	enable_bgq="no")
-if test "$enable_bgq" == "yes";then AC_DEFINE([BGQ],1,[Enable bgq]) fi
+if test "$enable_bgq" == "yes";then AC_DEFINE([BGQ],1,[Enable bgq]) AC_DEFINE([USE_VNODES],1,[Enable virtual node parallelization]) fi
 AM_CONDITIONAL([BGQ],[test "$enable_bgq" == "yes" ],[true],[false])
+AM_CONDITIONAL([USE_VNODES],[test "$enable_bgq" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq... $enable_bgq])
 
 #bgq emulation mode

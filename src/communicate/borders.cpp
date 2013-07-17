@@ -36,8 +36,9 @@
 void comm_setup(comm_t &comm)
 {
   //check that buffers are large enough
-  if(comm.tot_mess_size>nissa_buff_size)
-    crash("asking to create a communicator that need %d large buffer (%d allocated)",comm.tot_mess_size,nissa_buff_size);
+  if(comm.tot_mess_size>std::min(nissa_send_buf_size,nissa_recv_buf_size))
+    crash("asking to create a communicator that need %d large buffer (%d allocated)",
+	  comm.tot_mess_size,std::min(nissa_send_buf_size,nissa_recv_buf_size));
   
   //mark that there is no communication in progress
   comm.comm_in_prog=0;

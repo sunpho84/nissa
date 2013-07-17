@@ -304,8 +304,8 @@ void read_nissa_config_file()
 {
   char path[1024]="nissa_config";
   
-  const int navail_tag=10;
-  char tag_name[10][100]={
+  const int navail_tag=11;
+  char tag_name[11][100]={
     "verbosity_lv",
     "use_128_bit_precision",
     "use_eo_geom",
@@ -315,8 +315,9 @@ void read_nissa_config_file()
     "set_t_nranks",
     "set_x_nranks",
     "set_y_nranks",
-    "set_z_nranks"};
-  char *tag_addr[10]={
+    "set_z_nranks",
+    "vnode_paral_dir"};
+  char *tag_addr[11]={
     (char*)&nissa_verbosity,
     (char*)&nissa_use_128_bit_precision,
     (char*)&nissa_use_eo_geom,
@@ -326,9 +327,10 @@ void read_nissa_config_file()
     (char*)(nissa_set_nranks+0),
     (char*)(nissa_set_nranks+1),
     (char*)(nissa_set_nranks+2),
-    (char*)(nissa_set_nranks+3)};
-  char tag_type[10][3]={"%d","%d","%d","%d","%d","%d","%d","%d","%d","%d"};
-  char tag_size[10]={4,4,4,4,4,4,4,4,4,4};
+    (char*)(nissa_set_nranks+3),
+    (char*)(&nissa_vnode_paral_dir)};
+  char tag_type[11][3]={"%d","%d","%d","%d","%d","%d","%d","%d","%d","%d","%d"};
+  char tag_size[11]={4,4,4,4,4,4,4,4,4,4,4};
   
   if(file_exists(path))
     {

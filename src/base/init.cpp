@@ -16,6 +16,7 @@
 #include "../IO/endianess.h"
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
+#include "../geometry/geometry_Wsklx.h"
 #ifdef BGQ
  #include "../bgq/geometry_bgq.h"
 #endif
@@ -101,6 +102,7 @@ void init_nissa(int narg,char **arg)
   
   //initialize global variables
   nissa_lx_geom_inited=0;
+  nissa_Wsklx_order_inited=0;
   nissa_eo_geom_inited=0;
   nissa_loc_rnd_gen_inited=0;
   nissa_glb_rnd_gen_inited=0;
@@ -125,6 +127,7 @@ void init_nissa(int narg,char **arg)
   nissa_warn_if_not_communicated=nissa_default_warn_if_not_communicated;
   nissa_use_async_communications=nissa_default_use_async_communications;
   for(int mu=0;mu<4;mu++) nissa_set_nranks[mu]=0;
+  nissa_vnode_paral_dir=nissa_default_vnode_paral_dir;
   
   //read the configuration file, if present
   read_nissa_config_file();
@@ -482,7 +485,17 @@ void init_grid(int T,int L)
       if(idir>0) bord_offset[idir]=bord_offset[idir-1]+bord_dir_vol[idir-1];
     }
   bord_vol*=2;  
-
+  
+#ifdef USE_VNODES
+  //two times the size of nissa_vnode_paral_dir face
+  vbord_vol=2*bord_vol/loc_size[nissa_vnode_paral_dir]; //so is not counting all vsites
+  //compute the offset between sites of different vnodes
+  //this amount to the product of the local size of the direction running faster than
+  //nissa_vnode_paral_dir, times half the local size along nissa_vnode_paral_dir
+  vnode_lx_offset=loc_size[nissa_vnode_paral_dir]/nvnodes;
+  for(int mu=nissa_vnode_paral_dir+1;mu<4;mu++) vnode_lx_offset*=loc_size[mu];
+#endif
+  
   //calculate the egdes size
   edge_vol=0;
   edge_offset[0]=0;
@@ -570,6 +583,7 @@ void init_grid(int T,int L)
   
   //set the cartesian and eo geometry
   set_lx_geometry();
+  set_Wsklx_order(); //sink-based
   
   if(nissa_use_eo_geom) set_eo_geometry();
   

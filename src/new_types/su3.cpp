@@ -1253,6 +1253,18 @@ void unsafe_su3_prod_colorspinspin(colorspinspin a,su3 b,colorspinspin c)
 	}
 }
 
+void unsafe_su3_dag_prod_colorspinspin(colorspinspin a,su3 b,colorspinspin c)
+{
+  for(int id_so=0;id_so<4;id_so++)
+    for(int id_si=0;id_si<4;id_si++)
+      for(int c1=0;c1<3;c1++)
+	{
+	  unsafe_complex_conj1_prod(a[c1][id_si][id_so],b[0][c1],c[0][id_si][id_so]);
+	  for(int c2=1;c2<3;c2++)
+	    complex_summ_the_conj1_prod(a[c1][id_si][id_so],b[c2][c1],c[c2][id_si][id_so]);
+	}
+}
+
 void su3_summ_the_prod_colorspinspin(colorspinspin a,su3 b,colorspinspin c)
 {
   for(int id_so=0;id_so<4;id_so++)
@@ -1300,6 +1312,19 @@ void unsafe_su3_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c)
 	  {
 	    unsafe_complex_prod(a[c1][c3][id_si][id_so],b[c1][0],c[0][c3][id_si][id_so]);
 	    for(int c2=1;c2<3;c2++) complex_summ_the_prod(a[c1][c3][id_si][id_so],b[c1][c2],c[c2][c3][id_si][id_so]);
+	  }
+}
+
+void unsafe_su3_dag_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c)
+{
+  for(int id_so=0;id_so<4;id_so++)
+    for(int id_si=0;id_si<4;id_si++)
+      for(int c1=0;c1<3;c1++)
+	for(int c3=0;c3<3;c3++)
+	  {
+	    unsafe_complex_conj1_prod(a[c1][c3][id_si][id_so],b[0][c1],c[0][c3][id_si][id_so]);
+	    for(int c2=1;c2<3;c2++)
+	      complex_summ_the_conj1_prod(a[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
 	  }
 }
 
