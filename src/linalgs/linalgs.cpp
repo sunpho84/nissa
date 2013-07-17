@@ -402,3 +402,17 @@ THREADABLE_FUNCTION_3ARG(rotate_vol_su3spinspin_to_physical_basis, su3spinspin*,
         rotate_spinspin_to_physical_basis(s[ivol][ic1][ic2],rsi,rso);
   set_borders_invalid(s);
 }}
+
+THREADABLE_FUNCTION_3ARG(parallel_memcpy,void*,out, void*,in, int,n)
+{
+#ifdef USE_THREADS
+  GET_THREAD_ID();
+  
+  NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,n,thread_id,NACTIVE_THREADS);
+  memcpy((char*)out+start,(char*)in+start,chunk_load);
+  end++;//to avoid warning
+  THREAD_BARRIER();
+#else
+  memcpy(out,in,n);
+#endif
+}}

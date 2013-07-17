@@ -12,6 +12,7 @@
 #include "../new_types/new_types_definitions.h"
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
+#include "../geometry/geometry_Wsklx.h"
 #ifdef BGQ
  #include "../bgq/geometry_bgq.h"
 #endif
@@ -25,6 +26,7 @@ void close_nissa()
   
   //unset lx geometry
   if(nissa_lx_geom_inited) unset_lx_geometry();
+  if(nissa_Wsklx_order_inited) unset_Wsklx_order();
   
   //unset eo geometry
   if(nissa_eo_geom_inited) unset_eo_geometry();

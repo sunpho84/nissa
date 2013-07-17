@@ -20,6 +20,7 @@ void get_color_from_colorspinspin(color *out,colorspinspin *in,int id1,int id2);
 void get_color_from_spincolor(color *out,spincolor *in,int id);
 void get_spincolor_from_colorspinspin(spincolor *out,colorspinspin *in,int id);
 void get_spincolor_from_su3spinspin(spincolor *out,su3spinspin *in,int id,int ic);
+void parallel_memcpy(void *out,void *in,int n);
 void put_color_into_colorspinspin(colorspinspin *out,color *in,int id1,int id2);
 void put_color_into_spincolor(spincolor *out,color *in,int id);
 void put_spincolor_into_colorspinspin(colorspinspin *out,spincolor *in,int id);

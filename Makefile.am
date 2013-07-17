@@ -15,6 +15,12 @@ thread_src=src/routines/thread.cpp
 thread_hdr=src/routines/thread.h
 endif
 
+#compile or not virtual parallelization
+if USE_VNODES
+vnodes_src_file=src/geometry/geometry_vir.h \
+	src/geometry/geometry_vir.cpp
+endif
+
 #compile or not bgq test and source
 if BGQ
 
@@ -31,8 +37,6 @@ endif
 
 #source
 bgq_src_file=$(bgq_barrier_src_file) \
-	src/bgq/geometry_bgq.h \
-	src/bgq/geometry_bgq.cpp \
 	src/bgq/hopping_matrix_bgq.cpp \
 	src/bgq/hopping_matrix_bgq.h \
 	src/bgq/bgq_macros.h \
@@ -90,6 +94,7 @@ nissa_headers=src/base/close.h \
 	src/geometry/geometry_eo.h \
 	src/geometry/geometry_lx.h \
 	src/geometry/geometry_mix.h \
+	src/geometry/geometry_Wsklx.h \
 	src/hmc/backfield.h \
 	src/hmc/gauge/gluonic_force.h \
 	src/hmc/gauge/tree_level_Symanzik_force.h \
@@ -196,6 +201,7 @@ nissa_source_files=src/base/close.cpp \
 	src/geometry/geometry_eo.cpp \
 	src/geometry/geometry_lx.cpp \
 	src/geometry/geometry_mix.cpp \
+	src/geometry/geometry_Wsklx.cpp \
 	src/hmc/backfield.cpp \
 	src/hmc/gauge/gluonic_force.cpp \
 	src/hmc/gauge/tree_level_Symanzik_force.cpp \
@@ -278,7 +284,8 @@ nissa_source_files=src/base/close.cpp \
 extra_headers=src/new_types/new_types_definitions.h src/base/macros.h src/base/thread_macros.h
 
 #instruct how to build the library
-libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) $(bgq_src_file) $(exp_bgq_src_file) $(spi_src_file)
+libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) \
+	$(vnodes_src_file) $(bgq_src_file) $(exp_bgq_src_file) $(spi_src_file)
 
 #########################################################################################################################
 
@@ -286,6 +293,7 @@ libnissa_a_SOURCES=$(nissa_source_files) $(nissa_headers) $(extra_headers) $(bgq
 bin_PROGRAMS=\
 	projects/generate_confs/generate_stag \
 	$(test_bgq_targ) \
+	projects/semileptonic/test_Wsk \
 	projects/semileptonic/test_cov \
 	projects/semileptonic/test_proj \
 	projects/semileptonic/semileptonic_smeared \
@@ -306,6 +314,7 @@ projects_eight_BK_smeared_BK_all_in_one_SOURCES=projects/eight_BK/smeared_BK_all
 #program for semileptonic smeared 2 and 3 points
 projects_semileptonic_semileptonic_smeared_SOURCES=projects/semileptonic/semileptonic_smeared.cpp $(extra_headers)
 projects_semileptonic_test_cov_SOURCES=projects/semileptonic/test_cov.cpp $(extra_headers)
+projects_semileptonic_test_Wsk_SOURCES=projects/semileptonic/test_Wsk.cpp $(extra_headers)
 if BGQ
 projects_semileptonic_test_bgq_SOURCES=projects/semileptonic/test_bgq.cpp $(extra_headers)
 endif

@@ -1,0 +1,30 @@
+It is assumed that data is computed in two major steps
+1) Local input are combined to produce intermediate 
+   local and non-local data:
+   -the first should be stored in the bulk of a vector v,
+   -the second should be stored in its halo (outer borders).
+   Pointer *inter_fr_in_pos* contains offset inside vector v where
+   to store intermediate data. 
+   When computation of non local-data is finished, halo should
+   be copied into nissa_send_buf and communications started
+   using appropriately initialized communicators
+2) Intermediate temporary data should be combined to form final output
+   starting from both local and non-local received data.
+   Totally local data can be directly combined so to postpone the
+   moment in which non local data must have arrived to destination.
+   Data must be stored to its definitive destination *final_fr_inter_pos*.
+   When data has arrived we must copy it from nissa_recv_buf to its
+   real intermediate dest, again inside the bulk of the intermediate vector
+   to the position pointed by *inter_fr_recv_pos*.
+   After receiving non local data, we compute result requiring it.
+
+If we are using virtual node (register) parallelization we must perform
+also communication between virtual nodes. This is achieved allocating
+additional space at the end of the "v" vector. After computing non-local
+data of first stage, we scan this space unvectorizing it, and putting 
+possible truly non-local data to its intermediate destination.
+We store "v" vectorized borders in the same order of the non-vectorized one,
+so we just scan the first and save in the same order in the second.
+After possibly receiving non-local data, we must scan again the virtual halo
+and combine data with those received in the nissa_recv_buf, putting them into
+definitve location. This is achieved using final_fr_inter_pos with special care.

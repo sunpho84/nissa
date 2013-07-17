@@ -17,13 +17,16 @@
 
 //include bg/q specifics
 #ifdef BGQ
- #include "bgq/geometry_bgq.h"
  #include "bgq/intrinsic.h"
  #include "dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h"
  #include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.h"
 #endif
 #ifdef SPI
  #include "bgq/spi.h"
+#endif
+
+#ifdef USE_VNODES
+ #include "geometry/geometry_vir.h"
 #endif
 
 #include "communicate/communicate.h"
@@ -68,6 +71,7 @@
 #include "geometry/geometry_eo.h"
 #include "geometry/geometry_lx.h"
 #include "geometry/geometry_mix.h"
+#include "geometry/geometry_Wsklx.h"
 
 #include "inverters/twisted_mass/cg_128_invert_tmQ2.h"
 #include "inverters/twisted_mass/cg_invert_tmDeoimpr.h"

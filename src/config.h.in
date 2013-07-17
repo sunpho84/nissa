@@ -56,3 +56,6 @@
 
 /* Enable threads */
 #undef USE_THREADS
+
+/* Enable virtual node parallelization */
+#undef USE_VNODES

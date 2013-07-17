@@ -571,7 +571,6 @@ void ILDG_File_read_checksum(checksum check_read,ILDG_File &file)
       
       sscanf(strstr(mess,"<suma>")+6,"%x",&check_read[0]);
       sscanf(strstr(mess,"<sumb>")+6,"%x",&check_read[1]);
-      
       nissa_free(mess);
     }
   else check_read[0]=check_read[1]=0;

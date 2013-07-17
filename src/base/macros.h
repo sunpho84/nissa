@@ -68,6 +68,11 @@
 #define nissa_default_warn_if_not_disallocated 1
 #define nissa_default_warn_if_not_communicated 0
 #define nissa_default_use_async_communications 1
+#define nissa_default_vnode_paral_dir 0
+
+#ifdef USE_VNODES
+ #define nvnodes 2
+#endif
 
 //Pi
 #ifndef M_PI
