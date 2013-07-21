@@ -30,28 +30,28 @@
   BI_SU3_PREFETCH_NEXT(links[A])
 
 #ifdef BGQ
- #define BORDER_SITE_COPY(base_out,base_in,isrc)	\
+ #define SITE_COPY(base_out,base_in)			\
   {							\
-    void *in=base_in+isrc;				\
-    CACHE_PREFETCH(base_out+isrc);			\
+    void *in=base_in,*out=base_out;			\
     DECLARE_REG_BI_HALFSPINCOLOR(reg_temp);		\
     BI_HALFSPINCOLOR_PREFETCH_NEXT(in);			\
-    REG_LOAD_BI_HALFSPINCOLOR(reg_temp,in);		\
-    void *out=base_out[isrc];				\
+    REG_LOAD_BI_HALFSPINCOLOR(reg_temp,in);		\    
     STORE_REG_BI_HALFSPINCOLOR(out,reg_temp);		\
   }
 #else
- #define BORDER_SITE_COPY(base_out,base_in,isrc) BI_HALFSPINCOLOR_COPY((*(base_out[isrc])),base_in[isrc]);
+ #define SITE_COPY(out,in) BI_HALFSPINCOLOR_COPY(out,in)
 #endif
 
-THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier, bi_oct_su3*,conf, int,istart, int,iend, bi_spincolor*,in)
+THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier, bi_oct_su3*,conf, int,istart, int,iend, bi_spincolor*,in)
 {
   GET_THREAD_ID();
+  
+  bi_halfspincolor *out=(bi_halfspincolor*)nissa_send_buf;
   
   NISSA_PARALLEL_LOOP(ibgqlx,istart,iend)
     {
       //take short access to link and output indexing
-      bi_halfspincolor **out=bgq_hopping_matrix_output_pointer+ibgqlx*8;
+      int *iout=virlx_hopping_matrix_output_pos.inter_fr_in_pos+ibgqlx*8;
       bi_su3 *links=(bi_su3*)(conf+ibgqlx);
       
       //declare
@@ -65,135 +65,140 @@ THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier
       PROJ_HEADER(0);
       REG_BI_COLOR_SUMM(reg_proj_s0,reg_in_s0,reg_in_s2);
       REG_BI_COLOR_SUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
-      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[0])),links[0],reg_proj);
+      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[0]],links[0],reg_proj);
       
       //X backward scatter (forward derivative)
       PROJ_HEADER(1);
       REG_BI_COLOR_ISUMM(reg_proj_s0,reg_in_s0,reg_in_s3);
       REG_BI_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s2);
-      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[1])),links[1],reg_proj);
+      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[1]],links[1],reg_proj);
       
       //Y backward scatter (forward derivative)
       PROJ_HEADER(2);
       REG_BI_COLOR_SUMM(reg_proj_s0,reg_in_s0,reg_in_s3);
       REG_BI_COLOR_SUBT(reg_proj_s1,reg_in_s1,reg_in_s2);
-      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[2])),links[2],reg_proj);
+      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[2]],links[2],reg_proj);
       
       //Z backward scatter (forward derivative)
       PROJ_HEADER(3);
       REG_BI_COLOR_ISUMM(reg_proj_s0,reg_in_s0,reg_in_s2);
       REG_BI_COLOR_ISUBT(reg_proj_s1,reg_in_s1,reg_in_s3);
-      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[3])),links[3],reg_proj);
+      REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[3]],links[3],reg_proj);
       
       //T forward scatter (backward derivative)
       PROJ_HEADER(4);
       REG_BI_COLOR_SUBT(reg_proj_s0,reg_in_s0,reg_in_s2);
       REG_BI_COLOR_SUBT(reg_proj_s1,reg_in_s1,reg_in_s3);
-      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[4])),links[4],reg_proj);
+      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[4]],links[4],reg_proj);
       
       //X forward scatter (backward derivative)
       PROJ_HEADER(5);
       REG_BI_COLOR_ISUBT(reg_proj_s0,reg_in_s0,reg_in_s3);
       REG_BI_COLOR_ISUBT(reg_proj_s1,reg_in_s1,reg_in_s2);
-      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[5])),links[5],reg_proj);
+      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[5]],links[5],reg_proj);
 
       //Y forward scatter (backward derivative)
       PROJ_HEADER(6);
       REG_BI_COLOR_SUBT(reg_proj_s0,reg_in_s0,reg_in_s3);
       REG_BI_COLOR_SUMM(reg_proj_s1,reg_in_s1,reg_in_s2);
-      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[6])),links[6],reg_proj);
+      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[6]],links[6],reg_proj);
       
       //Z forward scatter (backward derivative)
       PROJ_HEADER(7);
       REG_BI_COLOR_ISUBT(reg_proj_s0,reg_in_s0,reg_in_s2);
       REG_BI_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
-      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE((*(out[7])),links[7],reg_proj);
+      REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[7]],links[7],reg_proj);
     }
 }}
   
-//swap border between VN and, if T is really parallelized, fill send buffers
-THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill)
+//swap border between VN and, if virtual parallelized dir is really parallelized, fill send buffers
+THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_vdir_VN_comm_and_buff_fill)
 {
   GET_THREAD_ID();
   
-  //T buffers might have been filled in another order
+  //vdir buffers might have been filled in another order
   THREAD_BARRIER();
   
   //form two thread team
   FORM_TWO_THREAD_TEAMS();
   
-  ///////////////////////// bw scattered T derivative (fw derivative)  ////////////////////////
+  //short access
+  int v=nissa_vnode_paral_dir;
+  bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)nissa_send_buf+bord_volh; //half vol bisp = vol sp 
+  bi_halfspincolor *bgq_hopping_matrix_output_vdir_buffer=bgq_hopping_matrix_output_data+8*loc_volh;
+  
+  ///////////////////////// bw scattered v derivative (fw derivative)  ////////////////////////
   
   if(is_in_first_team)
-    if(paral_dir[0])
+    if(paral_dir[v])
       {
-	//split bw T border: VN 0 goes to bw out border (first half), VN 1 goes to VN 0 fw surf
-	NISSA_CHUNK_LOOP(isrc,0,bgqlx_t_vbord_vol/4,thread_in_team_id,nthreads_in_team)
+	//split bw v border: VN 0 goes to bw out border (first half)
+	NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4,thread_in_team_id,nthreads_in_team)
 	  {
-	    //non-local shuffling: must enter bw buffer for direction 0
-	    int idst_buf=2*isrc;
+	    //the source starts at the middle of result border buffer
+	    int isrc=2*base_isrc; //we match 2 sites
+	    //non-local shuffling: must enter bw buffer for direction v
+	    int idst_buf=base_isrc;
 	    //load the first
 	    DECLARE_REG_BI_HALFSPINCOLOR(in0);
-	    REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[2*isrc]);
+	    REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
 	    //load the second
 	    DECLARE_REG_BI_HALFSPINCOLOR(in1);
-	    REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_T_buffer[2*isrc+1]);
+	    REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
 	    //merge the two and save
 	    DECLARE_REG_BI_HALFSPINCOLOR(to_buf);
 	    REG_BI_HALFSPINCOLOR_V0_MERGE(to_buf,in0,in1);
-	    STORE_REG_BI_HALFSPINCOLOR(((halfspincolor*)nissa_send_buf)[idst_buf],to_buf);
+	    STORE_REG_BI_HALFSPINCOLOR(((bi_halfspincolor*)nissa_send_buf)[idst_buf],to_buf);
 	  }
       }
     else
       //we have only to transpose between VN, and no real communication happens
-      NISSA_CHUNK_LOOP(isrc,0,bgqlx_t_vbord_vol/2,thread_in_team_id,nthreads_in_team)
+      NISSA_CHUNK_LOOP(isrc,0,vbord_vol/2,thread_in_team_id,nthreads_in_team)
 	{
-	  //look at previous idst_loc for explenation
-	  int idst=8*bgqlx_of_loclx[loclx_neighdw[isrc+loc_volh][0]];
-	  BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_T_buffer[isrc]);
+	  int idst=8*virlx_of_loclx[loclx_neighdw[isrc+vnode_lx_offset][v]]+0+v;
+	  BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_vdir_buffer[isrc]);
 	}
   
-  ///////////////////////// fw scattered T derivative (bw derivative)  ////////////////////////
+  ///////////////////////// fw scattered v derivative (bw derivative)  ////////////////////////
   
   if(is_in_second_team)
     if(paral_dir[0])
       {
-	//split fw T border: VN 1 goes to fw out border (second half), VN 0 goes to VN 1 of t=0 surf
-	NISSA_CHUNK_LOOP(base_isrc,0,bgqlx_t_vbord_vol/4,thread_in_team_id,nthreads_in_team)
+	//split fw v border: VN 1 goes to fw out border (second half)
+	NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4,thread_in_team_id,nthreads_in_team)
 	  {
 	    //the source starts at the middle of result border buffer
-	    int isrc=2*base_isrc+bgqlx_t_vbord_vol/2;
-	    //non-local shuffling: must enter fw buffer for direction 0
-	    int idst_buf=bord_volh+2*base_isrc;
+	    int isrc=2*base_isrc+vbord_vol/2;
+	    //non-local shuffling: must enter fw buffer (starting at bord_volh/2 because its bi) for direction 0
+	    int idst_buf=bord_volh/2+base_isrc;
 	    //load the first
 	    DECLARE_REG_BI_HALFSPINCOLOR(in0);
-	    REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[isrc]);
+	    REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
 	    //load the second
 	    DECLARE_REG_BI_HALFSPINCOLOR(in1);
-	    REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_T_buffer[isrc+1]);
+	    REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
 	    //merge the two and save
 	    DECLARE_REG_BI_HALFSPINCOLOR(to_buf);
 	    REG_BI_HALFSPINCOLOR_V1_MERGE(to_buf,in0,in1);
-	    STORE_REG_BI_HALFSPINCOLOR(((halfspincolor*)nissa_send_buf)[idst_buf],to_buf);
+	    STORE_REG_BI_HALFSPINCOLOR(((bi_halfspincolor*)nissa_send_buf)[idst_buf],to_buf);
 	  }
       }
     else
       //we have only to transpose between VN
-      NISSA_CHUNK_LOOP(base_isrc,0,bgqlx_t_vbord_vol/2,thread_in_team_id,nthreads_in_team)
+      NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/2,thread_in_team_id,nthreads_in_team)
 	{
 	  //the source starts at the middle of result border buffer
-	  int isrc=base_isrc+bgqlx_t_vbord_vol/2;
-	  //look at previous VN=0 for explenation
-	  int idst=8*(bord_volh+base_isrc)+4;
-	  BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_T_buffer[isrc]);
+	  int isrc=base_isrc+vbord_vol/2;
+	  int idst=8*(vnode_lx_offset+base_isrc)+4+v;
+	  BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_vdir_buffer[isrc]);
 	}
 }}
 
 //perform communications between VN and start all the communications between nodes
-THREADABLE_FUNCTION_0ARG(start_Wilson_hopping_matrix_bgq_binded_communications)
+THREADABLE_FUNCTION_0ARG(start_Wilson_hopping_matrix_bgq_communications)
 {
-  //shuffle data between virtual nodes and fill T out buffer
-  bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill();
+  //shuffle data between virtual nodes and fill vdir out buffer
+  bgq_Wilson_hopping_matrix_vdir_VN_comm_and_buff_fill();
   
   //after the barrier, all buffers are filled and communications can start
   THREAD_BARRIER();
@@ -203,83 +208,97 @@ THREADABLE_FUNCTION_0ARG(start_Wilson_hopping_matrix_bgq_binded_communications)
 }}
 
 //finish the communications and put in place the communicated data
-THREADABLE_FUNCTION_0ARG(finish_Wilson_hopping_matrix_bgq_binded_communications)
+THREADABLE_FUNCTION_0ARG(finish_Wilson_hopping_matrix_bgq_communications)
 {
   GET_THREAD_ID();
   FORM_TWO_THREAD_TEAMS();
   
+  //short access
+  int v=nissa_vnode_paral_dir;
+  int *def_pos=virlx_hopping_matrix_output_pos.inter_fr_recv_pos;
+  
   //wait communications end
   comm_wait(lx_halfspincolor_comm);
   
-  //T bw border (bw derivative): data goes to VN 0
+  //vdir bw border (bw derivative): data goes to VN 0
   if(is_in_first_team)
     {
-      bi_halfspincolor **base_out=bgq_hopping_matrix_final_output;
-      halfspincolor *base_in=(halfspincolor*)nissa_recv_buf;
+      //inside incoming borders vdir is ordered naturally, while in the output data it comes first
+      bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh;
+      bi_halfspincolor *base_vdir_in=base_out+8*loc_volh+vbord_vol/2;
+      bi_halfspincolor *base_bord_in=(bi_halfspincolor*)nissa_recv_buf+bord_offset[v]/2;
       
-      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[0]/2,thread_in_team_id,nthreads_in_team)
+      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[v]/2,thread_in_team_id,nthreads_in_team)
 	{
 	  //VN=0 must be filled with border
 	  DECLARE_REG_BI_HALFSPINCOLOR(in0);
-	  REG_LOAD_BI_HALFSPINCOLOR(in0,base_in[2*isrc]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in0,base_bord_in[isrc]);
 	  //VN=1 with buf0
 	  DECLARE_REG_BI_HALFSPINCOLOR(in1);
-	  REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_T_buffer[2*isrc+bgqlx_t_vbord_vol/2]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in1,base_vdir_in[2*isrc]);
 	  //merge and save
 	  DECLARE_REG_BI_HALFSPINCOLOR(to_dest);
 	  REG_BI_HALFSPINCOLOR_V0_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[2*isrc])),to_dest);
+	  STORE_REG_BI_HALFSPINCOLOR(base_out[2*isrc],to_dest);
 	  
 	  //VN=1 with buf1
-	  REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_T_buffer[2*isrc+1+bgqlx_t_vbord_vol/2]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in1,base_vdir_in[2*isrc+1]);
 	  //merge and save
 	  REG_BI_HALFSPINCOLOR_V10_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[2*isrc+1])),to_dest);
+	  STORE_REG_BI_HALFSPINCOLOR(base_out[2*isrc+1],to_dest);
 	}
     }
   
   //other 3 bw borders
   if(is_in_first_team)
-    {
-      bi_halfspincolor **base_out=bgq_hopping_matrix_final_output+bord_dir_vol[0];
-      bi_halfspincolor *base_in=(bi_halfspincolor*)(nissa_recv_buf+sizeof(bi_halfspincolor)*bord_dir_vol[0]/2);
-      NISSA_CHUNK_LOOP(isrc,0,bord_vol/4-bord_dir_vol[0]/2,thread_in_team_id,nthreads_in_team)
-	BORDER_SITE_COPY(base_out,base_in,isrc);
-    }
+    for(int mu=0;mu<4;mu++)
+      if(mu!=v)
+	{
+	  bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh;
+	  bi_halfspincolor *base_in=(bi_halfspincolor*)nissa_recv_buf;
+	  NISSA_CHUNK_LOOP(isrc,bord_offset[mu]/2,bord_offset[mu]/2+bord_dir_vol[mu]/2,
+			   thread_in_team_id,nthreads_in_team)
+	    SITE_COPY(base_out[def_pos[isrc]],base_in[isrc]);
+	}
   
-  //T fw border (fw derivative): data goes to VN 1
+  //v fw border (fw derivative): data goes to VN 1
   if(is_in_second_team)
     {
-      bi_halfspincolor **base_out=bgq_hopping_matrix_final_output+bord_dir_vol[0]/2+bord_vol/4;
-      halfspincolor *base_in=(halfspincolor*)(nissa_recv_buf+sizeof(bi_halfspincolor)*bord_vol/4);
+      //inside incoming borders vdir is ordered naturally, while in the output data it comes first
+      bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh+bord_dir_vol[v]/2;
+      bi_halfspincolor *base_vdir_in=base_out+8*loc_volh;
+      bi_halfspincolor *base_bord_in=(bi_halfspincolor*)nissa_recv_buf+bord_vol/4+bord_offset[v]/2;
       
       NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[0]/2,thread_in_team_id,nthreads_in_team)
 	{
 	  //VN=0 with buf1
 	  DECLARE_REG_BI_HALFSPINCOLOR(in0);
-	  REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[2*isrc]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in0,base_vdir_in[2*isrc]);
 	  //VN=1 must be filled with border 0
 	  DECLARE_REG_BI_HALFSPINCOLOR(in1);
-	  REG_LOAD_BI_HALFSPINCOLOR(in1,base_in[2*isrc]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in1,base_bord_in[isrc]);
 	  //merge and save
 	  DECLARE_REG_BI_HALFSPINCOLOR(to_dest);
 	  REG_BI_HALFSPINCOLOR_V10_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[2*isrc])),to_dest);
+	  STORE_REG_BI_HALFSPINCOLOR(base_out[2*isrc],to_dest);
 	  
 	  //VN=0 with buf1
-	  REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_T_buffer[2*isrc+1]);
+	  REG_LOAD_BI_HALFSPINCOLOR(in0,base_vdir_in[2*isrc+1]);
 	  //merge and save
 	  REG_BI_HALFSPINCOLOR_V1_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR((*(base_out[2*isrc+1])),to_dest);
+	  STORE_REG_BI_HALFSPINCOLOR(base_out[2*isrc+1],to_dest);
 	}
     }
   
   //other 3 fw borders
   if(is_in_second_team)
-    {
-      bi_halfspincolor **base_out=bgq_hopping_matrix_final_output+3*bord_dir_vol[0]/2+bord_vol/4;
-      bi_halfspincolor *base_in=(bi_halfspincolor*)(nissa_recv_buf+sizeof(bi_halfspincolor)*(bord_dir_vol[0]/2+bord_vol/4));
-      NISSA_CHUNK_LOOP(isrc,0,bord_vol/4-bord_dir_vol[0]/2,thread_in_team_id,nthreads_in_team)
-	BORDER_SITE_COPY(base_out,base_in,isrc);
-    }
+    for(int mu=0;mu<4;mu++)
+      if(mu!=v)
+	{
+	  bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh;
+	  bi_halfspincolor *base_in=(bi_halfspincolor*)nissa_recv_buf+bord_vol/4;
+	  NISSA_CHUNK_LOOP(isrc,bord_offset[mu]/2,bord_offset[mu]/2+bord_dir_vol[mu]/2,
+			   thread_in_team_id,nthreads_in_team)
+	    SITE_COPY(base_out[def_pos[isrc]],base_in[isrc]);
+	}
 }}

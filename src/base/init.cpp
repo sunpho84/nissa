@@ -17,8 +17,8 @@
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
 #include "../geometry/geometry_Wsklx.h"
-#ifdef BGQ
- #include "../bgq/geometry_bgq.h"
+#ifdef USE_VNODES
+ #include "../geometry/geometry_vir.h"
 #endif
 #include "../new_types/dirac.h"
  #include "../new_types/su3.h"
@@ -587,8 +587,8 @@ void init_grid(int T,int L)
   
   if(nissa_use_eo_geom) set_eo_geometry();
   
-#ifdef BGQ
-  set_bgq_geometry();
+#ifdef USE_VNODES
+  set_vir_geometry();
 #endif
 
   ///////////////////////////////////// start communicators /////////////////////////////////
@@ -627,6 +627,7 @@ void init_grid(int T,int L)
       set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
     }
   
+  /*
   //check that everything is fine
   quad_su3 *testing=nissa_malloc("testing",loc_vol+bord_vol+edge_vol,quad_su3);
   for(int ivol=0;ivol<loc_vol;ivol++)
@@ -641,7 +642,7 @@ void init_grid(int T,int L)
 	if(expe!=obte) crash("expecting %d, obtained %d on rank %d",expe,obte,rank);
       }
   nissa_free(testing);
-
+  */
   //take final time
   master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());
 }

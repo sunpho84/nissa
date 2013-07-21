@@ -26,7 +26,7 @@
   BI_HALFSPINCOLOR_PREFETCH_NEXT(piece);				\
   REG_BI_HALFSPINCOLOR_SUMM(reg_out,reg_out,reg_temp);
 
-THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binded, bi_spincolor*,out, double,kappa, double,mu, bi_spincolor*,in)
+THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq, bi_spincolor*,out, double,kappa, double,mu, bi_spincolor*,in)
 {
   GET_THREAD_ID();
   
@@ -46,6 +46,8 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
   
   //wait that all the terms are put in place
   THREAD_BARRIER();
+  
+  bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)nissa_send_buf+bord_volh;
   
   NISSA_PARALLEL_LOOP(i,0,loc_volh)
     {
@@ -140,14 +142,16 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binde
 
 THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, double,mu, bi_spincolor*,in)
 {
+  int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol; //half the bord in the 3 non vdir
+  
   //compute on the surface and start communications
-  apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier(conf,0,bgq_vsurf_vol,in);
-  start_Wilson_hopping_matrix_bgq_binded_communications();
+  apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier(conf,0,vsurf_vol,in);
+  start_Wilson_hopping_matrix_bgq_communications();
   
   //compute on the bulk and finish communications
-  apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier(conf,bgq_vsurf_vol,loc_volh,in);
-  finish_Wilson_hopping_matrix_bgq_binded_communications();
+  apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier(conf,vsurf_vol,loc_volh,in);
+  finish_Wilson_hopping_matrix_bgq_communications();
   
   //put together all the 8 pieces
-  hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binded(out,kappa,mu,in);
+  hopping_matrix_expand_to_Q_and_summ_diag_term_bgq(out,kappa,mu,in);
 }}

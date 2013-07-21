@@ -51,13 +51,14 @@ void get_args_of_one_over_L2_quantization(coords phase,int ivol,int mu,int nu)
   phase[0]=phase[1]=phase[2]=phase[3]=0;
 
   //take absolute coords
-  double xmu=glb_coord_of_loclx[ivol][mu];
-  double xnu=glb_coord_of_loclx[ivol][nu];
+  int xmu=glb_coord_of_loclx[ivol][mu];
+  int xnu=glb_coord_of_loclx[ivol][nu];
+  if(xmu>=glb_size[mu]/2) xmu-=glb_size[mu];
+  if(xnu>=glb_size[nu]/2) xnu-=glb_size[nu];
   
   //define the arguments of exponentials
-  //added +1 for compatibilty with fortran code
-  if(xmu==(glb_size[mu]-1)) phase[mu]=-(xnu+1)*glb_size[mu];
-  phase[nu]=xmu+1;
+  if(xmu==glb_size[mu]/2-1) phase[mu]=-xnu*glb_size[mu];
+  phase[nu]=xmu;
 }
 
 //multiply a background field by a constant em field

@@ -246,17 +246,12 @@ EXTERN two_stage_computation_pos_t Wsklx_hopping_matrix_output_pos;
 EXTERN two_stage_computation_pos_t virlx_hopping_matrix_output_pos;
 #endif
 
-/////////////////////////////////////////// BGQ specifics ///////////////////////////////////
+/////////////////////////////////////////// VNODES specifics ///////////////////////////////////
 
-#ifdef BGQ
+#ifdef USE_VNODES
 
-//indices of remapping and output hopping matrix
-EXTERN int *bgqlx_of_loclx,*loclx_of_bgqlx;
-EXTERN bi_halfspincolor *bgq_hopping_matrix_output_data;
-EXTERN bi_halfspincolor **bgq_hopping_matrix_output_pointer;
-EXTERN bi_halfspincolor *bgq_hopping_matrix_output_T_buffer;
-EXTERN bi_halfspincolor **bgq_hopping_matrix_final_output;
-EXTERN int bgqlx_t_vbord_vol,bgq_vsurf_vol;
+EXTERN int *virlx_of_loclx,*loclx_of_virlx;
+EXTERN int virlx_t_vbord_vol,vir_vsurf_vol;
 
 #endif
 
