@@ -155,7 +155,7 @@ template <class T> void gaussian_smearing_iter(T *out,T *in,oct_su3 *conf,double
 
   if(get_nissa_vec(temp)->nel<8*loc_vol+bord_vol) crash("allocate border for temp vector");
   
-#ifndef BGQ
+#ifndef BGQCACCA
   const int ndouble_per_site=sizeof(T)/sizeof(double);
 #else
   int nbi_complex_per_site=sizeof(T)/sizeof(bi_complex);

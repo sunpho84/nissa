@@ -60,8 +60,10 @@ void count_corr(char *path)
 	int ntest2=sscanf(line+strlen(test1)+3,"%s",test2);
 	
 	if(ntest1>0)
-	  if(ntest2<=0) ncorr++;
-	  else ncombo++;
+	  {
+	    if(ntest2<=0) ncorr++;
+	    else ncombo++;
+	  }
       }
   
   ncorr_type=ncorr/ncombo;
@@ -73,8 +75,8 @@ void count_corr(char *path)
   //alloc space for the name of corrs and outpath
   corr_name=(sa_string*)malloc(ncorr_type*sizeof(sa_string));
   outpath=(sa_string*)malloc(ncorr*sizeof(sa_string));
-  pos=(int*)malloc(nconfs*sizeof(int));
-  memset(pos,0,sizeof(int)*nconfs);
+  pos=(int*)malloc(nconfs_teo*sizeof(int));
+  memset(pos,0,sizeof(int)*nconfs_teo);
   
   //go to the file start and load all corr type names
   fseek(fin,0,SEEK_SET);  
@@ -101,8 +103,8 @@ void count_corr(char *path)
   //compute the total amount of memory needed
   uint64_t max_mem_needed=(uint64_t)ncombo*combo_size;
   
-  printf("max memory needed: %llu\n",max_mem_needed);
-  printf("max memory usable: %llu\n",max_mem_usable);
+  printf("max memory needed: %ju\n",max_mem_needed);
+  printf("max memory usable: %ju\n",max_mem_usable);
   
   //count number of blocks needed
   if(max_mem_needed<max_mem_usable) nblock=1;
@@ -126,7 +128,7 @@ void count_corr(char *path)
   mem_asked=ncombo_per_block*combo_size;
   
   printf("\n");
-  printf(" memory asked: %llu\n",mem_asked);
+  printf(" memory asked: %ju\n",mem_asked);
   printf(" nblock: %d\n",nblock);
   printf(" ncombo per block: %d\n",ncombo_per_block);
   printf("\n");
@@ -169,7 +171,7 @@ void parse_conf(int iconf,char *path,int &start)
 	    if(succ!=line) crash("file ended before finishing reading");
 
 	    nonblank=0;
-	    for(int i=0;i<strlen(line)-1;i++) nonblank+=(line[i]!=' ');
+	    for(size_t i=0;i<strlen(line)-1;i++) nonblank+=(line[i]!=' ');
 	  }
 	while(line[1]=='#' || strlen(line)<= 1||!nonblank);
 	
@@ -187,7 +189,7 @@ void parse_conf(int iconf,char *path,int &start)
 		  {
 		    if(line!=fgets(line,1024,file)) crash("error reading line, obtained: %s",line);
 		    nonblank=0;
-		    for(int i=0;i<strlen(line)-1;i++) nonblank+=(line[i]!=' ');
+		    for(size_t i=0;i<strlen(line)-1;i++) nonblank+=(line[i]!=' ');
 		  }
 		while(strlen(line)<=1||!nonblank);
 	      }
@@ -306,6 +308,7 @@ int main(int narg,char **arg)
 		}
 	      
 	      int n=fwrite((void*)(data+ncombo_per_block*2*T*(njack+1)*icorr_type),sizeof(double),ncombo_per_block*2*T*(njack+1),file);
+	      if(n!=ncombo_per_block*2*T*(njack+1)) crash("obtanied %d instead of %d",n,ncombo_per_block*2*T*(njack+1));
 	      fclose(file);
 	    }
 	  

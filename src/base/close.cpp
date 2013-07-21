@@ -13,8 +13,8 @@
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
 #include "../geometry/geometry_Wsklx.h"
-#ifdef BGQ
- #include "../bgq/geometry_bgq.h"
+#ifdef USE_VNODES
+ #include "../geometry/geometry_vir.h"
 #endif
 #include "../hmc/gauge/tree_level_Symanzik_force.h"
 #include "../hmc/gauge/tree_level_Symanzik_action.h"
@@ -31,8 +31,8 @@ void close_nissa()
   //unset eo geometry
   if(nissa_eo_geom_inited) unset_eo_geometry();
 
-#ifdef BGQ
-  unset_bgq_geometry();
+#ifdef USE_VNODES
+  unset_vir_geometry();
 #endif
   
   //stop the random generator

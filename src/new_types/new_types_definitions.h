@@ -207,12 +207,13 @@ struct two_stage_computation_pos_t
   {
     inter_fr_in_pos=final_fr_inter_pos=inter_fr_recv_pos=NULL;
   }
-  ~two_stage_computation_pos_t()
+  void free()
   {
     if(inter_fr_in_pos!=NULL) nissa_free(inter_fr_in_pos);
     if(final_fr_inter_pos!=NULL) nissa_free(final_fr_inter_pos);
     if(inter_fr_recv_pos!=NULL) nissa_free(inter_fr_recv_pos);
   }
+  ~two_stage_computation_pos_t() {free();}
 };
 
 //rational approximation

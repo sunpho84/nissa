@@ -105,50 +105,52 @@ void set_spi_hints()
 	//reset fifo map
 	spi_fifo_map[idir]=fifo_mapP[0]|fifo_mapP[1]|fifo_mapP[2]|fifo_mapP[3]|fifo_mapP[4]|
  	                   fifo_mapM[0]|fifo_mapM[1]|fifo_mapM[2]|fifo_mapM[3]|fifo_mapM[4];
-	spi_hint_ABCD[idir]=0;
-	
+	spi_hint_ABCD[idir]=spi_hint_E[idir]=0;
+
+#ifdef HINTS_DEBUG
+  printf("----rank %d\n",rank);
+#endif
 	//search ABCD hints
 	for(int tdir=0;tdir<4;tdir++)
 	  {
-#ifdef HINTS_DEBUG
-	    char FLAG[]="ABCD";
-	    master_printf(" checking hint %c\n",FLAG[tdir]);
-#endif
 	    //check that all but tdir (in ABCD) are equals
 	    int ort_eq=1;
 	    for(int sdir=0;sdir<5;sdir++)
 	      if(tdir!=sdir)
 		ort_eq&=(spi_dest_coord[idir][sdir]==spi_rank_coord[sdir]);
 	    
+#ifdef HINTS_DEBUG
+	    char FLAG[]="ABCD";
+	    printf("Ext dir rank %d %d, spi dir %d (hint %c), ort_eq %d\n",rank,idir,tdir,FLAG[tdir],ort_eq);
+#endif
 	    //if are equals, check that we are neighbours
 	    if(ort_eq)
 	      {
 		if((spi_dest_coord[idir][tdir]==spi_rank_coord[tdir]-1)||
 		   (spi_dir_is_torus[tdir]&&spi_dest_coord[idir][tdir]==spi_dir_size[tdir]-1&&spi_rank_coord[tdir]==0))
 		  {
-#ifdef HINTS_DEBUG
-		    master_printf(" found 1\n");
-#endif
 		    spi_hint_ABCD[idir]=hintM[tdir];
 		    spi_fifo_map[idir]=fifo_mapM[tdir];
+#ifdef HINTS_DEBUG
+		    printf(" rank %d (c %d, n %d, s %d, t %d) found 1\n",rank,spi_rank_coord[tdir],
+			   spi_dest_coord[idir][tdir],spi_dir_size[tdir],spi_dir_is_torus[tdir]);
+#endif
 		  }
 		if((spi_dest_coord[idir][tdir]==spi_rank_coord[tdir]+1)||
 		   (spi_dir_is_torus[tdir]&&spi_dest_coord[idir][tdir]==0&&spi_rank_coord[tdir]==spi_dir_size[tdir]-1))
 		  {
-#ifdef HINTS_DEBUG
-		    master_printf(" found 2\n");
-#endif
 		    spi_hint_ABCD[idir]=hintP[tdir];
 		    spi_fifo_map[idir]=fifo_mapP[tdir];
+#ifdef HINTS_DEBUG
+		    printf(" rank %d (c %d, n %d, s %d, t %d) found 2\n",rank,spi_rank_coord[tdir],
+			   spi_dest_coord[idir][tdir],spi_dir_size[tdir],spi_dir_is_torus[tdir]);
+#endif
 		  }
 	      }
-#ifdef HINTS_DEBUG
-	    master_printf("Ext dir %d, spi dir %d, ort_eq %d\n",idir,tdir,ort_eq);
-#endif
 	  }
 	
 #ifdef HINTS_DEBUG
-	master_printf(" checking hint E\n");
+	printf("Checking rank %d hint E\n",rank);
 #endif
 	//find if all but E are equals
 	int ort_E_eq=1;
@@ -159,25 +161,29 @@ void set_spi_hints()
 	  {
 	    if(idir<4)
 	      {
-#ifdef HINTS_DEBUG
-		master_printf(" found 1\n");
-#endif
 		spi_hint_E[idir]=MUHWI_PACKET_HINT_EP;
 		spi_fifo_map[idir]=fifo_mapP[4];
+#ifdef HINTS_DEBUG
+		printf(" rank %d found 1: %u\n",rank,spi_hint_E[idir]);
+#endif
 	      }
 	    else
 	      {
-#ifdef HINTS_DEBUG
-		master_printf(" found 2\n");
-#endif
 		spi_hint_E[idir]=MUHWI_PACKET_HINT_EM;
 		spi_fifo_map[idir]=fifo_mapM[4];
-	      }
 #ifdef HINTS_DEBUG
-	    master_printf(" hint E: %u\n",spi_hint_E[idir]);
+		printf(" rank %d found 2: %u\n",rank,spi_hint_E[idir]);
 #endif
+	      }
 	  }
       }
+      
+#ifdef HINTS_DEBUG
+  printf("----rank %d\n",rank);
+  for(int idir=0;idir<8;idir++)
+    printf("Conclusions: rank %d, dir %d, ABCD hint: %d, E: %d\n",rank,idir,spi_hint_ABCD[idir],spi_hint_E[idir]);
+  printf("----rank %d\n",rank);
+#endif
 }
 
 //initialize the spi communications
@@ -240,7 +246,7 @@ void init_spi()
   
       //get physical address of receiving buffer
       Kernel_MemoryRegion_t mem_region;
-      if(Kernel_CreateMemoryRegion(&mem_region,nissa_recv_buf,nissa_buff_size))
+      if(Kernel_CreateMemoryRegion(&mem_region,nissa_recv_buf,nissa_recv_buf_size))
 	crash("creating nissa_recv_buf memory region");
   
       //set the physical address
@@ -258,7 +264,7 @@ void init_spi()
       spi_recv_counter=0;
 
       //get the send buffer physical address
-      if(Kernel_CreateMemoryRegion(&mem_region,nissa_send_buf,nissa_buff_size)) crash("creating memory region");
+      if(Kernel_CreateMemoryRegion(&mem_region,nissa_send_buf,nissa_send_buf_size)) crash("creating memory region");
       spi_send_buf_phys_addr=(uint64_t)nissa_send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
       
       //find hints for descriptors
@@ -290,14 +296,13 @@ void spi_descriptor_setup(comm_t &in)
 	dinfo.Base.Payload_Address=spi_send_buf_phys_addr+in.send_offset[idir];
 	dinfo.Base.Message_Length=in.message_length[idir];
 	dinfo.Base.Torus_FIFO_Map=spi_fifo_map[idir];
-	//MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_AP|
-	//MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_BP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CM|
-	//MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_CP|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_DP|
-	//MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EM|MUHWI_DESCRIPTOR_TORUS_FIFO_MAP_EP;
 	dinfo.Base.Dest=in.spi_dest[idir];
-	dinfo.Pt2Pt.Hints_ABCD=0;//spi_hint_ABCD[idir]; //this is not working...
+	printf("rank %d setting ABCD hint for dir %d to %u\n",rank,idir,spi_hint_ABCD[idir]);
+	dinfo.Pt2Pt.Hints_ABCD=0; //this is not working...
 
-	dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE|spi_hint_E[idir];
+	dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE;
+	//|spi_hint_E[idir]; and this as well
+	printf("rank %d setting E hint for dir %d to %u\n",rank,idir,spi_hint_E[idir]);
 	dinfo.Pt2Pt.Misc2=MUHWI_PACKET_VIRTUAL_CHANNEL_DETERMINISTIC;
 	dinfo.Pt2Pt.Skip=8; //for checksumming, skip the header
 	dinfo.DirectPut.Rec_Payload_Base_Address_Id=spi_bat_id[0];

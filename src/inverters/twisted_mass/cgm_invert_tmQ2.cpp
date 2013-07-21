@@ -11,7 +11,7 @@
 #include "../../new_types/new_types_definitions.h"
 
 #ifdef BGQ
- #include "../../bgq/geometry_bgq.h"
+ #include "../../geometry/geometry_vir.h"
  #include "inverters/twisted_mass/cgm_invert_tmQ2_bgq.h"
 #endif
 
@@ -58,9 +58,9 @@ void inv_tmQ2_RL_cgm(spincolor **sol,quad_su3 *conf,double kappa,int RL,double *
     {
       //bufferize and remap
       bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
-      lx_conf_remap_to_bgqlx(bi_conf,conf);
+      lx_conf_remap_to_virlx(bi_conf,conf);
       bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh,bi_spincolor);
-      lx_spincolor_remap_to_bgqlx(bi_source,source);
+      lx_spincolor_remap_to_virlx(bi_source,source);
       bi_spincolor *bi_sol[nmass];
       for(int imass=0;imass<nmass;imass++)
 	bi_sol[imass]=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
@@ -70,7 +70,7 @@ void inv_tmQ2_RL_cgm(spincolor **sol,quad_su3 *conf,double kappa,int RL,double *
       //unmap and free
       for(int imass=0;imass<nmass;imass++)
 	{
-	  bgqlx_spincolor_remap_to_lx(sol[imass],bi_sol[imass]);
+	  virlx_spincolor_remap_to_lx(sol[imass],bi_sol[imass]);
 	  nissa_free(bi_sol[imass]);
 	}
       nissa_free(bi_source);

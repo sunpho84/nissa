@@ -3,9 +3,9 @@
 #include "../../src/bgq/hopping_matrix_bgq.h"
 #include <firmware/include/personality.h>
 
-void hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binded(bi_spincolor *out,double kappa,double mu,bi_spincolor *in);
-void bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill();
-void finish_Wilson_hopping_matrix_bgq_binded_communications();
+void hopping_matrix_expand_to_Q_and_summ_diag_term_bgq(bi_spincolor *out,double kappa,double mu,bi_spincolor *in);
+void bgq_Wilson_hopping_matrix_vdir_VN_comm_and_buff_fill();
+void finish_Wilson_hopping_matrix_bgq_communications();
 
 const int nbench=100,nbench_port=10;
 
@@ -429,11 +429,11 @@ void in_main(int narg,char **arg)
 
   //remap conf to bgq
   bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_vol+bord_vol,bi_oct_su3);
-  lx_conf_remap_to_bgqlx(bi_conf,conf);
+  lx_conf_remap_to_virlx(bi_conf,conf);
   
   //remap in to bgq
   bi_spincolor *bi_in=nissa_malloc("bi_in",loc_vol+bord_vol,bi_spincolor);
-  lx_spincolor_remap_to_bgqlx(bi_in,in);
+  lx_spincolor_remap_to_virlx(bi_in,in);
   
   //apply bgq
   bi_spincolor *bi_out=nissa_malloc("bi_out",loc_vol+bord_vol,bi_spincolor);
@@ -445,7 +445,7 @@ void in_main(int narg,char **arg)
   
   //unmap to compare
   spincolor *un_out=nissa_malloc("un_out",loc_vol+bord_vol,spincolor);
-  bgqlx_spincolor_remap_to_lx(un_out,bi_out);
+  virlx_spincolor_remap_to_lx(un_out,bi_out);
   
   //compute average diff
   double diff;
@@ -456,7 +456,7 @@ void in_main(int narg,char **arg)
   //benchmark pure hopping matrix application
   double hop_bgq_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier(bi_conf,0,loc_volh,bi_in);
+    apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier(bi_conf,0,loc_volh,bi_in);
   hop_bgq_time+=take_time();
   hop_bgq_time/=nbench;
   int nflops_hop=1152*loc_vol;
@@ -465,7 +465,7 @@ void in_main(int narg,char **arg)
   //benchmark expansion
   double exp_bgq_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    hopping_matrix_expand_to_Q_and_summ_diag_term_bgq_binded(bi_out,kappa,mu,bi_in);
+    hopping_matrix_expand_to_Q_and_summ_diag_term_bgq(bi_out,kappa,mu,bi_in);
   exp_bgq_time+=take_time();
   exp_bgq_time/=nbench;
   int nflops_exp=312*loc_vol;
@@ -489,15 +489,17 @@ void in_main(int narg,char **arg)
   //benchmark buff filling
   double buff_filling_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    bgq_Wilson_hopping_matrix_T_VN_comm_and_buff_fill();
+    bgq_Wilson_hopping_matrix_vdir_VN_comm_and_buff_fill();
   buff_filling_time+=take_time();
   buff_filling_time/=nbench;
   master_printf("buff_filling_time: %lg sec\n",buff_filling_time);
   
+  int bgq_vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol;
+  
   //benchmark bulk computation
   double bulk_computation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier(bi_conf,bgq_vsurf_vol,loc_volh,bi_in);
+    apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier(bi_conf,bgq_vsurf_vol,loc_volh,bi_in);
   bulk_computation_time+=take_time();
   bulk_computation_time/=nbench;
   master_printf("bulk_computation_time: %lg sec\n",bulk_computation_time);
@@ -505,7 +507,7 @@ void in_main(int narg,char **arg)
   //benchmark surf computation
   double surf_compuation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_bgq_binded_nocomm_nobarrier(bi_conf,0,bgq_vsurf_vol,bi_in);
+    apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier(bi_conf,0,bgq_vsurf_vol,bi_in);
   surf_compuation_time+=take_time();
   surf_compuation_time/=nbench;
   master_printf("surf_compuation_time: %lg sec\n",surf_compuation_time);
@@ -513,7 +515,7 @@ void in_main(int narg,char **arg)
   //benchmark buff unfilling
   double buff_unfilling_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    finish_Wilson_hopping_matrix_bgq_binded_communications();
+    finish_Wilson_hopping_matrix_bgq_communications();
   buff_unfilling_time+=take_time();
   buff_unfilling_time/=nbench;
   master_printf("buff_unfilling_time: %lg sec\n",buff_unfilling_time);
