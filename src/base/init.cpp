@@ -488,7 +488,7 @@ void init_grid(int T,int L)
   
 #ifdef USE_VNODES
   //two times the size of nissa_vnode_paral_dir face
-  vbord_vol=2*bord_vol/loc_size[nissa_vnode_paral_dir]; //so is not counting all vsites
+  vbord_vol=2*loc_vol/loc_size[nissa_vnode_paral_dir]; //so is not counting all vsites
   //compute the offset between sites of different vnodes
   //this amount to the product of the local size of the direction running faster than
   //nissa_vnode_paral_dir, times half the local size along nissa_vnode_paral_dir

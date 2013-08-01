@@ -38,14 +38,13 @@ void define_virlx_ordering()
   int virlx=0;
   
   //scan v- and + surface, in order
-  int coord_to_compare[2]={0,loc_size[0]/nvnodes-1};
+  int coord_to_compare[2]={0,loc_size[v]/nvnodes-1};
   for(int iter=0;iter<2;iter++)
     for(int loclx=0;loclx<loc_vol;loclx++)
       if(loc_coord_of_loclx[loclx][v]==coord_to_compare[iter])
 	{
 	  loclx_of_virlx[virlx]=loclx;
 	  for(int inode=0;inode<nvnodes;inode++) virlx_of_loclx[loclx+inode*vnode_lx_offset]=virlx;
-	  
 	  virlx++;
 	}
   
@@ -59,7 +58,7 @@ void define_virlx_ordering()
         {
           loclx_of_virlx[virlx]=loclx;
 	  for(int inode=0;inode<nvnodes;inode++) virlx_of_loclx[loclx+inode*vnode_lx_offset]=virlx;
-          
+
           virlx++;
         }
     }
@@ -74,7 +73,7 @@ void define_virlx_ordering()
 	{
 	  loclx_of_virlx[virlx]=loclx;
 	  for(int inode=0;inode<nvnodes;inode++) virlx_of_loclx[loclx+inode*vnode_lx_offset]=virlx;
-	  
+
 	  virlx++;
 	}
     }
@@ -107,7 +106,7 @@ void define_virlx_hopping_matrix_output_pos()
     {
       int iloclx=loclx_of_virlx[ivirlx];
       
-      //v direction bw scattering
+      //v direction bw scattering (fw derivative)
       out->inter_fr_in_pos[ivirlx*8+0+v]=(loc_coord_of_loclx[iloclx][v]==0)?
 	//we move in other vnode, so we must point to local position in the v plane
 	vbord_start+loc_coord_of_loclx[iloclx][perp_dir[v][2]]+loc_size[perp_dir[v][2]]*
@@ -115,7 +114,7 @@ void define_virlx_hopping_matrix_output_pos()
 	//we are still in the same vnode
 	loc_data_start+8*virlx_of_loclx[loclx_neighdw[iloclx][v]]+0+v;
       
-      //v direction fw scattering
+      //v direction fw scattering (bw derivative)
       out->inter_fr_in_pos[ivirlx*8+4+v]=(loc_coord_of_loclx[iloclx][v]==loc_size[v]/nvnodes-1)?
 	//idem, but we shift of half vbord because this is + bord
 	vbord_start+vbord_vol/2+loc_coord_of_loclx[iloclx][perp_dir[v][2]]+loc_size[perp_dir[v][2]]*
@@ -179,27 +178,24 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_virlx, bi_oct_su3*,out, quad_su3*,in)
   communicate_lx_quad_su3_borders(in);
   
   //scan the two virtual nodes
-  for(int vn_fw_dst_virlx=0;vn_fw_dst_virlx<nvnodes;vn_fw_dst_virlx++)
-    NISSA_PARALLEL_LOOP(ibase,0,loc_vol/nvnodes)
-      {
-	int isrc_lx=ibase+vn_fw_dst_virlx*vnode_lx_offset;
-	int ifw_dst_virlx=virlx_of_loclx[ibase];
-	
-	for(int mu=0;mu<4;mu++)
-	  {
-	    //catch links needed to scatter signal forward
-	    SU3_TO_BI_SU3(out[ifw_dst_virlx][4+mu],in[isrc_lx][mu],vn_fw_dst_virlx);
-	    
-	    //copy links also where they are needed to scatter the signal backward, if 
-	    //sites that need them are not in the border (that would mean that computation must be 
-	    //done in another node
-	    int idst_lx=loclx_neighup[isrc_lx][mu];
-	    if(idst_lx<loc_vol)
-	      {
-		int vn_bw_dst_virlx=vnode_of_loclx(idst_lx);
-		int idst_virlx=virlx_of_loclx[idst_lx];
-		SU3_TO_BI_SU3(out[idst_virlx][mu],in[isrc_lx][mu],vn_bw_dst_virlx);
-	      }
+  NISSA_PARALLEL_LOOP(isrc_lx,0,loc_vol)
+    {
+      int ifw_dst_virlx=virlx_of_loclx[isrc_lx];
+      
+      for(int mu=0;mu<4;mu++)
+	{
+	  //catch links needed to scatter signal forward
+	  SU3_TO_BI_SU3(out[ifw_dst_virlx][4+mu],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
+	  
+	  //copy links also where they are needed to scatter the signal backward, if 
+	  //sites that need them are not in the border (that would mean that computation must be 
+	  //done in another node
+	  int idst_lx=loclx_neighup[isrc_lx][mu];
+	  if(idst_lx<loc_vol)
+	    {
+	      int idst_virlx=virlx_of_loclx[idst_lx];
+	      SU3_TO_BI_SU3(out[idst_virlx][mu],in[isrc_lx][mu],vnode_of_loclx(idst_lx));
+	    }
 	  }
       }
   
@@ -215,6 +211,11 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_virlx, bi_oct_su3*,out, quad_su3*,in)
 	  SU3_TO_BI_SU3(out[idst_virlx][mu],in[ibord][mu],vn_dst_virlx);
 	}
   
+  for(int ivol=0;ivol<loc_volh;ivol++)
+    for(int mu=0;mu<8;mu++)
+      if(rank==0 && thread_id==0)
+	printf("%d %d %lg\n",ivol,mu,out[ivol][mu][0][0][0][0]);
+  
   set_borders_invalid(out);
 }}
 
@@ -228,9 +229,8 @@ THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_virlx, bi_spincolor*,ext_out, spi
   bi_spincolor *out=bufferize?nissa_malloc("out",loc_vol/nvnodes,bi_spincolor):ext_out;
   
   //copy the various VN
-  for(int vn=0;vn<nvnodes;vn++)
-    NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol/nvnodes)
-      SPINCOLOR_TO_BI_SPINCOLOR(out[virlx_of_loclx[ivol_lx]],in[ivol_lx+vn*vnode_lx_offset],vn);
+  NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
+    SPINCOLOR_TO_BI_SPINCOLOR(out[virlx_of_loclx[ivol_lx]],in[ivol_lx],vnode_of_loclx(ivol_lx));
   
   //wait filling
   set_borders_invalid(out);
@@ -274,6 +274,8 @@ void set_vir_geometry()
     {
       if(!nissa_use_eo_geom) crash("eo geometry must be enabled in order to use vir one");
       crash("initialize eo_geometry before vir one");
+      
+      if(loc_size[nissa_vnode_paral_dir]%4) crash("virtual parallelized dir must have local size multiple of 4");
     }
   
   define_virlx_ordering();
