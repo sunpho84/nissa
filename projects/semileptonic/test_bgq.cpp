@@ -382,6 +382,114 @@ void bench_comm()
     }
 }
 
+void debug_apply_tmQ()
+{
+  //create random conf
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  nissa_loc_vol_loop(ivol)
+    for(int mu=0;mu<4;mu++)
+      su3_put_to_id(conf[ivol][mu]);
+  set_borders_invalid(conf);
+  
+  //create random in vector
+  spincolor *in=nissa_malloc("in",loc_vol+bord_vol,spincolor);
+  vector_reset(in);
+  nissa_loc_vol_loop(ivol)
+    in[ivol][0][0][0]=glblx_of_loclx[ivol];
+  set_borders_invalid(in);  
+  communicate_lx_spincolor_borders(in);
+  
+  //remap conf to bgq
+  bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_vol+bord_vol,bi_oct_su3);
+  lx_conf_remap_to_virlx(bi_conf,conf);
+  
+  //remap in to bgq
+  bi_spincolor *bi_in=nissa_malloc("bi_in",loc_vol+bord_vol,bi_spincolor);
+  lx_spincolor_remap_to_virlx(bi_in,in);
+  
+  {
+    //precheck: unmapping
+    spincolor *un_out=nissa_malloc("un_out",loc_vol+bord_vol,spincolor);
+    virlx_spincolor_remap_to_lx(un_out,bi_in);
+    //compute average diff
+    double diff;
+    double_vector_subt((double*)un_out,(double*)un_out,(double*)in,loc_vol*sizeof(spincolor)/sizeof(double));
+    double_vector_glb_scalar_prod(&diff,(double*)un_out,(double*)un_out,loc_vol*sizeof(spincolor)/sizeof(double));
+    master_printf("Map unmap diff: %lg\n",diff);
+  }
+  
+  memset(nissa_send_buf,0,nissa_send_buf_size);
+  memset(nissa_recv_buf,0,nissa_recv_buf_size);
+  
+  //apply bgq
+  int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol; //half the bord in the 3 non vdir
+  THREAD_BARRIER();
+  apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol,bi_in);
+  THREAD_BARRIER();
+  start_Wilson_hopping_matrix_bgq_communications();
+  THREAD_BARRIER();
+  
+  //compute on the bulk and finish communications
+  apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier(bi_conf,vsurf_vol,loc_volh,bi_in);
+  THREAD_BARRIER();
+  finish_Wilson_hopping_matrix_bgq_communications();
+  THREAD_BARRIER();
+  
+  bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)nissa_send_buf+bord_volh;
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    {
+      int vn=(loc_coord_of_loclx[ivol][nissa_vnode_paral_dir]>=loc_size[nissa_vnode_paral_dir]/2);
+      
+      for(int mu=0;mu<4;mu++)
+	{
+	  int idw_att=(int)(in[loclx_neighdw[ivol][mu]][0][0][0]);
+	  int idw_ott=bgq_hopping_matrix_output_data[virlx_of_loclx[ivol]*8+4+mu][0][0][vn][0];
+	  coords catt,cott;
+	  glb_coord_of_glblx(catt,idw_att);
+	  glb_coord_of_glblx(cott,idw_ott);
+	  if(idw_att!=idw_ott)
+	    {
+	      char tag[2][10]={"corre","WRONG"};
+	      master_printf("%s ivol %d (%d %d %d %d) mu %d dw att %d (%d %d %d %d) ott %d (%d %d %d %d)\n",
+			    tag[(idw_att!=idw_ott)],ivol,
+			    loc_coord_of_loclx[ivol][0],loc_coord_of_loclx[ivol][1],
+			    loc_coord_of_loclx[ivol][2],loc_coord_of_loclx[ivol][3],
+			    mu,
+			    idw_att,catt[0],catt[1],catt[2],catt[3],
+			    idw_ott,cott[0],cott[1],cott[2],cott[3]);
+	    }
+	}
+    }
+  
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    {
+      int vn=(loc_coord_of_loclx[ivol][nissa_vnode_paral_dir]>=loc_size[nissa_vnode_paral_dir]/2);
+      
+      for(int mu=0;mu<4;mu++)
+	{
+	  int idw_att=(int)(in[loclx_neighup[ivol][mu]][0][0][0]);
+	  int idw_ott=bgq_hopping_matrix_output_data[virlx_of_loclx[ivol]*8+mu][0][0][vn][0];
+	  coords catt,cott;
+	  glb_coord_of_glblx(catt,idw_att);
+	  glb_coord_of_glblx(cott,idw_ott);
+	  if(idw_att!=idw_ott)
+	    {
+	      char tag[2][10]={"corre","WRONG"};
+	      master_printf("fw %s ivol %d (%d %d %d %d) mu %d dw att %d (%d %d %d %d) ott %d (%d %d %d %d)\n",
+			    tag[(idw_att!=idw_ott)],ivol,
+			    loc_coord_of_loclx[ivol][0],loc_coord_of_loclx[ivol][1],
+			    loc_coord_of_loclx[ivol][2],loc_coord_of_loclx[ivol][3],
+			    mu,
+			    idw_att,catt[0],catt[1],catt[2],catt[3],
+			    idw_ott,cott[0],cott[1],cott[2],cott[3]);
+	    }
+	}
+    }
+  
+  nissa_free(in);
+  nissa_free(conf);
+}
+
 void in_main(int narg,char **arg)
 {
   //init
@@ -405,6 +513,8 @@ void in_main(int narg,char **arg)
   time_mpi_timing();
   
   bench_thread_barrier();
+
+  debug_apply_tmQ();
 
   //prebench
   comm_start(lx_spincolor_comm);
@@ -434,7 +544,7 @@ void in_main(int narg,char **arg)
   //remap in to bgq
   bi_spincolor *bi_in=nissa_malloc("bi_in",loc_vol+bord_vol,bi_spincolor);
   lx_spincolor_remap_to_virlx(bi_in,in);
-  
+
   //apply bgq
   bi_spincolor *bi_out=nissa_malloc("bi_out",loc_vol+bord_vol,bi_spincolor);
   double bgq_time=-take_time();

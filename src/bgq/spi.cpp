@@ -21,7 +21,7 @@
 
 //#define SPI_BARRIER
 
-#define HINTS_DEBUG
+//#define HINTS_DEBUG
 
 //global barrier for spi
 void spi_global_barrier()
@@ -297,12 +297,16 @@ void spi_descriptor_setup(comm_t &in)
 	dinfo.Base.Message_Length=in.message_length[idir];
 	dinfo.Base.Torus_FIFO_Map=spi_fifo_map[idir];
 	dinfo.Base.Dest=in.spi_dest[idir];
+#ifdef HINTS_DEBUG
 	printf("rank %d setting ABCD hint for dir %d to %u\n",rank,idir,spi_hint_ABCD[idir]);
+#endif
 	dinfo.Pt2Pt.Hints_ABCD=0; //this is not working...
 
 	dinfo.Pt2Pt.Misc1=MUHWI_PACKET_USE_DETERMINISTIC_ROUTING|MUHWI_PACKET_DO_NOT_ROUTE_TO_IO_NODE;
 	//|spi_hint_E[idir]; and this as well
+#ifdef HINTS_DEBUG
 	printf("rank %d setting E hint for dir %d to %u\n",rank,idir,spi_hint_E[idir]);
+#endif
 	dinfo.Pt2Pt.Misc2=MUHWI_PACKET_VIRTUAL_CHANNEL_DETERMINISTIC;
 	dinfo.Pt2Pt.Skip=8; //for checksumming, skip the header
 	dinfo.DirectPut.Rec_Payload_Base_Address_Id=spi_bat_id[0];

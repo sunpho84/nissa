@@ -3,23 +3,21 @@
 #include <stdarg.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <omp.h>
 
 #include "common_tools.cpp"
 
-//use at most this memory
-uint64_t max_mem_usable=128000000;
+uint64_t mem_needed;
 
 typedef char sa_string[300];
 
 int T,ncorr,ncombo,ncorr_type;
-int nfile_names,ncombo_per_block;
-int njack,clust_size,nblock;;
+int nfile_names;
+int njack,clust_size;
 int start_conf_id,nconfs,nconfs_teo;
 char base_path_in[1024],base_path_out[1024];
 sa_string *corr_name,*outpath;
 double *data;
-uint64_t mem_asked;
-int *pos;
 
 void parse_input(char *path)
 {
@@ -75,8 +73,6 @@ void count_corr(char *path)
   //alloc space for the name of corrs and outpath
   corr_name=(sa_string*)malloc(ncorr_type*sizeof(sa_string));
   outpath=(sa_string*)malloc(ncorr*sizeof(sa_string));
-  pos=(int*)malloc(nconfs_teo*sizeof(int));
-  memset(pos,0,sizeof(int)*nconfs_teo);
   
   //go to the file start and load all corr type names
   fseek(fin,0,SEEK_SET);  
@@ -101,40 +97,13 @@ void count_corr(char *path)
   int combo_size=ncorr_type*2*T*(njack+1)*sizeof(double);
   
   //compute the total amount of memory needed
-  uint64_t max_mem_needed=(uint64_t)ncombo*combo_size;
+  mem_needed=(uint64_t)ncombo*combo_size;
   
-  printf("max memory needed: %ju\n",max_mem_needed);
-  printf("max memory usable: %ju\n",max_mem_usable);
-  
-  //count number of blocks needed
-  if(max_mem_needed<max_mem_usable) nblock=1;
-  else
-    {
-      nblock=max_mem_needed/max_mem_usable;
-      if(nblock*max_mem_usable<max_mem_needed) nblock++;
-    }
-  
-  //if ncombo not multiple of ncombo_per_block increase nblock
-  ncombo_per_block=ncombo/nblock;
-  while(nblock*ncombo_per_block!=ncombo)
-    {
-      nblock++;
-      ncombo_per_block=ncombo/nblock;
-      if(ncombo_per_block<1) crash("not enough memory for a single combo!");
-    }
-  if(nblock>ncombo) crash("something went wrong when computing nblock");
-  
-  //compute the number of combo in each block and the memory asked
-  mem_asked=ncombo_per_block*combo_size;
-  
-  printf("\n");
-  printf(" memory asked: %ju\n",mem_asked);
-  printf(" nblock: %d\n",nblock);
-  printf(" ncombo per block: %d\n",ncombo_per_block);
+  printf("memory needed: %llu\n",mem_needed);
   printf("\n");
   
   //allocate room for data
-  data=(double*)malloc(mem_asked);
+  data=(double*)malloc(mem_needed);
   
   //prepare the output names
   for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
@@ -147,19 +116,19 @@ void count_corr(char *path)
 	crash("%d corr outpath %s is equal to %d outpath, %s",icorr_type,outpath[icorr_type],jcorr_type,outpath[jcorr_type]);
 }
 
-void parse_conf(int iconf,char *path,int &start)
+void parse_conf(int iconf,char *path)
 {
   int iclust=iconf/clust_size;
-  
-  //open and seek
+  printf("Considering conf %d/%d (%s) on thread %d\n",iconf+1,nconfs,path,omp_get_thread_num());
+
+  //open
   FILE *file=open_file(path,"r");
-  if(fseek(file,start,SEEK_SET)) crash("while seeking on %s",path);
   
   char line[1024];
   
   int nread_corr=0,nread_line=0;
   
-  for(int icombo=0;icombo<ncombo_per_block;icombo++)
+  for(int icombo=0;icombo<ncombo;icombo++)
     for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
       {
 	//search the corr
@@ -201,8 +170,8 @@ void parse_conf(int iconf,char *path,int &start)
 	    nread_line++;
 	    
 	    //find output place
-	    int i1=iclust+(njack+1)*(t+T*(0+2*(icombo+ncombo_per_block*icorr_type)));
-	    int i2=iclust+(njack+1)*(t+T*(1+2*(icombo+ncombo_per_block*icorr_type)));
+	    int i1=iclust+(njack+1)*(t+T*(0+2*(icombo+ncombo*icorr_type)));
+	    int i2=iclust+(njack+1)*(t+T*(1+2*(icombo+ncombo*icorr_type)));
 	    
 	    //summ into the cluster
 	    data[i1]+=t1;
@@ -211,11 +180,8 @@ void parse_conf(int iconf,char *path,int &start)
       }  
   
   //check to have finished the file
-  //while(line==fgets(line,1024,file))
-  //if(strlen(line)>1) crash("should have reached end and instead got: %s",line);
-  
-  //get pos
-  start=ftell(file);
+  while(line==fgets(line,1024,file))
+  if(strlen(line)>1) crash("should have reached end and instead got: %s",line);
   
   fclose(file);
 }
@@ -235,92 +201,75 @@ int main(int narg,char **arg)
       read_str_str("BasePathOut",base_path_out,1024);
       
       //create first file path
-      char path[1024];
-      sprintf(path,base_path_in,start_conf_id);
-      count_corr(path);
-      
-      //looping over blocks
-      for(int iblock=0;iblock<nblock;iblock++)
+      char path[nconfs][100];
+      int curr_conf=0;
+      for(int iconf=0;iconf<nconfs;iconf++)
 	{
-	  if(iblock>1) printf("Running on block %d/%d\n",iblock+1,nblock);
-	  
-	  //reset data
-	  memset(data,0,mem_asked);
-	  
-	  //loop over all the confs
-	  int targ_conf=0;
-	  for(int iconf=0;iconf<nconfs;iconf++)
+	  //search existing conf
+	  int found;
+	  do
 	    {
-	      printf("Considering conf %d/%d\n",iconf+1,nconfs);
-	      
-	      //search existing conf
-	      int found;
-	      do
+	      sprintf(path[iconf],base_path_in,curr_conf+start_conf_id);
+	      found=file_exists(path[iconf]);
+	      if(!found)
 		{
-		  sprintf(path,base_path_in,targ_conf+start_conf_id);
-		  found=file_exists(path);
-		  if(!found)
-		    {
-		      printf("conf %s not available, skipping",path);
-		      targ_conf++;
-		      if(targ_conf>=nconfs_teo) crash("finished all available confs");
-		    }
+		  printf("conf %s not available, skipping",path[iconf]);
+		  curr_conf++;
+		  if(curr_conf>=nconfs_teo) crash("finished all available confs");
 		}
-	      while(!found);
-	      
-	      //parse the conf into data clusters
-	      parse_conf(iconf,path,pos[targ_conf]);
-	      
-	      //advance
-	      targ_conf++;
 	    }
+	  while(!found);
 	  
-	  //make the jacknives
-	  for(int icorr=0;icorr<ncombo_per_block*2*ncorr_type*T;icorr++)
-	    {
-	      double *d=data+icorr*(njack+1);
-	      
-	      //compute average
-	      for(int iclust=0;iclust<njack;iclust++) d[njack]+=d[iclust];
-	      for(int ijack=0;ijack<njack;ijack++) d[ijack]=(d[njack]-d[ijack])/(nconfs-nconfs/njack);
-	      d[njack]/=nconfs;
-	    }
+	  //increment
+	  curr_conf++;
+	}
+
+      //count corrs and reset data
+      count_corr(path[0]);
+      memset(data,0,mem_needed);
+      
+      //parse the conf into data clusters
+#pragma omp parallel for
+      for(int ijack=0;ijack<njack;ijack++)
+	for(int iconf=ijack*clust_size;iconf<(ijack+1)*clust_size;iconf++)
+	  parse_conf(iconf,path[iconf]);
+      
+      //make the jacknives
+      for(int icorr=0;icorr<ncombo*2*ncorr_type*T;icorr++)
+	{
+	  double *d=data+icorr*(njack+1);
 	  
-	  //if necessary change the endianess
-	  if(!little_endian)
-	    doubles_to_doubles_changing_endianess(data,data,mem_asked/sizeof(double));
-	  
-	  printf("\n");
-	  
-	  //write different files for each corr
-	  for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
-	    {
-	      FILE *file;
-	      if(iblock==0)
-		{
-		  printf("Writing corr %s (%d/%d)\n",corr_name[icorr_type],icorr_type+1,ncorr_type);
-		  file=open_file(outpath[icorr_type],"w");
-		}
-	      else
-		{
-		  printf("Appending corr %s (%d/%d)\n",corr_name[icorr_type],icorr_type+1,ncorr_type);
-		  file=open_file(outpath[icorr_type],"a");
-		}
-	      
-	      int n=fwrite((void*)(data+ncombo_per_block*2*T*(njack+1)*icorr_type),sizeof(double),ncombo_per_block*2*T*(njack+1),file);
-	      if(n!=ncombo_per_block*2*T*(njack+1)) crash("obtanied %d instead of %d",n,ncombo_per_block*2*T*(njack+1));
-	      fclose(file);
-	    }
-	  
-	  printf("\n");
+	  //compute average
+	  for(int iclust=0;iclust<njack;iclust++) d[njack]+=d[iclust];
+	  for(int ijack=0;ijack<njack;ijack++) d[ijack]=(d[njack]-d[ijack])/(nconfs-nconfs/njack);
+	  d[njack]/=nconfs;
 	}
       
-      //free
-      free((void*)data);
-      free((void*)corr_name);
-      free((void*)outpath);
-      free((void*)pos);
+      //if necessary change the endianess
+      if(!little_endian)
+	doubles_to_doubles_changing_endianess(data,data,mem_needed/sizeof(double));
+      
+      printf("\n");
+      
+      //write different files for each corr
+      for(int icorr_type=0;icorr_type<ncorr_type;icorr_type++)
+	{
+	  FILE *file;
+	  printf("Writing corr %s (%d/%d)\n",corr_name[icorr_type],icorr_type+1,ncorr_type);
+	  file=open_file(outpath[icorr_type],"w");
+	  
+	  int n=fwrite((void*)(data+ncombo*2*T*(njack+1)*icorr_type),sizeof(double),ncombo*2*T*(njack+1),file);
+	  if(n!=ncombo*2*T*(njack+1)) crash("obtained %d instead of %d",n,ncombo*2*T*(njack+1));
+	  fclose(file);
+	}
+      
+      printf("\n");
     }
+  
+  //free
+  free((void*)data);
+  free((void*)corr_name);
+  free((void*)outpath);
   
   return 0;
 }

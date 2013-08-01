@@ -20,6 +20,7 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
 	
 	loc_avg+=r;
 	if(loc_max<r) loc_max=r;
+	if(0)
 	if(r>1.e-30)
 	  {
 	    master_printf("diff %d %d %d %d   %d   %lg\n",glb_coord_of_loclx[ivol][0],glb_coord_of_loclx[ivol][1],

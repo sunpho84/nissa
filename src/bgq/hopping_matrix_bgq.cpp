@@ -20,6 +20,7 @@
 
   We apply hopping matrix scanning on sink index, then store the 8 contributions to each source separately.
   They can be summed outside according to external usage.
+  First 4 entries contains forward derivative scattered backward, then others.
   
   We do not sync and do not perform any communication, so this must be done outside.
 */
@@ -130,68 +131,72 @@ THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_vdir_VN_comm_and_buff_fill)
   ///////////////////////// bw scattered v derivative (fw derivative)  ////////////////////////
   
   if(is_in_first_team)
-    if(paral_dir[v])
-      {
-	//split bw v border: VN 0 goes to bw out border (first half)
-	NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4,thread_in_team_id,nthreads_in_team)
-	  {
-	    //the source starts at the middle of result border buffer
-	    int isrc=2*base_isrc; //we match 2 sites
-	    //non-local shuffling: must enter bw buffer for direction v
-	    int idst_buf=base_isrc;
-	    //load the first
-	    DECLARE_REG_BI_HALFSPINCOLOR(in0);
-	    REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
-	    //load the second
-	    DECLARE_REG_BI_HALFSPINCOLOR(in1);
-	    REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
-	    //merge the two and save
-	    DECLARE_REG_BI_HALFSPINCOLOR(to_buf);
-	    REG_BI_HALFSPINCOLOR_V0_MERGE(to_buf,in0,in1);
-	    STORE_REG_BI_HALFSPINCOLOR(((bi_halfspincolor*)nissa_send_buf)[idst_buf],to_buf);
-	  }
-      }
-    else
-      //we have only to transpose between VN, and no real communication happens
-      NISSA_CHUNK_LOOP(isrc,0,vbord_vol/2,thread_in_team_id,nthreads_in_team)
+    {
+      if(paral_dir[v])
 	{
-	  int idst=8*virlx_of_loclx[loclx_neighdw[isrc+vnode_lx_offset][v]]+0+v;
-	  BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_vdir_buffer[isrc]);
+	  //split bw v border: VN 0 goes to bw out border (first half)
+	  NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4,thread_in_team_id,nthreads_in_team)
+	    {
+	      //the source starts at the middle of result border buffer
+	      int isrc=2*base_isrc+0*vbord_vol/2; //we match 2 sites
+	      //non-local shuffling: must enter bw buffer for direction v
+	      int idst_buf=0*bord_volh/2+0*bord_offset[v]/2+base_isrc;
+	      //load the first
+	      DECLARE_REG_BI_HALFSPINCOLOR(in0);
+	      REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
+	      //load the second
+	      DECLARE_REG_BI_HALFSPINCOLOR(in1);
+	      REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
+	      //merge the two and save
+	      DECLARE_REG_BI_HALFSPINCOLOR(to_buf);
+	      REG_BI_HALFSPINCOLOR_V0_MERGE(to_buf,in0,in1);
+	      STORE_REG_BI_HALFSPINCOLOR(((bi_halfspincolor*)nissa_send_buf)[idst_buf],to_buf);
+	    }
 	}
+      else
+	//we have only to transpose between VN, and no real communication happens
+	NISSA_CHUNK_LOOP(isrc,0,vbord_vol/2,thread_in_team_id,nthreads_in_team)
+	  {
+	    int idst=8*virlx_of_loclx[loclx_neighdw[isrc+vnode_lx_offset][v]]+0+v;
+	    BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_vdir_buffer[isrc]);
+	  }
+    }
   
   ///////////////////////// fw scattered v derivative (bw derivative)  ////////////////////////
   
   if(is_in_second_team)
-    if(paral_dir[0])
-      {
-	//split fw v border: VN 1 goes to fw out border (second half)
-	NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4,thread_in_team_id,nthreads_in_team)
+    {
+      if(paral_dir[v])
+	{
+	  //split fw v border: VN 1 goes to fw out border (second half)
+	  NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4,thread_in_team_id,nthreads_in_team)
+	    {
+	      //the source starts at the middle of result border buffer
+	      int isrc=2*base_isrc+1*vbord_vol/2;
+	      //non-local shuffling: must enter fw buffer (starting at bord_volh/2 because its bi) for direction 0
+	      int idst_buf=1*bord_volh/2+1*bord_offset[v]/2+base_isrc;
+	      //load the first
+	      DECLARE_REG_BI_HALFSPINCOLOR(in0);
+	      REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
+	      //load the second
+	      DECLARE_REG_BI_HALFSPINCOLOR(in1);
+	      REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
+	      //merge the two and save
+	      DECLARE_REG_BI_HALFSPINCOLOR(to_buf);
+	      REG_BI_HALFSPINCOLOR_V1_MERGE(to_buf,in0,in1);
+	      STORE_REG_BI_HALFSPINCOLOR(((bi_halfspincolor*)nissa_send_buf)[idst_buf],to_buf);
+	    }
+	}
+      else
+	//we have only to transpose between VN
+	NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/2,thread_in_team_id,nthreads_in_team)
 	  {
 	    //the source starts at the middle of result border buffer
-	    int isrc=2*base_isrc+vbord_vol/2;
-	    //non-local shuffling: must enter fw buffer (starting at bord_volh/2 because its bi) for direction 0
-	    int idst_buf=bord_volh/2+base_isrc;
-	    //load the first
-	    DECLARE_REG_BI_HALFSPINCOLOR(in0);
-	    REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
-	    //load the second
-	    DECLARE_REG_BI_HALFSPINCOLOR(in1);
-	    REG_LOAD_BI_HALFSPINCOLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
-	    //merge the two and save
-	    DECLARE_REG_BI_HALFSPINCOLOR(to_buf);
-	    REG_BI_HALFSPINCOLOR_V1_MERGE(to_buf,in0,in1);
-	    STORE_REG_BI_HALFSPINCOLOR(((bi_halfspincolor*)nissa_send_buf)[idst_buf],to_buf);
+	    int isrc=base_isrc+vbord_vol/2;
+	    int idst=8*(vnode_lx_offset+base_isrc)+4+v;
+	    BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_vdir_buffer[isrc]);
 	  }
-      }
-    else
-      //we have only to transpose between VN
-      NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/2,thread_in_team_id,nthreads_in_team)
-	{
-	  //the source starts at the middle of result border buffer
-	  int isrc=base_isrc+vbord_vol/2;
-	  int idst=8*(vnode_lx_offset+base_isrc)+4+v;
-	  BI_HALFSPINCOLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_vdir_buffer[isrc]);
-	}
+    }
 }}
 
 //perform communications between VN and start all the communications between nodes
@@ -224,8 +229,8 @@ THREADABLE_FUNCTION_0ARG(finish_Wilson_hopping_matrix_bgq_communications)
   if(is_in_first_team)
     {
       //inside incoming borders vdir is ordered naturally, while in the output data it comes first
-      bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh;
-      bi_halfspincolor *base_vdir_in=base_out+8*loc_volh+vbord_vol/2;
+      bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh+0*8*bord_dir_vol[v];
+      bi_halfspincolor *base_vdir_in=(bi_halfspincolor*)nissa_send_buf+bord_volh+8*loc_volh+1*vbord_vol/2;
       bi_halfspincolor *base_bord_in=(bi_halfspincolor*)nissa_recv_buf+bord_offset[v]/2;
       
       NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[v]/2,thread_in_team_id,nthreads_in_team)
@@ -239,37 +244,37 @@ THREADABLE_FUNCTION_0ARG(finish_Wilson_hopping_matrix_bgq_communications)
 	  //merge and save
 	  DECLARE_REG_BI_HALFSPINCOLOR(to_dest);
 	  REG_BI_HALFSPINCOLOR_V0_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR(base_out[2*isrc],to_dest);
+	  STORE_REG_BI_HALFSPINCOLOR(base_out[2*isrc*8+4+v],to_dest);
 	  
 	  //VN=1 with buf1
 	  REG_LOAD_BI_HALFSPINCOLOR(in1,base_vdir_in[2*isrc+1]);
 	  //merge and save
 	  REG_BI_HALFSPINCOLOR_V10_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR(base_out[2*isrc+1],to_dest);
+	  STORE_REG_BI_HALFSPINCOLOR(base_out[(2*isrc+1)*8+4+v],to_dest);
 	}
     }
   
   //other 3 bw borders
   if(is_in_first_team)
-    for(int mu=0;mu<4;mu++)
-      if(mu!=v)
-	{
-	  bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh;
-	  bi_halfspincolor *base_in=(bi_halfspincolor*)nissa_recv_buf;
-	  NISSA_CHUNK_LOOP(isrc,bord_offset[mu]/2,bord_offset[mu]/2+bord_dir_vol[mu]/2,
-			   thread_in_team_id,nthreads_in_team)
-	    SITE_COPY(base_out[def_pos[isrc]],base_in[isrc]);
-	}
+    for(int imu=0;imu<3;imu++)
+      {
+	int mu=perp_dir[v][imu];
+	bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh;
+	bi_halfspincolor *base_in=(bi_halfspincolor*)nissa_recv_buf;
+	NISSA_CHUNK_LOOP(isrc,bord_offset[mu]/2,bord_offset[mu]/2+bord_dir_vol[mu]/2,
+			 thread_in_team_id,nthreads_in_team)
+	  SITE_COPY(base_out[def_pos[isrc]],base_in[isrc]);
+      }
   
   //v fw border (fw derivative): data goes to VN 1
   if(is_in_second_team)
     {
       //inside incoming borders vdir is ordered naturally, while in the output data it comes first
-      bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh+bord_dir_vol[v]/2;
-      bi_halfspincolor *base_vdir_in=base_out+8*loc_volh;
+      bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh+1*8*bord_dir_vol[v];
+      bi_halfspincolor *base_vdir_in=(bi_halfspincolor*)nissa_send_buf+bord_volh+8*loc_volh+0*vbord_vol/2;
       bi_halfspincolor *base_bord_in=(bi_halfspincolor*)nissa_recv_buf+bord_vol/4+bord_offset[v]/2;
       
-      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[0]/2,thread_in_team_id,nthreads_in_team)
+      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[v]/2,thread_in_team_id,nthreads_in_team)
 	{
 	  //VN=0 with buf1
 	  DECLARE_REG_BI_HALFSPINCOLOR(in0);
@@ -280,25 +285,25 @@ THREADABLE_FUNCTION_0ARG(finish_Wilson_hopping_matrix_bgq_communications)
 	  //merge and save
 	  DECLARE_REG_BI_HALFSPINCOLOR(to_dest);
 	  REG_BI_HALFSPINCOLOR_V10_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR(base_out[2*isrc],to_dest);
+	  STORE_REG_BI_HALFSPINCOLOR(base_out[2*isrc*8+0+v],to_dest);
 	  
 	  //VN=0 with buf1
 	  REG_LOAD_BI_HALFSPINCOLOR(in0,base_vdir_in[2*isrc+1]);
 	  //merge and save
 	  REG_BI_HALFSPINCOLOR_V1_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_HALFSPINCOLOR(base_out[2*isrc+1],to_dest);
+	  STORE_REG_BI_HALFSPINCOLOR(base_out[(2*isrc+1)*8+0+v],to_dest);
 	}
     }
   
   //other 3 fw borders
   if(is_in_second_team)
-    for(int mu=0;mu<4;mu++)
-      if(mu!=v)
-	{
-	  bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh;
-	  bi_halfspincolor *base_in=(bi_halfspincolor*)nissa_recv_buf+bord_vol/4;
-	  NISSA_CHUNK_LOOP(isrc,bord_offset[mu]/2,bord_offset[mu]/2+bord_dir_vol[mu]/2,
-			   thread_in_team_id,nthreads_in_team)
-	    SITE_COPY(base_out[def_pos[isrc]],base_in[isrc]);
-	}
+    for(int imu=0;imu<3;imu++)
+      {
+	int mu=perp_dir[v][imu];
+	bi_halfspincolor *base_out=(bi_halfspincolor*)nissa_send_buf+bord_volh;
+	bi_halfspincolor *base_in=(bi_halfspincolor*)nissa_recv_buf;
+	NISSA_CHUNK_LOOP(isrc,bord_vol/4+bord_offset[mu]/2,bord_vol/4+bord_offset[mu]/2+bord_dir_vol[mu]/2,
+			 thread_in_team_id,nthreads_in_team)
+	  SITE_COPY(base_out[def_pos[isrc]],base_in[isrc]);
+      }
 }}
