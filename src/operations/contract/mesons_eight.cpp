@@ -113,87 +113,114 @@ THREADABLE_FUNCTION_10ARG(trace_g_css_dag_g_ss_g_css_dag_g_ss, complex**,glb_c, 
   nissa_free(loc_c);
 }}
 
-void trace_id_css_dag_g_css_id_css_dag_g_css(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
+THREADABLE_FUNCTION_8ARG(trace_id_css_dag_g_css_id_css_dag_g_css, complex*,glb_c, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
 {
+  GET_THREAD_ID();
+  
   //allocate a contiguous memory area where to store local results
   complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
   vector_reset(loc_c);
 
-  //local loop
-  spinspin AR,AL;
-  nissa_loc_vol_loop(ivol)
+  //loop over time and number of contractions
+  NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])
     {
-      int glb_t=glb_coord_of_loclx[ivol][0];
-      for(int icol1=0;icol1<3;icol1++)
-	for(int icol2=0;icol2<3;icol2++)
-	  {
-	    unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
-	    unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
-	    
-	    for(int icontr=0;icontr<ncontr;icontr++)
-	      {
-                complex ctemp;
-		spinspin ALg, ARg;
-		
-                unsafe_dirac_prod_spinspin(ALg,g2R+icontr,AL);
-                unsafe_dirac_prod_spinspin(ARg,g2L+icontr,AR);
-                trace_prod_spinspins(ctemp,ALg,ARg);
-                complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
-	      }
-	  }
-    }
-
-  //Final reduction
-  verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
-  MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  verbosity_lv3_master_printf("Reduction done\n");
-  
-  nissa_free(loc_c);
-}
-
-void trace_id_css_dag_g_css_times_trace_id_css_dag_g_css(complex *glb_c,colorspinspin *s1L,dirac_matr *g2L,colorspinspin *s2L,colorspinspin *s1R,dirac_matr *g2R,colorspinspin *s2R,const int ncontr)
-{
-  //allocate a contiguous memory area where to store local results
-  complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
-  vector_reset(loc_c);
-  
-  //local loop
-  nissa_loc_vol_loop(ivol)
-    {
-      int glb_t=glb_coord_of_loclx[ivol][0];
-      complex ctempL[ncontr];
-      complex ctempR[ncontr];
-      complex ctemp[ncontr];
-      memset(ctempL,0,ncontr*sizeof(complex));
-      memset(ctempR,0,ncontr*sizeof(complex));
-      memset(ctemp,0,ncontr*sizeof(complex));
+      //find out contraction index and time
+      int icontr=ibase/loc_size[0];
+      int t=ibase-icontr*loc_size[0];
       
-      for(int icol=0;icol<3;icol++)
+      //loop over spatial volume
+      for(int ivol=t*loc_spat_vol;ivol<(t+1)*loc_spat_vol;ivol++)
 	{
-	  spinspin AL,AR;
-	  unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol],s1L[ivol][icol]);
-	  unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol],s1R[ivol][icol]);
-	  for(int icontr=0;icontr<ncontr;icontr++)
-	    {
-	      complex ctempL_color,ctempR_color;
-
-	      trace_dirac_prod_spinspin(ctempL_color,g2R+icontr,AL);
-	      trace_dirac_prod_spinspin(ctempR_color,&(g2L[icontr]),AR);
-
-	      complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
-	      complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
-	    }
+	  int glb_t=glb_coord_of_loclx[ivol][0];
+	  for(int icol1=0;icol1<3;icol1++)
+	    for(int icol2=0;icol2<3;icol2++)
+	      {
+		spinspin AR,AL;
+		unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
+		unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
+		
+		for(int icontr=0;icontr<ncontr;icontr++)
+		  {
+		    complex ctemp;
+		    spinspin ALg, ARg;
+		    
+		    unsafe_dirac_prod_spinspin(ALg,g2R+icontr,AL);
+		    unsafe_dirac_prod_spinspin(ARg,g2L+icontr,AR);
+		    trace_prod_spinspins(ctemp,ALg,ARg);
+		    complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
+		  }
+	      }
 	}
+    }
+  
+  THREAD_BARRIER();
+  
+  //final reduction
+  if(IS_MASTER_THREAD)
+    {
+      verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+      MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+      verbosity_lv3_master_printf("Reduction done\n");
+    }
+  
+  nissa_free(loc_c);
+}}
+
+THREADABLE_FUNCTION_8ARG(trace_id_css_dag_g_css_times_trace_id_css_dag_g_css, complex*,glb_c, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
+{
+  GET_THREAD_ID();
+  
+  //allocate a contiguous memory area where to store local results
+  complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
+  vector_reset(loc_c);
+  
+  //loop over time and number of contractions
+  NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])
+    {
+      //find out contraction index and time
+      int icontr=ibase/loc_size[0];
+      int t=ibase-icontr*loc_size[0];
       
-      for(int icontr=0;icontr<ncontr;icontr++)
-	complex_summ_the_prod(loc_c[icontr*glb_size[0]+glb_t],ctempL[icontr],ctempR[icontr]);
+      //loop over spatial volume
+      for(int ivol=t*loc_spat_vol;ivol<(t+1)*loc_spat_vol;ivol++)
+	{
+	  int glb_t=glb_coord_of_loclx[ivol][0];
+	  complex ctempL[ncontr];
+	  complex ctempR[ncontr];
+	  complex ctemp[ncontr];
+	  memset(ctempL,0,ncontr*sizeof(complex));
+	  memset(ctempR,0,ncontr*sizeof(complex));
+	  memset(ctemp,0,ncontr*sizeof(complex));
+	  
+	  for(int icol=0;icol<3;icol++)
+	    {
+	      spinspin AL,AR;
+	      unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol],s1L[ivol][icol]);
+	      unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol],s1R[ivol][icol]);
+	      for(int icontr=0;icontr<ncontr;icontr++)
+		{
+		  complex ctempL_color,ctempR_color;
+		  
+		  trace_dirac_prod_spinspin(ctempL_color,g2R+icontr,AL);
+		  trace_dirac_prod_spinspin(ctempR_color,&(g2L[icontr]),AR);
+		  
+		  complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
+		  complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
+		}
+	    }
+	  
+	  for(int icontr=0;icontr<ncontr;icontr++)
+	    complex_summ_the_prod(loc_c[icontr*glb_size[0]+glb_t],ctempL[icontr],ctempR[icontr]);
+	}
     }
   
   //Final reduction
-  verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
-  MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  verbosity_lv3_master_printf("Reduction done\n");
+  if(IS_MASTER_THREAD)
+    {
+      verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
+      MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+      verbosity_lv3_master_printf("Reduction done\n");
+    }
   
   nissa_free(loc_c);
-}
-
+}}
