@@ -674,6 +674,31 @@ void unsafe_su3_explicit_inverse(su3 invU,su3 U)
 void safe_su3_explicit_inverse(su3 invU,su3 U)
 {su3 tempU;unsafe_su3_explicit_inverse(tempU,U);su3_copy(invU,tempU);}
 
+//compute the square root of y numerically
+void unsafe_su3_sqrt(su3 x,su3 y)
+{
+  su3_put_to_id(x);
+
+  double err;
+  do
+    {
+      //update
+      su3 t;
+      unsafe_su3_explicit_inverse(t,x);
+      safe_su3_prod_su3(t,y,t);
+      su3_subt(t,t,x);
+      su3_summ_the_prod_double(x,t,0.5);
+      
+      //compute the error
+      unsafe_su3_prod_su3(t,x,x);
+      su3_subt(t,y,t);
+      err=sqrt(su3_normq(t));
+    }
+  while(err>1.e-15);
+}
+void safe_su3_sqrt(su3 x,su3 y)
+{su3 t;unsafe_su3_sqrt(t,y);su3_copy(x,t);}
+
 //exponentiate an su3 matrix through taylor expansion
 void unsafe_su3_taylor_exponentiate(su3 out,su3 in,int order)
 {
