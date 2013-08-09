@@ -140,7 +140,7 @@ THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_vdir_VN_comm_and_buff_fill)
 	      //the source starts at the middle of result border buffer
 	      int isrc=2*base_isrc+0*vbord_vol/2; //we match 2 sites
 	      //non-local shuffling: must enter bw buffer for direction v
-	      int idst_buf=0*bord_volh/2+0*bord_offset[v]/2+base_isrc;
+	      int idst_buf=0*bord_volh/2+bord_offset[v]/2+base_isrc;
 	      //load the first
 	      DECLARE_REG_BI_HALFSPINCOLOR(in0);
 	      REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
@@ -174,7 +174,7 @@ THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_vdir_VN_comm_and_buff_fill)
 	      //the source starts at the middle of result border buffer
 	      int isrc=2*base_isrc+1*vbord_vol/2;
 	      //non-local shuffling: must enter fw buffer (starting at bord_volh/2 because its bi) for direction 0
-	      int idst_buf=1*bord_volh/2+1*bord_offset[v]/2+base_isrc;
+	      int idst_buf=1*bord_volh/2+bord_offset[v]/2+base_isrc;
 	      //load the first
 	      DECLARE_REG_BI_HALFSPINCOLOR(in0);
 	      REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);

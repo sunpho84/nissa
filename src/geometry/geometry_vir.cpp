@@ -11,6 +11,7 @@
 #include "../base/vectors.h"
 #include "../communicate/communicate.h"
 #include "../new_types/complex.h"
+
 #ifdef USE_THREADS
  #include "../routines/thread.h"
 #endif
@@ -31,8 +32,8 @@ void define_virlx_ordering()
 {
   int v=nissa_vnode_paral_dir;
   
-  virlx_of_loclx=nissa_malloc("virlx_of_loclx",loc_vol,int);
-  loclx_of_virlx=nissa_malloc("loclx_of_virlx",loc_volh,int);
+  virlx_of_loclx=nissa_malloc("virlx_of_loclx",loc_vol+bord_vol,int);
+  loclx_of_virlx=nissa_malloc("loclx_of_virlx",(loc_vol+bord_vol)/nvnodes,int);
   
   //reset virtual index
   int virlx=0;
@@ -79,6 +80,36 @@ void define_virlx_ordering()
     }
   
   if(virlx!=loc_vol/nvnodes) crash("defining virlx ordering: %d!=%d",virlx,loc_vol/nvnodes);
+  
+  //define virtual size
+  for(int mu=0;mu<4;mu++) vir_loc_size[mu]=loc_size[mu];
+  vir_loc_size[v]/=nvnodes;
+  
+  //scan bw and fw borders
+  for(int bf=0;bf<2;bf++)
+    for(int mu0=0;mu0<4;mu0++)
+      {
+	//take dirs
+	int mu1=perp_dir[mu0][0],mu2=perp_dir[mu0][1],mu3=perp_dir[mu0][2];
+	int l1=vir_loc_size[mu1],l2=vir_loc_size[mu2],l3=vir_loc_size[mu3];
+	for(int base_bordlx=0;base_bordlx<bord_dir_vol[mu0];base_bordlx++)
+	  {
+	    int loclx=loc_vol+bord_offset[mu0]+bord_volh*bf+base_bordlx;
+	    
+	    //take coord of bordlx including nvnodes factor in v dir
+	    int surflx=surflx_of_bordlx[bord_offset[mu0]+bord_volh*bf+base_bordlx];
+	    coords c;
+	    for(int nu=0;nu<4;nu++) c[nu]=loc_coord_of_loclx[surflx][nu];
+	    c[v]%=vir_loc_size[v];
+	    
+	    //define destination in vir geometry, pairing sites in v dir
+	    int temp=c[mu3]+l3*(c[mu2]+l2*c[mu1]);
+	    if(mu0==v) temp/=nvnodes;
+	    int virlx=(loc_vol+bord_volh*bf+bord_offset[mu0])/nvnodes+temp;
+	    virlx_of_loclx[loclx]=virlx;
+	    if(virlx<(loc_vol+bord_vol)/nvnodes) loclx_of_virlx[virlx]=loclx;
+	  }
+      }
 }
 
 /*
@@ -101,24 +132,23 @@ void define_virlx_hopping_matrix_output_pos()
   out->inter_fr_recv_pos=nissa_malloc("inter_fr_recv_pos",bord_vol/nvnodes,int);
   
   int v=nissa_vnode_paral_dir;
+  int mu1=perp_dir[v][0],mu2=perp_dir[v][1],mu3=perp_dir[v][2];
   
   for(int ivirlx=0;ivirlx<loc_vol/nvnodes;ivirlx++)
     {
       int iloclx=loclx_of_virlx[ivirlx];
-      
+      int *c=loc_coord_of_loclx[iloclx];
       //v direction bw scattering (fw derivative)
       out->inter_fr_in_pos[ivirlx*8+0+v]=(loc_coord_of_loclx[iloclx][v]==0)?
 	//we move in other vnode, so we must point to local position in the v plane
-	vbord_start+loc_coord_of_loclx[iloclx][perp_dir[v][2]]+loc_size[perp_dir[v][2]]*
-	(loc_coord_of_loclx[iloclx][perp_dir[v][1]]+loc_size[perp_dir[v][1]]*loc_coord_of_loclx[iloclx][perp_dir[v][0]]):
+	vbord_start+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]):
 	//we are still in the same vnode
 	loc_data_start+8*virlx_of_loclx[loclx_neighdw[iloclx][v]]+0+v;
-      
+
       //v direction fw scattering (bw derivative)
       out->inter_fr_in_pos[ivirlx*8+4+v]=(loc_coord_of_loclx[iloclx][v]==loc_size[v]/nvnodes-1)?
 	//idem, but we shift of half vbord because this is + bord
-	vbord_start+vbord_vol/2+loc_coord_of_loclx[iloclx][perp_dir[v][2]]+loc_size[perp_dir[v][2]]*
-        (loc_coord_of_loclx[iloclx][perp_dir[v][1]]+loc_size[perp_dir[v][1]]*loc_coord_of_loclx[iloclx][perp_dir[v][0]]):
+	vbord_start+vbord_vol/2+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]):
 	//we are still in the same vnode, but we shift of 4 (this is + contr)
 	loc_data_start+8*virlx_of_loclx[loclx_neighup[iloclx][v]]+4+v;
       
@@ -130,15 +160,14 @@ void define_virlx_hopping_matrix_output_pos()
 	  int bw=loclx_neighdw[iloclx][mu];
 	  out->inter_fr_in_pos[ivirlx*8+0+mu]=(bw>=loc_vol)?
 	    //we moved to another node
-	    (bw-loc_vol)-bord_offset[mu]*(nvnodes-1)/nvnodes: //each dir border is 1/nvnodes of equiv lx vol
+	    virlx_of_loclx[bw]-loc_vol/nvnodes:
 	    //we are still in local vnode
 	    loc_data_start+8*virlx_of_loclx[bw]+0+mu;
 	    
 	    int fw=loclx_neighup[iloclx][mu];
 	    out->inter_fr_in_pos[ivirlx*8+4+mu]=(fw>=loc_vol)?
-	      //we moved in another node: () point to entry in fw bord, we shift it up for half the bord vol
-	      //and as before, back for the offset caused by the fact that each dir is 1/nvnodes of equiv
-	      (fw-loc_vol-bord_volh)+bord_volh/nvnodes-bord_offset[mu]*(nvnodes-1)/nvnodes:              
+	      //we moved in another node
+	      virlx_of_loclx[fw]-loc_vol/nvnodes:
 	      //we are still in local vnode
 	      loc_data_start+8*virlx_of_loclx[fw]+4+mu;
 	}
@@ -148,17 +177,19 @@ void define_virlx_hopping_matrix_output_pos()
   for(int imu=0;imu<3;imu++)
     {
       int mu=perp_dir[v][imu];
-      for(int base_src=0;base_src<bord_dir_vol[mu]/2;base_src++)
+      for(int base_src=0;base_src<bord_dir_vol[mu]/nvnodes;base_src++)
 	{
 	  //other 3 bw borders
-	  int bw_src=bord_offset[mu]/2+base_src;
-	  int bw_dst=8*virlx_of_loclx[surflx_of_bordlx[bord_offset[mu]+base_src]]+4+mu;
-	  out->inter_fr_recv_pos[bw_src]=bw_dst;
+	  int bw_vir_src=bord_offset[mu]/nvnodes+base_src;
+	  int bw_bordlx_src=loclx_of_virlx[bw_vir_src+loc_vol/nvnodes]-loc_vol;
+	  int bw_dst=8*virlx_of_loclx[surflx_of_bordlx[bw_bordlx_src]]+4+mu;
+	  out->inter_fr_recv_pos[bw_vir_src]=bw_dst;
 	  
 	  //other 3 fw borders
-	  int fw_src=bord_volh/nvnodes+bord_offset[mu]/2+base_src;
-	  int fw_dst=8*virlx_of_loclx[surflx_of_bordlx[bord_volh+bord_offset[mu]+base_src]]+mu;
-	  out->inter_fr_recv_pos[fw_src]=fw_dst;
+	  int fw_vir_src=bord_volh/nvnodes+bord_offset[mu]/nvnodes+base_src;
+	  int fw_bordlx_src=loclx_of_virlx[fw_vir_src+loc_vol/nvnodes]-loc_vol;
+	  int fw_dst=8*virlx_of_loclx[surflx_of_bordlx[fw_bordlx_src]]+mu;
+	  out->inter_fr_recv_pos[fw_vir_src]=fw_dst;
 	}
     }
 }
@@ -210,11 +241,6 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_virlx, bi_oct_su3*,out, quad_su3*,in)
 	  
 	  SU3_TO_BI_SU3(out[idst_virlx][mu],in[ibord][mu],vn_dst_virlx);
 	}
-  
-  for(int ivol=0;ivol<loc_volh;ivol++)
-    for(int mu=0;mu<8;mu++)
-      if(rank==0 && thread_id==0)
-	printf("%d %d %lg\n",ivol,mu,out[ivol][mu][0][0][0][0]);
   
   set_borders_invalid(out);
 }}
