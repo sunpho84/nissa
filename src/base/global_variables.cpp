@@ -92,6 +92,7 @@ EXTERN int nissa_vnode_paral_dir;
 #ifdef USE_VNODES
 EXTERN int vnode_lx_offset;
 EXTERN int vbord_vol,vbord_volh;
+EXTERN int vir_loc_size[4];
 #endif
 EXTERN int start_eo_bord_send_up[4],start_eo_bord_rece_up[4];
 EXTERN int start_eo_bord_send_dw[4],start_eo_bord_rece_dw[4];

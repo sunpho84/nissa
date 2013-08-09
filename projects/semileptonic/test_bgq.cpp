@@ -423,7 +423,6 @@ void debug_apply_tmQ()
   
   //apply bgq
   int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol; //half the bord in the 3 non vdir
-  THREAD_BARRIER();
   apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol,bi_in);
   THREAD_BARRIER();
   start_Wilson_hopping_matrix_bgq_communications();
@@ -443,20 +442,22 @@ void debug_apply_tmQ()
       for(int mu=0;mu<4;mu++)
 	{
 	  int idw_att=(int)(in[loclx_neighdw[ivol][mu]][0][0][0]);
+	  int mu_att=4+mu;
 	  int idw_ott=bgq_hopping_matrix_output_data[virlx_of_loclx[ivol]*8+4+mu][0][0][vn][0];
+	  int mu_ott=-bgq_hopping_matrix_output_data[virlx_of_loclx[ivol]*8+4+mu][0][0][vn][1]/idw_ott;
 	  coords catt,cott;
 	  glb_coord_of_glblx(catt,idw_att);
 	  glb_coord_of_glblx(cott,idw_ott);
-	  if(idw_att!=idw_ott)
+	  //if(idw_att!=idw_ott)
 	    {
 	      char tag[2][10]={"corre","WRONG"};
-	      master_printf("%s ivol %d (%d %d %d %d) mu %d dw att %d (%d %d %d %d) ott %d (%d %d %d %d)\n",
+	      master_printf("%s ivol %d (%d %d %d %d) mu %d dw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
 			    tag[(idw_att!=idw_ott)],ivol,
 			    loc_coord_of_loclx[ivol][0],loc_coord_of_loclx[ivol][1],
 			    loc_coord_of_loclx[ivol][2],loc_coord_of_loclx[ivol][3],
 			    mu,
-			    idw_att,catt[0],catt[1],catt[2],catt[3],
-			    idw_ott,cott[0],cott[1],cott[2],cott[3]);
+			    idw_att,mu_att,catt[0],catt[1],catt[2],catt[3],
+			    idw_ott,mu_ott,cott[0],cott[1],cott[2],cott[3]);
 	    }
 	}
     }
@@ -468,20 +469,22 @@ void debug_apply_tmQ()
       for(int mu=0;mu<4;mu++)
 	{
 	  int idw_att=(int)(in[loclx_neighup[ivol][mu]][0][0][0]);
+	  int mu_att=mu;
 	  int idw_ott=bgq_hopping_matrix_output_data[virlx_of_loclx[ivol]*8+mu][0][0][vn][0];
+	  int mu_ott=+bgq_hopping_matrix_output_data[virlx_of_loclx[ivol]*8+mu][0][0][vn][1]/idw_ott; //+because dag
 	  coords catt,cott;
 	  glb_coord_of_glblx(catt,idw_att);
 	  glb_coord_of_glblx(cott,idw_ott);
-	  if(idw_att!=idw_ott)
+	  //if(idw_att!=idw_ott)
 	    {
 	      char tag[2][10]={"corre","WRONG"};
-	      master_printf("fw %s ivol %d (%d %d %d %d) mu %d dw att %d (%d %d %d %d) ott %d (%d %d %d %d)\n",
+	      master_printf("%s ivol %d (%d %d %d %d) mu %d fw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
 			    tag[(idw_att!=idw_ott)],ivol,
 			    loc_coord_of_loclx[ivol][0],loc_coord_of_loclx[ivol][1],
 			    loc_coord_of_loclx[ivol][2],loc_coord_of_loclx[ivol][3],
 			    mu,
-			    idw_att,catt[0],catt[1],catt[2],catt[3],
-			    idw_ott,cott[0],cott[1],cott[2],cott[3]);
+			    idw_att,mu_att,catt[0],catt[1],catt[2],catt[3],
+			    idw_ott,mu_ott,cott[0],cott[1],cott[2],cott[3]);
 	    }
 	}
     }
@@ -561,7 +564,7 @@ void in_main(int narg,char **arg)
   double diff;
   double_vector_subt((double*)un_out,(double*)un_out,(double*)out,loc_vol*sizeof(spincolor)/sizeof(double));
   double_vector_glb_scalar_prod(&diff,(double*)un_out,(double*)un_out,loc_vol*sizeof(spincolor)/sizeof(double));
-  master_printf("Diff: %lg\n",diff);
+  master_printf("Application diff: %lg\n",diff);
 
   //benchmark pure hopping matrix application
   double hop_bgq_time=-take_time();
