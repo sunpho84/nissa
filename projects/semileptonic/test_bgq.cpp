@@ -448,7 +448,7 @@ void debug_apply_tmQ()
 	  coords catt,cott;
 	  glb_coord_of_glblx(catt,idw_att);
 	  glb_coord_of_glblx(cott,idw_ott);
-	  //if(idw_att!=idw_ott)
+	  if(idw_att!=idw_ott)
 	    {
 	      char tag[2][10]={"corre","WRONG"};
 	      master_printf("%s ivol %d (%d %d %d %d) mu %d dw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
@@ -475,7 +475,7 @@ void debug_apply_tmQ()
 	  coords catt,cott;
 	  glb_coord_of_glblx(catt,idw_att);
 	  glb_coord_of_glblx(cott,idw_ott);
-	  //if(idw_att!=idw_ott)
+	  if(idw_att!=idw_ott)
 	    {
 	      char tag[2][10]={"corre","WRONG"};
 	      master_printf("%s ivol %d (%d %d %d %d) mu %d fw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",

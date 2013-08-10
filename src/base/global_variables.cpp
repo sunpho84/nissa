@@ -245,6 +245,7 @@ EXTERN comm_t lx_quad_su3_comm,eo_quad_su3_comm;
 EXTERN two_stage_computation_pos_t Wsklx_hopping_matrix_output_pos;
 #ifdef USE_VNODES
 EXTERN two_stage_computation_pos_t virlx_hopping_matrix_output_pos;
+EXTERN two_stage_computation_pos_t vireo_hopping_matrix_output_pos[2];
 #endif
 
 /////////////////////////////////////////// VNODES specifics ///////////////////////////////////
@@ -252,8 +253,8 @@ EXTERN two_stage_computation_pos_t virlx_hopping_matrix_output_pos;
 #ifdef USE_VNODES
 
 EXTERN int *virlx_of_loclx,*loclx_of_virlx;
+EXTERN int **loclx_of_vireo,*vireo_of_loclx;
 EXTERN int virlx_t_vbord_vol,vir_vsurf_vol;
-
 #endif
 
 /////////////////////////////////////////// SPI specifics ///////////////////////////////////
