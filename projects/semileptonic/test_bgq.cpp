@@ -408,6 +408,26 @@ void debug_apply_tmQ()
   lx_spincolor_remap_to_virlx(bi_in,in);
   
   {
+    //map to eo
+    bi_spincolor *bi_in[2]={nissa_malloc("bi_in",loc_volh+bord_volh,bi_spincolor),
+			    nissa_malloc("bi_in",loc_volh+bord_volh,bi_spincolor)};
+    lx_spincolor_remap_to_vireo(bi_in,in);
+  
+    //precheck: unmapping
+    spincolor *un_out=nissa_malloc("un_out",loc_vol+bord_vol,spincolor);
+    vireo_spincolor_remap_to_lx(un_out,bi_in);
+    //compute average diff
+    double diff;
+    double_vector_subt((double*)un_out,(double*)un_out,(double*)in,loc_vol*sizeof(spincolor)/sizeof(double));
+    double_vector_glb_scalar_prod(&diff,(double*)un_out,(double*)un_out,loc_vol*sizeof(spincolor)/sizeof(double));
+    master_printf("Map unmap eo diff: %lg\n",diff);
+    
+    nissa_free(un_out);
+    nissa_free(bi_in[EVN]);
+    nissa_free(bi_in[ODD]);
+  }
+  
+  {
     //precheck: unmapping
     spincolor *un_out=nissa_malloc("un_out",loc_vol+bord_vol,spincolor);
     virlx_spincolor_remap_to_lx(un_out,bi_in);
@@ -415,7 +435,9 @@ void debug_apply_tmQ()
     double diff;
     double_vector_subt((double*)un_out,(double*)un_out,(double*)in,loc_vol*sizeof(spincolor)/sizeof(double));
     double_vector_glb_scalar_prod(&diff,(double*)un_out,(double*)un_out,loc_vol*sizeof(spincolor)/sizeof(double));
-    master_printf("Map unmap diff: %lg\n",diff);
+    master_printf("Map unmap lx diff: %lg\n",diff);
+    
+    nissa_free(un_out);
   }
   
   memset(nissa_send_buf,0,nissa_send_buf_size);
