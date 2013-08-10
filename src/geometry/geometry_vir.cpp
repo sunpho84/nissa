@@ -138,7 +138,7 @@ void define_vir_ordering()
   in the same order as explained in "communicate.h"
   if par==2 it makes the computation for lx case, otherwise for e/o
 */
-void define_virlx_hopping_matrix_output_pos()
+void define_vir_hopping_matrix_output_pos()
 {
   for(int par=0;par<=2;par++)
     {
@@ -236,26 +236,18 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_virlx, bi_oct_su3*,out, quad_su3*,in)
   
   //scan the two virtual nodes
   NISSA_PARALLEL_LOOP(isrc_lx,0,loc_vol)
-    {
-      int ifw_dst_virlx=virlx_of_loclx[isrc_lx];
-      
-      for(int mu=0;mu<4;mu++)
-	{
-	  //catch links needed to scatter signal forward
-	  SU3_TO_BI_SU3(out[ifw_dst_virlx][4+mu],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
-	  
-	  //copy links also where they are needed to scatter the signal backward, if 
-	  //sites that need them are not in the border (that would mean that computation must be 
-	  //done in another node
-	  int idst_lx=loclx_neighup[isrc_lx][mu];
-	  if(idst_lx<loc_vol)
-	    {
-	      int idst_virlx=virlx_of_loclx[idst_lx];
-	      SU3_TO_BI_SU3(out[idst_virlx][mu],in[isrc_lx][mu],vnode_of_loclx(idst_lx));
-	    }
-	  }
+    for(int mu=0;mu<4;mu++)
+      {
+	//catch links needed to scatter signal forward
+	SU3_TO_BI_SU3(out[virlx_of_loclx[isrc_lx]][4+mu],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
+	
+	//copy links also where they are needed to scatter the signal backward, if 
+	//sites that need them are not in the border (that would mean that computation must be 
+	//done in another node
+	int idst_lx=loclx_neighup[isrc_lx][mu];
+	if(idst_lx<loc_vol) SU3_TO_BI_SU3(out[virlx_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vnode_of_loclx(idst_lx));
       }
-  
+
   //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
   for(int mu=0;mu<4;mu++) //border and link direction
     if(paral_dir[mu])
@@ -266,6 +258,40 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_virlx, bi_oct_su3*,out, quad_su3*,in)
 	  int idst_virlx=virlx_of_loclx[idst_lx];
 	  
 	  SU3_TO_BI_SU3(out[idst_virlx][mu],in[ibord][mu],vn_dst_virlx);
+	}
+  
+  set_borders_invalid(out);
+}}
+
+//similar for eo
+THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
+{
+  GET_THREAD_ID();
+  
+  //communicate conf border so we can accede it
+  communicate_lx_quad_su3_borders(in);
+  
+  //scan the two virtual nodes
+  NISSA_PARALLEL_LOOP(isrc_lx,0,loc_vol)
+    for(int mu=0;mu<4;mu++)
+      {
+	//catch links needed to scatter signal forward
+	SU3_TO_BI_SU3(out[loclx_parity[isrc_lx]][vireo_of_loclx[isrc_lx]][4+mu],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
+	
+	//copy links also where they are needed to scatter the signal backward, if 
+	//sites that need them are not in the border (that would mean that computation must be 
+	//done in another node
+	int idst_lx=loclx_neighup[isrc_lx][mu],vn=vnode_of_loclx(idst_lx);
+	if(idst_lx<loc_vol) SU3_TO_BI_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vn);
+      }
+  
+  //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
+  for(int mu=0;mu<4;mu++) //border and link direction
+    if(paral_dir[mu])
+      NISSA_PARALLEL_LOOP(ibord,loc_vol+bord_offset[mu],loc_vol+bord_offset[mu]+bord_dir_vol[mu])
+	{
+	  int idst_lx=loclx_neighup[ibord][mu],vn=vnode_of_loclx(idst_lx);
+	  SU3_TO_BI_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[ibord][mu],vn);
 	}
   
   set_borders_invalid(out);
@@ -319,6 +345,34 @@ THREADABLE_FUNCTION_2ARG(virlx_spincolor_remap_to_lx, spincolor*,ext_out, bi_spi
     }
 }}
 
+//remap a spincolor from lx to vireo layout
+THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_vireo, bi_spincolor**,out, spincolor*,in)
+{
+  GET_THREAD_ID();
+    
+  //copy the various VN
+  NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
+    SPINCOLOR_TO_BI_SPINCOLOR(out[loclx_parity[ivol_lx]][vireo_of_loclx[ivol_lx]],in[ivol_lx],vnode_of_loclx(ivol_lx));
+  
+  //wait filling
+  set_borders_invalid(out[EVN]);
+  set_borders_invalid(out[ODD]);
+}}
+//reverse
+THREADABLE_FUNCTION_2ARG(vireo_spincolor_remap_to_lx, spincolor*,out, bi_spincolor**,in)
+{
+  GET_THREAD_ID();
+
+  //split to the two VN
+  for(int par=0;par<2;par++)
+    NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/nvnodes)
+      BI_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_vireo[par][ivol_vireo]],out[loclx_of_vireo[par][ivol_vireo]+vnode_lx_offset],
+				in[par][ivol_vireo]);
+  
+  //wait filling
+  set_borders_invalid(out);
+}}
+
 //set virtual geometry
 void set_vir_geometry()
 {
@@ -333,7 +387,7 @@ void set_vir_geometry()
   define_vir_ordering();
 
   //define output index pointers
-  define_virlx_hopping_matrix_output_pos();
+  define_vir_hopping_matrix_output_pos();
 }
 
 //unset it
@@ -341,6 +395,13 @@ void unset_vir_geometry()
 {
   virlx_hopping_matrix_output_pos.free();
   
-  nissa_free(virlx_of_loclx);
   nissa_free(loclx_of_virlx);
+  nissa_free(virlx_of_loclx);
+
+  for(int par=0;par<2;par++)
+    {
+      vireo_hopping_matrix_output_pos[par].free();
+      nissa_free(loclx_of_vireo[par]);
+    }
+  nissa_free(vireo_of_loclx);
 }
