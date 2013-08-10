@@ -43,7 +43,7 @@
  #define SITE_COPY(out,in) BI_HALFSPINCOLOR_COPY(out,in)
 #endif
 
-THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier, bi_oct_su3*,conf, int,istart, int,iend, bi_spincolor*,in)
+THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier, bi_oct_su3*,conf, int,istart, int,iend, bi_spincolor*,in)
 {
   GET_THREAD_ID();
   
@@ -113,7 +113,7 @@ THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_bgq_nocomm_nobarrier, bi_oc
 }}
   
 //swap border between VN and, if virtual parallelized dir is really parallelized, fill send buffers
-THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_vdir_VN_comm_and_buff_fill)
+THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_lx_vdir_VN_comm_and_buff_fill)
 {
   GET_THREAD_ID();
   
@@ -200,10 +200,10 @@ THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_vdir_VN_comm_and_buff_fill)
 }}
 
 //perform communications between VN and start all the communications between nodes
-THREADABLE_FUNCTION_0ARG(start_Wilson_hopping_matrix_bgq_communications)
+THREADABLE_FUNCTION_0ARG(start_Wilson_hopping_matrix_lx_bgq_communications)
 {
   //shuffle data between virtual nodes and fill vdir out buffer
-  bgq_Wilson_hopping_matrix_vdir_VN_comm_and_buff_fill();
+  bgq_Wilson_hopping_matrix_lx_vdir_VN_comm_and_buff_fill();
   
   //after the barrier, all buffers are filled and communications can start
   THREAD_BARRIER();
@@ -213,7 +213,7 @@ THREADABLE_FUNCTION_0ARG(start_Wilson_hopping_matrix_bgq_communications)
 }}
 
 //finish the communications and put in place the communicated data
-THREADABLE_FUNCTION_0ARG(finish_Wilson_hopping_matrix_bgq_communications)
+THREADABLE_FUNCTION_0ARG(finish_Wilson_hopping_matrix_lx_bgq_communications)
 {
   GET_THREAD_ID();
   FORM_TWO_THREAD_TEAMS();

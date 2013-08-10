@@ -280,7 +280,7 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
 	
 	//copy links also where they are needed to scatter the signal backward, if 
 	//sites that need them are not in the border (that would mean that computation must be 
-	//done in another node
+	//done in another node)
 	int idst_lx=loclx_neighup[isrc_lx][mu],vn=vnode_of_loclx(idst_lx);
 	if(idst_lx<loc_vol) SU3_TO_BI_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vn);
       }
