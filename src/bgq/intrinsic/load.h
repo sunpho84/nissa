@@ -70,6 +70,18 @@
 	  [c128] "b" (192+128));		\
   }
 
+//prefetch a bi_color
+#define BI_COLOR_PREFETCH_NEXT(addr)		\
+  {						\
+    void *ptr=(addr);				\
+    asm("dcbt   %[c0],%[ptr]  \n"		\
+	"dcbt  %[c64],%[ptr]  \n"		\
+	: :					\
+	  [ptr]  "r" (ptr),			\
+	  [c0]  "b" (96+0),			\
+	  [c64]  "b" (96+64));
+  }
+
 //prefetch a bi_halfspin
 #define BI_HALFSPIN_PREFETCH_NEXT(addr)		\
   {						\
@@ -148,6 +160,11 @@
   CACHE_PREFETCH((char*)(addr)+192+ 0);         \
   CACHE_PREFETCH((char*)(addr)+192+ 64);        \
   CACHE_PREFETCH((char*)(addr)+192+128);        \
+
+//prefetch a bi_color
+#define BI_COLOR_PREFETCH_NEXT(addr)		\
+  CACHE_PREFETCH((char*)(addr)+96+ 0);		\
+  CACHE_PREFETCH((char*)(addr)+96+ 64);		\
 
 //prefetch a bi_spincolor
 #define BI_SPINCOLOR_PREFETCH_NEXT(addr)	\

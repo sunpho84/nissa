@@ -1,5 +1,5 @@
-#ifndef _HOPPING_MATRIX_BGQ_H
-#define _HOPPING_MATRIX_BGQ_H
+#ifndef _HOPPING_MATRIX_BGQ_LX_H
+#define _HOPPING_MATRIX_BGQ_LX_H
 
 #include "../new_types/new_types_definitions.h"
 

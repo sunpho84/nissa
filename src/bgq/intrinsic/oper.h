@@ -148,6 +148,15 @@
     STORE_REG_BI_HALFSPINCOLOR(out,reg_out);                            \
   }
 
+#define REG_BI_SU3_PROD_BI_COLOR_LOAD_STORE(out,link,reg_in)	\
+  {                                                             \
+    DECLARE_REG_BI_SU3(reg_link);                               \
+    DECLARE_REG_BI_COLOR(reg_out);				\
+    REG_LOAD_BI_SU3(reg_link,link);                             \
+    REG_BI_SU3_PROD_BI_COLOR(reg_out,reg_link,reg_in);          \
+    STORE_REG_BI_COLOR(out,reg_out);                            \
+  }
+
 #define REG_BI_SU3_DAG_PROD_BI_COLOR(out,u,in)				\
   {                                                                     \
     REG_BI_COMPLEX_CONJ1_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0));	\
@@ -174,6 +183,15 @@
     REG_LOAD_BI_SU3(reg_link,link);                                     \
     REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(reg_out,reg_link,reg_in);	\
     STORE_REG_BI_HALFSPINCOLOR(out,reg_out);                            \
+  }
+
+#define REG_BI_SU3_DAG_PROD_BI_COLOR_LOAD_STORE(out,link,reg_in) \
+  {                                                                     \
+    DECLARE_REG_BI_SU3(reg_link);                                       \
+    DECLARE_REG_BI_COLOR(reg_out);					\
+    REG_LOAD_BI_SU3(reg_link,link);                                     \
+    REG_BI_SU3_DAG_PROD_BI_COLOR(reg_out,reg_link,reg_in);		\
+    STORE_REG_BI_COLOR(out,reg_out);					\
   }
 
 #endif

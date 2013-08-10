@@ -37,8 +37,10 @@ endif
 
 #source
 bgq_src_file=$(bgq_barrier_src_file) \
-	src/bgq/hopping_matrix_bgq.cpp \
-	src/bgq/hopping_matrix_bgq.h \
+	src/bgq/Wilson_hopping_matrix_lx_bgq.cpp \
+	src/bgq/Wilson_hopping_matrix_lx_bgq.h \
+	src/bgq/staggered_hopping_matrix_eo_or_oe_bgq.cpp \
+	src/bgq/staggered_hopping_matrix_eo_or_oe_bgq.h \
 	src/bgq/bgq_macros.h \
 	src/bgq/intrinsic/declare.h \
 	src/bgq/intrinsic/load.h \
