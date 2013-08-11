@@ -253,7 +253,7 @@ EXTERN two_stage_computation_pos_t vireo_hopping_matrix_output_pos[2];
 #ifdef USE_VNODES
 
 EXTERN int *virlx_of_loclx,*loclx_of_virlx;
-EXTERN int **loclx_of_vireo,*vireo_of_loclx;
+EXTERN int *loclx_of_vireo[2],*vireo_of_loclx;
 EXTERN int virlx_t_vbord_vol,vir_vsurf_vol;
 #endif
 

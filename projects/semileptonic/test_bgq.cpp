@@ -1,6 +1,7 @@
 #include "nissa.h"
 #include <math.h>
-#include "../../src/bgq/hopping_matrix_bgq.h"
+#include "../../src/bgq/staggered_hopping_matrix_eo_or_oe_bgq.h"
+#include "../../src/bgq/Wilson_hopping_matrix_lx_bgq.h"
 #include <firmware/include/personality.h>
 
 void hopping_matrix_lx_expand_to_Q_and_summ_diag_term_bgq(bi_spincolor *out,double kappa,double mu,bi_spincolor *in);
@@ -382,6 +383,124 @@ void bench_comm()
     }
 }
 
+void debug_apply_stDeo()
+{
+  //create random conf
+  quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  nissa_loc_vol_loop(ivol)
+    for(int mu=0;mu<4;mu++)
+      su3_put_to_id(conf[ivol][mu]);
+  set_borders_invalid(conf);
+  
+  //create random in vector
+  color *in=nissa_malloc("in",loc_vol+bord_vol,color);
+  vector_reset(in);
+  nissa_loc_vol_loop(ivol)
+    in[ivol][0][0]=glblx_of_loclx[ivol];
+  set_borders_invalid(in);  
+  communicate_lx_color_borders(in);
+  
+  //remap conf to bgq
+  bi_oct_su3 *bi_conf[2]={nissa_malloc("bi_conf_evn",loc_volh+bord_volh,bi_oct_su3),
+			  nissa_malloc("bi_conf_odd",loc_volh+bord_volh,bi_oct_su3)};
+  lx_conf_remap_to_vireo(bi_conf,conf);
+  
+  //remap in to bgq
+  bi_color *bi_in[2]={nissa_malloc("bi_in",loc_volh+bord_volh,bi_color),nissa_malloc("bi_in",loc_volh+bord_volh,bi_color)};
+  lx_color_remap_to_vireo(bi_in,in);
+  
+  {
+    //precheck: unmapping
+    color *un_out=nissa_malloc("un_out",loc_vol+bord_vol,color);
+    vireo_color_remap_to_lx(un_out,bi_in);
+    //compute average diff
+    double diff;
+    double_vector_subt((double*)un_out,(double*)un_out,(double*)in,loc_vol*sizeof(color)/sizeof(double));
+    double_vector_glb_scalar_prod(&diff,(double*)un_out,(double*)un_out,loc_vol*sizeof(color)/sizeof(double));
+    master_printf("Map unmap eo diff: %lg\n",diff);
+    
+    nissa_free(un_out);
+  }
+  
+  memset(nissa_send_buf,0,nissa_send_buf_size);
+  memset(nissa_recv_buf,0,nissa_recv_buf_size);
+  
+  //apply bgq
+  int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/4+vbord_vol/4; //half the bord in the 3 non vdir
+  apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol,bi_in[ODD],0);
+  THREAD_BARRIER();
+  //start_staggered_hopping_matrix_eo_or_oe_bgq_communications();
+  THREAD_BARRIER();
+  
+  //compute on the bulk and finish communications
+  apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_nobarrier(bi_conf,vsurf_vol,loc_volh/2,bi_in[ODD],0);
+  THREAD_BARRIER();
+  //finish_staggered_hopping_matrix_eo_or_oe_bgq_communications(ODD);
+  THREAD_BARRIER();
+  
+  bi_color *bgq_hopping_matrix_output_data=(bi_color*)nissa_send_buf+bord_volh;
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    if(loclx_parity[ivol]==EVN)
+      {
+	int vn=(loc_coord_of_loclx[ivol][nissa_vnode_paral_dir]>=loc_size[nissa_vnode_paral_dir]/2);
+	
+	for(int mu=0;mu<4;mu++)
+	  {
+	    int idw_att=(int)(in[loclx_neighdw[ivol][mu]][0][0]);
+	    int mu_att=4+mu;
+	    int idw_ott=bgq_hopping_matrix_output_data[vireo_of_loclx[ivol]*8+4+mu][0][vn][0];
+	    int mu_ott=-bgq_hopping_matrix_output_data[vireo_of_loclx[ivol]*8+4+mu][0][vn][1]/idw_ott;
+	    coords catt,cott;
+	    glb_coord_of_glblx(catt,idw_att);
+	    glb_coord_of_glblx(cott,idw_ott);
+	    //if(idw_att!=idw_ott)
+	      {
+		char tag[2][10]={"corre","WRONG"};
+		master_printf("%s_st ivol %d (%d %d %d %d) mu %d dw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
+			      tag[(idw_att!=idw_ott)],ivol,
+			      loc_coord_of_loclx[ivol][0],loc_coord_of_loclx[ivol][1],
+			      loc_coord_of_loclx[ivol][2],loc_coord_of_loclx[ivol][3],
+			      mu,
+			      idw_att,mu_att,catt[0],catt[1],catt[2],catt[3],
+			      idw_ott,mu_ott,cott[0],cott[1],cott[2],cott[3]);
+	    }
+	}
+    }
+  
+  for(int ivol=0;ivol<loc_vol;ivol++)
+    if(loclx_parity[ivol]==EVN)
+      {
+	int vn=(loc_coord_of_loclx[ivol][nissa_vnode_paral_dir]>=loc_size[nissa_vnode_paral_dir]/2);
+	
+	for(int mu=0;mu<4;mu++)
+	  {
+	    int idw_att=(int)(in[loclx_neighup[ivol][mu]][0][0]);
+	    int mu_att=mu;
+	    int idw_ott=bgq_hopping_matrix_output_data[vireo_of_loclx[ivol]*8+mu][0][vn][0];
+	    int mu_ott=+bgq_hopping_matrix_output_data[vireo_of_loclx[ivol]*8+mu][0][vn][1]/idw_ott; //+because dag
+	    coords catt,cott;
+	    glb_coord_of_glblx(catt,idw_att);
+	    glb_coord_of_glblx(cott,idw_ott);
+	    //if(idw_att!=idw_ott)
+	      {
+		char tag[2][10]={"corre","WRONG"};
+		master_printf("%s_st ivol %d (%d %d %d %d) mu %d fw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
+			      tag[(idw_att!=idw_ott)],ivol,
+			      loc_coord_of_loclx[ivol][0],loc_coord_of_loclx[ivol][1],
+			      loc_coord_of_loclx[ivol][2],loc_coord_of_loclx[ivol][3],
+			      mu,
+			      idw_att,mu_att,catt[0],catt[1],catt[2],catt[3],
+			      idw_ott,mu_ott,cott[0],cott[1],cott[2],cott[3]);
+	      }
+	  }
+      }
+  
+  nissa_free(in);
+  nissa_free(conf);
+  nissa_free(bi_in);
+  nissa_free(bi_conf);
+}
+
 void debug_apply_tmQ()
 {
   //create random conf
@@ -406,26 +525,6 @@ void debug_apply_tmQ()
   //remap in to bgq
   bi_spincolor *bi_in=nissa_malloc("bi_in",loc_vol+bord_vol,bi_spincolor);
   lx_spincolor_remap_to_virlx(bi_in,in);
-  
-  {
-    //map to eo
-    bi_spincolor *bi_in[2]={nissa_malloc("bi_in",loc_volh+bord_volh,bi_spincolor),
-			    nissa_malloc("bi_in",loc_volh+bord_volh,bi_spincolor)};
-    lx_spincolor_remap_to_vireo(bi_in,in);
-  
-    //precheck: unmapping
-    spincolor *un_out=nissa_malloc("un_out",loc_vol+bord_vol,spincolor);
-    vireo_spincolor_remap_to_lx(un_out,bi_in);
-    //compute average diff
-    double diff;
-    double_vector_subt((double*)un_out,(double*)un_out,(double*)in,loc_vol*sizeof(spincolor)/sizeof(double));
-    double_vector_glb_scalar_prod(&diff,(double*)un_out,(double*)un_out,loc_vol*sizeof(spincolor)/sizeof(double));
-    master_printf("Map unmap eo diff: %lg\n",diff);
-    
-    nissa_free(un_out);
-    nissa_free(bi_in[EVN]);
-    nissa_free(bi_in[ODD]);
-  }
   
   {
     //precheck: unmapping
@@ -473,7 +572,7 @@ void debug_apply_tmQ()
 	  if(idw_att!=idw_ott)
 	    {
 	      char tag[2][10]={"corre","WRONG"};
-	      master_printf("%s ivol %d (%d %d %d %d) mu %d dw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
+	      master_printf("%s_tm ivol %d (%d %d %d %d) mu %d dw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
 			    tag[(idw_att!=idw_ott)],ivol,
 			    loc_coord_of_loclx[ivol][0],loc_coord_of_loclx[ivol][1],
 			    loc_coord_of_loclx[ivol][2],loc_coord_of_loclx[ivol][3],
@@ -500,7 +599,7 @@ void debug_apply_tmQ()
 	  if(idw_att!=idw_ott)
 	    {
 	      char tag[2][10]={"corre","WRONG"};
-	      master_printf("%s ivol %d (%d %d %d %d) mu %d fw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
+	      master_printf("%s_tm ivol %d (%d %d %d %d) mu %d fw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
 			    tag[(idw_att!=idw_ott)],ivol,
 			    loc_coord_of_loclx[ivol][0],loc_coord_of_loclx[ivol][1],
 			    loc_coord_of_loclx[ivol][2],loc_coord_of_loclx[ivol][3],
@@ -542,6 +641,7 @@ void in_main(int narg,char **arg)
   bench_thread_barrier();
 
   debug_apply_tmQ();
+  debug_apply_stDeo();
 
   //prebench
   comm_start(lx_spincolor_comm);

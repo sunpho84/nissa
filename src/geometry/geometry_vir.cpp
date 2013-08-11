@@ -150,10 +150,10 @@ void define_vir_hopping_matrix_output_pos()
       int req_size=vbord_start+vbord_vol/fact; //note that this is in unity of the vparallelized structure
       if(nissa_send_buf_size<req_size*sizeof(bi_halfspincolor)) crash("we need larger nissa_send_buf"); //to be moved
       
-      int *loclx_of_vir=(par==2)?loclx_of_virlx:loclx_of_vireo[par];
+      int *loclx_of_vir=(par==2)?loclx_of_virlx:loclx_of_vireo[!par];
       int *vir_of_loclx=(par==2)?virlx_of_loclx:vireo_of_loclx;
       
-      two_stage_computation_pos_t *out=(par==2)?(&virlx_hopping_matrix_output_pos):vireo_hopping_matrix_output_pos+par;
+      two_stage_computation_pos_t *out=(par==2)?(&virlx_hopping_matrix_output_pos):vireo_hopping_matrix_output_pos+!par;
       out->inter_fr_in_pos=nissa_malloc("inter_fr_in_pos",8*loc_vol/nvnodes/fact,int);
       out->final_fr_inter_pos=NULL; //we are not overlapping communication with intermediate->final transfer
       out->inter_fr_recv_pos=nissa_malloc("inter_fr_recv_pos",bord_vol/nvnodes/fact,int);
@@ -171,6 +171,13 @@ void define_vir_hopping_matrix_output_pos()
 	    vbord_start+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1])/fact:
 	    //we are still in the same vnode
 	    loc_data_start+8*vir_of_loclx[loclx_neighdw[iloclx][v]]+0+v;
+	  if(par==0 && rank==0)
+	    printf("ANNA_FWDER_BWSCAT_%d(v) (loc %d, %d %d %d %d glb %d, bw %d, %d) %d %d\n",
+		   v,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
+		   loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
+		   glblx_of_loclx[iloclx],loclx_neighdw[iloclx][v],
+		   (loc_coord_of_loclx[iloclx][v]==0),
+		   ivir*8+0+v,out->inter_fr_in_pos[ivir*8+0+v]);
 
 	  //v direction fw scattering (bw derivative)
 	  out->inter_fr_in_pos[ivir*8+4+v]=(loc_coord_of_loclx[iloclx][v]==loc_size[v]/nvnodes-1)?
@@ -178,7 +185,14 @@ void define_vir_hopping_matrix_output_pos()
 	    vbord_start+(vbord_volh+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]))/fact:
 	    //we are still in the same vnode, but we shift of 4 (this is + contr)
 	    loc_data_start+8*vir_of_loclx[loclx_neighup[iloclx][v]]+4+v;
-	  
+	  if(par==0 && rank==0)
+	    printf("ANNA_BWDER_FWSCAT_%d(v) (loc %d, %d %d %d %d, glb %d, fw %d, %d) %d %d\n",
+		   v,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
+		   loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
+		   glblx_of_loclx[iloclx],loclx_neighup[iloclx][v],
+		   (loc_coord_of_loclx[iloclx][v]==loc_size[v]/nvnodes-1),
+		   ivir*8+4+v,out->inter_fr_in_pos[ivir*8+4+v]);
+
 	  //other direction derivatives
 	  for(int imu=0;imu<3;imu++)
 	    {
@@ -187,16 +201,31 @@ void define_vir_hopping_matrix_output_pos()
 	      int bw=loclx_neighdw[iloclx][mu];
 	      out->inter_fr_in_pos[ivir*8+0+mu]=(bw>=loc_vol)?
 		//we moved to another node
-		vir_of_loclx[bw]-loc_vol/nvnodes/fact:
+		vir_of_loclx[bw]-loc_vol/nvnodes/fact: SEEMS THAT IT IS MAKING A MESS
 		//we are still in local vnode
 		loc_data_start+8*vir_of_loclx[bw]+0+mu;
-	    
+	      if(par==0 && rank==0)
+		printf("ANNA_FWDER_BWSCAT_%d (loc %d, %d %d %d %d, glb %d, bw %d, %d) %d %d\n",
+		       mu,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
+		       loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
+		       glblx_of_loclx[iloclx],bw,
+		       (bw>=loc_vol),
+		       ivir*8+0+mu,out->inter_fr_in_pos[ivir*8+0+mu]);
+
 	      int fw=loclx_neighup[iloclx][mu];
 	      out->inter_fr_in_pos[ivir*8+4+mu]=(fw>=loc_vol)?
 		//we moved in another node
 		vir_of_loclx[fw]-loc_vol/nvnodes/fact:
 		//we are still in local vnode
 		loc_data_start+8*vir_of_loclx[fw]+4+mu;
+	      if(par==0 && rank==0)
+		printf("ANNA_BWDER_FWSCAT_%d (loc %d, %d %d %d %d, glb %d, fw %d, %d) %d %d\n",
+		       mu,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
+		       loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
+		       glblx_of_loclx[iloclx],fw,
+		       (fw>=loc_vol),
+		       ivir*8+4+mu,out->inter_fr_in_pos[ivir*8+4+mu]);
+
 	    }
 	}
       
@@ -276,13 +305,20 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
     for(int mu=0;mu<4;mu++)
       {
 	//catch links needed to scatter signal forward
-	SU3_TO_BI_SU3(out[loclx_parity[isrc_lx]][vireo_of_loclx[isrc_lx]][4+mu],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
-	
+	in[isrc_lx][mu][0][0][1]=4+mu;
+	SU3_TO_BI_SU3(out[!loclx_parity[isrc_lx]][vireo_of_loclx[isrc_lx]][4+mu],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
+	in[isrc_lx][mu][0][0][1]=0;
+
 	//copy links also where they are needed to scatter the signal backward, if 
 	//sites that need them are not in the border (that would mean that computation must be 
 	//done in another node)
 	int idst_lx=loclx_neighup[isrc_lx][mu],vn=vnode_of_loclx(idst_lx);
-	if(idst_lx<loc_vol) SU3_TO_BI_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vn);
+	if(idst_lx<loc_vol)
+	  {
+	    in[isrc_lx][mu][0][0][1]=mu;
+	    SU3_TO_BI_SU3(out[!loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vn);
+	    in[isrc_lx][mu][0][0][1]=0;
+	  }
       }
   
   //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
@@ -291,7 +327,10 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
       NISSA_PARALLEL_LOOP(ibord,loc_vol+bord_offset[mu],loc_vol+bord_offset[mu]+bord_dir_vol[mu])
 	{
 	  int idst_lx=loclx_neighup[ibord][mu],vn=vnode_of_loclx(idst_lx);
-	  SU3_TO_BI_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[ibord][mu],vn);
+	  
+	  in[ibord][mu][0][0][1]=mu;
+	  SU3_TO_BI_SU3(out[!loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[ibord][mu],vn);
+	  in[ibord][mu][0][0][1]=0;
 	}
   
   set_borders_invalid(out);
@@ -367,6 +406,34 @@ THREADABLE_FUNCTION_2ARG(vireo_spincolor_remap_to_lx, spincolor*,out, bi_spincol
   for(int par=0;par<2;par++)
     NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/nvnodes)
       BI_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_vireo[par][ivol_vireo]],out[loclx_of_vireo[par][ivol_vireo]+vnode_lx_offset],
+				in[par][ivol_vireo]);
+  
+  //wait filling
+  set_borders_invalid(out);
+}}
+
+//remap a color from lx to vireo layout
+THREADABLE_FUNCTION_2ARG(lx_color_remap_to_vireo, bi_color**,out, color*,in)
+{
+  GET_THREAD_ID();
+    
+  //copy the various VN
+  NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
+    COLOR_TO_BI_COLOR(out[loclx_parity[ivol_lx]][vireo_of_loclx[ivol_lx]],in[ivol_lx],vnode_of_loclx(ivol_lx));
+  
+  //wait filling
+  set_borders_invalid(out[EVN]);
+  set_borders_invalid(out[ODD]);
+}}
+//reverse
+THREADABLE_FUNCTION_2ARG(vireo_color_remap_to_lx, color*,out, bi_color**,in)
+{
+  GET_THREAD_ID();
+
+  //split to the two VN
+  for(int par=0;par<2;par++)
+    NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/nvnodes)
+      BI_COLOR_TO_COLOR(out[loclx_of_vireo[par][ivol_vireo]],out[loclx_of_vireo[par][ivol_vireo]+vnode_lx_offset],
 				in[par][ivol_vireo]);
   
   //wait filling
