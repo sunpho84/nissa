@@ -68,7 +68,7 @@ THREADABLE_FUNCTION_5ARG(apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_noba
       REG_BI_SU3_DAG_PROD_BI_COLOR_LOAD_STORE(out[iout[7]],links[7],reg_in);
     }
 }}
-  
+
 //swap border between VN and, if virtual parallelized dir is really parallelized, fill send buffers
 THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_eo_or_oe_vdir_VN_comm_and_buff_fill)
 {
@@ -158,10 +158,10 @@ THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_eo_or_oe_vdir_VN_comm_and_
 }}
 
 //perform communications between VN and start all the communications between nodes
-THREADABLE_FUNCTION_0ARG(start_staggered_hopping_matrix_eo_or_eo_bgq_communications)
+THREADABLE_FUNCTION_0ARG(start_staggered_hopping_matrix_eo_or_oe_bgq_communications)
 {
   //shuffle data between virtual nodes and fill vdir out buffer
-  bgq_staggered_hopping_matrix_eo_or_eo_vdir_VN_comm_and_buff_fill();
+  bgq_staggered_hopping_matrix_eo_or_oe_vdir_VN_comm_and_buff_fill();
   
   //after the barrier, all buffers are filled and communications can start
   THREAD_BARRIER();
