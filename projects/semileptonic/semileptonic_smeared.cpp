@@ -573,7 +573,7 @@ void setup_conf()
 //Finalization
 void close_semileptonic()
 {
-  double contr_time=contr_2pts_time+contr_3pts_time+contr_save_time;
+  double contr_time=contr_2pts_time+contr_3pts_time;
   
   master_printf("\n");
   master_printf("Inverted %d configurations.\n",nanalyzed_conf);
