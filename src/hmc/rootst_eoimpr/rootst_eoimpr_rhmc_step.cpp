@@ -30,9 +30,11 @@
 double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,
 			       hmc_evol_pars_t &simul_pars,adaptative_algorithm_pars_t &adapt_pars,int itraj)
 {
+#ifdef USE_ADAPTATIVE_HMC
   int itraj_net=itraj-simul_pars.skip_mtest_ntraj;
   choose_hmc_traj_pars(simul_pars,adapt_pars,itraj_net);
-  
+#endif
+
   //header
   master_printf("Trajectory %d (nmd: %d, ngss: %d)\n",itraj,simul_pars.nmd_steps,simul_pars.ngauge_substeps);
   master_printf("-------------------------------\n");
@@ -134,8 +136,10 @@ double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_par
   verbosity_lv1_master_printf("Total time to perform rhmc step: %lg s\n",hmc_time);
   
   //update statistics
+#ifdef USE_ADAPTATIVE_HMC
   if(itraj_net>=0 && itraj_net<adapt_pars.use_for)
     adapt_pars.add(simul_pars.nmd_steps,simul_pars.ngauge_substeps,metro_tresh(diff_action)/hmc_time);
+#endif
   
   return diff_action;
 }

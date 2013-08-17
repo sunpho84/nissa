@@ -85,8 +85,10 @@ void write_conf(char *path,quad_su3 **conf)
   sprintf(text,"%d",itraj);
   ILDG_string_message_append_to_last(&mess,"MD_traj",text);
   
+#ifdef USE_ADAPTATIVE_HMC
   //adaptative algorithm
   ILDG_string_message_append_to_last(&mess,"adapt_alg_status",self_adapt_hmc_pars.save_to_text().c_str());
+#endif
   
 #ifndef REPRODUCIBLE_RUN
   //skip 10 random numbers
@@ -122,7 +124,9 @@ void read_conf(quad_su3 **conf,char *path)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
       if(strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
+#ifdef USE_ADAPTATIVE_HMC
       if(strcasecmp(cur_mess->name,"adapt_alg_status")==0) self_adapt_hmc_pars.init_from_text(cur_mess->data);
+#endif
     }
   
   //if message with string not found start from input seed
@@ -186,8 +190,10 @@ void init_simulation(char *path)
   if(theory_pars[SEA_THEORY].nflavs!=0)
     {
       read_hmc_evol_pars(evol_pars.hmc_evol_pars);
+#ifdef USE_ADAPTATIVE_HMC
       self_adapt_hmc_pars.set_current(evol_pars.hmc_evol_pars);
       self_adapt_hmc_pars.use_for=300; //testing
+#endif
     }
   else read_pure_gauge_evol_pars(evol_pars.pure_gauge_evol_pars);
   
