@@ -128,6 +128,9 @@ void unset_Wsklx_order()
   nissa_free(Wsklx_of_loclx);
   nissa_free(loclx_of_Wsklx);
   
+  nissa_free(Wsklx_hopping_matrix_output_pos.inter_fr_in_pos);
+  nissa_free(Wsklx_hopping_matrix_output_pos.inter_fr_recv_pos);
+  
   //nissa_free(Wsklx_hopping_matrix_output_pointer);
   //nissa_free(Wsklx_hopping_matrix_final_output);
 }
