@@ -14,6 +14,7 @@
 #include "../new_types/new_types_definitions.h"
 #include "../new_types/spin.h"
 #include "../new_types/su3.h"
+#include "../operations/gaugeconf.h"
 #include "../operations/su3_paths/plaquette.h"
 #include "../routines/ios.h"
 
@@ -142,15 +143,23 @@ void read_su3spinspin(su3spinspin *ccss,const char *base_path,const char *end_pa
 //read a gauge conf
 void read_ildg_gauge_conf(quad_su3 *conf,const char *path,ILDG_message *mess=NULL)
 {
-  master_printf("\nReading configuration from file: %s\n",path);
+  //read
+  verbosity_lv1_master_printf("\nReading configuration from file: %s\n",path);
   read_real_vector((double*)conf,path,"ildg-binary-data",nreals_per_quad_su3,mess);
-  master_printf("Configuration read!\n\n");
+  verbosity_lv2_master_printf("Configuration read!\n\n");
 
   //reorder from ILDG
   nissa_loc_vol_loop(ivol)
     quad_su3_ildg_to_nissa_reord(conf[ivol],conf[ivol]);
   
+  //set borders invalid
   set_borders_invalid(conf);
+  
+  //perform unitarity test
+  unitarity_check_result_t unitarity_check_result;
+  unitarity_check_lx_conf(unitarity_check_result,conf);
+  
+  verbosity_lv1_master_printf("Plaquette of read conf: %.18g\n",global_plaquette_lx_conf(conf));
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -180,21 +189,21 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,const char *base_p
   spincolor *sc[2]={nissa_malloc("sc1",loc_vol,spincolor),nissa_malloc("sc2",loc_vol,spincolor)};
   spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
 
-  //Read the four spinor
+  //read the four spinor
   for(int id_source=0;id_source<4;id_source++) //dirac index of source
     {
       if(end_path!=NULL) sprintf(filename,"%s.0%d.%s",base_path,id_source,end_path);
       else sprintf(filename,"%s.0%d",base_path,id_source);
       read_tm_spincolor_reconstructing(sc,temp,filename,conf,kappa,mu);
       
-      //Switch the spincolor into the colorspin. 
+      //switch the spincolor into the colorspin. 
       put_spincolor_into_colorspinspin(css[0],sc[0],id_source);
       put_spincolor_into_colorspinspin(css[1],sc[1],id_source);
     }
 
   verbosity_lv1_master_printf("Time elapsed in reading file '%s': %f s\n",base_path,take_time()-start_time);
 
-  //Destroy the temp
+  //destroy the temp
   nissa_free(sc[0]);
   nissa_free(sc[1]);
   nissa_free(temp);
@@ -203,10 +212,11 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,const char *base_p
 //read an ildg conf and split it into e/o parts
 void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,const char *path,ILDG_message *mess=NULL)
 {
+  //read the conf in lx and reorder it
   quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
   read_ildg_gauge_conf(lx_conf,path,mess);
   split_lx_conf_into_eo_parts(eo_conf,lx_conf);
   nissa_free(lx_conf);
 
-  master_printf("plaq: %.18g\n",global_plaquette_eo_conf(eo_conf));
+  verbosity_lv3_master_printf("Plaquette after e/o reordering: %.18g\n",global_plaquette_eo_conf(eo_conf));
 }

@@ -91,7 +91,7 @@ complex *contr_otto,*contr_mezzotto;
 
 //two points contractions
 int ncontr_2pts;
-complex *contr_2pts;
+complex *contr_2pts,*loc_2pts;
 int *op1_2pts,*op2_2pts;
 
 //timings
@@ -216,6 +216,7 @@ void initialize_Bk(int narg,char **arg)
   if(nspec>nmass) crash("Nspec>nmass!!!");
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
+  loc_2pts=nissa_malloc("loc_2pts",ncontr_2pts*glb_size[0],complex);
   op1_2pts=nissa_malloc("op1",ncontr_2pts,int);
   op2_2pts=nissa_malloc("op2",ncontr_2pts,int);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
@@ -458,7 +459,7 @@ void meson_two_points(colorspinspin *s1,colorspinspin *s2)
       dirac_prod(&(t2[icontr]),&(base_gamma[5]),&(base_gamma[op2_2pts[icontr]]));
     }
   //Call for the routine which perform actually real contraction
-  trace_g_css_dag_g_css(contr_2pts,t1,s1,t2,s2,ncontr_2pts);
+  trace_g_css_dag_g_css(contr_2pts,loc_2pts,t1,s1,t2,s2,ncontr_2pts);
 }
 
 //print all the passed contractions to the file
@@ -635,7 +636,7 @@ void close_Bk()
   nissa_free(twall);
   nissa_free(op1_2pts);nissa_free(op2_2pts);
   nissa_free(contr_otto);nissa_free(contr_mezzotto);
-  nissa_free(conf);nissa_free(sme_conf);nissa_free(contr_2pts);
+  nissa_free(conf);nissa_free(sme_conf);nissa_free(contr_2pts);nissa_free(loc_2pts);
   if(include_static) nissa_free(hyp_conf);
   for(int imass=0;imass<ndyn_mass;imass++) nissa_free(cgm_solution[imass]);
   nissa_free(cgm_solution);

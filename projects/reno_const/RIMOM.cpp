@@ -45,7 +45,7 @@ int niter_max=1000000;
 
 //two points contractions
 int ncontr_2pts;
-complex *contr_2pts;
+complex *contr_2pts,*loc_2pts;
 int *op1_2pts,*op2_2pts;
 char outfolder[1024];
 
@@ -102,7 +102,7 @@ void write_all_propagators(const char *name,int prec)
 }
 
 //This function takes care to make the revert on the FIRST spinor, putting the needed gamma5
-void meson_two_points(complex *corr,int *list_op1,su3spinspin *s1,int *list_op2,su3spinspin *s2,int ncontr)
+void meson_two_points(complex *corr,complex *loc_corr,int *list_op1,su3spinspin *s1,int *list_op2,su3spinspin *s2,int ncontr)
 {
   //Temporary vectors for the internal gamma
   dirac_matr t1[ncontr],t2[ncontr];
@@ -115,7 +115,7 @@ void meson_two_points(complex *corr,int *list_op1,su3spinspin *s1,int *list_op2,
     }
   
   //Call the routine which does the real contraction
-  trace_g_ccss_dag_g_ccss(corr,t1,s1,t2,s2,ncontr);
+  trace_g_ccss_dag_g_ccss(corr,loc_corr,t1,s1,t2,s2,ncontr);
 }
 
 //Parse all the input file
@@ -150,6 +150,7 @@ void initialize_Zcomputation(char *input_path)
   
   read_str_int("NContrTwoPoints",&ncontr_2pts);
   contr_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],complex);
+  loc_2pts=nissa_malloc("loc_2pts",ncontr_2pts*glb_size[0],complex);
   op1_2pts=nissa_malloc("op1_2pts",ncontr_2pts,int);
   op2_2pts=nissa_malloc("op2_2pts",ncontr_2pts,int);
   for(int icontr=0;icontr<ncontr_2pts;icontr++)
@@ -251,6 +252,7 @@ void close_Zcomputation()
   nissa_free(unfix_conf);
   nissa_free(conf);
   nissa_free(contr_2pts);
+  nissa_free(loc_2pts);
   nissa_free(op1_2pts);
   nissa_free(op2_2pts);
   nissa_free(X_interv[0]);
@@ -425,7 +427,7 @@ void calculate_all_2pts()
 	  {
 	    master_fprintf(fout," # m1=%f r1=%d , m2=%f r2=%d \n",mass[im1],r1,mass[im2],r2);
 	    
-	    meson_two_points(contr_2pts,op1_2pts,S0[r1][im1],op2_2pts,S0[r2][im2],ncontr_2pts);
+	    meson_two_points(contr_2pts,loc_2pts,op1_2pts,S0[r1][im1],op2_2pts,S0[r2][im2],ncontr_2pts);
 	    ncontr_tot+=ncontr_2pts;
 	    print_contractions_to_file(fout,ncontr_2pts,op1_2pts,op2_2pts,contr_2pts,source_coord[0],"",1);
 	    

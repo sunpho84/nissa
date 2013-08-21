@@ -16,12 +16,10 @@
 #include "site_contract.h"
 
 #define DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(TYPE,SHORTTYPE)	\
-  THREADABLE_FUNCTION_6ARG(NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE), complex*,glb_c, dirac_matr*,g1, TYPE*,s1, dirac_matr*,g2, TYPE*,s2, int,ncontr) \
+  THREADABLE_FUNCTION_7ARG(NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE), complex*,glb_c, complex*,loc_c, dirac_matr*,g1, TYPE*,s1, dirac_matr*,g2, TYPE*,s2, int,ncontr) \
   {									\
     GET_THREAD_ID();							\
     									\
-    /*local buffer*/							\
-    complex *loc_c=nissa_malloc("loc_c",glb_size[0]*ncontr,complex);	\
     vector_reset(loc_c);						\
 									\
     /*loop over time and number of contractions*/			\
@@ -53,13 +51,12 @@
 	verbosity_lv3_master_printf("Reduction done\n");		\
       }									\
 									\
-    /*free local buffer and auto sync*/					\
-   nissa_free(loc_c);							\
+    THREAD_BARRIER();							\
   }}
 
 //this function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 #define DEFINE_MESON_TWO_POINTS_WILSON_PROP(TYPE,SHORTTYPE)		\
-  void meson_two_points_Wilson_prop(complex *corr,int *list_op_source,TYPE *s1,int *list_op_sink,TYPE *s2,int ncontr) \
+  void meson_two_points_Wilson_prop(complex *corr,complex *loc_corr,int *list_op_source,TYPE *s1,int *list_op_sink,TYPE *s2,int ncontr) \
   {									\
     /*temporary vectors for the internal gamma*/			\
     dirac_matr tsource[ncontr],tsink[ncontr];				\
@@ -72,7 +69,7 @@
       }									\
 									\
     /*call the routine which perform the contraction*/			\
-    NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE)(corr,tsource,s1,tsink,s2,ncontr); \
+    NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE)(corr,loc_corr,tsource,s1,tsink,s2,ncontr); \
 }
 
 DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(colorspinspin,css)
