@@ -146,8 +146,8 @@ nissa_headers=src/base/close.h \
 	src/new_types/spin.h \
 	src/new_types/su3.h \
 	src/operations/contract/mesons_2pts.h \
-	src/operations/contract/mesons_2pts.h \
 	src/operations/contract/mesons_eight.h \
+	src/operations/contract/optimized_mesons_2pts.h \
 	src/operations/contract/site_contract.h \
 	src/operations/contract/stag.h \
 	src/operations/covariant_derivative.h \
@@ -254,6 +254,7 @@ nissa_source_files=src/base/close.cpp \
 	src/new_types/su3.cpp \
 	src/operations/contract/mesons_2pts.cpp \
 	src/operations/contract/mesons_eight.cpp \
+	src/operations/contract/optimized_mesons_2pts.cpp \
 	src/operations/contract/site_contract.cpp \
 	src/operations/contract/stag.cpp \
 	src/operations/covariant_derivative.cpp \

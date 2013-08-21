@@ -3,6 +3,7 @@
 #endif
 
 #include <math.h>
+#include <float.h>
 #include <string.h>
 
 #include "../base/global_variables.h"
@@ -440,3 +441,33 @@ void heatbath_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol
 //overrelax algorithm for the quenched simulation case
 void overrelax_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars)
 {heatbath_or_overrelax_conf(eo_conf,theory_pars,evol_pars,1);}
+
+//perform a unitarity check on a lx conf
+void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
+{
+  //results
+  int nbroken=0;
+  double loc_avg,loc_max;
+  int u=0;
+  nissa_loc_vol_loop(ivol)
+    for(int idir=0;idir<4;idir++)
+      {
+        //compute 1-U*U^+: this amount to 201 flops involving numbers of order 1/sqrt(6) that must cancel
+	//so we can expect an average roundoff error of eps*sqrt(201/6)
+        su3 zero;
+        su3_put_to_id(zero);
+        su3_subt_the_prod_su3_dag(zero,conf[ivol][idir],conf[ivol][idir]);
+	double err=sqrt(real_part_of_trace_su3_prod_su3_dag(zero,zero));;
+	double expected_err=sqrt(201.0/6)*DBL_EPSILON;
+        double r=err/expected_err;
+	
+	//compute average and max deviation
+        loc_avg+=r;
+        loc_max=std::max(r,loc_max);
+	
+	printf("DEV %d %lg\n",u++,r);
+	//for(int i=0;i<18;i++) printf("DEV2 %lg\n",((double*)zero)[i]/DBL_EPSILON);
+	//for(int i=0;i<9;i++) printf("DEV3 %lg\n",sqrt(squared_complex_norm(((complex*)(conf[ivol][idir]))[i])));
+      }
+  crash("");
+}

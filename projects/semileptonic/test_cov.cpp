@@ -51,8 +51,8 @@ void get_prop(su3spinspin *out,quad_su3 *conf,int cov)
 void compute_correlators(int *op_source,int *op_sink,su3spinspin *prop1,su3spinspin *prop2,const char *tag)
 {
   int ncontr=1;
-  complex corr[T];
-  meson_two_points_Wilson_prop(corr,op_source,prop1,op_sink,prop2,1);
+  complex corr[T],loc_corr[T];
+  meson_two_points_Wilson_prop(corr,loc_corr,op_source,prop1,op_sink,prop2,1);
   print_contractions_to_file(stdout,ncontr,op_source,op_sink,corr,tsource,tag,1.0);
 }
 
