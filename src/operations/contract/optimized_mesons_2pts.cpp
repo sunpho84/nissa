@@ -51,6 +51,20 @@ void two_pts_comp_t::add_sink_source_corr(uint16_t corr_id,double weight,int re_
 	    ((*this)[forw_back_comp_id_t(forw_comp_id,back_comp_id)])[corr_id]+=weight*loc_sign;
 	  }
       }
+  
+  //scream zero elements
+  this->scream();
+}
+
+//remove entries with weight 0
+void two_pts_comp_t::scream()
+{
+  for(two_pts_comp_t::iterator it=this->begin();it!=this->end();it++)
+    {
+      for(corr_id_weight_t::iterator jt=it->second.begin();jt!=it->second.end();jt++)
+	if(jt->second==0) it->second.erase(jt);
+      if(it->second.size()==0) this->erase(it);
+    }
 }
 
 //print the content
@@ -158,4 +172,52 @@ void print_optimized_contractions_to_file(FILE *fout,int ncontr,int *op_sour,int
         for(int t=0;t<glb_size[0];t++) fprintf(fout,"%+016.16g\t%+016.16g\n",
 					       ((double*)contr)[glb_size[0]*(0+2*icontr)+t]*norm,((double*)contr)[glb_size[0]*(1+2*icontr)+t]*norm);
       }
+}
+
+//summassign
+two_pts_comp_t operator+=(two_pts_comp_t &a,two_pts_comp_t &b)
+{
+  for(two_pts_comp_t::iterator it=b.begin();it!=b.end();it++)
+    for(corr_id_weight_t::iterator jt=it->second.begin();jt!=it->second.end();jt++)
+      a[it->first][jt->first]+=jt->second;
+  
+  a.scream();
+  
+  return a;
+}
+
+//subtassign
+two_pts_comp_t operator-=(two_pts_comp_t &a,two_pts_comp_t &b)
+{
+  for(two_pts_comp_t::iterator it=b.begin();it!=b.end();it++)
+    for(corr_id_weight_t::iterator jt=it->second.begin();jt!=it->second.end();jt++)
+      a[it->first][jt->first]-=jt->second;
+  
+  a.scream();
+  
+  return a;
+}
+
+//prodassign with double 
+two_pts_comp_t operator*=(two_pts_comp_t &a,double b)
+{
+  for(two_pts_comp_t::iterator it=a.begin();it!=a.end();it++)
+    for(corr_id_weight_t::iterator jt=it->second.begin();jt!=it->second.end();jt++)
+      (jt->second)*=b;
+  
+  a.scream();
+  
+  return a;
+}
+
+//divassign with double 
+two_pts_comp_t operator/=(two_pts_comp_t &a,double b)
+{
+  for(two_pts_comp_t::iterator it=a.begin();it!=a.end();it++)
+    for(corr_id_weight_t::iterator jt=it->second.begin();jt!=it->second.end();jt++)
+      (jt->second)/=b;
+  
+  a.scream();
+  
+  return a;
 }
