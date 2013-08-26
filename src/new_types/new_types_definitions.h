@@ -230,6 +230,7 @@ struct two_pts_comp_t: std::map<forw_back_comp_id_t,corr_id_weight_t>
   void add_sink_source_corr(uint16_t corr_id,double weight,int re_im,uint8_t sink_igamma,uint8_t sour_igamma);
   void print(FILE *fout);
   void summ_the_loc_forw_back_contractions(double *out,double *S_forw,double *S_back,int nel,int twall);
+  void scream();
   std::vector<int> pattern_list;
 };
 

@@ -1,0 +1,159 @@
+%pure-parser
+%locations
+%defines
+%error-verbose
+%parse-param {two_pts_parser_driver *driver}
+%lex-param {void *scanner}
+
+%{
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include "../../../src/nissa.h"
+#include "parse_corr.hpp"
+#include "driver_corr.hpp"
+#include "redefine_yy.h"
+
+  const int debug_parser=0;
+  
+  int two_pts_corr_parser_lex(YYSTYPE *lvalp,YYLTYPE *llocp,void *scanner);
+  void two_pts_corr_parser_error(YYLTYPE *locp,two_pts_parser_driver *driver,const char *err)
+  {crash("%d %s",locp->first_line,err);}
+
+#define scanner driver->scanner
+  %}
+
+//union used to catch all symbols
+%union
+{
+  bool reim;
+  int interpolator;
+  double double_numb;
+  two_pts_comp_t *corr_list;
+}
+
+//type for terminal symbols
+%token ENDL
+%token REAL_CORR
+%token IMAG_CORR
+%token <double_numb>  DOUBLE_NUMB
+%token <interpolator> INTERPOLATOR
+
+//types for non-terminal symbol
+%type <reim> reim_corr_flag
+%type <corr_list> corr
+%type <corr_list> corr_list
+%type <corr_list> corr_instantiation
+%type <corr_list> corr_summ_corr
+%type <corr_list> corr_subt_corr
+%type <corr_list> corr_div_real
+%type <corr_list> corr_prod_real
+%type <corr_list> real_prod_corr
+%type <corr_list> corr_negated
+%type <corr_list> corr_bracketed
+
+//associativity
+%left '-' '+'
+%left '*' '/'
+%left NEG
+
+%%
+
+//list of correlation
+corr_list: corr
+         | corr_list ENDL
+         | corr_list ENDL corr
+           {
+	     $$=$1;
+	     (*$$)+=(*$3);
+	     driver->output=(*$$);
+	     delete $3;
+	     if(debug_parser) $$->print(stdout);
+	   }
+;
+
+//definition of a corr
+corr: corr_instantiation
+    | corr_summ_corr
+    | corr_subt_corr
+    | corr_prod_real
+    | corr_div_real
+    | real_prod_corr
+    | corr_negated
+    | corr_bracketed
+;
+
+//-correlation
+corr_negated: '-' corr  %prec NEG
+{
+  $$=$2;
+  (*$$)*=-1;
+  if(debug_parser) $$->print(stdout);
+}
+;
+
+//brackets between a correlation
+corr_bracketed: '(' corr ')' {$$=$2;};
+
+//ratio of a correlation and a double
+corr_div_real: corr '/' DOUBLE_NUMB
+{
+  $$=$1;
+  (*$$)/=$3;
+  if(debug_parser) $$->print(stdout);
+}
+;
+
+//product of a correlation and a double
+corr_prod_real: corr '*' DOUBLE_NUMB
+{
+  $$=$1;
+  (*$$)*=$3;
+  if(debug_parser) $$->print(stdout);
+}
+;
+
+//product of a correlation and a double
+real_prod_corr: DOUBLE_NUMB '*' corr
+{
+  $$=$3;
+  (*$$)*=$1;
+  if(debug_parser) $$->print(stdout);
+}
+;
+
+//summ of two correlations
+corr_summ_corr: corr '+' corr
+{
+  $$=$1;
+  (*$$)+=(*$3);
+  delete $3;
+  if(debug_parser) $$->print(stdout);
+}
+;
+
+//difference of two correlation
+corr_subt_corr: corr '-' corr
+{
+  $$=$1;
+  (*$$)-=(*$3);
+  delete $3;
+  if(debug_parser) $$->print(stdout);
+}
+;
+
+//instantiation of a single correlator
+corr_instantiation: reim_corr_flag INTERPOLATOR INTERPOLATOR
+{
+  two_pts_comp_t *corr=new two_pts_comp_t;
+  
+  corr->add_sink_source_corr(driver->icorr,1.0,$1,$2,$3);
+  $$=corr;
+  if(debug_parser) printf("Added interpolator: %d %d %d\n",$1,$2,$3);
+}
+;
+
+//real or imaginary
+reim_corr_flag: REAL_CORR {$$=false;}
+              | IMAG_CORR {$$=true;}
+;

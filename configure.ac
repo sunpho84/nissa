@@ -1,5 +1,10 @@
 AC_INIT([nissa],[1.0],[francesco.sanfilippo@th.u-psud.fr])
 
+#overwrite default flags
+if test x${ac_cv_env_CXXFLAGS_set} != xset; then
+  CXXFLAGS=''
+fi 
+
 #include all config flags
 config_flags="$*"
 AC_DEFINE_UNQUOTED([CONFIG_FLAGS],["$config_flags"],[Flags passed to configure])
@@ -12,9 +17,20 @@ AC_MSG_RESULT([$CONFIG_DATE])
 
 #parameters definition
 AM_PROG_CC_C_O
+AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([1.0 no-define foreign])
-AC_CONFIG_SRCDIR([src])
+AC_CONFIG_SRCDIR([src],[src/IO])
 AC_CONFIG_HEADERS([src/config.h:src/config.h.in])
+
+#check gcc
+AC_PROG_CXX
+
+#check library creating package
+AC_PROG_RANLIB
+
+#check yacc and lex
+AC_PROG_YACC
+AM_PROG_LEX
 
 #checking for functions, headers and other stuff
 #AC_CHECK_FUNCS([memset])
@@ -87,7 +103,7 @@ if test "$enable_mpi_io" == "yes";then AC_DEFINE([USE_MPI_IO],1,[Enable MPI I/O]
 AM_CONDITIONAL([USE_MPI_IO],[test "$enable_mpi_io" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling MPI I/O... $enable_mpi_io])
 
-#THREADS
+#threads
 AC_ARG_ENABLE(threads,
 	AS_HELP_STRING([--disable-threads],[Enable threads]),
 	enable_threads="${enableval}",
@@ -151,23 +167,14 @@ if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then AC_MSG_ERROR([String 
 AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 
-#overwrite default flags
-if test x${ac_cv_env_CXXFLAGS_set} != xset; then
-  CXXFLAGS=''
-fi 
-
-#check gcc
-AC_PROG_CXX
-
-#check library creating package
-AC_PROG_RANLIB
-
 #check mpi.h
 #AC_CHECK_HEADERS([mpi.h], , [AC_MSG_ERROR([MPI not found])] )
 
 #create makefile
-AC_CONFIG_FILES([Makefile])
-AC_CONFIG_FILES([work_in_prog/bgq/Makefile])
+#AC_CONFIG_FILES([Makefile])
+#AC_CONFIG_FILES([work_in_prog/bgq/Makefile])
+#AC_CONFIG_FILES([work_in_prog/opt_2pts/parser/Makefile])
 
 #create config.h
 AC_OUTPUT
+AC_OUTPUT(Makefile src/Makefile src/IO/Makefile)
