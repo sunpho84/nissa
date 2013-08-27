@@ -14,7 +14,7 @@
 #include "../../linalgs/linalgs.h"
 #include "../../new_types/su3.h"
 #include "../../routines/ios.h"
-#include "../../routines/mpi.h"
+#include "../../routines/mpi_routines.h"
 #ifdef USE_THREADS
  #include "../../routines/thread.h"
 #endif

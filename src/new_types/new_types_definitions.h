@@ -7,7 +7,6 @@
 
 #include <mpi.h>
 #include <math.h>
-#include <map>
 #include <vector>
 #include <stdint.h>
 #include <string>

@@ -10,7 +10,7 @@
 #ifdef USE_THREADS
  #include "../../routines/thread.h"
 #endif
-#include "../../routines/mpi.h"
+#include "../../routines/mpi_routines.h"
 #include "../../base/thread_macros.h"
 
 extern double cgm_inv_over_time;

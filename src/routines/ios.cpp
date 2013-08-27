@@ -3,6 +3,7 @@
 #endif
 
 #include <math.h>
+#include <mpi.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -15,7 +16,7 @@
 #include "../base/thread_macros.h"
 #include "../IO/input.h"
 
-#include "mpi.h"
+#include "mpi_routines.h"
 #ifdef USE_THREADS
  #include "thread.h"
 #endif

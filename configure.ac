@@ -19,7 +19,7 @@ AC_MSG_RESULT([$CONFIG_DATE])
 AM_PROG_CC_C_O
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([1.0 no-define foreign])
-AC_CONFIG_SRCDIR([src],[src/IO])
+AC_CONFIG_SRCDIR([src],[src/bae],[src/geometry],[src/io])
 AC_CONFIG_HEADERS([src/config.h:src/config.h.in])
 
 #check gcc
@@ -177,4 +177,4 @@ AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 
 #create config.h
 AC_OUTPUT
-AC_OUTPUT(Makefile src/Makefile src/IO/Makefile)
+AC_OUTPUT(Makefile src/base/Makefile src/communicate/Makefile src/dirac_operators/Makefile src/geometry/Makefile src/hmc/Makefile src/inverters/Makefile src/io/Makefile src/linalgs/Makefile src/new_types/Makefile src/operations/Makefile src/routines/Makefile)
