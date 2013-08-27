@@ -4,6 +4,7 @@ libnew_types_la_SOURCES= \
         dirac.h \
         float128.h \
         float256.h \
+	new_types_definitions.h \
         rat_approx.h \
         read_new_types.h \
         spin.h \
