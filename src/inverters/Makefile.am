@@ -45,3 +45,12 @@ libinverters_la_SOURCES= \
         tmclov/cg_invert_tmclovQ2.cpp \
         tmclov/cgm_invert_tmclovQ2.cpp \
         tmclov/tmclov_frontends.cpp
+
+EXTRA_DIST= \
+        twisted_mass/cg_invert_tmQ2_common.cpp \
+        templates/cg_128_invert_template.cpp \
+        templates/cg_invert_template.cpp \
+        templates/cgm_invert_template.cpp \
+        templates/cg_128_invert_template_threaded.cpp \
+        templates/cg_invert_template_threaded.cpp \
+        templates/cgm_invert_template_threaded.cpp

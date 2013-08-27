@@ -33,6 +33,8 @@
  #include "../bgq/spi.h"
 #endif
 
+#include "svnversion.h"
+
 //init nissa
 void init_nissa(int narg,char **arg)
 {
@@ -54,7 +56,7 @@ void init_nissa(int narg,char **arg)
   signal(SIGFPE,terminate_sigsegv);
   
   //print SVN version and configuration and compilation time
-  master_printf("Initializing nissa, version: $Revision$ %s\n");
+  master_printf("Initializing nissa, version: %s\n",SVN_VERSION);
   master_printf("Configured at %s with flags: %s\n",CONFIG_TIME,CONFIG_FLAGS);
   master_printf("Compiled at %s of %s\n",__TIME__,__DATE__);
   
