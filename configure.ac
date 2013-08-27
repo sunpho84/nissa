@@ -16,17 +16,16 @@ AC_DEFINE_UNQUOTED([CONFIG_TIME], "$CONFIG_TIME", [time when configured])
 AC_MSG_RESULT([$CONFIG_DATE])
 
 #parameters definition
-AM_PROG_CC_C_O
 AC_CONFIG_AUX_DIR([config])
+AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.0 no-define foreign])
 AC_CONFIG_SRCDIR([src],[src/bae],[src/geometry],[src/io])
 AC_CONFIG_HEADERS([src/config.h:src/config.h.in])
 
-#check gcc
+#check gcc and libtool
+AM_PROG_CC_C_O
+LT_INIT
 AC_PROG_CXX
-
-#check library creating package
-AC_PROG_RANLIB
 
 #check yacc and lex
 AC_PROG_YACC
