@@ -28,3 +28,6 @@ libhmc_la_SOURCES= \
         rootst_eoimpr/rootst_eoimpr_omelyan_integrator.cpp \
         rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.cpp \
         rootst_eoimpr/rootst_eoimpr_rhmc_step.cpp
+
+EXTRA_DIST= \
+	rootst_eoimpr/rat_expansion_database.cpp

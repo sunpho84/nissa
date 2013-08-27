@@ -155,9 +155,6 @@
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
 
-/* subversion revision number */
-#undef SVN_REVISION
-
 /* Enable thread_debug */
 #undef THREAD_DEBUG
 

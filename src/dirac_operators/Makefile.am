@@ -43,3 +43,10 @@ libdirac_operators_la_SOURCES= \
         dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.cpp \
         dirac_operator_tmQ2/dirac_operator_tmQ2_128.cpp \
 	$(bgq_src_files)
+
+EXTRA_DIST= \
+        dirac_operator_WclovQ/dirac_operator_WclovQ_portable.cpp \
+        dirac_operator_stD/dirac_operator_stD_portable.cpp \
+        dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_portable.cpp \
+	dirac_operator_tmQ/dirac_operator_tmQ_portable.cpp \
+        dirac_operator_tmQ_left/dirac_operator_tmQ_left_portable.cpp

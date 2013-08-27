@@ -1,3 +1,5 @@
+BUILT_SOURCES=update_svnversion svnversion.h
+
 noinst_LTLIBRARIES=libbase.la
 libbase_la_SOURCES= \
 	bgq_instructions.h \
@@ -14,4 +16,12 @@ libbase_la_SOURCES= \
 	random.h \
 	thread_macros.h \
 	vectors.cpp \
+	svnversion.h \
 	vectors.h
+
+EXTRA_DIST=update_svnversion.h.sh svnversion.h
+
+update_svnversion:
+	./update_svnversion.h.sh
+
+.PHONY: update_svnversion
