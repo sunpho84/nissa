@@ -23,8 +23,8 @@
 #include "../new_types/dirac.h"
  #include "../new_types/su3.h"
 #include "../routines/ios.h"
-#include "../routines/math.h"
-#include "../routines/mpi.h"
+#include "../routines/math_routines.h"
+#include "../routines/mpi_routines.h"
 #ifdef USE_THREADS
  #include "../routines/thread.h"
 #endif

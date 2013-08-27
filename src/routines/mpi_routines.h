@@ -1,5 +1,8 @@
-#ifndef _MPI_H
-#define _MPI_H
+#ifndef _MPI_NISSA_H
+#define _MPI_NISSA_H
+
+#include <mpi.h>
+
 MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
 MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos);
 double glb_reduce_double(double in_loc);

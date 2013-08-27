@@ -15,7 +15,7 @@
 #include "../../operations/smearing/stout.h"
 #include "../../operations/su3_paths/plaquette.h"
 #include "../../routines/ios.h"
-#include "../../routines/math.h"
+#include "../../routines/math_routines.h"
 
 #include "../momenta/momenta_generation.h"
 

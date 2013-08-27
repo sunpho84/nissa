@@ -18,7 +18,7 @@
 #include "../../new_types/spin.h"
 #include "../../new_types/su3.h"
 #include "../shift.h"
-#include "../../routines/mpi.h"
+#include "../../routines/mpi_routines.h"
 
 //compute the polyakov loop
 void average_polyakov_loop(complex tra,quad_su3 *conf,int mu)

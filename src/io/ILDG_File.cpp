@@ -13,7 +13,7 @@
 #include "../geometry/geometry_lx.h"
 #include "../operations/remap_vector.h"
 #include "../routines/ios.h"
-#include "../routines/mpi.h"
+#include "../routines/mpi_routines.h"
 
 #include "endianess.h"
 

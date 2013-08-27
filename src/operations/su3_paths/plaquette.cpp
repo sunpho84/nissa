@@ -20,7 +20,7 @@
 #include "../../new_types/new_types_definitions.h"
 #include "../../new_types/spin.h"
 #include "../../new_types/su3.h"
-#include "../../routines/mpi.h"
+#include "../../routines/mpi_routines.h"
 #ifdef USE_THREADS
  #include "../../routines/thread.h"
 #endif

@@ -13,7 +13,7 @@
 #include "../../operations/su3_paths/plaquette.h"
 #include "../../hmc/gauge/tree_level_Symanzik_action.h"
 #include "../../routines/ios.h"
-#include "../../routines/mpi.h"
+#include "../../routines/mpi_routines.h"
 #ifdef USE_THREADS
  #include "../../routines/thread.h"
 #endif
