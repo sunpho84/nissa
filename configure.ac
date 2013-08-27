@@ -19,48 +19,51 @@ AC_MSG_RESULT([$CONFIG_DATE])
 AC_CONFIG_AUX_DIR([config])
 AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([1.0 no-define foreign])
-AC_CONFIG_SRCDIR([src],[src/bae],[src/geometry],[src/io])
+AC_CONFIG_SRCDIR([src])
 AC_CONFIG_HEADERS([src/config.h:src/config.h.in])
 
 #check gcc and libtool
 AM_PROG_CC_C_O
 LT_INIT
 AC_PROG_CXX
+AC_PROG_RANLIB
 
 #check yacc and lex
 AC_PROG_YACC
 AM_PROG_LEX
 
 #checking for functions, headers and other stuff
-#AC_CHECK_FUNCS([memset])
-#AC_CHECK_FUNCS([mkdir])
-#AC_CHECK_FUNCS([pow])
-#AC_CHECK_FUNCS([sqrt])
-#AC_CHECK_FUNCS([strcasecmp])
-#AC_CHECK_FUNCS([strdup])
-#AC_CHECK_FUNCS([strncasecmp])
-#AC_CHECK_FUNCS([strstr])
-#AC_CHECK_HEADERS([inttypes.h])
-#AC_CHECK_HEADERS([libintl.h])
-#AC_CHECK_HEADERS([malloc.h])
-#AC_CHECK_HEADERS([stddef.h])
-#AC_CHECK_HEADERS([stdint.h])
-#AC_CHECK_HEADERS([stdlib.h])
-#AC_CHECK_HEADERS([string.h])
-#AC_CHECK_HEADERS([unistd.h])
-#AC_C_INLINE
-#AC_HEADER_STDBOOL
-#AC_TYPE_SIZE_T
-#AC_FUNC_ALLOCA
-#AC_FUNC_MALLOC
-#AC_FUNC_REALLOC
-#AC_TYPE_INT16_T
-#AC_TYPE_INT32_T
-#AC_TYPE_INT8_T
-#AC_TYPE_UINT16_T
-#AC_TYPE_UINT32_T
-#AC_TYPE_UINT64_T
-#AC_TYPE_UINT8_T
+AC_CHECK_FUNCS([memset])
+AC_CHECK_FUNCS([mkdir])
+AC_CHECK_FUNCS([pow])
+AC_CHECK_FUNCS([sqrt])
+AC_CHECK_FUNCS([strcasecmp])
+AC_CHECK_FUNCS([strdup])
+AC_CHECK_FUNCS([strncasecmp])
+AC_CHECK_FUNCS([strstr])
+AC_CHECK_HEADERS([float.h])
+AC_CHECK_HEADERS([inttypes.h])
+AC_CHECK_HEADERS([libintl.h])
+AC_CHECK_HEADERS([malloc.h])
+AC_CHECK_HEADERS([stddef.h])
+AC_CHECK_HEADERS([stdint.h])
+AC_CHECK_HEADERS([stdlib.h])
+AC_CHECK_HEADERS([string.h])
+AC_CHECK_HEADERS([unistd.h])
+AC_C_INLINE
+AC_HEADER_STDBOOL
+AC_TYPE_SIZE_T
+AC_FUNC_ALLOCA
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_TYPE_OFF_T
+AC_TYPE_INT16_T
+AC_TYPE_INT32_T
+AC_TYPE_INT8_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
+AC_TYPE_UINT8_T
 
 # Get SVN Revision - idea from xfce-power-manager (C) 2007 by B.Tarricone
 dnl get svn revision
@@ -166,14 +169,5 @@ if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then AC_MSG_ERROR([String 
 AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 
-#check mpi.h
-#AC_CHECK_HEADERS([mpi.h], , [AC_MSG_ERROR([MPI not found])] )
-
-#create makefile
-#AC_CONFIG_FILES([Makefile])
-#AC_CONFIG_FILES([work_in_prog/bgq/Makefile])
-#AC_CONFIG_FILES([work_in_prog/opt_2pts/parser/Makefile])
-
 #create config.h
-AC_OUTPUT
-AC_OUTPUT(Makefile src/base/Makefile src/communicate/Makefile src/dirac_operators/Makefile src/geometry/Makefile src/hmc/Makefile src/inverters/Makefile src/io/Makefile src/linalgs/Makefile src/new_types/Makefile src/operations/Makefile src/routines/Makefile)
+AC_OUTPUT(Makefile src/base/Makefile src/communicate/Makefile src/dirac_operators/Makefile src/geometry/Makefile src/hmc/Makefile src/inverters/Makefile src/io/Makefile src/linalgs/Makefile src/new_types/Makefile src/operations/Makefile src/routines/Makefile projects/Makefile)
