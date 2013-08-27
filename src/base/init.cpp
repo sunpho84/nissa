@@ -12,8 +12,8 @@
 #include "global_variables.h"
 #include "vectors.h"
 
-#include "../IO/input.h"
-#include "../IO/endianess.h"
+#include "../io/input.h"
+#include "../io/endianess.h"
 #include "../geometry/geometry_eo.h"
 #include "../geometry/geometry_lx.h"
 #include "../geometry/geometry_Wsklx.h"
