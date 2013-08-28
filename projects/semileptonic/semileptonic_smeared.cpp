@@ -432,32 +432,49 @@ void initialize_semileptonic(char *input_path)
       
       master_printf(" spec %d: th=%g, m=%g, r=%d\n",ispec,thetaS0[ith_spec[ispec]],massS0[imass_spec[ispec]],r_spec[ispec]);
     }
-  read_str_int("NContrThreePoints",&ncontr_3pts);
-  contr_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glb_size[0],complex); 
-  if(ncontr_3pts!=0 || nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,PROP_TYPE);
-  
-  op_sour_3pts=nissa_malloc("op_sour_3pts",ncontr_3pts,int);
-  op_sink_3pts=nissa_malloc("op_sink_3pts",ncontr_3pts,int);
-  for(int icontr=0;icontr<ncontr_3pts;icontr++)
+
+  if(use_new_contraction_layout)
     {
-      //Read the operator pairs
-      read_int(&(op_sour_3pts[icontr]));
-      read_int(&(op_sink_3pts[icontr]));
+      char path[100];
+      read_str_str("ThreePointsOpListFilePath",path,100);
+      three_pts_comp=read_two_pts_sink_source_corr_from_file(path);
+      ncontr_3pts=three_pts_comp.ncorr;
       
-      master_printf(" contr.%d %d %d\n",icontr,op_sour_3pts[icontr],op_sink_3pts[icontr]);
+      //debug
+      printf("Read %d corrs\n",ncontr_3pts);
+      three_pts_comp.print();
+      
+      new_contr_3pts=nissa_malloc("new_contr_3pts",ncontr_3pts*glb_size[0],double);
     }
-  
-  read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
-  ch_contr_3pts=nissa_malloc("ch_contr_3pts",nch_contr_3pts*glb_size[0],complex);
-  ch_op_sour_3pts=nissa_malloc("ch_op_sour_3pts",nch_contr_3pts,int);
-  ch_op_sink_3pts=nissa_malloc("ch_op_sink_3pts",nch_contr_3pts,int);
-  for(int icontr=0;icontr<nch_contr_3pts;icontr++)
+  else
     {
-      //Read the operator pairs
-      read_int(&(ch_op_sour_3pts[icontr]));
-      read_int(&(ch_op_sink_3pts[icontr]));
+      read_str_int("NContrThreePoints",&ncontr_3pts);
+      contr_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glb_size[0],complex); 
+      if(ncontr_3pts!=0 || nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,PROP_TYPE);
       
-      master_printf(" ch-contr.%d %d %d\n",icontr,ch_op_sour_3pts[icontr],ch_op_sink_3pts[icontr]);
+      op_sour_3pts=nissa_malloc("op_sour_3pts",ncontr_3pts,int);
+      op_sink_3pts=nissa_malloc("op_sink_3pts",ncontr_3pts,int);
+      for(int icontr=0;icontr<ncontr_3pts;icontr++)
+	{
+	  //Read the operator pairs
+	  read_int(&(op_sour_3pts[icontr]));
+	  read_int(&(op_sink_3pts[icontr]));
+	  
+	  master_printf(" contr.%d %d %d\n",icontr,op_sour_3pts[icontr],op_sink_3pts[icontr]);
+	}
+      
+      read_str_int("NChromoContrThreePoints",&nch_contr_3pts);
+      ch_contr_3pts=nissa_malloc("ch_contr_3pts",nch_contr_3pts*glb_size[0],complex);
+      ch_op_sour_3pts=nissa_malloc("ch_op_sour_3pts",nch_contr_3pts,int);
+      ch_op_sink_3pts=nissa_malloc("ch_op_sink_3pts",nch_contr_3pts,int);
+      for(int icontr=0;icontr<nch_contr_3pts;icontr++)
+	{
+	  //Read the operator pairs
+	  read_int(&(ch_op_sour_3pts[icontr]));
+	  read_int(&(ch_op_sink_3pts[icontr]));
+	  
+	  master_printf(" ch-contr.%d %d %d\n",icontr,ch_op_sour_3pts[icontr],ch_op_sink_3pts[icontr]);
+	}
     }
   
   read_str_int("NGaugeConf",&ngauge_conf);
@@ -629,16 +646,16 @@ void close_semileptonic()
     {
       nissa_free(contr_2pts);nissa_free(ch_contr_2pts);
       nissa_free(contr_3pts);nissa_free(ch_contr_3pts);
+      nissa_free(op_sour_2pts);nissa_free(op_sink_2pts);
+      nissa_free(op_sour_3pts);nissa_free(op_sink_3pts);
+      nissa_free(ch_op_sour_2pts);nissa_free(ch_op_sink_2pts);
+      nissa_free(ch_op_sour_3pts);nissa_free(ch_op_sink_3pts);
     }
   else
     {
       nissa_free(new_contr_2pts);
       nissa_free(new_contr_3pts);
     }
-  nissa_free(op_sour_2pts);nissa_free(op_sink_2pts);
-  nissa_free(op_sour_3pts);nissa_free(op_sink_3pts);
-  nissa_free(ch_op_sour_2pts);nissa_free(ch_op_sink_2pts);
-  nissa_free(ch_op_sour_3pts);nissa_free(ch_op_sink_3pts);
   nissa_free(ith_spec);nissa_free(r_spec);nissa_free(imass_spec);
   for(int imass=0;imass<ncgm_solution;imass++) nissa_free(cgm_solution[imass]);
   nissa_free(cgm_solution);
@@ -1256,7 +1273,8 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		
 		//write them
 		contr_save_time-=take_time();
-		if(use_new_contraction_layout) ;
+		if(use_new_contraction_layout) three_pts_comp.print_correlations_to_file(fout,new_contr_3pts);
+
 		else print_contractions_to_file(fout,ncontr_3pts,op_sour_3pts,op_sink_3pts,contr_3pts,source_coord[0],"",1.0);
 		contr_save_time+=take_time();
 		

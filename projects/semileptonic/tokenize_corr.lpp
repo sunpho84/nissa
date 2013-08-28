@@ -70,7 +70,7 @@ Im if(debug_lexer) printf("Found Im\n"); CORR_NAME+="Im"; return IMAG_CORR;
 (B3)    if(debug_lexer) printf("Found B3\n"); CORR_NAME+="B3"; yylval->interpolator=15;return INTERPOLATOR;
 
  /* recognizing numbers */
-([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*|([0-9]+)) if(debug_lexer) printf("Found DOUBLE: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb); CORR_NAME+=yylval->double_numb; return DOUBLE_NUMB;
+([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*|([0-9]+)) if(debug_lexer) printf("Found DOUBLE: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb); CORR_NAME+=yytext; return DOUBLE_NUMB;
 
 %%
 
