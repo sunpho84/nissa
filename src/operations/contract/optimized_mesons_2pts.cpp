@@ -19,10 +19,10 @@ void two_pts_comp_t::add_sink_source_corr(uint16_t corr_id,double weight,int re_
 	int sink_gamma_sour_comp_id=base_gamma[sink_igamma].pos[sink_gamma_sink_comp_id];
 	
 	//get components value
-	int sour_gamma_comp=base_gamma[sour_igamma].entr[sour_gamma_sink_comp_id][RE]+
-	  base_gamma[sour_igamma].entr[sour_gamma_sink_comp_id][IM];
-	int sink_gamma_comp=base_gamma[sink_igamma].entr[sink_gamma_sink_comp_id][RE]+
-	  base_gamma[sink_igamma].entr[sink_gamma_sink_comp_id][IM];
+	int sour_gamma_comp=(int)(base_gamma[sour_igamma].entr[sour_gamma_sink_comp_id][RE]+
+				  base_gamma[sour_igamma].entr[sour_gamma_sink_comp_id][IM]);
+	int sink_gamma_comp=int(base_gamma[sink_igamma].entr[sink_gamma_sink_comp_id][RE]+
+				base_gamma[sink_igamma].entr[sink_gamma_sink_comp_id][IM]);
 	
 	for(int re_im_S_forw=0;re_im_S_forw<2;re_im_S_forw++)
 	  {
