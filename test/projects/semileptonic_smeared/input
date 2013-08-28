@@ -63,13 +63,7 @@ NSpec 2
 
  iThetaMassR 0 1 0
 
-NContrThreePoints 3
- 5  5
- 4  5
- 5  4
-
-NChromoContrThreePoints 1
- 5  5
+ThreePointsOpListFilePath three_pts_op_list
 
 NGaugeConf 2
 ../../data/L4T8conf 3 out_sourceA

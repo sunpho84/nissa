@@ -450,7 +450,6 @@ void initialize_semileptonic(char *input_path)
     {
       read_str_int("NContrThreePoints",&ncontr_3pts);
       contr_3pts=nissa_malloc("contr_3pts",ncontr_3pts*glb_size[0],complex); 
-      if(ncontr_3pts!=0 || nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,PROP_TYPE);
       
       op_sour_3pts=nissa_malloc("op_sour_3pts",ncontr_3pts,int);
       op_sink_3pts=nissa_malloc("op_sink_3pts",ncontr_3pts,int);
@@ -476,6 +475,7 @@ void initialize_semileptonic(char *input_path)
 	  master_printf(" ch-contr.%d %d %d\n",icontr,ch_op_sour_3pts[icontr],ch_op_sink_3pts[icontr]);
 	}
     }
+  if(ncontr_3pts!=0 || nch_contr_3pts!=0) sequential_source=nissa_malloc("Sequential source",loc_vol,PROP_TYPE);
   
   read_str_int("NGaugeConf",&ngauge_conf);
   
