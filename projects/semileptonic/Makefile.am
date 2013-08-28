@@ -1,7 +1,8 @@
 LDADD=$(top_builddir)/lib/libnissa.la
 
 AUTOMAKE_OPTIONS=subdir-objects
-AM_YFLAGS=-d
+
+bin_PROGRAMS=$(top_builddir)/bin/semileptonic_smeared
 
 semileptonic_smeared_parser_sources= \
         parse_corr.ypp \
@@ -13,12 +14,15 @@ semileptonic_smeared_parser_built_sources= \
 	parse_corr.hpp \
 	parse_corr.cpp
 
+AM_YFLAGS=-d
+
+if PARSER_GENERATION
 BUILT_SOURCES=$(semileptonic_smeared_parser_built_sources)
+__top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
+else
+__top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
+endif
 
-bin_PROGRAMS=$(top_builddir)/bin/semileptonic_smeared
 
-__top_builddir__bin_semileptonic_smeared_SOURCES= \
-	semileptonic_smeared.cpp \
-	$(semileptonic_smeared_parser_sources)
-
-CLEANFILES=$(semileptonic_smeared_parser_built_sources)
+#comment because it could happen that we don't have flex or bison
+#CLEANFILES=$(semileptonic_smeared_parser_built_sources)
