@@ -61,7 +61,17 @@
 
 //list of correlation
 corr_list: corr
+           {
+	     $$=$1;
+             driver->output=(*$$);
+	     if(debug_parser) $$->print(stdout);
+	   }
          | corr_list ENDL
+           {
+	     $$=$1;
+             driver->output=(*$$);
+	     if(debug_parser) $$->print(stdout);
+	   }
          | corr_list ENDL corr
            {
 	     $$=$1;
@@ -147,7 +157,7 @@ corr_instantiation: reim_corr_flag INTERPOLATOR INTERPOLATOR
 {
   two_pts_comp_t *corr=new two_pts_comp_t;
   
-  corr->add_sink_source_corr(driver->icorr,1.0,$1,$2,$3);
+  corr->add_sink_source_corr(driver->ncorr,1.0,$1,$2,$3);
   $$=corr;
   if(debug_parser) printf("Added interpolator: %d %d %d\n",$1,$2,$3);
 }

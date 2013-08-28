@@ -42,13 +42,8 @@ ComputeDerivativeCorrelations 0
 OnlyStandingTwoPoints 0
 OnlyChargedTwoPoints 0
 
-NContrTwoPoints 3
- 5  5
- 4  5
- 0  0
-NChromoContrTwoPoints 2
- 5  5
- 4  5
+UseNewContractionLayout 1
+TwoPointsOpListFilePath two_pts_op_list
 
 UseCgmS1 1
  

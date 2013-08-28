@@ -68,7 +68,7 @@ void two_pts_comp_t::scream()
 }
 
 //print the content
-void two_pts_comp_t::print(FILE *fout=stdout)
+void two_pts_comp_t::print(FILE *fout)
 {
   //loop on the whole list
   for(two_pts_comp_t::iterator it=this->begin();it!=this->end();it++)
@@ -138,7 +138,7 @@ void two_pts_comp_t::summ_the_loc_forw_back_contractions(double *out,double *S_f
   NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
     {
       //set in and out
-      icontrib_t=ncontrib*loc_size[0];
+      icontrib_t=ncontrib*loc_t;
       int t=(glb_size[0]+loc_size[0]*rank_coord[0]+loc_t-twall)%glb_size[0];
 
       //loop on all contributions
@@ -159,18 +159,15 @@ void two_pts_comp_t::summ_the_loc_forw_back_contractions(double *out,double *S_f
   THREAD_BARRIER();
 }
 
-//print optimized contractions to file
-void print_optimized_contractions_to_file(FILE *fout,int ncontr,int *op_sour,int *op_sink,complex *contr,int twall,
-					  const char *tag,double norm)
+//print optimized correlations to file
+void two_pts_comp_t::print_correlations_to_file(FILE *fout,double *corr)
 {
-  if(norm!=1) crash("this would not be optimized");
   if(rank==0)
-    for(int icontr=0;icontr<ncontr;icontr++)
+    for(int icorr=0;icorr<ncorr;icorr++)
       {
         fprintf(fout,"\n");
-        fprintf(fout," # %s%s%s\n",tag,gtag[op_sink[icontr]],gtag[op_sour[icontr]]);
-        for(int t=0;t<glb_size[0];t++) fprintf(fout,"%+016.16g\t%+016.16g\n",
-					       ((double*)contr)[glb_size[0]*(0+2*icontr)+t]*norm,((double*)contr)[glb_size[0]*(1+2*icontr)+t]*norm);
+        fprintf(fout," # %s\n",corr_name[icorr].c_str());
+        for(int t=0;t<glb_size[0];t++) fprintf(fout,"%+16.16lg\n",corr[glb_size[0]*icorr+t]);
       }
 }
 
