@@ -1,5 +1,13 @@
 BUILT_SOURCES=update_svnversion svnversion.h
 
+if BGQ
+bgq_src_files= \
+	../bgq/spi.h
+else
+bgq_src_files=
+endif
+
+
 noinst_LTLIBRARIES=libbase.la
 libbase_la_SOURCES= \
 	bgq_instructions.h \

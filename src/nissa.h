@@ -48,12 +48,12 @@
 #include "hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.h"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.h"
 
-#include "IO/checksum.h"
-#include "IO/endianess.h"
-#include "IO/ILDG_File.h"
-#include "IO/input.h"
-#include "IO/reader.h"
-#include "IO/writer.h"
+#include "io/checksum.h"
+#include "io/endianess.h"
+#include "io/ILDG_File.h"
+#include "io/input.h"
+#include "io/reader.h"
+#include "io/writer.h"
 
 #include "dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
 #include "dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h"

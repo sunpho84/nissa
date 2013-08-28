@@ -201,7 +201,7 @@ void define_vir_hopping_matrix_output_pos()
 	      int bw=loclx_neighdw[iloclx][mu];
 	      out->inter_fr_in_pos[ivir*8+0+mu]=(bw>=loc_vol)?
 		//we moved to another node
-		vir_of_loclx[bw]-loc_vol/nvnodes/fact: SEEMS THAT IT IS MAKING A MESS
+		vir_of_loclx[bw]-loc_vol/nvnodes/fact: //SEEMS THAT IT IS MAKING A MESS
 		//we are still in local vnode
 		loc_data_start+8*vir_of_loclx[bw]+0+mu;
 	      if(par==0 && rank==0)

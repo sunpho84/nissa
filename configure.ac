@@ -97,7 +97,11 @@ AC_ARG_ENABLE(bgq,
 	AS_HELP_STRING([--enable-bgq],[Enable bgq stuff (ony for BG/Q)]),
 	enable_bgq="${enableval}",
 	enable_bgq="no")
-if test "$enable_bgq" == "yes";then AC_DEFINE([BGQ],1,[Enable bgq]) AC_DEFINE([USE_VNODES],1,[Enable virtual node parallelization]) fi
+if test "$enable_bgq" == "yes"
+then
+	 AC_DEFINE([BGQ],1,[Enable bgq])
+	 AC_DEFINE([USE_VNODES],1,[Enable virtual node parallelization])
+fi
 AM_CONDITIONAL([BGQ],[test "$enable_bgq" == "yes" ],[true],[false])
 AM_CONDITIONAL([USE_VNODES],[test "$enable_bgq" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq... $enable_bgq])
@@ -107,7 +111,10 @@ AC_ARG_ENABLE(bgq-emu,
 	AS_HELP_STRING([--enable-bgq_emu],[Enable bgq_emu stuff (ony for BG/Q)]),
 	enable_bgq_emu="${enableval}",
 	enable_bgq_emu="no")
-if test "$enable_bgq_emu" == "yes";then AC_DEFINE([BGQ_EMU],1,[Enable bgq emulation]) fi
+if test "$enable_bgq_emu" == "yes"
+then
+	AC_DEFINE([BGQ_EMU],1,[Enable bgq emulation])
+fi
 AM_CONDITIONAL([BGQ_EMU],[test "$enable_bgq_emu" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling bgq emulation... $enable_bgq_emu])
 
@@ -148,4 +155,4 @@ AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 
 #create config.h
-AC_OUTPUT(Makefile src/base/Makefile src/communicate/Makefile src/dirac_operators/Makefile src/geometry/Makefile src/hmc/Makefile src/inverters/Makefile src/io/Makefile src/linalgs/Makefile src/new_types/Makefile src/operations/Makefile src/routines/Makefile projects/Makefile)
+AC_OUTPUT(Makefile src/base/Makefile src/bgq/Makefile src/communicate/Makefile src/dirac_operators/Makefile src/geometry/Makefile src/hmc/Makefile src/inverters/Makefile src/io/Makefile src/linalgs/Makefile src/new_types/Makefile src/operations/Makefile src/routines/Makefile projects/Makefile)
