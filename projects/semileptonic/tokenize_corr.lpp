@@ -7,7 +7,7 @@
 
 %{
 #include <stdio.h>
-#include "../../../src/nissa.h"
+#include "../../src/nissa.h"
 #include "driver_corr.hpp"
    
 #define YY_EXTRA_TYPE two_pts_parser_driver*
