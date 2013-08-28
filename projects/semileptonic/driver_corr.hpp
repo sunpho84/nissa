@@ -1,7 +1,7 @@
 #ifndef _DRIVER_TWO_PTS_PARSER_H
 #define _DRIVER_TWO_PTS_PARSER_H
 
-#include "../../../src/nissa.h"
+#include "../../src/nissa.h"
 
 class two_pts_parser_driver
 {
