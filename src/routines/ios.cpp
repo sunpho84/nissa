@@ -14,7 +14,7 @@
 #include "../base/debug.h"
 #include "../base/global_variables.h"
 #include "../base/thread_macros.h"
-#include "../IO/input.h"
+#include "../io/input.h"
 
 #include "mpi_routines.h"
 #ifdef USE_THREADS

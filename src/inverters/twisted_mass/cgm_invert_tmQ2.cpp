@@ -12,7 +12,7 @@
 
 #ifdef BGQ
  #include "../../geometry/geometry_vir.h"
- #include "inverters/twisted_mass/cgm_invert_tmQ2_bgq.h"
+ #include "cgm_invert_tmQ2_bgq.h"
 #endif
 
 #define BASETYPE spincolor
