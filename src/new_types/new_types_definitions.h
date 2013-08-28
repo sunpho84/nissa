@@ -227,11 +227,15 @@ struct corr_id_weight_t: std::map<uint16_t,double> {};
 //we can compute only once the repeated products.
 struct two_pts_comp_t: std::map<forw_back_comp_id_t,corr_id_weight_t>
 {
+  int ncorr;
   void add_sink_source_corr(uint16_t corr_id,double weight,int re_im,uint8_t sink_igamma,uint8_t sour_igamma);
-  void print(FILE *fout);
+  void print(FILE *fout=stdout);
   void summ_the_loc_forw_back_contractions(double *out,double *S_forw,double *S_back,int nel,int twall);
   void scream();
+  std::map<int,std::string> corr_name;
   std::vector<int> pattern_list;
+
+  void print_correlations_to_file(FILE *fout,double *corr);
 };
 
 //////////////////////////////////////////////////////////////////////

@@ -465,9 +465,7 @@ void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
         loc_avg+=r;
         loc_max=std::max(r,loc_max);
 	
-	printf("DEV %d %lg\n",u++,r);
 	//for(int i=0;i<18;i++) printf("DEV2 %lg\n",((double*)zero)[i]/DBL_EPSILON);
 	//for(int i=0;i<9;i++) printf("DEV3 %lg\n",sqrt(squared_complex_norm(((complex*)(conf[ivol][idir]))[i])));
       }
-  crash("");
 }

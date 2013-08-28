@@ -6,10 +6,11 @@
 class two_pts_parser_driver
 {
 public:
+  int ncorr;
   void *scanner;
   FILE *fin;
-  int icorr;
   two_pts_comp_t output;
+  std::map <int,std::string> corr_name;
   two_pts_parser_driver(const char *path);
   virtual ~two_pts_parser_driver(){destroy_scanner();}
 protected:
