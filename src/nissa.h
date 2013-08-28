@@ -80,7 +80,6 @@
 #include "inverters/twisted_mass/cg_invert_tmQ2.h"
 #include "inverters/twisted_mass/cgm_invert_tmQ2.h"
 #include "inverters/twisted_mass/tm_frontends.h"
-#include "inverters/Wstat/cg_invert_Wstat.h"
 #include "inverters/Wclov/cg_invert_WclovQ2.h"
 #include "inverters/Wclov/cg_invert_WclovQ.h"
 #include "inverters/tmclov/cg_invert_tmclovQ2.h"
