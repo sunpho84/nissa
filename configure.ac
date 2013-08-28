@@ -1,26 +1,23 @@
 AC_INIT([nissa],[1.0],[francesco.sanfilippo@th.u-psud.fr])
 
-#overwrite default flags
-if test x${ac_cv_env_CXXFLAGS_set} != xset; then
-  CXXFLAGS=''
-fi 
-
 #include all config flags
 config_flags="$*"
 AC_DEFINE_UNQUOTED([CONFIG_FLAGS],["$config_flags"],[Flags passed to configure])
+
+#parameters definition
+AC_CONFIG_SRCDIR([src])
+AC_CONFIG_AUX_DIR([config])
+AM_INIT_AUTOMAKE([1.0 no-define foreign])
+AM_CONFIG_HEADER(src/config.h)
+AC_CONFIG_MACRO_DIR([m4])
+AC_DISABLE_SHARED
+AC_CANONICAL_HOST
 
 #get configuration time
 AC_MSG_CHECKING([configuration date and time])
 CONFIG_DATE=`date`
 AC_DEFINE_UNQUOTED([CONFIG_TIME], "$CONFIG_TIME", [time when configured])
 AC_MSG_RESULT([$CONFIG_DATE])
-
-#parameters definition
-AC_CONFIG_AUX_DIR([config])
-AC_CONFIG_MACRO_DIR([m4])
-AM_INIT_AUTOMAKE([1.0 no-define foreign])
-AC_CONFIG_SRCDIR([src])
-AC_CONFIG_HEADERS([src/config.h:src/config.h.in])
 
 #check gcc and libtool
 AM_PROG_CC_C_O

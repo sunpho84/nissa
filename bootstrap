@@ -1,3 +1,10 @@
 #!/bin/sh
-mkdir m4
-autoreconf -ivf
+
+mkdir -p m4
+
+rm -fr libtool autom4te.cache
+
+autoreconf --verbose --install --symlink --force
+autoreconf --verbose --install --symlink --force
+
+rm -f config.cache

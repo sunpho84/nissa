@@ -46,6 +46,7 @@ libinverters_la_SOURCES= \
 
 EXTRA_DIST= \
         twisted_mass/cg_invert_tmQ2_common.cpp \
+	twisted_mass/cgm_invert_tmQ2_bgq.h \
         templates/cg_128_invert_template.cpp \
         templates/cg_invert_template.cpp \
         templates/cgm_invert_template.cpp \
