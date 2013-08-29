@@ -52,12 +52,12 @@ Re if(debug_lexer) printf("Found Re\n"); CORR_NAME+="Re"; return REAL_CORR;
 Im if(debug_lexer) printf("Found Im\n"); CORR_NAME+="Im"; return IMAG_CORR;
 
  /* recognizing interpolators */
-(S|S0)  if(debug_lexer) printf("Found S\n");  CORR_NAME+="S";  yylval->interpolator=0; return INTERPOLATOR;
+(S|S0)  if(debug_lexer) printf("Found S0\n"); CORR_NAME+="S0"; yylval->interpolator=0; return INTERPOLATOR;
 (V1)    if(debug_lexer) printf("Found V1\n"); CORR_NAME+="V1"; yylval->interpolator=1; return INTERPOLATOR;
 (V2)    if(debug_lexer) printf("Found V2\n"); CORR_NAME+="V2"; yylval->interpolator=2; return INTERPOLATOR;
 (V3)    if(debug_lexer) printf("Found V3\n"); CORR_NAME+="V3"; yylval->interpolator=3; return INTERPOLATOR;
 (V4|V0) if(debug_lexer) printf("Found V4\n"); CORR_NAME+="V0"; yylval->interpolator=4; return INTERPOLATOR;
-(P|P5)  if(debug_lexer) printf("Found P\n");  CORR_NAME+="P";  yylval->interpolator=5; return INTERPOLATOR;
+(P|P5)  if(debug_lexer) printf("Found P5\n"); CORR_NAME+="P5"; yylval->interpolator=5; return INTERPOLATOR;
 (A1)    if(debug_lexer) printf("Found A1\n"); CORR_NAME+="A1"; yylval->interpolator=6; return INTERPOLATOR;
 (A2)    if(debug_lexer) printf("Found A2\n"); CORR_NAME+="A2"; yylval->interpolator=7; return INTERPOLATOR;
 (A3)    if(debug_lexer) printf("Found A3\n"); CORR_NAME+="A3"; yylval->interpolator=8; return INTERPOLATOR;

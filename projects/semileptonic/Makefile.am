@@ -8,7 +8,8 @@ semileptonic_smeared_parser_sources= \
         parse_corr.ypp \
         tokenize_corr.lpp \
         parse_corr.hpp \
-        driver_corr.hpp
+        driver_corr.hpp \
+	redefine_yy.h
 semileptonic_smeared_parser_built_sources= \
 	tokenize_corr.cpp \
 	parse_corr.hpp \

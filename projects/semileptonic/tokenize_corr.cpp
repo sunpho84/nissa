@@ -894,7 +894,7 @@ if(debug_lexer) printf("Found Im\n"); CORR_NAME+="Im"; return IMAG_CORR;
 case 13:
 YY_RULE_SETUP
 #line 55 "tokenize_corr.lpp"
-if(debug_lexer) printf("Found S\n");  CORR_NAME+="S";  yylval->interpolator=0; return INTERPOLATOR;
+if(debug_lexer) printf("Found S0\n"); CORR_NAME+="S0"; yylval->interpolator=0; return INTERPOLATOR;
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
@@ -919,7 +919,7 @@ if(debug_lexer) printf("Found V4\n"); CORR_NAME+="V0"; yylval->interpolator=4; r
 case 18:
 YY_RULE_SETUP
 #line 60 "tokenize_corr.lpp"
-if(debug_lexer) printf("Found P\n");  CORR_NAME+="P";  yylval->interpolator=5; return INTERPOLATOR;
+if(debug_lexer) printf("Found P5\n"); CORR_NAME+="P5"; yylval->interpolator=5; return INTERPOLATOR;
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
@@ -975,7 +975,7 @@ if(debug_lexer) printf("Found B3\n"); CORR_NAME+="B3"; yylval->interpolator=15;r
 case 29:
 YY_RULE_SETUP
 #line 73 "tokenize_corr.lpp"
-if(debug_lexer) printf("Found DOUBLE: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb); CORR_NAME+=yylval->double_numb; return DOUBLE_NUMB;
+if(debug_lexer) printf("Found DOUBLE: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb); CORR_NAME+=yytext; return DOUBLE_NUMB;
 	YY_BREAK
 case 30:
 YY_RULE_SETUP

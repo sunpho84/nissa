@@ -54,3 +54,7 @@ EXTRA_DIST= \
         tools/clusterize.cpp \
         tools/clusterize2.cpp \
         tools/pack.c
+
+#remove libtool from distribution
+dist-hook:
+	rm -fr $(top_distdir)/libtool

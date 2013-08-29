@@ -2,10 +2,11 @@
  #include "config.h"
 #endif
 
-#include <mpi.h>
-#include <stdlib.h>
+#include <errno.h>
 #include <execinfo.h>
+#include <mpi.h>
 #include <stdarg.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #include "global_variables.h"
@@ -35,7 +36,7 @@ void print_backtrace_list()
   free(strs);
 }
 
-//crash
+//crash reporting the expanded error message
 void internal_crash(int line,const char *file,const char *templ,...)
 {
   fflush(stdout);
@@ -59,7 +60,6 @@ void internal_crash(int line,const char *file,const char *templ,...)
       MPI_Abort(MPI_COMM_WORLD,1);
     }
 }
-#include <errno.h>
 
 void internal_crash_printing_error(int line,const char *file,int err_code,const char *templ,...)
 {

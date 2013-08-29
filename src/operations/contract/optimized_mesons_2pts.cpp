@@ -3,6 +3,10 @@
 #include "../../new_types/new_types_definitions.h"
 #include "../../routines/thread.h"
 
+#ifdef BGQ
+ #include "../../bgq/intrinsic.h"
+#endif
+
 //initialize the 2pts dirac matrix structure
 void two_pts_comp_t::add_sink_source_corr(uint16_t corr_id,double weight,int re_im,uint8_t sink_igamma,uint8_t sour_igamma)
 {
@@ -96,7 +100,7 @@ void two_pts_comp_t::summ_the_loc_forw_back_contractions(double *out,double *S_f
   
   //define the workload (to be improved)
   int ncontrib=this->size();
-#ifndef USE_THREAD
+#ifndef USE_THREADS
   int start_contr_t=0,end_contr_t=loc_size[0]*ncontrib;
 #else
   NISSA_CHUNK_WORKLOAD(start_contr_t,chunk_load_contr_t,end_contr_t,0,loc_size[0]*ncontrib,thread_id,NACTIVE_THREADS);
@@ -105,7 +109,7 @@ void two_pts_comp_t::summ_the_loc_forw_back_contractions(double *out,double *S_f
   
   //loop on the whole list
   int icontrib_t=0;
-  double temp[ncontrib*loc_size[0]];
+  double *temp=nissa_malloc("temp",ncontrib*loc_size[0],double);
   for(int t=0;t<loc_size[0];t++)
     {
       double *S_forw_t=S_forw+t*nel*32;
@@ -116,17 +120,32 @@ void two_pts_comp_t::summ_the_loc_forw_back_contractions(double *out,double *S_f
 	{
 	  if(icontrib_t>=start_contr_t&&icontrib_t<end_contr_t)
 	    {
-	      forw_back_comp_id_t comp_id(it->first);
-	      corr_id_weight_t corr_id_weight_list(it->second);
-	      
 	      //compute the contribution and summ it to all the correlation where it contribute
-	      double *S_forw_t_id=S_forw_t+nel*comp_id.first;
-	      double *S_back_t_id=S_back_t+nel*comp_id.second;
+	      double *S_forw_t_id=S_forw_t+nel*it->first.first;
+	      double *S_back_t_id=S_back_t+nel*it->first.second;
 	      
 	      //compute the local product
+#if defined BGQ && !defined BGQ_EMU
+	      S_forw_t_id-=4;
+	      S_back_t_id-=4;
+	      reg_bi_complex reg_loc_temp;
+	      REG_SPLAT_BI_COMPLEX(reg_loc_temp,0);
+	      for(int iel=0;iel<nel;iel+=4)
+		{
+		  reg_bi_complex reg_forw,reg_back;
+		  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(reg_forw,S_forw_t_id);
+		  REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(reg_back,S_back_t_id);
+		  REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(reg_loc_temp,reg_loc_temp,reg_forw,reg_back);
+		}
+	      
+	      double loc_temp[4];
+	      STORE_REG_BI_COMPLEX(loc_temp,reg_loc_temp);
+	      temp[icontrib_t]=loc_temp[0]+loc_temp[1]+loc_temp[2]+loc_temp[3];
+#else
 	      double loc_temp=0;
 	      for(int iel=0;iel<nel;iel++) loc_temp+=S_forw_t_id[iel]*S_back_t_id[iel];
 	      temp[icontrib_t]=loc_temp;
+#endif
 	    }
 	  icontrib_t++;
 	}
@@ -156,7 +175,7 @@ void two_pts_comp_t::summ_the_loc_forw_back_contractions(double *out,double *S_f
 	}
     }
   
-  THREAD_BARRIER();
+  nissa_free(temp);
 }
 
 //print optimized correlations to file
