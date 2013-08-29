@@ -1,16 +1,19 @@
 BUILT_SOURCES=update_svnversion svnversion.h
 
 if BGQ
-bgq_src_files= \
-	../bgq/spi.h
+base_bgq_src_files= \
+	../bgq/spi.h \
+	bgq_instructions.h
 else
-bgq_src_files=
+base_bgq_src_files=
 endif
 
 
 noinst_LTLIBRARIES=libbase.la
 libbase_la_SOURCES= \
-	bgq_instructions.h \
+	$(base_bgq_src_files) \
+	bench.h \
+	bench.cpp \
 	close.cpp \
 	close.h \
 	debug.cpp \

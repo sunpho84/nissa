@@ -140,7 +140,7 @@ void define_vir_ordering()
 */
 void define_vir_hopping_matrix_output_pos()
 {
-  for(int par=0;par<=2;par++)
+  for(int par=2;par<=2;par++)
     {
       int fact=(par==2)?1:2;
       
@@ -171,7 +171,7 @@ void define_vir_hopping_matrix_output_pos()
 	    vbord_start+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1])/fact:
 	    //we are still in the same vnode
 	    loc_data_start+8*vir_of_loclx[loclx_neighdw[iloclx][v]]+0+v;
-	  if(par==0 && rank==0)
+	  if(0 && par==0 && rank==0)
 	    printf("ANNA_FWDER_BWSCAT_%d(v) (loc %d, %d %d %d %d glb %d, bw %d, %d) %d %d\n",
 		   v,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		   loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
@@ -185,7 +185,7 @@ void define_vir_hopping_matrix_output_pos()
 	    vbord_start+(vbord_volh+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]))/fact:
 	    //we are still in the same vnode, but we shift of 4 (this is + contr)
 	    loc_data_start+8*vir_of_loclx[loclx_neighup[iloclx][v]]+4+v;
-	  if(par==0 && rank==0)
+	  if(0 && par==0 && rank==0)
 	    printf("ANNA_BWDER_FWSCAT_%d(v) (loc %d, %d %d %d %d, glb %d, fw %d, %d) %d %d\n",
 		   v,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		   loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
@@ -204,7 +204,7 @@ void define_vir_hopping_matrix_output_pos()
 		vir_of_loclx[bw]-loc_vol/nvnodes/fact: //SEEMS THAT IT IS MAKING A MESS
 		//we are still in local vnode
 		loc_data_start+8*vir_of_loclx[bw]+0+mu;
-	      if(par==0 && rank==0)
+	      if(0 && par==0 && rank==0)
 		printf("ANNA_FWDER_BWSCAT_%d (loc %d, %d %d %d %d, glb %d, bw %d, %d) %d %d\n",
 		       mu,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		       loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
@@ -218,7 +218,7 @@ void define_vir_hopping_matrix_output_pos()
 		vir_of_loclx[fw]-loc_vol/nvnodes/fact:
 		//we are still in local vnode
 		loc_data_start+8*vir_of_loclx[fw]+4+mu;
-	      if(par==0 && rank==0)
+	      if(0 && par==0 && rank==0)
 		printf("ANNA_BWDER_FWSCAT_%d (loc %d, %d %d %d %d, glb %d, fw %d, %d) %d %d\n",
 		       mu,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		       loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],

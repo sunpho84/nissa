@@ -6,6 +6,7 @@
  #include "config.h"
 #endif
 
+#include "base/bench.h"
 #include "base/close.h"
 #include "base/debug.h"
 #include "base/global_variables.h"

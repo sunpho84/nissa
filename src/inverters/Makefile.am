@@ -9,6 +9,7 @@ endif
 
 noinst_LTLIBRARIES=libinverters.la
 libinverters_la_SOURCES= \
+	$(bgq_src_file) \
         twisted_mass/cg_invert_tmDeoimpr.h \
         twisted_mass/cg_invert_tmQ2.h \
         twisted_mass/cg_64_invert_tmQ2.h \
