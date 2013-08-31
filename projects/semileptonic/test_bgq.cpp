@@ -427,13 +427,13 @@ void debug_apply_stDeo()
   
   //apply bgq
   int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/4+vbord_vol/4; //half the bord in the 3 non vdir
-  apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol,bi_in[ODD],0);
+  apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol/2,bi_in[ODD],0);
   THREAD_BARRIER();
   //start_staggered_hopping_matrix_eo_or_oe_bgq_communications();
   THREAD_BARRIER();
   
   //compute on the bulk and finish communications
-  apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_nobarrier(bi_conf,vsurf_vol,loc_volh/2,bi_in[ODD],0);
+  apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_nobarrier(bi_conf,vsurf_vol/2,loc_volh/2,bi_in[ODD],0);
   THREAD_BARRIER();
   //finish_staggered_hopping_matrix_eo_or_oe_bgq_communications(ODD);
   THREAD_BARRIER();

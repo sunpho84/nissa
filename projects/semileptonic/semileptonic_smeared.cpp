@@ -367,8 +367,9 @@ void initialize_semileptonic(char *input_path)
       read_str_str("TwoPointsOpListFilePath",path,100);
       two_pts_comp=read_two_pts_sink_source_corr_from_file(path);
       ncontr_2pts=two_pts_comp.ncorr;
-      master_printf("Read %d corrs, corresponding to %d contr\n",ncontr_2pts,two_pts_comp.size());
-      
+      verbosity_lv2_master_printf("Read %d corrs, corresponding to %d contr\n",ncontr_2pts,two_pts_comp.size());
+      for(int icorr=0;icorr<two_pts_comp.ncorr;icorr++)
+	verbosity_lv2_master_printf(" %s\n",two_pts_comp.corr_name[icorr].c_str());
       new_contr_2pts=nissa_malloc("new_contr_2pts",ncontr_2pts*glb_size[0],double);
     }
   else
@@ -436,8 +437,10 @@ void initialize_semileptonic(char *input_path)
       read_str_str("ThreePointsOpListFilePath",path,100);
       three_pts_comp=read_two_pts_sink_source_corr_from_file(path);
       ncontr_3pts=three_pts_comp.ncorr;
-      master_printf("Read %d corrs, corresponding to %d contr\n",ncontr_3pts,three_pts_comp.size());      
-      
+      verbosity_lv2_master_printf("Read %d corrs, corresponding to %d contr\n",ncontr_3pts,three_pts_comp.size());      
+      for(int icorr=0;icorr<three_pts_comp.ncorr;icorr++)
+	verbosity_lv2_master_printf(" %s\n",three_pts_comp.corr_name[icorr].c_str());
+
       new_contr_3pts=nissa_malloc("new_contr_3pts",ncontr_3pts*glb_size[0],double);
     }
   else
@@ -1366,42 +1369,6 @@ int check_remaining_time()
   return enough_time;
 }
 
-void memory_copy(double *out,double *in,int size)
-{
-  GET_THREAD_ID();
-  
-  size/=8;
-  
-  NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,size,thread_id,NACTIVE_THREADS);
-
-#if BGQ
-  for(int i=start;i<end;i+=4) vec_st(vec_ld(0,in+i),0,out+i);
-#else
-  for(int i=start;i<end;i++) out[i]=in[i];
-#endif    
-}
-
-THREADABLE_FUNCTION_0ARG(bench_memory_bandwidth)
-{
-  int mem_size=256*1024*1024; //256Mb
-  
-  double *a=nissa_malloc("a",mem_size/sizeof(double),double);
-  double *b=nissa_malloc("b",mem_size/sizeof(double),double);
-
-  memory_copy(a,b,mem_size);
-
-  int ntests=10;
-  double bench_time=-take_time();
-  for(int i=0;i<ntests;i++) memory_copy(a,b,mem_size);
-  bench_time+=take_time();
-  bench_time/=ntests;
-
-  nissa_free(a);
-  nissa_free(b);
-
-  master_printf("time to copy %d Mbytes: %lg, %lg Mbs\n",mem_size/1024/1024,bench_time,mem_size/1024/1024/bench_time);
-}}
-
 void in_main(int narg,char **arg)
 {
   //Basic mpi initialization
@@ -1410,8 +1377,6 @@ void in_main(int narg,char **arg)
   //initialize the program
   if(narg<2) crash("Use: %s input_file",arg[0]);
   initialize_semileptonic(arg[1]);
-  
-  bench_memory_bandwidth();
   
   //loop over the configs
   int iconf=0,enough_time=1;

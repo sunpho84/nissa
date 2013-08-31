@@ -6,6 +6,7 @@
 class two_pts_parser_driver
 {
 public:
+  int curr_corr_named;
   int ncorr;
   void *scanner;
   FILE *fin;

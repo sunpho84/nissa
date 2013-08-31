@@ -1549,3 +1549,13 @@ void safe_hermitian_exact_exponentiate(su3 out,su3 in)
   
   safe_anti_hermitian_exact_i_exponentiate(out,Q);
 }
+
+//return sqrt(|U*U^+-1|)
+double su3_get_non_unitariness(su3 u)
+{
+  su3 zero;
+  su3_put_to_id(zero);
+  su3_subt_the_prod_su3_dag(zero,u,u);
+  
+  return sqrt(real_part_of_trace_su3_prod_su3_dag(zero,zero));
+}

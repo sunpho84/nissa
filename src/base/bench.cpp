@@ -1,6 +1,9 @@
- #include "../routines/ios.h"
+#include "../routines/ios.h"
 #ifdef USE_THREADS
  #include "../routines/thread.h"
+#endif
+#ifdef BGQ
+ #include "../bgq/intrinsic.h"
 #endif
 
 #include "global_variables.cpp"

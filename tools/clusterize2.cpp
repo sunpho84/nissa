@@ -11,6 +11,7 @@ uint64_t mem_needed;
 
 typedef char sa_string[300];
 
+int REIM,use_new_contraction_layout;
 int T,ncorr,ncombo,ncorr_type;
 int nfile_names;
 int njack,clust_size;
@@ -34,6 +35,10 @@ void parse_input(char *path)
   
   //n files
   read_str_int("NFileNames",&nfile_names);
+  
+  //REIM
+  read_str_int("UseNewContractionLayout",&use_new_contraction_layout);
+  REIM=use_new_contraction_layout?1:2;
   
   //compute real numb of confs
   clust_size=nconfs_teo/njack;
@@ -94,7 +99,7 @@ void count_corr(char *path)
   fclose(fin);
   
   //compute size of each combo
-  int combo_size=ncorr_type*2*T*(njack+1)*sizeof(double);
+  int combo_size=ncorr_type*REIM*T*(njack+1)*sizeof(double);
   
   //compute the total amount of memory needed
   mem_needed=(uint64_t)ncombo*combo_size;
@@ -165,17 +170,26 @@ void parse_conf(int iconf,char *path)
 	    
 	    //scanning line
 	    double t1,t2;
-	    int n=sscanf(line,"%lg %lg",&t1,&t2);
-	    if(n!=2) crash("scanning line '%s' obtained only %d numbers",line,n);
+	    int n;
+	    if(use_new_contraction_layout)
+	      {
+		n=sscanf(line,"%lg %lg",&t1,&t2);
+		if(n!=2) crash("scanning line '%s' obtained only %d numbers",line,n);
+	      }
+	    else
+	      {
+		n=sscanf(line,"%lg",&t1);
+		if(n!=1) crash("scanning line '%s' obtained only %d numbers",line,n);
+	      }
 	    nread_line++;
 	    
 	    //find output place
-	    int i1=iclust+(njack+1)*(t+T*(0+2*(icombo+ncombo*icorr_type)));
-	    int i2=iclust+(njack+1)*(t+T*(1+2*(icombo+ncombo*icorr_type)));
+	    int i1=iclust+(njack+1)*(t+T*(0+REIM*(icombo+ncombo*icorr_type)));
+	    int i2=iclust+(njack+1)*(t+T*(1+REIM*(icombo+ncombo*icorr_type)));
 	    
 	    //summ into the cluster
 	    data[i1]+=t1;
-	    data[i2]+=t2;
+	    if(REIM) data[i2]+=t2;
 	  }
       }  
   
@@ -235,7 +249,7 @@ int main(int narg,char **arg)
 	  parse_conf(iconf,path[iconf]);
       
       //make the jacknives
-      for(int icorr=0;icorr<ncombo*2*ncorr_type*T;icorr++)
+      for(int icorr=0;icorr<ncombo*REIM*ncorr_type*T;icorr++)
 	{
 	  double *d=data+icorr*(njack+1);
 	  
@@ -258,8 +272,8 @@ int main(int narg,char **arg)
 	  printf("Writing corr %s (%d/%d)\n",corr_name[icorr_type],icorr_type+1,ncorr_type);
 	  file=open_file(outpath[icorr_type],"w");
 	  
-	  int n=fwrite((void*)(data+ncombo*2*T*(njack+1)*icorr_type),sizeof(double),ncombo*2*T*(njack+1),file);
-	  if(n!=ncombo*2*T*(njack+1)) crash("obtained %d instead of %d",n,ncombo*2*T*(njack+1));
+	  int n=fwrite((void*)(data+ncombo*REIM*T*(njack+1)*icorr_type),sizeof(double),ncombo*REIM*T*(njack+1),file);
+	  if(n!=ncombo*REIM*T*(njack+1)) crash("obtained %d instead of %d",n,ncombo*REIM*T*(njack+1));
 	  fclose(file);
 	}
       
