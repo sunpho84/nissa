@@ -42,7 +42,8 @@
      IMAG_CORR = 260,
      DOUBLE_NUMB = 261,
      INTERPOLATOR = 262,
-     NEG = 263
+     QUOTED_TEXT = 263,
+     NEG = 264
    };
 #endif
 /* Tokens.  */
@@ -51,7 +52,8 @@
 #define IMAG_CORR 260
 #define DOUBLE_NUMB 261
 #define INTERPOLATOR 262
-#define NEG 263
+#define QUOTED_TEXT 263
+#define NEG 264
 
 
 
@@ -67,11 +69,12 @@ typedef union YYSTYPE
   int interpolator;
   double double_numb;
   two_pts_comp_t *corr_list;
+  char *text;
 
 
 
 /* Line 2068 of yacc.c  */
-#line 75 "parse_corr.hpp"
+#line 78 "parse_corr.hpp"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

@@ -213,7 +213,7 @@ void read_tm_colorspinspin_reconstructing(colorspinspin **css,const char *base_p
 void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,const char *path,ILDG_message *mess=NULL)
 {
   //read the conf in lx and reorder it
-  quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
+  quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol+bord_vol,quad_su3);
   read_ildg_gauge_conf(lx_conf,path,mess);
   split_lx_conf_into_eo_parts(eo_conf,lx_conf);
   nissa_free(lx_conf);

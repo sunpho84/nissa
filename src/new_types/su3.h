@@ -156,5 +156,6 @@ void su3_dag_subt_the_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c);
 void colorspinspin_prod_double(colorspinspin out,colorspinspin in,double factor);
 void su3_summ_the_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c);
 void su3spinspin_prod_double(su3spinspin out,su3spinspin in,double factor);
+double su3_get_non_unitariness(su3 u);
 
 #endif
