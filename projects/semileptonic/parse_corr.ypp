@@ -43,10 +43,10 @@
 
 //types for non-terminal symbol
 %type <reim> reim_corr_flag
+%type <corr_list> named_or_unnamed_corr
 %type <corr_list> corr
 %type <corr_list> corr_list
 %type <corr_list> corr_instantiation
-%type <corr_list> unnamed_corr_instantiation
 %type <corr_list> corr_summ_corr
 %type <corr_list> corr_subt_corr
 %type <corr_list> corr_div_real
@@ -56,6 +56,7 @@
 %type <corr_list> corr_bracketed
 
 //associativity
+%right '='
 %left '-' '+'
 %left '*' '/'
 %left NEG
@@ -63,7 +64,7 @@
 %%
 
 //list of correlation
-corr_list: corr
+corr_list: named_or_unnamed_corr
            {
 	     $$=$1;
              driver->output=(*$$);
@@ -75,7 +76,7 @@ corr_list: corr
              driver->output=(*$$);
 	     if(debug_parser) $$->print(stdout);
 	   }
-         | corr_list ENDL corr
+         | corr_list ENDL named_or_unnamed_corr
            {
 	     $$=$1;
 	     (*$$)+=(*$3);
@@ -83,6 +84,21 @@ corr_list: corr
 	     delete $3;
 	     if(debug_parser) $$->print(stdout);
 	   }
+;
+
+//give or not give a name to the corr
+named_or_unnamed_corr: corr
+            {
+	      $$=$1;
+              driver->output=(*$$);
+	      if(debug_parser) $$->print(stdout);
+	    }
+          | name_the_corr corr
+            {
+	      $$=$2;
+              driver->output=(*$$);
+	      if(debug_parser) $$->print(stdout);
+	    }
 ;
 
 //definition of a corr
@@ -160,13 +176,8 @@ reim_corr_flag: REAL_CORR {$$=false;}
               | IMAG_CORR {$$=true;}
 ;
 
-//unnamed or named corr
-corr_instantiation: unnamed_corr_instantiation
-                  | name_the_corr unnamed_corr_instantiation {$$=$2;}
-;
-
 //instantiation of a single correlator
-unnamed_corr_instantiation: reim_corr_flag INTERPOLATOR INTERPOLATOR
+corr_instantiation: reim_corr_flag INTERPOLATOR INTERPOLATOR
 {
   two_pts_comp_t *corr=new two_pts_comp_t;
   
