@@ -6,9 +6,12 @@
 #endif
 
 #include "../src/base/macros.h"
+#include "../bgq_macros.h"
 
 #ifndef BGQ_EMU
  #include <builtins.h>
+#else
+ #include "../src/new_types/complex.h"
 #endif
 
 ///////////////////////////////// prefetching ////////////////////////////////
@@ -184,12 +187,16 @@
 
 #endif
 
+#ifdef BGQ_EMU
+ #define BI_HALFSPIN_PREFETCH_NEXT_NEXT(addr)
+#endif
+
 //////////////////////////////////// loading //////////////////////////////////
 
 #ifdef BGQ_EMU
- #define REG_SPLAT_BI_COMPLEX(out,in) BI_COMPLEX_SPLAT(out,in);
+ #define REG_SPLAT_BI_COMPLEX(out,in) BI_COMPLEX_SPLAT(out,in)
 #else
- #define REG_SPLAT_BI_COMPLEX(out,in) out=vec_splats(in);
+ #define REG_SPLAT_BI_COMPLEX(out,in) out=vec_splats(in)
 #endif
 
 #define REG_SPLAT_BI_HALFSPIN(out,in)			\
@@ -209,7 +216,7 @@
  #define BGQ_QVLFDUXA(dest,addr,offset)					\
    do									\
      {									\
-       (addr)=(void*)((uintptr_t)(addr)+(offset));			\
+       (addr)=(double*)((uintptr_t)(addr)+(offset));			\
        BI_COMPLEX_COPY(dest,(*((bi_complex*)addr)));	\
      }									\
    while(0)

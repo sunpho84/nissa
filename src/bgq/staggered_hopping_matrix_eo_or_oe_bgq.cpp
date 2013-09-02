@@ -31,7 +31,7 @@
  #define SITE_COPY(out,in) BI_COLOR_COPY(out,in)
 #endif
 
-THREADABLE_FUNCTION_5ARG(apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_nobarrier, bi_oct_su3**,conf, int,istart, int,iend, bi_color*,in, int,eo_or_oe)
+THREADABLE_FUNCTION_5ARG(apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier, bi_oct_su3**,conf, int,istart, int,iend, bi_color*,in, int,oe_or_eo)
 {
   GET_THREAD_ID();
   
@@ -40,8 +40,8 @@ THREADABLE_FUNCTION_5ARG(apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_noba
   NISSA_PARALLEL_LOOP(ibgqlx,istart,iend)
     {
       //take short access to link and output indexing
-      int *iout=vireo_hopping_matrix_output_pos[eo_or_oe].inter_fr_in_pos+ibgqlx*8;
-      bi_su3 *links=(bi_su3*)(conf[eo_or_oe]+ibgqlx);
+      int *iout=viroe_or_vireo_hopping_matrix_output_pos[oe_or_eo].inter_fr_in_pos+ibgqlx*8;
+      bi_su3 *links=(bi_su3*)(conf[oe_or_eo]+ibgqlx); //TOBECHECKED
       
       //declare
       DECLARE_REG_BI_COLOR(reg_in);
@@ -70,7 +70,7 @@ THREADABLE_FUNCTION_5ARG(apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_noba
 }}
 
 //swap border between VN and, if virtual parallelized dir is really parallelized, fill send buffers
-THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_eo_or_oe_vdir_VN_comm_and_buff_fill)
+THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_buff_fill)
 {
   GET_THREAD_ID();
   
@@ -158,10 +158,10 @@ THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_eo_or_oe_vdir_VN_comm_and_
 }}
 
 //perform communications between VN and start all the communications between nodes
-THREADABLE_FUNCTION_0ARG(start_staggered_hopping_matrix_eo_or_oe_bgq_communications)
+THREADABLE_FUNCTION_0ARG(start_staggered_hopping_matrix_oe_or_eo_bgq_communications)
 {
   //shuffle data between virtual nodes and fill vdir out buffer
-  bgq_staggered_hopping_matrix_eo_or_oe_vdir_VN_comm_and_buff_fill();
+  bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_buff_fill();
   
   //after the barrier, all buffers are filled and communications can start
   THREAD_BARRIER();
@@ -171,7 +171,7 @@ THREADABLE_FUNCTION_0ARG(start_staggered_hopping_matrix_eo_or_oe_bgq_communicati
 }}
 
 //finish the communications and put in place the communicated data
-THREADABLE_FUNCTION_1ARG(finish_staggered_hopping_matrix_eo_or_oe_bgq_communications, int,eo_or_oe)
+THREADABLE_FUNCTION_1ARG(finish_staggered_hopping_matrix_oe_or_eo_bgq_communications, int,oe_or_eo)
 {
   GET_THREAD_ID();
   FORM_TWO_THREAD_TEAMS();
@@ -179,7 +179,7 @@ THREADABLE_FUNCTION_1ARG(finish_staggered_hopping_matrix_eo_or_oe_bgq_communicat
   //short access
   int v=nissa_vnode_paral_dir;
   const int fact=2;
-  int *def_pos=vireo_hopping_matrix_output_pos[eo_or_oe].inter_fr_recv_pos;
+  int *def_pos=viroe_or_vireo_hopping_matrix_output_pos[oe_or_eo].inter_fr_recv_pos;
   
   //wait communications end
   comm_wait(eo_color_comm);

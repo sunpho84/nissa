@@ -136,11 +136,13 @@ void define_vir_ordering()
   See "two_stage_computations" doc for more explenations.
   In v virtual halo data is ordered as for buffered communication send buffer, that is,
   in the same order as explained in "communicate.h"
-  if par==2 it makes the computation for lx case, otherwise for e/o
+  if par==2 it makes the computation for lx case
+  if par==1 for the eo case
+  if par==0 for the oe case
 */
 void define_vir_hopping_matrix_output_pos()
 {
-  for(int par=2;par<=2;par++)
+  for(int par=0;par<=2;par++)
     {
       int fact=(par==2)?1:2;
       
@@ -148,12 +150,14 @@ void define_vir_hopping_matrix_output_pos()
       int loc_data_start=bord_vol/nvnodes/fact;
       int vbord_start=loc_data_start+8*loc_vol/nvnodes/fact;
       int req_size=vbord_start+vbord_vol/fact; //note that this is in unity of the vparallelized structure
-      if(nissa_send_buf_size<req_size*sizeof(bi_halfspincolor)) crash("we need larger nissa_send_buf"); //to be moved
+      if(nissa_send_buf_size<req_size*sizeof(bi_halfspincolor)) //to be moved
+	crash("we need larger nissa_send_buf: %d > %d",req_size*sizeof(bi_halfspincolor),nissa_send_buf_size);
       
-      int *loclx_of_vir=(par==2)?loclx_of_virlx:loclx_of_vireo[!par];
+      int *loclx_of_vir=(par==2)?loclx_of_virlx:loclx_of_vireo[par];
       int *vir_of_loclx=(par==2)?virlx_of_loclx:vireo_of_loclx;
       
-      two_stage_computation_pos_t *out=(par==2)?(&virlx_hopping_matrix_output_pos):vireo_hopping_matrix_output_pos+!par;
+      two_stage_computation_pos_t *out=(par==2)?&virlx_hopping_matrix_output_pos:
+	viroe_or_vireo_hopping_matrix_output_pos+par;
       out->inter_fr_in_pos=nissa_malloc("inter_fr_in_pos",8*loc_vol/nvnodes/fact,int);
       out->final_fr_inter_pos=NULL; //we are not overlapping communication with intermediate->final transfer
       out->inter_fr_recv_pos=nissa_malloc("inter_fr_recv_pos",bord_vol/nvnodes/fact,int);
@@ -171,7 +175,7 @@ void define_vir_hopping_matrix_output_pos()
 	    vbord_start+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1])/fact:
 	    //we are still in the same vnode
 	    loc_data_start+8*vir_of_loclx[loclx_neighdw[iloclx][v]]+0+v;
-	  if(0 && par==0 && rank==0)
+	  if(1 && par==0 && rank==0)
 	    printf("ANNA_FWDER_BWSCAT_%d(v) (loc %d, %d %d %d %d glb %d, bw %d, %d) %d %d\n",
 		   v,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		   loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
@@ -185,7 +189,7 @@ void define_vir_hopping_matrix_output_pos()
 	    vbord_start+(vbord_volh+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]))/fact:
 	    //we are still in the same vnode, but we shift of 4 (this is + contr)
 	    loc_data_start+8*vir_of_loclx[loclx_neighup[iloclx][v]]+4+v;
-	  if(0 && par==0 && rank==0)
+	  if(1 && par==0 && rank==0)
 	    printf("ANNA_BWDER_FWSCAT_%d(v) (loc %d, %d %d %d %d, glb %d, fw %d, %d) %d %d\n",
 		   v,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		   loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
@@ -204,7 +208,7 @@ void define_vir_hopping_matrix_output_pos()
 		vir_of_loclx[bw]-loc_vol/nvnodes/fact: //SEEMS THAT IT IS MAKING A MESS
 		//we are still in local vnode
 		loc_data_start+8*vir_of_loclx[bw]+0+mu;
-	      if(0 && par==0 && rank==0)
+	      if(1 && par==0 && rank==0)
 		printf("ANNA_FWDER_BWSCAT_%d (loc %d, %d %d %d %d, glb %d, bw %d, %d) %d %d\n",
 		       mu,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		       loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
@@ -218,7 +222,7 @@ void define_vir_hopping_matrix_output_pos()
 		vir_of_loclx[fw]-loc_vol/nvnodes/fact:
 		//we are still in local vnode
 		loc_data_start+8*vir_of_loclx[fw]+4+mu;
-	      if(0 && par==0 && rank==0)
+	      if(1 && par==0 && rank==0)
 		printf("ANNA_BWDER_FWSCAT_%d (loc %d, %d %d %d %d, glb %d, fw %d, %d) %d %d\n",
 		       mu,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		       loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
@@ -467,7 +471,7 @@ void unset_vir_geometry()
 
   for(int par=0;par<2;par++)
     {
-      vireo_hopping_matrix_output_pos[par].free();
+      viroe_or_vireo_hopping_matrix_output_pos[par].free();
       nissa_free(loclx_of_vireo[par]);
     }
   nissa_free(vireo_of_loclx);

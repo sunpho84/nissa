@@ -36,7 +36,7 @@
     void *in=base_in,*out=base_out;			\
     DECLARE_REG_BI_HALFSPINCOLOR(reg_temp);		\
     BI_HALFSPINCOLOR_PREFETCH_NEXT(in);			\
-    REG_LOAD_BI_HALFSPINCOLOR(reg_temp,in);		\    
+    REG_LOAD_BI_HALFSPINCOLOR(reg_temp,in);		\
     STORE_REG_BI_HALFSPINCOLOR(out,reg_temp);		\
   }
 #else

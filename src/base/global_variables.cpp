@@ -245,7 +245,7 @@ EXTERN comm_t lx_quad_su3_comm,eo_quad_su3_comm;
 EXTERN two_stage_computation_pos_t Wsklx_hopping_matrix_output_pos;
 #ifdef USE_VNODES
 EXTERN two_stage_computation_pos_t virlx_hopping_matrix_output_pos;
-EXTERN two_stage_computation_pos_t vireo_hopping_matrix_output_pos[2];
+EXTERN two_stage_computation_pos_t viroe_or_vireo_hopping_matrix_output_pos[2];
 #endif
 
 /////////////////////////////////////////// VNODES specifics ///////////////////////////////////

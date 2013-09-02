@@ -68,6 +68,8 @@
 
 //////////////////////////////// copy BI ////////////////////////////////
 
+#define BI_COMPLEX_SPLAT(A,B) A[0][0]=A[0][1]=A[1][0]=A[1][1]=B
+
 #define BI_COMPLEX_COPY(A,B)			\
   {						\
     complex_copy(A[0],B[0]);			\
@@ -237,34 +239,42 @@
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#define BI_COMPLEX_CONJ1_PROD(A,B,C);		\
+#define BI_COMPLEX_CONJ1_PROD(A,B,C)		\
   {						\
     unsafe_complex_conj1_prod(A[0],B[0],C[0]);	\
     unsafe_complex_conj1_prod(A[1],B[1],C[1]);	\
   }
 
-#define BI_COMPLEX_PROD(A,B,C);			\
+#define BI_COMPLEX_PROD(A,B,C)			\
   {						\
     unsafe_complex_prod(A[0],B[0],C[0]);	\
     unsafe_complex_prod(A[1],B[1],C[1]);	\
   }
 
-#define BI_COMPLEX_PROD_DOUBLE(A,B,C);		\
+#define BI_COMPLEX_PROD_DOUBLE(A,B,C)		\
   {						\
     complex_prod_double(A[0],B[0],C);		\
     complex_prod_double(A[1],B[1],C);		\
   }
 
-#define BI_COMPLEX_SUMM_THE_CONJ1_PROD(A,B,C);		\
+#define BI_COMPLEX_SUMM_THE_CONJ1_PROD(A,B,C)		\
   {							\
     complex_summ_the_conj1_prod(A[0],B[0],C[0]);	\
     complex_summ_the_conj1_prod(A[1],B[1],C[1]);	\
   }
 
-#define BI_COMPLEX_SUMM_THE_PROD(A,B,C);		\
+#define BI_COMPLEX_SUMM_THE_PROD(A,B,C)			\
   {							\
     complex_summ_the_prod(A[0],B[0],C[0]);		\
     complex_summ_the_prod(A[1],B[1],C[1]);		\
+  }
+
+#define BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(A,B,C,D)	\
+  {							\
+    A[0][0]=B[0][0]+C[0][0]*D[0][0];			\
+    A[0][1]=B[0][1]+C[0][1]*D[0][1];			\
+    A[1][0]=B[1][0]+C[1][0]*D[1][0];			\
+    A[1][1]=B[1][1]+C[1][1]*D[1][1];			\
   }
 
 #define BI_SU3_DAG_PROD_BI_COLOR(OUT,U,IN)			\

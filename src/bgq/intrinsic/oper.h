@@ -22,16 +22,16 @@
 
 #else
 
-#define REG_BI_COMPLEX_SUMM(out,op1,op2)                  BI_COMPLEX_SUMM(out,op1,op2)
-#define REG_BI_COMPLEX_SUBT(out,op1,op2)                  BI_COMPLEX_SUBT(out,op1,op2)
-#define REG_BI_COMPLEX_ISUMM(out,op1,op2)                 BI_COMPLEX_ISUMM(out,op1,op2)
-#define REG_BI_COMPLEX_ISUBT(out,op1,op2)                 BI_COMPLEX_ISUBT(out,op1,op2)
-#define REG_BI_COMPLEX_PROD(out,op1,op2)                  BI_COMPLEX_PROD(out,op1,op2)
-#define REG_BI_COMPLEX_PROD_4DOUBLE(out,op1,op2)          BI_COMPLEX_PROD_4DOUBLE(out,op1,op2)
-#define REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(out,op1,op2) BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(out,add,op1,op2)
-#define REG_BI_COMPLEX_CONJ1_PROD(out,op1,op2)            BI_COMPLEX_CONJ1_PROD(out,op1,op2)
-#define REG_BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)         BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)
-#define REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)   BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)
+#define REG_BI_COMPLEX_SUMM(out,op1,op2)                      BI_COMPLEX_SUMM(out,op1,op2)
+#define REG_BI_COMPLEX_SUBT(out,op1,op2)                      BI_COMPLEX_SUBT(out,op1,op2)
+#define REG_BI_COMPLEX_ISUMM(out,op1,op2)                     BI_COMPLEX_ISUMM(out,op1,op2)
+#define REG_BI_COMPLEX_ISUBT(out,op1,op2)                     BI_COMPLEX_ISUBT(out,op1,op2)
+#define REG_BI_COMPLEX_PROD(out,op1,op2)                      BI_COMPLEX_PROD(out,op1,op2)
+#define REG_BI_COMPLEX_PROD_4DOUBLE(out,op1,op2)              BI_COMPLEX_PROD_4DOUBLE(out,op1,op2)
+#define REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(out,add,op1,op2) BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(out,add,op1,op2)
+#define REG_BI_COMPLEX_CONJ1_PROD(out,op1,op2)                BI_COMPLEX_CONJ1_PROD(out,op1,op2)
+#define REG_BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)             BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)
+#define REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)       BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)
 
 #endif
 

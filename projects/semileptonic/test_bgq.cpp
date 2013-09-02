@@ -2,7 +2,10 @@
 #include <math.h>
 #include "../../src/bgq/staggered_hopping_matrix_eo_or_oe_bgq.h"
 #include "../../src/bgq/Wilson_hopping_matrix_lx_bgq.h"
+
+#ifndef BGQ_EMU
 #include <firmware/include/personality.h>
+#endif
 
 void hopping_matrix_lx_expand_to_Q_and_summ_diag_term_bgq(bi_spincolor *out,double kappa,double mu,bi_spincolor *in);
 void bgq_Wilson_hopping_matrix_lx_vdir_VN_comm_and_buff_fill();
@@ -11,7 +14,7 @@ void finish_Wilson_hopping_matrix_lx_bgq_communications();
 const int nbench=100,nbench_port=10;
 
 int seed=100;
-int L=24,T=L*2;
+int L=4,T=L*2;
 double mu=0.03,kappa=0.137;
 coords is_closed;
 
@@ -38,6 +41,7 @@ int comp_nhop(coords_5D n,coords_5D tcoords,coords_5D tdims,bool p=0)
 
 void check_torus()
 {
+#ifndef BGQ_EMU
   //get the personality
   Personality_t pers;
   Kernel_GetPersonality(&pers,sizeof(pers));
@@ -97,6 +101,7 @@ void check_torus()
       is_closed[mu]=0;
       for(int idir=0;idir<5;idir++) is_closed[mu]|=(n[mu][0][idir]!=n[mu][1][idir]);
     }
+#endif
 }
 
 void time_mpi_timing()
@@ -164,6 +169,7 @@ THREADABLE_FUNCTION_0ARG(bench_scalar_prod)
   nissa_free(in);
 }}
 
+
 THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
 {
   GET_THREAD_ID();
@@ -192,6 +198,7 @@ THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
 	}
       break;
     case 1:
+#ifndef BGQ_EMU
       for(int ibench=0;ibench<nbench;ibench++)
 	{
 	  DECLARE_REG_BI_SPINCOLOR(reg);
@@ -201,8 +208,10 @@ THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
 	      STORE_REG_BI_SPINCOLOR(out[ivol],reg);
 	    }
 	}
+#endif
       break;
     case 2:
+#ifndef BGQ_EMU
       for(int ibench=0;ibench<nbench;ibench++)
         {
           int morso=loc_vol*sizeof(spincolor)/sizeof(double)/nthreads;
@@ -211,8 +220,10 @@ THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
 
           for(int i=is;i<ie;i+=4) vec_st(vec_ld(0,x+i),0,y+i);
         }
+#endif
       break;
     case 3:
+#ifndef BGQ_EMU
       for(int ibench=0;ibench<nbench;ibench++)
         {
           int morso=loc_vol*sizeof(spincolor)/sizeof(double)/nthreads;
@@ -225,6 +236,7 @@ THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
 	      vec_st(vec_madd(vec_ld(0,x+i),vec_splats(1.0),vec_mul(vec_ld(0,z+i),vec_splats(1.0))),0,y+i);
 	    }
         }
+#endif
       break;
     default:
       crash("unknown method");
@@ -425,19 +437,20 @@ void debug_apply_stDeo()
   memset(nissa_send_buf,0,nissa_send_buf_size);
   memset(nissa_recv_buf,0,nissa_recv_buf_size);
   
-  //apply bgq
-  int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/4+vbord_vol/4; //half the bord in the 3 non vdir
-  apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol/2,bi_in[ODD],0);
+  //apply stag bgq
+  int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol;
+  apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol/2,bi_in[ODD],1);
   THREAD_BARRIER();
-  //start_staggered_hopping_matrix_eo_or_oe_bgq_communications();
+  //start_staggered_hopping_matrix_oe_or_eo_bgq_communications();
   THREAD_BARRIER();
   
   //compute on the bulk and finish communications
-  apply_staggered_hopping_matrix_eo_or_oe_bgq_nocomm_nobarrier(bi_conf,vsurf_vol/2,loc_volh/2,bi_in[ODD],0);
+  apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,vsurf_vol/2,loc_volh/2,bi_in[ODD],1);
   THREAD_BARRIER();
-  //finish_staggered_hopping_matrix_eo_or_oe_bgq_communications(ODD);
+  //finish_staggered_hopping_matrix_oe_or_eo_bgq_communications(1);
   THREAD_BARRIER();
   
+  const char EVN_ODD_TAG[2][4]={"EVN","ODD"};
   bi_color *bgq_hopping_matrix_output_data=(bi_color*)nissa_send_buf+bord_volh;
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(loclx_parity[ivol]==EVN)
@@ -456,13 +469,13 @@ void debug_apply_stDeo()
 	    //if(idw_att!=idw_ott)
 	      {
 		char tag[2][10]={"corre","WRONG"};
-		master_printf("%s_st ivol %d (%d %d %d %d) mu %d dw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
+		master_printf("%s_st ivol %d (%d %d %d %d) mu %d dw att %d %d (%d %d %d %d) ott %d (%s) %d (%d %d %d %d)\n",
 			      tag[(idw_att!=idw_ott)],ivol,
 			      loc_coord_of_loclx[ivol][0],loc_coord_of_loclx[ivol][1],
 			      loc_coord_of_loclx[ivol][2],loc_coord_of_loclx[ivol][3],
 			      mu,
 			      idw_att,mu_att,catt[0],catt[1],catt[2],catt[3],
-			      idw_ott,mu_ott,cott[0],cott[1],cott[2],cott[3]);
+			      idw_ott,EVN_ODD_TAG[loclx_parity[idw_ott]],mu_ott,cott[0],cott[1],cott[2],cott[3]);
 	    }
 	}
     }
@@ -484,21 +497,23 @@ void debug_apply_stDeo()
 	    //if(idw_att!=idw_ott)
 	      {
 		char tag[2][10]={"corre","WRONG"};
-		master_printf("%s_st ivol %d (%d %d %d %d) mu %d fw att %d %d (%d %d %d %d) ott %d %d (%d %d %d %d)\n",
+		master_printf("%s_st ivol %d (%d %d %d %d) mu %d fw att %d %d (%d %d %d %d) ott %d (%s) %d (%d %d %d %d)\n",
 			      tag[(idw_att!=idw_ott)],ivol,
 			      loc_coord_of_loclx[ivol][0],loc_coord_of_loclx[ivol][1],
 			      loc_coord_of_loclx[ivol][2],loc_coord_of_loclx[ivol][3],
 			      mu,
 			      idw_att,mu_att,catt[0],catt[1],catt[2],catt[3],
-			      idw_ott,mu_ott,cott[0],cott[1],cott[2],cott[3]);
+			      idw_ott,EVN_ODD_TAG[loclx_parity[idw_ott]],mu_ott,cott[0],cott[1],cott[2],cott[3]);
 	      }
 	  }
       }
   
   nissa_free(in);
   nissa_free(conf);
-  nissa_free(bi_in);
-  nissa_free(bi_conf);
+  nissa_free(bi_in[EVN]);
+  nissa_free(bi_in[ODD]);
+  nissa_free(bi_conf[EVN]);
+  nissa_free(bi_conf[ODD]);
 }
 
 void debug_apply_tmQ()
@@ -542,8 +557,8 @@ void debug_apply_tmQ()
   memset(nissa_send_buf,0,nissa_send_buf_size);
   memset(nissa_recv_buf,0,nissa_recv_buf_size);
   
-  //apply bgq
-  int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol; //half the bord in the 3 non vdir
+  //apply tm bgq
+  int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol; //half the bord in the
   apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol,bi_in);
   THREAD_BARRIER();
   start_Wilson_hopping_matrix_lx_bgq_communications();
@@ -651,7 +666,12 @@ void in_main(int narg,char **arg)
   
   bench_scalar_prod();
   bench_linear_comb();
-  for(int mode=0;mode<4;mode++) bench_vector_copy(mode);
+#ifdef BGQ_EMU
+  int nmodes=1;
+#else
+  int nmodes=4;
+#endif  
+  for(int mode=0;mode<nmodes;mode++) bench_vector_copy(mode);
   
   //apply a fixed number of time
   spincolor *out=nissa_malloc("out",loc_vol+bord_vol,spincolor);
