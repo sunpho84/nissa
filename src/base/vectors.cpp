@@ -199,7 +199,7 @@ void initialize_main_nissa_vect()
       main_nissa_vect.prev=main_nissa_vect.next=NULL;
       main_nissa_vect.nel=0;
       main_nissa_vect.size_per_el=0;
-      memcpy(main_nissa_vect.file,__FILE__+max_int(0,strlen(__FILE__)-12),12);
+      memcpy(main_nissa_vect.file,__FILE__+max_int(0,(int)strlen(__FILE__)-12),12);
       main_nissa_vect.line=__LINE__;
       main_nissa_arr=(char*)last_nissa_vect+sizeof(nissa_vect);
 

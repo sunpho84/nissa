@@ -28,7 +28,7 @@
 #define BGQ_QVSTFDUXA(addr,data,offset)					\
   do									\
   {									\
-    (addr)=(void*)((uintptr_t)(addr)+(offset));				\
+    (addr)=(double*)((uintptr_t)(addr)+(offset));			\
     BI_COMPLEX_COPY((*((bi_complex*)(addr))),data);			\
   }									\
   while(0)

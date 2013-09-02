@@ -17,7 +17,7 @@ void bench_memory_copy(double *out,double *in,int size)
 
   NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,size,thread_id,NACTIVE_THREADS);
 
-#if  BGQ
+#if BGQ
   double *temp_out=out-4;
   double *temp_in=in-4;
   for(int i=start;i<end;i+=4)
