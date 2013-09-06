@@ -220,7 +220,7 @@ THREADABLE_FUNCTION_1ARG(finish_staggered_hopping_matrix_oe_or_eo_bgq_communicat
 	int mu=perp_dir[v][imu];
 	bi_color *base_out=(bi_color*)nissa_send_buf+bord_volh/fact;
 	bi_color *base_in=(bi_color*)nissa_recv_buf;
-	NISSA_CHUNK_LOOP(isrc,bord_offset[mu]/2/fact,(bord_offset[mu]/2+bord_dir_vol[mu]/2)/fact,
+	NISSA_CHUNK_LOOP(isrc,bord_offset[mu]/2/fact,(bord_offset[mu]+bord_dir_vol[mu])/2/fact,
 			 thread_in_team_id,nthreads_in_team)
 	  SITE_COPY(base_out[def_pos[isrc]],base_in[isrc]);
       }
@@ -261,7 +261,7 @@ THREADABLE_FUNCTION_1ARG(finish_staggered_hopping_matrix_oe_or_eo_bgq_communicat
 	int mu=perp_dir[v][imu];
 	bi_color *base_out=(bi_color*)nissa_send_buf+bord_volh/fact;
 	bi_color *base_in=(bi_color*)nissa_recv_buf;
-	NISSA_CHUNK_LOOP(isrc,(bord_vol/4+bord_offset[mu]/2)/fact,(bord_vol/4+bord_offset[mu]/2+bord_dir_vol[mu]/2)/fact,
+	NISSA_CHUNK_LOOP(isrc,(bord_volh+bord_offset[mu])/2/fact,(bord_volh+bord_offset[mu]+bord_dir_vol[mu])/2/fact,
 			 thread_in_team_id,nthreads_in_team)
 	  SITE_COPY(base_out[def_pos[isrc]],base_in[isrc]);
       }

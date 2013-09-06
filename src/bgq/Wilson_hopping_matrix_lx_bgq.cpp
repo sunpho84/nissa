@@ -66,48 +66,56 @@ THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier, bi
       PROJ_HEADER(0);
       REG_BI_COLOR_SUMM(reg_proj_s0,reg_in_s0,reg_in_s2);
       REG_BI_COLOR_SUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
+      if(rank==0) printf("Storing %d to %d\n",ibgqlx,iout[0]);
       REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[0]],links[0],reg_proj);
       
       //X backward scatter (forward derivative)
       PROJ_HEADER(1);
       REG_BI_COLOR_ISUMM(reg_proj_s0,reg_in_s0,reg_in_s3);
       REG_BI_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s2);
+      if(rank==0) printf(" to %d\n",iout[1]);
       REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[1]],links[1],reg_proj);
       
       //Y backward scatter (forward derivative)
       PROJ_HEADER(2);
       REG_BI_COLOR_SUMM(reg_proj_s0,reg_in_s0,reg_in_s3);
       REG_BI_COLOR_SUBT(reg_proj_s1,reg_in_s1,reg_in_s2);
+      if(rank==0) printf(" to %d\n",iout[2]);
       REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[2]],links[2],reg_proj);
       
       //Z backward scatter (forward derivative)
       PROJ_HEADER(3);
       REG_BI_COLOR_ISUMM(reg_proj_s0,reg_in_s0,reg_in_s2);
       REG_BI_COLOR_ISUBT(reg_proj_s1,reg_in_s1,reg_in_s3);
+      if(rank==0) printf(" to %d\n",iout[3]);
       REG_BI_SU3_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[3]],links[3],reg_proj);
       
       //T forward scatter (backward derivative)
       PROJ_HEADER(4);
       REG_BI_COLOR_SUBT(reg_proj_s0,reg_in_s0,reg_in_s2);
       REG_BI_COLOR_SUBT(reg_proj_s1,reg_in_s1,reg_in_s3);
+      if(rank==0) printf(" to %d\n",iout[4]);
       REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[4]],links[4],reg_proj);
       
       //X forward scatter (backward derivative)
       PROJ_HEADER(5);
       REG_BI_COLOR_ISUBT(reg_proj_s0,reg_in_s0,reg_in_s3);
       REG_BI_COLOR_ISUBT(reg_proj_s1,reg_in_s1,reg_in_s2);
+      if(rank==0) printf(" to %d\n",iout[5]);
       REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[5]],links[5],reg_proj);
 
       //Y forward scatter (backward derivative)
       PROJ_HEADER(6);
       REG_BI_COLOR_SUBT(reg_proj_s0,reg_in_s0,reg_in_s3);
       REG_BI_COLOR_SUMM(reg_proj_s1,reg_in_s1,reg_in_s2);
+      if(rank==0) printf(" to %d\n",iout[6]);
       REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[6]],links[6],reg_proj);
       
       //Z forward scatter (backward derivative)
       PROJ_HEADER(7);
       REG_BI_COLOR_ISUBT(reg_proj_s0,reg_in_s0,reg_in_s2);
       REG_BI_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
+      if(rank==0) printf(" to %d\n",iout[7]);
       REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[7]],links[7],reg_proj);
     }
 }}

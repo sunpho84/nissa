@@ -82,7 +82,11 @@ void define_vir_ordering()
       int c=loc_coord_of_loclx[loclx][v];
       if(c!=0 && c<loc_size[v]/nvnodes-1) mark_vir_of_loclx(virlx,vireo,loclx);
     }
-
+  
+  //take note of vsurf_vol
+  vsurf_vol=virlx;
+  vsurf_volh=vireo[0];
+  
   //scan bulk
   for(int ibulklx=0;ibulklx<bulk_vol;ibulklx++)
     {
@@ -172,7 +176,7 @@ void define_vir_hopping_matrix_output_pos()
 	  //v direction bw scattering (fw derivative)
 	  out->inter_fr_in_pos[ivir*8+0+v]=(loc_coord_of_loclx[iloclx][v]==0)?
 	    //we move in other vnode, so we must point to local position in the v plane
-	    vbord_start+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1])/fact:
+	    vbord_start+(vbord_volh*0+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]))/fact:
 	    //we are still in the same vnode
 	    loc_data_start+8*vir_of_loclx[loclx_neighdw[iloclx][v]]+0+v;
 	  if(1 && par==0 && rank==0)
@@ -186,7 +190,7 @@ void define_vir_hopping_matrix_output_pos()
 	  //v direction fw scattering (bw derivative)
 	  out->inter_fr_in_pos[ivir*8+4+v]=(loc_coord_of_loclx[iloclx][v]==loc_size[v]/nvnodes-1)?
 	    //idem, but we shift of half vbord because this is + bord
-	    vbord_start+(vbord_volh+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]))/fact:
+	    vbord_start+(vbord_volh*1+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]))/fact:
 	    //we are still in the same vnode, but we shift of 4 (this is + contr)
 	    loc_data_start+8*vir_of_loclx[loclx_neighup[iloclx][v]]+4+v;
 	  if(1 && par==0 && rank==0)
@@ -240,15 +244,15 @@ void define_vir_hopping_matrix_output_pos()
 	  for(int base_src=0;base_src<bord_dir_vol[mu]/nvnodes/fact;base_src++)
 	    {
 	      //other 3 bw borders
-	      int bw_vir_src=bord_offset[mu]/nvnodes/fact+base_src;
-	      int bw_bordlx_src=loclx_of_vir[bw_vir_src+loc_vol/nvnodes/fact]-loc_vol/fact;
+	      int bw_vir_src=(0*bord_volh+bord_offset[mu])/nvnodes/fact+base_src;
+	      int bw_bordlx_src=loclx_of_vir[bw_vir_src+loc_vol/nvnodes/fact]-loc_vol;
 	      int bw_dst=8*vir_of_loclx[surflx_of_bordlx[bw_bordlx_src]]+4+mu;
 	      out->inter_fr_recv_pos[bw_vir_src]=bw_dst;
 	      
 	      //other 3 fw borders
-	      int fw_vir_src=(bord_volh/nvnodes+bord_offset[mu]/nvnodes)/fact+base_src;
-	      int fw_bordlx_src=loclx_of_vir[fw_vir_src+loc_vol/nvnodes/fact]-loc_vol/fact;
-	      int fw_dst=8*vir_of_loclx[surflx_of_bordlx[fw_bordlx_src]]+mu;
+	      int fw_vir_src=(1*bord_volh+bord_offset[mu])/nvnodes/fact+base_src;
+	      int fw_bordlx_src=loclx_of_vir[fw_vir_src+loc_vol/nvnodes/fact]-loc_vol;
+	      int fw_dst=8*vir_of_loclx[surflx_of_bordlx[fw_bordlx_src]]+0+mu;
 	      out->inter_fr_recv_pos[fw_vir_src]=fw_dst;
 	    }
 	}
@@ -409,7 +413,8 @@ THREADABLE_FUNCTION_2ARG(vireo_spincolor_remap_to_lx, spincolor*,out, bi_spincol
   //split to the two VN
   for(int par=0;par<2;par++)
     NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/nvnodes)
-      BI_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_vireo[par][ivol_vireo]],out[loclx_of_vireo[par][ivol_vireo]+vnode_lx_offset],
+      BI_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_vireo[par][ivol_vireo]],
+				out[loclx_of_vireo[par][ivol_vireo]+vnode_lx_offset],
 				in[par][ivol_vireo]);
   
   //wait filling
