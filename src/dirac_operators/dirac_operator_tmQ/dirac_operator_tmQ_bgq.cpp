@@ -142,8 +142,6 @@ THREADABLE_FUNCTION_4ARG(hopping_matrix_lx_expand_to_Q_and_summ_diag_term_bgq, b
 
 THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, double,mu, bi_spincolor*,in)
 {
-  int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol; //half the bord in the 3 non vdir
-  
   //compute on the surface and start communications
   apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(conf,0,vsurf_vol,in);
   start_Wilson_hopping_matrix_lx_bgq_communications();

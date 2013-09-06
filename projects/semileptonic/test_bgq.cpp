@@ -438,20 +438,19 @@ void debug_apply_stDeo()
   memset(nissa_recv_buf,0,nissa_recv_buf_size);
   
   //apply stag bgq
-  int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol;
-  apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol/2,bi_in[ODD],1);
+  apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,0,vsurf_volh,bi_in[ODD],1);
   THREAD_BARRIER();
-  //start_staggered_hopping_matrix_oe_or_eo_bgq_communications();
+  start_staggered_hopping_matrix_oe_or_eo_bgq_communications();
   THREAD_BARRIER();
   
   //compute on the bulk and finish communications
-  apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,vsurf_vol/2,loc_volh/2,bi_in[ODD],1);
+  apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,vsurf_volh,loc_volh/2,bi_in[ODD],1);
   THREAD_BARRIER();
-  //finish_staggered_hopping_matrix_oe_or_eo_bgq_communications(1);
+  finish_staggered_hopping_matrix_oe_or_eo_bgq_communications(1);
   THREAD_BARRIER();
   
   const char EVN_ODD_TAG[2][4]={"EVN","ODD"};
-  bi_color *bgq_hopping_matrix_output_data=(bi_color*)nissa_send_buf+bord_volh;
+  bi_color *bgq_hopping_matrix_output_data=(bi_color*)nissa_send_buf+bord_volh/2;
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(loclx_parity[ivol]==EVN)
       {
@@ -558,13 +557,14 @@ void debug_apply_tmQ()
   memset(nissa_recv_buf,0,nissa_recv_buf_size);
   
   //apply tm bgq
-  int vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol; //half the bord in the
+  master_printf("Applying on the vsurface: %d-%d\n",0,vsurf_vol);
   apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol,bi_in);
   THREAD_BARRIER();
   start_Wilson_hopping_matrix_lx_bgq_communications();
-  THREAD_BARRIER();
-  
+  THREAD_BARRIER();  
+
   //compute on the bulk and finish communications
+  master_printf("Applying on the bulk: %d-%d\n",vsurf_vol,loc_volh);
   apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,vsurf_vol,loc_volh,bi_in);
   THREAD_BARRIER();
   finish_Wilson_hopping_matrix_lx_bgq_communications();
@@ -654,8 +654,11 @@ void in_main(int narg,char **arg)
   time_mpi_timing();
   
   bench_thread_barrier();
-
+  
+  master_printf("debugging tmQ\n");
   debug_apply_tmQ();
+
+  master_printf("debugging stDeo\n");
   debug_apply_stDeo();
 
   //prebench
@@ -708,7 +711,7 @@ void in_main(int narg,char **arg)
   double diff;
   double_vector_subt((double*)un_out,(double*)un_out,(double*)out,loc_vol*sizeof(spincolor)/sizeof(double));
   double_vector_glb_scalar_prod(&diff,(double*)un_out,(double*)un_out,loc_vol*sizeof(spincolor)/sizeof(double));
-  master_printf("Application diff: %lg\n",diff);
+  master_printf("TM application diff: %lg\n",diff);
 
   //benchmark pure hopping matrix application
   double hop_bgq_time=-take_time();
@@ -751,12 +754,10 @@ void in_main(int narg,char **arg)
   buff_filling_time/=nbench;
   master_printf("buff_filling_time: %lg sec\n",buff_filling_time);
   
-  int bgq_vsurf_vol=(bord_vol-2*bord_dir_vol[nissa_vnode_paral_dir])/2+vbord_vol;
-  
   //benchmark bulk computation
   double bulk_computation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,bgq_vsurf_vol,loc_volh,bi_in);
+    apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,vsurf_vol,loc_volh,bi_in);
   bulk_computation_time+=take_time();
   bulk_computation_time/=nbench;
   master_printf("bulk_computation_time: %lg sec\n",bulk_computation_time);
@@ -764,7 +765,7 @@ void in_main(int narg,char **arg)
   //benchmark surf computation
   double surf_compuation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,0,bgq_vsurf_vol,bi_in);
+    apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol,bi_in);
   surf_compuation_time+=take_time();
   surf_compuation_time/=nbench;
   master_printf("surf_compuation_time: %lg sec\n",surf_compuation_time);
