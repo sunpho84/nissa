@@ -18,6 +18,16 @@
   CACHE_PREFETCH(out+A);			\
   BI_SU3_PREFETCH_NEXT(links[A])
 
+#define LOAD_AND_SUMM_NEXT_TERM(OUT,TEMP,A)	\
+  REORDER_BARRIER();				\
+  REG_LOAD_BI_COLOR_ADVANCING(TEMP,A);		\
+  REG_BI_COLOR_SUMM(OUT,OUT,TEMP);
+
+#define LOAD_AND_SUBT_NEXT_TERM(OUT,TEMP,A)	\
+  REORDER_BARRIER();				\
+  REG_LOAD_BI_COLOR_ADVANCING(TEMP,A);		\
+  REG_BI_COLOR_SUBT(OUT,OUT,TEMP);
+
 #ifdef BGQ
  #define SITE_COPY(base_out,base_in)		\
   {						\
@@ -30,6 +40,110 @@
 #else
  #define SITE_COPY(out,in) BI_COLOR_COPY(out,in)
 #endif
+
+//summ the eight contributions and divide by two
+THREADABLE_FUNCTION_1ARG(hopping_matrix_eo_or_eo_expand_to_D, bi_color*,out)
+{
+  GET_THREAD_ID();
+  
+  //wait that all the terms are put in place
+  THREAD_BARRIER();
+  
+  //result of split application
+  bi_color *bgq_hopping_matrix_output_data=(bi_color*)nissa_send_buf+bord_volh/2;
+  
+  //define workload and point to the begin of each chunk
+  NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,loc_volh/2,thread_id,NACTIVE_THREADS);
+  void *temp_ptr=(bi_complex*)(bgq_hopping_matrix_output_data+start*8)-1;
+  void *out_ptr=(bi_complex*)(out+start)-1;
+  
+  //regs
+  DECLARE_REG_BI_COLOR(reg_out);
+  DECLARE_REG_BI_COLOR(reg_temp);
+  DECLARE_REG_BI_COMPLEX(reg_one_half);
+  REG_SPLAT_BI_COMPLEX(reg_one_half,1.0/*0.5*/);
+  
+  for(int i=start;i<end;i++)
+    {
+      //copy first term
+      REG_LOAD_BI_COLOR_ADVANCING(reg_out,temp_ptr);
+      
+      //other 7 terms
+      LOAD_AND_SUMM_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUMM_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUMM_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUBT_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUBT_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUBT_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUBT_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+	
+      //put final 0.5 (not with the minus!)
+      REG_BI_COLOR_PROD_4DOUBLE(reg_out,reg_out,reg_one_half);
+      STORE_REG_BI_COLOR_ADVANCING(out_ptr,reg_out);
+    }
+
+  //final sync
+  set_borders_invalid(out);
+}}
+
+//summ the eight contributions, divide by two and subtract from the diagonal squared mass term
+THREADABLE_FUNCTION_3ARG(hopping_matrix_eo_or_eo_expand_to_D_subtract_from_mass2_times_in, bi_color*,out, double,mass2, bi_color*,in)
+{
+  GET_THREAD_ID();
+  
+  //wait that all the terms are put in place
+  THREAD_BARRIER();
+  
+  //result of split application
+  bi_color *bgq_hopping_matrix_output_data=(bi_color*)nissa_send_buf+bord_volh/2;
+  
+  //define workload and point to the begin of each chunk
+  NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,loc_volh/2,thread_id,NACTIVE_THREADS);
+  void *temp_ptr=(bi_complex*)(bgq_hopping_matrix_output_data+start*8)-1;
+  void *out_ptr=(bi_complex*)(out+start)-1;
+  void *in_ptr=(bi_complex*)(in+start)-1;
+  
+  //regs
+  DECLARE_REG_BI_COLOR(reg_in);
+  DECLARE_REG_BI_COLOR(reg_out);
+  DECLARE_REG_BI_COLOR(reg_temp);
+  
+  //-0.5
+  DECLARE_REG_BI_COMPLEX(reg_mone_half);
+  REG_SPLAT_BI_COMPLEX(reg_mone_half,-0.5);
+  
+  //reg_mass2
+  DECLARE_REG_BI_COMPLEX(reg_mass2);
+  REG_SPLAT_BI_COMPLEX(reg_mass2,mass2);
+  
+  for(int i=start;i<end;i++)
+    {
+      //copy first term
+      REG_LOAD_BI_COLOR_ADVANCING(reg_out,temp_ptr);
+      
+      //other 7 terms
+      LOAD_AND_SUMM_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUMM_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUMM_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUBT_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUBT_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUBT_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+      LOAD_AND_SUBT_NEXT_TERM(reg_out,reg_temp,temp_ptr);
+	
+      //put final -0.5
+      REG_BI_COLOR_PROD_4DOUBLE(reg_out,reg_out,reg_mone_half);
+      
+      //load diagonal term, and summ it
+      REG_LOAD_BI_COLOR_ADVANCING(reg_in,in_ptr);
+      REG_BI_COLOR_SUMM_THE_PROD_4DOUBLE(reg_out,reg_out,reg_in,reg_mass2);
+      
+      //store
+      STORE_REG_BI_COLOR_ADVANCING(out_ptr,reg_out);
+    }
+
+  //final sync
+  set_borders_invalid(out);
+}}
 
 THREADABLE_FUNCTION_5ARG(apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier, bi_oct_su3**,conf, int,istart, int,iend, bi_color*,in, int,oe_or_eo)
 {

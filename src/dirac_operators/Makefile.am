@@ -4,7 +4,9 @@ bgq_src_files= \
         dirac_operator_tmQ/dirac_operator_tmQ_bgq.cpp \
         dirac_operator_tmQ/dirac_operator_tmQ_bgq.h \
         dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.cpp \
-        dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.h
+        dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.h \
+	dirac_operator_stD/dirac_operator_stD_bgq.cpp \
+	dirac_operator_stD/dirac_operator_stD_bgq.h
 else
 bgq_src_files=
 endif

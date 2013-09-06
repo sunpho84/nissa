@@ -179,28 +179,32 @@ void define_vir_hopping_matrix_output_pos()
 	    vbord_start+(vbord_volh*0+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]))/fact:
 	    //we are still in the same vnode
 	    loc_data_start+8*vir_of_loclx[loclx_neighdw[iloclx][v]]+0+v;
-	  if(1 && par==0 && rank==0)
+	  /*
+	  if(0 && par==0 && rank==0)
 	    printf("ANNA_FWDER_BWSCAT_%d(v) (loc %d, %d %d %d %d glb %d, bw %d, %d) %d %d\n",
 		   v,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		   loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
 		   glblx_of_loclx[iloclx],loclx_neighdw[iloclx][v],
 		   (loc_coord_of_loclx[iloclx][v]==0),
 		   ivir*8+0+v,out->inter_fr_in_pos[ivir*8+0+v]);
-
+	  */
+	  
 	  //v direction fw scattering (bw derivative)
 	  out->inter_fr_in_pos[ivir*8+4+v]=(loc_coord_of_loclx[iloclx][v]==loc_size[v]/nvnodes-1)?
 	    //idem, but we shift of half vbord because this is + bord
 	    vbord_start+(vbord_volh*1+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]))/fact:
 	    //we are still in the same vnode, but we shift of 4 (this is + contr)
 	    loc_data_start+8*vir_of_loclx[loclx_neighup[iloclx][v]]+4+v;
-	  if(1 && par==0 && rank==0)
+	  /*
+	  if(0 && par==0 && rank==0)
 	    printf("ANNA_BWDER_FWSCAT_%d(v) (loc %d, %d %d %d %d, glb %d, fw %d, %d) %d %d\n",
 		   v,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		   loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
 		   glblx_of_loclx[iloclx],loclx_neighup[iloclx][v],
 		   (loc_coord_of_loclx[iloclx][v]==loc_size[v]/nvnodes-1),
 		   ivir*8+4+v,out->inter_fr_in_pos[ivir*8+4+v]);
-
+	  */
+	  
 	  //other direction derivatives
 	  for(int imu=0;imu<3;imu++)
 	    {
@@ -212,28 +216,31 @@ void define_vir_hopping_matrix_output_pos()
 		vir_of_loclx[bw]-loc_vol/nvnodes/fact: //SEEMS THAT IT IS MAKING A MESS
 		//we are still in local vnode
 		loc_data_start+8*vir_of_loclx[bw]+0+mu;
-	      if(1 && par==0 && rank==0)
+	      /*
+	      if(0 && par==0 && rank==0)
 		printf("ANNA_FWDER_BWSCAT_%d (loc %d, %d %d %d %d, glb %d, bw %d, %d) %d %d\n",
 		       mu,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		       loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
 		       glblx_of_loclx[iloclx],bw,
 		       (bw>=loc_vol),
 		       ivir*8+0+mu,out->inter_fr_in_pos[ivir*8+0+mu]);
-
+	      */
+	      
 	      int fw=loclx_neighup[iloclx][mu];
 	      out->inter_fr_in_pos[ivir*8+4+mu]=(fw>=loc_vol)?
 		//we moved in another node
 		vir_of_loclx[fw]-loc_vol/nvnodes/fact:
 		//we are still in local vnode
 		loc_data_start+8*vir_of_loclx[fw]+4+mu;
-	      if(1 && par==0 && rank==0)
+	      /*
+	      if(0 && par==0 && rank==0)
 		printf("ANNA_BWDER_FWSCAT_%d (loc %d, %d %d %d %d, glb %d, fw %d, %d) %d %d\n",
 		       mu,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 		       loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
 		       glblx_of_loclx[iloclx],fw,
 		       (fw>=loc_vol),
 		       ivir*8+4+mu,out->inter_fr_in_pos[ivir*8+4+mu]);
-
+	      */
 	    }
 	}
       
@@ -305,6 +312,8 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
 {
   GET_THREAD_ID();
   
+  const int debug=0;
+  
   //communicate conf border so we can accede it
   communicate_lx_quad_su3_borders(in);
   
@@ -313,9 +322,9 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
     for(int mu=0;mu<4;mu++)
       {
 	//catch links needed to scatter signal forward
-	in[isrc_lx][mu][0][0][1]=4+mu;
+	if(debug) in[isrc_lx][mu][0][0][1]=4+mu;
 	SU3_TO_BI_SU3(out[!loclx_parity[isrc_lx]][vireo_of_loclx[isrc_lx]][4+mu],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
-	in[isrc_lx][mu][0][0][1]=0;
+	if(debug) in[isrc_lx][mu][0][0][1]=0;
 
 	//copy links also where they are needed to scatter the signal backward, if 
 	//sites that need them are not in the border (that would mean that computation must be 
@@ -323,9 +332,9 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
 	int idst_lx=loclx_neighup[isrc_lx][mu],vn=vnode_of_loclx(idst_lx);
 	if(idst_lx<loc_vol)
 	  {
-	    in[isrc_lx][mu][0][0][1]=mu;
+	    if(debug) in[isrc_lx][mu][0][0][1]=mu;
 	    SU3_TO_BI_SU3(out[!loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vn);
-	    in[isrc_lx][mu][0][0][1]=0;
+	    if(debug) in[isrc_lx][mu][0][0][1]=0;
 	  }
       }
   
@@ -336,9 +345,9 @@ THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
 	{
 	  int idst_lx=loclx_neighup[ibord][mu],vn=vnode_of_loclx(idst_lx);
 	  
-	  in[ibord][mu][0][0][1]=mu;
+	  if(debug) in[ibord][mu][0][0][1]=mu;
 	  SU3_TO_BI_SU3(out[!loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[ibord][mu],vn);
-	  in[ibord][mu][0][0][1]=0;
+	  if(debug) in[ibord][mu][0][0][1]=0;
 	}
   
   set_borders_invalid(out);

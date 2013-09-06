@@ -25,7 +25,8 @@ THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, quad_su3**,conf, color*,in)
       //derivative in the time direction - without self-summ
       unsafe_su3_prod_color(      out[io],conf[ODD][io   ][0],in[evup0]);
       su3_dag_subt_the_prod_color(out[io],conf[EVN][evdw0][0],in[evdw0]);
-      
+      if(rank==0) printf(" %d 0 %lg %lg, %lg %lg\n",io,in[evup0][0][0],in[evdw0][0][0],
+      conf[ODD][io][0][0][0][0],conf[EVN][evdw0][0][0][0][0]);
       //derivatives in the spatial direction - with self summ
       for(int mu=1;mu<4;mu++)
 	{
@@ -34,7 +35,10 @@ THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, quad_su3**,conf, color*,in)
 	  
 	  su3_summ_the_prod_color(    out[io],conf[ODD][io  ][mu],in[evup]);
 	  su3_dag_subt_the_prod_color(out[io],conf[EVN][evdw][mu],in[evdw]);
+	  if(rank==0) printf(" %d %d %lg %lg, %lg %lg\n",io,mu,in[evup][0][0],in[evdw][0][0],
+	  conf[ODD][io][mu][0][0][0],conf[EVN][evdw][mu][0][0][0]);
 	}
+      if(rank==0) printf("  %lg\n",out[io][0][0]);      
     }
   
   set_borders_invalid(out);
