@@ -276,6 +276,15 @@
     }									\
   while(0)
 
+#define REG_LOAD_BI_COLOR_ADVANCING(out,ptr)				\
+  do									\
+    {									\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c0),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c1),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c2),ptr);		\
+    }									\
+  while(0)
+
 //load a bi_halfspin
 #define REG_LOAD_BI_HALFSPIN(out,in)					\
   do									\

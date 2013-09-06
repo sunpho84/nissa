@@ -81,6 +81,15 @@
     }									\
   while(0)
 
+#define STORE_REG_BI_COLOR_ADVANCING(ptr,in)				\
+  do									\
+    {									\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c0));		\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));		\
+      REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));		\
+    }									\
+  while(0)
+
 #define STORE_REG_BI_SPINCOLOR(addr,in)					\
   do									\
     {									\

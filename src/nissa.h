@@ -21,6 +21,7 @@
  #include "bgq/intrinsic.h"
  #include "dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ_bgq.h"
  #include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.h"
+ #include "dirac_operators/dirac_operator_stD/dirac_operator_stD_bgq.h"
 #endif
 #ifdef SPI
  #include "bgq/spi.h"
