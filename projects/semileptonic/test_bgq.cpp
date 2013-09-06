@@ -14,7 +14,7 @@ void finish_Wilson_hopping_matrix_lx_bgq_communications();
 const int nbench=1,nbench_port=1;
 
 int seed=100;
-int L=4,T=L*2;
+int L=8,T=L*2;
 double mu=0.03,kappa=0.137;
 coords is_closed;
 
@@ -426,6 +426,7 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
     //precheck: unmapping
     color *un_out=nissa_malloc("un_out",loc_vol+bord_vol,color);
     vireo_color_remap_to_lx(un_out,bi_in_eo);
+    
     //compute average diff
     double diff;
     double_vector_subt((double*)un_out,(double*)un_out,(double*)in,loc_vol*sizeof(color)/sizeof(double));
@@ -467,7 +468,7 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
 	    coords catt,cott;
 	    glb_coord_of_glblx(catt,idw_att);
 	    glb_coord_of_glblx(cott,idw_ott);
-	    //if(idw_att!=idw_ott)
+	    if(idw_att!=idw_ott)
 	      {
 		char tag[2][10]={"corre","WRONG"};
 		master_printf("%s_st ivol %d (%d %d %d %d) mu %d dw att %d %d (%d %d %d %d) ott %d (%s) %d (%d %d %d %d)\n",
@@ -495,7 +496,7 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
 	    coords catt,cott;
 	    glb_coord_of_glblx(catt,idw_att);
 	    glb_coord_of_glblx(cott,idw_ott);
-	    //if(idw_att!=idw_ott)
+	    if(idw_att!=idw_ott)
 	      {
 		char tag[2][10]={"corre","WRONG"};
 		master_printf("%s_st ivol %d (%d %d %d %d) mu %d fw att %d %d (%d %d %d %d) ott %d (%s) %d (%d %d %d %d)\n",
@@ -734,13 +735,19 @@ void debug2_st()
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   nissa_loc_vol_loop(ivol)
     for(int mu=0;mu<4;mu++)
-      su3_put_to_id(conf[ivol][mu]);
+      {
+	su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
+	//int fw=loclx_neighup[ivol][mu];
+	//if(fw<loc_vol) su3_put_to_diag(conf[ivol][mu],glblx_of_loclx[fw]);
+	//else           su3_put_to_diag(conf[ivol][mu],glblx_of_bordlx[fw-loc_vol]);
+      }
   set_borders_invalid(conf);
   
   //create random in vector
   color *in=nissa_malloc("in",loc_vol+bord_vol,color);
   vector_reset(in);
   nissa_loc_vol_loop(ivol)
+    //in[ivol][0][0]=1;
     in[ivol][0][0]=glblx_of_loclx[ivol];
   set_borders_invalid(in);
   communicate_lx_color_borders(in);
@@ -758,9 +765,8 @@ void debug2_st()
   double port_time=-take_time();
   color *out[2]={nissa_malloc("out_e",loc_volh+bord_volh,color),nissa_malloc("out_o",loc_volh+bord_volh,color)};
   for(int ibench=0;ibench<nbench_port;ibench++)
-    apply_st2Doe(out[ODD],conf_eo,in_eo[EVN]);
-
-    //apply_stD2ee_m2(out[ODD],conf_eo,in_eo[ODD]/*used as tmp*/,mass2,in_eo[EVN]);
+    //apply_st2Doe(out[ODD],conf_eo,in_eo[EVN]);
+  apply_stD2ee_m2(out[EVN],conf_eo,in_eo[ODD]/*used as tmp*/,mass2,in_eo[EVN]);
   port_time+=take_time();
   port_time/=2*nbench_port;
   
@@ -788,6 +794,7 @@ void debug2_st()
   double bgq_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
     {
+      /*
       const int OE=0;
   
       //compute on the surface and start communications
@@ -800,8 +807,8 @@ void debug2_st()
 
       //put the eight pieces together
       hopping_matrix_eo_or_eo_expand_to_D(bi_out_eo[ODD]);
-
-      //apply_stD2ee_m2_bgq(bi_out_eo[EVN],bi_conf_eo,bi_out_eo[ODD]/*used as temp*/,mass2,bi_in_eo[EVN]);
+      */
+      apply_stD2ee_m2_bgq(bi_out_eo[EVN],bi_conf_eo,bi_out_eo[ODD]/*used as temp*/,mass2,bi_in_eo[EVN]);
     }
   bgq_time+=take_time();
   bgq_time/=2*nbench;
@@ -814,13 +821,14 @@ void debug2_st()
   color *temp_eo[2]={nissa_malloc("temp",loc_volh+bord_volh,color),
 		     nissa_malloc("temp",loc_volh+bord_volh,color)};
   split_lx_color_into_eo_parts(temp_eo,un_out);
+  virevn_or_odd_color_remap_to_evn_or_odd(temp_eo[EVN],bi_out_eo[EVN]);
   
   //compute average diff
   if(rank==0)
   for(int i=0;i<loc_volh;i++)
     {
       int ex=0;
-      int lx=loclx_of_loceo[ODD][i];
+      int lx=loclx_of_loceo[EVN][i];
       for(int mu=0;mu<4;mu++)
 	{
 	  int fw=loclx_neighup[lx][mu];
@@ -828,16 +836,18 @@ void debug2_st()
 	  int cf=(fw<loc_vol)?glblx_of_loclx[fw]:glblx_of_bordlx[fw-loc_vol];
 	  int cb=(bw<loc_vol)?glblx_of_loclx[bw]:glblx_of_bordlx[bw-loc_vol];
 	  ex+=cf;
-	  ex+=cb;
-	  printf("  %d %d, %d %d\n",lx,mu,cf,cb);
+	  ex-=cb;
+	  //printf("  %d %d, %d %d\n",lx,mu,cf,cb);
 	}
-      for(int ic=0;ic<3;ic++)
-	for(int ri=0;ri<2;ri++)
-	  printf(" %d sure %lg, bgq %lg %d\n",lx,out[ODD][i][ic][ri],temp_eo[1][i][ic][ri],ex);
+      //for(int ic=0;ic<3;ic++)
+      //for(int ri=0;ri<2;ri++)
+      //printf(" %d sure %lg, bgq %lg %d\n",lx,out[EVN][i][ic][ri],temp_eo[EVN][i][ic][ri],ex);
     }
   double diff;
-  double_vector_subt((double*)temp_eo[1],(double*)temp_eo[1],(double*)out[ODD],loc_volh*sizeof(color)/sizeof(double));
-  double_vector_glb_scalar_prod(&diff,(double*)temp_eo[1],(double*)temp_eo[1],loc_volh*sizeof(color)/sizeof(double));
+  double_vector_subt((double*)temp_eo[EVN],(double*)temp_eo[EVN],(double*)out[EVN],
+		     loc_volh*sizeof(color)/sizeof(double));
+  double_vector_glb_scalar_prod(&diff,(double*)temp_eo[EVN],(double*)temp_eo[EVN],
+				loc_volh*sizeof(color)/sizeof(double));
   master_printf("ST application diff: %lg\n",diff);
 
   nissa_free(conf);
