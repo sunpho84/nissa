@@ -497,6 +497,7 @@ void init_grid(int T,int L)
   //nissa_vnode_paral_dir, times half the local size along nissa_vnode_paral_dir
   vnode_lx_offset=loc_size[nissa_vnode_paral_dir]/nvnodes;
   for(int mu=nissa_vnode_paral_dir+1;mu<4;mu++) vnode_lx_offset*=loc_size[mu];
+  vnode_eo_offset=vnode_lx_offset/2;
 #endif
   
   //calculate the egdes size

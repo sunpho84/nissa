@@ -61,7 +61,7 @@ THREADABLE_FUNCTION_1ARG(hopping_matrix_eo_or_eo_expand_to_D, bi_color*,out)
   DECLARE_REG_BI_COLOR(reg_out);
   DECLARE_REG_BI_COLOR(reg_temp);
   DECLARE_REG_BI_COMPLEX(reg_one_half);
-  REG_SPLAT_BI_COMPLEX(reg_one_half,1.0/*0.5*/);
+  REG_SPLAT_BI_COMPLEX(reg_one_half,0.5);
   
   for(int i=start;i<end;i++)
     {

@@ -91,7 +91,7 @@ EXTERN int bord_dir_vol[4],bord_offset[4];
 EXTERN int bord_vol,bord_volh;
 EXTERN int nissa_vnode_paral_dir;
 #ifdef USE_VNODES
-EXTERN int vnode_lx_offset;
+EXTERN int vnode_lx_offset,vnode_eo_offset;
 EXTERN int vbord_vol,vbord_volh;
 EXTERN int vir_loc_size[4];
 #endif
@@ -255,7 +255,9 @@ EXTERN two_stage_computation_pos_t viroe_or_vireo_hopping_matrix_output_pos[2];
 
 EXTERN int *virlx_of_loclx,*loclx_of_virlx;
 EXTERN int *loclx_of_vireo[2],*vireo_of_loclx;
+EXTERN int *vireo_of_loceo,*loceo_of_vireo;
 EXTERN int virlx_t_vbord_vol,vir_vsurf_vol;
+
 #endif
 
 /////////////////////////////////////////// SPI specifics ///////////////////////////////////

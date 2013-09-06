@@ -2,7 +2,9 @@
 if BGQ
 bgq_src_file= \
         twisted_mass/cgm_invert_tmQ2_bgq.cpp \
-        twisted_mass/cgm_invert_tmQ2_bgq.h
+        twisted_mass/cgm_invert_tmQ2_bgq.h \
+        staggered/cgm_invert_stD2ee_m2_bgq.cpp \
+	staggered/cgm_invert_stD2ee_m2_bgq.h
 else
 bgq_src_file=
 endif
@@ -21,6 +23,8 @@ libinverters_la_SOURCES= \
         staggered/cg_invert_stD2ee_m2.h \
         staggered/cg_invert_stD.h \
         staggered/cg_invert_evn_stD.h \
+        staggered/cgm_invert_stD2ee_m2_portable.cpp \
+	staggered/cgm_invert_stD2ee_m2_portable.h \
         Wclov/cg_invert_WclovQ.h \
         Wclov/cg_invert_WclovQ2.h \
         tmclov/cg_invert_tmclovQ.h \
