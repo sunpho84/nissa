@@ -502,7 +502,7 @@ THREADABLE_FUNCTION_2ARG(evn_or_odd_color_remap_to_virevn_or_odd, bi_color*,out,
   GET_THREAD_ID();
 
   //split to the two VN
-  NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh/nvnodes)
+  NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
     COLOR_TO_BI_COLOR(out[vireo_of_loceo[ivol_eo]],in[ivol_eo],vnode_of_loceo(EVN,ivol_eo));
   
   //wait filling
