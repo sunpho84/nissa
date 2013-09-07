@@ -255,7 +255,7 @@ EXTERN two_stage_computation_pos_t viroe_or_vireo_hopping_matrix_output_pos[2];
 
 EXTERN int *virlx_of_loclx,*loclx_of_virlx;
 EXTERN int *loclx_of_vireo[2],*vireo_of_loclx;
-EXTERN int *vireo_of_loceo,*loceo_of_vireo;
+EXTERN int *vireo_of_loceo[2],*loceo_of_vireo[2];
 EXTERN int virlx_t_vbord_vol,vir_vsurf_vol;
 
 #endif

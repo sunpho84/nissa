@@ -25,14 +25,14 @@ void summ_src_and_all_inv_stD2ee_m2_cgm(color *chi_e,quad_su3 **eo_conf,rat_appr
   ////////////////////////
 
   //remap in
-  evn_or_odd_color_remap_to_virevn_or_odd(bi_source,source);
+  evn_or_odd_color_remap_to_virevn_or_odd(bi_source,source,EVN);
   eo_conf_remap_to_vireo(bi_eo_conf,eo_conf);
   
   //invert
   summ_src_and_all_inv_stD2ee_m2_cgm_bgq(bi_chi_e,bi_eo_conf,appr,niter_max,req_res,bi_source);
   
   //remap out
-  virevn_or_odd_color_remap_to_evn_or_odd(chi_e,bi_chi_e);
+  virevn_or_odd_color_remap_to_evn_or_odd(chi_e,bi_chi_e,EVN);
   
   ////////////////////////
   
@@ -61,14 +61,14 @@ void inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec(color **chi_e,quad_su3 **eo_conf,d
   ////////////////////////
   
   //remap in
-  evn_or_odd_color_remap_to_virevn_or_odd(bi_pf,pf);
+  evn_or_odd_color_remap_to_virevn_or_odd(bi_pf,pf,EVN);
   eo_conf_remap_to_vireo(bi_eo_conf,eo_conf);
   
   //invert
   inv_stD2ee_m2_cgm_bgq_run_hm_up_to_comm_prec(bi_chi_e,bi_eo_conf,poles,nterms,niter_max,residue,bi_pf);
   
   //remap out
-  for(int iterm=0;iterm<nterms;iterm++) virevn_or_odd_color_remap_to_evn_or_odd(chi_e[iterm],bi_chi_e[iterm]);
+  for(int iterm=0;iterm<nterms;iterm++) virevn_or_odd_color_remap_to_evn_or_odd(chi_e[iterm],bi_chi_e[iterm],EVN);
   
   ////////////////////////
   

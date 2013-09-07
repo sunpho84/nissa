@@ -32,14 +32,14 @@ void mark_vir_of_loclx(int &virlx,int *vireo,int &loclx)
   //mark loclx of virlx and vireo
   loclx_of_virlx[virlx]=loclx;
   loclx_of_vireo[par][vireo[par]]=loclx;
-  loceo_of_vireo[vireo[par]]=loceo;
+  loceo_of_vireo[par][vireo[par]]=loceo;
   
   //and virlx and vireo for all vnodes loclx
   for(int inode=0;inode<nvnodes;inode++)
     {
       virlx_of_loclx[loclx+inode*vnode_lx_offset]=virlx;
       vireo_of_loclx[loclx+inode*vnode_lx_offset]=vireo[par];
-      vireo_of_loceo[loceo+inode*vnode_eo_offset]=vireo[par];
+      vireo_of_loceo[par][loceo+inode*vnode_eo_offset]=vireo[par];
     }
   
   //increment virlx and vireo
@@ -67,9 +67,12 @@ void define_vir_ordering()
   virlx_of_loclx=nissa_malloc("virlx_of_loclx",loc_vol+bord_vol,int);
   vireo_of_loclx=nissa_malloc("vireo_of_loclx",loc_vol+bord_vol,int);
   loclx_of_virlx=nissa_malloc("loclx_of_virlx",(loc_vol+bord_vol)/nvnodes,int);
-  loceo_of_vireo=nissa_malloc("loceo_of_vireo",(loc_vol+bord_vol)/nvnodes/2,int);
-  vireo_of_loceo=nissa_malloc("vireo_of_loceo",(loc_vol+bord_vol)/2,int);
-  for(int par=0;par<2;par++) loclx_of_vireo[par]=nissa_malloc("loceo_of_virlx",(loc_vol+bord_vol)/nvnodes/2,int);
+  for(int par=0;par<2;par++) 
+    {
+      loclx_of_vireo[par]=nissa_malloc("loceo_of_virlx",(loc_vol+bord_vol)/nvnodes/2,int);
+      loceo_of_vireo[par]=nissa_malloc("loceo_of_vireo",(loc_vol+bord_vol)/nvnodes/2,int);
+      vireo_of_loceo[par]=nissa_malloc("vireo_of_loceo",(loc_vol+bord_vol)/2,int);
+    }
   
   //reset virtual index
   int virlx=0;
@@ -110,6 +113,14 @@ void define_vir_ordering()
   if(vireo[EVN]!=loc_vol/nvnodes/2) crash("defining vireo[EVN] ordering: %d!=%d",vireo[EVN],loc_vol/nvnodes/2);
   if(vireo[ODD]!=loc_vol/nvnodes/2) crash("defining vireo[EVN] ordering: %d!=%d",vireo[ODD],loc_vol/nvnodes/2);
   
+  nissa_loc_vol_loop(ilx)
+    if(loceo_of_vireo[loclx_parity[ilx]][vireo_of_loclx[ilx]]!=loceo_of_loclx[ilx%loc_volh])
+      crash("ilx: %d %d %d %d %d",ilx,
+	    loc_coord_of_loclx[ilx][0],
+	    loc_coord_of_loclx[ilx][1],
+	    loc_coord_of_loclx[ilx][2],
+	    loc_coord_of_loclx[ilx][3]);
+  
   //scan bw and fw borders
   for(int bf=0;bf<2;bf++)
     for(int mu0=0;mu0<4;mu0++)
@@ -135,12 +146,12 @@ void define_vir_ordering()
 	    int vireo=virlx/2;
 	    virlx_of_loclx[loclx]=virlx;
 	    vireo_of_loclx[loclx]=vireo;
-	    loceo_of_vireo[vireo]=loceo;
+	    loceo_of_vireo[loclx_parity[loclx]][vireo]=loceo;
 	    if(virlx<(loc_vol+bord_vol)/nvnodes)
 	      {
 		loclx_of_virlx[virlx]=loclx;
 		loclx_of_vireo[loclx_parity[loclx]][vireo]=loclx;
-		vireo_of_loceo[loceo]=vireo;
+		vireo_of_loceo[loclx_parity[loclx]][loceo]=vireo;
 	      }
 	  }
       }
@@ -367,14 +378,14 @@ THREADABLE_FUNCTION_2ARG(eo_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3**,in
 	{
 	  //catch links needed to scatter signal forward
 	  int vn=vnode_of_loceo(par,isrc_eo);
-	  SU3_TO_BI_SU3(out[par][vireo_of_loceo[isrc_eo]][4+mu],in[par][isrc_eo][mu],vn);
+	  SU3_TO_BI_SU3(out[par][vireo_of_loceo[par][isrc_eo]][4+mu],in[par][isrc_eo][mu],vn);
 
 	//copy links also where they are needed to scatter the signal backward, if 
 	//sites that need them are not in the border (that would mean that computation must be 
 	//done in another node)
 	  int idst_eo=loceo_neighup[par][isrc_eo][mu];
 	  vn=vnode_of_loceo(!par,idst_eo);
-	  if(idst_eo<loc_volh) SU3_TO_BI_SU3(out[!par][vireo_of_loceo[idst_eo]][mu],in[par][isrc_eo][mu],vn);
+	  if(idst_eo<loc_volh) SU3_TO_BI_SU3(out[!par][vireo_of_loceo[!par][idst_eo]][mu],in[par][isrc_eo][mu],vn);
 	}
   
   //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
@@ -384,7 +395,7 @@ THREADABLE_FUNCTION_2ARG(eo_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3**,in
 	NISSA_PARALLEL_LOOP(ibord,(loc_vol+bord_offset[mu])/2,(loc_vol+bord_offset[mu]+bord_dir_vol[mu])/2)
 	  {
 	    int idst_eo=loceo_neighup[par][ibord][mu],vn=vnode_of_loceo(!par,idst_eo);
-	    SU3_TO_BI_SU3(out[!par][vireo_of_loceo[idst_eo]][mu],in[par][ibord][mu],vn);
+	    SU3_TO_BI_SU3(out[!par][vireo_of_loceo[!par][idst_eo]][mu],in[par][ibord][mu],vn);
 	  }
   
   set_borders_invalid(out[EVN]);
@@ -497,25 +508,26 @@ THREADABLE_FUNCTION_2ARG(vireo_color_remap_to_lx, color*,out, bi_color**,in)
 }}
 
 //only even or odd
-THREADABLE_FUNCTION_2ARG(evn_or_odd_color_remap_to_virevn_or_odd, bi_color*,out, color*,in)
+THREADABLE_FUNCTION_3ARG(evn_or_odd_color_remap_to_virevn_or_odd, bi_color*,out, color*,in, int,par)
 {
   GET_THREAD_ID();
 
   //split to the two VN
   NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
-    COLOR_TO_BI_COLOR(out[vireo_of_loceo[ivol_eo]],in[ivol_eo],vnode_of_loceo(EVN,ivol_eo));
+    COLOR_TO_BI_COLOR(out[vireo_of_loceo[par][ivol_eo]],in[ivol_eo],vnode_of_loceo(EVN,ivol_eo));
   
   //wait filling
   set_borders_invalid(out);  
 }}
 //reverse
-THREADABLE_FUNCTION_2ARG(virevn_or_odd_color_remap_to_evn_or_odd, color*,out, bi_color*,in)
+THREADABLE_FUNCTION_3ARG(virevn_or_odd_color_remap_to_evn_or_odd, color*,out, bi_color*,in, int,par)
 {
   GET_THREAD_ID();
 
   //split to the two VN
   NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/nvnodes)
-    BI_COLOR_TO_COLOR(out[loceo_of_vireo[ivol_vireo]],out[loceo_of_vireo[ivol_vireo]+vnode_eo_offset],in[ivol_vireo]);
+    BI_COLOR_TO_COLOR(out[loceo_of_vireo[par][ivol_vireo]],out[loceo_of_vireo[par][ivol_vireo]+vnode_eo_offset],
+		      in[ivol_vireo]);
   
   //wait filling
   set_borders_invalid(out);
@@ -545,13 +557,13 @@ void unset_vir_geometry()
   
   nissa_free(loclx_of_virlx);
   nissa_free(virlx_of_loclx);
-  nissa_free(loceo_of_vireo);
-  nissa_free(vireo_of_loceo);
-
+  
   for(int par=0;par<2;par++)
     {
       viroe_or_vireo_hopping_matrix_output_pos[par].free();
       nissa_free(loclx_of_vireo[par]);
+      nissa_free(loceo_of_vireo[par]);
+      nissa_free(vireo_of_loceo[par]);
     }
   nissa_free(vireo_of_loclx);
 }

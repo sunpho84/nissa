@@ -341,6 +341,11 @@ void find_minimal_surface_grid(int *mR,int *ext_L,int NR)
 		//check that we match the possibly fixed dir
 		if(nissa_set_nranks[mu]) valid_partitioning&=(nissa_set_nranks[mu]==R[mu]);
 	      }
+
+#if USE_VNODES
+	  //we must check that v dir is multiple of 4
+	  valid_partitioning&=((L[nissa_vnode_paral_dir]/R[nissa_vnode_paral_dir])%4==0);
+#endif
 	  
 	  //validity coulde have changed
           if(valid_partitioning)

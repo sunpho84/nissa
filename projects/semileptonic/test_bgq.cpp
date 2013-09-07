@@ -14,7 +14,7 @@ void finish_Wilson_hopping_matrix_lx_bgq_communications();
 const int nbench=1,nbench_port=1;
 
 int seed=100;
-int L=8,T=L*2;
+int L=32,T=L*2;
 double mu=0.03,kappa=0.137;
 coords is_closed;
 

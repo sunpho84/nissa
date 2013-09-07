@@ -34,7 +34,7 @@
    }
 #else 
  #define VEC_GPCI(how) vec_gpci(how)
- #define REG_BI_COMPLEX_PERM(out,in1,in2,how) (out)=vec_perm(out,in1,in2,vec_gpci(how))
+ #define REG_BI_COMPLEX_PERM(out,in1,in2,how) (out)=vec_perm(in1,in2,vec_gpci(how))
 #endif
 
 
