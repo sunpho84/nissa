@@ -781,7 +781,7 @@ void debug2_st()
   bi_oct_su3 *bi_conf_eo[2]={nissa_malloc("bi_conf_evn",loc_volh+bord_volh,bi_oct_su3),
 			     nissa_malloc("bi_conf_odd",loc_volh+bord_volh,bi_oct_su3)};
   lx_conf_remap_to_vireo(bi_conf_eo,conf);
-  
+
   //remap in to bgq
   bi_color *bi_in_eo[2]={nissa_malloc("bi_in",loc_volh+bord_volh,bi_color),
 			 nissa_malloc("bi_in",loc_volh+bord_volh,bi_color)};
