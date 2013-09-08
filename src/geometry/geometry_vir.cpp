@@ -113,13 +113,12 @@ void define_vir_ordering()
   if(vireo[EVN]!=loc_vol/nvnodes/2) crash("defining vireo[EVN] ordering: %d!=%d",vireo[EVN],loc_vol/nvnodes/2);
   if(vireo[ODD]!=loc_vol/nvnodes/2) crash("defining vireo[EVN] ordering: %d!=%d",vireo[ODD],loc_vol/nvnodes/2);
   
+  //check loceo_of_vireo
   nissa_loc_vol_loop(ilx)
     if(loceo_of_vireo[loclx_parity[ilx]][vireo_of_loclx[ilx]]!=loceo_of_loclx[ilx%loc_volh])
-      crash("ilx: %d %d %d %d %d",ilx,
-	    loc_coord_of_loclx[ilx][0],
-	    loc_coord_of_loclx[ilx][1],
-	    loc_coord_of_loclx[ilx][2],
-	    loc_coord_of_loclx[ilx][3]);
+      crash("ilx: %d (%d %d %d %d) par %d, %d!=%d",ilx,loc_coord_of_loclx[ilx][0],loc_coord_of_loclx[ilx][1],
+	    loc_coord_of_loclx[ilx][2],loc_coord_of_loclx[ilx][3],
+	    loclx_parity[ilx],loceo_of_vireo[loclx_parity[ilx]][vireo_of_loclx[ilx]],loceo_of_loclx[ilx%loc_volh]);
   
   //scan bw and fw borders
   for(int bf=0;bf<2;bf++)
@@ -536,34 +535,45 @@ THREADABLE_FUNCTION_3ARG(virevn_or_odd_color_remap_to_evn_or_odd, color*,out, bi
 //set virtual geometry
 void set_vir_geometry()
 {
-  if(!nissa_eo_geom_inited)
+  if(!nissa_vir_geom_inited)
     {
-      if(!nissa_use_eo_geom) crash("eo geometry must be enabled in order to use vir one");
-      crash("initialize eo_geometry before vir one");
+      nissa_vir_geom_inited=true;
       
-      if(loc_size[nissa_vnode_paral_dir]%4) crash("virtual parallelized dir must have local size multiple of 4");
+      //crash if eo-geom not inited
+      if(!nissa_eo_geom_inited)
+	{
+	  if(!nissa_use_eo_geom) crash("eo geometry must be enabled in order to use vir one");
+	  crash("initialize eo_geometry before vir one");
+	  
+	  if(loc_size[nissa_vnode_paral_dir]%4) crash("virtual parallelized dir must have local size multiple of 4");
+	}
+      
+      define_vir_ordering();
+      
+      //define output index pointers
+      define_vir_hopping_matrix_output_pos();
     }
-  
-  define_vir_ordering();
-
-  //define output index pointers
-  define_vir_hopping_matrix_output_pos();
 }
 
 //unset it
 void unset_vir_geometry()
 {
-  virlx_hopping_matrix_output_pos.free();
-  
-  nissa_free(loclx_of_virlx);
-  nissa_free(virlx_of_loclx);
-  
-  for(int par=0;par<2;par++)
+  if(nissa_vir_geom_inited)
     {
-      viroe_or_vireo_hopping_matrix_output_pos[par].free();
-      nissa_free(loclx_of_vireo[par]);
-      nissa_free(loceo_of_vireo[par]);
-      nissa_free(vireo_of_loceo[par]);
+      nissa_vir_geom_inited=false;
+      
+      virlx_hopping_matrix_output_pos.free();
+      
+      nissa_free(loclx_of_virlx);
+      nissa_free(virlx_of_loclx);
+      
+      for(int par=0;par<2;par++)
+	{
+	  viroe_or_vireo_hopping_matrix_output_pos[par].free();
+	  nissa_free(loclx_of_vireo[par]);
+	  nissa_free(loceo_of_vireo[par]);
+	  nissa_free(vireo_of_loceo[par]);
+	}
+      nissa_free(vireo_of_loclx);
     }
-  nissa_free(vireo_of_loclx);
 }

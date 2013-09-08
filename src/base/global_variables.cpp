@@ -38,6 +38,9 @@ EXTERN int *loclx_of_non_fw_surflx;
 EXTERN int *loclx_of_bw_surflx;
 EXTERN int *loclx_of_fw_surflx;
 EXTERN int nissa_lx_geom_inited;
+#ifdef USE_VNODES
+EXTERN int nissa_vir_geom_inited;
+#endif
 EXTERN int nissa_Wsklx_order_inited;
 //-eo is even-odd
 EXTERN int *loclx_parity;

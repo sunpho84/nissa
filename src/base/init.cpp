@@ -104,6 +104,9 @@ void init_nissa(int narg,char **arg)
   
   //initialize global variables
   nissa_lx_geom_inited=0;
+#ifdef USE_VNODES
+  nissa_vir_geom_inited=0;
+#endif
   nissa_Wsklx_order_inited=0;
   nissa_eo_geom_inited=0;
   nissa_loc_rnd_gen_inited=0;
@@ -247,7 +250,7 @@ void find_minimal_surface_grid(int *mR,int *ext_L,int NR)
       if(NR%16) crash("in order to paralellize all the direcion, the number of ranks must be a multiple of 16");
     }
   
-  //check that all directions can bemade even, if requested
+  //check that all directions can be made even, if requested
   if(nissa_use_eo_geom) if((V/NR)%16!=0) crash("in order to use eo geometry, local size must be a multiple of 16");
     
   //check that the global lattice is a multiple of the number of ranks
