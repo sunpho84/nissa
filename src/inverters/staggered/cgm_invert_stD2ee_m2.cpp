@@ -4,11 +4,11 @@
 
 #ifdef BGQ
  #include "cgm_invert_stD2ee_m2_bgq.h"
+ #include "../../geometry/geometry_vir.h"
 #endif
 #include "cgm_invert_stD2ee_m2_portable.h"
 
 #include "../../base/global_variables.h"
-#include "../../geometry/geometry_vir.h"
 
 void summ_src_and_all_inv_stD2ee_m2_cgm(color *chi_e,quad_su3 **eo_conf,rat_approx_t *appr,int niter_max,double req_res,color *source)
 {
