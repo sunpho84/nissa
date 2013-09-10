@@ -155,12 +155,10 @@ THREADABLE_FUNCTION_5ARG(apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_noba
     {
       //take short access to link and output indexing
       int *iout=viroe_or_vireo_hopping_matrix_output_pos[oe_or_eo].inter_fr_in_pos+ibgqlx*8;
-      bi_su3 *links=(bi_su3*)(conf[oe_or_eo]+ibgqlx); //TOBECHECKED
+      bi_su3 *links=(bi_su3*)(conf[oe_or_eo]+ibgqlx);
       
-      //declare
+      //declare and load
       DECLARE_REG_BI_COLOR(reg_in);
-      
-      //load in
       REG_LOAD_BI_COLOR(reg_in,in[ibgqlx]);
       
       HOP_HEADER(0); //T backward scatter (forward derivative)
