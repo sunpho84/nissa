@@ -10,6 +10,7 @@
 #include "../base/thread_macros.h"
 #include "../base/vectors.h"
 #include "../communicate/communicate.h"
+#include "../geometry/geometry_lx.h"
 #include "../new_types/complex.h"
 
 #ifdef USE_THREADS
@@ -21,6 +22,15 @@ inline int vnode_of_loclx(int lx)
 
 inline int vnode_of_loceo(int par,int eo)
 {return vnode_of_loclx(loclx_of_loceo[par][eo]);}
+
+//return the vn=0 equivalent
+int vn0lx_of_loclx(int lx)
+{
+  coords c;
+  for(int mu=0;mu<4;mu++) c[mu]=loc_coord_of_loclx[lx][mu];
+  c[nissa_vnode_paral_dir]%=loc_size[nissa_vnode_paral_dir]/nvnodes;
+  return loclx_of_coord(c);
+}
 
 //routine to add site in the list
 void mark_vir_of_loclx(int &virlx,int *vireo,int &loclx)
@@ -115,10 +125,11 @@ void define_vir_ordering()
   
   //check loceo_of_vireo
   nissa_loc_vol_loop(ilx)
-    if(loceo_of_vireo[loclx_parity[ilx]][vireo_of_loclx[ilx]]!=loceo_of_loclx[ilx%loc_volh])
-      crash("ilx: %d (%d %d %d %d) par %d, %d!=%d",ilx,loc_coord_of_loclx[ilx][0],loc_coord_of_loclx[ilx][1],
+    if(loceo_of_vireo[loclx_parity[ilx]][vireo_of_loclx[ilx]]!=loceo_of_loclx[vn0lx_of_loclx(ilx)])
+      crash("ilx: %d (%d %d %d %d) par %d, vireo %d %d!=%d",ilx,loc_coord_of_loclx[ilx][0],loc_coord_of_loclx[ilx][1],
 	    loc_coord_of_loclx[ilx][2],loc_coord_of_loclx[ilx][3],
-	    loclx_parity[ilx],loceo_of_vireo[loclx_parity[ilx]][vireo_of_loclx[ilx]],loceo_of_loclx[ilx%loc_volh]);
+	    loclx_parity[ilx],vireo_of_loclx[ilx],
+	    loceo_of_vireo[loclx_parity[ilx]][vireo_of_loclx[ilx]],loceo_of_loclx[vn0lx_of_loclx(ilx)]);
   
   //scan bw and fw borders
   for(int bf=0;bf<2;bf++)

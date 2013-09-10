@@ -895,28 +895,88 @@ void debug2_st()
   master_printf(" %lg sec in port mode\n",port_time);
   master_printf(" %lg sec in bgq mode\n",bgq_time);
 
-  /*    
   //benchmark pure hopping matrix application
-  double hop_bgq_time=-take_time();
-  for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,0,loc_volh,bi_in);
-  hop_bgq_time+=take_time();
-  hop_bgq_time/=nbench;
-  int nflops_hop=1152*loc_vol;
-  master_printf("hop_bgq_time: %lg sec, %d flops, %lg Mflops\n",hop_bgq_time,nflops_hop,nflops_hop*1e-6/hop_bgq_time);
-  
+  double hop_bgq_time[2];
+  int nflops_hop=480*loc_volh;
+  for(int eo_or_oe=0;eo_or_oe<2;eo_or_oe++)
+    {
+      hop_bgq_time[eo_or_oe]=-take_time();
+      for(int ibench=0;ibench<nbench;ibench++)
+	apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf_eo,0,loc_volh/2,bi_in_eo[EVN],eo_or_oe);
+      hop_bgq_time[eo_or_oe]+=take_time();
+      hop_bgq_time[eo_or_oe]/=nbench;
+      master_printf("hop_bgq_time_%s: %lg sec, %d flops, %lg Mflops\n",
+		    (eo_or_oe==0)?"eo":"oe",
+		    hop_bgq_time[eo_or_oe],nflops_hop,nflops_hop*1e-6/hop_bgq_time[eo_or_oe]);
+    }
+
   //benchmark expansion
-  double exp_bgq_time=-take_time();
-  for(int ibench=0;ibench<nbench;ibench++)
-    hopping_matrix_lx_expand_to_Q_and_summ_diag_term_bgq(bi_out,kappa,mu,bi_in);
-  exp_bgq_time+=take_time();
-  exp_bgq_time/=nbench;
-  int nflops_exp=312*loc_vol;
-  master_printf("exp_bgq_time: %lg sec, %d flops, %lg Mflops\n",exp_bgq_time,nflops_exp,nflops_exp*1e-6/exp_bgq_time);
+  double exp_bgq_time[2];
+  int nflops_exp=42*loc_volh;
+  for(int eo_or_oe=0;eo_or_oe<2;eo_or_oe++)
+    {
+      exp_bgq_time[eo_or_oe]=-take_time();
+      if(eo_or_oe==0) for(int ibench=0;ibench<nbench;ibench++) hopping_matrix_eo_or_eo_expand_to_D(bi_out_eo[EVN]);
+      else for(int ibench=0;ibench<nbench;ibench++) 
+	     hopping_matrix_eo_or_eo_expand_to_D_subtract_from_mass2_times_in(bi_out_eo[ODD],mass2,bi_in_eo[EVN]); 
+      exp_bgq_time[eo_or_oe]+=take_time();
+      exp_bgq_time[eo_or_oe]/=nbench;
+      master_printf("exp_bgq_time_%s: %lg sec, %d flops, %lg Mflops\n",
+		    (eo_or_oe==0)?"eo":"oe",
+		    exp_bgq_time[eo_or_oe],nflops_exp,nflops_exp*1e-6/exp_bgq_time[eo_or_oe]);
+    }
+
+  //total
+  double hop_plus_exp_bgq_time=hop_bgq_time[0]+hop_bgq_time[1]+exp_bgq_time[0]+exp_bgq_time[1];
+  int nflops_hop_plus_exp=2*(nflops_exp+nflops_hop);
   master_printf("(hop+exp)_bgq_time: %lg sec, %d flops, %lg Mflops\n",
-		hop_bgq_time+exp_bgq_time,nflops_exp+nflops_hop,(nflops_exp+nflops_hop)*
-		1e-6/(hop_bgq_time+exp_bgq_time));
-  */
+		hop_plus_exp_bgq_time,nflops_hop_plus_exp,nflops_hop_plus_exp*
+		1e-6/hop_plus_exp_bgq_time);
+  
+  
+  //benchmark buff filling
+  double buff_filling_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_buff_fill();
+  buff_filling_time+=take_time();
+  buff_filling_time/=nbench;
+  master_printf("buff_filling_time: %lg sec\n",buff_filling_time);
+  
+  //benchmark bulk computation
+  double bulk_computation_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],0);
+  bulk_computation_time+=take_time();
+  bulk_computation_time/=nbench;
+  master_printf("bulk_computation_time: %lg sec\n",bulk_computation_time);
+  
+  //benchmark surf computation
+  double surf_compuation_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],0);
+  surf_compuation_time+=take_time();
+  surf_compuation_time/=nbench;
+  master_printf("surf_compuation_time: %lg sec\n",surf_compuation_time);
+  
+  //benchmark buff unfilling
+  double buff_unfilling_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    finish_staggered_hopping_matrix_oe_or_eo_bgq_communications(0);
+  buff_unfilling_time+=take_time();
+  buff_unfilling_time/=nbench;
+  master_printf("buff_unfilling_time: %lg sec\n",buff_unfilling_time);
+  
+  //benchmark pure spi communication without data moving
+  double pure_spi_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    {
+      comm_start(eo_color_comm);
+      comm_wait(eo_color_comm);
+    }
+  pure_spi_time+=take_time();
+  pure_spi_time/=nbench;
+  double data_exch=eo_color_comm.tot_mess_size/1024.0/1024.0;
+  master_printf("pure_comm_time: %lg sec, %lg Mbytes, %lg Mb/sec\n",pure_spi_time,data_exch,data_exch/pure_spi_time);
   
   nissa_free(conf);
   nissa_free(bi_conf_eo[0]);
