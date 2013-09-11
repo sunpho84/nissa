@@ -4,15 +4,15 @@
 
 #include <math.h>
 
-#include "../base/global_variables.h"
-#include "../base/thread_macros.h"
-#include "../base/vectors.h"
-#include "../new_types/complex.h"
-#include "../new_types/new_types_definitions.h"
-#include "../new_types/su3.h"
-#include "../routines/ios.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "new_types/complex.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/su3.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //initialize an u(1) field to unity

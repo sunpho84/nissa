@@ -9,16 +9,16 @@
 #include "global_variables.h"
 #include "random.h"
 #include "vectors.h"
-#include "../new_types/new_types_definitions.h"
-#include "../geometry/geometry_eo.h"
-#include "../geometry/geometry_lx.h"
-#include "../geometry/geometry_Wsklx.h"
+#include "new_types/new_types_definitions.h"
+#include "geometry/geometry_eo.h"
+#include "geometry/geometry_lx.h"
+#include "geometry/geometry_Wsklx.h"
 #ifdef USE_VNODES
- #include "../geometry/geometry_vir.h"
+ #include "geometry/geometry_vir.h"
 #endif
-#include "../hmc/gauge/tree_level_Symanzik_force.h"
-#include "../hmc/gauge/tree_level_Symanzik_action.h"
-#include "../routines/ios.h"
+#include "hmc/gauge/tree_level_Symanzik_force.h"
+#include "hmc/gauge/tree_level_Symanzik_action.h"
+#include "routines/ios.h"
 
 void close_nissa()
 {

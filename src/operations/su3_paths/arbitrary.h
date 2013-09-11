@@ -3,9 +3,9 @@
 
 #include <stdlib.h>
 
-#include "../../base/debug.h"
-#include "../../geometry/geometry_lx.h"
-#include "../../routines/ios.h"
+#include "base/debug.h"
+#include "geometry/geometry_lx.h"
+#include "routines/ios.h"
 
 #define START_PATH_FLAG 1
 #define DAG_LINK_FLAG 2

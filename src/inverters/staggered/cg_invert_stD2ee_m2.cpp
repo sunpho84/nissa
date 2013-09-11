@@ -1,12 +1,12 @@
 #include <math.h>
 
-#include "../../communicate/communicate.h"
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
+#include "communicate/communicate.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
 
 #define BASETYPE color
 #define NDOUBLES_PER_SITE 6
@@ -35,4 +35,4 @@
 #define AT2 double
 #define A2 m2
 
-#include "../templates/cg_invert_template_threaded.cpp"
+#include "templates/cg_invert_template_threaded.cpp"

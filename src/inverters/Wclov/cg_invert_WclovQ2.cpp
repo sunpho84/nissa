@@ -1,11 +1,11 @@
 #include <math.h>
 
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../base/debug.h"
-#include "../../dirac_operators/dirac_operator_WclovQ2/dirac_operator_WclovQ2.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "base/debug.h"
+#include "dirac_operators/dirac_operator_WclovQ2/dirac_operator_WclovQ2.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
 
 #define basetype spincolor
 
@@ -23,4 +23,4 @@
 
 #define cg_additional_vectors_free() nissa_free(temp);
 
-#include "../templates/cg_invert_template.cpp"
+#include "templates/cg_invert_template.cpp"

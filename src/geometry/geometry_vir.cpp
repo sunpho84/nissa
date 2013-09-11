@@ -3,18 +3,18 @@
 #endif
 
 //for the moment we still call "bgq"
-#include "../bgq/bgq_macros.h"
+#include "bgq/bgq_macros.h"
 
-#include "../base/debug.h"
-#include "../base/global_variables.h"
-#include "../base/thread_macros.h"
-#include "../base/vectors.h"
-#include "../communicate/communicate.h"
-#include "../geometry/geometry_lx.h"
-#include "../new_types/complex.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "communicate/communicate.h"
+#include "geometry/geometry_lx.h"
+#include "new_types/complex.h"
 
 #ifdef USE_THREADS
- #include "../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 inline int vnode_of_loclx(int lx)

@@ -1,3 +1,5 @@
+AM_CXXFLAGS=-I$(top_srcdir)/src
+
 LDADD=$(top_builddir)/lib/libnissa.la
 
 AUTOMAKE_OPTIONS=subdir-objects

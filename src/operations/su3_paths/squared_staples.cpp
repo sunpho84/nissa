@@ -6,14 +6,14 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../communicate/communicate.h"
-#include "../../new_types/su3.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "communicate/communicate.h"
+#include "new_types/su3.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //compute the staples along a particular dir, for a single site

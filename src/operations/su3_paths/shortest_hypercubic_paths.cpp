@@ -2,18 +2,18 @@
  #include "config.h"
 #endif
 
-#include "../../communicate/communicate.h"
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../geometry/geometry_mix.h"
-#include "../../geometry/geometry_lx.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/su3.h"
-#include "../../routines/ios.h"
+#include "communicate/communicate.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "geometry/geometry_mix.h"
+#include "geometry/geometry_lx.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/su3.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 THREADABLE_FUNCTION_2ARG(compute_shortest_hypercubic_paths, su3**,paths, quad_su3**,conf)

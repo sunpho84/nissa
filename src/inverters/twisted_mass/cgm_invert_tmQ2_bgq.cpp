@@ -6,13 +6,13 @@
 
 //#include "cg_128_invert_tmQ2.h"
 
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../base/debug.h"
-#include "../../communicate/communicate.h"
-#include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "base/debug.h"
+#include "communicate/communicate.h"
+#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
 
 #define BASETYPE bi_spincolor
 #define NDOUBLES_PER_SITE 48
@@ -45,4 +45,4 @@
 //#define CG_128_INVERT inv_tmQ2_m2_RL_cg_128
 //#define CG_128_ADDITIONAL_PARAMETERS_CALL conf,kappa,RL,
 
-#include "../templates/cgm_invert_template_threaded.cpp"
+#include "templates/cgm_invert_template_threaded.cpp"

@@ -1,7 +1,7 @@
 #ifndef _BGQ_INTRINSIC_DECLARE
 #define _BGQ_INTRINSIC_DECLARE
 
-#include "../src/base/macros.h"
+#include "base/macros.h"
 
 #define DECLARE_REG_BI_COMPLEX(A) reg_bi_complex A
 

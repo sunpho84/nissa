@@ -1,33 +1,7 @@
+AM_CXXFLAGS=-I$(top_srcdir)/src
+
 noinst_LTLIBRARIES=liboperations.la
 liboperations_la_SOURCES= \
-        contract/mesons_2pts.h \
-        contract/mesons_eight.h \
-        contract/optimized_mesons_2pts.h \
-        contract/site_contract.h \
-        contract/stag.h \
-        covariant_derivative.h \
-        fft.h \
-        fourier_transform.h \
-        gauge_fixing.h \
-        gaugeconf.h \
-        remap_vector.h \
-        remez/remez_algorithm.h \
-        shift.h \
-        source.h \
-        smearing/APE.h \
-        smearing/HYP.h \
-        smearing/stout.h \
-        smearing/gaussian.h \
-        su3_paths/all_rectangles.h \
-        su3_paths/arbitrary.h \
-        su3_paths/plaquette.h \
-        su3_paths/pline.h \
-        su3_paths/rectangles.h \
-        su3_paths/rectangular_staples.h \
-        su3_paths/shortest_hypercubic_paths.h \
-        su3_paths/squared_staples.h \
-        su3_paths/topological_charge.h \
-        vector_gather.h \
         contract/mesons_2pts.cpp \
         contract/mesons_eight.cpp \
         contract/optimized_mesons_2pts.cpp \
@@ -56,3 +30,34 @@ liboperations_la_SOURCES= \
         su3_paths/squared_staples.cpp \
         su3_paths/topological_charge.cpp \
         vector_gather.cpp
+
+operationsincludedir=$(includedir)/operations
+operationsinclude_HEADERS= \
+        contract/mesons_2pts.h \
+        contract/mesons_eight.h \
+        contract/optimized_mesons_2pts.h \
+        contract/site_contract.h \
+        contract/stag.h \
+        covariant_derivative.h \
+        fft.h \
+        fourier_transform.h \
+        gauge_fixing.h \
+        gaugeconf.h \
+        remap_vector.h \
+        remez/remez_algorithm.h \
+        shift.h \
+        source.h \
+        smearing/APE.h \
+        smearing/HYP.h \
+        smearing/stout.h \
+        smearing/gaussian.h \
+        su3_paths/all_rectangles.h \
+        su3_paths/arbitrary.h \
+        su3_paths/plaquette.h \
+        su3_paths/pline.h \
+        su3_paths/rectangles.h \
+        su3_paths/rectangular_staples.h \
+        su3_paths/shortest_hypercubic_paths.h \
+        su3_paths/squared_staples.h \
+        su3_paths/topological_charge.h \
+        vector_gather.h

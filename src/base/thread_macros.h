@@ -11,7 +11,7 @@
 
 #if defined BGQ && !defined BGQ_EMU
  #include <bgpm/include/bgpm.h>
- #include "../bgq/bgq_barrier.h"
+ #include "bgq/bgq_barrier.h"
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -34,6 +34,7 @@
 #ifdef USE_THREADS
 
  #define GET_THREAD_ID() int thread_id=omp_get_thread_num()
+ #define THREAD_ID thread_id
  
  #ifdef THREAD_DEBUG
   #define THREAD_BARRIER_FORCE() thread_barrier(__FILE__,__LINE__,true)
@@ -53,6 +54,7 @@
 #else
 
  #define GET_THREAD_ID()
+ #define THREAD_ID 0
  #define THREAD_BARRIER_FORCE()
  #define THREAD_BARRIER()
  #define IS_MASTER_THREAD (1)

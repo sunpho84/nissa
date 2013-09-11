@@ -2,13 +2,13 @@
 
 #include "cg_invert_tmDeoimpr.h"
 
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h"
-#include "../../dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.h"
-#include "../../inverters/twisted_mass/cg_invert_tmDeoimpr.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h"
+#include "dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.h"
+#include "inverters/twisted_mass/cg_invert_tmDeoimpr.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
 
 #define BASETYPE spincolor
 #define BASETYPE_128 spincolor_128
@@ -42,4 +42,4 @@
 #define CG_ADDITIONAL_VECTORS_FREE()	\
   nissa_free(temp1);			\
   nissa_free(temp2);
-#include "../templates/cg_128_invert_template_threaded.cpp"
+#include "templates/cg_128_invert_template_threaded.cpp"

@@ -2,9 +2,9 @@
  #include "config.h"
 #endif
 
-#include "../base/debug.h"
-#include "../base/global_variables.h"
-#include "../routines/ios.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "routines/ios.h"
 
 #include "reader.h"
 

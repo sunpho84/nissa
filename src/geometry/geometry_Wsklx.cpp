@@ -2,13 +2,13 @@
  #include "config.h"
 #endif
 
-#include "../communicate/communicate.h"
-#include "../base/global_variables.h"
-#include "../base/thread_macros.h"
-#include "../base/vectors.h"
-#include "../new_types/su3.h"
+#include "communicate/communicate.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "new_types/su3.h"
 #ifdef USE_THREADS
- #include "../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //initialize the vector explaining how to store data when applying Wilson

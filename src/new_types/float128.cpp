@@ -7,9 +7,9 @@
 #include <string.h>
 #include <math.h>
 
-#include "../base/debug.h"
-#include "../base/macros.h"
-#include "../routines/ios.h"
+#include "base/debug.h"
+#include "base/macros.h"
+#include "routines/ios.h"
 
 #include "complex.h"
 #include "new_types_definitions.h"

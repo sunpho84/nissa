@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../../routines/ios.h"
+#include "routines/ios.h"
 
 //Apply the Q=D*g5 operator to a spincolor
 

@@ -5,16 +5,16 @@
 #include <omp.h>
 #include <stdlib.h>
 
-#include "../base/debug.h"
-#include "../base/global_variables.h"
-#include "../base/init.h"
-#include "../base/macros.h"
-#include "../base/thread_macros.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/init.h"
+#include "base/macros.h"
+#include "base/thread_macros.h"
 #include "ios.h"
 
 //put in the external bgq_barrier.c file, to avoid alignement problem
 #if defined BGQ && (! defined BGQ_EMU)
- #include "../bgq/bgq_barrier.h"
+ #include "bgq/bgq_barrier.h"
 #endif
 
 //put a barrier between threads

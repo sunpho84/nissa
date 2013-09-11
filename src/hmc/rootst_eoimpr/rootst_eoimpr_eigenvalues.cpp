@@ -4,24 +4,24 @@
 
 #include <math.h>
 
-#include "../../communicate/communicate.h"
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
-#include "../../inverters/staggered/cg_invert_stD2ee_m2.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/rat_approx.h"
-#include "../../new_types/su3.h"
-#include "../../routines/ios.h"
-#include "../../routines/mpi_routines.h"
+#include "communicate/communicate.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
+#include "inverters/staggered/cg_invert_stD2ee_m2.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/rat_approx.h"
+#include "new_types/su3.h"
+#include "routines/ios.h"
+#include "routines/mpi_routines.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
-#include "../backfield.h"
+#include "backfield.h"
 
 #include "rat_expansion_database.cpp"
 

@@ -4,9 +4,9 @@
 
 #include <omp.h>
 
-#include "../../routines/ios.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 extern double cgm_inv_over_time;

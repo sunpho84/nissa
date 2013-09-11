@@ -5,13 +5,13 @@
  #include "config.h"
 #endif
 
-#include "../src/base/macros.h"
-#include "../bgq_macros.h"
+#include "base/macros.h"
+#include "bgq/bgq_macros.h"
 
 #ifndef BGQ_EMU
  #include <builtins.h>
 #else
- #include "../src/new_types/complex.h"
+ #include "new_types/complex.h"
 #endif
 
 ///////////////////////////////// prefetching ////////////////////////////////

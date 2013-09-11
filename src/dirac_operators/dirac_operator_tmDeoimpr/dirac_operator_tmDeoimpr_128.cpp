@@ -2,17 +2,17 @@
  #include "config.h"
 #endif
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/complex.h"
-#include "../../new_types/su3.h"
-#include "../../new_types/float128.h"
-#include "../../base/global_variables.h"
-#include "../../communicate/communicate.h"
-#include "../../base/debug.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/complex.h"
+#include "new_types/su3.h"
+#include "new_types/float128.h"
+#include "base/global_variables.h"
+#include "communicate/communicate.h"
+#include "base/debug.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //Refers to the doc: "doc/eo_inverter.lyx" for explenations

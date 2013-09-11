@@ -6,19 +6,19 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../communicate/communicate.h"
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../geometry/geometry_lx.h"
-#include "../../geometry/geometry_mix.h"
-#include "../../new_types/complex.h"
-#include "../../new_types/dirac.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/spin.h"
-#include "../../new_types/su3.h"
-#include "../shift.h"
-#include "../../routines/mpi_routines.h"
+#include "communicate/communicate.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "geometry/geometry_lx.h"
+#include "geometry/geometry_mix.h"
+#include "new_types/complex.h"
+#include "new_types/dirac.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/spin.h"
+#include "new_types/su3.h"
+#include "shift.h"
+#include "routines/mpi_routines.h"
 
 //compute the polyakov loop
 void average_polyakov_loop(complex tra,quad_su3 *conf,int mu)

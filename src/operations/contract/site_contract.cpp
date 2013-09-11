@@ -2,9 +2,9 @@
  #include "config.h"
 #endif
 
-#include "../../new_types/complex.h"
-#include "../../new_types/dirac.h"
-#include "../../new_types/spin.h"
+#include "new_types/complex.h"
+#include "new_types/dirac.h"
+#include "new_types/spin.h"
 
 ///////////////////////// take Tr[g1 * s1^dag * g2 * s2], useful for mesons 2 points //////////////////
 

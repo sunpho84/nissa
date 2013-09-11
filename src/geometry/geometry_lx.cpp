@@ -5,14 +5,14 @@
 #include <math.h>
 #include <string.h>
 
-#include "../base/debug.h"
-#include "../base/global_variables.h"
-#include "../base/thread_macros.h"
-#include "../base/vectors.h"
-#include "../new_types/su3.h"
-#include "../routines/ios.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "new_types/su3.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 #ifdef SPI

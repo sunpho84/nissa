@@ -1,13 +1,13 @@
 #include <math.h>
 
-#include "../../base/debug.h"
-#include "../../communicate/communicate.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../routines/ios.h"
+#include "base/debug.h"
+#include "communicate/communicate.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
+#include "routines/ios.h"
 
 #define basetype spincolor
 #define ndoubles_per_site 24
@@ -30,4 +30,4 @@
   nissa_free(t);
 #define cg_parameters_proto quad_su3 *conf,double kappa,int RL,double m
 
-#include "../templates/cg_invert_template.cpp"
+#include "templates/cg_invert_template.cpp"

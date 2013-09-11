@@ -7,30 +7,29 @@
 #include <string.h>
 #include <omp.h>
 
-#include "../communicate/communicate.h"
+#include "communicate/communicate.h"
 #include "debug.h"
 #include "global_variables.h"
 #include "vectors.h"
 
-#include "../io/input.h"
-#include "../io/endianess.h"
-#include "../geometry/geometry_eo.h"
-#include "../geometry/geometry_lx.h"
-#include "../geometry/geometry_Wsklx.h"
+#include "io/input.h"
+#include "io/endianess.h"
+#include "geometry/geometry_eo.h"
+#include "geometry/geometry_lx.h"
+#include "geometry/geometry_Wsklx.h"
 #ifdef USE_VNODES
- #include "../geometry/geometry_vir.h"
+ #include "geometry/geometry_vir.h"
 #endif
-#include "../new_types/dirac.h"
- #include "../new_types/su3.h"
-#include "../routines/ios.h"
-#include "../routines/math_routines.h"
-#include "../routines/mpi_routines.h"
+#include "new_types/dirac.h"
+#include "routines/ios.h"
+#include "routines/math_routines.h"
+#include "routines/mpi_routines.h"
 #ifdef USE_THREADS
- #include "../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 #ifdef SPI
- #include "../bgq/spi.h"
+ #include "bgq/spi.h"
 #endif
 
 #include "svnversion.h"

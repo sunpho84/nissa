@@ -2,16 +2,16 @@
  #include "config.h"
 #endif
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/su3.h"
-#include "../../communicate/communicate.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../base/thread_macros.h"
-#include "../../linalgs/linalgs.h"
-#include "../../operations/su3_paths/topological_charge.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/su3.h"
+#include "communicate/communicate.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "base/thread_macros.h"
+#include "linalgs/linalgs.h"
+#include "operations/su3_paths/topological_charge.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //Apply the Q=D*g5 operator to a spincolor

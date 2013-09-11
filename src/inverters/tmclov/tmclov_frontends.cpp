@@ -4,13 +4,13 @@
 
 #include "cgm_invert_tmclovQ2.h"
 
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../dirac_operators/dirac_operator_tmclovQ/reconstruct_tmclov_doublet.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/spin.h"
-#include "../../routines/ios.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "dirac_operators/dirac_operator_tmclovQ/reconstruct_tmclov_doublet.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/spin.h"
+#include "routines/ios.h"
 
 //invert a set of propagators using the passed source
 //the output is stored in twisted basis, assuming that prop=su3spinspin[2][nmass][>=loc_vol]

@@ -4,13 +4,13 @@
 
 #include <math.h>
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/su3.h"
-#include "../../base/vectors.h"
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../communicate/communicate.h"
-#include "../../linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/su3.h"
+#include "base/vectors.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "communicate/communicate.h"
+#include "linalgs/linalgs.h"
 
 #include "dirac_operator_stD_portable.cpp"
 

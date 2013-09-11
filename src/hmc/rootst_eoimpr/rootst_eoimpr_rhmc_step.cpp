@@ -6,18 +6,18 @@
 #include <math.h>
 #include <vector>
 
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../geometry/geometry_eo.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/rat_approx.h"
-#include "../../operations/smearing/stout.h"
-#include "../../operations/su3_paths/plaquette.h"
-#include "../../routines/ios.h"
-#include "../../routines/math_routines.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "geometry/geometry_eo.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/rat_approx.h"
+#include "operations/smearing/stout.h"
+#include "operations/su3_paths/plaquette.h"
+#include "routines/ios.h"
+#include "routines/math_routines.h"
 
-#include "../momenta/momenta_generation.h"
+#include "momenta/momenta_generation.h"
 
 #include "adaptative_control.h"
 #include "rootst_eoimpr_action.h"

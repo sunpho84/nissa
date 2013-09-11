@@ -5,7 +5,7 @@
  #include "config.h"
 #endif
 
-#include "../base/thread_macros.h"
+#include "base/thread_macros.h"
 
 #ifdef THREAD_DEBUG
  void thread_barrier(const char*file,int line,int force_barrier);

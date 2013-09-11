@@ -2,14 +2,14 @@
  #include "config.h"
 #endif
 
-#include "../../new_types/float128.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../communicate/communicate.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../base/thread_macros.h"
+#include "new_types/float128.h"
+#include "new_types/new_types_definitions.h"
+#include "communicate/communicate.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "base/thread_macros.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //Apply the Q=D*g5 operator to a spincolor

@@ -4,14 +4,14 @@
 
 #include <mpi.h>
 
-#include "../base/global_variables.h"
-#include "../base/thread_macros.h"
-#include "../new_types/complex.h"
-#include "../new_types/float128.h"
-#include "../new_types/new_types_definitions.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "new_types/complex.h"
+#include "new_types/float128.h"
+#include "new_types/new_types_definitions.h"
 
 #ifdef USE_THREADS
-  #include "../routines/thread.h"
+  #include "routines/thread.h"
 #endif
 
 //take the different with following multiple of eight

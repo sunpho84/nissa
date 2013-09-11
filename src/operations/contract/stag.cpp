@@ -2,21 +2,21 @@
  #include "config.h"
 #endif
 
-#include "../../base/global_variables.h"
-#include "../../base/random.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../communicate/communicate.h"
-#include "../../geometry/geometry_eo.h"
-#include "../../hmc/backfield.h"
-#include "../../new_types/complex.h"
-#include "../../inverters/staggered/cg_invert_stD.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/su3.h"
-#include "../../routines/ios.h"
-#include "../../routines/mpi_routines.h"
+#include "base/global_variables.h"
+#include "base/random.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "communicate/communicate.h"
+#include "geometry/geometry_eo.h"
+#include "hmc/backfield.h"
+#include "new_types/complex.h"
+#include "inverters/staggered/cg_invert_stD.h"
+#include "linalgs/linalgs.h"
+#include "new_types/su3.h"
+#include "routines/ios.h"
+#include "routines/mpi_routines.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //get a propagator

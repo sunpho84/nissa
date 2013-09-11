@@ -2,16 +2,16 @@
 
 #include "cg_128_invert_tmQ2.h"
 
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../communicate/communicate.h"
-#include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "communicate/communicate.h"
+#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
 
 #ifdef BGQ
- #include "../../geometry/geometry_vir.h"
+ #include "geometry/geometry_vir.h"
  #include "cgm_invert_tmQ2_bgq.h"
 #endif
 
@@ -46,7 +46,7 @@
 #define CG_128_INVERT inv_tmQ2_m2_RL_cg_128
 #define CG_128_ADDITIONAL_PARAMETERS_CALL conf,kappa,RL,
 
-#include "../templates/cgm_invert_template_threaded.cpp"
+#include "templates/cgm_invert_template_threaded.cpp"
 
 void inv_tmQ2_RL_cgm(spincolor **sol,quad_su3 *conf,double kappa,int RL,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
 {

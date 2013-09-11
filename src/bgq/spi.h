@@ -1,7 +1,7 @@
 #ifndef _SPI_H
 #define _SPI_H
 
-#include "../new_types/new_types_definitions.h"
+#include "new_types/new_types_definitions.h"
 
 void get_spi_coord();
 void init_spi();

@@ -4,12 +4,12 @@
 
 #include <math.h>
 
-#include "../new_types/new_types_definitions.h"
-#include "../new_types/su3.h"
-#include "../base/global_variables.h"
-#include "../base/macros.h"
-#include "../base/debug.h"
-#include "../base/vectors.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/su3.h"
+#include "base/global_variables.h"
+#include "base/macros.h"
+#include "base/debug.h"
+#include "base/vectors.h"
 
 //produce the table of the momentum
 void Momentum(int **iP,double *bc,double *P2,double *SinP2,double **P,double **SinP,double *SinP4,int nmom)

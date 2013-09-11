@@ -2,11 +2,11 @@
  #include "config.h"
 #endif
 
-#include "../../communicate/communicate.h"
-#include "../../base/global_variables.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../operations/su3_paths/rectangles.h"
-#include "../../routines/ios.h"
+#include "communicate/communicate.h"
+#include "base/global_variables.h"
+#include "new_types/new_types_definitions.h"
+#include "operations/su3_paths/rectangles.h"
+#include "routines/ios.h"
 
 //compute the tree level Symanzik action
 void tree_level_Symanzik_action(double *action,quad_su3 **conf,double beta,int stagphases_present)

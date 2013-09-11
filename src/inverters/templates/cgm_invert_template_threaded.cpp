@@ -6,12 +6,12 @@
 
 #include <omp.h>
 
-#include "../../routines/ios.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
-#include "../../routines/mpi_routines.h"
-#include "../../base/thread_macros.h"
+#include "routines/mpi_routines.h"
+#include "base/thread_macros.h"
 
 extern double cgm_inv_over_time;
 extern int ncgm_inv;

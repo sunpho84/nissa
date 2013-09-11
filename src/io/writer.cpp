@@ -4,17 +4,17 @@
 
 #include <string.h>
 
-#include "../base/global_variables.h"
-#include "../base/debug.h"
-#include "../base/vectors.h"
-#include "../geometry/geometry_lx.h"
-#include "../geometry/geometry_mix.h"
-#include "../linalgs/linalgs.h"
-#include "../new_types/new_types_definitions.h"
-#include "../new_types/complex.h"
-#include "../new_types/spin.h"
-#include "../new_types/su3.h"
-#include "../routines/ios.h"
+#include "base/global_variables.h"
+#include "base/debug.h"
+#include "base/vectors.h"
+#include "geometry/geometry_lx.h"
+#include "geometry/geometry_mix.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/complex.h"
+#include "new_types/spin.h"
+#include "new_types/su3.h"
+#include "routines/ios.h"
 
 #include "checksum.h"
 #include "endianess.h"
@@ -158,7 +158,7 @@ void write_colorspinspin(const char *path,colorspinspin *prop,int prec)
     verbosity_lv2_master_printf("Time elapsed in writing su3spinspin '%s': %f s\n",path,take_time()-start_time);
 }
 
-#include "../dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ.h"
+#include "dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ.h"
 
 //write packing
 void write_tm_spincolor_anti_reconstructing(const char *path,spincolor **doublet,double mu,int prec,quad_su3 *conf,double kappa,momentum_t theta)

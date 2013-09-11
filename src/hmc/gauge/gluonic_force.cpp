@@ -2,17 +2,17 @@
  #include "config.h"
 #endif
 
-#include "../../base/global_variables.h"
-#include "../../geometry/geometry_lx.h"
-#include "../../new_types/su3.h"
-#include "../../base/thread_macros.h"
+#include "base/global_variables.h"
+#include "geometry/geometry_lx.h"
+#include "new_types/su3.h"
+#include "base/thread_macros.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
-#include "../gauge/Wilson_force.h"
-#include "../gauge/tree_level_Symanzik_force.h"
-#include "../backfield.h"
+#include "gauge/Wilson_force.h"
+#include "gauge/tree_level_Symanzik_force.h"
+#include "backfield.h"
 
 int nglu_comp=0;
 double glu_comp_time=0;

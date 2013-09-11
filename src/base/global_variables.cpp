@@ -2,7 +2,7 @@
  #include "config.h"
 #endif
 
-#include "../new_types/new_types_definitions.h"
+#include "new_types/new_types_definitions.h"
 
 #ifdef ONLY_INSTANTIATION
  #define EXTERN extern

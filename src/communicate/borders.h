@@ -1,7 +1,7 @@
 #ifndef _BUFFERED_BORDERS_H
 #define _BUFFERED_BORDERS_H
 
-#include "../new_types/new_types_definitions.h"
+#include "new_types/new_types_definitions.h"
 
 void comm_start(comm_t &comm,int *dir_comm=NULL,int tot_size=-1);
 void communicate_ev_and_od_borders(void **vec,comm_t &comm);

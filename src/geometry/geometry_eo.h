@@ -1,7 +1,7 @@
 #ifndef _GEOMETRY_EO_H
 #define _GEOMETRY_EO_H
 
-#include "../new_types/new_types_definitions.h"
+#include "new_types/new_types_definitions.h"
 
 void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf);
 void filter_hypercube_origin_sites(color **vec);

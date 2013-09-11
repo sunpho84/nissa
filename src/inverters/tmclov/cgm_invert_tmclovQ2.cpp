@@ -1,12 +1,12 @@
 #include <math.h>
 
-#include "../../base/global_variables.h"
-#include "../../communicate/communicate.h"
-#include "../../base/vectors.h"
-#include "../../base/debug.h"
-#include "../../dirac_operators/dirac_operator_tmclovQ2/dirac_operator_tmclovQ2.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
+#include "base/global_variables.h"
+#include "communicate/communicate.h"
+#include "base/vectors.h"
+#include "base/debug.h"
+#include "dirac_operators/dirac_operator_tmclovQ2/dirac_operator_tmclovQ2.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
 
 #define BASETYPE spincolor
 #define NDOUBLES_PER_SITE 24
@@ -38,7 +38,7 @@
 #define A4 Pmunu
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,csw,Pmunu,
 
-#include "../templates/cgm_invert_template_threaded.cpp"
+#include "templates/cgm_invert_template_threaded.cpp"
 
 void inv_tmclovQ2_cgm(spincolor **sol,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double *m,int nmass,int niter_max,double *req_res,spincolor *source)
 {

@@ -2,11 +2,11 @@
  #include "config.h"
 #endif
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
+#include "new_types/new_types_definitions.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
 
-#include "../../dirac_operators/dirac_operator_WclovQ/dirac_operator_WclovQ.h"
+#include "dirac_operators/dirac_operator_WclovQ/dirac_operator_WclovQ.h"
 #include "cg_invert_WclovQ2.h"
 
 void inv_WclovQ_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,int niter,int rniter,double residue,spincolor *source)

@@ -17,7 +17,7 @@ extern int ncg_inv;
 
 #include <omp.h>
 
-#include "../../routines/ios.h"
+#include "routines/ios.h"
 
 void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int rniter,double residue,basetype *source)
 {

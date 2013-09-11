@@ -1,12 +1,12 @@
 #include <math.h>
 
 #include "cg_invert_tmQ2.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
-#include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
-#include "../../dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
+#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
 
 #define BASETYPE spincolor
 #define BASETYPE_128 spincolor_128
@@ -43,7 +43,7 @@
 #define CG_ADDITIONAL_VECTORS_FREE()	\
   nissa_free(temp1);			\
   nissa_free(temp2);
-#include "../templates/cg_128_invert_template_threaded.cpp"
+#include "templates/cg_128_invert_template_threaded.cpp"
 
 void inv_tmQ2_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mass,int niter,int rniter,double external_solver_residue,spincolor *external_source)
 {inv_tmQ2_RL_cg_128(sol,guess,conf,kappa,0,mass,niter,rniter,external_solver_residue,external_source);}
