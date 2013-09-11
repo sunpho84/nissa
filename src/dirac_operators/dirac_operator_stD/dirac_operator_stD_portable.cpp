@@ -2,9 +2,9 @@
  #include "config.h"
 #endif
 
-#include "../../base/thread_macros.h"
+#include "base/thread_macros.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 double app_time=0;

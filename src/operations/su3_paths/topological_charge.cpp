@@ -6,22 +6,22 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../gaugeconf.h"
+#include "gaugeconf.h"
 
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../communicate/communicate.h"
-#include "../../geometry/geometry_mix.h"
-#include "../../new_types/complex.h"
-#include "../../new_types/float128.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/spin.h"
-#include "../../new_types/su3.h"
-#include "../../routines/ios.h"
-#include "../../routines/mpi_routines.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "communicate/communicate.h"
+#include "geometry/geometry_mix.h"
+#include "new_types/complex.h"
+#include "new_types/float128.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/spin.h"
+#include "new_types/su3.h"
+#include "routines/ios.h"
+#include "routines/mpi_routines.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //This will calculate 2*a^2*ig*P_{mu,nu}

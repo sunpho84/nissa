@@ -4,16 +4,16 @@
 
 #include <math.h>
 
-#include "../dirac_operator_tmQ/dirac_operator_tmQ.h"
-#include "../dirac_operator_tmQ_left/dirac_operator_tmQ_left.h"
+#include "dirac_operator_tmQ/dirac_operator_tmQ.h"
+#include "dirac_operator_tmQ_left/dirac_operator_tmQ_left.h"
 
-#include "../../communicate/communicate.h"
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../new_types/new_types_definitions.h"
+#include "communicate/communicate.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "new_types/new_types_definitions.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //Apply the Q+Q- operator to a spincolor

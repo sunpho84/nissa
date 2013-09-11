@@ -1,7 +1,7 @@
 #ifndef _geometry_Ax_h
 #define _geometry_Ax_h
 #include <mpi.h>
-#include "../new_types/new_types_definitions.h"
+#include "new_types/new_types_definitions.h"
 void addrem_stagphases_to_lx_conf(quad_su3 *conf);
 int bordlx_of_coord(int *x,int mu);
 int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);

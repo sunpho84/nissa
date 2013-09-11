@@ -17,8 +17,8 @@
 
 #include <string.h>
 
-#include "../../routines/ios.h"
-#include "../../routines/math_routines.h"
+#include "routines/ios.h"
+#include "routines/math_routines.h"
 
 void cg_128_invert(basetype *sol,basetype *guess,cg_128_parameters_proto,int niter,int rniter,double external_solver_residue,basetype *external_source)
 {

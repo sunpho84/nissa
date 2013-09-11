@@ -1,10 +1,10 @@
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../routines/thread.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "new_types/new_types_definitions.h"
+#include "routines/thread.h"
 
 #ifdef BGQ
- #include "../../bgq/intrinsic.h"
+ #include "bgq/intrinsic.h"
 #endif
 
 //initialize the 2pts dirac matrix structure

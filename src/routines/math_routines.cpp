@@ -4,8 +4,8 @@
 
 #include <math.h>
 
-#include "../base/global_variables.h"
-#include "../base/random.h"
+#include "base/global_variables.h"
+#include "base/random.h"
 
 double sqr(double a) {return a*a;}
 int min_int(int a,int b) {if(a<b) return a;else return b;}

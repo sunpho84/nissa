@@ -1,7 +1,7 @@
 #ifndef _gaugeconf_h
 #define _gaugeconf_h
 
-#include "../new_types/new_types_definitions.h"
+#include "new_types/new_types_definitions.h"
 
 inline int check_add_square_staple(int *isquare_staples_to_ask,int &nsquare_staple_to_ask,int ivol,int dir,int verse,int iter);
 void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis);

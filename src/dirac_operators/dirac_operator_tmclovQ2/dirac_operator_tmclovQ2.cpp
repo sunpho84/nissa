@@ -4,11 +4,11 @@
 
 #include <math.h>
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../base/global_variables.h"
-#include "../../communicate/communicate.h"
-#include "../../base/vectors.h"
-#include "../dirac_operator_tmclovQ/dirac_operator_tmclovQ.h"
+#include "new_types/new_types_definitions.h"
+#include "base/global_variables.h"
+#include "communicate/communicate.h"
+#include "base/vectors.h"
+#include "dirac_operator_tmclovQ/dirac_operator_tmclovQ.h"
 
 //Apply the Q+Q- operator to a spincolor
 

@@ -15,10 +15,10 @@ extern int ncg_inv;
  #include "config.h"
 #endif
 
-#include "../../base/thread_macros.h"
-#include "../../routines/ios.h"
+#include "base/thread_macros.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 #if CG_NARG >= 6

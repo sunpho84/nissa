@@ -4,8 +4,8 @@
 #include "borders.h"
 #include "edges.h"
 
-#include "../base/global_variables.h"
-#include "../base/macros.h"
+#include "base/global_variables.h"
+#include "base/macros.h"
 
 /*
   Order in memory of borders for a 3^4 lattice.

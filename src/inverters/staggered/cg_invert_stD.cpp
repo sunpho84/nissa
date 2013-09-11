@@ -3,10 +3,10 @@
 #endif
 
 #include "cg_invert_stD2ee_m2.h"
-#include "../../base/global_variables.h"
-#include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
+#include "base/global_variables.h"
+#include "dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
 
 //this is the famous trick to invert the full D matrix using e/o precond: sol[ODD]=1/m*(source[ODD]-Doe*sol[EVN])
 

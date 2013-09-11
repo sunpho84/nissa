@@ -2,10 +2,10 @@
  #include "config.h"
 #endif
 
-#include "../../new_types/new_types_definitions.h"
-#include "../dirac_operator_tmQ/dirac_operator_tmQ_bgq.h"
+#include "new_types/new_types_definitions.h"
+#include "dirac_operator_tmQ/dirac_operator_tmQ_bgq.h"
 
-#include "../../routines/ios.h"
+#include "routines/ios.h"
 
 #include <math.h>
 

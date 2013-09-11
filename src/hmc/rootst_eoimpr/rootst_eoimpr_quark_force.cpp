@@ -2,21 +2,21 @@
  #include "config.h"
 #endif
 
-#include "../backfield.h"
+#include "backfield.h"
 
-#include "../../communicate/communicate.h"
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
-#include "../../inverters/staggered/cgm_invert_stD2ee_m2.h"
-#include "../../geometry/geometry_eo.h"
-#include "../../new_types/complex.h"
-#include "../../new_types/su3.h"
-#include "../../operations/smearing/stout.h"
-#include "../../routines/ios.h"
+#include "communicate/communicate.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
+#include "inverters/staggered/cgm_invert_stD2ee_m2.h"
+#include "geometry/geometry_eo.h"
+#include "new_types/complex.h"
+#include "new_types/su3.h"
+#include "operations/smearing/stout.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //Compute the fermionic force the rooted staggered e/o improved theory.

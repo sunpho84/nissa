@@ -2,22 +2,22 @@
  #include "config.h"
 #endif
 
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../communicate/communicate.h"
-#include "../../geometry/geometry_mix.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/su3.h"
-#include "../../operations/shift.h"
-#include "../../routines/ios.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "communicate/communicate.h"
+#include "geometry/geometry_mix.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/su3.h"
+#include "operations/shift.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
-#include "../smearing/APE.h"
-#include "../smearing/HYP.h"
+#include "smearing/APE.h"
+#include "smearing/HYP.h"
 
 //compute all possible rectangular paths among a defined interval
 THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,conf_created)

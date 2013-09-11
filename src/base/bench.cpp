@@ -1,9 +1,9 @@
-#include "../routines/ios.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 #ifdef BGQ
- #include "../bgq/intrinsic.h"
+ #include "bgq/intrinsic.h"
 #endif
 
 #include "global_variables.cpp"
@@ -15,7 +15,7 @@ void bench_memory_copy(double *out,double *in,int size)
   GET_THREAD_ID();
   size/=8;
 
-  NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,size,thread_id,NACTIVE_THREADS);
+  NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,size,THREAD_ID,NACTIVE_THREADS);
 
 #if BGQ
   double *temp_out=out-4;

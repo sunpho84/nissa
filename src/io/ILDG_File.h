@@ -1,7 +1,7 @@
 #ifndef _ILDG_FILE_H
 #define _ILDG_FILE_H
 
-#include "../new_types/new_types_definitions.h"
+#include "new_types/new_types_definitions.h"
 
 ILDG_File ILDG_File_open(const char *path,int amode);
 ILDG_File ILDG_File_open_for_read(const char *path);

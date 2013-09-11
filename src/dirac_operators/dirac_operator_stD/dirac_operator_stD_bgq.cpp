@@ -2,14 +2,14 @@
  #include "config.h"
 #endif
 
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../bgq/bgq_macros.h"
-#include "../../bgq/staggered_hopping_matrix_eo_or_oe_bgq.h"
-#include "../../new_types/complex.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "bgq/bgq_macros.h"
+#include "bgq/staggered_hopping_matrix_eo_or_oe_bgq.h"
+#include "new_types/complex.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2_bgq, bi_color*,bi_out, bi_oct_su3**,bi_conf, bi_color*,bi_temp, double,mass2, bi_color*,bi_in)

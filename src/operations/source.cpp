@@ -5,10 +5,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "../new_types/new_types_definitions.h"
+#include "new_types/new_types_definitions.h"
 
-#include "../base/global_variables.h"
-#include "../base/vectors.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
 
 //select a timeslice
 template<class prop_type> void select_propagator_timeslice_internal(prop_type *prop_out,prop_type *prop_in,int timeslice)

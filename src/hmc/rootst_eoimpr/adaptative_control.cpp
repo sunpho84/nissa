@@ -4,13 +4,13 @@
 
 #include <sstream>
 
-#include "../../base/global_variables.h"
-#include "../../base/random.h"
-#include "../../base/thread_macros.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../routines/ios.h"
+#include "base/global_variables.h"
+#include "base/random.h"
+#include "base/thread_macros.h"
+#include "new_types/new_types_definitions.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 //copy the key into hmc_evol_pars

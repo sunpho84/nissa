@@ -6,15 +6,15 @@
 
 #include "communicate.h"
 
-#include "../base/debug.h"
-#include "../base/global_variables.h"
-#include "../base/thread_macros.h"
-#include "../base/vectors.h"
-#include "../geometry/geometry_lx.h"
-#include "../new_types/new_types_definitions.h"
-#include "../routines/ios.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "geometry/geometry_lx.h"
+#include "new_types/new_types_definitions.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 /* and this is the shape of the edges

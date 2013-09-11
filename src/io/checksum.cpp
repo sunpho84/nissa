@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
-#include "../src/base/global_variables.h"
+#include "base/global_variables.h"
 #include "endianess.h"
 
 static uint32_t crc_table[256]={

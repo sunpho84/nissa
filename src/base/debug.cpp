@@ -12,8 +12,8 @@
 #include "global_variables.h"
 #include "vectors.h"
 
-#include "../routines/ios.h"
-#include "../base/thread_macros.h"
+#include "routines/ios.h"
+#include "base/thread_macros.h"
 
 //take the time
 double take_time()

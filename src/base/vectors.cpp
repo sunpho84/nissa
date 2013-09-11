@@ -8,12 +8,12 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#include "../new_types/float128.h"
-#include "../new_types/new_types_definitions.h"
-#include "../routines/ios.h"
-#include "../routines/math_routines.h"
+#include "new_types/float128.h"
+#include "new_types/new_types_definitions.h"
+#include "routines/ios.h"
+#include "routines/math_routines.h"
 #ifdef USE_THREADS
- #include "../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 #include "debug.h"

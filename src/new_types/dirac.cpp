@@ -9,8 +9,8 @@
 #include "new_types_definitions.h"
 #include "spin.h"
 
-#include "../base/debug.h"
-#include "../base/global_variables.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
 
 //Initialize a dirac matrix with outside entries
 void init_dirac(dirac_matr *out,int pos0,double rea0,double ima0,int pos1,double rea1,double ima1,int pos2,double rea2,double ima2,int pos3,double rea3,double ima3)

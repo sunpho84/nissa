@@ -4,10 +4,10 @@
 
 #include <string.h>
 
-#include "../base/debug.h"
-#include "../base/global_variables.h"
-#include "../base/vectors.h"
-#include "../geometry/geometry_lx.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "geometry/geometry_lx.h"
 
 //gahter the whole field on a single rank, reordering data
 void vector_gather(char *glb,char *loc,int bps,int dest_rank)

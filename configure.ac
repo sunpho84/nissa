@@ -162,19 +162,21 @@ AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 
 #create config.h
-AC_OUTPUT(Makefile 
-		   src/base/Makefile
-		   src/bgq/Makefile
-		   src/communicate/Makefile
-		   src/dirac_operators/Makefile
-		   src/geometry/Makefile
-		   src/hmc/Makefile
-		   src/inverters/Makefile
-		   src/io/Makefile
-		   src/linalgs/Makefile
-		   src/new_types/Makefile
-		   src/operations/Makefile
-		   src/routines/Makefile
-		   projects/Makefile
-		   projects/generate_confs/Makefile
-		   projects/semileptonic/Makefile)
+AC_OUTPUT(
+	Makefile
+	src/Makefile
+	src/base/Makefile
+	src/bgq/Makefile
+	src/communicate/Makefile
+	src/dirac_operators/Makefile
+	src/geometry/Makefile
+	src/hmc/Makefile
+	src/inverters/Makefile
+	src/io/Makefile
+	src/linalgs/Makefile
+	src/new_types/Makefile
+	src/operations/Makefile
+	src/routines/Makefile
+	projects/Makefile
+	projects/generate_confs/Makefile
+	projects/semileptonic/Makefile)

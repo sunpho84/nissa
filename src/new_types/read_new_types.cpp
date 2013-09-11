@@ -5,9 +5,9 @@
 #include <string.h>
 
 #include "new_types_definitions.h"
-#include "../base/debug.h"
-#include "../base/vectors.h"
-#include "../io/input.h"
+#include "base/debug.h"
+#include "base/vectors.h"
+#include "io/input.h"
 
 //read parameters to study topology
 void read_top_meas_pars(top_meas_pars_t &top_meas_pars)

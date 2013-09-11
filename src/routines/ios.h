@@ -2,7 +2,7 @@
 #define _IOS_H
 
 #include <string>
-#include "../new_types/new_types_definitions.h"
+#include "new_types/new_types_definitions.h"
 
 FILE* open_file(const char *outfile,const char *mode);
 FILE* open_text_file_for_output(const char *outfile);

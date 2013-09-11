@@ -2,15 +2,15 @@
  #include "config.h"
 #endif
 
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../communicate/communicate.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/su3.h"
-#include "../../routines/ios.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "communicate/communicate.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/su3.h"
+#include "routines/ios.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 #include <string.h>

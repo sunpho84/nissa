@@ -7,11 +7,11 @@
 
 #include <string.h>
 
-#include "../../base/thread_macros.h"
-#include "../../routines/ios.h"
-#include "../../routines/math_routines.h"
+#include "base/thread_macros.h"
+#include "routines/ios.h"
+#include "routines/math_routines.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 #if CG_NARG >= 5

@@ -5,8 +5,8 @@
 #include "cg_64_invert_tmQ2.h"
 #include "cg_128_invert_tmQ2.h"
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../base/global_variables.h"
+#include "new_types/new_types_definitions.h"
+#include "base/global_variables.h"
 
 //switch 64 and 128
 void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,int RL,double m,int niter,int rniter,double residue,spincolor *source)

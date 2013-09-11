@@ -5,7 +5,7 @@
  #include "config.h"
 #endif
 
-#include "../src/base/macros.h"
+#include "base/macros.h"
 
 ///////////////////////////////// prefetching ////////////////////////////////
 

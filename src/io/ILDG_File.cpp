@@ -6,14 +6,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../base/debug.h"
-#include "../base/global_variables.h"
-#include "../base/macros.h"
-#include "../base/vectors.h"
-#include "../geometry/geometry_lx.h"
-#include "../operations/remap_vector.h"
-#include "../routines/ios.h"
-#include "../routines/mpi_routines.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/macros.h"
+#include "base/vectors.h"
+#include "geometry/geometry_lx.h"
+#include "operations/remap_vector.h"
+#include "routines/ios.h"
+#include "routines/mpi_routines.h"
 
 #include "endianess.h"
 

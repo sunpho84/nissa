@@ -1,4 +1,4 @@
-#include "../new_types/new_types_definitions.h"
+#include "new_types/new_types_definitions.h"
 
 #ifndef _SOURCE_H
 #define _SOURCE_H

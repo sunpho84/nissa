@@ -6,14 +6,14 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../communicate/communicate.h"
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../new_types/su3.h"
+#include "communicate/communicate.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "new_types/su3.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 #define COMPUTE_RECT_FW_STAPLE(OUT,A,B,C,TEMP)	\

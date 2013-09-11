@@ -12,7 +12,7 @@
 #include <vector>
 #include <string>
 
-#include "../base/macros.h"
+#include "base/macros.h"
 
 #ifdef SPI
  #include <spi/include/kernel/MU.h>
@@ -145,7 +145,7 @@ struct nissa_vect
   //padding to keep memory alignment
   char pad[nissa_vect_alignment-(3*sizeof(int)+2*sizeof(void*)+3*nissa_vect_string_length+sizeof(uint32_t))%nissa_vect_alignment];
 };
-#include "../base/vectors.h"
+#include "base/vectors.h"
 
 struct su3_path
 {

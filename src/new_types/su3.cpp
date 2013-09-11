@@ -5,12 +5,12 @@
 #include <math.h>
 #include <string.h>
 
-#include "../base/debug.h"
-#include "../base/global_variables.h"
-#include "../base/random.h"
-#include "../operations/su3_paths/squared_staples.h"
-#include "../routines/ios.h"
-#include "../routines/math_routines.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/random.h"
+#include "operations/su3_paths/squared_staples.h"
+#include "routines/ios.h"
+#include "routines/math_routines.h"
 
 #include "complex.h"
 #include "new_types_definitions.h"

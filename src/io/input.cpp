@@ -9,9 +9,9 @@
 #include <sys/stat.h>
 #include <dirent.h>
 
-#include "../base/debug.h"
-#include "../base/global_variables.h"
-#include "../routines/ios.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "routines/ios.h"
 
 //touch a file
 void file_touch(const char *path)

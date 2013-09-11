@@ -6,17 +6,17 @@
 #include <float.h>
 #include <string.h>
 
-#include "../base/global_variables.h"
-#include "../base/vectors.h"
-#include "../base/debug.h"
-#include "../communicate/communicate.h"
-#include "../base/random.h"
-#include "../geometry/geometry_mix.h"
-#include "../new_types/complex.h"
-#include "../new_types/su3.h"
-#include "../operations/remap_vector.h"
-#include "../operations/su3_paths/squared_staples.h"
-#include "../routines/ios.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
+#include "base/debug.h"
+#include "communicate/communicate.h"
+#include "base/random.h"
+#include "geometry/geometry_mix.h"
+#include "new_types/complex.h"
+#include "new_types/su3.h"
+#include "operations/remap_vector.h"
+#include "operations/su3_paths/squared_staples.h"
+#include "routines/ios.h"
 
 /*
   rotate a field anti-clockwise by 90 degrees

@@ -6,23 +6,23 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../communicate/communicate.h"
-#include "../../geometry/geometry_lx.h"
-#include "../../geometry/geometry_mix.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/complex.h"
-#include "../../new_types/dirac.h"
-#include "../../new_types/float128.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/spin.h"
-#include "../../new_types/su3.h"
-#include "../../routines/mpi_routines.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "communicate/communicate.h"
+#include "geometry/geometry_lx.h"
+#include "geometry/geometry_mix.h"
+#include "linalgs/linalgs.h"
+#include "new_types/complex.h"
+#include "new_types/dirac.h"
+#include "new_types/float128.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/spin.h"
+#include "new_types/su3.h"
+#include "routines/mpi_routines.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
 /*

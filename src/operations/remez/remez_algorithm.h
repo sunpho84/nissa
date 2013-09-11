@@ -1,9 +1,9 @@
 #ifndef _INCLUDE_REMEZ_ALGORITIHM_H
 #define _INCLUDE_REMEZ_ALGORITIHM_H
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/float256.h"
-#include "../../base/vectors.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/float256.h"
+#include "base/vectors.h"
 
 class rat_approx_finder_t
 {

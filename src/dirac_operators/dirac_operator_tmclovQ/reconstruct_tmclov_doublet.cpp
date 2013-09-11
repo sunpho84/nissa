@@ -2,10 +2,10 @@
  #include "config.h"
 #endif
 
-#include "../../new_types/new_types_definitions.h"
-#include "../../new_types/su3.h"
-#include "../../base/global_variables.h"
-#include "../../base/vectors.h"
+#include "new_types/new_types_definitions.h"
+#include "new_types/su3.h"
+#include "base/global_variables.h"
+#include "base/vectors.h"
 #include "dirac_operator_tmclovQ.h"
 
 //Apply the Q+ and Q- operator to a spincolor,so that we have Q-^-1 (r==0) and Q+^-1 (r==1) as output

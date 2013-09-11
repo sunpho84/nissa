@@ -7,11 +7,11 @@
 #include <stdlib.h>
 
 #include "remez_algorithm.h"
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../new_types/float256.h"
-#include "../../routines/ios.h"
-#include "../../routines/math_routines.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "new_types/float256.h"
+#include "routines/ios.h"
+#include "routines/math_routines.h"
 
 //solve the linear system A*x=b
 void linear_system_solve(float_256 *A,float_256 *x,float_256 *b,int n)

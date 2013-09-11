@@ -2,24 +2,24 @@
  #include "config.h"
 #endif
 
-#include "../../base/debug.h"
-#include "../../base/global_variables.h"
-#include "../../base/thread_macros.h"
-#include "../../base/vectors.h"
-#include "../../geometry/geometry_eo.h"
-#include "../../inverters/staggered/cgm_invert_stD2ee_m2.h"
-#include "../../linalgs/linalgs.h"
-#include "../../new_types/new_types_definitions.h"
-#include "../../operations/su3_paths/plaquette.h"
-#include "../../hmc/gauge/tree_level_Symanzik_action.h"
-#include "../../routines/ios.h"
-#include "../../routines/mpi_routines.h"
+#include "base/debug.h"
+#include "base/global_variables.h"
+#include "base/thread_macros.h"
+#include "base/vectors.h"
+#include "geometry/geometry_eo.h"
+#include "inverters/staggered/cgm_invert_stD2ee_m2.h"
+#include "linalgs/linalgs.h"
+#include "new_types/new_types_definitions.h"
+#include "operations/su3_paths/plaquette.h"
+#include "hmc/gauge/tree_level_Symanzik_action.h"
+#include "routines/ios.h"
+#include "routines/mpi_routines.h"
 #ifdef USE_THREADS
- #include "../../routines/thread.h"
+ #include "routines/thread.h"
 #endif
 
-#include "../backfield.h"
-#include "../momenta/momenta_action.h"
+#include "backfield.h"
+#include "momenta/momenta_action.h"
 
 //compute quark action for a set of quark
 THREADABLE_FUNCTION_7ARG(rootst_eoimpr_quark_action, double*,glb_action, quad_su3**,eo_conf, int,nfl, quad_u1***,u1b, color**,pf, rat_approx_t*,appr, double,residue)
