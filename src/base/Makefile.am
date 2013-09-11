@@ -32,6 +32,6 @@ baseinclude_HEADERS= \
 EXTRA_DIST=update_svnversion.h.sh svnversion.h
 
 update_svnversion:
-	$(srcdir)/update_svnversion.h.sh
+	cd $(srcdir) && ./update_svnversion.h.sh
 
 .PHONY: update_svnversion
