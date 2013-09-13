@@ -663,22 +663,43 @@ THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_lx_conf, quad_su3*,lx_conf)
   THREAD_BARRIER();
 }}
 
-//return the index inside the 2^4 hypercube
-int hyp_parity(int ivol)
-{
-  int ipar=0;
-  for(int mu=0;mu<4;mu++)
-    ipar=ipar*2+(loc_coord_of_loclx[ivol][mu]%2);
+//check that passed argument is between 0 and 15
+inline void crash_if_not_hypercubic_red(int hyp_red)
+{if(hyp_red<0||hyp_red>=16) crash("%d not a hyperucbic reduced point",hyp_red);}
 
-  return ipar;
+//return the coordinates inside the hypercube
+void red_coords_of_hypercubic_red_point(coords h,int hyp_red)
+{
+  crash_if_not_hypercubic_red(hyp_red);
+  
+  for(int mu=3;mu>=0;mu--)
+    {
+      h[mu]=hyp_red%2;
+      hyp_red/=2;
+    }
 }
 
-//return the lx vertex of 2^4 hypercube
-int hyp_vertex_of_loclx(int ivol)
+//takes the 4 coordinates of the hypercube vertex one by one
+void lx_coords_of_hypercube_vertex(coords lx,int hyp_cube)
 {
-  int ive=0;
-  for(int mu=0;mu<4;mu++)
-    ive=ive*loc_size[mu]+loc_coord_of_loclx[ivol][mu]-loc_coord_of_loclx[ivol][mu]%2;
-
-  return ive;
+  for(int mu=3;mu>=0;mu--)
+    {
+      lx[mu]=2*(hyp_cube%(loc_size[mu]/2));
+      hyp_cube/=loc_size[mu]/2;
+    }
 }
+
+//return the point of passed coords in the hypercube
+int hypercubic_red_point_of_red_coords(coords h)
+{
+  int hyp=0;
+  for(int mu=0;mu<4;mu++)
+    {
+      if(h[mu]<0||h[mu]>=2) crash("coordinate %d not in the range [0,1]",h[mu]);
+      hyp*=2;
+      hyp+=h[mu];
+    }
+  
+  return hyp;
+}
+

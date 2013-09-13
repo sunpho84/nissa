@@ -41,6 +41,46 @@ THREADABLE_FUNCTION_3ARG(gauge_transform_conf, quad_su3*,uout, su3*,g, quad_su3*
   //invalidate borders
   set_borders_invalid(uout);
 }}
+//e/o version
+THREADABLE_FUNCTION_3ARG(gauge_transform_conf, quad_su3**,uout, su3**,g, quad_su3**,uin)
+{
+  GET_THREAD_ID();
+  
+  //communicate borders
+  communicate_ev_and_od_su3_borders(g);
+
+  //transform
+  su3 temp;
+  for(int par=0;par<2;par++)
+    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+      for(int mu=0;mu<4;mu++)
+	{
+	  unsafe_su3_prod_su3_dag(temp,uin[par][ivol][mu],g[!par][loceo_neighup[par][ivol][mu]]);
+	  unsafe_su3_prod_su3(uout[par][ivol][mu],g[par][ivol],temp);
+	}
+  
+  //invalidate borders
+  set_borders_invalid(uout[0]);
+  set_borders_invalid(uout[1]);
+}}
+
+//transform a color field
+THREADABLE_FUNCTION_3ARG(gauge_transform_color, color**,out, su3**,g, color**,in)
+{
+  GET_THREAD_ID();
+  
+  //communicate borders
+  communicate_ev_and_od_su3_borders(g);
+
+  //transform
+  for(int par=0;par<2;par++)
+    NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+      safe_su3_prod_color(out[par][ivol],g[par][ivol],in[par][ivol]);
+  
+  //invalidate borders
+  set_borders_invalid(out[0]);
+  set_borders_invalid(out[1]);
+}}
 
 //determine the gauge transformation bringing to temporal gauge with T-1 timeslice diferent from id
 void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
