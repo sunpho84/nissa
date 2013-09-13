@@ -124,6 +124,7 @@
 #include "operations/su3_paths/arbitrary.h"
 #include "operations/su3_paths/plaquette.h"
 #include "operations/su3_paths/pline.h"
+#include "operations/su3_paths/hypercubic_transfer.h"
 #include "operations/su3_paths/rectangles.h"
 #include "operations/su3_paths/squared_staples.h"
 #include "operations/su3_paths/shortest_hypercubic_paths.h"

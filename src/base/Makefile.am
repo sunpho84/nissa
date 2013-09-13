@@ -31,6 +31,10 @@ baseinclude_HEADERS= \
 
 EXTRA_DIST=update_svnversion.h.sh svnversion.h
 
+#include global_variables.cpp in the installation
+global_variabledir=$(prefix)/include/base
+global_variable_DATA=global_variables.cpp
+
 update_svnversion:
 	cd $(srcdir) && ./update_svnversion.h.sh
 

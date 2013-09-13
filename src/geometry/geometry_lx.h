@@ -16,8 +16,6 @@ int glblx_of_coord_list(int x0,int x1,int x2,int x3);
 int glblx_of_diff(int b,int c);
 int glblx_of_summ(int b,int c);
 int glblx_opp(int b);
-int hyp_parity(int ivol);
-int hyp_vertex_of_loclx(int ivol);
 int loclx_of_coord(coords x);
 int loclx_of_coord_list(int x0,int x1,int x2,int x3);
 int lx_of_coord(coords x,coords s);
@@ -37,4 +35,7 @@ void set_lx_bord_senders_and_receivers(MPI_Datatype *MPI_BORD_SEND,MPI_Datatype 
 void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
 void set_lx_geometry();
 void unset_lx_geometry();
+void red_coords_of_hypercubic_red_point(coords h,int hyp_red);
+void lx_coords_of_hypercube_vertex(coords lx,int hyp_cube);
+int hypercubic_red_point_of_red_coords(coords h);
 #endif
