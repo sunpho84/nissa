@@ -259,7 +259,7 @@ void generate_sequential_source(int ispec)
 	memset(sequential_source[ivol],0,sizeof(PROP_TYPE));
       else
 	{
-	  //avoid to put g5, beacuse commutate with (i+-g5)/sqrt(2) and cancel with those of the QQ
+	  //avoid to put g5, beacuse commute with (i+-g5)/sqrt(2) and cancel with those of the QQ
 	  memcpy(sequential_source[ivol],S0[r][ipropS0(ith_spec[ispec],imass_spec[ispec],0)][ivol],sizeof(PROP_TYPE));
 	  if(Wclov_tm && rotate_to_phys_basis) //if doing tm and want to rotate
 	    for(int c=0;c<3;c++) //rotate as r because it's D^-1

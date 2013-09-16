@@ -172,7 +172,7 @@ THREADABLE_FUNCTION_5ARG(apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_noba
       
       HOP_HEADER(4); //T forward scatter (backward derivative)
       REG_BI_SU3_DAG_PROD_BI_COLOR_LOAD_STORE(out[iout[4]],links[4],reg_in);
-      HOP_HEADER(5);//X forward scatter (backward derivative)
+      HOP_HEADER(5); //X forward scatter (backward derivative)
       REG_BI_SU3_DAG_PROD_BI_COLOR_LOAD_STORE(out[iout[5]],links[5],reg_in);
       HOP_HEADER(6); //Y forward scatter (backward derivative)
       REG_BI_SU3_DAG_PROD_BI_COLOR_LOAD_STORE(out[iout[6]],links[6],reg_in);
