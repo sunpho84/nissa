@@ -6,13 +6,14 @@ bgq_src_file= \
         twisted_mass/cgm_invert_tmQ2_bgq.cpp \
         twisted_mass/cgm_invert_tmQ2_bgq.h \
         staggered/cgm_invert_stD2ee_m2_bgq.cpp \
-	staggered/cgm_invert_stD2ee_m2_bgq.h
+	staggered/cgm_invert_stD2ee_m2_bgq.h \
+        staggered/cg_invert_stD2ee_m2_bgq.cpp \
+	staggered/cg_invert_stD2ee_m2_bgq.h
 endif
 
 noinst_LTLIBRARIES=libinverters.la
 libinverters_la_SOURCES= \
 	$(bgq_src_file) \
-        staggered/cgm_invert_stD2ee_m2_portable.cpp \
         twisted_mass/cg_invert_tmDeoimpr.cpp \
         twisted_mass/cg_invert_tmQ2.cpp \
         twisted_mass/cg_64_invert_tmQ2.cpp \
@@ -20,6 +21,8 @@ libinverters_la_SOURCES= \
         twisted_mass/cg_128_invert_tmQ2.cpp \
         twisted_mass/cg_128_invert_tmDeoimpr.cpp \
         twisted_mass/tm_frontends.cpp \
+        staggered/cgm_invert_stD2ee_m2_portable.cpp \
+        staggered/cg_invert_stD2ee_m2_portable.cpp \
         staggered/cgm_invert_stD2ee_m2.cpp \
         staggered/cg_invert_stD2ee_m2.cpp \
         staggered/cg_invert_stD.cpp \
@@ -47,7 +50,8 @@ inverters_staggered_include_HEADERS= \
         staggered/cg_invert_stD2ee_m2.h \
         staggered/cg_invert_stD.h \
         staggered/cg_invert_evn_stD.h \
-	staggered/cgm_invert_stD2ee_m2_portable.h
+	staggered/cgm_invert_stD2ee_m2_portable.h \
+	staggered/cg_invert_stD2ee_m2_portable.h
 
 inverters_Wclov_includedir=$(includedir)/inverters/Wclov
 inverters_Wclov_include_HEADERS= \

@@ -71,7 +71,6 @@ void gauge_transfer_in_hypercube_from_origin(color **out,quad_su3 **conf,int hyp
       //take vertex coords and lx
       coords c_hyp_ori;
       lx_coords_of_hypercube_vertex(c_hyp_ori,hyp_cube);
-      int hyp_ori=loclx_of_coord(c_hyp_ori);
       
       //get corresponding coords of destination point
       coords c;
@@ -85,7 +84,7 @@ void gauge_transfer_in_hypercube_from_origin(color **out,quad_su3 **conf,int hyp
       //get the parallel transport and apply it
       su3 path;
       get_covariant_transport_to_hypercube_origin(path,c_hyp_ori,c_hyp_red,conf);
-      unsafe_su3_prod_color(out[cpar][ceo],path,in[EVN][hyp_ori]);
+      unsafe_su3_prod_color(out[cpar][ceo],path,in[EVN][loceo_of_loclx[loclx_of_coord(c_hyp_ori)]]);
     }
   
   set_borders_invalid(out[EVN]);
