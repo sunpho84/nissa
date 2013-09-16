@@ -2,7 +2,8 @@
  #include "config.h"
 #endif
 
-#include "cg_invert_stD2ee_m2.h"
+#include "cg_invert_evn_stD.h"
+
 #include "base/global_variables.h"
 #include "dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
 #include "linalgs/linalgs.h"
