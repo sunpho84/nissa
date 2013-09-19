@@ -76,6 +76,9 @@ Im if(debug_lexer) printf("Found Im\n"); CORR_NAME_ADD("Im"); return IMAG_CORR;
 (B1)    if(debug_lexer) printf("Found B1\n"); CORR_NAME_ADD("B1"); yylval->interpolator=13;return INTERPOLATOR;
 (B2)    if(debug_lexer) printf("Found B2\n"); CORR_NAME_ADD("B2"); yylval->interpolator=14;return INTERPOLATOR;
 (B3)    if(debug_lexer) printf("Found B3\n"); CORR_NAME_ADD("B3"); yylval->interpolator=15;return INTERPOLATOR;
+(C1)    if(debug_lexer) printf("Found C1\n"); CORR_NAME_ADD("C1"); yylval->interpolator=16;return INTERPOLATOR;
+(C2)    if(debug_lexer) printf("Found C2\n"); CORR_NAME_ADD("C2"); yylval->interpolator=17;return INTERPOLATOR;
+(C3)    if(debug_lexer) printf("Found C3\n"); CORR_NAME_ADD("C3"); yylval->interpolator=18;return INTERPOLATOR;
 
  /* recognizing numbers */
 ([0-9]*\.[0-9]+)|([0-9]+\.[0-9]*|([0-9]+)) if(debug_lexer) printf("Found DOUBLE: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb);CORR_NAME_ADD(yytext); return DOUBLE_NUMB;

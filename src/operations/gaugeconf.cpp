@@ -447,7 +447,7 @@ void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
 {
   //results
   int nbroken=0;
-  double loc_avg,loc_max;
+  double loc_avg=0,loc_max;
   const double expected_err=5.78791*DBL_EPSILON;
   int u=0;
   nissa_loc_vol_loop(ivol)
