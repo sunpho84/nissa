@@ -16,7 +16,7 @@
 #define APPLY_OPERATOR apply_stD2ee_m2
 #define CG_OPERATOR_PARAMETERS conf,t,m2,
 
-#define CG_INVERT inv_stD2ee_m2_cg
+#define CG_INVERT inv_stD2ee_m2_cg_portable
 #define CG_NPOSSIBLE_REQUESTS 16
 
 //maybe one day async comm
