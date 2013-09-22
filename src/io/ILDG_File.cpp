@@ -569,8 +569,24 @@ void ILDG_File_read_checksum(checksum check_read,ILDG_File &file)
       char *mess=nissa_malloc("mess",nbytes+1,char);
       ILDG_File_read_all((void*)mess,file,nbytes);
       
-      sscanf(strstr(mess,"<suma>")+6,"%x",&check_read[0]);
-      sscanf(strstr(mess,"<sumb>")+6,"%x",&check_read[1]);
+      char *handlea=strstr(mess,"<suma>");
+      if(handlea)
+	{
+	  sscanf(handlea+6,"%x",&check_read[0]);
+	  char *handleb=strstr(mess,"<sumb>");
+	  if(handleb) sscanf(handleb+6,"%x",&check_read[1]);
+	  else
+	    {
+	      check_read[1]=0;
+	      master_printf("Broken checksum\n");
+	    }
+	}
+      else
+	{
+	  master_printf("Broken checksum\n");
+	  check_read[0]=0;
+	}
+      
       nissa_free(mess);
     }
   else check_read[0]=check_read[1]=0;

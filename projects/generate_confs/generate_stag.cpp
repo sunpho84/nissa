@@ -11,18 +11,6 @@
 
 #include "nissa.h"
 
-extern double app_time;
-extern int napp;
-
-extern int nsto;
-extern double sto_time;
-
-extern int nsto_remap;
-extern double sto_remap_time;
-
-extern int nglu_comp;
-extern double glu_comp_time;
-
 //observables
 char gauge_obs_path[1024];
 int gauge_meas_flag;
@@ -140,11 +128,6 @@ void read_conf(quad_su3 **conf,char *path)
 //initialize the simulation
 void init_simulation(char *path)
 {
-  ncgm_inv=0;
-  cgm_inv_over_time=0;
-  ncg_inv=0;
-  cg_inv_over_time=0;
-  
   //////////////////////////// read the input /////////////////////////
   
   //open input file
@@ -451,8 +434,15 @@ void in_main(int narg,char **arg)
   
   /////////////////////////////////////// timings /////////////////////////////////
   
-  master_printf("time to apply %d times: %lg, %lg per iter, %lg MFlop/s\n",
-		napp,app_time,app_time/(napp?napp:1),1158.0e-6*glb_volh*napp/(app_time?app_time:1));
+#ifdef BENCH
+  master_printf("time to apply non optimized %d times: %lg, %lg per iter, %lg MFlop/s\n",
+		portable_stD_napp,portable_stD_app_time,portable_stD_app_time/(portable_stD_napp?portable_stD_napp:1),
+		1158.0e-6*loc_volh*portable_stD_napp/(portable_stD_app_time?portable_stD_app_time:1));
+#ifdef BGQ
+  master_printf("time to apply optimized %d times: %lg, %lg per iter, %lg MFlop/s\n",
+		bgq_stdD_napp,bgq_stdD_app_time,bgq_stdD_app_time/(bgq_stdD_napp?bgq_stdD_napp:1),
+		1158.0e-6*loc_volh*bgq_stdD_napp/(bgq_stdD_app_time?bgq_stdD_app_time:1));
+#endif
   master_printf("overhead time to cgm invert %d times: %lg, %lg per inv\n",
 		ncgm_inv,cgm_inv_over_time,cgm_inv_over_time/(ncgm_inv?ncgm_inv:1));
   master_printf("overhead time to cg invert %d times: %lg, %lg per inv\n",
@@ -463,7 +453,8 @@ void in_main(int narg,char **arg)
 		nsto_remap,sto_remap_time,sto_remap_time/(nsto_remap?nsto_remap:1));
   master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",
 		nglu_comp,glu_comp_time,glu_comp_time/(nglu_comp?nglu_comp:1));
-  
+#endif
+
   close_simulation();
 }
 

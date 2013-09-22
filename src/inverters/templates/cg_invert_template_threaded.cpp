@@ -8,9 +8,6 @@
 //  -basetype
 //  -NDOUBLES_PER_SITE
 
-extern double cg_inv_over_time;
-extern int ncg_inv;
-
 #ifdef HAVE_CONFIG_H
  #include "config.h"
 #endif
@@ -50,12 +47,13 @@ THREADABLE_FUNCTION_11ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2
   if(guess==NULL) vector_reset(sol);
   else vector_copy(sol,guess);
   
+#ifdef BENCH
   if(IS_MASTER_THREAD)
     {
       ncg_inv++;
       cg_inv_over_time-=take_time();
     }
-  
+#endif
   int each_list[4]={10000000,100,10,1},each;
   if(nissa_verbosity>=3) each=1;
   else each=each_list[nissa_verbosity];
@@ -88,10 +86,13 @@ THREADABLE_FUNCTION_11ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2
 	  final_iter=(++iter);
 	  
 	  //(r_k,r_k)/(p_k*DD*p_k)
+#ifdef BENCH
 	  if(IS_MASTER_THREAD) cg_inv_over_time+=take_time();
+#endif
 	  APPLY_OPERATOR(s,CG_OPERATOR_PARAMETERS p);
+#ifdef BENCH
 	  if(IS_MASTER_THREAD) cg_inv_over_time-=take_time();
-	  
+#endif	  
 	  double_vector_glb_scalar_prod(&alpha,(double*)s,(double*)p,BULK_VOL*NDOUBLES_PER_SITE);
 	  omega=internal_delta/alpha;
 	  
@@ -124,7 +125,9 @@ THREADABLE_FUNCTION_11ARG(CG_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2
     }
   while(lambda>(residue*source_norm) && riter<rniter);
   
+#ifdef BENCH
   if(IS_MASTER_THREAD) cg_inv_over_time+=take_time();
+#endif
   
   nissa_free(s);
   nissa_free(p);

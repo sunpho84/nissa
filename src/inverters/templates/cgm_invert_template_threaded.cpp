@@ -13,9 +13,6 @@
 #include "routines/mpi_routines.h"
 #include "base/thread_macros.h"
 
-extern double cgm_inv_over_time;
-extern int ncgm_inv;
-
 /*
   This is the prorotipe for a multi-shift inverter.
   The calls to the operator, the internal vectors definitions and the additional parameters must be defined thorugh macro.
@@ -65,12 +62,14 @@ THREADABLE_FUNCTION_10ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT
 #else
   #define IN_SHIFT shift
 #endif
-  
+
+#if BENCH
   if(IS_MASTER_THREAD)
     {
       ncgm_inv++;
       cgm_inv_over_time-=take_time();
     }
+#endif
   
   int each_list[4]={10000000,100,10,1},each;
   if(nissa_verbosity>=3) each=1;
@@ -150,10 +149,14 @@ THREADABLE_FUNCTION_10ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT
       //     -s=Ap
       if(nissa_use_async_communications && iter>1) CGM_FINISH_COMMUNICATING_BORDERS(p);
       
+#if BENCH
       if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
+#endif
       APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS IN_SHIFT[0],p);
+#if BENCH
       if(IS_MASTER_THREAD) cgm_inv_over_time-=take_time();
-      
+#endif
+
       //     -pap=(p,s)=(p,Ap)
       double_vector_glb_scalar_prod(&pap,(double*)p,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
 #ifdef DEBUG_CGM
@@ -300,7 +303,9 @@ THREADABLE_FUNCTION_10ARG(CGM_INVERT, BASETYPE**,sol, AT1,A1, AT2,A2, AT3,A3, AT
   nissa_free(r);
   CGM_ADDITIONAL_VECTORS_FREE();
   
+#if BENCH
   if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
+#endif
   
 #ifdef CG_128_INVERT
   //if 128 bit precision required refine the solution

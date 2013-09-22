@@ -143,14 +143,14 @@ if test "$enable_thread_debug" == "yes";then AC_DEFINE([THREAD_DEBUG],1,[Enable 
 AM_CONDITIONAL([THREAD_DEBUG],[test "$enable_thread_debug" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling thread debug... $enable_thread_debug])
 
-#benchmark communications
-AC_ARG_ENABLE(comm-bench,
-	AS_HELP_STRING([--enable-comm-bench],[Enable benchmark of communications]),
-	enable_comm_bench="${enableval}",
-	enable_comm_bench="no")
-if test "$enable_comm_bench" == "yes";then AC_DEFINE([COMM_BENCH],1,[Enable comm_bench]) fi
-AM_CONDITIONAL([COMM_BENCH],[test "$enable_comm_bench" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling communication benchmark... $enable_comm_bench])
+#benchmarks
+AC_ARG_ENABLE(bench,
+	AS_HELP_STRING([--enable-bench],[Enable internal benchmarks]),
+	enable_bench="${enableval}",
+	enable_bench="yes")
+if test "$enable_bench" == "yes";then AC_DEFINE([BENCH],1,[Enable bench]) fi
+AM_CONDITIONAL([BENCH],[test "$enable_bench" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling internal benchmarks... $enable_bench])
 
 #max verbosity lv
 AC_ARG_ENABLE(max-verbosity-lv,

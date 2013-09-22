@@ -81,6 +81,30 @@ void set_spi_neighbours()
 	}
 }
 
+//check that the number of hopping to move in each direction is <=1
+void check_all_lattice_neighbours_are_spi_first_neighbours()
+{
+  int max_nhop=0;
+  for(int mu=0;mu<4;mu++)
+    if(paral_dir[mu])
+      for(int bf=0;bf<2;bf++)
+	{
+	  //compute the number of hop according manhattan metric
+	  int nhop=0;
+	  for(int ispi_dir=0;ispi_dir<5;ispi_dir++)
+	    {
+	      int coord_neigh=spi_dest_coord[bf*4+mu][idir];
+	      int off=abs(coord_neigh-spi_rank_coord[idir]);
+	      if(spi_dir_is_torus[idir]) off=std::min(off,std::min(spi_dir_size[idir]+coord_neigh-spi_rank_coord[idir],
+								   spi_dir_size[idir]+spi_rank_coord[idir]-coord_neigh));
+	      nhop+=off;
+	    }
+	  max_nhop=std::max(max_nhop,nhop);
+	}
+  if(max_nhop>1)
+    master_printf("WARNING not all lattice-nodes are first neighbours in SPI grid (non optimal communications\n)");
+}
+
 //find coordinates and set neighbours map
 void set_spi_geometry()
 {
@@ -202,6 +226,9 @@ void init_spi()
       
       //get coordinates, size and rank in the 5D grid
       set_spi_geometry();
+      
+      //check that all ranks are first neighbours in SPI grid
+      check_all_lattice_neighbours_are_spi_first_neighbours();
       
       //allocate bats
       spi_bat_id[0]=0;
