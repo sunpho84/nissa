@@ -8,9 +8,6 @@
 //  -basetype
 //  -ndoubles_per_site
 
-extern double cg_inv_over_time;
-extern int ncg_inv;
-
 #ifdef HAVE_CONFIG_H
  #include "config.h"
 #endif
@@ -32,8 +29,10 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
   if(guess==NULL) vector_reset(sol);
   else vector_copy(sol,guess);
   
+#ifdef BENCH
   ncg_inv++;
   cg_inv_over_time-=take_time();
+#endif
   
   int each_list[4]={0,100,10,1},each;
   if(nissa_verbosity>=3) each=1;
@@ -65,10 +64,14 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
       do
 	{	  
 	  //(r_k,r_k)/(p_k*DD*p_k)
+#ifdef BENCH
 	  cg_inv_over_time+=take_time();
+#endif
 	  apply_operator(s,cg_inner_parameters_call,p);
+#ifdef BENCH
 	  cg_inv_over_time-=take_time();
-	  
+#endif
+
 	  double_vector_glb_scalar_prod(&alpha,(double*)s,(double*)p,size_of_bulk*ndoubles_per_site);
 	  omega=internal_delta/alpha;
 	  
@@ -102,7 +105,9 @@ void cg_invert(basetype *sol,basetype *guess,cg_parameters_proto,int niter,int r
     }
   while(lambda>(residue*source_norm) && riter<rniter);
   
+#ifdef BENCH
   cg_inv_over_time+=take_time();
+#endif
   
   nissa_free(s);
   nissa_free(p);

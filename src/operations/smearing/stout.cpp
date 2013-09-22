@@ -21,12 +21,6 @@
  #include "routines/thread.h"
 #endif
 
-int nsto=0;
-double sto_time=0;
-
-int nsto_remap=0;
-double sto_remap_time=0;
-
 //compute the staples for the link U_A_mu weighting them with rho
 void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,stout_coeff_t rho)
 {
@@ -74,7 +68,9 @@ void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,i
 THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, stout_coeff_t*,rho)
 {
   GET_THREAD_ID();
+#ifdef BENCH
   if(IS_MASTER_THREAD) sto_time-=take_time();
+#endif
   
   communicate_eo_quad_su3_edges(ext_in);
   
@@ -109,11 +105,13 @@ THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ex
       if(out==ext_in) nissa_free(in[eo]);
     }
   
+#ifdef BENCH
   if(IS_MASTER_THREAD)
     {
       nsto++;
       sto_time+=take_time();
     }
+#endif
 }}
 
 //smear n times, using only one additional vectors
@@ -413,17 +411,21 @@ THREADABLE_FUNCTION_3ARG(stouted_force_remap, quad_su3**,F, quad_su3***,sme_conf
 {
   GET_THREAD_ID();
   
+#ifdef BENCH
   if(IS_MASTER_THREAD) sto_remap_time-=take_time();
-
+#endif
+  
   for(int i=stout_pars->nlev-1;i>=0;i--)
     {
       verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i,stout_pars->nlev-1);
       stouted_force_remap_step(F,sme_conf[i],&(stout_pars->rho));
     }
   
+#ifdef BENCH
   if(IS_MASTER_THREAD)
     {
       sto_remap_time+=take_time();  
       nsto_remap++;
     }
+#endif
 }}

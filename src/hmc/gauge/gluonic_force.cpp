@@ -14,9 +14,6 @@
 #include "gauge/tree_level_Symanzik_force.h"
 #include "backfield.h"
 
-int nglu_comp=0;
-double glu_comp_time=0;
-
 //Finish the computation multiplying for the conf and taking TA
 THREADABLE_FUNCTION_2ARG(gluonic_force_finish_computation, quad_su3*,F, quad_su3*,conf)
 {
@@ -42,11 +39,13 @@ THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,c
 {
   GET_THREAD_ID();
   
+#ifdef BENCH
   if(IS_MASTER_THREAD)
     {
       nglu_comp++;
       glu_comp_time-=take_time();
     }
+#endif
   
   switch(physics->gauge_action_name)
     {
@@ -60,5 +59,7 @@ THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,c
 
   gluonic_force_finish_computation(F,conf);
 
+#ifdef BENCH
   if(IS_MASTER_THREAD) glu_comp_time+=take_time();
+#endif
 }}

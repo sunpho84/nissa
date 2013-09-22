@@ -1,13 +1,13 @@
 /* src/config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Enable bench */
+#undef BENCH
+
 /* Enable bgq */
 #undef BGQ
 
 /* Enable bgq emulation */
 #undef BGQ_EMU
-
-/* Enable comm_bench */
-#undef COMM_BENCH
 
 /* Flags passed to configure */
 #undef CONFIG_FLAGS

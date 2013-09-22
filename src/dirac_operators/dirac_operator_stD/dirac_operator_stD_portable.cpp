@@ -7,9 +7,6 @@
  #include "routines/thread.h"
 #endif
 
-double app_time=0;
-int napp=0;
-
 THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, quad_su3**,conf, color*,in)
 {
   if(!check_borders_valid(conf)) communicate_ev_and_od_quad_su3_borders(conf);
@@ -92,7 +89,9 @@ THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, quad_su3**,conf, color*,te
   GET_THREAD_ID();
   if(IS_MASTER_THREAD)
     {
-      app_time-=take_time();
+#ifdef BENCH
+      portable_stD_app_time-=take_time();
+#endif
       //check arguments
       if(out==in)   crash("out==in!");
       if(out==temp) crash("out==temp!");
@@ -151,9 +150,11 @@ THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, quad_su3**,conf, color*,te
   
   set_borders_invalid(out);
       
+#ifdef BENCH
   if(IS_MASTER_THREAD)
     {
-      app_time+=take_time();
-      napp++;
+      portable_stD_app_time+=take_time();
+      portable_stD_napp++;
     }
+#endif
 }}

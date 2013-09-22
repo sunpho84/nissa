@@ -162,14 +162,18 @@ complex *ch_contr_3pts;
 int *ch_op_sour_3pts,*ch_op_sink_3pts;
 
 //timings
-int ninv_tot=0,ncontr_tot=0;
 int wall_time;
-double tot_time=0,inv_time=0,conf_smear_time=0;
+double tot_time=0;
+
+#ifdef BENCH
+int ninv_tot=0,ncontr_tot=0;
+double inv_time=0,conf_smear_time=0;
 double smear_time=0;
 double load_save_S0_time=0;
 double contr_save_time=0;
 double contr_2pts_time=0;
 double contr_3pts_time=0;
+#endif
 
 //return the position of the propagator of theta and mass
 int ipropS0(int itheta,int imass,int mu_der)
@@ -573,11 +577,13 @@ void setup_conf()
 {
   //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
   read_ildg_gauge_conf(conf,conf_path);
-  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
+  master_printf("plaq: %.16g\n",global_plaquette_lx_conf(conf));
 
   Pmunu_term(Pmunu,conf);
   
+#ifdef BENCH
   conf_smear_time-=take_time();
+#endif
   //prepare the smerded version and compute plaquette
   switch(conf_smearing)
     {
@@ -601,9 +607,10 @@ void setup_conf()
       crash("unknown conf smearing type %d",(int)conf_smearing);
       break;
     }
+#ifdef BENCH
   conf_smear_time+=take_time();
-  
-  if(conf_smearing!=no_conf_smearing) master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
+#endif
+  if(conf_smearing!=no_conf_smearing) master_printf("smerded plaq: %.16g\n",global_plaquette_lx_conf(sme_conf));
   
   //put the anti-periodic condition on the temporal border
   old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
@@ -614,11 +621,12 @@ void setup_conf()
 //Finalization
 void close_semileptonic()
 {
-  double contr_time=contr_2pts_time+contr_3pts_time;
-  
   master_printf("\n");
   master_printf("Inverted %d configurations.\n",nanalyzed_conf);
-  master_printf("Total time: %g s, of which:\n",tot_time);
+  master_printf("Total time: %g");
+#ifdef BENCH
+  double contr_time=contr_2pts_time+contr_3pts_time;
+  master_printf(", of which:\n",tot_time);
   master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
   master_printf("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
 		ninv_tot,cgm_inv_over_time/ninv_tot);
@@ -629,7 +637,9 @@ void close_semileptonic()
   master_printf("   * %02.2f%s to compute two points\n",contr_2pts_time*100.0/contr_time,"%");
   master_printf("   * %02.2f%s to compute three points\n",contr_3pts_time*100.0/contr_time,"%");
   master_printf(" - %02.2f%s to save correlations\n",contr_save_time*100.0/tot_time,"%");
-  
+#else
+  master_printf("\n");
+#endif
   nissa_free(Pmunu);nissa_free(conf);if(conf_smearing!=no_conf_smearing) nissa_free(sme_conf);
   for(int iprop=0;iprop<npropS0;iprop++)
     for(int r=0;r<2;r++)
@@ -736,8 +746,9 @@ void calculate_S0(int ism_lev_so)
 		//invert
 		if(!load_S0)
 		  {
+#ifdef BENCH
 		    double part_time=-take_time();
-		    
+#endif		    
 		    //decide if to use multimass or single mass
 		    if(use_cgm_S0)
 		      {
@@ -762,14 +773,21 @@ void calculate_S0(int ism_lev_so)
 			  
 			  master_printf("Finished submass[%d]=%lg\n",imass,m);
 			}
+#ifdef BENCH
 		    part_time+=take_time();ninv_tot++;inv_time+=part_time;
+#endif
 		    master_printf("Finished the inversion of S0 theta %d, ",itheta);
 		    if(compute_der) master_printf("source derivative %d ",muS);
 
 #ifdef POINT_SOURCE_VERSION
 		    master_printf("color index %d ",ic);
-#endif	    
-		    master_printf("dirac index %d in %g sec\n",id,part_time);
+#endif
+		    master_printf("dirac index %d",id);
+#ifdef BENCH
+		    master_printf(", in %lg s\n",part_time);
+#else
+		    master_printf("\n");
+#endif
 		  }
 		
 		//read or write, if needed
@@ -786,10 +804,14 @@ void calculate_S0(int ism_lev_so)
 		      sprintf(path,"%s/S0_QD_sosm%02d_iprop%d.id%02d",outfolder,ism_lev_so,ip,id);
 #endif
 		      
+#ifdef BENCH
 		      load_save_S0_time-=take_time();
+#endif
 		      if(save_S0) write_spincolor(path,cgm_solution[imass],64);
 		      else        read_spincolor(cgm_solution[imass],path);
+#ifdef BENCH
 		      load_save_S0_time+=take_time();
+#endif
 		    }
 
 		//reconstruct the doublet
@@ -866,8 +888,9 @@ void calculate_S1(int ispec,int ism_lev_se)
 	    put_theta[1]=put_theta[2]=put_theta[3]=thetaS1[itheta];
 	    adapt_theta(conf,old_theta,put_theta,1,1);
 	    
+#ifdef BENCH
 	    double part_time=-take_time();
-	    
+#endif	    
 	    //decide to use one or the other inverters
 	    if(use_cgm_S1)
 	      {
@@ -888,8 +911,13 @@ void calculate_S1(int ispec,int ism_lev_se)
 		  else inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,5,stop_res_S1[imass],source);
 		}
 	    
+	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d",itheta,ism_lev_se,id);
+#ifdef BENCH
+	    master_printf(" in %g sec\n",part_time);
 	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
-	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d in %g sec\n",itheta,ism_lev_se,id,part_time);
+#else
+	    master_printf("\n");
+#endif
 	    
 	    for(int imass=0;imass<nmassS1;imass++)
 	      {
@@ -999,16 +1027,20 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
   else new_loc_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],double);
 
   //smear additively the propagators
+#ifdef BECNH
   smear_time-=take_time();
+#endif
   for(int r=0;r<2;r++)
     if(which_r_S0==2||which_r_S0==r)
       for(int iprop=0;iprop<npropS0;iprop++)
 	smear_additive_propagator(S0[r][iprop],S0[r][iprop],ism_lev_si,gaussian_niter_si);
   
+#ifdef BENCH
   //take intermediate timing
   double temp_time=take_time();
   smear_time+=temp_time;
   contr_2pts_time-=temp_time;
+#endif  
   
   //open output file
   char path[1024];
@@ -1141,14 +1173,17 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 					  
 					    
 					//write 
+#ifdef BENCH
 					ncontr_tot+=ncontr_2pts;
 					contr_save_time-=take_time();
+#endif
 					if(use_new_contraction_layout)
 					  two_pts_comp.print_correlations_to_file(fout,new_contr_2pts);
 					 else print_contractions_to_file(
 				         fout,ncontr_2pts,op_sour_2pts,op_sink_2pts,contr_2pts,source_coord[0],"",1.0);
+#ifdef BENCH
 					contr_save_time+=take_time();
-					
+#endif			
 					//if chromo contractions
 					/*
 					if(nch_contr_2pts>0)
@@ -1160,18 +1195,21 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 									      ch_op_sink_2pts,ch_prop,nch_contr_2pts);
 					    
 					    //write
+#ifdef BENCH
 					    ncontr_tot+=nch_contr_2pts;
 					    contr_save_time-=take_time();
+#endif
 					    (use_new_contraction_layout?
 					     print_optimized_contractions_to_file:print_contractions_to_file)
 					      (fout,nch_contr_2pts,ch_op_sour_2pts,ch_op_sink_2pts,ch_contr_2pts,
 					       source_coord[0],"CHROMO-",1.0);
+#ifdef BENCH
 					    contr_save_time+=take_time();
+#endif
 					  }
 					*/
 					master_fprintf(fout,"\n");
 				      }
-				  ncontr_tot+=nch_contr_2pts;
 				}
 			    }
 		      }
@@ -1194,7 +1232,9 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
       nissa_free(new_loc_2pts);
     }
   else nissa_free(loc_2pts);
+#ifdef BENCH
   contr_2pts_time+=take_time();
+#endif
   if(rank==0) fclose(fout);
 }
 
@@ -1211,7 +1251,9 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
   //open output file and take time
   sprintf(path,"%s/3pts_sp%d_%02d_%02d",outfolder,ispec,gaussian_niter_so[ism_lev_so],gaussian_niter_se[ism_lev_se]);  
   FILE *fout=open_text_file_for_output(path);
+#ifdef BENCH
   contr_3pts_time-=take_time();
+#endif
   
   //select r
   int r1=r_spec[ispec];
@@ -1266,14 +1308,18 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 		  new_meson_two_points(new_contr_3pts,new_loc_3pts,S0[r1][ip1],S1[ip2],&three_pts_comp);
 		else meson_two_points_Wilson_prop(contr_3pts,loc_3pts,op_sour_3pts,S0[r1][ip1],op_sink_3pts,
 					     S1[ip2],ncontr_3pts);
-		ncontr_tot+=ncontr_3pts;
 		
-		//write them
+#ifdef BENCH
+		ncontr_tot+=ncontr_3pts;
 		contr_save_time-=take_time();
+#endif
+		//write them
 		if(use_new_contraction_layout) three_pts_comp.print_correlations_to_file(fout,new_contr_3pts);
 
 		else print_contractions_to_file(fout,ncontr_3pts,op_sour_3pts,op_sink_3pts,contr_3pts,source_coord[0],"",1.0);
+#ifdef BENCH
 		contr_save_time+=take_time();
+#endif
 		
 		//if chromo contractions
 		/*
@@ -1285,22 +1331,27 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
 						 ch_op_sink_3pts,ch_prop,nch_contr_3pts);
 		    else meson_two_points_Wilson_prop(ch_contr_3pts,loc_3pts,ch_op_sour_3pts,S0[r1][ip1],
 						      ch_op_sink_3pts,ch_prop,nch_contr_3pts);
-		    ncontr_tot+=nch_contr_3pts;
 		    
 		    //and write them
+#ifdef BENCH
+		    ncontr_tot+=nch_contr_3pts;
 		    contr_save_time-=take_time();
+#endif
 		    (use_new_contraction_layout?
 		     print_optimized_contractions_to_file:print_contractions_to_file)
 		      (fout,nch_contr_3pts,ch_op_sour_3pts,ch_op_sink_3pts,ch_contr_3pts,source_coord[0],"CHROMO-",1.0);
+#ifdef BENCH
 		    contr_save_time+=take_time();
+#endif
 		  }
 		*/
 		master_fprintf(fout,"\n");
 	    }
     }
   
+#ifdef BENCH
   contr_3pts_time+=take_time();
-  
+#endif  
   //convert back
   if(use_new_contraction_layout)
     {
