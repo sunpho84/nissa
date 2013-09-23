@@ -91,7 +91,7 @@ void check_all_lattice_neighbours_are_spi_first_neighbours()
 	{
 	  //compute the number of hop according manhattan metric
 	  int nhop=0;
-	  for(int ispi_dir=0;ispi_dir<5;ispi_dir++)
+	  for(int idir=0;idir<5;idir++)
 	    {
 	      int coord_neigh=spi_dest_coord[bf*4+mu][idir];
 	      int off=abs(coord_neigh-spi_rank_coord[idir]);
@@ -102,7 +102,7 @@ void check_all_lattice_neighbours_are_spi_first_neighbours()
 	  max_nhop=std::max(max_nhop,nhop);
 	}
   if(max_nhop>1)
-    master_printf("WARNING not all lattice-nodes are first neighbours in SPI grid (non optimal communications\n)");
+    master_printf("WARNING not all lattice-nodes are first neighbours in SPI grid (non optimal communications)\n");
 }
 
 //find coordinates and set neighbours map

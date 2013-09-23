@@ -647,6 +647,8 @@ USE_VNODES_FALSE
 USE_VNODES_TRUE
 BGQ_FALSE
 BGQ_TRUE
+USE_MPI_FALSE
+USE_MPI_TRUE
 USE_THREADS_FALSE
 USE_THREADS_TRUE
 USE_MPI_IO_FALSE
@@ -797,6 +799,7 @@ enable_spi
 enable_parser_generation
 enable_mpi_io
 enable_threads
+enable_MPI
 enable_bgq
 enable_bgq_emu
 enable_reproducible_run
@@ -1453,6 +1456,7 @@ Optional Features:
                           Enable generation of parsers
   --disable-mpi-io        Enable MPI I/O
   --disable-threads       Enable threads
+  --disable-MPI           Enable MPI
   --enable-bgq            Enable bgq stuff (ony for BG/Q)
   --enable-bgq_emu        Enable bgq_emu stuff (ony for BG/Q)
   --enable-reproducible-run
@@ -15571,6 +15575,17 @@ _ACEOF
 fi
 done
 
+for ac_func in strndup
+do :
+  ac_fn_c_check_func "$LINENO" "strndup" "ac_cv_func_strndup"
+if test "x$ac_cv_func_strndup" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STRNDUP 1
+_ACEOF
+
+fi
+done
+
 for ac_func in strncasecmp
 do :
   ac_fn_c_check_func "$LINENO" "strncasecmp" "ac_cv_func_strncasecmp"
@@ -16560,6 +16575,28 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling threads... $enable_threads" >&5
 $as_echo "enabling threads... $enable_threads" >&6; }
 
+#MPI
+# Check whether --enable-MPI was given.
+if test "${enable_MPI+set}" = set; then :
+  enableval=$enable_MPI; enable_MPI="${enableval}"
+else
+  enable_MPI="yes"
+fi
+
+if test "$enable_MPI" == "yes";then
+$as_echo "#define USE_MPI 1" >>confdefs.h
+ fi
+ if test "$enable_MPI" == "yes" ; then
+  USE_MPI_TRUE=
+  USE_MPI_FALSE='#'
+else
+  USE_MPI_TRUE='#'
+  USE_MPI_FALSE=
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling MPI... $enable_MPI" >&5
+$as_echo "enabling MPI... $enable_MPI" >&6; }
+
 #bgq
 # Check whether --enable-bgq was given.
 if test "${enable_bgq+set}" = set; then :
@@ -16857,6 +16894,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${USE_THREADS_TRUE}" && test -z "${USE_THREADS_FALSE}"; then
   as_fn_error $? "conditional \"USE_THREADS\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${USE_MPI_TRUE}" && test -z "${USE_MPI_FALSE}"; then
+  as_fn_error $? "conditional \"USE_MPI\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BGQ_TRUE}" && test -z "${BGQ_FALSE}"; then

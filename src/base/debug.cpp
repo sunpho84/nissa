@@ -4,7 +4,9 @@
 
 #include <errno.h>
 #include <execinfo.h>
-#include <mpi.h>
+#ifdef USE_MPI
+ #include <mpi.h>
+#endif
 #include <stdarg.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -27,7 +29,7 @@ void print_backtrace_list()
   char **strs=backtrace_symbols(callstack,frames);
   
   //only master rank, but not master thread
-  if(rank==0)
+  if(IS_MASTER_RANK)
     {
       printf("Backtracing...\n");
       for(int i=0;i<frames;i++) printf("%s\n",strs[i]);
@@ -46,7 +48,7 @@ void internal_crash(int line,const char *file,const char *templ,...)
   GET_THREAD_ID();
   if(!IS_MASTER_THREAD) sleep(1);
   
-  if(rank==0)
+  if(IS_MASTER_RANK)
     {
       //expand error message
       char mess[1024];
@@ -97,7 +99,7 @@ void internal_decript_MPI_error(int line,const char *file,int rc,const char *tem
   va_list ap;
   va_start(ap,templ);
   
-  if(rc!=MPI_SUCCESS && rank==0)
+  if(rc!=MPI_SUCCESS && IS_MASTER_RANK)
     {
       char err[1024];
       int len=1024;

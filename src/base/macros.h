@@ -51,7 +51,7 @@
 #define ran2_ntab 32
 
 //communications benchmark
-#ifdef COMM_BENCH
+#ifdef BENCH
  #define START_COMMUNICATIONS_TIMING() {if(IS_MASTER_THREAD) tot_nissa_comm_time-=take_time();}
  #define STOP_COMMUNICATIONS_TIMING() {if(IS_MASTER_THREAD) tot_nissa_comm_time+=take_time();}
  #define GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS() GET_THREAD_ID()
@@ -59,6 +59,13 @@
  #define START_COMMUNICATIONS_TIMING()
  #define STOP_COMMUNICATIONS_TIMING()
  #define GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS()
+#endif
+
+//check on master rank
+#ifdef USE_MPI
+ #define IS_MASTER_RANK (rank==0)
+#else
+ #define IS_MASTER_RANK 1
 #endif
 
 //constants
