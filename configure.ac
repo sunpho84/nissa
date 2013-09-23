@@ -71,7 +71,7 @@ AC_MSG_RESULT([enabling spi... $enable_spi])
 AC_ARG_ENABLE(parser-generation,
 	AS_HELP_STRING([--enable-parser-generation],[Enable generation of parsers]),
 	enable_parser_generation="${enableval}",
-	enable_parser_generation="no")
+	enable_parser_generation="yes")
 	if test "$enable_parser_generation" == "yes"
 	then
 		#check yacc and lex
