@@ -95,6 +95,9 @@
 /* Define to 1 if you have the `strncasecmp' function. */
 #undef HAVE_STRNCASECMP
 
+/* Define to 1 if you have the `strndup' function. */
+#undef HAVE_STRNDUP
+
 /* Define to 1 if you have the `strstr' function. */
 #undef HAVE_STRSTR
 
@@ -154,6 +157,9 @@
 
 /* Enable thread_debug */
 #undef THREAD_DEBUG
+
+/* Enable MPI */
+#undef USE_MPI
 
 /* Enable MPI I/O */
 #undef USE_MPI_IO

@@ -18,6 +18,7 @@ EXTERN int loc_size[4],loc_vol,loc_spat_vol,loc_volh;
 EXTERN int bulk_vol,non_bw_surf_vol,non_fw_surf_vol;
 EXTERN int surf_vol,bw_surf_vol,fw_surf_vol;
 EXTERN int vsurf_vol,vsurf_volh;
+EXTERN int vdir_bord_vol,vdir_bord_volh;
 EXTERN double glb_vol2,loc_vol2;
 //-lx is lexicografic
 EXTERN coords *glb_coord_of_loclx;
@@ -56,6 +57,7 @@ EXTERN int nissa_use_eo_geom;
 EXTERN coords *loclx_neighdw,*loclx_neighup;
 EXTERN coords *loclx_neigh[2];
 
+#ifdef USE_MPI
 //basic mpi types
 EXTERN MPI_Datatype MPI_FLOAT_128;
 EXTERN MPI_Datatype MPI_SU3;
@@ -69,6 +71,7 @@ EXTERN MPI_Datatype MPI_REDSPINCOLOR;
 
 //float 128 summ
 EXTERN MPI_Op MPI_FLOAT_128_SUM;
+#endif
 
 //timings
 EXTERN double tot_nissa_time;
@@ -117,6 +120,7 @@ EXTERN int nissa_warn_if_not_communicated;
 //128 bit precision
 EXTERN int nissa_use_128_bit_precision;
 
+#ifdef USE_MPI
 //size of the border along the 4 dir,types for sending
 EXTERN int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
 EXTERN int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
@@ -158,6 +162,11 @@ EXTERN MPI_Datatype MPI_LX_SU3_EDGES_SEND[6],MPI_LX_SU3_EDGES_RECE[6];
 EXTERN MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[6],MPI_LX_QUAD_SU3_EDGES_RECE[6];
 EXTERN MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[6];
 
+//volume, plan and line communicator
+EXTERN MPI_Comm cart_comm;
+EXTERN MPI_Comm plan_comm[4];
+EXTERN MPI_Comm line_comm[4];
+
 //ranks
 EXTERN coords nissa_set_nranks;
 EXTERN int rank,nissa_nranks,cart_rank;
@@ -168,8 +177,9 @@ EXTERN coords rank_coord;
 EXTERN coords rank_neigh[2],rank_neighdw,rank_neighup;
 EXTERN coords plan_rank,line_rank,line_coord_rank;
 EXTERN int nissa_grid_inited;
+#endif
 
-//thread
+/////////////////////////////////////////////// threads //////////////////////////////////////////
 #ifdef USE_THREADS
 
  #ifdef THREAD_DEBUG
@@ -193,11 +203,6 @@ EXTERN int little_endian;
 
 //global input file handle
 EXTERN FILE *input_global;
-
-//volume, plan and line communicator
-EXTERN MPI_Comm cart_comm;
-EXTERN MPI_Comm plan_comm[4];
-EXTERN MPI_Comm line_comm[4];
 
 //vectors
 EXTERN int nissa_max_required_memory;
@@ -228,9 +233,6 @@ int perp_dir[4][3]={{1,2,3},{0,2,3},{0,1,3},{0,1,2}};
 int perp2_dir[4][3][2]={{{2,3},{1,3},{1,2}},{{2,3},{0,3},{2,3}},{{1,3},{0,3},{0,1}},{{1,2},{0,2},{0,1}}};
 int perp3_dir[4][3][2]={{{3,2},{3,1},{2,1}},{{3,2},{3,0},{3,2}},{{3,1},{3,0},{1,0}},{{2,1},{2,0},{1,0}}};
 #endif
-
-//the real amd imaginary unit
-EXTERN complex ONE,I;
 
 //The base of the 16 gamma matrixes, the two rotators and Ci=G0*Gi*G5
 EXTERN dirac_matr base_gamma[19];
@@ -289,7 +291,6 @@ EXTERN two_stage_computation_pos_t viroe_or_vireo_hopping_matrix_output_pos[2];
 EXTERN int *virlx_of_loclx,*loclx_of_virlx;
 EXTERN int *loclx_of_vireo[2],*vireo_of_loclx;
 EXTERN int *vireo_of_loceo[2],*loceo_of_vireo[2];
-EXTERN int virlx_t_vbord_vol,vir_vsurf_vol;
 
 #endif
 

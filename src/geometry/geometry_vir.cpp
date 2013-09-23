@@ -92,7 +92,8 @@ void define_vir_ordering()
   int coord_to_compare[2]={0,loc_size[v]/nvnodes-1};
   for(int iter=0;iter<2;iter++)
     for(int loclx=0;loclx<loc_vol;loclx++)
-      if(loc_coord_of_loclx[loclx][v]==coord_to_compare[iter]) mark_vir_of_loclx(virlx,vireo,loclx);
+      if(loc_coord_of_loclx[loclx][v]==coord_to_compare[iter])
+	mark_vir_of_loclx(virlx,vireo,loclx);
   
   //scan non-v surface
   for(int isurflx=0;isurflx<surf_vol;isurflx++)

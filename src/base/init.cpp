@@ -2,7 +2,9 @@
  #include "config.h"
 #endif
 
-#include <mpi.h>
+#ifdef USE_MPI
+ #include <mpi.h>
+#endif
 #include <signal.h>
 #include <string.h>
 #include <omp.h>
@@ -39,17 +41,22 @@ void init_nissa(int narg,char **arg)
 {
   //init base things
   int provided;
+#ifdef USE_MPI
   MPI_Init_thread(&narg,&arg,MPI_THREAD_SERIALIZED,&provided);
+#endif
   tot_nissa_time=-take_time();
-#ifdef COMM_BENCH
+#ifdef BENCH
   tot_nissa_comm_time=0;
 #endif
   verb_call=0;
-  
+
+  //this must be done before everything otherwise rank non properly working  
+#ifdef USE_MPI
   //get the number of rank and the id of the local one
   MPI_Comm_size(MPI_COMM_WORLD,&nissa_nranks);
   MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-  
+#endif
+
   //associate sigsegv with proper handle
   signal(SIGSEGV,terminate_sigsegv);
   signal(SIGFPE,terminate_sigsegv);
@@ -59,6 +66,7 @@ void init_nissa(int narg,char **arg)
   master_printf("Configured at %s with flags: %s\n",CONFIG_TIME,CONFIG_FLAGS);
   master_printf("Compiled at %s of %s\n",__TIME__,__DATE__);
   
+#ifdef USE_MPI
   //128 bit float
   MPI_Type_contiguous(2,MPI_DOUBLE,&MPI_FLOAT_128);
   MPI_Type_commit(&MPI_FLOAT_128);
@@ -97,6 +105,7 @@ void init_nissa(int narg,char **arg)
   
   //summ for 128 bit float
   MPI_Op_create((MPI_User_function*)MPI_FLOAT_128_SUM_routine,1,&MPI_FLOAT_128_SUM);
+#endif
   
   //initialize the first vector of nissa
   initialize_main_nissa_vect();
@@ -111,13 +120,14 @@ void init_nissa(int narg,char **arg)
   nissa_loc_rnd_gen_inited=0;
   nissa_glb_rnd_gen_inited=0;
   nissa_grid_inited=0;
+#ifdef USE_MPI
 #ifdef SPI
   nissa_spi_inited=0;
 #endif
   memset(rank_coord,0,4*sizeof(int));
   memset(nrank_dir,0,4*sizeof(int));
-  ONE[0]=I[1]=1;
-  ONE[1]=I[0]=0;
+#endif
+  
   //check endianess
   check_endianess();
   if(little_endian) master_printf("System endianess: little (ordinary machine)\n");
@@ -499,6 +509,8 @@ void init_grid(int T,int L)
   //two times the size of nissa_vnode_paral_dir face
   vbord_vol=2*loc_vol/loc_size[nissa_vnode_paral_dir]; //so is not counting all vsites
   vbord_volh=vbord_vol/2;
+  vdir_bord_vol=vbord_vol/2;
+  vdir_bord_volh=vbord_volh/2;
   //compute the offset between sites of different vnodes
   //this amount to the product of the local size of the direction running faster than
   //nissa_vnode_paral_dir, times half the local size along nissa_vnode_paral_dir

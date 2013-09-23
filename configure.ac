@@ -32,6 +32,7 @@ AC_CHECK_FUNCS([pow])
 AC_CHECK_FUNCS([sqrt])
 AC_CHECK_FUNCS([strcasecmp])
 AC_CHECK_FUNCS([strdup])
+AC_CHECK_FUNCS([strndup])
 AC_CHECK_FUNCS([strncasecmp])
 AC_CHECK_FUNCS([strstr])
 AC_CHECK_HEADERS([float.h])
@@ -98,6 +99,15 @@ AC_ARG_ENABLE(threads,
 if test "$enable_threads" == "yes";then AC_DEFINE([USE_THREADS],1,[Enable threads]) fi
 AM_CONDITIONAL([USE_THREADS],[test "$enable_threads" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling threads... $enable_threads])
+
+#MPI
+AC_ARG_ENABLE(MPI,
+	AS_HELP_STRING([--disable-MPI],[Enable MPI]),
+	enable_MPI="${enableval}",
+	enable_MPI="yes")
+if test "$enable_MPI" == "yes";then AC_DEFINE([USE_MPI],1,[Enable MPI]) fi
+AM_CONDITIONAL([USE_MPI],[test "$enable_MPI" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling MPI... $enable_MPI])
 
 #bgq
 AC_ARG_ENABLE(bgq,

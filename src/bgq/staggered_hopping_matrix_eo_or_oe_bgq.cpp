@@ -181,7 +181,7 @@ THREADABLE_FUNCTION_5ARG(apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_noba
     }
 }}
 
-//swap border between VN and, if virtual parallelized dir is really parallelized, fill send buffers
+//if virtual parallelized dir is really parallelized, fill send buffers
 THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_buff_fill)
 {
   GET_THREAD_ID();
@@ -201,85 +201,105 @@ THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_
   ///////////////////////// bw scattered v derivative (fw derivative)  ////////////////////////
   
   if(is_in_first_team)
-    {
-      if(paral_dir[v])
-	{
-	  //split bw v border: VN 0 goes to bw out border (first half)
-	  NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4/fact,thread_in_team_id,nthreads_in_team)
-	    {
-	      //the source starts at the middle of result border buffer
-	      int isrc=2*base_isrc+0*vbord_vol/2/fact; //we match 2 sites
-	      //non-local shuffling: must enter bw buffer for direction v
-	      int idst_buf=(0*bord_volh/2+bord_offset[v]/2)/fact+base_isrc;
-	      //load the first
-	      DECLARE_REG_BI_COLOR(in0);
-	      REG_LOAD_BI_COLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
-	      //load the second
-	      DECLARE_REG_BI_COLOR(in1);
-	      REG_LOAD_BI_COLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
-	      //merge the two and save
-	      DECLARE_REG_BI_COLOR(to_buf);
-	      REG_BI_COLOR_V0_MERGE(to_buf,in0,in1);
-	      STORE_REG_BI_COLOR(((bi_color*)nissa_send_buf)[idst_buf],to_buf);
-	    }
-	}
-      else
-	//we have only to transpose between VN, and no real communication happens
-	NISSA_CHUNK_LOOP(isrc,0,vbord_vol/2/fact,thread_in_team_id,nthreads_in_team)
-	  {
-	    int idst=8*virlx_of_loclx[loclx_neighdw[isrc+vnode_lx_offset][v]]+0+v;
-	    BI_COLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_vdir_buffer[isrc]);
-	  }
-    }
+    //split bw v border: VN 0 goes to bw out border (first half)
+    NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4/fact,thread_in_team_id,nthreads_in_team)
+      {
+	//the source starts at the middle of result border buffer
+	int isrc=2*base_isrc+0*vbord_vol/2/fact; //we match 2 sites
+	//non-local shuffling: must enter bw buffer for direction v
+	int idst_buf=(0*bord_volh/2+bord_offset[v]/2)/fact+base_isrc;
+	//load the first
+	DECLARE_REG_BI_COLOR(in0);
+	REG_LOAD_BI_COLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
+	//load the second
+	DECLARE_REG_BI_COLOR(in1);
+	REG_LOAD_BI_COLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
+	//merge the two and save
+	DECLARE_REG_BI_COLOR(to_buf);
+	REG_BI_COLOR_V0_MERGE(to_buf,in0,in1);
+	STORE_REG_BI_COLOR(((bi_color*)nissa_send_buf)[idst_buf],to_buf);
+      }
   
   ///////////////////////// fw scattered v derivative (bw derivative)  ////////////////////////
   
   if(is_in_second_team)
-    {
-      if(paral_dir[v])
-	{
-	  //split fw v border: VN 1 goes to fw out border (second half)
-	  NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4/fact,thread_in_team_id,nthreads_in_team)
-	    {
-	      //the source starts at the middle of result border buffer
-	      int isrc=2*base_isrc+1*vbord_vol/2/fact;
-	      //non-local shuffling: must enter fw buffer (starting at bord_volh/2 because its bi) for direction 0
-	      int idst_buf=(1*bord_volh/2+bord_offset[v]/2)/fact+base_isrc;
-	      //load the first
-	      DECLARE_REG_BI_COLOR(in0);
-	      REG_LOAD_BI_COLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
-	      //load the second
-	      DECLARE_REG_BI_COLOR(in1);
-	      REG_LOAD_BI_COLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
-	      //merge the two and save
-	      DECLARE_REG_BI_COLOR(to_buf);
-	      REG_BI_COLOR_V1_MERGE(to_buf,in0,in1);
-	      STORE_REG_BI_COLOR(((bi_color*)nissa_send_buf)[idst_buf],to_buf);
-	    }
-	}
-      else
-	//we have only to transpose between VN
-	NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/2/fact,thread_in_team_id,nthreads_in_team)
-	  {
-	    //the source starts at the middle of result border buffer
-	    int isrc=base_isrc+vbord_vol/2/fact;
-	    int idst=8*(vnode_lx_offset+base_isrc)+4+v;
-	    BI_COLOR_TRANSPOSE(bgq_hopping_matrix_output_data[idst],bgq_hopping_matrix_output_vdir_buffer[isrc]);
-	  }
-    }
+    //split fw v border: VN 1 goes to fw out border (second half)
+    NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4/fact,thread_in_team_id,nthreads_in_team)
+      {
+	//the source starts at the middle of result border buffer
+	int isrc=2*base_isrc+1*vbord_vol/2/fact;
+	    //non-local shuffling: must enter fw buffer (starting at bord_volh/2 because its bi) for direction v
+	int idst_buf=(1*bord_volh/2+bord_offset[v]/2)/fact+base_isrc;
+	//load the first
+	DECLARE_REG_BI_COLOR(in0);
+	REG_LOAD_BI_COLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
+	//load the second
+	DECLARE_REG_BI_COLOR(in1);
+	REG_LOAD_BI_COLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
+	//merge the two and save
+	DECLARE_REG_BI_COLOR(to_buf);
+	REG_BI_COLOR_V1_MERGE(to_buf,in0,in1);
+	STORE_REG_BI_COLOR(((bi_color*)nissa_send_buf)[idst_buf],to_buf);
+      }
 }}
 
+//pick data from vbuffer and put it in correct position
+THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_local_transpose)
+{
+  GET_THREAD_ID();
+  
+  //short access
+  const int fact=2;
+  int v=nissa_vnode_paral_dir;
+  bi_color *bgq_hopping_matrix_output_vdir_buffer=(bi_color*)nissa_send_buf+bord_volh/fact+8*loc_volh/fact;
+  
+  FORM_TWO_THREAD_TEAMS();
+
+  //backward scatter (forward derivative)
+  bi_color *base_out_bw=(bi_color*)nissa_send_buf+(bord_volh+1*8*vdir_bord_vol)/fact;
+  bi_color *base_in_bw=bgq_hopping_matrix_output_vdir_buffer+0*vdir_bord_vol/fact;
+  if(is_in_first_team)
+    NISSA_CHUNK_LOOP(isrc,0,vdir_bord_vol/fact,thread_in_team_id,nthreads_in_team)
+      {
+	//load
+	DECLARE_REG_BI_COLOR(reg_in);
+	REG_LOAD_BI_COLOR(reg_in,base_in_bw[isrc]);
+	//transpose and store
+	DECLARE_REG_BI_COLOR(reg_out);
+	REG_BI_COLOR_TRANSPOSE(reg_out,reg_in);
+	STORE_REG_BI_COLOR(base_out_bw[isrc*8+0+v],reg_out);
+      }
+  
+  //forward scatter (backward derivative)
+  bi_color *base_out_fw=(bi_color*)nissa_send_buf+(bord_volh+0*8*vdir_bord_vol)/fact;  
+  bi_color *base_in_fw=bgq_hopping_matrix_output_vdir_buffer+1*vdir_bord_vol/fact;
+  if(is_in_second_team)
+    NISSA_CHUNK_LOOP(isrc,0,vdir_bord_vol/fact,thread_in_team_id,nthreads_in_team)
+      {
+	//load
+	DECLARE_REG_BI_COLOR(reg_in);
+	REG_LOAD_BI_COLOR(reg_in,base_in_fw[isrc]);
+	//transpose and store
+	DECLARE_REG_BI_COLOR(reg_out);
+	REG_BI_COLOR_TRANSPOSE(reg_out,reg_in);
+	STORE_REG_BI_COLOR(base_out_fw[isrc*8+4+v],reg_out);
+      }
+}}
+  
 //perform communications between VN and start all the communications between nodes
 THREADABLE_FUNCTION_0ARG(start_staggered_hopping_matrix_oe_or_eo_bgq_communications)
 {
   //shuffle data between virtual nodes and fill vdir out buffer
-  bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_buff_fill();
+  if(paral_dir[nissa_vnode_paral_dir]) bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_buff_fill();
   
   //after the barrier, all buffers are filled and communications can start
   THREAD_BARRIER();
   
   //start communications of scattered data to other nodes
   comm_start(eo_color_comm);
+  
+  //if v dir is not parallelized we have only to transpose between VN, and no real communication happens
+  if(!paral_dir[nissa_vnode_paral_dir]) bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_local_transpose();
 }}
 
 //finish the communications and put in place the communicated data
@@ -298,32 +318,33 @@ THREADABLE_FUNCTION_1ARG(finish_staggered_hopping_matrix_oe_or_eo_bgq_communicat
   
   //vdir bw border (bw derivative): data goes to VN 0
   if(is_in_first_team)
-    {
-      //inside incoming borders vdir is ordered naturally, while in the output data it comes first
-      bi_color *base_out=(bi_color*)nissa_send_buf+(bord_volh+0*8*bord_dir_vol[v])/fact;
-      bi_color *base_vdir_in=(bi_color*)nissa_send_buf+(bord_volh+8*loc_volh+1*vbord_vol/2)/fact;
-      bi_color *base_bord_in=(bi_color*)nissa_recv_buf+bord_offset[v]/2/fact;
-      
-      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[v]/2/fact,thread_in_team_id,nthreads_in_team)
-	{
-	  //VN=0 must be filled with border
-	  DECLARE_REG_BI_COLOR(in0);
-	  REG_LOAD_BI_COLOR(in0,base_bord_in[isrc]);
-	  //VN=1 with buf0
-	  DECLARE_REG_BI_COLOR(in1);
-	  REG_LOAD_BI_COLOR(in1,base_vdir_in[2*isrc]);
-	  //merge and save
-	  DECLARE_REG_BI_COLOR(to_dest);
-	  REG_BI_COLOR_V0_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_COLOR(base_out[2*isrc*8+4+v],to_dest);
-	  
-	  //VN=1 with buf1
-	  REG_LOAD_BI_COLOR(in1,base_vdir_in[2*isrc+1]);
-	  //merge and save
-	  REG_BI_COLOR_V10_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_COLOR(base_out[(2*isrc+1)*8+4+v],to_dest);
-	}
-    }
+    if(paral_dir[v])
+      {
+	//inside incoming borders vdir is ordered naturally, while in the output data it comes first
+	bi_color *base_out=(bi_color*)nissa_send_buf+(bord_volh+0*8*vdir_bord_vol)/fact;
+	bi_color *base_vdir_in=(bi_color*)nissa_send_buf+(bord_volh+8*loc_volh+1*vbord_vol/2)/fact;
+	bi_color *base_bord_in=(bi_color*)nissa_recv_buf+bord_offset[v]/2/fact;
+	
+	NISSA_CHUNK_LOOP(isrc,0,vdir_bord_vol/2/fact,thread_in_team_id,nthreads_in_team)
+	  {
+	    //VN=0 must be filled with border
+	    DECLARE_REG_BI_COLOR(in0);
+	    REG_LOAD_BI_COLOR(in0,base_bord_in[isrc]);
+	    //VN=1 with buf0
+	    DECLARE_REG_BI_COLOR(in1);
+	    REG_LOAD_BI_COLOR(in1,base_vdir_in[2*isrc]);
+	    //merge and save
+	    DECLARE_REG_BI_COLOR(to_dest);
+	    REG_BI_COLOR_V0_MERGE(to_dest,in0,in1);
+	    STORE_REG_BI_COLOR(base_out[2*isrc*8+4+v],to_dest);
+	    
+	    //VN=1 with buf1
+	    REG_LOAD_BI_COLOR(in1,base_vdir_in[2*isrc+1]);
+	    //merge and save
+	    REG_BI_COLOR_V10_MERGE(to_dest,in0,in1);
+	    STORE_REG_BI_COLOR(base_out[(2*isrc+1)*8+4+v],to_dest);
+	  }
+      }
   
   //other 3 bw borders
   if(is_in_first_team)
@@ -339,32 +360,33 @@ THREADABLE_FUNCTION_1ARG(finish_staggered_hopping_matrix_oe_or_eo_bgq_communicat
   
   //v fw border (fw derivative): data goes to VN 1
   if(is_in_second_team)
-    {
-      //inside incoming borders vdir is ordered naturally, while in the output data it comes first
-      bi_color *base_out=(bi_color*)nissa_send_buf+(bord_volh+1*8*bord_dir_vol[v])/fact;
-      bi_color *base_vdir_in=(bi_color*)nissa_send_buf+(bord_volh+8*loc_volh+0*vbord_vol/2)/fact;
-      bi_color *base_bord_in=(bi_color*)nissa_recv_buf+(bord_vol/4+bord_offset[v]/2)/fact;
-      
-      NISSA_CHUNK_LOOP(isrc,0,bord_dir_vol[v]/2/fact,thread_in_team_id,nthreads_in_team)
-	{
-	  //VN=0 with buf1
-	  DECLARE_REG_BI_COLOR(in0);
-	  REG_LOAD_BI_COLOR(in0,base_vdir_in[2*isrc]);
-	  //VN=1 must be filled with border 0
-	  DECLARE_REG_BI_COLOR(in1);
-	  REG_LOAD_BI_COLOR(in1,base_bord_in[isrc]);
-	  //merge and save
-	  DECLARE_REG_BI_COLOR(to_dest);
-	  REG_BI_COLOR_V10_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_COLOR(base_out[2*isrc*8+0+v],to_dest);
-	  
-	  //VN=0 with buf1
-	  REG_LOAD_BI_COLOR(in0,base_vdir_in[2*isrc+1]);
-	  //merge and save
-	  REG_BI_COLOR_V1_MERGE(to_dest,in0,in1);
-	  STORE_REG_BI_COLOR(base_out[(2*isrc+1)*8+0+v],to_dest);
-	}
-    }
+    if(paral_dir[v])
+      {
+	//inside incoming borders vdir is ordered naturally, while in the output data it comes first
+	bi_color *base_out=(bi_color*)nissa_send_buf+(bord_volh+1*8*vdir_bord_vol)/fact;
+	bi_color *base_vdir_in=(bi_color*)nissa_send_buf+(bord_volh+8*loc_volh+0*vbord_vol/2)/fact;
+	bi_color *base_bord_in=(bi_color*)nissa_recv_buf+(bord_vol/4+bord_offset[v]/2)/fact;
+	
+	NISSA_CHUNK_LOOP(isrc,0,vdir_bord_vol/2/fact,thread_in_team_id,nthreads_in_team)
+	  {
+	    //VN=0 with buf1
+	    DECLARE_REG_BI_COLOR(in0);
+	    REG_LOAD_BI_COLOR(in0,base_vdir_in[2*isrc]);
+	    //VN=1 must be filled with border 0
+	    DECLARE_REG_BI_COLOR(in1);
+	    REG_LOAD_BI_COLOR(in1,base_bord_in[isrc]);
+	    //merge and save
+	    DECLARE_REG_BI_COLOR(to_dest);
+	    REG_BI_COLOR_V10_MERGE(to_dest,in0,in1);
+	    STORE_REG_BI_COLOR(base_out[2*isrc*8+0+v],to_dest);
+	    
+	    //VN=0 with buf1
+	    REG_LOAD_BI_COLOR(in0,base_vdir_in[2*isrc+1]);
+	    //merge and save
+	    REG_BI_COLOR_V1_MERGE(to_dest,in0,in1);
+	    STORE_REG_BI_COLOR(base_out[(2*isrc+1)*8+0+v],to_dest);
+	  }
+      }
   
   //other 3 fw borders
   if(is_in_second_team)
