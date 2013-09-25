@@ -662,6 +662,12 @@ YFLAGS
 YACC
 SPI_FALSE
 SPI_TRUE
+NVCC
+CUDA_LDFLAGS
+CUDA_LIBS
+CUDA_CFLAGS
+CUDA_FALSE
+CUDA_TRUE
 LIBOBJS
 ALLOCA
 CXXCPP
@@ -795,6 +801,8 @@ enable_fast_install
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
+enable_cuda
+with_cuda
 enable_spi
 enable_parser_generation
 enable_mpi_io
@@ -1451,6 +1459,7 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
+  --enable-cuda           Enable cuda
   --enable-spi            Enable spi stuff (ony for BG/Q)
   --enable-parser-generation
                           Enable generation of parsers
@@ -1474,6 +1483,7 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
+  --with-cuda=PATH    prefix where cuda is installed default=/usr/local/cuda
 
 Some influential environment variables:
   CC          C compiler command
@@ -16281,6 +16291,62 @@ _ACEOF
   esac
 
 
+#cuda
+# Check whether --enable-cuda was given.
+if test "${enable_cuda+set}" = set; then :
+  enableval=$enable_cuda; enable_cuda="${enableval}"
+else
+  enable_cuda="no"
+fi
+
+if test "$enable_cuda" == "yes";then
+$as_echo "#define CUDA 1" >>confdefs.h
+ fi
+ if test "$enable_cuda" == "yes" ; then
+  CUDA_TRUE=
+  CUDA_FALSE='#'
+else
+  CUDA_TRUE='#'
+  CUDA_FALSE=
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling cuda... $enable_cuda" >&5
+$as_echo "enabling cuda... $enable_cuda" >&6; }
+
+#cuda bins
+ARCH=`uname -m`
+if [ $ARCH == "x86_64" ];
+then
+  SUFFIX="64"
+else
+  SUFFIX=""
+fi
+
+#cuda path
+
+# Check whether --with-cuda was given.
+if test "${with_cuda+set}" = set; then :
+  withval=$with_cuda;
+fi
+
+
+if test -n "$with_cuda"
+then
+   CUDA_CFLAGS="-I$with_cuda/include"
+   CUDA_LIBS="-lcudart"
+   CUDA_LDFLAGS="-L$with_cuda/lib$SUFFIX"
+   NVCC="$with_cuda/bin/nvcc"
+else
+   CUDA_CFLAGS="-I/usr/local/cuda/include"
+   CUDA_LIBS="-lcudart"
+   CUDA_LDFLAGS="-L/usr/local/cuda/lib$SUFFIX"
+   NVCC="nvcc"
+fi
+
+
+
+
+
 #spi
 # Check whether --enable-spi was given.
 if test "${enable_spi+set}" = set; then :
@@ -16742,7 +16808,7 @@ _ACEOF
 $as_echo "enabling max verbosity lv... $max_verbosity_lv" >&6; }
 
 #create config.h
-ac_config_files="$ac_config_files Makefile src/Makefile src/base/Makefile src/bgq/Makefile src/communicate/Makefile src/dirac_operators/Makefile src/geometry/Makefile src/hmc/Makefile src/inverters/Makefile src/io/Makefile src/linalgs/Makefile src/new_types/Makefile src/operations/Makefile src/routines/Makefile projects/Makefile projects/generate_confs/Makefile projects/semileptonic/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/base/Makefile src/bgq/Makefile src/cuda/Makefile src/communicate/Makefile src/dirac_operators/Makefile src/geometry/Makefile src/hmc/Makefile src/inverters/Makefile src/io/Makefile src/linalgs/Makefile src/new_types/Makefile src/operations/Makefile src/routines/Makefile projects/Makefile projects/generate_confs/Makefile projects/semileptonic/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -16878,6 +16944,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCXX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${CUDA_TRUE}" && test -z "${CUDA_FALSE}"; then
+  as_fn_error $? "conditional \"CUDA\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${SPI_TRUE}" && test -z "${SPI_FALSE}"; then
@@ -17898,6 +17968,7 @@ do
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/base/Makefile") CONFIG_FILES="$CONFIG_FILES src/base/Makefile" ;;
     "src/bgq/Makefile") CONFIG_FILES="$CONFIG_FILES src/bgq/Makefile" ;;
+    "src/cuda/Makefile") CONFIG_FILES="$CONFIG_FILES src/cuda/Makefile" ;;
     "src/communicate/Makefile") CONFIG_FILES="$CONFIG_FILES src/communicate/Makefile" ;;
     "src/dirac_operators/Makefile") CONFIG_FILES="$CONFIG_FILES src/dirac_operators/Makefile" ;;
     "src/geometry/Makefile") CONFIG_FILES="$CONFIG_FILES src/geometry/Makefile" ;;

@@ -1,9 +1,11 @@
 if BGQ
 bgq_subdirs=bgq
 bgq_sublib=bgq/libbgq.la
-else
-bgq_subdirs=
-bgq_sublib=
+endif
+
+if CUDA
+cuda_subdirs=cuda
+cuda_sublib=cuda/libcuda.la
 endif
 
 include_HEADERS=nissa.h
@@ -14,6 +16,7 @@ __top_builddir__lib_libnissa_la_SOURCES=
 __top_builddir__lib_libnissa_la_LIBADD= \
         base/libbase.la \
         $(bgq_sublib) \
+        $(cuda_sublib) \
         communicate/libcommunicate.la \
         dirac_operators/libdirac_operators.la \
         geometry/libgeometry.la \
@@ -29,6 +32,7 @@ __top_builddir__lib_libnissa_la_LIBADD= \
 SUBDIRS= \
         base \
         $(bgq_subdirs) \
+        $(cuda_subdirs) \
         communicate \
         dirac_operators \
         geometry \
