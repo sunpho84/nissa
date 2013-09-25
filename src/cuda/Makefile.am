@@ -1,5 +1,5 @@
 include $(top_srcdir)/config/cuda.mk
-AM_CXXFLAGS=-I$(top_srcdir)/src
+AM_CPPFLAGS=-I$(top_srcdir)/src
 
 LINK=$(LIBTOOL) --mode=link $(CC) -o $@ $(CUDA_LDFLAGS) $(CUDA_LIBS)
 

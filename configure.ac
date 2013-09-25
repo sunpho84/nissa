@@ -72,9 +72,9 @@ AC_MSG_RESULT([enabling cuda... $enable_cuda])
 ARCH=`uname -m`
 if [[ $ARCH == "x86_64" ]];
 then
-  SUFFIX="64"
+  CUDA_SUFFIX="64"
 else
-  SUFFIX=""
+  CUDA_SUFFIX=""
 fi
 
 #cuda path
@@ -85,12 +85,12 @@ if test -n "$with_cuda"
 then
    CUDA_CFLAGS="-I$with_cuda/include"
    CUDA_LIBS="-lcudart"
-   CUDA_LDFLAGS="-L$with_cuda/lib$SUFFIX"
+   CUDA_LDFLAGS="-L$with_cuda/lib$CUDA_SUFFIX"
    NVCC="$with_cuda/bin/nvcc"
 else
    CUDA_CFLAGS="-I/usr/local/cuda/include"
    CUDA_LIBS="-lcudart"
-   CUDA_LDFLAGS="-L/usr/local/cuda/lib$SUFFIX"
+   CUDA_LDFLAGS="-L/usr/local/cuda/lib$CUDA_SUFFIX"
    NVCC="nvcc"
 fi
 AC_SUBST(CUDA_CFLAGS)

@@ -1,5 +1,7 @@
 #include <stdio.h>
 
+#include "base/global_variables.h"
+
 void cuda_set_device()
 {
   //count device
