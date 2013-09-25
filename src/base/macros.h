@@ -61,13 +61,6 @@
  #define GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS()
 #endif
 
-//check on master rank
-#ifdef USE_MPI
- #define IS_MASTER_RANK (rank==0)
-#else
- #define IS_MASTER_RANK 1
-#endif
-
 //constants
 #define nissa_default_verbosity 2
 #define nissa_default_use_eo_geom 1

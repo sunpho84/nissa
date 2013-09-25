@@ -228,7 +228,7 @@ THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_
       {
 	//the source starts at the middle of result border buffer
 	int isrc=2*base_isrc+1*vbord_vol/2/fact;
-	    //non-local shuffling: must enter fw buffer (starting at bord_volh/2 because its bi) for direction v
+	//non-local shuffling: must enter fw buffer (starting at bord_volh/2 because its bi) for direction v
 	int idst_buf=(1*bord_volh/2+bord_offset[v]/2)/fact+base_isrc;
 	//load the first
 	DECLARE_REG_BI_COLOR(in0);

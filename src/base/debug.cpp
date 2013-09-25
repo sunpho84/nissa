@@ -14,12 +14,19 @@
 #include "global_variables.h"
 #include "vectors.h"
 
-#include "routines/ios.h"
 #include "base/thread_macros.h"
+#include "routines/ios.h"
+#include "routines/mpi_routines.h"
 
 //take the time
 double take_time()
-{return MPI_Wtime();}
+{
+#ifdef USE_MPI
+  return MPI_Wtime();
+#else
+  return (double) clock()/CLOCKS_PER_SEC;
+#endif
+}
 
 //write the list of called routines
 void print_backtrace_list()
@@ -29,7 +36,7 @@ void print_backtrace_list()
   char **strs=backtrace_symbols(callstack,frames);
   
   //only master rank, but not master thread
-  if(IS_MASTER_RANK)
+  if(rank==0)
     {
       printf("Backtracing...\n");
       for(int i=0;i<frames;i++) printf("%s\n",strs[i]);
@@ -48,7 +55,7 @@ void internal_crash(int line,const char *file,const char *templ,...)
   GET_THREAD_ID();
   if(!IS_MASTER_THREAD) sleep(1);
   
-  if(IS_MASTER_RANK)
+  if(rank==0)
     {
       //expand error message
       char mess[1024];
@@ -59,7 +66,7 @@ void internal_crash(int line,const char *file,const char *templ,...)
 
       fprintf(stderr,"ERROR on line %d of file \"%s\", message error: \"%s\".\n",line,file,mess);
       print_backtrace_list();
-      MPI_Abort(MPI_COMM_WORLD,1);
+      ranks_abort(1);
     }
 }
 
@@ -93,13 +100,14 @@ void terminate_sigsegv(int par)
     }
 }
 
+#ifdef USE_MPI
 //decript the MPI error
 void internal_decript_MPI_error(int line,const char *file,int rc,const char *templ,...)
 {
   va_list ap;
   va_start(ap,templ);
   
-  if(rc!=MPI_SUCCESS && IS_MASTER_RANK)
+  if(rc!=MPI_SUCCESS && rank==0)
     {
       char err[1024];
       int len=1024;
@@ -111,3 +119,4 @@ void internal_decript_MPI_error(int line,const char *file,int rc,const char *tem
     
     va_end(ap);
 }
+#endif

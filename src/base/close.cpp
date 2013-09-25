@@ -40,11 +40,11 @@ void close_nissa()
   
   //print information over the maximum amount of memory used
   master_printf("Maximal memory used during the run: %d bytes (",nissa_max_required_memory);
-  if(IS_MASTER_RANK) fprintf_friendly_filesize(stdout,nissa_max_required_memory);
+  if(rank==0) fprintf_friendly_filesize(stdout,nissa_max_required_memory);
   master_printf(") per rank\n\n");
   
   //check wether there are still allocated vectors
-  if(main_nissa_vect.next!=NULL && IS_MASTER_RANK)
+  if(main_nissa_vect.next!=NULL && rank==0)
     {
       printf("Warning, there are still allocated vectors:\n");
       print_all_nissa_vect_content();

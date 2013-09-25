@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Starting test: semileptonic_smeared"
 rm -frv out_source? > log
-$* ../../../bin/semileptonic_smeared input >> log
+$* ../../../build_pc/bin/semileptonic_smeared input >> log
 
 err=$(
     for i in 2pts_00_00 2pts_00_30 2pts_30_00 2pts_30_30 3pts_sp0_00_00 3pts_sp0_00_30 3pts_sp0_30_00 3pts_sp0_30_30 3pts_sp1_00_00 3pts_sp1_00_30 3pts_sp1_30_00 3pts_sp1_30_30
