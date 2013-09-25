@@ -199,7 +199,7 @@ void initialize_main_nissa_vect()
       main_nissa_vect.prev=main_nissa_vect.next=NULL;
       main_nissa_vect.nel=0;
       main_nissa_vect.size_per_el=0;
-      memcpy(main_nissa_vect.file,__FILE__+max_int(0,(int)strlen(__FILE__)-12),12);
+      memcpy(main_nissa_vect.file,__FILE__+std::max(0,(int)strlen(__FILE__)-12),12);
       main_nissa_vect.line=__LINE__;
       main_nissa_arr=(char*)last_nissa_vect+sizeof(nissa_vect);
 
@@ -258,7 +258,7 @@ void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *
       
       //Update the amount of required memory
       nissa_required_memory+=size;
-      nissa_max_required_memory=max_int(nissa_max_required_memory,nissa_required_memory);
+      nissa_max_required_memory=std::max(nissa_max_required_memory,nissa_required_memory);
 
       cache_flush();
     }

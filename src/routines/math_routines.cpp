@@ -8,26 +8,6 @@
 #include "base/random.h"
 
 double sqr(double a) {return a*a;}
-int min_int(int a,int b) {if(a<b) return a;else return b;}
-int max_int(int a,int b) {if(a>b) return a;else return b;}
-double min_double(double a,double b) {if(a<b) return a;else return b;}
-double max_double(double a,double b) {if(a>b) return a;else return b;}
-
-//swap two doubles
-void swap_doubles(double &d1,double &d2)
-{
-  double tmp=d1;
-  d1=d2;
-  d2=tmp;
-}
-
-//swap two ints
-void swap_ints(int &i1,int &i2)
-{
-  double tmp=i1;
-  i1=i2;
-  i2=tmp;
-}
 
 //return the log of the factorial of n
 double lfact(double n)

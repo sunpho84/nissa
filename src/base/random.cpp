@@ -30,7 +30,7 @@ void start_rnd_gen(rnd_gen *out,int seed)
   
   //initialization
   out->idum=seed;
-  out->idum=max_int(out->idum+1,1);
+  out->idum=std::max(out->idum+1,1);
   out->idum2=out->idum;
   for(j=ran2_ntab+7;j>=0;j--)
     {
@@ -152,7 +152,7 @@ double rnd_get_unif(rnd_gen *gen,double min,double max)
   gen->iv[j]=gen->idum;
   if(gen->iy<0) gen->iy+=imm1;
   
-  out=min_double(am*gen->iy,rnmx);
+  out=std::min(am*gen->iy,rnmx);
   
   return out*(max-min)+min;
 }

@@ -68,7 +68,7 @@ THREADABLE_FUNCTION_10ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1,
       current_residue/=source_norm;
       
       // 3) calibrate inner solver stopping condition
-      double inner_solver_residue=max_double(1.e-16,external_solver_residue/current_residue);
+      double inner_solver_residue=std::max(1.e-16,external_solver_residue/current_residue);
       
       // 3) if residue not reached, compute the new approximated solution
       if(current_residue>=external_solver_residue)
