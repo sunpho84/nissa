@@ -399,8 +399,10 @@ void in_main(int narg,char **arg)
   //init simulation according to input file
   init_simulation(arg[1]);
   
+#ifdef CUDA
   cuda_test();
-  
+#endif
+
   ///////////////////////////////////////
   
   //evolve for the required number of traj

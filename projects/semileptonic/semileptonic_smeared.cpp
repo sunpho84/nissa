@@ -501,7 +501,7 @@ void initialize_semileptonic(char *input_path)
 	S0[r][iprop]=nissa_malloc("S0[r]",loc_vol+bord_vol,PROP_TYPE);
   
   //Allocate nmass spincolors, for the cgm solutions
-  ncgm_solution=max_int(nmassS0,nmassS1);
+  ncgm_solution=std::max(nmassS0,nmassS1);
   cgm_solution=nissa_malloc("cgm_solution",ncgm_solution,spincolor*);
   for(int imass=0;imass<ncgm_solution;imass++) cgm_solution[imass]=nissa_malloc("cgm_solution",loc_vol+bord_vol,spincolor);
   temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol,spincolor);

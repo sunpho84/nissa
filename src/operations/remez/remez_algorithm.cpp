@@ -58,7 +58,7 @@ void linear_system_solve(float_256 *A,float_256 *x,float_256 *b,int n)
         }
       if(big[0]==0) crash("null big");
         
-      swap_ints(exch[ipiv],exch[k]);
+      std::swap(exch[ipiv],exch[k]);
       
       //pivotize
       float_256 pivot;
