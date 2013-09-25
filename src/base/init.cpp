@@ -40,10 +40,7 @@
 void init_nissa(int narg,char **arg)
 {
   //init base things
-  int provided;
-#ifdef USE_MPI
-  MPI_Init_thread(&narg,&arg,MPI_THREAD_SERIALIZED,&provided);
-#endif
+  init_MPI_thread(narg,arg);
   tot_nissa_time=-take_time();
 #ifdef BENCH
   tot_nissa_comm_time=0;
@@ -51,11 +48,9 @@ void init_nissa(int narg,char **arg)
   verb_call=0;
 
   //this must be done before everything otherwise rank non properly working  
-#ifdef USE_MPI
   //get the number of rank and the id of the local one
-  MPI_Comm_size(MPI_COMM_WORLD,&nissa_nranks);
-  MPI_Comm_rank(MPI_COMM_WORLD,&rank);
-#endif
+  get_MPI_nranks();
+  get_MPI_rank();
 
   //associate sigsegv with proper handle
   signal(SIGSEGV,terminate_sigsegv);
@@ -66,46 +61,8 @@ void init_nissa(int narg,char **arg)
   master_printf("Configured at %s with flags: %s\n",CONFIG_TIME,CONFIG_FLAGS);
   master_printf("Compiled at %s of %s\n",__TIME__,__DATE__);
   
-#ifdef USE_MPI
-  //128 bit float
-  MPI_Type_contiguous(2,MPI_DOUBLE,&MPI_FLOAT_128);
-  MPI_Type_commit(&MPI_FLOAT_128);
-  
-  //define the gauge link
-  MPI_Type_contiguous(18,MPI_DOUBLE,&MPI_SU3);
-  MPI_Type_commit(&MPI_SU3);
-  
-  //four links starting from a single point
-  MPI_Type_contiguous(4,MPI_SU3,&MPI_QUAD_SU3);
-  MPI_Type_commit(&MPI_QUAD_SU3);
-  
-  //a color (6 doubles)
-  MPI_Type_contiguous(6,MPI_DOUBLE,&MPI_COLOR);
-  MPI_Type_commit(&MPI_COLOR);
-  
-  //a spin (8 doubles)
-  MPI_Type_contiguous(8,MPI_DOUBLE,&MPI_SPIN);
-  MPI_Type_commit(&MPI_SPIN);
-
-  //a spinspin (32 doubles)
-  MPI_Type_contiguous(32,MPI_DOUBLE,&MPI_SPINSPIN);
-  MPI_Type_commit(&MPI_SPINSPIN);
-  
-  //a spincolor (24 doubles)
-  MPI_Type_contiguous(24,MPI_DOUBLE,&MPI_SPINCOLOR);
-  MPI_Type_commit(&MPI_SPINCOLOR);
-  
-  //a spincolor_128 (24 float_128)
-  MPI_Type_contiguous(24,MPI_FLOAT_128,&MPI_SPINCOLOR_128);
-  MPI_Type_commit(&MPI_SPINCOLOR_128);
-  
-  //a reduced spincolor (12 doubles)
-  MPI_Type_contiguous(12,MPI_DOUBLE,&MPI_REDSPINCOLOR);
-  MPI_Type_commit(&MPI_REDSPINCOLOR);
-  
-  //summ for 128 bit float
-  MPI_Op_create((MPI_User_function*)MPI_FLOAT_128_SUM_routine,1,&MPI_FLOAT_128_SUM);
-#endif
+  //define all derived MPI types
+  define_MPI_types();
   
   //initialize the first vector of nissa
   initialize_main_nissa_vect();
@@ -120,13 +77,11 @@ void init_nissa(int narg,char **arg)
   nissa_loc_rnd_gen_inited=0;
   nissa_glb_rnd_gen_inited=0;
   nissa_grid_inited=0;
-#ifdef USE_MPI
 #ifdef SPI
   nissa_spi_inited=0;
 #endif
   memset(rank_coord,0,4*sizeof(int));
   memset(nrank_dir,0,4*sizeof(int));
-#endif
   
   //check endianess
   check_endianess();
@@ -425,7 +380,7 @@ void init_grid(int T,int L)
     }
   
   //broadcast the global sizes
-  MPI_Bcast(glb_size,4,MPI_INT,0,MPI_COMM_WORLD);
+  coords_broadcast(glb_size);
   
   //calculate global volume, initialize local one
   glb_vol=1;
@@ -437,11 +392,12 @@ void init_grid(int T,int L)
   glb_spat_vol=glb_vol/glb_size[0];
   glb_vol2=(double)glb_vol*glb_vol;
   
-  master_printf("Number of running ranks: %d\n",nissa_nranks);
   master_printf("Global lattice:\t%dx%dx%dx%d = %d\n",glb_size[0],glb_size[1],glb_size[2],glb_size[3],glb_vol);
+  master_printf("Number of running ranks: %d\n",nissa_nranks);
   
   //find the grid minimizing the surface
   find_minimal_surface_grid(nrank_dir,glb_size,nissa_nranks);
+
   //check that lattice is commensurable with the grid
   //and check wether the idir dir is parallelized or not
   int ok=(glb_vol%nissa_nranks==0);
@@ -457,14 +413,10 @@ void init_grid(int T,int L)
     }
 
   master_printf("Creating grid:\t%dx%dx%dx%d\n",nrank_dir[0],nrank_dir[1],nrank_dir[2],nrank_dir[3]);  
-  
+
   //creates the grid
-  int periods[4]={1,1,1,1};
-  MPI_Cart_create(MPI_COMM_WORLD,4,nrank_dir,periods,1,&cart_comm);
-  //takes rank and ccord of local rank
-  MPI_Comm_rank(cart_comm,&cart_rank);
-  MPI_Cart_coords(cart_comm,cart_rank,4,rank_coord);
-  
+  create_MPI_cartesian_grid();
+    
   //calculate the local volume
   for(int idir=0;idir<4;idir++) loc_size[idir]=glb_size[idir]/nrank_dir[idir];
   loc_vol=glb_vol/nissa_nranks;
@@ -562,45 +514,10 @@ void init_grid(int T,int L)
 	  if(rank==irank) printf("Rank %d of %d running on processor %s: %d (%d %d %d %d)\n",rank,nissa_nranks,
 				 proc_name,cart_rank,rank_coord[0],rank_coord[1],rank_coord[2],rank_coord[3]);
 	  fflush(stdout);
+	  ranks_barrier();
 	  MPI_Barrier(MPI_COMM_WORLD);
 	}
     }
-  
-  //create communicator along plan
-  for(int mu=0;mu<4;mu++)
-    {
-      int split_plan[4];
-      coords proj_rank_coord;
-      for(int nu=0;nu<4;nu++)
-	{
-	  split_plan[nu]=(nu==mu) ? 0 : 1;
-	  proj_rank_coord[nu]=(nu==mu) ? 0 : rank_coord[nu];
-	}
-      MPI_Cart_sub(cart_comm,split_plan,&(plan_comm[mu]));
-      MPI_Comm_rank(plan_comm[mu],&(plan_rank[mu]));
-      if(plan_rank[mu]!=rank_of_coord(proj_rank_coord))
-	crash("Plan communicator has messed up coord: %d and rank %d (implement reorder!)",rank_of_coord(proj_rank_coord),plan_rank[mu]);
-   }
-  
-  //create communicator along line
-  for(int mu=0;mu<4;mu++)
-    {
-      //split the communicator
-      int split_line[4];
-      memset(split_line,0,4*sizeof(int));
-      split_line[mu]=1;
-      MPI_Cart_sub(cart_comm,split_line,&(line_comm[mu]));
-      
-      //get rank id
-      MPI_Comm_rank(line_comm[mu],&(line_rank[mu]));
-      
-      //get rank coord along line comm
-      MPI_Cart_coords(line_comm[mu],line_rank[mu],1,&(line_coord_rank[mu]));
-      
-      //check communicator
-      if(line_rank[mu]!=rank_coord[mu] || line_rank[mu]!=line_coord_rank[mu])
-	crash("Line communicator has messed up coord and rank (implement reorder!)");
-   }
   
   //////////////////////////////////////////////////////////////////////////////////////////
   
@@ -635,8 +552,10 @@ void init_grid(int T,int L)
   set_lx_comm(lx_su3spinspin_comm,sizeof(su3spinspin));
 
   //setup all lx edges communicators
+#ifdef USE_MPI
   set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,&MPI_SU3);
   set_lx_edge_senders_and_receivers(MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
+#endif
   
   if(nissa_use_eo_geom)
     {
@@ -647,25 +566,11 @@ void init_grid(int T,int L)
       set_eo_comm(eo_quad_su3_comm,sizeof(quad_su3));
       set_eo_comm(eo_su3_comm,sizeof(su3));
       
+#ifdef USE_MPI
       set_eo_edge_senders_and_receivers(MPI_EO_QUAD_SU3_EDGES_SEND,MPI_EO_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
+#endif
     }
   
-  /*
-  //check that everything is fine
-  quad_su3 *testing=nissa_malloc("testing",loc_vol+bord_vol+edge_vol,quad_su3);
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int mu=0;mu<4;mu++)
-      su3_put_to_diag(testing[ivol][mu],glblx_of_loclx[ivol]);
-  communicate_lx_quad_su3_borders(testing);
-  for(int ivol=loc_vol;ivol<loc_vol+bord_vol;ivol++)
-    for(int mu=0;mu<4;mu++)
-      {
-	int expe=glblx_of_bordlx[ivol-loc_vol];
-	int obte=(int)testing[ivol][mu][0][0][0];
-	if(expe!=obte) crash("expecting %d, obtained %d on rank %d",expe,obte,rank);
-      }
-  nissa_free(testing);
-  */
   //take final time
-  master_printf("Time elapsed for MPI inizialization: %f s\n",time_init+take_time());
+  master_printf("Time elapsed for grid inizialization: %f s\n",time_init+take_time());
 }

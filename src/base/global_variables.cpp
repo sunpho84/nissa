@@ -111,27 +111,36 @@ EXTERN double tot_nissa_time;
  #endif
 #endif
 
-//verbosity
+//nissa_config parameters
 EXTERN int verb_call;
 EXTERN int nissa_verbosity;
 EXTERN int nissa_warn_if_not_disallocated;
+EXTERN int nissa_use_async_communications;
 EXTERN int nissa_warn_if_not_communicated;
-
-//128 bit precision
+EXTERN coords nissa_set_nranks;
 EXTERN int nissa_use_128_bit_precision;
-
-#ifdef USE_MPI
-//size of the border along the 4 dir,types for sending
-EXTERN int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
-EXTERN int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
-EXTERN int bord_dir_vol[4],bord_offset[4];
-EXTERN int bord_vol,bord_volh;
 EXTERN int nissa_vnode_paral_dir;
+
+//size of the border and edges
+EXTERN int bord_vol,bord_volh;
+EXTERN int edge_vol,edge_volh;
+//size along various dir
+EXTERN int bord_dir_vol[4],bord_offset[4];
+EXTERN int bord_offset_eo[2][8]; //eo, 8 dirs
+EXTERN int edge_dir_vol[6],edge_offset[6];
+EXTERN int edge_numb[4][4]
+#ifndef ONLY_INSTANTIATION
+={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}}
+#endif
+;
 #ifdef USE_VNODES
 EXTERN int vnode_lx_offset,vnode_eo_offset;
 EXTERN int vbord_vol,vbord_volh;
 EXTERN int vir_loc_size[4];
 #endif
+#ifdef USE_MPI
+EXTERN int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
+EXTERN int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
 EXTERN int start_eo_bord_send_up[4],start_eo_bord_rece_up[4];
 EXTERN int start_eo_bord_send_dw[4],start_eo_bord_rece_dw[4];
 EXTERN MPI_Datatype MPI_EO_QUAD_SU3_BORDS_SEND_TXY[4],MPI_EO_QUAD_SU3_BORDS_RECE[4];
@@ -145,19 +154,6 @@ EXTERN MPI_Datatype MPI_EV_SPINCOLOR_BORDS_SEND_Z[2],MPI_OD_SPINCOLOR_BORDS_SEND
 EXTERN MPI_Datatype MPI_EO_SPINCOLOR_128_BORDS_SEND_TXY[4],MPI_EO_SPINCOLOR_128_BORDS_RECE[4];
 EXTERN MPI_Datatype MPI_EV_SPINCOLOR_128_BORDS_SEND_Z[2],MPI_OD_SPINCOLOR_128_BORDS_SEND_Z[2];
 
-EXTERN int bord_offset_eo[2][8]; //eo, 8 dirs
-
-//use async communication
-EXTERN int nissa_use_async_communications;
-
-//size of the edges along the 6 directions
-EXTERN int edge_dir_vol[6],edge_offset[6];
-EXTERN int edge_vol,edge_volh;
-EXTERN int edge_numb[4][4]
-#ifndef ONLY_INSTANTIATION
-={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}}
-#endif
-;
 EXTERN MPI_Datatype MPI_LX_SU3_EDGES_SEND[6],MPI_LX_SU3_EDGES_RECE[6];
 EXTERN MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[6],MPI_LX_QUAD_SU3_EDGES_RECE[6];
 EXTERN MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[6];
@@ -166,18 +162,16 @@ EXTERN MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[6]
 EXTERN MPI_Comm cart_comm;
 EXTERN MPI_Comm plan_comm[4];
 EXTERN MPI_Comm line_comm[4];
-
+#endif
 //ranks
-EXTERN coords nissa_set_nranks;
 EXTERN int rank,nissa_nranks,cart_rank;
-EXTERN int nparal_dir;
-EXTERN coords paral_dir;
-EXTERN coords nrank_dir;
 EXTERN coords rank_coord;
 EXTERN coords rank_neigh[2],rank_neighdw,rank_neighup;
 EXTERN coords plan_rank,line_rank,line_coord_rank;
+EXTERN coords nrank_dir;
 EXTERN int nissa_grid_inited;
-#endif
+EXTERN int nparal_dir;
+EXTERN coords paral_dir;
 
 /////////////////////////////////////////////// threads //////////////////////////////////////////
 #ifdef USE_THREADS
@@ -265,6 +259,7 @@ EXTERN size_t nissa_recv_buf_size,nissa_send_buf_size;
 EXTERN char *nissa_recv_buf,*nissa_send_buf;
 
 //communicators
+#ifdef USE_MPI
 EXTERN comm_t lx_spin_comm,eo_spin_comm;
 EXTERN comm_t lx_color_comm,eo_color_comm;
 EXTERN comm_t lx_spincolor_comm,eo_spincolor_comm;
@@ -275,6 +270,7 @@ EXTERN comm_t lx_spinspin_comm,eo_spinspin_comm;
 EXTERN comm_t lx_su3spinspin_comm,eo_su3spinspin_comm;
 EXTERN comm_t lx_su3_comm,eo_su3_comm;
 EXTERN comm_t lx_quad_su3_comm,eo_quad_su3_comm;
+#endif
 
 ////////////////////////////////////// two stage computations ///////////////////////////////
 

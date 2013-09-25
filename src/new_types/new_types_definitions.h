@@ -5,7 +5,10 @@
  #include "config.h"
 #endif
 
-#include <mpi.h>
+#ifdef USE_MPI
+ #include <mpi.h>
+#endif
+
 #include <math.h>
 #include <stdint.h>
 #include <map>
@@ -75,12 +78,14 @@ typedef squared_staples_t rectangular_staples_t;
  #endif
 #endif
 
-#ifdef USE_MPI_IO
-typedef MPI_Offset ILDG_Offset;
-typedef MPI_File ILDG_File;
-#else
-typedef off_t ILDG_Offset;
-typedef FILE* ILDG_File;
+#ifdef USE_MPI
+ #ifdef USE_MPI_IO
+  typedef MPI_Offset ILDG_Offset;
+  typedef MPI_File ILDG_File;
+ #else
+  typedef off_t ILDG_Offset;
+  typedef FILE* ILDG_File;
+ #endif
 #endif
 
 //this is just for avoid misleading, but is nothing more that a spinspin
@@ -191,10 +196,14 @@ struct ILDG_message
 //ILDG file view
 struct ILDG_File_view
 {
+#ifdef USE_MPI
+ #ifdef USE_MPI_IO
   MPI_Datatype etype;
   MPI_Datatype ftype;
   MPI_Offset view_pos;
   MPI_Offset pos;
+ #endif
+#endif
   char format[100];
 };
 
@@ -450,6 +459,7 @@ union evol_pars_t
   pure_gauge_evol_pars_t pure_gauge_evol_pars;
 };
 
+#ifdef USE_MPI
 //out and in buffer
 struct comm_t
 {
@@ -475,5 +485,6 @@ struct comm_t
   //offsets
   int send_offset[8],message_length[8],recv_offset[8];
 };
+#endif
 
 #endif
