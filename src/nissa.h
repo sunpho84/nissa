@@ -27,6 +27,11 @@
  #include "bgq/spi.h"
 #endif
 
+//include CUDA
+#ifdef CUDA
+ #include "cuda/test.h"
+#endif
+
 #ifdef USE_VNODES
  #include "geometry/geometry_vir.h"
 #endif

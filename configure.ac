@@ -59,6 +59,45 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 
+#cuda
+AC_ARG_ENABLE(cuda,
+	AS_HELP_STRING([--enable-cuda],[Enable cuda]),
+	enable_cuda="${enableval}",
+	enable_cuda="no")
+if test "$enable_cuda" == "yes";then AC_DEFINE([CUDA],1,[Enable cuda]) fi
+AM_CONDITIONAL([CUDA],[test "$enable_cuda" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling cuda... $enable_cuda])
+
+#cuda bins
+ARCH=`uname -m`
+if [[ $ARCH == "x86_64" ]];
+then
+  SUFFIX="64"
+else
+  SUFFIX=""
+fi
+
+#cuda path
+AC_ARG_WITH([cuda],
+   [  --with-cuda=PATH    prefix where cuda is installed [default=/usr/local/cuda]])
+
+if test -n "$with_cuda"
+then
+   CUDA_CFLAGS="-I$with_cuda/include"
+   CUDA_LIBS="-lcudart"
+   CUDA_LDFLAGS="-L$with_cuda/lib$SUFFIX"
+   NVCC="$with_cuda/bin/nvcc"
+else
+   CUDA_CFLAGS="-I/usr/local/cuda/include"
+   CUDA_LIBS="-lcudart"
+   CUDA_LDFLAGS="-L/usr/local/cuda/lib$SUFFIX"
+   NVCC="nvcc"
+fi
+AC_SUBST(CUDA_CFLAGS)
+AC_SUBST(CUDA_LIBS)
+AC_SUBST(CUDA_LDFLAGS)
+AC_SUBST(NVCC)
+
 #spi
 AC_ARG_ENABLE(spi,
 	AS_HELP_STRING([--enable-spi],[Enable spi stuff (ony for BG/Q)]),
@@ -177,6 +216,7 @@ AC_OUTPUT(
 	src/Makefile
 	src/base/Makefile
 	src/bgq/Makefile
+	src/cuda/Makefile
 	src/communicate/Makefile
 	src/dirac_operators/Makefile
 	src/geometry/Makefile

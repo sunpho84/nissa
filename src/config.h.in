@@ -20,6 +20,9 @@
    */
 #undef CRAY_STACKSEG_END
 
+/* Enable cuda */
+#undef CUDA
+
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
