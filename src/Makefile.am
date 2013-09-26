@@ -8,7 +8,7 @@ cuda_subdirs=cuda
 cuda_sublib=cuda/libcuda.la
 endif
 
-include_HEADERS=nissa.h
+include_HEADERS=nissa.hpp
 
 #add nissa library
 lib_LTLIBRARIES=$(top_builddir)/lib/libnissa.la

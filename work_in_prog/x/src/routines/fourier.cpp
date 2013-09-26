@@ -13,7 +13,7 @@ void pass_spinspin_from_mom_to_x_space(spinspin *out,spinspin *in,momentum_t bc)
     steps[mu]=bc[mu]*M_PI/glb_size[mu];
   
   //add the fractional phase
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       //compute phase exponent
       double arg=0;
@@ -36,7 +36,7 @@ void pass_spinspin_from_x_to_mom_space(spinspin *out,spinspin *in,momentum_t bc)
     steps[mu]=-bc[mu]*M_PI/glb_size[mu];
   
   //add the fractional phase
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       //compute phase exponent
       double arg=0;
@@ -57,7 +57,7 @@ void pass_spinspin_from_x_to_mom_space(spinspin *out,spinspin *in,momentum_t bc)
 void pass_spin1prop_from_mom_to_x_space(spin1prop *out,spin1prop *in,momentum_t bc)
 {
   //multiply by exp(i (p_mu-p_nu)/2)
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       complex ph[4];
       for(int mu=0;mu<4;mu++)
@@ -85,7 +85,7 @@ void pass_spin1prop_from_mom_to_x_space(spin1prop *out,spin1prop *in,momentum_t 
     steps[mu]=bc[mu]*M_PI/glb_size[mu];
   
   //add the fractional phase
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       //compute phase exponent
       double arg=0;
@@ -110,7 +110,7 @@ void pass_spin1prop_from_x_to_mom_space(spin1prop *out,spin1prop *in,momentum_t 
     steps[mu]=-bc[mu]*M_PI/glb_size[mu];
   
   //add the fractional phase
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       //compute phase exponent
       double arg=0;
@@ -130,7 +130,7 @@ void pass_spin1prop_from_x_to_mom_space(spin1prop *out,spin1prop *in,momentum_t 
   fft4d((complex*)out,(complex*)out,16,-1,1);
   
   //multiply by exp(i -(p_mu-p_nu)/2) and put 1/vol
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       complex ph[4];
       for(int mu=0;mu<4;mu++)
@@ -156,7 +156,7 @@ void pass_spin1field_from_mom_to_x_space(spin1field *out,spin1field *in,momentum
   if(bar) sign*=-1;
   
   //multiply by exp(i p_mu/2)
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       complex ph[4];
       for(int mu=0;mu<4;mu++)
@@ -180,7 +180,7 @@ void pass_spin1field_from_mom_to_x_space(spin1field *out,spin1field *in,momentum
     steps[mu]=sign*bc[mu]*M_PI/glb_size[mu];
   
   //add the fractional phase
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       //compute phase exponent
       double arg=0;
@@ -207,7 +207,7 @@ void pass_spin1field_from_x_to_mom_space(spin1field *out,spin1field *in,momentum
     steps[mu]=sign*bc[mu]*M_PI/glb_size[mu];
   
   //add the fractional phase
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       //compute phase exponent
       double arg=0;
@@ -226,7 +226,7 @@ void pass_spin1field_from_x_to_mom_space(spin1field *out,spin1field *in,momentum
   fft4d((complex*)out,(complex*)out,4,sign,1);
   
   //multiply by exp(-i p_mu/2)
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       complex ph[4];
       for(int mu=0;mu<4;mu++)
@@ -256,7 +256,7 @@ void pass_spin_from_mom_to_x_space(spin *out,spin *in,momentum_t bc,bool bar=fal
     steps[mu]=sign*bc[mu]*M_PI/glb_size[mu];
   
   //add the fractional phase
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       //compute phase exponent
       double arg=0;
@@ -283,7 +283,7 @@ void pass_spin_from_x_to_mom_space(spin *out,spin *in,momentum_t bc,bool bar=fal
     steps[mu]=sign*bc[mu]*M_PI/glb_size[mu];
   
   //add the fractional phase
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       //compute phase exponent
       double arg=0;

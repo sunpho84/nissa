@@ -9,7 +9,9 @@
 
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+
+using namespace nissa;
 
 //observables
 char gauge_obs_path[1024];
@@ -118,7 +120,7 @@ void read_conf(quad_su3 **conf,char *path)
     }
   
   //if message with string not found start from input seed
-  if(nissa_loc_rnd_gen_inited==0)
+  if(loc_rnd_gen_inited==0)
     {
       master_printf("RND_gen status not found inside conf, starting from input passed seed\n");
       start_loc_rnd_gen(seed);

@@ -21,7 +21,7 @@ void generate_stochastic_tlSym_gluon_propagator(spin1field *phi,spin1field *eta,
   multiply_mom_space_tlSym_gluon_propagator(phi,phi,gl);
   
   //put volume normalization due to convolution
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     spin_prodassign_double(phi[imom],glb_vol);  
   
   //takes the anti-fast fourier transform of eta

@@ -1,12 +1,12 @@
 #include <math.h>
 
-#include "communicate/communicate.h"
-#include "base/debug.h"
-#include "base/global_variables.h"
-#include "base/vectors.h"
-#include "dirac_operators/dirac_operator_stD/dirac_operator_stD_bgq.h"
-#include "linalgs/linalgs.h"
-#include "new_types/new_types_definitions.h"
+#include "communicate/communicate.hpp"
+#include "base/debug.hpp"
+#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
+#include "dirac_operators/dirac_operator_stD/dirac_operator_stD_bgq.hpp"
+#include "linalgs/linalgs.hpp"
+#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE bi_color
 #define NDOUBLES_PER_SITE 12

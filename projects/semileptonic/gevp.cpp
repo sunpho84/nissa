@@ -1,6 +1,6 @@
-#include <nissa.h>
+#include <nissa.hpp>
 
-#include "nissa.h"
+#include "nissa.hpp"
 #include "driver_corr.hpp"
 
 char outfolder[100],conf_path[100];
@@ -10,7 +10,7 @@ int T,L,seed;
 int ncorr_computed_tot,nsources;
 int ndoubles,twall;
 int ninv_tot=0;
-double wall_time,conf_smear_time=0,tot_time=0,inv_time=0,smear_time=0,corr_time=0;
+double wall_time,conf_smear_time=0,tot_prog_time=0,inv_time=0,smear_time=0,corr_time=0;
 double *glb_corr,*loc_corr;
 double mass,residue,kappa,gaussian_kappa;
 two_pts_comp_t two_pts_comp[4][4][4][4];
@@ -188,16 +188,16 @@ void close_semileptonic()
 {
   master_printf("\n");
   master_printf("Inverted %d configurations.\n",nanalyzed_conf);
-  master_printf("Total time: %g s, of which:\n",tot_time);
-  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",
+  master_printf("Total time: %g s, of which:\n",tot_prog_time);
+  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",
 		ninv_tot,inv_time/ninv_tot);
 #ifdef BENCH
   master_printf("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
                 ninv_tot,cgm_inv_over_time/ninv_tot);
 #endif
-  master_printf(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_time,"%");
-  master_printf(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_time,"%");
-  master_printf(" - %02.2f%s to compute %d correlations (%2.2gs avg)\n",corr_time/tot_time*100,"%",
+  master_printf(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_prog_time,"%");
+  master_printf(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_prog_time,"%");
+  master_printf(" - %02.2f%s to compute %d correlations (%2.2gs avg)\n",corr_time/tot_prog_time*100,"%",
 		ncorr_computed_tot,corr_time/ncorr_computed_tot);
   
   nissa_free(conf);nissa_free(sme_conf);
@@ -373,7 +373,7 @@ int check_remaining_time()
   int enough_time;
 
   //check remaining time
-  double temp_time=take_time()+tot_time;
+  double temp_time=take_time()+tot_prog_time;
   double ave_time=temp_time/nanalyzed_conf;
   double left_time=wall_time-temp_time;
   enough_time=left_time>(ave_time*1.1);
@@ -389,7 +389,7 @@ int check_remaining_time()
 void in_main(int narg,char **arg)
 {
   //Basic mpi initialization
-  tot_time-=take_time();
+  tot_prog_time-=take_time();
   
   //initialize the program
   if(narg<2) crash("Use: %s input_file",arg[0]);
@@ -407,7 +407,7 @@ void in_main(int narg,char **arg)
 	{
 	  twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]-1);
 	  master_printf("Source %d on t=%d\n",isource,twall);
-	  generate_spindiluted_source(ori_source,nissa_rnd_type_map[4],twall);
+	  generate_spindiluted_source(ori_source,rnd_type_map[4],twall);
 	  
 	  //loop on smearing of the source
 	  for(int ism_lev_so=0;ism_lev_so<nsm_lev;ism_lev_so++)
@@ -473,7 +473,7 @@ void in_main(int narg,char **arg)
   
   if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
   
-  tot_time+=take_time();
+  tot_prog_time+=take_time();
   close_semileptonic();
 }
 

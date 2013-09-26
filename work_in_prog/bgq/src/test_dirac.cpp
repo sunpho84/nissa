@@ -9,7 +9,7 @@ void apply_tmQ_portable(spincolor *out,quad_su3 *conf,double kappa,double mu,spi
   
   double kcf=1/(2*kappa);
   
-  nissa_loc_vol_loop(X)
+  NISSA_LOC_VOL_LOOP(X)
     {
       int Xup,Xdw;
       color temp_c0,temp_c1,temp_c2,temp_c3;
@@ -138,7 +138,7 @@ void in_main(int narg,char **arg)
   //check mapping
   spincolor *sc_temp=nissa_malloc("sc_in",loc_vol,spincolor);
   bgqlx_spincolor_remap_to_lx(sc_temp,bgq_sc_in);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)
@@ -154,7 +154,7 @@ void in_main(int narg,char **arg)
   
   //fill the conf with random su3 elements
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);  
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
 
@@ -175,7 +175,7 @@ void in_main(int narg,char **arg)
   bgqlx_spincolor_remap_to_lx(sc_out_vbgq,bgq_sc_out_vbgq);
   
   //check
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id=0;id<4;id++)
       for(int ic=0;ic<3;ic++)
 	for(int ri=0;ri<2;ri++)

@@ -40,7 +40,7 @@ int main(int narg,char **arg)
   corr16 *corr=nissa_malloc("corr",loc_vol,corr16);
   compute_all_2pts_qdagq_correlations(corr,prop,tad_prop);
   
-  nissa_loc_vol_loop(P)
+  NISSA_LOC_VOL_LOOP(P)
     master_printf("%d %d %d %d %lg %lg\n",glb_coord_of_loclx[P][0],glb_coord_of_loclx[P][1],glb_coord_of_loclx[P][2],glb_coord_of_loclx[P][3],corr[P][5][0]);
   
   //free

@@ -1,4 +1,4 @@
-#include <nissa.h>
+#include <nissa.hpp>
 
 #define ASCII 1
 #define NGAMMA 16
@@ -160,7 +160,7 @@ void gamma_proj()
   memset(loc_out,0,sizeof(proj_prop_t)*T);
   
   //summ all lattice
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     point_gamma_proj_summ(loc_out[(glb_coord_of_loclx[ivol][0]-tsource+T)%T],prop[ivol]);  
   MPI_Reduce(loc_out,glb_out,T*NGAMMA,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
   

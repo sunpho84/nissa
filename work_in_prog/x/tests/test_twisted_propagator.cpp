@@ -39,7 +39,7 @@ void compute_pion_correlator(complex *corr,spinspin *p)
   
   //stupidly promote the propagator to su3
   memset(stp,0,sizeof(su3spinspin)*loc_vol);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int ic1=0;ic1<1;ic1++)
       for(int ic2=0;ic2<1;ic2++)
 	memcpy(stp[ivol][ic1][ic2],p[ivol],sizeof(spinspin));
@@ -99,7 +99,7 @@ int main(int narg,char **arg)
 
   //take the squared norm of the differnce between the two computed propagators
   double loc_d=0;
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id=0;id<32;id++)
       {
 	double t=((double*)prop_fft[ivol])[id]-((double*)prop_inv[ivol])[id];

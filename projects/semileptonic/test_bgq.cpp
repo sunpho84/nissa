@@ -1,7 +1,9 @@
-#include "nissa.h"
+#include "nissa.hpp"
+
 #include <math.h>
-#include "../../src/bgq/staggered_hopping_matrix_eo_or_oe_bgq.h"
-#include "../../src/bgq/Wilson_hopping_matrix_lx_bgq.h"
+
+#include "../../src/bgq/staggered_hopping_matrix_eo_or_oe_bgq.hpp"
+#include "../../src/bgq/Wilson_hopping_matrix_lx_bgq.hpp"
 
 #ifndef BGQ_EMU
 #include <firmware/include/personality.h>
@@ -397,7 +399,7 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
 {
   //create random conf
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       su3_put_to_id(conf[ivol][mu]);
   set_borders_invalid(conf);
@@ -405,7 +407,7 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
   //create random in vector
   color *in=nissa_malloc("in",loc_vol+bord_vol,color);
   vector_reset(in);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     in[ivol][0][0]=glblx_of_loclx[ivol];
   set_borders_invalid(in);  
   communicate_lx_color_borders(in);
@@ -526,7 +528,7 @@ void debug_apply_tmQ()
 {
   //create random conf
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       su3_put_to_id(conf[ivol][mu]);
   set_borders_invalid(conf);
@@ -534,7 +536,7 @@ void debug_apply_tmQ()
   //create random in vector
   spincolor *in=nissa_malloc("in",loc_vol+bord_vol,spincolor);
   vector_reset(in);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     in[ivol][0][0][0]=glblx_of_loclx[ivol];
   set_borders_invalid(in);  
   communicate_lx_spincolor_borders(in);
@@ -642,7 +644,7 @@ void debug2_tm()
 {
   //create random conf
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
   set_borders_invalid(conf);
@@ -775,7 +777,7 @@ void debug2_st()
   
   //create random conf
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       {
 	su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
@@ -788,7 +790,7 @@ void debug2_st()
   //create random in vector
   color *in=nissa_malloc("in",loc_vol+bord_vol,color);
   vector_reset(in);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     //in[ivol][0][0]=1;
     in[ivol][0][0]=glblx_of_loclx[ivol];
   set_borders_invalid(in);

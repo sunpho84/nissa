@@ -11,7 +11,7 @@ void compare_spincolor(char *a_path,char *b_path)
   read_spincolor(b,b_path);
   
   double l=0;
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int is=0;is<4;is++)
       for(int ic=0;ic<3;ic++) 
 	for(int ri=0;ri<2;ri++)

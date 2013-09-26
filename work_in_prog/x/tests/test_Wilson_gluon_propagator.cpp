@@ -80,7 +80,7 @@ int main(int narg,char **arg)
   
   double loc_d_tl_wi_fft=0;
   double loc_d_wi_inv_fft=0;
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id=0;id<32;id++)
       {
 	double t=((double*)prop_wi_fft[ivol])[id]-((double*)prop_tl_fft[ivol])[id];
@@ -104,7 +104,7 @@ int main(int narg,char **arg)
     {
       //take index nu of the propagator
       for(int mu=0;mu<4;mu++)
-	nissa_loc_vol_loop(imom)
+	NISSA_LOC_VOL_LOOP(imom)
 	  memcpy(temp[imom][mu],prop_tl_fft[imom][mu][nu],sizeof(complex));
       
       //apply the KG operator in momentum space
@@ -112,7 +112,7 @@ int main(int narg,char **arg)
       
       //put back index nu of the propagator
       for(int mu=0;mu<4;mu++)
-	nissa_loc_vol_loop(imom)
+	NISSA_LOC_VOL_LOOP(imom)
 	  memcpy(prop_wi_fft[imom][mu][nu],temp[imom][mu],sizeof(complex));
     }
   

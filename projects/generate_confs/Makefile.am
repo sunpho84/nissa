@@ -1,6 +1,8 @@
-AUTOMAKE_OPTIONS=subdir-objects
+AM_CPPFLAGS=-I$(top_srcdir)/src
+
 include $(top_srcdir)/config/cuda.mk
-AM_CXXFLAGS=-I$(top_srcdir)/src
+
+AUTOMAKE_OPTIONS=subdir-objects
 
 if CUDA
 IN_CUDA_LIBS=$(CUDA_LIBS)

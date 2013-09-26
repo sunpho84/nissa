@@ -55,7 +55,7 @@ void get_spin_from_spinspin(spin *out,spinspin *in,int id_so)
 
 void put_spin_into_spinspin(spinspin *out,spin *in,int id_so)
 {
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id_si=0;id_si<4;id_si++)
       memcpy(out[ivol][id_si][id_so],in[ivol][id_si],sizeof(complex));
   set_borders_invalid(out);

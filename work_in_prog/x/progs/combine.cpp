@@ -52,7 +52,7 @@ int main(int narg,char **arg)
       
       read_corr16(loaded_corr,arg[i]);
       
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	for(int ig=0;ig<16;ig++)
 	  complex_summ_the_prod_double(combined_corr[ivol][ig],loaded_corr[ivol][ig],w);
     }

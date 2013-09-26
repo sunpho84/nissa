@@ -86,7 +86,7 @@ int main(int narg,char **arg)
   //pass_spinspin_from_x_to_mom_space(tad,tad,quark.bc);
 
   FILE *fout=open_file("tad","w");
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       //compute momentum
       double a2p2=0;

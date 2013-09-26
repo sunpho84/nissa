@@ -18,7 +18,7 @@ void compute_mom_space_Wilson_gluon_propagator(spin1prop *prop,gluon_info gl)
   //reset the propagator
   memset(prop,0,loc_vol*sizeof(spin1prop));
   
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       //momentum
       momentum_t k,kt;
@@ -65,7 +65,7 @@ void multiply_by_x_space_Wilson_gluon_propagator_by_inv(spin1prop *prop_out,spin
   for(int mu_so=0;mu_so<4;mu_so++)
     {
       //copy the in
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         for(int mu_si=0;mu_si<4;mu_si++)
           memcpy(source[ivol][mu_si],prop_in[ivol][mu_si][mu_so],sizeof(complex));
       set_borders_invalid(source);
@@ -74,7 +74,7 @@ void multiply_by_x_space_Wilson_gluon_propagator_by_inv(spin1prop *prop_out,spin
       inv_Wilson_gluon_Klein_Gordon_operator(tprop,NULL,gl,1000000,5,1.e-26,source);
       
       //copy into the out
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         for(int mu_si=0;mu_si<4;mu_si++)
           memcpy(prop_out[ivol][mu_si][mu_so],tprop[ivol][mu_si],sizeof(complex));
     }

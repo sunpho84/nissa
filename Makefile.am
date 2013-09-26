@@ -1,7 +1,7 @@
 #include m4 dir
 ACLOCAL_AMFLAGS=-I m4
 
-#include cude
+#include cuda
 if CUDA
 include $(top_srcdir)/config/cuda.mk
 endif

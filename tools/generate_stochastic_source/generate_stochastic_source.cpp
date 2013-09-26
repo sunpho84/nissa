@@ -55,7 +55,7 @@ int main(int narg,char **arg)
   const double rad2=sqrt(2);
 
   //initialize the spinor with dirac index 0
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id1=0;id1<4;id1++)
       for(int ic1=0;ic1<3;ic1++)
 	{

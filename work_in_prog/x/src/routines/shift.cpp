@@ -11,7 +11,7 @@ void unsafe_shift_spin_up(spin *out,spin *in,momentum_t bc,int mu)
 {
   communicate_lx_spin_borders(in);
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       int idw=loclx_neighdw[ivol][mu];
       
@@ -32,7 +32,7 @@ void unsafe_shift_spin_dw(spin *out,spin *in,momentum_t bc,int mu)
 {
   communicate_lx_spin_borders(in);
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       int iup=loclx_neighup[ivol][mu];
       
@@ -111,7 +111,7 @@ void shift_spinspin_sink_dw(spinspin *out,spinspin *in,momentum_t bc,int mu)
 void shift_spinspin_source(spinspin *out,spinspin *in,momentum_t bc,coords r)
 {
   pass_spinspin_from_x_to_mom_space(out,in,bc);
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       double p=0;
       for(int mu=0;mu<4;mu++)

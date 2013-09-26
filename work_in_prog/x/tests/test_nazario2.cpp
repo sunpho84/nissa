@@ -65,7 +65,7 @@ void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gl
 	{
 	  int p=glblx_of_coord(pc);
 	  
-	  nissa_loc_vol_loop(q)
+	  NISSA_LOC_VOL_LOOP(q)
 	  {
 	    int ppq=glblx_of_comb(p,+1,q,+1);
 	    
@@ -92,7 +92,7 @@ void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gl
       pass_spinspin_from_x_to_mom_space(q_prop,q_prop,qu.bc);
 
       memset(self,0,sizeof(double)*glb_size[0]);
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	self[glb_coord_of_loclx[ivol][0]]+=corr_self[ivol][igamma][REIM]*3;
       
       nissa_free(self_prop);
@@ -112,9 +112,9 @@ void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gl
 	compute_self_energy_twisted_diagram_in_mom_space(self_prop_bis,qu,gl);
 	
 	vector_reset(self_prop_bis);
-	nissa_loc_vol_loop(ip)
+	NISSA_LOC_VOL_LOOP(ip)
 	{
-	  nissa_loc_vol_loop(iq)
+	  NISSA_LOC_VOL_LOOP(iq)
 	  {
 	    spinspin w[4];
 	    
@@ -144,7 +144,7 @@ void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gl
 	}
 	
 	//put the legs
-	nissa_loc_vol_loop(imom)
+	NISSA_LOC_VOL_LOOP(imom)
 	{
 	  safe_spinspin_prod_spinspin(self_prop_bis[imom],self_prop_bis[imom],q_prop[imom]);
 	  safe_spinspin_prod_spinspin(self_prop_bis[imom],q_prop[imom],self_prop_bis[imom]);
@@ -157,7 +157,7 @@ void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gl
 	  {
 	    int p=glblx_of_coord(pc);
 	    
-	    nissa_loc_vol_loop(q)
+	    NISSA_LOC_VOL_LOOP(q)
 	    {
 	      int ppq=glblx_of_comb(p,+1,q,+1);
 	      
@@ -200,7 +200,7 @@ void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gl
 	compute_meson_exchange_correction_analyticallyA(corr,qu,gl);
 	
 	memset(exch,0,sizeof(double)*glb_size[0]);
-	nissa_loc_vol_loop(ivol)
+	NISSA_LOC_VOL_LOOP(ivol)
 	  exch[glb_coord_of_loclx[ivol][0]]+=corr[ivol][igamma][0];
 	
 	nissa_free(corr);
@@ -227,7 +227,7 @@ void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gl
 	pass_spinspin_from_x_to_mom_space(q_prop,q_prop,qu.bc);
 	
 	memset(tad,0,sizeof(double)*glb_size[0]);
-	nissa_loc_vol_loop(ivol)
+	NISSA_LOC_VOL_LOOP(ivol)
 	  tad[glb_coord_of_loclx[ivol][0]]+=corr_tad[ivol][igamma][REIM]*3;
 	
 	//free
@@ -246,7 +246,7 @@ void exch_stoch_comp(double *exch,quark_info qu,gluon_info gl)
 
   memset(exch,0,sizeof(double)*glb_size[0]);
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     exch[glb_coord_of_loclx[ivol][0]]+=corr[ivol][igamma][0];
   
   nissa_free(corr);

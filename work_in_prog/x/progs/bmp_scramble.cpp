@@ -31,7 +31,7 @@ void init_prog(int narg,char **arg)
   vector_reset(image);
   
   //copy the image
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int ic=0;ic<3;ic++)
       image[ivol][ic][0]=(bmp.data)[ivol*3+ic];
 }
@@ -49,7 +49,7 @@ void close_calc()
 void save(char *path)
 {
   //copy the image
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int ic=0;ic<3;ic++)
       bmp.data[ivol*3+ic]=(unsigned int) 
 }

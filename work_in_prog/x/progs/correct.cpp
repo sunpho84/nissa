@@ -54,7 +54,7 @@ int check_not_too_far(coords x,int max_dist)
 //select democratic points
 void prepare_demo_table(double cut_angle,int max_dist)
 {
-  nissa_loc_vol_loop(ivol) demo_of_loclx[ivol]=-1;
+  NISSA_LOC_VOL_LOOP(ivol) demo_of_loclx[ivol]=-1;
   vector_reset(npoints_dist2);
   
   //loop on triangle
@@ -84,7 +84,7 @@ void prepare_demo_table(double cut_angle,int max_dist)
   
   //allocate back-mapping table and fill
   loclx_of_demo=nissa_malloc("loclx_of_demo",ndemo_points,int);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     if(demo_of_loclx[ivol]!=-1) loclx_of_demo[demo_of_loclx[ivol]]=ivol;
   
   master_printf("Number of democratic points: %d\n",ndemo_points);
@@ -224,7 +224,7 @@ void load_demo_ildg_corr(corr16 *out,char *path,bool average=false)
   if(average) master_printf("Averaging\n");
   
   //copy only democratic points
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
   {
     int idemo=demo_of_loclx[ivol];
     if(idemo!=-1)

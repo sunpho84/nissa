@@ -14,7 +14,7 @@ void compute_amp_self_x(spinspin *self_prop,spinspin *q_prop,spin1prop *g_prop)
     {
       dirac_matr g=base_gamma[nissa_map_mu[mu]];
 
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         {
 	  spinspin t1,t2;
 	  unsafe_spinspin_prod_dirac(t1,q_prop[ivol],&g);
@@ -36,9 +36,9 @@ void compute_amp_self_mom(spinspin *self_prop,spinspin *q_prop,spin1prop *g_prop
     {
       dirac_matr g=base_gamma[nissa_map_mu[mu]];
       
-      nissa_loc_vol_loop(imom)
+      NISSA_LOC_VOL_LOOP(imom)
         {
-	  nissa_loc_vol_loop(jmom)
+	  NISSA_LOC_VOL_LOOP(jmom)
             {
 	      coords k;
 	      for(int mu=0;mu<4;mu++) k[mu]=(glb_size[mu]+glb_coord_of_loclx[imom][mu]-glb_coord_of_loclx[jmom][mu])%glb_size[mu];
@@ -72,7 +72,7 @@ void compute_without_trick(double *corr,spinspin *q_prop,spin1prop *g_prop,quark
   
   pass_spinspin_from_x_to_mom_space(self_prop,self_prop,qu.bc);
   
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       spinspin prop;
       mom_space_twisted_propagator_of_imom(prop,qu,imom);
@@ -87,7 +87,7 @@ void compute_without_trick(double *corr,spinspin *q_prop,spin1prop *g_prop,quark
   ////////////////////////////// compute trace with id //////////////////////////
   
   vector_reset(corr);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       dirac_matr g=base_gamma[0];
       complex c={0,0};
@@ -119,7 +119,7 @@ void compute_with_trick(double *corr,spinspin *q_prop,spin1prop *g_prop,quark_in
       for(p[0]=0;p[0]<glb_size[0];p[0]++)
 	{
 	  int imom=glblx_of_coord(p);
-	  nissa_loc_vol_loop(jmom)
+	  NISSA_LOC_VOL_LOOP(jmom)
 	    {
 	      coords k;
 	      for(int mu=0;mu<4;mu++) k[mu]=(glb_size[mu]+glb_coord_of_loclx[imom][mu]-glb_coord_of_loclx[jmom][mu])%glb_size[mu];

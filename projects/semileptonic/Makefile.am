@@ -1,4 +1,4 @@
-AM_CXXFLAGS=-I$(top_srcdir)/src
+AM_CPPFLAGS=-I$(top_srcdir)/src
 
 LDADD=$(top_builddir)/lib/libnissa.la
 
@@ -22,12 +22,12 @@ semileptonic_smeared_parser_sources= \
         tokenize_corr.lpp \
         parse_corr.hpp \
         driver_corr.hpp \
-	redefine_yy.h
+	redefine_yy.hpp
 semileptonic_smeared_parser_built_sources= \
 	tokenize_corr.cpp \
 	parse_corr.hpp \
 	parse_corr.cpp
-#with or without parser
+#with or withppout parser
 AM_YFLAGS=-d
 if PARSER_GENERATION
 BUILT_SOURCES=$(semileptonic_smeared_parser_built_sources)
@@ -38,5 +38,5 @@ __top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp $(semi
 __top_builddir__bin_gevp_SOURCES=gevp.cpp $(semileptonic_smeared_parser_built_sources)
 endif
 
-#comment because it could happen that we don't have flex or bison
+#comment because it could happen that we don't hppave flex or bison
 #CLEANFILES=$(semileptonic_smeared_parser_built_sources)

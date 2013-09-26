@@ -56,7 +56,7 @@ int main(int narg,char **arg)
   read_colorspinspin_reconstructing(spinore,base_filename,NULL,conf,kappa,m,theta);
 
   if(rank==0)
-    nissa_loc_vol_loop(ivol)
+    NISSA_LOC_VOL_LOOP(ivol)
       for(int ic=0;ic<3;ic++)
 	{
 	  printf(" # %d %d\n",ivol,ic);

@@ -1,4 +1,4 @@
-#include "nissa.h"
+#include "nissa.hpp"
 
 struct source_t
 {

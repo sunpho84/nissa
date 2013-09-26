@@ -2,7 +2,7 @@
 #include <math.h>
 #include <sys/stat.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
 
 typedef int int2[2];
 typedef int2 interv[2];
@@ -301,7 +301,7 @@ void compute_fft(double sign)
       {
 	fft4d((complex*)S0[r][imass],(complex*)S0[r][imass],144,sign,0);
 	//multiply by the conjugate of the fft of the source
-	nissa_loc_vol_loop(imom)
+	NISSA_LOC_VOL_LOOP(imom)
 	  {
 	    double arg=0;
 	    for(int mu=0;mu<4;mu++) arg+=((double)glb_coord_of_loclx[imom][mu]*source_coord[mu])/glb_size[mu];

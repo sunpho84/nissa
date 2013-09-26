@@ -68,10 +68,10 @@ void compute_meson_exchange_correction_analyticallyA(corr16 *corr,quark_info qu,
   compute_x_space_tlSym_gluon_propagator_by_fft(g_prop,gl);
   
   int O=0;
-  nissa_loc_vol_loop(A)
+  NISSA_LOC_VOL_LOOP(A)
     for(int mu_A=0;mu_A<4;mu_A++)
-      nissa_loc_vol_loop(X)
-	nissa_loc_vol_loop(B)
+      NISSA_LOC_VOL_LOOP(X)
+	NISSA_LOC_VOL_LOOP(B)
 	  for(int mu_B=0;mu_B<4;mu_B++)
 	    {
 	      int Aup=loclx_neighup[A][mu_A];
@@ -164,10 +164,10 @@ void compute_meson_exchange_correction_analyticallyB(corr16 *corr,quark_info qu,
   compute_x_space_tlSym_gluon_propagator_by_fft(g_prop,gl);
 
   int O=0;
-  nissa_loc_vol_loop(A)
+  NISSA_LOC_VOL_LOOP(A)
     for(int mu_A=0;mu_A<4;mu_A++)
-      nissa_loc_vol_loop(X)
-	nissa_loc_vol_loop(B)
+      NISSA_LOC_VOL_LOOP(X)
+	NISSA_LOC_VOL_LOOP(B)
 	  for(int mu_B=0;mu_B<4;mu_B++)
 	    {
 	      int Aup=loclx_neighup[A][mu_A];

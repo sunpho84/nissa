@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
 
 typedef spinspin sss[4];
 typedef sss ssss[4];
@@ -272,7 +272,7 @@ void calculate_S0()
 	master_printf("\n(S0) source index: id=%d, ic=%d\n",id_sour,ic_sour);
 	
 	//take the source and put g5
-	nissa_loc_vol_loop(ivol)
+	NISSA_LOC_VOL_LOOP(ivol)
 	  {
 	    get_spincolor_from_su3spinspin(temp_source[ivol],original_source[ivol],id_sour,ic_sour);
 	    for(int id_sink=2;id_sink<4;id_sink++)
@@ -324,7 +324,7 @@ void calculate_S0()
 	    //convert the id-th spincolor into the colorspinspin and prepare the sink smerded version
 	    for(int r=0;r<2;r++)
 	      {
-		nissa_loc_vol_loop(ivol)
+		NISSA_LOC_VOL_LOOP(ivol)
 		  {
 		    //put the anti-periodic condition on the propagator
 		    int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
@@ -337,7 +337,7 @@ void calculate_S0()
 		
 		//smerd the sink
 		jacobi_smearing(source,temp_source,smea_conf,jacobi_kappa,jacobi_niter);
-		nissa_loc_vol_loop(ivol)
+		NISSA_LOC_VOL_LOOP(ivol)
 		  put_spincolor_into_su3spinspin(S0_SS[imass][r][ivol],source[ivol],id_sour,ic_sour);
 	      }
 	  }
@@ -346,7 +346,7 @@ void calculate_S0()
   //put the (1+ig5)/sqrt(2) factor
   for(int imass=0;imass<nmass;imass++)
     for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	for(int ic1=0;ic1<3;ic1++)
 	  for(int ic2=0;ic2<3;ic2++)
 	    {
@@ -360,7 +360,7 @@ void calculate_S0()
 //Calculate the proton contraction for a single point
 void local_diquark(diquark *diq,su3spinspin *S)
 {
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int al=0;al<4;al++)
       for(int al1=0;al1<4;al1++)
 	for(int ga=0;ga<4;ga++)
@@ -391,7 +391,7 @@ void close_diquark(ssssss *prot6,diquark *diq,su3spinspin* S)
   ssssss *loc_prot6=(ssssss*)malloc(sizeof(ssssss)*glb_size[0]);
   memset(loc_prot6,0,sizeof(ssssss)*glb_size[0]);
 
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       int t=glb_coord_of_loclx[ivol][0];
       
@@ -559,7 +559,7 @@ void prepare_like_sequential_source(int rlike,int rdislike,int slice_to_take)
   double arg=M_PI*dt/glb_size[0];
   complex phase={cos(arg),sin(arg)};
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     if(glb_coord_of_loclx[ivol][0]==slice_to_take)
       {
 	su3spinspin temp;
@@ -613,7 +613,7 @@ void prepare_dislike_sequential_source(int rlike,int rdislike,int slice_to_take)
   double arg=M_PI*dt/glb_size[0];
   complex phase={cos(arg),sin(arg)};
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     if(glb_coord_of_loclx[ivol][0]==slice_to_take)
       {
 	su3spinspin temp;
@@ -693,7 +693,7 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
   for(int id_sink=0;id_sink<4;id_sink++)
     for(int ic_sink=0;ic_sink<3;ic_sink++)
       { //take the source and put g5 on the source, and pre-rotate
-	nissa_loc_vol_loop(ivol)
+	NISSA_LOC_VOL_LOOP(ivol)
 	  {
 	    for(int id_sour=0;id_sour<4;id_sour++)
 	      for(int ic_sour=0;ic_sour<3;ic_sour++)
@@ -718,15 +718,15 @@ void calculate_S1_like_dislike(int rlike,int rdislike,int ld)
 	    if((ld==0 && rdislike==0)||(ld==1 && rlike==1))
 	      {
 		apply_tmQ_left(sol_reco[0],conf,kappa,+mass[imass],solDD[imass]); //cancel d
-		nissa_loc_vol_loop(ivol) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pminus);
+		NISSA_LOC_VOL_LOOP(ivol) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pminus);
 	      }
 	    else
 	      {
 		apply_tmQ_left(sol_reco[0],conf,kappa,-mass[imass],solDD[imass]); //cancel u
-		nissa_loc_vol_loop(ivol) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pplus);
+		NISSA_LOC_VOL_LOOP(ivol) safe_spincolor_prod_dirac(sol_reco[0][ivol],sol_reco[0][ivol],&Pplus);
 	      }
 	    
-	    nissa_loc_vol_loop(ivol)
+	    NISSA_LOC_VOL_LOOP(ivol)
 	      {
 		//put the anti-periodic condition on the propagator
 		int dt=glb_coord_of_loclx[ivol][0]-source_pos[0];
@@ -760,7 +760,7 @@ void contract_with_source(complex *glb_contr,su3spinspin *eta,su3spinspin *S)
   complex *loc_contr=(complex*)malloc(sizeof(complex)*glb_size[0]);
   memset(loc_contr,0,sizeof(complex)*glb_size[0]);
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id1=0;id1<4;id1++)
       for(int id2=0;id2<4;id2++)
 	for(int ic1=0;ic1<3;ic1++)
@@ -811,7 +811,7 @@ void point_proton_sequential_contraction(complex contr,su3spinspin S0,dirac_matr
 //Apply the dipole operator on a su3spinspin
 void apply_dipole_operator(su3spinspin *S_out,su3spinspin *S_in,int dir)
 {
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       int coor=(glb_coord_of_loclx[ivol][dir]-source_pos[dir]+glb_size[dir])%glb_size[dir];
       
@@ -870,7 +870,7 @@ void calculate_all_3pts_with_current_sequential(int rlike,int rdislike,int rS0,c
 		if(norm_chro_EDM==2) apply_dipole_operator(supp_S,S0_SL[im_close][rS0],icontr+1);
 		
 		//loop over local node volume
-		nissa_loc_vol_loop(ivol)
+		NISSA_LOC_VOL_LOOP(ivol)
 		  {
 		    complex point_contr;
 		    int glb_t=glb_coord_of_loclx[ivol][0];

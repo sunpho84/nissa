@@ -107,7 +107,7 @@ void conf_convert(char *outpath,char *inpath)
 	      
 	      int nw=fwrite(buf,sizeof(quad_su3),loc_vol,fout);
 	      /*
-		nissa_loc_vol_loop(ivol)
+		NISSA_LOC_VOL_LOOP(ivol)
 		for(int mu=0;mu<4;mu++)
 		int nw=fprintf(fout,"%lg\n",((quad_su3*)buf)[ivol][mu][0][0][0]);
 	      */

@@ -51,7 +51,7 @@ int main(int narg,char **arg)
   if(fscanf(fin,"%d %d %d %d %lg %lg %d %d",&nx,&ny,&nz,&nt,&beta,&mass,&nflav,&ntraj)!=8) crash("reading header");
   
   //read the file
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       read_su3(in_conf[ivol*4+mu],fin);
   

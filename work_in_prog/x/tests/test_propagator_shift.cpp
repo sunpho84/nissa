@@ -38,7 +38,7 @@ void close_test()
 double glb_diff(spinspin *a,spinspin *b)
 {
   double d=0;
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id1=0;id1<4;id1++)
       for(int id2=0;id2<4;id2++)
 	for(int ri=0;ri<2;ri++)

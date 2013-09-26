@@ -66,14 +66,14 @@ int main(int narg,char **arg)
   //compute the value of the null mode
   spin1field loc_ave;
   spin_put_to_zero(loc_ave);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     spin_summassign(loc_ave,eta[ivol]);
   spin1field glb_ave;
   MPI_Allreduce(loc_ave,glb_ave,sizeof(spin1field)/sizeof(double),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   spin_prodassign_double(glb_ave,1.0/glb_vol);
   
   //subtract the null mode
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     spin_subtassign(eta[ivol],glb_ave);
   set_borders_invalid(eta);
   
@@ -82,7 +82,7 @@ int main(int narg,char **arg)
   
   //compute value of the null mode of the invertion
   spin_put_to_zero(loc_ave);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     spin_summassign(loc_ave,eta[ivol]);
   MPI_Allreduce(loc_ave,glb_ave,sizeof(spin1field)/sizeof(double),MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   master_printf("null mode of the out: %lg\n",glb_ave[0][0]);
@@ -90,7 +90,7 @@ int main(int narg,char **arg)
   
   //take the squared norm of the difference between the two computed propagators  
   double loc_d=0;
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id=0;id<32;id++)
       {
 	double a=((double*)phi_fft[ivol])[id];

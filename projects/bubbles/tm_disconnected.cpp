@@ -1,4 +1,4 @@
-#include "nissa.h"
+#include "nissa.hpp"
 
 /*
             	 
@@ -197,12 +197,12 @@ void generate_volume_source(int isource)
   
   for(int idso=0;idso<4;idso++)
     {
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	get_spincolor_from_colorspinspin(inv_source[ivol],source[ivol],idso);
       set_borders_invalid(inv_source);
       
       jacobi_smearing(inv_source,inv_source,sme_conf,jacobi_kappa,jacobi_niter);
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	put_spincolor_into_colorspinspin(source[ivol],inv_source[ivol],idso);
     }
 }
@@ -216,7 +216,7 @@ void calculate_S()
   for(int idso=0;idso<4;idso++)
     {
       //prepare the source
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	{
 	  get_spincolor_from_colorspinspin(inv_source[ivol],source[ivol],idso);
 	  
@@ -235,7 +235,7 @@ void calculate_S()
 	{
 	  reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],QQ[imass]);
 	  for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
-	    nissa_loc_vol_loop(ivol)
+	    NISSA_LOC_VOL_LOOP(ivol)
 	      put_spincolor_into_colorspinspin(S[imass][r][ivol],temp_vec[r][ivol],idso);
 	}
     }
@@ -251,7 +251,7 @@ void calculate_S()
 //Apply the dipole operator on a su3spinspin
 void apply_dipole_operator(colorspinspin *S_out,colorspinspin *S_in,int dir)
 {
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       int coor=(glb_coord_of_loclx[ivol][dir]-source_pos[dir]+glb_size[dir])%glb_size[dir];
       

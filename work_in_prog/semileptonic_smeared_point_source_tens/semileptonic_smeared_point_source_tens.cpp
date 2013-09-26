@@ -115,7 +115,7 @@ void generate_sequential_source(int ispec)
   int r=r_spec[ispec];
 
   master_printf("Creating the sequential source\n");
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     { //put to zero everything but the slice
       if(glb_coord_of_loclx[ivol][0]!=(source_coord[0]+glb_size[0]/2)%glb_size[0])
 	memset(sequential_source[ivol],0,sizeof(su3spinspin));
@@ -374,12 +374,12 @@ void smear_additive_su3spinspin(su3spinspin *out,su3spinspin *in,int ism_lev,int
   for(int ic=0;ic<3;ic++)
     for(int id=0;id<4;id++)
       {
-	nissa_loc_vol_loop(ivol)
+	NISSA_LOC_VOL_LOOP(ivol)
 	  get_spincolor_from_su3spinspin(temp[ivol],in[ivol],id,ic);
 	
 	jacobi_smearing(temp,temp,sme_conf,jacobi_kappa,nsme);
 	
-	nissa_loc_vol_loop(ivol)
+	NISSA_LOC_VOL_LOOP(ivol)
 	  put_spincolor_into_su3spinspin(out[ivol],temp[ivol],id,ic);
       }
   
@@ -392,7 +392,7 @@ void apply_nabla_i_spincolor(spincolor *out,spincolor *in,quad_su3 *conf,int mu)
   memset(out,0,loc_vol*sizeof(spincolor));
   communicate_lx_spincolor_borders(in);
   
-  nissa_loc_vol_loop(ix)
+  NISSA_LOC_VOL_LOOP(ix)
     {
       int Xup,Xdw;
       Xup=loclx_neighup[ix][mu];
@@ -411,7 +411,7 @@ void apply_nabla_dag_i_spincolor(spincolor *out,spincolor *in,quad_su3 *conf,int
   memset(out,0,loc_vol*sizeof(spincolor));
   communicate_lx_spincolor_borders(in);
   
-  nissa_loc_vol_loop(ix)
+  NISSA_LOC_VOL_LOOP(ix)
     {
       int Xup,Xdw;
       Xup=loclx_neighup[ix][mu];
@@ -433,7 +433,7 @@ void calculate_S0(int ism_lev_so)
   for(int ic=0;ic<3;ic++)
     for(int id=0;id<4;id++)
       { //loop over the source dirac index
-	nissa_loc_vol_loop(ivol)
+	NISSA_LOC_VOL_LOOP(ivol)
 	  {
 	    get_spincolor_from_su3spinspin(source[ivol],original_source[ivol],id,ic);
 	    //put the g5
@@ -476,7 +476,7 @@ void calculate_S0_derivative(int ism_lev_so)
   for(int ic=0;ic<3;ic++)
     for(int id=0;id<4;id++)
       { //loop over the source dirac index
-	nissa_loc_vol_loop(ivol)
+	NISSA_LOC_VOL_LOOP(ivol)
 	  {
 	    get_spincolor_from_su3spinspin(source[ivol],original_source[ivol],id,ic);
 	    //put the g5

@@ -1,14 +1,14 @@
 #include <math.h>
 
-#include "cg_invert_tmDeoimpr.h"
+#include "cg_invert_tmDeoimpr.hpp"
 
-#include "base/global_variables.h"
-#include "base/vectors.h"
-#include "dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h"
-#include "dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.h"
-#include "inverters/twisted_mass/cg_invert_tmDeoimpr.h"
-#include "linalgs/linalgs.h"
-#include "new_types/new_types_definitions.h"
+#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
+#include "dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
+#include "dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp"
+#include "inverters/twisted_mass/cg_invert_tmDeoimpr.hpp"
+#include "linalgs/linalgs.hpp"
+#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE spincolor
 #define BASETYPE_128 spincolor_128

@@ -34,7 +34,7 @@ int main(int narg,char **arg)
       sprintf(filename,"%s.0%d",arg[4],id1);
       read_spincolor(spinore,filename);
 
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	{
 	  if(glb_coord_of_loclx[ivol][0]!=tslice)
 	    for(int id2=0;id2<4;id2++)

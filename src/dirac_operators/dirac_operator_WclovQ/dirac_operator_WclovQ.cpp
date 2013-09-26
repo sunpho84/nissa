@@ -1,17 +1,17 @@
 #ifdef HAVE_CONFIG_H
- #include "config.h"
+ #include "config.hpp"
 #endif
 
-#include "new_types/new_types_definitions.h"
-#include "new_types/su3.h"
-#include "communicate/communicate.h"
-#include "base/global_variables.h"
-#include "base/vectors.h"
-#include "base/thread_macros.h"
-#include "linalgs/linalgs.h"
-#include "operations/su3_paths/topological_charge.h"
+#include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
+#include "communicate/communicate.hpp"
+#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
+#include "base/thread_macros.hpp"
+#include "linalgs/linalgs.hpp"
+#include "operations/su3_paths/topological_charge.hpp"
 #ifdef USE_THREADS
- #include "routines/thread.h"
+ #include "routines/thread.hpp"
 #endif
 
 #include "dirac_operator_WclovQ_portable.cpp"

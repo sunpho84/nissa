@@ -1,19 +1,22 @@
 #ifdef HAVE_CONFIG_H
- #include "config.h"
+ #include "config.hpp"
 #endif
 
-#include "cg_invert_evn_stD.h"
+#include "cg_invert_evn_stD.hpp"
 
-#include "base/global_variables.h"
-#include "dirac_operators/dirac_operator_stD/dirac_operator_stD.h"
-#include "linalgs/linalgs.h"
-#include "new_types/new_types_definitions.h"
+#include "base/global_variables.hpp"
+#include "dirac_operators/dirac_operator_stD/dirac_operator_stD.hpp"
+#include "linalgs/linalgs.hpp"
+#include "new_types/new_types_definitions.hpp"
 
 //this is the famous trick to invert the full D matrix using e/o precond: sol[ODD]=1/m*(source[ODD]-Doe*sol[EVN])
 
-void inv_stD_cg(color **sol,quad_su3 **conf,double m,int niter,int rniter,double residue,color **source)
+namespace nissa
 {
-  inv_evn_stD_cg(sol[EVN],conf,m,niter,rniter,residue,source);
-  apply_st2Doe(sol[ODD],conf,sol[EVN]);
-  double_vector_linear_comb((double*)(sol[ODD]),(double*)(source[ODD]),1/m,(double*)(sol[ODD]),-0.5/m,loc_volh*6);
+  void inv_stD_cg(color **sol,quad_su3 **conf,double m,int niter,int rniter,double residue,color **source)
+  {
+    inv_evn_stD_cg(sol[EVN],conf,m,niter,rniter,residue,source);
+    apply_st2Doe(sol[ODD],conf,sol[EVN]);
+    double_vector_linear_comb((double*)(sol[ODD]),(double*)(source[ODD]),1/m,(double*)(sol[ODD]),-0.5/m,loc_volh*6);
+  }
 }

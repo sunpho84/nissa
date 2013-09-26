@@ -106,7 +106,7 @@ int main(int narg,char **arg)
       compute_all_2pts_qdagq_correlations(temp_corr,prop,self_prop);
       
       double d2[16]={0},t2[16]={0};
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         {
 	  for(int ig=0;ig<16;ig++)
 	    {

@@ -1,6 +1,6 @@
-#include <stdlib.h>
+#include <stdlib.hpp>
 
-#include "nissa.h"
+#include "nissa.hpp"
 
 /*
   This code is a simplified and improved version of the "semileptonic_smeared" program.
@@ -82,12 +82,12 @@ void smear_colorspinspin(colorspinspin *out,colorspinspin *in)
   
   for(int id=0;id<4;id++)
     {
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	get_spincolor_from_colorspinspin(temp[ivol],in[ivol],id);
       
       jacobi_smearing(temp,temp,sme_conf,jacobi_kappa,jacobi_niter);
       
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	put_spincolor_into_colorspinspin(out[ivol],temp[ivol],id);
     }
   
@@ -138,7 +138,7 @@ void generate_source()
 //Generate a sequential source for S1
 void generate_sequential_source(colorspinspin *S0)
 {
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       //put to zero everything but the slice
       if(glb_coord_of_loclx[ivol][0]!=(twall+tsep)%glb_size[0])
@@ -368,7 +368,7 @@ void calculate_S0(colorspinspin *S0,double mass,double stopping_residue)
   //loop over the source dirac index
   for(int id=0;id<4;id++)
     { 
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	get_spincolor_from_colorspinspin(source[ivol],original_source[ivol],id);
       
       //inverting the light quark
@@ -378,7 +378,7 @@ void calculate_S0(colorspinspin *S0,double mass,double stopping_residue)
       master_printf("Finished the inversion of S0 mass=%lg, dirac index %d in %g sec\n",mass,id,part_time);
 
       //convert the id-th spincolor into the colorspinspin
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	put_spincolor_into_colorspinspin(S0[ivol],temp_sol[ivol],id);
     }
   
@@ -403,7 +403,7 @@ void calculate_S1(colorspinspin *S1,double mass,colorspinspin *S0,double stoppin
   //loop over dirac index of the source
   for(int id=0;id<4;id++)
     { 
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	get_spincolor_from_colorspinspin(source[ivol],sequential_source[ivol],id);
       communicate_lx_spincolor_borders(source);
 
@@ -413,7 +413,7 @@ void calculate_S1(colorspinspin *S1,double mass,colorspinspin *S0,double stoppin
       master_printf("Finished the inversion of S1 mass=%lg dirac index %d in %g sec\n",mass,id,part_time);
       
       //put in the solution
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	put_spincolor_into_colorspinspin(S1[ivol],temp_sol[ivol],id);
     }
   

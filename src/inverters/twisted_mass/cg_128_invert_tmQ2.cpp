@@ -1,12 +1,12 @@
 #include <math.h>
 
-#include "cg_invert_tmQ2.h"
-#include "base/global_variables.h"
-#include "base/vectors.h"
-#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
-#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.h"
-#include "linalgs/linalgs.h"
-#include "new_types/new_types_definitions.h"
+#include "cg_invert_tmQ2.hpp"
+#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
+#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.hpp"
+#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_128.hpp"
+#include "linalgs/linalgs.hpp"
+#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE spincolor
 #define BASETYPE_128 spincolor_128
@@ -45,8 +45,11 @@
   nissa_free(temp2);
 #include "templates/cg_128_invert_template_threaded.cpp"
 
-void inv_tmQ2_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mass,int niter,int rniter,double external_solver_residue,spincolor *external_source)
-{inv_tmQ2_RL_cg_128(sol,guess,conf,kappa,0,mass,niter,rniter,external_solver_residue,external_source);}
-
-void inv_tmQ2_m2_RL_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,int RL,double m2,int niter,int rniter,double external_solver_residue,spincolor *external_source)
-{inv_tmQ2_RL_cg_128(sol,guess,conf,kappa,RL,sqrt(m2),niter,rniter,external_solver_residue,external_source);}
+namespace nissa
+{
+  void inv_tmQ2_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double mass,int niter,int rniter,double external_solver_residue,spincolor *external_source)
+  {inv_tmQ2_RL_cg_128(sol,guess,conf,kappa,0,mass,niter,rniter,external_solver_residue,external_source);}
+  
+  void inv_tmQ2_m2_RL_cg_128(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,int RL,double m2,int niter,int rniter,double external_solver_residue,spincolor *external_source)
+  {inv_tmQ2_RL_cg_128(sol,guess,conf,kappa,RL,sqrt(m2),niter,rniter,external_solver_residue,external_source);}
+}

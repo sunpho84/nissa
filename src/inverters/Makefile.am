@@ -1,14 +1,14 @@
-AM_CXXFLAGS=-I$(top_srcdir)/src
+AM_CPPFLAGS=-I$(top_srcdir)/src
 
 #compile or not bgq test and source
 if BGQ
 bgq_src_file= \
         twisted_mass/cgm_invert_tmQ2_bgq.cpp \
-        twisted_mass/cgm_invert_tmQ2_bgq.h \
+        twisted_mass/cgm_invert_tmQ2_bgq.hpp \
         staggered/cgm_invert_stD2ee_m2_bgq.cpp \
-	staggered/cgm_invert_stD2ee_m2_bgq.h \
+	staggered/cgm_invert_stD2ee_m2_bgq.hpp \
         staggered/cg_invert_stD2ee_m2_bgq.cpp \
-	staggered/cg_invert_stD2ee_m2_bgq.h
+	staggered/cg_invert_stD2ee_m2_bgq.hpp
 endif
 
 noinst_LTLIBRARIES=libinverters.la
@@ -36,41 +36,41 @@ libinverters_la_SOURCES= \
 
 inverters_twisted_mass_includedir=$(includedir)/inverters/twisted_mass
 inverters_twisted_mass_include_HEADERS= \
-        twisted_mass/cg_invert_tmDeoimpr.h \
-        twisted_mass/cg_invert_tmQ2.h \
-        twisted_mass/cg_64_invert_tmQ2.h \
-        twisted_mass/cgm_invert_tmQ2.h \
-        twisted_mass/cg_128_invert_tmQ2.h \
-        twisted_mass/cg_128_invert_tmDeoimpr.h \
-        twisted_mass/tm_frontends.h
+        twisted_mass/cg_invert_tmDeoimpr.hpp \
+        twisted_mass/cg_invert_tmQ2.hpp \
+        twisted_mass/cg_64_invert_tmQ2.hpp \
+        twisted_mass/cgm_invert_tmQ2.hpp \
+        twisted_mass/cg_128_invert_tmQ2.hpp \
+        twisted_mass/cg_128_invert_tmDeoimpr.hpp \
+        twisted_mass/tm_frontends.hpp
 
 inverters_staggered_includedir=$(includedir)/inverters/staggered
 inverters_staggered_include_HEADERS= \
-        staggered/cgm_invert_stD2ee_m2.h \
-        staggered/cg_invert_stD2ee_m2.h \
-        staggered/cg_invert_stD.h \
-        staggered/cg_invert_evn_stD.h \
-	staggered/cgm_invert_stD2ee_m2_portable.h \
-	staggered/cg_invert_stD2ee_m2_portable.h
+        staggered/cgm_invert_stD2ee_m2.hpp \
+        staggered/cg_invert_stD2ee_m2.hpp \
+        staggered/cg_invert_stD.hpp \
+        staggered/cg_invert_evn_stD.hpp \
+	staggered/cgm_invert_stD2ee_m2_portable.hpp \
+	staggered/cg_invert_stD2ee_m2_portable.hpp
 
 inverters_Wclov_includedir=$(includedir)/inverters/Wclov
 inverters_Wclov_include_HEADERS= \
-        Wclov/cg_invert_WclovQ.h \
-        Wclov/cg_invert_WclovQ2.h
+        Wclov/cg_invert_WclovQ.hpp \
+        Wclov/cg_invert_WclovQ2.hpp
 
 inverters_tmclov_includedir=$(includedir)/inverters/tmclov
 inverters_tmclov_include_HEADERS= \
-        tmclov/cg_invert_tmclovQ.h \
-        tmclov/cg_invert_tmclovQ2.h \
-        tmclov/cgm_invert_tmclovQ2.h \
-        tmclov/tmclov_frontends.h
+        tmclov/cg_invert_tmclovQ.hpp \
+        tmclov/cg_invert_tmclovQ2.hpp \
+        tmclov/cgm_invert_tmclovQ2.hpp \
+        tmclov/tmclov_frontends.hpp
 
 EXTRA_DIST= \
         twisted_mass/cg_invert_tmQ2_common.cpp \
-	twisted_mass/cgm_invert_tmQ2_bgq.h \
+	twisted_mass/cgm_invert_tmQ2_bgq.hpp \
         templates/cg_128_invert_template.cpp \
         templates/cg_invert_template.cpp \
         templates/cgm_invert_template.cpp \
-        templates/cg_128_invert_template_threaded.cpp \
-        templates/cg_invert_template_threaded.cpp \
-        templates/cgm_invert_template_threaded.cpp
+        templates/cg_128_invert_template_thppreaded.cpp \
+        templates/cg_invert_template_thppreaded.cpp \
+        templates/cgm_invert_template_thppreaded.cpp

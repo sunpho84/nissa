@@ -1,14 +1,14 @@
-AM_CXXFLAGS=-I$(top_srcdir)/src
+AM_CPPFLAGS=-I$(top_srcdir)/src
 
 #compile or not bgq test and source
 if BGQ
 bgq_src_files= \
         dirac_operator_tmQ/dirac_operator_tmQ_bgq.cpp \
         dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.cpp \
-        dirac_operator_tmQ/dirac_operator_tmQ_bgq.h \
-        dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.h \
+        dirac_operator_tmQ/dirac_operator_tmQ_bgq.hpp \
+        dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.hpp \
 	dirac_operator_stD/dirac_operator_stD_bgq.cpp \
-	dirac_operator_stD/dirac_operator_stD_bgq.h
+	dirac_operator_stD/dirac_operator_stD_bgq.hpp
 endif
 
 
@@ -32,41 +32,41 @@ libdirac_operators_la_SOURCES= \
 	$(bgq_src_files)
 
 dirac_operators_stD_includedir=$(includedir)/dirac_operators/dirac_operator_stD
-dirac_operators_stD_include_HEADERS=dirac_operator_stD/dirac_operator_stD.h
+dirac_operators_stD_include_HEADERS=dirac_operator_stD/dirac_operator_stD.hpp
 
 dirac_operators_tmDeo_impr_includedir=$(includedir)/dirac_operators/dirac_operator_tmDeoimpr
 dirac_operators_tmDeo_impr_include_HEADERS= \
-	dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.h \
-        dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.h
+	dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.hpp \
+        dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp
 
 dirac_operators_tmQ_includedir=$(includedir)/dirac_operators/dirac_operator_tmQ
 dirac_operators_tmQ_include_HEADERS= \
-	dirac_operator_tmQ/dirac_operator_tmQ.h \
-        dirac_operator_tmQ/reconstruct_tm_doublet.h \
-        dirac_operator_tmQ/dirac_operator_tmQ_128.h
+	dirac_operator_tmQ/dirac_operator_tmQ.hpp \
+        dirac_operator_tmQ/reconstruct_tm_doublet.hpp \
+        dirac_operator_tmQ/dirac_operator_tmQ_128.hpp
 
 dirac_operators_tmQ_left_includedir=$(includedir)/dirac_operators/dirac_operator_tmQ_left
-dirac_operators_tmQ_left_include_HEADERS=dirac_operator_tmQ_left/dirac_operator_tmQ_left.h
+dirac_operators_tmQ_left_include_HEADERS=dirac_operator_tmQ_left/dirac_operator_tmQ_left.hpp
 
 dirac_operators_tmQ2_includedir=$(includedir)/dirac_operators/dirac_operator_tmQ2
-dirac_operators_tmQ2_include_HEADERS=dirac_operator_tmQ2/dirac_operator_tmQ2.h dirac_operator_tmQ2/dirac_operator_tmQ2_128.h
+dirac_operators_tmQ2_include_HEADERS=dirac_operator_tmQ2/dirac_operator_tmQ2.hpp dirac_operator_tmQ2/dirac_operator_tmQ2_128.hpp
 
 dirac_operators_tmclovQ_includedir=$(includedir)/dirac_operators/dirac_operator_tmclovQ
 dirac_operators_tmclovQ_include_HEADERS= \
-	dirac_operator_tmclovQ/dirac_operator_tmclovQ.h \
-	dirac_operator_tmclovQ/reconstruct_tmclov_doublet.h
+	dirac_operator_tmclovQ/dirac_operator_tmclovQ.hpp \
+	dirac_operator_tmclovQ/reconstruct_tmclov_doublet.hpp
 
 dirac_operators_Wstat_includedir=$(includedir)/dirac_operators/dirac_operator_Wstat
-dirac_operators_Wstat_include_HEADERS=dirac_operator_Wstat/dirac_operator_Wstat.h
+dirac_operators_Wstat_include_HEADERS=dirac_operator_Wstat/dirac_operator_Wstat.hpp
 
 dirac_operators_WclovQ_includedir=$(includedir)/dirac_operators/dirac_operator_WclovQ
-dirac_operators_WclovQ_include_HEADERS=dirac_operator_WclovQ/dirac_operator_WclovQ.h
+dirac_operators_WclovQ_include_HEADERS=dirac_operator_WclovQ/dirac_operator_WclovQ.hpp
 
 dirac_operators_WclovQ2_includedir=$(includedir)/dirac_operators/dirac_operator_WclovQ2
-dirac_operators_WclovQ2_include_HEADERS=dirac_operator_WclovQ2/dirac_operator_WclovQ2.h
+dirac_operators_WclovQ2_include_HEADERS=dirac_operator_WclovQ2/dirac_operator_WclovQ2.hpp
 
 dirac_operators_tmclovQ2_includedir=$(includedir)/dirac_operators/dirac_operator_tmclovQ2
-dirac_operators_tmclovQ2_include_HEADERS=dirac_operator_tmclovQ2/dirac_operator_tmclovQ2.h
+dirac_operators_tmclovQ2_include_HEADERS=dirac_operator_tmclovQ2/dirac_operator_tmclovQ2.hpp
 
 EXTRA_DIST= \
         dirac_operator_WclovQ/dirac_operator_WclovQ_portable.cpp \
