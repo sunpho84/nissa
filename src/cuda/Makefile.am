@@ -6,10 +6,13 @@ LINK=$(LIBTOOL) --mode=link $(CC) -o $@ $(CUDA_LDFLAGS) $(CUDA_LIBS)
 
 noinst_LTLIBRARIES=libcuda.la
 libcuda_la_SOURCES= \
-	cuda_wrappers.cu \
-	test.cu
+	global_variables.cu \
+	init.cu \
+	wrappers.cu
 
 cudaincludedir=$(includedir)/cuda
 cudainclude_HEADERS= \
         cuda_wrappers.hpp \
-	test.hpp
+	global_variables.hpp \
+	init.hpp \
+	macros.hpp

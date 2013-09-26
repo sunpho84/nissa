@@ -26,9 +26,13 @@ namespace cuda
   
   //set the device to be used
   void set_device(int asked_dev)
-  {crash_on_unsuccess(cudaSetDevice(asked_dev));}
-  
-  //copy a float to the symbols
-  void memcpy_to_symbol(float dev_float,float host_float)
-  {crash_on_unsuccess(cudaMemcpyToSymbol(dev_float,&host_float,sizeof(float),0,cudaMemcpyHostToDevice));}
+  {
+    //count devices and check that we are asking for something present
+    int ndevices=get_device_count();
+    if(asked_dev<0||asked_dev>=ndevices) nissa::crash("Asked device out of [0,%d) bound",ndevices);
+    
+    //activate and check
+    crash_on_unsuccess(cudaSetDevice(asked_dev));
+    if(get_device()!=asked_dev) nissa::crash("Unsuccess setting device %d",asked_dev);
+  }
 }
