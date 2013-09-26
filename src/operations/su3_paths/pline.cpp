@@ -223,7 +223,7 @@ namespace nissa
     NISSA_LOC_VOL_LOOP(x)
     {
       int xmu=glb_coord_of_loclx[x][mu];
-      int dist=fabs(xmu-xmu_start);
+      int dist=abs(xmu-xmu_start);
       int ord=(xmu>=xmu_start);
       
       for(int ic=0;ic<3;ic++)

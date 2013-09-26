@@ -32,7 +32,7 @@ namespace nissa
   //check that it is last
   template <typename Iter> Iter next(Iter iter) {return ++iter;}
   template <typename Iter, typename Cont> bool is_last(Iter iter,const Cont& cont)
-  {return (iter!=cont.end())&&(next(iter)==cont.end());}
+  {return (iter!=cont.end())&&(nissa::next(iter)==cont.end());}
   
   //compute derivative around x
   void compute_second_derivative_around(std::pair<int,double> *der,std::map<int,double> &slice,int x)

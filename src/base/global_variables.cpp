@@ -240,16 +240,16 @@ namespace nissa
     ;
   EXTERN int map_mu[4]
 #ifndef ONLY_INSTANTIATION
-  ={4,1,2,3};
+  ={4,1,2,3}
 #endif
-  ;
+    ;
   EXTERN spinspin opg[4],omg[4];
   
   EXTERN int su3_sub_gr_indices[3][2]
 #ifndef ONLY_INSTANTIATION
-  ={{0,1},{1,2},{0,2}};
+  ={{0,1},{1,2},{0,2}}
 #endif
-  ;
+    ;
   
   /////////////////////////////////////////// buffered comm ///////////////////////////////////
   

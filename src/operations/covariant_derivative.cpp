@@ -41,7 +41,7 @@ namespace nissa
   }}
 
 //instantiate the application function
-APPLY_NABLA_I(spincolor);
-APPLY_NABLA_I(colorspinspin);
-APPLY_NABLA_I(su3spinspin);
+APPLY_NABLA_I(spincolor)
+APPLY_NABLA_I(colorspinspin)
+APPLY_NABLA_I(su3spinspin)
 }
