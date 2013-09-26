@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "new_types.hpp"
 #include "macros.hpp"
 
 #ifdef ONLY_INSTANTIATION
@@ -13,5 +12,5 @@
 
 namespace cuda
 {
-  EXTERN DEVICE_CONSTANT loc_vol,loc_volh;
+  EXTERN DEVICE_CONSTANT int loc_vol,loc_volh;
 }

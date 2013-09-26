@@ -12,7 +12,7 @@ libcuda_la_SOURCES= \
 
 cudaincludedir=$(includedir)/cuda
 cudainclude_HEADERS= \
-        cuda_wrappers.hpp \
 	global_variables.hpp \
 	init.hpp \
-	macros.hpp
+	macros.hpp \
+        wrappers.hpp
