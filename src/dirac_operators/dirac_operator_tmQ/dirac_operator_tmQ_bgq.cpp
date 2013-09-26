@@ -49,7 +49,7 @@ namespace nissa
     //wait that all the terms are put in place
     THREAD_BARRIER();
     
-    bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)nissa_send_buf+bord_volh;
+    bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)send_buf+bord_volh;
     
     NISSA_PARALLEL_LOOP(i,0,loc_volh)
       {

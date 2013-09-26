@@ -17,8 +17,8 @@ noinst_LTLIBRARIES=libbgq.la
 libbgq_la_SOURCES= \
 	$(spi_src_files) \
 	$(bgq_barrier_src_files) \
-        Wilson_hppopping_matrix_lx_bgq.cpp \
-        staggered_hppopping_matrix_eo_or_oe_bgq.cpp
+        Wilson_hopping_matrix_lx_bgq.cpp \
+        staggered_hopping_matrix_eo_or_oe_bgq.cpp
 
 bgqincludedir=$(includedir)/bgq
 bgqinclude_HEADERS= \

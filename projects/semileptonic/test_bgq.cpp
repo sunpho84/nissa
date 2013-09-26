@@ -9,9 +9,7 @@
 #include <firmware/include/personality.h>
 #endif
 
-void hopping_matrix_lx_expand_to_Q_and_summ_diag_term_bgq(bi_spincolor *out,double kappa,double mu,bi_spincolor *in);
-void bgq_Wilson_hopping_matrix_lx_vdir_VN_comm_and_buff_fill();
-void finish_Wilson_hopping_matrix_lx_bgq_communications();
+using namespace nissa;
 
 const int nbench=10,nbench_port=10;
 
@@ -437,8 +435,8 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
     nissa_free(un_out);
   }
   
-  memset(nissa_send_buf,0,nissa_send_buf_size);
-  memset(nissa_recv_buf,0,nissa_recv_buf_size);
+  memset(send_buf,0,send_buf_size);
+  memset(recv_buf,0,recv_buf_size);
   
   //apply stag bgq
   apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,0,vsurf_volh,bi_in_eo[oe_or_eo],oe_or_eo);
@@ -453,11 +451,11 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
   THREAD_BARRIER();
   
   const char EVN_ODD_TAG[2][4]={"EVN","ODD"};
-  bi_color *bgq_hopping_matrix_output_data=(bi_color*)nissa_send_buf+bord_volh/2;
+  bi_color *bgq_hopping_matrix_output_data=(bi_color*)send_buf+bord_volh/2;
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(loclx_parity[ivol]==!oe_or_eo)
       {
-	int vn=(loc_coord_of_loclx[ivol][nissa_vnode_paral_dir]>=loc_size[nissa_vnode_paral_dir]/2);
+	int vn=(loc_coord_of_loclx[ivol][vnode_paral_dir]>=loc_size[vnode_paral_dir]/2);
 	
 	for(int mu=0;mu<4;mu++)
 	  {
@@ -485,7 +483,7 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
   for(int ivol=0;ivol<loc_vol;ivol++)
     if(loclx_parity[ivol]==!oe_or_eo)
       {
-	int vn=(loc_coord_of_loclx[ivol][nissa_vnode_paral_dir]>=loc_size[nissa_vnode_paral_dir]/2);
+	int vn=(loc_coord_of_loclx[ivol][vnode_paral_dir]>=loc_size[vnode_paral_dir]/2);
 	
 	for(int mu=0;mu<4;mu++)
 	  {
@@ -562,8 +560,8 @@ void debug_apply_tmQ()
     nissa_free(un_out);
   }
   
-  memset(nissa_send_buf,0,nissa_send_buf_size);
-  memset(nissa_recv_buf,0,nissa_recv_buf_size);
+  memset(send_buf,0,send_buf_size);
+  memset(recv_buf,0,recv_buf_size);
   
   //apply tm bgq
   master_printf("Applying on the vsurface: %d-%d\n",0,vsurf_vol);
@@ -579,10 +577,10 @@ void debug_apply_tmQ()
   finish_Wilson_hopping_matrix_lx_bgq_communications();
   THREAD_BARRIER();
   
-  bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)nissa_send_buf+bord_volh;
+  bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)send_buf+bord_volh;
   for(int ivol=0;ivol<loc_vol;ivol++)
     {
-      int vn=(loc_coord_of_loclx[ivol][nissa_vnode_paral_dir]>=loc_size[nissa_vnode_paral_dir]/2);
+      int vn=(loc_coord_of_loclx[ivol][vnode_paral_dir]>=loc_size[vnode_paral_dir]/2);
       
       for(int mu=0;mu<4;mu++)
 	{
@@ -609,7 +607,7 @@ void debug_apply_tmQ()
   
   for(int ivol=0;ivol<loc_vol;ivol++)
     {
-      int vn=(loc_coord_of_loclx[ivol][nissa_vnode_paral_dir]>=loc_size[nissa_vnode_paral_dir]/2);
+      int vn=(loc_coord_of_loclx[ivol][vnode_paral_dir]>=loc_size[vnode_paral_dir]/2);
       
       for(int mu=0;mu<4;mu++)
 	{

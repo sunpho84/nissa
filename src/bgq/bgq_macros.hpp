@@ -259,14 +259,14 @@
 
 #define BI_COMPLEX_SUMM_THE_CONJ1_PROD(A,B,C)		\
   {							\
-    complex_summ_thppe_conj1_prod(A[0],B[0],C[0]);	\
-    complex_summ_thppe_conj1_prod(A[1],B[1],C[1]);	\
+    complex_summ_the_conj1_prod(A[0],B[0],C[0]);	\
+    complex_summ_the_conj1_prod(A[1],B[1],C[1]);	\
   }
 
 #define BI_COMPLEX_SUMM_THE_PROD(A,B,C)			\
   {							\
-    complex_summ_thppe_prod(A[0],B[0],C[0]);		\
-    complex_summ_thppe_prod(A[1],B[1],C[1]);		\
+    complex_summ_the_prod(A[0],B[0],C[0]);		\
+    complex_summ_the_prod(A[1],B[1],C[1]);		\
   }
 
 #define BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(A,B,C,D)	\
@@ -372,7 +372,7 @@
     BI_COLOR_TRANSPOSE(A[1],B[1]);		\
   }
 
-///////////////////////////////////////////// expand hppalfspincolors ///////////////////////////////////////
+///////////////////////////////////////////// expand halfspincolors ///////////////////////////////////////
 
 #define DIAG_TMQ(OUT,DIAG,IN)				\
   {							\

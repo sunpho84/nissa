@@ -20,7 +20,7 @@
 namespace nissa
 {
   inline int vnode_of_loclx(int lx)
-  {return nvnodes*loc_coord_of_loclx[lx][nissa_vnode_paral_dir]/loc_size[nissa_vnode_paral_dir];}
+  {return NVNODES*loc_coord_of_loclx[lx][vnode_paral_dir]/loc_size[vnode_paral_dir];}
   
   inline int vnode_of_loceo(int par,int eo)
   {return vnode_of_loclx(loclx_of_loceo[par][eo]);}
@@ -30,7 +30,7 @@ namespace nissa
   {
     coords c;
     for(int mu=0;mu<4;mu++) c[mu]=loc_coord_of_loclx[lx][mu];
-    c[nissa_vnode_paral_dir]%=loc_size[nissa_vnode_paral_dir]/nvnodes;
+    c[vnode_paral_dir]%=loc_size[vnode_paral_dir]/NVNODES;
     return loclx_of_coord(c);
   }
   
@@ -47,7 +47,7 @@ namespace nissa
     loceo_of_vireo[par][vireo[par]]=loceo;
     
     //and virlx and vireo for all vnodes loclx
-    for(int inode=0;inode<nvnodes;inode++)
+    for(int inode=0;inode<NVNODES;inode++)
       {
 	virlx_of_loclx[loclx+inode*vnode_lx_offset]=virlx;
 	vireo_of_loclx[loclx+inode*vnode_lx_offset]=vireo[par];
@@ -71,18 +71,18 @@ namespace nissa
   void define_vir_ordering()
   {
     //define virtual size
-    int v=nissa_vnode_paral_dir;
+    int v=vnode_paral_dir;
     for(int mu=0;mu<4;mu++) vir_loc_size[mu]=loc_size[mu];
-    vir_loc_size[v]/=nvnodes;
+    vir_loc_size[v]/=NVNODES;
     
     //allocate
     virlx_of_loclx=nissa_malloc("virlx_of_loclx",loc_vol+bord_vol,int);
     vireo_of_loclx=nissa_malloc("vireo_of_loclx",loc_vol+bord_vol,int);
-    loclx_of_virlx=nissa_malloc("loclx_of_virlx",(loc_vol+bord_vol)/nvnodes,int);
+    loclx_of_virlx=nissa_malloc("loclx_of_virlx",(loc_vol+bord_vol)/NVNODES,int);
     for(int par=0;par<2;par++) 
       {
-	loclx_of_vireo[par]=nissa_malloc("loceo_of_virlx",(loc_vol+bord_vol)/nvnodes/2,int);
-	loceo_of_vireo[par]=nissa_malloc("loceo_of_vireo",(loc_vol+bord_vol)/nvnodes/2,int);
+	loclx_of_vireo[par]=nissa_malloc("loceo_of_virlx",(loc_vol+bord_vol)/NVNODES/2,int);
+	loceo_of_vireo[par]=nissa_malloc("loceo_of_vireo",(loc_vol+bord_vol)/NVNODES/2,int);
 	vireo_of_loceo[par]=nissa_malloc("vireo_of_loceo",(loc_vol+bord_vol)/2,int);
       }
     
@@ -91,7 +91,7 @@ namespace nissa
     int vireo[2]={0,0};
     
     //scan v- and + surface, in order
-    int coord_to_compare[2]={0,loc_size[v]/nvnodes-1};
+    int coord_to_compare[2]={0,loc_size[v]/NVNODES-1};
     for(int iter=0;iter<2;iter++)
       for(int loclx=0;loclx<loc_vol;loclx++)
 	if(loc_coord_of_loclx[loclx][v]==coord_to_compare[iter])
@@ -102,9 +102,9 @@ namespace nissa
       {
 	int loclx=loclx_of_surflx[isurflx];
 	
-	//check that we are on first half of v direction, and that we are not on x_v==0 or x_v==loc_size[v]/nvnodes-1
+	//check that we are on first half of v direction, and that we are not on x_v==0 or x_v==loc_size[v]/NVNODES-1
 	int c=loc_coord_of_loclx[loclx][v];
-	if(c!=0 && c<loc_size[v]/nvnodes-1) mark_vir_of_loclx(virlx,vireo,loclx);
+	if(c!=0 && c<loc_size[v]/NVNODES-1) mark_vir_of_loclx(virlx,vireo,loclx);
       }
     
     //take note of vsurf_vol
@@ -118,13 +118,13 @@ namespace nissa
 	
 	//check that we are on first half and not on the surf, even virtual
 	int c=loc_coord_of_loclx[loclx][v];
-	if(c!=0 && c<loc_size[v]/nvnodes-1) mark_vir_of_loclx(virlx,vireo,loclx);
+	if(c!=0 && c<loc_size[v]/NVNODES-1) mark_vir_of_loclx(virlx,vireo,loclx);
       }
     
     //trivial checks
-    if(virlx!=loc_vol/nvnodes) crash("defining virlx ordering: %d!=%d",virlx,loc_vol/nvnodes);
-    if(vireo[EVN]!=loc_vol/nvnodes/2) crash("defining vireo[EVN] ordering: %d!=%d",vireo[EVN],loc_vol/nvnodes/2);
-    if(vireo[ODD]!=loc_vol/nvnodes/2) crash("defining vireo[EVN] ordering: %d!=%d",vireo[ODD],loc_vol/nvnodes/2);
+    if(virlx!=loc_vol/NVNODES) crash("defining virlx ordering: %d!=%d",virlx,loc_vol/NVNODES);
+    if(vireo[EVN]!=loc_vol/NVNODES/2) crash("defining vireo[EVN] ordering: %d!=%d",vireo[EVN],loc_vol/NVNODES/2);
+    if(vireo[ODD]!=loc_vol/NVNODES/2) crash("defining vireo[EVN] ordering: %d!=%d",vireo[ODD],loc_vol/NVNODES/2);
     
     //check loceo_of_vireo
     NISSA_LOC_VOL_LOOP(ilx)
@@ -146,7 +146,7 @@ namespace nissa
 	      int loclx=loc_vol+bord_offset[mu0]+bord_volh*bf+base_bordlx;
 	      int loceo=loceo_of_loclx[loclx];
 	      
-	      //take coord of bordlx including nvnodes factor in v dir
+	      //take coord of bordlx including NVNODES factor in v dir
 	      int surflx=surflx_of_bordlx[bord_offset[mu0]+bord_volh*bf+base_bordlx];
 	      coords c;
 	      for(int nu=0;nu<4;nu++) c[nu]=loc_coord_of_loclx[surflx][nu];
@@ -154,13 +154,13 @@ namespace nissa
 	      
 	      //define destination in vir geometry, pairing sites in v dir
 	      int temp=c[mu3]+l3*(c[mu2]+l2*c[mu1]);
-	      if(mu0==v) temp/=nvnodes;
-	      int virlx=(loc_vol+bord_volh*bf+bord_offset[mu0])/nvnodes+temp;
+	      if(mu0==v) temp/=NVNODES;
+	      int virlx=(loc_vol+bord_volh*bf+bord_offset[mu0])/NVNODES+temp;
 	      int vireo=virlx/2;
 	      virlx_of_loclx[loclx]=virlx;
 	      vireo_of_loclx[loclx]=vireo;
 	      loceo_of_vireo[loclx_parity[loclx]][vireo]=loceo;
-	      if(virlx<(loc_vol+bord_vol)/nvnodes)
+	      if(virlx<(loc_vol+bord_vol)/NVNODES)
 		{
 		  loclx_of_virlx[virlx]=loclx;
 		  loclx_of_vireo[loclx_parity[loclx]][vireo]=loclx;
@@ -185,26 +185,26 @@ namespace nissa
       {
 	int fact=(par==2)?1:2;
 	
-	//order will be:     bord_vol/nvnodes | 8*loc_vol/nvnodes | vbord_vol
-	int loc_data_start=bord_vol/nvnodes/fact;
-	int vbord_start=loc_data_start+8*loc_vol/nvnodes/fact;
+	//order will be:     bord_vol/NVNODES | 8*loc_vol/NVNODES | vbord_vol
+	int loc_data_start=bord_vol/NVNODES/fact;
+	int vbord_start=loc_data_start+8*loc_vol/NVNODES/fact;
 	int req_size=vbord_start+vbord_vol/fact; //note that this is in unity of the vparallelized structure
-	if(nissa_send_buf_size<req_size*sizeof(bi_halfspincolor)) //to be moved
-	  crash("we need larger nissa_send_buf: %d > %d",req_size*sizeof(bi_halfspincolor),nissa_send_buf_size);
+	if(send_buf_size<req_size*sizeof(bi_halfspincolor)) //to be moved
+	  crash("we need larger send_buf: %d > %d",req_size*sizeof(bi_halfspincolor),send_buf_size);
 	
 	int *loclx_of_vir=(par==2)?loclx_of_virlx:loclx_of_vireo[par];
 	int *vir_of_loclx=(par==2)?virlx_of_loclx:vireo_of_loclx;
 	
 	two_stage_computation_pos_t *out=(par==2)?&virlx_hopping_matrix_output_pos:
 	  viroe_or_vireo_hopping_matrix_output_pos+par;
-	out->inter_fr_in_pos=nissa_malloc("inter_fr_in_pos",8*loc_vol/nvnodes/fact,int);
+	out->inter_fr_in_pos=nissa_malloc("inter_fr_in_pos",8*loc_vol/NVNODES/fact,int);
 	out->final_fr_inter_pos=NULL; //we are not overlapping communication with intermediate->final transfer
-	out->inter_fr_recv_pos=nissa_malloc("inter_fr_recv_pos",bord_vol/nvnodes/fact,int);
+	out->inter_fr_recv_pos=nissa_malloc("inter_fr_recv_pos",bord_vol/NVNODES/fact,int);
 	
-	int v=nissa_vnode_paral_dir;
+	int v=vnode_paral_dir;
 	int mu1=perp_dir[v][0],mu2=perp_dir[v][1],mu3=perp_dir[v][2];
 	
-	for(int ivir=0;ivir<loc_vol/nvnodes/fact;ivir++)
+	for(int ivir=0;ivir<loc_vol/NVNODES/fact;ivir++)
 	  {
 	    int iloclx=loclx_of_vir[ivir];
 	    int *c=loc_coord_of_loclx[iloclx];
@@ -225,7 +225,7 @@ namespace nissa
 	    */
 	    
 	    //v direction fw scattering (bw derivative)
-	    out->inter_fr_in_pos[ivir*8+4+v]=(loc_coord_of_loclx[iloclx][v]==loc_size[v]/nvnodes-1)?
+	    out->inter_fr_in_pos[ivir*8+4+v]=(loc_coord_of_loclx[iloclx][v]==loc_size[v]/NVNODES-1)?
 	      //idem, but we shift of half vbord because this is + bord
 	      vbord_start+(vbord_volh*1+c[mu3]+loc_size[mu3]*(c[mu2]+loc_size[mu2]*c[mu1]))/fact:
 	      //we are still in the same vnode, but we shift of 4 (this is + contr)
@@ -236,7 +236,7 @@ namespace nissa
 	      v,iloclx,loc_coord_of_loclx[iloclx][0],loc_coord_of_loclx[iloclx][1],
 	      loc_coord_of_loclx[iloclx][2],loc_coord_of_loclx[iloclx][3],
 	      glblx_of_loclx[iloclx],loclx_neighup[iloclx][v],
-	      (loc_coord_of_loclx[iloclx][v]==loc_size[v]/nvnodes-1),
+	      (loc_coord_of_loclx[iloclx][v]==loc_size[v]/NVNODES-1),
 	      ivir*8+4+v,out->inter_fr_in_pos[ivir*8+4+v]);
 	    */
 	    
@@ -248,7 +248,7 @@ namespace nissa
 		int bw=loclx_neighdw[iloclx][mu];
 		out->inter_fr_in_pos[ivir*8+0+mu]=(bw>=loc_vol)?
 		  //we moved to another node
-		  vir_of_loclx[bw]-loc_vol/nvnodes/fact: //SEEMS THAT IT IS MAKING A MESS
+		  vir_of_loclx[bw]-loc_vol/NVNODES/fact: //SEEMS THAT IT IS MAKING A MESS
 		  //we are still in local vnode
 		  loc_data_start+8*vir_of_loclx[bw]+0+mu;
 		/*
@@ -264,7 +264,7 @@ namespace nissa
 		int fw=loclx_neighup[iloclx][mu];
 		out->inter_fr_in_pos[ivir*8+4+mu]=(fw>=loc_vol)?
 		  //we moved in another node
-		  vir_of_loclx[fw]-loc_vol/nvnodes/fact:
+		  vir_of_loclx[fw]-loc_vol/NVNODES/fact:
 		  //we are still in local vnode
 		  loc_data_start+8*vir_of_loclx[fw]+4+mu;
 		/*
@@ -283,17 +283,17 @@ namespace nissa
 	for(int imu=0;imu<3;imu++)
 	  {
 	    int mu=perp_dir[v][imu];
-	    for(int base_src=0;base_src<bord_dir_vol[mu]/nvnodes/fact;base_src++)
+	    for(int base_src=0;base_src<bord_dir_vol[mu]/NVNODES/fact;base_src++)
 	      {
 		//other 3 bw borders
-		int bw_vir_src=(0*bord_volh+bord_offset[mu])/nvnodes/fact+base_src;
-		int bw_bordlx_src=loclx_of_vir[bw_vir_src+loc_vol/nvnodes/fact]-loc_vol;
+		int bw_vir_src=(0*bord_volh+bord_offset[mu])/NVNODES/fact+base_src;
+		int bw_bordlx_src=loclx_of_vir[bw_vir_src+loc_vol/NVNODES/fact]-loc_vol;
 		int bw_dst=8*vir_of_loclx[surflx_of_bordlx[bw_bordlx_src]]+4+mu;
 		out->inter_fr_recv_pos[bw_vir_src]=bw_dst;
 		
 		//other 3 fw borders
-		int fw_vir_src=(1*bord_volh+bord_offset[mu])/nvnodes/fact+base_src;
-		int fw_bordlx_src=loclx_of_vir[fw_vir_src+loc_vol/nvnodes/fact]-loc_vol;
+		int fw_vir_src=(1*bord_volh+bord_offset[mu])/NVNODES/fact+base_src;
+		int fw_bordlx_src=loclx_of_vir[fw_vir_src+loc_vol/NVNODES/fact]-loc_vol;
 		int fw_dst=8*vir_of_loclx[surflx_of_bordlx[fw_bordlx_src]]+0+mu;
 		out->inter_fr_recv_pos[fw_vir_src]=fw_dst;
 	      }
@@ -422,7 +422,7 @@ namespace nissa
   
     //bufferize if needed
     int bufferize=(void*)ext_out==(void*)in;
-    bi_spincolor *out=bufferize?nissa_malloc("out",loc_vol/nvnodes,bi_spincolor):ext_out;
+    bi_spincolor *out=bufferize?nissa_malloc("out",loc_vol/NVNODES,bi_spincolor):ext_out;
     
     //copy the various VN
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
@@ -448,7 +448,7 @@ namespace nissa
     spincolor *out=bufferize?nissa_malloc("out",loc_vol,spincolor):ext_out;
     
     //split to the two VN
-    NISSA_PARALLEL_LOOP(ivol_virlx,0,loc_vol/nvnodes)
+    NISSA_PARALLEL_LOOP(ivol_virlx,0,loc_vol/NVNODES)
       BI_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_virlx[ivol_virlx]],out[loclx_of_virlx[ivol_virlx]+vnode_lx_offset],
 				in[ivol_virlx]);
     
@@ -483,7 +483,7 @@ namespace nissa
     
     //split to the two VN
     for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/nvnodes)
+      NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
 	BI_SPINCOLOR_TO_SPINCOLOR(out[loclx_of_vireo[par][ivol_vireo]],
 				  out[loclx_of_vireo[par][ivol_vireo]+vnode_lx_offset],
 				  in[par][ivol_vireo]);
@@ -512,7 +512,7 @@ namespace nissa
     
     //split to the two VN
     for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/nvnodes)
+      NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
 	BI_COLOR_TO_COLOR(out[loclx_of_vireo[par][ivol_vireo]],out[loclx_of_vireo[par][ivol_vireo]+vnode_lx_offset],
 			  in[par][ivol_vireo]);
     
@@ -538,7 +538,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //split to the two VN
-    NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/nvnodes)
+    NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
       BI_COLOR_TO_COLOR(out[loceo_of_vireo[par][ivol_vireo]],out[loceo_of_vireo[par][ivol_vireo]+vnode_eo_offset],
 			in[ivol_vireo]);
     
@@ -549,17 +549,17 @@ namespace nissa
   //set virtual geometry
   void set_vir_geometry()
   {
-    if(!nissa_vir_geom_inited)
+    if(!vir_geom_inited)
       {
-	nissa_vir_geom_inited=true;
+	vir_geom_inited=true;
 	
 	//crash if eo-geom not inited
-	if(!nissa_eo_geom_inited)
+	if(!eo_geom_inited)
 	  {
-	    if(!nissa_use_eo_geom) crash("eo geometry must be enabled in order to use vir one");
+	    if(!use_eo_geom) crash("eo geometry must be enabled in order to use vir one");
 	    crash("initialize eo_geometry before vir one");
 	    
-	    if(loc_size[nissa_vnode_paral_dir]%4) crash("virtual parallelized dir must have local size multiple of 4");
+	    if(loc_size[vnode_paral_dir]%4) crash("virtual parallelized dir must have local size multiple of 4");
 	  }
 	
 	define_vir_ordering();
@@ -572,9 +572,9 @@ namespace nissa
   //unset it
   void unset_vir_geometry()
   {
-    if(nissa_vir_geom_inited)
+    if(vir_geom_inited)
       {
-	nissa_vir_geom_inited=false;
+	vir_geom_inited=false;
 	
 	virlx_hopping_matrix_output_pos.free();
 	

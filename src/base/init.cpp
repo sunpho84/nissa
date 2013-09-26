@@ -468,7 +468,7 @@ namespace nissa
     //compute the offset between sites of different vnodes
     //this amount to the product of the local size of the direction running faster than
     //vnode_paral_dir, times half the local size along vnode_paral_dir
-    vnode_lx_offset=loc_size[vnode_paral_dir]/nvnodes;
+    vnode_lx_offset=loc_size[vnode_paral_dir]/NVNODES;
     for(int mu=vnode_paral_dir+1;mu<4;mu++) vnode_lx_offset*=loc_size[mu];
     vnode_eo_offset=vnode_lx_offset/2;
 #endif
