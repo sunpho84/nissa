@@ -13,7 +13,7 @@ void compute_tadpole_diagram_in_mom_space(spinspin *q_tad,quark_info qu,gluon_in
   //compute tadpole integral
   spinspin loc_tad;
   spinspin_put_to_zero(loc_tad);
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       spin1prop g_prop;
       mom_space_tlSym_gluon_propagator_of_imom(g_prop,gl,imom);
@@ -23,7 +23,7 @@ void compute_tadpole_diagram_in_mom_space(spinspin *q_tad,quark_info qu,gluon_in
   MPI_Allreduce(loc_tad,glb_tad,32,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   spinspin_prodassign_double(glb_tad,1.0/glb_vol);
   
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       spinspin_put_to_zero(q_tad[imom]);
       for(int mu=0;mu<4;mu++)
@@ -51,7 +51,7 @@ void compute_tadpole_diagram_in_x_space(spinspin *q_tad,quark_info qu,gluon_info
   //compute the propagator
   spin1prop *g_prop=nissa_malloc("g_prop",loc_vol+bord_vol,spin1prop);
   compute_x_space_tlSym_gluon_propagator_by_fft(g_prop,gl);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     if(glblx_of_loclx[ivol]!=0)
       spinspin_put_to_zero(g_prop[ivol]);
   
@@ -60,7 +60,7 @@ void compute_tadpole_diagram_in_x_space(spinspin *q_tad,quark_info qu,gluon_info
     {
       shift_spinspin_source_up(g_prop_sh,g_prop,qu.bc,mu);
       
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
       {
 	spinspin temp;
 	unsafe_spinspin_complex_prod(temp,nissa_opg[mu],g_prop_sh[ivol][mu][mu]);
@@ -70,7 +70,7 @@ void compute_tadpole_diagram_in_x_space(spinspin *q_tad,quark_info qu,gluon_info
 
       shift_spinspin_source_dw(g_prop_sh,g_prop,qu.bc,mu);
       
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
       {
 	spinspin temp;
 	unsafe_spinspin_complex_prod(temp,nissa_omg[mu],g_prop_sh[ivol][mu][mu]);
@@ -85,7 +85,7 @@ void compute_tadpole_diagram_in_x_space(spinspin *q_tad,quark_info qu,gluon_info
 
 void finish_tadpole_computation(spinspin *q_out,quark_info qu)
 {
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
   {
     spinspin q_prop,t;
     mom_space_twisted_propagator_of_imom(q_prop,qu,imom);

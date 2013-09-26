@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../../src/nissa.h"
+#include "../../src/nissa.hpp"
 
-#include "./new_types.h"
+#include "./new_types.hpp"
 
 char base_out_folder[1024];
 

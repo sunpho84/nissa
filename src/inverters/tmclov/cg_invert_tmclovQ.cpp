@@ -1,21 +1,24 @@
 #ifdef HAVE_CONFIG_H
- #include "config.h"
+ #include "config.hpp"
 #endif
 
-#include "new_types/new_types_definitions.h"
-#include "base/global_variables.h"
-#include "base/vectors.h"
+#include "new_types/new_types_definitions.hpp"
+#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
 
-#include "dirac_operators/dirac_operator_tmclovQ/dirac_operator_tmclovQ.h"
-#include "cg_invert_tmclovQ2.h"
+#include "dirac_operators/dirac_operator_tmclovQ/dirac_operator_tmclovQ.hpp"
+#include "cg_invert_tmclovQ2.hpp"
 
-void inv_tmclovQ_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double mu,int niter,int rniter,double residue,spincolor *source)
+namespace nissa
 {
-  inv_tmclovQ2_cg(sol,NULL,conf,kappa,csw,Pmunu,mu,niter,rniter,residue,source);
-  spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
-  
-  vector_copy(temp,sol);
-  apply_tmclovQ(sol,conf,kappa,csw,Pmunu,mu,temp);
-  
-  nissa_free(temp);
+  void inv_tmclovQ_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double mu,int niter,int rniter,double residue,spincolor *source)
+  {
+    inv_tmclovQ2_cg(sol,NULL,conf,kappa,csw,Pmunu,mu,niter,rniter,residue,source);
+    spincolor *temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+    
+    vector_copy(temp,sol);
+    apply_tmclovQ(sol,conf,kappa,csw,Pmunu,mu,temp);
+    
+    nissa_free(temp);
+  }
 }

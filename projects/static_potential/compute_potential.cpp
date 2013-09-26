@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
 
 //compute the static quark pair potential
 void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hyp_alpha0,double hyp_alpha1,double hyp_alpha2,double ape_alpha,int nlev_spat_smear,
@@ -24,7 +24,7 @@ void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hy
   
   //compute the tline: this is done once forever since we are using only one level of hyp
   master_printf("Computing tline\n");
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       const int mu=0;
       
@@ -58,7 +58,7 @@ void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hy
 	{
 	  //compute the xline
 	  master_printf("Computing xline for direction %d\n",mu);
-	  nissa_loc_vol_loop(ivol)
+	  NISSA_LOC_VOL_LOOP(ivol)
 	    {
 	      su3_copy(xline[ivol*Dmax],conf[ivol][mu]);
 	      int jvol=ivol;
@@ -70,7 +70,7 @@ void compute_static_quark_pair_potential(char *out_path,quad_su3 *conf,double hy
 	    }
 	  
 	  //loop over the whole lattice
-	  nissa_loc_vol_loop(ivol)
+	  NISSA_LOC_VOL_LOOP(ivol)
 	    {
 	      int A=ivol;
 	      

@@ -2,8 +2,10 @@
 #include <string.h>
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
 #include "driver_corr.hpp"
+
+using namespace nissa;
 
 /*
 
@@ -163,7 +165,7 @@ int *ch_op_sour_3pts,*ch_op_sink_3pts;
 
 //timings
 int wall_time;
-double tot_time=0;
+double tot_prog_time=0;
 
 #ifdef BENCH
 int ninv_tot=0,ncontr_tot=0;
@@ -236,7 +238,7 @@ void generate_source()
 #ifdef POINT_SOURCE_VERSION
   generate_delta_source(original_source,source_coord);
 #else
-  generate_spindiluted_source(original_source,nissa_rnd_type_map[noise_type],source_coord[0]);
+  generate_spindiluted_source(original_source,rnd_type_map[noise_type],source_coord[0]);
   
   //if asked, save the source
   if(save_source)
@@ -256,7 +258,7 @@ void generate_sequential_source(int ispec)
   select_propagator_timeslice(sequential_source,sequential_source,0);
   
   master_printf("\nCreating the sequential source for spectator %d\n",ispec);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       //put to zero everywhere but on the slice
       if(glb_coord_of_loclx[ivol][0]!=(source_coord[0]+tsep)%glb_size[0])
@@ -623,20 +625,20 @@ void close_semileptonic()
 {
   master_printf("\n");
   master_printf("Inverted %d configurations.\n",nanalyzed_conf);
-  master_printf("Total time: %g");
+  master_printf("Total time: %g",tot_prog_time);
 #ifdef BENCH
   double contr_time=contr_2pts_time+contr_3pts_time;
-  master_printf(", of which:\n",tot_time);
-  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
+  master_printf(", of which:\n");
+  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
   master_printf("  of which  %02.2f%s for %d cgm inversion overhead (%2.2gs avg)\n",cgm_inv_over_time/inv_time*100,"%",
 		ninv_tot,cgm_inv_over_time/ninv_tot);
-  master_printf(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_time,"%");
-  master_printf(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_time,"%");
-  master_printf(" - %02.2f%s to load or save propagators\n",load_save_S0_time*100.0/tot_time,"%");
-  master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg) of which:\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+  master_printf(" - %02.2f%s to smear configuration\n",conf_smear_time*100.0/tot_prog_time,"%");
+  master_printf(" - %02.2f%s to sink-smear propagators\n",smear_time*100.0/tot_prog_time,"%");
+  master_printf(" - %02.2f%s to load or save propagators\n",load_save_S0_time*100.0/tot_prog_time,"%");
+  master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg) of which:\n",contr_time/tot_prog_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
   master_printf("   * %02.2f%s to compute two points\n",contr_2pts_time*100.0/contr_time,"%");
   master_printf("   * %02.2f%s to compute three points\n",contr_3pts_time*100.0/contr_time,"%");
-  master_printf(" - %02.2f%s to save correlations\n",contr_save_time*100.0/tot_time,"%");
+  master_printf(" - %02.2f%s to save correlations\n",contr_save_time*100.0/tot_prog_time,"%");
 #else
   master_printf("\n");
 #endif
@@ -1407,7 +1409,7 @@ int check_remaining_time()
   int enough_time;
 
   //check remaining time                                                                                                                                                                        
-  double temp_time=take_time()+tot_time;
+  double temp_time=take_time()+tot_prog_time;
   double ave_time=temp_time/nanalyzed_conf;
   double left_time=wall_time-temp_time;
   enough_time=left_time>(ave_time*1.1);
@@ -1423,7 +1425,7 @@ int check_remaining_time()
 void in_main(int narg,char **arg)
 {
   //Basic mpi initialization
-  tot_time-=take_time();
+  tot_prog_time-=take_time();
   
   //initialize the program
   if(narg<2) crash("Use: %s input_file",arg[0]);
@@ -1476,7 +1478,7 @@ void in_main(int narg,char **arg)
   
   if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
   
-  tot_time+=take_time();
+  tot_prog_time+=take_time();
   close_semileptonic();
 }
 

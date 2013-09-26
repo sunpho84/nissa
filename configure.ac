@@ -8,7 +8,7 @@ AC_DEFINE_UNQUOTED([CONFIG_FLAGS],["$config_flags"],[Flags passed to configure])
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([1.0 no-define foreign subdir-objects])
-AM_CONFIG_HEADER(src/config.h)
+AM_CONFIG_HEADER(src/config.hpp)
 AC_CONFIG_MACRO_DIR([m4])
 AC_DISABLE_SHARED
 AC_CANONICAL_HOST
@@ -210,7 +210,7 @@ if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then AC_MSG_ERROR([String 
 AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 
-#create config.h
+#create config.hpp
 AC_OUTPUT(
 	Makefile
 	src/Makefile

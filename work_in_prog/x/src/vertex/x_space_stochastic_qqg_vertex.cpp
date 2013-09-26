@@ -25,7 +25,7 @@ void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_i
       //shift=q_in_up_mu
       shift_spinspin_sink_up(shift_q_in,q_in,qu.bc,mu);
 
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         {
 	  spinspin temp;
 	  
@@ -43,7 +43,7 @@ void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_i
       //shift=g_in_dw_mu_mu
       shift_spin1field_up(shift_g_in,g_in,gl.bc,mu);
       
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         {
 	  spinspin temp;
 	  
@@ -58,7 +58,7 @@ void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_i
     }
   
   //put i/2
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     spinspin_prodassign_idouble(q_out[ivol],0.5);
   
   set_borders_invalid(q_out);

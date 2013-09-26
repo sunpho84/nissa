@@ -7,7 +7,7 @@
 
 %{
 #include <stdio.h>
-#include "../../src/nissa.h"
+#include "../../src/nissa.hpp"
 #include "driver_corr.hpp"
 
 #define CORR_NAME yyextra->corr_name[yyextra->ncorr]   

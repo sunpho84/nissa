@@ -25,7 +25,7 @@ int main(int narg,char **arg)
   start_loc_rnd_gen(seed);
   
   rnd_fill_unif_loc_vector((double*)conf,72,-1,1);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       su3_unitarize_explicitly_inverting(conf[ivol][mu],conf[ivol][mu]);
   

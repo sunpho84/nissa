@@ -57,7 +57,7 @@ void close_test()
 
 void summ_the_stoch_contribution(spinspin *osi,spinspin *q,spin1field *phi,spin1field *eta,int nu,int mu,spinspin *oso,double sign)
 {
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
   {
     complex g;
     unsafe_complex_conj2_prod(g,phi[ivol][nu],eta[0][mu]);
@@ -119,7 +119,7 @@ int main(int narg,char **arg)
       generate_stochastic_source_and_tlSym_gluon_propagator(phi,eta,gl);
       generate_stochastic_A_B_dag_twisted_propagator_source(temp_corr,id,qu,phi,eta,gl);
 
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	spinspin_summassign(d2_stoch_corr[ivol],temp_corr[ivol]);
       
       //////////////////////////////////// output ////////////////////////////
@@ -127,7 +127,7 @@ int main(int narg,char **arg)
       if((isource+1)==1<<log2)
 	{
 	  log2++;
-	  nissa_loc_vol_loop(ivol)
+	  NISSA_LOC_VOL_LOOP(ivol)
 	    spinspin_prod_double(d2_stoch_corr_ave[ivol],d2_stoch_corr[ivol],1.0/(isource+1));
 	  
 	  pass_spinspin_from_x_to_mom_space(d2_stoch_corr_ave,d2_stoch_corr_ave,quark_theta);
@@ -143,7 +143,7 @@ int main(int narg,char **arg)
 	    }
 	  
 	  double rs=0,rd=0;
-	  nissa_loc_vol_loop(ivol)
+	  NISSA_LOC_VOL_LOOP(ivol)
 	  {
 	    spinspin td;
 	    spinspin_subt(td,d2_stoch_corr_ave[ivol],d2_corr[ivol]);

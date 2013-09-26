@@ -1,4 +1,4 @@
-AM_CXXFLAGS=-I$(top_srcdir)/src
+AM_CPPFLAGS=-I$(top_srcdir)/src
 
 noinst_LTLIBRARIES=liboperations.la
 liboperations_la_SOURCES= \
@@ -34,43 +34,43 @@ liboperations_la_SOURCES= \
 
 operations_includedir=$(includedir)/operations
 operations_include_HEADERS= \
-        covariant_derivative.h \
-        fft.h \
-        fourier_transform.h \
-        gauge_fixing.h \
-        gaugeconf.h \
-        remap_vector.h \
-        shift.h \
-        source.h \
-        vector_gather.h
+        covariant_derivative.hpp \
+        fft.hpp \
+        fourier_transform.hpp \
+        gauge_fixing.hpp \
+        gaugeconf.hpp \
+        remap_vector.hpp \
+        shift.hpp \
+        source.hpp \
+        vector_gather.hpp
 
 operations_remez_includedir=$(includedir)/operations/remez
-operations_remez_include_HEADERS=remez/remez_algorithm.h
+operations_remez_include_HEADERS=remez/remez_algorithm.hpp
 
 operations_contract_includedir=$(includedir)/operations/contract
 operations_contract_include_HEADERS= \
-        contract/mesons_2pts.h \
-        contract/mesons_eight.h \
-        contract/optimized_mesons_2pts.h \
-        contract/site_contract.h \
-        contract/stag.h
+        contract/mesons_2pts.hpp \
+        contract/mesons_eight.hpp \
+        contract/optimized_mesons_2pts.hpp \
+        contract/site_contract.hpp \
+        contract/stag.hpp
 
 operations_smearing_includedir=$(includedir)/operations/smearing
 operations_smearing_include_HEADERS= \
-        smearing/APE.h \
-        smearing/HYP.h \
-        smearing/stout.h \
-        smearing/gaussian.h
+        smearing/APE.hpp \
+        smearing/HYP.hpp \
+        smearing/stout.hpp \
+        smearing/gaussian.hpp
 
 operations_su3_paths_includedir=$(includedir)/operations/su3_paths
 operations_su3_paths_include_HEADERS= \
-        su3_paths/all_rectangles.h \
-        su3_paths/arbitrary.h \
-	su3_paths/hypercubic_transfer.h \
-        su3_paths/plaquette.h \
-        su3_paths/pline.h \
-        su3_paths/rectangles.h \
-        su3_paths/rectangular_staples.h \
-        su3_paths/shortest_hypercubic_paths.h \
-        su3_paths/squared_staples.h \
-        su3_paths/topological_charge.h
+        su3_paths/all_rectangles.hpp \
+        su3_paths/arbitrary.hpp \
+	su3_paths/hypercubic_transfer.hpp \
+        su3_paths/plaquette.hpp \
+        su3_paths/pline.hpp \
+        su3_paths/rectangles.hpp \
+        su3_paths/rectangular_staples.hpp \
+        su3_paths/shortest_hypercubic_paths.hpp \
+        su3_paths/squared_staples.hpp \
+        su3_paths/topological_charge.hpp

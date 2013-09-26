@@ -1,11 +1,11 @@
 #include <math.h>
 
-#include "base/global_variables.h"
-#include "base/vectors.h"
-#include "base/debug.h"
-#include "dirac_operators/dirac_operator_WclovQ2/dirac_operator_WclovQ2.h"
-#include "linalgs/linalgs.h"
-#include "new_types/new_types_definitions.h"
+#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
+#include "base/debug.hpp"
+#include "dirac_operators/dirac_operator_WclovQ2/dirac_operator_WclovQ2.hpp"
+#include "linalgs/linalgs.hpp"
+#include "new_types/new_types_definitions.hpp"
 
 #define basetype spincolor
 

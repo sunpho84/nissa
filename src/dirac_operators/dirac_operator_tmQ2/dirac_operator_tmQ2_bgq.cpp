@@ -1,11 +1,11 @@
 #ifdef HAVE_CONFIG_H
- #include "config.h"
+ #include "config.hpp"
 #endif
 
-#include "new_types/new_types_definitions.h"
-#include "dirac_operator_tmQ/dirac_operator_tmQ_bgq.h"
+#include "new_types/new_types_definitions.hpp"
+#include "dirac_operator_tmQ/dirac_operator_tmQ_bgq.hpp"
 
-#include "routines/ios.h"
+#include "routines/ios.hpp"
 
 #include <math.h>
 

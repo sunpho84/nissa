@@ -29,7 +29,7 @@ int main(int narg,char **arg)
   if(last!=loc_vol*sizeof(quad_su3)) crash("error while reading the conf");
 
   //transpose the colors
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       {
 	//check su3ity

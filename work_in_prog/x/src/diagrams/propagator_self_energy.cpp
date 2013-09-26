@@ -10,7 +10,7 @@
 
 void summ_the_contribution_of_self_energy_twisted_diagram_in_x_space(spinspin *q_out,spinspin *osi,spinspin *q,spin1prop *g,int nu,int mu,spinspin *oso,double weight)
 {
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       spinspin t;
       unsafe_spinspin_prod_spinspin(t,q[ivol],oso[mu]);
@@ -89,9 +89,9 @@ void compute_self_energy_twisted_diagram_in_mom_space(spinspin *q_out,spinspin *
   for(int mu=0;mu<4;mu++) zmp&=(gl.bc[mu]==0);
 
   if(zmp)
-    nissa_loc_vol_loop(ip)
+    NISSA_LOC_VOL_LOOP(ip)
     {
-      nissa_loc_vol_loop(iq)
+      NISSA_LOC_VOL_LOOP(iq)
       {
 	spinspin w[4];
 
@@ -148,7 +148,7 @@ void compute_self_energy_twisted_propagator_in_x_space(spinspin *q_out,quark_inf
   compute_self_energy_twisted_diagram_in_x_space(q_out,qu,gl);
   pass_spinspin_from_x_to_mom_space(q_out,q_out,qu.bc);
 
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
   {
     spinspin s,t;
     mom_space_twisted_propagator_of_imom(s,qu,imom);
@@ -174,11 +174,11 @@ void compute_self_energy_twisted_propagator_in_x_space_tough_way(spinspin *q_out
   //iout -- A -- B -- 0
   //     qa   si   qb
   
-  nissa_loc_vol_loop(iout)
+  NISSA_LOC_VOL_LOOP(iout)
   {
     printf("%d\n",iout);
-    nissa_loc_vol_loop(A)
-      nissa_loc_vol_loop(B)
+    NISSA_LOC_VOL_LOOP(A)
+      NISSA_LOC_VOL_LOOP(B)
         {
 	  spinspin qa,si,qb;
 	  compute_x_space_propagator_to_sink_from_source(qa,q_prop,qu.bc,glb_coord_of_loclx[iout],glb_coord_of_loclx[A]);

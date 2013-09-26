@@ -63,7 +63,7 @@ int main(int narg,char **arg)
   compute_all_2pts_qdagq_correlations(corr,prop,prop);
   
   //compute a particular point in a different way
-  nissa_loc_vol_loop(P)
+  NISSA_LOC_VOL_LOOP(P)
     {
       spinspin t;
       compute_x_space_propagator_to_sink_from_source(t,prop,qu.bc,glb_coord_of_loclx[0],glb_coord_of_loclx[P]);

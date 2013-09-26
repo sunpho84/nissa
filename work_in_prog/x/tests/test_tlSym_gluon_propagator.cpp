@@ -75,7 +75,7 @@ int main(int narg,char **arg)
   
   /*
   double loc_d=0;
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id=0;id<32;id++)
       {
 	double t=((double*)prop_inv[ivol])[id]-((double*)prop_fft[ivol])[id];

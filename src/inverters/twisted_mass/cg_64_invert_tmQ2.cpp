@@ -1,13 +1,13 @@
 #include <math.h>
 
-#include "base/debug.h"
-#include "communicate/communicate.h"
-#include "base/global_variables.h"
-#include "base/vectors.h"
-#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.h"
-#include "linalgs/linalgs.h"
-#include "new_types/new_types_definitions.h"
-#include "routines/ios.h"
+#include "base/debug.hpp"
+#include "communicate/communicate.hpp"
+#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
+#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2.hpp"
+#include "linalgs/linalgs.hpp"
+#include "new_types/new_types_definitions.hpp"
+#include "routines/ios.hpp"
 
 #define basetype spincolor
 #define ndoubles_per_site 24

@@ -84,7 +84,7 @@ int main(int narg,char **arg)
       MPI_Bcast(eta_0,sizeof(spin1field),MPI_CHAR,0,MPI_COMM_WORLD);
       
       //reconstruct prop[ivol][mu][nu]+=phi[ivol][mu]*eta[0][nu]
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	for(int mu=0;mu<4;mu++)
 	  for(int nu=0;nu<4;nu++)
 	    complex_summ_the_conj2_prod(prop_wi_stoch[ivol][mu][nu],phi[ivol][mu],eta_0[nu]);
@@ -93,7 +93,7 @@ int main(int narg,char **arg)
 	{
 	  //take the squared norm of the difference between the two computed propagators  
 	  double loc_d=0;
-	  nissa_loc_vol_loop(ivol)
+	  NISSA_LOC_VOL_LOOP(ivol)
 	    for(int id=0;id<32;id++)
 	      {
 		double a=((double*)prop_wi[ivol])[id];
@@ -108,7 +108,7 @@ int main(int narg,char **arg)
     }
   
   //normalize
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       for(int nu=0;nu<4;nu++)
 	complex_prodassign_double(prop_wi_stoch[ivol][mu][nu],1.0/nsource);

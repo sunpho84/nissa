@@ -206,7 +206,7 @@ int main(int narg,char **arg)
       compute_self_energy_twisted_diagram_in_mom_space(corr2_p,qu,gl);
 
       double tt=0;
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
       {
 	spinspin temp;
 	coords opp;
@@ -242,7 +242,7 @@ int main(int narg,char **arg)
   FILE *fout_c1_ipsl=open_file(path_c1_ipsl,"w");
   FILE *fout_c2_id=open_file(path_c2_id,"w");
   FILE *fout_c2_ipsl=open_file(path_c2_ipsl,"w");
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       int w=1;
       double a2pt2=0,a2p2=0,a4p4=0,th=0;

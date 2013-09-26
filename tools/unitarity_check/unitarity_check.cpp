@@ -9,7 +9,7 @@ void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
   read_ildg_gauge_conf(conf,filename);
   master_printf("Plaquette: %16.16lg\n",global_plaquette_lx_conf(conf));
   
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int idir=0;idir<4;idir++)
       {
 	su3 zero;

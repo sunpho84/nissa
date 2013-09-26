@@ -2,30 +2,24 @@
 
 #include "base/global_variables.h"
 
-void cuda_set_device()
-{
-  //count device
-  int ndevices;
-  cudaError_t stat=cudaGetDeviceCount(&ndevices);
-  if(stat!=cudaSuccess) printf("%s\n",cudaGetErrorString(stat));
-  printf("Found: %d devices\n",ndevices);
-  
-  //try to set a device
-  for(int idev=0;idev<ndevices;idev++)
-    {
-      stat=cudaSetDevice(idev); 
-      if(stat!=cudaSuccess) printf("%s\n",cudaGetErrorString(stat));
-      if(stat==cudaErrorInvalidDevice) 
-	{ 
-	  perror("cudaSetDevice returned  cudaErrorInvalidDevice"); 
-	}
-      int device;
-      cudaGetDevice(&device); 
-      printf("cudaGetDevice()=%d\n",device); 
-    }
-}
+#include "cuda_wrappers.h"
 
-void cuda_test()
+namespace cuda
 {
-  cuda_set_device();
+  //initialize cuda
+  void init(int asked_dev)
+  {
+    //count device
+    int ndevice=get_device_count();
+    if(asked_dev<0||asked_dev>=ndevices) crash("Asked device out of [0,%d) bound",ndevices);
+    
+    //try to set the device and check that it has been set
+    set_device(asked_dev);
+    if(get_device()!=asked_dev) crash("Unsuccess setting device %d",asked_dev); 
+  }
+  
+  void test()
+  {
+    init(0);
+  }
 }

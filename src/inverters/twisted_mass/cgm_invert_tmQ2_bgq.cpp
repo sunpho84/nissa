@@ -1,18 +1,18 @@
 #ifdef HAVE_CONFIG_H
- #include "config.h"
+ #include "config.hpp"
 #endif
 
 #include <math.h>
 
-//#include "cg_128_invert_tmQ2.h"
+//#include "cg_128_invert_tmQ2.hpp"
 
-#include "base/global_variables.h"
-#include "base/vectors.h"
-#include "base/debug.h"
-#include "communicate/communicate.h"
-#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.h"
-#include "linalgs/linalgs.h"
-#include "new_types/new_types_definitions.h"
+#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
+#include "base/debug.hpp"
+#include "communicate/communicate.hpp"
+#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.hpp"
+#include "linalgs/linalgs.hpp"
+#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE bi_spincolor
 #define NDOUBLES_PER_SITE 48

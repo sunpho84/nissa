@@ -48,7 +48,7 @@ void mom_space_twisted_propagator_of_imom(spinspin prop,quark_info qu,int imom)
 
 void multiply_from_left_by_mom_space_twisted_propagator(spin *out,spin *in,quark_info qu)
 {
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       spinspin prop;
       mom_space_twisted_propagator_of_imom(prop,qu,imom);
@@ -60,7 +60,7 @@ void multiply_from_left_by_mom_space_twisted_propagator(spin *out,spin *in,quark
 
 void multiply_from_right_by_mom_space_twisted_propagator(spin *out,spin *in,quark_info qu)
 {
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       spinspin prop;
       mom_space_twisted_propagator_of_imom(prop,qu,imom);
@@ -73,7 +73,7 @@ void multiply_from_right_by_mom_space_twisted_propagator(spin *out,spin *in,quar
 //compute the twisted quark propagator in the momentum space
 void compute_mom_space_twisted_propagator(spinspin *prop,quark_info qu)
 {
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     mom_space_twisted_propagator_of_imom(prop[imom],qu,imom);
   
   set_borders_invalid(prop);
@@ -92,7 +92,7 @@ void compute_x_space_twisted_squared_propagator_by_fft(spinspin *sq_prop,quark_i
   compute_mom_space_twisted_propagator(sq_prop,qu);
   
   //square
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       safe_spinspin_prod_spinspin(sq_prop[imom],sq_prop[imom],sq_prop[imom]);
       spinspin_prodassign_double(sq_prop[imom],glb_vol);
@@ -129,7 +129,7 @@ void multiply_from_left_by_x_space_twisted_propagator_by_fft(spin *prop,spin *ex
 {
   pass_spin_from_x_to_mom_space(prop,ext_source,qu.bc);
   multiply_from_left_by_mom_space_twisted_propagator(prop,prop,qu);
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     spin_prodassign_double(prop[ivol],glb_vol);
   pass_spin_from_mom_to_x_space(prop,prop,qu.bc);
 }

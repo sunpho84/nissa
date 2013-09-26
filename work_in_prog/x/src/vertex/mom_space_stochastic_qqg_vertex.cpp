@@ -34,7 +34,7 @@ void stochastic_mom_space_qqg_vertex(spin *q_out,spin *q_in,quark_info qu,spin1f
       //shift=q_in_up_mu
       shift_spin_dw(shift_q_in,q_in,qu.bc,mu);
 
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         {
 	  spin temp;
 	  
@@ -51,7 +51,7 @@ void stochastic_mom_space_qqg_vertex(spin *q_out,spin *q_in,quark_info qu,spin1f
       //shift=g_in_dw_mu_mu
       shift_spin1field_up(shift_g_in,g_in,gl.bc,mu);
 
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         {
 	  spin temp;
 	  
@@ -65,7 +65,7 @@ void stochastic_mom_space_qqg_vertex(spin *q_out,spin *q_in,quark_info qu,spin1f
     }
 
   //put -i/2
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id=0;id<4;id++)
       complex_prodassign_idouble(q_out[ivol][id],-0.5);
   
@@ -91,13 +91,13 @@ void stochastic_x_space_qqg_vertex(spinspin *q_out,spinspin *q_in,quark_info qu,
   for(int id_so=0;id_so<4;id_so++)
     {
       //prepare the source
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         for(int id_si=0;id_si<4;id_si++)
           complex_copy(tsource[ivol][id_si],q_in[ivol][id_si][id_so]);
       
       //operate on single source index
       stochastic_x_space_qqg_vertex(tprop,tsource,qu,g_in,gl);
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         for(int id_si=0;id_si<4;id_si++)
           complex_copy(q_out[ivol][id_si][id_so],tprop[ivol][id_si]);
     }

@@ -30,7 +30,7 @@ void compute_meson_exchange_correction_of_mom_gamma(complex out,quark_info qu,gl
   
   //fill the table of momentum
   momentum_t *mom=nissa_malloc("mom",loc_vol,momentum_t);
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     for(int mu=0;mu<4;mu++)
       mom[imom][mu]=2*M_PI*glb_coord_of_loclx[imom][mu]/glb_size[mu];
 
@@ -39,7 +39,7 @@ void compute_meson_exchange_correction_of_mom_gamma(complex out,quark_info qu,gl
   spinspin *O_line=nissa_malloc("O_line",loc_vol,spinspin);
   spinspin *X_line=nissa_malloc("X_line",loc_vol,spinspin);
 
-  nissa_loc_vol_loop(iq)
+  NISSA_LOC_VOL_LOOP(iq)
     {
       int ippq=glblx_of_summ(ip,iq);
       
@@ -52,7 +52,7 @@ void compute_meson_exchange_correction_of_mom_gamma(complex out,quark_info qu,gl
       safe_spinspin_prod_spinspin(X_line[iq],q_prop[iq],X_line[iq]);
     }
   
-  nissa_loc_vol_loop(iq)
+  NISSA_LOC_VOL_LOOP(iq)
   {
     //compute p+q
     int ippq=glblx_of_summ(ip,iq);
@@ -63,7 +63,7 @@ void compute_meson_exchange_correction_of_mom_gamma(complex out,quark_info qu,gl
     spinspin q_line;
     spinspin_put_to_zero(q_line);
     
-    nissa_loc_vol_loop(ir)
+    NISSA_LOC_VOL_LOOP(ir)
     {
       //compute p+r and r-q
       int ippr=glblx_of_summ(ip,ir);
@@ -161,7 +161,7 @@ void compute_meson_exchange_correction_stochastically(corr16 *zm_ave,corr16 *zm_
       
       compute_meson_exchange_correction_stochastically(corr,q_prop,qu,gl);
       memset(zm_corr,0,sizeof(corr16)*glb_size[0]);
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         {
 	  int t=glb_coord_of_loclx[ivol][0];
 	  for(int ig=0;ig<16;ig++)
@@ -190,7 +190,7 @@ void compute_meson_exchange_correction_stochastically(corr16 *zm_ave,corr16 *zm_
   
   //average the full x dist
   if(ave!=NULL)
-    nissa_loc_vol_loop(ivol)
+    NISSA_LOC_VOL_LOOP(ivol)
       for(int ig=0;ig<16;ig++)
 	for(int ri=0;ri<2;ri++)
 	  {
@@ -238,7 +238,7 @@ void compute_meson_exchange_correction_stochastically(corr16 *ave,quark_info qu,
       
       compute_meson_exchange_correction_stochastically(corr,q_prop,qu,gl);
 
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	for(int ig=0;ig<16;ig++)
 	  for(int ri=0;ri<2;ri++)
 	    ave[ivol][ig][ri]+=corr[ivol][ig][ri]/n;

@@ -1,17 +1,17 @@
 #ifdef HAVE_CONFIG_H
- #include "config.h"
+ #include "config.hpp"
 #endif
 
-#include "base/global_variables.h"
-#include "base/thread_macros.h"
-#include "communicate/borders.h"
-#include "new_types/complex.h"
-#include "new_types/new_types_definitions.h"
+#include "base/global_variables.hpp"
+#include "base/thread_macros.hpp"
+#include "communicate/borders.hpp"
+#include "new_types/complex.hpp"
+#include "new_types/new_types_definitions.hpp"
 #ifdef USE_THREADS
- #include "routines/thread.h"
+ #include "routines/thread.hpp"
 #endif
 
-#include "bgq_macros.h"
+#include "bgq_macros.hpp"
 
 /*
   In bgq version we merge two sites along t directions, that is, (t,x,y,z) and (t+T/2,x,y,z),

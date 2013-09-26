@@ -33,7 +33,7 @@ int main(int narg,char **arg)
   read_spincolor(spinore,filename);
 
   //Print the spincolor
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int id1=0;id1<4;id1++)
       for(int ic1=0;ic1<3;ic1++)
         for(int im=0;im<2;im++)

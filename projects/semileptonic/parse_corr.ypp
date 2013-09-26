@@ -9,10 +9,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <math.h>
-#include "../../src/nissa.h"
-#include "parse_corr.hpp"
+#include "../../src/nissa.hpp"
 #include "driver_corr.hpp"
-#include "redefine_yy.h"
+#include "parse_corr.hpp"
+#include "redefine_yy.hpp"
 
   const int debug_parser=0;
   
@@ -29,7 +29,7 @@
   bool reim;
   int interpolator;
   double double_numb;
-  two_pts_comp_t *corr_list;
+  nissa::two_pts_comp_t *corr_list;
   char *text;
 }
 

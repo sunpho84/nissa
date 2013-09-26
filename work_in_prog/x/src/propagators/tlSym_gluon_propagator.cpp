@@ -86,14 +86,14 @@ void mom_space_tlSym_gluon_propagator_of_imom(spin1prop prop,gluon_info gl,int i
 
 void compute_mom_space_tlSym_gluon_propagator(spin1prop *prop,gluon_info gl)
 {
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     mom_space_tlSym_gluon_propagator_of_imom(prop[imom],gl,imom);
   set_borders_invalid(prop);
 }
 
 void multiply_mom_space_tlSym_gluon_propagator(spin1field *out,spin1field *in,gluon_info gl)
 {
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       spin1prop prop;
       mom_space_tlSym_gluon_propagator_of_imom(prop,gl,imom);
@@ -105,7 +105,7 @@ void multiply_mom_space_tlSym_gluon_propagator(spin1field *out,spin1field *in,gl
 void multiply_x_space_tlSym_gluon_propagator_by_fft(spin1prop *out,spin1prop *in,gluon_info gl)
 {
   pass_spin1prop_from_x_to_mom_space(out,in,gl.bc);
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       spin1prop prop;
       mom_space_tlSym_gluon_propagator_of_imom(prop,gl,imom);

@@ -54,7 +54,7 @@ void check_id_output()
   
   //take the squared norm of check_id
   double loc_d=0;
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
   {
     double point_d=0;
     for(int id=0;id<32;id++)
@@ -92,7 +92,7 @@ int main(int narg,char **arg)
   for(int nu=0;nu<4;nu++)
     {
       //take index nu of the propagator
-      nissa_loc_vol_loop(imom)
+      NISSA_LOC_VOL_LOOP(imom)
 	for(int mu=0;mu<4;mu++)
 	  memcpy(temp1[imom][mu],prop[imom][mu][nu],sizeof(complex));
       
@@ -100,7 +100,7 @@ int main(int narg,char **arg)
       apply_Wilson_gluon_mom_Klein_Gordon_operator(temp2,temp1,gl);
       
       //put back index nu of the propagator
-      nissa_loc_vol_loop(imom)
+      NISSA_LOC_VOL_LOOP(imom)
         {
 	  for(int mu=0;mu<4;mu++)
 	    memcpy(check_id[imom][mu][nu],temp2[imom][mu],sizeof(complex));
@@ -121,7 +121,7 @@ int main(int narg,char **arg)
   for(int nu=0;nu<4;nu++)
     {
       //take index nu of the propagator
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
 	for(int mu=0;mu<4;mu++)
 	  memcpy(temp1[ivol][mu],prop[ivol][mu][nu],sizeof(complex));
       set_borders_invalid(temp1);
@@ -130,7 +130,7 @@ int main(int narg,char **arg)
       apply_Wilson_gluon_x_Klein_Gordon_operator(temp2,temp1,gl);
       
       //put back index nu of the propagator
-      nissa_loc_vol_loop(ivol)
+      NISSA_LOC_VOL_LOOP(ivol)
         {
 	  for(int mu=0;mu<4;mu++)
 	    memcpy(check_id[ivol][mu][nu],temp2[ivol][mu],sizeof(complex));

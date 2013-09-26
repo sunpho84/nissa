@@ -390,7 +390,7 @@ void calculate_S(int iwall)
 	      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		{
 		  int iprop=iS(iwall,so_glv,imass,r);
-		  nissa_loc_vol_loop(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],temp_vec[r][ivol],id);
+		  NISSA_LOC_VOL_LOOP(ivol) put_spincolor_into_colorspinspin(S[iprop][ivol],temp_vec[r][ivol],id);
 		}
 	    }
 	}

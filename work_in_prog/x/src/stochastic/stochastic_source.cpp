@@ -16,7 +16,7 @@ void generate_stochastic_source_eta(spin1field *eta)
   if(!nissa_loc_rnd_gen_inited) crash("random gen not inited");
   
   //fill with Z4
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z4);
   

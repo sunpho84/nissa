@@ -96,7 +96,7 @@ int main(int narg,char **arg)
     }
   
   if(comp)
-    nissa_loc_vol_loop(imom)
+    NISSA_LOC_VOL_LOOP(imom)
       {
 	spinspin temp;
 	

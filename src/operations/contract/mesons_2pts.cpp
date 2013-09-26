@@ -1,27 +1,29 @@
 #ifdef HAVE_CONFIG_H
- #include "config.h"
+ #include "config.hpp"
 #endif
 
-#include "base/global_variables.h"
-#include "base/thread_macros.h"
-#include "base/vectors.h"
-#include "new_types/complex.h"
-#include "new_types/dirac.h"
-#include "new_types/su3.h"
-#include "routines/ios.h"
+#include "base/global_variables.hpp"
+#include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
+#include "new_types/complex.hpp"
+#include "new_types/dirac.hpp"
+#include "new_types/su3.hpp"
+#include "routines/ios.hpp"
 #ifdef USE_THREADS
- #include "routines/thread.h"
+ #include "routines/thread.hpp"
 #endif
 
-#include "site_contract.h"
+#include "site_contract.hpp"
 
+namespace nissa
+{
 #define DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(TYPE,SHORTTYPE)	\
   THREADABLE_FUNCTION_7ARG(NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE), complex*,glb_c, complex*,loc_c, dirac_matr*,g1, TYPE*,s1, dirac_matr*,g2, TYPE*,s2, int,ncontr) \
   {									\
     GET_THREAD_ID();							\
     									\
     vector_reset(loc_c);						\
-									\
+    									\
     /*loop over time and number of contractions*/			\
     NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])			\
       {									\
@@ -33,24 +35,24 @@
 	for(int ivol=t*loc_spat_vol;ivol<(t+1)*loc_spat_vol;ivol++)	\
 	  {								\
 	    int glb_t=glb_coord_of_loclx[ivol][0];			\
-									\
+	    								\
 	    /*summ the trace*/						\
 	    complex ctemp;						\
 	    NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE)(ctemp,&(g1[icontr]),s1[ivol],&(g2[icontr]),s2[ivol]); \
 	    complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);	\
 	  }								\
       }									\
-									\
+    									\
     /*wait that all threads finish*/					\
     THREAD_BARRIER();							\
-									\
+    									\
     if(IS_MASTER_THREAD)						\
       {									\
 	verbosity_lv3_master_printf("Performing final reduction of %d double\n",2*glb_size[0]*ncontr); \
 	MPI_Reduce(loc_c,glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD); \
 	verbosity_lv3_master_printf("Reduction done\n");		\
       }									\
-									\
+    									\
     THREAD_BARRIER();							\
   }}
 
@@ -67,13 +69,14 @@
 	dirac_prod(&(tsource[icontr]), &(base_gamma[list_op_source[icontr]]),&(base_gamma[5]));	\
 	dirac_prod(&(tsink[icontr]), &(base_gamma[5]),&(base_gamma[list_op_sink[icontr]])); \
       }									\
-									\
+    									\
     /*call the routine which perform the contraction*/			\
     NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE)(corr,loc_corr,tsource,s1,tsink,s2,ncontr); \
-}
+  }
 
 DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(colorspinspin,css)
 DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(su3spinspin,ccss)
 
 DEFINE_MESON_TWO_POINTS_WILSON_PROP(colorspinspin,css)
 DEFINE_MESON_TWO_POINTS_WILSON_PROP(su3spinspin,ccss)
+}

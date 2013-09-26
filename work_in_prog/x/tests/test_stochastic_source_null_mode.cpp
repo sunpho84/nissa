@@ -40,7 +40,7 @@ void generate_source_0_method()
   double nm=0;
   
   //generate the source and compute null mode
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       source[ivol][0]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
       source[ivol][1]=0;
@@ -49,14 +49,14 @@ void generate_source_0_method()
   nm=glb_reduce_double(nm)/glb_vol;
   
   //subtract null mode
-  nissa_loc_vol_loop(ivol) source[ivol][0]-=nm;
+  NISSA_LOC_VOL_LOOP(ivol) source[ivol][0]-=nm;
 }
 
 //generate source with 1 method
 void generate_source_1_method()
 {
   //generate the source without null mode
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     {
       if(ivol<glb_vol/2) source[ivol][0]=1;
       else source[ivol][0]=-1;
@@ -66,7 +66,7 @@ void generate_source_1_method()
   //perform nsweep change
   int nsweep=10;
   for(int isweep=0;isweep<nsweep;isweep++)
-    nissa_loc_vol_loop(ivol)
+    NISSA_LOC_VOL_LOOP(ivol)
       {
 	int jvol=(int)rnd_get_unif(&glb_rnd_gen,0,glb_vol);
 	if(ivol!=jvol)
@@ -85,7 +85,7 @@ void summ_the_spectre()
   fft4d((complex*)source,(complex*)source,1,+1,0);
   
   //summ it
-  nissa_loc_vol_loop(ivol) spectre[ivol][0]+=squared_complex_norm(source[ivol]);
+  NISSA_LOC_VOL_LOOP(ivol) spectre[ivol][0]+=squared_complex_norm(source[ivol]);
 }
 
 void write_file(char *path,complex *data)
@@ -149,7 +149,7 @@ void study_0_method()
       generate_source_1_method();
       summ_the_spectre();
     }
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     spectre[ivol][0]/=nsource;
   
   //write spectral density

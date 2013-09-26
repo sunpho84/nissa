@@ -36,7 +36,7 @@ void apply_Wilson_gluon_x_Klein_Gordon_operator(spin1field *out,spin1field *in,g
       for(int mu=0;mu<4;mu++) spin1field_fw_derivative(fbder[mu][nu],bder,gl.bc,mu);
     }
 
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       for(int nu=0;nu<4;nu++)
 	{
@@ -49,7 +49,7 @@ void apply_Wilson_gluon_x_Klein_Gordon_operator(spin1field *out,spin1field *in,g
 	}
   
   //put minus sign
-  nissa_loc_vol_loop(ivol)
+  NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       complex_prodassign_double(out[ivol][mu],-1);
   
@@ -64,7 +64,7 @@ void apply_Wilson_gluon_mom_Klein_Gordon_operator(spin1field *out,spin1field *in
   double rep_alpha=1/gl.alpha;
   int kron_delta[4][4]={{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,0,1}};
   
-  nissa_loc_vol_loop(imom)
+  NISSA_LOC_VOL_LOOP(imom)
     {
       //momentum
       momentum_t k,kt;

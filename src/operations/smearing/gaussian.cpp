@@ -1,21 +1,23 @@
 #ifdef HAVE_CONFIG_H
- #include "config.h"
+ #include "config.hpp"
 #endif
 
-#include "base/global_variables.h"
-#include "base/thread_macros.h"
-#include "base/vectors.h"
-#include "communicate/communicate.h"
-#include "geometry/geometry_Wsklx.h"
-#include "linalgs/linalgs.h"
-#include "new_types/new_types_definitions.h"
-#include "new_types/su3.h"
-#include "routines/ios.h"
+#include "base/global_variables.hpp"
+#include "base/thread_macros.hpp"
+#include "base/vectors.hpp"
+#include "communicate/communicate.hpp"
+#include "geometry/geometry_Wsklx.hpp"
+#include "linalgs/linalgs.hpp"
+#include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
+#include "routines/ios.hpp"
 #ifdef USE_THREADS
- #include "routines/thread.h"
+ #include "routines/thread.hpp"
 #endif
 
-//apply kappa*H
+namespace nissa
+{
+  //apply kappa*H
 #define DEFINE_GAUSSIAN_SMEARING_APPLY_KAPPA_H(TYPE)			\
   THREADABLE_FUNCTION_4ARG(NAME2(gaussian_smearing_apply_kappa_H,TYPE), TYPE*,H, double,kappa, quad_su3*,conf, TYPE*,in) \
   {									\
@@ -70,7 +72,7 @@
 	for(int iter=0;iter<niter;iter++)				\
 	  {								\
 	    verbosity_lv3_master_printf("GAUSSIAN smearing with kappa=%g iteration %d of %d\n",kappa,iter,niter); \
-	    								\
+									\
 	    /*apply kappa*H*/						\
 	    NAME2(gaussian_smearing_apply_kappa_H,TYPE)(H,kappa,conf,temp); \
 	    /*add kappa*H and dynamic normalize*/			\
@@ -109,7 +111,7 @@ template <class TYPE> void gaussian_smearing(TYPE *smear_sc,TYPE *origi_sc,quad_
       //allocate two temp vectors for gaussian
       TYPE *temp2=nissa_malloc("temp2",loc_vol+bord_vol,TYPE);
       TYPE *temp3=nissa_malloc("temp3",loc_vol+bord_vol,TYPE);
-
+      
       //reset the output
       vector_reset(smear_sc);
       
@@ -152,8 +154,8 @@ DEFINE_APPLY_DER(su3spinspin)
 template <class T> void gaussian_smearing_iter(T *out,T *in,oct_su3 *conf,double kappa,T *temp,comm_t &comm)
 {
   GET_THREAD_ID();
-
-  if(get_nissa_vec(temp)->nel<8*loc_vol+bord_vol) crash("allocate border for temp vector");
+  
+  if(get_vect(temp)->nel<8*loc_vol+bord_vol) crash("allocate border for temp vector");
   
 #ifndef BGQCACCA
   const int ndouble_per_site=sizeof(T)/sizeof(double);
@@ -161,11 +163,11 @@ template <class T> void gaussian_smearing_iter(T *out,T *in,oct_su3 *conf,double
   int nbi_complex_per_site=sizeof(T)/sizeof(bi_complex);
   if(sizeof(T)%sizeof(bi_complex)) crash("not good for BGQ!");
 #endif
-
+  
   //apply derivative on surface and blast it
   NISSA_PARALLEL_LOOP(isurf,0,surf_vol) apply_der(temp,conf,in,isurf);
   THREAD_BARRIER();
-  parallel_memcpy(nissa_send_buf,temp+8*loc_vol,bord_vol*sizeof(T));
+  parallel_memcpy(send_buf,temp+8*loc_vol,bord_vol*sizeof(T));
   comm_start(comm);
   
   //apply derivative on bulk and wait
@@ -174,7 +176,7 @@ template <class T> void gaussian_smearing_iter(T *out,T *in,oct_su3 *conf,double
   
   //put incoming pieces to temp
   NISSA_PARALLEL_LOOP(ipiece,0,surf_vol)
-    memcpy(temp[Wsklx_hopping_matrix_output_pos.final_fr_inter_pos[ipiece]],((T*)nissa_recv_buf)[ipiece],sizeof(T));
+    memcpy(temp[Wsklx_hopping_matrix_output_pos.final_fr_inter_pos[ipiece]],((T*)recv_buf)[ipiece],sizeof(T));
   THREAD_BARRIER();
   
   //summ the eight piecese together with original vector and put normalization
@@ -198,28 +200,28 @@ template <class T> void gaussian_smearing_iter(T *out,T *in,oct_su3 *conf,double
 }
 
 #define DEFINE_GAUSSIAN_SMEARING_SINK_BASED(T,COMM)			\
-THREADABLE_FUNCTION_6ARG(gaussian_smearing, T*,out, T*,in, oct_su3*,conf, double,kappa, T*,temp, int,niter) \
-{									\
-  if(niter==0) {if(out!=in) vector_copy(out,in);}			\
-  else									\
-    {									\
-      gaussian_smearing_iter(out,in,conf,kappa,temp,COMM);		\
-      for(int iter=1;iter<niter;iter++)					\
-	gaussian_smearing_iter(out,out,conf,kappa,temp,COMM);		\
-    }									\
+  THREADABLE_FUNCTION_6ARG(gaussian_smearing, T*,out, T*,in, oct_su3*,conf, double,kappa, T*,temp, int,niter) \
+  {									\
+if(niter==0) {if(out!=in) vector_copy(out,in);}				\
+ else									\
+   {									\
+     gaussian_smearing_iter(out,in,conf,kappa,temp,COMM);		\
+     for(int iter=1;iter<niter;iter++)					\
+       gaussian_smearing_iter(out,out,conf,kappa,temp,COMM);		\
+   }									\
 }}									\
 void gaussian_smearing_sink_based(T *ext_out,T *ext_in,quad_su3 *ext_conf,double kappa,int niter,T *aux_temp=NULL,T *aux_out=NULL,T *aux_in=NULL,oct_su3 *aux_conf=NULL) \
 {									\
-  T *out=(aux_out!=NULL)?aux_out:nissa_malloc("out",loc_vol,T); \
+  T *out=(aux_out!=NULL)?aux_out:nissa_malloc("out",loc_vol,T);		\
   T *temp=(aux_temp!=NULL)?aux_temp:nissa_malloc("temp",loc_vol*8+bord_vol,T); \
   T *in=(aux_in!=NULL)?aux_in:nissa_malloc("in",loc_vol,T);		\
   oct_su3 *conf=(aux_conf!=NULL)?aux_conf:nissa_malloc("conf",loc_vol,oct_su3);	\
-									\
+  									\
   lx_remap_to_Wsklx(in,ext_in);						\
   lx_conf_remap_to_Wsklx(conf,ext_conf);				\
   gaussian_smearing(out,in,conf,kappa,temp,niter);			\
   Wsklx_remap_to_lx(ext_out,out);					\
-									\
+  									\
   if(aux_conf==NULL) nissa_free(conf);					\
   if(aux_in==NULL) nissa_free(in);					\
   if(aux_temp==NULL) nissa_free(temp);					\
@@ -229,3 +231,4 @@ void gaussian_smearing_sink_based(T *ext_out,T *ext_in,quad_su3 *ext_conf,double
 DEFINE_GAUSSIAN_SMEARING_SINK_BASED(spincolor,lx_spincolor_comm)
 DEFINE_GAUSSIAN_SMEARING_SINK_BASED(colorspinspin,lx_colorspinspin_comm)
 DEFINE_GAUSSIAN_SMEARING_SINK_BASED(su3spinspin,lx_su3spinspin_comm)
+}
