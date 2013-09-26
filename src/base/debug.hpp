@@ -11,4 +11,6 @@ namespace nissa
   void terminate_sigsegv(int);
 }
 
+#include "macros.hpp"
+
 #endif

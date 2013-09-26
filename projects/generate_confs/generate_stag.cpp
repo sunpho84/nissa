@@ -402,7 +402,7 @@ void in_main(int narg,char **arg)
   init_simulation(arg[1]);
   
 #ifdef CUDA
-  cuda_test();
+  cuda::test();
 #endif
 
   ///////////////////////////////////////
