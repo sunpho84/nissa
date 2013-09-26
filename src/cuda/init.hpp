@@ -3,6 +3,7 @@
 
 namespace cuda
 {
+  void init();
   void test();
 }
 
