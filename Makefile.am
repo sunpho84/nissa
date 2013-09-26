@@ -18,7 +18,7 @@ EXTRA_DIST= \
 	config \
 	bootstrap \
         README \
-        src/nissa.h \
+        src/nissa.hpp \
         src/create_headers.sh \
         tools/clusterize.cpp \
         tools/clusterize2.cpp \

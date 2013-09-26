@@ -1,8 +1,10 @@
+#include "base/debug.hpp"
+
 namespace cuda
 {
   //crash translating cuda error
   void crash_on_unsuccess(cudaError_t ret)
-  {if(ret!=cudaSuccess) crash("%s",cudaGetErrorString(ret));}
+  {if(ret!=cudaSuccess) nissa::crash("%s",cudaGetErrorString(ret));}
   
   //return the number of devices
   int get_device_count()
