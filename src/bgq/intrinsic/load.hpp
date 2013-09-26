@@ -14,20 +14,20 @@
  #include "new_types/complex.hpp"
 #endif
 
-///////////////////////////////// prefetchpping ////////////////////////////////
+///////////////////////////////// prefetching ////////////////////////////////
 
 #if defined(__IBMC__) || defined(__IBMCPP__)
 #define CACHE_PREFETCH(addr)
 //__dcbt(addr); not seems to work
 #elif defined(__GNUC__)
- #define CACHE_PREFETCH(addr) __builtin_prefetchpp((addr),0)
+ #define CACHE_PREFETCH(addr) __builtin_prefetch((addr),0)
 #else
  #define CACHE_PREFETCH(addr)
 #endif
 
 #if defined BGQ && !defined BGQ_EMU
 
-//prefetchpp a bi_spincolor
+//prefetch a bi_spincolor
 #define BI_SPINCOLOR_PREFETCH(addr)	\
   {					\
     void *ptr=(addr);			\
@@ -46,7 +46,7 @@
 	  [c320] "b" (320));		\
   }
 
-//prefetch a bi_hppalfspincolor
+//prefetch a bi_halfspincolor
 #define BI_HALFSPINCOLOR_PREFETCH(addr)	\
   {					\
     void *ptr=(addr);			\
@@ -59,7 +59,7 @@
 	  [c128] "b" (128));		\
   }
 
-//prefetch a bi_hppalfspincolor
+//prefetch a bi_halfspincolor
 #define BI_HALFSPINCOLOR_PREFETCH_NEXT(addr)	\
   {						\
     void *ptr=(addr);				\
@@ -73,7 +73,7 @@
 	  [c128] "b" (192+128));		\
   }
 
-//prefetchpp a bi_color
+//prefetch a bi_color
 #define BI_COLOR_PREFETCH_NEXT(addr)		\
   {						\
     void *ptr=(addr);				\
@@ -85,7 +85,7 @@
 	  [c64]  "b" (96+64));			\
   }
 
-//prefetch a bi_hppalfspin
+//prefetch a bi_halfspin
 #define BI_HALFSPIN_PREFETCH_NEXT(addr)		\
   {						\
     void *ptr=(addr);				\
@@ -104,7 +104,7 @@
 	  [c0]  "b" (128+0));			\
   }
 
-//prefetch a hppalfspincolor
+//prefetch a halfspincolor
 #define BI_SPINCOLOR_PREFETCH_NEXT(addr)	     \
   {						     \
     void *ptr=(addr);				     \
@@ -123,7 +123,7 @@
 	  [c320] "b" (384+320));		     \
   }
 
-//prefetchpp next bi_su3
+//prefetch next bi_su3
 #define BI_SU3_PREFETCH_NEXT(addr)	\
   {					\
     void *ptr=(addr);			\
@@ -143,47 +143,47 @@
 
 #else
 
-//prefetchpp a bi_spincolor
+//prefetch a bi_spincolor
 #define BI_SPINCOLOR_PREFETCH(addr)		\
-  CACHE_PREFETCH((chppar*)(addr)+  0);		\
-  CACHE_PREFETCH((chppar*)(addr)+ 64);		\
-  CACHE_PREFETCH((chppar*)(addr)+128);		\
-  CACHE_PREFETCH((chppar*)(addr)+192);		\
-  CACHE_PREFETCH((chppar*)(addr)+256);		\
-  CACHE_PREFETCH((chppar*)(addr)+320);
+  CACHE_PREFETCH((char*)(addr)+  0);		\
+  CACHE_PREFETCH((char*)(addr)+ 64);		\
+  CACHE_PREFETCH((char*)(addr)+128);		\
+  CACHE_PREFETCH((char*)(addr)+192);		\
+  CACHE_PREFETCH((char*)(addr)+256);		\
+  CACHE_PREFETCH((char*)(addr)+320);
 
-//prefetch a bi_hppalfspincolor
+//prefetch a bi_halfspincolor
 #define BI_HALFSPINCOLOR_PREFETCH(addr)		\
-  CACHE_PREFETCH((chppar*)(addr)+ 0);		\
-  CACHE_PREFETCH((chppar*)(addr)+ 64);		\
-  CACHE_PREFETCH((chppar*)(addr)+128);
+  CACHE_PREFETCH((char*)(addr)+ 0);		\
+  CACHE_PREFETCH((char*)(addr)+ 64);		\
+  CACHE_PREFETCH((char*)(addr)+128);
 
-//prefetch a bi_hppalfspincolor
+//prefetch a bi_halfspincolor
 #define BI_HALFSPINCOLOR_PREFETCH_NEXT(addr)	\
-  CACHE_PREFETCH((chppar*)(addr)+192+ 0);         \
-  CACHE_PREFETCH((chppar*)(addr)+192+ 64);        \
-  CACHE_PREFETCH((chppar*)(addr)+192+128);        \
+  CACHE_PREFETCH((char*)(addr)+192+ 0);         \
+  CACHE_PREFETCH((char*)(addr)+192+ 64);        \
+  CACHE_PREFETCH((char*)(addr)+192+128);        \
 
-//prefetchpp a bi_color
+//prefetch a bi_color
 #define BI_COLOR_PREFETCH_NEXT(addr)		\
-  CACHE_PREFETCH((chppar*)(addr)+96+ 0);		\
-  CACHE_PREFETCH((chppar*)(addr)+96+ 64);		\
+  CACHE_PREFETCH((char*)(addr)+96+ 0);		\
+  CACHE_PREFETCH((char*)(addr)+96+ 64);		\
 
-//prefetchpp a bi_spincolor
+//prefetch a bi_spincolor
 #define BI_SPINCOLOR_PREFETCH_NEXT(addr)	\
-  CACHE_PREFETCH((chppar*)(addr)+384+ 0);         \
-  CACHE_PREFETCH((chppar*)(addr)+384+ 64);        \
-  CACHE_PREFETCH((chppar*)(addr)+384+128);        \
-  CACHE_PREFETCH((chppar*)(addr)+384+192);        \
-  CACHE_PREFETCH((chppar*)(addr)+384+256);
+  CACHE_PREFETCH((char*)(addr)+384+ 0);         \
+  CACHE_PREFETCH((char*)(addr)+384+ 64);        \
+  CACHE_PREFETCH((char*)(addr)+384+128);        \
+  CACHE_PREFETCH((char*)(addr)+384+192);        \
+  CACHE_PREFETCH((char*)(addr)+384+256);
 
-//prefetchpp next bi_su3
+//prefetch next bi_su3
 #define BI_SU3_PREFETCH_NEXT(addr)		\
-  CACHE_PREFETCH((chppar*)(addr)+288+ 0);		\
-  CACHE_PREFETCH((chppar*)(addr)+288+ 64);	\
-  CACHE_PREFETCH((chppar*)(addr)+288+128);	\
-  CACHE_PREFETCH((chppar*)(addr)+288+192);	\
-  CACHE_PREFETCH((chppar*)(addr)+288+256);
+  CACHE_PREFETCH((char*)(addr)+288+ 0);		\
+  CACHE_PREFETCH((char*)(addr)+288+ 64);	\
+  CACHE_PREFETCH((char*)(addr)+288+128);	\
+  CACHE_PREFETCH((char*)(addr)+288+192);	\
+  CACHE_PREFETCH((char*)(addr)+288+256);
 
 #endif
 
@@ -211,7 +211,7 @@
  #define REG_LOAD_BI_COMPLEX(out,in) out=vec_ld(0,(double*)(in));
 #endif
 
-//load *after* increment thppe address of a certain amount
+//load *after* increment the address of a certain amount
 #ifdef BGQ_EMU
  #define BGQ_QVLFDUXA(dest,addr,offset)					\
    do									\
@@ -219,13 +219,13 @@
        (addr)=(double*)((uintptr_t)(addr)+(offset));			\
        BI_COMPLEX_COPY(dest,(*((bi_complex*)addr)));	\
      }									\
-   whppile(0)
+   while(0)
 #else
  #define BGQ_QVLFDUXA(dest,addr,offset)					\
    asm ("qvlfduxa %[v4d],%[ptr],%[off]  \n" : [v4d] "=v" (dest), [ptr] "+b" (addr) : [off] "r" (offset) )
 #endif
 
-//load withppout advancing
+//load without advancing
 #define REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVLFDUXA(out,in,0)
 
 //load after advancing to next bi_complex
@@ -249,9 +249,9 @@
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s3_c1),ptr);  \
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s3_c2),ptr);  \
     }								  \
-  whppile(0)
+  while(0)
 
-//load a bi_hppalfspincolor
+//load a bi_halfspincolor
 #define REG_LOAD_BI_HALFSPINCOLOR(out,in)				\
   do									\
     {									\
@@ -263,7 +263,7 @@
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s1_c1),ptr);	\
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s1_c2),ptr);	\
     }									\
-  whppile(0)
+  while(0)
 
 //load a bi_color
 #define REG_LOAD_BI_COLOR(out,in)					\
@@ -274,7 +274,7 @@
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c1),ptr);		\
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c2),ptr);		\
     }									\
-  whppile(0)
+  while(0)
 
 #define REG_LOAD_BI_COLOR_ADVANCING(out,ptr)				\
   do									\
@@ -283,9 +283,9 @@
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c1),ptr);		\
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c2),ptr);		\
     }									\
-  whppile(0)
+  while(0)
 
-//load a bi_hppalfspin
+//load a bi_halfspin
 #define REG_LOAD_BI_HALFSPIN(out,in)					\
   do									\
     {									\
@@ -293,7 +293,7 @@
       REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(NAME2(out,s0),ptr);		\
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,s1),ptr);		\
     }									\
-  whppile(0)
+  while(0)
 
 //load a bi_su3
 #define REG_LOAD_BI_SU3(out,in)						\
@@ -310,6 +310,6 @@
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c21),ptr);		\
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c22),ptr);		\
     }									\
-  whppile(0)
+  while(0)
 
 #endif

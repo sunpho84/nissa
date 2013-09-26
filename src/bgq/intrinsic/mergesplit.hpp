@@ -27,27 +27,27 @@
 
 #ifdef BGQ_EMU
  #define vec_perm_el(out,in1,in2,a,b) ((double*)(out))[(a)]=((b)>=4)?((double*)(in2))[(b)-4]:((double*)(in1))[(b)]
- #define REG_BI_COMPLEX_PERM(out,in1,in2,hppow)				\
+ #define REG_BI_COMPLEX_PERM(out,in1,in2,how)				\
    {									\
-     vec_perm_el(out,in1,in2,0, hppow/1000    );				\
-     vec_perm_el(out,in1,in2,1,(hppow/100 )%10);				\
-     vec_perm_el(out,in1,in2,2,(hppow/10  )%10);				\
-     vec_perm_el(out,in1,in2,3, hppow      %10);				\
+     vec_perm_el(out,in1,in2,0, how/1000    );				\
+     vec_perm_el(out,in1,in2,1,(how/100 )%10);				\
+     vec_perm_el(out,in1,in2,2,(how/10  )%10);				\
+     vec_perm_el(out,in1,in2,3, how      %10);				\
    }
 #else 
- #define VEC_GPCI(how) vec_gpci(hppow)
- #define REG_BI_COMPLEX_PERM(out,in1,in2,how) (out)=vec_perm(in1,in2,vec_gpci(hppow))
+ #define VEC_GPCI(how) vec_gpci(how)
+ #define REG_BI_COMPLEX_PERM(out,in1,in2,how) (out)=vec_perm(in1,in2,vec_gpci(how))
 #endif
 
 
-#define REG_BI_COLOR_PERM(out,in1,in2,hppow)				\
-  REG_BI_COMPLEX_PERM(NAME2(out,c0),NAME2(in1,c0),NAME2(in2,c0),hppow);	\
-  REG_BI_COMPLEX_PERM(NAME2(out,c1),NAME2(in1,c1),NAME2(in2,c1),hppow);	\
-  REG_BI_COMPLEX_PERM(NAME2(out,c2),NAME2(in1,c2),NAME2(in2,c2),hppow);
+#define REG_BI_COLOR_PERM(out,in1,in2,how)				\
+  REG_BI_COMPLEX_PERM(NAME2(out,c0),NAME2(in1,c0),NAME2(in2,c0),how);	\
+  REG_BI_COMPLEX_PERM(NAME2(out,c1),NAME2(in1,c1),NAME2(in2,c1),how);	\
+  REG_BI_COMPLEX_PERM(NAME2(out,c2),NAME2(in1,c2),NAME2(in2,c2),how);
   
-#define REG_BI_HALFSPINCOLOR_PERM(out,in1,in2,hppow)			\
-  REG_BI_COLOR_PERM(NAME2(out,s0),NAME2(in1,s0),NAME2(in2,s0),hppow);	\
-  REG_BI_COLOR_PERM(NAME2(out,s1),NAME2(in1,s1),NAME2(in2,s1),hppow);
+#define REG_BI_HALFSPINCOLOR_PERM(out,in1,in2,how)			\
+  REG_BI_COLOR_PERM(NAME2(out,s0),NAME2(in1,s0),NAME2(in2,s0),how);	\
+  REG_BI_COLOR_PERM(NAME2(out,s1),NAME2(in1,s1),NAME2(in2,s1),how);
 
 #define REG_BI_HALFSPINCOLOR_V0_MERGE(out,in1,in2) REG_BI_HALFSPINCOLOR_PERM(out,in1,in2,V0_MERGE);
 #define REG_BI_HALFSPINCOLOR_V1_MERGE(out,in1,in2) REG_BI_HALFSPINCOLOR_PERM(out,in1,in2,V1_MERGE);

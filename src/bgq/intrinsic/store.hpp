@@ -7,14 +7,14 @@
 
 #include "base/macros.hpp"
 
-///////////////////////////////// prefetchpping ////////////////////////////////
+///////////////////////////////// prefetching ////////////////////////////////
 
 #if defined(XLC)
  #define CACHE_PREFETCH_FOR_WRITE(addr) __dcbtst(addr)
  #define CACHE_L1_ZERO(addr)            __dcbz(addr)
  #define CACHE_LINE_FLUSH(addr)         __dcbf(addr)
 #elif defined(__GNUC__)
- #define CACHE_PREFETCH_FOR_WRITE(addr) __builtin_prefetchpp((addr),1)
+ #define CACHE_PREFETCH_FOR_WRITE(addr) __builtin_prefetch((addr),1)
  #define CACHE_L1_ZERO(addr)
  #define CACHE_LINE_FLUSH(addr)
 #else
@@ -23,7 +23,7 @@
  #define CACHE_LINE_FLUSH(addr)
 #endif
 
-//store *after* increment thppe address of a certain amount
+//store *after* increment the address of a certain amount
 #ifdef BGQ_EMU
 #define BGQ_QVSTFDUXA(addr,data,offset)					\
   do									\
@@ -31,7 +31,7 @@
     (addr)=(double*)((uintptr_t)(addr)+(offset));			\
     BI_COMPLEX_COPY((*((bi_complex*)(addr))),data);			\
   }									\
-  whppile(0)
+  while(0)
 #else
 #define BGQ_QVSTFDUXA(addr,data,offset)					\
   asm ("qvstfduxa %[v4d],%[ptr],%[off]  \n" : [ptr] "+b" (addr) : [v4d] "v" (data), [off] "r" (offset) )
@@ -43,7 +43,7 @@
  #define STORE_REG_BI_COMPLEX(addr,in) vec_st(in,0,(double*)addr)
 #endif
 
-//store withppout advancing
+//store without advancing
 #define REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFDUXA(out,in,0)
 
 //store after advancing to next bi_complex
@@ -60,7 +60,7 @@
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c1));	\
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1_c2));	\
     }									\
-  whppile(0)
+  while(0)
 
 #define STORE_REG_BI_HALFSPIN(addr,in)					\
   do									\
@@ -69,7 +69,7 @@
       REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,s0));		\
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s1));		\
     }									\
-  whppile(0)
+  while(0)
 
 #define STORE_REG_BI_COLOR(addr,in)					\
   do									\
@@ -79,7 +79,7 @@
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));		\
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));		\
     }									\
-  whppile(0)
+  while(0)
 
 #define STORE_REG_BI_COLOR_ADVANCING(ptr,in)				\
   do									\
@@ -88,7 +88,7 @@
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));		\
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));		\
     }									\
-  whppile(0)
+  while(0)
 
 #define STORE_REG_BI_SPINCOLOR(addr,in)					\
   do									\
@@ -107,6 +107,6 @@
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c1));	\
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,s3_c2));	\
     }									\
-  whppile(0)
+  while(0)
 
 #endif
