@@ -2,7 +2,7 @@
 #define _NEW_TYPES_DEFINITIONS_H
 
 #ifdef HAVE_CONFIG_H
- #include "config.h"
+ #include "config.hpp"
 #endif
 
 #ifdef USE_MPI
