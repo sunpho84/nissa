@@ -20,26 +20,25 @@ make install
 cd ..
 rm apr-util-1.5.2*
 
-#libneon
-wget http://www.webdav.org/neon/neon-0.29.3.tar.gz  
-tar xzvf neon-0.29.3.tar.gz  
-cd neon-0.29.3  
-./configure --prefix=$HOME --with-ssl
+#serf
+wget https://serf.googlecode.com/files/serf-1.2.1.tar.bz2 --no-check-certificate -O -|tar xjvf -
+cd serf-1.2.1/
+./configure --prefix=$HOME
 make -j 8
 make install
-cd ..
-rm -fr neon-0.29.3*
+cd ../
+rm -fr serf-1.2.1/
 
 #subversion
-wget http://mirrors.linsrv.net/apache/subversion/subversion-1.7.11.tar.gz
-tar xzvf subversion-1.7.11.tar.gz
-cd subversion-1.7.11
+wget http://mirrors.linsrv.net/apache/subversion/subversion-1.8.3.tar.gz
+tar xzvf subversion-1.8.3.tar.gz
+cd subversion-1.8.3
 ./autogen.sh
 wget http://www.sqlite.org/sqlite-amalgamation-3071501.zip
 unzip sqlite-amalgamation-3071501.zip
 mv sqlite-amalgamation-3071501 sqlite-amalgamation
-./configure --prefix=$HOME --with-apr=$HOME --with-neon --with-ssl
+./configure --prefix=$HOME --with-apr=$HOME --enable-runtime-module-search --with-openssl --with-serf=$HOME
 make -j 8
 make install
 cd ..
-rm -fr subversion-1.7.11*
+rm -fr subversion-1.8.3*
