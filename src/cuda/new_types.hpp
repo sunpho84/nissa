@@ -1,6 +1,8 @@
 #ifndef _CUDA_NEW_TYPES_H
 #define _CUDA_NEW_TYPES_H
 
+#include "base/global_variables.hpp"
+#include "fields.hpp"
 #include "macros.hpp"
 
 extern DEVICE_CONSTANT int loc_volh;

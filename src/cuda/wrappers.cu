@@ -1,4 +1,5 @@
 #include "base/debug.hpp"
+#include "routines/ios.hpp"
 #include "macros.hpp"
 
 namespace cuda
@@ -37,10 +38,12 @@ namespace cuda
   {
     //count devices and check that we are asking for something present
     int ndevices=get_device_count();
+    nissa::master_printf("Number of present devices: %d\n",ndevices);
     if(asked_dev<0||asked_dev>=ndevices) nissa::crash("Asked device out of [0,%d) bound",ndevices);
     
     //activate and check
     crash_on_unsuccess(cudaSetDevice(asked_dev));
     if(get_device()!=asked_dev) nissa::crash("Unsuccess setting device %d",asked_dev);
+    nissa::master_printf("Correctly set device: %d\n",asked_dev);
   }
 }

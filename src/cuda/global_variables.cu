@@ -14,5 +14,6 @@
 
 namespace cuda
 {
-  EXTERN DEVICE_CONSTANT int loc_vol,loc_volh;
+  EXTERN DEVICE_CONSTANT int loc_vol;
+  EXTERN DEVICE_CONSTANT int loc_volh;
 }
