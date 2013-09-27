@@ -59,15 +59,6 @@ AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
 
-#cuda
-AC_ARG_ENABLE(cuda,
-	AS_HELP_STRING([--enable-cuda],[Enable cuda]),
-	enable_cuda="${enableval}",
-	enable_cuda="no")
-if test "$enable_cuda" == "yes";then AC_DEFINE([CUDA],1,[Enable cuda]) fi
-AM_CONDITIONAL([CUDA],[test "$enable_cuda" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling cuda... $enable_cuda])
-
 #cuda bins
 ARCH=`uname -m`
 if [[ $ARCH == "x86_64" ]];
@@ -97,6 +88,18 @@ AC_SUBST(CUDA_CFLAGS)
 AC_SUBST(CUDA_LIBS)
 AC_SUBST(CUDA_LDFLAGS)
 AC_SUBST(NVCC)
+
+#cuda
+AC_ARG_ENABLE(cuda,
+	AS_HELP_STRING([--enable-cuda],[Enable cuda]),
+	enable_cuda="${enableval}",
+	enable_cuda="no")
+if test "$enable_cuda" == "yes";then 
+AC_DEFINE([CUDA],1,[Enable cuda]) 
+AX_CHECK_CUDA
+fi
+AM_CONDITIONAL([CUDA],[test "$enable_cuda" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling cuda... $enable_cuda])
 
 #spi
 AC_ARG_ENABLE(spi,

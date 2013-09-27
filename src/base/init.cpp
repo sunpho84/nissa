@@ -137,7 +137,7 @@ namespace nissa
       else thread_master_start(narg,arg,main_function);
     }
 #else
-    init(narg,arg);
+    init_nissa(narg,arg);
     main_function(narg,arg);
 #endif
   }
