@@ -29,7 +29,7 @@
 
 //include CUDA
 #ifdef CUDA
- #include "cuda/test.hpp"
+ #include "cuda/init.hpp"
 #endif
 
 #ifdef USE_VNODES
