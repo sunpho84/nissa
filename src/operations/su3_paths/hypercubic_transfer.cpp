@@ -1,5 +1,6 @@
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
+#include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 #ifdef USE_THREADS
