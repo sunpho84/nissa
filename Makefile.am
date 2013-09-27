@@ -1,11 +1,6 @@
 #include m4 dir
 ACLOCAL_AMFLAGS=-I m4
 
-#include cuda
-if CUDA
-include $(top_srcdir)/config/cuda.mk
-endif
-
 #include subdirs
 SUBDIRS= \
 	src \
@@ -23,7 +18,3 @@ EXTRA_DIST= \
         tools/clusterize.cpp \
         tools/clusterize2.cpp \
         tools/pack.c
-
-#remove libtool from distribution
-dist-hook:
-	rm -fr $(top_distdir)/libtool

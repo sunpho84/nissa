@@ -4,6 +4,8 @@
 
 #include "macros.hpp"
 
+#include "new_types.hpp"
+
 #ifdef ONLY_INSTANTIATION
  #define EXTERN extern
 #else

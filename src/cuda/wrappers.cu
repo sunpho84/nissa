@@ -1,13 +1,14 @@
 #include "base/debug.hpp"
+#include "macros.hpp"
 
 namespace cuda
 {
   //crash translating cuda error
-  void crash_on_unsuccess(cudaError_t ret)
+  HOST void crash_on_unsuccess(cudaError_t ret)
   {if(ret!=cudaSuccess) nissa::crash("%s",cudaGetErrorString(ret));}
   
   //return the number of devices
-  int get_device_count()
+  HOST int get_device_count()
   {
     int ndevices;
     crash_on_unsuccess(cudaGetDeviceCount(&ndevices));
@@ -15,8 +16,15 @@ namespace cuda
     return ndevices;
   }
   
+  //free on the device
+  HOST void cuda_free(void *&ptr)
+  {
+    crash_on_unsuccess(cudaFree(ptr));
+    ptr=NULL;
+  }
+  
   //return used devices
-  int get_device()
+  HOST int get_device()
   {
     int idev;
     crash_on_unsuccess(cudaGetDevice(&idev));
@@ -25,7 +33,7 @@ namespace cuda
   }
   
   //set the device to be used
-  void set_device(int asked_dev)
+  HOST void set_device(int asked_dev)
   {
     //count devices and check that we are asking for something present
     int ndevices=get_device_count();
