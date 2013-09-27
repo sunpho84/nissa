@@ -42,4 +42,4 @@ mv sqlite-amalgamation-3071501 sqlite-amalgamation
 make -j 8
 make install
 cd ..
-rm -fr subversion-1.7-11*
+rm -fr subversion-1.7.11*
