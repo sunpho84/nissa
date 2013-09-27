@@ -18,7 +18,7 @@ cd apr-util-1.5.2
 make -j 8
 make install
 cd ..
-rm apr-util-1.5.2*
+rm apr-util*
 
 #serf
 wget https://serf.googlecode.com/files/serf-1.2.1.tar.bz2 --no-check-certificate -O -|tar xjvf -

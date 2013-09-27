@@ -27,6 +27,7 @@ namespace cuda
   
   class float_gauge_field : cuda_field<float,12>
   {
+    void load_from_lx_conf(nissa::quad_su3 *conf);
   };
 }
 
