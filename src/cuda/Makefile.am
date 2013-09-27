@@ -9,6 +9,7 @@ libcuda_la_SOURCES= \
 	fields.cu \
 	global_variables.cu \
 	init.cu \
+	new_types.cu \
 	wrappers.cu
 
 cudaincludedir=$(includedir)/cuda

@@ -96,7 +96,7 @@ CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libcuda_la_LIBADD =
 am_libcuda_la_OBJECTS = fields.lo global_variables.lo init.lo \
-	wrappers.lo
+	new_types.lo wrappers.lo
 libcuda_la_OBJECTS = $(am_libcuda_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -307,6 +307,7 @@ libcuda_la_SOURCES = \
 	fields.cu \
 	global_variables.cu \
 	init.cu \
+	new_types.cu \
 	wrappers.cu
 
 cudaincludedir = $(includedir)/cuda
