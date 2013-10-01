@@ -58,7 +58,7 @@ void check_torus()
   
   //write ordered coordinates
   if(0)
-    for(int irank=0;irank<nissa_nranks;irank++)
+    for(int irank=0;irank<nranks;irank++)
       {
 	MPI_Barrier(MPI_COMM_WORLD);
 	if(rank==irank)

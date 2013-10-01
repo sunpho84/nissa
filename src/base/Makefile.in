@@ -360,6 +360,7 @@ EXTRA_DIST = update_svnversion.hpp.sh
 #needed because included in global_variables.h
 global_variabledir = $(prefix)/include/base
 global_variable_DATA = global_variables.cpp
+CLEANFILES = svnversion.hpp
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -609,6 +610,7 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -710,7 +712,7 @@ uninstall-am: uninstall-baseincludeHEADERS \
 	uninstall-baseincludeHEADERS uninstall-global_variableDATA
 
 update_svnversion:
-	(cd $(srcdir);./update_svnversion.hpp.sh;cd - >/dev/null) > svnversion.hpp
+	$(srcdir)/update_svnversion.hpp.sh $(top_srcdir)
 .PHONY: update_svnversion
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
