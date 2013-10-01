@@ -79,6 +79,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+
+#compile or not thread support
+@USE_THREADS_TRUE@am__append_1 = thread.cpp
+@USE_THREADS_TRUE@am__append_2 = thread.hpp
 subdir = src/routines
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/depcomp \
@@ -329,23 +333,17 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/src
 
-#compile or not thread support
-@USE_THREADS_TRUE@thread_src_files = thread.cpp
-@USE_THREADS_TRUE@thread_headers_files = thread.hpp
+#libraries
 noinst_LTLIBRARIES = libroutines.la
-libroutines_la_SOURCES = \
-        ios.cpp \
-        math_routines.cpp \
-        mpi_routines.cpp \
-        $(thread_src_files)
 
+#sources
+libroutines_la_SOURCES = ios.cpp math_routines.cpp mpi_routines.cpp \
+	$(am__append_1)
+
+#headers
 routinesincludedir = $(includedir)/routines
-routinesinclude_HEADERS = \
-	ios.hpp \
-        math_routines.hpp \
-        mpi_routines.hpp \
-	$(thread_headers_files)
-
+routinesinclude_HEADERS = ios.hpp math_routines.hpp mpi_routines.hpp \
+	$(am__append_2)
 all: all-am
 
 .SUFFIXES:

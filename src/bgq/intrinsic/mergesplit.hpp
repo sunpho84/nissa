@@ -8,7 +8,7 @@
 #include "base/macros.hpp"
 
 #ifndef BGQ_EMU
- #include <builtins.hpp>
+ #include <builtins.h>
 #endif
 
 #ifndef BGQ_EMU

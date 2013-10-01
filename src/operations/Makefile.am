@@ -1,6 +1,9 @@
 AM_CPPFLAGS=-I$(top_srcdir)/src
 
+#library name
 noinst_LTLIBRARIES=liboperations.la
+
+#sources
 liboperations_la_SOURCES= \
         contract/mesons_2pts.cpp \
         contract/mesons_eight.cpp \
@@ -32,6 +35,7 @@ liboperations_la_SOURCES= \
         su3_paths/topological_charge.cpp \
         vector_gather.cpp
 
+#headers
 operations_includedir=$(includedir)/operations
 operations_include_HEADERS= \
         covariant_derivative.hpp \
