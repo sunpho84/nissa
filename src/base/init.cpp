@@ -113,20 +113,18 @@ namespace nissa
   //thread pool and issuing the main function
   void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg))
   {
+    //initialize nissa (master thread only)
+    init_nissa(narg,arg);
+    
 #ifdef USE_THREADS
     
-    //if BGQ, define appropriate barrier
 #if defined BGQ && (! defined BGQ_EMU)
+    //if BGQ, define appropriate barrier
     bgq_barrier_define();
 #endif
     
 #pragma omp parallel
     {
-      //initialize nissa (master thread only)
-#pragma omp master
-      init_nissa(narg,arg);
-#pragma omp barrier
-      
       //get the number of threads and thread id
       nthreads=omp_get_num_threads();
       master_printf("Using %d threads\n",nthreads);
@@ -137,7 +135,6 @@ namespace nissa
       else thread_master_start(narg,arg,main_function);
     }
 #else
-    init_nissa(narg,arg);
     main_function(narg,arg);
 #endif
   }

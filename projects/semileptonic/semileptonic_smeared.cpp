@@ -255,8 +255,6 @@ void generate_sequential_source(int ispec)
 {
   int r=r_spec[ispec];
   
-  select_propagator_timeslice(sequential_source,sequential_source,0);
-  
   master_printf("\nCreating the sequential source for spectator %d\n",ispec);
   NISSA_LOC_VOL_LOOP(ivol)
     {

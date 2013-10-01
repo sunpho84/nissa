@@ -50,6 +50,8 @@ namespace nissa
   {memcpy(b,a,sizeof(quad_su3));}
   void spincolor_copy(spincolor b,spincolor a)
   {memcpy(b,a,sizeof(spincolor));}
+  void colorspinspin_copy(colorspinspin b,colorspinspin a)
+  {memcpy(b,a,sizeof(colorspinspin));}
   
   //////////////////// Switch directions so to agree to ILDG ordering ////////////////////
   

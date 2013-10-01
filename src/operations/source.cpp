@@ -19,7 +19,7 @@ namespace nissa
     
     //put to zero everywhere but on the slice
     NISSA_LOC_VOL_LOOP(ivol)
-      if(timeslice!=-1 && glb_coord_of_loclx[ivol][0]!=timeslice)
+      if(glb_coord_of_loclx[ivol][0]!=timeslice)
 	memset(prop_out[ivol],0,sizeof(prop_type));
   }
   
