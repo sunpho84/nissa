@@ -16,7 +16,7 @@ namespace nissa
 {
   //put in the external bgq_barrier.c file, to avoid alignement problem
 #if defined BGQ && (! defined BGQ_EMU)
-#include "bgq/bgq_barrier.h"
+ #include "bgq/bgq_barrier.hpp"
 #endif
   
   //put a barrier between threads

@@ -35,7 +35,7 @@ endif
 BUILT_SOURCES=update_svnversion svnversion.hpp
 EXTRA_DIST=update_svnversion.hpp.sh
 update_svnversion:
-	(cd $(srcdir);./update_svnversion.hpp.sh;cd - >/dev/null) > svnversion.hpp
+	$(srcdir)/update_svnversion.hpp.sh $(top_srcdir)
 .PHONY: update_svnversion
 
 #include global_variables.cpp in the installation
@@ -43,3 +43,4 @@ update_svnversion:
 global_variabledir=$(prefix)/include/base
 global_variable_DATA=global_variables.cpp
 
+CLEANFILES=svnversion.hpp
