@@ -10,6 +10,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
+#include "new_types/dirac.hpp"
 #include "new_types/float128.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/spin.hpp"
@@ -381,6 +382,13 @@ namespace nissa
   {
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol) safe_dirac_prod_spincolor(out[ivol],m,in[ivol]);
+    set_borders_invalid(out);
+  }}
+
+  THREADABLE_FUNCTION_3ARG(safe_dirac_prod_colorspinspin, colorspinspin*,out, dirac_matr*,m, colorspinspin*,in)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) safe_dirac_prod_colorspinspin(out[ivol],m,in[ivol]);
     set_borders_invalid(out);
   }}
 

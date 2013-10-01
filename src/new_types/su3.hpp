@@ -13,6 +13,7 @@ namespace nissa
   void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredients &out,su3 Q);
   void as2t_su3_put_to_zero(as2t_su3 m);
   void color_copy(color b,color a);
+  void colorspinspin_copy(colorspinspin b,colorspinspin a);
   void color_isubt(color a,color b,color c);
   void color_isubtassign(color a,color b);
   void color_isumm(color a,color b,color c);

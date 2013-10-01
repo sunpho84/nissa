@@ -9,7 +9,12 @@ if BGQ
 test_bgq_target=test_bgq
 endif
 
-bin_PROGRAMS=$(top_builddir)/bin/semileptonic_smeared $(top_builddir)/bin/gevp $(test_bgq_target)
+#target programs
+bin_PROGRAMS= \
+	$(top_builddir)/bin/semileptonic_smeared \
+	$(top_builddir)/bin/gevp \
+	$(top_builddir)/bin/gevp_3pts \
+	$(test_bgq_target)
 
 #include sources of test_bgq
 if BGQ
@@ -37,6 +42,7 @@ else
 __top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
 __top_builddir__bin_gevp_SOURCES=gevp.cpp $(semileptonic_smeared_parser_built_sources)
 endif
+__top_builddir__bin_gevp_3pts_SOURCES=gevp_3pts.cpp
 
 #comment because it could happen that we don't hppave flex or bison
 #CLEANFILES=$(semileptonic_smeared_parser_built_sources)

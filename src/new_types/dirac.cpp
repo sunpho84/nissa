@@ -8,6 +8,7 @@
 #include "complex.hpp"
 #include "new_types_definitions.hpp"
 #include "spin.hpp"
+#include "su3.hpp"
 
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
@@ -151,6 +152,15 @@ namespace nissa
   }
   void safe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
   {spinspin temp;unsafe_dirac_prod_spinspin(temp,m,in);spinspin_copy(out,temp);}
+  void unsafe_dirac_prod_colorspinspin(colorspinspin out,dirac_matr *m,colorspinspin in)
+  {
+    for(int ic=0;ic<3;ic++)
+      for(int id1=0;id1<4;id1++)
+	for(int id2=0;id2<4;id2++)
+	  unsafe_complex_prod(out[ic][id1][id2],m->entr[id1],in[ic][m->pos[id1]][id2]);
+  }
+  void safe_dirac_prod_colorspinspin(colorspinspin out,dirac_matr *m,colorspinspin in)
+  {colorspinspin temp;unsafe_dirac_prod_colorspinspin(temp,m,in);colorspinspin_copy(out,temp);}
   
   //out=m*in^t
   void unsafe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)

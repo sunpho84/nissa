@@ -79,7 +79,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = $(top_builddir)/bin/semileptonic_smeared$(EXEEXT) \
-	$(top_builddir)/bin/gevp$(EXEEXT) $(am__EXEEXT_1)
+	$(top_builddir)/bin/gevp$(EXEEXT) \
+	$(top_builddir)/bin/gevp_3pts$(EXEEXT) $(am__EXEEXT_1)
 subdir = projects/semileptonic
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	parse_corr.hpp parse_corr.cpp tokenize_corr.cpp \
@@ -117,6 +118,12 @@ am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
 am__dirstamp = $(am__leading_dot)dirstamp
+am___top_builddir__bin_gevp_3pts_OBJECTS = gevp_3pts.$(OBJEXT)
+__top_builddir__bin_gevp_3pts_OBJECTS =  \
+	$(am___top_builddir__bin_gevp_3pts_OBJECTS)
+__top_builddir__bin_gevp_3pts_LDADD = $(LDADD)
+__top_builddir__bin_gevp_3pts_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.la
 am____top_builddir__bin_semileptonic_smeared_SOURCES_DIST =  \
 	semileptonic_smeared.cpp tokenize_corr.cpp parse_corr.hpp \
 	parse_corr.cpp parse_corr.ypp tokenize_corr.lpp \
@@ -207,9 +214,11 @@ am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 SOURCES = $(__top_builddir__bin_gevp_SOURCES) \
+	$(__top_builddir__bin_gevp_3pts_SOURCES) \
 	$(__top_builddir__bin_semileptonic_smeared_SOURCES) \
 	$(test_bgq_SOURCES)
 DIST_SOURCES = $(am____top_builddir__bin_gevp_SOURCES_DIST) \
+	$(__top_builddir__bin_gevp_3pts_SOURCES) \
 	$(am____top_builddir__bin_semileptonic_smeared_SOURCES_DIST) \
 	$(am__test_bgq_SOURCES_DIST)
 am__can_run_installinfo = \
@@ -396,6 +405,7 @@ AM_YFLAGS = -d
 @PARSER_GENERATION_TRUE@__top_builddir__bin_semileptonic_smeared_SOURCES = semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
 @PARSER_GENERATION_FALSE@__top_builddir__bin_gevp_SOURCES = gevp.cpp $(semileptonic_smeared_parser_built_sources)
 @PARSER_GENERATION_TRUE@__top_builddir__bin_gevp_SOURCES = gevp.cpp $(semileptonic_smeared_parser_sources)
+__top_builddir__bin_gevp_3pts_SOURCES = gevp_3pts.cpp
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
@@ -491,6 +501,10 @@ $(top_builddir)/bin/gevp$(EXEEXT): $(__top_builddir__bin_gevp_OBJECTS) $(__top_b
 	@rm -f $(top_builddir)/bin/gevp$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_gevp_OBJECTS) $(__top_builddir__bin_gevp_LDADD) $(LIBS)
 
+$(top_builddir)/bin/gevp_3pts$(EXEEXT): $(__top_builddir__bin_gevp_3pts_OBJECTS) $(__top_builddir__bin_gevp_3pts_DEPENDENCIES) $(EXTRA___top_builddir__bin_gevp_3pts_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
+	@rm -f $(top_builddir)/bin/gevp_3pts$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_gevp_3pts_OBJECTS) $(__top_builddir__bin_gevp_3pts_LDADD) $(LIBS)
+
 $(top_builddir)/bin/semileptonic_smeared$(EXEEXT): $(__top_builddir__bin_semileptonic_smeared_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_DEPENDENCIES) $(EXTRA___top_builddir__bin_semileptonic_smeared_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
 	@rm -f $(top_builddir)/bin/semileptonic_smeared$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_semileptonic_smeared_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_LDADD) $(LIBS)
@@ -506,6 +520,7 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gevp.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gevp_3pts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_corr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semileptonic_smeared.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_bgq.Po@am__quote@
