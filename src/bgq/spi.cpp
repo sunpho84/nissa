@@ -216,7 +216,7 @@ namespace nissa
   void init_spi()
   {
     //check not to have initialized
-    if(!nissa_spi_inited)
+    if(!spi_inited)
       {
 	verbosity_lv2_master_printf("Starting spi\n");
 	
@@ -224,7 +224,7 @@ namespace nissa
 	if(Kernel_ProcessCount()!=1) crash("only one process per node implemented");
 	
 	//mark as initialized
-	nissa_spi_inited=true;
+	spi_inited=true;
 	
 	//get coordinates, size and rank in the 5D grid
 	set_spi_geometry();
@@ -270,16 +270,15 @@ namespace nissa
 	if(Kernel_InjFifoActivate(&spi_fifo_sg_ptr,nspi_fifo,fifo_id,KERNEL_INJ_FIFO_ACTIVATE)) crash("activating fifo");
 	
 	//check alignment
-	CRASH_IF_NOT_ALIGNED(nissa_recv_buf,64);
-	CRASH_IF_NOT_ALIGNED(nissa_send_buf,64);
+	CRASH_IF_NOT_ALIGNED(recv_buf,64);
+	CRASH_IF_NOT_ALIGNED(send_buf,64);
 	
 	//get physical address of receiving buffer
 	Kernel_MemoryRegion_t mem_region;
-	if(Kernel_CreateMemoryRegion(&mem_region,nissa_recv_buf,nissa_recv_buf_size))
-	  crash("creating nissa_recv_buf memory region");
+	if(Kernel_CreateMemoryRegion(&mem_region,recv_buf,recv_buf_size)) crash("creating recv_buf memory region");
 	
 	//set the physical address
-	if(MUSPI_SetBaseAddress(&spi_bat_gr,spi_bat_id[0],(uint64_t)nissa_recv_buf-
+	if(MUSPI_SetBaseAddress(&spi_bat_gr,spi_bat_id[0],(uint64_t)recv_buf-
 				(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa))
 	  crash("setting base address");
 	
@@ -293,8 +292,8 @@ namespace nissa
 	spi_recv_counter=0;
 	
 	//get the send buffer physical address
-	if(Kernel_CreateMemoryRegion(&mem_region,nissa_send_buf,nissa_send_buf_size)) crash("creating memory region");
-	spi_send_buf_phys_addr=(uint64_t)nissa_send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
+	if(Kernel_CreateMemoryRegion(&mem_region,send_buf,send_buf_size)) crash("creating memory region");
+	spi_send_buf_phys_addr=(uint64_t)send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
 	
 	//find hints for descriptors
 	set_spi_hints();
