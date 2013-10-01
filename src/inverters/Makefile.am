@@ -70,7 +70,6 @@ EXTRA_DIST= \
 	twisted_mass/cgm_invert_tmQ2_bgq.hpp \
         templates/cg_128_invert_template.cpp \
         templates/cg_invert_template.cpp \
-        templates/cgm_invert_template.cpp \
-        templates/cg_128_invert_template_thppreaded.cpp \
-        templates/cg_invert_template_thppreaded.cpp \
-        templates/cgm_invert_template_thppreaded.cpp
+        templates/cg_128_invert_template_threaded.cpp \
+        templates/cg_invert_template_threaded.cpp \
+        templates/cgm_invert_template_threaded.cpp

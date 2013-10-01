@@ -1,15 +1,15 @@
-#define yymaxdepth two_pts_corr_parser_maxdepthpp
+#define yymaxdepth two_pts_corr_parser_maxdepth
 #define yyparse two_pts_corr_parser_parse
 #define yylex   two_pts_corr_parser_lex
 #define yyerror two_pts_corr_parser_error
 #define yylval  two_pts_corr_parser_lval
-#define yychar  two_pts_corr_parser_chppar
+#define yychar  two_pts_corr_parser_char
 #define yydebug two_pts_corr_parser_debug
 #define yypact  two_pts_corr_parser_pact
 #define yyr1    two_pts_corr_parser_r1
 #define yyr2    two_pts_corr_parser_r2
 #define yydef   two_pts_corr_parser_def
-#define yychk   two_pts_corr_parser_chppk
+#define yychk   two_pts_corr_parser_chk
 #define yypgo   two_pts_corr_parser_pgo
 #define yyact   two_pts_corr_parser_act
 #define yyexca  two_pts_corr_parser_exca
@@ -27,7 +27,7 @@
 #define yylloc  two_pts_corr_parser_lloc
 #define yyreds  two_pts_corr_parser_reds
 #define yytoks  two_pts_corr_parser_toks
-#define yylhs   two_pts_corr_parser_yylhpps
+#define yylhs   two_pts_corr_parser_yylhs
 #define yylen   two_pts_corr_parser_yylen
 #define yydefred two_pts_corr_parser_yydefred
 #define yydgoto  two_pts_corr_parser_yydgoto
@@ -35,6 +35,6 @@
 #define yyrindex two_pts_corr_parser_yyrindex
 #define yygindex two_pts_corr_parser_yygindex
 #define yytable  two_pts_corr_parser_yytable
-#define yycheck  two_pts_corr_parser_yychppeck
+#define yycheck  two_pts_corr_parser_yycheck
 #define yyname   two_pts_corr_parser_yyname
 #define yyrule   two_pts_corr_parser_yyrule

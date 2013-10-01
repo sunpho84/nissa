@@ -2,7 +2,7 @@
 
 namespace nissa
 {
-  //Refers to thppe doc: "doc/eo_inverter.lyx" for explenations
+  //Refers to the doc: "doc/eo_inverter.lyx" for explenations
   
   //apply even-odd or odd-even part of tmD, multiplied by -2
   THREADABLE_FUNCTION_4ARG(tmn2Deo_or_tmn2Doe_eos, spincolor*,out, quad_su3**,conf, int,eooe, spincolor*,in)
