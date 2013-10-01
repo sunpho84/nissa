@@ -33,14 +33,15 @@ endif
 
 #svn versioning: specify to build sources and include script
 BUILT_SOURCES=update_svnversion svnversion.hpp
-EXTRA_DIST=update_svnversion.hpp.sh
 update_svnversion:
 	$(srcdir)/update_svnversion.hpp.sh $(top_srcdir)
 .PHONY: update_svnversion
+EXTRA_DIST=svnversion.hpp update_svnversion.hpp.sh
 
 #include global_variables.cpp in the installation
 #needed because included in global_variables.h
 global_variabledir=$(prefix)/include/base
 global_variable_DATA=global_variables.cpp
 
+#clean svnversion.hpp
 CLEANFILES=svnversion.hpp
