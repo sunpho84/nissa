@@ -6,14 +6,22 @@
 char outfolder[100],conf_path[100];
 int ngauge_conf,nanalyzed_conf;
 int T,L,seed;
-int nsources,gaussian_niter_seq,twall,tsep;
+int nsources,twall,tsep;
 int ninv_tot=0;
 double wall_time,conf_smear_time=0,tot_prog_time=0,inv_time=0,smear_time=0,corr_time=0;
-double theta_seq,mass,residue,kappa;
+double theta_needed,mass,residue,kappa;
 ape_pars_t ape_smearing_pars;
 spincolor *source,*cgm_solution[1],*temp_vec[2];
 quad_su3 *conf,*sme_conf;
-colorspinspin *ori_source,*seq_source,*S0[2],*S1;
+colorspinspin *loc_source,*sme_source,*seq_source,*C_loc_source,*C_sme_source,*S1;
+colorspinspin *S0_std_lcsi_smso,*S0_mov_lcsi_smso;
+colorspinspin *S0_std_smsi_smso,*S0_mov_smsi_smso;
+colorspinspin *S0_std_C_lcsi_smso,*S0_std_C_smsi_smso;
+colorspinspin *S0_std_C_lcsi_lcso,*S0_std_C_smsi_lcso;
+colorspinspin *S0_std_lcsi_C_lcso,*S0_std_smsi_C_lcso;
+colorspinspin *S0_std_lcsi_C_smso,*S0_std_smsi_C_smso;
+colorspinspin *S0_std_lcsi_lcso,*S0_std_smsi_lcso;
+
 double *loc_corr,*glb_corr;
 int ncorr_tot=0;
 momentum_t old_theta,put_theta;
@@ -21,7 +29,42 @@ int rspec=0;
 
 int gaussian_niter;
 double gaussian_kappa;
-double gaussian_kappa_seq;
+
+const int i2pts_VsVs_st=0,i2pts_VsVs_mv=1;
+const int i2pts_ClCl=2,i2pts_PsCl=3,i2pts_CsCl=4;
+const int i2pts_ClPs=5,i2pts_PsPs=6,i2pts_CsPs=7;
+const int i2pts_ClCs=8,i2pts_PsCs=9,i2pts_CsCs=10;
+const int i3pts_base=11;
+const int nop_tot=i3pts_base+3;
+
+//apply the C operator
+void apply_C_operator(colorspinspin *out,colorspinspin *in)
+{
+  colorspinspin *temp_add=nissa_malloc("temp_add",loc_vol+bord_vol,colorspinspin);
+  colorspinspin *temp_res=nissa_malloc("temp_res",loc_vol+bord_vol,colorspinspin);
+  vector_reset(temp_res);
+  
+  //add the three contributions
+  for(int mu=0;mu<3;mu++)
+    {
+      int idir=1+mu,iga=16+mu;
+      apply_nabla_i(temp_add,in,sme_conf,idir);
+      NISSA_LOC_VOL_LOOP(ivol)
+	for(int ic=0;ic<3;ic++)
+	  {
+	    spinspin t;
+	    unsafe_dirac_prod_spinspin(t,base_gamma+iga,temp_add[ivol][ic]);
+	    spinspin_summassign(temp_res[ivol][ic],t);
+	  }
+    }
+  
+  vector_copy(out,temp_res);
+  
+  nissa_free(temp_add);
+  nissa_free(temp_res);
+
+  set_borders_invalid(out);
+}
 
 void initialize_semileptonic(char *input_path)
 {
@@ -51,22 +94,20 @@ void initialize_semileptonic(char *input_path)
   
   read_str_double("GaussianKappa",&gaussian_kappa);
   read_str_int("GaussianNiter",&gaussian_niter);
-  read_str_double("GaussianKappaSeq",&gaussian_kappa_seq);
-  read_str_int("GaussianNiterSeq",&gaussian_niter_seq);
   read_ape_pars(ape_smearing_pars);
   
   // 4) Read masses, residue and list of confs
 
   read_str_double("Mass",&mass);
   read_str_double("Residue",&residue);
-  read_str_double("ThetaSeq",&theta_seq);
+  read_str_double("ThetaNeeded",&theta_needed);
   read_str_int("TSep",&tsep);
   read_str_int("NGaugeConf",&ngauge_conf);
   
   ////////////////////////////////// allocate //////////////////////
   
-  loc_corr=nissa_malloc("loc_corr",3*glb_size[0],double);
-  glb_corr=nissa_malloc("glb_corr",3*glb_size[0],double);
+  loc_corr=nissa_malloc("loc_corr",nop_tot*glb_size[0],double);
+  glb_corr=nissa_malloc("glb_corr",nop_tot*glb_size[0],double);
   
   //temp vecs
   temp_vec[0]=nissa_malloc("temp_vec[0]",loc_vol+bord_vol,spincolor);
@@ -78,13 +119,29 @@ void initialize_semileptonic(char *input_path)
   sme_conf=nissa_malloc("sm_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   //Allocate S0
-  for(int r=0;r<2;r++) S0[r]=nissa_malloc("S0[r]",loc_vol+bord_vol,colorspinspin);
+  S0_std_lcsi_lcso=nissa_malloc("S0_std_lcsi_lcso",loc_vol+bord_vol,colorspinspin);
+  S0_std_smsi_lcso=nissa_malloc("S0_std_smsi_lcso",loc_vol+bord_vol,colorspinspin);
+  S0_std_lcsi_smso=nissa_malloc("S0_std_lcsi_smso",loc_vol+bord_vol,colorspinspin);
+  S0_std_smsi_smso=nissa_malloc("S0_std_smsi_smso",loc_vol+bord_vol,colorspinspin);
+  S0_std_C_lcsi_smso=nissa_malloc("S0_std_C_lcsi_smso",loc_vol+bord_vol,colorspinspin);
+  S0_std_C_smsi_smso=nissa_malloc("S0_std_C_smsi_smso",loc_vol+bord_vol,colorspinspin);
+  S0_std_C_lcsi_lcso=nissa_malloc("S0_std_C_lcsi_lcso",loc_vol+bord_vol,colorspinspin);
+  S0_std_C_smsi_lcso=nissa_malloc("S0_std_C_smsi_lcso",loc_vol+bord_vol,colorspinspin);
+  S0_std_lcsi_C_lcso=nissa_malloc("S0_std_lcsi_C_lcso",loc_vol+bord_vol,colorspinspin);
+  S0_std_smsi_C_lcso=nissa_malloc("S0_std_smsi_C_lcso",loc_vol+bord_vol,colorspinspin);
+  S0_std_lcsi_C_smso=nissa_malloc("S0_std_lcsi_C_smso",loc_vol+bord_vol,colorspinspin);
+  S0_std_smsi_C_smso=nissa_malloc("S0_std_smsi_C_smso",loc_vol+bord_vol,colorspinspin);
+  S0_mov_lcsi_smso=nissa_malloc("S0_mov_lcsi_smso",loc_vol+bord_vol,colorspinspin);
+  S0_mov_smsi_smso=nissa_malloc("S0_mov_smsi_smso",loc_vol+bord_vol,colorspinspin);
   S1=nissa_malloc("S1",loc_vol+bord_vol,colorspinspin);
   
   //Allocate source
-  ori_source=nissa_malloc("ori_source",loc_vol+bord_vol,colorspinspin);
+  loc_source=nissa_malloc("loc_source",loc_vol+bord_vol,colorspinspin);
+  sme_source=nissa_malloc("sme_source",loc_vol+bord_vol,colorspinspin);
   seq_source=nissa_malloc("seq_source",loc_vol+bord_vol,colorspinspin);
-  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);  
+  C_loc_source=nissa_malloc("C_loc_source",loc_vol+bord_vol,colorspinspin);
+  C_sme_source=nissa_malloc("C_sme_source",loc_vol+bord_vol,colorspinspin);
+  source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
 }
 
 //find a new conf
@@ -159,13 +216,29 @@ void close_gevp_3pts()
 		ncorr_tot,corr_time/ncorr_tot);
   
   nissa_free(conf);nissa_free(sme_conf);
-  for(int r=0;r<2;r++) nissa_free(S0[r]);
+  nissa_free(S0_std_lcsi_lcso);
+  nissa_free(S0_std_lcsi_smso);
+  nissa_free(S0_std_smsi_lcso);
+  nissa_free(S0_std_smsi_smso);
+  nissa_free(S0_std_C_lcsi_smso);
+  nissa_free(S0_std_C_smsi_smso);
+  nissa_free(S0_std_C_lcsi_lcso);
+  nissa_free(S0_std_C_smsi_lcso);
+  nissa_free(S0_std_lcsi_C_lcso);
+  nissa_free(S0_std_smsi_C_lcso);
+  nissa_free(S0_std_lcsi_C_smso);
+  nissa_free(S0_std_smsi_C_smso);
+  nissa_free(S0_mov_lcsi_smso);
+  nissa_free(S0_mov_smsi_smso);
   nissa_free(S1);
-  nissa_free(source);
-  nissa_free(ori_source);
+  nissa_free(loc_source);
+  nissa_free(sme_source);
+  nissa_free(C_loc_source);
+  nissa_free(C_sme_source);
   nissa_free(seq_source);
-  nissa_free(loc_corr);
+  nissa_free(source);
   nissa_free(glb_corr);
+  nissa_free(loc_corr);
   nissa_free(cgm_solution[0]);
   nissa_free(temp_vec[0]);
   nissa_free(temp_vec[1]);
@@ -178,23 +251,30 @@ void generate_source(int isource)
 {
   twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]-1);
   master_printf("Source %d on t=%d\n",isource,twall);
-  generate_spindiluted_source(ori_source,rnd_type_map[4],twall);
-  
+  generate_spindiluted_source(loc_source,rnd_type_map[4],twall);
+
   //smear the source
   master_printf("Source Smearing\n");
   smear_time-=take_time();
-  gaussian_smearing(ori_source,ori_source,sme_conf,gaussian_kappa,gaussian_niter);
+  gaussian_smearing(sme_source,loc_source,sme_conf,gaussian_kappa,gaussian_niter);
   smear_time+=take_time();
+  
+  //apply C
+  apply_C_operator(C_loc_source,loc_source);
+  apply_C_operator(C_sme_source,sme_source);
 }
 
-//calculate S0 propagator
-void calculate_S0()
+//calculate S0_lcsi propagator
+void calculate_S0_lcsi(colorspinspin *out,double theta,colorspinspin *in)
 {
+  put_theta[1]=put_theta[2]=put_theta[3]=theta; //if multiple sources
+  adapt_theta(conf,old_theta,put_theta,1,1);
+  
   //loop over source dirac index
   for(int id=0;id<4;id++)
     { 
       //add gamma5
-      get_spincolor_from_colorspinspin(source,ori_source,id);
+      get_spincolor_from_colorspinspin(source,in,id);
       safe_dirac_prod_spincolor(source,base_gamma+5,source);
       
       //invert
@@ -209,14 +289,25 @@ void calculate_S0()
       
       //reconstruct the doublet
       reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass,cgm_solution[0]);
-      for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
-	put_spincolor_into_colorspinspin(S0[r],temp_vec[r],id);
+      put_spincolor_into_colorspinspin(out,temp_vec[rspec],id);
     }
 
-  //rotate to physical basis
-  for(int r=0;r<2;r++) //remember that D^-1 rotate opposite than D!
-    rotate_vol_colorspinspin_to_physical_basis(S0[r],!r,!r);
+  //rotate to physical basis, remember that D^-1 rotate opposite than D!
+  rotate_vol_colorspinspin_to_physical_basis(out,!rspec,!rspec);
   master_printf("Propagators rotated\n");
+}
+
+//smear the sink
+void calculate_S0_smsi()
+{
+  master_printf("S0 smearing\n");
+  smear_time-=take_time();
+  gaussian_smearing(S0_std_smsi_lcso,S0_std_lcsi_lcso,sme_conf,gaussian_kappa,gaussian_niter);
+  gaussian_smearing(S0_std_smsi_smso,S0_std_lcsi_smso,sme_conf,gaussian_kappa,gaussian_niter);
+  gaussian_smearing(S0_std_smsi_C_lcso,S0_std_lcsi_C_lcso,sme_conf,gaussian_kappa,gaussian_niter);
+  gaussian_smearing(S0_mov_smsi_smso,S0_mov_lcsi_smso,sme_conf,gaussian_kappa,gaussian_niter);
+  gaussian_smearing(S0_std_smsi_C_smso,S0_std_lcsi_C_smso,sme_conf,gaussian_kappa,gaussian_niter);
+  smear_time+=take_time();
 }
 
 //generate the sequential source
@@ -224,52 +315,28 @@ void generate_sequential_source(int iseq)
 {
   master_printf("\nCreating the sequential source for sequential operator %d\n",iseq);
   
-  //copy S0
-  vector_copy(seq_source,S0[rspec]);
-  
   //seq source smearing
-  if(iseq==1||iseq==2)
+  switch(iseq)
     {
-      master_printf("Seq source smearing (1)\n");smear_time-=take_time();
-      gaussian_smearing(seq_source,seq_source,sme_conf,gaussian_kappa_seq,gaussian_niter_seq);
-      smear_time+=take_time();
+    case 0:
+      apply_C_operator(seq_source,S0_std_lcsi_smso);
+      break;
+    case 1:
+      safe_dirac_prod_colorspinspin(seq_source,base_gamma+5,S0_std_smsi_smso);
+      break;
+    case 2:
+      apply_C_operator(seq_source,S0_std_smsi_smso);
+      break;
+    default:
+      crash("unknown operator");
     }
-  
-  //put g5 or complicate operator
-  if(iseq==1) safe_dirac_prod_colorspinspin(seq_source,base_gamma+5,seq_source);
-  else
-    {
-      colorspinspin *temp_add=nissa_malloc("temp_add",loc_vol+bord_vol,colorspinspin);
-      colorspinspin *temp_res=nissa_malloc("temp_res",loc_vol+bord_vol,colorspinspin);
-      vector_reset(temp_res);
-      
-      //add the three contributions
-      for(int mu=0;mu<3;mu++)
-	{
-	  int idir=1+mu,iga=16+mu;
-	  apply_nabla_i(temp_add,seq_source,sme_conf,idir);
-	  NISSA_LOC_VOL_LOOP(ivol)
-	    for(int ic=0;ic<3;ic++)
-	      {
-		spinspin t;
-		unsafe_dirac_prod_spinspin(t,base_gamma+iga,temp_add[ivol][ic]);
-		spinspin_summassign(temp_res[ivol][ic],t);
-	      }
-	}
-      
-      vector_copy(seq_source,temp_res);
-      
-      nissa_free(temp_add);
-      nissa_free(temp_res);
-    }
-  set_borders_invalid(seq_source);
 
   //seq source smearing
   if(iseq==1||iseq==2)
     {
-      master_printf("Seq source smearing (2)\n");
+      master_printf("Seq source smearing\n");
       smear_time-=take_time();
-      gaussian_smearing(seq_source,seq_source,sme_conf,gaussian_kappa_seq,gaussian_niter_seq);
+      gaussian_smearing(seq_source,seq_source,sme_conf,gaussian_kappa,gaussian_niter);
       smear_time+=take_time();
     }
   
@@ -283,6 +350,10 @@ void generate_sequential_source(int iseq)
 //calculate S1 propagator
 void calculate_S1(int iseq)
 {
+  //put the theta
+  put_theta[1]=put_theta[2]=put_theta[3]=0;
+  adapt_theta(conf,old_theta,put_theta,1,1);
+  
   generate_sequential_source(iseq);
   
   //loop over source dirac index
@@ -317,7 +388,7 @@ void calculate_S1(int iseq)
 //calculate all 3pts
 void calculate_3pts(int iop_seq)
 {
-  double *loc=loc_corr+glb_size[0]*iop_seq;
+  double *loc=loc_corr+glb_size[0]*(i3pts_base+iop_seq);
   
   //loop on the three polarizations
   if(1)
@@ -334,9 +405,9 @@ void calculate_3pts(int iop_seq)
 	  
 	  //take the two contractions
 	  complex ctemp1,ctemp2;
-	  trace_g_css_dag_g_css(ctemp1,base_gamma+ig_pol,S0[rspec][ivol],base_gamma+ig1,S1[ivol]);
-	  trace_g_css_dag_g_css(ctemp2,base_gamma+ig_pol,S0[rspec][ivol],base_gamma+ig2,S1[ivol]);
-	  loc[dst_t]+=(ctemp1[IM]-ctemp2[IM])/3;
+	  trace_g_css_dag_g_css(ctemp1,base_gamma+ig_pol,S0_mov_lcsi_smso[ivol],base_gamma+ig1,S1[ivol]);
+	  trace_g_css_dag_g_css(ctemp2,base_gamma+ig_pol,S0_mov_lcsi_smso[ivol],base_gamma+ig2,S1[ivol]);
+	  loc[dst_t]+=-(ctemp1[IM]-ctemp2[IM])/3;
 	}
     }
   
@@ -351,15 +422,72 @@ void calculate_3pts(int iop_seq)
 	
 	//take the two contractions
 	complex ctemp={0,0};
-	master_printf("S0: %lg, S1: %lg\n",S0[0][0][0][0][0][0],S1[0][0][0][0][0]);
-	if(1) trace_g_css_dag_g_css(ctemp,base_gamma+6,S0[rspec][ivol],base_gamma+7,S1[ivol]); //V1V2
+	if(1) trace_g_css_dag_g_css(ctemp,base_gamma+6,S0_std_lcsi_smso[ivol],base_gamma+7,S1[ivol]); //V1V2
 	loc[dst_t]+=ctemp[IM];
-	if(0) trace_g_css_dag_g_css(ctemp,base_gamma,S0[rspec][ivol],base_gamma+9,S1[ivol]); //V0P5
-	if(0) trace_g_css_dag_g_css(ctemp,base_gamma,S0[rspec][ivol],base_gamma,S0[rspec][ivol]); //2pts
-	if(0) trace_g_css_dag_g_css(ctemp,base_gamma+5,ori_source[ivol],base_gamma+0,S1[ivol]); //2pts check
+	if(0) trace_g_css_dag_g_css(ctemp,base_gamma,S0_std_lcsi_smso[ivol],base_gamma+9,S1[ivol]); //V0P5
+	if(0) trace_g_css_dag_g_css(ctemp,base_gamma,S0_std_lcsi_smso[ivol],base_gamma,
+				    S0_std_lcsi_smso[ivol]); //2pts
+	if(0) trace_g_css_dag_g_css(ctemp,base_gamma+5,sme_source[ivol],base_gamma+0,S1[ivol]); //2pts check
 	//loc[dst_t]+=ctemp[RE];
       }
     }
+}
+
+//calculate all 2pts
+void calculate_2pts()
+{
+  apply_C_operator(S0_std_C_lcsi_smso,S0_std_lcsi_smso);
+  apply_C_operator(S0_std_C_smsi_smso,S0_std_smsi_smso);
+  apply_C_operator(S0_std_C_lcsi_lcso,S0_std_lcsi_lcso);
+  apply_C_operator(S0_std_C_smsi_lcso,S0_std_smsi_lcso);
+  
+  //loop on the three polarizations
+  NISSA_LOC_VOL_LOOP(ivol)
+  {
+    int glb_t=glb_coord_of_loclx[ivol][0],dst_t=(glb_size[0]+glb_t-twall)%glb_size[0];
+    
+    //take the three vector polarization
+    complex temp;
+    for(int mu=0;mu<3;mu++)
+      {
+	//VV(st)
+	trace_g_css_dag_g_css(temp,base_gamma+6+mu,S0_std_smsi_smso[ivol],base_gamma+6+mu,S0_std_smsi_smso[ivol]);
+	loc_corr[i2pts_VsVs_st*glb_size[0]+dst_t]+=-temp[RE]/3;
+	//VV(mv)
+	trace_g_css_dag_g_css(temp,base_gamma+6+mu,S0_std_smsi_smso[ivol],base_gamma+6+mu,S0_mov_smsi_smso[ivol]);
+	loc_corr[i2pts_VsVs_mv*glb_size[0]+dst_t]+=-temp[RE]/3;
+      }
+    
+    //ClCl
+    trace_g_css_dag_g_css(temp,base_gamma+5,S0_std_lcsi_C_lcso[ivol],base_gamma+5,S0_std_C_lcsi_lcso[ivol]);
+    loc_corr[i2pts_ClCl*glb_size[0]+dst_t]+=temp[RE];
+    //PsCl
+    trace_g_css_dag_g_css(temp,base_gamma+5,S0_std_smsi_C_lcso[ivol],base_gamma+0,S0_std_smsi_lcso[ivol]);
+    loc_corr[i2pts_PsCl*glb_size[0]+dst_t]+=temp[RE];
+    //CsCl
+    trace_g_css_dag_g_css(temp,base_gamma+5,S0_std_smsi_C_lcso[ivol],base_gamma+5,S0_std_C_smsi_lcso[ivol]);
+    loc_corr[i2pts_CsCl*glb_size[0]+dst_t]+=temp[RE];
+    
+    //ClPs
+    trace_g_css_dag_g_css(temp,base_gamma+0,S0_std_lcsi_smso[ivol],base_gamma+5,S0_std_C_lcsi_smso[ivol]);
+    loc_corr[i2pts_ClPs*glb_size[0]+dst_t]+=temp[RE];
+    //PsPs
+    trace_g_css_dag_g_css(temp,base_gamma+0,S0_std_smsi_smso[ivol],base_gamma+0,S0_std_smsi_smso[ivol]);
+    loc_corr[i2pts_PsPs*glb_size[0]+dst_t]+=temp[RE];
+    //CsPs
+    trace_g_css_dag_g_css(temp,base_gamma+0,S0_std_smsi_smso[ivol],base_gamma+5,S0_std_C_smsi_smso[ivol]);
+    loc_corr[i2pts_CsPs*glb_size[0]+dst_t]+=temp[RE];
+
+    //ClCs
+    trace_g_css_dag_g_css(temp,base_gamma+5,S0_std_lcsi_C_smso[ivol],base_gamma+5,S0_std_C_lcsi_smso[ivol]);
+    loc_corr[i2pts_ClCs*glb_size[0]+dst_t]+=temp[RE];
+    //PsCs
+    trace_g_css_dag_g_css(temp,base_gamma+5,S0_std_smsi_C_smso[ivol],base_gamma+0,S0_std_smsi_smso[ivol]);
+    loc_corr[i2pts_PsCs*glb_size[0]+dst_t]+=temp[RE];
+    //CsCs
+    trace_g_css_dag_g_css(temp,base_gamma+5,S0_std_smsi_C_smso[ivol],base_gamma+5,S0_std_C_smsi_smso[ivol]);
+    loc_corr[i2pts_CsCs*glb_size[0]+dst_t]+=temp[RE];
+  }
 }
 
 //check if the time is enough
@@ -382,18 +510,22 @@ int check_remaining_time()
 }
 
 //reduce and write
-void write_3pts()
+void write_corr()
 {
   //open output file
   char path[1024];
-  sprintf(path,"%s/3pts_corr",outfolder);
+  sprintf(path,"%s/corr",outfolder);
   FILE *fout=open_text_file_for_output(path);
   
   //reduce
-  MPI_Reduce(loc_corr,glb_corr,glb_size[0]*3,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
-  for(int iop=0;iop<3;iop++)
+  MPI_Reduce(loc_corr,glb_corr,glb_size[0]*nop_tot,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+  for(int iop=0;iop<nop_tot;iop++)
     {
-      const char tag[3][10]={"LOC_C","SME_G5","SME_C"};
+      const char tag[nop_tot][20]={"Vs_Vs(std)","Vs_Vs(theta)",
+				   "Cl_Cl","Ps_Cl","Cs_Cl",
+				   "Cl_Ps","Ps_Ps","Cs_Ps",
+				   "Cl_Cs","Ps_Cs","Cs_Cs",
+				   "Cl_VJ_VK","Ps_VJ_VK","Cs_VJ_VK"};
       master_fprintf(fout," # OPERATOR %s\n",tag[iop]);
       for(int t=0;t<glb_size[0];t++) master_fprintf(fout,"%+16.16lg\n",glb_corr[t+iop*glb_size[0]]/nsources);
       
@@ -424,14 +556,14 @@ void in_main(int narg,char **arg)
 	{
 	  generate_source(isource);
 	  
-	  //compute S0 propagator
-	  put_theta[1]=put_theta[2]=put_theta[3]=0; //if multiple sources
-	  adapt_theta(conf,old_theta,put_theta,1,1);
-	  calculate_S0();
-	  
-	  //put the theta
-	  put_theta[1]=put_theta[2]=put_theta[3]=theta_seq;
-	  adapt_theta(conf,old_theta,put_theta,1,1);
+	  //compute S0_lcsi propagator
+	  calculate_S0_lcsi(S0_std_lcsi_lcso,0,loc_source);
+	  calculate_S0_lcsi(S0_std_lcsi_smso,0,sme_source);
+	  calculate_S0_lcsi(S0_std_lcsi_C_lcso,0,C_loc_source);
+	  calculate_S0_lcsi(S0_std_lcsi_C_smso,0,C_sme_source);
+	  calculate_S0_lcsi(S0_mov_lcsi_smso,theta_needed,sme_source);
+	  calculate_S0_smsi();
+	  calculate_2pts();
 	  
 	  //compute all operators
 	  for(int iop_seq=0;iop_seq<3;iop_seq++)
@@ -442,7 +574,7 @@ void in_main(int narg,char **arg)
 	}
       
       //reduce and write three points      
-      write_3pts();
+      write_corr();
       
       nanalyzed_conf++;
       enough_time=check_remaining_time();
