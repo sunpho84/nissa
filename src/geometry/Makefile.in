@@ -79,6 +79,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+
+#compile or not virtual parallelization
+@USE_VNODES_TRUE@am__append_1 = geometry_vir.cpp
+@USE_VNODES_TRUE@am__append_2 = geometry_vir.hpp
 subdir = src/geometry
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/depcomp \
@@ -96,11 +100,11 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libgeometry_la_LIBADD =
-am__libgeometry_la_SOURCES_DIST = geometry_vir.cpp geometry_eo.cpp \
-	geometry_lx.cpp geometry_mix.cpp geometry_Wsklx.cpp
+am__libgeometry_la_SOURCES_DIST = geometry_eo.cpp geometry_lx.cpp \
+	geometry_mix.cpp geometry_Wsklx.cpp geometry_vir.cpp
 @USE_VNODES_TRUE@am__objects_1 = geometry_vir.lo
-am_libgeometry_la_OBJECTS = $(am__objects_1) geometry_eo.lo \
-	geometry_lx.lo geometry_mix.lo geometry_Wsklx.lo
+am_libgeometry_la_OBJECTS = geometry_eo.lo geometry_lx.lo \
+	geometry_mix.lo geometry_Wsklx.lo $(am__objects_1)
 libgeometry_la_OBJECTS = $(am_libgeometry_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -147,8 +151,8 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
-am__geometry_include_HEADERS_DIST = geometry_vir.hpp geometry_eo.hpp \
-	geometry_lx.hpp geometry_mix.hpp geometry_Wsklx.hpp
+am__geometry_include_HEADERS_DIST = geometry_eo.hpp geometry_lx.hpp \
+	geometry_mix.hpp geometry_Wsklx.hpp geometry_vir.hpp
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -329,13 +333,17 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/src
 
-#compile or not virtual parallelization
-@USE_VNODES_TRUE@vnodes_src_files = geometry_vir.cpp
-@USE_VNODES_TRUE@vnodes_header_files = geometry_vir.hpp
+#library name
 noinst_LTLIBRARIES = libgeometry.la
-libgeometry_la_SOURCES = $(vnodes_src_files) geometry_eo.cpp geometry_lx.cpp geometry_mix.cpp geometry_Wsklx.cpp
+
+#sources
+libgeometry_la_SOURCES = geometry_eo.cpp geometry_lx.cpp \
+	geometry_mix.cpp geometry_Wsklx.cpp $(am__append_1)
+
+#headers
 geometry_includedir = $(includedir)/geometry
-geometry_include_HEADERS = $(vnodes_header_files) geometry_eo.hpp geometry_lx.hpp geometry_mix.hpp geometry_Wsklx.hpp
+geometry_include_HEADERS = geometry_eo.hpp geometry_lx.hpp \
+	geometry_mix.hpp geometry_Wsklx.hpp $(am__append_2)
 all: all-am
 
 .SUFFIXES:
