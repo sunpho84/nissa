@@ -710,7 +710,7 @@ uninstall-am: uninstall-baseincludeHEADERS \
 	uninstall-baseincludeHEADERS uninstall-global_variableDATA
 
 update_svnversion:
-	cd $(srcdir) && ./update_svnversion.hpp.sh
+	(cd $(srcdir);./update_svnversion.hpp.sh;cd - >/dev/null) > svnversion.hpp
 .PHONY: update_svnversion
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

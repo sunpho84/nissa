@@ -484,7 +484,7 @@ inline void cache_flush()
 inline void thread_barrier_internal()
 {
 #if defined BGQ && (! defined BGQ_EMU)
-  bgq_barrier(nthreads);
+  bgq_barrier(nissa::nthreads);
 #else
   #pragma omp barrier
 #endif
