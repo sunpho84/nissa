@@ -25,7 +25,7 @@ bgqinclude_HEADERS= \
 if BGQ_EMU
 else
 libbgq_la_SOURCES+=bgq_barrier.c
-bgqinclude_HEADERS+==bgq_barrier.hpp
+bgqinclude_HEADERS+=bgq_barrier.hpp
 endif
 
 #compile or not spi stuff

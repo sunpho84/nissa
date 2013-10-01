@@ -1,12 +1,9 @@
 AM_CPPFLAGS=-I$(top_srcdir)/src
 
-BUILT_SOURCES=update_svnversion svnversion.hpp
-
-if BGQ
-base_bgq_header_files=../bgq/spi.hpp bgq_instructions.hpp
-endif
-
+#library name
 noinst_LTLIBRARIES=libbase.la
+
+#sources
 libbase_la_SOURCES= \
 	bench.cpp \
 	close.cpp \
@@ -16,9 +13,9 @@ libbase_la_SOURCES= \
 	random.cpp \
 	vectors.cpp
 
+#headers
 baseincludedir=$(includedir)/base
 baseinclude_HEADERS= \
-	$(base_bgq_header_files) \
 	bench.hpp \
 	close.hpp \
 	debug.hpp \
@@ -29,13 +26,20 @@ baseinclude_HEADERS= \
 	thread_macros.hpp \
 	vectors.hpp
 
-EXTRA_DIST=update_svnversion.hpp.sh svnversion.hpp
+#include bgq files
+if BGQ
+baseinclude_HEADERS+=bgq_instructions.hpp
+endif
+
+#svn versioning: specify to build sources and include script
+BUILT_SOURCES=update_svnversion svnversion.hpp
+EXTRA_DIST=update_svnversion.hpp.sh
+update_svnversion:
+	cd $(srcdir) && ./update_svnversion.hpp.sh
+.PHONY: update_svnversion
 
 #include global_variables.cpp in the installation
+#needed because included in global_variables.h
 global_variabledir=$(prefix)/include/base
 global_variable_DATA=global_variables.cpp
 
-update_svnversion:
-	cd $(srcdir) && ./update_svnversion.hpp.sh
-
-.PHONY: update_svnversion

@@ -82,7 +82,7 @@ host_triplet = @host@
 
 #bgq barrier
 @BGQ_EMU_FALSE@am__append_1 = bgq_barrier.c
-@BGQ_EMU_FALSE@am__append_2 = =bgq_barrier.hpp
+@BGQ_EMU_FALSE@am__append_2 = bgq_barrier.hpp
 
 #compile or not spi stuff
 @SPI_TRUE@am__append_3 = spi.cpp
@@ -179,7 +179,7 @@ am__bgqinclude_HEADERS_DIST = Wilson_hopping_matrix_lx_bgq.hpp \
 	staggered_hopping_matrix_eo_or_oe_bgq.hpp bgq_macros.hpp \
 	intrinsic/declare.hpp intrinsic/load.hpp \
 	intrinsic/mergesplit.hpp intrinsic/oper.hpp \
-	intrinsic/store.hpp intrinsic.hpp =bgq_barrier.hpp spi.hpp
+	intrinsic/store.hpp intrinsic.hpp bgq_barrier.hpp spi.hpp
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \

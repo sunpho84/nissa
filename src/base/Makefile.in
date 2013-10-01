@@ -80,6 +80,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+
+#include bgq files
+@BGQ_TRUE@am__append_1 = bgq_instructions.hpp
 subdir = src/base
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/depcomp $(am__baseinclude_HEADERS_DIST)
@@ -174,9 +177,9 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(global_variabledir)" \
 	"$(DESTDIR)$(baseincludedir)"
 DATA = $(global_variable_DATA)
-am__baseinclude_HEADERS_DIST = ../bgq/spi.hpp bgq_instructions.hpp \
-	bench.hpp close.hpp debug.hpp global_variables.hpp init.hpp \
-	macros.hpp random.hpp thread_macros.hpp vectors.hpp
+am__baseinclude_HEADERS_DIST = bench.hpp close.hpp debug.hpp \
+	global_variables.hpp init.hpp macros.hpp random.hpp \
+	thread_macros.hpp vectors.hpp bgq_instructions.hpp
 HEADERS = $(baseinclude_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) $(LISP)
 # Read a list of newline-separated strings from the standard input,
@@ -328,9 +331,11 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/src
-BUILT_SOURCES = update_svnversion svnversion.hpp
-@BGQ_TRUE@base_bgq_header_files = ../bgq/spi.hpp bgq_instructions.hpp
+
+#library name
 noinst_LTLIBRARIES = libbase.la
+
+#sources
 libbase_la_SOURCES = \
 	bench.cpp \
 	close.cpp \
@@ -340,22 +345,19 @@ libbase_la_SOURCES = \
 	random.cpp \
 	vectors.cpp
 
-baseincludedir = $(includedir)/base
-baseinclude_HEADERS = \
-	$(base_bgq_header_files) \
-	bench.hpp \
-	close.hpp \
-	debug.hpp \
-	global_variables.hpp \
-	init.hpp \
-	macros.hpp \
-	random.hpp \
-	thread_macros.hpp \
-	vectors.hpp
 
-EXTRA_DIST = update_svnversion.hpp.sh svnversion.hpp
+#headers
+baseincludedir = $(includedir)/base
+baseinclude_HEADERS = bench.hpp close.hpp debug.hpp \
+	global_variables.hpp init.hpp macros.hpp random.hpp \
+	thread_macros.hpp vectors.hpp $(am__append_1)
+
+#svn versioning: specify to build sources and include script
+BUILT_SOURCES = update_svnversion svnversion.hpp
+EXTRA_DIST = update_svnversion.hpp.sh
 
 #include global_variables.cpp in the installation
+#needed because included in global_variables.h
 global_variabledir = $(prefix)/include/base
 global_variable_DATA = global_variables.cpp
 all: $(BUILT_SOURCES)
@@ -707,10 +709,8 @@ uninstall-am: uninstall-baseincludeHEADERS \
 	tags tags-am uninstall uninstall-am \
 	uninstall-baseincludeHEADERS uninstall-global_variableDATA
 
-
 update_svnversion:
 	cd $(srcdir) && ./update_svnversion.hpp.sh
-
 .PHONY: update_svnversion
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
