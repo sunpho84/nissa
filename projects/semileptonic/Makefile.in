@@ -398,7 +398,7 @@ semileptonic_smeared_parser_built_sources = \
 	parse_corr.hpp \
 	parse_corr.cpp
 
-#with or withppout parser
+#with or without parser
 AM_YFLAGS = -d
 @PARSER_GENERATION_TRUE@BUILT_SOURCES = $(semileptonic_smeared_parser_built_sources)
 @PARSER_GENERATION_FALSE@__top_builddir__bin_semileptonic_smeared_SOURCES = semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
@@ -776,7 +776,7 @@ uninstall-am: uninstall-binPROGRAMS
 	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS
 
 
-#comment because it could happen that we don't hppave flex or bison
+#comment because it could happen that we don't have flex or bison
 #CLEANFILES=$(semileptonic_smeared_parser_built_sources)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.

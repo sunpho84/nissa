@@ -1,21 +1,23 @@
 AM_CPPFLAGS=-I$(top_srcdir)/src
 
-#compile or not thread support
-if USE_THREADS
-thread_src_files=thread.cpp
-thread_headers_files=thread.hpp
-endif
-
+#libraries
 noinst_LTLIBRARIES=libroutines.la
+
+#sources
 libroutines_la_SOURCES= \
         ios.cpp \
         math_routines.cpp \
-        mpi_routines.cpp \
-        $(thread_src_files)
+        mpi_routines.cpp
 
+#headers
 routinesincludedir=$(includedir)/routines
 routinesinclude_HEADERS= \
 	ios.hpp \
         math_routines.hpp \
-        mpi_routines.hpp \
-	$(thread_headers_files)
+        mpi_routines.hpp
+
+#compile or not thread support
+if USE_THREADS
+libroutines_la_SOURCES+=thread.cpp
+routinesinclude_HEADERS+=thread.hpp
+endif

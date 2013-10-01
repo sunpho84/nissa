@@ -79,9 +79,17 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+
+#bgq barrier
+@BGQ_EMU_FALSE@am__append_1 = bgq_barrier.c
+@BGQ_EMU_FALSE@am__append_2 = =bgq_barrier.hpp
+
+#compile or not spi stuff
+@SPI_TRUE@am__append_3 = spi.cpp
+@SPI_TRUE@am__append_4 = spi.hpp
 subdir = src/bgq
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
-	$(top_srcdir)/config/depcomp $(bgqinclude_HEADERS)
+	$(top_srcdir)/config/depcomp $(am__bgqinclude_HEADERS_DIST)
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_cuda.m4 \
 	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
@@ -95,14 +103,14 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libbgq_la_LIBADD =
-am__libbgq_la_SOURCES_DIST = spi.cpp bgq_barrier.c \
-	Wilson_hopping_matrix_lx_bgq.cpp \
-	staggered_hopping_matrix_eo_or_oe_bgq.cpp
-@SPI_TRUE@am__objects_1 = spi.lo
-@BGQ_EMU_FALSE@am__objects_2 = bgq_barrier.lo
-am_libbgq_la_OBJECTS = $(am__objects_1) $(am__objects_2) \
-	Wilson_hopping_matrix_lx_bgq.lo \
-	staggered_hopping_matrix_eo_or_oe_bgq.lo
+am__libbgq_la_SOURCES_DIST = Wilson_hopping_matrix_lx_bgq.cpp \
+	staggered_hopping_matrix_eo_or_oe_bgq.cpp bgq_barrier.c \
+	spi.cpp
+@BGQ_EMU_FALSE@am__objects_1 = bgq_barrier.lo
+@SPI_TRUE@am__objects_2 = spi.lo
+am_libbgq_la_OBJECTS = Wilson_hopping_matrix_lx_bgq.lo \
+	staggered_hopping_matrix_eo_or_oe_bgq.lo $(am__objects_1) \
+	$(am__objects_2)
 libbgq_la_OBJECTS = $(am_libbgq_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -167,6 +175,11 @@ am__can_run_installinfo = \
     n|no|NO) false;; \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
+am__bgqinclude_HEADERS_DIST = Wilson_hopping_matrix_lx_bgq.hpp \
+	staggered_hopping_matrix_eo_or_oe_bgq.hpp bgq_macros.hpp \
+	intrinsic/declare.hpp intrinsic/load.hpp \
+	intrinsic/mergesplit.hpp intrinsic/oper.hpp \
+	intrinsic/store.hpp intrinsic.hpp =bgq_barrier.hpp spi.hpp
 am__vpath_adj_setup = srcdirstrip=`echo "$(srcdir)" | sed 's|.|.|g'`;
 am__vpath_adj = case $$p in \
     $(srcdir)/*) f=`echo "$$p" | sed "s|^$$srcdirstrip/||"`;; \
@@ -347,32 +360,22 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/src
 
-#bgq barrier
-@BGQ_EMU_FALSE@bgq_barrier_src_files = bgq_barrier.c
-@BGQ_EMU_FALSE@bgq_barrier_header_files = bgq_barrier.hpp
-
-#compile or not spi stuff
-@SPI_TRUE@spi_src_files = spi.cpp
-@SPI_TRUE@spi_header_files = spi.hpp
+#library naming
 noinst_LTLIBRARIES = libbgq.la
-libbgq_la_SOURCES = \
-	$(spi_src_files) \
-	$(bgq_barrier_src_files) \
-        Wilson_hopping_matrix_lx_bgq.cpp \
-        staggered_hopping_matrix_eo_or_oe_bgq.cpp
 
+#sources
+libbgq_la_SOURCES = Wilson_hopping_matrix_lx_bgq.cpp \
+	staggered_hopping_matrix_eo_or_oe_bgq.cpp $(am__append_1) \
+	$(am__append_3)
+
+#headers
 bgqincludedir = $(includedir)/bgq
-bgqinclude_HEADERS = \
-	Wilson_hopping_matrix_lx_bgq.hpp \
-        staggered_hopping_matrix_eo_or_oe_bgq.hpp \
-        bgq_macros.hpp \
-        intrinsic/declare.hpp \
-        intrinsic/load.hpp \
-        intrinsic/mergesplit.hpp \
-        intrinsic/oper.hpp \
-        intrinsic/store.hpp \
-        intrinsic.hpp
-
+bgqinclude_HEADERS = Wilson_hopping_matrix_lx_bgq.hpp \
+	staggered_hopping_matrix_eo_or_oe_bgq.hpp bgq_macros.hpp \
+	intrinsic/declare.hpp intrinsic/load.hpp \
+	intrinsic/mergesplit.hpp intrinsic/oper.hpp \
+	intrinsic/store.hpp intrinsic.hpp $(am__append_2) \
+	$(am__append_4)
 all: all-am
 
 .SUFFIXES:

@@ -9,7 +9,7 @@
 #include "bgq/bgq_macros.hpp"
 
 #ifndef BGQ_EMU
- #include <builtins.hpp>
+ #include <builtins.h>
 #else
  #include "new_types/complex.hpp"
 #endif

@@ -1,25 +1,14 @@
 AM_CPPFLAGS=-I$(top_srcdir)/src
 
-#bgq barrier
-if BGQ_EMU
-else
-bgq_barrier_src_files=bgq_barrier.c
-bgq_barrier_header_files=bgq_barrier.hpp
-endif
-
-#compile or not spi stuff
-if SPI
-spi_src_files=spi.cpp
-spi_header_files=spi.hpp
-endif
-
+#library naming
 noinst_LTLIBRARIES=libbgq.la
+
+#sources
 libbgq_la_SOURCES= \
-	$(spi_src_files) \
-	$(bgq_barrier_src_files) \
         Wilson_hopping_matrix_lx_bgq.cpp \
         staggered_hopping_matrix_eo_or_oe_bgq.cpp
 
+#headers
 bgqincludedir=$(includedir)/bgq
 bgqinclude_HEADERS= \
 	Wilson_hopping_matrix_lx_bgq.hpp \
@@ -31,3 +20,16 @@ bgqinclude_HEADERS= \
         intrinsic/oper.hpp \
         intrinsic/store.hpp \
         intrinsic.hpp
+
+#bgq barrier
+if BGQ_EMU
+else
+libbgq_la_SOURCES+=bgq_barrier.c
+bgqinclude_HEADERS+==bgq_barrier.hpp
+endif
+
+#compile or not spi stuff
+if SPI
+libbgq_la_SOURCES+=spi.cpp
+bgqinclude_HEADERS+=spi.hpp
+endif
