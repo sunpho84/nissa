@@ -253,15 +253,15 @@ void generate_source(int isource)
   master_printf("Source %d on t=%d\n",isource,twall);
   generate_spindiluted_source(loc_source,rnd_type_map[4],twall);
 
+  //apply C
+  apply_C_operator(C_loc_source,loc_source);
+
   //smear the source
   master_printf("Source Smearing\n");
   smear_time-=take_time();
   gaussian_smearing(sme_source,loc_source,sme_conf,gaussian_kappa,gaussian_niter);
+  gaussian_smearing(C_sme_source,C_loc_source,sme_conf,gaussian_kappa,gaussian_niter);
   smear_time+=take_time();
-  
-  //apply C
-  apply_C_operator(C_loc_source,loc_source);
-  apply_C_operator(C_sme_source,sme_source);
 }
 
 //calculate S0_lcsi propagator
@@ -436,6 +436,7 @@ void calculate_3pts(int iop_seq)
 //calculate all 2pts
 void calculate_2pts()
 {
+  //C operator on the sink must be applied after smearing
   apply_C_operator(S0_std_C_lcsi_smso,S0_std_lcsi_smso);
   apply_C_operator(S0_std_C_smsi_smso,S0_std_smsi_smso);
   apply_C_operator(S0_std_C_lcsi_lcso,S0_std_lcsi_lcso);

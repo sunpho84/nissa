@@ -11,9 +11,14 @@ old_svnversion=$(if [ -f svnversion.hpp ];then sed 's|\"||g' svnversion.hpp|awk 
 
 #take new version
 cd $1
-new_svnversion=$(svnversion)
+new_svnversion=$(svnversion 2>&1)
 cd $OLDPWD
-if [ "$new_svnversion" == exported ] || [ "$new_svnversion" == "Unversioned directory" ]
+
+#if svn unavailable or not svn downloaded reset to old
+if \
+    [ "$new_version" == "" ] || \
+    [ "$new_svnversion" == exported ] || \
+    [ "$new_svnversion" == "Unversioned directory" ]
 then
     new_svnversion="$old_svnversion"
 fi
