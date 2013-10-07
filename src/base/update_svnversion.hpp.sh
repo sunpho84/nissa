@@ -15,8 +15,7 @@ new_svnversion=$(svnversion 2>&1)
 cd $OLDPWD
 
 #if svn unavailable or not svn downloaded reset to old
-if \
-    [ "$new_version" == "" ] || \
+if  [ "$new_svnversion" == "" ] || \
     [ "$new_svnversion" == exported ] || \
     [ "$new_svnversion" == "Unversioned directory" ]
 then

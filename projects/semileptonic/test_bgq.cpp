@@ -167,7 +167,6 @@ THREADABLE_FUNCTION_0ARG(bench_scalar_prod)
   nissa_free(in);
 }}
 
-
 THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
 {
   GET_THREAD_ID();
@@ -640,6 +639,8 @@ void debug_apply_tmQ()
 
 void debug2_tm()
 {
+  master_printf("normal way\n");
+  
   //create random conf
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   NISSA_LOC_VOL_LOOP(ivol)
@@ -659,6 +660,8 @@ void debug2_tm()
     apply_tmQ2(out,conf,kappa,tmp,mu,in);
   port_time+=take_time();
   port_time/=2*nbench_port;
+  
+  master_printf("bgq way\n");
   
   //remap conf to bgq
   bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_vol+bord_vol,bi_oct_su3);
@@ -771,6 +774,8 @@ void debug2_tm()
 
 void debug2_st()
 {
+  master_printf("normal way\n");
+
   double mass2=0.8;
   
   //create random conf
@@ -816,6 +821,8 @@ void debug2_st()
   nissa_free(conf_eo[ODD]);
   nissa_free(in_eo[EVN]);
   nissa_free(in_eo[ODD]);
+  
+  master_printf("bgq way\n");
   
   /////////////////////////// bgq way //////////////////////
   
@@ -1006,14 +1013,14 @@ void in_main(int narg,char **arg)
   
   bench_thread_barrier();
   
-  master_printf("debugging tmQ\n");
-  debug_apply_tmQ();
+  //master_printf("debugging tmQ\n");
+  //debug_apply_tmQ();
 
-  master_printf("debugging stDeo\n");
-  debug_apply_stDeo();
+  //master_printf("debugging stDeo\n");
+  //debug_apply_stDeo();
 
-  master_printf("debugging stDoe\n");
-  debug_apply_stDoe();
+  //master_printf("debugging stDoe\n");
+  //debug_apply_stDoe();
 
   //prebench
   comm_start(lx_spincolor_comm);
