@@ -72,6 +72,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ibord,0,bord_volh)
       quad_su3_copy(((quad_su3*)send_buf)[ibord],conf[surflx_of_bordlx[ibord]]);
     
+    //filling finished
+    THREAD_BARRIER();
+    
     //start communication of lower surf to backward nodes
     START_COMMUNICATIONS_TIMING();
     int dir_comm[8]={0,0,0,0,1,1,1,1},tot_size=bord_volh*sizeof(quad_su3);
@@ -139,6 +142,9 @@ namespace nissa
 	    NISSA_PARALLEL_LOOP(ibord,bord_volh+bord_offset[nu],bord_volh+bord_offset[nu]+bord_dir_vol[nu])
 	      su3_copy(((quad_su3*)send_buf)[ibord][mu],out[loc_vol+ibord][mu][inu]); //one contribution per link in the border
 	  }
+    
+    //filling finished
+    THREAD_BARRIER();
     
     //start communication of fw surf backward staples to forward nodes
     START_COMMUNICATIONS_TIMING();

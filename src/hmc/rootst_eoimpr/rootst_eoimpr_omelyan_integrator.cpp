@@ -45,7 +45,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    verbosity_lv2_master_printf("Evolving momenta with force, dt=%lg\n",dt);
+    verbosity_lv2_master_printf("Evolving momenta with pure gauge force, dt=%lg\n",dt);
     
     //allocate force and compute it
     quad_su3 *F=nissa_malloc("F",loc_vol,quad_su3);
@@ -77,6 +77,7 @@ namespace nissa
 	  
 	  safe_su3_prod_su3(lx_conf[ivol][mu],t2,lx_conf[ivol][mu]);
 	}
+    
     set_borders_invalid(lx_conf);
   }}
 
@@ -157,7 +158,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    verbosity_lv2_master_printf("Evolving momenta with force, dt=%lg\n",dt);
+    verbosity_lv2_master_printf("Evolving momenta with quark force, dt=%lg\n",dt);
     
     //allocate force
     quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};

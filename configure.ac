@@ -4,6 +4,12 @@ AC_INIT([nissa],[1.0],[francesco.sanfilippo@th.u-psud.fr])
 config_flags="$*"
 AC_DEFINE_UNQUOTED([CONFIG_FLAGS],["$config_flags"],[Flags passed to configure])
 
+#get configuration time
+AC_MSG_CHECKING([configuration date and time])
+CONFIG_DATE=`date`
+AC_DEFINE_UNQUOTED([CONFIG_TIME], "$CONFIG_TIME", [time when configured])
+AC_MSG_RESULT([$CONFIG_DATE])
+
 #parameters definition
 AC_CONFIG_SRCDIR([src])
 AC_CONFIG_AUX_DIR([config])
@@ -13,51 +19,41 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_DISABLE_SHARED
 AC_CANONICAL_HOST
 
-#get configuration time
-AC_MSG_CHECKING([configuration date and time])
-CONFIG_DATE=`date`
-AC_DEFINE_UNQUOTED([CONFIG_TIME], "$CONFIG_TIME", [time when configured])
-AC_MSG_RESULT([$CONFIG_DATE])
-
-#check gcc and libtool
-AM_PROG_CC_C_O
-AC_PROG_LIBTOOL
+# Checks for programs.
 AC_PROG_CXX
+AC_PROG_AWK
+AC_PROG_CC
+AC_PROG_CPP
+AC_PROG_INSTALL
+AC_PROG_LN_S
+AC_PROG_MAKE_SET
 AC_PROG_RANLIB
+AC_PROG_MKDIR_P
+AC_PROG_LIBTOOL
 
-#checking for functions, headers and other stuff
-AC_CHECK_FUNCS([memset])
-AC_CHECK_FUNCS([mkdir])
-AC_CHECK_FUNCS([pow])
-AC_CHECK_FUNCS([sqrt])
-AC_CHECK_FUNCS([strcasecmp])
-AC_CHECK_FUNCS([strdup])
-AC_CHECK_FUNCS([strndup])
-AC_CHECK_FUNCS([strncasecmp])
-AC_CHECK_FUNCS([strstr])
-AC_CHECK_HEADERS([float.h])
-AC_CHECK_HEADERS([inttypes.h])
-AC_CHECK_HEADERS([libintl.h])
-AC_CHECK_HEADERS([malloc.h])
-AC_CHECK_HEADERS([stddef.h])
-AC_CHECK_HEADERS([stdint.h])
-AC_CHECK_HEADERS([stdlib.h])
-AC_CHECK_HEADERS([string.h])
-AC_CHECK_HEADERS([unistd.h])
-AC_C_INLINE
-AC_HEADER_STDBOOL
-AC_TYPE_SIZE_T
+# Checks for libraries.
+
+# Checks for header files.
 AC_FUNC_ALLOCA
-AC_FUNC_MALLOC
-AC_FUNC_REALLOC
-AC_TYPE_OFF_T
+AC_CHECK_HEADERS([float.h inttypes.h libintl.h malloc.h stddef.h stdint.h stdlib.h string.h unistd.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_CHECK_HEADER_STDBOOL
+AC_C_INLINE
 AC_TYPE_INT16_T
 AC_TYPE_INT32_T
 AC_TYPE_INT8_T
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
 AC_TYPE_UINT16_T
 AC_TYPE_UINT32_T
 AC_TYPE_UINT64_T
 AC_TYPE_UINT8_T
+
+# Checks for library functions.
+AC_FUNC_MALLOC
+AC_FUNC_REALLOC
+AC_CHECK_FUNCS([memset mkdir pow sqrt strcasecmp strdup strncasecmp strndup strstr])
 
 #cuda bins
 ARCH=`uname -m`
@@ -214,7 +210,7 @@ AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 
 #create config.hpp
-AC_OUTPUT(
+AC_CONFIG_FILES(
 	Makefile
 	src/Makefile
 	src/base/Makefile
@@ -233,3 +229,4 @@ AC_OUTPUT(
 	projects/Makefile
 	projects/generate_confs/Makefile
 	projects/semileptonic/Makefile)
+AC_OUTPUT
