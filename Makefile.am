@@ -15,6 +15,7 @@ EXTRA_DIST= \
         README \
         src/nissa.hpp \
         src/create_headers.sh \
+        tools/common_tools.cpp \
         tools/clusterize.cpp \
         tools/clusterize2.cpp \
         tools/pack.c

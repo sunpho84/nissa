@@ -104,7 +104,7 @@ void count_corr(char *path)
   //compute the total amount of memory needed
   mem_needed=(uint64_t)ncombo*combo_size;
   
-  printf("memory needed: %llu\n",mem_needed);
+  printf("memory needed: %lu\n",mem_needed);
   printf("\n");
   
   //allocate room for data
@@ -149,9 +149,6 @@ void parse_conf(int iconf,char *path)
 	  }
 	while(line[1]=='#' || strlen(line)<= 1||!nonblank);
 	
-	//advance the corr read
-	nread_corr++;
-	
 	//read the corr
 	for(int t=0;t<T;t++)
 	  {
@@ -173,24 +170,27 @@ void parse_conf(int iconf,char *path)
 	    int n;
 	    if(use_new_contraction_layout)
 	      {
-		n=sscanf(line,"%lg %lg",&t1,&t2);
-		if(n!=2) crash("scanning line '%s' obtained only %d numbers",line,n);
+		n=sscanf(line,"%lg",&t1);
+		if(n!=1) crash("scanning line '%s' obtained only %d numbers",line,n);
 	      }
 	    else
 	      {
-		n=sscanf(line,"%lg",&t1);
-		if(n!=1) crash("scanning line '%s' obtained only %d numbers",line,n);
+		n=sscanf(line,"%lg %lg",&t1,&t2);
+		if(n!=2) crash("scanning line '%s' obtained only %d numbers",line,n);
 	      }
 	    nread_line++;
 	    
 	    //find output place
-	    int i1=iclust+(njack+1)*(t+T*(0+REIM*(icombo+ncombo*icorr_type)));
-	    int i2=iclust+(njack+1)*(t+T*(1+REIM*(icombo+ncombo*icorr_type)));
+	    int i1=iclust+(njack+1)*(t+T*(0+REIM*nread_corr));
+	    int i2=iclust+(njack+1)*(t+T*(1+REIM*nread_corr));
 	    
 	    //summ into the cluster
 	    data[i1]+=t1;
 	    if(REIM) data[i2]+=t2;
 	  }
+
+	//advance the corr read
+	nread_corr++;
       }  
   
   //check to have finished the file

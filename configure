@@ -664,9 +664,7 @@ SPI_FALSE
 SPI_TRUE
 CUDA_FALSE
 CUDA_TRUE
-NVCC
 CUDA_LDFLAGS
-CUDA_LIBS
 CUDA_CFLAGS
 LIBOBJS
 ALLOCA
@@ -801,8 +799,8 @@ enable_fast_install
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
-with_cuda
 enable_cuda
+with_cuda
 enable_spi
 enable_parser_generation
 enable_mpi_io
@@ -1483,7 +1481,6 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot=DIR Search for dependent libraries within DIR
                         (or the compiler's sysroot if not specified).
-  --with-cuda=PATH    prefix where cuda is installed default=/usr/local/cuda
   --with-cuda=PREFIX      Prefix of your CUDA installation
 
 Some influential environment variables:
@@ -16203,31 +16200,6 @@ then
 else
   CUDA_SUFFIX=""
 fi
-
-#cuda path
-
-# Check whether --with-cuda was given.
-if test "${with_cuda+set}" = set; then :
-  withval=$with_cuda;
-fi
-
-
-if test -n "$with_cuda"
-then
-   CUDA_CFLAGS="-I$with_cuda/include"
-   CUDA_LIBS="-lcudart"
-   CUDA_LDFLAGS="-L$with_cuda/lib$CUDA_SUFFIX"
-   NVCC="$with_cuda/bin/nvcc"
-else
-   CUDA_CFLAGS="-I/usr/local/cuda/include"
-   CUDA_LIBS="-lcudart"
-   CUDA_LDFLAGS="-L/usr/local/cuda/lib$CUDA_SUFFIX"
-   NVCC="nvcc"
-fi
-
-
-
-
 
 #cuda
 # Check whether --enable-cuda was given.

@@ -100,11 +100,10 @@ am___top_builddir__bin_generate_stag_OBJECTS =  \
 __top_builddir__bin_generate_stag_OBJECTS =  \
 	$(am___top_builddir__bin_generate_stag_OBJECTS)
 am__DEPENDENCIES_1 =
-@CUDA_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
-am__DEPENDENCIES_3 = $(top_builddir)/lib/libnissa.la \
-	$(am__DEPENDENCIES_2)
+am__DEPENDENCIES_2 = $(top_builddir)/lib/libnissa.la \
+	$(am__DEPENDENCIES_1)
 __top_builddir__bin_generate_stag_DEPENDENCIES =  \
-	$(am__DEPENDENCIES_3)
+	$(am__DEPENDENCIES_2)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -191,7 +190,6 @@ CPP = @CPP@
 CPPFLAGS = @CPPFLAGS@
 CUDA_CFLAGS = @CUDA_CFLAGS@
 CUDA_LDFLAGS = @CUDA_LDFLAGS@
-CUDA_LIBS = @CUDA_LIBS@
 CXX = @CXX@
 CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
@@ -230,7 +228,6 @@ MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 NM = @NM@
 NMEDIT = @NMEDIT@
-NVCC = @NVCC@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 OTOOL = @OTOOL@
