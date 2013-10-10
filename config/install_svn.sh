@@ -8,14 +8,29 @@ cd subversion-1.8.3
 bash get-deps.sh sqlite
 bash get-deps.sh serf
 bash get-deps.sh apr
-for i in apr apr-util serf
-do
-    cd $i
-    ./configure --prefix=$HOME
-    make -j 8
-    mke install
-    cd ..
-done
+
+#apr
+cd apr
+./configure --prefix=$HOME
+make -j 8
+make install
+cd ..
+
+#apr-util
+cd apr
+./configure --prefix=$HOME --with-apr=$HOME
+make -j 8
+make install
+cd ..
+
+#serf
+cd serf
+./configure --prefix=$HOME
+make -j 8
+make install
+cd ..
+
+#subversion
 ./configure --prefix=$HOME --with-apr=$HOME --enable-runtime-module-search --with-openssl --with-serf=$HOME
 make -j 8
 make install

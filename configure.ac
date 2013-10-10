@@ -64,27 +64,6 @@ else
   CUDA_SUFFIX=""
 fi
 
-#cuda path
-AC_ARG_WITH([cuda],
-   [  --with-cuda=PATH    prefix where cuda is installed [default=/usr/local/cuda]])
-
-if test -n "$with_cuda"
-then
-   CUDA_CFLAGS="-I$with_cuda/include"
-   CUDA_LIBS="-lcudart"
-   CUDA_LDFLAGS="-L$with_cuda/lib$CUDA_SUFFIX"
-   NVCC="$with_cuda/bin/nvcc"
-else
-   CUDA_CFLAGS="-I/usr/local/cuda/include"
-   CUDA_LIBS="-lcudart"
-   CUDA_LDFLAGS="-L/usr/local/cuda/lib$CUDA_SUFFIX"
-   NVCC="nvcc"
-fi
-AC_SUBST(CUDA_CFLAGS)
-AC_SUBST(CUDA_LIBS)
-AC_SUBST(CUDA_LDFLAGS)
-AC_SUBST(NVCC)
-
 #cuda
 AC_ARG_ENABLE(cuda,
 	AS_HELP_STRING([--enable-cuda],[Enable cuda]),
