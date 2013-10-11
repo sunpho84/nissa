@@ -662,8 +662,9 @@ YFLAGS
 YACC
 SPI_FALSE
 SPI_TRUE
-CUDA_FALSE
-CUDA_TRUE
+GPU_FALSE
+GPU_TRUE
+NVCC_PATH
 CUDA_LDFLAGS
 CUDA_CFLAGS
 LIBOBJS
@@ -799,7 +800,7 @@ enable_fast_install
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
-enable_cuda
+enable_gpu
 with_cuda
 enable_spi
 enable_parser_generation
@@ -1457,7 +1458,7 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-cuda           Enable cuda
+  --enable-gpu            Enable gpu
   --enable-spi            Enable spi stuff (ony for BG/Q)
   --enable-parser-generation
                           Enable generation of parsers
@@ -16192,26 +16193,17 @@ fi
 done
 
 
-#cuda bins
-ARCH=`uname -m`
-if [ $ARCH == "x86_64" ];
-then
-  CUDA_SUFFIX="64"
+#gpu
+# Check whether --enable-gpu was given.
+if test "${enable_gpu+set}" = set; then :
+  enableval=$enable_gpu; enable_gpu="${enableval}"
 else
-  CUDA_SUFFIX=""
+  enable_gpu="no"
 fi
 
-#cuda
-# Check whether --enable-cuda was given.
-if test "${enable_cuda+set}" = set; then :
-  enableval=$enable_cuda; enable_cuda="${enableval}"
-else
-  enable_cuda="no"
-fi
+if test "$enable_gpu" == "yes";then
 
-if test "$enable_cuda" == "yes";then
-
-$as_echo "#define CUDA 1" >>confdefs.h
+$as_echo "#define GPU 1" >>confdefs.h
 
 
 
@@ -16235,12 +16227,13 @@ fi
 # Checking for nvcc
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking nvcc in $cuda_prefix/bin" >&5
 $as_echo_n "checking nvcc in $cuda_prefix/bin... " >&6; }
-if test -x "$cuda_prefix/bin/nvcc"; then
+NVCC_PATH=$cuda_prefix/bin/nvcc
+if test -x "$NVCC_PATH"; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
 $as_echo "found" >&6; }
 
 cat >>confdefs.h <<_ACEOF
-#define NVCC_PATH "$cuda_prefix/bin/nvcc"
+#define NVCC_PATH "$NVCC_PATH"
 _ACEOF
 
 else
@@ -16254,6 +16247,15 @@ fi
 
 # We need to add the CUDA search directories for header and lib searches
 
+#find suffix
+ARCH=`uname -m`
+if [ $ARCH == "x86_64" ];
+then
+  CUDA_SUFFIX="64"
+else
+  CUDA_SUFFIX=""
+fi
+
 # Saving the current flags
 ax_save_CFLAGS="${CFLAGS}"
 ax_save_LDFLAGS="${LDFLAGS}"
@@ -16262,9 +16264,11 @@ ax_save_LDFLAGS="${LDFLAGS}"
 
 
 
+
+#export variables
 CUDA_CFLAGS="-I$cuda_prefix/include"
 CFLAGS="$CUDA_CFLAGS $CFLAGS"
-CUDA_LDFLAGS="-L$cuda_prefix/lib"
+CUDA_LDFLAGS="-L$cuda_prefix/lib$CUDA_SUFFIX"
 LDFLAGS="$CUDA_LDFLAGS $LDFLAGS"
 
 # And the header and the lib
@@ -16317,11 +16321,10 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_cuda_cuInit" >&5
 $as_echo "$ac_cv_lib_cuda_cuInit" >&6; }
 if test "x$ac_cv_lib_cuda_cuInit" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
+
+cat >>confdefs.h <<_ACEOF
 #define HAVE_LIBCUDA 1
 _ACEOF
-
-  LIBS="-lcuda $LIBS"
 
 else
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
@@ -16337,16 +16340,16 @@ LDFLAGS=${ax_save_LDFLAGS}
 
 
 fi
- if test "$enable_cuda" == "yes" ; then
-  CUDA_TRUE=
-  CUDA_FALSE='#'
+ if test "$enable_gpu" == "yes" ; then
+  GPU_TRUE=
+  GPU_FALSE='#'
 else
-  CUDA_TRUE='#'
-  CUDA_FALSE=
+  GPU_TRUE='#'
+  GPU_FALSE=
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling cuda... $enable_cuda" >&5
-$as_echo "enabling cuda... $enable_cuda" >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling gpu... $enable_gpu" >&5
+$as_echo "enabling gpu... $enable_gpu" >&6; }
 
 #spi
 # Check whether --enable-spi was given.
@@ -16809,7 +16812,7 @@ _ACEOF
 $as_echo "enabling max verbosity lv... $max_verbosity_lv" >&6; }
 
 #create config.hpp
-ac_config_files="$ac_config_files Makefile src/Makefile src/base/Makefile src/bgq/Makefile src/cuda/Makefile src/communicate/Makefile src/dirac_operators/Makefile src/geometry/Makefile src/hmc/Makefile src/inverters/Makefile src/io/Makefile src/linalgs/Makefile src/new_types/Makefile src/operations/Makefile src/routines/Makefile projects/Makefile projects/generate_confs/Makefile projects/semileptonic/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile src/base/Makefile src/bgq/Makefile src/communicate/Makefile src/dirac_operators/Makefile src/geometry/Makefile src/gpu/Makefile src/hmc/Makefile src/inverters/Makefile src/io/Makefile src/linalgs/Makefile src/new_types/Makefile src/operations/Makefile src/routines/Makefile projects/Makefile projects/generate_confs/Makefile projects/semileptonic/Makefile"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -16947,8 +16950,8 @@ if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
-if test -z "${CUDA_TRUE}" && test -z "${CUDA_FALSE}"; then
-  as_fn_error $? "conditional \"CUDA\" was never defined.
+if test -z "${GPU_TRUE}" && test -z "${GPU_FALSE}"; then
+  as_fn_error $? "conditional \"GPU\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${SPI_TRUE}" && test -z "${SPI_FALSE}"; then
@@ -17969,10 +17972,10 @@ do
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "src/base/Makefile") CONFIG_FILES="$CONFIG_FILES src/base/Makefile" ;;
     "src/bgq/Makefile") CONFIG_FILES="$CONFIG_FILES src/bgq/Makefile" ;;
-    "src/cuda/Makefile") CONFIG_FILES="$CONFIG_FILES src/cuda/Makefile" ;;
     "src/communicate/Makefile") CONFIG_FILES="$CONFIG_FILES src/communicate/Makefile" ;;
     "src/dirac_operators/Makefile") CONFIG_FILES="$CONFIG_FILES src/dirac_operators/Makefile" ;;
     "src/geometry/Makefile") CONFIG_FILES="$CONFIG_FILES src/geometry/Makefile" ;;
+    "src/gpu/Makefile") CONFIG_FILES="$CONFIG_FILES src/gpu/Makefile" ;;
     "src/hmc/Makefile") CONFIG_FILES="$CONFIG_FILES src/hmc/Makefile" ;;
     "src/inverters/Makefile") CONFIG_FILES="$CONFIG_FILES src/inverters/Makefile" ;;
     "src/io/Makefile") CONFIG_FILES="$CONFIG_FILES src/io/Makefile" ;;

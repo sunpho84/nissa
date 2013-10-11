@@ -1,13 +1,3 @@
-if BGQ
-bgq_subdirs=bgq
-bgq_sublib=bgq/libbgq.la
-endif
-
-if CUDA
-cuda_subdirs=cuda
-cuda_sublib=cuda/libcuda.la
-endif
-
 include_HEADERS=nissa.hpp
 
 #add nissa library
@@ -15,8 +5,6 @@ lib_LTLIBRARIES=$(top_builddir)/lib/libnissa.la
 __top_builddir__lib_libnissa_la_SOURCES=
 __top_builddir__lib_libnissa_la_LIBADD= \
         base/libbase.la \
-        $(bgq_sublib) \
-        $(cuda_sublib) \
         communicate/libcommunicate.la \
         dirac_operators/libdirac_operators.la \
         geometry/libgeometry.la \
@@ -31,8 +19,6 @@ __top_builddir__lib_libnissa_la_LIBADD= \
 #include subdirs
 SUBDIRS= \
         base \
-        $(bgq_subdirs) \
-        $(cuda_subdirs) \
         communicate \
         dirac_operators \
         geometry \
@@ -44,4 +30,13 @@ SUBDIRS= \
         operations \
         routines
 
+if GPU
+SUBDIRS+=gpu
+__top_builddir__lib_libnissa_la_LIBADD+=gpu/libgpu.la
+endif
+
+if BGQ
+SUBDIRS+=bgq
+__top_builddir__lib_libnissa_la_LIBADD+=bgq/libbgq.la
+endif
 

@@ -4,16 +4,16 @@ include $(top_srcdir)/config/cuda.mk
 
 LINK=$(LIBTOOL) --mode=link $(CC) -o $@ $(CUDA_LDFLAGS) $(CUDA_LIBS)
 
-noinst_LTLIBRARIES=libcuda.la
-libcuda_la_SOURCES= \
+noinst_LTLIBRARIES=libgpu.la
+libgpu_la_SOURCES= \
 	fields.cu \
 	global_variables.cu \
 	init.cu \
 	new_types.cu \
 	wrappers.cu
 
-cudaincludedir=$(includedir)/cuda
-cudainclude_HEADERS= \
+gpuincludedir=$(includedir)/gpu
+gpuinclude_HEADERS= \
 	fields.hpp \
 	global_variables.hpp \
 	init.hpp \

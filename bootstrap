@@ -5,6 +5,5 @@ mkdir -p m4
 rm -fr libtool autom4te.cache
 
 autoreconf --verbose --install --force
-autoreconf --verbose --install --force
 
 rm -f config.cache
