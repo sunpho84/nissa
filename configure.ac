@@ -55,26 +55,17 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memset mkdir pow sqrt strcasecmp strdup strncasecmp strndup strstr])
 
-#cuda bins
-ARCH=`uname -m`
-if [[ $ARCH == "x86_64" ]];
-then
-  CUDA_SUFFIX="64"
-else
-  CUDA_SUFFIX=""
-fi
-
-#cuda
-AC_ARG_ENABLE(cuda,
-	AS_HELP_STRING([--enable-cuda],[Enable cuda]),
-	enable_cuda="${enableval}",
-	enable_cuda="no")
-if test "$enable_cuda" == "yes";then 
-AC_DEFINE([CUDA],1,[Enable cuda]) 
+#gpu
+AC_ARG_ENABLE(gpu,
+	AS_HELP_STRING([--enable-gpu],[Enable gpu]),
+	enable_gpu="${enableval}",
+	enable_gpu="no")
+if test "$enable_gpu" == "yes";then 
+AC_DEFINE([GPU],1,[Enable gpu]) 
 AX_CHECK_CUDA
 fi
-AM_CONDITIONAL([CUDA],[test "$enable_cuda" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling cuda... $enable_cuda])
+AM_CONDITIONAL([GPU],[test "$enable_gpu" == "yes" ],[true],[false])
+AC_MSG_RESULT([enabling gpu... $enable_gpu])
 
 #spi
 AC_ARG_ENABLE(spi,
@@ -194,10 +185,10 @@ AC_CONFIG_FILES(
 	src/Makefile
 	src/base/Makefile
 	src/bgq/Makefile
-	src/cuda/Makefile
 	src/communicate/Makefile
 	src/dirac_operators/Makefile
 	src/geometry/Makefile
+	src/gpu/Makefile
 	src/hmc/Makefile
 	src/inverters/Makefile
 	src/io/Makefile

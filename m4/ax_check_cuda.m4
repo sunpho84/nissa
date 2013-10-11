@@ -46,15 +46,25 @@ fi
 
 # Checking for nvcc
 AC_MSG_CHECKING([nvcc in $cuda_prefix/bin])
-if test -x "$cuda_prefix/bin/nvcc"; then
+NVCC_PATH=$cuda_prefix/bin/nvcc
+if test -x "$NVCC_PATH"; then
 	AC_MSG_RESULT([found])
-	AC_DEFINE_UNQUOTED([NVCC_PATH], ["$cuda_prefix/bin/nvcc"], [Path to nvcc binary])
+	AC_DEFINE_UNQUOTED([NVCC_PATH], ["$NVCC_PATH"], [Path to nvcc binary])
 else
 	AC_MSG_RESULT([not found!])
 	AC_MSG_FAILURE([nvcc was not found in $cuda_prefix/bin])
 fi
 
 # We need to add the CUDA search directories for header and lib searches
+
+#find suffix
+ARCH=`uname -m`
+if [[ $ARCH == "x86_64" ]];
+then
+  CUDA_SUFFIX="64"
+else
+  CUDA_SUFFIX=""
+fi
 
 # Saving the current flags
 ax_save_CFLAGS="${CFLAGS}"
@@ -63,15 +73,17 @@ ax_save_LDFLAGS="${LDFLAGS}"
 # Announcing the new variables
 AC_SUBST([CUDA_CFLAGS])
 AC_SUBST([CUDA_LDFLAGS])
+AC_SUBST([NVCC_PATH])
 
+#export variables
 CUDA_CFLAGS="-I$cuda_prefix/include"
 CFLAGS="$CUDA_CFLAGS $CFLAGS"
-CUDA_LDFLAGS="-L$cuda_prefix/lib"
+CUDA_LDFLAGS="-L$cuda_prefix/lib$CUDA_SUFFIX"
 LDFLAGS="$CUDA_LDFLAGS $LDFLAGS"
 
 # And the header and the lib
 AC_CHECK_HEADER([cuda.h], [], AC_MSG_FAILURE([Couldn't find cuda.h]), [#include <cuda.h>])
-AC_CHECK_LIB([cuda], [cuInit], [], AC_MSG_FAILURE([Couldn't find libcuda]))
+AC_CHECK_LIB([cuda], [cuInit], [AC_DEFINE_UNQUOTED([HAVE_LIBCUDA],[1],[Lib cuda found])], AC_MSG_FAILURE([Couldn't find libcuda]))
 
 # Returning to the original flags
 CFLAGS=${ax_save_CFLAGS}

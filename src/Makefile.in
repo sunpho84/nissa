@@ -79,6 +79,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
+@GPU_TRUE@am__append_1 = gpu
+@GPU_TRUE@am__append_2 = gpu/libgpu.la
+@BGQ_TRUE@am__append_3 = bgq
+@BGQ_TRUE@am__append_4 = bgq/libbgq.la
 subdir = src
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(srcdir)/config.hpp.in $(include_HEADERS)
@@ -123,11 +127,12 @@ am__uninstall_files_from_dir = { \
 am__installdirs = "$(DESTDIR)$(libdir)" "$(DESTDIR)$(includedir)"
 LTLIBRARIES = $(lib_LTLIBRARIES)
 __top_builddir__lib_libnissa_la_DEPENDENCIES = base/libbase.la \
-	$(bgq_sublib) $(cuda_sublib) communicate/libcommunicate.la \
+	communicate/libcommunicate.la \
 	dirac_operators/libdirac_operators.la geometry/libgeometry.la \
 	hmc/libhmc.la inverters/libinverters.la io/libio.la \
 	linalgs/liblinalgs.la new_types/libnew_types.la \
-	operations/liboperations.la routines/libroutines.la
+	operations/liboperations.la routines/libroutines.la \
+	$(am__append_2) $(am__append_4)
 am___top_builddir__lib_libnissa_la_OBJECTS =
 __top_builddir__lib_libnissa_la_OBJECTS =  \
 	$(am___top_builddir__lib_libnissa_la_OBJECTS)
@@ -211,8 +216,8 @@ am__define_uniq_tagged_files = \
   done | $(am__uniquify_input)`
 ETAGS = etags
 CTAGS = ctags
-DIST_SUBDIRS = base bgq cuda communicate dirac_operators geometry hmc \
-	inverters io linalgs new_types operations routines
+DIST_SUBDIRS = base communicate dirac_operators geometry hmc inverters \
+	io linalgs new_types operations routines gpu bgq
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 am__relativize = \
   dir0=`pwd`; \
@@ -293,6 +298,7 @@ MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 NM = @NM@
 NMEDIT = @NMEDIT@
+NVCC_PATH = @NVCC_PATH@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 OTOOL = @OTOOL@
@@ -366,47 +372,23 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-@BGQ_TRUE@bgq_subdirs = bgq
-@BGQ_TRUE@bgq_sublib = bgq/libbgq.la
-@CUDA_TRUE@cuda_subdirs = cuda
-@CUDA_TRUE@cuda_sublib = cuda/libcuda.la
 include_HEADERS = nissa.hpp
 
 #add nissa library
 lib_LTLIBRARIES = $(top_builddir)/lib/libnissa.la
 __top_builddir__lib_libnissa_la_SOURCES = 
-__top_builddir__lib_libnissa_la_LIBADD = \
-        base/libbase.la \
-        $(bgq_sublib) \
-        $(cuda_sublib) \
-        communicate/libcommunicate.la \
-        dirac_operators/libdirac_operators.la \
-        geometry/libgeometry.la \
-        hmc/libhmc.la \
-        inverters/libinverters.la \
-        io/libio.la \
-        linalgs/liblinalgs.la \
-        new_types/libnew_types.la \
-        operations/liboperations.la \
-        routines/libroutines.la
-
+__top_builddir__lib_libnissa_la_LIBADD = base/libbase.la \
+	communicate/libcommunicate.la \
+	dirac_operators/libdirac_operators.la geometry/libgeometry.la \
+	hmc/libhmc.la inverters/libinverters.la io/libio.la \
+	linalgs/liblinalgs.la new_types/libnew_types.la \
+	operations/liboperations.la routines/libroutines.la \
+	$(am__append_2) $(am__append_4)
 
 #include subdirs
-SUBDIRS = \
-        base \
-        $(bgq_subdirs) \
-        $(cuda_subdirs) \
-        communicate \
-        dirac_operators \
-        geometry \
-        hmc \
-        inverters \
-        io \
-        linalgs \
-        new_types \
-        operations \
-        routines
-
+SUBDIRS = base communicate dirac_operators geometry hmc inverters io \
+	linalgs new_types operations routines $(am__append_1) \
+	$(am__append_3)
 all: config.hpp
 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
 

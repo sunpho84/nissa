@@ -99,11 +99,9 @@ am___top_builddir__bin_generate_stag_OBJECTS =  \
 	generate_stag.$(OBJEXT)
 __top_builddir__bin_generate_stag_OBJECTS =  \
 	$(am___top_builddir__bin_generate_stag_OBJECTS)
-am__DEPENDENCIES_1 =
-am__DEPENDENCIES_2 = $(top_builddir)/lib/libnissa.la \
-	$(am__DEPENDENCIES_1)
+am__DEPENDENCIES_1 = $(top_builddir)/lib/libnissa.la
 __top_builddir__bin_generate_stag_DEPENDENCIES =  \
-	$(am__DEPENDENCIES_2)
+	$(am__DEPENDENCIES_1)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
@@ -228,6 +226,7 @@ MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
 NM = @NM@
 NMEDIT = @NMEDIT@
+NVCC_PATH = @NVCC_PATH@
 OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
 OTOOL = @OTOOL@
@@ -303,12 +302,10 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/src
 AUTOMAKE_OPTIONS = subdir-objects
-@CUDA_TRUE@IN_CUDA_LIBS = $(CUDA_LIBS)
-@CUDA_TRUE@IN_CUDA_FLAGS = $(CUDA_LDFLAGS)
-LDADD = $(top_builddir)/lib/libnissa.la $(IN_CUDA_LIBS)
+LDADD = $(top_builddir)/lib/libnissa.la $(CUDA_LIBS)
 __top_builddir__bin_generate_stag_SOURCES = generate_stag.cpp
 __top_builddir__bin_generate_stag_LDADD = $(LDADD)
-__top_builddir__bin_generate_stag_LDFLAGS = $(LDFLAGS) $(IN_CUDA_FLAGS)
+__top_builddir__bin_generate_stag_LDFLAGS = $(LDFLAGS) $(CUDA_FLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -647,10 +644,11 @@ uninstall-am: uninstall-binPROGRAMS
 	tags tags-am uninstall uninstall-am uninstall-binPROGRAMS
 
 .cu.o:
-	$(NVCC) -gencode=arch=compute_13,code=sm_13 -o $@ -c $<
+	echo "NVCC_PATH: $NVCC_PATH"
+	$(NVCC_PATH) -gencode=arch=compute_13,code=sm_13 -o $@ -c $<
 
 .cu.lo:
-	$(top_srcdir)/config/cudalt.py $@ $(NVCC) -gencode=arch=compute_13,code=sm_13 --compiler-options=\"$(CFLAGS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \" -c $<
+	$(top_srcdir)/config/cudalt.py $@ $(NVCC_PATH) -gencode=arch=compute_13,code=sm_13 --compiler-options=\"$(CFLAGS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \" -c $<
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
