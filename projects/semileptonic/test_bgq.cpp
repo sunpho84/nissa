@@ -438,13 +438,13 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
   memset(recv_buf,0,recv_buf_size);
   
   //apply stag bgq
-  apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,0,vsurf_volh,bi_in_eo[oe_or_eo],oe_or_eo);
+  apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf,0,vsurf_volh,bi_in_eo[oe_or_eo],oe_or_eo);
   THREAD_BARRIER();
   start_staggered_hopping_matrix_oe_or_eo_bgq_communications();
   THREAD_BARRIER();
   
   //compute on the bulk and finish communications
-  apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,vsurf_volh,loc_volh/2,bi_in_eo[oe_or_eo],oe_or_eo);
+  apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf,vsurf_volh,loc_volh/2,bi_in_eo[oe_or_eo],oe_or_eo);
   THREAD_BARRIER();
   finish_staggered_hopping_matrix_oe_or_eo_bgq_communications(oe_or_eo);
   THREAD_BARRIER();
@@ -909,7 +909,7 @@ void debug2_st()
     {
       hop_bgq_time[eo_or_oe]=-take_time();
       for(int ibench=0;ibench<nbench;ibench++)
-	apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf_eo,0,loc_volh/2,bi_in_eo[EVN],eo_or_oe);
+	apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,loc_volh/2,bi_in_eo[EVN],eo_or_oe);
       hop_bgq_time[eo_or_oe]+=take_time();
       hop_bgq_time[eo_or_oe]/=nbench;
       master_printf("hop_bgq_time_%s: %lg sec, %d flops, %lg Mflops\n",
@@ -952,7 +952,7 @@ void debug2_st()
   //benchmark bulk computation
   double bulk_computation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],0);
+    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],0);
   bulk_computation_time+=take_time();
   bulk_computation_time/=nbench;
   master_printf("bulk_computation_time: %lg sec\n",bulk_computation_time);
@@ -960,7 +960,7 @@ void debug2_st()
   //benchmark surf computation
   double surf_compuation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],0);
+    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],0);
   surf_compuation_time+=take_time();
   surf_compuation_time/=nbench;
   master_printf("surf_compuation_time: %lg sec\n",surf_compuation_time);
