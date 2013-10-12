@@ -26,11 +26,11 @@ namespace nissa
     const int OE=0;
     
     //compute on the surface and start communications
-    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,0,vsurf_volh,bi_in,OE);
+    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf,0,vsurf_volh,bi_in,OE);
     start_staggered_hopping_matrix_oe_or_eo_bgq_communications();
     
     //compute on the bulk and finish communications
-    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,vsurf_volh,loc_volh/2,bi_in,OE);
+    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf,vsurf_volh,loc_volh/2,bi_in,OE);
     finish_staggered_hopping_matrix_oe_or_eo_bgq_communications(OE);
     
     //put the eight pieces together
@@ -40,11 +40,11 @@ namespace nissa
     const int EO=1;  
     
     //compute on the surface and start communications
-    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,0,vsurf_volh,bi_temp,EO);
+    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf,0,vsurf_volh,bi_temp,EO);
     start_staggered_hopping_matrix_oe_or_eo_bgq_communications();
     
     //compute on the bulk and finish communications
-    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf,vsurf_volh,loc_volh/2,bi_temp,EO);
+    apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf,vsurf_volh,loc_volh/2,bi_temp,EO);
     finish_staggered_hopping_matrix_oe_or_eo_bgq_communications(EO);
     
     //put the eight pieces subtracting them from diag (in fact one of the two D is daggered)

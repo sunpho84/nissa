@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_oct_su3 **conf,int istart,int iend,bi_color *in,int);
+  void apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_oct_su3 **conf,int istart,int iend,bi_color *in,int);
   void bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_buff_fill();
   void start_staggered_hopping_matrix_oe_or_eo_bgq_communications();
   void finish_staggered_hopping_matrix_oe_or_eo_bgq_communications(int);
