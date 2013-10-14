@@ -21,15 +21,15 @@
 namespace nissa
 {
 #if CG_NARG == 0
-  THREADABLE_FUNCTION_6ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, int,niter, int,rniter, double,external_solver_residue, BASETYPE*,external_source)
+  THREADABLE_FUNCTION_5ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, int,niter, double,external_solver_residue, BASETYPE*,external_source)
 #elif CG_NARG == 1
-  THREADABLE_FUNCTION_7ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, int,niter, int,rniter, double,external_solver_residue, BASETYPE*,external_source)
+  THREADABLE_FUNCTION_6ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, int,niter, double,external_solver_residue, BASETYPE*,external_source)
 #elif CG_NARG == 2
-  THREADABLE_FUNCTION_8ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, int,niter, int,rniter, double,external_solver_residue, BASETYPE*,external_source)
+  THREADABLE_FUNCTION_7ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, int,niter, double,external_solver_residue, BASETYPE*,external_source)
 #elif CG_NARG == 3
-  THREADABLE_FUNCTION_9ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, int,niter, int,rniter, double,external_solver_residue, BASETYPE*,external_source)
+  THREADABLE_FUNCTION_8ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, int,niter, double,external_solver_residue, BASETYPE*,external_source)
 #elif CG_NARG == 4
-  THREADABLE_FUNCTION_10ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, int,niter, int,rniter, double,external_solver_residue, BASETYPE*,external_source)
+  THREADABLE_FUNCTION_9ARG(CG_128_INVERT, BASETYPE*,sol, BASETYPE*,guess, AT1,A1, AT2,A2, AT3,A3, AT4,A4, int,niter, double,external_solver_residue, BASETYPE*,external_source)
 #endif
   {
     //Allocate the solution in 128 bit and initialize it. If guess passed copy it.
@@ -76,7 +76,7 @@ namespace nissa
 	if(current_residue>=external_solver_residue)
 	  {
 	    //compute partial sol
-	    CG_128_INNER_SOLVER(sol,NULL,CG_128_INNER_PARAMETERS_CALL 100000,1,inner_solver_residue,internal_source);
+	    CG_128_INNER_SOLVER(sol,NULL,CG_128_INNER_PARAMETERS_CALL 100000,inner_solver_residue,internal_source);
 	    
 	    //add the approximated solution to the total one
 	    quadruple_vector_summassign_double_vector((float_128*)sol_128,(double*)sol,BULK_SIZE*NDOUBLES_PER_SITE);
@@ -90,7 +90,7 @@ namespace nissa
 	
 	ext_iter++;
       }
-    while(current_residue>=external_solver_residue && !quit && ext_iter<rniter);
+    while(current_residue>=external_solver_residue && !quit);
     
     verbosity_lv1_master_printf("\nFinal residue: %lg\n\n",current_residue);
     

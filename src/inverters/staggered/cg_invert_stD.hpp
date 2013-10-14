@@ -3,7 +3,7 @@
 
 namespace nissa
 {
-  void inv_stD_cg(color **sol,quad_su3 **conf,double m,int niter,int rniter,double residue,color **source);
+  void inv_stD_cg(color **sol,quad_su3 **conf,double m,int niter,double residue,color **source);
 }
 
 #endif

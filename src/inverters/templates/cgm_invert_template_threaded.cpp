@@ -21,7 +21,7 @@ namespace nissa
     The file must be included inside another file defining all the macros.
     See "cgm_invert_tmQ2.c" as an example.
   */
-  
+
 #if CGM_NARG >= 5
 #error not supported
 #endif
@@ -103,7 +103,8 @@ namespace nissa
     double_vector_glb_scalar_prod(&source_norm,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
     
     //writes source norm
-    verbosity_lv2_master_printf(" Source norm: %lg\n",source_norm);
+    //verbosity_lv2_
+    master_printf(" Source norm: %lg\n",source_norm);
     if(source_norm==0 || isnan(source_norm)) crash("invalid norm: %lg",source_norm);
     
     //writes initial residue
@@ -182,8 +183,10 @@ namespace nissa
 	  {
 	    if(run_flag[ishift]==1)
 	      {
-		zfs[ishift]=zas[ishift]*betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
-		betas[ishift]=betaa*zfs[ishift]/zas[ishift];
+		double ratio=betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
+		if(ratio>1) verbosity_lv=2;
+		zfs[ishift]=zas[ishift]*ratio;
+		betas[ishift]=betaa*ratio;
 		
 #ifdef DEBUG_CGM
 		master_printf("ishift %d [%lg] zas: %16.16lg, zps: %16.16lg, zfs: %16.16lg, betas: %16.16lg\n",
@@ -299,6 +302,9 @@ namespace nissa
     
     verbosity_lv1_master_printf(" Total cgm iterations: %d\n",final_iter);
     
+    //check if not converged
+    if(final_iter==niter_max) crash("exit without converging");
+    
     for(int ishift=0;ishift<nshift;ishift++) nissa_free(ps[ishift]);
     nissa_free(s);
     nissa_free(p);
@@ -315,7 +321,7 @@ namespace nissa
       {
 	verbosity_lv1_master_printf("\nRefining the solution in quaduple precision using cg solver\n");
 	for(int ishift=0;ishift<nshift;ishift++)
-	  CG_128_INVERT(sol[ishift],sol[ishift],CG_128_ADDITIONAL_PARAMETERS_CALL shift[ishift],niter_max,5,ext_req_res[ishift],source);
+	  CG_128_INVERT(sol[ishift],sol[ishift],CG_128_ADDITIONAL_PARAMETERS_CALL shift[ishift],niter_max,ext_req_res[ishift],source);
       }
 #endif
   }}

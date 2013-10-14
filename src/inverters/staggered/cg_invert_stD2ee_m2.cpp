@@ -12,10 +12,10 @@
 
 namespace nissa
 {
-  void inv_stD2ee_m2_cg(color *sol,color *guess,quad_su3 **eo_conf,double m2,int niter,int rniter,double residue,color *source)
+  void inv_stD2ee_m2_cg(color *sol,color *guess,quad_su3 **eo_conf,double m2,int niter,double residue,color *source)
   {
 #ifndef BGQ
-    inv_stD2ee_m2_cg_portable(sol,guess,eo_conf,m2,niter,rniter,residue,source);
+    inv_stD2ee_m2_cg_portable(sol,guess,eo_conf,m2,niter,residue,source);
 #else
     
     //allocate
@@ -33,7 +33,7 @@ namespace nissa
     if(guess!=NULL) evn_or_odd_color_remap_to_virevn_or_odd(bi_guess,guess,EVN);
     
     //invert
-    inv_stD2ee_m2_cg_bgq(bi_sol,bi_guess,bi_eo_conf,m2,niter,rniter,residue,bi_source);
+    inv_stD2ee_m2_cg_bgq(bi_sol,bi_guess,bi_eo_conf,m2,niter,residue,bi_source);
     
     //remap out
     virevn_or_odd_color_remap_to_evn_or_odd(sol,bi_sol,EVN);
