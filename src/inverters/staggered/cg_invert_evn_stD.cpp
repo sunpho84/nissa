@@ -13,14 +13,14 @@
 
 namespace nissa
 {
-  void inv_evn_stD_cg(color *sol,quad_su3 **conf,double m,int niter,int rniter,double residue,color **source)
+  void inv_evn_stD_cg(color *sol,quad_su3 **conf,double m,int niter,double residue,color **source)
   {
     //apply the dagger ...
     color *temp=nissa_malloc("temp",loc_volh+bord_volh,color);
     evn_apply_stD_dag(temp,conf,m,source);
     
     //and invert the DD^+
-    inv_stD2ee_m2_cg(sol,NULL,conf,m*m,niter,rniter,residue,temp);
+    inv_stD2ee_m2_cg(sol,NULL,conf,m*m,niter,residue,temp);
     
     nissa_free(temp);
   }

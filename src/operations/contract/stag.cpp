@@ -27,7 +27,7 @@ namespace nissa
   {
     addrem_stagphases_to_eo_conf(conf);
     add_backfield_to_conf(conf,u1b);
-    inv_stD_cg(prop,conf,m,10000,5,residue,source);
+    inv_stD_cg(prop,conf,m,10000,residue,source);
     rem_backfield_from_conf(conf,u1b);
     addrem_stagphases_to_eo_conf(conf);
   }}
@@ -120,7 +120,7 @@ namespace nissa
     add_backfield_to_conf(conf,u1b);
     
     //invert
-    inv_stD_cg(chi,conf,quark->mass,10000,5,residue,rnd);
+    inv_stD_cg(chi,conf,quark->mass,10000,residue,rnd);
     communicate_ev_and_od_color_borders(chi);
     
     //summ the results of the derivative

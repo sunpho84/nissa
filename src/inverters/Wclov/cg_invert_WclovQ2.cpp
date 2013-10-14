@@ -7,20 +7,30 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 
-#define basetype spincolor
+#define BASETYPE spincolor
 
-#define ndoubles_per_site 24
-#define size_of_bulk loc_vol
-#define size_of_bord bord_vol
+#define NDOUBLES_PER_SITE 24
+#define BULK_VOL loc_vol
+#define BORD_VOL bord_vol
 
-#define apply_operator apply_WclovQ2
+#define APPLY_OPERATOR apply_WclovQ2
 
-#define cg_invert inv_WclovQ2_cg
-#define cg_parameters_proto quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu
-#define cg_inner_parameters_call conf,kappa,csw,Pmunu,temp
+#define CG_INVERT inv_WclovQ2_cg
+#define CG_OPERATOR_PARAMETERS conf,kappa,csw,Pmunu,temp,
 
-#define cg_additional_vectors_allocation() basetype *temp=nissa_malloc("temp",size_of_bulk+size_of_bord,basetype);
+//additional parameters
+#define CG_NARG 4
+#define AT1 quad_su3*
+#define A1 conf
+#define AT2 double
+#define A2 kappa
+#define AT3 double
+#define A3 csw
+#define AT4 as2t_su3*
+#define A4 Pmunu
 
-#define cg_additional_vectors_free() nissa_free(temp);
+#define CG_ADDITIONAL_VECTORS_ALLOCATION() BASETYPE *temp=nissa_malloc("temp",BULK_VOL+BORD_VOL,BASETYPE);
 
-#include "templates/cg_invert_template.cpp"
+#define CG_ADDITIONAL_VECTORS_FREE() nissa_free(temp);
+
+#include "templates/cg_invert_template_threaded.cpp"

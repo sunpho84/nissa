@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void inv_stD2ee_m2_cg(color *sol,color *guess,quad_su3 **conf,double m2,int niter,int rniter,double residue,color *source);
+  void inv_stD2ee_m2_cg(color *sol,color *guess,quad_su3 **conf,double m2,int niter,double residue,color *source);
 }
 
 #endif

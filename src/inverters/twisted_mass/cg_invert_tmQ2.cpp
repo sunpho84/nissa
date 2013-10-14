@@ -11,9 +11,9 @@
 namespace nissa
 {
   //switch 64 and 128
-  void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,int RL,double m,int niter,int rniter,double residue,spincolor *source)
+  void inv_tmQ2_RL_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,int RL,double m,int niter,double residue,spincolor *source)
   {
-    if(use_128_bit_precision) inv_tmQ2_RL_cg_64(sol,guess,conf,kappa,RL,m,niter,rniter,residue,source);
-    else inv_tmQ2_RL_cg_128(sol,guess,conf,kappa,RL,m,niter,rniter,residue,source);
+    if(use_128_bit_precision) inv_tmQ2_RL_cg_64(sol,guess,conf,kappa,RL,m,niter,residue,source);
+    else inv_tmQ2_RL_cg_128(sol,guess,conf,kappa,RL,m,niter,residue,source);
   }
 }

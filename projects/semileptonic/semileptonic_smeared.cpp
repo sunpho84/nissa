@@ -765,11 +765,11 @@ void calculate_S0(int ism_lev_so)
 			      master_printf("Ma no!\n");
 			      if(which_r_S0==0) m*=-1;
 			      
-			      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stop_res[imass],source);
-			      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,5,stop_res[imass],source);
+			      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,stop_res[imass],source);
+			      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,stop_res[imass],source);
 			    }
 			  else //m=kappa
-			    inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,5,stop_res[imass],source);
+			    inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,stop_res[imass],source);
 			  
 			  master_printf("Finished submass[%d]=%lg\n",imass,m);
 			}
@@ -905,10 +905,10 @@ void calculate_S1(int ispec,int ism_lev_se)
 		  if(Wclov_tm)
 		    {
 		      if(r_spec[ispec]==1) m*=-1;
-		      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,5,stop_res_S1[imass],source);
-		      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,5,stop_res_S1[imass],source);
+		      if(cSW==0) inv_tmD_cg_eoprec_eos(cgm_solution[imass],NULL,conf,kappa,m,niter_max,stop_res_S1[imass],source);
+		      else inv_tmclovQ_cg(cgm_solution[imass],NULL,conf,kappa,cSW,Pmunu,m,niter_max,stop_res_S1[imass],source);
 		    }
-		  else inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,5,stop_res_S1[imass],source);
+		  else inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,stop_res_S1[imass],source);
 		}
 	    
 	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d",itheta,ism_lev_se,id);
