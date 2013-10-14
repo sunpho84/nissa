@@ -57,8 +57,8 @@ namespace nissa
       }
 #endif
     int each_list[4]={10000000,100,10,1},each;
-    if(verbosity_lv>=3) each=1;
-    else each=each_list[verbosity_lv];
+    if(VERBOSITY_LV3) each=1;
+    else each=each_list[std::min(verbosity_lv,MAX_VERBOSITY_LV)];
     
     double source_norm;
     double_vector_glb_scalar_prod(&source_norm,(double*)source,(double*)source,BULK_VOL*NDOUBLES_PER_SITE);

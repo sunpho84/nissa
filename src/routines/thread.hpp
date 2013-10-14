@@ -10,9 +10,9 @@
 namespace nissa
 {
 #ifdef THREAD_DEBUG
-  void thread_barrier(const char*file,int line,int force_barrier);
+  void thread_barrier_with_check(const char*file,int line);
 #else
-  void thread_barrier(int force_barrier);
+  void thread_barrier_with_check();
 #endif
   
   void start_threaded_function(void(*function)(void),const char *name);

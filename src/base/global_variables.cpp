@@ -181,6 +181,10 @@ namespace nissa
  #ifdef THREAD_DEBUG
    EXTERN int glb_barr_line;
    EXTERN char glb_barr_file[1024];
+  #if THREAD_DEBUG >=2 
+    EXTERN rnd_gen *delay_rnd_gen;
+    EXTERN int *delayed_thread_barrier;
+  #endif
  #endif
 
  #ifndef ONLY_INSTANTIATION

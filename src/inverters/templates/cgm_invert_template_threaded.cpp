@@ -2,8 +2,6 @@
 #include "config.hpp"
 #endif
 
-//#define DEBUG_CGM
-
 #include <omp.h>
 
 #include "routines/ios.hpp"
@@ -74,8 +72,8 @@ namespace nissa
 #endif
     
     int each_list[4]={10000000,100,10,1},each;
-    if(verbosity_lv>=3) each=1;
-    else each=each_list[verbosity_lv];
+    if(VERBOSITY_LV3) each=1;
+    else each=each_list[std::min(verbosity_lv,MAX_VERBOSITY_LV)];
     
     //macro to be defined externally, allocating all the required additional vectors
     CGM_ADDITIONAL_VECTORS_ALLOCATION();
@@ -137,7 +135,7 @@ namespace nissa
     
     //     -rr=(r,r)=source_norm
     double rr=source_norm;
-#ifdef DEBUG_CGM
+#ifdef CGM_DEBUG
     master_printf("rr: %16.16lg\n",rr);
 #endif
     
@@ -162,7 +160,7 @@ namespace nissa
 	
 	//     -pap=(p,s)=(p,Ap)
 	double_vector_glb_scalar_prod(&pap,(double*)p,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
-#ifdef DEBUG_CGM
+#ifdef CGM_DEBUG
 	master_printf("pap: %16.16lg\n",pap);
 	if(rank==0 && IS_MASTER_THREAD)
 	  for(int i=0;i<BULK_VOL*NDOUBLES_PER_SITE;i++)
@@ -171,7 +169,7 @@ namespace nissa
 	//     calculate betaa=rr/pap=(r,r)/(p,Ap)
 	betap=betaa;
 	betaa=-rr/pap;
-#ifdef DEBUG_CGM
+#ifdef CGM_DEBUG
 	master_printf("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
 #endif
 	
@@ -185,10 +183,11 @@ namespace nissa
 	      {
 		double ratio=betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
 		if(ratio>1) verbosity_lv=2;
+		if(isnan(ratio)) crash("nanned");
 		zfs[ishift]=zas[ishift]*ratio;
 		betas[ishift]=betaa*ratio;
 		
-#ifdef DEBUG_CGM
+#ifdef CGM_DEBUG
 		master_printf("ishift %d [%lg] zas: %16.16lg, zps: %16.16lg, zfs: %16.16lg, betas: %16.16lg\n",
 			      ishift,shift[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 #endif
@@ -202,7 +201,7 @@ namespace nissa
 	//     -rfrf=(r',r')
 	double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,BULK_VOL*NDOUBLES_PER_SITE);
 	double_vector_glb_scalar_prod(&rfrf,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
-#ifdef DEBUG_CGM
+#ifdef CGM_DEBUG
 	master_printf("rfrf: %16.16lg\n",rfrf);
 #endif
 	
@@ -223,7 +222,7 @@ namespace nissa
 	    if(run_flag[ishift]==1)
 	      {
 		alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
-#ifdef DEBUG_CGM
+#ifdef CGM_DEBUG
 		master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
 		double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);

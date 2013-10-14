@@ -5,15 +5,17 @@
 #ifdef USE_MPI
  #include <mpi.h>
 #endif
-#include <signal.h>
-#include <string.h>
 #include <omp.h>
+#include <signal.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "communicate/communicate.hpp"
 #include "debug.hpp"
 #include "global_variables.hpp"
+#include "random.hpp"
 #include "vectors.hpp"
 
+#include "communicate/communicate.hpp"
 #include "io/input.hpp"
 #include "io/endianness.hpp"
 #include "geometry/geometry_eo.hpp"
@@ -118,17 +120,26 @@ namespace nissa
     
 #ifdef USE_THREADS
     
-#if defined BGQ && (! defined BGQ_EMU)
-    //if BGQ, define appropriate barrier
-    bgq_barrier_define();
-#endif
-    
 #pragma omp parallel
     {
       //get the number of threads and thread id
       nthreads=omp_get_num_threads();
       master_printf("Using %d threads\n",nthreads);
       
+      //define delayed thread debug
+      #if THREAD_DEBUG>=2
+      delayed_thread_barrier=(int*)malloc(nthreads*sizeof(int));
+      memset(delayed_thread_barrier,0,nthreads*sizeof(int));
+      delay_rnd_gen=(rnd_gen*)malloc(nthreads*sizeof(rnd_gen));
+      int delay_base_seed=time(0);
+      for(int i=0;i<nthreads;i++) start_rnd_gen(delay_rnd_gen+i,delay_base_seed+i);
+      #endif
+
+      //if BGQ, define appropriate barrier
+      #if defined BGQ && (! defined BGQ_EMU)
+      bgq_barrier_define();
+      #endif
+    
       //distinguish master thread from the others
       GET_THREAD_ID();
       if(thread_id!=0) thread_pool();
@@ -502,7 +513,7 @@ namespace nissa
       verbosity_lv3_master_printf("Border offset for edge %d: %d\n",iedge,edge_offset[iedge]);
     
     //print orderd list of the rank names
-    if(verbosity_lv>=3)
+    if(VERBOSITY_LV3)
       {
 	char proc_name[1024];
 	int proc_name_length;

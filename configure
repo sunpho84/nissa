@@ -803,6 +803,7 @@ enable_libtool_lock
 enable_gpu
 with_cuda
 enable_spi
+enable_cgm_debug
 enable_parser_generation
 enable_mpi_io
 enable_threads
@@ -1460,6 +1461,7 @@ Optional Features:
   --disable-libtool-lock  avoid locking (might break parallel builds)
   --enable-gpu            Enable gpu
   --enable-spi            Enable spi stuff (ony for BG/Q)
+  --enable-cgm-debug      Enable extremely verbose cgm inverter
   --enable-parser-generation
                           Enable generation of parsers
   --disable-mpi-io        Enable MPI I/O
@@ -16373,6 +16375,20 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling spi... $enable_spi" >&5
 $as_echo "enabling spi... $enable_spi" >&6; }
 
+#cgm-debug
+# Check whether --enable-cgm-debug was given.
+if test "${enable_cgm_debug+set}" = set; then :
+  enableval=$enable_cgm_debug; enable_cgm_debug="${enableval}"
+else
+  enable_cgm_debug="no"
+fi
+
+if test "$enable_cgm_debug" == "yes";then
+$as_echo "#define CGM_DEBUG 1" >>confdefs.h
+ fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling cgm debug... $enable_cgm_debug" >&5
+$as_echo "enabling cgm debug... $enable_cgm_debug" >&6; }
+
 #parser generation
 # Check whether --enable-parser-generation was given.
 if test "${enable_parser_generation+set}" = set; then :
@@ -16758,8 +16774,11 @@ else
   enable_thread_debug="no"
 fi
 
-if test "$enable_thread_debug" == "yes";then
+if test "$enable_thread_debug" = "yes";then
 $as_echo "#define THREAD_DEBUG 1" >>confdefs.h
+ fi
+if test "$enable_thread_debug" = "2";then
+$as_echo "#define THREAD_DEBUG 2" >>confdefs.h
  fi
  if test "$enable_thread_debug" == "yes" ; then
   THREAD_DEBUG_TRUE=
@@ -16803,13 +16822,13 @@ else
 fi
 
 if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then as_fn_error $? "String $max_verbosity_lv is not a number" "$LINENO" 5; fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling max verbosity lv... $max_verbosity_lv" >&5
+$as_echo "enabling max verbosity lv... $max_verbosity_lv" >&6; }
 
 cat >>confdefs.h <<_ACEOF
 #define MAX_VERBOSITY_LV $max_verbosity_lv
 _ACEOF
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling max verbosity lv... $max_verbosity_lv" >&5
-$as_echo "enabling max verbosity lv... $max_verbosity_lv" >&6; }
 
 #create config.hpp
 ac_config_files="$ac_config_files Makefile src/Makefile src/base/Makefile src/bgq/Makefile src/communicate/Makefile src/dirac_operators/Makefile src/geometry/Makefile src/gpu/Makefile src/hmc/Makefile src/inverters/Makefile src/io/Makefile src/linalgs/Makefile src/new_types/Makefile src/operations/Makefile src/routines/Makefile projects/Makefile projects/generate_confs/Makefile projects/semileptonic/Makefile"

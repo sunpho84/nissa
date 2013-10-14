@@ -37,14 +37,14 @@
  #define THREAD_ID thread_id
  
  #ifdef THREAD_DEBUG
-  #define THREAD_BARRIER_FORCE() thread_barrier(__FILE__,__LINE__,true)
-  #define THREAD_BARRIER()       thread_barrier(__FILE__,__LINE__,false)
+  #define THREAD_BARRIER_FORCE() thread_barrier_internal()
+  #define THREAD_BARRIER()       if(!thread_pool_locked) thread_barrier_with_check(__FILE__,__LINE__)
  #else
-  #define THREAD_BARRIER_FORCE() thread_barrier(true)
-  #define THREAD_BARRIER()       thread_barrier(false)
+  #define THREAD_BARRIER_FORCE() thread_barrier_internal()
+  #define THREAD_BARRIER()       if(!thread_pool_locked) thread_barrier_with_check()
  #endif
  
- #define IS_MASTER_THREAD (!thread_id)
+ #define IS_MASTER_THREAD (THREAD_ID==0)
  
  #define NISSA_PARALLEL_LOOP(INDEX,START,END)			\
   NISSA_CHUNK_LOOP(INDEX,START,END,thread_id,NACTIVE_THREADS)

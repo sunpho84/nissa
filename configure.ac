@@ -76,6 +76,14 @@ if test "$enable_spi" == "yes";then AC_DEFINE([SPI],1,[Enable spi]) fi
 AM_CONDITIONAL([SPI],[test "$enable_spi" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling spi... $enable_spi])
 
+#cgm-debug
+AC_ARG_ENABLE(cgm-debug,
+	AS_HELP_STRING([--enable-cgm-debug],[Enable extremely verbose cgm inverter]),
+	enable_cgm_debug="${enableval}",
+	enable_cgm_debug="no")
+if test "$enable_cgm_debug" == "yes";then AC_DEFINE([CGM_DEBUG],1,[Enable debugging cgm inverter]) fi
+AC_MSG_RESULT([enabling cgm debug... $enable_cgm_debug])
+
 #parser generation
 AC_ARG_ENABLE(parser-generation,
 	AS_HELP_STRING([--enable-parser-generation],[Enable generation of parsers]),
@@ -157,7 +165,8 @@ AC_ARG_ENABLE(thread-debug,
 	AS_HELP_STRING([--enable-thread-debug],[Enable thread debugging]),
 	enable_thread_debug="${enableval}",
 	enable_thread_debug="no")
-if test "$enable_thread_debug" == "yes";then AC_DEFINE([THREAD_DEBUG],1,[Enable thread_debug]) fi
+if test "$enable_thread_debug" = "yes";then AC_DEFINE([THREAD_DEBUG],1,[Enable thread_debug]) fi
+if test "$enable_thread_debug" = "2";then AC_DEFINE([THREAD_DEBUG],2,[Enable thread_debug]) fi
 AM_CONDITIONAL([THREAD_DEBUG],[test "$enable_thread_debug" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling thread debug... $enable_thread_debug])
 
@@ -176,8 +185,8 @@ AC_ARG_ENABLE(max-verbosity-lv,
         max_verbosity_lv="${enableval}",
         max_verbosity_lv=2)
 if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then AC_MSG_ERROR([String $max_verbosity_lv is not a number]); fi
-AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
+AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 
 #create config.hpp
 AC_CONFIG_FILES(

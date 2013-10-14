@@ -4,6 +4,7 @@
 
 #include <mpi.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "debug.hpp"
 #include "global_variables.hpp"
@@ -33,9 +34,16 @@ namespace nissa
     //unset eo geometry
     if(eo_geom_inited) unset_eo_geometry();
     
-#ifdef USE_VNODES
+    //unset the virtual node parallelization geometry
+    #ifdef USE_VNODES
     unset_vir_geometry();
-#endif
+    #endif
+    
+    //free thread delays pattern
+    #if THREAD_DEBUG>=2
+    free(delayed_thread_barrier);
+    free(delay_rnd_gen);
+    #endif
     
     //stop the random generator
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();
