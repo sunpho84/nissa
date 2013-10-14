@@ -52,8 +52,8 @@
 
 //communications benchmark
 #ifdef BENCH
- #define START_COMMUNICATIONS_TIMING() {if(IS_MASTER_THREAD) tot_comm_time-=take_time();}
- #define STOP_COMMUNICATIONS_TIMING() {if(IS_MASTER_THREAD) tot_comm_time+=take_time();}
+ #define START_COMMUNICATIONS_TIMING() do{if(IS_MASTER_THREAD) tot_comm_time-=take_time();}while(0)
+ #define STOP_COMMUNICATIONS_TIMING() do{if(IS_MASTER_THREAD) tot_comm_time+=take_time();}while(0)
  #define GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS() GET_THREAD_ID()
 #else
  #define START_COMMUNICATIONS_TIMING()
@@ -96,10 +96,28 @@
 #define decript_MPI_error(...) internal_decript_MPI_error(__LINE__,__FILE__,__VA_ARGS__)
 
 #define master_printf(...) master_fprintf(stdout,__VA_ARGS__)
-#define verbosity_master_printf(lv,...) verb_call+=(verbosity_lv>=lv && master_printf(__VA_ARGS__))
-#define verbosity_lv1_master_printf(...) verbosity_master_printf(1,__VA_ARGS__)
-#define verbosity_lv2_master_printf(...) verbosity_master_printf(2,__VA_ARGS__)
-#define verbosity_lv3_master_printf(...) verbosity_master_printf(3,__VA_ARGS__)
+
+//add verbosity macro
+#if MAX_VERBOSITY_LV>=1
+#define VERBOSITY_LV1 (verbosity_lv>=1)
+#else
+ #define VERBOSITY_LV1 0
+#endif
+#if MAX_VERBOSITY_LV>=2
+ #define VERBOSITY_LV2 (verbosity_lv>=2)
+#else
+ #define VERBOSITY_LV2 0
+#endif
+#if MAX_VERBOSITY_LV>=3
+ #define VERBOSITY_LV3 (verbosity_lv>=3)
+#else
+ #define VERBOSITY_LV3 0
+#endif
+
+//wrappers for verbosity_lv?
+#define verbosity_lv1_master_printf(...) do{if(VERBOSITY_LV1) master_printf(__VA_ARGS__);}while(0)
+#define verbosity_lv2_master_printf(...) do{if(VERBOSITY_LV2) master_printf(__VA_ARGS__);}while(0)
+#define verbosity_lv3_master_printf(...) do{if(VERBOSITY_LV3) master_printf(__VA_ARGS__);}while(0)
 
 #define IF_VECT_NOT_INITIALIZED() if(main_arr!=((char*)&main_vect)+sizeof(nissa_vect))
 

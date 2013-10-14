@@ -6,6 +6,8 @@
  #include <mpi.h>
 #endif
 
+#include "ios.hpp"
+
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -246,6 +248,8 @@ namespace nissa
 	
 	//copy loc in the buf and sync all the threads
 	float_128_copy(glb_float_128_reduction_buf[thread_id],in_loc);
+	if(VERBOSITY_LV3 && rank==0) printf(" entering 128 reduction, in_loc[%d]: %+016.16lg\n",
+					    THREAD_ID,in_loc[0]+in_loc[1]);
 	THREAD_BARRIER();
 	
 	//within master thread summ all the pieces and between MPI
@@ -253,11 +257,13 @@ namespace nissa
 	  {
 	    for(int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_float_128_reduction_buf[ith]);
 	    MPI_Allreduce(in_loc,glb_float_128_reduction_buf[0],1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+	    if(VERBOSITY_LV3 && rank==0) printf("glb tot: %+016.16lg\n",glb_float_128_reduction_buf[0][0]+
+						glb_float_128_reduction_buf[0][1]);
 	    cache_flush();
 	  }
 	
 	//read glb val
-	THREAD_ATOMIC_EXEC(float_128_copy(out_glb,glb_float_128_reduction_buf[0]););
+	THREAD_ATOMIC_EXEC(float_128_copy(out_glb,glb_float_128_reduction_buf[0]));
       }
     else
 #endif

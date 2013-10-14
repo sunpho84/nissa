@@ -240,7 +240,7 @@ namespace nissa
 	last_vect->next=nv;
 	last_vect=nv;
 	
-	if(verbosity_lv>=3)
+	if(VERBOSITY_LV3)
 	  {
 	    master_printf("Allocated vector ");
 	    vect_content_printf(last_vect);
@@ -355,7 +355,7 @@ namespace nissa
 	    nissa_vect *prev=vect->prev;
 	    nissa_vect *next=vect->next;
 	    
-	    if(verbosity_lv>=3)
+	    if(VERBOSITY_LV3)
 	      {
 		master_printf("At line %d of file %s freeing vector ",line,file);
 		vect_content_printf(vect);

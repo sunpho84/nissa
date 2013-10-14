@@ -123,7 +123,7 @@ namespace nissa
 	//sync
 	THREAD_BARRIER();
 	
-	if(verbosity_lv>=3)
+	if(VERBOSITY_LV3)
 	  {
 	    master_printf_rat_approx(&(rat_exp_pfgen[iflav]));
 	    master_printf_rat_approx(&(rat_exp_actio[iflav]));

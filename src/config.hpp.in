@@ -9,6 +9,9 @@
 /* Enable bgq emulation */
 #undef BGQ_EMU
 
+/* Enable debugging cgm inverter */
+#undef CGM_DEBUG
+
 /* Flags passed to configure */
 #undef CONFIG_FLAGS
 
