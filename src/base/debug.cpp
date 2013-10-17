@@ -68,7 +68,7 @@ namespace nissa
 	
 	fprintf(stderr,"ERROR on line %d of file \"%s\", message error: \"%s\".\n",line,file,mess);
 	print_backtrace_list();
-	ranks_abort(1);
+	ranks_abort(0);
       }
   }
   
@@ -91,15 +91,19 @@ namespace nissa
       }
   }
   
-  //called when terminated
-  void terminate_sigsegv(int par)
+  //called when signal received
+  void signal_handler(int sig)
   {
-    //if(par==11)
-    {
-      print_all_vect_content();
-      print_backtrace_list();
-      crash("Signal %d detected, exiting\n",par);
-    }
+    char name[100];
+    switch(sig)
+      {
+      case SIGSEGV: sprintf(name,"segmentation violation");break;
+      case SIGFPE: sprintf(name,"floating-point exception");break;
+      default: sprintf(name,"unassociated");break;
+      }
+    print_all_vect_content();
+    print_backtrace_list();
+    crash("signal %d (%s) detected, exiting",sig,name);
   }
   
 #ifdef USE_MPI

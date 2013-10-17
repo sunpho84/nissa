@@ -435,19 +435,6 @@ namespace nissa
     double max_diff;
   };
   
-  //parameters to adapt the algorithm
-  struct adaptative_algorithm_pars_t
-  {
-    int use_for;
-    hmc_traj_stat_t stat;
-    hmc_traj_stat_pars_t current;
-    void init_from_text(char *text);
-    std::string save_to_text();
-    void add(int a,int b,double x) {stat[std::make_pair(a,b)]+=x;}
-    void set(int a,int b,int n,double sx,double s2x) {stat[std::make_pair(a,b)]=hmc_traj_stat_el_t(n,sx,s2x);}
-    void set_current(hmc_evol_pars_t &a) {current=std::make_pair(a.nmd_steps,a.ngauge_substeps);}
-  };
-  
   //parameters for pure gauge theory
   struct pure_gauge_evol_pars_t
   {

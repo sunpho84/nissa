@@ -42,7 +42,21 @@ namespace nissa
     //extract a random switch:
     // if 0, we exec immediately
     // if 1, we postpone to the end of the barrier
-    delayed_thread_barrier[THREAD_ID]=(int)rnd_get_unif(delay_rnd_gen+THREAD_ID,0,2);
+    
+    enum delay_pattern{DELAY_RANDOMLY,DELAY_SLAVES};
+    const delay_pattern picked=DELAY_SLAVES;
+    
+    switch(picked)
+      {
+      case DELAY_RANDOMLY:
+	delayed_thread_barrier[THREAD_ID]=(int)rnd_get_unif(delay_rnd_gen+THREAD_ID,0,2);
+	break;
+      case DELAY_SLAVES:
+	delayed_thread_barrier[THREAD_ID]=!IS_MASTER_THREAD;
+	break;
+      default:
+	crash("Unknown delay pattern %d",picked);
+      }
   }
 
   //delay marked threads

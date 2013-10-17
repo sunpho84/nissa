@@ -31,7 +31,6 @@ quad_su3 *conf[2];
 int ntheories;
 theory_pars_t *theory_pars;
 evol_pars_t evol_pars;
-adaptative_algorithm_pars_t self_adapt_hmc_pars;
 
 //traj
 int prod_ntraj;
@@ -75,11 +74,6 @@ void write_conf(char *path,quad_su3 **conf)
   sprintf(text,"%d",itraj);
   ILDG_string_message_append_to_last(&mess,"MD_traj",text);
   
-#ifdef USE_ADAPTATIVE_HMC
-  //adaptative algorithm
-  ILDG_string_message_append_to_last(&mess,"adapt_alg_status",self_adapt_hmc_pars.save_to_text().c_str());
-#endif
-  
 #ifndef REPRODUCIBLE_RUN
   //skip 10 random numbers
   for(int iskip=0;iskip<10;iskip++)
@@ -114,9 +108,6 @@ void read_conf(quad_su3 **conf,char *path)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
       if(strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
-#ifdef USE_ADAPTATIVE_HMC
-      if(strcasecmp(cur_mess->name,"adapt_alg_status")==0) self_adapt_hmc_pars.init_from_text(cur_mess->data);
-#endif
     }
   
   //if message with string not found start from input seed
@@ -172,14 +163,7 @@ void init_simulation(char *path)
   read_str_int("Seed",&seed);
   
   //load evolution info depending if is a quenched simulation or unquenched
-  if(theory_pars[SEA_THEORY].nflavs!=0)
-    {
-      read_hmc_evol_pars(evol_pars.hmc_evol_pars);
-#ifdef USE_ADAPTATIVE_HMC
-      self_adapt_hmc_pars.set_current(evol_pars.hmc_evol_pars);
-      self_adapt_hmc_pars.use_for=300; //testing
-#endif
-    }
+  if(theory_pars[SEA_THEORY].nflavs!=0) read_hmc_evol_pars(evol_pars.hmc_evol_pars);
   else read_pure_gauge_evol_pars(evol_pars.pure_gauge_evol_pars);
   
   //read in and out conf path
@@ -282,8 +266,7 @@ int generate_new_conf(int itraj)
   if(theory_pars[SEA_THEORY].nflavs!=0)
     {
       int perform_test=(itraj>=evol_pars.hmc_evol_pars.skip_mtest_ntraj);
-      double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,theory_pars[SEA_THEORY],evol_pars.hmc_evol_pars,
-					      self_adapt_hmc_pars,itraj);
+      double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,theory_pars[SEA_THEORY],evol_pars.hmc_evol_pars,itraj);
       
       //perform the test in any case
       master_printf("Diff action: %lg, ",diff_act);

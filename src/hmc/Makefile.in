@@ -102,7 +102,6 @@ am_libhmc_la_OBJECTS = backfield.lo gauge/gluonic_force.lo \
 	gauge/tree_level_Symanzik_force.lo \
 	gauge/tree_level_Symanzik_action.lo gauge/Wilson_force.lo \
 	momenta/momenta_generation.lo momenta/momenta_action.lo \
-	rootst_eoimpr/adaptative_control.lo \
 	rootst_eoimpr/rootst_eoimpr_action.lo \
 	rootst_eoimpr/rootst_eoimpr_eigenvalues.lo \
 	rootst_eoimpr/rootst_eoimpr_quark_force.lo \
@@ -347,7 +346,6 @@ libhmc_la_SOURCES = \
         gauge/Wilson_force.cpp \
         momenta/momenta_generation.cpp \
         momenta/momenta_action.cpp \
-        rootst_eoimpr/adaptative_control.cpp \
         rootst_eoimpr/rootst_eoimpr_action.cpp \
         rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
         rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
@@ -371,7 +369,6 @@ hmc_include_momenta_HEADERS = \
         momenta/momenta_action.hpp
 
 hmc_include_rootst_eoimpr_HEADERS = \
-        rootst_eoimpr/adaptative_control.hpp \
         rootst_eoimpr/rootst_eoimpr_action.hpp \
         rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
         rootst_eoimpr/rootst_eoimpr_quark_force.hpp \
@@ -455,8 +452,6 @@ rootst_eoimpr/$(am__dirstamp):
 rootst_eoimpr/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) rootst_eoimpr/$(DEPDIR)
 	@: > rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
-rootst_eoimpr/adaptative_control.lo: rootst_eoimpr/$(am__dirstamp) \
-	rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
 rootst_eoimpr/rootst_eoimpr_action.lo: rootst_eoimpr/$(am__dirstamp) \
 	rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
 rootst_eoimpr/rootst_eoimpr_eigenvalues.lo:  \
@@ -497,7 +492,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@gauge/$(DEPDIR)/tree_level_Symanzik_force.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@momenta/$(DEPDIR)/momenta_action.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@momenta/$(DEPDIR)/momenta_generation.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@rootst_eoimpr/$(DEPDIR)/adaptative_control.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_action.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_eigenvalues.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_omelyan_integrator.Plo@am__quote@

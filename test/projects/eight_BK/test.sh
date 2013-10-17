@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "Starting test: smeared_BK_all_in_one"
 rm -frv out? > log
-$* ../../../projects/eight_BK/smeared_BK_all_in_one input >> log
+$* ../../../build_bgq_emu/bin/smeared_BK_all_in_one input >> log
 for AB in A B
 do
     err=$(

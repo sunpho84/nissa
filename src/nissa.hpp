@@ -45,9 +45,6 @@
 #include "hmc/gauge/tree_level_Symanzik_action.hpp"
 #include "hmc/momenta/momenta_action.hpp"
 #include "hmc/momenta/momenta_generation.hpp"
-#ifdef USE_ADAPTATIVE_HMC
- #include "hmc/rootst_eoimpr/adaptative_control.hpp"
-#endif
 #include "hmc/rootst_eoimpr/rootst_eoimpr_action.hpp"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp"

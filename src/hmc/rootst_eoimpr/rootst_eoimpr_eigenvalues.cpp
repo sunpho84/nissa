@@ -65,7 +65,7 @@ namespace nissa
     nissa_free(vec_out);
     nissa_free(vec_in);
     
-    verbosity_lv2_master_printf("max_eigen mass %lg: %17.17lg\n",quark_content->mass,*eig_max);
+    verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark_content->mass,*eig_max);
   }}
 
   //scale the rational expansion

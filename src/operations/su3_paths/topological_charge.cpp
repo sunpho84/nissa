@@ -76,19 +76,19 @@ namespace nissa
 		unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);         //    B--<--Y 
 		unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);           //    |  1  | 
 		unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][nu]);           //    |     | 
-		su3_summ(leaves_summ,leaves_summ,temp1);	                  //    X-->--A 
+		su3_summ(leaves_summ,leaves_summ,temp1);                    //    X-->--A 
 		
 		//Leaf 2
 		unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);     //    C--<--B
 		unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);           //    |  2  | 
-		unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);		  //    |     | 
-		su3_summ(leaves_summ,leaves_summ,temp1);		          //    D-->--X
+		unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);               //    |     | 
+		su3_summ(leaves_summ,leaves_summ,temp1);                    //    D-->--X
 		
 		//Leaf 3
 		unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
-		unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);		   //   |  3  | 
-		unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);		   //   |     | 
-		su3_summ(leaves_summ,leaves_summ,temp1);		           //   E-->--F
+		unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);                //   |  3  | 
+		unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);                //   |     | 
+		su3_summ(leaves_summ,leaves_summ,temp1);                     //   E-->--F
 		
 		//Leaf 4
 		unsafe_su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);       //  X--<--A 
@@ -127,6 +127,8 @@ namespace nissa
 		Pmunu[X][munu][ic1][ic2][1]=(leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1])/4;
 	      }
 	}
+    
+    set_borders_invalid(Pmunu);
   }}
 
   //apply the chromo operator to the passed spinor site by site (not yet fully optimized)
@@ -151,6 +153,7 @@ namespace nissa
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
+    set_borders_invalid(out);
   }}
 
   //apply the chromo operator to the passed colorspinspin
@@ -161,19 +164,17 @@ namespace nissa
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      {
-	//Loop over the four source dirac indexes
-	for(int id_source=0;id_source<4;id_source++) //dirac index of source
-	  {
-	    //Switch the color_spinspin into the spincolor.
-	    get_spincolor_from_colorspinspin(temp1,in[ivol],id_source);
-	    
-	    unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[ivol],temp1);
-	    
-	    //Switch back the spincolor into the colorspinspin
-	    put_spincolor_into_colorspinspin(out[ivol],temp2,id_source);
-	  }
-      }
+      //Loop over the four source dirac indexes
+      for(int id_source=0;id_source<4;id_source++) //dirac index of source
+	{
+	  //Switch the color_spinspin into the spincolor.
+	  get_spincolor_from_colorspinspin(temp1,in[ivol],id_source);
+	  
+	  unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[ivol],temp1);
+	  
+	  //Switch back the spincolor into the colorspinspin
+	  put_spincolor_into_colorspinspin(out[ivol],temp2,id_source);
+	}
     
     //invalidate borders
     set_borders_invalid(out);
@@ -187,20 +188,18 @@ namespace nissa
     
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      {
-	//Loop over the four source dirac indexes
-	for(int id_source=0;id_source<4;id_source++) //dirac index of source
-	  for(int ic_source=0;ic_source<3;ic_source++) //color index of source
-	    {
-	      //Switch the su3spinspin into the spincolor.
-	      get_spincolor_from_su3spinspin(temp1,in[ivol],id_source,ic_source);
-	      
-	      unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[ivol],temp1);
-	      
-	      //Switch back the spincolor into the colorspinspin
-	      put_spincolor_into_su3spinspin(out[ivol],temp2,id_source,ic_source);
-	    }
-      }
+      //Loop over the four source dirac indexes
+      for(int id_source=0;id_source<4;id_source++) //dirac index of source
+	for(int ic_source=0;ic_source<3;ic_source++) //color index of source
+	  {
+	    //Switch the su3spinspin into the spincolor.
+	    get_spincolor_from_su3spinspin(temp1,in[ivol],id_source,ic_source);
+	    
+	    unsafe_apply_point_chromo_operator_to_spincolor(temp2,Pmunu[ivol],temp1);
+	    
+	    //Switch back the spincolor into the colorspinspin
+	    put_spincolor_into_su3spinspin(out[ivol],temp2,id_source,ic_source);
+	  }
     
     //invalidate borders
     set_borders_invalid(out);

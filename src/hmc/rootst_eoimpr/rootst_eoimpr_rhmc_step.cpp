@@ -19,7 +19,6 @@
 
 #include "momenta/momenta_generation.hpp"
 
-#include "adaptative_control.hpp"
 #include "rootst_eoimpr_action.hpp"
 #include "rootst_eoimpr_eigenvalues.hpp"
 #include "rootst_eoimpr_omelyan_integrator.hpp"
@@ -30,13 +29,8 @@ namespace nissa
 {
   //perform a full hmc step and return the difference between final and original action
   double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,
-				 hmc_evol_pars_t &simul_pars,adaptative_algorithm_pars_t &adapt_pars,int itraj)
+				 hmc_evol_pars_t &simul_pars,int itraj)
   {
-#ifdef USE_ADAPTATIVE_HMC
-    int itraj_net=itraj-simul_pars.skip_mtest_ntraj;
-    choose_hmc_traj_pars(simul_pars,adapt_pars,itraj_net);
-#endif
-    
     //header
     master_printf("Trajectory %d (nmd: %d, ngss: %d)\n",itraj,simul_pars.nmd_steps,simul_pars.ngauge_substeps);
     master_printf("-------------------------------\n");
@@ -68,7 +62,7 @@ namespace nissa
     color **pf=nissa_malloc("pf*",theory_pars.nflavs,color*);
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++) pf[iflav]=nissa_malloc("pf",loc_volh,color);
     
-    //if needed smerd the configuration for pseudo-fermions, approx generation and action computation
+    //if needed smear the configuration for pseudo-fermions, approx generation and action computation
     //otherwise bind out_conf to sme_conf
     quad_su3 *sme_conf[2];
     for(int eo=0;eo<2;eo++) sme_conf[eo]=(theory_pars.stout_pars.nlev!=0)?
@@ -106,7 +100,7 @@ namespace nissa
     //evolve forward
     omelyan_rootst_eoimpr_evolver(H,out_conf,pf,&theory_pars,rat_exp_actio,&simul_pars);
     
-    //if needed, resmerd the conf, otherwise sme_conf is already binded to out_conf
+    //if needed, resmear the conf, otherwise sme_conf is already binded to out_conf
     if(theory_pars.stout_pars.nlev!=0)
       {
 	verbosity_lv2_master_printf("Stouting the links for final action computation\n");
@@ -136,12 +130,6 @@ namespace nissa
     //take time
     hmc_time+=take_time();
     verbosity_lv1_master_printf("Total time to perform rhmc step: %lg s\n",hmc_time);
-    
-    //update statistics
-#ifdef USE_ADAPTATIVE_HMC
-    if(itraj_net>=0 && itraj_net<adapt_pars.use_for)
-      adapt_pars.add(simul_pars.nmd_steps,simul_pars.ngauge_substeps,metro_tresh(diff_action)/hmc_time);
-#endif
     
     return diff_action;
   }

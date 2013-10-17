@@ -57,7 +57,7 @@ namespace nissa
     //compute the three parts of the action
     double quark_action;
     rootst_eoimpr_quark_action(&quark_action,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,appr,residue);
-    verbosity_lv2_master_printf("Quark_action: %16.16lg\n",quark_action);
+    verbosity_lv1_master_printf("Quark_action: %16.16lg\n",quark_action);
     
     //gauge action
     double gluon_action;
@@ -73,11 +73,11 @@ namespace nissa
 	crash("Unknown action");
       }
     
-    verbosity_lv2_master_printf("Gluon_action: %16.16lg\n",gluon_action);
+    verbosity_lv1_master_printf("Gluon_action: %16.16lg\n",gluon_action);
     
     //momenta action
     double mom_action=momenta_action(H);
-    verbosity_lv2_master_printf("Mom_action: %16.16lg\n",mom_action);
+    verbosity_lv1_master_printf("Mom_action: %16.16lg\n",mom_action);
     
     (*tot_action)=quark_action+gluon_action+mom_action;
   }}
