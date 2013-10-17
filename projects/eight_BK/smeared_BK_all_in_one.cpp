@@ -46,7 +46,9 @@ source |------>---->----->---->| sink
 
 #include <stdlib.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+
+using namespace nissa;
 
 //use or not use static limit
 int include_static;
@@ -98,7 +100,7 @@ int *op1_2pts,*op2_2pts;
 int wall_time,ntot_inv=0;
 int ntot_contr_2pts=0;
 int ntot_contr_3pts=0;
-double tot_time=0,tot_inv_time=0;
+double tot_prog_time=0,tot_inv_time=0;
 double tot_contr_2pts_time=0;
 double tot_contr_3pts_time=0;
 
@@ -129,7 +131,7 @@ void initialize_Bk(int narg,char **arg)
   //Check arguments
   if(narg<2) crash("No input file specified!\n");
   //Take init time
-  tot_time-=take_time();
+  tot_prog_time-=take_time();
   //Open input
   open_input(arg[1]);
 
@@ -302,7 +304,7 @@ int check_residual_time()
   
   if(igauge_conf<ngauge_conf)
     {
-      double spent_time=take_time()+tot_time;
+      double spent_time=take_time()+tot_prog_time;
       double remaining_time=wall_time-spent_time;
       double ave_time=(nanalized_conf>0) ? (spent_time/nanalized_conf) : 0;
       double pess_time=ave_time*1.1;
@@ -621,17 +623,17 @@ void analize_conf()
 void close_Bk()
 {
   //take final time
-  tot_time+=take_time();
+  tot_prog_time+=take_time();
 
   master_printf("\n");
   master_printf("Total time: %g secs to analize %d configurations (%f secs avg), of which:\n",
-		tot_time,nanalized_conf,tot_time/nanalized_conf);
+		tot_prog_time,nanalized_conf,tot_prog_time/nanalized_conf);
   master_printf(" - %02.2f%s to perform %d inversions (%f secs avg)\n",
-		tot_inv_time/tot_time*100,"%",ntot_inv,tot_inv_time/ntot_inv);
+		tot_inv_time/tot_prog_time*100,"%",ntot_inv,tot_inv_time/ntot_inv);
   master_printf(" - %02.2f%s to perform %d 3pts contr. (%f secs avg)\n",
-		tot_contr_3pts_time/tot_time*100,"%",ntot_contr_3pts,tot_contr_3pts_time/ntot_contr_3pts);
+		tot_contr_3pts_time/tot_prog_time*100,"%",ntot_contr_3pts,tot_contr_3pts_time/ntot_contr_3pts);
   master_printf(" - %02.2f%s to perform %d 2pts contr. (%f secs avg)\n",
-		tot_contr_2pts_time/tot_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
+		tot_contr_2pts_time/tot_prog_time*100,"%",ntot_contr_2pts,tot_contr_2pts_time/ntot_contr_2pts);
   
   nissa_free(twall);
   nissa_free(op1_2pts);nissa_free(op2_2pts);
