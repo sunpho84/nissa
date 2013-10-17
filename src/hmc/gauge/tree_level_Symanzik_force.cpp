@@ -35,19 +35,15 @@ namespace nissa
     rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",loc_vol+bord_vol,rectangular_staples_t);
     compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
     
-    //summ the six terms of squares
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<4;mu++)
 	{
+	  //summ the six terms of squares
 	  su3_summ(out[ivol][mu],squared_staples[ivol][mu][0],squared_staples[ivol][mu][1]);
 	  for(int iterm=2;iterm<6;iterm++) su3_summassign(out[ivol][mu],squared_staples[ivol][mu][iterm]);
 	  safe_su3_hermitian_prod_double(out[ivol][mu],out[ivol][mu],c0);
-	}
-    
-    //summ the six terms of rectangles
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
-	{
+
+	  //summ the six terms of rectangles
 	  su3 temp;
 	  su3_summ(temp,rectangular_staples[ivol][mu][0],rectangular_staples[ivol][mu][1]);
 	  for(int iterm=2;iterm<6;iterm++) su3_summassign(temp,rectangular_staples[ivol][mu][iterm]);

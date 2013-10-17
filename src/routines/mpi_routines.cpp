@@ -127,9 +127,11 @@ namespace nissa
   void ranks_abort(int err)
   {
 #ifdef USE_MPI
-    MPI_Abort(MPI_COMM_WORLD,1);
+    GET_THREAD_ID();
+    printf("thread %d on rank %d aborting\n",thread_id,rank);
+    MPI_Abort(MPI_COMM_WORLD,0);
 #else
-    exit(1);
+    exit(0);
 #endif
   }
   //define all types

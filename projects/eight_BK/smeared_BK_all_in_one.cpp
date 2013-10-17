@@ -242,7 +242,7 @@ void initialize_Bk(int narg,char **arg)
   for(int iwall=0;iwall<nwall;iwall++) nprop+=2*so_gnlv[iwall]*nmass;
   master_printf("Number of propagator to be allocated: %d\n",nprop);
   S=nissa_malloc("S",nprop,colorspinspin*);
-  for(int iprop=0;iprop<nprop;iprop++) S[iprop]=nissa_malloc("S[i]",loc_vol,colorspinspin);
+  for(int iprop=0;iprop<nprop;iprop++) S[iprop]=nissa_malloc("S[i]",loc_vol+bord_vol,colorspinspin);
   
   //Allocate nmass spincolors, for the cgm solutions
   cgm_solution=nissa_malloc("cgm_solution",ndyn_mass,spincolor*);
@@ -512,7 +512,8 @@ void calculate_all_contractions()
 	for(int sm_lv_R=0;sm_lv_R<so_gnlv[iwR];sm_lv_R++)
 	  {
 	    char path_bag[1024];
-	    sprintf(path_bag,"%s/otto_w%s_%s_%02d_%02d",outfolder,wall_name[iwL],wall_name[iwR],so_gnit[iwL][sm_lv_L],so_gnit[iwR][sm_lv_R]);
+	    sprintf(path_bag,"%s/otto_w%s_%s_%02d_%02d",outfolder,wall_name[iwL],wall_name[iwR],
+		    so_gnit[iwL][sm_lv_L],so_gnit[iwR][sm_lv_R]);
 	    FILE *fout_bag=open_text_file_for_output(path_bag);
 	    
 	    int tsepar=(twall[iwR]+glb_size[0]-twall[iwL])%glb_size[0];
@@ -652,11 +653,8 @@ void close_Bk()
   close_nissa();
 }
 
-int main(int narg,char **arg)
+void in_main(int narg,char **arg)
 {
-  //Basic mpi initialization
-  init_nissa(narg,arg);
-
   //Inner initialization
   initialize_Bk(narg,arg);
 
@@ -674,7 +672,13 @@ int main(int narg,char **arg)
   
   //Finalization
   close_input();
-  close_Bk();
-  
+  close_Bk(); 
+}
+
+int main(int narg,char **arg)
+{
+  //Basic mpi initialization
+  init_nissa_threaded(narg,arg,in_main);
+
   return 0;
 }

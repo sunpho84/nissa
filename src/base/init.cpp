@@ -57,8 +57,8 @@ namespace nissa
     get_MPI_rank();
     
     //associate sigsegv with proper handle
-    signal(SIGSEGV,terminate_sigsegv);
-    signal(SIGFPE,terminate_sigsegv);
+    signal(SIGSEGV,signal_handler);
+    signal(SIGFPE,signal_handler);
     
     //print SVN version and configuration and compilation time
     master_printf("Initializing nissa, version: %s\n",SVN_VERSION);

@@ -9,7 +9,6 @@ libhmc_la_SOURCES= \
         gauge/Wilson_force.cpp \
         momenta/momenta_generation.cpp \
         momenta/momenta_action.cpp \
-        rootst_eoimpr/adaptative_control.cpp \
         rootst_eoimpr/rootst_eoimpr_action.cpp \
         rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
         rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
@@ -32,7 +31,6 @@ hmc_include_momenta_HEADERS= \
         momenta/momenta_generation.hpp \
         momenta/momenta_action.hpp
 hmc_include_rootst_eoimpr_HEADERS= \
-        rootst_eoimpr/adaptative_control.hpp \
         rootst_eoimpr/rootst_eoimpr_action.hpp \
         rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
         rootst_eoimpr/rootst_eoimpr_quark_force.hpp \
