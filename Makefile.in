@@ -79,7 +79,7 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = .
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
-	$(top_srcdir)/configure $(am__configure_deps) README \
+	$(top_srcdir)/configure $(am__configure_deps) README compile \
 	config/compile config/config.guess config/config.sub \
 	config/depcomp config/install-sh config/missing config/ylwrap \
 	config/ltmain.sh $(top_srcdir)/config/compile \

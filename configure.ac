@@ -206,6 +206,7 @@ AC_CONFIG_FILES(
 	src/operations/Makefile
 	src/routines/Makefile
 	projects/Makefile
+	projects/eight_BK/Makefile
 	projects/generate_confs/Makefile
 	projects/semileptonic/Makefile)
 AC_OUTPUT
