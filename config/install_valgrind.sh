@@ -13,3 +13,4 @@ cd ..
 rm -fr comp
 
 echo "add \"export VALGRIND_LIB=\"$HOME/lib/valgrind\"\" to your .bashrc"
+echo "Use: LD_PRELOAD=$HOME/lib/valgrind/libmpiwrap-*.so mpirun -np np ~/bin/valgrind --track-origins=yes program"

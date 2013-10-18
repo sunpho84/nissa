@@ -667,8 +667,6 @@ void close_semileptonic()
   for(int imass=0;imass<ncgm_solution;imass++) nissa_free(cgm_solution[imass]);
   nissa_free(cgm_solution);
   nissa_free(source);nissa_free(original_source);
-  
-  close_nissa();
 }
 
 //smear addditivily a propagator
@@ -1483,6 +1481,7 @@ void in_main(int narg,char **arg)
 int main(int narg,char **arg)
 {
   init_nissa_threaded(narg,arg,in_main);
+  close_nissa();
     
   return 0;
 }

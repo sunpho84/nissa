@@ -16,6 +16,7 @@ namespace nissa
   void ranks_abort(int err);
   void ranks_barrier();
   double glb_reduce_double(double in_loc);
+  double glb_max_double(double in_loc);
   int glb_reduce_int(int in_loc);
   int master_broadcast(int in);
 #ifdef USE_MPI

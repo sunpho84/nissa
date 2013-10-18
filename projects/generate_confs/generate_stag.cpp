@@ -116,6 +116,8 @@ void read_conf(quad_su3 **conf,char *path)
       master_printf("RND_gen status not found inside conf, starting from input passed seed\n");
       start_loc_rnd_gen(seed);
     }
+  
+  ILDG_message_free_all(&mess);
 }
 
 //initialize the simulation
@@ -253,8 +255,6 @@ void close_simulation()
       nissa_free(new_conf[par]);
       nissa_free(conf[par]);
     }
-  
-  close_nissa();
 }
 
 //generate a new conf (or, keep old one)
@@ -450,6 +450,7 @@ void in_main(int narg,char **arg)
 int main(int narg,char **arg)
 {
   init_nissa_threaded(narg,arg,in_main);
-    
+  close_nissa();
+  
   return 0;
 }

@@ -291,12 +291,12 @@ namespace nissa
 	res=glb_reduce_double(loc_res);
 	w_res=glb_reduce_double(locw_res);
 	weight=glb_reduce_double(loc_weight);
-	//max_res=glb_max_double(locmax_res); //to be fixed
+	max_res=glb_max_double(locmax_res);
 	
 	w_res=w_res/weight;
 	
 	verbosity_lv2_master_printf(" ishift %d, rel residue true=%lg approx=%lg commanded=%lg weighted=%lg max=%lg\n",
-				    ishift,res/source_norm,final_res[ishift],inn_req_res[ishift],w_res,locmax_res);
+				    ishift,res/source_norm,final_res[ishift],inn_req_res[ishift],w_res,max_res);
       }  
     
     verbosity_lv1_master_printf(" Total cgm iterations: %d\n",final_iter);
