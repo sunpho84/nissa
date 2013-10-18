@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include <signal.h>
 #include <errno.h>
 #include <execinfo.h>
 #ifdef USE_MPI
