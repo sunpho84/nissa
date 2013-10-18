@@ -129,30 +129,28 @@ namespace nissa
 	//find out contraction index and time
 	int icontr=ibase/loc_size[0];
 	int t=ibase-icontr*loc_size[0];
+	int glb_t=glb_coord_of_loclx[0][0]+t;
 	
 	//loop over spatial volume
 	for(int ivol=t*loc_spat_vol;ivol<(t+1)*loc_spat_vol;ivol++)
-	  {
-	    int glb_t=glb_coord_of_loclx[ivol][0];
-	    for(int icol1=0;icol1<3;icol1++)
-	      for(int icol2=0;icol2<3;icol2++)
-		{
-		  spinspin AR,AL;
-		  unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
-		  unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
-		  
-		  for(int icontr=0;icontr<ncontr;icontr++)
-		    {
-		      complex ctemp;
-		      spinspin ALg, ARg;
-		      
-		      unsafe_dirac_prod_spinspin(ALg,g2R+icontr,AL);
-		      unsafe_dirac_prod_spinspin(ARg,g2L+icontr,AR);
-		      trace_prod_spinspins(ctemp,ALg,ARg);
-		      complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
-		    }
-		}
-	  }
+	  for(int icol1=0;icol1<3;icol1++)
+	    for(int icol2=0;icol2<3;icol2++)
+	      {
+		spinspin AR,AL;
+		unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
+		unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
+		
+		for(int icontr=0;icontr<ncontr;icontr++)
+		  {
+		    complex ctemp;
+		    spinspin ALg, ARg;
+		    
+		    unsafe_dirac_prod_spinspin(ALg,g2R+icontr,AL);
+		    unsafe_dirac_prod_spinspin(ARg,g2L+icontr,AR);
+		    trace_prod_spinspins(ctemp,ALg,ARg);
+		    complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
+		  }
+	      }
       }
     
     THREAD_BARRIER();
@@ -204,7 +202,7 @@ namespace nissa
 		    complex ctempL_color,ctempR_color;
 		    
 		    trace_dirac_prod_spinspin(ctempL_color,g2R+icontr,AL);
-		    trace_dirac_prod_spinspin(ctempR_color,&(g2L[icontr]),AR);
+		    trace_dirac_prod_spinspin(ctempR_color,g2L+icontr,AR);
 		    
 		    complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
 		    complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
@@ -215,6 +213,8 @@ namespace nissa
 	      complex_summ_the_prod(loc_c[icontr*glb_size[0]+glb_t],ctempL[icontr],ctempR[icontr]);
 	  }
       }
+    
+    THREAD_BARRIER();
     
     //Final reduction
     if(IS_MASTER_THREAD)
