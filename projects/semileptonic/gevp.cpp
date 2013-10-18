@@ -210,8 +210,6 @@ void close_semileptonic()
   nissa_free(temp_vec[0]);
   nissa_free(temp_vec[1]);
   nissa_free(temp_transp);
-
-  close_nissa();
 }
 
 //calculate the standard propagators
@@ -480,6 +478,7 @@ void in_main(int narg,char **arg)
 int main(int narg,char **arg)
 {
   init_nissa_threaded(narg,arg,in_main);
+  close_nissa();
   
   return 0;
 }

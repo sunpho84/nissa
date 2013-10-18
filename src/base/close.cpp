@@ -39,12 +39,6 @@ namespace nissa
     unset_vir_geometry();
     #endif
     
-    //free thread delays pattern
-    #if THREAD_DEBUG>=2
-    free(delayed_thread_barrier);
-    free(delay_rnd_gen);
-    #endif
-    
     //stop the random generator
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();
     
@@ -66,6 +60,12 @@ namespace nissa
 #ifdef COMM_BENCH
     master_printf("Total communication time: %lg s\n",tot_comm_time);
 #endif
+    
+    //free thread delays pattern
+    #if THREAD_DEBUG>=2
+    free(delayed_thread_barrier);
+    free(delay_rnd_gen);
+    #endif
     
     MPI_Barrier(MPI_COMM_WORLD);
     master_printf("   Ciao!\n\n");

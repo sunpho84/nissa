@@ -649,8 +649,6 @@ void close_Bk()
   nissa_free(temp_vec[1]);nissa_free(temp_vec[0]);
   nissa_free(so_gnlv);
   nissa_free(so_gnit);
-  
-  close_nissa();
 }
 
 void in_main(int narg,char **arg)
@@ -677,8 +675,8 @@ void in_main(int narg,char **arg)
 
 int main(int narg,char **arg)
 {
-  //Basic mpi initialization
   init_nissa_threaded(narg,arg,in_main);
+  close_nissa();
 
   return 0;
 }

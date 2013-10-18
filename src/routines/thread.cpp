@@ -181,7 +181,7 @@ namespace nissa
     while(threaded_function_ptr!=NULL);
     
 #ifdef THREAD_DEBUG
-    printf("thread %d exit pool\n",thread_id);
+    if(rank==0 && VERBOSITY_LV3) printf("thread %d exit pool\n",thread_id);
 #endif
   }
   

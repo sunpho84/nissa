@@ -1043,13 +1043,12 @@ void in_main(int narg,char **arg)
   debug2_st();
   
   /////////////////////////////////////////////
-  
-  close_nissa();
 }
  
 int main(int narg,char **arg)
 {
   init_nissa_threaded(narg,arg,in_main);
+  close_nissa();
   
   return 0;
 }

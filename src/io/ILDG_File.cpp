@@ -343,7 +343,7 @@ namespace nissa
     decript_MPI_error(MPI_File_read_all(file,data,nbytes_req,MPI_BYTE,&status),"while reading all");
     
     //count read bytes and check
-    int nbytes_read;
+    int nbytes_read=0;
     decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_read),"while counting read bytes");
 #else
     int nbytes_read=fread(data,1,nbytes_req,file);
@@ -402,7 +402,7 @@ namespace nissa
 	decript_MPI_error(MPI_File_write(file,data,nbytes_req,MPI_BYTE,&status),"while writing from first node");
 	
 	//check to have wrote 
-	int nbytes_wrote;
+	int nbytes_wrote=0;
 	decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_wrote),"while counting wrote bytes");
 #else
 	int nbytes_wrote=fwrite(data,1,nbytes_req,file);
@@ -502,7 +502,7 @@ namespace nissa
     decript_MPI_error(MPI_File_read_at_all(file,0,data,loc_vol,scidac_view.etype,&status),"while reading");
     
     //count read bytes
-    int nbytes_read;
+    int nbytes_read=0;
     decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_read),"while counting read bytes");
     if((uint64_t)nbytes_read!=header.data_length/nranks) crash("read %d bytes instead than %d",nbytes_read,header.data_length/nranks);
     
@@ -637,7 +637,7 @@ namespace nissa
     ILDG_File_set_view(file,normal_view);
     
     //count wrote bytes
-    int nbytes_wrote;
+    int nbytes_wrote=0;
     decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_wrote),"while counting wrote bytes");
     if((uint64_t)nbytes_wrote!=header.data_length/nranks)
       crash("wrote %d bytes instead than %d",nbytes_wrote,header.data_length/nranks);
