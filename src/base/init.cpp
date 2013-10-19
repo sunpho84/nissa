@@ -59,6 +59,7 @@ namespace nissa
     //associate sigsegv with proper handle
     signal(SIGSEGV,signal_handler);
     signal(SIGFPE,signal_handler);
+    signal(SIGXCPU,signal_handler);
     
     //print SVN version and configuration and compilation time
     master_printf("Initializing nissa, version: %s\n",SVN_VERSION);

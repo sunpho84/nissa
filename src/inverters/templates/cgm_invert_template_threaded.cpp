@@ -71,9 +71,7 @@ namespace nissa
       }
 #endif
     
-    int each_list[4]={10000000,100,10,1},each;
-    if(VERBOSITY_LV3) each=1;
-    else each=each_list[std::min(verbosity_lv,MAX_VERBOSITY_LV)];
+    int each=VERBOSITY_LV3?1:10;
     
     //macro to be defined externally, allocating all the required additional vectors
     CGM_ADDITIONAL_VECTORS_ALLOCATION();

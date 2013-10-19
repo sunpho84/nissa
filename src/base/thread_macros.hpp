@@ -35,7 +35,7 @@
 
  #if defined BGQ && !defined BGQ_EMU
   #include <spi/include/kernel/location.h>
-  #define GET_THREAD_ID() uint32_t thread_id=Kernel_ProcessorThreadID()
+  #define GET_THREAD_ID() uint32_t thread_id=Kernel_ProcessorID()
  #else
   #define GET_THREAD_ID() uint32_t thread_id=omp_get_thread_num()
  #endif
