@@ -120,7 +120,9 @@ namespace nissa
     
     verbosity_lv2_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",
 				final_iter,lambda/source_norm,residue);
-    
+    if(lambda/source_norm>2*residue) crash("true residue %lg much larger than required and expected one %lg",
+					   lambda/source_norm,residue);
+
     //check if not converged
     if(final_iter==niter) crash("exit without converging");
     
