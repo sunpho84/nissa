@@ -56,9 +56,7 @@ namespace nissa
 	cg_inv_over_time-=take_time();
       }
 #endif
-    int each_list[4]={10000000,100,10,1},each;
-    if(VERBOSITY_LV3) each=1;
-    else each=each_list[std::min(verbosity_lv,MAX_VERBOSITY_LV)];
+    int each=VERBOSITY_LV3?1:10;
     
     double source_norm;
     double_vector_glb_scalar_prod(&source_norm,(double*)source,(double*)source,BULK_VOL*NDOUBLES_PER_SITE);
@@ -106,12 +104,16 @@ namespace nissa
 	gammag=lambda/delta;
 	delta=lambda;
 	
+	//checks
+	if(gammag>1) verbosity_lv=2;
+	if(isnan(gammag)) crash("nanned");
+	
 	//p_(k+1)=r_(k+1)+gammag*p_k
 	double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,gammag,BULK_VOL*NDOUBLES_PER_SITE);
 	
 	if(iter%each==0) verbosity_lv2_master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
       }
-    while(lambda>(residue*source_norm) && iter<niter);
+    while(lambda>=(residue*source_norm) && iter<niter);
     
     //last calculation of residual
     APPLY_OPERATOR(s,CG_OPERATOR_PARAMETERS sol);
