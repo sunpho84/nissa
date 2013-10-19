@@ -35,6 +35,8 @@ namespace nissa
   //compute the chiral condensate
   THREADABLE_FUNCTION_5ARG(chiral_condensate, double*,cond, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
   {
+    GET_THREAD_ID();
+    
     //allocate
     color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
     color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
