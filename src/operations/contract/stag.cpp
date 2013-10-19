@@ -49,7 +49,7 @@ namespace nissa
       double_vector_glb_scalar_prod(temp+eo,(double*)(rnd[eo]),(double*)(chi[eo]),3*loc_volh*2);
     
     //add normalization: deg/4vol
-    if(IS_MASTER_RANK) (*cond)=(temp[EVN]+temp[ODD])*quark->deg/(4.0*glb_vol);
+    if(IS_MASTER_THREAD) (*cond)=(temp[EVN]+temp[ODD])*quark->deg/(4.0*glb_vol);
     
     //free
     for(int par=0;par<2;par++)
@@ -168,7 +168,7 @@ namespace nissa
     //-1/2 coming from dirac operator
     //-i*2*quark_charge*M_PI/glb_size[mu]/glb_size[nu] coming EM potential prefactor in front of "b"
     //and a minus because F=-logZ
-    if(IS_MASTER_RANK)
+    if(IS_MASTER_THREAD)
       unsafe_complex_prod_idouble(*magn,temp,-quark->deg*2*M_PI*quark->charge/(4.0*glb_vol*2*glb_size[mu]*glb_size[nu]));
     
     //free
