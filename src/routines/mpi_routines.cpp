@@ -211,7 +211,7 @@ namespace nissa
 	//within master thread summ all the pieces and between MPI
 	if(IS_MASTER_THREAD)
 	  {
-	    for(int ith=1;ith<nthreads;ith++) in_loc+=glb_double_reduction_buf[ith];
+	    for(unsigned int ith=1;ith<nthreads;ith++) in_loc+=glb_double_reduction_buf[ith];
 	    MPI_Allreduce(&in_loc,&(glb_double_reduction_buf[0]),1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    cache_flush();
 	  }
@@ -243,7 +243,7 @@ namespace nissa
 	//within master thread summ all the pieces and between MPI
 	if(IS_MASTER_THREAD)
 	  {
-	    for(int ith=1;ith<nthreads;ith++) in_loc=std::max(in_loc,glb_double_reduction_buf[ith]);
+	    for(unsigned int ith=1;ith<nthreads;ith++) in_loc=std::max(in_loc,glb_double_reduction_buf[ith]);
 	    MPI_Allreduce(&in_loc,&(glb_double_reduction_buf[0]),1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
 	    cache_flush();
 	  }
@@ -289,7 +289,7 @@ namespace nissa
 	//within master thread summ all the pieces and between MPI
 	if(IS_MASTER_THREAD)
 	  {
-	    for(int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_float_128_reduction_buf[ith]);
+	    for(unsigned int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_float_128_reduction_buf[ith]);
 	    MPI_Allreduce(in_loc,glb_float_128_reduction_buf[0],1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
 	    if(VERBOSITY_LV3 && rank==0) printf("glb tot: %+016.16lg\n",glb_float_128_reduction_buf[0][0]+
 						glb_float_128_reduction_buf[0][1]);

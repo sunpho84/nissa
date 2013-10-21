@@ -80,6 +80,7 @@ namespace nissa
 	char command[1024];
 	sprintf(command,"cp %s %s",path_in,path_out);
 	rc=system(command);
+	if(rc!=0) crash("cp failed!");
       }
     
     return master_broadcast(rc);
@@ -94,6 +95,7 @@ namespace nissa
 	char command[1024];
 	sprintf(command,"rm %s",path);
 	rc=system(command);
+	if(rc!=0) crash("rm failed!");
       }
     
     return master_broadcast(rc);
@@ -108,6 +110,7 @@ namespace nissa
 	char command[1024];
 	sprintf(command,"cd %s",path);
 	rc=system(command);
+	if(rc!=0) crash("cd failed!");
       }
     
     return master_broadcast(rc);

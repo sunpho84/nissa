@@ -515,16 +515,17 @@ inline void thread_barrier_internal()
 #endif //use_threads
 
 #define FORM_TWO_THREAD_TEAMS()						\
-  int is_in_first_team,is_in_second_team;				\
-  int nthreads_in_team,thread_in_team_id;				\
+  bool is_in_first_team,is_in_second_team;				\
+  unsigned int nthreads_in_team,thread_in_team_id;			\
   if(thread_pool_locked||nthreads==1)					\
     {									\
-      is_in_first_team=is_in_second_team=nthreads_in_team=1;		\
+      is_in_first_team=is_in_second_team=true;				\
+      nthreads_in_team=1;						\
       thread_in_team_id=0;						\
     }									\
   else									\
     {									\
-      is_in_first_team=thread_id<nthreads/2;				\
+      is_in_first_team=(thread_id<nthreads/2);				\
       is_in_second_team=!is_in_first_team;				\
       if(is_in_first_team)						\
 	{								\
