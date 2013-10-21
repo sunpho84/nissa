@@ -9,9 +9,7 @@ SUBDIRS= \
 
 #adds extra files to distribution
 EXTRA_DIST= \
-	libtool \
 	config \
-	bootstrap \
         README \
         src/nissa.hpp \
         src/create_headers.sh \
