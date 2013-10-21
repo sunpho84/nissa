@@ -153,10 +153,8 @@ namespace nissa
     int n=0;
     if(rank==0)
       {
-	char *line=NULL;
-	size_t linecap=0;
-	while((getline(&line,&linecap,fin))>0) n++;
-	free(line);
+	int ch;
+	while(EOF!=(ch=getchar())) if (ch=='\n') n++;
       }
     
     //close file and broadcast n

@@ -1,9 +1,10 @@
 #!/bin/sh
 
-mkdir -p m4
-
-rm -fr libtool autom4te.cache
+rm -fr libtool \
+    aclocal.m4 \
+    autom4te.cache \
+    $(find . -name "Makefile.in") \
+    config/{compile,config.guess,config.sub,depcomp,install-sh,ltmain.sh,missing,ylwrap} \
+    configure
 
 autoreconf --verbose --install --force
-
-rm -f config.cache
