@@ -46,21 +46,31 @@ Requirements
 Compiling
 ---------
 
-Run autoreconf to produce "configure" script.
-Then run "./configure" with suitable parameters to generate the "Makefile".
-Available options:
-	  --enable-bgq			to activate SPI communications and (in the future) BGQ geometry
-	  --enable-reproducible-run 	to make the run fully geometry and threadization independent
-	  
-Then use "make" to compile.
+NB: I you downloaded the package through SVN, the "configure" script
+will not find the correct timestamp for the autoconfigure files.
+This will trigger the reconfiguration of the package, which needs
+updated version of autotools to be present.
+To avoid this, you can fix the package using:
+
+   	    bash config/fix_timestamp_order.sh 
+
+This is not needed if you obtained the package as a tarball.
+
+Compilation procede as in normal autotools way:
+
+	    mkdir build
+	    cd build
+	    ../configure --help
+	    ../configure CXX=... CXXFLAGS=... [flags]
+	    make
 
 The program have to be compiled with C++ including all the libraries and header necessary 
 for MPI. Typically you can use some wrapper of the system compiler to avoid having to pass
 all the paths and flags needed by MPI. Pass the name of such compiler wrapper through "CXX" 
-parameter, e.g: "./configure CXX=mpicxx".
+parameter, e.g: "CXX=mpicxx".
 
 On BGQ machine (Turing and Fermi) use:
- ./configure CC=mpixlc_r CXX=mpixlcxx_r CXXFLAGS="-qsmp=omp -O5 -qstrict=all" LIBS=-lxlsmp --enable-bgq
+ ../configure CC=mpixlc_r CXX=mpixlcxx_r CXXFLAGS="-qsmp=omp -O3 -qstrict=all" --enable-bgq
 
 When compiling using mpi intel compiler please set the flag: "CXXFLAGS=-DMPICH_IGNORE_CXX_SEEK"
 
