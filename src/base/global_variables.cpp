@@ -188,9 +188,11 @@ namespace nissa
  #endif
 
  #ifndef ONLY_INSTANTIATION
-   int thread_pool_locked=true,nthreads=1;
+  bool thread_pool_locked=true;
+  unsigned int nthreads=1;
  #else
-   EXTERN int thread_pool_locked,nthreads;
+  EXTERN bool thread_pool_locked;
+  EXTERN unsigned int nthreads;
  #endif
   EXTERN double *glb_double_reduction_buf;
   EXTERN float_128 *glb_float_128_reduction_buf;
