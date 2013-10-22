@@ -18,6 +18,9 @@
 #include "operations/su3_paths/squared_staples.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
+#ifdef USE_THREADS
+ #include "routines/thread.hpp"
+#endif
 
 /*
   rotate a field anti-clockwise by 90 degrees
@@ -235,41 +238,44 @@ namespace nissa
   }
   
   //cool the configuration
-  void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp)
+  THREADABLE_FUNCTION_3ARG(cool_conf, quad_su3**,eo_conf, int,over_flag, double,over_exp)
   {
+    GET_THREAD_ID();
+    
     //loop on parity and directions
     for(int mu=0;mu<4;mu++)
       for(int par=0;par<2;par++)
 	{
-	  NISSA_LOC_VOLH_LOOP(ieo)
-	  {
-	    //find the transformation
-	    su3 u;
-	    su3_find_cooled(u,eo_conf,par,ieo,mu);
-            
-	    //overrelax if needed
-	    if(over_flag)
-	      {
-		//find the transformation
-		su3 temp1;
-		unsafe_su3_prod_su3_dag(temp1,u,eo_conf[par][ieo][mu]);
-                
-		//exponentiate it and re-unitarize
-		su3 temp2;
-		su3_overrelax(temp2,temp1,over_exp);
-                
-		//find the transformed link
-		unsafe_su3_prod_su3(u,temp2,eo_conf[par][ieo][mu]);
-	      }
-            
-	    //change the link
-	    su3_copy(eo_conf[par][ieo][mu],u);
-	  }
+	  communicate_eo_quad_su3_edges(eo_conf);
+	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	    {
+	      //find the transformation
+	      su3 u;
+	      su3_find_cooled(u,eo_conf,par,ieo,mu);
+	      
+	      //overrelax if needed
+	      if(over_flag)
+		{
+		  //find the transformation
+		  su3 temp1;
+		  unsafe_su3_prod_su3_dag(temp1,u,eo_conf[par][ieo][mu]);
+		  
+		  //exponentiate it and re-unitarize
+		  su3 temp2;
+		  su3_overrelax(temp2,temp1,over_exp);
+		  
+		  //find the transformed link
+		  unsafe_su3_prod_su3(u,temp2,eo_conf[par][ieo][mu]);
+		}
+	      
+	      //change the link
+	      su3_copy(eo_conf[par][ieo][mu],u);
+	    }
 	  
 	  //now set the borders invalid: since we split conf in e/o, only now needed
 	  set_borders_invalid(eo_conf[par]);
 	}
-  }
+  }}
   
   //heatbath or overrelax algorithm for the quenched simulation case
   void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over)
