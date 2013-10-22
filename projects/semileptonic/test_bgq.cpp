@@ -564,14 +564,14 @@ void debug_apply_tmQ()
   
   //apply tm bgq
   master_printf("Applying on the vsurface: %d-%d\n",0,vsurf_vol);
-  apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol,bi_in);
+  apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,0,vsurf_vol,bi_in);
   THREAD_BARRIER();
   start_Wilson_hopping_matrix_lx_bgq_communications();
-  THREAD_BARRIER();  
+  THREAD_BARRIER();
 
   //compute on the bulk and finish communications
   master_printf("Applying on the bulk: %d-%d\n",vsurf_vol,loc_volh);
-  apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,vsurf_vol,loc_volh,bi_in);
+  apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,vsurf_vol,loc_volh,bi_in);
   THREAD_BARRIER();
   finish_Wilson_hopping_matrix_lx_bgq_communications();
   THREAD_BARRIER();
@@ -699,7 +699,7 @@ void debug2_tm()
   //benchmark pure hopping matrix application
   double hop_bgq_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,0,loc_volh,bi_in);
+    apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,0,loc_volh,bi_in);
   hop_bgq_time+=take_time();
   hop_bgq_time/=nbench;
   int nflops_hop=1152*loc_vol;
@@ -728,7 +728,7 @@ void debug2_tm()
   //benchmark bulk computation
   double bulk_computation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,vsurf_vol,loc_volh,bi_in);
+    apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,vsurf_vol,loc_volh,bi_in);
   bulk_computation_time+=take_time();
   bulk_computation_time/=nbench;
   master_printf("bulk_computation_time: %lg sec\n",bulk_computation_time);
@@ -736,7 +736,7 @@ void debug2_tm()
   //benchmark surf computation
   double surf_compuation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(bi_conf,0,vsurf_vol,bi_in);
+    apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,0,vsurf_vol,bi_in);
   surf_compuation_time+=take_time();
   surf_compuation_time/=nbench;
   master_printf("surf_compuation_time: %lg sec\n",surf_compuation_time);
@@ -847,11 +847,11 @@ void debug2_st()
       const int OE=0;
   
       //compute on the surface and start communications
-      apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],OE);
+      apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],OE);
       start_staggered_hopping_matrix_oe_or_eo_bgq_communications();
   
       //compute on the bulk and finish communications
-      apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm_nobarrier(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],OE);
+      apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],OE);
       finish_staggered_hopping_matrix_oe_or_eo_bgq_communications(OE);
 
       //put the eight pieces together
