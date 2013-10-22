@@ -909,10 +909,18 @@ void calculate_S1(int ispec,int ism_lev_se)
 		  else inv_WclovQ_cg(cgm_solution[imass],NULL,conf,m,cSW,Pmunu,niter_max,stop_res_S1[imass],source);
 		}
 	    
+#ifdef BENCH
+	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
+#endif
+
 	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d",itheta,ism_lev_se,id);
+	    
+#ifdef POINT_SOURCE_VERSION
+	    master_printf("color index %d ",ic);
+#endif
+	    master_printf(" dirac index %d,",itheta,ism_lev_se,id);
 #ifdef BENCH
 	    master_printf(" in %g sec\n",part_time);
-	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
 #else
 	    master_printf("\n");
 #endif
@@ -1025,7 +1033,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
   else new_loc_2pts=nissa_malloc("contr_2pts",ncontr_2pts*glb_size[0],double);
 
   //smear additively the propagators
-#ifdef BECNH
+#ifdef BENCH
   smear_time-=take_time();
 #endif
   for(int r=0;r<2;r++)

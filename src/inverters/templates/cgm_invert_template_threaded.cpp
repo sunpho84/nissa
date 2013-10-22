@@ -180,7 +180,6 @@ namespace nissa
 	    if(run_flag[ishift]==1)
 	      {
 		double ratio=betap/(betaa*alpha*(1-zas[ishift]/zps[ishift])+betap*(1-(shift[ishift]-shift[0])*betaa));
-		if(ratio>1) verbosity_lv=2;
 		if(isnan(ratio)) crash("nanned");
 		zfs[ishift]=zas[ishift]*ratio;
 		betas[ishift]=betaa*ratio;

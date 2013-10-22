@@ -45,7 +45,7 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier, bi_oct_su3*,conf, int,istart, int,iend, bi_spincolor*,in)
+  THREADABLE_FUNCTION_4ARG(apply_Wilson_hopping_matrix_lx_bgq_nocomm, bi_oct_su3*,conf, int,istart, int,iend, bi_spincolor*,in)
   {
     GET_THREAD_ID();
     
@@ -112,34 +112,34 @@ namespace nissa
 	REG_BI_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
 	REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR_LOAD_STORE(out[iout[7]],links[7],reg_proj);
       }
+    
+    THREAD_BARRIER();    
   }}
 
-  //swap border between VN and, if virtual parallelized dir is really parallelized, fill send buffers
+  //if virtual parallelized dir is really parallelized, fill send buffers
   THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_lx_vdir_VN_comm_and_buff_fill)
   {
     GET_THREAD_ID();
-    
-    //vdir buffers might have been filled in another order
-    THREAD_BARRIER();
     
     //form two thread team
     FORM_TWO_THREAD_TEAMS();
     
     //short access
     int v=vnode_paral_dir;
-    bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)send_buf+bord_volh; //half vol bisp = vol sp 
-    bi_halfspincolor *bgq_hopping_matrix_output_vdir_buffer=bgq_hopping_matrix_output_data+8*loc_volh;
+    const int fact=1;
+    bi_halfspincolor *bgq_hopping_matrix_output_data=(bi_halfspincolor*)send_buf+bord_volh/fact; //half vol bisp = vol sp
+    bi_halfspincolor *bgq_hopping_matrix_output_vdir_buffer=bgq_hopping_matrix_output_data+8*loc_volh/fact;
     
     ///////////////////////// bw scattered v derivative (fw derivative)  ////////////////////////
     
     if(is_in_first_team)
       //split bw v border: VN 0 goes to bw out border (first half)
-      NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4,thread_in_team_id,nthreads_in_team)
+      NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4/fact,thread_in_team_id,nthreads_in_team)
 	{
 	  //the source starts at the middle of result border buffer
-	  int isrc=2*base_isrc+0*vbord_vol/2; //we match 2 sites
+	  int isrc=2*base_isrc+0*vbord_vol/2/fact; //we match 2 sites
 	  //non-local shuffling: must enter bw buffer for direction v
-	  int idst_buf=0*bord_volh/2+bord_offset[v]/2+base_isrc;
+	  int idst_buf=(0*bord_volh/2+bord_offset[v]/2)/fact+base_isrc;
 	  //load the first
 	  DECLARE_REG_BI_HALFSPINCOLOR(in0);
 	  REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
@@ -156,12 +156,12 @@ namespace nissa
     
     if(is_in_second_team)
       //split fw v border: VN 1 goes to fw out border (second half)
-      NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4,thread_in_team_id,nthreads_in_team)
+      NISSA_CHUNK_LOOP(base_isrc,0,vbord_vol/4/fact,thread_in_team_id,nthreads_in_team)
 	{
 	  //the source starts at the middle of result border buffer
-	  int isrc=2*base_isrc+1*vbord_vol/2;
+	  int isrc=2*base_isrc+1*vbord_vol/2/fact;
 	  //non-local shuffling: must enter fw buffer (starting at bord_volh/2 because its bi) for direction 0
-	  int idst_buf=1*bord_volh/2+bord_offset[v]/2+base_isrc;
+	  int idst_buf=(1*bord_volh/2+bord_offset[v]/2)/fact+base_isrc;
 	  //load the first
 	  DECLARE_REG_BI_HALFSPINCOLOR(in0);
 	  REG_LOAD_BI_HALFSPINCOLOR(in0,bgq_hopping_matrix_output_vdir_buffer[isrc]);
@@ -173,6 +173,8 @@ namespace nissa
 	  REG_BI_HALFSPINCOLOR_V1_MERGE(to_buf,in0,in1);
 	  STORE_REG_BI_HALFSPINCOLOR(((bi_halfspincolor*)send_buf)[idst_buf],to_buf);
 	}
+    
+    THREAD_BARRIER();
   }}
 
   //pick data from vbuffer and put it in correct position
@@ -217,6 +219,8 @@ namespace nissa
 	  REG_BI_HALFSPINCOLOR_TRANSPOSE(reg_out,reg_in);
 	  STORE_REG_BI_HALFSPINCOLOR(base_out_fw[isrc*8+4+v],reg_out);
 	}
+    
+    THREAD_BARRIER();
   }}
 
   //perform communications between VN and start all the communications between nodes
@@ -224,9 +228,6 @@ namespace nissa
   {
     //shuffle data between virtual nodes and fill vdir out buffer
     if(paral_dir[vnode_paral_dir]) bgq_Wilson_hopping_matrix_lx_vdir_VN_comm_and_buff_fill();
-    
-    //after the barrier, all buffers are filled and communications can start
-    THREAD_BARRIER();
     
     //start communications of scattered data to other nodes
     comm_start(lx_halfspincolor_comm);
@@ -331,5 +332,7 @@ namespace nissa
 			   thread_in_team_id,nthreads_in_team)
 	    SITE_COPY(base_out[def_pos[isrc]],base_in[isrc]);
 	}
+    
+    THREAD_BARRIER();
   }}
 }

@@ -145,11 +145,11 @@ namespace nissa
   THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, double,mu, bi_spincolor*,in)
   {
     //compute on the surface and start communications
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(conf,0,vsurf_vol,in);
+    apply_Wilson_hopping_matrix_lx_bgq_nocomm(conf,0,vsurf_vol,in);
     start_Wilson_hopping_matrix_lx_bgq_communications();
     
     //compute on the bulk and finish communications
-    apply_Wilson_hopping_matrix_lx_bgq_nocomm_nobarrier(conf,vsurf_vol,loc_volh,in);
+    apply_Wilson_hopping_matrix_lx_bgq_nocomm(conf,vsurf_vol,loc_volh,in);
     finish_Wilson_hopping_matrix_lx_bgq_communications();
     
     //put together all the 8 pieces
