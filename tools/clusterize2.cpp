@@ -11,11 +11,12 @@ uint64_t mem_needed;
 
 typedef char sa_string[300];
 
-int REIM,use_new_contraction_layout;
+int REIM,use_new_contraction_layout,binary_out;
 int T,ncorr,ncombo,ncorr_type;
 int nfile_names;
 int njack,clust_size;
 int start_conf_id,nconfs,nconfs_teo;
+int start_copy_id,ncopies;
 char base_path_in[1024],base_path_out[1024];
 sa_string *corr_name,*outpath;
 double *data;
@@ -31,6 +32,8 @@ void parse_input(char *path)
   
   //nconfs
   read_str_int("Nconfs",&nconfs_teo);
+  read_str_int("StartCopyId",&start_copy_id);
+  read_str_int("Ncopies",&ncopies);
   read_str_int("NJack",&njack);
   
   //n files
@@ -39,6 +42,9 @@ void parse_input(char *path)
   //REIM
   read_str_int("UseNewContractionLayout",&use_new_contraction_layout);
   REIM=use_new_contraction_layout?1:2;
+  
+  //binary or ascii
+  read_str_int("BinaryOut",&binary_out);
   
   //compute real numb of confs
   clust_size=nconfs_teo/njack;
@@ -181,8 +187,8 @@ void parse_conf(int iconf,char *path)
 	    nread_line++;
 	    
 	    //find output place
-	    int i1=iclust+(njack+1)*(t+T*(0+REIM*nread_corr));
-	    int i2=iclust+(njack+1)*(t+T*(1+REIM*nread_corr));
+	    int i1=iclust+(njack+1)*(t+T*(0+REIM*(icombo+ncombo*icorr_type)));
+	    int i2=iclust+(njack+1)*(t+T*(1+REIM*(icombo+ncombo*icorr_type)));
 	    
 	    //summ into the cluster
 	    data[i1]+=t1;
@@ -215,38 +221,42 @@ int main(int narg,char **arg)
       read_str_str("BasePathOut",base_path_out,1024);
       
       //create first file path
-      char path[nconfs][100];
-      int curr_conf=0;
-      for(int iconf=0;iconf<nconfs;iconf++)
+      char path[nconfs][ncopies][100];
+      for(int icopy=0;icopy<ncopies;icopy++)
 	{
-	  //search existing conf
-	  int found;
-	  do
+	  int curr_conf=0;
+	  for(int iconf=0;iconf<nconfs;iconf++)
 	    {
-	      sprintf(path[iconf],base_path_in,curr_conf+start_conf_id);
-	      found=file_exists(path[iconf]);
-	      if(!found)
+	      //search existing conf
+	      int found;
+	      do
 		{
-		  printf("conf %s not available, skipping",path[iconf]);
-		  curr_conf++;
-		  if(curr_conf>=nconfs_teo) crash("finished all available confs");
+		  sprintf(path[iconf][icopy],base_path_in,curr_conf+start_conf_id,icopy+start_copy_id);
+		  found=file_exists(path[iconf][icopy]);
+		  if(!found)
+		    {
+		      printf("conf %s not available, skipping",path[iconf][icopy]);
+		      curr_conf++;
+		      if(curr_conf>=nconfs_teo) crash("finished all available confs");
+		    }
 		}
+	      while(!found);
+	      
+	      //increment
+	      curr_conf++;
 	    }
-	  while(!found);
-	  
-	  //increment
-	  curr_conf++;
 	}
-
+      
       //count corrs and reset data
-      count_corr(path[0]);
+      count_corr(path[0][0]);
       memset(data,0,mem_needed);
       
       //parse the conf into data clusters
 #pragma omp parallel for
       for(int ijack=0;ijack<njack;ijack++)
 	for(int iconf=ijack*clust_size;iconf<(ijack+1)*clust_size;iconf++)
-	  parse_conf(iconf,path[iconf]);
+	  for(int icopy=0;icopy<ncopies;icopy++)
+	    parse_conf(iconf,path[iconf][icopy]);
       
       //make the jacknives
       for(int icorr=0;icorr<ncombo*REIM*ncorr_type*T;icorr++)
@@ -255,12 +265,12 @@ int main(int narg,char **arg)
 	  
 	  //compute average
 	  for(int iclust=0;iclust<njack;iclust++) d[njack]+=d[iclust];
-	  for(int ijack=0;ijack<njack;ijack++) d[ijack]=(d[njack]-d[ijack])/(nconfs-nconfs/njack);
-	  d[njack]/=nconfs;
+	  for(int ijack=0;ijack<njack;ijack++) d[ijack]=(d[njack]-d[ijack])/(nconfs-nconfs/njack)/ncopies;
+	  d[njack]/=nconfs*ncopies;
 	}
       
       //if necessary change the endianess
-      if(!little_endian)
+      if(binary_out && !little_endian)
 	doubles_to_doubles_changing_endianess(data,data,mem_needed/sizeof(double));
       
       printf("\n");
@@ -272,8 +282,14 @@ int main(int narg,char **arg)
 	  printf("Writing corr %s (%d/%d)\n",corr_name[icorr_type],icorr_type+1,ncorr_type);
 	  file=open_file(outpath[icorr_type],"w");
 	  
-	  int n=fwrite((void*)(data+ncombo*REIM*T*(njack+1)*icorr_type),sizeof(double),ncombo*REIM*T*(njack+1),file);
-	  if(n!=ncombo*REIM*T*(njack+1)) crash("obtained %d instead of %d",n,ncombo*REIM*T*(njack+1));
+	  if(binary_out)
+	    {
+	      int n=fwrite((void*)(data+ncombo*REIM*T*(njack+1)*icorr_type),sizeof(double),ncombo*REIM*T*(njack+1),file);
+	      if(n!=ncombo*REIM*T*(njack+1)) crash("obtained %d instead of %d",n,ncombo*REIM*T*(njack+1));
+	    }
+	  else
+	    for(int i=0;i<ncombo*REIM*T*(njack+1);i++) fprintf(file,"%+016.16lg\n",
+							       data[i+ncombo*REIM*T*(njack+1)*icorr_type]);
 	  fclose(file);
 	}
       

@@ -105,7 +105,6 @@ namespace nissa
 	delta=lambda;
 	
 	//checks
-	if(gammag>1) verbosity_lv=2;
 	if(isnan(gammag)) crash("nanned");
 	
 	//p_(k+1)=r_(k+1)+gammag*p_k
