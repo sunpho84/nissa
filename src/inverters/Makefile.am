@@ -9,8 +9,12 @@ bgq_src_file= \
 	staggered/cg_invert_stD2ee_m2_bgq.hpp \
         twisted_mass/cgm_invert_tmQ2_bgq.cpp \
         twisted_mass/cgm_invert_tmQ2_bgq.hpp \
+        twisted_mass/cg_64_invert_tmQ2_bgq.cpp \
+        twisted_mass/cg_64_invert_tmQ2_bgq.hpp \
         twisted_mass/cg_128_invert_tmQ2_bgq.cpp \
-        twisted_mass/cg_128_invert_tmQ2_bgq.hpp
+        twisted_mass/cg_128_invert_tmQ2_bgq.hpp \
+	twisted_mass/cg_invert_tmQ2_bgq.cpp \
+	twisted_mass/cg_invert_tmQ2_bgq.hpp
 endif
 
 noinst_LTLIBRARIES=libinverters.la

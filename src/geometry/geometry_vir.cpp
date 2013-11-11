@@ -342,6 +342,31 @@ namespace nissa
     set_borders_invalid(out);
   }}
 
+  THREADABLE_FUNCTION_2ARG(virlx_conf_remap_to_lx, quad_su3*,ext_out, bi_oct_su3*,in)
+  {
+    GET_THREAD_ID();
+    
+    //buffer if needed
+    int bufferize=(void*)ext_out==(void*)in;
+    quad_su3 *out=bufferize?nissa_malloc("out",loc_vol,quad_su3):ext_out;
+    
+    //split to the two VN
+    NISSA_PARALLEL_LOOP(ivol_virlx,0,loc_vol/NVNODES)
+      for(int mu=0;mu<4;mu++)
+	BI_SU3_TO_SU3(out[loclx_of_virlx[ivol_virlx]][mu],out[loclx_of_virlx[ivol_virlx]+vnode_lx_offset][mu],
+		      in[ivol_virlx][mu]);
+    
+    //wait filling
+    set_borders_invalid(out);
+    
+    //unbuffer if needed
+    if(bufferize)
+      {
+	vector_copy(ext_out,out);
+	nissa_free(out);
+      }
+  }}
+
   //similar for eo
   THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
   {
