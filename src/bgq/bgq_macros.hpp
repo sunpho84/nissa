@@ -3,6 +3,8 @@
 #endif
 
 #include "intrinsic.hpp"
+#include "new_types/complex.hpp"
+#include "new_types/float_128.hpp"
 
 ////////////////////////////// convert normal complex to BI //////////////////////////
 
@@ -35,6 +37,38 @@
     COLOR_TO_BI_COLOR(A[3],B[3],VN);		\
   }
 
+/////////////// 128 bit version //////////////
+
+#define COMPLEX_128_TO_BI_COMPLEX_128(A,B,VN)		\
+  {							\
+    float_128_copy(A[VN][RE],B[RE]);			\
+    float_128_copy(A[VN][IM],B[IM]);			\
+  }
+#define COLOR_128_TO_BI_COLOR_128(A,B,VN)		\
+  {							\
+    COMPLEX_128_TO_BI_COMPLEX_128(A[0],B[0],VN);	\
+    COMPLEX_128_TO_BI_COMPLEX_128(A[1],B[1],VN);	\
+    COMPLEX_128_TO_BI_COMPLEX_128(A[2],B[2],VN);	\
+  }
+#define SU3_128_TO_BI_SU3_128(A,B,VN)		\
+  {						\
+    COLOR_128_TO_BI_COLOR_128(A[0],B[0],VN);	\
+    COLOR_128_TO_BI_COLOR_128(A[1],B[1],VN);	\
+    COLOR_128_TO_BI_COLOR_128(A[2],B[2],VN);	\
+  }
+#define HALFSPINCOLOR_128_TO_BI_HALFSPINCOLOR_128(A,B,VN)	\
+  {								\
+    COLOR_128_TO_BI_COLOR_128(A[0],B[0],VN);			\
+    COLOR_128_TO_BI_COLOR_128(A[1],B[1],VN);			\
+  }
+#define SPINCOLOR_128_TO_BI_SPINCOLOR_128(A,B,VN)	\
+  {							\
+    COLOR_128_TO_BI_COLOR_128(A[0],B[0],VN);		\
+    COLOR_128_TO_BI_COLOR_128(A[1],B[1],VN);		\
+    COLOR_128_TO_BI_COLOR_128(A[2],B[2],VN);		\
+    COLOR_128_TO_BI_COLOR_128(A[3],B[3],VN);		\
+  }
+
 //////////////////////////////// extract component of BI ////////////////////////////////
 
 #define COMPLEX_OF_BI_COMPLEX(A,B,VN)		\
@@ -64,6 +98,38 @@
     COLOR_OF_BI_COLOR(A[1],B[1],VN);		\
     COLOR_OF_BI_COLOR(A[2],B[2],VN);		\
     COLOR_OF_BI_COLOR(A[3],B[3],VN);		\
+  }
+
+///////////// 128 bit version /////////////
+
+#define COMPLEX_128_OF_BI_COMPLEX_128(A,B,VN)		\
+  {							\
+    float_128_copy(A[RE],B[VN][RE]);			\
+    float_128_copy(A[IM],B[VN][IM]);			\
+  }
+#define COLOR_128_OF_BI_COLOR_128(A,B,VN)		\
+  {							\
+    COMPLEX_128_OF_BI_COMPLEX_128(A[0],B[0],VN);	\
+    COMPLEX_128_OF_BI_COMPLEX_128(A[1],B[1],VN);	\
+    COMPLEX_128_OF_BI_COMPLEX_128(A[2],B[2],VN);	\
+  }
+#define SU3_128_OF_BI_SU3_128(A,B,VN)		\
+  {						\
+    COLOR_128_OF_BI_COLOR_128(A[0],B[0],VN);	\
+    COLOR_128_OF_BI_COLOR_128(A[1],B[1],VN);	\
+    COLOR_128_OF_BI_COLOR_128(A[2],B[2],VN);	\
+  }
+#define HALFSPINCOLOR_128_OF_BI_HALFSPINCOLOR_128(A,B,VN)	\
+  {								\
+    COLOR_128_OF_BI_COLOR_128(A[0],B[0],VN);			\
+    COLOR_128_OF_BI_COLOR_128(A[1],B[1],VN);			\
+  }
+#define SPINCOLOR_128_OF_BI_SPINCOLOR_128(A,B,VN)	\
+  {							\
+    COLOR_128_OF_BI_COLOR_128(A[0],B[0],VN);		\
+    COLOR_128_OF_BI_COLOR_128(A[1],B[1],VN);		\
+    COLOR_128_OF_BI_COLOR_128(A[2],B[2],VN);		\
+    COLOR_128_OF_BI_COLOR_128(A[3],B[3],VN);		\
   }
 
 //////////////////////////////// copy BI ////////////////////////////////
@@ -130,6 +196,41 @@
     BI_COLOR_TO_COLOR(A[1],B[1],C[1]);		\
     BI_COLOR_TO_COLOR(A[2],B[2],C[2]);		\
     BI_COLOR_TO_COLOR(A[3],B[3],C[3]);		\
+  }
+
+
+///////////////// 128 bit version ////////////////
+
+#define BI_COMPLEX_128_TO_COMPLEX_128(A,B,C)		\
+  {							\
+    float_128_copy(A[RE],C[0][RE]);			\
+    float_128_copy(A[IM],C[0][IM]);			\
+    float_128_copy(B[RE],C[1][RE]);			\
+    float_128_copy(B[IM],C[1][IM]);			\
+  }
+#define BI_COLOR_128_TO_COLOR_128(A,B,C)		\
+  {							\
+    BI_COMPLEX_128_TO_COMPLEX_128(A[0],B[0],C[0]);	\
+    BI_COMPLEX_128_TO_COMPLEX_128(A[1],B[1],C[1]);	\
+    BI_COMPLEX_128_TO_COMPLEX_128(A[2],B[2],C[2]);	\
+  }
+#define BI_SU3_128_TO_SU3_128(A,B,C)		\
+  {						\
+    BI_COLOR_128_TO_COLOR_128(A[0],B[0],C[0]);	\
+    BI_COLOR_128_TO_COLOR_128(A[1],B[1],C[1]);	\
+    BI_COLOR_128_TO_COLOR_128(A[2],B[2],C[2]);	\
+  }
+#define BI_HALFSPINCOLOR_128_TO_HALFSPINCOLOR_128(A,B,C)	\
+  {								\
+    BI_COLOR_128_TO_COLOR_128(A[0],B[0],C[0]);			\
+    BI_COLOR_128_TO_COLOR_128(A[1],B[1],C[1]);			\
+  }
+#define BI_SPINCOLOR_128_TO_SPINCOLOR_128(A,B,C)	\
+  {							\
+    BI_COLOR_128_TO_COLOR_128(A[0],B[0],C[0]);		\
+    BI_COLOR_128_TO_COLOR_128(A[1],B[1],C[1]);		\
+    BI_COLOR_128_TO_COLOR_128(A[2],B[2],C[2]);		\
+    BI_COLOR_128_TO_COLOR_128(A[3],B[3],C[3]);		\
   }
 
 //////////////////////////////////// basic operation on BI ////////////////////////////////

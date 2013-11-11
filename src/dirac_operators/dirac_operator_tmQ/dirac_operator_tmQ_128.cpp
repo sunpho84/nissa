@@ -2,7 +2,7 @@
  #include "config.hpp"
 #endif
 
-#include "new_types/float128.hpp"
+#include "new_types/float_128.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "communicate/communicate.hpp"
 #include "base/global_variables.hpp"

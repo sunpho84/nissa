@@ -463,6 +463,54 @@ namespace nissa
       }
   }}
 
+  //remap a spincolor_128 from lx to virlx layout
+  THREADABLE_FUNCTION_2ARG(lx_spincolor_128_remap_to_virlx, bi_spincolor_128*,ext_out, spincolor_128*,in)
+  {
+    GET_THREAD_ID();
+  
+    //bufferize if needed
+    int bufferize=(void*)ext_out==(void*)in;
+    bi_spincolor_128 *out=bufferize?nissa_malloc("out",loc_vol/NVNODES,bi_spincolor_128):ext_out;
+    
+    //copy the various VN
+    NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
+      SPINCOLOR_128_TO_BI_SPINCOLOR_128(out[virlx_of_loclx[ivol_lx]],in[ivol_lx],vnode_of_loclx(ivol_lx));
+    
+    //wait filling
+    set_borders_invalid(out);
+    
+    //unbuffer if needed
+    if(bufferize)
+      {
+	vector_copy(ext_out,out);
+	nissa_free(out);
+      }
+  }}
+  //reverse
+  THREADABLE_FUNCTION_2ARG(virlx_spincolor_128_remap_to_lx, spincolor_128*,ext_out, bi_spincolor_128*,in)
+  {
+    GET_THREAD_ID();
+  
+    //buffer if needed
+    int bufferize=(void*)ext_out==(void*)in;
+    spincolor_128 *out=bufferize?nissa_malloc("out",loc_vol,spincolor_128):ext_out;
+    
+    //split to the two VN
+    NISSA_PARALLEL_LOOP(ivol_virlx,0,loc_vol/NVNODES)
+      BI_SPINCOLOR_128_TO_SPINCOLOR_128(out[loclx_of_virlx[ivol_virlx]],out[loclx_of_virlx[ivol_virlx]+vnode_lx_offset],
+					in[ivol_virlx]);
+    
+    //wait filling
+    set_borders_invalid(out);
+    
+    //unbuffer if needed
+    if(bufferize)
+      {
+	vector_copy(ext_out,out);
+	nissa_free(out);
+      }
+  }}
+
   //remap a spincolor from lx to vireo layout
   THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_vireo, bi_spincolor**,out, spincolor*,in)
   {

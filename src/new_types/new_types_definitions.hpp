@@ -72,7 +72,7 @@ namespace nissa
   typedef bi_color bi_spincolor[4];
   typedef bi_color bi_halfspincolor[2];
   typedef bi_complex bi_halfspin[2];
-  
+
 #ifdef BGQ_EMU
   typedef bi_complex reg_bi_complex;
 #else
@@ -99,7 +99,15 @@ namespace nissa
   typedef float_128 complex_128[2];
   typedef complex_128 color_128[3];
   typedef color_128 spincolor_128[4];
-  
+
+#ifdef BGQ
+  typedef complex_128 bi_complex_128[2];
+  typedef bi_complex_128 bi_color_128[3];
+  typedef bi_color_128 bi_su3_128[3];
+  typedef bi_su3_128 bi_oct_su3_128[8];
+  typedef bi_color_128 bi_spincolor_128[4];
+#endif
+
   //octpuple
   typedef double float_256[4];
   typedef double float_256_unr[5];

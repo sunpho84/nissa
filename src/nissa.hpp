@@ -95,8 +95,8 @@
 
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
-#include "new_types/float128.hpp"
-#include "new_types/float256.hpp"
+#include "new_types/float_128.hpp"
+#include "new_types/float_256.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/read_new_types.hpp"

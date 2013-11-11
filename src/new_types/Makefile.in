@@ -95,8 +95,8 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libnew_types_la_LIBADD =
-am_libnew_types_la_OBJECTS = complex.lo dirac.lo float128.lo \
-	float256.lo rat_approx.lo read_new_types.lo spin.lo su3.lo
+am_libnew_types_la_OBJECTS = complex.lo dirac.lo float_128.lo \
+	float_256.lo rat_approx.lo read_new_types.lo spin.lo su3.lo
 libnew_types_la_OBJECTS = $(am_libnew_types_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -325,8 +325,8 @@ noinst_LTLIBRARIES = libnew_types.la
 libnew_types_la_SOURCES = \
         complex.cpp \
         dirac.cpp \
-        float128.cpp \
-        float256.cpp \
+        float_128.cpp \
+        float_256.cpp \
         rat_approx.cpp \
         read_new_types.cpp \
         spin.cpp \
@@ -336,8 +336,8 @@ new_typesincludedir = $(includedir)/new_types
 new_typesinclude_HEADERS = \
 	complex.hpp \
         dirac.hpp \
-        float128.hpp \
-        float256.hpp \
+        float_128.hpp \
+        float_256.hpp \
 	new_types_definitions.hpp \
         rat_approx.hpp \
         read_new_types.hpp \
@@ -401,8 +401,8 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/complex.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/dirac.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/float128.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/float256.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/float_128.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/float_256.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/rat_approx.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/read_new_types.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/spin.Plo@am__quote@

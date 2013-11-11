@@ -125,12 +125,15 @@ am__libdirac_operators_la_SOURCES_DIST =  \
 	dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.cpp \
 	dirac_operator_tmQ/dirac_operator_tmQ_bgq.hpp \
 	dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.hpp \
+	dirac_operator_tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
+	dirac_operator_tmQ2/dirac_operator_tmQ2_128_bgq.hpp \
 	dirac_operator_stD/dirac_operator_stD_bgq.cpp \
 	dirac_operator_stD/dirac_operator_stD_bgq.hpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @BGQ_TRUE@am__objects_1 =  \
 @BGQ_TRUE@	dirac_operator_tmQ/dirac_operator_tmQ_bgq.lo \
 @BGQ_TRUE@	dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.lo \
+@BGQ_TRUE@	dirac_operator_tmQ2/dirac_operator_tmQ2_128_bgq.lo \
 @BGQ_TRUE@	dirac_operator_stD/dirac_operator_stD_bgq.lo
 am_libdirac_operators_la_OBJECTS =  \
 	dirac_operator_stD/dirac_operator_stD.lo \
@@ -416,6 +419,8 @@ AM_CPPFLAGS = -I$(top_srcdir)/src
 @BGQ_TRUE@        dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.cpp \
 @BGQ_TRUE@        dirac_operator_tmQ/dirac_operator_tmQ_bgq.hpp \
 @BGQ_TRUE@        dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.hpp \
+@BGQ_TRUE@	dirac_operator_tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
+@BGQ_TRUE@	dirac_operator_tmQ2/dirac_operator_tmQ2_128_bgq.hpp \
 @BGQ_TRUE@	dirac_operator_stD/dirac_operator_stD_bgq.cpp \
 @BGQ_TRUE@	dirac_operator_stD/dirac_operator_stD_bgq.hpp
 
@@ -631,6 +636,9 @@ dirac_operator_tmQ/dirac_operator_tmQ_bgq.lo:  \
 dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.lo:  \
 	dirac_operator_tmQ2/$(am__dirstamp) \
 	dirac_operator_tmQ2/$(DEPDIR)/$(am__dirstamp)
+dirac_operator_tmQ2/dirac_operator_tmQ2_128_bgq.lo:  \
+	dirac_operator_tmQ2/$(am__dirstamp) \
+	dirac_operator_tmQ2/$(DEPDIR)/$(am__dirstamp)
 dirac_operator_stD/dirac_operator_stD_bgq.lo:  \
 	dirac_operator_stD/$(am__dirstamp) \
 	dirac_operator_stD/$(DEPDIR)/$(am__dirstamp)
@@ -677,6 +685,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operator_tmQ/$(DEPDIR)/reconstruct_tm_doublet.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operator_tmQ2/$(DEPDIR)/dirac_operator_tmQ2.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operator_tmQ2/$(DEPDIR)/dirac_operator_tmQ2_128.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operator_tmQ2/$(DEPDIR)/dirac_operator_tmQ2_128_bgq.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operator_tmQ2/$(DEPDIR)/dirac_operator_tmQ2_bgq.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operator_tmQ_left/$(DEPDIR)/dirac_operator_tmQ_left.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operator_tmclovQ/$(DEPDIR)/dirac_operator_tmclovQ.Plo@am__quote@

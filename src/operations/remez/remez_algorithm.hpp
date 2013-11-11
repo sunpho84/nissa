@@ -2,7 +2,7 @@
 #define _INCLUDE_REMEZ_ALGORITIHM_H
 
 #include "new_types/new_types_definitions.hpp"
-#include "new_types/float256.hpp"
+#include "new_types/float_256.hpp"
 #include "base/vectors.hpp"
 
 namespace nissa
