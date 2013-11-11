@@ -4,7 +4,7 @@
 
 #include <math.h>
 
-//#include "cg_128_invert_tmQ2.hpp"
+#include "cg_128_invert_tmQ2_bgq.hpp"
 
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
@@ -42,7 +42,7 @@
 #define A2 kappa
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,
 
-//#define CG_128_INVERT inv_tmQ2_m2_RL_cg_128
-//#define CG_128_ADDITIONAL_PARAMETERS_CALL conf,kappa,RL,
+#define CG_128_INVERT inv_tmQ2_m2_RL_cg_128_bgq
+#define CG_128_ADDITIONAL_PARAMETERS_CALL conf,kappa,0,
 
 #include "templates/cgm_invert_template_threaded.cpp"

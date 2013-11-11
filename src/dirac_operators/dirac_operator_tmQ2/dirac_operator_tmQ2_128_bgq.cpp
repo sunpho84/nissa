@@ -13,12 +13,14 @@
 
 namespace nissa
 {
-  void apply_tmQ2_RL_128_bgq(bi_spincolor_128 *bi_out,quad_su3 *conf,double kappa,int RL,double mu,bi_spincolor_128 *bi_in)
+  void apply_tmQ2_RL_128_bgq(bi_spincolor_128 *bi_out,bi_oct_su3 *bi_conf,double kappa,int RL,double mu,bi_spincolor_128 *bi_in)
   {
     spincolor_128 *out=nissa_malloc("out",loc_vol,spincolor_128);
     spincolor_128 *in=nissa_malloc("in",loc_vol+bord_vol,spincolor_128);
+    quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
     
     virlx_spincolor_128_remap_to_lx(in,bi_in);
+    virlx_conf_remap_to_lx(conf,bi_conf);
     apply_tmQ2_RL_128(out,conf,kappa,NULL,RL,mu,in);
     lx_spincolor_128_remap_to_virlx(bi_out,out);
     
