@@ -14,7 +14,7 @@
 
 #include "complex.hpp"
 #include "new_types_definitions.hpp"
-#include "float128.hpp"
+#include "float_128.hpp"
 #include "su3.hpp"
 
 namespace nissa

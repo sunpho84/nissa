@@ -12,7 +12,7 @@
 #include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
-#include "new_types/float128.hpp"
+#include "new_types/float_128.hpp"
 #include "new_types/new_types_definitions.hpp"
 
 #ifdef USE_THREADS
@@ -30,7 +30,7 @@ namespace nissa
     return diff;
   }
   
-  //summ two float128
+  //summ two float_128
   void MPI_FLOAT_128_SUM_routine(void *in,void *out,int *len,MPI_Datatype *type)
   {for(int i=0;i<(*len);i++) float_128_summassign(((float_128*)out)[i],((float_128*)in)[i]);}
   

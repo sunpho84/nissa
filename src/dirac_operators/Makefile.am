@@ -7,6 +7,8 @@ bgq_src_files= \
         dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.cpp \
         dirac_operator_tmQ/dirac_operator_tmQ_bgq.hpp \
         dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.hpp \
+	dirac_operator_tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
+	dirac_operator_tmQ2/dirac_operator_tmQ2_128_bgq.hpp \
 	dirac_operator_stD/dirac_operator_stD_bgq.cpp \
 	dirac_operator_stD/dirac_operator_stD_bgq.hpp
 endif

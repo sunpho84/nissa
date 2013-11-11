@@ -9,7 +9,7 @@
 #include "remez_algorithm.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
-#include "new_types/float256.hpp"
+#include "new_types/float_256.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 
