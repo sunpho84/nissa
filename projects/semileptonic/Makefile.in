@@ -96,7 +96,7 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/src/config.hpp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@BGQ_TRUE@am__EXEEXT_1 = test_bgq$(EXEEXT)
+@BGQ_TRUE@am__EXEEXT_1 = $(top_builddir)/bin/test_bgq$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am____top_builddir__bin_gevp_SOURCES_DIST = gevp.cpp tokenize_corr.cpp \
@@ -139,11 +139,14 @@ __top_builddir__bin_semileptonic_smeared_OBJECTS =  \
 __top_builddir__bin_semileptonic_smeared_LDADD = $(LDADD)
 __top_builddir__bin_semileptonic_smeared_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.la
-am__test_bgq_SOURCES_DIST = test_bgq.cpp
-@BGQ_TRUE@am_test_bgq_OBJECTS = test_bgq.$(OBJEXT)
-test_bgq_OBJECTS = $(am_test_bgq_OBJECTS)
-test_bgq_LDADD = $(LDADD)
-test_bgq_DEPENDENCIES = $(top_builddir)/lib/libnissa.la
+am____top_builddir__bin_test_bgq_SOURCES_DIST = test_bgq.cpp
+@BGQ_TRUE@am___top_builddir__bin_test_bgq_OBJECTS =  \
+@BGQ_TRUE@	test_bgq.$(OBJEXT)
+__top_builddir__bin_test_bgq_OBJECTS =  \
+	$(am___top_builddir__bin_test_bgq_OBJECTS)
+__top_builddir__bin_test_bgq_LDADD = $(LDADD)
+__top_builddir__bin_test_bgq_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.la
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -216,11 +219,11 @@ am__v_CCLD_1 =
 SOURCES = $(__top_builddir__bin_gevp_SOURCES) \
 	$(__top_builddir__bin_gevp_3pts_SOURCES) \
 	$(__top_builddir__bin_semileptonic_smeared_SOURCES) \
-	$(test_bgq_SOURCES)
+	$(__top_builddir__bin_test_bgq_SOURCES)
 DIST_SOURCES = $(am____top_builddir__bin_gevp_SOURCES_DIST) \
 	$(__top_builddir__bin_gevp_3pts_SOURCES) \
 	$(am____top_builddir__bin_semileptonic_smeared_SOURCES_DIST) \
-	$(am__test_bgq_SOURCES_DIST)
+	$(am____top_builddir__bin_test_bgq_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -379,10 +382,10 @@ LDADD = $(top_builddir)/lib/libnissa.la
 AUTOMAKE_OPTIONS = subdir-objects
 
 #test bgq
-@BGQ_TRUE@test_bgq_target = test_bgq
+@BGQ_TRUE@test_bgq_target = $(top_builddir)/bin/test_bgq
 
 #include sources of test_bgq
-@BGQ_TRUE@test_bgq_SOURCES = test_bgq.cpp
+@BGQ_TRUE@__top_builddir__bin_test_bgq_SOURCES = test_bgq.cpp
 
 #semileptonic_smeared
 semileptonic_smeared_parser_sources = \
@@ -508,9 +511,9 @@ $(top_builddir)/bin/semileptonic_smeared$(EXEEXT): $(__top_builddir__bin_semilep
 	@rm -f $(top_builddir)/bin/semileptonic_smeared$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_semileptonic_smeared_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_LDADD) $(LIBS)
 
-test_bgq$(EXEEXT): $(test_bgq_OBJECTS) $(test_bgq_DEPENDENCIES) $(EXTRA_test_bgq_DEPENDENCIES) 
-	@rm -f test_bgq$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(test_bgq_OBJECTS) $(test_bgq_LDADD) $(LIBS)
+$(top_builddir)/bin/test_bgq$(EXEEXT): $(__top_builddir__bin_test_bgq_OBJECTS) $(__top_builddir__bin_test_bgq_DEPENDENCIES) $(EXTRA___top_builddir__bin_test_bgq_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
+	@rm -f $(top_builddir)/bin/test_bgq$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_test_bgq_OBJECTS) $(__top_builddir__bin_test_bgq_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
