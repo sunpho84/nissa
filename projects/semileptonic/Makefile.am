@@ -6,7 +6,7 @@ AUTOMAKE_OPTIONS=subdir-objects
 
 #test bgq
 if BGQ
-test_bgq_target=test_bgq
+test_bgq_target=$(top_builddir)/bin/test_bgq
 endif
 
 #target programs
@@ -18,7 +18,7 @@ bin_PROGRAMS= \
 
 #include sources of test_bgq
 if BGQ
-test_bgq_SOURCES=test_bgq.cpp
+__top_builddir__bin_test_bgq_SOURCES=test_bgq.cpp
 endif
 
 #semileptonic_smeared
