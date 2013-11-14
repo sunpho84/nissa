@@ -328,6 +328,8 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action
 //measures
 void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
+  double meas_time=-take_time();
+  
   if(gauge_meas_flag) measure_gauge_obs(gauge_obs_path,conf,iconf,acc,gauge_action_name);
   if(top_meas_pars.flag) measure_topology(top_meas_pars,conf,iconf,conf_created);
   if(all_rect_meas_pars.flag) measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
@@ -362,6 +364,9 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	}
       else verbosity_lv2_master_printf("Skipping measure of pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
     }
+  meas_time+=take_time();
+  
+  verbosity_lv1_master_printf("Time to make fermionic measurament: %lg sec\n",meas_time);
 }
 
 //store conf when appropriate
