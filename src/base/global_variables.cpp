@@ -77,6 +77,7 @@ namespace nissa
   
 //timings
   EXTERN double tot_time;
+  EXTERN int issued_cg_warning; //hacking
 #ifdef BENCH
  #ifdef ONLY_INSTANTIATION
    EXTERN double tot_comm_time;
