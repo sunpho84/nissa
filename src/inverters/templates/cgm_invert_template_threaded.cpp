@@ -99,8 +99,7 @@ namespace nissa
     double_vector_glb_scalar_prod(&source_norm,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
     
     //writes source norm
-    //verbosity_lv2_
-    master_printf(" Source norm: %lg\n",source_norm);
+    verbosity_lv2_master_printf(" Source norm: %lg\n",source_norm);
     if(source_norm==0 || isnan(source_norm)) crash("invalid norm: %lg",source_norm);
     
     //writes initial residue
