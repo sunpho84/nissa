@@ -27,7 +27,8 @@ namespace nissa
   {
     addrem_stagphases_to_eo_conf(conf);
     add_backfield_to_conf(conf,u1b);
-    inv_stD_cg(prop,conf,m,10000,residue,source);
+    do inv_stD_cg(prop,conf,m,10000,residue,source);
+    while(issued_cg_warning);
     rem_backfield_from_conf(conf,u1b);
     addrem_stagphases_to_eo_conf(conf);
   }}
