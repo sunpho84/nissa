@@ -208,5 +208,6 @@ AC_CONFIG_FILES(
 	projects/Makefile
 	projects/eight_BK/Makefile
 	projects/generate_confs/Makefile
-	projects/semileptonic/Makefile)
+	projects/semileptonic/Makefile
+	tools/Makefile)
 AC_OUTPUT
