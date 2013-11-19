@@ -78,9 +78,9 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = find_best_vir_partitioning/find$(EXEEXT) \
-	conf_convert/gpu_to_ildg$(EXEEXT) \
-	conf_convert/ildg_to_gpu$(EXEEXT)
+bin_PROGRAMS = $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT) \
+	$(top_builddir)/tools/conf_convert/gpu_to_ildg$(EXEEXT) \
+	$(top_builddir)/tools/conf_convert/ildg_to_gpu$(EXEEXT)
 subdir = tools
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/depcomp
@@ -98,30 +98,30 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
-am_conf_convert_gpu_to_ildg_OBJECTS =  \
+am___top_builddir__tools_conf_convert_gpu_to_ildg_OBJECTS =  \
 	conf_convert/gpu_to_ildg.$(OBJEXT)
-conf_convert_gpu_to_ildg_OBJECTS =  \
-	$(am_conf_convert_gpu_to_ildg_OBJECTS)
-conf_convert_gpu_to_ildg_LDADD = $(LDADD)
-conf_convert_gpu_to_ildg_DEPENDENCIES =  \
+__top_builddir__tools_conf_convert_gpu_to_ildg_OBJECTS =  \
+	$(am___top_builddir__tools_conf_convert_gpu_to_ildg_OBJECTS)
+__top_builddir__tools_conf_convert_gpu_to_ildg_LDADD = $(LDADD)
+__top_builddir__tools_conf_convert_gpu_to_ildg_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.la
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
-am_conf_convert_ildg_to_gpu_OBJECTS =  \
+am___top_builddir__tools_conf_convert_ildg_to_gpu_OBJECTS =  \
 	conf_convert/ildg_to_gpu.$(OBJEXT)
-conf_convert_ildg_to_gpu_OBJECTS =  \
-	$(am_conf_convert_ildg_to_gpu_OBJECTS)
-conf_convert_ildg_to_gpu_LDADD = $(LDADD)
-conf_convert_ildg_to_gpu_DEPENDENCIES =  \
+__top_builddir__tools_conf_convert_ildg_to_gpu_OBJECTS =  \
+	$(am___top_builddir__tools_conf_convert_ildg_to_gpu_OBJECTS)
+__top_builddir__tools_conf_convert_ildg_to_gpu_LDADD = $(LDADD)
+__top_builddir__tools_conf_convert_ildg_to_gpu_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.la
-am_find_best_vir_partitioning_find_OBJECTS =  \
+am___top_builddir__tools_find_best_vir_partitioning_find_OBJECTS =  \
 	find_best_vir_partitioning/find.$(OBJEXT)
-find_best_vir_partitioning_find_OBJECTS =  \
-	$(am_find_best_vir_partitioning_find_OBJECTS)
-find_best_vir_partitioning_find_LDADD = $(LDADD)
-find_best_vir_partitioning_find_DEPENDENCIES =  \
+__top_builddir__tools_find_best_vir_partitioning_find_OBJECTS = $(am___top_builddir__tools_find_best_vir_partitioning_find_OBJECTS)
+__top_builddir__tools_find_best_vir_partitioning_find_LDADD =  \
+	$(LDADD)
+__top_builddir__tools_find_best_vir_partitioning_find_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.la
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
@@ -157,12 +157,13 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(conf_convert_gpu_to_ildg_SOURCES) \
-	$(conf_convert_ildg_to_gpu_SOURCES) \
-	$(find_best_vir_partitioning_find_SOURCES)
-DIST_SOURCES = $(conf_convert_gpu_to_ildg_SOURCES) \
-	$(conf_convert_ildg_to_gpu_SOURCES) \
-	$(find_best_vir_partitioning_find_SOURCES)
+SOURCES = $(__top_builddir__tools_conf_convert_gpu_to_ildg_SOURCES) \
+	$(__top_builddir__tools_conf_convert_ildg_to_gpu_SOURCES) \
+	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES)
+DIST_SOURCES =  \
+	$(__top_builddir__tools_conf_convert_gpu_to_ildg_SOURCES) \
+	$(__top_builddir__tools_conf_convert_ildg_to_gpu_SOURCES) \
+	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -319,9 +320,9 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/src
 LDADD = $(top_builddir)/lib/libnissa.la
 AUTOMAKE_OPTIONS = subdir-objects
-find_best_vir_partitioning_find_SOURCES = find_best_vir_partitioning/find.cpp
-conf_convert_gpu_to_ildg_SOURCES = conf_convert/gpu_to_ildg.cpp
-conf_convert_ildg_to_gpu_SOURCES = conf_convert/ildg_to_gpu.cpp
+__top_builddir__tools_find_best_vir_partitioning_find_SOURCES = find_best_vir_partitioning/find.cpp
+__top_builddir__tools_conf_convert_gpu_to_ildg_SOURCES = conf_convert/gpu_to_ildg.cpp
+__top_builddir__tools_conf_convert_ildg_to_gpu_SOURCES = conf_convert/ildg_to_gpu.cpp
 all: all-am
 
 .SUFFIXES:
@@ -413,16 +414,19 @@ conf_convert/$(DEPDIR)/$(am__dirstamp):
 	@: > conf_convert/$(DEPDIR)/$(am__dirstamp)
 conf_convert/gpu_to_ildg.$(OBJEXT): conf_convert/$(am__dirstamp) \
 	conf_convert/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/tools/conf_convert/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/tools/conf_convert
+	@: > $(top_builddir)/tools/conf_convert/$(am__dirstamp)
 
-conf_convert/gpu_to_ildg$(EXEEXT): $(conf_convert_gpu_to_ildg_OBJECTS) $(conf_convert_gpu_to_ildg_DEPENDENCIES) $(EXTRA_conf_convert_gpu_to_ildg_DEPENDENCIES) conf_convert/$(am__dirstamp)
-	@rm -f conf_convert/gpu_to_ildg$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(conf_convert_gpu_to_ildg_OBJECTS) $(conf_convert_gpu_to_ildg_LDADD) $(LIBS)
+$(top_builddir)/tools/conf_convert/gpu_to_ildg$(EXEEXT): $(__top_builddir__tools_conf_convert_gpu_to_ildg_OBJECTS) $(__top_builddir__tools_conf_convert_gpu_to_ildg_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_convert_gpu_to_ildg_DEPENDENCIES) $(top_builddir)/tools/conf_convert/$(am__dirstamp)
+	@rm -f $(top_builddir)/tools/conf_convert/gpu_to_ildg$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_conf_convert_gpu_to_ildg_OBJECTS) $(__top_builddir__tools_conf_convert_gpu_to_ildg_LDADD) $(LIBS)
 conf_convert/ildg_to_gpu.$(OBJEXT): conf_convert/$(am__dirstamp) \
 	conf_convert/$(DEPDIR)/$(am__dirstamp)
 
-conf_convert/ildg_to_gpu$(EXEEXT): $(conf_convert_ildg_to_gpu_OBJECTS) $(conf_convert_ildg_to_gpu_DEPENDENCIES) $(EXTRA_conf_convert_ildg_to_gpu_DEPENDENCIES) conf_convert/$(am__dirstamp)
-	@rm -f conf_convert/ildg_to_gpu$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(conf_convert_ildg_to_gpu_OBJECTS) $(conf_convert_ildg_to_gpu_LDADD) $(LIBS)
+$(top_builddir)/tools/conf_convert/ildg_to_gpu$(EXEEXT): $(__top_builddir__tools_conf_convert_ildg_to_gpu_OBJECTS) $(__top_builddir__tools_conf_convert_ildg_to_gpu_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_convert_ildg_to_gpu_DEPENDENCIES) $(top_builddir)/tools/conf_convert/$(am__dirstamp)
+	@rm -f $(top_builddir)/tools/conf_convert/ildg_to_gpu$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_conf_convert_ildg_to_gpu_OBJECTS) $(__top_builddir__tools_conf_convert_ildg_to_gpu_LDADD) $(LIBS)
 find_best_vir_partitioning/$(am__dirstamp):
 	@$(MKDIR_P) find_best_vir_partitioning
 	@: > find_best_vir_partitioning/$(am__dirstamp)
@@ -432,10 +436,13 @@ find_best_vir_partitioning/$(DEPDIR)/$(am__dirstamp):
 find_best_vir_partitioning/find.$(OBJEXT):  \
 	find_best_vir_partitioning/$(am__dirstamp) \
 	find_best_vir_partitioning/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/tools/find_best_vir_partitioning
+	@: > $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)
 
-find_best_vir_partitioning/find$(EXEEXT): $(find_best_vir_partitioning_find_OBJECTS) $(find_best_vir_partitioning_find_DEPENDENCIES) $(EXTRA_find_best_vir_partitioning_find_DEPENDENCIES) find_best_vir_partitioning/$(am__dirstamp)
-	@rm -f find_best_vir_partitioning/find$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(find_best_vir_partitioning_find_OBJECTS) $(find_best_vir_partitioning_find_LDADD) $(LIBS)
+$(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT): $(__top_builddir__tools_find_best_vir_partitioning_find_OBJECTS) $(__top_builddir__tools_find_best_vir_partitioning_find_DEPENDENCIES) $(EXTRA___top_builddir__tools_find_best_vir_partitioning_find_DEPENDENCIES) $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)
+	@rm -f $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_find_best_vir_partitioning_find_OBJECTS) $(__top_builddir__tools_find_best_vir_partitioning_find_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -477,9 +484,9 @@ mostlyclean-libtool:
 	-rm -f *.lo
 
 clean-libtool:
+	-rm -rf $(top_builddir)/tools/conf_convert/.libs $(top_builddir)/tools/conf_convert/_libs
+	-rm -rf $(top_builddir)/tools/find_best_vir_partitioning/.libs $(top_builddir)/tools/find_best_vir_partitioning/_libs
 	-rm -rf .libs _libs
-	-rm -rf conf_convert/.libs conf_convert/_libs
-	-rm -rf find_best_vir_partitioning/.libs find_best_vir_partitioning/_libs
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -600,6 +607,8 @@ distclean-generic:
 	-rm -f conf_convert/$(am__dirstamp)
 	-rm -f find_best_vir_partitioning/$(DEPDIR)/$(am__dirstamp)
 	-rm -f find_best_vir_partitioning/$(am__dirstamp)
+	-test -z "$(top_builddir)/tools/conf_convert/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_convert/$(am__dirstamp)
+	-test -z "$(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)" || rm -f $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)
 
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
