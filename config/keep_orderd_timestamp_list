@@ -59,3 +59,5 @@
 ./src/operations/Makefile.in
 ./src/routines/Makefile.am
 ./src/routines/Makefile.in
+./tools/Makefile.am
+./tools/Makefile.in
