@@ -323,4 +323,50 @@ namespace nissa
     
     close_file(file);
   }
+
+#if 0
+  //compute the topological staples site by site
+  THREADABLE_FUNCTION_2ARG(topological_staples, quad_su3*,staples, quad_su3*,conf)
+  {
+    as2t_su3 *leaves=nissa_malloc("leaves",loc_vol,as2t_su3);
+    
+    //compute the clover-shape paths
+    four_leaves(leaves,conf);
+    
+    //list the three combinations of plans
+    int plan_id[3][2]={{0,5},{1,4},{2,3}};
+    int sign[3]={1,-1,1};
+    
+    //loop on the three different combinations of plans
+    GET_THREAD_ID();
+    for(int iperm=0;iperm<3;iperm++)
+      {
+	//take the index of the two plans
+	int ip0=plan_id[iperm][0];
+	int ip1=plan_id[iperm][1];
+	
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  {
+	    //products
+	    su3 clock,aclock;
+	    unsafe_su3_prod_su3_dag(clock,leaves[ivol][ip0],leaves[ivol][ip1]);
+	    unsafe_su3_prod_su3(aclock,leaves[ivol][ip0],leaves[ivol][ip1]);
+	    
+	    //take the trace
+	    complex tclock,taclock;
+	    su3_trace(tclock,clock);
+	    su3_trace(taclock,aclock);
+	    
+	    //takes the combination with appropriate sign
+	    charge[ivol]+=sign[iperm]*(tclock[RE]-taclock[RE])*norm_fact;
+	  }
+      }
+    
+    set_borders_invalid(charge);
+    
+    nissa_free(leaves);
+  }}
+
+#endif
+
 }

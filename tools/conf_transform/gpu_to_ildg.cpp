@@ -38,10 +38,9 @@ int main(int narg,char **arg)
   //Init the MPI grid 
   init_grid(T,L);
 
-  ///////////////////////////////////////////
+  //////////////////////////////// read the file /////////////////////////
 
   su3 *in_conf=nissa_malloc("in_conf",4*loc_vol,su3);
-  quad_su3 *out_conf=nissa_malloc("out_conf",loc_vol,quad_su3);
   
   //open the file
   FILE *fin=fopen(arg[3],"r");
@@ -52,7 +51,7 @@ int main(int narg,char **arg)
   double beta,mass;
   if(fscanf(fin,"%d %d %d %d %lg %lg %d %d",&nx,&ny,&nz,&nt,&beta,&mass,&nflav,&ntraj)!=8) crash("reading header");
   
-  //read the file
+  //read the data
   NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       read_su3(in_conf[ivol*4+mu],fin);
@@ -60,10 +59,11 @@ int main(int narg,char **arg)
   //close the file
   fclose(fin);
   
-  /////////////////////////////////// reorder conf /////////////////////////
+  ////////////////////////////// convert conf ////////////////////////////
   
-  vector_reset(out_conf);
+  quad_su3 *out_conf=nissa_malloc("out_conf",loc_vol,quad_su3);
   
+  //reorder data
   int map_mu[4]={1,2,3,0};
   for(int t=0;t<T;t++)
     for(int z=0;z<L;z++)
@@ -81,10 +81,12 @@ int main(int narg,char **arg)
 	      su3_copy(out_conf[ivol][map_mu[mu]],in_conf[mu*loc_vol+num]);
 	  }
   
+  nissa_free(in_conf);
+  
   //remove phases
   addrem_stagphases_to_lx_conf(out_conf);
  
-  /////////////////////////////// check everything ///////////////////////////
+  ////////////////////////////// check everything /////////////////////////////
   
   for(int ivol=0;ivol<loc_vol;ivol++)
     for(int mu=0;mu<4;mu++)
@@ -108,10 +110,9 @@ int main(int narg,char **arg)
       }
   
   //print the plaquette and write the conf
-  master_printf("Global plaquette: %lg\n",global_plaquette_lx_conf(out_conf));
+  master_printf("Global plaquette: %16.16lg\n",global_plaquette_lx_conf(out_conf));
   write_ildg_gauge_conf(arg[4],out_conf,64);
 
-  nissa_free(in_conf);
   nissa_free(out_conf);
   
   ///////////////////////////////////////////
