@@ -5,8 +5,8 @@ AUTOMAKE_OPTIONS=subdir-objects
 bin_PROGRAMS= \
 	$(top_builddir)/tools/find_best_vir_partitioning/find \
 	$(top_builddir)/tools/conf_transform/convert/gpu_to_ildg \
-	$(top_builddir)/tools/conf_transofrm/convert/ildg_to_gpu \
-	$(top_builddir)/tools/conf_transform/smear/stout.cpp
+	$(top_builddir)/tools/conf_transform/convert/ildg_to_gpu \
+	$(top_builddir)/tools/conf_transform/smear/stout
 
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES=find_best_vir_partitioning/find.cpp
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES=conf_transform/convert/gpu_to_ildg.cpp
