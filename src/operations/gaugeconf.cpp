@@ -6,11 +6,12 @@
 #include <float.h>
 #include <string.h>
 
-#include "base/global_variables.hpp"
-#include "base/vectors.hpp"
 #include "base/debug.hpp"
-#include "communicate/communicate.hpp"
+#include "base/global_variables.hpp"
+#include "base/thread_macros.hpp"
 #include "base/random.hpp"
+#include "base/vectors.hpp"
+#include "communicate/communicate.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"

@@ -2,8 +2,6 @@
 #include "config.hpp"
 #endif
 
-#include <omp.h>
-
 #include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
