@@ -5,7 +5,6 @@
 #ifdef USE_MPI
  #include <mpi.h>
 #endif
-#include <omp.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>

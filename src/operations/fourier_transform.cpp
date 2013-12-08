@@ -75,7 +75,7 @@ namespace nissa
 	}
       }
     
-    MPI_Reduce(FT_loc,FT,24*nmom,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+    MPI_Reduce((double*)FT_loc,(double*)FT,24*nmom,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
     
     for(int idir=0;idir<4;idir++)
       {

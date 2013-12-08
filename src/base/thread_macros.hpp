@@ -7,7 +7,9 @@
 
 #include "global_variables.hpp"
 #include "debug.hpp"
-#include <omp.h>
+#ifdef USE_THREADS
+ #include <omp.h>
+#endif
 
 #if defined BGQ && !defined BGQ_EMU
  #include <bgpm/include/bgpm.h>
