@@ -39,14 +39,15 @@ namespace nissa
     double *point_path=nissa_malloc("point_path",loc_vol,double);
     
     //hyp the conf
-    hyp_smear_conf_dir(sme_conf,ori_conf,pars->hyp_alpha0,pars->hyp_alpha1,pars->hyp_alpha2,0);
+    if(pars->use_hyp_or_ape_temp==0) hyp_smear_conf_dir(sme_conf,ori_conf,pars->hyp_temp_alpha0,pars->hyp_temp_alpha1,pars->hyp_temp_alpha2,0);
+    else ape_temporal_smear_conf(sme_conf,sme_conf,pars->ape_temp_alpha,pars->nape_temp_iters);
     
     //loop over APE smeared levels
-    for(int iape=0;iape<pars->nape_levls;iape++)
+    for(int iape=0;iape<pars->nape_spat_levls;iape++)
       {
 	//APE smearing
-	ape_spatial_smear_conf(sme_conf,sme_conf,pars->ape_alpha,
-			       (iape==0)?pars->nape_iters[0]:(pars->nape_iters[iape]-pars->nape_iters[iape-1]));
+	ape_spatial_smear_conf(sme_conf,sme_conf,pars->ape_spat_alpha,
+		  (iape==0)?pars->nape_spat_iters[0]:(pars->nape_spat_iters[iape]-pars->nape_spat_iters[iape-1]));
 	
 	//reset the Tpath link product
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -64,13 +65,15 @@ namespace nissa
 	    su3_vec_single_shift(T_path,0,+1);
 	    
 	    //results to be printed, averaged along the three dirs
-	    double paths[pars->Dmax];
-	    for(int d=0;d<pars->Dmax;d++) paths[d]=0;
+	    double paths[pars->Dmax][3];
+	    for(int ii=0;ii<3;ii++) for(int d=0;d<pars->Dmax;d++) paths[d][ii]=0;
 	    
 	    //if T_path is long enough we move along spatial dirs
 	    if(t>=pars->Tmin)
-	      for(int i=1;i<4;i++)
+	      for(int ii=0;ii<3;ii++)
 		{
+		  int i=ii+1;
+		  
 		  //copy T_path
 		  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 		    su3_copy(TS_path[ivol],T_path[ivol]);
@@ -126,7 +129,7 @@ namespace nissa
 			  //reduce among all threads and ranks and summ it
 			  double temp;
 			  double_vector_glb_collapse(&temp,point_path,loc_vol);
-			  paths[d]+=temp;
+			  paths[d][i]+=temp;
 			}
 		    }
 		}
@@ -134,7 +137,11 @@ namespace nissa
 	    //print all the Dmax contributions, with ncol*nspat_dir*glb_vol normalization
 	    if(rank==0 && IS_MASTER_THREAD)
 	      for(int d=pars->Dmin;d<pars->Dmax;d++)
-		fprintf(fout,"%d %d  %d %d %16.16lg\n",iconf,iape,t,d,paths[d]/(9*glb_vol));
+		{
+		  fprintf(fout,"%d %d  %d %d",iconf,iape,t,d);
+		  for(int ii=0;ii<3;ii++) fprintf(fout,"\t%16.16lg",paths[d][ii]/(3*glb_vol));
+		  fprintf(fout,"\n");
+		}
 	  }
       }
     

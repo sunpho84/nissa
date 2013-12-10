@@ -44,6 +44,7 @@ namespace nissa
   {
     //init base things
     init_MPI_thread(narg,arg);
+
     tot_time=-take_time();
 #ifdef BENCH
     tot_comm_time=0;

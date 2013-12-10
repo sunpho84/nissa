@@ -1,6 +1,8 @@
 #include <math.h>
 
-#include <nissa.h>
+#include "nissa.hpp"
+
+using namespace nissa;
 
 void test_unitarity(FILE *fout,quad_su3 *conf,char *filename)
 {

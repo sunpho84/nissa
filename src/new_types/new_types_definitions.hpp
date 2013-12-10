@@ -350,12 +350,15 @@ namespace nissa
     int flag;
     char path[1024];
     
-    //hyp pars
-    double hyp_alpha0,hyp_alpha1,hyp_alpha2;
+    //hyp or apein T direction and pars
+    int use_hyp_or_ape_temp;
+    double hyp_temp_alpha0,hyp_temp_alpha1,hyp_temp_alpha2;
+    double ape_temp_alpha;
+    int nape_temp_iters;
     
     //ape pars
-    double ape_alpha;
-    int nape_levls,*nape_iters;
+    double ape_spat_alpha;
+    int nape_spat_levls,*nape_spat_iters;
     
     //intervals for rectangles
     int Tmin,Tmax,Dmin,Dmax;

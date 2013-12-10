@@ -149,12 +149,21 @@ namespace nissa
       {
 	read_str_str("AllRectPath",pars.path,1024);
 	
-	read_str_double("HYPAlpha0",&pars.hyp_alpha0);
-	read_str_double("HYPAlpha1",&pars.hyp_alpha1);
-	read_str_double("HYPAlpha2",&pars.hyp_alpha2);
+	read_str_int("UseHYPorAPE",&pars.use_hyp_or_ape_temp);
+	if(pars.use_hyp_or_ape_temp==0)
+	  {
+	    read_str_double("HYPTempAlpha0",&pars.hyp_temp_alpha0);
+	    read_str_double("HYPTempAlpha1",&pars.hyp_temp_alpha1);
+	    read_str_double("HYPTempAlpha2",&pars.hyp_temp_alpha2);
+	  }
+	else
+	  {
+	    read_str_double("APETempAlpha",&pars.ape_temp_alpha);
+	    read_str_int("APETempNiters",&pars.nape_temp_iters);
+	  }
 	
-	read_str_double("APEAlpha",&pars.ape_alpha);
-	read_list_of_ints("APENlevels",&pars.nape_levls,&pars.nape_iters);
+	read_str_double("APESpatAlpha",&pars.ape_spat_alpha);
+	read_list_of_ints("APESpatNlevels",&pars.nape_spat_levls,&pars.nape_spat_iters);
 	
 	read_str_int("Tint",&pars.Tmin);
 	read_int(&pars.Tmax);
