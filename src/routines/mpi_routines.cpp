@@ -38,8 +38,13 @@ namespace nissa
   void init_MPI_thread(int narg,char **arg)
   {
 #ifdef USE_MPI
+
+ #ifdef USE_THREADS
     int provided;
     MPI_Init_thread(&narg,&arg,MPI_THREAD_SERIALIZED,&provided);
+ #else
+    MPI_Init(&narg,&arg);
+ #endif
 #endif
   }
   

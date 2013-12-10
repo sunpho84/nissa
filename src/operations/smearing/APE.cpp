@@ -17,18 +17,18 @@ namespace nissa
 {
   //perform ape smearing
   //be sure not to have border condition added
-  THREADABLE_FUNCTION_4ARG(ape_spatial_smear_conf, quad_su3*,smear_conf, quad_su3*,origi_conf, double,alpha, int,nstep)
+  THREADABLE_FUNCTION_6ARG(ape_smear_conf, quad_su3*,smear_conf, quad_su3*,origi_conf, double,alpha, int,nstep, int,mu_min, int,mu_max)
   {
-    GET_THREAD_ID();  
+    GET_THREAD_ID();
     
     quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     if(origi_conf!=smear_conf) vector_copy(smear_conf,origi_conf);
     
-    verbosity_lv1_master_printf("APE smearing with alpha=%g, %d iterations\n",alpha,nstep);
+    verbosity_lv1_master_printf("APE [%d-%d] smearing with alpha=%g, %d iterations\n",alpha,nstep);
     
     for(int istep=0;istep<nstep;istep++)
       {
-	verbosity_lv3_master_printf("APE smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
+	verbosity_lv3_master_printf("APE spatial smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
 	vector_copy(temp_conf,smear_conf);
 	
 	//communicate the borders
@@ -36,7 +36,7 @@ namespace nissa
 	
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
-	    for(int mu=1;mu<4;mu++)
+	    for(int mu=mu_min;mu<mu_max;mu++)
 	      {
 		//calculate staples
 		su3 stap,temp1,temp2;
@@ -75,4 +75,9 @@ namespace nissa
     
     nissa_free(temp_conf);
   }}
+
+  void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
+  {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,1,4);}
+  void ape_temporal_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
+  {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,0,1);}
 }
