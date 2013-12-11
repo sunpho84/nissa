@@ -1,3 +1,3 @@
 AUTOMAKE_OPTIONS=subdir-objects
 
-SUBDIRS=semileptonic generate_confs eight_BK
+SUBDIRS= eight_BK generate_confs semileptonic static_potential
