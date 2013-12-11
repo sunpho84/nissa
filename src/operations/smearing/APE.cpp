@@ -24,7 +24,7 @@ namespace nissa
     quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     if(origi_conf!=smear_conf) vector_copy(smear_conf,origi_conf);
     
-    verbosity_lv1_master_printf("APE [%d-%d] smearing with alpha=%g, %d iterations\n",alpha,nstep);
+    verbosity_lv1_master_printf("APE [%d-%d] smearing with alpha=%g, %d iterations\n",mu_min,mu_max,alpha,nstep);
     
     for(int istep=0;istep<nstep;istep++)
       {

@@ -40,7 +40,7 @@ namespace nissa
     
     //hyp the conf
     if(pars->use_hyp_or_ape_temp==0) hyp_smear_conf_dir(sme_conf,ori_conf,pars->hyp_temp_alpha0,pars->hyp_temp_alpha1,pars->hyp_temp_alpha2,0);
-    else ape_temporal_smear_conf(sme_conf,sme_conf,pars->ape_temp_alpha,pars->nape_temp_iters);
+    else ape_temporal_smear_conf(sme_conf,ori_conf,pars->ape_temp_alpha,pars->nape_temp_iters);
     
     //loop over APE smeared levels
     for(int iape=0;iape<pars->nape_spat_levls;iape++)
@@ -129,7 +129,7 @@ namespace nissa
 			  //reduce among all threads and ranks and summ it
 			  double temp;
 			  double_vector_glb_collapse(&temp,point_path,loc_vol);
-			  paths[d][i]+=temp;
+			  paths[d][ii]+=temp;
 			}
 		    }
 		}
