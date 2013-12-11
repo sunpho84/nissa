@@ -54,7 +54,7 @@ namespace nissa
 	  su3_put_to_id(T_path[ivol]);
 	
 	//move along T up to Tmax
-	for(int t=0;t<pars->Tmax;t++)
+	for(int t=0;t<=pars->Tmax;t++)
 	  {
 	    //take the product
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -65,8 +65,8 @@ namespace nissa
 	    su3_vec_single_shift(T_path,0,+1);
 	    
 	    //results to be printed, averaged along the three dirs
-	    double paths[pars->Dmax][3];
-	    for(int ii=0;ii<3;ii++) for(int d=0;d<pars->Dmax;d++) paths[d][ii]=0;
+	    double paths[pars->Dmax+1][3];
+	    for(int ii=0;ii<3;ii++) for(int d=0;d<=pars->Dmax;d++) paths[d][ii]=0;
 	    
 	    //if T_path is long enough we move along spatial dirs
 	    if(t>=pars->Tmin)
@@ -79,7 +79,7 @@ namespace nissa
 		    su3_copy(TS_path[ivol],T_path[ivol]);
 		  
 		  //move along i up to Dmax
-		  for(int d=0;d<pars->Dmax;d++)
+		  for(int d=0;d<=pars->Dmax;d++)
 		    {
 		      //take the product
 		      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -135,13 +135,14 @@ namespace nissa
 		}
 	    
 	    //print all the Dmax contributions, with ncol*nspat_dir*glb_vol normalization
-	    if(rank==0 && IS_MASTER_THREAD)
-	      for(int d=pars->Dmin;d<pars->Dmax;d++)
-		{
-		  fprintf(fout,"%d %d  %d %d",iconf,iape,t,d);
-		  for(int ii=0;ii<3;ii++) fprintf(fout,"\t%16.16lg",paths[d][ii]/(3*glb_vol));
-		  fprintf(fout,"\n");
-		}
+	    if(t>=pars->Tmin)
+	      if(rank==0 && IS_MASTER_THREAD)
+		for(int d=pars->Dmin;d<=pars->Dmax;d++)
+		  {
+		    fprintf(fout,"%d %d  %d %d",iconf,iape,t,d);
+		    for(int ii=0;ii<3;ii++) fprintf(fout,"\t%16.16lg",paths[d][ii]/(3*glb_vol));
+		    fprintf(fout,"\n");
+		  }
 	  }
       }
     
