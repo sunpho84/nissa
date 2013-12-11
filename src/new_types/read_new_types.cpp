@@ -12,9 +12,10 @@
 namespace nissa
 {
   //read parameters to study topology
-  void read_top_meas_pars(top_meas_pars_t &top_meas_pars)
+  void read_top_meas_pars(top_meas_pars_t &top_meas_pars,bool flag=false)
   {
-    read_str_int("MeasureTopology",&top_meas_pars.flag);
+    if(flag==true) top_meas_pars.flag=true;
+    else read_str_int("MeasureTopology",&top_meas_pars.flag);
     if(top_meas_pars.flag)
       {
 	read_str_str("TopPath",top_meas_pars.path,1024);
@@ -26,7 +27,7 @@ namespace nissa
   }
   
   //read degeneracy, mass, chpot and charge
-  void read_quark_content(quark_content_t &quark_content)
+  void read_quark_content(quark_content_t &quark_content,bool flag=false)
   {
     read_str_int("Degeneracy",&(quark_content.deg));
     read_str_double("Mass",&(quark_content.mass));
@@ -49,7 +50,7 @@ namespace nissa
   //read the parameters relevant for pure gauge evolution
   void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
   {
-    //heat bath parameters                                                                                                                           
+    //heat bath parameters
     read_str_int("NHbSweeps",&pars.nhb_sweeps);
     read_str_int("NHbHits",&pars.nhb_hits);
     //overrelax parameters
@@ -88,27 +89,29 @@ namespace nissa
   }
   
   //read parameters of the background em field
-  void read_em_field_pars(em_field_pars_t &em_field_pars)
+  void read_em_field_pars(em_field_pars_t &pars,bool flag=false)
   {
-    read_str_int("PutBkgrdEMField",&em_field_pars.flag);
-    if(em_field_pars.flag)
+    if(flag==true) pars.flag=true;
+    else read_str_int("PutBkgrdEMField",&pars.flag);
+    if(pars.flag)
       {
-	read_str_double("Ex",&(em_field_pars.E[0]));
-	read_str_double("Ey",&(em_field_pars.E[1]));
-	read_str_double("Ez",&(em_field_pars.E[2]));
-	read_str_double("Bx",&(em_field_pars.B[0]));
-	read_str_double("By",&(em_field_pars.B[1]));
-	read_str_double("Bz",&(em_field_pars.B[2]));
+	read_str_double("Ex",&(pars.E[0]));
+	read_str_double("Ey",&(pars.E[1]));
+	read_str_double("Ez",&(pars.E[2]));
+	read_str_double("Bx",&(pars.B[0]));
+	read_str_double("By",&(pars.B[1]));
+	read_str_double("Bz",&(pars.B[2]));
       }
     else
       for(int i=0;i<3;i++)
-	em_field_pars.E[i]=em_field_pars.B[i]=0;
+	pars.E[i]=pars.B[i]=0;
   }
   
   //read parameters to measure chiral condensate
-  void read_chiral_cond_pars(chiral_cond_pars_t &pars)
+  void read_chiral_cond_pars(chiral_cond_pars_t &pars,bool flag=false)
   {
-    read_str_int("MeasureChiralCond",&pars.flag);
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasureChiralCond",&pars.flag);
     if(pars.flag)
       {
 	read_str_str("ChiralCondPath",pars.path,1024);
@@ -118,9 +121,10 @@ namespace nissa
   }
   
   //read parameters to measure magnetization
-  void read_magnetization_pars(magnetization_pars_t &pars)
+  void read_magnetization_pars(magnetization_pars_t &pars,bool flag=false)
   {
-    read_str_int("MeasureMagnetization",&pars.flag);
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasureMagnetization",&pars.flag);
     if(pars.flag)
       {
 	read_str_str("MagnetizationPath",pars.path,1024);
@@ -130,9 +134,10 @@ namespace nissa
   }
   
   //read parameters to measure pseudoscalar correlators
-  void read_pseudo_corr_pars(pseudo_corr_pars_t &pars)
+  void read_pseudo_corr_pars(pseudo_corr_pars_t &pars,bool flag=false)
   {
-    read_str_int("MeasurePseudoCorr",&pars.flag);
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasurePseudoCorr",&pars.flag);
     if(pars.flag)
       {
 	read_str_str("PseudoCorrPath",pars.path,1024);
@@ -142,9 +147,10 @@ namespace nissa
   }
   
   //read parameters to measure all rectangles
-  void read_all_rect_meas_pars(all_rect_meas_pars_t &pars)
+  void read_all_rect_meas_pars(all_rect_meas_pars_t &pars,bool flag=false)
   {
-    read_str_int("MeasureAllRect",&pars.flag);
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasureAllRect",&pars.flag);
     if(pars.flag)
       {
 	read_str_str("AllRectPath",pars.path,1024);

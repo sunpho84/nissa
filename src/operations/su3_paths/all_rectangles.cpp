@@ -22,12 +22,12 @@
 namespace nissa
 {
   //compute all possible rectangular paths among a defined interval
-  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,conf_created)
+  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
     GET_THREAD_ID();
     
     FILE *fout=NULL;
-    if(rank==0 && IS_MASTER_THREAD) fout=open_file(pars->path,conf_created?"w":"a");
+    if(rank==0 && IS_MASTER_THREAD) fout=open_file(pars->path,create_output_file?"w":"a");
     
     //hypped and APE spatial smeared conf
     quad_su3 *sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -156,12 +156,12 @@ namespace nissa
     nissa_free(point_path);
   }}
 
-  void measure_all_rectangular_paths(all_rect_meas_pars_t *pars,quad_su3 **conf_eo,int iconf,int conf_created)
+  void measure_all_rectangular_paths(all_rect_meas_pars_t *pars,quad_su3 **conf_eo,int iconf,int create_output_file)
   {
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_conf(conf_lx,conf_eo);
     
-    measure_all_rectangular_paths(pars,conf_lx,iconf,conf_created);
+    measure_all_rectangular_paths(pars,conf_lx,iconf,create_output_file);
     
     nissa_free(conf_lx);
   }
