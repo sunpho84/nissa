@@ -30,6 +30,8 @@
 ./projects/Makefile.in
 ./projects/semileptonic/Makefile.am
 ./projects/semileptonic/Makefile.in
+./projects/static_potential/Makefile.am
+./projects/static_potential/Makefile.in
 ./src/base/Makefile.am
 ./src/base/Makefile.in
 ./src/bgq/Makefile.am
