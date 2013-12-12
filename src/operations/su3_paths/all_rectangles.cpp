@@ -135,14 +135,14 @@ namespace nissa
 		}
 	    
 	    //print all the Dmax contributions, with ncol*nspat_dir*glb_vol normalization
-	    if(t>=pars->Tmin)
-	      if(rank==0 && IS_MASTER_THREAD)
-		for(int d=pars->Dmin;d<=pars->Dmax;d++)
-		  {
-		    fprintf(fout,"%d %d  %d %d",iconf,iape,t,d);
-		    for(int ii=0;ii<3;ii++) fprintf(fout,"\t%16.16lg",paths[d][ii]/(3*glb_vol));
-		    fprintf(fout,"\n");
-		  }
+	    if(t>=pars->Tmin && rank==0 && IS_MASTER_THREAD)
+	      for(int d=pars->Dmin;d<=pars->Dmax;d++)
+		{
+		  fprintf(fout,"%d %d  %d %d",iconf,iape,t,d);
+		  for(int ii=0;ii<3;ii++) fprintf(fout,"\t%16.16lg",paths[d][ii]/(3*glb_vol));
+		  fprintf(fout,"\n");
+		}
+	    THREAD_BARRIER();
 	  }
       }
     
