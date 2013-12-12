@@ -54,7 +54,7 @@ namespace nissa
 	  su3_put_to_id(T_path[ivol]);
 	
 	//move along T up to Tmax
-	for(int t=0;t<=pars->Tmax;t++)
+	for(int t=1;t<=pars->Tmax;t++)
 	  {
 	    //take the product
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -79,7 +79,7 @@ namespace nissa
 		    su3_copy(TS_path[ivol],T_path[ivol]);
 		  
 		  //move along i up to Dmax
-		  for(int d=0;d<=pars->Dmax;d++)
+		  for(int d=1;d<=pars->Dmax;d++)
 		    {
 		      //take the product
 		      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -98,7 +98,7 @@ namespace nissa
 			  set_borders_invalid(closed_path);
 			  
 			  //move back along time
-			  for(int tp=0;tp<=t;tp++)
+			  for(int tp=1;tp<=t;tp++)
 			    {
 			      //push dw the vector along 0
 			      su3_vec_single_shift(closed_path,0,-1);
@@ -110,7 +110,7 @@ namespace nissa
 			    }
 			  
 			  //move back along space
-			  for(int dp=0;dp<=d;dp++)
+			  for(int dp=1;dp<=d;dp++)
 			    {
 			      //push dw the vector along i
 			      su3_vec_single_shift(closed_path,i,-1);

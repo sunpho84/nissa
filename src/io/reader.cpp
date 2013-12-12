@@ -161,7 +161,7 @@ namespace nissa
     unitarity_check_result_t unitarity_check_result;
     unitarity_check_lx_conf(unitarity_check_result,conf);
     
-    verbosity_lv1_master_printf("Plaquette of read conf: %.18g\n",global_plaquette_lx_conf(conf));
+    verbosity_lv1_master_printf("Plaquette of read conf: %16.16lg\n",global_plaquette_lx_conf(conf));
   }
   
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,6 +220,6 @@ namespace nissa
     split_lx_conf_into_eo_parts(eo_conf,lx_conf);
     nissa_free(lx_conf);
     
-    verbosity_lv3_master_printf("Plaquette after e/o reordering: %.18g\n",global_plaquette_eo_conf(eo_conf));
+    verbosity_lv3_master_printf("Plaquette after e/o reordering: %16.16lg\n",global_plaquette_eo_conf(eo_conf));
   }
 }
