@@ -4,10 +4,8 @@
 
 using namespace nissa;
 
-int main(int narg,char **arg)
+void in_main(int narg,char **arg)
 {
-  init_nissa(narg,arg);
-
   //open input
   if(narg<2) crash("Use: %s input_file",arg[0]);
   open_input(arg[1]);
@@ -60,8 +58,12 @@ int main(int narg,char **arg)
     }
   
   nissa_free(conf);
-  
+}
+
+int main(int narg,char **arg)
+{
+  init_nissa_threaded(narg,arg,in_main);
   close_nissa();
-  
+    
   return 0;
 }
