@@ -46,15 +46,11 @@ void in_main(int narg,char **arg)
   //allocate the configuration
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
 
-  start_loc_rnd_gen(1000);
-  
   for(int iconf=0;iconf<nconfs;iconf++)
     {
       //read the conf
       master_printf("========================= considering conf %d/%d =============================\n",iconf+1,nconfs);
       read_ildg_gauge_conf(conf,conf_path[iconf]);
-      
-      perform_random_gauge_transform(conf,conf);
       
       //do all the measures
       for(int imeas_type=0;imeas_type<nmeas_types;imeas_type++)
