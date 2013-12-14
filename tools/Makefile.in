@@ -82,6 +82,7 @@ bin_PROGRAMS = $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/convert/gpu_to_ildg$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/convert/ildg_to_gpu$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/smear/stout$(EXEEXT) \
+	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data$(EXEEXT) \
 	$(top_builddir)/tools/unitarity_check/unitarity_check$(EXEEXT)
 subdir = tools
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
@@ -117,6 +118,13 @@ __top_builddir__tools_conf_transform_convert_ildg_to_gpu_OBJECTS = $(am___top_bu
 __top_builddir__tools_conf_transform_convert_ildg_to_gpu_LDADD =  \
 	$(LDADD)
 __top_builddir__tools_conf_transform_convert_ildg_to_gpu_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.la
+am___top_builddir__tools_conf_transform_edit_grab_ildg_data_OBJECTS =  \
+	conf_transform/edit/grab_ildg_data.$(OBJEXT)
+__top_builddir__tools_conf_transform_edit_grab_ildg_data_OBJECTS = $(am___top_builddir__tools_conf_transform_edit_grab_ildg_data_OBJECTS)
+__top_builddir__tools_conf_transform_edit_grab_ildg_data_LDADD =  \
+	$(LDADD)
+__top_builddir__tools_conf_transform_edit_grab_ildg_data_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.la
 am___top_builddir__tools_conf_transform_smear_stout_OBJECTS =  \
 	conf_transform/smear/stout.$(OBJEXT)
@@ -174,11 +182,13 @@ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES) \
+	$(__top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
 	$(__top_builddir__tools_unitarity_check_unitarity_check_SOURCES)
 DIST_SOURCES = $(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES) \
+	$(__top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
 	$(__top_builddir__tools_unitarity_check_unitarity_check_SOURCES)
@@ -342,6 +352,7 @@ __top_builddir__tools_find_best_vir_partitioning_find_SOURCES = find_best_vir_pa
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES = conf_transform/convert/gpu_to_ildg.cpp
 __top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES = conf_transform/convert/ildg_to_gpu.cpp
 __top_builddir__tools_conf_transform_smear_stout_SOURCES = conf_transform/smear/stout.cpp
+__top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES = conf_transform/edit/grab_ildg_data.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES = unitarity_check/unitarity_check.cpp
 all: all-am
 
@@ -449,6 +460,22 @@ conf_transform/convert/ildg_to_gpu.$(OBJEXT):  \
 $(top_builddir)/tools/conf_transform/convert/ildg_to_gpu$(EXEEXT): $(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_OBJECTS) $(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_transform_convert_ildg_to_gpu_DEPENDENCIES) $(top_builddir)/tools/conf_transform/convert/$(am__dirstamp)
 	@rm -f $(top_builddir)/tools/conf_transform/convert/ildg_to_gpu$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_OBJECTS) $(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_LDADD) $(LIBS)
+conf_transform/edit/$(am__dirstamp):
+	@$(MKDIR_P) conf_transform/edit
+	@: > conf_transform/edit/$(am__dirstamp)
+conf_transform/edit/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) conf_transform/edit/$(DEPDIR)
+	@: > conf_transform/edit/$(DEPDIR)/$(am__dirstamp)
+conf_transform/edit/grab_ildg_data.$(OBJEXT):  \
+	conf_transform/edit/$(am__dirstamp) \
+	conf_transform/edit/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/tools/conf_transform/edit/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/tools/conf_transform/edit
+	@: > $(top_builddir)/tools/conf_transform/edit/$(am__dirstamp)
+
+$(top_builddir)/tools/conf_transform/edit/grab_ildg_data$(EXEEXT): $(__top_builddir__tools_conf_transform_edit_grab_ildg_data_OBJECTS) $(__top_builddir__tools_conf_transform_edit_grab_ildg_data_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_transform_edit_grab_ildg_data_DEPENDENCIES) $(top_builddir)/tools/conf_transform/edit/$(am__dirstamp)
+	@rm -f $(top_builddir)/tools/conf_transform/edit/grab_ildg_data$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_conf_transform_edit_grab_ildg_data_OBJECTS) $(__top_builddir__tools_conf_transform_edit_grab_ildg_data_LDADD) $(LIBS)
 conf_transform/smear/$(am__dirstamp):
 	@$(MKDIR_P) conf_transform/smear
 	@: > conf_transform/smear/$(am__dirstamp)
@@ -501,6 +528,7 @@ $(top_builddir)/tools/unitarity_check/unitarity_check$(EXEEXT): $(__top_builddir
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f conf_transform/convert/*.$(OBJEXT)
+	-rm -f conf_transform/edit/*.$(OBJEXT)
 	-rm -f conf_transform/smear/*.$(OBJEXT)
 	-rm -f find_best_vir_partitioning/*.$(OBJEXT)
 	-rm -f unitarity_check/*.$(OBJEXT)
@@ -510,6 +538,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/gpu_to_ildg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/ildg_to_gpu.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@conf_transform/edit/$(DEPDIR)/grab_ildg_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/smear/$(DEPDIR)/stout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@find_best_vir_partitioning/$(DEPDIR)/find.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@unitarity_check/$(DEPDIR)/unitarity_check.Po@am__quote@
@@ -543,6 +572,7 @@ mostlyclean-libtool:
 
 clean-libtool:
 	-rm -rf $(top_builddir)/tools/conf_transform/convert/.libs $(top_builddir)/tools/conf_transform/convert/_libs
+	-rm -rf $(top_builddir)/tools/conf_transform/edit/.libs $(top_builddir)/tools/conf_transform/edit/_libs
 	-rm -rf $(top_builddir)/tools/conf_transform/smear/.libs $(top_builddir)/tools/conf_transform/smear/_libs
 	-rm -rf $(top_builddir)/tools/find_best_vir_partitioning/.libs $(top_builddir)/tools/find_best_vir_partitioning/_libs
 	-rm -rf $(top_builddir)/tools/unitarity_check/.libs $(top_builddir)/tools/unitarity_check/_libs
@@ -665,6 +695,8 @@ distclean-generic:
 	-test . = "$(srcdir)" || test -z "$(CONFIG_CLEAN_VPATH_FILES)" || rm -f $(CONFIG_CLEAN_VPATH_FILES)
 	-rm -f conf_transform/convert/$(DEPDIR)/$(am__dirstamp)
 	-rm -f conf_transform/convert/$(am__dirstamp)
+	-rm -f conf_transform/edit/$(DEPDIR)/$(am__dirstamp)
+	-rm -f conf_transform/edit/$(am__dirstamp)
 	-rm -f conf_transform/smear/$(DEPDIR)/$(am__dirstamp)
 	-rm -f conf_transform/smear/$(am__dirstamp)
 	-rm -f find_best_vir_partitioning/$(DEPDIR)/$(am__dirstamp)
@@ -672,6 +704,7 @@ distclean-generic:
 	-rm -f unitarity_check/$(DEPDIR)/$(am__dirstamp)
 	-rm -f unitarity_check/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/conf_transform/convert/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_transform/convert/$(am__dirstamp)
+	-test -z "$(top_builddir)/tools/conf_transform/edit/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_transform/edit/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/conf_transform/smear/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_transform/smear/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)" || rm -f $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/unitarity_check/$(am__dirstamp)" || rm -f $(top_builddir)/tools/unitarity_check/$(am__dirstamp)
@@ -684,7 +717,7 @@ clean: clean-am
 clean-am: clean-binPROGRAMS clean-generic clean-libtool mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf conf_transform/convert/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) unitarity_check/$(DEPDIR)
+	-rm -rf conf_transform/convert/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) unitarity_check/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -730,7 +763,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf conf_transform/convert/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) unitarity_check/$(DEPDIR)
+	-rm -rf conf_transform/convert/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) unitarity_check/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

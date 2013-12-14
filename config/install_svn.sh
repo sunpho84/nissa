@@ -12,7 +12,7 @@ make install
 cd ..
 
 #apr-util
-cd apr
+cd apr-util
 ./configure --prefix=$HOME --with-apr=$HOME
 make -j 8
 make install
