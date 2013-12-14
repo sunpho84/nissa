@@ -15,11 +15,203 @@
 
 #include <string.h>
 
+//implementation of hep-lat/0103029, Hasenfratz et al.
+
 namespace nissa
 {
   //smear a conf using hyp
   //warning, the input conf needs to have edges allocate!
   THREADABLE_FUNCTION_6ARG(hyp_smear_conf_dir, quad_su3*,sm_conf, quad_su3*,conf, double,alpha0, double,alpha1, double,alpha2, int,req_mu)
+  {
+    GET_THREAD_ID();
+    
+    //communicate borders and edges of original conf
+    communicate_lx_quad_su3_edges(conf);
+    
+    /////////////////////////////////////// second level decoration /////////////////////////////////
+    
+    master_printf("Second level decoration\n");
+    
+    //allocate dec2 conf
+    su3 *dec2_conf[4][4][4];
+    for(int mu=0;mu<4;mu++)
+      for(int inu=0;inu<3;inu++)
+	for(int irho=0;irho<2;irho++)
+	  dec2_conf[mu][perp_dir[mu][inu]][perp2_dir[mu][inu][irho]]=
+	    nissa_malloc("dec2_conf",loc_vol+bord_vol+edge_vol,su3);
+    
+    //loop over external index
+    for(int mu=0;mu<4;mu++)
+      //loop over the first decoration index
+      for(int inu=0;inu<3;inu++)
+	//loop over the second decoration index
+	for(int irho=0;irho<2;irho++)
+	  {
+	    //find the remaining direction
+	    int nu=perp_dir[mu][inu];
+	    int rho=perp2_dir[mu][inu][irho];
+	    int eta=perp3_dir[mu][inu][irho];
+	      
+	    //loop over local volume
+	    NISSA_PARALLEL_LOOP(i,0,loc_vol)
+	      {
+		//take original link
+		su3 temp0;
+		su3_prod_double(temp0,conf[i][mu],1-alpha2);
+		  
+		//staple and temporary links
+		su3 stap,temp1,temp2;
+		  
+		//staple in the positive dir
+		int ipeta=loclx_neighup[i][eta],ipmu=loclx_neighup[i][mu];
+		unsafe_su3_prod_su3(temp1,conf[i][eta],conf[ipeta][mu]);
+		unsafe_su3_prod_su3_dag(stap,temp1,conf[ipmu][eta]);
+		  
+		//staple in the negative dir
+		int imeta=loclx_neighdw[i][eta],imetapmu=loclx_neighup[imeta][mu];
+		unsafe_su3_dag_prod_su3(temp1,conf[imeta][eta],conf[imeta][mu]);
+		unsafe_su3_prod_su3(temp2,temp1,conf[imetapmu][eta]);
+		su3_summ(stap,stap,temp2);
+		
+		//summ the two staples with appropriate coef
+		su3_summ_the_prod_double(temp0,stap,alpha2/2);
+		  
+		//project the resulting link onto su3
+		su3_unitarize_maximal_trace_projecting(dec2_conf[mu][nu][rho][i],temp0);
+	      }
+	    
+	    //communicate borders for future usage
+	    set_borders_invalid(dec2_conf[mu][nu][rho]);
+	    communicate_lx_su3_edges(dec2_conf[mu][nu][rho]);
+	  }
+    
+    /////////////////////////////////////// first level decoration /////////////////////////////////
+    
+    master_printf("First level decoration\n");
+    
+    //allocate dec1 conf
+    su3 *dec1_conf[4][4];
+    for(int mu=0;mu<4;mu++)
+      for(int inu=0;inu<3;inu++)
+	dec1_conf[mu][perp_dir[mu][inu]]=nissa_malloc("dec1_conf",loc_vol+bord_vol+edge_vol,su3);
+    
+    //loop over external index
+    for(int mu=0;mu<4;mu++)
+      //loop over the first decoration index
+      for(int inu=0;inu<3;inu++)
+	{
+	  int nu=perp_dir[mu][inu];
+	  
+	  //loop over local volume
+	  NISSA_PARALLEL_LOOP(i,0,loc_vol)
+	    {
+	      //take original link
+	      su3 temp0;
+	      su3_prod_double(temp0,conf[i][mu],1-alpha1);
+	      
+	      //reset the staple
+	      su3 stap;
+	      su3_put_to_zero(stap);
+	      
+	      //loop on orthogonal dirs
+	      for(int irho=0;irho<2;irho++)
+		{
+		  //find the remapped index
+		  int rho=perp2_dir[mu][inu][irho];
+		  su3 temp1,temp2;
+		  
+		  //staple in the positive dir
+		  int iprho=loclx_neighup[i][rho];
+		  int ipmu=loclx_neighup[i][mu];
+		  unsafe_su3_prod_su3(temp1,dec2_conf[rho][nu][mu][i],dec2_conf[mu][rho][nu][iprho]);
+		  unsafe_su3_prod_su3_dag(temp2,temp1,dec2_conf[rho][nu][mu][ipmu]);
+		  su3_summ(stap,stap,temp2);
+		  
+		  //staple in the negative dir
+		  int imrho=loclx_neighdw[i][rho];
+		  int imrhopmu=loclx_neighup[imrho][mu];
+		  unsafe_su3_dag_prod_su3(temp1,dec2_conf[rho][nu][mu][imrho],dec2_conf[mu][rho][nu][imrho]);
+		  unsafe_su3_prod_su3(temp2,temp1,dec2_conf[rho][nu][mu][imrhopmu]);
+		  su3_summ(stap,stap,temp2);
+		  
+		  //summ the two staples with appropriate coef
+		  su3_summ_the_prod_double(temp0,stap,alpha1/4);
+		}
+		
+	      //project the resulting link onto su3
+	      su3_unitarize_maximal_trace_projecting(dec1_conf[mu][nu][i],temp0);
+	    }
+	    
+	  //communicate borders for future usage
+	  set_borders_invalid(dec1_conf[mu][nu]);
+	  communicate_lx_su3_edges(dec1_conf[mu][nu]);
+	}
+    
+    //free dec2
+    for(int mu=0;mu<4;mu++)
+      for(int inu=0;inu<3;inu++)
+        for(int irho=0;irho<2;irho++)
+          nissa_free(dec2_conf[mu][perp_dir[mu][inu]][perp2_dir[mu][inu][irho]]);
+    
+    /////////////////////////////////////// zero level decoration /////////////////////////////////
+    
+    master_printf("Zero level decoration\n");
+    
+    //loop over external index
+    for(int mu=0;mu<4;mu++)
+      //loop over local volume
+      NISSA_PARALLEL_LOOP(i,0,loc_vol)
+	{
+	  //take original link
+	  su3 temp0;
+	  su3_prod_double(temp0,conf[i][mu],1-alpha0);
+	  
+	  //reset the staple
+	  su3 stap;
+	  su3_put_to_zero(stap);
+	      
+	  //loop over the first decoration index
+	  for(int inu=0;inu<3;inu++)
+	    {
+	      //find the remapped index
+	      int nu=perp_dir[mu][inu];
+	      su3 temp1,temp2;
+	      
+	      //staple in the positive dir
+	      int ipnu=loclx_neighup[i][nu];
+	      int ipmu=loclx_neighup[i][mu];
+	      unsafe_su3_prod_su3(temp1,dec1_conf[nu][mu][i],dec1_conf[mu][nu][ipnu]);
+	      unsafe_su3_prod_su3_dag(temp2,temp1,dec1_conf[nu][mu][ipmu]);
+	      su3_summ(stap,stap,temp2);
+	      
+	      //staple in the negative dir
+	      int imnu=loclx_neighdw[i][nu];
+	      int imnupmu=loclx_neighup[imnu][mu];
+	      unsafe_su3_dag_prod_su3(temp1,dec1_conf[nu][mu][imnu],dec1_conf[mu][nu][imnu]);
+	      unsafe_su3_prod_su3(temp2,temp1,dec1_conf[nu][mu][imnupmu]);
+	      su3_summ(stap,stap,temp2);
+		    
+	      //summ the two staples with appropriate coef
+	      su3_summ_the_prod_double(temp0,stap,alpha0/6);
+	    }
+	  
+	  //project the resulting link onto su3
+	  su3_unitarize_maximal_trace_projecting(sm_conf[i][mu],temp0);
+	}
+    
+    
+    //invalid borders
+    set_borders_invalid(sm_conf);
+    
+    //free dec1
+    for(int mu=0;mu<4;mu++)
+      for(int inu=0;inu<3;inu++)
+	nissa_free(dec1_conf[mu][perp_dir[mu][inu]]);
+  }}
+
+  //smear a conf using hyp
+  //warning, the input conf needs to have edges allocate!
+  THREADABLE_FUNCTION_6ARG(hyp_smear_conf_dir_old, quad_su3*,sm_conf, quad_su3*,conf, double,alpha0, double,alpha1, double,alpha2, int,req_mu)
   {
     GET_THREAD_ID();
     
