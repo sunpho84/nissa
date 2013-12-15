@@ -174,12 +174,12 @@ namespace nissa
 	
 	read_str_int("Tint",&pars.Tmin);
 	read_int(&pars.Tmax);
-	if(pars.Tmin<1||pars.Tmin>=glb_size[0]) crash("Tint must start between [1,%d]",glb_size[0]);
-	if(pars.Tmax<1||pars.Tmax>=glb_size[0]) crash("Tint must end between [1,%d]",glb_size[0]);
+	if(pars.Tmin<1||pars.Tmin>glb_size[0]) crash("Tint must start between [1,%d]",glb_size[0]);
+	if(pars.Tmax<1||pars.Tmax>glb_size[0]) crash("Tint must end between [1,%d]",glb_size[0]);
 	read_str_int("Dint",&pars.Dmin);
 	read_int(&pars.Dmax);
-	if(pars.Dmin<1||pars.Dmin>=glb_size[1]) crash("Dint must start between [1,%d]",glb_size[1]);
-	if(pars.Dmax<1||pars.Dmax>=glb_size[1]) crash("Dint must end between [1,%d]",glb_size[1]);
+	if(pars.Dmin<1||pars.Dmin>glb_size[1]) crash("Dint must start between [1,%d]",glb_size[1]);
+	if(pars.Dmax<1||pars.Dmax>glb_size[1]) crash("Dint must end between [1,%d]",glb_size[1]);
       }
   }
   
