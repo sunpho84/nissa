@@ -57,6 +57,9 @@
   NISSA_CHUNK_LOOP(INDEX,START,END,thread_id,NACTIVE_THREADS)
 
  #define THREAD_ATOMIC_EXEC(inst) do{THREAD_BARRIER();inst;THREAD_BARRIER();}while(0)
+ #define THREAD_BROADCAST(out,in)			\
+   if(IS_MASTER_THREAD) broadcast_ptr=(void*)&in;	\
+   THREAD_ATOMIC_EXEC((out)=*broadcast_ptr);
 
 #else
 
@@ -67,7 +70,7 @@
  #define IS_MASTER_THREAD (1)
  #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) for(int INDEX=EXT_START;INDEX<EXT_END;INDEX++)
  #define THREAD_ATOMIC_EXEC(inst) inst
-
+ #define THREAD_BROADCAST(out,in) (out)=(in)
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////
