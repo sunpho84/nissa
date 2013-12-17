@@ -9,6 +9,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "new_types/su3.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -25,6 +26,8 @@ namespace nissa
     nissa_free(out_buf_pos);
     nissa_free(nper_rank_fr);
     nissa_free(nper_rank_to);
+    nissa_free(out_buf_off_per_rank);
+    nissa_free(in_buf_off_per_rank);
   }
   
   //constructor
@@ -102,21 +105,22 @@ namespace nissa
     nel_in=nel_in_loc;
     
     //compute the offset and the current indexing element (temporary info)
-    int *out_buf_off=nissa_malloc("out_buf_off",nranks_to,int);
-    int  *in_buf_off=nissa_malloc(" in_buf_off",nranks_fr,int);
-    int *out_buf_cur=nissa_malloc("out_buf_cur",nranks_to,int);
-    int  *in_buf_cur=nissa_malloc(" in_buf_cur",nranks_fr,int);
-    out_buf_off[0]=out_buf_cur[0]=0;
+    out_buf_off_per_rank=nissa_malloc("out_buf_off",nranks_to,int);
+    in_buf_off_per_rank=nissa_malloc(" in_buf_off",nranks_fr,int);
+    int *out_buf_cur_per_rank=nissa_malloc("out_buf_cur",nranks_to,int);
+    int  *in_buf_cur_per_rank=nissa_malloc(" in_buf_cur",nranks_fr,int);
+    out_buf_off_per_rank[0]=out_buf_cur_per_rank[0]=0;
     for(int ilist_rank_to=1;ilist_rank_to<nranks_to;ilist_rank_to++)
-      out_buf_off[ilist_rank_to]=out_buf_cur[ilist_rank_to]=out_buf_off[ilist_rank_to-1]+nper_rank_to[ilist_rank_to];
-    in_buf_off[0]=in_buf_cur[0]=0;
+      out_buf_off_per_rank[ilist_rank_to]=out_buf_cur_per_rank[ilist_rank_to]=
+	out_buf_off_per_rank[ilist_rank_to-1]+nper_rank_to[ilist_rank_to-1];
+    in_buf_off_per_rank[0]=in_buf_cur_per_rank[0]=0;
     for(int ilist_rank_fr=1;ilist_rank_fr<nranks_fr;ilist_rank_fr++)
-      in_buf_off[ilist_rank_fr]=in_buf_cur[ilist_rank_fr]=in_buf_off[ilist_rank_fr-1]+nper_rank_fr[ilist_rank_fr];
-
+      in_buf_off_per_rank[ilist_rank_fr]=in_buf_cur_per_rank[ilist_rank_fr]=
+	in_buf_off_per_rank[ilist_rank_fr-1]+nper_rank_fr[ilist_rank_fr-1];
+    
     //save where to store and fill where to  load each element in the temporary buffer
     out_buf_pos=nissa_malloc("out_buf_pos",nel_out,int);
     int *in_buf_dest_expl=nissa_malloc("in_buf_dest_expl",nel_out,int);
-    vector_reset(out_buf_cur);
     if(IS_MASTER_THREAD)
       for(int iel_out=0;iel_out<nel_out;iel_out++)
 	{
@@ -124,32 +128,30 @@ namespace nissa
 	  index(rank_to,iel_to,iel_out,pars);
 	  
 	  int ilist_rank_to=rank_to_map_list_ranks_to[rank_to];
-	  int ipos=out_buf_cur[ilist_rank_to]++;
+	  int ipos=out_buf_cur_per_rank[ilist_rank_to]++;
 	  out_buf_pos[iel_out]=ipos;
 	  in_buf_dest_expl[ipos]=iel_to;
 	}
     
     //explain to each rank how to sort out data from the box
-    in_buf_dest=nissa_malloc("in_buf_dest",nranks_fr,int);
-    printf("rank %d is HERE\n",rank);
+    in_buf_dest=nissa_malloc("in_buf_dest",nel_in,int);
     if(IS_MASTER_THREAD)
       {
 	MPI_Request req_list[nranks_to+nranks_fr];
 	int ireq=0;
 	for(int irank_to=0;irank_to<nranks_to;irank_to++)
-	  MPI_Isend(in_buf_dest_expl+out_buf_off[irank_to],nper_rank_to[irank_to],MPI_INT,list_ranks_to[irank_to],
-		    909+rank*nranks+list_ranks_to[irank_to],cart_comm,&req_list[ireq++]);
+	  MPI_Isend(in_buf_dest_expl+out_buf_off_per_rank[irank_to],nper_rank_to[irank_to],MPI_INT,
+		    list_ranks_to[irank_to],909+rank*nranks+list_ranks_to[irank_to],cart_comm,&req_list[ireq++]);
 	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
-	  MPI_Irecv(in_buf_dest+in_buf_off[irank_fr],nper_rank_fr[irank_fr],MPI_INT,list_ranks_fr[irank_fr],
-		    909+list_ranks_fr[irank_fr]*nranks+rank,cart_comm,&req_list[ireq++]);
+	  MPI_Irecv(in_buf_dest+in_buf_off_per_rank[irank_fr],nper_rank_fr[irank_fr],MPI_INT,
+		    list_ranks_fr[irank_fr],909+list_ranks_fr[irank_fr]*nranks+rank,cart_comm,&req_list[ireq++]);
+	if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
     THREAD_BARRIER();
     
-    nissa_free(out_buf_cur);
-    nissa_free(in_buf_cur);
-    nissa_free(out_buf_off);
-    nissa_free(in_buf_off);
+    nissa_free(out_buf_cur_per_rank);
+    nissa_free(in_buf_cur_per_rank);
     nissa_free(in_buf_dest_expl);
     nissa_free(nper_rank_to_temp);
     nissa_free(nper_rank_fr_temp);
@@ -158,70 +160,40 @@ namespace nissa
   //perform the remapping
   void vector_remap_t::remap(void *out,void *in,int bps)
   {
-    /*
+    GET_THREAD_ID();
+    
     //allocate a buffer where to repack data
-    char *out_buf=nissa_malloc("out_buf",nel*(bps+sizeof(int)),char);
-    char *in_buf=nissa_malloc("in_buf",nel*(bps+sizeof(int)),char);
+    char *out_buf=nissa_malloc("out_buf",nel_out*bps,char);
+    char *in_buf=nissa_malloc("in_buf",nel_in*bps,char);
     
     //copy data on the out-going buffer
-    for(int iel=0;iel<nel;iel++)
-      {
-	int trank=rank_to[ivol];
-	memcpy(out_buf_rank[trank],in+ivol*bps,bps);
-	out_buf_rank[trank]+=bps;
-	(*((int*)(out_buf_rank[trank])))=ivol_to[ivol];
-	out_buf_rank[trank]+=sizeof(int);
-      }
-    
-      //explain to each rank how to sort out data from the box
-      MPI_Request req_list[2*nranks];
-      int ireq=0;
-
-      
-      //scan all ranks
-      for(int irank=0;irank<nranks;irank++)
-	{
-	  //start communications with other ranks (only master thread)
-	  if(rank!=irank)
-	    {
-	      if(IS_MASTER_THREAD)
-		{
-		  if(nel_fr[irank]!=0) MPI_Irecv(recv_buf,nel_fr[irank]*(bps+sizeof(int)),MPI_CHAR,irank,
-						 909+irank*nranks+rank,cart_comm,&req_list[ireq++]);
-		  if(nel_to[irank]!=0) MPI_Isend(send_buf,nel_to[irank]*(bps+sizeof(int)),MPI_CHAR,irank,
-						 909+rank*nranks+irank,cart_comm,&req_list[ireq++]);
-		}
-	    }
-	  else
-	    {
-	      //save pointer to internal communications
-	      internal_send_buf=send_buf;
-	      internal_recv_buf=recv_buf;
-	    }
-	  //increment the offset
-	  recv_buf+=nfr[irank]*(bps+sizeof(int));
-	  send_buf+=nto[irank]*(bps+sizeof(int));
-	}
-      if(recv_buf!= in_buf+(sizeof(int)+bps)*nel_in ) crash("Mismatch in receiving buffer");
-      if(send_buf!=out_buf+(sizeof(int)+bps)*nel_out) crash("Mismatch in sending buffer");
-    }
-    
-    //now, while waiting for all requests to be accomplished, copy internal data
-    parallel_memcpy(internal_recv_buf,internal_send_buf,(sizeof(int)+bps)*nfr[rank]);
-    
-    //wait to accomplish all the requests
-    if(IS_MASTER_THREAD) MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
+    NISSA_PARALLEL_LOOP(iel_out,0,nel_out)
+      memcpy(out_buf+out_buf_pos[iel_out]*bps,(char*)in+iel_out*bps,bps);
     THREAD_BARRIER();
     
+    if(IS_MASTER_THREAD)
+      {
+	MPI_Request req_list[nranks_to+nranks_fr];
+	int ireq=0;
+	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
+	  MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
+		    list_ranks_fr[irank_fr],909+list_ranks_fr[irank_fr]*nranks+rank,cart_comm,&req_list[ireq++]);
+	for(int irank_to=0;irank_to<nranks_to;irank_to++)
+	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
+		    list_ranks_to[irank_to],909+rank*nranks+list_ranks_to[irank_to],cart_comm,&req_list[ireq++]);
+      	if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
+	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
+      }
+    THREAD_BARRIER();
+      
     //sort out data from the incoming buffer
-    NISSA_PARALLEL_LOOP(iel,0,nel)
-    {
-      char *start_in_buf=in_buf+iel*(bps+sizeof(int));
-      int to=(*((int*)(start_in_buf+bps)));
-      memcpy(out+to*bps,start_in_buf,bps);
-    }
+    NISSA_PARALLEL_LOOP(iel_in,0,nel_in)
+      memcpy((char*)out+in_buf_dest[iel_in]*bps,in_buf+iel_in*bps,bps);
     
-    */
+    set_borders_invalid(out);
+
+    nissa_free(out_buf);
+    nissa_free(in_buf);
   }
   
   void remap_vector(char *out,char *in,coords *xto,coords *xfr,int bps)
