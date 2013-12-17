@@ -1,5 +1,5 @@
-L 8
-T 8
+L 4
+T 4
 
 NValenceTheories       1               /* allow to specify additional theory used only for measures */
 
@@ -99,15 +99,16 @@ GaugeObsPath           obs             /* output file for gauge obs */
 
 MeasureTopology        0               /* topology (other questions only if 1 is chosen) */
 
-MeasureAllRect         1
+MeasureAllRect         2
 AllRectPath            rects
-HYPAlpha0              0.75
-HYPAlpha1              0.6
-HYPAlpha2              0.3
-APEAlpha               0.7
-APENlevels             1  1
-Tint                   0 8
-Dint                   0 8
+UseHYPorAPE            0
+HYPTempAlpha0          1
+HYPTempAlpha1          1
+HYPTempAlpha2          0.5
+APESpatAlpha           0.25
+APESpatNlevels         1  8
+Tint                   1 4
+Dint                   1 4
 
 /* /////////////// HMC parameters //////////// */
 

@@ -195,6 +195,8 @@ namespace nissa
   EXTERN bool thread_pool_locked;
   EXTERN unsigned int nthreads;
  #endif
+  
+  EXTERN void *broadcast_ptr;
   EXTERN double *glb_double_reduction_buf;
   EXTERN float_128 *glb_float_128_reduction_buf;
 
