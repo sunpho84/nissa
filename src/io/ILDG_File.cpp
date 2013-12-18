@@ -290,41 +290,38 @@ namespace nissa
   
   //define the reampping from lx in order to have in each rank a consecutive block of data
   //holding a consecutive piece of ildg data
-  void define_to_ILDG_remapping(coords *c)
+  void index_to_ILDG_remapping(int &irank_ILDG,int &iloc_ILDG,int iloc_lx,void *pars)
   {
-    NISSA_LOC_VOL_LOOP(iloc_lx)
-    {
-      //find global index in ildg transposed ordering
-      int iglb_ILDG=0;
-      for(int mu=0;mu<4;mu++)
-	iglb_ILDG=iglb_ILDG*glb_size[scidac_mapping[mu]]+glb_coord_of_loclx[iloc_lx][scidac_mapping[mu]];
-      
-      //find rank and loclx
-      int irank_ILDG=iglb_ILDG/loc_vol;
-      int loclx_ILDG=iglb_ILDG%loc_vol;
-      
-      //get glb coord
-      coord_of_rank(c[iloc_lx],irank_ILDG);
-      for(int mu=0;mu<4;mu++) c[iloc_lx][mu]=c[iloc_lx][mu]*loc_size[mu]+loc_coord_of_loclx[loclx_ILDG][mu];
-    }
+    //find global index in ildg transposed ordering
+    int iglb_ILDG=0;
+    for(int mu=0;mu<4;mu++)
+      {
+	int nu=scidac_mapping[mu];
+	iglb_ILDG=iglb_ILDG*glb_size[nu]+glb_coord_of_loclx[iloc_lx][nu];
+      }
+    
+    //find rank and loclx
+    irank_ILDG=iglb_ILDG/loc_vol;
+    iloc_ILDG=iglb_ILDG%loc_vol;
   }
   
   //define the reampping from the layout having in each rank a consecutive block of data holding a 
   //consecutive piece of ildg data to canonical lx
-  void define_from_ILDG_remapping(coords *xto)
+  void index_from_ILDG_remapping(int &irank_lx,int &iloc_lx,int iloc_ILDG,void *pars)
   {
-    NISSA_LOC_VOL_LOOP(iloc_ILDG)
-    {
-      int iglb_ILDG=rank*loc_vol+iloc_ILDG;
-      
-      //find global coords in ildg ordering
-      for(int mu=3;mu>=0;mu--)
-	{
-	  int nu=scidac_mapping[mu];
-	  xto[iloc_ILDG][nu]=iglb_ILDG%glb_size[nu];
-	  iglb_ILDG/=glb_size[nu];
-	}
-    }
+    int iglb_ILDG=rank*loc_vol+iloc_ILDG;
+    
+    //find global coords in ildg ordering
+    coords xto;
+    for(int mu=3;mu>=0;mu--)
+      {
+	int nu=scidac_mapping[mu];
+	xto[nu]=iglb_ILDG%glb_size[nu];
+	iglb_ILDG/=glb_size[nu];
+      }
+    
+    //convert to rank and loclx
+    get_loclx_and_rank_of_coord(&iloc_lx,&irank_lx,xto);
   }
   
 #endif
@@ -547,12 +544,11 @@ namespace nissa
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
     
     //reorder data to the appropriate place
-    coords *ord=nissa_malloc("ord",loc_vol,coords);
-    define_from_ILDG_remapping(ord);
-    remap_vector((char*)data,buf,ord,NULL,header.data_length/glb_vol);
+    vector_remap_t *rem=new vector_remap_t(loc_vol,index_from_ILDG_remapping,NULL);
+    rem->remap(data,buf,header.data_length/glb_vol);
+    delete rem;
     
     nissa_free(buf);
-    nissa_free(ord);
 #endif
     
     verbosity_lv3_master_printf("ildg data record read: %lld bytes\n",header.data_length);
@@ -656,16 +652,15 @@ namespace nissa
     ILDG_File_set_position(file,new_pos,SEEK_SET);
     
     //reorder data to the appropriate place
-    coords *ord=nissa_malloc("ord",loc_vol,coords);
-    define_to_ILDG_remapping(ord);
-    remap_vector(buf,(char*)data,ord,NULL,header.data_length/glb_vol);
+    vector_remap_t *rem=new vector_remap_t(loc_vol,index_to_ILDG_remapping,NULL);
+    rem->remap(buf,data,header.data_length/glb_vol);
+    delete rem;
     
     //write
     int nbytes_wrote=fwrite(buf,1,nbytes_per_rank_exp,file);
     if(nbytes_wrote!=nbytes_per_rank_exp) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank_exp);
     
     //free buf and ord
-    nissa_free(ord);
     nissa_free(buf);
     
     //place at the end of the record, including padding

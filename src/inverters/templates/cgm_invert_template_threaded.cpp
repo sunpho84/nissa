@@ -131,7 +131,7 @@ namespace nissa
     //     -rr=(r,r)=source_norm
     double rr=source_norm;
 #ifdef CGM_DEBUG
-    master_printf("rr: %16.16lg\n",rr);
+    verbosity_lv3_master_printf("rr: %16.16lg\n",rr);
 #endif
     
     double rfrf,pap,betap;
@@ -156,16 +156,15 @@ namespace nissa
 	//     -pap=(p,s)=(p,Ap)
 	double_vector_glb_scalar_prod(&pap,(double*)p,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
 #ifdef CGM_DEBUG
-	master_printf("pap: %16.16lg\n",pap);
-	if(rank==0 && IS_MASTER_THREAD)
-	  for(int i=0;i<BULK_VOL*NDOUBLES_PER_SITE;i++)
-	    printf("%d %lg\n",i,((double*)s)[i]);
+	verbosity_lv3_master_printf("pap: %16.16lg\n",pap);
+	for(int i=0;i<BULK_VOL*NDOUBLES_PER_SITE;i++)
+	  verbosity_lv3_master_printf("%d %lg\n",i,((double*)s)[i]);
 #endif
 	//     calculate betaa=rr/pap=(r,r)/(p,Ap)
 	betap=betaa;
 	betaa=-rr/pap;
 #ifdef CGM_DEBUG
-	master_printf("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
+	verbosity_lv3_master_printf("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
 #endif
 	
 	//     calculate 
@@ -182,8 +181,9 @@ namespace nissa
 		betas[ishift]=betaa*ratio;
 		
 #ifdef CGM_DEBUG
-		master_printf("ishift %d [%lg] zas: %16.16lg, zps: %16.16lg, zfs: %16.16lg, betas: %16.16lg\n",
-			      ishift,shift[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
+		verbosity_lv3_master_printf("ishift %d [%lg] zas: %16.16lg, zps: %16.16lg, "
+					    "zfs: %16.16lg, betas: %16.16lg\n",
+					    ishift,shift[ishift],zas[ishift],zps[ishift],zfs[ishift],betas[ishift]);
 #endif
 		double_vector_summ_double_vector_prod_double((double*)(sol[ishift]),(double*)(sol[ishift]),(double*)(ps[ishift]),-betas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
 	      }
@@ -196,7 +196,7 @@ namespace nissa
 	double_vector_summ_double_vector_prod_double((double*)r,(double*)r,(double*)s,betaa,BULK_VOL*NDOUBLES_PER_SITE);
 	double_vector_glb_scalar_prod(&rfrf,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
 #ifdef CGM_DEBUG
-	master_printf("rfrf: %16.16lg\n",rfrf);
+	verbosity_lv3_master_printf("rfrf: %16.16lg\n",rfrf);
 #endif
 	
 	//     calculate alpha=rfrf/rr=(r',r')/(r,r)
@@ -217,7 +217,7 @@ namespace nissa
 	      {
 		alphas[ishift]=alpha*zfs[ishift]*betas[ishift]/(zas[ishift]*betaa);
 #ifdef CGM_DEBUG
-		master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
+		verbosity_lv3_master_printf("ishift %d alpha: %16.16lg\n",ishift,alphas[ishift]);
 #endif
 		double_vector_linear_comb((double*)(ps[ishift]),(double*)r,zfs[ishift],(double*)(ps[ishift]),alphas[ishift],BULK_VOL*NDOUBLES_PER_SITE,DO_NOT_SET_FLAGS);
 		
