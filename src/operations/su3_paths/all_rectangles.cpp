@@ -4,6 +4,7 @@
 
 #include <map>
 #include <vector>
+#include <stdlib.h>
 
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
@@ -23,12 +24,54 @@
 #include "smearing/HYP.hpp"
 
 namespace nissa
-{  
+{
+  typedef int tricoords_t[3];
+  
+  //return the three coords of site in the transposed space
+  void get_tricoords_of_site(tricoords_t c,int icmp,tricoords_t L)
+  {
+    for(int mu=2;mu>=0;mu--)
+      {
+        c[mu]=icmp%L[mu];
+        icmp/=L[mu];
+      }
+  }
+
+  //return the three coords of site in the transposed space
+  int get_site_of_tricoords(tricoords_t c,tricoords_t L)
+  {
+    int icmp=0;
+    
+    for(int mu=0;mu<3;mu++)
+      icmp=icmp*L[mu]+c[mu];
+    
+    return icmp;
+  }
+  
+  //copy
+  void tricoords_copy(tricoords_t out,tricoords_t in)
+  {
+    out[0]=in[0];
+    out[1]=in[1];
+    out[2]=in[2];
+  }
+  
+  //shift in a single dir
+  int site_shift(int icmp,tricoords_t L,int mu,int shift)
+  {
+    tricoords_t in;
+    get_tricoords_of_site(in,icmp,L);
+    in[mu]=in[mu]+shift;
+    while(in[mu]<0) in[mu]+=L[mu];
+    while(in[mu]>=L[mu]) in[mu]-=L[mu];
+    return get_site_of_tricoords(in,L);
+  }
+  
+  //compute the transposed from lx index
   void index_transp(int &irank_transp,int &iloc_transp,int iloc_lx,void *pars)
   {
-    int ii=((int*)pars)[0],prp_vol=((int*)pars)[1],cmp_vol=((int*)pars)[2];
+    int ii=((int*)pars)[0],prp_vol=((int*)pars)[1];
     int i=ii+1;
-    printf("rank %d, prp_vol: %d, cmp_vol: %d\n",rank,prp_vol,cmp_vol);
     
     //directions perpendicular to 0 and i
     int j=perp2_dir[0][ii][0],k=perp2_dir[0][ii][1];
@@ -38,9 +81,6 @@ namespace nissa
     int glb_dest_site=g[i]+glb_size[i]*(g[0]+glb_size[0]*(g[k]+glb_size[k]*g[j]));
     irank_transp=glb_dest_site/prp_vol;
     iloc_transp=glb_dest_site-irank_transp*prp_vol;
-    
-    printf("rank %d/%d site %d/%d going to %d %d %d %d, [%d %d %d %d] rank %d site %d\n",
-	   rank,nranks,iloc_lx,loc_vol,g[i],g[0],g[k],g[j],i,0,k,j,irank_transp,iloc_transp);
   }
 
   //compute all possible rectangular paths among a defined interval
@@ -61,7 +101,7 @@ namespace nissa
     vector_remap_t *remap[3];
     for(int ii=0;ii<3;ii++)
       {
-	int pars[3]={ii,prp_vol,cmp_vol};
+	int pars[2]={ii,prp_vol};
 	remap[ii]=new vector_remap_t(loc_vol,index_transp,pars);
 	if(remap[ii]->nel_in!=cmp_vol) crash("expected %d obtained %d",cmp_vol,remap[ii]->nel_in);
       }
@@ -73,10 +113,11 @@ namespace nissa
     su3 *transp_conf=nissa_malloc("transp_confs",3*cmp_vol*ntot_sme,su3);
     //local conf holders pre-transposing
     su3 *pre_transp_conf_holder=nissa_malloc("pre_transp_conf_holder",loc_vol,su3);
-    su3 *post_transp_conf_holder=nissa_malloc("post_transp_conf_holder",loc_vol,su3);
+    su3 *post_transp_conf_holder=nissa_malloc("post_transp_conf_holder",cmp_vol,su3);
 
     //hyp or temporal APE smear the conf
-    if(pars->use_hyp_or_ape_temp==0) hyp_smear_conf_dir(sme_conf,ori_conf,pars->hyp_temp_alpha0,pars->hyp_temp_alpha1,pars->hyp_temp_alpha2,0);
+    if(pars->use_hyp_or_ape_temp==0) hyp_smear_conf_dir(sme_conf,ori_conf,pars->hyp_temp_alpha0,
+							pars->hyp_temp_alpha1,pars->hyp_temp_alpha2,0);
     else ape_temporal_smear_conf(sme_conf,ori_conf,pars->ape_temp_alpha,pars->nape_temp_iters);
     
     //store temporal links and send them
@@ -108,27 +149,97 @@ namespace nissa
 	      {
 		remap[ii]->remap(post_transp_conf_holder,pre_transp_conf_holder,sizeof(su3));
 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
-		  su3_copy(transp_conf[icmp+cmp_vol*((i+iape)+ntot_sme*ii)],post_transp_conf_holder[icmp]);
+		  su3_copy(transp_conf[icmp+cmp_vol*((1+iape)+ntot_sme*ii)],post_transp_conf_holder[icmp]);
 		THREAD_BARRIER();
 	      }
 	  }
       }
 
-    //free smeared conf and pre-post buffers
+    //free smeared conf, pre-post buffers and remappers
     nissa_free(post_transp_conf_holder);
     nissa_free(pre_transp_conf_holder);
     nissa_free(sme_conf);
-    
     for(int ii=0;ii<3;ii++) delete remap[ii];
     
     ////////////////////////////////////////////////////////////////////////////////////
     
+    //all the rectangles, for each thread
+    int dD=pars->Dmax+1-pars->Dmin;
+    int dT=pars->Tmax+1-pars->Tmin;
+    double *all_rectangles_loc_thread=(double*)malloc(dD*dT*3*nape_spat_levls*sizeof(double));
+    memset(all_rectangles_loc_thread,0,dD*dT*3*nape_spat_levls*sizeof(double));
+    
+    //all time-lines for all distances dT, and running space-lines
+    su3 *Tline=nissa_malloc("Tline",cmp_vol*dT,su3);
+    su3 *Dline=nissa_malloc("Dline",cmp_vol,su3);
+    for(int ii=0;ii<3;ii++)
+      {
+	int i=ii+1,j=perp2_dir[0][ii][0],k=perp2_dir[0][ii][1];
+	tricoords_t L={glb_size[j]*glb_size[k],glb_size[0],glb_size[i]};
+	
+	//create Tline
+	NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
+	  {
+	    su3 U;
+	    su3_copy(U,transp_conf[icmp+cmp_vol*(0+ntot_sme*ii)]);
+	    
+	    for(int t=1;t<pars->Tmin;t++)
+	      safe_su3_prod_su3(U,U,transp_conf[site_shift(icmp,L,1,t)+cmp_vol*(0+ntot_sme*ii)]);
+	    for(int dt=0;dt<dT;dt++)
+	      {
+		safe_su3_prod_su3(U,U,transp_conf[site_shift(icmp,L,1,dt+pars->Tmin)+cmp_vol*(0+ntot_sme*ii)]);
+		su3_copy(Tline[icmp*dT+dt],U);
+	      }
+	  }
+	THREAD_BARRIER();
+	
+	for(int iape=0;iape<nape_spat_levls;iape++)
+	  {
+	    //create Dlines up to Dmin
+	    NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
+	      {
+		su3_copy(Dline[icmp],transp_conf[icmp+cmp_vol*((1+iape)+ntot_sme*ii)]);
+		
+		for(int d=1;d<pars->Dmin;d++)
+		  safe_su3_prod_su3(Dline[icmp],Dline[icmp],
+				    transp_conf[site_shift(icmp,L,2,d)+cmp_vol*((1+iape)+ntot_sme*ii)]);
+	      }
+	    THREAD_BARRIER();
+	    
+	    for(int dd=0;dd<dD;dd++)
+	      {
+		int d=dd+pars->Dmin;
+		//prolong
+		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
+		  safe_su3_prod_su3(Dline[icmp],Dline[icmp],
+				    transp_conf[site_shift(icmp,L,2,d)+cmp_vol*((1+iape)+ntot_sme*ii)]);
+		THREAD_BARRIER();
+		
+		//closes
+		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
+		  {
+		    su3 part1,part2;
+		    for(int dt=0;dt<dT;dt++)
+		      {
+			int t=dt+pars->Tmin;
+			unsafe_su3_prod_su3(part1,Dline[icmp],Tline[site_shift(icmp,L,2,d)*dT+dt]);
+			unsafe_su3_prod_su3(part2,Tline[icmp*dT+dt],Dline[site_shift(icmp,L,0,t)]);
+			all_rectangles_loc_thread[dd+dD*(dt+dT*(ii+3*iape))]+=real_part_of_trace_su3_prod_su3_dag(part1,part2);
+		      }
+		  }
+	      }
+	  }
+      }
+    
     //open file
     FILE *fout=NULL;
     if(rank==0 && IS_MASTER_THREAD) fout=open_file(pars->path,create_output_file?"w":"a");
-    
+    printf("%16.16lg\n",all_rectangles_loc_thread[0]/(3*glb_vol));
     if(rank==0 && IS_MASTER_THREAD) fclose(fout);
     
+    free(all_rectangles_loc_thread);
+    nissa_free(Tline);
+    nissa_free(Dline);
     nissa_free(transp_conf);
   }}
 
@@ -245,7 +356,7 @@ namespace nissa
 		    }
 		}
 	    
-	    //print all the Dmax contributions, with ncol*nspat_dir*glb_vol normalization
+	    //print all the Dmax contributions, with ncol*glb_vol normalization
 	    if(t>=pars->Tmin && rank==0 && IS_MASTER_THREAD)
 	      for(int d=pars->Dmin;d<=pars->Dmax;d++)
 		{
