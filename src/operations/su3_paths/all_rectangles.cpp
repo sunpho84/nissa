@@ -22,6 +22,7 @@
 
 #include "smearing/APE.hpp"
 #include "smearing/HYP.hpp"
+#include "su3_paths/plaquette.hpp"
 
 namespace nissa
 {
@@ -61,9 +62,11 @@ namespace nissa
   {
     tricoords_t in;
     get_tricoords_of_site(in,icmp,L);
+    
     in[mu]=in[mu]+shift;
     while(in[mu]<0) in[mu]+=L[mu];
     while(in[mu]>=L[mu]) in[mu]-=L[mu];
+    
     return get_site_of_tricoords(in,L);
   }
   
@@ -119,6 +122,7 @@ namespace nissa
     if(pars->use_hyp_or_ape_temp==0) hyp_smear_conf_dir(sme_conf,ori_conf,pars->hyp_temp_alpha0,
 							pars->hyp_temp_alpha1,pars->hyp_temp_alpha2,0);
     else ape_temporal_smear_conf(sme_conf,ori_conf,pars->ape_temp_alpha,pars->nape_temp_iters);
+    master_printf("Plaquette after temp smear: %16.16lg\n",global_plaquette_lx_conf(sme_conf));
     
     //store temporal links and send them
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -137,6 +141,7 @@ namespace nissa
       {
         ape_spatial_smear_conf(sme_conf,sme_conf,pars->ape_spat_alpha,
 	       (iape==0)?pars->nape_spat_iters[0]:(pars->nape_spat_iters[iape]-pars->nape_spat_iters[iape-1]));
+	master_printf("Plaquette after %d ape smears: %16.16lg\n",iape+1,global_plaquette_lx_conf(sme_conf));
 	
 	//store spatial links and send them
 	for(int ii=0;ii<3;ii++)
@@ -145,16 +150,14 @@ namespace nissa
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	      su3_copy(pre_transp_conf_holder[ivol],sme_conf[ivol][i]);
 	    THREAD_BARRIER();
-	    for(int ii=0;ii<3;ii++)
-	      {
-		remap[ii]->remap(post_transp_conf_holder,pre_transp_conf_holder,sizeof(su3));
-		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
-		  su3_copy(transp_conf[icmp+cmp_vol*((1+iape)+ntot_sme*ii)],post_transp_conf_holder[icmp]);
-		THREAD_BARRIER();
-	      }
+
+	    remap[ii]->remap(post_transp_conf_holder,pre_transp_conf_holder,sizeof(su3));
+	    NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
+	      su3_copy(transp_conf[icmp+cmp_vol*((1+iape)+ntot_sme*ii)],post_transp_conf_holder[icmp]);
+	    THREAD_BARRIER();
 	  }
       }
-    
+
     //free smeared conf, pre-post buffers and remappers
     nissa_free(post_transp_conf_holder);
     nissa_free(pre_transp_conf_holder);
@@ -173,12 +176,13 @@ namespace nissa
     //all time-lines for all distances dT, and running space-lines
     su3 *Tline=nissa_malloc("Tline",cmp_vol*dT,su3);
     su3 *Dline=nissa_malloc("Dline",cmp_vol,su3);
+    
     for(int ii=0;ii<3;ii++)
       {
-	int i=ii+1,j=perp2_dir[0][ii][0],k=perp2_dir[0][ii][1];
-	tricoords_t L={glb_size[j]*glb_size[k],glb_size[0],glb_size[i]};
+	int i=ii+1;
+	tricoords_t L={cmp_vol/glb_size[0]/glb_size[i],glb_size[0],glb_size[i]};
 	
-	//create Tline
+	//create all Tline
 	NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
 	  {
 	    su3 U;
@@ -188,8 +192,8 @@ namespace nissa
 	      safe_su3_prod_su3(U,U,transp_conf[site_shift(icmp,L,1,t)+cmp_vol*(0+ntot_sme*ii)]);
 	    for(int dt=0;dt<dT;dt++)
 	      {
-		safe_su3_prod_su3(U,U,transp_conf[site_shift(icmp,L,1,dt+pars->Tmin)+cmp_vol*(0+ntot_sme*ii)]);
 		su3_copy(Tline[icmp*dT+dt],U);
+		safe_su3_prod_su3(U,U,transp_conf[site_shift(icmp,L,1,dt+pars->Tmin)+cmp_vol*(0+ntot_sme*ii)]);
 	      }
 	  }
 	THREAD_BARRIER();
@@ -210,12 +214,7 @@ namespace nissa
 	    for(int dd=0;dd<dD;dd++)
 	      {
 		int d=dd+pars->Dmin;
-		//prolong
-		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
-		  safe_su3_prod_su3(Dline[icmp],Dline[icmp],
-				    transp_conf[site_shift(icmp,L,2,d)+cmp_vol*((1+iape)+ntot_sme*ii)]);
-		THREAD_BARRIER();
-		
+
 		//closes
 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
 		  {
@@ -224,15 +223,21 @@ namespace nissa
 		      {
 			int t=dt+pars->Tmin;
 			unsafe_su3_prod_su3(part1,Dline[icmp],Tline[site_shift(icmp,L,2,d)*dT+dt]);
-			unsafe_su3_prod_su3(part2,Tline[icmp*dT+dt],Dline[site_shift(icmp,L,0,t)]);
+			unsafe_su3_prod_su3(part2,Tline[icmp*dT+dt],Dline[site_shift(icmp,L,1,t)]);
 			all_rectangles_loc_thread[dd+dD*(dt+dT*(ii+3*iape))]+=
 			  real_part_of_trace_su3_prod_su3_dag(part1,part2);
 		      }
 		  }
+		
+		//prolong
+		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
+		  safe_su3_prod_su3(Dline[icmp],Dline[icmp],
+				    transp_conf[site_shift(icmp,L,2,d)+cmp_vol*((1+iape)+ntot_sme*ii)]);
+		THREAD_BARRIER();
 	      }
 	  }
       }
-
+    
 #ifdef USE_THREADS
     if(nthreads>1)
       if(IS_MASTER_THREAD)
