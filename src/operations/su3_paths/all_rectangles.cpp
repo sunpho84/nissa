@@ -109,7 +109,7 @@ namespace nissa
     //transposed configurations
     //we need 3 copies, each holding 1 smeared temporal links and 3*nape_spat_levls spatial links per site
     int nape_spat_levls=pars->nape_spat_levls;
-    int ntot_sme=1+3*nape_spat_levls;
+    int ntot_sme=1+nape_spat_levls;
     su3 *transp_conf=nissa_malloc("transp_confs",3*cmp_vol*ntot_sme,su3);
     //local conf holders pre-transposing
     su3 *pre_transp_conf_holder=nissa_malloc("pre_transp_conf_holder",loc_vol,su3);
@@ -154,7 +154,7 @@ namespace nissa
 	      }
 	  }
       }
-
+    
     //free smeared conf, pre-post buffers and remappers
     nissa_free(post_transp_conf_holder);
     nissa_free(pre_transp_conf_holder);
@@ -166,8 +166,9 @@ namespace nissa
     //all the rectangles, for each thread
     int dD=pars->Dmax+1-pars->Dmin;
     int dT=pars->Tmax+1-pars->Tmin;
-    double *all_rectangles_loc_thread=(double*)malloc(dD*dT*3*nape_spat_levls*sizeof(double));
-    memset(all_rectangles_loc_thread,0,dD*dT*3*nape_spat_levls*sizeof(double));
+    double *all_rectangles=nissa_malloc("all_rectangles",dD*dT*3*nape_spat_levls*nthreads,double);
+    vector_reset(all_rectangles);
+    double *all_rectangles_loc_thread=all_rectangles+dD*dT*3*nape_spat_levls*THREAD_ID;
     
     //all time-lines for all distances dT, and running space-lines
     su3 *Tline=nissa_malloc("Tline",cmp_vol*dT,su3);
@@ -224,20 +225,52 @@ namespace nissa
 			int t=dt+pars->Tmin;
 			unsafe_su3_prod_su3(part1,Dline[icmp],Tline[site_shift(icmp,L,2,d)*dT+dt]);
 			unsafe_su3_prod_su3(part2,Tline[icmp*dT+dt],Dline[site_shift(icmp,L,0,t)]);
-			all_rectangles_loc_thread[dd+dD*(dt+dT*(ii+3*iape))]+=real_part_of_trace_su3_prod_su3_dag(part1,part2);
+			all_rectangles_loc_thread[dd+dD*(dt+dT*(ii+3*iape))]+=
+			  real_part_of_trace_su3_prod_su3_dag(part1,part2);
 		      }
 		  }
 	      }
 	  }
       }
+
+#ifdef USE_THREADS
+    if(nthreads>1)
+      if(IS_MASTER_THREAD)
+	for(unsigned int other_thread=1;other_thread<nthreads;other_thread++)
+	  {
+	    double *all_rectangles_other_thread=all_rectangles+dD*dT*3*nape_spat_levls*other_thread;
+	    for(int i=0;i<dD*dT*3*nape_spat_levls;i++)
+	      all_rectangles_loc_thread[i]+=all_rectangles_other_thread[i];		
+	  }
+    THREAD_BARRIER();
+#endif
     
-    //open file
-    FILE *fout=NULL;
-    if(rank==0 && IS_MASTER_THREAD) fout=open_file(pars->path,create_output_file?"w":"a");
-    printf("%16.16lg\n",all_rectangles_loc_thread[0]/(3*glb_vol));
-    if(rank==0 && IS_MASTER_THREAD) fclose(fout);
+    //perform all rank reduction and print
+    double *all_rectangles_glb=nissa_malloc("all_rectangles",dD*dT*3*nape_spat_levls,double);    
+    if(IS_MASTER_THREAD)
+      {
+	decript_MPI_error(MPI_Reduce(all_rectangles,all_rectangles_glb,dD*dT*3*nape_spat_levls,
+				     MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD),"reducing");
+	
+	//open file
+	if(rank==0)
+	  {
+	    FILE *fout=open_file(pars->path,create_output_file?"w":"a");
+	    for(int iape=0;iape<nape_spat_levls;iape++)
+	      for(int dt=0;dt<dT;dt++)
+		for(int dd=0;dd<dD;dd++)
+		  {
+		    fprintf(fout,"%d %d  %d %d",iconf,iape,dt+pars->Tmin,dd+pars->Dmin);
+		    for(int ii=0;ii<3;ii++) fprintf(fout,"\t%16.16lg",
+						    all_rectangles_glb[dd+dD*(dt+dT*(ii+3*iape))]/(3*glb_vol));
+		    fprintf(fout,"\n");
+		  }
+	    fclose(fout);
+	  }
+      }
     
-    free(all_rectangles_loc_thread);
+    nissa_free(all_rectangles_glb);
+    nissa_free(all_rectangles);
     nissa_free(Tline);
     nissa_free(Dline);
     nissa_free(transp_conf);
