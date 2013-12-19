@@ -166,7 +166,7 @@ namespace nissa
     
     ////////////////////////////////////////////////////////////////////////////////////
     
-    //all the rectangles, for each thread
+    //all the rectangles
     int dD=pars->Dmax+1-pars->Dmin;
     int dT=pars->Tmax+1-pars->Tmin;
     double *all_rectangles=nissa_malloc("all_rectangles",dD*dT*3*nape_spat_levls*nthreads,double);
@@ -228,6 +228,7 @@ namespace nissa
 			  real_part_of_trace_su3_prod_su3_dag(part1,part2);
 		      }
 		  }
+		THREAD_BARRIER();
 		
 		//prolong
 		NISSA_PARALLEL_LOOP(icmp,0,cmp_vol)
