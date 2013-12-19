@@ -621,6 +621,8 @@ void setup_conf()
 //Finalization
 void close_semileptonic()
 {
+  close_input();
+  
   master_printf("\n");
   master_printf("Inverted %d configurations.\n",nanalyzed_conf);
   master_printf("Total time: %g",tot_prog_time);

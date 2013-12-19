@@ -43,7 +43,7 @@ namespace nissa
 	{
 	  int rank_to,iel_to;
 	  index(rank_to,iel_to,iel_out,pars);
-	  
+	  if(rank_to>=nranks||rank_to<0) crash("destination rank %d does not exist!",rank_to);
 	  nper_rank_to_temp[rank_to]++;
 	}
     THREAD_BARRIER();
@@ -149,6 +149,20 @@ namespace nissa
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
     THREAD_BARRIER();
+    
+    //check
+    int *in_buf_dest_check=nissa_malloc("in_buf_dest_check",nel_in,int);
+    vector_reset(in_buf_dest_check);
+    if(IS_MASTER_THREAD)
+      for(int iel_in=0;iel_in<nel_in;iel_in++)
+	{
+	  int idest=in_buf_dest[iel_in];
+	  if(idest<0||idest>=nel_in) crash("in_buf_dest[%d] point to %d not in the range [0,nel_in=%d)",
+					   iel_in,idest,nel_in);
+	  if(in_buf_dest_check[idest]++==1) crash("multiple assignement of %d",idest);
+	}
+    THREAD_BARRIER();
+    nissa_free(in_buf_dest_check);
     
     nissa_free(out_buf_cur_per_rank);
     nissa_free(in_buf_cur_per_rank);
