@@ -82,7 +82,7 @@ namespace nissa
   }
   
   //open an input file
-  void open_input(char *input_path)
+  void open_input(const char *input_path)
   {
     if(rank==0)
       {

@@ -9,7 +9,7 @@ namespace nissa
   void close_input();
   void expect_str(const char *exp_str);
   void file_touch(const char *path);
-  void open_input(char *input_path);
+  void open_input(const char *input_path);
   void read_double(double *out);
   void read_int(int *out);
   void read_list_of_chars(const char *tag,int *nentries,char ***list,int nchar_per_entry);
