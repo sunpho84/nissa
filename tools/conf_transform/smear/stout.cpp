@@ -26,31 +26,37 @@ int main(int narg,char **arg)
 
   //////////////////////////// read the conf /////////////////////////////
 
-  quad_su3 *in_conf[2]={nissa_malloc("in_conf_e",loc_volh+bord_volh+edge_volh,quad_su3),
-			nissa_malloc("in_conf_o",loc_volh+bord_volh+edge_volh,quad_su3)};
+  quad_su3 *conf[2]={nissa_malloc("conf_e",loc_volh+bord_volh+edge_volh,quad_su3),
+			nissa_malloc("conf_o",loc_volh+bord_volh+edge_volh,quad_su3)};
   
   //read the conf and write plaquette
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
-  read_ildg_gauge_conf_and_split_into_eo_parts(in_conf,pathin,&mess);
-  master_printf("Original plaquette: %16.16lg\n",global_plaquette_eo_conf(in_conf));
+  read_ildg_gauge_conf_and_split_into_eo_parts(conf,pathin,&mess);
+  master_printf("Original plaquette: %16.16lg\n",global_plaquette_eo_conf(conf));
 
   //////////////////////////// stout the conf //////////////////////////
   
-  //smear
-  quad_su3 *out_conf[2]={nissa_malloc("out_conf_e",loc_volh+bord_volh+edge_volh,quad_su3),
-			 nissa_malloc("out_conf_o",loc_volh+bord_volh+edge_volh,quad_su3)};
-  stout_smear(out_conf,in_conf,&stout_pars);
-
-  //print plaquette and write the conf
-  master_printf("Smeared plaquette: %16.16lg\n",global_plaquette_eo_conf(out_conf));
-  paste_eo_parts_and_write_ildg_gauge_conf(pathout,out_conf,64,&mess);
-
-  for(int eo=0;eo<2;eo++)
+  for(int ilev=0;ilev<=stout_pars.nlev;ilev++)
     {
-      nissa_free(out_conf[eo]);
-      nissa_free(in_conf[eo]);
+      //compute topocharge
+      double charge;
+      average_topological_charge_eo(&charge,conf);
+      master_printf("charge %d %16.16lg\n",ilev,charge);
+      
+      if(ilev!=0)
+	{
+	  //cool_conf(conf,false,0);
+	  //smear and print plaquette
+	  stout_smear_single_level(conf,conf,&(stout_pars.rho));
+	  master_printf("Smeared %d plaquette: %16.16lg\n",ilev,global_plaquette_eo_conf(conf));
+	}
     }
+
+  //write the conf
+  paste_eo_parts_and_write_ildg_gauge_conf(pathout,conf,64);
+
+  for(int eo=0;eo<2;eo++) nissa_free(conf[eo]);
   ILDG_message_free_all(&mess);
   
   ///////////////////////////////////////////
