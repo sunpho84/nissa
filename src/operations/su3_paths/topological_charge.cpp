@@ -332,37 +332,57 @@ namespace nissa
     
     //compute the clover-shape paths
     four_leaves(leaves,conf);
+    //takes the anti-symmetric part (apart from a factor 2), in an horrendous wat
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int imunu=0;imunu<6;imunu++)
+	{
+	  color *u=leaves[ivol]+imunu;
+	  for(int ic1=0;ic1<3;ic1++)
+	    for(int ic2=ic1;ic2<3;ic2++)
+	      {
+		u[ic2][ic1][0]=-(u[ic1][ic2][0]=u[ic1][ic2][0]-u[ic2][ic1][0]);
+		u[ic2][ic1][1]=+(u[ic1][ic2][1]=u[ic1][ic2][1]+u[ic2][ic1][1]);
+	      }
+	}
+    THREAD_BARRIER();
     
     //list the three combinations of plans
     int plan_id[3][2]={{0,5},{1,4},{2,3}};
     int sign[3]={1,-1,1};
+    int imunu_list[4][3]={{  0,1,2},
+			  {0,  3,4},
+			  {1,3,  5},
+			  {2,4,5  }};
     
     //loop on the three different combinations of plans
+    vector_reset(staples);
     GET_THREAD_ID();
-    for(int iperm=0;iperm<3;iperm++)
+    NISSA_PARALLEL_LOOP(A,0,loc_vol)
       {
-	//take the index of the two plans
-	int ip0=plan_id[iperm][0];
-	int ip1=plan_id[iperm][1];
-	
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  {
-	    //products
-	    su3 clock,aclock;
-	    unsafe_su3_prod_su3_dag(clock,leaves[ivol][ip0],leaves[ivol][ip1]);
-	    unsafe_su3_prod_su3(aclock,leaves[ivol][ip0],leaves[ivol][ip1]);
-	    
-	    //take the trace
-	    complex tclock,taclock;
-	    su3_trace(tclock,clock);
-	    su3_trace(taclock,aclock);
-	    
-	    //takes the combination with appropriate sign
-	    charge[ivol]+=sign[iperm]*(tclock[RE]-taclock[RE])*norm_fact;
-	  }
+	//tx tz xz yt yx zy 
+	for(int mu=0;mu<4;mu++) //link direction
+	  for(int inu=0;inu<3;inu++)                   //  E---F---C   
+	    {                                          //  |   |   | mu
+	      int nu=perp_dir[mu][inu];                //  D---A---B   
+	      //this gives the other pair element      //        nu    
+	      int imunu=imunu_list[mu][inu];
+	      int irhosigma=5-imunu;
+	      
+	      int B=loclx_neighup[A][nu];
+	      int F=loclx_neighup[A][mu];
+	      unsafe_su3_prod_su3(    temp1,conf[A][nu],conf[B][mu]);
+	      unsafe_su3_prod_su3_dag(temp2,temp1,conf[F][nu]);
+	      su3_summ(staples,staples,temp2);
+          
+	      int D=loclx_neighdw[A][nu];
+	      int E=loclx_neighup[D][mu];
+	      unsafe_su3_dag_prod_su3(temp1,conf[D][nu],conf[D][mu]);
+	      unsafe_su3_prod_su3(temp2,temp1,conf[E][nu]);
+	      su3_summ(staples,staples,temp2);
+	    }
       }
     
-    set_borders_invalid(charge);
+    set_borders_invalid(staples);
     
     nissa_free(leaves);
   }}

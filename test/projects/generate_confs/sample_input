@@ -99,7 +99,7 @@ GaugeObsPath           obs             /* output file for gauge obs */
 
 MeasureTopology        0               /* topology (other questions only if 1 is chosen) */
 
-MeasureAllRect         2
+MeasureAllRect         1
 AllRectPath            rects
 UseHYPorAPE            0
 HYPTempAlpha0          1
