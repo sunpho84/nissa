@@ -84,7 +84,7 @@ namespace nissa
   }
 
   //compute all possible rectangular paths among a defined interval
-  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
+  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths_bah, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
     GET_THREAD_ID();
     
@@ -259,7 +259,7 @@ namespace nissa
 		    su3 part1,part2;
 		    for(int dx0=0;dx0<dX0;dx0++)
 		      {
-			int x0=dx0+(imu01<3)?pars->Tmin:pars->Dmin;
+			int x0=dx0+((imu01<3)?pars->Tmin:pars->Dmin);
 			unsafe_su3_prod_su3(part1,Dline[icmp],Tline[site_shift(icmp,L,2,d)*dX0+dx0]);
 			unsafe_su3_prod_su3(part2,Tline[icmp*dX0+dx0],Dline[site_shift(icmp,L,1,x0)]);
 			all_rectangles_loc_thread[irect+dx0]+=real_part_of_trace_su3_prod_su3_dag(part1,part2);
@@ -307,8 +307,8 @@ namespace nissa
 		for(int dd=0;dd<dD;dd++)
 		  for(int dX0=(imu01<3)?dT:dD,dx0=0;dx0<dX0;dx0++)
 		    {
-		      fprintf(fout,"%d imu01 %d  mu0 %d  mu1 %d  iape %d  d0 %d  d1 %d  %16.16lg\n",
-			      iconf,imu01,
+		      fprintf(fout,"conf %d  mu0 %d  mu1 %d  iape %d  d0 %d  d1 %d  %16.16lg\n",
+			      iconf,
 			      mu0_l[imu01],
 			      mu1_l[imu01],
 			      iape,
@@ -327,7 +327,7 @@ namespace nissa
   }}
   
   //compute all possible rectangular paths among a defined interval
-  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths_old, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
+  THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
     GET_THREAD_ID();
     
