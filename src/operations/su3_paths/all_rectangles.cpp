@@ -302,18 +302,17 @@ namespace nissa
 	    FILE *fout=open_file(pars->path,create_output_file?"w":"a");
 	    
 	    irect=0;
+	    char dir_name[5]="txyz";
 	    for(int imu01=0;imu01<6;imu01++)
 	      for(int iape=0;iape<nape_spat_levls;iape++)
 		for(int dd=0;dd<dD;dd++)
 		  for(int dX0=(imu01<3)?dT:dD,dx0=0;dx0<dX0;dx0++)
 		    {
-		      fprintf(fout,"conf %d  mu0 %d  mu1 %d  iape %d  d0 %d  d1 %d  %16.16lg\n",
+		      fprintf(fout,"cnf %d ism %d %c %d %c %d %16.16lg\n",
 			      iconf,
-			      mu0_l[imu01],
-			      mu1_l[imu01],
 			      iape,
-			      dd+pars->Dmin,
-			      dx0+((imu01<3)?pars->Tmin:pars->Dmin),
+			      dir_name[mu0_l[imu01]],dd+pars->Dmin,
+			      dir_name[mu1_l[imu01]],dx0+((imu01<3)?pars->Tmin:pars->Dmin),
 			      all_rectangles_glb[irect++]/(3*glb_vol));
 		    }
 	    fclose(fout);
