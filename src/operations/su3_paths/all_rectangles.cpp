@@ -277,7 +277,7 @@ namespace nissa
 	  }
       }
     if(nrect!=irect) crash("expected %d rects, obtained %d",nrect,irect);
-    master_printf("done0\n");
+    for(int imu01=0;imu01<6;imu01++) nissa_free(transp_conf[imu01]);
     
 #ifdef USE_THREADS
     if(nthreads>1)
@@ -305,15 +305,17 @@ namespace nissa
 	    for(int imu01=0;imu01<6;imu01++)
 	      for(int iape=0;iape<nape_spat_levls;iape++)
 		for(int dd=0;dd<dD;dd++)
-		  for(int dx0=0;dx0<(imu01<3)?dT:dD;dx0++)
-		    fprintf(fout,"%d imu01 %d  mu0 %d  mu1 %d  iape %d  d0 %d  d1 %d  %16.16lg\n",
-			    iconf,imu01,
-			    mu0_l[imu01],
-			    mu1_l[imu01],
-			    iape,
-			    dd+pars->Dmin,
-			    dx0+imu01<3?pars->Tmin:pars->Dmin,
-			    all_rectangles_glb[irect++]/(3*glb_vol));
+		  for(int dX0=(imu01<3)?dT:dD,dx0=0;dx0<dX0;dx0++)
+		    {
+		      fprintf(fout,"%d imu01 %d  mu0 %d  mu1 %d  iape %d  d0 %d  d1 %d  %16.16lg\n",
+			      iconf,imu01,
+			      mu0_l[imu01],
+			      mu1_l[imu01],
+			      iape,
+			      dd+pars->Dmin,
+			      dx0+((imu01<3)?pars->Tmin:pars->Dmin),
+			      all_rectangles_glb[irect++]/(3*glb_vol));
+		    }
 	    fclose(fout);
 	  }
       }
@@ -322,7 +324,6 @@ namespace nissa
     nissa_free(all_rectangles);
     nissa_free(Tline);
     nissa_free(Dline);
-    nissa_free(transp_conf);
   }}
   
   //compute all possible rectangular paths among a defined interval
