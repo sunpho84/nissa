@@ -76,7 +76,8 @@ namespace nissa
     }
     
     //call the remapping
-    remap_vector((char*)out,(char*)in,xto,xfr,bps);
+    //remap_vector((char*)out,(char*)in,xto,xfr,bps);
+    crash("to be reimplemented");
     
     //free vectors
     nissa_free(xfr);
@@ -205,6 +206,28 @@ namespace nissa
 	
 	set_borders_invalid(conf[par]);
       }
+  }
+  
+  //generate an identical conf
+  void generate_cold_lx_conf(quad_su3 *conf)
+  {
+    NISSA_LOC_VOL_LOOP(ivol)
+      for(int mu=0;mu<4;mu++)
+	su3_put_to_id(conf[ivol][mu]);
+	
+    set_borders_invalid(conf);
+  }
+  
+  //generate a random conf
+  void generate_hot_lx_conf(quad_su3 *conf)
+  {
+    if(loc_rnd_gen_inited==0) crash("random number generator not inited");
+    
+    NISSA_LOC_VOL_LOOP(ivol)
+      for(int mu=0;mu<4;mu++)
+	su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
+	
+    set_borders_invalid(conf);
   }
   
   //heatbath or overrelax algorithm for the quenched simulation case, Wilson action

@@ -12,6 +12,8 @@ namespace nissa
   void cool_conf(quad_su3 **eo_conf,int over_flag,double over_exp);
   void generate_cold_eo_conf(quad_su3 **conf);
   void generate_hot_eo_conf(quad_su3 **conf);
+  void generate_cold_lx_conf(quad_su3 *conf);
+  void generate_hot_lx_conf(quad_su3 *conf);
   void heatbath_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars);
   void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over);
   void heatbath_or_overrelax_conf_Wilson_action(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over);

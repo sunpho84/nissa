@@ -318,7 +318,7 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action
   
   //polyakov loop
   complex pol;
-  average_polyakov_loop_of_eos_conf(pol,conf,0);
+  average_polyakov_loop_eo_conf(pol,conf,0);
   
   master_fprintf(file,"%d\t%d\t%016.16lg\t%016.16lg\t%+016.16lg\t%+016.16lg\n",iconf,acc,paths[0],paths[1],pol[0],pol[1]);
   

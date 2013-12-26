@@ -80,7 +80,8 @@ build_triplet = @build@
 host_triplet = @host@
 DIST_COMMON = $(top_srcdir)/config/cuda.mk $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(top_srcdir)/config/depcomp TODO
-bin_PROGRAMS = $(top_builddir)/bin/generate_stag$(EXEEXT)
+bin_PROGRAMS = $(top_builddir)/bin/generate_stag$(EXEEXT) \
+	$(top_builddir)/bin/generate_quenched$(EXEEXT)
 subdir = projects/generate_confs
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_cuda.m4 \
@@ -95,22 +96,33 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am___top_builddir__bin_generate_stag_OBJECTS =  \
-	generate_stag.$(OBJEXT)
-__top_builddir__bin_generate_stag_OBJECTS =  \
-	$(am___top_builddir__bin_generate_stag_OBJECTS)
+am___top_builddir__bin_generate_quenched_OBJECTS =  \
+	generate_quenched.$(OBJEXT)
+__top_builddir__bin_generate_quenched_OBJECTS =  \
+	$(am___top_builddir__bin_generate_quenched_OBJECTS)
 am__DEPENDENCIES_1 = $(top_builddir)/lib/libnissa.la
-__top_builddir__bin_generate_stag_DEPENDENCIES =  \
+__top_builddir__bin_generate_quenched_DEPENDENCIES =  \
 	$(am__DEPENDENCIES_1)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
 am__v_lt_0 = --silent
 am__v_lt_1 = 
+__top_builddir__bin_generate_quenched_LINK = $(LIBTOOL) $(AM_V_lt) \
+	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
+	$(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
+	$(__top_builddir__bin_generate_quenched_LDFLAGS) $(LDFLAGS) -o \
+	$@
+am__dirstamp = $(am__leading_dot)dirstamp
+am___top_builddir__bin_generate_stag_OBJECTS =  \
+	generate_stag.$(OBJEXT)
+__top_builddir__bin_generate_stag_OBJECTS =  \
+	$(am___top_builddir__bin_generate_stag_OBJECTS)
+__top_builddir__bin_generate_stag_DEPENDENCIES =  \
+	$(am__DEPENDENCIES_1)
 __top_builddir__bin_generate_stag_LINK = $(LIBTOOL) $(AM_V_lt) \
 	--tag=CXX $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=link \
 	$(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) \
 	$(__top_builddir__bin_generate_stag_LDFLAGS) $(LDFLAGS) -o $@
-am__dirstamp = $(am__leading_dot)dirstamp
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -145,8 +157,10 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(__top_builddir__bin_generate_stag_SOURCES)
-DIST_SOURCES = $(__top_builddir__bin_generate_stag_SOURCES)
+SOURCES = $(__top_builddir__bin_generate_quenched_SOURCES) \
+	$(__top_builddir__bin_generate_stag_SOURCES)
+DIST_SOURCES = $(__top_builddir__bin_generate_quenched_SOURCES) \
+	$(__top_builddir__bin_generate_stag_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -306,6 +320,9 @@ LDADD = $(top_builddir)/lib/libnissa.la $(CUDA_LIBS)
 __top_builddir__bin_generate_stag_SOURCES = generate_stag.cpp
 __top_builddir__bin_generate_stag_LDADD = $(LDADD)
 __top_builddir__bin_generate_stag_LDFLAGS = $(LDFLAGS) $(CUDA_FLAGS)
+__top_builddir__bin_generate_quenched_SOURCES = generate_quenched.cpp
+__top_builddir__bin_generate_quenched_LDADD = $(LDADD)
+__top_builddir__bin_generate_quenched_LDFLAGS = $(LDFLAGS) $(CUDA_FLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -394,6 +411,10 @@ $(top_builddir)/bin/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/bin
 	@: > $(top_builddir)/bin/$(am__dirstamp)
 
+$(top_builddir)/bin/generate_quenched$(EXEEXT): $(__top_builddir__bin_generate_quenched_OBJECTS) $(__top_builddir__bin_generate_quenched_DEPENDENCIES) $(EXTRA___top_builddir__bin_generate_quenched_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
+	@rm -f $(top_builddir)/bin/generate_quenched$(EXEEXT)
+	$(AM_V_CXXLD)$(__top_builddir__bin_generate_quenched_LINK) $(__top_builddir__bin_generate_quenched_OBJECTS) $(__top_builddir__bin_generate_quenched_LDADD) $(LIBS)
+
 $(top_builddir)/bin/generate_stag$(EXEEXT): $(__top_builddir__bin_generate_stag_OBJECTS) $(__top_builddir__bin_generate_stag_DEPENDENCIES) $(EXTRA___top_builddir__bin_generate_stag_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
 	@rm -f $(top_builddir)/bin/generate_stag$(EXEEXT)
 	$(AM_V_CXXLD)$(__top_builddir__bin_generate_stag_LINK) $(__top_builddir__bin_generate_stag_OBJECTS) $(__top_builddir__bin_generate_stag_LDADD) $(LIBS)
@@ -404,6 +425,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generate_quenched.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/generate_stag.Po@am__quote@
 
 .cpp.o:

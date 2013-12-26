@@ -396,18 +396,6 @@ namespace nissa
     double B[3];
   };
   
-  //remapping structure
-  struct vector_remap_t
-  {
-    int nel_out,nel_in;
-    int nranks_fr,*list_ranks_fr,*in_buf_dest,*nper_rank_fr,*in_buf_off_per_rank;
-    int nranks_to,*list_ranks_to,*out_buf_pos,*nper_rank_to,*out_buf_off_per_rank;
-    
-    vector_remap_t(int nel_out,void (*index)(int &irank_to,int &iel_to,int iel_fr,void *pars),void *pars);
-    ~vector_remap_t();
-    void remap(void *out,void *in,int bps);
-  };
-  
   //theory content
   enum gauge_action_name_t{Wilson_action,tlSym_action};
   struct theory_pars_t
