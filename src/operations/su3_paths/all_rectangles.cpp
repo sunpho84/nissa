@@ -2,10 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include <map>
-#include <vector>
-#include <stdlib.h>
-
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
@@ -15,6 +11,7 @@
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "operations/shift.hpp"
+#include "operations/remap_vector.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

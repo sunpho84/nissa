@@ -95,7 +95,7 @@ CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 LTLIBRARIES = $(noinst_LTLIBRARIES)
 libcommunicate_la_LIBADD =
-am_libcommunicate_la_OBJECTS = borders.lo edges.lo
+am_libcommunicate_la_OBJECTS = all_to_all.lo borders.lo edges.lo
 libcommunicate_la_OBJECTS = $(am_libcommunicate_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -321,9 +321,9 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/src
 noinst_LTLIBRARIES = libcommunicate.la
-libcommunicate_la_SOURCES = borders.cpp edges.cpp
+libcommunicate_la_SOURCES = all_to_all.cpp borders.cpp edges.cpp
 communicateincludedir = $(includedir)/communicate
-communicateinclude_HEADERS = borders.hpp communicate.hpp edges.hpp
+communicateinclude_HEADERS = all_to_all.hpp borders.hpp communicate.hpp edges.hpp
 all: all-am
 
 .SUFFIXES:
@@ -379,6 +379,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/all_to_all.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/borders.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/edges.Plo@am__quote@
 

@@ -23,7 +23,7 @@
 namespace nissa
 {
   //compute the polyakov loop
-  void average_polyakov_loop(complex tra,quad_su3 *conf,int mu)
+  void average_polyakov_loop_lx_conf(complex tra,quad_su3 *conf,int mu)
   {
     su3 *u=nissa_malloc("u",loc_vol+bord_vol,su3);
     
@@ -54,13 +54,13 @@ namespace nissa
     nissa_free(u);
   }
   
-  //definition in case of eos conf
-  void average_polyakov_loop_of_eos_conf(complex tra,quad_su3 **eo_conf,int mu)
+  //definition in case of eo conf
+  void average_polyakov_loop_eo_conf(complex tra,quad_su3 **eo_conf,int mu)
   {
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
     
-    average_polyakov_loop(tra,lx_conf,mu);
+    average_polyakov_loop_lx_conf(tra,lx_conf,mu);
     
     nissa_free(lx_conf);
   }
