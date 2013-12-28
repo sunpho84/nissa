@@ -452,7 +452,7 @@ namespace nissa
     surf_vol=loc_vol-bulk_vol;
     
     //calculate the border size
-    bord_vol=0;
+    bord_volh=0;
     bord_offset[0]=0;
     for(int idir=0;idir<4;idir++)
       {
@@ -461,12 +461,12 @@ namespace nissa
 	else bord_dir_vol[idir]=0;
 	
 	//total bord
-	bord_vol+=bord_dir_vol[idir];
+	bord_volh+=bord_dir_vol[idir];
 	
 	//summ of the border extent up to dir idir
 	if(idir>0) bord_offset[idir]=bord_offset[idir-1]+bord_dir_vol[idir-1];
       }
-    bord_vol*=2;  
+    bord_vol=2*bord_volh;  
     
 #ifdef USE_VNODES
     //two times the size of vnode_paral_dir face
@@ -502,6 +502,7 @@ namespace nissa
 	  iedge++;
 	}
     edge_vol*=4;
+    edge_volh=edge_vol/2;
     
     //print information
     master_printf("Local volume\t%dx%dx%dx%d = %d\n",loc_size[0],loc_size[1],loc_size[2],loc_size[3],loc_vol);

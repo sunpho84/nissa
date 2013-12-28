@@ -232,4 +232,25 @@ namespace nissa
     
     THREAD_BARRIER();
   }}
+
+  //summ everything together
+  THREADABLE_FUNCTION_3ARG(compute_summed_rectangular_staples_lx_conf, quad_su3*,out, quad_su3*,conf, squared_staples_t*,squared_staples)
+  {
+    GET_THREAD_ID();
+    
+    //compute pieces
+    rectangular_staples_t *rectangular_staples=nissa_malloc("rectangular_staples",loc_vol+bord_vol,rectangular_staples_t);
+    compute_rectangular_staples_lx_conf(rectangular_staples,conf,squared_staples);
+    
+    //summ
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int mu=0;mu<4;mu++)
+	{
+	  su3_copy(out[ivol][mu],rectangular_staples[ivol][mu][0]);
+	  for(int iterm=1;iterm<6;iterm++)
+	    su3_summassign(out[ivol][mu],rectangular_staples[ivol][mu][iterm]);
+	}
+    
+    nissa_free(rectangular_staples);
+  }}
 }
