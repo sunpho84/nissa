@@ -658,10 +658,15 @@ void in_main(int narg,char **arg)
   master_printf("\n");
   do
     {
+      master_printf("--------Configuration %d--------\n",iconf);
+      
       // 1) produce new conf
       if(max_nconfs!=0)
 	{
+	  double gen_time=-take_time();
 	  generate_new_conf();
+	  gen_time+=take_time();
+	  master_printf("Generate new conf in %lg sec\n",gen_time);
 	  nprod_confs++;
 	  iconf++;
 	}
