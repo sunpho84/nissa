@@ -22,24 +22,21 @@ char store_conf_path[1024];
 
 //conf and staples
 quad_su3 *conf;
-squared_staples_t *squared_staples;    
-rectangular_staples_t *rectangular_staples;
 
 //evol pars
 double beta;
 gauge_action_name_t gauge_action_name;
 pure_gauge_evol_pars_t evol_pars;
 
-//traj
-int prod_ntraj;
-int itraj,max_ntraj;
+//confs
+int nprod_confs;
+int iconf,max_nconfs;
 int store_conf_each;
 int store_running_temp_conf;
-int conf_created;
 int seed;
 
 //communications and building
-int max_cached=0;
+int max_cached_link=0;
 int nlinks_per_paths_site=3*2*(3+5*3);
 coords box_size[16];
 int nsite_per_box[16];
@@ -48,7 +45,10 @@ int *ilink_per_paths;
 int *ivol_of_box_dir_par;
 all_to_all_comm_t *box_comm[16];
 
-const int HOT=0,COLD=1;
+enum start_conf_cond_t{UNSPEC_COND,HOT,COLD};
+enum update_alg_t{UNSPEC_UP,HEAT,OVER};
+
+void measure_gauge_obs(bool );
 
 //write a conf adding info
 void write_conf()
@@ -58,9 +58,9 @@ void write_conf()
   ILDG_message_init_to_last(&mess);
   char text[1024];
 
-  //traj id
-  sprintf(text,"%d",itraj);
-  ILDG_string_message_append_to_last(&mess,"MD_traj",text);
+  //conf id
+  sprintf(text,"%d",iconf);
+  ILDG_string_message_append_to_last(&mess,"ConfID",text);
   
   //skip 10 random numbers
   for(int iskip=0;iskip<10;iskip++) rnd_get_unif(&glb_rnd_gen,0,1);
@@ -89,7 +89,7 @@ void read_conf()
   //scan messages
   for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
     {  
-      if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
+      if(strcasecmp(cur_mess->name,"ConfID")==0) sscanf(cur_mess->data,"%d",&iconf);
       if(strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
     }
   
@@ -101,6 +101,8 @@ void read_conf()
     }
   
   ILDG_message_free_all(&mess);
+
+  set_borders_invalid(conf);
 }
 
 //add link to the map if needed
@@ -177,7 +179,7 @@ void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int 
       ilink_to_be_used[tbu++]=add_link(gat,K,mu);
       ilink_to_be_used[tbu++]=add_link(gat,J,mu);
       ilink_to_be_used[tbu++]=add_link(gat,G,nu);
-      //backward forward rectangle
+      //backward backward rectangle
       ilink_to_be_used[tbu++]=add_link(gat,J,nu);
       ilink_to_be_used[tbu++]=add_link(gat,I,nu);
       ilink_to_be_used[tbu++]=add_link(gat,I,mu);
@@ -225,7 +227,7 @@ void init_simulation(char *path)
   init_grid(T,L);  
   
   read_str_str("GaugeObsPath",gauge_obs_path,1024); //gauge observables path
-  read_str_int("MaxNTraj",&max_ntraj); //number of trajectory to evolve
+  read_str_int("MaxNConfs",&max_nconfs); //number of confs to produce
   read_str_int("Seed",&seed); //seed
 
   //kind of action and evolution pars
@@ -247,10 +249,11 @@ void init_simulation(char *path)
   //read if configuration must be generated cold or hot
   char start_conf_cond_str[1024];
   read_str_str("StartConfCond",start_conf_cond_str,1024);
-  int start_conf_cond=-1;
+  start_conf_cond_t start_conf_cond=UNSPEC_COND;
   if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT;
   if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD;
-  if(start_conf_cond==-1) crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
+  if(start_conf_cond==UNSPEC_COND)
+    crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
   
   close_input();
   
@@ -258,20 +261,15 @@ void init_simulation(char *path)
    
   //allocate conf and staples
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  rectangular_staples=nissa_malloc("rectangular_staples",loc_vol+bord_vol,rectangular_staples_t);
-  squared_staples=nissa_malloc("squared_staples",loc_vol+bord_vol,squared_staples_t);  
 
   //load conf or generate it
   if(file_exists(conf_path))
     {
       master_printf("File %s found, loading\n",conf_path);
       read_conf();
-      conf_created=false;
     }
   else
     {
-      conf_created=true;
-      
       //start the random generator using passed seed
       start_loc_rnd_gen(seed);
       
@@ -288,7 +286,10 @@ void init_simulation(char *path)
 	}
       
       //reset conf id
-      itraj=0;
+      iconf=0;
+      
+      //write initial measures
+      measure_gauge_obs(true);
     }  
   
   //initialize box the geometry
@@ -309,20 +310,20 @@ void init_simulation(char *path)
       //get coords of cube
       coords nboxes={2,2,2,2};
       coords box_coord;
-      master_printf("Box %d coord [ ",ibox);
+      verbosity_lv2_master_printf("Box %d coord [ ",ibox);
       coord_of_lx(box_coord,ibox,nboxes);
-      for(int mu=0;mu<4;mu++) master_printf("%d ",box_coord[mu]);
+      for(int mu=0;mu<4;mu++) verbosity_lv2_master_printf("%d ",box_coord[mu]);
       
       //get box size
-      master_printf("] size [ ",ibox);
+      verbosity_lv2_master_printf("] size [ ",ibox);
       nsite_per_box[ibox]=1;
       for(int mu=0;mu<4;mu++)
 	{
 	  if(ibox!=0) box_size[ibox][mu]=((box_coord[mu]==0)?(box_size[0][mu]):(loc_size[mu]-box_size[0][mu]));
 	  nsite_per_box[ibox]*=box_size[ibox][mu];
-	  master_printf("%d ",box_size[ibox][mu]);
+	  verbosity_lv2_master_printf("%d ",box_size[ibox][mu]);
 	}
-      master_printf("], nsites: %d\n",nsite_per_box[ibox]);
+      verbosity_lv2_master_printf("], nsites: %d\n",nsite_per_box[ibox]);
 
       //allocate
       all_to_all_gathering_list_t *gl=new all_to_all_gathering_list_t;
@@ -363,12 +364,14 @@ void init_simulation(char *path)
 	  }
       
       box_comm[ibox]=new all_to_all_comm_t(*gl);
-      max_cached=std::max(max_cached,(int)gl->size());
+      max_cached_link=std::max(max_cached_link,(int)gl->size());
       
       delete gl;
     }
   
-  master_printf("max cached: %d\n",max_cached);
+  //check cached
+  verbosity_lv2_master_printf("Max cached links: %d\n",max_cached_link);
+  if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed");
 }
 
 //finalize everything
@@ -376,18 +379,14 @@ void close_simulation()
 {
   if(!store_running_temp_conf) write_conf();
   nissa_free(conf);
-  nissa_free(squared_staples);
-  nissa_free(rectangular_staples);
   
   nissa_free(ivol_of_box_dir_par);
   nissa_free(ilink_per_paths);
   for(int ibox=0;ibox<16;ibox++) delete box_comm[ibox];
 }
 
-//updated all sites
-void sweep_this_rank(int ho)
-{
-  
+void check()
+{  
   //////////////////////////// make sure everything is hit ///////////////////////
   
   {
@@ -418,7 +417,7 @@ void sweep_this_rank(int ho)
   //////////////////////////// make sure everything is hit in the appropriate order ///////////////////////
 
   {
-    int *hit=nissa_malloc("hit",4*loc_vol+max_cached,int);
+    int *hit=nissa_malloc("hit",4*loc_vol+max_cached_link,int);
     int ibase=0;
     for(int ibox=0;ibox<16;ibox++)
       for(int dir=0;dir<4;dir++)
@@ -450,9 +449,9 @@ void sweep_this_rank(int ho)
 		    for(int ihit=0;ihit<nlinks_per_paths_site;ihit++)
 		      {
 			int link=ilink_per_paths[ihit+nlinks_per_paths_site*(ibox_dir_par+ibase)];
-			if(link>=4*loc_vol+max_cached)
-			  crash("ibox %d ibox_dir_par %d ibase %d ihit %d, link %d, max_cached %d",
-				ibox,ibox_dir_par,ibase,ihit,link,max_cached);
+			if(link>=4*loc_vol+max_cached_link)
+			  crash("ibox %d ibox_dir_par %d ibase %d ihit %d, link %d, max_cached_link %d",
+				ibox,ibox_dir_par,ibase,ihit,link,max_cached_link);
 			
 			if(0)
 			printf("ibox %d dir %d par %d link[%d], ivol %d{%d,%d,%d,%d}: %d,%d,%d,%d;%d\n",
@@ -488,66 +487,137 @@ void sweep_this_rank(int ho)
     
     nissa_free(hit);
   }
-
-  /*  
-  //receive staple from neighbours
-  
-  for(int mu=0;mu<4;mu++)
-    for(int cube_par=0;cube_par<cube_size;cube_par++)
-      {
-	NISSA_PARALLEL_LOOP(ired,0,loc_vol/cube_size)
-	  {
-	    int ivol=ired*cube_size+cube_par;
-	    
-	    //compute staples
-	    su3 staples;
-	    
-	    //compute heatbath or overrelax link and change it
-	    su3 link;
-	    if(ho==0) su3_find_heatbath(link,conf[ivol][mu],staples,beta,evol_pars.nhb_hits,loc_rnd_gen+ivol);
-	    else      su3_find_overrelaxed(link,conf[ivol][mu],staples,evol_pars.nov_hits);
-	    su3_copy(conf[ivol][mu],link);
-	  }
-	THREAD_BARRIER();
-      }
-*/
 }
 
-//compute for other ranks
-void compute_for_other_ranks()
+//compute the summ of the staples pointed by "ilinks"
+void compute_tlSym_staples(su3 staples,su3 *links,int *ilinks)
 {
+  su3 squares,rectangles;
+  su3_put_to_zero(squares);
+  su3_put_to_zero(rectangles);
+  
+  for(int inu=0;inu<3;inu++)
+    {  
+      su3 temp1,temp2;
+      //backward square staple
+      unsafe_su3_dag_prod_su3(temp1,links[ilinks[ 0]],links[ilinks[ 1]]);
+      su3_summ_the_prod_su3(squares,temp1,links[ilinks[ 2]]);
+      //forward square staple
+      unsafe_su3_prod_su3(temp1,links[ilinks[ 3]],links[ilinks[ 4]]);
+      su3_summ_the_prod_su3_dag(squares,temp1,links[ilinks[ 5]]);
+      //backward dw rectangle
+      unsafe_su3_dag_prod_su3_dag(temp1,links[ilinks[ 6]],links[ilinks[ 7]]);
+      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[ 8]]);
+      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[ 9]]);
+      su3_summ_the_prod_su3(rectangles,temp1,links[ilinks[10]]);
+      //backward backward rectangle
+      unsafe_su3_dag_prod_su3_dag(temp1,links[ilinks[11]],links[ilinks[12]]);
+      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[13]]);
+      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[14]]);
+      su3_summ_the_prod_su3(rectangles,temp1,links[ilinks[15]]);
+      //backward up rectangle
+      unsafe_su3_dag_prod_su3(temp1,links[ilinks[16]],links[ilinks[17]]);
+      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[18]]);
+      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[19]]);
+      su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[20]]);
+      //forward dw rectangle
+      unsafe_su3_dag_prod_su3(temp1,links[ilinks[21]],links[ilinks[22]]);
+      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[23]]);
+      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[24]]);
+      su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[25]]);
+      //forward forward rectangle
+      unsafe_su3_prod_su3(temp1,links[ilinks[26]],links[ilinks[27]]);
+      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[28]]);
+      unsafe_su3_prod_su3_dag(temp1,temp2,links[ilinks[29]]);
+      su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[30]]);
+      //forward up rectangle
+      unsafe_su3_prod_su3(temp1,links[ilinks[31]],links[ilinks[32]]);
+      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[33]]);
+      unsafe_su3_prod_su3_dag(temp1,temp2,links[ilinks[34]]);
+      su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[35]]);
+
+      ilinks+=36;
+    }
+  
+  //compute the summed staples
+  double b1=-1.0/12,b0=1-8*b1;
+  su3_linear_comb(staples,squares,b0,rectangles,b1);
 }
+
+//compute action
+double compute_tlSym_action()
+{
+  //coefficient of rectangles and squares
+  double b1=-1.0/12,b0=1-8*b1;
+  
+  //compute shapes
+  complex glb_shapes;
+  global_plaquette_and_rectangles_lx_conf(glb_shapes,conf);
+  
+  //compute the total action
+  return (b0*6*glb_vol*(1-glb_shapes[RE])+b1*12*glb_vol*(1-glb_shapes[IM]))*beta;
+}
+
+//updated all sites with heat-bath or overrelaxation
+THREADABLE_FUNCTION_1ARG(sweep_conf, update_alg_t,update_alg)
+{
+  GET_THREAD_ID();
+  
+  int ibase=0;
+  for(int ibox=0;ibox<16;ibox++)
+    {
+      //communicate needed links
+      box_comm[ibox]->communicate(conf,conf,sizeof(su3));
+      
+      for(int dir=0;dir<4;dir++)
+	for(int par=0;par<4;par++)
+	  {
+	    //scan all the box
+	    int nbox_dir_par=nsite_per_box_dir_par[par+4*(dir+4*ibox)];
+	    NISSA_PARALLEL_LOOP(ibox_dir_par,ibase,ibase+nbox_dir_par)
+	      {
+		//compute the staples
+		su3 staples;
+		compute_tlSym_staples(staples,(su3*)conf,ilink_per_paths+nlinks_per_paths_site*ibox_dir_par);
+		
+		//find new link
+		int ivol=ivol_of_box_dir_par[ibox_dir_par];
+		su3 new_link;
+		if(update_alg==HEAT)
+		  su3_find_heatbath(new_link,conf[ivol][dir],staples,beta,evol_pars.nhb_hits,loc_rnd_gen+ivol);
+		else
+		  su3_find_overrelaxed(new_link,conf[ivol][dir],staples,evol_pars.nov_hits);
+		
+		//copy new link
+		su3_copy(conf[ivol][dir],new_link);
+	      }
+	    
+	    //increment the box-dir-par subset
+	    ibase+=nbox_dir_par;
+	    THREAD_BARRIER();
+	  }
+    }
+  set_borders_invalid(conf);
+}}
 
 //heatbath or overrelax algorithm for the quenched simulation case, Wilson action
 void generate_new_conf()
 {
-  sweep_this_rank(0);
-  
-  /*
-  GET_THREAD_ID();
-  
-  if(nranks>1 && nranks%2!=0) crash("expected 1 ranks or nranks multiple of 2");
-  
-  for(int isweep=0;isweep<evol_pars.nhb_sweeps+evol_pars.nov_sweeps;isweep++)
-    //only half of the ranks can be simultaneously updated
-    for(int rank_par=0;rank_par<2;rank_par++)
-      {
-	if(rank_par==(rank%2)) sweep_this_rank();
-	else compute_for_other_ranks();
-
-	//sync ranks
-	MPI_BARRIER(MPI_COMM_WORLD);
-      }
-  */
-  set_borders_invalid(conf); 
+  //number of hb sweeps
+  for(int ihb_sweep=0;ihb_sweep<evol_pars.nhb_sweeps;ihb_sweep++) sweep_conf(HEAT);
+  //numer of overrelax sweeps
+  for(int iov_sweep=0;iov_sweep<evol_pars.nov_sweeps;iov_sweep++) sweep_conf(OVER);
 }
 
 //measure plaquette and polyakov loop
-void measure_gauge_obs()
+void measure_gauge_obs(bool conf_created=false)
 {
   //open creating or appending
   FILE *file=open_file(gauge_obs_path,conf_created?"w":"a");
 
+  //compute action
+  double action=compute_tlSym_action();
+  
   //paths
   double paths[2];
   global_plaquette_and_rectangles_lx_conf(paths,conf);
@@ -556,7 +626,8 @@ void measure_gauge_obs()
   complex pol;
   average_polyakov_loop_lx_conf(pol,conf,0);
   
-  master_fprintf(file,"%d\t%016.16lg\t%016.16lg\t%+016.16lg\t%+016.16lg\n",itraj,paths[0],paths[1],pol[0],pol[1]);
+  master_fprintf(file,"%6d\t%015.15lg\t%015.15lg\t%015.15lg\t%+015.15lg\t%+015.15lg\n",
+		 iconf,action,paths[0],paths[1],pol[0],pol[1]);
   
   if(rank==0) fclose(file);
 }
@@ -564,10 +635,10 @@ void measure_gauge_obs()
 //store conf when appropriate
 void store_conf_if_necessary()
 {
-  if(store_conf_each!=0 && itraj%store_conf_each==0)
+  if(store_conf_each!=0 && iconf%store_conf_each==0)
     {
       char path[1024];
-      sprintf(path,"%s.%05d",store_conf_path,itraj);
+      sprintf(path,"%s.%05d",store_conf_path,iconf);
       write_conf();
     }
 }
@@ -582,17 +653,17 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  //evolve for the required number of traj
-  prod_ntraj=0;
+  //generate the required amount of confs
+  nprod_confs=0;
   master_printf("\n");
   do
     {
       // 1) produce new conf
-      if(max_ntraj!=0)
+      if(max_nconfs!=0)
 	{
 	  generate_new_conf();
-	  prod_ntraj++;
-	  itraj++;
+	  nprod_confs++;
+	  iconf++;
 	}
       
       // 2) measure
@@ -606,11 +677,8 @@ void in_main(int narg,char **arg)
       
       // 5) spacing between output
       master_printf("\n");
-      
-      //surely now we have created conf
-      conf_created=0;
     }
-  while(prod_ntraj<max_ntraj && !file_exists("stop") && !file_exists("restart"));
+  while(nprod_confs<max_nconfs && !file_exists("stop") && !file_exists("restart"));
   
   /////////////////////////////////////// timings /////////////////////////////////
   

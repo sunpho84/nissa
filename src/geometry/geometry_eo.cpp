@@ -31,8 +31,6 @@ namespace nissa
     //set half the vol, bord and edge size
     glb_volh=glb_vol/2;
     loc_volh=loc_vol/2;
-    bord_volh=bord_vol/2;
-    edge_volh=edge_vol/2;
     
     //set the various time-slice types
     loclx_parity=nissa_malloc("loclx_parity",loc_vol+bord_vol+edge_vol,int);
