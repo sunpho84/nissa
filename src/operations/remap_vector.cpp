@@ -29,7 +29,7 @@ namespace nissa
 	  int rank_to,iel_to;
 	  index(rank_to,iel_to,iel_out,pars);
 	  if(rank_to>=nranks||rank_to<0) crash("destination rank %d does not exist!",rank_to);
-	  sl.push_back(std::make_pair(iel_out,std::make_pair(rank_to,iel_to)));
+	  sl.push_back(std::make_pair(iel_out,iel_to*nranks+rank_to));
 	}
     setup_knowing_where_to_send(sl);
   }

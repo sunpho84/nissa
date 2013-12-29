@@ -46,7 +46,7 @@ int *ivol_of_box_dir_par;
 all_to_all_comm_t *box_comm[16];
 
 //bench
-double comm_time=0,comp_time=0,meas_time=0;
+double comm_time=0,comp_time=0,meas_time=0,read_time=0,write_time=0,base_init_time=0,comm_init_time=0;
 
 enum start_conf_cond_t{UNSPEC_COND,HOT,COLD};
 enum update_alg_t{UNSPEC_UP,HEAT,OVER};
@@ -56,6 +56,8 @@ void measure_gauge_obs(bool );
 //write a conf adding info
 void write_conf()
 {
+  write_time-=take_time();
+  
   //messages
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
@@ -77,11 +79,15 @@ void write_conf()
   
   //free messages
   ILDG_message_free_all(&mess);
+
+  write_time+=take_time();
 }
 
 //read conf
 void read_conf()
 {
+  read_time-=take_time();
+  
   //init messages
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
@@ -106,6 +112,8 @@ void read_conf()
   ILDG_message_free_all(&mess);
 
   set_borders_invalid(conf);
+
+  read_time+=take_time();
 }
 
 //add link to the map if needed
@@ -120,7 +128,7 @@ int add_link(all_to_all_gathering_list_t &gat,coords g,int mu)
   if(irank==rank) return ilink_asked;
   else
     {
-      std::pair<int,int> irank_link_asked(irank,ilink_asked);
+      int irank_link_asked=ilink_asked*nranks+irank;
       
       //if it is non local search it in the list of to-be-gathered
       all_to_all_gathering_list_t::iterator it=gat.find(irank_link_asked);
@@ -218,6 +226,8 @@ void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int 
 //initialize the simulation
 void init_simulation(char *path)
 {
+  base_init_time-=take_time();
+  
   //////////////////////////// read the input /////////////////////////
   
   //open input file
@@ -295,6 +305,8 @@ void init_simulation(char *path)
       measure_gauge_obs(true);
     }  
   
+  /////////////////////////////////////////////////////////////////////////////
+  
   //initialize box the geometry
   ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",4*loc_vol,int);
   ilink_per_paths=nissa_malloc("ilink_per_paths",nlinks_per_paths_site*4*loc_vol,int);
@@ -366,7 +378,10 @@ void init_simulation(char *path)
 	      }
 	  }
       
+      comm_init_time-=take_time();  
       box_comm[ibox]=new all_to_all_comm_t(*gl);
+      comm_init_time+=take_time();
+      
       max_cached_link=std::max(max_cached_link,(int)gl->size());
       
       delete gl;
@@ -375,16 +390,23 @@ void init_simulation(char *path)
   //check cached
   verbosity_lv2_master_printf("Max cached links: %d\n",max_cached_link);
   if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed");
+  
+  base_init_time+=take_time();
+  base_init_time-=comm_init_time;
 }
 
 //finalize everything
 void close_simulation()
 {
-  master_printf("================== Performance report =======================\n");
-  master_printf("Total communication time: %lg sec\n",comm_time);
-  master_printf("Total staple computation and update time: %lg sec\n",comp_time);
-  master_printf("Total measurement time: %lg sec\n",meas_time);
-  master_printf("=============================================================\n");
+  master_printf("========== Performance report ===========\n");
+  master_printf("Basic initialization time: %lg sec\n",base_init_time);
+  master_printf("Communicators initialization time: %lg sec\n",comm_init_time);
+  master_printf("Communication time: %lg sec\n",comm_time);
+  master_printf("Link update time: %lg sec\n",comp_time);
+  master_printf("Measurement time: %lg sec\n",meas_time);
+  master_printf("Read conf time: %lg sec\n",read_time);
+  master_printf("Write conf time: %lg sec\n",write_time);
+  master_printf("=========================================\n");
   master_printf("\n");
   
   if(!store_running_temp_conf) write_conf();
