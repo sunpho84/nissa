@@ -45,6 +45,9 @@ int *ilink_per_paths;
 int *ivol_of_box_dir_par;
 all_to_all_comm_t *box_comm[16];
 
+//bench
+double comm_time=0,comp_time=0;
+
 enum start_conf_cond_t{UNSPEC_COND,HOT,COLD};
 enum update_alg_t{UNSPEC_UP,HEAT,OVER};
 
@@ -377,6 +380,11 @@ void init_simulation(char *path)
 //finalize everything
 void close_simulation()
 {
+  master_printf("================== Performance report =======================\n");
+  master_printf("Total communication time: %lg sec\n",comm_time);
+  master_printf("Total staple computation and update time: %lg sec\n",comp_time);
+  master_printf("=============================================================\n");
+  
   if(!store_running_temp_conf) write_conf();
   nissa_free(conf);
   
@@ -545,17 +553,14 @@ void compute_tlSym_staples(su3 staples,su3 *links,int *ilinks)
 }
 
 //compute action
-double compute_tlSym_action()
+double compute_tlSym_action(complex paths)
 {
   //coefficient of rectangles and squares
   double b1=-1.0/12,b0=1-8*b1;
   
-  //compute shapes
-  complex glb_shapes;
-  global_plaquette_and_rectangles_lx_conf(glb_shapes,conf);
-  
   //compute the total action
-  return (b0*6*glb_vol*(1-glb_shapes[RE])+b1*12*glb_vol*(1-glb_shapes[IM]))*beta;
+  global_plaquette_and_rectangles_lx_conf(paths,conf);
+  return (b0*6*glb_vol*(1-paths[RE])+b1*12*glb_vol*(1-paths[IM]))*beta;
 }
 
 //updated all sites with heat-bath or overrelaxation
@@ -567,8 +572,11 @@ THREADABLE_FUNCTION_1ARG(sweep_conf, update_alg_t,update_alg)
   for(int ibox=0;ibox<16;ibox++)
     {
       //communicate needed links
+      if(IS_MASTER_THREAD) comm_time-=take_time();
       box_comm[ibox]->communicate(conf,conf,sizeof(su3));
+      if(IS_MASTER_THREAD) comm_time+=take_time();
       
+      if(IS_MASTER_THREAD) comp_time-=take_time();
       for(int dir=0;dir<4;dir++)
 	for(int par=0;par<4;par++)
 	  {
@@ -596,7 +604,9 @@ THREADABLE_FUNCTION_1ARG(sweep_conf, update_alg_t,update_alg)
 	    ibase+=nbox_dir_par;
 	    THREAD_BARRIER();
 	  }
+      if(IS_MASTER_THREAD) comp_time+=take_time();
     }
+  
   set_borders_invalid(conf);
 }}
 
@@ -617,15 +627,10 @@ void measure_gauge_obs(bool conf_created=false)
 
   //compute action
   double time_action=-take_time();
-  double action=compute_tlSym_action();
+  double paths[2];
+  double action=compute_tlSym_action(paths);
   master_printf("Action: %015.15lg measured in %lg sec\n",action,time_action+take_time());
 
-  //paths
-  double paths[2];
-  double time_paths=-take_time();
-  global_plaquette_and_rectangles_lx_conf(paths,conf);
-  master_printf("Plaq: %015.15lg, rects: %015.15lg measured in %lg sec\n",paths[0],paths[1],time_paths+take_time());
-  
   master_fprintf(file,"%6d\t%015.15lg\t%015.15lg\t%015.15lg\n",iconf,action,paths[0],paths[1]);
   
   if(rank==0) fclose(file);
