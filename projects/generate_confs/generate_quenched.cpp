@@ -626,14 +626,7 @@ void measure_gauge_obs(bool conf_created=false)
   global_plaquette_and_rectangles_lx_conf(paths,conf);
   master_printf("Plaq: %015.15lg, rects: %015.15lg measured in %lg sec\n",paths[0],paths[1],time_paths+take_time());
   
-  //polyakov loop
-  complex pol;
-  double time_pol=-take_time();
-  average_polyakov_loop_lx_conf(pol,conf,0);
-  master_printf("Polyakov: %015.15lg, %015.15lg measured in %lg sec\n",pol[0],pol[1],time_pol+take_time());
-
-  master_fprintf(file,"%6d\t%015.15lg\t%015.15lg\t%015.15lg\t%+015.15lg\t%+015.15lg\n",
-		 iconf,action,paths[0],paths[1],pol[0],pol[1]);
+  master_fprintf(file,"%6d\t%015.15lg\t%015.15lg\t%015.15lg\n",iconf,action,paths[0],paths[1]);
   
   if(rank==0) fclose(file);
 }
