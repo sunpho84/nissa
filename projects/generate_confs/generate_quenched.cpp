@@ -46,7 +46,7 @@ int *ivol_of_box_dir_par;
 all_to_all_comm_t *box_comm[16];
 
 //bench
-double comm_time=0,comp_time=0;
+double comm_time=0,comp_time=0,meas_time=0;
 
 enum start_conf_cond_t{UNSPEC_COND,HOT,COLD};
 enum update_alg_t{UNSPEC_UP,HEAT,OVER};
@@ -383,7 +383,9 @@ void close_simulation()
   master_printf("================== Performance report =======================\n");
   master_printf("Total communication time: %lg sec\n",comm_time);
   master_printf("Total staple computation and update time: %lg sec\n",comp_time);
+  master_printf("Total measurement time: %lg sec\n",meas_time);
   master_printf("=============================================================\n");
+  master_printf("\n");
   
   if(!store_running_temp_conf) write_conf();
   nissa_free(conf);
@@ -622,6 +624,8 @@ void generate_new_conf()
 //measure plaquette and polyakov loop
 void measure_gauge_obs(bool conf_created=false)
 {
+  meas_time-=take_time();
+  
   //open creating or appending
   FILE *file=open_file(gauge_obs_path,conf_created?"w":"a");
 
@@ -634,6 +638,7 @@ void measure_gauge_obs(bool conf_created=false)
   master_fprintf(file,"%6d\t%015.15lg\t%015.15lg\t%015.15lg\n",iconf,action,paths[0],paths[1]);
   
   if(rank==0) fclose(file);
+  meas_time+=take_time();
 }
 
 //store conf when appropriate

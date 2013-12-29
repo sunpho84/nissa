@@ -590,7 +590,7 @@ namespace nissa
   void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,int nbytes_per_site,const char *type)
   {
     //prepare the header and write it
-    ILDG_header header=ILDG_File_build_record_header(0,0,type,nbytes_per_site*glb_vol);
+    ILDG_header header=ILDG_File_build_record_header(0,0,type,(uint64_t)nbytes_per_site*glb_vol);
     ILDG_File_write_record_header(file,header);
     
 #ifdef USE_MPI_IO
