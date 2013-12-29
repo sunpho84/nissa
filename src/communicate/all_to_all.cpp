@@ -171,7 +171,7 @@ namespace nissa
     if(IS_MASTER_THREAD)
       for(int iel_out=0;iel_out<nel_out;iel_out++)
 	{
-	  int rank_to=sl[iel_out].second.first;
+	  int rank_to=sl[iel_out].second%nranks;
 	  if(rank_to>=nranks||rank_to<0) crash("destination rank %d does not exist!",rank_to);
 	  build.nper_rank_to_temp[rank_to]++;
 	}
@@ -187,7 +187,8 @@ namespace nissa
     if(IS_MASTER_THREAD)
       for(int iel_out=0;iel_out<nel_out;iel_out++)
 	{
-          int rank_to=sl[iel_out].second.first,iel_to=sl[iel_out].second.second;
+	  int rank_iel_to=sl[iel_out].second;
+          int iel_to=rank_iel_to/nranks,rank_to=rank_iel_to-nranks*iel_to;
 	  int ilist_rank_to=build.rank_to_map_list_ranks_to[rank_to];
 	  int ipos=build.out_buf_cur_per_rank[ilist_rank_to]++;
 	  out_buf_source[ipos]=sl[iel_out].first;
@@ -216,7 +217,7 @@ namespace nissa
     if(IS_MASTER_THREAD)
       for(all_to_all_gathering_list_t::iterator it=gl.begin();it!=gl.end();it++)
 	{
-	  int rank_fr=it->first.first;
+	  int rank_fr=it->first%nranks;
 	  if(rank_fr>=nranks||rank_fr<0) crash("source rank %d does not exist!",rank_fr);
 	  build.nper_rank_fr_temp[rank_fr]++;
 	}
@@ -232,7 +233,8 @@ namespace nissa
     if(IS_MASTER_THREAD)
       for(all_to_all_gathering_list_t::iterator it=gl.begin();it!=gl.end();it++)
 	{
-	  int rank_fr=it->first.first,iel_fr=it->first.second;
+	  int rank_iel_fr=it->first;
+	  int iel_fr=rank_iel_fr/nranks,rank_fr=rank_iel_fr-iel_fr*nranks;
 	  int ilist_rank_fr=build.rank_fr_map_list_ranks_fr[rank_fr];
 	  int ipos=build.in_buf_cur_per_rank[ilist_rank_fr]++;
 	  in_buf_dest[ipos]=it->second;

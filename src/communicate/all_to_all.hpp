@@ -7,8 +7,8 @@
 
 namespace nissa
 {
-  struct all_to_all_gathering_list_t : std::map<std::pair<int,int>,int> {};
-  struct all_to_all_scattering_list_t : std::vector<std::pair<int,std::pair<int,int> > > {};
+  struct all_to_all_gathering_list_t : std::map<int,int> {};
+  struct all_to_all_scattering_list_t : std::vector<std::pair<int,int> > {};
 
   struct temp_build_t
   {
