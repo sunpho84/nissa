@@ -7,27 +7,8 @@
 
 namespace nissa
 {
-  struct rank_iel_t
-  {
-    int rank,iel;
-    rank_iel_t(int rank,int iel) : rank(rank),iel(iel) {}
-  };
-  inline bool operator<(const rank_iel_t &x,const rank_iel_t &y){return x.rank<y.rank||((x.rank==y.rank)&&(x.iel<y.iel));}
-  struct gathering_el_t
-  {
-    rank_iel_t rank_iel_fr;
-    int iel_to;
-    gathering_el_t(rank_iel_t rank_iel_fr,int iel_to) : rank_iel_fr(rank_iel_fr),iel_to(iel_to) {}
-  };
-  inline bool operator<(const gathering_el_t &x,const gathering_el_t &y) {return x.rank_iel_fr<y.rank_iel_fr;}
-  struct scattering_el_t
-  {
-    int iel_fr;
-    rank_iel_t rank_iel_to;
-    scattering_el_t(int iel_fr,rank_iel_t rank_iel_to) : iel_fr(iel_fr),rank_iel_to(rank_iel_to) {}
-  };
-  struct all_to_all_gathering_list_t : std::vector<gathering_el_t> {};
-  struct all_to_all_scattering_list_t : std::vector<scattering_el_t> {};
+  struct all_to_all_gathering_list_t : std::map<int,int> {};
+  struct all_to_all_scattering_list_t : std::vector<std::pair<int,int> > {};
 
   struct temp_build_t
   {

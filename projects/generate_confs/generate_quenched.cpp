@@ -8,7 +8,6 @@
 */
 
 #include <math.h>
-#include <algorithm>
 
 #include "nissa.hpp"
 
@@ -48,7 +47,7 @@ int *ivol_of_box_dir_par;
 all_to_all_comm_t *box_comm[16];
 
 //bench
-double comm_time=0,comp_time=0,meas_time=0,read_time=0,write_time=0,base_init_time=0,comm_init_time=0;
+double comm_time=0,comp_time=0,meas_time=0,read_time=0,write_time=0,base_init_time=0;
 
 enum start_conf_cond_t{UNSPEC_COND,HOT,COLD};
 enum update_alg_t{UNSPEC_UP,HEAT,OVER};
@@ -118,7 +117,7 @@ void read_conf()
 }
 
 //add link to the map if needed
-int add_link(gathering_el_t *gat,coords g,int mu,int &tba,int tbu)
+int add_link(all_to_all_gathering_list_t &gat,coords g,int mu)
 {
   //find rank and local position
   int ivol,irank;
@@ -129,93 +128,221 @@ int add_link(gathering_el_t *gat,coords g,int mu,int &tba,int tbu)
   if(irank==rank) return ilink_asked;
   else
     {
-      //otherwise add it to the "to be gathered" unsorted list, marking where to
-      //write its definitive position
-      gat[tba].rank_iel_fr.rank=irank;
-      gat[tba].rank_iel_fr.iel=ilink_asked;
-      gat[tba].iel_to=tbu;      
-      tba++;
+      int irank_link_asked=ilink_asked*nranks+irank;
       
-      //for debugging purpose
-      return ilink_asked*nranks+irank;
+      //if it is non local search it in the list of to-be-gathered
+      all_to_all_gathering_list_t::iterator it=gat.find(irank_link_asked);
+      
+      //if it is already in the list, return its position
+      if(it!=gat.end()) return it->second;
+      else
+        {
+          //otherwise add it to the list of to-be-gathered
+          int nel_gathered=gat.size();
+          int igathered=4*loc_vol+nel_gathered;
+          gat[irank_link_asked]=igathered;
+          
+          return igathered;
+        }
     }
 }
 
 //add all links needed for a certain site
-void add_tlSym_paths(int *ilink_to_be_used,gathering_el_t *gat,int ivol,int mu,int &tba,int tbu)
+void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
 {
-  int *c=glb_coord_of_loclx[ivol];      //       P---O---N    
-  coords A={c[0],c[1],c[2],c[3]};       //       |   |   |    
-  coords B,C,D,E,F,G,H,I,J,K,L,M,N,O,P; //   H---G---F---E---D     
-  for(int inu=0;inu<3;inu++)            //   |   |   |   |   |
-    {                                   //   I---J---A---B---C
-      int nu=perp_dir[mu][inu];         //       |   |   |    
-      int rh=perp2_dir[mu][inu][0];     //       K---L---M    
-      int si=perp2_dir[mu][inu][1];
+  int *c=glb_coord_of_loclx[ivol];      
+  coords A={c[0],c[1],c[2],c[3]};                         //       P---O---N    
+  coords B,C,D,E,F,G,H,I,J,K,L,M,N,O,P;      		  //       |   |   |    
+  //find coord mu					  //   H---G---F---E---D
+  K[mu]=L[mu]=M[mu]=(A[mu]-1+glb_size[mu])%glb_size[mu];  //   |   |   |   |   |
+  I[mu]=J[mu]=B[mu]=C[mu]=A[mu];			  //   I---J---A---B---C
+  D[mu]=E[mu]=F[mu]=G[mu]=H[mu]=(A[mu]+1)%glb_size[mu];	  //       |   |   |    
+  N[mu]=O[mu]=P[mu]=(A[mu]+2)%glb_size[mu];		  //       K---L---M    
+  for(int inu=0;inu<3;inu++)
+    {            
+      int &nu=perp_dir[mu][inu];
+      int &rh=perp2_dir[mu][inu][0];
+      int &si=perp2_dir[mu][inu][1];
       
       //find coord rho
       B[rh]=C[rh]=D[rh]=E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=N[rh]=O[rh]=P[rh]=A[rh];
       //find coord sigma
       B[si]=C[si]=D[si]=E[si]=F[si]=G[si]=H[si]=I[si]=J[si]=K[si]=L[si]=M[si]=N[si]=O[si]=P[si]=A[si];
-      //find coord mu
-      K[mu]=L[mu]=M[mu]=(A[mu]-1+glb_size[mu])%glb_size[mu];
-      I[mu]=J[mu]=B[mu]=C[mu]=A[mu];
-      D[mu]=E[mu]=F[mu]=G[mu]=H[mu]=(A[mu]+1)%glb_size[mu];
-      N[mu]=O[mu]=P[mu]=(A[mu]+2)%glb_size[mu];
       //find coord nu
       H[nu]=I[nu]=(A[nu]-2+glb_size[nu])%glb_size[nu];
-      K[nu]=J[nu]=G[nu]=P[nu]=(A[nu]-1+glb_size[nu])%glb_size[nu];
+      K[nu]=J[nu]=G[nu]=P[nu]=(I[nu]+1)%glb_size[nu];
       L[nu]=F[nu]=O[nu]=A[nu];
       M[nu]=B[nu]=E[nu]=N[nu]=(A[nu]+1)%glb_size[nu];
       C[nu]=D[nu]=(A[nu]+2)%glb_size[nu];
       
       //backward square staple
-      ilink_to_be_used[ 0]=add_link(gat,J,nu,tba,tbu);tbu++;
-      ilink_to_be_used[ 1]=add_link(gat,J,mu,tba,tbu);tbu++;
-      ilink_to_be_used[ 2]=add_link(gat,G,nu,tba,tbu);tbu++;
+      *(ilink_to_be_used++)=add_link(gat,J,nu);
+      *(ilink_to_be_used++)=add_link(gat,J,mu);
+      *(ilink_to_be_used++)=add_link(gat,G,nu);
       //forward square staple
-      ilink_to_be_used[ 3]=add_link(gat,A,nu,tba,tbu);tbu++;
-      ilink_to_be_used[ 4]=add_link(gat,B,mu,tba,tbu);tbu++;
-      ilink_to_be_used[ 5]=add_link(gat,F,nu,tba,tbu);tbu++;
+      *(ilink_to_be_used++)=add_link(gat,A,nu);
+      *(ilink_to_be_used++)=add_link(gat,B,mu);
+      *(ilink_to_be_used++)=add_link(gat,F,nu);
       //backward dw rectangle
-      ilink_to_be_used[ 6]=add_link(gat,L,mu,tba,tbu);tbu++;
-      ilink_to_be_used[ 7]=add_link(gat,K,nu,tba,tbu);tbu++;
-      ilink_to_be_used[ 8]=add_link(gat,K,mu,tba,tbu);tbu++;
-      ilink_to_be_used[ 9]=add_link(gat,J,mu,tba,tbu);tbu++;
-      ilink_to_be_used[10]=add_link(gat,G,nu,tba,tbu);tbu++;
+      *(ilink_to_be_used++)=add_link(gat,L,mu);
+      *(ilink_to_be_used++)=add_link(gat,K,nu);
+      *(ilink_to_be_used++)=add_link(gat,K,mu);
+      *(ilink_to_be_used++)=add_link(gat,J,mu);
+      *(ilink_to_be_used++)=add_link(gat,G,nu);
       //backward backward rectangle
-      ilink_to_be_used[11]=add_link(gat,J,nu,tba,tbu);tbu++;
-      ilink_to_be_used[12]=add_link(gat,I,nu,tba,tbu);tbu++;
-      ilink_to_be_used[13]=add_link(gat,I,mu,tba,tbu);tbu++;
-      ilink_to_be_used[14]=add_link(gat,H,nu,tba,tbu);tbu++;
-      ilink_to_be_used[15]=add_link(gat,G,nu,tba,tbu);tbu++;
+      *(ilink_to_be_used++)=add_link(gat,J,nu);
+      *(ilink_to_be_used++)=add_link(gat,I,nu);
+      *(ilink_to_be_used++)=add_link(gat,I,mu);
+      *(ilink_to_be_used++)=add_link(gat,H,nu);
+      *(ilink_to_be_used++)=add_link(gat,G,nu);
       //backward up rectangle
-      ilink_to_be_used[16]=add_link(gat,J,nu,tba,tbu);tbu++;
-      ilink_to_be_used[17]=add_link(gat,J,mu,tba,tbu);tbu++;
-      ilink_to_be_used[18]=add_link(gat,G,mu,tba,tbu);tbu++;
-      ilink_to_be_used[19]=add_link(gat,P,nu,tba,tbu);tbu++;
-      ilink_to_be_used[20]=add_link(gat,F,mu,tba,tbu);tbu++;
+      *(ilink_to_be_used++)=add_link(gat,J,nu);
+      *(ilink_to_be_used++)=add_link(gat,J,mu);
+      *(ilink_to_be_used++)=add_link(gat,G,mu);
+      *(ilink_to_be_used++)=add_link(gat,P,nu);
+      *(ilink_to_be_used++)=add_link(gat,F,mu);
       //forward dw rectangle
-      ilink_to_be_used[21]=add_link(gat,L,mu,tba,tbu);tbu++;
-      ilink_to_be_used[22]=add_link(gat,L,nu,tba,tbu);tbu++;
-      ilink_to_be_used[23]=add_link(gat,M,mu,tba,tbu);tbu++;
-      ilink_to_be_used[24]=add_link(gat,B,mu,tba,tbu);tbu++;
-      ilink_to_be_used[25]=add_link(gat,F,nu,tba,tbu);tbu++;
+      *(ilink_to_be_used++)=add_link(gat,L,mu);
+      *(ilink_to_be_used++)=add_link(gat,L,nu);
+      *(ilink_to_be_used++)=add_link(gat,M,mu);
+      *(ilink_to_be_used++)=add_link(gat,B,mu);
+      *(ilink_to_be_used++)=add_link(gat,F,nu);
       //forward forward rectangle
-      ilink_to_be_used[26]=add_link(gat,A,nu,tba,tbu);tbu++;
-      ilink_to_be_used[27]=add_link(gat,B,nu,tba,tbu);tbu++;
-      ilink_to_be_used[28]=add_link(gat,C,mu,tba,tbu);tbu++;
-      ilink_to_be_used[29]=add_link(gat,E,nu,tba,tbu);tbu++;
-      ilink_to_be_used[30]=add_link(gat,F,nu,tba,tbu);tbu++;
+      *(ilink_to_be_used++)=add_link(gat,A,nu);
+      *(ilink_to_be_used++)=add_link(gat,B,nu);
+      *(ilink_to_be_used++)=add_link(gat,C,mu);
+      *(ilink_to_be_used++)=add_link(gat,E,nu);
+      *(ilink_to_be_used++)=add_link(gat,F,nu);
       //forward up rectangle
-      ilink_to_be_used[31]=add_link(gat,A,nu,tba,tbu);tbu++;
-      ilink_to_be_used[32]=add_link(gat,B,mu,tba,tbu);tbu++;
-      ilink_to_be_used[33]=add_link(gat,E,mu,tba,tbu);tbu++;
-      ilink_to_be_used[34]=add_link(gat,O,nu,tba,tbu);tbu++;
-      ilink_to_be_used[35]=add_link(gat,F,mu,tba,tbu);tbu++;
-      
-      ilink_to_be_used+=36;
+      *(ilink_to_be_used++)=add_link(gat,A,nu);
+      *(ilink_to_be_used++)=add_link(gat,B,mu);
+      *(ilink_to_be_used++)=add_link(gat,E,mu);
+      *(ilink_to_be_used++)=add_link(gat,O,nu);
+      *(ilink_to_be_used++)=add_link(gat,F,mu);
     }
+}
+
+//add all the links needed to compute staple separataly for each box
+THREADABLE_FUNCTION_1ARG(add_links_to_paths, all_to_all_gathering_list_t**,gl)
+{
+  GET_THREAD_ID();
+  
+  //add the links to paths
+  NISSA_PARALLEL_LOOP(ibox,0,16)
+    {
+      //find base for curr box
+      int ibase=0;
+      for(int jbox=0;jbox<ibox;jbox++) ibase+=nsite_per_box[jbox];
+      ibase*=4;
+
+      //scan all the elements of sub-box, selecting only those with the good parity
+      for(int dir=0;dir<4;dir++)
+	for(int par=0;par<4;par++)
+	  {	  
+	    for(int ibox_dir_par=ibase;ibox_dir_par<ibase+nsite_per_box_dir_par[par+4*(dir+4*ibox)];ibox_dir_par++)
+	      {
+		int ivol=ivol_of_box_dir_par[ibox_dir_par];
+		add_tlSym_paths(ilink_per_paths+ibox_dir_par*nlinks_per_paths_site,*(gl[ibox]),ivol,dir);
+	      }
+	    ibase+=nsite_per_box_dir_par[par+4*(dir+4*ibox)];
+	  }
+    }
+  THREAD_BARRIER();
+}}
+
+//initialize the geometry of the sub-boxes
+void init_box_geometry()
+{
+  ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",4*loc_vol,int);
+  ilink_per_paths=nissa_malloc("ilink_per_paths",nlinks_per_paths_site*4*loc_vol,int);
+  
+  //get the size of box 0
+  for(int mu=0;mu<4;mu++)
+    {
+      if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
+      box_size[0][mu]=loc_size[mu]/2;
+    }
+
+  //get coords of cube ans box size
+  coords box_coord[16];
+  coords nboxes={2,2,2,2};
+  for(int ibox=0;ibox<16;ibox++)
+    {
+      //coords
+      verbosity_lv2_master_printf("Box %d coord [ ",ibox);
+      coord_of_lx(box_coord[ibox],ibox,nboxes);
+      for(int mu=0;mu<4;mu++) verbosity_lv2_master_printf("%d ",box_coord[ibox][mu]);
+      
+      //size
+      verbosity_lv2_master_printf("] size [ ",ibox);
+      nsite_per_box[ibox]=1;
+      for(int mu=0;mu<4;mu++)
+	{
+	  if(ibox!=0) box_size[ibox][mu]=((box_coord[ibox][mu]==0)?(box_size[0][mu]):(loc_size[mu]-box_size[0][mu]));
+	  nsite_per_box[ibox]*=box_size[ibox][mu];
+	  verbosity_lv2_master_printf("%d ",box_size[ibox][mu]);
+	}
+      verbosity_lv2_master_printf("], nsites: %d\n",nsite_per_box[ibox]);
+    }
+
+  //find the elements of all boxes
+  int ibox_dir_par=0; //order in the parity-split order
+  for(int ibox=0;ibox<16;ibox++)
+    for(int dir=0;dir<4;dir++)
+      for(int par=0;par<4;par++)
+	{
+	  nsite_per_box_dir_par[par+4*(dir+4*ibox)]=0;
+	  for(int isub=0;isub<nsite_per_box[ibox];isub++)
+	    {
+	      //get coordinates of site
+	      coords isub_coord;
+	      coord_of_lx(isub_coord,isub,box_size[ibox]);
+	      
+	      //get coords in the local size, and parity
+	      coords ivol_coord;
+	      int site_par=0;
+	      for(int mu=0;mu<4;mu++)
+		{
+		  ivol_coord[mu]=box_size[0][mu]*box_coord[ibox][mu]+isub_coord[mu];
+		  site_par+=((mu==dir)?2:1)*ivol_coord[mu];
+		}
+	      site_par=site_par%4;
+	      
+	      //map sites in current parity
+	      if(site_par==par)
+		{
+		  ivol_of_box_dir_par[ibox_dir_par++]=lx_of_coord(ivol_coord,loc_size);
+		  nsite_per_box_dir_par[par+4*(dir+4*ibox)]++;
+		}
+	    }
+	}  
+  
+  //init the links
+  all_to_all_gathering_list_t *gl[16];
+  for(int ibox=0;ibox<16;ibox++) gl[ibox]=new all_to_all_gathering_list_t;
+  add_links_to_paths(gl);
+  
+  //initialize the communicator
+  for(int ibox=0;ibox<16;ibox++)
+    {
+      box_comm[ibox]=new all_to_all_comm_t(*(gl[ibox]));
+      delete gl[ibox];
+    }
+  
+  //compute the maximum number of link to send and receive and allocate buffers
+  for(int ibox=0;ibox<16;ibox++)
+    {
+      max_cached_link=std::max(max_cached_link,box_comm[ibox]->nel_in);
+      max_sending_link=std::max(max_sending_link,box_comm[ibox]->nel_out);
+    }
+  buf_out=nissa_malloc("buf_out",max_sending_link,su3);
+  buf_in=nissa_malloc("buf_in",max_cached_link,su3);
+  
+  //check cached
+  verbosity_lv2_master_printf("Max cached links: %d\n",max_cached_link);
+  if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed");
+  
+  base_init_time+=take_time();
 }
 
 //initialize the simulation
@@ -300,139 +427,7 @@ void init_simulation(char *path)
       measure_gauge_obs(true);
     }  
   
-  /////////////////////////////////////////////////////////////////////////////
-  
-  //initialize box the geometry
-  ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",4*loc_vol,int);
-  ilink_per_paths=nissa_malloc("ilink_per_paths",nlinks_per_paths_site*4*loc_vol,int);
-  for(int i=0;i<nlinks_per_paths_site*4*loc_vol;i++) ilink_per_paths[i]=-1;
-  
-  //get the size of box 0
-  for(int mu=0;mu<4;mu++)
-    {
-      if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
-      box_size[0][mu]=loc_size[mu]/2;
-    }
-  
-  //gathering_list
-  gathering_el_t *gl=nissa_malloc("gl",nlinks_per_paths_site*4*loc_vol,gathering_el_t);
-  
-  //find the elements of all boxes
-  int ibox_dir_par=0; //order in the parity-split order
-  for(int ibox=0;ibox<16;ibox++)
-    {
-      //get coords of cube
-      coords nboxes={2,2,2,2};
-      coords box_coord;
-      verbosity_lv2_master_printf("Box %d coord [ ",ibox);
-      coord_of_lx(box_coord,ibox,nboxes);
-      for(int mu=0;mu<4;mu++) verbosity_lv2_master_printf("%d ",box_coord[mu]);
-      
-      //get box size
-      verbosity_lv2_master_printf("] size [ ",ibox);
-      nsite_per_box[ibox]=1;
-      for(int mu=0;mu<4;mu++)
-	{
-	  if(ibox!=0) box_size[ibox][mu]=((box_coord[mu]==0)?(box_size[0][mu]):(loc_size[mu]-box_size[0][mu]));
-	  nsite_per_box[ibox]*=box_size[ibox][mu];
-	  verbosity_lv2_master_printf("%d ",box_size[ibox][mu]);
-	}
-      verbosity_lv2_master_printf("], nsites: %d\n",nsite_per_box[ibox]);
-
-      //allocate
-      int tba=0; //number of elements of gathering list
-      
-      //scan all the elements of subcube, selecting only those with the good parity
-      for(int dir=0;dir<4;dir++)
-	for(int par=0;par<4;par++)
-	  {
-	    nsite_per_box_dir_par[par+4*(dir+4*ibox)]=0;
-	    for(int isub=0;isub<nsite_per_box[ibox];isub++)
-	      {
-		//get coordinates of site
-		coords isub_coord;
-		coord_of_lx(isub_coord,isub,box_size[ibox]);
-		
-		//get coords in the local size, and parity
-		coords ivol_coord;
-		int site_par=0;
-		for(int mu=0;mu<4;mu++)
-		  {
-		    ivol_coord[mu]=box_size[0][mu]*box_coord[mu]+isub_coord[mu];
-		    site_par+=((mu==dir)?2:1)*ivol_coord[mu];
-		  }
-		site_par=site_par%4;
-		
-		//add only sites in current parity
-		if(site_par==par)
-		  {
-		    int ivol=ivol_of_box_dir_par[ibox_dir_par]=lx_of_coord(ivol_coord,loc_size);
-	  
-		    //add the paths
-		    int tbu=ibox_dir_par*nlinks_per_paths_site; //position to be filled
-		    add_tlSym_paths(ilink_per_paths+tbu,gl,ivol,dir,tba,tbu);
-		    
-		    nsite_per_box_dir_par[par+4*(dir+4*ibox)]++;
-		    ibox_dir_par++;
-		  }
-	      }
-	  }
-      
-      //sort
-      std::sort(gl,gl+tba);
-      
-      //create the list of unique links
-      all_to_all_gathering_list_t *gl_unique=new all_to_all_gathering_list_t;
-      if(tba>0)
-	{
-	  int nel_unique=0;
-	  rank_iel_t prev(0,0);
-
-	  for(int iel=0;iel<tba;iel++)
-	    {
-	      rank_iel_t &curr=gl[iel].rank_iel_fr;
-	      if(iel==0 || prev.rank!=curr.rank || prev.iel!=curr.iel)
-		{
-		  if(iel!=0) nel_unique++;
-		  gl_unique->push_back(gathering_el_t(curr,4*loc_vol+nel_unique));
-		}
-	      //master_printf("instructing how to gather link %d: %d\n",(*gl)[iel].iel_to,nel_unique);
-	      int &tbu=gl[iel].iel_to;
-	      
-	      //check
-	      if(ilink_per_paths[tbu]!=curr.iel*nranks+curr.rank)
-		crash("not coinciding: %d, %d, expecting %d, receiving %d",
-		      iel,tbu,ilink_per_paths[tbu],curr.iel*nranks+curr.rank);
-	      
-	      ilink_per_paths[tbu]=4*loc_vol+nel_unique;
-	      prev=curr;
-	    }
-	}
-      
-      //allocate communicators
-      comm_init_time-=take_time();  
-      box_comm[ibox]=new all_to_all_comm_t(*gl_unique);
-      comm_init_time+=take_time();
-      
-      //compute the maximum number of link to send and receive
-      max_cached_link=std::max(max_cached_link,box_comm[ibox]->nel_in);
-      max_sending_link=std::max(max_sending_link,box_comm[ibox]->nel_out);
-
-      delete gl_unique;
-    }
-  
-  //free the gathering list
-  nissa_free(gl);
-      
-  buf_out=nissa_malloc("buf_out",max_sending_link,su3);
-  buf_in=nissa_malloc("buf_in",max_cached_link,su3);
-  
-  //check cached
-  /*verbosity_lv2_*/master_printf("Max cached links: %d\n",max_cached_link);
-  if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed");
-  
-  base_init_time+=take_time();
-  base_init_time-=comm_init_time;
+  init_box_geometry();
 }
 
 //finalize everything
@@ -440,7 +435,6 @@ void close_simulation()
 {
   master_printf("========== Performance report ===========\n");
   master_printf("Basic initialization time: %lg sec\n",base_init_time);
-  master_printf("Communicators initialization time: %lg sec\n",comm_init_time);
   master_printf("Communication time: %lg sec\n",comm_time);
   master_printf("Link update time: %lg sec\n",comp_time);
   master_printf("Measurement time: %lg sec\n",meas_time);
@@ -656,7 +650,6 @@ THREADABLE_FUNCTION_4ARG(sweep_conf, update_alg_t,update_alg, quad_su3*,conf, vo
 		
 		//find new link
 		int ivol=ivol_of_box_dir_par[ibox_dir_par];
-		
 		su3 new_link;
 		if(update_alg==HEAT)
 		  su3_find_heatbath(new_link,conf[ivol][dir],staples,beta,evol_pars.nhb_hits,loc_rnd_gen+ivol);
