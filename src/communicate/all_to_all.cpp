@@ -171,7 +171,7 @@ namespace nissa
     if(IS_MASTER_THREAD)
       for(int iel_out=0;iel_out<nel_out;iel_out++)
 	{
-	  int rank_to=sl[iel_out].second%nranks;
+	  int rank_to=sl[iel_out].rank_iel_to.rank;
 	  if(rank_to>=nranks||rank_to<0) crash("destination rank %d does not exist!",rank_to);
 	  build.nper_rank_to_temp[rank_to]++;
 	}
@@ -187,11 +187,10 @@ namespace nissa
     if(IS_MASTER_THREAD)
       for(int iel_out=0;iel_out<nel_out;iel_out++)
 	{
-	  int rank_iel_to=sl[iel_out].second;
-          int iel_to=rank_iel_to/nranks,rank_to=rank_iel_to-nranks*iel_to;
+          int iel_to=sl[iel_out].rank_iel_to.iel,rank_to=sl[iel_out].rank_iel_to.rank;
 	  int ilist_rank_to=build.rank_to_map_list_ranks_to[rank_to];
 	  int ipos=build.out_buf_cur_per_rank[ilist_rank_to]++;
-	  out_buf_source[ipos]=sl[iel_out].first;
+	  out_buf_source[ipos]=sl[iel_out].iel_fr;
 	  in_buf_dest_expl[ipos]=iel_to;
 	}
     
@@ -217,7 +216,7 @@ namespace nissa
     if(IS_MASTER_THREAD)
       for(all_to_all_gathering_list_t::iterator it=gl.begin();it!=gl.end();it++)
 	{
-	  int rank_fr=it->first%nranks;
+	  int rank_fr=it->rank_iel_fr.rank;
 	  if(rank_fr>=nranks||rank_fr<0) crash("source rank %d does not exist!",rank_fr);
 	  build.nper_rank_fr_temp[rank_fr]++;
 	}
@@ -233,11 +232,10 @@ namespace nissa
     if(IS_MASTER_THREAD)
       for(all_to_all_gathering_list_t::iterator it=gl.begin();it!=gl.end();it++)
 	{
-	  int rank_iel_fr=it->first;
-	  int iel_fr=rank_iel_fr/nranks,rank_fr=rank_iel_fr-iel_fr*nranks;
+	  int iel_fr=it->rank_iel_fr.iel,rank_fr=it->rank_iel_fr.rank;
 	  int ilist_rank_fr=build.rank_fr_map_list_ranks_fr[rank_fr];
 	  int ipos=build.in_buf_cur_per_rank[ilist_rank_fr]++;
-	  in_buf_dest[ipos]=it->second;
+	  in_buf_dest[ipos]=it->iel_to;
 	  out_buf_source_expl[ipos]=iel_fr;
 	}
     
@@ -247,13 +245,13 @@ namespace nissa
   }
   
   //perform the remapping
-  void all_to_all_comm_t::communicate(void *out,void *in,int bps)
+  void all_to_all_comm_t::communicate(void *out,void *in,int bps,void *ext_out_buf,void *ext_in_buf)
   {
     GET_THREAD_ID();
     
     //allocate a buffer where to repack data
-    char *out_buf=nissa_malloc("out_buf",nel_out*bps,char);
-    char *in_buf=nissa_malloc("in_buf",nel_in*bps,char);
+    char *out_buf=(ext_out_buf==NULL)?nissa_malloc("out_buf",nel_out*bps,char):(char*)ext_out_buf;
+    char *in_buf=(ext_in_buf==NULL)?nissa_malloc("in_buf",nel_in*bps,char):(char*)ext_in_buf;
     
     //copy data on the out-going buffer
     NISSA_PARALLEL_LOOP(iel_out,0,nel_out)
@@ -281,7 +279,7 @@ namespace nissa
     
     set_borders_invalid(out);
 
-    nissa_free(out_buf);
-    nissa_free(in_buf);
+    if(ext_out_buf==NULL) nissa_free(out_buf);
+    if(ext_in_buf==NULL) nissa_free(in_buf);
   }
 }
