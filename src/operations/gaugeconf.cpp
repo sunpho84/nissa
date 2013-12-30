@@ -346,4 +346,19 @@ namespace nissa
     double glb_max=glb_max_double(loc_max);
     verbosity_lv2_master_printf("Deviation from unitarity of the configuration: %lg average, %lg max\n",glb_avg,glb_max);
   }
+
+  //perform a unitarity check on a lx conf
+  THREADABLE_FUNCTION_1ARG(unitarize_lx_conf, quad_su3*,conf)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int idir=0;idir<4;idir++)
+	{
+	  su3 t;
+	  su3_unitarize_maximal_trace_projecting(t,conf[ivol][idir]);
+	  su3_copy(conf[ivol][idir],t);
+	}
+    set_borders_invalid(conf);
+  }}
 }
