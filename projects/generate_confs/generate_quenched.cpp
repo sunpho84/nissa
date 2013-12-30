@@ -47,7 +47,7 @@ int *ivol_of_box_dir_par;
 all_to_all_comm_t *box_comm[16];
 
 //bench
-double comm_time=0,comp_time=0,meas_time=0,read_time=0,write_time=0,base_init_time=0;
+double comm_time=0,comp_time=0,meas_time=0,read_time=0,write_time=0,base_init_time=0,comm_init_time=0;
 
 enum start_conf_cond_t{UNSPEC_COND,HOT,COLD};
 enum update_alg_t{UNSPEC_UP,HEAT,OVER};
@@ -323,11 +323,13 @@ void init_box_geometry()
   add_links_to_paths(gl);
   
   //initialize the communicator
+  comm_init_time=-take_time();
   for(int ibox=0;ibox<16;ibox++)
     {
       box_comm[ibox]=new all_to_all_comm_t(*(gl[ibox]));
       delete gl[ibox];
     }
+  comm_init_time+=take_time();
   
   //compute the maximum number of link to send and receive and allocate buffers
   for(int ibox=0;ibox<16;ibox++)
@@ -435,6 +437,7 @@ void close_simulation()
 {
   master_printf("========== Performance report ===========\n");
   master_printf("Basic initialization time: %lg sec\n",base_init_time);
+  master_printf("Communicators initialization time: %lg sec\n",comm_init_time);
   master_printf("Communication time: %lg sec\n",comm_time);
   master_printf("Link update time: %lg sec\n",comp_time);
   master_printf("Measurement time: %lg sec\n",meas_time);
@@ -677,6 +680,7 @@ void generate_new_conf(quad_su3 *conf,void *buf_out,void *buf_in)
   for(int ihb_sweep=0;ihb_sweep<evol_pars.nhb_sweeps;ihb_sweep++) sweep_conf(HEAT,conf,buf_out,buf_in);
   //numer of overrelax sweeps
   for(int iov_sweep=0;iov_sweep<evol_pars.nov_sweeps;iov_sweep++) sweep_conf(OVER,conf,buf_out,buf_in);
+  unitarize_lx_conf(conf);
 }
 
 //measure plaquette and polyakov loop
