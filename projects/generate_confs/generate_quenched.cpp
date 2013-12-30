@@ -8,6 +8,7 @@
 */
 
 #include <math.h>
+#include <algorithm>
 
 #include "nissa.hpp"
 
@@ -22,6 +23,7 @@ char store_conf_path[1024];
 
 //conf and staples
 quad_su3 *conf;
+su3 *buf_out,*buf_in;
 
 //evol pars
 double beta;
@@ -36,7 +38,7 @@ int store_running_temp_conf;
 int seed;
 
 //communications and building
-int max_cached_link=0;
+int max_cached_link=0,max_sending_link=0;
 int nlinks_per_paths_site=3*2*(3+5*3);
 coords box_size[16];
 int nsite_per_box[16];
@@ -109,15 +111,14 @@ void read_conf()
       start_loc_rnd_gen(seed);
     }
   
+  //free all messages
   ILDG_message_free_all(&mess);
-
-  set_borders_invalid(conf);
 
   read_time+=take_time();
 }
 
 //add link to the map if needed
-int add_link(all_to_all_gathering_list_t &gat,coords g,int mu)
+int add_link(gathering_el_t *gat,coords g,int mu,int &tba,int tbu)
 {
   //find rank and local position
   int ivol,irank;
@@ -128,29 +129,21 @@ int add_link(all_to_all_gathering_list_t &gat,coords g,int mu)
   if(irank==rank) return ilink_asked;
   else
     {
-      int irank_link_asked=ilink_asked*nranks+irank;
+      //otherwise add it to the "to be gathered" unsorted list, marking where to
+      //write its definitive position
+      gat[tba].rank_iel_fr.rank=irank;
+      gat[tba].rank_iel_fr.iel=ilink_asked;
+      gat[tba].iel_to=tbu;      
+      tba++;
       
-      //if it is non local search it in the list of to-be-gathered
-      all_to_all_gathering_list_t::iterator it=gat.find(irank_link_asked);
-      
-      //if it is already in the list, return its position
-      if(it!=gat.end()) return it->second;
-      else
-        {
-          //otherwise add it to the list of to-be-gathered
-          int nel_gathered=gat.size();
-          int igathered=4*loc_vol+nel_gathered;
-          gat[irank_link_asked]=igathered;
-          
-          return igathered;
-        }
+      //for debugging purpose
+      return ilink_asked*nranks+irank;
     }
 }
 
 //add all links needed for a certain site
-void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
+void add_tlSym_paths(int *ilink_to_be_used,gathering_el_t *gat,int ivol,int mu,int &tba,int tbu)
 {
-  int tbu=0;
   int *c=glb_coord_of_loclx[ivol];      //       P---O---N    
   coords A={c[0],c[1],c[2],c[3]};       //       |   |   |    
   coords B,C,D,E,F,G,H,I,J,K,L,M,N,O,P; //   H---G---F---E---D     
@@ -177,49 +170,51 @@ void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int 
       C[nu]=D[nu]=(A[nu]+2)%glb_size[nu];
       
       //backward square staple
-      ilink_to_be_used[tbu++]=add_link(gat,J,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,J,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,G,nu);
+      ilink_to_be_used[ 0]=add_link(gat,J,nu,tba,tbu);tbu++;
+      ilink_to_be_used[ 1]=add_link(gat,J,mu,tba,tbu);tbu++;
+      ilink_to_be_used[ 2]=add_link(gat,G,nu,tba,tbu);tbu++;
       //forward square staple
-      ilink_to_be_used[tbu++]=add_link(gat,A,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,B,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,F,nu);
+      ilink_to_be_used[ 3]=add_link(gat,A,nu,tba,tbu);tbu++;
+      ilink_to_be_used[ 4]=add_link(gat,B,mu,tba,tbu);tbu++;
+      ilink_to_be_used[ 5]=add_link(gat,F,nu,tba,tbu);tbu++;
       //backward dw rectangle
-      ilink_to_be_used[tbu++]=add_link(gat,L,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,K,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,K,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,J,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,G,nu);
+      ilink_to_be_used[ 6]=add_link(gat,L,mu,tba,tbu);tbu++;
+      ilink_to_be_used[ 7]=add_link(gat,K,nu,tba,tbu);tbu++;
+      ilink_to_be_used[ 8]=add_link(gat,K,mu,tba,tbu);tbu++;
+      ilink_to_be_used[ 9]=add_link(gat,J,mu,tba,tbu);tbu++;
+      ilink_to_be_used[10]=add_link(gat,G,nu,tba,tbu);tbu++;
       //backward backward rectangle
-      ilink_to_be_used[tbu++]=add_link(gat,J,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,I,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,I,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,H,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,G,nu);
+      ilink_to_be_used[11]=add_link(gat,J,nu,tba,tbu);tbu++;
+      ilink_to_be_used[12]=add_link(gat,I,nu,tba,tbu);tbu++;
+      ilink_to_be_used[13]=add_link(gat,I,mu,tba,tbu);tbu++;
+      ilink_to_be_used[14]=add_link(gat,H,nu,tba,tbu);tbu++;
+      ilink_to_be_used[15]=add_link(gat,G,nu,tba,tbu);tbu++;
       //backward up rectangle
-      ilink_to_be_used[tbu++]=add_link(gat,J,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,J,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,G,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,P,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,F,mu);
+      ilink_to_be_used[16]=add_link(gat,J,nu,tba,tbu);tbu++;
+      ilink_to_be_used[17]=add_link(gat,J,mu,tba,tbu);tbu++;
+      ilink_to_be_used[18]=add_link(gat,G,mu,tba,tbu);tbu++;
+      ilink_to_be_used[19]=add_link(gat,P,nu,tba,tbu);tbu++;
+      ilink_to_be_used[20]=add_link(gat,F,mu,tba,tbu);tbu++;
       //forward dw rectangle
-      ilink_to_be_used[tbu++]=add_link(gat,L,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,L,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,M,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,B,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,F,nu);
+      ilink_to_be_used[21]=add_link(gat,L,mu,tba,tbu);tbu++;
+      ilink_to_be_used[22]=add_link(gat,L,nu,tba,tbu);tbu++;
+      ilink_to_be_used[23]=add_link(gat,M,mu,tba,tbu);tbu++;
+      ilink_to_be_used[24]=add_link(gat,B,mu,tba,tbu);tbu++;
+      ilink_to_be_used[25]=add_link(gat,F,nu,tba,tbu);tbu++;
       //forward forward rectangle
-      ilink_to_be_used[tbu++]=add_link(gat,A,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,B,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,C,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,E,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,F,nu);
+      ilink_to_be_used[26]=add_link(gat,A,nu,tba,tbu);tbu++;
+      ilink_to_be_used[27]=add_link(gat,B,nu,tba,tbu);tbu++;
+      ilink_to_be_used[28]=add_link(gat,C,mu,tba,tbu);tbu++;
+      ilink_to_be_used[29]=add_link(gat,E,nu,tba,tbu);tbu++;
+      ilink_to_be_used[30]=add_link(gat,F,nu,tba,tbu);tbu++;
       //forward up rectangle
-      ilink_to_be_used[tbu++]=add_link(gat,A,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,B,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,E,mu);
-      ilink_to_be_used[tbu++]=add_link(gat,O,nu);
-      ilink_to_be_used[tbu++]=add_link(gat,F,mu);
+      ilink_to_be_used[31]=add_link(gat,A,nu,tba,tbu);tbu++;
+      ilink_to_be_used[32]=add_link(gat,B,mu,tba,tbu);tbu++;
+      ilink_to_be_used[33]=add_link(gat,E,mu,tba,tbu);tbu++;
+      ilink_to_be_used[34]=add_link(gat,O,nu,tba,tbu);tbu++;
+      ilink_to_be_used[35]=add_link(gat,F,mu,tba,tbu);tbu++;
+      
+      ilink_to_be_used+=36;
     }
 }
 
@@ -310,6 +305,7 @@ void init_simulation(char *path)
   //initialize box the geometry
   ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",4*loc_vol,int);
   ilink_per_paths=nissa_malloc("ilink_per_paths",nlinks_per_paths_site*4*loc_vol,int);
+  for(int i=0;i<nlinks_per_paths_site*4*loc_vol;i++) ilink_per_paths[i]=-1;
   
   //get the size of box 0
   for(int mu=0;mu<4;mu++)
@@ -317,7 +313,10 @@ void init_simulation(char *path)
       if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
       box_size[0][mu]=loc_size[mu]/2;
     }
-
+  
+  //gathering_list
+  gathering_el_t *gl=nissa_malloc("gl",nlinks_per_paths_site*4*loc_vol,gathering_el_t);
+  
   //find the elements of all boxes
   int ibox_dir_par=0; //order in the parity-split order
   for(int ibox=0;ibox<16;ibox++)
@@ -341,7 +340,7 @@ void init_simulation(char *path)
       verbosity_lv2_master_printf("], nsites: %d\n",nsite_per_box[ibox]);
 
       //allocate
-      all_to_all_gathering_list_t *gl=new all_to_all_gathering_list_t;
+      int tba=0; //number of elements of gathering list
       
       //scan all the elements of subcube, selecting only those with the good parity
       for(int dir=0;dir<4;dir++)
@@ -370,7 +369,8 @@ void init_simulation(char *path)
 		    int ivol=ivol_of_box_dir_par[ibox_dir_par]=lx_of_coord(ivol_coord,loc_size);
 	  
 		    //add the paths
-		    add_tlSym_paths(ilink_per_paths+ibox_dir_par*nlinks_per_paths_site,*gl,ivol,dir);
+		    int tbu=ibox_dir_par*nlinks_per_paths_site; //position to be filled
+		    add_tlSym_paths(ilink_per_paths+tbu,gl,ivol,dir,tba,tbu);
 		    
 		    nsite_per_box_dir_par[par+4*(dir+4*ibox)]++;
 		    ibox_dir_par++;
@@ -378,17 +378,57 @@ void init_simulation(char *path)
 	      }
 	  }
       
+      //sort
+      std::sort(gl,gl+tba);
+      
+      //create the list of unique links
+      all_to_all_gathering_list_t *gl_unique=new all_to_all_gathering_list_t;
+      if(tba>0)
+	{
+	  int nel_unique=0;
+	  rank_iel_t prev(0,0);
+
+	  for(int iel=0;iel<tba;iel++)
+	    {
+	      rank_iel_t &curr=gl[iel].rank_iel_fr;
+	      if(iel==0 || prev.rank!=curr.rank || prev.iel!=curr.iel)
+		{
+		  if(iel!=0) nel_unique++;
+		  gl_unique->push_back(gathering_el_t(curr,4*loc_vol+nel_unique));
+		}
+	      //master_printf("instructing how to gather link %d: %d\n",(*gl)[iel].iel_to,nel_unique);
+	      int &tbu=gl[iel].iel_to;
+	      
+	      //check
+	      if(ilink_per_paths[tbu]!=curr.iel*nranks+curr.rank)
+		crash("not coinciding: %d, %d, expecting %d, receiving %d",
+		      iel,tbu,ilink_per_paths[tbu],curr.iel*nranks+curr.rank);
+	      
+	      ilink_per_paths[tbu]=4*loc_vol+nel_unique;
+	      prev=curr;
+	    }
+	}
+      
+      //allocate communicators
       comm_init_time-=take_time();  
-      box_comm[ibox]=new all_to_all_comm_t(*gl);
+      box_comm[ibox]=new all_to_all_comm_t(*gl_unique);
       comm_init_time+=take_time();
       
-      max_cached_link=std::max(max_cached_link,(int)gl->size());
-      
-      delete gl;
+      //compute the maximum number of link to send and receive
+      max_cached_link=std::max(max_cached_link,box_comm[ibox]->nel_in);
+      max_sending_link=std::max(max_sending_link,box_comm[ibox]->nel_out);
+
+      delete gl_unique;
     }
   
+  //free the gathering list
+  nissa_free(gl);
+      
+  buf_out=nissa_malloc("buf_out",max_sending_link,su3);
+  buf_in=nissa_malloc("buf_in",max_cached_link,su3);
+  
   //check cached
-  verbosity_lv2_master_printf("Max cached links: %d\n",max_cached_link);
+  /*verbosity_lv2_*/master_printf("Max cached links: %d\n",max_cached_link);
   if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed");
   
   base_init_time+=take_time();
@@ -411,6 +451,8 @@ void close_simulation()
   
   if(!store_running_temp_conf) write_conf();
   nissa_free(conf);
+  nissa_free(buf_out);
+  nissa_free(buf_in);
   
   nissa_free(ivol_of_box_dir_par);
   nissa_free(ilink_per_paths);
@@ -588,7 +630,7 @@ double compute_tlSym_action(complex paths)
 }
 
 //updated all sites with heat-bath or overrelaxation
-THREADABLE_FUNCTION_1ARG(sweep_conf, update_alg_t,update_alg)
+THREADABLE_FUNCTION_4ARG(sweep_conf, update_alg_t,update_alg, quad_su3*,conf, void*,buf_out, void*,buf_in)
 {
   GET_THREAD_ID();
   
@@ -597,7 +639,7 @@ THREADABLE_FUNCTION_1ARG(sweep_conf, update_alg_t,update_alg)
     {
       //communicate needed links
       if(IS_MASTER_THREAD) comm_time-=take_time();
-      box_comm[ibox]->communicate(conf,conf,sizeof(su3));
+      box_comm[ibox]->communicate(conf,conf,sizeof(su3),buf_out,buf_in);
       if(IS_MASTER_THREAD) comm_time+=take_time();
       
       if(IS_MASTER_THREAD) comp_time-=take_time();
@@ -614,6 +656,7 @@ THREADABLE_FUNCTION_1ARG(sweep_conf, update_alg_t,update_alg)
 		
 		//find new link
 		int ivol=ivol_of_box_dir_par[ibox_dir_par];
+		
 		su3 new_link;
 		if(update_alg==HEAT)
 		  su3_find_heatbath(new_link,conf[ivol][dir],staples,beta,evol_pars.nhb_hits,loc_rnd_gen+ivol);
@@ -635,12 +678,12 @@ THREADABLE_FUNCTION_1ARG(sweep_conf, update_alg_t,update_alg)
 }}
 
 //heatbath or overrelax algorithm for the quenched simulation case, Wilson action
-void generate_new_conf()
+void generate_new_conf(quad_su3 *conf,void *buf_out,void *buf_in)
 {
   //number of hb sweeps
-  for(int ihb_sweep=0;ihb_sweep<evol_pars.nhb_sweeps;ihb_sweep++) sweep_conf(HEAT);
+  for(int ihb_sweep=0;ihb_sweep<evol_pars.nhb_sweeps;ihb_sweep++) sweep_conf(HEAT,conf,buf_out,buf_in);
   //numer of overrelax sweeps
-  for(int iov_sweep=0;iov_sweep<evol_pars.nov_sweeps;iov_sweep++) sweep_conf(OVER);
+  for(int iov_sweep=0;iov_sweep<evol_pars.nov_sweeps;iov_sweep++) sweep_conf(OVER,conf,buf_out,buf_in);
 }
 
 //measure plaquette and polyakov loop
@@ -695,7 +738,7 @@ void in_main(int narg,char **arg)
       if(max_nconfs!=0)
 	{
 	  double gen_time=-take_time();
-	  generate_new_conf();
+	  generate_new_conf(conf,buf_out,buf_in);
 	  gen_time+=take_time();
 	  master_printf("Generate new conf in %lg sec\n",gen_time);
 	  nprod_confs++;
