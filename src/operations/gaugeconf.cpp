@@ -356,7 +356,7 @@ namespace nissa
       for(int idir=0;idir<4;idir++)
 	{
 	  su3 t;
-	  su3_unitarize_maximal_trace_projecting(t,conf[ivol][idir]);
+	  su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
 	  su3_copy(conf[ivol][idir],t);
 	}
     set_borders_invalid(conf);

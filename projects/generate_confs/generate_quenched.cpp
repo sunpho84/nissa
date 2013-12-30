@@ -47,7 +47,14 @@ int *ivol_of_box_dir_par;
 all_to_all_comm_t *box_comm[16];
 
 //bench
-double comm_time=0,comp_time=0,meas_time=0,read_time=0,write_time=0,base_init_time=0,comm_init_time=0;
+double comm_time=0;
+double comp_time=0;
+double meas_time=0;
+double read_time=0;
+double write_time=0;
+double base_init_time=0;
+double comm_init_time=0;
+double unitarize_time=0;
 
 enum start_conf_cond_t{UNSPEC_COND,HOT,COLD};
 enum update_alg_t{UNSPEC_UP,HEAT,OVER};
@@ -345,6 +352,7 @@ void init_box_geometry()
   if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed");
   
   base_init_time+=take_time();
+  base_init_time-=read_time;
 }
 
 //initialize the simulation
@@ -440,6 +448,7 @@ void close_simulation()
   master_printf("Communicators initialization time: %lg sec\n",comm_init_time);
   master_printf("Communication time: %lg sec\n",comm_time);
   master_printf("Link update time: %lg sec\n",comp_time);
+  master_printf("Reunitarization time: %lg sec\n",unitarize_time);
   master_printf("Measurement time: %lg sec\n",meas_time);
   master_printf("Read conf time: %lg sec\n",read_time);
   master_printf("Write conf time: %lg sec\n",write_time);
@@ -680,7 +689,10 @@ void generate_new_conf(quad_su3 *conf,void *buf_out,void *buf_in)
   for(int ihb_sweep=0;ihb_sweep<evol_pars.nhb_sweeps;ihb_sweep++) sweep_conf(HEAT,conf,buf_out,buf_in);
   //numer of overrelax sweeps
   for(int iov_sweep=0;iov_sweep<evol_pars.nov_sweeps;iov_sweep++) sweep_conf(OVER,conf,buf_out,buf_in);
+
+  unitarize_time-=take_time();
   unitarize_lx_conf(conf);
+  unitarize_time+=take_time();
 }
 
 //measure plaquette and polyakov loop
