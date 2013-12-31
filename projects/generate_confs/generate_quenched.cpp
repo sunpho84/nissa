@@ -38,7 +38,7 @@ int seed;
 
 //communications and building
 int max_cached_link=0,max_sending_link=0;
-int nlinks_per_paths_site=3*2*(3+5*3);
+int nlinks_per_paths_site=3*2*(3+5*3)-3*8+2;
 coords box_size[16];
 int nsite_per_box[16];
 int nsite_per_box_dir_par[16*4*4];
@@ -191,7 +191,7 @@ void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int 
       *(ilink_to_be_used++)=add_link(gat,B,mu);
       *(ilink_to_be_used++)=add_link(gat,F,nu);
       //backward dw rectangle
-      *(ilink_to_be_used++)=add_link(gat,L,mu);
+      //*(ilink_to_be_used++)=add_link(gat,L,mu); //vertical common link dw (see below)
       *(ilink_to_be_used++)=add_link(gat,K,nu);
       *(ilink_to_be_used++)=add_link(gat,K,mu);
       *(ilink_to_be_used++)=add_link(gat,J,mu);
@@ -203,13 +203,13 @@ void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int 
       *(ilink_to_be_used++)=add_link(gat,H,nu);
       *(ilink_to_be_used++)=add_link(gat,G,nu);
       //backward up rectangle
-      *(ilink_to_be_used++)=add_link(gat,J,nu);
-      *(ilink_to_be_used++)=add_link(gat,J,mu);
+      //*(ilink_to_be_used++)=add_link(gat,J,nu); //already computed at...
+      //*(ilink_to_be_used++)=add_link(gat,J,mu); //...backward square staple
       *(ilink_to_be_used++)=add_link(gat,G,mu);
       *(ilink_to_be_used++)=add_link(gat,P,nu);
-      *(ilink_to_be_used++)=add_link(gat,F,mu);
+      //*(ilink_to_be_used++)=add_link(gat,F,mu); //vertical common link up (see below)
       //forward dw rectangle
-      *(ilink_to_be_used++)=add_link(gat,L,mu);
+      //*(ilink_to_be_used++)=add_link(gat,L,mu); //vertical common link dw (see below)
       *(ilink_to_be_used++)=add_link(gat,L,nu);
       *(ilink_to_be_used++)=add_link(gat,M,mu);
       *(ilink_to_be_used++)=add_link(gat,B,mu);
@@ -221,12 +221,16 @@ void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int 
       *(ilink_to_be_used++)=add_link(gat,E,nu);
       *(ilink_to_be_used++)=add_link(gat,F,nu);
       //forward up rectangle
-      *(ilink_to_be_used++)=add_link(gat,A,nu);
-      *(ilink_to_be_used++)=add_link(gat,B,mu);
+      //*(ilink_to_be_used++)=add_link(gat,A,nu); //already computed at...
+      //*(ilink_to_be_used++)=add_link(gat,B,mu); //...forward square staple
       *(ilink_to_be_used++)=add_link(gat,E,mu);
       *(ilink_to_be_used++)=add_link(gat,O,nu);
-      *(ilink_to_be_used++)=add_link(gat,F,mu);
+      //*(ilink_to_be_used++)=add_link(gat,F,mu); //vertical common link up (see below)
     }
+  *(ilink_to_be_used++)=add_link(gat,F,mu); //vertical common link up
+  *(ilink_to_be_used++)=add_link(gat,L,mu); //verical common link dw
+  
+  //8*3 link missing, 2 readded = -22 links
 }
 
 //add all the links needed to compute staple separataly for each box
@@ -260,6 +264,8 @@ THREADABLE_FUNCTION_1ARG(add_links_to_paths, all_to_all_gathering_list_t**,gl)
 //initialize the geometry of the sub-boxes
 void init_box_geometry()
 {
+  comm_init_time=-take_time();
+  
   ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",4*loc_vol,int);
   ilink_per_paths=nissa_malloc("ilink_per_paths",nlinks_per_paths_site*4*loc_vol,int);
   
@@ -330,13 +336,11 @@ void init_box_geometry()
   add_links_to_paths(gl);
   
   //initialize the communicator
-  comm_init_time=-take_time();
   for(int ibox=0;ibox<16;ibox++)
     {
       box_comm[ibox]=new all_to_all_comm_t(*(gl[ibox]));
       delete gl[ibox];
     }
-  comm_init_time+=take_time();
   
   //compute the maximum number of link to send and receive and allocate buffers
   for(int ibox=0;ibox<16;ibox++)
@@ -350,9 +354,8 @@ void init_box_geometry()
   //check cached
   verbosity_lv2_master_printf("Max cached links: %d\n",max_cached_link);
   if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed");
-  
-  base_init_time+=take_time();
-  base_init_time-=read_time;
+
+  comm_init_time+=take_time();
 }
 
 //initialize the simulation
@@ -402,6 +405,8 @@ void init_simulation(char *path)
   
   close_input();
   
+  base_init_time+=take_time();
+
   ////////////////////////// allocate stuff ////////////////////////
    
   //allocate conf and staples
@@ -572,52 +577,55 @@ void check()
 //compute the summ of the staples pointed by "ilinks"
 void compute_tlSym_staples(su3 staples,su3 *links,int *ilinks)
 {
-  su3 squares,rectangles;
+  su3 squares,rectangles,up_rectangles,dw_rectangles;
   su3_put_to_zero(squares);
   su3_put_to_zero(rectangles);
+  su3_put_to_zero(up_rectangles);
+  su3_put_to_zero(dw_rectangles);
   
   for(int inu=0;inu<3;inu++)
     {  
-      su3 temp1,temp2;
+      su3 hb;
       //backward square staple
-      unsafe_su3_dag_prod_su3(temp1,links[ilinks[ 0]],links[ilinks[ 1]]);
-      su3_summ_the_prod_su3(squares,temp1,links[ilinks[ 2]]);
+      unsafe_su3_dag_prod_su3(hb,links[ilinks[ 0]],links[ilinks[ 1]]);
+      su3_summ_the_prod_su3(squares,hb,links[ilinks[ 2]]);
       //forward square staple
-      unsafe_su3_prod_su3(temp1,links[ilinks[ 3]],links[ilinks[ 4]]);
-      su3_summ_the_prod_su3_dag(squares,temp1,links[ilinks[ 5]]);
+      su3 hf;
+      unsafe_su3_prod_su3(hf,links[ilinks[ 3]],links[ilinks[ 4]]);
+      su3_summ_the_prod_su3_dag(squares,hf,links[ilinks[ 5]]);
+      
+      su3 temp1,temp2;
       //backward dw rectangle
-      unsafe_su3_dag_prod_su3_dag(temp1,links[ilinks[ 6]],links[ilinks[ 7]]);
-      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[ 8]]);
-      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[ 9]]);
-      su3_summ_the_prod_su3(rectangles,temp1,links[ilinks[10]]);
+      unsafe_su3_dag_prod_su3(temp2,links[ilinks[ 6]],links[ilinks[ 7]]);
+      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[ 8]]);
+      su3_summ_the_prod_su3(dw_rectangles,temp1,links[ilinks[9]]);
       //backward backward rectangle
-      unsafe_su3_dag_prod_su3_dag(temp1,links[ilinks[11]],links[ilinks[12]]);
-      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[13]]);
-      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[14]]);
-      su3_summ_the_prod_su3(rectangles,temp1,links[ilinks[15]]);
+      unsafe_su3_dag_prod_su3_dag(temp1,links[ilinks[10]],links[ilinks[11]]);
+      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[12]]);
+      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[13]]);
+      su3_summ_the_prod_su3(rectangles,temp1,links[ilinks[14]]);
       //backward up rectangle
-      unsafe_su3_dag_prod_su3(temp1,links[ilinks[16]],links[ilinks[17]]);
-      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[18]]);
-      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[19]]);
-      su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[20]]);
+      unsafe_su3_prod_su3(temp2,hb,links[ilinks[15]]);
+      su3_summ_the_prod_su3(up_rectangles,temp2,links[ilinks[16]]);
       //forward dw rectangle
-      unsafe_su3_dag_prod_su3(temp1,links[ilinks[21]],links[ilinks[22]]);
-      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[23]]);
-      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[24]]);
-      su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[25]]);
+      unsafe_su3_prod_su3(temp2,links[ilinks[17]],links[ilinks[18]]);
+      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[19]]);
+      su3_summ_the_prod_su3_dag(dw_rectangles,temp1,links[ilinks[20]]);
       //forward forward rectangle
-      unsafe_su3_prod_su3(temp1,links[ilinks[26]],links[ilinks[27]]);
-      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[28]]);
-      unsafe_su3_prod_su3_dag(temp1,temp2,links[ilinks[29]]);
-      su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[30]]);
+      unsafe_su3_prod_su3(temp1,links[ilinks[21]],links[ilinks[22]]);
+      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[23]]);
+      unsafe_su3_prod_su3_dag(temp1,temp2,links[ilinks[24]]);
+      su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[25]]);
       //forward up rectangle
-      unsafe_su3_prod_su3(temp1,links[ilinks[31]],links[ilinks[32]]);
-      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[33]]);
-      unsafe_su3_prod_su3_dag(temp1,temp2,links[ilinks[34]]);
-      su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[35]]);
+      unsafe_su3_prod_su3(temp2,hf,links[ilinks[26]]);
+      su3_summ_the_prod_su3_dag(up_rectangles,temp2,links[ilinks[27]]);
 
-      ilinks+=36;
+      ilinks+=28;
     }
+  
+  //close the two partial rectangles
+  su3_summ_the_prod_su3_dag(rectangles,up_rectangles,links[ilinks[ 0]]);
+  su3_summ_the_dag_prod_su3(rectangles,links[ilinks[ 1]],dw_rectangles);
   
   //compute the summed staples
   double b1=-1.0/12,b0=1-8*b1;
@@ -683,13 +691,22 @@ THREADABLE_FUNCTION_4ARG(sweep_conf, update_alg_t,update_alg, quad_su3*,conf, vo
 }}
 
 //heatbath or overrelax algorithm for the quenched simulation case, Wilson action
-void generate_new_conf(quad_su3 *conf,void *buf_out,void *buf_in)
+void generate_new_conf(quad_su3 *conf,void *buf_out,void *buf_in,int check=0)
 {
   //number of hb sweeps
   for(int ihb_sweep=0;ihb_sweep<evol_pars.nhb_sweeps;ihb_sweep++) sweep_conf(HEAT,conf,buf_out,buf_in);
   //numer of overrelax sweeps
+  double paths[2];
+  double action_pre;
+  if(check&&evol_pars.nov_sweeps) action_pre=compute_tlSym_action(paths);
   for(int iov_sweep=0;iov_sweep<evol_pars.nov_sweeps;iov_sweep++) sweep_conf(OVER,conf,buf_out,buf_in);
-
+  if(check&&evol_pars.nov_sweeps)
+    {
+      double action_post=compute_tlSym_action(paths);
+      master_printf("Checking: relative difference of action after overrelaxation: %lg\n",
+		    2*(action_post-action_pre)/(action_post+action_pre));
+    }
+  
   unitarize_time-=take_time();
   unitarize_lx_conf(conf);
   unitarize_time+=take_time();
@@ -747,7 +764,7 @@ void in_main(int narg,char **arg)
       if(max_nconfs!=0)
 	{
 	  double gen_time=-take_time();
-	  generate_new_conf(conf,buf_out,buf_in);
+	  generate_new_conf(conf,buf_out,buf_in,iconf%100==0);
 	  gen_time+=take_time();
 	  master_printf("Generate new conf in %lg sec\n",gen_time);
 	  nprod_confs++;
