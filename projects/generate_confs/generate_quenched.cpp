@@ -583,6 +583,7 @@ void compute_tlSym_staples(su3 staples,su3 *links,int *ilinks)
   su3_put_to_zero(up_rectangles);
   su3_put_to_zero(dw_rectangles);
   
+  const int PARTIAL=2;
   for(int inu=0;inu<3;inu++)
     {  
       su3 hb;
@@ -596,25 +597,29 @@ void compute_tlSym_staples(su3 staples,su3 *links,int *ilinks)
       
       su3 temp1,temp2;
       //backward dw rectangle
-      unsafe_su3_dag_prod_su3(temp2,links[ilinks[ 6]],links[ilinks[ 7]]);
-      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[ 8]]);
+      unsafe_su3_dag_prod_su3(temp2,links[ilinks[ 6]],links[ilinks[ 7]],PARTIAL);
+      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[ 8]],PARTIAL);
+      su3_build_third_row(temp1);
       su3_summ_the_prod_su3(dw_rectangles,temp1,links[ilinks[9]]);
       //backward backward rectangle
-      unsafe_su3_dag_prod_su3_dag(temp1,links[ilinks[10]],links[ilinks[11]]);
-      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[12]]);
-      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[13]]);
+      unsafe_su3_dag_prod_su3_dag(temp1,links[ilinks[10]],links[ilinks[11]],PARTIAL);
+      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[12]],PARTIAL);
+      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[13]],PARTIAL);
+      su3_build_third_row(temp1);
       su3_summ_the_prod_su3(rectangles,temp1,links[ilinks[14]]);
       //backward up rectangle
       unsafe_su3_prod_su3(temp2,hb,links[ilinks[15]]);
       su3_summ_the_prod_su3(up_rectangles,temp2,links[ilinks[16]]);
       //forward dw rectangle
-      unsafe_su3_prod_su3(temp2,links[ilinks[17]],links[ilinks[18]]);
-      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[19]]);
+      unsafe_su3_prod_su3(temp2,links[ilinks[17]],links[ilinks[18]],PARTIAL);
+      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[19]],PARTIAL);
+      su3_build_third_row(temp1);
       su3_summ_the_prod_su3_dag(dw_rectangles,temp1,links[ilinks[20]]);
       //forward forward rectangle
-      unsafe_su3_prod_su3(temp1,links[ilinks[21]],links[ilinks[22]]);
-      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[23]]);
-      unsafe_su3_prod_su3_dag(temp1,temp2,links[ilinks[24]]);
+      unsafe_su3_prod_su3(temp1,links[ilinks[21]],links[ilinks[22]],PARTIAL);
+      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[23]],PARTIAL);
+      unsafe_su3_prod_su3_dag(temp1,temp2,links[ilinks[24]],PARTIAL);
+      su3_build_third_row(temp1);
       su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[25]]);
       //forward up rectangle
       unsafe_su3_prod_su3(temp2,hf,links[ilinks[26]]);
