@@ -20,6 +20,7 @@
 
 namespace nissa
 {
+  void color_put_to_zero(color m) {memset(m,0,sizeof(color));}
   void su3_put_to_zero(su3 m) {memset(m,0,sizeof(su3));}
   void as2t_su3_put_to_zero(as2t_su3 m) {memset(m,0,sizeof(as2t_su3));}
   void spincolor_put_to_zero(spincolor m) {memset(m,0,sizeof(spincolor));}
@@ -387,7 +388,7 @@ namespace nissa
   }
   
   //Product of two su3 matrixes
-  void unsafe_su3_prod_su3(su3 a,su3 b,su3 c,int nr_max)
+  void unsafe_su3_prod_su3(su3 a,su3 b,su3 c,const int nr_max)
   {
     for(int ir_out=0;ir_out<nr_max;ir_out++)
       for(int ic_out=0;ic_out<3;ic_out++)
@@ -421,7 +422,7 @@ namespace nissa
   }
   
   //Product of two su3 matrixes
-  void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c,int nr_max)
+  void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c,const int nr_max)
   {
     for(int ir_out=0;ir_out<nr_max;ir_out++)
       for(int ic_out=0;ic_out<3;ic_out++)
@@ -441,7 +442,7 @@ namespace nissa
   }
   
   //Product of two su3 matrixes
-  void unsafe_su3_prod_su3_dag(su3 a,su3 b,su3 c,int nr_max)
+  void unsafe_su3_prod_su3_dag(su3 a,su3 b,su3 c,const int nr_max)
   {
     for(int ir_out=0;ir_out<nr_max;ir_out++)
       for(int ic_out=0;ic_out<3;ic_out++)
@@ -487,7 +488,7 @@ namespace nissa
   }
   
   //Product of two su3 matrixes
-  void unsafe_su3_dag_prod_su3_dag(su3 a,su3 b,su3 c,int nr_max)
+  void unsafe_su3_dag_prod_su3_dag(su3 a,su3 b,su3 c,const int nr_max)
   {
     for(int ir_out=0;ir_out<nr_max;ir_out++)
       for(int ic_out=0;ic_out<3;ic_out++)

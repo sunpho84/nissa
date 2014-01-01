@@ -13,6 +13,10 @@
 
 using namespace nissa;
 
+enum start_conf_cond_t{UNSPEC_START_COND,HOT,COLD};
+enum update_alg_t{UNSPEC_UP,HEAT,OVER};
+enum boundary_cond_t{UNSPEC_BOUNDARY_COND,PERIODIC,OPEN};
+
 //observables
 char gauge_obs_path[1024];
 
@@ -28,6 +32,7 @@ su3 *buf_out,*buf_in;
 double beta;
 gauge_action_name_t gauge_action_name;
 pure_gauge_evol_pars_t evol_pars;
+boundary_cond_t boundary_cond=UNSPEC_BOUNDARY_COND;
 
 //confs
 int nprod_confs;
@@ -55,9 +60,6 @@ double write_time=0;
 double base_init_time=0;
 double comm_init_time=0;
 double unitarize_time=0;
-
-enum start_conf_cond_t{UNSPEC_COND,HOT,COLD};
-enum update_alg_t{UNSPEC_UP,HEAT,OVER};
 
 void measure_gauge_obs(bool );
 
@@ -397,11 +399,19 @@ void init_simulation(char *path)
   //read if configuration must be generated cold or hot
   char start_conf_cond_str[1024];
   read_str_str("StartConfCond",start_conf_cond_str,1024);
-  start_conf_cond_t start_conf_cond=UNSPEC_COND;
+  start_conf_cond_t start_conf_cond=UNSPEC_START_COND;
   if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT;
   if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD;
-  if(start_conf_cond==UNSPEC_COND)
-    crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
+  if(start_conf_cond==UNSPEC_START_COND)
+    crash("unknown starting condition %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
+  
+  //read boundary condition
+  char boundary_cond_str[1024];
+  read_str_str("BoundaryCond",boundary_cond_str,1024);
+  if(strcasecmp(boundary_cond_str,"PERIODIC")==0) boundary_cond=PERIODIC;
+  if(strcasecmp(boundary_cond_str,"OPEN")==0) boundary_cond=OPEN;
+  if(boundary_cond==UNSPEC_BOUNDARY_COND)
+    crash("unknown boundary condition %s, expected 'PERIODIC' or 'OPEN'",boundary_cond_str);
   
   close_input();
   
@@ -444,6 +454,18 @@ void init_simulation(char *path)
   
   init_box_geometry();
 }
+
+//set to 0 last timeslice
+THREADABLE_FUNCTION_1ARG(impose_open_boundary_cond, quad_su3*,conf)
+{
+  GET_THREAD_ID();
+  
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    if(glb_coord_of_loclx[ivol][0]==glb_size[0]-1)
+      su3_put_to_zero(conf[ivol][0]);
+
+  set_borders_invalid(conf);
+}}
 
 //finalize everything
 void close_simulation()
@@ -648,6 +670,22 @@ double compute_tlSym_action(complex paths)
   return (b0*6*glb_vol*(1-paths[RE])+b1*12*glb_vol*(1-paths[IM]))*beta;
 }
 
+//compute action
+double compute_tlSym_action_per_timeslice(complex paths,complex *paths_per_timeslice)
+{
+  //coefficient of rectangles and squares
+  double b1=-1.0/12,b0=1-8*b1;
+  
+  //compute the total action
+  global_plaquette_and_rectangles_lx_conf_per_timeslice(paths_per_timeslice,conf);
+  paths[0]=paths[1]=0;
+  for(int t=0;t<glb_size[0]-1;t++)
+    complex_summassign(paths,paths_per_timeslice[t]);
+  complex_prodassign_double(paths,1.0/(glb_size[0]-1));
+  
+  return (b0*6*glb_vol*(1-paths[RE])+b1*12*glb_vol*(1-paths[IM]))*beta;
+}
+
 //updated all sites with heat-bath or overrelaxation
 THREADABLE_FUNCTION_4ARG(sweep_conf, update_alg_t,update_alg, quad_su3*,conf, void*,buf_out, void*,buf_in)
 {
@@ -714,6 +752,7 @@ void generate_new_conf(quad_su3 *conf,void *buf_out,void *buf_in,int check=0)
   
   unitarize_time-=take_time();
   unitarize_lx_conf(conf);
+  if(boundary_cond==OPEN) impose_open_boundary_cond(conf);
   unitarize_time+=take_time();
 }
 
@@ -728,10 +767,16 @@ void measure_gauge_obs(bool conf_created=false)
   //compute action
   double time_action=-take_time();
   double paths[2];
-  double action=compute_tlSym_action(paths);
+  complex paths_per_timeslice[glb_size[0]];
+  double action=(boundary_cond==OPEN)?compute_tlSym_action_per_timeslice(paths,paths_per_timeslice):
+    compute_tlSym_action(paths);
   master_printf("Action: %015.15lg measured in %lg sec\n",action,time_action+take_time());
 
   master_fprintf(file,"%6d\t%015.15lg\t%015.15lg\t%015.15lg\n",iconf,action,paths[0],paths[1]);
+  
+  if(boundary_cond==OPEN)
+    for(int t=0;t<glb_size[0];t++)
+      master_printf("%d %15.15lg %015.15lg\n",t,paths_per_timeslice[t][0],paths_per_timeslice[t][1]);
   
   if(rank==0) fclose(file);
   meas_time+=take_time();
@@ -769,7 +814,10 @@ void in_main(int narg,char **arg)
       if(max_nconfs!=0)
 	{
 	  double gen_time=-take_time();
-	  generate_new_conf(conf,buf_out,buf_in,iconf%100==0);
+	  
+	  //one conf every 100 is checked: action must not change when doing ov
+	  int check_over_relax=(iconf%100==0);
+	  generate_new_conf(conf,buf_out,buf_in,check_over_relax);
 	  gen_time+=take_time();
 	  master_printf("Generate new conf in %lg sec\n",gen_time);
 	  nprod_confs++;
