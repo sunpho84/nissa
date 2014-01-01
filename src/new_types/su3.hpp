@@ -137,8 +137,8 @@ namespace nissa
   void unsafe_su3_dag_dirac_summ_the_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in);
   void unsafe_su3_dag_prod_color(color a,su3 b,color c);
   void unsafe_su3_dag_prod_spincolor(spincolor out,su3 U,spincolor in);
-  void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c,int nr_max=3);
-  void unsafe_su3_dag_prod_su3_dag(su3 a,su3 b,su3 c,int nr_max=3);
+  void unsafe_su3_dag_prod_su3(su3 a,su3 b,su3 c,const int nr_max=3);
+  void unsafe_su3_dag_prod_su3_dag(su3 a,su3 b,su3 c,const int nr_max=3);
   void unsafe_su3_dirac_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in);
   void unsafe_su3_dirac_subt_the_prod_spincolor(spincolor out,su3 U,dirac_matr *m,spincolor in);
   void unsafe_su3_explicit_inverse(su3 invU,su3 U);
@@ -147,8 +147,8 @@ namespace nissa
   void unsafe_su3_prod_complex(su3 a,su3 b,complex c);
   void unsafe_su3_prod_conj_complex(su3 a,su3 b,complex c);
   void unsafe_su3_prod_spincolor(spincolor out,su3 U,spincolor in);
-  void unsafe_su3_prod_su3(su3 a,su3 b,su3 c,int nr_max=3);
-  void unsafe_su3_prod_su3_dag(su3 a,su3 b,su3 c,int nr_max=3);
+  void unsafe_su3_prod_su3(su3 a,su3 b,su3 c,const int nr_max=3);
+  void unsafe_su3_prod_su3_dag(su3 a,su3 b,su3 c,const int nr_max=3);
   void unsafe_su3_subt_su3_dag(su3 a,su3 b,su3 c);
   void unsafe_su3_taylor_exponentiate(su3 out,su3 in,int order);
   void unsafe_su3_traceless_anti_hermitian_part(su3 out,su3 in);
