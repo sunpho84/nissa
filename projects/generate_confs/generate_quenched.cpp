@@ -19,6 +19,7 @@ enum boundary_cond_t{UNSPEC_BOUNDARY_COND,PERIODIC,OPEN};
 
 //observables
 char gauge_obs_path[1024];
+char gauge_obs_per_timeslice_path[1024];
 
 //input and output path for confs
 char conf_path[1024];
@@ -409,7 +410,12 @@ void init_simulation(char *path)
   char boundary_cond_str[1024];
   read_str_str("BoundaryCond",boundary_cond_str,1024);
   if(strcasecmp(boundary_cond_str,"PERIODIC")==0) boundary_cond=PERIODIC;
-  if(strcasecmp(boundary_cond_str,"OPEN")==0) boundary_cond=OPEN;
+  if(strcasecmp(boundary_cond_str,"OPEN")==0)
+    {
+      boundary_cond=OPEN;
+      read_str_str("GaugeObsPerTimeslicePath",gauge_obs_per_timeslice_path,1024);
+    }
+
   if(boundary_cond==UNSPEC_BOUNDARY_COND)
     crash("unknown boundary condition %s, expected 'PERIODIC' or 'OPEN'",boundary_cond_str);
   
@@ -713,6 +719,7 @@ THREADABLE_FUNCTION_4ARG(sweep_conf, update_alg_t,update_alg, quad_su3*,conf, vo
 		
 		//find new link
 		int ivol=ivol_of_box_dir_par[ibox_dir_par];
+		
 		su3 new_link;
 		if(update_alg==HEAT)
 		  su3_find_heatbath(new_link,conf[ivol][dir],staples,beta,evol_pars.nhb_hits,loc_rnd_gen+ivol);
@@ -774,12 +781,16 @@ void measure_gauge_obs(bool conf_created=false)
 
   master_fprintf(file,"%6d\t%015.15lg\t%015.15lg\t%015.15lg\n",iconf,action,paths[0],paths[1]);
   
-  if(boundary_cond==OPEN)
-    for(int t=0;t<glb_size[0];t++)
-      master_printf("%d %15.15lg %015.15lg\n",t,paths_per_timeslice[t][0],paths_per_timeslice[t][1]);
-  
-  if(rank==0) fclose(file);
+  close_file(file);
   meas_time+=take_time();
+
+  if(boundary_cond==OPEN)
+    {
+      file=open_file(gauge_obs_per_timeslice_path,conf_created?"w":"a");
+      for(int t=0;t<glb_size[0];t++)
+	master_fprintf(file,"%d %d %15.15lg %015.15lg\n",iconf,t,paths_per_timeslice[t][0],paths_per_timeslice[t][1]);
+      close_file(file);
+    }
 }
 
 //store conf when appropriate
