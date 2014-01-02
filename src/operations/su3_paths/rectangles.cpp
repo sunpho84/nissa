@@ -140,7 +140,7 @@ namespace nissa
     nissa_free(point_shapes);
     
     //reduce (passing throug additional var because of external unkwnon env)
-    complex coll_shapes[glb_size[0]];
+    complex *coll_shapes=nissa_malloc("coll_shapes",glb_size[0],complex);
     if(IS_MASTER_THREAD) MPI_Reduce(loc_shapes,coll_shapes,2*glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
     nissa_free(loc_shapes);
 
@@ -150,5 +150,6 @@ namespace nissa
 	glb_shapes[t][RE]=coll_shapes[t][RE]/(18*glb_vol/glb_size[0]);
 	glb_shapes[t][IM]=coll_shapes[t][IM]/(36*glb_vol/glb_size[0]);
       }
+    nissa_free(coll_shapes);    
   }}
 }
