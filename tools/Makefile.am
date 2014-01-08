@@ -1,5 +1,5 @@
 AM_CPPFLAGS=-I$(top_srcdir)/src
-LDADD=$(top_builddir)/lib/libnissa.la
+LDADD=$(top_builddir)/lib/libnissa.a
 AUTOMAKE_OPTIONS=subdir-objects
 
 bin_PROGRAMS= \

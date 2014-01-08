@@ -4,7 +4,7 @@ include $(top_srcdir)/config/cuda.mk
 
 AUTOMAKE_OPTIONS=subdir-objects
 
-LDADD=$(top_builddir)/lib/libnissa.la $(CUDA_LIBS)
+LDADD=$(top_builddir)/lib/libnissa.a $(CUDA_LIBS)
 
 bin_PROGRAMS=$(top_builddir)/bin/generate_stag $(top_builddir)/bin/generate_quenched
 

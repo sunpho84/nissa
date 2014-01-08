@@ -1,7 +1,7 @@
 include_HEADERS=nissa.hpp
 
 #add nissa library
-lib_LTLIBRARIES=$(top_builddir)/lib/libnissa.la
+lib_LIBRARIES=$(top_builddir)/lib/libnissa.a
 
 ########################################### base sources ##################################
 
