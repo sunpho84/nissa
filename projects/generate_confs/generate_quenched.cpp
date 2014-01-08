@@ -376,9 +376,6 @@ void init_simulation(char *path)
 {
   base_init_time-=take_time();
   
-  const int nlinks_per_tlSym_paths_site=3*2*(3+5*3)-3*8+2;
-  tlSym_sweep=new gauge_sweep_t(nlinks_per_tlSym_paths_site,4);
-  
   //////////////////////////// read the input /////////////////////////
   
   //open input file
@@ -440,6 +437,9 @@ void init_simulation(char *path)
 
   ////////////////////////// allocate stuff ////////////////////////
    
+  const int nlinks_per_tlSym_paths_site=3*2*(3+5*3)-3*8+2;
+  tlSym_sweep=new gauge_sweep_t(nlinks_per_tlSym_paths_site,4);
+  
   //allocate conf and staples
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
 
