@@ -371,6 +371,40 @@ namespace nissa
     if(!something_found) crash("no valid partitioning found");
   }
   
+  //define boxes
+  void init_boxes()
+  {
+    //get the size of box 0
+    for(int mu=0;mu<4;mu++)
+      {
+	if(loc_size[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,loc_size[mu]);
+	box_size[0][mu]=loc_size[mu]/2;
+      }
+
+    //get coords of cube ans box size
+    coords box_coord[16];
+    coords nboxes={2,2,2,2};
+    for(int ibox=0;ibox<16;ibox++)
+      {
+	//coords
+	verbosity_lv3_master_printf("Box %d coord [ ",ibox);
+	coord_of_lx(box_coord[ibox],ibox,nboxes);
+	for(int mu=0;mu<4;mu++) verbosity_lv3_master_printf("%d ",box_coord[ibox][mu]);
+      
+	//size
+	verbosity_lv3_master_printf("] size [ ",ibox);
+	nsite_per_box[ibox]=1;
+	for(int mu=0;mu<4;mu++)
+	  {
+	    if(ibox!=0) box_size[ibox][mu]=((box_coord[ibox][mu]==0)?
+						     (box_size[0][mu]):(loc_size[mu]-box_size[0][mu]));
+	    nsite_per_box[ibox]*=box_size[ibox][mu];
+	    verbosity_lv3_master_printf("%d ",box_size[ibox][mu]);
+	  }
+	verbosity_lv3_master_printf("], nsites: %d\n",nsite_per_box[ibox]);
+      }
+  }
+  
   //initialize MPI grid
   //if you need non-homogeneus glb_size[i] pass L=T=0 and
   //set glb_size before calling the routine
@@ -467,6 +501,8 @@ namespace nissa
 	if(idir>0) bord_offset[idir]=bord_offset[idir-1]+bord_dir_vol[idir-1];
       }
     bord_vol=2*bord_volh;  
+    
+    init_boxes();
     
 #ifdef USE_VNODES
     //two times the size of vnode_paral_dir face

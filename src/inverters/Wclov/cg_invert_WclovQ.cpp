@@ -6,7 +6,7 @@
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 
-#include "dirac_operators/dirac_operator_WclovQ/dirac_operator_WclovQ.hpp"
+#include "dirac_operators/WclovQ/dirac_operator_WclovQ.hpp"
 #include "cg_invert_WclovQ2.hpp"
 
 namespace nissa

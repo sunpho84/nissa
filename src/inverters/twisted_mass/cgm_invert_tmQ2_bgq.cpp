@@ -10,7 +10,7 @@
 #include "base/vectors.hpp"
 #include "base/debug.hpp"
 #include "communicate/communicate.hpp"
-#include "dirac_operators/dirac_operator_tmQ2/dirac_operator_tmQ2_bgq.hpp"
+#include "dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 

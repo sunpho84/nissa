@@ -9,7 +9,7 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
-#include "dirac_operators/dirac_operator_stD/dirac_operator_stD.hpp"
+#include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "inverters/staggered/cg_invert_stD2ee_m2.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"

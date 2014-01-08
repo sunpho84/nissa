@@ -14,7 +14,7 @@
 
 #include "dirac_operator_tmQ_portable.cpp"
 
-#include "dirac_operator_tmQ_left/dirac_operator_tmQ_left.hpp"
+#include "../tmQ_left/dirac_operator_tmQ_left.hpp"
 
 namespace nissa
 {

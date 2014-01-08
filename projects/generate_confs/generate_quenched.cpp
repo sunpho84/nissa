@@ -20,6 +20,7 @@ enum boundary_cond_t{UNSPEC_BOUNDARY_COND,PERIODIC,OPEN};
 //observables
 char gauge_obs_path[1024];
 char gauge_obs_per_timeslice_path[1024];
+top_meas_pars_t top_meas_pars;
 
 //input and output path for confs
 char conf_path[1024];
@@ -44,13 +45,10 @@ int seed;
 
 //communications and building
 int max_cached_link=0,max_sending_link=0;
-int nlinks_per_paths_site=3*2*(3+5*3)-3*8+2;
-coords box_size[16];
-int nsite_per_box[16];
-int nsite_per_box_dir_par[16*4*4];
-int *ilink_per_paths;
-int *ivol_of_box_dir_par;
-all_to_all_comm_t *box_comm[16];
+//int nlinks_per_paths_site=3*2*(3+5*3)-3*8+2;
+//coords box_size[16];
+//int nsite_per_box[16];
+//int nsite_per_box_dir_par[16*4*4];
 
 //bench
 double comm_time=0;
@@ -58,8 +56,6 @@ double comp_time=0;
 double meas_time=0;
 double read_time=0;
 double write_time=0;
-double base_init_time=0;
-double comm_init_time=0;
 double unitarize_time=0;
 
 void measure_gauge_obs(bool );
@@ -237,7 +233,7 @@ void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int 
 }
 
 //add all the links needed to compute staple separataly for each box
-THREADABLE_FUNCTION_1ARG(add_links_to_paths, all_to_all_gathering_list_t**,gl)
+THREADABLE_FUNCTION_1ARG(add_tlSym_links_to_paths, all_to_all_gathering_list_t**,gl)
 {
   GET_THREAD_ID();
   
@@ -264,43 +260,48 @@ THREADABLE_FUNCTION_1ARG(add_links_to_paths, all_to_all_gathering_list_t**,gl)
   THREAD_BARRIER();
 }}
 
-//initialize the geometry of the sub-boxes
-void init_box_geometry()
+struct gauge_sweep_t
 {
-  comm_init_time=-take_time();
-  
+  int comm_init_time;
+  int gpar;
+  int *ivol_of_box_dir_par;
+  int *ilink_per_paths;
+  int *nsite_per_box_dir_par;
+  int *ivol_of_box_dir_par;
+  all_to_all_comm_t *box_comm[16];
+  gauge_sweep_t::gauge_sweep_t(int nlinks_per_paths_site);
+  void init_box_dir_par_geometry();
+  void init_paths();
+private:
+  gauge_sweep_t::gauge_sweep_t();
+};
+
+gauge_sweep_t::gauge_sweep_t(int nlinks_per_paths_site,int gpar): nlinks_per_paths_site(nlinks_per_paths_site),gpar(gpar)
+{
   ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",4*loc_vol,int);
-  ilink_per_paths=nissa_malloc("ilink_per_paths",nlinks_per_paths_site*4*loc_vol,int);
+  ilink_per_paths=nissa_malloc("ilink_per_paths",nlinks_per_paths_site*4*loc_vol,int);  
+  nsite_per_box_dir_par=nissa_malloc("nsite_per_box_dir_par",int,16*4*par);
   
-  //get the size of box 0
+  comm_init_time=0;
+}
+
+gauge_sweep_t::~gauge_sweep_t()
+{
+  nissa_free(ivol_of_box_dir_par);
+  nissa_free(ilink_per_paths);
+  nissa_free(nsite_per_box_dir_par);
+}
+
   for(int mu=0;mu<4;mu++)
     {
       if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
-      box_size[0][mu]=loc_size[mu]/2;
     }
 
-  //get coords of cube ans box size
-  coords box_coord[16];
-  coords nboxes={2,2,2,2};
-  for(int ibox=0;ibox<16;ibox++)
-    {
-      //coords
-      verbosity_lv2_master_printf("Box %d coord [ ",ibox);
-      coord_of_lx(box_coord[ibox],ibox,nboxes);
-      for(int mu=0;mu<4;mu++) verbosity_lv2_master_printf("%d ",box_coord[ibox][mu]);
-      
-      //size
-      verbosity_lv2_master_printf("] size [ ",ibox);
-      nsite_per_box[ibox]=1;
-      for(int mu=0;mu<4;mu++)
-	{
-	  if(ibox!=0) box_size[ibox][mu]=((box_coord[ibox][mu]==0)?(box_size[0][mu]):(loc_size[mu]-box_size[0][mu]));
-	  nsite_per_box[ibox]*=box_size[ibox][mu];
-	  verbosity_lv2_master_printf("%d ",box_size[ibox][mu]);
-	}
-      verbosity_lv2_master_printf("], nsites: %d\n",nsite_per_box[ibox]);
-    }
-
+//initialize the geometry of the boxes subdirpar sets
+void gauge_sweep_t::init_box_dir_par_geometry()
+{
+  comm_init_time=-take_time();
+  
   //find the elements of all boxes
   int ibox_dir_par=0; //order in the parity-split order
   for(int ibox=0;ibox<16;ibox++)
@@ -332,11 +333,14 @@ void init_box_geometry()
 		}
 	    }
 	}  
-  
-  //init the links
+}
+
+//init the links
+void gauge_sweep_t::init_paths()
+{
   all_to_all_gathering_list_t *gl[16];
   for(int ibox=0;ibox<16;ibox++) gl[ibox]=new all_to_all_gathering_list_t;
-  add_links_to_paths(gl);
+  add_tlSym_links_to_paths(gl);
   
   //initialize the communicator
   for(int ibox=0;ibox<16;ibox++)
@@ -355,10 +359,8 @@ void init_box_geometry()
   buf_in=nissa_malloc("buf_in",max_cached_link,su3);
   
   //check cached
-  verbosity_lv2_master_printf("Max cached links: %d\n",max_cached_link);
+  verbosity_lv3_master_printf("Max cached links: %d\n",max_cached_link);
   if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed");
-
-  comm_init_time+=take_time();
 }
 
 //initialize the simulation
@@ -415,9 +417,11 @@ void init_simulation(char *path)
       boundary_cond=OPEN;
       read_str_str("GaugeObsPerTimeslicePath",gauge_obs_per_timeslice_path,1024);
     }
-
   if(boundary_cond==UNSPEC_BOUNDARY_COND)
     crash("unknown boundary condition %s, expected 'PERIODIC' or 'OPEN'",boundary_cond_str);
+  
+  //read the topology measures info
+  read_top_meas_pars(top_meas_pars);
   
   close_input();
   
@@ -747,7 +751,7 @@ void generate_new_conf(quad_su3 *conf,void *buf_out,void *buf_in,int check=0)
   for(int ihb_sweep=0;ihb_sweep<evol_pars.nhb_sweeps;ihb_sweep++) sweep_conf(HEAT,conf,buf_out,buf_in);
   //numer of overrelax sweeps
   double paths[2];
-  double action_pre;
+  double action_pre=0;
   if(check&&evol_pars.nov_sweeps) action_pre=compute_tlSym_action(paths);
   for(int iov_sweep=0;iov_sweep<evol_pars.nov_sweeps;iov_sweep++) sweep_conf(OVER,conf,buf_out,buf_in);
   if(check&&evol_pars.nov_sweeps)
@@ -837,7 +841,8 @@ void in_main(int narg,char **arg)
       
       // 2) measure
       measure_gauge_obs();
-      
+      if(top_meas_pars.flag && iconf%top_meas_pars.flag==0) measure_topology_lx_conf(top_meas_pars,conf,iconf,0);
+	
       // 3) increment id and write conf
       if(store_running_temp_conf) write_conf();
       

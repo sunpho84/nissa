@@ -7,7 +7,7 @@
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
-#include "dirac_operators/dirac_operator_tmQ/reconstruct_tm_doublet.hpp"
+#include "dirac_operators/tmQ/reconstruct_tm_doublet.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "linalgs/linalgs.hpp"
@@ -70,11 +70,12 @@ namespace nissa
     int loc_nreals_tot=nreals_per_site*loc_vol;
     
     //change endianess
-    if(nbytes_per_site_read==nbytes_per_site_float) //cast to double changing endianness if needed
-      if(little_endian) floats_to_doubles_changing_endianness((double*)out,(float*)out,loc_nreals_tot);
-      else floats_to_doubles_same_endianness((double*)out,(float*)out,loc_nreals_tot);
-    else //swap the endianness if needed
-      if(little_endian) doubles_to_doubles_changing_endianness((double*)out,(double*)out,loc_nreals_tot);
+    if(little_endian)
+      {
+	if(nbytes_per_site_read==nbytes_per_site_float)
+	  floats_to_floats_changing_endianness((float*)out,(float*)out,loc_nreals_tot);
+	else doubles_to_doubles_changing_endianness(out,out,loc_nreals_tot);
+      }
     
     //check the checksum
     if(read_check[0]!=0||read_check[1]!=0)
@@ -87,12 +88,15 @@ namespace nissa
 	
 	//print the comparison between checksums
 	master_printf("Checksums computed:  %#010x %#010x\n",comp_check[0],comp_check[1]);
-	if((read_check[0]!=comp_check[0])||(read_check[1]!=comp_check[1])) master_printf("Warning, checksums do not agree!\n");
+	if((read_check[0]!=comp_check[0])||(read_check[1]!=comp_check[1]))
+	  master_printf("Warning, checksums do not agree!\n");
       }
     else master_printf("Data checksum not found.\n");
     
-    set_borders_invalid(out);
-    
+    //cast to double if needed
+    if(nbytes_per_site_read==nbytes_per_site_float) floats_to_doubles_same_endianness(out,(float*)out,loc_nreals_tot);
+
+    set_borders_invalid(out);    
     verbosity_lv2_master_printf("Total time elapsed including possible conversion: %f s\n",take_time()-start_time);
   }
   

@@ -4,8 +4,8 @@
 
 #include <math.h>
 
-#include "dirac_operator_tmQ/dirac_operator_tmQ.hpp"
-#include "dirac_operator_tmQ_left/dirac_operator_tmQ_left.hpp"
+#include "../tmQ/dirac_operator_tmQ.hpp"
+#include "../tmQ_left/dirac_operator_tmQ_left.hpp"
 
 #include "communicate/communicate.hpp"
 #include "base/global_variables.hpp"

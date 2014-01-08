@@ -252,7 +252,7 @@ namespace nissa
   }}
 
   //average the topological charge
-  THREADABLE_FUNCTION_2ARG(average_topological_charge, double*,ave_charge, quad_su3*,conf)
+  THREADABLE_FUNCTION_2ARG(average_topological_charge_lx_conf, double*,ave_charge, quad_su3*,conf)
   {
     GET_THREAD_ID();
     double *charge=nissa_malloc("charge",loc_vol,double);
@@ -282,19 +282,19 @@ namespace nissa
   }}
 
   //wrapper for eos case
-  THREADABLE_FUNCTION_2ARG(average_topological_charge_eo, double*,ave_charge, quad_su3**,eo_conf)
+  THREADABLE_FUNCTION_2ARG(average_topological_charge_eo_conf, double*,ave_charge, quad_su3**,eo_conf)
   {
     //convert to lx
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
     
-    average_topological_charge(ave_charge,lx_conf);
+    average_topological_charge_lx_conf(ave_charge,lx_conf);
     
     nissa_free(lx_conf);
   }}
 
   //measure the topologycal charge
-  void measure_topology(top_meas_pars_t &pars,quad_su3 **uncooled_conf,int iconf,int conf_created)
+  void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **uncooled_conf,int iconf,int conf_created)
   {
     FILE *file=open_file(pars.path,conf_created?"w":"a");
     
@@ -312,14 +312,41 @@ namespace nissa
 	if(istep%pars.meas_each==0)
 	  {
 	    double ave_charge;
-	    average_topological_charge_eo(&ave_charge,cooled_conf);
+	    average_topological_charge_eo_conf(&ave_charge,cooled_conf);
 	    master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,ave_charge);
 	  }
-	if(istep!=pars.cool_nsteps) cool_conf(cooled_conf,pars.cool_overrelax_flag,pars.cool_overrelax_exp);
+	if(istep!=pars.cool_nsteps) cool_eo_conf(cooled_conf,pars.cool_overrelax_flag,pars.cool_overrelax_exp);
       }
     
     //discard cooled conf
     for(int par=0;par<2;par++) nissa_free(cooled_conf[par]);
+    
+    close_file(file);
+  }
+
+  //measure the topologycal charge
+  void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,int conf_created)
+  {
+    FILE *file=open_file(pars.path,conf_created?"w":"a");
+    
+    //allocate a temorary conf to be cooled
+    quad_su3 *cooled_conf=nissa_malloc("cooled_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+    vector_copy(cooled_conf,uncooled_conf);
+    
+    //print curent measure and cool
+    for(int istep=0;istep<=(pars.cool_nsteps/pars.meas_each)*pars.meas_each;istep++)
+      {
+	if(istep%pars.meas_each==0)
+	  {
+	    double ave_charge;
+	    average_topological_charge_lx_conf(&ave_charge,cooled_conf);
+	    master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,ave_charge);
+	  }
+	if(istep!=pars.cool_nsteps) cool_lx_conf(cooled_conf,pars.cool_overrelax_flag,pars.cool_overrelax_exp);
+      }
+    
+    //discard cooled conf
+    nissa_free(cooled_conf);
     
     close_file(file);
   }

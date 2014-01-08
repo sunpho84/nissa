@@ -160,7 +160,7 @@ namespace nissa
     verbosity_lv2_master_printf("Time elapsed in writing su3spinspin '%s': %f s\n",path,take_time()-start_time);
   }
   
-#include "dirac_operators/dirac_operator_tmQ/dirac_operator_tmQ.hpp"
+#include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
   
   //write packing
   void write_tm_spincolor_anti_reconstructing(const char *path,spincolor **doublet,double mu,int prec,quad_su3 *conf,double kappa,momentum_t theta)

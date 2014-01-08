@@ -8,7 +8,7 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
-#include "dirac_operators/dirac_operator_stD/dirac_operator_stD.hpp"
+#include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/complex.hpp"

@@ -864,7 +864,7 @@ namespace nissa
   void su3_unitarize_maximal_trace_projecting(su3 U,su3 M)
   {
     //initialize the guess
-    su3_unitarize_explicitly_inverting(U,M);
+    su3_unitarize_orthonormalizing(U,M);
     
     //compute initial trace
     double new_trace=real_part_of_trace_su3_prod_su3_dag(U,M);
@@ -969,14 +969,23 @@ namespace nissa
   }
   
   //return a cooled copy of the passed link
-  void su3_find_cooled(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu)
+  void su3_find_cooled_eo_conf(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu)
   {
     //compute the staple
     su3 staple;
     compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
     
     //find the link that maximize the plaquette
-    su3_unitarize_orthonormalizing(u,staple);
+    su3_unitarize_maximal_trace_projecting(u,staple);
+  }
+  void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu)
+  {
+    //compute the staple
+    su3 staple;
+    compute_point_summed_squared_staples_lx_conf_single_dir(staple,lx_conf,ivol,mu);
+    
+    //find the link that maximize the plaquette
+    su3_unitarize_maximal_trace_projecting(u,staple);
   }
   
   ////////////////////// products between su3 and color //////////////////

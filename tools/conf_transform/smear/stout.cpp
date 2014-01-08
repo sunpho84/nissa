@@ -4,11 +4,46 @@ using namespace nissa;
 
 int L,T;
 
-int main(int narg,char **arg)
+THREADABLE_FUNCTION_3ARG(new_cool_eo_conf, quad_su3**,eo_conf, int,over_flag, double,over_exp)
 {
-  //basic mpi initialization
-  init_nissa(narg,arg);
-  
+  GET_THREAD_ID();
+    
+  //loop on parity and directions
+  for(int mu=0;mu<4;mu++)
+    for(int par=0;par<2;par++)
+      {
+	communicate_eo_quad_su3_edges(eo_conf);
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  {
+	    //compute the staple
+	    su3 staple;
+	    compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
+	    //find the link that maximize the plaquette
+	    su3_unitarize_maximal_trace_projecting_iteration(eo_conf[par][ieo][mu],staple);
+	  }
+	set_borders_invalid(eo_conf);
+      }
+}}
+
+THREADABLE_FUNCTION_1ARG(unitarize_conf_max, quad_su3**,conf)
+{
+  GET_THREAD_ID();
+    for(int par=0;par<2;par++)
+      {
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  for(int idir=0;idir<4;idir++)
+	    {
+	      su3 t;
+	      su3_unitarize_orthonormalizing(t,conf[par][ieo][idir]);
+	      su3_copy(conf[par][ieo][idir],t);
+	    }
+	set_borders_invalid(conf[par]);
+      }
+}}
+
+
+void in_main(int narg,char **arg)
+{
   if(narg<7) crash("use: %s L T filein rho nlev fileout",arg[0]);
   
   stout_pars_t stout_pars;
@@ -33,35 +68,46 @@ int main(int narg,char **arg)
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
   read_ildg_gauge_conf_and_split_into_eo_parts(conf,pathin,&mess);
-  master_printf("Original plaquette: %16.16lg\n",global_plaquette_eo_conf(conf));
-
+  unitarize_conf_max(conf);
+  
   //////////////////////////// stout the conf //////////////////////////
+  
+  double topo_time=0;
+  double cool_time=0;
   
   for(int ilev=0;ilev<=stout_pars.nlev;ilev++)
     {
       //compute topocharge
       double charge;
-      average_topological_charge_eo(&charge,conf);
-      master_printf("charge %d %16.16lg\n",ilev,charge);
+      topo_time-=take_time();
+      average_topological_charge_eo_conf(&charge,conf);
+      topo_time+=take_time();
       
-      if(ilev!=0)
+      master_printf("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_eo_conf(conf),charge);
+      
+      if(ilev!=stout_pars.nlev)
 	{
-	  //cool_conf(conf,false,0);
-	  //smear and print plaquette
+	  cool_time-=take_time();
 	  stout_smear_single_level(conf,conf,&(stout_pars.rho));
-	  master_printf("Smeared %d plaquette: %16.16lg\n",ilev,global_plaquette_eo_conf(conf));
+	  //new_cool_eo_conf(conf,0,0);
+	  cool_time+=take_time();
 	}
     }
-
+  
+  master_printf("Topological computation time: %lg\n",topo_time);
+  master_printf("Cooling time: %lg\n",cool_time);
+  
   //write the conf
-  paste_eo_parts_and_write_ildg_gauge_conf(pathout,conf,64);
+  //paste_eo_parts_and_write_ildg_gauge_conf(pathout,conf,64);
 
   for(int eo=0;eo<2;eo++) nissa_free(conf[eo]);
   ILDG_message_free_all(&mess);
-  
-  ///////////////////////////////////////////
+}
 
+int main(int narg,char **arg)
+{
+  init_nissa_threaded(narg,arg,in_main);
   close_nissa();
-
+  
   return 0;
 }
