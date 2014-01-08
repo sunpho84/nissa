@@ -3,7 +3,7 @@
 #endif
 
 #include "new_types/new_types_definitions.hpp"
-#include "dirac_operator_tmQ/dirac_operator_tmQ_bgq.hpp"
+#include "dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp"
 
 #include "routines/ios.hpp"
 

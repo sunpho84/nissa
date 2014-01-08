@@ -5,7 +5,7 @@
 #include <math.h>
 #include <complex>
 
-#include "su3_paths/plaquette.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 
 #include "communicate/communicate.hpp"
 #include "base/debug.hpp"

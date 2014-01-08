@@ -10,9 +10,9 @@
  #include "routines/thread.hpp"
 #endif
 
-#include "gauge/Wilson_force.hpp"
-#include "gauge/tree_level_Symanzik_force.hpp"
-#include "backfield.hpp"
+#include "hmc/gauge/Wilson_force.hpp"
+#include "hmc/gauge/tree_level_Symanzik_force.hpp"
+#include "hmc/backfield.hpp"
 
 namespace nissa
 {

@@ -35,4 +35,4 @@
 #define AT2 double
 #define A2 m2
 
-#include "templates/cg_invert_template_threaded.cpp"
+#include "inverters/templates/cg_invert_template_threaded.cpp"

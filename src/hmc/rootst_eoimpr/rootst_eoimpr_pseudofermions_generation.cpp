@@ -14,7 +14,7 @@
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
-#include "backfield.hpp"
+#include "hmc/backfield.hpp"
 
 namespace nissa
 {

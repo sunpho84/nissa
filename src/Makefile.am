@@ -30,11 +30,11 @@ include_HEADERS+=base/bgq_instructions.hpp
 endif
 
 #svn versioning: specify to build sources and include script
-BUILT_SOURCES=update_svnversion base/svnversion.hpp
+BUILT_SOURCES=update_svnversion svnversion.hpp
 update_svnversion:
 	$(srcdir)/base/update_svnversion.hpp.sh $(top_srcdir)
 .PHONY: update_svnversion
-EXTRA_DIST=base/svnversion.hpp base/update_svnversion.hpp.sh
+EXTRA_DIST=svnversion.hpp base/update_svnversion.hpp.sh
 
 #include global_variables.cpp in the installation
 #needed because included in global_variables.hpp
@@ -162,8 +162,8 @@ include_HEADERS+= \
 
 #compile or not virtual parallelization
 if USE_VNODES
-__top_builddir__lib_libnissa_la_SOURCES+=geometry_vir.cpp
-include_HEADERS+=geometry_vir.hpp
+__top_builddir__lib_libnissa_la_SOURCES+=geometry/geometry_vir.cpp
+include_HEADERS+=geometry/geometry_vir.hpp
 endif
 
 ###################################### gpu #########################################

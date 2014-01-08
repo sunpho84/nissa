@@ -18,8 +18,8 @@
  #include "routines/thread.hpp"
 #endif
 
-#include "backfield.hpp"
-#include "momenta/momenta_action.hpp"
+#include "hmc/backfield.hpp"
+#include "hmc/momenta/momenta_action.hpp"
 
 namespace nissa
 {

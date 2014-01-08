@@ -43,7 +43,7 @@
 #define CG_ADDITIONAL_VECTORS_FREE()	\
   nissa_free(temp1);			\
   nissa_free(temp2);
-#include "templates/cg_128_invert_template_threaded.cpp"
+#include "inverters/templates/cg_128_invert_template_threaded.cpp"
 
 namespace nissa
 {

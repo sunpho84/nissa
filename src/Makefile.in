@@ -119,8 +119,8 @@ host_triplet = @host@
 
 
 #compile or not virtual parallelization
-@USE_VNODES_TRUE@am__append_9 = geometry_vir.cpp
-@USE_VNODES_TRUE@am__append_10 = geometry_vir.hpp
+@USE_VNODES_TRUE@am__append_9 = geometry/geometry_vir.cpp
+@USE_VNODES_TRUE@am__append_10 = geometry/geometry_vir.hpp
 DIST_COMMON = $(top_srcdir)/config/cuda.mk $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(srcdir)/config.hpp.in \
 	$(top_srcdir)/config/depcomp $(am__include_HEADERS_DIST)
@@ -235,9 +235,9 @@ am____top_builddir__lib_libnissa_la_SOURCES_DIST = base/bench.cpp \
 	dirac_operators/stD/dirac_operator_stD_bgq.cpp \
 	geometry/geometry_eo.cpp geometry/geometry_lx.cpp \
 	geometry/geometry_mix.cpp geometry/geometry_Wsklx.cpp \
-	geometry_vir.cpp gpu/fields.cu gpu/global_variables.cu \
-	gpu/init.cu gpu/new_types.cu gpu/wrappers.cu hmc/backfield.cpp \
-	hmc/gauge/gluonic_force.cpp \
+	geometry/geometry_vir.cpp gpu/fields.cu \
+	gpu/global_variables.cu gpu/init.cu gpu/new_types.cu \
+	gpu/wrappers.cu hmc/backfield.cpp hmc/gauge/gluonic_force.cpp \
 	hmc/gauge/tree_level_Symanzik_force.cpp \
 	hmc/gauge/tree_level_Symanzik_action.cpp \
 	hmc/gauge/Wilson_force.cpp hmc/momenta/momenta_generation.cpp \
@@ -313,7 +313,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.lo \
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.lo \
 @BGQ_TRUE@	dirac_operators/stD/dirac_operator_stD_bgq.lo
-@USE_VNODES_TRUE@am__objects_5 = geometry_vir.lo
+@USE_VNODES_TRUE@am__objects_5 = geometry/geometry_vir.lo
 @GPU_TRUE@am__objects_6 = gpu/fields.lo gpu/global_variables.lo \
 @GPU_TRUE@	gpu/init.lo gpu/new_types.lo gpu/wrappers.lo
 @BGQ_TRUE@am__objects_7 =  \
@@ -502,9 +502,9 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	dirac_operators/stD/dirac_operator_stD_bgq.hpp \
 	geometry/geometry_eo.hpp geometry/geometry_lx.hpp \
 	geometry/geometry_mix.hpp geometry/geometry_Wsklx.hpp \
-	geometry_vir.hpp gpu/fields.hpp gpu/global_variables.hpp \
-	gpu/init.hpp gpu/macros.hpp gpu/new_types.hpp gpu/wrappers.hpp \
-	hmc/gauge/gluonic_force.hpp \
+	geometry/geometry_vir.hpp gpu/fields.hpp \
+	gpu/global_variables.hpp gpu/init.hpp gpu/macros.hpp \
+	gpu/new_types.hpp gpu/wrappers.hpp hmc/gauge/gluonic_force.hpp \
 	hmc/gauge/tree_level_Symanzik_force.hpp \
 	hmc/gauge/tree_level_Symanzik_action.hpp \
 	hmc/gauge/Wilson_force.hpp hmc/momenta/momenta_generation.hpp \
@@ -918,8 +918,8 @@ __top_builddir__lib_libnissa_la_SOURCES = base/bench.cpp \
 	$(am__append_15)
 
 #svn versioning: specify to build sources and include script
-BUILT_SOURCES = update_svnversion base/svnversion.hpp
-EXTRA_DIST = base/svnversion.hpp base/update_svnversion.hpp.sh \
+BUILT_SOURCES = update_svnversion svnversion.hpp
+EXTRA_DIST = svnversion.hpp base/update_svnversion.hpp.sh \
 	dirac_operators/WclovQ/dirac_operator_WclovQ_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_portable.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_portable.cpp \
@@ -1196,6 +1196,8 @@ geometry/geometry_lx.lo: geometry/$(am__dirstamp) \
 geometry/geometry_mix.lo: geometry/$(am__dirstamp) \
 	geometry/$(DEPDIR)/$(am__dirstamp)
 geometry/geometry_Wsklx.lo: geometry/$(am__dirstamp) \
+	geometry/$(DEPDIR)/$(am__dirstamp)
+geometry/geometry_vir.lo: geometry/$(am__dirstamp) \
 	geometry/$(DEPDIR)/$(am__dirstamp)
 gpu/$(am__dirstamp):
 	@$(MKDIR_P) gpu
@@ -1595,7 +1597,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/geometry_vir.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/bench.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/close.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/debug.Plo@am__quote@
@@ -1633,6 +1634,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_eo.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_lx.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_mix.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_vir.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/$(DEPDIR)/backfield.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/Wilson_force.Plo@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/gluonic_force.Plo@am__quote@
@@ -2043,7 +2045,7 @@ clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
 	mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf ./$(DEPDIR) base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
+	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
@@ -2089,7 +2091,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf ./$(DEPDIR) base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
+	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

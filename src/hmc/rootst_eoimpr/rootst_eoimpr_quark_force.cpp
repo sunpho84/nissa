@@ -2,7 +2,7 @@
  #include "config.hpp"
 #endif
 
-#include "backfield.hpp"
+#include "hmc/backfield.hpp"
 
 #include "communicate/communicate.hpp"
 #include "base/global_variables.hpp"

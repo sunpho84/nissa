@@ -33,4 +33,4 @@
 
 #define CG_ADDITIONAL_VECTORS_FREE() nissa_free(temp);
 
-#include "templates/cg_invert_template_threaded.cpp"
+#include "inverters/templates/cg_invert_template_threaded.cpp"
