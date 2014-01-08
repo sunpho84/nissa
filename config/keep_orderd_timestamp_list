@@ -26,6 +26,7 @@
 ./projects/semileptonic/Makefile.in
 ./projects/static_potential/Makefile.am
 ./projects/static_potential/Makefile.in
+./src/config.hpp.in
 ./src/Makefile.am
 ./src/Makefile.in
 ./tools/Makefile.am
