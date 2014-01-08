@@ -124,9 +124,7 @@ host_triplet = @host@
 DIST_COMMON = $(top_srcdir)/config/cuda.mk $(srcdir)/Makefile.in \
 	$(srcdir)/Makefile.am $(srcdir)/config.hpp.in \
 	$(top_srcdir)/config/depcomp $(am__include_HEADERS_DIST)
-LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CCLD) $(AM_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 @GPU_TRUE@am__append_11 = \
 @GPU_TRUE@	gpu/fields.cu \
 @GPU_TRUE@	gpu/global_variables.cu \
@@ -167,9 +165,7 @@ LINK = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ax_check_cuda.m4 \
-	$(top_srcdir)/m4/libtool.m4 $(top_srcdir)/m4/ltoptions.m4 \
-	$(top_srcdir)/m4/ltsugar.m4 $(top_srcdir)/m4/ltversion.m4 \
-	$(top_srcdir)/m4/lt~obsolete.m4 $(top_srcdir)/configure.ac
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -205,9 +201,16 @@ am__uninstall_files_from_dir = { \
   }
 am__installdirs = "$(DESTDIR)$(libdir)" \
 	"$(DESTDIR)$(global_variabledir)" "$(DESTDIR)$(includedir)"
-LTLIBRARIES = $(lib_LTLIBRARIES)
-__top_builddir__lib_libnissa_la_LIBADD =
-am____top_builddir__lib_libnissa_la_SOURCES_DIST = base/bench.cpp \
+LIBRARIES = $(lib_LIBRARIES)
+AR = ar
+ARFLAGS = cru
+AM_V_AR = $(am__v_AR_@AM_V@)
+am__v_AR_ = $(am__v_AR_@AM_DEFAULT_V@)
+am__v_AR_0 = @echo "  AR      " $@;
+am__v_AR_1 = 
+__top_builddir__lib_libnissa_a_AR = $(AR) $(ARFLAGS)
+__top_builddir__lib_libnissa_a_LIBADD =
+am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	base/close.cpp base/debug.cpp base/global_variables.cpp \
 	base/init.cpp base/random.cpp base/vectors.cpp \
 	bgq/Wilson_hopping_matrix_lx_bgq.cpp \
@@ -304,114 +307,122 @@ am____top_builddir__lib_libnissa_la_SOURCES_DIST = base/bench.cpp \
 	routines/math_routines.cpp routines/mpi_routines.cpp \
 	routines/thread.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
-@BGQ_TRUE@am__objects_1 = bgq/Wilson_hopping_matrix_lx_bgq.lo \
-@BGQ_TRUE@	bgq/staggered_hopping_matrix_eo_or_oe_bgq.lo
-@BGQ_EMU_FALSE@@BGQ_TRUE@am__objects_2 = bgq/bgq_barrier.lo
-@BGQ_TRUE@@SPI_TRUE@am__objects_3 = bgq/spi.lo
-@BGQ_TRUE@am__objects_4 =  \
-@BGQ_TRUE@	dirac_operators/tmQ/dirac_operator_tmQ_bgq.lo \
-@BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.lo \
-@BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.lo \
-@BGQ_TRUE@	dirac_operators/stD/dirac_operator_stD_bgq.lo
-@USE_VNODES_TRUE@am__objects_5 = geometry/geometry_vir.lo
-@GPU_TRUE@am__objects_6 = gpu/fields.lo gpu/global_variables.lo \
-@GPU_TRUE@	gpu/init.lo gpu/new_types.lo gpu/wrappers.lo
-@BGQ_TRUE@am__objects_7 =  \
-@BGQ_TRUE@	inverters/staggered/cgm_invert_stD2ee_m2_bgq.lo \
-@BGQ_TRUE@	inverters/staggered/cg_invert_stD2ee_m2_bgq.lo \
-@BGQ_TRUE@	inverters/twisted_mass/cgm_invert_tmQ2_bgq.lo \
-@BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.lo \
-@BGQ_TRUE@	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.lo \
-@BGQ_TRUE@	inverters/twisted_mass/cg_invert_tmQ2_bgq.lo
-@USE_THREADS_TRUE@am__objects_8 = routines/thread.lo
-am___top_builddir__lib_libnissa_la_OBJECTS = base/bench.lo \
-	base/close.lo base/debug.lo base/global_variables.lo \
-	base/init.lo base/random.lo base/vectors.lo $(am__objects_1) \
-	$(am__objects_2) $(am__objects_3) communicate/all_to_all.lo \
-	communicate/borders.lo communicate/edges.lo \
-	dirac_operators/stD/dirac_operator_stD.lo \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.lo \
-	dirac_operators/tmQ/dirac_operator_tmQ.lo \
-	dirac_operators/tmQ_left/dirac_operator_tmQ_left.lo \
-	dirac_operators/tmQ2/dirac_operator_tmQ2.lo \
-	dirac_operators/tmQ/reconstruct_tm_doublet.lo \
-	dirac_operators/tmclovQ/reconstruct_tmclov_doublet.lo \
-	dirac_operators/Wstat/dirac_operator_Wstat.lo \
-	dirac_operators/WclovQ/dirac_operator_WclovQ.lo \
-	dirac_operators/WclovQ2/dirac_operator_WclovQ2.lo \
-	dirac_operators/tmclovQ/dirac_operator_tmclovQ.lo \
-	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.lo \
-	dirac_operators/tmQ/dirac_operator_tmQ_128.lo \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.lo \
-	dirac_operators/tmQ2/dirac_operator_tmQ2_128.lo \
-	$(am__objects_4) geometry/geometry_eo.lo \
-	geometry/geometry_lx.lo geometry/geometry_mix.lo \
-	geometry/geometry_Wsklx.lo $(am__objects_5) $(am__objects_6) \
-	hmc/backfield.lo hmc/gauge/gluonic_force.lo \
-	hmc/gauge/tree_level_Symanzik_force.lo \
-	hmc/gauge/tree_level_Symanzik_action.lo \
-	hmc/gauge/Wilson_force.lo hmc/momenta/momenta_generation.lo \
-	hmc/momenta/momenta_action.lo \
-	hmc/rootst_eoimpr/rootst_eoimpr_action.lo \
-	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.lo \
-	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.lo \
-	hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.lo \
-	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.lo \
-	hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.lo \
-	inverters/twisted_mass/cg_invert_tmDeoimpr.lo \
-	inverters/twisted_mass/cg_invert_tmQ2.lo \
-	inverters/twisted_mass/cg_64_invert_tmQ2.lo \
-	inverters/twisted_mass/cgm_invert_tmQ2.lo \
-	inverters/twisted_mass/cg_128_invert_tmQ2.lo \
-	inverters/twisted_mass/cg_128_invert_tmDeoimpr.lo \
-	inverters/twisted_mass/tm_frontends.lo \
-	inverters/staggered/cgm_invert_stD2ee_m2_portable.lo \
-	inverters/staggered/cg_invert_stD2ee_m2_portable.lo \
-	inverters/staggered/cgm_invert_stD2ee_m2.lo \
-	inverters/staggered/cg_invert_stD2ee_m2.lo \
-	inverters/staggered/cg_invert_stD.lo \
-	inverters/staggered/cg_invert_evn_stD.lo \
-	inverters/Wclov/cg_invert_WclovQ.lo \
-	inverters/Wclov/cg_invert_WclovQ2.lo \
-	inverters/tmclov/cg_invert_tmclovQ.lo \
-	inverters/tmclov/cg_invert_tmclovQ2.lo \
-	inverters/tmclov/cgm_invert_tmclovQ2.lo \
-	inverters/tmclov/tmclov_frontends.lo $(am__objects_7) \
-	io/ILDG_File.lo io/checksum.lo io/endianness.lo io/input.lo \
-	io/reader.lo io/writer.lo linalgs/linalgs.lo \
-	new_types/complex.lo new_types/dirac.lo new_types/float_128.lo \
-	new_types/float_256.lo new_types/rat_approx.lo \
-	new_types/read_new_types.lo new_types/spin.lo new_types/su3.lo \
-	operations/contract/mesons_2pts.lo \
-	operations/contract/mesons_eight.lo \
-	operations/contract/optimized_mesons_2pts.lo \
-	operations/contract/site_contract.lo \
-	operations/contract/stag.lo operations/covariant_derivative.lo \
-	operations/fft.lo operations/fourier_transform.lo \
-	operations/gauge_fixing.lo operations/gaugeconf.lo \
-	operations/remap_vector.lo operations/remez/remez_algorithm.lo \
-	operations/shift.lo operations/source.lo \
-	operations/smearing/APE.lo operations/smearing/HYP.lo \
-	operations/smearing/stout.lo operations/smearing/gaussian.lo \
-	operations/su3_paths/all_rectangles.lo \
-	operations/su3_paths/arbitrary.lo \
-	operations/su3_paths/hypercubic_transfer.lo \
-	operations/su3_paths/plaquette.lo \
-	operations/su3_paths/pline.lo \
-	operations/su3_paths/rectangles.lo \
-	operations/su3_paths/rectangular_staples.lo \
-	operations/su3_paths/shortest_hypercubic_paths.lo \
-	operations/su3_paths/squared_staples.lo \
-	operations/su3_paths/topological_charge.lo \
-	operations/vector_gather.lo routines/ios.lo \
-	routines/math_routines.lo routines/mpi_routines.lo \
-	$(am__objects_8)
-__top_builddir__lib_libnissa_la_OBJECTS =  \
-	$(am___top_builddir__lib_libnissa_la_OBJECTS)
-AM_V_lt = $(am__v_lt_@AM_V@)
-am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
-am__v_lt_0 = --silent
-am__v_lt_1 = 
+@BGQ_TRUE@am__objects_1 = bgq/Wilson_hopping_matrix_lx_bgq.$(OBJEXT) \
+@BGQ_TRUE@	bgq/staggered_hopping_matrix_eo_or_oe_bgq.$(OBJEXT)
+@BGQ_EMU_FALSE@@BGQ_TRUE@am__objects_2 = bgq/bgq_barrier.$(OBJEXT)
+@BGQ_TRUE@@SPI_TRUE@am__objects_3 = bgq/spi.$(OBJEXT)
+@BGQ_TRUE@am__objects_4 = dirac_operators/tmQ/dirac_operator_tmQ_bgq.$(OBJEXT) \
+@BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.$(OBJEXT) \
+@BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.$(OBJEXT) \
+@BGQ_TRUE@	dirac_operators/stD/dirac_operator_stD_bgq.$(OBJEXT)
+@USE_VNODES_TRUE@am__objects_5 = geometry/geometry_vir.$(OBJEXT)
+@GPU_TRUE@am__objects_6 = gpu/fields.$(OBJEXT) \
+@GPU_TRUE@	gpu/global_variables.$(OBJEXT) gpu/init.$(OBJEXT) \
+@GPU_TRUE@	gpu/new_types.$(OBJEXT) gpu/wrappers.$(OBJEXT)
+@BGQ_TRUE@am__objects_7 = inverters/staggered/cgm_invert_stD2ee_m2_bgq.$(OBJEXT) \
+@BGQ_TRUE@	inverters/staggered/cg_invert_stD2ee_m2_bgq.$(OBJEXT) \
+@BGQ_TRUE@	inverters/twisted_mass/cgm_invert_tmQ2_bgq.$(OBJEXT) \
+@BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.$(OBJEXT) \
+@BGQ_TRUE@	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.$(OBJEXT) \
+@BGQ_TRUE@	inverters/twisted_mass/cg_invert_tmQ2_bgq.$(OBJEXT)
+@USE_THREADS_TRUE@am__objects_8 = routines/thread.$(OBJEXT)
+am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
+	base/close.$(OBJEXT) base/debug.$(OBJEXT) \
+	base/global_variables.$(OBJEXT) base/init.$(OBJEXT) \
+	base/random.$(OBJEXT) base/vectors.$(OBJEXT) $(am__objects_1) \
+	$(am__objects_2) $(am__objects_3) \
+	communicate/all_to_all.$(OBJEXT) communicate/borders.$(OBJEXT) \
+	communicate/edges.$(OBJEXT) \
+	dirac_operators/stD/dirac_operator_stD.$(OBJEXT) \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.$(OBJEXT) \
+	dirac_operators/tmQ/dirac_operator_tmQ.$(OBJEXT) \
+	dirac_operators/tmQ_left/dirac_operator_tmQ_left.$(OBJEXT) \
+	dirac_operators/tmQ2/dirac_operator_tmQ2.$(OBJEXT) \
+	dirac_operators/tmQ/reconstruct_tm_doublet.$(OBJEXT) \
+	dirac_operators/tmclovQ/reconstruct_tmclov_doublet.$(OBJEXT) \
+	dirac_operators/Wstat/dirac_operator_Wstat.$(OBJEXT) \
+	dirac_operators/WclovQ/dirac_operator_WclovQ.$(OBJEXT) \
+	dirac_operators/WclovQ2/dirac_operator_WclovQ2.$(OBJEXT) \
+	dirac_operators/tmclovQ/dirac_operator_tmclovQ.$(OBJEXT) \
+	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.$(OBJEXT) \
+	dirac_operators/tmQ/dirac_operator_tmQ_128.$(OBJEXT) \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.$(OBJEXT) \
+	dirac_operators/tmQ2/dirac_operator_tmQ2_128.$(OBJEXT) \
+	$(am__objects_4) geometry/geometry_eo.$(OBJEXT) \
+	geometry/geometry_lx.$(OBJEXT) geometry/geometry_mix.$(OBJEXT) \
+	geometry/geometry_Wsklx.$(OBJEXT) $(am__objects_5) \
+	$(am__objects_6) hmc/backfield.$(OBJEXT) \
+	hmc/gauge/gluonic_force.$(OBJEXT) \
+	hmc/gauge/tree_level_Symanzik_force.$(OBJEXT) \
+	hmc/gauge/tree_level_Symanzik_action.$(OBJEXT) \
+	hmc/gauge/Wilson_force.$(OBJEXT) \
+	hmc/momenta/momenta_generation.$(OBJEXT) \
+	hmc/momenta/momenta_action.$(OBJEXT) \
+	hmc/rootst_eoimpr/rootst_eoimpr_action.$(OBJEXT) \
+	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.$(OBJEXT) \
+	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.$(OBJEXT) \
+	hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.$(OBJEXT) \
+	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.$(OBJEXT) \
+	hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.$(OBJEXT) \
+	inverters/twisted_mass/cg_invert_tmDeoimpr.$(OBJEXT) \
+	inverters/twisted_mass/cg_invert_tmQ2.$(OBJEXT) \
+	inverters/twisted_mass/cg_64_invert_tmQ2.$(OBJEXT) \
+	inverters/twisted_mass/cgm_invert_tmQ2.$(OBJEXT) \
+	inverters/twisted_mass/cg_128_invert_tmQ2.$(OBJEXT) \
+	inverters/twisted_mass/cg_128_invert_tmDeoimpr.$(OBJEXT) \
+	inverters/twisted_mass/tm_frontends.$(OBJEXT) \
+	inverters/staggered/cgm_invert_stD2ee_m2_portable.$(OBJEXT) \
+	inverters/staggered/cg_invert_stD2ee_m2_portable.$(OBJEXT) \
+	inverters/staggered/cgm_invert_stD2ee_m2.$(OBJEXT) \
+	inverters/staggered/cg_invert_stD2ee_m2.$(OBJEXT) \
+	inverters/staggered/cg_invert_stD.$(OBJEXT) \
+	inverters/staggered/cg_invert_evn_stD.$(OBJEXT) \
+	inverters/Wclov/cg_invert_WclovQ.$(OBJEXT) \
+	inverters/Wclov/cg_invert_WclovQ2.$(OBJEXT) \
+	inverters/tmclov/cg_invert_tmclovQ.$(OBJEXT) \
+	inverters/tmclov/cg_invert_tmclovQ2.$(OBJEXT) \
+	inverters/tmclov/cgm_invert_tmclovQ2.$(OBJEXT) \
+	inverters/tmclov/tmclov_frontends.$(OBJEXT) $(am__objects_7) \
+	io/ILDG_File.$(OBJEXT) io/checksum.$(OBJEXT) \
+	io/endianness.$(OBJEXT) io/input.$(OBJEXT) io/reader.$(OBJEXT) \
+	io/writer.$(OBJEXT) linalgs/linalgs.$(OBJEXT) \
+	new_types/complex.$(OBJEXT) new_types/dirac.$(OBJEXT) \
+	new_types/float_128.$(OBJEXT) new_types/float_256.$(OBJEXT) \
+	new_types/rat_approx.$(OBJEXT) \
+	new_types/read_new_types.$(OBJEXT) new_types/spin.$(OBJEXT) \
+	new_types/su3.$(OBJEXT) \
+	operations/contract/mesons_2pts.$(OBJEXT) \
+	operations/contract/mesons_eight.$(OBJEXT) \
+	operations/contract/optimized_mesons_2pts.$(OBJEXT) \
+	operations/contract/site_contract.$(OBJEXT) \
+	operations/contract/stag.$(OBJEXT) \
+	operations/covariant_derivative.$(OBJEXT) \
+	operations/fft.$(OBJEXT) \
+	operations/fourier_transform.$(OBJEXT) \
+	operations/gauge_fixing.$(OBJEXT) \
+	operations/gaugeconf.$(OBJEXT) \
+	operations/remap_vector.$(OBJEXT) \
+	operations/remez/remez_algorithm.$(OBJEXT) \
+	operations/shift.$(OBJEXT) operations/source.$(OBJEXT) \
+	operations/smearing/APE.$(OBJEXT) \
+	operations/smearing/HYP.$(OBJEXT) \
+	operations/smearing/stout.$(OBJEXT) \
+	operations/smearing/gaussian.$(OBJEXT) \
+	operations/su3_paths/all_rectangles.$(OBJEXT) \
+	operations/su3_paths/arbitrary.$(OBJEXT) \
+	operations/su3_paths/hypercubic_transfer.$(OBJEXT) \
+	operations/su3_paths/plaquette.$(OBJEXT) \
+	operations/su3_paths/pline.$(OBJEXT) \
+	operations/su3_paths/rectangles.$(OBJEXT) \
+	operations/su3_paths/rectangular_staples.$(OBJEXT) \
+	operations/su3_paths/shortest_hypercubic_paths.$(OBJEXT) \
+	operations/su3_paths/squared_staples.$(OBJEXT) \
+	operations/su3_paths/topological_charge.$(OBJEXT) \
+	operations/vector_gather.$(OBJEXT) routines/ios.$(OBJEXT) \
+	routines/math_routines.$(OBJEXT) \
+	routines/mpi_routines.$(OBJEXT) $(am__objects_8)
+__top_builddir__lib_libnissa_a_OBJECTS =  \
+	$(am___top_builddir__lib_libnissa_a_OBJECTS)
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -430,10 +441,6 @@ am__depfiles_maybe = depfiles
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-LTCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CC $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(CC) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CFLAGS) $(CFLAGS)
 AM_V_CC = $(am__v_CC_@AM_V@)
 am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
 am__v_CC_0 = @echo "  CC      " $@;
@@ -445,24 +452,19 @@ am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
-LTCXXCOMPILE = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=compile $(CXX) $(DEFS) \
-	$(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \
-	$(AM_CXXFLAGS) $(CXXFLAGS)
 AM_V_CXX = $(am__v_CXX_@AM_V@)
 am__v_CXX_ = $(am__v_CXX_@AM_DEFAULT_V@)
 am__v_CXX_0 = @echo "  CXX     " $@;
 am__v_CXX_1 = 
 CXXLD = $(CXX)
-CXXLINK = $(LIBTOOL) $(AM_V_lt) --tag=CXX $(AM_LIBTOOLFLAGS) \
-	$(LIBTOOLFLAGS) --mode=link $(CXXLD) $(AM_CXXFLAGS) \
-	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
+CXXLINK = $(CXXLD) $(AM_CXXFLAGS) $(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) \
+	-o $@
 AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(__top_builddir__lib_libnissa_la_SOURCES)
-DIST_SOURCES = $(am____top_builddir__lib_libnissa_la_SOURCES_DIST)
+SOURCES = $(__top_builddir__lib_libnissa_a_SOURCES)
+DIST_SOURCES = $(am____top_builddir__lib_libnissa_a_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -597,7 +599,6 @@ ACLOCAL = @ACLOCAL@
 ALLOCA = @ALLOCA@
 AMTAR = @AMTAR@
 AM_DEFAULT_VERBOSITY = @AM_DEFAULT_VERBOSITY@
-AR = @AR@
 AUTOCONF = @AUTOCONF@
 AUTOHEADER = @AUTOHEADER@
 AUTOMAKE = @AUTOMAKE@
@@ -610,48 +611,34 @@ CPPFLAGS = @CPPFLAGS@
 CUDA_CFLAGS = @CUDA_CFLAGS@
 CUDA_LDFLAGS = @CUDA_LDFLAGS@
 CXX = @CXX@
-CXXCPP = @CXXCPP@
 CXXDEPMODE = @CXXDEPMODE@
 CXXFLAGS = @CXXFLAGS@
 CYGPATH_W = @CYGPATH_W@
 DEFS = @DEFS@
 DEPDIR = @DEPDIR@
-DLLTOOL = @DLLTOOL@
-DSYMUTIL = @DSYMUTIL@
-DUMPBIN = @DUMPBIN@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
-FGREP = @FGREP@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_SCRIPT = @INSTALL_SCRIPT@
 INSTALL_STRIP_PROGRAM = @INSTALL_STRIP_PROGRAM@
-LD = @LD@
 LDFLAGS = @LDFLAGS@
 LEX = @LEX@
 LEXLIB = @LEXLIB@
 LEX_OUTPUT_ROOT = @LEX_OUTPUT_ROOT@
 LIBOBJS = @LIBOBJS@
 LIBS = @LIBS@
-LIBTOOL = @LIBTOOL@
-LIPO = @LIPO@
 LN_S = @LN_S@
 LTLIBOBJS = @LTLIBOBJS@
 MAKEINFO = @MAKEINFO@
-MANIFEST_TOOL = @MANIFEST_TOOL@
 MKDIR_P = @MKDIR_P@
-NM = @NM@
-NMEDIT = @NMEDIT@
 NVCC_PATH = @NVCC_PATH@
-OBJDUMP = @OBJDUMP@
 OBJEXT = @OBJEXT@
-OTOOL = @OTOOL@
-OTOOL64 = @OTOOL64@
 PACKAGE = @PACKAGE@
 PACKAGE_BUGREPORT = @PACKAGE_BUGREPORT@
 PACKAGE_NAME = @PACKAGE_NAME@
@@ -661,7 +648,6 @@ PACKAGE_URL = @PACKAGE_URL@
 PACKAGE_VERSION = @PACKAGE_VERSION@
 PATH_SEPARATOR = @PATH_SEPARATOR@
 RANLIB = @RANLIB@
-SED = @SED@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
 STRIP = @STRIP@
@@ -672,10 +658,8 @@ abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
 abs_top_srcdir = @abs_top_srcdir@
-ac_ct_AR = @ac_ct_AR@
 ac_ct_CC = @ac_ct_CC@
 ac_ct_CXX = @ac_ct_CXX@
-ac_ct_DUMPBIN = @ac_ct_DUMPBIN@
 am__include = @am__include@
 am__leading_dot = @am__leading_dot@
 am__quote = @am__quote@
@@ -809,7 +793,7 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	$(am__append_16)
 
 #add nissa library
-lib_LTLIBRARIES = $(top_builddir)/lib/libnissa.la
+lib_LIBRARIES = $(top_builddir)/lib/libnissa.a
 
 ########################################### base sources ##################################
 
@@ -832,9 +816,9 @@ lib_LTLIBRARIES = $(top_builddir)/lib/libnissa.la
 ####################################### operations ##################################
 
 ########################################## routines ###################################
-__top_builddir__lib_libnissa_la_SOURCES = base/bench.cpp \
-	base/close.cpp base/debug.cpp base/global_variables.cpp \
-	base/init.cpp base/random.cpp base/vectors.cpp $(am__append_2) \
+__top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
+	base/debug.cpp base/global_variables.cpp base/init.cpp \
+	base/random.cpp base/vectors.cpp $(am__append_2) \
 	$(am__append_3) $(am__append_5) communicate/all_to_all.cpp \
 	communicate/borders.cpp communicate/edges.cpp \
 	dirac_operators/stD/dirac_operator_stD.cpp \
@@ -993,10 +977,9 @@ $(srcdir)/config.hpp.in:  $(am__configure_deps)
 
 distclean-hdr:
 	-rm -f config.hpp stamp-h1
-
-install-libLTLIBRARIES: $(lib_LTLIBRARIES)
+install-libLIBRARIES: $(lib_LIBRARIES)
 	@$(NORMAL_INSTALL)
-	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
+	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
 	list2=; for p in $$list; do \
 	  if test -f $$p; then \
 	    list2="$$list2 $$p"; \
@@ -1005,66 +988,70 @@ install-libLTLIBRARIES: $(lib_LTLIBRARIES)
 	test -z "$$list2" || { \
 	  echo " $(MKDIR_P) '$(DESTDIR)$(libdir)'"; \
 	  $(MKDIR_P) "$(DESTDIR)$(libdir)" || exit 1; \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 '$(DESTDIR)$(libdir)'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=install $(INSTALL) $(INSTALL_STRIP_FLAG) $$list2 "$(DESTDIR)$(libdir)"; \
-	}
-
-uninstall-libLTLIBRARIES:
-	@$(NORMAL_UNINSTALL)
-	@list='$(lib_LTLIBRARIES)'; test -n "$(libdir)" || list=; \
+	  echo " $(INSTALL_DATA) $$list2 '$(DESTDIR)$(libdir)'"; \
+	  $(INSTALL_DATA) $$list2 "$(DESTDIR)$(libdir)" || exit $$?; }
+	@$(POST_INSTALL)
+	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
 	for p in $$list; do \
-	  $(am__strip_dir) \
-	  echo " $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f '$(DESTDIR)$(libdir)/$$f'"; \
-	  $(LIBTOOL) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --mode=uninstall rm -f "$(DESTDIR)$(libdir)/$$f"; \
+	  if test -f $$p; then \
+	    $(am__strip_dir) \
+	    echo " ( cd '$(DESTDIR)$(libdir)' && $(RANLIB) $$f )"; \
+	    ( cd "$(DESTDIR)$(libdir)" && $(RANLIB) $$f ) || exit $$?; \
+	  else :; fi; \
 	done
 
-clean-libLTLIBRARIES:
-	-test -z "$(lib_LTLIBRARIES)" || rm -f $(lib_LTLIBRARIES)
-	@list='$(lib_LTLIBRARIES)'; \
-	locs=`for p in $$list; do echo $$p; done | \
-	      sed 's|^[^/]*$$|.|; s|/[^/]*$$||; s|$$|/so_locations|' | \
-	      sort -u`; \
-	test -z "$$locs" || { \
-	  echo rm -f $${locs}; \
-	  rm -f $${locs}; \
-	}
+uninstall-libLIBRARIES:
+	@$(NORMAL_UNINSTALL)
+	@list='$(lib_LIBRARIES)'; test -n "$(libdir)" || list=; \
+	files=`for p in $$list; do echo $$p; done | sed -e 's|^.*/||'`; \
+	dir='$(DESTDIR)$(libdir)'; $(am__uninstall_files_from_dir)
+
+clean-libLIBRARIES:
+	-test -z "$(lib_LIBRARIES)" || rm -f $(lib_LIBRARIES)
 base/$(am__dirstamp):
 	@$(MKDIR_P) base
 	@: > base/$(am__dirstamp)
 base/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) base/$(DEPDIR)
 	@: > base/$(DEPDIR)/$(am__dirstamp)
-base/bench.lo: base/$(am__dirstamp) base/$(DEPDIR)/$(am__dirstamp)
-base/close.lo: base/$(am__dirstamp) base/$(DEPDIR)/$(am__dirstamp)
-base/debug.lo: base/$(am__dirstamp) base/$(DEPDIR)/$(am__dirstamp)
-base/global_variables.lo: base/$(am__dirstamp) \
+base/bench.$(OBJEXT): base/$(am__dirstamp) \
 	base/$(DEPDIR)/$(am__dirstamp)
-base/init.lo: base/$(am__dirstamp) base/$(DEPDIR)/$(am__dirstamp)
-base/random.lo: base/$(am__dirstamp) base/$(DEPDIR)/$(am__dirstamp)
-base/vectors.lo: base/$(am__dirstamp) base/$(DEPDIR)/$(am__dirstamp)
+base/close.$(OBJEXT): base/$(am__dirstamp) \
+	base/$(DEPDIR)/$(am__dirstamp)
+base/debug.$(OBJEXT): base/$(am__dirstamp) \
+	base/$(DEPDIR)/$(am__dirstamp)
+base/global_variables.$(OBJEXT): base/$(am__dirstamp) \
+	base/$(DEPDIR)/$(am__dirstamp)
+base/init.$(OBJEXT): base/$(am__dirstamp) \
+	base/$(DEPDIR)/$(am__dirstamp)
+base/random.$(OBJEXT): base/$(am__dirstamp) \
+	base/$(DEPDIR)/$(am__dirstamp)
+base/vectors.$(OBJEXT): base/$(am__dirstamp) \
+	base/$(DEPDIR)/$(am__dirstamp)
 bgq/$(am__dirstamp):
 	@$(MKDIR_P) bgq
 	@: > bgq/$(am__dirstamp)
 bgq/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) bgq/$(DEPDIR)
 	@: > bgq/$(DEPDIR)/$(am__dirstamp)
-bgq/Wilson_hopping_matrix_lx_bgq.lo: bgq/$(am__dirstamp) \
+bgq/Wilson_hopping_matrix_lx_bgq.$(OBJEXT): bgq/$(am__dirstamp) \
 	bgq/$(DEPDIR)/$(am__dirstamp)
-bgq/staggered_hopping_matrix_eo_or_oe_bgq.lo: bgq/$(am__dirstamp) \
+bgq/staggered_hopping_matrix_eo_or_oe_bgq.$(OBJEXT):  \
+	bgq/$(am__dirstamp) bgq/$(DEPDIR)/$(am__dirstamp)
+bgq/bgq_barrier.$(OBJEXT): bgq/$(am__dirstamp) \
 	bgq/$(DEPDIR)/$(am__dirstamp)
-bgq/bgq_barrier.lo: bgq/$(am__dirstamp) bgq/$(DEPDIR)/$(am__dirstamp)
-bgq/spi.lo: bgq/$(am__dirstamp) bgq/$(DEPDIR)/$(am__dirstamp)
+bgq/spi.$(OBJEXT): bgq/$(am__dirstamp) bgq/$(DEPDIR)/$(am__dirstamp)
 communicate/$(am__dirstamp):
 	@$(MKDIR_P) communicate
 	@: > communicate/$(am__dirstamp)
 communicate/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) communicate/$(DEPDIR)
 	@: > communicate/$(DEPDIR)/$(am__dirstamp)
-communicate/all_to_all.lo: communicate/$(am__dirstamp) \
+communicate/all_to_all.$(OBJEXT): communicate/$(am__dirstamp) \
 	communicate/$(DEPDIR)/$(am__dirstamp)
-communicate/borders.lo: communicate/$(am__dirstamp) \
+communicate/borders.$(OBJEXT): communicate/$(am__dirstamp) \
 	communicate/$(DEPDIR)/$(am__dirstamp)
-communicate/edges.lo: communicate/$(am__dirstamp) \
+communicate/edges.$(OBJEXT): communicate/$(am__dirstamp) \
 	communicate/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/stD/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/stD
@@ -1072,7 +1059,7 @@ dirac_operators/stD/$(am__dirstamp):
 dirac_operators/stD/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/stD/$(DEPDIR)
 	@: > dirac_operators/stD/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/stD/dirac_operator_stD.lo:  \
+dirac_operators/stD/dirac_operator_stD.$(OBJEXT):  \
 	dirac_operators/stD/$(am__dirstamp) \
 	dirac_operators/stD/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmDeoimpr/$(am__dirstamp):
@@ -1081,7 +1068,7 @@ dirac_operators/tmDeoimpr/$(am__dirstamp):
 dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/tmDeoimpr/$(DEPDIR)
 	@: > dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.lo:  \
+dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.$(OBJEXT):  \
 	dirac_operators/tmDeoimpr/$(am__dirstamp) \
 	dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmQ/$(am__dirstamp):
@@ -1090,7 +1077,7 @@ dirac_operators/tmQ/$(am__dirstamp):
 dirac_operators/tmQ/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/tmQ/$(DEPDIR)
 	@: > dirac_operators/tmQ/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmQ/dirac_operator_tmQ.lo:  \
+dirac_operators/tmQ/dirac_operator_tmQ.$(OBJEXT):  \
 	dirac_operators/tmQ/$(am__dirstamp) \
 	dirac_operators/tmQ/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmQ_left/$(am__dirstamp):
@@ -1099,7 +1086,7 @@ dirac_operators/tmQ_left/$(am__dirstamp):
 dirac_operators/tmQ_left/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/tmQ_left/$(DEPDIR)
 	@: > dirac_operators/tmQ_left/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmQ_left/dirac_operator_tmQ_left.lo:  \
+dirac_operators/tmQ_left/dirac_operator_tmQ_left.$(OBJEXT):  \
 	dirac_operators/tmQ_left/$(am__dirstamp) \
 	dirac_operators/tmQ_left/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmQ2/$(am__dirstamp):
@@ -1108,10 +1095,10 @@ dirac_operators/tmQ2/$(am__dirstamp):
 dirac_operators/tmQ2/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/tmQ2/$(DEPDIR)
 	@: > dirac_operators/tmQ2/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmQ2/dirac_operator_tmQ2.lo:  \
+dirac_operators/tmQ2/dirac_operator_tmQ2.$(OBJEXT):  \
 	dirac_operators/tmQ2/$(am__dirstamp) \
 	dirac_operators/tmQ2/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmQ/reconstruct_tm_doublet.lo:  \
+dirac_operators/tmQ/reconstruct_tm_doublet.$(OBJEXT):  \
 	dirac_operators/tmQ/$(am__dirstamp) \
 	dirac_operators/tmQ/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmclovQ/$(am__dirstamp):
@@ -1120,7 +1107,7 @@ dirac_operators/tmclovQ/$(am__dirstamp):
 dirac_operators/tmclovQ/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/tmclovQ/$(DEPDIR)
 	@: > dirac_operators/tmclovQ/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmclovQ/reconstruct_tmclov_doublet.lo:  \
+dirac_operators/tmclovQ/reconstruct_tmclov_doublet.$(OBJEXT):  \
 	dirac_operators/tmclovQ/$(am__dirstamp) \
 	dirac_operators/tmclovQ/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/Wstat/$(am__dirstamp):
@@ -1129,7 +1116,7 @@ dirac_operators/Wstat/$(am__dirstamp):
 dirac_operators/Wstat/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/Wstat/$(DEPDIR)
 	@: > dirac_operators/Wstat/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/Wstat/dirac_operator_Wstat.lo:  \
+dirac_operators/Wstat/dirac_operator_Wstat.$(OBJEXT):  \
 	dirac_operators/Wstat/$(am__dirstamp) \
 	dirac_operators/Wstat/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/WclovQ/$(am__dirstamp):
@@ -1138,7 +1125,7 @@ dirac_operators/WclovQ/$(am__dirstamp):
 dirac_operators/WclovQ/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/WclovQ/$(DEPDIR)
 	@: > dirac_operators/WclovQ/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/WclovQ/dirac_operator_WclovQ.lo:  \
+dirac_operators/WclovQ/dirac_operator_WclovQ.$(OBJEXT):  \
 	dirac_operators/WclovQ/$(am__dirstamp) \
 	dirac_operators/WclovQ/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/WclovQ2/$(am__dirstamp):
@@ -1147,10 +1134,10 @@ dirac_operators/WclovQ2/$(am__dirstamp):
 dirac_operators/WclovQ2/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/WclovQ2/$(DEPDIR)
 	@: > dirac_operators/WclovQ2/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/WclovQ2/dirac_operator_WclovQ2.lo:  \
+dirac_operators/WclovQ2/dirac_operator_WclovQ2.$(OBJEXT):  \
 	dirac_operators/WclovQ2/$(am__dirstamp) \
 	dirac_operators/WclovQ2/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmclovQ/dirac_operator_tmclovQ.lo:  \
+dirac_operators/tmclovQ/dirac_operator_tmclovQ.$(OBJEXT):  \
 	dirac_operators/tmclovQ/$(am__dirstamp) \
 	dirac_operators/tmclovQ/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmclovQ2/$(am__dirstamp):
@@ -1159,28 +1146,28 @@ dirac_operators/tmclovQ2/$(am__dirstamp):
 dirac_operators/tmclovQ2/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/tmclovQ2/$(DEPDIR)
 	@: > dirac_operators/tmclovQ2/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.lo:  \
+dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.$(OBJEXT):  \
 	dirac_operators/tmclovQ2/$(am__dirstamp) \
 	dirac_operators/tmclovQ2/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmQ/dirac_operator_tmQ_128.lo:  \
+dirac_operators/tmQ/dirac_operator_tmQ_128.$(OBJEXT):  \
 	dirac_operators/tmQ/$(am__dirstamp) \
 	dirac_operators/tmQ/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.lo:  \
+dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.$(OBJEXT):  \
 	dirac_operators/tmDeoimpr/$(am__dirstamp) \
 	dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmQ2/dirac_operator_tmQ2_128.lo:  \
+dirac_operators/tmQ2/dirac_operator_tmQ2_128.$(OBJEXT):  \
 	dirac_operators/tmQ2/$(am__dirstamp) \
 	dirac_operators/tmQ2/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmQ/dirac_operator_tmQ_bgq.lo:  \
+dirac_operators/tmQ/dirac_operator_tmQ_bgq.$(OBJEXT):  \
 	dirac_operators/tmQ/$(am__dirstamp) \
 	dirac_operators/tmQ/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.lo:  \
+dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.$(OBJEXT):  \
 	dirac_operators/tmQ2/$(am__dirstamp) \
 	dirac_operators/tmQ2/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.lo:  \
+dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.$(OBJEXT):  \
 	dirac_operators/tmQ2/$(am__dirstamp) \
 	dirac_operators/tmQ2/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/stD/dirac_operator_stD_bgq.lo:  \
+dirac_operators/stD/dirac_operator_stD_bgq.$(OBJEXT):  \
 	dirac_operators/stD/$(am__dirstamp) \
 	dirac_operators/stD/$(DEPDIR)/$(am__dirstamp)
 geometry/$(am__dirstamp):
@@ -1189,15 +1176,15 @@ geometry/$(am__dirstamp):
 geometry/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) geometry/$(DEPDIR)
 	@: > geometry/$(DEPDIR)/$(am__dirstamp)
-geometry/geometry_eo.lo: geometry/$(am__dirstamp) \
+geometry/geometry_eo.$(OBJEXT): geometry/$(am__dirstamp) \
 	geometry/$(DEPDIR)/$(am__dirstamp)
-geometry/geometry_lx.lo: geometry/$(am__dirstamp) \
+geometry/geometry_lx.$(OBJEXT): geometry/$(am__dirstamp) \
 	geometry/$(DEPDIR)/$(am__dirstamp)
-geometry/geometry_mix.lo: geometry/$(am__dirstamp) \
+geometry/geometry_mix.$(OBJEXT): geometry/$(am__dirstamp) \
 	geometry/$(DEPDIR)/$(am__dirstamp)
-geometry/geometry_Wsklx.lo: geometry/$(am__dirstamp) \
+geometry/geometry_Wsklx.$(OBJEXT): geometry/$(am__dirstamp) \
 	geometry/$(DEPDIR)/$(am__dirstamp)
-geometry/geometry_vir.lo: geometry/$(am__dirstamp) \
+geometry/geometry_vir.$(OBJEXT): geometry/$(am__dirstamp) \
 	geometry/$(DEPDIR)/$(am__dirstamp)
 gpu/$(am__dirstamp):
 	@$(MKDIR_P) gpu
@@ -1205,32 +1192,36 @@ gpu/$(am__dirstamp):
 gpu/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) gpu/$(DEPDIR)
 	@: > gpu/$(DEPDIR)/$(am__dirstamp)
-gpu/fields.lo: gpu/$(am__dirstamp) gpu/$(DEPDIR)/$(am__dirstamp)
-gpu/global_variables.lo: gpu/$(am__dirstamp) \
+gpu/fields.$(OBJEXT): gpu/$(am__dirstamp) \
 	gpu/$(DEPDIR)/$(am__dirstamp)
-gpu/init.lo: gpu/$(am__dirstamp) gpu/$(DEPDIR)/$(am__dirstamp)
-gpu/new_types.lo: gpu/$(am__dirstamp) gpu/$(DEPDIR)/$(am__dirstamp)
-gpu/wrappers.lo: gpu/$(am__dirstamp) gpu/$(DEPDIR)/$(am__dirstamp)
+gpu/global_variables.$(OBJEXT): gpu/$(am__dirstamp) \
+	gpu/$(DEPDIR)/$(am__dirstamp)
+gpu/init.$(OBJEXT): gpu/$(am__dirstamp) gpu/$(DEPDIR)/$(am__dirstamp)
+gpu/new_types.$(OBJEXT): gpu/$(am__dirstamp) \
+	gpu/$(DEPDIR)/$(am__dirstamp)
+gpu/wrappers.$(OBJEXT): gpu/$(am__dirstamp) \
+	gpu/$(DEPDIR)/$(am__dirstamp)
 hmc/$(am__dirstamp):
 	@$(MKDIR_P) hmc
 	@: > hmc/$(am__dirstamp)
 hmc/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) hmc/$(DEPDIR)
 	@: > hmc/$(DEPDIR)/$(am__dirstamp)
-hmc/backfield.lo: hmc/$(am__dirstamp) hmc/$(DEPDIR)/$(am__dirstamp)
+hmc/backfield.$(OBJEXT): hmc/$(am__dirstamp) \
+	hmc/$(DEPDIR)/$(am__dirstamp)
 hmc/gauge/$(am__dirstamp):
 	@$(MKDIR_P) hmc/gauge
 	@: > hmc/gauge/$(am__dirstamp)
 hmc/gauge/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) hmc/gauge/$(DEPDIR)
 	@: > hmc/gauge/$(DEPDIR)/$(am__dirstamp)
-hmc/gauge/gluonic_force.lo: hmc/gauge/$(am__dirstamp) \
+hmc/gauge/gluonic_force.$(OBJEXT): hmc/gauge/$(am__dirstamp) \
 	hmc/gauge/$(DEPDIR)/$(am__dirstamp)
-hmc/gauge/tree_level_Symanzik_force.lo: hmc/gauge/$(am__dirstamp) \
-	hmc/gauge/$(DEPDIR)/$(am__dirstamp)
-hmc/gauge/tree_level_Symanzik_action.lo: hmc/gauge/$(am__dirstamp) \
-	hmc/gauge/$(DEPDIR)/$(am__dirstamp)
-hmc/gauge/Wilson_force.lo: hmc/gauge/$(am__dirstamp) \
+hmc/gauge/tree_level_Symanzik_force.$(OBJEXT):  \
+	hmc/gauge/$(am__dirstamp) hmc/gauge/$(DEPDIR)/$(am__dirstamp)
+hmc/gauge/tree_level_Symanzik_action.$(OBJEXT):  \
+	hmc/gauge/$(am__dirstamp) hmc/gauge/$(DEPDIR)/$(am__dirstamp)
+hmc/gauge/Wilson_force.$(OBJEXT): hmc/gauge/$(am__dirstamp) \
 	hmc/gauge/$(DEPDIR)/$(am__dirstamp)
 hmc/momenta/$(am__dirstamp):
 	@$(MKDIR_P) hmc/momenta
@@ -1238,9 +1229,9 @@ hmc/momenta/$(am__dirstamp):
 hmc/momenta/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) hmc/momenta/$(DEPDIR)
 	@: > hmc/momenta/$(DEPDIR)/$(am__dirstamp)
-hmc/momenta/momenta_generation.lo: hmc/momenta/$(am__dirstamp) \
+hmc/momenta/momenta_generation.$(OBJEXT): hmc/momenta/$(am__dirstamp) \
 	hmc/momenta/$(DEPDIR)/$(am__dirstamp)
-hmc/momenta/momenta_action.lo: hmc/momenta/$(am__dirstamp) \
+hmc/momenta/momenta_action.$(OBJEXT): hmc/momenta/$(am__dirstamp) \
 	hmc/momenta/$(DEPDIR)/$(am__dirstamp)
 hmc/rootst_eoimpr/$(am__dirstamp):
 	@$(MKDIR_P) hmc/rootst_eoimpr
@@ -1248,22 +1239,22 @@ hmc/rootst_eoimpr/$(am__dirstamp):
 hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) hmc/rootst_eoimpr/$(DEPDIR)
 	@: > hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
-hmc/rootst_eoimpr/rootst_eoimpr_action.lo:  \
+hmc/rootst_eoimpr/rootst_eoimpr_action.$(OBJEXT):  \
 	hmc/rootst_eoimpr/$(am__dirstamp) \
 	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
-hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.lo:  \
+hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.$(OBJEXT):  \
 	hmc/rootst_eoimpr/$(am__dirstamp) \
 	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
-hmc/rootst_eoimpr/rootst_eoimpr_quark_force.lo:  \
+hmc/rootst_eoimpr/rootst_eoimpr_quark_force.$(OBJEXT):  \
 	hmc/rootst_eoimpr/$(am__dirstamp) \
 	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
-hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.lo:  \
+hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.$(OBJEXT):  \
 	hmc/rootst_eoimpr/$(am__dirstamp) \
 	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
-hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.lo:  \
+hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.$(OBJEXT):  \
 	hmc/rootst_eoimpr/$(am__dirstamp) \
 	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
-hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.lo:  \
+hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.$(OBJEXT):  \
 	hmc/rootst_eoimpr/$(am__dirstamp) \
 	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
 inverters/twisted_mass/$(am__dirstamp):
@@ -1272,25 +1263,25 @@ inverters/twisted_mass/$(am__dirstamp):
 inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) inverters/twisted_mass/$(DEPDIR)
 	@: > inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_invert_tmDeoimpr.lo:  \
+inverters/twisted_mass/cg_invert_tmDeoimpr.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_invert_tmQ2.lo:  \
+inverters/twisted_mass/cg_invert_tmQ2.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_64_invert_tmQ2.lo:  \
+inverters/twisted_mass/cg_64_invert_tmQ2.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cgm_invert_tmQ2.lo:  \
+inverters/twisted_mass/cgm_invert_tmQ2.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_128_invert_tmQ2.lo:  \
+inverters/twisted_mass/cg_128_invert_tmQ2.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_128_invert_tmDeoimpr.lo:  \
+inverters/twisted_mass/cg_128_invert_tmDeoimpr.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/tm_frontends.lo:  \
+inverters/twisted_mass/tm_frontends.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
 inverters/staggered/$(am__dirstamp):
@@ -1299,22 +1290,22 @@ inverters/staggered/$(am__dirstamp):
 inverters/staggered/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) inverters/staggered/$(DEPDIR)
 	@: > inverters/staggered/$(DEPDIR)/$(am__dirstamp)
-inverters/staggered/cgm_invert_stD2ee_m2_portable.lo:  \
+inverters/staggered/cgm_invert_stD2ee_m2_portable.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
-inverters/staggered/cg_invert_stD2ee_m2_portable.lo:  \
+inverters/staggered/cg_invert_stD2ee_m2_portable.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
-inverters/staggered/cgm_invert_stD2ee_m2.lo:  \
+inverters/staggered/cgm_invert_stD2ee_m2.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
-inverters/staggered/cg_invert_stD2ee_m2.lo:  \
+inverters/staggered/cg_invert_stD2ee_m2.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
-inverters/staggered/cg_invert_stD.lo:  \
+inverters/staggered/cg_invert_stD.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
-inverters/staggered/cg_invert_evn_stD.lo:  \
+inverters/staggered/cg_invert_evn_stD.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
 inverters/Wclov/$(am__dirstamp):
@@ -1323,9 +1314,11 @@ inverters/Wclov/$(am__dirstamp):
 inverters/Wclov/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) inverters/Wclov/$(DEPDIR)
 	@: > inverters/Wclov/$(DEPDIR)/$(am__dirstamp)
-inverters/Wclov/cg_invert_WclovQ.lo: inverters/Wclov/$(am__dirstamp) \
+inverters/Wclov/cg_invert_WclovQ.$(OBJEXT):  \
+	inverters/Wclov/$(am__dirstamp) \
 	inverters/Wclov/$(DEPDIR)/$(am__dirstamp)
-inverters/Wclov/cg_invert_WclovQ2.lo: inverters/Wclov/$(am__dirstamp) \
+inverters/Wclov/cg_invert_WclovQ2.$(OBJEXT):  \
+	inverters/Wclov/$(am__dirstamp) \
 	inverters/Wclov/$(DEPDIR)/$(am__dirstamp)
 inverters/tmclov/$(am__dirstamp):
 	@$(MKDIR_P) inverters/tmclov
@@ -1333,34 +1326,34 @@ inverters/tmclov/$(am__dirstamp):
 inverters/tmclov/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) inverters/tmclov/$(DEPDIR)
 	@: > inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
-inverters/tmclov/cg_invert_tmclovQ.lo:  \
+inverters/tmclov/cg_invert_tmclovQ.$(OBJEXT):  \
 	inverters/tmclov/$(am__dirstamp) \
 	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
-inverters/tmclov/cg_invert_tmclovQ2.lo:  \
+inverters/tmclov/cg_invert_tmclovQ2.$(OBJEXT):  \
 	inverters/tmclov/$(am__dirstamp) \
 	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
-inverters/tmclov/cgm_invert_tmclovQ2.lo:  \
+inverters/tmclov/cgm_invert_tmclovQ2.$(OBJEXT):  \
 	inverters/tmclov/$(am__dirstamp) \
 	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
-inverters/tmclov/tmclov_frontends.lo:  \
+inverters/tmclov/tmclov_frontends.$(OBJEXT):  \
 	inverters/tmclov/$(am__dirstamp) \
 	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
-inverters/staggered/cgm_invert_stD2ee_m2_bgq.lo:  \
+inverters/staggered/cgm_invert_stD2ee_m2_bgq.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
-inverters/staggered/cg_invert_stD2ee_m2_bgq.lo:  \
+inverters/staggered/cg_invert_stD2ee_m2_bgq.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cgm_invert_tmQ2_bgq.lo:  \
+inverters/twisted_mass/cgm_invert_tmQ2_bgq.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_64_invert_tmQ2_bgq.lo:  \
+inverters/twisted_mass/cg_64_invert_tmQ2_bgq.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_128_invert_tmQ2_bgq.lo:  \
+inverters/twisted_mass/cg_128_invert_tmQ2_bgq.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_invert_tmQ2_bgq.lo:  \
+inverters/twisted_mass/cg_invert_tmQ2_bgq.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
 io/$(am__dirstamp):
@@ -1369,19 +1362,21 @@ io/$(am__dirstamp):
 io/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) io/$(DEPDIR)
 	@: > io/$(DEPDIR)/$(am__dirstamp)
-io/ILDG_File.lo: io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
-io/checksum.lo: io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
-io/endianness.lo: io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
-io/input.lo: io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
-io/reader.lo: io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
-io/writer.lo: io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
+io/ILDG_File.$(OBJEXT): io/$(am__dirstamp) \
+	io/$(DEPDIR)/$(am__dirstamp)
+io/checksum.$(OBJEXT): io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
+io/endianness.$(OBJEXT): io/$(am__dirstamp) \
+	io/$(DEPDIR)/$(am__dirstamp)
+io/input.$(OBJEXT): io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
+io/reader.$(OBJEXT): io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
+io/writer.$(OBJEXT): io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
 linalgs/$(am__dirstamp):
 	@$(MKDIR_P) linalgs
 	@: > linalgs/$(am__dirstamp)
 linalgs/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) linalgs/$(DEPDIR)
 	@: > linalgs/$(DEPDIR)/$(am__dirstamp)
-linalgs/linalgs.lo: linalgs/$(am__dirstamp) \
+linalgs/linalgs.$(OBJEXT): linalgs/$(am__dirstamp) \
 	linalgs/$(DEPDIR)/$(am__dirstamp)
 new_types/$(am__dirstamp):
 	@$(MKDIR_P) new_types
@@ -1389,21 +1384,21 @@ new_types/$(am__dirstamp):
 new_types/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) new_types/$(DEPDIR)
 	@: > new_types/$(DEPDIR)/$(am__dirstamp)
-new_types/complex.lo: new_types/$(am__dirstamp) \
+new_types/complex.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
-new_types/dirac.lo: new_types/$(am__dirstamp) \
+new_types/dirac.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
-new_types/float_128.lo: new_types/$(am__dirstamp) \
+new_types/float_128.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
-new_types/float_256.lo: new_types/$(am__dirstamp) \
+new_types/float_256.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
-new_types/rat_approx.lo: new_types/$(am__dirstamp) \
+new_types/rat_approx.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
-new_types/read_new_types.lo: new_types/$(am__dirstamp) \
+new_types/read_new_types.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
-new_types/spin.lo: new_types/$(am__dirstamp) \
+new_types/spin.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
-new_types/su3.lo: new_types/$(am__dirstamp) \
+new_types/su3.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
 operations/contract/$(am__dirstamp):
 	@$(MKDIR_P) operations/contract
@@ -1411,19 +1406,20 @@ operations/contract/$(am__dirstamp):
 operations/contract/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) operations/contract/$(DEPDIR)
 	@: > operations/contract/$(DEPDIR)/$(am__dirstamp)
-operations/contract/mesons_2pts.lo:  \
+operations/contract/mesons_2pts.$(OBJEXT):  \
 	operations/contract/$(am__dirstamp) \
 	operations/contract/$(DEPDIR)/$(am__dirstamp)
-operations/contract/mesons_eight.lo:  \
+operations/contract/mesons_eight.$(OBJEXT):  \
 	operations/contract/$(am__dirstamp) \
 	operations/contract/$(DEPDIR)/$(am__dirstamp)
-operations/contract/optimized_mesons_2pts.lo:  \
+operations/contract/optimized_mesons_2pts.$(OBJEXT):  \
 	operations/contract/$(am__dirstamp) \
 	operations/contract/$(DEPDIR)/$(am__dirstamp)
-operations/contract/site_contract.lo:  \
+operations/contract/site_contract.$(OBJEXT):  \
 	operations/contract/$(am__dirstamp) \
 	operations/contract/$(DEPDIR)/$(am__dirstamp)
-operations/contract/stag.lo: operations/contract/$(am__dirstamp) \
+operations/contract/stag.$(OBJEXT):  \
+	operations/contract/$(am__dirstamp) \
 	operations/contract/$(DEPDIR)/$(am__dirstamp)
 operations/$(am__dirstamp):
 	@$(MKDIR_P) operations
@@ -1431,17 +1427,17 @@ operations/$(am__dirstamp):
 operations/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) operations/$(DEPDIR)
 	@: > operations/$(DEPDIR)/$(am__dirstamp)
-operations/covariant_derivative.lo: operations/$(am__dirstamp) \
+operations/covariant_derivative.$(OBJEXT): operations/$(am__dirstamp) \
 	operations/$(DEPDIR)/$(am__dirstamp)
-operations/fft.lo: operations/$(am__dirstamp) \
+operations/fft.$(OBJEXT): operations/$(am__dirstamp) \
 	operations/$(DEPDIR)/$(am__dirstamp)
-operations/fourier_transform.lo: operations/$(am__dirstamp) \
+operations/fourier_transform.$(OBJEXT): operations/$(am__dirstamp) \
 	operations/$(DEPDIR)/$(am__dirstamp)
-operations/gauge_fixing.lo: operations/$(am__dirstamp) \
+operations/gauge_fixing.$(OBJEXT): operations/$(am__dirstamp) \
 	operations/$(DEPDIR)/$(am__dirstamp)
-operations/gaugeconf.lo: operations/$(am__dirstamp) \
+operations/gaugeconf.$(OBJEXT): operations/$(am__dirstamp) \
 	operations/$(DEPDIR)/$(am__dirstamp)
-operations/remap_vector.lo: operations/$(am__dirstamp) \
+operations/remap_vector.$(OBJEXT): operations/$(am__dirstamp) \
 	operations/$(DEPDIR)/$(am__dirstamp)
 operations/remez/$(am__dirstamp):
 	@$(MKDIR_P) operations/remez
@@ -1449,11 +1445,12 @@ operations/remez/$(am__dirstamp):
 operations/remez/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) operations/remez/$(DEPDIR)
 	@: > operations/remez/$(DEPDIR)/$(am__dirstamp)
-operations/remez/remez_algorithm.lo: operations/remez/$(am__dirstamp) \
+operations/remez/remez_algorithm.$(OBJEXT):  \
+	operations/remez/$(am__dirstamp) \
 	operations/remez/$(DEPDIR)/$(am__dirstamp)
-operations/shift.lo: operations/$(am__dirstamp) \
+operations/shift.$(OBJEXT): operations/$(am__dirstamp) \
 	operations/$(DEPDIR)/$(am__dirstamp)
-operations/source.lo: operations/$(am__dirstamp) \
+operations/source.$(OBJEXT): operations/$(am__dirstamp) \
 	operations/$(DEPDIR)/$(am__dirstamp)
 operations/smearing/$(am__dirstamp):
 	@$(MKDIR_P) operations/smearing
@@ -1461,13 +1458,17 @@ operations/smearing/$(am__dirstamp):
 operations/smearing/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) operations/smearing/$(DEPDIR)
 	@: > operations/smearing/$(DEPDIR)/$(am__dirstamp)
-operations/smearing/APE.lo: operations/smearing/$(am__dirstamp) \
+operations/smearing/APE.$(OBJEXT):  \
+	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
-operations/smearing/HYP.lo: operations/smearing/$(am__dirstamp) \
+operations/smearing/HYP.$(OBJEXT):  \
+	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
-operations/smearing/stout.lo: operations/smearing/$(am__dirstamp) \
+operations/smearing/stout.$(OBJEXT):  \
+	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
-operations/smearing/gaussian.lo: operations/smearing/$(am__dirstamp) \
+operations/smearing/gaussian.$(OBJEXT):  \
+	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
 operations/su3_paths/$(am__dirstamp):
 	@$(MKDIR_P) operations/su3_paths
@@ -1475,36 +1476,37 @@ operations/su3_paths/$(am__dirstamp):
 operations/su3_paths/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) operations/su3_paths/$(DEPDIR)
 	@: > operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/su3_paths/all_rectangles.lo:  \
+operations/su3_paths/all_rectangles.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/su3_paths/arbitrary.lo:  \
+operations/su3_paths/arbitrary.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/su3_paths/hypercubic_transfer.lo:  \
+operations/su3_paths/hypercubic_transfer.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/su3_paths/plaquette.lo:  \
+operations/su3_paths/plaquette.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/su3_paths/pline.lo: operations/su3_paths/$(am__dirstamp) \
-	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/su3_paths/rectangles.lo:  \
+operations/su3_paths/pline.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/su3_paths/rectangular_staples.lo:  \
+operations/su3_paths/rectangles.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/su3_paths/shortest_hypercubic_paths.lo:  \
+operations/su3_paths/rectangular_staples.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/su3_paths/squared_staples.lo:  \
+operations/su3_paths/shortest_hypercubic_paths.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/su3_paths/topological_charge.lo:  \
+operations/su3_paths/squared_staples.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
-operations/vector_gather.lo: operations/$(am__dirstamp) \
+operations/su3_paths/topological_charge.$(OBJEXT):  \
+	operations/su3_paths/$(am__dirstamp) \
+	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
+operations/vector_gather.$(OBJEXT): operations/$(am__dirstamp) \
 	operations/$(DEPDIR)/$(am__dirstamp)
 routines/$(am__dirstamp):
 	@$(MKDIR_P) routines
@@ -1512,215 +1514,185 @@ routines/$(am__dirstamp):
 routines/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) routines/$(DEPDIR)
 	@: > routines/$(DEPDIR)/$(am__dirstamp)
-routines/ios.lo: routines/$(am__dirstamp) \
+routines/ios.$(OBJEXT): routines/$(am__dirstamp) \
 	routines/$(DEPDIR)/$(am__dirstamp)
-routines/math_routines.lo: routines/$(am__dirstamp) \
+routines/math_routines.$(OBJEXT): routines/$(am__dirstamp) \
 	routines/$(DEPDIR)/$(am__dirstamp)
-routines/mpi_routines.lo: routines/$(am__dirstamp) \
+routines/mpi_routines.$(OBJEXT): routines/$(am__dirstamp) \
 	routines/$(DEPDIR)/$(am__dirstamp)
-routines/thread.lo: routines/$(am__dirstamp) \
+routines/thread.$(OBJEXT): routines/$(am__dirstamp) \
 	routines/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/lib/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/lib
 	@: > $(top_builddir)/lib/$(am__dirstamp)
 
-$(top_builddir)/lib/libnissa.la: $(__top_builddir__lib_libnissa_la_OBJECTS) $(__top_builddir__lib_libnissa_la_DEPENDENCIES) $(EXTRA___top_builddir__lib_libnissa_la_DEPENDENCIES) $(top_builddir)/lib/$(am__dirstamp)
-	$(AM_V_CXXLD)$(CXXLINK) -rpath $(libdir) $(__top_builddir__lib_libnissa_la_OBJECTS) $(__top_builddir__lib_libnissa_la_LIBADD) $(LIBS)
+$(top_builddir)/lib/libnissa.a: $(__top_builddir__lib_libnissa_a_OBJECTS) $(__top_builddir__lib_libnissa_a_DEPENDENCIES) $(EXTRA___top_builddir__lib_libnissa_a_DEPENDENCIES) $(top_builddir)/lib/$(am__dirstamp)
+	$(AM_V_at)-rm -f $(top_builddir)/lib/libnissa.a
+	$(AM_V_AR)$(__top_builddir__lib_libnissa_a_AR) $(top_builddir)/lib/libnissa.a $(__top_builddir__lib_libnissa_a_OBJECTS) $(__top_builddir__lib_libnissa_a_LIBADD)
+	$(AM_V_at)$(RANLIB) $(top_builddir)/lib/libnissa.a
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 	-rm -f base/*.$(OBJEXT)
-	-rm -f base/*.lo
 	-rm -f bgq/*.$(OBJEXT)
-	-rm -f bgq/*.lo
 	-rm -f communicate/*.$(OBJEXT)
-	-rm -f communicate/*.lo
 	-rm -f dirac_operators/WclovQ/*.$(OBJEXT)
-	-rm -f dirac_operators/WclovQ/*.lo
 	-rm -f dirac_operators/WclovQ2/*.$(OBJEXT)
-	-rm -f dirac_operators/WclovQ2/*.lo
 	-rm -f dirac_operators/Wstat/*.$(OBJEXT)
-	-rm -f dirac_operators/Wstat/*.lo
 	-rm -f dirac_operators/stD/*.$(OBJEXT)
-	-rm -f dirac_operators/stD/*.lo
 	-rm -f dirac_operators/tmDeoimpr/*.$(OBJEXT)
-	-rm -f dirac_operators/tmDeoimpr/*.lo
 	-rm -f dirac_operators/tmQ/*.$(OBJEXT)
-	-rm -f dirac_operators/tmQ/*.lo
 	-rm -f dirac_operators/tmQ2/*.$(OBJEXT)
-	-rm -f dirac_operators/tmQ2/*.lo
 	-rm -f dirac_operators/tmQ_left/*.$(OBJEXT)
-	-rm -f dirac_operators/tmQ_left/*.lo
 	-rm -f dirac_operators/tmclovQ/*.$(OBJEXT)
-	-rm -f dirac_operators/tmclovQ/*.lo
 	-rm -f dirac_operators/tmclovQ2/*.$(OBJEXT)
-	-rm -f dirac_operators/tmclovQ2/*.lo
 	-rm -f geometry/*.$(OBJEXT)
-	-rm -f geometry/*.lo
 	-rm -f gpu/*.$(OBJEXT)
-	-rm -f gpu/*.lo
 	-rm -f hmc/*.$(OBJEXT)
-	-rm -f hmc/*.lo
 	-rm -f hmc/gauge/*.$(OBJEXT)
-	-rm -f hmc/gauge/*.lo
 	-rm -f hmc/momenta/*.$(OBJEXT)
-	-rm -f hmc/momenta/*.lo
 	-rm -f hmc/rootst_eoimpr/*.$(OBJEXT)
-	-rm -f hmc/rootst_eoimpr/*.lo
 	-rm -f inverters/Wclov/*.$(OBJEXT)
-	-rm -f inverters/Wclov/*.lo
 	-rm -f inverters/staggered/*.$(OBJEXT)
-	-rm -f inverters/staggered/*.lo
 	-rm -f inverters/tmclov/*.$(OBJEXT)
-	-rm -f inverters/tmclov/*.lo
 	-rm -f inverters/twisted_mass/*.$(OBJEXT)
-	-rm -f inverters/twisted_mass/*.lo
 	-rm -f io/*.$(OBJEXT)
-	-rm -f io/*.lo
 	-rm -f linalgs/*.$(OBJEXT)
-	-rm -f linalgs/*.lo
 	-rm -f new_types/*.$(OBJEXT)
-	-rm -f new_types/*.lo
 	-rm -f operations/*.$(OBJEXT)
-	-rm -f operations/*.lo
 	-rm -f operations/contract/*.$(OBJEXT)
-	-rm -f operations/contract/*.lo
 	-rm -f operations/remez/*.$(OBJEXT)
-	-rm -f operations/remez/*.lo
 	-rm -f operations/smearing/*.$(OBJEXT)
-	-rm -f operations/smearing/*.lo
 	-rm -f operations/su3_paths/*.$(OBJEXT)
-	-rm -f operations/su3_paths/*.lo
 	-rm -f routines/*.$(OBJEXT)
-	-rm -f routines/*.lo
 
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/bench.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/close.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/debug.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/global_variables.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/init.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/random.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/vectors.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/Wilson_hopping_matrix_lx_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/bgq_barrier.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/spi.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/staggered_hopping_matrix_eo_or_oe_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@communicate/$(DEPDIR)/all_to_all.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@communicate/$(DEPDIR)/borders.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@communicate/$(DEPDIR)/edges.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/WclovQ/$(DEPDIR)/dirac_operator_WclovQ.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/WclovQ2/$(DEPDIR)/dirac_operator_WclovQ2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/Wstat/$(DEPDIR)/dirac_operator_Wstat.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/stD/$(DEPDIR)/dirac_operator_stD.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/stD/$(DEPDIR)/dirac_operator_stD_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmDeoimpr/$(DEPDIR)/dirac_operator_tmDeoimpr.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmDeoimpr/$(DEPDIR)/dirac_operator_tmDeoimpr_128.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/dirac_operator_tmQ.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/dirac_operator_tmQ_128.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/dirac_operator_tmQ_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/reconstruct_tm_doublet.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ2/$(DEPDIR)/dirac_operator_tmQ2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ2/$(DEPDIR)/dirac_operator_tmQ2_128.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ2/$(DEPDIR)/dirac_operator_tmQ2_128_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ2/$(DEPDIR)/dirac_operator_tmQ2_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ_left/$(DEPDIR)/dirac_operator_tmQ_left.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ/$(DEPDIR)/dirac_operator_tmclovQ.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ/$(DEPDIR)/reconstruct_tmclov_doublet.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_Wsklx.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_eo.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_lx.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_mix.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_vir.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/$(DEPDIR)/backfield.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/Wilson_force.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/gluonic_force.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/tree_level_Symanzik_action.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/tree_level_Symanzik_force.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/momenta/$(DEPDIR)/momenta_action.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/momenta/$(DEPDIR)/momenta_generation.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_action.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_eigenvalues.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_omelyan_integrator.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_pseudofermions_generation.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_quark_force.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_rhmc_step.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/Wclov/$(DEPDIR)/cg_invert_WclovQ.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/Wclov/$(DEPDIR)/cg_invert_WclovQ2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_evn_stD.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD2ee_m2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD2ee_m2_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD2ee_m2_portable.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2_portable.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cg_invert_tmclovQ.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cg_invert_tmclovQ2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cgm_invert_tmclovQ2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/tmclov_frontends.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_128_invert_tmDeoimpr.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_128_invert_tmQ2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_128_invert_tmQ2_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_64_invert_tmQ2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_64_invert_tmQ2_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_invert_tmDeoimpr.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_invert_tmQ2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_invert_tmQ2_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cgm_invert_tmQ2.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cgm_invert_tmQ2_bgq.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/tm_frontends.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/ILDG_File.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/checksum.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/endianness.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/input.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/reader.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/writer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@linalgs/$(DEPDIR)/linalgs.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/complex.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/dirac.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/float_128.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/float_256.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/rat_approx.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/read_new_types.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/spin.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/su3.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/covariant_derivative.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/fft.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/fourier_transform.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/gauge_fixing.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/gaugeconf.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/remap_vector.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/shift.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/source.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/vector_gather.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/mesons_2pts.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/mesons_eight.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/optimized_mesons_2pts.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/site_contract.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/stag.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/remez/$(DEPDIR)/remez_algorithm.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/APE.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/HYP.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/gaussian.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/all_rectangles.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/arbitrary.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/hypercubic_transfer.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/plaquette.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/pline.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/rectangles.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/rectangular_staples.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/shortest_hypercubic_paths.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/squared_staples.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/topological_charge.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/ios.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/math_routines.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/mpi_routines.Plo@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/thread.Plo@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/bench.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/close.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/debug.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/global_variables.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/init.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/random.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/vectors.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/Wilson_hopping_matrix_lx_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/bgq_barrier.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/spi.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/staggered_hopping_matrix_eo_or_oe_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@communicate/$(DEPDIR)/all_to_all.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@communicate/$(DEPDIR)/borders.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@communicate/$(DEPDIR)/edges.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/WclovQ/$(DEPDIR)/dirac_operator_WclovQ.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/WclovQ2/$(DEPDIR)/dirac_operator_WclovQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/Wstat/$(DEPDIR)/dirac_operator_Wstat.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/stD/$(DEPDIR)/dirac_operator_stD.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/stD/$(DEPDIR)/dirac_operator_stD_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmDeoimpr/$(DEPDIR)/dirac_operator_tmDeoimpr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmDeoimpr/$(DEPDIR)/dirac_operator_tmDeoimpr_128.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/dirac_operator_tmQ.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/dirac_operator_tmQ_128.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/dirac_operator_tmQ_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/reconstruct_tm_doublet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ2/$(DEPDIR)/dirac_operator_tmQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ2/$(DEPDIR)/dirac_operator_tmQ2_128.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ2/$(DEPDIR)/dirac_operator_tmQ2_128_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ2/$(DEPDIR)/dirac_operator_tmQ2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ_left/$(DEPDIR)/dirac_operator_tmQ_left.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ/$(DEPDIR)/dirac_operator_tmclovQ.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ/$(DEPDIR)/reconstruct_tmclov_doublet.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_Wsklx.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_eo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_lx.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_mix.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_vir.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/$(DEPDIR)/backfield.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/Wilson_force.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/gluonic_force.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/tree_level_Symanzik_action.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/tree_level_Symanzik_force.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/momenta/$(DEPDIR)/momenta_action.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/momenta/$(DEPDIR)/momenta_generation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_action.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_eigenvalues.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_omelyan_integrator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_pseudofermions_generation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_quark_force.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_rhmc_step.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/Wclov/$(DEPDIR)/cg_invert_WclovQ.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/Wclov/$(DEPDIR)/cg_invert_WclovQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_evn_stD.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD2ee_m2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD2ee_m2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD2ee_m2_portable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2_portable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cg_invert_tmclovQ.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cg_invert_tmclovQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cgm_invert_tmclovQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/tmclov_frontends.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_128_invert_tmDeoimpr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_128_invert_tmQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_128_invert_tmQ2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_64_invert_tmQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_64_invert_tmQ2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_invert_tmDeoimpr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_invert_tmQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_invert_tmQ2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cgm_invert_tmQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cgm_invert_tmQ2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/tm_frontends.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/ILDG_File.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/checksum.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/endianness.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/input.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/reader.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@io/$(DEPDIR)/writer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@linalgs/$(DEPDIR)/linalgs.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/complex.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/dirac.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/float_128.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/float_256.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/rat_approx.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/read_new_types.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/spin.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/su3.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/covariant_derivative.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/fft.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/fourier_transform.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/gauge_fixing.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/gaugeconf.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/remap_vector.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/shift.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/source.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/$(DEPDIR)/vector_gather.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/mesons_2pts.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/mesons_eight.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/optimized_mesons_2pts.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/site_contract.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/stag.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/remez/$(DEPDIR)/remez_algorithm.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/APE.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/HYP.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/gaussian.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/all_rectangles.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/arbitrary.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/hypercubic_transfer.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/plaquette.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/pline.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/rectangles.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/rectangular_staples.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/shortest_hypercubic_paths.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/squared_staples.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/topological_charge.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/ios.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/math_routines.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/mpi_routines.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/thread.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -1738,14 +1710,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(COMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
 
-.c.lo:
-@am__fastdepCC_TRUE@	$(AM_V_CC)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
-@am__fastdepCC_TRUE@	$(LTCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCC_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(LTCOMPILE) -c -o $@ $<
-
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
 @am__fastdepCXX_TRUE@	$(CXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
@@ -1761,53 +1725,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.cpp.lo:
-@am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.lo$$||'`;\
-@am__fastdepCXX_TRUE@	$(LTCXXCOMPILE) -MT $@ -MD -MP -MF $$depbase.Tpo -c -o $@ $< &&\
-@am__fastdepCXX_TRUE@	$(am__mv) $$depbase.Tpo $$depbase.Plo
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=yes @AMDEPBACKSLASH@
-@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(LTCXXCOMPILE) -c -o $@ $<
-
-mostlyclean-libtool:
-	-rm -f *.lo
-
-clean-libtool:
-	-rm -rf $(top_builddir)/lib/.libs $(top_builddir)/lib/_libs
-	-rm -rf .libs _libs
-	-rm -rf base/.libs base/_libs
-	-rm -rf bgq/.libs bgq/_libs
-	-rm -rf communicate/.libs communicate/_libs
-	-rm -rf dirac_operators/WclovQ/.libs dirac_operators/WclovQ/_libs
-	-rm -rf dirac_operators/WclovQ2/.libs dirac_operators/WclovQ2/_libs
-	-rm -rf dirac_operators/Wstat/.libs dirac_operators/Wstat/_libs
-	-rm -rf dirac_operators/stD/.libs dirac_operators/stD/_libs
-	-rm -rf dirac_operators/tmDeoimpr/.libs dirac_operators/tmDeoimpr/_libs
-	-rm -rf dirac_operators/tmQ/.libs dirac_operators/tmQ/_libs
-	-rm -rf dirac_operators/tmQ2/.libs dirac_operators/tmQ2/_libs
-	-rm -rf dirac_operators/tmQ_left/.libs dirac_operators/tmQ_left/_libs
-	-rm -rf dirac_operators/tmclovQ/.libs dirac_operators/tmclovQ/_libs
-	-rm -rf dirac_operators/tmclovQ2/.libs dirac_operators/tmclovQ2/_libs
-	-rm -rf geometry/.libs geometry/_libs
-	-rm -rf gpu/.libs gpu/_libs
-	-rm -rf hmc/.libs hmc/_libs
-	-rm -rf hmc/gauge/.libs hmc/gauge/_libs
-	-rm -rf hmc/momenta/.libs hmc/momenta/_libs
-	-rm -rf hmc/rootst_eoimpr/.libs hmc/rootst_eoimpr/_libs
-	-rm -rf inverters/Wclov/.libs inverters/Wclov/_libs
-	-rm -rf inverters/staggered/.libs inverters/staggered/_libs
-	-rm -rf inverters/tmclov/.libs inverters/tmclov/_libs
-	-rm -rf inverters/twisted_mass/.libs inverters/twisted_mass/_libs
-	-rm -rf io/.libs io/_libs
-	-rm -rf linalgs/.libs linalgs/_libs
-	-rm -rf new_types/.libs new_types/_libs
-	-rm -rf operations/.libs operations/_libs
-	-rm -rf operations/contract/.libs operations/contract/_libs
-	-rm -rf operations/remez/.libs operations/remez/_libs
-	-rm -rf operations/smearing/.libs operations/smearing/_libs
-	-rm -rf operations/su3_paths/.libs operations/su3_paths/_libs
-	-rm -rf routines/.libs routines/_libs
 install-global_variableDATA: $(global_variable_DATA)
 	@$(NORMAL_INSTALL)
 	@list='$(global_variable_DATA)'; test -n "$(global_variabledir)" || list=; \
@@ -1936,7 +1853,7 @@ distdir: $(DISTFILES)
 check-am: all-am
 check: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) check-am
-all-am: Makefile $(LTLIBRARIES) $(DATA) $(HEADERS) config.hpp
+all-am: Makefile $(LIBRARIES) $(DATA) $(HEADERS) config.hpp
 installdirs:
 	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(global_variabledir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
@@ -2041,8 +1958,7 @@ maintainer-clean-generic:
 	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
-clean-am: clean-generic clean-libLTLIBRARIES clean-libtool \
-	mostlyclean-am
+clean-am: clean-generic clean-libLIBRARIES mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
@@ -2068,7 +1984,7 @@ install-dvi: install-dvi-am
 
 install-dvi-am:
 
-install-exec-am: install-libLTLIBRARIES
+install-exec-am: install-libLIBRARIES
 
 install-html: install-html-am
 
@@ -2097,8 +2013,7 @@ maintainer-clean-am: distclean-am maintainer-clean-generic
 
 mostlyclean: mostlyclean-am
 
-mostlyclean-am: mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool
+mostlyclean-am: mostlyclean-compile mostlyclean-generic
 
 pdf: pdf-am
 
@@ -2109,26 +2024,25 @@ ps: ps-am
 ps-am:
 
 uninstall-am: uninstall-global_variableDATA uninstall-includeHEADERS \
-	uninstall-libLTLIBRARIES
+	uninstall-libLIBRARIES
 
 .MAKE: all check install install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
-	clean-libLTLIBRARIES clean-libtool cscopelist-am ctags \
-	ctags-am distclean distclean-compile distclean-generic \
-	distclean-hdr distclean-libtool distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-dvi install-dvi-am \
-	install-exec install-exec-am install-global_variableDATA \
-	install-html install-html-am install-includeHEADERS \
-	install-info install-info-am install-libLTLIBRARIES \
-	install-man install-pdf install-pdf-am install-ps \
-	install-ps-am install-strip installcheck installcheck-am \
-	installdirs maintainer-clean maintainer-clean-generic \
-	mostlyclean mostlyclean-compile mostlyclean-generic \
-	mostlyclean-libtool pdf pdf-am ps ps-am tags tags-am uninstall \
+	clean-libLIBRARIES cscopelist-am ctags ctags-am distclean \
+	distclean-compile distclean-generic distclean-hdr \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am install-dvi \
+	install-dvi-am install-exec install-exec-am \
+	install-global_variableDATA install-html install-html-am \
+	install-includeHEADERS install-info install-info-am \
+	install-libLIBRARIES install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic pdf pdf-am ps ps-am tags tags-am uninstall \
 	uninstall-am uninstall-global_variableDATA \
-	uninstall-includeHEADERS uninstall-libLTLIBRARIES
+	uninstall-includeHEADERS uninstall-libLIBRARIES
 
 update_svnversion:
 	$(srcdir)/base/update_svnversion.hpp.sh $(top_srcdir)

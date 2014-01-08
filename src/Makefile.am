@@ -5,7 +5,7 @@ lib_LIBRARIES=$(top_builddir)/lib/libnissa.a
 
 ########################################### base sources ##################################
 
-__top_builddir__lib_libnissa_la_SOURCES= \
+__top_builddir__lib_libnissa_a_SOURCES= \
         base/bench.cpp \
         base/close.cpp \
         base/debug.cpp \
@@ -46,7 +46,7 @@ CLEANFILES=base/svnversion.hpp
 
 ######################################### bgq specific #####################################
 if BGQ
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
         bgq/Wilson_hopping_matrix_lx_bgq.cpp \
         bgq/staggered_hopping_matrix_eo_or_oe_bgq.cpp
 
@@ -64,13 +64,13 @@ include_HEADERS+= \
 #bgq barrier
 if BGQ_EMU
 else
-__top_builddir__lib_libnissa_la_SOURCES+=bgq/bgq_barrier.c
+__top_builddir__lib_libnissa_a_SOURCES+=bgq/bgq_barrier.c
 include_HEADERS+=bgq/bgq_barrier.hpp
 endif
 
 #compile or not spi stuff
 if SPI
-__top_builddir__lib_libnissa_la_SOURCES+=bgq/spi.cpp
+__top_builddir__lib_libnissa_a_SOURCES+=bgq/spi.cpp
 include_HEADERS+=bgq/spi.hpp
 endif
 
@@ -78,7 +78,7 @@ endif
 
 ######################################### communicate ######################################
 
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
 	communicate/all_to_all.cpp \
 	communicate/borders.cpp \
 	communicate/edges.cpp
@@ -91,7 +91,7 @@ include_HEADERS+= \
 
 ######################################## dirac operators#####################################
 
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
         dirac_operators/stD/dirac_operator_stD.cpp \
         dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
         dirac_operators/tmQ/dirac_operator_tmQ.cpp \
@@ -127,7 +127,7 @@ include_HEADERS+= \
 
 #compile or not bgq source
 if BGQ
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
         dirac_operators/tmQ/dirac_operator_tmQ_bgq.cpp \
         dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
@@ -148,7 +148,7 @@ EXTRA_DIST+= \
 
 ################################### geometry ###################################
 
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
 	geometry/geometry_eo.cpp \
 	geometry/geometry_lx.cpp \
 	geometry/geometry_mix.cpp \
@@ -162,7 +162,7 @@ include_HEADERS+= \
 
 #compile or not virtual parallelization
 if USE_VNODES
-__top_builddir__lib_libnissa_la_SOURCES+=geometry/geometry_vir.cpp
+__top_builddir__lib_libnissa_a_SOURCES+=geometry/geometry_vir.cpp
 include_HEADERS+=geometry/geometry_vir.hpp
 endif
 
@@ -174,7 +174,7 @@ include $(top_srcdir)/config/cuda.mk
 
 LINK=$(LIBTOOL) --mode=link $(CC) -o $@ $(CUDA_LDFLAGS) $(CUDA_LIBS)
 
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
 	gpu/fields.cu \
 	gpu/global_variables.cu \
 	gpu/init.cu \
@@ -193,7 +193,7 @@ endif
 
 ###################################### hmc #########################################
 
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
         hmc/backfield.cpp \
         hmc/gauge/gluonic_force.cpp \
         hmc/gauge/tree_level_Symanzik_force.cpp \
@@ -226,7 +226,7 @@ EXTRA_DIST+=rootst_eoimpr/rat_expansion_database.cpp
 
 ###################################### inverters #################################
 
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
         inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
         inverters/twisted_mass/cg_invert_tmQ2.cpp \
         inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
@@ -270,7 +270,7 @@ include_HEADERS+= \
 
 #compile or not bgq source
 if BGQ
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
         inverters/staggered/cgm_invert_stD2ee_m2_bgq.cpp \
         inverters/staggered/cg_invert_stD2ee_m2_bgq.cpp \
         inverters/twisted_mass/cgm_invert_tmQ2_bgq.cpp \
@@ -296,7 +296,7 @@ EXTRA_DIST+= \
 
 ############################################### io #################################
 
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
 	io/ILDG_File.cpp \
 	io/checksum.cpp \
 	io/endianness.cpp \
@@ -314,12 +314,12 @@ include_HEADERS+= \
 
 ########################################### linalgs ##################################
 
-__top_builddir__lib_libnissa_la_SOURCES+=linalgs/linalgs.cpp
+__top_builddir__lib_libnissa_a_SOURCES+=linalgs/linalgs.cpp
 include_HEADERS+=linalgs/linalgs.hpp
 
 ########################################## new types #################################
 
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
         new_types/complex.cpp \
         new_types/dirac.cpp \
         new_types/float_128.cpp \
@@ -342,7 +342,7 @@ include_HEADERS+= \
 
 ####################################### operations ##################################
 
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
         operations/contract/mesons_2pts.cpp \
         operations/contract/mesons_eight.cpp \
         operations/contract/optimized_mesons_2pts.cpp \
@@ -406,7 +406,7 @@ include_HEADERS+= \
 
 ########################################## routines ###################################
 
-__top_builddir__lib_libnissa_la_SOURCES+= \
+__top_builddir__lib_libnissa_a_SOURCES+= \
         routines/ios.cpp \
         routines/math_routines.cpp \
         routines/mpi_routines.cpp
@@ -418,6 +418,6 @@ include_HEADERS+= \
 
 #compile or not thread support
 if USE_THREADS
-__top_builddir__lib_libnissa_la_SOURCES+=routines/thread.cpp
+__top_builddir__lib_libnissa_a_SOURCES+=routines/thread.cpp
 include_HEADERS+=routines/thread.hpp
 endif
