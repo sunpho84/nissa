@@ -11,6 +11,7 @@
 ./autom4te.cache/traces.0
 ./autom4te.cache/output.0
 ./aclocal.m4
+./src/config.hpp.in
 ./configure
 ./projects/semileptonic/Makefile.in
 ./projects/generate_confs/Makefile.in
