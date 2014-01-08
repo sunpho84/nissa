@@ -1,10 +1,10 @@
 #!/bin/sh
 
-rm -fr libtool \
+rm -fr \
     aclocal.m4 \
     autom4te.cache \
     $(find . -name "Makefile.in") \
-    config/{compile,config.guess,config.sub,depcomp,install-sh,ltmain.sh,missing,ylwrap} \
+    config/{compile,config.guess,config.sub,depcomp,install-sh,missing,ylwrap} \
     configure
 
 autoreconf --verbose --install --force

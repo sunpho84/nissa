@@ -16,7 +16,6 @@ AC_CONFIG_AUX_DIR([config])
 AM_INIT_AUTOMAKE([1.0 no-define foreign subdir-objects])
 AM_CONFIG_HEADER(src/config.hpp)
 AC_CONFIG_MACRO_DIR([m4])
-AC_DISABLE_SHARED
 AC_CANONICAL_HOST
 
 # Checks for programs.
