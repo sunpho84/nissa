@@ -42,6 +42,7 @@ namespace nissa
   EXTERN int *loclx_of_fw_surflx;
   EXTERN int lx_geom_inited;
   //box, division in 16 of the lattice
+  EXTERN coords box_coord[16];
   EXTERN coords box_size[16];
   EXTERN int nsite_per_box[16];
 #ifdef USE_VNODES

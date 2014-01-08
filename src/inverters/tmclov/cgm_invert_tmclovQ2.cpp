@@ -39,7 +39,7 @@
 #define A4 Pmunu
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,csw,Pmunu,
 
-#include "templates/cgm_invert_template_threaded.cpp"
+#include "inverters/templates/cgm_invert_template_threaded.cpp"
 
 namespace nissa
 {

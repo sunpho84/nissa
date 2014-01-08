@@ -34,4 +34,4 @@
 
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,
 
-#include "templates/cgm_invert_template_threaded.cpp"
+#include "inverters/templates/cgm_invert_template_threaded.cpp"

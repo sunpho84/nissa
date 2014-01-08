@@ -9,7 +9,7 @@
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_vir.hpp"
 
-#include "dirac_operator_tmQ2/dirac_operator_tmQ2_128.hpp"
+#include "dirac_operators/tmQ2/dirac_operator_tmQ2_128.hpp"
 
 namespace nissa
 {

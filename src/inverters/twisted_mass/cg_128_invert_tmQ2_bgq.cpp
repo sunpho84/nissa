@@ -40,7 +40,7 @@
 #define CG_ADDITIONAL_VECTORS_ALLOCATION()
 #define CG_ADDITIONAL_VECTORS_FREE()
 
-#include "templates/cg_128_invert_template_threaded.cpp"
+#include "inverters/templates/cg_128_invert_template_threaded.cpp"
 
 
 namespace nissa

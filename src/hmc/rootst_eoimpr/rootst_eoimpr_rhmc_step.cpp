@@ -17,7 +17,7 @@
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 
-#include "momenta/momenta_generation.hpp"
+#include "hmc/momenta/momenta_generation.hpp"
 
 #include "rootst_eoimpr_action.hpp"
 #include "rootst_eoimpr_eigenvalues.hpp"

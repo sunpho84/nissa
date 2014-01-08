@@ -16,7 +16,7 @@
  #include "routines/thread.hpp"
 #endif
 
-#include "gauge/gluonic_force.hpp"
+#include "hmc/gauge/gluonic_force.hpp"
 
 #include "rootst_eoimpr_quark_force.hpp"
 

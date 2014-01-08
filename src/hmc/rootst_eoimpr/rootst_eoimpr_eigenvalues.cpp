@@ -21,7 +21,7 @@
  #include "routines/thread.hpp"
 #endif
 
-#include "backfield.hpp"
+#include "hmc/backfield.hpp"
 
 #include "rat_expansion_database.cpp"
 

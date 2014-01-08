@@ -17,7 +17,7 @@
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
-#include "shift.hpp"
+#include "operations/shift.hpp"
 #include "routines/mpi_routines.hpp"
 
 namespace nissa

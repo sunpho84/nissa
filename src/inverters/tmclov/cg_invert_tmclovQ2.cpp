@@ -41,4 +41,4 @@
 #define AT5 double
 #define A5 mu
 
-#include "templates/cg_invert_template_threaded.cpp"
+#include "inverters/templates/cg_invert_template_threaded.cpp"

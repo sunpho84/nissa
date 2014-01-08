@@ -51,12 +51,49 @@ int max_cached_link=0,max_sending_link=0;
 //int nsite_per_box_dir_par[16*4*4];
 
 //bench
+double base_init_time=0;
 double comm_time=0;
 double comp_time=0;
 double meas_time=0;
 double read_time=0;
 double write_time=0;
 double unitarize_time=0;
+
+struct gauge_sweep_t
+{
+  int comm_init_time;
+  int nlinks_per_paths_site;
+  int gpar;
+  int *ilink_per_paths;
+  int *nsite_per_box_dir_par;
+  int *ivol_of_box_dir_par;
+  all_to_all_comm_t *box_comm[16];
+  gauge_sweep_t(int nlinks_per_paths_site,int gpar);
+  void init_box_dir_par_geometry();
+  void init_paths();
+  ~gauge_sweep_t();
+private:
+  gauge_sweep_t();
+};
+
+gauge_sweep_t *tlSym_sweep;
+
+gauge_sweep_t::gauge_sweep_t(int nlinks_per_paths_site,int gpar): nlinks_per_paths_site(nlinks_per_paths_site),gpar(gpar)
+{
+  ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",4*loc_vol,int);
+  ilink_per_paths=nissa_malloc("ilink_per_paths",nlinks_per_paths_site*4*loc_vol,int);  
+  nsite_per_box_dir_par=nissa_malloc("nsite_per_box_dir_par",16*4*gpar,int);
+  
+  comm_init_time=0;
+}
+
+gauge_sweep_t::~gauge_sweep_t()
+{
+  nissa_free(ivol_of_box_dir_par);
+  nissa_free(ilink_per_paths);
+  nissa_free(nsite_per_box_dir_par);
+  for(int ibox=0;ibox<16;ibox++) delete box_comm[ibox];
+}
 
 void measure_gauge_obs(bool );
 
@@ -249,54 +286,25 @@ THREADABLE_FUNCTION_1ARG(add_tlSym_links_to_paths, all_to_all_gathering_list_t**
       for(int dir=0;dir<4;dir++)
 	for(int par=0;par<4;par++)
 	  {	  
-	    for(int ibox_dir_par=ibase;ibox_dir_par<ibase+nsite_per_box_dir_par[par+4*(dir+4*ibox)];ibox_dir_par++)
+	    for(int ibox_dir_par=ibase;ibox_dir_par<ibase+
+		  tlSym_sweep->nsite_per_box_dir_par[par+4*(dir+4*ibox)];ibox_dir_par++)
 	      {
-		int ivol=ivol_of_box_dir_par[ibox_dir_par];
-		add_tlSym_paths(ilink_per_paths+ibox_dir_par*nlinks_per_paths_site,*(gl[ibox]),ivol,dir);
+		int ivol=tlSym_sweep->ivol_of_box_dir_par[ibox_dir_par];
+		add_tlSym_paths(tlSym_sweep->ilink_per_paths+ibox_dir_par*tlSym_sweep->nlinks_per_paths_site,
+				*(gl[ibox]),ivol,dir);
 	      }
-	    ibase+=nsite_per_box_dir_par[par+4*(dir+4*ibox)];
+	    ibase+=tlSym_sweep->nsite_per_box_dir_par[par+4*(dir+4*ibox)];
 	  }
     }
   THREAD_BARRIER();
 }}
 
-struct gauge_sweep_t
-{
-  int comm_init_time;
-  int gpar;
-  int *ivol_of_box_dir_par;
-  int *ilink_per_paths;
-  int *nsite_per_box_dir_par;
-  int *ivol_of_box_dir_par;
-  all_to_all_comm_t *box_comm[16];
-  gauge_sweep_t::gauge_sweep_t(int nlinks_per_paths_site);
-  void init_box_dir_par_geometry();
-  void init_paths();
-private:
-  gauge_sweep_t::gauge_sweep_t();
-};
-
-gauge_sweep_t::gauge_sweep_t(int nlinks_per_paths_site,int gpar): nlinks_per_paths_site(nlinks_per_paths_site),gpar(gpar)
-{
-  ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",4*loc_vol,int);
-  ilink_per_paths=nissa_malloc("ilink_per_paths",nlinks_per_paths_site*4*loc_vol,int);  
-  nsite_per_box_dir_par=nissa_malloc("nsite_per_box_dir_par",int,16*4*par);
-  
-  comm_init_time=0;
-}
-
-gauge_sweep_t::~gauge_sweep_t()
-{
-  nissa_free(ivol_of_box_dir_par);
-  nissa_free(ilink_per_paths);
-  nissa_free(nsite_per_box_dir_par);
-}
-
+/*
   for(int mu=0;mu<4;mu++)
     {
       if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
     }
-
+*/
 //initialize the geometry of the boxes subdirpar sets
 void gauge_sweep_t::init_box_dir_par_geometry()
 {
@@ -367,6 +375,9 @@ void gauge_sweep_t::init_paths()
 void init_simulation(char *path)
 {
   base_init_time-=take_time();
+  
+  const int nlinks_per_tlSym_paths_site=3*2*(3+5*3)-3*8+2;
+  tlSym_sweep=new gauge_sweep_t(nlinks_per_tlSym_paths_site,4);
   
   //////////////////////////// read the input /////////////////////////
   
@@ -462,7 +473,9 @@ void init_simulation(char *path)
       measure_gauge_obs(true);
     }  
   
-  init_box_geometry();
+  tlSym_sweep->init_box_dir_par_geometry();
+  tlSym_sweep->init_paths();
+  master_printf("Inited\n");
 }
 
 //set to 0 last timeslice
@@ -482,7 +495,7 @@ void close_simulation()
 {
   master_printf("========== Performance report ===========\n");
   master_printf("Basic initialization time: %lg sec\n",base_init_time);
-  master_printf("Communicators initialization time: %lg sec\n",comm_init_time);
+  master_printf("Communicators initialization time: %lg sec\n",tlSym_sweep->comm_init_time);
   master_printf("Communication time: %lg sec\n",comm_time);
   master_printf("Link update time: %lg sec\n",comp_time);
   master_printf("Reunitarization time: %lg sec\n",unitarize_time);
@@ -497,11 +510,10 @@ void close_simulation()
   nissa_free(buf_out);
   nissa_free(buf_in);
   
-  nissa_free(ivol_of_box_dir_par);
-  nissa_free(ilink_per_paths);
-  for(int ibox=0;ibox<16;ibox++) delete box_comm[ibox];
+  delete tlSym_sweep;
 }
 
+/*
 void check()
 {  
   //////////////////////////// make sure everything is hit ///////////////////////
@@ -605,6 +617,7 @@ void check()
     nissa_free(hit);
   }
 }
+*/
 
 //compute the summ of the staples pointed by "ilinks"
 void compute_tlSym_staples(su3 staples,su3 *links,int *ilinks)
@@ -706,7 +719,7 @@ THREADABLE_FUNCTION_4ARG(sweep_conf, update_alg_t,update_alg, quad_su3*,conf, vo
     {
       //communicate needed links
       if(IS_MASTER_THREAD) comm_time-=take_time();
-      box_comm[ibox]->communicate(conf,conf,sizeof(su3),buf_out,buf_in);
+      tlSym_sweep->box_comm[ibox]->communicate(conf,conf,sizeof(su3),buf_out,buf_in);
       if(IS_MASTER_THREAD) comm_time+=take_time();
       
       if(IS_MASTER_THREAD) comp_time-=take_time();
@@ -714,15 +727,16 @@ THREADABLE_FUNCTION_4ARG(sweep_conf, update_alg_t,update_alg, quad_su3*,conf, vo
 	for(int par=0;par<4;par++)
 	  {
 	    //scan all the box
-	    int nbox_dir_par=nsite_per_box_dir_par[par+4*(dir+4*ibox)];
+	    int nbox_dir_par=tlSym_sweep->nsite_per_box_dir_par[par+4*(dir+4*ibox)];
 	    NISSA_PARALLEL_LOOP(ibox_dir_par,ibase,ibase+nbox_dir_par)
 	      {
 		//compute the staples
 		su3 staples;
-		compute_tlSym_staples(staples,(su3*)conf,ilink_per_paths+nlinks_per_paths_site*ibox_dir_par);
+		compute_tlSym_staples(staples,(su3*)conf,
+				      tlSym_sweep->ilink_per_paths+tlSym_sweep->nlinks_per_paths_site*ibox_dir_par);
 		
 		//find new link
-		int ivol=ivol_of_box_dir_par[ibox_dir_par];
+		int ivol=tlSym_sweep->ivol_of_box_dir_par[ibox_dir_par];
 		
 		su3 new_link;
 		if(update_alg==HEAT)

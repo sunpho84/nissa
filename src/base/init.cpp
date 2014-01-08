@@ -382,7 +382,6 @@ namespace nissa
       }
 
     //get coords of cube ans box size
-    coords box_coord[16];
     coords nboxes={2,2,2,2};
     for(int ibox=0;ibox<16;ibox++)
       {

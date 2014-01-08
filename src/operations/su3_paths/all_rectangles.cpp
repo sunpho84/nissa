@@ -17,9 +17,9 @@
  #include "routines/thread.hpp"
 #endif
 
-#include "smearing/APE.hpp"
-#include "smearing/HYP.hpp"
-#include "su3_paths/plaquette.hpp"
+#include "operations/smearing/APE.hpp"
+#include "operations/smearing/HYP.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 
 namespace nissa
 {

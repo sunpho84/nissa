@@ -6,8 +6,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "gaugeconf.hpp"
-
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
@@ -18,6 +16,7 @@
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
+#include "operations/gaugeconf.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS

@@ -39,4 +39,4 @@
 #define AT4 double
 #define A4 m
 
-#include "templates/cg_invert_template_threaded.cpp"
+#include "inverters/templates/cg_invert_template_threaded.cpp"
