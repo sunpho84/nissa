@@ -8,7 +8,7 @@
 #include "base/global_variables.hpp"
 #include "communicate/communicate.hpp"
 #include "base/vectors.hpp"
-#include "dirac_operator_tmclovQ/dirac_operator_tmclovQ.hpp"
+#include "../tmclovQ/dirac_operator_tmclovQ.hpp"
 
 //Apply the Q+Q- operator to a spincolor
 

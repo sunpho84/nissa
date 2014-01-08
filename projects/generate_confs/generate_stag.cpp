@@ -331,7 +331,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   double meas_time=-take_time();
   
   if(gauge_meas_flag) if(iconf%gauge_meas_flag==0) measure_gauge_obs(gauge_obs_path,conf,iconf,acc,gauge_action_name);
-  if(top_meas_pars.flag) if(iconf%top_meas_pars.flag==0) measure_topology(top_meas_pars,conf,iconf,conf_created);
+  if(top_meas_pars.flag) if(iconf%top_meas_pars.flag==0) measure_topology_eo_conf(top_meas_pars,conf,iconf,conf_created);
   if(all_rect_meas_pars.flag) if(iconf%all_rect_meas_pars.flag==0)
 				measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
   

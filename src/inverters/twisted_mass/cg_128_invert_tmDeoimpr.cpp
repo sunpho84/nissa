@@ -4,8 +4,8 @@
 
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
-#include "dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
-#include "dirac_operators/dirac_operator_tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp"
+#include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
+#include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp"
 #include "inverters/twisted_mass/cg_invert_tmDeoimpr.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"

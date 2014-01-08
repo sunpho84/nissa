@@ -82,7 +82,8 @@ namespace nissa
   void su3_dag_summ_the_prod_colorspinspin(colorspinspin a,su3 b,colorspinspin c);
   void su3_dag_summ_the_prod_color(color a,su3 b,color c);
   void su3_det(complex d,su3 U);
-  void su3_find_cooled(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu);
+  void su3_find_cooled_eo_conf(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu);
+  void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu);
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
   void su3_find_overrelaxed(su3 out,su3 in,su3 staple,int nov_hits);
   void safe_su3_hermitian_prod_double(su3 a,su3 b,double r);

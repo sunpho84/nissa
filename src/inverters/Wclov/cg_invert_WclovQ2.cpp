@@ -3,7 +3,7 @@
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "base/debug.hpp"
-#include "dirac_operators/dirac_operator_WclovQ2/dirac_operator_WclovQ2.hpp"
+#include "dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 

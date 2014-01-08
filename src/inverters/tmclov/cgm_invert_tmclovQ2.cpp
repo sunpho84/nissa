@@ -4,7 +4,7 @@
 #include "communicate/communicate.hpp"
 #include "base/vectors.hpp"
 #include "base/debug.hpp"
-#include "dirac_operators/dirac_operator_tmclovQ2/dirac_operator_tmclovQ2.hpp"
+#include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 

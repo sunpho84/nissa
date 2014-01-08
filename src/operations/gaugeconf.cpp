@@ -262,7 +262,7 @@ namespace nissa
   }
   
   //cool the configuration
-  THREADABLE_FUNCTION_3ARG(cool_conf, quad_su3**,eo_conf, int,over_flag, double,over_exp)
+  THREADABLE_FUNCTION_3ARG(cool_eo_conf, quad_su3**,eo_conf, int,over_flag, double,over_exp)
   {
     GET_THREAD_ID();
     
@@ -275,7 +275,7 @@ namespace nissa
 	    {
 	      //find the transformation
 	      su3 u;
-	      su3_find_cooled(u,eo_conf,par,ieo,mu);
+	      su3_find_cooled_eo_conf(u,eo_conf,par,ieo,mu);
 	      
 	      //overrelax if needed
 	      if(over_flag)
@@ -298,6 +298,46 @@ namespace nissa
 	  
 	  //now set the borders invalid: since we split conf in e/o, only now needed
 	  set_borders_invalid(eo_conf[par]);
+	}
+  }}
+  THREADABLE_FUNCTION_3ARG(cool_lx_conf, quad_su3*,lx_conf, int,over_flag, double,over_exp)
+  {
+    GET_THREAD_ID();
+    
+    //loop on parity and directions
+    for(int mu=0;mu<4;mu++)
+      for(int par=0;par<2;par++)
+	{
+	  communicate_lx_quad_su3_edges(lx_conf);
+	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	    {
+	      int ivol=loclx_of_loceo[par][ieo];
+	      
+	      //find the transformation
+	      su3 u;
+	      su3_find_cooled_lx_conf(u,lx_conf,ivol,mu);
+	      
+	      //overrelax if needed
+	      if(over_flag)
+		{
+		  //find the transformation
+		  su3 temp1;
+		  unsafe_su3_prod_su3_dag(temp1,u,lx_conf[ivol][mu]);
+		  
+		  //exponentiate it and re-unitarize
+		  su3 temp2;
+		  su3_overrelax(temp2,temp1,over_exp);
+		  
+		  //find the transformed link
+		  unsafe_su3_prod_su3(u,temp2,lx_conf[ivol][mu]);
+		}
+	      
+	      //change the link
+	      su3_copy(lx_conf[ivol][mu],u);
+	    }
+	  
+	  //now set the borders invalid: since we split conf in e/o, only now needed
+	  set_borders_invalid(lx_conf);
 	}
   }}
   
@@ -347,7 +387,7 @@ namespace nissa
     verbosity_lv2_master_printf("Deviation from unitarity of the configuration: %lg average, %lg max\n",glb_avg,glb_max);
   }
 
-  //perform a unitarity check on a lx conf
+  //unitarize an a lx conf
   THREADABLE_FUNCTION_1ARG(unitarize_lx_conf, quad_su3*,conf)
   {
     GET_THREAD_ID();

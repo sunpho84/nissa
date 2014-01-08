@@ -7,7 +7,7 @@
 #include "communicate/communicate.hpp"
 #include "base/global_variables.hpp"
 
-#include "dirac_operator_WclovQ/dirac_operator_WclovQ.hpp"
+#include "../WclovQ/dirac_operator_WclovQ.hpp"
 
 namespace nissa
 {

@@ -5,7 +5,7 @@
 #include "cg_invert_evn_stD.hpp"
 
 #include "base/global_variables.hpp"
-#include "dirac_operators/dirac_operator_stD/dirac_operator_stD.hpp"
+#include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 

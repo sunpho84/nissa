@@ -21,8 +21,7 @@ namespace nissa
   //compute the staples along a particular dir, for a single site
   void compute_point_summed_squared_staples_eo_conf_single_dir(su3 staple,quad_su3 **eo_conf,int A,int mu)
   {
-    if(!check_edges_valid(eo_conf[0])||!check_edges_valid(eo_conf[1]))
-      crash("../communicate/communicate edges externally");
+    if(!check_edges_valid(eo_conf[0])||!check_edges_valid(eo_conf[1])) crash("communicate edges externally");
     
     su3_put_to_zero(staple);
     
@@ -44,10 +43,35 @@ namespace nissa
 	  su3_summ(staple,staple,temp2);
 	}
   }
+  void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,int A,int mu)
+  {
+    if(!check_edges_valid(lx_conf)) crash("communicate edges externally");
+    
+    su3_put_to_zero(staple);
+    
+    su3 temp1,temp2;
+    for(int nu=0;nu<4;nu++)                   //  E---F---C   
+      if(nu!=mu)                              //  |   |   | mu
+	{                                     //  D---A---B   
+	  int B=loclx_neighup[A][nu];         //        nu    
+	  int F=loclx_neighup[A][mu];
+	  unsafe_su3_prod_su3(    temp1,lx_conf[A][nu],lx_conf[B][mu]);
+	  unsafe_su3_prod_su3_dag(temp2,temp1,         lx_conf[F][nu]);
+	  su3_summ(staple,staple,temp2);
+	  
+	  int D=loclx_neighdw[A][nu];
+	  int E=loclx_neighup[D][mu];
+	  unsafe_su3_dag_prod_su3(temp1,lx_conf[D][nu],lx_conf[D][mu]);
+	  unsafe_su3_prod_su3(    temp2,temp1,         lx_conf[E][nu]);
+	  su3_summ(staple,staple,temp2);
+	}
+  }
   
   //compute the staples along all the four dirs
   void compute_point_summed_squared_staples_eo_conf(quad_su3 staple,quad_su3 **eo_conf,int A)
   {for(int mu=0;mu<4;mu++) compute_point_summed_squared_staples_eo_conf_single_dir(staple[mu],eo_conf,A,mu);}
+  void compute_point_summed_squared_staples_lx_conf(quad_su3 staple,quad_su3 *lx_conf,int A)
+  {for(int mu=0;mu<4;mu++) compute_point_summed_squared_staples_lx_conf_single_dir(staple[mu],lx_conf,A,mu);}
   
   //compute the summ of all the staples for the whole conf
   THREADABLE_FUNCTION_2ARG(compute_summed_squared_staples_eo_conf, quad_su3**,F, quad_su3**,eo_conf)

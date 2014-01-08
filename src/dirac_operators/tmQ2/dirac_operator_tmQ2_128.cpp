@@ -8,7 +8,7 @@
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
 
-#include "dirac_operator_tmQ/dirac_operator_tmQ_128.hpp"
+#include "../tmQ/dirac_operator_tmQ_128.hpp"
 
 namespace nissa
 {

@@ -192,19 +192,6 @@ AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 AC_CONFIG_FILES(
 	Makefile
 	src/Makefile
-	src/base/Makefile
-	src/bgq/Makefile
-	src/communicate/Makefile
-	src/dirac_operators/Makefile
-	src/geometry/Makefile
-	src/gpu/Makefile
-	src/hmc/Makefile
-	src/inverters/Makefile
-	src/io/Makefile
-	src/linalgs/Makefile
-	src/new_types/Makefile
-	src/operations/Makefile
-	src/routines/Makefile
 	projects/Makefile
 	projects/eight_BK/Makefile
 	projects/generate_confs/Makefile
