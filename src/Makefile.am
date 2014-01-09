@@ -363,6 +363,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
         operations/smearing/gaussian.cpp \
         operations/su3_paths/all_rectangles.cpp \
         operations/su3_paths/arbitrary.cpp \
+	operations/su3_paths/gauge_sweep.cpp \
 	operations/su3_paths/hypercubic_transfer.cpp \
         operations/su3_paths/plaquette.cpp \
         operations/su3_paths/pline.cpp \

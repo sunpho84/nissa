@@ -43,13 +43,6 @@ int store_conf_each;
 int store_running_temp_conf;
 int seed;
 
-//communications and building
-int max_cached_link=0,max_sending_link=0;
-//int nlinks_per_paths_site=3*2*(3+5*3)-3*8+2;
-//coords box_size[16];
-//int nsite_per_box[16];
-//int nsite_per_box_dir_par[16*4*4];
-
 //bench
 double base_init_time=0;
 double comm_time=0;
@@ -59,41 +52,7 @@ double read_time=0;
 double write_time=0;
 double unitarize_time=0;
 
-struct gauge_sweep_t
-{
-  int comm_init_time;
-  int nlinks_per_paths_site;
-  int gpar;
-  int *ilink_per_paths;
-  int *nsite_per_box_dir_par;
-  int *ivol_of_box_dir_par;
-  all_to_all_comm_t *box_comm[16];
-  gauge_sweep_t(int nlinks_per_paths_site,int gpar);
-  void init_box_dir_par_geometry();
-  void init_paths();
-  ~gauge_sweep_t();
-private:
-  gauge_sweep_t();
-};
-
 gauge_sweep_t *tlSym_sweep;
-
-gauge_sweep_t::gauge_sweep_t(int nlinks_per_paths_site,int gpar): nlinks_per_paths_site(nlinks_per_paths_site),gpar(gpar)
-{
-  ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",4*loc_vol,int);
-  ilink_per_paths=nissa_malloc("ilink_per_paths",nlinks_per_paths_site*4*loc_vol,int);  
-  nsite_per_box_dir_par=nissa_malloc("nsite_per_box_dir_par",16*4*gpar,int);
-  
-  comm_init_time=0;
-}
-
-gauge_sweep_t::~gauge_sweep_t()
-{
-  nissa_free(ivol_of_box_dir_par);
-  nissa_free(ilink_per_paths);
-  nissa_free(nsite_per_box_dir_par);
-  for(int ibox=0;ibox<16;ibox++) delete box_comm[ibox];
-}
 
 void measure_gauge_obs(bool );
 
@@ -269,106 +228,15 @@ void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int 
   //8*3 link missing, 2 readded = -22 links
 }
 
-//add all the links needed to compute staple separataly for each box
-THREADABLE_FUNCTION_1ARG(add_tlSym_links_to_paths, all_to_all_gathering_list_t**,gl)
+//compute the parity according to the tlSym requirements
+int tlSym_par(coords ivol_coord,int dir)
 {
-  GET_THREAD_ID();
-  
-  //add the links to paths
-  NISSA_PARALLEL_LOOP(ibox,0,16)
-    {
-      //find base for curr box
-      int ibase=0;
-      for(int jbox=0;jbox<ibox;jbox++) ibase+=nsite_per_box[jbox];
-      ibase*=4;
+  int site_par=0;
+  for(int mu=0;mu<4;mu++) site_par+=((mu==dir)?2:1)*ivol_coord[mu];
 
-      //scan all the elements of sub-box, selecting only those with the good parity
-      for(int dir=0;dir<4;dir++)
-	for(int par=0;par<4;par++)
-	  {	  
-	    for(int ibox_dir_par=ibase;ibox_dir_par<ibase+
-		  tlSym_sweep->nsite_per_box_dir_par[par+4*(dir+4*ibox)];ibox_dir_par++)
-	      {
-		int ivol=tlSym_sweep->ivol_of_box_dir_par[ibox_dir_par];
-		add_tlSym_paths(tlSym_sweep->ilink_per_paths+ibox_dir_par*tlSym_sweep->nlinks_per_paths_site,
-				*(gl[ibox]),ivol,dir);
-	      }
-	    ibase+=tlSym_sweep->nsite_per_box_dir_par[par+4*(dir+4*ibox)];
-	  }
-    }
-  THREAD_BARRIER();
-}}
-
-/*
-  for(int mu=0;mu<4;mu++)
-    {
-      if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
-    }
-*/
-//initialize the geometry of the boxes subdirpar sets
-void gauge_sweep_t::init_box_dir_par_geometry()
-{
-  comm_init_time=-take_time();
+  site_par=site_par%4;
   
-  //find the elements of all boxes
-  int ibox_dir_par=0; //order in the parity-split order
-  for(int ibox=0;ibox<16;ibox++)
-    for(int dir=0;dir<4;dir++)
-      for(int par=0;par<4;par++)
-	{
-	  nsite_per_box_dir_par[par+4*(dir+4*ibox)]=0;
-	  for(int isub=0;isub<nsite_per_box[ibox];isub++)
-	    {
-	      //get coordinates of site
-	      coords isub_coord;
-	      coord_of_lx(isub_coord,isub,box_size[ibox]);
-	      
-	      //get coords in the local size, and parity
-	      coords ivol_coord;
-	      int site_par=0;
-	      for(int mu=0;mu<4;mu++)
-		{
-		  ivol_coord[mu]=box_size[0][mu]*box_coord[ibox][mu]+isub_coord[mu];
-		  site_par+=((mu==dir)?2:1)*ivol_coord[mu];
-		}
-	      site_par=site_par%4;
-	      
-	      //map sites in current parity
-	      if(site_par==par)
-		{
-		  ivol_of_box_dir_par[ibox_dir_par++]=lx_of_coord(ivol_coord,loc_size);
-		  nsite_per_box_dir_par[par+4*(dir+4*ibox)]++;
-		}
-	    }
-	}  
-}
-
-//init the links
-void gauge_sweep_t::init_paths()
-{
-  all_to_all_gathering_list_t *gl[16];
-  for(int ibox=0;ibox<16;ibox++) gl[ibox]=new all_to_all_gathering_list_t;
-  add_tlSym_links_to_paths(gl);
-  
-  //initialize the communicator
-  for(int ibox=0;ibox<16;ibox++)
-    {
-      box_comm[ibox]=new all_to_all_comm_t(*(gl[ibox]));
-      delete gl[ibox];
-    }
-  
-  //compute the maximum number of link to send and receive and allocate buffers
-  for(int ibox=0;ibox<16;ibox++)
-    {
-      max_cached_link=std::max(max_cached_link,box_comm[ibox]->nel_in);
-      max_sending_link=std::max(max_sending_link,box_comm[ibox]->nel_out);
-    }
-  buf_out=nissa_malloc("buf_out",max_sending_link,su3);
-  buf_in=nissa_malloc("buf_in",max_cached_link,su3);
-  
-  //check cached
-  verbosity_lv3_master_printf("Max cached links: %d\n",max_cached_link);
-  if(max_cached_link>bord_vol+edge_vol) crash("larger buffer needed");
+  return site_par;
 }
 
 //initialize the simulation
@@ -436,10 +304,15 @@ void init_simulation(char *path)
   base_init_time+=take_time();
 
   ////////////////////////// allocate stuff ////////////////////////
-   
-  const int nlinks_per_tlSym_paths_site=3*2*(3+5*3)-3*8+2;
-  tlSym_sweep=new gauge_sweep_t(nlinks_per_tlSym_paths_site,4);
   
+  //checking consistency for gauge_sweep initialization
+  for(int mu=0;mu<4;mu++) if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
+  //initialize the tlSym sweeper
+  const int nlinks_per_tlSym_paths_site=3*2*(3+5*3)-3*8+2;
+  tlSym_sweep=new gauge_sweep_t();
+  tlSym_sweep->init_box_dir_par_geometry(4,tlSym_par);
+  tlSym_sweep->init_paths(nlinks_per_tlSym_paths_site,add_tlSym_paths);
+
   //allocate conf and staples
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
 
@@ -472,10 +345,6 @@ void init_simulation(char *path)
       //write initial measures
       measure_gauge_obs(true);
     }  
-  
-  tlSym_sweep->init_box_dir_par_geometry();
-  tlSym_sweep->init_paths();
-  master_printf("Inited\n");
 }
 
 //set to 0 last timeslice
@@ -507,8 +376,6 @@ void close_simulation()
   
   if(!store_running_temp_conf) write_conf();
   nissa_free(conf);
-  nissa_free(buf_out);
-  nissa_free(buf_in);
   
   delete tlSym_sweep;
 }

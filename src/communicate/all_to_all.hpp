@@ -5,6 +5,8 @@
 #include <utility>
 #include <vector>
 
+#include "base/global_variables.hpp"
+
 namespace nissa
 {
   struct all_to_all_gathering_list_t : std::map<int,int> {};
