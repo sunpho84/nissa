@@ -106,7 +106,8 @@ namespace nissa
       }
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //wrappers
   void tmn2Doe_eos(spincolor *out,quad_su3 **conf,spincolor *in){tmn2Deo_or_tmn2Doe_eos(out,conf,1,in);}
@@ -128,7 +129,8 @@ namespace nissa
 	}
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //inverse
   THREADABLE_FUNCTION_4ARG(inv_tmDee_or_oo_eos, spincolor*,out, double,kappa, double,mu, spincolor*,in)
@@ -147,7 +149,8 @@ namespace nissa
 	}
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //implement Koo defined in equation (7) 
   THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos, spincolor*,out, spincolor*,temp, quad_su3**,conf, double,kappa, double,mu, spincolor*,in)
@@ -169,7 +172,8 @@ namespace nissa
 	    }
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //square of Koo
   void tmDkern_eoprec_square_eos(spincolor *out,spincolor *temp1,spincolor *temp2,quad_su3 **conf,double kappa,double mu,spincolor *in)

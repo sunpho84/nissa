@@ -105,7 +105,8 @@ namespace nissa
     nissa_free(temp_128);
     nissa_free(sol_128);
     nissa_free(internal_source);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }
 
 #undef BASETYPE

@@ -169,7 +169,8 @@ namespace nissa
 	  su3_copy(out[Wsklx_of_loclx[loclx_neighup[ibord][mu]]][mu],in[ibord][mu]);
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
 #define DEFINE_lx_remap_to_Wsklx_or_reverse(T)				\
   /*remap a type T from lx to Wsklx layout or reverse*/			\
@@ -193,7 +194,8 @@ namespace nissa
 	vector_copy(ext_out,out);					\
 	nissa_free(out);						\
       }									\
-  }}									\
+  }									\
+  THREADABLE_FUNCTION_END						\
 									\
     void lx_remap_to_Wsklx(T *out,T *in)				\
     {lx_remap_to_Wsklx_or_reverse(out,in,1);}				\

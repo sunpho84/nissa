@@ -66,7 +66,8 @@ namespace nissa
     nissa_free(vec_in);
     
     verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark_content->mass,*eig_max);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //scale the rational expansion
   //assumes that the conf has already stag phases inside
@@ -129,5 +130,6 @@ namespace nissa
 	    master_printf_rat_approx(&(rat_exp_actio[iflav]));
 	  }
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

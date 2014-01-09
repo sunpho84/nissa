@@ -46,7 +46,8 @@ namespace nissa
     
     //free
     nissa_free(chi_e);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //Compute the total action of the rooted staggered e/o improved theory.
   //Passed conf must NOT contain the backfield, but contains the stagphases so remove it.
@@ -80,5 +81,6 @@ namespace nissa
     verbosity_lv1_master_printf("Mom_action: %16.16lg\n",mom_action);
     
     (*tot_action)=quark_action+gluon_action+mom_action;
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

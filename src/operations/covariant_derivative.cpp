@@ -38,10 +38,11 @@ namespace nissa
     nissa_free(temp);                                                   \
                                                                         \
     set_borders_invalid(out);                                           \
-  }}
-
-//instantiate the application function
-APPLY_NABLA_I(spincolor)
-APPLY_NABLA_I(colorspinspin)
-APPLY_NABLA_I(su3spinspin)
+  }									\
+  THREADABLE_FUNCTION_END
+  
+  //instantiate the application function
+  APPLY_NABLA_I(spincolor)
+  APPLY_NABLA_I(colorspinspin)
+  APPLY_NABLA_I(su3spinspin)
 }

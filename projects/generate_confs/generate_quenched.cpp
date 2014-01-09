@@ -13,10 +13,6 @@
 
 using namespace nissa;
 
-enum start_conf_cond_t{UNSPEC_START_COND,HOT,COLD};
-enum update_alg_t{UNSPEC_UP,HEAT,OVER};
-enum boundary_cond_t{UNSPEC_BOUNDARY_COND,PERIODIC,OPEN};
-
 //observables
 char gauge_obs_path[1024];
 char gauge_obs_per_timeslice_path[1024];
@@ -28,13 +24,16 @@ char store_conf_path[1024];
 
 //conf and staples
 quad_su3 *conf;
-su3 *buf_out,*buf_in;
 
 //evol pars
 double beta;
 gauge_action_name_t gauge_action_name;
+gauge_sweeper_t *sweeper;
 pure_gauge_evol_pars_t evol_pars;
 boundary_cond_t boundary_cond=UNSPEC_BOUNDARY_COND;
+double(*compute_action)(double *paths);
+double(*compute_action_per_timeslice)(double *paths,double *paths_per_timeslice);
+int npaths_per_action;
 
 //confs
 int nprod_confs;
@@ -45,14 +44,10 @@ int seed;
 
 //bench
 double base_init_time=0;
-double comm_time=0;
-double comp_time=0;
 double meas_time=0;
 double read_time=0;
 double write_time=0;
 double unitarize_time=0;
-
-gauge_sweep_t *tlSym_sweep;
 
 void measure_gauge_obs(bool );
 
@@ -118,125 +113,55 @@ void read_conf()
   read_time+=take_time();
 }
 
-//add link to the map if needed
-int add_link(all_to_all_gathering_list_t &gat,coords g,int mu)
+//compute action
+double compute_tlSym_action(double *paths)
 {
-  //find rank and local position
-  int ivol,irank;
-  get_loclx_and_rank_of_coord(&ivol,&irank,g);
-  int ilink_asked=4*ivol+mu;
+  //coefficient of rectangles and squares
+  double b1=-1.0/12,b0=1-8*b1;
   
-  //if it is local, return local position
-  if(irank==rank) return ilink_asked;
-  else
-    {
-      int irank_link_asked=ilink_asked*nranks+irank;
-      
-      //if it is non local search it in the list of to-be-gathered
-      all_to_all_gathering_list_t::iterator it=gat.find(irank_link_asked);
-      
-      //if it is already in the list, return its position
-      if(it!=gat.end()) return it->second;
-      else
-        {
-          //otherwise add it to the list of to-be-gathered
-          int nel_gathered=gat.size();
-          int igathered=4*loc_vol+nel_gathered;
-          gat[irank_link_asked]=igathered;
-          
-          return igathered;
-        }
-    }
+  //compute the total action
+  global_plaquette_and_rectangles_lx_conf(paths,conf);
+  return b0*6*glb_vol*(1-paths[0])+b1*12*glb_vol*(1-paths[1]);
 }
 
-//add all links needed for a certain site
-void add_tlSym_paths(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
+//compute action
+double compute_Wilson_action(double *paths)
 {
-  int *c=glb_coord_of_loclx[ivol];      
-  coords A={c[0],c[1],c[2],c[3]};                         //       P---O---N    
-  coords B,C,D,E,F,G,H,I,J,K,L,M,N,O,P;      		  //       |   |   |    
-  //find coord mu					  //   H---G---F---E---D
-  K[mu]=L[mu]=M[mu]=(A[mu]-1+glb_size[mu])%glb_size[mu];  //   |   |   |   |   |
-  I[mu]=J[mu]=B[mu]=C[mu]=A[mu];			  //   I---J---A---B---C
-  D[mu]=E[mu]=F[mu]=G[mu]=H[mu]=(A[mu]+1)%glb_size[mu];	  //       |   |   |    
-  N[mu]=O[mu]=P[mu]=(A[mu]+2)%glb_size[mu];		  //       K---L---M    
-  for(int inu=0;inu<3;inu++)
-    {            
-      int &nu=perp_dir[mu][inu];
-      int &rh=perp2_dir[mu][inu][0];
-      int &si=perp2_dir[mu][inu][1];
-      
-      //find coord rho
-      B[rh]=C[rh]=D[rh]=E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=N[rh]=O[rh]=P[rh]=A[rh];
-      //find coord sigma
-      B[si]=C[si]=D[si]=E[si]=F[si]=G[si]=H[si]=I[si]=J[si]=K[si]=L[si]=M[si]=N[si]=O[si]=P[si]=A[si];
-      //find coord nu
-      H[nu]=I[nu]=(A[nu]-2+glb_size[nu])%glb_size[nu];
-      K[nu]=J[nu]=G[nu]=P[nu]=(I[nu]+1)%glb_size[nu];
-      L[nu]=F[nu]=O[nu]=A[nu];
-      M[nu]=B[nu]=E[nu]=N[nu]=(A[nu]+1)%glb_size[nu];
-      C[nu]=D[nu]=(A[nu]+2)%glb_size[nu];
-      
-      //backward square staple
-      *(ilink_to_be_used++)=add_link(gat,J,nu);
-      *(ilink_to_be_used++)=add_link(gat,J,mu);
-      *(ilink_to_be_used++)=add_link(gat,G,nu);
-      //forward square staple
-      *(ilink_to_be_used++)=add_link(gat,A,nu);
-      *(ilink_to_be_used++)=add_link(gat,B,mu);
-      *(ilink_to_be_used++)=add_link(gat,F,nu);
-      //backward dw rectangle
-      //*(ilink_to_be_used++)=add_link(gat,L,mu); //vertical common link dw (see below)
-      *(ilink_to_be_used++)=add_link(gat,K,nu);
-      *(ilink_to_be_used++)=add_link(gat,K,mu);
-      *(ilink_to_be_used++)=add_link(gat,J,mu);
-      *(ilink_to_be_used++)=add_link(gat,G,nu);
-      //backward backward rectangle
-      *(ilink_to_be_used++)=add_link(gat,J,nu);
-      *(ilink_to_be_used++)=add_link(gat,I,nu);
-      *(ilink_to_be_used++)=add_link(gat,I,mu);
-      *(ilink_to_be_used++)=add_link(gat,H,nu);
-      *(ilink_to_be_used++)=add_link(gat,G,nu);
-      //backward up rectangle
-      //*(ilink_to_be_used++)=add_link(gat,J,nu); //already computed at...
-      //*(ilink_to_be_used++)=add_link(gat,J,mu); //...backward square staple
-      *(ilink_to_be_used++)=add_link(gat,G,mu);
-      *(ilink_to_be_used++)=add_link(gat,P,nu);
-      //*(ilink_to_be_used++)=add_link(gat,F,mu); //vertical common link up (see below)
-      //forward dw rectangle
-      //*(ilink_to_be_used++)=add_link(gat,L,mu); //vertical common link dw (see below)
-      *(ilink_to_be_used++)=add_link(gat,L,nu);
-      *(ilink_to_be_used++)=add_link(gat,M,mu);
-      *(ilink_to_be_used++)=add_link(gat,B,mu);
-      *(ilink_to_be_used++)=add_link(gat,F,nu);
-      //forward forward rectangle
-      *(ilink_to_be_used++)=add_link(gat,A,nu);
-      *(ilink_to_be_used++)=add_link(gat,B,nu);
-      *(ilink_to_be_used++)=add_link(gat,C,mu);
-      *(ilink_to_be_used++)=add_link(gat,E,nu);
-      *(ilink_to_be_used++)=add_link(gat,F,nu);
-      //forward up rectangle
-      //*(ilink_to_be_used++)=add_link(gat,A,nu); //already computed at...
-      //*(ilink_to_be_used++)=add_link(gat,B,mu); //...forward square staple
-      *(ilink_to_be_used++)=add_link(gat,E,mu);
-      *(ilink_to_be_used++)=add_link(gat,O,nu);
-      //*(ilink_to_be_used++)=add_link(gat,F,mu); //vertical common link up (see below)
-    }
-  *(ilink_to_be_used++)=add_link(gat,F,mu); //vertical common link up
-  *(ilink_to_be_used++)=add_link(gat,L,mu); //verical common link dw
-  
-  //8*3 link missing, 2 readded = -22 links
+  //compute the total action
+  global_plaquette_lx_conf(paths,conf);
+  return 6*glb_vol*(1-paths[0]);
 }
 
-//compute the parity according to the tlSym requirements
-int tlSym_par(coords ivol_coord,int dir)
+//compute action
+double compute_tlSym_action_per_timeslice(double *paths,double *paths_per_timeslice)
 {
-  int site_par=0;
-  for(int mu=0;mu<4;mu++) site_par+=((mu==dir)?2:1)*ivol_coord[mu];
-
-  site_par=site_par%4;
+  //coefficient of rectangles and squares
+  double b1=-1.0/12,b0=1-8*b1;
   
-  return site_par;
+  //compute the total action
+  global_plaquette_and_rectangles_lx_conf_per_timeslice(paths_per_timeslice,conf);
+  paths[0]=paths[1]=0;
+  for(int t=0;t<glb_size[0]-1;t++)
+    for(int ip=0;ip<2;ip++)
+     paths[ip]+=paths_per_timeslice[2*t+ip];
+  
+  //normalize
+  for(int ip=0;ip<2;ip++) paths[ip]/=(glb_size[0]-1);
+  
+  return b0*6*glb_vol*(1-paths[0])+b1*12*glb_vol*(1-paths[1]);
+}
+double compute_Wilson_action_per_timeslice(double *paths,double *paths_per_timeslice)
+{
+  //compute the total action
+  global_plaquette_lx_conf_per_timeslice(paths_per_timeslice,conf);
+  paths[0]=0;
+  for(int t=0;t<glb_size[0]-1;t++)
+    paths[0]+=paths_per_timeslice[t];
+  
+  //normalize
+  paths[0]/=(glb_size[0]-1);
+  
+  return 6*glb_vol*(1-paths[0]);
 }
 
 //initialize the simulation
@@ -279,18 +204,18 @@ void init_simulation(char *path)
   char start_conf_cond_str[1024];
   read_str_str("StartConfCond",start_conf_cond_str,1024);
   start_conf_cond_t start_conf_cond=UNSPEC_START_COND;
-  if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT;
-  if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD;
+  if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT_START_COND;
+  if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD_START_COND;
   if(start_conf_cond==UNSPEC_START_COND)
     crash("unknown starting condition %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
   
   //read boundary condition
   char boundary_cond_str[1024];
   read_str_str("BoundaryCond",boundary_cond_str,1024);
-  if(strcasecmp(boundary_cond_str,"PERIODIC")==0) boundary_cond=PERIODIC;
+  if(strcasecmp(boundary_cond_str,"PERIODIC")==0) boundary_cond=PERIODIC_BOUNDARY_COND;
   if(strcasecmp(boundary_cond_str,"OPEN")==0)
     {
-      boundary_cond=OPEN;
+      boundary_cond=OPEN_BOUNDARY_COND;
       read_str_str("GaugeObsPerTimeslicePath",gauge_obs_per_timeslice_path,1024);
     }
   if(boundary_cond==UNSPEC_BOUNDARY_COND)
@@ -305,17 +230,26 @@ void init_simulation(char *path)
 
   ////////////////////////// allocate stuff ////////////////////////
   
-  //checking consistency for gauge_sweep initialization
-  for(int mu=0;mu<4;mu++) if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
-  //initialize the tlSym sweeper
-  const int nlinks_per_tlSym_paths_site=3*2*(3+5*3)-3*8+2;
-  tlSym_sweep=new gauge_sweep_t();
-  tlSym_sweep->init_box_dir_par_geometry(4,tlSym_par);
-  tlSym_sweep->init_paths(nlinks_per_tlSym_paths_site,add_tlSym_paths);
-
+  if(gauge_action_name==Wilson_action)
+    {
+      init_Wilson_sweeper();
+      sweeper=Wilson_sweeper;
+      compute_action=compute_Wilson_action;
+      compute_action_per_timeslice=compute_Wilson_action_per_timeslice;
+      npaths_per_action=1;
+    }
+  else
+    {
+      init_tlSym_sweeper();
+      sweeper=tlSym_sweeper;
+      compute_action=compute_tlSym_action;
+      compute_action_per_timeslice=compute_tlSym_action_per_timeslice;
+      npaths_per_action=2;
+    }
+  
   //allocate conf and staples
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
-
+  
   //load conf or generate it
   if(file_exists(conf_path))
     {
@@ -328,7 +262,7 @@ void init_simulation(char *path)
       start_loc_rnd_gen(seed);
       
       //generate hot or cold conf
-      if(start_conf_cond==HOT)
+      if(start_conf_cond==HOT_START_COND)
 	{
 	  master_printf("File %s not found, generating hot conf\n",conf_path);
 	  generate_hot_lx_conf(conf);
@@ -364,9 +298,9 @@ void close_simulation()
 {
   master_printf("========== Performance report ===========\n");
   master_printf("Basic initialization time: %lg sec\n",base_init_time);
-  master_printf("Communicators initialization time: %lg sec\n",tlSym_sweep->comm_init_time);
-  master_printf("Communication time: %lg sec\n",comm_time);
-  master_printf("Link update time: %lg sec\n",comp_time);
+  master_printf("Communicators initialization time: %lg sec\n",sweeper->comm_init_time);
+  master_printf("Communication time: %lg sec\n",sweeper->comm_time);
+  master_printf("Link update time: %lg sec\n",sweeper->comp_time);
   master_printf("Reunitarization time: %lg sec\n",unitarize_time);
   master_printf("Measurement time: %lg sec\n",meas_time);
   master_printf("Read conf time: %lg sec\n",read_time);
@@ -376,265 +310,20 @@ void close_simulation()
   
   if(!store_running_temp_conf) write_conf();
   nissa_free(conf);
-  
-  delete tlSym_sweep;
 }
-
-/*
-void check()
-{  
-  //////////////////////////// make sure everything is hit ///////////////////////
-  
-  {
-    coords *hit=nissa_malloc("hit",loc_vol,coords);
-    vector_reset(hit);
-    
-    int ibase=0;
-    for(int ibox=0;ibox<16;ibox++)
-      for(int dir=0;dir<4;dir++)
-	for(int par=0;par<4;par++)
-	  {
-	    for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+4*(dir+4*ibox)];ibox_dir_par++)
-	      {
-		int ivol=ivol_of_box_dir_par[ibox_dir_par+ibase];
-		if(ivol>=loc_vol) crash("ibox %d ibox_par %d ibase %d ivol %d",ibox,ibox_dir_par,ibase,ivol);
-		hit[ivol][dir]++;
-	      }
-	    ibase+=nsite_per_box_dir_par[par+4*(dir+4*ibox)];
-	  }
-    
-    for(int ivol=0;ivol<loc_vol;ivol++)
-      for(int mu=0;mu<4;mu++)
-	if(hit[ivol][mu]!=1) crash("missing hit ivol %d mu %d",ivol,mu);
-    
-    nissa_free(hit);
-  }
-  
-  //////////////////////////// make sure everything is hit in the appropriate order ///////////////////////
-
-  {
-    int *hit=nissa_malloc("hit",4*loc_vol+max_cached_link,int);
-    int ibase=0;
-    for(int ibox=0;ibox<16;ibox++)
-      for(int dir=0;dir<4;dir++)
-	for(int par=0;par<4;par++)
-	  {
-	    vector_reset(hit);
-	    for(int iter=0;iter<2;iter++)
-	      //at first iter mark all site updating
-	      //at second iter check that none of them is internally used
-	      for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+4*(dir+4*ibox)];ibox_dir_par++)
-		{
-		  int ivol=ivol_of_box_dir_par[ibox_dir_par+ibase];
-		  
-		  if(iter==0)
-		    {
-		      hit[dir+4*ivol]=par+1;
-
-		      if(0)
-			printf("ibox %d dir %d par %d hitting %d, ivol %d{%d,%d,%d,%d};%d\n",
-			       ibox,dir,par,
-			       dir+4*ivol,ivol,
-			       loc_coord_of_loclx[ivol][0],
-			       loc_coord_of_loclx[ivol][1],
-			       loc_coord_of_loclx[ivol][2],
-			       loc_coord_of_loclx[ivol][3],
-			       dir);
-		    }
-		  else
-		    for(int ihit=0;ihit<nlinks_per_paths_site;ihit++)
-		      {
-			int link=ilink_per_paths[ihit+nlinks_per_paths_site*(ibox_dir_par+ibase)];
-			if(link>=4*loc_vol+max_cached_link)
-			  crash("ibox %d ibox_dir_par %d ibase %d ihit %d, link %d, max_cached_link %d",
-				ibox,ibox_dir_par,ibase,ihit,link,max_cached_link);
-			
-			if(0)
-			printf("ibox %d dir %d par %d link[%d], ivol %d{%d,%d,%d,%d}: %d,%d,%d,%d;%d\n",
-			       ibox,dir,par,ihit,
-			       ivol,
-			       loc_coord_of_loclx[ivol][0],
-			       loc_coord_of_loclx[ivol][1],
-			       loc_coord_of_loclx[ivol][2],
-			       loc_coord_of_loclx[ivol][3],
-			       link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][0],
-			       link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][1],
-			       link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][2],
-			       link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][3],
-			       link>=4*loc_vol?-1:link%4);
-			
-			if(hit[link]!=0) crash("ivol %d:{%d,%d,%d,%d} ibox %d dir %d par %d ihit %d link %d" 
-					       "[site %d:{%d,%d,%d,%d},dir %d]: par %d",
-					       ivol,
-					       loc_coord_of_loclx[ivol][0],
-					       loc_coord_of_loclx[ivol][1],
-					       loc_coord_of_loclx[ivol][2],
-					       loc_coord_of_loclx[ivol][3],
-					       ibox,dir,par,ihit,link,link/4,
-					       link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][0],
-					       link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][1],
-					       link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][2],
-					       link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][3],
-					       link%4,hit[link]-1);
-		      }
-		}	  
-            ibase+=nsite_per_box_dir_par[par+4*(dir+4*ibox)];
-	  }
-    
-    nissa_free(hit);
-  }
-}
-*/
-
-//compute the summ of the staples pointed by "ilinks"
-void compute_tlSym_staples(su3 staples,su3 *links,int *ilinks)
-{
-  su3 squares,rectangles,up_rectangles,dw_rectangles;
-  su3_put_to_zero(squares);
-  su3_put_to_zero(rectangles);
-  su3_put_to_zero(up_rectangles);
-  su3_put_to_zero(dw_rectangles);
-  
-  const int PARTIAL=2;
-  for(int inu=0;inu<3;inu++)
-    {  
-      su3 hb;
-      //backward square staple
-      unsafe_su3_dag_prod_su3(hb,links[ilinks[ 0]],links[ilinks[ 1]]);
-      su3_summ_the_prod_su3(squares,hb,links[ilinks[ 2]]);
-      //forward square staple
-      su3 hf;
-      unsafe_su3_prod_su3(hf,links[ilinks[ 3]],links[ilinks[ 4]]);
-      su3_summ_the_prod_su3_dag(squares,hf,links[ilinks[ 5]]);
-      
-      su3 temp1,temp2;
-      //backward dw rectangle
-      unsafe_su3_dag_prod_su3(temp2,links[ilinks[ 6]],links[ilinks[ 7]],PARTIAL);
-      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[ 8]],PARTIAL);
-      su3_build_third_row(temp1);
-      su3_summ_the_prod_su3(dw_rectangles,temp1,links[ilinks[9]]);
-      //backward backward rectangle
-      unsafe_su3_dag_prod_su3_dag(temp1,links[ilinks[10]],links[ilinks[11]],PARTIAL);
-      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[12]],PARTIAL);
-      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[13]],PARTIAL);
-      su3_build_third_row(temp1);
-      su3_summ_the_prod_su3(rectangles,temp1,links[ilinks[14]]);
-      //backward up rectangle
-      unsafe_su3_prod_su3(temp2,hb,links[ilinks[15]]);
-      su3_summ_the_prod_su3(up_rectangles,temp2,links[ilinks[16]]);
-      //forward dw rectangle
-      unsafe_su3_prod_su3(temp2,links[ilinks[17]],links[ilinks[18]],PARTIAL);
-      unsafe_su3_prod_su3(temp1,temp2,links[ilinks[19]],PARTIAL);
-      su3_build_third_row(temp1);
-      su3_summ_the_prod_su3_dag(dw_rectangles,temp1,links[ilinks[20]]);
-      //forward forward rectangle
-      unsafe_su3_prod_su3(temp1,links[ilinks[21]],links[ilinks[22]],PARTIAL);
-      unsafe_su3_prod_su3(temp2,temp1,links[ilinks[23]],PARTIAL);
-      unsafe_su3_prod_su3_dag(temp1,temp2,links[ilinks[24]],PARTIAL);
-      su3_build_third_row(temp1);
-      su3_summ_the_prod_su3_dag(rectangles,temp1,links[ilinks[25]]);
-      //forward up rectangle
-      unsafe_su3_prod_su3(temp2,hf,links[ilinks[26]]);
-      su3_summ_the_prod_su3_dag(up_rectangles,temp2,links[ilinks[27]]);
-
-      ilinks+=28;
-    }
-  
-  //close the two partial rectangles
-  su3_summ_the_prod_su3_dag(rectangles,up_rectangles,links[ilinks[ 0]]);
-  su3_summ_the_dag_prod_su3(rectangles,links[ilinks[ 1]],dw_rectangles);
-  
-  //compute the summed staples
-  double b1=-1.0/12,b0=1-8*b1;
-  su3_linear_comb(staples,squares,b0,rectangles,b1);
-}
-
-//compute action
-double compute_tlSym_action(complex paths)
-{
-  //coefficient of rectangles and squares
-  double b1=-1.0/12,b0=1-8*b1;
-  
-  //compute the total action
-  global_plaquette_and_rectangles_lx_conf(paths,conf);
-  return (b0*6*glb_vol*(1-paths[RE])+b1*12*glb_vol*(1-paths[IM]))*beta;
-}
-
-//compute action
-double compute_tlSym_action_per_timeslice(complex paths,complex *paths_per_timeslice)
-{
-  //coefficient of rectangles and squares
-  double b1=-1.0/12,b0=1-8*b1;
-  
-  //compute the total action
-  global_plaquette_and_rectangles_lx_conf_per_timeslice(paths_per_timeslice,conf);
-  paths[0]=paths[1]=0;
-  for(int t=0;t<glb_size[0]-1;t++)
-    complex_summassign(paths,paths_per_timeslice[t]);
-  complex_prodassign_double(paths,1.0/(glb_size[0]-1));
-  
-  return (b0*6*glb_vol*(1-paths[RE])+b1*12*glb_vol*(1-paths[IM]))*beta;
-}
-
-//updated all sites with heat-bath or overrelaxation
-THREADABLE_FUNCTION_4ARG(sweep_conf, update_alg_t,update_alg, quad_su3*,conf, void*,buf_out, void*,buf_in)
-{
-  GET_THREAD_ID();
-  
-  int ibase=0;
-  for(int ibox=0;ibox<16;ibox++)
-    {
-      //communicate needed links
-      if(IS_MASTER_THREAD) comm_time-=take_time();
-      tlSym_sweep->box_comm[ibox]->communicate(conf,conf,sizeof(su3),buf_out,buf_in);
-      if(IS_MASTER_THREAD) comm_time+=take_time();
-      
-      if(IS_MASTER_THREAD) comp_time-=take_time();
-      for(int dir=0;dir<4;dir++)
-	for(int par=0;par<4;par++)
-	  {
-	    //scan all the box
-	    int nbox_dir_par=tlSym_sweep->nsite_per_box_dir_par[par+4*(dir+4*ibox)];
-	    NISSA_PARALLEL_LOOP(ibox_dir_par,ibase,ibase+nbox_dir_par)
-	      {
-		//compute the staples
-		su3 staples;
-		compute_tlSym_staples(staples,(su3*)conf,
-				      tlSym_sweep->ilink_per_paths+tlSym_sweep->nlinks_per_paths_site*ibox_dir_par);
-		
-		//find new link
-		int ivol=tlSym_sweep->ivol_of_box_dir_par[ibox_dir_par];
-		
-		su3 new_link;
-		if(update_alg==HEAT)
-		  su3_find_heatbath(new_link,conf[ivol][dir],staples,beta,evol_pars.nhb_hits,loc_rnd_gen+ivol);
-		else
-		  su3_find_overrelaxed(new_link,conf[ivol][dir],staples,evol_pars.nov_hits);
-		
-		//copy new link
-		su3_copy(conf[ivol][dir],new_link);
-	      }
-	    
-	    //increment the box-dir-par subset
-	    ibase+=nbox_dir_par;
-	    THREAD_BARRIER();
-	  }
-      if(IS_MASTER_THREAD) comp_time+=take_time();
-    }
-  
-  set_borders_invalid(conf);
-}}
 
 //heatbath or overrelax algorithm for the quenched simulation case, Wilson action
-void generate_new_conf(quad_su3 *conf,void *buf_out,void *buf_in,int check=0)
+void generate_new_conf(quad_su3 *conf,int check=0)
 {
   //number of hb sweeps
-  for(int ihb_sweep=0;ihb_sweep<evol_pars.nhb_sweeps;ihb_sweep++) sweep_conf(HEAT,conf,buf_out,buf_in);
+  for(int isweep=0;isweep<evol_pars.nhb_sweeps;isweep++) sweeper->sweep_conf(conf,HEATBATH,beta,evol_pars.nhb_hits);
+  
   //numer of overrelax sweeps
-  double paths[2];
-  double action_pre=0;
+  double paths[2],action_pre=0;
   if(check&&evol_pars.nov_sweeps) action_pre=compute_tlSym_action(paths);
-  for(int iov_sweep=0;iov_sweep<evol_pars.nov_sweeps;iov_sweep++) sweep_conf(OVER,conf,buf_out,buf_in);
+  for(int isweep=0;isweep<evol_pars.nov_sweeps;isweep++) sweeper->sweep_conf(conf,OVERRELAX,beta,evol_pars.nov_hits);
+  
+  //check action variation
   if(check&&evol_pars.nov_sweeps)
     {
       double action_post=compute_tlSym_action(paths);
@@ -644,7 +333,7 @@ void generate_new_conf(quad_su3 *conf,void *buf_out,void *buf_in,int check=0)
   
   unitarize_time-=take_time();
   unitarize_lx_conf(conf);
-  if(boundary_cond==OPEN) impose_open_boundary_cond(conf);
+  if(boundary_cond==OPEN_BOUNDARY_COND) impose_open_boundary_cond(conf);
   unitarize_time+=take_time();
 }
 
@@ -659,21 +348,28 @@ void measure_gauge_obs(bool conf_created=false)
   //compute action
   double time_action=-take_time();
   double paths[2];
-  complex paths_per_timeslice[glb_size[0]];
-  double action=(boundary_cond==OPEN)?compute_tlSym_action_per_timeslice(paths,paths_per_timeslice):
-    compute_tlSym_action(paths);
+  double paths_per_timeslice[glb_size[0]*npaths_per_action];
+  double action=(boundary_cond==OPEN_BOUNDARY_COND)?compute_action_per_timeslice(paths,paths_per_timeslice):
+    compute_action(paths);
   master_printf("Action: %015.15lg measured in %lg sec\n",action,time_action+take_time());
 
-  master_fprintf(file,"%6d\t%015.15lg\t%015.15lg\t%015.15lg\n",iconf,action,paths[0],paths[1]);
+  master_fprintf(file,"%6d\t%015.15lg",iconf,action);
+  for(int ipath=0;ipath<npaths_per_action;ipath++) master_fprintf(file,"\t%015.15lg",paths[ipath]);
+  master_fprintf(file,"\n");
   
   close_file(file);
   meas_time+=take_time();
 
-  if(boundary_cond==OPEN)
+  if(boundary_cond==OPEN_BOUNDARY_COND)
     {
       file=open_file(gauge_obs_per_timeslice_path,conf_created?"w":"a");
       for(int t=0;t<glb_size[0];t++)
-	master_fprintf(file,"%d %d %15.15lg %015.15lg\n",iconf,t,paths_per_timeslice[t][0],paths_per_timeslice[t][1]);
+	{
+	  master_fprintf(file,"%d %d ",iconf,t);
+	  for(int ipath=0;ipath<npaths_per_action;ipath++)
+	    master_fprintf(file,"%15.15lg \n",iconf,t,paths_per_timeslice[t*npaths_per_action+ipath]);
+	  master_fprintf(file,"\n");
+	}
       close_file(file);
     }
 }
@@ -713,7 +409,7 @@ void in_main(int narg,char **arg)
 	  
 	  //one conf every 100 is checked: action must not change when doing ov
 	  int check_over_relax=(iconf%100==0);
-	  generate_new_conf(conf,buf_out,buf_in,check_over_relax);
+	  generate_new_conf(conf,check_over_relax);
 	  gen_time+=take_time();
 	  master_printf("Generate new conf in %lg sec\n",gen_time);
 	  nprod_confs++;

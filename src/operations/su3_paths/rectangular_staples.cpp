@@ -231,7 +231,8 @@ namespace nissa
     rectangular_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,thread_id);
     
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //summ everything together
   THREADABLE_FUNCTION_3ARG(compute_summed_rectangular_staples_lx_conf, quad_su3*,out, quad_su3*,conf, squared_staples_t*,squared_staples)
@@ -252,5 +253,6 @@ namespace nissa
 	}
     
     nissa_free(rectangular_staples);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

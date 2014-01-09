@@ -83,7 +83,8 @@ namespace nissa
     
     //final sync
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //summ the eight contributions, divide by two and subtract from the diagonal squared mass term
   THREADABLE_FUNCTION_3ARG(hopping_matrix_eo_or_eo_expand_to_D_subtract_from_mass2_times_in, bi_color*,out, double,mass2, bi_color*,in)
@@ -139,7 +140,8 @@ namespace nissa
     
     //final sync
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   THREADABLE_FUNCTION_5ARG(apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm, bi_oct_su3**,conf, int,istart, int,iend, bi_color*,in, int,oe_or_eo)
   {
@@ -177,7 +179,8 @@ namespace nissa
       }
 
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //if virtual parallelized dir is really parallelized, fill send buffers
   THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_buff_fill)
@@ -238,7 +241,8 @@ namespace nissa
 	}
     
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //pick data from vbuffer and put it in correct position
   THREADABLE_FUNCTION_0ARG(bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_local_transpose)
@@ -283,7 +287,8 @@ namespace nissa
 	}
     
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //perform communications between VN and start all the communications between nodes
   THREADABLE_FUNCTION_0ARG(start_staggered_hopping_matrix_oe_or_eo_bgq_communications)
@@ -296,7 +301,8 @@ namespace nissa
     
     //if v dir is not parallelized we have only to transpose between VN, and no real communication happens
     if(!paral_dir[vnode_paral_dir]) bgq_staggered_hopping_matrix_oe_or_eo_vdir_VN_local_transpose();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //finish the communications and put in place the communicated data
   THREADABLE_FUNCTION_1ARG(finish_staggered_hopping_matrix_oe_or_eo_bgq_communications, int,oe_or_eo)
@@ -399,5 +405,6 @@ namespace nissa
       }
     
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

@@ -23,5 +23,6 @@ namespace nissa
 	    herm_put_to_gauss(H[par][ivol][mu],&(loc_rnd_gen[loclx_of_loceo[par][ivol]]),1);
 	set_borders_invalid(H[par]);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

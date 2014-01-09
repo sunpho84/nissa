@@ -54,5 +54,6 @@ namespace nissa
     nissa_free(rectangular_staples);
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

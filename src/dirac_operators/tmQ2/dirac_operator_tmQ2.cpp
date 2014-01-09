@@ -31,7 +31,8 @@ namespace nissa
     else apply_tmQ_left(out,conf,kappa,-mu,temp);
     
     if(ext_temp==NULL) nissa_free(temp);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //wrappers
   void apply_tmQ2_m2_RL(spincolor *out,quad_su3 *conf,double kappa,spincolor *temp,int RL,double m2,spincolor *in)

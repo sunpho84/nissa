@@ -138,5 +138,6 @@ namespace nissa
       }
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

@@ -114,7 +114,8 @@ namespace nissa
       }
     
     THREAD_BARRIER();    
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //if virtual parallelized dir is really parallelized, fill send buffers
   THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_lx_vdir_VN_comm_and_buff_fill)
@@ -175,7 +176,8 @@ namespace nissa
 	}
     
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //pick data from vbuffer and put it in correct position
   THREADABLE_FUNCTION_0ARG(bgq_Wilson_hopping_matrix_lx_vdir_VN_transpose)
@@ -221,7 +223,8 @@ namespace nissa
 	}
     
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //perform communications between VN and start all the communications between nodes
   THREADABLE_FUNCTION_0ARG(start_Wilson_hopping_matrix_lx_bgq_communications)
@@ -234,7 +237,8 @@ namespace nissa
     
     //if v dir is not parallelized we have only to transpose between VN, and no real communication happens
     if(!paral_dir[vnode_paral_dir]) bgq_Wilson_hopping_matrix_lx_vdir_VN_transpose();  
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //finish the communications and put in place the communicated data
   THREADABLE_FUNCTION_0ARG(finish_Wilson_hopping_matrix_lx_bgq_communications)
@@ -334,5 +338,6 @@ namespace nissa
 	}
     
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

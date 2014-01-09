@@ -36,7 +36,8 @@ namespace nissa
 	    safe_su3_hermitian_prod_double(F[par][ivol][mu],F[par][ivol][mu],r);
 	set_borders_invalid(F[par]);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //lx version
   THREADABLE_FUNCTION_3ARG(Wilson_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta)
@@ -53,5 +54,6 @@ namespace nissa
 	safe_su3_hermitian_prod_double(out[ivol][mu],out[ivol][mu],r);
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

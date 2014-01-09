@@ -74,7 +74,8 @@ namespace nissa
       }
     
     nissa_free(temp_conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
   {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,1,4);}

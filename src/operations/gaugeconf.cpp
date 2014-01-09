@@ -299,7 +299,8 @@ namespace nissa
 	  //now set the borders invalid: since we split conf in e/o, only now needed
 	  set_borders_invalid(eo_conf[par]);
 	}
-  }}
+  }
+  THREADABLE_FUNCTION_END
   THREADABLE_FUNCTION_3ARG(cool_lx_conf, quad_su3*,lx_conf, int,over_flag, double,over_exp)
   {
     GET_THREAD_ID();
@@ -339,7 +340,8 @@ namespace nissa
 	  //now set the borders invalid: since we split conf in e/o, only now needed
 	  set_borders_invalid(lx_conf);
 	}
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //heatbath or overrelax algorithm for the quenched simulation case
   void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over)
@@ -400,5 +402,6 @@ namespace nissa
 	  su3_copy(conf[ivol][idir],t);
 	}
     set_borders_invalid(conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

@@ -54,7 +54,8 @@ namespace nissa
       }									\
     									\
     THREAD_BARRIER();							\
-  }}
+  }									\
+  THREADABLE_FUNCTION_END
 
 //this function takes care to make the revert on the FIRST spinor, putting the needed gamma5
 #define DEFINE_MESON_TWO_POINTS_WILSON_PROP(TYPE,SHORTTYPE)		\
@@ -74,9 +75,9 @@ namespace nissa
     NAME4(trace_g,SHORTTYPE,dag_g,SHORTTYPE)(corr,loc_corr,tsource,s1,tsink,s2,ncontr); \
   }
 
-DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(colorspinspin,css)
-DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(su3spinspin,ccss)
-
-DEFINE_MESON_TWO_POINTS_WILSON_PROP(colorspinspin,css)
-DEFINE_MESON_TWO_POINTS_WILSON_PROP(su3spinspin,ccss)
+  DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(colorspinspin,css)
+  DEFINE_TWO_POINTS_MESON_ROUTINES_FOR_TYPE(su3spinspin,ccss)
+  
+  DEFINE_MESON_TWO_POINTS_WILSON_PROP(colorspinspin,css)
+  DEFINE_MESON_TWO_POINTS_WILSON_PROP(su3spinspin,ccss)
 }

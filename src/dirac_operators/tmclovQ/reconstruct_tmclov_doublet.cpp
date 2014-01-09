@@ -26,5 +26,6 @@ namespace nissa
     
     set_borders_invalid(outminus);
     set_borders_invalid(outplus);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

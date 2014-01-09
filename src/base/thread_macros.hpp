@@ -519,6 +519,8 @@ inline void thread_barrier_internal()
 
 #endif //use_threads
 
+#define THREADABLE_FUNCTION_END }
+
 #define FORM_TWO_THREAD_TEAMS()						\
   bool is_in_first_team,is_in_second_team;				\
   unsigned int nthreads_in_team,thread_in_team_id;			\

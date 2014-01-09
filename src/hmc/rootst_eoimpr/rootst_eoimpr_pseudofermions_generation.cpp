@@ -31,5 +31,6 @@ namespace nissa
     rem_backfield_from_conf(conf,u1b);
     
     nissa_free(pf_hb_vec);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

@@ -340,7 +340,8 @@ namespace nissa
 	  }
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   THREADABLE_FUNCTION_2ARG(virlx_conf_remap_to_lx, quad_su3*,ext_out, bi_oct_su3*,in)
   {
@@ -365,7 +366,8 @@ namespace nissa
 	vector_copy(ext_out,out);
 	nissa_free(out);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //similar for eo
   THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
@@ -399,7 +401,8 @@ namespace nissa
 	  }
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //similar for evn or odd
   THREADABLE_FUNCTION_2ARG(eo_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3**,in)
@@ -438,7 +441,8 @@ namespace nissa
     
     set_borders_invalid(out[EVN]);
     set_borders_invalid(out[ODD]);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //remap a spincolor from lx to virlx layout
   THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_virlx, bi_spincolor*,ext_out, spincolor*,in)
@@ -462,7 +466,8 @@ namespace nissa
 	vector_copy(ext_out,out);
 	nissa_free(out);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_2ARG(virlx_spincolor_remap_to_lx, spincolor*,ext_out, bi_spincolor*,in)
   {
@@ -486,7 +491,8 @@ namespace nissa
 	vector_copy(ext_out,out);
 	nissa_free(out);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //remap a spincolor_128 from lx to virlx layout
   THREADABLE_FUNCTION_2ARG(lx_spincolor_128_remap_to_virlx, bi_spincolor_128*,ext_out, spincolor_128*,in)
@@ -510,7 +516,8 @@ namespace nissa
 	vector_copy(ext_out,out);
 	nissa_free(out);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_2ARG(virlx_spincolor_128_remap_to_lx, spincolor_128*,ext_out, bi_spincolor_128*,in)
   {
@@ -534,7 +541,8 @@ namespace nissa
 	vector_copy(ext_out,out);
 	nissa_free(out);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //remap a spincolor from lx to vireo layout
   THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_vireo, bi_spincolor**,out, spincolor*,in)
@@ -548,7 +556,8 @@ namespace nissa
     //wait filling
     set_borders_invalid(out[EVN]);
     set_borders_invalid(out[ODD]);
-  }}
+  }
+  THREADABLE_FUNCTION_END
  //reverse
   THREADABLE_FUNCTION_2ARG(vireo_spincolor_remap_to_lx, spincolor*,out, bi_spincolor**,in)
   {
@@ -563,7 +572,8 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //remap a color from lx to vireo layout
   THREADABLE_FUNCTION_2ARG(lx_color_remap_to_vireo, bi_color**,out, color*,in)
@@ -577,7 +587,8 @@ namespace nissa
     //wait filling
     set_borders_invalid(out[EVN]);
     set_borders_invalid(out[ODD]);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_2ARG(vireo_color_remap_to_lx, color*,out, bi_color**,in)
   {
@@ -591,7 +602,8 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //only even or odd
   THREADABLE_FUNCTION_3ARG(evn_or_odd_color_remap_to_virevn_or_odd, bi_color*,out, color*,in, int,par)
@@ -604,7 +616,8 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);  
-  }}
+  }
+  THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_3ARG(virevn_or_odd_color_remap_to_evn_or_odd, color*,out, bi_color*,in, int,par)
   {
@@ -617,7 +630,8 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //set virtual geometry
   void set_vir_geometry()

@@ -34,7 +34,8 @@ namespace nissa
     
     //readd
     addrem_stagphases_to_lx_conf(conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //compute only the gauge part
   THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics)
@@ -64,5 +65,6 @@ namespace nissa
 #ifdef BENCH
     if(IS_MASTER_THREAD) glu_comp_time+=take_time();
 #endif
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

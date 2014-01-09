@@ -140,7 +140,8 @@ namespace nissa
     
     //final sync
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   THREADABLE_FUNCTION_5ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, double,mu, bi_spincolor*,in)
   {
@@ -154,5 +155,6 @@ namespace nissa
     
     //put together all the 8 pieces
     hopping_matrix_lx_expand_to_Q_and_summ_diag_term_bgq(out,kappa,mu,in);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

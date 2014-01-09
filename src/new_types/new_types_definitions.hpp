@@ -119,7 +119,13 @@ namespace nissa
   //The three possibilities of quark computation
   enum hmc_force_piece{GAUGE_FORCE_ONLY,QUARK_FORCE_ONLY,BOTH_FORCE_PIECES};
   enum multistep_level{MACRO_STEP,MICRO_STEP};
-  
+  //Starting condition for a gauge conf
+  enum start_conf_cond_t{UNSPEC_START_COND,HOT_START_COND,COLD_START_COND};
+  //Possible algorithms for updating
+  enum quenched_update_alg_t{UNSPEC_UPD,HEATBATH,OVERRELAX,COOL_FULLY,COOL_PARTLY};
+  //Boundary conditions
+  enum boundary_cond_t{UNSPEC_BOUNDARY_COND,PERIODIC_BOUNDARY_COND,OPEN_BOUNDARY_COND};
+
   typedef uint8_t coords_5D[5];
   
   ///////////////////// New structures ////////////////////
@@ -159,6 +165,90 @@ namespace nissa
     
     //padding to keep memory alignment
     char pad[NISSA_VECT_ALIGNMENT-(3*sizeof(int)+2*sizeof(void*)+3*NISSA_VECT_STRING_LENGTH+sizeof(uint32_t))%NISSA_VECT_ALIGNMENT];
+  };
+  
+  //all to all communicators initializing structure
+  struct all_to_all_gathering_list_t : std::map<int,int>
+  {int add_conf_link_for_paths(coords g,int mu);};
+  struct all_to_all_scattering_list_t : std::vector<std::pair<int,int> > {};
+  struct temp_build_t
+  {
+    int *nper_rank_to_temp,*nper_rank_fr_temp;
+    int *out_buf_cur_per_rank,*in_buf_cur_per_rank;
+    std::map<int,int> rank_to_map_list_ranks_to,rank_fr_map_list_ranks_fr;
+    temp_build_t();
+    ~temp_build_t();
+  };
+
+  //all to all communicators
+  struct all_to_all_comm_t
+  {
+    int nel_out,nel_in;
+    int nranks_fr,*list_ranks_fr,*in_buf_dest,*nper_rank_fr,*in_buf_off_per_rank;
+    int nranks_to,*list_ranks_to,*out_buf_source,*nper_rank_to,*out_buf_off_per_rank;
+    
+    all_to_all_comm_t(all_to_all_gathering_list_t &gl);
+    all_to_all_comm_t(all_to_all_scattering_list_t &sl);
+    ~all_to_all_comm_t();
+    void communicate(void *out,void *in,int bps,void *buf_out=NULL,void *buf_in=NULL);
+
+    void setup_knowing_where_to_send(all_to_all_scattering_list_t &sl);
+    void setup_knowing_what_to_ask(all_to_all_gathering_list_t &gl);
+    void setup_nper_rank_ot_temp(int *nper_rank_ot_temp,int *nper_rank_temp);
+    void common_setup_part1(temp_build_t &build);
+    void common_setup_part2(int nel_note,int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,int *nper_rank_note,int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,int *nper_rank_expl);
+    all_to_all_comm_t() {};
+  };
+  
+  //sweep a configuration, possibly using subboxes, each divided in checkboard so to avoid communication problem
+  struct gauge_sweeper_t
+  {
+    //flags
+    bool staples_inited,par_geom_inited;
+    
+    //benchmarks and checks
+    double comm_init_time,comp_time,comm_time;
+    int max_cached_link,max_sending_link;
+
+    //store action parameters
+    int nlinks_per_staples_of_link,gpar;
+    int *ilink_per_staples;
+    
+    //geometry
+    int *nsite_per_box_dir_par;
+    int *ivol_of_box_dir_par;
+    
+    //communicators
+    all_to_all_comm_t *box_comm[16];
+    su3 *buf_out,*buf_in;
+    
+    ///////////////////////////////// methods ///////////////////////
+    
+    //routine used to add paths (pointer to external function is stored here for thread commodity used)
+    void(*add_staples_per_link)(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu);
+    void init_staples(int ext_nlinks_per_staples_of_link,void(*ext_add_staples_per_link)
+                      (int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu),
+                      void (*ext_compute_staples)(su3 staples,su3 *links,int *ilinks));
+    void add_staples_required_links(all_to_all_gathering_list_t **gl);
+    
+    //routine computing staples
+    void (*compute_staples)(su3 staples,su3 *links,int *ilinks);
+
+    //inits the parity checkboard according to an external parity
+    void init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(coords ivol_coord,int dir));
+    
+    //sweep the conf
+    void sweep_conf(quad_su3 *conf,quenched_update_alg_t update_alg,double beta,int nhits);
+    void update_link_using_staples(quad_su3 *conf,int ivol,int dir,su3 staples,quenched_update_alg_t update_alg,
+                                   double beta,int nhits);
+    
+    //checkers
+    void check_hit_in_the_exact_order();
+    void check_hit_exactly_once();
+    
+    //constructor, destructors
+    ~gauge_sweeper_t();
+    gauge_sweeper_t();
   };
 }
 
