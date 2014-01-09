@@ -114,7 +114,8 @@ namespace nissa
 	sto_time+=take_time();
       }
 #endif
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //smear n times, using only one additional vectors
   THREADABLE_FUNCTION_3ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars)
@@ -146,7 +147,8 @@ namespace nissa
 	//free temp
 	for(int eo=0;eo<2;eo++) nissa_free(ext_temp[eo]);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //allocate all the stack for smearing
   THREADABLE_FUNCTION_3ARG(stout_smear_conf_stack_allocate, quad_su3****,out, quad_su3**,in, int,nlev)
@@ -158,7 +160,8 @@ namespace nissa
 	(*out)[i]=nissa_malloc("out*",2,quad_su3*);
 	for(int eo=0;eo<2;eo++) (*out)[i][eo]=nissa_malloc("out",loc_volh+bord_volh+edge_volh,quad_su3);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //free all the stack of allocated smeared conf
   THREADABLE_FUNCTION_2ARG(stout_smear_conf_stack_free, quad_su3****,out, int,nlev)
@@ -169,7 +172,8 @@ namespace nissa
 	nissa_free((*out)[i]);
       }
     nissa_free(*out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //smear iteratively retainig all the stack
   THREADABLE_FUNCTION_3ARG(stout_smear_whole_stack, quad_su3***,out, quad_su3**,in, stout_pars_t*,stout_pars)
@@ -180,7 +184,8 @@ namespace nissa
 	stout_smear_single_level(out[i],out[i-1],&(stout_pars->rho));
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //compute the lambda entering the force remapping
   void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingredients *ing)
@@ -406,7 +411,8 @@ namespace nissa
 	    }
     
     for(int eo=0;eo<2;eo++) nissa_free(Lambda[eo]);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //remap iteratively the force, adding the missing pieces of the chain rule derivation
   THREADABLE_FUNCTION_3ARG(stouted_force_remap, quad_su3**,F, quad_su3***,sme_conf, stout_pars_t*,stout_pars)
@@ -430,5 +436,6 @@ namespace nissa
 	nsto_remap++;
       }
 #endif
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

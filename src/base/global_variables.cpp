@@ -45,6 +45,7 @@ namespace nissa
   EXTERN coords box_coord[16];
   EXTERN coords box_size[16];
   EXTERN int nsite_per_box[16];
+  EXTERN gauge_sweeper_t *tlSym_sweeper,*Wilson_sweeper;
 #ifdef USE_VNODES
   EXTERN int vir_geom_inited;
 #endif

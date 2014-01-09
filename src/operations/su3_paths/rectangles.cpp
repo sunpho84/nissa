@@ -64,7 +64,8 @@ namespace nissa
     //normalize (passing throug additional var because of external unkwnon env)
     glb_shapes[RE]=coll_shapes[RE]/(18*glb_vol);
     glb_shapes[IM]=coll_shapes[IM]/(36*glb_vol);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //compute plaquettes and rectangles
   THREADABLE_FUNCTION_2ARG(point_plaquette_and_rectangles_lx_conf, complex*,point_shapes, quad_su3*,conf)
@@ -101,7 +102,8 @@ namespace nissa
 	      point_shapes[ivol][IM]+=real_part_of_trace_su3_prod_su3_dag(ABCF,ADEF);
 	    }
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //compute plaquettes and rectangles
   THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_lx_conf, double*,glb_shapes, quad_su3*,conf)
@@ -118,10 +120,11 @@ namespace nissa
     //normalize (passing throug additional var because of external unkwnon env)
     glb_shapes[RE]=coll_shapes[RE]/(18*glb_vol);
     glb_shapes[IM]=coll_shapes[IM]/(36*glb_vol);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //compute plaquettes and rectangles
-  THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_lx_conf_per_timeslice, complex*,glb_shapes, quad_su3*,conf)
+  THREADABLE_FUNCTION_2ARG(global_plaquette_and_rectangles_lx_conf_per_timeslice, double*,glb_shapes, quad_su3*,conf)
   {
     GET_THREAD_ID();
     
@@ -133,7 +136,7 @@ namespace nissa
     complex *loc_shapes=nissa_malloc("loc_shapes",glb_size[0],complex);
     vector_reset(loc_shapes);
     
-    //loop over time and number of contractions
+    //loop over time
     NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
       for(int ivol=loc_t*loc_spat_vol;ivol<(loc_t+1)*loc_spat_vol;ivol++)
 	complex_summassign(loc_shapes[glb_coord_of_loclx[ivol][0]],point_shapes[ivol]);
@@ -147,9 +150,10 @@ namespace nissa
     //normalize 
     for(int t=0;t<glb_size[0];t++)
       {
-	glb_shapes[t][RE]=coll_shapes[t][RE]/(18*glb_vol/glb_size[0]);
-	glb_shapes[t][IM]=coll_shapes[t][IM]/(36*glb_vol/glb_size[0]);
+	glb_shapes[2*t+0]=coll_shapes[t][RE]/(18*glb_vol/glb_size[0]);
+	glb_shapes[2*t+1]=coll_shapes[t][IM]/(36*glb_vol/glb_size[0]);
       }
     nissa_free(coll_shapes);    
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

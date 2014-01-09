@@ -103,7 +103,8 @@ namespace nissa
       }
     
     set_borders_invalid(Pmunu);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //takes the anti-simmetric part of the four-leaves
   THREADABLE_FUNCTION_2ARG(Pmunu_term, as2t_su3*,Pmunu,quad_su3*,conf)
@@ -128,7 +129,8 @@ namespace nissa
 	}
     
     set_borders_invalid(Pmunu);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //apply the chromo operator to the passed spinor site by site (not yet fully optimized)
   void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in)
@@ -153,7 +155,8 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //apply the chromo operator to the passed colorspinspin
   //normalization as in ape next
@@ -177,7 +180,8 @@ namespace nissa
     
     //invalidate borders
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //apply the chromo operator to the passed su3spinspin
   //normalization as in ape next
@@ -202,7 +206,8 @@ namespace nissa
     
     //invalidate borders
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //measure the topological charge site by site
   THREADABLE_FUNCTION_2ARG(local_topological_charge, double*,charge, quad_su3*,conf)
@@ -248,7 +253,8 @@ namespace nissa
     set_borders_invalid(charge);
     
     nissa_free(leaves);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //average the topological charge
   THREADABLE_FUNCTION_2ARG(average_topological_charge_lx_conf, double*,ave_charge, quad_su3*,conf)
@@ -278,7 +284,8 @@ namespace nissa
 #endif
     
     nissa_free(charge);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //wrapper for eos case
   THREADABLE_FUNCTION_2ARG(average_topological_charge_eo_conf, double*,ave_charge, quad_su3**,eo_conf)
@@ -290,7 +297,8 @@ namespace nissa
     average_topological_charge_lx_conf(ave_charge,lx_conf);
     
     nissa_free(lx_conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //measure the topologycal charge
   void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **uncooled_conf,int iconf,int conf_created)
@@ -411,7 +419,8 @@ namespace nissa
     set_borders_invalid(staples);
     
     nissa_free(leaves);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
 #endif
 

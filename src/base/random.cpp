@@ -219,7 +219,8 @@ namespace nissa
 	v[ivol*dps+i]=rnd_get_unif(&(loc_rnd_gen[ivol]),min,max);
     
     set_borders_invalid(v);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //return a grid of +-x numbers
   THREADABLE_FUNCTION_2ARG(rnd_fill_pm_one_loc_vector, double*,v, int,nps)
@@ -230,7 +231,8 @@ namespace nissa
 	v[ivol*nps+i]=rnd_get_pm_one(&(loc_rnd_gen[ivol]));
     
     set_borders_invalid(v);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //generate a spindiluted vector according to the passed type
   THREADABLE_FUNCTION_3ARG(generate_spindiluted_source, colorspinspin*,source, enum rnd_t,rtype, int,twall)
@@ -257,7 +259,8 @@ namespace nissa
 	  }
     
     set_borders_invalid(source);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //generate an undiluted vector according to the passed type
   THREADABLE_FUNCTION_3ARG(generate_undiluted_source, spincolor*,source, enum rnd_t,rtype, int,twall)
@@ -273,7 +276,8 @@ namespace nissa
 	    comp_get_rnd(source[ivol][id][ic],&(loc_rnd_gen[ivol]),rtype);
     
     set_borders_invalid(source);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //generate a fully undiluted source
   THREADABLE_FUNCTION_4ARG(generate_fully_undiluted_eo_source, color*,source, enum rnd_t,rtype, int,twall, int,par)
@@ -290,7 +294,8 @@ namespace nissa
       }
     
     set_borders_invalid(source);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall)
   {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par);}
   
@@ -314,5 +319,6 @@ namespace nissa
 	  source[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
     
     set_borders_invalid(source);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

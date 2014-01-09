@@ -84,7 +84,8 @@ namespace nissa
       compute_point_summed_squared_staples_eo_conf(F[loclx_parity[ivol]][loceo_of_loclx[ivol]],eo_conf,ivol);
     
     for(int par=0;par<2;par++) set_borders_invalid(F[par]);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   ///////////////////////////////// lx version ///////////////////////////////////////////
 
@@ -255,7 +256,8 @@ namespace nissa
     squared_staples_lx_conf_compute_non_fw_surf_bw_staples(out,conf,thread_id);
     squared_staples_lx_conf_compute_fw_surf_fw_staples(out,conf,thread_id);
     squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(out,thread_id);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //summ everything together
   THREADABLE_FUNCTION_2ARG(compute_summed_squared_staples_lx_conf, quad_su3*,out, quad_su3*,conf)
@@ -276,5 +278,6 @@ namespace nissa
 	}
     
     nissa_free(squared_staples);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

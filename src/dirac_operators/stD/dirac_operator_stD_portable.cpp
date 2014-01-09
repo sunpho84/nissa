@@ -37,7 +37,8 @@ namespace nissa
       }
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //put the 0.5 factor
   THREADABLE_FUNCTION_3ARG(apply_stDoe, color*,out, quad_su3**,conf, color*,in)
@@ -51,7 +52,8 @@ namespace nissa
 	  out[io][ic][ri]*=0.5;
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,in)
   {
@@ -84,7 +86,8 @@ namespace nissa
       }
     
     set_borders_invalid(out);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, quad_su3**,conf, color*,temp, double,mass2, color*,in)
   {
@@ -159,5 +162,6 @@ namespace nissa
 	portable_stD_napp++;
       }
 #endif
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

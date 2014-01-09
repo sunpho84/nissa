@@ -304,7 +304,8 @@ namespace nissa
     
     //now the conf is again available
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //filter the points retaining only those having all even coord
   void filter_hypercube_origin_sites(color **vec)

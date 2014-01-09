@@ -320,7 +320,8 @@ namespace nissa
     nissa_free(all_rectangles);
     nissa_free(Tline);
     nissa_free(Dline);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //compute all possible rectangular paths among a defined interval
   THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths_old, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
@@ -456,7 +457,8 @@ namespace nissa
     nissa_free(TS_path);
     nissa_free(closed_path);
     nissa_free(point_path);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   void measure_all_rectangular_paths(all_rect_meas_pars_t *pars,quad_su3 **conf_eo,int iconf,int create_output_file)
   {

@@ -66,7 +66,8 @@ namespace nissa
       }
     
     nissa_free(loc_c);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //trace of the product
   THREADABLE_FUNCTION_10ARG(trace_g_css_dag_g_ss_g_css_dag_g_ss, complex**,glb_c, dirac_matr*,g1L, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, dirac_matr*,g1R,colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
@@ -113,7 +114,8 @@ namespace nissa
       }
     
     nissa_free(loc_c);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   THREADABLE_FUNCTION_8ARG(trace_id_css_dag_g_css_id_css_dag_g_css, complex*,glb_c, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
   {
@@ -164,7 +166,8 @@ namespace nissa
       }
     
     nissa_free(loc_c);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   THREADABLE_FUNCTION_8ARG(trace_id_css_dag_g_css_times_trace_id_css_dag_g_css, complex*,glb_c, colorspinspin*,s1L, dirac_matr*,g2L, colorspinspin*,s2L, colorspinspin*,s1R, dirac_matr*,g2R, colorspinspin*,s2R, int,ncontr)
   {
@@ -225,5 +228,6 @@ namespace nissa
       }
     
     nissa_free(loc_c);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

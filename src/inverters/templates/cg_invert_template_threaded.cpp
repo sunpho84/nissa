@@ -143,7 +143,8 @@ namespace nissa
     
     //macro to be defined externally
     CG_ADDITIONAL_VECTORS_FREE();
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }
 
 #undef BASETYPE

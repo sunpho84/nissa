@@ -215,7 +215,8 @@ namespace nissa
     
     //free dec1
     for(int idec1=0;idec1<idec1_remap;idec1++) nissa_free(dec1_conf[idec1]);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //hyp smear all the dirs
   void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2)

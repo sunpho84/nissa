@@ -83,7 +83,8 @@ namespace nissa
 	nissa_free(v_o[iterm]);
 	nissa_free(chi_e[iterm]);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //Finish the computation multiplying for the conf and taking TA
   THREADABLE_FUNCTION_2ARG(compute_rootst_eoimpr_quark_force_finish_computation, quad_su3**,F, quad_su3**,conf)
@@ -106,7 +107,8 @@ namespace nissa
     
     //readd
     addrem_stagphases_to_eo_conf(conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //compute the quark force, without stouting reampping
   THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue)
@@ -117,7 +119,8 @@ namespace nissa
     
     //add the stag phases to the force term, coming from the disappered link in dS/d(U)
     addrem_stagphases_to_eo_conf(F);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //take into account the stout remapping procedure
   THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_t*,physics, rat_approx_t*,appr, double,residue)
@@ -149,5 +152,6 @@ namespace nissa
       }
     
     compute_rootst_eoimpr_quark_force_finish_computation(F,conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

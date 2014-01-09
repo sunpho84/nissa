@@ -42,7 +42,8 @@ namespace nissa
     
     //invalidate borders
     set_borders_invalid(uout);
-  }}
+  }
+  THREADABLE_FUNCTION_END
   //e/o version
   THREADABLE_FUNCTION_3ARG(gauge_transform_conf, quad_su3**,uout, su3**,g, quad_su3**,uin)
   {
@@ -64,7 +65,8 @@ namespace nissa
     //invalidate borders
     set_borders_invalid(uout[0]);
     set_borders_invalid(uout[1]);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //transform a color field
   THREADABLE_FUNCTION_3ARG(gauge_transform_color, color**,out, su3**,g, color**,in)
@@ -82,7 +84,8 @@ namespace nissa
     //invalidate borders
     set_borders_invalid(out[0]);
     set_borders_invalid(out[1]);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //determine the gauge transformation bringing to temporal gauge with T-1 timeslice diferent from id
   void find_temporal_gauge_fixing_matr(su3 *fixm,quad_su3 *u)
@@ -533,7 +536,8 @@ namespace nissa
     verbosity_lv1_master_printf("Final quality: %16.16lg\n",true_precision);
     
     nissa_free(w_conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //perform the landau or coulomb gauge fixing
   void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision,int nmu)

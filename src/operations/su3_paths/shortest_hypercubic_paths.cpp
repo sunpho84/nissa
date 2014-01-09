@@ -88,5 +88,6 @@ namespace nissa
 	      }
 	  }
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

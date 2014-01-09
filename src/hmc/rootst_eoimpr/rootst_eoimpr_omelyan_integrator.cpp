@@ -36,7 +36,8 @@ namespace nissa
     addrem_stagphases_to_lx_conf(conf);
     
     set_borders_invalid(conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   // Evolve momenta according to the pure gauge force
   // calculate H=H-F*dt to evolve link momenta
@@ -59,7 +60,8 @@ namespace nissa
 	    complex_subt_the_prod_idouble(H[ivol][mu][ic1][ic2],F[ivol][mu][ic1][ic2],dt);
     
     nissa_free(F);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   THREADABLE_FUNCTION_3ARG(evolve_lx_conf_with_momenta, quad_su3*,lx_conf, quad_su3*,H, double,dt)
   {
@@ -79,7 +81,8 @@ namespace nissa
 	}
     
     set_borders_invalid(lx_conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //evolve the configuration according to pure gauge
   THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_su3*,lx_conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul)
@@ -112,7 +115,8 @@ namespace nissa
 	//normalize the configuration
 	lx_conf_unitarize_explicitly_inverting(lx_conf);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //wrapper
   void omelyan_pure_gauge_evolver_eo_conf(quad_su3 **H_eo,quad_su3 **conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
@@ -151,7 +155,8 @@ namespace nissa
       }
     
     addrem_stagphases_to_eo_conf(conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   // Evolve momenta according to the rooted staggered force
   THREADABLE_FUNCTION_7ARG(evolve_momenta_with_quark_rootst_eoimpr_force, quad_su3**,H, quad_su3**,conf, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue, double,dt)
@@ -175,7 +180,8 @@ namespace nissa
 	      complex_subt_the_prod_idouble(H[par][ivol][mu][ic1][ic2],F[par][ivol][mu][ic1][ic2],dt);
     
     for(int par=0;par<2;par++) nissa_free(F[par]);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   ////////////////////////////////////// MACRO OMELYAN ////////////////////////////////////////////////
 
@@ -205,5 +211,6 @@ namespace nissa
 	//normalize the configuration
 	eo_conf_unitarize_explicitly_inverting(conf);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

@@ -463,6 +463,10 @@ namespace nissa
     send_buf=nissa_malloc("send_buf",send_buf_size,char);
 #endif
     
+    //create the sweepers but do not fully initialize
+    Wilson_sweeper=new gauge_sweeper_t;
+    tlSym_sweeper=new gauge_sweeper_t;
+    
     master_printf("Cartesian geometry intialized\n");
   }
   
@@ -525,6 +529,9 @@ namespace nissa
     nissa_free(loclx_of_fw_surflx);
     nissa_free(loclx_of_non_bw_surflx);
     nissa_free(loclx_of_bw_surflx);
+    
+    delete Wilson_sweeper;
+    delete tlSym_sweeper;
   }
   
   //definitions of lexical ordered sender for borders
@@ -663,7 +670,8 @@ namespace nissa
       }
     
     THREAD_BARRIER();
-  }}
+  }
+  THREADABLE_FUNCTION_END
   
   //check that passed argument is between 0 and 15
   inline void crash_if_not_hypercubic_red(int hyp_red)

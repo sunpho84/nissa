@@ -320,7 +320,8 @@ namespace nissa
 	  CG_128_INVERT(sol[ishift],sol[ishift],CG_128_ADDITIONAL_PARAMETERS_CALL shift[ishift],niter_max,ext_req_res[ishift],source);
       }
 #endif
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
 //run higher shifts up to common precision
 #if CGM_NARG == 0
@@ -338,7 +339,8 @@ THREADABLE_FUNCTION_10ARG(CGM_INVERT_RUN_HM_UP_TO_COMM_PREC, BASETYPE**,sol, AT1
     double req_res_int[nshift];
     for(int ishift=0;ishift<nshift;ishift++) req_res_int[ishift]=req_res;
     CGM_INVERT(sol,CGM_ADDITIONAL_PARAMETERS_CALL shift,nshift,niter_max,req_res_int,source);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
 //return all the shifts summed together
 #if CGM_NARG == 0
@@ -376,7 +378,8 @@ THREADABLE_FUNCTION_9ARG(SUMM_SRC_AND_ALL_INV_CGM, BASETYPE*,sol, AT1,A1, AT2,A2
     //free temp vectors
     for(int iterm=0;iterm<appr->degree;iterm++)
       nissa_free(temp[iterm]);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }
 
 #undef BASETYPE

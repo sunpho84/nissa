@@ -55,5 +55,6 @@ namespace nissa
     
     master_printf("time to copy %d Mbytes: %lg, %lg Mbs\n",mem_size/1024/1024,
 		  bench_time,mem_size/1024/1024/bench_time);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

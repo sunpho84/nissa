@@ -40,8 +40,6 @@ int store_running_temp_conf;
 int conf_created;
 int seed;
 
-const int HOT=0,COLD=1;
-
 //initialize background field and so on
 void init_theory_pars(theory_pars_t &theory_pars)
 {
@@ -177,10 +175,11 @@ void init_simulation(char *path)
   //read if configuration must be generated cold or hot
   char start_conf_cond_str[1024];
   read_str_str("StartConfCond",start_conf_cond_str,1024);
-  int start_conf_cond=-1;
-  if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT;
-  if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD;
-  if(start_conf_cond==-1) crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
+  start_conf_cond_t start_conf_cond=UNSPEC_START_COND;
+  if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT_START_COND;
+  if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD_START_COND;
+  if(start_conf_cond==UNSPEC_START_COND)
+    crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
   
   close_input();
 
@@ -212,7 +211,7 @@ void init_simulation(char *path)
       start_loc_rnd_gen(seed);
       
       //generate hot or cold conf
-      if(start_conf_cond==HOT)
+      if(start_conf_cond==HOT_START_COND)
 	{
 	  master_printf("File %s not found, generating hot conf\n",conf_path);
 	  generate_hot_eo_conf(conf);

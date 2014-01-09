@@ -18,6 +18,19 @@
 
 namespace nissa
 {  
+  temp_build_t::temp_build_t()
+  {
+    nper_rank_to_temp=nissa_malloc("nper_rank_to_temp",nranks,int);
+    nper_rank_fr_temp=nissa_malloc("nper_rank_fr_temp",nranks,int);
+  }
+  temp_build_t::~temp_build_t()
+  {
+    nissa_free(nper_rank_to_temp);
+    nissa_free(nper_rank_fr_temp);
+    nissa_free(out_buf_cur_per_rank);
+    nissa_free(in_buf_cur_per_rank);
+  }
+
   all_to_all_comm_t::~all_to_all_comm_t()
   {
     nissa_free(list_ranks_to);
@@ -283,5 +296,36 @@ namespace nissa
     
     if(ext_out_buf==NULL) nissa_free(out_buf);
     if(ext_in_buf==NULL) nissa_free(in_buf);
+  }
+  
+  //add links to the buffer of the conf if needed
+  int all_to_all_gathering_list_t::add_conf_link_for_paths(coords g,int mu)
+  {
+    //find rank and local position
+    int ivol,irank;
+    get_loclx_and_rank_of_coord(&ivol,&irank,g);
+    int ilink_asked=4*ivol+mu;
+  
+    //if it is local, return local position
+    if(irank==rank) return ilink_asked;
+    else
+      {
+	int irank_link_asked=ilink_asked*nranks+irank;
+      
+	//if it is non local search it in the list of to-be-gathered
+	all_to_all_gathering_list_t::iterator it=this->find(irank_link_asked);
+      
+	//if it is already in the list, return its position
+	if(it!=this->end()) return it->second;
+	else
+	  {
+	    //otherwise add it to the list of to-be-gathered
+	    int nel_gathered=this->size();
+	    int igathered=4*loc_vol+nel_gathered;
+	    (*this)[irank_link_asked]=igathered;
+          
+	    return igathered;
+	  }
+      }
   }
 }

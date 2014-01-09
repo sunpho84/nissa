@@ -57,5 +57,6 @@ namespace nissa
 	bgq_stdD_napp++;
       }
 #endif
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

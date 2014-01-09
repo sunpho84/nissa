@@ -112,7 +112,8 @@ namespace nissa
 	    safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
 	set_borders_invalid(conf[par]);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //multiply the configuration for an the conjugate of an u(1) field
   THREADABLE_FUNCTION_2ARG(rem_backfield_from_conf, quad_su3**,conf, quad_u1**,u1)
@@ -126,5 +127,6 @@ namespace nissa
 	    safe_su3_prod_conj_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
 	set_borders_invalid(conf[par]);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

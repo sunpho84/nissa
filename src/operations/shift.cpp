@@ -79,5 +79,6 @@ namespace nissa
     
     //invalidate borders
     set_borders_invalid(u);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 }

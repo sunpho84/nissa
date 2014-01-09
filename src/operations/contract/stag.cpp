@@ -31,7 +31,8 @@ namespace nissa
     while(issued_cg_warning);
     rem_backfield_from_conf(conf,u1b);
     addrem_stagphases_to_eo_conf(conf);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //compute the chiral condensate
   THREADABLE_FUNCTION_5ARG(chiral_condensate, double*,cond, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
@@ -60,7 +61,8 @@ namespace nissa
 	nissa_free(rnd[par]);
 	nissa_free(chi[par]);
       }
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //measure chiral cond
   void measure_chiral_cond(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
@@ -182,7 +184,8 @@ namespace nissa
       }
     nissa_free(point_magn);
     nissa_free(arg);
-  }}
+  }
+  THREADABLE_FUNCTION_END
 
   //measure magnetization
   void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
