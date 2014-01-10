@@ -508,7 +508,8 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	geometry/geometry_mix.hpp geometry/geometry_Wsklx.hpp \
 	geometry/geometry_vir.hpp gpu/fields.hpp \
 	gpu/global_variables.hpp gpu/init.hpp gpu/macros.hpp \
-	gpu/new_types.hpp gpu/wrappers.hpp hmc/gauge/gluonic_force.hpp \
+	gpu/new_types.hpp gpu/wrappers.hpp hmc/backfield.hpp \
+	hmc/gauge/gluonic_force.hpp \
 	hmc/gauge/tree_level_Symanzik_force.hpp \
 	hmc/gauge/tree_level_Symanzik_action.hpp \
 	hmc/gauge/Wilson_force.hpp hmc/momenta/momenta_generation.hpp \
@@ -733,7 +734,7 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	$(am__append_8) geometry/geometry_eo.hpp \
 	geometry/geometry_lx.hpp geometry/geometry_mix.hpp \
 	geometry/geometry_Wsklx.hpp $(am__append_10) $(am__append_12) \
-	hmc/gauge/gluonic_force.hpp \
+	hmc/backfield.hpp hmc/gauge/gluonic_force.hpp \
 	hmc/gauge/tree_level_Symanzik_force.hpp \
 	hmc/gauge/tree_level_Symanzik_action.hpp \
 	hmc/gauge/Wilson_force.hpp hmc/momenta/momenta_generation.hpp \
@@ -914,7 +915,7 @@ EXTRA_DIST = svnversion.hpp base/update_svnversion.hpp.sh \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_portable.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_portable.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left_portable.cpp \
-	rootst_eoimpr/rat_expansion_database.cpp \
+	hmc/rootst_eoimpr/rat_expansion_database.cpp \
 	inverters/twisted_mass/cg_invert_tmQ2_common.cpp \
 	inverters/twisted_mass/cgm_invert_tmQ2_bgq.hpp \
 	inverters/templates/cg_128_invert_template_threaded.cpp \
