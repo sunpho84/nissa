@@ -209,6 +209,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
         hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.cpp
 
 include_HEADERS+= \
+        hmc/backfield.hpp \
         hmc/gauge/gluonic_force.hpp \
         hmc/gauge/tree_level_Symanzik_force.hpp \
         hmc/gauge/tree_level_Symanzik_action.hpp \
@@ -222,7 +223,7 @@ include_HEADERS+= \
         hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.hpp \
         hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.hpp
 
-EXTRA_DIST+=rootst_eoimpr/rat_expansion_database.cpp
+EXTRA_DIST+=hmc/rootst_eoimpr/rat_expansion_database.cpp
 
 ###################################### inverters #################################
 
