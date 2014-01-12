@@ -128,7 +128,7 @@ double compute_tlSym_action(double *paths)
 double compute_Wilson_action(double *paths)
 {
   //compute the total action
-  global_plaquette_lx_conf(paths,conf);
+  paths[0]=global_plaquette_lx_conf(conf);
   return 6*glb_vol*(1-paths[0]);
 }
 
@@ -320,13 +320,13 @@ void generate_new_conf(quad_su3 *conf,int check=0)
   
   //numer of overrelax sweeps
   double paths[2],action_pre=0;
-  if(check&&evol_pars.nov_sweeps) action_pre=compute_tlSym_action(paths);
+  if(check&&evol_pars.nov_sweeps) action_pre=compute_action(paths);
   for(int isweep=0;isweep<evol_pars.nov_sweeps;isweep++) sweeper->sweep_conf(conf,OVERRELAX,beta,evol_pars.nov_hits);
   
   //check action variation
   if(check&&evol_pars.nov_sweeps)
     {
-      double action_post=compute_tlSym_action(paths);
+      double action_post=compute_action(paths);
       master_printf("Checking: relative difference of action after overrelaxation: %lg\n",
 		    2*(action_post-action_pre)/(action_post+action_pre));
     }
@@ -352,7 +352,7 @@ void measure_gauge_obs(bool conf_created=false)
   double action=(boundary_cond==OPEN_BOUNDARY_COND)?compute_action_per_timeslice(paths,paths_per_timeslice):
     compute_action(paths);
   master_printf("Action: %015.15lg measured in %lg sec\n",action,time_action+take_time());
-
+  
   master_fprintf(file,"%6d\t%015.15lg",iconf,action);
   for(int ipath=0;ipath<npaths_per_action;ipath++) master_fprintf(file,"\t%015.15lg",paths[ipath]);
   master_fprintf(file,"\n");

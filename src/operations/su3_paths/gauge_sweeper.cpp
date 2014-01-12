@@ -7,6 +7,9 @@
  #include "routines/thread.hpp"
 #endif
 
+ #include "operations/su3_paths/squared_staples.hpp"
+ #include "communicate/edges.hpp"
+
 namespace nissa
 {  
   //constructor
@@ -296,7 +299,7 @@ namespace nissa
 		  //compute the staples
 		  su3 staples;
 		  gs->compute_staples(staples,(su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
-               
+
 		  //find new link
 		  int ivol=gs->ivol_of_box_dir_par[ibox_dir_par];
 		  gs->update_link_using_staples(conf,ivol,dir,staples,update_alg,beta,nhits);
@@ -557,8 +560,8 @@ namespace nissa
     //checking consistency for gauge_sweeper initialization
     for(int mu=0;mu<4;mu++) if(loc_size[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,loc_size[mu]);
     //initialize the Wilson sweeper
-    const int nlinks_per_Wilson_staples_of_link=18;
     Wilson_sweeper->init_box_dir_par_geometry(2,Wilson_par);
+    const int nlinks_per_Wilson_staples_of_link=18;
     Wilson_sweeper->init_staples(nlinks_per_Wilson_staples_of_link,add_Wilson_staples,compute_Wilson_staples);
   }
 }
