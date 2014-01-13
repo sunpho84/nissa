@@ -17,6 +17,7 @@
 #include "new_types/su3.hpp"
 #include "operations/remap_vector.hpp"
 #include "operations/su3_paths/squared_staples.hpp"
+#include "operations/su3_paths/gauge_sweeper.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
@@ -261,97 +262,35 @@ namespace nissa
 	}
   }
   
-  //cool the configuration
-  THREADABLE_FUNCTION_3ARG(cool_eo_conf, quad_su3**,eo_conf, int,over_flag, double,over_exp)
+  //cool the configuration using 
+  THREADABLE_FUNCTION_4ARG(cool_lx_conf, quad_su3*,lx_conf, gauge_action_name_t,gauge_action_name, int,over_flag, double,over_exp)
   {
-    GET_THREAD_ID();
+    gauge_sweeper_t *sweeper=NULL;
+    switch(gauge_action_name)
+      {
+      case WILSON_GAUGE_ACTION:sweeper=Wilson_sweeper;break;
+      case TLSYM_GAUGE_ACTION:sweeper=tlSym_sweeper;break;
+      case UNSPEC_GAUGE_ACTION:crash("unspecified action");break;
+      default: crash("not implemented action");break;
+      }
     
-    //loop on parity and directions
-    for(int mu=0;mu<4;mu++)
-      for(int par=0;par<2;par++)
-	{
-	  communicate_eo_quad_su3_edges(eo_conf);
-	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	    {
-	      //find the transformation
-	      su3 u;
-	      su3_find_cooled_eo_conf(u,eo_conf,par,ieo,mu);
-	      
-	      //overrelax if needed
-	      if(over_flag)
-		{
-		  //find the transformation
-		  su3 temp1;
-		  unsafe_su3_prod_su3_dag(temp1,u,eo_conf[par][ieo][mu]);
-		  
-		  //exponentiate it and re-unitarize
-		  su3 temp2;
-		  su3_overrelax(temp2,temp1,over_exp);
-		  
-		  //find the transformed link
-		  unsafe_su3_prod_su3(u,temp2,eo_conf[par][ieo][mu]);
-		}
-	      
-	      //change the link
-	      su3_copy(eo_conf[par][ieo][mu],u);
-	    }
-	  
-	  //now set the borders invalid: since we split conf in e/o, only now needed
-	  set_borders_invalid(eo_conf[par]);
-	}
+    if(!sweeper->staples_inited) crash("init sweeper before");
+    sweeper->sweep_conf(lx_conf,COOL_PARTLY,over_exp,over_flag);
   }
   THREADABLE_FUNCTION_END
-  THREADABLE_FUNCTION_3ARG(cool_lx_conf, quad_su3*,lx_conf, int,over_flag, double,over_exp)
-  {
-    GET_THREAD_ID();
-    
-    //loop on parity and directions
-    for(int mu=0;mu<4;mu++)
-      for(int par=0;par<2;par++)
-	{
-	  communicate_lx_quad_su3_edges(lx_conf);
-	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	    {
-	      int ivol=loclx_of_loceo[par][ieo];
-	      
-	      //find the transformation
-	      su3 u;
-	      su3_find_cooled_lx_conf(u,lx_conf,ivol,mu);
-	      
-	      //overrelax if needed
-	      if(over_flag)
-		{
-		  //find the transformation
-		  su3 temp1;
-		  unsafe_su3_prod_su3_dag(temp1,u,lx_conf[ivol][mu]);
-		  
-		  //exponentiate it and re-unitarize
-		  su3 temp2;
-		  su3_overrelax(temp2,temp1,over_exp);
-		  
-		  //find the transformed link
-		  unsafe_su3_prod_su3(u,temp2,lx_conf[ivol][mu]);
-		}
-	      
-	      //change the link
-	      su3_copy(lx_conf[ivol][mu],u);
-	    }
-	  
-	  //now set the borders invalid: since we split conf in e/o, only now needed
-	  set_borders_invalid(lx_conf);
-	}
-  }
+  THREADABLE_FUNCTION_4ARG(cool_eo_conf, quad_su3*,eo_conf, gauge_action_name_t,gauge_action_name, int,over_flag, double,over_exp)
+  {crash("not implemented");}
   THREADABLE_FUNCTION_END
-  
+    
   //heatbath or overrelax algorithm for the quenched simulation case
   void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over)
   {
     switch(theory_pars->gauge_action_name)
       {
-      case Wilson_action:
+      case WILSON_GAUGE_ACTION:
 	heatbath_or_overrelax_conf_Wilson_action(eo_conf,theory_pars,evol_pars,heat_over);
 	break;
-      case tlSym_action:
+      case TLSYM_GAUGE_ACTION:
 	crash("Not implemented yet");
 	break;
       default:

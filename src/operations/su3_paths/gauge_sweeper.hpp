@@ -8,6 +8,7 @@ namespace nissa
 {
   void init_tlSym_sweeper();
   void init_Wilson_sweeper();
+  void init_sweeper(gauge_action_name_t);
 }
 
 #endif

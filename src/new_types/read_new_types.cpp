@@ -12,6 +12,19 @@
 
 namespace nissa
 {
+  //convert a string into gauge action name
+  gauge_action_name_t gauge_action_name_from_str(const char *name)
+  {
+    gauge_action_name_t ret=UNSPEC_GAUGE_ACTION;
+    
+    if(strcmp(name,"Wilson")==0) ret=WILSON_GAUGE_ACTION;
+    else
+      if(strcmp(name,"tlSym")==0) ret=TLSYM_GAUGE_ACTION;
+      else crash("unknown gauge action: %s",name);
+    
+    return ret;
+  }
+
   //read parameters to study topology
   void read_top_meas_pars(top_meas_pars_t &top_meas_pars,bool flag=false)
   {
@@ -19,7 +32,10 @@ namespace nissa
     else read_str_int("MeasureTopology",&top_meas_pars.flag);
     if(top_meas_pars.flag)
       {
+	char gauge_action_name_str[1024];
 	read_str_str("TopPath",top_meas_pars.path,1024);
+	read_str_str("TopCoolAction",gauge_action_name_str,1024);
+	top_meas_pars.gauge_cooling_action=gauge_action_name_from_str(gauge_action_name_str);
 	read_str_int("TopCoolNSteps",&top_meas_pars.cool_nsteps);
 	read_str_int("TopCoolOverrelaxing",&top_meas_pars.cool_overrelax_flag);
 	if(top_meas_pars.cool_overrelax_flag==1) read_str_double("TopCoolOverrelaxExp",&top_meas_pars.cool_overrelax_exp);
@@ -189,10 +205,7 @@ namespace nissa
     //kind of action
     char gauge_action_name[1024];
     read_str_str("GaugeAction",gauge_action_name,1024);
-    if(strcmp(gauge_action_name,"Wilson")==0) theory_pars.gauge_action_name=Wilson_action;
-    else
-      if(strcmp(gauge_action_name,"tlSym")==0) theory_pars.gauge_action_name=tlSym_action;
-      else crash("unknown gauge action: %s",gauge_action_name);
+    theory_pars.gauge_action_name=gauge_action_name_from_str(gauge_action_name);
     
     //beta for gauge action
     read_str_double("Beta",&theory_pars.beta);

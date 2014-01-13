@@ -17,6 +17,7 @@
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
 #include "operations/gaugeconf.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
@@ -50,56 +51,56 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
       {
-	as2t_su3_put_to_zero(Pmunu[X]);
-	
-	munu=0;
-	for(int mu=0;mu<4;mu++)
-	  {
-	    A=loclx_neighup[X][mu];
-	    D=loclx_neighdw[X][mu];
-	    
-	    for(int nu=mu+1;nu<4;nu++)
-	      {
-		B=loclx_neighup[X][nu];
-		F=loclx_neighdw[X][nu];
-		
-		C=loclx_neighup[D][nu];
-		E=loclx_neighdw[D][nu];
-		
-		G=loclx_neighdw[A][nu];
-		
-		//Put to 0 the summ of the leaves
-		su3_put_to_zero(leaves_summ);
-		
-		//Leaf 1
-		unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);         //    B--<--Y 
-		unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);           //    |  1  | 
-		unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][nu]);           //    |     | 
-		su3_summ(leaves_summ,leaves_summ,temp1);                    //    X-->--A 
-		
-		//Leaf 2
-		unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);     //    C--<--B
-		unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);           //    |  2  | 
-		unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);               //    |     | 
-		su3_summ(leaves_summ,leaves_summ,temp1);                    //    D-->--X
-		
-		//Leaf 3
-		unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
-		unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);                //   |  3  | 
-		unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);                //   |     | 
-		su3_summ(leaves_summ,leaves_summ,temp1);                     //   E-->--F
-		
-		//Leaf 4
-		unsafe_su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);       //  X--<--A 
-		unsafe_su3_prod_su3(temp2,temp1,conf[G][nu]);                 //  |  4  | 
-		unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][mu]);             //  |     |  
-		su3_summ(leaves_summ,leaves_summ,temp1);                      //  F-->--G 
-		
-		su3_copy(Pmunu[X][munu],leaves_summ);
-		
-		munu++;
-	      }
-	  }
+        as2t_su3_put_to_zero(Pmunu[X]);
+        
+        munu=0;
+        for(int mu=0;mu<4;mu++)
+          {
+            A=loclx_neighup[X][mu];
+            D=loclx_neighdw[X][mu];
+            
+            for(int nu=mu+1;nu<4;nu++)
+              {
+                B=loclx_neighup[X][nu];
+                F=loclx_neighdw[X][nu];
+                
+                C=loclx_neighup[D][nu];
+                E=loclx_neighdw[D][nu];
+                
+                G=loclx_neighdw[A][nu];
+                
+                //Put to 0 the summ of the leaves
+                su3_put_to_zero(leaves_summ);
+                
+                //Leaf 1
+                unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);         //    B--<--Y 
+                unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);           //    |  1  | 
+                unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][nu]);           //    |     | 
+                su3_summ(leaves_summ,leaves_summ,temp1);                    //    X-->--A 
+                
+                //Leaf 2
+                unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);     //    C--<--B
+                unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);           //    |  2  | 
+                unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);               //    |     | 
+                su3_summ(leaves_summ,leaves_summ,temp1);                    //    D-->--X
+                
+                //Leaf 3
+                unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
+                unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);                //   |  3  | 
+                unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);                //   |     | 
+                su3_summ(leaves_summ,leaves_summ,temp1);                     //   E-->--F
+                
+                //Leaf 4
+                unsafe_su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);       //  X--<--A 
+                unsafe_su3_prod_su3(temp2,temp1,conf[G][nu]);                 //  |  4  | 
+                unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][mu]);             //  |     |  
+                su3_summ(leaves_summ,leaves_summ,temp1);                      //  F-->--G 
+                
+                su3_copy(Pmunu[X][munu],leaves_summ);
+                
+                munu++;
+              }
+          }
       }
     
     set_borders_invalid(Pmunu);
@@ -300,45 +301,19 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
 
-  //measure the topologycal charge
-  void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **uncooled_conf,int iconf,int conf_created)
+  //measure the topological charge
+  void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,int conf_created,bool preserve_uncooled=true)
   {
     FILE *file=open_file(pars.path,conf_created?"w":"a");
     
     //allocate a temorary conf to be cooled
-    quad_su3 *cooled_conf[2];
-    for(int par=0;par<2;par++)
+    quad_su3 *cooled_conf;
+    if(preserve_uncooled)
       {
-	cooled_conf[par]=nissa_malloc("cooled_conf",loc_volh+bord_volh+edge_volh,quad_su3);
-	vector_copy(cooled_conf[par],uncooled_conf[par]);
+	cooled_conf=nissa_malloc("cooled_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+	vector_copy(cooled_conf,uncooled_conf);
       }
-    
-    //print curent measure and cool
-    for(int istep=0;istep<=(pars.cool_nsteps/pars.meas_each)*pars.meas_each;istep++)
-      {
-	if(istep%pars.meas_each==0)
-	  {
-	    double ave_charge;
-	    average_topological_charge_eo_conf(&ave_charge,cooled_conf);
-	    master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,ave_charge);
-	  }
-	if(istep!=pars.cool_nsteps) cool_eo_conf(cooled_conf,pars.cool_overrelax_flag,pars.cool_overrelax_exp);
-      }
-    
-    //discard cooled conf
-    for(int par=0;par<2;par++) nissa_free(cooled_conf[par]);
-    
-    close_file(file);
-  }
-
-  //measure the topologycal charge
-  void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,int conf_created)
-  {
-    FILE *file=open_file(pars.path,conf_created?"w":"a");
-    
-    //allocate a temorary conf to be cooled
-    quad_su3 *cooled_conf=nissa_malloc("cooled_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-    vector_copy(cooled_conf,uncooled_conf);
+    else cooled_conf=uncooled_conf;
     
     //print curent measure and cool
     for(int istep=0;istep<=(pars.cool_nsteps/pars.meas_each)*pars.meas_each;istep++)
@@ -348,14 +323,24 @@ namespace nissa
 	    double ave_charge;
 	    average_topological_charge_lx_conf(&ave_charge,cooled_conf);
 	    master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,ave_charge);
+	    verbosity_lv2_master_printf("Topologycal charge after %d cooling steps: %16.16lg, "
+					"plaquette: %16.16lg\n",istep,ave_charge,global_plaquette_lx_conf(cooled_conf));
 	  }
-	if(istep!=pars.cool_nsteps) cool_lx_conf(cooled_conf,pars.cool_overrelax_flag,pars.cool_overrelax_exp);
+	if(istep!=pars.cool_nsteps) cool_lx_conf(cooled_conf,pars.gauge_cooling_action,
+						 pars.cool_overrelax_flag,pars.cool_overrelax_exp);
       }
     
     //discard cooled conf
-    nissa_free(cooled_conf);
+    if(preserve_uncooled) nissa_free(cooled_conf);
     
     close_file(file);
+  }
+  void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **uncooled_conf_eo,int iconf,int conf_created)
+  {
+    quad_su3 *uncooled_conf_lx=nissa_malloc("uncooled_conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
+    paste_eo_parts_into_lx_conf(uncooled_conf_lx,uncooled_conf_eo);
+    measure_topology_lx_conf(pars,uncooled_conf_lx,iconf,conf_created,false);
+    nissa_free(uncooled_conf_lx);
   }
 
 #if 0

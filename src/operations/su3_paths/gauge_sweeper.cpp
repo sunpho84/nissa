@@ -320,6 +320,21 @@ namespace nissa
   void gauge_sweeper_t::sweep_conf(quad_su3 *conf,quenched_update_alg_t up_alg,double beta,int nhits)
   {sweep_conf_fun(conf,this,up_alg,beta,nhits);}
   
+  //return the appropriate sweeper
+  gauge_sweeper_t *get_sweeper(gauge_action_name_t gauge_action_name)
+  {
+    gauge_sweeper_t *sweeper=NULL;
+    switch(gauge_action_name)
+      {
+      case WILSON_GAUGE_ACTION:sweeper=Wilson_sweeper;break;
+      case TLSYM_GAUGE_ACTION:sweeper=tlSym_sweeper;break;
+      case UNSPEC_GAUGE_ACTION:crash("unspecified action");break;
+      default: crash("not implemented action");break;
+      }
+    
+    return sweeper;
+  }
+
   ///////////////////////////////////// tlSym action //////////////////////////
   
   //compute the parity according to the tlSym requirements
@@ -478,12 +493,16 @@ namespace nissa
   //initialize the tlSym sweeper using the above defined routines
   void init_tlSym_sweeper()
   {
-    //checking consistency for gauge_sweeper initialization
-    for(int mu=0;mu<4;mu++) if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
-    //initialize the tlSym sweeper
-    const int nlinks_per_tlSym_staples_of_link=3*2*(3+5*3)-3*8+2;
-    tlSym_sweeper->init_box_dir_par_geometry(4,tlSym_par);
-    tlSym_sweeper->init_staples(nlinks_per_tlSym_staples_of_link,add_tlSym_staples,compute_tlSym_staples);
+    if(!tlSym_sweeper->staples_inited)
+      {
+	verbosity_lv3_master_printf("Initializing tlSym sweeper\n");
+	//checking consistency for gauge_sweeper initialization
+	for(int mu=0;mu<4;mu++) if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
+	//initialize the tlSym sweeper
+	const int nlinks_per_tlSym_staples_of_link=3*2*(3+5*3)-3*8+2;
+	tlSym_sweeper->init_box_dir_par_geometry(4,tlSym_par);
+	tlSym_sweeper->init_staples(nlinks_per_tlSym_staples_of_link,add_tlSym_staples,compute_tlSym_staples);
+      }
   }
 
   ///////////////////////////////////////// Wilson ////////////////////////////////////////
@@ -557,11 +576,28 @@ namespace nissa
   //initialize the Wilson sweeper using the above defined routines
   void init_Wilson_sweeper()
   {
-    //checking consistency for gauge_sweeper initialization
-    for(int mu=0;mu<4;mu++) if(loc_size[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,loc_size[mu]);
-    //initialize the Wilson sweeper
-    Wilson_sweeper->init_box_dir_par_geometry(2,Wilson_par);
-    const int nlinks_per_Wilson_staples_of_link=18;
-    Wilson_sweeper->init_staples(nlinks_per_Wilson_staples_of_link,add_Wilson_staples,compute_Wilson_staples);
+    if(!Wilson_sweeper->staples_inited)
+      {
+	verbosity_lv3_master_printf("Initializing Wilson sweeper\n");
+	//checking consistency for gauge_sweeper initialization
+	for(int mu=0;mu<4;mu++) if(loc_size[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,loc_size[mu]);
+	//initialize the Wilson sweeper
+	Wilson_sweeper->init_box_dir_par_geometry(2,Wilson_par);
+	const int nlinks_per_Wilson_staples_of_link=18;
+	Wilson_sweeper->init_staples(nlinks_per_Wilson_staples_of_link,add_Wilson_staples,compute_Wilson_staples);
+      }
+  }
+  
+  //call the appropriate sweeper intializator
+  void init_sweeper(gauge_action_name_t gauge_action_name)
+  {
+    if(!thread_pool_locked) crash("call from non-parallel environment");
+    switch(gauge_action_name)
+      {
+      case WILSON_GAUGE_ACTION:if(!Wilson_sweeper->staples_inited) init_Wilson_sweeper();break;
+      case TLSYM_GAUGE_ACTION:if(!tlSym_sweeper->staples_inited) init_tlSym_sweeper();break;
+      case UNSPEC_GAUGE_ACTION:crash("unspecified action");break;
+      default: crash("not implemented action");break;
+      }
   }
 }

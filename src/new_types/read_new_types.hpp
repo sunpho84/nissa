@@ -3,6 +3,7 @@
 
 namespace nissa
 {
+  gauge_action_name_t gauge_action_name_from_str(const char *name);
   void read_chiral_cond_pars(chiral_cond_pars_t &chiral_cond_pars,bool flag=false);
   void read_em_field_pars(em_field_pars_t &em_field_pars,bool flag=false);
   void read_magnetization_pars(magnetization_pars_t &pars,bool flag=false);

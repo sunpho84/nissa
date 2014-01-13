@@ -125,6 +125,8 @@ namespace nissa
   enum quenched_update_alg_t{UNSPEC_UPD,HEATBATH,OVERRELAX,COOL_FULLY,COOL_PARTLY};
   //Boundary conditions
   enum boundary_cond_t{UNSPEC_BOUNDARY_COND,PERIODIC_BOUNDARY_COND,OPEN_BOUNDARY_COND};
+  //Gauge action
+  enum gauge_action_name_t{UNSPEC_GAUGE_ACTION,WILSON_GAUGE_ACTION,TLSYM_GAUGE_ACTION};
 
   typedef uint8_t coords_5D[5];
   
@@ -429,6 +431,7 @@ namespace nissa
     int flag;
     char path[1024];
     int cool_nsteps;
+    gauge_action_name_t gauge_cooling_action;
     int cool_overrelax_flag;
     double cool_overrelax_exp;
     int meas_each;
@@ -487,7 +490,6 @@ namespace nissa
   };
   
   //theory content
-  enum gauge_action_name_t{Wilson_action,tlSym_action};
   struct theory_pars_t
   {
     double beta;

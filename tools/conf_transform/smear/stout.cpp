@@ -54,7 +54,7 @@ void in_main(int narg,char **arg)
   sscanf(arg[4],"%lg",&rho);
   for(int i=0;i<4;i++) for(int j=0;j<4;j++) stout_pars.rho[i][j]=rho;
   stout_pars.nlev=atoi(arg[5]);
-  char *pathout=arg[6];
+  //char *pathout=arg[6];
   
   //Init the MPI grid 
   init_grid(T,L);

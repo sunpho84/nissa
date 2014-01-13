@@ -64,14 +64,9 @@ namespace nissa
     double gluon_action;
     switch(theory_pars->gauge_action_name)
       {
-      case Wilson_action:
-	gluon_action=theory_pars->beta*6*(1+global_plaquette_eo_conf(eo_conf))*glb_vol;
-	break;
-      case tlSym_action:
-	tree_level_Symanzik_action(&gluon_action,eo_conf,theory_pars->beta,1);
-	break;
-      default:
-	crash("Unknown action");
+      case WILSON_GAUGE_ACTION:gluon_action=theory_pars->beta*6*(1+global_plaquette_eo_conf(eo_conf))*glb_vol;break;
+      case TLSYM_GAUGE_ACTION:tree_level_Symanzik_action(&gluon_action,eo_conf,theory_pars->beta,1);break;
+      default:crash("Unknown action");
       }
     
     verbosity_lv1_master_printf("Gluon_action: %16.16lg\n",gluon_action);
