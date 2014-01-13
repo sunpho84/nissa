@@ -52,8 +52,8 @@ namespace nissa
     
     switch(physics->gauge_action_name)
       {
-      case Wilson_action: Wilson_force_lx_conf(F,conf,physics->beta);break;
-      case tlSym_action: tree_level_Symanzik_force_lx_conf(F,conf,physics->beta);break;
+      case WILSON_GAUGE_ACTION: Wilson_force_lx_conf(F,conf,physics->beta);break;
+      case TLSYM_GAUGE_ACTION: tree_level_Symanzik_force_lx_conf(F,conf,physics->beta);break;
       default: crash("Unknown action");
       }
     

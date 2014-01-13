@@ -184,13 +184,12 @@ void init_simulation(char *path)
   read_str_int("MaxNConfs",&max_nconfs); //number of confs to produce
   read_str_int("Seed",&seed); //seed
 
-  //kind of action and evolution pars
+  //kind of action
   char gauge_action_name_str[1024];
   read_str_str("GaugeAction",gauge_action_name_str,1024);
-  if(strcmp(gauge_action_name_str,"Wilson")==0) gauge_action_name=Wilson_action;
-  else
-    if(strcmp(gauge_action_name_str,"tlSym")==0) gauge_action_name=tlSym_action;
-    else crash("unknown gauge action: %s",gauge_action_name_str);
+  gauge_action_name=gauge_action_name_from_str(gauge_action_name_str);
+  
+  //beta and evolution pars
   read_str_double("Beta",&beta);
   read_pure_gauge_evol_pars(evol_pars);
   
@@ -223,14 +222,14 @@ void init_simulation(char *path)
   
   //read the topology measures info
   read_top_meas_pars(top_meas_pars);
-  
+  if(top_meas_pars.flag) init_sweeper(top_meas_pars.gauge_cooling_action);
   close_input();
   
   base_init_time+=take_time();
 
   ////////////////////////// allocate stuff ////////////////////////
   
-  if(gauge_action_name==Wilson_action)
+  if(gauge_action_name==WILSON_GAUGE_ACTION)
     {
       init_Wilson_sweeper();
       sweeper=Wilson_sweeper;
@@ -418,7 +417,8 @@ void in_main(int narg,char **arg)
       
       // 2) measure
       measure_gauge_obs();
-      if(top_meas_pars.flag && iconf%top_meas_pars.flag==0) measure_topology_lx_conf(top_meas_pars,conf,iconf,0);
+      if(top_meas_pars.flag && iconf%top_meas_pars.flag==0)
+	measure_topology_lx_conf(top_meas_pars,conf,iconf,0);
 	
       // 3) increment id and write conf
       if(store_running_temp_conf) write_conf();
