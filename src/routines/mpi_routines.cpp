@@ -21,6 +21,16 @@
 
 namespace nissa
 {
+  //return  the count covnerted to size_t
+  size_t MPI_Get_count_size_t(MPI_Status &status)
+  {
+    int nbytes;
+    decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes),"while counting bytes");
+    if(nbytes<0) crash("negative count: %d",nbytes);
+    
+    return (size_t)nbytes;
+  }  
+  
   //take the different with following multiple of eight
   MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos)
   {

@@ -230,7 +230,7 @@ namespace nissa
 #ifdef USE_MPI_IO
     decript_MPI_error(MPI_File_get_size(file,&size),"while getting file size");
 #else
-    int ori_pos=ILDG_File_get_position(file);
+    ILDG_Offset ori_pos=ILDG_File_get_position(file);
     ILDG_File_set_position(file,0,SEEK_END);
     size=ILDG_File_get_position(file);
     ILDG_File_set_position(file,ori_pos,SEEK_SET);
@@ -334,7 +334,7 @@ namespace nissa
   ////////////////////////////////////////////////// read and write ////////////////////////////////////////
   
   //simultaneous read from all node
-  void ILDG_File_read_all(void *data,ILDG_File &file,int nbytes_req)
+  void ILDG_File_read_all(void *data,ILDG_File &file,size_t nbytes_req)
   {
     //padding
     ILDG_File_seek_to_next_eight_multiple(file);  
@@ -345,19 +345,18 @@ namespace nissa
     decript_MPI_error(MPI_File_read_all(file,data,nbytes_req,MPI_BYTE,&status),"while reading all");
     
     //count read bytes and check
-    int nbytes_read=0;
-    decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_read),"while counting read bytes");
+    size_t nbytes_read=MPI_Get_count_size_t(status);
 #else
-    int nbytes_read=fread(data,1,nbytes_req,file);
+    size_t nbytes_read=fread(data,1,nbytes_req,file);
 #endif
     
     if(nbytes_read!=nbytes_req)
-      crash("read %d bytes instead of %d required",nbytes_read,nbytes_req);
+      crash("read %u bytes instead of %u required",nbytes_read,nbytes_req);
     
     //padding
     ILDG_File_seek_to_next_eight_multiple(file);
     
-    verbosity_lv3_master_printf("record read: %d bytes\n",nbytes_req);
+    verbosity_lv3_master_printf("record read: %u bytes\n",nbytes_req);
   }
   
   //search next record
@@ -394,7 +393,7 @@ namespace nissa
   }
   
   //write from first node
-  void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req)
+  void ILDG_File_master_write(ILDG_File &file,void *data,size_t nbytes_req)
   {
     if(rank==0)
       {
@@ -404,15 +403,14 @@ namespace nissa
 	decript_MPI_error(MPI_File_write(file,data,nbytes_req,MPI_BYTE,&status),"while writing from first node");
 	
 	//check to have wrote 
-	int nbytes_wrote=0;
-	decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_wrote),"while counting wrote bytes");
+	size_t nbytes_wrote=MPI_Get_count_size_t(status);
 #else
-	int nbytes_wrote=fwrite(data,1,nbytes_req,file);
-	MPI_Barrier(MPI_COMM_WORLD);
+	size_t nbytes_wrote=fwrite(data,1,nbytes_req,file);
 #endif
+	MPI_Barrier(MPI_COMM_WORLD);
 	
 	if(nbytes_wrote!=nbytes_req)
-	  crash("wrote %d bytes instead of %d required",nbytes_wrote,nbytes_req);
+	  crash("wrote %u bytes instead of %u required",nbytes_wrote,nbytes_req);
       }
     else
       ILDG_File_skip_nbytes(file,nbytes_req);
@@ -504,10 +502,9 @@ namespace nissa
     decript_MPI_error(MPI_File_read_at_all(file,0,data,loc_vol,scidac_view.etype,&status),"while reading");
     
     //count read bytes
-    int nbytes_read=0;
-    decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_read),"while counting read bytes");
+    size_t nbytes_read=MPI_Get_count_size_t(status);
     if((uint64_t)nbytes_read!=header.data_length/nranks)
-      crash("read %d bytes instead than %d",nbytes_read,header.data_length/nranks);
+      crash("read %u bytes instead than %u",nbytes_read,header.data_length/nranks);
     
     //put the view to original state and place at the end of the record, including padding
     normal_view.pos+=ceil_to_next_eight_multiple(header.data_length);
@@ -532,19 +529,19 @@ namespace nissa
     nissa_free(order);
 #else
     //allocate a buffer
-    int nbytes_per_rank_exp=header.data_length/nranks;
+    ILDG_Offset nbytes_per_rank_exp=header.data_length/nranks;
     char *buf=nissa_malloc("buf",nbytes_per_rank_exp,char);
     
     //take original position
-    int ori_pos=ILDG_File_get_position(file);
+    ILDG_Offset ori_pos=ILDG_File_get_position(file);
     
     //find starting point
-    int new_pos=ori_pos+rank*nbytes_per_rank_exp;
+    ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank_exp;
     ILDG_File_set_position(file,new_pos,SEEK_SET);
     
     //read
-    int nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
-    if(nbytes_read!=nbytes_per_rank_exp) crash("read %d bytes instead of %d",nbytes_read,nbytes_per_rank_exp);
+    size_t nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
+    if(nbytes_read!=nbytes_per_rank_exp) crash("read %u bytes instead of %u",nbytes_read,nbytes_per_rank_exp);
     
     //place at the end of the record, including padding
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
@@ -612,11 +609,15 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //read the data according to ILDG mapping
-  void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,int nbytes_per_site,const char *type)
+  void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type)
   {
     //prepare the header and write it
     ILDG_header header=ILDG_File_build_record_header(0,0,type,(uint64_t)nbytes_per_site*glb_vol);
     ILDG_File_write_record_header(file,header);
+    
+    //allocate the buffer
+    ILDG_Offset nbytes_per_rank=header.data_length/nranks;
+    char *buf=nissa_malloc("buf",nbytes_per_rank,char);
     
 #ifdef USE_MPI_IO
     //take original position and view
@@ -627,8 +628,6 @@ namespace nissa
     ILDG_File_set_view(file,scidac_view);
     
     //reorder
-    int nbytes_per_rank_exp=header.data_length/nranks;
-    char *buf=nissa_malloc("buf",nbytes_per_rank_exp,char);
     remap_to_write_ildg_data(buf,(char*)data,header.data_length/glb_vol);
     
     //write and free buf
@@ -645,22 +644,18 @@ namespace nissa
     ILDG_File_set_view(file,normal_view);
     
     //count wrote bytes
-    int nbytes_wrote=0;
-    decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_wrote),"while counting wrote bytes");
+    size_t nbytes_wrote=MPI_Get_count_size_t(status);
     if((uint64_t)nbytes_wrote!=header.data_length/nranks)
-      crash("wrote %d bytes instead than %d",nbytes_wrote,header.data_length/nranks);
+      crash("wrote %u bytes instead than %u",nbytes_wrote,header.data_length/nranks);
     
     //reset mapped types
     unset_mapped_types(scidac_view.etype,scidac_view.ftype);
 #else
-    int nbytes_per_rank_exp=header.data_length/nranks;
-    char *buf=nissa_malloc("buf",nbytes_per_rank_exp,char);
-    
     //take original position
-    int ori_pos=ILDG_File_get_position(file);
+    ILDG_Offset ori_pos=ILDG_File_get_position(file);
     
     //find starting point
-    int new_pos=ori_pos+rank*nbytes_per_rank_exp;
+    ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank_exp;
     ILDG_File_set_position(file,new_pos,SEEK_SET);
     
     //reorder data to the appropriate place
@@ -669,7 +664,7 @@ namespace nissa
     delete rem;
     
     //write
-    int nbytes_wrote=fwrite(buf,1,nbytes_per_rank_exp,file);
+    size_t nbytes_wrote=fwrite(buf,1,nbytes_per_rank_exp,file);
     if(nbytes_wrote!=nbytes_per_rank_exp) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank_exp);
     
     //free buf and ord
@@ -680,7 +675,7 @@ namespace nissa
 #endif
     
     //pad if necessary
-    int pad_diff=header.data_length%8;
+    size_t pad_diff=header.data_length%8;
     if(pad_diff!=0)
       {
 	char buf[8];
@@ -693,7 +688,7 @@ namespace nissa
   void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text)
   {
     //pad with 0
-    int text_len=ceil_to_next_eight_multiple(strlen(text)+1);
+    size_t text_len=ceil_to_next_eight_multiple(strlen(text)+1);
     char *text_out=nissa_malloc("buf",text_len,char);
     memset(text_out,0,text_len);
     strncpy(text_out,text,text_len);
