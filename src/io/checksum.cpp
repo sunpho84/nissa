@@ -92,9 +92,9 @@ namespace nissa
   
   uint32_t ildg_crc32_fix_endianness(uint32_t crc,const unsigned char *buf,size_t len,int prec)
   {
-    unsigned char temp_buf[len];
     if(little_endian)
       {
+	unsigned char temp_buf[len];
 	switch(prec)
 	  {
 	  case 64:

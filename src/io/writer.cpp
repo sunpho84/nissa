@@ -241,7 +241,6 @@ namespace nissa
     quad_su3_ildg_to_nissa_reord_in_place(in);
     
     verbosity_lv2_master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,take_time()-start_time);
-    
     ILDG_File_close(file);
   }
   
