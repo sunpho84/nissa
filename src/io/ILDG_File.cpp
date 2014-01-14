@@ -407,14 +407,14 @@ namespace nissa
 #else
 	size_t nbytes_wrote=fwrite(data,1,nbytes_req,file);
 #endif
-	MPI_Barrier(MPI_COMM_WORLD);
 	
 	if(nbytes_wrote!=nbytes_req)
 	  crash("wrote %u bytes instead of %u required",nbytes_wrote,nbytes_req);
       }
     else
       ILDG_File_skip_nbytes(file,nbytes_req);
-    
+    MPI_Barrier(MPI_COMM_WORLD);
+
     //sync
 #ifdef USE_MPI_IO
     MPI_File_sync(file);
@@ -593,7 +593,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(remap_to_write_ildg_data, char*,buf, char*,data, int,nbytes_per_site)
   {
     GET_THREAD_ID();
-    master_printf("remapping, %d bytes per site\n",nbytes_per_site);
+    
     NISSA_PARALLEL_LOOP(isour,0,loc_vol)
     {
       int idest=0;
