@@ -53,7 +53,7 @@ namespace nissa
     
     //compute the checksum
     checksum check;
-    checksum_compute_nissa_data(check,buffer,nbytes_per_site);
+    checksum_compute_nissa_data(check,buffer,nbytes_per_site,nbytes_per_real);
     
     //change endianness if needed
     if(little_endian)

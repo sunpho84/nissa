@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <unistd.h>
 
+#include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "endianness.hpp"
 
@@ -89,13 +90,25 @@ namespace nissa
     return crc^0xffffffffL;
   }
   
-  uint32_t ildg_crc32_fix_endianness(uint32_t crc,const unsigned char *buf,size_t len)
+  uint32_t ildg_crc32_fix_endianness(uint32_t crc,const unsigned char *buf,size_t len,int prec)
   {
+    unsigned char temp_buf[len];
     if(little_endian)
       {
-	double temp_buf[len/sizeof(double)];
-	doubles_to_doubles_changing_endianness(temp_buf,(double*)buf,len/sizeof(double),0);
-	return ildg_crc32(crc,(unsigned char *)temp_buf,len);
+	switch(prec)
+	  {
+	  case 64:
+	    doubles_to_doubles_changing_endianness((double*)temp_buf,(double*)buf,len/sizeof(double),0);
+	    break;
+	  case 32:
+	    floats_to_floats_changing_endianness((float*)temp_buf,(float*)buf,len/sizeof(float),0);
+	    break;
+	  default:
+	    crash("unknown precision %d",prec);
+	    break;
+	  }
+
+	return ildg_crc32(crc,temp_buf,len);
       }
     else
       return ildg_crc32(crc,buf,len);
@@ -126,7 +139,7 @@ namespace nissa
   }
   
   //compute the checksum of data as used by nissa (unspecified endianness, time is faster index)
-  void checksum_compute_nissa_data(uint32_t *check,void *data,size_t bps)
+  void checksum_compute_nissa_data(uint32_t *check,void *data,size_t bps,int prec)
   {
     uint32_t loc_check[2]={0,0};
     
@@ -136,7 +149,7 @@ namespace nissa
       uint32_t ildg_ivol=X[1]+glb_size[1]*(X[2]+glb_size[2]*(X[3]+glb_size[3]*X[0]));
       uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
       
-      uint32_t temp=ildg_crc32_fix_endianness(0,(unsigned char*)data+bps*ivol,bps);
+      uint32_t temp=ildg_crc32_fix_endianness(0,(unsigned char*)data+bps*ivol,bps,prec);
       
       for(int i=0;i<2;i++) loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
     }
