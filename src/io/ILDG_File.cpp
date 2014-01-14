@@ -167,12 +167,15 @@ namespace nissa
   //skip the passed amount of bytes starting from curr position
   void ILDG_File_skip_nbytes(ILDG_File &file,ILDG_Offset nbytes)
   {
+    if(nbytes)
+      {
 #ifdef USE_MPI_IO
-    decript_MPI_error(MPI_File_seek(file,nbytes,MPI_SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
+	decript_MPI_error(MPI_File_seek(file,nbytes,MPI_SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
 #else
-    crash_printing_error(fseek(file,nbytes,SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
-    MPI_Barrier(MPI_COMM_WORLD);
+	crash_printing_error(fseek(file,nbytes,SEEK_CUR),"while seeking ahead %d bytes from current position",nbytes);
 #endif
+      }
+    MPI_Barrier(MPI_COMM_WORLD);
   }
   
   //get current position
@@ -277,7 +280,8 @@ namespace nissa
       }
     
     //full type
-    decript_MPI_error(MPI_Type_create_subarray(4,mapped_glb_size,mapped_loc_size,mapped_start,MPI_ORDER_C,view.etype,&view.ftype),"while creating subarray type");
+    decript_MPI_error(MPI_Type_create_subarray(4,mapped_glb_size,mapped_loc_size,mapped_start,MPI_ORDER_C,
+					       view.etype,&view.ftype),"while creating subarray type");
     decript_MPI_error(MPI_Type_commit(&view.ftype),"while committing ftype");
     
     //type
@@ -407,13 +411,14 @@ namespace nissa
 #else
 	size_t nbytes_wrote=fwrite(data,1,nbytes_req,file);
 #endif
-	
 	if(nbytes_wrote!=nbytes_req)
 	  crash("wrote %u bytes instead of %u required",nbytes_wrote,nbytes_req);
+	
+	//this is a blocking routine
+	ILDG_File_skip_nbytes(file,0);
       }
     else
       ILDG_File_skip_nbytes(file,nbytes_req);
-    MPI_Barrier(MPI_COMM_WORLD);
 
     //sync
 #ifdef USE_MPI_IO
@@ -633,11 +638,11 @@ namespace nissa
     //write and free buf
     MPI_Status status;
     decript_MPI_error(MPI_File_write_at_all(file,0,buf,loc_vol,scidac_view.etype,&status),"while writing");
-    nissa_free(buf);
     
     //sync
     MPI_File_sync(file);
     MPI_Barrier(MPI_COMM_WORLD);
+    nissa_free(buf);
     
     //put the view to original state and place at the end of the record, including padding
     normal_view.pos+=ceil_to_next_eight_multiple(header.data_length);
@@ -655,17 +660,17 @@ namespace nissa
     ILDG_Offset ori_pos=ILDG_File_get_position(file);
     
     //find starting point
-    ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank_exp;
+    ILDG_Offset new_pos=ori_pos+rank*nbytes_per_rank;
     ILDG_File_set_position(file,new_pos,SEEK_SET);
     
     //reorder data to the appropriate place
     vector_remap_t *rem=new vector_remap_t(loc_vol,index_to_ILDG_remapping,NULL);
     rem->remap(buf,data,header.data_length/glb_vol);
     delete rem;
-    
+
     //write
-    size_t nbytes_wrote=fwrite(buf,1,nbytes_per_rank_exp,file);
-    if(nbytes_wrote!=nbytes_per_rank_exp) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank_exp);
+    size_t nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
+    if(nbytes_wrote!=nbytes_per_rank) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank);
     
     //free buf and ord
     nissa_free(buf);
