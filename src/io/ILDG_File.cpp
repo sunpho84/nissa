@@ -596,7 +596,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(remap_to_write_ildg_data, char*,buf, char*,data, int,nbytes_per_site)
   {
     GET_THREAD_ID();
-    
+    master_printf("remapping, %d bytes per site\n",nbytes_per_site);
     NISSA_PARALLEL_LOOP(isour,0,loc_vol)
     {
       int idest=0;

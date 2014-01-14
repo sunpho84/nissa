@@ -232,15 +232,13 @@ namespace nissa
     ILDG_File file=ILDG_File_open_for_write(path);
     
     //reorder in ILDG
-    NISSA_LOC_VOL_LOOP(ivol)
-      quad_su3_nissa_to_ildg_reord(in[ivol],in[ivol]);
+    quad_su3_nissa_to_ildg_reord_in_place(in);
     
     //write the lattice part
     write_double_vector(file,(double*)in,NREALS_PER_QUAD_SU3,prec,"ildg-binary-data",mess);
     
     //reorder back
-    NISSA_LOC_VOL_LOOP(ivol)
-      quad_su3_ildg_to_nissa_reord(in[ivol],in[ivol]);
+    quad_su3_ildg_to_nissa_reord_in_place(in);
     
     verbosity_lv2_master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,take_time()-start_time);
     
