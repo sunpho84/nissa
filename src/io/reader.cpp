@@ -63,17 +63,24 @@ namespace nissa
     //close the file
     ILDG_File_close(file);
     
-    if(nbytes_per_site_read!=nbytes_per_site_float && nbytes_per_site_read!=nbytes_per_site_double)
+
+    //check precision
+    int single_double_flag=-1;
+    const char single_double_str[2][10]={"single","double"};
+    if(nbytes_per_site_read==nbytes_per_site_float) single_double_flag=0;
+    if(nbytes_per_site_read==nbytes_per_site_double) single_double_flag=1;
+    if(single_double_flag==-1)
       crash("Opsss! The file contain %d bytes per site and it is supposed to contain: %d (single) or %d (double)",
-	    nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);
-    
+	    nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);    
+    verbosity_lv3_master_printf("Vector is stored in %s precision\n",single_double_str[single_double_flag]);
+
+
     int loc_nreals_tot=nreals_per_site*loc_vol;
     
     //change endianess
     if(little_endian)
       {
-	if(nbytes_per_site_read==nbytes_per_site_float)
-	  floats_to_floats_changing_endianness((float*)out,(float*)out,loc_nreals_tot);
+	if(single_double_flag==0) floats_to_floats_changing_endianness((float*)out,(float*)out,loc_nreals_tot);
 	else doubles_to_doubles_changing_endianness(out,out,loc_nreals_tot);
       }
     
@@ -94,7 +101,7 @@ namespace nissa
     else master_printf("Data checksum not found.\n");
     
     //cast to double if needed
-    if(nbytes_per_site_read==nbytes_per_site_float) floats_to_doubles_same_endianness(out,(float*)out,loc_nreals_tot);
+    if(single_double_flag==0) floats_to_doubles_same_endianness(out,(float*)out,loc_nreals_tot);
 
     set_borders_invalid(out);    
     verbosity_lv2_master_printf("Total time elapsed including possible conversion: %f s\n",take_time()-start_time);

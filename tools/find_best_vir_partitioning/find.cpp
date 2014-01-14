@@ -352,7 +352,7 @@ int main(int narg,char **arg)
   rank_grid_t rank;
   int ntrue_valid=0;
   bool good;
-  int bord=-1,bord2;
+  int bord=-1,bord2=-1;
   do
     {
       //advance along the list of good partitions up to finding a good one
