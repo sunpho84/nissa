@@ -18,7 +18,7 @@ namespace nissa
     //mark not to have inited geom and staples
     comm_init_time=comp_time=comm_time=0;
     staples_inited=par_geom_inited=false;
-    max_cached_link=max_sending_link;
+    max_cached_link=max_sending_link=0;
   }
   
   //destructor
