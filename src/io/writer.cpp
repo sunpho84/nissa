@@ -42,14 +42,8 @@ namespace nissa
     char *buffer=nissa_malloc("buffer",nreals_loc*nbytes_per_real,char);
     
     //possibly reduce to 32 bit
-    NISSA_LOC_VOL_LOOP(ivol)
-    {
-      char *out=buffer+ivol*nbytes_per_site;
-      double *in=data+ivol*nreals_per_site;
-      
-      if(nbits==64) memcpy((double*)out,in,nbytes_per_site);
-      else for(int i=0;i<nreals_loc;i++) ((float*)out)[i]=in[i];
-    }
+    if(nbits==64) parallel_memcpy(buffer,data,nreals_loc*nbytes_per_real);
+    else doubles_to_floats_same_endianness((float*)buffer,data,nreals_loc);
     
     //compute the checksum
     checksum check;
