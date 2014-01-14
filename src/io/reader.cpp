@@ -159,8 +159,7 @@ namespace nissa
     verbosity_lv2_master_printf("Configuration read!\n\n");
     
     //reorder from ILDG
-    NISSA_LOC_VOL_LOOP(ivol)
-      quad_su3_ildg_to_nissa_reord(conf[ivol],conf[ivol]);
+    quad_su3_ildg_to_nissa_reord_in_place(conf);
     
     //set borders invalid
     set_borders_invalid(conf);

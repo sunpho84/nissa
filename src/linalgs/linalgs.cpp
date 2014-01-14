@@ -436,7 +436,24 @@ namespace nissa
     set_borders_invalid(s);
   }
   THREADABLE_FUNCTION_END
+  
+  //ildg to nissa and vice-versa
+  THREADABLE_FUNCTION_1ARG(quad_su3_nissa_to_ildg_reord_in_place, quad_su3*,in)
+  {
+    NISSA_LOC_VOL_LOOP(ivol)
+      quad_su3_nissa_to_ildg_reord(in[ivol],in[ivol]);
+    THREAD_BARRIER();
+  }
+  THREADABLE_FUNCTION_END
+  THREADABLE_FUNCTION_1ARG(quad_su3_ildg_to_nissa_reord_in_place, quad_su3*,in)
+  {
+    NISSA_LOC_VOL_LOOP(ivol)
+      quad_su3_ildg_to_nissa_reord(in[ivol],in[ivol]);
+    THREAD_BARRIER();
+  }
+  THREADABLE_FUNCTION_END
 
+  
   THREADABLE_FUNCTION_3ARG(parallel_memcpy,void*,out, void*,in, int,n)
   {
 #ifdef USE_THREADS

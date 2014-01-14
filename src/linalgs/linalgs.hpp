@@ -37,6 +37,8 @@ namespace nissa
   void safe_dirac_prod_colorspinspin(colorspinspin *out,dirac_matr *m,colorspinspin *in);
   void rotate_vol_colorspinspin_to_physical_basis(colorspinspin *s,int rsi,int rso);
   void rotate_vol_su3spinspin_to_physical_basis(su3spinspin *s,int rsi,int rso);
+  void quad_su3_nissa_to_ildg_reord_in_place(quad_su3 *conf);
+  void quad_su3_ildg_to_nissa_reord_in_place(quad_su3 *conf);
 }
 
 #endif
