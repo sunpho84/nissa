@@ -43,6 +43,7 @@ namespace nissa
     if(!found) crash("Error, record %s not found.\n",record_name);
     
     //check the size of the data block
+    int loc_nreals_tot=nreals_per_site*loc_vol;
     uint64_t nbytes=header.data_length;
     uint64_t nbytes_per_site_read=nbytes/glb_vol;
     if(nbytes_per_site_read>nreals_per_site*sizeof(double))
@@ -63,7 +64,6 @@ namespace nissa
     //close the file
     ILDG_File_close(file);
     
-
     //check precision
     int single_double_flag=-1;
     const char single_double_str[2][10]={"single","double"};
@@ -73,9 +73,6 @@ namespace nissa
       crash("Opsss! The file contain %d bytes per site and it is supposed to contain: %d (single) or %d (double)",
 	    nbytes_per_site_read,nbytes_per_site_float,nbytes_per_site_double);    
     verbosity_lv3_master_printf("Vector is stored in %s precision\n",single_double_str[single_double_flag]);
-
-
-    int loc_nreals_tot=nreals_per_site*loc_vol;
     
     //change endianess
     if(little_endian)

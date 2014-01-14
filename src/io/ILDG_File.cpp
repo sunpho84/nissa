@@ -506,7 +506,8 @@ namespace nissa
     //count read bytes
     int nbytes_read=0;
     decript_MPI_error(MPI_Get_count(&status,MPI_BYTE,&nbytes_read),"while counting read bytes");
-    if((uint64_t)nbytes_read!=header.data_length/nranks) crash("read %d bytes instead than %d",nbytes_read,header.data_length/nranks);
+    if((uint64_t)nbytes_read!=header.data_length/nranks)
+      crash("read %d bytes instead than %d",nbytes_read,header.data_length/nranks);
     
     //put the view to original state and place at the end of the record, including padding
     normal_view.pos+=ceil_to_next_eight_multiple(header.data_length);
@@ -588,9 +589,10 @@ namespace nissa
 	nissa_free(mess);
       }
   }
-  
+
   ////////////////////////////////////// external writing interfaces //////////////////////////////////////
-  
+
+  //remap to ildg
   THREADABLE_FUNCTION_3ARG(remap_to_write_ildg_data, char*,buf, char*,data, int,nbytes_per_site)
   {
     GET_THREAD_ID();
@@ -711,7 +713,13 @@ namespace nissa
   {
     //prepare message
     char mess[1024];
-    sprintf(mess,"<?xml version=\"1.0\" encoding=\"UTF-8\"?><scidacChecksum><version>1.0</version><suma>%#010x</suma><sumb>%#010x</sumb></scidacChecksum>",check[0],check[1]);
+    sprintf(mess,
+	    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+	    "<scidacChecksum>"
+	    "<version>1.0</version>"
+	    "<suma>%#010x</suma>"
+	    "<sumb>%#010x</sumb>"
+	    "</scidacChecksum>",check[0],check[1]);
     
     //write the record
     ILDG_File_write_text_record(file,"scidac-checksum",mess);
