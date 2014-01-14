@@ -7,6 +7,7 @@
 
 namespace nissa
 {
+  size_t MPI_Get_count_size_t(MPI_Status &status);
   void coords_broadcast(coords c);
   void get_MPI_nranks();
   void get_MPI_rank();

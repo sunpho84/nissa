@@ -23,9 +23,9 @@
 namespace nissa
 {
   //Write a vector of double, in 32 or 64 bits according to the argument
-  void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nbits,const char *header_message,ILDG_message *mess=NULL)
+  void write_double_vector(ILDG_File &file,double *data,size_t nreals_per_site,size_t nbits,const char *header_message,ILDG_message *mess=NULL)
   {
-    if(nbits!=32 && nbits!=64) crash("Error, asking %d precision, use instead 32 or 64\n",nbits);
+    if(nbits!=32 && nbits!=64) crash("Error, asking %u precision, use instead 32 or 64\n",nbits);
     
     //take initial time
     double time=-take_time();
@@ -34,9 +34,9 @@ namespace nissa
     if(mess!=NULL) ILDG_File_write_all_messages(file,mess);
     
     //compute float or double site
-    int nreals_loc=nreals_per_site*loc_vol;
-    int nbytes_per_real=nbits/8;
-    int nbytes_per_site=nreals_per_site*nbytes_per_real;
+    size_t nreals_loc=nreals_per_site*loc_vol;
+    size_t nbytes_per_real=nbits/8;
+    size_t nbytes_per_site=nreals_per_site*nbytes_per_real;
     
     //buffer to reorder data in ILDG format and change endianness
     char *buffer=nissa_malloc("buffer",nreals_loc*nbytes_per_real,char);
@@ -71,7 +71,7 @@ namespace nissa
   }
   
   //Write a whole color vector
-  void write_color(const char *path,color *v,int prec)
+  void write_color(const char *path,color *v,size_t prec)
   {
     //Open the file
     ILDG_File file=ILDG_File_open_for_write(path);
@@ -104,7 +104,7 @@ namespace nissa
   }
   
   //Write a whole spincolor
-  void write_spincolor(const char *path,spincolor *spinor,int prec)
+  void write_spincolor(const char *path,spincolor *spinor,size_t prec)
   {
     //Open the file
     ILDG_File file=ILDG_File_open_for_write(path);
@@ -137,7 +137,7 @@ namespace nissa
   }
   
   //Write a whole colorspinspin
-  void write_colorspinspin(const char *path,colorspinspin *prop,int prec)
+  void write_colorspinspin(const char *path,colorspinspin *prop,size_t prec)
   {
     double start_time=take_time();
     
@@ -157,7 +157,7 @@ namespace nissa
 #include "dirac_operators/tmQ/dirac_operator_tmQ.hpp"
   
   //write packing
-  void write_tm_spincolor_anti_reconstructing(const char *path,spincolor **doublet,double mu,int prec,quad_su3 *conf,double kappa,momentum_t theta)
+  void write_tm_spincolor_anti_reconstructing(const char *path,spincolor **doublet,double mu,size_t prec,quad_su3 *conf,double kappa,momentum_t theta)
   {
     spincolor *QQ=nissa_malloc("QQ",loc_vol,spincolor);
     
@@ -171,10 +171,10 @@ namespace nissa
     
     nissa_free(QQ);
   }
-  void write_tm_spincolor_anti_reconstructing(const char *path,spincolor *prop_minus,spincolor *prop_plus,int is_rotated,double mu,int prec,quad_su3 *conf,double kappa,momentum_t theta)
+  void write_tm_spincolor_anti_reconstructing(const char *path,spincolor *prop_minus,spincolor *prop_plus,int is_rotated,double mu,size_t prec,quad_su3 *conf,double kappa,momentum_t theta)
   {spincolor *doublet[2]={prop_minus,prop_plus};write_tm_spincolor_anti_reconstructing(path,doublet,mu,prec,conf,kappa,theta);}
   
-  void write_tm_colorspinspin_anti_reconstructing(const char *path,colorspinspin **doublet,int is_rotated,double mu,int prec,quad_su3 *conf,double kappa,momentum_t theta)
+  void write_tm_colorspinspin_anti_reconstructing(const char *path,colorspinspin **doublet,int is_rotated,double mu,size_t prec,quad_su3 *conf,double kappa,momentum_t theta)
   {
     //if rotated, anti-rotate
     if(is_rotated) for(int r=0;r<2;r++) rotate_vol_colorspinspin_to_physical_basis(doublet[r],r,r);
@@ -199,11 +199,11 @@ namespace nissa
     if(is_rotated) for(int r=0;r<2;r++) rotate_vol_colorspinspin_to_physical_basis(doublet[r],!r,!r);
   }
   
-  void write_tm_colorspinspin_anti_reconstructing(const char *path,colorspinspin *prop_minus,colorspinspin *prop_plus,int is_rotated,double mu,int prec,quad_su3 *conf,double kappa,momentum_t theta)
+  void write_tm_colorspinspin_anti_reconstructing(const char *path,colorspinspin *prop_minus,colorspinspin *prop_plus,int is_rotated,double mu,size_t prec,quad_su3 *conf,double kappa,momentum_t theta)
   {colorspinspin *doublet[2]={prop_minus,prop_plus};write_tm_colorspinspin_anti_reconstructing(path,doublet,is_rotated,mu,prec,conf,kappa,theta);}
   
   //Write a whole su3spinspin
-  void write_su3spinspin(char *path,su3spinspin *prop,int prec)
+  void write_su3spinspin(char *path,su3spinspin *prop,size_t prec)
   {
     double start_time=take_time();
     
@@ -224,7 +224,7 @@ namespace nissa
   ////////////////////////// gauge configuration writing /////////////////////////////
   
   //Write the local part of the gauge configuration
-  void write_ildg_gauge_conf(const char *path,quad_su3 *in,int prec,ILDG_message *mess=NULL)
+  void write_ildg_gauge_conf(const char *path,quad_su3 *in,size_t prec,ILDG_message *mess=NULL)
   {
     double start_time=take_time();
     
@@ -246,7 +246,7 @@ namespace nissa
   }
   
   //read an ildg conf and split it into e/o parts
-  void paste_eo_parts_and_write_ildg_gauge_conf(const char *path,quad_su3 **eo_conf,int prec,ILDG_message *mess=NULL)
+  void paste_eo_parts_and_write_ildg_gauge_conf(const char *path,quad_su3 **eo_conf,size_t prec,ILDG_message *mess=NULL)
   {
     quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
     paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
