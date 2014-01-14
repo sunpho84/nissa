@@ -440,14 +440,16 @@ namespace nissa
   //ildg to nissa and vice-versa
   THREADABLE_FUNCTION_1ARG(quad_su3_nissa_to_ildg_reord_in_place, quad_su3*,in)
   {
-    NISSA_LOC_VOL_LOOP(ivol)
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       quad_su3_nissa_to_ildg_reord(in[ivol],in[ivol]);
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
   THREADABLE_FUNCTION_1ARG(quad_su3_ildg_to_nissa_reord_in_place, quad_su3*,in)
   {
-    NISSA_LOC_VOL_LOOP(ivol)
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       quad_su3_ildg_to_nissa_reord(in[ivol],in[ivol]);
     THREAD_BARRIER();
   }
