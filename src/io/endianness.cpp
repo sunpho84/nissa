@@ -74,19 +74,20 @@ namespace nissa
     
     if(verbose) verbosity_lv3_master_printf("Reverting the endianness of the data\n");
     
-    for(int ifloat=0;ifloat<nfloats;ifloat++)
-      {
-	cdest=(char*)(dest+ifloat);
-	csour=(char*)(sour+ifloat);
-	
-	temp=csour[3];
-	cdest[3]=csour[0];
-	cdest[0]=temp;
-	
-	temp=csour[2];
-	cdest[2]=csour[1];
-	cdest[1]=temp;
-      }
+    if(dest==sour)
+      for(int ifloat=0;ifloat<nfloats;ifloat++)
+	{
+	  cdest=(char*)(dest+ifloat);
+	  csour=(char*)(sour+ifloat);
+	  
+	  temp=csour[3];
+	  cdest[3]=csour[0];
+	  cdest[0]=temp;
+	  
+	  temp=csour[2];
+	  cdest[2]=csour[1];
+	  cdest[1]=temp;
+	}
     else
       for(int ifloat=0;ifloat<nfloats;ifloat++)
 	{
@@ -155,7 +156,7 @@ namespace nissa
     for(int i=n-1;i>=0;i--)
       {
 	float loc=sour[i];
-	c=(char*)(loc);
+	c=(char*)(&loc);
 	
 	temp=c[3];
 	c[3]=c[0];
