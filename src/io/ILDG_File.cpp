@@ -9,6 +9,7 @@
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/macros.hpp"
+#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "operations/remap_vector.hpp"
@@ -16,6 +17,10 @@
 #include "routines/mpi_routines.hpp"
 
 #include "endianness.hpp"
+
+#ifdef USE_THREADS
+ #include "routines/thread.hpp"
+#endif
 
 namespace nissa
 {
@@ -586,6 +591,24 @@ namespace nissa
   
   ////////////////////////////////////// external writing interfaces //////////////////////////////////////
   
+  THREADABLE_FUNCTION_3ARG(remap_to_write_ildg_data, char*,buf, char*,data, int,nbytes_per_site)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(isour,0,loc_vol)
+    {
+      int idest=0;
+      for(int mu=0;mu<4;mu++)
+	{
+	  int nu=scidac_mapping[mu];
+	  idest=idest*loc_size[nu]+loc_coord_of_loclx[isour][nu];
+	}
+      memcpy(buf+nbytes_per_site*idest,data+nbytes_per_site*isour,nbytes_per_site);
+    }
+    THREAD_BARRIER();
+  }
+  THREADABLE_FUNCTION_END
+  
   //read the data according to ILDG mapping
   void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,int nbytes_per_site,const char *type)
   {
@@ -604,20 +627,7 @@ namespace nissa
     //reorder
     int nbytes_per_rank_exp=header.data_length/nranks;
     char *buf=nissa_malloc("buf",nbytes_per_rank_exp,char);
-    memcpy(buf,data,nbytes_per_rank_exp);
-    int *order=nissa_malloc("order",loc_vol,int);
-    NISSA_LOC_VOL_LOOP(isour)
-    {
-      int idest=0;
-      for(int mu=0;mu<4;mu++)
-	{
-	  int nu=scidac_mapping[mu];
-	  idest=idest*loc_size[nu]+loc_coord_of_loclx[isour][nu];
-	}
-      order[isour]=idest;
-    }
-    reorder_vector(buf,order,loc_vol,header.data_length/glb_vol);
-    nissa_free(order);
+    remap_to_write_ildg_data(buf,(char*)data,header.data_length/glb_vol);
     
     //write and free buf
     MPI_Status status;
