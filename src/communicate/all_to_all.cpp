@@ -115,14 +115,20 @@ namespace nissa
     in_buf_off_per_rank=nissa_malloc(" in_buf_off",nranks_fr,int);
     build.out_buf_cur_per_rank=nissa_malloc("out_buf_cur",nranks_to,int);
     build.in_buf_cur_per_rank=nissa_malloc(" in_buf_cur",nranks_fr,int);
-    out_buf_off_per_rank[0]=build.out_buf_cur_per_rank[0]=0;
-    for(int ilist_rank_to=1;ilist_rank_to<nranks_to;ilist_rank_to++)
-      out_buf_off_per_rank[ilist_rank_to]=build.out_buf_cur_per_rank[ilist_rank_to]=
-	out_buf_off_per_rank[ilist_rank_to-1]+nper_rank_to[ilist_rank_to-1];
-    in_buf_off_per_rank[0]=build.in_buf_cur_per_rank[0]=0;
-    for(int ilist_rank_fr=1;ilist_rank_fr<nranks_fr;ilist_rank_fr++)
-      in_buf_off_per_rank[ilist_rank_fr]=build.in_buf_cur_per_rank[ilist_rank_fr]=
-	in_buf_off_per_rank[ilist_rank_fr-1]+nper_rank_fr[ilist_rank_fr-1];
+    if(nranks_to!=0)
+      {
+	out_buf_off_per_rank[0]=build.out_buf_cur_per_rank[0]=0;
+	for(int ilist_rank_to=1;ilist_rank_to<nranks_to;ilist_rank_to++)
+	  out_buf_off_per_rank[ilist_rank_to]=build.out_buf_cur_per_rank[ilist_rank_to]=
+	    out_buf_off_per_rank[ilist_rank_to-1]+nper_rank_to[ilist_rank_to-1];
+      }
+    if(nranks_fr!=0)
+      {
+	in_buf_off_per_rank[0]=build.in_buf_cur_per_rank[0]=0;
+	for(int ilist_rank_fr=1;ilist_rank_fr<nranks_fr;ilist_rank_fr++)
+	  in_buf_off_per_rank[ilist_rank_fr]=build.in_buf_cur_per_rank[ilist_rank_fr]=
+	    in_buf_off_per_rank[ilist_rank_fr-1]+nper_rank_fr[ilist_rank_fr-1];
+      }
   }
   
   //explain to each rank how to sort out or fill data from the buff
