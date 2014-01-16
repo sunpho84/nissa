@@ -258,7 +258,8 @@ namespace nissa
 	    for(int par=0;par<gpar;par++)
 	      {
 		//find the packing size
-		max_packing_link_nel=std::max(max_packing_link_nel,nsite_per_box_dir_par[par+gpar*(dir+4*ibox)]);
+		max_packing_link_nel=std::max(max_packing_link_nel,
+					      nlinks_per_staples_of_link*nsite_per_box_dir_par[par+gpar*(dir+4*ibox)]);
 		
 	       //scan the destination
 	       for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];ibox_dir_par++)
@@ -355,45 +356,18 @@ namespace nissa
 		{
 		  int isource=gs->packing_link_source_dest[2*ilink_to_ship+0];
 		  int idest=gs->packing_link_source_dest[2*ilink_to_ship+1];
-		  //master_printf("%d to %d\n",isource,idest);
 		  su3_copy(gs->packing_link_buf[idest],((su3*)conf)[isource]);
 		}
 	      THREAD_BARRIER();
-
-	      if(0)
-		{
-		  //master_printf("%d %d\n",nbox_dir_par,gs->nlinks_per_staples_of_link);
-		  if(IS_MASTER_THREAD)
-		    for(int ibox_dir_par=0;ibox_dir_par<nbox_dir_par;ibox_dir_par++)
-		      for(int ilink=0;ilink<gs->nlinks_per_staples_of_link;ilink++)
-			{
-			  
-			  //su3_print(gs->packing_link_buf[ibox_dir_par*gs->nlinks_per_staples_of_link+ilink]);
-			  //su3_print(((su3*)conf)[gs->ilink_per_staples[gs->nlinks_per_staples_of_link*(ibox_dir_par+ibase)+ilink]]);
-			  su3 test;
-			  su3_subt(test,gs->packing_link_buf[ibox_dir_par*gs->nlinks_per_staples_of_link+ilink],
-				   ((su3*)conf)[gs->ilink_per_staples[gs->nlinks_per_staples_of_link*(ibox_dir_par+ibase)+ilink]]);		    
-			  double e=real_part_of_trace_su3_prod_su3_dag(test,test);
-			  if(fabs(e)>1.e-14) master_printf("%lg\n",e);
-			}
-		  THREAD_BARRIER();
-		}
 	      
 	      //scan all the box
 	      NISSA_PARALLEL_LOOP(ibox_dir_par,ibase,ibase+nbox_dir_par)
 		{
 		  //compute the staples
-		  su3 staples;//,staples_test;
+		  su3 staples;
 		  if(gs->packing_inited) 
 		    gs->compute_staples_packed(staples,gs->packing_link_buf+(ibox_dir_par-ibase)*gs->nlinks_per_staples_of_link);
 		  else gs->compute_staples(staples,(su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
-		  //
-
-		  //su3 test;
-		  //su3_subt(test,staples,staples_test);
-		  //double e=real_part_of_trace_su3_prod_su3_dag(test,test);
-		  //if(fabs(e)>1.e-14) master_printf("%lg\n",e);
-
 		  //find new link
 		  int ivol=gs->ivol_of_box_dir_par[ibox_dir_par];
 		  gs->update_link_using_staples(conf,ivol,dir,staples,update_alg,beta,nhits);
