@@ -206,7 +206,7 @@ namespace nissa
   struct gauge_sweeper_t
   {
     //flags
-    bool staples_inited,par_geom_inited;
+    bool staples_inited,par_geom_inited,packing_inited;
     
     //benchmarks and checks
     double comm_init_time,comp_time,comm_time;
@@ -214,8 +214,11 @@ namespace nissa
 
     //store action parameters
     int nlinks_per_staples_of_link,gpar;
-    int *ilink_per_staples;
     
+    //alternative ways to compute
+    int *ilink_per_staples;
+    int *packing_link_source_dest;//std::map<int,std::vector<int> > *packing_index;
+    su3 *packing_link_buf;
     //geometry
     int *nsite_per_box_dir_par;
     int *ivol_of_box_dir_par;
@@ -233,9 +236,13 @@ namespace nissa
                       void (*ext_compute_staples)(su3 staples,su3 *links,int *ilinks));
     void add_staples_required_links(all_to_all_gathering_list_t **gl);
     
+    //find the order in which to scan the links to compute the staple sequentially
+    void find_packing_index(void (*ext_compute_staples_packed)(su3 staples,su3 *links));
+    
     //routine computing staples
     void (*compute_staples)(su3 staples,su3 *links,int *ilinks);
-
+    void (*compute_staples_packed)(su3 staples,su3 *links);
+    
     //inits the parity checkboard according to an external parity
     void init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(coords ivol_coord,int dir));
     
