@@ -103,6 +103,10 @@ namespace nissa
     for(int mu=0;mu<4;mu++) fix_nranks[mu]=0;
     vnode_paral_dir=NISSA_DEFAULT_VNODE_PARAL_DIR;
     
+    //put 0 as minimal request
+    recv_buf_size=0;
+    send_buf_size=0;
+    
     //read the configuration file, if present
     read_nissa_config_file();
     
@@ -584,6 +588,15 @@ namespace nissa
     
 #ifdef SPI
     init_spi();
+#endif
+    
+    //allocate only now buffers, so we should have finalized its size
+#if defined BGQ && defined SPI
+    recv_buf=(char*)memalign(64,recv_buf_size);
+    send_buf=(char*)memalign(64,send_buf_size);
+#else
+    recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
+    send_buf=nissa_malloc("send_buf",send_buf_size,char);
 #endif
     
     //setup all lx borders communicators

@@ -453,15 +453,8 @@ namespace nissa
 	}
     
     //allocate a buffer large enough to allow communications of su3spinspin lx border
-    recv_buf_size=bord_vol*sizeof(su3spinspin);
-    send_buf_size=bord_vol*sizeof(su3spinspin);
-#if defined BGQ && defined SPI
-    recv_buf=(char*)memalign(64,recv_buf_size);
-    send_buf=(char*)memalign(64,send_buf_size);
-#else
-    recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
-    send_buf=nissa_malloc("send_buf",send_buf_size,char);
-#endif
+    recv_buf_size=std::max(recv_buf_size,bord_vol*sizeof(su3spinspin));
+    send_buf_size=std::max(send_buf_size,bord_vol*sizeof(su3spinspin));
     
     //create the sweepers but do not fully initialize
     Wilson_sweeper=new gauge_sweeper_t;
