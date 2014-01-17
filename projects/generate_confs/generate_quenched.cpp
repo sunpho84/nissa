@@ -54,7 +54,7 @@ void measure_gauge_obs(bool );
 void measure_topology(top_meas_pars_t&,quad_su3*,int,bool,bool presereve_uncooled=true);
 
 //write a conf adding info
-void write_conf()
+void write_conf(const char *path)
 {
   write_time-=take_time();
   
@@ -75,7 +75,7 @@ void write_conf()
   ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
   
   //write the conf
-  write_ildg_gauge_conf(conf_path,conf,64,&mess);
+  write_ildg_gauge_conf(path,conf,64,&mess);
   
   //free messages
   ILDG_message_free_all(&mess);
@@ -392,7 +392,7 @@ void store_conf_if_necessary()
     {
       char path[1024];
       sprintf(path,"%s.%05d",store_conf_path,iconf);
-      write_conf();
+      write_conf(path);
     }
 }
 
