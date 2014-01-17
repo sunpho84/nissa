@@ -10,6 +10,10 @@
  #include "operations/su3_paths/squared_staples.hpp"
  #include "communicate/edges.hpp"
 
+#ifdef BGQ
+ #include "bgq/bgq_macros.hpp"
+#endif
+
 #include <stdlib.h>
 
 namespace nissa
@@ -268,7 +272,14 @@ namespace nissa
 		     packing_link_source_dest[2*(ilink+nlinks_per_staples_of_link*(ibox_dir_par+ibase))+0]=
 		       ilink_per_staples[(ibox_dir_par+ibase)*nlinks_per_staples_of_link+ilink];
 		     packing_link_source_dest[2*(ilink+nlinks_per_staples_of_link*(ibox_dir_par+ibase))+1]=
-		       ilink+nlinks_per_staples_of_link*ibox_dir_par;
+#ifdef BGQ
+		       //if using BGQ, pack info on vnode too, as last bit
+		       ((ilink+nlinks_per_staples_of_link*ibox_dir_par)<<2)+
+		       (2*ibox_dir_par>=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)])
+#else
+		       ilink+nlinks_per_staples_of_link*ibox_dir_par
+#endif
+		       ;
 		   }
 
 	       //sort and increase the base
@@ -332,6 +343,10 @@ namespace nissa
       }
   }
   
+#ifdef BGQ
+  void compute_tlSym_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links);
+#endif
+  
   //sweep the conf using the appropriate routine to compute staples
   THREADABLE_FUNCTION_5ARG(sweep_conf_fun, quad_su3*,conf, gauge_sweeper_t*,gs, quenched_update_alg_t,update_alg, double,beta, int,nhits)
   {
@@ -351,28 +366,53 @@ namespace nissa
 	    {
 	      //pack
 	      int nbox_dir_par=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)];
-	      NISSA_PARALLEL_LOOP(ilink_to_ship,gs->nlinks_per_staples_of_link*ibase,
-				  gs->nlinks_per_staples_of_link*(nbox_dir_par+ibase))
+	      int *packing_link_source_dest=gs->packing_link_source_dest+2*gs->nlinks_per_staples_of_link*ibase;
+	      NISSA_PARALLEL_LOOP(ilink_to_ship,0,gs->nlinks_per_staples_of_link*nbox_dir_par)
 		{
-		  int isource=gs->packing_link_source_dest[2*ilink_to_ship+0];
-		  int idest=gs->packing_link_source_dest[2*ilink_to_ship+1];
+		  int isource=packing_link_source_dest[2*ilink_to_ship+0];
+		  int idest=packing_link_source_dest[2*ilink_to_ship+1];
+#ifdef BGQ
+		  int true_dest=idest>>1;
+		  int vnode=idest&1;
+		  SU3_TO_BI_SU3(((bi_su3*)gs->packing_link_buf)[true_dest],((su3*)conf)[isource],vnode);
+#else
 		  su3_copy(gs->packing_link_buf[idest],((su3*)conf)[isource]);
+#endif	      
 		}
 	      THREAD_BARRIER();
+
+#ifdef BGQ	      
+	      su3 *staples_list=nissa_malloc("staples_list",nbox_dir_par,su3);
+	      NISSA_PARALLEL_LOOP(ibox_dir_par,0,nbox_dir_par/2)
+		  compute_tlSym_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+nbox_dir_par/2],
+						   (bi_su3*)gs->packing_link_buf+(ibox_dir_par-ibase)*gs->nlinks_per_staples_of_link);
+	      THREAD_BARRIER();
+#endif	      
 	      
 	      //scan all the box
 	      NISSA_PARALLEL_LOOP(ibox_dir_par,ibase,ibase+nbox_dir_par)
 		{
 		  //compute the staples
 		  su3 staples;
+		  
 		  if(gs->packing_inited) 
-		    gs->compute_staples_packed(staples,gs->packing_link_buf+(ibox_dir_par-ibase)*gs->nlinks_per_staples_of_link);
-		  else gs->compute_staples(staples,(su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
+		    gs->compute_staples_packed(staples,
+					       gs->packing_link_buf+(ibox_dir_par-ibase)*gs->nlinks_per_staples_of_link);
+		  else gs->compute_staples(staples,
+					   (su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
+		  
+#ifdef BGQ
+		  su3_copy(staples,staples_list[ibox_dir_par]);
+#endif
+		  
 		  //find new link
 		  int ivol=gs->ivol_of_box_dir_par[ibox_dir_par];
 		  gs->update_link_using_staples(conf,ivol,dir,staples,update_alg,beta,nhits);
 		}
-  
+	      
+#ifdef BGQ
+	      nissa_free(staples_list);
+#endif
 	      //increment the box-dir-par subset
 	      ibase+=nbox_dir_par;
 	      THREAD_BARRIER();
@@ -621,6 +661,132 @@ namespace nissa
     su3_linear_comb(staples,squares,b0,rectangles,b1);
   }
   
+#ifdef BGQ
+  //compute the summ of the staples pointed by "ilinks"
+  void compute_tlSym_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links)
+  {
+    bi_su3 squares,rectangles,up_rectangles,dw_rectangles;
+    BI_SU3_PUT_TO_ZERO(squares);
+    BI_SU3_PUT_TO_ZERO(rectangles);
+    BI_SU3_PUT_TO_ZERO(up_rectangles);
+    BI_SU3_PUT_TO_ZERO(dw_rectangles);
+  
+    DECLARE_REG_BI_SU3(REG_U1);
+    DECLARE_REG_BI_SU3(REG_U2);
+    DECLARE_REG_BI_SU3(REG_U3);
+    
+    for(int inu=0;inu<3;inu++)
+      {  
+	//backward square staple
+	bi_su3 hb;
+	REG_LOAD_BI_SU3(REG_U2,links[0]);
+	REG_LOAD_BI_SU3(REG_U3,links[1]);
+	REG_BI_SU3_DAG_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	STORE_REG_BI_SU3(hb,REG_U1);
+	REG_LOAD_BI_SU3(REG_U2,squares);
+	REG_LOAD_BI_SU3(REG_U3,links[2]);
+	REG_BI_SU3_SUMM_THE_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
+	STORE_REG_BI_SU3(squares,REG_U2);
+	//forward square staple
+	bi_su3 hf;
+	REG_LOAD_BI_SU3(REG_U2,links[3]);
+	REG_LOAD_BI_SU3(REG_U3,links[4]);
+	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	STORE_REG_BI_SU3(hf,REG_U1);
+	REG_LOAD_BI_SU3(REG_U2,squares);
+	REG_LOAD_BI_SU3(REG_U3,links[5]);
+	REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U2,REG_U1,REG_U3);
+	STORE_REG_BI_SU3(squares,REG_U2);
+      
+	//backward dw rectangle
+	REG_LOAD_BI_SU3(REG_U2,links[6]);
+	REG_LOAD_BI_SU3(REG_U3,links[7]);
+	REG_BI_SU3_DAG_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_BI_SU3(REG_U3,links[8]);
+	REG_BI_SU3_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
+	REG_LOAD_BI_SU3(REG_U1,dw_rectangles);
+	REG_LOAD_BI_SU3(REG_U3,links[9]);
+	REG_BI_SU3_SUMM_THE_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	STORE_REG_BI_SU3(dw_rectangles,REG_U1);
+	//backward backward rectangle
+	REG_LOAD_BI_SU3(REG_U2,links[10]);
+	REG_LOAD_BI_SU3(REG_U3,links[11]);
+	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U3,REG_U2); //not dag dag, so reverted
+	REG_LOAD_BI_SU3(REG_U3,links[12]);
+	REG_BI_SU3_DAG_PROD_BI_SU3(REG_U2,REG_U1,REG_U3); //daggering the first instead
+	REG_LOAD_BI_SU3(REG_U3,links[13]);
+	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_BI_SU3(REG_U3,links[14]);
+	REG_LOAD_BI_SU3(REG_U2,rectangles);
+	REG_BI_SU3_SUMM_THE_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
+	STORE_REG_BI_SU3(rectangles,REG_U2);
+	//backward up rectangle
+	REG_LOAD_BI_SU3(REG_U2,hb);
+	REG_LOAD_BI_SU3(REG_U3,links[15]);
+        REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_BI_SU3(REG_U3,links[16]);
+	REG_LOAD_BI_SU3(REG_U2,up_rectangles);
+	REG_BI_SU3_SUMM_THE_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
+	STORE_REG_BI_SU3(up_rectangles,REG_U2);
+	//forward dw rectangle
+	REG_LOAD_BI_SU3(REG_U2,links[17]);
+	REG_LOAD_BI_SU3(REG_U3,links[18]);
+	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_BI_SU3(REG_U3,links[19]);
+	REG_BI_SU3_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
+	REG_LOAD_BI_SU3(REG_U1,dw_rectangles);
+	REG_LOAD_BI_SU3(REG_U3,links[20]);
+	REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U1,REG_U2,REG_U3);
+	STORE_REG_BI_SU3(dw_rectangles,REG_U1);
+	//forward forward rectangle
+	REG_LOAD_BI_SU3(REG_U2,links[21]);
+	REG_LOAD_BI_SU3(REG_U3,links[22]);
+	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_BI_SU3(REG_U3,links[23]);
+	REG_BI_SU3_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
+	REG_LOAD_BI_SU3(REG_U3,links[24]);
+	REG_BI_SU3_PROD_BI_SU3_DAG(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_BI_SU3(REG_U3,links[25]);
+	REG_LOAD_BI_SU3(REG_U2,rectangles);
+	REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U2,REG_U1,REG_U3);
+	STORE_REG_BI_SU3(rectangles,REG_U2);
+	//forward up rectangle
+	REG_LOAD_BI_SU3(REG_U2,hf);
+	REG_LOAD_BI_SU3(REG_U3,links[26]);
+        REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	REG_LOAD_BI_SU3(REG_U3,links[27]);
+	REG_LOAD_BI_SU3(REG_U2,up_rectangles);
+	REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U2,REG_U1,REG_U3);
+	STORE_REG_BI_SU3(up_rectangles,REG_U2);
+
+	links+=28;
+      }
+    
+    //close the two partial rectangles
+    REG_LOAD_BI_SU3(REG_U1,rectangles);
+    REG_LOAD_BI_SU3(REG_U2,up_rectangles);
+    REG_LOAD_BI_SU3(REG_U3,links[0]);
+    REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U1,REG_U2,REG_U3);
+    REG_LOAD_BI_SU3(REG_U2,dw_rectangles);
+    REG_LOAD_BI_SU3(REG_U3,links[1]);
+    REG_BI_SU3_DAG_SUMM_THE_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+  
+    //compute the summed staples
+    double b1=-1.0/12,b0=1-8*b1;
+    DECLARE_REG_BI_COMPLEX(reg_b0);
+    DECLARE_REG_BI_COMPLEX(reg_b1);
+    REG_SPLAT_BI_COMPLEX(reg_b0,b0);
+    REG_SPLAT_BI_COMPLEX(reg_b1,b1);
+    REG_LOAD_BI_SU3(REG_U2,squares);
+    REG_BI_SU3_PROD_4DOUBLE(REG_U3,REG_U2,reg_b0);
+    REG_BI_SU3_SUMM_THE_PROD_4DOUBLE(REG_U3,REG_U3,REG_U1,reg_b1);
+    bi_su3 bi_staples;
+    STORE_REG_BI_SU3(bi_staples,REG_U3);
+    
+    BI_SU3_TO_SU3(staples1,staples2,bi_staples);
+  }
+#endif
+
   //initialize the tlSym sweeper using the above defined routines
   void init_tlSym_sweeper()
   {
@@ -633,7 +799,7 @@ namespace nissa
 	const int nlinks_per_tlSym_staples_of_link=3*2*(3+5*3)-3*8+2;
 	tlSym_sweeper->init_box_dir_par_geometry(4,tlSym_par);
 	tlSym_sweeper->init_staples(nlinks_per_tlSym_staples_of_link,add_tlSym_staples,compute_tlSym_staples);
-	tlSym_sweeper->find_packing_index(compute_tlSym_staples_packed);
+	//tlSym_sweeper->find_packing_index(compute_tlSym_staples_packed);
       }
   }
 

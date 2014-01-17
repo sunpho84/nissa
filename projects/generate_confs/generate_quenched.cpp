@@ -307,7 +307,7 @@ void close_simulation()
   master_printf("=========================================\n");
   master_printf("\n");
   
-  if(!store_running_temp_conf) write_conf();
+  if(store_running_temp_conf==0||iconf%store_running_temp_conf!=0) write_conf();
   nissa_free(conf);
 }
 
@@ -421,7 +421,7 @@ void in_main(int narg,char **arg)
 	measure_topology_lx_conf(top_meas_pars,conf,iconf,0);
 	
       // 3) increment id and write conf
-      if(store_running_temp_conf) write_conf();
+      if(store_running_temp_conf && iconf%store_running_temp_conf==0) write_conf();
       
       // 4) if conf is multiple of store_conf_each copy it
       store_conf_if_necessary();

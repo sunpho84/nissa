@@ -6,6 +6,8 @@
 #include "new_types/complex.hpp"
 #include "new_types/float_128.hpp"
 
+#define BI_SU3_PUT_TO_ZERO(A) memset(A,0,sizeof(bi_su3))
+
 ////////////////////////////// convert normal complex to BI //////////////////////////
 
 #define COMPLEX_TO_BI_COMPLEX(A,B,VN)		\

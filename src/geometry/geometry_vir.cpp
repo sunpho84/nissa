@@ -188,9 +188,11 @@ namespace nissa
 	//order will be:     bord_vol/NVNODES | 8*loc_vol/NVNODES | vbord_vol
 	int loc_data_start=bord_vol/NVNODES/fact;
 	int vbord_start=loc_data_start+8*loc_vol/NVNODES/fact;
-	int req_size=vbord_start+vbord_vol/fact; //note that this is in unity of the vparallelized structure
-	if(send_buf_size<req_size*sizeof(bi_halfspincolor)) //to be moved
-	  crash("we need larger send_buf: %d > %d",req_size*sizeof(bi_halfspincolor),send_buf_size);
+
+	//note that this is in unity of the vparallelized structure
+	size_t req_size=vbord_start+vbord_vol/fact;
+	recv_buf_size=std::max(recv_buf_size,req_size);
+	send_buf_size=std::max(send_buf_size,req_size);
 	
 	int *loclx_of_vir=(par==2)?loclx_of_virlx:loclx_of_vireo[par];
 	int *vir_of_loclx=(par==2)?virlx_of_loclx:vireo_of_loclx;
