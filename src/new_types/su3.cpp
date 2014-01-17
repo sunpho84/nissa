@@ -890,7 +890,7 @@ namespace nissa
     unsafe_su3_prod_su3_dag(prod,in,staple);
     
     //copy in link to out
-    su3_copy(out,in);
+    if(out!=in) su3_copy(out,in);
     
     //iterate over heatbath hits
     for(int ihit=0;ihit<nhb_hits;ihit++)
@@ -945,7 +945,7 @@ namespace nissa
     unsafe_su3_prod_su3_dag(prod,in,staple);
     
     //copy in link to out
-    su3_copy(out,in);
+    if(out!=in) su3_copy(out,in);
     
     //iterate over overrelax hits
     for(int ihit=0;ihit<nov_hits;ihit++)
