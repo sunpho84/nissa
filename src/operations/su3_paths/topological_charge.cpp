@@ -302,7 +302,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   //measure the topological charge
-  void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,int conf_created,bool preserve_uncooled=true)
+  void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,bool conf_created,bool preserve_uncooled=true)
   {
     FILE *file=open_file(pars.path,conf_created?"w":"a");
     
@@ -335,7 +335,7 @@ namespace nissa
     
     close_file(file);
   }
-  void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **uncooled_conf_eo,int iconf,int conf_created)
+  void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **uncooled_conf_eo,int iconf,bool conf_created)
   {
     quad_su3 *uncooled_conf_lx=nissa_malloc("uncooled_conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_conf(uncooled_conf_lx,uncooled_conf_eo);
