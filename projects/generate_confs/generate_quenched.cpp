@@ -44,12 +44,14 @@ int seed;
 
 //bench
 double base_init_time=0;
+double topo_time=0;
 double meas_time=0;
 double read_time=0;
 double write_time=0;
 double unitarize_time=0;
 
 void measure_gauge_obs(bool );
+void measure_topology(top_meas_pars_t&,quad_su3*,int,bool,bool presereve_uncooled=true);
 
 //write a conf adding info
 void write_conf()
@@ -277,6 +279,7 @@ void init_simulation(char *path)
       
       //write initial measures
       measure_gauge_obs(true);
+      measure_topology(top_meas_pars,conf,0,true);
     }  
 }
 
@@ -302,6 +305,7 @@ void close_simulation()
   master_printf("Link update time: %lg sec\n",sweeper->comp_time);
   master_printf("Reunitarization time: %lg sec\n",unitarize_time);
   master_printf("Measurement time: %lg sec\n",meas_time);
+  master_printf("Topology+cooling time: %lg sec\n",topo_time);
   master_printf("Read conf time: %lg sec\n",read_time);
   master_printf("Write conf time: %lg sec\n",write_time);
   master_printf("=========================================\n");
@@ -334,6 +338,14 @@ void generate_new_conf(quad_su3 *conf,int check=0)
   unitarize_lx_conf(conf);
   if(boundary_cond==OPEN_BOUNDARY_COND) impose_open_boundary_cond(conf);
   unitarize_time+=take_time();
+}
+
+//benchmark added
+void measure_topology(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,bool conf_created,bool preserve_uncooled)
+{
+  topo_time-=take_time();
+  measure_topology_lx_conf(pars,uncooled_conf,iconf,conf_created,preserve_uncooled);
+  topo_time+=take_time();
 }
 
 //measure plaquette and polyakov loop
@@ -417,8 +429,7 @@ void in_main(int narg,char **arg)
       
       // 2) measure
       measure_gauge_obs();
-      if(top_meas_pars.flag && iconf%top_meas_pars.flag==0)
-	measure_topology_lx_conf(top_meas_pars,conf,iconf,0);
+      if(top_meas_pars.flag && iconf%top_meas_pars.flag==0) measure_topology(top_meas_pars,conf,iconf,0);
 	
       // 3) increment id and write conf
       if(store_running_temp_conf && iconf%store_running_temp_conf==0) write_conf();
