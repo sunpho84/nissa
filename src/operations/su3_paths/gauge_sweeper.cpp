@@ -364,23 +364,27 @@ namespace nissa
 	for(int dir=0;dir<4;dir++)
 	  for(int par=0;par<gs->gpar;par++)
 	    {
-	      //pack
 	      int nbox_dir_par=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)];
-	      int *packing_link_source_dest=gs->packing_link_source_dest+2*gs->nlinks_per_staples_of_link*ibase;
-	      NISSA_PARALLEL_LOOP(ilink_to_ship,0,gs->nlinks_per_staples_of_link*nbox_dir_par)
+	      
+	      //pack
+	      if(gs->packing_inited)
 		{
-		  int isource=packing_link_source_dest[2*ilink_to_ship+0];
-		  int idest=packing_link_source_dest[2*ilink_to_ship+1];
+		  int *packing_link_source_dest=gs->packing_link_source_dest+2*gs->nlinks_per_staples_of_link*ibase;
+		  NISSA_PARALLEL_LOOP(ilink_to_ship,0,gs->nlinks_per_staples_of_link*nbox_dir_par)
+		    {
+		      int isource=packing_link_source_dest[2*ilink_to_ship+0];
+		      int idest=packing_link_source_dest[2*ilink_to_ship+1];
 #ifdef BGQ
-		  int true_dest=idest>>1;
-		  int vnode=idest&1;
-		  SU3_TO_BI_SU3(((bi_su3*)gs->packing_link_buf)[true_dest],((su3*)conf)[isource],vnode);
+		      int true_dest=idest>>1;
+		      int vnode=idest&1;
+		      SU3_TO_BI_SU3(((bi_su3*)gs->packing_link_buf)[true_dest],((su3*)conf)[isource],vnode);
 #else
-		  su3_copy(gs->packing_link_buf[idest],((su3*)conf)[isource]);
+		      su3_copy(gs->packing_link_buf[idest],((su3*)conf)[isource]);
 #endif	      
+		    }
+		  THREAD_BARRIER();
 		}
-	      THREAD_BARRIER();
-
+	      
 #ifdef BGQ	      
 	      su3 *staples_list=nissa_malloc("staples_list",nbox_dir_par,su3);
 	      NISSA_PARALLEL_LOOP(ibox_dir_par,0,nbox_dir_par/2)
