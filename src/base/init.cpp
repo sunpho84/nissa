@@ -8,6 +8,7 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <malloc.h>
 
 #include "debug.hpp"
 #include "global_variables.hpp"
@@ -586,10 +587,6 @@ namespace nissa
     
     ncomm_allocated=0;
     
-#ifdef SPI
-    init_spi();
-#endif
-    
     //allocate only now buffers, so we should have finalized its size
 #if defined BGQ && defined SPI
     recv_buf=(char*)memalign(64,recv_buf_size);
@@ -597,6 +594,10 @@ namespace nissa
 #else
     recv_buf=nissa_malloc("recv_buf",recv_buf_size,char);
     send_buf=nissa_malloc("send_buf",send_buf_size,char);
+#endif
+    
+#ifdef SPI
+    init_spi();
 #endif
     
     //setup all lx borders communicators
