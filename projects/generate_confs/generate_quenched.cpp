@@ -22,8 +22,9 @@ top_meas_pars_t top_meas_pars;
 //input and output path for confs
 char conf_path[1024];
 char store_conf_path[1024];
+const int flushing_nconfs=30;
 
-//conf and staples
+//conf
 quad_su3 *conf;
 
 //evol pars
@@ -249,7 +250,7 @@ void init_simulation(char *path)
       npaths_per_action=2;
     }
   
-  //allocate conf and staples
+  //allocate conf
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   //search conf
@@ -376,7 +377,7 @@ void measure_gauge_obs()
   master_fprintf(file_obs,"%6d\t%015.15lg",iconf,action);
   for(int ipath=0;ipath<npaths_per_action;ipath++) master_fprintf(file_obs,"\t%015.15lg",paths[ipath]);
   master_fprintf(file_obs,"\n");
-  if(rank==0 && iconf%30) fflush(file_obs);
+  if(rank==0 && iconf%flushing_nconfs==0) fflush(file_obs);
   
   meas_time+=take_time();
 
@@ -389,7 +390,7 @@ void measure_gauge_obs()
 	    master_fprintf(file_obs_per_timeslice,"%15.15lg \n",iconf,t,paths_per_timeslice[t*npaths_per_action+ipath]);
 	  master_fprintf(file_obs_per_timeslice,"\n");
 	}
-      if(rank==0 && iconf%30) fflush(file_obs_per_timeslice);
+      if(rank==0 && iconf%flushing_nconfs==0) fflush(file_obs_per_timeslice);
     }
 }
 
