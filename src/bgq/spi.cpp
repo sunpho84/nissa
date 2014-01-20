@@ -258,7 +258,7 @@ namespace nissa
 	    //create the memory region
 	    Kernel_MemoryRegion_t mem_region;
 	    if(Kernel_CreateMemoryRegion(&mem_region,spi_fifo[nspi_fifo-1-ififo],fifo_size))
-	      crash("creating memory region %d",ififo);
+	      crash("creating memory region %d of bytes",ififo,fifo_size);
 	    
 	    //initialize the fifos
 	    if(Kernel_InjFifoInit(&spi_fifo_sg_ptr,fifo_id[ififo],&mem_region,
@@ -275,7 +275,8 @@ namespace nissa
 	
 	//get physical address of receiving buffer
 	Kernel_MemoryRegion_t mem_region;
-	if(Kernel_CreateMemoryRegion(&mem_region,recv_buf,recv_buf_size)) crash("creating recv_buf memory region");
+	if(Kernel_CreateMemoryRegion(&mem_region,recv_buf,recv_buf_size))
+	  crash("creating recv_buf memory region of %d bytes",recv_buf_size);
 	
 	//set the physical address
 	if(MUSPI_SetBaseAddress(&spi_bat_gr,spi_bat_id[0],(uint64_t)recv_buf-
@@ -285,14 +286,15 @@ namespace nissa
 	//set receive counter bat to MU style atomic PA addr of the receive counter
 	if((uint64_t)(&spi_recv_counter)&0x7) crash("recv counter not 8 byte aligned");
 	if(Kernel_CreateMemoryRegion(&mem_region,(void*)&spi_recv_counter,sizeof(uint64_t)))
-	  crash("creating memory region");  
+	  crash("creating memory region of %d bytes",sizeof(uint64_t));
 	if(MUSPI_SetBaseAddress(&spi_bat_gr,spi_bat_id[1],MUSPI_GetAtomicAddress((uint64_t)&spi_recv_counter-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa,MUHWI_ATOMIC_OPCODE_STORE_ADD))) crash("setting base addr");
 	
 	//reset number of byte to be received
 	spi_recv_counter=0;
 	
 	//get the send buffer physical address
-	if(Kernel_CreateMemoryRegion(&mem_region,send_buf,send_buf_size)) crash("creating memory region");
+	if(Kernel_CreateMemoryRegion(&mem_region,send_buf,send_buf_size))
+	  crash("creating memory region of %d bytes",send_buf_size);
 	spi_send_buf_phys_addr=(uint64_t)send_buf-(uint64_t)mem_region.BaseVa+(uint64_t)mem_region.BasePa;
 	
 	//find hints for descriptors
