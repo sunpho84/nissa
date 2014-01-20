@@ -14,6 +14,7 @@
 using namespace nissa;
 
 //observables
+FILE *file_obs=NULL,*file_obs_per_timeslice=NULL;
 char gauge_obs_path[1024];
 char gauge_obs_per_timeslice_path[1024];
 top_meas_pars_t top_meas_pars;
@@ -50,7 +51,7 @@ double read_time=0;
 double write_time=0;
 double unitarize_time=0;
 
-void measure_gauge_obs(bool );
+void measure_gauge_obs();
 void measure_topology(top_meas_pars_t&,quad_su3*,int,bool,bool presereve_uncooled=true);
 
 //write a conf adding info
@@ -251,8 +252,16 @@ void init_simulation(char *path)
   //allocate conf and staples
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
+  //search conf
+  bool conf_found=file_exists(conf_path);
+  
+  //open file according
+  file_obs=open_file(gauge_obs_path,conf_found?"a":"w");
+  if(boundary_cond==OPEN_BOUNDARY_COND)
+    file_obs_per_timeslice=open_file(gauge_obs_per_timeslice_path,conf_found?"a":"w");
+  
   //load conf or generate it
-  if(file_exists(conf_path))
+  if(conf_found)
     {
       master_printf("File %s found, loading\n",conf_path);
       read_conf();
@@ -278,7 +287,7 @@ void init_simulation(char *path)
       iconf=0;
       
       //write initial measures
-      measure_gauge_obs(true);
+      measure_gauge_obs();
       measure_topology(top_meas_pars,conf,0,true);
     }  
 }
@@ -298,6 +307,9 @@ THREADABLE_FUNCTION_1ARG(impose_open_boundary_cond, quad_su3*,conf)
 //finalize everything
 void close_simulation()
 {
+  close_file(file_obs);
+  if(boundary_cond==OPEN_BOUNDARY_COND) close_file(file_obs_per_timeslice);
+  
   master_printf("========== Performance report ===========\n");
   master_printf("Basic initialization time: %lg sec\n",base_init_time);
   master_printf("Communicators initialization time: %lg sec\n",sweeper->comm_init_time);
@@ -349,13 +361,10 @@ void measure_topology(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,bo
 }
 
 //measure plaquette and polyakov loop
-void measure_gauge_obs(bool conf_created=false)
+void measure_gauge_obs()
 {
   meas_time-=take_time();
   
-  //open creating or appending
-  FILE *file=open_file(gauge_obs_path,conf_created?"w":"a");
-
   //compute action
   double time_action=-take_time();
   double paths[2];
@@ -364,24 +373,23 @@ void measure_gauge_obs(bool conf_created=false)
     compute_action(paths);
   master_printf("Action: %015.15lg measured in %lg sec\n",action,time_action+take_time());
   
-  master_fprintf(file,"%6d\t%015.15lg",iconf,action);
-  for(int ipath=0;ipath<npaths_per_action;ipath++) master_fprintf(file,"\t%015.15lg",paths[ipath]);
-  master_fprintf(file,"\n");
+  master_fprintf(file_obs,"%6d\t%015.15lg",iconf,action);
+  for(int ipath=0;ipath<npaths_per_action;ipath++) master_fprintf(file_obs,"\t%015.15lg",paths[ipath]);
+  master_fprintf(file_obs,"\n");
+  if(rank==0 && iconf%30) fflush(file_obs);
   
-  close_file(file);
   meas_time+=take_time();
 
   if(boundary_cond==OPEN_BOUNDARY_COND)
     {
-      file=open_file(gauge_obs_per_timeslice_path,conf_created?"w":"a");
       for(int t=0;t<glb_size[0];t++)
 	{
-	  master_fprintf(file,"%d %d ",iconf,t);
+	  master_fprintf(file_obs_per_timeslice,"%d %d ",iconf,t);
 	  for(int ipath=0;ipath<npaths_per_action;ipath++)
-	    master_fprintf(file,"%15.15lg \n",iconf,t,paths_per_timeslice[t*npaths_per_action+ipath]);
-	  master_fprintf(file,"\n");
+	    master_fprintf(file_obs_per_timeslice,"%15.15lg \n",iconf,t,paths_per_timeslice[t*npaths_per_action+ipath]);
+	  master_fprintf(file_obs_per_timeslice,"\n");
 	}
-      close_file(file);
+      if(rank==0 && iconf%30) fflush(file_obs_per_timeslice);
     }
 }
 
