@@ -290,7 +290,7 @@ namespace nissa
 	
 	//allocate packing link and deallocate ilink_per_staples
 	packing_link_buf=nissa_malloc("packing_link_buf",max_packing_link_nel,su3);
-	nissa_free(ilink_per_staples);
+	//nissa_free(ilink_per_staples);
       }
   }
   
@@ -410,8 +410,8 @@ namespace nissa
 		  if(gs->packing_inited) 
 		    {
 #ifdef BGQ
-		      su3 staples_temp;
-		      su3_copy(staples_temp,staples_list[ibox_dir_par-ibase]);
+		      //su3 staples_temp;
+		      su3_copy(staples,staples_list[ibox_dir_par-ibase]);
 #else
 		      gs->compute_staples_packed(staples,
 					      gs->packing_link_buf+(ibox_dir_par-ibase)*gs->nlinks_per_staples_of_link);
@@ -420,6 +420,10 @@ namespace nissa
 		  else
 		    gs->compute_staples(staples,
 					   (su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
+
+		  //su3 staples_temp;
+		  //gs->compute_staples(staples_temp,
+		  //(su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
 		  
 		  //master_printf("ibox: %d\n",ibox_dir_par-ibase);
 #ifdef BGQ
@@ -689,7 +693,6 @@ namespace nissa
     //compute the summed staples
     double b1=-1.0/12,b0=1-8*b1;
     su3_linear_comb(staples,squares,b0,rectangles,b1);
-    su3_copy(staples,squares);
   }
   
 #ifdef BGQ
