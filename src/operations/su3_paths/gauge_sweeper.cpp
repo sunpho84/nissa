@@ -262,27 +262,26 @@ namespace nissa
 	    for(int par=0;par<gpar;par++)
 	      {
 		//find the packing size
-		max_packing_link_nel=std::max(max_packing_link_nel,
-					      nlinks_per_staples_of_link*nsite_per_box_dir_par[par+gpar*(dir+4*ibox)]);
+		int ns=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];
+		max_packing_link_nel=std::max(max_packing_link_nel,nlinks_per_staples_of_link*ns);
 		
-	       //scan the destination
-	       for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];ibox_dir_par++)
-		 for(int ilink=0;ilink<nlinks_per_staples_of_link;ilink++)
-		   {		  
-		     packing_link_source_dest[2*(ilink+nlinks_per_staples_of_link*(ibox_dir_par+ibase))+0]=
-		       ilink_per_staples[(ibox_dir_par+ibase)*nlinks_per_staples_of_link+ilink];
-		     packing_link_source_dest[2*(ilink+nlinks_per_staples_of_link*(ibox_dir_par+ibase))+1]=
+		//scan the destination
+		for(int ibox_dir_par=0;ibox_dir_par<ns;ibox_dir_par++)
+		  for(int ilink=0;ilink<nlinks_per_staples_of_link;ilink++)
+		    {		  
+		      packing_link_source_dest[2*(ilink+nlinks_per_staples_of_link*(ibox_dir_par+ibase))+0]=
+			ilink_per_staples[(ibox_dir_par+ibase)*nlinks_per_staples_of_link+ilink];
+		      packing_link_source_dest[2*(ilink+nlinks_per_staples_of_link*(ibox_dir_par+ibase))+1]=
 #ifdef BGQ
-		       //if using BGQ, pack info on vnode too, as last bit
-		       ((ilink+nlinks_per_staples_of_link*
-			 (ibox_dir_par%(nsite_per_box_dir_par[par+gpar*(dir+4*ibox)]/2)))<<1)+
-		       (2*ibox_dir_par>=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)])
+			//if using BGQ, pack info on vnode too, as last bit
+			((ilink+nlinks_per_staples_of_link*(ibox_dir_par%(ns/2)))<<1)+
+			 (2*ibox_dir_par>=ns) //vnode bit
 #else
-		       ilink+nlinks_per_staples_of_link*ibox_dir_par
+			ilink+nlinks_per_staples_of_link*ibox_dir_par
 #endif
-		       ;
-		   }
-
+			;
+		    }
+		
 	       //sort and increase the base
 	       qsort(packing_link_source_dest+2*nlinks_per_staples_of_link*ibase,
 		     nsite_per_box_dir_par[par+gpar*(dir+4*ibox)],2*sizeof(int),compare_link_source_dest);
@@ -378,10 +377,13 @@ namespace nissa
 #ifdef BGQ
 		      int true_dest=(idest>>1);
 		      int vnode=idest&1;
-		      //master_printf("true_dest: %d/%d\n",true_dest,get_vect(gs->packing_link_buf)->nel/2);
+		      //master_printf("source %d (%lg) dest: %d/%d %d\n",isource,((su3*)conf)[isource][0][0][0],
+		      //true_dest,get_vect(gs->packing_link_buf)->nel/2,vnode);
 		      SU3_TO_BI_SU3(((bi_su3*)gs->packing_link_buf)[true_dest],((su3*)conf)[isource],vnode);
 #else
 		      su3_copy(gs->packing_link_buf[idest],((su3*)conf)[isource]);
+		      //master_printf("source %d (%lg) dest: %d/%d\n",
+		      //isource,((su3*)conf)[isource][0][0][0],idest,get_vect(gs->packing_link_buf)->nel);
 #endif	      
 		    }
 		  THREAD_BARRIER();
@@ -392,9 +394,9 @@ namespace nissa
 	      if(gs->packing_inited)
 		NISSA_PARALLEL_LOOP(ibox_dir_par,0,nbox_dir_par/2)
 		  {
-		    //master_printf("ibox_dir_par: %d\n");
-		    compute_tlSym_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+nbox_dir_par/2],
-						     (bi_su3*)gs->packing_link_buf+ibox_dir_par*gs->nlinks_per_staples_of_link);
+		   //master_printf("ibox_dir_par: %d\n");
+		   compute_tlSym_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+nbox_dir_par/2],
+						    ((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link);
 		  }
 	      THREAD_BARRIER();
 #endif	      
@@ -405,20 +407,34 @@ namespace nissa
 		  //compute the staples
 		  su3 staples;
 		  
-#ifdef BGQ
-		  su3 staples_temp;
-		  su3_copy(staples_temp,staples_list[ibox_dir_par-ibase]);
-#else
-#endif
 		  if(gs->packing_inited) 
-		    gs->compute_staples_packed(staples,
-					       gs->packing_link_buf+(ibox_dir_par-ibase)*gs->nlinks_per_staples_of_link);
-		  else gs->compute_staples(staples,
-					   (su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
+		    {
 #ifdef BGQ
-		  su3_print(staples);
-		  su3_print(staples_temp);
+		      su3 staples_temp;
+		      su3_copy(staples_temp,staples_list[ibox_dir_par-ibase]);
+#else
+		      gs->compute_staples_packed(staples,
+					      gs->packing_link_buf+(ibox_dir_par-ibase)*gs->nlinks_per_staples_of_link);
+#endif
+		    }
+		  else
+		    gs->compute_staples(staples,
+					   (su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
+		  
+		  //master_printf("ibox: %d\n",ibox_dir_par-ibase);
+#ifdef BGQ
+		  if(gs->packing_inited)
+		    {
+		      //su3 temp;
+		      //su3_subt(temp,staples,staples_temp);
+		      //master_printf("%lg\n",real_part_of_trace_su3_prod_su3_dag(temp,temp));
+		      //master_printf("bgq:\n");
+		      //su3_print(staples_temp);
+		    }
 #endif	  
+		  //master_printf("pc:\n");
+		  //su3_print(staples);
+		  
 		  //find new link
 		  int ivol=gs->ivol_of_box_dir_par[ibox_dir_par];
 		  gs->update_link_using_staples(conf,ivol,dir,staples,update_alg,beta,nhits);
@@ -620,7 +636,7 @@ namespace nissa
     su3_put_to_zero(rectangles);
     su3_put_to_zero(up_rectangles);
     su3_put_to_zero(dw_rectangles);
-  
+    
     const int PARTIAL=2;
     for(int inu=0;inu<3;inu++)
       {  
@@ -673,6 +689,7 @@ namespace nissa
     //compute the summed staples
     double b1=-1.0/12,b0=1-8*b1;
     su3_linear_comb(staples,squares,b0,rectangles,b1);
+    su3_copy(staples,squares);
   }
   
 #ifdef BGQ
@@ -680,6 +697,7 @@ namespace nissa
   void compute_tlSym_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links)
   {
     bi_su3 squares,rectangles,up_rectangles,dw_rectangles;
+    
     BI_SU3_PUT_TO_ZERO(squares);
     BI_SU3_PUT_TO_ZERO(rectangles);
     BI_SU3_PUT_TO_ZERO(up_rectangles);
@@ -783,8 +801,9 @@ namespace nissa
     REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U1,REG_U2,REG_U3);
     REG_LOAD_BI_SU3(REG_U2,dw_rectangles);
     REG_LOAD_BI_SU3(REG_U3,links[1]);
-    REG_BI_SU3_DAG_SUMM_THE_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
-  
+    REG_BI_SU3_DAG_SUMM_THE_PROD_BI_SU3(REG_U1,REG_U3,REG_U2);
+    STORE_REG_BI_SU3(rectangles,REG_U1);
+    
     //compute the summed staples
     double b1=-1.0/12,b0=1-8*b1;
     DECLARE_REG_BI_COMPLEX(reg_b0);
@@ -794,9 +813,10 @@ namespace nissa
     REG_LOAD_BI_SU3(REG_U2,squares);
     REG_BI_SU3_PROD_4DOUBLE(REG_U3,REG_U2,reg_b0);
     REG_BI_SU3_SUMM_THE_PROD_4DOUBLE(REG_U3,REG_U3,REG_U1,reg_b1);
+    
+    //split staples
     bi_su3 bi_staples;
     STORE_REG_BI_SU3(bi_staples,REG_U3);
-    
     BI_SU3_TO_SU3(staples1,staples2,bi_staples);
   }
 #endif
