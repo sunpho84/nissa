@@ -389,12 +389,13 @@ namespace nissa
 	      
 #ifdef BGQ	      
 	      su3 *staples_list=nissa_malloc("staples_list",nbox_dir_par,su3);
-	      NISSA_PARALLEL_LOOP(ibox_dir_par,0,nbox_dir_par/2)
-		{
-		  //master_printf("ibox_dir_par: %d\n");
-		  compute_tlSym_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+nbox_dir_par/2],
-						   (bi_su3*)gs->packing_link_buf+ibox_dir_par*gs->nlinks_per_staples_of_link);
-		}
+	      if(gs->packing_inited)
+		NISSA_PARALLEL_LOOP(ibox_dir_par,0,nbox_dir_par/2)
+		  {
+		    //master_printf("ibox_dir_par: %d\n");
+		    compute_tlSym_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+nbox_dir_par/2],
+						     (bi_su3*)gs->packing_link_buf+ibox_dir_par*gs->nlinks_per_staples_of_link);
+		  }
 	      THREAD_BARRIER();
 #endif	      
 	      
@@ -414,9 +415,10 @@ namespace nissa
 					       gs->packing_link_buf+(ibox_dir_par-ibase)*gs->nlinks_per_staples_of_link);
 		  else gs->compute_staples(staples,
 					   (su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
+#ifdef BGQ
 		  su3_print(staples);
 		  su3_print(staples_temp);
-		  
+#endif	  
 		  //find new link
 		  int ivol=gs->ivol_of_box_dir_par[ibox_dir_par];
 		  gs->update_link_using_staples(conf,ivol,dir,staples,update_alg,beta,nhits);
