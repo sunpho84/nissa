@@ -10,6 +10,10 @@
 #include <string.h>
 #include <malloc.h>
 
+#ifdef BGQ
+ #include <malloc.h>
+#endif
+
 #include "debug.hpp"
 #include "global_variables.hpp"
 #include "random.hpp"
