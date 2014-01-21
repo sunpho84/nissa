@@ -833,7 +833,9 @@ namespace nissa
 	const int nlinks_per_tlSym_staples_of_link=3*2*(3+5*3)-3*8+2;
 	tlSym_sweeper->init_box_dir_par_geometry(4,tlSym_par);
 	tlSym_sweeper->init_staples(nlinks_per_tlSym_staples_of_link,add_tlSym_staples,compute_tlSym_staples);
+#ifdef BGQ
 	tlSym_sweeper->find_packing_index(compute_tlSym_staples_packed);
+#endif
       }
   }
 
