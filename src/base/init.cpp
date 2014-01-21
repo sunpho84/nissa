@@ -8,7 +8,6 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
-#include <malloc.h>
 
 #ifdef BGQ
  #include <malloc.h>
