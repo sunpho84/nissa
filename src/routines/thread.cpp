@@ -167,6 +167,9 @@ namespace nissa
     //check that thread 0 is not inside the pool
     if(thread_id==0) crash("thread 0 cannot enter the pool");
     
+    //set the thread as locked
+    thread_pool_locked=true;
+    
     //loop until asked to exit
     do
       {
