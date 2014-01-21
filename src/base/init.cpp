@@ -120,6 +120,34 @@ namespace nissa
     master_printf("Nissa initialized!\n");
   }
   
+  //make all threads update a single counter in turn, checking previous state
+  void sanity_check_threads()
+  {
+    //counter
+    uint32_t *ptr=(uint32_t*)&broadcast_ptr;
+    GET_THREAD_ID();
+
+    //loop every threads, each one changing the counter state
+    for(uint32_t i=0;i<nthreads;i++)
+      {
+	//if it is current thread turn
+        if(thread_id==i)
+          {
+	    //check that previous state agree (if not on first iter)
+            if(thread_id!=0 && *ptr!=thread_id-1)
+              crash("error, thread %u found the counter in wrong state %u",thread_id,*ptr);
+	    //update the counter
+            *ptr=i;
+          }
+	fflush(stdout);
+	THREAD_BARRIER();
+      }
+    
+    //chech final state
+    if(thread_id==0 && *ptr!=nthreads-1) crash("loop thread not closed: %u!",*ptr);
+    THREAD_BARRIER();
+  }
+  
   //start nissa in a threaded environment, sending all threads but first in the 
   //thread pool and issuing the main function
   void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg))
@@ -128,12 +156,16 @@ namespace nissa
     init_nissa(narg,arg);
     
 #ifdef USE_THREADS
+    thread_pool_locked=false;
     
 #pragma omp parallel
     {
       //get the number of threads and thread id
       nthreads=omp_get_num_threads();
-      master_printf("Using %d threads\n",nthreads);
+      master_printf("Using %u threads\n",nthreads);
+      
+      //control the proper working of all the threads...
+      sanity_check_threads();
       
       //define delayed thread debug
       #if THREAD_DEBUG>=2
