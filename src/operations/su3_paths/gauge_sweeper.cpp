@@ -7,9 +7,6 @@
  #include "routines/thread.hpp"
 #endif
 
- #include "operations/su3_paths/squared_staples.hpp"
- #include "communicate/edges.hpp"
-
 #ifdef BGQ
  #include "bgq/bgq_macros.hpp"
 #endif
@@ -290,7 +287,7 @@ namespace nissa
 	
 	//allocate packing link and deallocate ilink_per_staples
 	packing_link_buf=nissa_malloc("packing_link_buf",max_packing_link_nel,su3);
-	//nissa_free(ilink_per_staples);
+	nissa_free(ilink_per_staples);
       }
   }
   
