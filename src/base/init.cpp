@@ -119,7 +119,8 @@ namespace nissa
     
     master_printf("Nissa initialized!\n");
   }
-  
+
+#ifdef USE_THREADS  
   //make all threads update a single counter in turn, checking previous state
   void sanity_check_threads()
   {
@@ -147,7 +148,8 @@ namespace nissa
     if(thread_id==0 && *ptr!=nthreads-1) crash("loop thread not closed: %u!",*ptr);
     THREAD_BARRIER();
   }
-  
+#endif
+
   //start nissa in a threaded environment, sending all threads but first in the 
   //thread pool and issuing the main function
   void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg))

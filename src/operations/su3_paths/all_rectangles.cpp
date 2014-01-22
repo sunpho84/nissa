@@ -186,7 +186,7 @@ namespace nissa
     int dD=pars->Dmax+1-pars->Dmin;
     int dT=pars->Tmax+1-pars->Tmin;
     int nrect=dD*(dT+dD)*3*nape_spat_levls;
-    double *all_rectangles=nissa_malloc("all_rectangles",nrect*nthreads,double);
+    double *all_rectangles=nissa_malloc("all_rectangles",nrect*NACTIVE_THREADS,double);
     vector_reset(all_rectangles);
     double *all_rectangles_loc_thread=all_rectangles+nrect*THREAD_ID;
     
