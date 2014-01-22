@@ -299,6 +299,7 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ibox,0,16)
       {
+	if(rank==0) printf("box %d being initialized by rank %d\n",ibox,thread_id);
 	//find base for curr box
 	int ibase=0;
 	for(int jbox=0;jbox<ibox;jbox++) ibase+=nsite_per_box[jbox];
@@ -355,7 +356,10 @@ namespace nissa
       {
 	//communicate needed links
 	if(IS_MASTER_THREAD) gs->comm_time-=take_time();
-	gs->box_comm[ibox]->communicate(conf,conf,sizeof(su3));
+	gs->box_comm[ibox]->communicate(conf,conf,sizeof(su3),NULL,NULL,ibox+100);
+	master_printf("Barriering\n");
+	THREAD_BARRIER();
+	MPI_Barrier(MPI_COMM_WORLD);
 	if(IS_MASTER_THREAD) gs->comm_time+=take_time();
       
 	if(IS_MASTER_THREAD) gs->comp_time-=take_time();

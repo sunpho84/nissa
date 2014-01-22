@@ -103,7 +103,7 @@ namespace nissa
 #if THREAD_DEBUG>=1  
   void thread_barrier_with_check(const char *barr_file,int barr_line)
 #else
-  void thread_barrier_with_check()
+  void thread_barrier_without_check()
 #endif
   {
     //if something was delayed, make it advance
@@ -225,6 +225,10 @@ namespace nissa
     //initialize reducing buffers
     glb_double_reduction_buf=(double*)malloc(nthreads*sizeof(double));
     glb_float_128_reduction_buf=(float_128*)malloc(nthreads*sizeof(float_128));
+    
+    //lock the pool
+    thread_pool_locked=true;
+    cache_flush();
     
     //launch the main function
     main_function(narg,arg);

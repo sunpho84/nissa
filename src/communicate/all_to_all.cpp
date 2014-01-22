@@ -64,6 +64,8 @@ namespace nissa
   //common part of initialization
   void all_to_all_comm_t::common_setup_part1(temp_build_t &build)
   {
+    GET_THREAD_ID();
+    
     //count the number of different ranks to send and receive from
     int nranks_to_loc=0,nranks_fr_loc=0; //local: structure could be global!
     for(int irank=0;irank<nranks;irank++)
@@ -115,19 +117,22 @@ namespace nissa
     in_buf_off_per_rank=nissa_malloc(" in_buf_off",nranks_fr,int);
     build.out_buf_cur_per_rank=nissa_malloc("out_buf_cur",nranks_to,int);
     build.in_buf_cur_per_rank=nissa_malloc(" in_buf_cur",nranks_fr,int);
-    if(nranks_to!=0)
+    if(IS_MASTER_THREAD)
       {
-	out_buf_off_per_rank[0]=build.out_buf_cur_per_rank[0]=0;
-	for(int ilist_rank_to=1;ilist_rank_to<nranks_to;ilist_rank_to++)
-	  out_buf_off_per_rank[ilist_rank_to]=build.out_buf_cur_per_rank[ilist_rank_to]=
-	    out_buf_off_per_rank[ilist_rank_to-1]+nper_rank_to[ilist_rank_to-1];
-      }
-    if(nranks_fr!=0)
-      {
-	in_buf_off_per_rank[0]=build.in_buf_cur_per_rank[0]=0;
-	for(int ilist_rank_fr=1;ilist_rank_fr<nranks_fr;ilist_rank_fr++)
-	  in_buf_off_per_rank[ilist_rank_fr]=build.in_buf_cur_per_rank[ilist_rank_fr]=
-	    in_buf_off_per_rank[ilist_rank_fr-1]+nper_rank_fr[ilist_rank_fr-1];
+	if(nranks_to!=0)
+	  {
+	    out_buf_off_per_rank[0]=build.out_buf_cur_per_rank[0]=0;
+	    for(int ilist_rank_to=1;ilist_rank_to<nranks_to;ilist_rank_to++)
+	      out_buf_off_per_rank[ilist_rank_to]=build.out_buf_cur_per_rank[ilist_rank_to]=
+		out_buf_off_per_rank[ilist_rank_to-1]+nper_rank_to[ilist_rank_to-1];
+	  }
+	if(nranks_fr!=0)
+	  {
+	    in_buf_off_per_rank[0]=build.in_buf_cur_per_rank[0]=0;
+	    for(int ilist_rank_fr=1;ilist_rank_fr<nranks_fr;ilist_rank_fr++)
+	      in_buf_off_per_rank[ilist_rank_fr]=build.in_buf_cur_per_rank[ilist_rank_fr]=
+		in_buf_off_per_rank[ilist_rank_fr-1]+nper_rank_fr[ilist_rank_fr-1];
+	  }
       }
   }
   
@@ -213,6 +218,7 @@ namespace nissa
 	  out_buf_source[ipos]=sl[iel_out].first;
 	  in_buf_dest_expl[ipos]=iel_to;
 	}
+    THREAD_BARRIER();
     
     common_setup_part2(nel_in,in_buf_dest,nranks_fr,list_ranks_fr,in_buf_off_per_rank,nper_rank_fr, 
 		       in_buf_dest_expl,nranks_to,list_ranks_to,out_buf_off_per_rank,nper_rank_to);
@@ -259,6 +265,7 @@ namespace nissa
 	  in_buf_dest[ipos]=it->second;
 	  out_buf_source_expl[ipos]=iel_fr;
 	}
+    THREAD_BARRIER();
     
     common_setup_part2(nel_out,out_buf_source,nranks_to,list_ranks_to,out_buf_off_per_rank,nper_rank_to, 
 		       out_buf_source_expl,nranks_fr,list_ranks_fr,in_buf_off_per_rank,nper_rank_fr);
@@ -266,7 +273,7 @@ namespace nissa
   }
   
   //perform the remapping
-  void all_to_all_comm_t::communicate(void *out,void *in,int bps,void *ext_out_buf,void *ext_in_buf)
+  void all_to_all_comm_t::communicate(void *out,void *in,int bps,void *ext_out_buf,void *ext_in_buf,int tag)
   {
     GET_THREAD_ID();
     
@@ -284,13 +291,20 @@ namespace nissa
 	MPI_Request req_list[nranks_to+nranks_fr];
 	int ireq=0;
 	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
-	  MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
-		    list_ranks_fr[irank_fr],909+list_ranks_fr[irank_fr]*nranks+rank,cart_comm,&req_list[ireq++]);
+	  {
+	    if(tag!=-1) printf("tag %d rank %d receiving %d from %d\n",tag,rank,nper_rank_fr[irank_fr],list_ranks_fr[irank_fr]);
+	    MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
+		      list_ranks_fr[irank_fr],909+list_ranks_fr[irank_fr]*nranks+rank,cart_comm,&req_list[ireq++]);
+	  }
 	for(int irank_to=0;irank_to<nranks_to;irank_to++)
-	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
-		    list_ranks_to[irank_to],909+rank*nranks+list_ranks_to[irank_to],cart_comm,&req_list[ireq++]);
+	  {
+	    MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
+		      list_ranks_to[irank_to],909+rank*nranks+list_ranks_to[irank_to],cart_comm,&req_list[ireq++]);
+	    if(tag!=-1) printf("tag %d rank %d sending %d to %d\n",tag,rank,nper_rank_to[irank_to],list_ranks_to[irank_to]);
+	  }
       	if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
+	MPI_Barrier(MPI_COMM_WORLD);
       }
     THREAD_BARRIER();
       

@@ -159,6 +159,7 @@ namespace nissa
     
 #ifdef USE_THREADS
     thread_pool_locked=false;
+    cache_flush();
     
 #pragma omp parallel
     {
@@ -166,10 +167,12 @@ namespace nissa
       nthreads=omp_get_num_threads();
       master_printf("Using %u threads\n",nthreads);
       
-      //control the proper working of all the threads...
-      sanity_check_threads();
+      //if BGQ, define appropriate barrier (to be done before sanity check, otherwise cannot barrier!)
+      #if defined BGQ && (! defined BGQ_EMU)
+      bgq_barrier_define();
+      #endif
       
-      //define delayed thread debug
+      //define delayed thread behavior (also this needed before sanity check, otherwise barrier would fail)
       #if THREAD_DEBUG>=2
       delayed_thread_barrier=(int*)malloc(nthreads*sizeof(int));
       memset(delayed_thread_barrier,0,nthreads*sizeof(int));
@@ -178,11 +181,9 @@ namespace nissa
       for(unsigned int i=0;i<nthreads;i++) start_rnd_gen(delay_rnd_gen+i,delay_base_seed+i);
       #endif
 
-      //if BGQ, define appropriate barrier
-      #if defined BGQ && (! defined BGQ_EMU)
-      bgq_barrier_define();
-      #endif
-    
+      //control the proper working of all the threads
+      sanity_check_threads();
+      
       //distinguish master thread from the others
       GET_THREAD_ID();
       if(thread_id!=0) thread_pool();
