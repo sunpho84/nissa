@@ -16,6 +16,7 @@
 
 namespace nissa
 {  
+  void add_tlSym_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu);
   //constructor
   gauge_sweeper_t::gauge_sweeper_t()
   {
@@ -260,8 +261,9 @@ namespace nissa
 	    for(int par=0;par<gpar;par++)
 	      {
 		//find the packing size
-		int ns=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];
-		max_packing_link_nel=std::max(max_packing_link_nel,nlinks_per_staples_of_link*ns);
+		int ns=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)],nsh=ns/2; //only for bg/q
+		if(nsh*2!=ns) nsh++;
+		max_packing_link_nel=std::max(max_packing_link_nel,nlinks_per_staples_of_link*2*nsh);
 		
 		//scan the destination
 		for(int ibox_dir_par=0;ibox_dir_par<ns;ibox_dir_par++)
@@ -272,8 +274,8 @@ namespace nissa
 		      packing_link_source_dest[2*(ilink+nlinks_per_staples_of_link*(ibox_dir_par+ibase))+1]=
 #ifdef BGQ
 			//if using BGQ, pack info on vnode too, as last bit
-			((ilink+nlinks_per_staples_of_link*(ibox_dir_par%(ns/2)))<<1)+
-			 (2*ibox_dir_par>=ns) //vnode bit
+			((ilink+nlinks_per_staples_of_link*(ibox_dir_par%nsh))<<1)+
+			 (ibox_dir_par>=nsh) //vnode bit
 #else
 			ilink+nlinks_per_staples_of_link*ibox_dir_par
 #endif
@@ -288,6 +290,9 @@ namespace nissa
 	
 	//allocate packing link and deallocate ilink_per_staples
 	packing_link_buf=nissa_malloc("packing_link_buf",max_packing_link_nel,su3);
+#ifdef BGQ
+	vector_reset(packing_link_buf); //might be used when not initialized
+#endif
 	nissa_free(ilink_per_staples);
       }
   }
@@ -350,19 +355,31 @@ namespace nissa
   THREADABLE_FUNCTION_5ARG(sweep_conf_fun, quad_su3*,conf, gauge_sweeper_t*,gs, quenched_update_alg_t,update_alg, double,beta, int,nhits)
   {
     GET_THREAD_ID();
-  
+    
+#ifdef BGQ
+    su3 *staples_list;
+    if(gs->packing_inited)
+      {
+	int staples_list_size=0;
+	for(int ibox=0;ibox<16;ibox++)
+	  for(int dir=0;dir<4;dir++)
+	    for(int par=0;par<gs->gpar;par++)
+	    staples_list_size=std::max(staples_list_size,2*((gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)]+1)/2));
+	staples_list=nissa_malloc("staples_list",staples_list_size,su3);
+      }
+#endif
+    
     int ibase=0;
     for(int ibox=0;ibox<16;ibox++)
       {
 	//communicate needed links
 	if(IS_MASTER_THREAD) gs->comm_time-=take_time();
 	gs->box_comm[ibox]->communicate(conf,conf,sizeof(su3),NULL,NULL,ibox+100);
-	master_printf("Barriering\n");
-	THREAD_BARRIER();
-	MPI_Barrier(MPI_COMM_WORLD);
-	if(IS_MASTER_THREAD) gs->comm_time+=take_time();
-      
-	if(IS_MASTER_THREAD) gs->comp_time-=take_time();
+	if(IS_MASTER_THREAD)
+	  {
+	    gs->comm_time+=take_time();
+	    gs->comp_time-=take_time();
+	  }
 	for(int dir=0;dir<4;dir++)
 	  for(int par=0;par<gs->gpar;par++)
 	    {
@@ -379,27 +396,22 @@ namespace nissa
 #ifdef BGQ
 		      int true_dest=(idest>>1);
 		      int vnode=idest&1;
-		      //master_printf("source %d (%lg) dest: %d/%d %d\n",isource,((su3*)conf)[isource][0][0][0],
-		      //true_dest,get_vect(gs->packing_link_buf)->nel/2,vnode);
 		      SU3_TO_BI_SU3(((bi_su3*)gs->packing_link_buf)[true_dest],((su3*)conf)[isource],vnode);
 #else
 		      su3_copy(gs->packing_link_buf[idest],((su3*)conf)[isource]);
-		      //master_printf("source %d (%lg) dest: %d/%d\n",
-		      //isource,((su3*)conf)[isource][0][0][0],idest,get_vect(gs->packing_link_buf)->nel);
 #endif	      
 		    }
 		  THREAD_BARRIER();
 		}
 	      
-#ifdef BGQ	      
-	      su3 *staples_list=nissa_malloc("staples_list",nbox_dir_par,su3);
+#ifdef BGQ
+	      //finding half nbox_dir_par
+	      int nbox_dir_parh=nbox_dir_par/2;
+	      if(nbox_dir_parh*2!=nbox_dir_par) nbox_dir_parh++;
 	      if(gs->packing_inited)
-		NISSA_PARALLEL_LOOP(ibox_dir_par,0,nbox_dir_par/2)
-		  {
-		   //master_printf("ibox_dir_par: %d\n");
-		   compute_tlSym_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+nbox_dir_par/2],
-						    ((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link);
-		  }
+		NISSA_PARALLEL_LOOP(ibox_dir_par,0,nbox_dir_parh)
+		  compute_tlSym_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+nbox_dir_parh],
+					 ((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link);
 	      THREAD_BARRIER();
 #endif	      
 	      
@@ -412,7 +424,6 @@ namespace nissa
 		  if(gs->packing_inited) 
 		    {
 #ifdef BGQ
-		      //su3 staples_temp;
 		      su3_copy(staples,staples_list[ibox_dir_par-ibase]);
 #else
 		      gs->compute_staples_packed(staples,
@@ -423,40 +434,22 @@ namespace nissa
 		    gs->compute_staples(staples,
 					   (su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
 
-		  //su3 staples_temp;
-		  //gs->compute_staples(staples_temp,
-		  //(su3*)conf,gs->ilink_per_staples+gs->nlinks_per_staples_of_link*ibox_dir_par);
-		  
-		  //master_printf("ibox: %d\n",ibox_dir_par-ibase);
-#ifdef BGQ
-		  if(gs->packing_inited)
-		    {
-		      //su3 temp;
-		      //su3_subt(temp,staples,staples_temp);
-		      //master_printf("%lg\n",real_part_of_trace_su3_prod_su3_dag(temp,temp));
-		      //master_printf("bgq:\n");
-		      //su3_print(staples_temp);
-		    }
-#endif	  
-		  //master_printf("pc:\n");
-		  //su3_print(staples);
-		  
 		  //find new link
 		  int ivol=gs->ivol_of_box_dir_par[ibox_dir_par];
 		  gs->update_link_using_staples(conf,ivol,dir,staples,update_alg,beta,nhits);
 		}
+	      THREAD_BARRIER();
 	      
-#ifdef BGQ
-	      nissa_free(staples_list);
-#endif
 	      //increment the box-dir-par subset
 	      ibase+=nbox_dir_par;
-	      THREAD_BARRIER();
 	    }
 	if(IS_MASTER_THREAD) gs->comp_time+=take_time();
       }
   
     set_borders_invalid(conf);
+#ifdef BGQ
+    if(gs->packing_inited) nissa_free(staples_list);
+#endif
   }
   THREADABLE_FUNCTION_END
 
