@@ -6,6 +6,7 @@
 #include "../../src/bgq/Wilson_hopping_matrix_lx_bgq.hpp"
 
 #ifndef BGQ_EMU
+#include <bgpm/include/bgpm.h>
 #include <firmware/include/personality.h>
 #endif
 

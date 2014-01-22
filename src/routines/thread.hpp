@@ -12,7 +12,7 @@ namespace nissa
 #ifdef THREAD_DEBUG
   void thread_barrier_with_check(const char*file,int line);
 #else
-  void thread_barrier_with_check();
+  void thread_barrier_without_check();
 #endif
   
   void start_threaded_function(void(*function)(void),const char *name);

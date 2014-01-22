@@ -192,7 +192,7 @@ namespace nissa
     all_to_all_comm_t(all_to_all_gathering_list_t &gl);
     all_to_all_comm_t(all_to_all_scattering_list_t &sl);
     ~all_to_all_comm_t();
-    void communicate(void *out,void *in,int bps,void *buf_out=NULL,void *buf_in=NULL);
+    void communicate(void *out,void *in,int bps,void *buf_out=NULL,void *buf_in=NULL,int tag=-1);
 
     void setup_knowing_where_to_send(all_to_all_scattering_list_t &sl);
     void setup_knowing_what_to_ask(all_to_all_gathering_list_t &gl);

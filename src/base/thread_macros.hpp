@@ -49,7 +49,7 @@
   #define THREAD_BARRIER()       if(!thread_pool_locked) thread_barrier_with_check(__FILE__,__LINE__)
  #else
   #define THREAD_BARRIER_FORCE() thread_barrier_internal()
-  #define THREAD_BARRIER()       if(!thread_pool_locked) thread_barrier_with_check()
+  #define THREAD_BARRIER()       if(!thread_pool_locked) thread_barrier_without_check()
  #endif
  
  #define IS_MASTER_THREAD (THREAD_ID==0)
@@ -64,8 +64,8 @@
 
 #else
 
- #define GET_THREAD_ID()
- #define THREAD_ID 0
+ #define GET_THREAD_ID() uint32_t thread_id=0
+ #define THREAD_ID (0)
  #define THREAD_BARRIER_FORCE()
  #define THREAD_BARRIER()
  #define IS_MASTER_THREAD (1)
