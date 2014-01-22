@@ -304,7 +304,6 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ibox,0,16)
       {
-	if(rank==0) printf("box %d being initialized by rank %d\n",ibox,thread_id);
 	//find base for curr box
 	int ibase=0;
 	for(int jbox=0;jbox<ibox;jbox++) ibase+=nsite_per_box[jbox];
@@ -365,7 +364,7 @@ namespace nissa
 	  for(int dir=0;dir<4;dir++)
 	    for(int par=0;par<gs->gpar;par++)
 	    staples_list_size=std::max(staples_list_size,2*((gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)]+1)/2));
-	staples_list=nissa_malloc("staples_list",staples_list_size,su3);
+	staples_list=nissa_malloc("staples_list",staples_list_size,su3); 
       }
 #endif
     
