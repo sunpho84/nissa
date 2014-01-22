@@ -9,6 +9,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "routines/ios.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -44,7 +45,7 @@ namespace nissa
   }
 
   //find (communicating) the complementary info
-  void all_to_all_comm_t::setup_nper_rank_ot_temp(int *nper_rank_ot_temp,int *nper_rank_temp)
+  void all_to_all_comm_t::setup_nper_rank_other_temp(int *nper_rank_other_temp,int *nper_rank_temp)
   {
     GET_THREAD_ID();
     
@@ -55,7 +56,7 @@ namespace nissa
 	  int dest_rank=(rank+nranks+delta_rank)%nranks;
 	  int recv_rank=(rank+nranks-delta_rank)%nranks;
 	  MPI_Sendrecv(nper_rank_temp+dest_rank,1,MPI_INT,dest_rank,0,
-		       nper_rank_ot_temp+recv_rank,1,MPI_INT,recv_rank,0,
+		       nper_rank_other_temp+recv_rank,1,MPI_INT,recv_rank,0,
 		       MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 	}
     THREAD_BARRIER();
@@ -202,7 +203,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //count how many elements to receive to each rank
-    setup_nper_rank_ot_temp(build.nper_rank_fr_temp,build.nper_rank_to_temp);
+    setup_nper_rank_other_temp(build.nper_rank_fr_temp,build.nper_rank_to_temp);
     common_setup_part1(build);
     out_buf_source=nissa_malloc("out_buf_source",nel_out,int);
 
@@ -249,10 +250,10 @@ namespace nissa
     THREAD_BARRIER();
     
     //count how many elements to receive from each rank
-    setup_nper_rank_ot_temp(build.nper_rank_to_temp,build.nper_rank_fr_temp);
+    setup_nper_rank_other_temp(build.nper_rank_to_temp,build.nper_rank_fr_temp);
     common_setup_part1(build);
     in_buf_dest=nissa_malloc("in_buf_dest",nel_in,int);
-
+    
     //save the explenations to each rank on how to fill outbuffers
     int *out_buf_source_expl=nissa_malloc("out_buf_source_expl",nel_in,int);
     if(IS_MASTER_THREAD)
@@ -291,20 +292,13 @@ namespace nissa
 	MPI_Request req_list[nranks_to+nranks_fr];
 	int ireq=0;
 	for(int irank_fr=0;irank_fr<nranks_fr;irank_fr++)
-	  {
-	    if(tag!=-1) printf("tag %d rank %d receiving %d from %d\n",tag,rank,nper_rank_fr[irank_fr],list_ranks_fr[irank_fr]);
-	    MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
-		      list_ranks_fr[irank_fr],909+list_ranks_fr[irank_fr]*nranks+rank,cart_comm,&req_list[ireq++]);
-	  }
+	  MPI_Irecv(in_buf+in_buf_off_per_rank[irank_fr]*bps,nper_rank_fr[irank_fr]*bps,MPI_CHAR,
+		    list_ranks_fr[irank_fr],909+list_ranks_fr[irank_fr]*nranks+rank,cart_comm,&req_list[ireq++]);
 	for(int irank_to=0;irank_to<nranks_to;irank_to++)
-	  {
-	    MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
-		      list_ranks_to[irank_to],909+rank*nranks+list_ranks_to[irank_to],cart_comm,&req_list[ireq++]);
-	    if(tag!=-1) printf("tag %d rank %d sending %d to %d\n",tag,rank,nper_rank_to[irank_to],list_ranks_to[irank_to]);
-	  }
+	  MPI_Isend(out_buf+out_buf_off_per_rank[irank_to]*bps,nper_rank_to[irank_to]*bps,MPI_CHAR,
+		    list_ranks_to[irank_to],909+rank*nranks+list_ranks_to[irank_to],cart_comm,&req_list[ireq++]);
       	if(ireq!=nranks_to+nranks_fr) crash("expected %d request, obtained %d",nranks_to+nranks_fr,ireq);
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
-	MPI_Barrier(MPI_COMM_WORLD);
       }
     THREAD_BARRIER();
       
