@@ -1,5 +1,6 @@
 #include "base/global_variables.hpp"
 #include "base/debug.hpp"
+#include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
@@ -925,7 +926,9 @@ namespace nissa
   //call the appropriate sweeper intializator
   void init_sweeper(gauge_action_name_t gauge_action_name)
   {
+#ifdef USE_THREADS
     if(!thread_pool_locked) crash("call from non-parallel environment");
+#endif
     switch(gauge_action_name)
       {
       case WILSON_GAUGE_ACTION:if(!Wilson_sweeper->staples_inited) init_Wilson_sweeper();break;
