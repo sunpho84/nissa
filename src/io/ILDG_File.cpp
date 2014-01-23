@@ -545,7 +545,7 @@ namespace nissa
     ILDG_File_set_position(file,new_pos,SEEK_SET);
     
     //read
-    size_t nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
+    ILDG_Offset nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
     if(nbytes_read!=nbytes_per_rank_exp) crash("read %u bytes instead of %u",nbytes_read,nbytes_per_rank_exp);
     
     //place at the end of the record, including padding
@@ -669,7 +669,7 @@ namespace nissa
     delete rem;
 
     //write
-    size_t nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
+    ILDG_Offset nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
     if(nbytes_wrote!=nbytes_per_rank) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank);
     
     //free buf and ord

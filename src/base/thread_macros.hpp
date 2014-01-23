@@ -64,7 +64,7 @@
 
 #else
 
- #define GET_THREAD_ID() uint32_t thread_id=0
+ #define GET_THREAD_ID()
  #define THREAD_ID (0)
  #define THREAD_BARRIER_FORCE()
  #define THREAD_BARRIER()

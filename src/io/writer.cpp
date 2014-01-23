@@ -231,6 +231,23 @@ namespace nissa
     //Open the file
     ILDG_File file=ILDG_File_open_for_write(path);
     
+    //write the ildg-format field
+    char ildg_format_message[1024];
+    sprintf(ildg_format_message,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+	    "<ildgFormat xmlns=\"http://www.lqcd.org/ildg\"\n"
+	    "            xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n"
+	    "            xsi:schemaLocation=\"http://www.lqcd.org/ildg filefmt.xsd\">\n"
+	    "  <version>1.0</version>\n"
+	    "  <field>su3gauge</field>\n"
+	    "  <precision>%zu</precision>\n"
+	    "  <lx>%d</lx>\n"
+	    "  <ly>%d</ly>\n"
+	    "  <lz>%d</lz>\n"
+	    "  <lt>%d</lt>\n"
+	    "</ildgFormat>",
+	    prec,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
+    ILDG_File_write_text_record(file,"ildg-format",ildg_format_message);
+    
     //reorder in ILDG
     quad_su3_nissa_to_ildg_reord_in_place(in);
     
