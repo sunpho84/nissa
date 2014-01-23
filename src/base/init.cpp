@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef BGQ
+#if defined BGQ && !defined BGQ_EMU
  #include <malloc.h>
 #endif
 
