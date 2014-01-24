@@ -244,15 +244,37 @@ namespace nissa
   int compare_link_source_dest(const void *a,const void *b)
   {return ((int*)a)[0]-((int*)b)[0];}
   
+  //reorder the packer
+  THREADABLE_FUNCTION_1ARG(reorder_packing_link_source_dest, gauge_sweeper_t*,gs)
+  {
+    GET_THREAD_ID();
+    
+    //split workload and find starting point
+    NISSA_CHUNK_WORKLOAD(bdp_start,chunk_load,bdp_end,0,16*4*gs->gpar,THREAD_ID,NACTIVE_THREADS);
+    int ibase=0;
+    for(int bdp=0;bdp<bdp_start;bdp++) ibase+=gs->nsite_per_box_dir_par[bdp];
+
+    for(int bdp=bdp_start;bdp<bdp_end;bdp++)
+      {
+	//sort and increase the base
+	qsort(gs->packing_link_source_dest+2*gs->nlinks_per_staples_of_link*ibase,
+	      gs->nlinks_per_staples_of_link*gs->nsite_per_box_dir_par[bdp],
+	      2*sizeof(int),
+	      compare_link_source_dest);
+	ibase+=gs->nsite_per_box_dir_par[bdp];	       
+      }
+  }
+  THREADABLE_FUNCTION_END
+  
   //find the place where each link must be copied to access it sequentially
   void gauge_sweeper_t::find_packing_index(void (*ext_compute_staples_packed)(su3 staples,su3 *links))
   {
     if(!packing_inited)
-      {	
+      {
 	//mark packing to be have been inited and allocate
 	packing_inited=true;
 	compute_staples_packed=ext_compute_staples_packed;
-	packing_link_source_dest=nissa_malloc("packing_link_source_dest",2*nlinks_per_staples_of_link*4*loc_vol,int);
+	packing_link_source_dest=nissa_malloc("packing_link_source_dest",2*(nlinks_per_staples_of_link*4*loc_vol+1),int);
 	
 	int ibase=0;
 	int max_packing_link_nel=0;
@@ -282,11 +304,11 @@ namespace nissa
 			;
 		    }
 		
-	       //sort and increase the base
-	       qsort(packing_link_source_dest+2*nlinks_per_staples_of_link*ibase,
-		     nsite_per_box_dir_par[par+gpar*(dir+4*ibox)],2*sizeof(int),compare_link_source_dest);
-	       ibase+=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];	       
+		//increase the base
+		ibase+=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];	       
 	      }
+	
+	reorder_packing_link_source_dest(this);
 	
 	//allocate packing link and deallocate ilink_per_staples
 	packing_link_buf=nissa_malloc("packing_link_buf",max_packing_link_nel,su3);
@@ -346,6 +368,43 @@ namespace nissa
       }
   }
   
+  //pack all the links required to compute staples
+  void gauge_sweeper_t::pack_links(quad_su3 *conf,int ibase,int nbox_dir_par)
+  {
+    GET_THREAD_ID();
+    
+    //prepare the chunk load
+    NISSA_CHUNK_WORKLOAD(start,chunk_load,end,0,nlinks_per_staples_of_link*nbox_dir_par,THREAD_ID,NACTIVE_THREADS);
+    int *source_dest=packing_link_source_dest+2*(nlinks_per_staples_of_link*ibase+start);
+    //NISSA_PARALLEL_LOOP(ilink_to_ship,0,nlinks_per_staples_of_link*nbox_dir_par)
+    
+    for(int ilink_to_ship=start;ilink_to_ship<end;ilink_to_ship++)
+      {
+	int isource=*(source_dest++);
+	int idest=*(source_dest++);
+#ifdef BGQ
+	//decript the true destination
+	int true_dest=(idest>>1);
+	int vnode=idest&1;
+	
+	//prefetch
+	int inext_source=*source_dest;
+	dcache_block_touch((char*)((su3*)conf+inext_source)+0);
+	
+	//working slower for some reason
+	//DECLARE_REG_BI_SU3(REG_U);
+	//REG_LOAD_SU3(REG_U,((su3*)conf)[isource]);
+	//STORE_REG_SU3(((bi_su3*)packing_link_buf)[true_dest],vnode,REG_U);
+	
+	//copy
+	SU3_TO_BI_SU3(((bi_su3*)packing_link_buf)[true_dest],((su3*)conf)[isource],vnode);
+#else
+	su3_copy(packing_link_buf[idest],((su3*)conf)[isource]);
+#endif	      
+      }
+    THREAD_BARRIER();
+  }
+  
 #ifdef BGQ
   void compute_tlSym_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links);
 #endif
@@ -385,24 +444,8 @@ namespace nissa
 	      int nbox_dir_par=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)];
 	      
 	      //pack
-	      if(gs->packing_inited)
-		{
-		  int *packing_link_source_dest=gs->packing_link_source_dest+2*gs->nlinks_per_staples_of_link*ibase;
-		  NISSA_PARALLEL_LOOP(ilink_to_ship,0,gs->nlinks_per_staples_of_link*nbox_dir_par)
-		    {
-		      int isource=packing_link_source_dest[2*ilink_to_ship+0];
-		      int idest=packing_link_source_dest[2*ilink_to_ship+1];
-#ifdef BGQ
-		      int true_dest=(idest>>1);
-		      int vnode=idest&1;
-		      SU3_TO_BI_SU3(((bi_su3*)gs->packing_link_buf)[true_dest],((su3*)conf)[isource],vnode);
-#else
-		      su3_copy(gs->packing_link_buf[idest],((su3*)conf)[isource]);
-#endif	      
-		    }
-		  THREAD_BARRIER();
-		}
-	      
+	      if(gs->packing_inited) gs->pack_links(conf,ibase,nbox_dir_par);
+
 #ifdef BGQ
 	      //finding half nbox_dir_par
 	      int nbox_dir_parh=nbox_dir_par/2;

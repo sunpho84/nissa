@@ -32,9 +32,18 @@
     BI_COMPLEX_COPY((*((bi_complex*)(addr))),data);			\
   }									\
   while(0)
+#define BGQ_QVSTFCDUXA(addr,data,offset)					\
+  do									\
+  {									\
+    (addr)=(double*)((uintptr_t)(addr)+(offset));			\
+    COMPLEX_COPY((double*)(addr))),data[0]);				\
+  }									\
+  while(0)
 #else
 #define BGQ_QVSTFDUXA(addr,data,offset)					\
   asm ("qvstfduxa %[v4d],%[ptr],%[off]  \n" : [ptr] "+b" (addr) : [v4d] "v" (data), [off] "r" (offset) )
+#define BGQ_QVSTFCDUXA(addr,data,offset)					\
+  asm ("qvstfcduxa %[v4d],%[ptr],%[off]  \n" : [ptr] "+b" (addr) : [v4d] "v" (data), [off] "r" (offset) )
 #endif
 
 #ifdef BGQ_EMU
@@ -45,9 +54,11 @@
 
 //store without advancing
 #define REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFDUXA(out,in,0)
+#define REG_STORE_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFCDUXA(out,in,0)
 
 //store after advancing to next bi_complex
 #define REG_STORE_BI_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVSTFDUXA(out,in,32)
+#define REG_STORE_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVSTFCDUXA(out,in,32)
 
 #define STORE_REG_BI_HALFSPINCOLOR(addr,in)				\
   do									\
@@ -122,6 +133,21 @@
 	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c20));	\
 	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c21));	\
 	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c22));	\
+      }									\
+      while(0)
+#define STORE_REG_SU3(addr,vn,in)					\
+    do									\
+      {									\
+	void *ptr=(addr);						\
+	BGQ_QVSTFCDUXA(ptr,NAME2(in,c00),vn*16);			\
+	REG_STORE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c01));		\
+	REG_STORE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c02));		\
+	REG_STORE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c10));		\
+	REG_STORE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c11));		\
+	REG_STORE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c12));		\
+	REG_STORE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c20));		\
+	REG_STORE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c21));		\
+	REG_STORE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c22));		\
       }									\
       while(0)
 

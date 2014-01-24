@@ -11,16 +11,11 @@
 ////////////////////////////// convert normal complex to BI //////////////////////////
 
 #ifdef USE_BGQ_EMU
-#define COMPLEX_TO_BI_COMPLEX(A,B,VN)		\
-  {						\
-    complex_copy(A[VN],B);			\
-  }
+ #define COMPLEX_TO_BI_COMPLEX(A,B,VN) complex_copy(A[VN],B)
 #else
-#define COMPLEX_TO_BI_COMPLEX(A,B,VN)		\
-  {						\
-    vec_st2(vec_ld2(B,0),A[VN],0);		\
-  }
+ #define COMPLEX_TO_BI_COMPLEX(A,B,VN) vec_st2(vec_ld2(0,B),0,A[VN])
 #endif
+
 #define COLOR_TO_BI_COLOR(A,B,VN)		\
   {						\
     COMPLEX_TO_BI_COMPLEX(A[0],B[0],VN);	\

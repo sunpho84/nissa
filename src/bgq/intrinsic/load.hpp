@@ -48,6 +48,7 @@
 
 //prefetch a bi_halfspincolor
 #define BI_HALFSPINCOLOR_PREFETCH(addr)	\
+  do					\
   {					\
     void *ptr=(addr);			\
     asm("dcbt      0 ,%[ptr]  \n"	\
@@ -57,10 +58,12 @@
 	  [ptr]  "r" (ptr),		\
 	  [c64]  "b" (64),		\
 	  [c128] "b" (128));		\
-  }
+  }					\
+  while(0)
 
 //prefetch a bi_halfspincolor
 #define BI_HALFSPINCOLOR_PREFETCH_NEXT(addr)	\
+  do						\
   {						\
     void *ptr=(addr);				\
     asm("dcbt   %[c0],%[ptr]  \n"		\
@@ -71,10 +74,12 @@
 	  [c0]  "b" (192+0),			\
 	  [c64]  "b" (192+64),			\
 	  [c128] "b" (192+128));		\
-  }
+  }						\
+  while(0)
 
 //prefetch a bi_color
 #define BI_COLOR_PREFETCH_NEXT(addr)		\
+  do						\
   {						\
     void *ptr=(addr);				\
     asm("dcbt   %[c0],%[ptr]  \n"		\
@@ -83,29 +88,35 @@
 	  [ptr]  "r" (ptr),			\
 	  [c0]  "b" (96+0),			\
 	  [c64]  "b" (96+64));			\
-  }
+  }						\
+  while(0)
 
 //prefetch a bi_halfspin
 #define BI_HALFSPIN_PREFETCH_NEXT(addr)		\
+  do						\
   {						\
     void *ptr=(addr);				\
     asm("dcbt   %[c0],%[ptr]  \n"		\
 	: :					\
 	  [ptr]  "r" (ptr),			\
 	  [c0]  "b" (64+0));			\
-  }
+  }						\
+  while(0)
 
 #define BI_HALFSPIN_PREFETCH_NEXT_NEXT(addr)	\
+  do						\
   {						\
     void *ptr=(addr);				\
     asm("dcbt   %[c0],%[ptr]  \n"		\
 	: :					\
 	  [ptr]  "r" (ptr),			\
 	  [c0]  "b" (128+0));			\
-  }
+  }						\
+  while(0)
 
 //prefetch a halfspincolor
 #define BI_SPINCOLOR_PREFETCH_NEXT(addr)	     \
+  do						     \
   {						     \
     void *ptr=(addr);				     \
     asm("dcbt   %[c0],%[ptr]  \n"		     \
@@ -121,10 +132,12 @@
 	  [c192] "b" (384+192),			     \
 	  [c256] "b" (384+256),			     \
 	  [c320] "b" (384+320));		     \
-  }
+  }						     \
+  while(0)
 
 //prefetch next bi_su3
 #define BI_SU3_PREFETCH_NEXT(addr)	\
+  do					\
   {					\
     void *ptr=(addr);			\
     asm("dcbt   %[c0],%[ptr]  \n"	\
@@ -139,7 +152,24 @@
 	  [c128] "b" (288+128),		\
 	  [c192] "b" (288+192),		\
 	  [c256] "b" (288+256));	\
-  }
+  }					\
+  while(0)
+
+//prefetch next su3
+#define SU3_PREFETCH(addr)		\
+  do					\
+  {					\
+    void *ptr=(addr);			\
+    asm("dcbt   %[c0],%[ptr]  \n"	\
+ 	"dcbt  %[c64],%[ptr]  \n"	\
+	"dcbt %[c128],%[ptr]  \n"	\
+	: :				\
+	  [ptr] "r" (ptr),		\
+	  [c0] "b" (0),			\
+	  [c64] "b" (64),		\
+	  [c128] "b" (128));		\
+  }					\
+  while(0)
 
 #else
 
@@ -220,16 +250,28 @@
        BI_COMPLEX_COPY(dest,(*((bi_complex*)addr)));	\
      }									\
    while(0)
+ #define BGQ_QVLFCDUXA(dest,addr,offset)					\
+   do									\
+     {									\
+       (addr)=(double*)((uintptr_t)(addr)+(offset));			\
+       complex_copy(dest[0],(double*)addr);				\
+       complex_copy(dest[1],(double*)addr);				\
+     }									\
+   while(0)
 #else
  #define BGQ_QVLFDUXA(dest,addr,offset)					\
    asm ("qvlfduxa %[v4d],%[ptr],%[off]  \n" : [v4d] "=v" (dest), [ptr] "+b" (addr) : [off] "r" (offset) )
+ #define BGQ_QVLFCDUXA(dest,addr,offset)					\
+   asm ("qvlfcduxa %[v4d],%[ptr],%[off]  \n" : [v4d] "=v" (dest), [ptr] "+b" (addr) : [off] "r" (offset) )
 #endif
 
 //load without advancing
 #define REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVLFDUXA(out,in,0)
+#define REG_LOAD_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVLFCDUXA(out,in,0)
 
-//load after advancing to next bi_complex
+//load after advancing to next element
 #define REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVLFDUXA(out,in,32)
+#define REG_LOAD_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVLFCDUXA(out,in,16)
 
 //load a bi_spincolor
 #define REG_LOAD_BI_SPINCOLOR(out,in)				  \
@@ -309,6 +351,21 @@
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c20),ptr);		\
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c21),ptr);		\
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c22),ptr);		\
+    }									\
+  while(0)
+#define REG_LOAD_SU3(out,in)						\
+  do									\
+    {									\
+      void *ptr=(in);							\
+      REG_LOAD_COMPLEX_WITHOUT_ADVANCING(NAME2(out,c00),ptr);		\
+      REG_LOAD_COMPLEX_AFTER_ADVANCING(NAME2(out,c01),ptr);		\
+      REG_LOAD_COMPLEX_AFTER_ADVANCING(NAME2(out,c02),ptr);		\
+      REG_LOAD_COMPLEX_AFTER_ADVANCING(NAME2(out,c10),ptr);		\
+      REG_LOAD_COMPLEX_AFTER_ADVANCING(NAME2(out,c11),ptr);		\
+      REG_LOAD_COMPLEX_AFTER_ADVANCING(NAME2(out,c12),ptr);		\
+      REG_LOAD_COMPLEX_AFTER_ADVANCING(NAME2(out,c20),ptr);		\
+      REG_LOAD_COMPLEX_AFTER_ADVANCING(NAME2(out,c21),ptr);		\
+      REG_LOAD_COMPLEX_AFTER_ADVANCING(NAME2(out,c22),ptr);		\
     }									\
   while(0)
 
