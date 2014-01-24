@@ -238,6 +238,7 @@ namespace nissa
     
     //find the order in which to scan the links to compute the staple sequentially
     void find_packing_index(void (*ext_compute_staples_packed)(su3 staples,su3 *links));
+    void pack_links(quad_su3 *conf,int ibase,int nbox_dir_par);
     
     //routine computing staples
     void (*compute_staples)(su3 staples,su3 *links,int *ilinks);

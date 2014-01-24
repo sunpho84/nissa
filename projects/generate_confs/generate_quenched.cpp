@@ -15,6 +15,7 @@ using namespace nissa;
 
 //observables
 FILE *file_obs=NULL,*file_obs_per_timeslice=NULL;
+int gauge_meas_flag=5;
 char gauge_obs_path[1024];
 char gauge_obs_per_timeslice_path[1024];
 top_meas_pars_t top_meas_pars;
@@ -437,7 +438,7 @@ void in_main(int narg,char **arg)
 	}
       
       // 2) measure
-      measure_gauge_obs();
+      if(gauge_meas_flag && iconf%gauge_meas_flag==0) measure_gauge_obs();
       if(top_meas_pars.flag && iconf%top_meas_pars.flag==0) measure_topology(top_meas_pars,conf,iconf,0);
 	
       // 3) increment id and write conf
