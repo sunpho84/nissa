@@ -387,9 +387,11 @@ namespace nissa
 	int true_dest=(idest>>1);
 	int vnode=idest&1;
 	
+#ifndef BGQ_EMU
 	//prefetch
 	int inext_source=*source_dest;
 	dcache_block_touch((char*)((su3*)conf+inext_source)+0);
+#endif
 	
 	//working slower for some reason
 	//DECLARE_REG_BI_SU3(REG_U);
