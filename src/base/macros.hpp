@@ -3,6 +3,10 @@
 
 #include <stdio.h>
 
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 //argument contactenation and naming
 #define _CONCAT(X,Y) X##Y
 #define CONCAT(X,Y) _CONCAT(X,Y)

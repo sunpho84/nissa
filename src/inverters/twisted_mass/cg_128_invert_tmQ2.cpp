@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include "cg_invert_tmQ2.hpp"
+#include "cg_64_invert_tmQ2.hpp"
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/tmQ2/dirac_operator_tmQ2.hpp"
@@ -33,7 +33,7 @@
 #define AT4 double
 #define A4 mass
 //name of the inner solver
-#define CG_128_INNER_SOLVER inv_tmQ2_RL_cg
+#define CG_128_INNER_SOLVER inv_tmQ2_RL_cg_64
 //parameters of the inner solver
 #define CG_128_INNER_PARAMETERS_CALL conf,kappa,RL,mass,
 
