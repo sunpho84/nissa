@@ -1243,7 +1243,7 @@ void calculate_all_2pts(int ism_lev_so,int ism_lev_si)
 #ifdef BENCH
   contr_2pts_time+=take_time();
 #endif
-  if(rank==0) fclose(fout);
+  close_file(fout);
 }
 
 //Calculate and print to file the 3pts
@@ -1373,7 +1373,7 @@ void calculate_all_3pts(int ispec,int ism_lev_so,int ism_lev_se)
     }
   
   //close and free
-  if(rank==0) fclose(fout);
+  close_file(fout);
   if(use_new_contraction_layout)
     {
       nissa_free(temp_transp);
@@ -1406,7 +1406,7 @@ void check_two_points(int ispec,int ism_lev_so,int ism_lev_se)
 	master_fprintf(fout,"\n");
       }
   
-  if(rank==0) fclose(fout);
+  close_file(fout);
 }
 
 //check if the time is enough

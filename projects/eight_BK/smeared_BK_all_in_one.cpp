@@ -543,7 +543,7 @@ void calculate_all_contractions()
 			print_ottos_contractions_to_file(fout_bag);
 		      }
 	    
-	    if(rank==0) fclose(fout_bag);
+	    close_file(fout_bag);
 	  }
   
   tot_contr_3pts_time+=take_time();
@@ -590,10 +590,10 @@ void calculate_all_contractions()
 		      meson_two_points(S[iprop1],S[iprop2]);
 		      
 		      print_two_points_contractions_to_file(fout_2pts);
-		      master_printf("printing contractions between %d and %d\n",iprop1,iprop2);
+		      verbosity_lv3_master_printf("printing contractions between %d and %d\n",iprop1,iprop2);
 		      ntot_contr_2pts+=ncontr_2pts;
 		    }
-	    if(rank==0) fclose(fout_2pts);
+	    close_file(fout_2pts);
 	  }
       }
   

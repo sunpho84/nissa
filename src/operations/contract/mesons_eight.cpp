@@ -142,19 +142,15 @@ namespace nissa
 		unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
 		unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
 		
-		for(int icontr=0;icontr<ncontr;icontr++)
-		  {
-		    complex ctemp;
-		    spinspin ALg, ARg;
-		    
-		    unsafe_dirac_prod_spinspin(ALg,g2R+icontr,AL);
-		    unsafe_dirac_prod_spinspin(ARg,g2L+icontr,AR);
-		    trace_prod_spinspins(ctemp,ALg,ARg);
-		    complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
-		  }
+		complex ctemp;
+		spinspin ALg, ARg;
+		
+		unsafe_dirac_prod_spinspin(ALg,g2R+icontr,AL);
+		unsafe_dirac_prod_spinspin(ARg,g2L+icontr,AR);
+		trace_prod_spinspins(ctemp,ALg,ARg);
+		complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
 	      }
       }
-    
     THREAD_BARRIER();
     
     //final reduction
@@ -200,16 +196,13 @@ namespace nissa
 		spinspin AL,AR;
 		unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol],s1L[ivol][icol]);
 		unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol],s1R[ivol][icol]);
-		for(int icontr=0;icontr<ncontr;icontr++)
-		  {
-		    complex ctempL_color,ctempR_color;
-		    
-		    trace_dirac_prod_spinspin(ctempL_color,g2R+icontr,AL);
-		    trace_dirac_prod_spinspin(ctempR_color,g2L+icontr,AR);
-		    
-		    complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
-		    complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
-		  }
+		
+		complex ctempL_color,ctempR_color;		    
+		trace_dirac_prod_spinspin(ctempL_color,g2R+icontr,AL);
+		trace_dirac_prod_spinspin(ctempR_color,g2L+icontr,AR);
+		
+		complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
+		complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
 	      }
 	    
 	    for(int icontr=0;icontr<ncontr;icontr++)
