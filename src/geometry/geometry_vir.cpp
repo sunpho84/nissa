@@ -189,8 +189,8 @@ namespace nissa
 	int loc_data_start=bord_vol/NVNODES/fact;
 	int vbord_start=loc_data_start+8*loc_vol/NVNODES/fact;
 
-	//note that this is in unity of the vparallelized structure
-	size_t req_size=vbord_start+vbord_vol/fact;
+	//note that this is in unity of the vparallelized structure, here assumed to be halfspincolor
+	size_t req_size=(vbord_start+vbord_vol/fact)*sizeof(bi_halfspincolor);
 	recv_buf_size=std::max(recv_buf_size,req_size);
 	send_buf_size=std::max(send_buf_size,req_size);
 	
@@ -350,14 +350,14 @@ namespace nissa
     GET_THREAD_ID();
     
     //buffer if needed
-    int bufferize=(void*)ext_out==(void*)in;
+    int bufferize=((void*)ext_out==(void*)in);
     quad_su3 *out=bufferize?nissa_malloc("out",loc_vol,quad_su3):ext_out;
     
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_virlx,0,loc_vol/NVNODES)
       for(int mu=0;mu<4;mu++)
 	BI_SU3_TO_SU3(out[loclx_of_virlx[ivol_virlx]][mu],out[loclx_of_virlx[ivol_virlx]+vnode_lx_offset][mu],
-		      in[ivol_virlx][mu]);
+		      in[ivol_virlx][4+mu]);
     
     //wait filling
     set_borders_invalid(out);
