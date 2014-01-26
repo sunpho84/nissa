@@ -122,34 +122,46 @@ namespace nissa
     GET_THREAD_ID();
     
     //allocate a contiguous memory area where to store local results
-    complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
-    vector_reset(loc_c);
+    complex *loc_c_tot=nissa_malloc("loc_c",ncontr*(glb_size[0]+loc_size[0]*NACTIVE_THREADS),complex);
+    vector_reset(loc_c_tot);
+    complex *loc_c_base=loc_c_tot+ncontr*glb_size[0];
+    complex *loc_c=loc_c_base+loc_size[0]*ncontr*THREAD_ID;
     
-    //loop over time and number of contractions
-    NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])
-      {
-	//find out contraction index and time
-	int icontr=ibase/loc_size[0];
-	int t=ibase-icontr*loc_size[0];
-	int glb_t=glb_coord_of_loclx[0][0]+t;
-	
-	//loop over spatial volume
-	for(int ivol=t*loc_spat_vol;ivol<(t+1)*loc_spat_vol;ivol++)
-	  for(int icol1=0;icol1<3;icol1++)
-	    for(int icol2=0;icol2<3;icol2++)
+    //loop over spatial volume
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int icol1=0;icol1<3;icol1++)
+	for(int icol2=0;icol2<3;icol2++)
+	  {
+	    spinspin AR,AL;
+	    unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
+	    unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
+	    
+	    for(int icontr=0;icontr<ncontr;icontr++)
 	      {
-		spinspin AR,AL;
-		unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol1],s1L[ivol][icol2]);
-		unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol2],s1R[ivol][icol1]);
-		
-		complex ctemp;
-		spinspin ALg, ARg;
-		
+		spinspin ALg, ARg;		
 		unsafe_dirac_prod_spinspin(ALg,g2R+icontr,AL);
 		unsafe_dirac_prod_spinspin(ARg,g2L+icontr,AR);
+		
+		complex ctemp;
 		trace_prod_spinspins(ctemp,ALg,ARg);
-		complex_summassign(loc_c[icontr*glb_size[0]+glb_t],ctemp);
+		complex_summassign(loc_c[icontr*loc_size[0]+loc_coord_of_loclx[ivol][0]],ctemp);
 	      }
+	  }
+    THREAD_BARRIER();
+    
+    //local reduction across threads
+    for(size_t ith=0;ith<NACTIVE_THREADS;ith++)
+      {
+	complex *loc_c=loc_c_base+loc_size[0]*ncontr*ith;
+	
+	NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])
+	  {
+	    //find out contraction index and time
+	    int icontr=ibase/loc_size[0];
+	    int t=ibase-icontr*loc_size[0];
+	    
+	    complex_summassign(loc_c_tot[icontr*glb_size[0]+glb_coord_of_loclx[0][0]+t],loc_c[icontr*loc_size[0]+t]);
+	  }
       }
     THREAD_BARRIER();
     
@@ -157,11 +169,11 @@ namespace nissa
     if(IS_MASTER_THREAD)
       {
 	verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
-	MPI_Reduce((double*)loc_c,(double*)glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce((double*)loc_c_tot,(double*)glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	verbosity_lv3_master_printf("Reduction done\n");
       }
     
-    nissa_free(loc_c);
+    nissa_free(loc_c_tot);
   }
   THREADABLE_FUNCTION_END
 
@@ -170,33 +182,25 @@ namespace nissa
     GET_THREAD_ID();
     
     //allocate a contiguous memory area where to store local results
-    complex *loc_c=nissa_malloc("loc_c",ncontr*glb_size[0],complex);
-    vector_reset(loc_c);
+    complex *loc_c_tot=nissa_malloc("loc_c",ncontr*(glb_size[0]+loc_size[0]*NACTIVE_THREADS),complex);
+    vector_reset(loc_c_tot);
+    complex *loc_c_base=loc_c_tot+ncontr*glb_size[0];
+    complex *loc_c=loc_c_base+loc_size[0]*ncontr*THREAD_ID;
     
     //loop over time and number of contractions
-    NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
-	//find out contraction index and time
-	int icontr=ibase/loc_size[0];
-	int t=ibase-icontr*loc_size[0];
-	
-	//loop over spatial volume
-	for(int ivol=t*loc_spat_vol;ivol<(t+1)*loc_spat_vol;ivol++)
+	complex ctempL[ncontr],ctempR[ncontr];
+	memset(ctempL,0,sizeof(complex)*ncontr);
+	memset(ctempR,0,sizeof(complex)*ncontr);
+	for(int icol=0;icol<3;icol++)
 	  {
-	    int glb_t=glb_coord_of_loclx[ivol][0];
-	    complex ctempL[ncontr];
-	    complex ctempR[ncontr];
-	    complex ctemp[ncontr];
-	    memset(ctempL,0,ncontr*sizeof(complex));
-	    memset(ctempR,0,ncontr*sizeof(complex));
-	    memset(ctemp,0,ncontr*sizeof(complex));
+	    spinspin AL,AR;
+	    unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol],s1L[ivol][icol]);
+	    unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol],s1R[ivol][icol]);
 	    
-	    for(int icol=0;icol<3;icol++)
+	    for(int icontr=0;icontr<ncontr;icontr++)
 	      {
-		spinspin AL,AR;
-		unsafe_spinspin_prod_spinspin_dag(AL,s2L[ivol][icol],s1L[ivol][icol]);
-		unsafe_spinspin_prod_spinspin_dag(AR,s2R[ivol][icol],s1R[ivol][icol]);
-		
 		complex ctempL_color,ctempR_color;		    
 		trace_dirac_prod_spinspin(ctempL_color,g2R+icontr,AL);
 		trace_dirac_prod_spinspin(ctempR_color,g2L+icontr,AR);
@@ -204,23 +208,38 @@ namespace nissa
 		complex_summ(ctempL[icontr],ctempL[icontr],ctempL_color);
 		complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
 	      }
-	    
-	    //for(int icontr=0;icontr<ncontr;icontr++) NOT CORRECT
-	      complex_summ_the_prod(loc_c[icontr*glb_size[0]+glb_t],ctempL[icontr],ctempR[icontr]);
 	  }
+	
+	for(int icontr=0;icontr<ncontr;icontr++)
+	  complex_summ_the_prod(loc_c[icontr*loc_size[0]+loc_coord_of_loclx[ivol][0]],ctempL[icontr],ctempR[icontr]);
       }
-    
     THREAD_BARRIER();
     
+    //reduce across theeads
+    for(size_t ith=0;ith<NACTIVE_THREADS;ith++)
+      {
+	complex *loc_c=loc_c_base+loc_size[0]*ncontr*ith;
+	
+	NISSA_PARALLEL_LOOP(ibase,0,ncontr*loc_size[0])
+	  {
+	    //find out contraction index and time
+	    int icontr=ibase/loc_size[0];
+	    int t=ibase-icontr*loc_size[0];
+	    
+	    complex_summassign(loc_c_tot[icontr*glb_size[0]+glb_coord_of_loclx[0][0]+t],loc_c[icontr*loc_size[0]+t]);
+	  }
+      }
+    THREAD_BARRIER();
+
     //Final reduction
     if(IS_MASTER_THREAD)
       {
 	verbosity_lv3_master_printf("Performing final reduction of %d bytes\n",2*glb_size[0]*ncontr);
-	MPI_Reduce((double*)loc_c,(double*)glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+	MPI_Reduce((double*)loc_c_tot,(double*)glb_c,2*glb_size[0]*ncontr,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
 	verbosity_lv3_master_printf("Reduction done\n");
       }
     
-    nissa_free(loc_c);
+    nissa_free(loc_c_tot);
   }
   THREADABLE_FUNCTION_END
 }

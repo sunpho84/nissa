@@ -467,7 +467,7 @@ void meson_two_points(colorspinspin *s1,colorspinspin *s2)
 //print all the passed contractions to the file
 void print_ottos_contractions_to_file(FILE *fout)
 {
-  double norm=glb_vol/glb_size[0];
+  double norm=1.0;
   
   if(rank==0)
     {
