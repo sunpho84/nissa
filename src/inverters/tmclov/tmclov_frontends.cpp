@@ -53,7 +53,7 @@ namespace nissa
 		    put_spincolor_into_su3spinspin(prop[r][imass][ivol],temp_vec[r][ivol],id,ic);
 		  set_borders_invalid(prop[r]);
 		}
-	      master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
+	      verbosity_lv2_master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 	    }
 	}
     

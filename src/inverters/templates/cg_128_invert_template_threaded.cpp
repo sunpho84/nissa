@@ -94,7 +94,8 @@ namespace nissa
       }
     while(current_residue>=external_solver_residue && !quit);
     
-    verbosity_lv1_master_printf("\nFinal residue: %lg\n\n",current_residue);
+    verbosity_lv1_master_printf("\nFinal residue: %lg\n",current_residue);
+    verbosity_lv2_master_printf("\n");
     
     //copy the solution in 128 bit to the 64 bit
     double_vector_from_quadruple_vector((double*)sol,(float_128*)sol_128,BULK_SIZE*NDOUBLES_PER_SITE);
