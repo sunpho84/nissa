@@ -205,7 +205,7 @@ namespace nissa
 		complex_summ(ctempR[icontr],ctempR[icontr],ctempR_color);
 	      }
 	    
-	    for(int icontr=0;icontr<ncontr;icontr++)
+	    //for(int icontr=0;icontr<ncontr;icontr++) NOT CORRECT
 	      complex_summ_the_prod(loc_c[icontr*glb_size[0]+glb_t],ctempL[icontr],ctempR[icontr]);
 	  }
       }
