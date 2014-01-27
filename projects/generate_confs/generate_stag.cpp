@@ -196,6 +196,9 @@ void init_simulation(char *path)
   //initialize the theory_pars theory to simulate
   for(int itheory=0;itheory<ntheories;itheory++) init_theory_pars(theory_pars[itheory]);
   
+  //initialize sweeper to cool
+  if(top_meas_pars.flag && top_meas_pars.cool_nsteps) init_sweeper(top_meas_pars.gauge_cooling_action);
+  
   //load conf or generate it
   if(file_exists(conf_path))
     {
