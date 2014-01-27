@@ -243,7 +243,7 @@ void unset_theory_pars(theory_pars_t &theory_pars)
 //finalize everything
 void close_simulation()
 {
-  if(!store_running_temp_conf) write_conf(conf_path,conf);
+  if(!store_running_temp_conf && prod_ntraj>0) write_conf(conf_path,conf);
   
   for(int itheory=0;itheory<ntheories;itheory++)
     unset_theory_pars(theory_pars[itheory]);
@@ -419,7 +419,7 @@ void in_main(int narg,char **arg)
       measurements(new_conf,conf,itraj,acc,theory_pars[SEA_THEORY].gauge_action_name);
       
       // 3) increment id and write conf
-      if(store_running_temp_conf) write_conf(conf_path,conf);
+      if(store_running_temp_conf && (itraj%store_running_temp_conf==0)) write_conf(conf_path,conf);
       
       // 4) if conf is multiple of store_conf_each copy it
       store_conf_if_necessary();
@@ -433,6 +433,8 @@ void in_main(int narg,char **arg)
   while(prod_ntraj<max_ntraj && !file_exists("stop") && !file_exists("restart"));
   
   /////////////////////////////////////// timings /////////////////////////////////
+  
+  master_printf("Performed %d trajectories\n\n",prod_ntraj);
   
 #ifdef BENCH
   master_printf("time to apply non optimized %d times: %lg, %lg per iter, %lg MFlop/s\n",
