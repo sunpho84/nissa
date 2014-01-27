@@ -280,7 +280,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //generate a fully undiluted source
-  THREADABLE_FUNCTION_4ARG(generate_fully_undiluted_eo_source, color*,source, enum rnd_t,rtype, int,twall, int,par)
+  THREADABLE_FUNCTION_5ARG(generate_fully_undiluted_eo_source, color*,source, enum rnd_t,rtype, int,twall, int,par, int,dir)
   {
     vector_reset(source);
     
@@ -288,7 +288,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
       {
 	int ilx=loclx_of_loceo[par][ieo];
-	if(glb_coord_of_loclx[ilx][0]==twall||twall<0)
+	if(glb_coord_of_loclx[ilx][dir]==twall||twall<0)
 	  for(int ic=0;ic<3;ic++)
 	    comp_get_rnd(source[ieo][ic],&(loc_rnd_gen[ilx]),rtype);
       }
@@ -296,8 +296,8 @@ namespace nissa
     set_borders_invalid(source);
   }
   THREADABLE_FUNCTION_END
-  void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall)
-  {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par);}
+  void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall,int dir=0)
+  {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
   
   //generate a delta source
   THREADABLE_FUNCTION_2ARG(generate_delta_source, su3spinspin*,source, int*,x)
