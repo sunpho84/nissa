@@ -23,6 +23,15 @@
 
 namespace nissa
 {
+  //return the number of occurency of "sub" inside "str"
+  int count_substrings(const char *str,const char *sub)
+  {
+    int rc=0;
+    for(str=(str!=NULL)?strstr(str,sub):str;str!=NULL;str=strstr(str+1,sub)) rc++;
+
+    return rc;
+  }
+  
   //only master rank and thread print
   int master_fprintf(FILE *stream,const char *format,...)
   {

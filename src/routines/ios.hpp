@@ -6,6 +6,7 @@
 
 namespace nissa
 {
+  int count_substrings(const char *str,const char *sub);
   FILE* open_file(const char *outfile,const char *mode);
   FILE* open_text_file_for_output(const char *outfile);
   int cd(const char *path);
