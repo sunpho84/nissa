@@ -360,7 +360,10 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       if(theory_pars[itheory].pseudo_corr_pars.flag)
 	{
 	  verbosity_lv2_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
-	  measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,conf_created);
+	  measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,conf_created,0);
+	  if(theory_pars[itheory].pseudo_corr_pars.flag>1)
+	    for(int dir=1;dir<4;dir++)
+	      measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,0,dir);
 	}
       else verbosity_lv2_master_printf("Skipping measure of pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
     }

@@ -80,11 +80,13 @@ namespace nissa
 	int nhits=theory_pars.chiral_cond_pars.nhits;
 	for(int hit=0;hit<nhits;hit++)
 	  {
-	    verbosity_lv1_master_printf("Evaluating chiral condensate for flavor %d/%d, nhits %d/%d\n",iflav+1,theory_pars.nflavs,hit+1,nhits);
+	    verbosity_lv1_master_printf("Evaluating chiral condensate for flavor %d/%d, nhits %d/%d\n",
+					iflav+1,theory_pars.nflavs,hit+1,nhits);
 	    
 	    //compute and summ
 	    double temp;
-	    chiral_condensate(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,theory_pars.chiral_cond_pars.residue);
+	    chiral_condensate(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
+			      theory_pars.chiral_cond_pars.residue);
 	    cond+=temp/nhits;
 	  }
 	
@@ -203,7 +205,8 @@ namespace nissa
 	int nhits=theory_pars.magnetization_pars.nhits;
 	for(int hit=0;hit<nhits;hit++)
 	  {
-	    verbosity_lv1_master_printf("Evaluating magnetization for flavor %d/%d, nhits %d/%d\n",iflav+1,theory_pars.nflavs,hit+1,nhits);
+	    verbosity_lv1_master_printf("Evaluating magnetization for flavor %d/%d, nhits %d/%d\n",
+					iflav+1,theory_pars.nflavs,hit+1,nhits);
 	    
 	    //compute and summ
 	    complex temp;
@@ -220,32 +223,38 @@ namespace nissa
     if(rank==0) fclose(file);
   }
 
-  //compute the local pseudoscalar correlator
-  void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
+  //compute the local pseudoscalar correlator in "time" direction (that can be all but time)
+  void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created,int dir)
   {
+    char dir_name[5]="txyz";
     FILE *file=open_file(theory_pars.pseudo_corr_pars.path,conf_created?"w":"a");
     
     int nflavs=theory_pars.nflavs;
     
-    //allocate source and propagators
-    color *source[2]={nissa_malloc("source_e",loc_volh+bord_volh,color),nissa_malloc("source_o",loc_volh+bord_volh,color)};
+    //allocate source
+    color *source[2]={nissa_malloc("source_e",loc_volh+bord_volh,color),
+		      nissa_malloc("source_o",loc_volh+bord_volh,color)};
+    
+    //allocate propagators
     color *prop[nflavs][2];
     for(int iflav=0;iflav<nflavs;iflav++)
       for(int EO=0;EO<2;EO++)
 	prop[iflav][EO]=nissa_malloc("prop",loc_volh+bord_volh,color);
     
     //allocate local and global contraction
-    complex *loc_contr=nissa_malloc("loc_contr",glb_size[0]*nflavs*(nflavs+1)/2,complex);
-    complex *glb_contr=nissa_malloc("glb_contr",glb_size[0]*nflavs*(nflavs+1)/2,complex);
+    complex *loc_contr=nissa_malloc("loc_contr",glb_size[dir]*nflavs*(nflavs+1)/2,complex);
+    complex *glb_contr=nissa_malloc("glb_contr",glb_size[dir]*nflavs*(nflavs+1)/2,complex);
     vector_reset(loc_contr);
     
     //loop over the hits
     int nhits=theory_pars.pseudo_corr_pars.nhits;
     for(int hit=0;hit<nhits;hit++)
       {
+	verbosity_lv1_master_printf("Evaluating pseudoscalar %c correlator, hit %d/%d\n",dir_name[dir],hit+1,nhits);
+	
 	//generate the source on an even site
-	int twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2)*2;
-	generate_fully_undiluted_eo_source(source,RND_Z4,twall);
+	int twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[dir]/2)*2;
+	generate_fully_undiluted_eo_source(source,RND_Z4,twall,dir);
 	//filter_hypercube_origin_sites(source); //this is in conjunction with factor "8"
 	
 	//compute propagators
@@ -262,27 +271,30 @@ namespace nissa
 		NISSA_LOC_VOLH_LOOP(ieo)
 		{
 		  int ilx=loclx_of_loceo[eo][ieo];
-		  int t=(glb_coord_of_loclx[ilx][0]+glb_size[0]-twall)%glb_size[0];
+		  int t=(glb_coord_of_loclx[ilx][dir]+glb_size[dir]-twall)%glb_size[dir];
 		  for(int ic=0;ic<3;ic++)
-		    complex_summ_the_conj2_prod(loc_contr[icombo*glb_size[0]+t],prop[iflav][eo][ieo][ic],prop[jflav][eo][ieo][ic]);
+		    complex_summ_the_conj2_prod(loc_contr[icombo*glb_size[dir]+t],
+						prop[iflav][eo][ieo][ic],prop[jflav][eo][ieo][ic]);
 		}
 	      icombo++;
 	    }
       }
     
     //reduce
-    glb_reduce_complex_vect(glb_contr,loc_contr,glb_size[0]*nflavs*(nflavs+1)/2);
+    glb_reduce_complex_vect(glb_contr,loc_contr,glb_size[dir]*nflavs*(nflavs+1)/2);
     
     //print
-    double norm=nhits*glb_vol/(/*8**/glb_size[0]);
+    double norm=nhits*glb_vol/(/*8**/glb_size[dir]);
     int icombo=0;
     for(int iflav=0;iflav<nflavs;iflav++)
       for(int jflav=0;jflav<=iflav;jflav++)
 	{
-	  master_fprintf(file," # iconf %d , m1 = %lg , m2 = %lg\n",iconf,theory_pars.quark_content[iflav].mass,theory_pars.quark_content[jflav].mass);
+	  master_fprintf(file," # conf %d , \'%c\' dir ; flv1 = %d , m1 = %lg ; flv2 = %d , m2 = %lg\n",
+			 iconf,dir_name[dir],
+			 iflav,theory_pars.quark_content[iflav].mass,jflav,theory_pars.quark_content[jflav].mass);
 	  
-	  for(int t=0;t<glb_size[0];t++)
-	    master_fprintf(file,"%d %+016.16lg\n",t,glb_contr[icombo*glb_size[0]+t][RE]/norm);
+	  for(int t=0;t<glb_size[dir];t++)
+	    master_fprintf(file,"%d %+016.16lg\n",t,glb_contr[icombo*glb_size[dir]+t][RE]/norm);
 	  icombo++;
 	}
     

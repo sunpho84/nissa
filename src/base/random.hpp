@@ -10,8 +10,8 @@ namespace nissa
   void generate_delta_source(su3spinspin *source,int *x);
   void generate_spindiluted_source(colorspinspin *source,enum rnd_t rtype,int twall);
   void generate_undiluted_source(spincolor *source,enum rnd_t rtype,int twall);
-  void generate_fully_undiluted_eo_source(color *source,enum rnd_t rtype,int twall,int par);
-  void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall);
+  void generate_fully_undiluted_eo_source(color *source,enum rnd_t rtype,int twall,int par,int dir=0);
+  void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall,int dir=0);
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
   void rnd_get_Z2(complex out,rnd_gen *gen);
