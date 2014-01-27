@@ -27,6 +27,10 @@ char store_conf_path[1024];
 quad_su3 *new_conf[2];
 quad_su3 *conf[2];
 
+//in case we want to load and analyze only
+char **conf_to_analyze_paths;
+int nconf_to_analyze;
+
 //structures containing parameters
 int ntheories;
 theory_pars_t *theory_pars;
@@ -105,17 +109,61 @@ void read_conf(quad_su3 **conf,char *path)
   for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
-      if(strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
+      if(glb_rnd_gen_inited==0 && strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
     }
   
   //if message with string not found start from input seed
-  if(loc_rnd_gen_inited==0)
+  if(glb_rnd_gen_inited==0)
     {
       master_printf("RND_gen status not found inside conf, starting from input passed seed\n");
       start_loc_rnd_gen(seed);
     }
   
   ILDG_message_free_all(&mess);
+}
+
+//initialize the program in "production" mode
+void init_program_to_run(start_conf_cond_t start_conf_cond)
+{
+  //load conf or generate it
+  if(file_exists(conf_path))
+    {
+      master_printf("File %s found, loading\n",conf_path);
+      read_conf(conf,conf_path);
+      conf_created=false;
+    }
+  else
+    {
+      conf_created=true;
+      
+      //start the random generator using passed seed
+      start_loc_rnd_gen(seed);
+      
+      //generate hot or cold conf
+      if(start_conf_cond==HOT_START_COND)
+	{
+	  master_printf("File %s not found, generating hot conf\n",conf_path);
+	  generate_hot_eo_conf(conf);
+	}
+      else
+	{
+	  master_printf("File %s not found, generating cold conf\n",conf_path);
+	  generate_cold_eo_conf(conf);
+	}
+      
+      //reset conf id
+      itraj=0;
+    }  
+}
+
+//init the program in the "analysis" mode
+void init_program_to_analyze()
+{
+  //start the random generator using passed seed
+  start_loc_rnd_gen(seed);
+  
+  //we always append...
+  conf_created=false;
 }
 
 //initialize the simulation
@@ -161,26 +209,42 @@ void init_simulation(char *path)
   
   //read the seed
   read_str_int("Seed",&seed);
-  
-  //load evolution info depending if is a quenched simulation or unquenched
-  if(theory_pars[SEA_THEORY].nflavs!=0) read_hmc_evol_pars(evol_pars.hmc_evol_pars);
-  else read_pure_gauge_evol_pars(evol_pars.pure_gauge_evol_pars);
-  
-  //read in and out conf path
-  read_str_str("ConfPath",conf_path,1024);
-  read_str_str("StoreConfPath",store_conf_path,1024);
-  read_str_int("StoreConfEach",&store_conf_each);
-  read_str_int("StoreRunningTempConf",&store_running_temp_conf);
-  
-  //read if configuration must be generated cold or hot
-  char start_conf_cond_str[1024];
-  read_str_str("StartConfCond",start_conf_cond_str,1024);
+
+  //if we want to produce something, let's do it, otherwise load the list of configurations to analyze
   start_conf_cond_t start_conf_cond=UNSPEC_START_COND;
-  if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT_START_COND;
-  if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD_START_COND;
-  if(start_conf_cond==UNSPEC_START_COND)
-    crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
-  
+  if(max_ntraj>0)
+    {
+      //load evolution info depending if is a quenched simulation or unquenched
+      if(theory_pars[SEA_THEORY].nflavs!=0) read_hmc_evol_pars(evol_pars.hmc_evol_pars);
+      else read_pure_gauge_evol_pars(evol_pars.pure_gauge_evol_pars);
+      
+      //read in and out conf path
+      read_str_str("ConfPath",conf_path,1024);
+      read_str_str("StoreConfPath",store_conf_path,1024);
+      read_str_int("StoreConfEach",&store_conf_each);
+      read_str_int("StoreRunningTempConf",&store_running_temp_conf);
+      
+      //read if configuration must be generated cold or hot
+      char start_conf_cond_str[1024];
+      read_str_str("StartConfCond",start_conf_cond_str,1024);
+      if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT_START_COND;
+      if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD_START_COND;
+      if(start_conf_cond==UNSPEC_START_COND)
+	crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
+    }
+  else
+    {
+      //load the number of configurations to analyze
+      read_str_int("NConfToAnalyze",&nconf_to_analyze);
+      conf_to_analyze_paths=nissa_malloc("conf_to_analyze_paths",nconf_to_analyze,char*);
+      for(int iconf_to=0;iconf_to<nconf_to_analyze;iconf_to++)
+	{
+	  char temp_path[1024];
+	  read_str(temp_path,1024);
+	  conf_to_analyze_paths[iconf_to]=nissa_malloc("path",strlen(temp_path)+1,char);
+	  strcpy(conf_to_analyze_paths[iconf_to],temp_path);
+	}
+    }
   close_input();
 
   ////////////////////////// allocate stuff ////////////////////////
@@ -199,35 +263,9 @@ void init_simulation(char *path)
   //initialize sweeper to cool
   if(top_meas_pars.flag && top_meas_pars.cool_nsteps) init_sweeper(top_meas_pars.gauge_cooling_action);
   
-  //load conf or generate it
-  if(file_exists(conf_path))
-    {
-      master_printf("File %s found, loading\n",conf_path);
-      read_conf(conf,conf_path);
-      conf_created=false;
-    }
-  else
-    {
-      conf_created=true;
-      
-      //start the random generator using passed seed
-      start_loc_rnd_gen(seed);
-      
-      //generate hot or cold conf
-      if(start_conf_cond==HOT_START_COND)
-	{
-	  master_printf("File %s not found, generating hot conf\n",conf_path);
-	  generate_hot_eo_conf(conf);
-	}
-      else
-	{
-	  master_printf("File %s not found, generating cold conf\n",conf_path);
-	  generate_cold_eo_conf(conf);
-	}
-      
-      //reset conf id
-      itraj=0;
-    }  
+  //init the program in "production" or "analysis" mode
+  if(max_ntraj>0) init_program_to_run(start_conf_cond);
+  else            init_program_to_analyze();
 }
 
 //unset the background field
@@ -247,6 +285,13 @@ void unset_theory_pars(theory_pars_t &theory_pars)
 void close_simulation()
 {
   if(!store_running_temp_conf && prod_ntraj>0) write_conf(conf_path,conf);
+  
+  //delete the conf list
+  if(max_ntraj==0)
+    {
+      for(int iconf_to=0;iconf_to<nconf_to_analyze;iconf_to++) nissa_free(conf_to_analyze_paths[iconf_to]);
+      nissa_free(conf_to_analyze_paths);
+    }
   
   for(int itheory=0;itheory<ntheories;itheory++)
     unset_theory_pars(theory_pars[itheory]);
@@ -390,20 +435,9 @@ void store_conf_if_necessary()
     }
 }
 
-void in_main(int narg,char **arg)
+//run the program for "production" mode
+void run_program_for_production()
 {
-  //check argument
-  if(narg<2) crash("Use: %s input_file",arg[0]);
-  
-  //init simulation according to input file
-  init_simulation(arg[1]);
-  
-#ifdef CUDA
-  cuda::test();
-#endif
-
-  ///////////////////////////////////////
-  
   //evolve for the required number of traj
   prod_ntraj=0;
   master_printf("\n");
@@ -434,10 +468,44 @@ void in_main(int narg,char **arg)
       conf_created=0;
     }
   while(prod_ntraj<max_ntraj && !file_exists("stop") && !file_exists("restart"));
+
+  master_printf("Performed %d trajectories\n\n",prod_ntraj);
+}
+
+//run the program for "analysis"
+void run_program_for_analysis()
+{
+  int nconf_analyzed=0;
+  do
+    {
+      read_conf(conf,conf_to_analyze_paths[nconf_analyzed]);
+      measurements(new_conf,conf,itraj,0,theory_pars[SEA_THEORY].gauge_action_name);
+      
+      nconf_analyzed++;
+    }
+  while(nconf_analyzed<nconf_to_analyze && !file_exists("stop"));
+
+  master_printf("Analyzed %d configurations\n\n",nconf_analyzed);
+}
+
+void in_main(int narg,char **arg)
+{
+  //check argument
+  if(narg<2) crash("Use: %s input_file",arg[0]);
+  
+  //init simulation according to input file
+  init_simulation(arg[1]);
+  
+#ifdef CUDA
+  cuda::test();
+#endif
+
+  ///////////////////////////////////////
+  
+  if(max_ntraj!=0) run_program_for_production();
+  else             run_program_for_analysis();
   
   /////////////////////////////////////// timings /////////////////////////////////
-  
-  master_printf("Performed %d trajectories\n\n",prod_ntraj);
   
 #ifdef BENCH
   master_printf("time to apply non optimized %d times: %lg, %lg per iter, %lg MFlop/s\n",
