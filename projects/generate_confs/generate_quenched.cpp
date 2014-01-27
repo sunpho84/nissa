@@ -15,14 +15,14 @@ using namespace nissa;
 
 //observables
 FILE *file_obs=NULL,*file_obs_per_timeslice=NULL;
-int gauge_meas_flag=5;
+int gauge_obs_flag;
 char gauge_obs_path[1024];
 char gauge_obs_per_timeslice_path[1024];
 top_meas_pars_t top_meas_pars;
 
 //input and output path for confs
 char conf_path[1024];
-char store_conf_path[1024];
+char store_conf_path_templ[1024];
 const int flushing_nconfs=30;
 
 //conf
@@ -185,6 +185,7 @@ void init_simulation(char *path)
   read_str_int("T",&T);
   init_grid(T,L);  
   
+  read_str_int("GaugeObsFlag",&gauge_obs_flag); //number of updates between each action measurement
   read_str_str("GaugeObsPath",gauge_obs_path,1024); //gauge observables path
   read_str_int("MaxNConfs",&max_nconfs); //number of confs to produce
   read_str_int("Seed",&seed); //seed
@@ -200,7 +201,9 @@ void init_simulation(char *path)
   
   //read in and out conf path
   read_str_str("ConfPath",conf_path,1024);
-  read_str_str("StoreConfPath",store_conf_path,1024);
+  read_str_str("StoreConfPathTempl",store_conf_path_templ,1024);
+  if(count_substrings(store_conf_path_templ,"%")!=1)
+    crash("please provide a template path such as \"conf.%sd\" instead of \"%s\"","%",store_conf_path_templ);
   read_str_int("StoreConfEach",&store_conf_each);
   read_str_int("StoreRunningTempConf",&store_running_temp_conf);
   
@@ -401,7 +404,7 @@ void store_conf_if_necessary()
   if(store_conf_each!=0 && iconf%store_conf_each==0)
     {
       char path[1024];
-      sprintf(path,"%s.%05d",store_conf_path,iconf);
+      sprintf(path,store_conf_path_templ,iconf);
       write_conf(path);
     }
 }
@@ -438,7 +441,7 @@ void in_main(int narg,char **arg)
 	}
       
       // 2) measure
-      if(gauge_meas_flag && iconf%gauge_meas_flag==0) measure_gauge_obs();
+      if(gauge_obs_flag && iconf%gauge_obs_flag==0) measure_gauge_obs();
       if(top_meas_pars.flag && iconf%top_meas_pars.flag==0) measure_topology(top_meas_pars,conf,iconf,0);
 	
       // 3) increment id and write conf
