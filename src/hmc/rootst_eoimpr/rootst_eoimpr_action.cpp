@@ -7,19 +7,20 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_eo.hpp"
+#include "hmc/backfield.hpp"
+#include "hmc/momenta/momenta_action.hpp"
+#include "hmc/gauge/tree_level_Symanzik_action.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "operations/su3_paths/plaquette.hpp"
-#include "hmc/gauge/tree_level_Symanzik_action.hpp"
+#include "operations/su3_paths/topological_charge.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
 
-#include "hmc/backfield.hpp"
-#include "hmc/momenta/momenta_action.hpp"
 
 namespace nissa
 {
@@ -49,6 +50,14 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //Compute the topological action
+  double topotential_action(quad_su3 **eo_conf,topotential_pars_t &pars)
+  {
+    double charge;
+    total_topological_charge_eo_conf(&charge,eo_conf);
+    return charge*pars.theta;
+  }
+  
   //Compute the total action of the rooted staggered e/o improved theory.
   //Passed conf must NOT contain the backfield, but contains the stagphases so remove it.
   THREADABLE_FUNCTION_8ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue)
@@ -75,7 +84,11 @@ namespace nissa
     double mom_action=momenta_action(H);
     verbosity_lv1_master_printf("Mom_action: %16.16lg\n",mom_action);
     
-    (*tot_action)=quark_action+gluon_action+mom_action;
+    //compute the topological action, if needed
+    double topo_action=(theory_pars->topotential_pars.flag?topotential_action(eo_conf,theory_pars->topotential_pars):0);
+    if(theory_pars->topotential_pars.flag) verbosity_lv1_master_printf("Topological_action: %16.16lg\n",topo_action);
+    
+    (*tot_action)=quark_action+gluon_action+mom_action+topo_action;
   }
   THREADABLE_FUNCTION_END
 }

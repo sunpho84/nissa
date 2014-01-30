@@ -1,10 +1,10 @@
 m4trace:/opt/local/share/aclocal-1.14/amversion.m4:14: -1- AC_DEFUN([AM_AUTOMAKE_VERSION], [am__api_version='1.14'
 dnl Some users find AM_AUTOMAKE_VERSION and mistake it for a way to
 dnl require some minimum version.  Point them to the right macro.
-m4_if([$1], [1.14], [],
+m4_if([$1], [1.14.1], [],
       [AC_FATAL([Do not call $0, use AM_INIT_AUTOMAKE([$1]).])])dnl
 ])
-m4trace:/opt/local/share/aclocal-1.14/amversion.m4:33: -1- AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION], [AM_AUTOMAKE_VERSION([1.14])dnl
+m4trace:/opt/local/share/aclocal-1.14/amversion.m4:33: -1- AC_DEFUN([AM_SET_CURRENT_AUTOMAKE_VERSION], [AM_AUTOMAKE_VERSION([1.14.1])dnl
 m4_ifndef([AC_AUTOCONF_VERSION],
   [m4_copy([m4_PACKAGE_VERSION], [AC_AUTOCONF_VERSION])])dnl
 _AM_AUTOCONF_VERSION(m4_defn([AC_AUTOCONF_VERSION]))])
@@ -883,7 +883,7 @@ m4trace:configure.ac:10: -1- m4_pattern_allow([^CONFIG_TIME$])
 m4trace:configure.ac:16: -1- AM_INIT_AUTOMAKE([1.0 no-define foreign subdir-objects])
 m4trace:configure.ac:16: -1- m4_pattern_allow([^AM_[A-Z]+FLAGS$])
 m4trace:configure.ac:16: -1- AM_SET_CURRENT_AUTOMAKE_VERSION
-m4trace:configure.ac:16: -1- AM_AUTOMAKE_VERSION([1.14])
+m4trace:configure.ac:16: -1- AM_AUTOMAKE_VERSION([1.14.1])
 m4trace:configure.ac:16: -1- _AM_AUTOCONF_VERSION([2.69])
 m4trace:configure.ac:16: -1- m4_pattern_allow([^INSTALL_PROGRAM$])
 m4trace:configure.ac:16: -1- m4_pattern_allow([^INSTALL_SCRIPT$])

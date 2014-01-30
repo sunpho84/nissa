@@ -44,7 +44,7 @@ namespace nissa
   }
   
   //topological potential
-  void read_topotential_pars(topotential_pars_t pars,int flag=0)
+  void read_topotential_pars(topotential_pars_t &pars,int flag=0)
   {
     if(flag!=0) pars.flag=flag;
     else read_str_int("TopoPotential",&pars.flag);
