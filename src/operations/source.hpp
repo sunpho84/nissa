@@ -1,7 +1,7 @@
-#include "new_types/new_types_definitions.hpp"
-
 #ifndef _SOURCE_H
 #define _SOURCE_H
+
+#include "new_types/new_types_definitions.hpp"
 
 namespace nissa
 {

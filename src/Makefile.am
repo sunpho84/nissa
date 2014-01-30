@@ -196,6 +196,7 @@ endif
 __top_builddir__lib_libnissa_a_SOURCES+= \
         hmc/backfield.cpp \
         hmc/gauge/gluonic_force.cpp \
+        hmc/gauge/topological_force.cpp \
         hmc/gauge/tree_level_Symanzik_force.cpp \
         hmc/gauge/tree_level_Symanzik_action.cpp \
         hmc/gauge/Wilson_force.cpp \
@@ -211,6 +212,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 include_HEADERS+= \
         hmc/backfield.hpp \
         hmc/gauge/gluonic_force.hpp \
+        hmc/gauge/topological_force.hpp \
         hmc/gauge/tree_level_Symanzik_force.hpp \
         hmc/gauge/tree_level_Symanzik_action.hpp \
         hmc/gauge/Wilson_force.hpp \
