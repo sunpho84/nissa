@@ -69,6 +69,7 @@ namespace nissa
   EXTERN MPI_Datatype MPI_FLOAT_128;
   EXTERN MPI_Datatype MPI_SU3;
   EXTERN MPI_Datatype MPI_QUAD_SU3;
+  EXTERN MPI_Datatype MPI_AS2T_SU3;
   EXTERN MPI_Datatype MPI_COLOR;
   EXTERN MPI_Datatype MPI_SPIN;
   EXTERN MPI_Datatype MPI_SPINSPIN;
@@ -163,6 +164,7 @@ namespace nissa
   EXTERN MPI_Datatype MPI_EV_SPINCOLOR_128_BORDS_SEND_Z[2],MPI_OD_SPINCOLOR_128_BORDS_SEND_Z[2];
   
   EXTERN MPI_Datatype MPI_LX_SU3_EDGES_SEND[6],MPI_LX_SU3_EDGES_RECE[6];
+  EXTERN MPI_Datatype MPI_LX_AS2T_SU3_EDGES_SEND[6],MPI_LX_AS2T_SU3_EDGES_RECE[6];
   EXTERN MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[6],MPI_LX_QUAD_SU3_EDGES_RECE[6];
   EXTERN MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[6];
   
@@ -285,6 +287,7 @@ namespace nissa
   EXTERN comm_t lx_spinspin_comm,eo_spinspin_comm;
   EXTERN comm_t lx_su3spinspin_comm,eo_su3spinspin_comm;
   EXTERN comm_t lx_su3_comm,eo_su3_comm;
+  EXTERN comm_t lx_as2t_su3_comm,eo_as2t_su3_comm;
   EXTERN comm_t lx_quad_su3_comm,eo_quad_su3_comm;
 #endif
   

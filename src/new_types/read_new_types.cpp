@@ -43,7 +43,20 @@ namespace nissa
       }
   }
   
-  //read degeneracy, mass, chpot and charge
+  //topological potential
+  void read_topotential_pars(topotential_pars_t pars,int flag=0)
+  {
+    if(flag!=0) pars.flag=flag;
+    else read_str_int("TopoPotential",&pars.flag);
+    switch(pars.flag)
+      {
+      case 0: break;
+      case 1: read_str_double("Potential",&pars.theta); break;
+      default: crash("Not implemented yet"); break;
+      }
+  }
+
+  //degeneracy, mass, chpot and charge
   void read_quark_content(quark_content_t &quark_content,bool flag=false)
   {
     read_str_int("Degeneracy",&(quark_content.deg));
@@ -53,7 +66,7 @@ namespace nissa
     read_str_double("ElecCharge",&(quark_content.charge));
   }
   
-  //read the parameters relevant for hmc evolution
+  //the parameters relevant for hmc evolution
   void read_hmc_evol_pars(hmc_evol_pars_t &pars)
   {
     read_str_int("SkipMTestNTraj",&pars.skip_mtest_ntraj);
@@ -210,24 +223,27 @@ namespace nissa
     //beta for gauge action
     read_str_double("Beta",&theory_pars.beta);
     
-    //read the number of undegenerate flavs
+    //topological potential
+    read_topotential_pars(theory_pars.topotential_pars);
+    
+    //number of undegenerate flavs
     read_str_int("NDiffFlavs",&(theory_pars.nflavs));
     theory_pars.quark_content=nissa_malloc("quark_content",theory_pars.nflavs,quark_content_t);
     
-    //read each flav parameters
+    //each flav parameters
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
       read_quark_content(theory_pars.quark_content[iflav]);
     
     //additional parameters to read only if fermions are defined
     if(theory_pars.nflavs!=0)
       {
-	//read stouting parameters
+	//stouting parameters
 	read_stout_pars(theory_pars.stout_pars);
 	
-	//read electric and magnetic field
+	//electric and magnetic field
 	read_em_field_pars(theory_pars.em_field_pars);
 	
-	//read info on pseudoscalar meson correlators, condensate and magnetization measure
+	//info on pseudoscalar meson correlators, condensate and magnetization measure
 	read_pseudo_corr_pars(theory_pars.pseudo_corr_pars);
 	read_chiral_cond_pars(theory_pars.chiral_cond_pars);
 	read_magnetization_pars(theory_pars.magnetization_pars);

@@ -641,6 +641,7 @@ namespace nissa
     //setup all lx borders communicators
     set_lx_comm(lx_su3_comm,sizeof(su3));
     set_lx_comm(lx_quad_su3_comm,sizeof(quad_su3));
+    set_lx_comm(lx_as2t_su3_comm,sizeof(as2t_su3));
     set_lx_comm(lx_spin_comm,sizeof(spin));
     set_lx_comm(lx_color_comm,sizeof(color));
     set_lx_comm(lx_spinspin_comm,sizeof(spinspin));
@@ -654,6 +655,7 @@ namespace nissa
 #ifdef USE_MPI
     set_lx_edge_senders_and_receivers(MPI_LX_SU3_EDGES_SEND,MPI_LX_SU3_EDGES_RECE,&MPI_SU3);
     set_lx_edge_senders_and_receivers(MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,&MPI_QUAD_SU3);
+    set_lx_edge_senders_and_receivers(MPI_LX_AS2T_SU3_EDGES_SEND,MPI_LX_AS2T_SU3_EDGES_RECE,&MPI_AS2T_SU3);
 #endif
     
     if(use_eo_geom)
