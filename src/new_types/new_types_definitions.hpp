@@ -489,6 +489,13 @@ namespace nissa
     double alpha;
   };
   
+  //parameters to add topological potential
+  struct topotential_pars_t
+  {
+    int flag;
+    double theta;
+  };
+  
   //background em field parameters
   struct em_field_pars_t
   {
@@ -505,6 +512,7 @@ namespace nissa
     quad_u1 ***backfield;
     quark_content_t *quark_content;
     gauge_action_name_t gauge_action_name;
+    topotential_pars_t topotential_pars;
     stout_pars_t stout_pars;
     em_field_pars_t em_field_pars;
     chiral_cond_pars_t chiral_cond_pars;

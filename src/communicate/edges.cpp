@@ -108,6 +108,10 @@ namespace nissa
   void communicate_lx_quad_su3_edges(quad_su3 *conf)
   {communicate_lx_edges((char*)conf,lx_quad_su3_comm,MPI_LX_QUAD_SU3_EDGES_SEND,MPI_LX_QUAD_SU3_EDGES_RECE,sizeof(quad_su3));}
   
+  //Send the edges of the as2t_su3 field (for clover derivative)
+  void communicate_lx_as2t_su3_edges(as2t_su3 *a)
+  {communicate_lx_edges((char*)a,lx_as2t_su3_comm,MPI_LX_AS2T_SU3_EDGES_SEND,MPI_LX_AS2T_SU3_EDGES_RECE,sizeof(as2t_su3));}
+
   ///////////////////////////////////////////// e/o geometry /////////////////////////////////////////
   
   //Send the edges of eo vector

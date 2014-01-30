@@ -101,6 +101,7 @@ namespace nissa
   void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd);
   void su3_put_to_zero(su3 m);
   void su3_subt(su3 a,su3 b,su3 c);
+  void su3_subtassign(su3 a,su3 b);
   void su3_subt_complex(su3 a,su3 b,complex c);
   void su3_subt_the_prod_color(color a,su3 b,color c);
   void su3_subt_the_prod_spincolor(spincolor out,su3 U,spincolor in);

@@ -378,6 +378,7 @@ namespace nissa
   void su3_summassign(su3 a,su3 b){su3_summ(a,a,b);}
   void su3_summ_real(su3 a,su3 b,double c) {su3_copy(a,b);for(int i=0;i<3;i++) a[i][i][0]=b[i][i][0]+c;}
   void su3_subt(su3 a,su3 b,su3 c) {for(int i=0;i<18;i++) ((double*)a)[i]=((double*)b)[i]-((double*)c)[i];}
+  void su3_subtassign(su3 a,su3 b) {su3_subt(a,a,b);}
   void su3_subt_complex(su3 a,su3 b,complex c)
   {for(int i=0;i<3;i++) for(int ri=0;ri<2;ri++) a[i][i][ri]=b[i][i][ri]-c[ri];}
   void unsafe_su3_subt_su3_dag(su3 a,su3 b,su3 c)

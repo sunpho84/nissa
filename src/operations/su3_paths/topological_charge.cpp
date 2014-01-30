@@ -24,6 +24,8 @@
  #include "routines/thread.hpp"
 #endif
 
+#include "topological_charge.hpp"
+
 namespace nissa
 {
   //This will calculate 2*a^2*ig*P_{mu,nu}
@@ -257,8 +259,8 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
 
-  //average the topological charge
-  THREADABLE_FUNCTION_2ARG(average_topological_charge_lx_conf, double*,ave_charge, quad_su3*,conf)
+  //total topological charge
+  THREADABLE_FUNCTION_2ARG(total_topological_charge_lx_conf, double*,tot_charge, quad_su3*,conf)
   {
     GET_THREAD_ID();
     double *charge=nissa_malloc("charge",loc_vol,double);
@@ -266,13 +268,13 @@ namespace nissa
     //compute local charge
     local_topological_charge(charge,conf);
     
-    //average over local volume
+    //summ over local volume
 #ifndef REPRODUCIBLE_RUN
     double temp=0;
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       temp+=charge[ivol];
     
-    *ave_charge=glb_reduce_double(temp);
+    *tot_charge=glb_reduce_double(temp);
 #else
     //perform thread summ
     float_128 loc_thread_res={0,0};
@@ -281,7 +283,7 @@ namespace nissa
     
     float_128 temp;
     glb_reduce_float_128(temp,loc_thread_res);
-    (*ave_charge)=temp[0];
+    (*tot_charge)=temp[0];
 #endif
     
     nissa_free(charge);
@@ -289,20 +291,20 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   //wrapper for eos case
-  THREADABLE_FUNCTION_2ARG(average_topological_charge_eo_conf, double*,ave_charge, quad_su3**,eo_conf)
+  THREADABLE_FUNCTION_2ARG(total_topological_charge_eo_conf, double*,tot_charge, quad_su3**,eo_conf)
   {
     //convert to lx
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
     
-    average_topological_charge_lx_conf(ave_charge,lx_conf);
+    total_topological_charge_lx_conf(tot_charge,lx_conf);
     
     nissa_free(lx_conf);
   }
   THREADABLE_FUNCTION_END
 
   //measure the topological charge
-  void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,bool conf_created,bool preserve_uncooled=true)
+  void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,bool conf_created,bool preserve_uncooled)
   {
     FILE *file=open_file(pars.path,conf_created?"w":"a");
     
@@ -320,11 +322,11 @@ namespace nissa
       {
 	if(istep%pars.meas_each==0)
 	  {
-	    double ave_charge;
-	    average_topological_charge_lx_conf(&ave_charge,cooled_conf);
-	    master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,ave_charge);
+	    double tot_charge;
+	    total_topological_charge_lx_conf(&tot_charge,cooled_conf);
+	    master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,tot_charge);
 	    verbosity_lv2_master_printf("Topologycal charge after %d cooling steps: %16.16lg, "
-					"plaquette: %16.16lg\n",istep,ave_charge,global_plaquette_lx_conf(cooled_conf));
+					"plaquette: %16.16lg\n",istep,tot_charge,global_plaquette_lx_conf(cooled_conf));
 	  }
 	if(istep!=pars.cool_nsteps) cool_lx_conf(cooled_conf,pars.gauge_cooling_action,
 						 pars.cool_overrelax_flag,pars.cool_overrelax_exp);
@@ -343,11 +345,11 @@ namespace nissa
     nissa_free(uncooled_conf_lx);
   }
 
-#if 0
   //compute the topological staples site by site
   THREADABLE_FUNCTION_2ARG(topological_staples, quad_su3*,staples, quad_su3*,conf)
   {
-    as2t_su3 *leaves=nissa_malloc("leaves",loc_vol,as2t_su3);
+    GET_THREAD_ID();
+    as2t_su3 *leaves=nissa_malloc("leaves",loc_vol+bord_vol+edge_vol,as2t_su3);
     
     //compute the clover-shape paths
     four_leaves(leaves,conf);
@@ -355,58 +357,79 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int imunu=0;imunu<6;imunu++)
 	{
-	  color *u=leaves[ivol]+imunu;
+	  color *u=leaves[ivol][imunu];
 	  for(int ic1=0;ic1<3;ic1++)
 	    for(int ic2=ic1;ic2<3;ic2++)
-	      {
+	      { //do not look here please, it is better to put a carpet on this uglyness
 		u[ic2][ic1][0]=-(u[ic1][ic2][0]=u[ic1][ic2][0]-u[ic2][ic1][0]);
 		u[ic2][ic1][1]=+(u[ic1][ic2][1]=u[ic1][ic2][1]+u[ic2][ic1][1]);
 	      }
 	}
     THREAD_BARRIER();
+    set_borders_invalid(leaves);
+    communicate_lx_as2t_su3_edges(leaves);
     
-    //list the three combinations of plans
-    int plan_id[3][2]={{0,5},{1,4},{2,3}};
-    int sign[3]={1,-1,1};
-    int imunu_list[4][3]={{  0,1,2},
-			  {0,  3,4},
-			  {1,3,  5},
-			  {2,4,5  }};
+    //list the plan and coefficients for each staples
+    int plan_perp[4][3]={{ 5, 4, 3},{ 5, 2, 1},{ 4, 2, 0},{ 3, 1, 0}};
+    int plan_sign[4][3]={{+1,-1,+1},{-1,+1,-1},{+1,-1,+1},{-1,+1,-1}};
     
     //loop on the three different combinations of plans
     vector_reset(staples);
-    GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(A,0,loc_vol)
-      {
-	//tx tz xz yt yx zy 
-	for(int mu=0;mu<4;mu++) //link direction
-	  for(int inu=0;inu<3;inu++)                   //  E---F---C   
-	    {                                          //  |   |   | mu
-	      int nu=perp_dir[mu][inu];                //  D---A---B   
-	      //this gives the other pair element      //        nu    
-	      int imunu=imunu_list[mu][inu];
-	      int irhosigma=5-imunu;
-	      
-	      int B=loclx_neighup[A][nu];
-	      int F=loclx_neighup[A][mu];
-	      unsafe_su3_prod_su3(    temp1,conf[A][nu],conf[B][mu]);
-	      unsafe_su3_prod_su3_dag(temp2,temp1,conf[F][nu]);
-	      su3_summ(staples,staples,temp2);
-          
-	      int D=loclx_neighdw[A][nu];
-	      int E=loclx_neighup[D][mu];
-	      unsafe_su3_dag_prod_su3(temp1,conf[D][nu],conf[D][mu]);
-	      unsafe_su3_prod_su3(temp2,temp1,conf[E][nu]);
-	      su3_summ(staples,staples,temp2);
-	    }
-      }
+      for(int mu=0;mu<4;mu++) //link direction
+	for(int inu=0;inu<3;inu++)                   //  E---F---C   
+	  {                                          //  |   |   | mu
+	    int nu=perp_dir[mu][inu];                //  D---A---B   
+	    //this gives the other pair element      //        nu    
+	    int iplan=plan_perp[mu][inu];
+	    
+	    //takes neighbours
+	    int B=loclx_neighup[A][nu];
+	    int C=loclx_neighup[B][mu];
+	    int D=loclx_neighdw[A][nu];
+	    int E=loclx_neighup[D][mu];
+	    int F=loclx_neighup[A][mu];
+	    
+	    //compute ABC, BCF and the full SU(3) staple, ABCF
+	    su3 ABC,BCF,ABCF;
+	    unsafe_su3_prod_su3(ABC,conf[A][nu],conf[B][mu]);
+	    unsafe_su3_prod_su3_dag(BCF,conf[B][mu],conf[F][nu]);
+	    unsafe_su3_prod_su3_dag(ABCF,ABC,conf[F][nu]);
+	    
+	    //compute ADE, DEF and the full SU(3) staple, ADEF
+	    su3 ADE,DEF,ADEF;
+	    unsafe_su3_dag_prod_su3(ADE,conf[D][nu],conf[D][mu]);
+	    unsafe_su3_prod_su3(DEF,conf[D][mu],conf[E][nu]);
+	    unsafe_su3_prod_su3(ADEF,ADE,conf[E][nu]);
+
+	    //local summ and temp
+	    su3 loc_staples,temp;
+	    su3_put_to_zero(loc_staples);
+	    //insert the leave in the four possible forward positions
+	    
+	    unsafe_su3_prod_su3(loc_staples,leaves[A][iplan],ABCF);     //insertion on A
+	    unsafe_su3_prod_su3(temp,conf[A][nu],leaves[B][iplan]);
+	    su3_summ_the_prod_su3(loc_staples,temp,BCF);                //insertion on B
+	    unsafe_su3_prod_su3(temp,ABC,leaves[C][iplan]);
+	    su3_summ_the_prod_su3_dag(loc_staples,temp,conf[F][nu]);    //insertion on C
+	    su3_summ_the_prod_su3(loc_staples,ABCF,leaves[F][iplan]);   //insertion on F
+	    
+	    //insert the leave in the four possible backward positions
+	    su3_summ_the_dag_prod_su3(loc_staples,leaves[A][iplan],ADEF);    //insertion on A
+	    unsafe_su3_dag_prod_su3_dag(temp,conf[D][nu],leaves[D][iplan]);
+	    su3_summ_the_prod_su3(loc_staples,temp,DEF);                     //insertion on D
+	    unsafe_su3_prod_su3_dag(temp,ADE,leaves[E][iplan]);
+	    su3_summ_the_prod_su3(loc_staples,temp,conf[E][nu]);             //insertion on E
+	    su3_summ_the_prod_su3_dag(loc_staples,ADEF,leaves[F][iplan]);    //insertion on F
+	    
+	    //summ or subtract, according to the coefficient
+	    if(plan_sign[mu][inu]==+1) su3_summassign(staples[A][mu],loc_staples);
+	    else                       su3_subtassign(staples[A][mu],loc_staples);
+	  }
     
     set_borders_invalid(staples);
     
     nissa_free(leaves);
   }
   THREADABLE_FUNCTION_END
-
-#endif
-
 }
