@@ -17,6 +17,7 @@
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
 #include "operations/gaugeconf.hpp"
+#include "operations/smearing/stout.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
@@ -432,4 +433,36 @@ namespace nissa
     nissa_free(leaves);
   }
   THREADABLE_FUNCTION_END
+  
+  //store the topological charge if needed
+  void topotential_pars_t::store_if_needed(quad_su3 **ext_conf,int iconf)
+  {
+    if(flag==2 && iconf%each==0 && iconf>=from && iconf<upto)
+      {
+	double charge;
+	quad_su3 *in_conf[2];
+	if(stout_pars.nlev==0)
+	  {
+	    in_conf[0]=ext_conf[0];
+	    in_conf[1]=ext_conf[1];
+	  }
+	else
+	  {
+	    in_conf[0]=nissa_malloc("stout_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
+	    in_conf[1]=nissa_malloc("stout_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
+	    stout_smear(in_conf,ext_conf,&(this->stout_pars));
+	  }
+	
+	//compute topocharge
+	total_topological_charge_eo_conf(&charge,in_conf);
+	past_values.push_back(charge);
+	
+	//free if needed
+	if(stout_pars.nlev!=0)
+	  {
+	    nissa_free(in_conf[0]);
+	    nissa_free(in_conf[1]);
+	  }
+      }
+  }
 }

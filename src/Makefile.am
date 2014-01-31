@@ -362,7 +362,9 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
         operations/source.cpp \
         operations/smearing/APE.cpp \
         operations/smearing/HYP.cpp \
-        operations/smearing/stout.cpp \
+        operations/smearing/stout_common.cpp \
+        operations/smearing/stout_eo.cpp \
+        operations/smearing/stout_lx.cpp \
         operations/smearing/gaussian.cpp \
         operations/su3_paths/all_rectangles.cpp \
         operations/su3_paths/arbitrary.cpp \

@@ -11,6 +11,7 @@
 
 #include <math.h>
 #include <stdint.h>
+#include <sstream>
 #include <map>
 #include <vector>
 #include <string>
@@ -489,11 +490,46 @@ namespace nissa
     double alpha;
   };
   
+  //storable vector
+  ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data);
+  template<class T> struct storable_vector_t : std::vector<T>
+  {
+    //append to last message
+    ILDG_message *append_to_message_with_name(ILDG_message &mess,const char *name)
+    {
+      std::ostringstream os;
+      os.precision(16);
+      for(typename std::vector<T>::iterator it=this->begin();it!=this->end();it++) os<<*it<<" ";
+      return ILDG_string_message_append_to_last(&mess,name,os.str().c_str());
+    }
+    //convert from a text message
+    void convert_from_message(ILDG_message &mess)
+    {
+      std::istringstream is(mess.data);
+      T temp;
+      while(is>>temp) this->push_back(temp);
+    }
+  };
+  
+  //specialization to topological charge history
+  struct past_topo_values_t : storable_vector_t<double>
+  {ILDG_message *append_to_message(ILDG_message &mess){return append_to_message_with_name(mess,"TOPO_history");}};
+  
   //parameters to add topological potential
   struct topotential_pars_t
   {
     int flag;
     double theta;
+    double coeff;
+    double width;
+    int symmetric;
+    int from;
+    int each;
+    int upto;
+    past_topo_values_t past_values;
+    stout_pars_t stout_pars;
+    //methods inside opearations/su3_paths/topological_charge.cpp
+    void store_if_needed(quad_su3 **conf,int iconf);
   };
   
   //background em field parameters
@@ -526,8 +562,8 @@ namespace nissa
     int n;
     double sx;
     double s2x;
-  hmc_traj_stat_el_t(int n,double sx,double s2x) : n(n),sx(sx),s2x(s2x) {}
-  hmc_traj_stat_el_t() : n(0),sx(0),s2x(0) {}
+    hmc_traj_stat_el_t(int n,double sx,double s2x) : n(n),sx(sx),s2x(s2x) {}
+    hmc_traj_stat_el_t() : n(0),sx(0),s2x(0) {}
     hmc_traj_stat_el_t operator+=(double x){n++;sx+=x;s2x+=x*x;return (*this);}
     void ave_err(double &ave,double &err){ave=sx;err=0;if(n>=2){ave=sx/n;err=s2x/n;err=sqrt((err-ave*ave)/(n-1));}}
   };

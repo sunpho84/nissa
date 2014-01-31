@@ -13,6 +13,7 @@
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
+#include "operations/smearing/stout.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "operations/su3_paths/topological_charge.hpp"
 #include "routines/ios.hpp"
@@ -51,11 +52,45 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //Compute the topological action
-  double topotential_action(quad_su3 **eo_conf,topotential_pars_t &pars)
+  double topotential_action(quad_su3 **ext_conf,topotential_pars_t &pars)
   {
+    quad_su3 *in_conf[2];
+    if(pars.stout_pars.nlev==0)
+      {
+	in_conf[0]=ext_conf[0];
+	in_conf[1]=ext_conf[1];
+      }
+    else
+      {
+	in_conf[0]=nissa_malloc("stout_conf",loc_volh+bord_volh+edge_volh,quad_su3);
+	in_conf[1]=nissa_malloc("stout_conf",loc_volh+bord_volh+edge_volh,quad_su3);
+	stout_smear(in_conf,ext_conf,&(pars.stout_pars));
+      }
+
+    //compute topocharge                                                                                              
     double charge;
-    total_topological_charge_eo_conf(&charge,eo_conf);
-    return charge*pars.theta;
+    total_topological_charge_eo_conf(&charge,in_conf);
+    
+    //compute according to flag
+    double topo_action=0;
+    switch(pars.flag)
+      {
+      case 1: topo_action=charge*pars.theta;break;
+      case 2:
+	topo_action=0;
+	for(std::vector<double>::iterator it=pars.past_values.begin();it!=pars.past_values.end();it++)
+	  {
+	    double Q=*it;
+	    double diff=Q-charge,f=diff/pars.width,cont=exp(-f*f/2);
+	    topo_action+=cont;
+	    master_printf("Contribution: %lg\n",cont); //debug
+	  }
+	topo_action*=pars.coeff;
+	break;
+      default: crash("unknown flag %d",pars.flag);
+      }
+    
+    return topo_action;
   }
   
   //Compute the total action of the rooted staggered e/o improved theory.
