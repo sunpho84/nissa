@@ -81,7 +81,10 @@ void write_conf(char *path,quad_su3 **conf)
   for(int iskip=0;iskip<10;iskip++)
     rnd_get_unif(&glb_rnd_gen,0,1);
 #endif
-
+  
+  //topology history
+  if(theory_pars[0].topotential_pars.flag==2) theory_pars[0].topotential_pars.past_values.append_to_message(mess);
+  
   //glb_rnd_gen status
   convert_rnd_gen_to_text(text,&glb_rnd_gen);
   ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
@@ -110,6 +113,8 @@ void read_conf(quad_su3 **conf,char *path)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
       if(glb_rnd_gen_inited==0 && strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
+      if(theory_pars[0].topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TOPO_history")==0)
+	theory_pars[0].topotential_pars.past_values.convert_from_message(*cur_mess);
     }
   
   //if message with string not found start from input seed
@@ -333,6 +338,9 @@ int generate_new_conf(int itraj)
 	  for(int par=0;par<2;par++) vector_copy(conf[par],new_conf[par]);
 	}
       else master_printf("rejected.\n");
+      
+      //store the topological charge if needed
+      theory_pars[SEA_THEORY].topotential_pars.store_if_needed(conf,itraj);
     }
   else
     {

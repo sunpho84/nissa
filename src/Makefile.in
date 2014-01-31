@@ -292,7 +292,10 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	operations/gaugeconf.cpp operations/remap_vector.cpp \
 	operations/remez/remez_algorithm.cpp operations/shift.cpp \
 	operations/source.cpp operations/smearing/APE.cpp \
-	operations/smearing/HYP.cpp operations/smearing/stout.cpp \
+	operations/smearing/HYP.cpp \
+	operations/smearing/stout_common.cpp \
+	operations/smearing/stout_eo.cpp \
+	operations/smearing/stout_lx.cpp \
 	operations/smearing/gaussian.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
@@ -409,7 +412,9 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	operations/shift.$(OBJEXT) operations/source.$(OBJEXT) \
 	operations/smearing/APE.$(OBJEXT) \
 	operations/smearing/HYP.$(OBJEXT) \
-	operations/smearing/stout.$(OBJEXT) \
+	operations/smearing/stout_common.$(OBJEXT) \
+	operations/smearing/stout_eo.$(OBJEXT) \
+	operations/smearing/stout_lx.$(OBJEXT) \
 	operations/smearing/gaussian.$(OBJEXT) \
 	operations/su3_paths/all_rectangles.$(OBJEXT) \
 	operations/su3_paths/arbitrary.$(OBJEXT) \
@@ -894,7 +899,10 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	operations/gaugeconf.cpp operations/remap_vector.cpp \
 	operations/remez/remez_algorithm.cpp operations/shift.cpp \
 	operations/source.cpp operations/smearing/APE.cpp \
-	operations/smearing/HYP.cpp operations/smearing/stout.cpp \
+	operations/smearing/HYP.cpp \
+	operations/smearing/stout_common.cpp \
+	operations/smearing/stout_eo.cpp \
+	operations/smearing/stout_lx.cpp \
 	operations/smearing/gaussian.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
@@ -1476,7 +1484,13 @@ operations/smearing/APE.$(OBJEXT):  \
 operations/smearing/HYP.$(OBJEXT):  \
 	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
-operations/smearing/stout.$(OBJEXT):  \
+operations/smearing/stout_common.$(OBJEXT):  \
+	operations/smearing/$(am__dirstamp) \
+	operations/smearing/$(DEPDIR)/$(am__dirstamp)
+operations/smearing/stout_eo.$(OBJEXT):  \
+	operations/smearing/$(am__dirstamp) \
+	operations/smearing/$(DEPDIR)/$(am__dirstamp)
+operations/smearing/stout_lx.$(OBJEXT):  \
 	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
 operations/smearing/gaussian.$(OBJEXT):  \
@@ -1694,7 +1708,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/APE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/HYP.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/gaussian.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout_common.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout_eo.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout_lx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/all_rectangles.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/arbitrary.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/gauge_sweeper.Po@am__quote@

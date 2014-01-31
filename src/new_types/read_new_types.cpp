@@ -43,6 +43,29 @@ namespace nissa
       }
   }
   
+  //read parameters to stout smear gauge action
+  void read_stout_pars(stout_pars_t &stout_pars)
+  {
+    read_str_int("StoutingNLevel",&stout_pars.nlev);
+    if(stout_pars.nlev!=0)
+      {
+	//isotropic or not?
+	int iso;
+	read_str_int("IsotropicStouting",&iso);
+	
+	//only iso implemented
+	if(iso)
+	  {
+	    double rho;
+	    read_str_double("StoutRho",&rho);
+	    for(int i=0;i<4;i++)
+	      for(int j=0;j<4;j++)
+		stout_pars.rho[i][j]=rho;
+	  }
+	else crash("Anisotropic stouting not yet implemented");
+      }
+  }
+  
   //topological potential
   void read_topotential_pars(topotential_pars_t &pars,int flag=0)
   {
@@ -52,8 +75,17 @@ namespace nissa
       {
       case 0: break;
       case 1: read_str_double("Potential",&pars.theta); break;
+      case 2: 
+	read_str_double("Coeff",&pars.coeff);
+	read_str_double("Width",&pars.width);
+	read_str_int("Symmetric",&pars.symmetric);
+	read_str_int("From",&pars.from);
+	read_str_int("Each",&pars.each);
+	read_str_int("Upto",&pars.upto);
+	break;
       default: crash("Not implemented yet"); break;
       }
+    if(pars.flag) read_stout_pars(pars.stout_pars);
   }
 
   //degeneracy, mass, chpot and charge
@@ -86,29 +118,6 @@ namespace nissa
     //overrelax parameters
     read_str_int("NOvSweeps",&pars.nov_sweeps);
     read_str_int("NOvHits",&pars.nov_hits);
-  }
-  
-  //read parameters to stout smear gauge action
-  void read_stout_pars(stout_pars_t &stout_pars)
-  {
-    read_str_int("StoutingNLevel",&stout_pars.nlev);
-    if(stout_pars.nlev!=0)
-      {
-	//isotropic or not?
-	int iso;
-	read_str_int("IsotropicStouting",&iso);
-	
-	//only iso implemented
-	if(iso)
-	  {
-	    double rho;
-	    read_str_double("StoutRho",&rho);
-	    for(int i=0;i<4;i++)
-	      for(int j=0;j<4;j++)
-		stout_pars.rho[i][j]=rho;
-	  }
-	else crash("Anisotropic stouting not yet implemented");
-      }
   }
   
   //read parameters to ape smear gauge action
