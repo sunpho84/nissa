@@ -22,6 +22,7 @@
 #endif
 #include "stout.hpp"
 
+
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
