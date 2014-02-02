@@ -440,28 +440,28 @@ namespace nissa
     if(flag==2 && iconf%each==0 && iconf>=from && iconf<upto)
       {
 	double charge;
-	quad_su3 *in_conf[2];
+	quad_su3 *conf[2];
 	if(stout_pars.nlev==0)
 	  {
-	    in_conf[0]=ext_conf[0];
-	    in_conf[1]=ext_conf[1];
+	    conf[0]=ext_conf[0];
+	    conf[1]=ext_conf[1];
 	  }
 	else
 	  {
-	    in_conf[0]=nissa_malloc("stout_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
-	    in_conf[1]=nissa_malloc("stout_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
-	    stout_smear(in_conf,ext_conf,&(this->stout_pars));
+	    conf[0]=nissa_malloc("stout_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
+	    conf[1]=nissa_malloc("stout_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
+	    stout_smear(conf,ext_conf,&(this->stout_pars));
 	  }
 	
 	//compute topocharge
-	total_topological_charge_eo_conf(&charge,in_conf);
+	total_topological_charge_eo_conf(&charge,conf);
 	past_values.push_back(charge);
 	
 	//free if needed
 	if(stout_pars.nlev!=0)
 	  {
-	    nissa_free(in_conf[0]);
-	    nissa_free(in_conf[1]);
+	    nissa_free(conf[0]);
+	    nissa_free(conf[1]);
 	  }
       }
   }

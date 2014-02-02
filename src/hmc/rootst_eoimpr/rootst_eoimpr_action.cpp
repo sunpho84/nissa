@@ -90,6 +90,9 @@ namespace nissa
       default: crash("unknown flag %d",pars.flag);
       }
     
+    //free if it was allocated
+    if(pars.stout_pars.nlev!=0) for(int eo=0;eo<2;eo++) nissa_free(in_conf[eo]);
+    
     return topo_action;
   }
   

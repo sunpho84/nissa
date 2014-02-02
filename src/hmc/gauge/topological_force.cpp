@@ -83,6 +83,9 @@ namespace nissa
         //remap the force backward
         stouted_force_remap(F,sme_conf,&(pars->stout_pars));
         addrem_stagphases_to_lx_conf(sme_conf[0]); //add back again to the original conf
+	
+	//now free the stack of confs
+        stout_smear_conf_stack_free(&sme_conf,pars->stout_pars.nlev);
       }
     
     //add the stag phases to the force term, to cancel the one entering the force
