@@ -40,6 +40,7 @@
 
 #include "hmc/backfield.hpp"
 #include "hmc/gauge/gluonic_force.hpp"
+#include "hmc/gauge/topological_action.hpp"
 #include "hmc/gauge/topological_force.hpp"
 #include "hmc/gauge/Wilson_force.hpp"
 #include "hmc/gauge/tree_level_Symanzik_force.hpp"

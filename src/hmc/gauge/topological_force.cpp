@@ -5,6 +5,8 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
+ #include "geometry/geometry_mix.hpp"
+ #include "geometry/geometry_eo.hpp"
 #include "new_types/su3.hpp"
 #include "operations/su3_paths/topological_charge.hpp"
 #include "operations/smearing/stout.hpp"
@@ -25,8 +27,8 @@ namespace nissa
     
     for(std::vector<double>::iterator it=pars->past_values.begin();it!=pars->past_values.end();it++)
       {
-	double Ql=*it;
-	double diff=Ql-Q,f=diff/pars->width,cont=pref*diff*exp(-f*f/2);
+	double q=*it;
+	double diff=Q-q,f=diff/pars->width,cont=pref*diff*exp(-f*f/2);
 	topote+=cont;
 	master_printf("Contribution: %lg\n",cont);
       }
@@ -56,7 +58,10 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<4;mu++)
 	safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],norm);
-    set_borders_invalid(F);  
+    set_borders_invalid(F);
+
+    //add the stag phases to the force term, to cancel the one entering the force
+    addrem_stagphases_to_lx_conf(F);
   }
   
   //compute the topological force
@@ -65,11 +70,11 @@ namespace nissa
     verbosity_lv1_master_printf("Computing topological force\n");
     
     //compute the staples
-    quad_su3 **sme_conf;
     if(pars->stout_pars.nlev==0) compute_topological_force_lx_conf_internal(F,conf,pars);
     else
       {
-        //allocate the stack of confs: conf is binded to sme_conf[0]
+	//allocate the stack of confs: conf is binded to sme_conf[0]
+	quad_su3 **sme_conf;
         stout_smear_conf_stack_allocate(&sme_conf,conf,pars->stout_pars.nlev);
         
         //smear iteratively retaining all the stack
@@ -87,9 +92,6 @@ namespace nissa
 	//now free the stack of confs
         stout_smear_conf_stack_free(&sme_conf,pars->stout_pars.nlev);
       }
-    
-    //add the stag phases to the force term, to cancel the one entering the force
-    addrem_stagphases_to_lx_conf(F);
     
     //take TA
     gluonic_force_finish_computation(F,conf);
