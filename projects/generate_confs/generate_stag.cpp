@@ -83,7 +83,8 @@ void write_conf(char *path,quad_su3 **conf)
 #endif
   
   //topology history
-  if(theory_pars[0].topotential_pars.flag==2) theory_pars[0].topotential_pars.past_values.append_to_message(mess);
+  if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
+    theory_pars[SEA_THEORY].topotential_pars.past_values.append_to_message(mess);
   
   //glb_rnd_gen status
   convert_rnd_gen_to_text(text,&glb_rnd_gen);
@@ -113,8 +114,8 @@ void read_conf(quad_su3 **conf,char *path)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
       if(glb_rnd_gen_inited==0 && strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
-      if(theory_pars[0].topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TOPO_history")==0)
-	theory_pars[0].topotential_pars.past_values.convert_from_message(*cur_mess);
+      if(theory_pars[SEA_THEORY].topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TOPO_history")==0)
+	theory_pars[SEA_THEORY].topotential_pars.past_values.convert_from_message(*cur_mess);
     }
   
   //if message with string not found start from input seed
@@ -220,7 +221,8 @@ void init_simulation(char *path)
   if(max_ntraj>0)
     {
       //load evolution info depending if is a quenched simulation or unquenched
-      if(theory_pars[SEA_THEORY].nflavs!=0) read_hmc_evol_pars(evol_pars.hmc_evol_pars);
+      if(theory_pars[SEA_THEORY].nflavs!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
+	read_hmc_evol_pars(evol_pars.hmc_evol_pars);
       else read_pure_gauge_evol_pars(evol_pars.pure_gauge_evol_pars);
       
       //read in and out conf path
@@ -289,7 +291,8 @@ void unset_theory_pars(theory_pars_t &theory_pars)
 //finalize everything
 void close_simulation()
 {
-  if(theory_pars[0].topotential_pars.flag==2) draw_topodynamical_potential(theory_pars[0].topotential_pars);
+  if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
+    draw_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars);
   
   if(!store_running_temp_conf && prod_ntraj>0) write_conf(conf_path,conf);
   
@@ -317,7 +320,7 @@ int generate_new_conf(int itraj)
   int acc;
   
   //if not quenched
-  if(theory_pars[SEA_THEORY].nflavs!=0)
+  if(theory_pars[SEA_THEORY].nflavs!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
     {
       int perform_test=(itraj>=evol_pars.hmc_evol_pars.skip_mtest_ntraj);
       double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,theory_pars[SEA_THEORY],evol_pars.hmc_evol_pars,itraj);
@@ -377,7 +380,8 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action
   complex pol;
   average_polyakov_loop_eo_conf(pol,conf,0);
   
-  master_fprintf(file,"%d\t%d\t%016.16lg\t%016.16lg\t%+016.16lg\t%+016.16lg\n",iconf,acc,paths[0],paths[1],pol[0],pol[1]);
+  master_fprintf(file,"%d\t%d\t%016.16lg\t%016.16lg\t%+016.16lg\t%+016.16lg\n",
+		 iconf,acc,paths[0],paths[1],pol[0],pol[1]);
   
   if(rank==0) fclose(file);
 }
