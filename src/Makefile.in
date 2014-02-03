@@ -241,6 +241,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	geometry/geometry_vir.cpp gpu/fields.cu \
 	gpu/global_variables.cu gpu/init.cu gpu/new_types.cu \
 	gpu/wrappers.cu hmc/backfield.cpp hmc/gauge/gluonic_force.cpp \
+	hmc/gauge/topological_action.cpp \
 	hmc/gauge/topological_force.cpp \
 	hmc/gauge/tree_level_Symanzik_force.cpp \
 	hmc/gauge/tree_level_Symanzik_action.cpp \
@@ -358,6 +359,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	geometry/geometry_Wsklx.$(OBJEXT) $(am__objects_5) \
 	$(am__objects_6) hmc/backfield.$(OBJEXT) \
 	hmc/gauge/gluonic_force.$(OBJEXT) \
+	hmc/gauge/topological_action.$(OBJEXT) \
 	hmc/gauge/topological_force.$(OBJEXT) \
 	hmc/gauge/tree_level_Symanzik_force.$(OBJEXT) \
 	hmc/gauge/tree_level_Symanzik_action.$(OBJEXT) \
@@ -516,7 +518,8 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	geometry/geometry_vir.hpp gpu/fields.hpp \
 	gpu/global_variables.hpp gpu/init.hpp gpu/macros.hpp \
 	gpu/new_types.hpp gpu/wrappers.hpp hmc/backfield.hpp \
-	hmc/gauge/gluonic_force.hpp hmc/gauge/topological_force.hpp \
+	hmc/gauge/gluonic_force.hpp hmc/gauge/topological_action.hpp \
+	hmc/gauge/topological_force.hpp \
 	hmc/gauge/tree_level_Symanzik_force.hpp \
 	hmc/gauge/tree_level_Symanzik_action.hpp \
 	hmc/gauge/Wilson_force.hpp hmc/momenta/momenta_generation.hpp \
@@ -742,6 +745,7 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	geometry/geometry_lx.hpp geometry/geometry_mix.hpp \
 	geometry/geometry_Wsklx.hpp $(am__append_10) $(am__append_12) \
 	hmc/backfield.hpp hmc/gauge/gluonic_force.hpp \
+	hmc/gauge/topological_action.hpp \
 	hmc/gauge/topological_force.hpp \
 	hmc/gauge/tree_level_Symanzik_force.hpp \
 	hmc/gauge/tree_level_Symanzik_action.hpp \
@@ -853,6 +857,7 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	geometry/geometry_lx.cpp geometry/geometry_mix.cpp \
 	geometry/geometry_Wsklx.cpp $(am__append_9) $(am__append_11) \
 	hmc/backfield.cpp hmc/gauge/gluonic_force.cpp \
+	hmc/gauge/topological_action.cpp \
 	hmc/gauge/topological_force.cpp \
 	hmc/gauge/tree_level_Symanzik_force.cpp \
 	hmc/gauge/tree_level_Symanzik_action.cpp \
@@ -1234,6 +1239,8 @@ hmc/gauge/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) hmc/gauge/$(DEPDIR)
 	@: > hmc/gauge/$(DEPDIR)/$(am__dirstamp)
 hmc/gauge/gluonic_force.$(OBJEXT): hmc/gauge/$(am__dirstamp) \
+	hmc/gauge/$(DEPDIR)/$(am__dirstamp)
+hmc/gauge/topological_action.$(OBJEXT): hmc/gauge/$(am__dirstamp) \
 	hmc/gauge/$(DEPDIR)/$(am__dirstamp)
 hmc/gauge/topological_force.$(OBJEXT): hmc/gauge/$(am__dirstamp) \
 	hmc/gauge/$(DEPDIR)/$(am__dirstamp)
@@ -1639,6 +1646,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/$(DEPDIR)/backfield.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/Wilson_force.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/gluonic_force.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/topological_action.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/topological_force.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/tree_level_Symanzik_action.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/tree_level_Symanzik_force.Po@am__quote@

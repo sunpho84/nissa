@@ -289,6 +289,8 @@ void unset_theory_pars(theory_pars_t &theory_pars)
 //finalize everything
 void close_simulation()
 {
+  if(theory_pars[0].topotential_pars.flag==2) draw_topodynamical_potential(theory_pars[0].topotential_pars);
+  
   if(!store_running_temp_conf && prod_ntraj>0) write_conf(conf_path,conf);
   
   //delete the conf list

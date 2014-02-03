@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <algorithm>
 
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
