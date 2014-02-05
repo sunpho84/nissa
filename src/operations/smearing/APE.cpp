@@ -17,14 +17,22 @@ namespace nissa
 {
   //perform ape smearing
   //be sure not to have border condition added
-  THREADABLE_FUNCTION_6ARG(ape_smear_conf, quad_su3*,smear_conf, quad_su3*,origi_conf, double,alpha, int,nstep, int,mu_min, int,mu_max)
+  THREADABLE_FUNCTION_6ARG(ape_smear_conf, quad_su3*,smear_conf, quad_su3*,origi_conf, double,alpha, int,nstep, int,ndirs, int*,dirs_list)
   {
     GET_THREAD_ID();
     
     quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     if(origi_conf!=smear_conf) vector_copy(smear_conf,origi_conf);
     
-    verbosity_lv1_master_printf("APE [%d-%d] smearing with alpha=%g, %d iterations\n",mu_min,mu_max,alpha,nstep);
+    char dirs[20]="";
+    if(ndirs) sprintf(dirs,"%d",dirs_list[0]);
+    for(int idir=1;idir<ndirs;idir++)
+      {
+	char temp[3];
+	snprintf(temp,3,",%d",dirs_list[idir]);
+	strncat(dirs,temp,20);
+      }
+    verbosity_lv1_master_printf("APE {%s} smearing with alpha=%g, %d iterations\n",dirs,alpha,nstep);
     
     for(int istep=0;istep<nstep;istep++)
       {
@@ -36,8 +44,10 @@ namespace nissa
 	
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
-	    for(int mu=mu_min;mu<mu_max;mu++)
+	    for(int idir=0;idir<ndirs;idir++)
 	      {
+		int mu=dirs_list[idir];
+		
 		//calculate staples
 		su3 stap,temp1,temp2;
 		su3_put_to_zero(stap);
@@ -78,7 +88,13 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   void ape_spatial_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
-  {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,1,4);}
+  {
+    int dirs[3]={1,2,3};
+    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,3,dirs);
+  }
   void ape_temporal_smear_conf(quad_su3 *smear_conf,quad_su3 *origi_conf,double alpha,int nstep)
-  {ape_smear_conf(smear_conf,origi_conf,alpha,nstep,0,1);}
+  {
+    int dirs[1]={0};
+    ape_smear_conf(smear_conf,origi_conf,alpha,nstep,1,dirs);
+  }
 }

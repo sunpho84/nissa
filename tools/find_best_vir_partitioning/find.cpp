@@ -308,6 +308,7 @@ torus_grid_t find_torus(int torus_size)
     case 64:  return N64;  break;
     case 128: return N128; break;
     case 256: return N256; break;
+    case 512: return N512; break;
     default: crash("unknown partition to use for %d ranks",torus_size); return N64;break;
     }
 }

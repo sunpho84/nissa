@@ -30,7 +30,7 @@ namespace nissa
 	double q=*it;
 	double diff=Q-q,f=diff/pars->width,cont=pref*diff*exp(-f*f/2);
 	topote+=cont;
-	master_printf("Contribution: %lg\n",cont);
+	master_printf("Contribution: Q=%lg, q=%lg, %lg\n",Q,q,cont);
       }
     
     return topote;
