@@ -37,7 +37,7 @@ namespace nissa
   //draw the topodynamical potential
   void draw_topodynamical_potential(topotential_pars_t &pars)
   {
-    FILE *file=open_file("/tmp/topot","w");
+    FILE *file=open_file("topot","w");
     
     double Q_min=*std::min_element(pars.past_values.begin(),pars.past_values.end());
     double Q_max=*std::max_element(pars.past_values.begin(),pars.past_values.end());
