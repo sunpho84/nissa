@@ -321,4 +321,28 @@ namespace nissa
     set_borders_invalid(source);
   }
   THREADABLE_FUNCTION_END
+
+  //generate a delta source
+  THREADABLE_FUNCTION_2ARG(generate_delta_eo_source, color**,source, int*,x)
+  {
+    //reset
+    for(int par=0;par<2;par++) vector_reset(source[par]);
+    
+    int islocal=1,lx[4];
+    for(int idir=0;idir<4;idir++)
+      {
+        lx[idir]=x[idir]-rank_coord[idir]*loc_size[idir];
+        islocal&=(lx[idir]>=0);
+        islocal&=(lx[idir]<loc_size[idir]);
+      }
+    
+    if(islocal)
+      {
+	int ivol=loclx_of_coord(lx);
+	for(int ic=0;ic<3;ic++) source[loclx_parity[ivol]][loceo_of_loclx[ivol]][ic][0]=1;
+      }
+    
+    for(int par=0;par<2;par++) set_borders_invalid(source[par]);
+  }
+  THREADABLE_FUNCTION_END
 }
