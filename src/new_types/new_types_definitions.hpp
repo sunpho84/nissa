@@ -407,8 +407,8 @@ namespace nissa
     double charge;
   };
   
-  //parameters to compute the chiral condensate
-  struct chiral_cond_pars_t
+  //parameters to compute the fermionic gran-mix
+  struct fermionic_putpourri_pars_t
   {
     int flag;
     char path[1024];
@@ -551,7 +551,7 @@ namespace nissa
     topotential_pars_t topotential_pars;
     stout_pars_t stout_pars;
     em_field_pars_t em_field_pars;
-    chiral_cond_pars_t chiral_cond_pars;
+    fermionic_putpourri_pars_t fermionic_putpourri_pars;
     magnetization_pars_t magnetization_pars;
     pseudo_corr_pars_t pseudo_corr_pars;
   };

@@ -386,6 +386,10 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action
   if(rank==0) fclose(file);
 }
 
+//return 1 if we need to measure
+int check_flag_and_curr_conf(int flag,int iconf)
+{return flag&&(iconf%flag==0);}
+
 //measures
 void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
@@ -398,37 +402,45 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   
   for(int itheory=0;itheory<ntheories;itheory++)
     {
-      //if needed stout
-      quad_su3 **temp_conf=(theory_pars[itheory].stout_pars.nlev==0)?conf:new_conf;
-      stout_smear(temp_conf,conf,&(theory_pars[itheory].stout_pars));
+      //check measure
+      int fermionic_putpourri_flag=check_flag_and_curr_conf(theory_pars[itheory].fermionic_putpourri_pars.flag,iconf);
+      int magnetization_flag=check_flag_and_curr_conf(theory_pars[itheory].magnetization_pars.flag,iconf);
+      int pseudo_corr_flag=check_flag_and_curr_conf(theory_pars[itheory].pseudo_corr_pars.flag,iconf);
       
-      //chiral condensate
-      if(theory_pars[itheory].chiral_cond_pars.flag)
+      if(fermionic_putpourri_flag||magnetization_flag||pseudo_corr_flag)
 	{
-	  verbosity_lv2_master_printf("Measuring chiral condensate for theory %d/%d\n",itheory+1,ntheories);
-	  measure_chiral_cond(temp_conf,theory_pars[itheory],iconf,conf_created);
+	  //if needed stout
+	  quad_su3 **temp_conf=(theory_pars[itheory].stout_pars.nlev==0)?conf:new_conf;
+	  
+	  //it is pointless to smear if there is no fermionic measurement
+	  stout_smear(temp_conf,conf,&(theory_pars[itheory].stout_pars));
+	  
+	  //fermionic gran mix
+	  if(fermionic_putpourri_flag)
+	    {
+	      verbosity_lv2_master_printf("Measuring chiral condensate for theory %d/%d\n",itheory+1,ntheories);
+	      measure_fermionic_putpourri(temp_conf,theory_pars[itheory],iconf,conf_created);
+	    }
+	  
+	  //magnetization
+	  if(magnetization_flag)
+	    {
+	      verbosity_lv2_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,ntheories);
+	      measure_magnetization(temp_conf,theory_pars[itheory],iconf,conf_created);
+	    }
+	  
+	  //pseudoscalar meson time corr
+	  if(pseudo_corr_flag)
+	    {
+	      verbosity_lv2_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
+	      measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,conf_created,0);
+	      if(theory_pars[itheory].pseudo_corr_pars.flag>1)
+		for(int dir=1;dir<4;dir++)
+		  measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,0,dir);
+	    }
 	}
-      else verbosity_lv2_master_printf("Skipping measure of chiral condensate for theory %d/%d\n",itheory+1,ntheories);
-      
-      //magnetization
-      if(theory_pars[itheory].magnetization_pars.flag)
-	{
-	  verbosity_lv2_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,ntheories);
-	  measure_magnetization(temp_conf,theory_pars[itheory],iconf,conf_created);
-	}
-      else verbosity_lv2_master_printf("Skipping measure of magnetization for theory %d/%d\n",itheory+1,ntheories);
-      
-      //pseudoscalar meson time corr
-      if(theory_pars[itheory].pseudo_corr_pars.flag)
-	{
-	  verbosity_lv2_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
-	  measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,conf_created,0);
-	  if(theory_pars[itheory].pseudo_corr_pars.flag>1)
-	    for(int dir=1;dir<4;dir++)
-	      measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,0,dir);
-	}
-      else verbosity_lv2_master_printf("Skipping measure of pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
     }
+  
   meas_time+=take_time();
   
   verbosity_lv1_master_printf("Time to make fermionic measurament: %lg sec\n",meas_time);
