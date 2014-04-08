@@ -10,6 +10,8 @@ NValenceTheories       1               /* allow to specify additional theory use
 GaugeAction            tlSym           /* either Wilson or tlSym */
 Beta                   3.550           /* coupling */
 
+TopoPotential 0
+
 NDiffFlavs             3               /* number of different flavors */
 
 Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */

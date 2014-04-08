@@ -34,8 +34,18 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
 
-  //compute the chiral condensate
-  THREADABLE_FUNCTION_5ARG(chiral_condensate, double*,cond, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
+  //holds the putpourri in a clean way
+  struct fermionic_putpourri_t
+  {
+    complex chiral_cond;
+    complex energy_dens;
+    complex quark_dens;
+    complex pressure_dens;
+    fermionic_putpourri_t() {for(int ri=0;ri<2;ri++) chiral_cond[ri]=energy_dens[ri]=quark_dens[ri]=pressure_dens[ri]=0;}
+  };
+  
+  //compute the fermionic putpourri for a single conf and hit
+  THREADABLE_FUNCTION_5ARG(fermionic_putpourri, fermionic_putpourri_t*,putpourri, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
   {
     GET_THREAD_ID();
     
@@ -47,15 +57,70 @@ namespace nissa
     generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
     get_propagator(chi,conf,u1b,quark->mass,residue,rnd);
     
-    //summ the scalar prod of EVN and ODD parts
-    double temp[2];
-    for(int eo=0;eo<2;eo++)
-      double_vector_glb_scalar_prod(temp+eo,(double*)(rnd[eo]),(double*)(chi[eo]),3*loc_volh*2);
+    //array to store temp results
+    complex *point_result=nissa_malloc("point_result",loc_vol,complex);
     
-    //add normalization: deg/4vol
-    if(IS_MASTER_THREAD) (*cond)=(temp[EVN]+temp[ODD])*quark->deg/(4.0*glb_vol);
+    /////////////////////// chiral cond ///////////////////////
+    
+    //summ the prod of EVN and ODD parts
+    vector_reset(point_result);
+    for(int par=0;par<2;par++)
+      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	for(int ic=0;ic<3;ic++)
+	  unsafe_complex_conj2_prod(point_result[loclx_of_loceo[par][ieo]],rnd[par][ieo][ic],chi[par][ieo][ic]);
+    
+    //chir cond: deg/4vol
+    complex temp;
+    complex_vector_glb_collapse(temp,point_result,loc_vol);
+    if(IS_MASTER_THREAD) complex_prod_double(putpourri->chiral_cond,temp,quark->deg/(4.0*glb_vol));
+    
+    ///////////////////// energy, barion and pressure density ////////////////
+    complex res_fw_bw[4][2];
+    //compute forward derivative and backward, in turn
+    //take into account that backward one must be conjugated
+    color **right_fw_bw[2]={chi,rnd};
+    for(int fw_bw=0;fw_bw<2;fw_bw++)
+      for(int mu=0;mu<4;mu++)
+	{
+	  vector_reset(point_result);
+	  for(int par=0;par<2;par++)
+	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	      {
+		color v;
+		unsafe_su3_prod_color(v,conf[par][ieo][mu],right_fw_bw[fw_bw][!par][loceo_neighup[par][ieo][mu]]);
+		complex t;
+		color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo]);
+		complex_summassign(point_result[loclx_of_loceo[par][ieo]],t);
+	      }
+	  complex_vector_glb_collapse(res_fw_bw[mu][fw_bw],point_result,loc_vol);
+	}
+    
+    //combine forward and backward derivative
+    if(IS_MASTER_THREAD)
+      {
+	//compute phase
+	double im_pot=quark->im_pot*M_PI/glb_size[0];
+	complex ph={cos(im_pot),sin(im_pot)};
+	
+	//energy density
+	unsafe_complex_prod(putpourri->energy_dens,ph,res_fw_bw[0][0]);
+	complex_subt_the_conj1_prod(putpourri->energy_dens,ph,res_fw_bw[0][1]);
+	complex_prodassign_double(putpourri->energy_dens,quark->deg/(4.0*glb_vol)/2);
+	//quark density
+	unsafe_complex_prod(putpourri->quark_dens,ph,res_fw_bw[0][0]);
+	complex_summ_the_conj1_prod(putpourri->quark_dens,ph,res_fw_bw[0][1]);
+	complex_prodassign_double(putpourri->quark_dens,quark->deg/(4.0*glb_vol)/2);	
+	//pressure density
+	for(int idir=1;idir<3;idir++)
+	  {
+	    complex_summassign(putpourri->pressure_dens,res_fw_bw[idir][0]);
+	    complex_subtassign(putpourri->pressure_dens,res_fw_bw[idir][1]);
+	  }
+	complex_prodassign_double(putpourri->pressure_dens,quark->deg/(4.0*glb_vol)/2);
+      }
     
     //free
+    nissa_free(point_result);
     for(int par=0;par<2;par++)
       {
 	nissa_free(rnd[par]);
@@ -63,34 +128,39 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
-
-  //measure chiral cond
-  void measure_chiral_cond(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
+  
+  //measure the above fermionic putpourri
+  void measure_fermionic_putpourri(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
   {
-    FILE *file=open_file(theory_pars.chiral_cond_pars.path,conf_created?"w":"a");
-    
-    master_fprintf(file,"%d",iconf);
-    
-    //measure the condensate for each quark
+    FILE *file=open_file(theory_pars.fermionic_putpourri_pars.path,conf_created?"w":"a");
+    master_fprintf(file,"%d",iconf);    
+
+    //measure the putpourri for each quark
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
       {
-	double cond=0;
+	fermionic_putpourri_t putpourri;
 	
 	//loop over hits
-	int nhits=theory_pars.chiral_cond_pars.nhits;
+	int nhits=theory_pars.fermionic_putpourri_pars.nhits;
 	for(int hit=0;hit<nhits;hit++)
 	  {
-	    verbosity_lv1_master_printf("Evaluating chiral condensate for flavor %d/%d, nhits %d/%d\n",
+	    verbosity_lv1_master_printf("Evaluating fermionic putpourri for flavor %d/%d, nhits %d/%d\n",
 					iflav+1,theory_pars.nflavs,hit+1,nhits);
 	    
 	    //compute and summ
-	    double temp;
-	    chiral_condensate(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
-			      theory_pars.chiral_cond_pars.residue);
-	    cond+=temp/nhits;
+	    fermionic_putpourri_t temp;
+	    fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
+			      theory_pars.fermionic_putpourri_pars.residue);
+	    complex_summassign(putpourri.chiral_cond,temp.chiral_cond);
+	    complex_summassign(putpourri.energy_dens,temp.energy_dens);
+	    complex_summassign(putpourri.quark_dens,temp.quark_dens);
+	    complex_summassign(putpourri.pressure_dens,temp.pressure_dens);
 	  }
 	
-	master_fprintf(file,"\t%+016.16lg",cond);
+	master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.chiral_cond[RE]/nhits,putpourri.chiral_cond[IM]/nhits);
+	master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.energy_dens[RE]/nhits,putpourri.energy_dens[IM]/nhits);
+	master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.quark_dens[RE]/nhits,putpourri.quark_dens[IM]/nhits);
+	master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.pressure_dens[RE]/nhits,putpourri.pressure_dens[IM]/nhits);
       }
     
     master_fprintf(file,"\n");
@@ -188,7 +258,7 @@ namespace nissa
     nissa_free(arg);
   }
   THREADABLE_FUNCTION_END
-
+  
   //measure magnetization
   void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
   {

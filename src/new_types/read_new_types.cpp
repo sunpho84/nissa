@@ -146,16 +146,16 @@ namespace nissa
 	pars.E[i]=pars.B[i]=0;
   }
   
-  //read parameters to measure chiral condensate
-  void read_chiral_cond_pars(chiral_cond_pars_t &pars,bool flag=false)
+  //read parameters to measure the fermionic gran mix
+  void read_fermionic_putpourri_pars(fermionic_putpourri_pars_t &pars,bool flag=false)
   {
     if(flag==true) pars.flag=true;
-    else read_str_int("MeasureChiralCond",&pars.flag);
+    else read_str_int("MeasureFermionicPutpourri",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("ChiralCondPath",pars.path,1024);
-	read_str_double("ChiralCondInvResidue",&pars.residue);
-	read_str_int("ChiralCondNHits",&pars.nhits);
+	read_str_str("FermionicPutpourriPath",pars.path,1024);
+	read_str_double("FermionicPutpourriInvResidue",&pars.residue);
+	read_str_int("FermionicPutpourriNHits",&pars.nhits);
       }
   }
   
@@ -254,7 +254,7 @@ namespace nissa
 	
 	//info on pseudoscalar meson correlators, condensate and magnetization measure
 	read_pseudo_corr_pars(theory_pars.pseudo_corr_pars);
-	read_chiral_cond_pars(theory_pars.chiral_cond_pars);
+	read_fermionic_putpourri_pars(theory_pars.fermionic_putpourri_pars);
 	read_magnetization_pars(theory_pars.magnetization_pars);
       }
   }
