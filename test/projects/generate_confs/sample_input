@@ -42,10 +42,10 @@ Bx 0  By 0  Bz 4
 
 MeasurePseudoCorr      0
 
-MeasureChiralCond      1               /* chiral condensate (following question only if 1 chosen) */
-ChiralCondPath         chiral          /* output for chiral condensate */
-ChiralCondInvResidue   1.e-12          /* residue for inversion of chiral condensate */
-ChiralCondNHits        1               /* number of sources for chiral cond evaluation */
+MeasureFermionicPutpourri      1               /* chiral condensate (following question only if 1 chosen) */
+FermionicPutpourriPath         chiral          /* output for chiral condensate */
+FermionicPutpourriInvResidue   1.e-12          /* residue for inversion of chiral condensate */
+FermionicPutpourriNHits        1               /* number of sources for chiral cond evaluation */
 
 MeasureMagnetization    1               /* magnetization (following question only if 1 chosen) */
 MagnetizationPath       magnetization   /* output for magnetization */
@@ -56,6 +56,8 @@ MagnetizationNHits      1               /* number of sources for magnetization e
 
 GaugeAction            tlSym           /* either Wilson or tlSym */
 Beta                   3.550           /* coupling */
+
+TopoPotential          0
 
 NDiffFlavs             2               /* number of different flavors */
 
@@ -84,10 +86,10 @@ PseudoCorrPath         pseudo_corr
 PseudoCorrInvResidue   1.e-12
 PseudoCorrNHits        1
 
-MeasureChiralCond      1               /* chiral condensate (following question only if 1 chosen) */
-ChiralCondPath         chiral_noB      /* output for chiral condensate */
-ChiralCondInvResidue   1.e-12          /* residue for inversion of chiral condensate */
-ChiralCondNHits        1               /* number of sources for chiral cond evaluation */
+MeasureFermionicPutpourri      1               /* chiral condensate (following question only if 1 chosen) */
+FermionicPutpourriPath         lavanda_noB     /* output for chiral condensate */
+FermionicPutpourriInvResidue   1.e-12          /* residue for inversion of chiral condensate */
+FermionicPutpourriNHits        1               /* number of sources for chiral cond evaluation */
 
 MeasureMagnetization    1               /* magnetization (following question only if 1 chosen) */
 MagnetizationPath       magnetization   /* output for magnetization */
