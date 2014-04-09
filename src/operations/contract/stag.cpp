@@ -41,13 +41,16 @@ namespace nissa
     complex energy_dens;
     complex quark_dens;
     complex pressure_dens;
-    fermionic_putpourri_t() {for(int ri=0;ri<2;ri++) chiral_cond[ri]=energy_dens[ri]=quark_dens[ri]=pressure_dens[ri]=0;}
+    void reset() {for(int ri=0;ri<2;ri++) chiral_cond[ri]=energy_dens[ri]=quark_dens[ri]=pressure_dens[ri]=0;}
   };
   
   //compute the fermionic putpourri for a single conf and hit
   THREADABLE_FUNCTION_5ARG(fermionic_putpourri, fermionic_putpourri_t*,putpourri, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
   {
     GET_THREAD_ID();
+    
+    putpourri->reset();
+    THREAD_BARRIER();
     
     //allocate
     color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
@@ -56,6 +59,7 @@ namespace nissa
     //generate the source and the propagator
     generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
     get_propagator(chi,conf,u1b,quark->mass,residue,rnd);
+    communicate_ev_and_od_color_borders(chi);
     
     //array to store temp results
     complex *point_result=nissa_malloc("point_result",loc_vol,complex);
@@ -113,7 +117,7 @@ namespace nissa
 	complex_summ_the_conj1_prod(putpourri->quark_dens,ph,res_fw_bw[0][1]);
 	complex_prodassign_double(putpourri->quark_dens,quark->deg/(4.0*glb_vol)/2);	
 	//pressure density
-	for(int idir=1;idir<3;idir++)
+	for(int idir=1;idir<4;idir++)
 	  {
 	    complex_summassign(putpourri->pressure_dens,res_fw_bw[idir][0]);
 	    complex_subtassign(putpourri->pressure_dens,res_fw_bw[idir][1]);
@@ -141,6 +145,7 @@ namespace nissa
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
       {
 	fermionic_putpourri_t putpourri;
+	putpourri.reset();
 	
 	//loop over hits
 	int nhits=theory_pars.fermionic_putpourri_pars.nhits;
