@@ -68,13 +68,14 @@ namespace nissa
       NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	for(int ic=0;ic<3;ic++)
 	  unsafe_complex_conj2_prod(point_result[loclx_of_loceo[par][ieo]],rnd[par][ieo][ic],chi[par][ieo][ic]);
+    THREAD_BARRIER();
     
     //chir cond: deg/4vol
     complex temp;
     complex_vector_glb_collapse(temp,point_result,loc_vol);
     if(IS_MASTER_THREAD) complex_prod_double(putpourri->chiral_cond,temp,quark->deg/(4.0*glb_vol));
     
-    ///////////////////// energy, barion and pressure density ////////////////
+    ///////////////////// energy, barionic and pressure density ////////////////
     complex res_fw_bw[4][2];
     //compute forward derivative and backward, in turn
     //take into account that backward one must be conjugated
@@ -92,6 +93,7 @@ namespace nissa
 		color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo]);
 		complex_summassign(point_result[loclx_of_loceo[par][ieo]],t);
 	      }
+	  THREAD_BARRIER();
 	  complex_vector_glb_collapse(res_fw_bw[mu][fw_bw],point_result,loc_vol);
 	}
     
@@ -119,7 +121,7 @@ namespace nissa
 	complex_prodassign_double(putpourri->pressure_dens,quark->deg/(4.0*glb_vol)/2);
       }
     
-    //free
+    //free automatic synchronizing
     nissa_free(point_result);
     for(int par=0;par<2;par++)
       {
