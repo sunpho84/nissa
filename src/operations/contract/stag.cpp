@@ -58,7 +58,13 @@ namespace nissa
     
     //generate the source and the propagator
     generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
-    get_propagator(chi,conf,u1b,quark->mass,residue,rnd);
+    
+    //we add stagphases and backfield externally because we need them for derivative
+    addrem_stagphases_to_eo_conf(conf);
+    add_backfield_to_conf(conf,u1b);
+    
+    //invert
+    inv_stD_cg(chi,conf,quark->mass,10000,residue,rnd);
     communicate_ev_and_od_color_borders(chi);
     
     //array to store temp results
@@ -71,7 +77,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	for(int ic=0;ic<3;ic++)
-	  unsafe_complex_conj2_prod(point_result[loclx_of_loceo[par][ieo]],rnd[par][ieo][ic],chi[par][ieo][ic]);
+	  complex_summ_the_conj2_prod(point_result[loclx_of_loceo[par][ieo]],rnd[par][ieo][ic],chi[par][ieo][ic]);
     THREAD_BARRIER();
     
     //chir cond: deg/4vol
@@ -94,7 +100,8 @@ namespace nissa
 		color v;
 		unsafe_su3_prod_color(v,conf[par][ieo][mu],right_fw_bw[fw_bw][!par][loceo_neighup[par][ieo][mu]]);
 		complex t;
-		color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo]);
+		if(fw_bw==0) color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo]);
+		else         color_scalar_prod(t,right_fw_bw[!fw_bw][par][ieo],v);
 		complex_summassign(point_result[loclx_of_loceo[par][ieo]],t);
 	      }
 	  THREAD_BARRIER();
@@ -104,17 +111,11 @@ namespace nissa
     //combine forward and backward derivative
     if(IS_MASTER_THREAD)
       {
-	//compute phase
-	double im_pot=quark->im_pot*M_PI/glb_size[0];
-	complex ph={cos(im_pot),sin(im_pot)};
-	
 	//energy density
-	unsafe_complex_prod(putpourri->energy_dens,ph,res_fw_bw[0][0]);
-	complex_subt_the_conj1_prod(putpourri->energy_dens,ph,res_fw_bw[0][1]);
+	complex_subt(putpourri->energy_dens,res_fw_bw[0][0],res_fw_bw[0][1]);
 	complex_prodassign_double(putpourri->energy_dens,quark->deg/(4.0*glb_vol)/2);
 	//quark density
-	unsafe_complex_prod(putpourri->quark_dens,ph,res_fw_bw[0][0]);
-	complex_summ_the_conj1_prod(putpourri->quark_dens,ph,res_fw_bw[0][1]);
+	complex_summ(putpourri->quark_dens,res_fw_bw[0][0],res_fw_bw[0][1]);
 	complex_prodassign_double(putpourri->quark_dens,quark->deg/(4.0*glb_vol)/2);	
 	//pressure density
 	for(int idir=1;idir<4;idir++)
@@ -124,6 +125,10 @@ namespace nissa
 	  }
 	complex_prodassign_double(putpourri->pressure_dens,quark->deg/(4.0*glb_vol)/2);
       }
+    
+    //remove stag phases and u1 field, and automatically barrier before collapsing
+    rem_backfield_from_conf(conf,u1b);
+    addrem_stagphases_to_eo_conf(conf);
     
     //free automatic synchronizing
     nissa_free(point_result);

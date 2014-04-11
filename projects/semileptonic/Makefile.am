@@ -12,6 +12,7 @@ endif
 #target programs
 bin_PROGRAMS= \
 	$(top_builddir)/bin/semileptonic_smeared \
+	$(top_builddir)/bin/semileptonic_smeared_point_source \
 	$(top_builddir)/bin/gevp \
 	$(top_builddir)/bin/gevp_3pts \
 	$(test_bgq_target)
@@ -37,9 +38,11 @@ AM_YFLAGS=-d
 if PARSER_GENERATION
 BUILT_SOURCES=$(semileptonic_smeared_parser_built_sources)
 __top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
+__top_builddir__bin_semileptonic_smeared_point_source_SOURCES=semileptonic_smeared_point_source.cpp $(semileptonic_smeared_parser_sources)
 __top_builddir__bin_gevp_SOURCES=gevp.cpp $(semileptonic_smeared_parser_sources)
 else
 __top_builddir__bin_semileptonic_smeared_SOURCES=semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
+__top_builddir__bin_semileptonic_smeared_point_source_SOURCES=semileptonic_smeared_point_source.cpp $(semileptonic_smeared_parser_built_sources)
 __top_builddir__bin_gevp_SOURCES=gevp.cpp $(semileptonic_smeared_parser_built_sources)
 endif
 __top_builddir__bin_gevp_3pts_SOURCES=gevp_3pts.cpp
