@@ -81,6 +81,7 @@ host_triplet = @host@
 bin_PROGRAMS = $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT) \
 	$(top_builddir)/tools/conf_measure/topo$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/convert/gpu_to_ildg$(EXEEXT) \
+	$(top_builddir)/tools/conf_transform/convert/ildg_to_eo$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/convert/ildg_to_gpu$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/smear/stout$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data$(EXEEXT) \
@@ -113,6 +114,13 @@ __top_builddir__tools_conf_transform_convert_gpu_to_ildg_OBJECTS = $(am___top_bu
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_LDADD =  \
 	$(LDADD)
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.a
+am___top_builddir__tools_conf_transform_convert_ildg_to_eo_OBJECTS =  \
+	conf_transform/convert/ildg_to_eo.$(OBJEXT)
+__top_builddir__tools_conf_transform_convert_ildg_to_eo_OBJECTS = $(am___top_builddir__tools_conf_transform_convert_ildg_to_eo_OBJECTS)
+__top_builddir__tools_conf_transform_convert_ildg_to_eo_LDADD =  \
+	$(LDADD)
+__top_builddir__tools_conf_transform_convert_ildg_to_eo_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.a
 am___top_builddir__tools_conf_transform_convert_ildg_to_gpu_OBJECTS =  \
 	conf_transform/convert/ildg_to_gpu.$(OBJEXT)
@@ -179,6 +187,7 @@ am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(__top_builddir__tools_conf_measure_topo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES) \
+	$(__top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES) \
 	$(__top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
@@ -186,6 +195,7 @@ SOURCES = $(__top_builddir__tools_conf_measure_topo_SOURCES) \
 	$(__top_builddir__tools_unitarity_check_unitarity_check_SOURCES)
 DIST_SOURCES = $(__top_builddir__tools_conf_measure_topo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES) \
+	$(__top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES) \
 	$(__top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
@@ -332,6 +342,7 @@ AUTOMAKE_OPTIONS = subdir-objects
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES = find_best_vir_partitioning/find.cpp
 __top_builddir__tools_conf_measure_topo_SOURCES = conf_measure/topo.cpp
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES = conf_transform/convert/gpu_to_ildg.cpp
+__top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES = conf_transform/convert/ildg_to_eo.cpp
 __top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES = conf_transform/convert/ildg_to_gpu.cpp
 __top_builddir__tools_conf_transform_smear_stout_SOURCES = conf_transform/smear/stout.cpp
 __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES = conf_transform/edit/grab_ildg_data.cpp
@@ -443,6 +454,13 @@ $(top_builddir)/tools/conf_transform/convert/$(am__dirstamp):
 $(top_builddir)/tools/conf_transform/convert/gpu_to_ildg$(EXEEXT): $(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_OBJECTS) $(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_transform_convert_gpu_to_ildg_DEPENDENCIES) $(top_builddir)/tools/conf_transform/convert/$(am__dirstamp)
 	@rm -f $(top_builddir)/tools/conf_transform/convert/gpu_to_ildg$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_OBJECTS) $(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_LDADD) $(LIBS)
+conf_transform/convert/ildg_to_eo.$(OBJEXT):  \
+	conf_transform/convert/$(am__dirstamp) \
+	conf_transform/convert/$(DEPDIR)/$(am__dirstamp)
+
+$(top_builddir)/tools/conf_transform/convert/ildg_to_eo$(EXEEXT): $(__top_builddir__tools_conf_transform_convert_ildg_to_eo_OBJECTS) $(__top_builddir__tools_conf_transform_convert_ildg_to_eo_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_transform_convert_ildg_to_eo_DEPENDENCIES) $(top_builddir)/tools/conf_transform/convert/$(am__dirstamp)
+	@rm -f $(top_builddir)/tools/conf_transform/convert/ildg_to_eo$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_conf_transform_convert_ildg_to_eo_OBJECTS) $(__top_builddir__tools_conf_transform_convert_ildg_to_eo_LDADD) $(LIBS)
 conf_transform/convert/ildg_to_gpu.$(OBJEXT):  \
 	conf_transform/convert/$(am__dirstamp) \
 	conf_transform/convert/$(DEPDIR)/$(am__dirstamp)
@@ -529,6 +547,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@conf_measure/$(DEPDIR)/topo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/gpu_to_ildg.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/ildg_to_eo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/ildg_to_gpu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/edit/$(DEPDIR)/grab_ildg_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/smear/$(DEPDIR)/stout.Po@am__quote@

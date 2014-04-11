@@ -79,6 +79,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = $(top_builddir)/bin/semileptonic_smeared$(EXEEXT) \
+	$(top_builddir)/bin/semileptonic_smeared_point_source$(EXEEXT) \
 	$(top_builddir)/bin/gevp$(EXEEXT) \
 	$(top_builddir)/bin/gevp_3pts$(EXEEXT) $(am__EXEEXT_1)
 subdir = projects/semileptonic
@@ -132,6 +133,19 @@ __top_builddir__bin_semileptonic_smeared_OBJECTS =  \
 	$(am___top_builddir__bin_semileptonic_smeared_OBJECTS)
 __top_builddir__bin_semileptonic_smeared_LDADD = $(LDADD)
 __top_builddir__bin_semileptonic_smeared_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.a
+am____top_builddir__bin_semileptonic_smeared_point_source_SOURCES_DIST =  \
+	semileptonic_smeared_point_source.cpp tokenize_corr.cpp \
+	parse_corr.hpp parse_corr.cpp parse_corr.ypp tokenize_corr.lpp \
+	driver_corr.hpp redefine_yy.hpp
+@PARSER_GENERATION_FALSE@am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = semileptonic_smeared_point_source.$(OBJEXT) \
+@PARSER_GENERATION_FALSE@	$(am__objects_1)
+@PARSER_GENERATION_TRUE@am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = semileptonic_smeared_point_source.$(OBJEXT) \
+@PARSER_GENERATION_TRUE@	$(am__objects_2)
+__top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = $(am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS)
+__top_builddir__bin_semileptonic_smeared_point_source_LDADD =  \
+	$(LDADD)
+__top_builddir__bin_semileptonic_smeared_point_source_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.a
 am____top_builddir__bin_test_bgq_SOURCES_DIST = test_bgq.cpp
 @BGQ_TRUE@am___top_builddir__bin_test_bgq_OBJECTS =  \
@@ -198,10 +212,12 @@ am__v_CCLD_1 =
 SOURCES = $(__top_builddir__bin_gevp_SOURCES) \
 	$(__top_builddir__bin_gevp_3pts_SOURCES) \
 	$(__top_builddir__bin_semileptonic_smeared_SOURCES) \
+	$(__top_builddir__bin_semileptonic_smeared_point_source_SOURCES) \
 	$(__top_builddir__bin_test_bgq_SOURCES)
 DIST_SOURCES = $(am____top_builddir__bin_gevp_SOURCES_DIST) \
 	$(__top_builddir__bin_gevp_3pts_SOURCES) \
 	$(am____top_builddir__bin_semileptonic_smeared_SOURCES_DIST) \
+	$(am____top_builddir__bin_semileptonic_smeared_point_source_SOURCES_DIST) \
 	$(am____top_builddir__bin_test_bgq_SOURCES_DIST)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -366,6 +382,8 @@ AM_YFLAGS = -d
 @PARSER_GENERATION_TRUE@BUILT_SOURCES = $(semileptonic_smeared_parser_built_sources)
 @PARSER_GENERATION_FALSE@__top_builddir__bin_semileptonic_smeared_SOURCES = semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
 @PARSER_GENERATION_TRUE@__top_builddir__bin_semileptonic_smeared_SOURCES = semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
+@PARSER_GENERATION_FALSE@__top_builddir__bin_semileptonic_smeared_point_source_SOURCES = semileptonic_smeared_point_source.cpp $(semileptonic_smeared_parser_built_sources)
+@PARSER_GENERATION_TRUE@__top_builddir__bin_semileptonic_smeared_point_source_SOURCES = semileptonic_smeared_point_source.cpp $(semileptonic_smeared_parser_sources)
 @PARSER_GENERATION_FALSE@__top_builddir__bin_gevp_SOURCES = gevp.cpp $(semileptonic_smeared_parser_built_sources)
 @PARSER_GENERATION_TRUE@__top_builddir__bin_gevp_SOURCES = gevp.cpp $(semileptonic_smeared_parser_sources)
 __top_builddir__bin_gevp_3pts_SOURCES = gevp_3pts.cpp
@@ -465,6 +483,10 @@ $(top_builddir)/bin/semileptonic_smeared$(EXEEXT): $(__top_builddir__bin_semilep
 	@rm -f $(top_builddir)/bin/semileptonic_smeared$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_semileptonic_smeared_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_LDADD) $(LIBS)
 
+$(top_builddir)/bin/semileptonic_smeared_point_source$(EXEEXT): $(__top_builddir__bin_semileptonic_smeared_point_source_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_point_source_DEPENDENCIES) $(EXTRA___top_builddir__bin_semileptonic_smeared_point_source_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
+	@rm -f $(top_builddir)/bin/semileptonic_smeared_point_source$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_semileptonic_smeared_point_source_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_point_source_LDADD) $(LIBS)
+
 $(top_builddir)/bin/test_bgq$(EXEEXT): $(__top_builddir__bin_test_bgq_OBJECTS) $(__top_builddir__bin_test_bgq_DEPENDENCIES) $(EXTRA___top_builddir__bin_test_bgq_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
 	@rm -f $(top_builddir)/bin/test_bgq$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_test_bgq_OBJECTS) $(__top_builddir__bin_test_bgq_LDADD) $(LIBS)
@@ -479,6 +501,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gevp_3pts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_corr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semileptonic_smeared.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semileptonic_smeared_point_source.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tokenize_corr.Po@am__quote@
 

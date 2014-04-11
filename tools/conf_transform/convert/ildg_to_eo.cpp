@@ -1,9 +1,8 @@
-#include <mpi.h>
-#include <string.h>
-
-#include "nissa.h"
+#include "nissa.hpp"
 
 int T,L;
+
+using namespace nissa;
 
 void conf_convert(char *outpath,char *inpath)
 {
@@ -15,7 +14,7 @@ void conf_convert(char *outpath,char *inpath)
   
   {
     coords temp;
-    if(!little_endian) uint32s_to_uint32s_changing_endianess((uint32_t*)temp,(uint32_t*)glb_size,4);
+    if(!little_endian) uint32s_to_uint32s_changing_endianness((uint32_t*)temp,(uint32_t*)glb_size,4);
     else                memcpy(temp,glb_size,sizeof(coords));
     if(rank==0)
       {
@@ -26,7 +25,7 @@ void conf_convert(char *outpath,char *inpath)
   
   {
       double plaq=global_plaquette_lx_conf(conf)*3;
-      if(!little_endian) doubles_to_doubles_changing_endianess(&plaq,&plaq,1);
+      if(!little_endian) doubles_to_doubles_changing_endianness(&plaq,&plaq,1);
       if(rank==0)
 	{
 	  int nw=fwrite(&plaq,sizeof(double),1,fout);
@@ -37,7 +36,7 @@ void conf_convert(char *outpath,char *inpath)
   if(rank==0) fclose(fout);
   
   {
-    if(!little_endian) doubles_to_doubles_changing_endianess((double*)conf,(double*)conf,loc_vol*4*18);
+    if(!little_endian) doubles_to_doubles_changing_endianness((double*)conf,(double*)conf,loc_vol*4*18);
       char *buf=nissa_malloc("buf",loc_vol*sizeof(quad_su3),char);
       int ibuf=0;
       int remap[4]={0,3,2,1};
@@ -97,9 +96,9 @@ void conf_convert(char *outpath,char *inpath)
 		    }
 		  iscan+=2;
 		}
-      if(ibuf!=sizeof(quad_su3)*loc_vol) crash("did not arrive to the end: %d %d",ibuf,sizeof(quad_su3)*loc_vol);
+      if(ibuf!=(int)sizeof(quad_su3)*loc_vol) crash("did not arrive to the end: %d %d",ibuf,sizeof(quad_su3)*loc_vol);
   
-      for(int irank=0;irank<nissa_nranks;irank++)
+      for(int irank=0;irank<nranks;irank++)
 	{
 	  if(rank==irank)
 	    {
@@ -127,9 +126,9 @@ void conf_convert(char *outpath,char *inpath)
 int main(int narg,char **arg)
 {
   //basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
-  //if(nissa_nranks>1) crash("Cannot run in parallel");
+  //if(nranks>1) crash("Cannot run in parallel");
   
   if(narg<2) crash("Use: %s input",arg[0]);
   
