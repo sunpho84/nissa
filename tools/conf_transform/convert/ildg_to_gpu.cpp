@@ -10,7 +10,7 @@ int snum(int x,int y,int z,int t)
 {return (x+y*L+z*L*L+t*L*L*L)/2;}
 
 void write_complex(FILE *out,complex in)
-{if(fprintf(out,"(%16.16lg,%16.16lg)\n",in[0],in[1])!=2) crash("writing complex");}
+{if(fprintf(out,"(%16.16lg,%16.16lg)\n",in[0],in[1])<0) crash("writing complex");}
 
 void write_su3(FILE *out,su3 in)
 {
@@ -78,7 +78,8 @@ int main(int narg,char **arg)
   //write header
   int nx=L,ny=L,nz=L,nt=T,nflav=2,ntraj=0;
   double beta=1000,mass=1000;
-  if(fprintf(fout,"%d %d %d %d %lg %lg %d %d",nx,ny,nz,nt,beta,mass,nflav,ntraj)!=8) crash("writing header");
+  int rc=fprintf(fout,"%d %d %d %d %lg %lg %d %d",nx,ny,nz,nt,beta,mass,nflav,ntraj);
+  if(rc<0) crash("writing header: %d",rc);
   
   //write the file
   NISSA_LOC_VOL_LOOP(ivol)
