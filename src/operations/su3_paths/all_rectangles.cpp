@@ -126,7 +126,7 @@ namespace nissa
 	if(pars->use_hyp_or_ape_temp==0) hyp_smear_conf_dir(sme_conf,ori_conf,pars->hyp_temp_alpha0,
 							    pars->hyp_temp_alpha1,pars->hyp_temp_alpha2,mu0);
 	else ape_single_dir_smear_conf(sme_conf,ori_conf,pars->ape_temp_alpha,pars->nape_temp_iters,mu0);
-	master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
+	verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
 	
 	//store temporal links and send them
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -146,8 +146,8 @@ namespace nissa
 	  {
 	    ape_perp_dir_smear_conf(sme_conf,sme_conf,pars->ape_spat_alpha,
 		(iape==0)?pars->nape_spat_iters[0]:(pars->nape_spat_iters[iape]-pars->nape_spat_iters[iape-1]),mu0);
-	    master_printf("Plaquette after %d perp %d ape smears: %16.16lg\n",
-			  iape+1,mu0,global_plaquette_lx_conf(sme_conf));
+	    verbosity_lv1_master_printf("Plaquette after %d perp %d ape smears: %16.16lg\n",
+					iape+1,mu0,global_plaquette_lx_conf(sme_conf));
 	    
 	    //store "spatial" links and send them
 	    for(int imu1=0;imu1<3;imu1++)
