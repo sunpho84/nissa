@@ -84,6 +84,7 @@ bin_PROGRAMS = $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/convert/ildg_to_eo$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/convert/ildg_to_gpu$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/create/create_cold$(EXEEXT) \
+	$(top_builddir)/tools/conf_transform/create/create_hot$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/smear/stout$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data$(EXEEXT) \
 	$(top_builddir)/tools/unitarity_check/unitarity_check$(EXEEXT)
@@ -136,6 +137,13 @@ __top_builddir__tools_conf_transform_create_create_cold_OBJECTS = $(am___top_bui
 __top_builddir__tools_conf_transform_create_create_cold_LDADD =  \
 	$(LDADD)
 __top_builddir__tools_conf_transform_create_create_cold_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.a
+am___top_builddir__tools_conf_transform_create_create_hot_OBJECTS =  \
+	conf_transform/create/create_hot.$(OBJEXT)
+__top_builddir__tools_conf_transform_create_create_hot_OBJECTS = $(am___top_builddir__tools_conf_transform_create_create_hot_OBJECTS)
+__top_builddir__tools_conf_transform_create_create_hot_LDADD =  \
+	$(LDADD)
+__top_builddir__tools_conf_transform_create_create_hot_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.a
 am___top_builddir__tools_conf_transform_edit_grab_ildg_data_OBJECTS =  \
 	conf_transform/edit/grab_ildg_data.$(OBJEXT)
@@ -198,6 +206,7 @@ SOURCES = $(__top_builddir__tools_conf_measure_topo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES) \
 	$(__top_builddir__tools_conf_transform_create_create_cold_SOURCES) \
+	$(__top_builddir__tools_conf_transform_create_create_hot_SOURCES) \
 	$(__top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
@@ -207,6 +216,7 @@ DIST_SOURCES = $(__top_builddir__tools_conf_measure_topo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES) \
 	$(__top_builddir__tools_conf_transform_create_create_cold_SOURCES) \
+	$(__top_builddir__tools_conf_transform_create_create_hot_SOURCES) \
 	$(__top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
@@ -355,6 +365,7 @@ __top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES = conf_transfor
 __top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES = conf_transform/convert/ildg_to_eo.cpp
 __top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES = conf_transform/convert/ildg_to_gpu.cpp
 __top_builddir__tools_conf_transform_create_create_cold_SOURCES = conf_transform/create/create_cold.cpp
+__top_builddir__tools_conf_transform_create_create_hot_SOURCES = conf_transform/create/create_hot.cpp
 __top_builddir__tools_conf_transform_smear_stout_SOURCES = conf_transform/smear/stout.cpp
 __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES = conf_transform/edit/grab_ildg_data.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES = unitarity_check/unitarity_check.cpp
@@ -495,6 +506,13 @@ $(top_builddir)/tools/conf_transform/create/$(am__dirstamp):
 $(top_builddir)/tools/conf_transform/create/create_cold$(EXEEXT): $(__top_builddir__tools_conf_transform_create_create_cold_OBJECTS) $(__top_builddir__tools_conf_transform_create_create_cold_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_transform_create_create_cold_DEPENDENCIES) $(top_builddir)/tools/conf_transform/create/$(am__dirstamp)
 	@rm -f $(top_builddir)/tools/conf_transform/create/create_cold$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_conf_transform_create_create_cold_OBJECTS) $(__top_builddir__tools_conf_transform_create_create_cold_LDADD) $(LIBS)
+conf_transform/create/create_hot.$(OBJEXT):  \
+	conf_transform/create/$(am__dirstamp) \
+	conf_transform/create/$(DEPDIR)/$(am__dirstamp)
+
+$(top_builddir)/tools/conf_transform/create/create_hot$(EXEEXT): $(__top_builddir__tools_conf_transform_create_create_hot_OBJECTS) $(__top_builddir__tools_conf_transform_create_create_hot_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_transform_create_create_hot_DEPENDENCIES) $(top_builddir)/tools/conf_transform/create/$(am__dirstamp)
+	@rm -f $(top_builddir)/tools/conf_transform/create/create_hot$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_conf_transform_create_create_hot_OBJECTS) $(__top_builddir__tools_conf_transform_create_create_hot_LDADD) $(LIBS)
 conf_transform/edit/$(am__dirstamp):
 	@$(MKDIR_P) conf_transform/edit
 	@: > conf_transform/edit/$(am__dirstamp)
@@ -578,6 +596,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/ildg_to_eo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/ildg_to_gpu.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/create/$(DEPDIR)/create_cold.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@conf_transform/create/$(DEPDIR)/create_hot.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/edit/$(DEPDIR)/grab_ildg_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/smear/$(DEPDIR)/stout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@find_best_vir_partitioning/$(DEPDIR)/find.Po@am__quote@
