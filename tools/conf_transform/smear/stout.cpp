@@ -80,7 +80,7 @@ void in_main(int narg,char **arg)
       //compute topocharge
       double charge;
       topo_time-=take_time();
-      average_topological_charge_eo_conf(&charge,conf);
+      total_topological_charge_eo_conf(&charge,conf);
       topo_time+=take_time();
       
       master_printf("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_eo_conf(conf),charge);
