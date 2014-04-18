@@ -202,7 +202,7 @@ void init_simulation(char *path)
   
   //read if we want to measure gauge obs
   read_str_int("MeasureGaugeObs",&gauge_meas_flag);
-  if(gauge_meas_flag) read_str_str("GaugeObsPath",gauge_obs_path,1024);
+  if(gauge_meas_flag) read_str_str("Path",gauge_obs_path,1024);
   
   //read if we want to measure topological charge
   read_top_meas_pars(top_meas_pars);
@@ -416,23 +416,23 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	  stout_smear(temp_conf,conf,&(theory_pars[itheory].stout_pars));
 	  
 	  //fermionic gran mix
-	  if(fermionic_putpourri_flag)
+	  if(fermionic_putpourri_flag && (iconf%fermionic_putpourri_flag==0))
 	    {
-	      verbosity_lv2_master_printf("Measuring chiral condensate for theory %d/%d\n",itheory+1,ntheories);
+	      verbosity_lv1_master_printf("Measuring fermionic putpourri for theory %d/%d\n",itheory+1,ntheories);
 	      measure_fermionic_putpourri(temp_conf,theory_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //magnetization
-	  if(magnetization_flag)
+	  if(magnetization_flag && (iconf%magnetization_flag==0))
 	    {
-	      verbosity_lv2_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,ntheories);
+	      verbosity_lv1_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,ntheories);
 	      measure_magnetization(temp_conf,theory_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //pseudoscalar meson time corr
-	  if(pseudo_corr_flag)
+	  if(pseudo_corr_flag && (iconf%pseudo_corr_flag==0))
 	    {
-	      verbosity_lv2_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
+	      verbosity_lv1_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
 	      measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,conf_created,0);
 	      if(theory_pars[itheory].pseudo_corr_pars.flag>1)
 		for(int dir=1;dir<4;dir++)

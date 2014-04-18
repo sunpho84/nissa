@@ -20,7 +20,7 @@ namespace nissa
 {
   THREADABLE_FUNCTION_3ARG(tree_level_Symanzik_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta)
   {
-    verbosity_lv1_master_printf("Computing tree level Symanzik force\n");
+    verbosity_lv2_master_printf("Computing tree level Symanzik force\n");
     
     //coefficient of rectangles and squares, including beta
     double b1=-1.0/12,b0=1-8*b1;

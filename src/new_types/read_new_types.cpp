@@ -153,9 +153,11 @@ namespace nissa
     else read_str_int("MeasureFermionicPutpourri",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("FermionicPutpourriPath",pars.path,1024);
-	read_str_double("FermionicPutpourriInvResidue",&pars.residue);
-	read_str_int("FermionicPutpourriNHits",&pars.nhits);
+	read_str_str("Path",pars.path,1024);
+	read_str_double("InvResidue",&pars.residue);
+	read_str_int("ComputeSusceptivities",&pars.compute_susceptivities);
+	read_str_int("NCopies",&pars.ncopies);
+	read_str_int("NHits",&pars.nhits);
       }
   }
   
@@ -166,9 +168,10 @@ namespace nissa
     else read_str_int("MeasureMagnetization",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("MagnetizationPath",pars.path,1024);
-	read_str_double("MagnetizationInvResidue",&pars.residue);
-	read_str_int("MagnetizationNHits",&pars.nhits);
+	read_str_str("Path",pars.path,1024);
+	read_str_double("InvResidue",&pars.residue);
+	read_str_int("NCopies",&pars.ncopies);
+	read_str_int("NHits",&pars.nhits);
       }
   }
   
@@ -179,9 +182,9 @@ namespace nissa
     else read_str_int("MeasurePseudoCorr",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("PseudoCorrPath",pars.path,1024);
-	read_str_double("PseudoCorrInvResidue",&pars.residue);
-	read_str_int("PseudoCorrNHits",&pars.nhits);
+	read_str_str("Path",pars.path,1024);
+	read_str_double("InvResidue",&pars.residue);
+	read_str_int("NHits",&pars.nhits);
       }
   }
   
@@ -192,7 +195,7 @@ namespace nissa
     else read_str_int("MeasureAllRect",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("AllRectPath",pars.path,1024);
+	read_str_str("Path",pars.path,1024);
 	
 	read_str_int("UseHYPorAPE",&pars.use_hyp_or_ape_temp);
 	if(pars.use_hyp_or_ape_temp==0)

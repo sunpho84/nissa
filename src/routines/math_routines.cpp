@@ -9,8 +9,6 @@
 
 namespace nissa
 {
-  double sqr(double a) {return a*a;}
-  
   //return the log of the factorial of n
   double lfact(double n)
   {

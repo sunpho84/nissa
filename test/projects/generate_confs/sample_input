@@ -1,7 +1,7 @@
 L 4
-T 4
+T 8
 
-NValenceTheories       1               /* allow to specify additional theory used only for measures */
+NValenceTheories       0               /* allow to specify additional theory used only for measures */
 
 /* ///////////// Simulated theory //////////// */
 
@@ -17,19 +17,19 @@ NDiffFlavs             3               /* number of different flavors */
 Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
 Mass                   0.03374
 RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
-ImPotCh                0               /* in units of Pi/T ? */
+ImPotCh                0               /* in units of Pi/T */
 ElecCharge             2               /* charge in multiples of e/3 */
 
 Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
 Mass                   0.03374
 RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
-ImPotCh                0               /* in units of Pi/T ? */
+ImPotCh                0               /* in units of Pi/T */
 ElecCharge             -1              /* charge in multiples of e/3 */
 
 Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
 Mass                   0.10234
 RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
-ImPotCh                0               /* in unit of Pi/T ? */
+ImPotCh                0               /* in unit of Pi/T */
 ElecCharge             -1              /* charge in multiples of e/3 */
 
 StoutingNLevel         2               /* number of stouting level*/
@@ -42,88 +42,39 @@ Bx 0  By 0  Bz 4
 
 MeasurePseudoCorr      0
 
-MeasureFermionicPutpourri      1               /* chiral condensate (following question only if 1 chosen) */
-FermionicPutpourriPath         chiral          /* output for chiral condensate */
-FermionicPutpourriInvResidue   1.e-12          /* residue for inversion of chiral condensate */
-FermionicPutpourriNHits        1               /* number of sources for chiral cond evaluation */
+MeasureFermionicPutpourri      1               /* fermionic gran mix (following question only if 1 chosen) */
+Path                           lavanda         /* output path */
+InvResidue                     1.e-12          /* residue for inversions */
+ComputeSusceptivities          1               /* compute or not the susceptivities */
+NCopies                        4               /* number of copies to compute */
+NHits                          6               /* number of sources for each copy evaluation */
 
 MeasureMagnetization    1               /* magnetization (following question only if 1 chosen) */
-MagnetizationPath       magnetization   /* output for magnetization */
-MagnetizationInvResidue 1.e-12          /* residue for inversion of magnetization */
-MagnetizationNHits      1               /* number of sources for magnetization evaluation */
+Path                    magnetization   /* output for magnetization */
+InvResidue              1.e-12          /* residue for inversion of magnetization */
+NCopies                 1               /* number of copies */
+NHits                   1               /* number of sources for magnetization evaluation */
 
-/* ////// Valence theory used to measure the condensate without the back field ////// */
-
-GaugeAction            tlSym           /* either Wilson or tlSym */
-Beta                   3.550           /* coupling */
-
-TopoPotential          0
-
-NDiffFlavs             2               /* number of different flavors */
-
-Degeneracy             2               /* degeneracy of the first flavor (1,2,3,4 available) */
-Mass                   0.03374
-RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
-ImPotCh                0               /* in units of Pi/T ? */
-ElecCharge             0               /* charge in multiples of e/3 */
-
-Degeneracy             1               /* degeneracy of the first flavor (1,2,3,4 available) */
-Mass                   0.10234
-RePotCh                0               /* isospin chemical potential not really supported at the moment, so keep 0 */
-ImPotCh                0               /* in unit of Pi/T ? */
-ElecCharge             0               /* charge in multiples of e/3 */
-
-StoutingNLevel         2               /* number of stouting level*/
-IsotropicStouting      1               /* do not modify, only isotropic stouting available */
-StoutRho               0.15            /* strength of the stouting */
-
-PutBkgrdEMField        1               /* Ex, Ey, Ez and Bx, By Bz are asked only if this is 1  */
-Ex 0 Ey 0 Ez 0
-Bx 0 By 0 Bz 1
-
-MeasurePseudoCorr      1
-PseudoCorrPath         pseudo_corr
-PseudoCorrInvResidue   1.e-12
-PseudoCorrNHits        1
-
-MeasureFermionicPutpourri      1               /* chiral condensate (following question only if 1 chosen) */
-FermionicPutpourriPath         lavanda_noB     /* output for chiral condensate */
-FermionicPutpourriInvResidue   1.e-12          /* residue for inversion of chiral condensate */
-FermionicPutpourriNHits        1               /* number of sources for chiral cond evaluation */
-
-MeasureMagnetization    1               /* magnetization (following question only if 1 chosen) */
-MagnetizationPath       magnetization   /* output for magnetization */
-MagnetizationInvResidue 1.e-12          /* residue for inversion of magnetization */
-MagnetizationNHits      1               /* number of sources for magnetization evaluation */
 
 /* ////// Gauge and Topo Measures //////// */
 
 MeasureGaugeObs        1               /* measure or not gauge obs */
-GaugeObsPath           obs             /* output file for gauge obs */
+Path                   obs             /* output file for gauge obs */
 
 MeasureTopology        0               /* topology (other questions only if 1 is chosen) */
 
-MeasureAllRect         1
-AllRectPath            rects
-UseHYPorAPE            0
-HYPTempAlpha0          1
-HYPTempAlpha1          1
-HYPTempAlpha2          0.5
-APESpatAlpha           0.25
-APESpatNlevels         1  8
-Tint                   1 4
-Dint                   1 4
+MeasureAllRect         0
 
 /* /////////////// HMC parameters //////////// */
 
-MaxNTraj               1               /* number of traj per run */
+MaxNTraj               100             /* number of traj per run */
 
 Seed                   17294           /* used to init generator, only for 1st traj */
 
-SkipMTestNTraj         100             /* skip the Metropolis test for the first trajectory (useful to speed up thermalization) */
+SkipMTestNTraj         100             /* skip the Metropolis test for the first trajectory */
 HmcTrajLength          1               /* traj length in unit of MD time */
-NmdSteps               13              /* number of steps */
-NGaugeSubSteps         2               /* multiStep not yet implemented, so keep 1 */
+NmdSteps               9               /* number of steps */
+NGaugeSubSteps         1               /* multiStep not yet implemented, so keep 1 */
 MdResidue              1.e-12          /* residue (squared) for MD inversions */
 PfActionResidue        1.e-16          /* residues for the fixed point evaluation */
 
