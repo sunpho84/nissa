@@ -15,6 +15,7 @@
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
+#include "routines/math_routines.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -27,7 +28,7 @@ namespace nissa
   {
     addrem_stagphases_to_eo_conf(conf);
     add_backfield_to_conf(conf,u1b);
-    do inv_stD_cg(prop,conf,m,10000,residue,source);
+    do inv_stD_cg(prop,conf,m,100000,residue,source);
     while(issued_cg_warning);
     rem_backfield_from_conf(conf,u1b);
     addrem_stagphases_to_eo_conf(conf);
@@ -38,16 +39,42 @@ namespace nissa
   struct fermionic_putpourri_t
   {
     complex chiral_cond;
-    complex chiral_cond_susc1;
-    complex chiral_cond_susc2;
+    complex chiral_cond_susc;
     complex energy_dens;
     complex quark_dens;
+    complex quark_dens_susc;
     complex pressure_dens;
     void reset() {memset(this,0,sizeof(fermionic_putpourri_t));}
   };
-  
+
+  //compute the matrix element of the derivative of the dirac operator between two vectors
+  //forward and backward derivative are stored separately, for a reson
+  void compute_fw_bw_der_mel(complex *res_fw_bw,color **left,quad_su3 **conf,int mu,color **right,complex *point_result)
+  {
+    GET_THREAD_ID();
+    
+    color **right_fw_bw[2]={right,left};
+
+    for(int fw_bw=0;fw_bw<2;fw_bw++)
+      {
+	vector_reset(point_result);
+	for(int par=0;par<2;par++)
+	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	    {
+	      color v;
+	      unsafe_su3_prod_color(v,conf[par][ieo][mu],right_fw_bw[fw_bw][!par][loceo_neighup[par][ieo][mu]]);
+	      complex t;
+	      if(fw_bw==0) color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo]);
+	      else         color_scalar_prod(t,right_fw_bw[!fw_bw][par][ieo],v);
+	      complex_summassign(point_result[loclx_of_loceo[par][ieo]],t);
+	    }
+	THREAD_BARRIER();
+	complex_vector_glb_collapse(res_fw_bw[fw_bw],point_result,loc_vol);
+      }
+  }
+    
   //compute the fermionic putpourri for a single conf and hit
-  THREADABLE_FUNCTION_5ARG(fermionic_putpourri, fermionic_putpourri_t*,putpourri, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
+  THREADABLE_FUNCTION_6ARG(fermionic_putpourri, fermionic_putpourri_t*,putpourri, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue, int,comp_susc)
   {
     GET_THREAD_ID();
     
@@ -56,98 +83,99 @@ namespace nissa
     
     //allocate
     color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
-    color *rnd2[2]={nissa_malloc("rnd2_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd2_ODD",loc_volh+bord_volh,color)};
-    color *chi1[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
+    color *chi1[2]={nissa_malloc("chi1_EVN",loc_volh+bord_volh,color),nissa_malloc("chi1_ODD",loc_volh+bord_volh,color)};
+    color *chi2[2],*app[2];
+    if(comp_susc)
+      for(int par=0;par<2;par++)
+	{
+	  chi2[par]=nissa_malloc("chi2_EO",loc_volh+bord_volh,color);
+	  app[par]=nissa_malloc("app_EO",loc_volh+bord_volh,color);
+	}
     
     //generate the source and the propagator
     generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
-    generate_fully_undiluted_eo_source(rnd2,RND_GAUSS,-1);
     
     //we add stagphases and backfield externally because we need them for derivative
     addrem_stagphases_to_eo_conf(conf);
     add_backfield_to_conf(conf,u1b);
     
     //invert
-    inv_stD_cg(chi1,conf,quark->mass,10000,residue,rnd);
+    inv_stD_cg(chi1,conf,quark->mass,100000,residue,rnd);
     communicate_ev_and_od_color_borders(chi1);
     
-    //invert for chi2
-    color *chi2[2]={nissa_malloc("chib_EVN",loc_volh+bord_volh,color),nissa_malloc("chib_ODD",loc_volh+bord_volh,color)};
-    inv_stD_cg(chi2,conf,quark->mass,10000,residue,chi1);
-    communicate_ev_and_od_color_borders(chi2);
+    //invert for chi2 if susceptivity needed
+    if(comp_susc)
+      {
+	inv_stD_cg(chi2,conf,quark->mass,100000,residue,chi1);
+	communicate_ev_and_od_color_borders(chi2);
+      }
     
     //array to store temp results
     complex *point_result=nissa_malloc("point_result",loc_vol,complex);
     
-    /////////////////////// chiral cond ///////////////////////
+    /////////////////////// chiral cond and its susceptivity ///////////////////////
     
-    //powers of chi
-    for(int ichi=1;ichi<=2;ichi++)
+    //powers of chi: if 1, compute condensate, 2 compute its susceptivity
+    for(int ichi=1;ichi<=(comp_susc?2:1);ichi++)
       {
-	color **chi=(ichi==1)?chi1:chi2;
+	color **chi=(ichi==1)?chi1:chi2; //if first case use the vector containing the inverse of M, otherwise its square
 	
 	//summ the prod of EVN and ODD parts
-	vector_reset(point_result);
-	for(int par=0;par<2;par++)
-	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	    for(int ic=0;ic<3;ic++)
+	vector_reset(point_result); //reset the point result
+	for(int par=0;par<2;par++) //loop on parity of sites
+	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh) //loop on sites
+	    for(int ic=0;ic<3;ic++) //for every color takes the trace with conjugate of original source
 	      complex_summ_the_conj2_prod(point_result[loclx_of_loceo[par][ieo]],rnd[par][ieo][ic],chi[par][ieo][ic]);
 	THREAD_BARRIER();
 	
 	//chir cond: deg/4vol
 	complex temp;
 	complex_vector_glb_collapse(temp,point_result,loc_vol);
-	if(IS_MASTER_THREAD)
-	  {
+	if(IS_MASTER_THREAD) //normalization: <\bar{\psi}\psi>=Nf/4glb_vol <Tr M^-1>
+	  { //susceptivity disconnected: \chi_\psi\psi/T^2=-Nf*Nt^2/4glb_vol <Tr M^-2>
 	    if(ichi==1) complex_prod_double(putpourri->chiral_cond,temp,quark->deg/(4.0*glb_vol));
-	    else complex_copy(putpourri->chiral_cond_susc1,temp);
+	    else        complex_prod_double(putpourri->chiral_cond_susc,temp,-quark->deg/(4.0*glb_vol));
 	  }
       }
-
-    //test Massimo
-    vector_reset(point_result);
-    for(int par=0;par<2;par++)
-      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	for(int ic=0;ic<3;ic++)
-	  complex_summ_the_conj2_prod(point_result[loclx_of_loceo[par][ieo]],rnd2[par][ieo][ic],chi1[par][ieo][ic]);
-    THREAD_BARRIER();
     
-    complex temp;
-    complex_vector_glb_collapse(temp,point_result,loc_vol);
-    unsafe_complex_conj2_prod(putpourri->chiral_cond_susc2,temp,temp);
+    //compute the derivative of M applied to \chi
+    if(comp_susc)
+      {
+	//generate the source
+	for(int par=0;par<2;par++)
+	  {
+	    vector_reset(app[par]);
+            NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	      {
+		int idw=loceo_neighdw[par][ieo][0],iup=loceo_neighup[par][ieo][0];
+		unsafe_su3_prod_color(app[par][ieo],conf[par][ieo][0],rnd[!par][iup]);
+		su3_dag_summ_the_prod_color(app[par][ieo],conf[!par][idw][0],rnd[!par][idw]);
+		color_prod_double(app[par][ieo],app[par][ieo],0.5);
+	      }
+	    set_borders_invalid(app);
+	  }	    
+	
+	//invert
+	inv_stD_cg(chi2,conf,quark->mass,100000,residue,app);
+	communicate_ev_and_od_color_borders(chi2);
+      }
     
     ///////////////////// energy, barionic and pressure density ////////////////
-    complex res_fw_bw[4][2];
     //compute forward derivative and backward, in turn
     //take into account that backward one must be conjugated
-    color **right_fw_bw[2]={chi1,rnd};
-    for(int fw_bw=0;fw_bw<2;fw_bw++)
-      for(int mu=0;mu<4;mu++)
-	{
-	  vector_reset(point_result);
-	  for(int par=0;par<2;par++)
-	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	      {
-		color v;
-		unsafe_su3_prod_color(v,conf[par][ieo][mu],right_fw_bw[fw_bw][!par][loceo_neighup[par][ieo][mu]]);
-		complex t;
-		if(fw_bw==0) color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo]);
-		else         color_scalar_prod(t,right_fw_bw[!fw_bw][par][ieo],v);
-		complex_summassign(point_result[loclx_of_loceo[par][ieo]],t);
-	      }
-	  THREAD_BARRIER();
-	  complex_vector_glb_collapse(res_fw_bw[mu][fw_bw],point_result,loc_vol);
-	}
-    
+    complex res_fw_bw[4][2];
+    for(int mu=0;mu<4;mu++)
+      compute_fw_bw_der_mel(res_fw_bw[mu],rnd,conf,mu,chi1,point_result);
+
     //combine forward and backward derivative
     if(IS_MASTER_THREAD)
       {
 	//energy density
 	complex_subt(putpourri->energy_dens,res_fw_bw[0][0],res_fw_bw[0][1]);
 	complex_prodassign_double(putpourri->energy_dens,quark->deg/(4.0*glb_vol)/2);
-	//quark density
+	//adimensional quark density: <n>=Nf/4vspat <Tr <M^1 dM/d\mu>, 1/2 coming from symm der (mu=pot/T)
 	complex_summ(putpourri->quark_dens,res_fw_bw[0][0],res_fw_bw[0][1]);
-	complex_prodassign_double(putpourri->quark_dens,quark->deg/(4.0*glb_vol)/2);	
+	complex_prodassign_double(putpourri->quark_dens,quark->deg/(4.0*glb_vol)/2);
 	//pressure density
 	for(int idir=1;idir<4;idir++)
 	  {
@@ -155,6 +183,15 @@ namespace nissa
 	    complex_subtassign(putpourri->pressure_dens,res_fw_bw[idir][1]);
 	  }
 	complex_prodassign_double(putpourri->pressure_dens,quark->deg/(4.0*glb_vol)/2);
+      
+	//if needed compute the quark number susceptivity
+	if(comp_susc)
+	  { //adimensional, need to be summed to the energy density! 
+	    complex res_quark_dens_susc_fw_bw[2];
+	    compute_fw_bw_der_mel(res_quark_dens_susc_fw_bw,rnd,conf,0,chi2,point_result);
+	    complex_summ(putpourri->quark_dens_susc,res_quark_dens_susc_fw_bw[0],res_quark_dens_susc_fw_bw[1]);
+	    complex_prodassign_double(putpourri->quark_dens_susc,-quark->deg/(4.0*glb_vol)/2);
+	  }
       }
     
     //remove stag phases and u1 field, and automatically barrier before collapsing
@@ -166,9 +203,12 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	nissa_free(rnd[par]);
-	nissa_free(rnd2[par]);
 	nissa_free(chi1[par]);
-	nissa_free(chi2[par]);
+	if(comp_susc)
+	  {
+	    nissa_free(app[par]);
+	    nissa_free(chi2[par]);
+	  }
       }
   }
   THREADABLE_FUNCTION_END
@@ -177,46 +217,57 @@ namespace nissa
   void measure_fermionic_putpourri(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
   {
     FILE *file=open_file(theory_pars.fermionic_putpourri_pars.path,conf_created?"w":"a");
-    master_fprintf(file,"%d",iconf);    
-
+    int comp_susc=theory_pars.fermionic_putpourri_pars.compute_susceptivities;
+    
     //measure the putpourri for each quark
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    int ncopies=theory_pars.fermionic_putpourri_pars.ncopies;
+    for(int icopy=0;icopy<ncopies;icopy++)
       {
-	fermionic_putpourri_t putpourri;
-	putpourri.reset();
-	
-	//loop over hits
-	int nhits=theory_pars.fermionic_putpourri_pars.nhits;
-	for(int hit=0;hit<nhits;hit++)
+	master_fprintf(file,"%d",iconf);    
+	for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
 	  {
-	    verbosity_lv1_master_printf("Evaluating fermionic putpourri for flavor %d/%d, nhits %d/%d\n",
-					iflav+1,theory_pars.nflavs,hit+1,nhits);
+	    fermionic_putpourri_t putpourri;
+	    putpourri.reset();
 	    
-	    //compute and summ
-	    fermionic_putpourri_t temp;
-	    fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
-			      theory_pars.fermionic_putpourri_pars.residue);
-	    complex_summassign(putpourri.chiral_cond,temp.chiral_cond);
-	    complex_summassign(putpourri.chiral_cond_susc1,temp.chiral_cond_susc1);
-	    complex_summassign(putpourri.chiral_cond_susc2,temp.chiral_cond_susc2);
-	    complex_summassign(putpourri.energy_dens,temp.energy_dens);
-	    complex_summassign(putpourri.quark_dens,temp.quark_dens);
-	    complex_summassign(putpourri.pressure_dens,temp.pressure_dens);
+	    //loop over hits
+	    int nhits=theory_pars.fermionic_putpourri_pars.nhits;
+	    for(int hit=0;hit<nhits;hit++)
+	      {
+		verbosity_lv2_master_printf("Evaluating fermionic putpourri for flavor %d/%d, ncopy %d/%d, nhits %d/%d\n",
+					    iflav+1,theory_pars.nflavs,icopy,ncopies,hit+1,nhits);
+		
+		//compute and summ
+		fermionic_putpourri_t temp;
+		fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
+				    theory_pars.fermionic_putpourri_pars.residue,
+				    comp_susc);
+		complex_summassign(putpourri.chiral_cond,temp.chiral_cond);
+		if(comp_susc) complex_summassign(putpourri.chiral_cond_susc,temp.chiral_cond_susc);
+		complex_summassign(putpourri.energy_dens,temp.energy_dens);
+		complex_summassign(putpourri.quark_dens,temp.quark_dens);
+		if(comp_susc) complex_summassign(putpourri.quark_dens_susc,temp.quark_dens_susc);
+		complex_summassign(putpourri.pressure_dens,temp.pressure_dens);
+	      }
+	    
+	   //write results
+	   master_fprintf(file,"\t\t%+016.16lg\t%+016.16lg",putpourri.chiral_cond[RE]/nhits,putpourri.chiral_cond[IM]/nhits);
+	   if(comp_susc) master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.chiral_cond_susc[RE]/nhits,
+				 putpourri.chiral_cond_susc[IM]/nhits);
+	   master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.energy_dens[RE]/nhits,putpourri.energy_dens[IM]/nhits);
+	   master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.quark_dens[RE]/nhits,putpourri.quark_dens[IM]/nhits);
+	   if(comp_susc) master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.quark_dens_susc[RE]/nhits,
+				 putpourri.quark_dens_susc[IM]/nhits);
+	   master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.pressure_dens[RE]/nhits,
+			  putpourri.pressure_dens[IM]/nhits);
 	  }
 	
-	master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.chiral_cond[RE]/nhits,putpourri.chiral_cond[IM]/nhits);
-	master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.chiral_cond_susc1[RE]/nhits,putpourri.chiral_cond_susc1[IM]/nhits);
-	master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.chiral_cond_susc2[RE]/nhits,putpourri.chiral_cond_susc2[IM]/nhits);
-	//master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.energy_dens[RE]/nhits,putpourri.energy_dens[IM]/nhits);
-	//master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.quark_dens[RE]/nhits,putpourri.quark_dens[IM]/nhits);
-	//master_fprintf(file,"\t%+016.16lg\t%+016.16lg",putpourri.pressure_dens[RE]/nhits,putpourri.pressure_dens[IM]/nhits);
+	master_fprintf(file,"\n");
       }
     
-    master_fprintf(file,"\n");
-    
+    //close the file
     if(rank==0) fclose(file);
   }
-
+  
   //compute the magnetization
   THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
   {
@@ -246,7 +297,7 @@ namespace nissa
     add_backfield_to_conf(conf,u1b);
     
     //invert
-    inv_stD_cg(chi,conf,quark->mass,10000,residue,rnd);
+    inv_stD_cg(chi,conf,quark->mass,100000,residue,rnd);
     communicate_ev_and_od_color_borders(chi);
     
     //summ the results of the derivative
@@ -313,31 +364,36 @@ namespace nissa
   {
     FILE *file=open_file(theory_pars.magnetization_pars.path,conf_created?"w":"a");
     
-    master_fprintf(file,"%d",iconf);
-    
-    //measure magnetization for each quark
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    int ncopies=theory_pars.magnetization_pars.ncopies;
+    for(int icopy=0;icopy<ncopies;icopy++)
       {
-	complex magn={0,0};
+	master_fprintf(file,"%d",iconf);
 	
-	//loop over hits
-	int nhits=theory_pars.magnetization_pars.nhits;
-	for(int hit=0;hit<nhits;hit++)
+	//measure magnetization for each quark
+	for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
 	  {
-	    verbosity_lv1_master_printf("Evaluating magnetization for flavor %d/%d, nhits %d/%d\n",
-					iflav+1,theory_pars.nflavs,hit+1,nhits);
+	    complex magn={0,0};
 	    
-	    //compute and summ
-	    complex temp;
-	    magnetization(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
-			  theory_pars.magnetization_pars.residue);
-	    complex_summ_the_prod_double(magn,temp,1.0/nhits);
+	    //loop over hits
+	    int nhits=theory_pars.magnetization_pars.nhits;
+	    for(int hit=0;hit<nhits;hit++)
+	      {
+		verbosity_lv2_master_printf("Evaluating magnetization for flavor %d/%d, ncopies %d/%d nhits %d/%d\n",
+					    iflav+1,theory_pars.nflavs,icopy+1,ncopies,hit+1,nhits);
+	    
+		//compute and summ
+		complex temp;
+		magnetization(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
+			      theory_pars.magnetization_pars.residue);
+		complex_summ_the_prod_double(magn,temp,1.0/nhits);
+	      }
+	    
+	    //output
+	    master_fprintf(file,"\t%+016.16lg \t%+016.16lg",magn[RE],magn[IM]);
 	  }
 	
-	master_fprintf(file,"\t%+016.16lg \t%+016.16lg",magn[RE],magn[IM]);
+	master_fprintf(file,"\n");
       }
-    
-    master_fprintf(file,"\n");
     
     if(rank==0) fclose(file);
   }
@@ -369,7 +425,7 @@ namespace nissa
     int nhits=theory_pars.pseudo_corr_pars.nhits;
     for(int hit=0;hit<nhits;hit++)
       {
-	verbosity_lv1_master_printf("Evaluating pseudoscalar %c correlator, hit %d/%d\n",dir_name[dir],hit+1,nhits);
+	verbosity_lv2_master_printf("Evaluating pseudoscalar %c correlator, hit %d/%d\n",dir_name[dir],hit+1,nhits);
 	
 	//generate the source on an even site
 	int twall=(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[dir]/2)*2;

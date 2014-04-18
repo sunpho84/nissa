@@ -13,7 +13,7 @@ namespace nissa
   //compute the tree level Symanzik action
   void tree_level_Symanzik_action(double *action,quad_su3 **conf,double beta,int stagphases_present)
   {
-    verbosity_lv1_master_printf("Computing tree level Symanzik action\n");
+    verbosity_lv2_master_printf("Computing tree level Symanzik action\n");
     
     //coefficient of rectangles and squares
     double b1=-1.0/12,b0=1-8*b1;

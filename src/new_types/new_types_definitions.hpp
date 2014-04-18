@@ -413,6 +413,8 @@ namespace nissa
     int flag;
     char path[1024];
     double residue;
+    int compute_susceptivities;
+    int ncopies;
     int nhits;
   };
   
@@ -422,6 +424,7 @@ namespace nissa
     int flag;
     char path[1024];
     double residue;
+    int ncopies;
     int nhits;
   };
   

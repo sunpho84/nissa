@@ -29,7 +29,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    verbosity_lv1_master_printf("Computing quark force\n");
+    verbosity_lv2_master_printf("Computing quark force\n");
     
     //allocate each terms of the expansion
     color *v_o[appr->degree],*chi_e[appr->degree];
