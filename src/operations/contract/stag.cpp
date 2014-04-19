@@ -44,7 +44,17 @@ namespace nissa
     complex quark_dens;
     complex quark_dens_susc;
     complex pressure_dens;
-    void reset() {memset(this,0,sizeof(fermionic_putpourri_t));}
+    void reset()
+    {
+      for(int ri=0;ri<2;ri++)
+	chiral_cond[ri]=
+	  chiral_cond_susc[ri]=
+	  energy_dens[ri]=
+	  quark_dens[ri]=
+	  quark_dens_susc[ri]=
+	  pressure_dens[ri]=0;
+    }
+    fermionic_putpourri_t() {reset();}
   };
 
   //compute the matrix element of the derivative of the dirac operator between two vectors
@@ -78,7 +88,6 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    putpourri->reset();
     THREAD_BARRIER();
     
     //allocate
@@ -227,14 +236,13 @@ namespace nissa
 	for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
 	  {
 	    fermionic_putpourri_t putpourri;
-	    putpourri.reset();
 	    
 	    //loop over hits
 	    int nhits=theory_pars.fermionic_putpourri_pars.nhits;
 	    for(int hit=0;hit<nhits;hit++)
 	      {
 		verbosity_lv2_master_printf("Evaluating fermionic putpourri for flavor %d/%d, ncopy %d/%d, nhits %d/%d\n",
-					    iflav+1,theory_pars.nflavs,icopy,ncopies,hit+1,nhits);
+					    iflav+1,theory_pars.nflavs,icopy+1,ncopies,hit+1,nhits);
 		
 		//compute and summ
 		fermionic_putpourri_t temp;
