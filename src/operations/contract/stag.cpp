@@ -161,7 +161,7 @@ namespace nissa
 		su3_dag_summ_the_prod_color(app[par][ieo],conf[!par][idw][0],rnd[!par][idw]);
 		color_prod_double(app[par][ieo],app[par][ieo],0.5);
 	      }
-	    set_borders_invalid(app);
+	    set_borders_invalid(app[par]);
 	  }	    
 	
 	//invert
@@ -192,12 +192,15 @@ namespace nissa
 	    complex_subtassign(putpourri->pressure_dens,res_fw_bw[idir][1]);
 	  }
 	complex_prodassign_double(putpourri->pressure_dens,quark->deg/(4.0*glb_vol)/2);
-      
-	//if needed compute the quark number susceptivity
-	if(comp_susc)
-	  { //adimensional, need to be summed to the energy density! 
-	    complex res_quark_dens_susc_fw_bw[2];
-	    compute_fw_bw_der_mel(res_quark_dens_susc_fw_bw,rnd,conf,0,chi2,point_result);
+      }
+    
+    //if needed compute the quark number susceptivity
+    if(comp_susc)
+      { //adimensional, need to be summed to the energy density! 
+	complex res_quark_dens_susc_fw_bw[2];
+	compute_fw_bw_der_mel(res_quark_dens_susc_fw_bw,rnd,conf,0,chi2,point_result);
+	if(IS_MASTER_THREAD)
+	  {
 	    complex_summ(putpourri->quark_dens_susc,res_quark_dens_susc_fw_bw[0],res_quark_dens_susc_fw_bw[1]);
 	    complex_prodassign_double(putpourri->quark_dens_susc,-quark->deg/(4.0*glb_vol)/2);
 	  }
