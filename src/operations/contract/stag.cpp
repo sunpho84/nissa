@@ -34,7 +34,7 @@ namespace nissa
     addrem_stagphases_to_eo_conf(conf);
   }
   THREADABLE_FUNCTION_END
-
+  
   //holds the putpourri in a clean way
   struct fermionic_putpourri_t
   {
@@ -58,7 +58,7 @@ namespace nissa
   };
 
   //compute the matrix element of the derivative of the dirac operator between two vectors
-  //forward and backward derivative are stored separately, for a reson
+  //forward and backward derivative are stored separately, for a reason
   void compute_fw_bw_der_mel(complex *res_fw_bw,color **left,quad_su3 **conf,int mu,color **right,complex *point_result)
   {
     GET_THREAD_ID();
@@ -101,7 +101,7 @@ namespace nissa
 	  app[par]=nissa_malloc("app_EO",loc_volh+bord_volh,color);
 	}
     
-    //generate the source and the propagator
+    //generate the source
     generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
     
     //we add stagphases and backfield externally because we need them for derivative
@@ -134,14 +134,14 @@ namespace nissa
 	for(int par=0;par<2;par++) //loop on parity of sites
 	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh) //loop on sites
 	    for(int ic=0;ic<3;ic++) //for every color takes the trace with conjugate of original source
-	      complex_summ_the_conj2_prod(point_result[loclx_of_loceo[par][ieo]],rnd[par][ieo][ic],chi[par][ieo][ic]);
+	      complex_summ_the_conj1_prod(point_result[loclx_of_loceo[par][ieo]],rnd[par][ieo][ic],chi[par][ieo][ic]);
 	THREAD_BARRIER();
 	
 	//chir cond: deg/4vol
 	complex temp;
 	complex_vector_glb_collapse(temp,point_result,loc_vol);
 	if(IS_MASTER_THREAD) //normalization: <\bar{\psi}\psi>=Nf/4glb_vol <Tr M^-1>
-	  { //susceptivity disconnected: \chi_\psi\psi/T^2=-Nf*Nt^2/4glb_vol <Tr M^-2>
+	  { //susceptivity disconnected: \chi_\psi\psi=-Nf/4glb_vol <Tr M^-2>
 	    if(ichi==1) complex_prod_double(putpourri->chiral_cond,temp,quark->deg/(4.0*glb_vol));
 	    else        complex_prod_double(putpourri->chiral_cond_susc,temp,-quark->deg/(4.0*glb_vol));
 	  }
@@ -157,8 +157,8 @@ namespace nissa
             NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	      {
 		int idw=loceo_neighdw[par][ieo][0],iup=loceo_neighup[par][ieo][0];
-		unsafe_su3_prod_color(app[par][ieo],conf[par][ieo][0],rnd[!par][iup]);
-		su3_dag_summ_the_prod_color(app[par][ieo],conf[!par][idw][0],rnd[!par][idw]);
+		unsafe_su3_prod_color(app[par][ieo],conf[par][ieo][0],chi1[!par][iup]);
+		su3_dag_summ_the_prod_color(app[par][ieo],conf[!par][idw][0],chi1[!par][idw]);
 		color_prod_double(app[par][ieo],app[par][ieo],0.5);
 	      }
 	    set_borders_invalid(app[par]);
@@ -175,7 +175,7 @@ namespace nissa
     complex res_fw_bw[4][2];
     for(int mu=0;mu<4;mu++)
       compute_fw_bw_der_mel(res_fw_bw[mu],rnd,conf,mu,chi1,point_result);
-
+    
     //combine forward and backward derivative
     if(IS_MASTER_THREAD)
       {
