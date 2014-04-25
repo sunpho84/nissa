@@ -65,12 +65,48 @@ namespace nissa
   //remove entries with weight 0
   void two_pts_comp_t::scream()
   {
-    for(two_pts_comp_t::iterator it=this->begin();it!=this->end();it++)
+    //erase ciclicly until nothing must be erased in it
+    bool er_it;
+    do
       {
-	for(corr_id_weight_t::iterator jt=it->second.begin();jt!=it->second.end();jt++)
-	  if(jt->second==0) it->second.erase(jt);
-	if(it->second.size()==0) this->erase(it);
+	er_it=false;
+	two_pts_comp_t::iterator it=this->begin();
+	//loop on the whole list to search for something to be erased in it
+	while(er_it==false&&it!=this->end())
+	  {
+	    //erase ciclicly until nothing must be erased in jt
+	    bool er_jt;
+	    do
+	      {
+		//mark no erasion and start from beginning
+		er_jt=false;
+		corr_id_weight_t::iterator jt=it->second.begin();
+		
+		//loop on the whole list to search for something to be erased
+		while(er_jt==false&&jt!=it->second.end())
+		  {
+		    if(fabs(jt->second)<1.e-20) er_jt=true;
+		    
+		    //if not erasing, increase jt
+		    if(!er_jt) jt++;
+		  }
+		
+		//if erasing, erase jt
+		if(er_jt==true) it->second.erase(jt);
+	      }
+	    while(er_jt);
+	
+	    //check if to erease it
+	    if(it->second.size()==0) er_it=true;
+
+	    //if not ereasing, increase it
+	    if(!er_it) it++;
+	  }
+
+	//if erasing, erase it
+	if(er_it) this->erase(it);
       }
+    while(er_it);
   }
   
   //print the content
