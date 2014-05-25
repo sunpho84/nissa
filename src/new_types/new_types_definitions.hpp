@@ -539,8 +539,19 @@ namespace nissa
   struct em_field_pars_t
   {
     int flag;
+    
+    //basic
     double E[3];
     double B[3];
+    
+    //metadynamic
+    int meta_bfield_component;
+    double meta_bfield_init_value;
+    double meta_norm;
+    double meta_width;
+    int meta_skip;
+    int meta_frequency;
+    int meta_npseudof;
   };
   
   //theory content

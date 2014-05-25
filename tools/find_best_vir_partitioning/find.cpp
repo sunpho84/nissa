@@ -1,5 +1,5 @@
 #include <stdarg.h>
-#include <stdio.h>
+#include <cstdio>
 #include <stdint.h>
 #include <stdlib.h>
 #include <map>
@@ -41,7 +41,7 @@ struct torus_grid_t
   }
   int get_N(){return grid[0]*grid[1]*grid[2]*grid[3]*grid[4];}
 };
-torus_grid_t N64(2,2,4,2),N128(2,2,4,4),N256(4,2,4,4),N512(4,4,4,4);
+torus_grid_t N64(2,2,4,2),N128(2,2,4,4),N256(4,2,4,4),N512(4,4,4,4),N1024(8,4,4,4),N2048(8,8,4,4);
 
 struct coords5D_t: std::tr1::array<int,5> {};
 struct coords4D_t: std::tr1::array<int,4> {};
@@ -309,6 +309,8 @@ torus_grid_t find_torus(int torus_size)
     case 128: return N128; break;
     case 256: return N256; break;
     case 512: return N512; break;
+    case 1024: return N1024; break;
+    case 2048: return N2048; break;
     default: crash("unknown partition to use for %d ranks",torus_size); return N64;break;
     }
 }

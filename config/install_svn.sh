@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #subversion
-wget http://mirrors.linsrv.net/apache/subversion/subversion-1.8.5.tar.gz -O -|tar xzvf -
+wget http://mirrors.linsrv.net/apache/subversion/subversion-1.8.8.tar.gz -O -|tar xzvf -
 cd subversion-*
 
 #apr
