@@ -20,4 +20,8 @@ namespace nissa
     
     return (glb_action_eo[EVN]+glb_action_eo[ODD])/2;
   }
+
+  //compute the action of the momenta associated to b
+  double B_momenta_action(double *H_B)
+  {return (*H_B)*(*H_B)/2;}
 }

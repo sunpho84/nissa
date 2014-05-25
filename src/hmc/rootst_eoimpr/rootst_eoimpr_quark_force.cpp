@@ -15,6 +15,7 @@
 #include "new_types/su3.hpp"
 #include "operations/smearing/stout.hpp"
 #include "routines/ios.hpp"
+#include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -25,7 +26,7 @@ namespace nissa
   //Passed conf must NOT contain the backfield.
   //Of the result still need to be taken the TA
   //The approximation need to be already scaled, and must contain physical mass term
-  THREADABLE_FUNCTION_6ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,eo_conf, color*,pf, quad_u1**,u1b, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_8ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, double*,F_B, double,charge, quad_su3**,eo_conf, color*,pf, quad_u1**,u1b, rat_approx_t*,appr, double,residue)
   {
     GET_THREAD_ID();
     
@@ -50,6 +51,39 @@ namespace nissa
     for(int iterm=0;iterm<appr->degree;iterm++)
       apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
     
+    //compute the magnetic force if needed - phases must be in place
+    if(F_B!=NULL)
+      {
+	double loc_F_B=0;
+	for(int iterm=0;iterm<appr->degree;iterm++)
+	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	    {
+	      //get phases
+	      coords ph_evn,ph_odd;
+	      get_args_of_one_over_L2_quantization(ph_evn,loclx_of_loceo[EVN][ieo],1,2);
+	      get_args_of_one_over_L2_quantization(ph_odd,loclx_of_loceo[ODD][ieo],1,2);
+
+	      for(int mu=0;mu<4;mu++)
+		{
+		  //this is for M
+		  color temp1;
+		  complex temp2;
+		  unsafe_su3_prod_color(temp1,eo_conf[EVN][ieo][mu],v_o[iterm][loceo_neighup[EVN][ieo][mu]]);
+		  color_scalar_prod(temp2,temp1,chi_e[iterm][ieo]);
+		  loc_F_B+=temp2[1]*ph_evn[mu];
+
+		  //this is for M^+
+		  unsafe_su3_prod_color(temp1,eo_conf[ODD][ieo][mu],chi_e[iterm][loceo_neighup[ODD][ieo][mu]]);
+		  color_scalar_prod(temp2,temp1,v_o[iterm][ieo]);
+		  loc_F_B-=temp2[1]*ph_odd[mu];
+		}
+	    }
+	//reduce
+	double hold_F_B=glb_reduce_double(loc_F_B);
+	if(IS_MASTER_THREAD) (*F_B)+=hold_F_B*charge; //only one sum
+	THREAD_BARRIER();
+      }
+    
     //remove the background fields
     rem_backfield_from_conf(eo_conf,u1b);
     
@@ -63,7 +97,6 @@ namespace nissa
 	  for(int ic1=0;ic1<3;ic1++)
 	    for(int ic2=0;ic2<3;ic2++)
 	      {
-		//chpot to be added
 		complex temp1,temp2;
 		
 		//this is for ivol=EVN
@@ -111,24 +144,25 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   //compute the quark force, without stouting reampping
-  THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_7ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, quad_su3**,F, double*,F_B, quad_su3**,conf, color**,pf, theory_pars_t*,tp, rat_approx_t*,appr, double,residue)
   {
     for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
-    for(int iflav=0;iflav<theory_pars->nflavs;iflav++)
-      summ_the_rootst_eoimpr_quark_force(F,conf,pf[iflav],theory_pars->backfield[iflav],&(appr[iflav]),residue);
+    for(int iflav=0;iflav<tp->nflavs;iflav++)
+      summ_the_rootst_eoimpr_quark_force(F,F_B,tp->quark_content[iflav].charge,
+					 conf,pf[iflav],tp->backfield[iflav],&(appr[iflav]),residue);
     
     //add the stag phases to the force term, coming from the disappered link in dS/d(U)
     addrem_stagphases_to_eo_conf(F);
   }
   THREADABLE_FUNCTION_END
-
+  
   //take into account the stout remapping procedure
-  THREADABLE_FUNCTION_6ARG(compute_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,conf, color**,pf, theory_pars_t*,physics, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_8ARG(compute_rootst_eoimpr_quark_and_magnetic_force, quad_su3**,F, double*,F_B, quad_su3**,conf, color**,pf, color***,pf_B, theory_pars_t*,physics, rat_approx_t*,appr, double,residue)
   {
     int nlev=physics->stout_pars.nlev;
     
     //first of all we take care of the trivial case
-    if(nlev==0) compute_rootst_eoimpr_quark_force_no_stout_remapping(F,conf,pf,physics,appr,residue);
+    if(nlev==0)	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,F_B,conf,pf,physics,appr,residue);
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]
@@ -141,7 +175,7 @@ namespace nissa
 	
 	//compute the force in terms of the most smeared conf
 	addrem_stagphases_to_eo_conf(sme_conf[nlev]); //add to most smeared conf
-	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,sme_conf[nlev],pf,physics,appr,residue);
+	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,F_B,sme_conf[nlev],pf,physics,appr,residue);
 	
 	//remap the force backward
 	stouted_force_remap(F,sme_conf,&(physics->stout_pars));

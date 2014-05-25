@@ -129,4 +129,34 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
+  
+  //allocate background fields
+  void theory_pars_allocate_backfield(theory_pars_t &tp)
+  {
+    tp.backfield=nissa_malloc("back**",tp.nflavs,quad_u1**);
+    for(int iflav=0;iflav<tp.nflavs;iflav++)
+      {
+	tp.backfield[iflav]=nissa_malloc("back*",2,quad_u1*);
+	for(int par=0;par<2;par++) tp.backfield[iflav][par]=nissa_malloc("back_eo",loc_volh,quad_u1);
+      }
+  }
+  
+  //set the background fields
+  void theory_pars_init_backfield(theory_pars_t &tp)
+  {
+    //initialize background field to id, then add all other things
+    for(int iflav=0;iflav<tp.nflavs;iflav++)
+      {
+	init_backfield_to_id(tp.backfield[iflav]);
+	add_im_pot_to_backfield(tp.backfield[iflav],tp.quark_content[iflav]);
+	add_em_field_to_backfield(tp.backfield[iflav],tp.quark_content[iflav],tp.em_field_pars);
+      }
+  }
+  
+  //merge the two
+  void theory_pars_allocinit_backfield(theory_pars_t &tp)
+  {
+    theory_pars_allocate_backfield(tp);
+    theory_pars_init_backfield(tp);
+  }
 }

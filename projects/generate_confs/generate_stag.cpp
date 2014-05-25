@@ -44,26 +44,6 @@ int store_running_temp_conf;
 int conf_created;
 int seed;
 
-//initialize background field and so on
-void init_theory_pars(theory_pars_t &theory_pars)
-{
-  //allocate the u1 background field
-  theory_pars.backfield=nissa_malloc("back**",theory_pars.nflavs,quad_u1**);
-  for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
-    {
-      theory_pars.backfield[iflav]=nissa_malloc("back*",2,quad_u1*);
-      for(int par=0;par<2;par++) theory_pars.backfield[iflav][par]=nissa_malloc("back_eo",loc_volh,quad_u1);
-    }
-  
-  //initialize background field to id
-  for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
-    {
-      init_backfield_to_id(theory_pars.backfield[iflav]);
-      add_im_pot_to_backfield(theory_pars.backfield[iflav],theory_pars.quark_content[iflav]);
-      add_em_field_to_backfield(theory_pars.backfield[iflav],theory_pars.quark_content[iflav],theory_pars.em_field_pars);
-    }
-}
-
 //write a conf adding info
 void write_conf(char *path,quad_su3 **conf)
 {
@@ -155,6 +135,14 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
 	{
 	  master_printf("File %s not found, generating cold conf\n",conf_path);
 	  generate_cold_eo_conf(conf);
+	}
+      
+      //if metadynamic on B, init the B field
+      if(theory_pars[SEA_THEORY].em_field_pars.flag==2)
+	{
+	  em_field_pars_t *p=&(theory_pars[SEA_THEORY].em_field_pars);
+	  p->B[p->meta_bfield_component]=p->meta_bfield_init_value;
+	  theory_pars_init_backfield(theory_pars[SEA_THEORY]);
 	}
       
       //reset conf id
@@ -265,7 +253,7 @@ void init_simulation(char *path)
   //////////////////////// initialize stuff ////////////////////
   
   //initialize the theory_pars theory to simulate
-  for(int itheory=0;itheory<ntheories;itheory++) init_theory_pars(theory_pars[itheory]);
+  for(int itheory=0;itheory<ntheories;itheory++) theory_pars_allocinit_backfield(theory_pars[itheory]);
   
   //initialize sweeper to cool
   if(top_meas_pars.flag && top_meas_pars.cool_nsteps) init_sweeper(top_meas_pars.gauge_cooling_action);

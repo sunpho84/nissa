@@ -280,7 +280,7 @@ namespace nissa
   }
   
   //compute the magnetization
-  THREADABLE_FUNCTION_5ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue)
+  THREADABLE_FUNCTION_6ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue, color**,rnd)
   {
     GET_THREAD_ID();
     
@@ -288,7 +288,6 @@ namespace nissa
     int mu=1,nu=2;
     
     //allocate source and propagator
-    color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
     color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
     
     //we need to store phases
@@ -299,9 +298,6 @@ namespace nissa
     //array to store magnetization on single site (actually storing backward contrib at displaced site)
     complex *point_magn=nissa_malloc("app",loc_vol,complex);
     vector_reset(point_magn);
-    
-    //generate the source and the propagator
-    generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
     
     //we add stagphases and backfield externally because we need them for derivative
     addrem_stagphases_to_eo_conf(conf);
@@ -360,15 +356,24 @@ namespace nissa
       unsafe_complex_prod_idouble(*magn,temp,-quark->deg*2*M_PI*quark->charge/(4.0*glb_vol*2*glb_size[mu]*glb_size[nu]));
     
     //free
-    for(int par=0;par<2;par++)
-      {
-	nissa_free(rnd[par]);
-	nissa_free(chi[par]);
-      }
+    for(int par=0;par<2;par++) nissa_free(chi[par]);
     nissa_free(point_magn);
     nissa_free(arg);
   }
   THREADABLE_FUNCTION_END
+  
+  //compute the magnetization
+  void magnetization(complex *magn,quad_su3 **conf,quad_u1 **u1b,quark_content_t *quark,double residue)
+  {
+    //allocate source and generate it
+    color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
+    generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
+    
+    //call inner function
+    magnetization(magn,conf,u1b,quark,residue,rnd);
+
+    for(int par=0;par<2;par++) nissa_free(rnd[par]);
+  }
   
   //measure magnetization
   void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)

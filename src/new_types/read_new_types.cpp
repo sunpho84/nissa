@@ -132,18 +132,29 @@ namespace nissa
   {
     if(flag==true) pars.flag=true;
     else read_str_int("PutBkgrdEMField",&pars.flag);
-    if(pars.flag)
+    switch(pars.flag)
       {
+      case 0: for(int i=0;i<3;i++) pars.E[i]=pars.B[i]=0;break;
+      case 1: 
 	read_str_double("Ex",&(pars.E[0]));
 	read_str_double("Ey",&(pars.E[1]));
 	read_str_double("Ez",&(pars.E[2]));
 	read_str_double("Bx",&(pars.B[0]));
 	read_str_double("By",&(pars.B[1]));
 	read_str_double("Bz",&(pars.B[2]));
+	break;
+      case 2:
+	read_str_int("MetaBFieldComponent",&(pars.meta_bfield_component));
+	read_str_double("MetaBFieldInitValue",&(pars.meta_bfield_init_value));
+	read_str_double("MetaNorm",&(pars.meta_norm));
+	read_str_double("MetaWidth",&(pars.meta_width));
+	read_str_int("MetaSkip",&(pars.meta_skip));
+	read_str_int("MetaFrequency",&(pars.meta_frequency));
+	read_str_int("MetaNPseudof",&(pars.meta_npseudof));
+	break;
+      default:
+	crash("case %d not implemented",pars.flag);
       }
-    else
-      for(int i=0;i<3;i++)
-	pars.E[i]=pars.B[i]=0;
   }
   
   //read parameters to measure the fermionic gran mix

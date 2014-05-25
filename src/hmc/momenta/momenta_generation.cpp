@@ -3,6 +3,7 @@
 #endif
 
 #include "base/global_variables.hpp"
+#include "base/random.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "new_types/su3.hpp"
@@ -23,6 +24,21 @@ namespace nissa
 	    herm_put_to_gauss(H[par][ivol][mu],&(loc_rnd_gen[loclx_of_loceo[par][ivol]]),1);
 	set_borders_invalid(H[par]);
       }
+  }
+  THREADABLE_FUNCTION_END
+
+  //generate momenta using guassian hermitean matrix generator
+  THREADABLE_FUNCTION_1ARG(generate_hmc_B_momenta, double*,H_B)
+  {
+    GET_THREAD_ID();
+    
+    if(IS_MASTER_THREAD)
+      {
+	complex temp,ave={0,0};
+	rnd_get_gauss_complex(temp,&glb_rnd_gen,ave,1.0);
+	(*H_B)=temp[0];
+      }
+    THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
 }

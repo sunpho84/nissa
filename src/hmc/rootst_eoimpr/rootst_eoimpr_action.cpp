@@ -53,7 +53,7 @@ namespace nissa
 
   //Compute the total action of the rooted staggered e/o improved theory.
   //Passed conf must NOT contain the backfield, but contains the stagphases so remove it.
-  THREADABLE_FUNCTION_8ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_9ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, double*,H_B, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue)
   {
     verbosity_lv1_master_printf("Computing action\n");
     
@@ -77,11 +77,19 @@ namespace nissa
     double mom_action=momenta_action(H);
     verbosity_lv1_master_printf("Mom_action: %16.16lg\n",mom_action);
     
+    //momenta action
+    double mom_B_action=0;
+    if(theory_pars->em_field_pars.flag==2)
+      {
+	mom_B_action=B_momenta_action(H_B);
+	verbosity_lv1_master_printf("Mom_B_action: %16.16lg\n",mom_B_action);
+      }
+    
     //compute the topological action, if needed
     double topo_action=(theory_pars->topotential_pars.flag?topotential_action(eo_conf,theory_pars->topotential_pars):0);
     if(theory_pars->topotential_pars.flag) verbosity_lv1_master_printf("Topological_action: %16.16lg\n",topo_action);
     
-    (*tot_action)=quark_action+gluon_action+mom_action+topo_action;
+    (*tot_action)=quark_action+gluon_action+mom_action+mom_B_action+topo_action;
   }
   THREADABLE_FUNCTION_END
 }
