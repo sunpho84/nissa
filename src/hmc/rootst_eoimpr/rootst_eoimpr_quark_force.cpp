@@ -54,33 +54,34 @@ namespace nissa
     //compute the magnetic force if needed - phases must be in place
     if(F_B!=NULL)
       {
+	int mu=1,nu=2;
 	double loc_F_B=0;
 	for(int iterm=0;iterm<appr->degree;iterm++)
 	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	    {
 	      //get phases
 	      coords ph_evn,ph_odd;
-	      get_args_of_one_over_L2_quantization(ph_evn,loclx_of_loceo[EVN][ieo],1,2);
-	      get_args_of_one_over_L2_quantization(ph_odd,loclx_of_loceo[ODD][ieo],1,2);
-
-	      for(int mu=0;mu<4;mu++)
+	      get_args_of_one_over_L2_quantization(ph_evn,loclx_of_loceo[EVN][ieo],mu,nu);
+	      get_args_of_one_over_L2_quantization(ph_odd,loclx_of_loceo[ODD][ieo],mu,nu);
+	      
+	      for(int rho=0;rho<4;rho++)
 		{
 		  //this is for M
 		  color temp1;
 		  complex temp2;
-		  unsafe_su3_prod_color(temp1,eo_conf[EVN][ieo][mu],v_o[iterm][loceo_neighup[EVN][ieo][mu]]);
+		  unsafe_su3_prod_color(temp1,eo_conf[EVN][ieo][rho],v_o[iterm][loceo_neighup[EVN][ieo][rho]]);
 		  color_scalar_prod(temp2,temp1,chi_e[iterm][ieo]);
-		  loc_F_B+=temp2[1]*ph_evn[mu];
+		  loc_F_B+=temp2[1]*ph_evn[rho];
 
 		  //this is for M^+
-		  unsafe_su3_prod_color(temp1,eo_conf[ODD][ieo][mu],chi_e[iterm][loceo_neighup[ODD][ieo][mu]]);
+		  unsafe_su3_prod_color(temp1,eo_conf[ODD][ieo][rho],chi_e[iterm][loceo_neighup[ODD][ieo][rho]]);
 		  color_scalar_prod(temp2,temp1,v_o[iterm][ieo]);
-		  loc_F_B-=temp2[1]*ph_odd[mu];
+		  loc_F_B-=temp2[1]*ph_odd[rho];
 		}
 	    }
 	//reduce
 	double hold_F_B=glb_reduce_double(loc_F_B);
-	if(IS_MASTER_THREAD) (*F_B)+=hold_F_B*charge; //only one sum
+	if(IS_MASTER_THREAD) (*F_B)+=hold_F_B*charge*2*M_PI/glb_size[mu]/glb_size[nu]; //only one sum
 	THREAD_BARRIER();
       }
     

@@ -130,11 +130,13 @@ namespace nissa
   //read parameters of the background em field
   void read_em_field_pars(em_field_pars_t &pars,bool flag=false)
   {
+    for(int i=0;i<3;i++) pars.E[i]=pars.B[i]=0;
+    
     if(flag==true) pars.flag=true;
     else read_str_int("PutBkgrdEMField",&pars.flag);
     switch(pars.flag)
       {
-      case 0: for(int i=0;i<3;i++) pars.E[i]=pars.B[i]=0;break;
+      case 0: break;
       case 1: 
 	read_str_double("Ex",&(pars.E[0]));
 	read_str_double("Ey",&(pars.E[1]));
