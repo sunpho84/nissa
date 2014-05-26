@@ -66,6 +66,14 @@ void write_conf(char *path,quad_su3 **conf)
   if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
     theory_pars[SEA_THEORY].topotential_pars.past_values.append_to_message(mess);
   
+  //meta B field
+  if(theory_pars[SEA_THEORY].em_field_pars.flag==2)
+    {
+      em_field_pars_t *em_p=&(theory_pars[SEA_THEORY].em_field_pars);
+      sprintf(text,"%lg",em_p->B[em_p->meta_bfield_component]);
+      ILDG_string_message_append_to_last(&mess,"B_history",text);
+    }
+  
   //glb_rnd_gen status
   convert_rnd_gen_to_text(text,&glb_rnd_gen);
   ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
@@ -96,7 +104,29 @@ void read_conf(quad_su3 **conf,char *path)
       if(glb_rnd_gen_inited==0 && strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
       if(theory_pars[SEA_THEORY].topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TOPO_history")==0)
 	theory_pars[SEA_THEORY].topotential_pars.past_values.convert_from_message(*cur_mess);
+      
+      //read meta-b pars
+      em_field_pars_t *em_p=&(theory_pars[SEA_THEORY].em_field_pars);
+      if(em_p->flag==2)
+	{
+	  if(strcasecmp(cur_mess->name,"B_history")==0)
+	    {
+	      sscanf(cur_mess->data,"%lg",&(em_p->B[em_p->meta_bfield_component]));
+	    }
+	  else
+	    {
+	      em_p->B[em_p->meta_bfield_component]=em_p->meta_bfield_init_value;
+	    }
+	}
     }
+  
+  //workaround
+  {
+    em_field_pars_t *p=&(theory_pars[SEA_THEORY].em_field_pars);
+    p->B[p->meta_bfield_component]=p->meta_bfield_init_value;
+    theory_pars_init_backfield(theory_pars[SEA_THEORY]);
+  }
+  
   
   //if message with string not found start from input seed
   if(glb_rnd_gen_inited==0)

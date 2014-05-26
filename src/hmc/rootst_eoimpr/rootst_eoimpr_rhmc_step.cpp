@@ -18,6 +18,7 @@
 #include "routines/math_routines.hpp"
 
 #include "hmc/momenta/momenta_generation.hpp"
+#include "hmc/backfield.hpp"
 
 #include "rootst_eoimpr_action.hpp"
 #include "rootst_eoimpr_eigenvalues.hpp"
@@ -45,7 +46,7 @@ namespace nissa
     
     //B momenta
     double *H_B=NULL;
-    if(theory_pars.em_field_pars.flag==2) H_B=nissa_malloc("H_B",1,double);
+    if(theory_pars.em_field_pars.flag==2 && itraj>theory_pars.em_field_pars.meta_skip) H_B=nissa_malloc("H_B",1,double);
     
     //copy the old conf into the new
     for(int par=0;par<2;par++)
@@ -65,18 +66,6 @@ namespace nissa
     //allocate pseudo-fermions
     color **pf=nissa_malloc("pf*",theory_pars.nflavs,color*);
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++) pf[iflav]=nissa_malloc("pf",loc_volh,color);
-    
-    //allocate pseudo-fermions for the magnetization
-    color ***pf_B=NULL;
-    if(theory_pars.em_field_pars.flag==2)
-      {
-	pf_B=nissa_malloc("pf_B*[2]",theory_pars.em_field_pars.meta_npseudof,color**);
-	for(int ipf=0;ipf<theory_pars.em_field_pars.meta_npseudof;ipf++)
-	  {
-	    pf_B[ipf]=nissa_malloc("pf_B[2]",2,color*);
-	    for(int eo=0;eo<2;eo++) pf_B[ipf][eo]=nissa_malloc("pf_B",loc_volh,color);
-	  }
-      }
     
     //if needed smear the configuration for pseudo-fermions, approx generation and action computation
     //otherwise bind out_conf to sme_conf
@@ -107,16 +96,31 @@ namespace nissa
     
     //create the momenta
     generate_hmc_momenta(H);
-    if(theory_pars.em_field_pars.flag==2) generate_hmc_B_momenta(H_B);
-
+    if(H_B) generate_hmc_B_momenta(H_B);
+    
     //compute initial action
     double init_action;
     full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,H_B,pf,
 			      &theory_pars,rat_exp_actio,simul_pars.pf_action_residue);
+    
+    for(double eps=1.e-3;eps>1.e-8;eps/=10)
+      {
+	theory_pars.em_field_pars.B[2]+=eps;
+	theory_pars_init_backfield(theory_pars);
+	
+	double ch_action;
+	full_rootst_eoimpr_action(&ch_action,out_conf,sme_conf,H,H_B,pf,
+						   &theory_pars,rat_exp_actio,simul_pars.pf_action_residue);
+	theory_pars.em_field_pars.B[2]-=eps;
+	theory_pars_init_backfield(theory_pars);
+	
+	master_printf("%lg\n",(ch_action-init_action)/eps);
+      }
+    
     verbosity_lv2_master_printf("Init action: %lg\n",init_action);
     
     //evolve forward
-    omelyan_rootst_eoimpr_evolver(H,H_B,out_conf,pf,pf_B,&theory_pars,rat_exp_actio,&simul_pars);
+    omelyan_rootst_eoimpr_evolver(H,H_B,out_conf,pf,&theory_pars,rat_exp_actio,&simul_pars);
     
     //if needed, resmear the conf, otherwise sme_conf is already binded to out_conf
     if(theory_pars.stout_pars.nlev!=0)
@@ -145,16 +149,7 @@ namespace nissa
     for(int par=0;par<2;par++) nissa_free(H[par]);
     if(theory_pars.stout_pars.nlev!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
     nissa_free(pf);
-    if(theory_pars.em_field_pars.flag==2)
-      {
-	for(int ipf=0;ipf<theory_pars.em_field_pars.meta_npseudof;ipf++)
-	  {
-	    for(int eo=0;eo<2;eo++) nissa_free(pf_B[ipf][eo]);
-	    nissa_free(pf_B[ipf]);
-	  }
-	nissa_free(pf_B);
-	nissa_free(H_B);
-      }
+    if(H_B) nissa_free(H_B);
 
     //take time
     hmc_time+=take_time();
