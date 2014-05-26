@@ -8,6 +8,7 @@
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
+#include "hmc/backfield.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
@@ -89,7 +90,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   //evolve the configuration with the momenta
-  THREADABLE_FUNCTION_3ARG(evolve_lx_conf_with_momenta, quad_su3*,lx_conf, quad_su3*,H, double,dt)
+  THREADABLE_FUNCTION_4ARG(evolve_lx_conf_with_momenta, quad_su3*,lx_conf, quad_su3*,H, theory_pars_t*,tp, double,dt)
   {
     GET_THREAD_ID();
     
@@ -134,12 +135,12 @@ namespace nissa
 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
 	//     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
-	evolve_lx_conf_with_momenta(lx_conf,H,dth);
+	evolve_lx_conf_with_momenta(lx_conf,H,theory_pars,dth);
 	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
 	evolve_lx_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
 	if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
 	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
-	evolve_lx_conf_with_momenta(lx_conf,H,dth);
+	evolve_lx_conf_with_momenta(lx_conf,H,theory_pars,dth);
 	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
 	evolve_lx_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
 	if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
@@ -192,8 +193,26 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
 
+  //evolve the b field
+  void evolve_b_with_H_B_momenta(double *H_B,theory_pars_t *tp,double dt)
+  {
+    GET_THREAD_ID();
+    
+    //evolve b
+    if(H_B!=NULL)
+      {
+	if(IS_MASTER_THREAD)
+	  {
+	    tp->em_field_pars.B[tp->em_field_pars.meta_bfield_component]+=(*H_B)*dt;
+	    theory_pars_init_backfield(*tp);
+	  }
+	THREAD_BARRIER();
+	master_printf("Updating em_field: %lg\n",tp->em_field_pars.B[tp->em_field_pars.meta_bfield_component]);
+      }
+  }
+
   // Evolve momenta according to the rooted staggered force
-  THREADABLE_FUNCTION_9ARG(evolve_momenta_with_quark_and_magnetic_force, quad_su3**,H, double*,H_B, quad_su3**,conf, color**,pf, color***,pf_B, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue, double,dt)
+  THREADABLE_FUNCTION_8ARG(evolve_momenta_with_quark_and_magnetic_force, quad_su3**,H, double*,H_B, quad_su3**,conf, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue, double,dt)
   {
     GET_THREAD_ID();
     
@@ -205,7 +224,7 @@ namespace nissa
     if(theory_pars->em_field_pars.flag==2) F_B=nissa_malloc("F_B",1,double);
     
     //compute the force
-    compute_rootst_eoimpr_quark_and_magnetic_force(F,F_B,conf,pf,pf_B,theory_pars,appr,residue);
+    compute_rootst_eoimpr_quark_and_magnetic_force(F,F_B,conf,pf,theory_pars,appr,residue);
     
     //evolve
     for(int par=0;par<2;par++)
@@ -217,6 +236,7 @@ namespace nissa
 		complex_subt_the_prod_idouble(H[par][ivol][mu][ic1][ic2],F[par][ivol][mu][ic1][ic2],dt);
         nissa_free(F[par]);
       }
+    
     //evolve the B momenta, if neeed
     if(theory_pars->em_field_pars.flag==2)
       {
@@ -229,7 +249,7 @@ namespace nissa
 
   ////////////////////////////////////// MACRO OMELYAN ////////////////////////////////////////////////
 
-  THREADABLE_FUNCTION_8ARG(omelyan_rootst_eoimpr_evolver, quad_su3**,H, double*,H_B, quad_su3**,conf, color**,pf, color***,pf_B, theory_pars_t*,theory_pars, rat_approx_t*,appr, hmc_evol_pars_t*,simul)
+  THREADABLE_FUNCTION_7ARG(omelyan_rootst_eoimpr_evolver, quad_su3**,H, double*,H_B, quad_su3**,conf, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, hmc_evol_pars_t*,simul)
   {
     //macro step or micro step
     double dt=simul->traj_length/simul->nmd_steps,
@@ -237,7 +257,7 @@ namespace nissa
     int nsteps=simul->nmd_steps;
     
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-    evolve_momenta_with_quark_and_magnetic_force(H,H_B,conf,pf,pf_B,theory_pars,appr,simul->md_residue,ldt);
+    evolve_momenta_with_quark_and_magnetic_force(H,H_B,conf,pf,theory_pars,appr,simul->md_residue,ldt);
 
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
@@ -248,9 +268,12 @@ namespace nissa
 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
 	omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul);
-	evolve_momenta_with_quark_and_magnetic_force(H,H_B,conf,pf,pf_B,theory_pars,appr,simul->md_residue,uml2dt);
+	if(H_B) evolve_b_with_H_B_momenta(H_B,theory_pars,dt/2);
+	evolve_momenta_with_quark_and_magnetic_force(H,H_B,conf,pf,theory_pars,appr,simul->md_residue,uml2dt);
+	
 	omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul);
-	evolve_momenta_with_quark_and_magnetic_force(H,H_B,conf,pf,pf_B,theory_pars,appr,simul->md_residue,last_dt);
+	if(H_B) evolve_b_with_H_B_momenta(H_B,theory_pars,dt/2);
+	evolve_momenta_with_quark_and_magnetic_force(H,H_B,conf,pf,theory_pars,appr,simul->md_residue,last_dt);
 	
 	//normalize the configuration
 	eo_conf_unitarize_maximal_trace_projecting(conf);

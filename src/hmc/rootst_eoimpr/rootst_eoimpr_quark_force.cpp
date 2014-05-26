@@ -71,17 +71,20 @@ namespace nissa
 		  complex temp2;
 		  unsafe_su3_prod_color(temp1,eo_conf[EVN][ieo][rho],v_o[iterm][loceo_neighup[EVN][ieo][rho]]);
 		  color_scalar_prod(temp2,temp1,chi_e[iterm][ieo]);
-		  loc_F_B+=temp2[1]*ph_evn[rho];
-
+		  double contr1=temp2[1]*ph_evn[rho];
+		  loc_F_B+=contr1*appr->weights[iterm];
+		  //master_printf("%lg\n",contr1);
 		  //this is for M^+
 		  unsafe_su3_prod_color(temp1,eo_conf[ODD][ieo][rho],chi_e[iterm][loceo_neighup[ODD][ieo][rho]]);
 		  color_scalar_prod(temp2,temp1,v_o[iterm][ieo]);
-		  loc_F_B-=temp2[1]*ph_odd[rho];
+		  double contr2=temp2[1]*ph_odd[rho];
+		  loc_F_B-=contr2*appr->weights[iterm];
+		  //master_printf("%lg\n",contr2);
 		}
 	    }
 	//reduce
 	double hold_F_B=glb_reduce_double(loc_F_B);
-	if(IS_MASTER_THREAD) (*F_B)+=hold_F_B*charge*2*M_PI/glb_size[mu]/glb_size[nu]; //only one sum
+	if(IS_MASTER_THREAD) (*F_B)+=-hold_F_B*charge*2*M_PI/glb_size[mu]/glb_size[nu]; //only one sum
 	THREAD_BARRIER();
       }
     
@@ -147,7 +150,12 @@ namespace nissa
   //compute the quark force, without stouting reampping
   THREADABLE_FUNCTION_7ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, quad_su3**,F, double*,F_B, quad_su3**,conf, color**,pf, theory_pars_t*,tp, rat_approx_t*,appr, double,residue)
   {
+    GET_THREAD_ID();
+    
+    //reset forces
+    if(F_B!=NULL && IS_MASTER_THREAD) *F_B=0;
     for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
+    
     for(int iflav=0;iflav<tp->nflavs;iflav++)
       summ_the_rootst_eoimpr_quark_force(F,F_B,tp->quark_content[iflav].charge,
 					 conf,pf[iflav],tp->backfield[iflav],&(appr[iflav]),residue);
@@ -158,7 +166,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //take into account the stout remapping procedure
-  THREADABLE_FUNCTION_8ARG(compute_rootst_eoimpr_quark_and_magnetic_force, quad_su3**,F, double*,F_B, quad_su3**,conf, color**,pf, color***,pf_B, theory_pars_t*,physics, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_7ARG(compute_rootst_eoimpr_quark_and_magnetic_force, quad_su3**,F, double*,F_B, quad_su3**,conf, color**,pf, theory_pars_t*,physics, rat_approx_t*,appr, double,residue)
   {
     int nlev=physics->stout_pars.nlev;
     
