@@ -102,7 +102,7 @@ void read_conf(quad_su3 **conf,char *path)
 	theory_pars[SEA_THEORY].topotential_pars.past_values.convert_from_message(*cur_mess);
       if(theory_pars[SEA_THEORY].em_field_pars.flag==2 && strcasecmp(cur_mess->name,"B_history")==0)
 	{
-	  theory_pars[SEA_THEORY].em_field_pars.convert_from_message(mess);
+	  theory_pars[SEA_THEORY].em_field_pars.convert_from_message(*cur_mess);
 	  theory_pars_init_backfield(theory_pars[SEA_THEORY]);
 	}
     }
@@ -283,6 +283,9 @@ void close_simulation()
   if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
     draw_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars);
   
+  if(theory_pars[SEA_THEORY].em_field_pars.flag==2)
+    draw_bynamical_potential(theory_pars[SEA_THEORY].em_field_pars.meta);
+  
   if(!store_running_temp_conf && prod_ntraj>0) write_conf(conf_path,conf);
   
   //delete the conf list
@@ -335,6 +338,9 @@ int generate_new_conf(int itraj)
       
       //store the topological charge if needed
       theory_pars[SEA_THEORY].topotential_pars.store_if_needed(conf,itraj);
+      
+      //store the b-value if needed
+      theory_pars[SEA_THEORY].em_field_pars.store_if_needed(itraj);
     }
   else
     {
@@ -388,7 +394,14 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   if(top_meas_pars.flag) if(iconf%top_meas_pars.flag==0) measure_topology_eo_conf(top_meas_pars,conf,iconf,conf_created);
   if(all_rect_meas_pars.flag) if(iconf%all_rect_meas_pars.flag==0)
 				measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
-  
+  if(theory_pars[SEA_THEORY].em_field_pars.flag==2)
+    {
+      FILE *file=open_file("bval","w");
+      for(std::vector<double>::iterator it=theory_pars[SEA_THEORY].em_field_pars.meta.begin();it!=theory_pars[SEA_THEORY].em_field_pars.meta.end();it++)
+	master_fprintf(file,"%lg\n",*it);
+      close_file(file);
+    }
+
   for(int itheory=0;itheory<ntheories;itheory++)
     {
       //check measure

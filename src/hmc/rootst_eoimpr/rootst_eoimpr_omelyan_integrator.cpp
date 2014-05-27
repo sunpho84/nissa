@@ -210,7 +210,7 @@ namespace nissa
     //allocate forces
     quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
     double *F_B=NULL;
-    if(theory_pars->em_field_pars.flag==2) F_B=nissa_malloc("F_B",1,double);
+    if(H_B!=NULL) F_B=nissa_malloc("F_B",1,double);
     
     //compute the force
     compute_rootst_eoimpr_quark_and_magnetic_force(F,F_B,conf,pf,theory_pars,appr,residue);

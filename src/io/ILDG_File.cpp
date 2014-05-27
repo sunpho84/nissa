@@ -28,7 +28,7 @@ namespace nissa
   coords scidac_mapping={0,3,2,1};
   
 #ifdef USE_MPI_IO
-  
+
   //unset the types to read mapped data
   void unset_mapped_types(MPI_Datatype &etype,MPI_Datatype &ftype)
   {

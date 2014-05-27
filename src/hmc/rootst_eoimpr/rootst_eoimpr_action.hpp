@@ -3,6 +3,7 @@
 
 namespace nissa
 {
+  void draw_bynamical_potential(metabtential_pars_t &meta);
   void full_rootst_eoimpr_action(double *res,quad_su3 **eo_conf,quad_su3 **sme_conf,quad_su3 **H,double *H_B,color **pf,theory_pars_t *theory_pars,rat_approx_t *appr,double residue);
 }
 
