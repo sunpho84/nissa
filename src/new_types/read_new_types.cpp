@@ -146,13 +146,12 @@ namespace nissa
 	read_str_double("Bz",&(pars.B[2]));
 	break;
       case 2:
-	read_str_int("MetaBFieldComponent",&(pars.meta_bfield_component));
-	read_str_double("MetaBFieldInitValue",&(pars.meta_bfield_init_value));
-	read_str_double("MetaNorm",&(pars.meta_norm));
-	read_str_double("MetaWidth",&(pars.meta_width));
-	read_str_int("MetaSkip",&(pars.meta_skip));
-	read_str_int("MetaFrequency",&(pars.meta_frequency));
-	read_str_int("MetaNPseudof",&(pars.meta_npseudof));
+	read_str_int("MetaBFieldComponent",&(pars.meta.component));
+	read_str_double("MetaBFieldInitValue",&(pars.B[pars.meta.component]));
+	read_str_double("MetaNorm",&(pars.meta.norm));
+	read_str_double("MetaWidth",&(pars.meta.width));
+	read_str_int("MetaSkip",&(pars.meta.skip));
+	read_str_int("MetaFrequency",&(pars.meta.frequency));
 	break;
       default:
 	crash("case %d not implemented",pars.flag);

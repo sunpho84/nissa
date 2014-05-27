@@ -6,6 +6,7 @@
 namespace nissa
 {
   void add_backfield_to_conf(quad_su3 **conf,quad_u1 **u1);
+  void update_backfield(theory_pars_t *tp,double B);
   void init_backfield_to_id(quad_u1 **S);
   void rem_backfield_from_conf(quad_su3 **conf,quad_u1 **u1);
   void add_im_pot_to_backfield(quad_u1 **S,quark_content_t &quark_content);

@@ -196,16 +196,8 @@ namespace nissa
   //evolve the b field
   void evolve_b_with_H_B_momenta(double *H_B,theory_pars_t *tp,double dt)
   {
-    GET_THREAD_ID();
-    
     //evolve b
-    if(H_B!=NULL)
-      {
-	if(IS_MASTER_THREAD) tp->em_field_pars.B[tp->em_field_pars.meta_bfield_component]+=(*H_B)*dt;
-	THREAD_BARRIER();
-	theory_pars_init_backfield(*tp);
-	master_printf("Updating em_field: %lg\n",tp->em_field_pars.B[tp->em_field_pars.meta_bfield_component]);
-      }
+    if(H_B!=NULL) update_backfield(tp,tp->em_field_pars.B[tp->em_field_pars.meta.component]+(*H_B)*dt);
   }
 
   // Evolve momenta according to the rooted staggered force
