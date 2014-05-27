@@ -314,7 +314,15 @@ int generate_new_conf(int itraj)
   //if not quenched
   if(theory_pars[SEA_THEORY].nflavs!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
     {
+      //take not of initial value of B, if bydinamics is ongoing
+      double old_b=0;
+      if(theory_pars[SEA_THEORY].em_field_pars.flag==2)
+	old_b=theory_pars[SEA_THEORY].em_field_pars.B[theory_pars[SEA_THEORY].em_field_pars.meta.component];
+      
+      //find if needed to perform test
       int perform_test=(itraj>=evol_pars.hmc_evol_pars.skip_mtest_ntraj);
+      
+      //integrare and compute difference of action
       double diff_act=rootst_eoimpr_rhmc_step(new_conf,conf,theory_pars[SEA_THEORY],evol_pars.hmc_evol_pars,itraj);
       
       //perform the test in any case
@@ -334,7 +342,11 @@ int generate_new_conf(int itraj)
 	  master_printf("accepted.\n");
 	  for(int par=0;par<2;par++) vector_copy(conf[par],new_conf[par]);
 	}
-      else master_printf("rejected.\n");
+      else
+	{
+	  master_printf("rejected.\n");
+	  if(theory_pars[SEA_THEORY].em_field_pars.flag==2) update_backfield(&(theory_pars[SEA_THEORY]),old_b);
+	}
       
       //store the topological charge if needed
       theory_pars[SEA_THEORY].topotential_pars.store_if_needed(conf,itraj);

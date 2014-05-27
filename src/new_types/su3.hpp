@@ -1,5 +1,5 @@
-#ifndef _SU3_H
-#define _SU3_H
+#ifndef _SU3_HPP
+#define _SU3_HPP
 
 namespace nissa
 {
