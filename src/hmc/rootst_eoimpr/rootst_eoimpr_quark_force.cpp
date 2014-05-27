@@ -84,7 +84,7 @@ namespace nissa
 	    }
 	//reduce
 	double hold_F_B=glb_reduce_double(loc_F_B);
-	if(IS_MASTER_THREAD) (*F_B)+=-hold_F_B*charge*2*M_PI/glb_size[mu]/glb_size[nu]; //only one sum
+	if(IS_MASTER_THREAD) (*F_B)+=hold_F_B*charge*2*M_PI/glb_size[mu]/glb_size[nu]; //only one sum
 	THREAD_BARRIER();
       }
     

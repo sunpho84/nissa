@@ -201,12 +201,9 @@ namespace nissa
     //evolve b
     if(H_B!=NULL)
       {
-	if(IS_MASTER_THREAD)
-	  {
-	    tp->em_field_pars.B[tp->em_field_pars.meta_bfield_component]+=(*H_B)*dt;
-	    theory_pars_init_backfield(*tp);
-	  }
+	if(IS_MASTER_THREAD) tp->em_field_pars.B[tp->em_field_pars.meta_bfield_component]+=(*H_B)*dt;
 	THREAD_BARRIER();
+	theory_pars_init_backfield(*tp);
 	master_printf("Updating em_field: %lg\n",tp->em_field_pars.B[tp->em_field_pars.meta_bfield_component]);
       }
   }
@@ -238,7 +235,7 @@ namespace nissa
       }
     
     //evolve the B momenta, if neeed
-    if(theory_pars->em_field_pars.flag==2)
+    if(H_B!=NULL && F_B!=NULL)
       {
 	master_printf("Updating B mom from %lg, force %lg\n",*H_B,*F_B);
 	if(IS_MASTER_THREAD) (*H_B)+=(*F_B)*dt;
