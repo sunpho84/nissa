@@ -45,17 +45,20 @@ namespace nissa
   //draw the metadynamical potential related to b
   void draw_bynamical_potential(metabtential_pars_t &meta)
   {
-    //find extrema
-    double mi=*(std::min_element(meta.begin(),meta.end()));
-    double ma=*(std::max_element(meta.begin(),meta.end()));
-
-    //fill the file
-    FILE *file=open_file("bpot","w");
-    double ext=ceil(std::max(fabs(mi),fabs(ma)));
-    for(double b=-ext;b<ext;b+=0.01)
-      master_fprintf(file,"%lg %lg\n",b,meta.get_pot(b));
-    
-    close_file(file);
+    if(meta.size()!=0)
+      {
+	//find extrema
+	double mi=*(std::min_element(meta.begin(),meta.end()));
+	double ma=*(std::max_element(meta.begin(),meta.end()));
+	
+	//fill the file
+	FILE *file=open_file("bpot","w");
+	double ext=ceil(std::max(fabs(mi),fabs(ma)));
+	for(double b=-ext;b<ext;b+=0.01)
+	  master_fprintf(file,"%lg %lg\n",b,meta.get_pot(b));
+	
+	close_file(file);
+      }
   }
   
   //compute quark action for a set of quark
