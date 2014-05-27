@@ -169,4 +169,21 @@ namespace nissa
     theory_pars_allocate_backfield(tp);
     theory_pars_init_backfield(tp);
   }
+  
+  //update the background field
+  void update_backfield(theory_pars_t *tp,double B)
+  {
+    GET_THREAD_ID();
+    
+    //print
+    verbosity_lv2_master_printf("Updating em_field: %lg->%lg\n",
+				tp->em_field_pars.B[tp->em_field_pars.meta.component],B);
+    
+    //only master thread touch
+    if(IS_MASTER_THREAD) tp->em_field_pars.B[tp->em_field_pars.meta.component]=B;
+    THREAD_BARRIER();
+    
+    //update it
+    theory_pars_init_backfield(*tp);
+  }
 }

@@ -535,6 +535,14 @@ namespace nissa
     void store_if_needed(quad_su3 **conf,int iconf);
   };
   
+  //hold info on metadynamic potential
+  struct metabtential_pars_t : std::vector<double>
+  {
+    int component;        //component of B to update
+    double norm,width;    //gaussian pars
+    int skip,frequency;   //history extension pars
+  };
+  
   //background em field parameters
   struct em_field_pars_t
   {
@@ -545,13 +553,24 @@ namespace nissa
     double B[3];
     
     //metadynamic
-    int meta_bfield_component;
-    double meta_bfield_init_value;
-    double meta_norm;
-    double meta_width;
-    int meta_skip;
-    int meta_frequency;
-    int meta_npseudof;
+    metabtential_pars_t meta;
+    
+    //read from message
+    void convert_from_message(ILDG_message &mess)
+    {
+      std::istringstream is(mess.data);
+      is>>B[meta.component];
+      double temp;
+      while(is>>temp) meta.push_back(temp);
+    }
+    ILDG_message *append_to_message_with_name(ILDG_message &mess,const char *name)
+    {
+      std::ostringstream os;
+      os.precision(16);
+      os<<B[meta.component]<<" ";
+      for(typename std::vector<double>::iterator it=meta.begin();it!=meta.end();it++) os<<*it<<" ";
+      return ILDG_string_message_append_to_last(&mess,name,os.str().c_str());
+    }
   };
   
   //theory content

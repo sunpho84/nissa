@@ -46,7 +46,7 @@ namespace nissa
     
     //B momenta
     double *H_B=NULL;
-    if(theory_pars.em_field_pars.flag==2 && itraj>theory_pars.em_field_pars.meta_skip) H_B=nissa_malloc("H_B",1,double);
+    if(theory_pars.em_field_pars.flag==2 && itraj>theory_pars.em_field_pars.meta.skip) H_B=nissa_malloc("H_B",1,double);
     
     //copy the old conf into the new
     for(int par=0;par<2;par++)
