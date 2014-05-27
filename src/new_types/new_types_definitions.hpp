@@ -541,6 +541,12 @@ namespace nissa
     int component;        //component of B to update
     double norm,width;    //gaussian pars
     int skip,frequency;   //history extension pars
+    void store_if_needed(int itraj,double b)
+    {if(itraj>=skip && ((itraj-skip)%frequency==0)) push_back(b);}
+
+    //defined in rootst_eoimpr
+    double get_pot(double b);
+    double get_force(double b);
   };
   
   //background em field parameters
@@ -555,22 +561,17 @@ namespace nissa
     //metadynamic
     metabtential_pars_t meta;
     
-    //read from message
-    void convert_from_message(ILDG_message &mess)
-    {
-      std::istringstream is(mess.data);
-      is>>B[meta.component];
-      double temp;
-      while(is>>temp) meta.push_back(temp);
-    }
-    ILDG_message *append_to_message_with_name(ILDG_message &mess,const char *name)
-    {
-      std::ostringstream os;
-      os.precision(16);
-      os<<B[meta.component]<<" ";
-      for(typename std::vector<double>::iterator it=meta.begin();it!=meta.end();it++) os<<*it<<" ";
-      return ILDG_string_message_append_to_last(&mess,name,os.str().c_str());
-    }
+    //defined in "reader.cpp" and "writer.cpp"
+    void convert_from_message(ILDG_message &mess);
+    ILDG_message *append_to_message_with_name(ILDG_message &mess,const char *name);
+    
+    //add to the history
+    void store_if_needed(int itraj)
+    {meta.store_if_needed(itraj,B[meta.component]);}
+    double get_meta_force()
+    {return meta.get_force(B[meta.component]);}
+    double get_meta_pot()
+    {return meta.get_pot(B[meta.component]);}
   };
   
   //theory content

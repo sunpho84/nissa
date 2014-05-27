@@ -176,7 +176,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //print
-    verbosity_lv2_master_printf("Updating em_field: %lg->%lg\n",
+    verbosity_lv1_master_printf("Updating em_field: %lg->%lg\n",
 				tp->em_field_pars.B[tp->em_field_pars.meta.component],B);
     
     //only master thread touch

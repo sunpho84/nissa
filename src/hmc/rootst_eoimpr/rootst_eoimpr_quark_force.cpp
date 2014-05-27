@@ -22,6 +22,22 @@
 
 namespace nissa
 {
+  //compute the force relative to the magnetic action
+  double metabtential_pars_t::get_force(double b)
+  {
+    double force=0,pref=norm/(width*sqrt(2*M_PI))/(width*width);
+    
+    //summ all the contributions
+    for(std::vector<double>::iterator it=begin();it!=end();it++)
+      {
+	double ob=*it;
+	double diff=b-ob,f=diff/width,cont=pref*diff*exp(-f*f/2);
+	force+=cont;
+      }
+    
+    return force;
+  }
+
   //Compute the fermionic force the rooted staggered e/o improved theory.
   //Passed conf must NOT contain the backfield.
   //Of the result still need to be taken the TA
@@ -153,7 +169,11 @@ namespace nissa
     GET_THREAD_ID();
     
     //reset forces
-    if(F_B!=NULL && IS_MASTER_THREAD) *F_B=0;
+    if(F_B!=NULL && IS_MASTER_THREAD)
+      {
+	*F_B=tp->em_field_pars.get_meta_force();
+	master_printf(" metab force: %lg\n",*F_B);
+      }
     for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
     
     for(int iflav=0;iflav<tp->nflavs;iflav++)

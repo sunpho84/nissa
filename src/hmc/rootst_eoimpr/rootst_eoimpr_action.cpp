@@ -22,9 +22,42 @@
  #include "routines/thread.hpp"
 #endif
 
+#include <algorithm>
 
 namespace nissa
 {
+  //compute the action relative to the b metadynamics
+  double metabtential_pars_t::get_pot(double b)
+  {
+    double pot=0,pref=norm/(width*sqrt(2*M_PI));
+
+    for(std::vector<double>::iterator it=begin();it!=end();it++)
+      {
+	double ob=*it;
+	double diff=b-ob,f=diff/width,cont=pref*exp(-f*f/2);
+	pot+=cont;
+	//master_printf("Contribution: old_b=%lg, b=%lg, %lg\n",ob,b,cont);
+      }
+
+    return pot;
+  }
+  
+  //draw the metadynamical potential related to b
+  void draw_bynamical_potential(metabtential_pars_t &meta)
+  {
+    //find extrema
+    double mi=*(std::min_element(meta.begin(),meta.end()));
+    double ma=*(std::max_element(meta.begin(),meta.end()));
+
+    //fill the file
+    FILE *file=open_file("bpot","w");
+    double ext=ceil(std::max(fabs(mi),fabs(ma)));
+    for(double b=-ext;b<ext;b+=0.01)
+      master_fprintf(file,"%lg %lg\n",b,meta.get_pot(b));
+    
+    close_file(file);
+  }
+  
   //compute quark action for a set of quark
   THREADABLE_FUNCTION_7ARG(rootst_eoimpr_quark_action, double*,glb_action, quad_su3**,eo_conf, int,nfl, quad_u1***,u1b, color**,pf, rat_approx_t*,appr, double,residue)
   {
@@ -78,9 +111,11 @@ namespace nissa
     verbosity_lv1_master_printf("Mom_action: %16.16lg\n",mom_action);
     
     //momenta action
-    double mom_B_action=0;
-    if(theory_pars->em_field_pars.flag==2)
+    double mom_B_action=0,B_action=0;
+    if(H_B!=NULL)
       {
+	B_action=theory_pars->em_field_pars.get_meta_pot();
+	verbosity_lv1_master_printf("B_action: %16.16lg\n",B_action);
 	mom_B_action=B_momenta_action(H_B);
 	verbosity_lv1_master_printf("Mom_B_action: %16.16lg\n",mom_B_action);
       }
@@ -89,7 +124,8 @@ namespace nissa
     double topo_action=(theory_pars->topotential_pars.flag?topotential_action(eo_conf,theory_pars->topotential_pars):0);
     if(theory_pars->topotential_pars.flag) verbosity_lv1_master_printf("Topological_action: %16.16lg\n",topo_action);
     
-    (*tot_action)=quark_action+gluon_action+mom_action+mom_B_action+topo_action;
+    //total action
+    (*tot_action)=quark_action+gluon_action+mom_action+mom_B_action+B_action+topo_action;
   }
   THREADABLE_FUNCTION_END
 }
