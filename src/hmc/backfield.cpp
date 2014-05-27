@@ -18,11 +18,13 @@
 namespace nissa
 {
   //initialize an u(1) field to unity
-  void init_backfield_to_id(quad_u1 **S)
+  THREADABLE_FUNCTION_1ARG(init_backfield_to_id, quad_u1**,S)
   {
+    GET_THREAD_ID();
+    
     for(int par=0;par<2;par++)
       {
-	NISSA_LOC_VOLH_LOOP(ivol)
+	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	  for(int mu=0;mu<4;mu++)
 	    {
 	      S[par][ivol][mu][0]=1;
@@ -31,20 +33,24 @@ namespace nissa
         set_borders_invalid(S[par]);
       }
   }
+  THREADABLE_FUNCTION_END
   
   //multiply a background field by the imaginary chemical potential
-  void add_im_pot_to_backfield(quad_u1 **S,quark_content_t &quark_content)
-  {
-    double im_pot=quark_content.im_pot*M_PI/glb_size[0];
+  THREADABLE_FUNCTION_2ARG(add_im_pot_to_backfield, quad_u1**,S, quark_content_t*,quark_content)
+  {    
+    GET_THREAD_ID();
+    
+    double im_pot=quark_content->im_pot*M_PI/glb_size[0];
     complex ph={cos(im_pot),sin(im_pot)};
     
     for(int par=0;par<2;par++)
       {
-	NISSA_LOC_VOLH_LOOP(ieo)
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	  safe_complex_prod(S[par][ieo][0],S[par][ieo][0],ph);
 	set_borders_invalid(S[par]);
       }
   }
+  THREADABLE_FUNCTION_END
   
   //compute args for 1/L2 quantization
   void get_args_of_one_over_L2_quantization(coords phase,int ivol,int mu,int nu)
@@ -65,40 +71,44 @@ namespace nissa
   
   //multiply a background field by a constant em field
   //mu nu refers to the entry of F_mu_nu involved
-  void add_em_field_to_backfield(quad_u1 **S,quark_content_t &quark_content,double em_str,int mu,int nu)
+  THREADABLE_FUNCTION_5ARG(add_em_field_to_backfield, quad_u1**,S, quark_content_t*,quark_content, double,em_str, int,mu, int,nu)
   {
-    double phase=2*em_str*quark_content.charge*M_PI/glb_size[mu]/glb_size[nu];
+    GET_THREAD_ID();
+    
+    double phase=2*em_str*quark_content->charge*M_PI/glb_size[mu]/glb_size[nu];
     
     for(int par=0;par<2;par++)
       {
-	NISSA_LOC_VOLH_LOOP(ieo)
-        {
-	  //compute arg
-	  coords arg;
-	  get_args_of_one_over_L2_quantization(arg,loclx_of_loceo[par][ieo],mu,nu);
-	  
-	  //compute u1phase and multiply
-	  for(int rho=0;rho<4;rho++)
-	    {
-	      complex u1phase={cos(phase*arg[rho]),sin(phase*arg[rho])};
-	      safe_complex_prod(S[par][ieo][rho],S[par][ieo][rho],u1phase);
-	    }
-	}
+	NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  {
+	    //compute arg
+	    coords arg;
+	    get_args_of_one_over_L2_quantization(arg,loclx_of_loceo[par][ieo],mu,nu);
+	    
+	    //compute u1phase and multiply
+	    for(int rho=0;rho<4;rho++)
+	      {
+		complex u1phase={cos(phase*arg[rho]),sin(phase*arg[rho])};
+		safe_complex_prod(S[par][ieo][rho],S[par][ieo][rho],u1phase);
+	      }
+	  }
 	
 	set_borders_invalid(S[par]);
       }
   }
+  THREADABLE_FUNCTION_END
   
   //set up all the 6 components
-  void add_em_field_to_backfield(quad_u1 **S,quark_content_t &quark_content,em_field_pars_t &em_field_pars)
+  THREADABLE_FUNCTION_3ARG(add_em_field_to_backfield, quad_u1**,S, quark_content_t*,quark_content, em_field_pars_t*,em_field_pars)
   {
-    add_em_field_to_backfield(S,quark_content,em_field_pars.E[0],0,1);
-    add_em_field_to_backfield(S,quark_content,em_field_pars.E[1],0,2);
-    add_em_field_to_backfield(S,quark_content,em_field_pars.E[2],0,3);
-    add_em_field_to_backfield(S,quark_content,em_field_pars.B[0],2,3);
-    add_em_field_to_backfield(S,quark_content,em_field_pars.B[1],3,1);
-    add_em_field_to_backfield(S,quark_content,em_field_pars.B[2],1,2);
+    add_em_field_to_backfield(S,quark_content,em_field_pars->E[0],0,1);
+    add_em_field_to_backfield(S,quark_content,em_field_pars->E[1],0,2);
+    add_em_field_to_backfield(S,quark_content,em_field_pars->E[2],0,3);
+    add_em_field_to_backfield(S,quark_content,em_field_pars->B[0],2,3);
+    add_em_field_to_backfield(S,quark_content,em_field_pars->B[1],3,1);
+    add_em_field_to_backfield(S,quark_content,em_field_pars->B[2],1,2);
   }
+  THREADABLE_FUNCTION_END
   
   //multiply the configuration for an additional u(1) field
   THREADABLE_FUNCTION_2ARG(add_backfield_to_conf, quad_su3**,conf, quad_u1**,u1)
@@ -148,8 +158,8 @@ namespace nissa
     for(int iflav=0;iflav<tp.nflavs;iflav++)
       {
 	init_backfield_to_id(tp.backfield[iflav]);
-	add_im_pot_to_backfield(tp.backfield[iflav],tp.quark_content[iflav]);
-	add_em_field_to_backfield(tp.backfield[iflav],tp.quark_content[iflav],tp.em_field_pars);
+	add_im_pot_to_backfield(tp.backfield[iflav],&(tp.quark_content[iflav]));
+	add_em_field_to_backfield(tp.backfield[iflav],&(tp.quark_content[iflav]),&(tp.em_field_pars));
       }
   }
   

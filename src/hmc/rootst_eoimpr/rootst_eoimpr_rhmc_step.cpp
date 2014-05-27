@@ -103,22 +103,6 @@ namespace nissa
     full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,H_B,pf,
 			      &theory_pars,rat_exp_actio,simul_pars.pf_action_residue);
     
-    for(double eps=1.e-3;eps>1.e-8;eps/=10)
-      {
-	theory_pars.em_field_pars.B[2]+=eps;
-	theory_pars_init_backfield(theory_pars);
-	
-	double ch_action;
-	full_rootst_eoimpr_action(&ch_action,out_conf,sme_conf,H,H_B,pf,
-						   &theory_pars,rat_exp_actio,simul_pars.pf_action_residue);
-	theory_pars.em_field_pars.B[2]-=eps;
-	theory_pars_init_backfield(theory_pars);
-	
-	master_printf("%lg\n",(ch_action-init_action)/eps);
-      }
-    
-    verbosity_lv2_master_printf("Init action: %lg\n",init_action);
-    
     //evolve forward
     omelyan_rootst_eoimpr_evolver(H,H_B,out_conf,pf,&theory_pars,rat_exp_actio,&simul_pars);
     
