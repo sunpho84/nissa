@@ -68,8 +68,19 @@ void write_conf(char *path,quad_su3 **conf)
   
   //meta B field
   if(theory_pars[SEA_THEORY].em_field_pars.flag==2)
-    theory_pars[SEA_THEORY].em_field_pars.append_to_message_with_name(mess,"B_history");
-  
+    {
+      theory_pars[SEA_THEORY].em_field_pars.append_to_message_with_name(mess,"B_history");
+      //output to file
+      if(theory_pars[SEA_THEORY].em_field_pars.flag==2)
+	{
+	  FILE *file=open_file("bval","w");
+	  for(std::vector<double>::iterator it=theory_pars[SEA_THEORY].em_field_pars.meta.begin();it!=
+		theory_pars[SEA_THEORY].em_field_pars.meta.end();it++)
+	    master_fprintf(file,"%lg\n",*it);
+	  close_file(file);
+	}
+    }
+
   //glb_rnd_gen status
   convert_rnd_gen_to_text(text,&glb_rnd_gen);
   ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
@@ -408,9 +419,8 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 				measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
   if(theory_pars[SEA_THEORY].em_field_pars.flag==2)
     {
-      FILE *file=open_file("bval","w");
-      for(std::vector<double>::iterator it=theory_pars[SEA_THEORY].em_field_pars.meta.begin();it!=theory_pars[SEA_THEORY].em_field_pars.meta.end();it++)
-	master_fprintf(file,"%lg\n",*it);
+      FILE *file=open_file("bval",conf_created?"w":"a");
+      master_fprintf(file,"%lg\n",theory_pars[SEA_THEORY].em_field_pars.meta.back());
       close_file(file);
     }
 

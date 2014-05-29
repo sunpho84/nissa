@@ -30,7 +30,11 @@ namespace nissa
   double metabtential_pars_t::get_pot(double b)
   {
     double pot=0,pref=norm/(width*sqrt(2*M_PI));
-
+    
+    //take into account barrier
+    b=(b<bmin)?bmin:b;
+    b=(b<bmax)?b:bmax;
+    
     for(std::vector<double>::iterator it=begin();it!=end();it++)
       {
 	double ob=*it;
@@ -38,7 +42,7 @@ namespace nissa
 	pot+=cont;
 	//master_printf("Contribution: old_b=%lg, b=%lg, %lg\n",ob,b,cont);
       }
-
+    
     return pot;
   }
   
