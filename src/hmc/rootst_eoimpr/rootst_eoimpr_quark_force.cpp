@@ -28,12 +28,13 @@ namespace nissa
     double force=0,pref=norm/(width*sqrt(2*M_PI))/(width*width);
     
     //summ all the contributions
-    for(std::vector<double>::iterator it=begin();it!=end();it++)
-      {
-	double ob=*it;
-	double diff=b-ob,f=diff/width,cont=pref*diff*exp(-f*f/2);
-	force+=cont;
-      }
+    if(b>=bmin&&(b<bmax))
+       for(std::vector<double>::iterator it=begin();it!=end();it++)
+	 {
+	   double ob=*it;
+	   double diff=b-ob,f=diff/width,cont=pref*diff*exp(-f*f/2);
+	   force+=cont;
+	 }
     
     return force;
   }

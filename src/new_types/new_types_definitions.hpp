@@ -540,6 +540,7 @@ namespace nissa
   {
     int component;        //component of B to update
     double norm,width;    //gaussian pars
+    double bmin,bmax;     //extrema for metapotential
     int skip,frequency;   //history extension pars
     void store_if_needed(int itraj,double b)
     {if(itraj>=skip && ((itraj-skip)%frequency==0)) push_back(b);}
