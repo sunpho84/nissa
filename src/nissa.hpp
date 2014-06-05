@@ -81,6 +81,7 @@
 #include "geometry/geometry_mix.hpp"
 #include "geometry/geometry_Wsklx.hpp"
 
+#include "inverters/staggered/cg_invert_stD.hpp"
 #include "inverters/twisted_mass/cg_128_invert_tmQ2.hpp"
 #include "inverters/twisted_mass/cg_invert_tmDeoimpr.hpp"
 #include "inverters/twisted_mass/cg_invert_tmQ2.hpp"

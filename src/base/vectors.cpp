@@ -283,12 +283,9 @@ namespace nissa
     //sync so we are sure that all threads are here
     THREAD_BARRIER();
     
-    if(IS_MASTER_THREAD)
+    //control that a!=b
+    if(a!=b)
       {
-	
-	//control that a!=b
-	if(a==b) crash("while copying, vector1 and vector2 are the same");
-	
 	//get vector pointers
 	nissa_vect *nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
 	nissa_vect *nissa_b=(nissa_vect*)((char*)b-sizeof(nissa_vect));
@@ -311,14 +308,15 @@ namespace nissa
 		nissa_a->tag,size_per_el_a,nissa_b->tag,size_per_el_b);
 	
 	//perform the copy
-	memcpy(a,b,size_per_el_a*nel_a);
+	NISSA_PARALLEL_LOOP(i,0,nel_a)
+	  memcpy((char*)a+i*size_per_el_a,(char*)b+i*size_per_el_a,size_per_el_a);
 	
 	//copy the flag
 	nissa_a->flag=nissa_b->flag;
+	
+	//sync so we are sure that all threads are here
+	THREAD_BARRIER();      
       }
-    
-    //sync so we are sure that all threads are here
-    THREAD_BARRIER();      
   }
   
   //reset a vector
