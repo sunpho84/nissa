@@ -279,32 +279,12 @@ namespace nissa
     if(rank==0) fclose(file);
   }
   
-  //compute the magnetization
-  THREADABLE_FUNCTION_6ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue, color**,rnd)
+  //compute the magnetization starting from chi and rnd
+  //please note that the conf must hold backfield and stagphases
+  THREADABLE_FUNCTION_9ARG(magnetization, complex*,magn, quad_su3**,conf, quark_content_t*,quark, color**,rnd, color**,chi, complex*,point_magn, coords*,arg, int,mu, int,nu)
   {
     GET_THREAD_ID();
     
-    //fixed to Z magnetization
-    int mu=1,nu=2;
-    
-    //allocate source and propagator
-    color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
-    
-    //we need to store phases
-    coords *arg=nissa_malloc("arg",loc_vol+bord_vol,coords);
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol+bord_vol)
-      get_args_of_one_over_L2_quantization(arg[ivol],ivol,mu,nu);
-    
-    //array to store magnetization on single site (actually storing backward contrib at displaced site)
-    complex *point_magn=nissa_malloc("app",loc_vol,complex);
-    vector_reset(point_magn);
-    
-    //we add stagphases and backfield externally because we need them for derivative
-    addrem_stagphases_to_eo_conf(conf);
-    add_backfield_to_conf(conf,u1b);
-    
-    //invert
-    inv_stD_cg(chi,conf,quark->mass,100000,residue,rnd);
     communicate_ev_and_od_color_borders(chi);
     
     //summ the results of the derivative
@@ -337,10 +317,7 @@ namespace nissa
 	      complex_summ_the_prod_double(point_magn[ivol],t,arg[idw_lx][rho]);
 	    }
 	}
-    
-    //remove stag phases and u1 field, and automatically barrier before collapsing
-    rem_backfield_from_conf(conf,u1b);
-    addrem_stagphases_to_eo_conf(conf);
+    THREAD_BARRIER();
     
     //reduce across all nodes and threads
     complex temp;
@@ -354,6 +331,42 @@ namespace nissa
     //and a minus because F=-logZ
     if(IS_MASTER_THREAD)
       unsafe_complex_prod_idouble(*magn,temp,-quark->deg*2*M_PI*quark->charge/(4.0*glb_vol*2*glb_size[mu]*glb_size[nu]));
+  }
+  THREADABLE_FUNCTION_END
+  
+  //compute the magnetization
+  THREADABLE_FUNCTION_6ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue, color**,rnd)
+  {
+    GET_THREAD_ID();
+    
+    //fixed to Z magnetization
+    int mu=1,nu=2;
+    
+    //allocate source and propagator
+    color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
+    
+    //we need to store phases
+    coords *arg=nissa_malloc("arg",loc_vol+bord_vol,coords);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol+bord_vol)
+      get_args_of_one_over_L2_quantization(arg[ivol],ivol,mu,nu);
+    
+    //array to store magnetization on single site (actually storing backward contrib at displaced site)
+    complex *point_magn=nissa_malloc("app",loc_vol,complex);
+    vector_reset(point_magn);
+    
+    //we add stagphases and backfield externally because we need them for derivative
+    addrem_stagphases_to_eo_conf(conf);
+    add_backfield_to_conf(conf,u1b);
+    
+    //invert
+    inv_stD_cg(chi,conf,quark->mass,100000,residue,rnd);
+    
+    //compute mag
+    magnetization(magn,conf,quark,rnd,chi,point_magn,arg,mu,nu);
+    
+    //remove stag phases and u1 field
+    rem_backfield_from_conf(conf,u1b);
+    addrem_stagphases_to_eo_conf(conf);
     
     //free
     for(int par=0;par<2;par++) nissa_free(chi[par]);

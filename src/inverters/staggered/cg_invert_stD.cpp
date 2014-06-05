@@ -13,9 +13,9 @@
 
 namespace nissa
 {
-  void inv_stD_cg(color **sol,quad_su3 **conf,double m,int niter,double residue,color **source)
+  void inv_stD_cg(color **sol,color *guess,quad_su3 **conf,double m,int niter,double residue,color **source)
   {
-    inv_evn_stD_cg(sol[EVN],conf,m,niter,residue,source);
+    inv_evn_stD_cg(sol[EVN],guess,conf,m,niter,residue,source);
     apply_st2Doe(sol[ODD],conf,sol[EVN]);
     double_vector_linear_comb((double*)(sol[ODD]),(double*)(source[ODD]),1/m,(double*)(sol[ODD]),-0.5/m,loc_volh*6);
   }

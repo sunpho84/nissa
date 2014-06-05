@@ -79,6 +79,7 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT) \
+	$(top_builddir)/tools/conf_measure/magn$(EXEEXT) \
 	$(top_builddir)/tools/conf_measure/topo$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/convert/gpu_to_ildg$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/convert/ildg_to_eo$(EXEEXT) \
@@ -103,6 +104,13 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
+am___top_builddir__tools_conf_measure_magn_OBJECTS =  \
+	conf_measure/magn.$(OBJEXT)
+__top_builddir__tools_conf_measure_magn_OBJECTS =  \
+	$(am___top_builddir__tools_conf_measure_magn_OBJECTS)
+__top_builddir__tools_conf_measure_magn_LDADD = $(LDADD)
+__top_builddir__tools_conf_measure_magn_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.a
 am___top_builddir__tools_conf_measure_topo_OBJECTS =  \
 	conf_measure/topo.$(OBJEXT)
 __top_builddir__tools_conf_measure_topo_OBJECTS =  \
@@ -201,7 +209,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(__top_builddir__tools_conf_measure_topo_SOURCES) \
+SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
+	$(__top_builddir__tools_conf_measure_topo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES) \
@@ -211,7 +220,8 @@ SOURCES = $(__top_builddir__tools_conf_measure_topo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
 	$(__top_builddir__tools_unitarity_check_unitarity_check_SOURCES)
-DIST_SOURCES = $(__top_builddir__tools_conf_measure_topo_SOURCES) \
+DIST_SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
+	$(__top_builddir__tools_conf_measure_topo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES) \
@@ -360,6 +370,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src
 LDADD = $(top_builddir)/lib/libnissa.a
 AUTOMAKE_OPTIONS = subdir-objects
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES = find_best_vir_partitioning/find.cpp
+__top_builddir__tools_conf_measure_magn_SOURCES = conf_measure/magn.cpp
 __top_builddir__tools_conf_measure_topo_SOURCES = conf_measure/topo.cpp
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES = conf_transform/convert/gpu_to_ildg.cpp
 __top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES = conf_transform/convert/ildg_to_eo.cpp
@@ -451,11 +462,17 @@ conf_measure/$(am__dirstamp):
 conf_measure/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) conf_measure/$(DEPDIR)
 	@: > conf_measure/$(DEPDIR)/$(am__dirstamp)
-conf_measure/topo.$(OBJEXT): conf_measure/$(am__dirstamp) \
+conf_measure/magn.$(OBJEXT): conf_measure/$(am__dirstamp) \
 	conf_measure/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/tools/conf_measure/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/tools/conf_measure
 	@: > $(top_builddir)/tools/conf_measure/$(am__dirstamp)
+
+$(top_builddir)/tools/conf_measure/magn$(EXEEXT): $(__top_builddir__tools_conf_measure_magn_OBJECTS) $(__top_builddir__tools_conf_measure_magn_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_measure_magn_DEPENDENCIES) $(top_builddir)/tools/conf_measure/$(am__dirstamp)
+	@rm -f $(top_builddir)/tools/conf_measure/magn$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_conf_measure_magn_OBJECTS) $(__top_builddir__tools_conf_measure_magn_LDADD) $(LIBS)
+conf_measure/topo.$(OBJEXT): conf_measure/$(am__dirstamp) \
+	conf_measure/$(DEPDIR)/$(am__dirstamp)
 
 $(top_builddir)/tools/conf_measure/topo$(EXEEXT): $(__top_builddir__tools_conf_measure_topo_OBJECTS) $(__top_builddir__tools_conf_measure_topo_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_measure_topo_DEPENDENCIES) $(top_builddir)/tools/conf_measure/$(am__dirstamp)
 	@rm -f $(top_builddir)/tools/conf_measure/topo$(EXEEXT)
@@ -591,6 +608,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@conf_measure/$(DEPDIR)/magn.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_measure/$(DEPDIR)/topo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/gpu_to_ildg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/ildg_to_eo.Po@am__quote@
