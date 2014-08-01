@@ -30,7 +30,7 @@ namespace nissa
   void double_vector_init_to_zero(double *a,int n)
   {
     GET_THREAD_ID();
-    if(IS_MASTER_THREAD) memset(a,0,n*sizeof(double));
+    NISSA_PARALLEL_LOOP(i,0,n) a[i]=0;
     
     set_borders_invalid(a);
   }
@@ -39,7 +39,25 @@ namespace nissa
   void double_vector_copy(double *a,double *b,int n)
   {
     GET_THREAD_ID();
-    if(IS_MASTER_THREAD) memcpy(a,b,n*sizeof(double));
+    NISSA_PARALLEL_LOOP(i,0,n) a[i]=b[i];
+    
+    set_borders_invalid(a);
+  }
+  
+  //set to zero
+  void single_vector_init_to_zero(float *a,int n)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(i,0,n) a[i]=0;
+    
+    set_borders_invalid(a);
+  }
+  
+  //copy
+  void single_vector_copy(float *a,float *b,int n)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(i,0,n) a[i]=b[i];
     
     set_borders_invalid(a);
   }
@@ -117,6 +135,20 @@ namespace nissa
     glb_reduce_float_128(temp,loc_thread_res);
     (*glb_res)=temp[0];
 #endif
+  }
+  THREADABLE_FUNCTION_END
+
+  //scalar product
+  THREADABLE_FUNCTION_4ARG(single_vector_glb_scalar_prod, float*,glb_res, float*,a, float*,b, int,n)
+  {
+    //perform thread summ
+    float loc_thread_res=0;
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(i,0,n)
+      loc_thread_res+=a[i]*b[i];
+
+    (*glb_res)=glb_reduce_single(loc_thread_res);
   }
   THREADABLE_FUNCTION_END
 
@@ -225,6 +257,16 @@ namespace nissa
     if(!(OPT&DO_NOT_SET_FLAGS)) set_borders_invalid(a);
   }
   THREADABLE_FUNCTION_END
+  
+  //single version
+  THREADABLE_FUNCTION_6ARG(single_vector_summ_single_vector_prod_single, float*,a, float*,b, float*,c, float,d, int,n, int,OPT)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(i,0,n) a[i]=b[i]+c[i]*d;
+    
+    if(!(OPT&DO_NOT_SET_FLAGS)) set_borders_invalid(a);
+  }
+  THREADABLE_FUNCTION_END
 
   //a[]=b[]*c+d[]*e
   THREADABLE_FUNCTION_7ARG(double_vector_linear_comb, double*,a, double*,b, double,c, double*,d, double,e, int,n, int,OPT)
@@ -263,7 +305,17 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
 
-  //////////////////////////////////////////////////////// quadruple precision ///////////////////////////////////////////
+  //a[]=b[]*c+d[]*e
+  THREADABLE_FUNCTION_7ARG(single_vector_linear_comb, float*,a, float*,b, float,c, float*,d, float,e, int,n, int,OPT)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(i,0,n) a[i]=b[i]*c+d[i]*e;
+    
+    if(!(OPT&DO_NOT_SET_FLAGS)) set_borders_invalid(a);
+  }
+  THREADABLE_FUNCTION_END
+
+  ////////////////////////////////////////////////////// quadruple precision ///////////////////////////////////////////
   
   //a=b
   THREADABLE_FUNCTION_3ARG(double_vector_from_quadruple_vector, double*,a, float_128*,b, int,n)

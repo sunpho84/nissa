@@ -223,8 +223,9 @@ namespace nissa
   void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg))
   {
     //initialize reducing buffers
+    glb_single_reduction_buf=(float*)malloc(nthreads*sizeof(float));
     glb_double_reduction_buf=(double*)malloc(nthreads*sizeof(double));
-    glb_float_128_reduction_buf=(float_128*)malloc(nthreads*sizeof(float_128));
+    glb_quadruple_reduction_buf=(float_128*)malloc(nthreads*sizeof(float_128));
     
     //lock the pool
     thread_pool_locked=true;
@@ -234,8 +235,9 @@ namespace nissa
     main_function(narg,arg);
     
     //free global reduction buffers
+    free(glb_single_reduction_buf);
     free(glb_double_reduction_buf);
-    free(glb_float_128_reduction_buf);
+    free(glb_quadruple_reduction_buf);
 
     //exit the thread pool
     thread_pool_stop();

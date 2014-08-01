@@ -286,6 +286,7 @@ namespace nissa
     GET_THREAD_ID();
     
     communicate_ev_and_od_color_borders(chi);
+    vector_reset(point_magn);
     
     //summ the results of the derivative
     for(int par=0;par<2;par++)
@@ -352,7 +353,6 @@ namespace nissa
     
     //array to store magnetization on single site (actually storing backward contrib at displaced site)
     complex *point_magn=nissa_malloc("app",loc_vol,complex);
-    vector_reset(point_magn);
     
     //we add stagphases and backfield externally because we need them for derivative
     addrem_stagphases_to_eo_conf(conf);

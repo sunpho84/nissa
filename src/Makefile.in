@@ -261,6 +261,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
 	inverters/twisted_mass/tm_frontends.cpp \
 	inverters/staggered/cgm_invert_stD2ee_m2_portable.cpp \
+	inverters/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
 	inverters/staggered/cg_invert_stD2ee_m2_portable.cpp \
 	inverters/staggered/cgm_invert_stD2ee_m2.cpp \
 	inverters/staggered/cg_invert_stD2ee_m2.cpp \
@@ -380,6 +381,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.$(OBJEXT) \
 	inverters/twisted_mass/tm_frontends.$(OBJEXT) \
 	inverters/staggered/cgm_invert_stD2ee_m2_portable.$(OBJEXT) \
+	inverters/staggered/cgm_32_invert_stD2ee_m2_portable.$(OBJEXT) \
 	inverters/staggered/cg_invert_stD2ee_m2_portable.$(OBJEXT) \
 	inverters/staggered/cgm_invert_stD2ee_m2.$(OBJEXT) \
 	inverters/staggered/cg_invert_stD2ee_m2.$(OBJEXT) \
@@ -877,6 +879,7 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
 	inverters/twisted_mass/tm_frontends.cpp \
 	inverters/staggered/cgm_invert_stD2ee_m2_portable.cpp \
+	inverters/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
 	inverters/staggered/cg_invert_stD2ee_m2_portable.cpp \
 	inverters/staggered/cgm_invert_stD2ee_m2.cpp \
 	inverters/staggered/cg_invert_stD2ee_m2.cpp \
@@ -929,6 +932,7 @@ BUILT_SOURCES = update_svnversion svnversion.hpp
 EXTRA_DIST = svnversion.hpp base/update_svnversion.hpp.sh \
 	dirac_operators/WclovQ/dirac_operator_WclovQ_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_portable.cpp \
+	dirac_operators/stD/dirac_operator_stD_32_portable.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_portable.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_portable.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left_portable.cpp \
@@ -1320,6 +1324,9 @@ inverters/staggered/$(DEPDIR)/$(am__dirstamp):
 inverters/staggered/cgm_invert_stD2ee_m2_portable.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
+inverters/staggered/cgm_32_invert_stD2ee_m2_portable.$(OBJEXT):  \
+	inverters/staggered/$(am__dirstamp) \
+	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
 inverters/staggered/cg_invert_stD2ee_m2_portable.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
@@ -1665,6 +1672,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD2ee_m2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD2ee_m2_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD2ee_m2_portable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_32_invert_stD2ee_m2_portable.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2_portable.Po@am__quote@

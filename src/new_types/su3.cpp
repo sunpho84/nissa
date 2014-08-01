@@ -1001,6 +1001,16 @@ namespace nissa
       }
   }
   
+  //product of an su3 matrix by a color vector
+  void unsafe_single_su3_prod_single_color(single_color a,single_su3 b,single_color c)
+  {
+    for(int c1=0;c1<3;c1++)
+      {
+	unsafe_single_complex_prod(a[c1],b[c1][0],c[0]);
+	for(int c2=1;c2<3;c2++) single_complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);
+      }
+  }
+  
   //safe prod
   void safe_su3_prod_color(color a,su3 b,color c) {color t;unsafe_su3_prod_color(t,b,c);color_copy(a,t);}
   
@@ -1010,6 +1020,14 @@ namespace nissa
     for(int c1=0;c1<3;c1++)
       for(int c2=0;c2<3;c2++)
 	complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);
+  }
+  
+  //summ
+  void single_su3_summ_the_prod_single_color(single_color a,single_su3 b,single_color c)
+  {
+    for(int c1=0;c1<3;c1++)
+      for(int c2=0;c2<3;c2++)
+	single_complex_summ_the_prod(a[c1],b[c1][c2],c[c2]);
   }
   
   //subt
@@ -1042,12 +1060,28 @@ namespace nissa
 	complex_summ_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
   }
   
+  //summ dag
+  void single_su3_dag_summ_the_prod_single_color(single_color a,single_su3 b,single_color c)
+  {
+    for(int c1=0;c1<3;c1++)
+      for(int c2=0;c2<3;c2++)
+	single_complex_summ_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+  }
+  
   //subt dag
   void su3_dag_subt_the_prod_color(color a,su3 b,color c)
   {
     for(int c1=0;c1<3;c1++)
       for(int c2=0;c2<3;c2++)
 	complex_subt_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
+  }
+  
+  //subt dag
+  void single_su3_dag_subt_the_prod_single_color(single_color a,single_su3 b,single_color c)
+  {
+    for(int c1=0;c1<3;c1++)
+      for(int c2=0;c2<3;c2++)
+	single_complex_subt_the_conj1_prod(a[c1],b[c2][c1],c[c2]);
   }
   
   //////////////////////////////////////////// color prod su3 ///////////////////////////////////////////

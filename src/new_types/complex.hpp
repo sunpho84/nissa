@@ -10,6 +10,8 @@ namespace nissa
   void assign_complex_prod_minus_i(complex a);
   void complex_conj(complex a,complex b);
   void complex_copy(complex a,complex b);
+  void complex_copy_from_single_complex(complex a,single_complex b);
+  void single_complex_copy_from_complex(single_complex a,complex b);
   void complex_put_to_zero(complex a);
   void complex_put_to_real(complex a,double b);
   void complex_isubt(complex a,complex b,complex c);
@@ -48,6 +50,7 @@ namespace nissa
   void complex_summ_the_conj_conj_prod(complex a,complex b,complex c);
   void complex_summ_the_conj_conj_prod_i(complex a,complex b,complex c);
   void complex_summ_the_prod(complex a,complex b,complex c);
+  void single_complex_summ_the_prod(single_complex a,single_complex b,single_complex c);
   void complex_summ_the_prod_double(complex a,complex b,double c);
   void complex_summ_the_prod_i(complex a,complex b,complex c);
   void complex_summ_the_prod_idouble(complex a,complex b,double c);
@@ -68,8 +71,11 @@ namespace nissa
   void unsafe_complex_conj_conj_prod(complex a,complex b,complex c);
   void unsafe_complex_conj_conj_prod_minus(complex a,complex b,complex c);
   void unsafe_complex_prod(complex a,complex b,complex c);
+  void unsafe_single_complex_prod(single_complex a,single_complex b,single_complex c);
   void unsafe_complex_prod_idouble(complex a,complex b,double c);
   void unsafe_complex_prod_minus(complex a,complex b,complex c);
+  void single_complex_summ_the_conj1_prod(single_complex a,single_complex b,single_complex c);
+  void single_complex_subt_the_conj1_prod(single_complex a,single_complex b,single_complex c);
 }
 #endif
   

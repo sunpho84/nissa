@@ -38,6 +38,11 @@ namespace nissa
   typedef complex spin[4];
   typedef complex color[3];
   typedef complex halfspin[2];
+
+  typedef float single_complex[2];
+  typedef single_complex single_color[3];
+  typedef single_color single_su3[3];
+  typedef single_su3 single_quad_su3[4];
   
   typedef spin colorspin[3];
   typedef color spincolor[4];
@@ -73,6 +78,11 @@ namespace nissa
   typedef bi_color bi_spincolor[4];
   typedef bi_color bi_halfspincolor[2];
   typedef bi_complex bi_halfspin[2];
+
+  typedef single_complex bi_single_complex[2];
+  typedef bi_single_complex bi_single_color[3];
+  typedef bi_single_color bi_single_su3[3];
+  typedef bi_single_su3 bi_single_oct_su3[8];
 
 #ifdef BGQ_EMU
   typedef bi_complex reg_bi_complex;
@@ -667,6 +677,10 @@ namespace nissa
     uint64_t tot_mess_size;
     //offsets
     int send_offset[8],message_length[8],recv_offset[8];
+    
+    //constructor
+    bool initialized;
+    comm_t(){initialized=false;}
   };
 #endif
 }

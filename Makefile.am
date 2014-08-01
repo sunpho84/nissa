@@ -5,7 +5,8 @@ ACLOCAL_AMFLAGS=-I m4
 SUBDIRS= \
 	src \
 	. \
-	projects
+	projects \
+	tools
 
 #adds extra files to distribution
 EXTRA_DIST= \

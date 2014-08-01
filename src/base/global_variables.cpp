@@ -204,8 +204,9 @@ namespace nissa
  #endif
   
   EXTERN void *broadcast_ptr;
+  EXTERN float *glb_single_reduction_buf;
   EXTERN double *glb_double_reduction_buf;
-  EXTERN float_128 *glb_float_128_reduction_buf;
+  EXTERN float_128 *glb_quadruple_reduction_buf;
 
   EXTERN void(*threaded_function_ptr)();
 #endif
@@ -289,6 +290,8 @@ namespace nissa
   EXTERN comm_t lx_su3_comm,eo_su3_comm;
   EXTERN comm_t lx_as2t_su3_comm,eo_as2t_su3_comm;
   EXTERN comm_t lx_quad_su3_comm,eo_quad_su3_comm;
+  EXTERN comm_t lx_single_color_comm,eo_single_color_comm;
+  EXTERN comm_t lx_single_quad_su3_comm,eo_single_quad_su3_comm;
 #endif
   
   ////////////////////////////////////// two stage computations ///////////////////////////////

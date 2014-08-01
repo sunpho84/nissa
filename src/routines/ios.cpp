@@ -95,21 +95,6 @@ namespace nissa
     return master_broadcast(rc);
   }
   
-  //remove a file
-  int rm(const char *path)
-  {
-    int rc=0;
-    if(rank==0)
-      {
-	char command[1024];
-	sprintf(command,"rm %s",path);
-	rc=system(command);
-	if(rc!=0) crash("rm failed!");
-      }
-    
-    return master_broadcast(rc);
-  }
-  
   //pass to the folder
   int cd(const char *path)
   {

@@ -145,6 +145,16 @@
     complex_copy(A[0],B[0]);			\
     complex_copy(A[1],B[1]);			\
   }
+#define BI_COMPLEX_COPY_FROM_BI_SINGLE_COMPLEX(A,B)	\
+  {							\
+    complex_copy_from_single_complex(A[0],B[0]);	\
+    complex_copy_from_single_complex(A[1],B[1]);	\
+  }
+#define BI_SINGLE_COMPLEX_COPY_FROM_BI_COMPLEX(A,B)	\
+  {							\
+    single_complex_copy_from_complex(A[0],B[0]);	\
+    single_complex_copy_from_complex(A[1],B[1]);	\
+  }
 #define BI_COLOR_COPY(A,B)			\
   {						\
     BI_COMPLEX_COPY(A[0],B[0]);			\

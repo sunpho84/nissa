@@ -37,6 +37,10 @@ namespace nissa
   //general set of bufered comm
   void comm_setup(comm_t &comm)
   {
+    //mark initialization
+    if(comm.initialized) crash("trying to initialize an already initialized communicator!");
+    comm.initialized=true;
+
     //check that buffers are large enough
     if(comm.tot_mess_size>std::min(send_buf_size,recv_buf_size))
       crash("asking to create a communicator that need %d large buffer (%d allocated)",
@@ -92,10 +96,17 @@ namespace nissa
   void set_eo_comm(comm_t &comm,int nbytes_per_site)
   {set_lx_or_eo_comm(comm,1,nbytes_per_site);}
   
+  //check that the communicator is initialized
+  void crash_if_not_initialized(comm_t &comm)
+  {if(!comm.initialized) crash("using uninitialized communicator!");}
+  
   //start the communications
   void comm_start(comm_t &comm,int *dir_comm=NULL,int tot_size=-1)
   {
     GET_THREAD_ID();
+    
+    //check initialization
+    crash_if_not_initialized(comm);
     
     //mark communication as in progress
     comm.comm_in_prog=1;
@@ -124,6 +135,9 @@ namespace nissa
   void comm_wait(comm_t &comm)
   {
     GET_THREAD_ID();
+    
+    //check initialization
+    crash_if_not_initialized(comm);
     
     if(IS_MASTER_THREAD)
       {
@@ -158,9 +172,15 @@ namespace nissa
   //unset everything
   void comm_unset(comm_t &comm)
   {
+    //check initialization
+    crash_if_not_initialized(comm);
+    
     //wait for any communication to finish
     comm_wait(comm);
     
+    //mark not initialized
+    comm.initialized=false;
+
 #ifdef SPI
     spi_descriptor_unset(comm);
 #endif

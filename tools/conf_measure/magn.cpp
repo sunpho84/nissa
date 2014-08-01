@@ -21,7 +21,7 @@ quad_u1 *u1b[2];
 FILE *outfile;
 
 //compute the magnetization
-THREADABLE_FUNCTION_3ARG(compute_mag, quark_content_t*,qc, int,iconf, int,ihit)
+THREADABLE_FUNCTION_4ARG(compute_mag, quark_content_t*,qc, int,iconf, int,ihit, int,iflav)
 {
   //reset initial guess
   vector_reset(guess);
@@ -50,7 +50,7 @@ THREADABLE_FUNCTION_3ARG(compute_mag, quark_content_t*,qc, int,iconf, int,ihit)
       //remove the background field
       rem_backfield_from_conf(stout_conf_eo,u1b);
       
-      master_fprintf(outfile,"%d %d %lg %16.16lg\n",iconf,ihit,b,magn[0]);
+      master_fprintf(outfile,"%d %d %d %lg %16.16lg\n",iconf,ihit,iflav,b,magn[0]);
     }
 }
 THREADABLE_FUNCTION_END
@@ -79,7 +79,7 @@ void analyze_conf(int iconf)
       for(int iflav=0;iflav<nflavs;iflav++)
 	{
 	  master_printf(" Flav %d/%d\n",iflav+1,nflavs);
-	  compute_mag(quark_content+iflav,iconf,ihit);
+	  compute_mag(quark_content+iflav,iconf,ihit,iflav);
 	}
     }
 }
@@ -95,12 +95,10 @@ void init(const char *input_path)
   //init the grid 
   read_str_int("L",&L);
   read_str_int("T",&T);
-  init_grid(T,L);  
 
   //read seed
   int seed;
   read_str_int("Seed",&seed);
-  start_loc_rnd_gen(seed);
   
   //read flavor parameters
   read_str_int("NDiffFlavs",&nflavs);
@@ -114,6 +112,10 @@ void init(const char *input_path)
   read_str_str("OutPath",out_path,1024); //output path
   read_str_int("NHits",&nhits);   //read the number of hits
   read_str_int("NConfs",&nconfs); //read the number of configurations
+  
+  //start grid and loc rnd gen
+  init_grid(T,L);  
+  start_loc_rnd_gen(seed);
   
   //allocate
   point_magn=nissa_malloc("app",loc_vol,complex);
