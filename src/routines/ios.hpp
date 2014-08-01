@@ -13,7 +13,7 @@ namespace nissa
   int cp(char *path_out,char *path_in);
   int create_dir(char *path);
   int master_fprintf(FILE *stream,const char *format,...);
-  int rm(const char *path);
+  //int rm(const char *path);
   std::string combine(const char *format,...);
   void close_file(FILE *file);
   void fprintf_friendly_filesize(FILE *fout,int quant);

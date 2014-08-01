@@ -1476,7 +1476,6 @@ void in_main(int narg,char **arg)
       sprintf(fin_file,"%s/finished",outfolder);
       sprintf(run_file,"%s/running",outfolder);
       file_touch(fin_file);
-      rm(run_file);
       
       nanalyzed_conf++;
       enough_time=check_remaining_time();

@@ -276,7 +276,7 @@ namespace nissa
     std::ostringstream os;
     os.precision(16);
     os<<B[meta.component]<<" ";
-    for(typename std::vector<double>::iterator it=meta.begin();it!=meta.end();it++) os<<*it<<" ";
+    for(std::vector<double>::iterator it=meta.begin();it!=meta.end();it++) os<<*it<<" ";
     return ILDG_string_message_append_to_last(&mess,name,os.str().c_str());
   }
 

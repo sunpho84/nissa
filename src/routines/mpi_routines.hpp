@@ -16,6 +16,7 @@ namespace nissa
   void create_MPI_cartesian_grid();
   void ranks_abort(int err);
   void ranks_barrier();
+  float glb_reduce_single(float in_loc);
   double glb_reduce_double(double in_loc);
   double glb_max_double(double in_loc);
   int glb_reduce_int(int in_loc);

@@ -147,11 +147,18 @@ namespace nissa
 	    su3_summ_the_prod_color(    out[ie],conf[EVN][ie  ][mu],temp[odup]);
 	    su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw][mu],temp[oddw]);
 	  }
-	
+      }	
+
+    if(mass2!=0)
+      NISSA_PARALLEL_LOOP(ie,0,loc_volh)
 	for(int ic=0;ic<3;ic++)
 	  for(int ri=0;ri<2;ri++)
 	    out[ie][ic][ri]=mass2*in[ie][ic][ri]-out[ie][ic][ri]*0.25;
-      }
+    else
+      NISSA_PARALLEL_LOOP(ie,0,loc_volh)
+	for(int ic=0;ic<3;ic++)
+	  for(int ri=0;ri<2;ri++)
+	    out[ie][ic][ri]*=-0.25;
     
     set_borders_invalid(out);
     

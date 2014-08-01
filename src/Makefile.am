@@ -142,6 +142,7 @@ endif
 EXTRA_DIST+= \
         dirac_operators/WclovQ/dirac_operator_WclovQ_portable.cpp \
         dirac_operators/stD/dirac_operator_stD_portable.cpp \
+        dirac_operators/stD/dirac_operator_stD_32_portable.cpp \
         dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_portable.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_portable.cpp \
         dirac_operators/tmQ_left/dirac_operator_tmQ_left_portable.cpp
@@ -240,6 +241,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
         inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
         inverters/twisted_mass/tm_frontends.cpp \
         inverters/staggered/cgm_invert_stD2ee_m2_portable.cpp \
+        inverters/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
         inverters/staggered/cg_invert_stD2ee_m2_portable.cpp \
         inverters/staggered/cgm_invert_stD2ee_m2.cpp \
         inverters/staggered/cg_invert_stD2ee_m2.cpp \

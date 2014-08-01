@@ -477,11 +477,7 @@ void store_conf_if_necessary()
     {
       char path[1024];
       sprintf(path,"%s.%05d",store_conf_path,itraj);
-#if !defined BGQ || defined BGQ_EMU 
-      if(store_running_temp_conf) cp(path,conf_path);
-      else 
-#endif
-	write_conf(path,conf);
+      write_conf(path,conf);
     }
 }
 

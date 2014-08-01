@@ -20,6 +20,16 @@ namespace nissa
     a[0]=b[0];
     a[1]=b[1];
   }
+  void complex_copy_from_single_complex(complex a,single_complex b)
+  {
+    a[0]=b[0];
+    a[1]=b[1];
+  }
+  void single_complex_copy_from_complex(single_complex a,complex b)
+  {
+    a[0]=b[0];
+    a[1]=b[1];
+  }
   void complex_put_to_real(complex a,double b)
   {
     a[0]=b;
@@ -150,6 +160,11 @@ namespace nissa
     a[0]+=b[0]*c[0]-b[1]*c[1];
     a[1]+=b[0]*c[1]+b[1]*c[0];
   }
+  void single_complex_summ_the_prod(single_complex a,single_complex b,single_complex c)
+  {
+    a[0]+=b[0]*c[0]-b[1]*c[1];
+    a[1]+=b[0]*c[1]+b[1]*c[0];
+  }
   void complex_subt_the_prod(complex a,complex b,complex c)
   {
     a[0]-=b[0]*c[0]-b[1]*c[1];
@@ -160,8 +175,15 @@ namespace nissa
     a[0]+=+b[0]*c[0]+b[1]*c[1];
     a[1]+=-b[0]*c[1]+b[1]*c[0];
   }
+  void single_complex_summ_the_conj2_prod(single_complex a,single_complex b,single_complex c)
+  {
+    a[0]+=+b[0]*c[0]+b[1]*c[1];
+    a[1]+=-b[0]*c[1]+b[1]*c[0];
+  }
   void complex_summ_the_conj1_prod(complex a,complex b,complex c)
   {complex_summ_the_conj2_prod(a,c,b);}
+  void single_complex_summ_the_conj1_prod(single_complex a,single_complex b,single_complex c)
+  {single_complex_summ_the_conj2_prod(a,c,b);}
   void complex_summ_the_conj_conj_prod(complex a,complex b,complex c)
   {
     a[0]+=+b[0]*c[0]-b[1]*c[1];
@@ -172,8 +194,15 @@ namespace nissa
     a[0]-=+b[0]*c[0]+b[1]*c[1];
     a[1]-=-b[0]*c[1]+b[1]*c[0];
   }
+  void single_complex_subt_the_conj2_prod(single_complex a,single_complex b,single_complex c)
+  {
+    a[0]-=+b[0]*c[0]+b[1]*c[1];
+    a[1]-=-b[0]*c[1]+b[1]*c[0];
+  }
   void complex_subt_the_conj1_prod(complex a,complex b,complex c)
   {complex_subt_the_conj2_prod(a,c,b);}
+  void single_complex_subt_the_conj1_prod(single_complex a,single_complex b,single_complex c)
+  {single_complex_subt_the_conj2_prod(a,c,b);}
   void complex_subt_the_conj_conj_prod(complex a,complex b,complex c)
   {
     a[0]-=+b[0]*c[0]-b[1]*c[1];
@@ -182,6 +211,16 @@ namespace nissa
   
   //The product of two complex number
   void unsafe_complex_prod(complex a,complex b,complex c)
+  {
+    a[0]=b[0]*c[0]-b[1]*c[1];
+    a[1]=b[0]*c[1]+b[1]*c[0];
+  }  
+  void unsafe_single_single_complex_prod(single_complex a,single_complex b,single_complex c)
+  {
+    a[0]=b[0]*c[0]-b[1]*c[1];
+    a[1]=b[0]*c[1]+b[1]*c[0];
+  }  
+  void unsafe_single_complex_prod(single_complex a,single_complex b,single_complex c)
   {
     a[0]=b[0]*c[0]-b[1]*c[1];
     a[1]=b[0]*c[1]+b[1]*c[0];

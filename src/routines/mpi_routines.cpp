@@ -245,6 +245,38 @@ namespace nissa
     return out_glb;
   }
   
+  //reduce a double
+  float glb_reduce_single(float in_loc)
+  {
+    float out_glb;
+    
+#ifdef USE_THREADS
+    if(!thread_pool_locked)
+      {
+	GET_THREAD_ID();
+	
+	//copy loc in the buf and sync all the threads
+	glb_single_reduction_buf[thread_id]=in_loc;
+	THREAD_BARRIER();
+	
+	//within master thread summ all the pieces and between MPI
+	if(IS_MASTER_THREAD)
+	  {
+	    for(unsigned int ith=1;ith<nthreads;ith++) in_loc+=glb_single_reduction_buf[ith];
+	    MPI_Allreduce(&in_loc,&(glb_single_reduction_buf[0]),1,MPI_FLOAT,MPI_SUM,MPI_COMM_WORLD);
+	    cache_flush();
+	  }
+	
+	//read glb val
+	THREAD_ATOMIC_EXEC(out_glb=glb_single_reduction_buf[0];);
+      }
+    else
+#endif
+      MPI_Allreduce(&in_loc,&out_glb,1,MPI_FLOAT,MPI_SUM,MPI_COMM_WORLD);
+    
+    return out_glb;
+  }
+  
   //max of all double
   double glb_max_double(double in_loc)
   {
@@ -300,7 +332,7 @@ namespace nissa
 	GET_THREAD_ID();
 	
 	//copy loc in the buf and sync all the threads
-	float_128_copy(glb_float_128_reduction_buf[thread_id],in_loc);
+	float_128_copy(glb_quadruple_reduction_buf[thread_id],in_loc);
 	if(VERBOSITY_LV3 && rank==0) printf(" entering 128 reduction, in_loc[%d]: %+016.16lg\n",
 					    THREAD_ID,in_loc[0]+in_loc[1]);
 	THREAD_BARRIER();
@@ -308,15 +340,15 @@ namespace nissa
 	//within master thread summ all the pieces and between MPI
 	if(IS_MASTER_THREAD)
 	  {
-	    for(unsigned int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_float_128_reduction_buf[ith]);
-	    MPI_Allreduce(in_loc,glb_float_128_reduction_buf[0],1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
-	    if(VERBOSITY_LV3 && rank==0) printf("glb tot: %+016.16lg\n",glb_float_128_reduction_buf[0][0]+
-						glb_float_128_reduction_buf[0][1]);
+	    for(unsigned int ith=1;ith<nthreads;ith++) float_128_summassign(in_loc,glb_quadruple_reduction_buf[ith]);
+	    MPI_Allreduce(in_loc,glb_quadruple_reduction_buf[0],1,MPI_FLOAT_128,MPI_FLOAT_128_SUM,MPI_COMM_WORLD);
+	    if(VERBOSITY_LV3 && rank==0) printf("glb tot: %+016.16lg\n",glb_quadruple_reduction_buf[0][0]+
+						glb_quadruple_reduction_buf[0][1]);
 	    cache_flush();
 	  }
 	
 	//read glb val
-	THREAD_ATOMIC_EXEC(float_128_copy(out_glb,glb_float_128_reduction_buf[0]));
+	THREAD_ATOMIC_EXEC(float_128_copy(out_glb,glb_quadruple_reduction_buf[0]));
       }
     else
 #endif

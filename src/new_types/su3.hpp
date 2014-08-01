@@ -76,9 +76,13 @@ namespace nissa
   void su2_prodassign_su3(double A,double B,double C,double D,int isub_gr,su3 in);
   void su2_prodassign_su3(su2 mod,int isub_gr,su3 in);
   void su3_copy(su3 b,su3 a);
+  void unsafe_single_su3_prod_single_color(single_color a,single_su3 b,single_color c);
+  void single_su3_summ_the_prod_single_color(single_color a,single_su3 b,single_color c);
   void unsafe_su3_dag_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c);
   void unsafe_su3_dag_prod_colorspinspin(colorspinspin a,su3 b,colorspinspin c);
   void su3_dag_subt_the_prod_color(color a,su3 b,color c);
+  void single_su3_dag_subt_the_prod_single_color(single_color a,single_su3 b,single_color c);
+  void single_su3_dag_summ_the_prod_single_color(single_color a,single_su3 b,single_color c);
   void su3_dag_summ_the_prod_colorspinspin(colorspinspin a,su3 b,colorspinspin c);
   void su3_dag_summ_the_prod_color(color a,su3 b,color c);
   void su3_det(complex d,su3 U);

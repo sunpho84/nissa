@@ -45,7 +45,7 @@ cd ../../
 #rm -fr gcc*
 
 #openmpi
-wget http://www.open-mpi.org/software/ompi/v1.6/downloads/openmpi-1.6.5.tar.gz -O -|tar xzf -
+wget http://www.open-mpi.org/software/ompi/v1.8/downloads/openmpi-1.8.1.tar.gz -O -|tar xzf -
 cd openmpi*
 mkdir build
 cd build

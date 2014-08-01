@@ -32,7 +32,14 @@
     BI_COMPLEX_COPY((*((bi_complex*)(addr))),data);			\
   }									\
   while(0)
-#define BGQ_QVSTFCDUXA(addr,data,offset)					\
+#define BGQ_QVSTFSUXA(addr,data,offset)					\
+  do									\
+  {									\
+    (addr)=(float*)((uintptr_t)(addr)+(offset));			\
+    BI_SINGLE_COMPLEX_COPY_FROM_BI_COMPLEX((*((bi_single_complex*)(addr))),data); \
+  }									\
+  while(0)
+#define BGQ_QVSTFCDUXA(addr,data,offset)				\
   do									\
   {									\
     (addr)=(double*)((uintptr_t)(addr)+(offset));			\
@@ -42,6 +49,8 @@
 #else
 #define BGQ_QVSTFDUXA(addr,data,offset)					\
   asm ("qvstfduxa %[v4d],%[ptr],%[off]  \n" : [ptr] "+b" (addr) : [v4d] "v" (data), [off] "r" (offset) )
+#define BGQ_QVSTFSUXA(addr,data,offset)					\
+  asm ("qvstfsuxa %[v4d],%[ptr],%[off]  \n" : [ptr] "+b" (addr) : [v4d] "v" (data), [off] "r" (offset) )
 #define BGQ_QVSTFCDUXA(addr,data,offset)					\
   asm ("qvstfcduxa %[v4d],%[ptr],%[off]  \n" : [ptr] "+b" (addr) : [v4d] "v" (data), [off] "r" (offset) )
 #endif
@@ -54,10 +63,12 @@
 
 //store without advancing
 #define REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFDUXA(out,in,0)
+#define REG_STORE_BI_SINGLE_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFSUXA(out,in,0)
 #define REG_STORE_COMPLEX_WITHOUT_ADVANCING(out,in) BGQ_QVSTFCDUXA(out,in,0)
 
 //store after advancing to next bi_complex
 #define REG_STORE_BI_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVSTFDUXA(out,in,32)
+#define REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVSTFSUXA(out,in,16)
 #define REG_STORE_COMPLEX_AFTER_ADVANCING(out,in) BGQ_QVSTFCDUXA(out,in,32)
 
 #define STORE_REG_BI_HALFSPINCOLOR(addr,in)				\
@@ -92,12 +103,30 @@
     }									\
   while(0)
 
+#define STORE_REG_BI_SINGLE_COLOR(addr,in)				\
+  do									\
+    {									\
+      void *ptr=(addr);							\
+      REG_STORE_BI_SINGLE_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,c0));	\
+      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));	\
+      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));	\
+    }									\
+  while(0)
+
 #define STORE_REG_BI_COLOR_ADVANCING(ptr,in)				\
   do									\
     {									\
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c0));		\
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));		\
       REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));		\
+    }									\
+  while(0)
+#define STORE_REG_BI_SINGLE_COLOR_ADVANCING(ptr,in)			\
+  do									\
+    {									\
+      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c0));	\
+      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c1));	\
+      REG_STORE_BI_SINGLE_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c2));	\
     }									\
   while(0)
 

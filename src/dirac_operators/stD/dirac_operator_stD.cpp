@@ -13,6 +13,7 @@
 #include "linalgs/linalgs.hpp"
 
 #include "dirac_operator_stD_portable.cpp"
+#include "dirac_operator_stD_32_portable.cpp"
 
 namespace nissa
 {
