@@ -13,6 +13,10 @@
 
 #include "bgq_macros.hpp"
 
+#if (((defined VERSION_64) && (defined VERSION_32)) || ((!defined VERSION_64) && (!defined VERSION_32)))
+ #error Impossible!
+#endif
+
 #if ((defined VERSION_64) && (!defined VERSION_32))
  #define PREC_TYPE double
  #define BI_32_64_COMPLEX bi_complex
@@ -40,6 +44,8 @@
  #define STORE_REG_BI_32_64_COLOR STORE_REG_BI_COLOR
  #define STORE_REG_BI_32_64_COLOR_ADVANCING STORE_REG_BI_COLOR_ADVANCING
  #define BI_32_64_COLOR_PREFETCH_NEXT BI_COLOR_PREFETCH_NEXT
+ #define REG_BI_32_64_SU3_PROD_BI_32_64_COLOR_LOAD_STORE REG_BI_SU3_PROD_BI_COLOR_LOAD_STORE
+ #define REG_BI_32_64_SU3_DAG_PROD_BI_32_64_COLOR_LOAD_STORE REG_BI_SU3_DAG_PROD_BI_COLOR_LOAD_STORE
 #endif
 
 #if ((defined VERSION_32) && (!defined VERSION_64))
@@ -69,6 +75,8 @@
  #define STORE_REG_BI_32_64_COLOR STORE_REG_BI_SINGLE_COLOR
  #define STORE_REG_BI_32_64_COLOR_ADVANCING STORE_REG_BI_SINGLE_COLOR_ADVANCING
  #define BI_32_64_COLOR_PREFETCH_NEXT BI_SINGLE_COLOR_PREFETCH_NEXT
+ #define REG_BI_32_64_SU3_PROD_BI_32_64_COLOR_LOAD_STORE REG_BI_SINGLE_SU3_PROD_BI_SINGLE_COLOR_LOAD_STORE
+ #define REG_BI_32_64_SU3_DAG_PROD_BI_32_64_COLOR_LOAD_STORE REG_BI_SINGLE_SU3_DAG_PROD_BI_SINGLE_COLOR_LOAD_STORE
 #endif
 
 #define HOP_HEADER(A)				\
@@ -218,22 +226,22 @@ namespace nissa
 	REG_LOAD_BI_32_64_COLOR(reg_in,in[ibgqlx]);
 	
 	HOP_HEADER(0); //T backward scatter (forward derivative)
-	REG_BI_SU3_PROD_BI_COLOR_LOAD_STORE(out[iout[0]],links[0],reg_in);
+	REG_BI_32_64_SU3_PROD_BI_32_64_COLOR_LOAD_STORE(out[iout[0]],links[0],reg_in);
 	HOP_HEADER(1); //X backward scatter (forward derivative)
-	REG_BI_SU3_PROD_BI_COLOR_LOAD_STORE(out[iout[1]],links[1],reg_in);
+	REG_BI_32_64_SU3_PROD_BI_32_64_COLOR_LOAD_STORE(out[iout[1]],links[1],reg_in);
 	HOP_HEADER(2); //Y backward scatter (forward derivative)
-	REG_BI_SU3_PROD_BI_COLOR_LOAD_STORE(out[iout[2]],links[2],reg_in);
+	REG_BI_32_64_SU3_PROD_BI_32_64_COLOR_LOAD_STORE(out[iout[2]],links[2],reg_in);
 	HOP_HEADER(3); //Z backward scatter (forward derivative)
-	REG_BI_SU3_PROD_BI_COLOR_LOAD_STORE(out[iout[3]],links[3],reg_in);
+	REG_BI_32_64_SU3_PROD_BI_32_64_COLOR_LOAD_STORE(out[iout[3]],links[3],reg_in);
 	
 	HOP_HEADER(4); //T forward scatter (backward derivative)
-	REG_BI_SU3_DAG_PROD_BI_COLOR_LOAD_STORE(out[iout[4]],links[4],reg_in);
+	REG_BI_32_64_SU3_DAG_PROD_BI_32_64_COLOR_LOAD_STORE(out[iout[4]],links[4],reg_in);
 	HOP_HEADER(5); //X forward scatter (backward derivative)
-	REG_BI_SU3_DAG_PROD_BI_COLOR_LOAD_STORE(out[iout[5]],links[5],reg_in);
+	REG_BI_32_64_SU3_DAG_PROD_BI_32_64_COLOR_LOAD_STORE(out[iout[5]],links[5],reg_in);
 	HOP_HEADER(6); //Y forward scatter (backward derivative)
-	REG_BI_SU3_DAG_PROD_BI_COLOR_LOAD_STORE(out[iout[6]],links[6],reg_in);
+	REG_BI_32_64_SU3_DAG_PROD_BI_32_64_COLOR_LOAD_STORE(out[iout[6]],links[6],reg_in);
 	HOP_HEADER(7); //Z forward scatter (backward derivative)
-	REG_BI_SU3_DAG_PROD_BI_COLOR_LOAD_STORE(out[iout[7]],links[7],reg_in);
+	REG_BI_32_64_SU3_DAG_PROD_BI_32_64_COLOR_LOAD_STORE(out[iout[7]],links[7],reg_in);
       }
 
     THREAD_BARRIER();
@@ -292,6 +300,7 @@ namespace nissa
 	  //load the second
 	  DECLARE_REG_BI_COLOR(in1);
 	  REG_LOAD_BI_32_64_COLOR(in1,bgq_hopping_matrix_output_vdir_buffer[isrc+1]);
+	  
 	  //merge the two and save
 	  DECLARE_REG_BI_COLOR(to_buf);
 	  REG_BI_COLOR_V1_MERGE(to_buf,in0,in1);
@@ -486,3 +495,5 @@ namespace nissa
 #undef STORE_REG_BI_32_64_COLOR
 #undef STORE_REG_BI_32_64_COLOR_ADVANCING
 #undef BI_32_64_COLOR_PREFETCH_NEXT
+#undef REG_BI_32_64_SU3_PROD_BI_32_64_COLOR_LOAD_STORE
+#undef REG_BI_32_64_SU3_DAG_PROD_BI_32_64_COLOR_LOAD_STORE
