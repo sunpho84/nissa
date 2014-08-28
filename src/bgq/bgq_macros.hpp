@@ -12,8 +12,10 @@
 
 #ifdef BGQ_EMU
  #define COMPLEX_TO_BI_COMPLEX(A,B,VN) complex_copy(A[VN],B)
+ #define COMPLEX_TO_BI_SINGLE_COMPLEX(A,B,VN) single_complex_copy_from_complex(A[VN],B)
 #else
  #define COMPLEX_TO_BI_COMPLEX(A,B,VN) vec_st2(vec_ld2(0,B),0,A[VN])
+ #define COMPLEX_TO_BI_SINGLE_COMPLEX(A,B,VN) vec_st2(vec_ld2(0,B),0,A[VN])
 #endif
 
 #define COLOR_TO_BI_COLOR(A,B,VN)		\
@@ -21,6 +23,12 @@
     COMPLEX_TO_BI_COMPLEX(A[0],B[0],VN);	\
     COMPLEX_TO_BI_COMPLEX(A[1],B[1],VN);	\
     COMPLEX_TO_BI_COMPLEX(A[2],B[2],VN);	\
+  }
+#define COLOR_TO_BI_SINGLE_COLOR(A,B,VN)	\
+  {						\
+    COMPLEX_TO_BI_SINGLE_COMPLEX(A[0],B[0],VN);	\
+    COMPLEX_TO_BI_SINGLE_COMPLEX(A[1],B[1],VN);	\
+    COMPLEX_TO_BI_SINGLE_COMPLEX(A[2],B[2],VN);	\
   }
 #define SU3_TO_BI_SU3(A,B,VN)			\
   {						\
@@ -187,11 +195,22 @@
     complex_copy(A,C[0]);			\
     complex_copy(B,C[1]);			\
   }
+#define BI_SINGLE_COMPLEX_TO_COMPLEX(A,B,C)	\
+  {						\
+    complex_copy_from_single_complex(A,C[0]);	\
+    complex_copy_from_single_complex(B,C[1]);	\
+  }
 #define BI_COLOR_TO_COLOR(A,B,C)		\
   {						\
     BI_COMPLEX_TO_COMPLEX(A[0],B[0],C[0]);	\
     BI_COMPLEX_TO_COMPLEX(A[1],B[1],C[1]);	\
     BI_COMPLEX_TO_COMPLEX(A[2],B[2],C[2]);	\
+  }
+#define BI_SINGLE_COLOR_TO_COLOR(A,B,C)			\
+  {							\
+    BI_SINGLE_COMPLEX_TO_COMPLEX(A[0],B[0],C[0]);	\
+    BI_SINGLE_COMPLEX_TO_COMPLEX(A[1],B[1],C[1]);	\
+    BI_SINGLE_COMPLEX_TO_COMPLEX(A[2],B[2],C[2]);	\
   }
 #define BI_SU3_TO_SU3(A,B,C)			\
   {						\

@@ -411,13 +411,13 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
   communicate_lx_color_borders(in);
   
   //remap conf to bgq
-  bi_oct_su3 *bi_conf[2]={nissa_malloc("bi_conf_evn",loc_volh+bord_volh,bi_oct_su3),
-			  nissa_malloc("bi_conf_odd",loc_volh+bord_volh,bi_oct_su3)};
+  bi_oct_su3 *bi_conf[2]={nissa_malloc("bi_conf_evn",loc_volh/2,bi_oct_su3),
+			  nissa_malloc("bi_conf_odd",loc_volh/2,bi_oct_su3)};
   lx_conf_remap_to_vireo(bi_conf,conf);
   
   //remap in to bgq
-  bi_color *bi_in_eo[2]={nissa_malloc("bi_in",loc_volh+bord_volh,bi_color),
-			 nissa_malloc("bi_in",loc_volh+bord_volh,bi_color)};
+  bi_color *bi_in_eo[2]={nissa_malloc("bi_in",loc_volh/2,bi_color),
+			 nissa_malloc("bi_in",loc_volh/2,bi_color)};
   lx_color_remap_to_vireo(bi_in_eo,in);
   
   {
@@ -830,36 +830,34 @@ void debug2_st()
   master_printf("bgq way\n");
   
   //remap conf to bgq
-  bi_oct_su3 *bi_conf_eo[2]={nissa_malloc("bi_conf_evn",loc_volh+bord_volh,bi_oct_su3),
-			     nissa_malloc("bi_conf_odd",loc_volh+bord_volh,bi_oct_su3)};
+  bi_oct_su3 *bi_conf_eo[2]={nissa_malloc("bi_conf_evn",loc_volh/2,bi_oct_su3),
+			     nissa_malloc("bi_conf_odd",loc_volh/2,bi_oct_su3)};
   lx_conf_remap_to_vireo(bi_conf_eo,conf);
   
   //remap in to bgq
-  bi_color *bi_in_eo[2]={nissa_malloc("bi_in",loc_volh+bord_volh,bi_color),
-			 nissa_malloc("bi_in",loc_volh+bord_volh,bi_color)};
+  bi_color *bi_in_eo[2]={nissa_malloc("bi_in",loc_volh/2,bi_color),
+			 nissa_malloc("bi_in",loc_volh/2,bi_color)};
   lx_color_remap_to_vireo(bi_in_eo,in);
   
   //apply bgq
-  bi_color *bi_out_eo[2]={nissa_malloc("bi_out",loc_volh+bord_volh,bi_color),
-			  nissa_malloc("bi_out",loc_volh+bord_volh,bi_color)};
+  bi_color *bi_out_eo[2]={nissa_malloc("bi_out",loc_volh/2,bi_color),
+			  nissa_malloc("bi_out",loc_volh/2,bi_color)};
 
-  bi_single_oct_su3 *bi_single_conf_eo[2]={nissa_malloc("bi_single_conf_evn",loc_volh+bord_volh,bi_single_oct_su3),
-					   nissa_malloc("bi_single_conf_odd",loc_volh+bord_volh,bi_single_oct_su3)};
-  bi_single_color *bi_single_in_eo[2]={nissa_malloc("bi_single_in",loc_volh+bord_volh,bi_single_color),
-			 nissa_malloc("bi_single_in",loc_volh+bord_volh,bi_single_color)};
-  bi_single_color *bi_single_out_eo[2]={nissa_malloc("bi_single_out",loc_volh+bord_volh,bi_single_color),
-			  nissa_malloc("bi_single_out",loc_volh+bord_volh,bi_single_color)};
+  bi_single_oct_su3 *bi_single_conf_eo[2]={nissa_malloc("bi_single_conf_evn",loc_volh/2,bi_single_oct_su3),
+					   nissa_malloc("bi_single_conf_odd",loc_volh/2,bi_single_oct_su3)};
+  bi_single_color *bi_single_in_eo[2]={nissa_malloc("bi_single_in",loc_volh/2,bi_single_color),
+				       nissa_malloc("bi_single_in",loc_volh/2,bi_single_color)};
+  bi_single_color *bi_single_out_eo[2]={nissa_malloc("bi_single_out",loc_volh/2,bi_single_color),
+					nissa_malloc("bi_single_out",loc_volh/2,bi_single_color)};
   
+  //remap
   for(int eo=0;eo<2;eo++)
     {
-      for(int i=0;i<(int)(sizeof(bi_oct_su3)/sizeof(double)*(loc_volh+bord_volh));i++)
+      for(int i=0;i<(int)(sizeof(bi_oct_su3)/sizeof(double)*loc_volh/2);i++)
 	((float*)(bi_single_conf_eo[eo]))[i]=((double*)(bi_conf_eo[eo]))[i];
       set_borders_invalid(bi_single_conf_eo[eo]);
-    }
-  
-  for(int eo=0;eo<2;eo++)
-    {
-      for(int i=0;i<(int)(sizeof(bi_color)/sizeof(double)*(loc_volh+bord_volh));i++)
+      
+      for(int i=0;i<(int)(sizeof(bi_color)/sizeof(double)*loc_volh/2);i++)
 	((float*)(bi_single_in_eo[eo]))[i]=((double*)(bi_in_eo[eo]))[i];
       set_borders_invalid(bi_single_in_eo[eo]);
     }
@@ -885,29 +883,14 @@ void debug2_st()
       apply_stD2ee_m2_bgq(bi_out_eo[EVN],bi_conf_eo,bi_out_eo[ODD]/*used as temp*/,mass2,bi_in_eo[EVN]);
     }
   
-  //unmap
-  for(int eo=0;eo<2;eo++)
-    {
-      for(int i=0;i<(int)(sizeof(bi_color)/sizeof(double)*(loc_volh+bord_volh));i++)
-	{
-	  //((double*)(bi_out_eo[eo]))[i]=((float*)(bi_single_out_eo[eo]))[i];
-	  master_printf("%i %g %lg\n",i,((float*)(bi_single_out_eo[eo]))[i],((double*)(bi_out_eo[eo]))[i]);
-	}
-      set_borders_invalid(bi_out_eo[eo]);
-    }
-  
   bgq_time+=take_time();
   bgq_time/=2*nbench;
   
-  //unmap to compare
-  color *un_out=nissa_malloc("un_out",loc_vol+bord_vol,color);
-  vireo_color_remap_to_lx(un_out,bi_out_eo);
-  
-  //take evn
-  color *temp_eo[2]={nissa_malloc("temp",loc_volh+bord_volh,color),
-		     nissa_malloc("temp",loc_volh+bord_volh,color)};
-  split_lx_color_into_eo_parts(temp_eo,un_out);
-  virevn_or_odd_color_remap_to_evn_or_odd(temp_eo[EVN],bi_out_eo[EVN],EVN);
+  //unamp to compare
+  color *un_out=nissa_malloc("un_out",loc_volh,color);
+  color *un_single_out=nissa_malloc("un_single_out",loc_volh,color);
+  virevn_or_odd_color_remap_to_evn_or_odd(un_out,bi_out_eo[EVN],EVN);
+  virevn_or_odd_single_color_remap_to_evn_or_odd(un_single_out,bi_single_out_eo[EVN],EVN);
   
   //compute average diff
   if(rank==0)
@@ -927,14 +910,15 @@ void debug2_st()
 	}
       //for(int ic=0;ic<3;ic++)
       //for(int ri=0;ri<2;ri++)
-      //printf(" %d sure %lg, bgq %lg %d\n",lx,out[EVN][i][ic][ri],temp_eo[EVN][i][ic][ri],ex);
     }
-  double diff;
-  double_vector_subt((double*)temp_eo[EVN],(double*)temp_eo[EVN],(double*)out[EVN],
-		     loc_volh*sizeof(color)/sizeof(double));
-  double_vector_glb_scalar_prod(&diff,(double*)temp_eo[EVN],(double*)temp_eo[EVN],
-				loc_volh*sizeof(color)/sizeof(double));
-  master_printf("ST application diff: %lg\n",diff);
+  double diff2,diff_single2,norm2;
+  double_vector_subt((double*)un_out,(double*)un_out,(double*)out[EVN],loc_volh*sizeof(color)/sizeof(double));
+  double_vector_subt((double*)un_single_out,(double*)un_single_out,(double*)out[EVN],loc_volh*sizeof(color)/sizeof(double));
+  double_vector_glb_scalar_prod(&diff2,(double*)un_out,(double*)un_out,loc_volh*sizeof(color)/sizeof(double));
+  double_vector_glb_scalar_prod(&diff_single2,(double*)un_single_out,(double*)un_single_out,loc_volh*sizeof(color)/sizeof(double));
+  double_vector_glb_scalar_prod(&norm2,(double*)out[EVN],(double*)out[EVN],loc_volh*sizeof(color)/sizeof(double));
+  master_printf("ST application relative diff: %lg\n",sqrt(diff2/norm2));
+  master_printf("ST application relative diff single: %lg\n",sqrt(diff_single2/norm2));
   master_printf("Time to apply %d time:\n",nbench);
   master_printf(" %lg sec in port mode\n",port_time);
   master_printf(" %lg sec in bgq mode\n",bgq_time);
@@ -1032,11 +1016,10 @@ void debug2_st()
   nissa_free(bi_in_eo[1]);
   nissa_free(bi_single_in_eo[0]);
   nissa_free(bi_single_in_eo[1]);
-  nissa_free(temp_eo[0]);
-  nissa_free(temp_eo[1]);
-  nissa_free(un_out);
   nissa_free(out[0]);
   nissa_free(out[1]);
+  nissa_free(un_out);
+  nissa_free(un_single_out);
   nissa_free(bi_out_eo[0]);
   nissa_free(bi_out_eo[1]);
   nissa_free(bi_single_out_eo[0]);

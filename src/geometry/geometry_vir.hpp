@@ -17,6 +17,7 @@ namespace nissa
   void vireo_spincolor_remap_to_lx(spincolor *out,bi_spincolor **in);
   void vireo_color_remap_to_lx(color *out,bi_color **in);
   void virevn_or_odd_color_remap_to_evn_or_odd(color *out,bi_color *in,int par);
+  void virevn_or_odd_single_color_remap_to_evn_or_odd(color *out,bi_single_color *in,int par);
   void lx_spincolor_remap_to_vireo(bi_spincolor **out,spincolor *in);
   void lx_color_remap_to_vireo(bi_color **out,color *in);
   void evn_or_odd_color_remap_to_virevn_or_odd(bi_color *out,color *in,int par);

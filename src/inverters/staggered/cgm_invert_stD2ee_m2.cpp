@@ -20,8 +20,8 @@ namespace nissa
     
     //allocate
     bi_color *bi_source=nissa_malloc("bi_source",loc_volh/2,bi_color);
-    bi_oct_su3 *bi_eo_conf[2]={nissa_malloc("bi_conf_evn",loc_volh+bord_volh,bi_oct_su3),
-			       nissa_malloc("bi_conf_odd",loc_volh+bord_volh,bi_oct_su3)};
+    bi_oct_su3 *bi_eo_conf[2]={nissa_malloc("bi_conf_evn",(loc_volh+bord_volh)/2,bi_oct_su3),
+			       nissa_malloc("bi_conf_odd",(loc_volh+bord_volh)/2,bi_oct_su3)};
     bi_color *bi_chi_e=nissa_malloc("bi_chi_e",loc_volh/2,bi_color);
     
     ////////////////////////
@@ -55,8 +55,8 @@ namespace nissa
     
     //allocate
     bi_color *bi_pf=nissa_malloc("bi_pf",loc_volh/2,bi_color);
-    bi_oct_su3 *bi_eo_conf[2]={nissa_malloc("bi_conf_evn",loc_volh+bord_volh,bi_oct_su3),
-			       nissa_malloc("bi_conf_odd",loc_volh+bord_volh,bi_oct_su3)};
+    bi_oct_su3 *bi_eo_conf[2]={nissa_malloc("bi_conf_evn",loc_volh/2,bi_oct_su3),
+			       nissa_malloc("bi_conf_odd",loc_volh/2,bi_oct_su3)};
     bi_color *bi_chi_e[nterms];
     for(int iterm=0;iterm<nterms;iterm++) bi_chi_e[iterm]=nissa_malloc("bi_chi_e",loc_volh/2,bi_color);
     
