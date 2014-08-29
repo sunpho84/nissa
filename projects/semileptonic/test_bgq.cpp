@@ -15,7 +15,7 @@ using namespace nissa;
 const int nbench=10,nbench_port=10;
 
 int seed=100;
-int L=16,T=L;
+int L=4,T=L;
 double mu=0.03,kappa=0.137;
 coords is_closed;
 

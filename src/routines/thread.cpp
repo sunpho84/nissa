@@ -44,7 +44,7 @@ namespace nissa
     // if 1, we postpone to the end of the barrier
     
     enum delay_pattern{DELAY_RANDOMLY,DELAY_SLAVES};
-    const delay_pattern picked=DELAY_SLAVES;
+    const delay_pattern picked=DELAY_RANDOMLY;
     
     switch(picked)
       {
@@ -66,7 +66,8 @@ namespace nissa
     
     if(delayed_thread_barrier[THREAD_ID]==1)
       {
-	if(rank==0 && VERBOSITY_LV3) printf("thread %d will delay its execution\n",THREAD_ID);
+	if(rank==0 && VERBOSITY_LV3) printf("thread %d will delay its execution,stopped at %s,%d\n",
+					    THREAD_ID,glb_barr_file,glb_barr_line);
 	thread_barrier_internal();
       }
   }
@@ -219,6 +220,35 @@ namespace nissa
     start_threaded_function(NULL,"");
   }
   
+  //make all threads update a single counter in turn, checking previous state
+  THREADABLE_FUNCTION_0ARG(thread_sanity_check)
+  {
+    //counter
+    uint32_t *ptr=(uint32_t*)&broadcast_ptr;
+    GET_THREAD_ID();
+
+    //loop every threads, each one changing the counter state
+    for(uint32_t i=0;i<NACTIVE_THREADS;i++)
+      {
+        //if it is current thread turn
+        if(thread_id==i)
+          {
+            //check that previous state agree (if not on first iter)
+	    if(thread_id!=0 && *ptr!=thread_id-1)
+              crash("error, thread %u found the counter in wrong state %u",thread_id,*ptr);
+            //update the counter
+            *ptr=i;
+          }
+        fflush(stdout);
+        THREAD_BARRIER();
+      }
+
+    //chech final state
+    if(thread_id==0 && *ptr!=nthreads-1) crash("loop thread not closed: %u!",*ptr);
+    THREAD_BARRIER();
+  }
+  THREADABLE_FUNCTION_END
+
   //start the master thread, locking all the other threads
   void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg))
   {
@@ -230,6 +260,9 @@ namespace nissa
     //lock the pool
     thread_pool_locked=true;
     cache_flush();
+    
+    //control the proper working of all the threads...
+    thread_sanity_check();
     
     //launch the main function
     main_function(narg,arg);

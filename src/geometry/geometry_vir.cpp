@@ -402,7 +402,6 @@ namespace nissa
 	    SU3_TO_BI_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[ibord][mu],vn);
 	  }
     
-
     for(int eo=0;eo<2;eo++) set_borders_invalid(out[eo]);
   }
   THREADABLE_FUNCTION_END

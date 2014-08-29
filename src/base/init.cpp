@@ -120,36 +120,6 @@ namespace nissa
     master_printf("Nissa initialized!\n");
   }
 
-#ifdef USE_THREADS  
-  //make all threads update a single counter in turn, checking previous state
-  void sanity_check_threads()
-  {
-    //counter
-    uint32_t *ptr=(uint32_t*)&broadcast_ptr;
-    GET_THREAD_ID();
-
-    //loop every threads, each one changing the counter state
-    for(uint32_t i=0;i<nthreads;i++)
-      {
-	//if it is current thread turn
-        if(thread_id==i)
-          {
-	    //check that previous state agree (if not on first iter)
-            if(thread_id!=0 && *ptr!=thread_id-1)
-              crash("error, thread %u found the counter in wrong state %u",thread_id,*ptr);
-	    //update the counter
-            *ptr=i;
-          }
-	fflush(stdout);
-	THREAD_BARRIER();
-      }
-    
-    //chech final state
-    if(thread_id==0 && *ptr!=nthreads-1) crash("loop thread not closed: %u!",*ptr);
-    THREAD_BARRIER();
-  }
-#endif
-
   //start nissa in a threaded environment, sending all threads but first in the 
   //thread pool and issuing the main function
   void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg))
@@ -181,9 +151,6 @@ namespace nissa
       for(unsigned int i=0;i<nthreads;i++) start_rnd_gen(delay_rnd_gen+i,delay_base_seed+i);
       #endif
 
-      //control the proper working of all the threads
-      sanity_check_threads();
-      
       //distinguish master thread from the others
       GET_THREAD_ID();
       if(thread_id!=0) thread_pool();
