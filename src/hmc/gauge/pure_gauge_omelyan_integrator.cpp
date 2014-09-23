@@ -16,6 +16,7 @@
  #include "routines/thread.hpp"
 #endif
 
+#include "gluonic_action.hpp"
 #include "gluonic_force.hpp"
 #include "hmc/momenta/momenta_evolve.hpp"
 
@@ -24,13 +25,13 @@ namespace nissa
   // Evolve momenta according to the pure gauge force
   // calculate H=H-F*dt to evolve link momenta
   // i.e calculate v(t+dt)=v(t)+a*dt
-  THREADABLE_FUNCTION_5ARG(evolve_momenta_with_pure_gauge_force, quad_su3*,H, quad_su3*,conf, theory_pars_t*,theory_pars, double,dt, quad_su3*,ext_F)
+  THREADABLE_FUNCTION_6ARG(evolve_momenta_with_pure_gauge_force, quad_su3*,H, quad_su3*,conf, theory_pars_t*,theory_pars, double,dt, bool,phase_pres, quad_su3*,ext_F)
   {
     verbosity_lv2_master_printf("Evolving momenta with pure gauge force, dt=%lg\n",dt);
     
     //allocate force and compute it
     quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",loc_vol,quad_su3):ext_F;
-    compute_gluonic_force_lx_conf(F,conf,theory_pars);
+    compute_gluonic_force_lx_conf(F,conf,theory_pars,phase_pres);
     
     //evolve
     evolve_lx_momenta_with_force(H,F,dt);
@@ -38,8 +39,8 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //integrator for pure gauge
-  THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver, quad_su3*,H, quad_su3*,conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul)
+  //integrator for pure gauge - WARNING: assuming no phase present!
+  THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver, quad_su3*,H, quad_su3*,conf, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
   {
     //macro step or micro step
     double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,
@@ -47,7 +48,7 @@ namespace nissa
     int nsteps=simul->nmd_steps;
     
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-    evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,ldt,NULL);
+    evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,ldt,false/*assuming no phase is present*/,NULL);
 
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
@@ -57,11 +58,11 @@ namespace nissa
 	//decide if last step is final or not
 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
-	evolve_lx_conf_with_momenta(H,conf,dth);
-	evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,uml2dt,NULL);
+	evolve_lx_conf_with_momenta(conf,H,dth);
+	evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,uml2dt,false,NULL);
 	
-	evolve_lx_conf_with_momenta(H,conf,dth);
-	evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,last_dt,NULL);
+	evolve_lx_conf_with_momenta(conf,H,dth);
+	evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,last_dt,false,NULL);
 	
 	//normalize the configuration
 	unitarize_lx_conf_maximal_trace_projecting(conf);

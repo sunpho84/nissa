@@ -37,7 +37,7 @@ namespace nissa
   }
   
   //common part, for staples and potential if needed
-  void compute_topological_force_lx_conf_internal(quad_su3 *F,quad_su3 *conf,topotential_pars_t *pars)
+  void compute_topological_force_lx_conf_internal(quad_su3 *F,quad_su3 *conf,topotential_pars_t *pars,bool phase_pres)
   {
     GET_THREAD_ID();
     
@@ -61,16 +61,16 @@ namespace nissa
     set_borders_invalid(F);
 
     //add the stag phases to the force term, to cancel the one entering the force
-    addrem_stagphases_to_lx_conf(F);
+    if(phase_pres) addrem_stagphases_to_lx_conf(F);
   }
   
   //compute the topological force
-  THREADABLE_FUNCTION_3ARG(compute_topological_force_lx_conf, quad_su3*,F, quad_su3*,conf, topotential_pars_t*,pars)
+  THREADABLE_FUNCTION_4ARG(compute_topological_force_lx_conf, quad_su3*,F, quad_su3*,conf, topotential_pars_t*,pars, bool,phase_pres)
   {
     verbosity_lv1_master_printf("Computing topological force\n");
     
     //compute the staples
-    if(pars->stout_pars.nlev==0) compute_topological_force_lx_conf_internal(F,conf,pars);
+    if(pars->stout_pars.nlev==0) compute_topological_force_lx_conf_internal(F,conf,pars,phase_pres);
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]
@@ -78,23 +78,23 @@ namespace nissa
         stout_smear_conf_stack_allocate(&sme_conf,conf,pars->stout_pars.nlev);
         
         //smear iteratively retaining all the stack
-        addrem_stagphases_to_lx_conf(sme_conf[0]); //remove the staggered phases
+        if(phase_pres) addrem_stagphases_to_lx_conf(sme_conf[0]); //remove the staggered phases
         stout_smear_whole_stack(sme_conf,conf,&(pars->stout_pars));
         
         //compute the force in terms of the most smeared conf
-        addrem_stagphases_to_lx_conf(sme_conf[pars->stout_pars.nlev]); //add to most smeared conf
-	compute_topological_force_lx_conf_internal(F,sme_conf[pars->stout_pars.nlev],pars);
+        if(phase_pres) addrem_stagphases_to_lx_conf(sme_conf[pars->stout_pars.nlev]); //add to most smeared conf
+	compute_topological_force_lx_conf_internal(F,sme_conf[pars->stout_pars.nlev],pars,phase_pres);
 	
         //remap the force backward
         stouted_force_remap(F,sme_conf,&(pars->stout_pars));
-        addrem_stagphases_to_lx_conf(sme_conf[0]); //add back again to the original conf
+        if(phase_pres) addrem_stagphases_to_lx_conf(sme_conf[0]); //add back again to the original conf
 	
 	//now free the stack of confs
         stout_smear_conf_stack_free(&sme_conf,pars->stout_pars.nlev);
       }
     
     //take TA
-    gluonic_force_finish_computation(F,conf);
+    gluonic_force_finish_computation(F,conf,phase_pres);
   }
   THREADABLE_FUNCTION_END
 }

@@ -112,12 +112,22 @@ namespace nissa
   //read the parameters relevant for pure gauge evolution
   void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
   {
-    //heat bath parameters
-    read_str_int("NHbSweeps",&pars.nhb_sweeps);
-    read_str_int("NHbHits",&pars.nhb_hits);
-    //overrelax parameters
-    read_str_int("NOvSweeps",&pars.nov_sweeps);
-    read_str_int("NOvHits",&pars.nov_hits);
+    //use or not hybrid Monte Carlo
+    read_str_int("UseHMC",&pars.use_hmc);
+    if(pars.use_hmc)
+      {
+	read_str_double("HmcTrajLength",&pars.traj_length);
+	read_str_int("NmdSteps",&pars.nmd_steps);
+      }
+    else
+      {
+	//heat bath parameters
+	read_str_int("NHbSweeps",&pars.nhb_sweeps);
+	read_str_int("NHbHits",&pars.nhb_hits);
+	//overrelax parameters
+	read_str_int("NOvSweeps",&pars.nov_sweeps);
+	read_str_int("NOvHits",&pars.nov_hits);
+      }
   }
   
   //read parameters to ape smear gauge action

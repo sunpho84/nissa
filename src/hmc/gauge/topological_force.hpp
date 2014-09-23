@@ -3,7 +3,7 @@
 
 namespace nissa
 {
-  void compute_topological_force_lx_conf(quad_su3 *F,quad_su3 *conf,topotential_pars_t *pars);
+  void compute_topological_force_lx_conf(quad_su3 *F,quad_su3 *conf,topotential_pars_t *pars,bool phase_pres);
 }
 
 #endif

@@ -18,13 +18,16 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_3ARG(tree_level_Symanzik_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta)
+  THREADABLE_FUNCTION_4ARG(tree_level_Symanzik_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta, bool,phase_pres)
   {
     verbosity_lv2_master_printf("Computing tree level Symanzik force\n");
     
     //coefficient of rectangles and squares, including beta
     double b1=-1.0/12,b0=1-8*b1;
-    double c1=-b1*beta/3,c0=b0*beta/3; //the stag phases add (-1)^area
+    double c1=-b1*beta/3,c0=-b0*beta/3;
+    //the stag phases add (-1)^area
+    if(phase_pres) c0=-c0; 
+    
     GET_THREAD_ID();
     
     //compute squared pieces

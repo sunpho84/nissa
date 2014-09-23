@@ -13,7 +13,7 @@ namespace nissa
 {
   template <class T> void gluonic_action(double *gluon_action,T conf,theory_pars_t *theory_pars,bool stag_phase_present=false)
   {
-    verbosity_lv1_master_printf("Computing action\n");
+    verbosity_lv1_master_printf("Computing gauge action\n");
 
     switch(theory_pars->gauge_action_name)
       {

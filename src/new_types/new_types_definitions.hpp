@@ -638,6 +638,10 @@ namespace nissa
   //parameters for pure gauge theory
   struct pure_gauge_evol_pars_t
   {
+    //wheter to use or not hmc
+    int use_hmc;
+    double traj_length;
+    int nmd_steps;
     //number of hb sweeps and hits per link
     int nhb_sweeps;
     int nhb_hits;
