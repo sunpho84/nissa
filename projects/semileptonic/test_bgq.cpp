@@ -23,6 +23,20 @@ coords is_closed;
   coords_5D spi_dir_is_torus;
 #endif
 
+THREADABLE_FUNCTION_2ARG(wrapped_hopping_matrix_eo_or_eo_expand_to_single_staggered_D,double*,time,bi_single_color*,bi_single_out_eo)
+{
+  GET_THREAD_ID();
+  if(IS_MASTER_THREAD) (*time)=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    hopping_matrix_eo_or_eo_expand_to_single_staggered_D(bi_single_out_eo);
+  if(IS_MASTER_THREAD)
+    {
+      (*time)+=take_time();
+      (*time)/=nbench;
+    }
+}
+THREADABLE_FUNCTION_END
+
 int comp_nhop(coords_5D n,coords_5D tcoords,coords_5D tdims,bool p=0)
 {
   int nhop=0;
@@ -126,7 +140,9 @@ void time_mpi_timing()
 //benchmark thread_barrier
 THREADABLE_FUNCTION_0ARG(bench_thread_barrier)
 {
-  int nbench_barr=1;
+  int nbench_barr=10000;
+  
+  //full barrier
   double barr_time=-take_time();
   for(int ibench=0;ibench<nbench_barr;ibench++)
     THREAD_BARRIER();
@@ -141,7 +157,19 @@ THREADABLE_FUNCTION_0ARG(bench_thread_barrier)
     }
   omp_barr_time+=take_time();
   omp_barr_time/=nbench_barr;
-  master_printf("thread barrier: %lg sec/barr, %lg sec/omp_barr\n",barr_time,omp_barr_time);
+
+  //pure spi barrier
+  double spi_barr_time=0;
+#ifndef BGQ_EMU
+  spi_barr_time=-take_time();
+  for(int ibench=0;ibench<nbench_barr;ibench++)
+    bgq_barrier(nthreads);
+  spi_barr_time+=take_time();
+  spi_barr_time/=nbench_barr;
+#endif
+  
+  master_printf("thread barrier (%d test): %lg sec/barr, spi: %lg sec/barr, %lg sec/omp_barr\n",
+		nbench_barr,barr_time,spi_barr_time,omp_barr_time);
 }}
 
 THREADABLE_FUNCTION_0ARG(bench_scalar_prod)
@@ -735,12 +763,12 @@ void debug2_tm()
   master_printf("bulk_computation_time: %lg sec\n",bulk_computation_time);
   
   //benchmark surf computation
-  double surf_compuation_time=-take_time();
+  double surf_computation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
     apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,0,vsurf_vol,bi_in);
-  surf_compuation_time+=take_time();
-  surf_compuation_time/=nbench;
-  master_printf("surf_compuation_time: %lg sec\n",surf_compuation_time);
+  surf_computation_time+=take_time();
+  surf_computation_time/=nbench;
+  master_printf("surf_computation_time: %lg sec\n",surf_computation_time);
   
   //benchmark buff unfilling
   double buff_unfilling_time=-take_time();
@@ -813,10 +841,9 @@ void debug2_st()
   split_lx_color_into_eo_parts(in_eo,in);
   
   double port_time=-take_time();
-  color *out[2]={nissa_malloc("out_e",loc_volh+bord_volh,color),nissa_malloc("out_o",loc_volh+bord_volh,color)};
+  color *out=nissa_malloc("out_e",loc_volh+bord_volh,color);
   for(int ibench=0;ibench<nbench_port;ibench++)
-    apply_stD2ee_m2(out[EVN],conf_eo,in_eo[ODD]/*used as tmp*/,mass2,in_eo[EVN]);
-    //apply_st2Doe(out[ODD],conf_eo,in_eo[EVN]);
+    apply_stD2ee_m2(out,conf_eo,in_eo[ODD]/*used as tmp*/,mass2,in_eo[EVN]);
   port_time+=take_time();
   port_time/=2*nbench_port;
   
@@ -834,12 +861,22 @@ void debug2_st()
 			     nissa_malloc("bi_conf_odd",loc_volh/2,bi_oct_su3)};
   lx_conf_remap_to_vireo(bi_conf_eo,conf);
   
+  //remap conf to single bq
+  bi_single_oct_su3 *bi_single_conf_eo[2]={nissa_malloc("bi_single_conf_evn",loc_volh+bord_volh,bi_single_oct_su3),
+					   nissa_malloc("bi_single_conf_odd",loc_volh+bord_volh,bi_single_oct_su3)};
+  lx_conf_remap_to_single_vireo(bi_single_conf_eo,conf);
+
   //remap in to bgq
   bi_color *bi_in_eo[2]={nissa_malloc("bi_in",loc_volh/2,bi_color),
 			 nissa_malloc("bi_in",loc_volh/2,bi_color)};
   lx_color_remap_to_vireo(bi_in_eo,in);
   
-  //apply bgq
+  //remap in to single bgq
+  bi_single_color *bi_single_in_eo[2]={nissa_malloc("bi_single_in",loc_volh+bord_volh,bi_single_color),
+			 nissa_malloc("bi_single_in",loc_volh+bord_volh,bi_single_color)};
+  lx_color_remap_to_single_vireo(bi_single_in_eo,in);
+  
+  //allocate out
   bi_color *bi_out_eo[2]={nissa_malloc("bi_out",loc_volh/2,bi_color),
 			  nissa_malloc("bi_out",loc_volh/2,bi_color)};
 
@@ -862,29 +899,40 @@ void debug2_st()
       set_borders_invalid(bi_single_in_eo[eo]);
     }
   
-  double bgq_time=-take_time();
+  //bench single
+  double bgq_single_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    {
-      /*
-      const int OE=0;
+    apply_single_stD2ee_m2_bgq(bi_single_out_eo[EVN],bi_single_conf_eo,bi_single_out_eo[ODD]/*used as temp*/,mass2,bi_single_in_eo[EVN]);
+  bgq_single_time+=take_time();
+  bgq_single_time/=2*nbench;  
   
-      //compute on the surface and start communications
-      apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],OE);
-      start_staggered_hopping_matrix_oe_or_eo_bgq_communications();
+  //convert double and single eo
+  color *temp_eo=nissa_malloc("temp",loc_volh+bord_volh,color);
+  virevn_or_odd_color_remap_to_evn_or_odd(temp_eo,bi_out_eo[EVN],EVN);
+  color *temp_single_eo=nissa_malloc("temps",loc_volh+bord_volh,color);
+  virevn_or_odd_single_color_remap_to_evn_or_odd(temp_single_eo,bi_single_out_eo[EVN],EVN);
   
-      //compute on the bulk and finish communications
-      apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],OE);
-      finish_double_staggered_hopping_matrix_oe_or_eo_bgq_communications(OE);
+  //norm
+  double norm;
+  double_vector_glb_scalar_prod(&norm,(double*)out[EVN],(double*)out[EVN],loc_volh*sizeof(color)/sizeof(double));
+  
+  //compare double
+  double diff;
+  double_vector_subt((double*)temp_eo,(double*)temp_eo,(double*)out[EVN],
+		     loc_volh*sizeof(color)/sizeof(double));
+  double_vector_glb_scalar_prod(&diff,(double*)temp_eo,(double*)temp_eo,
+				loc_volh*sizeof(color)/sizeof(double));
+  master_printf("ST application diff double: %lg\n",diff/norm);
 
-      //put the eight pieces together
-      hopping_matrix_eo_or_eo_expand_to_double_staggered_D(bi_out_eo[ODD]);
-      */
-      apply_single_stD2ee_m2_bgq(bi_single_out_eo[EVN],bi_single_conf_eo,bi_single_out_eo[ODD]/*used as temp*/,mass2,bi_single_in_eo[EVN]);
-      apply_stD2ee_m2_bgq(bi_out_eo[EVN],bi_conf_eo,bi_out_eo[ODD]/*used as temp*/,mass2,bi_in_eo[EVN]);
-    }
+  //compare single
+  double diff_single;
+  double_vector_subt((double*)temp_single_eo,(double*)temp_single_eo,(double*)out[EVN],
+		     loc_volh*sizeof(color)/sizeof(double));
+  double_vector_glb_scalar_prod(&diff_single,(double*)temp_single_eo,(double*)temp_single_eo,
+				loc_volh*sizeof(color)/sizeof(double));
+  master_printf("ST application diff single: %lg\n",diff_single/norm);
   
-  bgq_time+=take_time();
-  bgq_time/=2*nbench;
+  /////////////// double precision pieces benchmark /////////////////
   
   //unamp to compare
   color *un_out=nissa_malloc("un_out",loc_volh,color);
@@ -940,7 +988,7 @@ void debug2_st()
 
   //benchmark expansion
   double exp_bgq_time[2];
-  int nflops_exp=42*loc_volh;
+  int nflops_exp[2]={48*loc_volh,60*loc_volh};
   for(int eo_or_oe=0;eo_or_oe<2;eo_or_oe++)
     {
       exp_bgq_time[eo_or_oe]=-take_time();
@@ -951,12 +999,12 @@ void debug2_st()
       exp_bgq_time[eo_or_oe]/=nbench;
       master_printf("exp_bgq_time_%s: %lg sec, %d flops, %lg Mflops\n",
 		    (eo_or_oe==0)?"eo":"oe",
-		    exp_bgq_time[eo_or_oe],nflops_exp,nflops_exp*1e-6/exp_bgq_time[eo_or_oe]);
+		    exp_bgq_time[eo_or_oe],nflops_exp[eo_or_oe],nflops_exp[eo_or_oe]*1e-6/exp_bgq_time[eo_or_oe]);
     }
 
   //total
   double hop_plus_exp_bgq_time=hop_bgq_time[0]+hop_bgq_time[1]+exp_bgq_time[0]+exp_bgq_time[1];
-  int nflops_hop_plus_exp=2*(nflops_exp+nflops_hop);
+  int nflops_hop_plus_exp=2*nflops_hop+nflops_exp[0]+nflops_exp[1];
   master_printf("(hop+exp)_bgq_time: %lg sec, %d flops, %lg Mflops\n",
 		hop_plus_exp_bgq_time,nflops_hop_plus_exp,nflops_hop_plus_exp*
 		1e-6/hop_plus_exp_bgq_time);
@@ -979,12 +1027,12 @@ void debug2_st()
   master_printf("bulk_computation_time: %lg sec\n",bulk_computation_time);
   
   //benchmark surf computation
-  double surf_compuation_time=-take_time();
+  double surf_computation_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
     apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],0);
-  surf_compuation_time+=take_time();
-  surf_compuation_time/=nbench;
-  master_printf("surf_compuation_time: %lg sec\n",surf_compuation_time);
+  surf_computation_time+=take_time();
+  surf_computation_time/=nbench;
+  master_printf("surf_computation_time: %lg sec\n",surf_computation_time);
   
   //benchmark buff unfilling
   double buff_unfilling_time=-take_time();
@@ -1004,7 +1052,112 @@ void debug2_st()
   pure_spi_time+=take_time();
   pure_spi_time/=nbench;
   double data_exch=eo_color_comm.tot_mess_size/1024.0/1024.0;
-  master_printf("pure_comm_time: %lg sec, %lg Mbytes, %lg Mb/sec\n",pure_spi_time,data_exch,data_exch/pure_spi_time);
+  master_printf("pure_spi_time (eo): %lg sec, %lg Mbytes, %lg Mb/sec\n",pure_spi_time,data_exch,data_exch/pure_spi_time);
+  
+  //compute total comm time
+  double tot_comm_time=buff_filling_time+buff_unfilling_time+pure_spi_time;
+  master_printf("tot_comm_time (eo): %lg sec\n",tot_comm_time);
+
+  master_printf("tot_bgq_time: %lg sec, %d flops, %lg Mflops\n",
+		hop_plus_exp_bgq_time+2*tot_comm_time,nflops_hop_plus_exp,nflops_hop_plus_exp*
+		1e-6/(hop_plus_exp_bgq_time+2*tot_comm_time));
+  
+  //////////////// single computation pieces benchmark //////////////
+  
+  master_printf("\n");
+  master_printf("single precision pieces benchmark\n");
+  master_printf("---------------------------------\n");
+  
+  //benchmark pure hopping matrix application
+  nflops_hop=480*loc_volh;
+  for(int eo_or_oe=0;eo_or_oe<2;eo_or_oe++)
+    {
+      hop_bgq_time[eo_or_oe]=-take_time();
+      for(int ibench=0;ibench<nbench;ibench++)
+	apply_single_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_single_conf_eo,0,loc_volh/2,bi_single_in_eo[EVN],eo_or_oe);
+      hop_bgq_time[eo_or_oe]+=take_time();
+      hop_bgq_time[eo_or_oe]/=nbench;
+      master_printf("hop_bgq_time_%s: %lg sec, %d flops, %lg Mflops\n",
+		    (eo_or_oe==0)?"eo":"oe",
+		    hop_bgq_time[eo_or_oe],nflops_hop,nflops_hop*1e-6/hop_bgq_time[eo_or_oe]);
+    }
+
+  //benchmark expansion
+  for(int eo_or_oe=0;eo_or_oe<2;eo_or_oe++)
+    {
+      //double tmp;
+      exp_bgq_time[eo_or_oe]=-take_time();
+      //if(eo_or_oe==0) /*for(int ibench=0;ibench<nbench;ibench++)*/ wrapped_hopping_matrix_eo_or_eo_expand_to_single_staggered_D(&tmp,bi_single_out_eo[EVN]);
+      if(eo_or_oe==0) for(int ibench=0;ibench<nbench;ibench++) hopping_matrix_eo_or_eo_expand_to_single_staggered_D(bi_single_out_eo[EVN]);
+      else
+	for(int ibench=0;ibench<nbench;ibench++) 
+	  hopping_matrix_eo_or_eo_expand_to_single_staggered_D_subtract_from_mass2_times_in(bi_single_out_eo[ODD],mass2,bi_single_in_eo[EVN]); 
+      exp_bgq_time[eo_or_oe]+=take_time();
+      exp_bgq_time[eo_or_oe]/=nbench;
+      //if(eo_or_oe==0) exp_bgq_time[eo_or_oe]=tmp;
+      master_printf("exp_bgq_time_%s: %lg sec, %d flops, %lg Mflops\n",
+		    (eo_or_oe==0)?"eo":"oe",
+		    exp_bgq_time[eo_or_oe],nflops_exp[eo_or_oe],nflops_exp[eo_or_oe]*1e-6/exp_bgq_time[eo_or_oe]);
+    }
+
+  //total
+  hop_plus_exp_bgq_time=hop_bgq_time[0]+hop_bgq_time[1]+exp_bgq_time[0]+exp_bgq_time[1];
+  nflops_hop_plus_exp=2*nflops_hop+nflops_exp[0]+nflops_exp[1];
+  master_printf("(hop+exp)_bgq_time: %lg sec, %d flops, %lg Mflops\n",
+		hop_plus_exp_bgq_time,nflops_hop_plus_exp,nflops_hop_plus_exp*
+		1e-6/hop_plus_exp_bgq_time);
+  
+  //benchmark buff filling
+  buff_filling_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    bgq_single_staggered_hopping_matrix_oe_or_eo_vdir_VN_comm_and_buff_fill();
+  buff_filling_time+=take_time();
+  buff_filling_time/=nbench;
+  master_printf("buff_filling_time: %lg sec\n",buff_filling_time);
+  
+  //benchmark bulk computation
+  bulk_computation_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    apply_single_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_single_conf_eo,0,vsurf_volh,bi_single_in_eo[EVN],0);
+  bulk_computation_time+=take_time();
+  bulk_computation_time/=nbench;
+  master_printf("bulk_computation_time: %lg sec\n",bulk_computation_time);
+  
+  //benchmark surf computation
+  surf_computation_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    apply_single_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_single_conf_eo,vsurf_volh,loc_volh/2,bi_single_in_eo[EVN],0);
+  surf_computation_time+=take_time();
+  surf_computation_time/=nbench;
+  master_printf("surf_computation_time: %lg sec\n",surf_computation_time);
+  
+  //benchmark buff unfilling
+  buff_unfilling_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    finish_single_staggered_hopping_matrix_oe_or_eo_bgq_communications(0);
+  buff_unfilling_time+=take_time();
+  buff_unfilling_time/=nbench;
+  master_printf("buff_unfilling_time: %lg sec\n",buff_unfilling_time);
+  
+  //benchmark pure spi communication without data moving
+  pure_spi_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
+    {
+      comm_start(eo_color_comm);
+      comm_wait(eo_color_comm);
+    }
+  pure_spi_time+=take_time();
+  pure_spi_time/=nbench;
+  data_exch=eo_single_color_comm.tot_mess_size/1024.0/1024.0;
+  master_printf("pure_comm_time (eo): %lg sec, %lg Mbytes, %lg Mb/sec\n",pure_spi_time,data_exch,data_exch/pure_spi_time);
+
+  //compute total comm time
+  tot_comm_time=buff_filling_time+buff_unfilling_time+pure_spi_time;
+  master_printf("tot_comm_time (eo): %lg sec\n",tot_comm_time);
+
+  master_printf("tot_bgq_time: %lg sec, %d flops, %lg Mflops\n",
+		hop_plus_exp_bgq_time+2*tot_comm_time,nflops_hop_plus_exp,nflops_hop_plus_exp*
+		1e-6/(hop_plus_exp_bgq_time+2*tot_comm_time));
   
   nissa_free(conf);
   nissa_free(bi_conf_eo[0]);
@@ -1036,9 +1189,10 @@ void in_main(int narg,char **arg)
   check_torus();
 
   time_mpi_timing();
-  /*
+  
   bench_thread_barrier();
   
+  /*
   //master_printf("debugging tmQ\n");
   //debug_apply_tmQ();
 

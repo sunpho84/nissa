@@ -109,8 +109,8 @@
 
 namespace nissa
 {
-  //summ the eight contributions and divide by two
-  THREADABLE_FUNCTION_1ARG(HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D, BI_32_64_COLOR*,out)
+  //summ the eight contributions and divide by two (note that the non-coeff option is used below)
+  THREADABLE_FUNCTION_2ARG(HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D, BI_32_64_COLOR*,out, double,coeff)
   {
     GET_THREAD_ID();
     
@@ -126,7 +126,7 @@ namespace nissa
     DECLARE_REG_BI_COLOR(reg_out);
     DECLARE_REG_BI_COLOR(reg_temp);
     DECLARE_REG_BI_COMPLEX(reg_one_half);
-    REG_SPLAT_BI_COMPLEX(reg_one_half,0.5);
+    REG_SPLAT_BI_COMPLEX(reg_one_half,0.5*coeff);
     
     for(int i=start;i<end;i++)
       {
@@ -142,7 +142,7 @@ namespace nissa
 	LOAD_AND_SUBT_NEXT_TERM(reg_out,reg_temp,temp_ptr);
 	LOAD_AND_SUBT_NEXT_TERM(reg_out,reg_temp,temp_ptr);
 	
-	//put final 0.5 (not with the minus!)
+	//put final 0.5
 	REG_BI_COLOR_PROD_4DOUBLE(reg_out,reg_out,reg_one_half);
 	STORE_REG_BI_32_64_COLOR_ADVANCING(out_ptr,reg_out);
       }
@@ -151,7 +151,10 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
+  void HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D(BI_32_64_COLOR *out)
+  {HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D(out,1);}
+  
   //summ the eight contributions, divide by two and subtract from the diagonal squared mass term
   THREADABLE_FUNCTION_3ARG(HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D_SUBTRACT_FROM_MASS2_TIMES_IN, BI_32_64_COLOR*,out, PREC_TYPE,mass2, BI_32_64_COLOR*,in)
   {

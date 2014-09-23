@@ -36,7 +36,7 @@ namespace nissa
   }
   
   //copy
-  void double_vector_copy(double *a,double *b,int n)
+  template <class T1,class T2> void internal_vector_copy(T1 *a,T2 *b,int n)
   {
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(i,0,n) a[i]=b[i];
@@ -44,6 +44,15 @@ namespace nissa
     set_borders_invalid(a);
   }
   
+  //double to single and vv
+  THREADABLE_FUNCTION_3ARG(double_vector_to_single, float*,a, double*,b, int,n)
+  {internal_vector_copy(a,b,n);}THREADABLE_FUNCTION_END
+  THREADABLE_FUNCTION_3ARG(single_vector_to_double, double*,a, float*,b, int,n)
+  {internal_vector_copy(a,b,n);}THREADABLE_FUNCTION_END
+  //double to double
+  THREADABLE_FUNCTION_3ARG(double_vector_copy, double*,a, double*,b, int,n)
+  {internal_vector_copy(a,b,n);}THREADABLE_FUNCTION_END
+
   //set to zero
   void single_vector_init_to_zero(float *a,int n)
   {

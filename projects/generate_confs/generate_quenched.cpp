@@ -352,7 +352,7 @@ void generate_new_conf(quad_su3 *conf,int check=0)
     }
   
   unitarize_time-=take_time();
-  unitarize_lx_conf(conf);
+  unitarize_lx_conf_maximal_trace_projecting(conf);
   if(boundary_cond==OPEN_BOUNDARY_COND) impose_open_boundary_cond(conf);
   unitarize_time+=take_time();
 }

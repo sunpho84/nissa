@@ -28,6 +28,16 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   //generate momenta using guassian hermitean matrix generator
+  THREADABLE_FUNCTION_1ARG(generate_hmc_momenta, quad_su3*,H)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int mu=0;mu<4;mu++) herm_put_to_gauss(H[ivol][mu],&(loc_rnd_gen[ivol]),1);
+    set_borders_invalid(H);
+  }
+  THREADABLE_FUNCTION_END
+
+  //generate momenta using guassian hermitean matrix generator
   THREADABLE_FUNCTION_1ARG(generate_hmc_B_momenta, double*,H_B)
   {
     GET_THREAD_ID();

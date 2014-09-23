@@ -11,10 +11,10 @@ SUBDIRS= \
 #adds extra files to distribution
 EXTRA_DIST= \
 	config \
-        README \
-        src/nissa.hpp \
-        src/create_headers.sh \
-        tools/common_tools.cpp \
-        tools/clusterize.cpp \
-        tools/clusterize2.cpp \
-        tools/pack.c
+	README \
+	src/nissa.hpp \
+	src/create_headers.sh \
+	tools/common_tools.cpp \
+	tools/clusterize.cpp \
+	tools/clusterize2.cpp \
+	tools/pack.c

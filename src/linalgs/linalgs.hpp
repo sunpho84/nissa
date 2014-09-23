@@ -13,6 +13,8 @@ namespace nissa
   void complex_vector_glb_collapse(double *res,complex *a,int n);
   void double_vector_glb_collapse(double *res,double *a,int n);
   void double_vector_copy(double *a,double *b,int n);
+  void double_vector_to_single(float *a,double *b,int n);
+  void single_vector_to_double(double *a,float *b,int n);
   void double_vector_from_quadruple_vector(double *a,float_128 *b,int n);
   void quadruple_vector_from_double_vector(float_128 *a,double *b,int n);
   void double_vector_init_to_zero(double *a,int n);

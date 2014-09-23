@@ -608,6 +608,7 @@ namespace nissa
     //setup all lx borders communicators
     set_lx_comm(lx_su3_comm,sizeof(su3));
     set_lx_comm(lx_quad_su3_comm,sizeof(quad_su3));
+    set_lx_comm(lx_single_quad_su3_comm,sizeof(single_quad_su3));
     set_lx_comm(lx_as2t_su3_comm,sizeof(as2t_su3));
     set_lx_comm(lx_spin_comm,sizeof(spin));
     set_lx_comm(lx_color_comm,sizeof(color));

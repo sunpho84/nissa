@@ -16,9 +16,9 @@
 #define APPLY_OPERATOR apply_stD2ee_m2_32
 #define CGM_OPERATOR_PARAMETERS conf,t,
 
-#define CGM_INVERT_SINGLE inv_stD2ee_m2_cgm_32_portable
-#define CGM_INVERT_SINGLE_RUN_HM_UP_TO_COMM_PREC inv_stD2ee_m2_cgm_32_portable_run_hm_up_to_comm_prec
-//#define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_stD2ee_m2_cgm_portable
+#define CGM_INVERT inv_stD2ee_m2_cgm_32_portable
+#define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_stD2ee_m2_cgm_32_portable_run_hm_up_to_comm_prec
+#define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_stD2ee_m2_cgm_32_portable
 #define CGM_NPOSSIBLE_REQUESTS 16
 
 #define CGM_START_COMMUNICATING_BORDERS(A) start_communicating_ev_or_od_single_color_borders(A,EVN)

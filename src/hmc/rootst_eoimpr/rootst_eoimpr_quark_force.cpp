@@ -10,7 +10,7 @@
 #include "base/vectors.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
-#include "inverters/staggered/cgm_32_invert_stD2ee_m2_portable.hpp"
+#include "inverters/staggered/cgm_32_invert_stD2ee_m2.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
@@ -64,41 +64,8 @@ namespace nissa
     //invert the various terms
     inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec(chi_e,eo_conf,appr->poles,appr->degree,1000000,residue,pf);
     
-    ////////////////////////////
-    
-#if 0
-    
-    single_color *temp[appr->degree];
-    for(int iterm=0;iterm<appr->degree;iterm++) temp[iterm]=nissa_malloc("temp",loc_volh+bord_volh,single_color);
-    
-    single_quad_su3 *sconf[2];
-    single_color *spf=nissa_malloc("spf",loc_volh,single_color);
-    for(int eo=0;eo<2;eo++)
-      {
-        sconf[eo]=nissa_malloc("sconf",loc_volh+bord_volh,single_quad_su3);
-        for(int ivol=0;ivol<loc_volh;ivol++)
-          for(int mu=0;mu<4;mu++)
-            for(int ic1=0;ic1<3;ic1++)
-              for(int ic2=0;ic2<3;ic2++)
-                for(int ri=0;ri<2;ri++)
-                  sconf[eo][ivol][mu][ic1][ic2][ri]=eo_conf[eo][ivol][mu][ic1][ic2][ri];
-        set_borders_invalid(sconf[eo]);
-      }
-
-    for(int ivol=0;ivol<loc_volh;ivol++)
-      for(int ic=0;ic<3;ic++)
-        for(int ri=0;ri<2;ri++)
-          spf[ivol][ic][ri]=pf[ivol][ic][ri];
-    set_borders_invalid(spf);
-
-    inv_stD2ee_m2_cgm_32_portable_run_hm_up_to_comm_prec(temp,sconf,appr->poles,appr->degree,1000000000,residue,spf);
-    
-    for(int eo=0;eo<2;eo++) nissa_free(sconf[eo]);
-    nissa_free(spf);
-    for(int iterm=0;iterm<appr->degree;iterm++)
-      nissa_free(temp[iterm]);
-    
-#endif
+    //was switched on to test
+    //inv_stD2ee_m2_cgm_32_run_hm_up_to_comm_prec(chi_e,eo_conf,appr->poles,appr->degree,1000000,residue,pf);
 
     ////////////////////
     
