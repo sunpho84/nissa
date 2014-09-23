@@ -35,7 +35,7 @@ namespace nissa
     
     //allocate force and compute it
     quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",loc_vol,quad_su3):ext_F;
-    compute_topological_force_lx_conf(F,conf,topars);
+    compute_topological_force_lx_conf(F,conf,topars,true/*phases present*/);
     
     //evolve
     evolve_lx_momenta_with_force(H,F,dt);
@@ -43,30 +43,8 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
 
-  //evolve the configuration with the momenta
-  THREADABLE_FUNCTION_4ARG(evolve_lx_conf_with_momenta, quad_su3*,lx_conf, quad_su3*,H, theory_pars_t*,tp, double,dt)
-  {
-    GET_THREAD_ID();
-    
-    verbosity_lv2_master_printf("Evolving conf with momenta, dt=%lg\n",dt);
-    
-    //evolve
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
-	{
-	  su3 t1,t2;
-	  su3_prod_double(t1,H[ivol][mu],dt);
-	  safe_anti_hermitian_exact_i_exponentiate(t2,t1);
-	  
-	  safe_su3_prod_su3(lx_conf[ivol][mu],t2,lx_conf[ivol][mu]);
-	}
-    
-    set_borders_invalid(lx_conf);
-  }
-  THREADABLE_FUNCTION_END
-
-  //evolve the configuration according to pure gauge
-  THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_su3*,lx_conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul)
+  //evolve the configuration according to pure gauge - note that there is a similar routine in "pure_gage"
+  THREADABLE_FUNCTION_5ARG(omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_su3*,lx_conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul, bool,phase_pres)
   {
     //macro step or micro step
     double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
@@ -77,7 +55,7 @@ namespace nissa
     topotential_pars_t *topars=&(theory_pars->topotential_pars);
     
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-    evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
+    evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,phase_pres,aux_F);
     if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
     
     //         Main loop
@@ -89,14 +67,14 @@ namespace nissa
 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
 	//     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
-	evolve_lx_conf_with_momenta(lx_conf,H,theory_pars,dth);
+	evolve_lx_conf_with_momenta(lx_conf,H,dth);
 	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
-	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
+	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,phase_pres,aux_F);
 	if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
 	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
-	evolve_lx_conf_with_momenta(lx_conf,H,theory_pars,dth);
+	evolve_lx_conf_with_momenta(lx_conf,H,dth);
 	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
-	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
+	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,phase_pres,aux_F);
 	if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
 	
 	//normalize the configuration
@@ -118,7 +96,7 @@ namespace nissa
     paste_eo_parts_into_lx_conf(H_lx,H_eo);
     paste_eo_parts_into_lx_conf(conf_lx,conf_eo);
     
-    omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
+    omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul,true);
     
     split_lx_conf_into_eo_parts(H_eo,H_lx);
     split_lx_conf_into_eo_parts(conf_eo,conf_lx);

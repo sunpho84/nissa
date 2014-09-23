@@ -1,12 +1,3 @@
-/*
-  This program can be used to generate gauge configurations
-  according to the rooted-staggered action in presence of 
-  electromagnetic fields and/or imaginary chemical potentials.
-  
-  The molecular dynamic routines are in the file:
-   ../../src/hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.cpp
-*/
-
 #include <math.h>
 
 #include "nissa.hpp"
@@ -26,11 +17,10 @@ char store_conf_path_templ[1024];
 const int flushing_nconfs=30;
 
 //conf
-quad_su3 *conf;
+quad_su3 *conf,*temp_conf;
 
 //evol pars
-double beta;
-gauge_action_name_t gauge_action_name;
+theory_pars_t theory_pars;
 gauge_sweeper_t *sweeper;
 pure_gauge_evol_pars_t evol_pars;
 boundary_cond_t boundary_cond=UNSPEC_BOUNDARY_COND;
@@ -193,10 +183,10 @@ void init_simulation(char *path)
   //kind of action
   char gauge_action_name_str[1024];
   read_str_str("GaugeAction",gauge_action_name_str,1024);
-  gauge_action_name=gauge_action_name_from_str(gauge_action_name_str);
+  theory_pars.gauge_action_name=gauge_action_name_from_str(gauge_action_name_str);
   
   //beta and evolution pars
-  read_str_double("Beta",&beta);
+  read_str_double("Beta",&theory_pars.beta);
   read_pure_gauge_evol_pars(evol_pars);
   
   //read in and out conf path
@@ -237,25 +227,29 @@ void init_simulation(char *path)
 
   ////////////////////////// allocate stuff ////////////////////////
   
-  if(gauge_action_name==WILSON_GAUGE_ACTION)
-    {
-      init_Wilson_sweeper();
-      sweeper=Wilson_sweeper;
-      compute_action=compute_Wilson_action;
-      compute_action_per_timeslice=compute_Wilson_action_per_timeslice;
-      npaths_per_action=1;
-    }
-  else
-    {
-      init_tlSym_sweeper();
-      sweeper=tlSym_sweeper;
-      compute_action=compute_tlSym_action;
-      compute_action_per_timeslice=compute_tlSym_action_per_timeslice;
-      npaths_per_action=2;
-    }
-  
   //allocate conf
   conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  
+  if(evol_pars.use_hmc) temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+  else
+    {
+      if(theory_pars.gauge_action_name==WILSON_GAUGE_ACTION)
+	{
+	  init_Wilson_sweeper();
+	  sweeper=Wilson_sweeper;
+	  compute_action=compute_Wilson_action;
+	  compute_action_per_timeslice=compute_Wilson_action_per_timeslice;
+	  npaths_per_action=1;
+	}
+      else
+	{
+	  init_tlSym_sweeper();
+	  sweeper=tlSym_sweeper;
+	  compute_action=compute_tlSym_action;
+	  compute_action_per_timeslice=compute_tlSym_action_per_timeslice;
+	  npaths_per_action=2;
+	}
+    }
   
   //search conf
   bool conf_found=file_exists(conf_path);
@@ -317,9 +311,12 @@ void close_simulation()
   
   master_printf("========== Performance report ===========\n");
   master_printf("Basic initialization time: %lg sec\n",base_init_time);
-  master_printf("Communicators initialization time: %lg sec\n",sweeper->comm_init_time);
-  master_printf("Communication time: %lg sec\n",sweeper->comm_time);
-  master_printf("Link update time: %lg sec\n",sweeper->comp_time);
+  if(!evol_pars.use_hmc)
+    {
+      master_printf("Communicators initialization time: %lg sec\n",sweeper->comm_init_time);
+      master_printf("Communication time: %lg sec\n",sweeper->comm_time);
+      master_printf("Link update time: %lg sec\n",sweeper->comp_time);
+    }
   master_printf("Reunitarization time: %lg sec\n",unitarize_time);
   master_printf("Measurement time: %lg sec\n",meas_time);
   master_printf("Topology+cooling time: %lg sec\n",topo_time);
@@ -330,25 +327,53 @@ void close_simulation()
   
   if(store_running_temp_conf==0||iconf%store_running_temp_conf!=0) write_conf(conf_path);
   nissa_free(conf);
+  if(evol_pars.use_hmc) nissa_free(temp_conf);
 }
 
 //heatbath or overrelax algorithm for the quenched simulation case, Wilson action
 void generate_new_conf(quad_su3 *conf,int check=0)
 {
-  //number of hb sweeps
-  for(int isweep=0;isweep<evol_pars.nhb_sweeps;isweep++) sweeper->sweep_conf(conf,HEATBATH,beta,evol_pars.nhb_hits);
-  
-  //numer of overrelax sweeps
-  double paths[2],action_pre=0;
-  if(check&&evol_pars.nov_sweeps) action_pre=compute_action(paths);
-  for(int isweep=0;isweep<evol_pars.nov_sweeps;isweep++) sweeper->sweep_conf(conf,OVERRELAX,beta,evol_pars.nov_hits);
-  
-  //check action variation
-  if(check&&evol_pars.nov_sweeps)
+  if(evol_pars.use_hmc)
     {
-      double action_post=compute_action(paths);
-      master_printf("Checking: relative difference of action after overrelaxation: %lg\n",
-		    2*(action_post-action_pre)/(action_post+action_pre));
+      int perform_test=true;
+      double diff_act=pure_gauge_hmc_step(temp_conf,conf,theory_pars,evol_pars,iconf);
+      
+      //perform the test in any case
+      master_printf("Diff action: %lg, ",diff_act);
+      bool acc=metro_test(diff_act);
+      
+      //if not needed override
+      if(!perform_test)
+        {
+          acc=1;
+          master_printf("(no test performed) ");
+        }
+      
+      //copy conf if accepted
+      if(acc)
+        {
+          master_printf("accepted.\n");
+          vector_copy(conf,temp_conf);
+        }
+      else master_printf("rejected.\n");
+    }
+  else
+    {
+      //number of hb sweeps
+      for(int isweep=0;isweep<evol_pars.nhb_sweeps;isweep++) sweeper->sweep_conf(conf,HEATBATH,theory_pars.beta,evol_pars.nhb_hits);
+      
+      //numer of overrelax sweeps
+      double paths[2],action_pre=0;
+      if(check&&evol_pars.nov_sweeps) action_pre=compute_action(paths);
+      for(int isweep=0;isweep<evol_pars.nov_sweeps;isweep++) sweeper->sweep_conf(conf,OVERRELAX,theory_pars.beta,evol_pars.nov_hits);
+      
+      //check action variation
+      if(check&&evol_pars.nov_sweeps)
+	{
+	  double action_post=compute_action(paths);
+	  master_printf("Checking: relative difference of action after overrelaxation: %lg\n",
+			2*(action_post-action_pre)/(action_post+action_pre));
+	}
     }
   
   unitarize_time-=take_time();
@@ -374,8 +399,11 @@ void measure_gauge_obs()
   double time_action=-take_time();
   double paths[2];
   double paths_per_timeslice[glb_size[0]*npaths_per_action];
-  double action=(boundary_cond==OPEN_BOUNDARY_COND)?compute_action_per_timeslice(paths,paths_per_timeslice):
-    compute_action(paths);
+  double action;
+  if(evol_pars.use_hmc) gluonic_action(&action,conf,&theory_pars);
+  else
+    action=(boundary_cond==OPEN_BOUNDARY_COND)?compute_action_per_timeslice(paths,paths_per_timeslice):
+      compute_action(paths);
   master_printf("Action: %015.15lg measured in %lg sec\n",action,time_action+take_time());
   
   master_fprintf(file_obs,"%6d\t%015.15lg",iconf,action);

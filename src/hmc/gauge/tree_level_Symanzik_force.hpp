@@ -3,7 +3,7 @@
 
 namespace nissa
 {
-  void tree_level_Symanzik_force_lx_conf(quad_su3 *out,quad_su3 *conf,double beta);
+  void tree_level_Symanzik_force_lx_conf(quad_su3 *out,quad_su3 *conf,double beta,bool phase_pres);
 }
 
 #endif
