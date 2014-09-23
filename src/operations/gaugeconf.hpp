@@ -23,7 +23,9 @@ namespace nissa
   void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
   void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges);
   void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf);
-  void unitarize_lx_conf(quad_su3 *conf);
+  void unitarize_lx_conf_orthonormalizing(quad_su3 *conf);
+  void unitarize_lx_conf_maximal_trace_projecting(quad_su3 *conf);
+  void unitarize_eo_conf_maximal_trace_projecting(quad_su3 **conf);
 }
 
 #endif

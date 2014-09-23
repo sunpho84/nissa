@@ -652,11 +652,6 @@ YFLAGS
 YACC
 SPI_FALSE
 SPI_TRUE
-GPU_FALSE
-GPU_TRUE
-NVCC_PATH
-CUDA_LDFLAGS
-CUDA_CFLAGS
 LIBOBJS
 ALLOCA
 EGREP
@@ -765,8 +760,6 @@ ac_user_opts='
 enable_option_checking
 enable_silent_rules
 enable_dependency_tracking
-enable_gpu
-with_cuda
 enable_spi
 enable_cgm_debug
 enable_parser_generation
@@ -1418,7 +1411,6 @@ Optional Features:
                           do not reject slow dependency extractors
   --disable-dependency-tracking
                           speeds up one-time build
-  --enable-gpu            Enable gpu
   --enable-spi            Enable spi stuff (ony for BG/Q)
   --enable-cgm-debug      Enable extremely verbose cgm inverter
   --enable-parser-generation
@@ -1434,11 +1426,6 @@ Optional Features:
   --enable-bench          Enable internal benchmarks
   --enable-max-verbosity-lv=lv
                           Set max verbosity lv
-
-Optional Packages:
-  --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
-  --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
-  --with-cuda=PREFIX      Prefix of your CUDA installation
 
 Some influential environment variables:
   CXX         C++ compiler command
@@ -5763,164 +5750,6 @@ fi
 done
 
 
-#gpu
-# Check whether --enable-gpu was given.
-if test "${enable_gpu+set}" = set; then :
-  enableval=$enable_gpu; enable_gpu="${enableval}"
-else
-  enable_gpu="no"
-fi
-
-if test "$enable_gpu" == "yes";then
-
-$as_echo "#define GPU 1" >>confdefs.h
-
-
-
-# Provide your CUDA path with this
-
-# Check whether --with-cuda was given.
-if test "${with_cuda+set}" = set; then :
-  withval=$with_cuda; cuda_prefix=$withval
-else
-  cuda_prefix="/usr/local/cuda"
-fi
-
-
-# Setting the prefix to the default if only --with-cuda was given
-if test "$cuda_prefix" == "yes"; then
-	if test "$withval" == "yes"; then
-		cuda_prefix="/usr/local/cuda"
-	fi
-fi
-
-# Checking for nvcc
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking nvcc in $cuda_prefix/bin" >&5
-$as_echo_n "checking nvcc in $cuda_prefix/bin... " >&6; }
-NVCC_PATH=$cuda_prefix/bin/nvcc
-if test -x "$NVCC_PATH"; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; }
-
-cat >>confdefs.h <<_ACEOF
-#define NVCC_PATH "$NVCC_PATH"
-_ACEOF
-
-else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found!" >&5
-$as_echo "not found!" >&6; }
-	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "nvcc was not found in $cuda_prefix/bin
-See \`config.log' for more details" "$LINENO" 5; }
-fi
-
-# We need to add the CUDA search directories for header and lib searches
-
-#find suffix
-ARCH=`uname -m`
-if [ $ARCH == "x86_64" ];
-then
-  CUDA_SUFFIX="64"
-else
-  CUDA_SUFFIX=""
-fi
-
-# Saving the current flags
-ax_save_CFLAGS="${CFLAGS}"
-ax_save_LDFLAGS="${LDFLAGS}"
-
-# Announcing the new variables
-
-
-
-
-#export variables
-CUDA_CFLAGS="-I$cuda_prefix/include"
-CFLAGS="$CUDA_CFLAGS $CFLAGS"
-CUDA_LDFLAGS="-L$cuda_prefix/lib$CUDA_SUFFIX"
-LDFLAGS="$CUDA_LDFLAGS $LDFLAGS"
-
-# And the header and the lib
-ac_fn_c_check_header_compile "$LINENO" "cuda.h" "ac_cv_header_cuda_h" "#include <cuda.h>
-"
-if test "x$ac_cv_header_cuda_h" = xyes; then :
-
-else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "Couldn't find cuda.h
-See \`config.log' for more details" "$LINENO" 5; }
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cuInit in -lcuda" >&5
-$as_echo_n "checking for cuInit in -lcuda... " >&6; }
-if ${ac_cv_lib_cuda_cuInit+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcuda  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char cuInit ();
-int
-main ()
-{
-return cuInit ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_cuda_cuInit=yes
-else
-  ac_cv_lib_cuda_cuInit=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_cuda_cuInit" >&5
-$as_echo "$ac_cv_lib_cuda_cuInit" >&6; }
-if test "x$ac_cv_lib_cuda_cuInit" = xyes; then :
-
-cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBCUDA 1
-_ACEOF
-
-else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "Couldn't find libcuda
-See \`config.log' for more details" "$LINENO" 5; }
-fi
-
-
-# Returning to the original flags
-CFLAGS=${ax_save_CFLAGS}
-LDFLAGS=${ax_save_LDFLAGS}
-
-
-fi
- if test "$enable_gpu" == "yes" ; then
-  GPU_TRUE=
-  GPU_FALSE='#'
-else
-  GPU_TRUE='#'
-  GPU_FALSE=
-fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling gpu... $enable_gpu" >&5
-$as_echo "enabling gpu... $enable_gpu" >&6; }
-
 #spi
 # Check whether --enable-spi was given.
 if test "${enable_spi+set}" = set; then :
@@ -6536,10 +6365,6 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCC_TRUE}" && test -z "${am__fastdepCC_FALSE}"; then
   as_fn_error $? "conditional \"am__fastdepCC\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${GPU_TRUE}" && test -z "${GPU_FALSE}"; then
-  as_fn_error $? "conditional \"GPU\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${SPI_TRUE}" && test -z "${SPI_FALSE}"; then

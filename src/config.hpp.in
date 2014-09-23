@@ -26,9 +26,6 @@
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
-/* Enable gpu */
-#undef GPU
-
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
 
@@ -41,9 +38,6 @@
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
-
-/* Lib cuda found */
-#undef HAVE_LIBCUDA
 
 /* Define to 1 if you have the <libintl.h> header file. */
 #undef HAVE_LIBINTL_H
@@ -118,9 +112,6 @@
 
 /* Max_verbosity_lv */
 #undef MAX_VERBOSITY_LV
-
-/* Path to nvcc binary */
-#undef NVCC_PATH
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT

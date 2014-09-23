@@ -329,7 +329,7 @@ namespace nissa
   }
 
   //unitarize an a lx conf
-  THREADABLE_FUNCTION_1ARG(unitarize_lx_conf, quad_su3*,conf)
+  THREADABLE_FUNCTION_1ARG(unitarize_lx_conf_orthonormalizing, quad_su3*,conf)
   {
     GET_THREAD_ID();
     
@@ -343,4 +343,34 @@ namespace nissa
     set_borders_invalid(conf);
   }
   THREADABLE_FUNCTION_END
+  
+  //unitarize the conf by explicitly by projecting it maximally to su3
+  THREADABLE_FUNCTION_1ARG(unitarize_lx_conf_maximal_trace_projecting, quad_su3*,conf)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int mu=0;mu<4;mu++)
+        su3_unitarize_maximal_trace_projecting(conf[ivol][mu],conf[ivol][mu]);
+    
+    set_borders_invalid(conf);
+  }
+  THREADABLE_FUNCTION_END
+
+  //eo version
+  THREADABLE_FUNCTION_1ARG(unitarize_eo_conf_maximal_trace_projecting, quad_su3**,conf)
+  {
+    GET_THREAD_ID();
+    
+    for(int par=0;par<2;par++)
+      {
+        NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
+          for(int mu=0;mu<4;mu++)
+            su3_unitarize_maximal_trace_projecting(conf[par][ivol][mu],conf[par][ivol][mu]);
+        
+        set_borders_invalid(conf[par]);
+      }
+  }
+  THREADABLE_FUNCTION_END
+
 }

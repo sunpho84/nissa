@@ -1,5 +1,5 @@
-#ifndef _PLAQUETTE_H
-#define _PLAQUETTE_H
+#ifndef _PLAQUETTE_HPP
+#define _PLAQUETTE_HPP
 
 #include "new_types/new_types_definitions.hpp"
 

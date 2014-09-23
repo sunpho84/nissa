@@ -53,18 +53,6 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memset mkdir pow sqrt strcasecmp strdup strncasecmp strndup strstr])
 
-#gpu
-AC_ARG_ENABLE(gpu,
-	AS_HELP_STRING([--enable-gpu],[Enable gpu]),
-	enable_gpu="${enableval}",
-	enable_gpu="no")
-if test "$enable_gpu" == "yes";then 
-AC_DEFINE([GPU],1,[Enable gpu]) 
-AX_CHECK_CUDA
-fi
-AM_CONDITIONAL([GPU],[test "$enable_gpu" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling gpu... $enable_gpu])
-
 #spi
 AC_ARG_ENABLE(spi,
 	AS_HELP_STRING([--enable-spi],[Enable spi stuff (ony for BG/Q)]),

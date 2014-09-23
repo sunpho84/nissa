@@ -1,5 +1,5 @@
-#ifndef _NISSA_H
-#define _NISSA_H
+#ifndef _NISSA_HPP
+#define _NISSA_HPP
 
 //including config.hpp
 #ifdef HAVE_CONFIG_H
@@ -39,13 +39,18 @@
 #include "communicate/communicate.hpp"
 
 #include "hmc/backfield.hpp"
+#include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/gluonic_force.hpp"
+#include "hmc/gauge/pure_gauge_hmc_step.hpp"
+#include "hmc/gauge/pure_gauge_omelyan_integrator.hpp"
 #include "hmc/gauge/topological_action.hpp"
 #include "hmc/gauge/topological_force.hpp"
+#include "hmc/gauge/Wilson_action.hpp"
 #include "hmc/gauge/Wilson_force.hpp"
 #include "hmc/gauge/tree_level_Symanzik_force.hpp"
 #include "hmc/gauge/tree_level_Symanzik_action.hpp"
 #include "hmc/momenta/momenta_action.hpp"
+#include "hmc/momenta/momenta_evolve.hpp"
 #include "hmc/momenta/momenta_generation.hpp"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_action.hpp"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp"

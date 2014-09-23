@@ -21,6 +21,16 @@ namespace nissa
     return (glb_action_eo[EVN]+glb_action_eo[ODD])/2;
   }
 
+  //lx version
+  double momenta_action(quad_su3 *H)
+  {
+    //summ the square of H
+    double glb_action_lx;
+    double_vector_glb_scalar_prod(&(glb_action_lx),(double*)(H),(double*)(H),4*18*loc_vol);
+    
+    return glb_action_lx/2;
+  }
+
   //compute the action of the momenta associated to b
   double B_momenta_action(double *H_B)
   {return (*H_B)*(*H_B)/2;}

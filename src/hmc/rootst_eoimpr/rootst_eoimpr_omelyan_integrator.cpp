@@ -13,6 +13,7 @@
 #include "new_types/complex.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
+#include "operations/gaugeconf.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -20,58 +21,16 @@
 
 #include "hmc/gauge/gluonic_force.hpp"
 #include "hmc/gauge/topological_force.hpp"
+#include "hmc/gauge/pure_gauge_omelyan_integrator.hpp"
+#include "hmc/momenta/momenta_evolve.hpp"
 
 #include "rootst_eoimpr_quark_force.hpp"
 
 namespace nissa
 {
-  //unitarize the conf by explicitly inverting it
-  THREADABLE_FUNCTION_1ARG(lx_conf_unitarize_maximal_trace_projecting, quad_su3*,conf)
-  {
-    GET_THREAD_ID();
-    
-    addrem_stagphases_to_lx_conf(conf);
-    
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
-	su3_unitarize_maximal_trace_projecting(conf[ivol][mu],conf[ivol][mu]);
-    
-    addrem_stagphases_to_lx_conf(conf);
-    
-    set_borders_invalid(conf);
-  }
-  THREADABLE_FUNCTION_END
-
-  // Evolve momenta according to the pure gauge force
-  // calculate H=H-F*dt to evolve link momenta
-  // i.e calculate v(t+dt)=v(t)+a*dt
-  THREADABLE_FUNCTION_5ARG(evolve_lx_momenta_with_pure_gauge_force, quad_su3*,H, quad_su3*,conf, theory_pars_t*,theory_pars, double,dt, quad_su3*,ext_F)
-  {
-    GET_THREAD_ID();
-    
-    verbosity_lv2_master_printf("Evolving momenta with pure gauge force, dt=%lg\n",dt);
-    
-    //allocate force and compute it
-    quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",loc_vol,quad_su3):ext_F;
-    compute_gluonic_force_lx_conf(F,conf,theory_pars);
-    
-    //evolve
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
-	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
-	    complex_subt_the_prod_idouble(H[ivol][mu][ic1][ic2],F[ivol][mu][ic1][ic2],dt);
-    
-    if(ext_F==NULL) nissa_free(F);
-    else THREAD_BARRIER();
-  }
-  THREADABLE_FUNCTION_END
-  
   //evolve the momenta with topological force
   THREADABLE_FUNCTION_5ARG(evolve_lx_momenta_with_topological_force, quad_su3*,H, quad_su3*,conf, topotential_pars_t*,topars, double,dt, quad_su3*,ext_F)
   {
-    GET_THREAD_ID();
-    
     verbosity_lv2_master_printf("Evolving momenta with topological force, dt=%lg\n",dt);
     
     //allocate force and compute it
@@ -79,14 +38,8 @@ namespace nissa
     compute_topological_force_lx_conf(F,conf,topars);
     
     //evolve
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
-	for(int ic1=0;ic1<3;ic1++)
-	  for(int ic2=0;ic2<3;ic2++)
-	    complex_subt_the_prod_idouble(H[ivol][mu][ic1][ic2],F[ivol][mu][ic1][ic2],dt);
-    
+    evolve_lx_momenta_with_force(H,F,dt);
     if(ext_F==NULL) nissa_free(F);
-    else THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
 
@@ -124,7 +77,7 @@ namespace nissa
     topotential_pars_t *topars=&(theory_pars->topotential_pars);
     
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-    evolve_lx_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
+    evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
     if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
     
     //         Main loop
@@ -138,16 +91,18 @@ namespace nissa
 	//     Compute U(t+dt/2) i.e. r1=r(t)+v1*dt/2
 	evolve_lx_conf_with_momenta(lx_conf,H,theory_pars,dth);
 	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
-	evolve_lx_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
+	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
 	if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
 	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
 	evolve_lx_conf_with_momenta(lx_conf,H,theory_pars,dth);
 	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
-	evolve_lx_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
+	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
 	if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
 	
 	//normalize the configuration
-	lx_conf_unitarize_maximal_trace_projecting(lx_conf);
+	addrem_stagphases_to_lx_conf(lx_conf);
+	unitarize_lx_conf_maximal_trace_projecting(lx_conf);
+	addrem_stagphases_to_lx_conf(lx_conf);
       }
     
     nissa_free(aux_F);
@@ -173,26 +128,6 @@ namespace nissa
   }
 
   /////////////////////////////////////// QUARK E/O PART ////////////////////////////////////////////////
-
-  //unitarize the conf by explicitly inverting it
-  THREADABLE_FUNCTION_1ARG(eo_conf_unitarize_maximal_trace_projecting, quad_su3**,conf)
-  {
-    GET_THREAD_ID();
-    
-    addrem_stagphases_to_eo_conf(conf);
-    
-    for(int par=0;par<2;par++)
-      {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	  for(int mu=0;mu<4;mu++)
-	    su3_unitarize_maximal_trace_projecting(conf[par][ivol][mu],conf[par][ivol][mu]);
-	
-	set_borders_invalid(conf[par]);
-      }
-    
-    addrem_stagphases_to_eo_conf(conf);
-  }
-  THREADABLE_FUNCTION_END
 
   //evolve the b field
   void evolve_b_with_H_B_momenta(double *H_B,theory_pars_t *tp,double dt)
@@ -266,7 +201,9 @@ namespace nissa
 	evolve_momenta_with_quark_and_magnetic_force(H,H_B,conf,pf,theory_pars,appr,simul->md_residue,last_dt);
 	
 	//normalize the configuration
-	eo_conf_unitarize_maximal_trace_projecting(conf);
+	addrem_stagphases_to_eo_conf(conf);
+	unitarize_eo_conf_maximal_trace_projecting(conf);
+	addrem_stagphases_to_eo_conf(conf);
       }
   }
   THREADABLE_FUNCTION_END

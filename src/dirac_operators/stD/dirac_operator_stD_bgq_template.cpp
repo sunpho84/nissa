@@ -1,4 +1,3 @@
-int master_fprintf(FILE *stream,const char *format,...);
   THREADABLE_FUNCTION_5ARG(APPLY_STD2EE_M2_BGQ, BI_32_64_COLOR*,bi_out, BI_32_64_OCT_SU3**,bi_conf, BI_32_64_COLOR*,bi_temp, PREC_TYPE,mass2, BI_32_64_COLOR*,bi_in)
   {
     GET_THREAD_ID();
@@ -35,7 +34,7 @@ int master_fprintf(FILE *stream,const char *format,...);
     //put the eight pieces subtracting them from diag (in fact one of the two D is daggered)
     if(mass2!=0) NAME3(hopping_matrix_eo_or_eo_expand_to,PREC,staggered_D_subtract_from_mass2_times_in)
 		   (bi_out,mass2,bi_in);
-    else         NAME3(hopping_matrix_eo_or_eo_expand_to,PREC,staggered_D)(bi_out);
+    else         NAME3(hopping_matrix_eo_or_eo_expand_to,PREC,staggered_D)(bi_out,-1);
 
 #ifdef BENCH
     if(IS_MASTER_THREAD)

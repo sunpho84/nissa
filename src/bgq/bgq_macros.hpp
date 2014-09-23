@@ -36,6 +36,12 @@
     COLOR_TO_BI_COLOR(A[1],B[1],VN);		\
     COLOR_TO_BI_COLOR(A[2],B[2],VN);		\
   }
+#define SU3_TO_BI_SINGLE_SU3(A,B,VN)		\
+  {						\
+    COLOR_TO_BI_SINGLE_COLOR(A[0],B[0],VN);	\
+    COLOR_TO_BI_SINGLE_COLOR(A[1],B[1],VN);	\
+    COLOR_TO_BI_SINGLE_COLOR(A[2],B[2],VN);	\
+  }
 #define HALFSPINCOLOR_TO_BI_HALFSPINCOLOR(A,B,VN)	\
   {							\
     COLOR_TO_BI_COLOR(A[0],B[0],VN);			\

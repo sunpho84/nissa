@@ -11,19 +11,33 @@
 namespace nissa
 {
   //compute the tree level Symanzik action
-  void tree_level_Symanzik_action(double *action,quad_su3 **conf,double beta,int stagphases_present)
+  void tree_level_Symanzik_action(double *action,double *glb_shapes,double beta,bool stagphases_present)
   {
+    //coefficient of rectangles and squares
+    double tlSym_b1=-1.0/12,tlSym_b0=1-8*tlSym_b1;
+  
     verbosity_lv2_master_printf("Computing tree level Symanzik action\n");
     
-    //coefficient of rectangles and squares
-    double b1=-1.0/12,b0=1-8*b1;
-    
+    //compute the total action
+    if(stagphases_present) glb_shapes[RE]*=-1; //stag phases add (-1)^area
+    (*action)=(tlSym_b0*6*glb_vol*(1-glb_shapes[RE])+tlSym_b1*12*glb_vol*(1-glb_shapes[IM]))*beta;
+  }
+
+  //lx wrapper
+  void tree_level_Symanzik_action(double *action,quad_su3 *conf,double beta,bool stagphases_present)
+  {
+    //compute shapes
+    complex glb_shapes;
+    global_plaquette_and_rectangles_lx_conf(glb_shapes,conf);
+    tree_level_Symanzik_action(action,(double*)glb_shapes,beta,stagphases_present);
+  }
+  
+  //eo wrapper
+  void tree_level_Symanzik_action(double *action,quad_su3 **conf,double beta,bool stagphases_present)
+  {
     //compute shapes
     complex glb_shapes;
     global_plaquette_and_rectangles_eo_conf(glb_shapes,conf);
-    if(stagphases_present) glb_shapes[RE]*=-1; //stag phases add (-1)^area
-    
-    //compute the total action
-    (*action)=(b0*6*glb_vol*(1-glb_shapes[RE])+b1*12*glb_vol*(1-glb_shapes[IM]))*beta;
+    tree_level_Symanzik_action(action,(double*)glb_shapes,beta,stagphases_present);
   }
 }
