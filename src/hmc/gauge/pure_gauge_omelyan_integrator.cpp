@@ -7,6 +7,8 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "hmc/momenta/momenta_evolve.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
@@ -18,7 +20,7 @@
 
 #include "gluonic_action.hpp"
 #include "gluonic_force.hpp"
-#include "hmc/momenta/momenta_evolve.hpp"
+#include "MFACC_fields.hpp"
 
 namespace nissa
 {
@@ -40,16 +42,21 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //integrator for pure gauge - WARNING: assuming no phase present!
-  THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver, quad_su3*,H, quad_su3*,conf, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
+  THREADABLE_FUNCTION_6ARG(omelyan_pure_gauge_evolver, quad_su3*,H, quad_su3*,conf, su3**,pi, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
   {
     //macro step or micro step
     double dt=simul->traj_length/simul->nmd_steps,dth=dt/2,
       ldt=dt*OMELYAN_LAMBDA,l2dt=2*OMELYAN_LAMBDA*dt,uml2dt=(1-2*OMELYAN_LAMBDA)*dt;  
     int nsteps=simul->nmd_steps;
     
+    double kappa=0.9;
+    int niter=10000;
+    double residue=1.e-10;
+    
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
-    evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,ldt,false/*assuming no phase is present*/,NULL);
-
+    //evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,ldt,false/*assuming no phase is present*/,NULL);
+    if(pi!=NULL) evolve_MFACC_momenta(pi,phi,ldt);
+    
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
       {
@@ -58,11 +65,15 @@ namespace nissa
 	//decide if last step is final or not
 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
-	evolve_lx_conf_with_momenta(conf,H,dth);
-	evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,uml2dt,false,NULL);
+	//evolve_lx_conf_with_accelerated_momenta(conf,H,kappa,niter,residue,dth);
+	if(phi!=NULL) evolve_MFACC_fields(phi,conf,kappa,pi,dth);
+	//evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,uml2dt,false,NULL);
+	if(pi!=NULL) evolve_MFACC_momenta(pi,phi,uml2dt);
 	
-	evolve_lx_conf_with_momenta(conf,H,dth);
-	evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,last_dt,false,NULL);
+	//evolve_lx_conf_with_accelerated_momenta(conf,H,kappa,niter,residue,dth);
+	if(phi!=NULL) evolve_MFACC_fields(phi,conf,kappa,pi,dth);
+	//evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,last_dt,false,NULL);
+	if(pi!=NULL) evolve_MFACC_momenta(pi,phi,last_dt);
 	
 	//normalize the configuration
 	unitarize_lx_conf_maximal_trace_projecting(conf);

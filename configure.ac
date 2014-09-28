@@ -53,6 +53,9 @@ AC_FUNC_MALLOC
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memset mkdir pow sqrt strcasecmp strdup strncasecmp strndup strstr])
 
+#eigen
+AC_CHECK_HEADER([eigen3/Eigen/Dense],[AC_DEFINE([HAVE_EIGEN],[1],[Defined if Eigen found])])
+
 #spi
 AC_ARG_ENABLE(spi,
 	AS_HELP_STRING([--enable-spi],[Enable spi stuff (ony for BG/Q)]),

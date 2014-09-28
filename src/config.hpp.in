@@ -33,6 +33,9 @@
    */
 #undef HAVE_ALLOCA_H
 
+/* Defined if Eigen found */
+#undef HAVE_EIGEN
+
 /* Define to 1 if you have the <float.h> header file. */
 #undef HAVE_FLOAT_H
 
