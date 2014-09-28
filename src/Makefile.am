@@ -93,6 +93,7 @@ include_HEADERS+= \
 ######################################## dirac operators#####################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
+	dirac_operators/momenta/MFACC.cpp \
 	dirac_operators/stD/dirac_operator_stD.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.cpp \
@@ -110,6 +111,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.cpp
 
 include_HEADERS+= \
+	dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp\
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp \
@@ -173,6 +175,8 @@ endif
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/backfield.cpp \
+	hmc/gauge/MFACC_fields.cpp \
+	hmc/gauge/MFACC_fields.cpp \
 	hmc/gauge/gluonic_force.cpp \
 	hmc/gauge/pure_gauge_hmc_step.cpp \
 	hmc/gauge/pure_gauge_omelyan_integrator.cpp \
@@ -194,6 +198,8 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 
 include_HEADERS+= \
 	hmc/backfield.hpp \
+	hmc/gauge/MFACC_fields.hpp \
+	hmc/gauge/MFACC_fields.hpp \
 	hmc/gauge/gluonic_action.hpp \
 	hmc/gauge/gluonic_force.hpp \
 	hmc/gauge/pure_gauge_hmc_step.cpp
@@ -219,13 +225,7 @@ EXTRA_DIST+=hmc/rootst_eoimpr/rat_expansion_database.cpp
 ###################################### inverters #################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
-	inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
-	inverters/twisted_mass/cg_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
-	inverters/twisted_mass/cgm_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
-	inverters/twisted_mass/tm_frontends.cpp \
+	inverters/momenta/cg_invert_MFACC.cpp \
 	inverters/staggered/cgm_invert_stD2ee_m2_portable.cpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2.cpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
@@ -234,12 +234,19 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	inverters/staggered/cg_invert_stD2ee_m2.cpp \
 	inverters/staggered/cg_invert_stD.cpp \
 	inverters/staggered/cg_invert_evn_stD.cpp \
-	inverters/Wclov/cg_invert_WclovQ.cpp \
-	inverters/Wclov/cg_invert_WclovQ2.cpp \
-	inverters/tmclov/cg_invert_tmclovQ.cpp \
+	inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
+	inverters/twisted_mass/cg_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
+	inverters/twisted_mass/cgm_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
+	inverters/twisted_mass/tm_frontends.cpp \
 	inverters/tmclov/cg_invert_tmclovQ2.cpp \
 	inverters/tmclov/cgm_invert_tmclovQ2.cpp \
-	inverters/tmclov/tmclov_frontends.cpp
+	inverters/tmclov/tmclov_frontends.cpp \
+	inverters/Wclov/cg_invert_WclovQ.cpp \
+	inverters/Wclov/cg_invert_WclovQ2.cpp \
+	inverters/tmclov/cg_invert_tmclovQ.cpp
 
 include_HEADERS+= \
 	inverters/twisted_mass/cg_invert_tmDeoimpr.hpp \

@@ -5750,6 +5750,16 @@ fi
 done
 
 
+#eigen
+ac_fn_c_check_header_mongrel "$LINENO" "eigen3/Eigen/Dense" "ac_cv_header_eigen3_Eigen_Dense" "$ac_includes_default"
+if test "x$ac_cv_header_eigen3_Eigen_Dense" = xyes; then :
+  
+$as_echo "@%:@define HAVE_EIGEN 1" >>confdefs.h
+
+fi
+
+
+
 #spi
 @%:@ Check whether --enable-spi was given.
 if test "${enable_spi+set}" = set; then :

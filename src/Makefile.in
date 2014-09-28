@@ -203,6 +203,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	bgq/staggered_hopping_matrix_eo_or_oe_bgq.cpp \
 	bgq/bgq_barrier.c bgq/spi.cpp communicate/all_to_all.cpp \
 	communicate/borders.cpp communicate/edges.cpp \
+	dirac_operators/momenta/MFACC.cpp \
 	dirac_operators/stD/dirac_operator_stD.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.cpp \
@@ -225,7 +226,8 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	geometry/geometry_eo.cpp geometry/geometry_lx.cpp \
 	geometry/geometry_mix.cpp geometry/geometry_Wsklx.cpp \
 	geometry/geometry_vir.cpp hmc/backfield.cpp \
-	hmc/gauge/gluonic_force.cpp hmc/gauge/pure_gauge_hmc_step.cpp \
+	hmc/gauge/MFACC_fields.cpp hmc/gauge/gluonic_force.cpp \
+	hmc/gauge/pure_gauge_hmc_step.cpp \
 	hmc/gauge/pure_gauge_omelyan_integrator.cpp \
 	hmc/gauge/topological_action.cpp \
 	hmc/gauge/topological_force.cpp \
@@ -240,13 +242,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.cpp \
-	inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
-	inverters/twisted_mass/cg_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
-	inverters/twisted_mass/cgm_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
-	inverters/twisted_mass/tm_frontends.cpp \
+	inverters/momenta/cg_invert_MFACC.cpp \
 	inverters/staggered/cgm_invert_stD2ee_m2_portable.cpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2.cpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
@@ -255,12 +251,19 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	inverters/staggered/cg_invert_stD2ee_m2.cpp \
 	inverters/staggered/cg_invert_stD.cpp \
 	inverters/staggered/cg_invert_evn_stD.cpp \
-	inverters/Wclov/cg_invert_WclovQ.cpp \
-	inverters/Wclov/cg_invert_WclovQ2.cpp \
-	inverters/tmclov/cg_invert_tmclovQ.cpp \
+	inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
+	inverters/twisted_mass/cg_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
+	inverters/twisted_mass/cgm_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
+	inverters/twisted_mass/tm_frontends.cpp \
 	inverters/tmclov/cg_invert_tmclovQ2.cpp \
 	inverters/tmclov/cgm_invert_tmclovQ2.cpp \
 	inverters/tmclov/tmclov_frontends.cpp \
+	inverters/Wclov/cg_invert_WclovQ.cpp \
+	inverters/Wclov/cg_invert_WclovQ2.cpp \
+	inverters/tmclov/cg_invert_tmclovQ.cpp \
 	inverters/staggered/cgm_invert_stD2ee_m2_bgq.cpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2_bgq.cpp \
 	inverters/staggered/cg_invert_stD2ee_m2_bgq.cpp \
@@ -327,6 +330,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	$(am__objects_2) $(am__objects_3) \
 	communicate/all_to_all.$(OBJEXT) communicate/borders.$(OBJEXT) \
 	communicate/edges.$(OBJEXT) \
+	dirac_operators/momenta/MFACC.$(OBJEXT) \
 	dirac_operators/stD/dirac_operator_stD.$(OBJEXT) \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.$(OBJEXT) \
 	dirac_operators/tmQ/dirac_operator_tmQ.$(OBJEXT) \
@@ -345,7 +349,9 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	$(am__objects_4) geometry/geometry_eo.$(OBJEXT) \
 	geometry/geometry_lx.$(OBJEXT) geometry/geometry_mix.$(OBJEXT) \
 	geometry/geometry_Wsklx.$(OBJEXT) $(am__objects_5) \
-	hmc/backfield.$(OBJEXT) hmc/gauge/gluonic_force.$(OBJEXT) \
+	hmc/backfield.$(OBJEXT) hmc/gauge/MFACC_fields.$(OBJEXT) \
+	hmc/gauge/MFACC_fields.$(OBJEXT) \
+	hmc/gauge/gluonic_force.$(OBJEXT) \
 	hmc/gauge/pure_gauge_hmc_step.$(OBJEXT) \
 	hmc/gauge/pure_gauge_omelyan_integrator.$(OBJEXT) \
 	hmc/gauge/topological_action.$(OBJEXT) \
@@ -363,13 +369,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.$(OBJEXT) \
 	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.$(OBJEXT) \
 	hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.$(OBJEXT) \
-	inverters/twisted_mass/cg_invert_tmDeoimpr.$(OBJEXT) \
-	inverters/twisted_mass/cg_invert_tmQ2.$(OBJEXT) \
-	inverters/twisted_mass/cg_64_invert_tmQ2.$(OBJEXT) \
-	inverters/twisted_mass/cgm_invert_tmQ2.$(OBJEXT) \
-	inverters/twisted_mass/cg_128_invert_tmQ2.$(OBJEXT) \
-	inverters/twisted_mass/cg_128_invert_tmDeoimpr.$(OBJEXT) \
-	inverters/twisted_mass/tm_frontends.$(OBJEXT) \
+	inverters/momenta/cg_invert_MFACC.$(OBJEXT) \
 	inverters/staggered/cgm_invert_stD2ee_m2_portable.$(OBJEXT) \
 	inverters/staggered/cgm_32_invert_stD2ee_m2.$(OBJEXT) \
 	inverters/staggered/cgm_32_invert_stD2ee_m2_portable.$(OBJEXT) \
@@ -378,12 +378,19 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	inverters/staggered/cg_invert_stD2ee_m2.$(OBJEXT) \
 	inverters/staggered/cg_invert_stD.$(OBJEXT) \
 	inverters/staggered/cg_invert_evn_stD.$(OBJEXT) \
-	inverters/Wclov/cg_invert_WclovQ.$(OBJEXT) \
-	inverters/Wclov/cg_invert_WclovQ2.$(OBJEXT) \
-	inverters/tmclov/cg_invert_tmclovQ.$(OBJEXT) \
+	inverters/twisted_mass/cg_invert_tmDeoimpr.$(OBJEXT) \
+	inverters/twisted_mass/cg_invert_tmQ2.$(OBJEXT) \
+	inverters/twisted_mass/cg_64_invert_tmQ2.$(OBJEXT) \
+	inverters/twisted_mass/cgm_invert_tmQ2.$(OBJEXT) \
+	inverters/twisted_mass/cg_128_invert_tmQ2.$(OBJEXT) \
+	inverters/twisted_mass/cg_128_invert_tmDeoimpr.$(OBJEXT) \
+	inverters/twisted_mass/tm_frontends.$(OBJEXT) \
 	inverters/tmclov/cg_invert_tmclovQ2.$(OBJEXT) \
 	inverters/tmclov/cgm_invert_tmclovQ2.$(OBJEXT) \
-	inverters/tmclov/tmclov_frontends.$(OBJEXT) $(am__objects_6) \
+	inverters/tmclov/tmclov_frontends.$(OBJEXT) \
+	inverters/Wclov/cg_invert_WclovQ.$(OBJEXT) \
+	inverters/Wclov/cg_invert_WclovQ2.$(OBJEXT) \
+	inverters/tmclov/cg_invert_tmclovQ.$(OBJEXT) $(am__objects_6) \
 	io/ILDG_File.$(OBJEXT) io/checksum.$(OBJEXT) \
 	io/endianness.$(OBJEXT) io/input.$(OBJEXT) io/reader.$(OBJEXT) \
 	io/writer.$(OBJEXT) linalgs/linalgs.$(OBJEXT) \
@@ -489,6 +496,7 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	bgq/intrinsic.hpp bgq/bgq_barrier.hpp bgq/spi.hpp \
 	communicate/all_to_all.hpp communicate/borders.hpp \
 	communicate/communicate.hpp communicate/edges.hpp \
+	dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp \
@@ -511,8 +519,8 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	geometry/geometry_eo.hpp geometry/geometry_lx.hpp \
 	geometry/geometry_mix.hpp geometry/geometry_Wsklx.hpp \
 	geometry/geometry_vir.hpp hmc/backfield.hpp \
-	hmc/gauge/gluonic_action.hpp hmc/gauge/gluonic_force.hpp \
-	hmc/gauge/pure_gauge_hmc_step.cpp \
+	hmc/gauge/MFACC_fields.hpp hmc/gauge/gluonic_action.hpp \
+	hmc/gauge/gluonic_force.hpp hmc/gauge/pure_gauge_hmc_step.cpp \
 	inverters/twisted_mass/cg_invert_tmDeoimpr.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.hpp \
@@ -708,7 +716,7 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	base/vectors.hpp $(am__append_1) $(am__append_4) \
 	$(am__append_6) communicate/all_to_all.hpp \
 	communicate/borders.hpp communicate/communicate.hpp \
-	communicate/edges.hpp \
+	communicate/edges.hpp dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp \
@@ -727,6 +735,7 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	$(am__append_8) geometry/geometry_eo.hpp \
 	geometry/geometry_lx.hpp geometry/geometry_mix.hpp \
 	geometry/geometry_Wsklx.hpp $(am__append_10) hmc/backfield.hpp \
+	hmc/gauge/MFACC_fields.hpp hmc/gauge/MFACC_fields.hpp \
 	hmc/gauge/gluonic_action.hpp hmc/gauge/gluonic_force.hpp \
 	hmc/gauge/pure_gauge_hmc_step.cpp \
 	inverters/twisted_mass/cg_invert_tmDeoimpr.hpp \
@@ -812,6 +821,7 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	base/random.cpp base/vectors.cpp $(am__append_2) \
 	$(am__append_3) $(am__append_5) communicate/all_to_all.cpp \
 	communicate/borders.cpp communicate/edges.cpp \
+	dirac_operators/momenta/MFACC.cpp \
 	dirac_operators/stD/dirac_operator_stD.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.cpp \
@@ -830,6 +840,7 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	$(am__append_7) geometry/geometry_eo.cpp \
 	geometry/geometry_lx.cpp geometry/geometry_mix.cpp \
 	geometry/geometry_Wsklx.cpp $(am__append_9) hmc/backfield.cpp \
+	hmc/gauge/MFACC_fields.cpp hmc/gauge/MFACC_fields.cpp \
 	hmc/gauge/gluonic_force.cpp hmc/gauge/pure_gauge_hmc_step.cpp \
 	hmc/gauge/pure_gauge_omelyan_integrator.cpp \
 	hmc/gauge/topological_action.cpp \
@@ -845,13 +856,7 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.cpp \
-	inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
-	inverters/twisted_mass/cg_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
-	inverters/twisted_mass/cgm_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
-	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
-	inverters/twisted_mass/tm_frontends.cpp \
+	inverters/momenta/cg_invert_MFACC.cpp \
 	inverters/staggered/cgm_invert_stD2ee_m2_portable.cpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2.cpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
@@ -860,12 +865,19 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	inverters/staggered/cg_invert_stD2ee_m2.cpp \
 	inverters/staggered/cg_invert_stD.cpp \
 	inverters/staggered/cg_invert_evn_stD.cpp \
-	inverters/Wclov/cg_invert_WclovQ.cpp \
-	inverters/Wclov/cg_invert_WclovQ2.cpp \
-	inverters/tmclov/cg_invert_tmclovQ.cpp \
+	inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
+	inverters/twisted_mass/cg_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
+	inverters/twisted_mass/cgm_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
+	inverters/twisted_mass/tm_frontends.cpp \
 	inverters/tmclov/cg_invert_tmclovQ2.cpp \
 	inverters/tmclov/cgm_invert_tmclovQ2.cpp \
-	inverters/tmclov/tmclov_frontends.cpp $(am__append_11) \
+	inverters/tmclov/tmclov_frontends.cpp \
+	inverters/Wclov/cg_invert_WclovQ.cpp \
+	inverters/Wclov/cg_invert_WclovQ2.cpp \
+	inverters/tmclov/cg_invert_tmclovQ.cpp $(am__append_11) \
 	io/ILDG_File.cpp io/checksum.cpp io/endianness.cpp \
 	io/input.cpp io/reader.cpp io/writer.cpp linalgs/linalgs.cpp \
 	new_types/complex.cpp new_types/dirac.cpp \
@@ -1054,6 +1066,15 @@ communicate/borders.$(OBJEXT): communicate/$(am__dirstamp) \
 	communicate/$(DEPDIR)/$(am__dirstamp)
 communicate/edges.$(OBJEXT): communicate/$(am__dirstamp) \
 	communicate/$(DEPDIR)/$(am__dirstamp)
+dirac_operators/momenta/$(am__dirstamp):
+	@$(MKDIR_P) dirac_operators/momenta
+	@: > dirac_operators/momenta/$(am__dirstamp)
+dirac_operators/momenta/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) dirac_operators/momenta/$(DEPDIR)
+	@: > dirac_operators/momenta/$(DEPDIR)/$(am__dirstamp)
+dirac_operators/momenta/MFACC.$(OBJEXT):  \
+	dirac_operators/momenta/$(am__dirstamp) \
+	dirac_operators/momenta/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/stD/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/stD
 	@: > dirac_operators/stD/$(am__dirstamp)
@@ -1201,6 +1222,8 @@ hmc/gauge/$(am__dirstamp):
 hmc/gauge/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) hmc/gauge/$(DEPDIR)
 	@: > hmc/gauge/$(DEPDIR)/$(am__dirstamp)
+hmc/gauge/MFACC_fields.$(OBJEXT): hmc/gauge/$(am__dirstamp) \
+	hmc/gauge/$(DEPDIR)/$(am__dirstamp)
 hmc/gauge/gluonic_force.$(OBJEXT): hmc/gauge/$(am__dirstamp) \
 	hmc/gauge/$(DEPDIR)/$(am__dirstamp)
 hmc/gauge/pure_gauge_hmc_step.$(OBJEXT): hmc/gauge/$(am__dirstamp) \
@@ -1255,33 +1278,15 @@ hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.$(OBJEXT):  \
 hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.$(OBJEXT):  \
 	hmc/rootst_eoimpr/$(am__dirstamp) \
 	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/$(am__dirstamp):
-	@$(MKDIR_P) inverters/twisted_mass
-	@: > inverters/twisted_mass/$(am__dirstamp)
-inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) inverters/twisted_mass/$(DEPDIR)
-	@: > inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_invert_tmDeoimpr.$(OBJEXT):  \
-	inverters/twisted_mass/$(am__dirstamp) \
-	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_invert_tmQ2.$(OBJEXT):  \
-	inverters/twisted_mass/$(am__dirstamp) \
-	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_64_invert_tmQ2.$(OBJEXT):  \
-	inverters/twisted_mass/$(am__dirstamp) \
-	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cgm_invert_tmQ2.$(OBJEXT):  \
-	inverters/twisted_mass/$(am__dirstamp) \
-	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_128_invert_tmQ2.$(OBJEXT):  \
-	inverters/twisted_mass/$(am__dirstamp) \
-	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/cg_128_invert_tmDeoimpr.$(OBJEXT):  \
-	inverters/twisted_mass/$(am__dirstamp) \
-	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
-inverters/twisted_mass/tm_frontends.$(OBJEXT):  \
-	inverters/twisted_mass/$(am__dirstamp) \
-	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/momenta/$(am__dirstamp):
+	@$(MKDIR_P) inverters/momenta
+	@: > inverters/momenta/$(am__dirstamp)
+inverters/momenta/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) inverters/momenta/$(DEPDIR)
+	@: > inverters/momenta/$(DEPDIR)/$(am__dirstamp)
+inverters/momenta/cg_invert_MFACC.$(OBJEXT):  \
+	inverters/momenta/$(am__dirstamp) \
+	inverters/momenta/$(DEPDIR)/$(am__dirstamp)
 inverters/staggered/$(am__dirstamp):
 	@$(MKDIR_P) inverters/staggered
 	@: > inverters/staggered/$(am__dirstamp)
@@ -1312,6 +1317,48 @@ inverters/staggered/cg_invert_stD.$(OBJEXT):  \
 inverters/staggered/cg_invert_evn_stD.$(OBJEXT):  \
 	inverters/staggered/$(am__dirstamp) \
 	inverters/staggered/$(DEPDIR)/$(am__dirstamp)
+inverters/twisted_mass/$(am__dirstamp):
+	@$(MKDIR_P) inverters/twisted_mass
+	@: > inverters/twisted_mass/$(am__dirstamp)
+inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) inverters/twisted_mass/$(DEPDIR)
+	@: > inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/twisted_mass/cg_invert_tmDeoimpr.$(OBJEXT):  \
+	inverters/twisted_mass/$(am__dirstamp) \
+	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/twisted_mass/cg_invert_tmQ2.$(OBJEXT):  \
+	inverters/twisted_mass/$(am__dirstamp) \
+	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/twisted_mass/cg_64_invert_tmQ2.$(OBJEXT):  \
+	inverters/twisted_mass/$(am__dirstamp) \
+	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/twisted_mass/cgm_invert_tmQ2.$(OBJEXT):  \
+	inverters/twisted_mass/$(am__dirstamp) \
+	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/twisted_mass/cg_128_invert_tmQ2.$(OBJEXT):  \
+	inverters/twisted_mass/$(am__dirstamp) \
+	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/twisted_mass/cg_128_invert_tmDeoimpr.$(OBJEXT):  \
+	inverters/twisted_mass/$(am__dirstamp) \
+	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/twisted_mass/tm_frontends.$(OBJEXT):  \
+	inverters/twisted_mass/$(am__dirstamp) \
+	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/tmclov/$(am__dirstamp):
+	@$(MKDIR_P) inverters/tmclov
+	@: > inverters/tmclov/$(am__dirstamp)
+inverters/tmclov/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) inverters/tmclov/$(DEPDIR)
+	@: > inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
+inverters/tmclov/cg_invert_tmclovQ2.$(OBJEXT):  \
+	inverters/tmclov/$(am__dirstamp) \
+	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
+inverters/tmclov/cgm_invert_tmclovQ2.$(OBJEXT):  \
+	inverters/tmclov/$(am__dirstamp) \
+	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
+inverters/tmclov/tmclov_frontends.$(OBJEXT):  \
+	inverters/tmclov/$(am__dirstamp) \
+	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
 inverters/Wclov/$(am__dirstamp):
 	@$(MKDIR_P) inverters/Wclov
 	@: > inverters/Wclov/$(am__dirstamp)
@@ -1324,22 +1371,7 @@ inverters/Wclov/cg_invert_WclovQ.$(OBJEXT):  \
 inverters/Wclov/cg_invert_WclovQ2.$(OBJEXT):  \
 	inverters/Wclov/$(am__dirstamp) \
 	inverters/Wclov/$(DEPDIR)/$(am__dirstamp)
-inverters/tmclov/$(am__dirstamp):
-	@$(MKDIR_P) inverters/tmclov
-	@: > inverters/tmclov/$(am__dirstamp)
-inverters/tmclov/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) inverters/tmclov/$(DEPDIR)
-	@: > inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
 inverters/tmclov/cg_invert_tmclovQ.$(OBJEXT):  \
-	inverters/tmclov/$(am__dirstamp) \
-	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
-inverters/tmclov/cg_invert_tmclovQ2.$(OBJEXT):  \
-	inverters/tmclov/$(am__dirstamp) \
-	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
-inverters/tmclov/cgm_invert_tmclovQ2.$(OBJEXT):  \
-	inverters/tmclov/$(am__dirstamp) \
-	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
-inverters/tmclov/tmclov_frontends.$(OBJEXT):  \
 	inverters/tmclov/$(am__dirstamp) \
 	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
 inverters/staggered/cgm_invert_stD2ee_m2_bgq.$(OBJEXT):  \
@@ -1555,6 +1587,7 @@ mostlyclean-compile:
 	-rm -f dirac_operators/WclovQ/*.$(OBJEXT)
 	-rm -f dirac_operators/WclovQ2/*.$(OBJEXT)
 	-rm -f dirac_operators/Wstat/*.$(OBJEXT)
+	-rm -f dirac_operators/momenta/*.$(OBJEXT)
 	-rm -f dirac_operators/stD/*.$(OBJEXT)
 	-rm -f dirac_operators/tmDeoimpr/*.$(OBJEXT)
 	-rm -f dirac_operators/tmQ/*.$(OBJEXT)
@@ -1568,6 +1601,7 @@ mostlyclean-compile:
 	-rm -f hmc/momenta/*.$(OBJEXT)
 	-rm -f hmc/rootst_eoimpr/*.$(OBJEXT)
 	-rm -f inverters/Wclov/*.$(OBJEXT)
+	-rm -f inverters/momenta/*.$(OBJEXT)
 	-rm -f inverters/staggered/*.$(OBJEXT)
 	-rm -f inverters/tmclov/*.$(OBJEXT)
 	-rm -f inverters/twisted_mass/*.$(OBJEXT)
@@ -1601,6 +1635,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/WclovQ/$(DEPDIR)/dirac_operator_WclovQ.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/WclovQ2/$(DEPDIR)/dirac_operator_WclovQ2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/Wstat/$(DEPDIR)/dirac_operator_Wstat.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/momenta/$(DEPDIR)/MFACC.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/stD/$(DEPDIR)/dirac_operator_stD.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/stD/$(DEPDIR)/dirac_operator_stD_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmDeoimpr/$(DEPDIR)/dirac_operator_tmDeoimpr.Po@am__quote@
@@ -1623,6 +1658,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_mix.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_vir.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/$(DEPDIR)/backfield.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/MFACC_fields.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/Wilson_action.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/Wilson_force.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/gauge/$(DEPDIR)/gluonic_force.Po@am__quote@
@@ -1643,6 +1679,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_rhmc_step.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/Wclov/$(DEPDIR)/cg_invert_WclovQ.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/Wclov/$(DEPDIR)/cg_invert_WclovQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/momenta/$(DEPDIR)/cg_invert_MFACC.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_evn_stD.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cg_invert_stD2ee_m2.Po@am__quote@
@@ -1925,6 +1962,8 @@ distclean-generic:
 	-rm -f dirac_operators/WclovQ2/$(am__dirstamp)
 	-rm -f dirac_operators/Wstat/$(DEPDIR)/$(am__dirstamp)
 	-rm -f dirac_operators/Wstat/$(am__dirstamp)
+	-rm -f dirac_operators/momenta/$(DEPDIR)/$(am__dirstamp)
+	-rm -f dirac_operators/momenta/$(am__dirstamp)
 	-rm -f dirac_operators/stD/$(DEPDIR)/$(am__dirstamp)
 	-rm -f dirac_operators/stD/$(am__dirstamp)
 	-rm -f dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
@@ -1951,6 +1990,8 @@ distclean-generic:
 	-rm -f hmc/rootst_eoimpr/$(am__dirstamp)
 	-rm -f inverters/Wclov/$(DEPDIR)/$(am__dirstamp)
 	-rm -f inverters/Wclov/$(am__dirstamp)
+	-rm -f inverters/momenta/$(DEPDIR)/$(am__dirstamp)
+	-rm -f inverters/momenta/$(am__dirstamp)
 	-rm -f inverters/staggered/$(DEPDIR)/$(am__dirstamp)
 	-rm -f inverters/staggered/$(am__dirstamp)
 	-rm -f inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
@@ -1986,7 +2027,7 @@ clean: clean-am
 clean-am: clean-generic clean-libLIBRARIES mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
+	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/momenta/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/momenta/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
@@ -2032,7 +2073,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
+	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/momenta/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/momenta/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

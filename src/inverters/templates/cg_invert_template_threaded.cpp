@@ -40,6 +40,8 @@ namespace nissa
   {
     GET_THREAD_ID();
 
+    verbosity_lv2_master_printf("\n");
+
     int riter=0;
     issued_cg_warning=0;
     BASETYPE *s=nissa_malloc("s",BULK_VOL,BASETYPE);
@@ -121,7 +123,7 @@ namespace nissa
     double_vector_subt((double*)r,(double*)source,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
     double_vector_glb_scalar_prod(&lambda,(double*)r,(double*)r,BULK_VOL*NDOUBLES_PER_SITE);
     
-    verbosity_lv2_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",
+    verbosity_lv2_master_printf("final relative residue (after %d iters): %lg where %lg was required\n",
 				final_iter,lambda/source_norm,residue);
     if(lambda/source_norm>=2*residue)
       {
@@ -129,7 +131,7 @@ namespace nissa
 	master_printf("WARNING: true residue %lg much larger than required and expected one %lg\n",
 		      lambda/source_norm,residue);
       }
-    
+
     //check if not converged
     if(final_iter==niter) crash("exit without converging");
     

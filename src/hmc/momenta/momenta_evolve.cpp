@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "inverters/momenta/cg_invert_MFACC.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
@@ -11,6 +12,10 @@
 
 namespace nissa
 {
+  //accelerate the momenta
+  void accelerate_lx_momenta(quad_su3 *M,quad_su3 *conf,double kappa,int niter,double residue,quad_su3 *H)
+  {inv_MFACC_cg(M,NULL,conf,kappa,niter,residue,H);}
+  
   //evolve the momenta with force
   THREADABLE_FUNCTION_3ARG(evolve_lx_momenta_with_force, quad_su3*,H, quad_su3*,F, double,dt)
   {
@@ -46,4 +51,17 @@ namespace nissa
     set_borders_invalid(lx_conf);
   }
   THREADABLE_FUNCTION_END
+  
+  //accelerate and evolve
+  void evolve_lx_conf_with_accelerated_momenta(quad_su3 *lx_conf,quad_su3 *H,double kappa,int niter,double residue,double dt)
+  {
+    if(fabs(kappa)>1.e-10)
+      {
+	quad_su3 *M=nissa_malloc("M",loc_vol+bord_vol,quad_su3);
+	accelerate_lx_momenta(M,lx_conf,kappa,niter,residue,H);
+	evolve_lx_conf_with_momenta(lx_conf,M,dt);
+	nissa_free(M);
+      }
+    else evolve_lx_conf_with_momenta(lx_conf,H,dt);
+  }
 }

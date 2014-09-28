@@ -6,6 +6,8 @@
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
+#include "hmc/gauge/MFACC_fields.hpp"
+#include "hmc/gauge/MFACC_fields.hpp"
 #include "hmc/momenta/momenta_action.hpp"
 #include "hmc/momenta/momenta_generation.hpp"
 #include "hmc/gauge/pure_gauge_omelyan_integrator.hpp"
@@ -29,31 +31,67 @@ namespace nissa
     //allocate the momenta
     quad_su3 *H=nissa_malloc("H",loc_vol,quad_su3);
     
+    int ffacc_momenta=true;
+    double kappa=0.9;
+    double residue=1.e-12;
+    
+    //if we need to accelerate allocate auxiliary fields
+    su3 *phi[2],*pi[2];
+    if(ffacc_momenta)
+      for(int id=0;id<2;id++)
+	{
+	  phi[id]=nissa_malloc("phi",loc_vol+bord_vol,su3);
+	  pi[id]=nissa_malloc("pi",loc_vol+bord_vol,su3);
+	}
+    
     //copy the old conf into the new
     vector_copy(out_conf,in_conf);
     
     //create the momenta
     generate_hmc_momenta(H);
     
+    //if we accelerate draw also momenta and position
+    if(ffacc_momenta)
+      {
+	for(int id=0;id<2;id++) generate_MFACC_fields(phi[id]);
+	generate_MFACC_momenta(pi,out_conf,kappa,residue);
+      }
+    
     //compute initial action
     double init_action_H=momenta_action(H);
     verbosity_lv2_master_printf("Momenta action: %lg\n",init_action_H);
+    double init_action_phi=0,init_action_pi=0;
+    if(ffacc_momenta)
+      {
+	init_action_phi=MFACC_fields_action(phi);
+	verbosity_lv2_master_printf("Fourier acceleration fields action: %lg\n",init_action_phi);
+	init_action_pi=MFACC_momenta_action(pi,out_conf,kappa);
+	verbosity_lv2_master_printf("Fourier acceleration momenta action: %lg\n",init_action_pi);
+      }
     double init_action_G;
     gluonic_action(&init_action_G,out_conf,&theory_pars);
     verbosity_lv2_master_printf("Gauge action: %lg\n",init_action_G);
-    double init_action=init_action_G+init_action_H;
+    double init_action=init_action_G+init_action_H+init_action_phi+init_action_pi;
     verbosity_lv2_master_printf("Init action: %lg\n",init_action);
 
     //evolve forward
-    omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);
+    omelyan_pure_gauge_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
     
     //compute final action
     double final_action_H=momenta_action(H);
     verbosity_lv2_master_printf("Momenta action: %lg\n",final_action_H);
+    double final_action_phi=0,final_action_pi=0;
+    if(ffacc_momenta)
+      {
+	final_action_phi=MFACC_fields_action(phi);
+	verbosity_lv2_master_printf("Fourier acceleration fields action: %lg\n",final_action_phi);
+	final_action_pi=MFACC_momenta_action(pi,out_conf,kappa);
+	verbosity_lv2_master_printf("Fourier acceleration momenta action: %lg\n",final_action_pi);
+      }
     double final_action_G;
     gluonic_action(&final_action_G,out_conf,&theory_pars);
     verbosity_lv2_master_printf("Gauge action: %lg\n",final_action_G);
-    double final_action=final_action_G+final_action_H;
+    double final_action=final_action_G+final_action_H+final_action_phi+final_action_pi;
     verbosity_lv2_master_printf("Final action: %lg\n",final_action);
     
     //compute the diff
@@ -65,6 +103,14 @@ namespace nissa
     //take time
     hmc_time+=take_time();
     verbosity_lv1_master_printf("Total time to perform pure gauge hmc step: %lg s\n",hmc_time);
+    
+    //if accelerated, free everything
+    if(ffacc_momenta)
+      for(int id=0;id<2;id++)
+	{
+	  nissa_free(phi[id]);
+	  nissa_free(pi[id]);
+	}
     
     return diff_action;
   }

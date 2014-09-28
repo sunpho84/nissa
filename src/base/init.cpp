@@ -459,7 +459,7 @@ namespace nissa
     for(int idir=0;idir<4;idir++)
       {
 	ok=ok && (nrank_dir[idir]>0);
-	if(!ok) crash("dir nranks[%d]: %d",idir,nrank_dir[idir]);
+	if(!ok) crash("nrank_dir[%d]: %d",idir,nrank_dir[idir]);
 	ok=ok && (glb_size[idir]%nrank_dir[idir]==0);
 	if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",idir,idir,glb_size[idir]%nrank_dir[idir]);
 	paral_dir[idir]=(nrank_dir[idir]>1);

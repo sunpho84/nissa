@@ -6,7 +6,10 @@
 #include "base/random.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "hmc/gauge/MFACC_fields.hpp"
+#include "inverters/momenta/cg_invert_MFACC.hpp"
 #include "new_types/su3.hpp"
+#include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -49,6 +52,26 @@ namespace nissa
 	(*H_B)=temp[0];
       }
     THREAD_BARRIER();
+  }
+  THREADABLE_FUNCTION_END
+  
+  //generate momenta needed for Fourier acceleration
+  THREADABLE_FUNCTION_4ARG(generate_MFACC_momenta, su3**,pi, quad_su3*,conf, double,kappa, double,residue)
+  {
+    verbosity_lv1_master_printf("Generating Fourier acceleration momenta\n");
+    
+    //allocate gaussian field
+    su3 *V=nissa_malloc("V",loc_vol+bord_vol,su3);
+    
+    for(int id=0;id<2;id++)
+      {
+        //generate gaussianly V and then invert on it
+        generate_MFACC_fields(V);
+        inv_MFACC_cg(pi[id],NULL,conf,kappa,10000000,residue,V);
+      }
+    verbosity_lv2_master_printf("\n");
+    
+    nissa_free(V);
   }
   THREADABLE_FUNCTION_END
 }
