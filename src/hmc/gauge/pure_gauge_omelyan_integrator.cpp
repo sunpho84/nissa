@@ -53,6 +53,11 @@ namespace nissa
     int niter=10000;
     double residue=1.e-10;
     
+    quad_su3 *Fm=nissa_malloc("Fm",loc_vol,quad_su3);
+    MFACC_momenta_QCD_force(Fm,conf,kappa,pi);
+    nissa_free(Fm);
+    crash("just for fun");
+    
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
     //evolve_momenta_with_pure_gauge_force(H,conf,theory_pars,ldt,false/*assuming no phase is present*/,NULL);
     if(pi!=NULL) evolve_MFACC_momenta(pi,phi,ldt);
