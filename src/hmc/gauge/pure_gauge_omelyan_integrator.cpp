@@ -54,7 +54,8 @@ namespace nissa
     double residue=1.e-10;
     
     quad_su3 *Fm=nissa_malloc("Fm",loc_vol,quad_su3);
-    MFACC_momenta_QCD_force(Fm,conf,kappa,pi);
+    //MFACC_momenta_QCD_force(Fm,conf,kappa,pi);
+    MFACC_fields_QCD_force(Fm,conf,kappa,niter,residue,pi);
     nissa_free(Fm);
     crash("just for fun");
     
