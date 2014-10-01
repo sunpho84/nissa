@@ -8,6 +8,7 @@ namespace nissa
   void evolve_MFACC_fields(su3 **phi,quad_su3 *conf,double kappa,su3 **pi,double dt);
   void evolve_MFACC_momenta(su3 **pi,su3 **phi,double dt);
   void MFACC_momenta_QCD_force(quad_su3 *F,quad_su3 *conf,double kappa,su3 **pi);
+  void MFACC_fields_QCD_force(quad_su3 *F,quad_su3 *conf,double kappa,int niter,double residue,su3 **phi);
 }
 
 #endif
