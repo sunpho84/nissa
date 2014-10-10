@@ -78,11 +78,11 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-DIST_COMMON = $(top_srcdir)/config/cuda.mk $(srcdir)/Makefile.in \
-	$(srcdir)/Makefile.am $(top_srcdir)/config/depcomp TODO
 bin_PROGRAMS = $(top_builddir)/bin/generate_stag$(EXEEXT) \
 	$(top_builddir)/bin/generate_quenched$(EXEEXT)
 subdir = projects/generate_confs
+DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
+	$(top_srcdir)/config/depcomp TODO
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -97,9 +97,7 @@ am___top_builddir__bin_generate_quenched_OBJECTS =  \
 	generate_quenched.$(OBJEXT)
 __top_builddir__bin_generate_quenched_OBJECTS =  \
 	$(am___top_builddir__bin_generate_quenched_OBJECTS)
-am__DEPENDENCIES_1 = $(top_builddir)/lib/libnissa.a
-__top_builddir__bin_generate_quenched_DEPENDENCIES =  \
-	$(am__DEPENDENCIES_1)
+__top_builddir__bin_generate_quenched_DEPENDENCIES = $(LDADD)
 __top_builddir__bin_generate_quenched_LINK = $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(__top_builddir__bin_generate_quenched_LDFLAGS) \
 	$(LDFLAGS) -o $@
@@ -108,8 +106,7 @@ am___top_builddir__bin_generate_stag_OBJECTS =  \
 	generate_stag.$(OBJEXT)
 __top_builddir__bin_generate_stag_OBJECTS =  \
 	$(am___top_builddir__bin_generate_stag_OBJECTS)
-__top_builddir__bin_generate_stag_DEPENDENCIES =  \
-	$(am__DEPENDENCIES_1)
+__top_builddir__bin_generate_stag_DEPENDENCIES = $(LDADD)
 __top_builddir__bin_generate_stag_LINK = $(CXXLD) $(AM_CXXFLAGS) \
 	$(CXXFLAGS) $(__top_builddir__bin_generate_stag_LDFLAGS) \
 	$(LDFLAGS) -o $@
@@ -280,18 +277,18 @@ top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/src
 AUTOMAKE_OPTIONS = subdir-objects
-LDADD = $(top_builddir)/lib/libnissa.a $(CUDA_LIBS)
+LDADD = $(top_builddir)/lib/libnissa.a
 __top_builddir__bin_generate_stag_SOURCES = generate_stag.cpp
 __top_builddir__bin_generate_stag_LDADD = $(LDADD)
-__top_builddir__bin_generate_stag_LDFLAGS = $(LDFLAGS) $(CUDA_FLAGS)
+__top_builddir__bin_generate_stag_LDFLAGS = $(LDFLAGS)
 __top_builddir__bin_generate_quenched_SOURCES = generate_quenched.cpp
 __top_builddir__bin_generate_quenched_LDADD = $(LDADD)
-__top_builddir__bin_generate_quenched_LDFLAGS = $(LDFLAGS) $(CUDA_FLAGS)
+__top_builddir__bin_generate_quenched_LDFLAGS = $(LDFLAGS)
 all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .cpp .cu .lo .o .obj
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am $(top_srcdir)/config/cuda.mk $(am__configure_deps)
+.SUFFIXES: .cpp .o .obj
+$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -312,7 +309,6 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	    echo ' cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe)'; \
 	    cd $(top_builddir) && $(SHELL) ./config.status $(subdir)/$@ $(am__depfiles_maybe);; \
 	esac;
-$(top_srcdir)/config/cuda.mk:
 
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
@@ -606,12 +602,6 @@ uninstall-am: uninstall-binPROGRAMS
 	ps ps-am tags tags-am uninstall uninstall-am \
 	uninstall-binPROGRAMS
 
-.cu.o:
-	echo "NVCC_PATH: $NVCC_PATH"
-	$(NVCC_PATH) -gencode=arch=compute_13,code=sm_13 -o $@ -c $<
-
-.cu.lo:
-	$(top_srcdir)/config/cudalt.py $@ $(NVCC_PATH) -gencode=arch=compute_13,code=sm_13 --compiler-options=\"$(CFLAGS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) \" -c $<
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

@@ -201,6 +201,7 @@ AC_CONFIG_FILES(
 	projects/generate_confs/Makefile
 	projects/semileptonic/Makefile
 	projects/static_potential/Makefile
+	projects/x/Makefile
 	tools/Makefile)
 
 AC_OUTPUT
