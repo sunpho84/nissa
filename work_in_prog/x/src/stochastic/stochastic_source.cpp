@@ -1,19 +1,19 @@
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/new_types/spin.h"
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/base/random.h"
-#include "../../../../src/base/debug.h"
-#include "../../../../src/base/vectors.h"
-#include "../../../../src/operations/fft.h"
+#include "../../../../src/new_types/new_types_definitions.hpp"
+#include "../../../../src/new_types/spin.hpp"
+#include "../../../../src/base/global_variables.hpp"
+#include "../../../../src/base/random.hpp"
+#include "../../../../src/base/debug.hpp"
+#include "../../../../src/base/vectors.hpp"
+#include "../../../../src/operations/fft.hpp"
 
-#include "../propagators/tlSym_gluon_propagator.h"
-#include "../routines/fourier.h"
-#include "../types/types.h"
+#include "../propagators/tlSym_gluon_propagator.hpp"
+#include "../routines/fourier.hpp"
+#include "../types/types.hpp"
 
 void generate_stochastic_source_eta(spin1field *eta)
 {
   //start (or restart) the random generator with the passed source
-  if(!nissa_loc_rnd_gen_inited) crash("random gen not inited");
+  if(!loc_rnd_gen_inited) crash("random gen not inited");
   
   //fill with Z4
   NISSA_LOC_VOL_LOOP(ivol)

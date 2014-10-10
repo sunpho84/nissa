@@ -1,16 +1,17 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/propagators/tlSym_gluon_propagator.h"
-#include "../src/propagators/Wilson_gluon_propagator.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/fourier.h"
-#include "../src/routines/shift.h"
-#include "../src/diagrams/propagator_self_energy.h"
-#include "../src/diagrams/tadpole.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/propagators/tlSym_gluon_propagator.hpp"
+#include "../src/propagators/Wilson_gluon_propagator.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/fourier.hpp"
+#include "../src/routines/shift.hpp"
+#include "../src/diagrams/propagator_self_energy.hpp"
+#include "../src/diagrams/tadpole.hpp"
 
 spinspin *corr2_x,*corr2_p;
 spinspin *corr1_x,*corr1_p;
@@ -107,7 +108,7 @@ double real_part_of_trace_with_igamma(spinspin *q,int imom,int mu,quark_info qu)
   complex tr={0,0};
   if(mu<0||mu>=4) crash("mu=%d",mu);
   
-  int nu=nissa_map_mu[mu];
+  int nu=map_mu[mu];
   for(int id=0;id<4;id++)
     {
       complex t;
@@ -135,7 +136,7 @@ double real_part_of_trace_with_id(spinspin *q,int imom,quark_info qu)
 }
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //init the grid
   init_grid(L,L);
@@ -161,12 +162,12 @@ void close_test()
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   if(narg<2) crash("use: %s L",arg[0]);
   L=atoi(arg[1]);
   
-  init_test();
+  init_test(narg,arg);
   
   double null_theta[4]={0,0,0,0};
   double small=1.e-6;
@@ -201,7 +202,7 @@ int main(int narg,char **arg)
   
   ///////////////////////////////// correction in P ////////////////////////////  
   
-  if(comp_p && nissa_nranks==1)
+  if(comp_p && nranks==1)
     {
       compute_self_energy_twisted_diagram_in_mom_space(corr2_p,qu,gl);
 
@@ -218,11 +219,11 @@ int main(int narg,char **arg)
 	if(fabs(t2)>1.e-10) 
 	  {
 	    master_printf("%d %lg\n",ivol,t2);
-	    print_spinspin(temp);
+	    spinspin_print(temp);
 	    master_printf("x-space: \n");
-	    print_spinspin(corr2_x[ivol]);
+	    spinspin_print(corr2_x[ivol]);
 	    master_printf("p-space: \n");
-	    print_spinspin(corr2_p[ivol]);
+	    spinspin_print(corr2_p[ivol]);
 	  }
       }
       tt=glb_reduce_double(tt);
@@ -295,15 +296,15 @@ int main(int narg,char **arg)
   master_printf("a2p2: %lg\n",a2p2);
   master_printf("att: %lg\n",pana_c2_id_corr(a2p2,gl));
   
-  if(nissa_nranks==1 && comp_p)
+  if(nranks==1 && comp_p)
     {
       master_printf("p-space: \n");
-      print_spinspin(corr2_p[lx]);
+      spinspin_print(corr2_p[lx]);
       master_printf("\n");
     }
   
   master_printf("x-space: \n");
-  if(rank==rx) print_spinspin(corr2_x[lx]);
+  if(rank==rx) spinspin_print(corr2_x[lx]);
   
   close_test();
   

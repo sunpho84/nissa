@@ -1,9 +1,11 @@
-#include "../../../../src/nissa.h"
+#include "../../../../src/nissa.hpp"
+using namespace std;
+using namespace nissa;
 
-#include "../routines/fourier.h"
-#include "../types/types.h"
-#include "../vertex/x_space_stochastic_qqg_vertex.h"
-#include "../propagators/twisted_propagator.h"
+#include "../routines/fourier.hpp"
+#include "../types/types.hpp"
+#include "../vertex/x_space_stochastic_qqg_vertex.hpp"
+#include "../propagators/twisted_propagator.hpp"
 
 void generate_stochastic_A_twisted_propagator(spinspin *q_A,spinspin *q_prop,quark_info qu,spin1field *g_A,gluon_info gl)
 {stochastic_x_space_qqg_vertex(q_A,q_prop,qu,g_A,gl);}

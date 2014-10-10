@@ -5,6 +5,6 @@
 
 #include "../types/types.hpp"
 
-void generate_stochppastic_source_eta(spin1field *eta);
+void generate_stochastic_source_eta(spin1field *eta);
 
 #endif

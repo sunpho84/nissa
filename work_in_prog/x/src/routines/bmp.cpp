@@ -3,9 +3,10 @@
 #include <stdint.h>
 #include <math.h>
 
-#include "../../../../src/nissa.h"
+#include "../../../../src/nissa.hpp"
+using namespace std;
 
-#include "../types/types.h"
+#include "../types/types.hpp"
 
 int iof(int x,int y,int ic,int width,int height,int bpp)
 {return (bpp>>3)*(x+y*width)+ic;}

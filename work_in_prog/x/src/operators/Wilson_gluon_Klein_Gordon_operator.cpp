@@ -1,17 +1,17 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/new_types/complex.h"
-#include "../../../../src/base/debug.h"
-#include "../../../../src/operations/fft.h"
-#include "../../../../src/base/vectors.h"
-#include "../../../../src/communicate/communicate.h"
+#include "../../../../src/base/global_variables.hpp"
+#include "../../../../src/new_types/new_types_definitions.hpp"
+#include "../../../../src/new_types/complex.hpp"
+#include "../../../../src/base/debug.hpp"
+#include "../../../../src/operations/fft.hpp"
+#include "../../../../src/base/vectors.hpp"
+#include "../../../../src/communicate/communicate.hpp"
 
-#include "../types/types.h"
-#include "../routines/derivatives.h"
-#include "../routines/fourier.h"
+#include "../types/types.hpp"
+#include "../routines/derivatives.hpp"
+#include "../routines/fourier.hpp"
 
 void apply_Wilson_gluon_x_Klein_Gordon_operator(spin1field *out,spin1field *in,gluon_info gl)
 {

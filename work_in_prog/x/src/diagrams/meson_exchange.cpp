@@ -1,14 +1,15 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../propagators/twisted_propagator.h"
-#include "../propagators/tlSym_gluon_propagator.h"
-#include "../routines/fourier.h"
-#include "../routines/correlations.h"
-#include "../vertex/vertex.h"
-#include "../stochastic/stochastic_twisted_propagator.h"
-#include "../stochastic/stochastic_tlSym_gluon_propagator.h"
+#include "../propagators/twisted_propagator.hpp"
+#include "../propagators/tlSym_gluon_propagator.hpp"
+#include "../routines/fourier.hpp"
+#include "../routines/correlations.hpp"
+#include "../vertex/vertex.hpp"
+#include "../stochastic/stochastic_twisted_propagator.hpp"
+#include "../stochastic/stochastic_tlSym_gluon_propagator.hpp"
 
 /*
      ___/____A____/___

@@ -1,18 +1,19 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/propagators/tlSym_gluon_propagator.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/fourier.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/propagators/tlSym_gluon_propagator.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/fourier.hpp"
 
 void compute_amp_self_x(spinspin *self_prop,spinspin *q_prop,spin1prop *g_prop)
 {
   vector_reset(self_prop);
   for(int mu=0;mu<4;mu++)
     {
-      dirac_matr g=base_gamma[nissa_map_mu[mu]];
+      dirac_matr g=base_gamma[map_mu[mu]];
 
       NISSA_LOC_VOL_LOOP(ivol)
         {
@@ -34,7 +35,7 @@ void compute_amp_self_mom(spinspin *self_prop,spinspin *q_prop,spin1prop *g_prop
   vector_reset(self_prop);
   for(int mu=0;mu<4;mu++)
     {
-      dirac_matr g=base_gamma[nissa_map_mu[mu]];
+      dirac_matr g=base_gamma[map_mu[mu]];
       
       NISSA_LOC_VOL_LOOP(imom)
         {
@@ -113,7 +114,7 @@ void compute_with_trick(double *corr,spinspin *q_prop,spin1prop *g_prop,quark_in
   
   for(int mu=0;mu<4;mu++)
     {
-      dirac_matr g=base_gamma[nissa_map_mu[mu]];
+      dirac_matr g=base_gamma[map_mu[mu]];
 
       coords p={0,0,0,0};
       for(p[0]=0;p[0]<glb_size[0];p[0]++)
@@ -193,7 +194,7 @@ int main(int narg,char **arg)
 {
   //basic initialization
   int T=48,L=24;
-  init_nissa();
+  init_nissa(narg,arg);
   init_grid(T,L);
   
   //quark

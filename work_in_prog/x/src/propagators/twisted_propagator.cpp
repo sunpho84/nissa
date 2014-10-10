@@ -1,12 +1,13 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../../src/nissa.h"
+#include "../../../../src/nissa.hpp"
+using namespace std;
 
-#include "../types/types.h"
-#include "../types/types_routines.h"
-#include "../routines/fourier.h"
-#include "../inverters/cg_eoprec_twisted_free_operator.h"
+#include "../types/types.hpp"
+#include "../types/types_routines.hpp"
+#include "../routines/fourier.hpp"
+#include "../inverters/cg_eoprec_twisted_free_operator.hpp"
 
 void mom_space_twisted_propagator_of_imom(spinspin prop,quark_info qu,int imom)
 {

@@ -189,6 +189,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/momenta/momenta_action.cpp \
 	hmc/momenta/momenta_evolve.cpp \
 	hmc/momenta/momenta_generation.cpp \
+	hmc/rootst_eoimpr/rat_expansion_database.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
@@ -213,14 +214,13 @@ include_HEADERS+= \
 	hmc/momenta/momenta_action.hpp \
 	hmc/momenta/momenta_evolve.hpp \
 	hmc/momenta/momenta_generation.hpp \
+	hmc/rootst_eoimpr/rat_expansion_database.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.hpp
-
-EXTRA_DIST+=hmc/rootst_eoimpr/rat_expansion_database.cpp
 
 ###################################### inverters #################################
 
@@ -331,6 +331,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	new_types/dirac.cpp \
 	new_types/float_128.cpp \
 	new_types/float_256.cpp \
+	new_types/high_prec.cpp \
 	new_types/rat_approx.cpp \
 	new_types/read_new_types.cpp \
 	new_types/spin.cpp \
@@ -341,6 +342,7 @@ include_HEADERS+= \
 	new_types/dirac.hpp \
 	new_types/float_128.hpp \
 	new_types/float_256.hpp \
+	new_types/high_prec.hpp \
 	new_types/new_types_definitions.hpp \
 	new_types/rat_approx.hpp \
 	new_types/read_new_types.hpp \

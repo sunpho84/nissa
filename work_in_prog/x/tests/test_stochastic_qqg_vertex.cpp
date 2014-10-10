@@ -1,21 +1,22 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/stochastic/stochastic_tlSym_gluon_propagator.h"
-#include "../src/types/types.h"
-#include "../src/types/types_routines.h"
-#include "../src/vertex/x_space_stochastic_qqg_vertex.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/stochastic/stochastic_tlSym_gluon_propagator.hpp"
+#include "../src/types/types.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/vertex/x_space_stochastic_qqg_vertex.hpp"
 
 spinspin *S0_prop,*Sphi_prop;
 spin1field *phi,*eta;
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(8,4);
@@ -45,7 +46,7 @@ void close_test()
 
 int main(int narg,char **arg)
 {
-  init_test();
+  init_test(narg,arg);
   
   //non-trivial boundary condition in one space direction
   double theta_gluon[4]={0,1,0,0};
@@ -82,8 +83,8 @@ int main(int narg,char **arg)
   
   if(rx==rank)
     {
-      print_spinspin(S0_prop[lx]);
-      print_spinspin(Sphi_prop[lx]);
+      spinspin_print(S0_prop[lx]);
+      spinspin_print(Sphi_prop[lx]);
     }
   
   close_test();

@@ -1,18 +1,19 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/propagators/tlSym_gluon_propagator.h"
-#include "../src/diagrams/propagator_self_energy.h"
-#include "../src/diagrams/meson_exchange.h"
-#include "../src/diagrams/tadpole.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/read_and_write.h"
-#include "../src/vertex/vertex.h"
-#include "../src/routines/correlations.h"
-#include "../src/stochastic/stochastic_twisted_propagator.h"
-#include "../src/stochastic/stochastic_tlSym_gluon_propagator.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/propagators/tlSym_gluon_propagator.hpp"
+#include "../src/diagrams/propagator_self_energy.hpp"
+#include "../src/diagrams/meson_exchange.hpp"
+#include "../src/diagrams/tadpole.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/read_and_write.hpp"
+#include "../src/vertex/vertex.hpp"
+#include "../src/routines/correlations.hpp"
+#include "../src/stochastic/stochastic_twisted_propagator.hpp"
+#include "../src/stochastic/stochastic_tlSym_gluon_propagator.hpp"
 
 int igamma=0;
 int REIM=0;
@@ -42,7 +43,7 @@ void transf(double *corrx,complex *corrp,int ord)
 
 void compute(double *lead,double *self,double *exch,double *tad,quark_info qu,gluon_info gl)
 {
-  if(nissa_nranks>1) crash("works only on scalar");
+  if(nranks>1) crash("works only on scalar");
 
   spinspin *q_prop=nissa_malloc("q_prop",loc_vol,spinspin);
   spin1prop *g_prop=nissa_malloc("g_prop",loc_vol,spin1prop);
@@ -256,7 +257,7 @@ int main(int narg,char **arg)
 {
   //basic initialization
   int T=64,L=32;
-  init_nissa();
+  init_nissa(narg,arg);
   init_grid(T,L);
   start_loc_rnd_gen(100);  
 

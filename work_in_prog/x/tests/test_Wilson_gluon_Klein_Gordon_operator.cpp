@@ -1,22 +1,23 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/types/types.h"
-#include "../src/types/types_routines.h"
-#include "../src/operators/Wilson_gluon_Klein_Gordon_operator.h"
-#include "../src/propagators/Wilson_gluon_propagator.h"
-#include "../src/propagators/tlSym_gluon_propagator.h"
+#include "../src/types/types.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/operators/Wilson_gluon_Klein_Gordon_operator.hpp"
+#include "../src/propagators/Wilson_gluon_propagator.hpp"
+#include "../src/propagators/tlSym_gluon_propagator.hpp"
 
 spin1prop *prop;
 spin1field *temp1,*temp2;
 spin1prop *check_id;
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(8,4);
@@ -49,7 +50,7 @@ void check_id_output()
   if(rank==rx)
     {
       printf("\n\nK*G-1 at point: (%d,%d,%d,%d)=%d, rank: %d\n",ix[0],ix[1],ix[2],ix[3],lx,rx);
-      print_spinspin(check_id[lx]);
+      spinspin_print(check_id[lx]);
     }
   
   //take the squared norm of check_id
@@ -72,7 +73,7 @@ void check_id_output()
 
 int main(int narg,char **arg)
 {
-  init_test();
+  init_test(narg,arg);
   
   //anti-periodic boundary condition in one space direction
   double theta[4]={0,0.7,0,0};

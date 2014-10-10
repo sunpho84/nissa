@@ -49,6 +49,11 @@ namespace nissa
     //init base things
     init_MPI_thread(narg,arg);
 
+#if HIGH_PREC==GMP_HIGH_PREC
+    //init default precision for gmp
+    mpf_set_default_prec(256);
+#endif
+    
     tot_time=-take_time();
 #ifdef BENCH
     tot_comm_time=0;

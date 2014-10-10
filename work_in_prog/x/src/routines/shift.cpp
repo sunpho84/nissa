@@ -1,11 +1,12 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../../src/nissa.h"
+#include "../../../../src/nissa.hpp"
+using namespace std;
 
-#include "../types/types.h"
-#include "../types/types_routines.h"
-#include "../routines/fourier.h"
+#include "../types/types.hpp"
+#include "../types/types_routines.hpp"
+#include "../routines/fourier.hpp"
 
 void unsafe_shift_spin_up(spin *out,spin *in,momentum_t bc,int mu)
 {

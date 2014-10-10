@@ -1,16 +1,17 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/read_and_write.h"
-#include "../src/routines/correlations.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/read_and_write.hpp"
+#include "../src/routines/correlations.hpp"
 
 void init_program(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //Check arguments
   if(narg<2) crash("use %s input",arg[0]);  

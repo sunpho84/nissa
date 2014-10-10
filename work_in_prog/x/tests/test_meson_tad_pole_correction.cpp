@@ -1,16 +1,17 @@
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/types/types_routines.h"
-#include "../src/diagrams/tadpole.h"
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/routines/correlations.h"
+#include "../src/types/types_routines.hpp"
+#include "../src/diagrams/tadpole.hpp"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/routines/correlations.hpp"
 
 int L=4;
 
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(2*L,L);

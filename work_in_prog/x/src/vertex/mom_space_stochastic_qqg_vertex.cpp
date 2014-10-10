@@ -1,24 +1,24 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/new_types/complex.h"
-#include "../../../../src/new_types/dirac.h"
-#include "../../../../src/new_types/spin.h"
-#include "../../../../src/base/debug.h"
-#include "../../../../src/operations/fft.h"
-#include "../../../../src/base/vectors.h"
+#include "../../../../src/base/global_variables.hpp"
+#include "../../../../src/new_types/new_types_definitions.hpp"
+#include "../../../../src/new_types/complex.hpp"
+#include "../../../../src/new_types/dirac.hpp"
+#include "../../../../src/new_types/spin.hpp"
+#include "../../../../src/base/debug.hpp"
+#include "../../../../src/operations/fft.hpp"
+#include "../../../../src/base/vectors.hpp"
 
-#include "../propagators/twisted_propagator.h"
-#include "../types/types.h"
-#include "../routines/derivatives.h"
-#include "../routines/fourier.h"
-#include "../routines/shift.h"
+#include "../propagators/twisted_propagator.hpp"
+#include "../types/types.hpp"
+#include "../routines/derivatives.hpp"
+#include "../routines/fourier.hpp"
+#include "../routines/shift.hpp"
 
 void stochastic_mom_space_qqg_vertex(spin *q_out,spin *q_in,quark_info qu,spin1field *g_in,gluon_info gl)
 {
-  if(nissa_nranks>1) crash("implemented only in scalar");
+  if(nranks>1) crash("implemented only in scalar");
   if(q_out==q_in) crash("q_in==q_out");
   
   spin *shift_q_in=nissa_malloc("shift_q_in",loc_vol+bord_vol,spin);

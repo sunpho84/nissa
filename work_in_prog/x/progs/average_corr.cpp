@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/types/types.h"
-#include "../src/routines/read_and_write.h"
+#include "../src/types/types.hpp"
+#include "../src/routines/read_and_write.hpp"
 
 corr16 *unav_corr;
 corr16 *temp_corr;
@@ -14,9 +15,9 @@ corr16 *temp_corr;
 void init_calc(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
-  if(nissa_nranks>1) crash("only available in scalar");
+  if(nranks>1) crash("only available in scalar");
   if(narg<3) crash("use %s T L",arg[0]);
   
   int T=atoi(arg[1]);

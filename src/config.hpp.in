@@ -26,6 +26,9 @@
 /* Define to 1 if using `alloca.c'. */
 #undef C_ALLOCA
 
+/* "GMP library" */
+#undef GMP_HIGH_PREC
+
 /* Define to 1 if you have `alloca', as a function or macro. */
 #undef HAVE_ALLOCA
 
@@ -113,8 +116,14 @@
 /* Define to 1 if the system has the type `_Bool'. */
 #undef HAVE__BOOL
 
+/* Enable gmp high-precision */
+#undef HIGH_PREC
+
 /* Max_verbosity_lv */
 #undef MAX_VERBOSITY_LV
+
+/* "Native implementation" */
+#undef NATIVE_HIGH_PREC
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT

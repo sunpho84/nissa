@@ -1,6 +1,8 @@
 #include <math.h>
 
-#include "../../../../src/nissa.h"
+#include "../../../../src/nissa.hpp"
+using namespace nissa;
+using namespace std;
 
 void pass_spinspin_from_mom_to_x_space(spinspin *out,spinspin *in,momentum_t bc)
 {

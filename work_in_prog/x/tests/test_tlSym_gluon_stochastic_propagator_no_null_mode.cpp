@@ -1,22 +1,23 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/types/types.h"
-#include "../src/types/types_routines.h"
-#include "../src/propagators/Wilson_gluon_propagator.h"
-#include "../src/operators/Wilson_gluon_Klein_Gordon_operator.h"
-#include "../src/propagators/tlSym_gluon_propagator.h"
-#include "../src/stochastic/stochastic_tlSym_gluon_propagator.h"
-#include "../src/inverters/cg_Wilson_gluon_operator.h"
+#include "../src/types/types.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/propagators/Wilson_gluon_propagator.hpp"
+#include "../src/operators/Wilson_gluon_Klein_Gordon_operator.hpp"
+#include "../src/propagators/tlSym_gluon_propagator.hpp"
+#include "../src/stochastic/stochastic_tlSym_gluon_propagator.hpp"
+#include "../src/inverters/cg_Wilson_gluon_operator.hpp"
 
 spin1field *eta,*phi_fft,*phi_inv;
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(24,32);
@@ -42,7 +43,7 @@ void close_test()
 
 int main(int narg,char **arg)
 {
-  init_test();
+  init_test(narg,arg);
   
   //anti-periodic boundary condition in one space direction
   double theta[4]={0,0,0,0};

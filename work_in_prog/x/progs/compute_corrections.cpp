@@ -1,16 +1,17 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/diagrams/propagator_self_energy.h"
-#include "../src/diagrams/meson_exchange.h"
-#include "../src/diagrams/tadpole.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/read_and_write.h"
-#include "../src/routines/correlations.h"
-#include "../src/stochastic/stochastic_tlSym_gluon_propagator.h"
-#include "../src/stochastic/stochastic_twisted_propagator.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/diagrams/propagator_self_energy.hpp"
+#include "../src/diagrams/meson_exchange.hpp"
+#include "../src/diagrams/tadpole.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/read_and_write.hpp"
+#include "../src/routines/correlations.hpp"
+#include "../src/stochastic/stochastic_tlSym_gluon_propagator.hpp"
+#include "../src/stochastic/stochastic_twisted_propagator.hpp"
 
 struct flags
 {
@@ -25,7 +26,7 @@ struct flags
 void init_program(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //Check arguments
   if(narg<2) crash("use %s input",arg[0]);  

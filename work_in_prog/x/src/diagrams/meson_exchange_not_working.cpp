@@ -1,17 +1,18 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../propagators/twisted_propagator.h"
-#include "../propagators/tlSym_gluon_propagator.h"
-#include "../routines/fourier.h"
-#include "../routines/correlations.h"
-#include "../routines/shift.h"
-#include "../vertex/vertex.h"
-#include "../stochastic/stochastic_twisted_propagator.h"
-#include "../stochastic/stochastic_tlSym_gluon_propagator.h"
+#include "../propagators/twisted_propagator.hpp"
+#include "../propagators/tlSym_gluon_propagator.hpp"
+#include "../routines/fourier.hpp"
+#include "../routines/correlations.hpp"
+#include "../routines/shift.hpp"
+#include "../vertex/vertex.hpp"
+#include "../stochastic/stochastic_twisted_propagator.hpp"
+#include "../stochastic/stochastic_tlSym_gluon_propagator.hpp"
 
-#include "propagator_self_energy.h"
+#include "propagator_self_energy.hpp"
 
 /*
      ___/____A____/___
@@ -55,7 +56,7 @@ void summ_the_exchange_contributionA(corr16 corr,spinspin OB,spinspin pB,spinspi
 
 void compute_meson_exchange_correction_analyticallyA(corr16 *corr,quark_info qu,gluon_info gl)
 {
-  if(nissa_nranks>1) crash("works only on scalar");
+  if(nranks>1) crash("works only on scalar");
   
   //freeing memory
   memset(corr,0,sizeof(corr16)*loc_vol);
@@ -91,16 +92,16 @@ void compute_meson_exchange_correction_analyticallyA(corr16 *corr,quark_info qu,
 	      
 	      // - G S(0,B) (1-g_mu_B) S(Bup,X) G S(X,A) (1-g_mu_A) S(Aup,0) G(A,B)
 	      compute_x_space_propagator_to_sink_from_source(AB,g_prop,gl.bc,glb_coord_of_loclx[A],glb_coord_of_loclx[B]);
-	      summ_the_exchange_contributionA(corr[X],OB,nissa_omg[mu_B],Bup_X,XA,nissa_omg[mu_A],Aup_O,AB[mu_A][mu_B],-0.25);
+	      summ_the_exchange_contributionA(corr[X],OB,omg[mu_B],Bup_X,XA,omg[mu_A],Aup_O,AB[mu_A][mu_B],-0.25);
 	      // + G S(0,B) (1-g_mu_B) S(Bup,X) G S(X,A) (1+g_mu_A) S(Adw,0) G(Adw,B)
 	      compute_x_space_propagator_to_sink_from_source(AB,g_prop,gl.bc,glb_coord_of_loclx[Adw],glb_coord_of_loclx[B]);
-	      summ_the_exchange_contributionA(corr[X],OB,nissa_omg[mu_B],Bup_X,XA,nissa_opg[mu_A],Adw_O,AB[mu_A][mu_B],+0.25);
+	      summ_the_exchange_contributionA(corr[X],OB,omg[mu_B],Bup_X,XA,opg[mu_A],Adw_O,AB[mu_A][mu_B],+0.25);
 	      // + G S(0,B) (1+g_mu_B) S(Bdw,X) G S(X,A) (1-g_mu_A) S(Aup,0) G(A,Bdw)
 	      compute_x_space_propagator_to_sink_from_source(AB,g_prop,gl.bc,glb_coord_of_loclx[A],glb_coord_of_loclx[Bdw]);
-	      summ_the_exchange_contributionA(corr[X],OB,nissa_opg[mu_B],Bdw_X,XA,nissa_omg[mu_A],Aup_O,AB[mu_A][mu_B],+0.25);
+	      summ_the_exchange_contributionA(corr[X],OB,opg[mu_B],Bdw_X,XA,omg[mu_A],Aup_O,AB[mu_A][mu_B],+0.25);
 	      // - G S(0,B) (1+g_mu_B) S(Bdw,X) G S(X,A) (1+g_mu_A) S(Adw,0) G(Adw,Bdw)
 	      compute_x_space_propagator_to_sink_from_source(AB,g_prop,gl.bc,glb_coord_of_loclx[Adw],glb_coord_of_loclx[Bdw]);
-	      summ_the_exchange_contributionA(corr[X],OB,nissa_opg[mu_B],Bdw_X,XA,nissa_opg[mu_A],Adw_O,AB[mu_A][mu_B],-0.25);
+	      summ_the_exchange_contributionA(corr[X],OB,opg[mu_B],Bdw_X,XA,opg[mu_A],Adw_O,AB[mu_A][mu_B],-0.25);
 	    }
   
   nissa_free(q_prop);
@@ -152,7 +153,7 @@ void summ_the_exchange_contributionB(corr16 corr,spinspin XB,spinspin pB,spinspi
 
 void compute_meson_exchange_correction_analyticallyB(corr16 *corr,quark_info qu,gluon_info gl)
 {
-  if(nissa_nranks>1) crash("works only on scalar");
+  if(nranks>1) crash("works only on scalar");
   
   memset(corr,0,sizeof(corr16)*loc_vol);
   
@@ -187,16 +188,16 @@ void compute_meson_exchange_correction_analyticallyB(corr16 *corr,quark_info qu,
 	      
 	      // - G S(0,B) (1-g_mu_B) S(Bup,X) G S(X,A) (1-g_mu_A) S(Aup,0) G(A,B)
 	      compute_x_space_propagator_to_sink_from_source(AB,g_prop,gl.bc,glb_coord_of_loclx[A],glb_coord_of_loclx[Bup]);
-	      summ_the_exchange_contributionB(corr[X],XB,nissa_omg[mu_B],Bup_O,XA,nissa_omg[mu_A],Aup_O,AB[mu_A][mu_B],-0.25);
+	      summ_the_exchange_contributionB(corr[X],XB,omg[mu_B],Bup_O,XA,omg[mu_A],Aup_O,AB[mu_A][mu_B],-0.25);
 	      // + G S(0,B) (1-g_mu_B) S(Bup,X) G S(X,A) (1+g_mu_A) S(Adw,0) G(Adw,B)
 	      compute_x_space_propagator_to_sink_from_source(AB,g_prop,gl.bc,glb_coord_of_loclx[Adw],glb_coord_of_loclx[Bup]);
-	      summ_the_exchange_contributionB(corr[X],XB,nissa_omg[mu_B],Bup_O,XA,nissa_opg[mu_A],Adw_O,AB[mu_A][mu_B],+0.25);
+	      summ_the_exchange_contributionB(corr[X],XB,omg[mu_B],Bup_O,XA,opg[mu_A],Adw_O,AB[mu_A][mu_B],+0.25);
 	      // + G S(0,B) (1+g_mu_B) S(Bdw,X) G S(X,A) (1-g_mu_A) S(Aup,0) G(A,Bdw)
 	      compute_x_space_propagator_to_sink_from_source(AB,g_prop,gl.bc,glb_coord_of_loclx[A],glb_coord_of_loclx[B]);
-	      summ_the_exchange_contributionB(corr[X],XB,nissa_opg[mu_B],Bdw_O,XA,nissa_omg[mu_A],Aup_O,AB[mu_A][mu_B],+0.25);
+	      summ_the_exchange_contributionB(corr[X],XB,opg[mu_B],Bdw_O,XA,omg[mu_A],Aup_O,AB[mu_A][mu_B],+0.25);
 	      // - G S(0,B) (1+g_mu_B) S(Bdw,X) G S(X,A) (1+g_mu_A) S(Adw,0) G(Adw,Bdw)
 	      compute_x_space_propagator_to_sink_from_source(AB,g_prop,gl.bc,glb_coord_of_loclx[Adw],glb_coord_of_loclx[B]);
-	      summ_the_exchange_contributionB(corr[X],XB,nissa_opg[mu_B],Bdw_O,XA,nissa_opg[mu_A],Adw_O,AB[mu_A][mu_B],-0.25);
+	      summ_the_exchange_contributionB(corr[X],XB,opg[mu_B],Bdw_O,XA,opg[mu_A],Adw_O,AB[mu_A][mu_B],-0.25);
 	    }
   
   nissa_free(q_prop);

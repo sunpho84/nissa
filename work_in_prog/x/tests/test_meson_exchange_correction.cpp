@@ -1,9 +1,10 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/types/types_routines.h"
-#include "../src/diagrams/meson_exchange.h"
+#include "../src/types/types_routines.hpp"
+#include "../src/diagrams/meson_exchange.hpp"
 
 int L=8;
 
@@ -22,7 +23,7 @@ void print_corr(quark_info qu,gluon_info gl,int n)
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(L,L);

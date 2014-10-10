@@ -1,19 +1,20 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/fourier.h"
-#include "../src/routines/shift.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/fourier.hpp"
+#include "../src/routines/shift.hpp"
 
 spinspin  *q_prop,*q_prop_sh1,*q_prop_sh2;
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(8,4);
@@ -53,7 +54,7 @@ double glb_diff(spinspin *a,spinspin *b)
   
 int main(int narg,char **arg)
 {
-  init_test();
+  init_test(narg,arg);
   
   //quark
   //double quark_theta[4]={0,0,0,0};
@@ -90,7 +91,7 @@ int main(int narg,char **arg)
   
   // test2
   
-  if(nissa_nranks>1) master_printf("test2 meaningful only in scalar, skipping\n");
+  if(nranks>1) master_printf("test2 meaningful only in scalar, skipping\n");
   else
     {
       //take a random point
@@ -128,16 +129,16 @@ int main(int narg,char **arg)
       master_printf("\n");
       
       master_printf("ORI:\n");
-      print_spinspin(PO);
+      spinspin_print(PO);
       master_printf("\n");
       master_printf("Reve:\n");
-      print_spinspin(OP_reve);
+      spinspin_print(OP_reve);
       master_printf("\n");
       master_printf("Shift:\n");
-      print_spinspin(OP_shift);
+      spinspin_print(OP_shift);
       master_printf("\n");
       master_printf("Equi:\n");
-      print_spinspin(OP_equi);
+      spinspin_print(OP_equi);
       master_printf("\n");
     }
   

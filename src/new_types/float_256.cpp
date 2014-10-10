@@ -9,6 +9,7 @@
 
 #include "float_128.hpp"
 #include "new_types_definitions.hpp"
+#include "routines/ios.hpp"
 
 namespace nissa
 {
@@ -35,11 +36,9 @@ namespace nissa
   void float_256_uminus(float_256 b,float_256 a)
   {for(int i=0;i<4;i++) b[i]=-a[i];}
   
+  void renormalize(float_256,double,double,double,double);
   void float_256_from_double(float_256 b,double a)
-  {
-    b[0]=a;
-    b[1]=b[2]=b[3]=0;
-  }
+  {renormalize(b,a,0,0,0);}
   
   void float_256_put_to_zero(float_256 a)
   {float_256_from_double(a,0);}
@@ -73,21 +72,30 @@ namespace nissa
     e=(a-(s-v))+(b-v);
   }
   
-  void three_summ(double &a,double &b,double &c)
+  void three_summ(double &a,double &b,double &c,double x,double y,double z)
   {
+    a=x;
+    b=y;
+    c=z;
     double t1,t2,t3;
     two_summ(t1,t2,a,b);
     two_summ(a,t3,c,t1);
     two_summ(b,c,t2,t3);
   }
+  void three_summ(double &a,double &b,double &c)
+  {three_summ(a,b,c,a,b,c);}
   
-  void three_summ2(double &a,double &b,double &c)
+  void three_summ2(double &a,double &b,double x,double y,double c)
   {
+    a=x;
+    b=y;
     double t1,t2,t3;
     two_summ(t1,t2,a,b);
     two_summ(a,t3,c,t1);
     b=t2+t3;
   }
+  void three_summ2(double &a,double &b,double c)
+  {three_summ2(a,b,a,b,c);}
   
   double quick_three_accum(double &a,double &b,double c)
   {
@@ -117,6 +125,9 @@ namespace nissa
     double t=134217729*a;
     a_hi=t-(t-a);
     a_lo=a-a_hi;
+    
+    //master_printf("  splitting: %16.16lg==%16.16lg\n",((double)((int)a)),a);
+    //master_printf("  splitting: %lg={%lg,%lg}\n",a,a_hi,a_lo);
   }
   
   void two_prod(double &p,double &e,double a,double b)
@@ -133,6 +144,7 @@ namespace nissa
   
   void renormalize(float_256 b,float_256_unr a)
   {
+    //master_printf("Renormalizing: {%lg,%lg,%lg,%lg,%lg}\n",a[0],a[1],a[2],a[3],a[4]);
     double s0=0,s1=0,s2=0,s3=0;
     double c0,c1,c2,c3,c4;
     quick_two_summ(s0,c4,a[3],a[4]);
@@ -270,9 +282,9 @@ namespace nissa
     t3=w3+u3;
     
     two_summ(s1,t0,s1,t0);
-    three_summ(s2,t0,t1);
-    three_summ2(s3,t0,t2);
-    t0=t0+t1+t3;
+    three_summ(s2,t1,t0);
+    three_summ2(s3,t2,t1);
+    t0=t0+t2+t3;
     
     renormalize(c,s0,s1,s2,s3,t0);
   }
@@ -369,26 +381,37 @@ namespace nissa
   
   void float_256_prod_double(float_256 c,float_256 a,double b)
   {
+    //master_printf("  taking product: {%lg %lg %lg %lg}*%lg\n",a[0],a[1],a[2],a[3],b);
+
     float_256_unr s;
-    double p0,p1,p2,p3;
+    double p1,p2,p3;
     double q0,q1,q2;
+    double t1,t2,t3;
+    double r2;
     
-    two_prod(p0,q0,a[0],b);
+    two_prod(s[0],q0,a[0],b);
+    //master_printf("  a[0]: %16.16lg\n",a[0]);
+    //master_printf("  b: %16.16lg\n",b);
+    //master_printf("  s0: %lg\n",s[0]);
+    //master_printf("  q0: %lg\n",q0);
     two_prod(p1,q1,a[1],b);
+    //master_printf("  p1: %lg\n",p1);
+    //master_printf("  q1: %lg\n",q1);
     two_prod(p2,q2,a[2],b);
+    //master_printf("  p2: %lg\n",p2);
+    //master_printf("  q2: %lg\n",q2);
     p3=a[3]*b;
     
-    s[0]=p0;
+    two_summ(s[1],t1,q0,p1);
     
-    two_summ(s[1],s[2],q0,p1);
+    three_summ(s[2],t2,r2,p2,q1,t1);
     
-    three_summ(s[2],q1,p2);
+    three_summ2(s[3],t3,p3,q2,t2);
+    s[4]=r2+t3;
     
-    three_summ2(q1,q2,p3);
-    s[3]=q1;  
-    s[4]=q2+p2;
-    
+    //master_printf("  unrenormalized: %lg %lg %lg %lg %lg\n",s[0],s[1],s[2],s[3],s[4]);
     renormalize(c,s);
+    //master_printf("  result: %lg %lg %lg %lg\n",c[0],c[1],c[2],c[3]);
   }
   
   void float_256_summassign(float_256 b,float_256 a)
@@ -416,31 +439,46 @@ namespace nissa
   }
   
   void float_256_prodassign(float_256 out,float_256 in)
-  {float_256_prod(out,out,in);}
+  {
+    float_256 temp;
+    float_256_prod(temp,out,in);
+    float_256_copy(out,temp);
+  }
   
   void float_256_div(float_256 c,float_256 a,float_256 b)
   {
-    float_256_unr q;
+    //master_printf("  a: %lg %lg %lg %lg\n",a[0],a[1],a[2],a[3]);
+    //master_printf("  b: %lg %lg %lg %lg\n",b[0],b[1],b[2],b[3]);
     
-    float_256 r;  
+    float_256 r;
     float_256_copy(r,a);
+    
+    float_256_unr q;
     
     for(int i=0;i<4;i++)
       {
 	q[i]=r[0]/b[0];
 	float_256 s;
-	float_256_prod_double(s,b,-q[i]);
-	float_256_summassign(r,s);
+	float_256_prod_double(s,b,q[i]);
+	//master_printf("  subtracting: %lg %lg %lg %lg\n",s[0],s[1],s[2],s[3]);
+	float_256_subtassign(r,s);
+	//master_printf("  remaining: %lg %lg %lg %lg\n",r[0],r[1],r[2],r[3]);
       }
     
     q[4]=r[0]/b[0];
-    
+    //master_printf("  quotient: %lg %lg %lg %lg %lg\n",q[0],q[1],q[2],q[3],q[4]);
     renormalize(c,q);
+    //float_256 s;
+    //float_256_prod(s,b,c);
+    //float_256_subt(r,a,s);
+    //master_printf("  remnant: %lg %lg %lg %lg %lg\n",r[0],r[1],r[2],r[3]);
   }
   
   //integer power
   void float_256_pow_int(float_256 out,float_256 in,int d)
   {
+    //master_printf("Taking: {%lg,%lg,%lg,%lg}^%d\n",in[0],in[1],in[2],in[3],d);
+
     //negative or null case
     if(d<=0)
       {
@@ -450,24 +488,31 @@ namespace nissa
 	  {
 	    //compute inv and assign to out
 	    float_256 inv;
+	    //master_printf("Taking the inverse\n");
 	    float_256_div(inv,out,in);
+	    //master_printf("Copying\n");
 	    float_256_copy(out,inv);
 	    //multiply the remaining numer of times
-	    for(int i=2;i<=-d;i++) float_256_prodassign(out,inv);
+	    for(int i=2;i<=-d;i++)
+	      {
+		//master_printf("Multiplying %d\n",i);
+		float_256_prodassign(out,inv);
+	      }
 	  }
       }
     //positive case
     else
       {
 	float_256_copy(out,in);
-	for(int i=2;i<=d;i++)
-	  float_256_prodassign(out,in);
+	for(int i=2;i<=d;i++) float_256_prodassign(out,in);
       }
   }
   
   //frac power
   void float_256_pow_int_frac(float_256 out,float_256 ext_in,int n,int d)
   {
+    //master_printf("Computing (%16.16lg,%16.16lg,%16.16lg,%16.16lg)^(%d/%d)\n",ext_in[0],ext_in[1],ext_in[2],ext_in[3],n,d);
+    
     //take a copy
     float_256 in;
     float_256_copy(in,ext_in);
@@ -475,6 +520,7 @@ namespace nissa
     //compute by solving out^d=in^n=ref
     float_256 ref;
     float_256_pow_int(ref,in,n);
+    //master_printf("Reference: (%lg,%lg,%lg,%lg)\n",ref[0],ref[1],ref[2],ref[3]);
     
     //let's start from a reasonable approx
     float_256_from_double(out,pow(in[0],(double)n/d));
@@ -486,7 +532,8 @@ namespace nissa
     float_256_from_double(recd,1);
     float_256_from_double(tempd,d);
     float_256_div(recd,recd,tempd);
-    
+    //master_printf(" d=%d, 1/d: (%lg,%lg,%lg,%lg)\n",d,recd[0],recd[1],recd[2],recd[3]);
+
     //(out+err)^d=in^n -> err=out*rel_err, rel_err=(ref/out^d-1)/d
     int iter=0;
     float_256 rel_err;
@@ -495,19 +542,20 @@ namespace nissa
 	//compute out^d
 	float_256 outd;
 	float_256_pow_int(outd,out,d);
+	//master_printf("Current guess: (%lg,%lg,%lg,%lg), pointing to: (%lg,%lg,%lg,%lg)\n",out[0],out[1],out[2],out[3],outd[0],outd[1],outd[2],outd[3]);
 	
-	//subtract ref and out^d and divide for ref
-	float_256_subt(rel_err,ref,outd);
-	float_256_div(rel_err,rel_err,ref);
-	
-	//divide by d
-	float_256_prod(rel_err,rel_err,recd);
+	//compute relative error
+	float_256 temp;
+	float_256_div(temp,ref,outd);
+	float_256_prod(temp,temp,recd);
+	float_256_subt(rel_err,temp,recd);
 	
 	//total err
 	float_256 err;
 	float_256_prod(err,rel_err,out);
 	
 	float_256_summassign(out,err);
+	//master_printf("Iter %d err: %lg\n",iter,fabs(rel_err[0]));
 	
 	iter++;
       }

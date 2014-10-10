@@ -1,12 +1,12 @@
 #externally defined path and variables
 CC=mpicxx
-CFLAGS=-O5
+CFLAGS=-O3
 
 #derived parameters
 SVN_VERS:=$(shell svnversion 2>/dev/null)
-MACROS= #$(addprefix -D,SVN_VERS=\"$(SVN_VERS)\")
-INCLUDE_PATH=../../src
-LIBRARY_PATH=
+MACROS=-DHAVE_CONFIG_H -fopenmp -lgmp
+INCLUDE_PATH=../../src ../../build_pc/src
+LIBRARY_PATH=/opt/local/lib
 
 GCC=gcc
 
@@ -91,7 +91,7 @@ $(addsuffix .d,$(objects) $(executables)): %.d: %.cpp Makefile
 
 ######################################### rules to produce executables ############################################
 
-$(executables): %: %.o $(addsuffix .o,$(objects)) ../../libnissa.a Makefile
+$(executables): %: %.o $(addsuffix .o,$(objects)) ../../build_pc/lib/libnissa.a Makefile
 	$(CC)                           \
 	$(addprefix -I,$(INCLUDE_PATH)) \
 	$(addprefix -L,$(LIBRARY_PATH)) \
@@ -100,7 +100,7 @@ $(executables): %: %.o $(addsuffix .o,$(objects)) ../../libnissa.a Makefile
 	-o $@                           \
 	$(addsuffix .o, $@)           \
 	$(addsuffix .o, $(objects))     \
-	../../libnissa.a
+	../../build_pc/lib/libnissa.a
 
 ############################################## phonyfyse the needed target ##########################################
 

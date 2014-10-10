@@ -1,14 +1,15 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../../src/nissa.h"
+#include "../../../../src/nissa.hpp"
+using namespace std;
 
-#include "../propagators/twisted_propagator.h"
-#include "../types/types.h"
-#include "../types/types_routines.h"
-#include "../routines/derivatives.h"
-#include "../routines/fourier.h"
-#include "../routines/shift.h"
+#include "../propagators/twisted_propagator.hpp"
+#include "../types/types.hpp"
+#include "../types/types_routines.hpp"
+#include "../routines/derivatives.hpp"
+#include "../routines/fourier.hpp"
+#include "../routines/shift.hpp"
 
 void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_info qu,spin1field *g_in,gluon_info gl,bool g_dag=false)
 {
@@ -30,7 +31,7 @@ void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_i
 	  spinspin temp;
 	  
 	  //temp=(1-gamma_mu)*q_in_up_mu
-	  unsafe_dirac_prod_spinspin(temp,base_gamma+nissa_map_mu[mu],shift_q_in[ivol]);
+	  unsafe_dirac_prod_spinspin(temp,base_gamma+map_mu[mu],shift_q_in[ivol]);
 	  spinspin_subt(temp,shift_q_in[ivol],temp);
 	  
 	  //q_out+=temp*g_in_mu
@@ -48,7 +49,7 @@ void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_i
 	  spinspin temp;
 	  
 	  //temp=(1+gamma_mu)*q_in_dw_mu
-	  unsafe_dirac_prod_spinspin(temp,base_gamma+nissa_map_mu[mu],shift_q_in[ivol]);
+	  unsafe_dirac_prod_spinspin(temp,base_gamma+map_mu[mu],shift_q_in[ivol]);
 	  spinspin_summ(temp,shift_q_in[ivol],temp);
 	  
 	  //q_out-=temp*g_in_dw_mu_mu
