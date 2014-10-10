@@ -1,13 +1,13 @@
 #include <math.h>
 
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/new_types/complex.h"
-#include "../../../../src/communicate/communicate.h"
-#include "../../../../src/base/debug.h"
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/base/vectors.h"
+#include "../../../../src/new_types/new_types_definitions.hpp"
+#include "../../../../src/new_types/complex.hpp"
+#include "../../../../src/communicate/communicate.hpp"
+#include "../../../../src/base/debug.hpp"
+#include "../../../../src/base/global_variables.hpp"
+#include "../../../../src/base/vectors.hpp"
 
-#include "../types/types.h"
+#include "../types/types.hpp"
 
 //apply even-odd or odd-even part of tmD, multiplied by -2
 void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,momentum_t bc)
@@ -24,7 +24,7 @@ void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,momentum_t bc)
       phases[mu][IM]=sin(M_PI*bc[mu]);
     }
   
-  nissa_loc_volh_loop(X)
+  NISSA_LOC_VOLH_LOOP(X)
     {
       complex temp_c0,temp_c1;
       

@@ -1,13 +1,14 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/diagrams/propagator_self_energy.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/read_and_write.h"
-#include "../src/routines/correlations.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/diagrams/propagator_self_energy.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/read_and_write.hpp"
+#include "../src/routines/correlations.hpp"
 
 spinspin *prop,*self_prop;
 corr16 *corr;
@@ -17,7 +18,7 @@ double alpha=0;
 void init_calc(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   if(narg<3) crash("use %s L T [alpha]",arg[0]);
   int T=atoi(arg[1]);

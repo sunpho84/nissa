@@ -1,21 +1,22 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/types/types.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/fourier.h"
-#include "../src/propagators/tlSym_gluon_propagator.h"
+#include "../src/types/types.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/fourier.hpp"
+#include "../src/propagators/tlSym_gluon_propagator.hpp"
 
 
 spin1prop *prop_fft;
 spin1prop *prop_inv;
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(8,4);
@@ -36,7 +37,7 @@ void close_test()
 
 int main(int narg,char **arg)
 {
-  init_test();
+  init_test(narg,arg);
   
   //anti-periodic boundary condition in one space direction
   double theta[4]={0,0,0,0};
@@ -66,9 +67,9 @@ int main(int narg,char **arg)
   if(rank==rx)
     {
       printf("\n\nComparing the propagator on site of coordinates: (%d,%d,%d,%d), rank: %d\n",ix[0],ix[1],ix[2],ix[3],rx);
-      print_spinspin(prop_fft[lx]);
+      spinspin_print(prop_fft[lx]);
       //printf("\n");
-      //print_spinspin(prop_inv[lx]);
+      //spinspin_print(prop_inv[lx]);
     }
 
   //take the squared norm of the differnce between the two computed propagators

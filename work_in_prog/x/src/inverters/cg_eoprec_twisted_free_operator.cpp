@@ -1,13 +1,9 @@
 #include <string.h>
 
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/base/vectors.h"
-#include "../../../../src/base/routines.h"
-#include "../../../../src/geometry/geometry_mix.h"
+#include "../../../../src/nissa.hpp"
 
-#include "../operators/twisted_Dirac_eoprec_operator.h"
-#include "../types/types.h"
+#include "../operators/twisted_Dirac_eoprec_operator.hpp"
+#include "../types/types.hpp"
 
 //invert Koo defined in equation (7)
 void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,quark_info qu,int nitermax,double residue,spin *source)
@@ -38,7 +34,7 @@ void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,quark_info qu,int niter
 	tmDkern_eoprec_square_eos(s,temp1,temp2,qu,sol);
 	
         double loc_delta=0,loc_source_norm=0;
-	nissa_loc_volh_loop(ivol)
+	NISSA_LOC_VOLH_LOOP(ivol)
 	  for(int id=0;id<4;id++)
 	    for(int ri=0;ri<2;ri++)
 	      {
@@ -68,7 +64,7 @@ void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,quark_info qu,int niter
 	  tmDkern_eoprec_square_eos(s,temp1,temp2,qu,p);
 	  
 	  double loc_alpha=0; //real part of the scalar product
-	  nissa_loc_volh_loop(ivol)
+	  NISSA_LOC_VOLH_LOOP(ivol)
 	    for(int id=0;id<4;id++)
 	      for(int ri=0;ri<2;ri++)
 		loc_alpha+=s[ivol][id][ri]*p[ivol][id][ri];
@@ -76,7 +72,7 @@ void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,quark_info qu,int niter
 	  omega=delta/alpha;
 	  
 	  double loc_lambda=0;
-	  nissa_loc_volh_loop(ivol)
+	  NISSA_LOC_VOLH_LOOP(ivol)
 	    for(int id=0;id<4;id++)
 	      for(int ri=0;ri<2;ri++)
 		{
@@ -92,7 +88,7 @@ void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,quark_info qu,int niter
 	  delta=lambda;
 	  
 	  //p_(k+1)=r_(k+1)+gammag*p_k
-	  nissa_loc_volh_loop(ivol)
+	  NISSA_LOC_VOLH_LOOP(ivol)
 	    for(int id=0;id<4;id++)
 	      for(int ri=0;ri<2;ri++)
 		p[ivol][id][ri]=r[ivol][id][ri]+gammag*p[ivol][id][ri];
@@ -108,14 +104,14 @@ void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,quark_info qu,int niter
       tmDkern_eoprec_square_eos(s,temp1,temp2,qu,sol);
       {
         double loc_lambda=0;
-	nissa_loc_volh_loop(ivol)
+	NISSA_LOC_VOLH_LOOP(ivol)
 	  for(int id=0;id<4;id++)
 	    for(int ri=0;ri<2;ri++)
 	      {
 		double c1=source[ivol][id][ri]-s[ivol][id][ri];
 		loc_lambda+=c1*c1;
 	      }
-	if(nissa_nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else lambda=loc_lambda;
       }
       master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);
@@ -155,7 +151,7 @@ void inv_tmD_cg_eoprec_eos(spin *solution_lx,spin *guess_Koo,quark_info qu,int n
   
   //Equation (8.b)
   tmn2Doe_eos(varphi,temp,qu.bc);
-  nissa_loc_volh_loop(ivol)
+  NISSA_LOC_VOLH_LOOP(ivol)
     for(int id=0;id<2;id++)
       for(int ri=0;ri<2;ri++)
 	{ //gamma5 is explicitely wrote
@@ -174,7 +170,7 @@ void inv_tmD_cg_eoprec_eos(spin *solution_lx,spin *guess_Koo,quark_info qu,int n
   
   //Equation (10)
   tmn2Deo_eos(varphi,solution_eos[ODD],qu.bc);
-  nissa_loc_volh_loop(ivol)
+  NISSA_LOC_VOLH_LOOP(ivol)
     for(int id=0;id<4;id++)
       for(int ri=0;ri<2;ri++)
 	varphi[ivol][id][ri]=source_eos[EVN][ivol][id][ri]+varphi[ivol][id][ri]*0.5;

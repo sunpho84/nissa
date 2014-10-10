@@ -1,11 +1,12 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../propagators/twisted_propagator.h"
-#include "../propagators/tlSym_gluon_propagator.h"
-#include "../routines/fourier.h"
-#include "../routines/shift.h"
+#include "../propagators/twisted_propagator.hpp"
+#include "../propagators/tlSym_gluon_propagator.hpp"
+#include "../routines/fourier.hpp"
+#include "../routines/shift.hpp"
 
 void mom_space_qq_vertex_function(spinspin v,double p1,double p2,quark_info qu,int mu)
 {
@@ -14,5 +15,5 @@ void mom_space_qq_vertex_function(spinspin v,double p1,double p2,quark_info qu,i
   double s=(p1+p2)/2;
   spinspin_put_to_id(v);
   spinspin_prodassign_double(v,-sin(s)*glb_vol);
-  spinspin_dirac_summ_the_prod_idouble(v,base_gamma+nissa_map_mu[mu],-cos(s)*glb_vol);
+  spinspin_dirac_summ_the_prod_idouble(v,base_gamma+map_mu[mu],-cos(s)*glb_vol);
 }

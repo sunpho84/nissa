@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/types/types.h"
-#include "../src/routines/read_and_write.h"
+#include "../src/types/types.hpp"
+#include "../src/routines/read_and_write.hpp"
 
 corr16 *loaded_corr,*combined_corr;
 int N;
@@ -13,7 +14,7 @@ int N;
 void init_calc(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   if(narg<6||narg%2) crash("use %s T L outfile file1 weight1 file2...",arg[0]);
   

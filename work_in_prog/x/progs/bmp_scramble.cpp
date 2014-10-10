@@ -1,9 +1,11 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace nissa;
+using namespace std;
 
-#include "../src/routines/fourier.h"
-#include "../src/routines/bmp.h"
+#include "../src/routines/fourier.hpp"
+#include "../src/routines/bmp.hpp"
 
 color *image;
 bmpfile bmp;
@@ -12,7 +14,7 @@ bmpfile bmp;
 void init_prog(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   if(narg<3) crash("use %s filein fileout",arg[0]);
   

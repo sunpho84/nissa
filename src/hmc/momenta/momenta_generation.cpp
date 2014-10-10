@@ -7,8 +7,11 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "hmc/gauge/MFACC_fields.hpp"
+#include "hmc/rootst_eoimpr/rat_expansion_database.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
+#include "new_types/rat_approx.hpp"
 #include "new_types/su3.hpp"
+#include "operations/remez/remez_algorithm.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -37,6 +40,13 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<4;mu++) herm_put_to_gauss(H[ivol][mu],&(loc_rnd_gen[ivol]),1);
     set_borders_invalid(H);
+    
+    //get the rational approx
+    rat_approx_t rat_exp_H;
+    generate_approx(rat_exp_H,3.13029e-06,1,15,-1,2,"rat_H");
+    master_printf_rat_approx(&rat_exp_H);
+    
+    crash(""); 
   }
   THREADABLE_FUNCTION_END
 

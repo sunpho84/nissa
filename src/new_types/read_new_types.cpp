@@ -118,6 +118,12 @@ namespace nissa
       {
 	read_str_double("HmcTrajLength",&pars.traj_length);
 	read_str_int("NmdSteps",&pars.nmd_steps);
+	read_str_int("UseFacc",&pars.use_Facc);
+	if(pars.use_Facc)
+	  {
+	    read_str_double("Kappa",&pars.kappa);
+	    read_str_double("Residue",&pars.residue);
+	  }
       }
     else
       {

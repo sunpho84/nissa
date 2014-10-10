@@ -1,12 +1,9 @@
 #include <string.h>
 
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/base/routines.h"
-#include "../../../../src/base/vectors.h"
-#include "../../../../src/new_types/new_types_definitions.h"
+#include "../../../../src/nissa.hpp"
 
-#include "../types/types.h"
-#include "../operators/Wilson_gluon_Klein_Gordon_operator.h"
+#include "../types/types.hpp"
+#include "../operators/Wilson_gluon_Klein_Gordon_operator.hpp"
 
 void inv_Wilson_gluon_Klein_Gordon_operator(spin1field *sol,spin1field *guess,gluon_info gl,int niter,int rniter,double residue,spin1field *source)
 {
@@ -64,7 +61,7 @@ void inv_Wilson_gluon_Klein_Gordon_operator(spin1field *sol,spin1field *guess,gl
 
 		cs++;cp++;
 	      }
-	    if(nissa_nranks>0) MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    if(nranks>0) MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else alpha=loc_alpha;
 	    omega=delta/alpha;
 	  }
@@ -81,7 +78,7 @@ void inv_Wilson_gluon_Klein_Gordon_operator(spin1field *sol,spin1field *guess,gl
 
 		dsol++;ds++;dp++;dr++;
 	      }
-	    if(nissa_nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    if(nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	    else lambda=loc_lambda;
 	    set_borders_invalid(sol);
 	  }
@@ -120,7 +117,7 @@ void inv_Wilson_gluon_Klein_Gordon_operator(spin1field *sol,spin1field *guess,gl
 	    
 	    dsource++;ds++;
 	  }
-	if(nissa_nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	if(nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	else lambda=loc_lambda;
 	
 	verbosity_lv1_master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",iter,lambda/source_norm,residue);

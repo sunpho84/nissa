@@ -7,7 +7,7 @@ namespace nissa
 {
   void paste_eo_parts_and_write_ildg_gauge_conf(const char *path,quad_su3 **eo_conf,size_t prec,ILDG_message *mess=NULL);
   void write_color(const char *path,color *v,size_t prec);
-  void write_double_vector(ILDG_File &file,double *data,int nreals_per_site,int nbits,const char *header_message,ILDG_message *mess=NULL);
+  void write_double_vector(ILDG_File &file,double *data,size_t nreals_per_site,size_t nbits,const char *header_message,ILDG_message *mess=NULL);
   void write_ildg_gauge_conf(const char *path,quad_su3 *in,size_t prec,ILDG_message *mess=NULL);
   void write_spincolor(const char *path,spincolor *spinor,size_t prec);
   void write_colorspinspin(const char *path,colorspinspin *prop,size_t prec);

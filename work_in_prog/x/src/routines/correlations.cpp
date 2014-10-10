@@ -1,6 +1,7 @@
-#include "../../../../src/nissa.h"
+#include "../../../../src/nissa.hpp"
+using namespace std;
 
-#include "../types/types.h"
+#include "../types/types.hpp"
 
 //prop1 will be reverted
 void compute_all_2pts_qdagq_correlations(corr16 *corr,spinspin *prop1,spinspin *prop2)
@@ -14,5 +15,5 @@ void compute_all_2pts_qdagq_correlations(corr16 *corr,spinspin *prop1,spinspin *
   
   NISSA_LOC_VOL_LOOP(ivol)
     for(int igamma=0;igamma<16;igamma++)
-      site_trace_g_sdag_g_s(corr[ivol][igamma],&(t1[igamma]),prop1[ivol],&(t2[igamma]),prop2[ivol]);
+      trace_g_ss_dag_g_ss(corr[ivol][igamma],&(t1[igamma]),prop1[ivol],&(t2[igamma]),prop2[ivol]);
 }

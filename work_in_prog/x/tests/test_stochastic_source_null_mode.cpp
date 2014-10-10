@@ -1,15 +1,17 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace nissa;
+using namespace std;
 
 complex *source;
 complex *spectre;
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(8,8);
@@ -88,7 +90,7 @@ void summ_the_spectre()
   NISSA_LOC_VOL_LOOP(ivol) spectre[ivol][0]+=squared_complex_norm(source[ivol]);
 }
 
-void write_file(char *path,complex *data)
+void write_file(const char *path,complex *data)
 {
   //compute density and average
   FILE *fout=open_file(path,"w");
@@ -162,7 +164,7 @@ void study_0_method()
 
 int main(int narg,char **arg)
 {
-  init_test();
+  init_test(narg,arg);
   
   study_0_method();
   

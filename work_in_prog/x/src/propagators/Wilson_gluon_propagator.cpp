@@ -1,11 +1,12 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../../src/nissa.h"
+#include "../../../../src/nissa.hpp"
+using namespace std;
 
-#include "../types/types.h"
-#include "../routines/fourier.h"
-#include "../inverters/cg_Wilson_gluon_operator.h"
+#include "../types/types.hpp"
+#include "../routines/fourier.hpp"
+#include "../inverters/cg_Wilson_gluon_operator.hpp"
 
 //compute the Wilson action gluon propagator in the momentum space according to P.Weisz
 void compute_mom_space_Wilson_gluon_propagator(spin1prop *prop,gluon_info gl)

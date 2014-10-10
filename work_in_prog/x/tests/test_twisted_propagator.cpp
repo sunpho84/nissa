@@ -1,19 +1,20 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/shift.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/shift.hpp"
 
 spinspin *prop_fft;
 spinspin *prop_inv;
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(8,4);
@@ -45,14 +46,15 @@ void compute_pion_correlator(complex *corr,spinspin *p)
 	memcpy(stp[ivol][ic1][ic2],p[ivol],sizeof(spinspin));
   
   //gamma5=gamma0 because of revert
-  trace_g_ccss_dag_g_ccss(corr,&(base_gamma[0]),stp,&(base_gamma[0]),stp,1); 
+  complex loc_corr[glb_size[0]];
+  trace_g_ccss_dag_g_ccss(corr,loc_corr,&(base_gamma[0]),stp,&(base_gamma[0]),stp,1); 
   
   nissa_free(stp);
 }
 
 int main(int narg,char **arg)
 {
-  init_test();
+  init_test(narg,arg);
   
   //boundary conditions
   double theta[4]={0.3,0.5,0.1,0.9};
@@ -92,9 +94,9 @@ int main(int narg,char **arg)
   if(rank==rx)
     {
       printf("\n\nComparing the propagator on site of coordinates: (%d,%d,%d,%d), rank: %d\n",ix[0],ix[1],ix[2],ix[3],rx);
-      print_spinspin(prop_fft[lx]);
+      spinspin_print(prop_fft[lx]);
       printf("\n");
-      print_spinspin(prop_inv[lx]);
+      spinspin_print(prop_inv[lx]);
     }
 
   //take the squared norm of the differnce between the two computed propagators
@@ -119,7 +121,7 @@ int main(int narg,char **arg)
   spinspin bprop;
   compute_x_space_propagator_to_sink_from_source(bprop,prop_inv,qu.bc,sink,sour);
   master_printf("\n backward prop:\n");
-  if(rank==0) print_spinspin(bprop);
+  if(rank==0) spinspin_print(bprop);
 
   //take g5*forw_prop^dag*g5
   
@@ -136,11 +138,11 @@ int main(int narg,char **arg)
   safe_dirac_prod_spinspin(g5_fwprop_dag_g5,&(base_gamma[5]),g5_fwprop_dag_g5);
   safe_spinspin_hermitian(g5_fwprop_dag_g5,g5_fwprop_dag_g5);
   master_printf("\n reverted forward prop:\n");
-  if(rank==0) print_spinspin(g5_fwprop_dag_g5);
+  if(rank==0) spinspin_print(g5_fwprop_dag_g5);
   
   spinspin_subt(g5_fwprop_dag_g5,bprop,g5_fwprop_dag_g5);
   master_printf("\n diff: %lg\n",sqrt(real_part_of_trace_spinspin_prod_spinspin_dag(g5_fwprop_dag_g5,g5_fwprop_dag_g5)));
-  //if(rank==0) print_spinspin(g5_fwprop_dag_g5);
+  //if(rank==0) spinspin_print(g5_fwprop_dag_g5);
 
   close_test();
   

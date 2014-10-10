@@ -1,8 +1,9 @@
 #include <mpi.h>
 
-#include "../../../../src/nissa.h"
+#include "../../../../src/nissa.hpp"
+using namespace std;
 
-#include "../types/types.h"
+#include "../types/types.hpp"
 
 //reorder a read corr16
 void reorder_read_corr16(corr16 *c)
@@ -24,13 +25,13 @@ void reorder_read_corr16(corr16 *c)
   nissa_free(order);
 }
 
-void read_corr16(corr16 *v,char *path)
+void read_corr16(corr16 *v,const char *path)
 {
   read_real_vector((double*)v,path,"scidac-binary-data",sizeof(corr16)/sizeof(double));
   reorder_read_corr16(v);
 }
 
-void write_corr16(char *path,corr16 *v,int prec=64)
+void write_corr16(const char *path,corr16 *v,int prec=64)
 {
   //Open the file
   ILDG_File file=ILDG_File_open_for_write(path);

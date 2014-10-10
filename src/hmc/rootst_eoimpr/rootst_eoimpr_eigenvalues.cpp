@@ -23,7 +23,7 @@
 
 #include "hmc/backfield.hpp"
 
-#include "rat_expansion_database.cpp"
+#include "rat_expansion_database.hpp"
 
 namespace nissa
 {

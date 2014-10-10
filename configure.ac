@@ -18,7 +18,7 @@ AM_CONFIG_HEADER(src/config.hpp)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CANONICAL_HOST
 
-# Checks for programs.
+# Checks for programs
 AC_PROG_CXX
 AC_PROG_AWK
 AC_PROG_CC
@@ -29,7 +29,8 @@ AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AC_PROG_MKDIR_P
 
-# Checks for libraries.
+# Checks for libraries
+AC_SEARCH_LIBS(__gmpz_init,gmp)
 
 # Checks for header files.
 AC_FUNC_ALLOCA
@@ -64,6 +65,20 @@ AC_ARG_ENABLE(spi,
 if test "$enable_spi" == "yes";then AC_DEFINE([SPI],1,[Enable spi]) fi
 AM_CONDITIONAL([SPI],[test "$enable_spi" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling spi... $enable_spi])
+
+#high-prec arithmetic
+AC_DEFINE([NATIVE_HIGH_PREC],[0],["Native implementation"])
+AC_DEFINE([GMP_HIGH_PREC],[1],["GMP library"])
+AC_ARG_WITH(high-prec,
+	AS_HELP_STRING([--with-high-prec],[Select the high precision type (native=256 bit float [default], gmp)]),
+	with_high_prec="${withval}",
+	if test "$ac_cv_search___gmpz_init" != ""; then with_high_prec="gmp";else with_high_prec="native";fi)
+	case "$with_high_prec" in
+     	     native) AC_DEFINE_UNQUOTED([HIGH_PREC],[NATIVE_HIGH_PREC],[Enable native high-precision]) ;;
+     	     gmp) AC_DEFINE_UNQUOTED([HIGH_PREC],[GMP_HIGH_PREC],[Enable gmp high-precision]) AM_LDFLAGS="-lgmp -lgmpxx" ;;
+	     *) AC_MSG_ERROR(["Unkwnown high precision type ${withval}"])
+	esac
+AC_MSG_RESULT([with high precision type... $with_high_prec])
 
 #cgm-debug
 AC_ARG_ENABLE(cgm-debug,

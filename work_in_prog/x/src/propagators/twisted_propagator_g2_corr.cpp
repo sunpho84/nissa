@@ -1,13 +1,13 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/base/debug.h"
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/new_types/spin.h"
-#include "../../../../src/new_types/dirac.h"
+#include "../../../../src/base/global_variables.hpp"
+#include "../../../../src/base/debug.hpp"
+#include "../../../../src/new_types/new_types_definitions.hpp"
+#include "../../../../src/new_types/spin.hpp"
+#include "../../../../src/new_types/dirac.hpp"
 
-#include "../types/types.h"
+#include "../types/types.hpp"
 
 void mom_space_twisted_propagator_g2_d2_corr_of_imom(spin1prop prop,quark_info qu,gluon_info gl,int imom)
 {

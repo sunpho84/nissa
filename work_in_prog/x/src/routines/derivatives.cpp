@@ -1,8 +1,9 @@
-#include "../../../../src/nissa.h"
+#include "../../../../src/nissa.hpp"
+using namespace std;
 
-#include "../types/types.h"
+#include "../types/types.hpp"
 
-#include "shift.h"
+#include "shift.hpp"
 
 void spin1field_bw_derivative(spin1field *der,spin1field *in,momentum_t bc,int mu)
 {

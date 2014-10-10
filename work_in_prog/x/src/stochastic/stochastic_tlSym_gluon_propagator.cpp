@@ -1,15 +1,15 @@
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/new_types/spin.h"
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/base/debug.h"
-#include "../../../../src/base/vectors.h"
-#include "../../../../src/operations/fft.h"
+#include "../../../../src/new_types/new_types_definitions.hpp"
+#include "../../../../src/new_types/spin.hpp"
+#include "../../../../src/base/global_variables.hpp"
+#include "../../../../src/base/debug.hpp"
+#include "../../../../src/base/vectors.hpp"
+#include "../../../../src/operations/fft.hpp"
 
-#include "../propagators/tlSym_gluon_propagator.h"
-#include "../routines/fourier.h"
-#include "../types/types.h"
+#include "../propagators/tlSym_gluon_propagator.hpp"
+#include "../routines/fourier.hpp"
+#include "../types/types.hpp"
 
-#include "stochastic_source.h"
+#include "stochastic_source.hpp"
 
 //perform the multiplication in the momentum space in order to avoid convolution
 void generate_stochastic_tlSym_gluon_propagator(spin1field *phi,spin1field *eta,gluon_info gl)

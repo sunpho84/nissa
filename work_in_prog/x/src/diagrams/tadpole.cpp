@@ -1,12 +1,13 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../types/types.h"
-#include "../propagators/tlSym_gluon_propagator.h"
-#include "../routines/shift.h"
-#include "../routines/fourier.h"
-#include "../propagators/twisted_propagator.h"
+#include "../types/types.hpp"
+#include "../propagators/tlSym_gluon_propagator.hpp"
+#include "../routines/shift.hpp"
+#include "../routines/fourier.hpp"
+#include "../propagators/twisted_propagator.hpp"
 
 void compute_tadpole_diagram_in_mom_space(spinspin *q_tad,quark_info qu,gluon_info gl)
 {
@@ -39,7 +40,7 @@ void compute_tadpole_diagram_in_mom_space(spinspin *q_tad,quark_info qu,gluon_in
 	  
 	  //add the id and gamma
 	  spinspin_dirac_summ_the_prod_complex(q_tad[imom],&(base_gamma[0]),wid);
-	  spinspin_dirac_summ_the_prod_complex(q_tad[imom],&(base_gamma[nissa_map_mu[mu]]),wga);
+	  spinspin_dirac_summ_the_prod_complex(q_tad[imom],&(base_gamma[map_mu[mu]]),wga);
 	}
     }
 }
@@ -63,7 +64,7 @@ void compute_tadpole_diagram_in_x_space(spinspin *q_tad,quark_info qu,gluon_info
       NISSA_LOC_VOL_LOOP(ivol)
       {
 	spinspin temp;
-	unsafe_spinspin_complex_prod(temp,nissa_opg[mu],g_prop_sh[ivol][mu][mu]);
+	unsafe_spinspin_complex_prod(temp,opg[mu],g_prop_sh[ivol][mu][mu]);
 	spinspin_prodassign_double(temp,-0.25);
 	spinspin_summassign(q_tad[ivol],temp);
       }
@@ -73,7 +74,7 @@ void compute_tadpole_diagram_in_x_space(spinspin *q_tad,quark_info qu,gluon_info
       NISSA_LOC_VOL_LOOP(ivol)
       {
 	spinspin temp;
-	unsafe_spinspin_complex_prod(temp,nissa_omg[mu],g_prop_sh[ivol][mu][mu]);
+	unsafe_spinspin_complex_prod(temp,omg[mu],g_prop_sh[ivol][mu][mu]);
 	spinspin_prodassign_double(temp,-0.25);
 	spinspin_summassign(q_tad[ivol],temp);
       }

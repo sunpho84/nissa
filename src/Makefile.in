@@ -236,6 +236,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	hmc/gauge/Wilson_action.cpp hmc/gauge/Wilson_force.cpp \
 	hmc/momenta/momenta_action.cpp hmc/momenta/momenta_evolve.cpp \
 	hmc/momenta/momenta_generation.cpp \
+	hmc/rootst_eoimpr/rat_expansion_database.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
@@ -274,9 +275,10 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	io/checksum.cpp io/endianness.cpp io/input.cpp io/reader.cpp \
 	io/writer.cpp linalgs/linalgs.cpp new_types/complex.cpp \
 	new_types/dirac.cpp new_types/float_128.cpp \
-	new_types/float_256.cpp new_types/rat_approx.cpp \
-	new_types/read_new_types.cpp new_types/spin.cpp \
-	new_types/su3.cpp operations/contract/mesons_2pts.cpp \
+	new_types/float_256.cpp new_types/high_prec.cpp \
+	new_types/rat_approx.cpp new_types/read_new_types.cpp \
+	new_types/spin.cpp new_types/su3.cpp \
+	operations/contract/mesons_2pts.cpp \
 	operations/contract/mesons_eight.cpp \
 	operations/contract/optimized_mesons_2pts.cpp \
 	operations/contract/site_contract.cpp \
@@ -363,6 +365,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	hmc/momenta/momenta_action.$(OBJEXT) \
 	hmc/momenta/momenta_evolve.$(OBJEXT) \
 	hmc/momenta/momenta_generation.$(OBJEXT) \
+	hmc/rootst_eoimpr/rat_expansion_database.$(OBJEXT) \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.$(OBJEXT) \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.$(OBJEXT) \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.$(OBJEXT) \
@@ -396,7 +399,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	io/writer.$(OBJEXT) linalgs/linalgs.$(OBJEXT) \
 	new_types/complex.$(OBJEXT) new_types/dirac.$(OBJEXT) \
 	new_types/float_128.$(OBJEXT) new_types/float_256.$(OBJEXT) \
-	new_types/rat_approx.$(OBJEXT) \
+	new_types/high_prec.$(OBJEXT) new_types/rat_approx.$(OBJEXT) \
 	new_types/read_new_types.$(OBJEXT) new_types/spin.$(OBJEXT) \
 	new_types/su3.$(OBJEXT) \
 	operations/contract/mesons_2pts.$(OBJEXT) \
@@ -552,14 +555,14 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	io/checksum.hpp io/endianness.hpp io/input.hpp io/reader.hpp \
 	io/writer.hpp linalgs/linalgs.hpp new_types/complex.hpp \
 	new_types/dirac.hpp new_types/float_128.hpp \
-	new_types/float_256.hpp new_types/new_types_definitions.hpp \
-	new_types/rat_approx.hpp new_types/read_new_types.hpp \
-	new_types/spin.hpp new_types/su3.hpp \
-	operations/covariant_derivative.hpp operations/fft.hpp \
-	operations/fourier_transform.hpp operations/gauge_fixing.hpp \
-	operations/gaugeconf.hpp operations/remap_vector.hpp \
-	operations/shift.hpp operations/source.hpp \
-	operations/vector_gather.hpp \
+	new_types/float_256.hpp new_types/high_prec.hpp \
+	new_types/new_types_definitions.hpp new_types/rat_approx.hpp \
+	new_types/read_new_types.hpp new_types/spin.hpp \
+	new_types/su3.hpp operations/covariant_derivative.hpp \
+	operations/fft.hpp operations/fourier_transform.hpp \
+	operations/gauge_fixing.hpp operations/gaugeconf.hpp \
+	operations/remap_vector.hpp operations/shift.hpp \
+	operations/source.hpp operations/vector_gather.hpp \
 	operations/remez/remez_algorithm.hpp \
 	operations/contract/mesons_2pts.hpp \
 	operations/contract/mesons_eight.hpp \
@@ -763,13 +766,14 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	io/input.hpp io/reader.hpp io/writer.hpp linalgs/linalgs.hpp \
 	new_types/complex.hpp new_types/dirac.hpp \
 	new_types/float_128.hpp new_types/float_256.hpp \
-	new_types/new_types_definitions.hpp new_types/rat_approx.hpp \
-	new_types/read_new_types.hpp new_types/spin.hpp \
-	new_types/su3.hpp operations/covariant_derivative.hpp \
-	operations/fft.hpp operations/fourier_transform.hpp \
-	operations/gauge_fixing.hpp operations/gaugeconf.hpp \
-	operations/remap_vector.hpp operations/shift.hpp \
-	operations/source.hpp operations/vector_gather.hpp \
+	new_types/high_prec.hpp new_types/new_types_definitions.hpp \
+	new_types/rat_approx.hpp new_types/read_new_types.hpp \
+	new_types/spin.hpp new_types/su3.hpp \
+	operations/covariant_derivative.hpp operations/fft.hpp \
+	operations/fourier_transform.hpp operations/gauge_fixing.hpp \
+	operations/gaugeconf.hpp operations/remap_vector.hpp \
+	operations/shift.hpp operations/source.hpp \
+	operations/vector_gather.hpp \
 	operations/remez/remez_algorithm.hpp \
 	operations/contract/mesons_2pts.hpp \
 	operations/contract/mesons_eight.hpp \
@@ -850,6 +854,7 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	hmc/gauge/Wilson_action.cpp hmc/gauge/Wilson_force.cpp \
 	hmc/momenta/momenta_action.cpp hmc/momenta/momenta_evolve.cpp \
 	hmc/momenta/momenta_generation.cpp \
+	hmc/rootst_eoimpr/rat_expansion_database.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
@@ -882,9 +887,9 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	io/input.cpp io/reader.cpp io/writer.cpp linalgs/linalgs.cpp \
 	new_types/complex.cpp new_types/dirac.cpp \
 	new_types/float_128.cpp new_types/float_256.cpp \
-	new_types/rat_approx.cpp new_types/read_new_types.cpp \
-	new_types/spin.cpp new_types/su3.cpp \
-	operations/contract/mesons_2pts.cpp \
+	new_types/high_prec.cpp new_types/rat_approx.cpp \
+	new_types/read_new_types.cpp new_types/spin.cpp \
+	new_types/su3.cpp operations/contract/mesons_2pts.cpp \
 	operations/contract/mesons_eight.cpp \
 	operations/contract/optimized_mesons_2pts.cpp \
 	operations/contract/site_contract.cpp \
@@ -924,7 +929,6 @@ EXTRA_DIST = svnversion.hpp base/update_svnversion.hpp.sh \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_portable.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_portable.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left_portable.cpp \
-	hmc/rootst_eoimpr/rat_expansion_database.cpp \
 	inverters/twisted_mass/cg_invert_tmQ2_common.cpp \
 	inverters/twisted_mass/cgm_invert_tmQ2_bgq.hpp \
 	inverters/templates/cgm_32_invert_template_threaded.cpp \
@@ -1260,6 +1264,9 @@ hmc/rootst_eoimpr/$(am__dirstamp):
 hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) hmc/rootst_eoimpr/$(DEPDIR)
 	@: > hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
+hmc/rootst_eoimpr/rat_expansion_database.$(OBJEXT):  \
+	hmc/rootst_eoimpr/$(am__dirstamp) \
+	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
 hmc/rootst_eoimpr/rootst_eoimpr_action.$(OBJEXT):  \
 	hmc/rootst_eoimpr/$(am__dirstamp) \
 	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
@@ -1430,6 +1437,8 @@ new_types/dirac.$(OBJEXT): new_types/$(am__dirstamp) \
 new_types/float_128.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
 new_types/float_256.$(OBJEXT): new_types/$(am__dirstamp) \
+	new_types/$(DEPDIR)/$(am__dirstamp)
+new_types/high_prec.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
 new_types/rat_approx.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
@@ -1671,6 +1680,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/momenta/$(DEPDIR)/momenta_action.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/momenta/$(DEPDIR)/momenta_evolve.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/momenta/$(DEPDIR)/momenta_generation.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rat_expansion_database.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_action.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_eigenvalues.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_omelyan_integrator.Po@am__quote@
@@ -1717,6 +1727,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/dirac.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/float_128.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/float_256.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/high_prec.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/rat_approx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/read_new_types.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/spin.Po@am__quote@
@@ -2123,6 +2134,7 @@ update_svnversion:
 	hmc/momenta/momenta_action.hpp \
 	hmc/momenta/momenta_evolve.hpp \
 	hmc/momenta/momenta_generation.hpp \
+	hmc/rootst_eoimpr/rat_expansion_database.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \

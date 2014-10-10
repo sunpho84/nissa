@@ -1,18 +1,19 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/propagators/tlSym_gluon_propagator.h"
-#include "../src/propagators/Wilson_gluon_propagator.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/fourier.h"
-#include "../src/routines/read_and_write.h"
-#include "../src/routines/shift.h"
-#include "../src/routines/correlations.h"
-#include "../src/diagrams/propagator_self_energy.h"
-#include "../src/diagrams/tadpole.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/propagators/tlSym_gluon_propagator.hpp"
+#include "../src/propagators/Wilson_gluon_propagator.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/fourier.hpp"
+#include "../src/routines/read_and_write.hpp"
+#include "../src/routines/shift.hpp"
+#include "../src/routines/correlations.hpp"
+#include "../src/diagrams/propagator_self_energy.hpp"
+#include "../src/diagrams/tadpole.hpp"
 
 double real_part_of_trace_with_igamma(spinspin *q,int imom)
 {
@@ -20,7 +21,7 @@ double real_part_of_trace_with_igamma(spinspin *q,int imom)
   
   for(int mu=0;mu<4;mu++)
     {
-      int nu=nissa_map_mu[mu];
+      int nu=map_mu[mu];
       for(int id=0;id<4;id++)
         {
           complex t;
@@ -57,7 +58,7 @@ void compute_dist2_max_coord_angle(int &d2,int &mc,double &angle,coords x)
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   if(narg<2) crash("use: %s L",arg[0]);
   int L=atoi(arg[1]);

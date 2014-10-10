@@ -1,15 +1,16 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/propagators/Wilson_gluon_propagator.h"
-#include "../src/propagators/twisted_propagator_g2_corr.h"
-#include "../src/stochastic/stochastic_twisted_propagator.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/shift.h"
-#include "../src/stochastic/stochastic_tlSym_gluon_propagator.h"
-#include "../src/diagrams/propagator_self_energy.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/propagators/Wilson_gluon_propagator.hpp"
+#include "../src/propagators/twisted_propagator_g2_corr.hpp"
+#include "../src/stochastic/stochastic_twisted_propagator.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/shift.hpp"
+#include "../src/stochastic/stochastic_tlSym_gluon_propagator.hpp"
+#include "../src/diagrams/propagator_self_energy.hpp"
 
 spinspin *d2_stoch_corr,*d2_stoch_corr_ave;
 spinspin *d2_corr,*temp_corr;
@@ -18,10 +19,10 @@ spinspin *q_prop,*id;
 spin1prop *g_prop;
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(12,12);
@@ -81,7 +82,7 @@ int main(int narg,char **arg)
 {
   int nsource=64*64*64*64;
   
-  init_test();
+  init_test(narg,arg);
   
   //quark
   double quark_theta[4]={0,0,0,0};
@@ -136,9 +137,9 @@ int main(int narg,char **arg)
 	    {
 	      master_printf("%d\n",isource+1);
 	      master_printf("exa\n");
-	      print_spinspin(d2_corr[lx]);
+	      spinspin_print(d2_corr[lx]);
 	      master_printf("sto\n");
-	      print_spinspin(d2_stoch_corr_ave[lx]);
+	      spinspin_print(d2_stoch_corr_ave[lx]);
 	      master_printf("\n");
 	    }
 	  

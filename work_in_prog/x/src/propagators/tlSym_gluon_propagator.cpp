@@ -1,17 +1,17 @@
 #include <string.h>
 #include <math.h>
 
-#include "../../../../src/base/global_variables.h"
-#include "../../../../src/new_types/new_types_definitions.h"
-#include "../../../../src/new_types/complex.h"
-#include "../../../../src/new_types/spin.h"
-#include "../../../../src/base/debug.h"
-#include "../../../../src/base/vectors.h"
-#include "../../../../src/base/routines.h"
-#include "../../../../src/operations/fft.h"
+#include "../../../../src/base/global_variables.hpp"
+#include "../../../../src/new_types/new_types_definitions.hpp"
+#include "../../../../src/new_types/complex.hpp"
+#include "../../../../src/new_types/spin.hpp"
+#include "../../../../src/base/debug.hpp"
+#include "../../../../src/base/vectors.hpp"
+#include "../../../../src/nissa.hpp"
+#include "../../../../src/operations/fft.hpp"
 
-#include "../types/types.h"
-#include "../routines/fourier.h"
+#include "../types/types.hpp"
+#include "../routines/fourier.hpp"
 
 //compute the tree level Symanzik gluon propagator in the momentum space according to P.Weisz
 void mom_space_tlSym_gluon_propagator_of_imom(spin1prop prop,gluon_info gl,int imom)

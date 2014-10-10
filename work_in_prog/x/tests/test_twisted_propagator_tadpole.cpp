@@ -1,9 +1,10 @@
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/types/types.h"
-#include "../src/types/types_routines.h"
-#include "../src/diagrams/tadpole.h"
-#include "../src/routines/fourier.h"
+#include "../src/types/types.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/diagrams/tadpole.hpp"
+#include "../src/routines/fourier.hpp"
 
 int L;
 
@@ -13,7 +14,7 @@ double real_part_of_trace_with_igamma(spinspin *q,int imom)
   
   for(int mu=0;mu<4;mu++)
     {
-      int nu=nissa_map_mu[mu];
+      int nu=map_mu[mu];
       for(int id=0;id<4;id++)
 	{
 	  complex t;
@@ -37,7 +38,7 @@ double real_part_of_trace_with_id(spinspin *q,int imom)
 int main(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   if(narg<2) crash("use: %s input",arg[0]);
   

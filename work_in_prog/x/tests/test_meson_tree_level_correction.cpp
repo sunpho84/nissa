@@ -1,15 +1,17 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace nissa;
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/diagrams/propagator_self_energy.h"
-#include "../src/types/types_routines.h"
-#include "../src/routines/shift.h"
-#include "../src/routines/read_and_write.h"
-#include "../src/routines/correlations.h"
-#include "../src/stochastic/stochastic_twisted_propagator.h"
-#include "../src/stochastic/stochastic_tlSym_gluon_propagator.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/diagrams/propagator_self_energy.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/routines/shift.hpp"
+#include "../src/routines/read_and_write.hpp"
+#include "../src/routines/correlations.hpp"
+#include "../src/stochastic/stochastic_twisted_propagator.hpp"
+#include "../src/stochastic/stochastic_tlSym_gluon_propagator.hpp"
 
 spinspin *prop,*self_prop;
 corr16 *corr;
@@ -17,10 +19,10 @@ corr16 *corr;
 int L=4;
 
 //initialize the program
-void init_calc()
+void init_calc(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(2*L,L);
@@ -41,7 +43,7 @@ void close_calc()
 
 int main(int narg,char **arg)
 {
-  init_calc();
+  init_calc(narg,arg);
   
   //kappa and mass
   double kappa=1.0/8;

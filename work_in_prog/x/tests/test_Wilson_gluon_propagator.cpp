@@ -1,22 +1,23 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/types/types.h"
-#include "../src/types/types_routines.h"
-#include "../src/propagators/Wilson_gluon_propagator.h"
-#include "../src/operators/Wilson_gluon_Klein_Gordon_operator.h"
-#include "../src/propagators/tlSym_gluon_propagator.h"
+#include "../src/types/types.hpp"
+#include "../src/types/types_routines.hpp"
+#include "../src/propagators/Wilson_gluon_propagator.hpp"
+#include "../src/operators/Wilson_gluon_Klein_Gordon_operator.hpp"
+#include "../src/propagators/tlSym_gluon_propagator.hpp"
 
 spin1prop *prop_wi_fft;
 spin1prop *prop_wi_inv;
 spin1prop *prop_tl_fft;
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(8,4);
@@ -39,7 +40,7 @@ void close_test()
 
 int main(int narg,char **arg)
 {
-  init_test();
+  init_test(narg,arg);
   
   //boundary conditions
   double theta[4]={0.6,0.4,0.2,0.1};
@@ -69,11 +70,11 @@ int main(int narg,char **arg)
   if(rank==rx)
     {
       printf("\n\nComparing the propagator on site of coordinates: (%d,%d,%d,%d), rank: %d\n\n wi_fft:\n",ix[0],ix[1],ix[2],ix[3],rx);
-      print_spinspin(prop_wi_fft[lx]);
+      spinspin_print(prop_wi_fft[lx]);
       printf("\n wi_inv:\n");
-      print_spinspin(prop_wi_inv[lx]);
+      spinspin_print(prop_wi_inv[lx]);
       printf("\n tl_fft:\n");
-      print_spinspin(prop_tl_fft[lx]);
+      spinspin_print(prop_tl_fft[lx]);
     }
 
   //take the squared norm of the differnce between the two computed propagators
@@ -116,7 +117,7 @@ int main(int narg,char **arg)
 	  memcpy(prop_wi_fft[imom][mu][nu],temp[imom][mu],sizeof(complex));
     }
   
-  if(rank==0) print_spinspin(prop_wi_fft[0]);
+  if(rank==0) spinspin_print(prop_wi_fft[0]);
   
   nissa_free(temp);
     

@@ -1,20 +1,21 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/propagators/twisted_propagator.h"
-#include "../src/stochastic/stochastic_source.h"
-#include "../src/routines/fourier.h"
-#include "../src/types/types_routines.h"
+#include "../src/propagators/twisted_propagator.hpp"
+#include "../src/stochastic/stochastic_source.hpp"
+#include "../src/routines/fourier.hpp"
+#include "../src/types/types_routines.hpp"
 
 spin1field *eta;
 spin1field *etab;
 
 //initialize the program
-void init_test()
+void init_test(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
   //init the grid
   init_grid(8,4);
@@ -37,7 +38,7 @@ void close_test()
 
 int main(int narg,char **arg)
 {
-  init_test();
+  init_test(narg,arg);
   
   //covariant gauge fixing constant
   double alpha=0.3;
@@ -56,9 +57,9 @@ int main(int narg,char **arg)
   if(rank==rx)
     {
       printf("\n\nComparing the vector on site of coordinates: (%d,%d,%d,%d), rank: %d\n",ix[0],ix[1],ix[2],ix[3],rx);
-      print_spin(eta[lx]);
+      spin_print(eta[lx]);
       printf("\n");
-      print_spin(etab[lx]);
+      spin_print(etab[lx]);
     }
   
   close_test();

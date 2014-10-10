@@ -2,10 +2,11 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+using namespace std;
 
-#include "../src/types/types.h"
-#include "../src/routines/read_and_write.h"
+#include "../src/types/types.hpp"
+#include "../src/routines/read_and_write.hpp"
 
 const int plot_d2_max=70;
 const int PP=0,SS=1,VV=2,AA=3;
@@ -94,9 +95,9 @@ void prepare_demo_table(double cut_angle,int max_dist)
 void init_calc(int narg,char **arg)
 {
   //Basic mpi initialization
-  init_nissa();
+  init_nissa(narg,arg);
   
-  if(nissa_nranks>1) crash("only available in scalar");
+  if(nranks>1) crash("only available in scalar");
   if(narg<2) crash("use %s input",arg[0]);
   
   open_input(arg[1]);

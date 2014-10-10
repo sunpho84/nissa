@@ -5,6 +5,10 @@
  #include "config.hpp"
 #endif
 
+#if HIGH_PREC == GMP_HIGH_PREC
+ #include <gmpxx.h>
+#endif
+
 #ifdef USE_MPI
  #include <mpi.h>
 #endif
@@ -122,7 +126,15 @@ namespace nissa
   //octpuple
   typedef double float_256[4];
   typedef double float_256_unr[5];
-  
+  struct float_256_class;
+#if HIGH_PREC == GMP_HIGH_PREC
+  typedef mpf_class float_high_prec_t;
+#elif HIGH_PREC == NATIVE_HIGH_PREC
+  typedef float_256_class float_high_prec_t;
+#else
+ #error Unknwon high_prec: HIGH_PREC
+#endif
+
   //Random types
   enum rnd_t{RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_UNIF,RND_Z2,RND_Z4,RND_GAUSS};
   //Source type
@@ -640,8 +652,13 @@ namespace nissa
   {
     //wheter to use or not hmc
     int use_hmc;
+    //basic hmc pars
     double traj_length;
     int nmd_steps;
+    //acceleration parameters
+    int use_Facc;
+    double kappa;
+    double residue;
     //number of hb sweeps and hits per link
     int nhb_sweeps;
     int nhb_hits;
