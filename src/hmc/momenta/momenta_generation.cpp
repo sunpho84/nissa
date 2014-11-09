@@ -42,9 +42,9 @@ namespace nissa
     set_borders_invalid(H);
     
     //get the rational approx
-    rat_approx_t rat_exp_H;
-    generate_approx(rat_exp_H,3.13029e-06,1,15,-1,2,"rat_H");
-    master_printf_rat_approx(&rat_exp_H);
+    //rat_approx_t rat_exp_H;
+    //generate_approx(rat_exp_H,3.13029e-06,1,15,-1,2,"rat_H");
+    //master_printf_rat_approx(&rat_exp_H);
     
     crash(""); 
   }

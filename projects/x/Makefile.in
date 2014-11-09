@@ -98,19 +98,21 @@ bin_PROGRAMS = $(top_builddir)/test/x/twisted_propagator$(EXEEXT) \
 	$(top_builddir)/test/x/meson_tree_level_correction$(EXEEXT) \
 	$(top_builddir)/test/x/nazario$(EXEEXT) \
 	$(top_builddir)/test/x/nazario2$(EXEEXT) \
+	$(top_builddir)/bin/x/average_corr$(EXEEXT) \
+	$(top_builddir)/bin/x/bmp_scramble$(EXEEXT) \
 	$(top_builddir)/bin/x/compute_corrections$(EXEEXT) \
 	$(top_builddir)/bin/x/compute_tree_level_corrections$(EXEEXT) \
 	$(top_builddir)/bin/x/compute_self_energy_corrections$(EXEEXT) \
 	$(top_builddir)/bin/x/compute_tadpole_corrections$(EXEEXT) \
-	$(top_builddir)/bin/x/average_corr$(EXEEXT) \
-	$(top_builddir)/bin/x/bmp_scramble$(EXEEXT) \
 	$(top_builddir)/bin/x/correct$(EXEEXT) \
-	$(top_builddir)/bin/x/combine$(EXEEXT)
+	$(top_builddir)/bin/x/combine$(EXEEXT) \
+	$(top_builddir)/bin/x/integrali_divergenti$(EXEEXT)
 subdir = projects/x
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/depcomp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/ntl-check.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -197,6 +199,13 @@ __top_builddir__bin_x_correct_OBJECTS =  \
 	$(am___top_builddir__bin_x_correct_OBJECTS)
 __top_builddir__bin_x_correct_LDADD = $(LDADD)
 __top_builddir__bin_x_correct_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.a
+am___top_builddir__bin_x_integrali_divergenti_OBJECTS =  \
+	$(am__objects_1) progs/integrali_divergenti.$(OBJEXT)
+__top_builddir__bin_x_integrali_divergenti_OBJECTS =  \
+	$(am___top_builddir__bin_x_integrali_divergenti_OBJECTS)
+__top_builddir__bin_x_integrali_divergenti_LDADD = $(LDADD)
+__top_builddir__bin_x_integrali_divergenti_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.a
 am___top_builddir__test_x_Fourier_transform_OBJECTS =  \
 	$(am__objects_1) tests/test_Fourier_transform.$(OBJEXT)
@@ -380,6 +389,7 @@ SOURCES = $(__top_builddir__bin_x_average_corr_SOURCES) \
 	$(__top_builddir__bin_x_compute_tadpole_corrections_SOURCES) \
 	$(__top_builddir__bin_x_compute_tree_level_corrections_SOURCES) \
 	$(__top_builddir__bin_x_correct_SOURCES) \
+	$(__top_builddir__bin_x_integrali_divergenti_SOURCES) \
 	$(__top_builddir__test_x_Fourier_transform_SOURCES) \
 	$(__top_builddir__test_x_Wilson_gluon_Klein_Gordon_operator_SOURCES) \
 	$(__top_builddir__test_x_Wilson_gluon_propagator_SOURCES) \
@@ -408,6 +418,7 @@ DIST_SOURCES = $(__top_builddir__bin_x_average_corr_SOURCES) \
 	$(__top_builddir__bin_x_compute_tadpole_corrections_SOURCES) \
 	$(__top_builddir__bin_x_compute_tree_level_corrections_SOURCES) \
 	$(__top_builddir__bin_x_correct_SOURCES) \
+	$(__top_builddir__bin_x_integrali_divergenti_SOURCES) \
 	$(__top_builddir__test_x_Fourier_transform_SOURCES) \
 	$(__top_builddir__test_x_Wilson_gluon_Klein_Gordon_operator_SOURCES) \
 	$(__top_builddir__test_x_Wilson_gluon_propagator_SOURCES) \
@@ -603,14 +614,15 @@ __top_builddir__test_x_meson_tad_pole_correction_SOURCES = $(x_sources) tests/te
 __top_builddir__test_x_meson_tree_level_correction_SOURCES = $(x_sources) tests/test_meson_tree_level_correction.cpp
 __top_builddir__test_x_nazario_SOURCES = $(x_sources) tests/test_nazario.cpp
 __top_builddir__test_x_nazario2_SOURCES = $(x_sources) tests/test_nazario2.cpp
+__top_builddir__bin_x_average_corr_SOURCES = $(x_sources) progs/average_corr.cpp
+__top_builddir__bin_x_bmp_scramble_SOURCES = $(x_sources) progs/bmp_scramble.cpp
+__top_builddir__bin_x_combine_SOURCES = $(x_sources) progs/combine.cpp
 __top_builddir__bin_x_compute_corrections_SOURCES = $(x_sources) progs/compute_corrections.cpp
 __top_builddir__bin_x_compute_tree_level_corrections_SOURCES = $(x_sources) progs/compute_tree_level_corrections.cpp
 __top_builddir__bin_x_compute_self_energy_corrections_SOURCES = $(x_sources) progs/compute_self_energy_corrections.cpp
 __top_builddir__bin_x_compute_tadpole_corrections_SOURCES = $(x_sources) progs/compute_tadpole_corrections.cpp
-__top_builddir__bin_x_average_corr_SOURCES = $(x_sources) progs/average_corr.cpp
-__top_builddir__bin_x_bmp_scramble_SOURCES = $(x_sources) progs/bmp_scramble.cpp
+__top_builddir__bin_x_integrali_divergenti_SOURCES = $(x_sources) progs/integrali_divergenti.cpp
 __top_builddir__bin_x_correct_SOURCES = $(x_sources) progs/correct.cpp
-__top_builddir__bin_x_combine_SOURCES = $(x_sources) progs/combine.cpp
 all: all-am
 
 .SUFFIXES:
@@ -851,6 +863,12 @@ progs/correct.$(OBJEXT): progs/$(am__dirstamp) \
 $(top_builddir)/bin/x/correct$(EXEEXT): $(__top_builddir__bin_x_correct_OBJECTS) $(__top_builddir__bin_x_correct_DEPENDENCIES) $(EXTRA___top_builddir__bin_x_correct_DEPENDENCIES) $(top_builddir)/bin/x/$(am__dirstamp)
 	@rm -f $(top_builddir)/bin/x/correct$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_x_correct_OBJECTS) $(__top_builddir__bin_x_correct_LDADD) $(LIBS)
+progs/integrali_divergenti.$(OBJEXT): progs/$(am__dirstamp) \
+	progs/$(DEPDIR)/$(am__dirstamp)
+
+$(top_builddir)/bin/x/integrali_divergenti$(EXEEXT): $(__top_builddir__bin_x_integrali_divergenti_OBJECTS) $(__top_builddir__bin_x_integrali_divergenti_DEPENDENCIES) $(EXTRA___top_builddir__bin_x_integrali_divergenti_DEPENDENCIES) $(top_builddir)/bin/x/$(am__dirstamp)
+	@rm -f $(top_builddir)/bin/x/integrali_divergenti$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_x_integrali_divergenti_OBJECTS) $(__top_builddir__bin_x_integrali_divergenti_LDADD) $(LIBS)
 tests/$(am__dirstamp):
 	@$(MKDIR_P) tests
 	@: > tests/$(am__dirstamp)
@@ -1005,6 +1023,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@progs/$(DEPDIR)/compute_tadpole_corrections.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@progs/$(DEPDIR)/compute_tree_level_corrections.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@progs/$(DEPDIR)/correct.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@progs/$(DEPDIR)/integrali_divergenti.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/diagrams/$(DEPDIR)/meson_exchange.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/diagrams/$(DEPDIR)/propagator_self_energy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/diagrams/$(DEPDIR)/tadpole.Po@am__quote@

@@ -1,9 +1,12 @@
 #include <math.h>
 
-#include "nissa.h"
+#include "nissa.hpp"
+
+using namespace nissa;
 
 int main(int narg,char **arg)
-{  init_nissa();
+{
+  init_nissa(narg,arg);
   
   if(rank==0)
     {
@@ -119,6 +122,7 @@ int main(int narg,char **arg)
       complex one_over_rad2={1/sqrt(2),0};
 
       //check of Pplus
+      complex I={0,1};
       dirac_matr gamma_Pplus;
       safe_dirac_compl_prod(&gamma_Pplus,&(base_gamma[5]),I);
       dirac_summ(&gamma_Pplus,&gamma_Pplus,&(base_gamma[0]));

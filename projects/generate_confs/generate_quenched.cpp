@@ -335,6 +335,11 @@ void generate_new_conf(quad_su3 *conf,int check=0)
 {
   if(evol_pars.use_hmc)
     {
+      rat_approx_t rat_exp_H;
+      generate_approx(rat_exp_H,3.13029e-06,1,15,-1,2,"rat_H");
+      master_printf_rat_approx(&rat_exp_H);
+      crash("");
+      
       int perform_test=true;
       double diff_act=pure_gauge_hmc_step(temp_conf,conf,theory_pars,evol_pars,iconf);
       

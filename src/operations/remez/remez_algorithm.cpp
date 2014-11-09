@@ -6,13 +6,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "remez_algorithm.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
+#include "base/thread_macros.hpp"
 #include "new_types/high_prec.hpp"
 #include "new_types/rat_approx.hpp"
+#include "remez_algorithm.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
+#ifdef USE_THREADS
+ #include "routines/thread.hpp"
+#endif
 
 namespace nissa
 {
@@ -40,15 +44,13 @@ namespace nissa
     for(int k=0;k<n-1;k++) 
       {
 	//find the pivot
-	float_high_prec_t big;
-	big=0.0;
+	float_high_prec_t big=0.0;
 	int ipiv=0;
 	for(int i=k;i<n;i++) 
 	  {
 	    int ip=exch[i];
 	    int ipk=n*ip+k;
-	    float_high_prec_t size;
-	    size=abs(A[ipk])*x[ip];
+	    float_high_prec_t size=abs(A[ipk])*x[ip];
 	    if(size>big)
 	      {
 		big=size;
@@ -121,10 +123,10 @@ namespace nissa
 	if(i==nmax_err_points-1) zero1=maximum;
 	
 	//check if we can move in one of the dirs
-	float_high_prec_t xn,ym,yn,q;
-	ym=get_abs_err(xm);
-	q=step[i];
-	xn=xm+q;
+	float_high_prec_t ym=get_abs_err(xm);
+	float_high_prec_t q=step[i];
+	float_high_prec_t xn=xm+q;
+	float_high_prec_t yn;
 	if(xn<zero0||!(xn<zero1)) // Cannot skip over adjacent boundaries
 	  {
 	    q=-q;
@@ -150,10 +152,9 @@ namespace nissa
 	    if(istep>9) quit=1;
 	    else
 	      {
-		float_high_prec_t a;
 		ym=yn;
 		xm=xn;
-		a=xm+q;
+		float_high_prec_t a=xm+q;
 		if(a==xm||!(a>zero0)||!(a<zero1)) quit=1;
 		else
 		  {
@@ -174,11 +175,11 @@ namespace nissa
 	zero0=zero1;
       }
     
-    verbosity_lv3_master_printf("eclose: %16.16lg, farther: %16.16lg, spread: %16.16lg\n",eclose.get_d(),farther.get_d(),spread.get_d());
+    verbosity_lv3_master_printf("eclose: %16.16lg, farther: %16.16lg, spread: %16.16lg\n",
+				eclose.get_d(),farther.get_d(),spread.get_d());
     
     //decrease step size if error spread increased
-    float_high_prec_t q,xm;
-    q=farther-eclose;
+    float_high_prec_t q=farther-eclose;
     //relative error spread
     if(eclose.get_d()!=0.0) q/=eclose;
     //spread is increasing: decrease step size
@@ -201,7 +202,7 @@ namespace nissa
     //insert new locations for the zeros
     for(int i=0;i<nzero_err_points;i++)
       {	
-	xm=zero[i]-step[i];
+	float_high_prec_t xm=zero[i]-step[i];
 	if(xm>minimum)
 	  if(xm<maximum)
 	    {
@@ -211,9 +212,9 @@ namespace nissa
 	    }
       }
   }
-  
+
   //set the linear system to be solved
-  void rat_approx_finder_t::set_linear_system(float_high_prec_t *matr,float_high_prec_t *vec) 
+  void rat_approx_finder_t::set_linear_system(float_high_prec_t *matr,float_high_prec_t *vec)
   {
     for(int i=0;i<nzero_err_points;i++)
       {
@@ -223,20 +224,20 @@ namespace nissa
 	int k=0;
 	for(int j=0;j<=degree;j++)
 	  {
-	    matr[i*nzero_err_points+k++]=z;
+	    matr[i*nzero_err_points+(k++)]=z;
 	    z*=zero[i];
 	  }
 	z=1.0;
 	for(int j=0;j<degree;j++)
 	  {
 	    float_high_prec_t yz; 
-	    matr[i*nzero_err_points+k++]=-y*z;
+	    matr[i*nzero_err_points+(k++)]=-y*z;
 	    z*=zero[i];
 	  }
 	vec[i]=z*y;
       }
   }
-  
+
   //compute separately the numerator and denominator of the approximation
   void rat_approx_finder_t::compute_num_den_approx(float_high_prec_t &yn,float_high_prec_t &yd,float_high_prec_t x)
   {
@@ -428,8 +429,12 @@ namespace nissa
     //set delta, initial spread and tolerance
     spread=1e37;
     delta=0.25;
+#if HIGH_PREC==NATIVE_HIGH_PREC
     approx_tolerance=2e-15;
-    
+#else
+    approx_tolerance=1e-15;
+#endif
+
     //set the initial guess and set step
     find_cheb();
     set_step();
@@ -447,12 +452,21 @@ namespace nissa
 	
 	// 3) find maxima and minima
 	if(spread>approx_tolerance) new_step();
-	if(delta<approx_tolerance) crash("delta too small, try increasing precision");
-	
+	if(delta<approx_tolerance)
+	  {
+	    master_printf("WARNING, reached precision %lg while computing %d terms approximation of x^(%d/%d)\n",
+			  spread.get_d(),degree,num,den);
+	    master_printf("native precision not enough to reach %lg precision requested!!!\n",approx_tolerance);
+#if HIGH_PREC==NATIVE_HIGH_PREC
+	    master_printf("use GMP if possible!\n");
+#else
+	    master_printf("compile with higher precision!\n");
+#endif
+	  }
 	iter++;
       }
     //while(float_high_prec_t_is_greater(spread,approx_tolerance));
-    while(spread>approx_tolerance);
+    while(spread>approx_tolerance && delta>=approx_tolerance);
     
     verbosity_lv2_master_printf("Converged in %d iters\n",iter);
     
@@ -483,6 +497,8 @@ namespace nissa
   //generate an approximation
   double generate_approx(rat_approx_t &appr,double minimum,double maximum,int degree,int num,int den,const char *name)
   {
+    if(IS_PARALLEL) crash("approx generation cannot be called in a parallel context");
+    
     rat_approx_create(&appr,degree,name);
     appr.minimum=minimum;
     appr.maximum=maximum;

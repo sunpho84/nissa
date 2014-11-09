@@ -64,6 +64,9 @@
 /* Define to 1 if you have the `mkdir' function. */
 #undef HAVE_MKDIR
 
+/* NTL found */
+#undef HAVE_NTL
+
 /* Define to 1 if you have the `pow' function. */
 #undef HAVE_POW
 
