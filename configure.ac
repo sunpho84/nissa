@@ -32,6 +32,9 @@ AC_PROG_MKDIR_P
 # Checks for libraries
 AC_SEARCH_LIBS(__gmpz_init,gmp)
 
+# Check ntl library
+LB_CHECK_NTL
+
 # Checks for header files.
 AC_FUNC_ALLOCA
 AC_CHECK_HEADERS([float.h inttypes.h libintl.h malloc.h stddef.h stdint.h stdlib.h string.h unistd.h])
@@ -75,7 +78,7 @@ AC_ARG_WITH(high-prec,
 	if test "$ac_cv_search___gmpz_init" != ""; then with_high_prec="gmp";else with_high_prec="native";fi)
 	case "$with_high_prec" in
      	     native) AC_DEFINE_UNQUOTED([HIGH_PREC],[NATIVE_HIGH_PREC],[Enable native high-precision]) ;;
-     	     gmp) AC_DEFINE_UNQUOTED([HIGH_PREC],[GMP_HIGH_PREC],[Enable gmp high-precision]) AM_LDFLAGS="-lgmp -lgmpxx" ;;
+     	     gmp) if test "$ac_cv_search___gmpz_init" != ""; then AC_DEFINE_UNQUOTED([HIGH_PREC],[GMP_HIGH_PREC],[Enable gmp high-precision]) AM_LDFLAGS="-lgmp -lgmpxx";else AC_MSG_ERROR(["Unable to find gmp lib"]);fi ;;
 	     *) AC_MSG_ERROR(["Unkwnown high precision type ${withval}"])
 	esac
 AC_MSG_RESULT([with high precision type... $with_high_prec])
@@ -198,6 +201,7 @@ AC_CONFIG_FILES(
 	src/Makefile
 	projects/Makefile
 	projects/eight_BK/Makefile
+	projects/g/Makefile
 	projects/generate_confs/Makefile
 	projects/semileptonic/Makefile
 	projects/static_potential/Makefile

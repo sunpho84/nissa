@@ -89,20 +89,22 @@ __top_builddir__test_x_nazario_SOURCES=$(x_sources) tests/test_nazario.cpp
 __top_builddir__test_x_nazario2_SOURCES=$(x_sources) tests/test_nazario2.cpp
 
 bin_PROGRAMS+= \
+	$(top_builddir)/bin/x/average_corr \
+	$(top_builddir)/bin/x/bmp_scramble \
 	$(top_builddir)/bin/x/compute_corrections \
 	$(top_builddir)/bin/x/compute_tree_level_corrections \
 	$(top_builddir)/bin/x/compute_self_energy_corrections \
 	$(top_builddir)/bin/x/compute_tadpole_corrections \
-	$(top_builddir)/bin/x/average_corr \
-	$(top_builddir)/bin/x/bmp_scramble \
 	$(top_builddir)/bin/x/correct \
-	$(top_builddir)/bin/x/combine
+	$(top_builddir)/bin/x/combine \
+	$(top_builddir)/bin/x/integrali_divergenti
 
+__top_builddir__bin_x_average_corr_SOURCES=$(x_sources) progs/average_corr.cpp
+__top_builddir__bin_x_bmp_scramble_SOURCES=$(x_sources) progs/bmp_scramble.cpp
+__top_builddir__bin_x_combine_SOURCES=$(x_sources) progs/combine.cpp
 __top_builddir__bin_x_compute_corrections_SOURCES=$(x_sources) progs/compute_corrections.cpp
 __top_builddir__bin_x_compute_tree_level_corrections_SOURCES=$(x_sources) progs/compute_tree_level_corrections.cpp
 __top_builddir__bin_x_compute_self_energy_corrections_SOURCES=$(x_sources) progs/compute_self_energy_corrections.cpp
 __top_builddir__bin_x_compute_tadpole_corrections_SOURCES=$(x_sources) progs/compute_tadpole_corrections.cpp
-__top_builddir__bin_x_average_corr_SOURCES=$(x_sources) progs/average_corr.cpp
-__top_builddir__bin_x_bmp_scramble_SOURCES=$(x_sources) progs/bmp_scramble.cpp
+__top_builddir__bin_x_integrali_divergenti_SOURCES=$(x_sources) progs/integrali_divergenti.cpp
 __top_builddir__bin_x_correct_SOURCES=$(x_sources) progs/correct.cpp
-__top_builddir__bin_x_combine_SOURCES=$(x_sources) progs/combine.cpp

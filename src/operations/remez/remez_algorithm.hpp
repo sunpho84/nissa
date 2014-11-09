@@ -15,9 +15,8 @@ namespace nissa
 {
   float_high_prec_t float_high_prec_t_pow_int_frac(float_high_prec_t ext_in,int n,int d);
   
-  class rat_approx_finder_t
+  struct rat_approx_finder_t
   {
-  private:
     //approximation parameters
     float_high_prec_t *coeff;
     
@@ -60,7 +59,6 @@ namespace nissa
     void compute_num_den_approx(float_high_prec_t &yn,float_high_prec_t &yd,float_high_prec_t x);
     float_high_prec_t compute_approx(float_high_prec_t x);
     
-  public:  
     //generate the rational approximation
     double generate_approx(float_high_prec_t *weights,float_high_prec_t *pole,float_high_prec_t &cons,double ext_minimum,double ext_maximum,int ext_degree,int num,int den);
   };

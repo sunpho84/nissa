@@ -15,9 +15,11 @@ namespace nissa
   void read_list_of_chars(const char *tag,int *nentries,char ***list,int nchar_per_entry);
   void read_list_of_double_pairs(const char *tag,int *nentries,double **list1,double **list2);
   void read_list_of_doubles(const char *tag,int *nentries,double **list);
+  void read_list_of_double_triples(const char *tag,int *nentries,double **list1,double **list2,double **list3);
   void read_list_of_ints(const char *tag,int *nentries,int **list);
   void read_list_of_var(const char *tag,int *nentries,char **list,int size_of_el,const char *par);
   void read_list_of_var_pairs(const char *tag,int *nentries,char **list1,char **list2,int size_of_el,const char *par);
+  void read_list_of_var_triples(const char *tag,int *nentries,char **list1,char **list2,char **list3,int size_of_el,const char *par);
   void read_nissa_config_file();
   void read_str(char *str,int length);
   void read_str_double(const char *exp_str,double *in);

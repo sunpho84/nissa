@@ -240,6 +240,24 @@ namespace nissa
       }
   }
   
+  //Read a list of triples of var, allocating the list
+  void read_list_of_var_triples(const char *tag,int *nentries,char **list1,char **list2,char **list3,int size_of_el,const char *par)
+  {
+    read_str_int(tag,nentries);
+    (*list1)=(char*)malloc((*nentries)*size_of_el);
+    (*list2)=(char*)malloc((*nentries)*size_of_el);
+    (*list3)=(char*)malloc((*nentries)*size_of_el);
+    for(int ientr=0;ientr<(*nentries);ientr++)
+      {
+	char *in1=(*list1)+ientr*size_of_el;
+	char *in2=(*list2)+ientr*size_of_el;
+	char *in3=(*list3)+ientr*size_of_el;
+	read_var(in1,par,size_of_el);
+	read_var(in2,par,size_of_el);
+	read_var(in3,par,size_of_el);
+      }
+  }
+  
   //Read a list of pairs of var, allocating the list
   void read_list_of_var_pairs(const char *tag,int *nentries,char **list1,char **list2,int size_of_el,const char *par)
   {
@@ -264,14 +282,21 @@ namespace nissa
     for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%lg\t",(*list)[ientr]);
     verbosity_lv1_master_printf("\n");
   }
-  
-  //read a list of doubles
   void read_list_of_double_pairs(const char *tag,int *nentries,double **list1,double **list2)
   {
     read_list_of_var_pairs(tag,nentries,(char**)list1,(char**)list2,sizeof(double),"%lg");
     
     verbosity_lv1_master_printf("List of pairs of %s:\t",tag);
     for(int ientr=0;ientr<(*nentries);ientr++) verbosity_lv1_master_printf("%lg %lg\t",(*list1)[ientr],(*list2)[ientr]);
+    verbosity_lv1_master_printf("\n");
+  }
+  void read_list_of_double_triples(const char *tag,int *nentries,double **list1,double **list2,double **list3)
+  {
+    read_list_of_var_triples(tag,nentries,(char**)list1,(char**)list2,(char**)list3,sizeof(double),"%lg");
+    
+    verbosity_lv1_master_printf("List of triples of %s:\t",tag);
+    for(int ientr=0;ientr<(*nentries);ientr++)
+      verbosity_lv1_master_printf("%lg %lg %lg\t",(*list1)[ientr],(*list2)[ientr],(*list3)[ientr]);
     verbosity_lv1_master_printf("\n");
   }
   

@@ -88,12 +88,14 @@ bin_PROGRAMS = $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/create/create_hot$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/smear/stout$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data$(EXEEXT) \
+	$(top_builddir)/tools/print_gamma/gamma_test$(EXEEXT) \
 	$(top_builddir)/tools/unitarity_check/unitarity_check$(EXEEXT)
 subdir = tools
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/depcomp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/ntl-check.m4 \
+	$(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
@@ -172,6 +174,13 @@ __top_builddir__tools_find_best_vir_partitioning_find_LDADD =  \
 	$(LDADD)
 __top_builddir__tools_find_best_vir_partitioning_find_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.a
+am___top_builddir__tools_print_gamma_gamma_test_OBJECTS =  \
+	print_gamma/gamma_test.$(OBJEXT)
+__top_builddir__tools_print_gamma_gamma_test_OBJECTS =  \
+	$(am___top_builddir__tools_print_gamma_gamma_test_OBJECTS)
+__top_builddir__tools_print_gamma_gamma_test_LDADD = $(LDADD)
+__top_builddir__tools_print_gamma_gamma_test_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.a
 am___top_builddir__tools_unitarity_check_unitarity_check_OBJECTS =  \
 	unitarity_check/unitarity_check.$(OBJEXT)
 __top_builddir__tools_unitarity_check_unitarity_check_OBJECTS = $(am___top_builddir__tools_unitarity_check_unitarity_check_OBJECTS)
@@ -218,6 +227,7 @@ SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
 	$(__top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
+	$(__top_builddir__tools_print_gamma_gamma_test_SOURCES) \
 	$(__top_builddir__tools_unitarity_check_unitarity_check_SOURCES)
 DIST_SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
 	$(__top_builddir__tools_conf_measure_topo_SOURCES) \
@@ -229,6 +239,7 @@ DIST_SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
 	$(__top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
+	$(__top_builddir__tools_print_gamma_gamma_test_SOURCES) \
 	$(__top_builddir__tools_unitarity_check_unitarity_check_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -375,6 +386,7 @@ __top_builddir__tools_conf_transform_create_create_cold_SOURCES = conf_transform
 __top_builddir__tools_conf_transform_create_create_hot_SOURCES = conf_transform/create/create_hot.cpp
 __top_builddir__tools_conf_transform_smear_stout_SOURCES = conf_transform/smear/stout.cpp
 __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES = conf_transform/edit/grab_ildg_data.cpp
+__top_builddir__tools_print_gamma_gamma_test_SOURCES = print_gamma/gamma_test.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES = unitarity_check/unitarity_check.cpp
 all: all-am
 
@@ -574,6 +586,21 @@ $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp):
 $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT): $(__top_builddir__tools_find_best_vir_partitioning_find_OBJECTS) $(__top_builddir__tools_find_best_vir_partitioning_find_DEPENDENCIES) $(EXTRA___top_builddir__tools_find_best_vir_partitioning_find_DEPENDENCIES) $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)
 	@rm -f $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_find_best_vir_partitioning_find_OBJECTS) $(__top_builddir__tools_find_best_vir_partitioning_find_LDADD) $(LIBS)
+print_gamma/$(am__dirstamp):
+	@$(MKDIR_P) print_gamma
+	@: > print_gamma/$(am__dirstamp)
+print_gamma/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) print_gamma/$(DEPDIR)
+	@: > print_gamma/$(DEPDIR)/$(am__dirstamp)
+print_gamma/gamma_test.$(OBJEXT): print_gamma/$(am__dirstamp) \
+	print_gamma/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/tools/print_gamma/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/tools/print_gamma
+	@: > $(top_builddir)/tools/print_gamma/$(am__dirstamp)
+
+$(top_builddir)/tools/print_gamma/gamma_test$(EXEEXT): $(__top_builddir__tools_print_gamma_gamma_test_OBJECTS) $(__top_builddir__tools_print_gamma_gamma_test_DEPENDENCIES) $(EXTRA___top_builddir__tools_print_gamma_gamma_test_DEPENDENCIES) $(top_builddir)/tools/print_gamma/$(am__dirstamp)
+	@rm -f $(top_builddir)/tools/print_gamma/gamma_test$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_print_gamma_gamma_test_OBJECTS) $(__top_builddir__tools_print_gamma_gamma_test_LDADD) $(LIBS)
 unitarity_check/$(am__dirstamp):
 	@$(MKDIR_P) unitarity_check
 	@: > unitarity_check/$(am__dirstamp)
@@ -599,6 +626,7 @@ mostlyclean-compile:
 	-rm -f conf_transform/edit/*.$(OBJEXT)
 	-rm -f conf_transform/smear/*.$(OBJEXT)
 	-rm -f find_best_vir_partitioning/*.$(OBJEXT)
+	-rm -f print_gamma/*.$(OBJEXT)
 	-rm -f unitarity_check/*.$(OBJEXT)
 
 distclean-compile:
@@ -614,6 +642,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/edit/$(DEPDIR)/grab_ildg_data.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/smear/$(DEPDIR)/stout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@find_best_vir_partitioning/$(DEPDIR)/find.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@print_gamma/$(DEPDIR)/gamma_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@unitarity_check/$(DEPDIR)/unitarity_check.Po@am__quote@
 
 .cpp.o:
@@ -759,6 +788,8 @@ distclean-generic:
 	-rm -f conf_transform/smear/$(am__dirstamp)
 	-rm -f find_best_vir_partitioning/$(DEPDIR)/$(am__dirstamp)
 	-rm -f find_best_vir_partitioning/$(am__dirstamp)
+	-rm -f print_gamma/$(DEPDIR)/$(am__dirstamp)
+	-rm -f print_gamma/$(am__dirstamp)
 	-rm -f unitarity_check/$(DEPDIR)/$(am__dirstamp)
 	-rm -f unitarity_check/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/conf_measure/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_measure/$(am__dirstamp)
@@ -767,6 +798,7 @@ distclean-generic:
 	-test -z "$(top_builddir)/tools/conf_transform/edit/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_transform/edit/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/conf_transform/smear/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_transform/smear/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)" || rm -f $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)
+	-test -z "$(top_builddir)/tools/print_gamma/$(am__dirstamp)" || rm -f $(top_builddir)/tools/print_gamma/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/unitarity_check/$(am__dirstamp)" || rm -f $(top_builddir)/tools/unitarity_check/$(am__dirstamp)
 
 maintainer-clean-generic:
@@ -777,7 +809,7 @@ clean: clean-am
 clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) unitarity_check/$(DEPDIR)
+	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) print_gamma/$(DEPDIR) unitarity_check/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -823,7 +855,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) unitarity_check/$(DEPDIR)
+	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) print_gamma/$(DEPDIR) unitarity_check/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

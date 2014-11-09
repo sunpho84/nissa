@@ -56,7 +56,6 @@ void compute_meson_exchange_correction_of_mom_gamma(complex out,quark_info qu,gl
   NISSA_LOC_VOL_LOOP(iq)
   {
     //compute p+q
-    int ippq=glblx_of_summ(ip,iq);
     momentum_t ppq;
     for(int mu=0;mu<4;mu++)
       ppq[mu]=mom[ip][mu]+mom[iq][mu];
@@ -67,13 +66,14 @@ void compute_meson_exchange_correction_of_mom_gamma(complex out,quark_info qu,gl
     NISSA_LOC_VOL_LOOP(ir)
     {
       //compute p+r and r-q
-      int ippr=glblx_of_summ(ip,ir);
+      //int ippr=glblx_of_summ(ip,ir);
       int irmq=glblx_of_diff(ir,iq);
-      momentum_t ppr,rmq;
+      momentum_t ppr;
+      //momentum_t rmq;
       for(int mu=0;mu<4;mu++)
 	{
 	  ppr[mu]=mom[ip][mu]+mom[ir][mu];
-	  rmq[mu]=mom[ir][mu]-mom[iq][mu];
+	  //rmq[mu]=mom[ir][mu]-mom[iq][mu];
 	}
       
       //compute the vertex functions

@@ -78,14 +78,10 @@ PRE_UNINSTALL = :
 POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
-bin_PROGRAMS = $(top_builddir)/bin/semileptonic_smeared$(EXEEXT) \
-	$(top_builddir)/bin/semileptonic_smeared_point_source$(EXEEXT) \
-	$(top_builddir)/bin/gevp$(EXEEXT) \
-	$(top_builddir)/bin/gevp_3pts$(EXEEXT) $(am__EXEEXT_1)
-subdir = projects/semileptonic
+bin_PROGRAMS = $(top_builddir)/bin/g$(EXEEXT)
+subdir = projects/g
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
-	parse_corr.hpp parse_corr.cpp tokenize_corr.cpp \
-	$(top_srcdir)/config/depcomp $(top_srcdir)/config/ylwrap
+	$(top_srcdir)/config/depcomp
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/m4/ntl-check.m4 \
 	$(top_srcdir)/configure.ac
@@ -95,66 +91,13 @@ mkinstalldirs = $(install_sh) -d
 CONFIG_HEADER = $(top_builddir)/src/config.hpp
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
-@BGQ_TRUE@am__EXEEXT_1 = $(top_builddir)/bin/test_bgq$(EXEEXT)
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
-am____top_builddir__bin_gevp_SOURCES_DIST = gevp.cpp tokenize_corr.cpp \
-	parse_corr.hpp parse_corr.cpp parse_corr.ypp tokenize_corr.lpp \
-	driver_corr.hpp redefine_yy.hpp
-am__objects_1 = tokenize_corr.$(OBJEXT) parse_corr.$(OBJEXT)
-am__objects_2 = parse_corr.$(OBJEXT) tokenize_corr.$(OBJEXT)
-@PARSER_GENERATION_FALSE@am___top_builddir__bin_gevp_OBJECTS =  \
-@PARSER_GENERATION_FALSE@	gevp.$(OBJEXT) $(am__objects_1)
-@PARSER_GENERATION_TRUE@am___top_builddir__bin_gevp_OBJECTS =  \
-@PARSER_GENERATION_TRUE@	gevp.$(OBJEXT) $(am__objects_2)
-__top_builddir__bin_gevp_OBJECTS =  \
-	$(am___top_builddir__bin_gevp_OBJECTS)
-__top_builddir__bin_gevp_LDADD = $(LDADD)
-__top_builddir__bin_gevp_DEPENDENCIES =  \
-	$(top_builddir)/lib/libnissa.a
+am___top_builddir__bin_g_OBJECTS = g.$(OBJEXT)
+__top_builddir__bin_g_OBJECTS = $(am___top_builddir__bin_g_OBJECTS)
+__top_builddir__bin_g_LDADD = $(LDADD)
+__top_builddir__bin_g_DEPENDENCIES = $(top_builddir)/lib/libnissa.a
 am__dirstamp = $(am__leading_dot)dirstamp
-am___top_builddir__bin_gevp_3pts_OBJECTS = gevp_3pts.$(OBJEXT)
-__top_builddir__bin_gevp_3pts_OBJECTS =  \
-	$(am___top_builddir__bin_gevp_3pts_OBJECTS)
-__top_builddir__bin_gevp_3pts_LDADD = $(LDADD)
-__top_builddir__bin_gevp_3pts_DEPENDENCIES =  \
-	$(top_builddir)/lib/libnissa.a
-am____top_builddir__bin_semileptonic_smeared_SOURCES_DIST =  \
-	semileptonic_smeared.cpp tokenize_corr.cpp parse_corr.hpp \
-	parse_corr.cpp parse_corr.ypp tokenize_corr.lpp \
-	driver_corr.hpp redefine_yy.hpp
-@PARSER_GENERATION_FALSE@am___top_builddir__bin_semileptonic_smeared_OBJECTS =  \
-@PARSER_GENERATION_FALSE@	semileptonic_smeared.$(OBJEXT) \
-@PARSER_GENERATION_FALSE@	$(am__objects_1)
-@PARSER_GENERATION_TRUE@am___top_builddir__bin_semileptonic_smeared_OBJECTS =  \
-@PARSER_GENERATION_TRUE@	semileptonic_smeared.$(OBJEXT) \
-@PARSER_GENERATION_TRUE@	$(am__objects_2)
-__top_builddir__bin_semileptonic_smeared_OBJECTS =  \
-	$(am___top_builddir__bin_semileptonic_smeared_OBJECTS)
-__top_builddir__bin_semileptonic_smeared_LDADD = $(LDADD)
-__top_builddir__bin_semileptonic_smeared_DEPENDENCIES =  \
-	$(top_builddir)/lib/libnissa.a
-am____top_builddir__bin_semileptonic_smeared_point_source_SOURCES_DIST =  \
-	semileptonic_smeared_point_source.cpp tokenize_corr.cpp \
-	parse_corr.hpp parse_corr.cpp parse_corr.ypp tokenize_corr.lpp \
-	driver_corr.hpp redefine_yy.hpp
-@PARSER_GENERATION_FALSE@am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = semileptonic_smeared_point_source.$(OBJEXT) \
-@PARSER_GENERATION_FALSE@	$(am__objects_1)
-@PARSER_GENERATION_TRUE@am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = semileptonic_smeared_point_source.$(OBJEXT) \
-@PARSER_GENERATION_TRUE@	$(am__objects_2)
-__top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = $(am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS)
-__top_builddir__bin_semileptonic_smeared_point_source_LDADD =  \
-	$(LDADD)
-__top_builddir__bin_semileptonic_smeared_point_source_DEPENDENCIES =  \
-	$(top_builddir)/lib/libnissa.a
-am____top_builddir__bin_test_bgq_SOURCES_DIST = test_bgq.cpp
-@BGQ_TRUE@am___top_builddir__bin_test_bgq_OBJECTS =  \
-@BGQ_TRUE@	test_bgq.$(OBJEXT)
-__top_builddir__bin_test_bgq_OBJECTS =  \
-	$(am___top_builddir__bin_test_bgq_OBJECTS)
-__top_builddir__bin_test_bgq_LDADD = $(LDADD)
-__top_builddir__bin_test_bgq_DEPENDENCIES =  \
-	$(top_builddir)/lib/libnissa.a
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -184,41 +127,8 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-LEXCOMPILE = $(LEX) $(AM_LFLAGS) $(LFLAGS)
-AM_V_LEX = $(am__v_LEX_@AM_V@)
-am__v_LEX_ = $(am__v_LEX_@AM_DEFAULT_V@)
-am__v_LEX_0 = @echo "  LEX     " $@;
-am__v_LEX_1 = 
-YLWRAP = $(top_srcdir)/config/ylwrap
-am__yacc_c2h = sed -e s/cc$$/hh/ -e s/cpp$$/hpp/ -e s/cxx$$/hxx/ \
-		   -e s/c++$$/h++/ -e s/c$$/h/
-YACCCOMPILE = $(YACC) $(AM_YFLAGS) $(YFLAGS)
-AM_V_YACC = $(am__v_YACC_@AM_V@)
-am__v_YACC_ = $(am__v_YACC_@AM_DEFAULT_V@)
-am__v_YACC_0 = @echo "  YACC    " $@;
-am__v_YACC_1 = 
-COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
-	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
-AM_V_CC = $(am__v_CC_@AM_V@)
-am__v_CC_ = $(am__v_CC_@AM_DEFAULT_V@)
-am__v_CC_0 = @echo "  CC      " $@;
-am__v_CC_1 = 
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
-AM_V_CCLD = $(am__v_CCLD_@AM_V@)
-am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
-am__v_CCLD_0 = @echo "  CCLD    " $@;
-am__v_CCLD_1 = 
-SOURCES = $(__top_builddir__bin_gevp_SOURCES) \
-	$(__top_builddir__bin_gevp_3pts_SOURCES) \
-	$(__top_builddir__bin_semileptonic_smeared_SOURCES) \
-	$(__top_builddir__bin_semileptonic_smeared_point_source_SOURCES) \
-	$(__top_builddir__bin_test_bgq_SOURCES)
-DIST_SOURCES = $(am____top_builddir__bin_gevp_SOURCES_DIST) \
-	$(__top_builddir__bin_gevp_3pts_SOURCES) \
-	$(am____top_builddir__bin_semileptonic_smeared_SOURCES_DIST) \
-	$(am____top_builddir__bin_semileptonic_smeared_point_source_SOURCES_DIST) \
-	$(am____top_builddir__bin_test_bgq_SOURCES_DIST)
+SOURCES = $(__top_builddir__bin_g_SOURCES)
+DIST_SOURCES = $(__top_builddir__bin_g_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -354,41 +264,11 @@ top_srcdir = @top_srcdir@
 AM_CPPFLAGS = -I$(top_srcdir)/src
 LDADD = $(top_builddir)/lib/libnissa.a
 AUTOMAKE_OPTIONS = subdir-objects
-
-#test bgq
-@BGQ_TRUE@test_bgq_target = $(top_builddir)/bin/test_bgq
-
-#include sources of test_bgq
-@BGQ_TRUE@__top_builddir__bin_test_bgq_SOURCES = test_bgq.cpp
-
-#semileptonic_smeared
-semileptonic_smeared_parser_sources = \
-        parse_corr.ypp \
-        tokenize_corr.lpp \
-        parse_corr.hpp \
-        driver_corr.hpp \
-	redefine_yy.hpp
-
-semileptonic_smeared_parser_built_sources = \
-	tokenize_corr.cpp \
-	parse_corr.hpp \
-	parse_corr.cpp
-
-#with or without parser
-AM_YFLAGS = -d
-@PARSER_GENERATION_TRUE@BUILT_SOURCES = $(semileptonic_smeared_parser_built_sources)
-@PARSER_GENERATION_FALSE@__top_builddir__bin_semileptonic_smeared_SOURCES = semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
-@PARSER_GENERATION_TRUE@__top_builddir__bin_semileptonic_smeared_SOURCES = semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
-@PARSER_GENERATION_FALSE@__top_builddir__bin_semileptonic_smeared_point_source_SOURCES = semileptonic_smeared_point_source.cpp $(semileptonic_smeared_parser_built_sources)
-@PARSER_GENERATION_TRUE@__top_builddir__bin_semileptonic_smeared_point_source_SOURCES = semileptonic_smeared_point_source.cpp $(semileptonic_smeared_parser_sources)
-@PARSER_GENERATION_FALSE@__top_builddir__bin_gevp_SOURCES = gevp.cpp $(semileptonic_smeared_parser_built_sources)
-@PARSER_GENERATION_TRUE@__top_builddir__bin_gevp_SOURCES = gevp.cpp $(semileptonic_smeared_parser_sources)
-__top_builddir__bin_gevp_3pts_SOURCES = gevp_3pts.cpp
-all: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) all-am
+__top_builddir__bin_g_SOURCES = g.cpp
+all: all-am
 
 .SUFFIXES:
-.SUFFIXES: .cpp .lpp .o .obj .ypp
+.SUFFIXES: .cpp .o .obj
 $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
@@ -398,9 +278,9 @@ $(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
 	      exit 1;; \
 	  esac; \
 	done; \
-	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign projects/semileptonic/Makefile'; \
+	echo ' cd $(top_srcdir) && $(AUTOMAKE) --foreign projects/g/Makefile'; \
 	$(am__cd) $(top_srcdir) && \
-	  $(AUTOMAKE) --foreign projects/semileptonic/Makefile
+	  $(AUTOMAKE) --foreign projects/g/Makefile
 .PRECIOUS: Makefile
 Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 	@case '$?' in \
@@ -461,32 +341,13 @@ uninstall-binPROGRAMS:
 
 clean-binPROGRAMS:
 	-test -z "$(bin_PROGRAMS)" || rm -f $(bin_PROGRAMS)
-parse_corr.hpp: parse_corr.cpp
-	@if test ! -f $@; then rm -f parse_corr.cpp; else :; fi
-	@if test ! -f $@; then $(MAKE) $(AM_MAKEFLAGS) parse_corr.cpp; else :; fi
 $(top_builddir)/bin/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/bin
 	@: > $(top_builddir)/bin/$(am__dirstamp)
 
-$(top_builddir)/bin/gevp$(EXEEXT): $(__top_builddir__bin_gevp_OBJECTS) $(__top_builddir__bin_gevp_DEPENDENCIES) $(EXTRA___top_builddir__bin_gevp_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
-	@rm -f $(top_builddir)/bin/gevp$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_gevp_OBJECTS) $(__top_builddir__bin_gevp_LDADD) $(LIBS)
-
-$(top_builddir)/bin/gevp_3pts$(EXEEXT): $(__top_builddir__bin_gevp_3pts_OBJECTS) $(__top_builddir__bin_gevp_3pts_DEPENDENCIES) $(EXTRA___top_builddir__bin_gevp_3pts_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
-	@rm -f $(top_builddir)/bin/gevp_3pts$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_gevp_3pts_OBJECTS) $(__top_builddir__bin_gevp_3pts_LDADD) $(LIBS)
-
-$(top_builddir)/bin/semileptonic_smeared$(EXEEXT): $(__top_builddir__bin_semileptonic_smeared_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_DEPENDENCIES) $(EXTRA___top_builddir__bin_semileptonic_smeared_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
-	@rm -f $(top_builddir)/bin/semileptonic_smeared$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_semileptonic_smeared_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_LDADD) $(LIBS)
-
-$(top_builddir)/bin/semileptonic_smeared_point_source$(EXEEXT): $(__top_builddir__bin_semileptonic_smeared_point_source_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_point_source_DEPENDENCIES) $(EXTRA___top_builddir__bin_semileptonic_smeared_point_source_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
-	@rm -f $(top_builddir)/bin/semileptonic_smeared_point_source$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_semileptonic_smeared_point_source_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_point_source_LDADD) $(LIBS)
-
-$(top_builddir)/bin/test_bgq$(EXEEXT): $(__top_builddir__bin_test_bgq_OBJECTS) $(__top_builddir__bin_test_bgq_DEPENDENCIES) $(EXTRA___top_builddir__bin_test_bgq_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
-	@rm -f $(top_builddir)/bin/test_bgq$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_test_bgq_OBJECTS) $(__top_builddir__bin_test_bgq_LDADD) $(LIBS)
+$(top_builddir)/bin/g$(EXEEXT): $(__top_builddir__bin_g_OBJECTS) $(__top_builddir__bin_g_DEPENDENCIES) $(EXTRA___top_builddir__bin_g_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
+	@rm -f $(top_builddir)/bin/g$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_g_OBJECTS) $(__top_builddir__bin_g_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -494,13 +355,7 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gevp.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gevp_3pts.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_corr.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semileptonic_smeared.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semileptonic_smeared_point_source.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_bgq.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tokenize_corr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/g.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\
@@ -517,12 +372,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
-
-.lpp.cpp:
-	$(AM_V_LEX)$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
-
-.ypp.cpp:
-	$(AM_V_YACC)$(am__skipyacc) $(SHELL) $(YLWRAP) $< y.tab.c $@ y.tab.h `echo $@ | $(am__yacc_c2h)` y.output $*.output -- $(YACCCOMPILE)
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -607,15 +456,13 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) check-am
+check: check-am
 all-am: Makefile $(PROGRAMS)
 installdirs:
 	for dir in "$(DESTDIR)$(bindir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) install-am
+install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -646,10 +493,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-rm -f parse_corr.cpp
-	-rm -f parse_corr.hpp
-	-rm -f tokenize_corr.cpp
-	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
@@ -719,7 +562,7 @@ ps-am:
 
 uninstall-am: uninstall-binPROGRAMS
 
-.MAKE: all check install install-am install-strip
+.MAKE: install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean \
 	clean-binPROGRAMS clean-generic cscopelist-am ctags ctags-am \
@@ -735,9 +578,6 @@ uninstall-am: uninstall-binPROGRAMS
 	ps ps-am tags tags-am uninstall uninstall-am \
 	uninstall-binPROGRAMS
 
-
-#comment because it could happen that we don't have flex or bison
-#CLEANFILES=$(semileptonic_smeared_parser_built_sources)
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

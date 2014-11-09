@@ -67,7 +67,7 @@ namespace nissa
 	verbosity_lv2_master_printf("GAUSSIAN smearing with kappa=%g, %d iterations\n",kappa,niter); \
 									\
 	/*iter 0*/							\
-	vector_copy(temp,origi_sc);					\
+	double_vector_copy((double*)temp,(double*)origi_sc,loc_vol*sizeof(TYPE)/sizeof(double)); \
 									\
 	/*loop over gaussian iterations*/				\
 	for(int iter=0;iter<niter;iter++)				\
@@ -80,7 +80,7 @@ namespace nissa
 	    double_vector_prod_the_summ_double((double*)temp,norm_fact,(double*)temp,(double*)H,sizeof(TYPE)/sizeof(double)*loc_vol); \
 	  }								\
 									\
-	vector_copy(smear_sc,temp);					\
+	double_vector_copy((double*)smear_sc,(double*)temp,loc_vol*sizeof(TYPE)/sizeof(double)); \
 									\
 	if(ext_H==NULL) nissa_free(H);					\
 	if(ext_temp==NULL) nissa_free(temp);				\
