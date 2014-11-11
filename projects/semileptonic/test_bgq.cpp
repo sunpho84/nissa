@@ -856,25 +856,17 @@ void debug2_st()
   
   master_printf("bgq way\n");
   
+  double bgq_time=-take_time();
+  
   //remap conf to bgq
   bi_oct_su3 *bi_conf_eo[2]={nissa_malloc("bi_conf_evn",loc_volh/2,bi_oct_su3),
 			     nissa_malloc("bi_conf_odd",loc_volh/2,bi_oct_su3)};
   lx_conf_remap_to_vireo(bi_conf_eo,conf);
   
-  //remap conf to single bq
-  bi_single_oct_su3 *bi_single_conf_eo[2]={nissa_malloc("bi_single_conf_evn",loc_volh+bord_volh,bi_single_oct_su3),
-					   nissa_malloc("bi_single_conf_odd",loc_volh+bord_volh,bi_single_oct_su3)};
-  lx_conf_remap_to_single_vireo(bi_single_conf_eo,conf);
-
   //remap in to bgq
   bi_color *bi_in_eo[2]={nissa_malloc("bi_in",loc_volh/2,bi_color),
 			 nissa_malloc("bi_in",loc_volh/2,bi_color)};
   lx_color_remap_to_vireo(bi_in_eo,in);
-  
-  //remap in to single bgq
-  bi_single_color *bi_single_in_eo[2]={nissa_malloc("bi_single_in",loc_volh+bord_volh,bi_single_color),
-			 nissa_malloc("bi_single_in",loc_volh+bord_volh,bi_single_color)};
-  lx_color_remap_to_single_vireo(bi_single_in_eo,in);
   
   //allocate out
   bi_color *bi_out_eo[2]={nissa_malloc("bi_out",loc_volh/2,bi_color),

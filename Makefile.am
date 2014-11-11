@@ -5,8 +5,7 @@ ACLOCAL_AMFLAGS=-I m4
 SUBDIRS= \
 	src \
 	. \
-	projects \
-	tools
+	projects
 
 #adds extra files to distribution
 EXTRA_DIST= \
@@ -18,3 +17,5 @@ EXTRA_DIST= \
 	tools/clusterize.cpp \
 	tools/clusterize2.cpp \
 	tools/pack.c
+
+DIST_SUBDIRS=tools

@@ -12,6 +12,7 @@
 #include "new_types/new_types_definitions.hpp"
 #include "routines/ios.hpp"
 
+#include "cg_64_invert_tmDeoimpr.hpp"
 #include "cg_128_invert_tmDeoimpr.hpp"
 
 namespace nissa
@@ -19,119 +20,14 @@ namespace nissa
   //Refers to the doc: "doc/eo_inverter.lyx" for explenations
   
   //invert Koo defined in equation (7)
-  void inv_tmDkern_eoprec_square_eos(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mu,int nitermax,double residue,spincolor *source)
+  void inv_tmDkern_eoprec_square_eos_cg(spincolor *sol,spincolor *guess,quad_su3 **conf,double kappa,double mass,int nitermax,double residue,spincolor *source)
   {
-    int niter=nitermax;
-    int riter=0;
-    spincolor *p=nissa_malloc("p",loc_volh+bord_volh,spincolor);
-    spincolor *r=nissa_malloc("r",loc_volh,spincolor);
-    spincolor *s=nissa_malloc("s",loc_volh,spincolor);
-    spincolor *temp1=nissa_malloc("temp1",loc_volh+bord_volh,spincolor);
-    spincolor *temp2=nissa_malloc("temp2",loc_volh+bord_volh,spincolor);
-    
-    ///////////////// prepare the internal source /////////////////
-    
-    if(guess==NULL) memset(sol,0,sizeof(spincolor)*loc_volh);
-    else memcpy(sol,guess,sizeof(spincolor)*loc_volh);
-    set_borders_invalid(sol);
-    
-    double lambda; //(r_(k+1),r_(k+1))
-    double source_norm;
-    //calculate p0=r0=DD*sol_0 and delta_0=(p0,p0), performing global reduction and broadcast to all nodes
-    double delta;
-    tmDkern_eoprec_square_eos(s,temp1,temp2,conf,kappa,mu,sol);
-    
-    double loc_delta=0,loc_source_norm=0;
-    NISSA_LOC_VOLH_LOOP(ivol)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    {
-	      double c1=source[ivol][id][ic][ri]-s[ivol][id][ic][ri];
-	      p[ivol][id][ic][ri]=r[ivol][id][ic][ri]=c1;
-	      if(riter==0) loc_source_norm+=source[ivol][id][ic][ri]*source[ivol][id][ic][ri];
-	      loc_delta+=c1*c1;
-	    }	
-    set_borders_invalid(p);
-    
-    MPI_Allreduce(&loc_delta,&delta,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    MPI_Allreduce(&loc_source_norm,&source_norm,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    master_printf("\nSource norm: %lg\n",source_norm);
-    master_printf("iter 0 relative residue: %lg\n",delta/source_norm);
-    
-    int iter=0;
-    do
-      {
-	double omega; //(r_k,r_k)/(p_k*DD*p_k)
-	double alpha;
-	
-	tmDkern_eoprec_square_eos(s,temp1,temp2,conf,kappa,mu,p);
-	
-	double loc_alpha=0; //real part of the scalar product
-	NISSA_LOC_VOLH_LOOP(ivol)
-	  for(int id=0;id<4;id++)
-	    for(int ic=0;ic<3;ic++)
-	      for(int ri=0;ri<2;ri++)
-		loc_alpha+=s[ivol][id][ic][ri]*p[ivol][id][ic][ri];
-	MPI_Allreduce(&loc_alpha,&alpha,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	omega=delta/alpha;
-	
-	double loc_lambda=0;
-	NISSA_LOC_VOLH_LOOP(ivol)
-	  for(int id=0;id<4;id++)
-	    for(int ic=0;ic<3;ic++)
-	      for(int ri=0;ri<2;ri++)
-		{
-		  sol[ivol][id][ic][ri]+=omega*p[ivol][id][ic][ri];    //sol_(k+1)=x_k+omega*p_k
-		  double c1=r[ivol][id][ic][ri]-omega*s[ivol][id][ic][ri];//r_(k+1)=x_k-omega*pk
-		  r[ivol][id][ic][ri]=c1;
-		  loc_lambda+=c1*c1;
-		}
-	MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-	set_borders_invalid(sol);
-	
-	double gammag=lambda/delta; //(r_(k+1),r_(k+1))/(r_k,r_k)
-	delta=lambda;
-	
-	//p_(k+1)=r_(k+1)+gammag*p_k
-	NISSA_LOC_VOLH_LOOP(ivol)
-	  for(int id=0;id<4;id++)
-	    for(int ic=0;ic<3;ic++)
-	      for(int ri=0;ri<2;ri++)
-		p[ivol][id][ic][ri]=r[ivol][id][ic][ri]+gammag*p[ivol][id][ic][ri];
-	set_borders_invalid(p);
-	
-	iter++;
-	
-	if(iter%10==0) master_printf("iter %d relative residue: %lg\n",iter,lambda/source_norm);
-      }
-    while(lambda>(residue*source_norm) && iter<niter);
-    
-    //last calculation of residual
-    tmDkern_eoprec_square_eos(s,temp1,temp2,conf,kappa,mu,sol);
-    double loc_lambda=0;
-    NISSA_LOC_VOLH_LOOP(ivol)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
-	  for(int ri=0;ri<2;ri++)
-	    {
-	      double c1=source[ivol][id][ic][ri]-s[ivol][id][ic][ri];
-	      loc_lambda+=c1*c1;
-	    }
-    if(nranks>0) MPI_Allreduce(&loc_lambda,&lambda,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
-    else lambda=loc_lambda;
-    master_printf("\nfinal relative residue (after %d iters): %lg where %lg was required\n",
-		  iter,lambda/source_norm,residue);
-    
-    nissa_free(s);
-    nissa_free(p);
-    nissa_free(r);
-    nissa_free(temp1);
-    nissa_free(temp2);
+    if(use_128_bit_precision) inv_tmDkern_eoprec_square_eos_cg_128(sol,guess,conf,kappa,mass,nitermax,residue,source);
+    else inv_tmDkern_eoprec_square_eos_cg_64(sol,guess,conf,kappa,mass,nitermax,residue,source);
   }
 
 //Invert twisted mass operator using e/o preconditioning.
-  void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mu,int nitermax,double residue,spincolor *source_lx)
+  void inv_tmD_cg_eoprec_eos(spincolor *solution_lx,spincolor *guess_Koo,quad_su3 *conf_lx,double kappa,double mass,int nitermax,double residue,spincolor *source_lx)
   {
     if(!use_eo_geom) crash("eo geometry needed to use cg_eoprec");
     
@@ -158,7 +54,7 @@ namespace nissa
     
     //Equation (8.a)
     spincolor *temp=nissa_malloc("temp",loc_volh+bord_volh,spincolor);
-    inv_tmDee_or_oo_eos(temp,kappa,mu,source_eos[EVN]);
+    inv_tmDee_or_oo_eos(temp,kappa,mass,source_eos[EVN]);
     
     //Equation (8.b)
     tmn2Doe_eos(varphi,conf_eos,temp);
@@ -173,9 +69,8 @@ namespace nissa
     set_borders_invalid(varphi);
     
     //Equation (9) using solution_eos[EVN] as temporary vector
-    if(use_128_bit_precision) inv_tmDkern_eoprec_square_eos_128(temp,guess_Koo,conf_eos,kappa,mu,nitermax,residue,varphi);
-    else inv_tmDkern_eoprec_square_eos(temp,guess_Koo,conf_eos,kappa,mu,nitermax,residue,varphi);
-    tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,-mu,temp);
+    inv_tmDkern_eoprec_square_eos_cg(temp,guess_Koo,conf_eos,kappa,mass,nitermax,residue,varphi);
+    tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],conf_eos,kappa,-mass,temp);
     if(guess_Koo!=NULL) memcpy(guess_Koo,temp,sizeof(spincolor)*loc_volh); //if a guess was passed, return new one
     nissa_free(temp);
     
@@ -187,7 +82,7 @@ namespace nissa
 	  for(int ri=0;ri<2;ri++)
 	    varphi[ivol][id][ic][ri]=source_eos[EVN][ivol][id][ic][ri]+varphi[ivol][id][ic][ri]*0.5;
     set_borders_invalid(varphi);
-    inv_tmDee_or_oo_eos(solution_eos[EVN],kappa,mu,varphi);
+    inv_tmDee_or_oo_eos(solution_eos[EVN],kappa,mass,varphi);
     
     nissa_free(varphi);
     

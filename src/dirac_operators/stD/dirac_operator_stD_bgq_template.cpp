@@ -18,17 +18,17 @@
     NAME3(finish,PREC,staggered_hopping_matrix_oe_or_eo_bgq_communications)(OE);
     
     //put the eight pieces together
-    NAME3(hopping_matrix_eo_or_eo_expand_to,PREC,staggered_D)(bi_temp);
+    NAME3(hopping_matrix_eo_or_eo_expand_to,PREC,staggered_D)(bi_out);
     
     //----------------------looping on O--------------------
     const int EO=1;  
     
     //compute on the surface and start communications
-    NAME3(apply,PREC,staggered_hopping_matrix_oe_or_eo_bgq_nocomm)(bi_conf,0,vsurf_volh,bi_temp,EO);
+    NAME3(apply,PREC,staggered_hopping_matrix_oe_or_eo_bgq_nocomm)(bi_conf,0,vsurf_volh,bi_out,EO);
     NAME3(start,PREC,staggered_hopping_matrix_oe_or_eo_bgq_communications)();
     
     //compute on the bulk and finish communications
-    NAME3(apply,PREC,staggered_hopping_matrix_oe_or_eo_bgq_nocomm)(bi_conf,vsurf_volh,loc_volh/2,bi_temp,EO);
+    NAME3(apply,PREC,staggered_hopping_matrix_oe_or_eo_bgq_nocomm)(bi_conf,vsurf_volh,loc_volh/2,bi_out,EO);
     NAME3(finish,PREC,staggered_hopping_matrix_oe_or_eo_bgq_communications)(EO);
     
     //put the eight pieces subtracting them from diag (in fact one of the two D is daggered)

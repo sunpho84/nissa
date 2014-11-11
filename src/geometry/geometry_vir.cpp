@@ -573,6 +573,34 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
+  
+  //only even or odd
+  THREADABLE_FUNCTION_3ARG(evn_or_odd_spincolor_remap_to_virevn_or_odd, bi_spincolor*,out, spincolor*,in, int,par)
+  {
+    GET_THREAD_ID();
+    
+    //split to the two VN
+    NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
+      SPINCOLOR_TO_BI_SPINCOLOR(out[vireo_of_loceo[par][ivol_eo]],in[ivol_eo],vnode_of_loceo(EVN,ivol_eo));
+    
+    //wait filling
+    set_borders_invalid(out);  
+  }
+  THREADABLE_FUNCTION_END
+  //reverse
+  THREADABLE_FUNCTION_3ARG(virevn_or_odd_spincolor_remap_to_evn_or_odd, spincolor*,out, bi_spincolor*,in, int,par)
+  {
+    GET_THREAD_ID();
+    
+    //split to the two VN
+    NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
+      BI_SPINCOLOR_TO_SPINCOLOR(out[loceo_of_vireo[par][ivol_vireo]],out[loceo_of_vireo[par][ivol_vireo]+vnode_eo_offset],
+			in[ivol_vireo]);
+    
+    //wait filling
+    set_borders_invalid(out);
+  }
+  THREADABLE_FUNCTION_END
 
   //remap a spincolor_128 from lx to virlx layout
   THREADABLE_FUNCTION_2ARG(lx_spincolor_128_remap_to_virlx, bi_spincolor_128*,ext_out, spincolor_128*,in)

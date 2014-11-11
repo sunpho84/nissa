@@ -1,5 +1,5 @@
-#ifndef _CG_INVERT_TMQ2_H
-#define _CG_INVERT_TMQ2_H
+#ifndef _CG_64_INVERT_TMQ2_H
+#define _CG_64_INVERT_TMQ2_H
 
 #include "new_types/new_types_definitions.hpp"
 

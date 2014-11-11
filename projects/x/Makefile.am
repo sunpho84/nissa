@@ -43,6 +43,48 @@ x_sources+= \
 	src/vertex/x_space_stochastic_qqg_vertex.cpp \
 	src/vertex/vertex.cpp
 
+##################################################### headers ###################################################
+
+include_HEADERS= \
+	src/diagrams/meson_exchange.hpp \
+	src/diagrams/propagator_self_energy.hpp \
+	src/diagrams/tadpole.hpp
+
+include_HEADERS+= \
+	src/inverters/cg_eoprec_twisted_free_operator.hpp \
+	src/inverters/cg_Wilson_gluon_operator.hpp
+
+include_HEADERS+= \
+	src/operators/Wilson_gluon_Klein_Gordon_operator.hpp \
+	src/operators/twisted_Dirac_eoprec_operator.hpp
+
+include_HEADERS+= \
+	src/propagators/twisted_propagator.hpp \
+	src/propagators/twisted_propagator_g2_corr.hpp \
+	src/propagators/Wilson_gluon_propagator.hpp \
+	src/propagators/tlSym_gluon_propagator.hpp
+
+include_HEADERS+= \
+	src/routines/bmp.hpp \
+	src/routines/correlations.hpp \
+	src/routines/derivatives.hpp \
+	src/routines/fourier.hpp \
+	src/routines/read_and_write.hpp \
+	src/routines/shift.hpp
+
+include_HEADERS+= \
+	src/stochastic/stochastic_source.hpp \
+	src/stochastic/stochastic_tlSym_gluon_propagator.hpp \
+	src/stochastic/stochastic_twisted_propagator.hpp 
+
+include_HEADERS+= \
+	src/types/types.hpp \
+	src/types/types_routines.hpp
+
+include_HEADERS+= \
+	src/vertex/x_space_stochastic_qqg_vertex.hpp \
+	src/vertex/vertex.hpp
+
 ############################################# define the executables ############################################
 
 bin_PROGRAMS= \
