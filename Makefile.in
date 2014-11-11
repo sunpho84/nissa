@@ -151,7 +151,6 @@ am__define_uniq_tagged_files = \
 ETAGS = etags
 CTAGS = ctags
 CSCOPE = cscope
-DIST_SUBDIRS = $(SUBDIRS)
 DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
 distdir = $(PACKAGE)-$(VERSION)
 top_distdir = $(distdir)
@@ -309,8 +308,7 @@ ACLOCAL_AMFLAGS = -I m4
 SUBDIRS = \
 	src \
 	. \
-	projects \
-	tools
+	projects
 
 
 #adds extra files to distribution
@@ -324,6 +322,7 @@ EXTRA_DIST = \
 	tools/clusterize2.cpp \
 	tools/pack.c
 
+DIST_SUBDIRS = tools
 all: all-recursive
 
 .SUFFIXES:

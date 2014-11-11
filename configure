@@ -5966,7 +5966,7 @@ $as_echo "#define GMP_HIGH_PREC 1" >>confdefs.h
 if test "${with_high_prec+set}" = set; then :
   withval=$with_high_prec; with_high_prec="${withval}"
 else
-  if test "$ac_cv_search___gmpz_init" != ""; then with_high_prec="gmp";else with_high_prec="native";fi
+  if test "$ac_cv_search___gmpz_init" != "no"; then with_high_prec="gmp";else with_high_prec="native";fi
 fi
 
 	case "$with_high_prec" in

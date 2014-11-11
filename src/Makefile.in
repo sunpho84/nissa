@@ -131,6 +131,7 @@ host_triplet = @host@
 @BGQ_TRUE@	inverters/twisted_mass/cgm_invert_tmQ2_bgq.cpp \
 @BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.cpp \
 @BGQ_TRUE@	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.cpp \
+@BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.cpp \
 @BGQ_TRUE@	inverters/twisted_mass/cg_invert_tmQ2_bgq.cpp
 
 @BGQ_TRUE@am__append_12 = \
@@ -140,6 +141,7 @@ host_triplet = @host@
 @BGQ_TRUE@	inverters/twisted_mass/cgm_invert_tmQ2_bgq.hpp \
 @BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.hpp \
 @BGQ_TRUE@	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.hpp \
+@BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.hpp \
 @BGQ_TRUE@	inverters/twisted_mass/cg_invert_tmQ2_bgq.hpp
 
 
@@ -207,6 +209,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	dirac_operators/momenta/MFACC.cpp \
 	dirac_operators/stD/dirac_operator_stD.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2.cpp \
@@ -256,6 +259,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
 	inverters/twisted_mass/cg_invert_tmQ2.cpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_64_invert_tmDeoimpr.cpp \
 	inverters/twisted_mass/cgm_invert_tmQ2.cpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
@@ -272,6 +276,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	inverters/twisted_mass/cgm_invert_tmQ2_bgq.cpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.cpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.cpp \
+	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.cpp \
 	inverters/twisted_mass/cg_invert_tmQ2_bgq.cpp io/ILDG_File.cpp \
 	io/checksum.cpp io/endianness.cpp io/input.cpp io/reader.cpp \
 	io/writer.cpp linalgs/linalgs.cpp new_types/complex.cpp \
@@ -324,6 +329,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @BGQ_TRUE@	inverters/twisted_mass/cgm_invert_tmQ2_bgq.$(OBJEXT) \
 @BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.$(OBJEXT) \
 @BGQ_TRUE@	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.$(OBJEXT) \
+@BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.$(OBJEXT) \
 @BGQ_TRUE@	inverters/twisted_mass/cg_invert_tmQ2_bgq.$(OBJEXT)
 @USE_THREADS_TRUE@am__objects_7 = routines/thread.$(OBJEXT)
 am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
@@ -336,6 +342,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	dirac_operators/momenta/MFACC.$(OBJEXT) \
 	dirac_operators/stD/dirac_operator_stD.$(OBJEXT) \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.$(OBJEXT) \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.$(OBJEXT) \
 	dirac_operators/tmQ/dirac_operator_tmQ.$(OBJEXT) \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left.$(OBJEXT) \
 	dirac_operators/tmQ2/dirac_operator_tmQ2.$(OBJEXT) \
@@ -385,6 +392,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	inverters/twisted_mass/cg_invert_tmDeoimpr.$(OBJEXT) \
 	inverters/twisted_mass/cg_invert_tmQ2.$(OBJEXT) \
 	inverters/twisted_mass/cg_64_invert_tmQ2.$(OBJEXT) \
+	inverters/twisted_mass/cg_64_invert_tmDeoimpr.$(OBJEXT) \
 	inverters/twisted_mass/cgm_invert_tmQ2.$(OBJEXT) \
 	inverters/twisted_mass/cg_128_invert_tmQ2.$(OBJEXT) \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.$(OBJEXT) \
@@ -503,6 +511,7 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.hpp \
 	dirac_operators/tmQ/reconstruct_tm_doublet.hpp \
@@ -524,10 +533,27 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	geometry/geometry_mix.hpp geometry/geometry_Wsklx.hpp \
 	geometry/geometry_vir.hpp hmc/backfield.hpp \
 	hmc/gauge/MFACC_fields.hpp hmc/gauge/gluonic_action.hpp \
-	hmc/gauge/gluonic_force.hpp hmc/gauge/pure_gauge_hmc_step.cpp \
+	hmc/gauge/gluonic_force.hpp hmc/gauge/pure_gauge_hmc_step.hpp \
+	hmc/gauge/pure_gauge_omelyan_integrator.hpp \
+	hmc/gauge/topological_action.hpp \
+	hmc/gauge/topological_force.hpp \
+	hmc/gauge/tree_level_Symanzik_force.hpp \
+	hmc/gauge/tree_level_Symanzik_action.hpp \
+	hmc/gauge/Wilson_action.hpp hmc/gauge/Wilson_force.hpp \
+	hmc/momenta/momenta_action.hpp hmc/momenta/momenta_evolve.hpp \
+	hmc/momenta/momenta_generation.hpp \
+	hmc/rootst_eoimpr/rat_expansion_database.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_action.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.hpp \
+	inverters/momenta/cg_invert_MFACC.hpp \
 	inverters/twisted_mass/cg_invert_tmDeoimpr.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.hpp \
+	inverters/twisted_mass/cg_64_invert_tmDeoimpr.hpp \
 	inverters/twisted_mass/cgm_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.hpp \
@@ -552,6 +578,7 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	inverters/twisted_mass/cgm_invert_tmQ2_bgq.hpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2_bgq.hpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.hpp \
+	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2_bgq.hpp io/ILDG_File.hpp \
 	io/checksum.hpp io/endianness.hpp io/input.hpp io/reader.hpp \
 	io/writer.hpp linalgs/linalgs.hpp new_types/complex.hpp \
@@ -723,6 +750,7 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	communicate/edges.hpp dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.hpp \
 	dirac_operators/tmQ/reconstruct_tm_doublet.hpp \
@@ -741,10 +769,27 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	geometry/geometry_Wsklx.hpp $(am__append_10) hmc/backfield.hpp \
 	hmc/gauge/MFACC_fields.hpp hmc/gauge/MFACC_fields.hpp \
 	hmc/gauge/gluonic_action.hpp hmc/gauge/gluonic_force.hpp \
-	hmc/gauge/pure_gauge_hmc_step.cpp \
+	hmc/gauge/pure_gauge_hmc_step.hpp \
+	hmc/gauge/pure_gauge_omelyan_integrator.hpp \
+	hmc/gauge/topological_action.hpp \
+	hmc/gauge/topological_force.hpp \
+	hmc/gauge/tree_level_Symanzik_force.hpp \
+	hmc/gauge/tree_level_Symanzik_action.hpp \
+	hmc/gauge/Wilson_action.hpp hmc/gauge/Wilson_force.hpp \
+	hmc/momenta/momenta_action.hpp hmc/momenta/momenta_evolve.hpp \
+	hmc/momenta/momenta_generation.hpp \
+	hmc/rootst_eoimpr/rat_expansion_database.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_action.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.hpp \
+	hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.hpp \
+	inverters/momenta/cg_invert_MFACC.hpp \
 	inverters/twisted_mass/cg_invert_tmDeoimpr.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.hpp \
+	inverters/twisted_mass/cg_64_invert_tmDeoimpr.hpp \
 	inverters/twisted_mass/cgm_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.hpp \
@@ -829,6 +874,7 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	dirac_operators/momenta/MFACC.cpp \
 	dirac_operators/stD/dirac_operator_stD.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2.cpp \
@@ -874,6 +920,7 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	inverters/twisted_mass/cg_invert_tmDeoimpr.cpp \
 	inverters/twisted_mass/cg_invert_tmQ2.cpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.cpp \
+	inverters/twisted_mass/cg_64_invert_tmDeoimpr.cpp \
 	inverters/twisted_mass/cgm_invert_tmQ2.cpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2.cpp \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
@@ -1096,6 +1143,9 @@ dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/tmDeoimpr/$(DEPDIR)
 	@: > dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.$(OBJEXT):  \
+	dirac_operators/tmDeoimpr/$(am__dirstamp) \
+	dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
+dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.$(OBJEXT):  \
 	dirac_operators/tmDeoimpr/$(am__dirstamp) \
 	dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmQ/$(am__dirstamp):
@@ -1340,6 +1390,9 @@ inverters/twisted_mass/cg_invert_tmQ2.$(OBJEXT):  \
 inverters/twisted_mass/cg_64_invert_tmQ2.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/twisted_mass/cg_64_invert_tmDeoimpr.$(OBJEXT):  \
+	inverters/twisted_mass/$(am__dirstamp) \
+	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
 inverters/twisted_mass/cgm_invert_tmQ2.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
@@ -1398,6 +1451,9 @@ inverters/twisted_mass/cg_64_invert_tmQ2_bgq.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
 inverters/twisted_mass/cg_128_invert_tmQ2_bgq.$(OBJEXT):  \
+	inverters/twisted_mass/$(am__dirstamp) \
+	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
+inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
 inverters/twisted_mass/cg_invert_tmQ2_bgq.$(OBJEXT):  \
@@ -1650,6 +1706,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/stD/$(DEPDIR)/dirac_operator_stD_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmDeoimpr/$(DEPDIR)/dirac_operator_tmDeoimpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmDeoimpr/$(DEPDIR)/dirac_operator_tmDeoimpr_128.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmDeoimpr/$(DEPDIR)/dirac_operator_tmDeoimpr_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/dirac_operator_tmQ.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/dirac_operator_tmQ_128.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ/$(DEPDIR)/dirac_operator_tmQ_bgq.Po@am__quote@
@@ -1709,6 +1766,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_128_invert_tmDeoimpr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_128_invert_tmQ2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_128_invert_tmQ2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_64_invert_tmDeoimpr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_64_invert_tmDeoimpr_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_64_invert_tmQ2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_64_invert_tmQ2_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/twisted_mass/$(DEPDIR)/cg_invert_tmDeoimpr.Po@am__quote@
@@ -2125,23 +2184,6 @@ uninstall-am: uninstall-global_variableDATA uninstall-includeHEADERS \
 update_svnversion:
 	$(srcdir)/base/update_svnversion.hpp.sh $(top_srcdir)
 .PHONY: update_svnversion
-	hmc/gauge/pure_gauge_omelyan_integrator.hpp \
-	hmc/gauge/topological_action.hpp \
-	hmc/gauge/topological_force.hpp \
-	hmc/gauge/tree_level_Symanzik_force.hpp \
-	hmc/gauge/tree_level_Symanzik_action.hpp \
-	hmc/gauge/Wilson_action.hpp \
-	hmc/gauge/Wilson_force.hpp \
-	hmc/momenta/momenta_action.hpp \
-	hmc/momenta/momenta_evolve.hpp \
-	hmc/momenta/momenta_generation.hpp \
-	hmc/rootst_eoimpr/rat_expansion_database.hpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_action.hpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_omelyan_integrator.hpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.hpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.hpp
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

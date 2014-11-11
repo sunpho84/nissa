@@ -6,6 +6,7 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
@@ -22,7 +23,7 @@ namespace nissa
     GET_THREAD_ID();
     
     quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-    if(origi_conf!=smear_conf) vector_copy(smear_conf,origi_conf);
+    if(origi_conf!=smear_conf) double_vector_copy((double*)smear_conf,(double*)origi_conf,loc_vol*sizeof(quad_su3)/sizeof(double));
     
     char dirs[20]="";
     if(ndirs) sprintf(dirs,"%d",dirs_list[0]);
@@ -37,7 +38,7 @@ namespace nissa
     for(int istep=0;istep<nstep;istep++)
       {
 	verbosity_lv3_master_printf("APE spatial smearing with alpha=%g iteration %d of %d\n",alpha,istep,nstep);
-	vector_copy(temp_conf,smear_conf);
+	double_vector_copy((double*)temp_conf,(double*)smear_conf,loc_vol*sizeof(quad_su3)/sizeof(double));
 	
 	//communicate the borders
 	communicate_lx_quad_su3_edges(temp_conf);

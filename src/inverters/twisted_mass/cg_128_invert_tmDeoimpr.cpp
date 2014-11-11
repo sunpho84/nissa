@@ -6,7 +6,7 @@
 #include "base/vectors.hpp"
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp"
-#include "inverters/twisted_mass/cg_invert_tmDeoimpr.hpp"
+#include "inverters/twisted_mass/cg_64_invert_tmDeoimpr.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 
@@ -22,7 +22,7 @@
 #define CG_OPERATOR_128_PARAMETERS temp1,temp2,conf,kappa,mu,
 
 //name of the inverter, externally accedable
-#define CG_128_INVERT inv_tmDkern_eoprec_square_eos_128
+#define CG_128_INVERT inv_tmDkern_eoprec_square_eos_cg_128
 //parameters to be passed externally to the 128 inverter
 #define CG_NARG 3
 #define AT1 quad_su3**
@@ -32,7 +32,7 @@
 #define AT3 double
 #define A3 mu
 //name of the inner solver
-#define CG_128_INNER_SOLVER inv_tmDkern_eoprec_square_eos
+#define CG_128_INNER_SOLVER inv_tmDkern_eoprec_square_eos_cg_64
 //parameters of the inner solver
 #define CG_128_INNER_PARAMETERS_CALL conf,kappa,mu,
 

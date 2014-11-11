@@ -108,7 +108,7 @@ namespace nissa
   //perform an accomodation step
   void rat_approx_finder_t::new_step()
   {
-    float_high_prec_t yy[nmax_err_points];
+    float_high_prec_t *yy=new float_high_prec_t[nmax_err_points];
     
     float_high_prec_t eclose=1e30;
     float_high_prec_t farther=0.0;
@@ -211,6 +211,8 @@ namespace nissa
 	      zero[i]=xm;
 	    }
       }
+    
+    delete[] yy;
   }
 
   //set the linear system to be solved
@@ -282,7 +284,7 @@ namespace nissa
     const double upper=1,lower=-100000,tol=1.e-20;
     
     //find the numerator root
-    float_high_prec_t poly[nmax_err_points];
+    float_high_prec_t *poly=new float_high_prec_t[nmax_err_points];
     for(int i=0;i<=degree;i++) poly[i]=coeff[i];
     
     for(int i=degree-1;i>=0;i--) 
@@ -306,6 +308,8 @@ namespace nissa
       }
     
     cons=coeff[degree];
+    
+    delete[] poly;
   }
   
   //evaluate the polynomial
@@ -355,7 +359,7 @@ namespace nissa
   //decompose in a partial expansion
   void get_partial_fraction_expansion(float_high_prec_t *res,float_high_prec_t *poles,float_high_prec_t *roots,float_high_prec_t cons,int n)
   {
-    float_high_prec_t numerator[n],denominator[n];
+    float_high_prec_t *numerator=new float_high_prec_t[n],*denominator=new float_high_prec_t[n];
     for(int i=0;i<n;i++) res[i]=roots[i];
     
     //construct the polynomials explicitly
@@ -404,6 +408,9 @@ namespace nissa
 	    std::swap(res[small],res[j]);
 	  }
       }
+    
+    delete[] numerator;
+    delete[] denominator;
   }
   
   //generate the rational approximation
@@ -441,10 +448,10 @@ namespace nissa
     
     //iterate up to convergence
     int iter=0;
+    float_high_prec_t *matr=new float_high_prec_t[nzero_err_points*nzero_err_points],*vec=new float_high_prec_t[nzero_err_points];
     do
       {
 	// 1) set up the system to be solved
-	float_high_prec_t matr[nzero_err_points*nzero_err_points],vec[nzero_err_points];
 	set_linear_system(matr,vec);
 	
 	// 2) solve the system
@@ -468,6 +475,9 @@ namespace nissa
     //while(float_high_prec_t_is_greater(spread,approx_tolerance));
     while(spread>approx_tolerance && delta>=approx_tolerance);
     
+    delete[] matr;
+    delete[] vec;
+    
     verbosity_lv2_master_printf("Converged in %d iters\n",iter);
     
     //get err at max
@@ -475,11 +485,12 @@ namespace nissa
     //get_abs_err(err,xmax[0]);
     
     //compute the roots
-    float_high_prec_t roots[degree];
+    float_high_prec_t *roots=new float_high_prec_t[degree];
     root_find(roots,poles,cons);
     
     //decompose
     get_partial_fraction_expansion(weights,poles,roots,cons,degree);
+    delete[] roots;
     
     for(int j=0;j<degree;j++)
       verbosity_lv2_master_printf("Residue = %lg, Pole = %lg\n",weights[j].get_d(),poles[j].get_d());
@@ -508,8 +519,8 @@ namespace nissa
     
     //wrapper for 256bit output
     float_high_prec_t cons;
-    float_high_prec_t poles[degree];
-    float_high_prec_t weights[degree];
+    float_high_prec_t *poles=new float_high_prec_t[degree];
+    float_high_prec_t *weights=new float_high_prec_t[degree];
     
     //create the approx
     rat_approx_finder_t finder;
@@ -519,6 +530,9 @@ namespace nissa
     appr.cons=cons.get_d();
     for(int iterm=0;iterm<degree;iterm++) appr.poles[iterm]=poles[iterm].get_d();
     for(int iterm=0;iterm<degree;iterm++) appr.weights[iterm]=weights[iterm].get_d();
+    
+    delete[] poles;
+    delete[] weights;
     
     return ans;
   }
