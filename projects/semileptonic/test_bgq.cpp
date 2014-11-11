@@ -894,7 +894,7 @@ void debug2_st()
   //bench single
   double bgq_single_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    apply_single_stD2ee_m2_bgq(bi_single_out_eo[EVN],bi_single_conf_eo,bi_single_out_eo[ODD]/*used as temp*/,mass2,bi_single_in_eo[EVN]);
+    apply_single_stD2ee_m2_bgq(bi_single_out_eo[EVN],bi_single_conf_eo,mass2,bi_single_in_eo[EVN]);
   bgq_single_time+=take_time();
   bgq_single_time/=2*nbench;  
   

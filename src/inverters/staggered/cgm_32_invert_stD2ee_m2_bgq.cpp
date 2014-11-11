@@ -14,7 +14,7 @@
 #define BORD_VOL 0
 
 #define APPLY_OPERATOR apply_single_stD2ee_m2_bgq
-#define CGM_OPERATOR_PARAMETERS conf,t,
+#define CGM_OPERATOR_PARAMETERS conf,
 
 #define CGM_INVERT inv_stD2ee_m2_cgm_32_bgq
 #define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_stD2ee_m2_cgm_32_bgq_run_hm_up_to_comm_prec
@@ -24,8 +24,8 @@
 #define CGM_START_COMMUNICATING_BORDERS(A)
 #define CGM_FINISH_COMMUNICATING_BORDERS(A)
 
-#define CGM_ADDITIONAL_VECTORS_ALLOCATION() BASETYPE *t=nissa_malloc("DD_temp",BULK_VOL+BORD_VOL,BASETYPE)
-#define CGM_ADDITIONAL_VECTORS_FREE() nissa_free(t)
+#define CGM_ADDITIONAL_VECTORS_ALLOCATION()
+#define CGM_ADDITIONAL_VECTORS_FREE()
 
 //additional parameters
 #define CGM_NARG 1

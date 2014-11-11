@@ -14,7 +14,7 @@
 #define BORD_VOL 0
 
 #define APPLY_OPERATOR apply_stD2ee_m2_bgq
-#define CG_OPERATOR_PARAMETERS conf,t,m2,
+#define CG_OPERATOR_PARAMETERS conf,m2,
 
 #define CG_INVERT inv_stD2ee_m2_cg_bgq
 #define CG_NPOSSIBLE_REQUESTS 0
@@ -23,10 +23,8 @@
 //#define cg_start_communicating_borders start_communicating_ev_color_borders
 //#define cg_finish_communicating_borders finish_communicating_ev_color_borders
 
-#define CG_ADDITIONAL_VECTORS_ALLOCATION()				\
-  BASETYPE *t=nissa_malloc("DD_temp",BULK_VOL+BORD_VOL,BASETYPE);
-#define CG_ADDITIONAL_VECTORS_FREE()		\
-  nissa_free(t);
+#define CG_ADDITIONAL_VECTORS_ALLOCATION()
+#define CG_ADDITIONAL_VECTORS_FREE()
 
 //additional parameters
 #define CG_NARG 2
