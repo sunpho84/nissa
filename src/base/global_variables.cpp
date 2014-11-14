@@ -291,6 +291,7 @@ namespace nissa
   EXTERN comm_t lx_as2t_su3_comm,eo_as2t_su3_comm;
   EXTERN comm_t lx_quad_su3_comm,eo_quad_su3_comm;
   EXTERN comm_t lx_single_color_comm,eo_single_color_comm;
+  EXTERN comm_t lx_single_halfspincolor_comm,eo_single_halfspincolor_comm;
   EXTERN comm_t lx_single_quad_su3_comm,eo_single_quad_su3_comm;
 #endif
   

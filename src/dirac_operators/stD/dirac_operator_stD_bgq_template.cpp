@@ -18,7 +18,7 @@
     NAME3(finish,PREC,staggered_hopping_matrix_oe_or_eo_bgq_communications)(OE);
     
     //put the eight pieces together
-    NAME3(hopping_matrix_eo_or_eo_expand_to,PREC,staggered_D)(bi_out);
+    NAME3(hopping_matrix_oe_or_eo_expand_to,PREC,staggered_D_bgq)(bi_out);
     
     //----------------------looping on O--------------------
     const int EO=1;  
@@ -32,9 +32,9 @@
     NAME3(finish,PREC,staggered_hopping_matrix_oe_or_eo_bgq_communications)(EO);
     
     //put the eight pieces subtracting them from diag (in fact one of the two D is daggered)
-    if(mass2!=0) NAME3(hopping_matrix_eo_or_eo_expand_to,PREC,staggered_D_subtract_from_mass2_times_in)
+    if(mass2!=0) NAME3(hopping_matrix_oe_or_eo_expand_to,PREC,staggered_D_subtract_from_mass2_times_in_bgq)
 		   (bi_out,mass2,bi_in);
-    else         NAME3(hopping_matrix_eo_or_eo_expand_to,PREC,staggered_D)(bi_out,-1);
+    else         NAME3(hopping_matrix_oe_or_eo_expand_to,PREC,staggered_D_bgq)(bi_out,-1);
 
 #ifdef BENCH
     if(IS_MASTER_THREAD)

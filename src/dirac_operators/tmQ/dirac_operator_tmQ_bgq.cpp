@@ -23,11 +23,6 @@ namespace nissa
     then the application of Q requires to expand the halfspincolor into full spincolor and summ the diagonal part
   */
   
-#define DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_tmp,piece)			\
-  REG_LOAD_BI_HALFSPINCOLOR(reg_tmp,piece);				\
-  BI_HALFSPINCOLOR_PREFETCH_NEXT(piece);				\
-  REG_BI_HALFSPINCOLOR_SUMM(reg_out,reg_out,reg_temp);
-  
   THREADABLE_FUNCTION_4ARG(hopping_matrix_lx_expand_to_Q_and_summ_diag_term_bgq, bi_spincolor*,out, double,kappa, double,mu, bi_spincolor*,in)
   {
     GET_THREAD_ID();

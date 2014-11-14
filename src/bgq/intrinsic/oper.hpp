@@ -73,6 +73,13 @@
     REG_BI_COMPLEX_PROD(NAME2(A,c2),NAME2(B,c2),C);			\
   }
 
+#define REG_BI_COLOR_PROD_CONJ2_COMPLEX(A,B,C)				\
+  {                                                                     \
+    REG_BI_COMPLEX_CONJ2_PROD(NAME2(A,c0),NAME2(B,c0),C);		\
+    REG_BI_COMPLEX_CONJ2_PROD(NAME2(A,c1),NAME2(B,c1),C);		\
+    REG_BI_COMPLEX_CONJ2_PROD(NAME2(A,c2),NAME2(B,c2),C);		\
+  }
+
 ///
 
 #define REG_BI_COLOR_PROD_4DOUBLE(A,B,C)				\
@@ -86,6 +93,24 @@
   {                                                                     \
     REG_BI_COMPLEX_PROD_4DOUBLE(NAME2(A,s0),NAME2(B,s0),C);		\
     REG_BI_COMPLEX_PROD_4DOUBLE(NAME2(A,s1),NAME2(B,s1),C);		\
+  }
+
+#define REG_BI_HALFSPIN_PROD_COMPLEX(A,B,C)				\
+  {                                                                     \
+    REG_BI_COLOR_PROD_COMPLEX(NAME2(A,s0),NAME2(B,s0),C);		\
+    REG_BI_COLOR_PROD_COMPLEX(NAME2(A,s1),NAME2(B,s1),C);		\
+  }
+
+#define REG_BI_HALFSPIN_PROD_CONJ2_COMPLEX(A,B,C)			\
+  {                                                                     \
+    REG_BI_COLOR_PROD_CONJ2_COMPLEX(NAME2(A,s0),NAME2(B,s0),C);		\
+    REG_BI_COLOR_PROD_CONJ2_COMPLEX(NAME2(A,s1),NAME2(B,s1),C);		\
+  }
+
+#define REG_BI_HALFSPINCOLOR_PROD_4DOUBLE(A,B,C)			\
+  {                                                                     \
+    REG_BI_COLOR_PROD_4DOUBLE(NAME2(A,s0),NAME2(B,s0),C);		\
+    REG_BI_COLOR_PROD_4DOUBLE(NAME2(A,s1),NAME2(B,s1),C);		\
   }
 
 #define REG_BI_SPINCOLOR_PROD_4DOUBLE(A,B,C)				\
@@ -119,6 +144,53 @@
   {                                                                     \
     REG_BI_COLOR_SUMM(NAME2(A,s0),NAME2(B,s0),NAME2(C,s0));		\
     REG_BI_COLOR_SUMM(NAME2(A,s1),NAME2(B,s1),NAME2(C,s1));		\
+  }
+
+#define REG_BI_SPIN_SUMM_THE_PROD_4DOUBLE(out,op1,op2,d)		\
+  {									\
+    REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(out,s0),NAME2(op1,s0),NAME2(op2,s0),d); \
+    REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(out,s1),NAME2(op1,s1),NAME2(op2,s1),d); \
+    REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(out,s2),NAME2(op1,s2),NAME2(op2,s2),d); \
+    REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(out,s3),NAME2(op1,s3),NAME2(op2,s3),d); \
+  }
+
+#define REG_BI_SPINCOLOR_SUMM_THE_PROD_4DOUBLE(out,op1,op2,d)		\
+  {									\
+    REG_BI_COLOR_SUMM_THE_PROD_4DOUBLE(NAME2(out,s0),NAME2(op1,s0),NAME2(op2,s0),d); \
+    REG_BI_COLOR_SUMM_THE_PROD_4DOUBLE(NAME2(out,s1),NAME2(op1,s1),NAME2(op2,s1),d); \
+    REG_BI_COLOR_SUMM_THE_PROD_4DOUBLE(NAME2(out,s2),NAME2(op1,s2),NAME2(op2,s2),d); \
+    REG_BI_COLOR_SUMM_THE_PROD_4DOUBLE(NAME2(out,s3),NAME2(op1,s3),NAME2(op2,s3),d); \
+  }
+  
+#define REG_BI_SPINCOLOR_SUMM(A,B,C)					\
+  {                                                                     \
+    REG_BI_COLOR_SUMM(NAME2(A,s0),NAME2(B,s0),NAME2(C,s0));		\
+    REG_BI_COLOR_SUMM(NAME2(A,s1),NAME2(B,s1),NAME2(C,s1));		\
+    REG_BI_COLOR_SUMM(NAME2(A,s2),NAME2(B,s2),NAME2(C,s2));		\
+    REG_BI_COLOR_SUMM(NAME2(A,s3),NAME2(B,s3),NAME2(C,s3));		\
+  }
+
+/////
+
+#define REG_BI_COLOR_SUMM_THE_PROD_COMPLEX(out,op,c)			\
+  {									\
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c0),NAME2(op,c0),c);		\
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c1),NAME2(op,c1),c);		\
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c2),NAME2(op,c2),c);		\
+  }
+
+#define REG_BI_HALFSPINCOLOR_SUMM_THE_PROD_COMPLEX(out,op,c)		\
+  {									\
+    REG_BI_COLOR_SUMM_THE_PROD_COMPLEX(NAME2(out,s0),NAME2(op,s0),c);	\
+    REG_BI_COLOR_SUMM_THE_PROD_COMPLEX(NAME2(out,s1),NAME2(op,s1),c);	\
+  }
+
+#define REG_BI_SPINCOLOR_SUMM_THE_PROD_COMPLEX(out,op,c)		\
+  {									\
+    REG_BI_COLOR_SUMM_THE_PROD_COMPLEX(NAME2(out,s0),NAME2(op,s0),c);	\
+    REG_BI_COLOR_SUMM_THE_PROD_COMPLEX(NAME2(out,s1),NAME2(op,s1),c);	\
+    REG_BI_COLOR_SUMM_THE_PROD_COMPLEX(NAME2(out,s2),NAME2(op,s2),c);	\
+    REG_BI_COLOR_SUMM_THE_PROD_COMPLEX(NAME2(out,s3),NAME2(op,s3),c);	\
   }
 
 /////////////////////////////////// su3 prod color ////////////////////////////////
@@ -219,6 +291,15 @@
     STORE_REG_BI_SINGLE_COLOR(out,reg_out);			\
   }
 
+#define REG_BI_SINGLE_SU3_PROD_BI_SINGLE_HALFSPINCOLOR_LOAD_STORE(out,link,reg_in) \
+  {                                                             \
+    DECLARE_REG_BI_SU3(reg_link);                               \
+    DECLARE_REG_BI_HALFSPINCOLOR(reg_out);			\
+    REG_LOAD_BI_SINGLE_SU3(reg_link,link);			\
+    REG_BI_SU3_PROD_BI_HALFSPINCOLOR(reg_out,reg_link,reg_in);	\
+    STORE_REG_BI_SINGLE_HALFSPINCOLOR(out,reg_out);		\
+  }
+
 #define REG_BI_SU3_DAG_PROD_BI_COLOR(out,u,in)				\
   {                                                                     \
     REG_BI_COMPLEX_CONJ1_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0));	\
@@ -315,6 +396,15 @@
     STORE_REG_BI_SINGLE_COLOR(out,reg_out);				\
   }
 
+#define REG_BI_SINGLE_SU3_DAG_PROD_BI_SINGLE_HALFSPINCOLOR_LOAD_STORE(out,link,reg_in) \
+  {                                                                     \
+    DECLARE_REG_BI_SU3(reg_link);                                       \
+    DECLARE_REG_BI_HALFSPINCOLOR(reg_out);				\
+    REG_LOAD_BI_SINGLE_SU3(reg_link,link);				\
+    REG_BI_SU3_DAG_PROD_BI_HALFSPINCOLOR(reg_out,reg_link,reg_in);	\
+    STORE_REG_BI_SINGLE_HALFSPINCOLOR(out,reg_out);			\
+  }
+
 #define REG_BI_SU3_PROD_BI_SU3_DAG_INTERNAL(out,u,in)			\
   {                                                                     \
     REG_BI_COMPLEX_SUMM_THE_CONJ2_PROD(NAME2(out,c00),NAME2(u,c01),NAME2(in,c01)); \
@@ -390,5 +480,17 @@
     REG_BI_COMPLEX_PROD_4DOUBLE(NAME2(out,c21),NAME2(op1,c21),d);	\
     REG_BI_COMPLEX_PROD_4DOUBLE(NAME2(out,c22),NAME2(op1,c22),d);	\
   }
+
+//////////////
+
+#define DER_TMQ_EXP_BGQ_HEADER(reg_out,reg_tmp,piece)                   \
+  REG_LOAD_BI_HALFSPINCOLOR(reg_tmp,piece);                             \
+  BI_HALFSPINCOLOR_PREFETCH_NEXT(piece);                                \
+  REG_BI_HALFSPINCOLOR_SUMM(reg_out,reg_out,reg_temp);
+
+#define DER_TMQ_EXP_BGQ_SINGLE_HEADER(reg_out,reg_tmp,piece)		\
+  REG_LOAD_BI_SINGLE_HALFSPINCOLOR(reg_tmp,piece);			\
+  BI_SINGLE_HALFSPINCOLOR_PREFETCH_NEXT(piece);				\
+  REG_BI_HALFSPINCOLOR_SUMM(reg_out,reg_out,reg_temp);
 
 #endif

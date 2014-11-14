@@ -100,6 +100,7 @@ namespace nissa
   DEFINE_BORDERS_ROUTINES(quad_su3)
   DEFINE_BORDERS_ROUTINES(single_color)
   DEFINE_BORDERS_ROUTINES(single_quad_su3)
+  DEFINE_BORDERS_ROUTINES(single_halfspincolor)
 }
 
 #endif

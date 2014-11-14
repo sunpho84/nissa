@@ -8,7 +8,7 @@ using namespace nissa;
   Only one theta per heavy and compute automatically all the +-theta pairs
   It needs to compute both l(0)h(th) and l(th)h(0) to eliminate Z in three pts
   
-  This in particular are the three point:
+  This in particular are the three points:
   
   |          / \	   |          / \	    |   
   |  c,th=0 /   \ c,th!=0  |  l,th=0 /   \ l,th!=0  |
@@ -375,6 +375,8 @@ void calculate_S0(colorspinspin *S0,double mass,double theta,double stopping_res
 //calculate the sequential propagators
 void calculate_S1(colorspinspin *S1,double mass,double theta,colorspinspin *S0,double stopping_residue)
 {
+  double S1_time=-take_time();
+  
   generate_sequential_source(S0);
   
   //adapt with passed theta
@@ -389,7 +391,7 @@ void calculate_S1(colorspinspin *S1,double mass,double theta,colorspinspin *S0,d
       double part_time=-take_time();
       inv_tmD_cg_eoprec_eos(temp_sol,NULL,conf,kappa,-sign_r[r_spec]*mass,niter_max,stopping_residue,source);
       part_time+=take_time();ninv_tot++;inv_time+=part_time;
-      master_printf("Finished the inversion of S1 mass=%lg dirac index %d in %g sec\n",mass,id,part_time);
+      master_printf("Finished the inversion of dirac index %d in %lg sec\n",id,part_time);
       
       //put in the solution
       put_spincolor_into_colorspinspin(S1,temp_sol,id);
@@ -399,6 +401,9 @@ void calculate_S1(colorspinspin *S1,double mass,double theta,colorspinspin *S0,d
   //but, being D^-1, everything is swapped
   rotate_vol_colorspinspin_to_physical_basis(S1,!r_spec,r_spec);
   master_printf("Propagators rotated\n\n");
+  
+  S1_time+=take_time();
+  master_printf("Finished the inversion of S1 mass=%lg theta=%lg in %lg sec\n",mass,theta,S1_time);
 }
 
 //compute all the S0 prop
@@ -483,7 +488,9 @@ void calculate_all_3pts_prop_combo(colorspinspin *S0,colorspinspin *S1,double h_
 {
   contr_3pts_time-=take_time();
   
+  master_printf("here we are\n");
   meson_two_points(contr_3pts,op1_3pts,S0,op2_3pts,S1,ncontr_3pts);
+  master_printf("here we did\n");
   ncontr_tot+=ncontr_3pts;
   
   master_fprintf(fout_3pts," # h_mass=%lg theta=%lg %s\n",h_mass,theta,tag);
@@ -503,6 +510,7 @@ void calculate_all_3pts()
   for(int mp=-1;mp<=1;mp++)
     for(int imass=0;imass<nheavy;imass++)
       {
+	master_printf("computing 3pts contractions %d %d\n",mp,imass);
 	calculate_all_3pts_prop_combo(S0H[iS0H(0,imass)],S1LH[iS1(mp,imass)],mass[1+imass],mp*theta[imass],"light_spec");
 	calculate_all_3pts_prop_combo(S0L[iS0L(0,0)],S1HL[iS1(mp,imass)],mass[1+imass],mp*theta[imass],"charm_spec");
       }
@@ -569,13 +577,13 @@ void in_main(int narg,char **arg)
   if(narg<2) crash("Use: %s input_file",arg[0]);
   
   initialize_semileptonic(arg[1]);
-  
+
   int iconf=0,enough_time=1;
   while(iconf<ngauge_conf && enough_time && read_conf_parameters(&iconf))
     {
       setup_conf();
       generate_source();
-      
+
       calculate_all_S0();
       calculate_all_2pts(fout_2pts_sl);
       calculate_all_S1();

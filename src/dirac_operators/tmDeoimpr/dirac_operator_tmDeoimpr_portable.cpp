@@ -158,7 +158,7 @@ namespace nissa
     tmn2Deo_eos(out,conf,in);
     inv_tmDee_or_oo_eos(temp,kappa,mu,out);
     tmn2Doe_eos(out,conf,temp);
-    inv_tmDee_or_oo_eos(temp,kappa,mu,out);
+
     tmDee_or_oo_eos(temp,kappa,mu,in);
     
     GET_THREAD_ID();
