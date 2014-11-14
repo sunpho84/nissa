@@ -18,4 +18,4 @@ EXTRA_DIST= \
 	tools/clusterize2.cpp \
 	tools/pack.c
 
-DIST_SUBDIRS=tools
+DIST_SUBDIRS=${SUBDIRS} tools

@@ -3,7 +3,7 @@
 
 namespace nissa
 {
-  void tmDkern_eoprec_square_eos_bgq(bi_spincolor *out,bi_oct_su3 **conf,double kappa,double mu,bi_spincolor *in);
+  void tmDkern_eoprec_square_eos_bgq(bi_spincolor *out,bi_spincolor *temp,bi_oct_su3 **conf,double kappa,double mu,bi_spincolor *in);
 }
 
 #endif

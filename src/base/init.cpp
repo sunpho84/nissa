@@ -620,6 +620,7 @@ namespace nissa
     set_lx_comm(lx_single_color_comm,sizeof(single_color));
     set_lx_comm(lx_spinspin_comm,sizeof(spinspin));
     set_lx_comm(lx_spincolor_comm,sizeof(spincolor));
+    set_lx_comm(lx_single_halfspincolor_comm,sizeof(single_halfspincolor));
     set_lx_comm(lx_spincolor_128_comm,sizeof(spincolor_128));
     set_lx_comm(lx_halfspincolor_comm,sizeof(halfspincolor));
     set_lx_comm(lx_colorspinspin_comm,sizeof(colorspinspin));
@@ -639,6 +640,8 @@ namespace nissa
 	set_eo_comm(eo_spincolor_128_comm,sizeof(spincolor_128));
 	set_eo_comm(eo_color_comm,sizeof(color));
 	set_eo_comm(eo_single_color_comm,sizeof(single_color));
+	set_eo_comm(eo_halfspincolor_comm,sizeof(halfspincolor));
+	set_eo_comm(eo_single_halfspincolor_comm,sizeof(single_halfspincolor));
 	set_eo_comm(eo_quad_su3_comm,sizeof(quad_su3));
 	set_eo_comm(eo_su3_comm,sizeof(su3));
 	

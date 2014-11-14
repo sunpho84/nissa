@@ -46,6 +46,8 @@ namespace nissa
   typedef float single_complex[2];
   typedef single_complex single_color[3];
   typedef single_color single_su3[3];
+  typedef single_color single_halfspincolor[2];
+  typedef single_color single_spincolor[4];
   typedef single_su3 single_quad_su3[4];
   
   typedef spin colorspin[3];
@@ -86,6 +88,8 @@ namespace nissa
   typedef single_complex bi_single_complex[2];
   typedef bi_single_complex bi_single_color[3];
   typedef bi_single_color bi_single_su3[3];
+  typedef bi_single_color bi_single_halfspincolor[2];
+  typedef bi_single_color bi_single_spincolor[4];
   typedef bi_single_su3 bi_single_oct_su3[8];
 
 #ifdef BGQ_EMU

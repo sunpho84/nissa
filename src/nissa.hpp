@@ -19,6 +19,7 @@
 //include bg/q specifics
 #ifdef BGQ
  #include "bgq/intrinsic.hpp"
+ #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp"
  #include "dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp"
  #include "dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp"
  #include "dirac_operators/stD/dirac_operator_stD_bgq.hpp"

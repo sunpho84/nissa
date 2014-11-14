@@ -32,10 +32,10 @@
          start_double_staggered_hopping_matrix_oe_or_eo_bgq_communications
  #define FINISH_32_64_STAGGERED_HOPPING_MATRIX_OE_OR_EO_BGQ_COMMUNICATIONS \
          finish_double_staggered_hopping_matrix_oe_or_eo_bgq_communications
- #define HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D \
-         hopping_matrix_eo_or_eo_expand_to_double_staggered_D
- #define HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D_SUBTRACT_FROM_MASS2_TIMES_IN \
-         hopping_matrix_eo_or_eo_expand_to_double_staggered_D_subtract_from_mass2_times_in
+ #define HOPPING_MATRIX_OE_OR_EO_EXPAND_TO_32_64_STAGGERED_D \
+         hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq
+ #define HOPPING_MATRIX_OE_OR_EO_EXPAND_TO_32_64_STAGGERED_D_SUBTRACT_FROM_MASS2_TIMES_IN \
+         hopping_matrix_oe_or_eo_expand_to_double_staggered_D_subtract_from_mass2_times_in_bgq
 #define APPLY_32_64_STAGGERED_HOPPING_MATRIX_OE_OR_EO_BGQ_NOCOMM	\
          apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm
  #define BI_32_64_SU3_PREFETCH_NEXT BI_SU3_PREFETCH_NEXT
@@ -63,10 +63,10 @@
          start_single_staggered_hopping_matrix_oe_or_eo_bgq_communications
  #define FINISH_32_64_STAGGERED_HOPPING_MATRIX_OE_OR_EO_BGQ_COMMUNICATIONS \
          finish_single_staggered_hopping_matrix_oe_or_eo_bgq_communications
- #define HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D \
-         hopping_matrix_eo_or_eo_expand_to_single_staggered_D
- #define HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D_SUBTRACT_FROM_MASS2_TIMES_IN \
-         hopping_matrix_eo_or_eo_expand_to_single_staggered_D_subtract_from_mass2_times_in
+ #define HOPPING_MATRIX_OE_OR_EO_EXPAND_TO_32_64_STAGGERED_D \
+         hopping_matrix_oe_or_eo_expand_to_single_staggered_D_bgq
+ #define HOPPING_MATRIX_OE_OR_EO_EXPAND_TO_32_64_STAGGERED_D_SUBTRACT_FROM_MASS2_TIMES_IN \
+         hopping_matrix_oe_or_eo_expand_to_single_staggered_D_subtract_from_mass2_times_in_bgq
 #define APPLY_32_64_STAGGERED_HOPPING_MATRIX_OE_OR_EO_BGQ_NOCOMM	\
          apply_single_staggered_hopping_matrix_oe_or_eo_bgq_nocomm
  #define BI_32_64_SU3_PREFETCH_NEXT BI_SINGLE_SU3_PREFETCH_NEXT
@@ -110,7 +110,7 @@
 namespace nissa
 {
   //summ the eight contributions and divide by two (note that the non-coeff option is used below)
-  THREADABLE_FUNCTION_2ARG(HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D, BI_32_64_COLOR*,out, double,coeff)
+  THREADABLE_FUNCTION_2ARG(HOPPING_MATRIX_OE_OR_EO_EXPAND_TO_32_64_STAGGERED_D, BI_32_64_COLOR*,out, double,coeff)
   {
     GET_THREAD_ID();
     
@@ -152,11 +152,11 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  void HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D(BI_32_64_COLOR *out)
-  {HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D(out,1);}
+  void HOPPING_MATRIX_OE_OR_EO_EXPAND_TO_32_64_STAGGERED_D(BI_32_64_COLOR *out)
+  {HOPPING_MATRIX_OE_OR_EO_EXPAND_TO_32_64_STAGGERED_D(out,1);}
   
   //summ the eight contributions, divide by two and subtract from the diagonal squared mass term
-  THREADABLE_FUNCTION_3ARG(HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D_SUBTRACT_FROM_MASS2_TIMES_IN, BI_32_64_COLOR*,out, PREC_TYPE,mass2, BI_32_64_COLOR*,in)
+  THREADABLE_FUNCTION_3ARG(HOPPING_MATRIX_OE_OR_EO_EXPAND_TO_32_64_STAGGERED_D_SUBTRACT_FROM_MASS2_TIMES_IN, BI_32_64_COLOR*,out, PREC_TYPE,mass2, BI_32_64_COLOR*,in)
   {
     GET_THREAD_ID();
     
@@ -489,8 +489,8 @@ namespace nissa
 #undef BGQ_32_64_STAGGERED_HOPPING_MATRIX_OE_OR_EO_VDIR_VN_LOCAL_TRANSPOSE
 #undef START_32_64_STAGGERED_HOPPING_MATRIX_OE_OR_EO_BGQ_COMMUNICATIONS
 #undef FINISH_32_64_STAGGERED_HOPPING_MATRIX_OE_OR_EO_BGQ_COMMUNICATIONS
-#undef HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D
-#undef HOPPING_MATRIX_EO_OR_EO_EXPAND_TO_32_64_STAGGERED_D_SUBTRACT_FROM_MASS2_TIMES_IN
+#undef HOPPING_MATRIX_OE_OR_EO_EXPAND_TO_32_64_STAGGERED_D
+#undef HOPPING_MATRIX_OE_OR_EO_EXPAND_TO_32_64_STAGGERED_D_SUBTRACT_FROM_MASS2_TIMES_IN
 #undef APPLY_32_64_STAGGERED_HOPPING_MATRIX_OE_OR_EO_BGQ_NOCOMM
 #undef BI_32_64_SU3_PREFETCH_NEXT
 #undef REG_LOAD_BI_32_64_COLOR_ADVANCING

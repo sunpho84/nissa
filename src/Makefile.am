@@ -48,10 +48,13 @@ CLEANFILES=base/svnversion.hpp
 if BGQ
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	bgq/Wilson_hopping_matrix_lx_bgq.cpp \
+	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.cpp \
 	bgq/staggered_hopping_matrix_eo_or_oe_bgq.cpp
 
 include_HEADERS+= \
 	bgq/Wilson_hopping_matrix_lx_bgq.hpp \
+	bgq/Wilson_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
+	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.hpp \
 	bgq/staggered_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
 	bgq/staggered_hopping_matrix_eo_or_oe_bgq.hpp \
 	bgq/bgq_macros.hpp \
@@ -96,7 +99,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	dirac_operators/momenta/MFACC.cpp \
 	dirac_operators/stD/dirac_operator_stD.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2.cpp \
@@ -115,7 +117,6 @@ include_HEADERS+= \
 	dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp\
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.hpp \
 	dirac_operators/tmQ/reconstruct_tm_doublet.hpp \
@@ -133,11 +134,13 @@ include_HEADERS+= \
 #compile or not bgq source
 if BGQ
 __top_builddir__lib_libnissa_a_SOURCES+= \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_bgq.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
 	dirac_operators/stD/dirac_operator_stD_bgq.cpp
 include_HEADERS+= \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.hpp \

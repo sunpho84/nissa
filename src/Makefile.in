@@ -84,6 +84,8 @@ host_triplet = @host@
 #add BGQ if needed
 @BGQ_TRUE@am__append_1 = base/bgq_instructions.hpp \
 @BGQ_TRUE@	bgq/Wilson_hopping_matrix_lx_bgq.hpp \
+@BGQ_TRUE@	bgq/Wilson_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
+@BGQ_TRUE@	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.hpp \
 @BGQ_TRUE@	bgq/staggered_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
 @BGQ_TRUE@	bgq/staggered_hopping_matrix_eo_or_oe_bgq.hpp \
 @BGQ_TRUE@	bgq/bgq_macros.hpp bgq/intrinsic/declare.hpp \
@@ -94,6 +96,7 @@ host_triplet = @host@
 ######################################### bgq specific #####################################
 @BGQ_TRUE@am__append_2 = \
 @BGQ_TRUE@	bgq/Wilson_hopping_matrix_lx_bgq.cpp \
+@BGQ_TRUE@	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.cpp \
 @BGQ_TRUE@	bgq/staggered_hopping_matrix_eo_or_oe_bgq.cpp
 
 
@@ -107,12 +110,14 @@ host_triplet = @host@
 
 #compile or not bgq source
 @BGQ_TRUE@am__append_7 = \
+@BGQ_TRUE@	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.cpp \
 @BGQ_TRUE@	dirac_operators/tmQ/dirac_operator_tmQ_bgq.cpp \
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.cpp \
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
 @BGQ_TRUE@	dirac_operators/stD/dirac_operator_stD_bgq.cpp
 
 @BGQ_TRUE@am__append_8 = \
+@BGQ_TRUE@	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp \
 @BGQ_TRUE@	dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp \
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp \
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.hpp \
@@ -203,13 +208,13 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	base/close.cpp base/debug.cpp base/global_variables.cpp \
 	base/init.cpp base/random.cpp base/vectors.cpp \
 	bgq/Wilson_hopping_matrix_lx_bgq.cpp \
+	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.cpp \
 	bgq/staggered_hopping_matrix_eo_or_oe_bgq.cpp \
 	bgq/bgq_barrier.c bgq/spi.cpp communicate/all_to_all.cpp \
 	communicate/borders.cpp communicate/edges.cpp \
 	dirac_operators/momenta/MFACC.cpp \
 	dirac_operators/stD/dirac_operator_stD.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2.cpp \
@@ -223,6 +228,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_128.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.cpp \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_bgq.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
@@ -315,10 +321,12 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	routines/thread.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @BGQ_TRUE@am__objects_1 = bgq/Wilson_hopping_matrix_lx_bgq.$(OBJEXT) \
+@BGQ_TRUE@	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.$(OBJEXT) \
 @BGQ_TRUE@	bgq/staggered_hopping_matrix_eo_or_oe_bgq.$(OBJEXT)
 @BGQ_EMU_FALSE@@BGQ_TRUE@am__objects_2 = bgq/bgq_barrier.$(OBJEXT)
 @BGQ_TRUE@@SPI_TRUE@am__objects_3 = bgq/spi.$(OBJEXT)
-@BGQ_TRUE@am__objects_4 = dirac_operators/tmQ/dirac_operator_tmQ_bgq.$(OBJEXT) \
+@BGQ_TRUE@am__objects_4 = dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.$(OBJEXT) \
+@BGQ_TRUE@	dirac_operators/tmQ/dirac_operator_tmQ_bgq.$(OBJEXT) \
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.$(OBJEXT) \
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.$(OBJEXT) \
 @BGQ_TRUE@	dirac_operators/stD/dirac_operator_stD_bgq.$(OBJEXT)
@@ -342,7 +350,6 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	dirac_operators/momenta/MFACC.$(OBJEXT) \
 	dirac_operators/stD/dirac_operator_stD.$(OBJEXT) \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.$(OBJEXT) \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.$(OBJEXT) \
 	dirac_operators/tmQ/dirac_operator_tmQ.$(OBJEXT) \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left.$(OBJEXT) \
 	dirac_operators/tmQ2/dirac_operator_tmQ2.$(OBJEXT) \
@@ -500,6 +507,8 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	base/macros.hpp base/random.hpp base/thread_macros.hpp \
 	base/vectors.hpp base/bgq_instructions.hpp \
 	bgq/Wilson_hopping_matrix_lx_bgq.hpp \
+	bgq/Wilson_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
+	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.hpp \
 	bgq/staggered_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
 	bgq/staggered_hopping_matrix_eo_or_oe_bgq.hpp \
 	bgq/bgq_macros.hpp bgq/intrinsic/declare.hpp \
@@ -511,7 +520,6 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.hpp \
 	dirac_operators/tmQ/reconstruct_tm_doublet.hpp \
@@ -525,6 +533,7 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	dirac_operators/WclovQ/dirac_operator_WclovQ.hpp \
 	dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp \
+	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.hpp \
@@ -750,7 +759,6 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	communicate/edges.hpp dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.hpp \
 	dirac_operators/tmQ/reconstruct_tm_doublet.hpp \
@@ -874,7 +882,6 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	dirac_operators/momenta/MFACC.cpp \
 	dirac_operators/stD/dirac_operator_stD.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.cpp \
-	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2.cpp \
@@ -1101,6 +1108,8 @@ bgq/$(DEPDIR)/$(am__dirstamp):
 	@: > bgq/$(DEPDIR)/$(am__dirstamp)
 bgq/Wilson_hopping_matrix_lx_bgq.$(OBJEXT): bgq/$(am__dirstamp) \
 	bgq/$(DEPDIR)/$(am__dirstamp)
+bgq/Wilson_hopping_matrix_eo_or_oe_bgq.$(OBJEXT): bgq/$(am__dirstamp) \
+	bgq/$(DEPDIR)/$(am__dirstamp)
 bgq/staggered_hopping_matrix_eo_or_oe_bgq.$(OBJEXT):  \
 	bgq/$(am__dirstamp) bgq/$(DEPDIR)/$(am__dirstamp)
 bgq/bgq_barrier.$(OBJEXT): bgq/$(am__dirstamp) \
@@ -1143,9 +1152,6 @@ dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/tmDeoimpr/$(DEPDIR)
 	@: > dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.$(OBJEXT):  \
-	dirac_operators/tmDeoimpr/$(am__dirstamp) \
-	dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
-dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.$(OBJEXT):  \
 	dirac_operators/tmDeoimpr/$(am__dirstamp) \
 	dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmQ/$(am__dirstamp):
@@ -1235,6 +1241,9 @@ dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.$(OBJEXT):  \
 dirac_operators/tmQ2/dirac_operator_tmQ2_128.$(OBJEXT):  \
 	dirac_operators/tmQ2/$(am__dirstamp) \
 	dirac_operators/tmQ2/$(DEPDIR)/$(am__dirstamp)
+dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.$(OBJEXT):  \
+	dirac_operators/tmDeoimpr/$(am__dirstamp) \
+	dirac_operators/tmDeoimpr/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmQ/dirac_operator_tmQ_bgq.$(OBJEXT):  \
 	dirac_operators/tmQ/$(am__dirstamp) \
 	dirac_operators/tmQ/$(DEPDIR)/$(am__dirstamp)
@@ -1691,6 +1700,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/init.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/random.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@base/$(DEPDIR)/vectors.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/Wilson_hopping_matrix_eo_or_oe_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/Wilson_hopping_matrix_lx_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/bgq_barrier.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@bgq/$(DEPDIR)/spi.Po@am__quote@

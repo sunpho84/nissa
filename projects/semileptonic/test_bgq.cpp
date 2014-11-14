@@ -916,13 +916,12 @@ void debug2_st()
 				loc_volh*sizeof(color)/sizeof(double));
   master_printf("ST application diff double: %lg\n",diff/norm);
 
-  //compare single
-  double diff_single;
-  double_vector_subt((double*)temp_single_eo,(double*)temp_single_eo,(double*)out[EVN],
-		     loc_volh*sizeof(color)/sizeof(double));
-  double_vector_glb_scalar_prod(&diff_single,(double*)temp_single_eo,(double*)temp_single_eo,
-				loc_volh*sizeof(color)/sizeof(double));
-  master_printf("ST application diff single: %lg\n",diff_single/norm);
+      //put the eight pieces together
+      hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[ODD]);
+      */
+      apply_single_stD2ee_m2_bgq(bi_single_out_eo[EVN],bi_single_conf_eo,mass2,bi_single_in_eo[EVN]);
+      apply_stD2ee_m2_bgq(bi_out_eo[EVN],bi_conf_eo,mass2,bi_in_eo[EVN]);
+    }
   
   /////////////// double precision pieces benchmark /////////////////
   
@@ -984,9 +983,9 @@ void debug2_st()
   for(int eo_or_oe=0;eo_or_oe<2;eo_or_oe++)
     {
       exp_bgq_time[eo_or_oe]=-take_time();
-      if(eo_or_oe==0) for(int ibench=0;ibench<nbench;ibench++) hopping_matrix_eo_or_eo_expand_to_double_staggered_D(bi_out_eo[EVN]);
+      if(eo_or_oe==0) for(int ibench=0;ibench<nbench;ibench++) hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[EVN]);
       else for(int ibench=0;ibench<nbench;ibench++) 
-	     hopping_matrix_eo_or_eo_expand_to_double_staggered_D_subtract_from_mass2_times_in(bi_out_eo[ODD],mass2,bi_in_eo[EVN]); 
+	     hopping_matrix_oe_or_eo_expand_to_double_staggered_D_subtract_from_mass2_times_in_bgq(bi_out_eo[ODD],mass2,bi_in_eo[EVN]); 
       exp_bgq_time[eo_or_oe]+=take_time();
       exp_bgq_time[eo_or_oe]/=nbench;
       master_printf("exp_bgq_time_%s: %lg sec, %d flops, %lg Mflops\n",

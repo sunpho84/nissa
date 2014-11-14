@@ -67,15 +67,15 @@ namespace nissa
     ////////////////////////
     
     //remap in
-    evn_or_odd_spincolor_remap_to_virevn_or_odd(bi_source,source,EVN);
+    evn_or_odd_spincolor_remap_to_virevn_or_odd(bi_source,source,ODD);
     eo_conf_remap_to_vireo(bi_eo_conf,eo_conf);
-    if(guess!=NULL) evn_or_odd_spincolor_remap_to_virevn_or_odd(bi_guess,guess,EVN);
+    if(guess!=NULL) evn_or_odd_spincolor_remap_to_virevn_or_odd(bi_guess,guess,ODD);
     
     //invert
     inv_tmDkern_eoprec_square_eos_cg_64_bgq(bi_sol,bi_guess,bi_eo_conf,kappa,mu,niter,residue,bi_source);
     
     //remap out
-    virevn_or_odd_spincolor_remap_to_evn_or_odd(sol,bi_sol,EVN);
+    virevn_or_odd_spincolor_remap_to_evn_or_odd(sol,bi_sol,ODD);
     
     ////////////////////////
     
