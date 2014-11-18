@@ -377,15 +377,24 @@ void calculate_S1(colorspinspin *S1,double mass,double theta,colorspinspin *S0,d
 {
   double S1_time=-take_time();
   
-  generate_sequential_source(S0);
+  double ini_time=-take_time();
+  
+  //deal with sequential source
+  static colorspinspin *old_S0=NULL;
+  if(old_S0==NULL||S0!=old_S0) generate_sequential_source(S0);
+  else master_printf("no need to generate again sequential source");
+  old_S0=S0;
   
   //adapt with passed theta
   put_theta[1]=put_theta[2]=put_theta[3]=theta;
   adapt_theta(conf,old_theta,put_theta,1,1);
   
+  ini_time+=take_time();
+  master_printf("Initialization time: %lg s\n",ini_time);
+  
   //loop over dirac index of the source
   for(int id=0;id<4;id++)
-    { 
+    {
       get_spincolor_from_colorspinspin(source,sequential_source,id);
 
       double part_time=-take_time();
