@@ -2,7 +2,7 @@
 
 mkdir comp
 cd comp
-wget http://valgrind.org/downloads/valgrind-3.8.1.tar.bz2 -O -|tar jxf -
+wget http://valgrind.org/downloads/valgrind-3.10.0.tar.bz2 -O -|tar jxf -
 cd val*
 ./configure --prefix=$HOME
 make

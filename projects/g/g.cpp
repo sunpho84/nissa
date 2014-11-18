@@ -118,7 +118,7 @@ void meson_two_points(complex *corr,int *list_op1,colorspinspin *s1,int *list_op
     }
   
   //Call the routine which does the real contraction
-  complex *loc_corr=nissa_malloc("loc_corr",ncontr_2pts*glb_size[0],complex);
+  complex *loc_corr=nissa_malloc("loc_corr",ncontr*glb_size[0],complex);
   trace_g_css_dag_g_css(corr,loc_corr,t1,s1,t2,s2,ncontr);
   nissa_free(loc_corr);
 }
@@ -497,12 +497,13 @@ void calculate_all_3pts_prop_combo(colorspinspin *S0,colorspinspin *S1,double h_
 {
   contr_3pts_time-=take_time();
   
-  master_printf("here we are\n");
-  meson_two_points(contr_3pts,op1_3pts,S0,op2_3pts,S1,ncontr_3pts);
-  master_printf("here we did\n");
-  ncontr_tot+=ncontr_3pts;
-  
   master_fprintf(fout_3pts," # h_mass=%lg theta=%lg %s\n",h_mass,theta,tag);
+  fflush(fout_3pts);
+  
+  vector_reset(contr_3pts);
+  
+  meson_two_points(contr_3pts,op1_3pts,S0,op2_3pts,S1,ncontr_3pts);
+  ncontr_tot+=ncontr_3pts;
   
   contr_save_time-=take_time();
   print_contractions_to_file(fout_3pts,ncontr_3pts,op1_3pts,op2_3pts,contr_3pts,twall,"",1.0);
