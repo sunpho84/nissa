@@ -2,9 +2,6 @@
   This program can be used to generate gauge configurations
   according to the rooted-staggered action in presence of 
   electromagnetic fields and/or imaginary chemical potentials.
-  
-  The molecular dynamic routines are in the file:
-   ../../src/hmc/rootst_eoimpr/rootst_eoimpr_rhmc_step.cpp
 */
 
 #include <math.h>
@@ -14,8 +11,8 @@
 using namespace nissa;
 
 //observables
-char gauge_obs_path[1024];
-int gauge_meas_flag;
+gauge_obs_meas_pars_t gauge_obs_meas_pars;
+poly_corr_meas_pars_t poly_corr_meas_pars;
 top_meas_pars_t top_meas_pars;
 all_rect_meas_pars_t all_rect_meas_pars;
 
@@ -201,8 +198,10 @@ void init_simulation(char *path)
     }
   
   //read if we want to measure gauge obs
-  read_str_int("MeasureGaugeObs",&gauge_meas_flag);
-  if(gauge_meas_flag) read_str_str("Path",gauge_obs_path,1024);
+  read_gauge_obs_meas_pars(gauge_obs_meas_pars);
+  
+  //read if we want to measure polyakov correlators
+  read_poly_corr_meas_pars(poly_corr_meas_pars);
   
   //read if we want to measure topological charge
   read_top_meas_pars(top_meas_pars);
@@ -404,6 +403,26 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action
   if(rank==0) fclose(file);
 }
 
+//measure the polyakov correlators
+void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf_created)
+{
+  verbosity_lv1_master_printf("Measuring Polyakov loop correlators\n");
+  
+  //merge conf
+  quad_su3 *lx_conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
+
+  //open
+  FILE *fout=fopen(pars.path,conf_created?"w":"a");
+  if(fout==NULL) crash("opening %s",pars.path);
+
+  //compute and print
+  complex temp;
+  average_and_corr_polyakov_loop_lx_conf(temp,fout,lx_conf,pars.dir);
+  
+  nissa_free(lx_conf);
+}
+
 //return 1 if we need to measure
 int check_flag_and_curr_conf(int flag,int iconf)
 {return flag&&(iconf%flag==0);}
@@ -413,7 +432,8 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 {
   double meas_time=-take_time();
   
-  if(gauge_meas_flag) if(iconf%gauge_meas_flag==0) measure_gauge_obs(gauge_obs_path,conf,iconf,acc,gauge_action_name);
+  if(gauge_obs_meas_pars.flag) if(iconf%gauge_obs_meas_pars.flag==0) measure_gauge_obs(gauge_obs_meas_pars.path,conf,iconf,acc,gauge_action_name);
+  if(poly_corr_meas_pars.flag) if(iconf%poly_corr_meas_pars.flag==0) measure_poly_corrs(poly_corr_meas_pars,conf,conf_created);
   if(top_meas_pars.flag) if(iconf%top_meas_pars.flag==0) measure_topology_eo_conf(top_meas_pars,conf,iconf,conf_created);
   if(all_rect_meas_pars.flag) if(iconf%all_rect_meas_pars.flag==0)
 				measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
@@ -427,9 +447,9 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   for(int itheory=0;itheory<ntheories;itheory++)
     {
       //check measure
-      int fermionic_putpourri_flag=check_flag_and_curr_conf(theory_pars[itheory].fermionic_putpourri_pars.flag,iconf);
-      int magnetization_flag=check_flag_and_curr_conf(theory_pars[itheory].magnetization_pars.flag,iconf);
-      int pseudo_corr_flag=check_flag_and_curr_conf(theory_pars[itheory].pseudo_corr_pars.flag,iconf);
+      int fermionic_putpourri_flag=check_flag_and_curr_conf(theory_pars[itheory].fermionic_putpourri_meas_pars.flag,iconf);
+      int magnetization_flag=check_flag_and_curr_conf(theory_pars[itheory].magnetization_meas_pars.flag,iconf);
+      int pseudo_corr_flag=check_flag_and_curr_conf(theory_pars[itheory].pseudo_corr_meas_pars.flag,iconf);
       
       if(fermionic_putpourri_flag||magnetization_flag||pseudo_corr_flag)
 	{
@@ -458,7 +478,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	    {
 	      verbosity_lv1_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
 	      measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,conf_created,0);
-	      if(theory_pars[itheory].pseudo_corr_pars.flag>1)
+	      if(theory_pars[itheory].pseudo_corr_meas_pars.flag>1)
 		for(int dir=1;dir<4;dir++)
 		  measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,0,dir);
 	    }

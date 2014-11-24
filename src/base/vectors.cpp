@@ -386,28 +386,21 @@ namespace nissa
     THREAD_BARRIER();
   }
   
-  //reorder a vector according to the specified order (the order is destroyed)
-  void reorder_vector(char *vect,int *order,int nel,int sel)
+  //reorder a vector according to the specified order
+  THREADABLE_FUNCTION_4ARG(reorder_vector, char*,vect, int*,order, int,nel, int,sel)
   {
     GET_THREAD_ID();
-    if(!IS_MASTER_THREAD) crash("not threaded yet");
-    char *buf=(char*)nissa_malloc("buf",sel,char);
+    char *buf=nissa_malloc("buf",sel*nel,char);
     
-    for(int sour=0;sour<nel;sour++)
-      while(sour!=order[sour])
-	{
-	  int dest=order[sour];
-	  
-	  memcpy(buf,vect+sour*sel,sel);
-	  memcpy(vect+sour*sel,vect+dest*sel,sel);
-	  memcpy(vect+dest*sel,buf,sel);
-	  
-	  order[sour]=order[dest];
-	  order[dest]=dest;
-	}
+    //copy in the buffer
+    NISSA_PARALLEL_LOOP(sour,0,nel) memcpy(buf+order[sour]*sel,vect+sour*sel,sel);
+    THREAD_BARRIER();
+    NISSA_PARALLEL_LOOP(sour,0,nel) memcpy(vect+sour*sel,buf+sour*sel,sel);
     
     set_borders_invalid(vect);
     
     nissa_free(buf);
   }
+  THREADABLE_FUNCTION_END
+  
 }

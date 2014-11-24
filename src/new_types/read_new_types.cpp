@@ -33,13 +33,13 @@ namespace nissa
     if(top_meas_pars.flag)
       {
 	char gauge_action_name_str[1024];
-	read_str_str("TopPath",top_meas_pars.path,1024);
-	read_str_str("TopCoolAction",gauge_action_name_str,1024);
+	read_str_str("Path",top_meas_pars.path,1024);
+	read_str_str("CoolAction",gauge_action_name_str,1024);
 	top_meas_pars.gauge_cooling_action=gauge_action_name_from_str(gauge_action_name_str);
-	read_str_int("TopCoolNSteps",&top_meas_pars.cool_nsteps);
-	read_str_int("TopCoolOverrelaxing",&top_meas_pars.cool_overrelax_flag);
+	read_str_int("CoolNSteps",&top_meas_pars.cool_nsteps);
+	read_str_int("CoolOverrelaxing",&top_meas_pars.cool_overrelax_flag);
 	if(top_meas_pars.cool_overrelax_flag==1) read_str_double("TopCoolOverrelaxExp",&top_meas_pars.cool_overrelax_exp);
-	read_str_int("TopCoolMeasEachNSteps",&top_meas_pars.meas_each);
+	read_str_int("CoolMeasEachNSteps",&top_meas_pars.meas_each);
       }
   }
   
@@ -177,7 +177,7 @@ namespace nissa
   }
   
   //read parameters to measure the fermionic gran mix
-  void read_fermionic_putpourri_pars(fermionic_putpourri_pars_t &pars,bool flag=false)
+  void read_fermionic_putpourri_meas_pars(fermionic_putpourri_meas_pars_t &pars,bool flag=false)
   {
     if(flag==true) pars.flag=true;
     else read_str_int("MeasureFermionicPutpourri",&pars.flag);
@@ -192,7 +192,7 @@ namespace nissa
   }
   
   //read parameters to measure magnetization
-  void read_magnetization_pars(magnetization_pars_t &pars,bool flag=false)
+  void read_magnetization_meas_pars(magnetization_meas_pars_t &pars,bool flag=false)
   {
     if(flag==true) pars.flag=true;
     else read_str_int("MeasureMagnetization",&pars.flag);
@@ -206,7 +206,7 @@ namespace nissa
   }
   
   //read parameters to measure pseudoscalar correlators
-  void read_pseudo_corr_pars(pseudo_corr_pars_t &pars,bool flag=false)
+  void read_pseudo_corr_meas_pars(pseudo_corr_meas_pars_t &pars,bool flag=false)
   {
     if(flag==true) pars.flag=true;
     else read_str_int("MeasurePseudoCorr",&pars.flag);
@@ -253,6 +253,26 @@ namespace nissa
 	if(pars.Dmax<1||pars.Dmax>glb_size[1]) crash("Dint must end between [1,%d]",glb_size[1]);
       }
   }
+
+  //read the parameters to compute polyakov correlators
+  void read_poly_corr_meas_pars(poly_corr_meas_pars_t &pars,bool flag=false)
+  {
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasurePolyCorrs",&pars.flag);
+    if(pars.flag)
+      {
+	read_str_str("Path",pars.path,1024);
+	read_str_int("Dir",&pars.dir);
+      }
+  }
+  
+  //read the parameters to measure gauge observables
+  void read_gauge_obs_meas_pars(gauge_obs_meas_pars_t &pars,bool flag=false)
+  {
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasureGaugeObs",&pars.flag);
+    if(pars.flag) read_str_str("Path",pars.path,1024);
+  }
   
   //read the theory_pars parameters of the theory
   void read_theory_pars(theory_pars_t &theory_pars)
@@ -286,9 +306,9 @@ namespace nissa
 	read_em_field_pars(theory_pars.em_field_pars);
 	
 	//info on pseudoscalar meson correlators, condensate and magnetization measure
-	read_pseudo_corr_pars(theory_pars.pseudo_corr_pars);
-	read_fermionic_putpourri_pars(theory_pars.fermionic_putpourri_pars);
-	read_magnetization_pars(theory_pars.magnetization_pars);
+	read_pseudo_corr_meas_pars(theory_pars.pseudo_corr_meas_pars);
+	read_fermionic_putpourri_meas_pars(theory_pars.fermionic_putpourri_meas_pars);
+	read_magnetization_meas_pars(theory_pars.magnetization_meas_pars);
       }
   }
 }
