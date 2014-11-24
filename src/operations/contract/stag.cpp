@@ -228,11 +228,11 @@ namespace nissa
   //measure the above fermionic putpourri
   void measure_fermionic_putpourri(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
   {
-    FILE *file=open_file(theory_pars.fermionic_putpourri_pars.path,conf_created?"w":"a");
-    int comp_susc=theory_pars.fermionic_putpourri_pars.compute_susceptivities;
+    FILE *file=open_file(theory_pars.fermionic_putpourri_meas_pars.path,conf_created?"w":"a");
+    int comp_susc=theory_pars.fermionic_putpourri_meas_pars.compute_susceptivities;
     
     //measure the putpourri for each quark
-    int ncopies=theory_pars.fermionic_putpourri_pars.ncopies;
+    int ncopies=theory_pars.fermionic_putpourri_meas_pars.ncopies;
     for(int icopy=0;icopy<ncopies;icopy++)
       {
 	master_fprintf(file,"%d",iconf);    
@@ -241,7 +241,7 @@ namespace nissa
 	    fermionic_putpourri_t putpourri;
 	    
 	    //loop over hits
-	    int nhits=theory_pars.fermionic_putpourri_pars.nhits;
+	    int nhits=theory_pars.fermionic_putpourri_meas_pars.nhits;
 	    for(int hit=0;hit<nhits;hit++)
 	      {
 		verbosity_lv2_master_printf("Evaluating fermionic putpourri for flavor %d/%d, ncopy %d/%d, nhits %d/%d\n",
@@ -250,7 +250,7 @@ namespace nissa
 		//compute and summ
 		fermionic_putpourri_t temp;
 		fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
-				    theory_pars.fermionic_putpourri_pars.residue,
+				    theory_pars.fermionic_putpourri_meas_pars.residue,
 				    comp_susc);
 		complex_summassign(putpourri.chiral_cond,temp.chiral_cond);
 		if(comp_susc) complex_summassign(putpourri.chiral_cond_susc,temp.chiral_cond_susc);
@@ -391,9 +391,9 @@ namespace nissa
   //measure magnetization
   void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
   {
-    FILE *file=open_file(theory_pars.magnetization_pars.path,conf_created?"w":"a");
+    FILE *file=open_file(theory_pars.magnetization_meas_pars.path,conf_created?"w":"a");
     
-    int ncopies=theory_pars.magnetization_pars.ncopies;
+    int ncopies=theory_pars.magnetization_meas_pars.ncopies;
     for(int icopy=0;icopy<ncopies;icopy++)
       {
 	master_fprintf(file,"%d",iconf);
@@ -404,7 +404,7 @@ namespace nissa
 	    complex magn={0,0};
 	    
 	    //loop over hits
-	    int nhits=theory_pars.magnetization_pars.nhits;
+	    int nhits=theory_pars.magnetization_meas_pars.nhits;
 	    for(int hit=0;hit<nhits;hit++)
 	      {
 		verbosity_lv2_master_printf("Evaluating magnetization for flavor %d/%d, ncopies %d/%d nhits %d/%d\n",
@@ -413,7 +413,7 @@ namespace nissa
 		//compute and summ
 		complex temp;
 		magnetization(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
-			      theory_pars.magnetization_pars.residue);
+			      theory_pars.magnetization_meas_pars.residue);
 		complex_summ_the_prod_double(magn,temp,1.0/nhits);
 	      }
 	    
@@ -431,7 +431,7 @@ namespace nissa
   void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created,int dir)
   {
     char dir_name[5]="txyz";
-    FILE *file=open_file(theory_pars.pseudo_corr_pars.path,conf_created?"w":"a");
+    FILE *file=open_file(theory_pars.pseudo_corr_meas_pars.path,conf_created?"w":"a");
     
     int nflavs=theory_pars.nflavs;
     
@@ -451,7 +451,7 @@ namespace nissa
     vector_reset(loc_contr);
     
     //loop over the hits
-    int nhits=theory_pars.pseudo_corr_pars.nhits;
+    int nhits=theory_pars.pseudo_corr_meas_pars.nhits;
     for(int hit=0;hit<nhits;hit++)
       {
 	verbosity_lv2_master_printf("Evaluating pseudoscalar %c correlator, hit %d/%d\n",dir_name[dir],hit+1,nhits);
@@ -464,7 +464,7 @@ namespace nissa
 	//compute propagators
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  get_propagator(prop[iflav],conf,theory_pars.backfield[iflav],theory_pars.quark_content[iflav].mass,
-			 theory_pars.pseudo_corr_pars.residue,source);
+			 theory_pars.pseudo_corr_meas_pars.residue,source);
 	
 	//contract the propagators
 	int icombo=0;
@@ -553,7 +553,7 @@ THREADABLE_FUNCTION_4ARG(measure_time_meson_corr, quad_su3**,conf, theory_pars_t
       
       for(int iflav=0;iflav<nflavs;iflav++)
 	get_propagator(prop[icube][iflav],conf,theory_pars->backfield[iflav],theory_pars->quark_content[iflav].mass,
-		       theory_pars->pseudo_corr_pars.residue,source);
+		       theory_pars->pseudo_corr_meas_pars.residue,source);
     }
   
   //free everything  
