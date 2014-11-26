@@ -433,11 +433,27 @@ namespace nissa
     double charge;
   };
 
+  //parameters to smear a gauge conf when measuring gauge observables
+  struct gauge_obs_temp_smear_pars_t
+  {
+    int use_hyp_or_ape_temp;
+    
+    //hyp pars
+    double hyp_temp_alpha0;
+    double hyp_temp_alpha1;
+    double hyp_temp_alpha2;
+    
+    //ape temp
+    double ape_temp_alpha;
+    int nape_temp_iters;
+  };  
+
   //pars to compute polyakov loop
   struct poly_corr_meas_pars_t
   {
     int flag;
     char path[1024];
+    gauge_obs_temp_smear_pars_t gauge_smear_pars;
     int dir;
   };
   
@@ -489,20 +505,17 @@ namespace nissa
     double cool_overrelax_exp;
     int meas_each;
   };
-  
+
   //parameters to measure all rectangles path
   struct all_rect_meas_pars_t
   {
     int flag;
     char path[1024];
     
-    //hyp or apein T direction and pars
-    int use_hyp_or_ape_temp;
-    double hyp_temp_alpha0,hyp_temp_alpha1,hyp_temp_alpha2;
-    double ape_temp_alpha;
-    int nape_temp_iters;
-    
-    //ape pars
+    //hyp or ape in T direction and pars
+    gauge_obs_temp_smear_pars_t gauge_temp_smear_pars;
+
+    //ape spat    
     double ape_spat_alpha;
     int nape_spat_levls,*nape_spat_iters;
     

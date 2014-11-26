@@ -218,6 +218,23 @@ namespace nissa
       }
   }
   
+  //read parameters to smear a conf when computing gauge observables
+  void read_gauge_obs_temp_smear_pars(gauge_obs_temp_smear_pars_t &pars)
+  {
+    read_str_int("UseHYPorAPE",&pars.use_hyp_or_ape_temp);
+    if(pars.use_hyp_or_ape_temp==0)
+      {
+	read_str_double("HYPTempAlpha0",&pars.hyp_temp_alpha0);
+	read_str_double("HYPTempAlpha1",&pars.hyp_temp_alpha1);
+	read_str_double("HYPTempAlpha2",&pars.hyp_temp_alpha2);
+      }
+    else
+      {
+	read_str_double("APETempAlpha",&pars.ape_temp_alpha);
+	read_str_int("APETempNiters",&pars.nape_temp_iters);
+      }
+  }
+  
   //read parameters to measure all rectangles
   void read_all_rect_meas_pars(all_rect_meas_pars_t &pars,bool flag=false)
   {
@@ -226,23 +243,9 @@ namespace nissa
     if(pars.flag)
       {
 	read_str_str("Path",pars.path,1024);
-	
-	read_str_int("UseHYPorAPE",&pars.use_hyp_or_ape_temp);
-	if(pars.use_hyp_or_ape_temp==0)
-	  {
-	    read_str_double("HYPTempAlpha0",&pars.hyp_temp_alpha0);
-	    read_str_double("HYPTempAlpha1",&pars.hyp_temp_alpha1);
-	    read_str_double("HYPTempAlpha2",&pars.hyp_temp_alpha2);
-	  }
-	else
-	  {
-	    read_str_double("APETempAlpha",&pars.ape_temp_alpha);
-	    read_str_int("APETempNiters",&pars.nape_temp_iters);
-	  }
-	
+	read_gauge_obs_temp_smear_pars(pars.gauge_temp_smear_pars);	
 	read_str_double("APESpatAlpha",&pars.ape_spat_alpha);
 	read_list_of_ints("APESpatNlevels",&pars.nape_spat_levls,&pars.nape_spat_iters);
-	
 	read_str_int("Tint",&pars.Tmin);
 	read_int(&pars.Tmax);
 	if(pars.Tmin<1||pars.Tmin>glb_size[0]) crash("Tint must start between [1,%d]",glb_size[0]);
@@ -262,6 +265,7 @@ namespace nissa
     if(pars.flag)
       {
 	read_str_str("Path",pars.path,1024);
+        read_gauge_obs_temp_smear_pars(pars.gauge_smear_pars);
 	read_str_int("Dir",&pars.dir);
       }
   }

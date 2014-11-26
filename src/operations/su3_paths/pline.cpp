@@ -14,7 +14,7 @@
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "io/endianness.hpp"
-#include "io/ILDG_file.hpp"
+#include "io/ILDG_File.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
