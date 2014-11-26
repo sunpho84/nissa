@@ -84,6 +84,11 @@ namespace nissa
   THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
     GET_THREAD_ID();
+
+    verbosity_lv1_master_printf("Computing all rectangular paths\n");
+
+    //take a copy of smear pars
+    gauge_obs_temp_smear_pars_t temp_smear_pars=pars->gauge_temp_smear_pars;
     
     //remapping
     int nape_spat_levls=pars->nape_spat_levls,ntot_sme=1+nape_spat_levls;
@@ -123,9 +128,10 @@ namespace nissa
     quad_su3 *sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     for(int mu0=0;mu0<4;mu0++)
       {
-	if(pars->use_hyp_or_ape_temp==0) hyp_smear_conf_dir(sme_conf,ori_conf,pars->hyp_temp_alpha0,
-							    pars->hyp_temp_alpha1,pars->hyp_temp_alpha2,mu0);
-	else ape_single_dir_smear_conf(sme_conf,ori_conf,pars->ape_temp_alpha,pars->nape_temp_iters,mu0);
+	if(temp_smear_pars.use_hyp_or_ape_temp==0)
+	  hyp_smear_conf_dir(sme_conf,ori_conf,temp_smear_pars.hyp_temp_alpha0,
+			     temp_smear_pars.hyp_temp_alpha1,temp_smear_pars.hyp_temp_alpha2,mu0);
+	else ape_single_dir_smear_conf(sme_conf,ori_conf,temp_smear_pars.ape_temp_alpha,temp_smear_pars.nape_temp_iters,mu0);
 	verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
 	
 	//store temporal links and send them
@@ -145,7 +151,8 @@ namespace nissa
 	for(int iape=0;iape<nape_spat_levls;iape++)
 	  {
 	    ape_perp_dir_smear_conf(sme_conf,sme_conf,pars->ape_spat_alpha,
-		(iape==0)?pars->nape_spat_iters[0]:(pars->nape_spat_iters[iape]-pars->nape_spat_iters[iape-1]),mu0);
+				    (iape==0)?pars->nape_spat_iters[0]:
+				    (pars->nape_spat_iters[iape]-pars->nape_spat_iters[iape-1]),mu0);
 	    verbosity_lv1_master_printf("Plaquette after %d perp %d ape smears: %16.16lg\n",
 					iape+1,mu0,global_plaquette_lx_conf(sme_conf));
 	    
@@ -316,6 +323,8 @@ namespace nissa
   {
     GET_THREAD_ID();
     
+    gauge_obs_temp_smear_pars_t temp_smear_pars=pars->gauge_temp_smear_pars;
+    
     FILE *fout=NULL;
     if(rank==0 && IS_MASTER_THREAD) fout=open_file(pars->path,create_output_file?"w":"a");
     
@@ -329,8 +338,9 @@ namespace nissa
     double *point_path=nissa_malloc("point_path",loc_vol,double);
     
     //hyp or temporal APE smear the conf
-    if(pars->use_hyp_or_ape_temp==0) hyp_smear_conf_dir(sme_conf,ori_conf,pars->hyp_temp_alpha0,pars->hyp_temp_alpha1,pars->hyp_temp_alpha2,0);
-    else ape_temporal_smear_conf(sme_conf,ori_conf,pars->ape_temp_alpha,pars->nape_temp_iters);
+    if(temp_smear_pars.use_hyp_or_ape_temp==0)
+      hyp_smear_conf_dir(sme_conf,ori_conf,temp_smear_pars.hyp_temp_alpha0,temp_smear_pars.hyp_temp_alpha1,temp_smear_pars.hyp_temp_alpha2,0);
+    else ape_temporal_smear_conf(sme_conf,ori_conf,temp_smear_pars.ape_temp_alpha,temp_smear_pars.nape_temp_iters);
     
     //loop over APE smeared levels
     for(int iape=0;iape<pars->nape_spat_levls;iape++)

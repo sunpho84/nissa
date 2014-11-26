@@ -409,9 +409,15 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   verbosity_lv1_master_printf("Measuring Polyakov loop correlators\n");
   
   //merge conf
-  quad_su3 *lx_conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
+  quad_su3 *lx_conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
-
+  
+  //hyp or ape
+  gauge_obs_temp_smear_pars_t smear_pars=pars.gauge_smear_pars;
+  if(smear_pars.use_hyp_or_ape_temp==0) hyp_smear_conf_dir(lx_conf,lx_conf,smear_pars.hyp_temp_alpha0,smear_pars.hyp_temp_alpha1,smear_pars.hyp_temp_alpha2,pars.dir);
+  else ape_single_dir_smear_conf(lx_conf,lx_conf,smear_pars.ape_temp_alpha,smear_pars.nape_temp_iters,pars.dir);
+  verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",pars.dir,global_plaquette_lx_conf(lx_conf));
+  
   //open
   FILE *fout=fopen(pars.path,conf_created?"w":"a");
   if(fout==NULL) crash("opening %s",pars.path);
