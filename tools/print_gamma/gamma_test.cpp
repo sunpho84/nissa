@@ -146,6 +146,25 @@ int main(int narg,char **arg)
       printf("(b) obtained by making explicite computations\n");
       print_dirac(&gamma_Pminus);
       printf("\n");
+
+      printf("Pmunu\n");
+      char P[4][4][50]={{"","","",""},{"","","",""},{"","","",""},{"","","",""}};
+      for(int imunu=0;imunu<6;imunu++)
+	for(int id=0;id<4;id++)
+	  {
+	    int jd=smunu_pos[id][imunu];
+	    char temp[50];
+	    snprintf(temp,50,"%s (%lg,%lg)F%d",P[id][jd],smunu_entr[id][imunu][0],smunu_entr[id][imunu][1],imunu);
+	    strcpy(P[id][jd],temp);
+	  }
+      
+      for(int id=0;id<4;id++)
+	{
+	  printf("%s",P[id][0]);
+	  for(int jd=1;jd<4;jd++)
+	    printf(",\t%s",P[id][jd]);
+	  printf("\n");
+	}
     }
     
   close_nissa();

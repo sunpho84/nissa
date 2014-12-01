@@ -13,6 +13,7 @@ EXTRA_DIST= \
 	README \
 	src/nissa.hpp \
 	src/create_headers.sh \
+	tools/ave.cpp \
 	tools/common_tools.cpp \
 	tools/clusterize.cpp \
 	tools/clusterize2.cpp \
