@@ -419,12 +419,15 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",pars.dir,global_plaquette_lx_conf(lx_conf));
   
   //open
-  FILE *fout=fopen(pars.path,conf_created?"w":"a");
+  FILE *fout=fopen(pars.path,(conf_created||!file_exists(pars.path))?"w":"r+");
+  if(fseek(fout,0,SEEK_END)) crash("seeking to the end");
   if(fout==NULL) crash("opening %s",pars.path);
 
   //compute and print
   complex temp;
   average_and_corr_polyakov_loop_lx_conf(temp,fout,lx_conf,pars.dir);
+
+  fclose(fout);
   
   nissa_free(lx_conf);
 }

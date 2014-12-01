@@ -74,9 +74,8 @@ namespace nissa
   }
 
   //finding the index to put only the three directions in the plane perpendicular to the dir
-  void index_to_poly_corr_remapping(int &irank_poly,int &iloc_poly,int iloc_lx,void *pars)
+  int index_to_poly_corr_remapping(int iloc_lx,int mu)
   {
-    int mu=((int*)pars)[0];
     int perp_vol=glb_vol/glb_size[mu];
     
     int subcube_vol=1,subcube=0,subcube_el=0;
@@ -99,7 +98,14 @@ namespace nissa
       }
     
     //add the most external 
-    int iglb_poly=subcube_el+subcube_vol*subcube+perp_vol*glb_coord_of_loclx[iloc_lx][mu];
+    return subcube_el+subcube_vol*subcube+perp_vol*glb_coord_of_loclx[iloc_lx][mu];
+  }
+  
+  //wrapper
+  void index_to_poly_corr_remapping(int &irank_poly,int &iloc_poly,int iloc_lx,void *pars)
+  {
+    int mu=((int*)pars)[0];
+    int iglb_poly=index_to_poly_corr_remapping(iloc_lx,mu);
     
     //find rank and loclx
     irank_poly=iglb_poly/loc_vol;
@@ -132,9 +138,10 @@ namespace nissa
 	//multiply by itself
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
-	    loop[ivol][RE]=loop[ivol][RE]*loop[ivol][RE]+loop[ivol][IM]*loop[ivol][IM];
+	    loop[ivol][RE]=(loop[ivol][RE]*loop[ivol][RE]+loop[ivol][IM]*loop[ivol][IM])/9; //nc
 	    loop[ivol][IM]=0;
 	  }
+	if(rank==0 && IS_MASTER_THREAD) loop[0][0]=0; //put to zero zero mode
 	THREAD_BARRIER();
 
 	//transform back
@@ -148,6 +155,8 @@ namespace nissa
   //remap and save - "loop" is destroyed!
   void save_poly_loop_correlator(FILE *file,complex *loop,int mu)
   {
+    if(IS_PARALLEL) crash("cannot work threaded!");
+    
     //remap
     vector_remap_t *poly_rem=new vector_remap_t(loc_vol,index_to_poly_corr_remapping,&mu);
     poly_rem->remap(loop,loop,sizeof(complex));
@@ -156,7 +165,7 @@ namespace nissa
     //change endianness to little
     if(!little_endian) doubles_to_doubles_changing_endianness((double*)loop,(double*)loop,loc_vol*2);
     
-    //find which piece has to write
+    //find which piece has to write data
     int tot_data=glb_vol/glb_size[mu]/8;
     int istart=loc_vol*rank;
     int iend=istart+loc_vol;
@@ -169,15 +178,14 @@ namespace nissa
     //take original position of the file
     off_t ori=ftell(file);
     
+    //jump to the correct point in the file
+    if(fseek(file,ori+istart*sizeof(complex),SEEK_SET)) crash("seeking");
+    MPI_Barrier(MPI_COMM_WORLD);
+    
     //write if something has to be written
     if(loc_data!=0)
       {
-	//jump to the correct point in the file
-	fseek(file,ori+istart*sizeof(complex),SEEK_SET);
-	
-	//write
 	int nbytes_to_write=loc_data*sizeof(complex);
-	
 	off_t nbytes_wrote=fwrite(loop,1,nbytes_to_write,file);
 	if(nbytes_wrote!=nbytes_to_write) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_to_write);
       }
