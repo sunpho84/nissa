@@ -60,6 +60,7 @@ namespace nissa
 		       MPI_COMM_WORLD,MPI_STATUS_IGNORE);
 	}
     THREAD_BARRIER();
+    verbosity_lv3_master_printf("finished communicating setup_nper_rank_other_temp\n");
   }
 
   //common part of initialization
@@ -188,8 +189,10 @@ namespace nissa
   {
     GET_THREAD_ID();
 
+    //count the nu,ber of elements to send
     temp_build_t build;
     nel_out=sl.size();
+    verbosity_lv3_master_printf("nel_out: %d\n",nel_out);
     
     //count how many elements to send to each rank
     vector_reset(build.nper_rank_to_temp);

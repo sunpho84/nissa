@@ -105,12 +105,11 @@ namespace nissa
 	  
 	  //compute competing volume
 	  prp_vol[imu01]=glb_size[mu0]*glb_size[mu1]*((int)ceil((double)glb_size[mu2]*glb_size[mu3]/nranks));
-	  verbosity_lv3_master_printf(" prp_vol[%d]=%d\n",imu01,prp_vol[imu01]);
 	  int min_vol=prp_vol[imu01]*rank,max_vol=min_vol+prp_vol[imu01];
+	  if(min_vol>=glb_vol) min_vol=glb_vol;
 	  if(max_vol>=glb_vol) max_vol=glb_vol;
 	  cmp_vol[imu01]=max_vol-min_vol;
 	  cmp_vol_max=std::max(cmp_vol_max,cmp_vol[imu01]);
-	  verbosity_lv3_master_printf(" min_vol=%d max_vol=%d cmp_vol[%d]=%d\n",min_vol,max_vol,cmp_vol[imu01]);
 	  
 	  //define the six remapper
 	  int pars[3]={mu0,imu1,prp_vol[imu01]};

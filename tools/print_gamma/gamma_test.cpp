@@ -148,21 +148,30 @@ int main(int narg,char **arg)
       printf("\n");
 
       printf("Pmunu\n");
-      char P[4][4][50]={{"","","",""},{"","","",""},{"","","",""},{"","","",""}};
+      char P[4][4][2][50];
+      for(int id=0;id<4;id++)
+	for(int jd=0;jd<4;jd++)
+	  for(int ri=0;ri<2;ri++)
+	    strcpy(P[id][jd][ri],"");
       for(int imunu=0;imunu<6;imunu++)
 	for(int id=0;id<4;id++)
 	  {
 	    int jd=smunu_pos[id][imunu];
-	    char temp[50];
-	    snprintf(temp,50,"%s (%lg,%lg)F%d",P[id][jd],smunu_entr[id][imunu][0],smunu_entr[id][imunu][1],imunu);
-	    strcpy(P[id][jd],temp);
+	    for(int ri=0;ri<2;ri++)
+	      if(smunu_entr[id][imunu][ri])
+		{
+		  char temp[50];
+		  snprintf(temp,50,"%s%sF%d",P[id][jd][ri],(((int)smunu_entr[id][imunu][ri]==+1)?(strlen(P[id][jd][ri])?"+":""):"-"),imunu);
+		  strcpy(P[id][jd][ri],temp);
+		}
 	  }
       
       for(int id=0;id<4;id++)
 	{
-	  printf("%s",P[id][0]);
+	  for(int jd=0;jd<4;jd++) for(int ri=0;ri<2;ri++) if(strlen(P[id][jd][ri])==0) strcpy(P[id][jd][ri],"0");
+	  printf("(%s,%s)",P[id][0][0],P[id][0][1]);
 	  for(int jd=1;jd<4;jd++)
-	    printf(",\t%s",P[id][jd]);
+	    printf(",\t(%s,%s)",P[id][jd][0],P[id][jd][1]);
 	  printf("\n");
 	}
     }
