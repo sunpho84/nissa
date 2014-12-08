@@ -30,7 +30,8 @@
 
 namespace nissa
 {
-  //This will calculate 2*a^2*ig*P_{mu,nu}
+  //This will calculate 2*a^2*ig*P_{mu,nu} for a single point
+  //please ensure to have communicated the edges outside!
   /*
     ^                   C--<-- B --<--Y 
     |                   |  2  | |  1  | 
@@ -40,117 +41,195 @@ namespace nissa
     -----mu---->        |  3  | |  4  | 
     .                   |     | |     | 
     .                   E-->-- F -->--G 
-    in order to have the anti-simmetric part, use
+    in order to have the anti-symmetric part, use
     the routine "Pmunu_term"
   */
+  void four_leaves_point(as2t_su3 leaves_summ,quad_su3 *conf,int X)
+  {
+    if(!check_edges_valid(conf[0])) crash("communicate edges externally");
+    
+    int munu=0;
+    for(int mu=0;mu<4;mu++)
+      {
+	int A=loclx_neighup[X][mu];
+	int D=loclx_neighdw[X][mu];
+        
+	for(int nu=mu+1;nu<4;nu++)
+	  {
+	    int B=loclx_neighup[X][nu];
+	    int F=loclx_neighdw[X][nu];
+            
+	    int C=loclx_neighup[D][nu];
+	    int E=loclx_neighdw[D][nu];
+            
+	    int G=loclx_neighdw[A][nu];
+            
+	    su3 temp1,temp2;
+	    
+	    //Leaf 1
+	    unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);           //    B--<--Y 
+	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);             //    |  1  | 
+	    unsafe_su3_prod_su3_dag(leaves_summ[munu],temp2,conf[X][nu]); //    |     | 
+	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);          //    X-->--A 
+            
+	    //Leaf 2
+	    unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);       //    C--<--B
+	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);             //    |  2  | 
+	    unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);                 //    |     | 
+	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);          //    D-->--X
+            
+	    //Leaf 3
+	    unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);    //   D--<--X
+	    unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);                  //   |  3  | 
+	    unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);                  //   |     | 
+	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);           //   E-->--F
+            
+	    //Leaf 4
+	    unsafe_su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);         //  X--<--A 
+	    unsafe_su3_prod_su3(temp2,temp1,conf[G][nu]);                   //  |  4  | 
+	    unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][mu]);               //  |     |  
+	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);            //  F-->--G 
+            
+	    munu++;
+	  }
+      }
+  }
+
   THREADABLE_FUNCTION_2ARG(four_leaves, as2t_su3*,Pmunu, quad_su3*,conf)
   {
     GET_THREAD_ID();
     communicate_lx_quad_su3_edges(conf);
     
-    int A,B,C,D,E,F,G;
-    int munu;
+    NISSA_PARALLEL_LOOP(X,0,loc_vol) four_leaves_point(Pmunu[X],conf,X);
+    set_borders_invalid(Pmunu);
+  }
+  THREADABLE_FUNCTION_END
+
+  //take anti-symmetric part and divide by 4
+  void four_leaves_anti_symmetrize_fourth(as2t_su3 out,as2t_su3 in)
+  {
+    for(int munu=0;munu<6;munu++)
+      for(int ic1=0;ic1<3;ic1++)
+	for(int ic2=0;ic2<3;ic2++)
+	  {
+	    out[munu][ic1][ic2][0]=(in[munu][ic1][ic2][0]-in[munu][ic2][ic1][0])/4;
+	    out[munu][ic1][ic2][1]=(in[munu][ic1][ic2][1]+in[munu][ic2][ic1][1])/4;
+	  }
+  }
+  
+  //takes the anti-simmetric part of the four-leaves
+  THREADABLE_FUNCTION_2ARG(Pmunu_term, as2t_su3*,Pmunu,quad_su3*,conf)
+  {
+    GET_THREAD_ID();
+    communicate_lx_quad_su3_edges(conf);
     
-    su3 temp1,temp2,leaves_summ;
-    
+    //calculate U-U^dagger
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
       {
-        as2t_su3_put_to_zero(Pmunu[X]);
-        
-        munu=0;
-        for(int mu=0;mu<4;mu++)
-          {
-            A=loclx_neighup[X][mu];
-            D=loclx_neighdw[X][mu];
-            
-            for(int nu=mu+1;nu<4;nu++)
-              {
-                B=loclx_neighup[X][nu];
-                F=loclx_neighdw[X][nu];
-                
-                C=loclx_neighup[D][nu];
-                E=loclx_neighdw[D][nu];
-                
-                G=loclx_neighdw[A][nu];
-                
-                //Put to 0 the summ of the leaves
-                su3_put_to_zero(leaves_summ);
-                
-                //Leaf 1
-                unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);         //    B--<--Y 
-                unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);           //    |  1  | 
-                unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][nu]);           //    |     | 
-                su3_summ(leaves_summ,leaves_summ,temp1);                    //    X-->--A 
-                
-                //Leaf 2
-                unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);     //    C--<--B
-                unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);           //    |  2  | 
-                unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);               //    |     | 
-                su3_summ(leaves_summ,leaves_summ,temp1);                    //    D-->--X
-                
-                //Leaf 3
-                unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);  //   D--<--X
-                unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);                //   |  3  | 
-                unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);                //   |     | 
-                su3_summ(leaves_summ,leaves_summ,temp1);                     //   E-->--F
-                
-                //Leaf 4
-                unsafe_su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);       //  X--<--A 
-                unsafe_su3_prod_su3(temp2,temp1,conf[G][nu]);                 //  |  4  | 
-                unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][mu]);             //  |     |  
-                su3_summ(leaves_summ,leaves_summ,temp1);                      //  F-->--G 
-                
-                su3_copy(Pmunu[X][munu],leaves_summ);
-                
-                munu++;
-              }
-          }
+	//compute the four leaves and anti-symmetrize
+	as2t_su3 leaves_summ;
+	four_leaves_point(leaves_summ,conf,X);
+	four_leaves_anti_symmetrize_fourth(Pmunu[X],leaves_summ);
       }
     
     set_borders_invalid(Pmunu);
   }
   THREADABLE_FUNCTION_END
+  
+  //build the clover therm from anti-symmetrized four-leaves, following this decomposition
+  /*
+    (0,-P2+P3),     (-P1-P4,-P0+P5), (0,0),          (0,0)
+    (P1+P4,-P0+P5), (0,P2-P3),       (0,0),          (0,0)
+    (0,0),          (0,0),           (0,P2+P3),      (P1-P4,P0+P5)
+    (0,0),          (0,0),           (-P1+P4,P0+P5), (0,-P2-P3)
+    
+    +iA   -B+iC  0      0
+    +B+iC -iA    0      0
+    0      0     +iD    -E+iF
+    0      0     +E+iF  -iD
+    
+    A=P3-P2, B=P4+P1, C=P5-P0
+    D=P3+P2, E=P4-P1, F=P5+P0
+    
+    +G  +H*  0    0
+    +H  -G   0    0
+    0    0   +I  +J*
+    0    0   +J  -I 
+    
+    out[0]=G=iA, out[1]=H=B+iC
+    out[2]=I=iD, out[3]=J=E+iF
+    
+    NB: the sign of H* and J* is CORRECT (indeed Pi is anti-hermitian!!!!)
+  */
+  void build_chromo_therm_from_anti_symmetric_four_leaves(quad_su3 out,as2t_su3 in)
+  {
+    su3 A,B,C,D,E,F;
 
-  //takes the anti-simmetric part of the four-leaves
-  THREADABLE_FUNCTION_2ARG(Pmunu_term, as2t_su3*,Pmunu,quad_su3*,conf)
+    su3_subt(A,in[3],in[2]);
+    su3_summ(B,in[4],in[1]);
+    su3_subt(C,in[5],in[0]);
+    su3_summ(D,in[3],in[2]);
+    su3_subt(E,in[4],in[1]);
+    su3_summ(F,in[5],in[0]);
+
+    su3_prod_idouble(out[0],A,1);
+    
+    su3_copy(out[1],B);
+    su3_summ_the_prod_idouble(out[1],C,1);
+    
+    su3_prod_idouble(out[2],D,1);
+    
+    su3_copy(out[3],E);
+    su3_summ_the_prod_idouble(out[3],F,1);
+  }
+  
+  //takes the anti-simmetric part of the four-leaves (optimized)
+  THREADABLE_FUNCTION_2ARG(opt_Pmunu_term, quad_su3*,C,quad_su3*,conf)
   {
     GET_THREAD_ID();
-    four_leaves(Pmunu,conf);
+    communicate_lx_quad_su3_edges(conf);
     
-    //calculate U-U^dagger
+    //calculate U-U^dagger and store only the independent components
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
-      for(int munu=0;munu<6;munu++)
-	{
-	  //bufferized antisimmetrization
-	  su3 leaves_summ;
-	  memcpy(leaves_summ,Pmunu[X][munu],sizeof(su3));
-	  
-	  for(int ic1=0;ic1<3;ic1++)
-	    for(int ic2=0;ic2<3;ic2++)
-	      {
-		Pmunu[X][munu][ic1][ic2][0]=(leaves_summ[ic1][ic2][0]-leaves_summ[ic2][ic1][0])/4;
-		Pmunu[X][munu][ic1][ic2][1]=(leaves_summ[ic1][ic2][1]+leaves_summ[ic2][ic1][1])/4;
-	      }
-	}
+      {
+	//compute the four leaves and anti-symmetrize
+	as2t_su3 leaves_summ;
+	four_leaves_point(leaves_summ,conf,X);
+	four_leaves_anti_symmetrize_fourth(leaves_summ,leaves_summ);
+	build_chromo_therm_from_anti_symmetric_four_leaves(C[X],leaves_summ);
+      }
     
-    set_borders_invalid(Pmunu);
+    set_borders_invalid(C);
   }
   THREADABLE_FUNCTION_END
-
-  //apply the chromo operator to the passed spinor site by site (not yet fully optimized)
+  
+  //apply the chromo operator to the passed spinor site by site (not optimized)
   void unsafe_apply_point_chromo_operator_to_spincolor(spincolor out,as2t_su3 Pmunu,spincolor in)
   {
-    color temp_d1;
-    
     for(int d1=0;d1<4;d1++)
       {
 	color_put_to_zero(out[d1]);
 	for(int imunu=0;imunu<6;imunu++)
 	  {
+	    color temp_d1;
 	    unsafe_su3_prod_color(temp_d1,Pmunu[imunu],in[smunu_pos[d1][imunu]]);
 	    for(int c=0;c<3;c++) complex_summ_the_prod(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
 	  }
       }
+  }
+  
+  //apply the chromo operator to the passed spinor site by site (optimized)
+  void unsafe_apply_opt_point_chromo_operator_to_spincolor(spincolor out,quad_su3 C,spincolor in)
+  {
+    unsafe_su3_prod_color(out[0],C[0],in[0]);
+    su3_dag_summ_the_prod_color(out[0],C[1],in[1]);
+    unsafe_su3_prod_color(out[1],C[1],in[0]);
+    su3_subt_the_prod_color(out[1],C[0],in[1]);
+
+    unsafe_su3_prod_color(out[2],C[2],in[2]);
+    su3_dag_summ_the_prod_color(out[2],C[3],in[3]);
+    unsafe_su3_prod_color(out[3],C[3],in[2]);
+    su3_subt_the_prod_color(out[3],C[2],in[3]);
   }
 
   //apply the chromo operator to the passed spinor to the whole volume
@@ -159,6 +238,16 @@ namespace nissa
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],Pmunu[ivol],in[ivol]);
+    set_borders_invalid(out);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //apply the chromo operator to the passed spinor to the whole volume (the optimized way)
+  THREADABLE_FUNCTION_3ARG(unsafe_apply_opt_chromo_operator_to_spincolor, spincolor*,out, quad_su3*,C, spincolor*,in)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],C[ivol],in[ivol]);
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
