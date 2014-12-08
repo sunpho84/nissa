@@ -9,6 +9,7 @@ namespace nissa
   void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,bool conf_created,bool presereve_uncooled=true);
   double topodynamical_potential(double Q,topotential_pars_t &pars);
   void Pmunu_term(as2t_su3 *Pmunu,quad_su3 *conf);
+  void opt_Pmunu_term(quad_su3 *C,quad_su3 *conf);
   void draw_topodynamical_potential(topotential_pars_t &pars);
   void four_leaves(as2t_su3 *Pmunu,quad_su3 *conf);
   void local_topological_charge(double *charge,quad_su3 *conf);
