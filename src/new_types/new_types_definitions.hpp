@@ -71,6 +71,7 @@ namespace nissa
   
   typedef complex as2t[6];
   typedef su3 as2t_su3[6];
+  typedef su3 opt_as2t_su3[4];
   
   typedef su3 squared_staples_t[4][6];
   
@@ -84,7 +85,8 @@ namespace nissa
   typedef bi_color bi_spincolor[4];
   typedef bi_color bi_halfspincolor[2];
   typedef bi_complex bi_halfspin[2];
-
+  typedef bi_su3 bi_opt_as2t_su3[4];
+  
   typedef single_complex bi_single_complex[2];
   typedef bi_single_complex bi_single_color[3];
   typedef bi_single_color bi_single_su3[3];

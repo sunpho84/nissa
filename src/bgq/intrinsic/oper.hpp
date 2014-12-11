@@ -18,6 +18,7 @@
 #define REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(out,add,op1,op2) out=vec_madd(op1,op2,add)
 #define REG_BI_COMPLEX_CONJ1_PROD(out,op1,op2)                out=vec_xxcpnmadd(op2,op1,vec_xmul(op1,op2))
 #define REG_BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)             out=vec_xxnpmadd(op1,op2,vec_xmadd(op2,op1,out))
+#define REG_BI_COMPLEX_SUBT_THE_PROD(out,op1,op2)             out=vec_xxnpmsub(op1,op2,vec_xmsub(op2,op1,out))
 #define REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)       out=vec_xxcpnmadd(op2,op1,vec_xmadd(op1,op2,out))
 
 #else
@@ -31,6 +32,7 @@
 #define REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(out,add,op1,op2) BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(out,add,op1,op2)
 #define REG_BI_COMPLEX_CONJ1_PROD(out,op1,op2)                BI_COMPLEX_CONJ1_PROD(out,op1,op2)
 #define REG_BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)             BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)
+#define REG_BI_COMPLEX_SUBT_THE_PROD(out,op1,op2)             BI_COMPLEX_SUBT_THE_PROD(out,op1,op2)
 #define REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)       BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)
 
 #endif
@@ -95,13 +97,13 @@
     REG_BI_COMPLEX_PROD_4DOUBLE(NAME2(A,s1),NAME2(B,s1),C);		\
   }
 
-#define REG_BI_HALFSPIN_PROD_COMPLEX(A,B,C)				\
+#define REG_BI_HALFSPINCOLOR_PROD_COMPLEX(A,B,C)			\
   {                                                                     \
     REG_BI_COLOR_PROD_COMPLEX(NAME2(A,s0),NAME2(B,s0),C);		\
     REG_BI_COLOR_PROD_COMPLEX(NAME2(A,s1),NAME2(B,s1),C);		\
   }
 
-#define REG_BI_HALFSPIN_PROD_CONJ2_COMPLEX(A,B,C)			\
+#define REG_BI_HALFSPINCOLOR_PROD_CONJ2_COMPLEX(A,B,C)			\
   {                                                                     \
     REG_BI_COLOR_PROD_CONJ2_COMPLEX(NAME2(A,s0),NAME2(B,s0),C);		\
     REG_BI_COLOR_PROD_CONJ2_COMPLEX(NAME2(A,s1),NAME2(B,s1),C);		\
@@ -195,17 +197,43 @@
 
 /////////////////////////////////// su3 prod color ////////////////////////////////
 
-#define REG_BI_SU3_PROD_BI_COLOR(out,u,in)                              \
+#define REG_BI_SU3_PROD_BI_COLOR_INTERNAL(out,u,in)				\
   {                                                                     \
-    REG_BI_COMPLEX_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0));       \
-    REG_BI_COMPLEX_PROD(NAME2(out,c1),NAME2(u,c10),NAME2(in,c0));       \
-    REG_BI_COMPLEX_PROD(NAME2(out,c2),NAME2(u,c20),NAME2(in,c0));       \
     REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c0),NAME2(u,c01),NAME2(in,c1)); \
     REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c1),NAME2(u,c11),NAME2(in,c1)); \
     REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c2),NAME2(u,c21),NAME2(in,c1)); \
     REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c0),NAME2(u,c02),NAME2(in,c2)); \
     REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c1),NAME2(u,c12),NAME2(in,c2)); \
     REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c2),NAME2(u,c22),NAME2(in,c2)); \
+  }
+
+#define REG_BI_SU3_PROD_BI_COLOR(out,u,in)                              \
+  {                                                                     \
+    REG_BI_COMPLEX_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0));       \
+    REG_BI_COMPLEX_PROD(NAME2(out,c1),NAME2(u,c10),NAME2(in,c0));       \
+    REG_BI_COMPLEX_PROD(NAME2(out,c2),NAME2(u,c20),NAME2(in,c0));       \
+    REG_BI_SU3_PROD_BI_COLOR_INTERNAL(out,u,in);				\
+  }
+
+#define REG_BI_SU3_SUMM_THE_PROD_BI_COLOR(out,u,in)			\
+  {                                                                     \
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0)); \
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c1),NAME2(u,c10),NAME2(in,c0)); \
+    REG_BI_COMPLEX_SUMM_THE_PROD(NAME2(out,c2),NAME2(u,c20),NAME2(in,c0)); \
+    REG_BI_SU3_PROD_BI_COLOR_INTERNAL(out,u,in);				\
+  }
+
+#define REG_BI_SU3_SUBT_THE_PROD_BI_COLOR(out,u,in)			\
+  {                                                                     \
+    REG_BI_COMPLEX_SUBT_THE_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0)); \
+    REG_BI_COMPLEX_SUBT_THE_PROD(NAME2(out,c1),NAME2(u,c10),NAME2(in,c0)); \
+    REG_BI_COMPLEX_SUBT_THE_PROD(NAME2(out,c2),NAME2(u,c20),NAME2(in,c0)); \
+    REG_BI_COMPLEX_SUBT_THE_PROD(NAME2(out,c0),NAME2(u,c01),NAME2(in,c1)); \
+    REG_BI_COMPLEX_SUBT_THE_PROD(NAME2(out,c1),NAME2(u,c11),NAME2(in,c1)); \
+    REG_BI_COMPLEX_SUBT_THE_PROD(NAME2(out,c2),NAME2(u,c21),NAME2(in,c1)); \
+    REG_BI_COMPLEX_SUBT_THE_PROD(NAME2(out,c0),NAME2(u,c02),NAME2(in,c2)); \
+    REG_BI_COMPLEX_SUBT_THE_PROD(NAME2(out,c1),NAME2(u,c12),NAME2(in,c2)); \
+    REG_BI_COMPLEX_SUBT_THE_PROD(NAME2(out,c2),NAME2(u,c22),NAME2(in,c2)); \
   }
 
 #define REG_BI_SU3_PROD_BI_SU3_INTERNAL(out,u,in)			\
