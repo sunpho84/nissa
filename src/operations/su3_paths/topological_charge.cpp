@@ -6,8 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <algorithm>
-#include <string>
-using namespace std;
+
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
@@ -66,12 +65,12 @@ namespace nissa
 	    int G=loclx_neighdw[A][nu];
             
 	    su3 temp1,temp2;
-	    
+
 	    //Leaf 1
 	    unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);           //    B--<--Y 
 	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);             //    |  1  | 
 	    unsafe_su3_prod_su3_dag(leaves_summ[munu],temp2,conf[X][nu]); //    |     | 
-	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);          //    X-->--A 
+	    /*                                                 */         //    X-->--A 
             
 	    //Leaf 2
 	    unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);       //    C--<--B
