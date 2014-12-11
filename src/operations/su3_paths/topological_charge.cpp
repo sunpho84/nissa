@@ -6,7 +6,8 @@
 #include <stdlib.h>
 #include <math.h>
 #include <algorithm>
-
+#include <string>
+using namespace std;
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
@@ -117,7 +118,7 @@ namespace nissa
 	  }
   }
   
-  //takes the anti-simmetric part of the four-leaves
+  //takes the anti-symmetric part of the four-leaves
   THREADABLE_FUNCTION_2ARG(Pmunu_term, as2t_su3*,Pmunu,quad_su3*,conf)
   {
     GET_THREAD_ID();
@@ -159,7 +160,7 @@ namespace nissa
     out[0]=G=iA, out[1]=H=B+iC
     out[2]=I=iD, out[3]=J=E+iF
     
-    NB: the sign of H* and J* is CORRECT (indeed Pi is anti-hermitian!!!!)
+    NB: indeed Pi is anti-hermitian
   */
   void build_chromo_therm_from_anti_symmetric_four_leaves(quad_su3 out,as2t_su3 in)
   {
@@ -223,15 +224,18 @@ namespace nissa
   {
     unsafe_su3_prod_color(out[0],C[0],in[0]);
     su3_dag_summ_the_prod_color(out[0],C[1],in[1]);
+    //su3_subt_the_prod_color(out[0],C[1],in[1]);
     unsafe_su3_prod_color(out[1],C[1],in[0]);
     su3_subt_the_prod_color(out[1],C[0],in[1]);
 
     unsafe_su3_prod_color(out[2],C[2],in[2]);
     su3_dag_summ_the_prod_color(out[2],C[3],in[3]);
+    //su3_subt_the_prod_color(out[2],C[3],in[3]);
     unsafe_su3_prod_color(out[3],C[3],in[2]);
     su3_subt_the_prod_color(out[3],C[2],in[3]);
+    crash("");
   }
-
+  
   //apply the chromo operator to the passed spinor to the whole volume
   THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_spincolor, spincolor*,out, as2t_su3*,Pmunu, spincolor*,in)
   {
@@ -245,9 +249,10 @@ namespace nissa
   //apply the chromo operator to the passed spinor to the whole volume (the optimized way)
   THREADABLE_FUNCTION_3ARG(unsafe_apply_opt_chromo_operator_to_spincolor, spincolor*,out, quad_su3*,C, spincolor*,in)
   {
+    crash("");
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      unsafe_apply_point_chromo_operator_to_spincolor(out[ivol],C[ivol],in[ivol]);
+      unsafe_apply_opt_point_chromo_operator_to_spincolor(out[ivol],C[ivol],in[ivol]);
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
