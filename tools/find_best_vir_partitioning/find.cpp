@@ -6,6 +6,10 @@
 #include <vector>
 #include <tr1/array>
 
+#if defined BGQ && !defined BGQ_EMU
+#include <firmware/include/personality.h>
+#endif
+
 //crash reporting the expanded error message
 void crash(const char *templ,...)
 {
@@ -40,6 +44,23 @@ struct torus_grid_t
     is_torus[4]=1;
   }
   int get_N(){return grid[0]*grid[1]*grid[2]*grid[3]*grid[4];}
+#if defined BGQ && !defined BGQ_EMU
+  torus_grid_t()
+  {
+    Personality_t pers;
+    Kernel_GetPersonality(&pers,sizeof(pers));
+    
+    //get size
+    grid[0]=pers.Network_Config.Anodes;
+    grid[1]=pers.Network_Config.Bnodes;
+    grid[2]=pers.Network_Config.Cnodes;
+    grid[3]=pers.Network_Config.Dnodes;
+    grid[4]=pers.Network_Config.Enodes;
+    for(int idir=0;idir<5;idir++) is_torus[idir]=ND_GET_TORUS(idir,pers.Network_Config.NetFlags);
+  }
+#else
+  torus_grid_t() {}
+#endif
 };
 torus_grid_t N64(2,2,4,2),N128(2,2,4,4),N256(4,2,4,4),N512(4,4,4,4),N1024(8,4,4,4),N2048(8,8,4,4);
 
@@ -339,15 +360,32 @@ void compute_border_border2_size(int &border,int &border2,int L_comm,int T,torus
 
 int main(int narg,char **arg)
 {
-  int L,T,nranks;
-  printf("Insert L: ");
-  scanf("%d",&L);
-  printf("Insert T: ");
-  scanf("%d",&T);
-  printf("Insert nranks: ");
-  scanf("%d",&nranks);
-  
-  torus_grid_t torus=find_torus(nranks);
+  int L,T;
+  torus_grid_t torus;
+
+#if defined BGQ && !defined BGQ_EMU
+  if(narg==2)
+    {
+      FILE *fin=fopen(arg[1],"r");
+      if(fin==NULL) crash("error opening %s",arg[1]);
+
+      fscanf(fin,"L %d",&L);
+      fscanf(fin,"T %d",&T);
+      fclose(fin);      
+    }
+  else
+#endif
+    {
+      printf("Insert L: ");
+      scanf("%d",&L);
+      printf("Insert T: ");
+      scanf("%d",&T);
+      printf("Insert nranks: ");
+      int nranks;
+      scanf("%d",&nranks);
+      torus=find_torus(nranks);
+    }
+  int nranks=torus.get_N();
   valid_partition_lister_t lister(L,T,nranks);
   
   //find the best rank assignement
