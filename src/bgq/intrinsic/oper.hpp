@@ -328,17 +328,30 @@
     STORE_REG_BI_SINGLE_HALFSPINCOLOR(out,reg_out);		\
   }
 
-#define REG_BI_SU3_DAG_PROD_BI_COLOR(out,u,in)				\
+#define REG_BI_SU3_DAG_PROD_BI_COLOR_INTERNAL(out,u,in)			\
   {                                                                     \
-    REG_BI_COMPLEX_CONJ1_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0));	\
-    REG_BI_COMPLEX_CONJ1_PROD(NAME2(out,c1),NAME2(u,c01),NAME2(in,c0));	\
-    REG_BI_COMPLEX_CONJ1_PROD(NAME2(out,c2),NAME2(u,c02),NAME2(in,c0));	\
     REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c0),NAME2(u,c10),NAME2(in,c1)); \
     REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c1),NAME2(u,c11),NAME2(in,c1)); \
     REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c2),NAME2(u,c12),NAME2(in,c1)); \
     REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c0),NAME2(u,c20),NAME2(in,c2)); \
     REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c1),NAME2(u,c21),NAME2(in,c2)); \
     REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c2),NAME2(u,c22),NAME2(in,c2)); \
+  }
+
+#define REG_BI_SU3_DAG_SUMM_THE_PROD_BI_COLOR(out,u,in)			\
+  {                                                                     \
+    REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0)); \
+    REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c1),NAME2(u,c01),NAME2(in,c0)); \
+    REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c2),NAME2(u,c02),NAME2(in,c0)); \
+    REG_BI_SU3_DAG_PROD_BI_COLOR_INTERNAL(out,u,in);			\
+  }
+
+#define REG_BI_SU3_DAG_PROD_BI_COLOR(out,u,in)				\
+  {                                                                     \
+    REG_BI_COMPLEX_CONJ1_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0));	\
+    REG_BI_COMPLEX_CONJ1_PROD(NAME2(out,c1),NAME2(u,c01),NAME2(in,c0));	\
+    REG_BI_COMPLEX_CONJ1_PROD(NAME2(out,c2),NAME2(u,c02),NAME2(in,c0));	\
+    REG_BI_SU3_DAG_PROD_BI_COLOR_INTERNAL(out,u,in);			\
   }
 
 #define REG_BI_SU3_DAG_PROD_BI_SU3_INTERNAL(out,u,in)			\

@@ -151,9 +151,9 @@ namespace nissa
     A=P3-P2, B=P4+P1, C=P5-P0
     D=P3+P2, E=P4-P1, F=P5+P0
     
-    +G  +H*  0    0
+    +G  +H^+ 0    0
     +H  -G   0    0
-    0    0   +I  +J*
+    0    0   +I  +J^+
     0    0   +J  -I 
     
     out[0]=G=iA, out[1]=H=B+iC
@@ -223,16 +223,13 @@ namespace nissa
   {
     unsafe_su3_prod_color(out[0],C[0],in[0]);
     su3_dag_summ_the_prod_color(out[0],C[1],in[1]);
-    //su3_subt_the_prod_color(out[0],C[1],in[1]);
     unsafe_su3_prod_color(out[1],C[1],in[0]);
     su3_subt_the_prod_color(out[1],C[0],in[1]);
-
+    
     unsafe_su3_prod_color(out[2],C[2],in[2]);
     su3_dag_summ_the_prod_color(out[2],C[3],in[3]);
-    //su3_subt_the_prod_color(out[2],C[3],in[3]);
     unsafe_su3_prod_color(out[3],C[3],in[2]);
     su3_subt_the_prod_color(out[3],C[2],in[3]);
-    crash("");
   }
   
   //apply the chromo operator to the passed spinor to the whole volume
@@ -248,7 +245,6 @@ namespace nissa
   //apply the chromo operator to the passed spinor to the whole volume (the optimized way)
   THREADABLE_FUNCTION_3ARG(unsafe_apply_opt_chromo_operator_to_spincolor, spincolor*,out, quad_su3*,C, spincolor*,in)
   {
-    crash("");
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       unsafe_apply_opt_point_chromo_operator_to_spincolor(out[ivol],C[ivol],in[ivol]);
