@@ -79,15 +79,15 @@ namespace nissa
 	REG_LOAD_BI_COMPLEX(reg_diag,diag[1]);
 	REG_BI_HALFSPINCOLOR_PROD_COMPLEX(reg_out,reg_in,reg_diag);
 	
-	//deal with C
+	//deal with C - minus coming from Q
 	REG_LOAD_BI_SU3(U,Cl[i][2]);
-	REG_BI_SU3_SUMM_THE_PROD_BI_COLOR(reg_out_s0,U,reg_in_s0);
-	REG_BI_SU3_SUBT_THE_PROD_BI_COLOR(reg_out_s1,U,reg_in_s1);
+	REG_BI_SU3_SUBT_THE_PROD_BI_COLOR(reg_out_s0,U,reg_in_s0);
+	REG_BI_SU3_SUMM_THE_PROD_BI_COLOR(reg_out_s1,U,reg_in_s1);
 	REORDER_BARRIER();
-	//deal with D
+	//deal with D - minus coming from Q
 	REG_LOAD_BI_SU3(U,Cl[i][3]);
-	REG_BI_SU3_DAG_SUMM_THE_PROD_BI_COLOR(reg_out_s0,U,reg_in_s1);
-	REG_BI_SU3_SUMM_THE_PROD_BI_COLOR(reg_out_s1,U,reg_in_s0);
+	REG_BI_SU3_DAG_SUBT_THE_PROD_BI_COLOR(reg_out_s0,U,reg_in_s1);
+	REG_BI_SU3_SUBT_THE_PROD_BI_COLOR(reg_out_s1,U,reg_in_s0);
 	
 	STORE_REG_BI_HALFSPINCOLOR(out[i][2],reg_out);
       }
@@ -97,7 +97,7 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
 
-  THREADABLE_FUNCTION_6ARG(apply_tmQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, double,mu, bi_opt_as2t_su3*,Cl, bi_spincolor*,in)
+  THREADABLE_FUNCTION_6ARG(apply_tmclovQ_bgq, bi_spincolor*,out, bi_oct_su3*,conf, double,kappa, bi_opt_as2t_su3*,Cl, double,mu, bi_spincolor*,in)
   {
     //compute on the surface and start communications
     apply_Wilson_hopping_matrix_lx_bgq_nocomm(conf,0,vsurf_vol,in);

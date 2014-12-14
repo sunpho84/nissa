@@ -20,6 +20,7 @@
 #define REG_BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)             out=vec_xxnpmadd(op1,op2,vec_xmadd(op2,op1,out))
 #define REG_BI_COMPLEX_SUBT_THE_PROD(out,op1,op2)             out=vec_xxcpnmadd(op2,op1,vec_sub(out,vec_xmul(op1,op2)))
 #define REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)       out=vec_xxcpnmadd(op2,op1,vec_xmadd(op1,op2,out))
+#define REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(out,op1,op2)       out=vec_xxnpmadd(op2,op1,vec_sub(out,vec_xmul(op1,op2)))
 
 #else
 
@@ -34,6 +35,7 @@
 #define REG_BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)             BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)
 #define REG_BI_COMPLEX_SUBT_THE_PROD(out,op1,op2)             BI_COMPLEX_SUBT_THE_PROD(out,op1,op2)
 #define REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)       BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)
+#define REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(out,op1,op2)       BI_COMPLEX_SUBT_THE_CONJ1_PROD(out,op1,op2)
 
 #endif
 
@@ -344,6 +346,19 @@
     REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c1),NAME2(u,c01),NAME2(in,c0)); \
     REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(NAME2(out,c2),NAME2(u,c02),NAME2(in,c0)); \
     REG_BI_SU3_DAG_PROD_BI_COLOR_INTERNAL(out,u,in);			\
+  }
+
+#define REG_BI_SU3_DAG_SUBT_THE_PROD_BI_COLOR(out,u,in)			\
+  {                                                                     \
+    REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(NAME2(out,c0),NAME2(u,c00),NAME2(in,c0)); \
+    REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(NAME2(out,c1),NAME2(u,c01),NAME2(in,c0)); \
+    REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(NAME2(out,c2),NAME2(u,c02),NAME2(in,c0)); \
+    REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(NAME2(out,c0),NAME2(u,c10),NAME2(in,c1)); \
+    REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(NAME2(out,c1),NAME2(u,c11),NAME2(in,c1)); \
+    REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(NAME2(out,c2),NAME2(u,c12),NAME2(in,c1)); \
+    REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(NAME2(out,c0),NAME2(u,c20),NAME2(in,c2)); \
+    REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(NAME2(out,c1),NAME2(u,c21),NAME2(in,c2)); \
+    REG_BI_COMPLEX_SUBT_THE_CONJ1_PROD(NAME2(out,c2),NAME2(u,c22),NAME2(in,c2)); \
   }
 
 #define REG_BI_SU3_DAG_PROD_BI_COLOR(out,u,in)				\

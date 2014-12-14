@@ -8,6 +8,11 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 
+#ifdef BGQ
+ #include "geometry/geometry_vir.hpp"
+ #include "cgm_invert_tmclovQ2_bgq.hpp"
+#endif
+
 #define BASETYPE spincolor
 
 #define NDOUBLES_PER_SITE 24
@@ -17,9 +22,9 @@
 #define APPLY_OPERATOR apply_tmclovQ2_m2
 #define CGM_OPERATOR_PARAMETERS conf,kappa,csw,Pmunu,t,
 
-#define CGM_INVERT inv_tmclovQ2_m2_cgm
-#define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_tmclovQ2_m2_cgm_run_hm_up_to_comm_prec
-#define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_tmclovQ2_m2_cgm
+#define CGM_INVERT inv_tmclovQ2_m2_cgm_portable
+#define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_tmclovQ2_m2_cgm_run_hm_up_to_comm_prec_portable
+#define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_tmclovQ2_m2_cgm_portable
 
 #define CGM_START_COMMUNICATING_BORDERS(A) start_communicating_lx_spincolor_borders(A)
 #define CGM_FINISH_COMMUNICATING_BORDERS(A) finish_communicating_lx_spincolor_borders(A)
@@ -47,7 +52,31 @@ namespace nissa
   {
     double m2[nmass];
     for(int imass=0;imass<nmass;imass++) m2[imass]=m[imass]*m[imass];
-    inv_tmclovQ2_m2_cgm(sol,conf,kappa,csw,Pmunu,m2,nmass,niter_max,req_res,source);
+
+#if defined BGQ
+    bi_oct_su3 *bi_conf=nissa_malloc("bi_conf",loc_volh,bi_oct_su3);
+    lx_conf_remap_to_virlx(bi_conf,conf);
+    bi_opt_as2t_su3 *bi_cl=nissa_malloc("bi_cl",loc_volh,bi_opt_as2t_su3);    
+    lx_as2t_su3_remap_to_opt_virlx(bi_cl,csw/2,Pmunu);
+    bi_spincolor *bi_source=nissa_malloc("bi_source",loc_volh,bi_spincolor);
+    lx_spincolor_remap_to_virlx(bi_source,source);
+    bi_spincolor *bi_sol[nmass];
+    for(int imass=0;imass<nmass;imass++) bi_sol[imass]=nissa_malloc("bi_sol",loc_volh,bi_spincolor);
+
+    inv_tmclovQ2_m2_cgm_bgq(bi_sol,bi_conf,kappa,bi_cl,m2,nmass,niter_max,req_res,bi_source);
+
+    //unmap and free
+    for(int imass=0;imass<nmass;imass++)
+      {
+	virlx_spincolor_remap_to_lx(sol[imass],bi_sol[imass]);
+	nissa_free(bi_sol[imass]);
+      }
+    nissa_free(bi_source);
+    nissa_free(bi_conf);
+    nissa_free(bi_cl);
+#else
+    inv_tmclovQ2_m2_cgm_portable(sol,conf,kappa,csw,Pmunu,m2,nmass,niter_max,req_res,source);
+#endif
   }
   
   void inv_tmclovDQ_cgm(spincolor **sol,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double *m,int nmass,int niter_max,double *req_res,spincolor *source)

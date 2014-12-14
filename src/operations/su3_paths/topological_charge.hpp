@@ -3,6 +3,7 @@
 
 namespace nissa
 {
+  void build_chromo_therm_from_anti_symmetric_four_leaves(quad_su3 out,as2t_su3 in);
   void total_topological_charge_eo_conf(double *charge,quad_su3 **eo_conf);
   void total_topological_charge_lx_conf(double *charge,quad_su3 *lx_conf);
   void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **uncooled_conf,int iconf,bool conf_created);

@@ -12,6 +12,8 @@
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
+#include "new_types/su3.hpp"
+#include "operations/su3_paths/topological_charge.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -828,4 +830,24 @@ namespace nissa
 	nissa_free(vireo_of_loclx);
       }
   }
+  
+  //build a clover term from an unoptimized Pmunu
+  THREADABLE_FUNCTION_3ARG(lx_as2t_su3_remap_to_opt_virlx, bi_opt_as2t_su3*,bi_cl, double,csw, as2t_su3*,Pmunu)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
+      {
+	quad_su3 temp;
+	build_chromo_therm_from_anti_symmetric_four_leaves(temp,Pmunu[ivol_lx]);
+	for(int mu=0;mu<4;mu++)
+	  {
+	    su3_prod_double(temp[mu],temp[mu],csw);
+	    SU3_TO_BI_SU3(bi_cl[virlx_of_loclx[ivol_lx]][mu],temp[mu],vnode_of_loclx(ivol_lx));
+	  }
+      }
+    set_borders_invalid(bi_cl);
+  }
+  THREADABLE_FUNCTION_END
+  
 }

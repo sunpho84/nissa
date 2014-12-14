@@ -28,6 +28,8 @@ namespace nissa
   void lx_color_remap_to_single_vireo(bi_single_color **out,color *in);
   void evn_or_odd_color_remap_to_virevn_or_odd(bi_color *out,color *in,int par);
   void evn_or_odd_color_remap_to_single_virevn_or_odd(bi_single_color *out,color *in,int par);
+
+  void lx_as2t_su3_remap_to_opt_virlx(bi_opt_as2t_su3 *bi_cl,double csw,as2t_su3 *Pmunu);
   
   void set_vir_geometry();
   void unset_vir_geometry();
