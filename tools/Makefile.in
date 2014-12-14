@@ -386,6 +386,7 @@ __top_builddir__tools_conf_transform_smear_stout_SOURCES = conf_transform/smear/
 __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES = conf_transform/edit/grab_ildg_data.cpp
 __top_builddir__tools_print_gamma_gamma_test_SOURCES = print_gamma/gamma_test.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES = unitarity_check/unitarity_check.cpp
+EXTRA_DIST = find_best_vir_partitioning/prepare_mapping.sh
 all: all-am
 
 .SUFFIXES:

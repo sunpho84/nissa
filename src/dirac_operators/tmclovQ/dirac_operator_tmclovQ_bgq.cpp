@@ -37,9 +37,9 @@ namespace nissa
     THREAD_BARRIER();
 
     /* factor csw/2 already included in Cl
-       +A  -B   0    0
+       +A  +B^+ 0    0
        +B  -A   0    0
-       0    0   +C  -D   BUT C and D get an additional
+       0    0   +C  +D^+ BUT C and D get an additional
        0    0   +D  -C   sign -1 coming from g5
     */
 	
@@ -65,7 +65,7 @@ namespace nissa
 	REORDER_BARRIER();
 	//deal with B
 	REG_LOAD_BI_SU3(U,Cl[i][1]);
-	REG_BI_SU3_SUBT_THE_PROD_BI_COLOR(reg_out_s0,U,reg_in_s1);
+	REG_BI_SU3_DAG_SUMM_THE_PROD_BI_COLOR(reg_out_s0,U,reg_in_s1);
 	REG_BI_SU3_SUMM_THE_PROD_BI_COLOR(reg_out_s1,U,reg_in_s0);
 	
 	STORE_REG_BI_HALFSPINCOLOR(out[i][0],reg_out);
@@ -81,13 +81,13 @@ namespace nissa
 	
 	//deal with C
 	REG_LOAD_BI_SU3(U,Cl[i][2]);
-	REG_BI_SU3_SUBT_THE_PROD_BI_COLOR(reg_out_s0,U,reg_in_s0);
-	REG_BI_SU3_SUMM_THE_PROD_BI_COLOR(reg_out_s1,U,reg_in_s1);
+	REG_BI_SU3_SUMM_THE_PROD_BI_COLOR(reg_out_s0,U,reg_in_s0);
+	REG_BI_SU3_SUBT_THE_PROD_BI_COLOR(reg_out_s1,U,reg_in_s1);
 	REORDER_BARRIER();
 	//deal with D
 	REG_LOAD_BI_SU3(U,Cl[i][3]);
-	REG_BI_SU3_SUMM_THE_PROD_BI_COLOR(reg_out_s0,U,reg_in_s1);
-	REG_BI_SU3_SUBT_THE_PROD_BI_COLOR(reg_out_s1,U,reg_in_s0);
+	REG_BI_SU3_DAG_SUMM_THE_PROD_BI_COLOR(reg_out_s0,U,reg_in_s1);
+	REG_BI_SU3_SUMM_THE_PROD_BI_COLOR(reg_out_s1,U,reg_in_s0);
 	
 	STORE_REG_BI_HALFSPINCOLOR(out[i][2],reg_out);
       }

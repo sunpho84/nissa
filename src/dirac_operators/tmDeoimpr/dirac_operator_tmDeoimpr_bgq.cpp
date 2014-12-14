@@ -5,10 +5,8 @@
 #include "base/macros.hpp"
 #include "base/thread_macros.hpp"
 #include "bgq/bgq_macros.hpp"
+#include "bgq/intrinsic.hpp"
 #include "bgq/Wilson_hopping_matrix_eo_or_oe_bgq.hpp"
-//debug
-#include "geometry/geometry_vir.hpp"
-#include "routines/ios.hpp"
 
 #include "new_types/new_types_definitions.hpp"
 

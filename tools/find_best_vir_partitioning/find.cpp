@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #include <stdarg.h>
 #include <cstdio>
 #include <stdint.h>
@@ -7,7 +11,8 @@
 #include <tr1/array>
 
 #if defined BGQ && !defined BGQ_EMU
-#include <firmware/include/personality.h>
+ #include <firmware/include/personality.h>
+ #include <spi/include/kernel/location.h>
 #endif
 
 //crash reporting the expanded error message
@@ -372,6 +377,8 @@ int main(int narg,char **arg)
       fscanf(fin,"L %d",&L);
       fscanf(fin,"T %d",&T);
       fclose(fin);      
+      printf("Finding partition for %d ranks\n",torus.get_N());
+      for(int i=0;i<5;i++) printf(" torus[%d]: %d\n",i,torus.grid[i]);
     }
   else
 #endif
