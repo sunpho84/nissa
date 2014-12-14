@@ -18,7 +18,7 @@
 #define REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(out,add,op1,op2) out=vec_madd(op1,op2,add)
 #define REG_BI_COMPLEX_CONJ1_PROD(out,op1,op2)                out=vec_xxcpnmadd(op2,op1,vec_xmul(op1,op2))
 #define REG_BI_COMPLEX_SUMM_THE_PROD(out,op1,op2)             out=vec_xxnpmadd(op1,op2,vec_xmadd(op2,op1,out))
-#define REG_BI_COMPLEX_SUBT_THE_PROD(out,op1,op2)             out=vec_xxnpmsub(op1,op2,vec_xmsub(op2,op1,out))
+#define REG_BI_COMPLEX_SUBT_THE_PROD(out,op1,op2)             out=vec_xxcpnmadd(op2,op1,vec_sub(out,vec_xmul(op1,op2)))
 #define REG_BI_COMPLEX_SUMM_THE_CONJ1_PROD(out,op1,op2)       out=vec_xxcpnmadd(op2,op1,vec_xmadd(op1,op2,out))
 
 #else

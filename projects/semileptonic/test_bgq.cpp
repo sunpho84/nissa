@@ -709,7 +709,7 @@ void debug2_tm()
   //benchmark expansion
   double exp_bgq_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    hopping_matrix_lx_expand_to_Q_and_summ_diag_term_bgq(bi_out,kappa,mu,bi_in);
+    hopping_matrix_lx_expand_to_Q_bgq(bi_out);
   exp_bgq_time+=take_time();
   exp_bgq_time/=nbench;
   int nflops_exp=312*loc_vol;
