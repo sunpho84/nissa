@@ -40,7 +40,7 @@
 ^[[:blank:]]+\n+ if(debug_lexer) printf("Ignoring new line at the begin of a line\n");
 
  /* quoted text */
-\"[[:alnum:][:blank:]%]*\" yylval->text=(char*)malloc(strlen(yytext)-1);strncpy(yylval->text,yytext+1,strlen(yytext)-2); return QUOTED_TEXT;
+\"[[:alnum:][:blank:]%]*\" yylval->text=strndup(yytext+1,strlen(yytext)-2);if(debug_lexer) printf("found string \"%s\", length=%d, copied: \"%s\"\n",yytext,(int)strlen(yytext),yylval->text); return QUOTED_TEXT;
 
  /* incrementing icorr */
 \n* yyextra->curr_corr_named=0; yyextra->ncorr++;if(debug_lexer) printf("Incrementing icorr: %d\n",yyextra->ncorr); return ENDL;
