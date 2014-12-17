@@ -2,13 +2,7 @@
  #include "config.hpp"
 #endif
 
-#include <math.h>
-
-#include "new_types/new_types_definitions.hpp"
-#include "base/global_variables.hpp"
-#include "communicate/communicate.hpp"
-#include "base/vectors.hpp"
-#include "../tmclovQ/dirac_operator_tmclovQ.hpp"
+#include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
 
 //Apply the Q+Q- operator to a spincolor
 
