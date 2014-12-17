@@ -216,10 +216,23 @@ namespace nissa
 	    for(int c=0;c<3;c++) complex_summ_the_prod(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
 	  }
       }
+  }  
+  void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,as2t_su3 Pmunu,spincolor_128 in)
+  {
+    for(int d1=0;d1<4;d1++)
+      {
+	color_128_put_to_zero(out[d1]);
+	for(int imunu=0;imunu<6;imunu++)
+	  {
+	    color_128 temp_d1;
+	    unsafe_su3_prod_color_128(temp_d1,Pmunu[imunu],in[smunu_pos[d1][imunu]]);
+	    for(int c=0;c<3;c++) complex_summ_the_64_prod_128(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
+	  }
+      }
   }
   
   //apply the chromo operator to the passed spinor site by site (optimized)
-  void unsafe_apply_opt_point_chromo_operator_to_spincolor(spincolor out,quad_su3 C,spincolor in)
+  void unsafe_apply_opt_point_chromo_operator_to_spincolor(spincolor out,opt_as2t_su3 C,spincolor in)
   {
     unsafe_su3_prod_color(out[0],C[0],in[0]);
     su3_dag_summ_the_prod_color(out[0],C[1],in[1]);
@@ -230,6 +243,18 @@ namespace nissa
     su3_dag_summ_the_prod_color(out[2],C[3],in[3]);
     unsafe_su3_prod_color(out[3],C[3],in[2]);
     su3_subt_the_prod_color(out[3],C[2],in[3]);
+  }
+  void unsafe_apply_opt_point_chromo_operator_to_spincolor_128(spincolor_128 out,opt_as2t_su3 C,spincolor_128 in)
+  {
+    unsafe_su3_prod_color_128(out[0],C[0],in[0]);
+    su3_dag_summ_the_prod_color_128(out[0],C[1],in[1]);
+    unsafe_su3_prod_color_128(out[1],C[1],in[0]);
+    su3_subt_the_prod_color_128(out[1],C[0],in[1]);
+    
+    unsafe_su3_prod_color_128(out[2],C[2],in[2]);
+    su3_dag_summ_the_prod_color_128(out[2],C[3],in[3]);
+    unsafe_su3_prod_color_128(out[3],C[3],in[2]);
+    su3_subt_the_prod_color_128(out[3],C[2],in[3]);
   }
   
   //apply the chromo operator to the passed spinor to the whole volume
@@ -242,12 +267,30 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //apply the chromo operator to the passed spinor to the whole volume (the optimized way)
-  THREADABLE_FUNCTION_3ARG(unsafe_apply_opt_chromo_operator_to_spincolor, spincolor*,out, quad_su3*,C, spincolor*,in)
+  //apply the chromo operator to the passed spinor to the whole volume
+  THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_spincolor_128, spincolor_128*,out, as2t_su3*,Pmunu, spincolor_128*,in)
   {
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      unsafe_apply_opt_point_chromo_operator_to_spincolor(out[ivol],C[ivol],in[ivol]);
+      unsafe_apply_point_chromo_operator_to_spincolor_128(out[ivol],Pmunu[ivol],in[ivol]);
+    set_borders_invalid(out);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //apply the chromo operator to the passed spinor to the whole volume (the optimized way)
+  THREADABLE_FUNCTION_3ARG(unsafe_apply_opt_chromo_operator_to_spincolor, spincolor*,out, opt_as2t_su3*,Cl, spincolor*,in)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      unsafe_apply_opt_point_chromo_operator_to_spincolor(out[ivol],Cl[ivol],in[ivol]);
+    set_borders_invalid(out);
+  }
+  THREADABLE_FUNCTION_END
+  THREADABLE_FUNCTION_3ARG(unsafe_apply_opt_chromo_operator_to_spincolor_128, spincolor_128*,out, opt_as2t_su3*,Cl, spincolor_128*,in)
+  {
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      unsafe_apply_opt_point_chromo_operator_to_spincolor_128(out[ivol],Cl[ivol],in[ivol]);
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END

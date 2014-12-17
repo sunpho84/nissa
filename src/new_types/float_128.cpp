@@ -394,6 +394,8 @@ namespace nissa
   {for(int ri=0;ri<2;ri++) float_128_summassign_64(a[ri],b[ri]);}
   void complex_128_subt(complex_128 a,complex_128 b,complex_128 c)
   {for(int ri=0;ri<2;ri++) float_128_subt(a[ri],b[ri],c[ri]);}
+  void complex_128_subtassign(complex_128 a,complex_128 b)
+  {complex_128_subt(a,a,b);}
   
   //c128 isumm c128
   void complex_128_isumm(complex_128 a,complex_128 b,complex_128 c)
@@ -445,6 +447,12 @@ namespace nissa
     unsafe_complex_64_prod_128(d,b,c);
     complex_128_summassign(a,d);
   }
+  void complex_subt_the_64_prod_128(complex_128 a,complex b,complex_128 c)
+  {
+    complex_128 d;
+    unsafe_complex_64_prod_128(d,b,c);
+    complex_128_subtassign(a,d);
+  }
   
   //c64~ prod c128
   void unsafe_complex_64_conj1_prod_128(complex_128 a,complex b,complex_128 c)
@@ -460,6 +468,8 @@ namespace nissa
     complex_summ_the_64_prod_128(a,d,c);
   }
   
+  void color_128_put_to_zero(color_128 a)
+  {memset(a,0,sizeof(color_128));}
   void color_128_copy(color_128 a,color_128 b)
   {memcpy(a,b,sizeof(color_128));}
   
@@ -499,5 +509,19 @@ namespace nissa
 	unsafe_complex_64_conj1_prod_128(a[c1],b[0][c1],c[0]);
 	for(int c2=1;c2<3;c2++) complex_summ_the_64_conj1_prod_128(a[c1],b[c2][c1],c[c2]);
       }
+  }
+  
+  void su3_dag_summ_the_prod_color_128(color_128 a,su3 b,color_128 c)
+  {
+    for(int c1=0;c1<3;c1++)
+      for(int c2=0;c2<3;c2++)
+	complex_summ_the_64_conj1_prod_128(a[c1],b[c2][c1],c[c2]);
+  }
+
+  void su3_subt_the_prod_color_128(color_128 a,su3 b,color_128 c)
+  {
+    for(int c1=0;c1<3;c1++)
+      for(int c2=0;c2<3;c2++)
+	complex_subt_the_64_prod_128(a[c1],b[c1][c2],c[c2]);
   }
 }

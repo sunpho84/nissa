@@ -116,6 +116,7 @@ host_triplet = @host@
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
 @BGQ_TRUE@	dirac_operators/tmclovQ/dirac_operator_tmclovQ_bgq.cpp \
 @BGQ_TRUE@	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.cpp \
+@BGQ_TRUE@	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.cpp \
 @BGQ_TRUE@	dirac_operators/stD/dirac_operator_stD_bgq.cpp
 
 @BGQ_TRUE@am__append_8 = \
@@ -125,6 +126,7 @@ host_triplet = @host@
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.hpp \
 @BGQ_TRUE@	dirac_operators/tmclovQ/dirac_operator_tmclovQ_bgq.hpp \
 @BGQ_TRUE@	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp \
+@BGQ_TRUE@	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.hpp \
 @BGQ_TRUE@	dirac_operators/stD/dirac_operator_stD_bgq.hpp
 
 
@@ -142,7 +144,9 @@ host_triplet = @host@
 @BGQ_TRUE@	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.cpp \
 @BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.cpp \
 @BGQ_TRUE@	inverters/twisted_mass/cg_invert_tmQ2_bgq.cpp \
-@BGQ_TRUE@	inverters/tmclov/cgm_invert_tmclovQ2_bgq.cpp
+@BGQ_TRUE@	inverters/tmclov/cgm_invert_tmclovQ2_bgq.cpp \
+@BGQ_TRUE@	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.cpp \
+@BGQ_TRUE@	inverters/tmclov/cg_128_invert_tmclovQ2_bgq.cpp
 
 @BGQ_TRUE@am__append_12 = \
 @BGQ_TRUE@	inverters/staggered/cgm_invert_stD2ee_m2_bgq.hpp \
@@ -153,7 +157,9 @@ host_triplet = @host@
 @BGQ_TRUE@	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.hpp \
 @BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.hpp \
 @BGQ_TRUE@	inverters/twisted_mass/cg_invert_tmQ2_bgq.hpp \
-@BGQ_TRUE@	inverters/tmclov/cgm_invert_tmclovQ2_bgq.hpp
+@BGQ_TRUE@	inverters/tmclov/cgm_invert_tmclovQ2_bgq.hpp \
+@BGQ_TRUE@	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.hpp \
+@BGQ_TRUE@	inverters/tmclov/cg_128_invert_tmclovQ2_bgq.hpp
 
 
 #compile or not thread support
@@ -230,7 +236,9 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	dirac_operators/WclovQ/dirac_operator_WclovQ.cpp \
 	dirac_operators/WclovQ2/dirac_operator_WclovQ2.cpp \
 	dirac_operators/tmclovQ/dirac_operator_tmclovQ.cpp \
+	dirac_operators/tmclovQ/dirac_operator_tmclovQ_128.cpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.cpp \
+	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_128.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.cpp \
@@ -240,6 +248,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.cpp \
 	dirac_operators/tmclovQ/dirac_operator_tmclovQ_bgq.cpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.cpp \
+	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.cpp \
 	dirac_operators/stD/dirac_operator_stD_bgq.cpp \
 	geometry/geometry_eo.cpp geometry/geometry_lx.cpp \
 	geometry/geometry_mix.cpp geometry/geometry_Wsklx.cpp \
@@ -279,6 +288,8 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
 	inverters/twisted_mass/tm_frontends.cpp \
 	inverters/tmclov/cg_invert_tmclovQ2.cpp \
+	inverters/tmclov/cg_64_invert_tmclovQ2.cpp \
+	inverters/tmclov/cg_128_invert_tmclovQ2.cpp \
 	inverters/tmclov/cgm_invert_tmclovQ2.cpp \
 	inverters/tmclov/tmclov_frontends.cpp \
 	inverters/Wclov/cg_invert_WclovQ.cpp \
@@ -292,14 +303,16 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.cpp \
 	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.cpp \
 	inverters/twisted_mass/cg_invert_tmQ2_bgq.cpp \
-	inverters/tmclov/cgm_invert_tmclovQ2_bgq.cpp io/ILDG_File.cpp \
-	io/checksum.cpp io/endianness.cpp io/input.cpp io/reader.cpp \
-	io/writer.cpp linalgs/linalgs.cpp new_types/complex.cpp \
-	new_types/dirac.cpp new_types/float_128.cpp \
-	new_types/float_256.cpp new_types/high_prec.cpp \
-	new_types/rat_approx.cpp new_types/read_new_types.cpp \
-	new_types/spin.cpp new_types/su3.cpp \
-	operations/contract/mesons_2pts.cpp \
+	inverters/tmclov/cgm_invert_tmclovQ2_bgq.cpp \
+	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.cpp \
+	inverters/tmclov/cg_128_invert_tmclovQ2_bgq.cpp \
+	io/ILDG_File.cpp io/checksum.cpp io/endianness.cpp \
+	io/input.cpp io/reader.cpp io/writer.cpp linalgs/linalgs.cpp \
+	new_types/complex.cpp new_types/dirac.cpp \
+	new_types/float_128.cpp new_types/float_256.cpp \
+	new_types/high_prec.cpp new_types/rat_approx.cpp \
+	new_types/read_new_types.cpp new_types/spin.cpp \
+	new_types/su3.cpp operations/contract/mesons_2pts.cpp \
 	operations/contract/mesons_eight.cpp \
 	operations/contract/optimized_mesons_2pts.cpp \
 	operations/contract/site_contract.cpp \
@@ -340,6 +353,7 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @BGQ_TRUE@	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.$(OBJEXT) \
 @BGQ_TRUE@	dirac_operators/tmclovQ/dirac_operator_tmclovQ_bgq.$(OBJEXT) \
 @BGQ_TRUE@	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.$(OBJEXT) \
+@BGQ_TRUE@	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.$(OBJEXT) \
 @BGQ_TRUE@	dirac_operators/stD/dirac_operator_stD_bgq.$(OBJEXT)
 @USE_VNODES_TRUE@am__objects_5 = geometry/geometry_vir.$(OBJEXT)
 @BGQ_TRUE@am__objects_6 = inverters/staggered/cgm_invert_stD2ee_m2_bgq.$(OBJEXT) \
@@ -350,7 +364,9 @@ am__dirstamp = $(am__leading_dot)dirstamp
 @BGQ_TRUE@	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.$(OBJEXT) \
 @BGQ_TRUE@	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.$(OBJEXT) \
 @BGQ_TRUE@	inverters/twisted_mass/cg_invert_tmQ2_bgq.$(OBJEXT) \
-@BGQ_TRUE@	inverters/tmclov/cgm_invert_tmclovQ2_bgq.$(OBJEXT)
+@BGQ_TRUE@	inverters/tmclov/cgm_invert_tmclovQ2_bgq.$(OBJEXT) \
+@BGQ_TRUE@	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.$(OBJEXT) \
+@BGQ_TRUE@	inverters/tmclov/cg_128_invert_tmclovQ2_bgq.$(OBJEXT)
 @USE_THREADS_TRUE@am__objects_7 = routines/thread.$(OBJEXT)
 am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	base/close.$(OBJEXT) base/debug.$(OBJEXT) \
@@ -371,7 +387,9 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	dirac_operators/WclovQ/dirac_operator_WclovQ.$(OBJEXT) \
 	dirac_operators/WclovQ2/dirac_operator_WclovQ2.$(OBJEXT) \
 	dirac_operators/tmclovQ/dirac_operator_tmclovQ.$(OBJEXT) \
+	dirac_operators/tmclovQ/dirac_operator_tmclovQ_128.$(OBJEXT) \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.$(OBJEXT) \
+	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.$(OBJEXT) \
 	dirac_operators/tmQ/dirac_operator_tmQ_128.$(OBJEXT) \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.$(OBJEXT) \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.$(OBJEXT) \
@@ -417,6 +435,8 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.$(OBJEXT) \
 	inverters/twisted_mass/tm_frontends.$(OBJEXT) \
 	inverters/tmclov/cg_invert_tmclovQ2.$(OBJEXT) \
+	inverters/tmclov/cg_64_invert_tmclovQ2.$(OBJEXT) \
+	inverters/tmclov/cg_128_invert_tmclovQ2.$(OBJEXT) \
 	inverters/tmclov/cgm_invert_tmclovQ2.$(OBJEXT) \
 	inverters/tmclov/tmclov_frontends.$(OBJEXT) \
 	inverters/Wclov/cg_invert_WclovQ.$(OBJEXT) \
@@ -540,17 +560,20 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.hpp \
 	dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp \
+	dirac_operators/tmclovQ/dirac_operator_tmclovQ_128.hpp \
 	dirac_operators/tmclovQ/reconstruct_tmclov_doublet.hpp \
 	dirac_operators/Wstat/dirac_operator_Wstat.hpp \
 	dirac_operators/WclovQ/dirac_operator_WclovQ.hpp \
 	dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp \
+	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.hpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_bgq.hpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_bgq.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_bgq.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128_bgq.hpp \
 	dirac_operators/tmclovQ/dirac_operator_tmclovQ_bgq.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp \
+	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.hpp \
 	dirac_operators/stD/dirac_operator_stD_bgq.hpp \
 	geometry/geometry_eo.hpp geometry/geometry_lx.hpp \
 	geometry/geometry_mix.hpp geometry/geometry_Wsklx.hpp \
@@ -593,6 +616,8 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	inverters/Wclov/cg_invert_WclovQ2.hpp \
 	inverters/tmclov/cg_invert_tmclovQ.hpp \
 	inverters/tmclov/cg_invert_tmclovQ2.hpp \
+	inverters/tmclov/cg_64_invert_tmclovQ2.hpp \
+	inverters/tmclov/cg_128_invert_tmclovQ2.hpp \
 	inverters/tmclov/cgm_invert_tmclovQ2.hpp \
 	inverters/tmclov/tmclov_frontends.hpp \
 	inverters/staggered/cgm_invert_stD2ee_m2_bgq.hpp \
@@ -603,18 +628,21 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	inverters/twisted_mass/cg_128_invert_tmQ2_bgq.hpp \
 	inverters/twisted_mass/cg_64_invert_tmDeoimpr_bgq.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2_bgq.hpp \
-	inverters/tmclov/cgm_invert_tmclovQ2_bgq.hpp io/ILDG_File.hpp \
-	io/checksum.hpp io/endianness.hpp io/input.hpp io/reader.hpp \
-	io/writer.hpp linalgs/linalgs.hpp new_types/complex.hpp \
-	new_types/dirac.hpp new_types/float_128.hpp \
-	new_types/float_256.hpp new_types/high_prec.hpp \
-	new_types/new_types_definitions.hpp new_types/rat_approx.hpp \
-	new_types/read_new_types.hpp new_types/spin.hpp \
-	new_types/su3.hpp operations/covariant_derivative.hpp \
-	operations/fft.hpp operations/fourier_transform.hpp \
-	operations/gauge_fixing.hpp operations/gaugeconf.hpp \
-	operations/remap_vector.hpp operations/shift.hpp \
-	operations/source.hpp operations/vector_gather.hpp \
+	inverters/tmclov/cgm_invert_tmclovQ2_bgq.hpp \
+	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.hpp \
+	inverters/tmclov/cg_128_invert_tmclovQ2_bgq.hpp \
+	io/ILDG_File.hpp io/checksum.hpp io/endianness.hpp \
+	io/input.hpp io/reader.hpp io/writer.hpp linalgs/linalgs.hpp \
+	new_types/complex.hpp new_types/dirac.hpp \
+	new_types/float_128.hpp new_types/float_256.hpp \
+	new_types/high_prec.hpp new_types/new_types_definitions.hpp \
+	new_types/rat_approx.hpp new_types/read_new_types.hpp \
+	new_types/spin.hpp new_types/su3.hpp \
+	operations/covariant_derivative.hpp operations/fft.hpp \
+	operations/fourier_transform.hpp operations/gauge_fixing.hpp \
+	operations/gaugeconf.hpp operations/remap_vector.hpp \
+	operations/shift.hpp operations/source.hpp \
+	operations/vector_gather.hpp \
 	operations/remez/remez_algorithm.hpp \
 	operations/contract/mesons_2pts.hpp \
 	operations/contract/mesons_eight.hpp \
@@ -780,11 +808,13 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2.hpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.hpp \
 	dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp \
+	dirac_operators/tmclovQ/dirac_operator_tmclovQ_128.hpp \
 	dirac_operators/tmclovQ/reconstruct_tmclov_doublet.hpp \
 	dirac_operators/Wstat/dirac_operator_Wstat.hpp \
 	dirac_operators/WclovQ/dirac_operator_WclovQ.hpp \
 	dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp \
+	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.hpp \
 	$(am__append_8) geometry/geometry_eo.hpp \
 	geometry/geometry_lx.hpp geometry/geometry_mix.hpp \
 	geometry/geometry_Wsklx.hpp $(am__append_10) hmc/backfield.hpp \
@@ -827,6 +857,8 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	inverters/Wclov/cg_invert_WclovQ2.hpp \
 	inverters/tmclov/cg_invert_tmclovQ.hpp \
 	inverters/tmclov/cg_invert_tmclovQ2.hpp \
+	inverters/tmclov/cg_64_invert_tmclovQ2.hpp \
+	inverters/tmclov/cg_128_invert_tmclovQ2.hpp \
 	inverters/tmclov/cgm_invert_tmclovQ2.hpp \
 	inverters/tmclov/tmclov_frontends.hpp $(am__append_12) \
 	io/ILDG_File.hpp io/checksum.hpp io/endianness.hpp \
@@ -904,7 +936,9 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	dirac_operators/WclovQ/dirac_operator_WclovQ.cpp \
 	dirac_operators/WclovQ2/dirac_operator_WclovQ2.cpp \
 	dirac_operators/tmclovQ/dirac_operator_tmclovQ.cpp \
+	dirac_operators/tmclovQ/dirac_operator_tmclovQ_128.cpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.cpp \
+	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_128.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.cpp \
@@ -946,6 +980,8 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	inverters/twisted_mass/cg_128_invert_tmDeoimpr.cpp \
 	inverters/twisted_mass/tm_frontends.cpp \
 	inverters/tmclov/cg_invert_tmclovQ2.cpp \
+	inverters/tmclov/cg_64_invert_tmclovQ2.cpp \
+	inverters/tmclov/cg_128_invert_tmclovQ2.cpp \
 	inverters/tmclov/cgm_invert_tmclovQ2.cpp \
 	inverters/tmclov/tmclov_frontends.cpp \
 	inverters/Wclov/cg_invert_WclovQ.cpp \
@@ -1236,6 +1272,9 @@ dirac_operators/WclovQ2/dirac_operator_WclovQ2.$(OBJEXT):  \
 dirac_operators/tmclovQ/dirac_operator_tmclovQ.$(OBJEXT):  \
 	dirac_operators/tmclovQ/$(am__dirstamp) \
 	dirac_operators/tmclovQ/$(DEPDIR)/$(am__dirstamp)
+dirac_operators/tmclovQ/dirac_operator_tmclovQ_128.$(OBJEXT):  \
+	dirac_operators/tmclovQ/$(am__dirstamp) \
+	dirac_operators/tmclovQ/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmclovQ2/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/tmclovQ2
 	@: > dirac_operators/tmclovQ2/$(am__dirstamp)
@@ -1243,6 +1282,9 @@ dirac_operators/tmclovQ2/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) dirac_operators/tmclovQ2/$(DEPDIR)
 	@: > dirac_operators/tmclovQ2/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.$(OBJEXT):  \
+	dirac_operators/tmclovQ2/$(am__dirstamp) \
+	dirac_operators/tmclovQ2/$(DEPDIR)/$(am__dirstamp)
+dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.$(OBJEXT):  \
 	dirac_operators/tmclovQ2/$(am__dirstamp) \
 	dirac_operators/tmclovQ2/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmQ/dirac_operator_tmQ_128.$(OBJEXT):  \
@@ -1270,6 +1312,9 @@ dirac_operators/tmclovQ/dirac_operator_tmclovQ_bgq.$(OBJEXT):  \
 	dirac_operators/tmclovQ/$(am__dirstamp) \
 	dirac_operators/tmclovQ/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.$(OBJEXT):  \
+	dirac_operators/tmclovQ2/$(am__dirstamp) \
+	dirac_operators/tmclovQ2/$(DEPDIR)/$(am__dirstamp)
+dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.$(OBJEXT):  \
 	dirac_operators/tmclovQ2/$(am__dirstamp) \
 	dirac_operators/tmclovQ2/$(DEPDIR)/$(am__dirstamp)
 dirac_operators/stD/dirac_operator_stD_bgq.$(OBJEXT):  \
@@ -1442,6 +1487,12 @@ inverters/tmclov/$(DEPDIR)/$(am__dirstamp):
 inverters/tmclov/cg_invert_tmclovQ2.$(OBJEXT):  \
 	inverters/tmclov/$(am__dirstamp) \
 	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
+inverters/tmclov/cg_64_invert_tmclovQ2.$(OBJEXT):  \
+	inverters/tmclov/$(am__dirstamp) \
+	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
+inverters/tmclov/cg_128_invert_tmclovQ2.$(OBJEXT):  \
+	inverters/tmclov/$(am__dirstamp) \
+	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
 inverters/tmclov/cgm_invert_tmclovQ2.$(OBJEXT):  \
 	inverters/tmclov/$(am__dirstamp) \
 	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
@@ -1488,6 +1539,12 @@ inverters/twisted_mass/cg_invert_tmQ2_bgq.$(OBJEXT):  \
 	inverters/twisted_mass/$(am__dirstamp) \
 	inverters/twisted_mass/$(DEPDIR)/$(am__dirstamp)
 inverters/tmclov/cgm_invert_tmclovQ2_bgq.$(OBJEXT):  \
+	inverters/tmclov/$(am__dirstamp) \
+	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
+inverters/tmclov/cg_64_invert_tmclovQ2_bgq.$(OBJEXT):  \
+	inverters/tmclov/$(am__dirstamp) \
+	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
+inverters/tmclov/cg_128_invert_tmclovQ2_bgq.$(OBJEXT):  \
 	inverters/tmclov/$(am__dirstamp) \
 	inverters/tmclov/$(DEPDIR)/$(am__dirstamp)
 io/$(am__dirstamp):
@@ -1749,9 +1806,12 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ2/$(DEPDIR)/dirac_operator_tmQ2_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmQ_left/$(DEPDIR)/dirac_operator_tmQ_left.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ/$(DEPDIR)/dirac_operator_tmclovQ.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ/$(DEPDIR)/dirac_operator_tmclovQ_128.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ/$(DEPDIR)/dirac_operator_tmclovQ_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ/$(DEPDIR)/reconstruct_tmclov_doublet.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2_128.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2_128_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_Wsklx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_eo.Po@am__quote@
@@ -1793,6 +1853,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/staggered/$(DEPDIR)/cgm_invert_stD2ee_m2_portable.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cg_128_invert_tmclovQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cg_128_invert_tmclovQ2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cg_64_invert_tmclovQ2.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cg_64_invert_tmclovQ2_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cg_invert_tmclovQ.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cg_invert_tmclovQ2.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@inverters/tmclov/$(DEPDIR)/cgm_invert_tmclovQ2.Po@am__quote@

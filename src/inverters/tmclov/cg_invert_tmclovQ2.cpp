@@ -1,44 +1,19 @@
-#include <math.h>
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
 
-#include "base/global_variables.hpp"
-#include "base/debug.hpp"
-#include "base/vectors.hpp"
-#include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp"
-#include "linalgs/linalgs.hpp"
+#include "cg_64_invert_tmclovQ2.hpp"
+#include "cg_128_invert_tmclovQ2.hpp"
+
 #include "new_types/new_types_definitions.hpp"
+#include "base/global_variables.hpp"
 
-#define BASETYPE spincolor
-
-#define NDOUBLES_PER_SITE 24
-#define BULK_VOL loc_vol
-#define BORD_VOL bord_vol
-
-#define APPLY_OPERATOR apply_tmclovQ2
-#define CG_OPERATOR_PARAMETERS conf,kappa,csw,Pmunu,temp,mu,
-
-#define CG_INVERT inv_tmclovQ2_cg
-
-//maybe one day async comm
-//#define cg_start_communicating_borders start_communicating_lx_spincolor_borders
-//#define cg_finish_communicating_borders finish_communicating_lx_spincolor_borders
-
-#define CG_ADDITIONAL_VECTORS_ALLOCATION()				\
-  BASETYPE *temp=nissa_malloc("temp",BULK_VOL+BORD_VOL,BASETYPE);
-
-#define CG_ADDITIONAL_VECTORS_FREE()		\
-  nissa_free(temp);
-
-//additional parameters
-#define CG_NARG 5
-#define AT1 quad_su3*
-#define A1 conf
-#define AT2 double
-#define A2 kappa
-#define AT3 double
-#define A3 csw
-#define AT4 as2t_su3*
-#define A4 Pmunu
-#define AT5 double
-#define A5 mu
-
-#include "inverters/templates/cg_invert_template_threaded.cpp"
+namespace nissa
+{
+  //switch 64 and 128
+  void inv_tmclovQ2_cg(spincolor *sol,spincolor *guess,quad_su3 *conf,double kappa,double csw,as2t_su3 *Pmunu,double m,int niter,double residue,spincolor *source)
+  {
+    if(use_128_bit_precision) inv_tmclovQ2_cg_128(sol,guess,conf,kappa,csw,Pmunu,m,niter,residue,source);
+    else inv_tmclovQ2_cg_64(sol,guess,conf,kappa,csw,Pmunu,m,niter,residue,source);
+  }
+}

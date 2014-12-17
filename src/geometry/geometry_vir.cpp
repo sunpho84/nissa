@@ -784,6 +784,40 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
+  
+  //build a clover term from an unoptimized Pmunu
+  THREADABLE_FUNCTION_3ARG(lx_as2t_su3_remap_to_opt_virlx, bi_opt_as2t_su3*,bi_cl, double,csw, as2t_su3*,Pmunu)
+  {
+    GET_THREAD_ID();
+    
+    NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
+      {
+	quad_su3 temp;
+	build_chromo_therm_from_anti_symmetric_four_leaves(temp,Pmunu[ivol_lx]);
+	for(int mu=0;mu<4;mu++)
+	  {
+	    su3_prod_double(temp[mu],temp[mu],csw);
+	    SU3_TO_BI_SU3(bi_cl[virlx_of_loclx[ivol_lx]][mu],temp[mu],vnode_of_loclx(ivol_lx));
+	  }
+      }
+    set_borders_invalid(bi_cl);
+  }
+  THREADABLE_FUNCTION_END
+  //reverse
+  THREADABLE_FUNCTION_2ARG(virlx_opt_as2t_su3_remap_to_lx, opt_as2t_su3*,out, bi_opt_as2t_su3*,in)
+  {
+    GET_THREAD_ID();
+    
+    //split to the two VN
+    NISSA_PARALLEL_LOOP(ivol_virlx,0,loc_vol/NVNODES)
+      for(int mu=0;mu<4;mu++)
+	BI_SU3_TO_SU3(out[loclx_of_virlx[ivol_virlx]][mu],out[loclx_of_virlx[ivol_virlx]+vnode_lx_offset][mu],
+		      in[ivol_virlx][mu]);
+    
+    //wait filling
+    set_borders_invalid(out);
+  }
+  THREADABLE_FUNCTION_END
 
   //set virtual geometry
   void set_vir_geometry()
@@ -830,24 +864,4 @@ namespace nissa
 	nissa_free(vireo_of_loclx);
       }
   }
-  
-  //build a clover term from an unoptimized Pmunu
-  THREADABLE_FUNCTION_3ARG(lx_as2t_su3_remap_to_opt_virlx, bi_opt_as2t_su3*,bi_cl, double,csw, as2t_su3*,Pmunu)
-  {
-    GET_THREAD_ID();
-    
-    NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
-      {
-	quad_su3 temp;
-	build_chromo_therm_from_anti_symmetric_four_leaves(temp,Pmunu[ivol_lx]);
-	for(int mu=0;mu<4;mu++)
-	  {
-	    su3_prod_double(temp[mu],temp[mu],csw);
-	    SU3_TO_BI_SU3(bi_cl[virlx_of_loclx[ivol_lx]][mu],temp[mu],vnode_of_loclx(ivol_lx));
-	  }
-      }
-    set_borders_invalid(bi_cl);
-  }
-  THREADABLE_FUNCTION_END
-  
 }

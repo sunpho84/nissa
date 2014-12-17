@@ -4,13 +4,13 @@
 
 #include <math.h>
 
-//#include "cg_128_invert_tmclovQ2_bgq.hpp"
-
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "base/debug.hpp"
 #include "communicate/communicate.hpp"
 #include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp"
+#include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp"
+#include "inverters/tmclov/cg_128_invert_tmclovQ2_bgq.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 
@@ -44,7 +44,7 @@
 #define A3 Cl
 #define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,Cl,
 
-//#define CG_128_INVERT inv_tmQ2_m2_RL_cg_128_bgq
-//#define CG_128_ADDITIONAL_PARAMETERS_CALL conf,kappa,0,
+#define CG_128_INVERT inv_tmclovQ2_m2_cg_128_bgq
+#define CG_128_ADDITIONAL_PARAMETERS_CALL conf,kappa,Cl,
 
 #include "inverters/templates/cgm_invert_template_threaded.cpp"

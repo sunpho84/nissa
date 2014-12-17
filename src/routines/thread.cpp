@@ -147,10 +147,10 @@ namespace nissa
 #endif
 
     //if something was delayed, make it advance
-    #if THREAD_DEBUG>=2
+#if THREAD_DEBUG>=2
     wait_for_delayed_threads();
     delayed_thread_barrier[THREAD_ID]=0;
-    #endif
+#endif
 
     THREAD_BARRIER_FORCE();
     thread_pool_locked=true;

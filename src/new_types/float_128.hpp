@@ -15,14 +15,17 @@ namespace nissa
   void color_128_subtassign(color_128 a,color_128 b);
   void color_128_summ(color_128 a,color_128 b,color_128 c);
   void color_128_summassign(color_128 a,color_128 b);
+  void color_128_put_to_zero(color_128 a);
   void complex_128_isubt(complex_128 a,complex_128 b,complex_128 c);
   void complex_128_isumm(complex_128 a,complex_128 b,complex_128 c);
   void complex_128_subt(complex_128 a,complex_128 b,complex_128 c);
   void complex_128_summ(complex_128 a,complex_128 b,complex_128 c);
   void complex_128_summassign_64(complex_128 a,complex b);
   void complex_128_summassign(complex_128 a,complex_128 b);
+  void complex_128_subtassign(complex_128 a,complex_128 b);
   void complex_summ_the_64_conj1_prod_128(complex_128 a,complex b,complex_128 c);
   void complex_summ_the_64_prod_128(complex_128 a,complex b,complex_128 c);
+  void complex_subt_the_64_prod_128(complex_128 a,complex b,complex_128 c);
   void float_128_copy(float_128 b,float_128 a);
   void float_128_swap(float_128 b,float_128 a);
   int float_128_is_greater(float_128 a,float_128 b);
@@ -57,6 +60,8 @@ namespace nissa
   void float_64_summ_the_prod_complex_128(complex_128 a,double b,complex_128 c);
   void float_subt_the_64_prod_128(float_128 c,double a,float_128 b);
   void float_summ_the_64_prod_128(float_128 c,double a,float_128 b);
+  void su3_subt_the_prod_color_128(color_128 a,su3 b,color_128 c);
+  void su3_dag_summ_the_prod_color_128(color_128 a,su3 b,color_128 c);
   void unsafe_complex_64_conj1_prod_128(complex_128 a,complex b,complex_128 c);
   void unsafe_complex_64_prod_128(complex_128 a,complex b,complex_128 c);
   void unsafe_su3_dag_prod_color_128(color_128 a,su3 b,color_128 c);
