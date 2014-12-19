@@ -373,10 +373,15 @@ int main(int narg,char **arg)
     {
       FILE *fin=fopen(arg[1],"r");
       if(fin==NULL) crash("error opening %s",arg[1]);
-
-      fscanf(fin,"L %d",&L);
-      fscanf(fin,"T %d",&T);
-      fclose(fin);      
+      
+      size_t len=0;
+      char *line=NULL;
+      if(getline(&line,&len,fin)==-1) crash("reading");
+      sscanf(line,"L %d",&L);
+      if(getline(&line,&len,fin)==-1) crash("reading");
+      sscanf(line,"T %d",&T);
+      fclose(fin);
+      free(line);
       printf("Finding partition for %d ranks\n",torus.get_N());
       for(int i=0;i<5;i++) printf(" torus[%d]: %d\n",i,torus.grid[i]);
     }
@@ -394,6 +399,8 @@ int main(int narg,char **arg)
     }
   int nranks=torus.get_N();
   valid_partition_lister_t lister(L,T,nranks);
+  printf("Finding partition for L=%d, T=%d, %d ranks\n",L,T,nranks);
+  for(int i=0;i<5;i++) printf(" size[%d]: %d, torus: %d\n",i,torus.grid[i],torus.is_torus[i]);
   
   //find the best rank assignement
   assignement_t assignement;
