@@ -111,6 +111,8 @@ namespace nissa
     for(int isubcube=0;isubcube<subcube;isubcube++)
       poly_ind+=subcube_vol[isubcube];
     
+    printf("%d -> %d\n",iloc_lx,poly_ind);
+    
     return poly_ind;
   }
   
@@ -179,6 +181,7 @@ namespace nissa
     //change endianness to little
     if(!little_endian)
       {
+	floats_to_floats_changing_endianness((float*)&itraj,(float*)&itraj,1);
 	doubles_to_doubles_changing_endianness((double*)loop,(double*)loop,loc_vol*2);
 	doubles_to_doubles_changing_endianness(tra,tra,2);
       }
@@ -200,7 +203,11 @@ namespace nissa
     MPI_Barrier(MPI_COMM_WORLD);
     
     //find which piece has to write data
-    int tot_data=glb_size[perp_dir[mu][0]]*glb_size[perp_dir[mu][1]]*glb_size[perp_dir[mu][2]];
+    int tot_data=
+      (glb_size[perp_dir[mu][0]]/2+1)*
+      (glb_size[perp_dir[mu][1]]/2+1)*
+      (glb_size[perp_dir[mu][2]]/2+1);
+
     int istart=loc_vol*rank;
     int iend=istart+loc_vol;
     
