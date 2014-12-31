@@ -1439,7 +1439,7 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf && enough_time && read_conf_parameters(&iconf))
+  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(&iconf))
     {
       //smear the conf and generate the source
       setup_conf();

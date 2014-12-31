@@ -78,27 +78,40 @@ namespace nissa
   {
     int perp_vol=glb_vol/glb_size[mu];
     
-    int subcube_vol=1,subcube=0,subcube_el=0;
-    int subcube_size[3],subcube_coord[3],subcube_el_coord[3];
+    int subcube=0,subcube_el=0;
+    int subcube_size[3][2],subcube_coord[3],subcube_el_coord[3];
     for(int inu=0;inu<3;inu++)
       {
 	//take dir and subcube size
 	int nu=perp_dir[mu][inu];
-	subcube_size[nu]=(glb_size[nu]/2);
-	subcube_vol*=subcube_size[nu];
+	subcube_size[inu][0]=glb_size[nu]/2+1;
+	subcube_size[inu][1]=glb_size[nu]/2-1;
 	
 	//take global coord and identify subcube
 	int glx_nu=glb_coord_of_loclx[iloc_lx][nu];
-	subcube_coord[nu]=(glx_nu>=subcube_size[nu]);
-	subcube=subcube*2+subcube_coord[nu];
+	subcube_coord[inu]=(glx_nu>=subcube_size[inu][0]);
+	subcube=subcube*2+subcube_coord[inu];
 
 	//identify also the local coord
-	subcube_el_coord[nu]=glx_nu-subcube_coord[nu]*subcube_size[nu];
-	subcube_el=subcube_el*subcube_size[nu]+subcube_el_coord[nu];
+	subcube_el_coord[inu]=glx_nu-subcube_coord[inu]*subcube_size[inu][0];
+	subcube_el=subcube_el*subcube_size[inu][subcube_coord[inu]]+subcube_el_coord[inu];
       }
     
-    //add the most external 
-    return subcube_el+subcube_vol*subcube+perp_vol*glb_coord_of_loclx[iloc_lx][mu];
+    //compute the volume of the 8 subcubes
+    int subcube_vol[8];
+    for(int a=0;a<2;a++)
+      for(int b=0;b<2;b++)
+	for(int c=0;c<2;c++)
+	  subcube_vol[c+2*(b+2*a)]=subcube_size[0][a]*subcube_size[1][b]*subcube_size[2][c];
+
+    //set the most internal and external
+    int poly_ind=subcube_el+perp_vol*glb_coord_of_loclx[iloc_lx][mu];
+    
+    //summ the smaller cubes
+    for(int isubcube=0;isubcube<subcube;isubcube++)
+      poly_ind+=subcube_vol[isubcube];
+    
+    return poly_ind;
   }
   
   //wrapper
@@ -141,7 +154,8 @@ namespace nissa
 	    loop[ivol][RE]=(loop[ivol][RE]*loop[ivol][RE]+loop[ivol][IM]*loop[ivol][IM])/9; //nc
 	    loop[ivol][IM]=0;
 	  }
-	if(rank==0 && IS_MASTER_THREAD) loop[0][0]=0; //put to zero zero mode
+	//commented: can be done offline now!
+	//if(rank==0 && IS_MASTER_THREAD) loop[0][0]=0; //put to zero zero mode
 	THREAD_BARRIER();
 
 	//transform back
@@ -153,7 +167,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   //remap and save - "loop" is destroyed!
-  void save_poly_loop_correlator(FILE *file,complex *loop,int mu)
+  void save_poly_loop_correlator(FILE *file,complex *loop,int mu,double *tra,int itraj)
   {
     if(IS_PARALLEL) crash("cannot work threaded!");
     
@@ -163,14 +177,34 @@ namespace nissa
     delete poly_rem;
     
     //change endianness to little
-    if(!little_endian) doubles_to_doubles_changing_endianness((double*)loop,(double*)loop,loc_vol*2);
+    if(!little_endian)
+      {
+	doubles_to_doubles_changing_endianness((double*)loop,(double*)loop,loc_vol*2);
+	doubles_to_doubles_changing_endianness(tra,tra,2);
+      }
+    
+    //offset to mantain 16 byte alignement
+    if(fseek(file,3*sizeof(int),SEEK_CUR)) crash("seeking to align");
+    MPI_Barrier(MPI_COMM_WORLD);
+    
+    //write conf id and polyakov
+    if(rank==0)
+      {
+	off_t nwr=fwrite(&itraj,sizeof(int),1,file);
+	if(nwr!=1) crash("wrote %d int instead of 1",nwr);
+	nwr=fwrite(tra,sizeof(double),2,file);
+	if(nwr!=2) crash("wrote %d doubles instead of 2",nwr);
+      }
+    else 
+      if(fseek(file,sizeof(int)+sizeof(complex),SEEK_CUR)) crash("seeking");
+    MPI_Barrier(MPI_COMM_WORLD);
     
     //find which piece has to write data
-    int tot_data=glb_vol/glb_size[mu]/8;
+    int tot_data=glb_size[perp_dir[mu][0]]*glb_size[perp_dir[mu][1]]*glb_size[perp_dir[mu][2]];
     int istart=loc_vol*rank;
     int iend=istart+loc_vol;
     
-    //fix possible exciding boundary
+    //fix possible exceding boundary
     if(istart>tot_data) istart=tot_data;
     if(iend>tot_data) iend=tot_data;
     int loc_data=iend-istart;
@@ -195,7 +229,7 @@ namespace nissa
   }
 
   //compute and possible save
-  void average_and_corr_polyakov_loop_lx_conf(double *tra,FILE *corr_file,quad_su3 *conf,int mu)
+  void average_and_corr_polyakov_loop_lx_conf(double *tra,FILE *corr_file,quad_su3 *conf,int mu,int itraj=0)
   {
     //if corr_file passed, allocate whole loop trace
     complex *loop=NULL;
@@ -207,7 +241,7 @@ namespace nissa
     //write and free
     if(corr_file!=NULL)
       {
-	save_poly_loop_correlator(corr_file,loop,mu);
+	save_poly_loop_correlator(corr_file,loop,mu,tra,itraj);
 	nissa_free(loop);
       }
   }
