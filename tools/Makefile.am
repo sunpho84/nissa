@@ -13,6 +13,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/create/create_hot \
 	$(top_builddir)/tools/conf_transform/smear/stout \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data \
+	$(top_builddir)/tools/conf_transform/edit/skip_random \
 	$(top_builddir)/tools/print_gamma/gamma_test \
 	$(top_builddir)/tools/unitarity_check/unitarity_check
 
@@ -26,6 +27,7 @@ __top_builddir__tools_conf_transform_create_create_cold_SOURCES=conf_transform/c
 __top_builddir__tools_conf_transform_create_create_hot_SOURCES=conf_transform/create/create_hot.cpp
 __top_builddir__tools_conf_transform_smear_stout_SOURCES=conf_transform/smear/stout.cpp
 __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES=conf_transform/edit/grab_ildg_data.cpp
+__top_builddir__tools_conf_transform_edit_skip_random_SOURCES=conf_transform/edit/skip_random.cpp
 __top_builddir__tools_print_gamma_gamma_test_SOURCES=print_gamma/gamma_test.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES=unitarity_check/unitarity_check.cpp
 

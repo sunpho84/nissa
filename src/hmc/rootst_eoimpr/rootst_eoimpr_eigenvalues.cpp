@@ -71,7 +71,7 @@ namespace nissa
 
   //scale the rational expansion
   //assumes that the conf has already stag phases inside
-  THREADABLE_FUNCTION_4ARG(rootst_eoimpr_scale_expansions, rat_approx_t*,rat_exp_pfgen, rat_approx_t*,rat_exp_actio, quad_su3**,eo_conf, theory_pars_t*,theory_pars)
+  THREADABLE_FUNCTION_5ARG(rootst_eoimpr_scale_expansions, rat_approx_t*,rat_exp_pfgen, rat_approx_t*,rat_exp_actio, quad_su3**,eo_conf, theory_pars_t*,theory_pars, int*,npfs)
   {
     GET_THREAD_ID();
     
@@ -82,7 +82,7 @@ namespace nissa
 	int irexp=theory_pars->quark_content[iflav].deg-1;
 	
 	//The expansion for a npf pseudofermions is labelled by npf-1
-	int ipf=0;//for the moment, only 1 pf
+	int ipf=npfs[iflav]-1;
 	
 	//Set scale factors
 	//add the background field
@@ -100,13 +100,11 @@ namespace nissa
 	    double scale_actio=pow(scale,db_rat_exp_actio_degr[ipf][irexp]);
 	    
 	    //scale the rational approximation to generate pseudo-fermions
-	    rat_exp_pfgen[iflav].exp_power=db_rat_exp_pfgen_degr[ipf][irexp];
 	    rat_exp_pfgen[iflav].minimum=db_rat_exp_min*scale;
 	    rat_exp_pfgen[iflav].maximum=db_rat_exp_max*scale;
 	    rat_exp_pfgen[iflav].cons=db_rat_exp_pfgen_cons[ipf][irexp]*scale_pfgen;
 	    
 	    //scale the rational approximation to compute action (and force)
-	    rat_exp_actio[iflav].exp_power=db_rat_exp_actio_degr[ipf][irexp];
 	    rat_exp_actio[iflav].minimum=db_rat_exp_min*scale;
 	    rat_exp_actio[iflav].maximum=db_rat_exp_max*scale;
 	    rat_exp_actio[iflav].cons=db_rat_exp_actio_cons[ipf][irexp]*scale_actio;
@@ -132,4 +130,9 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
+  
+  //convert from a stored approximation
+  void convert_rat_approx(rat_approx_t *appr,void *data,int nflav)
+  {
+  }
 }

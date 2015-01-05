@@ -64,8 +64,13 @@ namespace nissa
       }
     
     //allocate pseudo-fermions
-    color **pf=nissa_malloc("pf*",theory_pars.nflavs,color*);
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++) pf[iflav]=nissa_malloc("pf",loc_volh,color);
+    color ***pf=nissa_malloc("pf**",theory_pars.nflavs,color**);
+    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+      {
+	int npfs=simul_pars.npseudo_fs[iflav];
+	pf[iflav]=nissa_malloc("pf*",npfs,color*);
+	for(int ipf=0;ipf<npfs;ipf++) pf[iflav][ipf]=nissa_malloc("pf",loc_volh,color);
+      }
     
     //if needed smear the configuration for pseudo-fermions, approx generation and action computation
     //otherwise bind out_conf to sme_conf
@@ -87,12 +92,13 @@ namespace nissa
     addrem_stagphases_to_eo_conf(out_conf);
     
     //generate the appropriate expansion of rational approximations
-    rootst_eoimpr_scale_expansions(rat_exp_pfgen,rat_exp_actio,sme_conf,&theory_pars);
+    rootst_eoimpr_scale_expansions(rat_exp_pfgen,rat_exp_actio,sme_conf,&theory_pars,simul_pars.npseudo_fs);
     
     //create pseudo-fermions
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
-      generate_pseudo_fermion(pf[iflav],sme_conf,theory_pars.backfield[iflav],&(rat_exp_pfgen[iflav]),
-			      simul_pars.pf_action_residue);
+      for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++)
+	generate_pseudo_fermion(pf[iflav][ipf],sme_conf,theory_pars.backfield[iflav],&(rat_exp_pfgen[iflav]),
+				simul_pars.pf_action_residue);
     
     //create the momenta
     generate_hmc_momenta(H);
@@ -100,8 +106,7 @@ namespace nissa
     
     //compute initial action
     double init_action;
-    full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,H_B,pf,
-			      &theory_pars,rat_exp_actio,simul_pars.pf_action_residue);
+    full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,H_B,pf,&theory_pars,rat_exp_actio,&simul_pars);
     
     //evolve forward
     omelyan_rootst_eoimpr_evolver(H,H_B,out_conf,pf,&theory_pars,rat_exp_actio,&simul_pars);
@@ -118,8 +123,7 @@ namespace nissa
     
     //compute final action using sme_conf (see previous note)
     double final_action;
-    full_rootst_eoimpr_action(&final_action,out_conf,sme_conf,H,H_B,pf,
-			      &theory_pars,rat_exp_actio,simul_pars.pf_action_residue);
+    full_rootst_eoimpr_action(&final_action,out_conf,sme_conf,H,H_B,pf,&theory_pars,rat_exp_actio,&simul_pars);
     verbosity_lv2_master_printf("Final action: %lg\n",final_action);
     
     //compute the diff
@@ -129,7 +133,11 @@ namespace nissa
     addrem_stagphases_to_eo_conf(out_conf);
     
     //free stuff
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++) nissa_free(pf[iflav]);
+    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+      {
+	for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++) nissa_free(pf[iflav][ipf]);
+	nissa_free(pf[iflav]);
+      }
     for(int par=0;par<2;par++) nissa_free(H[par]);
     if(theory_pars.stout_pars.nlev!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
     nissa_free(pf);

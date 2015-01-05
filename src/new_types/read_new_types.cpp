@@ -99,7 +99,7 @@ namespace nissa
   }
   
   //the parameters relevant for hmc evolution
-  void read_hmc_evol_pars(hmc_evol_pars_t &pars)
+  void read_hmc_evol_pars(hmc_evol_pars_t &pars,theory_pars_t &th)
   {
     read_str_int("SkipMTestNTraj",&pars.skip_mtest_ntraj);
     read_str_double("HmcTrajLength",&pars.traj_length);
@@ -107,6 +107,23 @@ namespace nissa
     read_str_int("NGaugeSubSteps",&pars.ngauge_substeps);
     read_str_double("MdResidue",&pars.md_residue);
     read_str_double("PfActionResidue",&pars.pf_action_residue);
+    pars.npseudo_fs=new int[th.nflavs];
+    expect_str("NPseudoFermions");
+    for(int iflav=0;iflav<th.nflavs;iflav++) read_int(&pars.npseudo_fs[iflav]);
+    pars.rat_appr=new rat_approx_t[3*th.nflavs];
+    for(int iflav=0;iflav<th.nflavs;iflav++)
+      {
+	int deg=th.quark_content[iflav].deg;
+	//first contains the pseudo-fermions generation
+	pars.rat_appr[3*iflav+0].num=deg;
+	pars.rat_appr[3*iflav+0].den=8*pars.npseudo_fs[iflav];
+	//second and third contains the force
+	for(int i=1;i<3;i++)
+	  {
+	    pars.rat_appr[3*iflav+i].num=-deg;
+	    pars.rat_appr[3*iflav+i].den=4*pars.npseudo_fs[iflav];
+	  }
+      }
   }
   
   //read the parameters relevant for pure gauge evolution

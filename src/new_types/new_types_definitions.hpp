@@ -419,10 +419,16 @@ namespace nissa
     double maximum;
     double cons;
     int num,den;
-    double exp_power;
     int degree;
     double *poles;
     double *weights;
+    rat_approx_t()
+    {
+      strcpy(name,"");
+      minimum=maximum=cons=0;
+      degree=num=den=0;
+      poles=weights=NULL;
+    }
   };
   
   //quark content
@@ -671,6 +677,7 @@ namespace nissa
     int nmd_steps;
     int ngauge_substeps;
     int *npseudo_fs;
+    rat_approx_t *rat_appr;
   };
   
   //results of a unitarity check
