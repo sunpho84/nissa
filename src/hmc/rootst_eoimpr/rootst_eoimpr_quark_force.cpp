@@ -172,7 +172,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   //compute the quark force, without stouting reampping
-  THREADABLE_FUNCTION_7ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, quad_su3**,F, double*,F_B, quad_su3**,conf, color**,pf, theory_pars_t*,tp, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_8ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, quad_su3**,F, double*,F_B, quad_su3**,conf, color***,pf, theory_pars_t*,tp, rat_approx_t*,appr, int*,npfs, double,residue)
   {
     GET_THREAD_ID();
     
@@ -185,8 +185,8 @@ namespace nissa
     for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
     
     for(int iflav=0;iflav<tp->nflavs;iflav++)
-      summ_the_rootst_eoimpr_quark_force(F,F_B,tp->quark_content[iflav].charge,
-					 conf,pf[iflav],tp->backfield[iflav],&(appr[iflav]),residue);
+      for(int ipf=0;ipf<npfs[iflav];ipf++)
+	summ_the_rootst_eoimpr_quark_force(F,F_B,tp->quark_content[iflav].charge,conf,pf[iflav][ipf],tp->backfield[iflav],&(appr[iflav]),residue);
     
     //add the stag phases to the force term, coming from the disappered link in dS/d(U)
     addrem_stagphases_to_eo_conf(F);
@@ -194,12 +194,12 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //take into account the stout remapping procedure
-  THREADABLE_FUNCTION_7ARG(compute_rootst_eoimpr_quark_and_magnetic_force, quad_su3**,F, double*,F_B, quad_su3**,conf, color**,pf, theory_pars_t*,physics, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_8ARG(compute_rootst_eoimpr_quark_and_magnetic_force, quad_su3**,F, double*,F_B, quad_su3**,conf, color***,pf, theory_pars_t*,physics, rat_approx_t*,appr, int*,npfs, double,residue)
   {
     int nlev=physics->stout_pars.nlev;
     
     //first of all we take care of the trivial case
-    if(nlev==0)	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,F_B,conf,pf,physics,appr,residue);
+    if(nlev==0)	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,F_B,conf,pf,physics,appr,npfs,residue);
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]
@@ -212,7 +212,7 @@ namespace nissa
 	
 	//compute the force in terms of the most smeared conf
 	addrem_stagphases_to_eo_conf(sme_conf[nlev]); //add to most smeared conf
-	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,F_B,sme_conf[nlev],pf,physics,appr,residue);
+	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,F_B,sme_conf[nlev],pf,physics,appr,npfs,residue);
 	
 	//remap the force backward
 	stouted_force_remap(F,sme_conf,&(physics->stout_pars));

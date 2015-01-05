@@ -66,7 +66,7 @@ namespace nissa
   }
   
   //compute quark action for a set of quark
-  THREADABLE_FUNCTION_7ARG(rootst_eoimpr_quark_action, double*,glb_action, quad_su3**,eo_conf, int,nfl, quad_u1***,u1b, color**,pf, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_7ARG(rootst_eoimpr_quark_action, double*,glb_action, quad_su3**,eo_conf, int,nfl, quad_u1***,u1b, color***,pf, rat_approx_t*,appr, hmc_evol_pars_t*,simul_pars)
   {
     //allocate chi
     color *chi_e=nissa_malloc("chi_e",loc_volh,color);
@@ -74,17 +74,18 @@ namespace nissa
     //quark action
     (*glb_action)=0;
     for(int ifl=0;ifl<nfl;ifl++)
-      {
-	//compute chi with background field
-	add_backfield_to_conf(eo_conf,u1b[ifl]);
-	summ_src_and_all_inv_stD2ee_m2_cgm(chi_e,eo_conf,appr+ifl,1000000,residue,pf[ifl]);
-	rem_backfield_from_conf(eo_conf,u1b[ifl]);
-	
-	//compute scalar product
-	double flav_action;
-	double_vector_glb_scalar_prod(&flav_action,(double*)chi_e,(double*)(pf[ifl]),loc_volh*6);
-	(*glb_action)+=flav_action;
-      }
+      for(int ipf=0;ipf<simul_pars->npseudo_fs[ifl];ipf++)
+	{
+	  //compute chi with background field
+	  add_backfield_to_conf(eo_conf,u1b[ifl]);
+	  summ_src_and_all_inv_stD2ee_m2_cgm(chi_e,eo_conf,appr+ifl,1000000,simul_pars->pf_action_residue,pf[ifl][ipf]);
+	  rem_backfield_from_conf(eo_conf,u1b[ifl]);
+	  
+	  //compute scalar product
+	  double flav_action;
+	  double_vector_glb_scalar_prod(&flav_action,(double*)chi_e,(double*)(pf[ifl][ipf]),loc_volh*6);
+	  (*glb_action)+=flav_action;
+	}
     
     //free
     nissa_free(chi_e);
@@ -93,13 +94,13 @@ namespace nissa
 
   //Compute the total action of the rooted staggered e/o improved theory.
   //Passed conf must NOT contain the backfield, but contains the stagphases so remove it.
-  THREADABLE_FUNCTION_9ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, double*,H_B, color**,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_9ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, double*,H_B, color***,pf, theory_pars_t*,theory_pars, rat_approx_t*,appr, hmc_evol_pars_t*,simul_pars)
   {
     verbosity_lv1_master_printf("Computing action\n");
     
     //compute the three parts of the action
     double quark_action;
-    rootst_eoimpr_quark_action(&quark_action,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,appr,residue);
+    rootst_eoimpr_quark_action(&quark_action,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,appr,simul_pars);
     verbosity_lv1_master_printf("Quark_action: %16.16lg\n",quark_action);
     
     //gauge action

@@ -113,7 +113,8 @@ void read_conf(quad_su3 **conf,char *path)
 	  theory_pars[SEA_THEORY].em_field_pars.convert_from_message(*cur_mess);
 	  theory_pars_init_backfield(theory_pars[SEA_THEORY]);
 	}
-    }
+      if(strcasecmp(cur_mess->name,"RAT_approx")==0) convert_rat_approx(evol_pars.hmc_evol_pars.rat_appr,cur_mess->data,theory_pars[SEA_THEORY].nflavs);
+  }
   
   //if message with string not found start from input seed
   if(glb_rnd_gen_inited==0)
@@ -221,7 +222,7 @@ void init_simulation(char *path)
     {
       //load evolution info depending if is a quenched simulation or unquenched
       if(theory_pars[SEA_THEORY].nflavs!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
-	read_hmc_evol_pars(evol_pars.hmc_evol_pars);
+	read_hmc_evol_pars(evol_pars.hmc_evol_pars,theory_pars[SEA_THEORY]);
       else read_pure_gauge_evol_pars(evol_pars.pure_gauge_evol_pars);
       
       //read in and out conf path

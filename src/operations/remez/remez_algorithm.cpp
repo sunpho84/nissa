@@ -515,7 +515,6 @@ namespace nissa
     appr.maximum=maximum;
     appr.num=num;
     appr.den=den;
-    appr.exp_power=(double)num/den;
     
     //wrapper for 256bit output
     float_high_prec_t cons;

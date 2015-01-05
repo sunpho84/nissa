@@ -111,8 +111,6 @@ namespace nissa
     for(int isubcube=0;isubcube<subcube;isubcube++)
       poly_ind+=subcube_vol[isubcube];
     
-    printf("%d -> %d\n",iloc_lx,poly_ind);
-    
     return poly_ind;
   }
   

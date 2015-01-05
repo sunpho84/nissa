@@ -30,7 +30,7 @@ namespace nissa
   //print a rational approximation
   void master_printf_rat_approx(rat_approx_t *appr)
   {
-    master_printf("Rational approximation %s of x^(%d/%d) = x^%lg:\n",appr->name,appr->num,appr->den,appr->exp_power);
+    master_printf("Rational approximation %s of x^(%d/%d):\n",appr->name,appr->num,appr->den);
     master_printf("  valid in the interval: %lg %lg\n",appr->minimum,appr->maximum);
     master_printf("  const: %lg\n",appr->cons);
     master_printf("  degree: %d\n",appr->degree);
