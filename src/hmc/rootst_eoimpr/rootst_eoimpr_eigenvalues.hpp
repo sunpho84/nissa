@@ -5,7 +5,6 @@
 
 namespace nissa
 {
-  void convert_rat_approx(rat_approx_t *appr,void *data,int flav);
   double eo_color_norm2(color *v);
   double eo_color_normalize(color *out,color *in,double norm);
   double max_eigenval(quark_content_t &quark_content,quad_su3 **eo_conf,int niters);

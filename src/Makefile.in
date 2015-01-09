@@ -306,9 +306,9 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	inverters/tmclov/cgm_invert_tmclovQ2_bgq.cpp \
 	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.cpp \
 	inverters/tmclov/cg_128_invert_tmclovQ2_bgq.cpp \
-	io/ILDG_File.cpp io/checksum.cpp io/endianness.cpp \
-	io/input.cpp io/reader.cpp io/writer.cpp linalgs/linalgs.cpp \
-	new_types/complex.cpp new_types/dirac.cpp \
+	io/checksum.cpp io/endianness.cpp io/input.cpp \
+	io/ILDG_File.cpp io/reader.cpp io/writer.cpp \
+	linalgs/linalgs.cpp new_types/complex.cpp new_types/dirac.cpp \
 	new_types/float_128.cpp new_types/float_256.cpp \
 	new_types/high_prec.cpp new_types/rat_approx.cpp \
 	new_types/read_new_types.cpp new_types/spin.cpp \
@@ -442,8 +442,8 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	inverters/Wclov/cg_invert_WclovQ.$(OBJEXT) \
 	inverters/Wclov/cg_invert_WclovQ2.$(OBJEXT) \
 	inverters/tmclov/cg_invert_tmclovQ.$(OBJEXT) $(am__objects_6) \
-	io/ILDG_File.$(OBJEXT) io/checksum.$(OBJEXT) \
-	io/endianness.$(OBJEXT) io/input.$(OBJEXT) io/reader.$(OBJEXT) \
+	io/checksum.$(OBJEXT) io/endianness.$(OBJEXT) \
+	io/input.$(OBJEXT) io/ILDG_File.$(OBJEXT) io/reader.$(OBJEXT) \
 	io/writer.$(OBJEXT) linalgs/linalgs.$(OBJEXT) \
 	new_types/complex.$(OBJEXT) new_types/dirac.$(OBJEXT) \
 	new_types/float_128.$(OBJEXT) new_types/float_256.$(OBJEXT) \
@@ -630,10 +630,10 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2_bgq.hpp \
 	inverters/tmclov/cgm_invert_tmclovQ2_bgq.hpp \
 	inverters/tmclov/cg_64_invert_tmclovQ2_bgq.hpp \
-	inverters/tmclov/cg_128_invert_tmclovQ2_bgq.hpp \
-	io/ILDG_File.hpp io/checksum.hpp io/endianness.hpp \
-	io/input.hpp io/reader.hpp io/writer.hpp linalgs/linalgs.hpp \
-	new_types/complex.hpp new_types/dirac.hpp \
+	inverters/tmclov/cg_128_invert_tmclovQ2_bgq.hpp io/buffer.hpp \
+	io/checksum.hpp io/endianness.hpp io/input.hpp \
+	io/ILDG_File.hpp io/reader.hpp io/writer.hpp \
+	linalgs/linalgs.hpp new_types/complex.hpp new_types/dirac.hpp \
 	new_types/float_128.hpp new_types/float_256.hpp \
 	new_types/high_prec.hpp new_types/new_types_definitions.hpp \
 	new_types/rat_approx.hpp new_types/read_new_types.hpp \
@@ -861,9 +861,9 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	inverters/tmclov/cg_128_invert_tmclovQ2.hpp \
 	inverters/tmclov/cgm_invert_tmclovQ2.hpp \
 	inverters/tmclov/tmclov_frontends.hpp $(am__append_12) \
-	io/ILDG_File.hpp io/checksum.hpp io/endianness.hpp \
-	io/input.hpp io/reader.hpp io/writer.hpp linalgs/linalgs.hpp \
-	new_types/complex.hpp new_types/dirac.hpp \
+	io/buffer.hpp io/checksum.hpp io/endianness.hpp io/input.hpp \
+	io/ILDG_File.hpp io/reader.hpp io/writer.hpp \
+	linalgs/linalgs.hpp new_types/complex.hpp new_types/dirac.hpp \
 	new_types/float_128.hpp new_types/float_256.hpp \
 	new_types/high_prec.hpp new_types/new_types_definitions.hpp \
 	new_types/rat_approx.hpp new_types/read_new_types.hpp \
@@ -987,9 +987,9 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	inverters/Wclov/cg_invert_WclovQ.cpp \
 	inverters/Wclov/cg_invert_WclovQ2.cpp \
 	inverters/tmclov/cg_invert_tmclovQ.cpp $(am__append_11) \
-	io/ILDG_File.cpp io/checksum.cpp io/endianness.cpp \
-	io/input.cpp io/reader.cpp io/writer.cpp linalgs/linalgs.cpp \
-	new_types/complex.cpp new_types/dirac.cpp \
+	io/checksum.cpp io/endianness.cpp io/input.cpp \
+	io/ILDG_File.cpp io/reader.cpp io/writer.cpp \
+	linalgs/linalgs.cpp new_types/complex.cpp new_types/dirac.cpp \
 	new_types/float_128.cpp new_types/float_256.cpp \
 	new_types/high_prec.cpp new_types/rat_approx.cpp \
 	new_types/read_new_types.cpp new_types/spin.cpp \
@@ -1553,12 +1553,12 @@ io/$(am__dirstamp):
 io/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) io/$(DEPDIR)
 	@: > io/$(DEPDIR)/$(am__dirstamp)
-io/ILDG_File.$(OBJEXT): io/$(am__dirstamp) \
-	io/$(DEPDIR)/$(am__dirstamp)
 io/checksum.$(OBJEXT): io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
 io/endianness.$(OBJEXT): io/$(am__dirstamp) \
 	io/$(DEPDIR)/$(am__dirstamp)
 io/input.$(OBJEXT): io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
+io/ILDG_File.$(OBJEXT): io/$(am__dirstamp) \
+	io/$(DEPDIR)/$(am__dirstamp)
 io/reader.$(OBJEXT): io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
 io/writer.$(OBJEXT): io/$(am__dirstamp) io/$(DEPDIR)/$(am__dirstamp)
 linalgs/$(am__dirstamp):

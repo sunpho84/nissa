@@ -30,11 +30,11 @@ void conf_convert(char *outpath,char *inpath)
   
   //compute and convert the plaquette
   double plaq=global_plaquette_lx_conf(conf)*3;
-  if(!little_endian) doubles_to_doubles_changing_endianness(&plaq,&plaq,1);
+  if(!little_endian) change_endianness(&plaq,&plaq,1);
   
   //convert the lattice size
   coords temp;
-  if(!little_endian) uint32s_to_uint32s_changing_endianness((uint32_t*)temp,(uint32_t*)glb_size,4);
+  if(!little_endian) change_endianness((uint32_t*)temp,(uint32_t*)glb_size,4);
   else               memcpy(temp,glb_size,sizeof(coords));
   
   //write the header
@@ -50,7 +50,7 @@ void conf_convert(char *outpath,char *inpath)
   MPI_Barrier(MPI_COMM_WORLD);
   
   //if needed convert the endianess of the conf
-  if(!little_endian) doubles_to_doubles_changing_endianness((double*)conf,(double*)conf,loc_vol*4*18);
+  if(!little_endian) change_endianness((double*)conf,(double*)conf,loc_vol*4*18);
   
   //reorder
   char *buf=nissa_malloc("buf",loc_vol*sizeof(quad_su3),char);
