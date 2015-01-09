@@ -7,6 +7,8 @@ namespace nissa
 {
   void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf);
   void filter_hypercube_origin_sites(color **vec);
+  int glblx_parity(int glx);
+  int glb_coord_parity(coords c);
   void initialize_eo_bord_receivers_of_kind(MPI_Datatype *MPI_EO_BORD_RECE,MPI_Datatype *base);
   void initialize_eo_bord_senders_of_kind(MPI_Datatype *MPI_EO_BORD_SEND_TXY,MPI_Datatype *MPI_EV_BORD_SEND_Z,MPI_Datatype *MPI_OD_BORD_SEND_Z,MPI_Datatype *base);
   void initialize_eo_edge_receivers_of_kind(MPI_Datatype *MPI_EDGES_RECE,MPI_Datatype *base);

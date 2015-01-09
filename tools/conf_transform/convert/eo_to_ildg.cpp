@@ -7,14 +7,17 @@ vector_remap_t *remapper;
 
 void index_from_Neo_to_lx(int &rank_out,int &iel_out,int iel_in,void *pars)
 {
-  //decript fro cls order
+  int mu_ord[4]={0,3,2,1};
+  
+  //decript from, cls order
   int glb_site_sour=iel_in+rank*8*loc_volh;
   int shift_comp=glb_site_sour%2;
   glb_site_sour/=2;
-  int mu=glb_site_sour%4;
+  int mu=mu_ord[glb_site_sour%4];
   glb_site_sour/=4;
   glb_site_sour*=2;
-  
+  if(glblx_parity(glb_site_sour)==0) glb_site_sour++;
+
   //check
   if(glb_site_sour>=glb_vol) crash("%d>=%d impossible!",glb_site_sour,glb_vol);
   
@@ -31,8 +34,9 @@ void index_from_Neo_to_lx(int &rank_out,int &iel_out,int iel_in,void *pars)
 
 void conf_convert(char *outpath,char *inpath)
 {  
-  //read the header
+  //open
   FILE *fin=fopen(inpath,"r");
+  if(fin==NULL) crash("opening %s",inpath);
   
   //read header
   int nr;
@@ -50,6 +54,7 @@ void conf_convert(char *outpath,char *inpath)
   
   //convert the plaquette
   if(!little_endian) change_endianness(plaq);
+  plaq/=3;
   
   //seek to the correct point
   fseek(fin,24+rank*sizeof(quad_su3)*loc_vol,SEEK_SET);
