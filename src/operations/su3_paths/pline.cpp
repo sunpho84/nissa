@@ -179,9 +179,9 @@ namespace nissa
     //change endianness to little
     if(!little_endian)
       {
-	floats_to_floats_changing_endianness((float*)&itraj,(float*)&itraj,1);
-	doubles_to_doubles_changing_endianness((double*)loop,(double*)loop,loc_vol*2);
-	doubles_to_doubles_changing_endianness(tra,tra,2);
+	change_endianness((float*)&itraj,(float*)&itraj,1);
+	change_endianness((double*)loop,(double*)loop,loc_vol*2);
+	change_endianness(tra,tra,2);
       }
     
     //offset to mantain 16 byte alignement

@@ -88,6 +88,7 @@
 #include "inverters/tmclov/cgm_invert_tmclovQ2.hpp"
 #include "inverters/tmclov/tmclov_frontends.hpp"
 
+#include "io/buffer.hpp"
 #include "io/checksum.hpp"
 #include "io/endianness.hpp"
 #include "io/ILDG_File.hpp"

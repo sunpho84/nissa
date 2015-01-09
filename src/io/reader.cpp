@@ -77,8 +77,8 @@ namespace nissa
     //change endianess
     if(little_endian)
       {
-	if(single_double_flag==0) floats_to_floats_changing_endianness((float*)out,(float*)out,loc_nreals_tot);
-	else doubles_to_doubles_changing_endianness(out,out,loc_nreals_tot);
+	if(single_double_flag==0) change_endianness((float*)out,(float*)out,loc_nreals_tot);
+	else change_endianness(out,out,loc_nreals_tot);
       }
     
     //check the checksum

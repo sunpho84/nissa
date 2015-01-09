@@ -374,10 +374,10 @@ namespace nissa
     ILDG_File_read_all((void*)&header,file,sizeof(header));
     if(little_endian)
       {
-	uint64s_to_uint64s_changing_endianness(&header.data_length,&header.data_length,1);
+	change_endianness(&header.data_length,&header.data_length,1);
 	verbosity_lv3_master_printf("record %s contains: %lld bytes\n",header.type,header.data_length);
-	uint32s_to_uint32s_changing_endianness(&header.magic_no,&header.magic_no,1);
-	uint16s_to_uint16s_changing_endianness(&header.version,&header.version,1);
+	change_endianness(&header.magic_no,&header.magic_no,1);
+	change_endianness(&header.version,&header.version,1);
       }
     
     //control the magic number magic number
@@ -452,9 +452,9 @@ namespace nissa
     //in the case, revert endianness
     if(little_endian)
       {
-	uint64s_to_uint64s_changing_endianness(&header.data_length,&header.data_length,1);
-	uint32s_to_uint32s_changing_endianness(&header.magic_no,&header.magic_no,1);
-	uint16s_to_uint16s_changing_endianness(&header.version,&header.version,1);
+	change_endianness(&header.data_length,&header.data_length,1);
+	change_endianness(&header.magic_no,&header.magic_no,1);
+	change_endianness(&header.version,&header.version,1);
       }
     
     //write the header

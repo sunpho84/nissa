@@ -98,10 +98,10 @@ namespace nissa
 	switch(prec)
 	  {
 	  case 64:
-	    doubles_to_doubles_changing_endianness((double*)temp_buf,(double*)buf,len/sizeof(double),0);
+	    change_endianness((double*)temp_buf,(double*)buf,len/sizeof(double),0);
 	    break;
 	  case 32:
-	    floats_to_floats_changing_endianness((float*)temp_buf,(float*)buf,len/sizeof(float),0);
+	    change_endianness((float*)temp_buf,(float*)buf,len/sizeof(float),0);
 	    break;
 	  default:
 	    crash("unknown precision %d",prec);

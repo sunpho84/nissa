@@ -52,8 +52,8 @@ namespace nissa
     //change endianness if needed
     if(little_endian)
       {
-	if(nbits==64) doubles_to_doubles_changing_endianness((double*)buffer,(double*)buffer,nreals_loc);
-	else floats_to_floats_changing_endianness((float*)buffer,(float*)buffer,nreals_loc);
+	if(nbits==64) change_endianness((double*)buffer,(double*)buffer,nreals_loc);
+	else change_endianness((float*)buffer,(float*)buffer,nreals_loc);
       }
     
     //write
