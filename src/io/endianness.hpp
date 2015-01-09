@@ -21,7 +21,7 @@ namespace nissa
   inline void change_endianness(uint64_t *dest,uint64_t *sour,int nints,int verbose=1)
   {change_endianness((double*)dest,(double*)sour,nints,verbose);}  
   
-  template <class T> void change_endianness(T &a,int verbose=0){change_endianness(&a,&a,verbose);}
+  template <class T> void change_endianness(T &a,int verbose=0){change_endianness(&a,&a,1,verbose);}
 }
 
 #endif

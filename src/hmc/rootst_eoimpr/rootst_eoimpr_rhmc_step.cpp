@@ -56,7 +56,8 @@ namespace nissa
       }
     
     //initialize rational approximation for pf/action and force calculation
-    rat_approx_t rat_exp_pfgen[theory_pars.nflavs],rat_exp_actio[theory_pars.nflavs];
+    rat_approx_t *rat_exp_pfgen=nissa_malloc("rat_exp_pfgen",theory_pars.nflavs,rat_approx_t);
+    rat_approx_t *rat_exp_actio=nissa_malloc("rat_exp_actio",theory_pars.nflavs,rat_approx_t);
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
       {
 	rat_approx_create(&(rat_exp_pfgen[iflav]),db_rat_exp_nterms,"pfgen");
@@ -142,7 +143,9 @@ namespace nissa
     if(theory_pars.stout_pars.nlev!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
     nissa_free(pf);
     if(H_B) nissa_free(H_B);
-
+    nissa_free(rat_exp_pfgen);
+    nissa_free(rat_exp_actio);
+    
     //take time
     hmc_time+=take_time();
     verbosity_lv1_master_printf("Total time to perform rhmc step: %lg s\n",hmc_time);

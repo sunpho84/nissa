@@ -8,6 +8,7 @@
 #include "base/debug.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
@@ -17,6 +18,23 @@
 
 namespace nissa
 {
+  //compute the parity of a global site
+  int glb_coord_parity(coords c)
+  {
+    int par=0;
+    for(int mu=0;mu<4;mu++) par+=c[mu];
+    par%=2;
+    
+    return par;
+  }
+  int glblx_parity(int glx)
+  {
+    coords c;
+    glb_coord_of_glblx(c,glx);
+    
+    return glb_coord_parity(c);
+  }
+  
   //set the eo geometry
   void set_eo_geometry()
   {
@@ -51,14 +69,8 @@ namespace nissa
     int iloc_eo[2]={0,0};
     for(int loclx=0;loclx<loc_vol+bord_vol+edge_vol;loclx++)
       {
-	//calculate global coord and parity
-	int par=0;
-	for(int mu=0;mu<4;mu++)
-	  par+=glb_coord_of_loclx[loclx][mu];
-	par%=2;
-	
 	//fix parity of local index
-	loclx_parity[loclx]=par;
+	int par=loclx_parity[loclx]=glb_coord_parity(glb_coord_of_loclx[loclx]);
 	
 	//associate the e/o index to lx sites and vice-versa
 	loceo_of_loclx[loclx]=iloc_eo[par];
