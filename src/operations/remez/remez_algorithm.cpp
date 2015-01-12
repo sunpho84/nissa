@@ -515,8 +515,6 @@ namespace nissa
   //generate an approximation
   double generate_approx_of_degree(rat_approx_t &appr,double minimum,double maximum,int degree,int num,int den,const char *name,double minerr,double tollerance)
   {
-    if(IS_PARALLEL) crash("approx generation cannot be called in a parallel context");
-    
     rat_approx_create(&appr,degree,name);
     appr.minimum=minimum;
     appr.maximum=maximum;
@@ -547,6 +545,8 @@ namespace nissa
   //generate an approximation
   void generate_approx_of_maxerr(rat_approx_t &appr,double minimum,double maximum,double maxerr,int num,int den,const char *name)
   {
+    GET_THREAD_ID();
+    
     if(name!=NULL) snprintf(appr.name,20,"%s",name);
     if(appr.degree!=0) rat_approx_destroy(&appr);
     
@@ -555,7 +555,10 @@ namespace nissa
     bool found=false;
     do
       {
-	double err=generate_approx_of_degree(appr,minimum,maximum,degree,num,den,name,maxerr,0.01);
+	double err;
+	if(IS_MASTER_THREAD) generate_approx_of_degree(appr,minimum,maximum,degree,num,den,name,maxerr,0.01);
+	THREAD_BROADCAST(err,err);
+	
 	found=(err<=maxerr);
 	verbosity_lv3_master_printf("Approx x^(%x/%d) with %d poles can make an error of %lg when %lg required, found: %d\n",
 				    num,den,degree,err,maxerr,found);
