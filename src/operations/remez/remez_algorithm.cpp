@@ -110,8 +110,8 @@ namespace nissa
   {
     float_high_prec_t *yy=new float_high_prec_t[nmax_err_points];
     
-    float_high_prec_t eclose=1e30;
-    float_high_prec_t farther=0.0;
+    eclose=1e30;
+    farther=0.0;
     
     //set left extrema
     float_high_prec_t zero0=minimum;
@@ -414,7 +414,7 @@ namespace nissa
   }
   
   //generate the rational approximation
-  double rat_approx_finder_t::generate_approx(float_high_prec_t *weights,float_high_prec_t *poles,float_high_prec_t &cons,double ext_minimum,double ext_maximum,int ext_degree,int ext_num,int ext_den)
+  double rat_approx_finder_t::generate_approx(float_high_prec_t *weights,float_high_prec_t *poles,float_high_prec_t &cons,double ext_minimum,double ext_maximum,int ext_degree,int ext_num,int ext_den,double target_err,double toll)
   {
     //copy from out the degree and expo
     minimum=ext_minimum;
@@ -436,11 +436,13 @@ namespace nissa
     //set delta, initial spread and tolerance
     spread=1e37;
     delta=0.25;
-#if HIGH_PREC==NATIVE_HIGH_PREC
-    approx_tolerance=2e-15;
-#else
-    approx_tolerance=1e-15;
-#endif
+
+    //#if HIGH_PREC==NATIVE_HIGH_PREC
+    //approx_tolerance=2e-15;
+    //#else
+    //approx_tolerance=1e-15;
+    //#endif
+    approx_tolerance=toll;
 
     //set the initial guess and set step
     find_cheb();
@@ -458,12 +460,12 @@ namespace nissa
 	linear_system_solve(matr,coeff,vec,nzero_err_points);
 	
 	// 3) find maxima and minima
-	if(spread>approx_tolerance) new_step();
+	if(iter==0 || (spread>approx_tolerance && farther>target_err)) new_step();
 	if(delta<approx_tolerance)
 	  {
 	    master_printf("WARNING, reached precision %lg while computing %d terms approximation of x^(%d/%d)\n",
 			  spread.get_d(),degree,num,den);
-	    master_printf("native precision not enough to reach %lg precision requested!!!\n",approx_tolerance);
+	    master_printf("precision not enough to reach %lg precision requested!!!\n",approx_tolerance);
 #if HIGH_PREC==NATIVE_HIGH_PREC
 	    master_printf("use GMP if possible!\n");
 #else
@@ -473,40 +475,45 @@ namespace nissa
 	iter++;
       }
     //while(float_high_prec_t_is_greater(spread,approx_tolerance));
-    while(spread>approx_tolerance && delta>=approx_tolerance);
+    while(spread>approx_tolerance && delta>=approx_tolerance && eclose.get_d()<=target_err && farther.get_d()>target_err);
+    
+    //write some info
+    if(spread<=approx_tolerance) verbosity_lv3_master_printf("Spread %lg reduced below %lg\n",spread.get_d(),approx_tolerance);
+    if(eclose>target_err)  verbosity_lv3_master_printf("Accuracy cannot be better than %lg when %lg asked\n",eclose.get_d(),target_err);
     
     delete[] matr;
     delete[] vec;
     
-    verbosity_lv2_master_printf("Converged in %d iters\n",iter);
-    
-    //get err at max
-    float_high_prec_t err=get_abs_err(xmax[0]);
-    //get_abs_err(err,xmax[0]);
-    
-    //compute the roots
-    float_high_prec_t *roots=new float_high_prec_t[degree];
-    root_find(roots,poles,cons);
-    
-    //decompose
-    get_partial_fraction_expansion(weights,poles,roots,cons,degree);
-    delete[] roots;
-    
-    for(int j=0;j<degree;j++)
-      verbosity_lv2_master_printf("Residue = %lg, Pole = %lg\n",weights[j].get_d(),poles[j].get_d());
-    verbosity_lv2_master_printf("Const: %lg\n",cons.get_d());
-    
+    //get err at max and check
+    if(farther.get_d()<=target_err) 
+      {
+	verbosity_lv2_master_printf("Converged in %d iters, maxerr %lg when asked %lg\n",iter,farther.get_d(),target_err);
+	
+	//compute the roots
+	float_high_prec_t *roots=new float_high_prec_t[degree];
+	root_find(roots,poles,cons);
+	
+	//decompose
+	get_partial_fraction_expansion(weights,poles,roots,cons,degree);
+	delete[] roots;
+	
+	for(int j=0;j<degree;j++)
+	  verbosity_lv2_master_printf("Residue = %lg, Pole = %lg\n",weights[j].get_d(),poles[j].get_d());
+	verbosity_lv2_master_printf("Const: %lg\n",cons.get_d());
+      }
+    else verbosity_lv2_master_printf("Not converged in %d iters\n",iter);
+      
     delete[] step;
     delete[] zero;
     delete[] coeff;
     delete[] xmax;
     
     //return the maximum error in the approximation
-    return err.get_d();
+    return farther.get_d();
   }
   
   //generate an approximation
-  double generate_approx(rat_approx_t &appr,double minimum,double maximum,int degree,int num,int den,const char *name)
+  double generate_approx_of_degree(rat_approx_t &appr,double minimum,double maximum,int degree,int num,int den,const char *name,double minerr,double tollerance)
   {
     if(IS_PARALLEL) crash("approx generation cannot be called in a parallel context");
     
@@ -523,9 +530,10 @@ namespace nissa
     
     //create the approx
     rat_approx_finder_t finder;
-    double ans=finder.generate_approx(weights,poles,cons,minimum,maximum,degree,num,den);
+    double ans=finder.generate_approx(weights,poles,cons,minimum,maximum,degree,num,den,minerr,tollerance);
     
     //copy
+    appr.maxerr=ans;
     appr.cons=cons.get_d();
     for(int iterm=0;iterm<degree;iterm++) appr.poles[iterm]=poles[iterm].get_d();
     for(int iterm=0;iterm<degree;iterm++) appr.weights[iterm]=weights[iterm].get_d();
@@ -534,5 +542,34 @@ namespace nissa
     delete[] weights;
     
     return ans;
+  }
+  
+  //generate an approximation
+  void generate_approx_of_maxerr(rat_approx_t &appr,double minimum,double maximum,double maxerr,int num,int den,const char *name)
+  {
+    if(name!=NULL) snprintf(appr.name,20,"%s",name);
+    if(appr.degree!=0) rat_approx_destroy(&appr);
+    
+    //increase iteratively until increasing
+    int degree=1;
+    bool found=false;
+    do
+      {
+	double err=generate_approx_of_degree(appr,minimum,maximum,degree,num,den,name,maxerr,0.01);
+	found=(err<=maxerr);
+	verbosity_lv3_master_printf("Approx x^(%x/%d) with %d poles can make an error of %lg when %lg required, found: %d\n",
+				    num,den,degree,err,maxerr,found);
+	
+	//if not found increase number of poles
+	if(!found)
+	  {
+	    degree++;
+	    rat_approx_destroy(&appr);
+	  }
+	
+	//store required maximal error
+	appr.maxerr=maxerr;
+      }
+    while(!found);
   }
 }

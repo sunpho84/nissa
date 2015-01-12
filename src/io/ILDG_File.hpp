@@ -37,6 +37,7 @@ namespace nissa
   void ILDG_File_write_checksum(ILDG_File &file,checksum check);
   void ILDG_File_write_ildg_data_all(ILDG_File &file,void *data,ILDG_Offset nbytes_per_site,const char *type);
   void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write);
+  void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
   void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
   void unset_mapped_types(MPI_Datatype &etype,MPI_Datatype &ftype);
 }

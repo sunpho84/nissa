@@ -111,19 +111,7 @@ namespace nissa
     expect_str("NPseudoFermions");
     for(int iflav=0;iflav<th.nflavs;iflav++) read_int(&pars.npseudo_fs[iflav]);
     pars.rat_appr=new rat_approx_t[3*th.nflavs];
-    for(int iflav=0;iflav<th.nflavs;iflav++)
-      {
-	int deg=th.quark_content[iflav].deg;
-	//first contains the pseudo-fermions generation
-	pars.rat_appr[3*iflav+0].num=deg;
-	pars.rat_appr[3*iflav+0].den=8*pars.npseudo_fs[iflav];
-	//second and third contains the force
-	for(int i=1;i<3;i++)
-	  {
-	    pars.rat_appr[3*iflav+i].num=-deg;
-	    pars.rat_appr[3*iflav+i].den=4*pars.npseudo_fs[iflav];
-	  }
-      }
+    for(int i=0;i<th.nflavs*3;i++) pars.rat_appr[i].reset();
   }
   
   //read the parameters relevant for pure gauge evolution

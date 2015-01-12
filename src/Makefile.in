@@ -263,7 +263,6 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	hmc/gauge/Wilson_action.cpp hmc/gauge/Wilson_force.cpp \
 	hmc/momenta/momenta_action.cpp hmc/momenta/momenta_evolve.cpp \
 	hmc/momenta/momenta_generation.cpp \
-	hmc/rootst_eoimpr/rat_expansion_database.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
@@ -410,7 +409,6 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	hmc/momenta/momenta_action.$(OBJEXT) \
 	hmc/momenta/momenta_evolve.$(OBJEXT) \
 	hmc/momenta/momenta_generation.$(OBJEXT) \
-	hmc/rootst_eoimpr/rat_expansion_database.$(OBJEXT) \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.$(OBJEXT) \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.$(OBJEXT) \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.$(OBJEXT) \
@@ -588,7 +586,6 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	hmc/gauge/Wilson_action.hpp hmc/gauge/Wilson_force.hpp \
 	hmc/momenta/momenta_action.hpp hmc/momenta/momenta_evolve.hpp \
 	hmc/momenta/momenta_generation.hpp \
-	hmc/rootst_eoimpr/rat_expansion_database.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \
@@ -829,7 +826,6 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	hmc/gauge/Wilson_action.hpp hmc/gauge/Wilson_force.hpp \
 	hmc/momenta/momenta_action.hpp hmc/momenta/momenta_evolve.hpp \
 	hmc/momenta/momenta_generation.hpp \
-	hmc/rootst_eoimpr/rat_expansion_database.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \
@@ -955,7 +951,6 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	hmc/gauge/Wilson_action.cpp hmc/gauge/Wilson_force.cpp \
 	hmc/momenta/momenta_action.cpp hmc/momenta/momenta_evolve.cpp \
 	hmc/momenta/momenta_generation.cpp \
-	hmc/rootst_eoimpr/rat_expansion_database.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
@@ -1388,9 +1383,6 @@ hmc/rootst_eoimpr/$(am__dirstamp):
 hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) hmc/rootst_eoimpr/$(DEPDIR)
 	@: > hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
-hmc/rootst_eoimpr/rat_expansion_database.$(OBJEXT):  \
-	hmc/rootst_eoimpr/$(am__dirstamp) \
-	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
 hmc/rootst_eoimpr/rootst_eoimpr_action.$(OBJEXT):  \
 	hmc/rootst_eoimpr/$(am__dirstamp) \
 	hmc/rootst_eoimpr/$(DEPDIR)/$(am__dirstamp)
@@ -1832,7 +1824,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/momenta/$(DEPDIR)/momenta_action.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/momenta/$(DEPDIR)/momenta_evolve.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/momenta/$(DEPDIR)/momenta_generation.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rat_expansion_database.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_action.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_eigenvalues.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@hmc/rootst_eoimpr/$(DEPDIR)/rootst_eoimpr_omelyan_integrator.Po@am__quote@

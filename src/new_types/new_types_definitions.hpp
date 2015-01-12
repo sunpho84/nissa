@@ -333,6 +333,7 @@ namespace nissa
     bool is_last;
     char *data;
     char *name;
+    uint64_t data_length;
     ILDG_message *next;
   };
   
@@ -417,18 +418,20 @@ namespace nissa
     char name[20];
     double minimum;
     double maximum;
+    double maxerr;
     double cons;
     int num,den;
     int degree;
     double *poles;
     double *weights;
-    rat_approx_t()
+    void reset()
     {
       strcpy(name,"");
-      minimum=maximum=cons=0;
+      minimum=maximum=cons=maxerr=0;
       degree=num=den=0;
       poles=weights=NULL;
     }
+    rat_approx_t(){reset();}
   };
   
   //quark content

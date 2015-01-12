@@ -24,7 +24,6 @@
 #include "rootst_eoimpr_eigenvalues.hpp"
 #include "rootst_eoimpr_omelyan_integrator.hpp"
 #include "rootst_eoimpr_pseudofermions_generation.hpp"
-#include "rat_expansion_database.cpp"
 
 namespace nissa
 {
@@ -53,15 +52,6 @@ namespace nissa
       {
 	memcpy(out_conf[par],in_conf[par],loc_volh*sizeof(quad_su3));
 	set_borders_invalid(out_conf[par]);
-      }
-    
-    //initialize rational approximation for pf/action and force calculation
-    rat_approx_t *rat_exp_pfgen=nissa_malloc("rat_exp_pfgen",theory_pars.nflavs,rat_approx_t);
-    rat_approx_t *rat_exp_actio=nissa_malloc("rat_exp_actio",theory_pars.nflavs,rat_approx_t);
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
-      {
-	rat_approx_create(&(rat_exp_pfgen[iflav]),db_rat_exp_nterms,"pfgen");
-	rat_approx_create(&(rat_exp_actio[iflav]),db_rat_exp_nterms,"actio");
       }
     
     //allocate pseudo-fermions
@@ -93,13 +83,21 @@ namespace nissa
     addrem_stagphases_to_eo_conf(out_conf);
     
     //generate the appropriate expansion of rational approximations
-    rootst_eoimpr_scale_expansions(rat_exp_pfgen,rat_exp_actio,sme_conf,&theory_pars,simul_pars.npseudo_fs);
+    rootst_eoimpr_set_expansions(&simul_pars,sme_conf,&theory_pars);
+    
+    //shift all the poles of the mass
+    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+      for(int i=0;i<3;i++)
+	rat_approx_shift_all_poles(simul_pars.rat_appr+iflav*3+i,sqr(theory_pars.quark_content[iflav].mass));
     
     //create pseudo-fermions
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
-      for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++)
-	generate_pseudo_fermion(pf[iflav][ipf],sme_conf,theory_pars.backfield[iflav],&(rat_exp_pfgen[iflav]),
-				simul_pars.pf_action_residue);
+      {
+	rat_approx_t *appr=simul_pars.rat_appr+3*iflav+0;
+	for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++)
+	  generate_pseudo_fermion(pf[iflav][ipf],sme_conf,theory_pars.backfield[iflav],appr,
+				  simul_pars.pf_action_residue);
+      }
     
     //create the momenta
     generate_hmc_momenta(H);
@@ -107,10 +105,10 @@ namespace nissa
     
     //compute initial action
     double init_action;
-    full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,H_B,pf,&theory_pars,rat_exp_actio,&simul_pars);
+    full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,H_B,pf,&theory_pars,&simul_pars);
     
     //evolve forward
-    omelyan_rootst_eoimpr_evolver(H,H_B,out_conf,pf,&theory_pars,rat_exp_actio,&simul_pars);
+    omelyan_rootst_eoimpr_evolver(H,H_B,out_conf,pf,&theory_pars,&simul_pars);
     
     //if needed, resmear the conf, otherwise sme_conf is already binded to out_conf
     if(theory_pars.stout_pars.nlev!=0)
@@ -124,7 +122,7 @@ namespace nissa
     
     //compute final action using sme_conf (see previous note)
     double final_action;
-    full_rootst_eoimpr_action(&final_action,out_conf,sme_conf,H,H_B,pf,&theory_pars,rat_exp_actio,&simul_pars);
+    full_rootst_eoimpr_action(&final_action,out_conf,sme_conf,H,H_B,pf,&theory_pars,&simul_pars);
     verbosity_lv2_master_printf("Final action: %lg\n",final_action);
     
     //compute the diff
@@ -143,9 +141,12 @@ namespace nissa
     if(theory_pars.stout_pars.nlev!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
     nissa_free(pf);
     if(H_B) nissa_free(H_B);
-    nissa_free(rat_exp_pfgen);
-    nissa_free(rat_exp_actio);
     
+    //shift back
+    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+      for(int i=0;i<3;i++)
+	rat_approx_shift_all_poles(simul_pars.rat_appr+iflav*3+i,-sqr(theory_pars.quark_content[iflav].mass));
+
     //take time
     hmc_time+=take_time();
     verbosity_lv1_master_printf("Total time to perform rhmc step: %lg s\n",hmc_time);

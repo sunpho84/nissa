@@ -45,7 +45,7 @@ namespace nissa
         {
           out=in;
           for(int i=2;i<=d;i++) out*=in;
-        }
+	}
     
     return out;
   }
@@ -65,6 +65,7 @@ namespace nissa
     //(out+err)^d=in^n -> err=out*rel_err, rel_err=(ref/out^d-1)/d
     int iter=0;
     float_high_prec_t rel_residue;
+    double tol=8*pow(2.0,-high_prec_nbits());
     do
       {
         //compute out^d
@@ -80,7 +81,7 @@ namespace nissa
 	
         iter++;
       }
-    while(fabs(rel_residue.get_d())>2*pow(2.0,-high_prec_nbits()));
+    while(fabs(rel_residue.get_d())>tol);
     
     return out;
   }

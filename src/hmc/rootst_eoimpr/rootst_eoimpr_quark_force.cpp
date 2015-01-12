@@ -186,7 +186,7 @@ namespace nissa
     
     for(int iflav=0;iflav<tp->nflavs;iflav++)
       for(int ipf=0;ipf<npfs[iflav];ipf++)
-	summ_the_rootst_eoimpr_quark_force(F,F_B,tp->quark_content[iflav].charge,conf,pf[iflav][ipf],tp->backfield[iflav],&(appr[iflav]),residue);
+	summ_the_rootst_eoimpr_quark_force(F,F_B,tp->quark_content[iflav].charge,conf,pf[iflav][ipf],tp->backfield[iflav],appr+(iflav*3+2),residue);
     
     //add the stag phases to the force term, coming from the disappered link in dS/d(U)
     addrem_stagphases_to_eo_conf(F);

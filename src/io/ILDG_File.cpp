@@ -72,8 +72,9 @@ namespace nissa
     ILDG_message *last_mess=ILDG_message_find_last(first_mess);
     last_mess->is_last=false;
     
-    //copy name
+    //copy name and length
     last_mess->name=strdup(name);
+    last_mess->data_length=length;
     
     //copy data
     last_mess->data=(char*)malloc(length);
@@ -692,24 +693,27 @@ namespace nissa
       }
   }
   
-  //write a text record
-  void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text)
+  //write a record
+  void ILDG_File_write_record(ILDG_File &file,const char *type,const char *ext_buf,uint64_t ext_len)
   {
     //pad with 0
-    size_t text_len=ceil_to_next_eight_multiple(strlen(text)+1);
-    char *text_out=nissa_malloc("buf",text_len,char);
-    memset(text_out,0,text_len);
-    strncpy(text_out,text,text_len);
+    size_t len=ceil_to_next_eight_multiple(ext_len);
+    char *buf_out=nissa_malloc("buf",len,char);
+    memcpy(buf_out,ext_buf,ext_len);
+    memset(buf_out+ext_len,0,len-ext_len);
     
     //prepare the header and write it
-    ILDG_header header=ILDG_File_build_record_header(0,0,type,text_len);
+    ILDG_header header=ILDG_File_build_record_header(0,0,type,len);
     ILDG_File_write_record_header(file,header);
     
     //write the text
-    ILDG_File_master_write(file,(void*)text_out,text_len);
+    ILDG_File_master_write(file,(void*)buf_out,len);
     
-    nissa_free(text_out);
+    nissa_free(buf_out);
   }
+  //specification for strings
+  void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text)
+  {ILDG_File_write_record(file,type,text,strlen(text)+1);}
   
   //write the checksum
   void ILDG_File_write_checksum(ILDG_File &file,checksum check)
@@ -732,6 +736,6 @@ namespace nissa
   void ILDG_File_write_all_messages(ILDG_File &file,ILDG_message *mess)
   {
     for(ILDG_message *last_mess=mess;last_mess->is_last==false;last_mess=last_mess->next)
-      ILDG_File_write_text_record(file,last_mess->name,last_mess->data);
+      ILDG_File_write_record(file,last_mess->name,last_mess->data,last_mess->data_length);
   }
 }
