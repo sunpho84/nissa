@@ -156,8 +156,7 @@ namespace nissa
 	//take the pointer to the rational approximations for current flavor and mark down degeneracy
 	rat_approx_t *appr=evol_pars->rat_appr+3*iflav;
 	int deg=theory_pars->quark_content[iflav].deg;
-	//the number of pseudofermion is set to 1 for the time being
-	int npf=evol_pars->npseudo_fs[iflav]=1;
+	int npf=evol_pars->npseudo_fs[iflav];
 
 	//generate the three approximations
 	int extra_fact[3]={8,-4,-4};
