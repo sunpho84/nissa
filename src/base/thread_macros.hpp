@@ -62,7 +62,7 @@
  #define THREAD_ATOMIC_EXEC(inst) do{THREAD_BARRIER();inst;THREAD_BARRIER();}while(0)
  #define THREAD_BROADCAST(out,in)			\
    if(IS_MASTER_THREAD) broadcast_ptr=(void*)&in;	\
-   THREAD_ATOMIC_EXEC((out)=*broadcast_ptr);
+   THREAD_ATOMIC_EXEC(memcpy(&out,broadcast_ptr,sizeof(out)));
 
 #else
 
