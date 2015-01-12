@@ -204,7 +204,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/momenta/momenta_action.cpp \
 	hmc/momenta/momenta_evolve.cpp \
 	hmc/momenta/momenta_generation.cpp \
-	hmc/rootst_eoimpr/rat_expansion_database.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
@@ -229,7 +228,6 @@ include_HEADERS+= \
 	hmc/momenta/momenta_action.hpp \
 	hmc/momenta/momenta_evolve.hpp \
 	hmc/momenta/momenta_generation.hpp \
-	hmc/rootst_eoimpr/rat_expansion_database.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_action.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \

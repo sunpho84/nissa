@@ -15,6 +15,7 @@
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/su3.hpp"
+#include "operations/remez/remez_algorithm.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
@@ -23,7 +24,7 @@
 
 #include "hmc/backfield.hpp"
 
-#include "rat_expansion_database.hpp"
+#define ENL_GEN 1.18920711500272106671
 
 namespace nissa
 {
@@ -31,165 +32,179 @@ namespace nissa
   //assumes that the passed conf already has stag phases inside it
   THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark_content, quad_su3**,eo_conf, int,niters)
   {
-    niters=10000;
+    niters=50;
     GET_THREAD_ID();
     communicate_ev_and_od_quad_su3_borders(eo_conf);
     (*eig_max)=0;
     
-    color *vec_in1=nissa_malloc("vec_in",loc_volh+bord_volh,color);
-    color *vec_in2=nissa_malloc("vec_in",loc_volh+bord_volh,color);
-    color *vec_in3=nissa_malloc("vec_in",loc_volh+bord_volh,color);
-    color *vec_in4=nissa_malloc("vec_in",loc_volh+bord_volh,color);
-    color *vec_out1=nissa_malloc("vec_out",loc_volh,color);
-    color *vec_out2=nissa_malloc("vec_out",loc_volh,color);
-    color *vec_out3=nissa_malloc("vec_out",loc_volh,color);
-    color *vec_out4=nissa_malloc("vec_out",loc_volh,color);
+    color *vec_in=nissa_malloc("vec_in",loc_volh+bord_volh,color);
+    color *vec_out=nissa_malloc("vec_out",loc_volh,color);
     color *tmp=nissa_malloc("tmp",loc_volh+bord_volh,color);
     
     //generate the random field
     if(IS_MASTER_THREAD)
       NISSA_LOC_VOLH_LOOP(ivol)
-      {
-	color_put_to_gauss(vec_in1[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),3);
-	color_put_to_gauss(vec_in2[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),3);
-	color_put_to_gauss(vec_in3[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),3);
-	color_put_to_gauss(vec_in4[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),3);
-      }
-    set_borders_invalid(vec_in1);
-    set_borders_invalid(vec_in2);
-    set_borders_invalid(vec_in3);
-    set_borders_invalid(vec_in4);
+	color_put_to_gauss(vec_in[ivol],&(loc_rnd_gen[loclx_of_loceo[EVN][ivol]]),3);
+    
+    set_borders_invalid(vec_in);
     
     //perform initial normalization
-    double init_norm1,init_norm2,init_norm3,init_norm4;
-    double_vector_normalize(&init_norm1,(double*)vec_in1,(double*)vec_in1,glb_volh*3,6*loc_volh);
-    double_vector_normalize(&init_norm2,(double*)vec_in2,(double*)vec_in2,glb_volh*3,6*loc_volh);
-    double_vector_normalize(&init_norm3,(double*)vec_in3,(double*)vec_in3,glb_volh*3,6*loc_volh);
-    double_vector_normalize(&init_norm4,(double*)vec_in4,(double*)vec_in4,glb_volh*3,6*loc_volh);
-    verbosity_lv3_master_printf("Init norm1: %lg\n",init_norm1);
-    verbosity_lv3_master_printf("Init norm2: %lg\n",init_norm2);
-    verbosity_lv3_master_printf("Init norm3: %lg\n",init_norm3);
-    verbosity_lv3_master_printf("Init norm4: %lg\n",init_norm4);
+    double init_norm;
+    double_vector_normalize(&init_norm,(double*)vec_in,(double*)vec_in,glb_volh*3,6*loc_volh);
+    verbosity_lv3_master_printf("Init norm: %lg\n",init_norm);
     
     //apply the vector niter times normalizing at each iter
-    double eig_max1,eig_max2,eig_max3,eig_max4;
     for(int iter=0;iter<niters;iter++)
       {
-	double pr;
-
-	//21
-	double_vector_glb_scalar_prod(&pr,(double*)vec_in2,(double*)vec_in1,loc_volh*6);
-	double_vector_summ_double_vector_prod_double((double*)vec_in2,(double*)vec_in2,(double*)vec_in1,-pr/(glb_volh*3),loc_volh*6);
-	double_vector_normalize(&init_norm1,(double*)vec_in2,(double*)vec_in2,glb_volh*3,6*loc_volh);
-	//31
-	double_vector_glb_scalar_prod(&pr,(double*)vec_in3,(double*)vec_in1,loc_volh*6);
-	double_vector_summ_double_vector_prod_double((double*)vec_in3,(double*)vec_in3,(double*)vec_in1,-pr/(glb_volh*3),loc_volh*6);
-	double_vector_normalize(&init_norm1,(double*)vec_in3,(double*)vec_in3,glb_volh*3,6*loc_volh);
-	//32
-	double_vector_glb_scalar_prod(&pr,(double*)vec_in3,(double*)vec_in2,loc_volh*6);
-	double_vector_summ_double_vector_prod_double((double*)vec_in3,(double*)vec_in3,(double*)vec_in2,-pr/(glb_volh*3),loc_volh*6);
-	double_vector_normalize(&init_norm1,(double*)vec_in3,(double*)vec_in3,glb_volh*3,6*loc_volh);
-	//41
-	double_vector_glb_scalar_prod(&pr,(double*)vec_in4,(double*)vec_in1,loc_volh*6);
-	double_vector_summ_double_vector_prod_double((double*)vec_in4,(double*)vec_in4,(double*)vec_in1,-pr/(glb_volh*3),loc_volh*6);
-	double_vector_normalize(&init_norm1,(double*)vec_in4,(double*)vec_in4,glb_volh*3,6*loc_volh);
-	//42
-	double_vector_glb_scalar_prod(&pr,(double*)vec_in4,(double*)vec_in2,loc_volh*6);
-	double_vector_summ_double_vector_prod_double((double*)vec_in4,(double*)vec_in4,(double*)vec_in2,-pr/(glb_volh*3),loc_volh*6);
-	double_vector_normalize(&init_norm1,(double*)vec_in4,(double*)vec_in4,glb_volh*3,6*loc_volh);
-	//43
-	double_vector_glb_scalar_prod(&pr,(double*)vec_in4,(double*)vec_in3,loc_volh*6);
-	double_vector_summ_double_vector_prod_double((double*)vec_in4,(double*)vec_in4,(double*)vec_in3,-pr/(glb_volh*3),loc_volh*6);
-	double_vector_normalize(&init_norm1,(double*)vec_in4,(double*)vec_in4,glb_volh*3,6*loc_volh);
-
 	//inv_stD2ee_m2_cg(vec_out,NULL,eo_conf,sqr(quark_content.mass),10000,5,1.e-13,vec_in);
-	apply_stD2ee_m2(vec_out1,eo_conf,tmp,quark_content->mass*quark_content->mass,vec_in1);
-	apply_stD2ee_m2(vec_out2,eo_conf,tmp,quark_content->mass*quark_content->mass,vec_in2);
-	apply_stD2ee_m2(vec_out3,eo_conf,tmp,quark_content->mass*quark_content->mass,vec_in3);
-	apply_stD2ee_m2(vec_out4,eo_conf,tmp,quark_content->mass*quark_content->mass,vec_in4);
+	apply_stD2ee_m2(vec_out,eo_conf,tmp,quark_content->mass*quark_content->mass,vec_in);
 	
 	//compute the norm
-	double_vector_normalize(&eig_max1,(double*)vec_in1,(double*)vec_out1,glb_volh*3,6*loc_volh);
-	double_vector_normalize(&eig_max2,(double*)vec_in2,(double*)vec_out2,glb_volh*3,6*loc_volh);
-	double_vector_normalize(&eig_max3,(double*)vec_in3,(double*)vec_out3,glb_volh*3,6*loc_volh);
-	double_vector_normalize(&eig_max4,(double*)vec_in4,(double*)vec_out4,glb_volh*3,6*loc_volh);
-	//verbosity_lv2_
-	master_printf("max_eigen search mass %lg, iter=%d, eig1=%16.16lg, eig2=%16.16lg, eig3=%16.16lg, eig4=%16.16lg\n",quark_content->mass,iter,eig_max1,eig_max2,eig_max3,eig_max4);
+	double_vector_normalize(eig_max,(double*)vec_in,(double*)vec_out,glb_volh*3,6*loc_volh);
+	
+	verbosity_lv2_master_printf("max_eigen search mass %lg, iter=%d, eig=%16.16lg\n",quark_content->mass,iter,*eig_max);
       }
     
+    //assume a 10% excess
+    (*eig_max)*=1.1;
+    
     nissa_free(tmp);
-    nissa_free(vec_out1);
-    nissa_free(vec_out2);
-    nissa_free(vec_out3);
-    nissa_free(vec_out4);
-    nissa_free(vec_in1);
-    nissa_free(vec_in2);
-    nissa_free(vec_in3);
-    nissa_free(vec_in4);
+    nissa_free(vec_out);
+    nissa_free(vec_in);
     
-    (*eig_max)=std::max(eig_max1,eig_max2);
-    
-    verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg %16.16g\n",quark_content->mass,eig_max1,eig_max2);
+    verbosity_lv2_master_printf("max_eigen mass %lg: %16.16lg\n",quark_content->mass,*eig_max);
   }
   THREADABLE_FUNCTION_END
+  
+  //check that an approximation is valid in the interval passed
+  bool check_approx_validity(rat_approx_t &appr,double eig_min,double eig_max,double expo,double maxerr)
+  {
+    //compute condition numbers
+    double cond_numb=eig_max/eig_min;
+    double cond_numb_stored=appr.maximum/appr.minimum;
 
+    //check that approximation is valid
+    bool valid=true;
+    
+    //check that has been allocated
+    if(valid)
+      {
+	bool allocated=(appr.degree!=0);
+	if(!allocated) verbosity_lv3_master_printf(" Not allocated\n");
+	valid&=allocated;
+      }
+    
+    //check that exponent is the same
+    if(valid)
+      {
+	double expo_stored=(double)appr.num/appr.den;
+	bool expo_is_the_same=(fabs(expo-expo_stored)<1e-14);
+	if(!expo_is_the_same) verbosity_lv3_master_printf(" Approx stored is for x^%lg, required is for x^%lg\n",expo_stored,expo);
+	valid&=expo_is_the_same;
+      }
+    
+    //check that it can be fitted
+    if(valid)
+      {
+	bool can_fit=(cond_numb<=cond_numb_stored);
+	if(!can_fit) verbosity_lv3_master_printf(" Condition number %lg>=%lg (stored)\n",cond_numb,cond_numb_stored);
+	valid&=can_fit;
+      }
+    
+    //check that approximation it is not exagerated
+    if(valid)
+      {
+	double exc=pow(ENL_GEN,4);
+	double fact=cond_numb_stored/cond_numb;
+	bool does_not_exceed=(fact<exc);
+	if(!does_not_exceed) verbosity_lv3_master_printf(" Condition number %lg more than %lg smaller (%lg) than %lg (stored)\n",cond_numb,exc,fact,cond_numb_stored);
+	valid&=does_not_exceed;
+      }
+    
+    //check that the approximation accuracy is close to the required one
+    if(valid)
+      {
+	double toll=2;
+	bool is_not_too_precise=(appr.maxerr>=maxerr/toll);
+	bool is_not_too_inaccur=(appr.maxerr<=maxerr*toll);
+	bool is_accurate=(is_not_too_precise&&is_not_too_inaccur);
+	if(!is_accurate) verbosity_lv3_master_printf(" Accuracy %lg more than %lg larger or smaller (%lg) than  %lg (stored)\n",
+						     maxerr,toll,appr.maxerr/maxerr,appr.maxerr);
+	valid&=is_accurate;
+      }
+    
+    return valid;
+  }
+  
   //scale the rational expansion
   //assumes that the conf has already stag phases inside
-  THREADABLE_FUNCTION_5ARG(rootst_eoimpr_scale_expansions, rat_approx_t*,rat_exp_pfgen, rat_approx_t*,rat_exp_actio, quad_su3**,eo_conf, theory_pars_t*,theory_pars, int*,npfs)
+  THREADABLE_FUNCTION_3ARG(rootst_eoimpr_set_expansions, hmc_evol_pars_t*,evol_pars, quad_su3**,eo_conf, theory_pars_t*,theory_pars)
   {
     GET_THREAD_ID();
     
     //loop over each flav
-    for(int iflav=0;iflav<theory_pars->nflavs;iflav++)
+    int nflavs=theory_pars->nflavs;
+    for(int iflav=0;iflav<nflavs;iflav++)
       {
-	//The expansion power for a n-degenerate set of flav is labelled by n-1
-	int irexp=theory_pars->quark_content[iflav].deg-1;
-	
-	//The expansion for a npf pseudofermions is labelled by npf-1
-	int ipf=npfs[iflav]-1;
-	
-	//Set scale factors
-	//add the background field
+	//find min and max eigenvalue
+	double eig_min,eig_max;
 	add_backfield_to_conf(eo_conf,theory_pars->backfield[iflav]);
-	double scale;
-	max_eigenval(&scale,&(theory_pars->quark_content[iflav]),eo_conf,50);
-	scale*=1.1;
-	if(db_rat_exp_min*scale>=pow(theory_pars->quark_content[iflav].mass,2))
-	  crash("approx not valid, scaled lower range: %lg, min eig: %lg",db_rat_exp_min*scale,pow(theory_pars->quark_content[iflav].mass,2));
+	max_eigenval(&eig_max,&(theory_pars->quark_content[iflav]),eo_conf,50);
+	eig_min=pow(theory_pars->quark_content[iflav].mass,2);
 	rem_backfield_from_conf(eo_conf,theory_pars->backfield[iflav]);
 	
-	if(IS_MASTER_THREAD)
+	//take the pointer to the rational approximations for current flavor and mark down degeneracy
+	rat_approx_t *appr=evol_pars->rat_appr+3*iflav;
+	int deg=theory_pars->quark_content[iflav].deg;
+	//the number of pseudofermion is set to 1 for the time being
+	int npf=evol_pars->npseudo_fs[iflav]=1;
+
+	//generate the three approximations
+	int extra_fact[3]={8,-4,-4};
+	double maxerr[3]={sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->md_residue)};
+	for(int i=0;i<3;i++)
 	  {
-	    double scale_pfgen=pow(scale,db_rat_exp_pfgen_degr[ipf][irexp]);
-	    double scale_actio=pow(scale,db_rat_exp_actio_degr[ipf][irexp]);
+	    //compute condition number and exponent
+	    int num=deg,den=extra_fact[i]*npf;
+	    double expo=(double)num/den;
 	    
-	    //scale the rational approximation to generate pseudo-fermions
-	    rat_exp_pfgen[iflav].minimum=db_rat_exp_min*scale;
-	    rat_exp_pfgen[iflav].maximum=db_rat_exp_max*scale;
-	    rat_exp_pfgen[iflav].cons=db_rat_exp_pfgen_cons[ipf][irexp]*scale_pfgen;
+	    //check if the approx is valid or not and in any case fit exponents
+	    snprintf(appr[i].name,20,"x^(%d/%d)",num,den);
+	    verbosity_lv2_master_printf("Checking validity of approx %s (%d/3) for flav %d/%d\n",appr[i].name,i,iflav+1,nflavs);
+	    bool valid=check_approx_validity(appr[i],eig_min,eig_max,expo,maxerr[i]);
+	    appr[i].num=num;
+	    appr[i].den=den;
 	    
-	    //scale the rational approximation to compute action (and force)
-	    rat_exp_actio[iflav].minimum=db_rat_exp_min*scale;
-	    rat_exp_actio[iflav].maximum=db_rat_exp_max*scale;
-	    rat_exp_actio[iflav].cons=db_rat_exp_actio_cons[ipf][irexp]*scale_actio;
-	    
-	    for(int iterm=0;iterm<db_rat_exp_nterms;iterm++)
+	    //if the approximation is valid scale it
+	    if(valid)
 	      {
-		rat_exp_pfgen[iflav].poles[iterm]=db_rat_exp_pfgen_pole[ipf][irexp][iterm]*scale+pow(theory_pars->quark_content[iflav].mass,2);
-		rat_exp_pfgen[iflav].weights[iterm]=db_rat_exp_pfgen_coef[ipf][irexp][iterm]*scale*scale_pfgen;
+		verbosity_lv2_master_printf("Stored rational approximation valid, adapting it quickly\n");
 		
-		rat_exp_actio[iflav].poles[iterm]=db_rat_exp_actio_pole[ipf][irexp][iterm]*scale+pow(theory_pars->quark_content[iflav].mass,2);
-		rat_exp_actio[iflav].weights[iterm]=db_rat_exp_actio_coef[ipf][irexp][iterm]*scale*scale_actio;
+		if(IS_MASTER_THREAD)
+		  {
+		    //center the arithmetic average
+		    double scale=sqrt(eig_max*eig_min)/sqrt(appr[i].minimum*appr[i].maximum);
+		    double scale_extra=pow(scale,expo);
+	    
+		    //scale the rational approximation
+		    appr[i].minimum*=scale;
+		    appr[i].maximum*=scale;
+		    appr[i].cons*=scale_extra;
+		    for(int iterm=0;iterm<appr[i].degree;iterm++)
+		      {
+			appr[i].poles[iterm]*=scale;
+			appr[i].weights[iterm]*=scale*scale_extra;
+		      }
+		  }
+		THREAD_BARRIER();
 	      }
-	  }
-	
-	//sync
-	THREAD_BARRIER();
-	
-	if(VERBOSITY_LV3)
-	  {
-	    master_printf_rat_approx(&(rat_exp_pfgen[iflav]));
-	    master_printf_rat_approx(&(rat_exp_actio[iflav]));
+	    else
+	      {
+		verbosity_lv2_master_printf("Stored rational approximation not valid, generating a new one\n");
+		generate_approx_of_maxerr(appr[i],eig_min/ENL_GEN,eig_max*ENL_GEN,maxerr[i],num,den);
+	      }
+	    
+	    if(VERBOSITY_LV3) master_printf_rat_approx(appr+i);
 	  }
       }
   }

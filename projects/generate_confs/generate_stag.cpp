@@ -42,8 +42,12 @@ int conf_created;
 int seed;
 
 //write a conf adding info
-void write_conf(char *path,quad_su3 **conf)
+int nwritten_conf=0;
+double write_conf_time=0;
+void write_conf(const char *path,quad_su3 **conf)
 {
+  write_conf_time-=take_time();  
+
   //messages
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
@@ -52,6 +56,14 @@ void write_conf(char *path,quad_su3 **conf)
   //traj id
   sprintf(text,"%d",itraj);
   ILDG_string_message_append_to_last(&mess,"MD_traj",text);
+  
+  //rational approximation
+  char *appr_data=NULL;
+  int appr_data_length;
+  convert_rat_approx(appr_data,appr_data_length,evol_pars.hmc_evol_pars.rat_appr,theory_pars[SEA_THEORY].nflavs);
+  
+  ILDG_bin_message_append_to_last(&mess,"RAT_approx",appr_data,appr_data_length);
+  nissa_free(appr_data);
   
 #ifndef REPRODUCIBLE_RUN
   //skip 10 random numbers
@@ -87,6 +99,10 @@ void write_conf(char *path,quad_su3 **conf)
   
   //free messages
   ILDG_message_free_all(&mess);
+
+  //mark time
+  write_conf_time+=take_time();  
+  nwritten_conf++;
 }
 
 //read conf
@@ -102,6 +118,8 @@ void read_conf(quad_su3 **conf,char *path)
   read_ildg_gauge_conf_and_split_into_eo_parts(conf,path,&mess);
   
   //scan messages
+  int rat_approx_found=0;
+  int nflavs_appr_read=0;
   for(ILDG_message *cur_mess=&mess;cur_mess->is_last==false;cur_mess=cur_mess->next)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
@@ -113,11 +131,38 @@ void read_conf(quad_su3 **conf,char *path)
 	  theory_pars[SEA_THEORY].em_field_pars.convert_from_message(*cur_mess);
 	  theory_pars_init_backfield(theory_pars[SEA_THEORY]);
 	}
+      
+      //check for rational approximation
       if(strcasecmp(cur_mess->name,"RAT_approx")==0)
 	{
-	  //strategy: load in a temporary array and check that it is appropriate
-	  //convert_rat_approx(evol_pars.hmc_evol_pars.rat_appr,cur_mess->data,theory_pars[SEA_THEORY].nflavs);
+	  //check that no other approx found and mark it
+	  if(rat_approx_found!=0) crash("a rational approximation has been already found!");
+          rat_approx_found++;
+	  
+          //strategy: load in a temporary array and check that it is appropriate
+	  rat_approx_t *temp_appr=NULL;
+	  convert_rat_approx(temp_appr,nflavs_appr_read,cur_mess->data,cur_mess->data_length);
+	  
+	  //check and possibly copy
+	  if(nflavs_appr_read==theory_pars[SEA_THEORY].nflavs)
+	    {
+	      rat_approx_found++;
+	      for(int i=0;i<nflavs_appr_read*3;i++) evol_pars.hmc_evol_pars.rat_appr[i]=temp_appr[i];
+	    }
+	  else
+	    for(int i=0;i<nflavs_appr_read*3;i++)
+	      rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
+	  nissa_free(temp_appr);
 	}
+    }
+  
+  //report on rational approximation
+  switch(rat_approx_found)
+    {
+    case 0: verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
+    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars[SEA_THEORY].nflavs);break;
+    case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
+    default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
     }
   
   //if message with string not found start from input seed
@@ -310,6 +355,11 @@ void close_simulation()
       nissa_free(conf_to_analyze_paths);
     }
   
+  //destroy rational approximations
+  for(int i=0;i<theory_pars[SEA_THEORY].nflavs*3;i++)
+    rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
+  
+  //unset theories
   for(int itheory=0;itheory<ntheories;itheory++)
     unset_theory_pars(theory_pars[itheory]);
   nissa_free(theory_pars);
@@ -501,7 +551,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   
   meas_time+=take_time();
   
-  verbosity_lv1_master_printf("Time to make fermionic measurament: %lg sec\n",meas_time);
+  verbosity_lv1_master_printf("Time to make fermionic measurement: %lg sec\n",meas_time);
 }
 
 //store conf when appropriate
@@ -597,15 +647,17 @@ void in_main(int narg,char **arg)
 		1158.0e-6*loc_volh*bgq_stdD_napp/(bgq_stdD_app_time?bgq_stdD_app_time:1));
 #endif
   master_printf("overhead time to cgm invert %d times: %lg, %lg per inv\n",
-		ncgm_inv,cgm_inv_over_time,cgm_inv_over_time/(ncgm_inv?ncgm_inv:1));
+		ncgm_inv,cgm_inv_over_time,cgm_inv_over_time/std::max(ncgm_inv,1));
   master_printf("overhead time to cg invert %d times: %lg, %lg per inv\n",
-		ncg_inv,cg_inv_over_time,cg_inv_over_time/(ncg_inv?ncg_inv:1));
+		ncg_inv,cg_inv_over_time,cg_inv_over_time/std::max(ncg_inv,1));
   master_printf("time to stout sme %d times: %lg, %lg per iter\n",
-		nsto,sto_time,sto_time/(nsto?nsto:1));
+		nsto,sto_time,sto_time/std::max(nsto,1));
   master_printf("time to stout remap %d times: %lg, %lg per iter\n",
-		nsto_remap,sto_remap_time,sto_remap_time/(nsto_remap?nsto_remap:1));
+		nsto_remap,sto_remap_time,sto_remap_time/std::max(nsto_remap,1));
   master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",
-		nglu_comp,glu_comp_time,glu_comp_time/(nglu_comp?nglu_comp:1));
+		nglu_comp,glu_comp_time,glu_comp_time/std::max(nglu_comp,1));
+  master_printf("time to write %d configurations: %lg, %lg per conf\n",
+		nwritten_conf,write_conf_time,write_conf_time/std::max(nwritten_conf,1));  
 #endif
 
   close_simulation();

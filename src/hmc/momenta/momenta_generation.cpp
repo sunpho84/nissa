@@ -7,7 +7,6 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "hmc/gauge/MFACC_fields.hpp"
-#include "hmc/rootst_eoimpr/rat_expansion_database.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/su3.hpp"
