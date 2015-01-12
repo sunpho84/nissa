@@ -66,7 +66,7 @@ namespace nissa
     //generate the rational approximation
     double generate_approx(float_high_prec_t *weights,float_high_prec_t *pole,float_high_prec_t &cons,double ext_minimum,double ext_maximum,int ext_degree,int num,int den,double minerr,double tollerance);
   };
-  double generate_approx_of_degree(rat_approx_t &appr,double minimum,double maximum,int degree,int num,int den,const char *name,double minerr,double tollerance);
+  double generate_approx(rat_approx_t &appr,double minimum,double maximum,int num,int den,double minerr,double tollerance);
   void generate_approx_of_maxerr(rat_approx_t &appr,double minimum,double maximum,double maxerr,int num,int den,const char *name=NULL);
 }
 

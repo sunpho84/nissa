@@ -5,25 +5,28 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <sstream>
-
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
+#include "base/thread_macros.hpp"
 #include "io/buffer.hpp"
 #include "io/endianness.hpp"
 #include "new_types_definitions.hpp"
 #include "routines/ios.hpp"
+#ifdef USE_THREADS
+ #include "routines/thread.hpp"
+#endif
 
 namespace nissa
 {
   //allocate a new rat approx
   void rat_approx_create(rat_approx_t *appr,int degree,const char *name)
   {
+    appr->poles=nissa_malloc("poles",2*degree,double);
     if(name!=NULL) memcpy(appr->name,name,20);
     appr->minimum=appr->maximum=0;
     appr->degree=degree;
-    appr->poles=nissa_malloc("poles",2*degree,double);
     appr->weights=appr->poles+degree;
+    THREAD_BARRIER();
   }
   
   //free a rational approx

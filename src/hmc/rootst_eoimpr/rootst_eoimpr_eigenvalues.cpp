@@ -168,14 +168,19 @@ namespace nissa
 	    int num=deg,den=extra_fact[i]*npf;
 	    double expo=(double)num/den;
 	    
-	    //check if the approx is valid or not and in any case fit exponents
-	    snprintf(appr[i].name,20,"x^(%d/%d)",num,den);
+	    //print the name
+	    if(IS_MASTER_THREAD) snprintf(appr[i].name,20,"x^(%d/%d)",num,den);
+	    THREAD_BARRIER();
+	    
+	    //check if the approx is valid or not and in any case fit exponents	    
 	    verbosity_lv2_master_printf("Checking validity of approx %s (%d/3) for flav %d/%d\n",appr[i].name,i,iflav+1,nflavs);
 	    bool valid=check_approx_validity(appr[i],eig_min,eig_max,expo,maxerr[i]);
+	    THREAD_BARRIER();
 	    appr[i].num=num;
 	    appr[i].den=den;
+	    THREAD_BARRIER();
 	    
-	    //if the approximation is valid scale it
+	    //if the approximation is valid scale it	    
 	    if(valid)
 	      {
 		verbosity_lv2_master_printf("Stored rational approximation valid, adapting it quickly\n");

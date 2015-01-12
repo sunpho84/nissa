@@ -513,9 +513,8 @@ namespace nissa
   }
   
   //generate an approximation
-  double generate_approx_of_degree(rat_approx_t &appr,double minimum,double maximum,int degree,int num,int den,const char *name,double minerr,double tollerance)
+  double generate_approx(rat_approx_t &appr,double minimum,double maximum,int num,int den,double minerr,double tollerance)
   {
-    rat_approx_create(&appr,degree,name);
     appr.minimum=minimum;
     appr.maximum=maximum;
     appr.num=num;
@@ -523,18 +522,18 @@ namespace nissa
     
     //wrapper for 256bit output
     float_high_prec_t cons;
-    float_high_prec_t *poles=new float_high_prec_t[degree];
-    float_high_prec_t *weights=new float_high_prec_t[degree];
+    float_high_prec_t *poles=new float_high_prec_t[appr.degree];
+    float_high_prec_t *weights=new float_high_prec_t[appr.degree];
     
     //create the approx
     rat_approx_finder_t finder;
-    double ans=finder.generate_approx(weights,poles,cons,minimum,maximum,degree,num,den,minerr,tollerance);
+    double ans=finder.generate_approx(weights,poles,cons,minimum,maximum,appr.degree,num,den,minerr,tollerance);
     
     //copy
     appr.maxerr=ans;
     appr.cons=cons.get_d();
-    for(int iterm=0;iterm<degree;iterm++) appr.poles[iterm]=poles[iterm].get_d();
-    for(int iterm=0;iterm<degree;iterm++) appr.weights[iterm]=weights[iterm].get_d();
+    for(int iterm=0;iterm<appr.degree;iterm++) appr.poles[iterm]=poles[iterm].get_d();
+    for(int iterm=0;iterm<appr.degree;iterm++) appr.weights[iterm]=weights[iterm].get_d();
     
     delete[] poles;
     delete[] weights;
@@ -547,32 +546,39 @@ namespace nissa
   {
     GET_THREAD_ID();
     
+    //set the name of the approximation and deallocate poles
     if(name!=NULL) snprintf(appr.name,20,"%s",name);
     if(appr.degree!=0) rat_approx_destroy(&appr);
     
-    //increase iteratively until increasing
+    //increase iteratively until it converges
     int degree=1;
     bool found=false;
     do
       {
+	//allocate it
+	rat_approx_create(&appr,degree,name);
+
+	//generate
 	double err;
-	if(IS_MASTER_THREAD) generate_approx_of_degree(appr,minimum,maximum,degree,num,den,name,maxerr,0.01);
+	if(IS_MASTER_THREAD) err=generate_approx(appr,minimum,maximum,num,den,maxerr,0.01);
 	THREAD_BROADCAST(err,err);
 	
+	//check if found
 	found=(err<=maxerr);
 	verbosity_lv3_master_printf("Approx x^(%x/%d) with %d poles can make an error of %lg when %lg required, found: %d\n",
 				    num,den,degree,err,maxerr,found);
 	
 	//if not found increase number of poles
+	THREAD_BARRIER();
 	if(!found)
 	  {
 	    degree++;
 	    rat_approx_destroy(&appr);
 	  }
-	
-	//store required maximal error
-	appr.maxerr=maxerr;
       }
     while(!found);
+	
+    //store required maximal error
+    appr.maxerr=maxerr;    
   }
 }
