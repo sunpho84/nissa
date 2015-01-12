@@ -7,6 +7,7 @@
 #endif
 
 #include "base/debug.hpp"
+#include "base/global_variables.hpp"
 #include "new_types/new_types_definitions.hpp"
 #if HIGH_PREC==NATIVE_HIGH_PREC
  #include "new_types/float_256.hpp"
@@ -65,7 +66,7 @@ namespace nissa
     //(out+err)^d=in^n -> err=out*rel_err, rel_err=(ref/out^d-1)/d
     int iter=0;
     float_high_prec_t rel_residue;
-    double tol=8*pow(2.0,-high_prec_nbits());
+    double tol=16*pow(2.0,-high_prec_nbits());
     do
       {
         //compute out^d
@@ -77,7 +78,7 @@ namespace nissa
         //total err
         float_high_prec_t err=rel_residue*out/d;
         out+=err;
-        //master_printf("Iter %d rel_residue: %lg\n",iter,fabs(rel_residue.get_d()));
+        //verbosity_lv3_master_printf("Iter %d rel_residue: %lg\n",iter,fabs(rel_residue.get_d()));
 	
         iter++;
       }
