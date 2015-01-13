@@ -15,7 +15,6 @@ using namespace nissa;
 const int nbench=10,nbench_port=10;
 
 int seed=100;
-int L=16,T=L;
 double mu=0.03,kappa=0.137;
 coords is_closed;
 
@@ -862,29 +861,18 @@ void debug2_st()
       set_borders_invalid(bi_single_in_eo[eo]);
     }
   
-  double bgq_time=-take_time();
+  double bgq_double_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-    {
-      /*
-      const int OE=0;
+    apply_stD2ee_m2_bgq(bi_out_eo[EVN],bi_conf_eo,mass2,bi_in_eo[EVN]);
+  bgq_double_time+=take_time();
   
-      //compute on the surface and start communications
-      apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],OE);
-      start_staggered_hopping_matrix_oe_or_eo_bgq_communications();
-  
-      //compute on the bulk and finish communications
-      apply_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],OE);
-      finish_double_staggered_hopping_matrix_oe_or_eo_bgq_communications(OE);
-
-      //put the eight pieces together
-      hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[ODD]);
-      */
+  double bgq_single_time=-take_time();
+  for(int ibench=0;ibench<nbench;ibench++)
       apply_single_stD2ee_m2_bgq(bi_single_out_eo[EVN],bi_single_conf_eo,mass2,bi_single_in_eo[EVN]);
-      apply_stD2ee_m2_bgq(bi_out_eo[EVN],bi_conf_eo,mass2,bi_in_eo[EVN]);
-    }
-  
-  bgq_time+=take_time();
-  bgq_time/=2*nbench;
+  bgq_single_time+=take_time();
+
+  bgq_single_time/=nbench;
+  bgq_double_time/=nbench;
   
   //unamp to compare
   color *un_out=nissa_malloc("un_out",loc_volh,color);
@@ -920,8 +908,9 @@ void debug2_st()
   master_printf("ST application relative diff: %lg\n",sqrt(diff2/norm2));
   master_printf("ST application relative diff single: %lg\n",sqrt(diff_single2/norm2));
   master_printf("Time to apply %d time:\n",nbench);
-  master_printf(" %lg sec in port mode\n",port_time);
-  master_printf(" %lg sec in bgq mode\n",bgq_time);
+  master_printf(" %lg sec in port mode, %lg MFlops\n",port_time,1156e-6*loc_volh/port_time);
+  master_printf(" %lg sec in bgq double mode, %lg MFlops\n",bgq_double_time,1156e-6*loc_volh/bgq_double_time);
+  master_printf(" %lg sec in bgq single mode, %lg MFlops\n",bgq_single_time,1156e-6*loc_volh/bgq_single_time);
 
   //benchmark pure hopping matrix application
   double hop_bgq_time[2];
@@ -1028,6 +1017,10 @@ void debug2_st()
 
 void in_main(int narg,char **arg)
 {
+  if(narg<3) crash("use %s L T",arg[0]);
+  int L=atoi(arg[1]);
+  int T=atoi(arg[2]);
+  
   //init
   init_grid(T,L); 
   
