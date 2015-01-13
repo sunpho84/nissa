@@ -172,7 +172,7 @@ namespace nissa
 	    THREAD_BARRIER();
 	    
 	    //check if the approx is valid or not and in any case fit exponents	    
-	    verbosity_lv2_master_printf("Checking validity of approx %s (%d/3) for flav %d/%d\n",appr[i].name,i,iflav+1,nflavs);
+	    verbosity_lv2_master_printf("Checking validity of approx %d/3 for flav %d/%d\n",i+1,iflav+1,nflavs);
 	    bool valid=check_approx_validity(appr[i],eig_min,eig_max,expo,maxerr[i]);
 	    THREAD_BARRIER();
 	    appr[i].num=num;
