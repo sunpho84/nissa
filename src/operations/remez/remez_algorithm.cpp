@@ -41,7 +41,7 @@ namespace nissa
       }  
     
     //loop over the rows
-    for(int k=0;k<n-1;k++) 
+    for(int k=0;k<n-1;k++)
       {
 	//find the pivot
 	float_high_prec_t big=0.0;
@@ -175,13 +175,15 @@ namespace nissa
 	zero0=zero1;
       }
     
-    verbosity_lv3_master_printf("eclose: %16.16lg, farther: %16.16lg, spread: %16.16lg\n",
-				eclose.get_d(),farther.get_d(),spread.get_d());
+    verbosity_lv3_master_printf("eclose: %16.16lg, farther: %16.16lg, spread: %16.16lg, delta: %16.16lg\n",
+		  eclose.get_d(),farther.get_d(),spread.get_d(),delta);
     
     //decrease step size if error spread increased
-    float_high_prec_t q=farther-eclose;
+    float_high_prec_t q;
     //relative error spread
-    if(eclose.get_d()!=0.0) q/=eclose;
+    if(eclose.get_d()!=0.0) q=farther/eclose-1;
+    else q=farther;
+    
     //spread is increasing: decrease step size
     if(!(q<spread)) delta*=0.5;
     
@@ -232,7 +234,6 @@ namespace nissa
 	z=1.0;
 	for(int j=0;j<degree;j++)
 	  {
-	    float_high_prec_t yz; 
 	    matr[i*nzero_err_points+(k++)]=-y*z;
 	    z*=zero[i];
 	  }
@@ -463,8 +464,8 @@ namespace nissa
 	if(iter==0 || (spread>approx_tolerance && farther>target_err)) new_step();
 	if(delta<approx_tolerance)
 	  {
-	    master_printf("WARNING, reached precision %lg while computing %d terms approximation of x^(%d/%d)\n",
-			  spread.get_d(),degree,num,den);
+	    master_printf("WARNING, reached precision %lg while computing %d terms approximation of x^(%d/%d) with tolerance %lg\n",
+			  spread.get_d(),degree,num,den,approx_tolerance);
 	    master_printf("precision not enough to reach %lg precision requested!!!\n",approx_tolerance);
 #if HIGH_PREC==NATIVE_HIGH_PREC
 	    master_printf("use GMP if possible!\n");
@@ -501,7 +502,7 @@ namespace nissa
 	  verbosity_lv2_master_printf("Residue = %lg, Pole = %lg\n",weights[j].get_d(),poles[j].get_d());
 	verbosity_lv2_master_printf("Const: %lg\n",cons.get_d());
       }
-    else verbosity_lv2_master_printf("Not converged in %d iters\n",iter);
+    else verbosity_lv2_master_printf("Not converged to %lg prec with %d poles in %d iters (reached: %lg)\n",target_err,degree,iter,farther.get_d());
       
     delete[] step;
     delete[] zero;
@@ -566,7 +567,7 @@ namespace nissa
 	//check if found
 	found=(err<=maxerr);
 	verbosity_lv3_master_printf("Approx x^(%x/%d) with %d poles can make an error of %lg when %lg required, found: %d\n",
-				    num,den,degree,err,maxerr,found);
+	       num,den,degree,err,maxerr,found);
 	
 	//if not found increase number of poles
 	THREAD_BARRIER();

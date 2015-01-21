@@ -91,6 +91,7 @@ bin_PROGRAMS = $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/edit/skip_random$(EXEEXT) \
 	$(top_builddir)/tools/print_gamma/gamma_test$(EXEEXT) \
+	$(top_builddir)/tools/remez_algorithm/remez_create$(EXEEXT) \
 	$(top_builddir)/tools/unitarity_check/unitarity_check$(EXEEXT)
 subdir = tools
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
@@ -197,6 +198,12 @@ __top_builddir__tools_print_gamma_gamma_test_OBJECTS =  \
 __top_builddir__tools_print_gamma_gamma_test_LDADD = $(LDADD)
 __top_builddir__tools_print_gamma_gamma_test_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.a
+am___top_builddir__tools_remez_algorithm_remez_create_OBJECTS =  \
+	remez_algorithm/remez_create.$(OBJEXT)
+__top_builddir__tools_remez_algorithm_remez_create_OBJECTS = $(am___top_builddir__tools_remez_algorithm_remez_create_OBJECTS)
+__top_builddir__tools_remez_algorithm_remez_create_LDADD = $(LDADD)
+__top_builddir__tools_remez_algorithm_remez_create_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.a
 am___top_builddir__tools_unitarity_check_unitarity_check_OBJECTS =  \
 	unitarity_check/unitarity_check.$(OBJEXT)
 __top_builddir__tools_unitarity_check_unitarity_check_OBJECTS = $(am___top_builddir__tools_unitarity_check_unitarity_check_OBJECTS)
@@ -246,6 +253,7 @@ SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
 	$(__top_builddir__tools_print_gamma_gamma_test_SOURCES) \
+	$(__top_builddir__tools_remez_algorithm_remez_create_SOURCES) \
 	$(__top_builddir__tools_unitarity_check_unitarity_check_SOURCES)
 DIST_SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
 	$(__top_builddir__tools_conf_measure_topo_SOURCES) \
@@ -260,6 +268,7 @@ DIST_SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
 	$(__top_builddir__tools_print_gamma_gamma_test_SOURCES) \
+	$(__top_builddir__tools_remez_algorithm_remez_create_SOURCES) \
 	$(__top_builddir__tools_unitarity_check_unitarity_check_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
@@ -395,6 +404,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/src
 LDADD = $(top_builddir)/lib/libnissa.a
 AUTOMAKE_OPTIONS = subdir-objects
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES = find_best_vir_partitioning/find.cpp
+__top_builddir__tools_remez_algorithm_remez_create_SOURCES = remez_algorithm/remez_create.cpp
 __top_builddir__tools_conf_measure_magn_SOURCES = conf_measure/magn.cpp
 __top_builddir__tools_conf_measure_topo_SOURCES = conf_measure/topo.cpp
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES = conf_transform/convert/gpu_to_ildg.cpp
@@ -636,6 +646,22 @@ $(top_builddir)/tools/print_gamma/$(am__dirstamp):
 $(top_builddir)/tools/print_gamma/gamma_test$(EXEEXT): $(__top_builddir__tools_print_gamma_gamma_test_OBJECTS) $(__top_builddir__tools_print_gamma_gamma_test_DEPENDENCIES) $(EXTRA___top_builddir__tools_print_gamma_gamma_test_DEPENDENCIES) $(top_builddir)/tools/print_gamma/$(am__dirstamp)
 	@rm -f $(top_builddir)/tools/print_gamma/gamma_test$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_print_gamma_gamma_test_OBJECTS) $(__top_builddir__tools_print_gamma_gamma_test_LDADD) $(LIBS)
+remez_algorithm/$(am__dirstamp):
+	@$(MKDIR_P) remez_algorithm
+	@: > remez_algorithm/$(am__dirstamp)
+remez_algorithm/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) remez_algorithm/$(DEPDIR)
+	@: > remez_algorithm/$(DEPDIR)/$(am__dirstamp)
+remez_algorithm/remez_create.$(OBJEXT):  \
+	remez_algorithm/$(am__dirstamp) \
+	remez_algorithm/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/tools/remez_algorithm/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/tools/remez_algorithm
+	@: > $(top_builddir)/tools/remez_algorithm/$(am__dirstamp)
+
+$(top_builddir)/tools/remez_algorithm/remez_create$(EXEEXT): $(__top_builddir__tools_remez_algorithm_remez_create_OBJECTS) $(__top_builddir__tools_remez_algorithm_remez_create_DEPENDENCIES) $(EXTRA___top_builddir__tools_remez_algorithm_remez_create_DEPENDENCIES) $(top_builddir)/tools/remez_algorithm/$(am__dirstamp)
+	@rm -f $(top_builddir)/tools/remez_algorithm/remez_create$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_remez_algorithm_remez_create_OBJECTS) $(__top_builddir__tools_remez_algorithm_remez_create_LDADD) $(LIBS)
 unitarity_check/$(am__dirstamp):
 	@$(MKDIR_P) unitarity_check
 	@: > unitarity_check/$(am__dirstamp)
@@ -662,6 +688,7 @@ mostlyclean-compile:
 	-rm -f conf_transform/smear/*.$(OBJEXT)
 	-rm -f find_best_vir_partitioning/*.$(OBJEXT)
 	-rm -f print_gamma/*.$(OBJEXT)
+	-rm -f remez_algorithm/*.$(OBJEXT)
 	-rm -f unitarity_check/*.$(OBJEXT)
 
 distclean-compile:
@@ -680,6 +707,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/smear/$(DEPDIR)/stout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@find_best_vir_partitioning/$(DEPDIR)/find.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@print_gamma/$(DEPDIR)/gamma_test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@remez_algorithm/$(DEPDIR)/remez_create.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@unitarity_check/$(DEPDIR)/unitarity_check.Po@am__quote@
 
 .cpp.o:
@@ -827,6 +855,8 @@ distclean-generic:
 	-rm -f find_best_vir_partitioning/$(am__dirstamp)
 	-rm -f print_gamma/$(DEPDIR)/$(am__dirstamp)
 	-rm -f print_gamma/$(am__dirstamp)
+	-rm -f remez_algorithm/$(DEPDIR)/$(am__dirstamp)
+	-rm -f remez_algorithm/$(am__dirstamp)
 	-rm -f unitarity_check/$(DEPDIR)/$(am__dirstamp)
 	-rm -f unitarity_check/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/conf_measure/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_measure/$(am__dirstamp)
@@ -836,6 +866,7 @@ distclean-generic:
 	-test -z "$(top_builddir)/tools/conf_transform/smear/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_transform/smear/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)" || rm -f $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/print_gamma/$(am__dirstamp)" || rm -f $(top_builddir)/tools/print_gamma/$(am__dirstamp)
+	-test -z "$(top_builddir)/tools/remez_algorithm/$(am__dirstamp)" || rm -f $(top_builddir)/tools/remez_algorithm/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/unitarity_check/$(am__dirstamp)" || rm -f $(top_builddir)/tools/unitarity_check/$(am__dirstamp)
 
 maintainer-clean-generic:
@@ -846,7 +877,7 @@ clean: clean-am
 clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) print_gamma/$(DEPDIR) unitarity_check/$(DEPDIR)
+	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) print_gamma/$(DEPDIR) remez_algorithm/$(DEPDIR) unitarity_check/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -892,7 +923,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) print_gamma/$(DEPDIR) unitarity_check/$(DEPDIR)
+	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) print_gamma/$(DEPDIR) remez_algorithm/$(DEPDIR) unitarity_check/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

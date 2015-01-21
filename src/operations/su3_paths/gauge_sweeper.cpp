@@ -1,3 +1,7 @@
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
 #include "base/global_variables.hpp"
 #include "base/debug.hpp"
 #include "base/thread_macros.hpp"
@@ -443,24 +447,24 @@ namespace nissa
 	for(int dir=0;dir<4;dir++)
 	  for(int par=0;par<gs->gpar;par++)
 	    {
-	      int nbox_dir_par=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)];
+	      int box_dir_par_size=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)];
 	      
 	      //pack
-	      if(gs->packing_inited) gs->pack_links(conf,ibase,nbox_dir_par);
+	      if(gs->packing_inited) gs->pack_links(conf,ibase,box_dir_par_size);
 
 #ifdef BGQ
-	      //finding half nbox_dir_par
-	      int nbox_dir_parh=nbox_dir_par/2;
-	      if(nbox_dir_parh*2!=nbox_dir_par) nbox_dir_parh++;
+	      //finding half box_dir_par_size
+	      int box_dir_par_sizeh=box_dir_par_size/2;
+	      if(box_dir_par_sizeh*2!=box_dir_par_size) box_dir_par_sizeh++;
 	      if(gs->packing_inited)
-		NISSA_PARALLEL_LOOP(ibox_dir_par,0,nbox_dir_parh)
-		  compute_tlSym_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+nbox_dir_parh],
+		NISSA_PARALLEL_LOOP(ibox_dir_par,0,box_dir_par_sizeh)
+		  compute_tlSym_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+box_dir_par_sizeh],
 					 ((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link);
 	      THREAD_BARRIER();
 #endif	      
 	      
-	      //scan all the box
-	      NISSA_PARALLEL_LOOP(ibox_dir_par,ibase,ibase+nbox_dir_par)
+	      //scan the whole box
+	      NISSA_PARALLEL_LOOP(ibox_dir_par,ibase,ibase+box_dir_par_size)
 		{
 		  //compute the staples
 		  su3 staples;
@@ -485,7 +489,7 @@ namespace nissa
 	      THREAD_BARRIER();
 	      
 	      //increment the box-dir-par subset
-	      ibase+=nbox_dir_par;
+	      ibase+=box_dir_par_size;
 	    }
 	if(IS_MASTER_THREAD) gs->comp_time+=take_time();
       }

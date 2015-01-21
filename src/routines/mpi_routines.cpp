@@ -14,6 +14,7 @@
 #include "new_types/complex.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/new_types_definitions.hpp"
+#include "new_types/rat_approx.hpp"
 
 #ifdef USE_THREADS
   #include "routines/thread.hpp"
@@ -213,6 +214,38 @@ namespace nissa
     return in;
   }
   
+  //broadcast a whole rational approximation
+  void broadcast(rat_approx_t *rat,int rank_from)
+  {
+    GET_THREAD_ID();
+    
+    //first destroy on non-sending
+    if(rank_from!=rank && rat->degree!=0) rat_approx_destroy(rat);
+    THREAD_BARRIER(); //need to barrier to avoid race condition when later "rat-degree" is update through mpi_bcast
+
+    //get degree
+    if(IS_MASTER_THREAD) MPI_Bcast(&(rat->degree),1,MPI_INT,rank_from,MPI_COMM_WORLD);
+    THREAD_BARRIER(); //need to barrier because "create" is collective call
+
+    //allocate if not generated here
+    if(rank_from!=rank)	rat_approx_create(rat,rat->degree,NULL);
+	
+    //and now broadcast the remaining part
+    if(IS_MASTER_THREAD)
+      {
+	MPI_Bcast(rat->name,20,MPI_CHAR,rank_from,MPI_COMM_WORLD);
+	MPI_Bcast(&rat->minimum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+	MPI_Bcast(&rat->maximum,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    	MPI_Bcast(&rat->maxerr,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+    	MPI_Bcast(&rat->num,1,MPI_INT,rank_from,MPI_COMM_WORLD);
+    	MPI_Bcast(&rat->den,1,MPI_INT,rank_from,MPI_COMM_WORLD);
+    	MPI_Bcast(&rat->cons,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+	MPI_Bcast(rat->poles,rat->degree,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+	MPI_Bcast(rat->weights,rat->degree,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
+      }
+    THREAD_BARRIER();
+  }
+
   //reduce a double
   double glb_reduce_double(double in_loc)
   {

@@ -49,11 +49,6 @@ namespace nissa
     //init base things
     init_MPI_thread(narg,arg);
 
-#if HIGH_PREC==GMP_HIGH_PREC
-    //init default precision for gmp
-    mpf_set_default_prec(256);
-#endif
-    
     tot_time=-take_time();
 #ifdef BENCH
     tot_comm_time=0;
@@ -102,6 +97,14 @@ namespace nissa
     if(little_endian) master_printf("System endianness: little (ordinary machine)\n");
     else master_printf("System endianness: big (BG, etc)\n");
     
+#if HIGH_PREC==GMP_HIGH_PREC
+    //init default precision for gmp
+    mpf_set_default_prec(256);
+    master_printf("Support for >128 bit precision: GMP\n");
+#else
+    master_printf("Support for >128 bit precision: NATIVE\n");
+#endif
+
     //set default value for parameters
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
     use_128_bit_precision=NISSA_DEFAULT_USE_128_BIT_PRECISION;

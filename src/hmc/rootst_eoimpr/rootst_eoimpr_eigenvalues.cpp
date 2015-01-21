@@ -32,7 +32,6 @@ namespace nissa
   //assumes that the passed conf already has stag phases inside it
   THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark_content, quad_su3**,eo_conf, int,niters)
   {
-    niters=50;
     GET_THREAD_ID();
     communicate_ev_and_od_quad_su3_borders(eo_conf);
     (*eig_max)=0;
@@ -144,6 +143,14 @@ namespace nissa
     
     //loop over each flav
     int nflavs=theory_pars->nflavs;
+
+    //list of rat_approx to recreate
+    int nto_recreate=0;
+    int iappr_to_recreate[3*nflavs];
+    double min_to_recreate[3*nflavs];
+    double max_to_recreate[3*nflavs];
+    double maxerr_to_recreate[3*nflavs];
+	
     for(int iflav=0;iflav<nflavs;iflav++)
       {
 	//find min and max eigenvalue
@@ -204,14 +211,67 @@ namespace nissa
 	      }
 	    else
 	      {
-		verbosity_lv2_master_printf("Stored rational approximation not valid, generating a new one\n");
-		generate_approx_of_maxerr(appr[i],eig_min/ENL_GEN,eig_max*ENL_GEN,maxerr[i],num,den);
+		verbosity_lv2_master_printf("Stored rational approximation not valid, scheduling to generate a new one\n");		
+		iappr_to_recreate[nto_recreate]=i+3*iflav;
+		min_to_recreate[nto_recreate]=eig_min/ENL_GEN;
+		max_to_recreate[nto_recreate]=eig_max*ENL_GEN;
+		maxerr_to_recreate[nto_recreate]=maxerr[i];
+		nto_recreate++;
+		
+		if(appr[i].degree) rat_approx_destroy(appr+i);
 	      }
-	    
-	    if(VERBOSITY_LV3) master_printf_rat_approx(appr+i);
 	  }
       }
+    
+    //find out who recreates what
+    int rank_recreating[nto_recreate];
+    int nrecreated_per_rank=(nto_recreate+nranks-1)/nranks;
+    master_printf("Need to recreate %d expansions, %d ranks avaialbale\n",nto_recreate,nranks);
+    for(int ito=0;ito<nto_recreate;ito++)
+      {
+	rank_recreating[ito]=ito/nrecreated_per_rank;
+	master_printf(" %d will be recreated by %d\n",ito,rank_recreating[ito]);
+      }
+    
+    //create missing ones
+    for(int ito=0;ito<nto_recreate;ito++)
+      if(rank_recreating[ito]==rank)
+	{
+	  rat_approx_t *rat=evol_pars->rat_appr+iappr_to_recreate[ito];
+	  generate_approx_of_maxerr(*rat,min_to_recreate[ito],max_to_recreate[ito],maxerr_to_recreate[ito],rat->num,rat->den);
+	}
+    if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
+    THREAD_BARRIER();
+    
+    //now collect from other nodes
+    for(int ito=0;ito<nto_recreate;ito++)
+      {
+	//int ia=iappr_to_recreate[ito];
+	//rat_approx_t *rat=(evol_pars->rat_appr+ia);
+	//if(IS_MASTER_THREAD)
+	//{
+	//if(rank==rank_recreating[ito]) printf("ANNE%d %d degree before send: %d\n",ito,rank,rat->degree);
+	//else printf(" ANNE%d %d degree before receiving: %d\n",ito,rank,rat->degree);
+	//}
+	//fflush(stdout);
+	broadcast(evol_pars->rat_appr+iappr_to_recreate[ito],rank_recreating[ito]);
+	/*
+printf("ANNA%d%d %d %d %p %p %d\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->degree);
+	printf("ANNA%d%d %d %d %p %p %d\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->num);
+	printf("ANNA%d%d %d %d %p %p %d\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->den);
+	printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->cons);
+	printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->minimum);
+	printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->maximum);
+	printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->maxerr);
+	//for(int i=0;i<(evol_pars->rat_appr+ia)->degree;i++)
+	//printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->poles[i]);
+	//for(int i=0;i<(evol_pars->rat_appr+ia)->degree;i++)
+	//printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->weights[i]);
+		fflush(stdout);
+	*/
+      }
+    if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
+    THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-  
 }

@@ -32,6 +32,8 @@ namespace nissa
   //free a rational approx
   void rat_approx_destroy(rat_approx_t *appr)
   {
+    THREAD_BARRIER();
+    appr->degree=0;
     nissa_free(appr->poles);
   }
   
@@ -85,11 +87,8 @@ namespace nissa
   }
   
   //convert an approximation to store it
-  void convert_rat_approx(char *&data,int &data_length,rat_approx_t *appr,int nflav)
+  void convert_rat_approx(buffer_t &s,rat_approx_t *appr,int nflav)
   {
-    //create a stream
-    buffer_t s;
-    
     //write nflav
     s<<nflav;
     
@@ -107,6 +106,12 @@ namespace nissa
 	for(int j=0;j<appr[i].degree;j++)
 	  s<<appr[i].poles[j]<<appr[i].weights[j];
       }
+  }
+  void convert_rat_approx(char *&data,int &data_length,rat_approx_t *appr,int nflav)
+  {
+    //create a stream
+    buffer_t s;
+    convert_rat_approx(s,appr,nflav);
     
     //allocate data
     data_length=s.size();
