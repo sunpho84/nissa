@@ -1,8 +1,11 @@
 #ifndef _RAT_APPROX_HPP
 #define _RAT_APPROX_HPP
 
+#include "io/buffer.hpp"
+
 namespace nissa
 {
+  void convert_rat_approx(buffer_t &s,rat_approx_t *appr,int nflav);
   void convert_rat_approx(char *&data,int &data_length,rat_approx_t *appr,int nflav);
   void convert_rat_approx(rat_approx_t *&appr,int &nflav,char *data,int data_length);
   void master_printf_rat_approx(rat_approx_t *appr);

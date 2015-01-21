@@ -16,9 +16,11 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data \
 	$(top_builddir)/tools/conf_transform/edit/skip_random \
 	$(top_builddir)/tools/print_gamma/gamma_test \
+	$(top_builddir)/tools/remez_algorithm/remez_create \
 	$(top_builddir)/tools/unitarity_check/unitarity_check
 
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES=find_best_vir_partitioning/find.cpp
+__top_builddir__tools_remez_algorithm_remez_create_SOURCES=remez_algorithm/remez_create.cpp
 __top_builddir__tools_conf_measure_magn_SOURCES=conf_measure/magn.cpp
 __top_builddir__tools_conf_measure_topo_SOURCES=conf_measure/topo.cpp
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES=conf_transform/convert/gpu_to_ildg.cpp

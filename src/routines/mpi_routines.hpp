@@ -21,6 +21,7 @@ namespace nissa
   double glb_max_double(double in_loc);
   int glb_reduce_int(int in_loc);
   int master_broadcast(int in);
+  void broadcast(rat_approx_t *rat,int rank_from=0);
 #ifdef USE_MPI
   MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos);
   MPI_Offset diff_with_next_eight_multiple(MPI_Offset pos);

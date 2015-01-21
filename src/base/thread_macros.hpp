@@ -63,6 +63,9 @@
  #define THREAD_BROADCAST(out,in)			\
    if(IS_MASTER_THREAD) broadcast_ptr=(void*)&in;	\
    THREAD_ATOMIC_EXEC(memcpy(&out,broadcast_ptr,sizeof(out)));
+ #define THREAD_BROADCAST_PTR(out,in)		\
+   if(IS_MASTER_THREAD) broadcast_ptr=in;	\
+   THREAD_ATOMIC_EXEC(memcpy(out,broadcast_ptr,sizeof(void*)));
 
 #else
 
@@ -74,6 +77,7 @@
  #define NISSA_PARALLEL_LOOP(INDEX,EXT_START,EXT_END) for(int INDEX=EXT_START;INDEX<EXT_END;INDEX++)
  #define THREAD_ATOMIC_EXEC(inst) inst
  #define THREAD_BROADCAST(out,in) (out)=(in)
+#define THREAD_BROADCAST_PTR(out,in) THREAD_BROADCAST(out,in)
 #endif
 
 //////////////////////////////////////////////////////////////////////////////////////

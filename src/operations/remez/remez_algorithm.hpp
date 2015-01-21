@@ -55,7 +55,8 @@ namespace nissa
     float_high_prec_t root_find_Newton(float_high_prec_t *poly,int i,double x1,double x2,double acc);
     
     //calculate function required for the approximation, or its error
-    float_high_prec_t func_to_approx(float_high_prec_t x){return float_high_prec_t_pow_int_frac(x,num,den);}
+    float_high_prec_t func_to_approx(float_high_prec_t x)
+    {return float_high_prec_t_pow_int_frac(x,num,den);}
     float_high_prec_t get_abs_err(float_high_prec_t x);
     float_high_prec_t get_err(float_high_prec_t x);
     
