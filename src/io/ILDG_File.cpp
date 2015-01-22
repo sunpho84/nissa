@@ -580,18 +580,8 @@ namespace nissa
 	check_read[0]=check_read[1]=0;
 	char *handlea=strstr(mess,"<suma>"),*handleb=strstr(mess,"<sumb>");
 	//if found read it
-	if(handlea==NULL||handleb==NULL) master_printf("WARNING: Broken checksum\n");
-	else
-	  {
-	    char *termsa=strstr(mess,"</suma>"),*termsb=strstr(mess,"</sumb>");
-	    int na=termsa-handlea,nb=termsb-handleb;
-	    char cha[na+1],chb[nb+1];
-	    strncpy(cha,handlea+6,na);
-	    strncpy(chb,handleb+6,nb);
-	    sscanf(cha,"%x",&check_read[0]);
-	    sscanf(chb,"%x",&check_read[1]);
-	  }
-	
+	if(!(handlea && handleb && sscanf(handlea+6,"%x",check_read+0) && sscanf(handleb+6,"%x",check_read+1)))
+	  master_printf("WARNING: Broken checksum\n");
 	nissa_free(mess);
       }
   }

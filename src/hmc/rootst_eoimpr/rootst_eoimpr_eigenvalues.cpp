@@ -226,11 +226,11 @@ namespace nissa
     //find out who recreates what
     int rank_recreating[nto_recreate];
     int nrecreated_per_rank=(nto_recreate+nranks-1)/nranks;
-    master_printf("Need to recreate %d expansions, %d ranks avaialbale\n",nto_recreate,nranks);
+    verbosity_lv1_master_printf("Need to recreate %d expansions, %d ranks avaialbale\n",nto_recreate,nranks);
     for(int ito=0;ito<nto_recreate;ito++)
       {
 	rank_recreating[ito]=ito/nrecreated_per_rank;
-	master_printf(" %d will be recreated by %d\n",ito,rank_recreating[ito]);
+	verbosity_lv2_master_printf(" %d will be recreated by %d\n",ito,rank_recreating[ito]);
       }
     
     //create missing ones
@@ -244,32 +244,8 @@ namespace nissa
     THREAD_BARRIER();
     
     //now collect from other nodes
-    for(int ito=0;ito<nto_recreate;ito++)
-      {
-	//int ia=iappr_to_recreate[ito];
-	//rat_approx_t *rat=(evol_pars->rat_appr+ia);
-	//if(IS_MASTER_THREAD)
-	//{
-	//if(rank==rank_recreating[ito]) printf("ANNE%d %d degree before send: %d\n",ito,rank,rat->degree);
-	//else printf(" ANNE%d %d degree before receiving: %d\n",ito,rank,rat->degree);
-	//}
-	//fflush(stdout);
-	broadcast(evol_pars->rat_appr+iappr_to_recreate[ito],rank_recreating[ito]);
-	/*
-printf("ANNA%d%d %d %d %p %p %d\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->degree);
-	printf("ANNA%d%d %d %d %p %p %d\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->num);
-	printf("ANNA%d%d %d %d %p %p %d\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->den);
-	printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->cons);
-	printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->minimum);
-	printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->maximum);
-	printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->maxerr);
-	//for(int i=0;i<(evol_pars->rat_appr+ia)->degree;i++)
-	//printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->poles[i]);
-	//for(int i=0;i<(evol_pars->rat_appr+ia)->degree;i++)
-	//printf("ANNA%d%d %d %d %p %p %lg\n",rank,thread_id,ito,ia,rat,evol_pars->rat_appr,(evol_pars->rat_appr+ia)->weights[i]);
-		fflush(stdout);
-	*/
-      }
+    for(int ito=0;ito<nto_recreate;ito++) broadcast(evol_pars->rat_appr+iappr_to_recreate[ito],rank_recreating[ito]);
+
     if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
     THREAD_BARRIER();
   }

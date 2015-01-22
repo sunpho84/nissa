@@ -32,7 +32,7 @@ namespace nissa
     int num,den;
     
     //variables used to calculate the approximation
-    float_high_prec_t *zero,*xmax,*step;
+    float_high_prec_t *zero,*xmax,*step,*yy,*poly;
     double delta,approx_tolerance;
     float_high_prec_t spread;
     
@@ -42,7 +42,7 @@ namespace nissa
     
     //iter routine
     void set_linear_system(float_high_prec_t *matr,float_high_prec_t *vec);
-    void new_step(); 
+    void new_step(int iter);
     
     //calculate the roots of the approximation
     void root_find(float_high_prec_t *roots,float_high_prec_t *poles,float_high_prec_t &cons);
