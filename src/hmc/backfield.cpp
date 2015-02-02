@@ -85,8 +85,8 @@ namespace nissa
     phase[nu]=xmu;
   }
   
-  void (*get_args_of_quantization[2])(coords,int,int,int)=
-  {get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
+  void (*get_args_of_quantization[3])(coords,int,int,int)=
+  {NULL,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
 
   
   //multiply a background field by a constant em field
