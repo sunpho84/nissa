@@ -372,11 +372,12 @@ int main(int narg,char **arg)
       size_t len=0;
       char *line=NULL;
       if(getline(&line,&len,fin)==-1) crash("reading");
-      int L,T;
+      int L;
       sscanf(line,"L %d",&L);
-      if(getline(&line,&len,fin)==-1) crash("reading");
       if(L>0)
 	{
+	  int T;
+	  if(getline(&line,&len,fin)==-1) crash("reading");
 	  sscanf(line,"T %d",&T);
 	  sides[0]=T;
 	  sides[1]=L;
@@ -385,10 +386,14 @@ int main(int narg,char **arg)
 	}
       else
 	{
-	  sscanf(line,"LT %d",&sides[0]);
-	  sscanf(line,"LX %d",&sides[1]);
-	  sscanf(line,"LY %d",&sides[2]);
-	  sscanf(line,"LZ %d",&sides[3]);
+	  if(getline(&line,&len,fin)==-1) crash("reading");
+	  if(sscanf(line,"LT %d",&(sides[0]))<=0) crash("reading LT");
+	  if(getline(&line,&len,fin)==-1) crash("reading");
+	  if(sscanf(line,"LX %d",&(sides[1]))<=0) crash("reading LX");
+	  if(getline(&line,&len,fin)==-1) crash("reading");
+	  if(sscanf(line,"LY %d",&(sides[2]))<=0) crash("reading LY");
+	  if(getline(&line,&len,fin)==-1) crash("reading");
+	  if(sscanf(line,"LZ %d",&(sides[3]))<=0) crash("reading LZ");
 	}
       fclose(fin);
       free(line);
