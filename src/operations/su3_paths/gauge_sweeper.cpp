@@ -740,7 +740,7 @@ namespace nissa
   
 #ifdef BGQ
   //compute the summ of the staples pointed by "ilinks"
-  void compute_tlSym_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links)
+  void compute_tlSym_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double b0,double b1)
   {
     bi_su3 squares,rectangles,up_rectangles,dw_rectangles;
     
@@ -851,7 +851,6 @@ namespace nissa
     STORE_REG_BI_SU3(rectangles,REG_U1);
     
     //compute the summed staples
-    double b1=-1.0/12,b0=1-8*b1;
     DECLARE_REG_BI_COMPLEX(reg_b0);
     DECLARE_REG_BI_COMPLEX(reg_b1);
     REG_SPLAT_BI_COMPLEX(reg_b0,b0);
@@ -864,6 +863,22 @@ namespace nissa
     bi_su3 bi_staples;
     STORE_REG_BI_SU3(bi_staples,REG_U3);
     BI_SU3_TO_SU3(staples1,staples2,bi_staples);
+  }
+  void compute_tlSym_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links)
+  {
+    double b1=-1.0/12,b0=1-8*b1;
+    compute_tlSym_staples_packed_bgq(staples1,staples2,links,b0,b1);
+  }
+  void compute_tlSym_force_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double beta,bool phase_pres)
+  {
+    //coefficient of rectangles and squares, including beta
+    double b1=-1.0/12,b0=1-8*b1;
+    double c1=-b1*beta/3,c0=-b0*beta/3;
+    //the stag phases add (-1)^area
+    if(phase_pres) c0=-c0; 
+    compute_tlSym_staples_packed_bgq(staples1,staples2,links,c0,c1);
+    safe_su3_hermitian(staples1,staples1);
+    safe_su3_hermitian(staples2,staples2);
   }
 #endif
 

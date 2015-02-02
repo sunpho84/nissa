@@ -12,7 +12,9 @@ namespace nissa
 {
 #ifdef BGQ
   void compute_tlSym_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links);
+  void compute_tlSym_force_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double beta,bool phase_pres);
 #endif
+  void compute_tlSym_staples_packed(su3 staples,su3 *links);
   void init_tlSym_sweeper();
   void init_Wilson_sweeper();
   void init_sweeper(gauge_action_name_t);

@@ -159,6 +159,7 @@ namespace nissa
       {
       case 0: break;
       case 1: 
+      case 2: 
 	read_str_double("Ex",&(pars.E[0]));
 	read_str_double("Ey",&(pars.E[1]));
 	read_str_double("Ez",&(pars.E[2]));
@@ -166,7 +167,8 @@ namespace nissa
 	read_str_double("By",&(pars.B[1]));
 	read_str_double("Bz",&(pars.B[2]));
 	break;
-      case 2:
+      case 3:
+	crash("not any longer supported, here just for reference");
 	read_str_int("MetaBFieldComponent",&(pars.meta.component));
 	read_str_double("MetaBFieldInitValue",&(pars.B[pars.meta.component]));
 	read_str_double("MetaNorm",&(pars.meta.norm));

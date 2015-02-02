@@ -64,17 +64,35 @@ namespace nissa
     gluonic_force_finish_computation(F,conf,phase_pres);
     
     ///////////////////////////////////////////////////////////////////////////////////////////////
-    
 #if 0
 
     //take notes of ingredients
-    void(*compute_staples_bgq)(su3,su3,bi_su3*);
-    compute_staples_bgq=compute_tlSym_staples_packed_bgq;
-    gauge_sweeper_t *gs=tlSym_sweeper;
-
+#ifdef BGQ
+    void(*compute_force)(su3,su3,bi_su3*,double,bool);
+#else
+    void(*compute_force)(su3,su3*,double,bool);
+#endif
+    gauge_sweeper_t *gs;
+    
+    switch(physics->gauge_action_name)
+      {
+      case WILSON_GAUGE_ACTION:
+	//compute_staples_bgq=compute_Wilson_staples_packed_bgq;
+	gs=Wilson_sweeper;
+	crash("packed not implemented");
+	break;
+      case TLSYM_GAUGE_ACTION:
+#ifdef BGQ
+	compute_force=compute_tlSym_force_packed_bgq;
+#else
+	compute_force=compute_tlSym_force_packed;
+#endif
+	gs=tlSym_sweeper;
+	break;
+      default: crash("Unknown action");
+      }
+    
     //new version
-    if(phase_pres) addrem_stagphases_to_lx_conf(conf);
-
     if(!gs->packing_inited) crash("you have to init packing");
 
     int ibase=0;
@@ -98,25 +116,27 @@ namespace nissa
 
 #ifdef BGQ
 	      //finding half box_dir_par_size
-	      int box_dir_par_sizeh=box_dir_par_size/2;
+ 	      int box_dir_par_sizeh=box_dir_par_size/2;
 	      if(box_dir_par_sizeh*2!=box_dir_par_size) box_dir_par_sizeh++;
 	      if(gs->packing_inited)
 		NISSA_PARALLEL_LOOP(ibox_dir_par,0,box_dir_par_sizeh)
-		  compute_staples_bgq(F[gs->ivol_of_box_dir_par[ibox_dir_par]][dir],
-				      F[gs->ivol_of_box_dir_par[ibox_dir_par+box_dir_par_sizeh]][dir],
-				      ((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link);
+		  compute_force(F[gs->ivol_of_box_dir_par[ibox_dir_par]][dir],
+				F[gs->ivol_of_box_dir_par[ibox_dir_par+box_dir_par_sizeh]][dir],
+				((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link,
+				physics->beta,phase_pres);
 	      THREAD_BARRIER();
-#endif	      
-
+#else
+	      crash("esticazzi!");
+#endif
 	    }
       }
     
-    //finish
-    gluonic_force_finish_computation(F,conf,false);
+    //add the stag phases to the force term, to cancel the one entering the force
+    if(phase_pres) addrem_stagphases_to_lx_conf(F);
     
-    //put back in case 
-    if(phase_pres) addrem_stagphases_to_lx_conf(conf);
-    #endif
+    //finish
+    gluonic_force_finish_computation(F,conf,phase_pres);
+#endif
 
     //////////////////////////////////////////////////////////////////////////
     
