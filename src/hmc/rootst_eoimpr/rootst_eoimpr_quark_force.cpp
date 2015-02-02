@@ -44,7 +44,7 @@ namespace nissa
   //Passed conf must NOT contain the backfield.
   //Of the result still need to be taken the TA
   //The approximation need to be already scaled, and must contain physical mass term
-  THREADABLE_FUNCTION_8ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, double*,F_B, double,charge, quad_su3**,eo_conf, color*,pf, quad_u1**,u1b, rat_approx_t*,appr, double,residue)
+  THREADABLE_FUNCTION_9ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, double*,F_B, double,charge, quad_su3**,eo_conf, color*,pf, int,quantization, quad_u1**,u1b, rat_approx_t*,appr, double,residue)
   {
     GET_THREAD_ID();
     
@@ -85,8 +85,8 @@ namespace nissa
 	    {
 	      //get phases
 	      coords ph_evn,ph_odd;
-	      get_args_of_one_over_L2_quantization(ph_evn,loclx_of_loceo[EVN][ieo],mu,nu);
-	      get_args_of_one_over_L2_quantization(ph_odd,loclx_of_loceo[ODD][ieo],mu,nu);
+	      get_args_of_quantization[quantization](ph_evn,loclx_of_loceo[EVN][ieo],mu,nu);
+	      get_args_of_quantization[quantization](ph_odd,loclx_of_loceo[ODD][ieo],mu,nu);
 	      
 	      for(int rho=0;rho<4;rho++)
 		{
@@ -186,7 +186,7 @@ namespace nissa
     
     for(int iflav=0;iflav<tp->nflavs;iflav++)
       for(int ipf=0;ipf<npfs[iflav];ipf++)
-	summ_the_rootst_eoimpr_quark_force(F,F_B,tp->quark_content[iflav].charge,conf,pf[iflav][ipf],tp->backfield[iflav],appr+(iflav*3+2),residue);
+	summ_the_rootst_eoimpr_quark_force(F,F_B,tp->quark_content[iflav].charge,conf,pf[iflav][ipf],tp->em_field_pars.flag,tp->backfield[iflav],appr+(iflav*3+2),residue); //flag set quantization
     
     //add the stag phases to the force term, coming from the disappered link in dS/d(U)
     addrem_stagphases_to_eo_conf(F);

@@ -178,6 +178,9 @@ void read_conf(quad_su3 **conf,char *path)
 //initialize the program in "production" mode
 void init_program_to_run(start_conf_cond_t start_conf_cond)
 {
+  //initialize the sweepers
+  init_sweeper(theory_pars[SEA_THEORY].gauge_action_name);
+  
   //load conf or generate it
   if(file_exists(conf_path))
     {
@@ -228,10 +231,22 @@ void init_simulation(char *path)
   open_input(path);
   
   //init the grid 
-  int L,T;
+  int L;
   read_str_int("L",&L);
-  read_str_int("T",&T);
-  init_grid(T,L);
+  if(L>0)
+    {
+      int T;
+      read_str_int("T",&T);
+      init_grid(T,L);
+    }
+  else
+    {
+      read_str_int("LT",glb_size+0);
+      read_str_int("LX",glb_size+1);
+      read_str_int("LY",glb_size+2);
+      read_str_int("LZ",glb_size+3); 
+      init_grid(0,0);
+   }
   
   //read number of additional theory to read
   int nvalence_theories;

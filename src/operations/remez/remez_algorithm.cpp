@@ -20,11 +20,125 @@
 
 namespace nissa
 {
+  /*
+  void linear_system_solve(double *A,double *x,double *b,int n)
+  {
+    double r[n],p[n],ap[n];
+    for(int i=0;i<n;i++)
+      {
+	r[i]=p[i]=b[i];
+	x[i]=0;
+      }
+    
+    double rr=0;
+    for(int i=0;i<n;i++) rr+=r[i]*r[i];
+    double source_norm=0;
+    for(int i=0;i<n;i++) source_norm+=b[i]*b[i];
+    printf("Source_norm: %lg\n",source_norm);
+    double rel_res;
+    int iter=1;
+    do
+      {
+	double pap=0;
+	for(int i=0;i<n;i++)
+	  {
+	    ap[i]=0;
+	    for(int j=0;j<n;j++) ap[i]+=A[i*n+j]*p[j];
+	    pap+=ap[i]*p[i];
+	  }
+	//printf("pap: %lg\n",pap);
+	
+	double alpha=rr/pap;
+	double roro=rr;
+	
+	//adjust new solution and residual,
+	//compute new residual norm
+	rr=0;
+	for(int i=0;i<n;i++)
+	  {
+	    x[i]+=alpha*p[i];
+	    r[i]-=alpha*ap[i];
+	    rr+=r[i]*r[i]; //computing residual here we save one loop
+	  }
+	//printf("rr: %lg\n",rr);
+
+	//adjust new krylov vector
+	double beta=rr/roro;
+	for(int i=0;i<n;i++) p[i]=r[i]+beta*p[i];
+	
+	//compute relative residue
+	rel_res=(double)rr/source_norm;
+	
+	printf(" %d %lg\n",iter,rel_res);
+	iter++;
+      }
+    while(rel_res>1e-29 && iter<100000);
+  }
+
+  void linear_system_solve_normal_equation(double *A,double *x,double *b,int n)
+  {
+    double A2[n*n];
+    double bin[n];
+    for(int i=0;i<n;i++)
+      {
+	bin[i]=0;
+	for(int j=0;j<n;j++)
+	  {
+	    bin[i]+=A[j*n+i]*b[j];
+	    A2[i*n+j]=0;
+	    for(int k=0;k<n;k++) A2[i*n+j]+=A[k*n+i]*A[k*n+j];
+	  }
+      }
+    linear_system_solve(A2,x,bin,n);
+  }     
+  */
+  
   //solve the linear system A*x=b
   void linear_system_solve(float_high_prec_t *A,float_high_prec_t *x,float_high_prec_t *b,int n)
   {
     GET_THREAD_ID();
     
+    /*
+    float_high_prec_t xcg[n];
+    for(int i=0;i<n;i++) xcg[i]=0;
+    
+    double Ad[n*n],xd[n],bd[n];
+    for(int i=0;i<n;i++) for(int j=0;j<n;j++) Ad[i*n+j]=A[i*n+j].get_d();
+    
+    double source_norm=0;
+    for(int i=0;i<n;i++) source_norm+=b[i].get_d()*b[i].get_d();
+    
+    double bdbd;
+    int iter=0;
+    double tol=sqr(pow(2.0,-high_prec_nbits()));
+    do
+      {
+	bdbd=0;
+	for(int i=0;i<n;i++)
+	  {
+	    float_high_prec_t t=b[i];
+	    for(int j=0;j<n;j++) t-=A[i*n+j]*xcg[j];
+	    bd[i]=t.get_d();
+	    bdbd+=bd[i]*bd[i];
+	  }
+	bdbd/=source_norm;
+	
+	printf("accu res %d: %lg\n",iter,bdbd);
+	
+	if(bdbd>tol)
+	  {
+	    linear_system_solve_normal_equation(Ad,xd,bd,n);
+	    for(int i=0;i<n;i++) xcg[i]+=xd[i];
+	  }
+	iter++;
+      }
+    while(bdbd>tol && iter<10000);
+    
+    for(int i=0;i<n;i++)
+      printf("CG %d %lg\n",i,xcg[i].get_d());
+      
+    */
+      
     if(IS_MASTER_THREAD)
       {
 	int exch[n];
@@ -91,7 +205,19 @@ namespace nissa
 	  }
       }
     THREAD_BARRIER();
-  }
+    
+    /*
+    for(int i=0;i<n;i++)
+      printf("LU %d %lg\n",i,x[i].get_d());
+    for(int i=0;i<n;i++)
+      {
+	float_high_prec_t d=x[i]-xcg[i];
+	printf("DIFF %d %lg\n",i,d.get_d());
+      }
+    printf("Exp: %lg\n",pow(2.0,-high_prec_nbits()));
+    */    
+
+    }
   
   //find nmax_err_points+1 extrema of Chebyshev polynomial
   void rat_approx_finder_t::find_cheb()

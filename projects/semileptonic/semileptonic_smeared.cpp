@@ -71,6 +71,9 @@ int Wclov_tm;
 int rotate_to_phys_basis;
 double cSW;
 
+//twist the boundaries or add phase when contracting
+int twisted_boundary;
+
 //gauge info
 int ngauge_conf,nanalyzed_conf=0;
 char conf_path[1024],outfolder[1024];
@@ -301,7 +304,8 @@ void initialize_semileptonic(char *input_path)
   //Kappa is read really only for tm
   if(Wclov_tm) read_str_double("Kappa",&kappa);
   read_str_double("cSW",&cSW);
-  
+  read_str_int("TwistedBoundary",&twisted_boundary);
+
   // 2) Read information about the source
   
 #ifndef POINT_SOURCE_VERSION
@@ -367,6 +371,9 @@ void initialize_semileptonic(char *input_path)
   read_str_int("UseNewContractionLayout",&use_new_contraction_layout);
   if(use_new_contraction_layout)
     {
+#ifndef POINT_SOURCE_VERSION
+      if(twisted_boundary==0) crash("new_contraction layout not implemented for non-twisted boundaries");
+#endif
       char path[100];
       read_str_str("TwoPointsOpListFilePath",path,100);
       two_pts_comp=read_two_pts_sink_source_corr_from_file(path);
@@ -410,6 +417,9 @@ void initialize_semileptonic(char *input_path)
   if(Wclov_tm==1) read_str_int("UseCgmS1",&use_cgm_S1);
   read_list_of_double_pairs("MassResiduesS1",&nmassS1,&massS1,&stop_res_S1);
   read_list_of_doubles("NThetaS1",&nthetaS1,&thetaS1);
+#ifndef POINT_SOURCE_VERSION
+  if(twisted_boundary==0 && nthetaS1!=0) crash("non-twisted contractions not implemented for three points");
+#endif
   read_str_int("ContrThreePointsUpToS0Mass",&contr_3pts_up_to_S0_mass);
   
   // 7) three points functions
@@ -704,7 +714,7 @@ void smear_additive_propagator(PROP_TYPE *out,PROP_TYPE *in,int ism_lev,int *gau
 }
 
 //calculate the standard propagators
-void calculate_S0(int ism_lev_so)
+void calculate_all_S0(int ism_lev_so)
 {
   //smear additively the source
   master_printf("\nSource Smearing level: %d\n",ism_lev_so);
@@ -739,10 +749,22 @@ void calculate_S0(int ism_lev_so)
 	    
 	    for(int itheta=0;itheta<nthetaS0;itheta++)
 	      {
-		//adapt the border condition
-		put_theta[1]=put_theta[2]=put_theta[3]=thetaS0[itheta];
-		adapt_theta(conf,old_theta,put_theta,1,1);
-		
+		if(twisted_boundary)
+		  {
+		    //adapt the border condition
+		    put_theta[1]=put_theta[2]=put_theta[3]=thetaS0[itheta];
+		    adapt_theta(conf,old_theta,put_theta,1,1);
+		  }
+		else
+		  {
+		    //put the phase on the source
+		    double ph[4]={0,
+				  thetaS0[itheta]*M_PI/glb_size[1],
+				  thetaS0[itheta]*M_PI/glb_size[2],
+				  thetaS0[itheta]*M_PI/glb_size[3]};
+		    spincolor_put_exp_iphase_dot_x(source,ph);
+		  }
+
 		//invert
 		if(!load_S0)
 		  {
@@ -827,6 +849,15 @@ void calculate_S0(int ism_lev_so)
 		    for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		      if(which_r_S0==r||which_r_S0==2)
 			{
+			  if(!twisted_boundary)
+			    {
+			      //put the phase
+			      double ph[4]={0,
+					    -thetaS0[itheta]*M_PI/glb_size[1],
+					    -thetaS0[itheta]*M_PI/glb_size[2],
+					    -thetaS0[itheta]*M_PI/glb_size[3]};
+			      spincolor_put_exp_iphase_dot_x(temp_vec[r],ph);
+			    }
 #ifdef POINT_SOURCE_VERSION
 			  put_spincolor_into_su3spinspin(S0[r][ipropS0(itheta,imass,muS)],temp_vec[r],id,ic);
 #else
@@ -858,7 +889,7 @@ void calculate_S0(int ism_lev_so)
 }
 
 //calculate the sequential propagators
-void calculate_S1(int ispec,int ism_lev_se)
+void calculate_all_S1(int ispec,int ism_lev_se)
 {
   //smear additively the seq
   master_printf("\nSeq Smearing level: %d (will be applied twice!)\n",ism_lev_se);
@@ -1449,7 +1480,41 @@ void in_main(int narg,char **arg)
       for(int sm_lev_so=0;sm_lev_so<nsm_lev_so;sm_lev_so++)
 	{
 	  //compute S0 propagator smearing the config the appropriate number of time the source
-	  calculate_S0(sm_lev_so);
+	  calculate_all_S0(sm_lev_so);
+	  
+	  /*
+	  //hack to make twisted test
+	  double loc[glb_size[0]],glb[glb_size[0]];
+	  memset(loc,0,sizeof(double)*glb_size[0]);
+	  NISSA_LOC_VOL_LOOP(ivol)
+	  {
+	    int t=glb_coord_of_loclx[ivol][0];
+	    double a=0;
+	    for(int id=0;id<4;id++)
+	      for(int jd=0;jd<4;jd++)
+		for(int ic=0;ic<3;ic++)
+#ifdef POINT_SOURCE_VERSION
+		  for(int jc=0;jc<3;jc++)
+#endif
+		    for(int ri=0;ri<2;ri++)
+		      {
+			double c=S0[0][0][ivol][ic]
+#ifdef POINT_SOURCE_VERSION
+			  [jc]
+#endif
+			  [jd][id][ri];
+			a+=c*c;
+		      }
+	    double ph=0;
+	    for(int mu=1;mu<4;mu++) ph+=glb_coord_of_loclx[ivol][mu];
+	    ph*=M_PI*thetaS0[1]/glb_size[1];
+	    loc[t]+=a*cos(ph);
+	    //if(ivol==1) printf("ANNA2 %lg %lg\n",cos(ph),sin(ph));
+	  }
+	  MPI_Allreduce(loc,glb,glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	  for(int t=0;t<glb_size[0];t++)
+	    master_printf("ANNA %d %16.16lg\n",t,glb[t]);
+	  */
 	  
 	  //loop on spectator
 	  if(ncontr_3pts!=0 || nch_contr_3pts!=0)
@@ -1461,7 +1526,7 @@ void in_main(int narg,char **arg)
 		//loop on smearing of the sequential prop
 		for(int sm_lev_se=0;sm_lev_se<nsm_lev_se;sm_lev_se++)
 		  {
-		    calculate_S1(ispec,sm_lev_se);
+		    calculate_all_S1(ispec,sm_lev_se);
 		    //check_two_points(ispec,sm_lev_so,sm_lev_se);
 		    calculate_all_3pts(ispec,sm_lev_so,sm_lev_se);
 		  }

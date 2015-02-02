@@ -205,11 +205,10 @@ struct valid_partition_lister_t
   bool factorize_rank;
   std::map<coords4D_t,int> old_partitionings;
   
-  valid_partition_lister_t(int L_comm,int T,int NR) : NR(NR)
+  valid_partition_lister_t(coords4D_t sides,int NR) : NR(NR)
   {
     //copy L
-    L[1]=L[2]=L[3]=L_comm;
-    L[0]=T;
+    for(int mu=0;mu<4;mu++) L[mu]=sides[mu];
     
     //compute global and local volume
     uint64_t V=(uint64_t)L[0]*L[1]*L[2]*L[3];
@@ -341,12 +340,8 @@ torus_grid_t find_torus(int torus_size)
     }
 }
 
-void compute_border_border2_size(int &border,int &border2,int L_comm,int T,torus_grid_t &torus,rank_grid_t &rank)
+void compute_border_border2_size(int &border,int &border2,coords4D_t L,torus_grid_t &torus,rank_grid_t &rank)
 {
-  int L[4];
-  L[1]=L[2]=L[3]=L_comm;
-  L[0]=T;
-  
   //compute total border
   border=border2=0;
   for(int mu=0;mu<4;mu++)
@@ -365,7 +360,7 @@ void compute_border_border2_size(int &border,int &border2,int L_comm,int T,torus
 
 int main(int narg,char **arg)
 {
-  int L,T;
+  coords4D_t sides;
   torus_grid_t torus;
 
 #if defined BGQ && !defined BGQ_EMU
@@ -377,9 +372,24 @@ int main(int narg,char **arg)
       size_t len=0;
       char *line=NULL;
       if(getline(&line,&len,fin)==-1) crash("reading");
+      int L,T;
       sscanf(line,"L %d",&L);
       if(getline(&line,&len,fin)==-1) crash("reading");
-      sscanf(line,"T %d",&T);
+      if(L>0)
+	{
+	  sscanf(line,"T %d",&T);
+	  sides[0]=T;
+	  sides[1]=L;
+	  sides[2]=L;
+	  sides[3]=L;
+	}
+      else
+	{
+	  sscanf(line,"LT %d",&sides[0]);
+	  sscanf(line,"LX %d",&sides[1]);
+	  sscanf(line,"LY %d",&sides[2]);
+	  sscanf(line,"LZ %d",&sides[3]);
+	}
       fclose(fin);
       free(line);
       printf("Finding partition for %d ranks\n",torus.get_N());
@@ -389,17 +399,37 @@ int main(int narg,char **arg)
 #endif
     {
       printf("Insert L: ");
+      int L;
       scanf("%d",&L);
-      printf("Insert T: ");
-      scanf("%d",&T);
+      if(L>0)
+	{
+	  printf("Insert T: ");
+	  int T;
+	  scanf("%d",&T);
+	  sides[0]=T;
+	  sides[1]=L;
+	  sides[2]=L;
+	  sides[3]=L;
+	}
+      else
+	{
+	  printf("Insert LT: ");
+	  scanf("%d",&sides[0]);
+	  printf("Insert LX: ");
+	  scanf("%d",&sides[1]);
+	  printf("Insert LY: ");
+	  scanf("%d",&sides[2]);
+	  printf("Insert LZ: ");
+	  scanf("%d",&sides[3]);
+	}
       printf("Insert nranks: ");
       int nranks;
       scanf("%d",&nranks);
       torus=find_torus(nranks);
     }
   int nranks=torus.get_N();
-  valid_partition_lister_t lister(L,T,nranks);
-  printf("Finding partition for L=%d, T=%d, %d ranks\n",L,T,nranks);
+  valid_partition_lister_t lister(sides,nranks);
+  printf("Finding partition for T=%d x X=%d x Y=%d x Z=%d, %d ranks\n",sides[0],sides[1],sides[2],sides[3],nranks);
   for(int i=0;i<5;i++) printf(" size[%d]: %d, torus: %d\n",i,torus.grid[i],torus.is_torus[i]);
   
   //find the best rank assignement
@@ -432,12 +462,12 @@ int main(int narg,char **arg)
 	      
 	      //check if this is better than other
 	      int new_bord,new_bord2;
-	      compute_border_border2_size(new_bord,new_bord2,L,T,torus,new_rank);
+	      compute_border_border2_size(new_bord,new_bord2,sides,torus,new_rank);
 	      if(new_bord<bord||
 		 (new_bord==bord&&
 		  (new_bord2<bord2||
 		   (new_bord2==bord2&&
-		    (T/new_rank.grid[0]>T/rank.grid[0]))))||
+		    (sides[0]/new_rank.grid[0]>sides[0]/rank.grid[0]))))||
 		 bord==-1)
 		{
 		  printf(" Found new champion, %d(%d) beat %d(%d)\n",new_bord,new_bord2,bord,bord2);
@@ -460,7 +490,7 @@ int main(int narg,char **arg)
   printf("\n");
   
   //define local volume
-  int LL[4]={T/rank.grid[0],L/rank.grid[1],L/rank.grid[2],L/rank.grid[3]};
+  int LL[4]={sides[0]/rank.grid[0],sides[1]/rank.grid[1],sides[2]/rank.grid[2],sides[3]/rank.grid[3]};
   
   //print the ranks
   printf("Rank grid: %d x %d x %d x %d\n",rank.grid[0],rank.grid[1],rank.grid[2],rank.grid[3]);
@@ -480,7 +510,7 @@ int main(int narg,char **arg)
   
   //create a suffix for file names
   char path_suffix[50];
-  sprintf(path_suffix,"%dranks_for_L%d_T%d",nranks,L,T);
+  sprintf(path_suffix,"%dranks_for_T%d_X%d_Y%d_Z%d",nranks,sides[0],sides[1],sides[2],sides[3]);
 
   //create name file for the mapping and open it
   char path[50];

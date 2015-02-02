@@ -336,7 +336,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the magnetization
-  THREADABLE_FUNCTION_6ARG(magnetization, complex*,magn, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue, color**,rnd)
+  THREADABLE_FUNCTION_7ARG(magnetization, complex*,magn, quad_su3**,conf, int,quantization, quad_u1**,u1b, quark_content_t*,quark, double,residue, color**,rnd)
   {
     GET_THREAD_ID();
     
@@ -349,7 +349,7 @@ namespace nissa
     //we need to store phases
     coords *arg=nissa_malloc("arg",loc_vol+bord_vol,coords);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol+bord_vol)
-      get_args_of_one_over_L2_quantization(arg[ivol],ivol,mu,nu);
+      get_args_of_quantization[quantization](arg[ivol],ivol,mu,nu);
     
     //array to store magnetization on single site (actually storing backward contrib at displaced site)
     complex *point_magn=nissa_malloc("app",loc_vol,complex);
@@ -376,14 +376,14 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the magnetization
-  void magnetization(complex *magn,quad_su3 **conf,quad_u1 **u1b,quark_content_t *quark,double residue)
+  void magnetization(complex *magn,quad_su3 **conf,int quantization,quad_u1 **u1b,quark_content_t *quark,double residue)
   {
     //allocate source and generate it
     color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
     generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
     
     //call inner function
-    magnetization(magn,conf,u1b,quark,residue,rnd);
+    magnetization(magn,conf,quantization,u1b,quark,residue,rnd);
 
     for(int par=0;par<2;par++) nissa_free(rnd[par]);
   }
@@ -412,8 +412,8 @@ namespace nissa
 	    
 		//compute and summ
 		complex temp;
-		magnetization(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
-			      theory_pars.magnetization_meas_pars.residue);
+		magnetization(&temp,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
+			      theory_pars.magnetization_meas_pars.residue); //flag holds quantization
 		complex_summ_the_prod_double(magn,temp,1.0/nhits);
 	      }
 	    
