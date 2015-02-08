@@ -52,6 +52,10 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //compute args for non-present quantization
+  void get_args_of_null_quantization(coords phase,int ivol,int mu,int nu)
+  {phase[0]=phase[1]=phase[2]=phase[3]=0;}
+  
   //compute args for 1/L2 quantization
   void get_args_of_one_over_L2_quantization(coords phase,int ivol,int mu,int nu)
   {
@@ -86,7 +90,7 @@ namespace nissa
   }
   
   void (*get_args_of_quantization[3])(coords,int,int,int)=
-  {NULL,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
+  {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
 
   
   //multiply a background field by a constant em field

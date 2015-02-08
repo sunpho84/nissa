@@ -130,36 +130,39 @@ void read_conf(quad_su3 **conf,char *path)
 	}
       
       //check for rational approximation
-      if(strcasecmp(cur_mess->name,"RAT_approx")==0)
+      if(max_ntraj)
 	{
-	  //check that no other approx found and mark it
-	  if(rat_approx_found!=0) crash("a rational approximation has been already found!");
-          rat_approx_found++;
-	  
-          //strategy: load in a temporary array and check that it is appropriate
-	  rat_approx_t *temp_appr=NULL;
-	  convert_rat_approx(temp_appr,nflavs_appr_read,cur_mess->data,cur_mess->data_length);
-	  
-	  //check and possibly copy
-	  if(nflavs_appr_read==theory_pars[SEA_THEORY].nflavs)
+	  if(strcasecmp(cur_mess->name,"RAT_approx")==0)
 	    {
+	      //check that no other approx found and mark it
+	      if(rat_approx_found!=0) crash("a rational approximation has been already found!");
 	      rat_approx_found++;
-	      for(int i=0;i<nflavs_appr_read*3;i++) evol_pars.hmc_evol_pars.rat_appr[i]=temp_appr[i];
+	      
+	      //strategy: load in a temporary array and check that it is appropriate
+	      rat_approx_t *temp_appr=NULL;
+	      convert_rat_approx(temp_appr,nflavs_appr_read,cur_mess->data,cur_mess->data_length);
+	      
+	      //check and possibly copy
+	      if(nflavs_appr_read==theory_pars[SEA_THEORY].nflavs)
+		{
+		  rat_approx_found++;
+		  for(int i=0;i<nflavs_appr_read*3;i++) evol_pars.hmc_evol_pars.rat_appr[i]=temp_appr[i];
+		}
+	      else
+		for(int i=0;i<nflavs_appr_read*3;i++)
+		  rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
+	      nissa_free(temp_appr);
 	    }
-	  else
-	    for(int i=0;i<nflavs_appr_read*3;i++)
-	      rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
-	  nissa_free(temp_appr);
 	}
-    }
-  
-  //report on rational approximation
-  switch(rat_approx_found)
-    {
-    case 0: verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
-    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars[SEA_THEORY].nflavs);break;
-    case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
-    default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
+      
+      //report on rational approximation
+      switch(rat_approx_found)
+	{
+	case 0: verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
+	case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars[SEA_THEORY].nflavs);break;
+	case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
+	default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
+	}
     }
   
   //if message with string not found start from input seed
@@ -368,8 +371,9 @@ void close_simulation()
     }
   
   //destroy rational approximations
-  for(int i=0;i<theory_pars[SEA_THEORY].nflavs*3;i++)
-    rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
+  if(max_ntraj)
+    for(int i=0;i<theory_pars[SEA_THEORY].nflavs*3;i++)
+      rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
   
   //unset theories
   for(int itheory=0;itheory<ntheories;itheory++)

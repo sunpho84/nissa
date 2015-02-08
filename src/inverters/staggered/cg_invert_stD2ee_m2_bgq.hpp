@@ -6,7 +6,7 @@
 namespace nissa
 {
   void inv_stD2ee_m2_cg_bgq(bi_color *sol,bi_color *guess,bi_oct_su3 **conf,double m2,int niter,double residue,bi_color *source);
-  void inv_evn_stD_cg_bgq(bi_color *sol,bi_oct_su3 **conf,double m,int niter,double residue,bi_color **source);
+  void inv_stD2ee_m2_bicgstab_bgq(bi_color *sol,bi_color *guess,bi_oct_su3 **conf,double m2,int niter,double residue,bi_color *source);
 }
 
 #endif

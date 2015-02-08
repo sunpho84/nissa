@@ -17,6 +17,7 @@
 #define CG_OPERATOR_PARAMETERS conf,m2,
 
 #define CG_INVERT inv_stD2ee_m2_cg_bgq
+#define BICGSTAB_INVERT inv_stD2ee_m2_bicgstab_bgq
 #define CG_NPOSSIBLE_REQUESTS 0
 
 //maybe one day async comm
@@ -33,4 +34,5 @@
 #define AT2 double
 #define A2 m2
 
+#include "inverters/templates/bicgstab_invert_template_threaded.cpp"
 #include "inverters/templates/cg_invert_template_threaded.cpp"
