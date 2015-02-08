@@ -327,6 +327,7 @@ EXTRA_DIST+= \
 	inverters/templates/cg_128_invert_template_threaded.cpp \
 	inverters/templates/cgm_invert_template_summsol_threaded.hpp \
 	inverters/templates/cg_invert_template_threaded.cpp \
+	inverters/templates/bicgstab_invert_template_threaded.cpp \
 	inverters/templates/cgm_invert_template_threaded.cpp
 
 ############################################### io #################################

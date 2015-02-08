@@ -33,6 +33,7 @@ namespace nissa
     if(guess!=NULL) evn_or_odd_color_remap_to_virevn_or_odd(bi_guess,guess,EVN);
     
     //invert
+    //inv_stD2ee_m2_bicgstab_bgq(bi_sol,bi_guess,bi_eo_conf,m2,niter,residue,bi_source);
     inv_stD2ee_m2_cg_bgq(bi_sol,bi_guess,bi_eo_conf,m2,niter,residue,bi_source);
     
     //remap out
