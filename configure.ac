@@ -44,7 +44,7 @@ AC_MSG_RESULT([enabling spi... $enable_spi])
 AC_DEFINE([NATIVE_HIGH_PREC],[0],["Native implementation"])
 AC_DEFINE([GMP_HIGH_PREC],[1],["GMP library"])
 AC_ARG_WITH(high-prec,
-	AS_HELP_STRING([--with-high-prec],[Select the high precision type (native=256 bit float [default], gmp)]),
+	AS_HELP_STRING([--with-high-prec],[Select the high precision type (native=256 bit float, gmp [default if found])]),
 	with_high_prec="${withval}",
 	if test "$ac_cv_search___gmpz_init" != "no"; then with_high_prec="gmp";else with_high_prec="native";fi)
 	case "$with_high_prec" in
