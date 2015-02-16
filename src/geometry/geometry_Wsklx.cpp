@@ -18,7 +18,7 @@ namespace nissa
   void define_Wsklx_hopping_matrix_output_pos()
   {
     two_stage_computation_pos_t *out=&Wsklx_hopping_matrix_output_pos; //for brevity
-    out->inter_fr_in_pos=nissa_malloc("inter_fr_in_pos",8*loc_vol,int); //offset for intermediate result
+    out->inter_fr_in_pos=nissa_malloc("inter_fr_in_pos",2*NDIM*loc_vol,int); //offset for intermediate result
     out->final_fr_inter_pos=NULL; //we are not overlapping communication with intermediate->final,
     //so final_fr_inter_pos=inter, basically
     out->inter_fr_recv_pos=nissa_malloc("inter_fr_recv_pos",bord_vol,int); //offset for intermediate from nissa_recv_buf
@@ -28,25 +28,25 @@ namespace nissa
       {
 	int iloclx=loclx_of_Wsklx[iWsklx];
 	
-	for(int idir=0;idir<4;idir++)
+	for(int idir=0;idir<NDIM;idir++)
 	  {
-	    int bw=loclx_neighdw[iloclx][idir]; //we should subtract loc_vol from bw and put 7 in place of 8
-	    out->inter_fr_in_pos[iWsklx*8+idir]=(bw>=loc_vol)?bw+7*loc_vol:8*Wsklx_of_loclx[bw]+idir;
+	    int bw=loclx_neighdw[iloclx][idir]; //we should subtract loc_vol from bw and put 2*NDIM-1 in place of 2*NDIM
+	    out->inter_fr_in_pos[iWsklx*2*NDIM+idir]=(bw>=loc_vol)?bw+(2*NDIM-1)*loc_vol:(2*NDIM)*Wsklx_of_loclx[bw]+idir;
 	    
 	    int fw=loclx_neighup[iloclx][idir]; //idem for fw
-	    out->inter_fr_in_pos[iWsklx*8+4+idir]=(fw>=loc_vol)?fw+7*loc_vol:8*Wsklx_of_loclx[fw]+4+idir;
+	    out->inter_fr_in_pos[iWsklx*2*NDIM+NDIM+idir]=(fw>=loc_vol)?fw+(2*NDIM-1)*loc_vol:(2*NDIM)*Wsklx_of_loclx[fw]+NDIM+idir;
 	  }
       }
     
     //final dest of incoming border
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       for(int base_src=0;base_src<bord_dir_vol[mu];base_src++)
 	{
 	  int bw_src=bord_offset[mu]+base_src;
-	  out->inter_fr_recv_pos[bw_src]=8*Wsklx_of_loclx[surflx_of_bordlx[bw_src]]+4+mu;
+	  out->inter_fr_recv_pos[bw_src]=2*NDIM*Wsklx_of_loclx[surflx_of_bordlx[bw_src]]+NDIM+mu;
 	  
 	  int fw_src=bord_volh+bord_offset[mu]+base_src;
-	  out->inter_fr_recv_pos[fw_src]=8*Wsklx_of_loclx[surflx_of_bordlx[fw_src]]+mu;
+	  out->inter_fr_recv_pos[fw_src]=2*NDIM*Wsklx_of_loclx[surflx_of_bordlx[fw_src]]+mu;
 	}
   }
   
@@ -138,7 +138,7 @@ namespace nissa
   }
   
   /*
-    put together the 8 links to be applied to a single point
+    put together the 2*NDIM links to be applied to a single point
     first comes the links needed to scatter backward the signal (not to be daggered)
     then those needed to scatter it forward (to be daggered)
   */
@@ -150,10 +150,10 @@ namespace nissa
     communicate_lx_quad_su3_borders(in);
     
     NISSA_PARALLEL_LOOP(isrc_lx,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	{
 	  //catch links needed to scatter signal forward
-	  su3_copy(out[Wsklx_of_loclx[isrc_lx]][4+mu],in[isrc_lx][mu]);
+	  su3_copy(out[Wsklx_of_loclx[isrc_lx]][NDIM+mu],in[isrc_lx][mu]);
 	  
 	  //copy links also where they are needed to scatter the signal backward, if 
 	  //sites that need them are not in the border (that would mean that computation must be 
@@ -163,7 +163,7 @@ namespace nissa
 	}
     
     //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
-    for(int mu=0;mu<4;mu++) //border and link direction
+    for(int mu=0;mu<NDIM;mu++) //border and link direction
       if(paral_dir[mu])
 	NISSA_PARALLEL_LOOP(ibord,loc_vol+bord_offset[mu],loc_vol+bord_offset[mu]+bord_dir_vol[mu])
 	  su3_copy(out[Wsklx_of_loclx[loclx_neighup[ibord][mu]]][mu],in[ibord][mu]);

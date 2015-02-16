@@ -63,6 +63,9 @@
 /* "Native implementation" */
 #undef NATIVE_HIGH_PREC
 
+/* Ndim */
+#undef NDIM
+
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
 

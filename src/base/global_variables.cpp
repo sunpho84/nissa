@@ -15,8 +15,9 @@ namespace nissa
   //nomenclature: 
   //-glb is relative to the global grid
   //-loc to the local one
-  EXTERN int glb_size[4],glb_vol,glb_spat_vol,glb_volh;
-  EXTERN int loc_size[4],loc_vol,loc_spat_vol,loc_volh;
+  EXTERN coords glb_size,loc_size;
+  EXTERN int glb_vol,glb_spat_vol,glb_volh;
+  EXTERN int loc_vol,loc_spat_vol,loc_volh;
   EXTERN int bulk_vol,non_bw_surf_vol,non_fw_surf_vol;
   EXTERN int surf_vol,bw_surf_vol,fw_surf_vol;
   EXTERN int vsurf_vol,vsurf_volh;
@@ -42,9 +43,9 @@ namespace nissa
   EXTERN int *loclx_of_fw_surflx;
   EXTERN int lx_geom_inited;
   //box, division in 16 of the lattice
-  EXTERN coords box_coord[16];
-  EXTERN coords box_size[16];
-  EXTERN int nsite_per_box[16];
+  EXTERN coords box_coord[1<<NDIM];
+  EXTERN coords box_size[1<<NDIM];
+  EXTERN int nsite_per_box[1<<NDIM];
   EXTERN gauge_sweeper_t *tlSym_sweeper,*Wilson_sweeper;
 #ifdef USE_VNODES
   EXTERN int vir_geom_inited;
@@ -134,24 +135,20 @@ namespace nissa
   EXTERN int bord_vol,bord_volh;
   EXTERN int edge_vol,edge_volh;
   //size along various dir
-  EXTERN int bord_dir_vol[4],bord_offset[4];
-  EXTERN int bord_offset_eo[2][8]; //eo, 8 dirs
-  EXTERN int edge_dir_vol[6],edge_offset[6];
-  EXTERN int edge_numb[4][4]
-#ifndef ONLY_INSTANTIATION
-  ={{-1,0,1,2},{0,-1,3,4},{1,3,-1,5},{2,4,5,-1}}
-#endif
-    ;
+  EXTERN int bord_dir_vol[NDIM],bord_offset[NDIM];
+  EXTERN int bord_offset_eo[2][2*NDIM]; //eo
+  EXTERN int edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
+  EXTERN int edge_numb[NDIM][NDIM];
 #ifdef USE_VNODES
   EXTERN int vnode_lx_offset,vnode_eo_offset;
   EXTERN int vbord_vol,vbord_volh;
   EXTERN int vir_loc_size[4];
 #endif
 #ifdef USE_MPI
-  EXTERN int start_lx_bord_send_up[4],start_lx_bord_rece_up[4];
-  EXTERN int start_lx_bord_send_dw[4],start_lx_bord_rece_dw[4];
-  EXTERN int start_eo_bord_send_up[4],start_eo_bord_rece_up[4];
-  EXTERN int start_eo_bord_send_dw[4],start_eo_bord_rece_dw[4];
+  EXTERN int start_lx_bord_send_up[NDIM],start_lx_bord_rece_up[NDIM];
+  EXTERN int start_lx_bord_send_dw[NDIM],start_lx_bord_rece_dw[NDIM];
+  EXTERN int start_eo_bord_send_up[NDIM],start_eo_bord_rece_up[NDIM];
+  EXTERN int start_eo_bord_send_dw[NDIM],start_eo_bord_rece_dw[NDIM];
   EXTERN MPI_Datatype MPI_EO_QUAD_SU3_BORDS_SEND_TXY[4],MPI_EO_QUAD_SU3_BORDS_RECE[4];
   EXTERN MPI_Datatype MPI_EV_QUAD_SU3_BORDS_SEND_Z[2],MPI_OD_QUAD_SU3_BORDS_SEND_Z[2];
   EXTERN MPI_Datatype MPI_EO_COLOR_BORDS_SEND_TXY[4],MPI_EO_COLOR_BORDS_RECE[4];
@@ -170,8 +167,8 @@ namespace nissa
   
   //volume, plan and line communicator
   EXTERN MPI_Comm cart_comm;
-  EXTERN MPI_Comm plan_comm[4];
-  EXTERN MPI_Comm line_comm[4];
+  EXTERN MPI_Comm plan_comm[NDIM];
+  EXTERN MPI_Comm line_comm[NDIM];
 #endif
   //ranks
   EXTERN int rank,nranks,cart_rank;
@@ -183,7 +180,9 @@ namespace nissa
   EXTERN int nparal_dir;
   EXTERN coords paral_dir;
   
-/////////////////////////////////////////////// threads //////////////////////////////////////////
+  //mapping of ILDG data
+  EXTERN coords scidac_mapping;
+  
 #ifdef USE_THREADS
 
  #ifdef THREAD_DEBUG
@@ -239,12 +238,14 @@ namespace nissa
   EXTERN int smunu_pos[4][6];  //and positions
   
   //perpendicular dir
-#ifdef ONLY_INSTANTIATION
-  EXTERN int perp_dir[4][3],perp2_dir[4][3][2],perp3_dir[4][3][2];
-#else
-  int perp_dir[4][3]={{1,2,3},{0,2,3},{0,1,3},{0,1,2}};
-  int perp2_dir[4][3][2]={{{2,3},{1,3},{1,2}},{{2,3},{0,3},{0,2}},{{1,3},{0,3},{0,1}},{{1,2},{0,2},{0,1}}};
-  int perp3_dir[4][3][2]={{{3,2},{3,1},{2,1}},{{3,2},{3,0},{2,0}},{{3,1},{3,0},{1,0}},{{2,1},{2,0},{1,0}}};
+#if NDIM >= 2
+  EXTERN int perp_dir[NDIM][NDIM-1];
+#endif
+#if NDIM >= 3
+  EXTERN int perp2_dir[NDIM][NDIM-1][NDIM-2];
+#endif
+#if NDIM >= 4
+  EXTERN int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];
 #endif
   
   //The base of the 16 gamma matrixes, the two rotators and Ci=G0*Gi*G5

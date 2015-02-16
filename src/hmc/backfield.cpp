@@ -92,7 +92,6 @@ namespace nissa
   void (*get_args_of_quantization[3])(coords,int,int,int)=
   {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
 
-  
   //multiply a background field by a constant em field
   //mu nu refers to the entry of F_mu_nu involved
   THREADABLE_FUNCTION_6ARG(add_em_field_to_backfield, quad_u1**,S, quark_content_t*,quark_content, double,em_str, int,quantization, int,mu, int,nu)
@@ -135,7 +134,7 @@ namespace nissa
     if(fabs(B[2])>1e-10) add_em_field_to_backfield(S,quark_content,B[2],q,1,2);
   }
   THREADABLE_FUNCTION_END
-  
+
   //multiply the configuration for an additional u(1) field
   THREADABLE_FUNCTION_2ARG(add_backfield_to_conf, quad_su3**,conf, quad_u1**,u1)
   {
@@ -195,7 +194,7 @@ namespace nissa
     theory_pars_allocate_backfield(tp);
     theory_pars_init_backfield(tp);
   }
-  
+
   //update the background field
   void update_backfield(theory_pars_t *tp,double B)
   {

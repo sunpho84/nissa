@@ -166,6 +166,15 @@ if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then AC_MSG_ERROR([String 
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 
+#ndim
+AC_ARG_ENABLE(ndim,
+        AS_HELP_STRING([--enable-ndir=n],[Set number of dimensions]),
+        ndim="${enableval}",
+        ndim=4)
+if ! printf "%f" "$ndim" >/dev/null 2>&1; then AC_MSG_ERROR([String $ndim is not a number]); fi
+AC_MSG_RESULT([enabling number of dimension... $ndim])
+AC_DEFINE_UNQUOTED([NDIM],$ndim,[Ndim])
+
 #create config.hpp
 AC_CONFIG_FILES(
 	Makefile

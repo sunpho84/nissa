@@ -83,18 +83,19 @@ namespace nissa
   void create_MPI_cartesian_grid()
   {
 #ifdef USE_MPI
-    int periods[4]={1,1,1,1};
-    MPI_Cart_create(MPI_COMM_WORLD,4,nrank_dir,periods,1,&cart_comm);
+    coords periods;
+    for(int mu=0;mu<NDIM;mu++) periods[mu]=1;
+    MPI_Cart_create(MPI_COMM_WORLD,NDIM,nrank_dir,periods,1,&cart_comm);
     //takes rank and ccord of local rank
     MPI_Comm_rank(cart_comm,&cart_rank);
-    MPI_Cart_coords(cart_comm,cart_rank,4,rank_coord);
+    MPI_Cart_coords(cart_comm,cart_rank,NDIM,rank_coord);
     
     //create communicator along plan
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
-	int split_plan[4];
+	coords split_plan;
 	coords proj_rank_coord;
-	for(int nu=0;nu<4;nu++)
+	for(int nu=0;nu<NDIM;nu++)
 	  {
 	    split_plan[nu]=(nu==mu) ? 0 : 1;
 	    proj_rank_coord[nu]=(nu==mu) ? 0 : rank_coord[nu];
@@ -107,11 +108,11 @@ namespace nissa
       }
     
     //create communicator along line
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
 	//split the communicator
-	int split_line[4];
-	memset(split_line,0,4*sizeof(int));
+	coords split_line;
+	memset(split_line,0,sizeof(coords));
 	split_line[mu]=1;
 	MPI_Cart_sub(cart_comm,split_line,&(line_comm[mu]));
 	
@@ -127,7 +128,7 @@ namespace nissa
       }
 #else
     cart_rank=plan_rank=line_rank=0;
-    for(int mu=0;mu<4;mu++) rank_coord[mu]=planline_coord[mu]=0;
+    for(int mu=0;mu<NDIM;mu++) rank_coord[mu]=planline_coord[mu]=0;
 #endif
   }
   
@@ -162,12 +163,12 @@ namespace nissa
     MPI_Type_contiguous(18,MPI_DOUBLE,&MPI_SU3);
     MPI_Type_commit(&MPI_SU3);
     
-    //four links starting from a single point
-    MPI_Type_contiguous(4,MPI_SU3,&MPI_QUAD_SU3);
+    //four (in 4d) links starting from a single point
+    MPI_Type_contiguous(NDIM,MPI_SU3,&MPI_QUAD_SU3);
     MPI_Type_commit(&MPI_QUAD_SU3);
     
-    //six links starting from a single point
-    MPI_Type_contiguous(6,MPI_SU3,&MPI_AS2T_SU3);
+    //six (in 4d) links starting from a single point
+    MPI_Type_contiguous(NDIM*(NDIM+1)/2,MPI_SU3,&MPI_AS2T_SU3);
     MPI_Type_commit(&MPI_AS2T_SU3);
     
     //a color (6 doubles)
@@ -201,7 +202,7 @@ namespace nissa
   
   //broadcast a coord
   void coords_broadcast(coords c)
-  {MPI_Bcast(c,4,MPI_INT,0,MPI_COMM_WORLD);}
+  {MPI_Bcast(c,NDIM,MPI_INT,0,MPI_COMM_WORLD);}
   
   //ceil to next multiple of eight
   MPI_Offset ceil_to_next_eight_multiple(MPI_Offset pos)

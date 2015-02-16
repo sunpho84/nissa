@@ -20,6 +20,7 @@ namespace nissa
 {
   THREADABLE_FUNCTION_2ARG(compute_shortest_hypercubic_paths, su3**,paths, quad_su3**,conf)
   {
+#if NDIM == 4
     GET_THREAD_ID();
     
     for(int par=0;par<2;par++)
@@ -78,7 +79,7 @@ namespace nissa
 		    su3_summassign(paths[lpar][lvol_eo],link3);
 		    
 		    //move one step in last ortogonal direction
-		    int sigma=perp3_dir[mu][inu][irho];
+		    int sigma=perp3_dir[mu][inu][irho][0];
 		    
 		    //4-length paths
 		    int mvol_eo=loceo_neighup[lpar][lvol_eo][sigma];
@@ -88,6 +89,9 @@ namespace nissa
 	      }
 	  }
       }
+#else
+    crash("cannot use with NDIM=%d",NDIM);
+#endif
   }
   THREADABLE_FUNCTION_END
 }

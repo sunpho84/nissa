@@ -536,8 +536,7 @@ namespace nissa
   //add all links needed for a certain site
   void add_tlSym_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
   {
-    int *c=glb_coord_of_loclx[ivol];      
-    coords A={c[0],c[1],c[2],c[3]};                         //       P---O---N    
+    int *A=glb_coord_of_loclx[ivol];                        //       P---O---N    
     coords B,C,D,E,F,G,H,I,J,K,L,M,N,O,P;                   //       |   |   |    
     //find coord mu                                         //   H---G---F---E---D
     K[mu]=L[mu]=M[mu]=(A[mu]-1+glb_size[mu])%glb_size[mu];  //   |   |   |   |   |
@@ -916,8 +915,7 @@ namespace nissa
   //add all links needed for a certain site
   void add_Wilson_staples(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu)
   {
-    int *c=glb_coord_of_loclx[ivol];      
-    coords A={c[0],c[1],c[2],c[3]};
+    int *A=glb_coord_of_loclx[ivol];
     coords B,F,G,J;                                         //       G---F---E
     //find coord mu                                         //       |   |   |
     J[mu]=B[mu]=A[mu];                                      //       J---A---B

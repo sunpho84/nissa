@@ -30,14 +30,14 @@ namespace nissa
 {  
   ///////////////// New types ///////////////////
   
-  typedef int coords[4];
-  typedef double momentum_t[4];
+  typedef int coords[NDIM];
+  typedef double momentum_t[NDIM];
   
   typedef int intpair[2];
   typedef uint32_t checksum[2];
   
   typedef double complex[2];
-  typedef complex quad_u1[4];
+  typedef complex quad_u1[NDIM];
   
   typedef complex spin[4];
   typedef complex color[3];
@@ -61,19 +61,19 @@ namespace nissa
   typedef spinspin colorspinspin[3];
   
   typedef color su3[3];
-  typedef su3 quad_su3[4];
-  typedef su3 oct_su3[8];
+  typedef su3 quad_su3[NDIM];
+  typedef su3 oct_su3[2*NDIM];
   
   typedef complex color2[2];
   typedef color2 su2[2];
   
   typedef colorspinspin su3spinspin[3];
   
-  typedef complex as2t[6];
-  typedef su3 as2t_su3[6];
+  typedef complex as2t[NDIM*(NDIM+1)/2];
+  typedef su3 as2t_su3[NDIM*(NDIM+1)/2];
   typedef su3 opt_as2t_su3[4];
   
-  typedef su3 squared_staples_t[4][6];
+  typedef su3 squared_staples_t[NDIM][NDIM*(NDIM+1)/2];
   
   typedef squared_staples_t rectangular_staples_t;
   
@@ -98,8 +98,8 @@ namespace nissa
   typedef bi_complex reg_bi_complex;
 #else
   typedef vector4double reg_bi_complex;
-#endif
-#endif
+#endif //BGQ_EMU
+#endif //BGQ
   
 #ifdef USE_MPI
 #ifdef USE_MPI_IO
@@ -534,7 +534,7 @@ namespace nissa
     int Tmin,Tmax,Dmin,Dmax;
   };
   
-  typedef momentum_t stout_coeff_t[4];
+  typedef momentum_t stout_coeff_t[NDIM];
   
   //structure to store data for stouting
   struct stout_link_staples
@@ -639,7 +639,7 @@ namespace nissa
     double get_meta_pot()
     {return meta.get_pot(B[meta.component]);}
   };
-  
+
   //theory content
   struct theory_pars_t
   {
