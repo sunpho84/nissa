@@ -166,5 +166,4 @@ namespace nissa
     apply_tmclovQ_128_common(out,conf,kappa,mu,in);
   }
   THREADABLE_FUNCTION_END
-
 }

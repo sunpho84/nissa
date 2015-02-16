@@ -23,6 +23,7 @@ namespace nissa
   //warning, the input conf needs to have edges allocate!
   THREADABLE_FUNCTION_6ARG(hyp_smear_conf_dir, quad_su3*,sm_conf, quad_su3*,conf, double,alpha0, double,alpha1, double,alpha2, int,req_mu)
   {
+#if NDIM == 4
     GET_THREAD_ID();
     
     //fill the dec2 and dec1 remapping table
@@ -54,7 +55,7 @@ namespace nissa
 	for(int irho=0;irho<2;irho++)
 	  {
 	    //find the remapped index
-	    int nu=perp_dir[mu][inu],rho=perp2_dir[mu][inu][irho],eta=perp3_dir[mu][inu][irho];	      
+	    int nu=perp_dir[mu][inu],rho=perp2_dir[mu][inu][irho],eta=perp3_dir[mu][inu][irho][0];
 	    int ire0=dec2_remap_index[mu][nu][rho];
 	      
 	    //loop over local volume
@@ -215,6 +216,9 @@ namespace nissa
     
     //free dec1
     for(int idec1=0;idec1<idec1_remap;idec1++) nissa_free(dec1_conf[idec1]);
+#else
+    crash("Ndim=%d cannot use HYP",NDIM);
+#endif
   }
   THREADABLE_FUNCTION_END
 

@@ -13,6 +13,7 @@ namespace nissa
   //(c_base+c_hyp_) (so that all link are daggered)
   void get_covariant_transport_to_hypercube_origin(su3 path,coords c_hyp_ori,const coords c_hyp_red,quad_su3 **conf)
   {
+#if NDIM == 4
     //reset the patht to zero
     int nsubpaths=0;
     su3_put_to_zero(path);
@@ -45,6 +46,9 @@ namespace nissa
     //average or put to id if no path really involved
     if(nsubpaths) su3_prod_double(path,path,1.0/nsubpaths);
     else          su3_put_to_id(path);
+#else
+    crash("Cannot use with NDIM=%d\n",NDIM);
+#endif
   }
   void get_covariant_transport_to_hypercube_origin(su3 path,int ivol,int hyp_red,quad_su3 **conf)
   {

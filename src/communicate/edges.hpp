@@ -1,5 +1,5 @@
-#ifndef _EDGES_H
-#define _EDGES_H
+#ifndef _EDGES_HPP
+#define _EDGES_HPP
 
 #include "new_types/new_types_definitions.hpp"
 

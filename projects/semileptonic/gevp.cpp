@@ -173,10 +173,13 @@ void setup_conf()
   ape_spatial_smear_conf(sme_conf,conf,ape_smearing_pars.alpha,ape_smearing_pars.nlev);
   conf_smear_time+=take_time();
   
-  master_printf("smerded plaq: %.18g\n",global_plaquette_lx_conf(sme_conf));
+  master_printf("smeared plaq: %.16g\n",global_plaquette_lx_conf(sme_conf));
   
   //put the anti-periodic condition on the temporal border
-  momentum_t old_theta={0,0,0,0},put_theta={1,0,0,0};
+  momentum_t old_theta,put_theta;
+  old_theta[0]=0;
+  put_theta[0]=1;
+  for(int mu=1;mu<NDIM;mu++) old_theta[mu]=put_theta[mu]=0;
   adapt_theta(conf,old_theta,put_theta,1,1);
   
   //reset the corr

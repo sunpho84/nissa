@@ -1,5 +1,5 @@
-#ifndef _DIRAC_OPERATOR_TMCLOVQ2_128_H
-#define _DIRAC_OPERATOR_TMCLOVQ2_128_H
+#ifndef _DIRAC_OPERATOR_TMCLOVQ2_128_HPP
+#define _DIRAC_OPERATOR_TMCLOVQ2_128_HPP
 
 #include "new_types/new_types_definitions.hpp"
 

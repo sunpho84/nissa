@@ -24,9 +24,6 @@
 
 namespace nissa
 {
-  //mapping of ILDG data
-  coords scidac_mapping={0,3,2,1};
-  
 #ifdef USE_MPI_IO
 
   //unset the types to read mapped data
@@ -575,6 +572,7 @@ namespace nissa
 	uint64_t nbytes=header.data_length;
 	char *mess=nissa_malloc("mess",nbytes+1,char);
 	ILDG_File_read_all((void*)mess,file,nbytes);
+	mess[nbytes]='\0';
 	
 	//setup as non found as search it
 	check_read[0]=check_read[1]=0;

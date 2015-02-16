@@ -34,10 +34,13 @@ namespace nissa
     
     //readd
     if(phase_pres) addrem_stagphases_to_lx_conf(conf);
+    else THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
 
-  //compute only the gauge part
+  //it's not working and communications seems to make it go onli 50% faster than the normal way
+#ifdef BGQNONONONONONONNONO 
+  //compute the gauge action - bgq version
   THREADABLE_FUNCTION_4ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics, bool,phase_pres)
   {
     GET_THREAD_ID();
@@ -49,29 +52,9 @@ namespace nissa
 	glu_comp_time-=take_time();
       }
 #endif
-    
-    switch(physics->gauge_action_name)
-      {
-      case WILSON_GAUGE_ACTION: Wilson_force_lx_conf(F,conf,physics->beta,phase_pres);break;
-      case TLSYM_GAUGE_ACTION: tree_level_Symanzik_force_lx_conf(F,conf,physics->beta,phase_pres);break;
-      default: crash("Unknown action");
-      }
-    
-    //add the stag phases to the force term, to cancel the one entering the force
-    if(phase_pres) addrem_stagphases_to_lx_conf(F);
-    
-    //finish the calculation
-    gluonic_force_finish_computation(F,conf,phase_pres);
-    
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-#if 0
 
     //take notes of ingredients
-#ifdef BGQ
     void(*compute_force)(su3,su3,bi_su3*,double,bool);
-#else
-    void(*compute_force)(su3,su3*,double,bool);
-#endif
     gauge_sweeper_t *gs;
     
     switch(physics->gauge_action_name)
@@ -82,11 +65,7 @@ namespace nissa
 	crash("packed not implemented");
 	break;
       case TLSYM_GAUGE_ACTION:
-#ifdef BGQ
 	compute_force=compute_tlSym_force_packed_bgq;
-#else
-	compute_force=compute_tlSym_force_packed;
-#endif
 	gs=tlSym_sweeper;
 	break;
       default: crash("Unknown action");
@@ -114,20 +93,18 @@ namespace nissa
 	      //pack
 	      gs->pack_links(conf,ibase,box_dir_par_size);
 
-#ifdef BGQ
 	      //finding half box_dir_par_size
  	      int box_dir_par_sizeh=box_dir_par_size/2;
 	      if(box_dir_par_sizeh*2!=box_dir_par_size) box_dir_par_sizeh++;
-	      if(gs->packing_inited)
-		NISSA_PARALLEL_LOOP(ibox_dir_par,0,box_dir_par_sizeh)
-		  compute_force(F[gs->ivol_of_box_dir_par[ibox_dir_par]][dir],
-				F[gs->ivol_of_box_dir_par[ibox_dir_par+box_dir_par_sizeh]][dir],
-				((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link,
-				physics->beta,phase_pres);
+	      NISSA_PARALLEL_LOOP(ibox_dir_par,0,box_dir_par_sizeh)
+		compute_force(F[gs->ivol_of_box_dir_par[ibase+ibox_dir_par]][dir],
+			      F[gs->ivol_of_box_dir_par[ibase+ibox_dir_par+box_dir_par_sizeh]][dir],
+			      ((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link,
+			      physics->beta,phase_pres);
 	      THREAD_BARRIER();
-#else
-	      crash("esticazzi!");
-#endif
+
+              //increment the box-dir-par subset
+              ibase+=box_dir_par_size;
 	    }
       }
     
@@ -136,7 +113,6 @@ namespace nissa
     
     //finish
     gluonic_force_finish_computation(F,conf,phase_pres);
-#endif
 
     //////////////////////////////////////////////////////////////////////////
     
@@ -145,4 +121,35 @@ namespace nissa
 #endif
   }
   THREADABLE_FUNCTION_END
+
+#else
+
+  //compute only the gauge part
+  THREADABLE_FUNCTION_4ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics, bool,phase_pres)
+  {
+    GET_THREAD_ID();
+    
+#ifdef BENCH
+    if(IS_MASTER_THREAD)
+      {
+	nglu_comp++;
+	glu_comp_time-=take_time();
+      }
+#endif
+    
+    switch(physics->gauge_action_name)
+      {
+      case WILSON_GAUGE_ACTION: Wilson_force_lx_conf(F,conf,physics->beta,phase_pres);break;
+      case TLSYM_GAUGE_ACTION: tree_level_Symanzik_force_lx_conf(F,conf,physics->beta,phase_pres);break;
+      default: crash("Unknown action");
+      }
+    
+    //add the stag phases to the force term, to cancel the one entering the force    
+    if(phase_pres) addrem_stagphases_to_lx_conf(F);
+    
+    //finish the calculation
+    gluonic_force_finish_computation(F,conf,phase_pres);
+  }
+  THREADABLE_FUNCTION_END
+#endif
 }

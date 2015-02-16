@@ -22,7 +22,7 @@ namespace nissa
   int glb_coord_parity(coords c)
   {
     int par=0;
-    for(int mu=0;mu<4;mu++) par+=c[mu];
+    for(int mu=0;mu<NDIM;mu++) par+=c[mu];
     par%=2;
     
     return par;
@@ -43,7 +43,7 @@ namespace nissa
     
     //check that all local sizes are multiples of 2
     int ok=1;
-    for(int mu=0;mu<4;mu++) ok&=(loc_size[mu]%2==0);
+    for(int mu=0;mu<NDIM;mu++) ok&=(loc_size[mu]%2==0);
     if(!ok) crash("local lattice size odd!");
     
     //set half the vol, bord and edge size
@@ -80,7 +80,7 @@ namespace nissa
     
     //Fix the movements among e/o ordered sites
     for(int loclx=0;loclx<loc_vol+bord_vol+edge_vol;loclx++)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	{
 	  //take parity and e/o corresponding site
 	  int par=loclx_parity[loclx];
@@ -105,7 +105,7 @@ namespace nissa
       }
     
     //init sender and receiver points for borders
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       if(paral_dir[mu]!=0)
 	{
 	  start_eo_bord_send_up[mu]=loceo_of_loclx[start_lx_bord_send_up[mu]];
@@ -181,12 +181,12 @@ namespace nissa
   //definitions of e/o split receivers for borders
   void initialize_eo_bord_receivers_of_kind(MPI_Datatype *MPI_EO_BORD_RECE,MPI_Datatype *base)
   {
-    //define the 4 dir borders receivers, which are contiguous in memory
-    MPI_Type_contiguous(loc_size[1]*loc_size[2]*loc_size[3]/2,*base,&(MPI_EO_BORD_RECE[0]));
-    MPI_Type_contiguous(loc_size[0]*loc_size[2]*loc_size[3]/2,*base,&(MPI_EO_BORD_RECE[1]));
-    MPI_Type_contiguous(loc_size[0]*loc_size[1]*loc_size[3]/2,*base,&(MPI_EO_BORD_RECE[2]));
-    MPI_Type_contiguous(loc_size[0]*loc_size[1]*loc_size[2]/2,*base,&(MPI_EO_BORD_RECE[3]));
-    for(int ibord=0;ibord<4;ibord++) MPI_Type_commit(&(MPI_EO_BORD_RECE[ibord]));
+    //define the NDIM dir borders receivers, which are contiguous in memory
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	MPI_Type_contiguous(loc_vol/loc_size[mu]/2,*base,&(MPI_EO_BORD_RECE[mu]));
+	MPI_Type_commit(&(MPI_EO_BORD_RECE[mu]));
+      }
   }
   
   //initalize senders and receivers for borders of e/o split ordered vectors
@@ -201,9 +201,9 @@ namespace nissa
   {
     for(int par=0;par<2;par++)
       for(int vmu=0;vmu<2;vmu++)
-	for(int mu=0;mu<4;mu++)
+	for(int mu=0;mu<NDIM;mu++)
 	  for(int vnu=0;vnu<2;vnu++)
-	    for(int nu=mu+1;nu<4;nu++)
+	    for(int nu=mu+1;nu<NDIM;nu++)
 	      if(paral_dir[mu] && paral_dir[nu])
 		{
 		  int iedge=edge_numb[mu][nu];
@@ -234,16 +234,17 @@ namespace nissa
   }
   
   //definitions of e/o split receivers for edges
-  void initialize_eo_edge_receivers_of_kind(MPI_Datatype *MPI_EDGES_RECE,MPI_Datatype *base)
+  void initialize_eo_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base)
   {
-    //define the 6 edges receivers, which are contiguous in memory
-    MPI_Type_contiguous(loc_size[2]*loc_size[3]/2,*base,&(MPI_EDGES_RECE[0]));
-    MPI_Type_contiguous(loc_size[1]*loc_size[3]/2,*base,&(MPI_EDGES_RECE[1]));
-    MPI_Type_contiguous(loc_size[1]*loc_size[2]/2,*base,&(MPI_EDGES_RECE[2]));
-    MPI_Type_contiguous(loc_size[0]*loc_size[3]/2,*base,&(MPI_EDGES_RECE[3]));
-    MPI_Type_contiguous(loc_size[0]*loc_size[2]/2,*base,&(MPI_EDGES_RECE[4]));
-    MPI_Type_contiguous(loc_size[0]*loc_size[1]/2,*base,&(MPI_EDGES_RECE[5]));
-    for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGES_RECE[iedge]));
+    //define the NDIM*(NDIM-1)/2 edges receivers, which are contiguous in memory
+    int iedge=0;
+    for(int mu=0;mu<NDIM;mu++)
+      for(int nu=mu+1;nu<NDIM;nu++)
+	{
+	  MPI_Type_contiguous(loc_vol/loc_size[mu]/loc_size[nu]/2,*base,&(MPI_EDGE_RECE[iedge]));
+	  MPI_Type_commit(&(MPI_EDGE_RECE[iedge]));
+	  iedge++;
+	}
   }
   
   //initalize senders and receivers for edges of lexically ordered vectors
@@ -325,7 +326,7 @@ namespace nissa
     NISSA_LOC_VOL_LOOP(ivol)
     {
       int save=1;
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	save=save and glb_coord_of_loclx[ivol][mu]%2==0;
       
       if(!save)
