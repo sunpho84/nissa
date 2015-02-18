@@ -1,5 +1,5 @@
-#ifndef _LINALGS_H
-#define _LINALGS_H
+#ifndef _LINALGS_HPP
+#define _LINALGS_HPP
 
 #include "new_types/new_types_definitions.hpp"
 
@@ -46,7 +46,6 @@ namespace nissa
   void rotate_vol_su3spinspin_to_physical_basis(su3spinspin *s,int rsi,int rso);
   void quad_su3_nissa_to_ildg_reord_in_place(quad_su3 *conf);
   void quad_su3_ildg_to_nissa_reord_in_place(quad_su3 *conf);
-  void spincolor_put_exp_iphase_dot_x(spincolor *sp,double *ph);
 }
 
 #endif

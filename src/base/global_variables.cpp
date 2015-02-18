@@ -42,7 +42,7 @@ namespace nissa
   EXTERN int *loclx_of_bw_surflx;
   EXTERN int *loclx_of_fw_surflx;
   EXTERN int lx_geom_inited;
-  //box, division in 16 of the lattice
+  //box, division in 2^NDIM of the lattice
   EXTERN coords box_coord[1<<NDIM];
   EXTERN coords box_size[1<<NDIM];
   EXTERN int nsite_per_box[1<<NDIM];
@@ -84,7 +84,6 @@ namespace nissa
   
 //timings
   EXTERN double tot_time;
-  EXTERN int issued_cg_warning; //hacking
 #ifdef BENCH
  #ifdef ONLY_INSTANTIATION
    EXTERN double tot_comm_time;
@@ -136,7 +135,6 @@ namespace nissa
   EXTERN int edge_vol,edge_volh;
   //size along various dir
   EXTERN int bord_dir_vol[NDIM],bord_offset[NDIM];
-  EXTERN int bord_offset_eo[2][2*NDIM]; //eo
   EXTERN int edge_dir_vol[NDIM*(NDIM+1)/2],edge_offset[NDIM*(NDIM+1)/2];
   EXTERN int edge_numb[NDIM][NDIM];
 #ifdef USE_VNODES
@@ -145,25 +143,10 @@ namespace nissa
   EXTERN int vir_loc_size[4];
 #endif
 #ifdef USE_MPI
-  EXTERN int start_lx_bord_send_up[NDIM],start_lx_bord_rece_up[NDIM];
-  EXTERN int start_lx_bord_send_dw[NDIM],start_lx_bord_rece_dw[NDIM];
-  EXTERN int start_eo_bord_send_up[NDIM],start_eo_bord_rece_up[NDIM];
-  EXTERN int start_eo_bord_send_dw[NDIM],start_eo_bord_rece_dw[NDIM];
-  EXTERN MPI_Datatype MPI_EO_QUAD_SU3_BORDS_SEND_TXY[4],MPI_EO_QUAD_SU3_BORDS_RECE[4];
-  EXTERN MPI_Datatype MPI_EV_QUAD_SU3_BORDS_SEND_Z[2],MPI_OD_QUAD_SU3_BORDS_SEND_Z[2];
-  EXTERN MPI_Datatype MPI_EO_COLOR_BORDS_SEND_TXY[4],MPI_EO_COLOR_BORDS_RECE[4];
-  EXTERN MPI_Datatype MPI_EV_COLOR_BORDS_SEND_Z[2],MPI_OD_COLOR_BORDS_SEND_Z[2];
-  EXTERN MPI_Datatype MPI_EO_SPIN_BORDS_SEND_TXY[4],MPI_EO_SPIN_BORDS_RECE[4];
-  EXTERN MPI_Datatype MPI_EV_SPIN_BORDS_SEND_Z[2],MPI_OD_SPIN_BORDS_SEND_Z[2];
-  EXTERN MPI_Datatype MPI_EO_SPINCOLOR_BORDS_SEND_TXY[4],MPI_EO_SPINCOLOR_BORDS_RECE[4];
-  EXTERN MPI_Datatype MPI_EV_SPINCOLOR_BORDS_SEND_Z[2],MPI_OD_SPINCOLOR_BORDS_SEND_Z[2];
-  EXTERN MPI_Datatype MPI_EO_SPINCOLOR_128_BORDS_SEND_TXY[4],MPI_EO_SPINCOLOR_128_BORDS_RECE[4];
-  EXTERN MPI_Datatype MPI_EV_SPINCOLOR_128_BORDS_SEND_Z[2],MPI_OD_SPINCOLOR_128_BORDS_SEND_Z[2];
-  
-  EXTERN MPI_Datatype MPI_LX_SU3_EDGES_SEND[6],MPI_LX_SU3_EDGES_RECE[6];
-  EXTERN MPI_Datatype MPI_LX_AS2T_SU3_EDGES_SEND[6],MPI_LX_AS2T_SU3_EDGES_RECE[6];
-  EXTERN MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[6],MPI_LX_QUAD_SU3_EDGES_RECE[6];
-  EXTERN MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[6];
+  EXTERN MPI_Datatype MPI_LX_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
+  EXTERN MPI_Datatype MPI_LX_AS2T_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_AS2T_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
+  EXTERN MPI_Datatype MPI_LX_QUAD_SU3_EDGES_SEND[NDIM*(NDIM-1)/2],MPI_LX_QUAD_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
+  EXTERN MPI_Datatype MPI_EO_QUAD_SU3_EDGES_SEND[96],MPI_EO_QUAD_SU3_EDGES_RECE[NDIM*(NDIM-1)/2];
   
   //volume, plan and line communicator
   EXTERN MPI_Comm cart_comm;

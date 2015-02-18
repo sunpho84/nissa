@@ -1,5 +1,5 @@
-#ifndef _ILDG_FILE_H
-#define _ILDG_FILE_H
+#ifndef _ILDG_FILE_HPP
+#define _ILDG_FILE_HPP
 
 #include "new_types/new_types_definitions.hpp"
 

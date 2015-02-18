@@ -79,6 +79,7 @@ namespace nissa
     //Write the info on the propagator type
     ILDG_File_write_text_record(file,"propagator-type","ColorOnly");
     
+#if NDIM == 4
     //Write the info on the propagator format
     char propagator_format_message[1024];
     sprintf(propagator_format_message, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -93,6 +94,7 @@ namespace nissa
 	    "</etmcFormat>",
 	    prec,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
     ILDG_File_write_text_record(file,"stag-propagator-format",propagator_format_message);
+#endif
     
     //Write the binary data
     write_double_vector(file,(double*)v,NREALS_PER_COLOR,prec,"scidac-binary-data");
@@ -112,6 +114,7 @@ namespace nissa
     //Write the info on the propagator type
     ILDG_File_write_text_record(file,"propagator-type","DiracFermion_Sink");
     
+#if NDIM == 4
     //Write the info on the propagator format
     char propagator_format_message[1024];
     sprintf(propagator_format_message, "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -126,7 +129,8 @@ namespace nissa
 	    "</etmcFormat>",
 	    prec,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
     ILDG_File_write_text_record(file,"etmc-propagator-format",propagator_format_message);
-    
+#endif
+
     //Write the binary data
     write_double_vector(file,(double*)spinor,NREALS_PER_SPINCOLOR,prec,"scidac-binary-data");
     
@@ -231,6 +235,7 @@ namespace nissa
     //Open the file
     ILDG_File file=ILDG_File_open_for_write(path);
     
+#if NDIM == 4
     //write the ildg-format field
     char ildg_format_message[1024];
     sprintf(ildg_format_message,"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -247,6 +252,7 @@ namespace nissa
 	    "</ildgFormat>",
 	    prec,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
     ILDG_File_write_text_record(file,"ildg-format",ildg_format_message);
+#endif
     
     //reorder in ILDG
     quad_su3_nissa_to_ildg_reord_in_place(in);

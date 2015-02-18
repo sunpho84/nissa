@@ -43,7 +43,6 @@ namespace nissa
     verbosity_lv2_master_printf("\n");
 
     int riter=0;
-    issued_cg_warning=0;
     BASETYPE *s=nissa_malloc("s",BULK_VOL,BASETYPE);
     BASETYPE *p=nissa_malloc("p",BULK_VOL+BORD_VOL,BASETYPE);
     BASETYPE *r=nissa_malloc("r",BULK_VOL,BASETYPE);
@@ -126,11 +125,8 @@ namespace nissa
     verbosity_lv2_master_printf("final relative residue (after %d iters): %lg where %lg was required\n",
 				final_iter,lambda/source_norm,residue);
     if(lambda/source_norm>=2*residue)
-      {
-	issued_cg_warning=1;
-	master_printf("WARNING: true residue %lg much larger than required and expected one %lg\n",
-		      lambda/source_norm,residue);
-      }
+      master_printf("WARNING: true residue %lg much larger than required and expected one %lg\n",
+		    lambda/source_norm,residue);
 
     //check if not converged
     if(final_iter==niter) crash("exit without converging");

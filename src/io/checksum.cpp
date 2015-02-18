@@ -119,21 +119,22 @@ namespace nissa
   {
     uint32_t loc_check[2]={0,0};
     
-    int x[4];
-    for(x[0]=0;x[0]<loc_size[0];x[0]++)
-      for(x[1]=0;x[1]<loc_size[1];x[1]++)
-	for(x[2]=0;x[2]<loc_size[2];x[2]++)
-	  for(x[3]=0;x[3]<loc_size[3];x[3]++)
-	    {
-	      int X[4];for(int i=0;i<4;i++) X[i]=loc_size[i]*rank_coord[i]+x[i];
-	      uint32_t loc_ivol=x[1]+loc_size[1]*(x[2]+loc_size[2]*(x[3]+loc_size[3]*x[0]));
-	      uint32_t glb_ivol=X[1]+glb_size[1]*(X[2]+glb_size[2]*(X[3]+glb_size[3]*X[0]));
-	      uint32_t crc_rank[2]={glb_ivol%29,glb_ivol%31};
-	      
-	      uint32_t temp=ildg_crc32(0,(unsigned char*)data+bps*loc_ivol,bps);
-	      
-	      for(int i=0;i<2;i++) loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
-	    }
+    NISSA_LOC_VOL_LOOP(ivol)
+      {
+	int *x=loc_coord_of_loclx[ivol];
+	int *X=glb_coord_of_loclx[ivol];
+	uint32_t loc_ivol=x[0],glb_ivol=X[0];
+	for(int mu=NDIM-1;mu>0;mu--)
+	  {
+	    loc_ivol=loc_ivol*loc_size[mu]+x[mu];
+	    glb_ivol=glb_ivol*glb_size[mu]+X[mu];
+	  }
+	uint32_t crc_rank[2]={glb_ivol%29,glb_ivol%31};
+	
+	uint32_t temp=ildg_crc32(0,(unsigned char*)data+bps*loc_ivol,bps);
+	
+	for(int i=0;i<2;i++) loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
+      }
     
     MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
   }
@@ -144,15 +145,16 @@ namespace nissa
     uint32_t loc_check[2]={0,0};
     
     NISSA_LOC_VOL_LOOP(ivol)
-    {
-      int *X=glb_coord_of_loclx[ivol];
-      uint32_t ildg_ivol=X[1]+glb_size[1]*(X[2]+glb_size[2]*(X[3]+glb_size[3]*X[0]));
-      uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
-      
-      uint32_t temp=ildg_crc32_fix_endianness(0,(unsigned char*)data+bps*ivol,bps,prec);
-      
-      for(int i=0;i<2;i++) loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
-    }
+      {
+	int *X=glb_coord_of_loclx[ivol];
+	uint32_t ildg_ivol=X[0];
+	for(int mu=NDIM-1;mu>0;mu--) ildg_ivol=ildg_ivol*glb_size[mu]+X[mu];
+	uint32_t crc_rank[2]={ildg_ivol%29,ildg_ivol%31};
+	
+	uint32_t temp=ildg_crc32_fix_endianness(0,(unsigned char*)data+bps*ivol,bps,prec);
+	
+	for(int i=0;i<2;i++) loc_check[i]^=temp<<crc_rank[i]|temp>>(32-crc_rank[i]);
+      }
     
     MPI_Allreduce(loc_check,check,2,MPI_UNSIGNED,MPI_BXOR,MPI_COMM_WORLD);
   }

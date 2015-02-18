@@ -179,7 +179,7 @@ void read_conf(quad_su3 **conf,char *path)
 void init_program_to_run(start_conf_cond_t start_conf_cond)
 {
   //initialize the sweepers
-  init_sweeper(theory_pars[SEA_THEORY].gauge_action_name);
+  if(theory_pars[SEA_THEORY].nflavs==0) init_sweeper(theory_pars[SEA_THEORY].gauge_action_name);
   
   //load conf or generate it
   if(file_exists(conf_path))

@@ -1,5 +1,5 @@
-#ifndef COMMUNICATE_H
-#define COMMUNICATE_H
+#ifndef COMMUNICATE_HPP
+#define COMMUNICATE_HPP
 
 #include "borders.hpp"
 #include "edges.hpp"

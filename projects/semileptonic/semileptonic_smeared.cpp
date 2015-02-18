@@ -71,9 +71,6 @@ int Wclov_tm;
 int rotate_to_phys_basis;
 double cSW;
 
-//twist the boundaries or add phase when contracting
-int twisted_boundary;
-
 //gauge info
 int ngauge_conf,nanalyzed_conf=0;
 char conf_path[1024],outfolder[1024];
@@ -304,7 +301,6 @@ void initialize_semileptonic(char *input_path)
   //Kappa is read really only for tm
   if(Wclov_tm) read_str_double("Kappa",&kappa);
   read_str_double("cSW",&cSW);
-  read_str_int("TwistedBoundary",&twisted_boundary);
 
   // 2) Read information about the source
   
@@ -371,9 +367,6 @@ void initialize_semileptonic(char *input_path)
   read_str_int("UseNewContractionLayout",&use_new_contraction_layout);
   if(use_new_contraction_layout)
     {
-#ifndef POINT_SOURCE_VERSION
-      if(twisted_boundary==0) crash("new_contraction layout not implemented for non-twisted boundaries");
-#endif
       char path[100];
       read_str_str("TwoPointsOpListFilePath",path,100);
       two_pts_comp=read_two_pts_sink_source_corr_from_file(path);
@@ -417,9 +410,6 @@ void initialize_semileptonic(char *input_path)
   if(Wclov_tm==1) read_str_int("UseCgmS1",&use_cgm_S1);
   read_list_of_double_pairs("MassResiduesS1",&nmassS1,&massS1,&stop_res_S1);
   read_list_of_doubles("NThetaS1",&nthetaS1,&thetaS1);
-#ifndef POINT_SOURCE_VERSION
-  if(twisted_boundary==0 && nthetaS1!=0) crash("non-twisted contractions not implemented for three points");
-#endif
   read_str_int("ContrThreePointsUpToS0Mass",&contr_3pts_up_to_S0_mass);
   
   // 7) three points functions
@@ -749,21 +739,9 @@ void calculate_all_S0(int ism_lev_so)
 	    
 	    for(int itheta=0;itheta<nthetaS0;itheta++)
 	      {
-		if(twisted_boundary)
-		  {
-		    //adapt the border condition
-		    put_theta[1]=put_theta[2]=put_theta[3]=thetaS0[itheta];
-		    adapt_theta(conf,old_theta,put_theta,1,1);
-		  }
-		else
-		  {
-		    //put the phase on the source
-		    double ph[4]={0,
-				  thetaS0[itheta]*M_PI/glb_size[1],
-				  thetaS0[itheta]*M_PI/glb_size[2],
-				  thetaS0[itheta]*M_PI/glb_size[3]};
-		    spincolor_put_exp_iphase_dot_x(source,ph);
-		  }
+		//adapt the border condition
+		put_theta[1]=put_theta[2]=put_theta[3]=thetaS0[itheta];
+		adapt_theta(conf,old_theta,put_theta,1,1);
 
 		//invert
 		if(!load_S0)
@@ -849,15 +827,6 @@ void calculate_all_S0(int ism_lev_so)
 		    for(int r=0;r<2;r++) //convert the id-th spincolor into the colorspinspin
 		      if(which_r_S0==r||which_r_S0==2)
 			{
-			  if(!twisted_boundary)
-			    {
-			      //put the phase
-			      double ph[4]={0,
-					    -thetaS0[itheta]*M_PI/glb_size[1],
-					    -thetaS0[itheta]*M_PI/glb_size[2],
-					    -thetaS0[itheta]*M_PI/glb_size[3]};
-			      spincolor_put_exp_iphase_dot_x(temp_vec[r],ph);
-			    }
 #ifdef POINT_SOURCE_VERSION
 			  put_spincolor_into_su3spinspin(S0[r][ipropS0(itheta,imass,muS)],temp_vec[r],id,ic);
 #else

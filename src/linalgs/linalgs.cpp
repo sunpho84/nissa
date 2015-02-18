@@ -532,23 +532,4 @@ namespace nissa
 #endif
   }
   THREADABLE_FUNCTION_END
-
-  //multiply with a phase depending on the point
-  THREADABLE_FUNCTION_2ARG(spincolor_put_exp_iphase_dot_x,spincolor*,sp, double*,ph)
-  {
-    GET_THREAD_ID();
-    
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      {
-	double arg=0;
-	for(int mu=0;mu<4;mu++) arg+=ph[mu]*glb_coord_of_loclx[ivol][mu];
-	complex p={cos(arg),sin(arg)};
-	
-	for(int id=0;id<4;id++)
-	  for(int ic=0;ic<3;ic++)
-	    safe_complex_prod(sp[ivol][id][ic],sp[ivol][id][ic],p);
-      }
-    THREAD_BARRIER();
-  }
-  THREADABLE_FUNCTION_END
 }
