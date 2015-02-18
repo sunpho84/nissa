@@ -286,8 +286,8 @@ void init_simulation(char *path)
       iconf=0;
       
       //write initial measures
-      measure_gauge_obs();
-      measure_topology(top_meas_pars,conf,0,true);
+      if(gauge_obs_flag) measure_gauge_obs();
+      if(top_meas_pars.flag) measure_topology(top_meas_pars,conf,0,true);
     }  
 }
 
