@@ -61,7 +61,7 @@ namespace nissa
   }
   
   //set up a communicator for lx or eo borders
-  //first 4 communicate to forward nodes, last four to backward nodes
+  //first NDIM communicate to forward nodes, last four to backward nodes
   void set_lx_or_eo_comm(comm_t &comm,int lx_eo,int nbytes_per_site)
   {
     int div_coeff=(lx_eo==0)?1:2; //dividing coeff
@@ -72,9 +72,9 @@ namespace nissa
     
     //direction of the halo in receiving node: surface is ordered opposite of halo
     for(int bf=0;bf<2;bf++) 
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	{
-	  int idir=bf*4+mu;
+	  int idir=bf*NDIM+mu;
 	  
 	  //set the parameters
 	  comm.send_offset[idir]=(bord_offset[mu]+bord_volh*(!bf))*comm.nbytes_per_site/div_coeff;
@@ -118,8 +118,8 @@ namespace nissa
 #else
 	comm.nrequest=0;
 	
-	for(int idir=0;idir<8;idir++)
-	  if(paral_dir[idir%4] && (dir_comm==NULL||dir_comm[idir]))
+	for(int idir=0;idir<2*NDIM;idir++)
+	  if(paral_dir[idir%NDIM] && (dir_comm==NULL||dir_comm[idir]))
 	    {
 	      //exchanging the lower surface, from the first half of sending node to the second half of receiving node
 	      MPI_Irecv(recv_buf+comm.recv_offset[idir],comm.message_length[idir],MPI_CHAR,comm.recv_rank[idir],

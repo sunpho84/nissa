@@ -270,7 +270,7 @@ namespace nissa
     
     //remap coordinates and starting points to the scidac mapping
     coords mapped_start,mapped_glb_size,mapped_loc_size;
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
 	mapped_glb_size[mu]=glb_size[scidac_mapping[mu]];
 	mapped_loc_size[mu]=loc_size[scidac_mapping[mu]];
@@ -278,7 +278,7 @@ namespace nissa
       }
     
     //full type
-    decript_MPI_error(MPI_Type_create_subarray(4,mapped_glb_size,mapped_loc_size,mapped_start,MPI_ORDER_C,
+    decript_MPI_error(MPI_Type_create_subarray(NDIM,mapped_glb_size,mapped_loc_size,mapped_start,MPI_ORDER_C,
 					       view.etype,&view.ftype),"while creating subarray type");
     decript_MPI_error(MPI_Type_commit(&view.ftype),"while committing ftype");
     
@@ -301,7 +301,7 @@ namespace nissa
   {
     //find global index in ildg transposed ordering
     int iglb_ILDG=0;
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
 	int nu=scidac_mapping[mu];
 	iglb_ILDG=iglb_ILDG*glb_size[nu]+glb_coord_of_loclx[iloc_lx][nu];
@@ -320,7 +320,7 @@ namespace nissa
     
     //find global coords in ildg ordering
     coords xto;
-    for(int mu=3;mu>=0;mu--)
+    for(int mu=NDIM-1;mu>=0;mu--)
       {
 	int nu=scidac_mapping[mu];
 	xto[nu]=iglb_ILDG%glb_size[nu];
@@ -521,7 +521,7 @@ namespace nissa
     NISSA_LOC_VOL_LOOP(idest)
     {
       int isour=0;
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	{
 	  int nu=scidac_mapping[mu];
 	  isour=isour*loc_size[nu]+loc_coord_of_loclx[idest][nu];
@@ -594,7 +594,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(isour,0,loc_vol)
     {
       int idest=0;
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	{
 	  int nu=scidac_mapping[mu];
 	  idest=idest*loc_size[nu]+loc_coord_of_loclx[isour][nu];

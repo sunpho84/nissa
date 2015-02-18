@@ -103,29 +103,34 @@ namespace nissa
     //perpendicular dir
 #if NDIM >= 2
     for(int mu=0;mu<NDIM;mu++)
-      for(int inu=0;inu<NDIM-1;inu++)
-	{
-	  int nu=inu;
-	  if(nu>=mu) nu++;
-	  perp_dir[mu][inu]=nu;
+      {
+	int nu=0;
+	for(int inu=0;inu<NDIM-1;inu++)
+	  {
+	    if(nu==mu) nu++;
+	    perp_dir[mu][inu]=nu;
 #if NDIM >= 3
-	  for(int irho=0;irho<NDIM-2;irho++)
-	    {
-	      int rho=irho;
-	      for(int it=0;it<2;it++) if(rho>=mu||rho>=nu) rho++;
-	      perp2_dir[mu][inu][irho]=rho;
+	    int rho=0;
+	    for(int irho=0;irho<NDIM-2;irho++)
+	      {
+		for(int t=0;t<2;t++) if(rho==mu||rho==nu) rho++;
+		perp2_dir[mu][inu][irho]=rho;
 #if NDIM >= 4
-	      for(int isig=0;isig<NDIM-3;isig++)
-		{
-		  int sig=isig;
-		  for(int it=0;it<3;it++) if(sig>=mu||sig>=nu||sig>=rho) sig++;
-		  perp3_dir[mu][inu][irho][isig]=sig;
-		}
+		int sig=0;
+		for(int isig=0;isig<NDIM-3;isig++)
+		  {
+		    for(int t=0;t<3;t++) if(sig==mu||sig==nu||sig==rho) sig++;
+		    perp3_dir[mu][inu][irho][isig]=sig;
+		    sig++;
+		  } //sig
 #endif
-	    }
+		rho++;
+	      } //rho
 #endif
-	}
+	    nu++;
+	  } //nu
 #endif
+      } //mu
     
 #if HIGH_PREC==GMP_HIGH_PREC
     //init default precision for gmp

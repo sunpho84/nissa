@@ -321,7 +321,7 @@ namespace nissa
     //find rank and local position
     int ivol,irank;
     get_loclx_and_rank_of_coord(&ivol,&irank,g);
-    int ilink_asked=4*ivol+mu;
+    int ilink_asked=NDIM*ivol+mu;
   
     //if it is local, return local position
     if(irank==rank) return ilink_asked;
@@ -338,7 +338,7 @@ namespace nissa
 	  {
 	    //otherwise add it to the list of to-be-gathered
 	    int nel_gathered=this->size();
-	    int igathered=4*loc_vol+nel_gathered;
+	    int igathered=NDIM*loc_vol+nel_gathered;
 	    (*this)[irank_link_asked]=igathered;
           
 	    return igathered;

@@ -260,6 +260,7 @@ namespace nissa
     
     for(int ivol=0;ivol<extended_box_vol;ivol++)
       {
+	//subtract by one if dir is parallelized
 	coords x;
 	coord_of_lx(x,ivol,extended_box_size);
 	for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) x[mu]--;
@@ -422,22 +423,6 @@ namespace nissa
     //find bulk sites
     find_bulk_sites();
     
-    //init sender and receiver points for borders
-    coords zero;
-    for(int nu=0;nu<NDIM;nu++) zero[nu]=0;
-    for(int mu=0;mu<NDIM;mu++)
-      if(paral_dir[mu]!=0)
-	{
-	  start_lx_bord_send_up[mu]=loclx_of_coord(zero);
-	  start_lx_bord_rece_up[mu]=(loc_vol+bord_offset[mu]+bord_vol/2);
-	  coords x;
-	  for(int nu=0;nu<NDIM;nu++)
-	    if(nu==mu) x[nu]=loc_size[mu]-1;
-	    else x[nu]=0;
-	  start_lx_bord_send_dw[mu]=loclx_of_coord(x);
-	  start_lx_bord_rece_dw[mu]=loc_vol+bord_offset[mu];
-	}
-    
     //allocate a buffer large enough to allow communications of su3spinspin lx border
     recv_buf_size=std::max(recv_buf_size,bord_vol*sizeof(su3spinspin));
     send_buf_size=std::max(send_buf_size,bord_vol*sizeof(su3spinspin));
@@ -513,31 +498,6 @@ namespace nissa
     delete tlSym_sweeper;
   }
   
-  //definitions of lexical ordered sender for borders
-  void initialize_lx_bord_senders_of_kind(MPI_Datatype *MPI_BORD_SEND,MPI_Datatype *base)
-  {
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	int this_bord_size=loc_vol/loc_size[mu];
-	int *bord_pos_disp_dw=nissa_malloc("bord_disp_dw",this_bord_size,int);
-	int *single=nissa_malloc("single",this_bord_size,int);
-	int idw=0;
-	NISSA_LOC_VOL_LOOP(ivol)
-	  {
-	    int xmu=loc_coord_of_loclx[ivol][mu];
-	    if(xmu==0) bord_pos_disp_dw[idw++]=ivol;
-	  }
-	for(int ibord=0;ibord<this_bord_size;ibord++) single[ibord]=1;
-	
-	MPI_Type_indexed(this_bord_size,single,bord_pos_disp_dw,*base,&(MPI_BORD_SEND[mu]));
-	
-	//commit the mess
-	MPI_Type_commit(&(MPI_BORD_SEND[mu]));
-	
-	nissa_free(single);
-      }
-  }
-  
   //definitions of lexical ordered senders for edges
   void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base)
   {
@@ -562,17 +522,6 @@ namespace nissa
     for(int iedge=0;iedge<6;iedge++) MPI_Type_commit(&(MPI_EDGE_SEND[iedge]));
   }
   
-  //definitions of lexical ordered receivers for borders
-  void initialize_lx_bord_receivers_of_kind(MPI_Datatype *MPI_BORD_RECE,MPI_Datatype *base)
-  {
-    //define the NDIM dir borders receivers, which are contiguous in memory
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	MPI_Type_contiguous(loc_vol/loc_size[mu],*base,&(MPI_BORD_RECE[mu]));
-	MPI_Type_commit(&(MPI_BORD_RECE[mu]));
-      }
-  }
-  
   //definitions of lexical ordered receivers for edges
   void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base)
   {
@@ -585,13 +534,6 @@ namespace nissa
 	  MPI_Type_commit(&(MPI_EDGE_RECE[iedge]));
 	  iedge++;
 	}
-  }
-  
-  //initalize senders and receivers for borders of lexically ordered vectors
-  void set_lx_bord_senders_and_receivers(MPI_Datatype *MPI_BORD_SEND,MPI_Datatype *MPI_BORD_RECE,MPI_Datatype *base)
-  {
-    initialize_lx_bord_senders_of_kind(MPI_BORD_SEND,base);
-    initialize_lx_bord_receivers_of_kind(MPI_BORD_RECE,base);
   }
   
   //initalize senders and receivers for edges of lexically ordered vectors

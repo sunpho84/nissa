@@ -305,12 +305,13 @@ namespace nissa
     //reset
     vector_reset(source);
     
-    int islocal=1,lx[4];
-    for(int idir=0;idir<4;idir++)
+    int islocal=1;
+    coords lx;
+    for(int mu=0;mu<NDIM;mu++)
       {
-	lx[idir]=x[idir]-rank_coord[idir]*loc_size[idir];
-	islocal&=(lx[idir]>=0);
-	islocal&=(lx[idir]<loc_size[idir]);
+	lx[mu]=x[mu]-rank_coord[mu]*loc_size[mu];
+	islocal&=(lx[mu]>=0);
+	islocal&=(lx[mu]<loc_size[mu]);
       }
     
     if(islocal)
@@ -328,12 +329,13 @@ namespace nissa
     //reset
     for(int par=0;par<2;par++) vector_reset(source[par]);
     
-    int islocal=1,lx[4];
-    for(int idir=0;idir<4;idir++)
+    int islocal=1;
+    coords lx;
+    for(int mu=0;mu<NDIM;mu++)
       {
-        lx[idir]=x[idir]-rank_coord[idir]*loc_size[idir];
-        islocal&=(lx[idir]>=0);
-        islocal&=(lx[idir]<loc_size[idir]);
+        lx[mu]=x[mu]-rank_coord[mu]*loc_size[mu];
+        islocal&=(lx[mu]>=0);
+        islocal&=(lx[mu]<loc_size[mu]);
       }
     
     if(islocal)

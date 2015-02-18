@@ -1,5 +1,5 @@
-#ifndef _geometry_lx_h
-#define _geometry_lx_h
+#ifndef _GEOMETRY_LX_HPP
+#define _GEOMETRY_LX_HPP
 
 #ifdef USE_MPI
  #include <mpi.h>
@@ -34,12 +34,9 @@ namespace nissa
   void get_loclx_and_rank_of_glblx(int *lx,int *rx,int gx);
   int get_glblx_of_rank_and_loclx(int irank,int loclx);
   void glb_coord_of_glblx(coords x,int gx);
-  void initialize_lx_bord_receivers_of_kind(MPI_Datatype *MPI_BORD_RECE,MPI_Datatype *base);
-  void initialize_lx_bord_senders_of_kind(MPI_Datatype *MPI_BORD_SEND,MPI_Datatype *base);
   void initialize_lx_edge_receivers_of_kind(MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
   void initialize_lx_edge_senders_of_kind(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *base);
   void rank_coord_of_site_of_coord(coords rank_coord,coords glb_coord);
-  void set_lx_bord_senders_and_receivers(MPI_Datatype *MPI_BORD_SEND,MPI_Datatype *MPI_BORD_RECE,MPI_Datatype *base);
   void set_lx_edge_senders_and_receivers(MPI_Datatype *MPI_EDGE_SEND,MPI_Datatype *MPI_EDGE_RECE,MPI_Datatype *base);
   void set_lx_geometry();
   void unset_lx_geometry();

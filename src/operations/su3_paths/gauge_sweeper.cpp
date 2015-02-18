@@ -46,7 +46,7 @@ namespace nissa
 	nissa_free(buf_out);
 	nissa_free(buf_in);
 	nissa_free(ivol_of_box_dir_par);
-	for(int ibox=0;ibox<16;ibox++) delete box_comm[ibox];
+	for(int ibox=0;ibox<(1<<NDIM);ibox++) delete box_comm[ibox];
       }
     
     //and packer
@@ -66,16 +66,16 @@ namespace nissa
     if(par_geom_inited) crash("parity checkboard already initialized");
     par_geom_inited=true;
     gpar=ext_gpar;
-    ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",4*loc_vol,int);
-    nsite_per_box_dir_par=nissa_malloc("nsite_per_box_dir_par",16*4*gpar,int);
+    ivol_of_box_dir_par=nissa_malloc("ivol_of_box_dir_par",NDIM*loc_vol,int);
+    nsite_per_box_dir_par=nissa_malloc("nsite_per_box_dir_par",(1<<NDIM)*NDIM*gpar,int);
     
     //find the elements of all boxes
     int ibox_dir_par=0; //order in the parity-split order
-    for(int ibox=0;ibox<16;ibox++)
-      for(int dir=0;dir<4;dir++)
+    for(int ibox=0;ibox<(1<<NDIM);ibox++)
+      for(int dir=0;dir<NDIM;dir++)
 	for(int par=0;par<gpar;par++)
 	  {
-	    nsite_per_box_dir_par[par+gpar*(dir+4*ibox)]=0;
+	    nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)]=0;
 	    for(int isub=0;isub<nsite_per_box[ibox];isub++)
 	      {
 		//get coordinates of site
@@ -84,7 +84,7 @@ namespace nissa
 		
 		//get coords in the local size, and parity
 		coords ivol_coord;
-		for(int mu=0;mu<4;mu++) ivol_coord[mu]=box_size[0][mu]*box_coord[ibox][mu]+isub_coord[mu];
+		for(int mu=0;mu<NDIM;mu++) ivol_coord[mu]=box_size[0][mu]*box_coord[ibox][mu]+isub_coord[mu];
 		int site_par=par_comp(ivol_coord,dir);
 		if(site_par>=gpar||site_par<0) crash("obtained par %d while expecting in the range [0,%d]",par,gpar-1);
 		
@@ -92,7 +92,7 @@ namespace nissa
 		if(site_par==par)
 		  {
 		    ivol_of_box_dir_par[ibox_dir_par++]=lx_of_coord(ivol_coord,loc_size);
-		    nsite_per_box_dir_par[par+gpar*(dir+4*ibox)]++;
+		    nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)]++;
 		  }
 	      }
 	  }  
@@ -107,22 +107,22 @@ namespace nissa
     
     //mark what we hit
     int ibase=0;
-    for(int ibox=0;ibox<16;ibox++)
-      for(int dir=0;dir<4;dir++)
+    for(int ibox=0;ibox<(1<<NDIM);ibox++)
+      for(int dir=0;dir<NDIM;dir++)
 	for(int par=0;par<gpar;par++)
 	  {
-	    for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];ibox_dir_par++)
+	    for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];ibox_dir_par++)
 	      {
 		int ivol=ivol_of_box_dir_par[ibox_dir_par+ibase];
 		if(ivol>=loc_vol) crash("ibox %d ibox_par %d ibase %d ivol %d",ibox,ibox_dir_par,ibase,ivol);
 		hit[ivol][dir]++;
 	      }
-	    ibase+=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];
+	    ibase+=nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];
 	  }
     
     //check to have hit everything
     for(int ivol=0;ivol<loc_vol;ivol++)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	if(hit[ivol][mu]!=1) crash("missing hit ivol %d mu %d",ivol,mu);
     
     nissa_free(hit);
@@ -131,72 +131,66 @@ namespace nissa
   //check that everything is hit without overlapping
   void gauge_sweeper_t::check_hit_in_the_exact_order()
   {
-    int *hit=nissa_malloc("hit",4*loc_vol+max_cached_link,int);
+    int *hit=nissa_malloc("hit",NDIM*loc_vol+max_cached_link,int);
     int ibase=0;
-    for(int ibox=0;ibox<16;ibox++)
-      for(int dir=0;dir<4;dir++)
+    for(int ibox=0;ibox<(1<<NDIM);ibox++)
+      for(int dir=0;dir<NDIM;dir++)
         for(int par=0;par<gpar;par++)
           {
             vector_reset(hit);
             for(int iter=0;iter<2;iter++)
-              //at first iter mark all site updating
+              //at first iter mark all sites updating
               //at second iter check that none of them is internally used
-              for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];ibox_dir_par++)
+              for(int ibox_dir_par=0;ibox_dir_par<nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];ibox_dir_par++)
                 {
                   int ivol=ivol_of_box_dir_par[ibox_dir_par+ibase];
                   
                   if(iter==0)
                     {
-                      hit[dir+4*ivol]=par+1;
+                      hit[dir+NDIM*ivol]=par+1;
 
                       if(0)
-                        printf("ibox %d dir %d par %d hitting %d, ivol %d{%d,%d,%d,%d};%d\n",
-                               ibox,dir,par,
-                               dir+4*ivol,ivol,
-                               loc_coord_of_loclx[ivol][0],
-                               loc_coord_of_loclx[ivol][1],
-                               loc_coord_of_loclx[ivol][2],
-                               loc_coord_of_loclx[ivol][3],
-                               dir);
+			{
+			  printf("ibox %d dir %d par %d hitting %d, ivol %d{%d",
+				 ibox,dir,par,
+				 dir+NDIM*ivol,ivol,
+				 loc_coord_of_loclx[ivol][0]);
+			  for(int mu=1;mu<NDIM;mu++) printf(",%d",loc_coord_of_loclx[ivol][mu]);
+			  printf("};%d\n",dir);
+			}
                     }
                   else
                     for(int ihit=0;ihit<nlinks_per_staples_of_link;ihit++)
                       {
                         int link=ilink_per_staples[ihit+nlinks_per_staples_of_link*(ibox_dir_par+ibase)];
-                        if(link>=4*loc_vol+max_cached_link)
+                        if(link>=NDIM*loc_vol+max_cached_link)
                           crash("ibox %d ibox_dir_par %d ibase %d ihit %d, link %d, max_cached_link %d",
                                 ibox,ibox_dir_par,ibase,ihit,link,max_cached_link);
                         
-                        if(0)
-			  printf("ibox %d dir %d par %d link[%d], ivol %d{%d,%d,%d,%d}: %d,%d,%d,%d;%d\n",
-				 ibox,dir,par,ihit,
-				 ivol,
-				 loc_coord_of_loclx[ivol][0],
-				 loc_coord_of_loclx[ivol][1],
-				 loc_coord_of_loclx[ivol][2],
-				 loc_coord_of_loclx[ivol][3],
-				 link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][0],
-				 link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][1],
-				 link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][2],
-				 link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][3],
-				 link>=4*loc_vol?-1:link%4);
-                        
-                        if(hit[link]!=0) crash("ivol %d:{%d,%d,%d,%d} ibox %d dir %d par %d ihit %d link %d" 
-                                               "[site %d:{%d,%d,%d,%d},dir %d]: par %d",
-                                               ivol,
-                                               loc_coord_of_loclx[ivol][0],
-                                               loc_coord_of_loclx[ivol][1],
-                                               loc_coord_of_loclx[ivol][2],
-                                               loc_coord_of_loclx[ivol][3],
-                                               ibox,dir,par,ihit,link,link/4,
-                                               link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][0],
-                                               link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][1],
-                                               link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][2],
-                                               link>=4*loc_vol?-1:loc_coord_of_loclx[link/4][3],
-                                               link%4,hit[link]-1);
-                      }
+			if(0)
+			  {
+			    printf("ibox %d dir %d par %d link[%d], ivol %d{%d",ibox,dir,par,ihit,ivol,loc_coord_of_loclx[ivol][0]);
+			    for(int mu=1;mu<NDIM;mu++) printf(",%d",loc_coord_of_loclx[ivol][mu]);
+			    printf("}: %d",link>=NDIM*loc_vol?-1:loc_coord_of_loclx[link/NDIM][0]);
+			    for(int mu=0;mu<NDIM;mu++) printf(",%d",link>=NDIM*loc_vol?-1:loc_coord_of_loclx[link/NDIM][mu]);
+			    printf(";%d\n",link>=NDIM*loc_vol?-1:link%NDIM);
+			  }
+			
+                        if(hit[link]!=0)
+			  {
+			    char message[1024],*ap=message;
+			    ap+=sprintf(message,"ivol %d:{%d",ivol,loc_coord_of_loclx[ivol][0]);
+			    for(int mu=1;mu<NDIM;mu++) ap+=sprintf(ap,",%d",loc_coord_of_loclx[ivol][mu]);
+			    ap+=sprintf(ap,"} ibox %d dir %d par %d got hit by %d link %d [site %d: {%d",
+					ibox,dir,par,ihit,link,link/NDIM,
+					link>=NDIM*loc_vol?-1:loc_coord_of_loclx[link/NDIM][0]);
+			    for(int mu=1;mu<NDIM;mu++) ap+=sprintf(ap,",%d",link>=NDIM*loc_vol?-1:loc_coord_of_loclx[link/NDIM][mu]);
+			    ap+=sprintf(ap,"},dir %d]: par %d",link%NDIM,hit[link]-1);
+			    crash("%s",message);
+			  }
+		      }
                 }
-            ibase+=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];
+            ibase+=nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];
           }
     
     nissa_free(hit);
@@ -214,20 +208,20 @@ namespace nissa
     compute_staples=ext_compute_staples;
     
     //allocate
-    ilink_per_staples=nissa_malloc("ilink_per_staples",nlinks_per_staples_of_link*4*loc_vol,int);
-    all_to_all_gathering_list_t *gl[16];
-    for(int ibox=0;ibox<16;ibox++) gl[ibox]=new all_to_all_gathering_list_t;
+    ilink_per_staples=nissa_malloc("ilink_per_staples",nlinks_per_staples_of_link*NDIM*loc_vol,int);
+    all_to_all_gathering_list_t *gl[1<<NDIM];
+    for(int ibox=0;ibox<(1<<NDIM);ibox++) gl[ibox]=new all_to_all_gathering_list_t;
     add_staples_required_links(gl);
     
     //initialize the communicator
-    for(int ibox=0;ibox<16;ibox++)
+    for(int ibox=0;ibox<(1<<NDIM);ibox++)
       {
 	box_comm[ibox]=new all_to_all_comm_t(*(gl[ibox]));
 	delete gl[ibox];
       }
     
     //compute the maximum number of link to send and receive and allocate buffers
-    for(int ibox=0;ibox<16;ibox++)
+    for(int ibox=0;ibox<(1<<NDIM);ibox++)
       {
 	max_cached_link=std::max(max_cached_link,box_comm[ibox]->nel_in);
 	max_sending_link=std::max(max_sending_link,box_comm[ibox]->nel_out);
@@ -254,7 +248,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //split workload and find starting point
-    NISSA_CHUNK_WORKLOAD(bdp_start,chunk_load,bdp_end,0,16*4*gs->gpar,THREAD_ID,NACTIVE_THREADS);
+    NISSA_CHUNK_WORKLOAD(bdp_start,chunk_load,bdp_end,0,(1<<NDIM)*NDIM*gs->gpar,THREAD_ID,NACTIVE_THREADS);
     int ibase=0;
     for(int bdp=0;bdp<bdp_start;bdp++) ibase+=gs->nsite_per_box_dir_par[bdp];
 
@@ -278,16 +272,16 @@ namespace nissa
 	//mark packing to be have been inited and allocate
 	packing_inited=true;
 	compute_staples_packed=ext_compute_staples_packed;
-	packing_link_source_dest=nissa_malloc("packing_link_source_dest",2*(nlinks_per_staples_of_link*4*loc_vol+1),int);
+	packing_link_source_dest=nissa_malloc("packing_link_source_dest",2*(nlinks_per_staples_of_link*NDIM*loc_vol+1),int);
 	
 	int ibase=0;
 	int max_packing_link_nel=0;
-	for(int ibox=0;ibox<16;ibox++)
-	  for(int dir=0;dir<4;dir++)
+	for(int ibox=0;ibox<(1<<NDIM);ibox++)
+	  for(int dir=0;dir<NDIM;dir++)
 	    for(int par=0;par<gpar;par++)
 	      {
 		//find the packing size
-		int ns=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)],nsh=ns/2; //only for bg/q
+		int ns=nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)],nsh=ns/2; //only for bg/q
 		if(nsh*2!=ns) nsh++;
 		max_packing_link_nel=std::max(max_packing_link_nel,nlinks_per_staples_of_link*2*nsh);
 		
@@ -309,7 +303,7 @@ namespace nissa
 		    }
 		
 		//increase the base
-		ibase+=nsite_per_box_dir_par[par+gpar*(dir+4*ibox)];	       
+		ibase+=nsite_per_box_dir_par[par+gpar*(dir+NDIM*ibox)];	       
 	      }
 	
 	reorder_packing_link_source_dest(this);
@@ -328,25 +322,25 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    NISSA_PARALLEL_LOOP(ibox,0,16)
+    NISSA_PARALLEL_LOOP(ibox,0,(1<<NDIM))
       {
 	//find base for curr box
 	int ibase=0;
 	for(int jbox=0;jbox<ibox;jbox++) ibase+=nsite_per_box[jbox];
-	ibase*=4;
+	ibase*=NDIM;
 	
 	//scan all the elements of sub-box, selecting only those with the good parity
-	for(int dir=0;dir<4;dir++)
+	for(int dir=0;dir<NDIM;dir++)
 	  for(int par=0;par<gs->gpar;par++)
 	    {	  
-	      for(int ibox_dir_par=ibase;ibox_dir_par<ibase+gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)];
+	      for(int ibox_dir_par=ibase;ibox_dir_par<ibase+gs->nsite_per_box_dir_par[par+gs->gpar*(dir+NDIM*ibox)];
 		  ibox_dir_par++)
 		{
 		  int ivol=gs->ivol_of_box_dir_par[ibox_dir_par];
 		  gs->add_staples_per_link(gs->ilink_per_staples+ibox_dir_par*gs->nlinks_per_staples_of_link,*(gl[ibox]),
 					   ivol,dir);
 		}
-	      ibase+=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)];
+	      ibase+=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+NDIM*ibox)];
 	    }
     }
     THREAD_BARRIER();
@@ -425,16 +419,16 @@ namespace nissa
     if(gs->packing_inited)
       {
 	int staples_list_size=0;
-	for(int ibox=0;ibox<16;ibox++)
-	  for(int dir=0;dir<4;dir++)
+	for(int ibox=0;ibox<(1<<NDIM);ibox++)
+	  for(int dir=0;dir<NDIM;dir++)
 	    for(int par=0;par<gs->gpar;par++)
-	    staples_list_size=std::max(staples_list_size,2*((gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)]+1)/2));
+	    staples_list_size=std::max(staples_list_size,2*((gs->nsite_per_box_dir_par[par+gs->gpar*(dir+NDIM*ibox)]+1)/2));
 	staples_list=nissa_malloc("staples_list",staples_list_size,su3); 
       }
 #endif
     
     int ibase=0;
-    for(int ibox=0;ibox<16;ibox++)
+    for(int ibox=0;ibox<(1<<NDIM);ibox++)
       {
 	//communicate needed links
 	if(IS_MASTER_THREAD) gs->comm_time-=take_time();
@@ -444,10 +438,10 @@ namespace nissa
 	    gs->comm_time+=take_time();
 	    gs->comp_time-=take_time();
 	  }
-	for(int dir=0;dir<4;dir++)
+	for(int dir=0;dir<NDIM;dir++)
 	  for(int par=0;par<gs->gpar;par++)
 	    {
-	      int box_dir_par_size=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)];
+	      int box_dir_par_size=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+NDIM*ibox)];
 	      
 	      //pack
 	      if(gs->packing_inited) gs->pack_links(conf,ibase,box_dir_par_size);
@@ -526,9 +520,9 @@ namespace nissa
   int tlSym_par(coords ivol_coord,int dir)
   {
     int site_par=0;
-    for(int mu=0;mu<4;mu++) site_par+=((mu==dir)?2:1)*ivol_coord[mu];
+    for(int mu=0;mu<NDIM;mu++) site_par+=((mu==dir)?2:1)*ivol_coord[mu];
 
-    site_par=site_par%4;
+    site_par=site_par%NDIM;
   
     return site_par;
   }
@@ -543,23 +537,24 @@ namespace nissa
     I[mu]=J[mu]=B[mu]=C[mu]=A[mu];                          //   I---J---A---B---C
     D[mu]=E[mu]=F[mu]=G[mu]=H[mu]=(A[mu]+1)%glb_size[mu];   //       |   |   |    
     N[mu]=O[mu]=P[mu]=(A[mu]+2)%glb_size[mu];               //       K---L---M    
-    for(int inu=0;inu<3;inu++)
+    for(int inu=0;inu<NDIM-1;inu++)
       {            
-	int &nu=perp_dir[mu][inu];
-	int &rh=perp2_dir[mu][inu][0];
-	int &si=perp2_dir[mu][inu][1];
-      
-	//find coord rho
-	B[rh]=C[rh]=D[rh]=E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=N[rh]=O[rh]=P[rh]=A[rh];
-	//find coord sigma
-	B[si]=C[si]=D[si]=E[si]=F[si]=G[si]=H[si]=I[si]=J[si]=K[si]=L[si]=M[si]=N[si]=O[si]=P[si]=A[si];
+	int nu=perp_dir[mu][inu];
+
+	//copy orthogonal coords
+	for(int irh=0;irh<NDIM-2;irh++)
+	  {
+	    int rh=perp2_dir[mu][inu][irh];
+	    B[rh]=C[rh]=D[rh]=E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=N[rh]=O[rh]=P[rh]=A[rh];
+	  }
+	
 	//find coord nu
 	H[nu]=I[nu]=(A[nu]-2+glb_size[nu])%glb_size[nu];
 	K[nu]=J[nu]=G[nu]=P[nu]=(I[nu]+1)%glb_size[nu];
 	L[nu]=F[nu]=O[nu]=A[nu];
 	M[nu]=B[nu]=E[nu]=N[nu]=(A[nu]+1)%glb_size[nu];
 	C[nu]=D[nu]=(A[nu]+2)%glb_size[nu];
-      
+	
 	//backward square staple
 	*(ilink_to_be_used++)=gat.add_conf_link_for_paths(J,nu);
 	*(ilink_to_be_used++)=gat.add_conf_link_for_paths(J,mu);
@@ -608,7 +603,7 @@ namespace nissa
     *(ilink_to_be_used++)=gat.add_conf_link_for_paths(F,mu); //vertical common link up
     *(ilink_to_be_used++)=gat.add_conf_link_for_paths(L,mu); //verical common link dw
   
-    //8*3 link missing, 2 readded = -22 links
+    //8*(NDIM-1) link missing, 2 readded = -22 links (in 4d)
   }
 
   //compute the summ of the staples pointed by "ilinks"
@@ -621,7 +616,7 @@ namespace nissa
     su3_put_to_zero(dw_rectangles);
     
     const int PARTIAL=2;
-    for(int inu=0;inu<3;inu++)
+    for(int inu=0;inu<NDIM-1;inu++)
       {  
 	su3 hb;
 	//backward square staple
@@ -684,7 +679,7 @@ namespace nissa
     su3_put_to_zero(dw_rectangles);
     
     const int PARTIAL=2;
-    for(int inu=0;inu<3;inu++)
+    for(int inu=0;inu<NDIM-1;inu++)
       {  
 	su3 hb;
 	//backward square staple
@@ -752,7 +747,7 @@ namespace nissa
     DECLARE_REG_BI_SU3(REG_U2);
     DECLARE_REG_BI_SU3(REG_U3);
     
-    for(int inu=0;inu<3;inu++)
+    for(int inu=0;inu<NDIM-1;inu++)
       {  
 	//backward square staple
 	bi_su3 hb;
@@ -888,9 +883,9 @@ namespace nissa
       {
 	verbosity_lv3_master_printf("Initializing tlSym sweeper\n");
 	//checking consistency for gauge_sweeper initialization
-	for(int mu=0;mu<4;mu++) if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
+	for(int mu=0;mu<NDIM;mu++) if(loc_size[mu]<4) crash("loc_size[%d]=%d must be at least 4",mu,loc_size[mu]);
 	//initialize the tlSym sweeper
-	const int nlinks_per_tlSym_staples_of_link=3*2*(3+5*3)-3*8+2;
+	const int nlinks_per_tlSym_staples_of_link=(NDIM-1)*2*(3+5*3)-(NDIM-1)*8+2;
 	tlSym_sweeper->init_box_dir_par_geometry(4,tlSym_par);
 	tlSym_sweeper->init_staples(nlinks_per_tlSym_staples_of_link,add_tlSym_staples,compute_tlSym_staples);
 #ifdef BGQ
@@ -905,7 +900,7 @@ namespace nissa
   int Wilson_par(coords ivol_coord,int dir)
   {
     int site_par=0;
-    for(int mu=0;mu<4;mu++) site_par+=ivol_coord[mu];
+    for(int mu=0;mu<NDIM;mu++) site_par+=ivol_coord[mu];
 
     site_par=site_par%2;
   
@@ -920,16 +915,17 @@ namespace nissa
     //find coord mu                                         //       |   |   |
     J[mu]=B[mu]=A[mu];                                      //       J---A---B
     F[mu]=G[mu]=(A[mu]+1)%glb_size[mu];
-    for(int inu=0;inu<3;inu++)
+    for(int inu=0;inu<NDIM-1;inu++)
       {            
-	int &nu=perp_dir[mu][inu];
-	int &rh=perp2_dir[mu][inu][0];
-	int &si=perp2_dir[mu][inu][1];
+	int nu=perp_dir[mu][inu];
 	
-	//find coord rho
-	B[rh]=F[rh]=G[rh]=J[rh]=A[rh];
-	//find coord sigma
-	B[si]=F[si]=G[si]=J[si]=A[si];
+	//copy orthogonal coords
+	for(int irh=0;irh<NDIM-2;irh++)
+	  {
+	    int rh=perp2_dir[mu][inu][irh];
+	    B[rh]=F[rh]=G[rh]=J[rh]=A[rh];
+	  }
+	
 	//find coord nu
 	J[nu]=G[nu]=(A[nu]-1+glb_size[nu])%glb_size[nu];
 	F[nu]=A[nu];
@@ -951,7 +947,7 @@ namespace nissa
   {
     su3_put_to_zero(staples);
   
-    for(int inu=0;inu<3;inu++)
+    for(int inu=0;inu<NDIM-1;inu++)
       {  
 	su3 hb;
 	//backward square staple
@@ -973,10 +969,10 @@ namespace nissa
       {
 	verbosity_lv3_master_printf("Initializing Wilson sweeper\n");
 	//checking consistency for gauge_sweeper initialization
-	for(int mu=0;mu<4;mu++) if(loc_size[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,loc_size[mu]);
+	for(int mu=0;mu<NDIM;mu++) if(loc_size[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,loc_size[mu]);
 	//initialize the Wilson sweeper
 	Wilson_sweeper->init_box_dir_par_geometry(2,Wilson_par);
-	const int nlinks_per_Wilson_staples_of_link=18;
+	const int nlinks_per_Wilson_staples_of_link=6*(NDIM-1);
 	Wilson_sweeper->init_staples(nlinks_per_Wilson_staples_of_link,add_Wilson_staples,compute_Wilson_staples);
       }
   }

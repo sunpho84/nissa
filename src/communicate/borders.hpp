@@ -1,5 +1,5 @@
-#ifndef _BUFFERED_BORDERS_H
-#define _BUFFERED_BORDERS_H
+#ifndef _BUFFERED_BORDERS_HPP
+#define _BUFFERED_BORDERS_HPP
 
 #include "new_types/new_types_definitions.hpp"
 
