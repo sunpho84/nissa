@@ -149,6 +149,10 @@ namespace nissa
     
     //finish the calculation
     gluonic_force_finish_computation(F,conf,phase_pres);
+
+#ifdef BENCH
+    if(IS_MASTER_THREAD) glu_comp_time+=take_time();
+#endif
   }
   THREADABLE_FUNCTION_END
 #endif
