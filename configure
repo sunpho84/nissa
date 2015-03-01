@@ -5522,7 +5522,7 @@ _ACEOF
 
 
 #create config.hpp
-ac_config_files="$ac_config_files Makefile src/Makefile projects/Makefile projects/eight_BK/Makefile projects/g/Makefile projects/generate_confs/Makefile projects/semileptonic/Makefile projects/static_potential/Makefile projects/x/Makefile tools/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile projects/Makefile projects/eight_BK/Makefile projects/g/Makefile projects/generate_confs/Makefile projects/ib/Makefile projects/semileptonic/Makefile projects/static_potential/Makefile projects/x/Makefile tools/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -6305,6 +6305,7 @@ do
     "projects/eight_BK/Makefile") CONFIG_FILES="$CONFIG_FILES projects/eight_BK/Makefile" ;;
     "projects/g/Makefile") CONFIG_FILES="$CONFIG_FILES projects/g/Makefile" ;;
     "projects/generate_confs/Makefile") CONFIG_FILES="$CONFIG_FILES projects/generate_confs/Makefile" ;;
+    "projects/ib/Makefile") CONFIG_FILES="$CONFIG_FILES projects/ib/Makefile" ;;
     "projects/semileptonic/Makefile") CONFIG_FILES="$CONFIG_FILES projects/semileptonic/Makefile" ;;
     "projects/static_potential/Makefile") CONFIG_FILES="$CONFIG_FILES projects/static_potential/Makefile" ;;
     "projects/x/Makefile") CONFIG_FILES="$CONFIG_FILES projects/x/Makefile" ;;

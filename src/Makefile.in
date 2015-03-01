@@ -250,11 +250,13 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.cpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.cpp \
 	dirac_operators/stD/dirac_operator_stD_bgq.cpp \
-	geometry/geometry_eo.cpp geometry/geometry_lx.cpp \
-	geometry/geometry_mix.cpp geometry/geometry_Wsklx.cpp \
-	geometry/geometry_vir.cpp hmc/backfield.cpp \
-	hmc/gauge/MFACC_fields.cpp hmc/gauge/gluonic_force.cpp \
-	hmc/gauge/pure_gauge_hmc_step.cpp \
+	free_theory/free_theory_types_routines.cpp \
+	free_theory/tlSym_gauge_propagator.cpp \
+	free_theory/twisted_propagator.cpp geometry/geometry_eo.cpp \
+	geometry/geometry_lx.cpp geometry/geometry_mix.cpp \
+	geometry/geometry_Wsklx.cpp geometry/geometry_vir.cpp \
+	hmc/backfield.cpp hmc/gauge/MFACC_fields.cpp \
+	hmc/gauge/gluonic_force.cpp hmc/gauge/pure_gauge_hmc_step.cpp \
 	hmc/gauge/pure_gauge_omelyan_integrator.cpp \
 	hmc/gauge/topological_action.cpp \
 	hmc/gauge/topological_force.cpp \
@@ -392,8 +394,12 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	dirac_operators/tmQ/dirac_operator_tmQ_128.$(OBJEXT) \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.$(OBJEXT) \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.$(OBJEXT) \
-	$(am__objects_4) geometry/geometry_eo.$(OBJEXT) \
-	geometry/geometry_lx.$(OBJEXT) geometry/geometry_mix.$(OBJEXT) \
+	$(am__objects_4) \
+	free_theory/free_theory_types_routines.$(OBJEXT) \
+	free_theory/tlSym_gauge_propagator.$(OBJEXT) \
+	free_theory/twisted_propagator.$(OBJEXT) \
+	geometry/geometry_eo.$(OBJEXT) geometry/geometry_lx.$(OBJEXT) \
+	geometry/geometry_mix.$(OBJEXT) \
 	geometry/geometry_Wsklx.$(OBJEXT) $(am__objects_5) \
 	hmc/backfield.$(OBJEXT) hmc/gauge/MFACC_fields.$(OBJEXT) \
 	hmc/gauge/MFACC_fields.$(OBJEXT) \
@@ -573,11 +579,14 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.hpp \
 	dirac_operators/stD/dirac_operator_stD_bgq.hpp \
-	geometry/geometry_eo.hpp geometry/geometry_lx.hpp \
-	geometry/geometry_mix.hpp geometry/geometry_Wsklx.hpp \
-	geometry/geometry_vir.hpp hmc/backfield.hpp \
-	hmc/gauge/MFACC_fields.hpp hmc/gauge/gluonic_action.hpp \
-	hmc/gauge/gluonic_force.hpp hmc/gauge/pure_gauge_hmc_step.hpp \
+	free_theory/free_theory_types_routines.hpp \
+	free_theory/tlSym_gauge_propagator.hpp \
+	free_theory/twisted_propagator.hpp geometry/geometry_eo.hpp \
+	geometry/geometry_lx.hpp geometry/geometry_mix.hpp \
+	geometry/geometry_Wsklx.hpp geometry/geometry_vir.hpp \
+	hmc/backfield.hpp hmc/gauge/MFACC_fields.hpp \
+	hmc/gauge/gluonic_action.hpp hmc/gauge/gluonic_force.hpp \
+	hmc/gauge/pure_gauge_hmc_step.hpp \
 	hmc/gauge/pure_gauge_omelyan_integrator.hpp \
 	hmc/gauge/topological_action.hpp \
 	hmc/gauge/topological_force.hpp \
@@ -812,7 +821,9 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.hpp \
-	$(am__append_8) geometry/geometry_eo.hpp \
+	$(am__append_8) free_theory/free_theory_types_routines.hpp \
+	free_theory/tlSym_gauge_propagator.hpp \
+	free_theory/twisted_propagator.hpp geometry/geometry_eo.hpp \
 	geometry/geometry_lx.hpp geometry/geometry_mix.hpp \
 	geometry/geometry_Wsklx.hpp $(am__append_10) hmc/backfield.hpp \
 	hmc/gauge/MFACC_fields.hpp hmc/gauge/MFACC_fields.hpp \
@@ -900,6 +911,8 @@ lib_LIBRARIES = $(top_builddir)/lib/libnissa.a
 
 ######################################## dirac operators#####################################
 
+################################## free theory##################################
+
 ################################### geometry ###################################
 
 ###################################### hmc #########################################
@@ -938,7 +951,9 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_128.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.cpp \
-	$(am__append_7) geometry/geometry_eo.cpp \
+	$(am__append_7) free_theory/free_theory_types_routines.cpp \
+	free_theory/tlSym_gauge_propagator.cpp \
+	free_theory/twisted_propagator.cpp geometry/geometry_eo.cpp \
 	geometry/geometry_lx.cpp geometry/geometry_mix.cpp \
 	geometry/geometry_Wsklx.cpp $(am__append_9) hmc/backfield.cpp \
 	hmc/gauge/MFACC_fields.cpp hmc/gauge/MFACC_fields.cpp \
@@ -1316,6 +1331,20 @@ dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.$(OBJEXT):  \
 dirac_operators/stD/dirac_operator_stD_bgq.$(OBJEXT):  \
 	dirac_operators/stD/$(am__dirstamp) \
 	dirac_operators/stD/$(DEPDIR)/$(am__dirstamp)
+free_theory/$(am__dirstamp):
+	@$(MKDIR_P) free_theory
+	@: > free_theory/$(am__dirstamp)
+free_theory/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) free_theory/$(DEPDIR)
+	@: > free_theory/$(DEPDIR)/$(am__dirstamp)
+free_theory/free_theory_types_routines.$(OBJEXT):  \
+	free_theory/$(am__dirstamp) \
+	free_theory/$(DEPDIR)/$(am__dirstamp)
+free_theory/tlSym_gauge_propagator.$(OBJEXT):  \
+	free_theory/$(am__dirstamp) \
+	free_theory/$(DEPDIR)/$(am__dirstamp)
+free_theory/twisted_propagator.$(OBJEXT): free_theory/$(am__dirstamp) \
+	free_theory/$(DEPDIR)/$(am__dirstamp)
 geometry/$(am__dirstamp):
 	@$(MKDIR_P) geometry
 	@: > geometry/$(am__dirstamp)
@@ -1742,6 +1771,7 @@ mostlyclean-compile:
 	-rm -f dirac_operators/tmQ_left/*.$(OBJEXT)
 	-rm -f dirac_operators/tmclovQ/*.$(OBJEXT)
 	-rm -f dirac_operators/tmclovQ2/*.$(OBJEXT)
+	-rm -f free_theory/*.$(OBJEXT)
 	-rm -f geometry/*.$(OBJEXT)
 	-rm -f hmc/*.$(OBJEXT)
 	-rm -f hmc/gauge/*.$(OBJEXT)
@@ -1806,6 +1836,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2_128.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2_128_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@free_theory/$(DEPDIR)/free_theory_types_routines.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@free_theory/$(DEPDIR)/tlSym_gauge_propagator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@free_theory/$(DEPDIR)/twisted_propagator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_Wsklx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_eo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_lx.Po@am__quote@
@@ -2140,6 +2173,8 @@ distclean-generic:
 	-rm -f dirac_operators/tmclovQ/$(am__dirstamp)
 	-rm -f dirac_operators/tmclovQ2/$(DEPDIR)/$(am__dirstamp)
 	-rm -f dirac_operators/tmclovQ2/$(am__dirstamp)
+	-rm -f free_theory/$(DEPDIR)/$(am__dirstamp)
+	-rm -f free_theory/$(am__dirstamp)
 	-rm -f geometry/$(DEPDIR)/$(am__dirstamp)
 	-rm -f geometry/$(am__dirstamp)
 	-rm -f hmc/$(DEPDIR)/$(am__dirstamp)
@@ -2189,7 +2224,7 @@ clean: clean-am
 clean-am: clean-generic clean-libLIBRARIES mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/momenta/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/momenta/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
+	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/momenta/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) free_theory/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/momenta/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
@@ -2235,7 +2270,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/momenta/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/momenta/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
+	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/momenta/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) free_theory/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/momenta/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

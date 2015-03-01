@@ -183,6 +183,7 @@ AC_CONFIG_FILES(
 	projects/eight_BK/Makefile
 	projects/g/Makefile
 	projects/generate_confs/Makefile
+	projects/ib/Makefile
 	projects/semileptonic/Makefile
 	projects/static_potential/Makefile
 	projects/x/Makefile

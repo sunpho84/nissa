@@ -2,86 +2,316 @@
  #include "config.hpp"
 #endif
 
-#include <math.h>
-
-#include "new_types/new_types_definitions.hpp"
-#include "new_types/su3.hpp"
 #include "base/global_variables.hpp"
 #include "base/macros.hpp"
 #include "base/debug.hpp"
 #include "base/vectors.hpp"
+#include "new_types/complex.hpp"
+#include "new_types/new_types_definitions.hpp"
+#include "new_types/spin.hpp"
+#include "new_types/su3.hpp"
+
+#include "fft.hpp"
 
 namespace nissa
 {
-  //produce the table of the momentum
-  void Momentum(int **iP,double *bc,double *P2,double *SinP2,double **P,double **SinP,double *SinP4,int nmom)
+  void pass_spinspin_from_mom_to_x_space(spinspin *out,spinspin *in,momentum_t bc)
   {
-    int lP[4],imom=0;
+    //compute the main part of the fft
+    fft4d((complex*)out,(complex*)in,16,+1,0);
     
-    for(lP[0]=iP[0][0];lP[0]<=iP[0][1];lP[0]++)
-      for(lP[1]=iP[1][0];lP[1]<=iP[1][1];lP[1]++)
-	for(lP[2]=iP[2][0];lP[2]<=iP[2][1];lP[2]++)
-	  for(lP[3]=iP[3][0];lP[3]<=iP[3][1];lP[3]++)
-	    {
-	      P2[imom]=SinP2[imom]=SinP4[imom]=0;
-	      for(int idir=0;idir<4;idir++)
-		{
-		  P[idir][imom]=2*M_PI*(lP[idir]+bc[idir]*0.5)/glb_size[idir];
-		  P2[imom]+=pow(P[idir][imom],2);
-		  SinP[idir][imom]=sin(P[idir][imom]);
-		  SinP2[imom]+=pow(SinP[idir][imom],2);
-		  SinP4[imom]+=pow(SinP[idir][imom],4);
-		}
-	      imom++;
-	    }
+    //compute steps
+    momentum_t steps;
+    for(int mu=0;mu<4;mu++)
+      steps[mu]=bc[mu]*M_PI/glb_size[mu];
     
-    if(imom!=nmom) crash("imom != nmom");
+    //add the fractional phase
+    NISSA_LOC_VOL_LOOP(ivol)
+    {
+      //compute phase exponent
+      double arg=0;
+      for(int mu=0;mu<4;mu++)
+	arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
+      
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      
+      //adapt the phase
+      safe_spinspin_complex_prod(out[ivol],out[ivol],ph);
+    }
   }
   
-  //perform the fourier transform momentum per momentum
-  void spincolor_FT(spincolor *S,spincolor *FT,double *theta,int **iP,int nmom)
+  void pass_spinspin_from_x_to_mom_space(spinspin *out,spinspin *in,momentum_t bc)
   {
-    double *P2=nissa_malloc("P2",nmom,double);
-    double *SinP2=nissa_malloc("SinP2",nmom,double);
-    double *SinP4=nissa_malloc("SinP4",nmom,double);
+    //compute steps
+    momentum_t steps;
+    for(int mu=0;mu<4;mu++)
+      steps[mu]=-bc[mu]*M_PI/glb_size[mu];
     
-    double *P[4];
-    double *SinP[4];
+    //add the fractional phase
+    NISSA_LOC_VOL_LOOP(ivol)
+    {
+      //compute phase exponent
+      double arg=0;
+      for(int mu=0;mu<4;mu++)
+	arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
+      
+      //compute the phase and put 1/vol
+      complex ph={cos(arg),sin(arg)};
+      
+      //adapt the phase
+      safe_spinspin_complex_prod(out[ivol],in[ivol],ph);
+    }
     
-    for(int idir=0;idir<4;idir++)
-      {
-	P[idir]=nissa_malloc("P[idir]",nmom,double);
-	SinP[idir]=nissa_malloc("SinP[idir]",nmom,double);
-      }
-    
-    Momentum(iP,theta,P2,SinP2,P,SinP,SinP4,nmom); 
-    
-    //local FT
-    spincolor *FT_loc=nissa_malloc("FT_loc",nmom,spincolor);
-    for(int imom=0;imom<nmom;imom++) spincolor_put_to_zero(FT_loc[imom]); 
-    
-    double lP[4];
-    for(int imom=0;imom<nmom;imom++)
-      {	
-	for(int idir=0;idir<4;idir++) lP[idir]=P[idir][imom];
-	
-	NISSA_LOC_VOL_LOOP(ivol)
+    //compute the main part of the fft
+    fft4d((complex*)out,(complex*)out,16,-1,1);  
+  }
+  
+  void pass_spin1prop_from_mom_to_x_space(spin1prop *out,spin1prop *in,momentum_t bc)
+  {
+    //multiply by exp(i (p_mu-p_nu)/2)
+    NISSA_LOC_VOL_LOOP(imom)
+    {
+      complex ph[4];
+      for(int mu=0;mu<4;mu++)
 	{
-	  double arg=0;
-	  for(int idir=0;idir<4;idir++) arg+=lP[idir]*glb_coord_of_loclx[ivol][idir];
-	  complex eipx={cos(arg),-sin(arg)};
-	  
-	  spincolor_summ_the_prod_complex(FT_loc[imom],S[ivol],eipx);			
+	  double pmu=M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	  double pmuh=pmu*0.5;
+	  ph[mu][RE]=cos(pmuh);
+	  ph[mu][IM]=sin(pmuh);
 	}
-      }
+      
+      for(int mu=0;mu<4;mu++)
+	for(int nu=0;nu<4;nu++)
+	  {
+	    safe_complex_prod      (out[imom][mu][nu],in[imom][mu][nu],ph[mu]);
+	    safe_complex_conj2_prod(out[imom][mu][nu],out[imom][mu][nu],ph[nu]);
+	  }
+    }
     
-    MPI_Reduce((double*)FT_loc,(double*)FT,24*nmom,MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
+    //compute the main part of the fft
+    fft4d((complex*)out,(complex*)out,16,+1,0);
     
-    for(int idir=0;idir<4;idir++)
-      {
-	nissa_free(P[idir]);
-	nissa_free(SinP[idir]);
-      }
-    nissa_free(P2);nissa_free(SinP2);nissa_free(SinP4);
+    //compute steps
+    momentum_t steps;
+    for(int mu=0;mu<4;mu++)
+      steps[mu]=bc[mu]*M_PI/glb_size[mu];
+    
+    //add the fractional phase
+    NISSA_LOC_VOL_LOOP(ivol)
+    {
+      //compute phase exponent
+      double arg=0;
+      for(int mu=0;mu<4;mu++)
+	arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
+      
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      
+      //adapt the phase
+      for(int mu=0;mu<4;mu++)
+	for(int nu=0;nu<4;nu++)
+	  safe_complex_prod(out[ivol][mu][nu],out[ivol][mu][nu],ph);
+    }
+  }
+  
+  void pass_spin1prop_from_x_to_mom_space(spin1prop *out,spin1prop *in,momentum_t bc)
+  {
+    //compute steps
+    momentum_t steps;
+    for(int mu=0;mu<4;mu++)
+      steps[mu]=-bc[mu]*M_PI/glb_size[mu];
+    
+    //add the fractional phase
+    NISSA_LOC_VOL_LOOP(ivol)
+    {
+      //compute phase exponent
+      double arg=0;
+      for(int mu=0;mu<4;mu++)
+	arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
+      
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      
+      //adapt the phase
+      for(int mu=0;mu<4;mu++)
+	for(int nu=0;nu<4;nu++)
+	  safe_complex_prod(out[ivol][mu][nu],in[ivol][mu][nu],ph);
+    }
+    
+    //compute the main part of the fft
+    fft4d((complex*)out,(complex*)out,16,-1,1);
+    
+    //multiply by exp(i -(p_mu-p_nu)/2) and put 1/vol
+    NISSA_LOC_VOL_LOOP(imom)
+    {
+      complex ph[4];
+      for(int mu=0;mu<4;mu++)
+	{
+	  double pmu=-M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	  double pmuh=pmu*0.5;
+	  ph[mu][RE]=cos(pmuh);
+	  ph[mu][IM]=sin(pmuh);
+	}
+      
+      for(int mu=0;mu<4;mu++)
+	for(int nu=0;nu<4;nu++)
+	  {
+	    safe_complex_prod      (out[imom][mu][nu],out[imom][mu][nu],ph[mu]);
+	    safe_complex_conj2_prod(out[imom][mu][nu],out[imom][mu][nu],ph[nu]);
+	  }
+    }
+  }
+  
+  void pass_spin1field_from_mom_to_x_space(spin1field *out,spin1field *in,momentum_t bc,bool bar=false)
+  {
+    int sign=+1;
+    if(bar) sign*=-1;
+    
+    //multiply by exp(i p_mu/2)
+    NISSA_LOC_VOL_LOOP(imom)
+    {
+      complex ph[4];
+      for(int mu=0;mu<4;mu++)
+	{
+	  double pmu=sign*M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	  double pmuh=pmu*0.5;
+	  ph[mu][RE]=cos(pmuh);
+	  ph[mu][IM]=sin(pmuh);
+	}
+      
+      for(int mu=0;mu<4;mu++)
+	safe_complex_prod(out[imom][mu],in[imom][mu],ph[mu]);
+    }
+    
+    //compute the main part of the fft
+    fft4d((complex*)out,(complex*)out,4,sign,0);
+    
+    //compute steps
+    momentum_t steps;
+    for(int mu=0;mu<4;mu++)
+      steps[mu]=sign*bc[mu]*M_PI/glb_size[mu];
+    
+    //add the fractional phase
+    NISSA_LOC_VOL_LOOP(ivol)
+    {
+      //compute phase exponent
+      double arg=0;
+      for(int mu=0;mu<4;mu++)
+	arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
+      
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      
+      //adapt the phase
+      for(int mu=0;mu<4;mu++)
+	safe_complex_prod(out[ivol][mu],out[ivol][mu],ph);
+    }
+  }
+  
+  void pass_spin1field_from_x_to_mom_space(spin1field *out,spin1field *in,momentum_t bc,bool bar=false)
+  {
+    int sign=-1;
+    if(bar) sign*=-1;
+    
+    //compute steps
+    momentum_t steps;
+    for(int mu=0;mu<4;mu++)
+      steps[mu]=sign*bc[mu]*M_PI/glb_size[mu];
+    
+    //add the fractional phase
+    NISSA_LOC_VOL_LOOP(ivol)
+    {
+      //compute phase exponent
+      double arg=0;
+      for(int mu=0;mu<4;mu++)
+	arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
+      
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      
+      //adapt the phase
+      for(int mu=0;mu<4;mu++)
+	safe_complex_prod(out[ivol][mu],in[ivol][mu],ph);
+    }
+    
+    //compute the main part of the fft
+    fft4d((complex*)out,(complex*)out,4,sign,1);
+    
+    //multiply by exp(-i p_mu/2)
+    NISSA_LOC_VOL_LOOP(imom)
+    {
+      complex ph[4];
+      for(int mu=0;mu<4;mu++)
+	{
+	  double pmu=sign*M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	  double pmuh=pmu*0.5;
+	  ph[mu][RE]=cos(pmuh);
+	  ph[mu][IM]=sin(pmuh);
+	}
+      
+      for(int mu=0;mu<4;mu++)
+	safe_complex_prod(out[imom][mu],out[imom][mu],ph[mu]);
+    }
+  }
+  
+  void pass_spin_from_mom_to_x_space(spin *out,spin *in,momentum_t bc,bool bar=false)
+  {
+    int sign=+1;
+    if(bar) sign*=-1;
+    
+    //compute the main part of the fft
+    fft4d((complex*)out,(complex*)in,4,+sign,0);
+    
+    //compute steps
+    momentum_t steps;
+    for(int mu=0;mu<4;mu++)
+      steps[mu]=sign*bc[mu]*M_PI/glb_size[mu];
+    
+    //add the fractional phase
+    NISSA_LOC_VOL_LOOP(ivol)
+    {
+      //compute phase exponent
+      double arg=0;
+      for(int mu=0;mu<4;mu++)
+	arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
+      
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      
+      //adapt the phase
+      for(int mu=0;mu<4;mu++)
+	safe_complex_prod(out[ivol][mu],out[ivol][mu],ph);
+    }
+  }
+  
+  void pass_spin_from_x_to_mom_space(spin *out,spin *in,momentum_t bc,bool bar=false)
+  {
+    int sign=-1;
+    if(bar) sign*=-1;
+    
+    //compute steps
+    momentum_t steps;
+    for(int mu=0;mu<4;mu++)
+      steps[mu]=sign*bc[mu]*M_PI/glb_size[mu];
+    
+    //add the fractional phase
+    NISSA_LOC_VOL_LOOP(ivol)
+    {
+      //compute phase exponent
+      double arg=0;
+      for(int mu=0;mu<4;mu++)
+	arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
+      
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      
+      //adapt the phase
+      for(int mu=0;mu<4;mu++)
+	safe_complex_prod(out[ivol][mu],in[ivol][mu],ph);
+    }
+    
+    //compute the main part of the fft
+    fft4d((complex*)out,(complex*)out,4,+sign,1);
   }
 }

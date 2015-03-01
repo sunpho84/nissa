@@ -1,12 +1,7 @@
-#include "../../../../src/new_types/new_types_definitions.hpp"
-#include "../../../../src/new_types/spin.hpp"
-#include "../../../../src/base/global_variables.hpp"
-#include "../../../../src/base/debug.hpp"
-#include "../../../../src/base/vectors.hpp"
-#include "../../../../src/operations/fft.hpp"
+#include "nissa.hpp" 
+using namespace nissa;
 
 #include "../propagators/tlSym_gluon_propagator.hpp"
-#include "../routines/fourier.hpp"
 #include "../types/types.hpp"
 
 #include "stochastic_source.hpp"

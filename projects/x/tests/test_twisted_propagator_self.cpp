@@ -4,7 +4,6 @@ using namespace std;
 #include "../src/types/types.hpp"
 #include "../src/types/types_routines.hpp"
 #include "../src/diagrams/propagator_self_energy.hpp"
-#include "../src/routines/fourier.hpp"
 
 int L;
 

@@ -8,7 +8,6 @@ using namespace std;
 #include "../types/types.hpp"
 #include "../types/types_routines.hpp"
 #include "../routines/derivatives.hpp"
-#include "../routines/fourier.hpp"
 #include "../routines/shift.hpp"
 
 void stochastic_x_space_qqg_vertex_source(spinspin *q_out,spinspin *q_in,quark_info qu,spin1field *g_in,gluon_info gl,bool g_dag=false)

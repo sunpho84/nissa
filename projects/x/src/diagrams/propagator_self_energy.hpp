@@ -1,5 +1,5 @@
-#ifndef _SELF_H
-#define _SELF_H
+#ifndef _PROPAGATOR_SELF_ENERGY_HPP
+#define _PROPAGATOR_SELF_ENERGY_HPP
 
 #include "../../../../src/new_types/new_types_definitions.hpp"
 

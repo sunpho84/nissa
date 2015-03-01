@@ -264,6 +264,7 @@ namespace nissa
   //communicators
 #ifdef USE_MPI
   EXTERN comm_t lx_spin_comm,eo_spin_comm;
+  EXTERN comm_t lx_spin1field_comm,eo_spin1field_comm;
   EXTERN comm_t lx_color_comm,eo_color_comm;
   EXTERN comm_t lx_spincolor_comm,eo_spincolor_comm;
   EXTERN comm_t lx_spincolor_128_comm,eo_spincolor_128_comm;

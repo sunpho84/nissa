@@ -6,7 +6,6 @@ using namespace std;
 #include "../src/propagators/twisted_propagator.hpp"
 #include "../src/propagators/tlSym_gluon_propagator.hpp"
 #include "../src/types/types_routines.hpp"
-#include "../src/routines/fourier.hpp"
 
 void compute_amp_self_x(spinspin *self_prop,spinspin *q_prop,spin1prop *g_prop)
 {
@@ -42,7 +41,7 @@ void compute_amp_self_mom(spinspin *self_prop,spinspin *q_prop,spin1prop *g_prop
 	  NISSA_LOC_VOL_LOOP(jmom)
             {
 	      coords k;
-	      for(int mu=0;mu<4;mu++) k[mu]=(glb_size[mu]+glb_coord_of_loclx[imom][mu]-glb_coord_of_loclx[jmom][mu])%glb_size[mu];
+	      for(int nu=0;nu<4;nu++) k[nu]=(glb_size[nu]+glb_coord_of_loclx[imom][nu]-glb_coord_of_loclx[jmom][nu])%glb_size[nu];
 	      int kmom=glblx_of_coord(k);
 	      
 	      spinspin t1,t2;
@@ -123,7 +122,7 @@ void compute_with_trick(double *corr,spinspin *q_prop,spin1prop *g_prop,quark_in
 	  NISSA_LOC_VOL_LOOP(jmom)
 	    {
 	      coords k;
-	      for(int mu=0;mu<4;mu++) k[mu]=(glb_size[mu]+glb_coord_of_loclx[imom][mu]-glb_coord_of_loclx[jmom][mu])%glb_size[mu];
+	      for(int nu=0;nu<4;nu++) k[nu]=(glb_size[nu]+glb_coord_of_loclx[imom][nu]-glb_coord_of_loclx[jmom][nu])%glb_size[nu];
 	      int kmom=glblx_of_coord(k);
 
 	      spinspin t1,t2;

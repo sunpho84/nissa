@@ -114,7 +114,6 @@ int main(int narg,char **arg)
   
   coords sour={1,2,0,3},sink={3,1,2,1};
   int isour=glblx_of_coord(sour),isink=glblx_of_coord(sink);
-  coords diff={sour[0]-sink[0],sour[1]-sink[1],sour[2]-sink[2],sour[3]-sink[3]};
   master_printf("Checking computation of prop between points %d and %d\n",isour,isink);
   
   //take the backward propagator
@@ -130,8 +129,7 @@ int main(int narg,char **arg)
   mass=-mass;
   qu=create_twisted_quark_info(kappa,mass,theta);
   compute_x_space_twisted_propagator_by_fft(prop_fft,qu);  
-  int g;
-  g=glblx_of_coord(diff);
+
   spinspin g5_fwprop_dag_g5;
   compute_x_space_propagator_to_sink_from_source(g5_fwprop_dag_g5,prop_fft,qu.bc,sour,sink);
   safe_spinspin_prod_dirac(g5_fwprop_dag_g5,g5_fwprop_dag_g5,&(base_gamma[5]));

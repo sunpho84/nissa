@@ -7,7 +7,6 @@
 #include "../../../../src/operations/fft.hpp"
 
 #include "../propagators/tlSym_gluon_propagator.hpp"
-#include "../routines/fourier.hpp"
 #include "../types/types.hpp"
 
 void generate_stochastic_source_eta(spin1field *eta)

@@ -8,7 +8,6 @@ using namespace std;
 #include "../src/propagators/tlSym_gluon_propagator.hpp"
 #include "../src/propagators/Wilson_gluon_propagator.hpp"
 #include "../src/types/types_routines.hpp"
-#include "../src/routines/fourier.hpp"
 #include "../src/routines/read_and_write.hpp"
 #include "../src/routines/shift.hpp"
 #include "../src/routines/correlations.hpp"

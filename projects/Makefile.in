@@ -274,7 +274,7 @@ top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
 AUTOMAKE_OPTIONS = subdir-objects
-SUBDIRS = eight_BK g generate_confs semileptonic static_potential
+SUBDIRS = eight_BK g generate_confs ib semileptonic static_potential
 DIST_SUBDIRS = ${SUBDIRS} x
 all: all-recursive
 
