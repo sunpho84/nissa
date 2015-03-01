@@ -35,6 +35,8 @@ gauge_info photon;
 double tadpole;
 spin1field *photon_phi,*photon_eta;
 
+complex *corr,*loc_corr;
+
 //return appropriate propagator
 enum insertion_t{ORIGINAL,SCALAR,PSEUDO,TIME_VECTOR_CURRENT,CONSERVED_CURRENT,STOCH_A,STOCH_B,TADPOLE};
 enum prop_t{PROP_SIMPLE,PROP_SCALAR,PROP_PSEUDO,PROP_A,PROP_B,PROP_AB,PROP_T};
@@ -46,9 +48,7 @@ int iprop(int imass,prop_t ip,int r)
 void generate_original_source()
 {
 #ifdef POINT_SOURCE_VERSION
-  vector_reset(original_source);
-  for(int ic=0;ic<3;ic++) 
-      spinspin_put_to_id(original_source[0][ic][ic]);
+  generate_delta_source(original_source,source_coord);
 #else
   generate_spindiluted_source(original_source,rnd_type_map[noise_type],source_coord[0]);
 #endif
@@ -77,7 +77,7 @@ void insert_operator(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,complex fact_
   NAME3(communicate_lx,PROP_TYPE,borders)(in);
   communicate_lx_quad_su3_borders(conf);
   communicate_lx_spin1field_borders(curr);
-  
+
   NISSA_LOC_VOL_LOOP(ivol)
     for(int mu=0;mu<4;mu++)
       {
@@ -108,7 +108,7 @@ void insert_operator(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,complex fact_
 	NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+map_mu[mu],temp1);
 	NAME2(PROP_TYPE,summassign)(out[ivol],temp2);
     }
-    
+
   set_borders_invalid(out);
 }
 
@@ -215,7 +215,7 @@ void get_prop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
 #endif
 	
 	//rotate the source index
-	NISSA_LOC_VOL_LOOP(ivol) safe_dirac_prod_spincolor(temp_source[ivol],rot[r],temp_source[ivol]);
+	safe_dirac_prod_spincolor(temp_source,rot[r],temp_source);
 	
 	//invert
 	inv_time-=take_time();
@@ -223,7 +223,7 @@ void get_prop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
 	ninv_tot++;inv_time+=take_time();
 	
 	//rotate the sink index
-	NISSA_LOC_VOL_LOOP(ivol) safe_dirac_prod_spincolor(temp_solution[ivol],rot[r],temp_solution[ivol]);      
+	safe_dirac_prod_spincolor(temp_solution,rot[r],temp_solution);      
 	
 	//put the output on place
 #ifdef POINT_SOURCE_VERSION
@@ -302,13 +302,15 @@ void init_simulation(char *path)
   
   //Allocate
   nprop=2*nmass*7;
+  corr=nissa_malloc("corr",glb_size[0],complex);
+  loc_corr=nissa_malloc("loc_corr",glb_size[0],complex);
   original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
   source=nissa_malloc("source",loc_vol,PROP_TYPE);
   photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
   photon_phi=nissa_malloc("photon_phi",loc_vol+bord_vol,spin1field);
   S=nissa_malloc("S*",nprop,PROP_TYPE*);
   for(int iprop=0;iprop<nprop;iprop++)
-    S[iprop]=nissa_malloc("S",loc_vol,PROP_TYPE);
+    S[iprop]=nissa_malloc("S",loc_vol+bord_vol,PROP_TYPE);
   conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
 }
 
@@ -324,7 +326,10 @@ int read_conf_parameters(int &iconf)
       
       //Source coord
       read_int(&(source_coord[0]));
-      
+#ifdef POINT_SOURCE_VERSION
+      for(int mu=1;mu<4;mu++) read_int(&(source_coord[mu]));
+#endif
+
       //Out folder
       read_str(outfolder,1024);
       
@@ -391,6 +396,8 @@ void close()
   for(int iprop=0;iprop<nprop;iprop++) nissa_free(S[iprop]);
   nissa_free(S);
   nissa_free(conf);
+  nissa_free(corr);
+  nissa_free(loc_corr);
 }
 
 //check if the time is enough
@@ -411,6 +418,10 @@ int check_remaining_time()
   
   return enough_time;
 }
+
+//wrapper to compute a single correlation function
+void compute_corr(complex *corr,PROP_TYPE *s1,PROP_TYPE *s2,int ig_so,int ig_si)
+{meson_two_points_Wilson_prop(corr,loc_corr,&ig_so,s1,&ig_si,s2,1);}
 
 void in_main(int narg,char **arg)
 {
@@ -437,44 +448,46 @@ void in_main(int narg,char **arg)
       const prop_t prop_map[7]={PROP_SIMPLE,PROP_SCALAR,PROP_PSEUDO,PROP_A,PROP_B,PROP_AB,PROP_T};
       const prop_t source_map[7]={PROP_SIMPLE,PROP_SIMPLE,PROP_SIMPLE,PROP_SIMPLE,PROP_SIMPLE,PROP_A,PROP_SIMPLE};
       const char prop_name[7][20]={"SIMPLE","SCALAR","PSEUDO","STOCH_A","STOCH_B","STOCH_AB","TADPOLE"};
+      const char prop_abbr[]="0SPABXT";
       
-      //hack to check gauge invariance
-      for(int uu=0;uu<2;uu++)
-      {
-	//generate all the propagators	
-	for(int ip=0;ip<7;ip++)
-	  {
-	    master_printf("Generating propagtor of type %s using as a source %s\n",prop_name[ip],prop_name[source_map[ip]]);
-	    for(int imass=0;imass<nmass;imass++)
+      //generate all the propagators	
+      for(int ip=0;ip<7;ip++)
+	{
+	  master_printf("Generating propagtor of type %s using as a source %s\n",prop_name[ip],prop_name[source_map[ip]]);
+	  for(int imass=0;imass<nmass;imass++)
+	    for(int r=0;r<2;r++)
+	      {
+		master_printf(" mass[%d]=%lg, r=%d\n",imass,mass[imass],r);
+		generate_source(imass,r,insertion_map[ip],source_map[ip]);
+		get_prop(S[iprop(imass,prop_map[ip],r)],source,imass,r);
+	      }
+	}
+      
+      //compute all correlations
+      const int ncombo_corr=6;
+      prop_t prop1_map[ncombo_corr]={PROP_SIMPLE,PROP_SIMPLE,PROP_SIMPLE,PROP_SIMPLE,PROP_SIMPLE,PROP_A};
+      prop_t prop2_map[ncombo_corr]={PROP_SIMPLE,PROP_SCALAR,PROP_PSEUDO,PROP_AB,PROP_T,PROP_B};
+      for(int icombo=0;icombo<ncombo_corr;icombo++)
+	{
+	  FILE *fout=open_file(combine("%s/corr_%c%c",outfolder,prop_abbr[prop1_map[icombo]],prop_abbr[prop2_map[icombo]]).c_str(),"w");
+	  
+	  for(int imass=0;imass<nmass;imass++)
+	    for(int jmass=0;jmass<nmass;jmass++)
 	      for(int r=0;r<2;r++)
 		{
-		  master_printf(" mass[%d]=%lg, r=%d\n",imass,mass[imass],r);
-		  generate_source(imass,r,insertion_map[ip],source_map[ip]);
-		  get_prop(S[iprop(imass,prop_map[ip],r)],source,imass,r);
+		  //compute the correlation function
+		  compute_corr(corr,S[iprop(imass,prop1_map[icombo],r)],S[iprop(imass,prop2_map[icombo],r)],5,5);
+		  
+		  //print out
+		  master_fprintf(fout," # m1=%lg m2=%lg r=%d\n\n",mass[imass],mass[jmass],r);
+		  for(int t=source_coord[0];t<glb_size[0]+source_coord[0];t++)
+		    master_fprintf(fout,"%d %+015.15lg\t%+015.15lg\n",t-source_coord[0],corr[t%glb_size[0]][RE],corr[t%glb_size[0]][IM]);
+		  master_fprintf(fout,"\n");
 		}
-	  }
-	
-	for(int t=0;t<glb_size[0];t++)
-	  {
-	    double c12=0;
-	    for(int x=0;x<glb_vol/glb_size[0];x++)
-	      for(int ic=0;ic<3;ic++)
-		for(int jc=0;jc<3;jc++)
-		for(int id=0;id<4;id++)
-		  for(int jd=0;jd<4;jd++)
-		    for(int ri=0;ri<2;ri++)
-		      {
-			int i0=iprop(0,PROP_A,0);
-			int i1=iprop(0,PROP_SCALAR,0);
-			double d1=S[i0][x+glb_vol/glb_size[0]*t][ic][jc][id][jd][ri];
-			double d2=S[i1][x+glb_vol/glb_size[0]*t][ic][jc][id][jd][ri];
-			c12+=d1*d2;
-		      }
-	    master_printf("%d %16.16lg\n",t,c12);
-	  }
-	//perform_random_gauge_transform(conf,conf);
-	//master_printf("&\n");
-      }
+	  
+	  //close the file
+	  close_file(fout);
+	}
       
       //pass to the next conf if there is enough time
       char fin_file[1024],run_file[1024];
