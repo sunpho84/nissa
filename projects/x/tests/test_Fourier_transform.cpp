@@ -5,7 +5,6 @@ using namespace std;
 
 #include "../src/propagators/twisted_propagator.hpp"
 #include "../src/stochastic/stochastic_source.hpp"
-#include "../src/routines/fourier.hpp"
 #include "../src/types/types_routines.hpp"
 
 spin1field *eta;

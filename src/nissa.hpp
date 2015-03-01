@@ -49,6 +49,12 @@
 #include "dirac_operators/tmclovQ/reconstruct_tmclov_doublet.hpp"
 #include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp"
 
+#include "free_theory/cg_eoprec_twisted_free_operator.hpp"
+#include "free_theory/free_theory_types.hpp"
+#include "free_theory/free_theory_types_routines.hpp"
+#include "free_theory/tlSym_gauge_propagator.hpp"
+#include "free_theory/twisted_propagator.hpp"
+
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"

@@ -5,7 +5,6 @@
 using namespace std;
 
 #include "../types/types.hpp"
-#include "../routines/fourier.hpp"
 #include "../inverters/cg_Wilson_gluon_operator.hpp"
 
 //compute the Wilson action gluon propagator in the momentum space according to P.Weisz

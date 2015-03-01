@@ -5,7 +5,6 @@ using namespace std;
 
 #include "../propagators/twisted_propagator.hpp"
 #include "../propagators/tlSym_gluon_propagator.hpp"
-#include "../routines/fourier.hpp"
 #include "../routines/correlations.hpp"
 #include "../vertex/vertex.hpp"
 #include "../stochastic/stochastic_twisted_propagator.hpp"

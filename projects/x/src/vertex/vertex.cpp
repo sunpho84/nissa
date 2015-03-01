@@ -5,7 +5,6 @@ using namespace std;
 
 #include "../propagators/twisted_propagator.hpp"
 #include "../propagators/tlSym_gluon_propagator.hpp"
-#include "../routines/fourier.hpp"
 #include "../routines/shift.hpp"
 
 void mom_space_qq_vertex_function(spinspin v,double p1,double p2,quark_info qu,int mu)

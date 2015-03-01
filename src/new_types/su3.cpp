@@ -12,6 +12,7 @@
 #include "complex.hpp"
 #include "float_128.hpp"
 #include "new_types_definitions.hpp"
+#include "spin.hpp"
 #include "su3.hpp"
 
 #include "operations/su3_paths/squared_staples.hpp"
@@ -37,6 +38,7 @@ namespace nissa
   void quad_su3_copy(quad_su3 b,quad_su3 a) {memcpy(b,a,sizeof(quad_su3));}
   void spincolor_copy(spincolor b,spincolor a) {memcpy(b,a,sizeof(spincolor));}
   void colorspinspin_copy(colorspinspin b,colorspinspin a) {memcpy(b,a,sizeof(colorspinspin));}
+  void su3spinspin_copy(su3spinspin b,su3spinspin a) {memcpy(b,a,sizeof(su3spinspin));}
   
   //////////////////// Switch directions so to agree to ILDG ordering ////////////////////
   
@@ -1290,10 +1292,6 @@ namespace nissa
   
   ///////////////////////////////// su3*colorspinspin ///////////////////////////////////
   
-  //colorspinspin*real
-  void colorspinspin_prod_double(colorspinspin out,colorspinspin in,double factor)
-  {for(int i=0;i<96;i++) ((double*)out)[i]=((double*)in)[i]*factor;}
-  
   void unsafe_su3_prod_colorspinspin(colorspinspin a,su3 b,colorspinspin c)
   {
     for(int id_so=0;id_so<4;id_so++)
@@ -1343,6 +1341,75 @@ namespace nissa
 	  for(int c2=0;c2<3;c2++)
 	    complex_summ_the_conj1_prod(a[c1][id_si][id_so],b[c2][c1],c[c2][id_si][id_so]);
   }
+
+  ///////////////////////////////////// colorspinspin ////////////////////////////////////
+
+  //colorspinspin*real or complex
+  void colorspinspin_prod_double(colorspinspin out,colorspinspin in,double factor)
+  {for(uint32_t i=0;i<sizeof(colorspinspin)/sizeof(double);i++) ((double*)out)[i]=((double*)in)[i]*factor;}
+  void colorspinspin_prodassign_double(colorspinspin c,double f)
+  {colorspinspin_prod_double(c,c,f);}
+  void colorspinspin_prodassign_idouble(colorspinspin c,double f)
+  {for(uint32_t ic=0;ic<3;ic++) spinspin_prodassign_idouble(c[ic],f);}
+  void colorspinspin_prod_complex(colorspinspin out,colorspinspin in,complex factor)
+  {for(int ic=0;ic<3;ic++)for(int id=0;id<4;id++)for(int jd=0;jd<4;jd++)safe_complex_prod(out[ic][id][jd],in[ic][id][jd],factor);}
+  void colorspinspin_prod_complex_conj(colorspinspin out,colorspinspin in,complex factor)
+  {complex temp;complex_conj(temp,factor);colorspinspin_prod_complex(out,in,temp);}
+  void colorspinspin_prodassign_complex(colorspinspin c,complex f)
+  {colorspinspin_prod_complex(c,c,f);}
+  void colorspinspin_prodassign_complex_conj(colorspinspin c,complex f)
+  {colorspinspin_prod_complex_conj(c,c,f);}
+  
+  //colorspinspin summ
+  void colorspinspin_summ(colorspinspin out,colorspinspin in1,colorspinspin in2)
+  {for(uint32_t i=0;i<sizeof(colorspinspin)/sizeof(double);i++) ((double*)out)[i]=((double*)in1)[i]+((double*)in2)[i];}
+  void colorspinspin_summassign(colorspinspin out,colorspinspin in)
+  {colorspinspin_summ(out,out,in);}
+  
+  //colorspinspin subt
+  void colorspinspin_subt(colorspinspin out,colorspinspin in1,colorspinspin in2)
+  {for(uint32_t i=0;i<sizeof(colorspinspin)/sizeof(double);i++) ((double*)out)[i]=((double*)in1)[i]-((double*)in2)[i];}
+  void colorspinspin_subtassign(colorspinspin out,colorspinspin in)
+  {colorspinspin_subt(out,out,in);}
+  
+  //summ two colorspinspin with a factor
+  void colorspinspin_summ_the_prod_double(colorspinspin out,colorspinspin in,double factor,double f)
+  {for(uint32_t i=0;i<sizeof(colorspinspin)/sizeof(double);i++) ((double*)out)[i]+=f*((double*)in)[i]*factor;}
+  
+  /////////////////////////////// su3spinspin /////////////////////////////////////////////
+  
+  //colorspinspin*real or complex
+  void su3spinspin_prod_double(su3spinspin out,su3spinspin in,double factor)
+  {for(uint32_t i=0;i<sizeof(su3spinspin)/sizeof(double);i++) ((double*)out)[i]=((double*)in)[i]*factor;}
+  void su3spinspin_prodassign_double(su3spinspin c,double f)
+  {su3spinspin_prod_double(c,c,f);}
+  void su3spinspin_prodassign_idouble(su3spinspin c,double f)
+  {for(uint32_t ic=0;ic<3;ic++) colorspinspin_prodassign_idouble(c[ic],f);}
+  void su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor)
+  {for(int ic=0;ic<3;ic++) colorspinspin_prod_complex(out[ic],in[ic],factor);}
+  void su3spinspin_prod_complex_conj(su3spinspin out,su3spinspin in,complex factor)
+  {for(int ic=0;ic<3;ic++) colorspinspin_prod_complex_conj(out[ic],in[ic],factor);}
+
+  void su3spinspin_prodassign_complex(su3spinspin c,complex f)
+  {su3spinspin_prod_complex(c,c,f);}
+  void su3spinspin_prodassign_complex_conj(su3spinspin c,complex f)
+  {su3spinspin_prod_complex_conj(c,c,f);}
+  
+  //su3spinspin summ
+  void su3spinspin_summ(su3spinspin out,su3spinspin in1,su3spinspin in2)
+  {for(uint32_t i=0;i<sizeof(su3spinspin)/sizeof(double);i++) ((double*)out)[i]=((double*)in1)[i]+((double*)in2)[i];}
+  void su3spinspin_summassign(su3spinspin out,su3spinspin in)
+  {su3spinspin_summ(out,out,in);}
+  
+  //su3spinspin subt
+  void su3spinspin_subt(su3spinspin out,su3spinspin in1,su3spinspin in2)
+  {for(uint32_t i=0;i<sizeof(su3spinspin)/sizeof(double);i++) ((double*)out)[i]=((double*)in1)[i]-((double*)in2)[i];}
+  void su3spinspin_subtassign(su3spinspin out,su3spinspin in)
+  {su3spinspin_subt(out,out,in);}
+  
+  //summ two su3spinspin with a factor
+  void su3spinspin_summ_the_prod_double(su3spinspin out,su3spinspin in,double factor,double f)
+  {for(uint32_t i=0;i<sizeof(su3spinspin)/sizeof(double);i++) ((double*)out)[i]+=f*((double*)in)[i]*factor;}
   
   ////////////////////////////////////// su3spinspin /////////////////////////////////////
   
@@ -1351,9 +1418,6 @@ namespace nissa
   {for(int i=0;i<144;i++) unsafe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
   void safe_su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor)
   {for(int i=0;i<144;i++) safe_complex_prod(((complex*)out)[i],((complex*)in)[i],factor);}
-  
-  void su3spinspin_prod_double(su3spinspin out,su3spinspin in,double factor)
-  {for(int i=0;i<288;i++) ((double*)out)[i]=((double*)in)[i]*factor;}
   
   void unsafe_su3_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c)
   {

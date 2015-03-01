@@ -4,7 +4,6 @@ using namespace std;
 #include "../src/types/types.hpp"
 #include "../src/types/types_routines.hpp"
 #include "../src/diagrams/tadpole.hpp"
-#include "../src/routines/fourier.hpp"
 
 int L;
 

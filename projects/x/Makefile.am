@@ -27,7 +27,6 @@ x_sources+= \
 	src/routines/bmp.cpp \
 	src/routines/correlations.cpp \
 	src/routines/derivatives.cpp \
-	src/routines/fourier.cpp \
 	src/routines/read_and_write.cpp \
 	src/routines/shift.cpp
 
@@ -68,7 +67,6 @@ include_HEADERS+= \
 	src/routines/bmp.hpp \
 	src/routines/correlations.hpp \
 	src/routines/derivatives.hpp \
-	src/routines/fourier.hpp \
 	src/routines/read_and_write.hpp \
 	src/routines/shift.hpp
 

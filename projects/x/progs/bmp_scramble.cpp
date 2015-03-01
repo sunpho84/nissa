@@ -4,7 +4,6 @@
 using namespace nissa;
 using namespace std;
 
-#include "../src/routines/fourier.hpp"
 #include "../src/routines/bmp.hpp"
 
 color *image;

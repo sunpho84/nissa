@@ -5,7 +5,6 @@ using namespace std;
 
 #include "../src/propagators/twisted_propagator.hpp"
 #include "../src/types/types_routines.hpp"
-#include "../src/routines/fourier.hpp"
 #include "../src/routines/shift.hpp"
 
 spinspin  *q_prop,*q_prop_sh1,*q_prop_sh2;

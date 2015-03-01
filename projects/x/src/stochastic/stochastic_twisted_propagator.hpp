@@ -1,9 +1,8 @@
-#ifndef _stochastic_twisted_propagator_H
-#define _stochastic_twisted_propagator_H
+#ifndef _STOCHASTIC_TWISTED_PROPAGATOR_HPP
+#define _STOCHASTIC_TWISTED_PROPAGATOR_HPP
 
 #include "../../../../src/new_types/new_types_definitions.hpp"
 
-#include "../routines/fourier.hpp"
 
 void generate_stochastic_A_twisted_propagator(spin1prop *q_A,spin1prop *q_prop,quark_info qu,spin1field *g_A,gluon_info gl);
 void generate_stochastic_A_dag_twisted_propagator(spin1prop *q_A,spin1prop *q_prop,quark_info qu,spin1field *g_A,gluon_info gl);

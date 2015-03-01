@@ -1,5 +1,5 @@
-#ifndef _DIRAC_H
-#define _DIRAC_H
+#ifndef _DIRAC_HPP
+#define _DIRAC_HPP
 
 namespace nissa
 {
@@ -30,6 +30,8 @@ namespace nissa
   void unsafe_dirac_prod_spinspin_dag(spinspin out,dirac_matr *m,spinspin in);
   void unsafe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in);
   void unsafe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m);
+  void unsafe_dirac_prod_su3spinspin(su3spinspin out,dirac_matr *m,su3spinspin in);
+  void safe_dirac_prod_su3spinspin(su3spinspin out,dirac_matr *m,su3spinspin in);
 }
 
 #endif

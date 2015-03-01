@@ -3,11 +3,10 @@
 #include "nissa.hpp"
 using namespace std;
 
-#include "../types/types.hpp"
 #include "../propagators/tlSym_gluon_propagator.hpp"
-#include "../routines/shift.hpp"
-#include "../routines/fourier.hpp"
 #include "../propagators/twisted_propagator.hpp"
+#include "../routines/shift.hpp"
+#include "../types/types.hpp"
 
 void compute_tadpole_diagram_in_mom_space(spinspin *q_tad,quark_info qu,gluon_info gl)
 {

@@ -166,8 +166,32 @@ namespace nissa
   void unsafe_su3_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c);
   void su3_dag_subt_the_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c);
   void colorspinspin_prod_double(colorspinspin out,colorspinspin in,double factor);
+  void colorspinspin_prod_complex(colorspinspin out,colorspinspin in,complex factor);
+  void colorspinspin_prod_complex_conj(colorspinspin out,colorspinspin in,complex factor);
+  void colorspinspin_prodassign_double(colorspinspin c,double f);
+  void colorspinspin_prodassign_idouble(colorspinspin c,double f);
+  void colorspinspin_prodassign_complex(colorspinspin c,complex f);
+  void colorspinspin_prodassign_complex_conj(colorspinspin c,complex f);
+void colorspinspin_summ_the_prod_double(colorspinspin out,colorspinspin in,double factor,double f);
+  void colorspinspin_summ(colorspinspin out,colorspinspin in1,colorspinspin in2);
+  void colorspinspin_summassign(colorspinspin out,colorspinspin in);
+    void colorspinspin_subt(colorspinspin out,colorspinspin in1,colorspinspin in2);
+  void colorspinspin_subtassign(colorspinspin out,colorspinspin in);
+  void su3spinspin_prod_double(su3spinspin out,su3spinspin in,double factor);
+  void su3spinspin_prod_complex(su3spinspin out,su3spinspin in,complex factor);
+  void su3spinspin_prod_complex_conj(su3spinspin out,su3spinspin in,complex factor);
+  void su3spinspin_prodassign_complex(su3spinspin c,complex f);
+  void su3spinspin_prodassign_complex_conj(su3spinspin c,complex f);
+  void su3spinspin_prodassign_double(su3spinspin c,double f);
+  void su3spinspin_prodassign_idouble(su3spinspin c,double f);
+  void su3spinspin_summ(su3spinspin out,su3spinspin in1,su3spinspin in2);
+  void su3spinspin_summassign(su3spinspin out,su3spinspin in);
+  void su3spinspin_subt(su3spinspin out,su3spinspin in1,su3spinspin in2);
+  void su3spinspin_subtassign(su3spinspin out,su3spinspin in);
+  void su3spinspin_summ_the_prod_double(su3spinspin out,su3spinspin in,double factor,double f);
   void su3_summ_the_prod_su3spinspin(su3spinspin a,su3 b,su3spinspin c);
   void su3spinspin_prod_double(su3spinspin out,su3spinspin in,double factor);
+  void su3spinspin_copy(su3spinspin b,su3spinspin a);
   double su3_get_non_unitariness(su3 u);
 }
 

@@ -136,7 +136,6 @@ am__objects_1 = src/diagrams/meson_exchange.$(OBJEXT) \
 	src/propagators/tlSym_gluon_propagator.$(OBJEXT) \
 	src/routines/bmp.$(OBJEXT) src/routines/correlations.$(OBJEXT) \
 	src/routines/derivatives.$(OBJEXT) \
-	src/routines/fourier.$(OBJEXT) \
 	src/routines/read_and_write.$(OBJEXT) \
 	src/routines/shift.$(OBJEXT) \
 	src/stochastic/stochastic_source.$(OBJEXT) \
@@ -613,9 +612,8 @@ x_sources = src/diagrams/meson_exchange.cpp \
 	src/propagators/Wilson_gluon_propagator.cpp \
 	src/propagators/tlSym_gluon_propagator.cpp \
 	src/routines/bmp.cpp src/routines/correlations.cpp \
-	src/routines/derivatives.cpp src/routines/fourier.cpp \
-	src/routines/read_and_write.cpp src/routines/shift.cpp \
-	src/stochastic/stochastic_source.cpp \
+	src/routines/derivatives.cpp src/routines/read_and_write.cpp \
+	src/routines/shift.cpp src/stochastic/stochastic_source.cpp \
 	src/stochastic/stochastic_tlSym_gluon_propagator.cpp \
 	src/stochastic/stochastic_twisted_propagator.cpp \
 	src/types/types_routines.cpp \
@@ -635,9 +633,8 @@ include_HEADERS = src/diagrams/meson_exchange.hpp \
 	src/propagators/Wilson_gluon_propagator.hpp \
 	src/propagators/tlSym_gluon_propagator.hpp \
 	src/routines/bmp.hpp src/routines/correlations.hpp \
-	src/routines/derivatives.hpp src/routines/fourier.hpp \
-	src/routines/read_and_write.hpp src/routines/shift.hpp \
-	src/stochastic/stochastic_source.hpp \
+	src/routines/derivatives.hpp src/routines/read_and_write.hpp \
+	src/routines/shift.hpp src/stochastic/stochastic_source.hpp \
 	src/stochastic/stochastic_tlSym_gluon_propagator.hpp \
 	src/stochastic/stochastic_twisted_propagator.hpp \
 	src/types/types.hpp src/types/types_routines.hpp \
@@ -814,8 +811,6 @@ src/routines/bmp.$(OBJEXT): src/routines/$(am__dirstamp) \
 src/routines/correlations.$(OBJEXT): src/routines/$(am__dirstamp) \
 	src/routines/$(DEPDIR)/$(am__dirstamp)
 src/routines/derivatives.$(OBJEXT): src/routines/$(am__dirstamp) \
-	src/routines/$(DEPDIR)/$(am__dirstamp)
-src/routines/fourier.$(OBJEXT): src/routines/$(am__dirstamp) \
 	src/routines/$(DEPDIR)/$(am__dirstamp)
 src/routines/read_and_write.$(OBJEXT): src/routines/$(am__dirstamp) \
 	src/routines/$(DEPDIR)/$(am__dirstamp)
@@ -1087,7 +1082,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/routines/$(DEPDIR)/bmp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/routines/$(DEPDIR)/correlations.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/routines/$(DEPDIR)/derivatives.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/routines/$(DEPDIR)/fourier.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/routines/$(DEPDIR)/read_and_write.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/routines/$(DEPDIR)/shift.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/stochastic/$(DEPDIR)/stochastic_source.Po@am__quote@

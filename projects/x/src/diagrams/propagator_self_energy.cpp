@@ -6,7 +6,6 @@ using namespace std;
 #include "../propagators/twisted_propagator.hpp"
 #include "../propagators/tlSym_gluon_propagator.hpp"
 #include "../types/types_routines.hpp"
-#include "../routines/fourier.hpp"
 #include "../routines/shift.hpp"
 
 void summ_the_contribution_of_self_energy_twisted_diagram_in_x_space(spinspin *q_out,spinspin *osi,spinspin *q,spin1prop *g,int nu,int mu,spinspin *oso,double weight)

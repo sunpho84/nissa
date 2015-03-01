@@ -6,7 +6,6 @@ using namespace std;
 
 #include "../types/types.hpp"
 #include "../types/types_routines.hpp"
-#include "../routines/fourier.hpp"
 
 void unsafe_shift_spin_up(spin *out,spin *in,momentum_t bc,int mu)
 {

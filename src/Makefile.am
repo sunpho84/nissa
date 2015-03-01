@@ -166,6 +166,18 @@ EXTRA_DIST+= \
 	dirac_operators/tmQ/dirac_operator_tmQ_portable.cpp \
 	dirac_operators/tmQ_left/dirac_operator_tmQ_left_portable.cpp
 
+################################## free theory##################################
+
+__top_builddir__lib_libnissa_a_SOURCES+= \
+	free_theory/free_theory_types_routines.cpp \
+	free_theory/tlSym_gauge_propagator.cpp \
+	free_theory/twisted_propagator.cpp
+
+include_HEADERS+= \
+	free_theory/free_theory_types_routines.hpp \
+	free_theory/tlSym_gauge_propagator.hpp \
+	free_theory/twisted_propagator.hpp
+
 ################################### geometry ###################################
 
 __top_builddir__lib_libnissa_a_SOURCES+= \

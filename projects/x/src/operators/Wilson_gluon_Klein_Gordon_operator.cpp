@@ -11,7 +11,6 @@
 
 #include "../types/types.hpp"
 #include "../routines/derivatives.hpp"
-#include "../routines/fourier.hpp"
 
 void apply_Wilson_gluon_x_Klein_Gordon_operator(spin1field *out,spin1field *in,gluon_info gl)
 {

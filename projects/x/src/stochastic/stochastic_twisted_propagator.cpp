@@ -2,7 +2,6 @@
 using namespace std;
 using namespace nissa;
 
-#include "../routines/fourier.hpp"
 #include "../types/types.hpp"
 #include "../vertex/x_space_stochastic_qqg_vertex.hpp"
 #include "../propagators/twisted_propagator.hpp"
