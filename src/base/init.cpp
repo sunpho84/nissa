@@ -699,6 +699,7 @@ namespace nissa
     set_lx_comm(lx_color_comm,sizeof(color));
     set_lx_comm(lx_single_color_comm,sizeof(single_color));
     set_lx_comm(lx_spinspin_comm,sizeof(spinspin));
+    set_lx_comm(lx_spin1field_comm,sizeof(spin1field));
     set_lx_comm(lx_spincolor_comm,sizeof(spincolor));
     set_lx_comm(lx_single_halfspincolor_comm,sizeof(single_halfspincolor));
     set_lx_comm(lx_spincolor_128_comm,sizeof(spincolor_128));
