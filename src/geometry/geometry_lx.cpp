@@ -184,27 +184,28 @@ namespace nissa
     if(isloc) return loclx_of_coord(x);
     
     //check borderity
-    coords isbord;
+    coords is_bord;
     for(int mu=0;mu<NDIM;mu++)
       {
-	isbord[mu]=0;
+	is_bord[mu]=0;
 	if(paral_dir[mu])
 	  {
-	    if(x[mu]==glb_size[mu]-1) isbord[mu]=-1;
-	    if(x[mu]==loc_size[mu]) isbord[mu]=+1;
+	    if(x[mu]==glb_size[mu]-1) is_bord[mu]=-1;
+	    if(x[mu]==loc_size[mu]) is_bord[mu]=+1;
 	  }
       }
     
     //check if it is in one of the NDIM forward or backward borders
     for(int mu=0;mu<NDIM;mu++)
       {
-	bool is=true;
-	for(int inu=0;inu<NDIM-1;inu++) is&=(isbord[perp_dir[mu][inu]]==0);
+	bool is=is_bord[mu];
+	for(int inu=0;inu<NDIM-1;inu++) is&=(is_bord[perp_dir[mu][inu]]==0);
 	
 	if(is)
 	  {
-	    if(isbord[mu]==-1) return loc_vol+bord_offset[mu]+bordlx_of_coord(x,mu);             //backward border comes first
-	    if(isbord[mu]==+1) return loc_vol+bord_vol/2+bord_offset[mu]+bordlx_of_coord(x,mu);  //forward border comes after
+	    if(is_bord[mu]==-1) return loc_vol+bord_offset[mu]+bordlx_of_coord(x,mu);             //backward border comes first
+	    if(is_bord[mu]==+1) return loc_vol+bord_vol/2+bord_offset[mu]+bordlx_of_coord(x,mu);  //forward border comes after
+	    crash("if is bord should not arrive here %d %d %d %d",ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
 	  }
       }
     
@@ -218,16 +219,17 @@ namespace nissa
 	  int al=(mu<nu)?mu:nu;
 	  int be=(mu>nu)?mu:nu;
 	  
-	  bool is=true;
-	  for(int irho=0;irho<NDIM-2;irho++) is&=isbord[perp2_dir[mu][inu][irho]];
+	  bool is=is_bord[mu]&&is_bord[nu];
+	  for(int irho=0;irho<NDIM-2;irho++) is&=(is_bord[perp2_dir[mu][inu][irho]]==0);
 	  
 	  if(is)
 	    {
 	      int iedge=edge_numb[mu][nu];
-	      if((isbord[al]==-1)&&(isbord[be]==-1)) return loc_vol+bord_vol+edge_offset[iedge]+0*edge_vol/4+edgelx_of_coord(x,mu,nu);
-	      if((isbord[al]==-1)&&(isbord[be]==+1)) return loc_vol+bord_vol+edge_offset[iedge]+1*edge_vol/4+edgelx_of_coord(x,mu,nu);
-	      if((isbord[al]==+1)&&(isbord[be]==-1)) return loc_vol+bord_vol+edge_offset[iedge]+2*edge_vol/4+edgelx_of_coord(x,mu,nu);
-	      if((isbord[al]==+1)&&(isbord[be]==+1)) return loc_vol+bord_vol+edge_offset[iedge]+3*edge_vol/4+edgelx_of_coord(x,mu,nu);
+	      if((is_bord[al]==-1)&&(is_bord[be]==-1)) return loc_vol+bord_vol+edge_offset[iedge]+0*edge_vol/4+edgelx_of_coord(x,mu,nu);
+	      if((is_bord[al]==-1)&&(is_bord[be]==+1)) return loc_vol+bord_vol+edge_offset[iedge]+1*edge_vol/4+edgelx_of_coord(x,mu,nu);
+	      if((is_bord[al]==+1)&&(is_bord[be]==-1)) return loc_vol+bord_vol+edge_offset[iedge]+2*edge_vol/4+edgelx_of_coord(x,mu,nu);
+	      if((is_bord[al]==+1)&&(is_bord[be]==+1)) return loc_vol+bord_vol+edge_offset[iedge]+3*edge_vol/4+edgelx_of_coord(x,mu,nu);
+	      crash("Edge: %d, mu=%d, nu=%d %d %d %d %d",iedge,mu,nu,ext_x[0],ext_x[1],ext_x[2],ext_x[3]);
 	    }
 	}
     

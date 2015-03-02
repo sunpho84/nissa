@@ -81,7 +81,6 @@ build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = $(top_builddir)/test/x/twisted_propagator$(EXEEXT) \
 	$(top_builddir)/test/x/Wilson_gluon_propagator$(EXEEXT) \
-	$(top_builddir)/test/x/tlSym_gluon_propagator$(EXEEXT) \
 	$(top_builddir)/test/x/Wilson_gluon_Klein_Gordon_operator$(EXEEXT) \
 	$(top_builddir)/test/x/tlSym_gluon_stochastic_propagator$(EXEEXT) \
 	$(top_builddir)/test/x/tlSym_gluon_stochastic_propagator_no_null_mode$(EXEEXT) \
@@ -126,14 +125,11 @@ am__dirstamp = $(am__leading_dot)dirstamp
 am__objects_1 = src/diagrams/meson_exchange.$(OBJEXT) \
 	src/diagrams/propagator_self_energy.$(OBJEXT) \
 	src/diagrams/tadpole.$(OBJEXT) \
-	src/inverters/cg_eoprec_twisted_free_operator.$(OBJEXT) \
 	src/inverters/cg_Wilson_gluon_operator.$(OBJEXT) \
 	src/operators/Wilson_gluon_Klein_Gordon_operator.$(OBJEXT) \
 	src/operators/twisted_Dirac_eoprec_operator.$(OBJEXT) \
-	src/propagators/twisted_propagator.$(OBJEXT) \
 	src/propagators/twisted_propagator_g2_corr.$(OBJEXT) \
 	src/propagators/Wilson_gluon_propagator.$(OBJEXT) \
-	src/propagators/tlSym_gluon_propagator.$(OBJEXT) \
 	src/routines/bmp.$(OBJEXT) src/routines/correlations.$(OBJEXT) \
 	src/routines/derivatives.$(OBJEXT) \
 	src/routines/read_and_write.$(OBJEXT) \
@@ -141,7 +137,6 @@ am__objects_1 = src/diagrams/meson_exchange.$(OBJEXT) \
 	src/stochastic/stochastic_source.$(OBJEXT) \
 	src/stochastic/stochastic_tlSym_gluon_propagator.$(OBJEXT) \
 	src/stochastic/stochastic_twisted_propagator.$(OBJEXT) \
-	src/types/types_routines.$(OBJEXT) \
 	src/vertex/x_space_stochastic_qqg_vertex.$(OBJEXT) \
 	src/vertex/vertex.$(OBJEXT)
 am___top_builddir__bin_x_average_corr_OBJECTS = $(am__objects_1) \
@@ -293,13 +288,6 @@ __top_builddir__test_x_stochastic_source_null_mode_OBJECTS = $(am___top_builddir
 __top_builddir__test_x_stochastic_source_null_mode_LDADD = $(LDADD)
 __top_builddir__test_x_stochastic_source_null_mode_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.a
-am___top_builddir__test_x_tlSym_gluon_propagator_OBJECTS =  \
-	$(am__objects_1) tests/test_tlSym_gluon_propagator.$(OBJEXT)
-__top_builddir__test_x_tlSym_gluon_propagator_OBJECTS =  \
-	$(am___top_builddir__test_x_tlSym_gluon_propagator_OBJECTS)
-__top_builddir__test_x_tlSym_gluon_propagator_LDADD = $(LDADD)
-__top_builddir__test_x_tlSym_gluon_propagator_DEPENDENCIES =  \
-	$(top_builddir)/lib/libnissa.a
 am___top_builddir__test_x_tlSym_gluon_stochastic_propagator_OBJECTS =  \
 	$(am__objects_1) \
 	tests/test_tlSym_gluon_stochastic_propagator.$(OBJEXT)
@@ -402,7 +390,6 @@ SOURCES = $(__top_builddir__bin_x_average_corr_SOURCES) \
 	$(__top_builddir__test_x_propagator_shift_SOURCES) \
 	$(__top_builddir__test_x_stochastic_qqg_vertex_SOURCES) \
 	$(__top_builddir__test_x_stochastic_source_null_mode_SOURCES) \
-	$(__top_builddir__test_x_tlSym_gluon_propagator_SOURCES) \
 	$(__top_builddir__test_x_tlSym_gluon_stochastic_propagator_SOURCES) \
 	$(__top_builddir__test_x_tlSym_gluon_stochastic_propagator_no_null_mode_SOURCES) \
 	$(__top_builddir__test_x_twisted_propagator_SOURCES) \
@@ -431,7 +418,6 @@ DIST_SOURCES = $(__top_builddir__bin_x_average_corr_SOURCES) \
 	$(__top_builddir__test_x_propagator_shift_SOURCES) \
 	$(__top_builddir__test_x_stochastic_qqg_vertex_SOURCES) \
 	$(__top_builddir__test_x_stochastic_source_null_mode_SOURCES) \
-	$(__top_builddir__test_x_tlSym_gluon_propagator_SOURCES) \
 	$(__top_builddir__test_x_tlSym_gluon_stochastic_propagator_SOURCES) \
 	$(__top_builddir__test_x_tlSym_gluon_stochastic_propagator_no_null_mode_SOURCES) \
 	$(__top_builddir__test_x_twisted_propagator_SOURCES) \
@@ -603,20 +589,16 @@ AUTOMAKE_OPTIONS = subdir-objects
 x_sources = src/diagrams/meson_exchange.cpp \
 	src/diagrams/propagator_self_energy.cpp \
 	src/diagrams/tadpole.cpp \
-	src/inverters/cg_eoprec_twisted_free_operator.cpp \
 	src/inverters/cg_Wilson_gluon_operator.cpp \
 	src/operators/Wilson_gluon_Klein_Gordon_operator.cpp \
 	src/operators/twisted_Dirac_eoprec_operator.cpp \
-	src/propagators/twisted_propagator.cpp \
 	src/propagators/twisted_propagator_g2_corr.cpp \
 	src/propagators/Wilson_gluon_propagator.cpp \
-	src/propagators/tlSym_gluon_propagator.cpp \
 	src/routines/bmp.cpp src/routines/correlations.cpp \
 	src/routines/derivatives.cpp src/routines/read_and_write.cpp \
 	src/routines/shift.cpp src/stochastic/stochastic_source.cpp \
 	src/stochastic/stochastic_tlSym_gluon_propagator.cpp \
 	src/stochastic/stochastic_twisted_propagator.cpp \
-	src/types/types_routines.cpp \
 	src/vertex/x_space_stochastic_qqg_vertex.cpp \
 	src/vertex/vertex.cpp
 
@@ -624,25 +606,20 @@ x_sources = src/diagrams/meson_exchange.cpp \
 include_HEADERS = src/diagrams/meson_exchange.hpp \
 	src/diagrams/propagator_self_energy.hpp \
 	src/diagrams/tadpole.hpp \
-	src/inverters/cg_eoprec_twisted_free_operator.hpp \
 	src/inverters/cg_Wilson_gluon_operator.hpp \
 	src/operators/Wilson_gluon_Klein_Gordon_operator.hpp \
 	src/operators/twisted_Dirac_eoprec_operator.hpp \
-	src/propagators/twisted_propagator.hpp \
 	src/propagators/twisted_propagator_g2_corr.hpp \
 	src/propagators/Wilson_gluon_propagator.hpp \
-	src/propagators/tlSym_gluon_propagator.hpp \
 	src/routines/bmp.hpp src/routines/correlations.hpp \
 	src/routines/derivatives.hpp src/routines/read_and_write.hpp \
 	src/routines/shift.hpp src/stochastic/stochastic_source.hpp \
 	src/stochastic/stochastic_tlSym_gluon_propagator.hpp \
 	src/stochastic/stochastic_twisted_propagator.hpp \
-	src/types/types.hpp src/types/types_routines.hpp \
 	src/vertex/x_space_stochastic_qqg_vertex.hpp \
 	src/vertex/vertex.hpp
 __top_builddir__test_x_twisted_propagator_SOURCES = $(x_sources) tests/test_twisted_propagator.cpp
 __top_builddir__test_x_Wilson_gluon_propagator_SOURCES = $(x_sources) tests/test_Wilson_gluon_propagator.cpp
-__top_builddir__test_x_tlSym_gluon_propagator_SOURCES = $(x_sources) tests/test_tlSym_gluon_propagator.cpp
 __top_builddir__test_x_Wilson_gluon_Klein_Gordon_operator_SOURCES = $(x_sources) tests/test_Wilson_gluon_Klein_Gordon_operator.cpp
 __top_builddir__test_x_tlSym_gluon_stochastic_propagator_SOURCES = $(x_sources) tests/test_tlSym_gluon_stochastic_propagator.cpp
 __top_builddir__test_x_tlSym_gluon_stochastic_propagator_no_null_mode_SOURCES = $(x_sources) tests/test_tlSym_gluon_stochastic_propagator_no_null_mode.cpp
@@ -764,9 +741,6 @@ src/inverters/$(am__dirstamp):
 src/inverters/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/inverters/$(DEPDIR)
 	@: > src/inverters/$(DEPDIR)/$(am__dirstamp)
-src/inverters/cg_eoprec_twisted_free_operator.$(OBJEXT):  \
-	src/inverters/$(am__dirstamp) \
-	src/inverters/$(DEPDIR)/$(am__dirstamp)
 src/inverters/cg_Wilson_gluon_operator.$(OBJEXT):  \
 	src/inverters/$(am__dirstamp) \
 	src/inverters/$(DEPDIR)/$(am__dirstamp)
@@ -788,16 +762,10 @@ src/propagators/$(am__dirstamp):
 src/propagators/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) src/propagators/$(DEPDIR)
 	@: > src/propagators/$(DEPDIR)/$(am__dirstamp)
-src/propagators/twisted_propagator.$(OBJEXT):  \
-	src/propagators/$(am__dirstamp) \
-	src/propagators/$(DEPDIR)/$(am__dirstamp)
 src/propagators/twisted_propagator_g2_corr.$(OBJEXT):  \
 	src/propagators/$(am__dirstamp) \
 	src/propagators/$(DEPDIR)/$(am__dirstamp)
 src/propagators/Wilson_gluon_propagator.$(OBJEXT):  \
-	src/propagators/$(am__dirstamp) \
-	src/propagators/$(DEPDIR)/$(am__dirstamp)
-src/propagators/tlSym_gluon_propagator.$(OBJEXT):  \
 	src/propagators/$(am__dirstamp) \
 	src/propagators/$(DEPDIR)/$(am__dirstamp)
 src/routines/$(am__dirstamp):
@@ -831,14 +799,6 @@ src/stochastic/stochastic_tlSym_gluon_propagator.$(OBJEXT):  \
 src/stochastic/stochastic_twisted_propagator.$(OBJEXT):  \
 	src/stochastic/$(am__dirstamp) \
 	src/stochastic/$(DEPDIR)/$(am__dirstamp)
-src/types/$(am__dirstamp):
-	@$(MKDIR_P) src/types
-	@: > src/types/$(am__dirstamp)
-src/types/$(DEPDIR)/$(am__dirstamp):
-	@$(MKDIR_P) src/types/$(DEPDIR)
-	@: > src/types/$(DEPDIR)/$(am__dirstamp)
-src/types/types_routines.$(OBJEXT): src/types/$(am__dirstamp) \
-	src/types/$(DEPDIR)/$(am__dirstamp)
 src/vertex/$(am__dirstamp):
 	@$(MKDIR_P) src/vertex
 	@: > src/vertex/$(am__dirstamp)
@@ -994,12 +954,6 @@ tests/test_stochastic_source_null_mode.$(OBJEXT):  \
 $(top_builddir)/test/x/stochastic_source_null_mode$(EXEEXT): $(__top_builddir__test_x_stochastic_source_null_mode_OBJECTS) $(__top_builddir__test_x_stochastic_source_null_mode_DEPENDENCIES) $(EXTRA___top_builddir__test_x_stochastic_source_null_mode_DEPENDENCIES) $(top_builddir)/test/x/$(am__dirstamp)
 	@rm -f $(top_builddir)/test/x/stochastic_source_null_mode$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__test_x_stochastic_source_null_mode_OBJECTS) $(__top_builddir__test_x_stochastic_source_null_mode_LDADD) $(LIBS)
-tests/test_tlSym_gluon_propagator.$(OBJEXT): tests/$(am__dirstamp) \
-	tests/$(DEPDIR)/$(am__dirstamp)
-
-$(top_builddir)/test/x/tlSym_gluon_propagator$(EXEEXT): $(__top_builddir__test_x_tlSym_gluon_propagator_OBJECTS) $(__top_builddir__test_x_tlSym_gluon_propagator_DEPENDENCIES) $(EXTRA___top_builddir__test_x_tlSym_gluon_propagator_DEPENDENCIES) $(top_builddir)/test/x/$(am__dirstamp)
-	@rm -f $(top_builddir)/test/x/tlSym_gluon_propagator$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__test_x_tlSym_gluon_propagator_OBJECTS) $(__top_builddir__test_x_tlSym_gluon_propagator_LDADD) $(LIBS)
 tests/test_tlSym_gluon_stochastic_propagator.$(OBJEXT):  \
 	tests/$(am__dirstamp) tests/$(DEPDIR)/$(am__dirstamp)
 
@@ -1052,7 +1006,6 @@ mostlyclean-compile:
 	-rm -f src/propagators/*.$(OBJEXT)
 	-rm -f src/routines/*.$(OBJEXT)
 	-rm -f src/stochastic/*.$(OBJEXT)
-	-rm -f src/types/*.$(OBJEXT)
 	-rm -f src/vertex/*.$(OBJEXT)
 	-rm -f tests/*.$(OBJEXT)
 
@@ -1072,12 +1025,9 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/diagrams/$(DEPDIR)/propagator_self_energy.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/diagrams/$(DEPDIR)/tadpole.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/inverters/$(DEPDIR)/cg_Wilson_gluon_operator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/inverters/$(DEPDIR)/cg_eoprec_twisted_free_operator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/operators/$(DEPDIR)/Wilson_gluon_Klein_Gordon_operator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/operators/$(DEPDIR)/twisted_Dirac_eoprec_operator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/propagators/$(DEPDIR)/Wilson_gluon_propagator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/propagators/$(DEPDIR)/tlSym_gluon_propagator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/propagators/$(DEPDIR)/twisted_propagator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/propagators/$(DEPDIR)/twisted_propagator_g2_corr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/routines/$(DEPDIR)/bmp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/routines/$(DEPDIR)/correlations.Po@am__quote@
@@ -1087,7 +1037,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@src/stochastic/$(DEPDIR)/stochastic_source.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/stochastic/$(DEPDIR)/stochastic_tlSym_gluon_propagator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/stochastic/$(DEPDIR)/stochastic_twisted_propagator.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@src/types/$(DEPDIR)/types_routines.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/vertex/$(DEPDIR)/vertex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@src/vertex/$(DEPDIR)/x_space_stochastic_qqg_vertex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_Fourier_transform.Po@am__quote@
@@ -1102,7 +1051,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_propagator_shift.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_stochastic_qqg_vertex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_stochastic_source_null_mode.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_tlSym_gluon_propagator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_tlSym_gluon_stochastic_propagator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_tlSym_gluon_stochastic_propagator_no_null_mode.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@tests/$(DEPDIR)/test_twisted_propagator.Po@am__quote@
@@ -1277,8 +1225,6 @@ distclean-generic:
 	-rm -f src/routines/$(am__dirstamp)
 	-rm -f src/stochastic/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/stochastic/$(am__dirstamp)
-	-rm -f src/types/$(DEPDIR)/$(am__dirstamp)
-	-rm -f src/types/$(am__dirstamp)
 	-rm -f src/vertex/$(DEPDIR)/$(am__dirstamp)
 	-rm -f src/vertex/$(am__dirstamp)
 	-rm -f tests/$(DEPDIR)/$(am__dirstamp)
@@ -1294,7 +1240,7 @@ clean: clean-am
 clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf progs/$(DEPDIR) src/diagrams/$(DEPDIR) src/inverters/$(DEPDIR) src/operators/$(DEPDIR) src/propagators/$(DEPDIR) src/routines/$(DEPDIR) src/stochastic/$(DEPDIR) src/types/$(DEPDIR) src/vertex/$(DEPDIR) tests/$(DEPDIR)
+	-rm -rf progs/$(DEPDIR) src/diagrams/$(DEPDIR) src/inverters/$(DEPDIR) src/operators/$(DEPDIR) src/propagators/$(DEPDIR) src/routines/$(DEPDIR) src/stochastic/$(DEPDIR) src/vertex/$(DEPDIR) tests/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -1340,7 +1286,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf progs/$(DEPDIR) src/diagrams/$(DEPDIR) src/inverters/$(DEPDIR) src/operators/$(DEPDIR) src/propagators/$(DEPDIR) src/routines/$(DEPDIR) src/stochastic/$(DEPDIR) src/types/$(DEPDIR) src/vertex/$(DEPDIR) tests/$(DEPDIR)
+	-rm -rf progs/$(DEPDIR) src/diagrams/$(DEPDIR) src/inverters/$(DEPDIR) src/operators/$(DEPDIR) src/propagators/$(DEPDIR) src/routines/$(DEPDIR) src/stochastic/$(DEPDIR) src/vertex/$(DEPDIR) tests/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

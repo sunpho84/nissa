@@ -10,7 +10,6 @@ x_sources= \
 	src/diagrams/tadpole.cpp
 
 x_sources+= \
-	src/inverters/cg_eoprec_twisted_free_operator.cpp \
 	src/inverters/cg_Wilson_gluon_operator.cpp
 
 x_sources+= \
@@ -18,10 +17,8 @@ x_sources+= \
 	src/operators/twisted_Dirac_eoprec_operator.cpp
 
 x_sources+= \
-	src/propagators/twisted_propagator.cpp \
 	src/propagators/twisted_propagator_g2_corr.cpp \
-	src/propagators/Wilson_gluon_propagator.cpp \
-	src/propagators/tlSym_gluon_propagator.cpp
+	src/propagators/Wilson_gluon_propagator.cpp
 
 x_sources+= \
 	src/routines/bmp.cpp \
@@ -36,9 +33,6 @@ x_sources+= \
 	src/stochastic/stochastic_twisted_propagator.cpp 
 
 x_sources+= \
-	src/types/types_routines.cpp
-
-x_sources+= \
 	src/vertex/x_space_stochastic_qqg_vertex.cpp \
 	src/vertex/vertex.cpp
 
@@ -50,7 +44,6 @@ include_HEADERS= \
 	src/diagrams/tadpole.hpp
 
 include_HEADERS+= \
-	src/inverters/cg_eoprec_twisted_free_operator.hpp \
 	src/inverters/cg_Wilson_gluon_operator.hpp
 
 include_HEADERS+= \
@@ -58,10 +51,8 @@ include_HEADERS+= \
 	src/operators/twisted_Dirac_eoprec_operator.hpp
 
 include_HEADERS+= \
-	src/propagators/twisted_propagator.hpp \
 	src/propagators/twisted_propagator_g2_corr.hpp \
-	src/propagators/Wilson_gluon_propagator.hpp \
-	src/propagators/tlSym_gluon_propagator.hpp
+	src/propagators/Wilson_gluon_propagator.hpp
 
 include_HEADERS+= \
 	src/routines/bmp.hpp \
@@ -76,10 +67,6 @@ include_HEADERS+= \
 	src/stochastic/stochastic_twisted_propagator.hpp 
 
 include_HEADERS+= \
-	src/types/types.hpp \
-	src/types/types_routines.hpp
-
-include_HEADERS+= \
 	src/vertex/x_space_stochastic_qqg_vertex.hpp \
 	src/vertex/vertex.hpp
 
@@ -88,7 +75,6 @@ include_HEADERS+= \
 bin_PROGRAMS= \
 	$(top_builddir)/test/x/twisted_propagator \
 	$(top_builddir)/test/x/Wilson_gluon_propagator \
-	$(top_builddir)/test/x/tlSym_gluon_propagator \
 	$(top_builddir)/test/x/Wilson_gluon_Klein_Gordon_operator \
 	$(top_builddir)/test/x/tlSym_gluon_stochastic_propagator \
 	$(top_builddir)/test/x/tlSym_gluon_stochastic_propagator_no_null_mode \
@@ -109,7 +95,6 @@ bin_PROGRAMS= \
 
 __top_builddir__test_x_twisted_propagator_SOURCES=$(x_sources) tests/test_twisted_propagator.cpp
 __top_builddir__test_x_Wilson_gluon_propagator_SOURCES=$(x_sources) tests/test_Wilson_gluon_propagator.cpp
-__top_builddir__test_x_tlSym_gluon_propagator_SOURCES=$(x_sources) tests/test_tlSym_gluon_propagator.cpp
 __top_builddir__test_x_Wilson_gluon_Klein_Gordon_operator_SOURCES=$(x_sources) tests/test_Wilson_gluon_Klein_Gordon_operator.cpp
 __top_builddir__test_x_tlSym_gluon_stochastic_propagator_SOURCES=$(x_sources) tests/test_tlSym_gluon_stochastic_propagator.cpp
 __top_builddir__test_x_tlSym_gluon_stochastic_propagator_no_null_mode_SOURCES=$(x_sources) tests/test_tlSym_gluon_stochastic_propagator_no_null_mode.cpp

@@ -276,13 +276,13 @@ namespace nissa
     //check that all direction are parallelizable, if requested
     if(check_all_dir_parallelized)
       {
-	//check that at least 16 ranks are present and is a multiple of 16
-	if(NR<16) crash("in order to paralellize all the direcion, at least 16 ranks must be present");
-	if(NR%16) crash("in order to paralellize all the direcion, the number of ranks must be a multiple of 16");
+	//check that at least (1<<NDIM) ranks are present and is a multiple of (1<<NDIM)
+	if(NR<(1<<NDIM)) crash("in order to paralellize all the direcion, at least (1<<NDIM) ranks must be present");
+	if(NR%(1<<NDIM)) crash("in order to paralellize all the direcion, the number of ranks must be a multiple of (1<<NDIM)");
       }
     
     //check that all directions can be made even, if requested
-    if(use_eo_geom) if((V/NR)%16!=0) crash("in order to use eo geometry, local size must be a multiple of 16");
+    if(use_eo_geom) if((V/NR)%(1<<NDIM)!=0) crash("in order to use eo geometry, local size must be a multiple of (1<<NDIM)");
     
     //check that the global lattice is a multiple of the number of ranks
     if(V%NR) crash("global volume must be a multiple of ranks number");
@@ -620,9 +620,8 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  edge_numb[mu][mu]=-1;
-	  for(int inu=0;inu<NDIM;inu++)
+	  for(int nu=mu+1;nu<NDIM;nu++)
 	    {
-	      int nu=perp_dir[mu][inu];
 	      edge_numb[mu][nu]=edge_numb[nu][mu]=iedge;
 	      iedge++;
 	    }
