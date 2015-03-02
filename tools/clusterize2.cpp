@@ -12,7 +12,7 @@ uint64_t mem_needed;
 typedef char sa_string[300];
 
 int REIM,use_new_contraction_layout,binary_out;
-int T,ncorr,ncombo,ncorr_type;
+int T,ncorr,ncombo,ncorr_type,ntriple;
 int nfile_names;
 int njack,clust_size;
 int start_conf_id,nconfs,nconfs_teo;
@@ -54,7 +54,7 @@ void parse_input(char *path)
 //count the number of combo
 void count_corr(char *path)
 {
-  ncombo=ncorr=0;
+  ncombo=ncorr=ntriple=0;
   
   printf("Considering conf: %s\n",path);
   
@@ -74,6 +74,15 @@ void count_corr(char *path)
 	    else ncombo++;
 	  }
       }
+    else
+      {
+	int t;
+	double dre,dim;
+	int ntest3=sscanf(line,"%d %lg %lg",&t,&dre,&dim);
+	if(ntest3>0) ntriple++;
+      }
+  
+  if(ncorr==0) ncorr=ncombo=ntriple/T;
   
   ncorr_type=ncorr/ncombo;
   
