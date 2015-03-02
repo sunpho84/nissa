@@ -579,6 +579,8 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.hpp \
 	dirac_operators/stD/dirac_operator_stD_bgq.hpp \
+	free_theory/cg_eoprec_twisted_free_operator.hpp \
+	free_theory/free_theory_types.hpp \
 	free_theory/free_theory_types_routines.hpp \
 	free_theory/tlSym_gauge_propagator.hpp \
 	free_theory/twisted_propagator.hpp geometry/geometry_eo.hpp \
@@ -821,7 +823,10 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	dirac_operators/WclovQ2/dirac_operator_WclovQ2.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128.hpp \
-	$(am__append_8) free_theory/free_theory_types_routines.hpp \
+	$(am__append_8) \
+	free_theory/cg_eoprec_twisted_free_operator.hpp \
+	free_theory/free_theory_types.hpp \
+	free_theory/free_theory_types_routines.hpp \
 	free_theory/tlSym_gauge_propagator.hpp \
 	free_theory/twisted_propagator.hpp geometry/geometry_eo.hpp \
 	geometry/geometry_lx.hpp geometry/geometry_mix.hpp \
