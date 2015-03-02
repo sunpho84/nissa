@@ -474,12 +474,12 @@ void in_main(int narg,char **arg)
 	      for(int r=0;r<2;r++)
 		{
 		  //compute the correlation function
-		  compute_corr(corr,S[iprop(imass,prop1_map[icombo],r)],S[iprop(imass,prop2_map[icombo],r)],5,5);
+		  int gso=5,gsi=5;
+		  compute_corr(corr,S[iprop(imass,prop1_map[icombo],r)],S[iprop(jmass,prop2_map[icombo],r)],gso,gsi);
 		  
 		  //print out
-		  master_fprintf(fout," # m1=%lg m2=%lg r=%d\n\n",mass[imass],mass[jmass],r);
-		  for(int t=source_coord[0];t<glb_size[0]+source_coord[0];t++)
-		    master_fprintf(fout,"%d %+015.15lg\t%+015.15lg\n",t-source_coord[0],corr[t%glb_size[0]][RE],corr[t%glb_size[0]][IM]);
+		  master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d\n",mass[imass],mass[jmass],r);
+		  print_contractions_to_file(fout,1,&gso,&gsi,corr,source_coord[0],"",1.0);
 		  master_fprintf(fout,"\n");
 		}
 	  
