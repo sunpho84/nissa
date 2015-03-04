@@ -226,6 +226,8 @@ namespace nissa
 #endif
 #if NDIM >= 3
   EXTERN int perp2_dir[NDIM][NDIM-1][NDIM-2];
+#else
+  EXTERN int perp2_dir[NDIM][NDIM-1][1];
 #endif
 #if NDIM >= 4
   EXTERN int perp3_dir[NDIM][NDIM-1][NDIM-2][NDIM-3];

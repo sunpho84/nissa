@@ -626,6 +626,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIB@&t@OBJS
+NDIM2_FALSE
+NDIM2_TRUE
 BENCH_FALSE
 BENCH_TRUE
 THREAD_DEBUG_FALSE
@@ -5515,6 +5517,14 @@ fi
 if ! printf "%f" "$ndim" >/dev/null 2>&1; then as_fn_error $? "String $ndim is not a number" "$LINENO" 5; fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling number of dimension... $ndim" >&5
 $as_echo "enabling number of dimension... $ndim" >&6; }
+ if test x$ndim = x2; then
+  NDIM2_TRUE=
+  NDIM2_FALSE='#'
+else
+  NDIM2_TRUE='#'
+  NDIM2_FALSE=
+fi
+
 
 cat >>confdefs.h <<_ACEOF
 @%:@define NDIM $ndim
@@ -5522,7 +5532,7 @@ _ACEOF
 
 
 #create config.hpp
-ac_config_files="$ac_config_files Makefile src/Makefile projects/Makefile projects/eight_BK/Makefile projects/g/Makefile projects/generate_confs/Makefile projects/ib/Makefile projects/semileptonic/Makefile projects/static_potential/Makefile projects/x/Makefile tools/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile projects/Makefile projects/cpn/Makefile projects/eight_BK/Makefile projects/g/Makefile projects/generate_confs/Makefile projects/ib/Makefile projects/semileptonic/Makefile projects/static_potential/Makefile projects/x/Makefile tools/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -5703,6 +5713,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${BENCH_TRUE}" && test -z "${BENCH_FALSE}"; then
   as_fn_error $? "conditional \"BENCH\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${NDIM2_TRUE}" && test -z "${NDIM2_FALSE}"; then
+  as_fn_error $? "conditional \"NDIM2\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
@@ -6302,6 +6316,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "projects/Makefile") CONFIG_FILES="$CONFIG_FILES projects/Makefile" ;;
+    "projects/cpn/Makefile") CONFIG_FILES="$CONFIG_FILES projects/cpn/Makefile" ;;
     "projects/eight_BK/Makefile") CONFIG_FILES="$CONFIG_FILES projects/eight_BK/Makefile" ;;
     "projects/g/Makefile") CONFIG_FILES="$CONFIG_FILES projects/g/Makefile" ;;
     "projects/generate_confs/Makefile") CONFIG_FILES="$CONFIG_FILES projects/generate_confs/Makefile" ;;

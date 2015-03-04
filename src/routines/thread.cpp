@@ -133,7 +133,11 @@ namespace nissa
     THREAD_BARRIER_FORCE();
 #ifdef THREAD_DEBUG
     GET_THREAD_ID();
-    if(rank==0 && VERBOSITY_LV3) printf("thread %d unlocking the pool\n",thread_id);
+    if(rank==0 && VERBOSITY_LV3)
+      {
+	printf("thread %d unlocking the pool\n",thread_id);
+	fflush(stdout);
+      }
 #endif
     thread_pool_locked=false;
     cache_flush();
@@ -156,7 +160,11 @@ namespace nissa
     thread_pool_locked=true;
     cache_flush();
 #ifdef THREAD_DEBUG
-    if(rank==0 && VERBOSITY_LV3) printf("thread %d locking the pool\n",thread_id);
+    if(rank==0 && VERBOSITY_LV3)
+      {
+	printf("thread %d locking the pool\n",thread_id);
+	fflush(stdout);
+      }
 #endif
   }
   
@@ -172,20 +180,26 @@ namespace nissa
     thread_pool_locked=true;
     
     //loop until asked to exit
+    bool stay_working=true;
     do
       {
 	//hold until unlocked
 	thread_pool_unlock();
 	
-	//wait that orders are communicated and in case exec them
+	//exec order or mark to exit in other case
 	if(threaded_function_ptr!=NULL) threaded_function_ptr();
+	else stay_working=false;
 
 	thread_pool_lock();
       }
-    while(threaded_function_ptr!=NULL);
+    while(stay_working);
     
 #ifdef THREAD_DEBUG
-    if(rank==0 && VERBOSITY_LV3) printf("thread %d exit pool\n",thread_id);
+    if(rank==0 && VERBOSITY_LV3)
+      {
+	printf("thread %d exit pool\n",thread_id);
+	fflush(stdout);
+      }
 #endif
   }
   
@@ -193,7 +207,11 @@ namespace nissa
   void start_threaded_function(void(*function)(void),const char *name)
   {
 #ifdef THREAD_DEBUG
-    if(rank==0 && VERBOSITY_LV3) printf("----------Start working %s thread pool--------\n",name);
+    if(rank==0 && VERBOSITY_LV3)
+      {
+	printf("----------Start working %s thread pool--------\n",name);
+	fflush(stdout);
+      }
 #endif
     //set external function pointer and unlock pool threads
     threaded_function_ptr=function;
@@ -204,7 +222,11 @@ namespace nissa
     thread_pool_lock();
     
 #ifdef THREAD_DEBUG
-    if(rank==0 && VERBOSITY_LV3) printf("----------Finished working %s thread pool--------\n",name);
+    if(rank==0 && VERBOSITY_LV3)
+      {
+	printf("----------Finished working %s thread pool--------\n",name);
+	fflush(stdout);
+      }
 #endif
   }
   
@@ -239,7 +261,7 @@ namespace nissa
             //update the counter
             *ptr=i;
           }
-        fflush(stdout);
+	
         THREAD_BARRIER();
       }
 
