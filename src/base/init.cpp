@@ -632,8 +632,9 @@ namespace nissa
     master_printf("Local volume\t%d",loc_size[0]);
     for(int mu=1;mu<NDIM;mu++) master_printf("x%d",loc_size[mu]);
     master_printf(" = %d\n",loc_vol);
-    master_printf("Parallelized dirs:\t");
+    master_printf("List of parallelized dirs:\t");
     for(int mu=0;mu<NDIM;mu++) if(paral_dir[mu]) master_printf("%d ",mu);
+    if(nparal_dir==0) master_printf("(none)");
     master_printf("\n");
     master_printf("Border size: %d\n",bord_vol);
     for(int mu=0;mu<NDIM;mu++)

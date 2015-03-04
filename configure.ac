@@ -173,6 +173,7 @@ AC_ARG_ENABLE(ndim,
         ndim=4)
 if ! printf "%f" "$ndim" >/dev/null 2>&1; then AC_MSG_ERROR([String $ndim is not a number]); fi
 AC_MSG_RESULT([enabling number of dimension... $ndim])
+AM_CONDITIONAL([NDIM2], [test x$ndim = x2])
 AC_DEFINE_UNQUOTED([NDIM],$ndim,[Ndim])
 
 #create config.hpp
@@ -180,6 +181,7 @@ AC_CONFIG_FILES(
 	Makefile
 	src/Makefile
 	projects/Makefile
+	projects/cpn/Makefile
 	projects/eight_BK/Makefile
 	projects/g/Makefile
 	projects/generate_confs/Makefile

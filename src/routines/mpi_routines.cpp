@@ -215,6 +215,13 @@ namespace nissa
     return in;
   }
   
+  //broadcast an int
+  double broadcast(double in,int rank)
+  {
+    MPI_Bcast(&in,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    return in;
+  }
+  
   //broadcast a whole rational approximation
   void broadcast(rat_approx_t *rat,int rank_from)
   {

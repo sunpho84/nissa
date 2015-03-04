@@ -14,6 +14,28 @@
 
 namespace nissa
 {
+  
+  //if the momentum has to be removed return 0, otherwise return 1
+  //cancel the zero modes for all spatial when UNNO_ALEMANNA prescription asked
+  //or if PECIONA prescription and full zero mode
+  bool zero_mode_subtraction_mask(gauge_info gl,int imom)
+  {return !(((gl.zms==UNNO_ALEMANNA||(gl.zms==PECIONA&&glb_coord_of_loclx[imom][0]==0))&&
+	      glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0));}
+  
+  //cancel the mode if it is zero according to the prescription
+  bool cancel_if_zero_mode(spin1prop prop,gauge_info gl,int imom)
+  {
+    bool m=zero_mode_subtraction_mask(gl,imom);
+    for(int mu=0;mu<4;mu++) for(int nu=0;nu<4;nu++) for(int reim=0;reim<2;reim++) prop[mu][nu][reim]*=m;
+    return !m;
+  }
+  bool cancel_if_zero_mode(spin1field prop,gauge_info gl,int imom)
+  {
+    bool m=zero_mode_subtraction_mask(gl,imom);
+    for(int mu=0;mu<4;mu++) for(int reim=0;reim<2;reim++) prop[mu][reim]*=m;
+    return !m;
+  }
+    
   //compute the tree level Symanzik gauge propagator in the momentum space according to P.Weisz
   void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,int imom)
   {
@@ -83,6 +105,9 @@ namespace nissa
       for(int mu=0;mu<4;mu++)
 	for(int nu=0;nu<4;nu++)
 	  prop[mu][nu][RE]=prop[mu][nu][IM]=0;//gl.zmp/glb_vol;
+
+    //cancel when appropriate
+    cancel_if_zero_mode(prop,gl,imom);
   }
   
   void compute_mom_space_tlSym_gauge_propagator(spin1prop *prop,gauge_info gl)
@@ -131,9 +156,14 @@ namespace nissa
       for(int mu=0;mu<4;mu++)
 	comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z4);
     set_borders_invalid(eta);
-
+    
     //pass to mom space
     pass_spin1field_from_x_to_mom_space(phi,eta,gl.bc);
+    
+    //cancel when appropriate and go back
+    NISSA_LOC_VOL_LOOP(imom)
+      cancel_if_zero_mode(phi[imom],gl,imom);
+    pass_spin1field_from_mom_to_x_space(eta,phi,gl.bc);
     
     //multiply by prop
     multiply_mom_space_tlSym_gauge_propagator(phi,phi,gl);
