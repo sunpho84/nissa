@@ -9,7 +9,6 @@ comm_t lx_ON_t_comm,eo_ON_t_comm;
 comm_t lx_quad_u1_comm,eo_quad_u1_comm;
 DEFINE_BORDERS_ROUTINES(ON_t)
 DEFINE_BORDERS_ROUTINES(quad_u1)
-MPI_Datatype MPI_ON_T;
 
 //configuration
 ON_t *zeta,*zeta_old,*pi,*fpi;
@@ -47,6 +46,25 @@ void read_input(const char *path)
   close_input();
 }
 
+#include <fstream>
+
+//read the configuration to disk
+void read_conf(int &isweep,const char *path)
+{
+  std::ifstream conf_file(path);
+  if(!conf_file.good()) crash("opening %s to read conf",path);
+  
+  if(!(conf_file.read((char*)&isweep,sizeof(int)))) crash("reading isweep");
+  //read the two pieces
+  if(!(conf_file.read((char*)zeta,sizeof(ON_t)*glb_vol))) crash("reading zeta");
+  if(!(conf_file.read((char*)lambda,sizeof(quad_u1)*glb_vol))) crash("reading lambda");
+  
+  set_borders_invalid(zeta);
+  set_borders_invalid(lambda);
+  
+  conf_file.close();
+}
+
 //initialize the system to id
 void init_system_to_cold()
 {
@@ -69,8 +87,6 @@ void init(int &base_isweep)
 {
   set_lx_comm(lx_ON_t_comm,sizeof(ON_t));
   set_lx_comm(lx_quad_u1_comm,sizeof(quad_u1)); 
-  MPI_Type_contiguous(2*N,MPI_DOUBLE,&MPI_ON_T);
-  MPI_Type_commit(&MPI_ON_T);
   
   //allocate configuration
   zeta=nissa_malloc("zeta",loc_vol+bord_vol,ON_t);
@@ -148,7 +164,7 @@ void get_zeta_complex_scalar_prod(complex res,ON_t a,ON_t b)
 }
 
 //only real part
-double get_zeta_real_scalar_prod(ON_t a,ON_t b)
+double get_zeta_real_scalar_prod(const ON_t a,const ON_t b)
 {
   double res=0;
   for(int n=0;n<N;n++) res+=real_part_of_complex_scalar_prod(a[n],b[n]);
@@ -156,17 +172,13 @@ double get_zeta_real_scalar_prod(ON_t a,ON_t b)
 }
 
 //return the norm squared of a zeta
-double get_zeta_norm2(ON_t z)
-{
-  double norm2=0;
-  for(int n=0;n<N;n++) norm2+=squared_complex_norm(z[n]);
-  return norm2;
-}
-double get_zeta_norm(ON_t z)
+inline double get_zeta_norm2(const ON_t z)
+{return get_zeta_real_scalar_prod(z,z);}
+inline double get_zeta_norm(const ON_t z)
 {return sqrt(get_zeta_norm2(z));}
 
 //orthogonalize
-void zeta_orthogonalize_with(ON_t z,ON_t w)
+void zeta_orthogonalize_with(ON_t z,const ON_t w)
 {
   double norm_with=get_zeta_real_scalar_prod(w,z)/get_zeta_norm2(w);
   for(int n=0;n<N;n++) complex_subt_the_prod_double(z[n],w[n],norm_with);
@@ -192,17 +204,20 @@ THREADABLE_FUNCTION_0ARG(generate_momenta)
 {
   GET_THREAD_ID();
   
+  complex ave={0,0};
+  const double sigma=sqrt(2);
+  
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
       //generate the lambda momenta, gaussianly
       for(int mu=0;mu<NDIM;mu++) omega[ivol][mu]=rnd_get_gauss_double(loc_rnd_gen+ivol);
       
-      //generate zeta momenta
-      for(int n=0;n<N;n++) comp_get_rnd(pi[ivol][n],loc_rnd_gen+ivol,RND_GAUSS);
-      
+      //generate zeta momenta and orthogonalize them
+      for(int n=0;n<N;n++) rnd_get_gauss_complex(pi[ivol][n],loc_rnd_gen+ivol,ave,sigma);
       //orthogonalize
       zeta_orthogonalize_with(pi[ivol],zeta[ivol]);
     }
+  THREAD_BARRIER();
 }
 THREADABLE_FUNCTION_END
 
@@ -261,7 +276,6 @@ void compute_lambda_forces()
 	    (+lambda[ivol][mu][RE]*zeta[iup][n][RE]+lambda[ivol][mu][IM]*zeta[iup][n][IM])*zeta[ivol][n][IM];
         fomega[ivol][mu]*=-2*beta*N;
       }
-  THREAD_BARRIER();
   
 #if 0
   int site=0;
@@ -285,7 +299,7 @@ void compute_lambda_forces()
 }
 
 //compute the staple of zeta
-void site_staple(ON_t staple,ON_t *z,quad_u1 *l,int ivol)
+inline void site_staple(ON_t staple,ON_t *z,quad_u1 *l,int ivol)
 {
   for(int n=0;n<N;n++) staple[n][RE]=staple[n][IM]=0;
 
@@ -314,7 +328,6 @@ void compute_zeta_forces()
       zeta_orthogonalize_with(fpi[ivol],zeta[ivol]);
       for(int n=0;n<N;n++) complex_prodassign_double(fpi[ivol][n],beta*N);
     }
-  THREAD_BARRIER();
 
 #if 0
   int site=0;
@@ -337,7 +350,7 @@ void compute_zeta_forces()
 }
 
 //update pi momenta
-void update_zeta_momenta(double eps)
+inline void update_zeta_momenta(double eps)
 {
   GET_THREAD_ID();
   
@@ -350,7 +363,7 @@ void update_zeta_momenta(double eps)
 }
 
 //update omega momenta
-void update_lambda_momenta(double eps)
+inline void update_lambda_momenta(double eps)
 {
   GET_THREAD_ID();
   
@@ -363,14 +376,14 @@ void update_lambda_momenta(double eps)
 }
 
 //update both momenta
-void update_momenta(double eps)
+inline void update_momenta(double eps)
 {
   update_zeta_momenta(eps);
   update_lambda_momenta(eps);
 }
 
 //update the zetas
-void update_zeta_positions(double eps)
+inline void update_zeta_positions(double eps)
 {
   GET_THREAD_ID();
   
@@ -402,7 +415,7 @@ void update_zeta_positions(double eps)
 }
 
 //update the lambdas
-void update_lambda_positions(double eps)
+inline void update_lambda_positions(double eps)
 {
   GET_THREAD_ID();
   
@@ -432,12 +445,10 @@ THREADABLE_FUNCTION_1ARG(hmc_integrate, double,tl)
 
   //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
   update_momenta(ldt);
-    
+  
   //         Main loop
   for(int istep=0;istep<nhmc_steps;istep++)
     {
-      //cout<<" Omelyan step "<<istep+1<<"/"<<nhmc_steps<<endl;
-        
       //decide if last step is final or not
       double last_dt=(istep==(nhmc_steps-1)) ? ldt : l2dt;
         
@@ -477,7 +488,7 @@ void hmc_update(bool skip_test=false)
   double start_mom_action=momenta_action();
   double start_theo_action=action(zeta,lambda);
   double start_action=start_mom_action+start_theo_action;
-  master_printf(" action: mom=%lg, coord=%lg\n",start_mom_action,start_theo_action);
+  verbosity_lv2_master_printf(" action: mom=%lg, coord=%lg\n",start_mom_action,start_theo_action);
   
   //integrate for unitary length
   hmc_integrate(1.0);
@@ -555,6 +566,8 @@ void in_main(int narg,char **arg)
   read_input(arg[1]);
   int base_isweep;
   init(base_isweep);
+  
+  if(file_exists("conf")) read_conf(base_isweep,"conf"); 
   
   //open observable files
   FILE *energy_file=open_file("energy_file","w");

@@ -168,7 +168,7 @@ AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 
 #ndim
 AC_ARG_ENABLE(ndim,
-        AS_HELP_STRING([--enable-ndir=n],[Set number of dimensions]),
+        AS_HELP_STRING([--enable-ndim=n],[Set number of dimensions [Default: 4]]),
         ndim="${enableval}",
         ndim=4)
 if ! printf "%f" "$ndim" >/dev/null 2>&1; then AC_MSG_ERROR([String $ndim is not a number]); fi
