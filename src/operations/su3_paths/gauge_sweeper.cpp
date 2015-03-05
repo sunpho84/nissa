@@ -542,12 +542,14 @@ namespace nissa
 	int nu=perp_dir[mu][inu];
 
 	//copy orthogonal coords
+#if NDIM>=3
 	for(int irh=0;irh<NDIM-2;irh++)
 	  {
 	    int rh=perp2_dir[mu][inu][irh];
 	    B[rh]=C[rh]=D[rh]=E[rh]=F[rh]=G[rh]=H[rh]=I[rh]=J[rh]=K[rh]=L[rh]=M[rh]=N[rh]=O[rh]=P[rh]=A[rh];
 	  }
-	
+#endif
+
 	//find coord nu
 	H[nu]=I[nu]=(A[nu]-2+glb_size[nu])%glb_size[nu];
 	K[nu]=J[nu]=G[nu]=P[nu]=(I[nu]+1)%glb_size[nu];
@@ -920,11 +922,13 @@ namespace nissa
 	int nu=perp_dir[mu][inu];
 	
 	//copy orthogonal coords
+#if NDIM>=3
 	for(int irh=0;irh<NDIM-2;irh++)
 	  {
 	    int rh=perp2_dir[mu][inu][irh];
 	    B[rh]=F[rh]=G[rh]=J[rh]=A[rh];
 	  }
+#endif
 	
 	//find coord nu
 	J[nu]=G[nu]=(A[nu]-1+glb_size[nu])%glb_size[nu];

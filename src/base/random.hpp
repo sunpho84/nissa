@@ -1,5 +1,5 @@
-#ifndef _RANDOM_H
-#define _RANDOM_H
+#ifndef _RANDOM_HPP
+#define _RANDOM_HPP
 
 namespace nissa
 {
@@ -17,6 +17,7 @@ namespace nissa
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
   void rnd_get_Z2(complex out,rnd_gen *gen);
   void rnd_get_Z4(complex out,rnd_gen *gen);
+  double rnd_get_gauss_double(rnd_gen *gen,double ave=0,double sig=1);
   void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig);
   void start_glb_rnd_gen(int seed);
   void start_loc_rnd_gen(int seed);

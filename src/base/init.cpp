@@ -613,7 +613,8 @@ namespace nissa
 	}
     edge_vol*=4;
     edge_volh=edge_vol/2;
-    
+    master_printf("Edge vol: %d\n",edge_vol);
+      
     //set edge numb
     {
       int iedge=0; 

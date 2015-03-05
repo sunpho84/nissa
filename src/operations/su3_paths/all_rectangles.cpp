@@ -70,6 +70,7 @@ namespace nissa
   //compute the transposed from lx index
   void index_transp(int &irank_transp,int &iloc_transp,int iloc_lx,void *pars)
   {
+#if NDIM>=3
     int mu0=((int*)pars)[0],imu1=((int*)pars)[1],prp_vol=((int*)pars)[2];
     int mu1=perp_dir[mu0][imu1],mu2=perp2_dir[mu0][imu1][0],mu3=perp2_dir[mu0][imu1][1];
 
@@ -78,11 +79,15 @@ namespace nissa
     int glb_dest_site=g[mu1]+glb_size[mu1]*(g[mu0]+glb_size[mu0]*(g[mu2]+glb_size[mu2]*g[mu3]));
     irank_transp=glb_dest_site/prp_vol;
     iloc_transp=glb_dest_site-irank_transp*prp_vol;
+#else
+    crash("not implemented");
+#endif
   }
 
   //compute all possible rectangular paths among a defined interval
   THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
+#if NDIM>=3
     GET_THREAD_ID();
 
     verbosity_lv1_master_printf("Computing all rectangular paths\n");
@@ -311,6 +316,9 @@ namespace nissa
     nissa_free(all_rectangles);
     nissa_free(Tline);
     nissa_free(Dline);
+#else
+    crash("not implemented");
+#endif
   }
   THREADABLE_FUNCTION_END
   
