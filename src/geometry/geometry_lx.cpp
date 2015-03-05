@@ -220,7 +220,9 @@ namespace nissa
 	  int be=(mu>nu)?mu:nu;
 	  
 	  bool is=is_bord[mu]&&is_bord[nu];
+#if NDIM>=3
 	  for(int irho=0;irho<NDIM-2;irho++) is&=(is_bord[perp2_dir[mu][inu][irho]]==0);
+#endif
 	  
 	  if(is)
 	    {

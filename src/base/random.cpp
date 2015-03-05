@@ -181,7 +181,18 @@ namespace nissa
     out[1]=rnd_get_pm_one(gen)/RAD2;
   }
   
-  //return a gaussian complex
+  //return a gaussian double
+  double rnd_get_gauss_double(rnd_gen *gen,double ave,double sig)
+  {
+    double q,r;
+    
+    r=sqrt(-2*log(1-rnd_get_unif(gen,0,1)));
+    q=2*M_PI*rnd_get_unif(gen,0,1);
+    
+    return r*cos(q)*sig+ave;
+  }
+
+  //return a gaussian complex with sigma=sig/sqrt(2)
   void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig)
   {
     const double one_by_sqrt2=0.707106781186547;

@@ -50,17 +50,19 @@ namespace nissa
 	if(IS_MASTER_THREAD)
 	  {
 	    int nrequest=0;
-	    MPI_Request request[48];
-	    MPI_Status status[48];
+	    MPI_Request request[NDIM*(NDIM-1)*4];
+	    MPI_Status status[NDIM*(NDIM-1)*4];
 	    int send,rece;
 	    int imessage=4532543;
-	    int x[4]={0,0,0,0};
+	    coords x;
+	    memset(x,0,sizeof(coords));
 	    
-	    for(int idir=0;idir<4;idir++)
-	      for(int jdir=idir+1;jdir<4;jdir++)
+	    for(int idir=0;idir<NDIM;idir++)
+	      for(int jdir=idir+1;jdir<NDIM;jdir++)
 		if(paral_dir[idir] && paral_dir[jdir])
 		  {
 		    int iedge=edge_numb[idir][jdir];
+		    master_printf("iedge: %d\n",iedge);
 		    int pos_edge_offset;
 		    
 		    //take the starting point of the border
@@ -128,8 +130,8 @@ namespace nissa
 	  {
 	    int nrequest=0;
 	    int nrequest_tot=0;
-	    for(int mu=0;mu<4;mu++)
-	      for(int nu=mu+1;nu<4;nu++)
+	    for(int mu=0;mu<NDIM;mu++)
+	      for(int nu=mu+1;nu<NDIM;nu++)
 		if(paral_dir[mu] && paral_dir[nu])
 		  nrequest_tot+=16;
 	    
@@ -146,9 +148,9 @@ namespace nissa
 		
 		//"v" refer to the verse of the dir
 		for(int vmu=0;vmu<2;vmu++)
-		  for(int mu=0;mu<4;mu++)
+		  for(int mu=0;mu<NDIM;mu++)
 		    for(int vnu=0;vnu<2;vnu++)
-		      for(int nu=mu+1;nu<4;nu++)
+		      for(int nu=mu+1;nu<NDIM;nu++)
 			if(paral_dir[mu] && paral_dir[nu])
 			  {
 			    int iedge=edge_numb[mu][nu];

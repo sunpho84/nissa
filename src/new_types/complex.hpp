@@ -1,11 +1,13 @@
-#ifndef _COMPLEX_H
-#define _COMPLEX_H
+#ifndef _COMPLEX_HPP
+#define _COMPLEX_HPP
 
 #include "new_types_definitions.hpp"
 
 namespace nissa
 {
   double squared_complex_norm(complex c);
+  inline double real_part_of_complex_prod(complex a,complex b){return a[0]*b[0]-a[1]*b[1];};
+  inline double real_part_of_complex_scalar_prod(complex a,complex b){return a[0]*b[0]+a[1]*b[1];};
   void assign_complex_prod_i(complex a);
   void assign_complex_prod_minus_i(complex a);
   void complex_conj(complex a,complex b);
