@@ -125,8 +125,8 @@ namespace nissa
     iloc_poly=iglb_poly%loc_vol;
   }  
   
-  //compute the polyakov loop - if ext_loop is non null uses it and store correlators inside it
-  THREADABLE_FUNCTION_4ARG(average_and_corr_polyakov_loop_lx_conf_internal, double*,tra, complex*,ext_loop, quad_su3*,conf, int,mu)
+  //compute the polyakov loop - if ext_loop is non null uses it and store correlators inside it, if loop_dag is non null compute also the dag
+  THREADABLE_FUNCTION_6ARG(average_and_corr_polyakov_loop_lx_conf_internal, double*,tra, double*,tra_dag, complex*,ext_loop, complex*,loop_dag, quad_su3*,conf, int,mu)
   {
     GET_THREAD_ID();
     
@@ -134,7 +134,12 @@ namespace nissa
     complex *loop=ext_loop;
     if(loop==NULL) loop=nissa_malloc("loop",loc_vol,complex);
     field_traced_polyakov_loop_lx_conf(loop,conf,mu);
-    
+    if(loop_dag)
+      {
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_conj(loop_dag[ivol],loop[ivol]);
+	set_borders_invalid(loop_dag);
+      }
+      
     //compute the trace; since we reduce over all the volume there are glb_size[mu] replica
     complex loc_tra={0,0};
     complex_vector_glb_collapse(loc_tra,loop,loc_vol);
@@ -148,14 +153,34 @@ namespace nissa
 	dirs[mu]=0;
 	fft4d(loop,loop,dirs,1/*complex per site*/,+1,true/*normalize*/);
 	
-	//multiply by itself
+	//compute also the transform of the dagger if needed
+	if(loop_dag)
+	  {
+	    fft4d(loop_dag,loop_dag,dirs,1/*complex per site*/,+1,true/*normalize*/);
+	    
+	    //for debugging purpose
+	    complex loc_tra_dag={0,0};
+	    complex_vector_glb_collapse(loc_tra_dag,loop_dag,loc_vol);
+	    complex_prod_double(tra_dag,loc_tra_dag,1.0/(3*glb_vol));
+	    
+	    //multiply by the other
+	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	      {
+		safe_complex_prod(loop_dag[ivol],loop[ivol],loop_dag[ivol]);
+		complex_prodassign_double(loop_dag[ivol],1.0/9);
+	      }
+	    THREAD_BARRIER();
+	    
+	    //transform back
+	    fft4d(loop_dag,loop_dag,dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+	  }
+
+	//multiply by the other
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
 	    loop[ivol][RE]=(loop[ivol][RE]*loop[ivol][RE]+loop[ivol][IM]*loop[ivol][IM])/9; //nc
 	    loop[ivol][IM]=0;
 	  }
-	//commented: can be done offline now!
-	//if(rank==0 && IS_MASTER_THREAD) loop[0][0]=0; //put to zero zero mode
 	THREAD_BARRIER();
 
 	//transform back
@@ -237,17 +262,24 @@ namespace nissa
   void average_and_corr_polyakov_loop_lx_conf(double *tra,FILE *corr_file,quad_su3 *conf,int mu,int itraj=0)
   {
     //if corr_file passed, allocate whole loop trace
-    complex *loop=NULL;
-    if(corr_file!=NULL) loop=nissa_malloc("loop",loc_vol,complex);
-
+    complex *loop=NULL,*loop_dag=NULL;
+    if(corr_file!=NULL)
+      {
+	loop=nissa_malloc("loop",loc_vol,complex);
+	loop_dag=nissa_malloc("loop_dag",loc_vol,complex);
+      }
+    
     //compute
-    average_and_corr_polyakov_loop_lx_conf_internal(tra,loop,conf,mu);
+    complex tra_dag;
+    average_and_corr_polyakov_loop_lx_conf_internal(tra,tra_dag,loop,loop_dag,conf,mu);
 
     //write and free
     if(corr_file!=NULL)
       {
 	save_poly_loop_correlator(corr_file,loop,mu,tra,itraj);
+	save_poly_loop_correlator(corr_file,loop_dag,mu,tra_dag,itraj);
 	nissa_free(loop);
+	nissa_free(loop_dag);
       }
   }
   

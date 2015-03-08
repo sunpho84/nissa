@@ -1,5 +1,4 @@
 #include <nissa.hpp>
-#include <functional>
 
 #ifdef POINT_SOURCE_VERSION
  #define PROP_TYPE su3spinspin
