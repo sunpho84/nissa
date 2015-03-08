@@ -34,8 +34,9 @@ theory_pars_t *theory_pars;
 evol_pars_t evol_pars;
 
 //traj
-int prod_ntraj;
-int itraj,max_ntraj;
+double init_time,max_traj_time=0,wall_time;
+int ntraj_prod;
+int itraj,ntraj_tot;
 int store_conf_each;
 int store_running_temp_conf;
 int conf_created;
@@ -130,7 +131,7 @@ void read_conf(quad_su3 **conf,char *path)
 	}
       
       //check for rational approximation
-      if(max_ntraj)
+      if(ntraj_tot)
 	{
 	  if(strcasecmp(cur_mess->name,"RAT_approx")==0)
 	    {
@@ -225,6 +226,8 @@ void init_program_to_analyze()
 //initialize the simulation
 void init_simulation(char *path)
 {
+  init_time=take_time();
+  
   //////////////////////////// read the input /////////////////////////
   
   //open input file
@@ -274,15 +277,16 @@ void init_simulation(char *path)
   //read if we want to measure all rectangles
   read_all_rect_meas_pars(all_rect_meas_pars);
   
-  //read the number of trajectory to evolve
-  read_str_int("MaxNTraj",&max_ntraj);
+  //read the number of trajectory to evolve and the wall_time
+  read_str_int("NTrajTot",&ntraj_tot);
+  read_str_double("WallTime",&wall_time);
   
   //read the seed
   read_str_int("Seed",&seed);
 
   //if we want to produce something, let's do it, otherwise load the list of configurations to analyze
   start_conf_cond_t start_conf_cond=UNSPEC_START_COND;
-  if(max_ntraj>0)
+  if(ntraj_tot>0)
     {
       //load evolution info depending if is a quenched simulation or unquenched
       if(theory_pars[SEA_THEORY].nflavs!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
@@ -335,7 +339,7 @@ void init_simulation(char *path)
   if(top_meas_pars.flag && top_meas_pars.cool_nsteps) init_sweeper(top_meas_pars.gauge_cooling_action);
   
   //init the program in "production" or "analysis" mode
-  if(max_ntraj>0) init_program_to_run(start_conf_cond);
+  if(ntraj_tot>0) init_program_to_run(start_conf_cond);
   else            init_program_to_analyze();
 }
 
@@ -361,17 +365,17 @@ void close_simulation()
   if(theory_pars[SEA_THEORY].em_field_pars.flag==3)
     draw_bynamical_potential(theory_pars[SEA_THEORY].em_field_pars.meta);
   
-  if(!store_running_temp_conf && prod_ntraj>0) write_conf(conf_path,conf);
+  if(!store_running_temp_conf && ntraj_prod>0) write_conf(conf_path,conf);
   
   //delete the conf list
-  if(max_ntraj==0)
+  if(ntraj_tot==0)
     {
       for(int iconf_to=0;iconf_to<nconf_to_analyze;iconf_to++) nissa_free(conf_to_analyze_paths[iconf_to]);
       nissa_free(conf_to_analyze_paths);
     }
   
   //destroy rational approximations
-  if(max_ntraj)
+  if(ntraj_tot)
     for(int i=0;i<theory_pars[SEA_THEORY].nflavs*3;i++)
       rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
   
@@ -567,7 +571,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   
   meas_time+=take_time();
   
-  verbosity_lv1_master_printf("Time to make fermionic measurement: %lg sec\n",meas_time);
+  verbosity_lv1_master_printf("Time to do all the measurement: %lg sec\n",meas_time);
 }
 
 //store conf when appropriate
@@ -581,20 +585,86 @@ void store_conf_if_necessary()
     }
 }
 
+//increase total time used to generate configurations
+void increase_max_time_per_traj(double init_traj_time)
+{
+  //increase the traj time
+  double single_traj_time=broadcast(take_time()-init_traj_time);
+  max_traj_time=std::max(max_traj_time,single_traj_time);
+}
+
+//check if we have enough time to make another conf
+bool enough_time()
+{  
+  //if no traj performed assume yes
+  if(ntraj_prod==0) return true;
+  
+  //compute the number of trajectory that can be run
+  double remaining_time=broadcast(wall_time-(take_time()-init_time));
+  verbosity_lv2_master_printf("Remaining time: %2.2lg s, max time per trajectory, needed so far: %2.2lg s\n",remaining_time,max_traj_time);
+  int ntraj_poss=floor(remaining_time/max_traj_time);
+  int nmin_traj_req=2;
+  verbosity_lv2_master_printf("Would allow to produce: %d trajectories in the worst case (stopping when <=%d)\n",ntraj_poss,nmin_traj_req);
+  
+  //check if we have enough time to make another traj
+  return (ntraj_poss>=nmin_traj_req);
+}
+
+//check that we fulfill all condition to go on
+bool check_if_continue()
+{
+  //check if to stop because stop present
+  bool stop_present=file_exists("stop");
+  if(stop_present)
+    {
+      verbosity_lv1_master_printf("'Stop' file present, closing\n");
+      return false;
+    }
+  
+  //check if to stop because stop or restart present
+  bool restart_present=file_exists("restart");
+  if(restart_present)
+    {
+      verbosity_lv1_master_printf("'Restart' file present, closing\n");
+      return false;
+    }
+  
+  //check if all traj performed
+  bool finished_all_traj=(itraj>=ntraj_tot);
+  if(finished_all_traj)
+    {
+      verbosity_lv1_master_printf("Requested trajectory %d, perfomed %d, closing\n",ntraj_tot,itraj);
+      file_touch("stop");
+      return false;
+    }
+  
+  //check time
+  bool have_enough_time=enough_time();
+  if(!have_enough_time)
+    {
+      verbosity_lv1_master_printf("Running out of time, closing\n");
+      return false;
+    }
+  
+  return true;
+}
+
 //run the program for "production" mode
 void run_program_for_production()
 {
   //evolve for the required number of traj
-  prod_ntraj=0;
+  ntraj_prod=0;
   master_printf("\n");
-  do
+  while(check_if_continue())
     {
+      double init_traj_time=take_time();
+
       // 1) produce new conf
       int acc=1;
-      if(max_ntraj!=0)
+      if(ntraj_tot!=0)
 	{
 	  acc=generate_new_conf(itraj);
-	  prod_ntraj++;
+	  ntraj_prod++;
 	  itraj++;
 	}
       
@@ -612,10 +682,11 @@ void run_program_for_production()
       
       //surely now we have created conf
       conf_created=0;
+      
+      increase_max_time_per_traj(init_traj_time);
     }
-  while(prod_ntraj<max_ntraj && !file_exists("stop") && !file_exists("restart"));
 
-  master_printf("Performed %d trajectories\n\n",prod_ntraj);
+  master_printf("Performed %d trajectories\n\n",ntraj_prod);
 }
 
 //run the program for "analysis"
@@ -642,13 +713,9 @@ void in_main(int narg,char **arg)
   //init simulation according to input file
   init_simulation(arg[1]);
   
-#ifdef CUDA
-  cuda::test();
-#endif
-
   ///////////////////////////////////////
   
-  if(max_ntraj!=0) run_program_for_production();
+  if(ntraj_tot!=0) run_program_for_production();
   else             run_program_for_analysis();
   
   /////////////////////////////////////// timings /////////////////////////////////

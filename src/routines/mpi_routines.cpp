@@ -209,16 +209,16 @@ namespace nissa
   {return pos+diff_with_next_eight_multiple(pos);}
   
   //broadcast an int
-  int master_broadcast(int in)
+  int broadcast(int in,int rank_from)
   {
-    MPI_Bcast(&in,1,MPI_INT,0,MPI_COMM_WORLD);
+    MPI_Bcast(&in,1,MPI_INT,rank_from,MPI_COMM_WORLD);
     return in;
   }
   
   //broadcast an int
-  double broadcast(double in,int rank)
+  double broadcast(double in,int rank_from)
   {
-    MPI_Bcast(&in,1,MPI_DOUBLE,0,MPI_COMM_WORLD);
+    MPI_Bcast(&in,1,MPI_DOUBLE,rank_from,MPI_COMM_WORLD);
     return in;
   }
   
