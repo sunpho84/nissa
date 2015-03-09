@@ -197,14 +197,14 @@ THREADABLE_FUNCTION_3ARG(insert_conserved_vector_current_bis, PROP_TYPE*,out, PR
       NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+map_mu[V_curr_mu],temp1);
       NAME2(PROP_TYPE,summ_the_prod_double)(out[ivol],temp2,-0.5); //-gamma_mu
       NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+5,temp1);
-      NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,+0.5*sign_r[r]); //+i gamma_5
+      NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,+0.5*sign_r[!r]); //+i gamma_5
 
       //BW
       NAME2(unsafe_su3_dag_prod,PROP_TYPE)(temp1,conf[ibw][V_curr_mu],in[ibw]);
       NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+map_mu[V_curr_mu],temp1);
       NAME2(PROP_TYPE,summ_the_prod_double)(out[ivol],temp2,-0.5); //-gamma_mu
       NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+5,temp1);
-      NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,-0.5*sign_r[r]); //-i gamma_4
+      NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,-0.5*sign_r[!r]); //-i gamma_4
     }
   
   set_borders_invalid(out);
@@ -594,9 +594,9 @@ void in_main(int narg,char **arg)
 		  if(prop2_map[icombo]==PROP_W)
 		    {
 #ifdef MEL_DEBUG
-		      generate_source(imass,r,CONS_VEC0_BIS,PROP_W);
+		      generate_source(imass,!r,CONS_VEC0_BIS,PROP_W);
 #else
-		      generate_source(imass,r,CONS_VEC0,PROP_W);
+		      generate_source(imass,!r,CONS_VEC0,PROP_W);
 #endif
 		      //compute the correlation function
 		      int gso=5,gsi=0;
@@ -606,7 +606,7 @@ void in_main(int narg,char **arg)
 		      print_contractions_to_file(fout,1,&gso,&gsi,corr,source_coord[0],"",1.0);
 		      master_fprintf(fout,"\n");
 		    }
-		    }
+		}
 	  
 	  //close the file
 	  close_file(fout);
