@@ -501,7 +501,7 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   //compute and print
   complex temp;
   average_and_corr_polyakov_loop_lx_conf(temp,fout,lx_conf,pars.dir,itraj);
-
+  
   fclose(fout);
   
   nissa_free(lx_conf);

@@ -62,7 +62,6 @@ namespace nissa
 		if(paral_dir[idir] && paral_dir[jdir])
 		  {
 		    int iedge=edge_numb[idir][jdir];
-		    master_printf("iedge: %d\n",iedge);
 		    int pos_edge_offset;
 		    
 		    //take the starting point of the border
