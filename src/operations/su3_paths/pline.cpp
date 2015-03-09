@@ -156,12 +156,13 @@ namespace nissa
 	//compute also the transform of the dagger if needed
 	if(loop_dag)
 	  {
-	    fft4d(loop_dag,loop_dag,dirs,1/*complex per site*/,+1,true/*normalize*/);
-	    
 	    //for debugging purpose
 	    complex loc_tra_dag={0,0};
 	    complex_vector_glb_collapse(loc_tra_dag,loop_dag,loc_vol);
 	    complex_prod_double(tra_dag,loc_tra_dag,1.0/(3*glb_vol));
+	    
+	    //transform
+	    fft4d(loop_dag,loop_dag,dirs,1/*complex per site*/,+1,true/*normalize*/);
 	    
 	    //multiply by the other
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
