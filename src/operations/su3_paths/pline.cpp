@@ -125,70 +125,63 @@ namespace nissa
     iloc_poly=iglb_poly%loc_vol;
   }  
   
-  //compute the polyakov loop - if ext_loop is non null uses it and store correlators inside it, if loop_dag is non null compute also the dag
-  THREADABLE_FUNCTION_6ARG(average_and_corr_polyakov_loop_lx_conf_internal, double*,tra, double*,tra_dag, complex*,ext_loop, complex*,loop_dag, quad_su3*,conf, int,mu)
+  //compute the polyakov loop - if ext_ll_dag is non null uses it and store correlator with the dag inside it, if ext_ll is non null compute also the correlator with itself
+  THREADABLE_FUNCTION_6ARG(average_and_corr_polyakov_loop_lx_conf_internal, double*,loop_trace, double*,loop_dag_trace, complex*,ll_dag_corr, complex*,ll_corr, quad_su3*,conf, int,mu)
   {
     GET_THREAD_ID();
     
     //compute the traced loop
-    complex *loop=ext_loop;
-    if(loop==NULL) loop=nissa_malloc("loop",loc_vol,complex);
-    field_traced_polyakov_loop_lx_conf(loop,conf,mu);
-    if(loop_dag)
+    complex *point_loop=nissa_malloc("point_loop",loc_vol,complex),*point_loop_dag=NULL;
+    field_traced_polyakov_loop_lx_conf(point_loop,conf,mu);
+    if(ll_corr)
       {
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_conj(loop_dag[ivol],loop[ivol]);
-	set_borders_invalid(loop_dag);
+	point_loop_dag=nissa_malloc("point_loop_dag",loc_vol,complex);
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_conj(point_loop_dag[ivol],point_loop[ivol]);
+	set_borders_invalid(point_loop_dag);
       }
       
     //compute the trace; since we reduce over all the volume there are glb_size[mu] replica
-    complex loc_tra={0,0};
-    complex_vector_glb_collapse(loc_tra,loop,loc_vol);
-    complex_prod_double(tra,loc_tra,1.0/(3*glb_vol));
+    complex temp_trace;
+    complex_vector_glb_collapse(temp_trace,point_loop,loc_vol);
+    complex_prod_double(loop_trace,temp_trace,1.0/(3*glb_vol));
     
-    //if an appropriate array passed take convolution of polyakov loop
-    if(ext_loop!=NULL)
+    //if an appropriate array passed compute correlators of polyakov loop
+    if(ll_dag_corr!=NULL)
       {
 	//take fftw in the perp plane
 	int dirs[4]={1,1,1,1};
 	dirs[mu]=0;
-	fft4d(loop,loop,dirs,1/*complex per site*/,+1,true/*normalize*/);
+	fft4d(point_loop,point_loop,dirs,1/*complex per site*/,+1,true/*normalize*/);
 	
 	//compute also the transform of the dagger if needed
-	if(loop_dag)
+	if(ll_corr)
 	  {
 	    //for debugging purpose
-	    complex loc_tra_dag={0,0};
-	    complex_vector_glb_collapse(loc_tra_dag,loop_dag,loc_vol);
-	    complex_prod_double(tra_dag,loc_tra_dag,1.0/(3*glb_vol));
+	    complex temp_dag_trace;
+	    complex_vector_glb_collapse(temp_dag_trace,point_loop_dag,loc_vol);
+	    complex_prod_double(loop_dag_trace,temp_dag_trace,1.0/(3*glb_vol));
 	    
 	    //transform
-	    fft4d(loop_dag,loop_dag,dirs,1/*complex per site*/,+1,true/*normalize*/);
-	    
-	    //multiply by the other
-	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	      {
-		safe_complex_prod(loop_dag[ivol],loop[ivol],loop_dag[ivol]);
-		complex_prodassign_double(loop_dag[ivol],1.0/9);
-	      }
-	    THREAD_BARRIER();
-	    
-	    //transform back
-	    fft4d(loop_dag,loop_dag,dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+	    fft4d(point_loop_dag,point_loop_dag,dirs,1/*complex per site*/,+1,true/*normalize*/);
 	  }
-
-	//multiply by the other
+	
+	//multiply to build correlators
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  {
-	    loop[ivol][RE]=(loop[ivol][RE]*loop[ivol][RE]+loop[ivol][IM]*loop[ivol][IM])/9; //nc
-	    loop[ivol][IM]=0;
+	    unsafe_complex_conj1_prod(ll_dag_corr[ivol],point_loop[ivol],point_loop[ivol]); //counter-intuitive but true
+	    unsafe_complex_prod(ll_corr[ivol],point_loop[ivol],point_loop_dag[ivol]); //because of convolution theorem
+	    complex_prodassign_double(ll_dag_corr[ivol],1.0/9);
+	    complex_prodassign_double(ll_corr[ivol],1.0/9);
 	  }
 	THREAD_BARRIER();
-
+	
 	//transform back
-	fft4d(loop,loop,dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+	fft4d(ll_dag_corr,ll_dag_corr,dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+	if(ll_corr) fft4d(ll_corr,ll_corr,dirs,1/*complex per site*/,-1,false/*do not normalize*/);
       }
-
-    if(ext_loop==NULL) nissa_free(loop);
+    
+    nissa_free(point_loop);
+    if(ll_corr) nissa_free(point_loop_dag);
   }
   THREADABLE_FUNCTION_END
 
