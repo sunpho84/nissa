@@ -25,7 +25,7 @@ namespace nissa
     quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     if(origi_conf!=smear_conf) double_vector_copy((double*)smear_conf,(double*)origi_conf,loc_vol*sizeof(quad_su3)/sizeof(double));
     
-    char dirs[20]="";
+    char dirs[21]="";
     if(ndirs) sprintf(dirs,"%d",dirs_list[0]);
     for(int idir=1;idir<ndirs;idir++)
       {

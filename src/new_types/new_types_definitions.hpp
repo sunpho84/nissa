@@ -180,8 +180,8 @@ namespace nissa
   //nissa vector
   struct nissa_vect
   {
-    int nel;
-    int size_per_el;
+    int64_t nel;
+    int64_t size_per_el;
     
     char tag[NISSA_VECT_STRING_LENGTH];
     char type[NISSA_VECT_STRING_LENGTH];
@@ -737,7 +737,7 @@ namespace nissa
     //communication in progress
     int comm_in_prog;
     //local size
-    size_t nbytes_per_site;
+    uint64_t nbytes_per_site;
     //size of the message
     uint64_t tot_mess_size;
     //offsets

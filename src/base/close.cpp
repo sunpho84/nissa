@@ -43,7 +43,7 @@ namespace nissa
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();
     
     //print information over the maximum amount of memory used
-    master_printf("Maximal memory used during the run: %d bytes (",max_required_memory);
+    master_printf("Maximal memory used during the run: %zu bytes (",max_required_memory);
     if(rank==0) fprintf_friendly_filesize(stdout,max_required_memory);
     master_printf(") per rank\n\n");
     
@@ -52,7 +52,7 @@ namespace nissa
       {
 	printf("Warning, there are still allocated vectors:\n");
 	print_all_vect_content();
-	printf("For a total of %d bytes\n",compute_vect_memory_usage());
+	printf("For a total of %zu bytes\n",compute_vect_memory_usage());
       }
     
     tot_time+=take_time();
