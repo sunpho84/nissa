@@ -154,7 +154,7 @@ namespace nissa
     //fill with Z4
     NISSA_LOC_VOL_LOOP(ivol)
       for(int mu=0;mu<4;mu++)
-	comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z4);
+	comp_get_rnd(eta[ivol][mu],&(loc_rnd_gen[ivol]),RND_Z2);
     set_borders_invalid(eta);
     
     //pass to mom space

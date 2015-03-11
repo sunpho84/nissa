@@ -59,16 +59,17 @@ const prop_t source_map[nprop_kind]=        {PROP_0,   PROP_0,    PROP_0,       
 const char prop_abbr[]=                      "0"       "C"        "D"            "W";
 #else
 //define types of propagator used
+const int nins_kind=9;
+enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  VEC0,  CONS_VEC0,  STOCH_PHI,  STOCH_ETA,  TADPOLE,  WALL5 };
+const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","VEC0","CONS_VEC0","STOCH_PHI","STOCH_ETA","TADPOLE","WALL5"};
 const int nprop_kind=10;
-enum insertion_t                     {ORIGINAL,  SCALAR,  PSEUDO,  VEC0,  CONS_VEC0,  STOCH_PHI,  STOCH_ETA,  STOCH_ETA_DAG,  TADPOLE,  WALL5 };
-const char ins_name[nprop_kind][20]={"ORIGINAL","SCALAR","PSEUDO","VEC0","CONS_VEC0","STOCH_PHI","STOCH_ETA","STOCH_ETA_DAG","TADPOLE","WALL5"};
 enum prop_t{                           PROP_0,  PROP_S,  PROP_P,  PROP_A,  PROP_B,  PROP_AB,  PROP_T,  PROP_CV,  PROP_V,  PROP_W};
 const char prop_name[nprop_kind][20]={"PROP_0","PROP_S","PROP_P","PROP_A","PROP_B","PROP_AB","PROP_T","PROP_CV","PROP_V","PROP_W"};
 //map the source, the destination and the insertion for each propagator
-const prop_t prop_map[nprop_kind]=          {PROP_0,   PROP_S, PROP_P, PROP_A,    PROP_B,    PROP_AB,       PROP_T,  PROP_CV,   PROP_V, PROP_W };
-const insertion_t insertion_map[nprop_kind]={ORIGINAL, SCALAR, PSEUDO, STOCH_PHI, STOCH_ETA, STOCH_ETA_DAG, TADPOLE, CONS_VEC0, VEC0,   WALL5 };
-const prop_t source_map[nprop_kind]=        {PROP_0,   PROP_0, PROP_0, PROP_0,    PROP_0,    PROP_A,        PROP_0,  PROP_0,    PROP_0, PROP_0};
-const char prop_abbr[]=                      "0"       "S"     "P"     "A"        "B"        "X"            "T"      "C"        "V"     "W";
+const prop_t prop_map[nprop_kind]=          {PROP_0,   PROP_S, PROP_P, PROP_A,    PROP_B,    PROP_AB,   PROP_T,  PROP_CV,   PROP_V, PROP_W };
+const insertion_t insertion_map[nprop_kind]={ORIGINAL, SCALAR, PSEUDO, STOCH_PHI, STOCH_ETA, STOCH_ETA, TADPOLE, CONS_VEC0, VEC0,   WALL5 };
+const prop_t source_map[nprop_kind]=        {PROP_0,   PROP_0, PROP_0, PROP_0,    PROP_0,    PROP_A,    PROP_0,  PROP_0,    PROP_0, PROP_0};
+const char prop_abbr[]=                      "0"       "S"     "P"     "A"        "B"        "X"        "T"      "C"        "V"     "W";
 #endif
    
 //return appropriate propagator
@@ -153,7 +154,7 @@ void insert_operator(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,complex fact_
 	//put ig5 on the summ
 	PROP_TYPE g5_bw_P_fw;
 	NAME2(unsafe_dirac_prod,PROP_TYPE)(g5_bw_P_fw,base_gamma+5,bw_P_fw);
-	NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],g5_bw_P_fw,sign_r[r]);
+	NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],g5_bw_P_fw,sign_r[!r]);
 	
 	//put gmu on the difference
 	PROP_TYPE gmu_bw_M_fw;
@@ -222,13 +223,12 @@ THREADABLE_FUNCTION_3ARG(insert_tadpole, PROP_TYPE*,out, PROP_TYPE*,in, int,r)
 THREADABLE_FUNCTION_END
 
 //insert the external source, that is one of the two extrema of the stoch prop
-void insert_external_source_dag_handle(complex out,spin1field *aux,int ivol,int mu){complex_conj(out,aux[ivol][mu]);}
 void insert_external_source_handle(complex out,spin1field *aux,int ivol,int mu){complex_copy(out,aux[ivol][mu]);}
-THREADABLE_FUNCTION_5ARG(insert_external_source, PROP_TYPE*,out, spin1field*,curr, bool,dag, PROP_TYPE*,in, int,r)
+THREADABLE_FUNCTION_4ARG(insert_external_source, PROP_TYPE*,out, spin1field*,curr, PROP_TYPE*,in, int,r)
 {
   //call with no source insertion, minus between fw and bw, and a global -i*0.5
   complex fw_factor={0,-0.5},bw_factor={0,+0.5};
-  insert_operator(out,curr,in,fw_factor,bw_factor,r,dag?insert_external_source_dag_handle:insert_external_source_handle);
+  insert_operator(out,curr,in,fw_factor,bw_factor,r,insert_external_source_handle);
 }
 THREADABLE_FUNCTION_END
 
@@ -275,9 +275,8 @@ void generate_source(int imass,int r,insertion_t inser,prop_t ORI=PROP_0)
     case CONS_VEC0_BIS:insert_conserved_vector_current_bis(source,ori,r);break;
 #else
     case VEC0:prop_multiply_with_gamma(source,4,ori);break;
-    case STOCH_PHI:insert_external_source(source,photon_phi,false,ori,r);break;
-    case STOCH_ETA:insert_external_source(source,photon_eta,false,ori,r);break;
-    case STOCH_ETA_DAG:insert_external_source(source,photon_eta,true,ori,r);break;
+    case STOCH_PHI:insert_external_source(source,photon_phi,ori,r);break;
+    case STOCH_ETA:insert_external_source(source,photon_eta,ori,r);break;
     case TADPOLE:insert_tadpole(source,ori,r);break;
 #endif
     case WALL5:prop_multiply_with_gamma(source,5,ori,(glb_size[0]/2+source_coord[0])%glb_size[0]);break;
@@ -306,7 +305,7 @@ void get_prop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
 #endif
 	
 	//rotate the source index
-	safe_dirac_prod_spincolor(temp_source,rot[r],temp_source);
+	safe_dirac_prod_spincolor(temp_source,rot[!r],temp_source);
 	
 	//invert
 	inv_time-=take_time();
@@ -314,7 +313,7 @@ void get_prop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
 	ninv_tot++;inv_time+=take_time();
 	
 	//rotate the sink index
-	safe_dirac_prod_spincolor(temp_solution,rot[r],temp_solution);      
+	safe_dirac_prod_spincolor(temp_solution,rot[!r],temp_solution);      
 	
 	//put the output on place
 #ifdef POINT_SOURCE_VERSION
