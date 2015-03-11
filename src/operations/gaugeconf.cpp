@@ -45,7 +45,7 @@
 
 namespace nissa
 {
-  void ac_rotate_vector(void *out,void *in,int axis,int bps)
+  void ac_rotate_vector(void *out,void *in,int axis,size_t bps)
   {
     //find the two swapping direction 
     int d1=1+(axis-1+1)%3;

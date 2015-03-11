@@ -40,7 +40,7 @@ namespace nissa
   {swap_eo_to_lx((char*)out_lx,(char*)in_e,(char*)in_o,sizeof(spincolor),bord);}
   
   //separate the even or odd part of a vector
-  void take_e_or_o_part_of_lx_vector(char *out_e_or_o,char *in_lx,int bps,int par)
+  void take_e_or_o_part_of_lx_vector(char *out_e_or_o,char *in_lx,size_t bps,int par)
   {
     //extract
     NISSA_LOC_VOL_LOOP(loclx)
@@ -50,9 +50,9 @@ namespace nissa
     set_borders_invalid(out_e_or_o);
   }
   //wrappers
-  void take_e_part_of_lx_vector(char *out_e,char *in_lx,int bps)
+  void take_e_part_of_lx_vector(char *out_e,char *in_lx,size_t bps)
   {take_e_or_o_part_of_lx_vector(out_e,in_lx,bps,EVN);}
-  void take_o_part_of_lx_vector(char *out_o,char *in_lx,int bps)
+  void take_o_part_of_lx_vector(char *out_o,char *in_lx,size_t bps)
   {take_e_or_o_part_of_lx_vector(out_o,in_lx,bps,ODD);}
   void take_e_part_of_lx_color(color *out_e,color *in_lx)
   {take_e_part_of_lx_vector((char*)out_e,(char*)in_lx,sizeof(color));}
@@ -60,7 +60,7 @@ namespace nissa
   {take_o_part_of_lx_vector((char*)out_o,(char*)in_lx,sizeof(color));}
   
   //separate the even and odd part of a vector
-  void split_lx_vector_into_eo_parts(char **out_eo,char *in_lx,int bps)
+  void split_lx_vector_into_eo_parts(char **out_eo,char *in_lx,size_t bps)
   {
     //split
     NISSA_LOC_VOL_LOOP(loclx)
@@ -71,7 +71,7 @@ namespace nissa
   }
   
   //paste the even and odd parts of a vector into a full lx vector
-  void paste_eo_parts_into_lx_vector(char *out_lx,char **in_eo,int bps)
+  void paste_eo_parts_into_lx_vector(char *out_lx,char **in_eo,size_t bps)
   {
     //paste
     NISSA_LOC_VOL_LOOP(loclx)
