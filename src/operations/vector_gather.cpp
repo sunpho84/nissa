@@ -12,7 +12,7 @@
 namespace nissa
 {
   //gather the whole field on a single rank, reordering data
-  void vector_gather(char *glb,char *loc,int bps,int dest_rank)
+  void vector_gather(char *glb,char *loc,size_t bps,int dest_rank)
   {
     if(dest_rank==rank)
       {
