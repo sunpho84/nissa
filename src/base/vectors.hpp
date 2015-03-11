@@ -1,5 +1,5 @@
-#ifndef _VECTORS_H
-#define _VECTORS_H
+#ifndef _VECTORS_HPP
+#define _VECTORS_HPP
 
 #include <stdio.h>
 #include "new_types/new_types_definitions.hpp"
@@ -12,10 +12,10 @@ namespace nissa
   int check_borders_valid(void *data);
   int check_edges_allocated(void *data);
   int check_edges_valid(void *data);
-  int compute_vect_memory_usage();
+  int64_t compute_vect_memory_usage();
   int get_vect_flag(void *v,unsigned int flag);
   nissa_vect* get_vect(void *v);
-  void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *type,const char *file,int line);
+  void *internal_nissa_malloc(const char *tag,int64_t nel,int64_t size_per_el,const char *type,const char *file,int line);
   void crash_if_borders_not_allocated(void *v);
   void crash_if_edges_not_allocated(void *v);
   void ignore_borders_communications_warning(void *data);

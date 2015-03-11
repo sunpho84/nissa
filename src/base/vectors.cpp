@@ -38,7 +38,7 @@ namespace nissa
     if(rank==0)
       {
 	fprintf(fout,"\"%s\" ",vect->tag);
-	fprintf(fout,"of %d elements of type \"%s\" (%d bytes) ",vect->nel,vect->type,vect->nel*vect->size_per_el);
+	fprintf(fout,"of %ld elements of type \"%s\" (%ld bytes) ",vect->nel,vect->type,vect->nel*vect->size_per_el);
 	fprintf(fout,"allocated in file %s line %d\n",vect->file,vect->line);
       }
   }
@@ -174,9 +174,9 @@ namespace nissa
   }
   
   //print all nissa vect
-  int compute_vect_memory_usage()
+  int64_t compute_vect_memory_usage()
   {
-    int tot=0;
+    int64_t tot=0;
     nissa_vect *curr=&(main_vect);
     do
       {  
@@ -210,14 +210,14 @@ namespace nissa
   }
   
   //allocate an nissa vector 
-  void *internal_nissa_malloc(const char *tag,int nel,int size_per_el,const char *type,const char *file,int line)
+  void *internal_nissa_malloc(const char *tag,int64_t nel,int64_t size_per_el,const char *type,const char *file,int line)
   {
     GET_THREAD_ID();
     if(IS_MASTER_THREAD)
       {
 	IF_VECT_NOT_INITIALIZED() initialize_main_vect();
 	
-	int size=nel*size_per_el;
+	int64_t size=nel*size_per_el;
 	//try to allocate the new vector
 	nissa_vect *nv=(nissa_vect*)malloc(size+sizeof(nissa_vect));
 	if(nv==NULL)
@@ -248,7 +248,7 @@ namespace nissa
 	
 	//define returned pointer and check for its alignement
 	return_malloc_ptr=(void*)(last_vect+1);
-	int offset=((long long int)(return_malloc_ptr))%NISSA_VECT_ALIGNMENT;
+	int64_t offset=((int64_t)(return_malloc_ptr))%NISSA_VECT_ALIGNMENT;
 	if(offset!=0)
 	  crash("memory alignment problem, vector %s has %d offset",tag,offset);
 	
@@ -291,12 +291,12 @@ namespace nissa
 	nissa_vect *nissa_b=(nissa_vect*)((char*)b-sizeof(nissa_vect));
 	
 	//get nentries
-	int nel_a=nissa_a->nel;
-	int nel_b=nissa_b->nel;
+	int64_t nel_a=nissa_a->nel;
+	int64_t nel_b=nissa_b->nel;
 	
 	//get nentries per site
-	int size_per_el_a=nissa_a->size_per_el;
-	int size_per_el_b=nissa_b->size_per_el;
+	int64_t size_per_el_a=nissa_a->size_per_el;
+	int64_t size_per_el_b=nissa_b->size_per_el;
 	
 	//check size agreement
 	if(nel_a!=nel_b) crash("while copying, vector %s contains %d and vector %s contains %d",
@@ -329,8 +329,8 @@ namespace nissa
     if(IS_MASTER_THREAD)
       {
 	nissa_vect *nissa_a=(nissa_vect*)((char*)a-sizeof(nissa_vect));
-	int nel_a=nissa_a->nel;
-	int size_per_el_a=nissa_a->size_per_el;
+	int64_t nel_a=nissa_a->nel;
+	int64_t size_per_el_a=nissa_a->size_per_el;
 	memset(a,0,size_per_el_a*nel_a);
       }
     
@@ -390,7 +390,7 @@ namespace nissa
   THREADABLE_FUNCTION_4ARG(reorder_vector, char*,vect, int*,order, int,nel, int,sel)
   {
     GET_THREAD_ID();
-    char *buf=nissa_malloc("buf",sel*nel,char);
+    char *buf=nissa_malloc("buf",(int64_t)sel*nel,char);
     
     //copy in the buffer
     NISSA_PARALLEL_LOOP(sour,0,nel) memcpy(buf+order[sour]*sel,vect+sour*sel,sel);

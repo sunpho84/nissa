@@ -16,12 +16,12 @@ namespace nissa
   //-glb is relative to the global grid
   //-loc to the local one
   EXTERN coords glb_size,loc_size;
-  EXTERN int glb_vol,glb_spat_vol,glb_volh;
-  EXTERN int loc_vol,loc_spat_vol,loc_volh;
-  EXTERN int bulk_vol,non_bw_surf_vol,non_fw_surf_vol;
-  EXTERN int surf_vol,bw_surf_vol,fw_surf_vol;
-  EXTERN int vsurf_vol,vsurf_volh;
-  EXTERN int vdir_bord_vol,vdir_bord_volh;
+  EXTERN int64_t glb_vol,glb_spat_vol,glb_volh;
+  EXTERN int64_t loc_vol,loc_spat_vol,loc_volh;
+  EXTERN int64_t bulk_vol,non_bw_surf_vol,non_fw_surf_vol;
+  EXTERN int64_t surf_vol,bw_surf_vol,fw_surf_vol;
+  EXTERN int64_t vsurf_vol,vsurf_volh;
+  EXTERN int64_t vdir_bord_vol,vdir_bord_volh;
   EXTERN double glb_vol2,loc_vol2;
   //-lx is lexicografic
   EXTERN coords *glb_coord_of_loclx;
@@ -200,8 +200,8 @@ namespace nissa
   EXTERN FILE *input_global;
   
   //vectors
-  EXTERN int max_required_memory;
-  EXTERN int required_memory;
+  EXTERN int64_t max_required_memory;
+  EXTERN int64_t required_memory;
   EXTERN void *main_arr;
   EXTERN nissa_vect main_vect;
   EXTERN nissa_vect *last_vect;
@@ -209,9 +209,9 @@ namespace nissa
   
   //random generator stuff
   EXTERN rnd_gen glb_rnd_gen;
-  EXTERN int glb_rnd_gen_inited;
+  EXTERN bool glb_rnd_gen_inited;
   EXTERN rnd_gen *loc_rnd_gen;
-  EXTERN int loc_rnd_gen_inited;
+  EXTERN bool loc_rnd_gen_inited;
   EXTERN enum rnd_t rnd_type_map[6]
 #ifndef ONLY_INSTANTIATION
   ={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4,RND_GAUSS}
@@ -258,7 +258,7 @@ namespace nissa
   EXTERN int comm_in_prog;
   
   //buffers
-  EXTERN size_t recv_buf_size,send_buf_size;
+  EXTERN uint64_t recv_buf_size,send_buf_size;
   EXTERN char *recv_buf,*send_buf;
   
   //communicators

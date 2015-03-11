@@ -165,6 +165,65 @@ void insert_operator(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,complex fact_
   set_borders_invalid(out);
 }
 
+/*
+  insert the operator:  \sum_mu A_{x,mu} [
+   f_fw * ( i t3 g5 - gmu) U_{x,mu} \delta{x',x+mu} + f_bw * ( i t3 g5 + gmu) U^+_{x-mu,mu} \delta{x',x-mu}
+  ]
+*/
+void insert_operator_twisted(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,complex fact_fw,complex fact_bw,void(*get_curr)(complex,spin1field *,int,int))
+{
+  GET_THREAD_ID();
+  
+  //reset the output and communicate borders
+  vector_reset(out);
+  NAME3(communicate_lx,PROP_TYPE,borders)(in);
+  communicate_lx_quad_su3_borders(conf);
+  if(curr) communicate_lx_spin1field_borders(curr);
+
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int mu=0;mu<4;mu++)
+      {
+	//find neighbors
+	int ifw=loclx_neighup[ivol][mu];
+	int ibw=loclx_neighdw[ivol][mu];
+	
+	//transport down and up
+	PROP_TYPE fw,bw;
+	NAME2(unsafe_su3_prod,PROP_TYPE)(fw,conf[ivol][mu],in[ifw]);
+	NAME2(unsafe_su3_dag_prod,PROP_TYPE)(bw,conf[ibw][mu],in[ibw]);
+	
+	//weight the two pieces
+	NAME2(PROP_TYPE,prodassign_complex)(fw,fact_fw);
+	NAME2(PROP_TYPE,prodassign_complex)(bw,fact_bw);
+	
+	//insert the current
+	complex fw_curr,bw_curr;
+	get_curr(fw_curr,curr,ivol,mu);
+	get_curr(bw_curr,curr,ibw,mu);
+	NAME2(PROP_TYPE,prodassign_complex)(fw,fw_curr);
+	NAME2(PROP_TYPE,prodassign_complex)(bw,bw_curr);
+	
+	//summ and subtract the two
+	PROP_TYPE bw_M_fw,bw_P_fw;
+	NAME2(PROP_TYPE,subt)(bw_M_fw,bw,fw);
+	NAME2(PROP_TYPE,summ)(bw_P_fw,bw,fw);
+	
+	//add the summ
+	//put ig5 on the summ
+	PROP_TYPE g0_bw_P_fw;
+	NAME2(unsafe_dirac_prod,PROP_TYPE)(g0_bw_P_fw,base_gamma+0,bw_P_fw);
+	NAME2(PROP_TYPE,summ_the_prod_double)(out[ivol],g0_bw_P_fw,1);
+
+	
+	//put gmu on the difference
+	PROP_TYPE gmu_bw_M_fw;
+	NAME2(unsafe_dirac_prod,PROP_TYPE)(gmu_bw_M_fw,base_gamma+map_mu[mu],bw_M_fw);
+	NAME2(PROP_TYPE,summassign)(out[ivol],gmu_bw_M_fw);
+    }
+
+  set_borders_invalid(out);
+}
+
 //insert the conserved vector current
 void insert_conserved_vector_current_handle(complex out,spin1field *aux,int ivol,int mu){out[RE]=(mu==V_curr_mu);out[IM]=0;}
 THREADABLE_FUNCTION_3ARG(insert_conserved_vector_current, PROP_TYPE*,out, PROP_TYPE*,in, int,r)
@@ -218,7 +277,14 @@ THREADABLE_FUNCTION_3ARG(insert_tadpole, PROP_TYPE*,out, PROP_TYPE*,in, int,r)
 {
   //call with no source insertion, plus between fw and bw, and a global -0.25
   complex fw_factor={-0.25,0},bw_factor={-0.25,0};
-  insert_operator(out,NULL,in,fw_factor,bw_factor,r,insert_tadpole_handle);
+  insert_operator(out,NULL,in,fw_factor,bw_factor,!r,insert_tadpole_handle);
+}
+THREADABLE_FUNCTION_END
+THREADABLE_FUNCTION_2ARG(insert_tadpole_twisted, PROP_TYPE*,out, PROP_TYPE*,in)
+{
+  //call with no source insertion, plus between fw and bw, and a global -0.25
+  complex fw_factor={-0.25,0},bw_factor={-0.25,0};
+  insert_operator_twisted(out,NULL,in,fw_factor,bw_factor,insert_tadpole_handle);
 }
 THREADABLE_FUNCTION_END
 
@@ -287,7 +353,7 @@ void generate_source(int imass,int r,insertion_t inser,prop_t ORI=PROP_0)
 }
 
 //invert on top of a source, putting all needed for the appropriate quark
-void get_prop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
+void get_prop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,int rotate=true)
 {
   //sign and rotators
   dirac_matr *rot[2]={&Pminus,&Pplus};
@@ -305,7 +371,7 @@ void get_prop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
 #endif
 	
 	//rotate the source index
-	safe_dirac_prod_spincolor(temp_source,rot[!r],temp_source);
+	if(rotate) safe_dirac_prod_spincolor(temp_source,rot[!r],temp_source);
 	
 	//invert
 	inv_time-=take_time();
@@ -313,7 +379,7 @@ void get_prop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
 	ninv_tot++;inv_time+=take_time();
 	
 	//rotate the sink index
-	safe_dirac_prod_spincolor(temp_solution,rot[!r],temp_solution);      
+	if(rotate) safe_dirac_prod_spincolor(temp_solution,rot[!r],temp_solution);      
 	
 	//put the output on place
 #ifdef POINT_SOURCE_VERSION
@@ -548,6 +614,42 @@ void in_main(int narg,char **arg)
       setup_conf();
       generate_original_source();
       generate_photon_stochastic_propagator();
+      
+      {
+	PROP_TYPE* l_prop=nissa_malloc("l_prop",loc_vol,PROP_TYPE);
+	PROP_TYPE* s_prop=nissa_malloc("s_prop",loc_vol,PROP_TYPE);
+	PROP_TYPE* sT_prop=nissa_malloc("sT_prop",loc_vol,PROP_TYPE);
+	
+	generate_source(0,0,ORIGINAL,PROP_0);
+	get_prop(l_prop,source,0,0,false);
+	get_prop(s_prop,source,nmass-1,0,false);
+	//prop_multiply_with_gamma(source,0,s_prop); //this is equal to the imaginary part of the P insertion
+	//prop_multiply_with_gamma(source,5,s_prop);  //this is equal to the imaginary part of the S insertion
+	insert_tadpole_twisted(source,s_prop);
+	get_prop(sT_prop,source,nmass-1,0,false);
+	
+	FILE *fout=open_file(combine("%s/corr_test",outfolder).c_str(),"w");
+	int gso=5,gsi=5;
+	compute_corr(corr,l_prop,s_prop,gso,gsi);
+	
+	//print out
+	master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d\n",mass[0],mass[nmass-1],0);
+	print_contractions_to_file(fout,1,&gso,&gsi,corr,source_coord[0],"",1.0);
+	master_fprintf(fout,"\n");
+	
+	compute_corr(corr,l_prop,sT_prop,gso,gsi);
+	
+	//print out
+	master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d\n",mass[0],mass[nmass-1],0);
+	print_contractions_to_file(fout,1,&gso,&gsi,corr,source_coord[0],"",1.0);
+	master_fprintf(fout,"\n");
+	
+	close_file(fout);
+	
+	nissa_free(l_prop);
+	nissa_free(s_prop);
+	nissa_free(sT_prop);
+      }
       
       //generate all the propagators
       for(int ip=0;ip<nprop_kind;ip++)
