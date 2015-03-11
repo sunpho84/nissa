@@ -19,6 +19,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <sys/types.h>
 
 #include "base/macros.hpp"
 
@@ -195,7 +196,7 @@ namespace nissa
     uint32_t flag;
     
     //padding to keep memory alignment
-    char pad[NISSA_VECT_ALIGNMENT-(3*sizeof(int)+2*sizeof(void*)+3*NISSA_VECT_STRING_LENGTH+sizeof(uint32_t))%NISSA_VECT_ALIGNMENT];
+    char pad[NISSA_VECT_ALIGNMENT-(sizeof(nel)+sizeof(size_per_el)+3*NISSA_VECT_STRING_LENGTH+sizeof(line)+2*sizeof(prev)+sizeof(flag))%NISSA_VECT_ALIGNMENT];
   };
   
   //all to all communicators initializing structure
@@ -221,7 +222,7 @@ namespace nissa
     all_to_all_comm_t(all_to_all_gathering_list_t &gl);
     all_to_all_comm_t(all_to_all_scattering_list_t &sl);
     ~all_to_all_comm_t();
-    void communicate(void *out,void *in,int bps,void *buf_out=NULL,void *buf_in=NULL,int tag=-1);
+    void communicate(void *out,void *in,size_t bps,void *buf_out=NULL,void *buf_in=NULL,int tag=-1);
 
     void setup_knowing_where_to_send(all_to_all_scattering_list_t &sl);
     void setup_knowing_what_to_ask(all_to_all_gathering_list_t &gl);

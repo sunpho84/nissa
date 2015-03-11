@@ -544,7 +544,7 @@ namespace nissa
     
     //read
     ILDG_Offset nbytes_read=fread(buf,1,nbytes_per_rank_exp,file);
-    if(nbytes_read!=nbytes_per_rank_exp) crash("read %u bytes instead of %u",nbytes_read,nbytes_per_rank_exp);
+    if(nbytes_read!=nbytes_per_rank_exp) crash("read %ld bytes instead of %ld",nbytes_read,nbytes_per_rank_exp);
     
     //place at the end of the record, including padding
     ILDG_File_set_position(file,ori_pos+ceil_to_next_eight_multiple(header.data_length),SEEK_SET);
@@ -592,15 +592,15 @@ namespace nissa
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(isour,0,loc_vol)
-    {
-      int idest=0;
-      for(int mu=0;mu<NDIM;mu++)
-	{
-	  int nu=scidac_mapping[mu];
-	  idest=idest*loc_size[nu]+loc_coord_of_loclx[isour][nu];
-	}
-      memcpy(buf+nbytes_per_site*idest,data+nbytes_per_site*isour,nbytes_per_site);
-    }
+      {
+	int64_t idest=0;
+	for(int mu=0;mu<NDIM;mu++)
+	  {
+	    int nu=scidac_mapping[mu];
+	    idest=idest*loc_size[nu]+loc_coord_of_loclx[isour][nu];
+	  }
+	memcpy(buf+nbytes_per_site*idest,data+nbytes_per_site*isour,nbytes_per_site);
+      }
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END

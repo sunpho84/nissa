@@ -277,7 +277,7 @@ namespace nissa
   }
   
   //perform the remapping
-  void all_to_all_comm_t::communicate(void *out,void *in,int bps,void *ext_out_buf,void *ext_in_buf,int tag)
+  void all_to_all_comm_t::communicate(void *out,void *in,size_t bps,void *ext_out_buf,void *ext_in_buf,int tag)
   {
     GET_THREAD_ID();
     
