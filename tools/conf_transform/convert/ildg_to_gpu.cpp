@@ -24,8 +24,6 @@ int main(int narg,char **arg)
   //basic mpi initialization
   init_nissa(narg,arg);
   
-  if(nranks>1) crash("cannot run in parallel");
-  
   if(narg<5) crash("use: %s L T file_in file_out",arg[0]);
 
   L=atoi(arg[1]);
@@ -48,6 +46,8 @@ int main(int narg,char **arg)
   
   //add phases
   addrem_stagphases_to_lx_conf(in_conf);
+  
+  if(nranks>1) crash("cannot run in parallel");
   
   //reorder the conf
   int map_mu[4]={1,2,3,0};

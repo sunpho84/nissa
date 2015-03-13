@@ -1,10 +1,22 @@
-#pragma once
-
 #include "routines/ios.hpp"
 
 namespace nissa
 {
-  //Apply the Q=D*g5 operator to a spincolor
+  //Apply the Q=g5*D operator to a spincolor, in twisted basis
+  //
+  // D_{x,y}=[1/(2k)+i g5 mass t3] \delta_{x,y}-1/2*
+  //          \sum_mu{[1-gmu]U_x,mu\delta_{x+\hat{mu},y}+(1+gmu)U^+_{x-\hat{\mu},\mu}\delta_{x-\hat{\mu}}}
+  //
+  // when applying transformation chi->(1+i g5 t3)/sqrt(2) to the fermionic field, meaning that we multiply
+  // source and sink of the propagator by (1-i g5 t3)/sqrt(2), the dirac operator becomes
+  // 
+  // (1-i g5 t3)^2/2 = - i g5 t3
+  //
+  // (1-i g5 t3)gmu(1-i g5 t3)^2/2 = gmu 
+  //
+  // D_{x,y}=[-i g5 t3/(2k)+mass] \delta_{x,y}-1/2*
+  //          \sum_mu{[-i g5 t3-gmu]U_x,mu\delta_{x+\hat{mu},y}+(-i g5 t3+gmu)U^+_{x-\hat{\mu},\mu}\delta_{x-\hat{\mu}}}
+  //
   THREADABLE_FUNCTION_5ARG(apply_tmQ, spincolor*,out, quad_su3*,conf, double,kappa, double,mu, spincolor*,in)
   {
     if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
