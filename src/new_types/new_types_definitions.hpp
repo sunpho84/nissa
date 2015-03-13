@@ -196,7 +196,7 @@ namespace nissa
     uint32_t flag;
     
     //padding to keep memory alignment
-    char pad[NISSA_VECT_ALIGNMENT-(sizeof(nel)+sizeof(size_per_el)+3*NISSA_VECT_STRING_LENGTH+sizeof(line)+2*sizeof(prev)+sizeof(flag))%NISSA_VECT_ALIGNMENT];
+    char pad[NISSA_VECT_ALIGNMENT-(2*sizeof(int64_t)+3*NISSA_VECT_STRING_LENGTH+sizeof(int)+2*sizeof(nissa_vect*)+sizeof(uint32_t))%NISSA_VECT_ALIGNMENT];
   };
   
   //all to all communicators initializing structure
