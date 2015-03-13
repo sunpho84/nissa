@@ -136,17 +136,25 @@ __top_builddir__bin_semileptonic_smeared_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.a
 am____top_builddir__bin_semileptonic_smeared_point_source_SOURCES_DIST =  \
 	semileptonic_smeared_point_source.cpp tokenize_corr.cpp \
-	parse_corr.hpp parse_corr.cpp parse_corr.ypp tokenize_corr.lpp \
-	driver_corr.hpp redefine_yy.hpp
-@PARSER_GENERATION_FALSE@am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = semileptonic_smeared_point_source.$(OBJEXT) \
-@PARSER_GENERATION_FALSE@	$(am__objects_1)
-@PARSER_GENERATION_TRUE@am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = semileptonic_smeared_point_source.$(OBJEXT) \
-@PARSER_GENERATION_TRUE@	$(am__objects_2)
+	parse_corr.hpp parse_corr.cpp semileptonic_smeared.cpp \
+	parse_corr.ypp tokenize_corr.lpp driver_corr.hpp \
+	redefine_yy.hpp
+am__objects_3 = __top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.$(OBJEXT) \
+	__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.$(OBJEXT)
+am__objects_4 = __top_builddir__bin_semileptonic_smeared_point_source-parse_corr.$(OBJEXT) \
+	__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.$(OBJEXT)
+@PARSER_GENERATION_FALSE@am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.$(OBJEXT) \
+@PARSER_GENERATION_FALSE@	$(am__objects_3)
+@PARSER_GENERATION_TRUE@am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.$(OBJEXT) \
+@PARSER_GENERATION_TRUE@	$(am__objects_4)
 __top_builddir__bin_semileptonic_smeared_point_source_OBJECTS = $(am___top_builddir__bin_semileptonic_smeared_point_source_OBJECTS)
 __top_builddir__bin_semileptonic_smeared_point_source_LDADD =  \
 	$(LDADD)
 __top_builddir__bin_semileptonic_smeared_point_source_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.a
+__top_builddir__bin_semileptonic_smeared_point_source_LINK = $(CXXLD) \
+	$(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) \
+	$(CXXFLAGS) $(AM_LDFLAGS) $(LDFLAGS) -o $@
 am____top_builddir__bin_test_bgq_SOURCES_DIST = test_bgq.cpp
 @BGQ_TRUE@am___top_builddir__bin_test_bgq_OBJECTS =  \
 @BGQ_TRUE@	test_bgq.$(OBJEXT)
@@ -171,6 +179,10 @@ DEFAULT_INCLUDES = -I.@am__isrc@ -I$(top_builddir)/src
 depcomp = $(SHELL) $(top_srcdir)/config/depcomp
 am__depfiles_maybe = depfiles
 am__mv = mv -f
+AM_V_lt = $(am__v_lt_@AM_V@)
+am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
+am__v_lt_0 = --silent
+am__v_lt_1 = 
 CXXCOMPILE = $(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) \
 	$(AM_CPPFLAGS) $(CPPFLAGS) $(AM_CXXFLAGS) $(CXXFLAGS)
 AM_V_CXX = $(am__v_CXX_@AM_V@)
@@ -378,9 +390,10 @@ AM_YFLAGS = -d
 @PARSER_GENERATION_FALSE@__top_builddir__bin_semileptonic_smeared_SOURCES = semileptonic_smeared.cpp $(semileptonic_smeared_parser_built_sources)
 @PARSER_GENERATION_TRUE@__top_builddir__bin_semileptonic_smeared_SOURCES = semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
 @PARSER_GENERATION_FALSE@__top_builddir__bin_semileptonic_smeared_point_source_SOURCES = semileptonic_smeared_point_source.cpp $(semileptonic_smeared_parser_built_sources)
-@PARSER_GENERATION_TRUE@__top_builddir__bin_semileptonic_smeared_point_source_SOURCES = semileptonic_smeared_point_source.cpp $(semileptonic_smeared_parser_sources)
+@PARSER_GENERATION_TRUE@__top_builddir__bin_semileptonic_smeared_point_source_SOURCES = semileptonic_smeared.cpp $(semileptonic_smeared_parser_sources)
 @PARSER_GENERATION_FALSE@__top_builddir__bin_gevp_SOURCES = gevp.cpp $(semileptonic_smeared_parser_built_sources)
 @PARSER_GENERATION_TRUE@__top_builddir__bin_gevp_SOURCES = gevp.cpp $(semileptonic_smeared_parser_sources)
+__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS = -DPOINT_SOURCE_VERSION
 __top_builddir__bin_gevp_3pts_SOURCES = gevp_3pts.cpp
 all: $(BUILT_SOURCES)
 	$(MAKE) $(AM_MAKEFLAGS) all-am
@@ -480,7 +493,7 @@ $(top_builddir)/bin/semileptonic_smeared$(EXEEXT): $(__top_builddir__bin_semilep
 
 $(top_builddir)/bin/semileptonic_smeared_point_source$(EXEEXT): $(__top_builddir__bin_semileptonic_smeared_point_source_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_point_source_DEPENDENCIES) $(EXTRA___top_builddir__bin_semileptonic_smeared_point_source_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
 	@rm -f $(top_builddir)/bin/semileptonic_smeared_point_source$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__bin_semileptonic_smeared_point_source_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_point_source_LDADD) $(LIBS)
+	$(AM_V_CXXLD)$(__top_builddir__bin_semileptonic_smeared_point_source_LINK) $(__top_builddir__bin_semileptonic_smeared_point_source_OBJECTS) $(__top_builddir__bin_semileptonic_smeared_point_source_LDADD) $(LIBS)
 
 $(top_builddir)/bin/test_bgq$(EXEEXT): $(__top_builddir__bin_test_bgq_OBJECTS) $(__top_builddir__bin_test_bgq_DEPENDENCIES) $(EXTRA___top_builddir__bin_test_bgq_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
 	@rm -f $(top_builddir)/bin/test_bgq$(EXEEXT)
@@ -492,11 +505,14 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gevp.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gevp_3pts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/parse_corr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semileptonic_smeared.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/semileptonic_smeared_point_source.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/tokenize_corr.Po@am__quote@
 
@@ -515,6 +531,62 @@ distclean-compile:
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='$<' object='$@' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXXCOMPILE) -c -o $@ `$(CYGPATH_W) '$<'`
+
+__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.o: semileptonic_smeared_point_source.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -MT __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.o -MD -MP -MF $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.Tpo -c -o __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.o `test -f 'semileptonic_smeared_point_source.cpp' || echo '$(srcdir)/'`semileptonic_smeared_point_source.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.Tpo $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='semileptonic_smeared_point_source.cpp' object='__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -c -o __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.o `test -f 'semileptonic_smeared_point_source.cpp' || echo '$(srcdir)/'`semileptonic_smeared_point_source.cpp
+
+__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.obj: semileptonic_smeared_point_source.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -MT __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.obj -MD -MP -MF $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.Tpo -c -o __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.obj `if test -f 'semileptonic_smeared_point_source.cpp'; then $(CYGPATH_W) 'semileptonic_smeared_point_source.cpp'; else $(CYGPATH_W) '$(srcdir)/semileptonic_smeared_point_source.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.Tpo $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='semileptonic_smeared_point_source.cpp' object='__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -c -o __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared_point_source.obj `if test -f 'semileptonic_smeared_point_source.cpp'; then $(CYGPATH_W) 'semileptonic_smeared_point_source.cpp'; else $(CYGPATH_W) '$(srcdir)/semileptonic_smeared_point_source.cpp'; fi`
+
+__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.o: tokenize_corr.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -MT __top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.o -MD -MP -MF $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.Tpo -c -o __top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.o `test -f 'tokenize_corr.cpp' || echo '$(srcdir)/'`tokenize_corr.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.Tpo $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='tokenize_corr.cpp' object='__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -c -o __top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.o `test -f 'tokenize_corr.cpp' || echo '$(srcdir)/'`tokenize_corr.cpp
+
+__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.obj: tokenize_corr.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -MT __top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.obj -MD -MP -MF $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.Tpo -c -o __top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.obj `if test -f 'tokenize_corr.cpp'; then $(CYGPATH_W) 'tokenize_corr.cpp'; else $(CYGPATH_W) '$(srcdir)/tokenize_corr.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.Tpo $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='tokenize_corr.cpp' object='__top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -c -o __top_builddir__bin_semileptonic_smeared_point_source-tokenize_corr.obj `if test -f 'tokenize_corr.cpp'; then $(CYGPATH_W) 'tokenize_corr.cpp'; else $(CYGPATH_W) '$(srcdir)/tokenize_corr.cpp'; fi`
+
+__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.o: parse_corr.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -MT __top_builddir__bin_semileptonic_smeared_point_source-parse_corr.o -MD -MP -MF $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.Tpo -c -o __top_builddir__bin_semileptonic_smeared_point_source-parse_corr.o `test -f 'parse_corr.cpp' || echo '$(srcdir)/'`parse_corr.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.Tpo $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='parse_corr.cpp' object='__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -c -o __top_builddir__bin_semileptonic_smeared_point_source-parse_corr.o `test -f 'parse_corr.cpp' || echo '$(srcdir)/'`parse_corr.cpp
+
+__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.obj: parse_corr.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -MT __top_builddir__bin_semileptonic_smeared_point_source-parse_corr.obj -MD -MP -MF $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.Tpo -c -o __top_builddir__bin_semileptonic_smeared_point_source-parse_corr.obj `if test -f 'parse_corr.cpp'; then $(CYGPATH_W) 'parse_corr.cpp'; else $(CYGPATH_W) '$(srcdir)/parse_corr.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.Tpo $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='parse_corr.cpp' object='__top_builddir__bin_semileptonic_smeared_point_source-parse_corr.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -c -o __top_builddir__bin_semileptonic_smeared_point_source-parse_corr.obj `if test -f 'parse_corr.cpp'; then $(CYGPATH_W) 'parse_corr.cpp'; else $(CYGPATH_W) '$(srcdir)/parse_corr.cpp'; fi`
+
+__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.o: semileptonic_smeared.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -MT __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.o -MD -MP -MF $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.Tpo -c -o __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.o `test -f 'semileptonic_smeared.cpp' || echo '$(srcdir)/'`semileptonic_smeared.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.Tpo $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='semileptonic_smeared.cpp' object='__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -c -o __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.o `test -f 'semileptonic_smeared.cpp' || echo '$(srcdir)/'`semileptonic_smeared.cpp
+
+__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.obj: semileptonic_smeared.cpp
+@am__fastdepCXX_TRUE@	$(AM_V_CXX)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -MT __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.obj -MD -MP -MF $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.Tpo -c -o __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.obj `if test -f 'semileptonic_smeared.cpp'; then $(CYGPATH_W) 'semileptonic_smeared.cpp'; else $(CYGPATH_W) '$(srcdir)/semileptonic_smeared.cpp'; fi`
+@am__fastdepCXX_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.Tpo $(DEPDIR)/__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.Po
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	$(AM_V_CXX)source='semileptonic_smeared.cpp' object='__top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCXX_FALSE@	DEPDIR=$(DEPDIR) $(CXXDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCXX_FALSE@	$(AM_V_CXX@am__nodep@)$(CXX) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(__top_builddir__bin_semileptonic_smeared_point_source_CXXFLAGS) $(CXXFLAGS) -c -o __top_builddir__bin_semileptonic_smeared_point_source-semileptonic_smeared.obj `if test -f 'semileptonic_smeared.cpp'; then $(CYGPATH_W) 'semileptonic_smeared.cpp'; else $(CYGPATH_W) '$(srcdir)/semileptonic_smeared.cpp'; fi`
 
 .lpp.cpp:
 	$(AM_V_LEX)$(am__skiplex) $(SHELL) $(YLWRAP) $< $(LEX_OUTPUT_ROOT).c $@ -- $(LEXCOMPILE)
