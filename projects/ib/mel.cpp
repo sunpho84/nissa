@@ -47,29 +47,29 @@ const double tau3[2]={-1,+1};
 
 #ifdef MEL_DEBUG
 //define types of propagator used
-const int nprop_kind=4;
-enum insertion_t                     {ORIGINAL,  CONS_VEC0,  CONS_VEC0_BIS,  WALL5 };
-const char ins_name[nprop_kind][20]={"ORIGINAL","CONS_VEC0","CONS_VEC0_BIS","WALL5"};
-enum prop_t{                           PROP_0,  PROP_CV,  PROP_CV_BIS,  PROP_W};
-const char prop_name[nprop_kind][20]={"PROP_0","PROP_CV","PROP_CV_BIS","PROP_W"};
+const int nprop_kind=3;
+enum insertion_t                     {ORIGINAL,  CONS_VEC0,  WALL5 };
+const char ins_name[nprop_kind][20]={"ORIGINAL","CONS_VEC0","WALL5"};
+enum prop_t{                           PROP_0,  PROP_CV,  PROP_W};
+const char prop_name[nprop_kind][20]={"PROP_0","PROP_CV","PROP_W"};
 //map the source, the destination and the insertion for each propagator
-const prop_t prop_map[nprop_kind]=          {PROP_0,   PROP_CV,   PROP_CV_BIS,   PROP_W };
-const insertion_t insertion_map[nprop_kind]={ORIGINAL, CONS_VEC0, CONS_VEC0_BIS, WALL5 };
-const prop_t source_map[nprop_kind]=        {PROP_0,   PROP_0,    PROP_0,        PROP_0};
-const char prop_abbr[]=                      "0"       "C"        "D"            "W";
+const prop_t prop_map[nprop_kind]=          {PROP_0,   PROP_CV,   PROP_W };
+const insertion_t insertion_map[nprop_kind]={ORIGINAL, CONS_VEC0, WALL5 };
+const prop_t source_map[nprop_kind]=        {PROP_0,   PROP_0,    PROP_0};
+const char prop_abbr[]=                      "0"       "C"        "W";
 #else
 //define types of propagator used
-const int nins_kind=10;
-enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  VEC0,  CONS_VEC0,  CONS_VEC0_BIS, STOCH_PHI,  STOCH_ETA,  TADPOLE,  WALL5 };
-const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","VEC0","CONS_VEC0","CONS_VEC0_BIS","STOCH_PHI","STOCH_ETA","TADPOLE","WALL5"};
-const int nprop_kind=11;
-enum prop_t{                           PROP_0,  PROP_S,  PROP_P,  PROP_A,  PROP_B,  PROP_AB,  PROP_T,  PROP_CV,  PROP_CV_BIS, PROP_V,  PROP_W};
-const char prop_name[nprop_kind][20]={"PROP_0","PROP_S","PROP_P","PROP_A","PROP_B","PROP_AB","PROP_T","PROP_CV","PROP_CV_BIS","PROP_V","PROP_W"};
+const int nins_kind=9;
+enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  VEC0,  CONS_VEC0,  STOCH_PHI,  STOCH_ETA,  TADPOLE,  WALL5 };
+const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","VEC0","CONS_VEC0","STOCH_PHI","STOCH_ETA","TADPOLE","WALL5"};
+const int nprop_kind=10;
+enum prop_t{                           PROP_0,  PROP_S,  PROP_P,  PROP_A,  PROP_B,  PROP_AB,  PROP_T,  PROP_CV, PROP_V,  PROP_W};
+const char prop_name[nprop_kind][20]={"PROP_0","PROP_S","PROP_P","PROP_A","PROP_B","PROP_AB","PROP_T","PROP_CV","PROP_V","PROP_W"};
 //map the source, the destination and the insertion for each propagator
-const prop_t prop_map[nprop_kind]=          {PROP_0,   PROP_S, PROP_P, PROP_A,    PROP_B,    PROP_AB,   PROP_T,  PROP_CV,   PROP_CV_BIS,   PROP_V, PROP_W };
-const insertion_t insertion_map[nprop_kind]={ORIGINAL, SCALAR, PSEUDO, STOCH_PHI, STOCH_ETA, STOCH_ETA, TADPOLE, CONS_VEC0, CONS_VEC0_BIS, VEC0,   WALL5 };
-const prop_t source_map[nprop_kind]=        {PROP_0,   PROP_0, PROP_0, PROP_0,    PROP_0,    PROP_A,    PROP_0,  PROP_0,    PROP_0,        PROP_0, PROP_0};
-const char prop_abbr[]=                      "0"       "S"     "P"     "A"        "B"        "X"        "T"      "C"        "D"            "V"     "W";
+const prop_t prop_map[nprop_kind]=          {PROP_0,   PROP_S, PROP_P, PROP_A,    PROP_B,    PROP_AB,   PROP_T,  PROP_CV,   PROP_V, PROP_W };
+const insertion_t insertion_map[nprop_kind]={ORIGINAL, SCALAR, PSEUDO, STOCH_PHI, STOCH_ETA, STOCH_ETA, TADPOLE, CONS_VEC0, VEC0,   WALL5 };
+const prop_t source_map[nprop_kind]=        {PROP_0,   PROP_0, PROP_0, PROP_0,    PROP_0,    PROP_A,    PROP_0,  PROP_0,    PROP_0, PROP_0};
+const char prop_abbr[]=                      "0"       "S"     "P"     "A"        "B"        "X"        "T"      "C"        "V"     "W";
 #endif
    
 //return appropriate propagator
@@ -229,87 +229,6 @@ THREADABLE_FUNCTION_3ARG(insert_conserved_vector_current, PROP_TYPE*,out, PROP_T
 }
 THREADABLE_FUNCTION_END
 
-//insert the conserved vector current
-THREADABLE_FUNCTION_2ARG(insert_conserved_vector_current_twisted, PROP_TYPE*,out, PROP_TYPE*,in)
-{
-  //call with no source insertion, minus between fw and bw, and a global -0.25
-  complex fw_factor={-0.25,0},bw_factor={+0.25,0};
-  insert_operator_twisted(out,NULL,in,fw_factor,bw_factor,insert_conserved_vector_current_handle);
-}
-THREADABLE_FUNCTION_END
-
-//insert the conserved vector current in an alternative way
-THREADABLE_FUNCTION_3ARG(insert_conserved_vector_current_bis, PROP_TYPE*,out, PROP_TYPE*,in, int,r)
-{
-  GET_THREAD_ID();
-  
-  //reset the output and communicate borders
-  vector_reset(out);
-  NAME3(communicate_lx,PROP_TYPE,borders)(in);
-  communicate_lx_quad_su3_borders(conf);
-  
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    {
-      //find neighbors
-      int ifw=loclx_neighup[ivol][V_curr_mu];
-      int ibw=loclx_neighdw[ivol][V_curr_mu];
-	
-      PROP_TYPE temp1,temp2;
-      
-      //FW
-      NAME2(unsafe_su3_prod,PROP_TYPE)(temp1,conf[ivol][V_curr_mu],in[ifw]);
-      NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+map_mu[V_curr_mu],temp1);
-      NAME2(PROP_TYPE,summ_the_prod_double)(out[ivol],temp2,+0.25); //+gamma_mu
-      NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+5,temp1);
-      NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,+0.25*tau3[r]); //+i gamma_5 t3
-
-      //BW
-      NAME2(unsafe_su3_dag_prod,PROP_TYPE)(temp1,conf[ibw][V_curr_mu],in[ibw]);
-      NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+map_mu[V_curr_mu],temp1);
-      NAME2(PROP_TYPE,summ_the_prod_double)(out[ivol],temp2,+0.25); //+gamma_mu
-      NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+5,temp1);
-      NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,-0.25*tau3[r]); //-i gamma_5 t3
-    }
-  
-  set_borders_invalid(out);
-}
-THREADABLE_FUNCTION_END
-
-//insert the conserved vector current in an alternative way
-THREADABLE_FUNCTION_2ARG(insert_conserved_vector_current_twisted_bis, PROP_TYPE*,out, PROP_TYPE*,in)
-{
-  GET_THREAD_ID();
-  
-  //reset the output and communicate borders
-  vector_reset(out);
-  NAME3(communicate_lx,PROP_TYPE,borders)(in);
-  communicate_lx_quad_su3_borders(conf);
-  
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    {
-      //find neighbors
-      int ifw=loclx_neighup[ivol][V_curr_mu];
-      int ibw=loclx_neighdw[ivol][V_curr_mu];
-	
-      PROP_TYPE temp1,temp2;
-      
-      //FW
-      NAME2(unsafe_su3_prod,PROP_TYPE)(temp1,conf[ivol][V_curr_mu],in[ifw]);
-      NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+map_mu[V_curr_mu],temp1);
-      NAME2(PROP_TYPE,summ_the_prod_double)(out[ivol],temp2,+0.25); //+gamma_mu
-      NAME2(PROP_TYPE,summ_the_prod_double)(out[ivol],temp1,-0.25); //-1
-
-      //BW
-      NAME2(unsafe_su3_dag_prod,PROP_TYPE)(temp1,conf[ibw][V_curr_mu],in[ibw]);
-      NAME2(unsafe_dirac_prod,PROP_TYPE)(temp2,base_gamma+map_mu[V_curr_mu],temp1);
-      NAME2(PROP_TYPE,summ_the_prod_double)(out[ivol],temp2,+0.25); //+gamma_mu
-      NAME2(PROP_TYPE,summ_the_prod_double)(out[ivol],temp1,+0.25); //+1
-    }
-  
-  set_borders_invalid(out);
-}
-THREADABLE_FUNCTION_END
-
 //insert the tadpole
 void insert_tadpole_handle(complex out,spin1field *aux,int ivol,int mu){out[RE]=tadpole[mu];out[IM]=0;}
 THREADABLE_FUNCTION_3ARG(insert_tadpole, PROP_TYPE*,out, PROP_TYPE*,in, int,r)
@@ -317,13 +236,6 @@ THREADABLE_FUNCTION_3ARG(insert_tadpole, PROP_TYPE*,out, PROP_TYPE*,in, int,r)
   //call with no source insertion, plus between fw and bw, and a global -0.25
   complex fw_factor={-0.25,0},bw_factor={-0.25,0};
   insert_operator(out,NULL,in,fw_factor,bw_factor,r,insert_tadpole_handle);
-}
-THREADABLE_FUNCTION_END
-THREADABLE_FUNCTION_2ARG(insert_tadpole_twisted, PROP_TYPE*,out, PROP_TYPE*,in)
-{
-  //call with no source insertion, plus between fw and bw, and a global -0.25
-  complex fw_factor={-0.25,0},bw_factor={-0.25,0};
-  insert_operator_twisted(out,NULL,in,fw_factor,bw_factor,insert_tadpole_handle);
 }
 THREADABLE_FUNCTION_END
 
@@ -375,14 +287,12 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
     case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
 #endif
     case CONS_VEC0:insert_conserved_vector_current(source,ori,r);break;
-      //#ifdef MEL_DEBUG
-    case CONS_VEC0_BIS:insert_conserved_vector_current_bis(source,ori,r);break;
-      //#else
+#ifndef MEL_DEBUG
     case VEC0:prop_multiply_with_gamma(source,4,ori);break;
     case STOCH_PHI:insert_external_source(source,photon_phi,ori,r);break;
     case STOCH_ETA:insert_external_source(source,photon_eta,ori,r);break;
     case TADPOLE:insert_tadpole(source,ori,r);break;
-      //#endif
+#endif
     case WALL5:prop_multiply_with_gamma(source,5,ori,(glb_size[0]/2+source_coord[0])%glb_size[0]);break;
     }
   
@@ -652,89 +562,6 @@ void in_main(int narg,char **arg)
       generate_original_source();
       generate_photon_stochastic_propagator();
       
-      {
-	PROP_TYPE* l_prop=nissa_malloc("l_prop",loc_vol,PROP_TYPE);
-	PROP_TYPE* s_prop=nissa_malloc("s_prop",loc_vol,PROP_TYPE);
-	PROP_TYPE* sTs_prop=nissa_malloc("sTs_prop",loc_vol,PROP_TYPE);
-	PROP_TYPE* sCs_prop=nissa_malloc("sCs_prop",loc_vol,PROP_TYPE);
-	PROP_TYPE* sDs_prop=nissa_malloc("sDs_prop",loc_vol,PROP_TYPE);
-	PROP_TYPE* sVs_prop=nissa_malloc("sVs_prop",loc_vol,PROP_TYPE);
-	PROP_TYPE* lWs_prop=nissa_malloc("lWs_prop",loc_vol,PROP_TYPE);
-	PROP_TYPE* lWsC_prop=nissa_malloc("lWsC_prop",loc_vol,PROP_TYPE);
-	
-	generate_source(ORIGINAL,0,NULL);
-	get_prop(l_prop,source,0,0,false);
-	get_prop(s_prop,source,nmass-1,0,false);
-	//prop_multiply_with_gamma(source,0,s_prop); //this is equal to the imaginary part of the P insertion
-	//prop_multiply_with_gamma(source,5,s_prop);  //this is equal to the imaginary part of the S insertion
-	
-	insert_tadpole_twisted(source,s_prop);
-	get_prop(sTs_prop,source,nmass-1,0,false);
-	
-	insert_conserved_vector_current_twisted(source,s_prop);
-	get_prop(sCs_prop,source,nmass-1,0,false);
-	
-	insert_conserved_vector_current_twisted_bis(source,s_prop);
-	get_prop(sDs_prop,source,nmass-1,0,false);
-	
-	prop_multiply_with_gamma(source,4,s_prop,-1);
-	get_prop(sVs_prop,source,nmass-1,0,false);
-	
-	prop_multiply_with_gamma(source,5,l_prop,(glb_size[0]/2+source_coord[0])%glb_size[0]);
-	get_prop(lWs_prop,source,nmass-1,1,false);
-	
-	insert_conserved_vector_current_twisted(lWsC_prop,lWs_prop);
-
-	FILE *fout=open_file(combine("%s/corr_test",outfolder).c_str(),"w");
-	int gso=5,g5=5,gzero=0,g4=4;
-
-	compute_corr(corr,l_prop,s_prop,gso,g5);	
-	master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d - l^+s\n",mass[0],mass[nmass-1],0);
-	print_contractions_to_file(fout,1,&gso,&g5,corr,source_coord[0],"",1.0);
-	master_fprintf(fout,"\n");
-	
-	compute_corr(corr,l_prop,sTs_prop,gso,g5);
-	master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d - l^+sTs\n",mass[0],mass[nmass-1],0);
-	print_contractions_to_file(fout,1,&gso,&g5,corr,source_coord[0],"",1.0);
-	master_fprintf(fout,"\n");
-	
-	compute_corr(corr,l_prop,sVs_prop,gso,g5);
-	master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d - l^+sVs\n",mass[0],mass[nmass-1],0);
-	print_contractions_to_file(fout,1,&gso,&g5,corr,source_coord[0],"",1.0);
-	master_fprintf(fout,"\n");
-	
-	compute_corr(corr,l_prop,sCs_prop,gso,g5);
-	master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d - l^+sCs\n",mass[0],mass[nmass-1],0);
-	print_contractions_to_file(fout,1,&gso,&g5,corr,source_coord[0],"",1.0);
-	master_fprintf(fout,"\n");
-	
-	compute_corr(corr,l_prop,sDs_prop,gso,g5);
-	master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d - l^+sDs\n",mass[0],mass[nmass-1],0);
-	print_contractions_to_file(fout,1,&gso,&g5,corr,source_coord[0],"",1.0);
-	master_fprintf(fout,"\n");
-	
-	compute_corr(corr,s_prop,lWsC_prop,gso,gzero);
-	master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg rspec=%d - lWsCs\n",mass[0],mass[nmass-1],0);
-	print_contractions_to_file(fout,1,&gso,&gzero,corr,source_coord[0],"",1.0);
-	master_fprintf(fout,"\n");
-	
-	compute_corr(corr,s_prop,lWs_prop,gso,g4);
-	master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg rspec=%d - lWsVs\n",mass[0],mass[nmass-1],0);
-	print_contractions_to_file(fout,1,&gso,&g4,corr,source_coord[0],"",1.0);
-	master_fprintf(fout,"\n");
-	
-	close_file(fout);
-	
-	nissa_free(l_prop);
-	nissa_free(s_prop);
-	nissa_free(sTs_prop);
-	nissa_free(sVs_prop);
-	nissa_free(sCs_prop);
-	nissa_free(sDs_prop);
-	nissa_free(lWs_prop);
-	nissa_free(lWsC_prop);
-      }
-      
       //generate all the propagators
       for(int ip=0;ip<nprop_kind;ip++)
 	{
@@ -750,13 +577,13 @@ void in_main(int narg,char **arg)
       
       //compute all correlations
 #ifdef MEL_DEBUG
-      const int ncombo_corr=4;
-      prop_t prop1_map[ncombo_corr]={PROP_0,PROP_0, PROP_0,     PROP_0};
-      prop_t prop2_map[ncombo_corr]={PROP_0,PROP_CV,PROP_CV_BIS,PROP_W};
+      const int ncombo_corr=3;
+      prop_t prop1_map[ncombo_corr]={PROP_0,PROP_0, PROP_0};
+      prop_t prop2_map[ncombo_corr]={PROP_0,PROP_CV,PROP_W};
 #else
-      const int ncombo_corr=10;
-      prop_t prop1_map[ncombo_corr]={PROP_0,PROP_0,PROP_0,PROP_0, PROP_0,PROP_A,PROP_0,PROP_0, PROP_0,     PROP_0};
-      prop_t prop2_map[ncombo_corr]={PROP_0,PROP_S,PROP_P,PROP_AB,PROP_T,PROP_B,PROP_V,PROP_CV,PROP_CV_BIS,PROP_W};
+      const int ncombo_corr=9;
+      prop_t prop1_map[ncombo_corr]={PROP_0,PROP_0,PROP_0,PROP_0, PROP_0,PROP_A,PROP_0,PROP_0, PROP_0};
+      prop_t prop2_map[ncombo_corr]={PROP_0,PROP_S,PROP_P,PROP_AB,PROP_T,PROP_B,PROP_V,PROP_CV,PROP_W};
 #endif
       for(int icombo=0;icombo<ncombo_corr;icombo++)
 	{
@@ -778,22 +605,15 @@ void in_main(int narg,char **arg)
 		  //consider also the conserved current
 		  if(prop2_map[icombo]==PROP_W)
 		    {
-		      for(int i=0;i<2;i++)
-			{
-			  //#ifdef MEL_DEBUG
-			  if(i==0) generate_source(CONS_VEC0_BIS,!r,S[iprop(imass,PROP_W,r)]);
-			  //#else
-			  else generate_source(CONS_VEC0,!r,S[iprop(imass,PROP_W,r)]);
-			  //#endif
-			  
-			  //compute the correlation function
-			  int gso=5,gsi=0;
-			  compute_corr(corr,S[iprop(imass,PROP_0,r)],source,gso,gsi);
-			  
-			  //print out
-			  print_contractions_to_file(fout,1,&gso,&gsi,corr,source_coord[0],(i==0)?"D_":"C_",1.0);
-			  master_fprintf(fout,"\n");
-			}
+		      generate_source(CONS_VEC0,!r,S[iprop(imass,PROP_W,r)]);
+		      
+		      //compute the correlation function
+		      int gso=5,gsi=0;
+		      compute_corr(corr,S[iprop(imass,PROP_0,r)],source,gso,gsi);
+		      
+		      //print out
+		      print_contractions_to_file(fout,1,&gso,&gsi,corr,source_coord[0],"C_",1.0);
+		      master_fprintf(fout,"\n");
 		    }
 		}
 	  
