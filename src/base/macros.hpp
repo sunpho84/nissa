@@ -18,7 +18,11 @@
 
 //vectors parameters
 #define NISSA_VECT_STRING_LENGTH 20
-#define NISSA_VECT_ALIGNMENT 16
+#if defined(BGQ) && !defined(BGQ_EMU)
+ #define NISSA_VECT_ALIGNMENT 64
+#else
+ #define NISSA_VECT_ALIGNMENT 16
+#endif
 
 //vector tags name
 #define BORDERS_ALLOCATED 1
