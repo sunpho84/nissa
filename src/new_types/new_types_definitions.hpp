@@ -1,5 +1,5 @@
-#ifndef _NEW_TYPES_DEFINITIONS_H
-#define _NEW_TYPES_DEFINITIONS_H
+#ifndef _NEW_TYPES_DEFINITIONS_HPP
+#define _NEW_TYPES_DEFINITIONS_HPP
 
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
@@ -196,7 +196,8 @@ namespace nissa
     uint32_t flag;
     
     //padding to keep memory alignment
-    char pad[NISSA_VECT_ALIGNMENT-(2*sizeof(int64_t)+3*NISSA_VECT_STRING_LENGTH+sizeof(int)+2*sizeof(nissa_vect*)+sizeof(uint32_t))%NISSA_VECT_ALIGNMENT];
+    char pad[(NISSA_VECT_ALIGNMENT-(2*sizeof(int64_t)+3*NISSA_VECT_STRING_LENGTH+sizeof(int)+2*sizeof(nissa_vect*)+sizeof(uint32_t))%NISSA_VECT_ALIGNMENT)%
+	      NISSA_VECT_ALIGNMENT];
   };
   
   //all to all communicators initializing structure
