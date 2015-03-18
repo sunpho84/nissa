@@ -1,5 +1,5 @@
-#ifndef _READER_H
-#define _READER_H
+#ifndef _READER_HPP
+#define _READER_HPP
 
 namespace nissa
 {
@@ -7,6 +7,7 @@ namespace nissa
   void read_colorspinspin(colorspinspin *css,const char *base_path,const char *end_path);
   void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,const char *path,ILDG_message *mess=NULL);
   void read_ildg_gauge_conf(quad_su3 *conf,const char *path,ILDG_message *mess=NULL);
+  void read_real_vector(double *out,ILDG_File file,ILDG_header &header,uint64_t nreals_per_site);
   void read_real_vector(double *out,const char *path,const char *record_name,uint64_t nreals_per_site,ILDG_message *mess=NULL);
   void read_spincolor(spincolor *sc,const char *path);
   void read_su3spinspin(su3spinspin *ccss,const char *base_path,const char *end_path);

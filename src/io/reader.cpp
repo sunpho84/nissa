@@ -27,21 +27,8 @@ namespace nissa
   //////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //read a real vector
-  void read_real_vector(double *out,const char *path,const char *record_name,uint64_t nreals_per_site,ILDG_message *mess=NULL)
+  void read_real_vector(double *out,ILDG_File file,ILDG_header &header,uint64_t nreals_per_site)
   {
-    master_printf("Reading vector: %s\n",path);
-    
-    //Take inital time
-    double start_time=take_time();
-    
-    //open file
-    ILDG_File file=ILDG_File_open_for_read(path);
-    
-    //search the record
-    ILDG_header header;
-    int found=ILDG_File_search_record(header,file,record_name,mess);
-    if(!found) crash("Error, record %s not found.\n",record_name);
-    
     //check the size of the data block
     int loc_nreals_tot=nreals_per_site*loc_vol;
     uint64_t nbytes=header.data_length;
@@ -60,10 +47,7 @@ namespace nissa
     //read the checksum
     checksum read_check={0,0};
     ILDG_File_read_checksum(read_check,file);
-    
-    //close the file
-    ILDG_File_close(file);
-    
+        
     //check precision
     int single_double_flag=-1;
     const char single_double_str[2][10]={"single","double"};
@@ -101,6 +85,27 @@ namespace nissa
     if(single_double_flag==0) floats_to_doubles_same_endianness(out,(float*)out,loc_nreals_tot);
 
     set_borders_invalid(out);    
+  }
+  void read_real_vector(double *out,const char *path,const char *record_name,uint64_t nreals_per_site,ILDG_message *mess=NULL)
+  {
+    master_printf("Reading vector: %s\n",path);
+    
+    //Take inital time
+    double start_time=take_time();
+    
+    //open file
+    ILDG_File file=ILDG_File_open_for_read(path);
+    
+    //search the record
+    ILDG_header header;
+    int found=ILDG_File_search_record(header,file,record_name,mess);
+    if(!found) crash("Error, record %s not found.\n",record_name);
+    
+    read_real_vector(out,file,header,nreals_per_site);
+    
+    //close the file
+    ILDG_File_close(file);
+    
     verbosity_lv2_master_printf("Total time elapsed including possible conversion: %f s\n",take_time()-start_time);
   }
   

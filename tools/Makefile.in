@@ -79,7 +79,6 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT) \
-	$(top_builddir)/tools/conf_measure/magn$(EXEEXT) \
 	$(top_builddir)/tools/conf_measure/topo$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/convert/eo_to_ildg$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/convert/gpu_to_ildg$(EXEEXT) \
@@ -90,6 +89,7 @@ bin_PROGRAMS = $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/smear/stout$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data$(EXEEXT) \
 	$(top_builddir)/tools/conf_transform/edit/skip_random$(EXEEXT) \
+	$(top_builddir)/tools/mel/mel_clusterize$(EXEEXT) \
 	$(top_builddir)/tools/print_gamma/gamma_test$(EXEEXT) \
 	$(top_builddir)/tools/remez_algorithm/remez_create$(EXEEXT) \
 	$(top_builddir)/tools/unitarity_check/unitarity_check$(EXEEXT)
@@ -108,13 +108,6 @@ CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(bindir)"
 PROGRAMS = $(bin_PROGRAMS)
 am__dirstamp = $(am__leading_dot)dirstamp
-am___top_builddir__tools_conf_measure_magn_OBJECTS =  \
-	conf_measure/magn.$(OBJEXT)
-__top_builddir__tools_conf_measure_magn_OBJECTS =  \
-	$(am___top_builddir__tools_conf_measure_magn_OBJECTS)
-__top_builddir__tools_conf_measure_magn_LDADD = $(LDADD)
-__top_builddir__tools_conf_measure_magn_DEPENDENCIES =  \
-	$(top_builddir)/lib/libnissa.a
 am___top_builddir__tools_conf_measure_topo_OBJECTS =  \
 	conf_measure/topo.$(OBJEXT)
 __top_builddir__tools_conf_measure_topo_OBJECTS =  \
@@ -191,6 +184,13 @@ __top_builddir__tools_find_best_vir_partitioning_find_LDADD =  \
 	$(LDADD)
 __top_builddir__tools_find_best_vir_partitioning_find_DEPENDENCIES =  \
 	$(top_builddir)/lib/libnissa.a
+am___top_builddir__tools_mel_mel_clusterize_OBJECTS =  \
+	mel/mel_clusterize.$(OBJEXT)
+__top_builddir__tools_mel_mel_clusterize_OBJECTS =  \
+	$(am___top_builddir__tools_mel_mel_clusterize_OBJECTS)
+__top_builddir__tools_mel_mel_clusterize_LDADD = $(LDADD)
+__top_builddir__tools_mel_mel_clusterize_DEPENDENCIES =  \
+	$(top_builddir)/lib/libnissa.a
 am___top_builddir__tools_print_gamma_gamma_test_OBJECTS =  \
 	print_gamma/gamma_test.$(OBJEXT)
 __top_builddir__tools_print_gamma_gamma_test_OBJECTS =  \
@@ -240,8 +240,7 @@ AM_V_CXXLD = $(am__v_CXXLD_@AM_V@)
 am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
-SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
-	$(__top_builddir__tools_conf_measure_topo_SOURCES) \
+SOURCES = $(__top_builddir__tools_conf_measure_topo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_eo_to_ildg_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES) \
@@ -252,11 +251,11 @@ SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
 	$(__top_builddir__tools_conf_transform_edit_skip_random_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
+	$(__top_builddir__tools_mel_mel_clusterize_SOURCES) \
 	$(__top_builddir__tools_print_gamma_gamma_test_SOURCES) \
 	$(__top_builddir__tools_remez_algorithm_remez_create_SOURCES) \
 	$(__top_builddir__tools_unitarity_check_unitarity_check_SOURCES)
-DIST_SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
-	$(__top_builddir__tools_conf_measure_topo_SOURCES) \
+DIST_SOURCES = $(__top_builddir__tools_conf_measure_topo_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_eo_to_ildg_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES) \
 	$(__top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES) \
@@ -267,6 +266,7 @@ DIST_SOURCES = $(__top_builddir__tools_conf_measure_magn_SOURCES) \
 	$(__top_builddir__tools_conf_transform_edit_skip_random_SOURCES) \
 	$(__top_builddir__tools_conf_transform_smear_stout_SOURCES) \
 	$(__top_builddir__tools_find_best_vir_partitioning_find_SOURCES) \
+	$(__top_builddir__tools_mel_mel_clusterize_SOURCES) \
 	$(__top_builddir__tools_print_gamma_gamma_test_SOURCES) \
 	$(__top_builddir__tools_remez_algorithm_remez_create_SOURCES) \
 	$(__top_builddir__tools_unitarity_check_unitarity_check_SOURCES)
@@ -405,7 +405,6 @@ LDADD = $(top_builddir)/lib/libnissa.a
 AUTOMAKE_OPTIONS = subdir-objects
 __top_builddir__tools_find_best_vir_partitioning_find_SOURCES = find_best_vir_partitioning/find.cpp
 __top_builddir__tools_remez_algorithm_remez_create_SOURCES = remez_algorithm/remez_create.cpp
-__top_builddir__tools_conf_measure_magn_SOURCES = conf_measure/magn.cpp
 __top_builddir__tools_conf_measure_topo_SOURCES = conf_measure/topo.cpp
 __top_builddir__tools_conf_transform_convert_gpu_to_ildg_SOURCES = conf_transform/convert/gpu_to_ildg.cpp
 __top_builddir__tools_conf_transform_convert_ildg_to_eo_SOURCES = conf_transform/convert/ildg_to_eo.cpp
@@ -418,6 +417,7 @@ __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES = conf_transfor
 __top_builddir__tools_conf_transform_edit_skip_random_SOURCES = conf_transform/edit/skip_random.cpp
 __top_builddir__tools_print_gamma_gamma_test_SOURCES = print_gamma/gamma_test.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES = unitarity_check/unitarity_check.cpp
+__top_builddir__tools_mel_mel_clusterize_SOURCES = mel/mel_clusterize.cpp
 EXTRA_DIST = find_best_vir_partitioning/prepare_mapping.sh
 all: all-am
 
@@ -501,17 +501,11 @@ conf_measure/$(am__dirstamp):
 conf_measure/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) conf_measure/$(DEPDIR)
 	@: > conf_measure/$(DEPDIR)/$(am__dirstamp)
-conf_measure/magn.$(OBJEXT): conf_measure/$(am__dirstamp) \
+conf_measure/topo.$(OBJEXT): conf_measure/$(am__dirstamp) \
 	conf_measure/$(DEPDIR)/$(am__dirstamp)
 $(top_builddir)/tools/conf_measure/$(am__dirstamp):
 	@$(MKDIR_P) $(top_builddir)/tools/conf_measure
 	@: > $(top_builddir)/tools/conf_measure/$(am__dirstamp)
-
-$(top_builddir)/tools/conf_measure/magn$(EXEEXT): $(__top_builddir__tools_conf_measure_magn_OBJECTS) $(__top_builddir__tools_conf_measure_magn_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_measure_magn_DEPENDENCIES) $(top_builddir)/tools/conf_measure/$(am__dirstamp)
-	@rm -f $(top_builddir)/tools/conf_measure/magn$(EXEEXT)
-	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_conf_measure_magn_OBJECTS) $(__top_builddir__tools_conf_measure_magn_LDADD) $(LIBS)
-conf_measure/topo.$(OBJEXT): conf_measure/$(am__dirstamp) \
-	conf_measure/$(DEPDIR)/$(am__dirstamp)
 
 $(top_builddir)/tools/conf_measure/topo$(EXEEXT): $(__top_builddir__tools_conf_measure_topo_OBJECTS) $(__top_builddir__tools_conf_measure_topo_DEPENDENCIES) $(EXTRA___top_builddir__tools_conf_measure_topo_DEPENDENCIES) $(top_builddir)/tools/conf_measure/$(am__dirstamp)
 	@rm -f $(top_builddir)/tools/conf_measure/topo$(EXEEXT)
@@ -631,6 +625,21 @@ $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp):
 $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT): $(__top_builddir__tools_find_best_vir_partitioning_find_OBJECTS) $(__top_builddir__tools_find_best_vir_partitioning_find_DEPENDENCIES) $(EXTRA___top_builddir__tools_find_best_vir_partitioning_find_DEPENDENCIES) $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)
 	@rm -f $(top_builddir)/tools/find_best_vir_partitioning/find$(EXEEXT)
 	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_find_best_vir_partitioning_find_OBJECTS) $(__top_builddir__tools_find_best_vir_partitioning_find_LDADD) $(LIBS)
+mel/$(am__dirstamp):
+	@$(MKDIR_P) mel
+	@: > mel/$(am__dirstamp)
+mel/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) mel/$(DEPDIR)
+	@: > mel/$(DEPDIR)/$(am__dirstamp)
+mel/mel_clusterize.$(OBJEXT): mel/$(am__dirstamp) \
+	mel/$(DEPDIR)/$(am__dirstamp)
+$(top_builddir)/tools/mel/$(am__dirstamp):
+	@$(MKDIR_P) $(top_builddir)/tools/mel
+	@: > $(top_builddir)/tools/mel/$(am__dirstamp)
+
+$(top_builddir)/tools/mel/mel_clusterize$(EXEEXT): $(__top_builddir__tools_mel_mel_clusterize_OBJECTS) $(__top_builddir__tools_mel_mel_clusterize_DEPENDENCIES) $(EXTRA___top_builddir__tools_mel_mel_clusterize_DEPENDENCIES) $(top_builddir)/tools/mel/$(am__dirstamp)
+	@rm -f $(top_builddir)/tools/mel/mel_clusterize$(EXEEXT)
+	$(AM_V_CXXLD)$(CXXLINK) $(__top_builddir__tools_mel_mel_clusterize_OBJECTS) $(__top_builddir__tools_mel_mel_clusterize_LDADD) $(LIBS)
 print_gamma/$(am__dirstamp):
 	@$(MKDIR_P) print_gamma
 	@: > print_gamma/$(am__dirstamp)
@@ -687,6 +696,7 @@ mostlyclean-compile:
 	-rm -f conf_transform/edit/*.$(OBJEXT)
 	-rm -f conf_transform/smear/*.$(OBJEXT)
 	-rm -f find_best_vir_partitioning/*.$(OBJEXT)
+	-rm -f mel/*.$(OBJEXT)
 	-rm -f print_gamma/*.$(OBJEXT)
 	-rm -f remez_algorithm/*.$(OBJEXT)
 	-rm -f unitarity_check/*.$(OBJEXT)
@@ -694,7 +704,6 @@ mostlyclean-compile:
 distclean-compile:
 	-rm -f *.tab.c
 
-@AMDEP_TRUE@@am__include@ @am__quote@conf_measure/$(DEPDIR)/magn.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_measure/$(DEPDIR)/topo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/eo_to_ildg.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/convert/$(DEPDIR)/gpu_to_ildg.Po@am__quote@
@@ -706,6 +715,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/edit/$(DEPDIR)/skip_random.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@conf_transform/smear/$(DEPDIR)/stout.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@find_best_vir_partitioning/$(DEPDIR)/find.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@mel/$(DEPDIR)/mel_clusterize.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@print_gamma/$(DEPDIR)/gamma_test.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@remez_algorithm/$(DEPDIR)/remez_create.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@unitarity_check/$(DEPDIR)/unitarity_check.Po@am__quote@
@@ -853,6 +863,8 @@ distclean-generic:
 	-rm -f conf_transform/smear/$(am__dirstamp)
 	-rm -f find_best_vir_partitioning/$(DEPDIR)/$(am__dirstamp)
 	-rm -f find_best_vir_partitioning/$(am__dirstamp)
+	-rm -f mel/$(DEPDIR)/$(am__dirstamp)
+	-rm -f mel/$(am__dirstamp)
 	-rm -f print_gamma/$(DEPDIR)/$(am__dirstamp)
 	-rm -f print_gamma/$(am__dirstamp)
 	-rm -f remez_algorithm/$(DEPDIR)/$(am__dirstamp)
@@ -865,6 +877,7 @@ distclean-generic:
 	-test -z "$(top_builddir)/tools/conf_transform/edit/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_transform/edit/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/conf_transform/smear/$(am__dirstamp)" || rm -f $(top_builddir)/tools/conf_transform/smear/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)" || rm -f $(top_builddir)/tools/find_best_vir_partitioning/$(am__dirstamp)
+	-test -z "$(top_builddir)/tools/mel/$(am__dirstamp)" || rm -f $(top_builddir)/tools/mel/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/print_gamma/$(am__dirstamp)" || rm -f $(top_builddir)/tools/print_gamma/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/remez_algorithm/$(am__dirstamp)" || rm -f $(top_builddir)/tools/remez_algorithm/$(am__dirstamp)
 	-test -z "$(top_builddir)/tools/unitarity_check/$(am__dirstamp)" || rm -f $(top_builddir)/tools/unitarity_check/$(am__dirstamp)
@@ -877,7 +890,7 @@ clean: clean-am
 clean-am: clean-binPROGRAMS clean-generic mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) print_gamma/$(DEPDIR) remez_algorithm/$(DEPDIR) unitarity_check/$(DEPDIR)
+	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) mel/$(DEPDIR) print_gamma/$(DEPDIR) remez_algorithm/$(DEPDIR) unitarity_check/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-tags
@@ -923,7 +936,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) print_gamma/$(DEPDIR) remez_algorithm/$(DEPDIR) unitarity_check/$(DEPDIR)
+	-rm -rf conf_measure/$(DEPDIR) conf_transform/convert/$(DEPDIR) conf_transform/create/$(DEPDIR) conf_transform/edit/$(DEPDIR) conf_transform/smear/$(DEPDIR) find_best_vir_partitioning/$(DEPDIR) mel/$(DEPDIR) print_gamma/$(DEPDIR) remez_algorithm/$(DEPDIR) unitarity_check/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 

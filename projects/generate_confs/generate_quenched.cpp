@@ -35,6 +35,16 @@ int store_conf_each;
 int store_running_temp_conf;
 int seed;
 
+//x space correlation
+int x_corr_flag;
+char x_corr_path[200];
+su3spinspin *P;
+spincolor *source,*temp_solution;
+double *corr;
+double x_corr_kappa;
+double x_corr_mass;
+double x_corr_residue;
+
 //bench
 double base_init_time=0;
 double topo_time=0;
@@ -42,6 +52,7 @@ double meas_time=0;
 double read_time=0;
 double write_time=0;
 double unitarize_time=0;
+double x_corr_time=0;
 
 void measure_gauge_obs();
 void measure_topology(top_meas_pars_t&,quad_su3*,int,bool,bool presereve_uncooled=true);
@@ -74,6 +85,72 @@ void write_conf(const char *path)
   ILDG_message_free_all(&mess);
 
   write_time+=take_time();
+}
+
+//compute the correlation function
+THREADABLE_FUNCTION_2ARG(compute_corr, double*,corr, su3spinspin*,Q)
+{
+  GET_THREAD_ID();
+  
+  vector_reset(corr);
+  
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int id=0;id<4;id++)
+      for(int jd=0;jd<4;jd++)
+	for(int ic=0;ic<3;ic++)
+	  for(int jc=0;jc<3;jc++)
+	    corr[ivol]+=real_part_of_complex_scalar_prod(Q[ivol][ic][jc][id][jd],Q[ivol][ic][jc][id][jd]);
+  THREAD_BARRIER();
+}
+THREADABLE_FUNCTION_END
+
+//append correlation function
+void append_corr(const char *path,double *corr,int r)
+{
+  ILDG_File file=ILDG_File_open(path,MPI_MODE_WRONLY|(file_exists(path)?MPI_MODE_APPEND:MPI_MODE_CREATE));
+  char header[30];
+  sprintf(header,"%d_%d",iconf,r);
+  write_double_vector(file,corr,1,64,header);
+  ILDG_File_close(file);
+}
+
+//measure the correlation space
+void meas_x_corr(const char *path,quad_su3 *conf)
+{
+  x_corr_time-=take_time();
+  
+  momentum_t put_theta={1,0,0,0},old_theta={0,0,0,0};
+  adapt_theta(conf,old_theta,put_theta,0,0);
+  
+  for(int r=0;r<2;r++)
+    {
+      for(int ic=0;ic<3;ic++)
+	for(int id=0;id<4;id++)
+	  { 
+	    vector_reset(source);
+	    if(rank==0) source[0][id][ic][0]=1;
+	    set_borders_invalid(source);
+      
+	    //rotate the source index - please note that the propagator rotate AS the sign of mass term
+	    safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,source);
+	    
+	    //invert
+	    inv_tmD_cg_eoprec_eos(temp_solution,NULL,conf,x_corr_kappa,tau3[r]*x_corr_mass,100000,x_corr_residue,source);
+	    
+	    //rotate the sink index
+	    safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
+        
+	    master_printf("  finished the inversion r=%d id=%d, ic=%d\n",r,id,ic);
+	    put_spincolor_into_su3spinspin(P,temp_solution,id,ic);
+	  }
+      
+      //compute the correlation function
+      compute_corr(corr,P);
+      append_corr(path,corr,r);
+    }
+  
+  put_theta[0]=0;
+  adapt_theta(conf,old_theta,put_theta,0,0);
 }
 
 //read conf
@@ -221,6 +298,17 @@ void init_simulation(char *path)
   //read the topology measures info
   read_top_meas_pars(top_meas_pars);
   if(top_meas_pars.flag) init_sweeper(top_meas_pars.gauge_cooling_action);
+  
+  //read X space correlation measurement
+  read_str_int("MeasXCorr",&x_corr_flag);
+  if(x_corr_flag)
+    {
+      read_str_str("Path",x_corr_path,200);
+      read_str_double("Mass",&x_corr_mass);
+      read_str_double("Kappa",&x_corr_kappa);
+      read_str_double("Residue",&x_corr_residue);
+    }
+  
   close_input();
   
   base_init_time+=take_time();
@@ -249,6 +337,14 @@ void init_simulation(char *path)
 	  compute_action_per_timeslice=compute_tlSym_action_per_timeslice;
 	  npaths_per_action=2;
 	}
+    }
+  
+  if(x_corr_flag)
+    {
+      source=nissa_malloc("source",loc_vol+bord_vol,spincolor);
+      temp_solution=nissa_malloc("temp_solution",loc_vol,spincolor);
+      P=nissa_malloc("P",loc_vol,su3spinspin);
+      corr=nissa_malloc("Corr",loc_vol,double);
     }
   
   //search conf
@@ -288,6 +384,7 @@ void init_simulation(char *path)
       //write initial measures
       if(gauge_obs_flag) measure_gauge_obs();
       if(top_meas_pars.flag) measure_topology(top_meas_pars,conf,0,true);
+      if(x_corr_flag) meas_x_corr(x_corr_path,conf);
     }  
 }
 
@@ -301,7 +398,8 @@ THREADABLE_FUNCTION_1ARG(impose_open_boundary_cond, quad_su3*,conf)
       su3_put_to_zero(conf[ivol][0]);
 
   set_borders_invalid(conf);
-}}
+}
+THREADABLE_FUNCTION_END
 
 //finalize everything
 void close_simulation()
@@ -327,6 +425,13 @@ void close_simulation()
   
   if(store_running_temp_conf==0||iconf%store_running_temp_conf!=0) write_conf(conf_path);
   nissa_free(conf);
+  if(x_corr_flag)
+    {
+      nissa_free(P);
+      nissa_free(source);
+      nissa_free(temp_solution);
+      nissa_free(corr);
+    }
   if(evol_pars.use_hmc) nissa_free(temp_conf);
 }
 
@@ -476,7 +581,8 @@ void in_main(int narg,char **arg)
       // 2) measure
       if(gauge_obs_flag && iconf%gauge_obs_flag==0) measure_gauge_obs();
       if(top_meas_pars.flag && iconf%top_meas_pars.flag==0) measure_topology(top_meas_pars,conf,iconf,0);
-	
+      if(x_corr_flag && iconf%x_corr_flag==0) meas_x_corr(x_corr_path,conf);
+      
       // 3) increment id and write conf
       if(store_running_temp_conf && iconf%store_running_temp_conf==0) write_conf(conf_path);
       

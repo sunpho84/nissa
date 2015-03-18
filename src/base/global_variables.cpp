@@ -246,6 +246,12 @@ namespace nissa
     ;
   EXTERN spinspin opg[4],omg[4];
   
+  EXTERN int tau3[2]
+#ifndef ONLY_INSTANTIATION
+  ={-1,+1}
+#endif
+    ;
+  
   EXTERN int su3_sub_gr_indices[3][2]
 #ifndef ONLY_INSTANTIATION
   ={{0,1},{1,2},{0,2}}
