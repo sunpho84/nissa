@@ -20,7 +20,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    apply_tmQ(outminus,conf,kappa,mu,in);
+    apply_tmQ(outminus,conf,kappa,tau3[1]*mu,in);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       unsafe_spincolor_summ_with_ifactor(outplus[ivol],outminus[ivol],in[ivol],-2*mu);
     

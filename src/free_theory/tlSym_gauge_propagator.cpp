@@ -9,6 +9,8 @@
 #include "new_types/complex.hpp"
 #include "new_types/spin.hpp"
 #include "operations/fourier_transform.hpp"
+#include "routines/mpi_routines.hpp"
+#include "routines/ios.hpp"
 
 #include "free_theory_types.hpp"
 
@@ -176,5 +178,17 @@ namespace nissa
     pass_spin1field_from_mom_to_x_space(phi,phi,gl.bc);
     
     set_borders_invalid(phi);
+  }
+  
+  //compute the tadpole by taking the zero momentum ft of momentum prop
+  void compute_tadpole(double *tadpole,gauge_info photon)
+  {
+    double tad_time=-take_time();
+    spin1prop *gprop=nissa_malloc("gprop",loc_vol,spin1prop);
+    compute_x_space_tlSym_gauge_propagator_by_fft(gprop,photon);
+    for(int mu=0;mu<4;mu++) tadpole[mu]=broadcast(gprop[0][mu][mu][RE]);
+    nissa_free(gprop);
+    tad_time+=take_time();
+    master_printf("Tadpole: (%lg,%lg,%lg,%lg), time to compute: %lg s\n",tadpole[0],tadpole[1],tadpole[2],tadpole[3],tad_time);
   }
 }
