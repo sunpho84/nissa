@@ -246,6 +246,35 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //generate a spindiluted vector according to the passed type
+  THREADABLE_FUNCTION_3ARG(generate_colorspindiluted_source, su3spinspin*,source, enum rnd_t,rtype, int,twall)
+  {
+    //reset
+    vector_reset(source);
+    
+    //compute normalization norm: spat vol if twall>=0, glb_vol else
+    int norm2=glb_vol;
+    if(twall>=0) norm2/=glb_size[0];
+    double inv_sqrt_norm2=1.0/sqrt(norm2);
+    
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      if(glb_coord_of_loclx[ivol][0]==twall||twall<0)
+	{
+	  //generate the id_sink==id_source==0 entry
+	  comp_get_rnd(source[ivol][0][0][0][0],&(loc_rnd_gen[ivol]),rtype);
+	  complex_prod_double(source[ivol][0][0][0][0],source[ivol][0][0][0][0],inv_sqrt_norm2);
+	  //copy the other three dirac indices and/or color indices
+	  for(int c=0;c<3;c++)
+	    for(int d=0;d<4;d++)
+	      if(c+d>0) 
+		memcpy(source[ivol][c][c][d][d],source[ivol][0][0][0][0],sizeof(complex));
+	  }
+    
+    set_borders_invalid(source);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //generate a spindiluted vector according to the passed type
   THREADABLE_FUNCTION_3ARG(generate_spindiluted_source, colorspinspin*,source, enum rnd_t,rtype, int,twall)
   {
     //reset
@@ -264,7 +293,7 @@ namespace nissa
 	    //generate the id_sink==id_source==0 entry
 	    comp_get_rnd(source[ivol][ic][0][0],&(loc_rnd_gen[ivol]),rtype);
 	    complex_prod_double(source[ivol][ic][0][0],source[ivol][ic][0][0],inv_sqrt_norm2);
-	    //copy the other three dirac indexes
+	    //copy the other three dirac indices
 	    for(int d=1;d<4;d++)
 	      memcpy(source[ivol][ic][d][d],source[ivol][ic][0][0],sizeof(complex));
 	  }
