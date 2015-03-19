@@ -6,6 +6,7 @@ double tot_prog_time=0;
 char path_in[200];
 char path_out[200];
 
+int nr;
 int nconfs,nterm,njacks,each,clust_size;
 
 double *in_buffer,*out_buffer;
@@ -21,6 +22,8 @@ void init_clusterize(const char *path)
   read_str_int("T",&T);
   //Init the MPI grid 
   init_grid(T,L); 
+  //Pars
+  read_str_int("Nr",&nr);
   //Input and output paths
   read_str_str("PathIn",path_in,200);
   read_str_str("PathOut",path_out,200);
@@ -35,15 +38,19 @@ void init_clusterize(const char *path)
   //////////////////////////////
   
   //find cluster sizes
-  if(nconfs%each) crash("nconfs=%d not divisible by %d",nconfs,each);
+  clust_size=(nconfs-nterm)/each/njacks;
+  nconfs=nterm+clust_size*each*njacks;
+  master_printf("Adapted nconfs to %d\n",nconfs);
   if(njacks<=1) crash("cannot use njacks %d (at least 2)");
   if(each==0) crash("cannot use each 0");
-  clust_size=(nconfs-nterm)/each/njacks;
   if(clust_size==0) crash("cannot use clust_size 0");
+  
+  master_printf("Nconfs to consider: %d\n",nconfs);
+  master_printf("Cluster size: %d\n",clust_size);
   
   //allocate in buffer
   in_buffer=nissa_malloc("in_buffer",loc_vol,double);
-  out_buffer=nissa_malloc("out_bufffer",loc_vol*(njacks+1)*2,double);
+  out_buffer=nissa_malloc("out_bufffer",loc_vol*(njacks+1)*nr,double);
 }
 
 //add it to the cluster
@@ -51,7 +58,8 @@ THREADABLE_FUNCTION_4ARG(add_cluster, double*,out_buffer, double*,in_buffer, int
 {
   GET_THREAD_ID();
   
-  int iclust=iconf/each/clust_size;
+  int iclust=(iconf-nterm)/each/clust_size;
+  if(iclust>=njacks) crash("iclust: %d >= njacks: %d, iconf: %d",iclust,njacks,iconf);
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     out_buffer[iclust+(njacks+1)*(ivol+loc_vol*r)]+=in_buffer[ivol];
@@ -78,12 +86,13 @@ void load_data(const char *path)
       int iconf,r;
       int rc=sscanf(header.type,"%d_%d",&iconf,&r);
       if(rc!=2) crash("returned %d",rc); 
+      if(r>=nr) crash("loaded r=%d while nr=%d",r,nr);
       
       //prompt found conf and r
       verbosity_lv2_master_printf("Conf: %d, r: %d\n",iconf,r);
       
       //if we passed termalization we read otherwise we skip it
-      if(iconf<nterm)
+      if(iconf<nterm || iconf>=nconfs)
 	{
 	  ILDG_File_skip_record(file,header);
 	  //discard checksum
@@ -115,7 +124,7 @@ THREADABLE_FUNCTION_0ARG(clusterize)
 {
   GET_THREAD_ID();
 
-  for(int r=0;r<2;r++)
+  for(int r=0;r<nr;r++)
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       clusterize(out_buffer+0+(njacks+1)*(ivol+loc_vol*r));
   THREAD_BARRIER();
@@ -127,8 +136,8 @@ void save_data(const char *path)
 {
   FILE *fout=open_file(path,"w");
   
-  int rc=fwrite(out_buffer,sizeof(double),loc_vol*2*(njacks+1),fout);
-  if(rc!=loc_vol*2*(njacks+1)) crash("returned %d instead of %d",rc,loc_vol*2*(njacks+1));
+  int rc=fwrite(out_buffer,sizeof(double),loc_vol*nr*(njacks+1),fout);
+  if(rc!=loc_vol*nr*(njacks+1)) crash("returned %d instead of %d",rc,loc_vol*nr*(njacks+1));
      
   close_file(fout);
 }

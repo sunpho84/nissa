@@ -41,6 +41,7 @@ char x_corr_path[200];
 su3spinspin *P;
 spincolor *source,*temp_solution;
 double *corr;
+int x_corr_nr;
 double x_corr_kappa;
 double x_corr_mass;
 double x_corr_residue;
@@ -95,34 +96,97 @@ THREADABLE_FUNCTION_2ARG(compute_corr, double*,corr, su3spinspin*,Q)
   vector_reset(corr);
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int id=0;id<4;id++)
-      for(int jd=0;jd<4;jd++)
-	for(int ic=0;ic<3;ic++)
-	  for(int jc=0;jc<3;jc++)
+    for(int ic=0;ic<3;ic++)
+      for(int jc=0;jc<3;jc++)
+	for(int id=0;id<4;id++)
+	  for(int jd=0;jd<4;jd++)
 	    corr[ivol]+=real_part_of_complex_scalar_prod(Q[ivol][ic][jc][id][jd],Q[ivol][ic][jc][id][jd]);
   THREAD_BARRIER();
 }
 THREADABLE_FUNCTION_END
 
-//append correlation function
-void append_corr(const char *path,double *corr,int r)
+//compute the correlation function
+THREADABLE_FUNCTION_3ARG(compute_corr_stoch, double*,corr, su3spinspin**,phi, su3spinspin**,eta)
 {
-  ILDG_File file=ILDG_File_open(path,MPI_MODE_WRONLY|(file_exists(path)?MPI_MODE_APPEND:MPI_MODE_CREATE));
+  GET_THREAD_ID();
+  
+  vector_reset(corr);
+  
+  //used for fft
+  int dirs[4]={1,1,1,1};
+  
+  //temporary vectors
+  su3spinspin *phieta[2];
+  for(int iso=0;iso<2;iso++) phieta[iso]=nissa_malloc("phieta",loc_vol,su3spinspin);
+  complex *corr_tilde=nissa_malloc("corr_tilde",loc_vol,complex);
+  
+  //combine phi1 with eta2
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int ic=0;ic<3;ic++)
+      for(int jc=0;jc<3;jc++)
+	for(int id=0;id<4;id++)
+	  for(int jd=0;jd<4;jd++)
+	    {
+	      unsafe_complex_conj2_prod(phieta[0][ivol][ic][jc][id][jd],phi[0][ivol][ic][jc][id][jd],eta[1][ivol][ic][jc][id][jd]);
+	      unsafe_complex_conj1_prod(phieta[1][ivol][ic][jc][id][jd],phi[1][ivol][ic][jc][id][jd],eta[0][ivol][ic][jc][id][jd]);
+	    }
+  THREAD_BARRIER();
+  
+  //take fft
+  for(int iso=0;iso<2;iso++) fft4d((complex*)(phieta[iso]),(complex*)(phieta[iso]),dirs,sizeof(su3spinspin)/sizeof(complex),+1,true/*normalize*/);
+  
+  vector_reset(corr_tilde);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int ic=0;ic<3;ic++)
+      for(int jc=0;jc<3;jc++)
+	for(int id=0;id<2;id++)
+	  for(int jd=0;jd<2;jd++)
+	    {
+	      complex_summ_the_conj2_prod(corr_tilde[ivol],phieta[0][ivol][ic][jc][id+0][jd+0],phieta[1][ivol][jc][ic][jd+0][id+0]);
+	      complex_subt_the_conj2_prod(corr_tilde[ivol],phieta[0][ivol][ic][jc][id+0][jd+2],phieta[1][ivol][jc][ic][jd+2][id+0]);
+	      complex_subt_the_conj2_prod(corr_tilde[ivol],phieta[0][ivol][ic][jc][id+2][jd+0],phieta[1][ivol][jc][ic][jd+0][id+2]);
+	      complex_summ_the_conj2_prod(corr_tilde[ivol],phieta[0][ivol][ic][jc][id+2][jd+2],phieta[1][ivol][jc][ic][jd+2][id+2]);
+	    }
+  THREAD_BARRIER();
+
+  //transform back
+  fft4d(corr_tilde,corr_tilde,dirs,1/*complex per site*/,-1,false/*do not normalize*/);
+  
+  //copy only the real part
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    corr[ivol]=corr_tilde[ivol][RE];
+  
+  //free
+  for(int ico=0;ico<2;ico++) nissa_free(phieta[ico]);
+  nissa_free(corr_tilde);
+}
+THREADABLE_FUNCTION_END
+
+//append correlation function
+void append_corr(const char *path,double *corr,int r,bool conf_created)
+{
+  //open for writing/append
+  ILDG_File file=ILDG_File_open(path,MPI_MODE_WRONLY|((file_exists(path)&&(!conf_created))?MPI_MODE_APPEND:MPI_MODE_CREATE));
+  if(conf_created) MPI_File_set_size(file,0);
+  
+  //write data
   char header[30];
   sprintf(header,"%d_%d",iconf,r);
   write_double_vector(file,corr,1,64,header);
+  
+  //close
   ILDG_File_close(file);
 }
 
 //measure the correlation space
-void meas_x_corr(const char *path,quad_su3 *conf)
+void meas_x_corr(const char *path,quad_su3 *conf,bool conf_created)
 {
   x_corr_time-=take_time();
   
   momentum_t put_theta={1,0,0,0},old_theta={0,0,0,0};
   adapt_theta(conf,old_theta,put_theta,0,0);
   
-  for(int r=0;r<2;r++)
+  for(int r=0;r<x_corr_nr;r++)
     {
       for(int ic=0;ic<3;ic++)
 	for(int id=0;id<4;id++)
@@ -146,7 +210,60 @@ void meas_x_corr(const char *path,quad_su3 *conf)
       
       //compute the correlation function
       compute_corr(corr,P);
-      append_corr(path,corr,r);
+      append_corr(path,corr,r,conf_created);
+    }
+  
+  put_theta[0]=0;
+  adapt_theta(conf,old_theta,put_theta,0,0);
+}
+
+//measure the correlation space
+void meas_x_corr_stoch(const char *path,quad_su3 *conf,bool conf_created)
+{
+  x_corr_time-=take_time();
+  
+  momentum_t put_theta={1,0,0,0},old_theta={0,0,0,0};
+  adapt_theta(conf,old_theta,put_theta,0,0);
+  
+  //generate two volume source
+  su3spinspin *eta[2];
+  su3spinspin *phi[2];
+  for(int iso=0;iso<2;iso++)
+    {
+      eta[iso]=nissa_malloc("eta",loc_vol,su3spinspin);
+      phi[iso]=nissa_malloc("phi",loc_vol,su3spinspin);
+      generate_spincolordiluted_source(eta[iso],RND_Z4,-1);
+    }
+  
+  for(int r=0;r<x_corr_nr;r++)
+    {
+      for(int iso=0;iso<2;iso++)
+	for(int id=0;id<4;id++)
+	  for(int ic=0;ic<3;ic++)
+	    { 
+	      //rotate the source index - please note that the propagator rotate AS the sign of mass term
+	      get_spincolor_from_su3spinspin(source,eta[iso],id,ic);
+	      safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,source);
+	      
+	      //invert
+	      inv_tmD_cg_eoprec_eos(temp_solution,NULL,conf,x_corr_kappa,tau3[r]*x_corr_mass,100000,x_corr_residue,source);
+	      
+	      //rotate the sink index
+	      safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
+	      
+	      master_printf("  finished the inversion r=%d id=%d, ic=%d\n",r,id,ic);
+	      put_spincolor_into_su3spinspin(phi[iso],temp_solution,id,ic);
+	    }
+      
+      //compute the correlation function
+      compute_corr_stoch(corr,phi,eta);
+      append_corr(combine("%s_stoch",path).c_str(),corr,r,conf_created);
+    }
+  
+  for(int iso=0;iso<2;iso++)
+    {
+      nissa_free(eta[iso]);
+      nissa_free(phi[iso]);
     }
   
   put_theta[0]=0;
@@ -306,6 +423,7 @@ void init_simulation(char *path)
       read_str_str("Path",x_corr_path,200);
       read_str_double("Mass",&x_corr_mass);
       read_str_double("Kappa",&x_corr_kappa);
+      read_str_int("Nr",&x_corr_nr);
       read_str_double("Residue",&x_corr_residue);
     }
   
@@ -384,7 +502,11 @@ void init_simulation(char *path)
       //write initial measures
       if(gauge_obs_flag) measure_gauge_obs();
       if(top_meas_pars.flag) measure_topology(top_meas_pars,conf,0,true);
-      if(x_corr_flag) meas_x_corr(x_corr_path,conf);
+      if(x_corr_flag)
+	{
+	  meas_x_corr(x_corr_path,conf,true);
+	  //meas_x_corr_stoch(x_corr_path,conf,true);
+	}
     }  
 }
 
@@ -581,7 +703,11 @@ void in_main(int narg,char **arg)
       // 2) measure
       if(gauge_obs_flag && iconf%gauge_obs_flag==0) measure_gauge_obs();
       if(top_meas_pars.flag && iconf%top_meas_pars.flag==0) measure_topology(top_meas_pars,conf,iconf,0);
-      if(x_corr_flag && iconf%x_corr_flag==0) meas_x_corr(x_corr_path,conf);
+      if(x_corr_flag && iconf%x_corr_flag==0)
+	{
+	  meas_x_corr(x_corr_path,conf,false);
+      	  meas_x_corr_stoch(x_corr_path,conf,false);
+	}
       
       // 3) increment id and write conf
       if(store_running_temp_conf && iconf%store_running_temp_conf==0) write_conf(conf_path);
