@@ -1,5 +1,5 @@
-#ifndef _MACROS_H
-#define _MACROS_H
+#ifndef _MACROS_HPP
+#define _MACROS_HPP
 
 #include <stdio.h>
 
@@ -19,7 +19,7 @@
 //vectors parameters
 #define NISSA_VECT_STRING_LENGTH 20
 #if defined(BGQ) && !defined(BGQ_EMU)
- #define NISSA_VECT_ALIGNMENT 64
+ #define NISSA_VECT_ALIGNMENT 32
 #else
  #define NISSA_VECT_ALIGNMENT 16
 #endif
