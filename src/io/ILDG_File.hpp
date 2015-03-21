@@ -26,7 +26,7 @@ namespace nissa
   int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *record_name,ILDG_message *mess=NULL);
   void ILDG_File_close(ILDG_File &file);
   void ILDG_File_master_write(ILDG_File &file,void *data,int nbytes_req);
-  void ILDG_File_read_all(void *data,ILDG_File &file,int nbytes_req);
+  void ILDG_File_read_all(void *data,ILDG_File &file,size_t nbytes_req);
   void ILDG_File_read_checksum(checksum check_read,ILDG_File &file);
   void ILDG_File_read_ildg_data_all(void *data,ILDG_File &file,ILDG_header &header);
   void ILDG_File_seek_to_next_eight_multiple(ILDG_File &file);

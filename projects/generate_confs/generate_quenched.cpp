@@ -183,8 +183,10 @@ void meas_x_corr(const char *path,quad_su3 *conf,bool conf_created)
 {
   x_corr_time-=take_time();
   
-  momentum_t put_theta={1,0,0,0},old_theta={0,0,0,0};
-  adapt_theta(conf,old_theta,put_theta,0,0);
+  momentum_t put_theta,old_theta;
+  memset(put_theta,0,sizeof(momentum_t));
+  memset(old_theta,0,sizeof(momentum_t));
+  put_theta[0]=1;
   
   for(int r=0;r<x_corr_nr;r++)
     {
@@ -222,8 +224,10 @@ void meas_x_corr_stoch(const char *path,quad_su3 *conf,bool conf_created)
 {
   x_corr_time-=take_time();
   
-  momentum_t put_theta={1,0,0,0},old_theta={0,0,0,0};
-  adapt_theta(conf,old_theta,put_theta,0,0);
+  momentum_t put_theta,old_theta;
+  memset(put_theta,0,sizeof(momentum_t));
+  memset(old_theta,0,sizeof(momentum_t));
+  put_theta[0]=1;
   
   //generate two volume source
   su3spinspin *eta[2];

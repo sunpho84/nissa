@@ -15,12 +15,67 @@ ON_t *zeta,*zeta_old,*pi,*fpi;
 quad_u1 *lambda,*lambda_old;
 momentum_t *omega,*fomega;
 
+bool conf_created=true;
 double beta,g;
 int nsweep,nterm;
 int nhmc_steps,nacc;
 
+//write a conf adding info
+void write_conf(const char *path,int iconf)
+{
+  //open for writing
+  ILDG_File file=ILDG_File_open_for_write(path);
+  
+  //write data
+  char data_iconf[30],data_rnd[1000];
+  sprintf(data_iconf,"%d",iconf);
+  convert_rnd_gen_to_text(data_rnd,&glb_rnd_gen);
+  ILDG_File_write_record(file,"ConfID",data_iconf,strlen(data_iconf));
+  ILDG_File_write_record(file,"RND_gen_status",data_rnd,strlen(data_rnd));
+  write_double_vector(file,(double*)lambda,sizeof(quad_u1)/sizeof(double),64,"lambda");
+  write_double_vector(file,(double*)zeta,sizeof(ON_t)/sizeof(double),64,"zeta");
+  
+  ILDG_File_close(file);
+}
+
+//load the conf
+void read_conf(const char *path,int &iconf)
+{
+  ILDG_File file=ILDG_File_open_for_read(path);
+  
+  //read
+  ILDG_header header;
+  
+  //iconf
+  header=ILDG_File_get_next_record_header(file);
+  if(strcasecmp(header.type,"ConfID")) crash("expecting ConfID record, found %s",header.type);
+  char data_iconf[30];
+  ILDG_File_read_all(data_iconf,file,header.data_length);
+  sscanf(data_iconf,"%d",&iconf);
+  
+  //rnd
+  header=ILDG_File_get_next_record_header(file);
+  if(strcasecmp(header.type,"RND_gen_status")) crash("expecting RND_gen_status record, found %s",header.type);
+  char data_rnd[1000];
+  ILDG_File_read_all(data_rnd,file,header.data_length);
+  start_loc_rnd_gen(data_rnd);
+  
+  //lambda
+  header=ILDG_File_get_next_record_header(file);
+  if(strcasecmp(header.type,"lambda")) crash("expecting lambda record, found %s",header.type);
+  read_real_vector((double*)lambda,file,header,sizeof(quad_u1)/sizeof(double));
+
+  //zeta
+  header=ILDG_File_get_next_record_header(file);
+  if(strcasecmp(header.type,"zeta")) crash("expecting zeta record, found %s",header.type);
+  read_real_vector((double*)zeta,file,header,sizeof(ON_t)/sizeof(double));
+  
+  ILDG_File_close(file);
+}
+
+
 //initialize cpn simulation
-void read_input(const char *path)
+void read_input(int &seed,const char *path)
 {
   open_input(path);
   
@@ -34,9 +89,7 @@ void read_input(const char *path)
   g=1/(N*beta);
 
   //read seed and initialize generator
-  int seed;
   read_str_int("Seed",&seed);
-  start_loc_rnd_gen(seed);
   
   //read the number of sweeps and substeps
   read_str_int("NSweep",&nsweep);
@@ -44,25 +97,6 @@ void read_input(const char *path)
   read_str_int("NHmcSteps",&nhmc_steps);
 
   close_input();
-}
-
-#include <fstream>
-
-//read the configuration to disk
-void read_conf(int &isweep,const char *path)
-{
-  std::ifstream conf_file(path);
-  if(!conf_file.good()) crash("opening %s to read conf",path);
-  
-  if(!(conf_file.read((char*)&isweep,sizeof(int)))) crash("reading isweep");
-  //read the two pieces
-  if(!(conf_file.read((char*)zeta,sizeof(ON_t)*glb_vol))) crash("reading zeta");
-  if(!(conf_file.read((char*)lambda,sizeof(quad_u1)*glb_vol))) crash("reading lambda");
-  
-  set_borders_invalid(zeta);
-  set_borders_invalid(lambda);
-  
-  conf_file.close();
 }
 
 //initialize the system to id
@@ -83,7 +117,7 @@ void init_system_to_cold()
 }
 
 //initialize the code
-void init(int &base_isweep)
+void init(int seed,int &base_isweep)
 {
   set_lx_comm(lx_ON_t_comm,sizeof(ON_t));
   set_lx_comm(lx_quad_u1_comm,sizeof(quad_u1)); 
@@ -107,11 +141,24 @@ void init(int &base_isweep)
   init_system_to_cold();
   nacc=0;
   base_isweep=0;
-}  
+  
+  if(file_exists("conf"))
+    {
+      read_conf("conf",base_isweep);
+      conf_created=false;
+    }
+  else
+    {
+      start_loc_rnd_gen(seed);
+      conf_created=true;
+    }
+}
 
 //close everything
-void close_cpn()
+void close_cpn(int isweep)
 {
+  write_conf("conf",isweep);
+  
   master_printf("Closing CPN\n");
   
   nissa_free(zeta);
@@ -563,15 +610,14 @@ void in_main(int narg,char **arg)
 {
   //init
   if(narg<2) crash("Use %s input",arg[0]);
-  read_input(arg[1]);
+  int seed;
+  read_input(seed,arg[1]);
   int base_isweep;
-  init(base_isweep);
-  
-  if(file_exists("conf")) read_conf(base_isweep,"conf"); 
+  init(seed,base_isweep);
   
   //open observable files
-  FILE *energy_file=open_file("energy_file","w");
-  FILE *topology_file=open_file("topology","w");
+  FILE *energy_file=open_file("energy_file",conf_created?"w":"a");
+  FILE *topology_file=open_file("topology",conf_created?"w":"a");
   
   int isweep;
   for(isweep=base_isweep;isweep<base_isweep+nsweep;isweep++)
@@ -588,7 +634,7 @@ void in_main(int narg,char **arg)
   close_file(topology_file);
   
   //close
-  close_cpn();
+  close_cpn(isweep);
 }
 
 int main(int narg,char **arg)
