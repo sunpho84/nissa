@@ -58,8 +58,13 @@ THREADABLE_FUNCTION_4ARG(add_cluster, double*,out_buffer, double*,in_buffer, int
 {
   GET_THREAD_ID();
   
-  int iclust=(iconf-nterm)/each/clust_size;
-  if(iclust>=njacks) crash("iclust: %d >= njacks: %d, iconf: %d",iclust,njacks,iconf);
+  int iclust;
+  if(iconf==0) iclust=njacks;
+  else
+    {
+      iclust=(iconf-nterm)/each/clust_size;
+      if(iclust>=njacks) crash("iclust: %d >= njacks: %d, iconf: %d",iclust,njacks,iconf);
+    }
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     out_buffer[iclust+(njacks+1)*(ivol+loc_vol*r)]+=in_buffer[ivol];
@@ -92,7 +97,7 @@ void load_data(const char *path)
       verbosity_lv2_master_printf("Conf: %d, r: %d\n",iconf,r);
       
       //if we passed termalization we read otherwise we skip it
-      if(iconf<nterm || iconf>=nconfs)
+      if((iconf<nterm || iconf>=nconfs) && (iconf!=0))
 	{
 	  ILDG_File_skip_record(file,header);
 	  //discard checksum
@@ -113,10 +118,14 @@ void load_data(const char *path)
 //clusterize the single jackninfe
 void clusterize(double *data)
 {
+  double ze=data[njacks];
+  
   data[njacks]=0;
   for(int ijack=0;ijack<njacks;ijack++) data[njacks]+=data[ijack];
   for(int ijack=0;ijack<njacks;ijack++) data[ijack]=(data[njacks]-data[ijack])/((njacks-1)*clust_size);
   data[njacks]/=njacks*clust_size;
+  
+  for(int ijack=0;ijack<=njacks;ijack++) data[ijack]=ze-data[ijack];
 }
 
 //clusterize
@@ -136,6 +145,7 @@ void save_data(const char *path)
 {
   FILE *fout=open_file(path,"w");
   
+  if(!little_endian) change_endianness(out_buffer,out_buffer,loc_vol*nr*(njacks+1));
   int rc=fwrite(out_buffer,sizeof(double),loc_vol*nr*(njacks+1),fout);
   if(rc!=loc_vol*nr*(njacks+1)) crash("returned %d instead of %d",rc,loc_vol*nr*(njacks+1));
      
