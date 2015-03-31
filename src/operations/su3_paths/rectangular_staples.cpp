@@ -210,7 +210,7 @@ namespace nissa
     THREAD_BARRIER();
   }
   
-  //compute rectangular staples using overlap between computation and communications, and avoiding using edges
+  //compute rectangular staples overlapping computation and communications, and avoiding using edges
   THREADABLE_FUNCTION_3ARG(compute_rectangular_staples_lx_conf, rectangular_staples_t*,out, quad_su3*,conf, squared_staples_t*,sq_staples)
   {
 #ifdef USE_THREADS

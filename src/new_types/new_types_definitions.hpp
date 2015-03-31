@@ -635,7 +635,7 @@ namespace nissa
     
     //add to the history
     void store_if_needed(int itraj)
-    {if(flag==2) meta.store_if_needed(itraj,B[meta.component]);}
+    {if(flag==3) meta.store_if_needed(itraj,B[meta.component]);}
     double get_meta_force()
     {return meta.get_force(B[meta.component]);}
     double get_meta_pot()

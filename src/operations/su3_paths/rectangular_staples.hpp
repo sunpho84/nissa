@@ -1,5 +1,5 @@
-#ifndef _RECTANGLE_STAPLE_H
-#define _RECTANGLE_STAPLE_H
+#ifndef _RECTANGLE_STAPLE_HPP
+#define _RECTANGLE_STAPLE_HPP
 
 namespace nissa
 {
