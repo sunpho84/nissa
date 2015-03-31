@@ -237,7 +237,7 @@ namespace nissa
     THREAD_BARRIER();
   }
 
-  //compute squared staples using overlap between computation and communications, and avoiding using edges
+  //compute squared staple overlapping computation and communications, and avoiding using edges
   THREADABLE_FUNCTION_2ARG(compute_squared_staples_lx_conf, squared_staples_t*,out, quad_su3*,conf)
   {
 #ifdef USE_THREADS
