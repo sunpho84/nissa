@@ -144,6 +144,7 @@ namespace nissa
 	    if(ichi==1) complex_prod_double(putpourri->chiral_cond,temp,quark->deg/(4.0*glb_vol));
 	    else        complex_prod_double(putpourri->chiral_cond_susc,temp,-quark->deg/(4.0*glb_vol));
 	  }
+	THREAD_BARRIER();
       }
     
     //compute the derivative of M applied to \chi
@@ -192,6 +193,7 @@ namespace nissa
 	  }
 	complex_prodassign_double(putpourri->pressure_dens,quark->deg/(4.0*glb_vol)/2);
       }
+    THREAD_BARRIER();
     
     //if needed compute the quark number susceptivity
     if(comp_susc)
@@ -203,6 +205,7 @@ namespace nissa
 	    complex_summ(putpourri->quark_dens_susc,res_quark_dens_susc_fw_bw[0],res_quark_dens_susc_fw_bw[1]);
 	    complex_prodassign_double(putpourri->quark_dens_susc,-quark->deg/(4.0*glb_vol)/2);
 	  }
+	THREAD_BARRIER();
       }
     
     //remove stag phases and u1 field, and automatically barrier before collapsing
@@ -350,6 +353,7 @@ namespace nissa
 	unsafe_complex_prod_idouble(*magn,temp,coeff);
 	for(int x=0;x<glb_size[1];x++) unsafe_complex_prod_idouble(magn_proj_x[x],temp_proj_x[x],coeff);
       }
+    THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
   
