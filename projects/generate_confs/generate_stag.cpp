@@ -495,8 +495,8 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   
   //open
   FILE *fout=fopen(pars.path,(conf_created||!file_exists(pars.path))?"w":"r+");
-  if(fseek(fout,0,SEEK_END)) crash("seeking to the end");
   if(fout==NULL) crash("opening %s",pars.path);
+  if(fseek(fout,0,SEEK_END)) crash("seeking to the end");
 
   //compute and print
   complex temp;
