@@ -55,7 +55,7 @@ namespace nissa
     }
     fermionic_putpourri_t() {reset();}
   };
-
+  
   //compute the matrix element of the derivative of the dirac operator between two vectors
   //forward and backward derivative are stored separately, for a reason
   void compute_fw_bw_der_mel(complex *res_fw_bw,color **left,quad_su3 **conf,int mu,color **right,complex *point_result)
@@ -162,7 +162,7 @@ namespace nissa
 		color_prod_double(app[par][ieo],app[par][ieo],0.5);
 	      }
 	    set_borders_invalid(app[par]);
-	  }	    
+	  }
 	
 	//invert
 	inv_stD_cg(chi2,conf,quark->mass,100000,residue,app);

@@ -330,6 +330,7 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	operations/smearing/gaussian.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
+	operations/su3_paths/flux_tube.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
 	operations/su3_paths/hypercubic_transfer.cpp \
 	operations/su3_paths/plaquette.cpp \
@@ -475,6 +476,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	operations/smearing/gaussian.$(OBJEXT) \
 	operations/su3_paths/all_rectangles.$(OBJEXT) \
 	operations/su3_paths/arbitrary.$(OBJEXT) \
+	operations/su3_paths/flux_tube.$(OBJEXT) \
 	operations/su3_paths/gauge_sweeper.$(OBJEXT) \
 	operations/su3_paths/hypercubic_transfer.$(OBJEXT) \
 	operations/su3_paths/plaquette.$(OBJEXT) \
@@ -661,6 +663,7 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	operations/smearing/gaussian.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
+	operations/su3_paths/flux_tube.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \
 	operations/su3_paths/hypercubic_transfer.hpp \
 	operations/su3_paths/plaquette.hpp \
@@ -895,6 +898,7 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	operations/smearing/gaussian.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
+	operations/su3_paths/flux_tube.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \
 	operations/su3_paths/hypercubic_transfer.hpp \
 	operations/su3_paths/plaquette.hpp \
@@ -1025,6 +1029,7 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	operations/smearing/gaussian.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
+	operations/su3_paths/flux_tube.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
 	operations/su3_paths/hypercubic_transfer.cpp \
 	operations/su3_paths/plaquette.cpp \
@@ -1708,6 +1713,9 @@ operations/su3_paths/all_rectangles.$(OBJEXT):  \
 operations/su3_paths/arbitrary.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
+operations/su3_paths/flux_tube.$(OBJEXT):  \
+	operations/su3_paths/$(am__dirstamp) \
+	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
 operations/su3_paths/gauge_sweeper.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
@@ -1944,6 +1952,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout_lx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/all_rectangles.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/arbitrary.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/flux_tube.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/gauge_sweeper.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/hypercubic_transfer.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/plaquette.Po@am__quote@

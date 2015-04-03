@@ -159,7 +159,7 @@ void read_conf(quad_su3 **conf,char *path)
       //report on rational approximation
       switch(rat_approx_found)
 	{
-	case 0: verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
+	case 0: if(ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
 	case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars[SEA_THEORY].nflavs);break;
 	case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
 	default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
@@ -543,7 +543,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	  //it is pointless to smear if there is no fermionic measurement
 	  stout_smear(temp_conf,conf,&(theory_pars[itheory].stout_pars));
 	  
-	  //fermionic gran mix
+	  //fermionic grand mix
 	  if(fermionic_putpourri_flag && (iconf%fermionic_putpourri_flag==0))
 	    {
 	      verbosity_lv1_master_printf("Measuring fermionic putpourri for theory %d/%d\n",itheory+1,ntheories);

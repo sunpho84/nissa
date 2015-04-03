@@ -1,5 +1,5 @@
-#ifndef _STAG_H
-#define _STAG_H
+#ifndef _STAG_HPP
+#define _STAG_HPP
 
 namespace nissa
 {
