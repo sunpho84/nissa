@@ -5,7 +5,11 @@
 
 namespace nissa
 {
+#ifdef USE_MPI_IO
   ILDG_File ILDG_File_open(const char *path,int amode);
+#else
+  ILDG_File ILDG_File_open(const char *path,const char *mode);
+#endif
   ILDG_File ILDG_File_open_for_read(const char *path);
   ILDG_File ILDG_File_open_for_write(const char *path);
   ILDG_File_view ILDG_File_create_scidac_mapped_view(ILDG_File &file,ILDG_Offset nbytes_per_site);

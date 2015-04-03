@@ -166,8 +166,12 @@ THREADABLE_FUNCTION_END
 void append_corr(const char *path,double *corr,int r,bool conf_created)
 {
   //open for writing/append
+#ifdef USE_MPI_IO
   ILDG_File file=ILDG_File_open(path,MPI_MODE_WRONLY|((file_exists(path)&&(!conf_created))?MPI_MODE_APPEND:MPI_MODE_CREATE));
   if(conf_created) MPI_File_set_size(file,0);
+#else
+  ILDG_File file=ILDG_File_open(path,(file_exists(path)&&(!conf_created))?"r+":"w");
+#endif
   
   //write data
   char header[30];
