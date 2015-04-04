@@ -11,7 +11,8 @@ namespace nissa
 {
   THREADABLE_FUNCTION_3ARG(apply_st2Doe, color*,out, quad_su3**,conf, color*,in)
   {
-    if(!check_borders_valid(conf)) communicate_ev_and_od_quad_su3_borders(conf);
+    if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
+      communicate_ev_and_od_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_ev_color_borders(in);
     
     GET_THREAD_ID();
@@ -57,7 +58,8 @@ namespace nissa
 
   THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,in)
   {
-    if(!check_borders_valid(conf)) communicate_ev_and_od_quad_su3_borders(conf);
+    if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
+      communicate_ev_and_od_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_od_color_borders(in);
     
     GET_THREAD_ID();
@@ -103,7 +105,8 @@ namespace nissa
 	if(temp==in)  crash("temp==in!");
       }
     
-    if(!check_borders_valid(conf[EVN])) communicate_ev_and_od_quad_su3_borders(conf);
+    if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
+      communicate_ev_and_od_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_ev_color_borders(in);
     
     NISSA_PARALLEL_LOOP(io,0,loc_volh)
