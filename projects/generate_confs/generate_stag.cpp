@@ -15,6 +15,7 @@ gauge_obs_meas_pars_t gauge_obs_meas_pars;
 poly_corr_meas_pars_t poly_corr_meas_pars;
 top_meas_pars_t top_meas_pars;
 all_rect_meas_pars_t all_rect_meas_pars;
+flux_tube_meas_pars_t flux_tube_meas_pars;
 
 //input and output path for confs
 char conf_path[1024];
@@ -276,6 +277,9 @@ void init_simulation(char *path)
   
   //read if we want to measure all rectangles
   read_all_rect_meas_pars(all_rect_meas_pars);
+
+  //read if we want to measure flux tube
+  read_flux_tube_meas_pars(flux_tube_meas_pars);
   
   //read the number of trajectory to evolve and the wall_time
   read_str_int("NTrajTot",&ntraj_tot);
@@ -521,6 +525,8 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   if(top_meas_pars.flag) if(iconf%top_meas_pars.flag==0) measure_topology_eo_conf(top_meas_pars,conf,iconf,conf_created);
   if(all_rect_meas_pars.flag) if(iconf%all_rect_meas_pars.flag==0)
 				measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
+  if(flux_tube_meas_pars.flag) if(iconf%flux_tube_meas_pars.flag==0) compute_flux_tube(conf,flux_tube_meas_pars);
+				 
   if(theory_pars[SEA_THEORY].em_field_pars.flag==3)
     {
       FILE *file=open_file("bval",conf_created?"w":"a");

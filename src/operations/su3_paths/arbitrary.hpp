@@ -1,5 +1,5 @@
-#ifndef _ARBITRARY_H
-#define _ARBITRARY_H
+#ifndef _ARBITRARY_HPP
+#define _ARBITRARY_HPP
 
 #include <stdlib.h>
 
@@ -129,6 +129,25 @@ namespace nissa
     //setu the communication buffers
     void setup_sender_receivers();
   };
+
+  ////////////////////////////////////////////////////////////
+
+  struct coords_t{
+    coords c;
+    int &operator[](int i){return c[i];}
+    coords_t(){memset(c,0,sizeof(coords));}
+    coords_t(const coords_t &o){memcpy(c,o.c,sizeof(coords));}
+  };
+  typedef std::vector<coords_t> path_drawing_t;
+  
+  void init_su3_path(path_drawing_t *c,su3 *out);
+  void elong_su3_path_BW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu);
+  void elong_su3_path_FW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu);
+  void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,int len);
+  //wrapper
+  inline void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int *pars)
+  {elong_su3_path(c,out,conf,pars[0],pars[1]);}
+  void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int *steps,int nmacro_steps);
 }
 
 #endif

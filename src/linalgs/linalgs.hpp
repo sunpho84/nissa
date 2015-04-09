@@ -5,12 +5,12 @@
 
 namespace nissa
 {
+  void complex_vector_glb_collapse(double *res,complex *a,int n);
   void single_vector_init_to_zero(float *a,int n);
   void single_vector_copy(float *a,float *b,int n);
   void double_conv_quadruple_vector_glb_scalar_prod(double *out,float_128 *a,float_128 *b,int n);
   void double_vector_glb_scalar_prod(double *res,double *a,double *b,int n);
   void single_vector_glb_scalar_prod(float *res,float *a,float *b,int n);
-  void complex_vector_glb_collapse(double *res,complex *a,int n);
   void double_vector_glb_collapse(double *res,double *a,int n);
   void double_vector_copy(double *a,double *b,int n);
   void double_vector_to_single(float *a,double *b,int n);
