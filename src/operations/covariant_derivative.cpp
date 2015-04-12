@@ -51,8 +51,8 @@ namespace nissa
   void insert_tadpole_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
 
   /*
-    insert the operator:  \sum_mu A_{x,mu} [
-    f_fw * ( - i t3 g5 - gmu) U_{x,mu} \delta{x',x+mu} + f_bw * ( - i t3 g5 + gmu) U^+_{x-mu,mu} \delta{x',x-mu}]
+    insert the operator:  \sum_mu  [
+    f_fw * ( - i t3 g5 - gmu) A_{x,mu} U_{x,mu} \delta{x',x+mu} + f_bw * ( - i t3 g5 + gmu) A_{x-mu,mu} U^+_{x-mu,mu} \delta{x',x-mu}]
   */
 #define INSERT_OPERATORS(TYPE)						\
   void insert_operator(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,complex fact_fw,complex fact_bw,int r,void(*get_curr)(complex,spin1field*,int,int,void*),void *pars=NULL) \
@@ -115,7 +115,7 @@ namespace nissa
     insert_operator(out,conf,NULL,in,fw_factor,bw_factor,r,insert_tadpole_handle,tad); \
   }									\
   THREADABLE_FUNCTION_END						\
-  									\
+									\
   /*insert the external source, that is one of the two extrema of the stoch prop*/ \
   THREADABLE_FUNCTION_5ARG(insert_external_source, TYPE*,out, quad_su3*,conf, spin1field*,curr, TYPE*,in, int,r) \
   {									\

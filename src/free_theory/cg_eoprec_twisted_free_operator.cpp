@@ -1,5 +1,13 @@
-#include "operators/twisted_Dirac_eoprec_operator.hpp"
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
+#include "base/global_variables.hpp"
+#include "geometry/geometry_mix.hpp"
+#include "routines/ios.hpp"
+
 #include "free_theory_types.hpp"
+#include "twisted_free_Dirac_eoprec_operator.hpp"
 
 namespace nissa
 {

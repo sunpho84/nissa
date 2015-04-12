@@ -1,30 +1,33 @@
 #include <math.h>
 
-#include "../../../../src/new_types/new_types_definitions.hpp"
-#include "../../../../src/new_types/complex.hpp"
-#include "../../../../src/communicate/communicate.hpp"
-#include "../../../../src/base/debug.hpp"
-#include "../../../../src/base/global_variables.hpp"
-#include "../../../../src/base/vectors.hpp"
+#include "new_types/new_types_definitions.hpp"
+#include "new_types/complex.hpp"
+#include "communicate/communicate.hpp"
+#include "base/debug.hpp"
+#include "base/global_variables.hpp"
+#include "base/vectors.hpp"
 
-#include "../types/types.hpp"
+#include "free_theory_types.hpp"
 
-//apply even-odd or odd-even part of tmD, multiplied by -2
-void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,momentum_t bc)
+namespace nissa
 {
-  if(eooe==0) communicate_od_spin_borders(in);
-  else        communicate_ev_spin_borders(in);
-
-  int Xup,Xdw;
-  
-  complex phases[4];
-  for(int mu=0;mu<4;mu++)
-    {    
-      phases[mu][RE]=cos(M_PI*bc[mu]);
-      phases[mu][IM]=sin(M_PI*bc[mu]);
-    }
-  
-  NISSA_LOC_VOLH_LOOP(X)
+  //apply even-odd or odd-even part of tmD, multiplied by -2
+  void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,momentum_t bc)
+  {
+    crash("need thread");
+    if(eooe==0) communicate_od_spin_borders(in);
+    else        communicate_ev_spin_borders(in);
+    
+    int Xup,Xdw;
+    
+    complex phases[4];
+    for(int mu=0;mu<4;mu++)
+      {    
+	phases[mu][RE]=cos(M_PI*bc[mu]);
+	phases[mu][IM]=sin(M_PI*bc[mu]);
+      }
+    
+    NISSA_LOC_VOLH_LOOP(X)
     {
       complex temp_c0,temp_c1;
       
@@ -140,71 +143,72 @@ void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,momentum_t bc)
       complex_isummassign(out[X][2],temp_c0);
       complex_isubtassign(out[X][3],temp_c1);
     }
+    
+    set_borders_invalid(out);
+  }
   
-  set_borders_invalid(out);
-}
-
-//wrappers
-void tmn2Doe_eos(spin *out,spin *in,momentum_t bc){tmn2Deo_or_tmn2Doe_eos(out,1,in,bc);}
-void tmn2Deo_eos(spin *out,spin *in,momentum_t bc){tmn2Deo_or_tmn2Doe_eos(out,0,in,bc);}
-
-//implement ee or oo part of Dirac operator, equation(3)
-void tmDee_or_oo_eos(spin *out,quark_info qu,spin *in)
-{
-  if(in==out) crash("in==out!");
-  complex z={1/(2*qu.kappa),qu.mass};
+  //wrappers
+  void tmn2Doe_eos(spin *out,spin *in,momentum_t bc){tmn2Deo_or_tmn2Doe_eos(out,1,in,bc);}
+  void tmn2Deo_eos(spin *out,spin *in,momentum_t bc){tmn2Deo_or_tmn2Doe_eos(out,0,in,bc);}
   
-  for(int X=0;X<loc_volh;X++)
-    {
-      for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id],in[X][id],z);
-      for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id],in[X][id],z);
-    }
+  //implement ee or oo part of Dirac operator, equation(3)
+  void tmDee_or_oo_eos(spin *out,quark_info qu,spin *in)
+  {
+    if(in==out) crash("in==out!");
+    complex z={1/(2*qu.kappa),qu.mass};
+    
+    for(int X=0;X<loc_volh;X++)
+      {
+	for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id],in[X][id],z);
+	for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id],in[X][id],z);
+      }
+    
+    set_borders_invalid(out);
+  }
   
-  set_borders_invalid(out);
-}
-
-//inverse
-void inv_tmDee_or_oo_eos(spin *out,quark_info qu,spin *in)
-{
-  if(in==out) crash("in==out!");
-  double a=1/(2*qu.kappa),b=qu.mass,nrm=a*a+b*b;
-  complex z={+a/nrm,-b/nrm};
+  //inverse
+  void inv_tmDee_or_oo_eos(spin *out,quark_info qu,spin *in)
+  {
+    if(in==out) crash("in==out!");
+    double a=1/(2*qu.kappa),b=qu.mass,nrm=a*a+b*b;
+    complex z={+a/nrm,-b/nrm};
+    
+    for(int X=0;X<loc_volh;X++)
+      {
+	for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id],in[X][id],z);
+	for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id],in[X][id],z);
+      }
+    
+    set_borders_invalid(out);
+  }
   
-  for(int X=0;X<loc_volh;X++)
-    {
-      for(int id=0;id<2;id++) unsafe_complex_prod(out[X][id],in[X][id],z);
-      for(int id=2;id<4;id++) unsafe_complex_conj2_prod(out[X][id],in[X][id],z);
-    }
+  //implement Koo defined in equation (7) 
+  void tmDkern_eoprec_eos(spin *out,spin *temp,quark_info qu,spin *in)
+  {
+    tmn2Deo_eos(out,in,qu.bc);
+    inv_tmDee_or_oo_eos(temp,qu,out);
+    tmn2Doe_eos(out,temp,qu.bc);
+    inv_tmDee_or_oo_eos(temp,qu,out);
+    tmDee_or_oo_eos(temp,qu,in);
+    
+    for(int ivol=0;ivol<loc_volh;ivol++)
+      for(int id=0;id<2;id++)
+	for(int ri=0;ri<2;ri++)
+	  { //gamma5 is explicitely implemented
+	    out[ivol][id  ][ri]=+temp[ivol][id  ][ri]-out[ivol][id  ][ri]*0.25;
+	    out[ivol][id+2][ri]=-temp[ivol][id+2][ri]+out[ivol][id+2][ri]*0.25;
+	  }
+    
+    set_borders_invalid(out);
+  }
   
-  set_borders_invalid(out);
-}
-
-//implement Koo defined in equation (7) 
-void tmDkern_eoprec_eos(spin *out,spin *temp,quark_info qu,spin *in)
-{
-  tmn2Deo_eos(out,in,qu.bc);
-  inv_tmDee_or_oo_eos(temp,qu,out);
-  tmn2Doe_eos(out,temp,qu.bc);
-  inv_tmDee_or_oo_eos(temp,qu,out);
-  tmDee_or_oo_eos(temp,qu,in);
-  
-  for(int ivol=0;ivol<loc_volh;ivol++)
-    for(int id=0;id<2;id++)
-      for(int ri=0;ri<2;ri++)
-	{ //gamma5 is explicitely implemented
-	  out[ivol][id  ][ri]=+temp[ivol][id  ][ri]-out[ivol][id  ][ri]*0.25;
-	  out[ivol][id+2][ri]=-temp[ivol][id+2][ri]+out[ivol][id+2][ri]*0.25;
-	}
-  
-  set_borders_invalid(out);
-}
-
-//square of Koo
-void tmDkern_eoprec_square_eos(spin *out,spin *temp1,spin *temp2,quark_info qu,spin *in)
-{
-  quark_info mqu=qu;
-  mqu.mass*=-1;
-  
-  tmDkern_eoprec_eos(temp1,temp2,mqu, in   );
-  tmDkern_eoprec_eos(out,  temp2,qu,  temp1);
+  //square of Koo
+  void tmDkern_eoprec_square_eos(spin *out,spin *temp1,spin *temp2,quark_info qu,spin *in)
+  {
+    quark_info mqu=qu;
+    mqu.mass*=-1;
+    
+    tmDkern_eoprec_eos(temp1,temp2,mqu, in   );
+    tmDkern_eoprec_eos(out,  temp2,qu,  temp1);
+  }
 }
