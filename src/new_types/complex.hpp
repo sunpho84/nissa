@@ -131,53 +131,61 @@ namespace nissa
   //summ the prod with real
   inline void complex_summ_the_prod_double(complex a,const complex b,const double c)
   {
-    a[0]+=b[0]*c;
+    double t=b[0]*c;
     a[1]+=b[1]*c;
+    a[0]+=t;
   }
   inline void complex_subt_the_prod_double(complex a,const complex b,const double c)
   {
-    a[0]-=b[0]*c;
+    double t=b[0]*c;
     a[1]-=b[1]*c;
+    a[0]-=t;
   }
   
   //summ the prod with imag
   inline void complex_summ_the_prod_idouble(complex a,complex b,double c)
   {
-    a[0]-=b[1]*c;
+    double t=b[1]*c;
     a[1]+=b[0]*c;
+    a[0]-=t;
   }
   inline void complex_subt_the_prod_idouble(complex a,complex b,double c)
   {
-    a[0]+=b[1]*c;
+    double t=b[1]*c;
     a[1]-=b[0]*c;
+    a[0]+=t;
   }
   
   //Summ to the output the product of two complex number
-  //it is assumed that a!=b and a!=c
   inline void complex_summ_the_prod(complex a,complex b,complex c)
   {
-    a[0]+=b[0]*c[0]-b[1]*c[1];
+    double t=b[0]*c[0]-b[1]*c[1];
     a[1]+=b[0]*c[1]+b[1]*c[0];
+    a[0]+=t;
   }
   inline void single_complex_summ_the_prod(single_complex a,single_complex b,single_complex c)
   {
-    a[0]+=b[0]*c[0]-b[1]*c[1];
+    double t=b[0]*c[0]-b[1]*c[1];
     a[1]+=b[0]*c[1]+b[1]*c[0];
+    a[0]+=t;
   }
   inline void complex_subt_the_prod(complex a,complex b,complex c)
   {
-    a[0]-=b[0]*c[0]-b[1]*c[1];
+    double t=b[0]*c[0]-b[1]*c[1];
     a[1]-=b[0]*c[1]+b[1]*c[0];
+    a[0]-=t;
   }
   inline void complex_summ_the_conj2_prod(complex a,complex b,complex c)
   {
-    a[0]+=+b[0]*c[0]+b[1]*c[1];
+    double t=+b[0]*c[0]+b[1]*c[1];
     a[1]+=-b[0]*c[1]+b[1]*c[0];
+    a[0]+=t;
   }
   inline void single_complex_summ_the_conj2_prod(single_complex a,single_complex b,single_complex c)
   {
-    a[0]+=+b[0]*c[0]+b[1]*c[1];
+    double t=+b[0]*c[0]+b[1]*c[1];
     a[1]+=-b[0]*c[1]+b[1]*c[0];
+    a[0]+=t;
   }
   inline void complex_summ_the_conj1_prod(complex a,complex b,complex c)
   {complex_summ_the_conj2_prod(a,c,b);}
@@ -185,18 +193,21 @@ namespace nissa
   {single_complex_summ_the_conj2_prod(a,c,b);}
   inline void complex_summ_the_conj_conj_prod(complex a,complex b,complex c)
   {
-    a[0]+=+b[0]*c[0]-b[1]*c[1];
+    double t=+b[0]*c[0]-b[1]*c[1];
     a[1]+=-b[0]*c[1]-b[1]*c[0];
+    a[0]+=t;
   }
   inline void complex_subt_the_conj2_prod(complex a,complex b,complex c)
   {
-    a[0]-=+b[0]*c[0]+b[1]*c[1];
+    double t=+b[0]*c[0]+b[1]*c[1];
     a[1]-=-b[0]*c[1]+b[1]*c[0];
+    a[0]-=t;
   }
   inline void single_complex_subt_the_conj2_prod(single_complex a,single_complex b,single_complex c)
   {
-    a[0]-=+b[0]*c[0]+b[1]*c[1];
+    double t=+b[0]*c[0]+b[1]*c[1];
     a[1]-=-b[0]*c[1]+b[1]*c[0];
+    a[0]-=t;
   }
   inline void complex_subt_the_conj1_prod(complex a,complex b,complex c)
   {complex_subt_the_conj2_prod(a,c,b);}
@@ -204,8 +215,9 @@ namespace nissa
   {single_complex_subt_the_conj2_prod(a,c,b);}
   inline void complex_subt_the_conj_conj_prod(complex a,complex b,complex c)
   {
-    a[0]-=+b[0]*c[0]-b[1]*c[1];
+    double t=+b[0]*c[0]-b[1]*c[1];
     a[1]-=-b[0]*c[1]-b[1]*c[0];
+    a[0]-=t;
   }
   
   //The product of two complex number

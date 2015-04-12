@@ -250,8 +250,10 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_bgq.cpp \
 	dirac_operators/tmclovQ2/dirac_operator_tmclovQ2_128_bgq.cpp \
 	dirac_operators/stD/dirac_operator_stD_bgq.cpp \
+	free_theory/cg_eoprec_twisted_free_operator.cpp \
 	free_theory/free_theory_types_routines.cpp \
 	free_theory/tlSym_gauge_propagator.cpp \
+	free_theory/twisted_free_Dirac_eoprec_operator.cpp \
 	free_theory/twisted_propagator.cpp geometry/geometry_eo.cpp \
 	geometry/geometry_lx.cpp geometry/geometry_mix.cpp \
 	geometry/geometry_Wsklx.cpp geometry/geometry_vir.cpp \
@@ -396,8 +398,10 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.$(OBJEXT) \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.$(OBJEXT) \
 	$(am__objects_4) \
+	free_theory/cg_eoprec_twisted_free_operator.$(OBJEXT) \
 	free_theory/free_theory_types_routines.$(OBJEXT) \
 	free_theory/tlSym_gauge_propagator.$(OBJEXT) \
+	free_theory/twisted_free_Dirac_eoprec_operator.$(OBJEXT) \
 	free_theory/twisted_propagator.$(OBJEXT) \
 	geometry/geometry_eo.$(OBJEXT) geometry/geometry_lx.$(OBJEXT) \
 	geometry/geometry_mix.$(OBJEXT) \
@@ -585,6 +589,7 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	free_theory/free_theory_types.hpp \
 	free_theory/free_theory_types_routines.hpp \
 	free_theory/tlSym_gauge_propagator.hpp \
+	free_theory/twisted_free_Dirac_eoprec_operator.hpp \
 	free_theory/twisted_propagator.hpp geometry/geometry_eo.hpp \
 	geometry/geometry_lx.hpp geometry/geometry_mix.hpp \
 	geometry/geometry_Wsklx.hpp geometry/geometry_vir.hpp \
@@ -831,6 +836,7 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	free_theory/free_theory_types.hpp \
 	free_theory/free_theory_types_routines.hpp \
 	free_theory/tlSym_gauge_propagator.hpp \
+	free_theory/twisted_free_Dirac_eoprec_operator.hpp \
 	free_theory/twisted_propagator.hpp geometry/geometry_eo.hpp \
 	geometry/geometry_lx.hpp geometry/geometry_mix.hpp \
 	geometry/geometry_Wsklx.hpp $(am__append_10) hmc/backfield.hpp \
@@ -960,8 +966,11 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	dirac_operators/tmQ/dirac_operator_tmQ_128.cpp \
 	dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.cpp \
 	dirac_operators/tmQ2/dirac_operator_tmQ2_128.cpp \
-	$(am__append_7) free_theory/free_theory_types_routines.cpp \
+	$(am__append_7) \
+	free_theory/cg_eoprec_twisted_free_operator.cpp \
+	free_theory/free_theory_types_routines.cpp \
 	free_theory/tlSym_gauge_propagator.cpp \
+	free_theory/twisted_free_Dirac_eoprec_operator.cpp \
 	free_theory/twisted_propagator.cpp geometry/geometry_eo.cpp \
 	geometry/geometry_lx.cpp geometry/geometry_mix.cpp \
 	geometry/geometry_Wsklx.cpp $(am__append_9) hmc/backfield.cpp \
@@ -1347,10 +1356,16 @@ free_theory/$(am__dirstamp):
 free_theory/$(DEPDIR)/$(am__dirstamp):
 	@$(MKDIR_P) free_theory/$(DEPDIR)
 	@: > free_theory/$(DEPDIR)/$(am__dirstamp)
+free_theory/cg_eoprec_twisted_free_operator.$(OBJEXT):  \
+	free_theory/$(am__dirstamp) \
+	free_theory/$(DEPDIR)/$(am__dirstamp)
 free_theory/free_theory_types_routines.$(OBJEXT):  \
 	free_theory/$(am__dirstamp) \
 	free_theory/$(DEPDIR)/$(am__dirstamp)
 free_theory/tlSym_gauge_propagator.$(OBJEXT):  \
+	free_theory/$(am__dirstamp) \
+	free_theory/$(DEPDIR)/$(am__dirstamp)
+free_theory/twisted_free_Dirac_eoprec_operator.$(OBJEXT):  \
 	free_theory/$(am__dirstamp) \
 	free_theory/$(DEPDIR)/$(am__dirstamp)
 free_theory/twisted_propagator.$(OBJEXT): free_theory/$(am__dirstamp) \
@@ -1849,8 +1864,10 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2_128.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2_128_bgq.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@dirac_operators/tmclovQ2/$(DEPDIR)/dirac_operator_tmclovQ2_bgq.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@free_theory/$(DEPDIR)/cg_eoprec_twisted_free_operator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@free_theory/$(DEPDIR)/free_theory_types_routines.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@free_theory/$(DEPDIR)/tlSym_gauge_propagator.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@free_theory/$(DEPDIR)/twisted_free_Dirac_eoprec_operator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@free_theory/$(DEPDIR)/twisted_propagator.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_Wsklx.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@geometry/$(DEPDIR)/geometry_eo.Po@am__quote@

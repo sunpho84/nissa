@@ -54,6 +54,7 @@
 #include "free_theory/free_theory_types_routines.hpp"
 #include "free_theory/tlSym_gauge_propagator.hpp"
 #include "free_theory/twisted_propagator.hpp"
+#include "free_theory/twisted_free_Dirac_eoprec_operator.hpp"
 
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
