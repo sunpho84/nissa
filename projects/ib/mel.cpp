@@ -109,7 +109,7 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
 }
 
 //invert on top of a source, putting all needed for the appropriate quark
-void get_prop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,int rotate=true)
+void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,int rotate=true)
 {
   //these are the way in which Dirac operator rotate - propagator is opposite, see below
   
@@ -204,7 +204,7 @@ void init_simulation(char *path)
   lep_mass=nissa_malloc("lep_mass",nleptons,double);
   lep_energy=nissa_malloc("lep_energy",nleptons,double);
   lep_mom=nissa_malloc("lep_mom",nleptons,double);
-  expect_str("Q1Q2LMesMassTheta");
+  expect_str("Q1Q2LepmassMesmass");
   for(int il=0;il<nleptons;il++)
     {
       read_int(lep_corr_iq1+il);
@@ -343,7 +343,7 @@ void generate_quark_propagators()
 	  {
 	    master_printf(" mass[%d]=%lg, r=%d\n",imass,qmass[imass],r);
 	    generate_source(insertion_map[ip],r,Q[iqprop(imass,source_map[ip],r)]);
-	    get_prop(Q[iqprop(imass,prop_map[ip],r)],source,imass,r);
+	    get_qprop(Q[iqprop(imass,prop_map[ip],r)],source,imass,r);
 	  }
     }
 }
@@ -376,6 +376,8 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 {
   GET_THREAD_ID();
 
+  master_printf("Generating lepton propagators\n");
+  
   //for the time being the boundaries are periodic
   quark_info le;
   le.kappa=0.125;
@@ -474,6 +476,8 @@ void close()
   nissa_free(original_source);
   for(int iprop=0;iprop<nqprop;iprop++) nissa_free(Q[iprop]);
   nissa_free(Q);
+  for(int iprop=0;iprop<nlprop;iprop++) nissa_free(L[iprop]);
+  nissa_free(L);
   nissa_free(conf);
   nissa_free(corr);
   nissa_free(loc_corr);
