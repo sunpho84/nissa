@@ -79,7 +79,8 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 bin_PROGRAMS = $(top_builddir)/bin/mel$(EXEEXT) \
-	$(top_builddir)/bin/mel_point_source$(EXEEXT)
+	$(top_builddir)/bin/mel_point_source$(EXEEXT) \
+	$(top_builddir)/bin/test_prop$(EXEEXT)
 subdir = projects/ib
 DIST_COMMON = $(srcdir)/Makefile.in $(srcdir)/Makefile.am \
 	$(top_srcdir)/config/depcomp
@@ -110,6 +111,13 @@ __top_builddir__bin_mel_point_source_LINK = $(CXXLD) \
 	$(__top_builddir__bin_mel_point_source_CXXFLAGS) $(CXXFLAGS) \
 	$(__top_builddir__bin_mel_point_source_LDFLAGS) $(LDFLAGS) -o \
 	$@
+am___top_builddir__bin_test_prop_OBJECTS = test_prop.$(OBJEXT)
+__top_builddir__bin_test_prop_OBJECTS =  \
+	$(am___top_builddir__bin_test_prop_OBJECTS)
+__top_builddir__bin_test_prop_DEPENDENCIES = $(LDADD)
+__top_builddir__bin_test_prop_LINK = $(CXXLD) $(AM_CXXFLAGS) \
+	$(CXXFLAGS) $(__top_builddir__bin_test_prop_LDFLAGS) \
+	$(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -144,9 +152,11 @@ am__v_CXXLD_ = $(am__v_CXXLD_@AM_DEFAULT_V@)
 am__v_CXXLD_0 = @echo "  CXXLD   " $@;
 am__v_CXXLD_1 = 
 SOURCES = $(__top_builddir__bin_mel_SOURCES) \
-	$(__top_builddir__bin_mel_point_source_SOURCES)
+	$(__top_builddir__bin_mel_point_source_SOURCES) \
+	$(__top_builddir__bin_test_prop_SOURCES)
 DIST_SOURCES = $(__top_builddir__bin_mel_SOURCES) \
-	$(__top_builddir__bin_mel_point_source_SOURCES)
+	$(__top_builddir__bin_mel_point_source_SOURCES) \
+	$(__top_builddir__bin_test_prop_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -287,6 +297,9 @@ __top_builddir__bin_mel_point_source_SOURCES = mel.cpp
 __top_builddir__bin_mel_point_source_LDADD = $(LDADD)
 __top_builddir__bin_mel_point_source_CXXFLAGS = "-DPOINT_SOURCE_VERSION"
 __top_builddir__bin_mel_point_source_LDFLAGS = $(LDFLAGS)
+__top_builddir__bin_test_prop_SOURCES = test_prop.cpp
+__top_builddir__bin_test_prop_LDADD = $(LDADD)
+__top_builddir__bin_test_prop_LDFLAGS = $(LDFLAGS)
 all: all-am
 
 .SUFFIXES:
@@ -375,6 +388,10 @@ $(top_builddir)/bin/mel_point_source$(EXEEXT): $(__top_builddir__bin_mel_point_s
 	@rm -f $(top_builddir)/bin/mel_point_source$(EXEEXT)
 	$(AM_V_CXXLD)$(__top_builddir__bin_mel_point_source_LINK) $(__top_builddir__bin_mel_point_source_OBJECTS) $(__top_builddir__bin_mel_point_source_LDADD) $(LIBS)
 
+$(top_builddir)/bin/test_prop$(EXEEXT): $(__top_builddir__bin_test_prop_OBJECTS) $(__top_builddir__bin_test_prop_DEPENDENCIES) $(EXTRA___top_builddir__bin_test_prop_DEPENDENCIES) $(top_builddir)/bin/$(am__dirstamp)
+	@rm -f $(top_builddir)/bin/test_prop$(EXEEXT)
+	$(AM_V_CXXLD)$(__top_builddir__bin_test_prop_LINK) $(__top_builddir__bin_test_prop_OBJECTS) $(__top_builddir__bin_test_prop_LDADD) $(LIBS)
+
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
 
@@ -383,6 +400,7 @@ distclean-compile:
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/__top_builddir__bin_mel_point_source-mel.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/mel.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/test_prop.Po@am__quote@
 
 .cpp.o:
 @am__fastdepCXX_TRUE@	$(AM_V_CXX)depbase=`echo $@ | sed 's|[^/]*$$|$(DEPDIR)/&|;s|\.o$$||'`;\

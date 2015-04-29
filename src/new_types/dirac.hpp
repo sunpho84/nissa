@@ -211,6 +211,12 @@ namespace nissa
     c[0]=c[1]=0;
     summ_the_trace_prod_spinspins(c,a,b);
   }
+  inline void trace_spinspin_with_dirac(complex out,spinspin s,dirac_matr *m)
+  {
+    complex_put_to_zero(out);
+    for(int id1=0;id1<4;id1++)
+      complex_summ_the_prod(out,m->entr[id1],s[m->pos[id1]][id1]);
+  }
   
   void init_base_gamma();
 }
