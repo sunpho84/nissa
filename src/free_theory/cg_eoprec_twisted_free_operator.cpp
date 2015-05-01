@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "routines/ios.hpp"
@@ -12,8 +13,9 @@
 namespace nissa
 {
   //invert Koo defined in equation (7)
-  void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,quark_info qu,int nitermax,double residue,spin *source)
+  void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,tm_quark_info qu,int nitermax,double residue,spin *source)
   {
+    crash("needs to be fixed");
     int niter=nitermax;
     int riter=0;
     int rniter=5;
@@ -134,7 +136,7 @@ namespace nissa
   }
   
   //Invert twisted mass operator using e/o preconditioning.
-  void inv_tmD_cg_eoprec_eos(spin *solution_lx,spin *guess_Koo,quark_info qu,int nitermax,double residue,spin *source_lx)
+  void inv_tmD_cg_eoprec_eos(spin *solution_lx,spin *guess_Koo,tm_quark_info qu,int nitermax,double residue,spin *source_lx)
   {
     //prepare the e/o split version of the source
     spin *source_eos[2];
@@ -168,7 +170,7 @@ namespace nissa
     
     //Equation (9) using solution_eos[EVN] as temporary vector
     inv_tmDkern_eoprec_square_eos(temp,guess_Koo,qu,nitermax,residue,varphi);
-    quark_info mqu=qu;
+    tm_quark_info mqu=qu;
     mqu.mass*=-1;
     tmDkern_eoprec_eos(solution_eos[ODD],solution_eos[EVN],mqu,temp);
     if(guess_Koo!=NULL) memcpy(guess_Koo,temp,sizeof(spin)*loc_volh); //if a guess was passed, return new one

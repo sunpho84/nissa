@@ -7,8 +7,8 @@
 
 namespace nissa
 {
-  void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,quark_info qu,int nitermax,double residue,spin *source);
-  void inv_tmD_cg_eoprec_eos(spin *solution_lx,spin *guess_Koo,quark_info qu,int nitermax,double residue,spin *source_lx);
+  void inv_tmDkern_eoprec_square_eos(spin *sol,spin *guess,tm_quark_info qu,int nitermax,double residue,spin *source);
+  void inv_tmD_cg_eoprec_eos(spin *solution_lx,spin *guess_Koo,tm_quark_info qu,int nitermax,double residue,spin *source_lx);
 }
 
 #endif

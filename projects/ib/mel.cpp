@@ -66,9 +66,8 @@ int nleptons;
 int *lep_corr_iq1;
 int *lep_corr_iq2;
 int lepton_mom_sign[2]={-1,+1};
-double *lep_mass;
-double *lep_energy;
-double *lep_mom;
+tm_quark_info *leps;
+double *lep_energy,*lep_mom;
 spinspin **L;
 
 //return appropriate propagator
@@ -155,31 +154,6 @@ void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,int rotate=true)
       }
 }
 
-//compute the energy of a particle according to lattice dispertion relation
-double lep_energy_fun(double m,double p,double k=0.125)
-{
-  /*
-  double sinp=sin(p);
-  double sinph=sin(p/2);
-  
-  double M=1/(2*k)-4;
-
-  double Mp=0,sin2_mom=0;
-  for(int mu=0;mu<NDIM;mu++)
-    {
-      Mp+=sinph*sinph;
-      sin2_mom+=sinp*sinp;
-    }
-  Mp=2*Mp+M;
-    
-  double den=sin2_mom+Mp*Mp+m*m;
-
-  return den;
-  */
-
-  return sqrt(m*m+3*p*p);
-}
-
 void init_simulation(char *path)
 {
   //////////////////////////// read the input /////////////////////////
@@ -209,22 +183,33 @@ void init_simulation(char *path)
   read_str_int("LeptonicCorrs",&nleptons);
   lep_corr_iq1=nissa_malloc("lep_corr_iq1",nleptons,int);
   lep_corr_iq2=nissa_malloc("lep_corr_iq2",nleptons,int);
-  lep_mass=nissa_malloc("lep_mass",nleptons,double);
+  leps=nissa_malloc("leps",nleptons,tm_quark_info);
   lep_energy=nissa_malloc("lep_energy",nleptons,double);
   lep_mom=nissa_malloc("lep_mom",nleptons,double);
   expect_str("Q1Q2LepmassMesmass");
   for(int il=0;il<nleptons;il++)
     {
+      //read quarks identfiying the mesons, and lepton mass
       read_int(lep_corr_iq1+il);
       read_int(lep_corr_iq2+il);
-      read_double(lep_mass+il);
+      read_double(&leps[il].mass);
+
+      //maximal twist
+      leps[il].kappa=0.125;
+      leps[il].r=0;
+      
+      //read the mass of the meson (that must have been determined outside)
       double mes_mass;
       read_double(&mes_mass);
 
-      //compute meson momentum and energy
-      double lep_mom_mod=(pow(mes_mass,2)-pow(lep_mass[il],2))/(2*mes_mass);
+      //compute meson momentum and bc
+      double lep_mom_mod=(pow(mes_mass,2)-pow(leps[il].mass,2))/(2*mes_mass);
       lep_mom[il]=lep_mom_mod/sqrt(3);
-      lep_energy[il]=lep_energy_fun(lep_mass[il],lep_mom[il]);
+      leps[il].bc[0]=0;
+      for(int i=1;i<4;i++) leps[il].bc[i]=lep_mom[il]/M_PI*glb_size[i];
+      
+      //write down energy
+      lep_energy[il]=tm_quark_energy(leps[il],0);
     }
   
   //Zero mode subtraction
@@ -358,7 +343,7 @@ void generate_quark_propagators()
 }
 
 //compute the phase for lepton
-void get_lepton_phase_factor(complex out,int ivol,int ilepton,int orie,quark_info le)
+void get_lepton_phase_factor(complex out,int ivol,int ilepton,int orie,tm_quark_info le)
 {
   //fetch the energy and momentum ot the muon
   double E=lep_energy[ilepton];
@@ -368,7 +353,7 @@ void get_lepton_phase_factor(complex out,int ivol,int ilepton,int orie,quark_inf
   double ext=exp(glb_coord_of_loclx[ivol][0]*E);
   int summ_coord=0;
   for(int i=1;i<NDIM;i++) summ_coord+=glb_coord_of_loclx[ivol][i];
-  summ_coord*=lepton_mom_sign[orie] ;
+  summ_coord*=lepton_mom_sign[orie];
     
   //compute full exponential and multiply each component of the photon field
   out[RE]=cos(-summ_coord*p)*ext;
@@ -393,12 +378,12 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
   communicate_lx_spin1field_borders(photon_eta);
   communicate_lx_spin1field_borders(photon_phi);
   
-  //for the time being the boundaries are periodic
-  quark_info le;
+  //for the time being the boundaries for internal propagator are periodic
+  tm_quark_info le;
   le.kappa=0.125;
-  memset(le.bc,0,sizeof(momentum_t));
+  for(int mu=0;mu<4;mu++) le.bc[mu]=0;
   
-  //compute the 4 pairs of gammas: i(-i t3 g5-+gmu)/2=(t3 g5-+i gmu)/2=
+  //compute the 4 pairs of gammas: i(-i t3 g5-+gmu)/2=(t3 g5-+i gmu)/2
   spinspin g[2][2][4]; //[t3][-+][mu]
   double mps[2]={-0.5,+0.5};
   for(int r=0;r<2;r++)
@@ -417,10 +402,11 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    //select the propagator and reset it
 	    int iprop=ilprop(ilepton,orie,phi_eta,r);
 	    vector_reset(L[iprop]);
-
+	    
 	    //select A and fix lepton energy
 	    spin1field *A=(phi_eta==0)?photon_phi:photon_eta;
-	    le.mass=lep_energy[ilepton];
+	    le.mass=leps[ilepton].mass;
+	    le.r=r;
 	    
 	    //prepare each propagator for a single lepton
 	    //by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
@@ -503,7 +489,7 @@ void close()
   nissa_free(temp_solution);
   nissa_free(lep_corr_iq1);
   nissa_free(lep_corr_iq2);
-  nissa_free(lep_mass);
+  nissa_free(leps);
   nissa_free(lep_energy);
   nissa_free(lep_mom);
 }

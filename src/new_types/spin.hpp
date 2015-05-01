@@ -2,11 +2,13 @@
 #define _SPIN_HPP
 
 #include <string.h>
-
 #include <stdio.h>
-#include "new_types_definitions.hpp"
+
 #include "complex.hpp"
+#include "new_types_definitions.hpp"
 #include "spin.hpp"
+
+#include "routines/math_routines.hpp"
 
 namespace nissa
 {
@@ -72,6 +74,10 @@ namespace nissa
     for(int id=0;id<4;id++)
       complex_copy(a[id][id],b);
   }
+  inline void spinspin_put_to_diag(spinspin a,double b)
+  {complex c={b,0};spinspin_put_to_diag(a,c);}
+  inline void spinspin_put_to_idiag(spinspin a,double b)
+  {complex c={0,b};spinspin_put_to_diag(a,c);}
   
   inline void spinspin_put_to_id(spinspin a)
   {
@@ -358,6 +364,10 @@ namespace nissa
 	  assign_complex_prod_minus_i(s[mso][msi]);
 	}
   }
+
+  //compute the determinant of spinspin matrix
+  inline void spinspin_det(complex d,spinspin s)
+  {matrix_determinant(d,(complex*)s,4);}
 }
 
 #endif

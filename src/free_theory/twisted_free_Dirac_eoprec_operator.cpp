@@ -14,6 +14,7 @@ namespace nissa
   //apply even-odd or odd-even part of tmD, multiplied by -2
   void tmn2Deo_or_tmn2Doe_eos(spin *out,int eooe,spin *in,momentum_t bc)
   {
+    crash("need to fix: it has to be in physical basis!");
     crash("need thread");
     if(eooe==0) communicate_od_spin_borders(in);
     else        communicate_ev_spin_borders(in);
@@ -152,7 +153,7 @@ namespace nissa
   void tmn2Deo_eos(spin *out,spin *in,momentum_t bc){tmn2Deo_or_tmn2Doe_eos(out,0,in,bc);}
   
   //implement ee or oo part of Dirac operator, equation(3)
-  void tmDee_or_oo_eos(spin *out,quark_info qu,spin *in)
+  void tmDee_or_oo_eos(spin *out,tm_quark_info qu,spin *in)
   {
     if(in==out) crash("in==out!");
     complex z={1/(2*qu.kappa),qu.mass};
@@ -167,7 +168,7 @@ namespace nissa
   }
   
   //inverse
-  void inv_tmDee_or_oo_eos(spin *out,quark_info qu,spin *in)
+  void inv_tmDee_or_oo_eos(spin *out,tm_quark_info qu,spin *in)
   {
     if(in==out) crash("in==out!");
     double a=1/(2*qu.kappa),b=qu.mass,nrm=a*a+b*b;
@@ -183,7 +184,7 @@ namespace nissa
   }
   
   //implement Koo defined in equation (7) 
-  void tmDkern_eoprec_eos(spin *out,spin *temp,quark_info qu,spin *in)
+  void tmDkern_eoprec_eos(spin *out,spin *temp,tm_quark_info qu,spin *in)
   {
     tmn2Deo_eos(out,in,qu.bc);
     inv_tmDee_or_oo_eos(temp,qu,out);
@@ -203,9 +204,9 @@ namespace nissa
   }
   
   //square of Koo
-  void tmDkern_eoprec_square_eos(spin *out,spin *temp1,spin *temp2,quark_info qu,spin *in)
+  void tmDkern_eoprec_square_eos(spin *out,spin *temp1,spin *temp2,tm_quark_info qu,spin *in)
   {
-    quark_info mqu=qu;
+    tm_quark_info mqu=qu;
     mqu.mass*=-1;
     
     tmDkern_eoprec_eos(temp1,temp2,mqu, in   );

@@ -6,6 +6,7 @@
 
 #include "base/global_variables.hpp"
 #include "base/random.hpp"
+#include "new_types/complex.hpp"
 
 namespace nissa
 {
@@ -61,5 +62,44 @@ namespace nissa
       }
     
     return nfatt;
+  }
+
+  //recursive call - see below
+  void determinant(complex d,complex *m,int *s,int n,int N)
+  {
+    switch(n)
+      {
+      case 1:
+	complex_copy(d,m[s[0]]);
+	break;
+      case 2:
+	unsafe_complex_prod(  d,m[s[0]],m[N+s[1]]);
+	complex_subt_the_prod(d,m[s[1]],m[N+s[0]]);
+	break;
+      default:
+	complex_put_to_zero(d);
+	for(int p=0;p<n;p++)
+	  {
+	    //prepare submatrix
+	    int l[n-1];
+	    for(int i=0;i<p;i++) l[i]=s[i];
+	    for(int i=p;i<n-1;i++) l[i]=s[i+1];
+	    
+	    //compute determinant
+	    complex in_det;
+	    determinant(in_det,m+N,l,n-1,N);
+	    
+	    //summ or subtract the product
+	    void (*fun[2])(complex,complex,complex)={complex_summ_the_prod,complex_subt_the_prod};
+	    fun[p%2](d,m[s[p]],in_det);
+	  }
+      }
+  }
+  //compute the determinant of a NxN matrix through a recursive formula
+  void matrix_determinant(complex d,complex *m,int n)
+  {
+    int l[n];
+    for(int i=0;i<n;i++) l[i]=i;
+    determinant(d,m,l,n,n);
   }
 }
