@@ -20,19 +20,20 @@ namespace nissa
   gauge_info create_Wilson_gauge_info(double alpha,momentum_t bc)
   {return create_tlSym_gauge_info(alpha,bc,0);}
   
-  quark_info create_twisted_quark_info(double kappa,double mass,momentum_t bc,double zmp=0)
+  tm_quark_info create_twisted_quark_info(double kappa,double mass,momentum_t bc,int r,double zmp=0)
   {
-    quark_info out;
+    tm_quark_info out;
     memcpy(out.bc,bc,sizeof(momentum_t));
     out.kappa=kappa;
     out.zmp=zmp;
     out.mass=mass;
+    out.r=r;
     
     return out;
   }
   
-  quark_info create_Wilson_quark_info(double kappa,momentum_t bc)
-  {return create_twisted_quark_info(kappa,0,bc);}
+  tm_quark_info create_Wilson_quark_info(double kappa,momentum_t bc)
+  {return create_twisted_quark_info(kappa,0,bc,0);}
   
   void get_spin_from_spinspin(spin *out,spinspin *in,int id_so)
   {

@@ -9,12 +9,13 @@ namespace nissa
   const double FEYNMAN_ALPHA=1,LANDAU_ALPHA=0;
   const double WILSON_C1=0,TLSYM_C1=-1.0/12;
   
-  struct quark_info
+  struct tm_quark_info
   {
     double kappa;
     double mass;
     momentum_t bc;
     double zmp;
+    int r;
   };
   
   struct gauge_info
