@@ -77,18 +77,6 @@ void write_conf(const char *path,quad_su3 **conf)
   if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
     theory_pars[SEA_THEORY].topotential_pars.past_values.append_to_message(mess);
   
-  //meta B field
-  if(theory_pars[SEA_THEORY].em_field_pars.flag==3)
-    {
-      theory_pars[SEA_THEORY].em_field_pars.append_to_message_with_name(mess,"B_history");
-      //output to file
-      FILE *file=open_file("bval","w");
-      for(std::vector<double>::iterator it=theory_pars[SEA_THEORY].em_field_pars.meta.begin();it!=
-	    theory_pars[SEA_THEORY].em_field_pars.meta.end();it++)
-	master_fprintf(file,"%lg\n",*it);
-      close_file(file);
-    }
-
   //glb_rnd_gen status
   convert_rnd_gen_to_text(text,&glb_rnd_gen);
   ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
@@ -125,11 +113,6 @@ void read_conf(quad_su3 **conf,char *path)
       if(glb_rnd_gen_inited==0 && strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
       if(theory_pars[SEA_THEORY].topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TOPO_history")==0)
 	theory_pars[SEA_THEORY].topotential_pars.past_values.convert_from_message(*cur_mess);
-      if(theory_pars[SEA_THEORY].em_field_pars.flag==3 && strcasecmp(cur_mess->name,"B_history")==0)
-	{
-	  theory_pars[SEA_THEORY].em_field_pars.convert_from_message(*cur_mess);
-	  theory_pars_init_backfield(theory_pars[SEA_THEORY]);
-	}
       
       //check for rational approximation
       if(ntraj_tot)
@@ -366,9 +349,6 @@ void close_simulation()
   if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
     draw_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars);
   
-  if(theory_pars[SEA_THEORY].em_field_pars.flag==3)
-    draw_bynamical_potential(theory_pars[SEA_THEORY].em_field_pars.meta);
-  
   if(!store_running_temp_conf && ntraj_prod>0) write_conf(conf_path,conf);
   
   //delete the conf list
@@ -403,11 +383,6 @@ int generate_new_conf(int itraj)
   //if not quenched
   if(theory_pars[SEA_THEORY].nflavs!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
     {
-      //take not of initial value of B, if bydinamics is ongoing
-      double old_b=0;
-      if(theory_pars[SEA_THEORY].em_field_pars.flag==3)
-	old_b=theory_pars[SEA_THEORY].em_field_pars.B[theory_pars[SEA_THEORY].em_field_pars.meta.component];
-      
       //find if needed to perform test
       int perform_test=(itraj>=evol_pars.hmc_evol_pars.skip_mtest_ntraj);
       
@@ -431,17 +406,10 @@ int generate_new_conf(int itraj)
 	  master_printf("accepted.\n");
 	  for(int par=0;par<2;par++) vector_copy(conf[par],new_conf[par]);
 	}
-      else
-	{
-	  master_printf("rejected.\n");
-	  if(theory_pars[SEA_THEORY].em_field_pars.flag==3) update_backfield(&(theory_pars[SEA_THEORY]),old_b);
-	}
+      else master_printf("rejected.\n");
       
       //store the topological charge if needed
       theory_pars[SEA_THEORY].topotential_pars.store_if_needed(conf,itraj);
-      
-      //store the b-value if needed
-      theory_pars[SEA_THEORY].em_field_pars.store_if_needed(itraj);
     }
   else
     {
@@ -527,13 +495,6 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 				measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
   if(flux_tube_meas_pars.flag) if(iconf%flux_tube_meas_pars.flag==0) compute_flux_tube(conf,flux_tube_meas_pars);
 				 
-  if(theory_pars[SEA_THEORY].em_field_pars.flag==3)
-    {
-      FILE *file=open_file("bval",conf_created?"w":"a");
-      master_fprintf(file,"%lg\n",theory_pars[SEA_THEORY].em_field_pars.meta.back());
-      close_file(file);
-    }
-
   for(int itheory=0;itheory<ntheories;itheory++)
     {
       //check measure

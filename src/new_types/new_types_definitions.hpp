@@ -602,22 +602,6 @@ namespace nissa
     void store_if_needed(quad_su3 **conf,int iconf);
   };
   
-  //hold info on metadynamic potential
-  struct metabtential_pars_t : std::vector<double>
-  {
-    int component;        //component of B to update
-    double norm,width;    //gaussian pars
-    double bmin,bmax;     //extrema for metapotential
-    int skip,frequency;   //history extension pars
-    void store_if_needed(int itraj,double b)
-    {if(itraj>=skip && ((itraj-skip)%frequency==0)) push_back(b);}
-
-    //defined in rootst_eoimpr
-    double get_pot(double b);
-    double get_force(double b);
-  };
-  
-  //background em field parameters
   struct em_field_pars_t
   {
     int flag;
@@ -625,21 +609,6 @@ namespace nissa
     //basic
     double E[3];
     double B[3];
-    
-    //metadynamic
-    metabtential_pars_t meta;
-    
-    //defined in "reader.cpp" and "writer.cpp"
-    void convert_from_message(ILDG_message &mess);
-    ILDG_message *append_to_message_with_name(ILDG_message &mess,const char *name);
-    
-    //add to the history
-    void store_if_needed(int itraj)
-    {if(flag==3) meta.store_if_needed(itraj,B[meta.component]);}
-    double get_meta_force()
-    {return meta.get_force(B[meta.component]);}
-    double get_meta_pot()
-    {return meta.get_pot(B[meta.component]);}
   };
 
   //theory content

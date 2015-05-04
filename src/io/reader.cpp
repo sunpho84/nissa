@@ -234,13 +234,4 @@ namespace nissa
     
     verbosity_lv3_master_printf("Plaquette after e/o reordering: %16.16lg\n",global_plaquette_eo_conf(eo_conf));
   }
-  
-  //read from message the b-dynamic history
-  void em_field_pars_t::convert_from_message(ILDG_message &mess)
-  {
-    std::istringstream is(mess.data);
-    is>>B[meta.component];
-    double temp;
-    while(is>>temp) meta.push_back(temp);
-  }
 }

@@ -28,6 +28,7 @@ void find_tm_polvect(spin out,tm_quark_info qu,int r)
   find_tm_polvect(out,qu.kappa,qu.mass,p,r);
 }
 
+//compute the effective mass
 double effective_mass(double a,double b,int t,int TH,int par=1)
 {
   double targ=b/a;

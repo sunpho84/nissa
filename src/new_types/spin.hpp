@@ -192,6 +192,13 @@ namespace nissa
 	for(int id=0;id<4;id++)
 	  complex_summ_the_prod(out[id1][id2],a[id1][id],b[id][id2]);
   }
+  inline void spinspin_subt_the_spinspin_prod(spinspin out,spinspin a,spinspin b)
+  {
+    for(int id1=0;id1<4;id1++)
+      for(int id2=0;id2<4;id2++)
+	for(int id=0;id<4;id++)
+	  complex_subt_the_prod(out[id1][id2],a[id1][id],b[id][id2]);
+  }
   inline void unsafe_spinspin_prod_spinspin(spinspin out,spinspin a,spinspin b)
   {
     memset(out,0,sizeof(spinspin));
@@ -214,6 +221,9 @@ namespace nissa
     
     return t;
   }
+
+  inline double spinspin_norm2(spinspin a)
+  {return real_part_of_trace_spinspin_prod_spinspin_dag(a,a);}
   
   //prouduct of spinspin and spin
   inline void unsafe_spinspin_prod_spin(spin out,spinspin a,spin b)

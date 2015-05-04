@@ -1,10 +1,9 @@
-#ifndef _rootst_eoimpr_action_hpp
-#define _rootst_eoimpr_action_hpp
+#ifndef _ROOTST_EOIMPR_ACTION_HPP
+#define _ROOTST_EOIMPR_ACTION_HPP
 
 namespace nissa
 {
-  void draw_bynamical_potential(metabtential_pars_t &meta);
-  void full_rootst_eoimpr_action(double *res,quad_su3 **eo_conf,quad_su3 **sme_conf,quad_su3 **H,double *H_B,color ***pf,theory_pars_t *theory_pars,hmc_evol_pars_t *simul_pars);
+  void full_rootst_eoimpr_action(double *res,quad_su3 **eo_conf,quad_su3 **sme_conf,quad_su3 **H,color ***pf,theory_pars_t *theory_pars,hmc_evol_pars_t *simul_pars);
 }
 
 #endif

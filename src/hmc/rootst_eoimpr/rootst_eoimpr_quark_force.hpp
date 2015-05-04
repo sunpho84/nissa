@@ -1,11 +1,11 @@
-#ifndef _ROOTST_EOIMPR_QUARK_FORCE_H
-#define _ROOTST_EOIMPR_QUARK_FORCE_H
+#ifndef _ROOTST_EOIMPR_QUARK_FORCE_HPP
+#define _ROOTST_EOIMPR_QUARK_FORCE_HPP
 
 #include "new_types/new_types_definitions.hpp"
 
 namespace nissa
 {
-  void compute_rootst_eoimpr_quark_and_magnetic_force(quad_su3 **F,double *F_B,quad_su3 **conf,color ***pf,theory_pars_t *theory_pars,rat_approx_t *appr,int *npfs,double residue);
+  void compute_rootst_eoimpr_quark_and_magnetic_force(quad_su3 **F,quad_su3 **conf,color ***pf,theory_pars_t *theory_pars,rat_approx_t *appr,int *npfs,double residue);
 }
 
 #endif

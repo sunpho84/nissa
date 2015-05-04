@@ -360,6 +360,132 @@ void get_lepton_phase_factor(complex out,int ivol,int ilepton,int orie,tm_quark_
   out[IM]=sin(-summ_coord*p)*ext;
 }
 
+void trace_test_lep_prop(double *c,spinspin *prop,tm_quark_info le,int reim=RE)
+{
+  GET_THREAD_ID();
+  
+  //trace
+  memset(c,0,sizeof(double)*glb_size[0]);
+
+  if(IS_MASTER_THREAD)
+    {
+      NISSA_LOC_VOL_LOOP(ivol)
+	{
+	  //compute the phase
+	  double ph=0;
+	  for(int mu=1;mu<4;mu++) ph+=-M_PI*glb_coord_of_loclx[ivol][mu]*le.bc[mu]/glb_size[mu];
+
+	  complex t;
+	  trace_dirac_prod_spinspin(t,base_gamma+0,prop[ivol]);
+	  //c[glb_coord_of_loclx[ivol][0]]+=sqr(cos(ph))*spinspin_norm2(prop[ivol]);
+	  c[glb_coord_of_loclx[ivol][0]]+=t[reim];
+	}
+      MPI_Allreduce(MPI_IN_PLACE,c,glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    }
+  THREAD_BARRIER();
+}
+
+void print_test_lep_prop(FILE *fout,double *c,tm_quark_info le,const char *tag="")
+{
+  master_fprintf(fout," # mu=%lg kappa=%lg r=%d bc=%lg %s\n\n",le.mass,le.kappa,le.r,le.bc[1],tag);
+  for(int t=0;t<glb_size[0];t++) master_fprintf(fout," %+016.16lg\n",c[t]);
+  master_fprintf(fout,"\n");
+}
+
+void test_lep_prop(FILE *fout,tm_quark_info le)
+{
+  GET_THREAD_ID();
+  
+  //prepare the source
+  spinspin *source=nissa_malloc("source",loc_vol,spinspin);
+  vector_reset(source);
+  if(rank==0) spinspin_put_to_id(source[0]);
+  
+  //compute lepton prop in various ways
+  spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
+  double c[glb_size[0]];
+  
+  //propagator by multiplication via fft
+  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,source,le);
+  trace_test_lep_prop(c,prop,le);
+  print_test_lep_prop(fout,c,le,"multiply_from_right_by_x_space_twisted_propagator_by_fft");
+
+  //propagator via fft
+  compute_x_space_twisted_propagator_by_fft(prop,le);
+  trace_test_lep_prop(c,prop,le);
+  print_test_lep_prop(fout,c,le,"compute_x_space_twisted_propagator_by_fft");
+
+  //compute_x_space_twisted_propagator_by_inv(prop,le);
+  //trace_test_lep_prop(c,prop,le);
+  //print_test_lep_prop(fout,c,"multiply_from_right_by_x_space_twisted_propagator_by_fft");
+
+  //propagator with scalar insertion
+  spinspin *prop2=nissa_malloc("prop2",loc_vol,spinspin);
+
+  //insert it explicitly
+  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop2,prop,le);
+  trace_test_lep_prop(c,prop2,le);
+  print_test_lep_prop(fout,c,le,"explicit insertion");
+
+  //take the derivative
+  tm_quark_info te_le=le;
+  double eps=0.001*le.mass;
+  te_le.mass+=eps;
+  compute_x_space_twisted_propagator_by_fft(prop2,te_le);
+  trace_test_lep_prop(c,prop,le);
+  double c2[glb_size[0]];
+  trace_test_lep_prop(c2,prop2,te_le);
+  for(int t=0;t<glb_size[0];t++) c2[t]=(c[t]-c2[t])/eps;
+  print_test_lep_prop(fout,c2,le,"numerical derivative");
+  
+  //insert gamma0 on the left
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    unsafe_dirac_prod_spinspin(prop2[ivol],base_gamma+4,prop[ivol]);
+  set_borders_invalid(prop2);
+  multiply_from_left_by_x_space_twisted_propagator_by_fft(prop2,prop2,le);
+  trace_test_lep_prop(c2,prop2,le);
+  for(int t=0;t<glb_size[0];t++) c2[t]/=c[t]*t;
+  print_test_lep_prop(fout,c2,le,"g0 insertion on the left");
+  
+  //insert gamma0 on the right
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    unsafe_spinspin_prod_dirac(prop2[ivol],prop[ivol],base_gamma+4);
+  set_borders_invalid(prop2);
+  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop2,prop2,le);
+  trace_test_lep_prop(c2,prop2,le);
+  for(int t=0;t<glb_size[0];t++) c2[t]/=c[t]*t;
+  print_test_lep_prop(fout,c2,le,"g0 insertion on the right");
+
+  //conserved current on the left
+  spinspin g[2][2][4];
+  double mps[2]={-0.5,+0.5}; //signs inverted?
+  for(int r=0;r<2;r++)
+    for(int mp=0;mp<2;mp++)
+      for(int mu=0;mu<4;mu++)
+	{
+	  spinspin_dirac_prod_double(g[r][mp][mu],base_gamma+5,0.5*tau3[r]);
+	  spinspin_dirac_summ_the_prod_idouble(g[r][mp][mu],base_gamma+mu,mps[mp]);
+	}
+  vector_reset(prop2);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int mu=0;mu<4;mu++)
+      {
+	int ifw=loclx_neighup[ivol][mu];
+	int ibw=loclx_neighdw[ivol][mu];
+	spinspin_summ_the_spinspin_prod(prop2[ivol],g[le.r][0][mu],prop[ibw]);
+	spinspin_summ_the_spinspin_prod(prop2[ivol],g[le.r][1][mu],prop[ifw]);
+      }
+  set_borders_invalid(prop2);
+  multiply_from_left_by_x_space_twisted_propagator_by_fft(prop2,prop2,le);
+  trace_test_lep_prop(c2,prop2,le,1);
+  for(int t=0;t<glb_size[0];t++) c2[t]/=c[t]*t;
+  print_test_lep_prop(fout,c2,le,"conserved g0 insertion on the left");
+  
+  nissa_free(source);
+  nissa_free(prop);
+  nissa_free(prop2);
+}
+
 //generate all the lepton propagators, pointing outward
 //the computations is done by:
 // 1)putting the correct phase in x space, given by exp(E_mu*t-i*vec(p)*vec(x))
@@ -374,6 +500,8 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
   if(IS_MASTER_THREAD) lepton_prop_time-=take_time();
   master_printf("Generating lepton propagators\n");
 
+  FILE *fout=open_file(combine("%s/le_prop",outfolder).c_str(),"w");
+  
   //communicate borders of photon
   communicate_lx_spin1field_borders(photon_eta);
   communicate_lx_spin1field_borders(photon_phi);
@@ -426,17 +554,21 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 		  //multiply by A
 		  complex phA0,phA1;
 		  unsafe_complex_prod(phA0,ph0,A[ibw][mu]);
-		  unsafe_complex_prod(phA1,ph0,A[ivol][mu]);
+		  unsafe_complex_prod(phA1,ph0,A[ifw][mu]);
 		  
 		  //summ the two pieces
 		  spinspin_summ_the_complex_prod(L[iprop][ivol],g[r][0][mu],phA0);
 		  spinspin_subt_the_complex_prod(L[iprop][ivol],g[r][1][mu],phA1);
 		}
 	    set_borders_invalid(L[iprop]);
+
+	    test_lep_prop(fout,le);
 	    
 	    //multiply by the lepton propagator (from the right)
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(L[iprop],L[iprop],le);
 	  }
+
+  close_file(fout);
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
 }
@@ -634,7 +766,7 @@ void compute_leptonic_correlation()
 		    compute_leptonic_correlation(hadr,L[il]);
 
 		    //write down
-		    master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=+%d\n\n",
+		    master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d\n\n",
 			    qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie]);
 		    print_weak_correlations(fout);
 		  }

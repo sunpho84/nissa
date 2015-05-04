@@ -40,12 +40,12 @@ namespace nissa
 #define DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(TYPE) \
   inline void multiply_from_left_or_right_by_x_space_twisted_propagator_by_fft(TYPE *out,TYPE *in,tm_quark_info qu,bool lr) \
   {									\
-  /*convert to p space*/						\
+    /*convert to p space*/						\
     NAME3(pass,TYPE,from_x_to_mom_space)(out,in,qu.bc);			\
     multiply_from_left_or_right_by_mom_space_twisted_propagator(out,out,qu,lr); \
     									\
     /*add normalization and go back*/					\
-    double_vector_prod_double((double*)out,(double*)out,1.0/glb_vol,loc_vol*sizeof(TYPE)/sizeof(double)); \
+    double_vector_prod_double((double*)out,(double*)out,glb_vol,loc_vol*sizeof(TYPE)/sizeof(double)); \
     NAME3(pass,TYPE,from_mom_to_x_space)(out,out,qu.bc);		\
   }
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_X_SPACE_TWISTED_PROPAGATOR_BY_FFT(spinspin);
