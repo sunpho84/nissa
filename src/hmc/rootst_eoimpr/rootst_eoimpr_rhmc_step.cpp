@@ -43,10 +43,6 @@ namespace nissa
     for(int par=0;par<2;par++)
       H[par]=nissa_malloc("H",loc_volh,quad_su3);
     
-    //B momenta
-    double *H_B=NULL;
-    if(theory_pars.em_field_pars.flag==3 && itraj>theory_pars.em_field_pars.meta.skip) H_B=nissa_malloc("H_B",1,double);
-    
     //copy the old conf into the new
     for(int par=0;par<2;par++)
       {
@@ -101,14 +97,13 @@ namespace nissa
     
     //create the momenta
     generate_hmc_momenta(H);
-    if(H_B) generate_hmc_B_momenta(H_B);
     
     //compute initial action
     double init_action;
-    full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,H_B,pf,&theory_pars,&simul_pars);
+    full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars);
     
     //evolve forward
-    omelyan_rootst_eoimpr_evolver(H,H_B,out_conf,pf,&theory_pars,&simul_pars);
+    omelyan_rootst_eoimpr_evolver(H,out_conf,pf,&theory_pars,&simul_pars);
     
     //if needed, resmear the conf, otherwise sme_conf is already binded to out_conf
     if(theory_pars.stout_pars.nlev!=0)
@@ -122,7 +117,7 @@ namespace nissa
     
     //compute final action using sme_conf (see previous note)
     double final_action;
-    full_rootst_eoimpr_action(&final_action,out_conf,sme_conf,H,H_B,pf,&theory_pars,&simul_pars);
+    full_rootst_eoimpr_action(&final_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars);
     verbosity_lv2_master_printf("Final action: %lg\n",final_action);
     
     //compute the diff
@@ -140,7 +135,6 @@ namespace nissa
     for(int par=0;par<2;par++) nissa_free(H[par]);
     if(theory_pars.stout_pars.nlev!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
     nissa_free(pf);
-    if(H_B) nissa_free(H_B);
     
     //shift back
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)

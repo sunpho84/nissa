@@ -235,7 +235,7 @@ namespace nissa
       }
     set_borders_invalid(out);
   }
-  
+
   void pass_spin1field_from_x_to_mom_space(spin1field *out,spin1field *in,double *bc,bool bar=false)
   {
     GET_THREAD_ID();

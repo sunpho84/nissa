@@ -275,14 +275,4 @@ namespace nissa
     write_ildg_gauge_conf(path,lx_conf,prec,mess);
     nissa_free(lx_conf);
   }
-
-  //write to message the infos on b-dynamics
-  ILDG_message *em_field_pars_t::append_to_message_with_name(ILDG_message &mess,const char *name)
-  {
-    std::ostringstream os;
-    os.precision(16);
-    os<<B[meta.component]<<" ";
-    for(std::vector<double>::iterator it=meta.begin();it!=meta.end();it++) os<<*it<<" ";
-    return ILDG_string_message_append_to_last(&mess,name,os.str().c_str());
-  }
 }

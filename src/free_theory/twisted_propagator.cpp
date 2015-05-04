@@ -108,7 +108,7 @@ namespace nissa
     
     compute_mom_space_twisted_propagator(sq_prop,qu);
     
-    //square
+    //square (including normalisation)
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
 	safe_spinspin_prod_spinspin(sq_prop[imom],sq_prop[imom],sq_prop[imom]);
@@ -126,16 +126,16 @@ namespace nissa
 #define DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(TYPE) \
   THREADABLE_FUNCTION_3ARG(multiply_from_left_by_mom_space_twisted_propagator, TYPE*,out, TYPE*,in, tm_quark_info,qu) \
   {									\
-  GET_THREAD_ID();							\
-									\
-  NISSA_PARALLEL_LOOP(imom,0,loc_vol)					\
-  {									\
-  spinspin prop;							\
-  mom_space_twisted_propagator_of_imom(prop,qu,imom);			\
-  NAME2(safe_spinspin_prod,TYPE)(out[imom],prop,in[imom]);		\
-  }									\
-									\
-  set_borders_invalid(out);						\
+    GET_THREAD_ID();							\
+    									\
+    NISSA_PARALLEL_LOOP(imom,0,loc_vol)					\
+      {									\
+	spinspin prop;							\
+	mom_space_twisted_propagator_of_imom(prop,qu,imom);		\
+	NAME2(safe_spinspin_prod,TYPE)(out[imom],prop,in[imom]);	\
+      }									\
+    									\
+    set_borders_invalid(out);						\
   }									\
   THREADABLE_FUNCTION_END						\
 									\
@@ -154,7 +154,7 @@ namespace nissa
     set_borders_invalid(out);						\
   }									\
   THREADABLE_FUNCTION_END						\
-
+  
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spin);
   DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(spinspin);
   
@@ -162,7 +162,10 @@ namespace nissa
   
   //multiply the source for the twisted propagator by inverting twisted Dirac operator
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spin *prop,spin *ext_source,tm_quark_info qu)
-  {inv_tmD_cg_eoprec_eos(prop,NULL,qu,1000000,1.e-28,ext_source);}
+  {
+    crash("not yet in phys basis");
+    inv_tmD_cg_eoprec_eos(prop,NULL,qu,1000000,1.e-28,ext_source);
+  }
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,tm_quark_info qu)
   {
     //source and temp prop
@@ -182,11 +185,14 @@ namespace nissa
     nissa_free(tsource);
     nissa_free(tprop);
   }
+  
+  //prepare it by inverting
   void compute_x_space_twisted_propagator_by_inv(spinspin *prop,tm_quark_info qu)
   {
+    //allocate a source
     spinspin *delta=nissa_malloc("delta",loc_vol+bord_vol,spinspin);
     vector_reset(delta);
-    if(rank==0) for(int id=0;id<4;id++) delta[0][id][id][0]=1;
+    if(rank==0) spinspin_put_to_id(delta[0]);
     set_borders_invalid(delta);
     
     multiply_from_left_by_x_space_twisted_propagator_by_inv(prop,delta,qu);
