@@ -54,9 +54,9 @@ void write_conf(const char *path,quad_su3 **conf)
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
   char text[1024];
-
+  
   //traj id
-  sprintf(text,"%d",itraj);
+  snprintf(text,1024,"%d",itraj);
   ILDG_string_message_append_to_last(&mess,"MD_traj",text);
   
   //rational approximation
@@ -69,8 +69,7 @@ void write_conf(const char *path,quad_su3 **conf)
   
 #ifndef REPRODUCIBLE_RUN
   //skip 10 random numbers
-  for(int iskip=0;iskip<10;iskip++)
-    rnd_get_unif(&glb_rnd_gen,0,1);
+  for(int iskip=0;iskip<10;iskip++) rnd_get_unif(&glb_rnd_gen,0,1);
 #endif
   
   //topology history
@@ -78,7 +77,7 @@ void write_conf(const char *path,quad_su3 **conf)
     theory_pars[SEA_THEORY].topotential_pars.past_values.append_to_message(mess);
   
   //glb_rnd_gen status
-  convert_rnd_gen_to_text(text,&glb_rnd_gen);
+  convert_rnd_gen_to_text(text,&glb_rnd_gen,1024);
   ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
   
   //write the conf
@@ -343,9 +342,16 @@ void unset_theory_pars(theory_pars_t &theory_pars)
   nissa_free(theory_pars.quark_content);
 }
 
+namespace nissa
+{
+  extern int nglbgen;
+}
+
 //finalize everything
 void close_simulation()
 {
+  master_printf("glb rnd generated: %d\n",nglbgen);
+  
   if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
     draw_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars);
   

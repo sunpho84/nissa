@@ -3,7 +3,8 @@
 
 namespace nissa
 {
-  void convert_rnd_gen_to_text(char *text,rnd_gen *gen);
+  void convert_text_to_rnd_gen(rnd_gen *gen,char *text);
+  void convert_rnd_gen_to_text(char *text,rnd_gen *gen,int size);
   double rnd_get_unif(rnd_gen *gen,double min,double max);
   int rnd_get_pm_one(rnd_gen *gen);
   void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_t rtype);
@@ -22,6 +23,7 @@ namespace nissa
   void rnd_get_Z4(complex out,rnd_gen *gen);
   double rnd_get_gauss_double(rnd_gen *gen,double ave=0,double sig=1);
   void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig);
+  void start_glb_rnd_gen(char *text);
   void start_glb_rnd_gen(int seed);
   void start_loc_rnd_gen(int seed);
   void start_loc_rnd_gen(char *mess);

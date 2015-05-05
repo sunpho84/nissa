@@ -76,7 +76,7 @@ void write_conf(const char *path)
   for(int iskip=0;iskip<10;iskip++) rnd_get_unif(&glb_rnd_gen,0,1);
 
   //glb_rnd_gen status
-  convert_rnd_gen_to_text(text,&glb_rnd_gen);
+  convert_rnd_gen_to_text(text,&glb_rnd_gen,1024);
   ILDG_string_message_append_to_last(&mess,"RND_gen_status",text);
   
   //write the conf
