@@ -45,20 +45,22 @@ namespace nissa
   }
   
   //print all the entries of the random generator into a string
-  void convert_rnd_gen_to_text(char *text,rnd_gen *gen)
+  void convert_rnd_gen_to_text(char *text,rnd_gen *gen,int size)
   {
     int *ptr=(int*)gen;
+    memset(text,0,size);
     
     //init output text
-    sprintf(text,"%d",ptr[0]);
+    snprintf(text,size,"%d",ptr[0]);
     
     //append all the elements
     for(int i=1;i<RAN2_NTAB+3;i++)
       {
 	char temp[20];
-	sprintf(temp," %d",ptr[i]);
-	strcat(text,temp);
+	snprintf(temp,20," %d",ptr[i]);
+	strncat(text,temp,size);
       }
+    if(strlen(text)==1024) crash("use larger text");
   }
   
   //read all the entries of the random generator from a string
@@ -131,6 +133,8 @@ namespace nissa
     nissa_free(loc_rnd_gen);
     loc_rnd_gen_inited=0;
   }
+
+  int nglbgen=0;
   
   //standard ran2 from numerical recipes
   double rnd_get_unif(rnd_gen *gen,double min,double max)
@@ -155,6 +159,8 @@ namespace nissa
     if(gen->iy<0) gen->iy+=imm1;
     
     out=std::min(am*gen->iy,rnmx);
+
+    if(gen==&glb_rnd_gen) nglbgen++;
     
     return out*(max-min)+min;
   }
