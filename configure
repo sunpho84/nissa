@@ -5532,7 +5532,7 @@ _ACEOF
 
 
 #create config.hpp
-ac_config_files="$ac_config_files Makefile src/Makefile projects/Makefile projects/cpn/Makefile projects/eight_BK/Makefile projects/g/Makefile projects/generate_confs/Makefile projects/ib/Makefile projects/semileptonic/Makefile projects/static_potential/Makefile tools/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile projects/Makefile projects/cpn/Makefile projects/eight_BK/Makefile projects/g/Makefile projects/generate_confs/Makefile projects/ib/Makefile projects/reno_const/Makefile projects/semileptonic/Makefile projects/static_potential/Makefile tools/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -6321,6 +6321,7 @@ do
     "projects/g/Makefile") CONFIG_FILES="$CONFIG_FILES projects/g/Makefile" ;;
     "projects/generate_confs/Makefile") CONFIG_FILES="$CONFIG_FILES projects/generate_confs/Makefile" ;;
     "projects/ib/Makefile") CONFIG_FILES="$CONFIG_FILES projects/ib/Makefile" ;;
+    "projects/reno_const/Makefile") CONFIG_FILES="$CONFIG_FILES projects/reno_const/Makefile" ;;
     "projects/semileptonic/Makefile") CONFIG_FILES="$CONFIG_FILES projects/semileptonic/Makefile" ;;
     "projects/static_potential/Makefile") CONFIG_FILES="$CONFIG_FILES projects/static_potential/Makefile" ;;
     "tools/Makefile") CONFIG_FILES="$CONFIG_FILES tools/Makefile" ;;

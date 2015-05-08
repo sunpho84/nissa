@@ -4,6 +4,8 @@
 
 #include "nissa.hpp"
 
+using namespace nissa;
+
 typedef int int2[2];
 typedef int2 interv[2];
 
@@ -52,7 +54,7 @@ char outfolder[1024];
 //timings
 int ninv_tot=0,ncontr_tot=0,nsaved_prop_tot=0;
 int wall_time;
-double tot_time=0,inv_time=0,contr_time=0,fix_time=0;
+double tot_prog_time=0,inv_time=0,contr_time=0,fix_time=0;
 double fft_time=0,save_prop_time=0,load_time=0,filter_prop_time=0;
 
 //Read the information regarding the format in which to save prop
@@ -95,7 +97,7 @@ void write_all_propagators(const char *name,int prec)
 	char path[1024];
 	sprintf(path,"%s/%sprop/r%1d_im%02d",outfolder,name,r,imass);
 	save_prop_time-=take_time();
-	write_su3spinspin(path,S0[r][imass],prec);
+	write_double_vector(path,S0[r][imass],prec,"tm_prop");
 	save_prop_time+=take_time();
 	nsaved_prop_tot++;
       }
@@ -262,13 +264,13 @@ void close_Zcomputation()
   if(csw!=0) nissa_free(Pmunu);
   
   master_printf("\n");
-  master_printf("Total time: %lg sec (%lg average per conf), of which:\n",tot_time,tot_time/nanalized_conf);
-  master_printf(" - %02.2f%s to load %d conf. (%2.2gs avg)\n",load_time/tot_time*100,"%",nanalized_conf,load_time/nanalized_conf);
-  master_printf(" - %02.2f%s to fix %d conf. (%2.2gs avg)\n",fix_time/tot_time*100,"%",nanalized_conf,fix_time/nanalized_conf);
-  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_time*100,"%",ninv_tot,inv_time/ninv_tot);
-  master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
-  master_printf(" - %02.2f%s to save %d su3spinspins. (%2.2gs avg)\n",save_prop_time/tot_time*100,"%",nsaved_prop_tot,save_prop_time/nsaved_prop_tot);
-  master_printf(" - %02.2f%s to filter propagators. (%2.2gs avg per conf)\n",filter_prop_time/tot_time*100,"%",filter_prop_time/nanalized_conf);
+  master_printf("Total time: %lg sec (%lg average per conf), of which:\n",tot_prog_time,tot_prog_time/nanalized_conf);
+  master_printf(" - %02.2f%s to load %d conf. (%2.2gs avg)\n",load_time/tot_prog_time*100,"%",nanalized_conf,load_time/nanalized_conf);
+  master_printf(" - %02.2f%s to fix %d conf. (%2.2gs avg)\n",fix_time/tot_prog_time*100,"%",nanalized_conf,fix_time/nanalized_conf);
+  master_printf(" - %02.2f%s to perform %d inversions (%2.2gs avg)\n",inv_time/tot_prog_time*100,"%",ninv_tot,inv_time/ninv_tot);
+  master_printf(" - %02.2f%s to perform %d contr. (%2.2gs avg)\n",contr_time/tot_prog_time*100,"%",ncontr_tot,contr_time/ncontr_tot);
+  master_printf(" - %02.2f%s to save %d su3spinspins. (%2.2gs avg)\n",save_prop_time/tot_prog_time*100,"%",nsaved_prop_tot,save_prop_time/nsaved_prop_tot);
+  master_printf(" - %02.2f%s to filter propagators. (%2.2gs avg per conf)\n",filter_prop_time/tot_prog_time*100,"%",filter_prop_time/nanalized_conf);
   
   close_nissa();
 }
@@ -393,7 +395,7 @@ void print_propagator_subsets(int nsubset,interv *inte,const char *setname,int *
 				
 				//if required change endianess in order to stick with APE
 				if(!little_endian)
-				    doubles_to_doubles_changing_endianess((double*)buf,(double*)buf,18*16);
+				    change_endianness((double*)buf,(double*)buf,18*16);
 				
 				//write
 				MPI_File_write_at(fout[r],offset,buf,16,MPI_SU3,MPI_STATUS_IGNORE);
@@ -503,7 +505,7 @@ int check_remaining_time()
   int enough_time;
   
   //check remaining time
-  double temp_time=take_time()+tot_time;
+  double temp_time=take_time()+tot_prog_time;
   double ave_time=temp_time/nanalized_conf;
   double left_time=wall_time-temp_time;
   enough_time=left_time>(ave_time*1.1);
@@ -520,7 +522,7 @@ void in_main(int narg,char **arg)
 {
   if(narg<2) crash("Use: %s input_file",arg[0]);
   
-  tot_time-=take_time();
+  tot_prog_time-=take_time();
   initialize_Zcomputation(arg[1]);
   
   int iconf=0,enough_time=1;
@@ -547,7 +549,7 @@ void in_main(int narg,char **arg)
   
   if(iconf==ngauge_conf) master_printf("Finished all the conf!\n");
 
-  tot_time+=take_time();
+  tot_prog_time+=take_time();
   close_Zcomputation();
 }
 

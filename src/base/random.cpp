@@ -107,12 +107,16 @@ namespace nissa
     
     //Generate the true seed
     if(glb_rnd_gen_inited==0) start_glb_rnd_gen(seed);
-    int internal_seed=(int)rnd_get_unif(&glb_rnd_gen,0,RAND_MAX);
+    int internal_seed=(int)rnd_get_unif(&glb_rnd_gen,0,RAND_MAX-glb_vol);
     
     //allocate the grid of random generator, one for site
     loc_rnd_gen=nissa_malloc("Loc_rnd_gen",loc_vol,rnd_gen);
-    for(int ivol=0;ivol<loc_vol;ivol++) start_rnd_gen(&(loc_rnd_gen[ivol]),internal_seed+glblx_of_loclx[ivol]);
-    
+    for(int ivol=0;ivol<loc_vol;ivol++)
+      {
+	int loc_seed=internal_seed+glblx_of_loclx[ivol];
+	if(loc_seed<0) crash("something went wrong with local seed: %d + %d = %d",internal_seed,glblx_of_loclx[ivol],loc_seed);
+	start_rnd_gen(&(loc_rnd_gen[ivol]),loc_seed);
+      }
     loc_rnd_gen_inited=1;
     master_printf("Grid of local random generators initialized with internal seed: %d\n",internal_seed);
   }

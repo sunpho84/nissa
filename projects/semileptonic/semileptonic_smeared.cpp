@@ -245,7 +245,7 @@ void generate_source()
     {
       char outpath[1024];
       sprintf(outpath,"%s/source",outfolder);
-      write_colorspinspin(outpath,original_source,64);
+      write_double_vector(outpath,original_source,64,"source");
     }
 #endif
 }
@@ -807,8 +807,8 @@ void calculate_all_S0(int ism_lev_so)
 #ifdef BENCH
 		      load_save_S0_time-=take_time();
 #endif
-		      if(save_S0) write_spincolor(path,cgm_solution[imass],64);
-		      else        read_spincolor(cgm_solution[imass],path);
+		      if(save_S0) write_double_vector(path,cgm_solution[imass],64,"S0");
+		      else        read_real_vector(cgm_solution[imass],path,"S0");
 #ifdef BENCH
 		      load_save_S0_time+=take_time();
 #endif
@@ -820,7 +820,7 @@ void calculate_all_S0(int ism_lev_so)
 		    if(Wclov_tm&&use_cgm_S0)
 		      {
 			if(cSW==0) reconstruct_tm_doublet(temp_vec[0],temp_vec[1],conf,kappa,mass[imass],cgm_solution[imass]);
-			else reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,cSW,Pmunu,mass[imass],cgm_solution[imass]);
+			else       reconstruct_tmclov_doublet(temp_vec[0],temp_vec[1],conf,kappa,cSW,Pmunu,mass[imass],cgm_solution[imass]);
 			master_printf("Mass %d (%g) reconstructed \n",imass,mass[imass]);
 		      }
 		    else memcpy(temp_vec[which_r_S0],cgm_solution[imass],sizeof(spincolor)*loc_vol);

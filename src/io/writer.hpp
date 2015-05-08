@@ -1,21 +1,28 @@
-#ifndef _writer_hpp
-#define _writer_hpp
+#ifndef _WRITER_HPP
+#define _WRITER_HPP
 
 #include <mpi.h>
 
 namespace nissa
 {
   void paste_eo_parts_and_write_ildg_gauge_conf(const char *path,quad_su3 **eo_conf,size_t prec,ILDG_message *mess=NULL);
-  void write_color(const char *path,color *v,size_t prec);
   void write_double_vector(ILDG_File &file,double *data,size_t nreals_per_site,size_t nbits,const char *header_message,ILDG_message *mess=NULL);
+  template <class T> void write_double_vector(const char *path,T *data,size_t nbits,const char *header_message,ILDG_message *mess=NULL)
+  {
+    if(sizeof(T)%sizeof(double)) crash("data type has size %d",(int)sizeof(T));
+    
+    //Open the file
+    ILDG_File file=ILDG_File_open_for_write(path);
+    
+    //Write the binary data
+    write_double_vector(file,(double*)((void*)data),sizeof(T)/sizeof(double),nbits,header_message,mess);
+
+    //Close the file
+    ILDG_File_close(file);
+
+  }
   void write_ildg_gauge_conf(const char *path,quad_su3 *in,size_t prec,ILDG_message *mess=NULL);
   void write_spincolor(const char *path,spincolor *spinor,size_t prec);
-  void write_colorspinspin(const char *path,colorspinspin *prop,size_t prec);
-  void write_su3spinspin(char *path,su3spinspin *prop,size_t prec);
-  void write_tm_spincolor_anti_reconstructing(const char *path,spincolor **doublet,double mu,size_t prec);
-  void write_tm_spincolor_anti_reconstructing(const char *path,spincolor *prop_minus,spincolor *prop_plus,int is_rotated,double mu,size_t prec);
-  void write_tm_colorspinspin_anti_reconstructing(const char *path,colorspinspin **doublet,int is_rotated,double mu,size_t prec,quad_su3 *conf,double kappa);
-  void write_tm_colorspinspin_anti_reconstructing(const char *path,colorspinspin *prop_minus,colorspinspin *prop_plus,int is_rotated,double mu,size_t prec,quad_su3 *conf,double kappa,momentum_t theta);
 }
 
 #endif
