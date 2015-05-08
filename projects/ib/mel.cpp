@@ -414,7 +414,18 @@ void test_lep_prop(FILE *fout,tm_quark_info le)
   compute_x_space_twisted_propagator_by_fft(prop,le);
   trace_test_lep_prop(c,prop,le);
   print_test_lep_prop(fout,c,le,"compute_x_space_twisted_propagator_by_fft");
-
+  
+  //propagator via fft
+  compute_mom_space_twisted_propagator(prop,le);
+  for(int t=0;t<loc_size[0];t++)
+    {
+      complex r;
+      trace_dirac_prod_spinspin(r,base_gamma+0,prop[t*loc_spat_vol]);
+      c[t+glb_coord_of_loclx[0][0]]=r[RE];
+    }
+  MPI_Allreduce(MPI_IN_PLACE,c,glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  print_test_lep_prop(fout,c,le,"mom_space_repp");
+  
   //compute_x_space_twisted_propagator_by_inv(prop,le);
   //trace_test_lep_prop(c,prop,le);
   //print_test_lep_prop(fout,c,"multiply_from_right_by_x_space_twisted_propagator_by_fft");

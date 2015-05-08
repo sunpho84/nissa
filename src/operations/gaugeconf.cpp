@@ -310,8 +310,8 @@ namespace nissa
   void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
   {
     //results
-    double loc_avg=0,loc_max=0;
-
+    double loc_avg=0,loc_max=0,loc_nbroken=0;
+    
     NISSA_LOC_VOL_LOOP(ivol)
       for(int idir=0;idir<4;idir++)
 	{
@@ -320,12 +320,13 @@ namespace nissa
 	  //compute average and max deviation
 	  loc_avg+=err;
 	  loc_max=std::max(err,loc_max);
+	  if(err>1e-13) loc_nbroken+=1;
 	}
         
     //take global average and print
-    double glb_avg=glb_reduce_double(loc_avg)/glb_vol/4;
-    double glb_max=glb_max_double(loc_max);
-    verbosity_lv2_master_printf("Deviation from unitarity of the configuration: %lg average, %lg max\n",glb_avg,glb_max);
+    result.average_diff=glb_reduce_double(loc_avg)/glb_vol/4;
+    result.max_diff=glb_max_double(loc_max);
+    result.nbroken_links=(int)glb_max_double(loc_nbroken);
   }
 
   //unitarize an a lx conf

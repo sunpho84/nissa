@@ -1,0 +1,13 @@
+AM_CPPFLAGS=-I$(top_srcdir)/src
+
+LDADD=$(top_builddir)/lib/libnissa.a
+
+AUTOMAKE_OPTIONS=subdir-objects
+
+#target programs
+bin_PROGRAMS= \
+	$(top_builddir)/bin/RIMOM
+
+__top_builddir__bin_RIMOM_SOURCES=RIMOM.cpp
+__top_builddir__bin_RIMOM_LDADD=$(LDADD)
+__top_builddir__bin_RIMOM_LDFLAGS=$(LDFLAGS)
