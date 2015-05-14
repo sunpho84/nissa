@@ -181,9 +181,9 @@ namespace nissa
       master_printf("Using %u threads\n",nthreads);
       
       //if BGQ, define appropriate barrier (to be done before sanity check, otherwise cannot barrier!)
-      #if defined BGQ && (! defined BGQ_EMU)
+#if defined BGQ && (! defined BGQ_EMU)
       bgq_barrier_define();
-      #endif
+#endif
       
       //define delayed thread behavior (also this needed before sanity check, otherwise barrier would fail)
       #if THREAD_DEBUG>=2
@@ -518,12 +518,16 @@ namespace nissa
     //check that lattice is commensurable with the grid
     //and check wether the mu dir is parallelized or not
     int ok=(glb_vol%nranks==0);
-    if(!ok) crash("The lattice is incommensurable with the total ranks amount!");
+    if(!ok) crash("The lattice is incommensurable with nranks!");
+#if defined BGQ && (! defined BGQ_EMU)
+    ok&=(glb_vol%(2*nranks)==0);
+    if(!ok) crash("Compiled for BGQ, the lattice is incommensurable with 2*nranks!");
+#endif
     for(int mu=0;mu<NDIM;mu++)
       {
-	ok=ok && (nrank_dir[mu]>0);
+	ok&=(nrank_dir[mu]>0);
 	if(!ok) crash("nrank_dir[%d]: %d",mu,nrank_dir[mu]);
-	ok=ok && (glb_size[mu]%nrank_dir[mu]==0);
+	ok&=(glb_size[mu]%nrank_dir[mu]==0);
 	if(!ok) crash("glb_size[%d]%nrank_dir[%d]=%d",mu,mu,glb_size[mu]%nrank_dir[mu]);
 	paral_dir[mu]=(nrank_dir[mu]>1);
 	nparal_dir+=paral_dir[mu];

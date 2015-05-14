@@ -376,6 +376,7 @@ include_HEADERS+=linalgs/linalgs.hpp
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	new_types/complex.cpp \
 	new_types/dirac.cpp \
+	new_types/dsfmt.cpp \
 	new_types/float_128.cpp \
 	new_types/float_256.cpp \
 	new_types/high_prec.cpp \
@@ -387,6 +388,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 include_HEADERS+= \
 	new_types/complex.hpp \
 	new_types/dirac.hpp \
+	new_types/dsfmt.hpp \
 	new_types/float_128.hpp \
 	new_types/float_256.hpp \
 	new_types/high_prec.hpp \

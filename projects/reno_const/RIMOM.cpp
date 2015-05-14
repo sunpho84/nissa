@@ -294,6 +294,52 @@ void calculate_S0()
   if(full_X_space_prop_prec!=0) write_all_propagators("FullX",full_X_space_prop_prec);  
 }
 
+//print the momentum propagator traced over color and with (1+g0)
+void print_time_momentum_propagator()
+{
+  char outfile_time_mom[1024];
+  sprintf(outfile_time_mom,"%s/time_momentum_prop",outfolder);
+  FILE *fout=open_text_file_for_output(outfile_time_mom);  
+  
+  for(int r=0;r<2;r++)
+    for(int imass=0;imass<nmass;imass++)
+      {
+	//output
+	double p[glb_size[0]];
+	memset(p,0,sizeof(double)*glb_size[0]);
+	
+	for(int t=0;t<loc_size[0];t++)
+	  {
+	    //go to point of coords t,0,0,0
+	    int ivol=t*(loc_vol/loc_size[0]);
+	    int glb_t=glb_coord_of_loclx[ivol][0];
+
+	    //trace over col and with 1+g0
+	    complex c={0,0};
+	    if(glb_coord_of_loclx[ivol][1]==0 &&
+	       glb_coord_of_loclx[ivol][2]==0 &&
+	       glb_coord_of_loclx[ivol][3]==0)
+	      for(int ic=0;ic<3;ic++)
+		{
+		  summ_the_trace_dirac_prod_spinspin(c,base_gamma+0,S0[r][imass][ivol][ic][ic]);
+		  summ_the_trace_dirac_prod_spinspin(c,base_gamma+4,S0[r][imass][ivol][ic][ic]);
+		}
+	    p[glb_t]+=c[RE]/6;
+	  }
+	
+	//reduce all nodes
+	MPI_Allreduce(MPI_IN_PLACE,p,glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	
+	//write out
+	master_fprintf(fout,"\n# r=%d, mass=%lg\n\n",r,mass[imass]);
+	for(int t=0;t<glb_size[0];t++)
+	  master_fprintf(fout,"%d %+016.016lg\n",t,p[t]);
+	  master_fprintf(fout,"\n");
+      }
+
+  close_file(fout);
+}
+
 //compute the fft of all propagators
 void compute_fft(double sign)
 {
@@ -541,6 +587,8 @@ void in_main(int narg,char **arg)
       compute_fft(-1);
       if(n_P_interv[0]) print_propagator_subsets(n_P_interv[0],P_interv[0],"SubsPprop/Rome",do_rome);
       if(n_P_interv[1]) print_propagator_subsets(n_P_interv[1],P_interv[1],"SubsPprop/Orsay",do_orsay);
+
+      print_time_momentum_propagator();
       
       nanalized_conf++;
       
