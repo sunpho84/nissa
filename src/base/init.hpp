@@ -1,5 +1,5 @@
-#ifndef _INIT_H
-#define _INIT_H
+#ifndef _INIT_HPP
+#define _INIT_HPP
 
 namespace nissa
 {

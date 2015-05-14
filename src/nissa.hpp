@@ -107,6 +107,7 @@
 
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
+#include "new_types/dsfmt.hpp"
 #include "new_types/float_128.hpp"
 #include "new_types/float_256.hpp"
 #include "new_types/high_prec.hpp"

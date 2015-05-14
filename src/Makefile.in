@@ -312,10 +312,11 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	io/checksum.cpp io/endianness.cpp io/input.cpp \
 	io/ILDG_File.cpp io/reader.cpp io/writer.cpp \
 	linalgs/linalgs.cpp new_types/complex.cpp new_types/dirac.cpp \
-	new_types/float_128.cpp new_types/float_256.cpp \
-	new_types/high_prec.cpp new_types/rat_approx.cpp \
-	new_types/read_new_types.cpp new_types/spin.cpp \
-	new_types/su3.cpp operations/contract/mesons_2pts.cpp \
+	new_types/dsfmt.cpp new_types/float_128.cpp \
+	new_types/float_256.cpp new_types/high_prec.cpp \
+	new_types/rat_approx.cpp new_types/read_new_types.cpp \
+	new_types/spin.cpp new_types/su3.cpp \
+	operations/contract/mesons_2pts.cpp \
 	operations/contract/mesons_eight.cpp \
 	operations/contract/optimized_mesons_2pts.cpp \
 	operations/contract/site_contract.cpp \
@@ -455,8 +456,9 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	io/input.$(OBJEXT) io/ILDG_File.$(OBJEXT) io/reader.$(OBJEXT) \
 	io/writer.$(OBJEXT) linalgs/linalgs.$(OBJEXT) \
 	new_types/complex.$(OBJEXT) new_types/dirac.$(OBJEXT) \
-	new_types/float_128.$(OBJEXT) new_types/float_256.$(OBJEXT) \
-	new_types/high_prec.$(OBJEXT) new_types/rat_approx.$(OBJEXT) \
+	new_types/dsfmt.$(OBJEXT) new_types/float_128.$(OBJEXT) \
+	new_types/float_256.$(OBJEXT) new_types/high_prec.$(OBJEXT) \
+	new_types/rat_approx.$(OBJEXT) \
 	new_types/read_new_types.$(OBJEXT) new_types/spin.$(OBJEXT) \
 	new_types/su3.$(OBJEXT) \
 	operations/contract/mesons_2pts.$(OBJEXT) \
@@ -649,15 +651,15 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	io/checksum.hpp io/endianness.hpp io/input.hpp \
 	io/ILDG_File.hpp io/reader.hpp io/writer.hpp \
 	linalgs/linalgs.hpp new_types/complex.hpp new_types/dirac.hpp \
-	new_types/float_128.hpp new_types/float_256.hpp \
-	new_types/high_prec.hpp new_types/new_types_definitions.hpp \
-	new_types/rat_approx.hpp new_types/read_new_types.hpp \
-	new_types/spin.hpp new_types/su3.hpp \
-	operations/covariant_derivative.hpp operations/fft.hpp \
-	operations/fourier_transform.hpp operations/gauge_fixing.hpp \
-	operations/gaugeconf.hpp operations/remap_vector.hpp \
-	operations/shift.hpp operations/source.hpp \
-	operations/vector_gather.hpp \
+	new_types/dsfmt.hpp new_types/float_128.hpp \
+	new_types/float_256.hpp new_types/high_prec.hpp \
+	new_types/new_types_definitions.hpp new_types/rat_approx.hpp \
+	new_types/read_new_types.hpp new_types/spin.hpp \
+	new_types/su3.hpp operations/covariant_derivative.hpp \
+	operations/fft.hpp operations/fourier_transform.hpp \
+	operations/gauge_fixing.hpp operations/gaugeconf.hpp \
+	operations/remap_vector.hpp operations/shift.hpp \
+	operations/source.hpp operations/vector_gather.hpp \
 	operations/remez/remez_algorithm.hpp \
 	operations/contract/mesons_2pts.hpp \
 	operations/contract/mesons_eight.hpp \
@@ -885,15 +887,15 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	io/buffer.hpp io/checksum.hpp io/endianness.hpp io/input.hpp \
 	io/ILDG_File.hpp io/reader.hpp io/writer.hpp \
 	linalgs/linalgs.hpp new_types/complex.hpp new_types/dirac.hpp \
-	new_types/float_128.hpp new_types/float_256.hpp \
-	new_types/high_prec.hpp new_types/new_types_definitions.hpp \
-	new_types/rat_approx.hpp new_types/read_new_types.hpp \
-	new_types/spin.hpp new_types/su3.hpp \
-	operations/covariant_derivative.hpp operations/fft.hpp \
-	operations/fourier_transform.hpp operations/gauge_fixing.hpp \
-	operations/gaugeconf.hpp operations/remap_vector.hpp \
-	operations/shift.hpp operations/source.hpp \
-	operations/vector_gather.hpp \
+	new_types/dsfmt.hpp new_types/float_128.hpp \
+	new_types/float_256.hpp new_types/high_prec.hpp \
+	new_types/new_types_definitions.hpp new_types/rat_approx.hpp \
+	new_types/read_new_types.hpp new_types/spin.hpp \
+	new_types/su3.hpp operations/covariant_derivative.hpp \
+	operations/fft.hpp operations/fourier_transform.hpp \
+	operations/gauge_fixing.hpp operations/gaugeconf.hpp \
+	operations/remap_vector.hpp operations/shift.hpp \
+	operations/source.hpp operations/vector_gather.hpp \
 	operations/remez/remez_algorithm.hpp \
 	operations/contract/mesons_2pts.hpp \
 	operations/contract/mesons_eight.hpp \
@@ -1018,10 +1020,11 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	io/checksum.cpp io/endianness.cpp io/input.cpp \
 	io/ILDG_File.cpp io/reader.cpp io/writer.cpp \
 	linalgs/linalgs.cpp new_types/complex.cpp new_types/dirac.cpp \
-	new_types/float_128.cpp new_types/float_256.cpp \
-	new_types/high_prec.cpp new_types/rat_approx.cpp \
-	new_types/read_new_types.cpp new_types/spin.cpp \
-	new_types/su3.cpp operations/contract/mesons_2pts.cpp \
+	new_types/dsfmt.cpp new_types/float_128.cpp \
+	new_types/float_256.cpp new_types/high_prec.cpp \
+	new_types/rat_approx.cpp new_types/read_new_types.cpp \
+	new_types/spin.cpp new_types/su3.cpp \
+	operations/contract/mesons_2pts.cpp \
 	operations/contract/mesons_eight.cpp \
 	operations/contract/optimized_mesons_2pts.cpp \
 	operations/contract/site_contract.cpp \
@@ -1626,6 +1629,8 @@ new_types/complex.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
 new_types/dirac.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
+new_types/dsfmt.$(OBJEXT): new_types/$(am__dirstamp) \
+	new_types/$(DEPDIR)/$(am__dirstamp)
 new_types/float_128.$(OBJEXT): new_types/$(am__dirstamp) \
 	new_types/$(DEPDIR)/$(am__dirstamp)
 new_types/float_256.$(OBJEXT): new_types/$(am__dirstamp) \
@@ -1939,6 +1944,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@linalgs/$(DEPDIR)/linalgs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/complex.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/dirac.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/dsfmt.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/float_128.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/float_256.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@new_types/$(DEPDIR)/high_prec.Po@am__quote@
