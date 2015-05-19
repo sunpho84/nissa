@@ -44,7 +44,7 @@ namespace nissa
 	complex ph={cos(arg),sin(arg)};
       
 	//adapt the phase
-	safe_spinspin_complex_prod(out[ivol],out[ivol],ph);
+	safe_spinspin_prod_complex(out[ivol],out[ivol],ph);
       }
     set_borders_invalid(out);
   }
@@ -71,7 +71,7 @@ namespace nissa
 	complex ph={cos(arg),sin(arg)};
 	
 	//adapt the phase
-	safe_spinspin_complex_prod(out[ivol],in[ivol],ph);
+	safe_spinspin_prod_complex(out[ivol],in[ivol],ph);
       }
     THREAD_BARRIER();
     

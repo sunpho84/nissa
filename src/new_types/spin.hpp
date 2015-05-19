@@ -98,12 +98,16 @@ namespace nissa
   {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_prod_double(a[id1][id2],b[id1][id2],c);}
   inline void spinspin_prodassign_double(spinspin a,double b)
   {spinspin_prod_double(a,a,b);}
+  inline void spinspin_summ_the_prod_double(spinspin a,spinspin b,double c)
+  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ_the_prod_double(a[id1][id2],b[id1][id2],c);}
   inline void unsafe_spinspin_prod_idouble(spinspin a,spinspin b,double c)
   {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) unsafe_complex_prod_idouble(a[id1][id2],b[id1][id2],c);}
   inline void safe_spinspin_prod_idouble(spinspin a,spinspin b,double c)
   {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) safe_complex_prod_idouble(a[id1][id2],b[id1][id2],c);}
   inline void spinspin_prodassign_idouble(spinspin a,double b)
   {safe_spinspin_prod_idouble(a,a,b);}
+  inline void spinspin_summ_the_prod_idouble(spinspin a,spinspin b,double c)
+  {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ_the_prod_idouble(a[id1][id2],b[id1][id2],c);}
   
   inline void spinspin_summ_the_complex_prod(spinspin a,spinspin b,complex c)
   {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_summ_the_prod(a[id1][id2],b[id1][id2],c);}
@@ -117,16 +121,29 @@ namespace nissa
   inline void spinspin_subt_the_complex_conj2_prod(spinspin a,spinspin b,complex c)
   {for(int id1=0;id1<4;id1++) for(int id2=0;id2<4;id2++) complex_subt_the_conj2_prod(a[id1][id2],b[id1][id2],c);}
   
-  inline void unsafe_spinspin_complex_prod(spinspin a,spinspin b,complex c)
+  inline void unsafe_spinspin_prod_complex(spinspin a,spinspin b,complex c)
   {
     spinspin_put_to_zero(a);
     spinspin_summ_the_complex_prod(a,b,c);
   }
-  inline void safe_spinspin_complex_prod(spinspin a,spinspin b,complex c)
+  inline void safe_spinspin_prod_complex(spinspin a,spinspin b,complex c)
   {
     spinspin d;
-    unsafe_spinspin_complex_prod(d,b,c);
+    unsafe_spinspin_prod_complex(d,b,c);
     spinspin_copy(a,d);
+  }
+
+  inline void unsafe_spinspin_prod_complex_conj2(spinspin a,spinspin b,complex c)
+  {
+    complex d;
+    complex_conj(d,c);
+    unsafe_spinspin_prod_complex(a,b,d);
+  }
+  inline void safe_spinspin_prod_complex_conj2(spinspin a,spinspin b,complex c)
+  {
+    complex d;
+    complex_conj(d,c);
+    safe_spinspin_prod_complex(a,b,d);
   }
   
   //saturate two anti-simmetric tensors

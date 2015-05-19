@@ -7,7 +7,9 @@
 
 namespace nissa
 {
+  void mom_space_twisted_operator_of_imom(spinspin out,tm_quark_info qu,int imom);
   void mom_space_twisted_propagator_of_imom(spinspin prop,tm_quark_info qu,int imom);
+  void twisted_projector_of_imom(spinspin proj,tm_quark_info qu,int imom,int par_apar);
   void compute_mom_space_twisted_propagator(spinspin *prop,tm_quark_info qu);
   void compute_x_space_twisted_propagator_by_fft(spinspin *prop,tm_quark_info qu);
   void compute_x_space_twisted_squared_propagator_by_fft(spinspin *sq_prop,tm_quark_info qu);
@@ -16,7 +18,7 @@ namespace nissa
   void compute_x_space_twisted_propagator_by_inv(spinspin *prop,tm_quark_info qu);
 #define DEFINE_MULTIPLY_MOM_SPACE_TWISTED_PROPAGATOR(TYPE)		\
   void multiply_from_left_by_mom_space_twisted_propagator(TYPE *out,TYPE *in,tm_quark_info qu); \
-  void multiply_from_right_by_mom_space_twisted_propagator(TYPE *out,TYPE *in,tm_quark_info qu); \
+  void multiply_from_right_by_mom_space_twisted_propagator(TYPE *out,TYPE *in,tm_quark_info qu);
 
   DEFINE_MULTIPLY_MOM_SPACE_TWISTED_PROPAGATOR(spinspin);
   DEFINE_MULTIPLY_MOM_SPACE_TWISTED_PROPAGATOR(spin);
