@@ -305,8 +305,8 @@ void print_time_momentum_propagator()
     for(int imass=0;imass<nmass;imass++)
       {
 	//output
-	double p[glb_size[0]];
-	memset(p,0,sizeof(double)*glb_size[0]);
+	double p[2*glb_size[0]];
+	memset(p,0,2*sizeof(double)*glb_size[0]);
 	
 	for(int t=0;t<loc_size[0];t++)
 	  {
@@ -324,17 +324,17 @@ void print_time_momentum_propagator()
 		  summ_the_trace_dirac_prod_spinspin(c,base_gamma+0,S0[r][imass][ivol][ic][ic]);
 		  summ_the_trace_dirac_prod_spinspin(c,base_gamma+4,S0[r][imass][ivol][ic][ic]);
 		}
-	    p[glb_t]+=c[RE]/6;
+	    p[2*glb_t+0]+=c[RE]/6;
+	    p[2*glb_t+1]+=c[IM]/6;
 	  }
 	
 	//reduce all nodes
-	MPI_Allreduce(MPI_IN_PLACE,p,glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	MPI_Allreduce(MPI_IN_PLACE,p,2*glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 	
 	//write out
-	master_fprintf(fout,"\n# r=%d, mass=%lg\n\n",r,mass[imass]);
+	master_fprintf(fout,"\n # r=%d, mass=%lg\n\n",r,mass[imass]);
 	for(int t=0;t<glb_size[0];t++)
-	  master_fprintf(fout,"%d %+016.016lg\n",t,p[t]);
-	  master_fprintf(fout,"\n");
+	  master_fprintf(fout,"%+016.016lg %+016.016lg\n",p[2*t+0],p[2*t+1]);
       }
 
   close_file(fout);

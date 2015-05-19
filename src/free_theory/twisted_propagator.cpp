@@ -47,39 +47,86 @@ namespace nissa
   
   ////////////////////////////////////////////// twisted propagator in momentum space ////////////////////////////////////////////
 
-  //single momentum
-  void mom_space_twisted_propagator_of_imom(spinspin prop,tm_quark_info qu,int imom)
+  //return sin(p), \sum sin(p)^2, \sum sin(p/2)^2
+  void get_component_of_twisted_propagator_of_imom(momentum_t sin_mom,double &sin2_mom,double &sin2_momh,tm_quark_info qu,int imom)
   {
-    momentum_t sin_mom;
-    double sin2_mom=0,sin2_momh=0;
-    for(int mu=0;mu<4;mu++)
+    sin2_mom=sin2_momh=0;
+    for(int mu=0;mu<NDIM;mu++)
       {
 	double p=M_PI*(2*glb_coord_of_loclx[imom][mu]+qu.bc[mu])/glb_size[mu];
 	sin_mom[mu]=sin(p);
 	sin2_mom+=sqr(sin_mom[mu]);
 	sin2_momh+=sqr(sin(p/2));
       }
-
+  }
+  
+  //takes the dirac operator of fixed momentum
+  void mom_space_twisted_operator_of_imom(spinspin out,tm_quark_info qu,int imom)
+  {
+    //takes the momenta part and M
+    momentum_t sin_mom;
+    double sin2_mom,sin2_momh;
+    get_component_of_twisted_propagator_of_imom(sin_mom,sin2_mom,sin2_momh,qu,imom);
     double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
-
-    double den=sin2_mom+sqr(M)+sqr(qu.mass);
-    double rep_den=1/den/glb_vol;
     
+    //fill the pieces
+    spinspin_put_to_zero(out);  
+    spinspin_dirac_summ_the_prod_double(out,&base_gamma[0],qu.mass);
+    for(int mu=0;mu<4;mu++) spinspin_dirac_summ_the_prod_idouble(out,base_gamma+map_mu[mu],sin_mom[mu]);
+    spinspin_dirac_summ_the_prod_idouble(out,&base_gamma[5],-M*tau3[qu.r]);
+  }
+  
+  //single momentum - normalisation is such that D*S=1/vol
+  void mom_space_twisted_propagator_of_imom(spinspin prop,tm_quark_info qu,int imom)
+  {
+    //takes the momenta part
+    momentum_t sin_mom;
+    double sin2_mom,sin2_momh;
+    get_component_of_twisted_propagator_of_imom(sin_mom,sin2_mom,sin2_momh,qu,imom);
+
+    //compute M and the denominator
+    double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
+    double den=sin2_mom+sqr(M)+sqr(qu.mass);
+
+    //fill the pieces
     spinspin_put_to_zero(prop);  
     if(fabs(den)>=1.e-14)
       {
+	//for efficiency
+	double rep_den=1/den/glb_vol;
+	
 	spinspin_dirac_summ_the_prod_double(prop,&base_gamma[0],qu.mass*rep_den);
-	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[1],-sin_mom[1]*rep_den);
-	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[2],-sin_mom[2]*rep_den);
-	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[3],-sin_mom[3]*rep_den);
-	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[4],-sin_mom[0]*rep_den);
+	for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(prop,base_gamma+map_mu[mu],-sin_mom[mu]*rep_den);
 	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[5],M*tau3[qu.r]*rep_den);
       }
     else
       for(int ig=0;ig<4;ig++)
 	complex_prod_double(prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],qu.zmp);
   }
+  
+  //projector to fixed momentum
+  void twisted_projector_of_imom(spinspin proj,tm_quark_info qu,int imom,int par_apar)
+  {
+    int sign[2]={+1,-1};
+    double e=/*sign[par_apar]*/-tm_quark_energy(qu,imom);
+    momentum_t sin_mom;
+    double sin2_mom=-sqr(sinh(e));
+    double sin2_momh=-sqr(sinh(e/2));
+    for(int mu=1;mu<4;mu++)
+      {
+	double p=M_PI*(2*glb_coord_of_loclx[imom][mu]+qu.bc[mu])/glb_size[mu];
+	sin_mom[mu]=sin(p);
+	sin2_mom+=sqr(sin_mom[mu]);
+	sin2_momh+=sqr(sin(p/2));
+      }
+    double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
 
+    spinspin_put_to_diag(proj,qu.mass);
+    spinspin_dirac_summ_the_prod_double(proj,base_gamma+map_mu[0],sinh(e));
+    for(int mu=1;mu<4;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+map_mu[mu],-sin_mom[mu]);
+    spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+5,M*tau3[qu.r]);
+  }
+  
   //whole quark propagator in momentum space
   THREADABLE_FUNCTION_2ARG(compute_mom_space_twisted_propagator, spinspin*,prop, tm_quark_info,qu)
   {

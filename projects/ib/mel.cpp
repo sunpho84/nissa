@@ -48,6 +48,13 @@ complex *glb_weak_corr;
 
 const int V_curr_mu=0;
 
+//compute the eigenvalues of (1-+g0)/2
+double W=1/sqrt(2);
+spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
+		       {{ 0, 0},{+W, 0},{ 0, 0},{+W, 0}}},
+		      {{{+W, 0},{ 0, 0},{-W, 0},{ 0, 0}},
+		       {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
+
 //define types of quark propagator used
 const int nins_kind=6;
 enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  STOCH_PHI,  STOCH_ETA,  TADPOLE};
@@ -360,42 +367,66 @@ void get_lepton_phase_factor(complex out,int ivol,int ilepton,int orie,tm_quark_
   out[IM]=sin(-summ_coord*p)*ext;
 }
 
-void trace_test_lep_prop(double *c,spinspin *prop,tm_quark_info le,int reim=RE)
+void trace_test_lep_prop(double *c,spinspin *prop,tm_quark_info le)
 {
   GET_THREAD_ID();
   
   //trace
-  memset(c,0,sizeof(double)*glb_size[0]);
+  memset(c,0,2*sizeof(double)*glb_size[0]);
 
+  double e=tm_quark_energy(le,0);
+  
   if(IS_MASTER_THREAD)
     {
       NISSA_LOC_VOL_LOOP(ivol)
 	{
-	  //compute the phase
-	  double ph=0;
-	  for(int mu=1;mu<4;mu++) ph+=-M_PI*glb_coord_of_loclx[ivol][mu]*le.bc[mu]/glb_size[mu];
-
-	  complex t;
-	  trace_dirac_prod_spinspin(t,base_gamma+0,prop[ivol]);
-	  //c[glb_coord_of_loclx[ivol][0]]+=sqr(cos(ph))*spinspin_norm2(prop[ivol]);
-	  c[glb_coord_of_loclx[ivol][0]]+=t[reim];
+	  //trace
+	  complex tr[6];
+	  for(int i=0;i<6;i++) trace_dirac_prod_spinspin(tr[i],base_gamma+i,prop[ivol]);
+	  
+	  //save
+	  int glb_t=glb_coord_of_loclx[ivol][0];
+	  for(int ri=0;ri<2;ri++) c[2*glb_t+ri]+=tr[0][ri];
 	}
-      MPI_Allreduce(MPI_IN_PLACE,c,glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+      MPI_Allreduce(MPI_IN_PLACE,c,2*glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
     }
   THREAD_BARRIER();
+}
+
+void zero_mom_prop(spinspin *zmp,tm_quark_info le)
+{
+  GET_THREAD_ID();
+
+  spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
+  compute_x_space_twisted_propagator_by_fft(prop,le);
+  
+  memset(zmp,0,sizeof(spinspin)*glb_size[0]);
+  if(IS_MASTER_THREAD)
+    {
+      NISSA_LOC_VOL_LOOP(ivol)
+	{
+	  //save
+	  int glb_t=glb_coord_of_loclx[ivol][0];
+	  spinspin_summassign(zmp[glb_t],prop[ivol]);
+	}
+      MPI_Allreduce(MPI_IN_PLACE,zmp,sizeof(spinspin)/sizeof(double)*glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+    }
+  THREAD_BARRIER();
+
+  nissa_free(prop);
 }
 
 void print_test_lep_prop(FILE *fout,double *c,tm_quark_info le,const char *tag="")
 {
   master_fprintf(fout," # mu=%lg kappa=%lg r=%d bc=%lg %s\n\n",le.mass,le.kappa,le.r,le.bc[1],tag);
-  for(int t=0;t<glb_size[0];t++) master_fprintf(fout," %+016.16lg\n",c[t]);
+  for(int t=0;t<glb_size[0];t++) master_fprintf(fout," %+016.16lg %+016.16lg\n",c[2*t+0],c[2*t+1]);
   master_fprintf(fout,"\n");
 }
 
 void test_lep_prop(FILE *fout,tm_quark_info le)
 {
   GET_THREAD_ID();
-  
+      
   //prepare the source
   spinspin *source=nissa_malloc("source",loc_vol,spinspin);
   vector_reset(source);
@@ -403,13 +434,14 @@ void test_lep_prop(FILE *fout,tm_quark_info le)
   
   //compute lepton prop in various ways
   spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
-  double c[glb_size[0]];
+  double c[2*glb_size[0]];
   
   //propagator by multiplication via fft
   multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,source,le);
   trace_test_lep_prop(c,prop,le);
+  
   print_test_lep_prop(fout,c,le,"multiply_from_right_by_x_space_twisted_propagator_by_fft");
-
+  
   //propagator via fft
   compute_x_space_twisted_propagator_by_fft(prop,le);
   trace_test_lep_prop(c,prop,le);
@@ -421,32 +453,31 @@ void test_lep_prop(FILE *fout,tm_quark_info le)
     {
       complex r;
       trace_dirac_prod_spinspin(r,base_gamma+0,prop[t*loc_spat_vol]);
-      c[t+glb_coord_of_loclx[0][0]]=r[RE];
+      int glb_t=t+glb_coord_of_loclx[0][0];
+      c[2*glb_t+0]=r[RE];
+      c[2*glb_t+1]=r[IM];
     }
-  MPI_Allreduce(MPI_IN_PLACE,c,glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+  MPI_Allreduce(MPI_IN_PLACE,c,2*glb_size[0],MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
   print_test_lep_prop(fout,c,le,"mom_space_repp");
   
-  //compute_x_space_twisted_propagator_by_inv(prop,le);
-  //trace_test_lep_prop(c,prop,le);
-  //print_test_lep_prop(fout,c,"multiply_from_right_by_x_space_twisted_propagator_by_fft");
-
   //propagator with scalar insertion
   spinspin *prop2=nissa_malloc("prop2",loc_vol,spinspin);
 
   //insert it explicitly
+  compute_x_space_twisted_propagator_by_fft(prop,le);
   multiply_from_right_by_x_space_twisted_propagator_by_fft(prop2,prop,le);
   trace_test_lep_prop(c,prop2,le);
   print_test_lep_prop(fout,c,le,"explicit insertion");
 
   //take the derivative
   tm_quark_info te_le=le;
-  double eps=0.001*le.mass;
+  double eps=0.0001*le.mass;
   te_le.mass+=eps;
   compute_x_space_twisted_propagator_by_fft(prop2,te_le);
   trace_test_lep_prop(c,prop,le);
-  double c2[glb_size[0]];
+  double c2[2*glb_size[0]];
   trace_test_lep_prop(c2,prop2,te_le);
-  for(int t=0;t<glb_size[0];t++) c2[t]=(c[t]-c2[t])/eps;
+  for(int t=0;t<glb_size[0];t++) for(int ri=0;ri<2;ri++) c2[2*t+ri]=(c[2*t+ri]-c2[2*t+ri])/eps;
   print_test_lep_prop(fout,c2,le,"numerical derivative");
   
   //insert gamma0 on the left
@@ -455,41 +486,150 @@ void test_lep_prop(FILE *fout,tm_quark_info le)
   set_borders_invalid(prop2);
   multiply_from_left_by_x_space_twisted_propagator_by_fft(prop2,prop2,le);
   trace_test_lep_prop(c2,prop2,le);
-  for(int t=0;t<glb_size[0];t++) c2[t]/=c[t]*t;
+  for(int t=0;t<glb_size[0];t++) for(int ri=0;ri<2;ri++) c2[2*t+ri]/=c[2*t+ri]*std::min(t,glb_size[0]-t);
   print_test_lep_prop(fout,c2,le,"g0 insertion on the left");
   
   //insert gamma0 on the right
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    unsafe_spinspin_prod_dirac(prop2[ivol],prop[ivol],base_gamma+4);
+    unsafe_spinspin_prod_dirac(prop2[ivol],prop[ivol],base_gamma+map_mu[0]);
   set_borders_invalid(prop2);
   multiply_from_right_by_x_space_twisted_propagator_by_fft(prop2,prop2,le);
   trace_test_lep_prop(c2,prop2,le);
-  for(int t=0;t<glb_size[0];t++) c2[t]/=c[t]*t;
+  for(int t=0;t<glb_size[0];t++) for(int ri=0;ri<2;ri++) c2[2*t+ri]/=c[2*t+ri]*std::min(t,glb_size[0]-t);
   print_test_lep_prop(fout,c2,le,"g0 insertion on the right");
 
+  spinspin zmp[glb_size[0]];
+  zero_mom_prop(zmp,le);
+  //for(int t=0;t<glb_size[0]*0+1;t++)
+  //{
+  //spinspin_print(zmp[1]);
+  //master_printf("zmp1\n");
+  //spinspin_print(zmp[2]);
+  //master_printf("zmp2\n");
+  //}
+
+  {
+    spinspin pr;
+    twisted_projector_of_imom(pr,le,0,1);
+    //spinspin_print(pr);
+    //master_printf("pr\n");
+
+    for(int id=0;id<4;id++)
+      for(int jd=0;jd<4;jd++)
+	for(int ri=0;ri<2;ri++)
+	  {
+	    printf("%d %d %d  ",id,jd,ri);
+	    if(fabs(pr[id][jd][ri])>1e-10) printf("%lg\n",zmp[1][id][jd][ri]/pr[id][jd][ri]);
+	    else master_printf("\n");
+	  }
+    
+    for(int t=0;t<glb_size[0];t++)
+      {
+	spinspin re;
+	unsafe_spinspin_prod_spinspin(re,zmp[t],pr);
+	complex ou;
+	trace_spinspin(ou,re);
+	master_printf("%d %lg %lg\n",t,ou[RE],ou[IM]);
+	spinspin_print(re);
+	master_printf("boh\n");
+      }
+  }
+  crash("");
+  
+  for(int imom=0;imom<loc_vol;imom++)
+    {
+      //check prop and inverse
+      //spinspin a;
+      //mom_space_twisted_operator_of_imom(a,le,imom);
+      //spinspin b;
+      //mom_space_twisted_propagator_of_imom(b,le,imom);
+      //unsafe_spinspin_prod_spinspin(c,a,b);
+      //spinspin_prodassign_double(c,glb_vol);
+      //spinspin c;
+      //spinspin_print(c);
+      //master_printf("\n");
+      
+      //spinspin_print(a);
+      //master_printf("\n");
+
+      //spinspin_print(b);
+      //master_printf("\n");
+      
+      spinspin pr;
+      twisted_projector_of_imom(pr,le,imom,0);
+      spinspin_print(pr);
+      master_printf("\n\n");
+    }
+
+  //phases
+  complex phases[4];
+  for(int mu=0;mu<NDIM;mu++)
+    {
+      phases[mu][0]=cos(le.bc[mu]*M_PI/glb_size[mu]);
+      phases[mu][1]=sin(le.bc[mu]*M_PI/glb_size[mu]);
+    }
+  
   //conserved current on the left
   spinspin g[2][2][4];
   double mps[2]={-0.5,+0.5}; //signs inverted?
   for(int r=0;r<2;r++)
     for(int mp=0;mp<2;mp++)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	{
-	  spinspin_dirac_prod_double(g[r][mp][mu],base_gamma+5,0.5*tau3[r]);
-	  spinspin_dirac_summ_the_prod_idouble(g[r][mp][mu],base_gamma+mu,mps[mp]);
+	  spinspin_dirac_prod_idouble(g[r][mp][mu],base_gamma+5,-0.5*tau3[r]);
+	  spinspin_dirac_summ_the_prod_double(g[r][mp][mu],base_gamma+map_mu[mu],mps[mp]);
 	}
+
   vector_reset(prop2);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<1;mu++)
       {
+	/*find neighbors*/
 	int ifw=loclx_neighup[ivol][mu];
 	int ibw=loclx_neighdw[ivol][mu];
-	spinspin_summ_the_spinspin_prod(prop2[ivol],g[le.r][0][mu],prop[ibw]);
-	spinspin_summ_the_spinspin_prod(prop2[ivol],g[le.r][1][mu],prop[ifw]);
+
+	/*transport down and up*/
+	spinspin fw,bw;
+	unsafe_spinspin_prod_complex(fw,prop[ifw],phases[mu]);
+	unsafe_spinspin_prod_complex_conj2(bw,prop[ibw],phases[mu]);
+
+	/*fix fw and bw*/
+	spinspin_prodassign_double(fw,-0.5);
+	spinspin_prodassign_double(bw,+0.5);
+	
+	/*summ and subtract the two*/
+	spinspin bw_M_fw,bw_P_fw;
+	spinspin_subt(bw_M_fw,bw,fw);
+	spinspin_summ(bw_P_fw,bw,fw);
+
+	/*put -i g5 t3 on the summ*/
+	spinspin g5_bw_P_fw;
+	unsafe_dirac_prod_spinspin(g5_bw_P_fw,base_gamma+5,bw_P_fw);
+	spinspin_summ_the_prod_idouble(prop2[ivol],g5_bw_P_fw,-tau3[le.r]);
+	
+	/*put gmu on the difference*/
+	spinspin gmu_bw_M_fw;
+	unsafe_dirac_prod_spinspin(gmu_bw_M_fw,base_gamma+map_mu[mu],bw_M_fw);
+	spinspin_summassign(prop2[ivol],gmu_bw_M_fw);
+	
+	//int ifw=loclx_neighup[ivol][mu];
+	//int ibw=loclx_neighdw[ivol][mu];
+	//
+	//spinspin temp;
+	//
+	//put phase on the fw
+	//unsafe_spinspin_prod_spinspin(temp,g[le.r][0][mu],prop[ifw]);
+	//spinspin_summ_the_complex_prod(prop2[ivol],temp,phases[mu]);
+	//
+	//put phase^+ on the bw
+	//unsafe_spinspin_prod_spinspin(temp,g[le.r][1][mu],prop[ibw]);
+	//spinspin_summ_the_complex_conj2_prod(prop2[ivol],temp,phases[mu]);	
       }
   set_borders_invalid(prop2);
+
   multiply_from_left_by_x_space_twisted_propagator_by_fft(prop2,prop2,le);
-  trace_test_lep_prop(c2,prop2,le,1);
-  for(int t=0;t<glb_size[0];t++) c2[t]/=c[t]*t;
+  trace_test_lep_prop(c2,prop2,le);
+  for(int t=0;t<glb_size[0];t++) c2[t]/=c[t]*std::min(t,glb_size[0]-t);
   print_test_lep_prop(fout,c2,le,"conserved g0 insertion on the left");
   
   nissa_free(source);
@@ -520,7 +660,8 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
   //for the time being the boundaries for internal propagator are periodic
   tm_quark_info le;
   le.kappa=0.125;
-  for(int mu=0;mu<4;mu++) le.bc[mu]=0;
+  le.bc[0]=0;
+  for(int mu=1;mu<4;mu++) le.bc[mu]=0;
   
   //compute the 4 pairs of gammas: i(-i t3 g5-+gmu)/2=(t3 g5-+i gmu)/2
   spinspin g[2][2][4]; //[t3][-+][mu]
