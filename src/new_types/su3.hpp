@@ -1102,7 +1102,7 @@ namespace nissa
   
   //spincolor*dirac
   inline void unsafe_spincolor_prod_dirac(spincolor out,spincolor in,dirac_matr *m)
-  {unsafe_dirac_prod_spincolor(out,m,in);}
+  {spincolor_put_to_zero(out);for(int id1=0;id1<4;id1++) for(int ic=0;ic<3;ic++) complex_summ_the_prod(out[m->pos[id1]][ic],m->entr[id1],in[id1][ic]);}
   
   //dirac*spincolor
   inline void safe_dirac_prod_spincolor(spincolor out,dirac_matr *m,spincolor in)

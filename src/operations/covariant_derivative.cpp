@@ -49,6 +49,7 @@ namespace nissa
   
   void insert_external_source_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){complex_copy(out,aux[ivol][mu]);}
   void insert_tadpole_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
+  void insert_conserved_current_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){out[RE]=((int*)pars)[mu];out[IM]=0;}
 
   /*
     insert the operator:  \sum_mu  [
@@ -125,6 +126,15 @@ namespace nissa
   }									\
   THREADABLE_FUNCTION_END						\
 									\
+  /*insert the conserved time current*/ \
+  THREADABLE_FUNCTION_5ARG(insert_conserved_current, TYPE*,out, quad_su3*,conf, TYPE*,in, int,r, int*,dirs) \
+  {									\
+    /*call with no source insertion, minus between fw and bw, and a global -i*0.5*/ \
+    complex fw_factor={0.5,0},bw_factor={-0.5,0};			\
+    insert_operator(out,conf,NULL,in,fw_factor,bw_factor,r,insert_conserved_current_handle,dirs); \
+  }									\
+									\
+  THREADABLE_FUNCTION_END						\
   /*multiply with gamma*/						\
   THREADABLE_FUNCTION_4ARG(prop_multiply_with_gamma, TYPE*,out, int,ig, TYPE*,in, int,twall) \
   {									\

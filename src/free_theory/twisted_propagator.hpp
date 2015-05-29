@@ -7,15 +7,23 @@
 
 namespace nissa
 {
+  void get_component_of_twisted_propagator_of_imom(momentum_t sin_mom,double &sin2_mom,double &sin2_momh,tm_quark_info qu,int imom);
   void mom_space_twisted_operator_of_imom(spinspin out,tm_quark_info qu,int imom);
   void mom_space_twisted_propagator_of_imom(spinspin prop,tm_quark_info qu,int imom);
-  void twisted_projector_of_imom(spinspin proj,tm_quark_info qu,int imom,int par_apar);
+  double twisted_on_shell_operator_of_imom(spinspin proj,tm_quark_info qu,int imom,bool tilded,int part_apart);
   void compute_mom_space_twisted_propagator(spinspin *prop,tm_quark_info qu);
   void compute_x_space_twisted_propagator_by_fft(spinspin *prop,tm_quark_info qu);
   void compute_x_space_twisted_squared_propagator_by_fft(spinspin *sq_prop,tm_quark_info qu);
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spin *prop,spin *ext_source,tm_quark_info qu);
   void multiply_from_left_by_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,tm_quark_info qu);
   void compute_x_space_twisted_propagator_by_inv(spinspin *prop,tm_quark_info qu);
+  inline double twisted_particle_projector_of_imom(spinspin proj,tm_quark_info qu,int imom)
+  {return twisted_on_shell_operator_of_imom(proj,qu,imom,false,-1);}
+  inline double twisted_anti_particle_projector_of_imom(spinspin proj,tm_quark_info qu,int imom)
+  {return twisted_on_shell_operator_of_imom(proj,qu,imom,false,+1);}
+  inline double twisted_particle_anti_particle_projector_of_imom(spinspin proj,tm_quark_info qu,int imom,int part_apart)
+  {int sign[2]={-1,+1};return twisted_on_shell_operator_of_imom(proj,qu,imom,false,sign[part_apart]);}
+  void twisted_wavefunction_of_imom(spin wf,tm_quark_info qu,int imom,int par_apar,int s);
 #define DEFINE_MULTIPLY_MOM_SPACE_TWISTED_PROPAGATOR(TYPE)		\
   void multiply_from_left_by_mom_space_twisted_propagator(TYPE *out,TYPE *in,tm_quark_info qu); \
   void multiply_from_right_by_mom_space_twisted_propagator(TYPE *out,TYPE *in,tm_quark_info qu);
@@ -28,6 +36,7 @@ namespace nissa
   {return 0.5/kappa-4;}
   
   double tm_quark_energy(tm_quark_info qu,int imom);
+  double naive_quark_energy(tm_quark_info qu,int imom);
   
   //wrapper
   template <class T> void multiply_from_left_or_right_by_mom_space_twisted_propagator(T *out,T *in,tm_quark_info qu,bool lr)

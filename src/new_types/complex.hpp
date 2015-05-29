@@ -285,7 +285,9 @@ namespace nissa
     a[1]=b[0]*c[1]+b[1]*c[0];
     a[0]=tmp;
   }
-  
+  inline void complex_prodassign(complex a,complex b)
+  {safe_complex_prod(a,a,b);}
+
   //Minus version
   inline void safe_complex_prod_minus(complex a,complex b,complex c)
   {
