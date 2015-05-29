@@ -45,11 +45,11 @@ namespace nissa
     return 2*asinh(sqrt(four_sinh2_Eh/4));
   }
 
-  //compute the energy of a twisted mass quark
-  double naive_quark_energy(tm_quark_info qu,int imom)
+  //compute the energy of a naive massless fermion
+  double naive_massless_quark_energy(momentum_t bc,int imom)
   {
-    double sinh2E=sqr(qu.mass);
-    for(int mu=1;mu<NDIM;mu++) sinh2E+=sqr(sin(M_PI*(2*glb_coord_of_loclx[imom][mu]+qu.bc[mu])/glb_size[mu]));
+    double sinh2E=0;
+    for(int mu=1;mu<NDIM;mu++) sinh2E+=sqr(sin(M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu]));
     return asinh(sqrt(sinh2E));
   }
 
@@ -141,19 +141,32 @@ namespace nissa
     return abse;
   }
 
+  //same for the naive fermions
+  double naive_massless_on_shell_operator_of_imom(spinspin proj,momentum_t bc,int imom,int esign)
+  {
+    if(esign!=-1&&esign!=+1) crash("illegal energy sign\"%d\"",esign);
+    double abse=naive_massless_quark_energy(bc,imom);
+    double e=esign*abse;
+    
+    spinspin_dirac_prod_double(proj,base_gamma+map_mu[0],-sinh(e));
+    for(int mu=1;mu<4;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+map_mu[mu],sin(M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu]));
+    
+    return abse;
+  }
+  
+  //eigenvectors of (1-+g0)/2
+  double W=1/sqrt(2);
+  //aparticle are associated with         phi_s, eigenvectors of (1-g0)
+  //particles are associated with \tilde{phi}_s, eigenvectors of (1+g0)
+  //so take ompg0_eig[!par_apar][s]
+  spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
+			 {{ 0, 0},{+W, 0},{ 0, 0},{+W, 0}}},
+			{{{+W, 0},{ 0, 0},{-W, 0},{ 0, 0}},
+			 {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
+  
   //return the wave function of "u_r(p)" (particle) or "v_r(-p)" (antiparticle)
   void twisted_wavefunction_of_imom(spin wf,tm_quark_info qu,int imom,int par_apar,int s)
   {
-    //eigenvectors of (1-+g0)/2
-    //particles are associated with \tilde{phi}_r, eigenvectors of (1+g0)
-    //aparticle are associated with         phi_r, eigenvectors of (1-g0)
-    //so take ompg0_eig[!par_apar][s]
-    double W=1/sqrt(2);
-    spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
-			   {{ 0, 0},{+W, 0},{ 0, 0},{+W, 0}}},
-			  {{{+W, 0},{ 0, 0},{-W, 0},{ 0, 0}},
-			   {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
-
     //particle:  u_r(+p)=\tilde{D}(iE,p) \phi^tilde_r/sqrt(m+sinh(e))
     //aparticle: v_r(-p)=G0 D(iE,p) \phi_r/sqrt(m+sinh(e))
     bool tilde[2]={true,false};
@@ -163,6 +176,18 @@ namespace nissa
     spin_prodassign_double(wf,1/sqrt(qu.mass+sinh(e)));
     int ig[2]={0,map_mu[0]};
     safe_dirac_prod_spin(wf,base_gamma+ig[par_apar],wf);
+  }
+
+  //same for naive massless fermions
+  void naive_massless_wavefunction_of_imom(spin wf,momentum_t bc,int imom,int par_apar,int s)
+  {
+    //particle:  u_r(+p)=-D(iE,p) \phi^tilde_r/sqrt(sinh(e))
+    //aparticle: v_r(-p)=-D(-iE,p) \phi_r/sqrt(sinh(e))
+    spinspin osp;
+    int esign[2]={+1,-1};
+    double e=naive_massless_on_shell_operator_of_imom(osp,bc,imom,esign[par_apar]);
+    unsafe_spinspin_prod_spin(wf,osp,ompg0_eig[!par_apar][s]);
+    spin_prodassign_double(wf,-1/sqrt(sinh(e)));
   }
   
   //whole quark propagator in momentum space

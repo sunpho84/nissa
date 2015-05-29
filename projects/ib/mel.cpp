@@ -40,11 +40,16 @@ spin1field *photon_phi,*photon_eta;
 
 complex *glb_corr,*loc_corr;
 
+//sign of the muon momentum
+const int sign_orie[2]={-1,+1};
+
 //list the 8 matrices to insert for the weak current
 const int nweak_ins=16;
 int list_weak_insq[nweak_ins]={1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
 int list_weak_insl[nweak_ins]={1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
 complex *glb_weak_corr;
+complex *glb_weak_vitt_corr;
+complex *glb_weak_proj_corr;
 
 //compute the eigenvalues of (1-+g0)/2
 double W=1/sqrt(2);
@@ -75,7 +80,10 @@ tm_quark_info *leps;
 double *lep_energy,*neu_energy,*lep_mom;
 spinspin **L,*temp_lep;
 
+//#define NOLEPTON
+//#define NOINSERT
 #define NOPHOTON
+#define ONLYTIME
 
 //return appropriate propagator
 int nqprop,nlprop;
@@ -83,6 +91,16 @@ int iqprop(int imass,qprop_t ip,int r)
 {return r+nr*(imass+nqmass*ip);}
 int ilprop(int ilepton,int orie,int phi_eta,int r)
 {return r+nr*(phi_eta+2*(orie+2*ilepton));}
+
+//return appropriately modified indo
+tm_quark_info get_lepton_info(int ilepton,int orie,int r)
+{
+  tm_quark_info le=leps[ilepton];
+  le.r=r;
+  for(int i=1;i<4;i++) le.bc[i]*=sign_orie[orie];
+  
+  return le;
+}
 
 //generate a wall-source for stochastic QCD propagator
 void generate_original_source()
@@ -102,14 +120,17 @@ void generate_photon_stochastic_propagator()
   photon_prop_time+=take_time();
   nphoton_prop_tot++;
 }
-
 //generate a sequential source
 void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
 {
   source_time-=take_time();
 
 #ifdef NOPHOTON
-  int dirs[4]={1,0,0,0};
+ #ifdef ONLYTIME
+   int dirs[4]={1,0,0,0};
+ #else
+   int dirs[4]={1,1,1,1};
+ #endif
 #endif
   switch(inser)
     {
@@ -226,9 +247,7 @@ void init_simulation(char *path)
       
       //write down energy
       lep_energy[il]=tm_quark_energy(leps[il],0);
-      tm_quark_info neu=leps[il];
-      neu.mass=0;
-      neu_energy[il]=naive_quark_energy(neu,0);
+      neu_energy[il]=naive_massless_quark_energy(leps[il].bc,0);
     }
   
   //Zero mode subtraction
@@ -287,6 +306,8 @@ void init_simulation(char *path)
   glb_corr=nissa_malloc("glb_corr",glb_size[0],complex);
   loc_corr=nissa_malloc("loc_corr",glb_size[0],complex);
   glb_weak_corr=nissa_malloc("glb_weak_corr",glb_size[0]*nweak_ins*16,complex);
+  glb_weak_proj_corr=nissa_malloc("glb_weak_proj_corr",glb_size[0]*nweak_ins*4,complex);
+  glb_weak_vitt_corr=nissa_malloc("glb_weak_vitt_corr",glb_size[0]*nweak_ins*16,complex);
   original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
   source=nissa_malloc("source",loc_vol,PROP_TYPE);
   photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
@@ -366,69 +387,41 @@ void generate_quark_propagators()
 }
 
 //compute the phase for lepton on its sink
-void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,int orie,tm_quark_info le)
+void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info le)
 {
-  //fetch the energy and momentum ot the muon
-  double E=lep_energy[ilepton];
-
-  //compute steps
-  momentum_t steps;
-  for(int mu=1;mu<4;mu++)
-    steps[mu]=le.bc[mu]*M_PI/glb_size[mu];
-
   //compute phase exponent
   double arg=0;
   for(int mu=1;mu<4;mu++)
-    arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
-	  
+    {
+      double step=le.bc[mu]*M_PI/glb_size[mu];
+      arg+=step*glb_coord_of_loclx[ivol][mu];
+    }
+  
   //compute pure time factor
-  double ext=exp(glb_coord_of_loclx[ivol][0]*E);
-    
+  double ext=exp(glb_coord_of_loclx[ivol][0]*lep_energy[ilepton]);
+  
   //compute full exponential
-  out[RE]=cos(arg)*ext;
-  out[IM]=sin(arg)*ext;
-}
-
-//compute the phase for lepton on its source
-void get_lepton_source_phase_factor(complex out,int ivol,int ilepton,int orie,tm_quark_info le)
-{
-  //fetch the energy and momentum ot the muon
-  double E=lep_energy[ilepton];
-
-  //compute steps
-  momentum_t steps;
-  for(int mu=1;mu<4;mu++)
-    steps[mu]=le.bc[mu]*M_PI/glb_size[mu];
-
-  //compute phase exponent
-  double arg=0;
-  for(int mu=1;mu<4;mu++)
-    arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
-	  
-  //compute pure time factor
-  double ext=exp(glb_coord_of_loclx[ivol][0]*E);
-    
-  //compute full exponential
-  out[RE]=cos(arg)*ext;
-  out[IM]=sin(arg)*ext;
+  out[RE]=cos(+arg)*ext;
+  out[IM]=sin(+arg)*ext;
 }
 
 //compute the phase for antineutrino - the orientation is that of the muon (as above)
-void get_antineutrino_sink_phase_factor(complex out,int ivol,int ilepton,int orie,tm_quark_info le)
+void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momentum_t bc)
 {
-  //fetch the energy and momentum ot the muon
-  double E=neu_energy[ilepton];
-  double p=lep_mom[ilepton];
+  //compute phase exponent
+  double arg=0;
+  for(int mu=1;mu<4;mu++)
+    {
+      double step=bc[mu]*M_PI/glb_size[mu];
+      arg+=step*glb_coord_of_loclx[ivol][mu];
+    }
   
-  //compute pure time factor and summ the coordinate
-  double ext=exp(-glb_coord_of_loclx[ivol][0]*E);
-  int summ_coord=0;
-  for(int i=1;i<NDIM;i++) summ_coord+=glb_coord_of_loclx[ivol][i];
-  summ_coord*=lepton_mom_sign[orie];
-
-  //compute full exponential - note the inverted sign wrt muon
-  out[RE]=cos(summ_coord*p)*ext;
-  out[IM]=sin(summ_coord*p)*ext;
+  //compute pure time factor
+  double ext=exp(glb_coord_of_loclx[ivol][0]*neu_energy[ilepton]);
+    
+  //compute full exponential (notice the factor -1)
+  out[RE]=cos(-arg)*ext;
+  out[IM]=sin(-arg)*ext;
 }
 
 void trace_test_lep_prop(complex *c,spinspin *prop,tm_quark_info le,coords co)
@@ -757,23 +750,22 @@ void test_lep_prop(FILE *fout,tm_quark_info le)
 }
 
 //set everything to a phase factor
-void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,int orie,tm_quark_info &le)
+void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &le)
 {
   GET_THREAD_ID();
   
   vector_reset(prop);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    if(glb_coord_of_loclx[ivol][0]==0)
-      {
-	complex ph;
-	get_lepton_sink_phase_factor(ph,ivol,ilepton,orie,le);
-	spinspin_put_to_diag(prop[ivol],ph);
-      }
+    {
+      complex ph;
+      get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
+      spinspin_put_to_diag(prop[ivol],ph);
+    }
   set_borders_invalid(prop);
 }
 
 //insert the photon on the source
-void insert_photon_on_the_source(spinspin *prop,int ilepton,int orie,int phi_eta,coords dirs,tm_quark_info &le)
+void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords dirs,tm_quark_info &le)
 { 
   GET_THREAD_ID();
   
@@ -828,7 +820,6 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int orie,int phi_eta
 #ifndef NOPHOTON
 	safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
 	safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
-anna
 #endif
 	
 	//summ and subtract the two
@@ -849,10 +840,10 @@ anna
   set_borders_invalid(prop);
 }
 //insert the photon on the source
-void insert_photon_on_the_source(spinspin *prop,int ilepton,int orie,int phi_eta,tm_quark_info &le)
+void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,tm_quark_info &le)
 {
   coords dirs={1,1,1,1};
-  insert_photon_on_the_source(prop,ilepton,orie,phi_eta,dirs,le);
+  insert_photon_on_the_source(prop,ilepton,phi_eta,dirs,le);
 }
 
 //generate all the lepton propagators, pointing outward
@@ -880,14 +871,9 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
       for(int phi_eta=0;phi_eta<2;phi_eta++)
 	for(int r=0;r<nr;r++)
 	  {
-	    int sign_orie[2]={-1,+1};
-	    
 	    //set the properties of the meson
 	    //time boundaries are anti-periodic, space are as for external line
-	    tm_quark_info le=leps[ilepton];
-	    le.r=r;
-	    le.mass=leps[ilepton].mass;
-	    for(int i=1;i<4;i++) le.bc[i]*=sign_orie[orie];
+	    tm_quark_info le=get_lepton_info(ilepton,orie,r);
 	    
 	    //test_lep_prop(fout,le); 
 	    //crash("");
@@ -897,20 +883,31 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    spinspin *prop=L[iprop];
 
 	    //put it to a phase
-	    set_to_lepton_sink_phase_factor(prop,ilepton,orie,le);
+	    set_to_lepton_sink_phase_factor(prop,ilepton,le);
 
 	    //test
-	    if(1)
+	    if(0)
 	      {
 		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 		coords dir0={1,0,0,0};
-		insert_photon_on_the_source(prop,ilepton,orie,phi_eta,dir0,le);
+		insert_photon_on_the_source(prop,ilepton,phi_eta,dir0,le);
 		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 	      }
 	    else
 	      {
 		//insert the current
-		insert_photon_on_the_source(prop,ilepton,orie,phi_eta,le);
+#ifndef NOINSERT
+ #ifndef NOPHOTON
+ 		insert_photon_on_the_source(prop,ilepton,phi_eta,le);
+ #else
+  #ifdef ONLYTIME
+    int dirs[4]={1,0,0,0};
+  #else
+    int dirs[4]={1,1,1,1};
+  #endif
+ 		insert_photon_on_the_source(prop,ilepton,phi_eta,dirs,le);
+ #endif
+#endif
 		//multiply by the lepton propagator (from the right)
 		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 	      }
@@ -1004,6 +1001,8 @@ void close()
   nissa_free(glb_corr);
   nissa_free(loc_corr);
   nissa_free(glb_weak_corr);
+  nissa_free(glb_weak_proj_corr);
+  nissa_free(glb_weak_vitt_corr);
   nissa_free(temp_source);
   nissa_free(temp_solution);
   nissa_free(lep_corr_iq1);
@@ -1062,24 +1061,49 @@ THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PRO
 }
 THREADABLE_FUNCTION_END
 
+//compute the polarisation vector
+void get_polvect(spin *u,spin *vbar,tm_quark_info &le)
+{
+  for(int s=0;s<2;s++)
+    {
+      twisted_wavefunction_of_imom(u[s],le,0,0,s);
+      spin v;
+      naive_massless_wavefunction_of_imom(v,le.bc,0,1,s);
+      spin vdag;
+      spin_conj(vdag,v);
+      unsafe_spin_prod_dirac(vbar[s],v,base_gamma+map_mu[0]);
+    }
+}
+
 //compute the full leptonic correlation function
-THREADABLE_FUNCTION_4ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop, int,ilepton, int,orie)
+THREADABLE_FUNCTION_5ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl)
 {
   GET_THREAD_ID();
   
   vector_reset(loc_corr);
-
+  
+  //get the lepton info and prop
+  tm_quark_info le=get_lepton_info(ilepton,orie,rl);
   spinspin *lept=L[iprop];
   
+  //gets the polarisation vector
+  spin u[2],vbar[2];
+  get_polvect(u,vbar,le);
+
+  //gets the projectors
+  spinspin promu,pronu;
+  twisted_on_shell_operator_of_imom(promu,le,0,true,+1);
+  naive_massless_on_shell_operator_of_imom(pronu,le.bc,0,-1);
+
   for(int ins=0;ins<nweak_ins;ins++)
     {
       //define a local storage
       spinspin thread_corr[glb_size[0]];
       memset(thread_corr,0,sizeof(spinspin)*glb_size[0]);
-      
+
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	{
-	  //multiply lepton side
+	  //multiply lepton side on the right (source) side
 	  spinspin l;
 	  unsafe_spinspin_prod_dirac(l,lept[ivol],base_gamma+list_weak_insl[ins]);
 	  
@@ -1087,14 +1111,18 @@ THREADABLE_FUNCTION_4ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	  complex h;
 	  trace_spinspin_with_dirac(h,hadr[ivol],base_gamma+list_weak_insq[ins]);
 
-	  //get the neutrino phase (multiply hadron side)
+	  //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
 	  complex ph;
-	  get_antineutrino_sink_phase_factor(ph,ivol,ilepton,orie,leps[ilepton]);
+	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	  safe_complex_prod(h,h,ph);
 	  
 	  //put in the local stack
 	  int t=glb_coord_of_loclx[ivol][0];
+#ifndef NOLEPTON
 	  spinspin_summ_the_complex_prod(thread_corr[t],l,h);
+#else
+	  complex_summassign(thread_corr[t][0][0],h);
+#endif
 	}
       THREAD_BARRIER();
       
@@ -1107,6 +1135,37 @@ THREADABLE_FUNCTION_4ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	    glb_reduce_complex(glb_weak_corr[t+glb_size[0]*(ig+16*ins)],lh);
 	  }
 	if(IS_MASTER_THREAD) nlept_contr_tot+=16;
+
+	//do it using the spinor
+	for(int smu=0;smu<2;smu++)
+	  for(int snu=0;snu<2;snu++)
+	    for(int t=0;t<glb_size[0];t++)
+	      {
+#ifndef NOLEPTON
+		complex lh={0,0};
+		//u multiplies the sink, vbar the source
+		spin Svbar;
+		unsafe_spinspin_prod_spin(Svbar,thread_corr[t],vbar[snu]);
+		for(int id_si=0;id_si<2;id_si++) complex_summ_the_prod(lh,u[smu][id_si],Svbar[id_si]);
+		glb_reduce_complex(glb_weak_proj_corr[t+glb_size[0]*(smu+2*(snu+2*ins))],lh);
+#else
+		glb_reduce_complex(glb_weak_proj_corr[t+glb_size[0]*(smu+2*(snu+2*ins))],thread_corr[t][0][0]);
+#endif
+	      }
+	if(IS_MASTER_THREAD) nlept_contr_tot+=4;
+	
+	//do it again with vittorio
+	for(int ig=0;ig<16;ig++)
+	  for(int t=0;t<glb_size[0];t++)
+	    {
+	      spinspin td;
+	      unsafe_spinspin_prod_spinspin(td,thread_corr[t],pronu);
+	      spinspin dtd;
+	      unsafe_spinspin_prod_spinspin(dtd,promu,td);
+	      complex lh;
+	      trace_spinspin_with_dirac(lh,dtd,base_gamma+ig);
+	      glb_reduce_complex(glb_weak_vitt_corr[t+glb_size[0]*(ig+16*ins)],lh);
+	  }
     }
 }
 THREADABLE_FUNCTION_END
@@ -1127,13 +1186,49 @@ void print_weak_correlations(FILE *fout)
       }
 }
 
+//same but projected to spin
+void print_weak_proj_correlations(FILE *fout)
+{
+  for(int ins=0;ins<nweak_ins;ins++)
+    for(int smu=0;smu<2;smu++)
+      for(int snu=0;snu<2;snu++)
+	{
+	  master_fprintf(fout," # qins=%d lins=%d smu=%d snu=%d\n\n",list_weak_insq[ins],list_weak_insl[ins],smu,snu);
+	  for(int t=source_coord[0];t<source_coord[0]+glb_size[0];t++)
+	    {
+	      int i=(t%glb_size[0])+glb_size[0]*(smu+2*(snu+2*ins));
+	      master_fprintf(fout,"%+016.16lg %+016.16lg\n",glb_weak_proj_corr[i][RE],glb_weak_proj_corr[i][IM]);
+	    }
+	  master_fprintf(fout,"\n");
+	}
+}
+
+//same but projected vittorio way
+void print_weak_vitt_correlations(FILE *fout)
+{
+  for(int ins=0;ins<nweak_ins;ins++)
+    for(int ig=0;ig<16;ig++)
+      {
+	master_fprintf(fout," # qins=%d lins=%d proj=%d\n\n",list_weak_insq[ins],list_weak_insl[ins],ig);
+	for(int t=source_coord[0];t<source_coord[0]+glb_size[0];t++)
+	  {
+	    int i=(t%glb_size[0])+glb_size[0]*(ig+16*ins);
+	    master_fprintf(fout,"%+016.16lg %+016.16lg\n",glb_weak_vitt_corr[i][RE],glb_weak_vitt_corr[i][IM]);
+	  }
+	master_fprintf(fout,"\n");
+      }
+}
+
 //compute the total hadroleptonic correlation functions
 void compute_leptonic_correlation()
 {
   master_printf("Computing leptonic correlation functions\n");
   lept_contr_time-=take_time();
   
-  FILE *fout=open_file(combine("%s/hl_corr",outfolder).c_str(),"w");
+  FILE *fout[3]={
+    open_file(combine("%s/hl_corr",outfolder).c_str(),"w"),
+    open_file(combine("%s/hl_proj_corr",outfolder).c_str(),"w"),
+    open_file(combine("%s/hl_vitt_corr",outfolder).c_str(),"w")};
   spinspin *hadr=nissa_malloc("hadr",loc_vol,spinspin);
 
   for(int ilepton=0;ilepton<nleptons;ilepton++)
@@ -1147,9 +1242,13 @@ void compute_leptonic_correlation()
 	      int iq2=lep_corr_iq2[ilepton];
 	      if(irev==1) std::swap(iq1,iq2);
 	      //takes the propagators
+#ifndef NOINSERT
 	      int ip1=iqprop(iq1,(qins==0)?((phi_eta==0)?PROP_A:PROP_B):PROP_0,r2); //q1 will be reverted
 	      int ip2=iqprop(iq2,(qins==1)?((phi_eta==0)?PROP_A:PROP_B):PROP_0,r2);
-	      
+#else
+	      int ip1=iqprop(iq1,PROP_0,r2); //q1 will be reverted
+	      int ip2=iqprop(iq2,PROP_0,r2);
+#endif
 	      //compute the hadronic part
 	      hadronic_part_leptonic_correlation(hadr,Q[ip1],Q[ip2]);
 	      
@@ -1158,16 +1257,19 @@ void compute_leptonic_correlation()
 		  {
 		    //contract with lepton
 		    int iprop=ilprop(ilepton,orie,!phi_eta,rl);
-		    compute_leptonic_correlation(hadr,iprop,ilepton,orie);
+		    compute_leptonic_correlation(hadr,iprop,ilepton,orie,rl);
 
 		    //write down
-		    master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d\n\n",
-			    qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie]);
-		    print_weak_correlations(fout);
+		    for(int i=0;i<3;i++)
+		      master_fprintf(fout[i]," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
+				     qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie],rl);
+		    print_weak_correlations(fout[0]);
+		    print_weak_proj_correlations(fout[1]);
+		    print_weak_vitt_correlations(fout[2]);
 		  }
 	    }
   
-  close_file(fout);
+  for(int i=0;i<3;i++) close_file(fout[i]);
   lept_contr_time+=take_time();
   nissa_free(hadr);
 }
