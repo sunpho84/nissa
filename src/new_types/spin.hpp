@@ -19,11 +19,13 @@ namespace nissa
     printf("\n");
   }
   
-  inline void spin_put_to_zero(spin a)
-  {memset(a,0,sizeof(spin));}
+  inline void spin_put_to_zero(spin s)
+  {for(int i=0;i<4;i++) complex_put_to_zero(s[i]);}
   
-  inline void spin_copy(spin b,spin a)
-  {memcpy(b,a,sizeof(spin));}
+  inline void spin_copy(spin out,spin in)
+  {for(int i=0;i<4;i++) complex_copy(out[i],in[i]);}
+  inline void spin_conj(spin out,spin in)
+  {for(int i=0;i<4;i++) complex_conj(out[i],in[i]);}
   
   inline void spin_summ(spin a,spin b,spin c)
   {for(int i=0;i<4;i++) complex_summ(a[i],b[i],c[i]);}
@@ -64,9 +66,9 @@ namespace nissa
     unsafe_spinspin_hermitian(temp,a);
     spinspin_copy(b,temp);
   }
-  
+
   inline void spinspin_put_to_zero(spinspin a)
-  {memset(a,0,sizeof(spinspin));}
+  {for(int i=0;i<4;i++) spin_put_to_zero(a[i]);}
   
   inline void spinspin_put_to_diag(spinspin a,complex b)
   {
@@ -78,6 +80,13 @@ namespace nissa
   {complex c={b,0};spinspin_put_to_diag(a,c);}
   inline void spinspin_put_to_idiag(spinspin a,double b)
   {complex c={0,b};spinspin_put_to_diag(a,c);}
+
+  inline void spin_direct_prod(spinspin out,spin a,spin b)
+  {
+    for(int id=0;id<4;id++)
+      for(int jd=0;jd<4;jd++)
+	unsafe_complex_prod(out[id][jd],a[id],b[jd]);
+  }
   
   inline void spinspin_put_to_id(spinspin a)
   {
@@ -357,11 +366,13 @@ namespace nissa
 	}
   }
   
-  //dirac*spin
+  //dirac*spinr
   inline void unsafe_dirac_prod_spin(spin out,dirac_matr *m,spin in)
-  {for(int id1=0;id1<4;id1++) safe_complex_prod(out[id1],m->entr[id1],in[m->pos[id1]]);}
-  inline void safe_dirac_prod_spin(spin out,dirac_matr *m,spin in)
-  {spin tmp;unsafe_dirac_prod_spin(tmp,m,in);spin_copy(out,tmp);}
+  {for(int id1=0;id1<4;id1++) unsafe_complex_prod(out[id1],m->entr[id1],in[m->pos[id1]]);}
+  inline void safe_dirac_prod_spin(spin out,dirac_matr *m,spin in){spin tmp;unsafe_dirac_prod_spin(tmp,m,in);spin_copy(out,tmp);}
+  inline void unsafe_spin_prod_dirac(spin out,spin in,dirac_matr *m)
+  {spin_put_to_zero(out);for(int id1=0;id1<4;id1++) complex_summ_the_prod(out[m->pos[id1]],in[id1],m->entr[id1]);}
+  inline void safe_spin_prod_spin(spin out,spin in,dirac_matr *m){spin tmp;unsafe_spin_prod_dirac(tmp,in,m);spin_copy(out,tmp);}
   
   //Rotate left and right by (1+-ig5)/sqrt(2)
   //We distinguish for types of rotations, ir=rsink*2+rsource

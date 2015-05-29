@@ -44,7 +44,15 @@ namespace nissa
     
     return 2*asinh(sqrt(four_sinh2_Eh/4));
   }
-  
+
+  //compute the energy of a twisted mass quark
+  double naive_quark_energy(tm_quark_info qu,int imom)
+  {
+    double sinh2E=sqr(qu.mass);
+    for(int mu=1;mu<NDIM;mu++) sinh2E+=sqr(sin(M_PI*(2*glb_coord_of_loclx[imom][mu]+qu.bc[mu])/glb_size[mu]));
+    return asinh(sqrt(sinh2E));
+  }
+
   ////////////////////////////////////////////// twisted propagator in momentum space ////////////////////////////////////////////
 
   //return sin(p), \sum sin(p)^2, \sum sin(p/2)^2
@@ -103,12 +111,15 @@ namespace nissa
       for(int ig=0;ig<4;ig++)
 	complex_prod_double(prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],qu.zmp);
   }
-  
-  //projector to fixed momentum
-  void twisted_projector_of_imom(spinspin proj,tm_quark_info qu,int imom,int par_apar)
+
+  //replace p0 with on shell in the tilded (conjugated) or non-tilded dirac operator
+  //the sign of the energy is according to passed argument
+  double twisted_on_shell_operator_of_imom(spinspin proj,tm_quark_info qu,int imom,bool tilded,int esign)
   {
-    int sign[2]={+1,-1};
-    double e=/*sign[par_apar]*/-tm_quark_energy(qu,imom);
+    if(esign!=-1&&esign!=+1) crash("illegal energy sign\"%d\"",esign);
+    double abse=tm_quark_energy(qu,imom);
+    double e=esign*abse;
+    
     momentum_t sin_mom;
     double sin2_mom=-sqr(sinh(e));
     double sin2_momh=-sqr(sinh(e/2));
@@ -120,11 +131,38 @@ namespace nissa
 	sin2_momh+=sqr(sin(p/2));
       }
     double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
-
+    
     spinspin_put_to_diag(proj,qu.mass);
-    spinspin_dirac_summ_the_prod_double(proj,base_gamma+map_mu[0],sinh(e));
-    for(int mu=1;mu<4;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+map_mu[mu],-sin_mom[mu]);
-    spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+5,M*tau3[qu.r]);
+    int se[2]={-1,+1},sp[2]={+1,-1},s5[2]={-1,+1}; //we put here implicitly the difference of g5 with Nazario
+    spinspin_dirac_summ_the_prod_double(proj,base_gamma+map_mu[0],se[tilded]*sinh(e));
+    for(int mu=1;mu<4;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+map_mu[mu],sp[tilded]*sin_mom[mu]);
+    spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+5,s5[tilded]*M*tau3[qu.r]);
+    
+    return abse;
+  }
+
+  //return the wave function of "u_r(p)" (particle) or "v_r(-p)" (antiparticle)
+  void twisted_wavefunction_of_imom(spin wf,tm_quark_info qu,int imom,int par_apar,int s)
+  {
+    //eigenvectors of (1-+g0)/2
+    //particles are associated with \tilde{phi}_r, eigenvectors of (1+g0)
+    //aparticle are associated with         phi_r, eigenvectors of (1-g0)
+    //so take ompg0_eig[!par_apar][s]
+    double W=1/sqrt(2);
+    spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
+			   {{ 0, 0},{+W, 0},{ 0, 0},{+W, 0}}},
+			  {{{+W, 0},{ 0, 0},{-W, 0},{ 0, 0}},
+			   {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
+
+    //particle:  u_r(+p)=\tilde{D}(iE,p) \phi^tilde_r/sqrt(m+sinh(e))
+    //aparticle: v_r(-p)=G0 D(iE,p) \phi_r/sqrt(m+sinh(e))
+    bool tilde[2]={true,false};
+    spinspin osp;
+    double e=twisted_on_shell_operator_of_imom(osp,qu,imom,tilde[par_apar],1);
+    unsafe_spinspin_prod_spin(wf,osp,ompg0_eig[!par_apar][s]);
+    spin_prodassign_double(wf,1/sqrt(qu.mass+sinh(e)));
+    int ig[2]={0,map_mu[0]};
+    safe_dirac_prod_spin(wf,base_gamma+ig[par_apar],wf);
   }
   
   //whole quark propagator in momentum space

@@ -154,6 +154,15 @@ namespace nissa
   {for(int ic=0;ic<3;ic++) unsafe_dirac_prod_colorspinspin(out[ic],m,in[ic]);}
   inline void safe_dirac_prod_su3spinspin(su3spinspin out,dirac_matr *m,su3spinspin in)
   {su3spinspin temp;unsafe_dirac_prod_su3spinspin(temp,m,in);su3spinspin_copy(out,temp);}
+
+  //out+=m*in
+  inline void spinspin_dirac_summ_the_prod_spinspin(spinspin out,dirac_matr *in,spinspin c)
+  {
+    spinspin temp;
+    unsafe_dirac_prod_spinspin(temp,in,c);
+    spinspin_summassign(out,temp);
+  }
+
   
   //out=m*in^t
   inline void unsafe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)
