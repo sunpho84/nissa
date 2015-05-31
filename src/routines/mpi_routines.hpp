@@ -1,5 +1,5 @@
-#ifndef _MPI_NISSA_H
-#define _MPI_NISSA_H
+#ifndef _MPI_NISSA_HPP
+#define _MPI_NISSA_HPP
 
 #ifdef USE_MPI
  #include <mpi.h>
