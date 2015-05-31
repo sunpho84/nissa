@@ -84,7 +84,7 @@ spinspin **L,*temp_lep;
 //#define NOQUARK
 //#define NOLEPTON
 //#define NOINSERT
-//#define NOPHOTON
+#define NOPHOTON
 //#define ONLYTIME
 
 //return appropriate propagator
@@ -247,7 +247,7 @@ void init_simulation(char *path)
 	  tm_quark_info q;
 	  q.kappa=0.125;
 	  q.bc[0]=1;
-	  for(int i=0;i<3;i++) q.bc[i]=0;
+	  for(int i=1;i<4;i++) q.bc[i]=0;
 	  q.mass=qmass[((iq==0)?lep_corr_iq1:lep_corr_iq2)[il]];
 	  free_quark_ener[iq]=tm_quark_energy(q,0);
 	  master_printf(" supposed free quark energy[%d]: %lg\n",iq,free_quark_ener[iq]);
@@ -450,6 +450,7 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
   //compute space and time factor
   double arg=get_space_arg(ivol,bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
+  if(t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*neu_energy[ilepton]);
   
   //compute full exponential (notice the factor -1)
@@ -464,7 +465,7 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
   
   vector_reset(prop);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    if(glb_coord_of_loclx[ivol][0]==((glb_size[0]/2+source_coord[0])%glb_size[0]))
+    if(glb_coord_of_loclx[ivol][0]==((glb_size[0]/2+0+source_coord[0])%glb_size[0]))
       {
 	complex ph;
 	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
@@ -1071,11 +1072,14 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
   spin u[2],vbar[2];
   get_polvect(u,vbar,le);
 
-  //gets the projectors
-  spinspin promu,pronu;
-  twisted_on_shell_operator_of_imom(promu,le,0,true,+1);
-  naive_massless_on_shell_operator_of_imom(pronu,le.bc,0,-1);
-
+  //gets the projectors for Vittorio
+  spinspin promu[2],pronu[2];
+  twisted_on_shell_operator_of_imom(promu[0],le,0,true,+1);
+  twisted_on_shell_operator_of_imom(promu[1],le,0,true,-1);
+  naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
+  naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
+  //spinspin_prodassign_double(pronu[1],-1); //needed or not? probably not
+  
   for(int ins=0;ins<nweak_ins;ins++)
     {
       //define a local storage
@@ -1118,7 +1122,7 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	}
       THREAD_BARRIER();
       
-      //change sign when crossing 0
+      //change sign when crossing 0 for averaging corr function properly
       for(int t=0;t<glb_size[0];t++)
 	{
 	  int sign=1-2*(t+source_coord[0]>=glb_size[0]);
@@ -1161,10 +1165,11 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	for(int ig=0;ig<16;ig++)
 	  for(int t=0;t<glb_size[0];t++)
 	    {
+	      int ip=(t>=glb_size[0]/2);
 	      spinspin td;
-	      unsafe_spinspin_prod_spinspin(td,thread_corr[t],pronu);
+	      unsafe_spinspin_prod_spinspin(td,thread_corr[t],pronu[ip]);
 	      spinspin dtd;
-	      unsafe_spinspin_prod_spinspin(dtd,promu,td);
+	      unsafe_spinspin_prod_spinspin(dtd,promu[ip],td);
 	      complex lh;
 	      trace_spinspin_with_dirac(lh,dtd,base_gamma+ig);
 	      //summ to the list
