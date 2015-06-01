@@ -227,11 +227,14 @@ void init_simulation(char *path)
   expect_str("Q1Q2LepmassMesmass");
   for(int il=0;il<nleptons;il++)
     {
+      master_printf("ciao %d",il);
+      fflush(stdout);
+      
       //read quarks identfiying the mesons, and lepton mass
       read_int(lep_corr_iq1+il);
       read_int(lep_corr_iq2+il);
       read_double(&leps[il].mass);
-
+      
       //maximal twist and antiperiodic
       leps[il].bc[0]=1;
       leps[il].kappa=0.125;
@@ -261,14 +264,16 @@ void init_simulation(char *path)
       do
       	{
       	  //compute the error
-      	  err=tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass;
+	  double lep_energy=tm_quark_energy(leps[il],0);
+	  double neu_energy=naive_massless_quark_energy(leps[il].bc,0);
+      	  err=lep_energy+neu_energy-mes_mass;
       	  //compute the derivative
       	  double eps=1e-8;
       	  for(int i=1;i<4;i++) leps[il].bc[i]+=eps;
       	  double der=(tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass-err)/eps;
       	  for(int i=1;i<4;i++) leps[il].bc[i]-=eps+err/der;
 	  
-      	  master_printf("error: %lg, der: %lg\n",err,der);
+      	  printf("rank %d lep_e: %lg, neu_e: %lg, mes_mass: %lg, error: %lg, der: %lg\n",rank,lep_energy,neu_energy,mes_mass,err,der);
       	}
       while(fabs(err)>1e-14);
       
@@ -282,6 +287,7 @@ void init_simulation(char *path)
   //Zero mode subtraction
   char zero_mode_sub_str[100];
   read_str_str("ZeroModeSubtraction",zero_mode_sub_str,100);
+  
   if(strncasecmp(zero_mode_sub_str,"PECIONA",100)==0) photon.zms=PECIONA;
   else
     if(strncasecmp(zero_mode_sub_str,"UNNO_ALEMANNA",100)==0) photon.zms=UNNO_ALEMANNA;
