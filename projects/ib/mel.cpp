@@ -1332,7 +1332,8 @@ void print_hadronic_correlations()
     {
       complex_prodassign_double(hadr_corr[i],n);
       complex_prodassign_double(hadr_err[i],n);
-      complex_subtassign(hadr_err[i],hadr_corr[i]);
+      complex temp={sqr(hadr_corr[i][RE]),sqr(hadr_corr[i][IM])};
+      complex_subtassign(hadr_err[i],temp);
       for(int ri=0;ri<2;ri++) hadr_err[i][ri]=sqrt(fabs(hadr_err[i][ri])*n2);
     }
   
