@@ -516,7 +516,7 @@ namespace nissa
       }
     
     //reduce
-    glb_reduce_complex_vect(glb_contr,loc_contr,glb_size[dir]*nflavs*(nflavs+1)/2);
+    glb_nodes_reduce_complex_vect(glb_contr,loc_contr,glb_size[dir]*nflavs*(nflavs+1)/2);
     
     //print
     double norm=nhits*glb_vol/(/*8**/glb_size[dir]);

@@ -83,9 +83,9 @@ spinspin **L,*temp_lep;
 
 //#define NOQUARK
 //#define NOLEPTON
-//#define NOINSERT
+#define NOINSERT
 #define NOPHOTON
-//#define ONLYTIME
+#define ONLYTIME
 
 //return appropriate propagator
 int nqprop,nlprop;
@@ -227,9 +227,6 @@ void init_simulation(char *path)
   expect_str("Q1Q2LepmassMesmass");
   for(int il=0;il<nleptons;il++)
     {
-      master_printf("ciao %d",il);
-      fflush(stdout);
-      
       //read quarks identfiying the mesons, and lepton mass
       read_int(lep_corr_iq1+il);
       read_int(lep_corr_iq2+il);
@@ -273,7 +270,7 @@ void init_simulation(char *path)
       	  double der=(tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass-err)/eps;
       	  for(int i=1;i<4;i++) leps[il].bc[i]-=eps+err/der;
 	  
-      	  printf("rank %d lep_e: %lg, neu_e: %lg, mes_mass: %lg, error: %lg, der: %lg\n",rank,lep_energy,neu_energy,mes_mass,err,der);
+      	  master_printf("rank %d lep_e: %+010.10lg, neu_e: %+010.10lg, mes_mass: %lg, error: %lg, der: %lg\n",rank,lep_energy,neu_energy,mes_mass,err,der);
       	}
       while(fabs(err)>1e-14);
       
@@ -1089,11 +1086,13 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
   for(int ins=0;ins<nweak_ins;ins++)
     {
       //define a local storage
-      spinspin thread_corr[glb_size[0]];
-      memset(thread_corr,0,sizeof(spinspin)*glb_size[0]);
-
+      spinspin hl_loc_corr[loc_size[0]];
+      for(int i=0;i<loc_size[0];i++) spinspin_put_to_zero(hl_loc_corr[i]);
+      
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	{
+	  int t=loc_coord_of_loclx[ivol][0];
+	  
 	  //multiply lepton side on the right (source) side
 	  spinspin l;
 	  unsafe_spinspin_prod_dirac(l,lept[ivol],base_gamma+list_weak_insl[ins]);
@@ -1101,87 +1100,79 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	  //trace hadron side
 	  complex h;
 	  trace_spinspin_with_dirac(h,hadr[ivol],base_gamma+list_weak_insq[ins]);
+	  
+	  //printf("rank %d t=%d gt=%d %lg %lg %lg\n",rank,t,glb_coord_of_loclx[ivol][0],l[0][0][0],lept[ivol][0][0][0],h[0]);
 
 	  //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
 	  complex ph;
 	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
-	  safe_complex_prod(h,h,ph);
+	  complex_prodassign(h,ph);
 	  
-	  //put in the local stack
-	  int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
-	  // bool s=true;
-	  // //test
-	  // for(int mu=1;mu<4;mu++)
-	  //   s&=(glb_coord_of_loclx[ivol][mu]==0);
-	  // //if(s)
-	  {
 #ifndef NOLEPTON
-	      spinspin_summ_the_complex_prod(thread_corr[t],l,h);
+	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
 #else
  #ifdef NOQUARK
-	      complex_summassign(thread_corr[t][0][0],l);
+	  complex_summassign(hl_loc_corr[t][0][0],l);
  #else
-	      complex_summassign(thread_corr[t][0][0],h);
+	  complex_summassign(hl_loc_corr[t][0][0],h);
  #endif
 #endif
-	    }
 	}
-      THREAD_BARRIER();
+      //crash("anna");
+      glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
       //change sign when crossing 0 for averaging corr function properly
-      for(int t=0;t<glb_size[0];t++)
+      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
 	{
-	  int sign=1-2*(t+source_coord[0]>=glb_size[0]);
-	  spinspin_prodassign_double(thread_corr[t],sign);
+	  int glb_t=loc_t+glb_coord_of_loclx[0][0];
+	  int sign=1-2*(glb_t+source_coord[0]>=glb_size[0]);
+	  spinspin_prodassign_double(hl_loc_corr[loc_t],sign);
 	}
       
       //reduce
       for(int ig=0;ig<16;ig++)
-	for(int t=0;t<glb_size[0];t++)
+	for(int loc_t=0;loc_t<loc_size[0];loc_t++)
 	  {
-	    complex lh;
-	    trace_spinspin_with_dirac(lh,thread_corr[t],base_gamma+ig);
-	    complex temp;
-	    glb_reduce_complex(temp,lh);
-	    if(IS_MASTER_THREAD) complex_summassign(glb_weak_corr[t+glb_size[0]*(ig+16*(ins+nweak_ins*ind))],temp);
+	    int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
+	    complex hl;
+	    trace_spinspin_with_dirac(hl,hl_loc_corr[loc_t],base_gamma+ig);
+	    if(IS_MASTER_THREAD) complex_summassign(glb_weak_corr[glb_t+glb_size[0]*(ig+16*(ins+nweak_ins*ind))],hl);
 	  }
 	if(IS_MASTER_THREAD) nlept_contr_tot+=16;
 
 	//do it using the spinor
 	for(int smu=0;smu<2;smu++)
 	  for(int snu=0;snu<2;snu++)
-	    for(int t=0;t<glb_size[0];t++)
+	    for(int loc_t=0;loc_t<loc_size[0];loc_t++)
 	      {
+		int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
 #ifndef NOLEPTON
-		complex lh={0,0};
+		complex hl={0,0};
 		//u multiplies the sink, vbar the source
 		spin Svbar;
-		unsafe_spinspin_prod_spin(Svbar,thread_corr[t],vbar[snu]);
-		for(int id_si=0;id_si<2;id_si++) complex_summ_the_prod(lh,u[smu][id_si],Svbar[id_si]);
-		complex temp;
-		glb_reduce_complex(temp,lh);
+		unsafe_spinspin_prod_spin(Svbar,hl_loc_corr[loc_t],vbar[snu]);
+		for(int id_si=0;id_si<2;id_si++) complex_summ_the_prod(hl,u[smu][id_si],Svbar[id_si]);
 #else
-		glb_reduce_complex(temp,thread_corr[t][0][0]);
+		complex_copy(hl,hl_corr[loc_t][0][0]);
 #endif
-		if(IS_MASTER_THREAD) complex_summassign(glb_weak_proj_corr[t+glb_size[0]*(smu+2*(snu+2*(ins+nweak_ins*ind)))],temp);
+		if(IS_MASTER_THREAD) complex_summassign(glb_weak_proj_corr[glb_t+glb_size[0]*(smu+2*(snu+2*(ins+nweak_ins*ind)))],hl);
 	      }
 	if(IS_MASTER_THREAD) nlept_contr_tot+=4;
 	
 	//do it again with vittorio
 	for(int ig=0;ig<16;ig++)
-	  for(int t=0;t<glb_size[0];t++)
+	  for(int loc_t=0;loc_t<loc_size[0];loc_t++)
 	    {
-	      int ip=(t>=glb_size[0]/2);
+	      int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
+	      int ip=(glb_t>=glb_size[0]/2);
 	      spinspin td;
-	      unsafe_spinspin_prod_spinspin(td,thread_corr[t],pronu[ip]);
+	      unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ip]);
 	      spinspin dtd;
 	      unsafe_spinspin_prod_spinspin(dtd,promu[ip],td);
-	      complex lh;
-	      trace_spinspin_with_dirac(lh,dtd,base_gamma+ig);
-	      //summ to the list
-	      complex temp;
-	      glb_reduce_complex(temp,lh);
-	      if(IS_MASTER_THREAD) complex_summassign(glb_weak_vitt_corr[t+glb_size[0]*(ig+16*(ins+nweak_ins*ind))],temp);
+	      complex hl;
+	      trace_spinspin_with_dirac(hl,dtd,base_gamma+ig);
+	      
+	      if(IS_MASTER_THREAD) complex_summassign(glb_weak_vitt_corr[glb_t+glb_size[0]*(ig+16*(ins+nweak_ins*ind))],hl);
 	  }
     }
 }
@@ -1190,6 +1181,11 @@ THREADABLE_FUNCTION_END
 //print a whole weak correlation function
 void print_weak_correlations(FILE *fout,int ind)
 {
+  //final reduction
+  glb_nodes_reduce_complex_vect(glb_weak_corr,glb_size[0]*nweak_ins*16*nind);
+  glb_nodes_reduce_complex_vect(glb_weak_proj_corr,glb_size[0]*nweak_ins*4*nind);
+  glb_nodes_reduce_complex_vect(glb_weak_vitt_corr,glb_size[0]*nweak_ins*16*nind);
+
   for(int ins=0;ins<nweak_ins;ins++)
     for(int ig=0;ig<16;ig++)
       {
