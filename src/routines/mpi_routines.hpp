@@ -32,8 +32,14 @@ namespace nissa
   uint64_t diff_with_next_eight_multiple(uint64_t pos);
 #endif
   void glb_reduce_complex(complex out_glb,complex in_loc);
-  void glb_reduce_complex_vect(complex *out_glb,complex *in_loc,int nel);
-  void glb_reduce_double_vect(double *out_glb,double *in_loc,int nel);
+
+  void glb_nodes_reduce_double_vect(double *out_glb,double *in_loc,int nel);
+  inline void glb_nodes_reduce_double_vect(double *vect,int nel)
+  {glb_nodes_reduce_double_vect(vect,(double*)MPI_IN_PLACE,nel);}
+  inline void glb_nodes_reduce_complex_vect(complex *out_glb,complex *in_loc,int nel)
+  {glb_nodes_reduce_double_vect(out_glb[0],in_loc[0],2*nel);}
+  inline void glb_nodes_reduce_complex_vect(complex *vect,int nel)
+  {glb_nodes_reduce_double_vect(vect[0],2*nel);}
   void glb_reduce_float_128(float_128 out_glb,float_128 in_loc);
 }
 #endif

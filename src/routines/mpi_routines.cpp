@@ -401,10 +401,6 @@ namespace nissa
   {for(int ri=0;ri<2;ri++) glb_reduce_float_128(out_glb[ri],in_loc[ri]);}
   
   //reduce a double vector
-  void glb_reduce_double_vect(double *out_glb,double *in_loc,int nel)
+  void glb_nodes_reduce_double_vect(double *out_glb,double *in_loc,int nel)
   {MPI_Allreduce(in_loc,out_glb,nel,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);}
-  
-  //reduce a complex vector
-  void glb_reduce_complex_vect(complex *out_glb,complex *in_loc,int nel)
-  {MPI_Allreduce((double*)in_loc,(double*)out_glb,2*nel,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);}
 }

@@ -64,11 +64,9 @@ namespace nissa
   void get_component_of_twisted_propagator_of_imom(momentum_t sin_mom,double &sin2_mom,double &sin2_momh,tm_quark_info qu,int imom)
   {
     sin2_mom=sin2_momh=0;
-    coords c;
-    glb_coord_of_glblx(c,imom);
     for(int mu=0;mu<NDIM;mu++)
       {
-	double p=M_PI*(2*c[mu]+qu.bc[mu])/glb_size[mu];
+	double p=M_PI*(2*glb_coord_of_loclx[imom][mu]+qu.bc[mu])/glb_size[mu];
 	sin_mom[mu]=sin(p);
 	sin2_mom+=sqr(sin_mom[mu]);
 	sin2_momh+=sqr(sin(p/2));

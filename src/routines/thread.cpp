@@ -297,4 +297,27 @@ namespace nissa
     //exit the thread pool
     thread_pool_stop();
   }
+
+  //reduce a double vector among threads
+  void glb_threads_reduce_double_vect(double *vect,int nel)
+  {
+    GET_THREAD_ID();
+    
+    //fill all the threads pointers
+    double **ptr=nissa_malloc("ptr",NACTIVE_THREADS,double*);
+    ptr[thread_id]=vect;
+    THREAD_BARRIER();
+
+    //reduce among threads on thread 0
+    for(unsigned int jthread=1;jthread<NACTIVE_THREADS;jthread++)
+      {
+	if(ptr[0]==ptr[jthread]) crash("overlapping vectors for threads %d and 0",jthread);
+	NISSA_PARALLEL_LOOP(iel,0,nel) ptr[0][iel]+=ptr[jthread][iel];
+      }
+    
+    //copy to the output
+    NISSA_PARALLEL_LOOP(iel,0,nel) vect[iel]=ptr[0][iel];
+    
+    nissa_free(ptr);
+  } 
 }
