@@ -11,7 +11,7 @@ using namespace nissa;
 /////////////////////////////////////// data //////////////////////////////
 
 int ninv_tot=0,nhadr_contr_tot=0,nlept_contr_tot=0,nsource_tot=0,nphoton_prop_tot=0;
-double inv_time=0,hadr_contr_time=0,lept_contr_time=0;
+double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
 double tot_prog_time=0,source_time=0,photon_prop_time=0,lepton_prop_time=0;
 
 int wall_time;
@@ -38,18 +38,21 @@ gauge_info photon;
 double tadpole[4];
 spin1field *photon_phi,*photon_eta;
 
-complex *glb_corr,*loc_corr;
+int hadr_corr_length;
+complex *hadr_corr,*hadr_err,*glb_corr,*loc_corr;
 
 //sign of the muon momentum
 const int sign_orie[2]={-1,+1};
 
 //list the 8 matrices to insert for the weak current
 const int nweak_ins=16;
+const int nvitt_g_proj=2,vitt_g_projs[nvitt_g_proj]={4,9};
 int list_weak_insq[nweak_ins]={1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
 int list_weak_insl[nweak_ins]={1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
 int nind;
-complex *glb_weak_corr;
+//complex *glb_weak_corr;
 complex *glb_weak_vitt_corr;
+complex *glb_weak_vitt_err;
 complex *glb_weak_proj_corr;
 
 //compute the eigenvalues of (1-+g0)/2
@@ -72,6 +75,11 @@ const insertion_t insertion_map[nqprop_kind]={ORIGINAL, SCALAR, PSEUDO, STOCH_PH
 const qprop_t source_map[nqprop_kind]=       {PROP_0,   PROP_0, PROP_0, PROP_0,    PROP_0,    PROP_A,    PROP_0};
 const char prop_abbr[]=                       "0"       "S"     "P"     "A"        "B"        "X"        "T";
 
+//hadron contractions
+const int ncombo_hadr_corr=9;
+const qprop_t prop1_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_0,PROP_0,PROP_0, PROP_0,PROP_A};
+const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_AB,PROP_T,PROP_B};
+
 //parameters of the leptons
 int nleptons;
 int *lep_corr_iq1;
@@ -83,9 +91,9 @@ spinspin **L,*temp_lep;
 
 //#define NOQUARK
 //#define NOLEPTON
-#define NOINSERT
-#define NOPHOTON
-#define ONLYTIME
+//#define NOINSERT
+//#define NOPHOTON
+//#define ONLYTIME
 
 //return appropriate propagator
 int nqprop,nlprop;
@@ -107,9 +115,14 @@ tm_quark_info get_lepton_info(int ilepton,int orie,int r)
 //generate a wall-source for stochastic QCD propagator
 void generate_original_source()
 {
+  //Source coord
+  for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*glb_size[mu]);
+  
 #ifdef POINT_SOURCE_VERSION
+  master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
   generate_delta_source(original_source,source_coord);
 #else
+  master_printf("Source position: t=%d\n",source_coord[0]);
   generate_spindiluted_source(original_source,rnd_type_map[noise_type],source_coord[0]);
 #endif
 }
@@ -338,12 +351,17 @@ void init_simulation(char *path)
   //allocate temporary vectors
   temp_source=nissa_malloc("temp_source",loc_vol,spincolor);
   temp_solution=nissa_malloc("temp_solution",loc_vol,spincolor);
+  hadr_corr_length=glb_size[0]*ncombo_hadr_corr*nqmass*nqmass*nr;
+  hadr_corr=nissa_malloc("hadr_corr",hadr_corr_length,complex);
+  hadr_err=nissa_malloc("hadr_err",hadr_corr_length,complex);
+
   glb_corr=nissa_malloc("glb_corr",glb_size[0],complex);
   loc_corr=nissa_malloc("loc_corr",glb_size[0],complex);
   nind=nleptons*nweak_ins*2*2*nr;
-  glb_weak_corr=nissa_malloc("glb_weak_corr",glb_size[0]*nweak_ins*16*nind,complex);
+  //glb_weak_corr=nissa_malloc("glb_weak_corr",glb_size[0]*nweak_ins*16*nind,complex);
   glb_weak_proj_corr=nissa_malloc("glb_weak_proj_corr",glb_size[0]*nweak_ins*4*nind,complex);
-  glb_weak_vitt_corr=nissa_malloc("glb_weak_vitt_corr",glb_size[0]*nweak_ins*16*nind,complex);
+  glb_weak_vitt_corr=nissa_malloc("glb_weak_vitt_corr",glb_size[0]*nweak_ins*nvitt_g_proj*nind,complex);
+  glb_weak_vitt_err=nissa_malloc("glb_weak_vitt_err",glb_size[0]*nweak_ins*nvitt_g_proj*nind,complex); 
   original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
   source=nissa_malloc("source",loc_vol,PROP_TYPE);
   photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
@@ -366,12 +384,6 @@ int read_conf_parameters(int &iconf)
       //Gauge path
       read_str(conf_path,1024);
       
-      //Source coord
-      read_int(&(source_coord[0]));
-#ifdef POINT_SOURCE_VERSION
-      for(int mu=1;mu<4;mu++) read_int(&(source_coord[mu]));
-#endif
-
       //Out folder
       read_str(outfolder,1024);
       
@@ -1012,8 +1024,11 @@ void setup_conf()
   adapt_theta(conf,old_theta,put_theta,0,0);
 
   //reset correlations
-  vector_reset(glb_weak_corr);
+  //vector_reset(glb_weak_corr);
+  vector_reset(hadr_corr);
+  vector_reset(hadr_err);
   vector_reset(glb_weak_vitt_corr);
+  vector_reset(glb_weak_vitt_err);
   vector_reset(glb_weak_proj_corr);
 }
 
@@ -1056,7 +1071,21 @@ void get_polvect(spin *u,spin *vbar,tm_quark_info &le)
       naive_massless_wavefunction_of_imom(v,le.bc,0,1,s);
       spin vdag;
       spin_conj(vdag,v);
-      unsafe_spin_prod_dirac(vbar[s],v,base_gamma+map_mu[0]);
+      unsafe_spin_prod_dirac(vbar[s],vdag,base_gamma+map_mu[0]);
+    }
+}
+
+//compute the polarisation vector
+void get_polvect_bar(spin *ubar,spin *v,tm_quark_info &le)
+{
+  for(int s=0;s<2;s++)
+    {
+      naive_massless_wavefunction_of_imom(v[s],le.bc,0,1,s);
+      spin u;
+      twisted_wavefunction_of_imom(u,le,0,0,s);
+      spin udag;
+      spin_conj(udag,u);
+      unsafe_spin_prod_dirac(ubar[s],udag,base_gamma+map_mu[0]);
     }
 }
 
@@ -1074,14 +1103,52 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
   //gets the polarisation vector
   spin u[2],vbar[2];
   get_polvect(u,vbar,le);
-
+  spin v[2],ubar[2];
+  get_polvect_bar(ubar,v,le);
+  
+  for(int smu=0;smu<2;smu++)
+    for(int snu=0;snu<2;snu++)
+      {
+	spin te;
+	unsafe_dirac_prod_spin(te,base_gamma+4,ubar[smu]);
+	complex hl={0,0};
+	for(int id_si=0;id_si<4;id_si++) complex_summ_the_prod(hl,v[snu][id_si],te[id_si]);
+	//master_printf("smu=%d snu=%d proj[%s]={%+016.016lg,%+016.16lg}\n",smu,snu,gtag[4],hl[0],hl[1]);
+      }
+  
   //gets the projectors for Vittorio
   spinspin promu[2],pronu[2];
   twisted_on_shell_operator_of_imom(promu[0],le,0,true,+1);
   twisted_on_shell_operator_of_imom(promu[1],le,0,true,-1);
   naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
   naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
-  //spinspin_prodassign_double(pronu[1],-1); //needed or not? probably not
+
+  //debug
+  //twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1);
+  //twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1);
+  //naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,+1);
+  //naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,-1);
+
+  //master_printf("-\n");
+  spinspin out[2];
+  for(int mu=0;mu<2;mu++) spin_direct_prod(out[mu],ubar[mu],u[mu]);
+  spinspin_summassign(out[0],out[1]);
+  //spinspin_print(out[0]);
+  //master_printf("-\n");
+  //spinspin_print(promu[0]);
+  //master_printf("-\n");
+  spinspin_copy(promu[0],out[0]);
+
+  //master_printf("-\n");
+  for(int nu=0;nu<2;nu++) spin_direct_prod(out[nu],vbar[nu],v[nu]);
+  spinspin_summassign(out[0],out[1]);
+  //spinspin_print(out[0]);
+  //master_printf("-\n");
+  //spinspin_print(pronu[0]);
+  //master_printf("-\n");
+  spinspin_copy(pronu[0],out[0]);
+  
+  //crash("");
   
   for(int ins=0;ins<nweak_ins;ins++)
     {
@@ -1101,8 +1168,6 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	  complex h;
 	  trace_spinspin_with_dirac(h,hadr[ivol],base_gamma+list_weak_insq[ins]);
 	  
-	  //printf("rank %d t=%d gt=%d %lg %lg %lg\n",rank,t,glb_coord_of_loclx[ivol][0],l[0][0][0],lept[ivol][0][0][0],h[0]);
-
 	  //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
 	  complex ph;
 	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
@@ -1118,27 +1183,26 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
  #endif
 #endif
 	}
-      //crash("anna");
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
       //change sign when crossing 0 for averaging corr function properly
       for(int loc_t=0;loc_t<loc_size[0];loc_t++)
 	{
 	  int glb_t=loc_t+glb_coord_of_loclx[0][0];
-	  int sign=1-2*(glb_t+source_coord[0]>=glb_size[0]);
+	  int sign=1-2*(glb_t<source_coord[0]);
 	  spinspin_prodassign_double(hl_loc_corr[loc_t],sign);
 	}
       
       //reduce
-      for(int ig=0;ig<16;ig++)
-	for(int loc_t=0;loc_t<loc_size[0];loc_t++)
-	  {
-	    int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
-	    complex hl;
-	    trace_spinspin_with_dirac(hl,hl_loc_corr[loc_t],base_gamma+ig);
-	    if(IS_MASTER_THREAD) complex_summassign(glb_weak_corr[glb_t+glb_size[0]*(ig+16*(ins+nweak_ins*ind))],hl);
-	  }
-	if(IS_MASTER_THREAD) nlept_contr_tot+=16;
+      // for(int ig=0;ig<16;ig++)
+      // 	for(int loc_t=0;loc_t<loc_size[0];loc_t++)
+      // 	  {
+      // 	    int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
+      // 	    complex hl;
+      // 	    trace_spinspin_with_dirac(hl,hl_loc_corr[loc_t],base_gamma+ig);
+      // 	    if(IS_MASTER_THREAD) complex_summassign(glb_weak_corr[glb_t+glb_size[0]*(ig+16*(ins+nweak_ins*ind))],hl);
+      // 	  }
+      // 	if(IS_MASTER_THREAD) nlept_contr_tot+=16;
 
 	//do it using the spinor
 	for(int smu=0;smu<2;smu++)
@@ -1151,7 +1215,7 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 		//u multiplies the sink, vbar the source
 		spin Svbar;
 		unsafe_spinspin_prod_spin(Svbar,hl_loc_corr[loc_t],vbar[snu]);
-		for(int id_si=0;id_si<2;id_si++) complex_summ_the_prod(hl,u[smu][id_si],Svbar[id_si]);
+		for(int id_si=0;id_si<4;id_si++) complex_summ_the_prod(hl,u[smu][id_si],Svbar[id_si]);
 #else
 		complex_copy(hl,hl_corr[loc_t][0][0]);
 #endif
@@ -1160,77 +1224,30 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	if(IS_MASTER_THREAD) nlept_contr_tot+=4;
 	
 	//do it again with vittorio
-	for(int ig=0;ig<16;ig++)
+	for(int ig_proj=0;ig_proj<nvitt_g_proj;ig_proj++)
 	  for(int loc_t=0;loc_t<loc_size[0];loc_t++)
 	    {
 	      int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
-	      int ip=(glb_t>=glb_size[0]/2);
+	      int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
 	      spinspin td;
-	      unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ip]);
+	      unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ilnp]);
 	      spinspin dtd;
-	      unsafe_spinspin_prod_spinspin(dtd,promu[ip],td);
+	      unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 	      complex hl;
-	      trace_spinspin_with_dirac(hl,dtd,base_gamma+ig);
+	      trace_spinspin_with_dirac(hl,dtd,base_gamma+vitt_g_projs[ig_proj]);
 	      
-	      if(IS_MASTER_THREAD) complex_summassign(glb_weak_vitt_corr[glb_t+glb_size[0]*(ig+16*(ins+nweak_ins*ind))],hl);
+	      if(IS_MASTER_THREAD)
+		{
+		  int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
+		  complex_summassign(glb_weak_vitt_corr[i],hl);
+		  complex hlq={sqr(hl[0]),sqr(hl[1])};
+		  complex_summassign(glb_weak_vitt_err[i],hlq);
+		}
 	  }
+	if(IS_MASTER_THREAD) nlept_contr_tot+=nvitt_g_proj;
     }
 }
 THREADABLE_FUNCTION_END
-
-//print a whole weak correlation function
-void print_weak_correlations(FILE *fout,int ind)
-{
-  //final reduction
-  glb_nodes_reduce_complex_vect(glb_weak_corr,glb_size[0]*nweak_ins*16*nind);
-  glb_nodes_reduce_complex_vect(glb_weak_proj_corr,glb_size[0]*nweak_ins*4*nind);
-  glb_nodes_reduce_complex_vect(glb_weak_vitt_corr,glb_size[0]*nweak_ins*16*nind);
-
-  for(int ins=0;ins<nweak_ins;ins++)
-    for(int ig=0;ig<16;ig++)
-      {
-	master_fprintf(fout," # qins=%d lins=%d proj=%d\n\n",list_weak_insq[ins],list_weak_insl[ins],ig);
-	for(int t=0;t<glb_size[0];t++)
-	  {
-	    int i=t+glb_size[0]*(ig+16*(ins+nweak_ins*ind));
-	    master_fprintf(fout,"%+016.16lg %+016.16lg\n",glb_weak_corr[i][RE]/nsources,glb_weak_corr[i][IM]/nsources);
-	  }
-	master_fprintf(fout,"\n");
-      }
-}
-
-//same but projected to spin
-void print_weak_proj_correlations(FILE *fout,int ind)
-{
-  for(int ins=0;ins<nweak_ins;ins++)
-    for(int smu=0;smu<2;smu++)
-      for(int snu=0;snu<2;snu++)
-	{
-	  master_fprintf(fout," # qins=%d lins=%d smu=%d snu=%d\n\n",list_weak_insq[ins],list_weak_insl[ins],smu,snu);
-	  for(int t=0;t<glb_size[0];t++)
-	    {
-	      int i=t+glb_size[0]*(smu+2*(snu+2*(ins+nweak_ins*ind)));
-	      master_fprintf(fout,"%+016.16lg %+016.16lg\n",glb_weak_proj_corr[i][RE]/nsources,glb_weak_proj_corr[i][IM]/nsources);
-	    }
-	  master_fprintf(fout,"\n");
-	}
-}
-
-//same but projected vittorio way
-void print_weak_vitt_correlations(FILE *fout,int ind)
-{
-  for(int ins=0;ins<nweak_ins;ins++)
-    for(int ig=0;ig<16;ig++)
-      {
-	master_fprintf(fout," # qins=%d lins=%d proj=%d\n\n",list_weak_insq[ins],list_weak_insl[ins],ig);
-	for(int t=0;t<glb_size[0];t++)
-	  {
-	    int i=t+glb_size[0]*(ig+16*(ins+nweak_ins*ind));
-	    master_fprintf(fout,"%+016.16lg %+016.16lg\n",glb_weak_vitt_corr[i][RE]/nsources,glb_weak_vitt_corr[i][IM]/nsources);
-	  }
-	master_fprintf(fout,"\n");
-      }
-}
 
 //compute the total hadroleptonic correlation functions
 void compute_leptonic_correlation()
@@ -1276,55 +1293,167 @@ void compute_leptonic_correlation()
   nissa_free(hadr);
 }
 
-//wrapper to compute a single correlation function
-void compute_hadronic_correlation(complex *corr,int *ig_so,PROP_TYPE *s1,int *ig_si,PROP_TYPE *s2,int ncontr)
-{
-  hadr_contr_time-=take_time();
-  meson_two_points_Wilson_prop(glb_corr,loc_corr,ig_so,s1,ig_si,s2,ncontr);
-  hadr_contr_time+=take_time();
-  nhadr_contr_tot++;
-}
-
 //compute all the hadronic correlations
 void compute_hadronic_correlation()
 {
   master_printf("Computing hadronic correlation functions\n");
   
-  const int ncombo_corr=9;
-  qprop_t prop1_map[ncombo_corr]={PROP_0,PROP_0,PROP_0,PROP_0, PROP_0,PROP_A};
-  qprop_t prop2_map[ncombo_corr]={PROP_0,PROP_S,PROP_P,PROP_AB,PROP_T,PROP_B};
-  
-  for(int icombo=0;icombo<ncombo_corr;icombo++)
+  hadr_contr_time-=take_time();
+  int ind=0;
+  for(int icombo=0;icombo<ncombo_hadr_corr;icombo++)
+    for(int imass=0;imass<nqmass;imass++)
+      for(int jmass=0;jmass<nqmass;jmass++)
+	for(int r=0;r<nr;r++)
+	  {
+	    //compute the correlation function
+	    int ig_so=5,ig_si=5;
+	    meson_two_points_Wilson_prop(glb_corr,loc_corr,&ig_so,Q[iqprop(imass,prop1_hadr_map[icombo],r)],&ig_si,Q[iqprop(jmass,prop2_hadr_map[icombo],r)],1);
+	    
+	    //save to the total stack
+	    for(int t=0;t<glb_size[0];t++)
+	      {
+		int i=(t-source_coord[0]+glb_size[0])%glb_size[0]+glb_size[0]*ind;
+		complex_summassign(hadr_corr[i],glb_corr[t]);
+		complex temp={sqr(glb_corr[t][RE]),sqr(glb_corr[t][IM])};
+		complex_summassign(hadr_err[i],temp);
+	      }
+	    ind++;
+	  }
+  hadr_contr_time+=take_time();
+  nhadr_contr_tot+=ind;
+}
+
+//compute all the hadronic correlations
+void print_hadronic_correlations()
+{
+  //normalise
+  double n=1.0/nsources,n2=1.0/std::max(1,nsources-1);
+  for(int i=0;i<hadr_corr_length;i++)
     {
-      FILE *fout=open_file(combine("%s/corr_%c%c",outfolder,prop_abbr[prop1_map[icombo]],prop_abbr[prop2_map[icombo]]).c_str(),"w");
+      complex_prodassign_double(hadr_corr[i],n);
+      complex_prodassign_double(hadr_err[i],n);
+      complex_subtassign(hadr_err[i],hadr_corr[i]);
+      for(int ri=0;ri<2;ri++) hadr_err[i][ri]=sqrt(fabs(hadr_err[i][ri])*n2);
+    }
+  
+  int ind=0;
+  for(int icombo=0;icombo<ncombo_hadr_corr;icombo++)
+    {
+      FILE *fout[2];
+      const char suff[2][10]={"corr","err"};
+      for(int i=0;i<2;i++) fout[i]=open_file(combine("%s/%s_%c%c",outfolder,suff[i],prop_abbr[prop1_hadr_map[icombo]],prop_abbr[prop2_hadr_map[icombo]]).c_str(),"w");
       
       for(int imass=0;imass<nqmass;imass++)
 	for(int jmass=0;jmass<nqmass;jmass++)
 	  for(int r=0;r<nr;r++)
 	    {
-	      //compute the correlation function
-	      int ig_so=5,ig_si=5;
-	      compute_hadronic_correlation(glb_corr,&ig_so,Q[iqprop(imass,prop1_map[icombo],r)],&ig_si,Q[iqprop(jmass,prop2_map[icombo],r)],1);
-	      
 	      //print out
-	      master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d\n",qmass[imass],qmass[jmass],r);
-	      print_contractions_to_file(fout,1,&ig_so,&ig_si,glb_corr,source_coord[0],"",1.0);
-	      master_fprintf(fout,"\n");		  
+	      int ig_so=5,ig_si=5;
+
+	      complex *hadr[2]={hadr_corr,hadr_err};
+	      for(int i=0;i<2;i++)
+		{
+		  master_fprintf(fout[i]," # m1(rev)=%lg m2(ins)=%lg r=%d\n",qmass[imass],qmass[jmass],r);
+		  print_contractions_to_file(fout[i],1,&ig_so,&ig_si,hadr[i]+ind*glb_size[0],0,"",1.0);
+		  master_fprintf(fout[i],"\n");
+		}
+	      ind++;
 	    }
       
       //close the file
-      close_file(fout);
+      for(int i=0;i<2;i++) close_file(fout[i]);
     }
+}
+
+//print a whole weak correlation function
+// void print_weak_correlations(FILE *fout,int ind)
+// {
+//   for(int ins=0;ins<nweak_ins;ins++)
+//     for(int ig=0;ig<16;ig++)
+//       {
+// 	master_fprintf(fout," # qins=%d lins=%d proj=%d\n\n",list_weak_insq[ins],list_weak_insl[ins],ig);
+// 	for(int t=0;t<glb_size[0];t++)
+// 	  {
+// 	    int i=t+glb_size[0]*(ig+16*(ins+nweak_ins*ind));
+// 	    master_fprintf(fout,"%+016.16lg %+016.16lg\n",glb_weak_corr[i][RE]/nsources,glb_weak_corr[i][IM]/nsources);
+// 	  }
+// 	master_fprintf(fout,"\n");
+//       }
+// }
+
+//same but projected to spin
+void print_weak_proj_correlations(FILE *fout,int ind)
+{
+  for(int ins=0;ins<nweak_ins;ins++)
+    for(int smu=0;smu<2;smu++)
+      for(int snu=0;snu<2;snu++)
+	{
+	  master_fprintf(fout," # qins=%d lins=%d smu=%d snu=%d\n\n",list_weak_insq[ins],list_weak_insl[ins],smu,snu);
+	  for(int t=0;t<glb_size[0];t++)
+	    {
+	      int i=t+glb_size[0]*(smu+2*(snu+2*(ins+nweak_ins*ind)));
+	      master_fprintf(fout,"%+016.16lg %+016.16lg\n",glb_weak_proj_corr[i][RE]/nsources,glb_weak_proj_corr[i][IM]/nsources);
+	    }
+	  master_fprintf(fout,"\n");
+	}
+}
+
+//same but projected vittorio way
+void print_weak_vitt_correlations(FILE *fout_corr,FILE *fout_err,int ind)
+{
+  for(int ins=0;ins<nweak_ins;ins++)
+    for(int ig_proj=0;ig_proj<nvitt_g_proj;ig_proj++)
+      {
+	FILE *fout[2]={fout_corr,fout_err};
+	for(int i=0;i<2;i++) master_fprintf(fout[i]," # qins=%d lins=%d proj=%s\n\n",list_weak_insq[ins],list_weak_insl[ins],gtag[vitt_g_projs[ig_proj]]);
+	for(int t=0;t<glb_size[0];t++)
+	  {
+	    int i=t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
+	    double A=glb_weak_vitt_corr[i][RE]/nsources;
+	    double A2=glb_weak_vitt_err[i][RE]/nsources;
+	    double B=glb_weak_vitt_corr[i][IM]/nsources;
+	    double B2=glb_weak_vitt_err[i][IM]/nsources;
+	    A2-=A*A;
+	    B2-=B*B;
+	    if(nsources>1)
+	      {
+		A2/=nsources-1;
+		B2/=nsources-1;
+	      }
+	    A2=sqrt(fabs(A2));
+	    B2=sqrt(fabs(B2));
+	    master_fprintf(fout_corr,"%+016.16lg %+016.16lg\n",A,B);
+	    master_fprintf(fout_err,"%+016.16lg %+016.16lg\n",A2,B2);
+	  }
+	for(int i=0;i<2;i++) master_fprintf(fout[i],"\n");
+      }
 }
 
 //print out everything
 void print_outputs()
 {
+  print_time-=take_time();
+  
+  //final reduction
+  // glb_nodes_reduce_complex_vect(glb_weak_corr,glb_size[0]*nweak_ins*16*nind);
+  glb_nodes_reduce_complex_vect(glb_weak_proj_corr,glb_size[0]*nweak_ins*4*nind);
+  glb_nodes_reduce_complex_vect(glb_weak_vitt_corr,glb_size[0]*nweak_ins*nvitt_g_proj*nind);
+  glb_nodes_reduce_complex_vect(glb_weak_vitt_err,glb_size[0]*nweak_ins*nvitt_g_proj*nind);
+  
   //open the three outputs
+  // const int nwrite=1;
+  // FILE *fout[1]={open_file(combine("%s/corr_hl_vitt",outfolder).c_str(),"w")};
+
+  const int nwrite=3;
   FILE *fout[3]={
-    open_file(combine("%s/corr_hl",outfolder).c_str(),"w"),
-    open_file(combine("%s/corr_hl_proj",outfolder).c_str(),"w"),
-    open_file(combine("%s/corr_hl_vitt",outfolder).c_str(),"w")};
+    open_file(combine("%s/corr_hl_vitt",outfolder).c_str(),"w"),
+    open_file(combine("%s/err_hl_vitt",outfolder).c_str(),"w"),
+    open_file(combine("%s/corr_hl_proj",outfolder).c_str(),"w")};
+
+  // FILE *fout[3]={
+  //   open_file(combine("%s/corr_hl_vitt",outfolder).c_str(),"w"),
+  //   open_file(combine("%s/corr_hl_proj",outfolder).c_str(),"w"),
+  //   open_file(combine("%s/corr_hl",outfolder).c_str(),"w")};
   
   //write down
   int ind=0;
@@ -1341,16 +1470,20 @@ void print_outputs()
 	      for(int orie=0;orie<2;orie++)
 		for(int rl=0;rl<nr;rl++)
 		  {
-		    for(int i=0;i<3;i++)
+		    for(int i=0;i<nwrite;i++)
 		      master_fprintf(fout[i]," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
 				     qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie],rl);
-		    print_weak_correlations(fout[0],ind);
-		    print_weak_proj_correlations(fout[1],ind);
-		    print_weak_vitt_correlations(fout[2],ind);
+		    print_weak_vitt_correlations(fout[0],fout[1],ind);
+		    print_weak_proj_correlations(fout[2],ind);
+		    // print_weak_correlations(fout[2],ind);
 		    ind++;
 		  }
 	    }
-  for(int i=0;i<3;i++) close_file(fout[i]);
+  for(int i=0;i<nwrite;i++) close_file(fout[i]);
+
+  print_hadronic_correlations();
+  
+  print_time+=take_time();
 }
 
 //check if the time is enough
@@ -1385,6 +1518,7 @@ void close()
   master_printf("    of which  %02.2f%s for %d cg inversion overhead (%2.2gs avg)\n",cg_inv_over_time/inv_time*100,"%",ninv_tot,cg_inv_over_time/ninv_tot);
   master_printf(" - %02.2f%s to perform %d hadronic contractions (%2.2gs avg)\n",hadr_contr_time/tot_prog_time*100,"%",nhadr_contr_tot,hadr_contr_time/nhadr_contr_tot);
   master_printf(" - %02.2f%s to perform %d leptonic contractions (%2.2gs avg)\n",lept_contr_time/tot_prog_time*100,"%",nlept_contr_tot,lept_contr_time/nlept_contr_tot);
+  master_printf(" - %02.2f%s to print hadro-leptonic contractions\n",print_time/tot_prog_time*100,"%");
 
   nissa_free(photon_eta);
   nissa_free(photon_phi);
@@ -1396,11 +1530,14 @@ void close()
   nissa_free(L);
   nissa_free(temp_lep);
   nissa_free(conf);
+  nissa_free(hadr_corr);
+  nissa_free(hadr_err);
   nissa_free(glb_corr);
   nissa_free(loc_corr);
-  nissa_free(glb_weak_corr);
+  // nissa_free(glb_weak_corr);
   nissa_free(glb_weak_proj_corr);
   nissa_free(glb_weak_vitt_corr);
+  nissa_free(glb_weak_vitt_err);
   nissa_free(temp_source);
   nissa_free(temp_solution);
   nissa_free(lep_corr_iq1);
