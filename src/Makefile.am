@@ -433,6 +433,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/su3_paths/shortest_hypercubic_paths.cpp \
 	operations/su3_paths/squared_staples.cpp \
 	operations/su3_paths/topological_charge.cpp \
+	operations/su3_paths/watusso.cpp \
 	operations/vector_gather.cpp
 
 include_HEADERS+= \
@@ -444,7 +445,6 @@ include_HEADERS+= \
 	operations/remap_vector.hpp \
 	operations/shift.hpp \
 	operations/source.hpp \
-	operations/vector_gather.hpp \
 	operations/remez/remez_algorithm.hpp \
 	operations/contract/mesons_2pts.hpp \
 	operations/contract/mesons_eight.hpp \
@@ -467,6 +467,8 @@ include_HEADERS+= \
 	operations/su3_paths/shortest_hypercubic_paths.hpp \
 	operations/su3_paths/squared_staples.hpp \
 	operations/su3_paths/topological_charge.hpp
+	operations/su3_paths/watusso.hpp \
+	operations/vector_gather.hpp
 
 ########################################## routines ###################################
 

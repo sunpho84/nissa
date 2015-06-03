@@ -15,7 +15,6 @@ gauge_obs_meas_pars_t gauge_obs_meas_pars;
 poly_corr_meas_pars_t poly_corr_meas_pars;
 top_meas_pars_t top_meas_pars;
 all_rect_meas_pars_t all_rect_meas_pars;
-//flux_tube_meas_pars_t flux_tube_meas_pars;
 
 //input and output path for confs
 char conf_path[1024];
@@ -485,6 +484,24 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   nissa_free(lx_conf);
 }
 
+//compute the flux tube
+void measure_flux_tube(quad_su3 **eo_conf,bool rnd=false)
+{
+  quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol,quad_su3);
+  paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
+  generate_cold_lx_conf(lx_conf);
+  if(rnd) perform_random_gauge_transform(lx_conf,lx_conf);
+  
+  int size=5,mu=0,nu=1,dmax=5;
+  complex out[2*(2*dmax+1)];
+  //compute_watusso(corr,big,small,lx_conf,size,mu,nu,dmax);
+  //for(int irho=0;irho<2;irho++)
+  //for(int d=0;d<2*dmax+1;d++)
+  //master_printf("%d %d %+016.016lg\n",irho,d-dmax,out[d+(2*dmax+1)*irho]/glb_vol/3);
+  
+  nissa_free(lx_conf);
+}
+
 //return 1 if we need to measure
 int check_flag_and_curr_conf(int flag,int iconf)
 {return flag&&(iconf%flag==0);}
@@ -496,6 +513,8 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   
   if(gauge_obs_meas_pars.flag) if(iconf%gauge_obs_meas_pars.flag==0) measure_gauge_obs(gauge_obs_meas_pars.path,conf,iconf,acc,gauge_action_name);
   if(poly_corr_meas_pars.flag) if(iconf%poly_corr_meas_pars.flag==0) measure_poly_corrs(poly_corr_meas_pars,conf,conf_created);
+  measure_flux_tube(conf);
+  measure_flux_tube(conf,true);
   if(top_meas_pars.flag) if(iconf%top_meas_pars.flag==0) measure_topology_eo_conf(top_meas_pars,conf,iconf,conf_created);
   if(all_rect_meas_pars.flag) if(iconf%all_rect_meas_pars.flag==0)
 				measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);

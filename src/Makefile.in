@@ -343,9 +343,9 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	operations/su3_paths/shortest_hypercubic_paths.cpp \
 	operations/su3_paths/squared_staples.cpp \
 	operations/su3_paths/topological_charge.cpp \
-	operations/vector_gather.cpp routines/ios.cpp \
-	routines/math_routines.cpp routines/mpi_routines.cpp \
-	routines/thread.cpp
+	operations/su3_paths/watusso.cpp operations/vector_gather.cpp \
+	routines/ios.cpp routines/math_routines.cpp \
+	routines/mpi_routines.cpp routines/thread.cpp
 am__dirstamp = $(am__leading_dot)dirstamp
 @BGQ_TRUE@am__objects_1 = bgq/Wilson_hopping_matrix_lx_bgq.$(OBJEXT) \
 @BGQ_TRUE@	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.$(OBJEXT) \
@@ -492,6 +492,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	operations/su3_paths/shortest_hypercubic_paths.$(OBJEXT) \
 	operations/su3_paths/squared_staples.$(OBJEXT) \
 	operations/su3_paths/topological_charge.$(OBJEXT) \
+	operations/su3_paths/watusso.$(OBJEXT) \
 	operations/vector_gather.$(OBJEXT) routines/ios.$(OBJEXT) \
 	routines/math_routines.$(OBJEXT) \
 	routines/mpi_routines.$(OBJEXT) $(am__objects_7)
@@ -659,8 +660,7 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	operations/fft.hpp operations/fourier_transform.hpp \
 	operations/gauge_fixing.hpp operations/gaugeconf.hpp \
 	operations/remap_vector.hpp operations/shift.hpp \
-	operations/source.hpp operations/vector_gather.hpp \
-	operations/remez/remez_algorithm.hpp \
+	operations/source.hpp operations/remez/remez_algorithm.hpp \
 	operations/contract/mesons_2pts.hpp \
 	operations/contract/mesons_eight.hpp \
 	operations/contract/optimized_mesons_2pts.hpp \
@@ -895,8 +895,7 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	operations/fft.hpp operations/fourier_transform.hpp \
 	operations/gauge_fixing.hpp operations/gaugeconf.hpp \
 	operations/remap_vector.hpp operations/shift.hpp \
-	operations/source.hpp operations/vector_gather.hpp \
-	operations/remez/remez_algorithm.hpp \
+	operations/source.hpp operations/remez/remez_algorithm.hpp \
 	operations/contract/mesons_2pts.hpp \
 	operations/contract/mesons_eight.hpp \
 	operations/contract/optimized_mesons_2pts.hpp \
@@ -1051,9 +1050,9 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	operations/su3_paths/shortest_hypercubic_paths.cpp \
 	operations/su3_paths/squared_staples.cpp \
 	operations/su3_paths/topological_charge.cpp \
-	operations/vector_gather.cpp routines/ios.cpp \
-	routines/math_routines.cpp routines/mpi_routines.cpp \
-	$(am__append_13)
+	operations/su3_paths/watusso.cpp operations/vector_gather.cpp \
+	routines/ios.cpp routines/math_routines.cpp \
+	routines/mpi_routines.cpp $(am__append_13)
 
 #svn versioning: specify to build sources and include script
 BUILT_SOURCES = update_svnversion svnversion.hpp
@@ -1763,6 +1762,9 @@ operations/su3_paths/squared_staples.$(OBJEXT):  \
 operations/su3_paths/topological_charge.$(OBJEXT):  \
 	operations/su3_paths/$(am__dirstamp) \
 	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
+operations/su3_paths/watusso.$(OBJEXT):  \
+	operations/su3_paths/$(am__dirstamp) \
+	operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
 operations/vector_gather.$(OBJEXT): operations/$(am__dirstamp) \
 	operations/$(DEPDIR)/$(am__dirstamp)
 routines/$(am__dirstamp):
@@ -1985,6 +1987,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/shortest_hypercubic_paths.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/squared_staples.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/topological_charge.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/watusso.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/ios.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/math_routines.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@routines/$(DEPDIR)/mpi_routines.Po@am__quote@
@@ -2347,6 +2350,8 @@ uninstall-am: uninstall-global_variableDATA uninstall-includeHEADERS \
 update_svnversion:
 	$(srcdir)/base/update_svnversion.hpp.sh $(top_srcdir)
 .PHONY: update_svnversion
+	operations/su3_paths/watusso.hpp \
+	operations/vector_gather.hpp
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

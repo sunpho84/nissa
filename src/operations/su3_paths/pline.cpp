@@ -7,24 +7,16 @@
 #include <math.h>
 
 #include "communicate/communicate.hpp"
-#include "base/debug.hpp"
 #include "base/global_variables.hpp"
-#include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "io/endianness.hpp"
-#include "io/ILDG_File.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
-#include "new_types/new_types_definitions.hpp"
-#include "new_types/spin.hpp"
-#include "new_types/su3.hpp"
 #include "operations/fft.hpp"
 #include "operations/shift.hpp"
 #include "operations/remap_vector.hpp"
-#include "routines/mpi_routines.hpp"
 
 #ifdef USE_THREADS
   #include "routines/thread.hpp"
@@ -397,7 +389,7 @@ namespace nissa
     NISSA_LOC_VOL_LOOP(x)
     {
       int xmu=glb_coord_of_loclx[x][mu];
-      int dist=fabs(xmu-xmu_start);
+      int dist=abs(xmu-xmu_start);
       int ord=(xmu>=xmu_start);
       
       for(int ic1=0;ic1<3;ic1++)

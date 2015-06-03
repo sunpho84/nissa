@@ -148,6 +148,7 @@
 #include "operations/su3_paths/squared_staples.hpp"
 #include "operations/su3_paths/shortest_hypercubic_paths.hpp"
 #include "operations/su3_paths/topological_charge.hpp"
+#include "operations/su3_paths/watusso.hpp"
 
 #include "operations/vector_gather.hpp"
 
