@@ -92,8 +92,8 @@ spinspin **L,*temp_lep;
 //#define NOQUARK
 //#define NOLEPTON
 //#define NOINSERT
-//#define NOPHOTON
-//#define ONLYTIME
+#define NOPHOTON
+#define ONLYTIME
 
 //return appropriate propagator
 int nqprop,nlprop;
@@ -332,7 +332,7 @@ void init_simulation(char *path)
   
   //Read if simulating in the free theory
   read_str_int("RandomGaugeTransform",&rnd_gauge_transform);
-
+  
   //Read the number of sources
   read_str_int("NSources",&nsources);
   
@@ -354,7 +354,7 @@ void init_simulation(char *path)
   hadr_corr_length=glb_size[0]*ncombo_hadr_corr*nqmass*nqmass*nr;
   hadr_corr=nissa_malloc("hadr_corr",hadr_corr_length,complex);
   hadr_err=nissa_malloc("hadr_err",hadr_corr_length,complex);
-
+  
   glb_corr=nissa_malloc("glb_corr",glb_size[0],complex);
   loc_corr=nissa_malloc("loc_corr",glb_size[0],complex);
   nind=nleptons*nweak_ins*2*2*nr;
@@ -1240,6 +1240,7 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 		{
 		  int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
 		  complex_summassign(glb_weak_vitt_corr[i],hl);
+		  if(glb_t==11 && ig_proj==0 && ins==3) master_printf("ANNA %d %d %d %lg\n",glb_t,ig_proj,ins,glb_weak_vitt_corr[i][IM]);
 		  complex hlq={sqr(hl[0]),sqr(hl[1])};
 		  complex_summassign(glb_weak_vitt_err[i],hlq);
 		}

@@ -1,6 +1,8 @@
 #ifndef _VECTOR_GATHER_HPP
 #define _VECTOR_GATHER_HPP
 
+#include <stdlib.h>
+
 namespace nissa
 {
   void average_list_of_gathered_vector_sites(double *vec,int *sites,int nsites,int dps);

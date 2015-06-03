@@ -2,6 +2,7 @@
 #define _ARBITRARY_HPP
 
 #include <stdlib.h>
+#include <deque>
 
 #include "base/debug.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -135,19 +136,23 @@ namespace nissa
   struct coords_t{
     coords c;
     int &operator[](int i){return c[i];}
+    bool operator==(coords_t in){bool out=true;for(int i=0;i<NDIM;i++) out&=(c[i]==in.c[i]);return out;}
+    bool operator!=(coords_t i){return !((*this)==i);}
     coords_t(){memset(c,0,sizeof(coords));}
     coords_t(const coords_t &o){memcpy(c,o.c,sizeof(coords));}
   };
-  typedef std::vector<coords_t> path_drawing_t;
+  typedef std::deque<coords_t> path_drawing_t;
   
   void init_su3_path(path_drawing_t *c,su3 *out);
-  void elong_su3_path_BW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu);
-  void elong_su3_path_FW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu);
-  void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,int len);
+  void elong_su3_path_BW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,bool both_sides=false);
+  void elong_su3_path_FW(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,bool both_sides=false);
+  void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int mu,int len,bool both_sides=false);
   //wrapper
   inline void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int *pars)
   {elong_su3_path(c,out,conf,pars[0],pars[1]);}
   void elong_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int *steps,int nmacro_steps);
+  inline void compute_su3_path(path_drawing_t *c,su3 *out,quad_su3 *conf,int *steps,int nmacro_steps)
+  {init_su3_path(c,out);elong_su3_path(c,out,conf,steps,nmacro_steps);}
 }
 
 #endif

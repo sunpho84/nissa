@@ -401,6 +401,7 @@ namespace nissa
 	}
   }
   inline void safe_su3_prod_su3(su3 a,su3 b,su3 c) {su3 d;unsafe_su3_prod_su3(d,b,c);su3_copy(a,d);}
+  inline void su3_prodassign_su3(su3 a,su3 b) {safe_su3_prod_su3(a,a,b);}
   inline void su3_summ_the_prod_su3(su3 a,su3 b,su3 c)
   {
     for(int ir_out=0;ir_out<3;ir_out++)
