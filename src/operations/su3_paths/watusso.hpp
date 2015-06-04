@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void compute_watusso(double *out,quad_su3 *in,int size,int mu,int nu,int dmax);
+  void measure_Watusso(watusso_meas_pars_t *pars,quad_su3 **conf,int iconf,int create_output_file);
 }
 
 #endif

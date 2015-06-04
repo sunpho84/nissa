@@ -116,7 +116,8 @@ tm_quark_info get_lepton_info(int ilepton,int orie,int r)
 void generate_original_source()
 {
   //Source coord
-  for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*glb_size[mu]);
+  coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]};
+  for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
   
 #ifdef POINT_SOURCE_VERSION
   master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
@@ -1186,12 +1187,14 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
       //change sign when crossing 0 for averaging corr function properly
-      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
+      NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
 	{
 	  int glb_t=loc_t+glb_coord_of_loclx[0][0];
 	  int sign=1-2*(glb_t<source_coord[0]);
+	  //printf("ANNA SIGN %d %d\n",glb_t,sign);
 	  spinspin_prodassign_double(hl_loc_corr[loc_t],sign);
 	}
+      THREAD_BARRIER();
       
       //reduce
       // for(int ig=0;ig<16;ig++)
@@ -1207,7 +1210,7 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	//do it using the spinor
 	for(int smu=0;smu<2;smu++)
 	  for(int snu=0;snu<2;snu++)
-	    for(int loc_t=0;loc_t<loc_size[0];loc_t++)
+	    NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
 	      {
 		int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
 #ifndef NOLEPTON
@@ -1219,13 +1222,13 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 #else
 		complex_copy(hl,hl_corr[loc_t][0][0]);
 #endif
-		if(IS_MASTER_THREAD) complex_summassign(glb_weak_proj_corr[glb_t+glb_size[0]*(smu+2*(snu+2*(ins+nweak_ins*ind)))],hl);
+		complex_summassign(glb_weak_proj_corr[glb_t+glb_size[0]*(smu+2*(snu+2*(ins+nweak_ins*ind)))],hl);
 	      }
 	if(IS_MASTER_THREAD) nlept_contr_tot+=4;
 	
 	//do it again with vittorio
 	for(int ig_proj=0;ig_proj<nvitt_g_proj;ig_proj++)
-	  for(int loc_t=0;loc_t<loc_size[0];loc_t++)
+	  NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
 	    {
 	      int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
 	      int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
@@ -1236,16 +1239,15 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	      complex hl;
 	      trace_spinspin_with_dirac(hl,dtd,base_gamma+vitt_g_projs[ig_proj]);
 	      
-	      if(IS_MASTER_THREAD)
-		{
-		  int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
-		  complex_summassign(glb_weak_vitt_corr[i],hl);
-		  if(glb_t==11 && ig_proj==0 && ins==3) master_printf("ANNA %d %d %d %lg\n",glb_t,ig_proj,ins,glb_weak_vitt_corr[i][IM]);
-		  complex hlq={sqr(hl[0]),sqr(hl[1])};
-		  complex_summassign(glb_weak_vitt_err[i],hlq);
-		}
-	  }
+	      int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
+	      if(glb_t==11 && ig_proj==0 && ins==3) printf("ANNAPRE %d %d %d %lg\n",glb_t,ig_proj,ins,glb_weak_vitt_corr[i][IM]);
+	      complex_summassign(glb_weak_vitt_corr[i],hl);
+	      if(glb_t==11 && ig_proj==0 && ins==3) printf("ANNA %d %d %d %lg %lg\n",glb_t,ig_proj,ins,glb_weak_vitt_corr[i][IM],hl[IM]);
+	      complex hlq={sqr(hl[0]),sqr(hl[1])};
+	      complex_summassign(glb_weak_vitt_err[i],hlq);
+	    }
 	if(IS_MASTER_THREAD) nlept_contr_tot+=nvitt_g_proj;
+	THREAD_BARRIER();
     }
 }
 THREADABLE_FUNCTION_END

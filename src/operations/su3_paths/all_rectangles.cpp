@@ -93,10 +93,11 @@ namespace nissa
     verbosity_lv1_master_printf("Computing all rectangular paths\n");
 
     //take a copy of smear pars
-    gauge_obs_temp_smear_pars_t temp_smear_pars=pars->gauge_temp_smear_pars;
+    gauge_obs_temp_spat_smear_pars_t *smear_pars=&pars->smear_pars;
+    gauge_obs_temp_smear_pars_t *temp_smear_pars=&smear_pars->gauge_temp_smear_pars;
     
     //remapping
-    int nape_spat_levls=pars->nape_spat_levls,ntot_sme=1+nape_spat_levls;
+    int nape_spat_levls=smear_pars->nape_spat_levls,ntot_sme=1+nape_spat_levls;
     int prp_vol[12],cmp_vol[12],imu01=0,mu0_l[12],mu1_l[12],cmp_vol_max=0;
     vector_remap_t *remap[12];
     su3 *transp_conf[12];
@@ -134,10 +135,10 @@ namespace nissa
     quad_su3 *sme_conf=nissa_malloc("sme_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     for(int mu0=0;mu0<4;mu0++)
       {
-	if(temp_smear_pars.use_hyp_or_ape_temp==0)
-	  hyp_smear_conf_dir(sme_conf,ori_conf,temp_smear_pars.hyp_temp_alpha0,
-			     temp_smear_pars.hyp_temp_alpha1,temp_smear_pars.hyp_temp_alpha2,mu0);
-	else ape_single_dir_smear_conf(sme_conf,ori_conf,temp_smear_pars.ape_temp_alpha,temp_smear_pars.nape_temp_iters,mu0);
+	if(temp_smear_pars->use_hyp_or_ape_temp==0)
+	  hyp_smear_conf_dir(sme_conf,ori_conf,temp_smear_pars->hyp_temp_alpha0,
+			     temp_smear_pars->hyp_temp_alpha1,temp_smear_pars->hyp_temp_alpha2,mu0);
+	else ape_single_dir_smear_conf(sme_conf,ori_conf,temp_smear_pars->ape_temp_alpha,temp_smear_pars->nape_temp_iters,mu0);
 	verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",mu0,global_plaquette_lx_conf(sme_conf));
 	
 	//store temporal links and send them
@@ -156,9 +157,9 @@ namespace nissa
 	//spatial APE smearing
 	for(int iape=0;iape<nape_spat_levls;iape++)
 	  {
-	    ape_perp_dir_smear_conf(sme_conf,sme_conf,pars->ape_spat_alpha,
-				    (iape==0)?pars->nape_spat_iters[0]:
-				    (pars->nape_spat_iters[iape]-pars->nape_spat_iters[iape-1]),mu0);
+	    ape_perp_dir_smear_conf(sme_conf,sme_conf,smear_pars->ape_spat_alpha,
+				    (iape==0)?smear_pars->nape_spat_iters[0]:
+				    (smear_pars->nape_spat_iters[iape]-smear_pars->nape_spat_iters[iape-1]),mu0);
 	    verbosity_lv1_master_printf("Plaquette after %d perp %d ape smears: %16.16lg\n",
 					iape+1,mu0,global_plaquette_lx_conf(sme_conf));
 	    
@@ -304,7 +305,7 @@ namespace nissa
 		    {
 		      fprintf(fout,"cnf=%d %c_ape_%d=%d %c_hyp=%d %16.16lg\n",
 			      iconf,
-			      dir_name[mu1_l[imu01]],pars->nape_spat_iters[iape],dd+pars->Dmin,
+			      dir_name[mu1_l[imu01]],smear_pars->nape_spat_iters[iape],dd+pars->Dmin,
 			      dir_name[mu0_l[imu01]],dt+pars->Tmin,
 			      all_rectangles_glb[irect++]/(3*glb_vol));
 		    }
@@ -327,7 +328,8 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    gauge_obs_temp_smear_pars_t temp_smear_pars=pars->gauge_temp_smear_pars;
+    gauge_obs_temp_spat_smear_pars_t *smear_pars=&pars->smear_pars;
+    gauge_obs_temp_smear_pars_t *temp_smear_pars=&smear_pars->gauge_temp_smear_pars;
     
     FILE *fout=NULL;
     if(rank==0 && IS_MASTER_THREAD) fout=open_file(pars->path,create_output_file?"w":"a");
@@ -342,16 +344,16 @@ namespace nissa
     double *point_path=nissa_malloc("point_path",loc_vol,double);
     
     //hyp or temporal APE smear the conf
-    if(temp_smear_pars.use_hyp_or_ape_temp==0)
-      hyp_smear_conf_dir(sme_conf,ori_conf,temp_smear_pars.hyp_temp_alpha0,temp_smear_pars.hyp_temp_alpha1,temp_smear_pars.hyp_temp_alpha2,0);
-    else ape_temporal_smear_conf(sme_conf,ori_conf,temp_smear_pars.ape_temp_alpha,temp_smear_pars.nape_temp_iters);
+    if(temp_smear_pars->use_hyp_or_ape_temp==0)
+      hyp_smear_conf_dir(sme_conf,ori_conf,temp_smear_pars->hyp_temp_alpha0,temp_smear_pars->hyp_temp_alpha1,temp_smear_pars->hyp_temp_alpha2,0);
+    else ape_temporal_smear_conf(sme_conf,ori_conf,temp_smear_pars->ape_temp_alpha,temp_smear_pars->nape_temp_iters);
     
     //loop over APE smeared levels
-    for(int iape=0;iape<pars->nape_spat_levls;iape++)
+    for(int iape=0;iape<smear_pars->nape_spat_levls;iape++)
       {
 	//APE smearing
-	ape_spatial_smear_conf(sme_conf,sme_conf,pars->ape_spat_alpha,
-		  (iape==0)?pars->nape_spat_iters[0]:(pars->nape_spat_iters[iape]-pars->nape_spat_iters[iape-1]));
+	ape_spatial_smear_conf(sme_conf,sme_conf,smear_pars->ape_spat_alpha,
+		  (iape==0)?smear_pars->nape_spat_iters[0]:(smear_pars->nape_spat_iters[iape]-smear_pars->nape_spat_iters[iape-1]));
 	
 	//reset the Tpath link product
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
