@@ -518,22 +518,41 @@ namespace nissa
     double cool_overrelax_exp;
     int meas_each;
   };
-
+  
+  //holds temporal-spatial gauge smearing parameters
+  struct gauge_obs_temp_spat_smear_pars_t
+  {
+    //hyp or ape in T direction and pars
+    gauge_obs_temp_smear_pars_t gauge_temp_smear_pars;
+    //ape spat    
+    double ape_spat_alpha;
+    int nape_spat_levls,*nape_spat_iters;
+  };    
+  
   //parameters to measure all rectangles path
   struct all_rect_meas_pars_t
   {
     int flag;
     char path[1024];
-    
-    //hyp or ape in T direction and pars
-    gauge_obs_temp_smear_pars_t gauge_temp_smear_pars;
 
-    //ape spat    
-    double ape_spat_alpha;
-    int nape_spat_levls,*nape_spat_iters;
+    //parameters to smear in time and space
+    gauge_obs_temp_spat_smear_pars_t smear_pars;
     
     //intervals for rectangles
     int Tmin,Tmax,Dmin,Dmax;
+  };
+  
+  //parameters to measure flux tube
+  struct watusso_meas_pars_t
+  {
+    int flag;
+    char path[1024];
+
+    //parameters to smear in time and space
+    gauge_obs_temp_spat_smear_pars_t smear_pars;
+    
+    //intervals for rectanlge size and distance
+    int size_min,size_max,size_step,dmax;
   };
   
   typedef momentum_t stout_coeff_t[NDIM];

@@ -214,7 +214,7 @@ namespace nissa
       }
   }
   
-  //read parameters to smear a conf when computing gauge observables
+  //read parameters to smear a conf in time when computing gauge observables
   void read_gauge_obs_temp_smear_pars(gauge_obs_temp_smear_pars_t &pars)
   {
     read_str_int("UseHYPorAPE",&pars.use_hyp_or_ape_temp);
@@ -230,6 +230,14 @@ namespace nissa
 	read_str_int("APETempNiters",&pars.nape_temp_iters);
       }
   }
+
+  //read parameters to smear a conf in space and time when computing gauge observables
+  void read_gauge_obs_temp_spat_smear_pars(gauge_obs_temp_spat_smear_pars_t &pars)
+  {
+    read_gauge_obs_temp_smear_pars(pars.gauge_temp_smear_pars);
+    read_str_double("APESpatAlpha",&pars.ape_spat_alpha);
+    read_list_of_ints("APESpatNlevels",&pars.nape_spat_levls,&pars.nape_spat_iters);
+  }
   
   //read parameters to measure all rectangles
   void read_all_rect_meas_pars(all_rect_meas_pars_t &pars,bool flag=false)
@@ -239,9 +247,7 @@ namespace nissa
     if(pars.flag)
       {
 	read_str_str("Path",pars.path,1024);
-	read_gauge_obs_temp_smear_pars(pars.gauge_temp_smear_pars);	
-	read_str_double("APESpatAlpha",&pars.ape_spat_alpha);
-	read_list_of_ints("APESpatNlevels",&pars.nape_spat_levls,&pars.nape_spat_iters);
+	read_gauge_obs_temp_spat_smear_pars(pars.smear_pars);
 	read_str_int("Tint",&pars.Tmin);
 	read_int(&pars.Tmax);
 	if(pars.Tmin<1||pars.Tmin>glb_size[0]) crash("Tint must start between [1,%d]",glb_size[0]);
@@ -250,6 +256,28 @@ namespace nissa
 	read_int(&pars.Dmax);
 	if(pars.Dmin<1||pars.Dmin>glb_size[1]) crash("Dint must start between [1,%d]",glb_size[1]);
 	if(pars.Dmax<1||pars.Dmax>glb_size[1]) crash("Dint must end between [1,%d]",glb_size[1]);
+      }
+  }
+
+  //read parameters to measure flux tube
+  void read_watusso_meas_pars(watusso_meas_pars_t &pars,bool flag=false)
+  {
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasureWatusso",&pars.flag);
+    if(pars.flag)
+      {
+	read_str_str("Path",pars.path,1024);
+	read_gauge_obs_temp_spat_smear_pars(pars.smear_pars);
+	read_str_int("SizeMin",&pars.size_min);
+	read_str_int("SizeStep",&pars.size_step);
+	read_str_int("SizeMax",&pars.size_max);
+	read_str_int("dmax",&pars.dmax);
+	for(int mu=0;mu<4;mu++)
+	  {
+	    if(pars.size_min>glb_size[mu]) crash("SizeMin must be between [1,%d]",glb_size[mu]);
+	    if(pars.size_max>glb_size[mu]) crash("SizeMax must be between [1,%d]",glb_size[mu]);
+	    if(pars.dmax>glb_size[mu]) crash("DMax must be between [1,%d]",glb_size[mu]);
+	  }
       }
   }
 
