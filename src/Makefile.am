@@ -464,7 +464,7 @@ include_HEADERS+= \
 	operations/su3_paths/rectangular_staples.hpp \
 	operations/su3_paths/shortest_hypercubic_paths.hpp \
 	operations/su3_paths/squared_staples.hpp \
-	operations/su3_paths/topological_charge.hpp
+	operations/su3_paths/topological_charge.hpp \
 	operations/su3_paths/watusso.hpp \
 	operations/vector_gather.hpp
 

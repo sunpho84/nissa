@@ -92,8 +92,8 @@ spinspin **L,*temp_lep;
 //#define NOQUARK
 //#define NOLEPTON
 //#define NOINSERT
-#define NOPHOTON
-#define ONLYTIME
+//#define NOPHOTON
+//#define ONLYTIME
 
 //return appropriate propagator
 int nqprop,nlprop;
@@ -117,7 +117,7 @@ void generate_original_source()
 {
   //Source coord
   coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]};
-  for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
+  for(int mu=0;mu<4;mu++) source_coord[mu]=0;//(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
   
 #ifdef POINT_SOURCE_VERSION
   master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
@@ -1240,9 +1240,9 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	      trace_spinspin_with_dirac(hl,dtd,base_gamma+vitt_g_projs[ig_proj]);
 	      
 	      int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
-	      if(glb_t==11 && ig_proj==0 && ins==3) printf("ANNAPRE %d %d %d %lg\n",glb_t,ig_proj,ins,glb_weak_vitt_corr[i][IM]);
+	      //if(glb_t==11 && ig_proj==0 && ins==3) printf("ANNAPRE %d %d %d %lg\n",glb_t,ig_proj,ins,glb_weak_vitt_corr[i][IM]);
 	      complex_summassign(glb_weak_vitt_corr[i],hl);
-	      if(glb_t==11 && ig_proj==0 && ins==3) printf("ANNA %d %d %d %lg %lg\n",glb_t,ig_proj,ins,glb_weak_vitt_corr[i][IM],hl[IM]);
+	      //if(glb_t==11 && ig_proj==0 && ins==3) printf("ANNA %d %d %d %lg %lg\n",glb_t,ig_proj,ins,glb_weak_vitt_corr[i][IM],hl[IM]);
 	      complex hlq={sqr(hl[0]),sqr(hl[1])};
 	      complex_summassign(glb_weak_vitt_err[i],hlq);
 	    }

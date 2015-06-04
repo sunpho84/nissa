@@ -498,7 +498,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   if(poly_corr_meas_pars.flag) if(iconf%poly_corr_meas_pars.flag==0) measure_poly_corrs(poly_corr_meas_pars,conf,conf_created);
   if(top_meas_pars.flag) if(iconf%top_meas_pars.flag==0) measure_topology_eo_conf(top_meas_pars,conf,iconf,conf_created);
   if(all_rect_meas_pars.flag) if(iconf%all_rect_meas_pars.flag==0) measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
-  if(watusso_meas_pars.flag) measure_Watusso(&watusso_meas_pars,conf,iconf,conf_created);
+  if(watusso_meas_pars.flag) measure_watusso(&watusso_meas_pars,conf,iconf,conf_created);
   
   for(int itheory=0;itheory<ntheories;itheory++)
     {

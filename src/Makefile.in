@@ -676,9 +676,10 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	operations/su3_paths/rectangular_staples.hpp \
 	operations/su3_paths/shortest_hypercubic_paths.hpp \
 	operations/su3_paths/squared_staples.hpp \
-	operations/su3_paths/topological_charge.hpp routines/ios.hpp \
-	routines/math_routines.hpp routines/mpi_routines.hpp \
-	routines/thread.hpp
+	operations/su3_paths/topological_charge.hpp \
+	operations/su3_paths/watusso.hpp operations/vector_gather.hpp \
+	routines/ios.hpp routines/math_routines.hpp \
+	routines/mpi_routines.hpp routines/thread.hpp
 HEADERS = $(include_HEADERS)
 am__tagged_files = $(HEADERS) $(SOURCES) $(TAGS_FILES) \
 	$(LISP)config.hpp.in
@@ -910,9 +911,10 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	operations/su3_paths/rectangular_staples.hpp \
 	operations/su3_paths/shortest_hypercubic_paths.hpp \
 	operations/su3_paths/squared_staples.hpp \
-	operations/su3_paths/topological_charge.hpp routines/ios.hpp \
-	routines/math_routines.hpp routines/mpi_routines.hpp \
-	$(am__append_14)
+	operations/su3_paths/topological_charge.hpp \
+	operations/su3_paths/watusso.hpp operations/vector_gather.hpp \
+	routines/ios.hpp routines/math_routines.hpp \
+	routines/mpi_routines.hpp $(am__append_14)
 
 #add nissa library
 lib_LIBRARIES = $(top_builddir)/lib/libnissa.a
@@ -2341,8 +2343,6 @@ uninstall-am: uninstall-global_variableDATA uninstall-includeHEADERS \
 update_svnversion:
 	$(srcdir)/base/update_svnversion.hpp.sh $(top_srcdir)
 .PHONY: update_svnversion
-	operations/su3_paths/watusso.hpp \
-	operations/vector_gather.hpp
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.

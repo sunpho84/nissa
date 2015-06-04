@@ -1,3 +1,4 @@
+%option nounput
 %option noyywrap
 %option prefix="two_pts_corr_parser_"
 %option outfile="tokenize_corr.cpp"
