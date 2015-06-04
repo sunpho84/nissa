@@ -30,7 +30,7 @@
 namespace nissa
 {
   //compute the flux tube
-  THREADABLE_FUNCTION_4ARG(measure_Watusso, watusso_meas_pars_t*,pars, quad_su3**,eo_conf, int,iconf, int,create_output_file)
+  THREADABLE_FUNCTION_4ARG(measure_watusso, watusso_meas_pars_t*,pars, quad_su3**,eo_conf, int,iconf, int,create_output_file)
   {
     GET_THREAD_ID();
 
@@ -65,7 +65,7 @@ namespace nissa
 	if(ispat_sme!=0) niters-=smear_pars->nape_spat_iters[ispat_sme-1];
 	ape_spatial_smear_conf(lx_conf,lx_conf,smear_pars->ape_spat_alpha,niters);
 
-	//compute the Watusso
+	//compute the watusso
 	int nu=0;
 	for(int imu=0;imu<3;imu++)
 	  {
@@ -123,7 +123,7 @@ namespace nissa
 		    {
 		      master_fprintf(fout," # rho = %d\n\n",rho);
 		      
-		      complex corr[2*dmax+1];
+		      complex conn[2*dmax+1],disc[2*dmax+1];
 		      for(int orie=-1;orie<=1;orie+=2)
 			{
 			  //copy the vector
@@ -136,7 +136,19 @@ namespace nissa
 			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol) trace_su3_prod_su3(loc_res[ivol],periscoped[ivol],big_su3[ivol]);
 			      //wait and collapse
 			      THREAD_BARRIER();
-			      complex_vector_glb_collapse(corr[dmax+orie*d],loc_res,loc_vol);
+			      complex_vector_glb_collapse(conn[dmax+orie*d],loc_res,loc_vol);
+
+			      //separate trace
+			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+				{
+				  complex p,b;
+				  su3_trace(p,periscoped[ivol]);
+				  su3_trace(b,big_su3[ivol]);
+				  unsafe_complex_prod(loc_res[ivol],p,b);
+				}
+			      //wait and collapse
+			      THREAD_BARRIER();
+			      complex_vector_glb_collapse(disc[dmax+orie*d],loc_res,loc_vol);
 			      
 			      //elong if needed
 			      if(d!=dmax) elong_su3_path(&p,periscoped,lx_conf,rho,-orie,true);
@@ -144,7 +156,9 @@ namespace nissa
 			}
 
 		      //print the output
-		      for(int d=0;d<2*dmax+1;d++) master_fprintf(fout,"%+d %+016.16lg %+016.16lg\n",d-dmax,corr[d][RE]/(3*glb_vol),corr[d][IM]/(3*glb_vol));
+		      for(int d=0;d<2*dmax+1;d++) master_fprintf(fout,"%+d %+016.16lg %+016.16lg +%016.016lg +%016.016lg\n",d-dmax,
+								 conn[d][RE]/(3*glb_vol),conn[d][IM]/(3*glb_vol),
+								 disc[d][RE]/(3*glb_vol),disc[d][IM]/(3*glb_vol));								 
 		      master_fprintf(fout,"\n");
 		      
 		      //increase the perpendicular dimension
