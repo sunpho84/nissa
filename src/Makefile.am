@@ -1,4 +1,4 @@
-include_HEADERS=nissa.hpp
+include_HEADERS=nissa.hpp svnversion.hpp
 
 #add nissa library
 lib_LIBRARIES=$(top_builddir)/lib/libnissa.a
