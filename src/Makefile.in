@@ -545,11 +545,11 @@ am__can_run_installinfo = \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
 DATA = $(global_variable_DATA)
-am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
-	base/debug.hpp base/global_variables.hpp base/init.hpp \
-	base/macros.hpp base/random.hpp base/thread_macros.hpp \
-	base/vectors.hpp base/bgq_instructions.hpp \
-	bgq/Wilson_hopping_matrix_lx_bgq.hpp \
+am__include_HEADERS_DIST = nissa.hpp svnversion.hpp base/bench.hpp \
+	base/close.hpp base/debug.hpp base/global_variables.hpp \
+	base/init.hpp base/macros.hpp base/random.hpp \
+	base/thread_macros.hpp base/vectors.hpp \
+	base/bgq_instructions.hpp bgq/Wilson_hopping_matrix_lx_bgq.hpp \
 	bgq/Wilson_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
 	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.hpp \
 	bgq/staggered_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
@@ -804,11 +804,11 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
-	base/debug.hpp base/global_variables.hpp base/init.hpp \
-	base/macros.hpp base/random.hpp base/thread_macros.hpp \
-	base/vectors.hpp $(am__append_1) $(am__append_4) \
-	$(am__append_6) communicate/all_to_all.hpp \
+include_HEADERS = nissa.hpp svnversion.hpp base/bench.hpp \
+	base/close.hpp base/debug.hpp base/global_variables.hpp \
+	base/init.hpp base/macros.hpp base/random.hpp \
+	base/thread_macros.hpp base/vectors.hpp $(am__append_1) \
+	$(am__append_4) $(am__append_6) communicate/all_to_all.hpp \
 	communicate/borders.hpp communicate/communicate.hpp \
 	communicate/edges.hpp dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp \
