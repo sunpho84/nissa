@@ -28,9 +28,6 @@ AC_SEARCH_LIBS(__gmpz_init,gmp)
 # Check ntl library
 LB_CHECK_NTL
 
-#eigen
-AC_CHECK_HEADER([eigen3/Eigen/Dense],[AC_DEFINE([HAVE_EIGEN],[1],[Defined if Eigen found])])
-
 #spi
 AC_ARG_ENABLE(spi,
 	AS_HELP_STRING([--enable-spi],[Enable spi stuff (ony for BG/Q)]),

@@ -20,8 +20,8 @@
 #define YY_INPUT(buf,result,max_size)		\
    {						\
      char c;					\
-     fscanf(yyextra->fin,"%c",&c);		\
-     if(feof(yyextra->fin)) result=YY_NULL;	\
+     int rc=fscanf(yyextra->fin,"%c",&c);	\
+     if(rc!=1 || feof(yyextra->fin)) result=YY_NULL;	\
      else					\
        {					\
 	 result=1;				\

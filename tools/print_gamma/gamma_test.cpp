@@ -1,6 +1,6 @@
 #include <math.h>
 
-#include "nissa.hpp"
+#include <nissa.hpp>
 
 using namespace nissa;
 
