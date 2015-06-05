@@ -426,11 +426,9 @@ namespace nissa
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_put_to_id(out[ivol]);
-    if(IS_MASTER_THREAD)
-      {
-	coords_t t;
-	c->push_back(t);
-      }
+    coords_t t;
+    c->push_back(t);
+    
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END;
@@ -464,13 +462,10 @@ namespace nissa
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	safe_su3_prod_su3_dag(out[ivol],out[ivol],conf[ivol][mu]);
     
-    if(IS_MASTER_THREAD)
-      {
-	coords_t t(c->back());
-	t[mu]--;
-	c->push_back(t);
-	if(both_sides) c->push_front(t);
-      }
+    coords_t t(c->back());
+    t[mu]--;
+    c->push_back(t);
+    if(both_sides) c->push_front(t);
 
     THREAD_BARRIER();
   }
@@ -495,13 +490,11 @@ namespace nissa
 	safe_su3_prod_su3(out[ivol],out[ivol],conf[ivol][mu]);
     THREAD_BARRIER();
     
-    if(IS_MASTER_THREAD)
-      {
-	coords_t t(c->back());
-	t[mu]++;
-	c->push_back(t);
-	if(both_sides) c->push_front(t);
-      }
+    coords_t t(c->back());
+    t[mu]++;
+    c->push_back(t);
+    if(both_sides) c->push_front(t);
+    
     su3_vec_single_shift(out,mu,+1);
   }
   THREADABLE_FUNCTION_END;

@@ -307,7 +307,7 @@ namespace nissa
     double **ptr=nissa_malloc("ptr",NACTIVE_THREADS,double*);
     ptr[thread_id]=vect;
     THREAD_BARRIER();
-
+    
     //reduce among threads on thread 0
     for(unsigned int jthread=1;jthread<NACTIVE_THREADS;jthread++)
       {
@@ -316,7 +316,9 @@ namespace nissa
       }
     
     //copy to the output
-    NISSA_PARALLEL_LOOP(iel,0,nel) vect[iel]=ptr[0][iel];
+    for(unsigned int jthread=1;jthread<NACTIVE_THREADS;jthread++)
+      NISSA_PARALLEL_LOOP(iel,0,nel)
+	ptr[jthread][iel]=ptr[0][iel];
     
     nissa_free(ptr);
   } 

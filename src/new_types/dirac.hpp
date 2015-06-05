@@ -81,6 +81,20 @@ namespace nissa
     memcpy(out->pos,temp.pos,sizeof(int)*4);
     memcpy(out->entr,temp.entr,sizeof(complex)*4);  
   }
+
+  //take the hermitian
+  inline void dirac_herm(dirac_matr *out,dirac_matr *in)
+  {
+    for(int id=0;id<4;id++)
+      {
+	for(int jd=id+1;jd<4;jd++)
+	  if(in->pos[id]==in->pos[jd])
+	    crash("pos[%d]=%d==pos[%d]",id,in->pos[id],jd);
+	int od=in->pos[id];
+	out->pos[od]=id;
+	complex_conj(out->entr[od],in->entr[id]);
+      }
+  }
   
   //Assign to the first dirac the product of the second by the complex
   //number passed as argument

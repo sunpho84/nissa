@@ -89,11 +89,9 @@ tm_quark_info *leps;
 double *lep_energy,*neu_energy;
 spinspin **L,*temp_lep;
 
-//#define NOQUARK
-//#define NOLEPTON
 //#define NOINSERT
-//#define NOPHOTON
-//#define ONLYTIME
+#define NOPHOTON
+#define ONLYTIME
 
 //return appropriate propagator
 int nqprop,nlprop;
@@ -116,7 +114,7 @@ tm_quark_info get_lepton_info(int ilepton,int orie,int r)
 void generate_original_source()
 {
   //Source coord
-  coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]};
+  //coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]};
   for(int mu=0;mu<4;mu++) source_coord[mu]=0;//(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
   
 #ifdef POINT_SOURCE_VERSION
@@ -1119,11 +1117,22 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
   
   //gets the projectors for Vittorio
   spinspin promu[2],pronu[2];
-  twisted_on_shell_operator_of_imom(promu[0],le,0,true,+1);
-  twisted_on_shell_operator_of_imom(promu[1],le,0,true,-1);
+  twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1);
+  twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1);
   naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
   naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
 
+  //compute the right part of the leptonic loop
+  dirac_matr vitt_proj_gamma[nvitt_g_proj];
+  for(int ig_proj=0;ig_proj<nvitt_g_proj;ig_proj++)
+    {
+      int ig=vitt_g_projs[ig_proj];
+      dirac_matr temp_gamma;
+      dirac_herm(&temp_gamma,base_gamma+ig);
+      dirac_prod(vitt_proj_gamma+ig_proj,base_gamma+0*map_mu[0],&temp_gamma); //ANNA
+      vitt_proj_gamma[ig_proj]=base_gamma[vitt_g_projs[ig_proj]];
+    }
+  
   //debug
   //twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1);
   //twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1);
@@ -1174,27 +1183,18 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	  complex_prodassign(h,ph);
 	  
-#ifndef NOLEPTON
 	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
-#else
- #ifdef NOQUARK
-	  complex_summassign(hl_loc_corr[t][0][0],l);
- #else
-	  complex_summassign(hl_loc_corr[t][0][0],h);
- #endif
-#endif
 	}
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
       //change sign when crossing 0 for averaging corr function properly
-      NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
+      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
 	{
 	  int glb_t=loc_t+glb_coord_of_loclx[0][0];
 	  int sign=1-2*(glb_t<source_coord[0]);
-	  //printf("ANNA SIGN %d %d\n",glb_t,sign);
+	  //if(rank==0 && thread_id==NACTIVE_THREADS-1) printf("ANNA SIGN %d %d %lg\n",glb_t,sign,hl_loc_corr[loc_t][0][0][RE]);
 	  spinspin_prodassign_double(hl_loc_corr[loc_t],sign);
 	}
-      THREAD_BARRIER();
       
       //reduce
       // for(int ig=0;ig<16;ig++)
@@ -1213,19 +1213,15 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	    NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
 	      {
 		int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
-#ifndef NOLEPTON
 		complex hl={0,0};
 		//u multiplies the sink, vbar the source
-		spin Svbar;
-		unsafe_spinspin_prod_spin(Svbar,hl_loc_corr[loc_t],vbar[snu]);
-		for(int id_si=0;id_si<4;id_si++) complex_summ_the_prod(hl,u[smu][id_si],Svbar[id_si]);
-#else
-		complex_copy(hl,hl_corr[loc_t][0][0]);
-#endif
+		spin Sv;
+		unsafe_spinspin_prod_spin(Sv,hl_loc_corr[loc_t],v[snu]);
+		for(int id_si=0;id_si<4;id_si++) complex_summ_the_prod(hl,ubar[smu][id_si],Sv[id_si]);
 		complex_summassign(glb_weak_proj_corr[glb_t+glb_size[0]*(smu+2*(snu+2*(ins+nweak_ins*ind)))],hl);
 	      }
 	if(IS_MASTER_THREAD) nlept_contr_tot+=4;
-	
+
 	//do it again with vittorio
 	for(int ig_proj=0;ig_proj<nvitt_g_proj;ig_proj++)
 	  NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
@@ -1237,12 +1233,13 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	      spinspin dtd;
 	      unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 	      complex hl;
-	      trace_spinspin_with_dirac(hl,dtd,base_gamma+vitt_g_projs[ig_proj]);
+	      trace_spinspin_with_dirac(hl,dtd,vitt_proj_gamma+ig_proj);
 	      
+	      //summ the average
 	      int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
-	      //if(glb_t==11 && ig_proj==0 && ins==3) printf("ANNAPRE %d %d %d %lg\n",glb_t,ig_proj,ins,glb_weak_vitt_corr[i][IM]);
 	      complex_summassign(glb_weak_vitt_corr[i],hl);
-	      //if(glb_t==11 && ig_proj==0 && ins==3) printf("ANNA %d %d %d %lg %lg\n",glb_t,ig_proj,ins,glb_weak_vitt_corr[i][IM],hl[IM]);
+	      
+	      //compute also the error
 	      complex hlq={sqr(hl[0]),sqr(hl[1])};
 	      complex_summassign(glb_weak_vitt_err[i],hlq);
 	    }
