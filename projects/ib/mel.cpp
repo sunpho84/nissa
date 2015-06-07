@@ -159,7 +159,7 @@ void generate_photon_stochastic_propagator()
 void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
 {
   source_time-=take_time();
-
+  
   switch(inser)
     {
     case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
