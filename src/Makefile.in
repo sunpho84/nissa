@@ -2337,7 +2337,7 @@ uninstall-am: uninstall-global_variableDATA uninstall-includeHEADERS \
 	uninstall-am uninstall-global_variableDATA \
 	uninstall-includeHEADERS uninstall-libLIBRARIES
 
-update_svnversion:
+svnversion.hpp update_svnversion:
 	$(srcdir)/base/update_svnversion.hpp.sh $(top_srcdir)
 .PHONY: update_svnversion
 
