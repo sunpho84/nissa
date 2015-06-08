@@ -31,7 +31,7 @@ endif
 
 #svn versioning: specify to build sources and include script
 BUILT_SOURCES=update_svnversion svnversion.hpp
-update_svnversion:
+svnversion.hpp update_svnversion:
 	$(srcdir)/base/update_svnversion.hpp.sh $(top_srcdir)
 .PHONY: update_svnversion
 EXTRA_DIST=svnversion.hpp base/update_svnversion.hpp.sh
@@ -405,7 +405,8 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/contract/mesons_eight.cpp \
 	operations/contract/optimized_mesons_2pts.cpp \
 	operations/contract/site_contract.cpp \
-	operations/contract/stag.cpp \
+	operations/contract/stag/stag.cpp \
+	operations/contract/stag/dens.cpp \
 	operations/covariant_derivative.cpp \
 	operations/fft.cpp \
 	operations/fourier_transform.cpp \
@@ -449,7 +450,8 @@ include_HEADERS+= \
 	operations/contract/mesons_eight.hpp \
 	operations/contract/optimized_mesons_2pts.hpp \
 	operations/contract/site_contract.hpp \
-	operations/contract/stag.hpp \
+	operations/contract/stag/stag.hpp \
+	operations/contract/stag/dens.hpp \
 	operations/smearing/APE.hpp \
 	operations/smearing/HYP.hpp \
 	operations/smearing/stout.hpp \

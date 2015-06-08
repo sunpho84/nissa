@@ -65,6 +65,9 @@ spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
 		      {{{+W, 0},{ 0, 0},{-W, 0},{ 0, 0}},
 		       {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
 
+
+#define DEBUG
+
 //define types of quark propagator used
 const int nins_kind=6;
 enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  STOCH_PHI,  STOCH_ETA,  TADPOLE};
@@ -72,6 +75,9 @@ const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","STOCH_PHI","ST
 const int nqprop_kind=7;
 enum qprop_t{                           PROP_0,  PROP_S,  PROP_P,  PROP_PHI,  PROP_ETA,  PROP_PHIETA,  PROP_T};
 const char prop_name[nqprop_kind][20]={"PROP_0","PROP_S","PROP_P","PROP_PHI","PROP_ETA","PROP_PHIETA","PROP_T"};
+#ifndef DEBUG
+const qprop_t PROP_PHI_ETA[2]={PROP_PHI,PROP_ETA};
+#endif
 //map the source, the destination and the insertion for each propagator
 const qprop_t prop_map[nqprop_kind]=         {PROP_0,   PROP_S, PROP_P, PROP_PHI,  PROP_ETA,  PROP_PHIETA, PROP_T};
 const insertion_t insertion_map[nqprop_kind]={ORIGINAL, SCALAR, PSEUDO, STOCH_PHI, STOCH_ETA, STOCH_ETA,   TADPOLE};
@@ -475,10 +481,10 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   double arg=get_space_arg(ivol,le.bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
   double ext=exp(t*lep_energy[ilepton]);
-  
+  ext=1;
   //compute full exponential (notice the factor -1)
-  out[RE]=cos(-arg)*ext;
-  out[IM]=sin(-arg)*ext;
+  out[RE]=cos(-arg)*ext; //ANNA
+  out[IM]=sin(-arg)*ext; //ANNA
 }
 
 //compute the phase for antineutrino - the orientation is that of the muon (as above)
@@ -487,9 +493,10 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
   //compute space and time factor
   double arg=get_space_arg(ivol,bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
-  t*=(1-2*(t>=glb_size[0]/2));
+  //t*=(1-2*(t>=glb_size[0]/2));
+  if(t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*neu_energy[ilepton]);
-  
+  ext=1;
   //compute full exponential (notice the factor +1)
   out[RE]=cos(+arg)*ext;
   out[IM]=sin(+arg)*ext;
@@ -502,7 +509,11 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
   
   vector_reset(prop);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
+    //if(twall==-1||glb_coord_of_loclx[ivol][0]==twall) //ANNA
+    if(glb_coord_of_loclx[ivol][0]==glb_size[0]-1
+       &&glb_coord_of_loclx[ivol][1]==0
+       &&glb_coord_of_loclx[ivol][2]==0
+       &&glb_coord_of_loclx[ivol][3]==0)
       {
 	complex ph;
 	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
@@ -528,10 +539,22 @@ void trace_test_lep_prop_source(complex *c,spinspin *prop,tm_quark_info le,int i
       //compute steps
       momentum_t steps;
       for(int mu=1;mu<4;mu++)
-	steps[mu]=-le.bc[mu]*M_PI/glb_size[mu];
+	steps[mu]=+le.bc[mu]*M_PI/glb_size[mu];
       
       spinspin pr;
       twisted_particle_anti_particle_projector_of_imom(pr,le,imom,par_apar);
+
+      //test
+      {
+	spinspin Die,Dtie;
+	twisted_on_shell_operator_of_imom(Die,le,0,false,-1);
+	twisted_on_shell_operator_of_imom(Dtie,le,0,true,+1);
+	spinspin o;
+	unsafe_spinspin_prod_spinspin(o,Dtie,Die);
+	spinspin_print(o);
+      }
+      crash("");
+
       NISSA_LOC_VOL_LOOP(ivol)
 	{
 	  //compute phase exponent
@@ -540,7 +563,8 @@ void trace_test_lep_prop_source(complex *c,spinspin *prop,tm_quark_info le,int i
 	    arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
 	  
 	  //compute pure time factor
-	  double ext=exp(-(glb_size[0]-glb_coord_of_loclx[ivol][0])*E);
+	  double ext=1;// exp(-(glb_size[0]-glb_coord_of_loclx[ivol][0])*E); ANNA
+	  //double ext=exp(-(glb_size[0]-glb_coord_of_loclx[ivol][0])*E);
 	  
 	  //compute the phase
 	  complex ph={ext*cos(arg),ext*sin(arg)};
@@ -560,6 +584,10 @@ void trace_test_lep_prop_source(complex *c,spinspin *prop,tm_quark_info le,int i
 void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords dirs,tm_quark_info &le)
 { 
   GET_THREAD_ID();
+
+#ifdef DEBUG
+  crash("must not be called");  
+#endif
   
   //select A
   spin1field *A=(phi_eta==0)?photon_phi:photon_eta;
@@ -658,14 +686,17 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    int iprop=ilprop(ilepton,orie,phi_eta,r);
 	    spinspin *prop=L[iprop];
 	    
+	    
 	    //put it to a phase
 	    int twall=((glb_size[0]/2+0+source_coord[0])%glb_size[0]);
 	    set_to_lepton_sink_phase_factor(prop,ilepton,le,twall);
 	    
 	    //multiply and the insert the current in between, on the source side
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
+#ifndef DEBUG
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
+#endif
 	  }
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
@@ -771,7 +802,7 @@ THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PRO
 	  for(int id_si2=0;id_si2<4;id_si2++)
 	    for(int id_so=0;id_so<4;id_so++)
 	      complex_summ_the_conj1_prod
-		(hadr[ivol][id_si2][id_si1], //this way the trace with dirac matrix is acting as if it was acting on S2, as it should
+		(hadr[ivol][id_si2][id_si1], //this way when taking the trace with dirac matrix, that is acting on S2, as it should
 #ifdef POINT_SOURCE_VERSION
 		 S1[ivol][ic_si][ic_so][id_si1][id_so],S2[ivol][ic_so][ic_si][id_si2][id_so])
 #else
@@ -811,7 +842,7 @@ void get_polvect_bar(spin *ubar,spin *v,tm_quark_info &le)
 }
 
 //compute the leptonic part of the correlation function
-THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ind)
+THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ind)
 {
   GET_THREAD_ID();
   
@@ -869,7 +900,8 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	  complex ph;
 	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	  complex_prodassign(h,ph);
-	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
+	  //spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h); //ANNA
+	  spinspin_summ_the_complex_prod(hl_loc_corr[t],lept[ivol],ph);//ANNA
 	}
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
@@ -902,13 +934,19 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	  {
 	    int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
 	    int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
-	    spinspin td;
-	    unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ilnp]);
-	    spinspin dtd;
-	    unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
+	    //ANNA
+	    //spinspin td;
+	    //unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ilnp]);
+	    //spinspin dtd;
+	    //unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
+	    //complex hl;
+	    //trace_spinspin_with_dirac(hl,dtd,vitt_proj_gamma+ig_proj);
+
+	    spinspin ert; //ANNA
+	    unsafe_spinspin_prod_spinspin(ert,promu[ilnp],hl_loc_corr[loc_t]);
 	    complex hl;
-	    trace_spinspin_with_dirac(hl,dtd,vitt_proj_gamma+ig_proj);
-	    
+	    trace_spinspin(hl,ert);
+
 	    //summ the average
 	    int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
 	    complex_summassign(glb_weak_vitt_corr[i],hl);
@@ -916,6 +954,11 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
       if(IS_MASTER_THREAD) nlept_contr_tot+=nvitt_g_proj;
       THREAD_BARRIER();
     }
+  complex c[glb_size[0]];
+  trace_test_lep_prop_source(c,lept,le,ilepton);
+  for(int t=0;t<glb_size[0];t++)
+    master_printf("%d %lg %lg\n",t,c[t][0],c[t][1]);
+  crash("");
 }
 THREADABLE_FUNCTION_END
 
@@ -940,8 +983,25 @@ void compute_hadroleptonic_correlation()
 	      if(irev==1) std::swap(iq1,iq2); //select the propagator to revert
 	      
 	      //takes the propagators
-	      int ip1=iqprop(iq1,(qins==0)?((phi_eta==0)?PROP_PHI:PROP_ETA):PROP_0,r2); //q1 will be reverted
-	      int ip2=iqprop(iq2,(qins==1)?((phi_eta==0)?PROP_PHI:PROP_ETA):PROP_0,r2);
+	      qprop_t PROP1_TYPE,PROP2_TYPE;
+#ifndef DEBUG
+	      if(qins==0)
+		{
+		  PROP1_TYPE=PROP_PHI_ETA[phi_eta];
+#endif
+		  PROP2_TYPE=PROP_0;
+#ifndef DEBUG
+		}
+	      else
+		{
+#endif
+		  PROP1_TYPE=PROP_0;
+#ifndef DEBUG
+		  PROP2_TYPE=PROP_PHI_ETA[phi_eta];
+		}
+#endif
+	      int ip1=iqprop(iq1,PROP1_TYPE,r2); //q1 will be reverted
+	      int ip2=iqprop(iq2,PROP2_TYPE,r2);
 	      //compute the hadronic part
 	      hadronic_part_leptonic_correlation(hadr,Q[ip1],Q[ip2]);
 	      
@@ -950,7 +1010,7 @@ void compute_hadroleptonic_correlation()
 		  {
 		    //contract with lepton
 		    int iprop=ilprop(ilepton,orie,!phi_eta,rl); //notice inversion of phi/eta w.r.t hadron side
-		    compute_leptonic_correlation(hadr,iprop,ilepton,orie,rl,ind);
+		    attach_leptonic_correlation(hadr,iprop,ilepton,orie,rl,ind);
 		    ind++;
 		  }
 	    }
