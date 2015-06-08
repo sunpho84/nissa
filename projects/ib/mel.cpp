@@ -487,7 +487,7 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
   //compute space and time factor
   double arg=get_space_arg(ivol,bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
-  //if(t>=glb_size[0]/2) t=glb_size[0]-t; //unneeded
+  t*=(1-2*(t>=glb_size[0]/2));
   double ext=exp(t*neu_energy[ilepton]);
   
   //compute full exponential (notice the factor +1)
@@ -564,7 +564,7 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
   //select A
   spin1field *A=(phi_eta==0)?photon_phi:photon_eta;
   communicate_lx_spin1field_borders(A);
-	    
+  
   //phases
   complex phases[4];
   for(int mu=0;mu<NDIM;mu++)
@@ -592,9 +592,9 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
 	spinspin ph_bw,ph_fw;
 
 	//transport down and up
-	if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex(ph_fw,temp_lep[ifw],phases[mu]);
+	if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
 	else spinspin_copy(ph_fw,temp_lep[ifw]);
-	if(glb_coord_of_loclx[ivol][mu]==0) unsafe_spinspin_prod_complex_conj2(ph_bw,temp_lep[ibw],phases[mu]);
+	if(glb_coord_of_loclx[ivol][mu]==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
 	else spinspin_copy(ph_bw,temp_lep[ibw]);
 	
 	//fix coefficients - i is inserted here!
@@ -662,7 +662,7 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    int twall=((glb_size[0]/2+0+source_coord[0])%glb_size[0]);
 	    set_to_lepton_sink_phase_factor(prop,ilepton,le,twall);
 	    
-	    //multiply and the insert the current in between
+	    //multiply and the insert the current in between, on the source side
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
@@ -714,7 +714,7 @@ void print_hadronic_correlations()
       //normalise
       complex_prodassign_double(hadr_ave[i],n);
       complex_prodassign_double(hadr_err[i],n);
-
+      
       //compute the true error
       complex temp={sqr(hadr_ave[i][RE]),sqr(hadr_ave[i][IM])};
       complex_subtassign(hadr_err[i],temp);
@@ -759,7 +759,7 @@ THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PRO
   GET_THREAD_ID();
   
   vector_reset(hadr);
-
+  
   //it's just the matter of inserting gamma5*gamma5=identity between S1^dag and S2
   //on the sink gamma5 must still be inserted!
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -771,7 +771,7 @@ THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PRO
 	  for(int id_si2=0;id_si2<4;id_si2++)
 	    for(int id_so=0;id_so<4;id_so++)
 	      complex_summ_the_conj1_prod
-		(hadr[ivol][id_si2][id_si1], //this way the trace with dirac matrix is acting as if the d.m is multiplying S2 on the sink side
+		(hadr[ivol][id_si2][id_si1], //this way the trace with dirac matrix is acting as if it was acting on S2, as it should
 #ifdef POINT_SOURCE_VERSION
 		 S1[ivol][ic_si][ic_so][id_si1][id_so],S2[ivol][ic_so][ic_si][id_si2][id_so])
 #else
@@ -796,7 +796,7 @@ void get_polvect(spin *u,spin *vbar,tm_quark_info &le)
     }
 }
 
-//compute the polarisation vector
+//compute the polarisation vector barred
 void get_polvect_bar(spin *ubar,spin *v,tm_quark_info &le)
 {
   for(int s=0;s<2;s++)
@@ -869,7 +869,6 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	  complex ph;
 	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	  complex_prodassign(h,ph);
-	  
 	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
 	}
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
@@ -882,7 +881,7 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	  spinspin_prodassign_double(hl_loc_corr[loc_t],sign);
 	}
       
-      //do it using the spinor
+      //save the decomposition on spinor
       for(int smu=0;smu<2;smu++)
 	for(int snu=0;snu<2;snu++)
 	  NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
@@ -897,7 +896,7 @@ THREADABLE_FUNCTION_6ARG(compute_leptonic_correlation, spinspin*,hadr, int,iprop
 	    }
       if(IS_MASTER_THREAD) nlept_contr_tot+=4;
       
-      //do it again with vittorio
+      //save decomposition Vittorio style
       for(int ig_proj=0;ig_proj<nvitt_g_proj;ig_proj++)
 	NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
 	  {
@@ -950,7 +949,7 @@ void compute_hadroleptonic_correlation()
 		for(int rl=0;rl<nr;rl++)
 		  {
 		    //contract with lepton
-		    int iprop=ilprop(ilepton,orie,!phi_eta,rl);
+		    int iprop=ilprop(ilepton,orie,!phi_eta,rl); //notice inversion of phi/eta w.r.t hadron side
 		    compute_leptonic_correlation(hadr,iprop,ilepton,orie,rl,ind);
 		    ind++;
 		  }
