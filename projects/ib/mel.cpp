@@ -66,8 +66,8 @@ spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
 		       {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
 
 
-#define DEBUG
-#define NOINSQ
+//#define DEBUG
+//#define NOINSQ
 
 //define types of quark propagator used
 const int nins_kind=6;
@@ -687,11 +687,13 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    
 	    //multiply and the insert the current in between, on the source side
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
-	    //#ifndef DEBUG
+#ifndef DEBUG
+	    int dir0[4]={1,1,1,1};
+#else
 	    int dir0[4]={0,1,0,0};
+#endif
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,dir0,le);
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
-	    //#endif
 	  }
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
