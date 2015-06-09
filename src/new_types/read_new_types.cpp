@@ -187,6 +187,21 @@ namespace nissa
       }
   }
   
+  //read parameters to measure the quark density and its derivatives
+  void read_quark_rendens_meas_pars(quark_rendens_meas_pars_t &pars,bool flag=false)
+  {
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasureQuarkRendens",&pars.flag);
+    if(pars.flag)
+      {
+        read_str_str("Path",pars.path,1024);
+        read_str_double("InvResidue",&pars.residue);
+        read_str_int("Order",&pars.order);
+        read_str_int("NCopies",&pars.ncopies);
+        read_str_int("NHits",&pars.nhits);
+      }
+  }
+  
   //read parameters to measure magnetization
   void read_magnetization_meas_pars(magnetization_meas_pars_t &pars,bool flag=false)
   {
@@ -336,6 +351,7 @@ namespace nissa
 	//info on pseudoscalar meson correlators, condensate and magnetization measure
 	read_pseudo_corr_meas_pars(theory_pars.pseudo_corr_meas_pars);
 	read_fermionic_putpourri_meas_pars(theory_pars.fermionic_putpourri_meas_pars);
+	read_quark_rendens_meas_pars(theory_pars.quark_rendens_meas_pars);
 	read_magnetization_meas_pars(theory_pars.magnetization_meas_pars);
       }
   }

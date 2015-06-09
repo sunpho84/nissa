@@ -1,6 +1,5 @@
-
-#ifndef _READ_NEW_TYPES_H
-#define _READ_NEW_TYPES_H
+#ifndef _READ_NEW_TYPES_HPP
+#define _READ_NEW_TYPES_HPP
 
 namespace nissa
 {
@@ -8,6 +7,7 @@ namespace nissa
   void read_gauge_obs_meas_pars(gauge_obs_meas_pars_t &pars,bool flag=false);
   void read_poly_corr_meas_pars(poly_corr_meas_pars_t &pars,bool flag=false);
   void read_fermionic_putpourri_meas_pars(fermionic_putpourri_meas_pars_t &pars,bool flag=false);
+  void read_quark_rendens_meas_pars(quark_rendens_meas_pars_t &pars,bool flag=false);
   void read_em_field_pars(em_field_pars_t &em_field_pars,bool flag=false);
   void read_magnetization_meas_pars(magnetization_meas_pars_t &pars,bool flag=false);
   void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars);

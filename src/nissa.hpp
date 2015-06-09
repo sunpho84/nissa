@@ -121,7 +121,6 @@
 #include "operations/contract/mesons_eight.hpp"
 #include "operations/contract/optimized_mesons_2pts.hpp"
 #include "operations/contract/site_contract.hpp"
-#include "operations/contract/stag.hpp"
 #include "operations/covariant_derivative.hpp"
 #include "operations/fft.hpp"
 #include "operations/fourier_transform.hpp"
@@ -135,6 +134,9 @@
 #include "operations/smearing/stout.hpp"
 #include "operations/smearing/gaussian.hpp"
 #include "operations/source.hpp"
+
+#include "operations/stag/stag.hpp"
+#include "operations/stag/rendens.hpp"
 
 #include "operations/su3_paths/all_rectangles.hpp"
 #include "operations/su3_paths/arbitrary.hpp"

@@ -259,7 +259,7 @@ crash("anna");
     //set back everything
     printf("pre: %lg, post: %lg\n",pre,post);
     su3_copy(conf[0][0],sto);
-    double num=-(post-pre)/eps;
+    //double num=-(post-pre)/eps;
 #endif
     
     for(int nu=0;nu<4;nu++)
