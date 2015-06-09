@@ -481,10 +481,9 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   double arg=get_space_arg(ivol,le.bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
   double ext=exp(t*lep_energy[ilepton]);
-  ext=1;
   //compute full exponential (notice the factor -1)
-  out[RE]=cos(-arg)*ext; //ANNA
-  out[IM]=sin(-arg)*ext; //ANNA
+  out[RE]=cos(-arg)*ext;
+  out[IM]=sin(-arg)*ext;
 }
 
 //compute the phase for antineutrino - the orientation is that of the muon (as above)
@@ -496,7 +495,7 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
   //t*=(1-2*(t>=glb_size[0]/2));
   if(t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*neu_energy[ilepton]);
-  ext=1;
+
   //compute full exponential (notice the factor +1)
   out[RE]=cos(+arg)*ext;
   out[IM]=sin(+arg)*ext;
@@ -509,11 +508,7 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
   
   vector_reset(prop);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    //if(twall==-1||glb_coord_of_loclx[ivol][0]==twall) //ANNA
-    if(glb_coord_of_loclx[ivol][0]==glb_size[0]-1
-       &&glb_coord_of_loclx[ivol][1]==0
-       &&glb_coord_of_loclx[ivol][2]==0
-       &&glb_coord_of_loclx[ivol][3]==0)
+    if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
       {
 	complex ph;
 	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
@@ -543,17 +538,6 @@ void trace_test_lep_prop_source(complex *c,spinspin *prop,tm_quark_info le,int i
       
       spinspin pr;
       twisted_particle_anti_particle_projector_of_imom(pr,le,imom,par_apar);
-
-      //test
-      {
-	spinspin Die,Dtie;
-	twisted_on_shell_operator_of_imom(Die,le,0,false,-1);
-	twisted_on_shell_operator_of_imom(Dtie,le,0,true,+1);
-	spinspin o;
-	unsafe_spinspin_prod_spinspin(o,Dtie,Die);
-	spinspin_print(o);
-      }
-      crash("");
 
       NISSA_LOC_VOL_LOOP(ivol)
 	{
@@ -685,8 +669,7 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    //select the propagator
 	    int iprop=ilprop(ilepton,orie,phi_eta,r);
 	    spinspin *prop=L[iprop];
-	    
-	    
+	    	    
 	    //put it to a phase
 	    int twall=((glb_size[0]/2+0+source_coord[0])%glb_size[0]);
 	    set_to_lepton_sink_phase_factor(prop,ilepton,le,twall);
@@ -900,8 +883,8 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  complex ph;
 	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	  complex_prodassign(h,ph);
-	  //spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h); //ANNA
-	  spinspin_summ_the_complex_prod(hl_loc_corr[t],lept[ivol],ph);//ANNA
+	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h); //ANNA
+	  //spinspin_summ_the_complex_prod(hl_loc_corr[t],lept[ivol],ph);//ANNA
 	}
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
@@ -935,17 +918,17 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	    int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
 	    int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
 	    //ANNA
-	    //spinspin td;
-	    //unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ilnp]);
-	    //spinspin dtd;
-	    //unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
-	    //complex hl;
-	    //trace_spinspin_with_dirac(hl,dtd,vitt_proj_gamma+ig_proj);
-
-	    spinspin ert; //ANNA
-	    unsafe_spinspin_prod_spinspin(ert,promu[ilnp],hl_loc_corr[loc_t]);
+	    spinspin td;
+	    unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ilnp]);
+	    spinspin dtd;
+	    unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 	    complex hl;
-	    trace_spinspin(hl,ert);
+	    trace_spinspin_with_dirac(hl,dtd,vitt_proj_gamma+ig_proj);
+
+	    //spinspin ert; //ANNA
+	    //unsafe_spinspin_prod_spinspin(ert,promu[ilnp],hl_loc_corr[loc_t]);
+	    //complex hl;
+	    //trace_spinspin(hl,ert);
 
 	    //summ the average
 	    int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
@@ -958,7 +941,7 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
   trace_test_lep_prop_source(c,lept,le,ilepton);
   for(int t=0;t<glb_size[0];t++)
     master_printf("%d %lg %lg\n",t,c[t][0],c[t][1]);
-  crash("");
+  //crash("");
 }
 THREADABLE_FUNCTION_END
 
