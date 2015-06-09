@@ -488,6 +488,17 @@ namespace nissa
     int nhits;
   };
   
+  //parameters to compute the quark density and its high-order suscetivities
+  struct quark_rendens_meas_pars_t
+  {
+    int flag;
+    char path[1024];
+    double residue;
+    int order;
+    int ncopies;
+    int nhits;
+  };
+  
   //parameters to compute the magnetization
   struct magnetization_meas_pars_t
   {
@@ -642,6 +653,7 @@ namespace nissa
     stout_pars_t stout_pars;
     em_field_pars_t em_field_pars;
     fermionic_putpourri_meas_pars_t fermionic_putpourri_meas_pars;
+    quark_rendens_meas_pars_t quark_rendens_meas_pars;
     magnetization_meas_pars_t magnetization_meas_pars;
     pseudo_corr_meas_pars_t pseudo_corr_meas_pars;
   };

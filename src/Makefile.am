@@ -405,8 +405,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/contract/mesons_eight.cpp \
 	operations/contract/optimized_mesons_2pts.cpp \
 	operations/contract/site_contract.cpp \
-	operations/contract/stag/stag.cpp \
-	operations/contract/stag/dens.cpp \
 	operations/covariant_derivative.cpp \
 	operations/fft.cpp \
 	operations/fourier_transform.cpp \
@@ -422,6 +420,8 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/smearing/stout_eo.cpp \
 	operations/smearing/stout_lx.cpp \
 	operations/smearing/gaussian.cpp \
+	operations/stag/stag.cpp \
+	operations/stag/rendens.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
@@ -450,12 +450,12 @@ include_HEADERS+= \
 	operations/contract/mesons_eight.hpp \
 	operations/contract/optimized_mesons_2pts.hpp \
 	operations/contract/site_contract.hpp \
-	operations/contract/stag/stag.hpp \
-	operations/contract/stag/dens.hpp \
 	operations/smearing/APE.hpp \
 	operations/smearing/HYP.hpp \
 	operations/smearing/stout.hpp \
 	operations/smearing/gaussian.hpp \
+	operations/stag/stag.hpp \
+	operations/stag/rendens.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \

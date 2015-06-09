@@ -506,8 +506,9 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       int fermionic_putpourri_flag=check_flag_and_curr_conf(theory_pars[itheory].fermionic_putpourri_meas_pars.flag,iconf);
       int magnetization_flag=check_flag_and_curr_conf(theory_pars[itheory].magnetization_meas_pars.flag,iconf);
       int pseudo_corr_flag=check_flag_and_curr_conf(theory_pars[itheory].pseudo_corr_meas_pars.flag,iconf);
+      int quark_rendens_flag=check_flag_and_curr_conf(theory_pars[itheory].quark_rendens_meas_pars.flag,iconf);
       
-      if(fermionic_putpourri_flag||magnetization_flag||pseudo_corr_flag)
+      if(fermionic_putpourri_flag||magnetization_flag||pseudo_corr_flag||quark_rendens_flag)
 	{
 	  //if needed stout
 	  quad_su3 **temp_conf=(theory_pars[itheory].stout_pars.nlev==0)?conf:new_conf;
@@ -516,21 +517,28 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	  stout_smear(temp_conf,conf,&(theory_pars[itheory].stout_pars));
 	  
 	  //fermionic grand mix
-	  if(fermionic_putpourri_flag && (iconf%fermionic_putpourri_flag==0))
+	  if(fermionic_putpourri_flag)
 	    {
 	      verbosity_lv1_master_printf("Measuring fermionic putpourri for theory %d/%d\n",itheory+1,ntheories);
 	      measure_fermionic_putpourri(temp_conf,theory_pars[itheory],iconf,conf_created);
 	    }
 	  
+	  //quark rendensity
+	  if(quark_rendens_flag)
+	    {
+	      verbosity_lv1_master_printf("Measuring quark rendensity for theory %d/%d\n",itheory+1,ntheories);
+	      measure_quark_rendens(temp_conf,theory_pars[itheory],iconf,conf_created);
+	    }
+	  
 	  //magnetization
-	  if(magnetization_flag && (iconf%magnetization_flag==0))
+	  if(magnetization_flag)
 	    {
 	      verbosity_lv1_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,ntheories);
 	      measure_magnetization(temp_conf,theory_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //pseudoscalar meson time corr
-	  if(pseudo_corr_flag && (iconf%pseudo_corr_flag==0))
+	  if(pseudo_corr_flag)
 	    {
 	      verbosity_lv1_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
 	      measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,conf_created,0);

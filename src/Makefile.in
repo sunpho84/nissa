@@ -320,7 +320,6 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	operations/contract/mesons_eight.cpp \
 	operations/contract/optimized_mesons_2pts.cpp \
 	operations/contract/site_contract.cpp \
-	operations/contract/stag.cpp \
 	operations/covariant_derivative.cpp operations/fft.cpp \
 	operations/fourier_transform.cpp operations/gauge_fixing.cpp \
 	operations/gaugeconf.cpp operations/remap_vector.cpp \
@@ -330,7 +329,8 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	operations/smearing/stout_common.cpp \
 	operations/smearing/stout_eo.cpp \
 	operations/smearing/stout_lx.cpp \
-	operations/smearing/gaussian.cpp \
+	operations/smearing/gaussian.cpp operations/stag/stag.cpp \
+	operations/stag/rendens.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
@@ -464,7 +464,6 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	operations/contract/mesons_eight.$(OBJEXT) \
 	operations/contract/optimized_mesons_2pts.$(OBJEXT) \
 	operations/contract/site_contract.$(OBJEXT) \
-	operations/contract/stag.$(OBJEXT) \
 	operations/covariant_derivative.$(OBJEXT) \
 	operations/fft.$(OBJEXT) \
 	operations/fourier_transform.$(OBJEXT) \
@@ -479,6 +478,8 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	operations/smearing/stout_eo.$(OBJEXT) \
 	operations/smearing/stout_lx.$(OBJEXT) \
 	operations/smearing/gaussian.$(OBJEXT) \
+	operations/stag/stag.$(OBJEXT) \
+	operations/stag/rendens.$(OBJEXT) \
 	operations/su3_paths/all_rectangles.$(OBJEXT) \
 	operations/su3_paths/arbitrary.$(OBJEXT) \
 	operations/su3_paths/gauge_sweeper.$(OBJEXT) \
@@ -663,9 +664,9 @@ am__include_HEADERS_DIST = nissa.hpp svnversion.hpp base/bench.hpp \
 	operations/contract/mesons_eight.hpp \
 	operations/contract/optimized_mesons_2pts.hpp \
 	operations/contract/site_contract.hpp \
-	operations/contract/stag.hpp operations/smearing/APE.hpp \
-	operations/smearing/HYP.hpp operations/smearing/stout.hpp \
-	operations/smearing/gaussian.hpp \
+	operations/smearing/APE.hpp operations/smearing/HYP.hpp \
+	operations/smearing/stout.hpp operations/smearing/gaussian.hpp \
+	operations/stag/stag.hpp operations/stag/rendens.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \
@@ -895,9 +896,9 @@ include_HEADERS = nissa.hpp svnversion.hpp base/bench.hpp \
 	operations/contract/mesons_eight.hpp \
 	operations/contract/optimized_mesons_2pts.hpp \
 	operations/contract/site_contract.hpp \
-	operations/contract/stag.hpp operations/smearing/APE.hpp \
-	operations/smearing/HYP.hpp operations/smearing/stout.hpp \
-	operations/smearing/gaussian.hpp \
+	operations/smearing/APE.hpp operations/smearing/HYP.hpp \
+	operations/smearing/stout.hpp operations/smearing/gaussian.hpp \
+	operations/stag/stag.hpp operations/stag/rendens.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \
@@ -1022,7 +1023,6 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	operations/contract/mesons_eight.cpp \
 	operations/contract/optimized_mesons_2pts.cpp \
 	operations/contract/site_contract.cpp \
-	operations/contract/stag.cpp \
 	operations/covariant_derivative.cpp operations/fft.cpp \
 	operations/fourier_transform.cpp operations/gauge_fixing.cpp \
 	operations/gaugeconf.cpp operations/remap_vector.cpp \
@@ -1032,7 +1032,8 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	operations/smearing/stout_common.cpp \
 	operations/smearing/stout_eo.cpp \
 	operations/smearing/stout_lx.cpp \
-	operations/smearing/gaussian.cpp \
+	operations/smearing/gaussian.cpp operations/stag/stag.cpp \
+	operations/stag/rendens.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
@@ -1656,9 +1657,6 @@ operations/contract/optimized_mesons_2pts.$(OBJEXT):  \
 operations/contract/site_contract.$(OBJEXT):  \
 	operations/contract/$(am__dirstamp) \
 	operations/contract/$(DEPDIR)/$(am__dirstamp)
-operations/contract/stag.$(OBJEXT):  \
-	operations/contract/$(am__dirstamp) \
-	operations/contract/$(DEPDIR)/$(am__dirstamp)
 operations/$(am__dirstamp):
 	@$(MKDIR_P) operations
 	@: > operations/$(am__dirstamp)
@@ -1714,6 +1712,16 @@ operations/smearing/stout_lx.$(OBJEXT):  \
 operations/smearing/gaussian.$(OBJEXT):  \
 	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
+operations/stag/$(am__dirstamp):
+	@$(MKDIR_P) operations/stag
+	@: > operations/stag/$(am__dirstamp)
+operations/stag/$(DEPDIR)/$(am__dirstamp):
+	@$(MKDIR_P) operations/stag/$(DEPDIR)
+	@: > operations/stag/$(DEPDIR)/$(am__dirstamp)
+operations/stag/stag.$(OBJEXT): operations/stag/$(am__dirstamp) \
+	operations/stag/$(DEPDIR)/$(am__dirstamp)
+operations/stag/rendens.$(OBJEXT): operations/stag/$(am__dirstamp) \
+	operations/stag/$(DEPDIR)/$(am__dirstamp)
 operations/su3_paths/$(am__dirstamp):
 	@$(MKDIR_P) operations/su3_paths
 	@: > operations/su3_paths/$(am__dirstamp)
@@ -1815,6 +1823,7 @@ mostlyclean-compile:
 	-rm -f operations/contract/*.$(OBJEXT)
 	-rm -f operations/remez/*.$(OBJEXT)
 	-rm -f operations/smearing/*.$(OBJEXT)
+	-rm -f operations/stag/*.$(OBJEXT)
 	-rm -f operations/su3_paths/*.$(OBJEXT)
 	-rm -f routines/*.$(OBJEXT)
 
@@ -1958,7 +1967,6 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/mesons_eight.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/optimized_mesons_2pts.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/site_contract.Po@am__quote@
-@AMDEP_TRUE@@am__include@ @am__quote@operations/contract/$(DEPDIR)/stag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/remez/$(DEPDIR)/remez_algorithm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/APE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/HYP.Po@am__quote@
@@ -1966,6 +1974,8 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout_common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout_eo.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout_lx.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/stag/$(DEPDIR)/rendens.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/stag/$(DEPDIR)/stag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/all_rectangles.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/arbitrary.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/gauge_sweeper.Po@am__quote@
@@ -2239,6 +2249,8 @@ distclean-generic:
 	-rm -f operations/remez/$(am__dirstamp)
 	-rm -f operations/smearing/$(DEPDIR)/$(am__dirstamp)
 	-rm -f operations/smearing/$(am__dirstamp)
+	-rm -f operations/stag/$(DEPDIR)/$(am__dirstamp)
+	-rm -f operations/stag/$(am__dirstamp)
 	-rm -f operations/su3_paths/$(DEPDIR)/$(am__dirstamp)
 	-rm -f operations/su3_paths/$(am__dirstamp)
 	-rm -f routines/$(DEPDIR)/$(am__dirstamp)
@@ -2254,7 +2266,7 @@ clean: clean-am
 clean-am: clean-generic clean-libLIBRARIES mostlyclean-am
 
 distclean: distclean-am
-	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/momenta/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) free_theory/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/momenta/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
+	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/momenta/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) free_theory/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/momenta/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/stag/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
 	-rm -f Makefile
 distclean-am: clean-am distclean-compile distclean-generic \
 	distclean-hdr distclean-tags
@@ -2300,7 +2312,7 @@ install-ps-am:
 installcheck-am:
 
 maintainer-clean: maintainer-clean-am
-	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/momenta/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) free_theory/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/momenta/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
+	-rm -rf base/$(DEPDIR) bgq/$(DEPDIR) communicate/$(DEPDIR) dirac_operators/WclovQ/$(DEPDIR) dirac_operators/WclovQ2/$(DEPDIR) dirac_operators/Wstat/$(DEPDIR) dirac_operators/momenta/$(DEPDIR) dirac_operators/stD/$(DEPDIR) dirac_operators/tmDeoimpr/$(DEPDIR) dirac_operators/tmQ/$(DEPDIR) dirac_operators/tmQ2/$(DEPDIR) dirac_operators/tmQ_left/$(DEPDIR) dirac_operators/tmclovQ/$(DEPDIR) dirac_operators/tmclovQ2/$(DEPDIR) free_theory/$(DEPDIR) geometry/$(DEPDIR) hmc/$(DEPDIR) hmc/gauge/$(DEPDIR) hmc/momenta/$(DEPDIR) hmc/rootst_eoimpr/$(DEPDIR) inverters/Wclov/$(DEPDIR) inverters/momenta/$(DEPDIR) inverters/staggered/$(DEPDIR) inverters/tmclov/$(DEPDIR) inverters/twisted_mass/$(DEPDIR) io/$(DEPDIR) linalgs/$(DEPDIR) new_types/$(DEPDIR) operations/$(DEPDIR) operations/contract/$(DEPDIR) operations/remez/$(DEPDIR) operations/smearing/$(DEPDIR) operations/stag/$(DEPDIR) operations/su3_paths/$(DEPDIR) routines/$(DEPDIR)
 	-rm -f Makefile
 maintainer-clean-am: distclean-am maintainer-clean-generic
 
