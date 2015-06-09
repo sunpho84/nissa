@@ -67,6 +67,7 @@ spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
 
 
 #define DEBUG
+#define NOINSQ
 
 //define types of quark propagator used
 const int nins_kind=6;
@@ -75,7 +76,7 @@ const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","STOCH_PHI","ST
 const int nqprop_kind=7;
 enum qprop_t{                           PROP_0,  PROP_S,  PROP_P,  PROP_PHI,  PROP_ETA,  PROP_PHIETA,  PROP_T};
 const char prop_name[nqprop_kind][20]={"PROP_0","PROP_S","PROP_P","PROP_PHI","PROP_ETA","PROP_PHIETA","PROP_T"};
-#ifndef DEBUG
+#ifndef NOINSQ
 const qprop_t PROP_PHI_ETA[2]={PROP_PHI,PROP_ETA};
 #endif
 //map the source, the destination and the insertion for each propagator
@@ -379,14 +380,22 @@ void generate_original_source()
 void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
 {
   source_time-=take_time();
-  
+
+#ifdef DEBUG
+  int dirs[4]={0,1,0,0};
+#endif
   switch(inser)
     {
     case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
     case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
     case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
+#ifdef DEBUG
+    case STOCH_PHI:insert_conserved_current(source,conf,ori,r,dirs);break;
+    case STOCH_ETA:insert_conserved_current(source,conf,ori,r,dirs);break;
+#else
     case STOCH_PHI:insert_external_source(source,conf,photon_phi,ori,r);break;
     case STOCH_ETA:insert_external_source(source,conf,photon_eta,ori,r);break;
+#endif
     case TADPOLE:insert_tadpole(source,conf,ori,r,tadpole);break;
     }
   
@@ -481,6 +490,7 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   double arg=get_space_arg(ivol,le.bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
   double ext=exp(t*lep_energy[ilepton]);
+  
   //compute full exponential (notice the factor -1)
   out[RE]=cos(-arg)*ext;
   out[IM]=sin(-arg)*ext;
@@ -529,7 +539,7 @@ void trace_test_lep_prop_source(complex *c,spinspin *prop,tm_quark_info le,int i
       memset(c,0,sizeof(complex)*glb_size[0]);
 
       //fetch the energy and momentum ot the muon
-      double E=lep_energy[ilepton];
+      //double E=lep_energy[ilepton];
 
       //compute steps
       momentum_t steps;
@@ -569,10 +579,6 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
 { 
   GET_THREAD_ID();
 
-#ifdef DEBUG
-  crash("must not be called");  
-#endif
-  
   //select A
   spin1field *A=(phi_eta==0)?photon_phi:photon_eta;
   communicate_lx_spin1field_borders(A);
@@ -611,12 +617,17 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
 	
 	//fix coefficients - i is inserted here!
 	//also dir selection is made here
+#ifndef DEBUG
 	spinspin_prodassign_idouble(ph_fw,-0.5*dirs[mu]);
 	spinspin_prodassign_idouble(ph_bw,+0.5*dirs[mu]);
 	
 	//fix insertion of the current
 	safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
 	safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
+#else
+	spinspin_prodassign_double(ph_fw,-0.5*dirs[mu]);
+	spinspin_prodassign_double(ph_bw,+0.5*dirs[mu]);
+#endif	
 	
 	//summ and subtract the two
 	spinspin bw_M_fw,bw_P_fw;
@@ -676,10 +687,11 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    
 	    //multiply and the insert the current in between, on the source side
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
-#ifndef DEBUG
-	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
+	    //#ifndef DEBUG
+	    int dir0[4]={0,1,0,0};
+	    insert_photon_on_the_source(prop,ilepton,phi_eta,dir0,le);
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
-#endif
+	    //#endif
 	  }
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
@@ -967,19 +979,19 @@ void compute_hadroleptonic_correlation()
 	      
 	      //takes the propagators
 	      qprop_t PROP1_TYPE,PROP2_TYPE;
-#ifndef DEBUG
+#ifndef NOINSQ
 	      if(qins==0)
 		{
 		  PROP1_TYPE=PROP_PHI_ETA[phi_eta];
 #endif
 		  PROP2_TYPE=PROP_0;
-#ifndef DEBUG
+#ifndef NOINSQ
 		}
 	      else
 		{
 #endif
 		  PROP1_TYPE=PROP_0;
-#ifndef DEBUG
+#ifndef NOINSQ
 		  PROP2_TYPE=PROP_PHI_ETA[phi_eta];
 		}
 #endif
