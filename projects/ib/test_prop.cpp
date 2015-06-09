@@ -81,7 +81,7 @@ void proj_mom_prop(spinspin *zmp,tm_quark_info le,int imom)
   spinspin *prop=nissa_malloc("prop",loc_vol,spinspin);
   compute_mom_space_twisted_propagator(prop,le);
   int dirs[4]={1,0,0,0};
-  pass_spinspin_from_mom_to_x_space(prop,prop,dirs,le.bc);
+  pass_spinspin_from_mom_to_x_space_source_or_sink(prop,prop,dirs,le.bc,true);
   
   if(IS_MASTER_THREAD)
     {
