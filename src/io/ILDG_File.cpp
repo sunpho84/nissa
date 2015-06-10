@@ -62,7 +62,7 @@ namespace nissa
     return last_mess;
   }
   
-  //append a message to last
+  //! append a message to last
   ILDG_message* ILDG_bin_message_append_to_last(ILDG_message *first_mess,const char *name,const char *data,uint64_t length)
   {
     //find last message and set it not to last

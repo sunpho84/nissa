@@ -196,7 +196,6 @@ namespace nissa
       {
         read_str_str("Path",pars.path,1024);
         read_str_double("InvResidue",&pars.residue);
-        read_str_int("Order",&pars.order);
         read_str_int("NCopies",&pars.ncopies);
         read_str_int("NHits",&pars.nhits);
       }

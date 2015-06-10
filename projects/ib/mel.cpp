@@ -66,8 +66,9 @@ spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
 		       {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
 
 
-//#define DEBUG
-//#define NOINSQ
+#define DEBUG
+#define NOINSQ
+#define ONLYLEP
 
 //define types of quark propagator used
 const int nins_kind=6;
@@ -176,10 +177,10 @@ void init_simulation(char *path)
 	  for(int i=1;i<4;i++) q.bc[i]=0;
 	  q.mass=qmass[((iq==0)?lep_corr_iq1:lep_corr_iq2)[il]];
 	  free_quark_ener[iq]=tm_quark_energy(q,0);
-	  master_printf(" supposed free quark energy[%d]: %lg\n",iq,free_quark_ener[iq]);
+	  master_printf(" supposed free quark energy[%d]: %+016.016lg\n",iq,free_quark_ener[iq]);
 	}
       double free_mes_ener=free_quark_ener[0]+free_quark_ener[1];
-      master_printf(" supposed free meson energy: %lg\n",free_mes_ener);
+      master_printf(" supposed free meson energy: %+016.016lg\n",free_mes_ener);
       
       //compute meson momentum and bc
       for(int i=1;i<4;i++) leps[il].bc[i]=(sqr(mes_mass)-sqr(leps[il].mass))/(2*mes_mass)/sqrt(3)/M_PI*glb_size[i];
@@ -490,7 +491,7 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   double arg=get_space_arg(ivol,le.bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
   double ext=exp(t*lep_energy[ilepton]);
-  
+  ext=1;
   //compute full exponential (notice the factor -1)
   out[RE]=cos(-arg)*ext;
   out[IM]=sin(-arg)*ext;
@@ -505,7 +506,7 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
   //t*=(1-2*(t>=glb_size[0]/2));
   if(t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*neu_energy[ilepton]);
-
+  ext=1;
   //compute full exponential (notice the factor +1)
   out[RE]=cos(+arg)*ext;
   out[IM]=sin(+arg)*ext;
@@ -557,7 +558,7 @@ void trace_test_lep_prop_source(complex *c,spinspin *prop,tm_quark_info le,int i
 	    arg+=steps[mu]*glb_coord_of_loclx[ivol][mu];
 	  
 	  //compute pure time factor
-	  double ext=1;// exp(-(glb_size[0]-glb_coord_of_loclx[ivol][0])*E); ANNA
+	  double ext=1; //ANNA
 	  //double ext=exp(-(glb_size[0]-glb_coord_of_loclx[ivol][0])*E);
 	  
 	  //compute the phase
@@ -627,7 +628,7 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
 #else
 	spinspin_prodassign_double(ph_fw,-0.5*dirs[mu]);
 	spinspin_prodassign_double(ph_bw,+0.5*dirs[mu]);
-#endif	
+#endif
 	
 	//summ and subtract the two
 	spinspin bw_M_fw,bw_P_fw;
@@ -688,12 +689,11 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    //multiply and the insert the current in between, on the source side
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 #ifndef DEBUG
-	    int dir0[4]={1,1,1,1};
-#else
-	    int dir0[4]={0,1,0,0};
-#endif
-	    insert_photon_on_the_source(prop,ilepton,phi_eta,dir0,le);
+	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
+	    //int dir0[4]={0,1,0,0};
+	    //insert_photon_on_the_source(prop,ilepton,phi_eta,dir0,le);
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
+#endif
 	  }
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
@@ -897,8 +897,11 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  complex ph;
 	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	  complex_prodassign(h,ph);
-	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h); //ANNA
-	  //spinspin_summ_the_complex_prod(hl_loc_corr[t],lept[ivol],ph);//ANNA
+#ifndef ONLYLEP
+	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
+#else
+	  spinspin_summ_the_complex_prod(hl_loc_corr[t],lept[ivol],ph);
+#endif
 	}
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
@@ -931,19 +934,14 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  {
 	    int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
 	    int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
-	    //ANNA
+
 	    spinspin td;
 	    unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ilnp]);
 	    spinspin dtd;
 	    unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 	    complex hl;
 	    trace_spinspin_with_dirac(hl,dtd,vitt_proj_gamma+ig_proj);
-
-	    //spinspin ert; //ANNA
-	    //unsafe_spinspin_prod_spinspin(ert,promu[ilnp],hl_loc_corr[loc_t]);
-	    //complex hl;
-	    //trace_spinspin(hl,ert);
-
+	    
 	    //summ the average
 	    int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
 	    complex_summassign(glb_weak_vitt_corr[i],hl);
