@@ -494,7 +494,6 @@ namespace nissa
     int flag;
     char path[1024];
     double residue;
-    int order;
     int ncopies;
     int nhits;
   };

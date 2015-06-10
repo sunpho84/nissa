@@ -420,8 +420,11 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/smearing/stout_eo.cpp \
 	operations/smearing/stout_lx.cpp \
 	operations/smearing/gaussian.cpp \
-	operations/stag/stag.cpp \
+	operations/stag/magnetization.cpp \
+	operations/stag/putpourri.cpp \
 	operations/stag/rendens.cpp \
+	operations/stag/stag.cpp \
+	operations/stag/time_pseudo_corr.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
@@ -454,8 +457,11 @@ include_HEADERS+= \
 	operations/smearing/HYP.hpp \
 	operations/smearing/stout.hpp \
 	operations/smearing/gaussian.hpp \
-	operations/stag/stag.hpp \
+	operations/stag/magnetization.hpp \
+	operations/stag/putpourri.hpp \
 	operations/stag/rendens.hpp \
+	operations/stag/stag.hpp \
+	operations/stag/time_pseudo_corr.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \
