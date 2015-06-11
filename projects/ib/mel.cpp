@@ -66,9 +66,9 @@ spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
 		       {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
 
 
-#define DEBUG
-#define NOINSQ
-#define ONLYLEP
+//#define DEBUG
+//#define NOINSQ
+//#define ONLYLEP
 
 //define types of quark propagator used
 const int nins_kind=6;
@@ -491,7 +491,7 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   double arg=get_space_arg(ivol,le.bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
   double ext=exp(t*lep_energy[ilepton]);
-  ext=1;
+  
   //compute full exponential (notice the factor -1)
   out[RE]=cos(-arg)*ext;
   out[IM]=sin(-arg)*ext;
@@ -506,7 +506,7 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
   //t*=(1-2*(t>=glb_size[0]/2));
   if(t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*neu_energy[ilepton]);
-  ext=1;
+  
   //compute full exponential (notice the factor +1)
   out[RE]=cos(+arg)*ext;
   out[IM]=sin(+arg)*ext;
@@ -690,10 +690,11 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 #ifndef DEBUG
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
-	    //int dir0[4]={0,1,0,0};
-	    //insert_photon_on_the_source(prop,ilepton,phi_eta,dir0,le);
-	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
+#else
+	    int dir0[4]={1,0,0,0};
+	    insert_photon_on_the_source(prop,ilepton,phi_eta,dir0,le);
 #endif
+	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 	  }
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
