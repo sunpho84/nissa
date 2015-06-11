@@ -162,7 +162,7 @@ namespace nissa
     DELETE_RENDE_T(d2M);
     DELETE_RENDE_T(M_dM);
     DELETE_RENDE_T(M_d2M);
-	
+    
     //close and deallocate
     addrem_stagphases_to_eo_conf(conf);
     close_file(file);
