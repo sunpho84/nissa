@@ -124,42 +124,45 @@ namespace nissa
 	//print conf id
 	master_fprintf(file,"%d\t",iconf);
 	
-	//vectors for output
-	NEW_TRACE_RES(Tr_M_dM);
-	NEW_TRACE_RES(Tr_M_d2M);
-	
-	//loop over hits
-	for(int ihit=0;ihit<pars.quark_rendens_meas_pars.nhits;ihit++)
+	//loop over flavor
+	for(int iflav=0;iflav<pars.nflavs;iflav++)
 	  {
-	    //fill the source
-	    fill_rende_source(source);
+	    //vectors for output
+	    NEW_TRACE_RES(Tr_M_dM);
+	    NEW_TRACE_RES(Tr_M_d2M);
 	    
-	    //compute M^-1*dM
-	    DM(dM,0,1,source);
-	    MINV(M_dM,0,dM);
+	    //loop over hits
+	    for(int ihit=0;ihit<pars.quark_rendens_meas_pars.nhits;ihit++)
+	      {
+		//fill the source
+		fill_rende_source(source);
+		
+		//compute M^-1*dM
+		DM(dM,iflav,1,source);
+		MINV(M_dM,iflav,dM);
+		
+		//compute M^-1*d2M
+		DM(d2M,iflav,2,source);
+		MINV(M_d2M,iflav,d2M);
+		
+		//trace
+		SUMM_THE_TRACE(Tr_M_dM,source,M_dM);
+		SUMM_THE_TRACE(Tr_M_d2M,source,M_d2M);
+	      }
 	    
-	    //compute M^-1*d2M
-	    DM(d2M,0,2,source);
-	    MINV(M_d2M,0,dM);
-	    
-	    //trace
-	    SUMM_THE_TRACE(Tr_M_dM,source,M_dM);
-	    SUMM_THE_TRACE(Tr_M_d2M,source,M_d2M);
+	    //print out (automatical normalisation for nhits)
+	    PRINT(Tr_M_dM);
+	    PRINT(Tr_M_d2M);
 	  }
 	
-	//print out (automatical normalisation for nhits)
-	PRINT(Tr_M_dM);
-	PRINT(Tr_M_d2M);
-	
-	DELETE_RENDE_T(dM);
-	DELETE_RENDE_T(d2M);
-	DELETE_RENDE_T(M_dM);
-	DELETE_RENDE_T(M_d2M);
-	
-	//print new-line
 	master_fprintf(file,"\n");
       }
     
+    DELETE_RENDE_T(dM);
+    DELETE_RENDE_T(d2M);
+    DELETE_RENDE_T(M_dM);
+    DELETE_RENDE_T(M_d2M);
+	
     //close and deallocate
     addrem_stagphases_to_eo_conf(conf);
     close_file(file);
