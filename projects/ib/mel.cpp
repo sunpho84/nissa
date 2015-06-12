@@ -48,7 +48,7 @@ const int sign_orie[2]={-1,+1};
 
 //list the 8 matrices to insert for the weak current
 const int nweak_ins=16;
-const int nvitt_g_proj=2,vitt_g_projs[nvitt_g_proj]={4,9};
+const int nvitt_g_proj=1,vitt_g_projs[nvitt_g_proj]={9};
 int list_weak_insq[nweak_ins]={1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
 int list_weak_insl[nweak_ins]={1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
 int nind;
@@ -364,7 +364,7 @@ void generate_original_source()
 {
   //source coord
   //coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]}; //temporarily commented to fix the source in 0
-  for(int mu=0;mu<4;mu++) source_coord[mu]=0;//(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
+  for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*glb_size[mu]);
   
 #ifdef POINT_SOURCE_VERSION
   master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
@@ -407,8 +407,7 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
 //invert on top of a source, putting all needed for the appropriate quark
 void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,int rotate=true)
 {
-  //these are the way in which Dirac operator rotate - propagator is opposite, see below
-  
+  //these are the way in which Dirac operator rotate - propagator is opposite, see below  
 #ifdef POINT_SOURCE_VERSION
   for(int ic=0;ic<3;ic++)
 #endif
@@ -503,7 +502,6 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
   //compute space and time factor
   double arg=get_space_arg(ivol,bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
-  //t*=(1-2*(t>=glb_size[0]/2));
   if(t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*neu_energy[ilepton]);
   
@@ -609,7 +607,7 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
 	
 	//compute phase factor
 	spinspin ph_bw,ph_fw;
-
+	
 	//transport down and up
 	if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
 	else spinspin_copy(ph_fw,temp_lep[ifw]);
@@ -935,7 +933,7 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  {
 	    int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
 	    int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
-
+	    
 	    spinspin td;
 	    unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ilnp]);
 	    spinspin dtd;
@@ -950,10 +948,10 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
       if(IS_MASTER_THREAD) nlept_contr_tot+=nvitt_g_proj;
       THREAD_BARRIER();
     }
-  complex c[glb_size[0]];
-  trace_test_lep_prop_source(c,lept,le,ilepton);
-  for(int t=0;t<glb_size[0];t++)
-    master_printf("%d %lg %lg\n",t,c[t][0],c[t][1]);
+  //complex c[glb_size[0]];
+  //trace_test_lep_prop_source(c,lept,le,ilepton);
+  //for(int t=0;t<glb_size[0];t++)
+  //master_printf("%d %lg %lg\n",t,c[t][0],c[t][1]);
   //crash("");
 }
 THREADABLE_FUNCTION_END

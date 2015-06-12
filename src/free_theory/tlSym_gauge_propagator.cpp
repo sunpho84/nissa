@@ -107,7 +107,7 @@ namespace nissa
       for(int mu=0;mu<4;mu++)
 	for(int nu=0;nu<4;nu++)
 	  prop[mu][nu][RE]=prop[mu][nu][IM]=0;//gl.zmp/glb_vol;
-
+    
     //cancel when appropriate
     cancel_if_zero_mode(prop,gl,imom);
   }
