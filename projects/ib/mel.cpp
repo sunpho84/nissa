@@ -33,7 +33,7 @@ PROP_TYPE **Q;
 
 spincolor *temp_source;
 spincolor *temp_solution;
-  
+
 gauge_info photon;
 double tadpole[4];
 spin1field *photon_phi,*photon_eta;
@@ -48,9 +48,13 @@ const int sign_orie[2]={-1,+1};
 
 //list the 8 matrices to insert for the weak current
 const int nweak_ins=16;
+const int nweak_ind=8;
 const int nvitt_g_proj=1,vitt_g_projs[nvitt_g_proj]={9};
-int list_weak_insq[nweak_ins]={1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
-int list_weak_insl[nweak_ins]={1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
+int list_weak_insq[nweak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
+int list_weak_insl[nweak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
+int list_weak_ind_contr[nweak_ins]={0,1,1,1, 2,3,3,3,  4,5,5,5, 6,7,7,7};
+const char list_weak_ind_nameq[nweak_ind][3]={"V0","VK","A0","AK","V0","VK","A0","AK"};
+const char list_weak_ind_namel[nweak_ind][3]={"V0","VK","A0","AK","A0","AK","V0","VK"};
 int nind;
 spinspin *hadr;
 complex *glb_weak_vitt_corr;
@@ -94,6 +98,10 @@ int lepton_mom_sign[2]={-1,+1};
 tm_quark_info *leps;
 double *lep_energy,*neu_energy;
 spinspin **L,*temp_lep;
+
+//prototype
+void generate_original_source();
+void generate_photon_stochastic_propagator();
 
 ////////////////////////////////////////////// get propagator and prop. info /////////////////////////////////////////////
 
@@ -265,12 +273,12 @@ void init_simulation(char *path)
   hadr_err=nissa_malloc("hadr_err",hadr_corr_length,complex);
   glb_corr=nissa_malloc("glb_corr",glb_size[0],complex);
   loc_corr=nissa_malloc("loc_corr",glb_size[0],complex);
-  nind=nleptons*nweak_ins*2*2*nr;
+  nind=nleptons*nweak_ind*2*2*nr;
   hadr=nissa_malloc("hadr",loc_vol,spinspin);
-  glb_weak_proj_corr=nissa_malloc("glb_weak_proj_corr",glb_size[0]*nweak_ins*4*nind,complex);
-  glb_weak_vitt_corr=nissa_malloc("glb_weak_vitt_corr",glb_size[0]*nweak_ins*nvitt_g_proj*nind,complex);
-  glb_weak_vitt_ave=nissa_malloc("glb_weak_vitt_ave",glb_size[0]*nweak_ins*nvitt_g_proj*nind,complex); 
-  glb_weak_vitt_err=nissa_malloc("glb_weak_vitt_err",glb_size[0]*nweak_ins*nvitt_g_proj*nind,complex); 
+  glb_weak_proj_corr=nissa_malloc("glb_weak_proj_corr",glb_size[0]*nweak_ind*4*nind,complex);
+  glb_weak_vitt_corr=nissa_malloc("glb_weak_vitt_corr",glb_size[0]*nweak_ind*nvitt_g_proj*nind,complex);
+  glb_weak_vitt_ave=nissa_malloc("glb_weak_vitt_ave",glb_size[0]*nweak_ind*nvitt_g_proj*nind,complex); 
+  glb_weak_vitt_err=nissa_malloc("glb_weak_vitt_err",glb_size[0]*nweak_ind*nvitt_g_proj*nind,complex); 
   original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
   source=nissa_malloc("source",loc_vol,PROP_TYPE);
   photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
@@ -287,7 +295,7 @@ void init_simulation(char *path)
 int read_conf_parameters(int &iconf)
 {
   int ok_conf;
-
+  
   do
     {
       //Gauge path
@@ -317,7 +325,14 @@ int read_conf_parameters(int &iconf)
 	  file_touch(run_file);
 	}
       else
-	master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
+	{
+	  master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
+	  for(int isource=0;isource<nsources;isource++)
+	    {
+	      generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
+	      generate_original_source();
+	    }
+	}
       iconf++;
     }
   while(!ok_conf && iconf<ngauge_conf);
@@ -337,7 +352,7 @@ void setup_conf()
       master_printf("plaq: %+016.016g\n",global_plaquette_lx_conf(conf));
     }
   else generate_cold_lx_conf(conf);
-
+  
   //if asked, randomly transform the configurations
   if(rnd_gauge_transform) perform_random_gauge_transform(conf,conf);
   
@@ -358,8 +373,8 @@ void setup_conf()
 void generate_original_source()
 {
   //source coord
-  //coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]}; //temporarily commented to fix the source in 0
-  for(int mu=0;mu<4;mu++) source_coord[mu]=0;//(int)(rnd_get_unif(&glb_rnd_gen,0,1)*glb_size[mu]);
+  coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]};
+  for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
   
 #ifdef POINT_SOURCE_VERSION
   master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
@@ -416,14 +431,14 @@ void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,int rotate=true)
 	ninv_tot++;inv_time+=take_time();
 	
 	//rotate the sink index
-	if(rotate) safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);      
+	if(rotate) safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
 	
 	//put the output on place
 #ifdef POINT_SOURCE_VERSION
 	master_printf("  finished the inversion dirac index %d, color %d\n",id,ic);
 	put_spincolor_into_su3spinspin(out,temp_solution,id,ic);
 #else
-	master_printf("  finished the inversion dirac index %d\n",id);	
+	master_printf("  finished the inversion dirac index %d\n",id);
 	put_spincolor_into_colorspinspin(out,temp_solution,id);
 #endif
       }
@@ -616,7 +631,7 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    spinspin *prop=L[iprop];
 	    	    
 	    //put it to a phase
-	    int twall=((glb_size[0]/2+0+source_coord[0])%glb_size[0]);
+	    int twall=((glb_size[0]/2+source_coord[0])%glb_size[0]);
 	    set_to_lepton_sink_phase_factor(prop,ilepton,le,twall);
 	    
 	    //multiply and the insert the current in between, on the source side
@@ -691,7 +706,7 @@ void print_hadronic_correlations()
 	    {
 	      //print out
 	      int ig_so=5,ig_si=5;
-
+	      
 	      complex *hadr[2]={hadr_ave,hadr_err};
 	      for(int i=0;i<2;i++)
 		{
@@ -730,7 +745,7 @@ THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PRO
 	      complex_summ_the_conj1_prod
 		(hadr[ivol][id_si2][id_si1], //this way when taking the trace with dirac matrix, that is acting on S2, as it should
 #ifdef POINT_SOURCE_VERSION
-		 S1[ivol][ic_si][ic_so][id_si1][id_so],S2[ivol][ic_so][ic_si][id_si2][id_so])
+		 S1[ivol][ic_si][ic_so][id_si1][id_so],S2[ivol][ic_si][ic_so][id_si2][id_so])
 #else
                  S1[ivol][ic_si][id_si1][id_so],S2[ivol][ic_si][id_si2][id_so])
 #endif
@@ -768,7 +783,7 @@ void get_polvect_bar(spin *ubar,spin *v,tm_quark_info &le)
 }
 
 //compute the leptonic part of the correlation function
-THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ind)
+THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ext_ind)
 {
   GET_THREAD_ID();
   
@@ -850,7 +865,7 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	      spin Sv;
 	      unsafe_spinspin_prod_spin(Sv,hl_loc_corr[loc_t],v[snu]);
 	      for(int id_si=0;id_si<4;id_si++) complex_summ_the_prod(hl,ubar[smu][id_si],Sv[id_si]);
-	      complex_summassign(glb_weak_proj_corr[glb_t+glb_size[0]*(smu+2*(snu+2*(ins+nweak_ins*ind)))],hl);
+	      complex_summassign(glb_weak_proj_corr[glb_t+glb_size[0]*(smu+2*(snu+2*(list_weak_ind_contr[ins]+nweak_ind*ext_ind)))],hl);
 	    }
       if(IS_MASTER_THREAD) nlept_contr_tot+=4;
       
@@ -869,7 +884,7 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	    trace_spinspin_with_dirac(hl,dtd,vitt_proj_gamma+ig_proj);
 	    
 	    //summ the average
-	    int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
+	    int i=glb_t+glb_size[0]*(ig_proj+nvitt_g_proj*(list_weak_ind_contr[ins]+nweak_ind*ext_ind));
 	    complex_summassign(glb_weak_vitt_corr[i],hl);
 	  }
       if(IS_MASTER_THREAD) nlept_contr_tot+=nvitt_g_proj;
@@ -926,8 +941,8 @@ void compute_hadroleptonic_correlation()
 	    }
 
   //summ to the stack
-  glb_nodes_reduce_complex_vect(glb_weak_vitt_corr,glb_size[0]*nweak_ins*nvitt_g_proj*nind);
-  for(int iel=0;iel<glb_size[0]*nweak_ins*nvitt_g_proj*nind;iel++)
+  glb_nodes_reduce_complex_vect(glb_weak_vitt_corr,glb_size[0]*nweak_ind*nvitt_g_proj*nind);
+  for(int iel=0;iel<glb_size[0]*nweak_ind*nvitt_g_proj*nind;iel++)
     {
       complex_summassign(glb_weak_vitt_ave[iel],glb_weak_vitt_corr[iel]);
       complex temp={sqr(glb_weak_vitt_corr[iel][RE]),sqr(glb_weak_vitt_corr[iel][IM])};
@@ -937,16 +952,16 @@ void compute_hadroleptonic_correlation()
 }
 
 //same but projected to spin
-void print_weak_proj_correlations(FILE *fout,int ind)
+void print_weak_proj_correlations(FILE *fout,int ext_ind)
 {
-  for(int ins=0;ins<nweak_ins;ins++)
+  for(int ind=0;ind<nweak_ind;ind++)
     for(int smu=0;smu<2;smu++)
       for(int snu=0;snu<2;snu++)
 	{
-	  master_fprintf(fout," # qins=%d lins=%d smu=%d snu=%d\n\n",list_weak_insq[ins],list_weak_insl[ins],smu,snu);
+	  master_fprintf(fout," # qins=%s lins=%s smu=%d snu=%d\n\n",list_weak_ind_nameq[ind],list_weak_ind_namel[ind],smu,snu);
 	  for(int t=0;t<glb_size[0];t++)
 	    {
-	      int i=t+glb_size[0]*(smu+2*(snu+2*(ins+nweak_ins*ind)));
+	      int i=t+glb_size[0]*(smu+2*(snu+2*(ind+nweak_ind*ext_ind)));
 	      master_fprintf(fout,"%+016.16lg %+016.16lg\n",glb_weak_proj_corr[i][RE]/nsources,glb_weak_proj_corr[i][IM]/nsources);
 	    }
 	  master_fprintf(fout,"\n");
@@ -954,16 +969,16 @@ void print_weak_proj_correlations(FILE *fout,int ind)
 }
 
 //same but projected vittorio way
-void print_weak_vitt_correlations(FILE *fout_corr,FILE *fout_err,int ind)
+void print_weak_vitt_correlations(FILE *fout_corr,FILE *fout_err,int ext_ind)
 {
-  for(int ins=0;ins<nweak_ins;ins++)
+  for(int ind=0;ind<nweak_ind;ind++)
     for(int ig_proj=0;ig_proj<nvitt_g_proj;ig_proj++)
       {
 	FILE *fout[2]={fout_corr,fout_err};
-	for(int i=0;i<2;i++) master_fprintf(fout[i]," # qins=%d lins=%d proj=%s\n\n",list_weak_insq[ins],list_weak_insl[ins],gtag[vitt_g_projs[ig_proj]]);
+	for(int i=0;i<2;i++) master_fprintf(fout[i]," # qins=%s lins=%s proj=%s\n\n",list_weak_ind_nameq[ind],list_weak_ind_namel[ind],gtag[vitt_g_projs[ig_proj]]);
 	for(int t=0;t<glb_size[0];t++)
 	  {
-	    int i=t+glb_size[0]*(ig_proj+nvitt_g_proj*(ins+nweak_ins*ind));
+	    int i=t+glb_size[0]*(ig_proj+nvitt_g_proj*(ind+nweak_ind*ext_ind));
 	    double A=glb_weak_vitt_ave[i][RE]/nsources;
 	    double A2=glb_weak_vitt_err[i][RE]/nsources;
 	    double B=glb_weak_vitt_ave[i][IM]/nsources;
@@ -1103,7 +1118,7 @@ void in_main(int narg,char **arg)
     {
       //setup the conf and generate the source
       setup_conf();
-
+      
       for(int isource=0;isource<nsources;isource++)
 	{
 	  generate_photon_stochastic_propagator();

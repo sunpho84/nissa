@@ -242,8 +242,8 @@ namespace nissa
       }
     set_borders_invalid(out);
   }
-
-  void pass_spin1field_from_x_to_mom_space(spin1field *out,spin1field *in,int *dirs,double *bc,bool bar=false)
+  
+  THREADABLE_FUNCTION_5ARG(pass_spin1field_from_x_to_mom_space, spin1field*,out, spin1field*,in, int*,dirs, double*,bc, bool,bar)
   {
     GET_THREAD_ID();
     
@@ -291,9 +291,10 @@ namespace nissa
 	  safe_complex_prod(out[imom][mu],out[imom][mu],ph[mu]);
       }
     set_borders_invalid(out);
-  }
+  }  
+  THREADABLE_FUNCTION_END
   
-  void pass_spin_from_mom_to_x_space_source_or_sink(spin *out,spin *in,int *dirs,double *bc,int source_or_sink)
+  THREADABLE_FUNCTION_5ARG(pass_spin_from_mom_to_x_space_source_or_sink, spin*,out, spin*,in, int*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
@@ -322,11 +323,12 @@ namespace nissa
 	for(int mu=0;mu<4;mu++)
 	  safe_complex_prod(out[ivol][mu],out[ivol][mu],ph);
       }
-
+    
     set_borders_invalid(out);
   }
+  THREADABLE_FUNCTION_END
   
-  void pass_spin_from_x_to_mom_space_source_or_sink(spin *out,spin *in,int *dirs,double *bc,int source_or_sink)
+  THREADABLE_FUNCTION_5ARG(pass_spin_from_x_to_mom_space_source_or_sink, spin*,out, spin*,in, int*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
@@ -357,4 +359,5 @@ namespace nissa
     //compute the main part of the fft
     fft4d((complex*)out,(complex*)out,dirs,4,sign[source_or_sink],1);
   }
+  THREADABLE_FUNCTION_END
 }
