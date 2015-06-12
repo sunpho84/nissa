@@ -52,9 +52,9 @@ const int nweak_ind=8;
 const int nvitt_g_proj=1,vitt_g_projs[nvitt_g_proj]={9};
 int list_weak_insq[nweak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
 int list_weak_insl[nweak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
-int list_weak_ind_contr[nweak_ins]={0,1,1,1, 2,3,3,3,  4,5,5,5, 6,7,7,7};
-const char list_weak_ind_nameq[nweak_ind][3]={"V0","VK","A0","AK","V0","VK","A0","AK"};
-const char list_weak_ind_namel[nweak_ind][3]={"V0","VK","A0","AK","A0","AK","V0","VK"};
+int list_weak_ind_contr[nweak_ins]={0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7};
+const char list_weak_ind_nameq[nweak_ind][3]={"VK","V0","AK","A0","VK","V0","AK","A0"};
+const char list_weak_ind_namel[nweak_ind][3]={"VK","V0","AK","A0","AK","A0","VK","V0"};
 int nind;
 spinspin *hadr;
 complex *glb_weak_vitt_corr;
@@ -939,7 +939,7 @@ void compute_hadroleptonic_correlation()
 		    ind++;
 		  }
 	    }
-
+  
   //summ to the stack
   glb_nodes_reduce_complex_vect(glb_weak_vitt_corr,glb_size[0]*nweak_ind*nvitt_g_proj*nind);
   for(int iel=0;iel<glb_size[0]*nweak_ind*nvitt_g_proj*nind;iel++)
