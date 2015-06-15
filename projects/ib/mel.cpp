@@ -40,6 +40,8 @@ spin1field *photon_phi,*photon_eta;
 
 int hadr_corr_length;
 complex *hadr_corr;
+const int nhadr_contr=2;
+int ig_hadr_so[nhadr_contr]={5,5},ig_hadr_si[nhadr_contr]={5,9};
 complex *glb_corr,*loc_corr;
 
 //sign of the muon momentum
@@ -264,10 +266,10 @@ void init_simulation(char *path)
   //allocate temporary vectors
   temp_source=nissa_malloc("temp_source",loc_vol,spincolor);
   temp_solution=nissa_malloc("temp_solution",loc_vol,spincolor);
-  hadr_corr_length=glb_size[0]*ncombo_hadr_corr*nqmass*nqmass*nr;
+  hadr_corr_length=glb_size[0]*nhadr_contr*ncombo_hadr_corr*nqmass*nqmass*nr;
   hadr_corr=nissa_malloc("hadr_corr",hadr_corr_length,complex);
-  glb_corr=nissa_malloc("glb_corr",glb_size[0],complex);
-  loc_corr=nissa_malloc("loc_corr",glb_size[0],complex);
+  glb_corr=nissa_malloc("glb_corr",glb_size[0]*nhadr_contr,complex);
+  loc_corr=nissa_malloc("loc_corr",glb_size[0]*nhadr_contr,complex);
   nind=nleptons*nweak_ind*2*2*nr;
   hadr=nissa_malloc("hadr",loc_vol,spinspin);
   hadrolept_corr=nissa_malloc("hadrolept_corr",glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
@@ -754,26 +756,25 @@ void compute_hadronic_correlations()
   master_printf("Computing hadronic correlation functions\n");
   
   hadr_contr_time-=take_time();
-  int ind=0;
   for(int icombo=0;icombo<ncombo_hadr_corr;icombo++)
     for(int imass=0;imass<nqmass;imass++)
       for(int jmass=0;jmass<nqmass;jmass++)
 	for(int r=0;r<nr;r++)
 	  {
 	    //compute the correlation function
-	    int ig_so=5,ig_si=5;
-	    meson_two_points_Wilson_prop(glb_corr,loc_corr,&ig_so,Q[iqprop(imass,prop1_hadr_map[icombo],r)],&ig_si,Q[iqprop(jmass,prop2_hadr_map[icombo],r)],1);
+	    meson_two_points_Wilson_prop(glb_corr,loc_corr,ig_hadr_so,Q[iqprop(imass,prop1_hadr_map[icombo],r)],ig_hadr_si,Q[iqprop(jmass,prop2_hadr_map[icombo],r)],nhadr_contr);
+	    nhadr_contr_tot+=nhadr_contr;
 	    
 	    //save to the total stack
-	    for(int t=0;t<glb_size[0];t++)
-	      {
-		int i=(t-source_coord[0]+glb_size[0])%glb_size[0]+glb_size[0]*ind;
-		complex_summassign(hadr_corr[i],glb_corr[t]);
-	      }
-	    ind++;
+	    for(int ihadr_contr=0;ihadr_contr<nhadr_contr;ihadr_contr++)
+	      for(int t=0;t<glb_size[0];t++)
+		{
+		  int i=(t-source_coord[0]+glb_size[0])%glb_size[0]+glb_size[0]*(ihadr_contr+nhadr_contr*(r+nr*(jmass+nqmass*(imass+nqmass*icombo))));
+		  complex_summassign(hadr_corr[i],glb_corr[t+glb_size[0]*ihadr_contr]);
+		  //master_printf("%d %d %lg %lg\n",t,i,hadr_corr[i][RE],glb_corr[t+glb_size[0]*ihadr_contr][RE]);
+		}
 	  }
   hadr_contr_time+=take_time();
-  nhadr_contr_tot+=ind;
 }
 
 /////////////////////////////////////////////// hadroleptonic correlators //////////////////////////////////////////
@@ -899,6 +900,49 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 }
 THREADABLE_FUNCTION_END
 
+//do not attach the leptonic part
+THREADABLE_FUNCTION_2ARG(do_not_attach_leptonic_correlation, spinspin*,hadr, int,ext_ind)
+{
+  GET_THREAD_ID();
+  
+  vector_reset(loc_corr);
+  
+  //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - will dag and commutator with g0 come into?
+  dirac_matr weak_ins_hadr_gamma[nweak_ins];
+  for(int ins=0;ins<nweak_ins;ins++) dirac_prod(weak_ins_hadr_gamma+ins,base_gamma+5,base_gamma+list_weak_insq[ins]);
+  
+  for(int ins=0;ins<nweak_ins;ins++)
+    {
+      //define a local storage
+      complex h_loc_corr[loc_size[0]];
+      for(int i=0;i<loc_size[0];i++) complex_put_to_zero(h_loc_corr[i]);
+      
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	{
+	  int t=loc_coord_of_loclx[ivol][0];
+	  
+	  //trace hadron side
+	  complex h;
+	  trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma+ins);
+	  complex_summassign(h_loc_corr[t],h);
+	}
+      glb_threads_reduce_double_vect((double*)h_loc_corr,loc_size[0]*sizeof(complex)/sizeof(double));
+      
+      //save projection on LO
+      NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
+	{
+	  int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
+	  
+	  //summ the average
+	  int i=glb_t+glb_size[0]*(0+nhadrolept_proj*(list_weak_ind_contr[ins]+nweak_ind*ext_ind));
+	  complex_summassign(hadrolept_corr[i],h_loc_corr[loc_t]);
+	}
+      if(IS_MASTER_THREAD) nlept_contr_tot+=nhadrolept_proj;
+      THREAD_BARRIER();
+    }
+}
+THREADABLE_FUNCTION_END
+
 //compute the total hadroleptonic correlation functions
 void compute_hadroleptonic_correlations()
 {
@@ -919,15 +963,16 @@ void compute_hadroleptonic_correlations()
 	      
 	      //takes the propagators
 	      qprop_t PROP1_TYPE,PROP2_TYPE;
+	      //ANNA2
 	      if(qins==0)
-		{
-		  PROP1_TYPE=PROP_PHI_ETA[phi_eta];
-		  PROP2_TYPE=PROP_0;
-		}
+	      {
+		PROP1_TYPE=PROP_PHI_ETA[phi_eta];
+		PROP2_TYPE=PROP_0;
+	      }
 	      else
-		{
-		  PROP1_TYPE=PROP_0;
-		  PROP2_TYPE=PROP_PHI_ETA[phi_eta];
+	      {
+		PROP1_TYPE=PROP_0;
+		PROP2_TYPE=PROP_PHI_ETA[phi_eta];
 		}
 	      int ip1=iqprop(iq1,PROP1_TYPE,r2); //q1 will be reverted
 	      int ip2=iqprop(iq2,PROP2_TYPE,r2);
@@ -938,8 +983,10 @@ void compute_hadroleptonic_correlations()
 		for(int rl=0;rl<nr;rl++)
 		  {
 		    //contract with lepton
+		    //ANNA2
 		    int iprop=ilprop(ilepton,orie,!phi_eta,rl); //notice inversion of phi/eta w.r.t hadron side
 		    attach_leptonic_correlation(hadr,iprop,ilepton,orie,rl,ind);
+		    //do_not_attach_leptonic_correlation(hadr,ind);
 		    ind++;
 		  }
 	    }
@@ -1004,14 +1051,11 @@ void print_correlations()
 	for(int jmass=0;jmass<nqmass;jmass++)
 	  for(int r=0;r<nr;r++)
 	    {
-	      //print out
-	      int ig_so=5,ig_si=5;
-	      
 	      master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d\n",qmass[imass],qmass[jmass],r);
-	      print_contractions_to_file(fout,1,&ig_so,&ig_si,hadr_corr+ind*glb_size[0],0,"",1.0);
+	      print_contractions_to_file(fout,nhadr_contr,ig_hadr_so,ig_hadr_si,hadr_corr+ind*glb_size[0],0,"",1.0);
 	      master_fprintf(fout,"\n");
+	      ind+=nhadr_contr;
 	    }
-      ind++;
       
       //close the file
       close_file(fout);
