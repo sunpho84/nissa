@@ -645,7 +645,6 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
   master_printf("Generating free loop\n");
   spinspin *prop=nissa_malloc("prop",loc_vol+bord_vol,spinspin);
   complex *corr=nissa_malloc("corr",glb_size[0],complex);
-  vector_reset(corr);
   
   for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int orie=0;orie<2;orie++)
@@ -711,6 +710,7 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 	      //save projection on LO
 	      for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 		{
+		  vector_reset(corr);
 		  NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
 		    {
 		      int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
