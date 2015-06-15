@@ -19,8 +19,8 @@
 /*
    ___________
   |           |
-  |     _     |      | 
-  |____|_|    |     /|\  
+  |     _     |      |
+  |____|_|    |     /|\
   |           |      |        | sizeh
   |___________|      mu       |
    
@@ -33,7 +33,7 @@ namespace nissa
   THREADABLE_FUNCTION_4ARG(measure_watusso, watusso_meas_pars_t*,pars, quad_su3**,eo_conf, int,iconf, int,create_output_file)
   {
     GET_THREAD_ID();
-
+    
     //open output file
     FILE *fout=NULL;
     if(rank==0 && IS_MASTER_THREAD) fout=open_file(pars->path,create_output_file?"w":"a");
@@ -64,7 +64,7 @@ namespace nissa
 	int niters=this_niters;
 	if(ispat_sme!=0) niters-=smear_pars->nape_spat_iters[ispat_sme-1];
 	ape_spatial_smear_conf(lx_conf,lx_conf,smear_pars->ape_spat_alpha,niters);
-
+	
 	//compute the watusso
 	int nu=0;
 	for(int imu=0;imu<3;imu++)
@@ -86,7 +86,7 @@ namespace nissa
 	    complex small_trace;
 	    complex_vector_glb_collapse(small_trace,loc_res,loc_vol);
 	    
-	    master_fprintf(fout," ### nu = %d , mu = %d , 1/3<trU> = %+016.016lg %+016.016lg\n\n",nu,mu,small_trace[RE]/glb_vol/3,small_trace[IM],glb_vol/3);
+	    master_fprintf(fout," ### APE = ( %lg , %d ) , nu = %d , mu = %d , 1/3<trU> = %+016.016lg %+016.016lg\n\n",smear_pars->ape_spat_alpha,niters,nu,mu,small_trace[RE]/glb_vol/3,small_trace[IM],glb_vol/3);
 	    
 	    //elong on both sides the small
 	    int prev_sizeh=0;
@@ -97,7 +97,7 @@ namespace nissa
 		int sizeh=size/2;
 		for(int d=prev_sizeh;d<sizeh;d++) elong_su3_path(&s,small_su3,lx_conf,nu,-1,true);
 		prev_sizeh=sizeh;
-			    
+		
 		//compute the big
 		const int nbig_steps=5;
 		int big_steps[2*nbig_steps]={
