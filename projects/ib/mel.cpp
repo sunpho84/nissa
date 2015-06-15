@@ -625,6 +625,7 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    
 	    //multiply and the insert the current in between, on the source side
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
+	    //ANNA
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 	  }
@@ -639,7 +640,7 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
   GET_THREAD_ID();
   
   FILE *fout=open_file(combine("%s/corr_l_free",outfolder).c_str(),"w");
-
+  
   if(IS_MASTER_THREAD) lepton_prop_time-=take_time();
   master_printf("Generating free loop\n");
   spinspin *prop=nissa_malloc("prop",loc_vol+bord_vol,spinspin);
@@ -677,9 +678,6 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 	      dirac_herm(&temp_gamma,base_gamma+ig);
 	      dirac_prod(hadrolept_proj_gamma+ig_proj,base_gamma+map_mu[0],&temp_gamma);
 	    }
-	  //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - will dag and commutator with g0 come into?
-	  dirac_matr weak_ins_hadr_gamma[nweak_ins];
-	  for(int ins=0;ins<nweak_ins;ins++) dirac_prod(weak_ins_hadr_gamma+ins,base_gamma+5,base_gamma+list_weak_insl[ins]);
 	  
 	  for(int ins=0;ins<nweak_ins;ins++)
 	    {
@@ -693,7 +691,7 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 		  
 		  //multiply lepton side on the right (source) side
 		  spinspin l;
-		  unsafe_spinspin_prod_dirac(l,prop[ivol],weak_ins_hadr_gamma+ins);
+		  unsafe_spinspin_prod_dirac(l,prop[ivol],base_gamma+list_weak_insl[ins]);
 		  
 		  //add the neutrino phase
 		  complex ph;
@@ -839,7 +837,7 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
     }
   //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - will dag and commutator with g0 come into?
   dirac_matr weak_ins_hadr_gamma[nweak_ins];
-  for(int ins=0;ins<nweak_ins;ins++) dirac_prod(weak_ins_hadr_gamma+ins,base_gamma+5,base_gamma+list_weak_insl[ins]);
+  for(int ins=0;ins<nweak_ins;ins++) dirac_prod(weak_ins_hadr_gamma+ins,base_gamma+5,base_gamma+list_weak_insq[ins]);
   
   for(int ins=0;ins<nweak_ins;ins++)
     {
@@ -853,18 +851,19 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  
 	  //multiply lepton side on the right (source) side
 	  spinspin l;
-	  unsafe_spinspin_prod_dirac(l,lept[ivol],weak_ins_hadr_gamma+ins);
+	  unsafe_spinspin_prod_dirac(l,lept[ivol],base_gamma+list_weak_insl[ins]);
 	  
 	  //trace hadron side
 	  complex h;
-	  trace_spinspin_with_dirac(h,hadr[ivol],base_gamma+list_weak_insq[ins]);
-	  
+	  trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma+ins);
+	  //ANNA
+	  //h[0]=1;
+	  //h[1]=0;
 	  //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
 	  complex ph;
 	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	  complex_prodassign(h,ph);
 	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
-	  spinspin_summ_the_complex_prod(hl_loc_corr[t],lept[ivol],ph);
 	}
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
