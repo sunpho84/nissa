@@ -636,7 +636,7 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 }
 THREADABLE_FUNCTION_END
 
-//same without photon
+//same without hadron and photon
 THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 {
   GET_THREAD_ID();

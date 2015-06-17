@@ -125,7 +125,7 @@ int niter_max=100000;
 
 //contraction method
 int use_new_contraction_layout;
-two_pts_comp_t two_pts_comp,three_pts_comp;  
+two_pts_comp_t two_pts_comp,three_pts_comp;
 
 //two points contractions
 int ncontr_2pts;
@@ -915,12 +915,12 @@ void calculate_all_S1(int ispec,int ism_lev_se)
 	    part_time+=take_time();ninv_tot++;inv_time+=part_time;
 #endif
 
-	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d, dirac index %d",itheta,ism_lev_se,id);
+	    master_printf("Finished the inversion of S1 theta %d, seq sme lev %d,",itheta,ism_lev_se);
 	    
 #ifdef POINT_SOURCE_VERSION
-	    master_printf("color index %d ",ic);
+	    master_printf(" color index %d,",ic);
 #endif
-	    master_printf(" dirac index %d,",itheta,ism_lev_se,id);
+	    master_printf(" dirac index %d,",id);
 #ifdef BENCH
 	    master_printf(" in %g sec\n",part_time);
 #else
