@@ -118,6 +118,8 @@ namespace nissa
     NEW_RENDE_T(d2M);
     NEW_RENDE_T(M_dM);
     NEW_RENDE_T(M_d2M);
+    NEW_RENDE_T(dM_M_dM);
+    NEW_RENDE_T(M_dM_M_dM);  
     
     for(int icopy=0;icopy<pars.quark_rendens_meas_pars.ncopies;icopy++)
       {
@@ -130,6 +132,7 @@ namespace nissa
 	    //vectors for output
 	    NEW_TRACE_RES(Tr_M_dM);
 	    NEW_TRACE_RES(Tr_M_d2M);
+	    NEW_TRACE_RES(Tr_M_dM_M_dM);  
 	    
 	    //loop over hits
 	    for(int ihit=0;ihit<pars.quark_rendens_meas_pars.nhits;ihit++)
@@ -145,14 +148,20 @@ namespace nissa
 		DM(d2M,iflav,2,source);
 		MINV(M_d2M,iflav,d2M);
 		
+		//compute M^-1*dM*M^-1*dM
+		DM(dM_M_dM,iflav,1,M_dM);	  
+		MINV(M_dM_M_dM,iflav,dM_M_dM);	  
+		
 		//trace
 		SUMM_THE_TRACE(Tr_M_dM,source,M_dM);
 		SUMM_THE_TRACE(Tr_M_d2M,source,M_d2M);
+		SUMM_THE_TRACE(Tr_M_dM_M_dM,source,M_dM_M_dM);	  
 	      }
 	    
 	    //print out (automatical normalisation for nhits)
 	    PRINT(Tr_M_dM);
 	    PRINT(Tr_M_d2M);
+	    PRINT(Tr_M_dM_M_dM);  
 	  }
 	
 	master_fprintf(file,"\n");
@@ -162,7 +171,9 @@ namespace nissa
     DELETE_RENDE_T(d2M);
     DELETE_RENDE_T(M_dM);
     DELETE_RENDE_T(M_d2M);
-    
+    DELETE_RENDE_T(dM_M_dM);  
+    DELETE_RENDE_T(M_dM_M_dM);  
+
     //close and deallocate
     addrem_stagphases_to_eo_conf(conf);
     close_file(file);
