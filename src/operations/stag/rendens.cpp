@@ -68,7 +68,7 @@ namespace nissa
       //final reduction
       complex temp;
       complex_vector_glb_collapse(temp,point_result,loc_vol);
-      complex_summassign(out,temp);
+      if(IS_MASTER_THREAD) complex_summassign(out,temp);
     }
     THREADABLE_FUNCTION_END
     
