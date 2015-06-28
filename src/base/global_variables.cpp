@@ -61,6 +61,13 @@ namespace nissa
   EXTERN int eo_geom_inited;
   EXTERN int use_eo_geom;
   
+  //local direction geometry
+
+  EXTERN vector_remap_t *remap_lx_to_locd[NDIM];
+  EXTERN vector_remap_t *remap_locd_to_lx[NDIM];
+  EXTERN int max_locd_perp_size_per_dir[NDIM],locd_perp_size_per_dir[NDIM];
+  EXTERN int max_locd_size;
+  
   //neighbours of local volume + borders
   EXTERN coords *loclx_neighdw,*loclx_neighup;
   EXTERN coords *loclx_neigh[2];

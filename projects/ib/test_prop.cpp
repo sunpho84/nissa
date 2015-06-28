@@ -61,6 +61,13 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,momentum_t bc)
   out[IM]=sin(+arg)*ext;
 }
 
+double get_A02()
+{
+  double summu=lep_energy+neu_energy;
+  double A02=2*sqr(le.mass)*(1-sqr(le.mass/summu));
+  return A02;
+}
+
 THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 {
   GET_THREAD_ID();
@@ -76,10 +83,6 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
   
   //multiply with the prop
   multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
-  
-  double summu=lep_energy+neu_energy;
-  double A02=2*sqr(lep_energy)*(1-sqr(lep_energy/summu));
-  master_printf("%+016.016lg\n",A02);
   
   //get the projectors
   spinspin promu[2],pronu[2];
@@ -98,6 +101,8 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
       dirac_herm(&temp_gamma,base_gamma+ig);
       dirac_prod(hadrolept_proj_gamma+ig_proj,base_gamma+map_mu[0],&temp_gamma);
     }
+  
+  double A02=get_A02();
   
   const int nweak_ins=2;
   int list_weak_insl[nweak_ins]={4,9};
@@ -162,25 +167,95 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 }
 THREADABLE_FUNCTION_END
 
+void pure_loop()
+{
+  //get the projectors
+  spinspin promu,pronu;
+  twisted_on_shell_operator_of_imom(promu,le,0,false,-1);
+  naive_massless_on_shell_operator_of_imom(pronu,le.bc,0,-1);
+  
+  //compute the right part of the leptonic loop: G0 G^dag
+  const int nhadrolept_proj=2,hadrolept_projs[nhadrolept_proj]={9,4};
+  dirac_matr hadrolept_proj_gamma[nhadrolept_proj];
+  for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
+    {
+      int ig=hadrolept_projs[ig_proj];
+      dirac_matr temp_gamma;
+      dirac_herm(&temp_gamma,base_gamma+ig);
+      dirac_prod(hadrolept_proj_gamma+ig_proj,base_gamma+map_mu[0],&temp_gamma);
+    }
+    
+  const int nweak_ins=2;
+  int list_weak_insl[nweak_ins]={4,9};
+  for(int ins=0;ins<nweak_ins;ins++)
+    for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
+      {
+	spinspin td;
+	unsafe_dirac_prod_spinspin(td,base_gamma+list_weak_insl[ins],pronu);
+	spinspin dtd;
+	unsafe_spinspin_prod_spinspin(dtd,promu,td);
+	complex c;
+	trace_spinspin_with_dirac(c,dtd,hadrolept_proj_gamma+ig_proj);
+	
+	double A02=get_A02();
+	master_printf(" # ins=%s, ig_proj=%s:  %+016.016lg %+016.016lg\n\n",gtag[list_weak_insl[ins]],gtag[hadrolept_projs[ig_proj]],c[RE]/A02,c[IM]/A02);
+      }
+}
+
 void in_main(int narg,char **arg)
 {
   if(narg<2) crash("use %s nx",arg[0]);
   int X=atoi(arg[1]);
-  int T=X,L=X;
+  int T=2*X,L=X;
   init_grid(T,L);
+  glb_size[0]=T;
+  for(int mu=1;mu<4;mu++) glb_size[mu]=L;
   
+  start_loc_rnd_gen(1000);
+  
+  complex *test=nissa_malloc("test",loc_vol,complex);
+  complex *test2=nissa_malloc("test2",loc_vol,complex);
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    complex_put_to_real(test[ivol],rnd_get_unif(loc_rnd_gen+ivol,-glb_vol,glb_vol));
+  set_borders_invalid(test);
+  vector_copy(test2,test);
+  int d[4]={1,1,0,1};
+  fft4d(test,test,d,1,1,1);
+  for(int irank=0;irank<nranks;irank++)
+    {
+      if(rank==irank)
+	for(int ivol=0;ivol<loc_vol;ivol++)
+	  {
+	    double a=test[ivol][RE];
+	    double b=test[ivol][IM];
+	    double c=test2[ivol][0];
+	    //if(a!=b)
+	    //crash("obtained %d while expecting %d",a,b);
+	    printf("%d %lg\t %lg %lg ANNA\n",glblx_of_loclx[ivol],c,a,b);
+	  }
+      MPI_Barrier(MPI_COMM_WORLD);
+    }
+  nissa_free(test);
+  nissa_free(test2);
+  if(0)
+    {
   //prepare the quark info
-  le.r=0;
-  le.mass=0.1;
+  le.r=1;
+  le.mass=0.6465/sqrt(glb_size[0]);
   le.kappa=0.125;
   le.bc[0]=1;
-  for(int mu=1;mu<4;mu++) le.bc[mu]=0.3;
+  for(int mu=1;mu<4;mu++) le.bc[mu]=0.03423546*sqrt(glb_size[0]);
   //compute energies
   lep_energy=tm_quark_energy(le,0);
   neu_energy=naive_massless_quark_energy(le.bc,0);
-  master_printf("mcrit: %lg, Emu: %+016.016lg, Enu: %+016.016lg\n",m0_of_kappa(le.kappa),lep_energy,neu_energy);
-    
+  master_printf("mcrit: %lg, Emu: %+016.016lg, Enu: %+016.016lg %lg\n",m0_of_kappa(le.kappa),lep_energy,neu_energy,lep_energy/neu_energy);
+  double A02=get_A02();
+  master_printf("A02: %+016.016lg\n",A02);
+  
   compute_lepton_free_loop();
+  //pure_loop();
+}
 }
 
 int main(int narg,char **arg)

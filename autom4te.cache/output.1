@@ -722,6 +722,7 @@ enable_silent_rules
 enable_dependency_tracking
 with_ntl_prefix
 enable_spi
+with_fft
 with_high_prec
 enable_cgm_debug
 enable_parser_generation
@@ -1394,6 +1395,8 @@ Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-ntl-prefix=PFX   Prefix where NTL is installed (optional)
+  --with-fft              Select the Fast Fourier transform implementation
+                          (native, fftw @<:@default if found@:>@)
   --with-high-prec        Select the high precision type (native=256 bit
                           float, gmp @<:@default if found@:>@)
 
@@ -4282,6 +4285,118 @@ if test "$ac_res" != no; then :
   
 fi
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing fftw_plan_dft_r2c_2d" >&5
+$as_echo_n "checking for library containing fftw_plan_dft_r2c_2d... " >&6; }
+if ${ac_cv_search_fftw_plan_dft_r2c_2d+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fftw_plan_dft_r2c_2d ();
+int
+main ()
+{
+return fftw_plan_dft_r2c_2d ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' fftw3; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_fftw_plan_dft_r2c_2d=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_fftw_plan_dft_r2c_2d+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_fftw_plan_dft_r2c_2d+:} false; then :
+  
+else
+  ac_cv_search_fftw_plan_dft_r2c_2d=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_fftw_plan_dft_r2c_2d" >&5
+$as_echo "$ac_cv_search_fftw_plan_dft_r2c_2d" >&6; }
+ac_res=$ac_cv_search_fftw_plan_dft_r2c_2d
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing fftw_cleanup_threads" >&5
+$as_echo_n "checking for library containing fftw_cleanup_threads... " >&6; }
+if ${ac_cv_search_fftw_cleanup_threads+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char fftw_cleanup_threads ();
+int
+main ()
+{
+return fftw_cleanup_threads ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' fftw3_threads; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_fftw_cleanup_threads=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_fftw_cleanup_threads+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_fftw_cleanup_threads+:} false; then :
+  
+else
+  ac_cv_search_fftw_cleanup_threads=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_fftw_cleanup_threads" >&5
+$as_echo "$ac_cv_search_fftw_cleanup_threads" >&6; }
+ac_res=$ac_cv_search_fftw_cleanup_threads
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  
+fi
+
 
 # Check ntl library
 
@@ -4411,6 +4526,38 @@ fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling spi... $enable_spi" >&5
 $as_echo "enabling spi... $enable_spi" >&6; }
+
+#fast fourier
+
+$as_echo "@%:@define NATIVE_FFT 0" >>confdefs.h
+
+
+$as_echo "@%:@define FFTW_FFT 1" >>confdefs.h
+
+
+@%:@ Check whether --with-fft was given.
+if test "${with_fft+set}" = set; then :
+  withval=$with_fft; with_fft="${withval}"
+else
+  if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "no"; then with_fft="fftw";else with_fft="native";fi
+fi
+
+	case "$with_fft" in
+     	     native) 
+cat >>confdefs.h <<_ACEOF
+@%:@define FFT_TYPE NATIVE_FFT
+_ACEOF
+ ;;
+     	     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != ""; then 
+cat >>confdefs.h <<_ACEOF
+@%:@define FFT_TYPE FFTW_FFT
+_ACEOF
+ AM_LDFLAGS="-lfftw3 -lfftw3_threads";else as_fn_error $? "\"Unable to find fftw3 lib\"" "$LINENO" 5;fi ;;
+	     *) as_fn_error $? "\"Unkwnown Fast Fourier type ${withval}\"" "$LINENO" 5
+	esac
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: with Fast Fourier type... $with_fft" >&5
+$as_echo "with Fast Fourier type... $with_fft" >&6; }
+
 
 #high-prec arithmetic
 

@@ -435,6 +435,16 @@ namespace nissa
     Wilson_sweeper=new gauge_sweeper_t;
     tlSym_sweeper=new gauge_sweeper_t;
     
+    //set locd geom (one of the dimension local and fastest running, the other as usual)
+    max_locd_size=0;
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	remap_lx_to_locd[mu]=remap_locd_to_lx[mu]=NULL;
+	max_locd_perp_size_per_dir[mu]=(glb_vol/glb_size[mu]+nranks-1)/nranks;
+	max_locd_size=std::max(max_locd_size,max_locd_perp_size_per_dir[mu]*glb_size[mu]);
+	locd_perp_size_per_dir[mu]=(int)std::min((int64_t)max_locd_perp_size_per_dir[mu],glb_vol-max_locd_perp_size_per_dir[mu]*rank);
+      }
+    
     master_printf("Cartesian geometry intialized\n");
   }
   

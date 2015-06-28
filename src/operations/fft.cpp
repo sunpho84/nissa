@@ -4,38 +4,29 @@
 
 #include <math.h>
 #include <string.h>
+#if FFT_TYPE == FFTW_FFT
+ #include <fftw3.h>
+#endif
 
 #include "base/global_variables.hpp"
 #include "base/macros.hpp"
 #include "base/debug.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "geometry/geometry_lx.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
+#include "operations/remap_vector.hpp"
+#include "routines/ios.hpp"
+#include "routines/math_routines.hpp"
+
+#ifdef USE_THREADS
+ #include "routines/thread.hpp"
+#endif
 
 namespace nissa
 {
-  //return the bit inverse of an int
-  int bitrev(int in,int l2n)
-  {
-    int out=0;
-    
-    for(int i=0;i<l2n;i++) if(in & (1<<i)) out+=(1<<(l2n-i-1));
-    
-    return out;
-  }
-  
-  //return the powers of n contained in the input
-  int find_max_pow2(int a)
-  {
-    int nl=0;
-    while((a&0x1)==0)
-      {
-	nl++;
-	a>>=1;
-      }
-    
-    return nl;
-  }
+#if FFT_TYPE != FFTW_FFT
   
   //transpose the data shifting coordinate order by 1
   //if normal ordering TXYZ is present and you pass mu0=0,
@@ -86,7 +77,7 @@ namespace nissa
     
     //allocate the buffer to send data
     complex *buf=nissa_malloc("buf",loc_size[mu]*ncpp,complex);
-
+    
     if(IS_MASTER_THREAD)
       {
 	int log2glb_nblk=find_max_pow2(glb_size[mu]); //number of powers of 2 contained in n
@@ -132,7 +123,7 @@ namespace nissa
 	      int glb_iel_send=iel_blk_in*glb_nblk+bitrev(glb_iblk_in,log2glb_nblk);
 	      int rank_coord_send=glb_iel_send/loc_size[mu];
 	      if(rank_coord_send!=line_rank[mu])
-		MPI_Irecv((void*)(buf+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,rank_coord_send,1241+loc_iel_in, 
+		MPI_Irecv((void*)(buf+loc_iel_in*ncpp),ncpp*2,MPI_DOUBLE,rank_coord_send,1241+loc_iel_in,
 			  line_comm[mu],&request0[nrequest0++]);
 	    }
 	
@@ -173,7 +164,7 @@ namespace nissa
 		    double wi=0;
 		    
 		    //loop over elements of in blocks
-		    for(int iel_in=0;iel_in<blk_size;iel_in++)	  
+		    for(int iel_in=0;iel_in<blk_size;iel_in++)
 		      {
 			//take initial position of in local elements
 			complex *in_pad=in_blk+iel_in*ncpp;
@@ -282,7 +273,7 @@ namespace nissa
 	    
 	    //fourier coefficient
 	    double wr=cos(pos_delta*theta);
-	    double wi=sin(pos_delta*theta);      
+	    double wi=sin(pos_delta*theta);
 	    
 	    //wait for communications to finish
 	    MPI_Waitall(2,request2,status2);
@@ -337,11 +328,63 @@ namespace nissa
 	data_coordinate_order_shift(out,ncpp,mu);
       }
   }
-
-  //take fourier transform in all directions
-  void fft4d(complex *out,complex *in,int ncpp,double sign,int normalize)
+  
+#else
+  
+  THREADABLE_FUNCTION_6ARG(fft4d, complex*,out, complex*,in, int*,ext_dirs, int,ncpp, double,sign, int,normalize)
   {
-    int dirs[4]={1,1,1,1};
-    fft4d(out,in,dirs,ncpp,sign,normalize);
+    GET_THREAD_ID();
+    
+    //first of all put in to out
+    if(out!=in) vector_copy(out,in);
+    
+    //list all dirs
+    int ndirs=0;
+    for(int mu=0;mu<NDIM;mu++) if(ext_dirs[mu]) ndirs++;
+    int dirs[ndirs];
+    ndirs=0;
+    for(int mu=0;mu<NDIM;mu++) if(ext_dirs[mu]) dirs[ndirs++]=mu;
+    
+    if(ndirs)
+      {
+	//allocate buffer
+	complex *buf=nissa_malloc("buf",max_locd_size*ncpp,complex);
+	
+	//allocate plans
+	fftw_plan *plans=nissa_malloc("plans",ndirs,fftw_plan);
+	if(IS_MASTER_THREAD)
+	  for(int idir=0;idir<ndirs;idir++)
+	    plans[idir]=fftw_plan_many_dft(1,glb_size+dirs[idir],ncpp,buf,NULL,ncpp,1,buf,NULL,ncpp,1,sign,FFTW_ESTIMATE);
+	THREAD_BARRIER();
+	
+	//transpose each dir in turn and take fft
+	for(int idir=0;idir<ndirs;idir++)
+	  {
+	    remap_lx_vector_to_locd(buf,out,ncpp*sizeof(complex),dirs[idir]);
+	    
+	    //makes all the fourier transform
+	    NISSA_PARALLEL_LOOP(ioff,0,locd_perp_size_per_dir[idir])
+	      fftw_execute_dft(plans[idir],buf+ioff*glb_size[dirs[idir]]*ncpp,buf+ioff*glb_size[dirs[idir]]*ncpp);
+	    THREAD_BARRIER();
+	    
+	    remap_locd_vector_to_lx(out,buf,ncpp*sizeof(complex),dirs[idir]);
+	  }
+	
+	//destroy plans
+	if(IS_MASTER_THREAD) for(int idir=0;idir<ndirs;idir++) fftw_destroy_plan(plans[idir]);
+	
+	//put normaliisation
+	if(normalize)
+	  {
+	    double norm=glb_size[dirs[0]];
+	    for(int idir=1;idir<ndirs;idir++) norm*=glb_size[idir];
+	    double_vector_prod_double((double*)out,(double*)out,1/norm,ncpp*loc_vol);
+	  }
+	
+	nissa_free(buf);
+	nissa_free(plans);
+      }
   }
+  THREADABLE_FUNCTION_END
+#endif
 }
