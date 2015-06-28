@@ -139,13 +139,11 @@ namespace nissa
 #endif
     
     //print fft implementation
-    master_printf("Fast Fourier Transform: "
 #if FFT_TYPE == FFTW_FFT
-		  "fftw3"
+    master_printf("Fast Fourier Transform: fftw3\n");
 #else
-		  "native"
+    master_printf("Fast Fourier Transform: native\n");
 #endif
-		  );
     
     //set default value for parameters
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
