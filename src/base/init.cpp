@@ -39,23 +39,21 @@
  #include "bgq/spi.hpp"
 #endif
 
-#include "svnversion.hpp"
-
 namespace nissa
 {
   //init nissa
-  void init_nissa(int narg,char **arg)
+  void init_nissa(int narg,char **arg,const char compile_info[5][1024])
   {
     //init base things
     init_MPI_thread(narg,arg);
-
+    
     tot_time=-take_time();
 #ifdef BENCH
     tot_comm_time=0;
 #endif
     verb_call=0;
     
-    //this must be done before everything otherwise rank non properly working  
+    //this must be done before everything otherwise rank non properly working
     //get the number of rank and the id of the local one
     get_MPI_nranks();
     get_MPI_rank();
@@ -66,9 +64,9 @@ namespace nissa
     signal(SIGXCPU,signal_handler);
     
     //print SVN version and configuration and compilation time
-    master_printf("Initializing nissa, version: %s\n",SVN_VERSION);
-    master_printf("Configured at %s with flags: %s\n",CONFIG_TIME,CONFIG_FLAGS);
-    master_printf("Compiled at %s of %s\n",__TIME__,__DATE__);
+    master_printf("Initializing nissa, version: %s\n",compile_info[0]);
+    master_printf("Configured at %s with flags: %s\n",compile_info[1],compile_info[2]);
+    master_printf("Compiled at %s of %s\n",compile_info[3],compile_info[4]);
     
     //define all derived MPI types
     define_MPI_types();
@@ -139,7 +137,16 @@ namespace nissa
 #else
     master_printf("Support for >128 bit precision: NATIVE\n");
 #endif
-
+    
+    //print fft implementation
+    master_printf("Fast Fourier Transform: "
+#if FFT_TYPE == FFTW_FFT
+		  "fftw3"
+#else
+		  "native"
+#endif
+		  );
+    
     //set default value for parameters
     verbosity_lv=NISSA_DEFAULT_VERBOSITY_LV;
     use_128_bit_precision=NISSA_DEFAULT_USE_128_BIT_PRECISION;
@@ -162,13 +169,13 @@ namespace nissa
     
     master_printf("Nissa initialized!\n");
   }
-
-  //start nissa in a threaded environment, sending all threads but first in the 
+  
+  //start nissa in a threaded environment, sending all threads but first in the
   //thread pool and issuing the main function
-  void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg))
+  void init_nissa_threaded(int narg,char **arg,void(*main_function)(int narg,char **arg),const char compile_info[5][1024])
   {
     //initialize nissa (master thread only)
-    init_nissa(narg,arg);
+    init_nissa(narg,arg,compile_info);
     
 #ifdef USE_THREADS
     thread_pool_locked=false;
@@ -193,7 +200,7 @@ namespace nissa
       int delay_base_seed=time(0);
       for(unsigned int i=0;i<nthreads;i++) start_rnd_gen(delay_rnd_gen+i,delay_base_seed+i);
       #endif
-
+      
       //distinguish master thread from the others
       GET_THREAD_ID();
       if(thread_id!=0) thread_pool();
@@ -350,7 +357,7 @@ namespace nissa
 	    //compute mask factor
 	    int mask=1;
 	    for(int jfact=0;jfact<nfact-1;jfact++) mask*=NDIM;
-
+	    
 	    //find the partioning corresponding to icombo
 	    int ifact=nfact-1;
 	    int valid_partitioning=1;
@@ -450,7 +457,7 @@ namespace nissa
 	if(loc_size[mu]<2) crash("loc_size[%d]=%d must be at least 2",mu,loc_size[mu]);
 	box_size[0][mu]=loc_size[mu]/2;
       }
-
+    
     //get coords of cube ans box size
     coords nboxes;
     for(int mu=0;mu<NDIM;mu++) nboxes[mu]=2;
@@ -578,7 +585,7 @@ namespace nissa
 	//summ of the border extent up to dir mu
 	if(mu>0) bord_offset[mu]=bord_offset[mu-1]+bord_dir_vol[mu-1];
       }
-    bord_vol=2*bord_volh;  
+    bord_vol=2*bord_volh;
     
     init_boxes();
     
@@ -621,7 +628,7 @@ namespace nissa
       
     //set edge numb
     {
-      int iedge=0; 
+      int iedge=0;
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  edge_numb[mu][mu]=-1;

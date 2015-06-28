@@ -33,4 +33,46 @@ namespace nissa
       }
     setup_knowing_where_to_send(sl);
   }
+  
+  //compute the remapping index to make dir mu local
+  void index_make_loc_dir(int &irank_locld,int &iloc_locld,int iloc_lx,void *pars)
+  {
+    int mu=((int*)pars)[0],prp_max_vol=((int*)pars)[1];
+    int glb_perp_site=0;
+    for(int nu=0;nu<NDIM;nu++) if(mu!=nu) glb_perp_site=glb_perp_site*glb_size[nu]+glb_coord_of_loclx[iloc_lx][nu];
+    irank_locld=glb_perp_site/prp_max_vol;
+    iloc_locld=glb_perp_site-irank_locld*prp_max_vol;
+    iloc_locld=iloc_locld*glb_size[mu]+glb_coord_of_loclx[iloc_lx][mu];
+  }
+  
+  //unmake
+  void index_unmake_loc_dir(int &irank_lx,int &iloc_lx,int iloc_locld,void *pars)
+  {
+    int mu=((int*)pars)[0],prp_max_vol=((int*)pars)[1];
+    coords c;
+    c[mu]=iloc_locld%glb_size[mu];
+    iloc_locld/=glb_size[mu];
+    int glb_perp_site=iloc_locld+rank*prp_max_vol;
+    for(int nu=NDIM-1;nu>=0;nu--)
+      if(mu!=nu)
+	{
+	  c[nu]=glb_perp_site%glb_size[nu];
+	  glb_perp_site/=glb_size[nu];
+	}
+    get_loclx_and_rank_of_coord(&iloc_lx,&irank_lx,c);
+  }
+  
+  //remap to locd
+  void remap_lx_vector_to_locd(void *out,void *in,int nbytes,int mu)
+  {
+    int pars[2]={mu,max_locd_perp_size_per_dir[mu]};
+    if(remap_lx_to_locd[mu]==NULL) remap_lx_to_locd[mu]=new vector_remap_t(loc_vol,index_make_loc_dir,pars);
+    remap_lx_to_locd[mu]->remap(out,in,nbytes);
+  }
+  void remap_locd_vector_to_lx(void *out,void *in,int nbytes,int mu)
+  {
+    int pars[2]={mu,max_locd_perp_size_per_dir[mu]};
+    if(remap_locd_to_lx[mu]==NULL) remap_locd_to_lx[mu]=new vector_remap_t(loc_vol,index_unmake_loc_dir,pars);
+    remap_locd_to_lx[mu]->remap(out,in,nbytes);
+  }
 }

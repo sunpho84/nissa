@@ -18,6 +18,29 @@ namespace nissa
     return log_factn;
   }
   
+  //return the bit inverse of an int
+  int bitrev(int in,int l2n)
+  {
+    int out=0;
+    
+    for(int i=0;i<l2n;i++) if(in & (1<<i)) out+=(1<<(l2n-i-1));
+    
+    return out;
+  }
+  
+  //return the powers of n contained in the input
+  int find_max_pow2(int a)
+  {
+    int nl=0;
+    while((a&0x1)==0)
+      {
+	nl++;
+	a>>=1;
+      }
+    
+    return nl;
+  }
+  
   //return the log2 of N
   int log2N(int N)
   {

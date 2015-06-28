@@ -233,6 +233,12 @@ namespace nissa
     all_to_all_comm_t() {};
   };
   
+  struct vector_remap_t : all_to_all_comm_t
+  {
+    vector_remap_t(int nel_out,void (*index)(int &irank_to,int &iel_to,int iel_fr,void *pars),void *pars);
+    void remap(void *out,void *in,size_t bps){communicate(out,in,bps);}
+  };
+  
   //sweep a configuration, possibly using subboxes, each divided in checkboard so to avoid communication problem
   struct gauge_sweeper_t
   {

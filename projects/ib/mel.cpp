@@ -120,7 +120,7 @@ tm_quark_info get_lepton_info(int ilepton,int orie,int r)
   return le;
 }
 
-///////////////////////////////// initialise the library, read input file, allocate /////////////////////////////////////  
+///////////////////////////////// initialise the library, read input file, allocate /////////////////////////////////////
 
 void init_simulation(char *path)
 {

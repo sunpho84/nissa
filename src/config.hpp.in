@@ -18,6 +18,12 @@
 /* time when configured */
 #undef CONFIG_TIME
 
+/* "FFTW library" */
+#undef FFTW_FFT
+
+/* Enable FFTW */
+#undef FFT_TYPE
+
 /* "GMP library" */
 #undef GMP_HIGH_PREC
 
@@ -29,6 +35,9 @@
 
 /* Max_verbosity_lv */
 #undef MAX_VERBOSITY_LV
+
+/* "Native implementation" */
+#undef NATIVE_FFT
 
 /* "Native implementation" */
 #undef NATIVE_HIGH_PREC

@@ -21,11 +21,22 @@
 #include "hmc/gauge/tree_level_Symanzik_action.hpp"
 #include "routines/ios.hpp"
 
+#if FFT_TYPE == FFTW_FFT
+ #include <fftw3.h>
+#endif
+
 namespace nissa
 {
   void close_nissa()
   {
     master_printf("Closing nissa\n");
+    
+    //unset remappers
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	if(remap_lx_to_locd[mu]) delete remap_lx_to_locd[mu];
+	if(remap_locd_to_lx[mu]) delete remap_locd_to_lx[mu];
+      }
     
     //unset lx geometry
     if(lx_geom_inited) unset_lx_geometry();
@@ -35,9 +46,14 @@ namespace nissa
     if(eo_geom_inited) unset_eo_geometry();
     
     //unset the virtual node parallelization geometry
-    #ifdef USE_VNODES
+#ifdef USE_VNODES
     unset_vir_geometry();
-    #endif
+#endif
+    
+    //stop fftw3
+#if FFT_TYPE == FFTW_FFT
+    fftw_cleanup_threads();
+#endif
     
     //stop the random generator
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();

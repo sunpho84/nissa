@@ -24,6 +24,8 @@ AC_PROG_RANLIB
 
 # Checks for libraries
 AC_SEARCH_LIBS(__gmpz_init,gmp)
+AC_SEARCH_LIBS(fftw_plan_dft_r2c_2d,fftw3)
+AC_SEARCH_LIBS(fftw_cleanup_threads,fftw3_threads)
 
 # Check ntl library
 LB_CHECK_NTL
@@ -36,6 +38,21 @@ AC_ARG_ENABLE(spi,
 if test "$enable_spi" == "yes";then AC_DEFINE([SPI],1,[Enable spi]) fi
 AM_CONDITIONAL([SPI],[test "$enable_spi" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling spi... $enable_spi])
+
+#fast fourier
+AC_DEFINE([NATIVE_FFT],[0],["Native implementation"])
+AC_DEFINE([FFTW_FFT],[1],["FFTW library"])
+AC_ARG_WITH(fft,
+	AS_HELP_STRING([--with-fft],[Select the Fast Fourier transform implementation (native, fftw [default if found])]),
+	with_fft="${withval}",
+	if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "no"; then with_fft="fftw";else with_fft="native";fi)
+	case "$with_fft" in
+     	     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
+     	     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != ""; then AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW]) AM_LDFLAGS="-lfftw3 -lfftw3_threads";else AC_MSG_ERROR(["Unable to find fftw3 lib"]);fi ;;
+	     *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
+	esac
+AC_MSG_RESULT([with Fast Fourier type... $with_fft])
+
 
 #high-prec arithmetic
 AC_DEFINE([NATIVE_HIGH_PREC],[0],["Native implementation"])
