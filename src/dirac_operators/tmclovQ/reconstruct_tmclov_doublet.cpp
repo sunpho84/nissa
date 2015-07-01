@@ -22,7 +22,10 @@ namespace nissa
     
     apply_tmclovQ(outminus,conf,kappa,cSW,Pmunu,mu,in);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      unsafe_spincolor_summ_with_ifactor(outplus[ivol],outminus[ivol],in[ivol],-2*mu);
+      {
+	spincolor_copy(outplus[ivol],outminus[ivol]);
+	spincolor_summ_the_prod_idouble(outplus[ivol],in[ivol],-2*mu);
+      }
     
     set_borders_invalid(outminus);
     set_borders_invalid(outplus);

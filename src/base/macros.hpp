@@ -50,11 +50,6 @@
 //hmc
 #define SEA_THEORY 0
 
-//double per color, spincolor and quad_su3
-#define NREALS_PER_COLOR 6
-#define NREALS_PER_SPINCOLOR 24
-#define NREALS_PER_QUAD_SU3 72
-
 //random number generator table length
 #define RAN2_NTAB 32
 
@@ -132,7 +127,13 @@
 //loops
 #define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<loc_volh;a++)
 #define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<loc_vol;a++)
-    
+
 #define CRASH_IF_NOT_ALIGNED(a,b) if((long long int)(void*)a%b!=0) crash("alignement problem");
+
+#if NCOL == 3
+ #define CRASH_IF_NOT_3COL()
+#else
+ #define CRASH_IF_NOT_3COL() crash("ncol == %d, expected 3",ncol)
+#endif
 
 #endif

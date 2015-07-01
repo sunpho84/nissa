@@ -159,7 +159,7 @@ namespace nissa
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
 	  for(int mu=0;mu<4;mu++)
-	    safe_su3_prod_conj_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
+	    safe_su3_prod_complex_conj(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
 	set_borders_invalid(conf[par]);
       }
   }

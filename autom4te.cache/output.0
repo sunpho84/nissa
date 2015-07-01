@@ -589,6 +589,8 @@ ac_subst_vars='am__EXEEXT_FALSE
 am__EXEEXT_TRUE
 LTLIBOBJS
 LIB@&t@OBJS
+NCOL3_FALSE
+NCOL3_TRUE
 NDIM2_FALSE
 NDIM2_TRUE
 BENCH_FALSE
@@ -736,6 +738,7 @@ enable_thread_debug
 enable_bench
 enable_max_verbosity_lv
 enable_ndim
+enable_ncol
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1390,6 +1393,7 @@ Optional Features:
   --enable-max-verbosity-lv=lv 
                           Set max verbosity lv
   --enable-ndim=n         Set number of dimensions @<:@Default: 4@:>@
+  --enable-ncol=n         Set number of colors @<:@Default: 3@:>@
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -5045,7 +5049,7 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
-#ndim
+#number of dimension
 @%:@ Check whether --enable-ndim was given.
 if test "${enable_ndim+set}" = set; then :
   enableval=$enable_ndim; ndim="${enableval}"
@@ -5070,8 +5074,33 @@ cat >>confdefs.h <<_ACEOF
 _ACEOF
 
 
+#number of colors
+@%:@ Check whether --enable-ncol was given.
+if test "${enable_ncol+set}" = set; then :
+  enableval=$enable_ncol; ncol="${enableval}"
+else
+  ncol=3
+fi
+
+if ! printf "%f" "$col" >/dev/null 2>&1; then as_fn_error $? "String $ncol is not a number" "$LINENO" 5; fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: enabling number of colors... $ncol" >&5
+$as_echo "enabling number of colors... $ncol" >&6; }
+ if test x$ncol = x3; then
+  NCOL3_TRUE=
+  NCOL3_FALSE='#'
+else
+  NCOL3_TRUE='#'
+  NCOL3_FALSE=
+fi
+
+
+cat >>confdefs.h <<_ACEOF
+@%:@define NCOL $ncol
+_ACEOF
+
+
 #create config.hpp
-ac_config_files="$ac_config_files Makefile src/Makefile projects/Makefile projects/cpn/Makefile projects/eight_BK/Makefile projects/g/Makefile projects/generate_confs/Makefile projects/ib/Makefile projects/reno_const/Makefile projects/semileptonic/Makefile projects/static_potential/Makefile tools/Makefile"
+ac_config_files="$ac_config_files Makefile src/Makefile projects/Makefile projects/cosmhol/Makefile projects/cpn/Makefile projects/eight_BK/Makefile projects/g/Makefile projects/generate_confs/Makefile projects/ib/Makefile projects/reno_const/Makefile projects/semileptonic/Makefile projects/static_potential/Makefile tools/Makefile"
 
 
 cat >confcache <<\_ACEOF
@@ -5256,6 +5285,10 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${NDIM2_TRUE}" && test -z "${NDIM2_FALSE}"; then
   as_fn_error $? "conditional \"NDIM2\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${NCOL3_TRUE}" && test -z "${NCOL3_FALSE}"; then
+  as_fn_error $? "conditional \"NCOL3\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
@@ -5855,6 +5888,7 @@ do
     "Makefile") CONFIG_FILES="$CONFIG_FILES Makefile" ;;
     "src/Makefile") CONFIG_FILES="$CONFIG_FILES src/Makefile" ;;
     "projects/Makefile") CONFIG_FILES="$CONFIG_FILES projects/Makefile" ;;
+    "projects/cosmhol/Makefile") CONFIG_FILES="$CONFIG_FILES projects/cosmhol/Makefile" ;;
     "projects/cpn/Makefile") CONFIG_FILES="$CONFIG_FILES projects/cpn/Makefile" ;;
     "projects/eight_BK/Makefile") CONFIG_FILES="$CONFIG_FILES projects/eight_BK/Makefile" ;;
     "projects/g/Makefile") CONFIG_FILES="$CONFIG_FILES projects/g/Makefile" ;;

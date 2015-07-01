@@ -47,7 +47,7 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
-
+  
   //compute the trace of the polyakov loop, but do not reduce over space
   void field_traced_polyakov_loop_lx_conf(complex *out,quad_su3 *conf,int mu)
   {
@@ -64,7 +64,7 @@ namespace nissa
     
     nissa_free(u);
   }
-
+  
   //finding the index to put only the three directions in the plane perpendicular to the dir
   int index_to_poly_corr_remapping(int iloc_lx,int mu)
   {
@@ -83,7 +83,7 @@ namespace nissa
 	int glx_nu=glb_coord_of_loclx[iloc_lx][nu];
 	subcube_coord[inu]=(glx_nu>=subcube_size[inu][0]);
 	subcube=subcube*2+subcube_coord[inu];
-
+	
 	//identify also the local coord
 	subcube_el_coord[inu]=glx_nu-subcube_coord[inu]*subcube_size[inu][0];
 	subcube_el=subcube_el*subcube_size[inu][subcube_coord[inu]]+subcube_el_coord[inu];
@@ -95,7 +95,7 @@ namespace nissa
       for(int b=0;b<2;b++)
 	for(int c=0;c<2;c++)
 	  subcube_vol[c+2*(b+2*a)]=subcube_size[0][a]*subcube_size[1][b]*subcube_size[2][c];
-
+    
     //set the most internal and external
     int poly_ind=subcube_el+perp_vol*glb_coord_of_loclx[iloc_lx][mu];
     
@@ -115,7 +115,7 @@ namespace nissa
     //find rank and loclx
     irank_poly=iglb_poly/loc_vol;
     iloc_poly=iglb_poly%loc_vol;
-  }  
+  }
   
   //compute the polyakov loop - if ext_ll_dag is non null uses it and store correlator with the dag inside it, if ext_ll is non null compute also the correlator with itself
   THREADABLE_FUNCTION_6ARG(average_and_corr_polyakov_loop_lx_conf_internal, double*,loop_trace, double*,loop_dag_trace, complex*,ll_dag_corr, complex*,ll_corr, quad_su3*,conf, int,mu)
@@ -158,7 +158,7 @@ namespace nissa
 	//transform back
 	fft4d(ll_dag_corr,ll_dag_corr,dirs,1/*complex per site*/,-1,false/*do not normalize*/);
       }
-	
+    
     //compute also the transform of the dagger if needed
     if(ll_corr!=NULL)
       {
@@ -185,7 +185,7 @@ namespace nissa
     if(ll_corr) nissa_free(point_loop_dag);
   }
   THREADABLE_FUNCTION_END
-
+  
   //remap and save - "loop" is destroyed!
   void save_poly_loop_correlator(FILE *file,complex *loop,int mu,double *tra,int itraj)
   {
@@ -225,7 +225,7 @@ namespace nissa
       (glb_size[perp_dir[mu][0]]/2+1)*
       (glb_size[perp_dir[mu][1]]/2+1)*
       (glb_size[perp_dir[mu][2]]/2+1);
-
+    
     int istart=loc_vol*rank;
     int iend=istart+loc_vol;
     
@@ -248,11 +248,11 @@ namespace nissa
 	off_t nbytes_wrote=fwrite(loop,1,nbytes_to_write,file);
 	if(nbytes_wrote!=nbytes_to_write) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_to_write);
       }
-
+    
     //point to after the data
     fseek(file,ori+tot_data*sizeof(complex),SEEK_SET);
   }
-
+  
   //compute and possible save
   void average_and_corr_polyakov_loop_lx_conf(double *tra,FILE *corr_file,quad_su3 *conf,int mu,int itraj=0)
   {
@@ -267,7 +267,7 @@ namespace nissa
     //compute
     complex tra_dag;
     average_and_corr_polyakov_loop_lx_conf_internal(tra,tra_dag,loop,loop_dag,conf,mu);
-
+    
     //write and free
     if(corr_file!=NULL)
       {

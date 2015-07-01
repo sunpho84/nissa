@@ -87,46 +87,17 @@ namespace nissa
   }
   inline void complex_subt_conj1(complex a,complex b,complex c)
   {
-    a[0]=b[0]-c[0];
+    a[0]=+b[0]-c[0];
     a[1]=-b[1]-c[1];
   }
-  inline void complex_summassign(complex a,complex b)
-  {
-    a[0]+=b[0];
-    a[1]+=b[1];
-  }
-  inline void complex_subtassign(complex a,complex b)
-  {
-    a[0]-=b[0];
-    a[1]-=b[1];
-  }
+  inline void complex_summassign(complex a,complex b) {complex_summ(a,a,b);}
+  inline void complex_subtassign(complex a,complex b) {complex_subt(a,a,b);}
   
   //prod with real
-  inline void complex_prod_double(complex a,complex b,double c)
-  {
-    a[0]=b[0]*c;
-    a[1]=b[1]*c;
-  }
-  inline void complex_prodassign_double(complex a,double c)
-  {complex_prod_double(a,a,c);}
-  inline void unsafe_complex_prod_idouble(complex a,complex b,double c)
-  {
-    a[0]=-b[1]*c;
-    a[1]= b[0]*c;
-  }
-  inline void safe_complex_prod_idouble(complex a,complex b,double c)
-  {
-    complex t;
-    unsafe_complex_prod_idouble(t,b,c);
-    complex_copy(a,t);
-  }
-  
-  inline void complex_prodassign_idouble(complex a,double b)
-  {
-    double a0=a[0];
-    a[0]=-a[1]*b;
-    a[1]=   a0*b;
-  }
+  inline void complex_prod_double(complex a,complex b,double c) {a[RE]=b[RE]*c;a[IM]=b[IM]*c;}
+  inline void complex_prodassign_double(complex a,double c) {complex_prod_double(a,a,c);}
+  inline void complex_prod_idouble(complex a,complex b,double c) {double d=-b[IM]*c;a[IM]=b[RE]*c;a[RE]=d;}
+  inline void complex_prodassign_idouble(complex a,double b) {complex_prod_idouble(a,a,b);}
   
   //summ the prod with real
   inline void complex_summ_the_prod_double(complex a,const complex b,const double c)
@@ -155,6 +126,13 @@ namespace nissa
     a[1]-=b[0]*c;
     a[0]+=t;
   }
+  
+  //take a linear combination
+  inline void complex_linear_comb(complex a,complex b,double cb,complex c,double cc)
+  {
+    a[RE]=b[RE]*cb+c[RE]*cc;
+    a[IM]=b[IM]*cb+c[IM]*cc;
+  }  
   
   //Summ to the output the product of two complex number
   inline void complex_summ_the_prod(complex a,complex b,complex c)
@@ -372,7 +350,7 @@ namespace nissa
     a[0]+=-b[0]*c[1]-b[1]*c[0];
   }
   //squared norm
-  inline double squared_complex_norm(complex c)
+  inline double complex_norm2(complex c)
   {return c[0]*c[0]+c[1]*c[1];}
   
   //reciprocal of a complex

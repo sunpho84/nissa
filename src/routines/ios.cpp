@@ -50,7 +50,7 @@ namespace nissa
   }
   
   //print a number in some kind of familiar units
-  void fprintf_friendly_units(FILE *fout,int quant,int orders,const char *units)
+  void fprintf_friendly_units(FILE *fout,uint64_t quant,uint64_t orders,const char *units)
   {
     const char units_prefix[6][2]={"","K","M","G","T","P"};
     int iord=0;
@@ -62,11 +62,9 @@ namespace nissa
 	iord++;
       }
     
-    quant=(int)(temp+0.5);
-    
-    master_fprintf(fout,"%d %s%s",quant,units_prefix[iord],units);
+    master_fprintf(fout,"%d %s%s",(int)(temp+0.5),units_prefix[iord],units);
   }
-  void fprintf_friendly_filesize(FILE *fout,int quant)
+  void fprintf_friendly_filesize(FILE *fout,uint64_t quant)
   {fprintf_friendly_units(fout,quant,1024,"Bytes");}
   
   //create a dir

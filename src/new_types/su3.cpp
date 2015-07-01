@@ -119,7 +119,7 @@ namespace nissa
     //unitarize
     su3_unitarize_orthonormalizing(out,out);
   }
-
+  
   //exact exponential of i times the passed anti-hermitian matrix Q
   //algorithm taken from hep­lat/0311018
   //the stored f are relative to c0

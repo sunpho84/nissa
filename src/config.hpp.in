@@ -42,7 +42,10 @@
 /* "Native implementation" */
 #undef NATIVE_HIGH_PREC
 
-/* Ndim */
+/* Number of colors */
+#undef NCOL
+
+/* Number of dimensions */
 #undef NDIM
 
 /* Define to the address where bug reports for this package should be sent. */

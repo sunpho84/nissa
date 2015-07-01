@@ -16,8 +16,8 @@ namespace nissa
   //int rm(const char *path);
   std::string combine(const char *format,...);
   void close_file(FILE *file);
-  void fprintf_friendly_filesize(FILE *fout,int quant);
-  void fprintf_friendly_units(FILE *fout,int quant,int orders,const char *units);
+  void fprintf_friendly_filesize(FILE *fout,uint64_t quant);
+  void fprintf_friendly_units(FILE *fout,uint64_t quant,uint64_t orders,const char *units);
   void take_last_characters(char *out,const char *in,int size);
   int count_file_lines(const char *path);
   int get_file_size(const char *path);
