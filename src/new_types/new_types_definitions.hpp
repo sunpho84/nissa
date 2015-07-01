@@ -45,30 +45,30 @@ namespace nissa
   typedef complex halfspin[2];
 
   typedef float single_complex[2];
-  typedef single_complex single_color[3];
-  typedef single_color single_su3[3];
+  typedef single_complex single_color[NCOL];
+  typedef single_color single_su3[NCOL];
   typedef single_color single_halfspincolor[2];
   typedef single_color single_spincolor[4];
   typedef single_su3 single_quad_su3[4];
   
-  typedef spin colorspin[3];
+  typedef spin colorspin[NCOL];
   typedef color spincolor[4];
   typedef color halfspincolor[2];
   
   typedef colorspin spincolorspin[4];
-  typedef spincolorspin colorspincolorspin[3];
+  typedef spincolorspin colorspincolorspin[NCOL];
   
   typedef spin spinspin[4];
-  typedef spinspin colorspinspin[3];
+  typedef spinspin colorspinspin[NCOL];
   
-  typedef color su3[3];
+  typedef color su3[NCOL];
   typedef su3 quad_su3[NDIM];
   typedef su3 oct_su3[2*NDIM];
   
   typedef complex color2[2];
   typedef color2 su2[2];
   
-  typedef colorspinspin su3spinspin[3];
+  typedef colorspinspin su3spinspin[NCOL];
   
   typedef complex as2t[NDIM*(NDIM+1)/2];
   typedef su3 as2t_su3[NDIM*(NDIM+1)/2];
@@ -80,8 +80,8 @@ namespace nissa
   
 #ifdef BGQ
   typedef complex bi_complex[2];
-  typedef bi_complex bi_color[3];
-  typedef bi_color bi_su3[3];
+  typedef bi_complex bi_color[NCOL];
+  typedef bi_color bi_su3[NCOL];
   typedef bi_su3 bi_oct_su3[8];
   typedef bi_color bi_spincolor[4];
   typedef bi_color bi_halfspincolor[2];
@@ -89,8 +89,8 @@ namespace nissa
   typedef bi_su3 bi_opt_as2t_su3[4];
   
   typedef single_complex bi_single_complex[2];
-  typedef bi_single_complex bi_single_color[3];
-  typedef bi_single_color bi_single_su3[3];
+  typedef bi_single_complex bi_single_color[NCOL];
+  typedef bi_single_color bi_single_su3[NCOL];
   typedef bi_single_color bi_single_halfspincolor[2];
   typedef bi_single_color bi_single_spincolor[4];
   typedef bi_single_su3 bi_single_oct_su3[8];
@@ -119,13 +119,13 @@ namespace nissa
   //quadruple precision float
   typedef double float_128[2];
   typedef float_128 complex_128[2];
-  typedef complex_128 color_128[3];
+  typedef complex_128 color_128[NCOL];
   typedef color_128 spincolor_128[4];
 
 #ifdef BGQ
   typedef complex_128 bi_complex_128[2];
-  typedef bi_complex_128 bi_color_128[3];
-  typedef bi_color_128 bi_su3_128[3];
+  typedef bi_complex_128 bi_color_128[NCOL];
+  typedef bi_color_128 bi_su3_128[NCOL];
   typedef bi_su3_128 bi_oct_su3_128[8];
   typedef bi_color_128 bi_spincolor_128[4];
 #endif
@@ -311,6 +311,7 @@ namespace nissa
     su3_path* next;
   };
   
+  #if NCOL == 3
   //used to exponentiate for stouting
   struct anti_hermitian_exp_ingredients
   {
@@ -324,6 +325,7 @@ namespace nissa
     double cw;
     complex f[3];
   };
+  #endif
   
   //ILDG header
   struct ILDG_header

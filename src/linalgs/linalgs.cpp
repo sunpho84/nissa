@@ -475,9 +475,9 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   ///////////////////// rotations ////////////////////////
-
+  
   THREADABLE_FUNCTION_3ARG(rotate_vol_colorspinspin_to_physical_basis, colorspinspin*,s, int,rsi, int,rso)
   {
     GET_THREAD_ID();

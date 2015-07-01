@@ -180,7 +180,7 @@ if ! printf "%f" "$max_verbosity_lv" >/dev/null 2>&1; then AC_MSG_ERROR([String 
 AC_MSG_RESULT([enabling max verbosity lv... $max_verbosity_lv])
 AC_DEFINE_UNQUOTED([MAX_VERBOSITY_LV],$max_verbosity_lv,[Max_verbosity_lv])
 
-#ndim
+#number of dimension
 AC_ARG_ENABLE(ndim,
         AS_HELP_STRING([--enable-ndim=n],[Set number of dimensions [Default: 4]]),
         ndim="${enableval}",
@@ -188,13 +188,24 @@ AC_ARG_ENABLE(ndim,
 if ! printf "%f" "$ndim" >/dev/null 2>&1; then AC_MSG_ERROR([String $ndim is not a number]); fi
 AC_MSG_RESULT([enabling number of dimension... $ndim])
 AM_CONDITIONAL([NDIM2], [test x$ndim = x2])
-AC_DEFINE_UNQUOTED([NDIM],$ndim,[Ndim])
+AC_DEFINE_UNQUOTED([NDIM],$ndim,[Number of dimensions])
+
+#number of colors
+AC_ARG_ENABLE(ncol,
+        AS_HELP_STRING([--enable-ncol=n],[Set number of colors [Default: 3]]),
+        ncol="${enableval}",
+        ncol=3)
+if ! printf "%f" "$col" >/dev/null 2>&1; then AC_MSG_ERROR([String $ncol is not a number]); fi
+AC_MSG_RESULT([enabling number of colors... $ncol])
+AM_CONDITIONAL([NCOL3], [test x$ncol = x3])
+AC_DEFINE_UNQUOTED([NCOL],$ncol,[Number of colors])
 
 #create config.hpp
 AC_CONFIG_FILES(
 	Makefile
 	src/Makefile
 	projects/Makefile
+	projects/cosmhol/Makefile
 	projects/cpn/Makefile
 	projects/eight_BK/Makefile
 	projects/g/Makefile

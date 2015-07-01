@@ -86,8 +86,8 @@ namespace nissa
     if(IS_MASTER_THREAD)
       {
         double coeff=-quark->deg*2*M_PI*quark->charge/(4.0*glb_vol*2*glb_size[mu]*glb_size[nu]);
-        unsafe_complex_prod_idouble(*magn,temp,coeff);
-        for(int x=0;x<glb_size[1];x++) unsafe_complex_prod_idouble(magn_proj_x[x],temp_proj_x[x],coeff);
+        complex_prod_idouble(*magn,temp,coeff);
+        for(int x=0;x<glb_size[1];x++) complex_prod_idouble(magn_proj_x[x],temp_proj_x[x],coeff);
       }
     THREAD_BARRIER();
   }

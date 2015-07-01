@@ -319,7 +319,7 @@ namespace nissa
     if(out!=in) vector_copy(out,in);
     
     //perform the fft in each direction
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
 	//perform the 1d fft (slower dir)
 	if(dirs[mu]) fft1d(out,out,ncpp*loc_vol/loc_size[mu],mu,sign,normalize);
@@ -339,11 +339,9 @@ namespace nissa
     if(out!=in) vector_copy(out,in);
     
     //list all dirs
-    int ndirs=0;
-    for(int mu=0;mu<NDIM;mu++) if(ext_dirs[mu]) ndirs++;
-    int dirs[ndirs];
-    ndirs=0;
+    int dirs[NDIM],ndirs=0;
     for(int mu=0;mu<NDIM;mu++) if(ext_dirs[mu]) dirs[ndirs++]=mu;
+    verbosity_lv2_master_printf("Going to FFT: %d dimensions in total\n",ndirs);
     
     if(ndirs)
       {
@@ -360,6 +358,7 @@ namespace nissa
 	//transpose each dir in turn and take fft
 	for(int idir=0;idir<ndirs;idir++)
 	  {
+	    verbosity_lv2_master_printf("FFT-ing dimension %d/%d=%d\n",idir+1,ndirs,dirs[idir]);
 	    remap_lx_vector_to_locd(buf,out,ncpp*sizeof(complex),dirs[idir]);
 	    
 	    //makes all the fourier transform

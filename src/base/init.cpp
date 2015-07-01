@@ -140,9 +140,9 @@ namespace nissa
     
     //print fft implementation
 #if FFT_TYPE == FFTW_FFT
-    master_printf("Fast Fourier Transform: fftw3\n");
+    master_printf("Fast Fourier Transform: FFTW3\n");
 #else
-    master_printf("Fast Fourier Transform: native\n");
+    master_printf("Fast Fourier Transform: NATIVE\n");
 #endif
     
     //set default value for parameters

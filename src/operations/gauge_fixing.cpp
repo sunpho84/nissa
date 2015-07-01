@@ -179,7 +179,7 @@ namespace nissa
     complex up1;
     complex_subt_conj2(up1,a[0][1],a[1][0]);
     //icsi=1/sqrt(up0*up0~+up1*up1~)
-    double icsi=1/sqrt(squared_complex_norm(up0)+squared_complex_norm(up1));
+    double icsi=1/sqrt(complex_norm2(up0)+complex_norm2(up1));
     //up0=up0*icsi
     complex_prod_double(up0,up0,icsi);
     //appuno=up0~
@@ -221,7 +221,7 @@ namespace nissa
     //up0=n8~+n4 
     complex_summ_conj1(up0,n8,n4);
     //icsi=1/sqrt(up0*up0~+up1*up1~)
-    icsi=1/sqrt(squared_complex_norm(up0)+squared_complex_norm(up1));
+    icsi=1/sqrt(complex_norm2(up0)+complex_norm2(up1));
     //up0=up0*icsi
     complex_prod_double(up0,up0,icsi);
     //bppuno=up0~
@@ -248,7 +248,7 @@ namespace nissa
     //up0=a[2][2]~+a[0][0]
     complex_summ_conj1(up0,a[2][2],a[0][0]);
     //icsi=1/sqrt(up0*up0~+up1*up1~)
-    icsi=1/sqrt(squared_complex_norm(up0)+squared_complex_norm(up1));
+    icsi=1/sqrt(complex_norm2(up0)+complex_norm2(up1));
     //up0=up0*icsi
     complex_prod_double(up0,up0,icsi);
     //cppuno=up0~
