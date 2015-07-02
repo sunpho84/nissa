@@ -252,7 +252,6 @@ void in_main(int narg,char **arg)
   master_printf("mcrit: %lg, Emu: %+016.016lg, Enu: %+016.016lg %lg\n",m0_of_kappa(le.kappa),lep_energy,neu_energy,lep_energy/neu_energy);
   
   compute_lepton_free_loop();
-  pure_loop();
 }
 
 int main(int narg,char **arg)

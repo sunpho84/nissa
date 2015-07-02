@@ -15,6 +15,7 @@ double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
 double tot_prog_time=0,source_time=0,photon_prop_time=0,lepton_prop_time=0;
 
 int wall_time;
+int without_contact_term;
 int free_theory,rnd_gauge_transform;
 int ngauge_conf,nanalyzed_conf=0;
 char conf_path[1024],outfolder[1024];
@@ -622,7 +623,9 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    spinspin *prop=L[iprop];
 	    
 	    //put it to a phase
-	    int twall=((glb_size[0]/2+source_coord[0])%glb_size[0]);
+	    int twall;
+	    if(without_contact_term) twall=-1;
+	    else twall=((glb_size[0]/2+source_coord[0])%glb_size[0]);
 	    set_to_lepton_sink_phase_factor(prop,ilepton,le,twall);
 	    
 	    //multiply and the insert the current in between, on the source side
