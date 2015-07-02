@@ -50,7 +50,7 @@ const int sign_orie[2]={-1,+1};
 //list the 8 matrices to insert for the weak current
 const int nweak_ins=16;
 const int nweak_ind=8;
-const int nhadrolept_proj=1,hadrolept_projs[nhadrolept_proj]={9};
+const int nhadrolept_proj=2,hadrolept_projs[nhadrolept_proj]={9,4};
 int list_weak_insq[nweak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
 int list_weak_insl[nweak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
 int list_weak_ind_contr[nweak_ins]={0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7};

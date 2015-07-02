@@ -145,10 +145,12 @@ AC_MSG_RESULT([enabling bgq emulation... $enable_bgq_emu])
 
 #repropducible run
 AC_ARG_ENABLE(reproducible-run,
-	AS_HELP_STRING([--enable-reproducible-run],[Enable reproducibilty of runs (reductions, etc)]),
+	AS_HELP_STRING([--enable-reproducible-run],[Enable reproducibilty of runs (default: no)]),
 	enable_reproducible_run="${enableval}",
-	enable_reproducible_run="yes")
-if test "$enable_reproducible_run" == "yes";then AC_DEFINE([REPRODUCIBLE_RUN],1,[Enable reproducible run]) fi
+	enable_reproducible_run="no")
+if test "$enable_reproducible_run" == "yes";then
+   	AC_DEFINE([REPRODUCIBLE_RUN],1,[Enable reproducible run])
+fi
 AM_CONDITIONAL([REPRODUCIBLE_RUN],[test "$enable_reproducible_run" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling reproducibile run... $enable_reproducible_run])
 
