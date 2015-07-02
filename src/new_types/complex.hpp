@@ -93,6 +93,10 @@ namespace nissa
   inline void complex_summassign(complex a,complex b) {complex_summ(a,a,b);}
   inline void complex_subtassign(complex a,complex b) {complex_subt(a,a,b);}
   
+  //put to exp
+  inline void complex_iexp(complex out,double arg)
+  {sincos(arg,out+IM,out+RE);}
+  
   //prod with real
   inline void complex_prod_double(complex a,complex b,double c) {a[RE]=b[RE]*c;a[IM]=b[IM]*c;}
   inline void complex_prodassign_double(complex a,double c) {complex_prod_double(a,a,c);}

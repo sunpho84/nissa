@@ -1387,7 +1387,7 @@ Optional Features:
   --enable-bgq            Enable bgq stuff (ony for BG/Q)
   --enable-bgq_emu        Enable bgq_emu stuff (ony for BG/Q)
   --enable-reproducible-run
-                          Enable reproducibilty of runs (reductions, etc)
+                          Enable reproducibilty of runs (default: no)
   --enable-thread-debug   Enable thread debugging
   --enable-bench          Enable internal benchmarks
   --enable-max-verbosity-lv=lv
@@ -4968,12 +4968,14 @@ $as_echo "enabling bgq emulation... $enable_bgq_emu" >&6; }
 if test "${enable_reproducible_run+set}" = set; then :
   enableval=$enable_reproducible_run; enable_reproducible_run="${enableval}"
 else
-  enable_reproducible_run="yes"
+  enable_reproducible_run="no"
 fi
 
 if test "$enable_reproducible_run" == "yes";then
+
 $as_echo "#define REPRODUCIBLE_RUN 1" >>confdefs.h
- fi
+
+fi
  if test "$enable_reproducible_run" == "yes" ; then
   REPRODUCIBLE_RUN_TRUE=
   REPRODUCIBLE_RUN_FALSE='#'
