@@ -21,7 +21,7 @@
 namespace nissa
 {
 #if THREAD_DEBUG>=2
-
+  
   //wait previously delayed threads
   void wait_for_delayed_threads()
   {
@@ -32,8 +32,8 @@ namespace nissa
 	if(rank==0 && VERBOSITY_LV3) printf("thread %d waiting for delayed threads\n",THREAD_ID);
 	thread_barrier_internal();
       }
-  } 
-
+  }
+  
   //select a new state for the delay
   void select_new_delay_pattern()
   {
@@ -58,7 +58,7 @@ namespace nissa
 	crash("Unknown delay pattern %d",picked);
       }
   }
-
+  
   //delay marked threads
   void delay_marked_threads()
   {
@@ -72,7 +72,7 @@ namespace nissa
       }
   }
 #endif
-
+  
 #if THREAD_DEBUG>=1
   //check that the local barrier correspond to global one
   void check_barrier(const char *barr_file,int barr_line)
@@ -101,7 +101,7 @@ namespace nissa
 #endif
 
   //thread barrier without line number
-#if THREAD_DEBUG>=1  
+#if THREAD_DEBUG>=1
   void thread_barrier_with_check(const char *barr_file,int barr_line)
 #else
   void thread_barrier_without_check()
@@ -114,12 +114,12 @@ namespace nissa
     
     //true barrier
     thread_barrier_internal();
-
+    
     //check coherence of called barrier
     #if THREAD_DEBUG>=1
     check_barrier(barr_file,barr_line);
     #endif
-
+    
     //selct new delay pattern and delay
     #if THREAD_DEBUG>=2
     select_new_delay_pattern();
@@ -149,13 +149,13 @@ namespace nissa
 #ifdef THREAD_DEBUG
     GET_THREAD_ID();
 #endif
-
+    
     //if something was delayed, make it advance
 #if THREAD_DEBUG>=2
     wait_for_delayed_threads();
     delayed_thread_barrier[THREAD_ID]=0;
 #endif
-
+    
     THREAD_BARRIER_FORCE();
     thread_pool_locked=true;
     cache_flush();
@@ -189,7 +189,7 @@ namespace nissa
 	//exec order or mark to exit in other case
 	if(threaded_function_ptr!=NULL) threaded_function_ptr();
 	else stay_working=false;
-
+	
 	thread_pool_lock();
       }
     while(stay_working);
@@ -248,7 +248,7 @@ namespace nissa
     //counter
     uint32_t *ptr=(uint32_t*)&broadcast_ptr;
     GET_THREAD_ID();
-
+    
     //loop every threads, each one changing the counter state
     for(uint32_t i=0;i<NACTIVE_THREADS;i++)
       {
@@ -264,13 +264,13 @@ namespace nissa
 	
         THREAD_BARRIER();
       }
-
+    
     //chech final state
     if(thread_id==0 && *ptr!=nthreads-1) crash("loop thread not closed: %u!",*ptr);
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-
+  
   //start the master thread, locking all the other threads
   void thread_master_start(int narg,char **arg,void(*main_function)(int narg,char **arg))
   {
@@ -293,11 +293,11 @@ namespace nissa
     free(glb_single_reduction_buf);
     free(glb_double_reduction_buf);
     free(glb_quadruple_reduction_buf);
-
+    
     //exit the thread pool
     thread_pool_stop();
   }
-
+  
   //reduce a double vector among threads
   void glb_threads_reduce_double_vect(double *vect,int nel)
   {

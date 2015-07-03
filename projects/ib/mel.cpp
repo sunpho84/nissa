@@ -50,7 +50,7 @@ const int sign_orie[2]={-1,+1};
 
 //list the 8 matrices to insert for the weak current
 const int nweak_ins=16;
-const int nweak_ind=8;
+const int nweak_ind=8; //one of the two is already sufficient
 const int nhadrolept_proj=2,hadrolept_projs[nhadrolept_proj]={9,4};
 int list_weak_insq[nweak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
 int list_weak_insl[nweak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
@@ -245,6 +245,9 @@ void init_simulation(char *path)
   
   //flag to simulate in the free theory
   read_str_int("FreeTheory",&free_theory);
+  
+  //flag to make the muon with or without the contact term
+  read_str_int("WithoutContactTerm",&without_contact_term);
   
   //perform a random gauge transformation
   read_str_int("RandomGaugeTransform",&rnd_gauge_transform);
@@ -483,6 +486,7 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   //compute space and time factor
   double arg=get_space_arg(ivol,le.bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
+  if(t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*lep_energy[ilepton]);
   
   //compute full exponential (notice the factor -1)
@@ -629,7 +633,7 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    set_to_lepton_sink_phase_factor(prop,ilepton,le,twall);
 	    
 	    //multiply and the insert the current in between, on the source side
-	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
+	    if(!without_contact_term) multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 	    //ANNA
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
@@ -827,17 +831,28 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
   spinspin promu[2],pronu[2];
   twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1);
   twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1);
-  naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
-  naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
+  momentum_t ne_bc;
+  ne_bc[0]=le.bc[0];
+  int sign_bc;
+  if(without_contact_term) sign_bc=-1;
+  else sign_bc=+1;
+  for(int mu=1;mu<NDIM;mu++) ne_bc[mu]=sign_bc*le.bc[mu];
+  
+  naive_massless_on_shell_operator_of_imom(pronu[0],ne_bc,0,-1);
+  naive_massless_on_shell_operator_of_imom(pronu[1],ne_bc,0,+1);
   
   //compute the right part of the leptonic loop: G0 G^dag
   dirac_matr hadrolept_proj_gamma[nhadrolept_proj];
   for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
     {
       int ig=hadrolept_projs[ig_proj];
-      dirac_matr temp_gamma;
-      dirac_herm(&temp_gamma,base_gamma+ig);
-      dirac_prod(hadrolept_proj_gamma+ig_proj,base_gamma+map_mu[0],&temp_gamma);
+      if(without_contact_term) dirac_herm(hadrolept_proj_gamma+ig_proj,base_gamma+ig);
+      else
+	{
+	  dirac_matr temp_gamma;
+	  dirac_herm(&temp_gamma,base_gamma+ig);
+	  dirac_prod(hadrolept_proj_gamma+ig_proj,base_gamma+map_mu[0],&temp_gamma);
+	}
     }
   //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - will dag and commutator with g0 come into?
   dirac_matr weak_ins_hadr_gamma[nweak_ins];
