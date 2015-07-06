@@ -54,8 +54,9 @@ namespace nissa
     
     //temporal smear the conf
     if(tsm->use_hyp_or_ape_temp)
+      ape_temporal_smear_conf(lx_conf,lx_conf,tsm->ape_temp_alpha,tsm->nape_temp_iters);
+    else
       hyp_smear_conf_dir(lx_conf,lx_conf,tsm->hyp_temp_alpha0,tsm->hyp_temp_alpha1,tsm->hyp_temp_alpha2,0);
-    else ape_temporal_smear_conf(lx_conf,lx_conf,tsm->ape_temp_alpha,tsm->nape_temp_iters);
     
     for(int ispat_sme=0;ispat_sme<smear_pars->nape_spat_levls;ispat_sme++)
       {
@@ -156,7 +157,7 @@ namespace nissa
 			}
 
 		      //print the output
-		      for(int d=0;d<2*dmax+1;d++) master_fprintf(fout,"%+d %+016.16lg %+016.16lg +%016.016lg +%016.016lg\n",d-dmax,
+		      for(int d=0;d<2*dmax+1;d++) master_fprintf(fout,"%+d %+016.16lg %+016.16lg %+016.016lg %+016.016lg\n",d-dmax,
 								 conn[d][RE]/(3*glb_vol),conn[d][IM]/(3*glb_vol),
 								 disc[d][RE]/(3*glb_vol),disc[d][IM]/(3*glb_vol));								 
 		      master_fprintf(fout,"\n");

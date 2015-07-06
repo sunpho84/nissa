@@ -6,6 +6,8 @@
  #define PROP_TYPE colorspinspin
 #endif
 
+//#define NOPHOTON
+
 using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
@@ -387,13 +389,21 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
 {
   source_time-=take_time();
   
+#ifdef NOPHOTON
+  coords alldirs={1,1,1,1};
+#endif
   switch(inser)
     {
     case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
     case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
     case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
+#ifndef NOPHOTON
     case STOCH_PHI:insert_external_source(source,conf,photon_phi,ori,r);break;
     case STOCH_ETA:insert_external_source(source,conf,photon_eta,ori,r);break;
+#else
+    case STOCH_PHI:
+    case STOCH_ETA:insert_conserved_current(source,conf,ori,r,alldirs);break;
+#endif
     case TADPOLE:insert_tadpole(source,conf,ori,r,tadpole);break;
     }
   
@@ -404,7 +414,7 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
 //invert on top of a source, putting all needed for the appropriate quark
 void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,int rotate=true)
 {
-  //these are the way in which Dirac operator rotate - propagator is opposite, see below  
+  //these are the ways in which Dirac operator rotates - propagator is opposite, see below
 #ifdef POINT_SOURCE_VERSION
   for(int ic=0;ic<3;ic++)
 #endif
@@ -635,7 +645,9 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    //multiply and the insert the current in between, on the source side
 	    if(!without_contact_term) multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 	    //ANNA
+#ifndef NOPHOTON
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
+#endif
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 	  }
   
@@ -831,6 +843,11 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
   spinspin promu[2],pronu[2];
   twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1);
   twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1);
+  if(without_contact_term)
+    for(int i=0;i<2;i++)
+      safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+map_mu[0]);
+  
+  //fix newutrino bc
   momentum_t ne_bc;
   ne_bc[0]=le.bc[0];
   int sign_bc;
@@ -871,6 +888,7 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  //multiply lepton side on the right (source) side
 	  spinspin l;
 	  unsafe_spinspin_prod_dirac(l,lept[ivol],base_gamma+list_weak_insl[ins]);
+	  if(without_contact_term) safe_spinspin_prod_dirac(l,l,base_gamma+map_mu[0]);
 	  
 	  //trace hadron side
 	  complex h;
