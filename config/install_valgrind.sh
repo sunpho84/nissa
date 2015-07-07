@@ -2,10 +2,12 @@
 
 mkdir comp
 cd comp
-wget http://valgrind.org/downloads/valgrind-3.10.0.tar.bz2 -O -|tar jxf -
+wget http://valgrind.org/downloads/valgrind-3.10.1.tar.bz2 -O -|tar jxf -
+wget http://www.linuxfromscratch.org/patches/blfs/svn/valgrind-3.10.1-glibc_2.21-1.patch
 cd val*
+patch -Np1 -i ../valgrind-3.10.1-glibc_2.21-1.patch
 ./configure --prefix=$HOME
-make
+make -j 4
 make install
 cd ..
 rm -fr val*

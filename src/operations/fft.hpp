@@ -8,10 +8,7 @@ namespace nissa
   void data_coordinate_order_shift(complex *data,int ncpp,int mu0);
   void fft4d(complex *out,complex *in,int *dirs,int ncpp,double sign,int normalize);
   inline void fft4d(complex *out,complex *in,int ncpp,double sign,int normalize)
-  {
-    int dirs[4]={1,1,1,1};
-    fft4d(out,in,dirs,ncpp,sign,normalize);
-  }
+  {fft4d(out,in,all_dirs,ncpp,sign,normalize);}
 }
 
 #endif
