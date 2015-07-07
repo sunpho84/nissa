@@ -62,9 +62,9 @@ namespace nissa
       {
 	//spatial smearing
 	int this_niters=smear_pars->nape_spat_iters[ispat_sme];
-	int niters=this_niters;
-	if(ispat_sme!=0) niters-=smear_pars->nape_spat_iters[ispat_sme-1];
-	ape_spatial_smear_conf(lx_conf,lx_conf,smear_pars->ape_spat_alpha,niters);
+	int nadd_iters=this_niters;
+	if(ispat_sme!=0) nadd_iters-=smear_pars->nape_spat_iters[ispat_sme-1];
+	ape_spatial_smear_conf(lx_conf,lx_conf,smear_pars->ape_spat_alpha,nadd_iters);
 	
 	//compute the watusso
 	int nu=0;
@@ -87,7 +87,7 @@ namespace nissa
 	    complex small_trace;
 	    complex_vector_glb_collapse(small_trace,loc_res,loc_vol);
 	    
-	    master_fprintf(fout," ### APE = ( %lg , %d ) , nu = %d , mu = %d , 1/3<trU> = %+016.016lg %+016.016lg\n\n",smear_pars->ape_spat_alpha,niters,nu,mu,small_trace[RE]/glb_vol/3,small_trace[IM],glb_vol/3);
+	    master_fprintf(fout," ### APE = ( %lg , %d ) , nu = %d , mu = %d , 1/3<trU> = %+016.016lg %+016.016lg\n\n",smear_pars->ape_spat_alpha,this_niters,nu,mu,small_trace[RE]/glb_vol/3,small_trace[IM]/glb_vol/3);
 	    
 	    //elong on both sides the small
 	    int prev_sizeh=0;
@@ -95,6 +95,7 @@ namespace nissa
 	    for(int size=pars->size_min;size<=pars->size_max;size+=pars->size_step)
 	      {
 		//elong the small of what needed
+		//ANNA
 		int sizeh=size/2;
 		for(int d=prev_sizeh;d<sizeh;d++) elong_su3_path(&s,small_su3,lx_conf,nu,-1,true);
 		prev_sizeh=sizeh;
@@ -102,11 +103,11 @@ namespace nissa
 		//compute the big
 		const int nbig_steps=5;
 		int big_steps[2*nbig_steps]={
-		  mu,-sizeh,
+		  mu,size-sizeh,
 		  nu,size,
-		  mu,size,
+		  mu,-size,
 		  nu,-size,
-		  mu,-(size-sizeh)};
+		  mu,sizeh};
 		path_drawing_t b;
 		compute_su3_path(&b,big_su3,lx_conf,big_steps,nbig_steps);
 		//trace it
@@ -114,6 +115,11 @@ namespace nissa
 		THREAD_BARRIER();
 		complex big_trace;
 		complex_vector_glb_collapse(big_trace,loc_res,loc_vol);
+		
+		//elong the big of what needed
+		//ANNA
+		//for(int d=prev_sizeh;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,nu,+1,true);
+		//prev_sizeh=sizeh;
 		
 		master_fprintf(fout," ## size = %d , 1/3<trW> = %+016.016lg %+016.016lg\n\n",size,big_trace[RE]/glb_vol/3,big_trace[IM]/glb_vol/3);
 		
@@ -138,7 +144,7 @@ namespace nissa
 			      //wait and collapse
 			      THREAD_BARRIER();
 			      complex_vector_glb_collapse(conn[dmax+orie*d],loc_res,loc_vol);
-
+			      
 			      //separate trace
 			      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 				{
@@ -155,7 +161,7 @@ namespace nissa
 			      if(d!=dmax) elong_su3_path(&p,periscoped,lx_conf,rho,-orie,true);
 			    }
 			}
-
+		      
 		      //print the output
 		      for(int d=0;d<2*dmax+1;d++) master_fprintf(fout,"%+d %+016.16lg %+016.16lg %+016.016lg %+016.016lg\n",d-dmax,
 								 conn[d][RE]/(3*glb_vol),conn[d][IM]/(3*glb_vol),

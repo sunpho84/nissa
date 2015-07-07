@@ -147,7 +147,7 @@ namespace nissa
     
     return abse;
   }
-
+  
   //same for the naive fermions
   double naive_massless_on_shell_operator_of_imom(spinspin proj,momentum_t bc,int imom,int esign)
   {
@@ -212,7 +212,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   ///////////////////////////////////////////// twisted propagator in x space ////////////////////////////////////////////////
-
+  
   //single
   void compute_x_space_twisted_propagator_by_fft(spinspin *prop,tm_quark_info qu)
   {
@@ -240,7 +240,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   /////////////////////////////////////////////// multiply from left or right a spin ///////////////////////////////////////////////
-
+  
   //multiply from left
 #define DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(TYPE) \
   THREADABLE_FUNCTION_3ARG(multiply_from_left_by_mom_space_twisted_propagator, TYPE*,out, TYPE*,in, tm_quark_info,qu) \

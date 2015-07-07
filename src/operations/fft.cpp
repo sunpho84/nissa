@@ -358,15 +358,16 @@ namespace nissa
 	//transpose each dir in turn and take fft
 	for(int idir=0;idir<ndirs;idir++)
 	  {
-	    verbosity_lv2_master_printf("FFT-ing dimension %d/%d=%d\n",idir+1,ndirs,dirs[idir]);
-	    remap_lx_vector_to_locd(buf,out,ncpp*sizeof(complex),dirs[idir]);
+	    int mu=dirs[idir];
+	    verbosity_lv2_master_printf("FFT-ing dimension %d/%d=%d\n",idir+1,ndirs,mu);
+	    remap_lx_vector_to_locd(buf,out,ncpp*sizeof(complex),mu);
 	    
 	    //makes all the fourier transform
-	    NISSA_PARALLEL_LOOP(ioff,0,locd_perp_size_per_dir[idir])
-	      fftw_execute_dft(plans[idir],buf+ioff*glb_size[dirs[idir]]*ncpp,buf+ioff*glb_size[dirs[idir]]*ncpp);
+	    NISSA_PARALLEL_LOOP(ioff,0,locd_perp_size_per_dir[mu])
+	      fftw_execute_dft(plans[idir],buf+ioff*glb_size[mu]*ncpp,buf+ioff*glb_size[mu]*ncpp);
 	    THREAD_BARRIER();
 	    
-	    remap_locd_vector_to_lx(out,buf,ncpp*sizeof(complex),dirs[idir]);
+	    remap_locd_vector_to_lx(out,buf,ncpp*sizeof(complex),mu);
 	  }
 	
 	//destroy plans
@@ -377,7 +378,7 @@ namespace nissa
 	  {
 	    double norm=glb_size[dirs[0]];
 	    for(int idir=1;idir<ndirs;idir++) norm*=glb_size[idir];
-	    double_vector_prod_double((double*)out,(double*)out,1/norm,ncpp*loc_vol);
+	    double_vector_prod_double((double*)out,(double*)out,1/norm,2*ncpp*loc_vol);
 	  }
 	
 	nissa_free(buf);

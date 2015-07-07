@@ -45,15 +45,15 @@ namespace nissa
 	
 	//compute the phase
 	complex ph={cos(arg),sin(arg)};
-      
+	
 	//adapt the phase
 	safe_spinspin_prod_complex(out[ivol],out[ivol],ph);
       }
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
-  //interpret free index as source or sink (see above)
+  
+  //interprets free index as source or sink (see above)
   THREADABLE_FUNCTION_5ARG(pass_spinspin_from_x_to_mom_space_source_or_sink, spinspin*,out, spinspin*,in, int*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();

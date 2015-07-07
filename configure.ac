@@ -43,7 +43,7 @@ AC_MSG_RESULT([enabling spi... $enable_spi])
 AC_DEFINE([NATIVE_FFT],[0],["Native implementation"])
 AC_DEFINE([FFTW_FFT],[1],["FFTW library"])
 AC_ARG_WITH(fft,
-	AS_HELP_STRING([--with-fft],[Select the Fast Fourier transform implementation (native, fftw [default if found])]),
+	AS_HELP_STRING([--with-fft],[Select the Fast Fourier transform implementation (native, fftw [NOT default if found])]),
 	with_fft="${withval}",
 	if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "no"; then with_fft="fftw";else with_fft="native";fi)
 	case "$with_fft" in

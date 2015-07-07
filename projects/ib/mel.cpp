@@ -6,7 +6,7 @@
  #define PROP_TYPE colorspinspin
 #endif
 
-//#define NOPHOTON
+#define NOPHOTON
 
 using namespace nissa;
 
@@ -372,6 +372,7 @@ void generate_original_source()
   //source coord
   coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]};
   for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
+  for(int mu=0;mu<4;mu++) source_coord[mu]=0;
   
 #ifdef POINT_SOURCE_VERSION
   master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
@@ -525,7 +526,7 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
   
   vector_reset(prop);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
+    if(without_contact_term||twall==-1||glb_coord_of_loclx[ivol][0]==twall)
       {
 	complex ph;
 	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
@@ -637,14 +638,11 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    spinspin *prop=L[iprop];
 	    
 	    //put it to a phase
-	    int twall;
-	    if(without_contact_term) twall=-1;
-	    else twall=((glb_size[0]/2+source_coord[0])%glb_size[0]);
+	    int twall=((glb_size[0]/2+source_coord[0])%glb_size[0]);
 	    set_to_lepton_sink_phase_factor(prop,ilepton,le,twall);
 	    
 	    //multiply and the insert the current in between, on the source side
 	    if(!without_contact_term) multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
-	    //ANNA
 #ifndef NOPHOTON
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
 #endif
@@ -854,7 +852,6 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
   if(without_contact_term) sign_bc=-1;
   else sign_bc=+1;
   for(int mu=1;mu<NDIM;mu++) ne_bc[mu]=sign_bc*le.bc[mu];
-  
   naive_massless_on_shell_operator_of_imom(pronu[0],ne_bc,0,-1);
   naive_massless_on_shell_operator_of_imom(pronu[1],ne_bc,0,+1);
   
@@ -893,9 +890,6 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  //trace hadron side
 	  complex h;
 	  trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma+ins);
-	  //ANNA
-	  //h[0]=1;
-	  //h[1]=0;
 	  //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
 	  complex ph;
 	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);

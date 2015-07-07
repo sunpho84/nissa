@@ -1400,7 +1400,7 @@ Optional Packages:
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
   --with-ntl-prefix=PFX   Prefix where NTL is installed (optional)
   --with-fft              Select the Fast Fourier transform implementation
-                          (native, fftw @<:@default if found@:>@)
+                          (native, fftw @<:@NOT default if found@:>@)
   --with-high-prec        Select the high precision type (native=256 bit
                           float, gmp @<:@default if found@:>@)
 
