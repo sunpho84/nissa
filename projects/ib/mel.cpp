@@ -53,7 +53,7 @@ const int sign_orie[2]={-1,+1};
 //list the 8 matrices to insert for the weak current
 const int nweak_ins=16;
 const int nweak_ind=8; //one of the two is already sufficient
-const int nhadrolept_proj=2,hadrolept_projs[nhadrolept_proj]={9,4};
+const int nhadrolept_proj=4,hadrolept_projs[nhadrolept_proj]={9,4,5,0};
 int list_weak_insq[nweak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
 int list_weak_insl[nweak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
 int list_weak_ind_contr[nweak_ins]={0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7};
@@ -372,7 +372,7 @@ void generate_original_source()
   //source coord
   coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]};
   for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
-  for(int mu=0;mu<4;mu++) source_coord[mu]=0;
+  //for(int mu=0;mu<4;mu++) source_coord[mu]=0;
   
 #ifdef POINT_SOURCE_VERSION
   master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
