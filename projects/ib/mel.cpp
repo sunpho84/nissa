@@ -6,7 +6,7 @@
  #define PROP_TYPE colorspinspin
 #endif
 
-#define NOPHOTON
+//#define NOPHOTON
 
 using namespace nissa;
 
@@ -391,7 +391,7 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
   source_time-=take_time();
   
 #ifdef NOPHOTON
-  coords alldirs={1,1,1,1};
+  coords time_dir={1,0,0,0};
 #endif
   switch(inser)
     {
@@ -403,7 +403,7 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
     case STOCH_ETA:insert_external_source(source,conf,photon_eta,ori,r);break;
 #else
     case STOCH_PHI:
-    case STOCH_ETA:insert_conserved_current(source,conf,ori,r,alldirs);break;
+    case STOCH_ETA:insert_conserved_current(source,conf,ori,r,time_dir);break;
 #endif
     case TADPOLE:insert_tadpole(source,conf,ori,r,tadpole);break;
     }
@@ -499,6 +499,7 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
   if(t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*lep_energy[ilepton]);
+  //if(t>=glb_size[0]/2) ext=0;
   
   //compute full exponential (notice the factor -1)
   out[RE]=cos(-arg)*ext;
@@ -605,9 +606,67 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
 }
 //insert the photon on the source
 void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,tm_quark_info &le)
-{
-  coords dirs={1,1,1,1};
-  insert_photon_on_the_source(prop,ilepton,phi_eta,dirs,le);
+{insert_photon_on_the_source(prop,ilepton,phi_eta,all_dirs,le);}
+
+//insert the conserved current on the source
+void insert_conserved_current_on_the_source(spinspin *prop,int ilepton,coords dirs,tm_quark_info &le)
+{ 
+  GET_THREAD_ID();
+  
+  //phases
+  complex phases[4];
+  for(int mu=0;mu<NDIM;mu++)
+    {
+      phases[mu][0]=cos(le.bc[mu]*M_PI);
+      phases[mu][1]=sin(le.bc[mu]*M_PI);
+    }
+  
+  //copy on the temporary and communicate borders
+  vector_copy(temp_lep,prop);
+  communicate_lx_spinspin_borders(temp_lep);
+  vector_reset(prop);
+  
+  //prepare each propagator for a single lepton
+  //by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
+  //(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int mu=0;mu<4;mu++)
+      {
+	//find neighbors
+	int ifw=loclx_neighup[ivol][mu];
+	int ibw=loclx_neighdw[ivol][mu];
+	
+	//compute phase factor
+	spinspin ph_bw,ph_fw;
+	
+	//transport down and up
+	if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
+	else spinspin_copy(ph_fw,temp_lep[ifw]);
+	if(glb_coord_of_loclx[ivol][mu]==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
+	else spinspin_copy(ph_bw,temp_lep[ibw]);
+	
+	//fix coefficients - i is inserted here!
+	//also dir selection is made here
+	spinspin_prodassign_idouble(ph_fw,-0.5*dirs[mu]);
+	spinspin_prodassign_idouble(ph_bw,+0.5*dirs[mu]);
+	
+	//summ and subtract the two
+	spinspin bw_M_fw,bw_P_fw;
+	spinspin_subt(bw_M_fw,ph_bw,ph_fw);
+	spinspin_summ(bw_P_fw,ph_bw,ph_fw);
+	
+	//put -i g5 t3 on the summ
+	spinspin temp_P;
+	spinspin_prodassign_idouble(bw_P_fw,-tau3[le.r]);
+	unsafe_spinspin_prod_dirac(temp_P,bw_P_fw,base_gamma+5);
+	spinspin_summassign(prop[ivol],temp_P);
+	
+	//put gmu on the diff
+	spinspin temp_M;
+	unsafe_spinspin_prod_dirac(temp_M,bw_M_fw,base_gamma+map_mu[mu]);
+	spinspin_summassign(prop[ivol],temp_M);
+      }
+  set_borders_invalid(prop);
 }
 
 //generate all the lepton propagators, pointing outward
@@ -625,16 +684,16 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
   master_printf("Generating lepton propagators\n");
   
   for(int ilepton=0;ilepton<nleptons;ilepton++)
-    for(int orie=0;orie<2;orie++)
+    for(int ori=0;ori<2;ori++)
       for(int phi_eta=0;phi_eta<2;phi_eta++)
 	for(int r=0;r<nr;r++)
 	  {
 	    //set the properties of the meson
 	    //time boundaries are anti-periodic, space are as for external line
-	    tm_quark_info le=get_lepton_info(ilepton,orie,r);
+	    tm_quark_info le=get_lepton_info(ilepton,ori,r);
 	    
 	    //select the propagator
-	    int iprop=ilprop(ilepton,orie,phi_eta,r);
+	    int iprop=ilprop(ilepton,ori,phi_eta,r);
 	    spinspin *prop=L[iprop];
 	    
 	    //put it to a phase
@@ -645,6 +704,9 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    if(!without_contact_term) multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 #ifndef NOPHOTON
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
+#else
+	    coords time_dir={1,0,0,0};
+	    insert_conserved_current_on_the_source(prop,ilepton,time_dir,le);
 #endif
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
 	  }
@@ -841,32 +903,20 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
   spinspin promu[2],pronu[2];
   twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1);
   twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1);
+  naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
+  naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
   if(without_contact_term)
     for(int i=0;i<2;i++)
       safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+map_mu[0]);
-  
-  //fix newutrino bc
-  momentum_t ne_bc;
-  ne_bc[0]=le.bc[0];
-  int sign_bc;
-  if(without_contact_term) sign_bc=-1;
-  else sign_bc=+1;
-  for(int mu=1;mu<NDIM;mu++) ne_bc[mu]=sign_bc*le.bc[mu];
-  naive_massless_on_shell_operator_of_imom(pronu[0],ne_bc,0,-1);
-  naive_massless_on_shell_operator_of_imom(pronu[1],ne_bc,0,+1);
   
   //compute the right part of the leptonic loop: G0 G^dag
   dirac_matr hadrolept_proj_gamma[nhadrolept_proj];
   for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
     {
       int ig=hadrolept_projs[ig_proj];
-      if(without_contact_term) dirac_herm(hadrolept_proj_gamma+ig_proj,base_gamma+ig);
-      else
-	{
-	  dirac_matr temp_gamma;
-	  dirac_herm(&temp_gamma,base_gamma+ig);
-	  dirac_prod(hadrolept_proj_gamma+ig_proj,base_gamma+map_mu[0],&temp_gamma);
-	}
+      dirac_matr temp_gamma;
+      dirac_herm(&temp_gamma,base_gamma+ig);
+      dirac_prod(hadrolept_proj_gamma+ig_proj,base_gamma+map_mu[0],&temp_gamma);
     }
   //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - will dag and commutator with g0 come into?
   dirac_matr weak_ins_hadr_gamma[nweak_ins];
@@ -885,7 +935,6 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  //multiply lepton side on the right (source) side
 	  spinspin l;
 	  unsafe_spinspin_prod_dirac(l,lept[ivol],base_gamma+list_weak_insl[ins]);
-	  if(without_contact_term) safe_spinspin_prod_dirac(l,l,base_gamma+map_mu[0]);
 	  
 	  //trace hadron side
 	  complex h;
