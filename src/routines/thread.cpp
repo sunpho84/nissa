@@ -9,7 +9,6 @@
 
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
-#include "base/init.hpp"
 #include "base/macros.hpp"
 #include "base/random.hpp"
 #include "base/thread_macros.hpp"
