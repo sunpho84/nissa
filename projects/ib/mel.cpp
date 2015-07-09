@@ -7,6 +7,7 @@
 #endif
 
 //#define NOPHOTON
+//#define LOC_MUON_CURR
 
 using namespace nissa;
 
@@ -546,24 +547,26 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
   spin1field *A=(phi_eta==0)?photon_phi:photon_eta;
   communicate_lx_spin1field_borders(A);
   
+  //copy on the temporary and communicate borders
+  vector_copy(temp_lep,prop);
+  communicate_lx_spinspin_borders(temp_lep);
+  vector_reset(prop);
+  
+#ifndef LOC_MUON_CURR
+  
   //phases
-  complex phases[4];
+  quad_u1 phases;
   for(int mu=0;mu<NDIM;mu++)
     {
       phases[mu][0]=cos(le.bc[mu]*M_PI);
       phases[mu][1]=sin(le.bc[mu]*M_PI);
     }
   
-  //copy on the temporary and communicate borders
-  vector_copy(temp_lep,prop);
-  communicate_lx_spinspin_borders(temp_lep);
-  vector_reset(prop);
-  
   //prepare each propagator for a single lepton
   //by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
   //(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
 	//find neighbors
 	int ifw=loclx_neighup[ivol][mu];
@@ -603,6 +606,19 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
 	unsafe_spinspin_prod_dirac(temp_M,bw_M_fw,base_gamma+map_mu[mu]);
 	spinspin_summassign(prop[ivol],temp_M);
       }
+#else
+  
+  for(int mu=0;mu<NDIM;mu++)
+    if(dirs[mu])
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	{
+	  spinspin temp;
+	  unsafe_dirac_prod_spinspin(temp,base_gamma+map_mu[mu],temp_lep[ivol]);
+	  spinspin_summ_the_complex_prod(prop[ivol],temp,A[ivol][mu]);
+	}
+    
+#endif
+  
   set_borders_invalid(prop);
 }
 //insert the photon on the source
