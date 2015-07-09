@@ -7,7 +7,7 @@
 #endif
 
 //#define NOPHOTON
-//#define LOC_MUON_CURR
+#define LOC_MUON_CURR
 
 using namespace nissa;
 
@@ -132,12 +132,20 @@ void init_simulation(char *path)
   //open input file
   open_input(path);
   
-  //init the grid 
-  {  
+#ifdef NOPHOTON
+  master_printf("NOPHOTON\n");
+#endif
+  
+#ifdef LOC_MUON_CURR
+  master_printf("LOC_MUON_CURR\n");
+#endif
+  
+  //init the grid
+  {
     int L,T;
     read_str_int("L",&L);
     read_str_int("T",&T);
-    //Init the MPI grid 
+    //Init the MPI grid
     init_grid(T,L);
   }
   
@@ -612,9 +620,10 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
     if(dirs[mu])
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	{
-	  spinspin temp;
-	  unsafe_dirac_prod_spinspin(temp,base_gamma+map_mu[mu],temp_lep[ivol]);
-	  spinspin_summ_the_complex_prod(prop[ivol],temp,A[ivol][mu]);
+	  spinspin temp1,temp2;
+	  unsafe_dirac_prod_spinspin(temp1,base_gamma+map_mu[mu],temp_lep[ivol]);
+	  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
+	  spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
 	}
     
 #endif
