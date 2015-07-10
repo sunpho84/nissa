@@ -67,7 +67,7 @@ namespace nissa
   if(curr) communicate_lx_spin1field_borders(curr);			\
 									\
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
-    for(int mu=0;mu<4;mu++)						\
+    for(int mu=0;mu<NDIM;mu++)						\
       {									\
 	/*find neighbors*/						\
 	int ifw=loclx_neighup[ivol][mu];				\
