@@ -8,6 +8,7 @@
 
 //#define NOPHOTON
 #define LOC_MUON_CURR
+#define LOC_PION_CURR
 
 using namespace nissa;
 
@@ -138,6 +139,9 @@ void init_simulation(char *path)
   
 #ifdef LOC_MUON_CURR
   master_printf("LOC_MUON_CURR\n");
+#endif
+#ifdef LOC_PION_CURR
+  master_printf("LOC_PION_CURR\n");
 #endif
   
   //init the grid
@@ -395,6 +399,31 @@ void generate_original_source()
 
 //////////////////////////////////////// quark propagators /////////////////////////////////////////////////
 
+//insert the photon on the source side
+void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,coords dirs,PROP_TYPE *in)
+{ 
+  GET_THREAD_ID();
+  
+  if(in==out) crash("in==out");
+  
+  vector_reset(out);
+  
+  for(int mu=0;mu<NDIM;mu++)
+    if(dirs[mu])
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	{
+	  PROP_TYPE temp1,temp2;
+	  NAME2(unsafe_dirac_prod,PROP_TYPE)(temp1,base_gamma+map_mu[mu],in[ivol]);
+	  NAME3(unsafe,PROP_TYPE,prod_complex)(temp2,temp1,phi_eta[ivol][mu]);
+	  NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,1);
+	}
+    
+  set_borders_invalid(out);
+}
+//insert the photon on the source
+void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,PROP_TYPE *in)
+{insert_external_loc_source(out,phi_eta,all_dirs,in);}
+
 //generate a sequential source
 void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
 {
@@ -409,8 +438,13 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
     case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
     case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
 #ifndef NOPHOTON
+ #ifdef LOC_PION_CURR
+    case STOCH_PHI:insert_external_loc_source(source,photon_phi,ori);break;
+    case STOCH_ETA:insert_external_loc_source(source,photon_eta,ori);break;
+ #else
     case STOCH_PHI:insert_external_source(source,conf,photon_phi,ori,r);break;
     case STOCH_ETA:insert_external_source(source,conf,photon_eta,ori,r);break;
+ #endif
 #else
     case STOCH_PHI:
     case STOCH_ETA:insert_conserved_current(source,conf,ori,r,time_dir);break;
@@ -621,7 +655,7 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	{
 	  spinspin temp1,temp2;
-	  unsafe_dirac_prod_spinspin(temp1,base_gamma+map_mu[mu],temp_lep[ivol]);
+	  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+map_mu[mu]);
 	  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
 	  spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
 	}
