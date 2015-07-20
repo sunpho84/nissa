@@ -118,11 +118,11 @@ namespace nissa
     NEW_RENDE_T(dM_M);
     NEW_RENDE_T(d2M_M);
     NEW_RENDE_T(d3M_M);
-	NEW_RENDE_T(M_dM_M);
-	NEW_RENDE_T(dM_M_dM_M);  
-	NEW_RENDE_T(d2M_M_dM_M);
-	NEW_RENDE_T(M_dM_M_dM_M);
-	NEW_RENDE_T(dM_M_dM_M_dM_M);  
+    NEW_RENDE_T(M_dM_M);
+    NEW_RENDE_T(dM_M_dM_M);
+    NEW_RENDE_T(d2M_M_dM_M);
+    NEW_RENDE_T(M_dM_M_dM_M);
+    NEW_RENDE_T(dM_M_dM_M_dM_M);
     
     for(int icopy=0;icopy<pars.quark_rendens_meas_pars.ncopies;icopy++)
       {
@@ -135,10 +135,10 @@ namespace nissa
 	    //vectors for output
 	    NEW_TRACE_RES(Tr_M_dM);
 	    NEW_TRACE_RES(Tr_M_d2M);
-		NEW_TRACE_RES(Tr_M_dM_M_dM);  
-		NEW_TRACE_RES(Tr_M_d3M);
-		NEW_TRACE_RES(Tr_M_dM_M_d2M);  
-		NEW_TRACE_RES(Tr_M_dM_M_dM_M_dM);  
+	    NEW_TRACE_RES(Tr_M_dM_M_dM);
+	    NEW_TRACE_RES(Tr_M_d3M);
+	    NEW_TRACE_RES(Tr_M_dM_M_d2M);
+	    NEW_TRACE_RES(Tr_M_dM_M_dM_M_dM);
 	    
 	    //loop over hits
 	    for(int ihit=0;ihit<pars.quark_rendens_meas_pars.nhits;ihit++)
@@ -146,43 +146,43 @@ namespace nissa
 		//fill the source
 		fill_rende_source(source);
 		
-		//compute dM*M^-1 
+		//compute dM*M^-1
 		MINV(M,iflav,source);
-        DM(dM_M,iflav,1,M);
+		DM(dM_M,iflav,1,M);
 		
 		//compute d2M*M^-1
 		DM(d2M_M,iflav,2,M);
-			  
+		
 		//compute d3M*M^-1
-		DM(d3M_M,iflav,3,M);	  
-			  
+		DM(d3M_M,iflav,3,M);
+		
 		//compute dM*M^-1*dM*M^-1
-		MINV(M_dM_M,iflav,dM_M);	
-        DM(dM_M_dM_M,iflav,1,M_dM_M);
-			  
+		MINV(M_dM_M,iflav,dM_M);
+		DM(dM_M_dM_M,iflav,1,M_dM_M);
+		
 		//compute d2M*M^-1*dM*M^-1
 		DM(d2M_M_dM_M,iflav,2,M_dM_M);
-			  
-		//compute dM_M_dM_M_dM_M	
-		MINV(M_dM_M_dM_M,iflav,dM_M_dM_M);	  
-		DM(dM_M_dM_M_dM_M,iflav,1,M_dM_M_dM_M);	  
+		
+		//compute dM_M_dM_M_dM_M
+		MINV(M_dM_M_dM_M,iflav,dM_M_dM_M);
+		DM(dM_M_dM_M_dM_M,iflav,1,M_dM_M_dM_M);
 		
 		//trace
 		SUMM_THE_TRACE(Tr_M_dM,source,dM_M);
 		SUMM_THE_TRACE(Tr_M_d2M,source,d2M_M);
-		SUMM_THE_TRACE(Tr_M_d3M,source,d3M_M);	  
-		SUMM_THE_TRACE(Tr_M_dM_M_dM,source,dM_M_dM_M);	
+		SUMM_THE_TRACE(Tr_M_d3M,source,d3M_M);
+		SUMM_THE_TRACE(Tr_M_dM_M_dM,source,dM_M_dM_M);
 		SUMM_THE_TRACE(Tr_M_dM_M_d2M,source,d2M_M_dM_M);
-		SUMM_THE_TRACE(Tr_M_dM_M_dM_M_dM,source,dM_M_dM_M_dM_M);	  
+		SUMM_THE_TRACE(Tr_M_dM_M_dM_M_dM,source,dM_M_dM_M_dM_M);
 	      }
 	    
 	    //print out (automatical normalisation for nhits)
 	    PRINT(Tr_M_dM);
 	    PRINT(Tr_M_d2M);
-        PRINT(Tr_M_d3M);
-		PRINT(Tr_M_dM_M_dM);  
-        PRINT(Tr_M_dM_M_d2M);
-		PRINT(Tr_M_dM_M_dM_M_dM);  
+	    PRINT(Tr_M_d3M);
+	    PRINT(Tr_M_dM_M_dM);
+	    PRINT(Tr_M_dM_M_d2M);
+	    PRINT(Tr_M_dM_M_dM_M_dM);
 	  }
 	
 	master_fprintf(file,"\n");
@@ -191,13 +191,13 @@ namespace nissa
     DELETE_RENDE_T(M);
     DELETE_RENDE_T(d2M_M);
     DELETE_RENDE_T(dM_M);
-	DELETE_RENDE_T(d3M_M);  
+    DELETE_RENDE_T(d3M_M);
     DELETE_RENDE_T(M_dM_M);
-	DELETE_RENDE_T(dM_M_dM_M);
-	DELETE_RENDE_T(d2M_M_dM_M);  
-	DELETE_RENDE_T(M_dM_M_dM_M);
-	DELETE_RENDE_T(dM_M_dM_M_dM_M);  
-	
+    DELETE_RENDE_T(dM_M_dM_M);
+    DELETE_RENDE_T(d2M_M_dM_M);
+    DELETE_RENDE_T(M_dM_M_dM_M);
+    DELETE_RENDE_T(dM_M_dM_M_dM_M);
+    
     //close and deallocate
     addrem_stagphases_to_eo_conf(conf);
     close_file(file);

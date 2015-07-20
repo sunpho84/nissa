@@ -7,8 +7,8 @@
 #endif
 
 //#define NOPHOTON
-#define LOC_MUON_CURR
-#define LOC_PION_CURR
+//#define LOC_MUON_CURR
+//#define LOC_PION_CURR
 
 using namespace nissa;
 
@@ -1098,7 +1098,6 @@ void compute_hadroleptonic_correlations()
 	      //takes the index of the quarks
 	      int iq1=lep_corr_iq1[ilepton];
 	      int iq2=lep_corr_iq2[ilepton];
-	      if(irev==1) std::swap(iq1,iq2); //select the propagator to revert
 	      
 	      //takes the propagators
 	      qprop_t PROP1_TYPE,PROP2_TYPE;
@@ -1113,8 +1112,11 @@ void compute_hadroleptonic_correlations()
 		PROP1_TYPE=PROP_0;
 		PROP2_TYPE=PROP_PHI_ETA[phi_eta];
 		}
-	      int ip1=iqprop(iq1,PROP1_TYPE,r2); //q1 will be reverted
+	      int ip1=iqprop(iq1,PROP1_TYPE,r2);
 	      int ip2=iqprop(iq2,PROP2_TYPE,r2);
+	      
+	      if(irev==1) std::swap(ip1,ip2); //select the propagator to revert
+	      
 	      //compute the hadronic part
 	      hadronic_part_leptonic_correlation(hadr,Q[ip1],Q[ip2]);
 	      

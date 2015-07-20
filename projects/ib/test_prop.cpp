@@ -194,6 +194,23 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 }
 THREADABLE_FUNCTION_END
 
+double sinp(coords cp1,coords cp2,momentum_t bc,double fr=1)
+{
+  double out=0;
+  for(int mu=0;mu<4;mu++)
+    {
+      double p1=M_PI*(2*cp1[mu]+bc[mu])/glb_size[mu];
+      double p2=M_PI*(2*cp2[mu]+bc[mu])/glb_size[mu];
+      out+=sin(p1/fr)*sin(p2/fr);
+    }
+  
+  return out;
+}
+double sin2(coords cp,momentum_t bc)
+{return sinp(cp,cp,bc);}
+double sin2h(coords cp,momentum_t bc)
+{return sinp(cp,cp,bc,2);}
+
 void in_main(int narg,char **arg)
 {
   if(narg<2) crash("use %s nx",arg[0]);
@@ -204,6 +221,87 @@ void in_main(int narg,char **arg)
   for(int mu=1;mu<4;mu++) glb_size[mu]=L;
   
   start_loc_rnd_gen(1000);
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  if(nranks==1)
+    {
+      //testing the P5P5 corr function in mom space
+      tm_quark_info qu;
+      qu.r=1;
+      qu.mass=0.1;
+      qu.kappa=0.125;
+      qu.bc[0]=1;
+      for(int mu=1;mu<4;mu++) qu.bc[mu]=0;
+      tm_quark_info qu1=qu;
+      qu1.r=!qu.r;
+      
+      //compute in x space
+      spinspin *pr=nissa_malloc("pr",loc_vol,spinspin);
+      compute_x_space_twisted_propagator_by_fft(pr,qu);
+      double xp5p5[glb_size[0]];
+      memset(xp5p5,0,sizeof(complex)*glb_size[0]);
+      for(int ivol=0;ivol<glb_vol;ivol++)
+	xp5p5[glb_coord_of_loclx[ivol][0]]+=spinspin_norm2(pr[ivol]);
+      nissa_free(pr);
+      
+      complex cp5p5_uns[glb_size[0]];
+      double fp5p5_uns[glb_size[0]];
+      for(int p0=0;p0<glb_size[0];p0++)
+	{
+	  coords cp={p0,0,0,0};
+	  complex_put_to_zero(cp5p5_uns[p0]);
+	  fp5p5_uns[p0]=0;
+	  
+	  for(int q=0;q<glb_vol;q++)
+	    {
+	      //prepare S(q)*g5
+	      spinspin Sq;
+	      mom_space_twisted_propagator_of_imom(Sq,qu,q);
+	      spinspin Sq5;
+	      unsafe_spinspin_prod_dirac(Sq5,Sq,base_gamma+5);
+	      
+	      //compute p+q
+	      coords cpq;
+	      for(int mu=0;mu<4;mu++) cpq[mu]=(cp[mu]+glb_coord_of_loclx[q][mu])%glb_size[mu];
+	      int pq=glblx_of_coord(cpq);
+	      
+	      //prepare S(p+q)*g5
+	      spinspin Spq;
+	      mom_space_twisted_propagator_of_imom(Spq,qu1,pq);
+	      spinspin Spq5;
+	      unsafe_spinspin_prod_dirac(Spq5,Spq,base_gamma+5);
+	      
+	      //compute the trace Tr[S(q)*g5*S(p+q)*g5]
+	      complex c;
+	      trace_spinspin_prod_spinspin(c,Sq5,Spq5);
+	      complex_summassign(cp5p5_uns[p0],c);
+	      
+	      //form
+	      double Z1=1/(sqr(2*sin2h(cpq,qu.bc))+sqr(qu.mass)+sin2(cpq,qu.bc));
+              double Z2=1/(sqr(2*sin2h(glb_coord_of_loclx[q],qu.bc))+sqr(qu.mass)+sin2(glb_coord_of_loclx[q],qu.bc));
+              double Z5=sqr(qu.mass)+4*sin2h(cpq,qu.bc)*sin2h(glb_coord_of_loclx[q],qu.bc)+sinp(glb_coord_of_loclx[q],cpq,qu.bc);
+	      fp5p5_uns[p0]+=4*Z1*Z2*Z5/glb_vol/glb_vol;
+	      
+	      //master_printf("t=%d q=%d (%lg,%lg)\n",p0,q,c[RE],c[IM]);
+	    }
+	  master_printf("MS Cp5p5: p0=%d (%lg,%lg) %lg\n",p0,cp5p5_uns[p0][RE],cp5p5_uns[p0][IM],fp5p5_uns[p0]);
+	}
+      
+      master_printf("\n");
+      
+      //take ft
+      for(int t=0;t<glb_size[0];t++)
+	{
+	  double c=0;
+	  for(int p0=0;p0<glb_size[0];p0++) c+=cos((2*p0+0)*M_PI*t/glb_size[0])*cp5p5_uns[p0][RE];
+	  master_printf("XS Cp5p5: t=%d %lg\t%lg\n",t,c*glb_vol/glb_size[0],xp5p5[t]);
+	}
+      
+      master_printf("\n");
+    }
+  
+  ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //testing the new fourier transform
   spinspin *test=nissa_malloc("test",loc_vol,spinspin);

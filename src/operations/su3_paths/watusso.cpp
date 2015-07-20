@@ -44,7 +44,7 @@ namespace nissa
     su3 *small_su3=nissa_malloc("small_su3",loc_vol+bord_vol,su3);
     su3 *periscoped=nissa_malloc("periscoped",loc_vol+bord_vol,su3);
     complex *loc_res=nissa_malloc("loc_res",loc_vol,complex);
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol,quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
     
     //make local copy of pars
@@ -92,13 +92,13 @@ namespace nissa
 	    //elong on both sides the small
 	    int prev_sizeh=0;
 	    
-	    for(int size=pars->size_min;size<=pars->size_max;size+=pars->size_step)
+	    for(int size=pars->size_min;size<=pars->size_max;size+=std::max(1,pars->size_step))
 	      {
 		//elong the small of what needed
-		//ANNA
+		//ANNA MOVE the plaquette in the plan first
 		int sizeh=size/2;
-		for(int d=prev_sizeh;d<sizeh;d++) elong_su3_path(&s,small_su3,lx_conf,nu,-1,true);
-		prev_sizeh=sizeh;
+		//for(int d=prev_sizeh;d<sizeh;d++) elong_su3_path(&s,small_su3,lx_conf,nu,-1,true);
+		//prev_sizeh=sizeh;
 		
 		//compute the big
 		const int nbig_steps=5;
@@ -117,9 +117,9 @@ namespace nissa
 		complex_vector_glb_collapse(big_trace,loc_res,loc_vol);
 		
 		//elong the big of what needed
-		//ANNA
-		//for(int d=prev_sizeh;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,nu,+1,true);
-		//prev_sizeh=sizeh;
+		//ANNA MOVE the big to the center
+		for(int d=prev_sizeh;d<sizeh;d++) elong_su3_path(&s,big_su3,lx_conf,nu,+1,true);
+		prev_sizeh=sizeh;
 		
 		master_fprintf(fout," ## size = %d , 1/3<trW> = %+016.016lg %+016.016lg\n\n",size,big_trace[RE]/glb_vol/3,big_trace[IM]/glb_vol/3);
 		
@@ -165,7 +165,7 @@ namespace nissa
 		      //print the output
 		      for(int d=0;d<2*dmax+1;d++) master_fprintf(fout,"%+d %+016.16lg %+016.16lg %+016.016lg %+016.016lg\n",d-dmax,
 								 conn[d][RE]/(3*glb_vol),conn[d][IM]/(3*glb_vol),
-								 disc[d][RE]/(3*glb_vol),disc[d][IM]/(3*glb_vol));								 
+								 disc[d][RE]/(3*glb_vol),disc[d][IM]/(3*glb_vol));
 		      master_fprintf(fout,"\n");
 		      
 		      //increase the perpendicular dimension
