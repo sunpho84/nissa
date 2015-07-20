@@ -438,7 +438,7 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action
 {
   //open creating or appending
   FILE *file=open_file(path,conf_created?"w":"a");
-
+  
   //paths
   double paths[2];
   
@@ -475,7 +475,7 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   FILE *fout=fopen(pars.path,(conf_created||!file_exists(pars.path))?"w":"r+");
   if(fout==NULL) crash("opening %s",pars.path);
   if(fseek(fout,0,SEEK_END)) crash("seeking to the end");
-
+  
   //compute and print
   complex temp;
   average_and_corr_polyakov_loop_lx_conf(temp,fout,lx_conf,pars.dir,itraj);

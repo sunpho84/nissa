@@ -47,7 +47,7 @@ namespace nissa
     
     return 2*asinh(sqrt(four_sinh2_Eh/4));
   }
-
+  
   //compute the energy of a naive massless fermion
   double naive_massless_quark_energy(momentum_t bc,int imom)
   {
@@ -57,9 +57,9 @@ namespace nissa
     for(int mu=1;mu<NDIM;mu++) sinh2E+=sqr(sin(M_PI*(2*c[mu]+bc[mu])/glb_size[mu]));
     return asinh(sqrt(sinh2E));
   }
-
+  
   ////////////////////////////////////////////// twisted propagator in momentum space ////////////////////////////////////////////
-
+  
   //return sin(p), \sum sin(p)^2, \sum sin(p/2)^2
   void get_component_of_twisted_propagator_of_imom(momentum_t sin_mom,double &sin2_mom,double &sin2_momh,tm_quark_info qu,int imom)
   {
@@ -83,7 +83,7 @@ namespace nissa
     double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
     
     //fill the pieces
-    spinspin_put_to_zero(out);  
+    spinspin_put_to_zero(out);
     spinspin_dirac_summ_the_prod_double(out,&base_gamma[0],qu.mass);
     for(int mu=0;mu<4;mu++) spinspin_dirac_summ_the_prod_idouble(out,base_gamma+map_mu[mu],sin_mom[mu]);
     spinspin_dirac_summ_the_prod_idouble(out,&base_gamma[5],-M*tau3[qu.r]);
@@ -96,13 +96,13 @@ namespace nissa
     momentum_t sin_mom;
     double sin2_mom,sin2_momh;
     get_component_of_twisted_propagator_of_imom(sin_mom,sin2_mom,sin2_momh,qu,imom);
-
+    
     //compute M and the denominator
     double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
     double den=sin2_mom+sqr(M)+sqr(qu.mass);
-
+    
     //fill the pieces
-    spinspin_put_to_zero(prop);  
+    spinspin_put_to_zero(prop);
     if(fabs(den)>=1.e-14)
       {
 	//for efficiency
@@ -116,7 +116,7 @@ namespace nissa
       for(int ig=0;ig<4;ig++)
 	complex_prod_double(prop[ig][base_gamma[0].pos[ig]],base_gamma[0].entr[ig],qu.zmp);
   }
-
+  
   //replace p0 with on shell in the tilded (conjugated) or non-tilded dirac operator
   //the sign of the energy is according to passed argument
   double twisted_on_shell_operator_of_imom(spinspin proj,tm_quark_info qu,int imom,bool tilded,int esign)
@@ -186,7 +186,7 @@ namespace nissa
     int ig[2]={0,map_mu[0]};
     safe_dirac_prod_spin(wf,base_gamma+ig[par_apar],wf);
   }
-
+  
   //same for naive massless fermions
   void naive_massless_wavefunction_of_imom(spin wf,momentum_t bc,int imom,int par_apar,int s)
   {

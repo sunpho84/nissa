@@ -244,9 +244,17 @@ namespace nissa
     
     return t;
   }
-
+  
   inline double spinspin_norm2(spinspin a)
   {return real_part_of_trace_spinspin_prod_spinspin_dag(a,a);}
+  
+  inline void trace_spinspin_prod_spinspin(complex c,spinspin a,spinspin b)
+  {
+    complex_put_to_zero(c);
+    for(int id1=0;id1<4;id1++)
+      for(int id2=0;id2<4;id2++)
+	complex_summ_the_prod(c,a[id1][id2],b[id2][id1]);
+  }
   
   //prouduct of spinspin and spin
   inline void unsafe_spinspin_prod_spin(spin out,spinspin a,spin b)
