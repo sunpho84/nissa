@@ -176,7 +176,7 @@ int factorize(std::vector<int> &list,int N)
 {
   int nfatt=0;
   int fatt=2;
-
+  
   while(N>1)
     {
       int div=N/fatt;
@@ -189,10 +189,9 @@ int factorize(std::vector<int> &list,int N)
           nfatt++;
         }
     }
-
+  
   return nfatt;
 }
-
 
 struct valid_partition_lister_t
 {
@@ -213,7 +212,7 @@ struct valid_partition_lister_t
     //compute global and local volume
     uint64_t V=(uint64_t)L[0]*L[1]*L[2]*L[3];
     int LV=V/NR;
-
+    
     //check that the global lattice is a multiple of the number of ranks
     //and that all directions can be made even, and one direction virtually parallelized
     if(V%NR) crash("global volume must be a multiple of ranks number");
@@ -223,7 +222,7 @@ struct valid_partition_lister_t
     std::vector<int> list_fact_LV,list_fact_NR;
     int nfact_LV=factorize(list_fact_LV,LV);
     int nfact_NR=factorize(list_fact_NR,NR);
-      
+    
     //if nfact_LV>=nfact_NR factorize the number of rank, otherwise the local volume
     //in the first case we find the best way to assign the ranks to different directions
     //in the second case we find how many sites per direction to assign to each rank
@@ -251,7 +250,7 @@ struct valid_partition_lister_t
 	  {
 	    //find the direction: this is given by the ifact digit of icombo wrote in base 4
 	    int mu=(icombo>>(2*ifact)) & 0x3;
-              
+	    
 	    //if we are factorizing local lattice, rank factor is given by list_fact, otherwise L/list_fact
 	    R[mu]*=list_fact[ifact];
             
@@ -280,7 +279,7 @@ struct valid_partition_lister_t
 	
 	//check that at least one direction is a multiple of 4
 	valid_partitioning&=one_direction_multiple_of_4;
-          
+	
 	//skip all remaining factorization using the same structure
 	if(!valid_partitioning) icombo+=(ifact>1) ? 1<<(2*(ifact-1)) : 1;
 	
@@ -293,7 +292,7 @@ struct valid_partition_lister_t
 	  }
       }
     while(!valid_partitioning && icombo<ncombo);
-
+    
     return valid_partitioning;
   }
 };
@@ -326,17 +325,37 @@ assignement_t find_torus_assignement(torus_grid_t torus,rank_grid_t rank,int &iw
 }
 
 //return the torus containing the passed number of ranks
-torus_grid_t find_torus(int torus_size)
+torus_grid_t find_torus(int &torus_size)
 {
-  switch(torus_size)
+  if(torus_size>0)
+    switch(torus_size)
+      {
+      case 64:  return N64;  break;
+      case 128: return N128; break;
+      case 256: return N256; break;
+      case 512: return N512; break;
+      case 1024: return N1024; break;
+      case 2048: return N2048; break;
+      default: crash("unknown partition to use for %d ranks",torus_size); return N64;break;
+      }
+  else
     {
-    case 64:  return N64;  break;
-    case 128: return N128; break;
-    case 256: return N256; break;
-    case 512: return N512; break;
-    case 1024: return N1024; break;
-    case 2048: return N2048; break;
-    default: crash("unknown partition to use for %d ranks",torus_size); return N64;break;
+      torus_grid_t out;
+      printf("Describe the torus\n");
+      torus_size=1;
+      for(int mu=0;mu<5;mu++)
+	{
+	  printf("Insert grid_size[%d]: ",mu);
+	  scanf("%d",&(out.grid[mu]));
+	  int temp;
+	  printf(" is_torus? ");
+	  scanf("%d",&temp);
+	  out.is_torus[mu]=temp;
+	  torus_size*=out.grid[mu];
+	}
+	  printf("Fixing the total number of ranks to %d\n",torus_size);
+      
+      return out;
     }
 }
 
@@ -362,7 +381,7 @@ int main(int narg,char **arg)
 {
   coords4D_t sides;
   torus_grid_t torus;
-
+  
 #if defined BGQ && !defined BGQ_EMU
   if(narg==2)
     {
@@ -457,7 +476,7 @@ int main(int narg,char **arg)
 	  int iway=0;
 	  rank_grid_t new_rank(lister.R);
 	  assignement_t new_assignement=find_torus_assignement(torus,new_rank,iway);
-
+	  
 	  //check that we did not arrive to the maximal number of ways
 	  const int nways=4*4*4*4*4;
 	  if(iway!=nways)
@@ -516,13 +535,13 @@ int main(int narg,char **arg)
   //create a suffix for file names
   char path_suffix[50];
   sprintf(path_suffix,"%dranks_for_T%d_X%d_Y%d_Z%d",nranks,sides[0],sides[1],sides[2],sides[3]);
-
+  
   //create name file for the mapping and open it
   char path[50];
   sprintf(path,"mapping_file_%s",path_suffix);
   FILE *fout=fopen(path,"w");
   if(fout==NULL) crash("opening file %s",path);
-
+  
   //print the mapping
   mapping_t mapping=assignement.create_mapping(torus,rank);
   for(int irank=0;irank<nranks;irank++)
@@ -541,7 +560,7 @@ int main(int narg,char **arg)
   sprintf(path,"nissa_config_%s",path_suffix);
   fout=fopen(path,"w");
   if(fout==NULL) crash("opening file %s",path);
-
+  
   //create nissa_config file
   fprintf(fout,"vnode_paral_dir %d\n",v);
   const char tag[]="txyz";

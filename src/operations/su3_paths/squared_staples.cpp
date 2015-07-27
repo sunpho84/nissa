@@ -26,7 +26,7 @@ namespace nissa
     su3_put_to_zero(staple);
     
     su3 temp1,temp2;
-    for(int nu=0;nu<4;nu++)                   //  E---F---C   
+    for(int nu=0;nu<NDIM;nu++)                //  E---F---C   
       if(nu!=mu)                              //  |   |   | mu
 	{                                     //  D---A---B   
 	  int p=loclx_parity[A];              //        nu    
