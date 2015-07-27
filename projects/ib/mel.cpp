@@ -14,7 +14,7 @@ using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
 
-int chris_t=12;
+int chris_t=3;
 
 int ninv_tot=0,nhadr_contr_tot=0,nlept_contr_tot=0,nsource_tot=0,nphoton_prop_tot=0;
 double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
@@ -433,7 +433,7 @@ void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,PROP_TYPE *in
 void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
 {
   source_time-=take_time();
-
+  
   //chris test
   PROP_TYPE *temp=nissa_malloc("temp",loc_vol+bord_vol,PROP_TYPE);
   select_propagator_timeslice(temp,ori,t);
@@ -1506,7 +1506,7 @@ void in_main(int narg,char **arg)
 	  compute_hadronic_correlations();
 	  
 	  //test for chris
-	  for(int t=0;t<=glb_size[0]/2;t++)
+	  for(int t=0;t<glb_size[0];t++)
 	    {
 	      generate_quark_propagators_chris(t);
 	      compute_hadroleptonic_correlations_chris(t);
