@@ -14,6 +14,8 @@ using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
 
+int chris_t=12;
+
 int ninv_tot=0,nhadr_contr_tot=0,nlept_contr_tot=0,nsource_tot=0,nphoton_prop_tot=0;
 double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
 double tot_prog_time=0,source_time=0,photon_prop_time=0,lepton_prop_time=0;
@@ -64,6 +66,7 @@ const char list_weak_ind_nameq[nweak_ind][3]={"VK","V0","AK","A0","VK","V0","AK"
 const char list_weak_ind_namel[nweak_ind][3]={"VK","V0","AK","A0","AK","A0","VK","V0"};
 int nind;
 spinspin *hadr;
+complex *hadrolept_corr_chris;
 complex *hadrolept_corr;
 
 //compute the eigenvalues of (1-+g0)/2
@@ -293,6 +296,7 @@ void init_simulation(char *path)
   nind=nleptons*nweak_ind*2*2*nr;
   hadr=nissa_malloc("hadr",loc_vol,spinspin);
   hadrolept_corr=nissa_malloc("hadrolept_corr",glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
+  hadrolept_corr_chris=nissa_malloc("hadrolept_corr_chris",glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
   original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
   source=nissa_malloc("source",loc_vol,PROP_TYPE);
   photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
@@ -378,6 +382,7 @@ void setup_conf()
   //reset correlations
   vector_reset(hadr_corr);
   vector_reset(hadrolept_corr);
+  vector_reset(hadrolept_corr_chris);
 }
 
 //generate a wall-source for stochastic QCD propagator
@@ -425,9 +430,14 @@ void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,PROP_TYPE *in
 {insert_external_loc_source(out,phi_eta,all_dirs,in);}
 
 //generate a sequential source
-void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
+void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
 {
   source_time-=take_time();
+
+  //chris test
+  PROP_TYPE *temp=nissa_malloc("temp",loc_vol+bord_vol,PROP_TYPE);
+  select_propagator_timeslice(temp,ori,t);
+  if(t!=-1 && inser!=STOCH_PHI) crash("not valid");
   
 #ifdef NOPHOTON
   coords time_dir={1,0,0,0};
@@ -442,7 +452,10 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
     case STOCH_PHI:insert_external_loc_source(source,photon_phi,ori);break;
     case STOCH_ETA:insert_external_loc_source(source,photon_eta,ori);break;
  #else
-    case STOCH_PHI:insert_external_source(source,conf,photon_phi,ori,r);break;
+    case STOCH_PHI:
+      insert_external_source(source,conf,photon_phi,temp,r);
+      master_printf("t: %d\n",t);
+      break;
     case STOCH_ETA:insert_external_source(source,conf,photon_eta,ori,r);break;
  #endif
 #else
@@ -451,6 +464,8 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori)
 #endif
     case TADPOLE:insert_tadpole(source,conf,ori,r,tadpole);break;
     }
+  
+  nissa_free(temp);
   
   source_time+=take_time();
   nsource_tot++;
@@ -508,6 +523,13 @@ void generate_quark_propagators()
 	    get_qprop(Q[iqprop(imass,prop_map[ip],r)],source,imass,r);
 	  }
     }
+}
+
+void generate_quark_propagators_chris(int t)
+{
+  if(nr==2) crash("this is chris test!");
+  generate_source(STOCH_PHI,0,Q[iqprop(0,PROP_0,0)],t);
+  get_qprop(Q[iqprop(0,PROP_PHI,0)],source,0,0);
 }
 
 /////////////////////////////////////////////// photon propagators ///////////////////////////////////////////
@@ -1039,6 +1061,100 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 }
 THREADABLE_FUNCTION_END
 
+//compute the leptonic part of the correlation function
+THREADABLE_FUNCTION_7ARG(attach_leptonic_correlation_chris, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ext_ind, int,t)
+{
+  GET_THREAD_ID();
+  
+  vector_reset(loc_corr);
+  
+  //get the lepton info and prop
+  tm_quark_info le=get_lepton_info(ilepton,orie,rl);
+  spinspin *lept=L[iprop];
+  
+  //get the projectors
+  spinspin promu[2],pronu[2];
+  twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1);
+  twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1);
+  naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
+  naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
+  if(without_contact_term)
+    for(int i=0;i<2;i++)
+      safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+map_mu[0]);
+  
+  //compute the right part of the leptonic loop: G0 G^dag
+  dirac_matr hadrolept_proj_gamma[nhadrolept_proj];
+  for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
+    {
+      int ig=hadrolept_projs[ig_proj];
+      dirac_matr temp_gamma;
+      dirac_herm(&temp_gamma,base_gamma+ig);
+      dirac_prod(hadrolept_proj_gamma+ig_proj,base_gamma+map_mu[0],&temp_gamma);
+    }
+  //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - will dag and commutator with g0 come into?
+  dirac_matr weak_ins_hadr_gamma[nweak_ins];
+  for(int ins=0;ins<nweak_ins;ins++) dirac_prod(weak_ins_hadr_gamma+ins,base_gamma+5,base_gamma+list_weak_insq[ins]);
+  
+  for(int ins=0;ins<nweak_ins;ins++)
+    {
+      //define a local storage
+      spinspin hl_loc_corr[loc_size[0]];
+      for(int i=0;i<loc_size[0];i++) spinspin_put_to_zero(hl_loc_corr[i]);
+      
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	{
+	  int t=loc_coord_of_loclx[ivol][0];
+	  
+	  //multiply lepton side on the right (source) side
+	  spinspin l;
+	  unsafe_spinspin_prod_dirac(l,lept[ivol],base_gamma+list_weak_insl[ins]);
+	  
+	  //trace hadron side
+	  complex h;
+	  trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma+ins);
+	  //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
+	  complex ph;
+	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
+	  complex_prodassign(h,ph);
+	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
+	}
+      glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
+      
+      //change sign when crossing 0 for averaging corr function properly
+      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
+	{
+	  int glb_t=loc_t+glb_coord_of_loclx[0][0];
+	  int sign=1-2*(glb_t<source_coord[0]);
+	  spinspin_prodassign_double(hl_loc_corr[loc_t],sign);
+	}
+      
+      //save projection on LO
+      for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
+	NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
+	  {
+	    int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
+	    int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
+	    
+	    spinspin td;
+	    unsafe_spinspin_prod_spinspin(td,hl_loc_corr[loc_t],pronu[ilnp]);
+	    spinspin dtd;
+	    unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
+	    complex hl;
+	    trace_spinspin_with_dirac(hl,dtd,hadrolept_proj_gamma+ig_proj);
+	    
+	    //summ the average
+	    if(glb_t==chris_t)
+	      {
+		int i=t+glb_size[0]*(ig_proj+nhadrolept_proj*(list_weak_ind_contr[ins]+nweak_ind*ext_ind));
+		complex_summassign(hadrolept_corr_chris[i],hl);
+	      }
+	  }
+      if(IS_MASTER_THREAD) nlept_contr_tot+=nhadrolept_proj;
+      THREAD_BARRIER();
+    }
+}
+THREADABLE_FUNCTION_END
+
 //do not attach the leptonic part
 THREADABLE_FUNCTION_2ARG(do_not_attach_leptonic_correlation, spinspin*,hadr, int,ext_ind)
 {
@@ -1135,6 +1251,59 @@ void compute_hadroleptonic_correlations()
   lept_contr_time+=take_time();
 }
 
+//compute the total hadroleptonic correlation functions
+void compute_hadroleptonic_correlations_chris(int t)
+{
+  master_printf("Computing leptonic correlation functions for Chris\n");
+  lept_contr_time-=take_time();
+  
+  int ind=0;
+  for(int ilepton=0;ilepton<nleptons;ilepton++)
+    for(int qins=0;qins<2;qins++)
+      for(int irev=0;irev<2;irev++)
+	for(int phi_eta=0;phi_eta<2;phi_eta++)
+	  for(int r2=0;r2<nr;r2++)
+	    {
+	      //takes the index of the quarks
+	      int iq1=lep_corr_iq1[ilepton];
+	      int iq2=lep_corr_iq2[ilepton];
+	      
+	      //takes the propagators
+	      qprop_t PROP1_TYPE,PROP2_TYPE;
+	      //ANNA2
+	      if(qins==0)
+	      {
+		PROP1_TYPE=PROP_PHI_ETA[phi_eta];
+		PROP2_TYPE=PROP_0;
+	      }
+	      else
+	      {
+		PROP1_TYPE=PROP_0;
+		PROP2_TYPE=PROP_PHI_ETA[phi_eta];
+		}
+	      int ip1=iqprop(iq1,PROP1_TYPE,r2);
+	      int ip2=iqprop(iq2,PROP2_TYPE,r2);
+	      
+	      if(irev==1) std::swap(ip1,ip2); //select the propagator to revert
+	      
+	      //compute the hadronic part
+	      hadronic_part_leptonic_correlation(hadr,Q[ip1],Q[ip2]);
+	      
+	      for(int orie=0;orie<2;orie++)
+		for(int rl=0;rl<nr;rl++)
+		  {
+		    //contract with lepton
+		    //ANNA2
+		    int iprop=ilprop(ilepton,orie,!phi_eta,rl); //notice inversion of phi/eta w.r.t hadron side
+		    attach_leptonic_correlation_chris(hadr,iprop,ilepton,orie,rl,ind,t);
+		    //do_not_attach_leptonic_correlation(hadr,ind);
+		    ind++;
+		  }
+	    }
+  
+  lept_contr_time+=take_time();
+}
+
 //print out correlations
 void print_correlations()
 {
@@ -1176,6 +1345,47 @@ void print_correlations()
 		  }
 	    }
   close_file(fout);
+
+  {
+    
+  //open file and reduce
+  FILE *fout=open_file(combine("%s/corr_hl_chris",outfolder).c_str(),"w");
+  glb_nodes_reduce_complex_vect(hadrolept_corr_chris,glb_size[0]*nweak_ind*nhadrolept_proj*nind);
+  
+  //write down
+  int ext_ind=0;
+  for(int ilepton=0;ilepton<nleptons;ilepton++)
+    for(int qins=0;qins<2;qins++)
+      for(int irev=0;irev<2;irev++)
+	for(int phi_eta=0;phi_eta<2;phi_eta++)
+	  for(int r2=0;r2<nr;r2++)
+	    {
+	      //takes the index of the quarks
+	      int iq1=lep_corr_iq1[ilepton];
+	      int iq2=lep_corr_iq2[ilepton];
+	      if(irev==1) std::swap(iq1,iq2);
+	      for(int orie=0;orie<2;orie++)
+		for(int rl=0;rl<nr;rl++)
+		  {
+		    master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
+				   qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie],rl);
+		    for(int ind=0;ind<nweak_ind;ind++)
+		      for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
+			{
+			  master_fprintf(fout," # qins=%s lins=%s proj=%s\n\n",list_weak_ind_nameq[ind],list_weak_ind_namel[ind],gtag[hadrolept_projs[ig_proj]]);
+			  for(int t=0;t<glb_size[0];t++)
+			    {
+			      int i=t+glb_size[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*ext_ind));
+			      master_fprintf(fout,"%+016.16lg %+016.16lg\n",hadrolept_corr_chris[i][RE]/nsources,hadrolept_corr_chris[i][IM]/nsources);
+			    }
+			  master_fprintf(fout,"\n");
+			}
+		    ext_ind++;
+		  }
+	    }
+  close_file(fout);
+  
+  }
   
   // /////////////////////////////////// purely hadronic part ////////////////////////////////////////////
   
@@ -1254,6 +1464,7 @@ void close()
   nissa_free(loc_corr);
   nissa_free(hadr);
   nissa_free(hadrolept_corr);
+  nissa_free(hadrolept_corr_chris);
   nissa_free(temp_source);
   nissa_free(temp_solution);
   nissa_free(lep_corr_iq1);
@@ -1293,6 +1504,13 @@ void in_main(int narg,char **arg)
 	  
 	  compute_hadroleptonic_correlations();
 	  compute_hadronic_correlations();
+	  
+	  //test for chris
+	  for(int t=0;t<=glb_size[0]/2;t++)
+	    {
+	      generate_quark_propagators_chris(t);
+	      compute_hadroleptonic_correlations_chris(t);
+	    }
 	}
       
       //print out correlations
