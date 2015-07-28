@@ -22,10 +22,12 @@ AC_CANONICAL_HOST
 AC_PROG_CXX
 AC_PROG_RANLIB
 
+#Checks for headers
+AC_CHECK_HEADERS([fftw3.h],[fftw_found_headers=yes])
+
 # Checks for libraries
 AC_SEARCH_LIBS(__gmpz_init,gmp)
 AC_SEARCH_LIBS(fftw_plan_dft_r2c_2d,fftw3)
-AC_SEARCH_LIBS(fftw_cleanup_threads,fftw3_threads)
 
 # Check ntl library
 LB_CHECK_NTL
@@ -45,10 +47,10 @@ AC_DEFINE([FFTW_FFT],[1],["FFTW library"])
 AC_ARG_WITH(fft,
 	AS_HELP_STRING([--with-fft],[Select the Fast Fourier transform implementation (native, fftw [NOT default if found])]),
 	with_fft="${withval}",
-	if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "no"; then with_fft="fftw";else with_fft="native";fi)
+	if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "no" -a x"$fftw_found_headers" == "xyes"; then with_fft="fftw";else with_fft="native";fi)
 	case "$with_fft" in
      	     native) AC_DEFINE_UNQUOTED([FFT_TYPE],[NATIVE_FFT],[Enable native Fast Fourier transform]) ;;
-     	     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != ""; then AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW]) AM_LDFLAGS="-lfftw3 -lfftw3_threads";else AC_MSG_ERROR(["Unable to find fftw3 lib"]);fi ;;
+     	     fftw) if test "$ac_cv_search_fftw_plan_dft_r2c_2d" != "" -a x"$fftw_found_headers" == "xyes"; then AC_DEFINE_UNQUOTED([FFT_TYPE],[FFTW_FFT],[Enable FFTW]) AM_LDFLAGS="-lfftw3 -lfftw3_threads";else AC_MSG_ERROR(["Unable to find fftw3 lib"]);fi ;;
 	     *) AC_MSG_ERROR(["Unkwnown Fast Fourier type ${withval}"])
 	esac
 AC_MSG_RESULT([with Fast Fourier type... $with_fft])
