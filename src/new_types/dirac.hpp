@@ -40,8 +40,6 @@ namespace nissa
 	crash("The two matrix passed to sum have different positions");
   }
   inline void dirac_subt(dirac_matr *out,dirac_matr *in1,dirac_matr *in2)
-
-    
   {
     for(int ig=0;ig<4;ig++)
       if(in1->pos[ig]==in2->pos[ig])
@@ -79,9 +77,45 @@ namespace nissa
       }
     
     memcpy(out->pos,temp.pos,sizeof(int)*4);
-    memcpy(out->entr,temp.entr,sizeof(complex)*4);  
+    memcpy(out->entr,temp.entr,sizeof(complex)*4);
   }
-
+  
+  inline void dirac_prod_double(dirac_matr *out,dirac_matr *in1,double in2)
+  {
+    for(int id=0;id<4;id++)
+      {
+	out->pos[id]=in1->pos[id];
+	complex_prod_double(out->entr[id],in1->entr[id],in2);
+      }
+  }
+  
+  inline void dirac_prod_idouble(dirac_matr *out,dirac_matr *in1,double in2)
+  {
+    for(int id=0;id<4;id++)
+      {
+	out->pos[id]=in1->pos[id];
+	complex_prod_idouble(out->entr[id],in1->entr[id],in2);
+      }
+  }
+  
+  inline void unsafe_dirac_prod_complex(dirac_matr *out,dirac_matr *in1,complex in2)
+  {
+    for(int id=0;id<4;id++)
+      {
+	out->pos[id]=in1->pos[id];
+	unsafe_complex_prod(out->entr[id],in1->entr[id],in2);
+      }
+  }
+  
+  inline void safe_dirac_prod_complex(dirac_matr *out,dirac_matr *in1,complex in2)
+  {
+    for(int id=0;id<4;id++)
+      {
+	out->pos[id]=in1->pos[id];
+	safe_complex_prod(out->entr[id],in1->entr[id],in2);
+      }
+  }
+  
   //take the hermitian
   inline void dirac_herm(dirac_matr *out,dirac_matr *in)
   {
