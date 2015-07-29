@@ -50,11 +50,6 @@ namespace nissa
     unset_vir_geometry();
 #endif
     
-    //stop fftw3
-#if FFT_TYPE == FFTW_FFT
-    fftw_cleanup_threads();
-#endif
-    
     //stop the random generator
     if(loc_rnd_gen_inited) stop_loc_rnd_gen();
     

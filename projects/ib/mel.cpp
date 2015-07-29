@@ -27,6 +27,7 @@ int ngauge_conf,nanalyzed_conf=0;
 char conf_path[1024],outfolder[1024];
 quad_su3 *conf;
 
+int pure_wilson;
 double kappa;
 double put_theta[4],old_theta[4]={0,0,0,0};
 
@@ -35,7 +36,7 @@ PROP_TYPE *source,*original_source;
 int seed,noise_type;
 
 int nqmass,nr,nsources;
-double *qmass,*residue;
+double *qmass,*qkappa,*residue;
 PROP_TYPE **Q;
 
 spincolor *temp_source;
@@ -158,12 +159,22 @@ void init_simulation(char *path)
   
   //Wall time
   read_str_int("WallTime",&wall_time);
-  //Kappa
-  read_str_double("Kappa",&kappa);
-  //One or two r
-  read_str_int("NR",&nr);
-  //Masses and residue
-  read_list_of_double_pairs("QMassResidues",&nqmass,&qmass,&residue);
+  //Pure Wilson
+  read_str_int("PureWilson",&pure_wilson);
+  if(pure_wilson)
+    {
+      nr=1;
+      read_list_of_double_pairs("QKappaResidues",&nqmass,&qkappa,&residue);
+    }
+  else
+    {
+      //Kappa
+      read_str_double("Kappa",&kappa);
+      //One or two r
+      read_str_int("NR",&nr);
+      //Masses and residue
+      read_list_of_double_pairs("QMassResidues",&nqmass,&qmass,&residue);
+    }
   
   //Leptons
   read_str_int("LeptonicCorrs",&nleptons);
@@ -172,39 +183,63 @@ void init_simulation(char *path)
   leps=nissa_malloc("leps",nleptons,tm_quark_info);
   lep_energy=nissa_malloc("lep_energy",nleptons,double);
   neu_energy=nissa_malloc("neu_energy",nleptons,double);
-  expect_str("Q1Q2LepmassMesmass");
+  if(!pure_wilson) expect_str("Q1Q2LepmassMesmass");
+  else             expect_str("Q1Q2LepkappaMesmass");
   for(int il=0;il<nleptons;il++)
     {
-      //read quarks identfiying the mesons, and lepton mass
+      //read quarks identfiying the mesons
       read_int(lep_corr_iq1+il);
       read_int(lep_corr_iq2+il);
-      read_double(&leps[il].mass);
       
-      //maximal twist and antiperiodic
+      //if not pure wilson read mass
+      if(!pure_wilson) read_double(&leps[il].mass);
+      else             leps[il].mass=0;
+      
+      //antiperiodic
       leps[il].bc[0]=1;
-      leps[il].kappa=0.125;
+      
+      //maximal twist (if tm), otherwise read kappa
+      if(!pure_wilson) leps[il].kappa=0.125;
+      else             read_double(&leps[il].kappa);
       leps[il].r=0;
       
       //read the mass of the meson (that must have been determined outside)
       double mes_mass;
       read_double(&mes_mass);
       
-      double free_quark_ener[2];
-      for(int iq=0;iq<2;iq++)
+      if(!pure_wilson)
 	{
-	  tm_quark_info q;
-	  q.kappa=0.125;
-	  q.bc[0]=1;
-	  for(int i=1;i<4;i++) q.bc[i]=0;
-	  q.mass=qmass[((iq==0)?lep_corr_iq1:lep_corr_iq2)[il]];
-	  free_quark_ener[iq]=tm_quark_energy(q,0);
-	  master_printf(" supposed free quark energy[%d]: %+016.016lg\n",iq,free_quark_ener[iq]);
+	  double free_quark_ener[2];
+	  for(int iq=0;iq<2;iq++)
+	    {
+	      tm_quark_info q;
+	      q.bc[0]=1;
+	      for(int i=1;i<4;i++) q.bc[i]=0;
+	      if(!pure_wilson)
+		{
+		  q.kappa=0.125;
+		  q.mass=qmass[((iq==0)?lep_corr_iq1:lep_corr_iq2)[il]];
+		}
+	      else
+		{
+		  q.kappa=qkappa[((iq==0)?lep_corr_iq1:lep_corr_iq2)[il]];
+		  q.mass=0;
+		}
+	      free_quark_ener[iq]=tm_quark_energy(q,0);
+	      master_printf(" supposed free quark energy[%d]: %+016.016lg\n",iq,free_quark_ener[iq]);
+	    }
+	  double free_mes_ener=free_quark_ener[0]+free_quark_ener[1];
+	  master_printf(" supposed free meson energy: %+016.016lg\n",free_mes_ener);
 	}
-      double free_mes_ener=free_quark_ener[0]+free_quark_ener[1];
-      master_printf(" supposed free meson energy: %+016.016lg\n",free_mes_ener);
+      
+      //read lepton mass and check kinematic
+      double lep_mass;
+      if(!pure_wilson) lep_mass=leps[il].mass;
+      else lep_mass=m0_of_kappa(leps[il].kappa);
+      if(lep_mass>=mes_mass) crash("initial state is lighter (%lg) than final state (%lg)!",mes_mass,lep_mass);
       
       //compute meson momentum and bc
-      for(int i=1;i<4;i++) leps[il].bc[i]=(sqr(mes_mass)-sqr(leps[il].mass))/(2*mes_mass)/sqrt(3)/M_PI*glb_size[i];
+      for(int i=1;i<4;i++) leps[il].bc[i]=(sqr(mes_mass)-sqr(lep_mass))/(2*mes_mass)/sqrt(3)/M_PI*glb_size[i];
       double err;
       do
       	{
@@ -218,15 +253,16 @@ void init_simulation(char *path)
       	  double der=(tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass-err)/eps;
       	  for(int i=1;i<4;i++) leps[il].bc[i]-=eps+err/der;
 	  
-      	  master_printf("rank %d lep_e: %+010.10lg, neu_e: %+010.10lg, mes_mass: %lg, error: %lg, der: %lg\n",rank,lep_energy,neu_energy,mes_mass,err,der);
+      	  master_printf("lep_e: %+010.10lg, neu_e: %+010.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
       	}
       while(fabs(err)>1e-14);
       
       //write down energy
       lep_energy[il]=tm_quark_energy(leps[il],0);
       neu_energy[il]=naive_massless_quark_energy(leps[il].bc,0);
-      master_printf(" ilepton %d, lepton mass %lg, lepton energy: %lg, neutrino energy: %lg\n",il,leps[il].mass,lep_energy[il],neu_energy[il]);
+      master_printf(" ilepton %d, lepton mass %lg, lepton energy: %lg, neutrino energy: %lg\n",il,lep_mass,lep_energy[il],neu_energy[il]);
       master_printf(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
+      master_printf(" bc: %+016.016lg",leps[il].bc[1]);
     }
   
   //Zero mode subtraction
@@ -453,16 +489,22 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
     case STOCH_ETA:insert_external_loc_source(source,photon_eta,ori);break;
  #else
     case STOCH_PHI:
-      insert_external_source(source,conf,photon_phi,temp,r);
+      if(!pure_wilson) insert_tm_external_source(source,conf,photon_phi,temp,r);
+      else             insert_wilson_external_source(source,conf,photon_phi,temp);
       master_printf("t: %d\n",t);
       break;
-    case STOCH_ETA:insert_external_source(source,conf,photon_eta,ori,r);break;
+    case STOCH_ETA:
+      if(!pure_wilson) insert_tm_external_source(source,conf,photon_eta,ori,r);
+      else             insert_wilson_external_source(source,conf,photon_eta,ori);break;
  #endif
 #else
     case STOCH_PHI:
-    case STOCH_ETA:insert_conserved_current(source,conf,ori,r,time_dir);break;
+    case STOCH_ETA:insert_conserved_current_tm(source,conf,ori,r,time_dir);break;
 #endif
-    case TADPOLE:insert_tadpole(source,conf,ori,r,tadpole);break;
+    case TADPOLE:
+      if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole);
+      else             insert_wilson_tadpole(source,conf,ori,tadpole);
+      break;
     }
   
   nissa_free(temp);
@@ -472,7 +514,7 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
 }
 
 //invert on top of a source, putting all needed for the appropriate quark
-void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,int rotate=true)
+void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
 {
   //these are the ways in which Dirac operator rotates - propagator is opposite, see below
 #ifdef POINT_SOURCE_VERSION
@@ -488,15 +530,16 @@ void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r,int rotate=true)
 #endif
 	
 	//rotate the source index - the propagator rotate AS the sign of mass term
-	if(rotate) safe_dirac_prod_spincolor(temp_source,(tau3[r]==-1)?&Pminus:&Pplus,temp_source);
+	if(!pure_wilson) safe_dirac_prod_spincolor(temp_source,(tau3[r]==-1)?&Pminus:&Pplus,temp_source);
 	
 	//invert
 	inv_time-=take_time();
-	inv_tmD_cg_eoprec_eos(temp_solution,NULL,conf,kappa,tau3[r]*qmass[imass],100000,residue[imass],temp_source);
+	if(!pure_wilson) inv_tmD_cg_eoprec_eos(temp_solution,NULL,conf,kappa,tau3[r]*qmass[imass],100000,residue[imass],temp_source);
+	else             inv_tmD_cg_eoprec_eos(temp_solution,NULL,conf,qkappa[imass],0,100000,residue[imass],temp_source);
 	ninv_tot++;inv_time+=take_time();
 	
 	//rotate the sink index
-	if(rotate) safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
+	if(!pure_wilson) safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
 	
 	//put the output on place
 #ifdef POINT_SOURCE_VERSION
@@ -518,7 +561,8 @@ void generate_quark_propagators()
       for(int imass=0;imass<nqmass;imass++)
 	for(int r=0;r<nr;r++)
 	  {
-	    master_printf(" mass[%d]=%lg, r=%d\n",imass,qmass[imass],r);
+	    if(!pure_wilson) master_printf(" mass[%d]=%lg, r=%d\n",imass,qmass[imass],r);
+	    else             master_printf(" kappa[%d]=%lg\n",imass,qkappa[imass]);
 	    generate_source(insertion_map[ip],r,Q[iqprop(imass,source_map[ip],r)]);
 	    get_qprop(Q[iqprop(imass,prop_map[ip],r)],source,imass,r);
 	  }
@@ -618,6 +662,10 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
   
 #ifndef LOC_MUON_CURR
   
+  dirac_matr GAMMA;
+  if(pure_wilson) dirac_prod_double(&GAMMA,base_gamma+0,1);
+  else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
+  
   //phases
   quad_u1 phases;
   for(int mu=0;mu<NDIM;mu++)
@@ -661,8 +709,7 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
 	
 	//put -i g5 t3 on the summ
 	spinspin temp_P;
-	spinspin_prodassign_idouble(bw_P_fw,-tau3[le.r]);
-	unsafe_spinspin_prod_dirac(temp_P,bw_P_fw,base_gamma+5);
+	unsafe_spinspin_prod_dirac(temp_P,bw_P_fw,&GAMMA);
 	spinspin_summassign(prop[ivol],temp_P);
 	
 	//put gmu on the diff
@@ -1340,8 +1387,10 @@ void print_correlations()
 	      for(int orie=0;orie<2;orie++)
 		for(int rl=0;rl<nr;rl++)
 		  {
-		    master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
-				   qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie],rl);
+		    if(!pure_wilson) master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
+						    qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie],rl);
+		    else             master_fprintf(fout," # kappaq1=%lg kappaq2=%lg qins=%d qrev=%d ins=%s lep_orie=%+d\n\n",
+						    qkappa[iq1],qkappa[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",lepton_mom_sign[orie]);
 		    for(int ind=0;ind<nweak_ind;ind++)
 		      for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 			{
@@ -1379,8 +1428,10 @@ void print_correlations()
 	      for(int orie=0;orie<2;orie++)
 		for(int rl=0;rl<nr;rl++)
 		  {
-		    master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
-				   qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie],rl);
+		    if(!pure_wilson) master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
+						    qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie],rl);
+		    else             master_fprintf(fout," # kappaq1=%lg kappaq2=%lg qins=%d qrev=%d ins=%s lep_orie=%+d\n\n",
+						    qkappa[iq1],qkappa[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",lepton_mom_sign[orie]);
 		    for(int ind=0;ind<nweak_ind;ind++)
 		      for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 			{
@@ -1418,7 +1469,8 @@ void print_correlations()
 	for(int jmass=0;jmass<nqmass;jmass++)
 	  for(int r=0;r<nr;r++)
 	    {
-	      master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d\n",qmass[imass],qmass[jmass],r);
+	      if(!pure_wilson) master_fprintf(fout," # m1(rev)=%lg m2(ins)=%lg r=%d\n",qmass[imass],qmass[jmass],r);
+	      else             master_fprintf(fout," # kappa1(rev)=%lg kappa2(ins)=%lg\n",qkappa[imass],qkappa[jmass]);
 	      print_contractions_to_file(fout,nhadr_contr,ig_hadr_so,ig_hadr_si,hadr_corr+ind*glb_size[0],0,"",1.0);
 	      master_fprintf(fout,"\n");
 	      ind+=nhadr_contr;
