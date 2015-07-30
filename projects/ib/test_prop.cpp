@@ -65,7 +65,7 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,momentum_t bc)
 void compute_lepton_circle_without_contact_term_latt_num(complex lcwct_ln)
 {
   spinspin promu,pronu;
-  twisted_on_shell_operator_of_imom(promu,le,0,false,-1);
+  twisted_on_shell_operator_of_imom(promu,le,0,false,-1,MAX_TWIST_BASE);
   momentum_t tempbc;
   tempbc[0]=le.bc[0];
   for(int mu=1;mu<NDIM;mu++) tempbc[mu]=-le.bc[mu];
@@ -102,12 +102,12 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
   set_to_lepton_sink_phase_factor(prop,twall);
   
   //multiply with the prop
-  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le);
+  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,MAX_TWIST_BASE);
   
   //get the projectors
   spinspin promu[2],pronu[2];
-  twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1);
-  twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1);
+  twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1,MAX_TWIST_BASE);
+  twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,MAX_TWIST_BASE);
   naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
   naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
   
@@ -238,7 +238,7 @@ void in_main(int narg,char **arg)
       
       //compute in x space
       spinspin *pr=nissa_malloc("pr",loc_vol,spinspin);
-      compute_x_space_twisted_propagator_by_fft(pr,qu);
+      compute_x_space_twisted_propagator_by_fft(pr,qu,MAX_TWIST_BASE);
       double xp5p5[glb_size[0]];
       memset(xp5p5,0,sizeof(complex)*glb_size[0]);
       for(int ivol=0;ivol<glb_vol;ivol++)
@@ -257,7 +257,7 @@ void in_main(int narg,char **arg)
 	    {
 	      //prepare S(q)*g5
 	      spinspin Sq;
-	      mom_space_twisted_propagator_of_imom(Sq,qu,q);
+	      mom_space_twisted_propagator_of_imom(Sq,qu,q,MAX_TWIST_BASE);
 	      spinspin Sq5;
 	      unsafe_spinspin_prod_dirac(Sq5,Sq,base_gamma+5);
 	      
@@ -268,7 +268,7 @@ void in_main(int narg,char **arg)
 	      
 	      //prepare S(p+q)*g5
 	      spinspin Spq;
-	      mom_space_twisted_propagator_of_imom(Spq,qu1,pq);
+	      mom_space_twisted_propagator_of_imom(Spq,qu1,pq,MAX_TWIST_BASE);
 	      spinspin Spq5;
 	      unsafe_spinspin_prod_dirac(Spq5,Spq,base_gamma+5);
 	      
