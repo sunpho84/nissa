@@ -195,54 +195,26 @@ void init_simulation(char *path)
       read_int(lep_corr_iq2+il);
       
       //if not pure wilson read mass
-      if(!pure_wilson) read_double(&leps[il].mass);
-      else             leps[il].mass=0;
+      if(pure_wilson) leps[il].mass=0;
+      else            read_double(&leps[il].mass);
       
       //antiperiodic
       leps[il].bc[0]=1;
       
       //maximal twist (if tm), otherwise read kappa
-      if(!pure_wilson) leps[il].kappa=0.125;
-      else             read_double(&leps[il].kappa);
+      if(pure_wilson) read_double(&leps[il].kappa);
+      else            leps[il].kappa=0.125;
       leps[il].r=0;
       
       //read the mass of the meson (that must have been determined outside)
       double mes_mass;
       read_double(&mes_mass);
       
-      if(!pure_wilson)
-	{
-	  double free_quark_ener[2];
-	  for(int iq=0;iq<2;iq++)
-	    {
-	      tm_quark_info q;
-	      q.bc[0]=1;
-	      for(int i=1;i<4;i++) q.bc[i]=0;
-	      if(!pure_wilson)
-		{
-		  q.kappa=0.125;
-		  q.mass=qmass[((iq==0)?lep_corr_iq1:lep_corr_iq2)[il]];
-		}
-	      else
-		{
-		  q.kappa=qkappa[((iq==0)?lep_corr_iq1:lep_corr_iq2)[il]];
-		  q.mass=0;
-		}
-	      free_quark_ener[iq]=tm_quark_energy(q,0);
-	      master_printf(" supposed free quark energy[%d]: %+016.016lg\n",iq,free_quark_ener[iq]);
-	    }
-	  double free_mes_ener=free_quark_ener[0]+free_quark_ener[1];
-	  master_printf(" supposed free meson energy: %+016.016lg\n",free_mes_ener);
-	}
-      
-      //read lepton mass and check kinematic
-      double lep_mass;
-      if(!pure_wilson) lep_mass=leps[il].mass;
-      else lep_mass=m0_of_kappa(leps[il].kappa);
-      if(lep_mass>=mes_mass) crash("initial state is lighter (%lg) than final state (%lg)!",mes_mass,lep_mass);
+      //set initial value of bc and check kinematic
+      for(int i=1;i<4;i++) leps[il].bc[i]=0;
+      if(tm_quark_energy(leps[il],0)>=mes_mass) crash("initial state is lighter (%lg) than final state at rest (%lg)!",mes_mass,tm_quark_energy(leps[il],0));
       
       //compute meson momentum and bc
-      for(int i=1;i<4;i++) leps[il].bc[i]=(sqr(mes_mass)-sqr(lep_mass))/(2*mes_mass)/sqrt(3)/M_PI*glb_size[i];
       double err;
       do
       	{
@@ -263,7 +235,7 @@ void init_simulation(char *path)
       //write down energy
       lep_energy[il]=tm_quark_energy(leps[il],0);
       neu_energy[il]=naive_massless_quark_energy(leps[il].bc,0);
-      master_printf(" ilepton %d, lepton mass %lg, lepton energy: %lg, neutrino energy: %lg\n",il,lep_mass,lep_energy[il],neu_energy[il]);
+      master_printf(" ilepton %d, lepton energy: %lg, neutrino energy: %lg\n",il,lep_energy[il],neu_energy[il]);
       master_printf(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
       master_printf(" bc: %+016.016lg\n",leps[il].bc[1]);
     }
@@ -323,7 +295,7 @@ void init_simulation(char *path)
   
   //Allocate
   nqprop=iqprop(nqmass-1,prop_map[nqprop_kind-1],nr-1)+1;
-  nlprop=ilprop(nleptons-1,1,1,nr-1,glb_size[0]-1)+1; //added for chris
+  nlprop=ilprop(nleptons-1,1,1,nr-1,glb_size[0])+1; //added for chris
   
   //allocate temporary vectors
   temp_source=nissa_malloc("temp_source",loc_vol,spincolor);
@@ -638,6 +610,9 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
 {
   GET_THREAD_ID();
   
+  if(twall==-1) master_printf("Setting lepton everywhere\n");
+  else          master_printf("Setting lepton on time %d\n",twall);
+  
   vector_reset(prop);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
@@ -710,7 +685,7 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
 	spinspin_subt(bw_M_fw,ph_bw,ph_fw);
 	spinspin_summ(bw_P_fw,ph_bw,ph_fw);
 	
-	//put -i g5 t3 on the summ
+	//put GAMMA on the summ
 	spinspin temp_P;
 	unsafe_spinspin_prod_dirac(temp_P,bw_P_fw,&GAMMA);
 	spinspin_summassign(prop[ivol],temp_P);
@@ -832,7 +807,9 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,tmu)
 	    spinspin *prop=L[iprop];
 	    
 	    //put it to a phase
-	    int twall=((tmu+source_coord[0])%glb_size[0]);
+	    int twall;
+	    if(tmu<0||tmu>=glb_size[0]) twall=-1;
+	    else twall=((tmu+source_coord[0])%glb_size[0]);
 	    set_to_lepton_sink_phase_factor(prop,ilepton,le,twall);
 	    
 	    //multiply and the insert the current in between, on the source side
@@ -1298,7 +1275,7 @@ void compute_hadroleptonic_correlations()
 		  {
 		    //contract with lepton
 		    //ANNA2 //added for chris
-		    int iprop=ilprop(ilepton,orie,!phi_eta,rl,glb_size[0]/2); //notice inversion of phi/eta w.r.t hadron side
+		    int iprop=ilprop(ilepton,orie,!phi_eta,rl,glb_size[0]); //notice inversion of phi/eta w.r.t hadron side
 		    attach_leptonic_correlation(hadr,iprop,ilepton,orie,rl,ind);
 		    //do_not_attach_leptonic_correlation(hadr,ind);
 		    ind++;
