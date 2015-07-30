@@ -157,7 +157,9 @@ namespace nissa
   enum boundary_cond_t{UNSPEC_BOUNDARY_COND,PERIODIC_BOUNDARY_COND,OPEN_BOUNDARY_COND};
   //Gauge action
   enum gauge_action_name_t{UNSPEC_GAUGE_ACTION,WILSON_GAUGE_ACTION,TLSYM_GAUGE_ACTION};
-
+  //Basis for twisted mass
+  enum tm_basis_t{WILSON_BASE,MAX_TWIST_BASE};
+  
   typedef uint8_t coords_5D[5];
   
   ///////////////////// New structures ////////////////////

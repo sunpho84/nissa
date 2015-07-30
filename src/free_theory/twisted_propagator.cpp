@@ -75,23 +75,24 @@ namespace nissa
   }
   
   //takes the dirac operator of fixed momentum
-  void mom_space_twisted_operator_of_imom(spinspin out,tm_quark_info qu,int imom)
+  void mom_space_twisted_operator_of_imom(spinspin out,tm_quark_info qu,int imom,tm_basis_t base)
   {
     //takes the momenta part and M
     momentum_t sin_mom;
     double sin2_mom,sin2_momh;
     get_component_of_twisted_propagator_of_imom(sin_mom,sin2_mom,sin2_momh,qu,imom);
     double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
+    double c0[2]; c0[MAX_TWIST_BASE]=qu.mass;       c0[WILSON_BASE]=M;
+    double c5[2]; c5[MAX_TWIST_BASE]=-M*tau3[qu.r]; c5[WILSON_BASE]=qu.mass*tau3[qu.r];
     
     //fill the pieces
-    spinspin_put_to_zero(out);
-    spinspin_dirac_summ_the_prod_double(out,&base_gamma[0],qu.mass);
+    spinspin_put_to_diag(out,c0[base]);
     for(int mu=0;mu<4;mu++) spinspin_dirac_summ_the_prod_idouble(out,base_gamma+map_mu[mu],sin_mom[mu]);
-    spinspin_dirac_summ_the_prod_idouble(out,&base_gamma[5],-M*tau3[qu.r]);
+    spinspin_dirac_summ_the_prod_idouble(out,&base_gamma[5],c5[base]);
   }
   
   //single momentum - normalisation is such that D*S=1/vol
-  void mom_space_twisted_propagator_of_imom(spinspin prop,tm_quark_info qu,int imom)
+  void mom_space_twisted_propagator_of_imom(spinspin prop,tm_quark_info qu,int imom,tm_basis_t base)
   {
     //takes the momenta part
     momentum_t sin_mom;
@@ -109,9 +110,12 @@ namespace nissa
 	//for efficiency
 	double rep_den=1/den/glb_vol;
 	
-	spinspin_dirac_summ_the_prod_double(prop,&base_gamma[0],qu.mass*rep_den);
+	double c0[2]; c0[MAX_TWIST_BASE]=qu.mass;      c0[WILSON_BASE]=M;
+	double c5[2]; c5[MAX_TWIST_BASE]=M*tau3[qu.r]; c5[WILSON_BASE]=-qu.mass*tau3[qu.r];
+	
+	spinspin_dirac_summ_the_prod_double(prop,&base_gamma[0],c0[base]*rep_den);
 	for(int mu=0;mu<NDIM;mu++) spinspin_dirac_summ_the_prod_idouble(prop,base_gamma+map_mu[mu],-sin_mom[mu]*rep_den);
-	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[5],M*tau3[qu.r]*rep_den);
+	spinspin_dirac_summ_the_prod_idouble(prop,&base_gamma[5],c5[base]*rep_den);
       }
     else
       for(int ig=0;ig<4;ig++)
@@ -120,7 +124,7 @@ namespace nissa
   
   //replace p0 with on shell in the tilded (conjugated) or non-tilded dirac operator
   //the sign of the energy is according to passed argument
-  double twisted_on_shell_operator_of_imom(spinspin proj,tm_quark_info qu,int imom,bool tilded,int esign)
+  double twisted_on_shell_operator_of_imom(spinspin proj,tm_quark_info qu,int imom,bool tilded,int esign,tm_basis_t base)
   {
     if(esign!=-1&&esign!=+1) crash("illegal energy sign\"%d\"",esign);
     double abse=tm_quark_energy(qu,imom);
@@ -140,11 +144,14 @@ namespace nissa
       }
     double M=m0_of_kappa(qu.kappa)+2*sin2_momh;
     
-    spinspin_put_to_diag(proj,qu.mass);
+    double c0[2]; c0[MAX_TWIST_BASE]=qu.mass;      c0[WILSON_BASE]=M;
+    double c5[2]; c5[MAX_TWIST_BASE]=M*tau3[qu.r]; c5[WILSON_BASE]=-qu.mass*tau3[qu.r];
+    
+    spinspin_put_to_diag(proj,c0[base]);
     int se[2]={-1,+1},sp[2]={+1,-1},s5[2]={-1,+1}; //we put here implicitly the difference of g5 with Nazario
     spinspin_dirac_summ_the_prod_double(proj,base_gamma+map_mu[0],se[tilded]*sinh(e));
     for(int mu=1;mu<4;mu++) spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+map_mu[mu],sp[tilded]*sin_mom[mu]);
-    spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+5,s5[tilded]*M*tau3[qu.r]);
+    spinspin_dirac_summ_the_prod_idouble(proj,base_gamma+5,s5[tilded]*c5[base]);
     
     return abse;
   }
@@ -175,13 +182,13 @@ namespace nissa
 			 {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
   
   //return the wave function of "u_r(p)" (particle) or "v_r(-p)" (antiparticle)
-  void twisted_wavefunction_of_imom(spin wf,tm_quark_info qu,int imom,int par_apar,int s)
+  void twisted_wavefunction_of_imom(spin wf,tm_quark_info qu,int imom,int par_apar,int s,tm_basis_t base)
   {
     //particle:  u_r(+p)=\tilde{D}(iE,p) \phi^tilde_r/sqrt(m+sinh(e))
     //aparticle: v_r(-p)=G0 D(iE,p) \phi_r/sqrt(m+sinh(e))
     bool tilde[2]={true,false};
     spinspin osp;
-    double e=twisted_on_shell_operator_of_imom(osp,qu,imom,tilde[par_apar],1);
+    double e=twisted_on_shell_operator_of_imom(osp,qu,imom,tilde[par_apar],1,base);
     unsafe_spinspin_prod_spin(wf,osp,ompg0_eig[!par_apar][s]);
     spin_prodassign_double(wf,1/sqrt(qu.mass+sinh(e)));
     int ig[2]={0,map_mu[0]};
@@ -201,12 +208,12 @@ namespace nissa
   }
   
   //whole quark propagator in momentum space
-  THREADABLE_FUNCTION_2ARG(compute_mom_space_twisted_propagator, spinspin*,prop, tm_quark_info,qu)
+  THREADABLE_FUNCTION_3ARG(compute_mom_space_twisted_propagator, spinspin*,prop, tm_quark_info,qu, tm_basis_t,base)
   {
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
-      mom_space_twisted_propagator_of_imom(prop[imom],qu,imom);
+      mom_space_twisted_propagator_of_imom(prop[imom],qu,imom,base);
     
     set_borders_invalid(prop);
   }
@@ -215,18 +222,18 @@ namespace nissa
   ///////////////////////////////////////////// twisted propagator in x space ////////////////////////////////////////////////
   
   //single
-  void compute_x_space_twisted_propagator_by_fft(spinspin *prop,tm_quark_info qu)
+  void compute_x_space_twisted_propagator_by_fft(spinspin *prop,tm_quark_info qu,tm_basis_t base)
   {
-    compute_mom_space_twisted_propagator(prop,qu);
+    compute_mom_space_twisted_propagator(prop,qu,base);
     pass_spinspin_from_mom_to_x_space_source_or_sink(prop,prop,qu.bc,true);
   }
   
   //squared (scalar insertion)
-  THREADABLE_FUNCTION_2ARG(compute_x_space_twisted_squared_propagator_by_fft, spinspin*,sq_prop, tm_quark_info,qu)
+  THREADABLE_FUNCTION_3ARG(compute_x_space_twisted_squared_propagator_by_fft, spinspin*,sq_prop, tm_quark_info,qu, tm_basis_t,base)
   {
     GET_THREAD_ID();
     
-    compute_mom_space_twisted_propagator(sq_prop,qu);
+    compute_mom_space_twisted_propagator(sq_prop,qu,base);
     
     //square (including normalisation)
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
@@ -244,14 +251,14 @@ namespace nissa
   
   //multiply from left
 #define DEFINE_MULTIPLY_FROM_LEFT_OR_RIGHT_BY_MOM_SPACE_TWISTED_PROPAGATOR(TYPE) \
-  THREADABLE_FUNCTION_3ARG(multiply_from_left_by_mom_space_twisted_propagator, TYPE*,out, TYPE*,in, tm_quark_info,qu) \
+  THREADABLE_FUNCTION_4ARG(multiply_from_left_by_mom_space_twisted_propagator, TYPE*,out, TYPE*,in, tm_quark_info,qu, tm_basis_t,base) \
   {									\
     GET_THREAD_ID();							\
     									\
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)					\
       {									\
 	spinspin prop;							\
-	mom_space_twisted_propagator_of_imom(prop,qu,imom);		\
+	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
 	NAME2(safe_spinspin_prod,TYPE)(out[imom],prop,in[imom]);	\
       }									\
     									\
@@ -260,14 +267,14 @@ namespace nissa
   THREADABLE_FUNCTION_END						\
 									\
   /*multiply from right*/						\
-  THREADABLE_FUNCTION_3ARG(multiply_from_right_by_mom_space_twisted_propagator, TYPE*,out, TYPE*,in, tm_quark_info,qu) \
+  THREADABLE_FUNCTION_4ARG(multiply_from_right_by_mom_space_twisted_propagator, TYPE*,out, TYPE*,in, tm_quark_info,qu, tm_basis_t,base) \
   {									\
     GET_THREAD_ID();							\
 									\
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)					\
       {									\
 	spinspin prop;							\
-	mom_space_twisted_propagator_of_imom(prop,qu,imom);		\
+	mom_space_twisted_propagator_of_imom(prop,qu,imom,base);	\
 	NAME3(safe,TYPE,prod_spinspin)(out[imom],in[imom],prop);	\
       }									\
     									\
@@ -281,12 +288,12 @@ namespace nissa
   ////////////////////////////////////////////// by inversion /////////////////////////////////////////////
   
   //multiply the source for the twisted propagator by inverting twisted Dirac operator
-  void multiply_from_left_by_x_space_twisted_propagator_by_inv(spin *prop,spin *ext_source,tm_quark_info qu)
+  void multiply_from_left_by_x_space_twisted_propagator_by_inv(spin *prop,spin *ext_source,tm_quark_info qu,tm_basis_t base)
   {
-    crash("not yet in phys basis");
+    if(base!=MAX_TWIST_BASE) crash("not yet in phys base");
     inv_tmD_cg_eoprec_eos(prop,NULL,qu,1000000,1.e-28,ext_source);
   }
-  void multiply_from_left_by_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,tm_quark_info qu)
+  void multiply_from_left_by_x_space_twisted_propagator_by_inv(spinspin *prop,spinspin *ext_source,tm_quark_info qu,tm_basis_t base)
   {
     //source and temp prop
     spin *tsource=nissa_malloc("tsource",loc_vol+bord_vol,spin);
@@ -296,7 +303,7 @@ namespace nissa
     for(int id_so=0;id_so<4;id_so++)
       {
 	get_spin_from_spinspin(tsource,ext_source,id_so);
-	multiply_from_left_by_x_space_twisted_propagator_by_inv(tprop,tsource,qu);
+	multiply_from_left_by_x_space_twisted_propagator_by_inv(tprop,tsource,qu,base);
 	put_spin_into_spinspin(prop,tprop,id_so);
       }
     
@@ -307,7 +314,7 @@ namespace nissa
   }
   
   //prepare it by inverting
-  void compute_x_space_twisted_propagator_by_inv(spinspin *prop,tm_quark_info qu)
+  void compute_x_space_twisted_propagator_by_inv(spinspin *prop,tm_quark_info qu,tm_basis_t base)
   {
     //allocate a source
     spinspin *delta=nissa_malloc("delta",loc_vol+bord_vol,spinspin);
@@ -315,7 +322,7 @@ namespace nissa
     if(rank==0) spinspin_put_to_id(delta[0]);
     set_borders_invalid(delta);
     
-    multiply_from_left_by_x_space_twisted_propagator_by_inv(prop,delta,qu);
+    multiply_from_left_by_x_space_twisted_propagator_by_inv(prop,delta,qu,base);
     
     set_borders_invalid(prop);
     
