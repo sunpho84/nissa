@@ -30,11 +30,11 @@ namespace nissa
     switch(gl.zms)
       {
       case UNNO_ALEMANNA:
-	return glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0;break;
+	return !(glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
       case PECIONA:
-	return glb_coord_of_loclx[imom][0]==0&&glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0;break;
+	return !(glb_coord_of_loclx[imom][0]==0&&glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
       case ONLY_100:
-	return glb_coord_of_loclx[imom][1]+glb_coord_of_loclx[imom][2]+glb_coord_of_loclx[imom][3]==1;break;
+	return !(glb_coord_of_loclx[imom][1]+glb_coord_of_loclx[imom][2]+glb_coord_of_loclx[imom][3]==1);break;
       default: crash("unknown zms: %d\n",(int)gl.zms);
       }
     
@@ -51,7 +51,8 @@ namespace nissa
   bool cancel_if_zero_mode(spin1field prop,gauge_info gl,int imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
-    if(m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
+    if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
+    if(gl.zms==ONLY_100 &&m==1) printf("leaving mode %d\n",glblx_of_loclx[imom]);
     for(int mu=0;mu<4;mu++) for(int reim=0;reim<2;reim++) prop[mu][reim]*=m;
     return !m;
   }
