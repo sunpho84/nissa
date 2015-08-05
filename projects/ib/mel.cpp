@@ -1549,7 +1549,7 @@ void in_main(int narg,char **arg)
 	  generate_photon_stochastic_propagator();
 	  generate_original_source();
 	  
-	  for(int t=0;t<glb_size[0];t++) generate_lepton_propagators(t);
+	  for(int t=0;t<=glb_size[0];t++) generate_lepton_propagators(t);
 	  generate_quark_propagators();
 	  
 	  compute_hadroleptonic_correlations();
