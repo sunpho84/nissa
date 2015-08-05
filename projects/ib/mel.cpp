@@ -21,7 +21,7 @@ double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
 double tot_prog_time=0,source_time=0,photon_prop_time=0,lepton_prop_time=0;
 
 int wall_time;
-int without_contact_term;
+int without_external_line;
 int free_theory,rnd_gauge_transform;
 int ngauge_conf,nanalyzed_conf=0;
 char conf_path[1024],outfolder[1024];
@@ -247,7 +247,9 @@ void init_simulation(char *path)
   if(strncasecmp(zero_mode_sub_str,"PECIONA",100)==0) photon.zms=PECIONA;
   else
     if(strncasecmp(zero_mode_sub_str,"UNNO_ALEMANNA",100)==0) photon.zms=UNNO_ALEMANNA;
-    else crash("Unkwnown zero mode subtraction: %s",zero_mode_sub_str);
+    else
+      if(strncasecmp(zero_mode_sub_str,"ONLY_100",100)==0) photon.zms=ONLY_100;
+      else crash("Unkwnown zero mode subtraction: %s",zero_mode_sub_str);
   
   //gauge for photon propagator
   char photon_gauge_str[100];
@@ -276,8 +278,8 @@ void init_simulation(char *path)
   //flag to simulate in the free theory
   read_str_int("FreeTheory",&free_theory);
   
-  //flag to make the muon with or without the contact term
-  read_str_int("WithoutContactTerm",&without_contact_term);
+  //flag to make the muon with or without the external line
+  read_str_int("WithoutExternalLine",&without_external_line);
   
   //perform a random gauge transformation
   read_str_int("RandomGaugeTransform",&rnd_gauge_transform);
@@ -582,9 +584,7 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   //compute space and time factor
   double arg=get_space_arg(ivol,le.bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
-  if(!without_contact_term && t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*lep_energy[ilepton]);
-  //if(t>=glb_size[0]/2) ext=0;
   
   //compute full exponential (notice the factor -1)
   out[RE]=cos(-arg)*ext;
@@ -597,7 +597,7 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
   //compute space and time factor
   double arg=get_space_arg(ivol,bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
-  if(!without_contact_term) if(t>=glb_size[0]/2) t=glb_size[0]-t;
+  if(!without_external_line && t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*neu_energy[ilepton]);
   
   //compute full exponential (notice the factor +1)
@@ -606,21 +606,17 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
 }
 
 //set everything to a phase factor
-void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &le,int twall)
+void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &le)
 {
   GET_THREAD_ID();
   
-  if(twall==-1) master_printf("Setting lepton everywhere\n");
-  else          master_printf("Setting lepton on time %d\n",twall);
-  
   vector_reset(prop);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
-      {
-	complex ph;
-	get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
-	spinspin_put_to_diag(prop[ivol],ph);
-      }
+    {
+      complex ph;
+      get_lepton_sink_phase_factor(ph,ivol,ilepton,le);
+      spinspin_put_to_diag(prop[ivol],ph);
+    }
   set_borders_invalid(prop);
 }
 
@@ -807,13 +803,23 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,tmu)
 	    spinspin *prop=L[iprop];
 	    
 	    //put it to a phase
+	    set_to_lepton_sink_phase_factor(prop,ilepton,le);
+	    
+	    //multiply and the insert the current in between, on the source side
+	    if(!without_external_line)
+	      {
+		//select only the wall
+		int tmiddle=((glb_size[0]/2+source_coord[0])%glb_size[0]);
+		select_propagator_timeslice(prop,prop,tmiddle);
+		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+	      }
+	    
+	    //select only the wall
 	    int twall;
 	    if(tmu<0||tmu>=glb_size[0]) twall=-1;
 	    else twall=((tmu+source_coord[0])%glb_size[0]);
-	    set_to_lepton_sink_phase_factor(prop,ilepton,le,twall);
+	    select_propagator_timeslice(prop,prop,twall);
 	    
-	    //multiply and the insert the current in between, on the source side
-	    if(!without_contact_term) multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
 #ifndef NOPHOTON
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
 #else
@@ -848,8 +854,9 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 	  tm_quark_info le=get_lepton_info(ilepton,orie,rl);
 	  
 	  //put it to a phase
+	  set_to_lepton_sink_phase_factor(prop,ilepton,le);
 	  int twall=((glb_size[0]/2+source_coord[0])%glb_size[0]);
-	  set_to_lepton_sink_phase_factor(prop,ilepton,le,twall);
+	  select_propagator_timeslice(prop,prop,twall);
 	  
 	  //multiply with the prop
 	  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
@@ -1014,12 +1021,12 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
   //get the projectors
   spinspin promu[2],pronu[2];
   twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1,base);
-  if(!without_contact_term) twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,base);
+  if(!without_external_line) twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,base);
   else twisted_on_shell_operator_of_imom(promu[1],le,0,false,-1,base);
   naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
-  if(!without_contact_term) naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
+  if(!without_external_line) naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
   else naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,-1);
-  if(without_contact_term)
+  if(without_external_line)
     for(int i=0;i<2;i++)
       safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+map_mu[0]);
   
@@ -1107,12 +1114,12 @@ THREADABLE_FUNCTION_8ARG(attach_leptonic_correlation_chris, spinspin*,hadr, int,
   //get the projectors
   spinspin promu[2],pronu[2];
   twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1,base);
-  if(!without_contact_term) twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,base);
+  if(!without_external_line) twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,base);
   else twisted_on_shell_operator_of_imom(promu[1],le,0,false,-1,base);
   naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
-  if(!without_contact_term) naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
+  if(!without_external_line) naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
   else naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,-1);
-  if(without_contact_term)
+  if(without_external_line)
     for(int i=0;i<2;i++)
       safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+map_mu[0]);
   
