@@ -26,8 +26,20 @@ namespace nissa
   //cancel the zero modes for all spatial when UNNO_ALEMANNA prescription asked
   //or if PECIONA prescription and full zero mode
   bool zero_mode_subtraction_mask(gauge_info gl,int imom)
-  {return !(((gl.zms==UNNO_ALEMANNA||(gl.zms==PECIONA&&glb_coord_of_loclx[imom][0]==0))&&
-	      glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0));}
+  {
+    switch(gl.zms)
+      {
+      case UNNO_ALEMANNA:
+	return glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0;break;
+      case PECIONA:
+	return glb_coord_of_loclx[imom][0]==0&&glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0;break;
+      case ONLY_100:
+	return glb_coord_of_loclx[imom][1]+glb_coord_of_loclx[imom][2]+glb_coord_of_loclx[imom][3]==1;break;
+      default: crash("unknown zms: %d\n",(int)gl.zms);
+      }
+    
+    return 0;
+  }
   
   //cancel the mode if it is zero according to the prescription
   bool cancel_if_zero_mode(spin1prop prop,gauge_info gl,int imom)
@@ -39,10 +51,11 @@ namespace nissa
   bool cancel_if_zero_mode(spin1field prop,gauge_info gl,int imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
+    if(m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
     for(int mu=0;mu<4;mu++) for(int reim=0;reim<2;reim++) prop[mu][reim]*=m;
     return !m;
   }
-    
+  
   //compute the tree level Symanzik gauge propagator in the momentum space according to P.Weisz
   void mom_space_tlSym_gauge_propagator_of_imom(spin1prop prop,gauge_info gl,int imom)
   {
@@ -84,7 +97,7 @@ namespace nissa
     double kt23=kt2*kt2*kt2;
     double kt42=kt4*kt4;
     
-    if(kt2!=0)
+    if(fabs(kt2)>=1e-14)
       {
 	//Deltakt
 	double Deltakt=(kt2-c1*kt4)*(kt2-c1*(kt22+kt4)+0.5*c12*(kt23+2*kt6-kt2*kt4));
@@ -109,9 +122,12 @@ namespace nissa
 	    }
       }
     else
-      for(int mu=0;mu<4;mu++)
-	for(int nu=0;nu<4;nu++)
-	  prop[mu][nu][RE]=prop[mu][nu][IM]=0;//gl.zmp/glb_vol;
+      {
+	printf("setting to zero propagator mode %d\n",glblx_of_loclx[imom]);
+	for(int mu=0;mu<4;mu++)
+	  for(int nu=0;nu<4;nu++)
+	    prop[mu][nu][RE]=prop[mu][nu][IM]=0;//gl.zmp/glb_vol;
+      }
     
     //cancel when appropriate
     cancel_if_zero_mode(prop,gl,imom);
