@@ -118,8 +118,8 @@ void generate_photon_stochastic_propagator();
 int nqprop,nlprop;
 int iqprop(int imass,qprop_t ip,int r)
 {return r+nr*(imass+nqmass*ip);}
-int ilprop(int ilepton,int orie,int phi_eta,int r,int t)
-{return r+nr*(phi_eta+2*(orie+2*(ilepton+nleptons*t)));}
+int ilprop(int ilepton,int orie,int phi_eta,int r,int t2)
+{return r+nr*(phi_eta+2*(orie+2*(ilepton+nleptons*t2)));}
 
 //return appropriately modified info
 tm_quark_info get_lepton_info(int ilepton,int orie,int r)
@@ -546,10 +546,10 @@ void generate_quark_propagators()
     }
 }
 
-void generate_quark_propagators_chris(int t)
+void generate_quark_propagators_chris(int t1)
 {
   if(nr==2) crash("this is chris test!");
-  generate_source(STOCH_PHI,0,Q[iqprop(0,PROP_0,0)],t);
+  generate_source(STOCH_PHI,0,Q[iqprop(0,PROP_0,0)],t1);
   get_qprop(Q[iqprop(0,PROP_PHI,0)],source,0,0);
 }
 
@@ -782,12 +782,12 @@ void insert_conserved_current_on_the_source(spinspin *prop,int ilepton,coords di
 // 3)going to momentum space
 // 4)multiplying by the lepton propagator in momentum space
 // 5)coming back to x space
-THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,tmu)
+THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
 {
   GET_THREAD_ID();
   
   if(IS_MASTER_THREAD) lepton_prop_time-=take_time();
-  master_printf("Generating lepton propagators for time %d\n",tmu); //added for chris
+  master_printf("Generating lepton propagators for time %d\n",t2); //added for chris
   
   for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int ori=0;ori<2;ori++)
@@ -799,7 +799,7 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,tmu)
 	    tm_quark_info le=get_lepton_info(ilepton,ori,r);
 	    
 	    //select the propagator
-	    int iprop=ilprop(ilepton,ori,phi_eta,r,tmu); //added for Chris
+	    int iprop=ilprop(ilepton,ori,phi_eta,r,t2); //added for Chris
 	    spinspin *prop=L[iprop];
 	    
 	    //put it to a phase
@@ -816,8 +816,8 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,tmu)
 	    
 	    //select only the wall
 	    int twall;
-	    if(tmu<0||tmu>=glb_size[0]) twall=-1;
-	    else twall=((tmu+source_coord[0])%glb_size[0]);
+	    if(t2<0||t2>=glb_size[0]) twall=-1;
+	    else twall=((t2+source_coord[0])%glb_size[0]);
 	    select_propagator_timeslice(prop,prop,twall);
 	    
 #ifndef NOPHOTON
@@ -1101,7 +1101,7 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 THREADABLE_FUNCTION_END
 
 //compute the leptonic part of the correlation function
-THREADABLE_FUNCTION_8ARG(attach_leptonic_correlation_chris, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ext_ind, int,t, int,tmu)
+THREADABLE_FUNCTION_8ARG(attach_leptonic_correlation_chris, spinspin*,hadr, int,iprop, int,ilepton, int,orie, int,rl, int,ext_ind, int,t1, int,t2)
 {
   GET_THREAD_ID();
   
@@ -1186,7 +1186,7 @@ THREADABLE_FUNCTION_8ARG(attach_leptonic_correlation_chris, spinspin*,hadr, int,
 	    //summ the average
 	    if(glb_t==chris_t)
 	      {
-		int i=t+glb_size[0]*(tmu+glb_size[0]*(ig_proj+nhadrolept_proj*(list_weak_ind_contr[ins]+nweak_ind*ext_ind)));
+		int i=t1+glb_size[0]*(t2+glb_size[0]*(ig_proj+nhadrolept_proj*(list_weak_ind_contr[ins]+nweak_ind*ext_ind)));
 		complex_summassign(hadrolept_corr_chris[i],hl);
 	      }
 	  }
@@ -1293,9 +1293,9 @@ void compute_hadroleptonic_correlations()
 }
 
 //compute the total hadroleptonic correlation functions
-void compute_hadroleptonic_correlations_chris(int t,int tmu)
+void compute_hadroleptonic_correlations_chris(int t1,int t2)
 {
-  master_printf("Computing leptonic correlation functions for Chris\n");
+  master_printf("Computing leptonic correlation functions for Chris, t1=%d t2=%d\n",t1,t2);
   lept_contr_time-=take_time();
   
   int ind=0;
@@ -1335,8 +1335,8 @@ void compute_hadroleptonic_correlations_chris(int t,int tmu)
 		  {
 		    //contract with lepton
 		    //ANNA2
-		    int iprop=ilprop(ilepton,orie,!phi_eta,rl,tmu); //notice inversion of phi/eta w.r.t hadron side
-		    attach_leptonic_correlation_chris(hadr,iprop,ilepton,orie,rl,ind,t,tmu);
+		    int iprop=ilprop(ilepton,orie,!phi_eta,rl,t2); //notice inversion of phi/eta w.r.t hadron side
+		    attach_leptonic_correlation_chris(hadr,iprop,ilepton,orie,rl,ind,t1,t2);
 		    //do_not_attach_leptonic_correlation(hadr,ind);
 		    ind++;
 		  }
@@ -1418,12 +1418,12 @@ void print_correlations()
 		      for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 			{
 			  master_fprintf(fout," # qins=%s lins=%s proj=%s\n\n",list_weak_ind_nameq[ind],list_weak_ind_namel[ind],gtag[hadrolept_projs[ig_proj]]);
-			  for(int tmu=0;tmu<glb_size[0];tmu++)
+			  for(int t2=0;t2<glb_size[0];t2++)
 			    {
-			      master_fprintf(fout," # tmu=%d\n\n",tmu);
-			      for(int t=0;t<glb_size[0];t++)
+			      master_fprintf(fout," # t2=%d\n\n",t2);
+			      for(int t1=0;t1<glb_size[0];t1++)
 				{
-				  int i=t+glb_size[0]*(tmu+glb_size[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*ext_ind)));
+				  int i=t1+glb_size[0]*(t2+glb_size[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*ext_ind)));
 				  master_fprintf(fout,"%+016.16lg %+016.16lg\n",hadrolept_corr_chris[i][RE]/nsources,hadrolept_corr_chris[i][IM]/nsources);
 				}
 			    }
@@ -1549,18 +1549,18 @@ void in_main(int narg,char **arg)
 	  generate_photon_stochastic_propagator();
 	  generate_original_source();
 	  
-	  for(int t=0;t<=glb_size[0];t++) generate_lepton_propagators(t);
+	  for(int t2=0;t2<=glb_size[0];t2++) generate_lepton_propagators(t2);
 	  generate_quark_propagators();
 	  
 	  compute_hadroleptonic_correlations();
 	  compute_hadronic_correlations();
 	  
 	  //test for chris
-	  for(int t=0;t<glb_size[0];t++)
+	  for(int t1=0;t1<glb_size[0];t1++)
 	    {
-	      generate_quark_propagators_chris(t);
-	      for(int tmu=0;tmu<glb_size[0];tmu++)
-		compute_hadroleptonic_correlations_chris(t,tmu);
+	      generate_quark_propagators_chris(t1);
+	      for(int t2=0;t2<glb_size[0];t2++)
+		compute_hadroleptonic_correlations_chris(t1,t2);
 	    }
 	}
       

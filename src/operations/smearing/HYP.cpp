@@ -64,7 +64,7 @@ namespace nissa
 		//take original link
 		su3 temp0;
 		su3_prod_double(temp0,conf[A][mu],1-alpha2);
-		  
+		
 		//staple and temporary links
 		su3 stap,temp1,temp2;
 		
@@ -145,7 +145,7 @@ namespace nissa
 		  unsafe_su3_prod_su3(temp2,temp1,dec2_conf[ire1][E]);
 		  su3_summ(stap,stap,temp2);
 		}
-
+	      
 	      //summ the two staples with appropriate coef and project the resulting link onto su3
 	      su3_summ_the_prod_double(temp0,stap,alpha1/4);
 	      su3_unitarize_maximal_trace_projecting(dec1_conf[ire0][A],temp0);
@@ -221,7 +221,7 @@ namespace nissa
 #endif
   }
   THREADABLE_FUNCTION_END
-
+  
   //hyp smear all the dirs
   void hyp_smear_conf(quad_su3 *sm_conf,quad_su3 *conf,double alpha0,double alpha1,double alpha2)
   {hyp_smear_conf_dir(sm_conf,conf,alpha0,alpha1,alpha2,-1);}
