@@ -240,8 +240,8 @@ namespace nissa
 	      final_res[ishift]=res[ishift]=rr*zfs[ishift]*zfs[ishift]/source_norm;
 	      if(iter%each==0)
 		{
-		  if(verbosity_lv==2) master_printf("%1.4e  ",res[ishift]);
-		  if(verbosity_lv==3) master_printf("%16.16lg  ",res[ishift]);
+		  verbosity_lv2_master_printf("%1.4e  ",res[ishift]);
+		  verbosity_lv3_master_printf("%16.16lg  ",res[ishift]);
 		}
 	      
 	      if(res[ishift]<inn_req_res[ishift])

@@ -1,6 +1,6 @@
 AUTOMAKE_OPTIONS=subdir-objects
 
-SUBDIRS=eight_BK g generate_confs ib reno_const semileptonic static_potential
+SUBDIRS=generate_confs ib semileptonic
 
 if NDIM2
 SUBDIRS+=cpn

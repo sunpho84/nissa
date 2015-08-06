@@ -332,7 +332,8 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	operations/smearing/gaussian.cpp \
 	operations/stag/magnetization.cpp \
 	operations/stag/putpourri.cpp operations/stag/rendens.cpp \
-	operations/stag/stag.cpp operations/stag/time_pseudo_corr.cpp \
+	operations/stag/spinpol.cpp operations/stag/stag.cpp \
+	operations/stag/time_pseudo_corr.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
@@ -483,6 +484,7 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	operations/stag/magnetization.$(OBJEXT) \
 	operations/stag/putpourri.$(OBJEXT) \
 	operations/stag/rendens.$(OBJEXT) \
+	operations/stag/spinpol.$(OBJEXT) \
 	operations/stag/stag.$(OBJEXT) \
 	operations/stag/time_pseudo_corr.$(OBJEXT) \
 	operations/su3_paths/all_rectangles.$(OBJEXT) \
@@ -673,7 +675,8 @@ am__include_HEADERS_DIST = nissa.hpp svnversion.hpp base/bench.hpp \
 	operations/smearing/stout.hpp operations/smearing/gaussian.hpp \
 	operations/stag/magnetization.hpp \
 	operations/stag/putpourri.hpp operations/stag/rendens.hpp \
-	operations/stag/stag.hpp operations/stag/time_pseudo_corr.hpp \
+	operations/stag/spinpol.hpp operations/stag/stag.hpp \
+	operations/stag/time_pseudo_corr.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \
@@ -910,7 +913,8 @@ include_HEADERS = nissa.hpp svnversion.hpp base/bench.hpp \
 	operations/smearing/stout.hpp operations/smearing/gaussian.hpp \
 	operations/stag/magnetization.hpp \
 	operations/stag/putpourri.hpp operations/stag/rendens.hpp \
-	operations/stag/stag.hpp operations/stag/time_pseudo_corr.hpp \
+	operations/stag/spinpol.hpp operations/stag/stag.hpp \
+	operations/stag/time_pseudo_corr.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \
@@ -1047,7 +1051,8 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	operations/smearing/gaussian.cpp \
 	operations/stag/magnetization.cpp \
 	operations/stag/putpourri.cpp operations/stag/rendens.cpp \
-	operations/stag/stag.cpp operations/stag/time_pseudo_corr.cpp \
+	operations/stag/spinpol.cpp operations/stag/stag.cpp \
+	operations/stag/time_pseudo_corr.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
@@ -1739,6 +1744,8 @@ operations/stag/putpourri.$(OBJEXT): operations/stag/$(am__dirstamp) \
 	operations/stag/$(DEPDIR)/$(am__dirstamp)
 operations/stag/rendens.$(OBJEXT): operations/stag/$(am__dirstamp) \
 	operations/stag/$(DEPDIR)/$(am__dirstamp)
+operations/stag/spinpol.$(OBJEXT): operations/stag/$(am__dirstamp) \
+	operations/stag/$(DEPDIR)/$(am__dirstamp)
 operations/stag/stag.$(OBJEXT): operations/stag/$(am__dirstamp) \
 	operations/stag/$(DEPDIR)/$(am__dirstamp)
 operations/stag/time_pseudo_corr.$(OBJEXT):  \
@@ -1999,6 +2006,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@operations/stag/$(DEPDIR)/magnetization.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/stag/$(DEPDIR)/putpourri.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/stag/$(DEPDIR)/rendens.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/stag/$(DEPDIR)/spinpol.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/stag/$(DEPDIR)/stag.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/stag/$(DEPDIR)/time_pseudo_corr.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/su3_paths/$(DEPDIR)/all_rectangles.Po@am__quote@

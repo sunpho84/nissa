@@ -31,11 +31,11 @@ namespace nissa
       if(ord==0) crash("makes no sense to call with order zero");
       
       add_backfield_to_conf(conf,pars->backfield[iflav]);
+      communicate_ev_and_od_quad_su3_borders(conf);
+      communicate_ev_and_od_color_borders(in);
       
       for(int par=0;par<2;par++)
 	{
-	  communicate_ev_or_od_color_borders(in[!par],!par);
-	  
 	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	    {
 	      color temp;
@@ -44,14 +44,14 @@ namespace nissa
 	      if(ord%2==0) su3_dag_subt_the_prod_color(temp,conf[!par][idw][0],in[!par][idw]);
 	      else         su3_dag_summ_the_prod_color(temp,conf[!par][idw][0],in[!par][idw]);
 	      color_prod_double(out[par][ieo],temp,0.5);
-	      set_borders_invalid(out[par]);
 	    }
+	  set_borders_invalid(out[par]);
 	}
       
       rem_backfield_from_conf(conf,pars->backfield[iflav]);
     }
     THREADABLE_FUNCTION_END
-	
+    
     //take the trace between A^dag and B
     THREADABLE_FUNCTION_4ARG(summ_the_trace, double*,out, complex*,point_result, color**, A, color**, B)
     {
