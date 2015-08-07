@@ -34,7 +34,7 @@ namespace nissa
       case PECIONA:
 	return !(glb_coord_of_loclx[imom][0]==0&&glb_coord_of_loclx[imom][1]==0&&glb_coord_of_loclx[imom][2]==0&&glb_coord_of_loclx[imom][3]==0);break;
       case ONLY_100:
-	return !(glb_coord_of_loclx[imom][1]+glb_coord_of_loclx[imom][2]+glb_coord_of_loclx[imom][3]==1);break;
+	return (glb_coord_of_loclx[imom][1]+glb_coord_of_loclx[imom][2]+glb_coord_of_loclx[imom][3]==1);break;
       default: crash("unknown zms: %d\n",(int)gl.zms);
       }
     

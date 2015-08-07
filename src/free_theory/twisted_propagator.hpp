@@ -37,6 +37,10 @@ namespace nissa
   inline double m0_of_kappa(double kappa)
   {return 0.5/kappa-4;}
   
+  //compute the kappa corresponding to a certain m0
+  inline double kappa_of_m0(double m0)
+  {return 0.5/(m0+4);}
+
   double tm_quark_energy(tm_quark_info qu,int imom);
   double naive_massless_quark_energy(momentum_t bc,int imom);
   

@@ -143,7 +143,7 @@ namespace nissa
     
     //loop over each flav
     int nflavs=theory_pars->nflavs;
-
+    
     //list of rat_approx to recreate
     int nto_recreate=0;
     int iappr_to_recreate[3*nflavs];
@@ -164,7 +164,7 @@ namespace nissa
 	rat_approx_t *appr=evol_pars->rat_appr+3*iflav;
 	int deg=theory_pars->quark_content[iflav].deg;
 	int npf=evol_pars->npseudo_fs[iflav];
-
+	
 	//generate the three approximations
 	int extra_fact[3]={8,-4,-4};
 	double maxerr[3]={sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->pf_action_residue),sqrt(evol_pars->md_residue)};
@@ -178,7 +178,7 @@ namespace nissa
 	    if(IS_MASTER_THREAD) snprintf(appr[i].name,20,"x^(%d/%d)",num,den);
 	    THREAD_BARRIER();
 	    
-	    //check if the approx is valid or not and in any case fit exponents	    
+	    //check if the approx is valid or not and in any case fit exponents
 	    verbosity_lv2_master_printf("Checking validity of approx %d/3 for flav %d/%d\n",i+1,iflav+1,nflavs);
 	    bool valid=check_approx_validity(appr[i],eig_min,eig_max,expo,maxerr[i]);
 	    THREAD_BARRIER();
@@ -186,7 +186,7 @@ namespace nissa
 	    appr[i].den=den;
 	    THREAD_BARRIER();
 	    
-	    //if the approximation is valid scale it	    
+	    //if the approximation is valid scale it
 	    if(valid)
 	      {
 		verbosity_lv2_master_printf("Stored rational approximation valid, adapting it quickly\n");
@@ -196,7 +196,7 @@ namespace nissa
 		    //center the arithmetic average
 		    double scale=sqrt(eig_max*eig_min)/sqrt(appr[i].minimum*appr[i].maximum);
 		    double scale_extra=pow(scale,expo);
-	    
+		    
 		    //scale the rational approximation
 		    appr[i].minimum*=scale;
 		    appr[i].maximum*=scale;
@@ -245,7 +245,7 @@ namespace nissa
     
     //now collect from other nodes
     for(int ito=0;ito<nto_recreate;ito++) broadcast(evol_pars->rat_appr+iappr_to_recreate[ito],rank_recreating[ito]);
-
+    
     if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
     THREAD_BARRIER();
   }
