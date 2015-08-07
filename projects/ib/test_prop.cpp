@@ -222,6 +222,44 @@ void in_main(int narg,char **arg)
   
   start_loc_rnd_gen(1000);
   
+  {
+    //testing the P5P5 corr function in mom space
+    int w=1;
+    double m=0.05;
+    tm_quark_info qu;
+    qu.r=1;
+    if(w)
+      {
+	qu.mass=0.0;
+	qu.kappa=kappa_of_m0(m);
+	master_printf("m: %lg\n",m0_of_kappa(qu.kappa));
+      }
+    else
+      {
+	qu.mass=m;
+	qu.kappa=0.125;
+      }
+    qu.bc[0]=1;
+    for(int mu=1;mu<4;mu++) qu.bc[mu]=0;
+    
+    //compute in x space
+    spinspin *pr=nissa_malloc("pr",loc_vol,spinspin);
+    if(w) compute_x_space_twisted_propagator_by_fft(pr,qu,WILSON_BASE);
+    else  compute_x_space_twisted_propagator_by_fft(pr,qu,MAX_TWIST_BASE);
+    double xp5p5[glb_size[0]];
+    memset(xp5p5,0,sizeof(complex)*glb_size[0]);
+    for(int ivol=0;ivol<glb_vol;ivol++)
+      xp5p5[glb_coord_of_loclx[ivol][0]]+=spinspin_norm2(pr[ivol]);
+    nissa_free(pr);
+    
+    //take ft
+    FILE *fout=open_file("/tmp/cp5p5.xmg","w");
+    for(int t=0;t<glb_size[0]/2;t++)
+      master_fprintf(fout,"%lg\n",log(xp5p5[t]/xp5p5[t+1]));
+  }
+  
+  crash("");
+  
   ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   if(nranks==1)

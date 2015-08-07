@@ -28,8 +28,7 @@
 namespace nissa
 {
   //perform a full hmc step and return the difference between final and original action
-  double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,
-				 hmc_evol_pars_t &simul_pars,int itraj)
+  double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,int itraj)
   {
     //header
     master_printf("Trajectory %d (nmd: %d, ngss: %d)\n",itraj,simul_pars.nmd_steps,simul_pars.ngauge_substeps);
@@ -40,8 +39,7 @@ namespace nissa
     
     //allocate the momenta
     quad_su3 *H[2];
-    for(int par=0;par<2;par++)
-      H[par]=nissa_malloc("H",loc_volh,quad_su3);
+    for(int par=0;par<2;par++) H[par]=nissa_malloc("H",loc_volh,quad_su3);
     
     //copy the old conf into the new
     for(int par=0;par<2;par++)
@@ -51,7 +49,7 @@ namespace nissa
       }
     
     //allocate pseudo-fermions
-    color ***pf=nissa_malloc("pf**",theory_pars.nflavs,color**);
+    color **pf[theory_pars.nflavs];
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
       {
 	int npfs=simul_pars.npseudo_fs[iflav];
@@ -88,12 +86,8 @@ namespace nissa
     
     //create pseudo-fermions
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
-      {
-	rat_approx_t *appr=simul_pars.rat_appr+3*iflav+0;
-	for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++)
-	  generate_pseudo_fermion(pf[iflav][ipf],sme_conf,theory_pars.backfield[iflav],appr,
-				  simul_pars.pf_action_residue);
-      }
+      for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++)
+	generate_pseudo_fermion(pf[iflav][ipf],sme_conf,theory_pars.backfield[iflav],simul_pars.rat_appr+3*iflav+0,simul_pars.pf_action_residue);
     
     //create the momenta
     generate_hmc_momenta(H);
@@ -134,13 +128,12 @@ namespace nissa
       }
     for(int par=0;par<2;par++) nissa_free(H[par]);
     if(theory_pars.stout_pars.nlev!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
-    nissa_free(pf);
     
     //shift back
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
       for(int i=0;i<3;i++)
 	rat_approx_shift_all_poles(simul_pars.rat_appr+iflav*3+i,-sqr(theory_pars.quark_content[iflav].mass));
-
+    
     //take time
     hmc_time+=take_time();
     verbosity_lv1_master_printf("Total time to perform rhmc step: %lg s\n",hmc_time);
