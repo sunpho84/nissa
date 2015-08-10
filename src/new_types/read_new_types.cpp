@@ -17,14 +17,34 @@ namespace nissa
   {
     gauge_action_name_t ret=UNSPEC_GAUGE_ACTION;
     
-    if(strcmp(name,"Wilson")==0) ret=WILSON_GAUGE_ACTION;
+    if(strcasecmp(name,"Wilson")==0) ret=WILSON_GAUGE_ACTION;
     else
-      if(strcmp(name,"tlSym")==0) ret=TLSYM_GAUGE_ACTION;
+      if(strcasecmp(name,"tlSym")==0) ret=TLSYM_GAUGE_ACTION;
       else crash("unknown gauge action: %s",name);
     
     return ret;
   }
-
+  
+  //read parameters to cool
+  void read_cool_pars(cool_pars_t &cool_pars,bool flag=false)
+  {
+    if(flag==true) cool_pars.flag=true;
+    else read_str_int("Cooling",&cool_pars.flag);
+    if(cool_pars.flag)
+      {
+	char gauge_action_name_str[1024];
+	read_str_str("CoolAction",gauge_action_name_str,1024);
+	cool_pars.gauge_action=gauge_action_name_from_str(gauge_action_name_str);
+	read_str_int("CoolNSteps",&cool_pars.nsteps);
+	read_str_int("CoolOverrelaxing",&cool_pars.overrelax_flag);
+	if(cool_pars.overrelax_flag==1) read_str_double("CoolOverrelaxExp",&cool_pars.overrelax_exp);
+	read_str_int("CoolMeasEachNSteps",&cool_pars.meas_each);
+	if(cool_pars.nsteps==0) cool_pars.meas_each=1; //so we don't go into mess
+	if(cool_pars.nsteps%cool_pars.meas_each) crash("nsteps musth be a multiple of meas each for cooling");
+      }
+    else cool_pars.reset();
+  }
+  
   //read parameters to study topology
   void read_top_meas_pars(top_meas_pars_t &top_meas_pars,bool flag=false)
   {
@@ -32,14 +52,8 @@ namespace nissa
     else read_str_int("MeasureTopology",&top_meas_pars.flag);
     if(top_meas_pars.flag)
       {
-	char gauge_action_name_str[1024];
 	read_str_str("Path",top_meas_pars.path,1024);
-	read_str_str("CoolAction",gauge_action_name_str,1024);
-	top_meas_pars.gauge_cooling_action=gauge_action_name_from_str(gauge_action_name_str);
-	read_str_int("CoolNSteps",&top_meas_pars.cool_nsteps);
-	read_str_int("CoolOverrelaxing",&top_meas_pars.cool_overrelax_flag);
-	if(top_meas_pars.cool_overrelax_flag==1) read_str_double("TopCoolOverrelaxExp",&top_meas_pars.cool_overrelax_exp);
-	read_str_int("CoolMeasEachNSteps",&top_meas_pars.meas_each);
+	read_cool_pars(top_meas_pars.cool_pars,true);
       }
   }
   
@@ -87,7 +101,7 @@ namespace nissa
       }
     if(pars.flag) read_stout_pars(pars.stout_pars);
   }
-
+  
   //degeneracy, mass, chpot and charge
   void read_quark_content(quark_content_t &quark_content,bool flag=false)
   {
@@ -198,6 +212,22 @@ namespace nissa
         read_str_double("InvResidue",&pars.residue);
         read_str_int("NCopies",&pars.ncopies);
         read_str_int("NHits",&pars.nhits);
+      }
+  }
+  
+  //read parameters to measure the spin polarization
+  void read_spinpol_meas_pars(spinpol_meas_pars_t &pars,bool flag=false)
+  {
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasureSpinpol",&pars.flag);
+    if(pars.flag)
+      {
+        read_str_str("Path",pars.path,1024);
+        read_str_double("InvResidue",&pars.residue);
+        read_str_int("Dir",&pars.dir);
+        read_str_int("NHits",&pars.nhits);
+	read_str_int("UseFermConfForGluons",&pars.use_ferm_conf_for_gluons);
+	read_cool_pars(pars.cool_pars);
       }
   }
   
@@ -351,6 +381,7 @@ namespace nissa
 	read_pseudo_corr_meas_pars(theory_pars.pseudo_corr_meas_pars);
 	read_fermionic_putpourri_meas_pars(theory_pars.fermionic_putpourri_meas_pars);
 	read_quark_rendens_meas_pars(theory_pars.quark_rendens_meas_pars);
+	read_spinpol_meas_pars(theory_pars.spinpol_meas_pars);
 	read_magnetization_meas_pars(theory_pars.magnetization_meas_pars);
       }
   }

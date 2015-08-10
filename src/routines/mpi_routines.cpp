@@ -374,8 +374,7 @@ namespace nissa
 	
 	//copy loc in the buf and sync all the threads
 	float_128_copy(glb_quadruple_reduction_buf[thread_id],in_loc);
-	if(VERBOSITY_LV3 && rank==0) printf(" entering 128 reduction, in_loc[%d]: %+016.16lg\n",
-					    THREAD_ID,in_loc[0]+in_loc[1]);
+	if(VERBOSITY_LV3 && rank==0) printf(" entering 128 reduction, in_loc[%d]: %+016.16lg\n",THREAD_ID,in_loc[0]+in_loc[1]);
 	THREAD_BARRIER();
 	
 	//within master thread summ all the pieces and between MPI
