@@ -345,7 +345,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   //measure the topological charge site by site
   THREADABLE_FUNCTION_2ARG(local_topological_charge, double*,charge, quad_su3*,conf)
   {
@@ -452,18 +452,17 @@ namespace nissa
     else cooled_conf=uncooled_conf;
     
     //print curent measure and cool
-    for(int istep=0;istep<=(pars.cool_nsteps/pars.meas_each)*pars.meas_each;istep++)
+    for(int istep=0;istep<=(pars.cool_pars.nsteps/pars.cool_pars.meas_each)*pars.cool_pars.meas_each;istep++)
       {
-	if(istep%pars.meas_each==0)
+	if(istep%pars.cool_pars.meas_each==0)
 	  {
 	    double tot_charge;
 	    total_topological_charge_lx_conf(&tot_charge,cooled_conf);
 	    master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,tot_charge);
-	    verbosity_lv2_master_printf("Topologycal charge after %d cooling steps: %16.16lg, "
+	    verbosity_lv2_master_printf("Topological charge after %d cooling steps: %16.16lg, "
 					"plaquette: %16.16lg\n",istep,tot_charge,global_plaquette_lx_conf(cooled_conf));
 	  }
-	if(istep!=pars.cool_nsteps) cool_lx_conf(cooled_conf,pars.gauge_cooling_action,
-						 pars.cool_overrelax_flag,pars.cool_overrelax_exp);
+	if(istep!=pars.cool_pars.nsteps) cool_lx_conf(cooled_conf,pars.cool_pars.gauge_action,pars.cool_pars.overrelax_flag,pars.cool_pars.overrelax_exp);
       }
     
     //discard cooled conf

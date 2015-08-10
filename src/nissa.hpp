@@ -138,6 +138,7 @@
 #include "operations/stag/magnetization.hpp"
 #include "operations/stag/putpourri.hpp"
 #include "operations/stag/rendens.hpp"
+#include "operations/stag/spinpol.hpp"
 #include "operations/stag/stag.hpp"
 #include "operations/stag/time_pseudo_corr.hpp"
 

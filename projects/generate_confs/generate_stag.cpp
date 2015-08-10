@@ -259,7 +259,7 @@ void init_simulation(char *path)
   
   //read if we want to measure all rectangles
   read_all_rect_meas_pars(all_rect_meas_pars);
-
+  
   //read if we want to measure flux tube
   read_watusso_meas_pars(watusso_meas_pars);
   
@@ -269,7 +269,7 @@ void init_simulation(char *path)
   
   //read the seed
   read_str_int("Seed",&seed);
-
+  
   //if we want to produce something, let's do it, otherwise load the list of configurations to analyze
   start_conf_cond_t start_conf_cond=UNSPEC_START_COND;
   if(ntraj_tot>0)
@@ -322,7 +322,7 @@ void init_simulation(char *path)
   for(int itheory=0;itheory<ntheories;itheory++) theory_pars_allocinit_backfield(theory_pars[itheory]);
   
   //initialize sweeper to cool
-  if(top_meas_pars.flag && top_meas_pars.cool_nsteps) init_sweeper(top_meas_pars.gauge_cooling_action);
+  if(top_meas_pars.flag && top_meas_pars.cool_pars.nsteps) init_sweeper(top_meas_pars.cool_pars.gauge_action);
   
   //init the program in "production" or "analysis" mode
   if(ntraj_tot>0) init_program_to_run(start_conf_cond);
@@ -337,8 +337,8 @@ void unset_theory_pars(theory_pars_t &theory_pars)
       for(int par=0;par<2;par++) nissa_free(theory_pars.backfield[iflav][par]);
       nissa_free(theory_pars.backfield[iflav]);
     }
-
-  nissa_free(theory_pars.backfield);  
+  
+  nissa_free(theory_pars.backfield);
   nissa_free(theory_pars.quark_content);
 }
 
@@ -507,44 +507,52 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       int magnetization_flag=check_flag_and_curr_conf(theory_pars[itheory].magnetization_meas_pars.flag,iconf);
       int pseudo_corr_flag=check_flag_and_curr_conf(theory_pars[itheory].pseudo_corr_meas_pars.flag,iconf);
       int quark_rendens_flag=check_flag_and_curr_conf(theory_pars[itheory].quark_rendens_meas_pars.flag,iconf);
+      int spinpol_flag=check_flag_and_curr_conf(theory_pars[itheory].spinpol_meas_pars.flag,iconf);
       
       if(fermionic_putpourri_flag||magnetization_flag||pseudo_corr_flag||quark_rendens_flag)
 	{
 	  //if needed stout
-	  quad_su3 **temp_conf=(theory_pars[itheory].stout_pars.nlev==0)?conf:new_conf;
+	  quad_su3 **sme_conf=(theory_pars[itheory].stout_pars.nlev==0)?conf:new_conf;
 	  
 	  //it is pointless to smear if there is no fermionic measurement
-	  stout_smear(temp_conf,conf,&(theory_pars[itheory].stout_pars));
+	  stout_smear(sme_conf,conf,&(theory_pars[itheory].stout_pars));
 	  
 	  //fermionic grand mix
 	  if(fermionic_putpourri_flag)
 	    {
 	      verbosity_lv1_master_printf("Measuring fermionic putpourri for theory %d/%d\n",itheory+1,ntheories);
-	      measure_fermionic_putpourri(temp_conf,theory_pars[itheory],iconf,conf_created);
+	      measure_fermionic_putpourri(sme_conf,theory_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //quark rendensity
 	  if(quark_rendens_flag)
 	    {
 	      verbosity_lv1_master_printf("Measuring quark rendensity for theory %d/%d\n",itheory+1,ntheories);
-	      measure_quark_rendens(temp_conf,theory_pars[itheory],iconf,conf_created);
+	      measure_quark_rendens(sme_conf,theory_pars[itheory],iconf,conf_created);
+	    }
+	  
+	  //quark rendensity
+	  if(spinpol_flag)
+	    {
+	      verbosity_lv1_master_printf("Measuring spin polarizability %d/%d\n",itheory+1,ntheories);
+	      measure_spinpol(sme_conf,conf,theory_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //magnetization
 	  if(magnetization_flag)
 	    {
 	      verbosity_lv1_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,ntheories);
-	      measure_magnetization(temp_conf,theory_pars[itheory],iconf,conf_created);
+	      measure_magnetization(sme_conf,theory_pars[itheory],iconf,conf_created);
 	    }
 	  
 	  //pseudoscalar meson time corr
 	  if(pseudo_corr_flag)
 	    {
 	      verbosity_lv1_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
-	      measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,conf_created,0);
+	      measure_time_pseudo_corr(sme_conf,theory_pars[itheory],iconf,conf_created,0);
 	      if(theory_pars[itheory].pseudo_corr_meas_pars.flag>1)
 		for(int dir=1;dir<4;dir++)
-		  measure_time_pseudo_corr(temp_conf,theory_pars[itheory],iconf,0,dir);
+		  measure_time_pseudo_corr(sme_conf,theory_pars[itheory],iconf,0,dir);
 	    }
 	}
     }
@@ -720,9 +728,9 @@ void in_main(int narg,char **arg)
   master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",
 		nglu_comp,glu_comp_time,glu_comp_time/std::max(nglu_comp,1));
   master_printf("time to write %d configurations: %lg, %lg per conf\n",
-		nwritten_conf,write_conf_time,write_conf_time/std::max(nwritten_conf,1));  
+		nwritten_conf,write_conf_time,write_conf_time/std::max(nwritten_conf,1)); 
 #endif
-
+  
   close_simulation();
 }
 

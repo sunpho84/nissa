@@ -214,7 +214,7 @@ namespace nissa
     temp_build_t();
     ~temp_build_t();
   };
-
+  
   //all to all communicators
   struct all_to_all_comm_t
   {
@@ -226,7 +226,7 @@ namespace nissa
     all_to_all_comm_t(all_to_all_scattering_list_t &sl);
     ~all_to_all_comm_t();
     void communicate(void *out,void *in,size_t bps,void *buf_out=NULL,void *buf_in=NULL,int tag=-1);
-
+    
     void setup_knowing_where_to_send(all_to_all_scattering_list_t &sl);
     void setup_knowing_what_to_ask(all_to_all_gathering_list_t &gl);
     void setup_nper_rank_other_temp(int *nper_rank_other_temp,int *nper_rank_temp);
@@ -250,7 +250,7 @@ namespace nissa
     //benchmarks and checks
     double comm_init_time,comp_time,comm_time;
     int max_cached_link,max_sending_link;
-
+    
     //store action parameters
     int nlinks_per_staples_of_link,gpar;
     
@@ -424,6 +424,27 @@ namespace nissa
     ~two_stage_computation_pos_t() {free();}
   };
   
+  //parameters to cool
+  struct cool_pars_t
+  {
+    int flag;
+    int nsteps;
+    gauge_action_name_t gauge_action;
+    int overrelax_flag;
+    double overrelax_exp;
+    int meas_each;
+    void reset()
+    {
+      flag=false;
+      nsteps=0;
+      gauge_action=WILSON_GAUGE_ACTION;
+      overrelax_flag=0;
+      overrelax_exp=1;
+      meas_each=1;
+    }
+    cool_pars_t(){reset();}
+  };
+  
   //rational approximation
   struct rat_approx_t
   {
@@ -455,7 +476,7 @@ namespace nissa
     double im_pot;
     double charge;
   };
-
+  
   //parameters to smear a gauge conf when measuring gauge observables
   struct gauge_obs_temp_smear_pars_t
   {
@@ -469,8 +490,8 @@ namespace nissa
     //ape temp
     double ape_temp_alpha;
     int nape_temp_iters;
-  };  
-
+  };
+  
   //pars to compute polyakov loop
   struct poly_corr_meas_pars_t
   {
@@ -508,6 +529,18 @@ namespace nissa
     int nhits;
   };
   
+  //parameters to compute spin polarization
+  struct spinpol_meas_pars_t
+  {
+    int flag;
+    char path[1024];
+    double residue;
+    int dir;
+    int nhits;
+    int use_ferm_conf_for_gluons;
+    cool_pars_t cool_pars;
+  };
+  
   //parameters to compute the magnetization
   struct magnetization_meas_pars_t
   {
@@ -532,11 +565,7 @@ namespace nissa
   {
     int flag;
     char path[1024];
-    int cool_nsteps;
-    gauge_action_name_t gauge_cooling_action;
-    int cool_overrelax_flag;
-    double cool_overrelax_exp;
-    int meas_each;
+    cool_pars_t cool_pars;
   };
   
   //holds temporal-spatial gauge smearing parameters
@@ -544,17 +573,17 @@ namespace nissa
   {
     //hyp or ape in T direction and pars
     gauge_obs_temp_smear_pars_t gauge_temp_smear_pars;
-    //ape spat    
+    //ape spat
     double ape_spat_alpha;
     int nape_spat_levls,*nape_spat_iters;
-  };    
+  };
   
   //parameters to measure all rectangles path
   struct all_rect_meas_pars_t
   {
     int flag;
     char path[1024];
-
+    
     //parameters to smear in time and space
     gauge_obs_temp_spat_smear_pars_t smear_pars;
     
@@ -567,7 +596,7 @@ namespace nissa
   {
     int flag;
     char path[1024];
-
+    
     //parameters to smear in time and space
     gauge_obs_temp_spat_smear_pars_t smear_pars;
     
@@ -649,7 +678,7 @@ namespace nissa
     double E[3];
     double B[3];
   };
-
+  
   //theory content
   struct theory_pars_t
   {
@@ -663,6 +692,7 @@ namespace nissa
     em_field_pars_t em_field_pars;
     fermionic_putpourri_meas_pars_t fermionic_putpourri_meas_pars;
     quark_rendens_meas_pars_t quark_rendens_meas_pars;
+    spinpol_meas_pars_t spinpol_meas_pars;
     magnetization_meas_pars_t magnetization_meas_pars;
     pseudo_corr_meas_pars_t pseudo_corr_meas_pars;
   };
