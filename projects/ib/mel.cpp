@@ -563,25 +563,33 @@ void generate_photon_stochastic_propagator()
   
   double phi_000[glb_size[0]];
   double phi_100[glb_size[0]];
+  double phi_200[glb_size[0]];
   
   double eta_000[glb_size[0]];
   double eta_100[glb_size[0]];
+  double eta_200[glb_size[0]];
   
   memset(phi_000,0,sizeof(double)*glb_size[0]);
   memset(phi_100,0,sizeof(double)*glb_size[0]);
+  memset(phi_200,0,sizeof(double)*glb_size[0]);
   
   memset(eta_000,0,sizeof(double)*glb_size[0]);
   memset(eta_100,0,sizeof(double)*glb_size[0]);
+  memset(eta_200,0,sizeof(double)*glb_size[0]);
   
   GET_THREAD_ID();
   NISSA_PARALLEL_LOOP(ivol, 0, loc_vol)
     {
       int t=glb_coord_of_loclx[ivol][0];
-      double c000=1,c001=cos(glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[0]);
+      double c000=1;
+      double c100=cos(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[0]);
+      double c200=cos(2*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[0]);
       phi_000[t]+=photon_phi[ivol][0][0]*c000;
-      phi_100[t]+=photon_phi[ivol][0][0]*c001;
+      phi_100[t]+=photon_phi[ivol][0][0]*c100;
+      phi_200[t]+=photon_phi[ivol][0][0]*c200;
       eta_000[t]+=photon_eta[ivol][0][0]*c000;
-      eta_100[t]+=photon_eta[ivol][0][0]*c001;
+      eta_100[t]+=photon_eta[ivol][0][0]*c100;
+      eta_200[t]+=photon_eta[ivol][0][0]*c200;
     }
   THREAD_BARRIER();
   
@@ -590,9 +598,11 @@ void generate_photon_stochastic_propagator()
     {
       double p000=glb_reduce_double(phi_000[t]);
       double p100=glb_reduce_double(phi_100[t]);
+      double p200=glb_reduce_double(phi_200[t]);
       double e000=glb_reduce_double(eta_000[t]);
       double e100=glb_reduce_double(eta_100[t]);
-      master_printf("%d\t(p,e)_000=(%16.16lg,%16.16lg)\t(p,e)_100=(%16.16lg,%16.16lg)\n",t,p000,e000,p100,e100);
+      double e200=glb_reduce_double(eta_200[t]);
+      master_printf("%d\t(p,e)_000=(%lg,%lg)\t(p,e)_100=(%lg,%lg)\t(p,e)_200=(%lg,%lg)\n",t,p000,e000,p100,e100,p200,e200);
     }
   master_printf("#########################################\n\n");
   
