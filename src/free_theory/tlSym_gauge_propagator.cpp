@@ -52,7 +52,7 @@ namespace nissa
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
     if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
-    if(gl.zms==ONLY_100 &&m==1) printf("leaving mode %d\n",glblx_of_loclx[imom]);
+    if(gl.zms==ONLY_100 &&m==1) printf("leaving mode %d=(%d,%d,%d,%d)\n",glblx_of_loclx[imom],glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
     for(int mu=0;mu<4;mu++) for(int reim=0;reim<2;reim++) prop[mu][reim]*=m;
     return !m;
   }
@@ -194,32 +194,32 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-    //generate a stochastic gauge propagator
+  //generate a stochastic gauge propagator
   THREADABLE_FUNCTION_3ARG(generate_stochastic_tlSym_gauge_propagator, spin1field*,phi, spin1field*,eta, gauge_info,gl)
   {
     GET_THREAD_ID();
     
     //generate the source and pass to mom space
     generate_stochastic_tlSym_gauge_propagator_source(eta);
-    pass_spin1field_from_x_to_mom_space(phi,eta,gl.bc);
+    pass_spin1field_from_x_to_mom_space(eta,eta,gl.bc);
     
-    //cancel when appropriate and go back
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
-      cancel_if_zero_mode(phi[imom],gl,imom);
+    //cancel when appropriate
+    NISSA_PARALLEL_LOOP(imom,0,loc_vol)  cancel_if_zero_mode(eta[imom],gl,imom);
+    set_borders_invalid(eta);
+    
+    //multiply by prop and put volume normalization due to convolution
+    multiply_mom_space_tlSym_gauge_propagator(phi,eta,gl);
+    NISSA_PARALLEL_LOOP(imom,0,loc_vol) spin_prodassign_double(phi[imom],glb_vol);
     set_borders_invalid(phi);
-    pass_spin1field_from_mom_to_x_space(eta,phi,gl.bc);
     
-    //multiply by prop
-    multiply_mom_space_tlSym_gauge_propagator(phi,phi,gl);
-    
-    //put volume normalization due to convolution
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
-      spin_prodassign_double(phi[imom],glb_vol);  
-    
-    //takes the anti-fast fourier transform of eta
+    //go back to x space
+    pass_spin1field_from_mom_to_x_space(eta,eta,gl.bc);
     pass_spin1field_from_mom_to_x_space(phi,phi,gl.bc);
     
-    set_borders_invalid(phi);
+    //finally takes the dagger of eta, in case 100 only selected
+    NISSA_PARALLEL_LOOP(imom,0,loc_vol) for(int id=0;id<4;id++) complex_conj(eta[imom][id],eta[imom][id]);
+    set_borders_invalid(eta);
+    
   }
   THREADABLE_FUNCTION_END
   
