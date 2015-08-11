@@ -582,19 +582,28 @@ void generate_photon_stochastic_propagator()
       double c000=1;
       double c100=cos(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
       double s100=sin(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
+      complex cs100={c100,s100};
       double c200=cos(2*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
       phi_000[t]+=photon_phi[ivol][0][RE]*c000;
       eta_000[t]+=photon_eta[ivol][0][RE]*c000;
-      phi_100[t][RE]+=photon_phi[ivol][0][RE]*c100;
-      phi_100[t][IM]+=photon_phi[ivol][0][RE]*s100;
-      eta_100[t][RE]+=photon_eta[ivol][0][RE]*c100;
-      eta_100[t][IM]+=photon_eta[ivol][0][RE]*s100;
+      complex_summ_the_prod(phi_100[t],photon_phi[ivol][0],cs100);
+      complex_summ_the_conj2_prod(eta_100[t],photon_eta[ivol][0],cs100);
       phi_200[t]+=photon_phi[ivol][0][RE]*c200;
       eta_200[t]+=photon_eta[ivol][0][RE]*c200;
       
       //master_printf("********** %lg %lg\n",photon_phi[ivol][0][IM],photon_eta[ivol][0][IM]);
     }
   THREAD_BARRIER();
+
+  for(int t=0;t<glb_size[0];t++)
+    {
+      phi_000[t]=glb_reduce_double(phi_000[t]);
+      eta_000[t]=glb_reduce_double(eta_000[t]);
+      glb_reduce_complex(phi_100[t],phi_100[t]);
+      glb_reduce_complex(eta_100[t],eta_100[t]);
+      phi_200[t]=glb_reduce_double(phi_200[t]);
+      eta_200[t]=glb_reduce_double(eta_200[t]);
+    }
   
   double p100_mom_loc[glb_size[0]];
   memset(p100_mom_loc,0,sizeof(double)*glb_size[0]);
@@ -629,16 +638,23 @@ void generate_photon_stochastic_propagator()
       master_printf("%d %lg\n",t,p100_time[t]);
     }
   
+  //take time convolution
+  complex ep100[glb_size[0]];
+  for(int dt=0;dt<glb_size[0];dt++)
+    {
+      complex_put_to_zero(ep100[dt]);
+      for(int t1=0;t1<glb_size[0];t1++)
+	{
+	  int t2=(t1+dt)%glb_size[0];
+	  complex_summ_the_conj2_prod(ep100[dt],phi_100[t1],eta_100[t2]);
+	}
+      complex_prodassign_double(ep100[dt],1.0/glb_spat_vol);
+    }
+  
   master_printf("\n############### check photon ############\n");
   for(int t=0;t<glb_size[0];t++)
-    {
-      double p000=glb_reduce_double(phi_000[t]);
-      double e000=glb_reduce_double(eta_000[t]);
-      double ep100=(glb_reduce_double(phi_100[t][RE])*glb_reduce_double(eta_100[t][RE])+glb_reduce_double(phi_100[t][IM])*glb_reduce_double(eta_100[t][IM]))/glb_spat_vol;
-      double p200=glb_reduce_double(phi_200[t]);
-      double e200=glb_reduce_double(eta_200[t]);
-      master_printf("%d\t(p,e)_000=(%lg,%lg)\tep_100=%lg\t(p,e)_200=(%lg,%lg)\n",t,p000,e000,ep100/glb_spat_vol,p200,e200);
-    }
+    master_printf("%d\t(p,e)_000=(%lg,%lg)\tep_100=%lg\t(p,e)_200=(%lg,%lg)\n",t,phi_000[t],eta_000[t],ep100[t][RE],ep100[t][IM],phi_200,eta_200);
+  
   master_printf("#########################################\n\n");
   
   photon_prop_time+=take_time();
