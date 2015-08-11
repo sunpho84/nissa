@@ -562,19 +562,17 @@ void generate_photon_stochastic_propagator()
   generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
   
   double phi_000[glb_size[0]];
-  double phi_100[glb_size[0]];
-  double phi_200[glb_size[0]];
-  
   double eta_000[glb_size[0]];
-  double eta_100[glb_size[0]];
+  complex phi_100[glb_size[0]];
+  complex eta_100[glb_size[0]];
+  double phi_200[glb_size[0]];
   double eta_200[glb_size[0]];
   
   memset(phi_000,0,sizeof(double)*glb_size[0]);
-  memset(phi_100,0,sizeof(double)*glb_size[0]);
-  memset(phi_200,0,sizeof(double)*glb_size[0]);
-  
   memset(eta_000,0,sizeof(double)*glb_size[0]);
-  memset(eta_100,0,sizeof(double)*glb_size[0]);
+  memset(phi_100,0,sizeof(complex)*glb_size[0]);
+  memset(eta_100,0,sizeof(complex)*glb_size[0]);
+  memset(phi_200,0,sizeof(double)*glb_size[0]);
   memset(eta_200,0,sizeof(double)*glb_size[0]);
   
   GET_THREAD_ID();
@@ -582,27 +580,64 @@ void generate_photon_stochastic_propagator()
     {
       int t=glb_coord_of_loclx[ivol][0];
       double c000=1;
-      double c100=cos(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[0]);
-      double c200=cos(2*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[0]);
-      phi_000[t]+=photon_phi[ivol][0][0]*c000;
-      phi_100[t]+=photon_phi[ivol][0][0]*c100;
-      phi_200[t]+=photon_phi[ivol][0][0]*c200;
-      eta_000[t]+=photon_eta[ivol][0][0]*c000;
-      eta_100[t]+=photon_eta[ivol][0][0]*c100;
-      eta_200[t]+=photon_eta[ivol][0][0]*c200;
+      double c100=cos(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
+      double s100=sin(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
+      double c200=cos(2*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
+      phi_000[t]+=photon_phi[ivol][0][RE]*c000;
+      eta_000[t]+=photon_eta[ivol][0][RE]*c000;
+      phi_100[t][RE]+=photon_phi[ivol][0][RE]*c100;
+      phi_100[t][IM]+=photon_phi[ivol][0][RE]*s100;
+      eta_100[t][RE]+=photon_eta[ivol][0][RE]*c100;
+      eta_100[t][IM]+=photon_eta[ivol][0][RE]*s100;
+      phi_200[t]+=photon_phi[ivol][0][RE]*c200;
+      eta_200[t]+=photon_eta[ivol][0][RE]*c200;
+      
+      //master_printf("********** %lg %lg\n",photon_phi[ivol][0][IM],photon_eta[ivol][0][IM]);
     }
   THREAD_BARRIER();
+  
+  double p100_mom_loc[glb_size[0]];
+  memset(p100_mom_loc,0,sizeof(double)*glb_size[0]);
+  for(int loc_t=0;loc_t<loc_size[0];loc_t++)
+    {
+      int glb_t=loc_t+loc_size[0]*rank_coord[0];
+      coords glb_mom_c;
+      glb_mom_c[0]=glb_t;
+      glb_mom_c[1]=1;
+      glb_mom_c[2]=0;
+      glb_mom_c[3]=0;
+      
+      int loc_imom,rank_of_imom;
+      get_loclx_and_rank_of_coord(&loc_imom,&rank_of_imom,glb_mom_c);
+      if(rank==rank_of_imom)
+	{
+	  spin1prop pr;
+	  mom_space_tlSym_gauge_propagator_of_imom(pr,photon,loc_imom);
+	  p100_mom_loc[glb_t]=pr[0][0][RE];
+	}
+    }
+  THREAD_BARRIER();
+  
+  double p100_mom[glb_size[0]];
+  for(int glb_t=0;glb_t<glb_size[0];glb_t++) p100_mom[glb_t]=glb_reduce_double(p100_mom_loc[glb_t]);
+  
+  double p100_time[glb_size[0]];
+  for(int t=0;t<glb_size[0];t++)
+    {
+      p100_time[t]=0;
+      for(int q0=0;q0<glb_size[0];q0++) p100_time[t]+=cos(t*q0*2*M_PI/glb_size[0])*p100_mom[q0];
+      master_printf("%d %lg\n",t,p100_time[t]);
+    }
   
   master_printf("\n############### check photon ############\n");
   for(int t=0;t<glb_size[0];t++)
     {
       double p000=glb_reduce_double(phi_000[t]);
-      double p100=glb_reduce_double(phi_100[t]);
-      double p200=glb_reduce_double(phi_200[t]);
       double e000=glb_reduce_double(eta_000[t]);
-      double e100=glb_reduce_double(eta_100[t]);
+      double ep100=(glb_reduce_double(phi_100[t][RE])*glb_reduce_double(eta_100[t][RE])+glb_reduce_double(phi_100[t][IM])*glb_reduce_double(eta_100[t][IM]))/glb_spat_vol;
+      double p200=glb_reduce_double(phi_200[t]);
       double e200=glb_reduce_double(eta_200[t]);
-      master_printf("%d\t(p,e)_000=(%lg,%lg)\t(p,e)_100=(%lg,%lg)\t(p,e)_200=(%lg,%lg)\n",t,p000,e000,p100,e100,p200,e200);
+      master_printf("%d\t(p,e)_000=(%lg,%lg)\tep_100=%lg\t(p,e)_200=(%lg,%lg)\n",t,p000,e000,ep100/glb_spat_vol,p200,e200);
     }
   master_printf("#########################################\n\n");
   
