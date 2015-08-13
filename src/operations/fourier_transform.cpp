@@ -64,7 +64,7 @@ namespace nissa
     //compute steps
     momentum_t steps;
     for(int mu=0;mu<4;mu++)
-      steps[mu]=sign[source_or_sink]*dirs[mu]*bc[mu]*M_PI/glb_size[mu];
+      steps[mu]=dirs[mu]*sign[source_or_sink]*bc[mu]*M_PI/glb_size[mu];
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -87,17 +87,21 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_4ARG(pass_spin1prop_from_mom_to_x_space, spin1prop*,out, spin1prop*,in, int*,dirs, double*,bc)
+  //see above
+  THREADABLE_FUNCTION_5ARG(pass_spin1prop_from_mom_to_x_space, spin1prop*,out, spin1prop*,in, int*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
-    //multiply by exp(i (p_mu-p_nu)/2)
+    //+1 if sink, -1 if source
+    int sign[2]={-1,+1};
+    
+    //multiply by exp(i sign*(p_mu-p_nu)/2)
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
 	complex ph[4];
 	for(int mu=0;mu<4;mu++)
 	  {
-	    double pmu=dirs[mu]*M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	    double pmu=dirs[mu]*sign[source_or_sink]*M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
 	    double pmuh=pmu*0.5;
 	    ph[mu][RE]=cos(pmuh);
 	    ph[mu][IM]=sin(pmuh);
@@ -113,12 +117,12 @@ namespace nissa
     THREAD_BARRIER();
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,16,+1,0);
+    fft4d((complex*)out,(complex*)out,dirs,16,sign[source_or_sink],0);
     
     //compute steps
     momentum_t steps;
     for(int mu=0;mu<4;mu++)
-      steps[mu]=bc[mu]*M_PI/glb_size[mu];
+      steps[mu]=sign[source_or_sink]*bc[mu]*M_PI/glb_size[mu];
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -140,14 +144,18 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_4ARG(pass_spin1prop_from_x_to_mom_space, spin1prop*,out, spin1prop*,in, int*,dirs, double*,bc)
+  //see previous note
+  THREADABLE_FUNCTION_5ARG(pass_spin1prop_from_x_to_mom_space, spin1prop*,out, spin1prop*,in, int*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
+    
+    //-1 if sink, +1 if source
+    int sign[2]={+1,-1};
     
     //compute steps
     momentum_t steps;
     for(int mu=0;mu<4;mu++)
-      steps[mu]=-dirs[mu]*bc[mu]*M_PI/glb_size[mu];
+      steps[mu]=sign[source_or_sink]*dirs[mu]*bc[mu]*M_PI/glb_size[mu];
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -168,7 +176,7 @@ namespace nissa
     set_borders_invalid(out);
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,16,-1,1);
+    fft4d((complex*)out,(complex*)out,dirs,16,sign[source_or_sink],1);
     
     //multiply by exp(i -(p_mu-p_nu)/2) and put 1/vol
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
@@ -176,7 +184,7 @@ namespace nissa
 	complex ph[4];
 	for(int mu=0;mu<4;mu++)
 	  {
-	    double pmu=-dirs[mu]*M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	    double pmu=sign[source_or_sink]*dirs[mu]*M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
 	    double pmuh=pmu*0.5;
 	    ph[mu][RE]=cos(pmuh);
 	    ph[mu][IM]=sin(pmuh);
@@ -193,12 +201,12 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  void pass_spin1field_from_mom_to_x_space(spin1field *out,spin1field *in,int *dirs,double *bc,bool bar=false)
+  THREADABLE_FUNCTION_5ARG(pass_spin1field_from_mom_to_x_space, spin1field*,out, spin1field*,in, int*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
-    int sign=+1;
-    if(bar) sign*=-1;
+    //+1 if sink, -1 if source
+    int sign[2]={-1,+1};
     
     //multiply by exp(i p_mu/2)
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
@@ -206,7 +214,7 @@ namespace nissa
 	complex ph[4];
 	for(int mu=0;mu<4;mu++)
 	  {
-	    double pmu=dirs[mu]*sign*M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	    double pmu=dirs[mu]*sign[source_or_sink]*M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
 	    double pmuh=pmu*0.5;
 	    ph[mu][RE]=cos(pmuh);
 	    ph[mu][IM]=sin(pmuh);
@@ -218,12 +226,12 @@ namespace nissa
     THREAD_BARRIER();
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,4,sign,0);
+    fft4d((complex*)out,(complex*)out,dirs,4,sign[source_or_sink],0);
     
     //compute steps
     momentum_t steps;
     for(int mu=0;mu<4;mu++)
-      steps[mu]=dirs[mu]*sign*bc[mu]*M_PI/glb_size[mu];
+      steps[mu]=dirs[mu]*sign[source_or_sink]*bc[mu]*M_PI/glb_size[mu];
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -242,18 +250,19 @@ namespace nissa
       }
     set_borders_invalid(out);
   }
+  THREADABLE_FUNCTION_END
   
-  THREADABLE_FUNCTION_5ARG(pass_spin1field_from_x_to_mom_space, spin1field*,out, spin1field*,in, int*,dirs, double*,bc, bool,bar)
+  THREADABLE_FUNCTION_5ARG(pass_spin1field_from_x_to_mom_space, spin1field*,out, spin1field*,in, int*,dirs, double*,bc, int,source_or_sink)
   {
     GET_THREAD_ID();
     
-    int sign=-1;
-    if(bar) sign*=-1;
+    //-1 if sink, +1 if source
+    int sign[2]={+1,-1};
     
     //compute steps
     momentum_t steps;
     for(int mu=0;mu<4;mu++)
-      steps[mu]=dirs[mu]*sign*bc[mu]*M_PI/glb_size[mu];
+      steps[mu]=dirs[mu]*sign[source_or_sink]*bc[mu]*M_PI/glb_size[mu];
     
     //add the fractional phase
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -273,7 +282,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //compute the main part of the fft
-    fft4d((complex*)out,(complex*)out,dirs,4,sign,1);
+    fft4d((complex*)out,(complex*)out,dirs,4,sign[source_or_sink],1);
     
     //multiply by exp(-i p_mu/2)
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
@@ -281,7 +290,7 @@ namespace nissa
 	complex ph[4];
 	for(int mu=0;mu<4;mu++)
 	  {
-	    double pmu=dirs[mu]*sign*M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
+	    double pmu=dirs[mu]*sign[source_or_sink]*M_PI*(2*glb_coord_of_loclx[imom][mu]+bc[mu])/glb_size[mu];
 	    double pmuh=pmu*0.5;
 	    ph[mu][RE]=cos(pmuh);
 	    ph[mu][IM]=sin(pmuh);

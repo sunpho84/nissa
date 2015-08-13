@@ -560,6 +560,13 @@ void generate_photon_stochastic_propagator()
 {
   photon_prop_time-=take_time();
   generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
+  photon_prop_time+=take_time();
+  nphoton_prop_tot++;
+}
+
+void test_photon_propagator()
+{
+  GET_THREAD_ID();
   
   double phi_000[glb_size[0]];
   double eta_000[glb_size[0]];
@@ -568,42 +575,10 @@ void generate_photon_stochastic_propagator()
   double phi_200[glb_size[0]];
   double eta_200[glb_size[0]];
   
-  memset(phi_000,0,sizeof(double)*glb_size[0]);
-  memset(eta_000,0,sizeof(double)*glb_size[0]);
-  memset(phi_100,0,sizeof(complex)*glb_size[0]);
-  memset(eta_100,0,sizeof(complex)*glb_size[0]);
-  memset(phi_200,0,sizeof(double)*glb_size[0]);
-  memset(eta_200,0,sizeof(double)*glb_size[0]);
+  complex ep100[glb_size[0]];
+  for(int dt=0;dt<glb_size[0];dt++) complex_put_to_zero(ep100[dt]);
   
-  GET_THREAD_ID();
-  NISSA_PARALLEL_LOOP(ivol, 0, loc_vol)
-    {
-      int t=glb_coord_of_loclx[ivol][0];
-      double c000=1;
-      double c100=cos(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
-      double s100=sin(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
-      complex cs100={c100,s100};
-      double c200=cos(2*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
-      phi_000[t]+=photon_phi[ivol][0][RE]*c000;
-      eta_000[t]+=photon_eta[ivol][0][RE]*c000;
-      complex_summ_the_prod(phi_100[t],photon_phi[ivol][0],cs100);
-      complex_summ_the_conj2_prod(eta_100[t],photon_eta[ivol][0],cs100);
-      phi_200[t]+=photon_phi[ivol][0][RE]*c200;
-      eta_200[t]+=photon_eta[ivol][0][RE]*c200;
-      
-      //master_printf("********** %lg %lg\n",photon_phi[ivol][0][IM],photon_eta[ivol][0][IM]);
-    }
-  THREAD_BARRIER();
-
-  for(int t=0;t<glb_size[0];t++)
-    {
-      phi_000[t]=glb_reduce_double(phi_000[t]);
-      eta_000[t]=glb_reduce_double(eta_000[t]);
-      glb_reduce_complex(phi_100[t],phi_100[t]);
-      glb_reduce_complex(eta_100[t],eta_100[t]);
-      phi_200[t]=glb_reduce_double(phi_200[t]);
-      eta_200[t]=glb_reduce_double(eta_200[t]);
-    }
+  double f=0;
   
   double p100_mom_loc[glb_size[0]];
   memset(p100_mom_loc,0,sizeof(double)*glb_size[0]);
@@ -630,35 +605,76 @@ void generate_photon_stochastic_propagator()
   double p100_mom[glb_size[0]];
   for(int glb_t=0;glb_t<glb_size[0];glb_t++) p100_mom[glb_t]=glb_reduce_double(p100_mom_loc[glb_t]);
   
-  double p100_time[glb_size[0]];
+  master_printf("exact 100:\n");
   for(int t=0;t<glb_size[0];t++)
     {
-      p100_time[t]=0;
-      for(int q0=0;q0<glb_size[0];q0++) p100_time[t]+=cos(t*q0*2*M_PI/glb_size[0])*p100_mom[q0];
-      master_printf("%d %lg\n",t,p100_time[t]);
+      double p100_time=0;
+      for(int q0=0;q0<glb_size[0];q0++) p100_time+=cos(t*q0*2*M_PI/glb_size[0])*p100_mom[q0];
+      master_printf("%d %lg\n",t,p100_time);
     }
   
-  //take time convolution
-  complex ep100[glb_size[0]];
-  for(int dt=0;dt<glb_size[0];dt++)
+  //now do it stocastically
+  int nhits=100;
+  generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
+  for(int ihit=0;ihit<nhits;ihit++)
     {
-      complex_put_to_zero(ep100[dt]);
-      for(int t1=0;t1<glb_size[0];t1++)
+      generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
+      
+      memset(phi_000,0,sizeof(double)*glb_size[0]);
+      memset(eta_000,0,sizeof(double)*glb_size[0]);
+      memset(phi_100,0,sizeof(complex)*glb_size[0]);
+      memset(eta_100,0,sizeof(complex)*glb_size[0]);
+      memset(phi_200,0,sizeof(double)*glb_size[0]);
+      memset(eta_200,0,sizeof(double)*glb_size[0]);
+      
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	{
-	  int t2=(t1+dt)%glb_size[0];
-	  complex_summ_the_conj2_prod(ep100[dt],phi_100[t1],eta_100[t2]);
+	  int t=glb_coord_of_loclx[ivol][0];
+	  double c000=1;
+	  double c100=cos(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
+	  double s100=sin(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
+	  complex cs100={c100,s100};
+	  double c200=cos(2*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
+	  phi_000[t]+=photon_phi[ivol][0][RE]*c000;
+	  eta_000[t]+=photon_eta[ivol][0][RE]*c000;
+	  complex_summ_the_conj2_prod(phi_100[t],photon_phi[ivol][0],cs100);
+	  complex_summ_the_prod(eta_100[t],photon_eta[ivol][0],cs100);
+	  phi_200[t]+=photon_phi[ivol][0][RE]*c200;
+	  eta_200[t]+=photon_eta[ivol][0][RE]*c200;
+	  for(int jvol=0;jvol<loc_vol;jvol++) f=photon_eta[ivol][0][RE];//*photon_eta[jvol][0][RE];
+	  //master_printf("********** %lg %lg\n",photon_phi[ivol][0][IM],photon_eta[ivol][0][IM]);
 	}
-      complex_prodassign_double(ep100[dt],1.0/glb_spat_vol);
+      THREAD_BARRIER();
+      
+      for(int t=0;t<glb_size[0];t++)
+	{
+	  phi_000[t]=glb_reduce_double(phi_000[t]);
+	  eta_000[t]=glb_reduce_double(eta_000[t]);
+	  glb_reduce_complex(phi_100[t],phi_100[t]);
+	  glb_reduce_complex(eta_100[t],eta_100[t]);
+	  phi_200[t]=glb_reduce_double(phi_200[t]);
+	  eta_200[t]=glb_reduce_double(eta_200[t]);
+	}
+      
+      //take time convolution
+      for(int dt=0;dt<glb_size[0];dt++)
+	for(int t1=0;t1<glb_size[0];t1++)
+	  {
+	    int t2=(t1+dt)%glb_size[0];
+	    complex_summ_the_prod(ep100[dt],phi_100[t1],eta_100[t2]);
+	  }
     }
+  
+  for(int dt=0;dt<glb_size[0];dt++) complex_prodassign_double(ep100[dt],1.0/glb_spat_vol/nhits/glb_vol);
   
   master_printf("\n############### check photon ############\n");
   for(int t=0;t<glb_size[0];t++)
-    master_printf("%d\t(p,e)_000=(%lg,%lg)\tep_100=%lg\t(p,e)_200=(%lg,%lg)\n",t,phi_000[t],eta_000[t],ep100[t][RE],ep100[t][IM],phi_200,eta_200);
+    printf("%d\t(p,e)_000=(%lg,%lg)\tep_100=(%lg,%lg)\t(p,e)_200=(%lg,%lg)\n",t,phi_000[t],eta_000[t],ep100[t][RE],ep100[t][IM],phi_200[t],eta_200[t]);
   
+  //f=glb_reduce_double(f)/nhits/glb_vol;
+  master_printf("%lg\n",f);
   master_printf("#########################################\n\n");
-  
-  photon_prop_time+=take_time();
-  nphoton_prop_tot++;
+  crash("");
 }
 
 /////////////////////////////////////////////// lepton propagators ///////////////////////////////////////////
@@ -1631,6 +1647,8 @@ void in_main(int narg,char **arg)
   
   //init simulation according to input file
   init_simulation(arg[1]);
+  
+  test_photon_propagator();
   
   //loop over the configs
   int iconf=0,enough_time=1;
