@@ -51,8 +51,8 @@ namespace nissa
   bool cancel_if_zero_mode(spin1field prop,gauge_info gl,int imom)
   {
     bool m=zero_mode_subtraction_mask(gl,imom);
-    if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
-    if(gl.zms==ONLY_100 &&m==1) printf("leaving mode %d=(%d,%d,%d,%d)\n",glblx_of_loclx[imom],glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
+    //if(gl.zms!=ONLY_100 &&m==0) printf("cancelling zero mode %d\n",glblx_of_loclx[imom]);
+    //if(gl.zms==ONLY_100 &&m==1) printf("leaving mode %d=(%d,%d,%d,%d)\n",glblx_of_loclx[imom],glb_coord_of_loclx[imom][0],glb_coord_of_loclx[imom][1],glb_coord_of_loclx[imom][2],glb_coord_of_loclx[imom][3]);
     for(int mu=0;mu<4;mu++) for(int reim=0;reim<2;reim++) prop[mu][reim]*=m;
     return !m;
   }
@@ -124,7 +124,7 @@ namespace nissa
       }
     else
       {
-	printf("setting to zero propagator mode %d\n",glblx_of_loclx[imom]);
+	//printf("setting to zero propagator mode %d\n",glblx_of_loclx[imom]);
 	for(int mu=0;mu<4;mu++)
 	  for(int nu=0;nu<4;nu++)
 	    prop[mu][nu][RE]=prop[mu][nu][IM]=0;//gl.zmp/glb_vol;
@@ -162,7 +162,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    pass_spin1prop_from_x_to_mom_space(out,in,gl.bc);
+    pass_spin1prop_from_x_to_mom_space(out,in,gl.bc,true);
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
 	spin1prop prop;
@@ -170,7 +170,7 @@ namespace nissa
 	safe_spinspin_prod_spinspin(out[imom],prop,out[imom]);
       }
     set_borders_invalid(out);
-    pass_spin1prop_from_mom_to_x_space(out,in,gl.bc);
+    pass_spin1prop_from_mom_to_x_space(out,in,gl.bc,true);
   }
   THREADABLE_FUNCTION_END
   
@@ -178,7 +178,7 @@ namespace nissa
   void compute_x_space_tlSym_gauge_propagator_by_fft(spin1prop *prop,gauge_info gl)
   {
     compute_mom_space_tlSym_gauge_propagator(prop,gl);
-    pass_spin1prop_from_mom_to_x_space(prop,prop,gl.bc);
+    pass_spin1prop_from_mom_to_x_space(prop,prop,gl.bc,true);
   }
   
   //generate a stochastic gauge propagator source
@@ -201,23 +201,25 @@ namespace nissa
     
     //generate the source and pass to mom space
     generate_stochastic_tlSym_gauge_propagator_source(eta);
-    pass_spin1field_from_x_to_mom_space(eta,eta,gl.bc);
+    pass_spin1field_from_x_to_mom_space(eta,eta,gl.bc,true);
     
-    //cancel when appropriate
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol)  cancel_if_zero_mode(eta[imom],gl,imom);
-    set_borders_invalid(eta);
-    
-    //multiply by prop and put volume normalization due to convolution
+    //multiply by prop
+    //put volume normalization due to convolution
+    //cancel zero modes
     multiply_mom_space_tlSym_gauge_propagator(phi,eta,gl);
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol) spin_prodassign_double(phi[imom],glb_vol);
+    NISSA_PARALLEL_LOOP(imom,0,loc_vol)
+      {
+	spin_prodassign_double(phi[imom],glb_vol);
+	cancel_if_zero_mode(phi[imom],gl,imom);
+      }
     set_borders_invalid(phi);
     
     //go back to x space
-    pass_spin1field_from_mom_to_x_space(eta,eta,gl.bc);
-    pass_spin1field_from_mom_to_x_space(phi,phi,gl.bc);
+    pass_spin1field_from_mom_to_x_space(eta,eta,gl.bc,true);
+    pass_spin1field_from_mom_to_x_space(phi,phi,gl.bc,true);
     
     //finally takes the dagger of eta, in case 100 only selected
-    NISSA_PARALLEL_LOOP(imom,0,loc_vol) for(int id=0;id<4;id++) complex_conj(eta[imom][id],eta[imom][id]);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol) for(int id=0;id<4;id++) complex_conj(eta[ivol][id],eta[ivol][id]);
     set_borders_invalid(eta);
     
   }
