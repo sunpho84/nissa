@@ -6,7 +6,6 @@
  #define PROP_TYPE colorspinspin
 #endif
 
-//#define NOPHOTON
 //#define LOC_MUON_CURR
 //#define LOC_PION_CURR
 
@@ -137,10 +136,6 @@ void init_simulation(char *path)
 {
   //open input file
   open_input(path);
-  
-#ifdef NOPHOTON
-  master_printf("NOPHOTON\n");
-#endif
   
 #ifdef LOC_MUON_CURR
   master_printf("LOC_MUON_CURR\n");
@@ -402,8 +397,8 @@ void setup_conf()
 void generate_original_source()
 {
   //source coord
-  coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]};
-  for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
+  //coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]};
+  //for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
   //for(int mu=0;mu<4;mu++) source_coord[mu]=0;
   
 #ifdef POINT_SOURCE_VERSION
@@ -447,44 +442,39 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
 {
   source_time-=take_time();
   
-  //chris test
-  PROP_TYPE *temp=nissa_malloc("temp",loc_vol+bord_vol,PROP_TYPE);
-  select_propagator_timeslice(temp,ori,t);
   if(t!=-1 && inser!=STOCH_PHI) crash("not valid");
   
-#ifdef NOPHOTON
-  coords time_dir={1,0,0,0};
-#endif
+  double ori_norm;
+  double_vector_glb_scalar_prod(&ori_norm,(double*)ori,(double*)ori,sizeof(PROP_TYPE)/sizeof(double)*loc_vol);
+  master_printf("ori_norm2: %lg\n",ori_norm);
+  
   switch(inser)
     {
     case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
     case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
     case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
-#ifndef NOPHOTON
  #ifdef LOC_PION_CURR
-    case STOCH_PHI:insert_external_loc_source(source,photon_phi,ori);break;
+    case STOCH_PHI:insert_e(source,photon_phi,ori);break;
     case STOCH_ETA:insert_external_loc_source(source,photon_eta,ori);break;
  #else
     case STOCH_PHI:
-      if(!pure_wilson) insert_tm_external_source(source,conf,photon_phi,temp,r);
-      else             insert_wilson_external_source(source,conf,photon_phi,temp);
+      if(!pure_wilson) insert_tm_external_source(source,conf,photon_phi,ori,r,t);
+      else             insert_wilson_external_source(source,conf,photon_phi,ori,t);
       master_printf("t: %d\n",t);
       break;
     case STOCH_ETA:
-      if(!pure_wilson) insert_tm_external_source(source,conf,photon_eta,ori,r);
-      else             insert_wilson_external_source(source,conf,photon_eta,ori);break;
+      if(!pure_wilson) insert_tm_external_source(source,conf,photon_eta,ori,r,t);
+      else             insert_wilson_external_source(source,conf,photon_eta,ori,t);break;
  #endif
-#else
-    case STOCH_PHI:
-    case STOCH_ETA:insert_conserved_current_tm(source,conf,ori,r,time_dir);break;
-#endif
     case TADPOLE:
-      if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole);
-      else             insert_wilson_tadpole(source,conf,ori,tadpole);
+      if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
+      else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);
       break;
     }
   
-  nissa_free(temp);
+  double after_norm;
+  double_vector_glb_scalar_prod(&after_norm,(double*)source,(double*)source,sizeof(PROP_TYPE)/sizeof(double)*loc_vol);
+  master_printf("after_norm2: %lg\n",after_norm);
   
   source_time+=take_time();
   nsource_tot++;
@@ -614,7 +604,7 @@ void test_photon_propagator()
     }
   
   //now do it stocastically
-  int nhits=100;
+  int nhits=10;
   generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
   for(int ihit=0;ihit<nhits;ihit++)
     {
@@ -674,8 +664,57 @@ void test_photon_propagator()
   //f=glb_reduce_double(f)/nhits/glb_vol;
   master_printf("%lg\n",f);
   master_printf("#########################################\n\n");
-  crash("");
 }
+
+THREADABLE_FUNCTION_1ARG(test_muon_propagator, int,imom)
+{
+  spinspin *prop=nissa_malloc("prop",loc_vol+bord_vol,spinspin);
+  
+  tm_quark_info le=get_lepton_info(0,0,0);
+  compute_x_space_twisted_propagator_by_fft(prop,le,MAX_TWIST_BASE);
+  
+  //get the projectors
+  spinspin promu;
+  //twisted_on_shell_operator_of_imom(promu,le,imom,true,+1,MAX_TWIST_BASE);
+  twisted_particle_projector_of_imom(promu,le,imom,MAX_TWIST_BASE);
+  
+  complex corr[glb_size[0]];
+  memset(corr,0,glb_size[0]*sizeof(complex));
+  
+  coords co;
+  glb_coord_of_glblx(co,imom);
+  
+  GET_THREAD_ID();
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    {
+      int glb_t=glb_coord_of_loclx[ivol][0];
+      
+      complex c;
+      trace_spinspin_prod_spinspin(c,promu,prop[ivol]);
+      double arg=
+	0+
+	M_PI*(2*co[1]+le.bc[1])*glb_coord_of_loclx[ivol][1]/glb_size[1]+
+	M_PI*(2*co[2]+le.bc[2])*glb_coord_of_loclx[ivol][2]/glb_size[2]+
+	M_PI*(2*co[3]+le.bc[3])*glb_coord_of_loclx[ivol][3]/glb_size[3];
+      complex w={cos(arg),sin(-arg)};
+      complex_summ_the_prod(corr[glb_t],c,w);
+    }
+  THREAD_BARRIER();
+  
+  master_printf("muon propagator (%d,%d,%d)\n",co[1],co[2],co[3]);
+  for(int t=0;t<glb_size[0];t++)
+    {
+      corr[t][RE]=glb_reduce_double(corr[t][RE]);
+      corr[t][IM]=glb_reduce_double(corr[t][IM]);
+    }
+  
+  master_printf("Expected fall: %lg\n",tm_quark_energy(le,imom));
+  for(int t=1;t<glb_size[0]-1;t++)
+    master_printf(" %d %lg\n",t,log(corr[t][RE]/corr[t+1][RE]));
+  
+  nissa_free(prop);
+}
+THREADABLE_FUNCTION_END
 
 /////////////////////////////////////////////// lepton propagators ///////////////////////////////////////////
 
@@ -697,6 +736,7 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   //compute space and time factor
   double arg=get_space_arg(ivol,le.bc);
   int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
+  if(!without_external_line && t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*lep_energy[ilepton]);
   
   //compute full exponential (notice the factor -1)
@@ -734,7 +774,7 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
 }
 
 //insert the photon on the source side
-void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords dirs,tm_quark_info &le)
+THREADABLE_FUNCTION_6ARG(insert_photon_on_the_source, spinspin*,prop, int,ilepton, int,phi_eta, int*,dirs, tm_quark_info,le, int,twall)
 { 
   GET_THREAD_ID();
   
@@ -748,6 +788,8 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
   vector_reset(prop);
   
 #ifndef LOC_MUON_CURR
+  
+  master_printf("Inserting photon [%s] point-split on time %d\n",(phi_eta==0)?"phi":"eta",twall);
   
   dirac_matr GAMMA;
   if(pure_wilson) dirac_prod_double(&GAMMA,base_gamma+0,1);
@@ -764,65 +806,72 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,coords d
   //prepare each propagator for a single lepton
   //by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
   //(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
-  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int mu=0;mu<NDIM;mu++)
-      {
-	//find neighbors
-	int ifw=loclx_neighup[ivol][mu];
-	int ibw=loclx_neighdw[ivol][mu];
-	
-	//compute phase factor
-	spinspin ph_bw,ph_fw;
-	
-	//transport down and up
-	if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
-	else spinspin_copy(ph_fw,temp_lep[ifw]);
-	if(glb_coord_of_loclx[ivol][mu]==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
-	else spinspin_copy(ph_bw,temp_lep[ibw]);
-	
-	//fix coefficients - i is inserted here!
-	//also dir selection is made here
-	spinspin_prodassign_idouble(ph_fw,-0.5*dirs[mu]);
-	spinspin_prodassign_idouble(ph_bw,+0.5*dirs[mu]);
-	
-	//fix insertion of the current
-	safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
-	safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
-	
-	//summ and subtract the two
-	spinspin bw_M_fw,bw_P_fw;
-	spinspin_subt(bw_M_fw,ph_bw,ph_fw);
-	spinspin_summ(bw_P_fw,ph_bw,ph_fw);
-	
-	//put GAMMA on the summ
-	spinspin temp_P;
-	unsafe_spinspin_prod_dirac(temp_P,bw_P_fw,&GAMMA);
-	spinspin_summassign(prop[ivol],temp_P);
-	
-	//put gmu on the diff
-	spinspin temp_M;
-	unsafe_spinspin_prod_dirac(temp_M,bw_M_fw,base_gamma+map_mu[mu]);
-	spinspin_summassign(prop[ivol],temp_M);
-      }
+  for(int mu=0;mu<NDIM;mu++)
+    if(dirs[mu])
+      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
+	  {
+	    //find neighbors
+	    int ifw=loclx_neighup[ivol][mu];
+	    int ibw=loclx_neighdw[ivol][mu];
+	    
+	    //compute phase factor
+	    spinspin ph_bw,ph_fw;
+	    
+	    //transport down and up
+	    if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
+	    else spinspin_copy(ph_fw,temp_lep[ifw]);
+	    if(glb_coord_of_loclx[ivol][mu]==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
+	    else spinspin_copy(ph_bw,temp_lep[ibw]);
+	    
+	    //fix coefficients - i is inserted here!
+	    //also dir selection is made here
+	    spinspin_prodassign_idouble(ph_fw,-0.5*dirs[mu]);
+	    spinspin_prodassign_idouble(ph_bw,+0.5*dirs[mu]);
+	    
+	    //fix insertion of the current
+	    safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
+	    safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
+	    
+	    //summ and subtract the two
+	    spinspin bw_M_fw,bw_P_fw;
+	    spinspin_subt(bw_M_fw,ph_bw,ph_fw);
+	    spinspin_summ(bw_P_fw,ph_bw,ph_fw);
+	    
+	    //put GAMMA on the summ
+	    spinspin temp_P;
+	    unsafe_spinspin_prod_dirac(temp_P,bw_P_fw,&GAMMA);
+	    spinspin_summassign(prop[ivol],temp_P);
+	    
+	    //put gmu on the diff
+	    spinspin temp_M;
+	    unsafe_spinspin_prod_dirac(temp_M,bw_M_fw,base_gamma+map_mu[mu]);
+	    spinspin_summassign(prop[ivol],temp_M);
+	  }
 #else
+  
+  master_printf("Inserting photon [%s] locally on time %d\n",(phi_eta==0)?"phi":"eta",twall);
   
   for(int mu=0;mu<NDIM;mu++)
     if(dirs[mu])
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	{
-	  spinspin temp1,temp2;
-	  unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+map_mu[mu]);
-	  unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
-	  spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
-	}
-    
+	if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
+	  {
+	    spinspin temp1,temp2;
+	    unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+map_mu[mu]);
+	    unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
+	    spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
+	  }
+  
 #endif
   
   set_borders_invalid(prop);
 }
+THREADABLE_FUNCTION_END
+
 //insert the photon on the source
-void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,tm_quark_info &le)
-{insert_photon_on_the_source(prop,ilepton,phi_eta,all_dirs,le);}
+void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,tm_quark_info &le,int twall)
+{insert_photon_on_the_source(prop,ilepton,phi_eta,all_dirs,le,twall);}
 
 //insert the conserved current on the source
 void insert_conserved_current_on_the_source(spinspin *prop,int ilepton,coords dirs,tm_quark_info &le)
@@ -918,7 +967,7 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
 	    //put it to a phase
 	    set_to_lepton_sink_phase_factor(prop,ilepton,le);
 	    
-	    //multiply and the insert the current in between, on the source side
+	    //if we are doing Nazario's way (with the external line) add it
 	    if(!without_external_line)
 	      {
 		//select only the wall
@@ -931,15 +980,13 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
 	    int twall;
 	    if(t2<0||t2>=glb_size[0]) twall=-1;
 	    else twall=((t2+source_coord[0])%glb_size[0]);
-	    select_propagator_timeslice(prop,prop,twall);
-	    
-#ifndef NOPHOTON
-	    insert_photon_on_the_source(prop,ilepton,phi_eta,le);
-#else
-	    coords time_dir={1,0,0,0};
-	    insert_conserved_current_on_the_source(prop,ilepton,time_dir,le);
-#endif
+	    insert_photon_on_the_source(prop,ilepton,phi_eta,le,twall);
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+	    
+	    double lep_norm;
+	    double_vector_glb_scalar_prod(&lep_norm,(double*)prop,(double*)prop,sizeof(spinspin)/sizeof(double)*loc_vol);
+	    master_printf("lep prop_norm2: %lg\n",lep_norm);
+
 	  }
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
@@ -1648,7 +1695,10 @@ void in_main(int narg,char **arg)
   //init simulation according to input file
   init_simulation(arg[1]);
   
-  test_photon_propagator();
+  //test_photon_propagator();
+  //test_muon_propagator(0);
+  //test_muon_propagator(1);
+  //test_muon_propagator(glb_size[3]-1);
   
   //loop over the configs
   int iconf=0,enough_time=1;
