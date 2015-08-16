@@ -221,41 +221,67 @@ void in_main(int narg,char **arg)
   for(int mu=1;mu<4;mu++) glb_size[mu]=L;
   
   start_loc_rnd_gen(1000);
-  
+
+  //lubicz test
+  double ph0=0;
   {
-    //testing the P5P5 corr function in mom space
-    int w=1;
-    double m=0.05;
-    tm_quark_info qu;
-    qu.r=1;
-    if(w)
-      {
-	qu.mass=0.0;
-	qu.kappa=kappa_of_m0(m);
-	master_printf("m: %lg\n",m0_of_kappa(qu.kappa));
-      }
-    else
-      {
-	qu.mass=m;
-	qu.kappa=0.125;
-      }
-    qu.bc[0]=1;
-    for(int mu=1;mu<4;mu++) qu.bc[mu]=0;
+    spinspin *pro=nissa_malloc("pr",loc_vol,spinspin);
+    quad_su3 *conf=nissa_malloc("conf",loc_vol,quad_su3);
+    as2t_su3 *Pmunu=nissa_malloc("Pmunu",loc_vol,as2t_su3);
+    GET_THREAD_ID();
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      for(int mu=0;mu<4;mu++)
+	su3_put_to_id(conf[ivol][mu]);
+    set_borders_invalid(conf);
+    Pmunu_term(Pmunu,conf);
     
-    //compute in x space
-    spinspin *pr=nissa_malloc("pr",loc_vol,spinspin);
-    if(w) compute_x_space_twisted_propagator_by_fft(pr,qu,WILSON_BASE);
-    else  compute_x_space_twisted_propagator_by_fft(pr,qu,MAX_TWIST_BASE);
+    double put_theta[4],old_theta[4]={0,0,0,0};
+    old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
+    put_theta[0]=ph0;put_theta[1]=put_theta[2]=put_theta[3]=0;
+    adapt_theta(conf,old_theta,put_theta,1,1);
+    spincolor *source=nissa_malloc("source",loc_vol,spincolor);
+    spincolor *result=nissa_malloc("result",loc_vol,spincolor);
+    for(int id_so=0;id_so<4;id_so++)
+      {
+	vector_reset(source);
+	if(rank==0) source[0][id_so][0][RE]=(id_so<2)?1:-1;
+	set_borders_invalid(source);
+	inv_WclovQ_cg(result, NULL, conf, 0.124, 0, Pmunu, 1000000, 1e-28, source);
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  {
+	    double a=ph0*glb_coord_of_loclx[ivol][0]*M_PI/glb_size[0];
+	    complex ph={cos(a),sin(a)};
+	    
+	    for(int id_si=0;id_si<4;id_si++) unsafe_complex_prod(pro[ivol][id_si][id_so],result[ivol][id_si][0],ph);
+	  }
+      }
+    //pass_spinspin_from_x_to_mom_space_source_or_sink(pro, pro, put_theta,true);
+    
+    tm_quark_info qu;
+    qu.bc[0]=ph0;
+    qu.bc[1]=qu.bc[2]=qu.bc[3]=0;
+    qu.kappa=0.124;
+    qu.mass=0;
+    qu.r=0;
+    
+    spinspin pr;
+    int imom=glblx_of_coord_list(1,1,0,0);
+    mom_space_twisted_propagator_of_imom(pr,qu,imom,WILSON_BASE);
+    complex cl,clo;
+    trace_dirac_prod_spinspin(cl,base_gamma+1,pr);
+    trace_dirac_prod_spinspin(clo,base_gamma+1,pro[imom]);
+    master_printf("%lg %lg\n",cl[0]*sqrt(glb_vol)/4,cl[1]*sqrt(glb_vol)/4);
+    master_printf("%lg %lg\n",clo[0]/4,clo[1]/4);
+    
     double xp5p5[glb_size[0]];
     memset(xp5p5,0,sizeof(complex)*glb_size[0]);
     for(int ivol=0;ivol<glb_vol;ivol++)
-      xp5p5[glb_coord_of_loclx[ivol][0]]+=spinspin_norm2(pr[ivol]);
-    nissa_free(pr);
+      xp5p5[glb_coord_of_loclx[ivol][0]]+=spinspin_norm2(pro[ivol]);
     
     //take ft
-    FILE *fout=open_file("/tmp/cp5p5.xmg","w");
-    for(int t=0;t<glb_size[0]/2;t++)
-      master_fprintf(fout,"%lg\n",log(xp5p5[t]/xp5p5[t+1]));
+    master_printf("\n");
+    for(int t=0;t<glb_size[0];t++)
+      master_printf("%lg\n",3*xp5p5[t]/glb_spat_vol);
   }
   
   crash("");

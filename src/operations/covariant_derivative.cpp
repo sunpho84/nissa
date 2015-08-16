@@ -57,7 +57,7 @@ namespace nissa
   /*insert the operator:  \sum_mu  [*/					\
   /* f_fw * ( GAMMA - gmu) A_{x,mu} U_{x,mu} \delta{x',x+mu} + f_bw * ( GAMMA + gmu) A_{x-mu,mu} U^+_{x-mu,mu} \delta{x',x-mu}]*/ \
   /* for tm GAMMA should be -i g5 tau3[r], defined through the macro above, for Wilson id */		\
-  void insert_vector_vertex(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,complex fact_fw,complex fact_bw,dirac_matr *GAMMA,void(*get_curr)(complex,spin1field*,int,int,void*),void *pars=NULL) \
+  void insert_vector_vertex(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,complex fact_fw,complex fact_bw,dirac_matr *GAMMA,void(*get_curr)(complex,spin1field*,int,int,void*),int t,void *pars=NULL) \
   {									\
   GET_THREAD_ID();							\
 									\
@@ -68,6 +68,7 @@ namespace nissa
   if(curr) communicate_lx_spin1field_borders(curr);			\
 									\
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)					\
+    if(t==-1||glb_coord_of_loclx[ivol][0]==t)				\
     for(int mu=0;mu<NDIM;mu++)						\
       {									\
 	/*find neighbors*/						\
@@ -110,37 +111,37 @@ namespace nissa
   }									\
   									\
   /*insert the tadpole*/						\
-  THREADABLE_FUNCTION_5ARG(insert_tadpole, TYPE*,out, quad_su3*,conf, TYPE*,in, dirac_matr*,GAMMA, double*,tad) \
+  THREADABLE_FUNCTION_6ARG(insert_tadpole, TYPE*,out, quad_su3*,conf, TYPE*,in, dirac_matr*,GAMMA, double*,tad, int,t) \
   {									\
     /*call with no source insertion, plus between fw and bw, and a global -0.25*/ \
     complex fw_factor={-0.25,0},bw_factor={-0.25,0};			\
-    insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_tadpole_handle,tad); \
+    insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_tadpole_handle,t,tad); \
   }									\
   THREADABLE_FUNCTION_END						\
-  void insert_wilson_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,double *tad){insert_tadpole(out,conf,in,base_gamma+0,tad);} \
-  void insert_tm_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,int r,double *tad){DEF_TM_GAMMA(r); insert_tadpole(out,conf,in,&GAMMA,tad);} \
+  void insert_wilson_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,double *tad,int t){insert_tadpole(out,conf,in,base_gamma+0,tad,t);} \
+  void insert_tm_tadpole(TYPE *out,quad_su3 *conf,TYPE *in,int r,double *tad,int t){DEF_TM_GAMMA(r); insert_tadpole(out,conf,in,&GAMMA,tad,t);} \
   									\
   /*insert the external source, that is one of the two extrema of the stoch prop*/ \
-  THREADABLE_FUNCTION_5ARG(insert_external_source, TYPE*,out, quad_su3*,conf, spin1field*,curr, TYPE*,in, dirac_matr*,GAMMA) \
+  THREADABLE_FUNCTION_6ARG(insert_external_source, TYPE*,out, quad_su3*,conf, spin1field*,curr, TYPE*,in, dirac_matr*,GAMMA, int,t) \
   {									\
     /*call with no source insertion, minus between fw and bw, and a global -i*0.5*/ \
     complex fw_factor={0,-0.5},bw_factor={0,+0.5};			\
-    insert_vector_vertex(out,conf,curr,in,fw_factor,bw_factor,GAMMA,insert_external_source_handle); \
+    insert_vector_vertex(out,conf,curr,in,fw_factor,bw_factor,GAMMA,insert_external_source_handle,t); \
   }									\
   THREADABLE_FUNCTION_END						\
-  void insert_wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in){insert_external_source(out,conf,curr,in,base_gamma+0);} \
-  void insert_tm_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int r){DEF_TM_GAMMA(r);insert_external_source(out,conf,curr,in,&GAMMA);} \
+  void insert_wilson_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int t){insert_external_source(out,conf,curr,in,base_gamma+0,t);} \
+  void insert_tm_external_source(TYPE *out,quad_su3 *conf,spin1field *curr,TYPE *in,int r,int t){DEF_TM_GAMMA(r);insert_external_source(out,conf,curr,in,&GAMMA,t);} \
 									\
   /*insert the conserved time current*/ \
-  THREADABLE_FUNCTION_5ARG(insert_conserved_current, TYPE*,out, quad_su3*,conf, TYPE*,in, dirac_matr*,GAMMA, int*,dirs) \
+  THREADABLE_FUNCTION_6ARG(insert_conserved_current, TYPE*,out, quad_su3*,conf, TYPE*,in, dirac_matr*,GAMMA, int*,dirs, int,t) \
   {									\
     /*call with no source insertion, minus between fw and bw, and a global -i*0.5*/ \
     complex fw_factor={0.5,0},bw_factor={-0.5,0};			\
-    insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_conserved_current_handle,dirs); \
+    insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_conserved_current_handle,t,dirs); \
   }									\
   THREADABLE_FUNCTION_END						\
-  void insert_wilson_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int *dirs){insert_conserved_current(out,conf,in,base_gamma+0,dirs);} \
-  void insert_tm_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int r,int *dirs){DEF_TM_GAMMA(r);insert_conserved_current(out,conf,in,&GAMMA,dirs);} \
+  void insert_wilson_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int *dirs,int t){insert_conserved_current(out,conf,in,base_gamma+0,dirs,t);} \
+  void insert_tm_conserved_current(TYPE *out,quad_su3 *conf,TYPE *in,int r,int *dirs,int t){DEF_TM_GAMMA(r);insert_conserved_current(out,conf,in,&GAMMA,dirs,t);} \
 									\
   /*multiply with gamma*/						\
   THREADABLE_FUNCTION_4ARG(prop_multiply_with_gamma, TYPE*,out, int,ig, TYPE*,in, int,twall) \

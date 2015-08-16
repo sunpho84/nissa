@@ -71,7 +71,8 @@ namespace nissa
   //wrappers
   int glblx_of_coord(coords x)
   {return lx_of_coord(x,glb_size);}
-  
+  int glblx_of_coord_list(int a,int b,int c,int d)
+  {coords co={a,b,c,d};return glblx_of_coord(co);}
   //combine two points
   int glblx_of_comb(int b,int wb,int c,int wc)
   {
