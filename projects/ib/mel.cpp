@@ -414,20 +414,25 @@ void generate_original_source()
   coords source_coord;
   for(int mu=0;mu<NDIM;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));
   
-#ifdef POINT_SOURCE_VERSION
-  master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
-  generate_delta_source(original_source,source_coord);
-#else
-  master_printf("Source position: t=%d\n",source_coord[0]);
-  generate_spindiluted_source(original_source,rnd_type_map[noise_type],source_coord[0]);
-#endif
-  
   //shift the configuration
   double shift_time=-take_time();
+  master_printf("Plaquette before shift: %+016.016lg\n",global_plaquette_lx_conf(conf));
   vector_remap_t shifter(loc_vol,index_shift,(void*)source_coord);
   shifter.remap(conf,conf,sizeof(quad_su3));
   shift_time+=take_time();
-  master_printf("Shifted in %lg sec, plaquette after shift: %lg\n",shift_time,global_plaquette_lx_conf(conf));
+  master_printf("Shifted in %lg sec, plaquette after shift: %+016.016lg\n",shift_time,global_plaquette_lx_conf(conf));
+  
+  //reset the real source position
+  coord origin_coord;
+  for(int mu=0;mu<NDIM;mu++) origin_coord[mu]=0;
+
+#ifdef POINT_SOURCE_VERSION
+  master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
+  generate_delta_source(original_source,origin_coord);
+#else
+  master_printf("Source position: t=%d\n",source_coord[0]);
+  generate_spindiluted_source(original_source,rnd_type_map[noise_type],origin_coord[0]);
+#endif
   
   //put back the phase
   put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
@@ -760,6 +765,7 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   //compute space and time factor
   double arg=get_space_arg(ivol,le.bc);
   int t=glb_coord_of_loclx[ivol][0];
+  if(!without_external_line && t>=glb_size[0]/2) t=glb_size[0]-t;
   if(!without_external_line && t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*lep_energy[ilepton]);
   
@@ -1714,19 +1720,21 @@ void in_main(int narg,char **arg)
 	  generate_photon_stochastic_propagator();
 	  generate_original_source();
 	  
-	  for(int t2=0;t2<=glb_size[0];t2++) generate_lepton_propagators(t2);
+	  if(test_chris) for(int t2=0;t2<glb_size[0];t2++) generate_lepton_propagators(t2);
+	  generate_lepton_propagators(glb_size[0]);
 	  generate_quark_propagators();
 	  
 	  compute_hadroleptonic_correlations();
 	  compute_hadronic_correlations();
 	  
 	  //test for chris
-	  for(int t1=0;t1<glb_size[0];t1++)
-	    {
-	      generate_quark_propagators_chris(t1);
-	      for(int t2=0;t2<glb_size[0];t2++)
-		compute_hadroleptonic_correlations_chris(t1,t2);
-	    }
+	  if(test_chris)
+	    for(int t1=0;t1<glb_size[0];t1++)
+	      {
+		generate_quark_propagators_chris(t1);
+		for(int t2=0;t2<glb_size[0];t2++)
+		  compute_hadroleptonic_correlations_chris(t1,t2);
+	      }
 	}
       
       //print out correlations
