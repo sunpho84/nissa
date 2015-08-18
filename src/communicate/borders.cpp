@@ -180,7 +180,7 @@ namespace nissa
     
     //mark not initialized
     comm.initialized=false;
-
+    
 #ifdef SPI
     spi_descriptor_unset(comm);
 #endif
