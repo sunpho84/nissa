@@ -451,7 +451,7 @@ void generate_original_source()
 //////////////////////////////////////// quark propagators /////////////////////////////////////////////////
 
 //insert the photon on the source side
-void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,coords dirs,PROP_TYPE *in)
+void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,coords dirs,PROP_TYPE *in,int t)
 { 
   GET_THREAD_ID();
   
@@ -462,18 +462,19 @@ void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,coords dirs,P
   for(int mu=0;mu<NDIM;mu++)
     if(dirs[mu])
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	{
-	  PROP_TYPE temp1,temp2;
-	  NAME2(unsafe_dirac_prod,PROP_TYPE)(temp1,base_gamma+map_mu[mu],in[ivol]);
-	  NAME3(unsafe,PROP_TYPE,prod_complex)(temp2,temp1,phi_eta[ivol][mu]);
-	  NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,1);
-	}
-    
+	if(glb_coord_of_loclx[ivol][0]==t)
+	  {
+	    PROP_TYPE temp1,temp2;
+	    NAME2(unsafe_dirac_prod,PROP_TYPE)(temp1,base_gamma+map_mu[mu],in[ivol]);
+	    NAME3(unsafe,PROP_TYPE,prod_complex)(temp2,temp1,phi_eta[ivol][mu]);
+	    NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,1);
+	  }
+  
   set_borders_invalid(out);
 }
 //insert the photon on the source
-void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,PROP_TYPE *in)
-{insert_external_loc_source(out,phi_eta,all_dirs,in);}
+void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,PROP_TYPE *in,int t)
+{insert_external_loc_source(out,phi_eta,all_dirs,in,t);}
 
 //generate a sequential source
 void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
@@ -492,14 +493,14 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
     case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
     case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
     case STOCH_PHI:
-      if(loc_pion_curr) insert_external_loc_source(source,photon_phi,ori);
+      if(loc_pion_curr) insert_external_loc_source(source,photon_phi,ori,t);
       else
 	if(!pure_wilson) insert_tm_external_source(source,conf,photon_phi,ori,r,t);
 	else             insert_wilson_external_source(source,conf,photon_phi,ori,t);
       master_printf("phi pos: %d\n",t);
       break;
     case STOCH_ETA:
-      if(loc_pion_curr) insert_external_loc_source(source,photon_eta,ori);
+      if(loc_pion_curr) insert_external_loc_source(source,photon_eta,ori,t);
       else
 	if(!pure_wilson) insert_tm_external_source(source,conf,photon_eta,ori,r,t);
 	else             insert_wilson_external_source(source,conf,photon_eta,ori,t);break;
