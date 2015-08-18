@@ -13,7 +13,7 @@ using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
 
-int chris_t=14;
+int chris_t;
 
 int ninv_tot=0,nhadr_contr_tot=0,nlept_contr_tot=0,nsource_tot=0,nphoton_prop_tot=0;
 double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
@@ -31,7 +31,6 @@ int pure_wilson;
 double kappa;
 double put_theta[4],old_theta[4]={0,0,0,0};
 
-coords source_coord;
 PROP_TYPE *source,*original_source;
 int seed,noise_type;
 
@@ -151,6 +150,8 @@ void init_simulation(char *path)
     read_str_int("T",&T);
     //Init the MPI grid
     init_grid(T,L);
+    if(T>8) chris_t=14;
+    else chris_t=4;
   }
   
   //Wall time
@@ -393,13 +394,25 @@ void setup_conf()
   vector_reset(hadrolept_corr_chris);
 }
 
+//used to shift the configuration
+void index_shift(int &irank_out,int &ivol_out,int ivol_in,void *pars)
+{
+  int *source_coord=(int*)pars;
+  coords co;
+  for(int nu=0;nu<NDIM;nu++) co[nu]=(glb_coord_of_loclx[ivol_in][nu]+source_coord[nu])%glb_size[nu];
+  get_loclx_and_rank_of_coord(&ivol_out,&irank_out,co);
+}
+
 //generate a wall-source for stochastic QCD propagator
 void generate_original_source()
 {
+  //remove phase
+  put_theta[0]=0;put_theta[1]=put_theta[2]=put_theta[3]=0;
+  adapt_theta(conf,old_theta,put_theta,0,0);
+  
   //source coord
-  //coords M={glb_size[0]/2,glb_size[1],glb_size[2],glb_size[3]};
-  //for(int mu=0;mu<4;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,1)*M[mu]);
-  //for(int mu=0;mu<4;mu++) source_coord[mu]=0;
+  coords source_coord;
+  for(int mu=0;mu<NDIM;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));
   
 #ifdef POINT_SOURCE_VERSION
   master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
@@ -408,6 +421,17 @@ void generate_original_source()
   master_printf("Source position: t=%d\n",source_coord[0]);
   generate_spindiluted_source(original_source,rnd_type_map[noise_type],source_coord[0]);
 #endif
+  
+  //shift the configuration
+  double shift_time=-take_time();
+  vector_remap_t shifter(loc_vol,index_shift,(void*)source_coord);
+  shifter.remap(conf,conf,sizeof(quad_su3));
+  shift_time+=take_time();
+  master_printf("Shifted in %lg sec, plaquette after shift: %lg\n",shift_time,global_plaquette_lx_conf(conf));
+  
+  //put back the phase
+  put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
+  adapt_theta(conf,old_theta,put_theta,0,0);
 }
 
 //////////////////////////////////////// quark propagators /////////////////////////////////////////////////
@@ -454,7 +478,7 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
     case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
     case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
  #ifdef LOC_PION_CURR
-    case STOCH_PHI:insert_e(source,photon_phi,ori);break;
+    case STOCH_PHI:insert_external_loc_source(source,photon_phi,ori);break;
     case STOCH_ETA:insert_external_loc_source(source,photon_eta,ori);break;
  #else
     case STOCH_PHI:
@@ -735,7 +759,7 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
 {
   //compute space and time factor
   double arg=get_space_arg(ivol,le.bc);
-  int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
+  int t=glb_coord_of_loclx[ivol][0];
   if(!without_external_line && t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*lep_energy[ilepton]);
   
@@ -749,7 +773,7 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
 {
   //compute space and time factor
   double arg=get_space_arg(ivol,bc);
-  int t=(glb_coord_of_loclx[ivol][0]-source_coord[0]+glb_size[0])%glb_size[0];
+  int t=glb_coord_of_loclx[ivol][0];
   if(!without_external_line && t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*neu_energy[ilepton]);
   
@@ -971,7 +995,7 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
 	    if(!without_external_line)
 	      {
 		//select only the wall
-		int tmiddle=((glb_size[0]/2+source_coord[0])%glb_size[0]);
+		int tmiddle=glb_size[0]/2;
 		select_propagator_timeslice(prop,prop,tmiddle);
 		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
 	      }
@@ -979,7 +1003,7 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
 	    //select only the wall
 	    int twall;
 	    if(t2<0||t2>=glb_size[0]) twall=-1;
-	    else twall=((t2+source_coord[0])%glb_size[0]);
+	    else twall=t2;
 	    insert_photon_on_the_source(prop,ilepton,phi_eta,le,twall);
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
 	    
@@ -1015,7 +1039,7 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 	  
 	  //put it to a phase
 	  set_to_lepton_sink_phase_factor(prop,ilepton,le);
-	  int twall=((glb_size[0]/2+source_coord[0])%glb_size[0]);
+	  int twall=glb_size[0]/2;
 	  select_propagator_timeslice(prop,prop,twall);
 	  
 	  //multiply with the prop
@@ -1059,21 +1083,13 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 		}
 	      glb_threads_reduce_double_vect((double*)l_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
 	      
-	      //change sign when crossing 0 for averaging corr function properly
-	      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
-		{
-		  int glb_t=loc_t+glb_coord_of_loclx[0][0];
-		  int sign=1-2*(glb_t<source_coord[0]);
-		  spinspin_prodassign_double(l_loc_corr[loc_t],sign);
-		}
-	      
 	      //save projection on LO
 	      for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 		{
 		  vector_reset(corr);
 		  NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
 		    {
-		      int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
+		      int glb_t=loc_t+rank_coord[0]*loc_size[0];
 		      int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
 		      
 		      spinspin td;
@@ -1127,7 +1143,7 @@ void compute_hadronic_correlations()
 	    for(int ihadr_contr=0;ihadr_contr<nhadr_contr;ihadr_contr++)
 	      for(int t=0;t<glb_size[0];t++)
 		{
-		  int i=(t-source_coord[0]+glb_size[0])%glb_size[0]+glb_size[0]*(ihadr_contr+nhadr_contr*(r+nr*(jmass+nqmass*(imass+nqmass*icombo))));
+		  int i=t+glb_size[0]*(ihadr_contr+nhadr_contr*(r+nr*(jmass+nqmass*(imass+nqmass*icombo))));
 		  complex_summassign(hadr_corr[i],glb_corr[t+glb_size[0]*ihadr_contr]);
 		  //master_printf("%d %d %lg %lg\n",t,i,hadr_corr[i][RE],glb_corr[t+glb_size[0]*ihadr_contr][RE]);
 		}
@@ -1228,19 +1244,11 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	}
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
-      //change sign when crossing 0 for averaging corr function properly
-      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
-	{
-	  int glb_t=loc_t+glb_coord_of_loclx[0][0];
-	  int sign=1-2*(glb_t<source_coord[0]);
-	  spinspin_prodassign_double(hl_loc_corr[loc_t],sign);
-	}
-      
       //save projection on LO
       for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 	NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
 	  {
-	    int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
+	    int glb_t=loc_t+rank_coord[0]*loc_size[0];
 	    int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
 	    
 	    spinspin td;
@@ -1321,19 +1329,11 @@ THREADABLE_FUNCTION_8ARG(attach_leptonic_correlation_chris, spinspin*,hadr, int,
 	}
       glb_threads_reduce_double_vect((double*)hl_loc_corr,loc_size[0]*sizeof(spinspin)/sizeof(double));
       
-      //change sign when crossing 0 for averaging corr function properly
-      for(int loc_t=0;loc_t<loc_size[0];loc_t++)
-	{
-	  int glb_t=loc_t+glb_coord_of_loclx[0][0];
-	  int sign=1-2*(glb_t<source_coord[0]);
-	  spinspin_prodassign_double(hl_loc_corr[loc_t],sign);
-	}
-      
       //save projection on LO
       for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 	NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
 	  {
-	    int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
+	    int glb_t=loc_t+rank_coord[0]*loc_size[0];
 	    int ilnp=(glb_t>=glb_size[0]/2); //select the lepton/neutrino projector
 	    
 	    spinspin td;
@@ -1387,7 +1387,7 @@ THREADABLE_FUNCTION_2ARG(do_not_attach_leptonic_correlation, spinspin*,hadr, int
       //save projection on LO
       NISSA_PARALLEL_LOOP(loc_t,0,loc_size[0])
 	{
-	  int glb_t=(loc_t+glb_coord_of_loclx[0][0]-source_coord[0]+glb_size[0])%glb_size[0];
+	  int glb_t=loc_t+rank_coord[0]*loc_size[0];
 	  
 	  //summ the average
 	  int i=glb_t+glb_size[0]*(0+nhadrolept_proj*(list_weak_ind_contr[ins]+nweak_ind*ext_ind));
