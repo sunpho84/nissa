@@ -6,14 +6,14 @@
  #define PROP_TYPE colorspinspin
 #endif
 
-//#define LOC_MUON_CURR
-//#define LOC_PION_CURR
-
 using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
 
-int chris_test=false;
+int loc_pion_curr;
+int loc_muon_curr;
+
+int chris_test;
 int chris_t;
 
 int ninv_tot=0,nhadr_contr_tot=0,nlept_contr_tot=0,nsource_tot=0,nphoton_prop_tot=0;
@@ -137,13 +137,6 @@ void init_simulation(char *path)
   //open input file
   open_input(path);
   
-#ifdef LOC_MUON_CURR
-  master_printf("LOC_MUON_CURR\n");
-#endif
-#ifdef LOC_PION_CURR
-  master_printf("LOC_PION_CURR\n");
-#endif
-  
   //init the grid
   {
     int L,T;
@@ -151,8 +144,6 @@ void init_simulation(char *path)
     read_str_int("T",&T);
     //Init the MPI grid
     init_grid(T,L);
-    if(T>8) chris_t=14;
-    else chris_t=4;
   }
   
   //Wall time
@@ -280,6 +271,14 @@ void init_simulation(char *path)
   
   //perform a random gauge transformation
   read_str_int("RandomGaugeTransform",&rnd_gauge_transform);
+  
+  //make chris test?
+  read_str_int("ChrisTest",&chris_test);
+  if(chris_test) read_str_int("ChrisT",&chris_t);
+  
+  //local current on muon or pion
+  read_str_int("LocPionCurr",&loc_pion_curr);
+  read_str_int("LocMuonCurr",&loc_muon_curr);
   
   //number of sources
   read_str_int("NSources",&nsources);
@@ -483,19 +482,18 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
     case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
     case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
     case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
- #ifdef LOC_PION_CURR
-    case STOCH_PHI:insert_external_loc_source(source,photon_phi,ori);break;
-    case STOCH_ETA:insert_external_loc_source(source,photon_eta,ori);break;
- #else
     case STOCH_PHI:
-      if(!pure_wilson) insert_tm_external_source(source,conf,photon_phi,ori,r,t);
-      else             insert_wilson_external_source(source,conf,photon_phi,ori,t);
-      master_printf("t: %d\n",t);
+      if(loc_pion_curr) insert_external_loc_source(source,photon_phi,ori);
+      else
+	if(!pure_wilson) insert_tm_external_source(source,conf,photon_phi,ori,r,t);
+	else             insert_wilson_external_source(source,conf,photon_phi,ori,t);
+      master_printf("phi pos: %d\n",t);
       break;
     case STOCH_ETA:
-      if(!pure_wilson) insert_tm_external_source(source,conf,photon_eta,ori,r,t);
-      else             insert_wilson_external_source(source,conf,photon_eta,ori,t);break;
- #endif
+      if(loc_pion_curr) insert_external_loc_source(source,photon_eta,ori);
+      else
+	if(!pure_wilson) insert_tm_external_source(source,conf,photon_eta,ori,r,t);
+	else             insert_wilson_external_source(source,conf,photon_eta,ori,t);break;
     case TADPOLE:
       if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
       else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);
@@ -818,83 +816,84 @@ THREADABLE_FUNCTION_6ARG(insert_photon_on_the_source, spinspin*,prop, int,ilepto
   communicate_lx_spinspin_borders(temp_lep);
   vector_reset(prop);
   
-#ifndef LOC_MUON_CURR
-  
-  master_printf("Inserting photon [%s] point-split on time %d\n",(phi_eta==0)?"phi":"eta",twall);
-  
-  dirac_matr GAMMA;
-  if(pure_wilson) dirac_prod_double(&GAMMA,base_gamma+0,1);
-  else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
-  
-  //phases
-  quad_u1 phases;
-  for(int mu=0;mu<NDIM;mu++)
+  if(!loc_muon_curr)
     {
-      phases[mu][0]=cos(le.bc[mu]*M_PI);
-      phases[mu][1]=sin(le.bc[mu]*M_PI);
+      master_printf("Inserting photon [%s] point-split on time %d\n",(phi_eta==0)?"phi":"eta",twall);
+      
+      dirac_matr GAMMA;
+      if(pure_wilson) dirac_prod_double(&GAMMA,base_gamma+0,1);
+      else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
+      
+      //phases
+      quad_u1 phases;
+      for(int mu=0;mu<NDIM;mu++)
+	{
+	  phases[mu][0]=cos(le.bc[mu]*M_PI);
+	  phases[mu][1]=sin(le.bc[mu]*M_PI);
+	}
+      
+      //prepare each propagator for a single lepton
+      //by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
+      //(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
+      for(int mu=0;mu<NDIM;mu++)
+	if(dirs[mu])
+	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
+	      {
+		//find neighbors
+		int ifw=loclx_neighup[ivol][mu];
+		int ibw=loclx_neighdw[ivol][mu];
+		
+		//compute phase factor
+		spinspin ph_bw,ph_fw;
+		
+		//transport down and up
+		if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
+		else spinspin_copy(ph_fw,temp_lep[ifw]);
+		if(glb_coord_of_loclx[ivol][mu]==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
+		else spinspin_copy(ph_bw,temp_lep[ibw]);
+		
+		//fix coefficients - i is inserted here!
+		//also dir selection is made here
+		spinspin_prodassign_idouble(ph_fw,-0.5*dirs[mu]);
+		spinspin_prodassign_idouble(ph_bw,+0.5*dirs[mu]);
+		
+		//fix insertion of the current
+		safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
+		safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
+		
+		//summ and subtract the two
+		spinspin bw_M_fw,bw_P_fw;
+		spinspin_subt(bw_M_fw,ph_bw,ph_fw);
+		spinspin_summ(bw_P_fw,ph_bw,ph_fw);
+		
+		//put GAMMA on the summ
+		spinspin temp_P;
+		unsafe_spinspin_prod_dirac(temp_P,bw_P_fw,&GAMMA);
+		spinspin_summassign(prop[ivol],temp_P);
+		
+		//put gmu on the diff
+		spinspin temp_M;
+		unsafe_spinspin_prod_dirac(temp_M,bw_M_fw,base_gamma+map_mu[mu]);
+		spinspin_summassign(prop[ivol],temp_M);
+	      }
     }
-  
-  //prepare each propagator for a single lepton
-  //by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
-  //(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
-  for(int mu=0;mu<NDIM;mu++)
-    if(dirs[mu])
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
-	  {
-	    //find neighbors
-	    int ifw=loclx_neighup[ivol][mu];
-	    int ibw=loclx_neighdw[ivol][mu];
-	    
-	    //compute phase factor
-	    spinspin ph_bw,ph_fw;
-	    
-	    //transport down and up
-	    if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
-	    else spinspin_copy(ph_fw,temp_lep[ifw]);
-	    if(glb_coord_of_loclx[ivol][mu]==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
-	    else spinspin_copy(ph_bw,temp_lep[ibw]);
-	    
-	    //fix coefficients - i is inserted here!
-	    //also dir selection is made here
-	    spinspin_prodassign_idouble(ph_fw,-0.5*dirs[mu]);
-	    spinspin_prodassign_idouble(ph_bw,+0.5*dirs[mu]);
-	    
-	    //fix insertion of the current
-	    safe_spinspin_prod_complex(ph_fw,ph_fw,A[ivol][mu]);
-	    safe_spinspin_prod_complex(ph_bw,ph_bw,A[ibw][mu]);
-	    
-	    //summ and subtract the two
-	    spinspin bw_M_fw,bw_P_fw;
-	    spinspin_subt(bw_M_fw,ph_bw,ph_fw);
-	    spinspin_summ(bw_P_fw,ph_bw,ph_fw);
-	    
-	    //put GAMMA on the summ
-	    spinspin temp_P;
-	    unsafe_spinspin_prod_dirac(temp_P,bw_P_fw,&GAMMA);
-	    spinspin_summassign(prop[ivol],temp_P);
-	    
-	    //put gmu on the diff
-	    spinspin temp_M;
-	    unsafe_spinspin_prod_dirac(temp_M,bw_M_fw,base_gamma+map_mu[mu]);
-	    spinspin_summassign(prop[ivol],temp_M);
-	  }
-#else
-  
-  master_printf("Inserting photon [%s] locally on time %d\n",(phi_eta==0)?"phi":"eta",twall);
-  
-  for(int mu=0;mu<NDIM;mu++)
-    if(dirs[mu])
-      NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
-	  {
-	    spinspin temp1,temp2;
-	    unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+map_mu[mu]);
-	    unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
-	    spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
-	  }
-  
-#endif
+  else
+    {
+      master_printf("Inserting photon [%s] locally on time %d\n",(phi_eta==0)?"phi":"eta",twall);
+      
+      for(int mu=0;mu<NDIM;mu++)
+	if(dirs[mu])
+	  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	    if(twall==-1||glb_coord_of_loclx[ivol][0]==twall)
+	      {
+		spinspin temp1,temp2;
+		unsafe_spinspin_prod_dirac(temp1,temp_lep[ivol],base_gamma+map_mu[mu]);
+		unsafe_spinspin_prod_complex(temp2,temp1,A[ivol][mu]);
+		spinspin_summ_the_prod_idouble(prop[ivol],temp2,1);
+	      }
+      
+    }
   
   set_borders_invalid(prop);
 }
