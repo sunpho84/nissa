@@ -108,6 +108,7 @@ double *lep_energy,*neu_energy;
 spinspin **L,*temp_lep;
 
 //prototype
+void generate_random_coord(coords);
 void generate_original_source();
 void generate_photon_stochastic_propagator();
 
@@ -356,6 +357,8 @@ int read_conf_parameters(int &iconf)
 	  master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
 	  for(int isource=0;isource<nsources;isource++)
 	    {
+	      coords coord;
+	      generate_random_coord(coord);
 	      generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
 	      generate_original_source();
 	    }
@@ -403,12 +406,20 @@ void index_shift(int &irank_out,int &ivol_out,int ivol_in,void *pars)
   get_loclx_and_rank_of_coord(&ivol_out,&irank_out,co);
 }
 
+//generate a random postion
+void generate_random_coord(coords c)
+{for(int mu=0;mu<NDIM;mu++) c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));}
+
 //perform a random shift
 void random_shift_gauge_conf(quad_su3 *conf)
 {
+  //remove phase
+  put_theta[0]=0;put_theta[1]=put_theta[2]=put_theta[3]=0;
+  adapt_theta(conf,old_theta,put_theta,0,0);
+  
   //source coord
   coords shift_coord;
-  for(int mu=0;mu<NDIM;mu++) shift_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));
+  generate_random_coord(shift_coord);
   
   //shift the configuration
   double shift_time=-take_time();
@@ -416,32 +427,25 @@ void random_shift_gauge_conf(quad_su3 *conf)
   shifter.remap(conf,conf,sizeof(quad_su3));
   shift_time+=take_time();
   master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+016.016lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
+  
+  //put back the phase
+  put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
+  adapt_theta(conf,old_theta,put_theta,0,0);
 }
 
 //generate a wall-source for stochastic QCD propagator
 void generate_original_source()
 {
-  //remove phase
-  put_theta[0]=0;put_theta[1]=put_theta[2]=put_theta[3]=0;
-  adapt_theta(conf,old_theta,put_theta,0,0);
-  
-  //shift
-  random_shift_gauge_conf(conf);
-  
   //reset the real source position
   coords origin_coord;
   for(int mu=0;mu<NDIM;mu++) origin_coord[mu]=0;
-
+  
 #ifdef POINT_SOURCE_VERSION
   master_printf("Source position: t=%d x=%d y=%d z=%d\n",origin_coord[0],origin_coord[1],origin_coord[2],origin_coord[3]);
   generate_delta_source(original_source,origin_coord);
 #else
   generate_spindiluted_source(original_source,rnd_type_map[noise_type],origin_coord[0]);
 #endif
-  
-  //put back the phase
-  put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
-  adapt_theta(conf,old_theta,put_theta,0,0);
 }
 
 //////////////////////////////////////// quark propagators /////////////////////////////////////////////////
@@ -1722,6 +1726,8 @@ void in_main(int narg,char **arg)
       
       for(int isource=0;isource<nsources;isource++)
 	{
+	  //init
+	  random_shift_gauge_conf(conf);
 	  generate_photon_stochastic_propagator();
 	  generate_original_source();
 	  
