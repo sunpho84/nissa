@@ -462,7 +462,7 @@ void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,coords dirs,P
   for(int mu=0;mu<NDIM;mu++)
     if(dirs[mu])
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	if(glb_coord_of_loclx[ivol][0]==t)
+	if(t==-1||glb_coord_of_loclx[ivol][0]==t)
 	  {
 	    PROP_TYPE temp1,temp2;
 	    NAME2(unsafe_dirac_prod,PROP_TYPE)(temp1,base_gamma+map_mu[mu],in[ivol]);
