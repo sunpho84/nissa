@@ -403,6 +403,21 @@ void index_shift(int &irank_out,int &ivol_out,int ivol_in,void *pars)
   get_loclx_and_rank_of_coord(&ivol_out,&irank_out,co);
 }
 
+//perform a random shift
+void random_shift_gauge_conf(quad_su3 *conf)
+{
+  //source coord
+  coords shift_coord;
+  for(int mu=0;mu<NDIM;mu++) shift_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));
+  
+  //shift the configuration
+  double shift_time=-take_time();
+  vector_remap_t shifter(loc_vol,index_shift,(void*)shift_coord);
+  shifter.remap(conf,conf,sizeof(quad_su3));
+  shift_time+=take_time();
+  master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+016.016lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
+}
+
 //generate a wall-source for stochastic QCD propagator
 void generate_original_source()
 {
@@ -410,27 +425,17 @@ void generate_original_source()
   put_theta[0]=0;put_theta[1]=put_theta[2]=put_theta[3]=0;
   adapt_theta(conf,old_theta,put_theta,0,0);
   
-  //source coord
-  coords source_coord;
-  for(int mu=0;mu<NDIM;mu++) source_coord[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));
-  
-  //shift the configuration
-  double shift_time=-take_time();
-  master_printf("Plaquette before shift: %+016.016lg\n",global_plaquette_lx_conf(conf));
-  vector_remap_t shifter(loc_vol,index_shift,(void*)source_coord);
-  shifter.remap(conf,conf,sizeof(quad_su3));
-  shift_time+=take_time();
-  master_printf("Shifted in %lg sec, plaquette after shift: %+016.016lg\n",shift_time,global_plaquette_lx_conf(conf));
+  //shift
+  random_shift_gauge_conf(conf);
   
   //reset the real source position
   coords origin_coord;
   for(int mu=0;mu<NDIM;mu++) origin_coord[mu]=0;
 
 #ifdef POINT_SOURCE_VERSION
-  master_printf("Source position: t=%d x=%d y=%d z=%d\n",source_coord[0],source_coord[1],source_coord[2],source_coord[3]);
+  master_printf("Source position: t=%d x=%d y=%d z=%d\n",origin_coord[0],origin_coord[1],origin_coord[2],origin_coord[3]);
   generate_delta_source(original_source,origin_coord);
 #else
-  master_printf("Source position: t=%d\n",source_coord[0]);
   generate_spindiluted_source(original_source,rnd_type_map[noise_type],origin_coord[0]);
 #endif
   
