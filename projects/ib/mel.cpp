@@ -13,6 +13,7 @@ using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
 
+int chris_test=false;
 int chris_t;
 
 int ninv_tot=0,nhadr_contr_tot=0,nlept_contr_tot=0,nsource_tot=0,nphoton_prop_tot=0;
@@ -423,7 +424,7 @@ void generate_original_source()
   master_printf("Shifted in %lg sec, plaquette after shift: %+016.016lg\n",shift_time,global_plaquette_lx_conf(conf));
   
   //reset the real source position
-  coord origin_coord;
+  coords origin_coord;
   for(int mu=0;mu<NDIM;mu++) origin_coord[mu]=0;
 
 #ifdef POINT_SOURCE_VERSION
@@ -1720,7 +1721,7 @@ void in_main(int narg,char **arg)
 	  generate_photon_stochastic_propagator();
 	  generate_original_source();
 	  
-	  if(test_chris) for(int t2=0;t2<glb_size[0];t2++) generate_lepton_propagators(t2);
+	  if(chris_test) for(int t2=0;t2<glb_size[0];t2++) generate_lepton_propagators(t2);
 	  generate_lepton_propagators(glb_size[0]);
 	  generate_quark_propagators();
 	  
@@ -1728,7 +1729,7 @@ void in_main(int narg,char **arg)
 	  compute_hadronic_correlations();
 	  
 	  //test for chris
-	  if(test_chris)
+	  if(chris_test)
 	    for(int t1=0;t1<glb_size[0];t1++)
 	      {
 		generate_quark_propagators_chris(t1);
