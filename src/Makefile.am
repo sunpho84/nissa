@@ -1,4 +1,4 @@
-include_HEADERS=nissa.hpp svnversion.hpp
+include_HEADERS=nissa.hpp
 
 #add nissa library
 lib_LIBRARIES=$(top_builddir)/lib/libnissa.a
@@ -29,20 +29,10 @@ if BGQ
 include_HEADERS+=base/bgq_instructions.hpp
 endif
 
-#svn versioning: specify to build sources and include script
-BUILT_SOURCES=update_svnversion svnversion.hpp
-svnversion.hpp update_svnversion:
-	$(srcdir)/base/update_svnversion.hpp.sh $(top_srcdir)
-.PHONY: update_svnversion
-EXTRA_DIST=svnversion.hpp base/update_svnversion.hpp.sh
-
 #include global_variables.cpp in the installation
 #needed because included in global_variables.hpp
 global_variabledir=$(prefix)/include/base
 global_variable_DATA=base/global_variables.cpp
-
-#clean svnversion.hpp
-CLEANFILES=base/svnversion.hpp
 
 ######################################### bgq specific #####################################
 if BGQ
@@ -157,7 +147,7 @@ include_HEADERS+= \
 	dirac_operators/stD/dirac_operator_stD_bgq.hpp
 endif
 
-EXTRA_DIST+= \
+EXTRA_DIST= \
 	dirac_operators/WclovQ/dirac_operator_WclovQ_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_32_portable.cpp \

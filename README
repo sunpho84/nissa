@@ -32,7 +32,7 @@ Contributors:	  Mariam Atoui
 
 Thread pool ideas, SPI and BGQ optimization taken from M.Kruse work
 
-This project is host at: http://code.google.com/p/nissa
+This project is host at: https://github.com/sunpho84/nissa/
 
 
 Requirements
@@ -45,16 +45,6 @@ Requirements
 
 Compiling
 ---------
-
-NB: I you downloaded the package through SVN, the "configure" script
-will not find the correct timestamp for the autoconfigure files.
-This will trigger the reconfiguration of the package, which needs
-updated version of autotools to be present.
-To avoid this, you can fix the package using:
-
-   	    bash config/fix_timestamp_order.sh 
-
-This is not needed if you obtained the package as a tarball.
 
 Compilation procede as in normal autotools way:
 

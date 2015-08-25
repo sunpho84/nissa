@@ -63,7 +63,7 @@ namespace nissa
     signal(SIGFPE,signal_handler);
     signal(SIGXCPU,signal_handler);
     
-    //print SVN version and configuration and compilation time
+    //print version and configuration and compilation time
     master_printf("Initializing nissa, version: %s\n",compile_info[0]);
     master_printf("Configured at %s with flags: %s\n",compile_info[1],compile_info[2]);
     master_printf("Compiled at %s of %s\n",compile_info[3],compile_info[4]);

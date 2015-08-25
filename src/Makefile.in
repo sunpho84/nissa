@@ -553,11 +553,11 @@ am__can_run_installinfo = \
     *) (install-info --version) >/dev/null 2>&1;; \
   esac
 DATA = $(global_variable_DATA)
-am__include_HEADERS_DIST = nissa.hpp svnversion.hpp base/bench.hpp \
-	base/close.hpp base/debug.hpp base/global_variables.hpp \
-	base/init.hpp base/macros.hpp base/random.hpp \
-	base/thread_macros.hpp base/vectors.hpp \
-	base/bgq_instructions.hpp bgq/Wilson_hopping_matrix_lx_bgq.hpp \
+am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
+	base/debug.hpp base/global_variables.hpp base/init.hpp \
+	base/macros.hpp base/random.hpp base/thread_macros.hpp \
+	base/vectors.hpp base/bgq_instructions.hpp \
+	bgq/Wilson_hopping_matrix_lx_bgq.hpp \
 	bgq/Wilson_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
 	bgq/Wilson_hopping_matrix_eo_or_oe_bgq.hpp \
 	bgq/staggered_hopping_matrix_eo_or_oe_bgq_32_64.hpp \
@@ -818,11 +818,11 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-include_HEADERS = nissa.hpp svnversion.hpp base/bench.hpp \
-	base/close.hpp base/debug.hpp base/global_variables.hpp \
-	base/init.hpp base/macros.hpp base/random.hpp \
-	base/thread_macros.hpp base/vectors.hpp $(am__append_1) \
-	$(am__append_4) $(am__append_6) communicate/all_to_all.hpp \
+include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
+	base/debug.hpp base/global_variables.hpp base/init.hpp \
+	base/macros.hpp base/random.hpp base/thread_macros.hpp \
+	base/vectors.hpp $(am__append_1) $(am__append_4) \
+	$(am__append_6) communicate/all_to_all.hpp \
 	communicate/borders.hpp communicate/communicate.hpp \
 	communicate/edges.hpp dirac_operators/momenta/MFACC.hpp \
 	dirac_operators/stD/dirac_operator_stD.hpp \
@@ -1068,9 +1068,11 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	routines/ios.cpp routines/math_routines.cpp \
 	routines/mpi_routines.cpp $(am__append_13)
 
-#svn versioning: specify to build sources and include script
-BUILT_SOURCES = update_svnversion svnversion.hpp
-EXTRA_DIST = svnversion.hpp base/update_svnversion.hpp.sh \
+#include global_variables.cpp in the installation
+#needed because included in global_variables.hpp
+global_variabledir = $(prefix)/include/base
+global_variable_DATA = base/global_variables.cpp
+EXTRA_DIST =  \
 	dirac_operators/WclovQ/dirac_operator_WclovQ_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_portable.cpp \
 	dirac_operators/stD/dirac_operator_stD_32_portable.cpp \
@@ -1086,15 +1088,7 @@ EXTRA_DIST = svnversion.hpp base/update_svnversion.hpp.sh \
 	inverters/templates/cg_invert_template_threaded.cpp \
 	inverters/templates/bicgstab_invert_template_threaded.cpp \
 	inverters/templates/cgm_invert_template_threaded.cpp
-
-#include global_variables.cpp in the installation
-#needed because included in global_variables.hpp
-global_variabledir = $(prefix)/include/base
-global_variable_DATA = base/global_variables.cpp
-
-#clean svnversion.hpp
-CLEANFILES = base/svnversion.hpp
-all: $(BUILT_SOURCES) config.hpp
+all: config.hpp
 	$(MAKE) $(AM_MAKEFLAGS) all-am
 
 .SUFFIXES:
@@ -2183,15 +2177,13 @@ distdir: $(DISTFILES)
 	  fi; \
 	done
 check-am: all-am
-check: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) check-am
+check: check-am
 all-am: Makefile $(LIBRARIES) $(DATA) $(HEADERS) config.hpp
 installdirs:
 	for dir in "$(DESTDIR)$(libdir)" "$(DESTDIR)$(global_variabledir)" "$(DESTDIR)$(includedir)"; do \
 	  test -z "$$dir" || $(MKDIR_P) "$$dir"; \
 	done
-install: $(BUILT_SOURCES)
-	$(MAKE) $(AM_MAKEFLAGS) install-am
+install: install-am
 install-exec: install-exec-am
 install-data: install-data-am
 uninstall: uninstall-am
@@ -2213,7 +2205,6 @@ install-strip:
 mostlyclean-generic:
 
 clean-generic:
-	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
 
 distclean-generic:
 	-test -z "$(CONFIG_CLEAN_FILES)" || rm -f $(CONFIG_CLEAN_FILES)
@@ -2293,7 +2284,6 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-	-test -z "$(BUILT_SOURCES)" || rm -f $(BUILT_SOURCES)
 clean: clean-am
 
 clean-am: clean-generic clean-libLIBRARIES mostlyclean-am
@@ -2364,7 +2354,7 @@ ps-am:
 uninstall-am: uninstall-global_variableDATA uninstall-includeHEADERS \
 	uninstall-libLIBRARIES
 
-.MAKE: all check install install-am install-strip
+.MAKE: all install-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
 	clean-libLIBRARIES cscopelist-am ctags ctags-am distclean \
@@ -2382,9 +2372,6 @@ uninstall-am: uninstall-global_variableDATA uninstall-includeHEADERS \
 	uninstall-am uninstall-global_variableDATA \
 	uninstall-includeHEADERS uninstall-libLIBRARIES
 
-svnversion.hpp update_svnversion:
-	$(srcdir)/base/update_svnversion.hpp.sh $(top_srcdir)
-.PHONY: update_svnversion
 
 # Tell versions [3.59,3.63) of GNU make to not export all variables.
 # Otherwise a system limit (for SysV at least) may be exceeded.
