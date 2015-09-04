@@ -569,7 +569,7 @@ namespace nissa
   //store the topological charge if needed
   void topotential_pars_t::store_if_needed(quad_su3 **ext_conf,int iconf)
   {
-    if(flag==2 && iconf%each==0 && iconf>=from && iconf<upto)
+    if(flag==2 && iconf%each==0 && iconf>=after)
       {
 	double charge;
 	quad_su3 *conf[2];
@@ -582,12 +582,12 @@ namespace nissa
 	  {
 	    conf[0]=nissa_malloc("stout_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
 	    conf[1]=nissa_malloc("stout_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
-	    stout_smear(conf,ext_conf,&(this->stout_pars));
+	    stout_smear(conf,ext_conf,&stout_pars);
 	  }
 	
 	//compute topocharge
 	total_topological_charge_eo_conf(&charge,conf);
-	past_values.push_back(charge);
+	update(iconf,charge);
 	
 	//free if needed
 	if(stout_pars.nlev!=0)

@@ -28,7 +28,7 @@ namespace nissa
   {
     int rc=0;
     for(str=(str!=NULL)?strstr(str,sub):str;str!=NULL;str=strstr(str+1,sub)) rc++;
-
+    
     return rc;
   }
   

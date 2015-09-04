@@ -12,7 +12,7 @@
 
 namespace nissa
 {
-  //nomenclature: 
+  //nomenclature:
   //-glb is relative to the global grid
   //-loc to the local one
   EXTERN coords glb_size,loc_size;
@@ -178,7 +178,7 @@ namespace nissa
  #ifdef THREAD_DEBUG
    EXTERN int glb_barr_line;
    EXTERN char glb_barr_file[1024];
-  #if THREAD_DEBUG >=2 
+  #if THREAD_DEBUG >=2
     EXTERN rnd_gen *delay_rnd_gen;
     EXTERN int *delayed_thread_barrier;
   #endif

@@ -28,7 +28,7 @@
 #endif
 
 namespace nissa
-{  
+{
   ///////////////// New types ///////////////////
   
   typedef int coords[NDIM];
@@ -648,26 +648,21 @@ namespace nissa
       while(is>>temp) this->push_back(temp);
     }
   };
-  
-  //specialization to topological charge history
-  struct past_topo_values_t : storable_vector_t<double>
-  {ILDG_message *append_to_message(ILDG_message &mess){return append_to_message_with_name(mess,"TOPO_history");}};
-  
+}
+
+#include "metadynamics.hpp"
+
+namespace nissa
+{ 
   //parameters to add topological potential
-  struct topotential_pars_t
+  struct topotential_pars_t : meta_pars_t
   {
     int flag;
     double theta;
-    double coeff;
-    double width;
-    int symmetric;
-    int from;
-    int each;
-    int upto;
-    past_topo_values_t past_values;
     stout_pars_t stout_pars;
     //methods inside opearations/su3_paths/topological_charge.cpp
     void store_if_needed(quad_su3 **conf,int iconf);
+    topotential_pars_t() : meta_pars_t("topotential"){};
   };
   
   struct em_field_pars_t

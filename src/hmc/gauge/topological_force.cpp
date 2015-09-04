@@ -20,20 +20,12 @@
 namespace nissa
 {
   //compute the topodynamical potential
-  double compute_topodynamical_potential(topotential_pars_t *pars,quad_su3 *conf)
+  double compute_topodynamical_potential_der(topotential_pars_t *pars,quad_su3 *conf)
   {
-    double topote=0,Q,pref=-pars->coeff/(pars->width*pars->width);
+    double Q;
     total_topological_charge_lx_conf(&Q,conf);
     
-    for(std::vector<double>::iterator it=pars->past_values.begin();it!=pars->past_values.end();it++)
-      {
-	double q=*it;
-	double diff=Q-q,f=diff/pars->width,cont=pref*diff*exp(-f*f/2);
-	topote+=cont;
-	master_printf("Contribution: Q=%lg, q=%lg, %lg\n",Q,q,cont);
-      }
-    
-    return topote;
+    return pars->compute_pot_der(Q);
   }
   
   //common part, for staples and potential if needed
@@ -49,7 +41,7 @@ namespace nissa
     switch(pars->flag)
       {
       case 1: pot=pars->theta;break;
-      case 2: pot=compute_topodynamical_potential(pars,conf); break;
+      case 2: pot=compute_topodynamical_potential_der(pars,conf); break;
       default: crash("unknown way to compute topological potential %d",pars->flag);
       }
     
@@ -59,7 +51,7 @@ namespace nissa
       for(int mu=0;mu<4;mu++)
 	safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],norm);
     set_borders_invalid(F);
-
+    
     //add the stag phases to the force term, to cancel the one entering the force
     if(phase_pres) addrem_stagphases_to_lx_conf(F);
   }

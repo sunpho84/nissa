@@ -74,7 +74,7 @@ void write_conf(const char *path,quad_su3 **conf)
   
   //topology history
   if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
-    theory_pars[SEA_THEORY].topotential_pars.past_values.append_to_message(mess);
+    theory_pars[SEA_THEORY].topotential_pars.grid.append_to_message_with_name(mess,"TopoGrid");
   
   //glb_rnd_gen status
   convert_rnd_gen_to_text(text,&glb_rnd_gen,1024);
@@ -85,9 +85,9 @@ void write_conf(const char *path,quad_su3 **conf)
   
   //free messages
   ILDG_message_free_all(&mess);
-
+  
   //mark time
-  write_conf_time+=take_time();  
+  write_conf_time+=take_time();
   nwritten_conf++;
 }
 
@@ -110,8 +110,8 @@ void read_conf(quad_su3 **conf,char *path)
     {  
       if(strcasecmp(cur_mess->name,"MD_traj")==0) sscanf(cur_mess->data,"%d",&itraj);
       if(glb_rnd_gen_inited==0 && strcasecmp(cur_mess->name,"RND_gen_status")==0) start_loc_rnd_gen(cur_mess->data);
-      if(theory_pars[SEA_THEORY].topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TOPO_history")==0)
-	theory_pars[SEA_THEORY].topotential_pars.past_values.convert_from_message(*cur_mess);
+      if(theory_pars[SEA_THEORY].topotential_pars.flag==2 && strcasecmp(cur_mess->name,"TopoGrid")==0)
+	theory_pars[SEA_THEORY].topotential_pars.grid.convert_from_message(*cur_mess);
       
       //check for rational approximation
       if(ntraj_tot)

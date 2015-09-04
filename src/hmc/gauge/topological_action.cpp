@@ -16,39 +16,15 @@
  #include "routines/thread.hpp"
 #endif
 
-
 namespace nissa
 {
   //compute the topodynamical potential using past history
   double topodynamical_potential(double Q,topotential_pars_t &pars)
-  {
-    double topotential=0;
-    for(std::vector<double>::iterator it=pars.past_values.begin();it!=pars.past_values.end();it++)
-      {
-        double q=*it;
-        double diff=Q-q,f=diff/pars.width,cont=exp(-f*f/2);
-        topotential+=cont;
-      }
-    topotential*=pars.coeff;
-    
-    return topotential;
-  }
-  
+  {return pars.compute_pot(Q);}
   //draw the topodynamical potential
   void draw_topodynamical_potential(topotential_pars_t &pars)
-  {
-    FILE *file=open_file("topot","w");
-    
-    double Q_min=*std::min_element(pars.past_values.begin(),pars.past_values.end());
-    double Q_max=*std::max_element(pars.past_values.begin(),pars.past_values.end());
-    double Q_diff=Q_max-Q_min;
-    int n=ceil(Q_diff/pars.width*20);
-    double dQ=Q_diff/n;
-    
-    for(double Q=Q_min;Q<=Q_max;Q+=dQ) master_fprintf(file,"%lg %lg\n",Q,topodynamical_potential(Q,pars));
-    close_file(file);
-  }
-
+  {pars.save();}
+  
   //Compute the topological action
   double topotential_action(quad_su3 **ext_conf,topotential_pars_t &pars)
   {
@@ -69,8 +45,8 @@ namespace nissa
         addrem_stagphases_to_eo_conf(ext_conf);
         addrem_stagphases_to_eo_conf(conf);
       }
-
-    //compute topocharge                                                                                              
+    
+    //compute topocharge
     double Q;
     total_topological_charge_eo_conf(&Q,conf);
     

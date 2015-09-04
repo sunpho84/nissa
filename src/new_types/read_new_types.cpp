@@ -89,13 +89,8 @@ namespace nissa
       {
       case 0: break;
       case 1: read_str_double("Potential",&pars.theta); break;
-      case 2: 
-	read_str_double("Coeff",&pars.coeff);
-	read_str_double("Width",&pars.width);
-	read_str_int("Symmetric",&pars.symmetric);
-	read_str_int("From",&pars.from);
-	read_str_int("Each",&pars.each);
-	read_str_int("Upto",&pars.upto);
+      case 2:
+	pars.read_pars();
 	break;
       default: crash("Not implemented yet"); break;
       }
