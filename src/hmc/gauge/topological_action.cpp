@@ -23,7 +23,7 @@ namespace nissa
   {return pars.compute_pot(Q);}
   //draw the topodynamical potential
   void draw_topodynamical_potential(topotential_pars_t &pars)
-  {pars.save();}
+  {pars.save("topo_potential");}
   
   //Compute the topological action
   double topotential_action(quad_su3 **ext_conf,topotential_pars_t &pars)

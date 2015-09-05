@@ -15,9 +15,6 @@
 
 namespace nissa
 {
-  meta_pars_t::meta_pars_t(const char *in_path)
-  {path=in_path;}
-  
   //update the history-dependent potential
   void meta_pars_t::update(int isweep,double Q)
   {
@@ -70,28 +67,28 @@ namespace nissa
   }
   
   //write
-  void meta_pars_t::save()
+  void meta_pars_t::save(const char *path)
   {
-    FILE *fout=open_file(path.c_str(),"w");
-    for(int i=0;i<=ngrid;i++) master_fprintf(fout,"%16.16 lg %16.16lg\n",-barr+i*width,grid[i]);
+    FILE *fout=open_file(path,"w");
+    for(int i=0;i<=ngrid;i++) master_fprintf(fout,"%lg %16.16lg\n",-barr+i*width,grid[i]);
     close_file(fout);
   }
   
   //read
-  void meta_pars_t::load()
+  void meta_pars_t::load(const char *path)
   {
     GET_THREAD_ID();
     
     //to be sure, resize
     grid.resize(ngrid+1);
     
-    FILE *fin=open_file(path.c_str(),"r");
+    FILE *fin=open_file(path,"r");
     if(IS_MASTER_THREAD && rank==0)
       for(int igrid=0;igrid<=ngrid;igrid++)
 	{
 	  double xread;
 	  int rc=fscanf(fin,"%lg %lg",&xread,&grid[igrid]);
-	  if(rc!=2) crash("reading line %d of \"%s\"",igrid,path.c_str());
+	  if(rc!=2) crash("reading line %d of \"%s\"",igrid,path);
 	  int jgrid=floor((xread+barr+width/2)/width);
 	  if(igrid!=jgrid) crash("found %d (%lg) when expecting %d",jgrid,xread,igrid);
 	}

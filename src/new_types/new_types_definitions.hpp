@@ -43,7 +43,7 @@ namespace nissa
   typedef complex spin[4];
   typedef complex color[3];
   typedef complex halfspin[2];
-
+  
   typedef float single_complex[2];
   typedef single_complex single_color[NCOL];
   typedef single_color single_su3[NCOL];
@@ -662,7 +662,6 @@ namespace nissa
     stout_pars_t stout_pars;
     //methods inside opearations/su3_paths/topological_charge.cpp
     void store_if_needed(quad_su3 **conf,int iconf);
-    topotential_pars_t() : meta_pars_t("topotential"){};
   };
   
   struct em_field_pars_t

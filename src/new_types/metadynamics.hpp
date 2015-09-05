@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "new_types_definitions.hpp"
+#include "base/debug.hpp"
 
 namespace nissa
 {
@@ -23,18 +24,14 @@ namespace nissa
     int ngrid;
     storable_vector_t<double> grid;
     
-    std::string path;
-    meta_pars_t(const char *in_path);
     void update(int isweep,double Q);
     double compute_pot_der(double x);
     double compute_pot(double x);
-    void save();
-    void load();
+    void save(const char *path);
+    void load(const char *path);
     void draw_force(const char *force_path);
     void init();
     void read_pars();
-  private:
-    meta_pars_t(){}
   };
 }
 

@@ -307,7 +307,7 @@ void init_simulation(char *path)
 	}
     }
   close_input();
-
+  
   ////////////////////////// allocate stuff ////////////////////////
    
   //allocate the conf
