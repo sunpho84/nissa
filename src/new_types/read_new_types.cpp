@@ -25,36 +25,19 @@ namespace nissa
     return ret;
   }
   
-  //read parameters to cool
-  void read_cool_pars(cool_pars_t &cool_pars,bool flag=false)
+  //convert a string into smoothing method
+  smooth_pars_t::method_t smooth_method_name_from_str(const char *name)
   {
-    if(flag==true) cool_pars.flag=true;
-    else read_str_int("Cooling",&cool_pars.flag);
-    if(cool_pars.flag)
-      {
-	char gauge_action_name_str[1024];
-	read_str_str("CoolAction",gauge_action_name_str,1024);
-	cool_pars.gauge_action=gauge_action_name_from_str(gauge_action_name_str);
-	read_str_int("CoolNSteps",&cool_pars.nsteps);
-	read_str_int("CoolOverrelaxing",&cool_pars.overrelax_flag);
-	if(cool_pars.overrelax_flag==1) read_str_double("CoolOverrelaxExp",&cool_pars.overrelax_exp);
-	read_str_int("CoolMeasEachNSteps",&cool_pars.meas_each);
-	if(cool_pars.nsteps==0) cool_pars.meas_each=1; //so we don't go into mess
-	if(cool_pars.nsteps%cool_pars.meas_each) crash("nsteps musth be a multiple of meas each for cooling");
-      }
-    else cool_pars.reset();
-  }
-  
-  //read parameters to study topology
-  void read_top_meas_pars(top_meas_pars_t &top_meas_pars,bool flag=false)
-  {
-    if(flag==true) top_meas_pars.flag=true;
-    else read_str_int("MeasureTopology",&top_meas_pars.flag);
-    if(top_meas_pars.flag)
-      {
-	read_str_str("Path",top_meas_pars.path,1024);
-	read_cool_pars(top_meas_pars.cool_pars,true);
-      }
+    smooth_pars_t::method_t ret=smooth_pars_t::UNSPEC_SMOOTH_METHOD;
+    
+    if(strcasecmp(name,"Cooling")==0) ret=smooth_pars_t::COOLING;
+    else
+      if(strcasecmp(name,"Stouting")==0) ret=smooth_pars_t::STOUTING;
+      else
+	if(strcasecmp(name,"Wflowing")==0) ret=smooth_pars_t::WFLOWING;
+	else crash("unknown smoothing method: %s",name);
+    
+    return ret;
   }
   
   //read parameters to stout smear gauge action
@@ -77,6 +60,59 @@ namespace nissa
 		stout_pars.rho[i][j]=rho;
 	  }
 	else crash("Anisotropic stouting not yet implemented");
+      }
+  }
+  
+  //read parameters to cool
+  void read_cool_pars(cool_pars_t &cool_pars)
+  {
+    char gauge_action_name_str[1024];
+    read_str_str("CoolAction",gauge_action_name_str,1024);
+    cool_pars.gauge_action=gauge_action_name_from_str(gauge_action_name_str);
+    read_str_int("CoolNSteps",&cool_pars.nsteps);
+    read_str_int("CoolOverrelaxing",&cool_pars.overrelax_flag);
+    if(cool_pars.overrelax_flag==1) read_str_double("CoolOverrelaxExp",&cool_pars.overrelax_exp);
+  }
+  
+  //read parameters to flow
+  void read_Wflow_pars(Wflow_pars_t &pars)
+  {
+    read_str_double("FlowTime",&pars.T);
+    read_str_double("InteStep",&pars.dt);
+  }
+  
+  //read parameters to smooth
+  void read_smooth_pars(smooth_pars_t &smooth_pars,bool flag=false)
+  {
+    if(flag==true) smooth_pars.flag=true;
+    else read_str_int("Smoothing",&smooth_pars.flag);
+    if(smooth_pars.flag)
+      {
+	char smooth_method_name_str[1024];
+	read_str_str("SmoothMethod",smooth_method_name_str,1024);
+	smooth_pars.method=smooth_method_name_from_str(smooth_method_name_str);
+	switch(smooth_pars.method)
+	  {
+	  case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool_pars);break;
+	  case smooth_pars_t::STOUTING: read_stout_pars(smooth_pars.stout_pars);break;
+	  case smooth_pars_t::WFLOWING: read_Wflow_pars(smooth_pars.Wflow_pars);break;
+	  case smooth_pars_t::UNSPEC_SMOOTH_METHOD: crash("should not arrive here");break;
+	  }
+	read_str_double("MeasEach",&smooth_pars.meas_each);
+	if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUTING)&&fabs(smooth_pars.meas_each-int(smooth_pars.meas_each))>=1.e-14)
+	  crash("MeasEach must be integer if Cooling or Stouting method selected");
+      }
+  }
+  
+  //read parameters to study topology
+  void read_top_meas_pars(top_meas_pars_t &top_meas_pars,bool flag=false)
+  {
+    if(flag==true) top_meas_pars.flag=true;
+    else read_str_int("MeasureTopology",&top_meas_pars.flag);
+    if(top_meas_pars.flag)
+      {
+	read_str_str("Path",top_meas_pars.path,1024);
+	read_smooth_pars(top_meas_pars.smooth_pars,true);
       }
   }
   
@@ -222,7 +258,7 @@ namespace nissa
         read_str_int("Dir",&pars.dir);
         read_str_int("NHits",&pars.nhits);
 	read_str_int("UseFermConfForGluons",&pars.use_ferm_conf_for_gluons);
-	read_cool_pars(pars.cool_pars);
+	read_smooth_pars(pars.smooth_pars);
       }
   }
   

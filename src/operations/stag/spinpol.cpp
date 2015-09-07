@@ -51,10 +51,11 @@ namespace nissa
   {
     spinpol_meas_pars_t *sp=&tp.spinpol_meas_pars;
     if(sp->use_ferm_conf_for_gluons) glu_conf=ferm_conf;
-    
+
+    /*
     //count the number of cooled levels
-    cool_pars_t *cp=&sp->cool_pars;
-    int ncool_meas=cp->nsteps/cp->meas_each+1;
+    cool_pars_t *sp=&sp->smooth_pars;
+    int ncool_meas=cp->nsteps/sp->meas_each+1;
     verbosity_lv3_master_printf("ncool_meas: %d\n",ncool_meas);
     
     //allocate point and local results
@@ -125,5 +126,6 @@ namespace nissa
     
     //close
     close_file(fout);
+    */
   }
 }

@@ -294,7 +294,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   //apply the chromo operator to the passed colorspinspin
   //normalization as in ape next
   THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_colorspinspin, colorspinspin*,out, as2t_su3*,Pmunu, colorspinspin*,in)
@@ -319,7 +319,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   //apply the chromo operator to the passed su3spinspin
   //normalization as in ape next
   THREADABLE_FUNCTION_3ARG(unsafe_apply_chromo_operator_to_su3spinspin, su3spinspin*,out, as2t_su3*,Pmunu, su3spinspin*,in)
@@ -436,48 +436,74 @@ namespace nissa
     nissa_free(lx_conf);
   }
   THREADABLE_FUNCTION_END
-
+  
   //measure the topological charge
-  void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,bool conf_created,bool preserve_uncooled)
+  void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *unsmoothed_conf,int iconf,bool conf_created,bool preserve_unsmoothed)
   {
     FILE *file=open_file(pars.path,conf_created?"w":"a");
     
-    //allocate a temorary conf to be cooled
-    quad_su3 *cooled_conf;
-    if(preserve_uncooled)
+    //allocate a temorary conf to be smoothed
+    quad_su3 *smoothed_conf;
+    if(preserve_unsmoothed)
       {
-	cooled_conf=nissa_malloc("cooled_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-	vector_copy(cooled_conf,uncooled_conf);
+	smoothed_conf=nissa_malloc("smoothed_conf",loc_vol+bord_vol+edge_vol,quad_su3);
+	vector_copy(smoothed_conf,unsmoothed_conf);
       }
-    else cooled_conf=uncooled_conf;
+    else smoothed_conf=unsmoothed_conf;
     
-    //print curent measure and cool
-    for(int istep=0;istep<=(pars.cool_pars.nsteps/pars.cool_pars.meas_each)*pars.cool_pars.meas_each;istep++)
+    //print curent measure and smooth
+    smooth_pars_t sp=pars.smooth_pars;
+    cool_pars_t cop=sp.cool_pars;
+    stout_pars_t stp=sp.stout_pars;
+    switch(sp.method)
       {
-	if(istep%pars.cool_pars.meas_each==0)
+      case smooth_pars_t::COOLING:
+	for(int int_each=int(sp.meas_each),istep=0;istep<=(cop.nsteps/int_each)*int_each;istep++)
 	  {
-	    double tot_charge;
-	    total_topological_charge_lx_conf(&tot_charge,cooled_conf);
-	    master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,tot_charge);
-	    verbosity_lv2_master_printf("Topological charge after %d cooling steps: %16.16lg, "
-					"plaquette: %16.16lg\n",istep,tot_charge,global_plaquette_lx_conf(cooled_conf));
+	    if(istep%int_each==0)
+	      {
+		double tot_charge;
+		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
+		master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,tot_charge);
+		verbosity_lv2_master_printf("Topological charge after %d cooling steps: %16.16lg, "
+					    "plaquette: %16.16lg\n",istep,tot_charge,global_plaquette_lx_conf(smoothed_conf));
+	      }
+	    if(istep!=cop.nsteps) cool_lx_conf(smoothed_conf,cop.gauge_action,cop.overrelax_flag,cop.overrelax_exp);
 	  }
-	if(istep!=pars.cool_pars.nsteps) cool_lx_conf(cooled_conf,pars.cool_pars.gauge_action,pars.cool_pars.overrelax_flag,pars.cool_pars.overrelax_exp);
+	break;
+      case smooth_pars_t::STOUTING:
+	for(int int_each=int(sp.meas_each),ilev=0;ilev<=(stp.nlev/int_each)*int_each;ilev++)
+	  {
+	    if(ilev%int_each==0)
+	      {
+		double tot_charge;
+		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
+		master_fprintf(file,"%d %d %16.16lg\n",iconf,ilev,tot_charge);
+		verbosity_lv2_master_printf("Topological charge after %d stouting levels: %16.16lg, "
+					    "plaquette: %16.16lg\n",ilev,tot_charge,global_plaquette_lx_conf(smoothed_conf));
+	      }
+	    if(ilev!=stp.nlev) stout_smear(smoothed_conf,smoothed_conf,&stp);
+	  }
+	break;
+      case smooth_pars_t::WFLOWING:
+	break;
+      default:
+	crash("should have not arrived here");
       }
     
-    //discard cooled conf
-    if(preserve_uncooled) nissa_free(cooled_conf);
+    //discard smoothed conf
+    if(preserve_unsmoothed) nissa_free(smoothed_conf);
     
     close_file(file);
   }
-  void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **uncooled_conf_eo,int iconf,bool conf_created)
+  void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **unsmoothed_conf_eo,int iconf,bool conf_created)
   {
-    quad_su3 *uncooled_conf_lx=nissa_malloc("uncooled_conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
-    paste_eo_parts_into_lx_conf(uncooled_conf_lx,uncooled_conf_eo);
-    measure_topology_lx_conf(pars,uncooled_conf_lx,iconf,conf_created,false);
-    nissa_free(uncooled_conf_lx);
+    quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
+    paste_eo_parts_into_lx_conf(unsmoothed_conf_lx,unsmoothed_conf_eo);
+    measure_topology_lx_conf(pars,unsmoothed_conf_lx,iconf,conf_created,false);
+    nissa_free(unsmoothed_conf_lx);
   }
-
+  
   //compute the topological staples site by site
   THREADABLE_FUNCTION_2ARG(topological_staples, quad_su3*,staples, quad_su3*,conf)
   {
@@ -534,7 +560,7 @@ namespace nissa
 	    unsafe_su3_dag_prod_su3(ADE,conf[D][nu],conf[D][mu]);
 	    unsafe_su3_prod_su3(DEF,conf[D][mu],conf[E][nu]);
 	    unsafe_su3_prod_su3(ADEF,ADE,conf[E][nu]);
-
+	    
 	    //local summ and temp
 	    su3 loc_staples,temp;
 	    su3_put_to_zero(loc_staples);

@@ -26,22 +26,22 @@ namespace nissa
     su3_put_to_zero(staple);
     
     su3 temp1,temp2;
-    for(int nu=0;nu<NDIM;nu++)                //  E---F---C   
-      if(nu!=mu)                              //  |   |   | mu
-	{                                     //  D---A---B   
-	  int p=loclx_parity[A];              //        nu    
-	  int B=loclx_neighup[A][nu];
-	  int F=loclx_neighup[A][mu];
-	  unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
-	  unsafe_su3_prod_su3_dag(temp2,temp1,                            eo_conf[!p][loceo_of_loclx[F]][nu]);
-	  su3_summ(staple,staple,temp2);
-	  
-	  int D=loclx_neighdw[A][nu];
-	  int E=loclx_neighup[D][mu];
-	  unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][loceo_of_loclx[D]][nu],eo_conf[!p][loceo_of_loclx[D]][mu]);
-	  unsafe_su3_prod_su3(    temp2,temp1,                             eo_conf[ p][loceo_of_loclx[E]][nu]);
-	  su3_summ(staple,staple,temp2);
-	}
+    for(int inu=0;inu<NDIM-1;inu++)                //  E---F---C   
+      {                                            //  |   |   | mu
+	int nu=perp_dir[mu][inu];                  //  D---A---B   
+	int p=loclx_parity[A];                     //        nu    
+	int B=loclx_neighup[A][nu];
+	int F=loclx_neighup[A][mu];
+	unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
+	unsafe_su3_prod_su3_dag(temp2,temp1,                            eo_conf[!p][loceo_of_loclx[F]][nu]);
+	su3_summ(staple,staple,temp2);
+	
+	int D=loclx_neighdw[A][nu];
+	int E=loclx_neighup[D][mu];
+	unsafe_su3_dag_prod_su3(temp1,eo_conf[!p][loceo_of_loclx[D]][nu],eo_conf[!p][loceo_of_loclx[D]][mu]);
+	unsafe_su3_prod_su3(    temp2,temp1,                             eo_conf[ p][loceo_of_loclx[E]][nu]);
+	su3_summ(staple,staple,temp2);
+      }
   }
   void compute_point_summed_squared_staples_lx_conf_single_dir(su3 staple,quad_su3 *lx_conf,int A,int mu)
   {
@@ -50,21 +50,21 @@ namespace nissa
     su3_put_to_zero(staple);
     
     su3 temp1,temp2;
-    for(int nu=0;nu<4;nu++)                   //  E---F---C   
-      if(nu!=mu)                              //  |   |   | mu
-	{                                     //  D---A---B   
-	  int B=loclx_neighup[A][nu];         //        nu    
-	  int F=loclx_neighup[A][mu];
-	  unsafe_su3_prod_su3(    temp1,lx_conf[A][nu],lx_conf[B][mu]);
-	  unsafe_su3_prod_su3_dag(temp2,temp1,         lx_conf[F][nu]);
-	  su3_summ(staple,staple,temp2);
-	  
-	  int D=loclx_neighdw[A][nu];
-	  int E=loclx_neighup[D][mu];
-	  unsafe_su3_dag_prod_su3(temp1,lx_conf[D][nu],lx_conf[D][mu]);
-	  unsafe_su3_prod_su3(    temp2,temp1,         lx_conf[E][nu]);
-	  su3_summ(staple,staple,temp2);
-	}
+    for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C   
+      {                                               //  |   |   | mu
+	int nu=perp_dir[mu][inu];                     //  D---A---B   
+	int B=loclx_neighup[A][nu];                   //        nu    
+	int F=loclx_neighup[A][mu];
+	unsafe_su3_prod_su3(    temp1,lx_conf[A][nu],lx_conf[B][mu]);
+	unsafe_su3_prod_su3_dag(temp2,temp1,         lx_conf[F][nu]);
+	su3_summ(staple,staple,temp2);
+	
+	int D=loclx_neighdw[A][nu];
+	int E=loclx_neighup[D][mu];
+	unsafe_su3_dag_prod_su3(temp1,lx_conf[D][nu],lx_conf[D][mu]);
+	unsafe_su3_prod_su3(    temp2,temp1,         lx_conf[E][nu]);
+	su3_summ(staple,staple,temp2);
+      }
   }
   
   //compute the staples along all the four dirs

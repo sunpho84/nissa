@@ -111,6 +111,7 @@
 #include "new_types/float_128.hpp"
 #include "new_types/float_256.hpp"
 #include "new_types/high_prec.hpp"
+#include "new_types/metadynamics.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/read_new_types.hpp"
@@ -131,8 +132,9 @@
 #include "operations/shift.hpp"
 #include "operations/smearing/APE.hpp"
 #include "operations/smearing/HYP.hpp"
-#include "operations/smearing/stout.hpp"
 #include "operations/smearing/gaussian.hpp"
+#include "operations/smearing/stout.hpp"
+#include "operations/smearing/Wflow.hpp"
 #include "operations/source.hpp"
 
 #include "operations/stag/magnetization.hpp"

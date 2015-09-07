@@ -13,7 +13,8 @@ using namespace nissa;
 //observables
 gauge_obs_meas_pars_t gauge_obs_meas_pars;
 poly_corr_meas_pars_t poly_corr_meas_pars;
-top_meas_pars_t top_meas_pars;
+int ntop_meas;
+top_meas_pars_t *top_meas_pars;
 all_rect_meas_pars_t all_rect_meas_pars;
 watusso_meas_pars_t watusso_meas_pars;
 
@@ -255,7 +256,9 @@ void init_simulation(char *path)
   read_poly_corr_meas_pars(poly_corr_meas_pars);
   
   //read if we want to measure topological charge
-  read_top_meas_pars(top_meas_pars);
+  read_str_int("NTopMeas",&ntop_meas);
+  top_meas_pars=nissa_malloc("top_meas_pars",ntop_meas,top_meas_pars_t);
+  for(int itop=0;itop<ntop_meas;itop++) read_top_meas_pars(top_meas_pars[itop]);
   
   //read if we want to measure all rectangles
   read_all_rect_meas_pars(all_rect_meas_pars);
@@ -322,7 +325,8 @@ void init_simulation(char *path)
   for(int itheory=0;itheory<ntheories;itheory++) theory_pars_allocinit_backfield(theory_pars[itheory]);
   
   //initialize sweeper to cool
-  if(top_meas_pars.flag && top_meas_pars.cool_pars.nsteps) init_sweeper(top_meas_pars.cool_pars.gauge_action);
+  for(int i=0;i<ntop_meas;i++)
+    if(top_meas_pars[i].flag && top_meas_pars[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(top_meas_pars[i].smooth_pars.cool_pars.gauge_action);
   
   //init the program in "production" or "analysis" mode
   if(ntraj_tot>0) init_program_to_run(start_conf_cond);
@@ -365,7 +369,7 @@ void close_simulation()
     }
   
   //destroy rational approximations
-  if(ntraj_tot)
+  if(ntraj_tot && ntraj_prod)
     for(int i=0;i<theory_pars[SEA_THEORY].nflavs*3;i++)
       rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
   
@@ -496,7 +500,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   
   if(gauge_obs_meas_pars.flag) if(iconf%gauge_obs_meas_pars.flag==0) measure_gauge_obs(gauge_obs_meas_pars.path,conf,iconf,acc,gauge_action_name);
   if(poly_corr_meas_pars.flag) if(iconf%poly_corr_meas_pars.flag==0) measure_poly_corrs(poly_corr_meas_pars,conf,conf_created);
-  if(top_meas_pars.flag) if(iconf%top_meas_pars.flag==0) measure_topology_eo_conf(top_meas_pars,conf,iconf,conf_created);
+  for(int i=0;i<ntop_meas;i++) if(top_meas_pars[i].flag) if(iconf%top_meas_pars[i].flag==0) measure_topology_eo_conf(top_meas_pars[i],conf,iconf,conf_created);
   if(all_rect_meas_pars.flag) if(iconf%all_rect_meas_pars.flag==0) measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
   if(watusso_meas_pars.flag) measure_watusso(&watusso_meas_pars,conf,iconf,conf_created);
   
@@ -583,7 +587,7 @@ void increase_max_time_per_traj(double init_traj_time)
 
 //check if we have enough time to make another conf
 bool enough_time()
-{  
+{
   //if no traj performed assume yes
   if(ntraj_prod==0) return true;
   

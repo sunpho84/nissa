@@ -325,11 +325,10 @@ am____top_builddir__lib_libnissa_a_SOURCES_DIST = base/bench.cpp \
 	operations/gaugeconf.cpp operations/remap_vector.cpp \
 	operations/remez/remez_algorithm.cpp operations/shift.cpp \
 	operations/source.cpp operations/smearing/APE.cpp \
-	operations/smearing/HYP.cpp \
+	operations/smearing/gaussian.cpp operations/smearing/HYP.cpp \
 	operations/smearing/stout_common.cpp \
 	operations/smearing/stout_eo.cpp \
-	operations/smearing/stout_lx.cpp \
-	operations/smearing/gaussian.cpp \
+	operations/smearing/stout_lx.cpp operations/smearing/Wflow.cpp \
 	operations/stag/magnetization.cpp \
 	operations/stag/putpourri.cpp operations/stag/rendens.cpp \
 	operations/stag/spinpol.cpp operations/stag/stag.cpp \
@@ -476,11 +475,12 @@ am___top_builddir__lib_libnissa_a_OBJECTS = base/bench.$(OBJEXT) \
 	operations/remez/remez_algorithm.$(OBJEXT) \
 	operations/shift.$(OBJEXT) operations/source.$(OBJEXT) \
 	operations/smearing/APE.$(OBJEXT) \
+	operations/smearing/gaussian.$(OBJEXT) \
 	operations/smearing/HYP.$(OBJEXT) \
 	operations/smearing/stout_common.$(OBJEXT) \
 	operations/smearing/stout_eo.$(OBJEXT) \
 	operations/smearing/stout_lx.$(OBJEXT) \
-	operations/smearing/gaussian.$(OBJEXT) \
+	operations/smearing/Wflow.$(OBJEXT) \
 	operations/stag/magnetization.$(OBJEXT) \
 	operations/stag/putpourri.$(OBJEXT) \
 	operations/stag/rendens.$(OBJEXT) \
@@ -672,8 +672,9 @@ am__include_HEADERS_DIST = nissa.hpp base/bench.hpp base/close.hpp \
 	operations/contract/mesons_eight.hpp \
 	operations/contract/optimized_mesons_2pts.hpp \
 	operations/contract/site_contract.hpp \
-	operations/smearing/APE.hpp operations/smearing/HYP.hpp \
-	operations/smearing/stout.hpp operations/smearing/gaussian.hpp \
+	operations/smearing/APE.hpp operations/smearing/gaussian.hpp \
+	operations/smearing/HYP.hpp operations/smearing/stout.hpp \
+	operations/smearing/Wflow.hpp \
 	operations/stag/magnetization.hpp \
 	operations/stag/putpourri.hpp operations/stag/rendens.hpp \
 	operations/stag/spinpol.hpp operations/stag/stag.hpp \
@@ -911,8 +912,9 @@ include_HEADERS = nissa.hpp base/bench.hpp base/close.hpp \
 	operations/contract/mesons_eight.hpp \
 	operations/contract/optimized_mesons_2pts.hpp \
 	operations/contract/site_contract.hpp \
-	operations/smearing/APE.hpp operations/smearing/HYP.hpp \
-	operations/smearing/stout.hpp operations/smearing/gaussian.hpp \
+	operations/smearing/APE.hpp operations/smearing/gaussian.hpp \
+	operations/smearing/HYP.hpp operations/smearing/stout.hpp \
+	operations/smearing/Wflow.hpp \
 	operations/stag/magnetization.hpp \
 	operations/stag/putpourri.hpp operations/stag/rendens.hpp \
 	operations/stag/spinpol.hpp operations/stag/stag.hpp \
@@ -1046,11 +1048,10 @@ __top_builddir__lib_libnissa_a_SOURCES = base/bench.cpp base/close.cpp \
 	operations/gaugeconf.cpp operations/remap_vector.cpp \
 	operations/remez/remez_algorithm.cpp operations/shift.cpp \
 	operations/source.cpp operations/smearing/APE.cpp \
-	operations/smearing/HYP.cpp \
+	operations/smearing/gaussian.cpp operations/smearing/HYP.cpp \
 	operations/smearing/stout_common.cpp \
 	operations/smearing/stout_eo.cpp \
-	operations/smearing/stout_lx.cpp \
-	operations/smearing/gaussian.cpp \
+	operations/smearing/stout_lx.cpp operations/smearing/Wflow.cpp \
 	operations/stag/magnetization.cpp \
 	operations/stag/putpourri.cpp operations/stag/rendens.cpp \
 	operations/stag/spinpol.cpp operations/stag/stag.cpp \
@@ -1714,6 +1715,9 @@ operations/smearing/$(DEPDIR)/$(am__dirstamp):
 operations/smearing/APE.$(OBJEXT):  \
 	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
+operations/smearing/gaussian.$(OBJEXT):  \
+	operations/smearing/$(am__dirstamp) \
+	operations/smearing/$(DEPDIR)/$(am__dirstamp)
 operations/smearing/HYP.$(OBJEXT):  \
 	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
@@ -1726,7 +1730,7 @@ operations/smearing/stout_eo.$(OBJEXT):  \
 operations/smearing/stout_lx.$(OBJEXT):  \
 	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
-operations/smearing/gaussian.$(OBJEXT):  \
+operations/smearing/Wflow.$(OBJEXT):  \
 	operations/smearing/$(am__dirstamp) \
 	operations/smearing/$(DEPDIR)/$(am__dirstamp)
 operations/stag/$(am__dirstamp):
@@ -1998,6 +2002,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@operations/remez/$(DEPDIR)/remez_algorithm.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/APE.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/HYP.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/Wflow.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/gaussian.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout_common.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@operations/smearing/$(DEPDIR)/stout_eo.Po@am__quote@

@@ -28,17 +28,17 @@ namespace nissa
   //compute the staples for the link U_A_mu weighting them with rho
   void stout_smear_compute_weighted_staples(su3 staples,quad_su3 *conf,int A,int mu,stout_coeff_t rho)
   {
-    if(!check_edges_valid(conf)) crash("../communicate/communicate edges externally");
+    if(!check_edges_valid(conf)) crash("communicate edges externally");
     
     //put staples to zero
     su3_put_to_zero(staples);
     
     //summ the 6 staples, each weighted with rho (eq. 1)
     su3 temp1,temp2;
-    for(int nu=0;nu<4;nu++)                   //  E---F---C   
+    for(int nu=0;nu<4;nu++)                   //  E---F---C
       if(nu!=mu)                              //  |   |   | mu
-	{                                     //  D---A---B   
-	  int B=loclx_neighup[A][nu];         //        nu    
+	{                                     //  D---A---B
+	  int B=loclx_neighup[A][nu];         //        nu
 	  int F=loclx_neighup[A][mu];
 	  unsafe_su3_prod_su3(    temp1,conf[A][nu],conf[B][mu]);
 	  unsafe_su3_prod_su3_dag(temp2,temp1,         conf[F][nu]);
@@ -52,7 +52,7 @@ namespace nissa
 	}
   }
   
-  //compute the parameters needed to smear a link, that can be used to smear it or to compute the 
+  //compute the parameters needed to smear a link, that can be used to smear it or to compute the
   //partial derivative of the force
   void stout_smear_compute_staples(stout_link_staples *out,quad_su3 *conf,int A,int mu,stout_coeff_t rho)
   {

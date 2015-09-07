@@ -424,25 +424,60 @@ namespace nissa
     ~two_stage_computation_pos_t() {free();}
   };
   
-  //parameters to cool
+  typedef momentum_t stout_coeff_t[NDIM];
+  
+  //structure to store data for stouting
+  struct stout_link_staples
+  {
+    su3 C;
+    su3 Omega;
+    su3 Q;
+  };
+  
+  //parameters to stout
+  struct stout_pars_t
+  {
+    int nlev;
+    stout_coeff_t rho;
+  };
+  
+  //parameters to ape smear
+  struct ape_pars_t
+  {
+    int nlev;
+    double alpha;
+  };
+  
+  //structure to cool
   struct cool_pars_t
   {
-    int flag;
-    int nsteps;
     gauge_action_name_t gauge_action;
+    int nsteps;
     int overrelax_flag;
     double overrelax_exp;
-    int meas_each;
-    void reset()
-    {
-      flag=false;
-      nsteps=0;
-      gauge_action=WILSON_GAUGE_ACTION;
-      overrelax_flag=0;
-      overrelax_exp=1;
-      meas_each=1;
-    }
-    cool_pars_t(){reset();}
+  };
+  
+  //structure to wilson flow
+  struct Wflow_pars_t
+  {
+    double T,dt;
+  };
+  
+  //parameters to smooth a configuration
+  struct smooth_pars_t
+  {
+    enum method_t{UNSPEC_SMOOTH_METHOD,COOLING,STOUTING,WFLOWING};
+    
+    //basic
+    int flag;
+    double meas_each;
+    method_t method;
+    //pars
+    cool_pars_t cool_pars;
+    stout_pars_t stout_pars;
+    Wflow_pars_t Wflow_pars;
+    
+    smooth_pars_t() : flag(false),method(COOLING) {}
   };
   
   //rational approximation
@@ -538,7 +573,7 @@ namespace nissa
     int dir;
     int nhits;
     int use_ferm_conf_for_gluons;
-    cool_pars_t cool_pars;
+    smooth_pars_t smooth_pars;
   };
   
   //parameters to compute the magnetization
@@ -565,7 +600,7 @@ namespace nissa
   {
     int flag;
     char path[1024];
-    cool_pars_t cool_pars;
+    smooth_pars_t smooth_pars;
   };
   
   //holds temporal-spatial gauge smearing parameters
@@ -602,30 +637,6 @@ namespace nissa
     
     //intervals for rectanlge size and distance
     int size_min,size_max,size_step,dmax;
-  };
-  
-  typedef momentum_t stout_coeff_t[NDIM];
-  
-  //structure to store data for stouting
-  struct stout_link_staples
-  {
-    su3 C;
-    su3 Omega;
-    su3 Q;
-  };
-  
-  //parameters to stout
-  struct stout_pars_t
-  {
-    int nlev;
-    stout_coeff_t rho;
-  };
-  
-  //parameters to ape smear
-  struct ape_pars_t
-  {
-    int nlev;
-    double alpha;
   };
   
   //storable vector

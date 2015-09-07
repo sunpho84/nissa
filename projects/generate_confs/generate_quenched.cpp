@@ -422,7 +422,7 @@ void init_simulation(char *path)
   
   //read the topology measures info
   read_top_meas_pars(top_meas_pars);
-  if(top_meas_pars.flag) init_sweeper(top_meas_pars.cool_pars.gauge_action);
+  if(top_meas_pars.flag) init_sweeper(top_meas_pars.smooth_pars.cool_pars.gauge_action);
   
   //read X space correlation measurement
   read_str_int("MeasXCorr",&x_corr_flag);

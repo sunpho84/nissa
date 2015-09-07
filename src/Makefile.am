@@ -407,11 +407,12 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/shift.cpp \
 	operations/source.cpp \
 	operations/smearing/APE.cpp \
+	operations/smearing/gaussian.cpp \
 	operations/smearing/HYP.cpp \
 	operations/smearing/stout_common.cpp \
 	operations/smearing/stout_eo.cpp \
 	operations/smearing/stout_lx.cpp \
-	operations/smearing/gaussian.cpp \
+	operations/smearing/Wflow.cpp \
 	operations/stag/magnetization.cpp \
 	operations/stag/putpourri.cpp \
 	operations/stag/rendens.cpp \
@@ -447,9 +448,10 @@ include_HEADERS+= \
 	operations/contract/optimized_mesons_2pts.hpp \
 	operations/contract/site_contract.hpp \
 	operations/smearing/APE.hpp \
+	operations/smearing/gaussian.hpp \
 	operations/smearing/HYP.hpp \
 	operations/smearing/stout.hpp \
-	operations/smearing/gaussian.hpp \
+	operations/smearing/Wflow.hpp \
 	operations/stag/magnetization.hpp \
 	operations/stag/putpourri.hpp \
 	operations/stag/rendens.hpp \
