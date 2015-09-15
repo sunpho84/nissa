@@ -26,18 +26,18 @@
 
 /*
   rotate a field anti-clockwise by 90 degrees
-
-   0---1---2---0        0---6---3---0     
-   |   |   |   |        |   |   |   |            	
+  
+   0---1---2---0        0---6---3---0
+   |   |   |   |        |   |   |   |
    6---7---8---6        2---8---5---2
-   |   |   |   |        |   |   |   |     	
-   3---4---5---3        1---7---4---1     
-   |   |   |   |        |   |   |   |     	
-   O---1---2---0        O---6---3---0     
-
+   |   |   |   |        |   |   |   |
+   3---4---5---3        1---7---4---1
+   |   |   |   |        |   |   |   |
+   O---1---2---0        O---6---3---0
+   
    d2
    O d1
-
+   
    where d1=axis+1
    and   d2=d1+1
    
@@ -47,7 +47,7 @@ namespace nissa
 {
   void ac_rotate_vector(void *out,void *in,int axis,size_t bps)
   {
-    //find the two swapping direction 
+    //find the two swapping direction
     int d1=1+(axis-1+1)%3;
     int d2=1+(axis-1+2)%3;
     
@@ -85,19 +85,18 @@ namespace nissa
     nissa_free(xto);
   }
   
-  
   /*
     rotate the gauge configuration anti-clockwise by 90 degrees
     this is more complicated than a single vector because of link swaps
     therefore the rotation is accomplished through 2 separates steps
     
-    .---.---.---.     .---.---.---.       .---.---.---.     
-    |           |     |           |       |           |            	
-    .   B 3 C   .     .   B 2'C   .       .   C 4'D   .     
-    |   2   4   |     |   1   3   |       |   3   1   |     	
-    .   A 1 D   .     .   A 4'D   .       .   B 2'A   .     
-    |           |     |           |       |           |     	
-    O---.---.---.     O---.---.---.       O---.---.---.     
+    .---.---.---.     .---.---.---.       .---.---.---.
+    |           |     |           |       |           |
+    .   B 3 C   .     .   B 2'C   .       .   C 4'D   .
+    |   2   4   |     |   1   3   |       |   3   1   |
+    .   A 1 D   .     .   A 4'D   .       .   B 2'A   .
+    |           |     |           |       |           |
+    O---.---.---.     O---.---.---.       O---.---.---.
     
     d2
     O d1
@@ -134,8 +133,8 @@ namespace nissa
   //put boundary conditions on the gauge conf
   void put_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges)
   {
-    complex theta[4];
-    for(int idir=0;idir<4;idir++)
+    complex theta[NDIM];
+    for(int idir=0;idir<NDIM;idir++)
       {
 	theta[idir][0]=cos(theta_in_pi[idir]*M_PI/glb_size[idir]);
 	theta[idir][1]=sin(theta_in_pi[idir]*M_PI/glb_size[idir]);
@@ -146,7 +145,7 @@ namespace nissa
     if(putonedges) nsite+=edge_vol;
     
     for(int ivol=0;ivol<nsite;ivol++)
-      for(int idir=0;idir<4;idir++) safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
+      for(int idir=0;idir<NDIM;idir++) safe_su3_prod_complex(conf[ivol][idir],conf[ivol][idir],theta[idir]);
     
     if(!putonbords) set_borders_invalid(conf);
     if(!putonedges) set_edges_invalid(conf);
@@ -154,17 +153,17 @@ namespace nissa
   
   void rem_boundaries_conditions(quad_su3 *conf,double *theta_in_pi,int putonbords,int putonedges)
   {
-    double meno_theta_in_pi[4]={-theta_in_pi[0],-theta_in_pi[1],-theta_in_pi[2],-theta_in_pi[3]};
-    put_boundaries_conditions(conf,meno_theta_in_pi,putonbords,putonedges);
+    momentum_t minus_theta_in_pi={-theta_in_pi[0],-theta_in_pi[1],-theta_in_pi[2],-theta_in_pi[3]};
+    put_boundaries_conditions(conf,minus_theta_in_pi,putonbords,putonedges);
   }
   
   //Adapt the border condition
   void adapt_theta(quad_su3 *conf,double *old_theta,double *put_theta,int putonbords,int putonedges)
   {
-    double diff_theta[4];
+    momentum_t diff_theta;
     int adapt=0;
     
-    for(int idir=0;idir<4;idir++)
+    for(int idir=0;idir<NDIM;idir++)
       {
 	adapt=adapt || (old_theta[idir]!=put_theta[idir]);
 	diff_theta[idir]=put_theta[idir]-old_theta[idir];
@@ -184,7 +183,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	NISSA_LOC_VOLH_LOOP(ivol)
-	  for(int mu=0;mu<4;mu++)
+	  for(int mu=0;mu<NDIM;mu++)
 	    su3_put_to_id(conf[par][ivol][mu]);
 	
 	set_borders_invalid(conf[par]);
@@ -201,7 +200,7 @@ namespace nissa
 	NISSA_LOC_VOLH_LOOP(ieo)
         {
 	  int ilx=loclx_of_loceo[par][ieo];
-	  for(int mu=0;mu<4;mu++)
+	  for(int mu=0;mu<NDIM;mu++)
 	    su3_put_to_rnd(conf[par][ieo][mu],loc_rnd_gen[ilx]);
 	}
 	
@@ -213,7 +212,7 @@ namespace nissa
   void generate_cold_lx_conf(quad_su3 *conf)
   {
     NISSA_LOC_VOL_LOOP(ivol)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	su3_put_to_id(conf[ivol][mu]);
 	
     set_borders_invalid(conf);
@@ -225,7 +224,7 @@ namespace nissa
     if(loc_rnd_gen_inited==0) crash("random number generator not inited");
     
     NISSA_LOC_VOL_LOOP(ivol)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	su3_put_to_rnd(conf[ivol][mu],loc_rnd_gen[ivol]);
 	
     set_borders_invalid(conf);
@@ -235,7 +234,7 @@ namespace nissa
   void heatbath_or_overrelax_conf_Wilson_action(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over)
   {
     //loop on directions and on parity
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       for(int par=0;par<2;par++)
 	{
 	  NISSA_LOC_VOLH_LOOP(ieo)
@@ -257,7 +256,7 @@ namespace nissa
 	    su3_copy(eo_conf[par][ieo][mu],new_link);
 	  }
 	  
-	  //set the borders invalid: since we split conf in e/o, only now needed                                                                                              
+	  //set the borders invalid: since we split conf in e/o, only now needed
 	  set_borders_invalid(eo_conf[par]);
 	}
   }
@@ -281,7 +280,7 @@ namespace nissa
   THREADABLE_FUNCTION_4ARG(cool_eo_conf, quad_su3*,eo_conf, gauge_action_name_t,gauge_action_name, int,over_flag, double,over_exp)
   {crash("not implemented");}
   THREADABLE_FUNCTION_END
-    
+  
   //heatbath or overrelax algorithm for the quenched simulation case
   void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over)
   {
@@ -313,7 +312,7 @@ namespace nissa
     double loc_avg=0,loc_max=0,loc_nbroken=0;
     
     NISSA_LOC_VOL_LOOP(ivol)
-      for(int idir=0;idir<4;idir++)
+      for(int idir=0;idir<NDIM;idir++)
 	{
 	  double err=su3_get_non_unitariness(conf[ivol][idir]);
 	  
@@ -324,18 +323,18 @@ namespace nissa
 	}
         
     //take global average and print
-    result.average_diff=glb_reduce_double(loc_avg)/glb_vol/4;
+    result.average_diff=glb_reduce_double(loc_avg)/glb_vol/NDIM;
     result.max_diff=glb_max_double(loc_max);
     result.nbroken_links=(int)glb_max_double(loc_nbroken);
   }
-
+  
   //unitarize an a lx conf
   THREADABLE_FUNCTION_1ARG(unitarize_lx_conf_orthonormalizing, quad_su3*,conf)
   {
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int idir=0;idir<4;idir++)
+      for(int idir=0;idir<NDIM;idir++)
 	{
 	  su3 t;
 	  su3_unitarize_orthonormalizing(t,conf[ivol][idir]);
@@ -351,13 +350,13 @@ namespace nissa
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
         su3_unitarize_maximal_trace_projecting(conf[ivol][mu],conf[ivol][mu]);
     
     set_borders_invalid(conf);
   }
   THREADABLE_FUNCTION_END
-
+  
   //eo version
   THREADABLE_FUNCTION_1ARG(unitarize_eo_conf_maximal_trace_projecting, quad_su3**,conf)
   {
@@ -366,12 +365,12 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
         NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-          for(int mu=0;mu<4;mu++)
+          for(int mu=0;mu<NDIM;mu++)
             su3_unitarize_maximal_trace_projecting(conf[par][ivol][mu],conf[par][ivol][mu]);
         
         set_borders_invalid(conf[par]);
       }
   }
   THREADABLE_FUNCTION_END
-
+  
 }

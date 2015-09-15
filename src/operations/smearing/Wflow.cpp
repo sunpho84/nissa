@@ -16,8 +16,6 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    communicate_lx_quad_su3_edges(conf);
-    
     //storage for staples
     quad_su3 *arg=nissa_malloc("arg",loc_vol,quad_su3);
     vector_reset(arg);
@@ -29,6 +27,8 @@ namespace nissa
     
     for(int iter=0;iter<3;iter++)
       {
+	communicate_lx_quad_su3_edges(conf);
+	
 	//add the new argument of the exponential to the old one
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	  for(int mu=0;mu<4;mu++)

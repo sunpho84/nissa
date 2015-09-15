@@ -19,6 +19,7 @@
 #include "new_types/su3.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/smearing/stout.hpp"
+#include "operations/smearing/Wflow.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
@@ -455,6 +456,7 @@ namespace nissa
     smooth_pars_t sp=pars.smooth_pars;
     cool_pars_t cop=sp.cool_pars;
     stout_pars_t stp=sp.stout_pars;
+    Wflow_pars_t wfp=sp.Wflow_pars;
     switch(sp.method)
       {
       case smooth_pars_t::COOLING:
@@ -463,10 +465,10 @@ namespace nissa
 	    if(istep%int_each==0)
 	      {
 		double tot_charge;
+		double plaq=global_plaquette_lx_conf(smoothed_conf);
 		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		master_fprintf(file,"%d %d %16.16lg\n",iconf,istep,tot_charge);
-		verbosity_lv2_master_printf("Topological charge after %d cooling steps: %16.16lg, "
-					    "plaquette: %16.16lg\n",istep,tot_charge,global_plaquette_lx_conf(smoothed_conf));
+		master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,istep,tot_charge,plaq);
+		verbosity_lv2_master_printf("Topological charge after %d cooling steps: +%16.16lg, plaquette: %16.16lg\n",istep,tot_charge,plaq);
 	      }
 	    if(istep!=cop.nsteps) cool_lx_conf(smoothed_conf,cop.gauge_action,cop.overrelax_flag,cop.overrelax_exp);
 	  }
@@ -474,18 +476,35 @@ namespace nissa
       case smooth_pars_t::STOUTING:
 	for(int int_each=int(sp.meas_each),ilev=0;ilev<=(stp.nlev/int_each)*int_each;ilev++)
 	  {
+	    //fix to stout for "meas_each"
+	    stout_pars_t iter_pars=stp;
+	    iter_pars.nlev=sp.meas_each;
+	    
 	    if(ilev%int_each==0)
 	      {
 		double tot_charge;
+		double plaq=global_plaquette_lx_conf(smoothed_conf);
 		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		master_fprintf(file,"%d %d %16.16lg\n",iconf,ilev,tot_charge);
-		verbosity_lv2_master_printf("Topological charge after %d stouting levels: %16.16lg, "
-					    "plaquette: %16.16lg\n",ilev,tot_charge,global_plaquette_lx_conf(smoothed_conf));
+		master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,ilev,tot_charge,plaq);
+		verbosity_lv2_master_printf("Topological charge after %d stouting levels: %+16.16lg, plaquette: %16.16lg\n",ilev,tot_charge,plaq);
 	      }
-	    if(ilev!=stp.nlev) stout_smear(smoothed_conf,smoothed_conf,&stp);
+	    if(ilev!=stp.nlev) stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
 	  }
 	break;
       case smooth_pars_t::WFLOWING:
+	for(double dt=wfp.dt,tmeas=-dt/2,t=0;t<wfp.T;t+=dt)
+	  {
+	    if(tmeas<t)
+	      {
+		tmeas+=sp.meas_each;
+		double tot_charge;
+		double plaq=global_plaquette_lx_conf(smoothed_conf);
+		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
+		master_fprintf(file,"%d %lg %+16.16lg %16.16lg\n",iconf,t,tot_charge,plaq);
+		verbosity_lv2_master_printf("Topological charge after %lg time of flow: +%16.16lg, plaquette: %16.16lg\n",t,tot_charge,plaq);
+	      }
+	    Wflow_lx_conf(smoothed_conf,dt);
+	  }
 	break;
       default:
 	crash("should have not arrived here");
@@ -536,10 +555,10 @@ namespace nissa
     vector_reset(staples);
     NISSA_PARALLEL_LOOP(A,0,loc_vol)
       for(int mu=0;mu<4;mu++) //link direction
-	for(int inu=0;inu<3;inu++)                   //  E---F---C   
+	for(int inu=0;inu<3;inu++)                   //  E---F---C
 	  {                                          //  |   |   | mu
-	    int nu=perp_dir[mu][inu];                //  D---A---B   
-	    //this gives the other pair element      //        nu    
+	    int nu=perp_dir[mu][inu];                //  D---A---B
+	    //this gives the other pair element      //        nu
 	    int iplan=plan_perp[mu][inu];
 	    
 	    //takes neighbours

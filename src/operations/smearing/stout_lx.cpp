@@ -5,23 +5,32 @@
 #include <math.h>
 #include <complex>
 
-#include "operations/su3_paths/plaquette.hpp"
-
-#include "communicate/communicate.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "communicate/communicate.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
+#include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
 #include "stout.hpp"
 
+/*
+  
+  
+  
+  white space needed for macros to work
+  
+  
+  
+*/
 
 namespace nissa
 {
@@ -35,13 +44,13 @@ namespace nissa
     
     //summ the 6 staples, each weighted with rho (eq. 1)
     su3 temp1,temp2;
-    for(int nu=0;nu<4;nu++)                   //  E---F---C
-      if(nu!=mu)                              //  |   |   | mu
-	{                                     //  D---A---B
-	  int B=loclx_neighup[A][nu];         //        nu
+    for(int inu=0;inu<NDIM-1;inu++)                   //  E---F---C
+      {                                               //  |   |   | mu
+	int nu=perp_dir[mu][inu];                     //  D---A---B
+	  int B=loclx_neighup[A][nu];                 //        nu
 	  int F=loclx_neighup[A][mu];
 	  unsafe_su3_prod_su3(    temp1,conf[A][nu],conf[B][mu]);
-	  unsafe_su3_prod_su3_dag(temp2,temp1,         conf[F][nu]);
+	  unsafe_su3_prod_su3_dag(temp2,temp1,      conf[F][nu]);
 	  su3_summ_the_prod_double(staples,temp2,rho[mu][nu]);
 	  
 	  int D=loclx_neighdw[A][nu];
@@ -87,18 +96,22 @@ namespace nissa
       }
       else in=ext_in;
     
-    for(int mu=0;mu<4;mu++)
+    double force_norm=0;
+    for(int mu=0;mu<NDIM;mu++)
       NISSA_PARALLEL_LOOP(A,0,loc_vol)
 	{
 	  //compute the staples needed to smear
 	  stout_link_staples sto_ste;
 	  stout_smear_compute_staples(&sto_ste,in,A,mu,*rho);
+	  force_norm+=su3_norm2(sto_ste.Q);
 	  
 	  //exp(iQ)*U (eq. 3)
 	  su3 expiQ;
 	  safe_anti_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
 	  unsafe_su3_prod_su3(out[A][mu],expiQ,in[A][mu]);
 	}
+    force_norm=sqrt(glb_reduce_double(force_norm)/(NDIM*glb_vol));
+    master_printf("Stout force norm: %lg\n",force_norm);
     
     //invalid the border and free allocated memory, if any
     set_borders_invalid(out);
@@ -113,7 +126,7 @@ namespace nissa
 #endif
   }
   THREADABLE_FUNCTION_END
-
+  
   //smear n times, using only one additional vectors
   THREADABLE_FUNCTION_3ARG(stout_smear, quad_su3*,ext_out, quad_su3*,ext_in, stout_pars_t*,stout_pars)
   {
@@ -150,7 +163,7 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
-
+  
   //allocate all the stack for smearing
   THREADABLE_FUNCTION_3ARG(stout_smear_conf_stack_allocate, quad_su3***,out, quad_su3*,in, int,nlev)
   {
@@ -160,7 +173,7 @@ namespace nissa
       (*out)[i]=nissa_malloc("out",loc_vol+bord_vol+edge_vol,quad_su3);
   }
   THREADABLE_FUNCTION_END
-
+  
   //free all the stack of allocated smeared conf
   THREADABLE_FUNCTION_2ARG(stout_smear_conf_stack_free, quad_su3***,out, int,nlev)
   {
@@ -268,7 +281,7 @@ namespace nissa
 		unsafe_su3_prod_su3_dag(temp2,temp1,conf[f2][mu]);
 		unsafe_su3_prod_su3_dag(temp3,temp2,conf[f3][nu]);
 		su3_summ_the_prod_idouble(F[A][mu],temp3,+(*rho)[nu][mu]);
-		  
+		
 		//sixth term, insertion on f2 along mu
 		unsafe_su3_prod_su3_dag(temp1,conf[f1][nu],conf[f2][mu]);
 		unsafe_su3_prod_su3(temp2,temp1,Lambda[f2][mu]);
@@ -279,7 +292,7 @@ namespace nissa
     nissa_free(Lambda);
   }
   THREADABLE_FUNCTION_END
-
+  
   //remap iteratively the force, adding the missing pieces of the chain rule derivation
   THREADABLE_FUNCTION_3ARG(stouted_force_remap, quad_su3*,F, quad_su3**,sme_conf, stout_pars_t*,stout_pars)
   {
@@ -298,7 +311,7 @@ namespace nissa
 #ifdef BENCH
     if(IS_MASTER_THREAD)
       {
-	sto_remap_time+=take_time();  
+	sto_remap_time+=take_time();
 	nsto_remap++;
       }
 #endif

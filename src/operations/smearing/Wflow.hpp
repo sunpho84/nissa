@@ -5,7 +5,7 @@
 
 namespace nissa
 {
-  void Wflow_lx_conf(quad_su3 *conf,double T,double dt);
+  void Wflow_lx_conf(quad_su3 *conf,double dt);
 }
 
 #endif

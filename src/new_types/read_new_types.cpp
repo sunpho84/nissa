@@ -55,8 +55,8 @@ namespace nissa
 	  {
 	    double rho;
 	    read_str_double("StoutRho",&rho);
-	    for(int i=0;i<4;i++)
-	      for(int j=0;j<4;j++)
+	    for(int i=0;i<NDIM;i++)
+	      for(int j=0;j<NDIM;j++)
 		stout_pars.rho[i][j]=rho;
 	  }
 	else crash("Anisotropic stouting not yet implemented");

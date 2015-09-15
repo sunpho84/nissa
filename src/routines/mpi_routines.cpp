@@ -230,14 +230,14 @@ namespace nissa
     //first destroy on non-sending
     if(rank_from!=rank && rat->degree!=0) rat_approx_destroy(rat);
     THREAD_BARRIER(); //need to barrier to avoid race condition when later "rat-degree" is update through mpi_bcast
-
+    
     //get degree
     if(IS_MASTER_THREAD) MPI_Bcast(&(rat->degree),1,MPI_INT,rank_from,MPI_COMM_WORLD);
     THREAD_BARRIER(); //need to barrier because "create" is collective call
-
+    
     //allocate if not generated here
     if(rank_from!=rank)	rat_approx_create(rat,rat->degree,NULL);
-	
+    
     //and now broadcast the remaining part
     if(IS_MASTER_THREAD)
       {
@@ -253,7 +253,7 @@ namespace nissa
       }
     THREAD_BARRIER();
   }
-
+  
   //reduce a double
   double glb_reduce_double(double in_loc)
   {

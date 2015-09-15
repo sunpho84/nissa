@@ -14,6 +14,7 @@ using namespace nissa;
 gauge_obs_meas_pars_t gauge_obs_meas_pars;
 poly_corr_meas_pars_t poly_corr_meas_pars;
 int ntop_meas;
+double *top_meas_time;
 top_meas_pars_t *top_meas_pars;
 all_rect_meas_pars_t all_rect_meas_pars;
 watusso_meas_pars_t watusso_meas_pars;
@@ -194,7 +195,7 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
       
       //reset conf id
       itraj=0;
-    }  
+    }
 }
 
 //init the program in the "analysis" mode
@@ -217,7 +218,7 @@ void init_simulation(char *path)
   //open input file
   open_input(path);
   
-  //init the grid 
+  //init the grid
   int L;
   read_str_int("L",&L);
   if(L>0)
@@ -258,6 +259,8 @@ void init_simulation(char *path)
   //read if we want to measure topological charge
   read_str_int("NTopMeas",&ntop_meas);
   top_meas_pars=nissa_malloc("top_meas_pars",ntop_meas,top_meas_pars_t);
+  top_meas_time=nissa_malloc("top_meas_time",ntop_meas,double);
+  vector_reset(top_meas_time);
   for(int itop=0;itop<ntop_meas;itop++) read_top_meas_pars(top_meas_pars[itop]);
   
   //read if we want to measure all rectangles
@@ -312,7 +315,7 @@ void init_simulation(char *path)
   close_input();
   
   ////////////////////////// allocate stuff ////////////////////////
-   
+  
   //allocate the conf
   conf[0]=nissa_malloc("conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
   conf[1]=nissa_malloc("conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
@@ -369,9 +372,13 @@ void close_simulation()
     }
   
   //destroy rational approximations
-  if(ntraj_tot && ntraj_prod)
+  if(ntraj_tot)
     for(int i=0;i<theory_pars[SEA_THEORY].nflavs*3;i++)
       rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
+  
+  //destroy topo pars
+  nissa_free(top_meas_pars);
+  nissa_free(top_meas_time);
   
   //unset theories
   for(int itheory=0;itheory<ntheories;itheory++)
@@ -454,8 +461,7 @@ void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action
   complex pol;
   average_polyakov_loop_eo_conf(pol,conf,0);
   
-  master_fprintf(file,"%d\t%d\t%016.16lg\t%016.16lg\t%+016.16lg\t%+016.16lg\n",
-		 iconf,acc,paths[0],paths[1],pol[0],pol[1]);
+  master_fprintf(file,"%d\t%d\t%016.16lg\t%016.16lg\t%+016.16lg\t%+016.16lg\n",iconf,acc,paths[0],paths[1],pol[0],pol[1]);
   
   if(rank==0) fclose(file);
 }
@@ -500,7 +506,15 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
   
   if(gauge_obs_meas_pars.flag) if(iconf%gauge_obs_meas_pars.flag==0) measure_gauge_obs(gauge_obs_meas_pars.path,conf,iconf,acc,gauge_action_name);
   if(poly_corr_meas_pars.flag) if(iconf%poly_corr_meas_pars.flag==0) measure_poly_corrs(poly_corr_meas_pars,conf,conf_created);
-  for(int i=0;i<ntop_meas;i++) if(top_meas_pars[i].flag) if(iconf%top_meas_pars[i].flag==0) measure_topology_eo_conf(top_meas_pars[i],conf,iconf,conf_created);
+  for(int i=0;i<ntop_meas;i++)
+    if(top_meas_pars[i].flag)
+      if(iconf%top_meas_pars[i].flag==0)
+	{
+	  top_meas_time[i]-=take_time();
+	  measure_topology_eo_conf(top_meas_pars[i],conf,iconf,conf_created);
+	  top_meas_time[i]+=take_time();
+	}
+
   if(all_rect_meas_pars.flag) if(iconf%all_rect_meas_pars.flag==0) measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
   if(watusso_meas_pars.flag) measure_watusso(&watusso_meas_pars,conf,iconf,conf_created);
   
@@ -733,6 +747,7 @@ void in_main(int narg,char **arg)
 		nglu_comp,glu_comp_time,glu_comp_time/std::max(nglu_comp,1));
   master_printf("time to write %d configurations: %lg, %lg per conf\n",
 		nwritten_conf,write_conf_time,write_conf_time/std::max(nwritten_conf,1)); 
+  for(int i=0;i<ntop_meas;i++) master_printf("time to perform the %d topo meas (%s): %lg\n",i,top_meas_pars[i].path,top_meas_time[i]);
 #endif
   
   close_simulation();
