@@ -27,6 +27,9 @@
 /* "GMP library" */
 #undef GMP_HIGH_PREC
 
+/* define if the compiler supports basic C++11 syntax */
+#undef HAVE_CXX11
+
 /* Define to 1 if you have the <fftw3.h> header file. */
 #undef HAVE_FFTW3_H
 

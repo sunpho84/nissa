@@ -471,7 +471,7 @@ namespace nissa
 		master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,istep,tot_charge,plaq);
 		verbosity_lv2_master_printf("Topological charge after %d cooling steps: +%16.16lg, plaquette: %16.16lg\n",istep,tot_charge,plaq);
 	      }
-	    if(istep!=cop.nsteps) get_sweeper(cop.gauge_action)->sweep_conf(smoothed_conf,[](su3 out,su3 in,int ivol,int mu){su3_unitarize_maximal_trace_projecting_iteration(out,in);});
+	    if(istep!=cop.nsteps) cool_lx_conf(smoothed_conf,get_sweeper(cop.gauge_action));
 	  }
 	break;
       case smooth_pars_t::STOUTING:

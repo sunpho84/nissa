@@ -607,12 +607,12 @@ void generate_new_conf(quad_su3 *conf,int check=0)
   else
     {
       //number of hb sweeps
-      for(int isweep=0;isweep<evol_pars.nhb_sweeps;isweep++) heatbath_lx_conf(sweeper,conf,theory_pars.beta,evol_pars.nhb_hits);
+      for(int isweep=0;isweep<evol_pars.nhb_sweeps;isweep++) heatbath_lx_conf(conf,sweeper,theory_pars.beta,evol_pars.nhb_hits);
       
       //numer of overrelax sweeps
       double paths[2],action_pre=0;
       if(check&&evol_pars.nov_sweeps) action_pre=compute_action(paths);
-      for(int isweep=0;isweep<evol_pars.nov_sweeps;isweep++) overrelax_lx_conf(sweeper,conf,evol_pars.nov_hits);
+      for(int isweep=0;isweep<evol_pars.nov_sweeps;isweep++) overrelax_lx_conf(conf,sweeper,evol_pars.nov_hits);
       
       //check action variation
       if(check&&evol_pars.nov_sweeps)

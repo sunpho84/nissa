@@ -285,13 +285,17 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //overrelax an lx configuration
-  THREADABLE_FUNCTION_3ARG(overrelax_lx_conf, gauge_sweeper_t*,sweeper, quad_su3*,conf, int,nhits)
+  THREADABLE_FUNCTION_3ARG(overrelax_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper, int,nhits)
   {sweeper->sweep_conf(conf,[nhits](su3 out,su3 staple,int ivol,int mu){su3_find_overrelaxed(out,out,staple,nhits);});}
   THREADABLE_FUNCTION_END
   
   //same for heatbath
-  THREADABLE_FUNCTION_4ARG(heatbath_lx_conf, gauge_sweeper_t*,sweeper, quad_su3*,conf, double,beta, int,nhits)
+  THREADABLE_FUNCTION_4ARG(heatbath_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper, double,beta, int,nhits)
   {sweeper->sweep_conf(conf,[beta,nhits](su3 out,su3 staple,int ivol,int mu){su3_find_heatbath(out,out,staple,beta,nhits,loc_rnd_gen+ivol);});}
   THREADABLE_FUNCTION_END
-
+  
+  //same for cooling
+  THREADABLE_FUNCTION_2ARG(cool_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper)
+  {sweeper->sweep_conf(conf,[](su3 out,su3 staple,int ivol,int mu){su3_unitarize_maximal_trace_projecting_iteration(out,staple);});}
+  THREADABLE_FUNCTION_END
 }
