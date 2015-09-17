@@ -46,7 +46,7 @@ namespace nissa
   EXTERN coords box_coord[1<<NDIM];
   EXTERN coords box_size[1<<NDIM];
   EXTERN int nsite_per_box[1<<NDIM];
-  EXTERN gauge_sweeper_t *tlSym_sweeper,*Wilson_sweeper;
+  
 #ifdef USE_VNODES
   EXTERN int vir_geom_inited;
 #endif
@@ -60,13 +60,6 @@ namespace nissa
   EXTERN coords *loceo_neighdw[2];
   EXTERN int eo_geom_inited;
   EXTERN int use_eo_geom;
-  
-  //local direction geometry
-  
-  EXTERN vector_remap_t *remap_lx_to_locd[NDIM];
-  EXTERN vector_remap_t *remap_locd_to_lx[NDIM];
-  EXTERN int max_locd_perp_size_per_dir[NDIM],locd_perp_size_per_dir[NDIM];
-  EXTERN int max_locd_size;
   
   //neighbours of local volume + borders
   EXTERN coords *loclx_neighdw,*loclx_neighup;

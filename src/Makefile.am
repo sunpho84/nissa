@@ -202,10 +202,10 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/gauge/gluonic_force.cpp \
 	hmc/gauge/pure_gauge_hmc_step.cpp \
 	hmc/gauge/pure_gauge_omelyan_integrator.cpp \
+	hmc/gauge/Symanzik_force.cpp \
+	hmc/gauge/Symanzik_action.cpp \
 	hmc/gauge/topological_action.cpp \
 	hmc/gauge/topological_force.cpp \
-	hmc/gauge/tree_level_Symanzik_force.cpp \
-	hmc/gauge/tree_level_Symanzik_action.cpp \
 	hmc/gauge/Wilson_action.cpp \
 	hmc/gauge/Wilson_force.cpp \
 	hmc/momenta/momenta_action.cpp \
@@ -226,10 +226,10 @@ include_HEADERS+= \
 	hmc/gauge/gluonic_force.hpp \
 	hmc/gauge/pure_gauge_hmc_step.hpp \
 	hmc/gauge/pure_gauge_omelyan_integrator.hpp \
+	hmc/gauge/Symanzik_force.hpp \
+	hmc/gauge/Symanzik_action.hpp \
 	hmc/gauge/topological_action.hpp \
 	hmc/gauge/topological_force.hpp \
-	hmc/gauge/tree_level_Symanzik_force.hpp \
-	hmc/gauge/tree_level_Symanzik_action.hpp \
 	hmc/gauge/Wilson_action.hpp \
 	hmc/gauge/Wilson_force.hpp \
 	hmc/momenta/momenta_action.hpp \

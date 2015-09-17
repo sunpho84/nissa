@@ -69,7 +69,7 @@ namespace nissa
     verbosity_lv2_master_printf("Gauge action: %lg\n",init_action_G);
     double init_action=init_action_G+init_action_H+init_action_phi+init_action_pi;
     verbosity_lv2_master_printf("Init action: %lg\n",init_action);
-
+    
     //evolve forward
     if(evol_pars.use_Facc) omelyan_pure_gauge_Facc_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
     else                   omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);

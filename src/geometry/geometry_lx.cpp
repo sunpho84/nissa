@@ -10,6 +10,8 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "new_types/su3.hpp"
+#include "operations/remap_vector.hpp"
+#include "operations/su3_paths/gauge_sweeper.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -37,7 +39,7 @@ namespace nissa
   //Return the index of site of coord x in the border mu
   int bordlx_of_coord(int *x,int mu)
   {
-    int ilx=0;  
+    int ilx=0;
     for(int nu=0;nu<NDIM;nu++)
       if(nu!=mu)
 	ilx=ilx*loc_size[nu]+x[nu];
@@ -434,7 +436,7 @@ namespace nissa
     
     //create the sweepers but do not fully initialize
     Wilson_sweeper=new gauge_sweeper_t;
-    tlSym_sweeper=new gauge_sweeper_t;
+    Symanzik_sweeper=new gauge_sweeper_t;
     
     //set locd geom (one of the dimension local and fastest running, the other as usual)
     max_locd_size=0;
@@ -510,7 +512,7 @@ namespace nissa
     nissa_free(loclx_of_bw_surflx);
     
     delete Wilson_sweeper;
-    delete tlSym_sweeper;
+    delete Symanzik_sweeper;
   }
   
   //definitions of lexical ordered senders for edges

@@ -17,8 +17,9 @@
 #ifdef USE_VNODES
  #include "geometry/geometry_vir.hpp"
 #endif
-#include "hmc/gauge/tree_level_Symanzik_force.hpp"
-#include "hmc/gauge/tree_level_Symanzik_action.hpp"
+#include "hmc/gauge/Symanzik_force.hpp"
+#include "hmc/gauge/Symanzik_action.hpp"
+#include "operations/remap_vector.hpp"
 #include "routines/ios.hpp"
 
 #if FFT_TYPE == FFTW_FFT

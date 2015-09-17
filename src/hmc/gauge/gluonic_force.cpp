@@ -6,13 +6,15 @@
 #include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "hmc/gauge/Wilson_force.hpp"
-#include "hmc/gauge/tree_level_Symanzik_force.hpp"
+#include "hmc/gauge/Symanzik_force.hpp"
 #include "hmc/backfield.hpp"
 #include "new_types/su3.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
+
+#include "gluonic_action.hpp"
 
 namespace nissa
 {
@@ -25,7 +27,7 @@ namespace nissa
     if(phase_pres) addrem_stagphases_to_lx_conf(conf);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	{
 	  su3 temp;
 	  unsafe_su3_prod_su3(temp,conf[ivol][mu],F[ivol][mu]);
@@ -37,7 +39,7 @@ namespace nissa
     else THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-
+  
   //it's not working and communications seems to make it go onli 50% faster than the normal way
 #ifdef BGQNONONONONONONNONO 
   //compute the gauge action - bgq version
@@ -52,7 +54,7 @@ namespace nissa
 	glu_comp_time-=take_time();
       }
 #endif
-
+    
     //take notes of ingredients
     void(*compute_force)(su3,su3,bi_su3*,double,bool);
     gauge_sweeper_t *gs;
@@ -73,7 +75,7 @@ namespace nissa
     
     //new version
     if(!gs->packing_inited) crash("you have to init packing");
-
+    
     int ibase=0;
     for(int ibox=0;ibox<16;ibox++)
       {
@@ -85,14 +87,14 @@ namespace nissa
 	    gs->comm_time+=take_time();
 	    gs->comp_time-=take_time();
 	  }
-	for(int dir=0;dir<4;dir++)
+	for(int dir=0;dir<NDIM;dir++)
 	  for(int par=0;par<gs->gpar;par++)
 	    {
-	      int box_dir_par_size=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+4*ibox)];
+	      int box_dir_par_size=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+NDIM*ibox)];
 	      
 	      //pack
 	      gs->pack_links(conf,ibase,box_dir_par_size);
-
+	      
 	      //finding half box_dir_par_size
  	      int box_dir_par_sizeh=box_dir_par_size/2;
 	      if(box_dir_par_sizeh*2!=box_dir_par_size) box_dir_par_sizeh++;
@@ -102,7 +104,7 @@ namespace nissa
 			      ((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link,
 			      physics->beta,phase_pres);
 	      THREAD_BARRIER();
-
+	      
               //increment the box-dir-par subset
               ibase+=box_dir_par_size;
 	    }
@@ -113,7 +115,7 @@ namespace nissa
     
     //finish
     gluonic_force_finish_computation(F,conf,phase_pres);
-
+    
     //////////////////////////////////////////////////////////////////////////
     
 #ifdef BENCH
@@ -121,9 +123,9 @@ namespace nissa
 #endif
   }
   THREADABLE_FUNCTION_END
-
+  
 #else
-
+  
   //compute only the gauge part
   THREADABLE_FUNCTION_4ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics, bool,phase_pres)
   {
@@ -140,16 +142,17 @@ namespace nissa
     switch(physics->gauge_action_name)
       {
       case WILSON_GAUGE_ACTION: Wilson_force_lx_conf(F,conf,physics->beta,phase_pres);break;
-      case TLSYM_GAUGE_ACTION: tree_level_Symanzik_force_lx_conf(F,conf,physics->beta,phase_pres);break;
+      case TLSYM_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_TLSYM,phase_pres);break;
+      case IWASAKI_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_IWASAKI,phase_pres);break;
       default: crash("Unknown action");
       }
     
-    //add the stag phases to the force term, to cancel the one entering the force    
+    //add the stag phases to the force term, to cancel those entering the force
     if(phase_pres) addrem_stagphases_to_lx_conf(F);
     
     //finish the calculation
     gluonic_force_finish_computation(F,conf,phase_pres);
-
+    
 #ifdef BENCH
     if(IS_MASTER_THREAD) glu_comp_time+=take_time();
 #endif

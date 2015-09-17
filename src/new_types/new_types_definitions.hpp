@@ -13,6 +13,7 @@
  #include <mpi.h>
 #endif
 
+#include <functional>
 #include <math.h>
 #include <stdint.h>
 #include <sstream>
@@ -151,12 +152,10 @@ namespace nissa
   enum multistep_level{MACRO_STEP,MICRO_STEP};
   //Starting condition for a gauge conf
   enum start_conf_cond_t{UNSPEC_START_COND,HOT_START_COND,COLD_START_COND};
-  //Possible algorithms for updating
-  enum quenched_update_alg_t{UNSPEC_UPD,HEATBATH,OVERRELAX,COOL_FULLY,COOL_PARTLY};
   //Boundary conditions
   enum boundary_cond_t{UNSPEC_BOUNDARY_COND,PERIODIC_BOUNDARY_COND,OPEN_BOUNDARY_COND};
   //Gauge action
-  enum gauge_action_name_t{UNSPEC_GAUGE_ACTION,WILSON_GAUGE_ACTION,TLSYM_GAUGE_ACTION};
+  enum gauge_action_name_t{UNSPEC_GAUGE_ACTION,WILSON_GAUGE_ACTION,TLSYM_GAUGE_ACTION,IWASAKI_GAUGE_ACTION};
   //Basis for twisted mass
   enum tm_basis_t{WILSON_BASE,MAX_TWIST_BASE};
   
@@ -201,110 +200,12 @@ namespace nissa
     char pad[(NISSA_VECT_ALIGNMENT-(2*sizeof(int64_t)+3*NISSA_VECT_STRING_LENGTH+sizeof(int)+2*sizeof(nissa_vect*)+sizeof(uint32_t))%NISSA_VECT_ALIGNMENT)%
 	      NISSA_VECT_ALIGNMENT];
   };
-  
-  //all to all communicators initializing structure
-  struct all_to_all_gathering_list_t : std::map<int,int>
-  {int add_conf_link_for_paths(coords g,int mu);};
-  struct all_to_all_scattering_list_t : std::vector<std::pair<int,int> > {};
-  struct temp_build_t
-  {
-    int *nper_rank_to_temp,*nper_rank_fr_temp;
-    int *out_buf_cur_per_rank,*in_buf_cur_per_rank;
-    std::map<int,int> rank_to_map_list_ranks_to,rank_fr_map_list_ranks_fr;
-    temp_build_t();
-    ~temp_build_t();
-  };
-  
-  //all to all communicators
-  struct all_to_all_comm_t
-  {
-    int nel_out,nel_in;
-    int nranks_fr,*list_ranks_fr,*in_buf_dest,*nper_rank_fr,*in_buf_off_per_rank;
-    int nranks_to,*list_ranks_to,*out_buf_source,*nper_rank_to,*out_buf_off_per_rank;
-    
-    all_to_all_comm_t(all_to_all_gathering_list_t &gl);
-    all_to_all_comm_t(all_to_all_scattering_list_t &sl);
-    ~all_to_all_comm_t();
-    void communicate(void *out,void *in,size_t bps,void *buf_out=NULL,void *buf_in=NULL,int tag=-1);
-    
-    void setup_knowing_where_to_send(all_to_all_scattering_list_t &sl);
-    void setup_knowing_what_to_ask(all_to_all_gathering_list_t &gl);
-    void setup_nper_rank_other_temp(int *nper_rank_other_temp,int *nper_rank_temp);
-    void common_setup_part1(temp_build_t &build);
-    void common_setup_part2(int nel_note,int *&buf_note,int nranks_note,int *list_ranks_note,int *buf_note_off_per_rank,int *nper_rank_note,int *buf_expl,int nranks_expl,int *list_ranks_expl,int *buf_expl_off_per_rank,int *nper_rank_expl);
-    all_to_all_comm_t() {};
-  };
-  
-  struct vector_remap_t : all_to_all_comm_t
-  {
-    vector_remap_t(int nel_out,void (*index)(int &irank_to,int &iel_to,int iel_fr,void *pars),void *pars);
-    void remap(void *out,void *in,size_t bps){communicate(out,in,bps);}
-  };
-  
-  //sweep a configuration, possibly using subboxes, each divided in checkboard so to avoid communication problem
-  struct gauge_sweeper_t
-  {
-    //flags
-    bool staples_inited,par_geom_inited,packing_inited;
-    
-    //benchmarks and checks
-    double comm_init_time,comp_time,comm_time;
-    int max_cached_link,max_sending_link;
-    
-    //store action parameters
-    int nlinks_per_staples_of_link,gpar;
-    
-    //alternative ways to compute
-    int *ilink_per_staples;
-    int *packing_link_source_dest;//std::map<int,std::vector<int> > *packing_index;
-    su3 *packing_link_buf;
-    //geometry
-    int *nsite_per_box_dir_par;
-    int *ivol_of_box_dir_par;
-    
-    //communicators
-    all_to_all_comm_t *box_comm[16];
-    su3 *buf_out,*buf_in;
-    
-    ///////////////////////////////// methods ///////////////////////
-    
-    //routine used to add paths (pointer to external function is stored here for thread commodity used)
-    void(*add_staples_per_link)(int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu);
-    void init_staples(int ext_nlinks_per_staples_of_link,void(*ext_add_staples_per_link)
-                      (int *ilink_to_be_used,all_to_all_gathering_list_t &gat,int ivol,int mu),
-                      void (*ext_compute_staples)(su3 staples,su3 *links,int *ilinks));
-    void add_staples_required_links(all_to_all_gathering_list_t **gl);
-    
-    //find the order in which to scan the links to compute the staple sequentially
-    void find_packing_index(void (*ext_compute_staples_packed)(su3 staples,su3 *links));
-    void pack_links(quad_su3 *conf,int ibase,int nbox_dir_par);
-    
-    //routine computing staples
-    void (*compute_staples)(su3 staples,su3 *links,int *ilinks);
-    void (*compute_staples_packed)(su3 staples,su3 *links);
-    
-    //inits the parity checkboard according to an external parity
-    void init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(coords ivol_coord,int dir));
-    
-    //sweep the conf
-    void sweep_conf(quad_su3 *conf,quenched_update_alg_t update_alg,double beta,int nhits);
-    void update_link_using_staples(quad_su3 *conf,int ivol,int dir,su3 staples,quenched_update_alg_t update_alg,
-                                   double beta,int nhits);
-    
-    //checkers
-    void check_hit_in_the_exact_order();
-    void check_hit_exactly_once();
-    
-    //constructor, destructors
-    ~gauge_sweeper_t();
-    gauge_sweeper_t();
-  };
 }
 
 #include "base/vectors.hpp"
 
 namespace nissa
-{  
+{
   struct su3_path
   {
     int ivol;
@@ -796,4 +697,3 @@ namespace nissa
 #endif
 }
 #endif
-  

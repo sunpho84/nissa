@@ -18,6 +18,7 @@
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
 #include "operations/gaugeconf.hpp"
+#include "operations/su3_paths/gauge_sweeper.hpp"
 #include "operations/smearing/stout.hpp"
 #include "operations/smearing/Wflow.hpp"
 #include "operations/su3_paths/plaquette.hpp"
@@ -34,14 +35,14 @@ namespace nissa
   //This will calculate 2*a^2*ig*P_{mu,nu} for a single point
   //please ensure to have communicated the edges outside!
   /*
-    ^                   C--<-- B --<--Y 
-    |                   |  2  | |  1  | 
-    n                   |     | |     | 
-    u                   D-->--\X/-->--A 
-    |                   D--<--/X\--<--A 
-    -----mu---->        |  3  | |  4  | 
-    .                   |     | |     | 
-    .                   E-->-- F -->--G 
+    ^                   C--<-- B --<--Y
+    |                   |  2  | |  1  |
+    n                   |     | |     |
+    u                   D-->--\X/-->--A
+    |                   D--<--/X\--<--A
+    -----mu---->        |  3  | |  4  |
+    .                   |     | |     |
+    .                   E-->-- F -->--G
     in order to have the anti-symmetric part, use
     the routine "Pmunu_term"
   */
@@ -66,36 +67,36 @@ namespace nissa
 	    int G=loclx_neighdw[A][nu];
             
 	    su3 temp1,temp2;
-
+	    
 	    //Leaf 1
-	    unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);           //    B--<--Y 
-	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);             //    |  1  | 
-	    unsafe_su3_prod_su3_dag(leaves_summ[munu],temp2,conf[X][nu]); //    |     | 
-	    /*                                                 */         //    X-->--A 
+	    unsafe_su3_prod_su3(temp1,conf[X][mu],conf[A][nu]);           //    B--<--Y
+	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[B][mu]);             //    |  1  |
+	    unsafe_su3_prod_su3_dag(leaves_summ[munu],temp2,conf[X][nu]); //    |     |
+	    /*                                                 */         //    X-->--A
             
 	    //Leaf 2
 	    unsafe_su3_prod_su3_dag(temp1,conf[X][nu],conf[C][mu]);       //    C--<--B
-	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);             //    |  2  | 
-	    unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);                 //    |     | 
+	    unsafe_su3_prod_su3_dag(temp2,temp1,conf[D][nu]);             //    |  2  |
+	    unsafe_su3_prod_su3(temp1,temp2,conf[D][mu]);                 //    |     |
 	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);          //    D-->--X
             
 	    //Leaf 3
 	    unsafe_su3_dag_prod_su3_dag(temp1,conf[D][mu],conf[E][nu]);    //   D--<--X
-	    unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);                  //   |  3  | 
-	    unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);                  //   |     | 
+	    unsafe_su3_prod_su3(temp2,temp1,conf[E][mu]);                  //   |  3  |
+	    unsafe_su3_prod_su3(temp1,temp2,conf[F][nu]);                  //   |     |
 	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);           //   E-->--F
             
 	    //Leaf 4
-	    unsafe_su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);         //  X--<--A 
-	    unsafe_su3_prod_su3(temp2,temp1,conf[G][nu]);                   //  |  4  | 
-	    unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][mu]);               //  |     |  
-	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);            //  F-->--G 
+	    unsafe_su3_dag_prod_su3(temp1,conf[F][nu],conf[F][mu]);         //  X--<--A
+	    unsafe_su3_prod_su3(temp2,temp1,conf[G][nu]);                   //  |  4  |
+	    unsafe_su3_prod_su3_dag(temp1,temp2,conf[X][mu]);               //  |     |
+	    su3_summ(leaves_summ[munu],leaves_summ[munu],temp1);            //  F-->--G
             
 	    munu++;
 	  }
       }
   }
-
+  
   THREADABLE_FUNCTION_2ARG(four_leaves, as2t_su3*,Pmunu, quad_su3*,conf)
   {
     GET_THREAD_ID();
@@ -105,7 +106,7 @@ namespace nissa
     set_borders_invalid(Pmunu);
   }
   THREADABLE_FUNCTION_END
-
+  
   //take anti-symmetric part and divide by 4
   void four_leaves_anti_symmetrize_fourth(as2t_su3 out,as2t_su3 in)
   {
@@ -155,7 +156,7 @@ namespace nissa
     +G  +H^+ 0    0
     +H  -G   0    0
     0    0   +I  +J^+
-    0    0   +J  -I 
+    0    0   +J  -I
     
     out[0]=G=iA, out[1]=H=B+iC
     out[2]=I=iD, out[3]=J=E+iF
@@ -165,14 +166,14 @@ namespace nissa
   void build_chromo_therm_from_anti_symmetric_four_leaves(quad_su3 out,as2t_su3 in)
   {
     su3 A,B,C,D,E,F;
-
+    
     su3_subt(A,in[3],in[2]);
     su3_summ(B,in[4],in[1]);
     su3_subt(C,in[5],in[0]);
     su3_summ(D,in[3],in[2]);
     su3_subt(E,in[4],in[1]);
     su3_summ(F,in[5],in[0]);
-
+    
     su3_prod_idouble(out[0],A,1);
     
     su3_copy(out[1],B);
@@ -217,7 +218,7 @@ namespace nissa
 	    for(int c=0;c<3;c++) complex_summ_the_prod(out[d1][c],smunu_entr[d1][imunu],temp_d1[c]);
 	  }
       }
-  }  
+  }
   void unsafe_apply_point_chromo_operator_to_spincolor_128(spincolor_128 out,as2t_su3 Pmunu,spincolor_128 in)
   {
     for(int d1=0;d1<4;d1++)
@@ -393,7 +394,7 @@ namespace nissa
     nissa_free(leaves);
   }
   THREADABLE_FUNCTION_END
-
+  
   //total topological charge
   THREADABLE_FUNCTION_2ARG(total_topological_charge_lx_conf, double*,tot_charge, quad_su3*,conf)
   {
@@ -424,7 +425,7 @@ namespace nissa
     nissa_free(charge);
   }
   THREADABLE_FUNCTION_END
-
+  
   //wrapper for eos case
   THREADABLE_FUNCTION_2ARG(total_topological_charge_eo_conf, double*,tot_charge, quad_su3**,eo_conf)
   {
@@ -470,7 +471,7 @@ namespace nissa
 		master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,istep,tot_charge,plaq);
 		verbosity_lv2_master_printf("Topological charge after %d cooling steps: +%16.16lg, plaquette: %16.16lg\n",istep,tot_charge,plaq);
 	      }
-	    if(istep!=cop.nsteps) cool_lx_conf(smoothed_conf,cop.gauge_action,cop.overrelax_flag,cop.overrelax_exp);
+	    if(istep!=cop.nsteps) get_sweeper(cop.gauge_action)->sweep_conf(smoothed_conf,[](su3 out,su3 in,int ivol,int mu){su3_unitarize_maximal_trace_projecting_iteration(out,in);});
 	  }
 	break;
       case smooth_pars_t::STOUTING:

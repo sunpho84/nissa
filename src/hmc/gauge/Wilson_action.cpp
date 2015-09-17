@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "communicate/communicate.hpp"
 #include "base/global_variables.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "operations/su3_paths/plaquette.hpp"
@@ -10,7 +9,7 @@
 
 namespace nissa
 {
-  //compute the tree level Symanzik action
+  //compute the Wilson action
   void Wilson_action(double *action,double plaq,double beta,bool stagphases_present)
   {
     verbosity_lv2_master_printf("Computing Wilson gauge action\n");
@@ -21,7 +20,7 @@ namespace nissa
   //eo wrapper
   void Wilson_action(double *action,quad_su3 **eo_conf,double beta,bool stagphases_present)
   {Wilson_action(action,global_plaquette_eo_conf(eo_conf),beta,stagphases_present);}
-
+  
   //lx wrapper
   void Wilson_action(double *action,quad_su3 *lx_conf,double beta,bool stagphases_present)
   {Wilson_action(action,global_plaquette_lx_conf(lx_conf),beta,stagphases_present);}

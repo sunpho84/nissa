@@ -200,7 +200,7 @@ void meas_x_corr(const char *path,quad_su3 *conf,bool conf_created)
 	    vector_reset(source);
 	    if(rank==0) source[0][id][ic][0]=1;
 	    set_borders_invalid(source);
-      
+	    
 	    //rotate the source index - please note that the propagator rotate AS the sign of mass term
 	    safe_dirac_prod_spincolor(source,(tau3[r]==-1)?&Pminus:&Pplus,source);
 	    
@@ -209,7 +209,7 @@ void meas_x_corr(const char *path,quad_su3 *conf,bool conf_created)
 	    
 	    //rotate the sink index
 	    safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
-        
+	    
 	    master_printf("  finished the inversion r=%d id=%d, ic=%d\n",r,id,ic);
 	    put_spincolor_into_su3spinspin(P,temp_solution,id,ic);
 	  }
@@ -286,7 +286,7 @@ void read_conf()
   //init messages
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
-
+  
   //read the conf
   read_ildg_gauge_conf(conf,conf_path,&mess);
   
@@ -306,19 +306,8 @@ void read_conf()
   
   //free all messages
   ILDG_message_free_all(&mess);
-
-  read_time+=take_time();
-}
-
-//compute action
-double compute_tlSym_action(double *paths)
-{
-  //coefficient of rectangles and squares
-  double b1=-1.0/12,b0=1-8*b1;
   
-  //compute the total action
-  global_plaquette_and_rectangles_lx_conf(paths,conf);
-  return b0*6*glb_vol*(1-paths[0])+b1*12*glb_vol*(1-paths[1]);
+  read_time+=take_time();
 }
 
 //compute action
@@ -329,12 +318,20 @@ double compute_Wilson_action(double *paths)
   return 6*glb_vol*(1-paths[0]);
 }
 
-//compute action
-double compute_tlSym_action_per_timeslice(double *paths,double *paths_per_timeslice)
+//compute Symanzik action
+double compute_Symanzik_action(double *paths,double C1)
 {
-  //coefficient of rectangles and squares
-  double b1=-1.0/12,b0=1-8*b1;
-  
+  //compute the total action
+  global_plaquette_and_rectangles_lx_conf(paths,conf);
+  return get_C0(C1,false)*6*glb_vol*(1-paths[0])+C1*12*glb_vol*(1-paths[1]);
+}
+//wrappers
+double compute_tlSym_action(double *paths) {return compute_Symanzik_action(paths,C1_TLSYM);}
+double compute_Iwasaki_action(double *paths) {return compute_Symanzik_action(paths,C1_IWASAKI);}
+
+//compute action
+double compute_Symanzik_action_per_timeslice(double *paths,double *paths_per_timeslice,double C1)
+{
   //compute the total action
   global_plaquette_and_rectangles_lx_conf_per_timeslice(paths_per_timeslice,conf);
   paths[0]=paths[1]=0;
@@ -345,7 +342,7 @@ double compute_tlSym_action_per_timeslice(double *paths,double *paths_per_timesl
   //normalize
   for(int ip=0;ip<2;ip++) paths[ip]/=(glb_size[0]-1);
   
-  return b0*6*glb_vol*(1-paths[0])+b1*12*glb_vol*(1-paths[1]);
+  return get_C0(C1,false)*6*glb_vol*(1-paths[0])+C1*12*glb_vol*(1-paths[1]);
 }
 double compute_Wilson_action_per_timeslice(double *paths,double *paths_per_timeslice)
 {
@@ -360,6 +357,11 @@ double compute_Wilson_action_per_timeslice(double *paths,double *paths_per_times
   
   return 6*glb_vol*(1-paths[0]);
 }
+//wrappers
+double compute_tlSym_action_per_timeslice(double *paths,double *paths_per_timeslice)
+{return compute_Symanzik_action_per_timeslice(paths, paths_per_timeslice,C1_TLSYM);}
+double compute_Iwasaki_action_per_timeslice(double *paths,double *paths_per_timeslice)
+{return compute_Symanzik_action_per_timeslice(paths, paths_per_timeslice,C1_IWASAKI);}
 
 //initialize the simulation
 void init_simulation(char *path)
@@ -371,17 +373,17 @@ void init_simulation(char *path)
   //open input file
   open_input(path);
   
-  //init the grid 
+  //init the grid
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  init_grid(T,L);  
+  init_grid(T,L);
   
   read_str_int("GaugeObsFlag",&gauge_obs_flag); //number of updates between each action measurement
   read_str_str("GaugeObsPath",gauge_obs_path,1024); //gauge observables path
   read_str_int("MaxNConfs",&max_nconfs); //number of confs to produce
   read_str_int("Seed",&seed); //seed
-
+  
   //kind of action
   char gauge_action_name_str[1024];
   read_str_str("GaugeAction",gauge_action_name_str,1024);
@@ -447,22 +449,27 @@ void init_simulation(char *path)
   if(evol_pars.use_hmc) temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol+edge_vol,quad_su3);
   else
     {
-      if(theory_pars.gauge_action_name==WILSON_GAUGE_ACTION)
+      switch(theory_pars.gauge_action_name)
 	{
-	  init_Wilson_sweeper();
-	  sweeper=Wilson_sweeper;
+	case WILSON_GAUGE_ACTION:
 	  compute_action=compute_Wilson_action;
 	  compute_action_per_timeslice=compute_Wilson_action_per_timeslice;
 	  npaths_per_action=1;
-	}
-      else
-	{
-	  init_tlSym_sweeper();
-	  sweeper=tlSym_sweeper;
+	  break;
+	case TLSYM_GAUGE_ACTION:
 	  compute_action=compute_tlSym_action;
 	  compute_action_per_timeslice=compute_tlSym_action_per_timeslice;
 	  npaths_per_action=2;
+	  break;
+	case IWASAKI_GAUGE_ACTION:
+	  compute_action=compute_Iwasaki_action;
+	  compute_action_per_timeslice=compute_Iwasaki_action_per_timeslice;
+	  npaths_per_action=2;
+	  break;
+	default:
+	  crash("unknown action");
 	}
+      sweeper=get_sweeper(theory_pars.gauge_action_name);
     }
   
   if(x_corr_flag)
@@ -600,12 +607,12 @@ void generate_new_conf(quad_su3 *conf,int check=0)
   else
     {
       //number of hb sweeps
-      for(int isweep=0;isweep<evol_pars.nhb_sweeps;isweep++) sweeper->sweep_conf(conf,HEATBATH,theory_pars.beta,evol_pars.nhb_hits);
+      for(int isweep=0;isweep<evol_pars.nhb_sweeps;isweep++) heatbath_lx_conf(sweeper,conf,theory_pars.beta,evol_pars.nhb_hits);
       
       //numer of overrelax sweeps
       double paths[2],action_pre=0;
       if(check&&evol_pars.nov_sweeps) action_pre=compute_action(paths);
-      for(int isweep=0;isweep<evol_pars.nov_sweeps;isweep++) sweeper->sweep_conf(conf,OVERRELAX,theory_pars.beta,evol_pars.nov_hits);
+      for(int isweep=0;isweep<evol_pars.nov_sweeps;isweep++) overrelax_lx_conf(sweeper,conf,evol_pars.nov_hits);
       
       //check action variation
       if(check&&evol_pars.nov_sweeps)

@@ -430,15 +430,19 @@ int generate_new_conf(int itraj)
     }
   else
     {
+      crash("implement lx AND CHECK");
+      
+      /*
       //number of hb sweeps
       for(int ihb_sweep=0;ihb_sweep<evol_pars.pure_gauge_evol_pars.nhb_sweeps;ihb_sweep++)
 	heatbath_conf(conf,&theory_pars[SEA_THEORY],&evol_pars.pure_gauge_evol_pars);
       //numer of overrelax sweeps
       for(int iov_sweep=0;iov_sweep<evol_pars.pure_gauge_evol_pars.nov_sweeps;iov_sweep++)
-	overrelax_conf(conf,&theory_pars[SEA_THEORY],&evol_pars.pure_gauge_evol_pars);
+	get_sweeper(theory_pars[SEA_THEORY].gauge_action_name)->sweep_conf(conf,[](su3 out,su3 staple,int ivol,int mu){su3_find_overrelaxed(out,out,staple,evol_pars.pure_gauge_evol_pars.nov_hits);});
       
       //always new conf
       acc=1;
+      */
     }
   
   return acc;

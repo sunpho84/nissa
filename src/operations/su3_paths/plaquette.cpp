@@ -30,8 +30,8 @@ namespace nissa
   /*
     
       C------D
-    n |      | 
-    u |      | 
+    n |      |
+    u |      |
       A--mu--B
       
       The square path P_{mu,nu} is defined as U(A,mu)U(B,nu)U^(C,mu)U^(A,nu)=
@@ -41,10 +41,10 @@ namespace nissa
   void point_plaquette_lx_conf(complex loc_plaq,quad_su3 *conf,int A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
 	int B=loclx_neighup[A][mu];
-	for(int nu=mu+1;nu<4;nu++)
+	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
 	    int C=loclx_neighup[A][nu];
 	    su3 ABD,ACD;
@@ -59,10 +59,10 @@ namespace nissa
   void point_plaquette_eo_conf(complex loc_plaq,quad_su3 **conf,int par,int A)
   {
     loc_plaq[0]=loc_plaq[1]=0;
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
 	int B=loceo_neighup[par][A][mu];
-	for(int nu=mu+1;nu<4;nu++)
+	for(int nu=mu+1;nu<NDIM;nu++)
 	  {
 	    int C=loceo_neighup[par][A][nu];
 	    su3 ABD,ACD;
@@ -93,13 +93,13 @@ namespace nissa
     
     //reduce as complex and normalize
     complex temp;
-    complex_vector_glb_collapse(temp,point_plaq,loc_vol);  
+    complex_vector_glb_collapse(temp,point_plaq,loc_vol);
     for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glb_vol*3*3);
     
     nissa_free(point_plaq);
   }
   THREADABLE_FUNCTION_END
-
+  
   //calculate the global plaquette of an lx conf
   THREADABLE_FUNCTION_2ARG(global_plaquette_lx_conf_per_timeslice, double*,glb_plaq, quad_su3*,conf)
   {
@@ -125,12 +125,12 @@ namespace nissa
       for(int ivol=loc_t*loc_spat_vol;ivol<(loc_t+1)*loc_spat_vol;ivol++)
 	loc_plaq[glb_coord_of_loclx[ivol][0]]+=point_plaq[ivol][RE]+point_plaq[ivol][IM];
     nissa_free(point_plaq);
-  
+    
     //reduce (passing throug additional var because of external unkwnon env)
     double *coll_plaq=nissa_malloc("coll_plaq",glb_size[0],double);
     if(IS_MASTER_THREAD) MPI_Reduce(loc_plaq,coll_plaq,glb_size[0],MPI_DOUBLE,MPI_SUM,0,MPI_COMM_WORLD);
     nissa_free(loc_plaq);
-
+    
     //normalize
     for(int t=0;t<glb_size[0];t++)
       glb_plaq[t]=coll_plaq[t]/(18*glb_vol/glb_size[0]);
@@ -157,17 +157,17 @@ namespace nissa
     
     //reduce as complex and normalize
     complex temp;
-    complex_vector_glb_collapse(temp,point_plaq,loc_vol);  
+    complex_vector_glb_collapse(temp,point_plaq,loc_vol);
     for(int ts=0;ts<2;ts++) totplaq[ts]=temp[ts]/(glb_vol*3*3);
     
     nissa_free(point_plaq);
   }
   THREADABLE_FUNCTION_END
-
+  
   //return the average between spatial and temporary plaquette
   double global_plaquette_lx_conf(quad_su3 *conf)
   {
-    double plaq[2];  
+    double plaq[2];
     global_plaquette_lx_conf(plaq,conf);
     return (plaq[0]+plaq[1])/2;
   }

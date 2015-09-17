@@ -2,22 +2,13 @@
  #include "config.hpp"
 #endif
 
-#include "base/debug.hpp"
-#include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
-#include "base/vectors.hpp"
-#include "geometry/geometry_eo.hpp"
 #include "hmc/backfield.hpp"
-#include "hmc/gauge/tree_level_Symanzik_action.hpp"
+#include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/momenta/momenta_action.hpp"
 #include "hmc/gauge/topological_action.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
-#include "operations/smearing/stout.hpp"
-#include "operations/su3_paths/plaquette.hpp"
-#include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -66,13 +57,7 @@ namespace nissa
     
     //gauge action
     double gluon_action;
-    switch(theory_pars->gauge_action_name)
-      {
-      case WILSON_GAUGE_ACTION:gluon_action=theory_pars->beta*6*(1+global_plaquette_eo_conf(eo_conf))*glb_vol;break;
-      case TLSYM_GAUGE_ACTION:tree_level_Symanzik_action(&gluon_action,eo_conf,theory_pars->beta,1);break;
-      default:crash("Unknown action");
-      }
-    
+    gluonic_action(&gluon_action,eo_conf,theory_pars);
     verbosity_lv1_master_printf("Gluon_action: %16.16lg\n",gluon_action);
     
     //momenta action

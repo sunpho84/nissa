@@ -21,6 +21,7 @@ AC_CANONICAL_HOST
 # Checks for programs
 AC_PROG_CXX
 AC_PROG_RANLIB
+AX_CXX_COMPILE_STDCXX_11
 
 #Checks for headers
 AC_CHECK_HEADERS([fftw3.h],[fftw_found_headers=yes])

@@ -2,23 +2,9 @@
  #include "config.hpp"
 #endif
 
-#include <math.h>
-#include <float.h>
-#include <string.h>
-
-#include "base/debug.hpp"
-#include "base/global_variables.hpp"
-#include "base/thread_macros.hpp"
-#include "base/random.hpp"
-#include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
-#include "geometry/geometry_mix.hpp"
-#include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
-#include "operations/remap_vector.hpp"
-#include "operations/su3_paths/squared_staples.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
-#include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -230,81 +216,6 @@ namespace nissa
     set_borders_invalid(conf);
   }
   
-  //heatbath or overrelax algorithm for the quenched simulation case, Wilson action
-  void heatbath_or_overrelax_conf_Wilson_action(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over)
-  {
-    //loop on directions and on parity
-    for(int mu=0;mu<NDIM;mu++)
-      for(int par=0;par<2;par++)
-	{
-	  NISSA_LOC_VOLH_LOOP(ieo)
-	  {
-	    //find the lex index of the point and catch the random gen
-	    int ilx=loclx_of_loceo[par][ieo];
-	    rnd_gen *gen=&(loc_rnd_gen[ilx]);
-	    
-	    //compute the staples
-	    su3 staples;
-	    compute_point_summed_squared_staples_eo_conf_single_dir(staples,eo_conf,ilx,mu);
-	    
-	    //compute heatbath or overrelax link
-	    su3 new_link;
-	    if(heat_over==0) su3_find_heatbath(new_link,eo_conf[par][ieo][mu],staples,theory_pars->beta,evol_pars->nhb_hits,gen);
-	    else             su3_find_overrelaxed(new_link,eo_conf[par][ieo][mu],staples,evol_pars->nov_hits);
-	    
-	    //change it
-	    su3_copy(eo_conf[par][ieo][mu],new_link);
-	  }
-	  
-	  //set the borders invalid: since we split conf in e/o, only now needed
-	  set_borders_invalid(eo_conf[par]);
-	}
-  }
-  
-  //cool the configuration using 
-  THREADABLE_FUNCTION_4ARG(cool_lx_conf, quad_su3*,lx_conf, gauge_action_name_t,gauge_action_name, int,over_flag, double,over_exp)
-  {
-    gauge_sweeper_t *sweeper=NULL;
-    switch(gauge_action_name)
-      {
-      case WILSON_GAUGE_ACTION:sweeper=Wilson_sweeper;break;
-      case TLSYM_GAUGE_ACTION:sweeper=tlSym_sweeper;break;
-      case UNSPEC_GAUGE_ACTION:crash("unspecified action");break;
-      default: crash("not implemented action");break;
-      }
-    
-    if(!sweeper->staples_inited) crash("init sweeper before");
-    sweeper->sweep_conf(lx_conf,COOL_PARTLY,over_exp,over_flag);
-  }
-  THREADABLE_FUNCTION_END
-  THREADABLE_FUNCTION_4ARG(cool_eo_conf, quad_su3*,eo_conf, gauge_action_name_t,gauge_action_name, int,over_flag, double,over_exp)
-  {crash("not implemented");}
-  THREADABLE_FUNCTION_END
-  
-  //heatbath or overrelax algorithm for the quenched simulation case
-  void heatbath_or_overrelax_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars,int heat_over)
-  {
-    switch(theory_pars->gauge_action_name)
-      {
-      case WILSON_GAUGE_ACTION:
-	heatbath_or_overrelax_conf_Wilson_action(eo_conf,theory_pars,evol_pars,heat_over);
-	break;
-      case TLSYM_GAUGE_ACTION:
-	crash("Not implemented yet");
-	break;
-      default:
-	crash("Unknown action");
-      }
-  }
-  
-  //heatbath algorithm for the quenched simulation case
-  void heatbath_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars)
-  {heatbath_or_overrelax_conf(eo_conf,theory_pars,evol_pars,0);}
-  
-  //overrelax algorithm for the quenched simulation case
-  void overrelax_conf(quad_su3 **eo_conf,theory_pars_t *theory_pars,pure_gauge_evol_pars_t *evol_pars)
-  {heatbath_or_overrelax_conf(eo_conf,theory_pars,evol_pars,1);}
-  
   //perform a unitarity check on a lx conf
   void unitarity_check_lx_conf(unitarity_check_result_t &result,quad_su3 *conf)
   {
@@ -373,4 +284,14 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //overrelax an lx configuration
+  THREADABLE_FUNCTION_3ARG(overrelax_lx_conf, gauge_sweeper_t*,sweeper, quad_su3*,conf, int,nhits)
+  {sweeper->sweep_conf(conf,[nhits](su3 out,su3 staple,int ivol,int mu){su3_find_overrelaxed(out,out,staple,nhits);});}
+  THREADABLE_FUNCTION_END
+  
+  //same for heatbath
+  THREADABLE_FUNCTION_4ARG(heatbath_lx_conf, gauge_sweeper_t*,sweeper, quad_su3*,conf, double,beta, int,nhits)
+  {sweeper->sweep_conf(conf,[beta,nhits](su3 out,su3 staple,int ivol,int mu){su3_find_heatbath(out,out,staple,beta,nhits,loc_rnd_gen+ivol);});}
+  THREADABLE_FUNCTION_END
+
 }
