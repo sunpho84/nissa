@@ -647,7 +647,7 @@ void measure_gauge_obs()
   double paths[2];
   double paths_per_timeslice[glb_size[0]*npaths_per_action];
   double action;
-  if(evol_pars.use_hmc) gluonic_action(&action,conf,&theory_pars);
+  if(evol_pars.use_hmc) gluonic_action(&action,conf,&theory_pars,false);
   else
     action=(boundary_cond==OPEN_BOUNDARY_COND)?compute_action_per_timeslice(paths,paths_per_timeslice):
       compute_action(paths);

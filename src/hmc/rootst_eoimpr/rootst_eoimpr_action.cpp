@@ -57,7 +57,7 @@ namespace nissa
     
     //gauge action
     double gluon_action;
-    gluonic_action(&gluon_action,eo_conf,theory_pars);
+    gluonic_action(&gluon_action,eo_conf,theory_pars,true);
     verbosity_lv1_master_printf("Gluon_action: %16.16lg\n",gluon_action);
     
     //momenta action

@@ -17,8 +17,7 @@
 namespace nissa
 {
   //perform a full hmc step and return the difference between final and original action
-  double pure_gauge_hmc_step(quad_su3 *out_conf,quad_su3 *in_conf,theory_pars_t &theory_pars,
-				 pure_gauge_evol_pars_t &evol_pars,int itraj)
+  double pure_gauge_hmc_step(quad_su3 *out_conf,quad_su3 *in_conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,int itraj)
   {
     if(in_conf==out_conf) crash("in==out");
     
@@ -65,7 +64,7 @@ namespace nissa
 	verbosity_lv2_master_printf("Fourier acceleration momenta action: %lg\n",init_action_pi);
       }
     double init_action_G;
-    gluonic_action(&init_action_G,out_conf,&theory_pars);
+    gluonic_action(&init_action_G,out_conf,&theory_pars,false);
     verbosity_lv2_master_printf("Gauge action: %lg\n",init_action_G);
     double init_action=init_action_G+init_action_H+init_action_phi+init_action_pi;
     verbosity_lv2_master_printf("Init action: %lg\n",init_action);
@@ -86,7 +85,7 @@ namespace nissa
 	verbosity_lv2_master_printf("Fourier acceleration momenta action: %lg\n",final_action_pi);
       }
     double final_action_G;
-    gluonic_action(&final_action_G,out_conf,&theory_pars);
+    gluonic_action(&final_action_G,out_conf,&theory_pars,false);
     verbosity_lv2_master_printf("Gauge action: %lg\n",final_action_G);
     double final_action=final_action_G+final_action_H+final_action_phi+final_action_pi;
     verbosity_lv2_master_printf("Final action: %lg\n",final_action);

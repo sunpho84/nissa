@@ -12,7 +12,6 @@ config/install-sh
 config/missing
 configure
 configure
-configure.ac
 config/ylwrap
 GPATH
 GRTAGS

@@ -14,6 +14,7 @@ namespace nissa
   {
     verbosity_lv2_master_printf("Computing Wilson gauge action\n");
     if(stagphases_present) plaq*=-1; //stag phases add (-1)^area
+    master_printf("placchetta: %lg\n",plaq);
     (*action)=beta*6*(1-plaq)*glb_vol;
   }
   
