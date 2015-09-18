@@ -15,14 +15,19 @@ namespace nissa
   //convert a string into gauge action name
   gauge_action_name_t gauge_action_name_from_str(const char *name)
   {
-    gauge_action_name_t ret=UNSPEC_GAUGE_ACTION;
+    //database
+    const int nact_known=3;
+    gauge_action_name_t act_known[nact_known]={WILSON_GAUGE_ACTION,TLSYM_GAUGE_ACTION,IWASAKI_GAUGE_ACTION};
+    const char name_known[nact_known][20]={"Wilson","tlSym","Iwasaki"};
     
-    if(strcasecmp(name,"Wilson")==0) ret=WILSON_GAUGE_ACTION;
-    else
-      if(strcasecmp(name,"tlSym")==0) ret=TLSYM_GAUGE_ACTION;
-      else crash("unknown gauge action: %s",name);
+    //search
+    int iact=0;
+    while(iact<nact_known && strcasecmp(name,name_known[iact])!=0) iact++;
     
-    return ret;
+    //check
+    if(iact==nact_known) crash("unknown gauge action: %s",name);
+    
+    return act_known[iact];
   }
   
   //convert a string into smoothing method
