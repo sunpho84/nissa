@@ -8,6 +8,7 @@
 #include "base/thread_macros.hpp"
 #include "communicate/all_to_all.hpp"
 #include "hmc/gauge/Symanzik_action.hpp"
+#include "new_types/su3.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -19,7 +20,7 @@
 namespace nissa
 {
 #ifdef BGQ
-  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double b0,double b1);
+  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links);
 #endif
   
   //sweep a configuration, possibly using subboxes, each divided in checkboard so to avoid communication problem
@@ -67,12 +68,15 @@ namespace nissa
     //routine computing staples
     void (*compute_staples)(su3 staples,su3 *links,int *ilinks,double C1);
     void (*compute_staples_packed)(su3 staples,su3 *links,double C1);
+#ifdef BGQ
+    void (*compute_staples_packed_bgq)(su3 staples1,su3 staples2,bi_su3 *links,double C1);
+#endif
     
     //inits the parity checkboard according to an external parity
     void init_box_dir_par_geometry(int ext_gpar,int(*par_comp)(coords ivol_coord,int dir));
     
     //sweep the conf
-    void sweep_conf(quad_su3 *conf,std::function<void(su3 out,su3 staples,int ivol,int mu)> update_fun)
+    void sweep_conf(quad_su3 *conf,void (*update_fun)(su3 out,su3 staples,int ivol,int mu,void *pars),void *pars)
     {
       MANDATORY_PARALLEL;
       GET_THREAD_ID();
@@ -115,8 +119,8 @@ namespace nissa
 		if(box_dir_par_sizeh*2!=box_dir_par_size) box_dir_par_sizeh++;
 		if(packing_inited)
 		  NISSA_PARALLEL_LOOP(ibox_dir_par,0,box_dir_par_sizeh)
-		    compute_Symanzik_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+box_dir_par_sizeh],
-							((bi_su3*)packing_link_buf)+ibox_dir_par*nlinks_per_staples_of_link);
+		    compute_staples_packed_bgq(staples_list[ibox_dir_par],staples_list[ibox_dir_par+box_dir_par_sizeh],
+					       ((bi_su3*)packing_link_buf)+ibox_dir_par*nlinks_per_staples_of_link,C1);
 		THREAD_BARRIER();
 #endif
 		
@@ -138,7 +142,7 @@ namespace nissa
 		    
 		    //find new link
 		    int ivol=ivol_of_box_dir_par[ibox_dir_par];
-		    update_fun(conf[ivol][dir],staples,ivol,dir);
+		    update_fun(conf[ivol][dir],staples,ivol,dir,pars);
 		  }
 		THREAD_BARRIER();
 		
@@ -152,16 +156,6 @@ namespace nissa
 #ifdef BGQ
       if(packing_inited) nissa_free(staples_list);
 #endif
-      /*
-	switch(update_alg)
-	{
-	case HEATBATH: su3_find_heatbath(conf[ivol][dir],conf[ivol][dir],staples,beta,nhits,loc_rnd_gen+ivol);break;
-	case OVERRELAX: su3_find_overrelaxed(conf[ivol][dir],conf[ivol][dir],staples,nhits);break;
-	case COOL_FULLY: su3_unitarize_maximal_trace_projecting(conf[ivol][dir],staples);break;
-	case COOL_PARTLY: su3_unitarize_maximal_trace_projecting_iteration(conf[ivol][dir],staples);break;
-	default: crash("unknown update algorithm");
-	}
-      */
     }
   
     //checkers

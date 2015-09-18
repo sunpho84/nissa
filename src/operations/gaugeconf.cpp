@@ -285,17 +285,32 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //overrelax an lx configuration
+  void overrelax_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
+  {su3_find_overrelaxed(out,out,staple,((int*)pars)[0]);}
   THREADABLE_FUNCTION_3ARG(overrelax_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper, int,nhits)
-  {sweeper->sweep_conf(conf,[nhits](su3 out,su3 staple,int ivol,int mu){su3_find_overrelaxed(out,out,staple,nhits);});}
+  {sweeper->sweep_conf(conf,overrelax_lx_conf_handle,(void*)&nhits);}
   THREADABLE_FUNCTION_END
   
   //same for heatbath
+  namespace heatbath_lx_conf_ns
+  {
+    struct pars_t
+    {
+      double beta;
+      int nhits;
+      pars_t(double beta,int nhits) : beta(beta),nhits(nhits){}
+    };
+    void handle(su3 out,su3 staple,int ivol,int mu,void *pars)
+    {su3_find_heatbath(out,out,staple,((pars_t*)pars)->beta,((pars_t*)pars)->nhits,loc_rnd_gen+ivol);}
+  }
   THREADABLE_FUNCTION_4ARG(heatbath_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper, double,beta, int,nhits)
-  {sweeper->sweep_conf(conf,[beta,nhits](su3 out,su3 staple,int ivol,int mu){su3_find_heatbath(out,out,staple,beta,nhits,loc_rnd_gen+ivol);});}
+  {heatbath_lx_conf_ns::pars_t pars(beta,nhits);sweeper->sweep_conf(conf,heatbath_lx_conf_ns::handle,&pars);}
   THREADABLE_FUNCTION_END
   
   //same for cooling
+  void cool_lx_conf_handle(su3 out,su3 staple,int ivol,int mu,void *pars)
+  {su3_unitarize_maximal_trace_projecting_iteration(out,staple);}
   THREADABLE_FUNCTION_2ARG(cool_lx_conf, quad_su3*,conf, gauge_sweeper_t*,sweeper)
-  {sweeper->sweep_conf(conf,[](su3 out,su3 staple,int ivol,int mu){su3_unitarize_maximal_trace_projecting_iteration(out,staple);});}
+  {sweeper->sweep_conf(conf,cool_lx_conf_handle,NULL);}
   THREADABLE_FUNCTION_END
 }

@@ -547,8 +547,10 @@ namespace nissa
   }
   
   //compute the summ of the staples pointed by "ilinks"
-  void compute_Symanzik_staples_packed(su3 staples,su3 *links,double b0,double b1)
+  void compute_Symanzik_staples_packed(su3 staples,su3 *links,double C1)
   {
+    double C0=get_C0(C1,false);
+    
     su3 squares,rectangles,up_rectangles,dw_rectangles;
     su3_put_to_zero(squares);
     su3_put_to_zero(rectangles);
@@ -605,13 +607,14 @@ namespace nissa
     su3_summ_the_dag_prod_su3(rectangles,links[ 1],dw_rectangles);
     
     //compute the summed staples
-    su3_linear_comb(staples,squares,b0,rectangles,b1);
+    su3_linear_comb(staples,squares,C0,rectangles,C1);
   }
   
 #ifdef BGQ
   //compute the summ of the staples pointed by "ilinks"
-  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double b0,double b1)
+  void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double C1)
   {
+    double C0=get_C0(C1,false);
     bi_su3 squares,rectangles,up_rectangles,dw_rectangles;
     
     BI_SU3_PUT_TO_ZERO(squares);
@@ -721,36 +724,18 @@ namespace nissa
     STORE_REG_BI_SU3(rectangles,REG_U1);
     
     //compute the summed staples
-    DECLARE_REG_BI_COMPLEX(reg_b0);
-    DECLARE_REG_BI_COMPLEX(reg_b1);
-    REG_SPLAT_BI_COMPLEX(reg_b0,b0);
-    REG_SPLAT_BI_COMPLEX(reg_b1,b1);
+    DECLARE_REG_BI_COMPLEX(reg_c0);
+    DECLARE_REG_BI_COMPLEX(reg_c1);
+    REG_SPLAT_BI_COMPLEX(reg_c0,C0);
+    REG_SPLAT_BI_COMPLEX(reg_c1,C1);
     REG_LOAD_BI_SU3(REG_U2,squares);
-    REG_BI_SU3_PROD_4DOUBLE(REG_U3,REG_U2,reg_b0);
-    REG_BI_SU3_SUMM_THE_PROD_4DOUBLE(REG_U3,REG_U3,REG_U1,reg_b1);
+    REG_BI_SU3_PROD_4DOUBLE(REG_U3,REG_U2,reg_c0);
+    REG_BI_SU3_SUMM_THE_PROD_4DOUBLE(REG_U3,REG_U3,REG_U1,reg_c1);
     
     //split staples
     bi_su3 bi_staples;
     STORE_REG_BI_SU3(bi_staples,REG_U3);
     BI_SU3_TO_SU3(staples1,staples2,bi_staples);
-  }
-  void compute_tlSym_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links)
-  {
-    crash("to be moved out");
-    double b1=-1.0/12,b0=1-8*b1;
-    compute_tlSym_staples_packed_bgq(staples1,staples2,links,b0,b1);
-  }
-  void compute_tlSym_force_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double beta,bool phase_pres)
-  {
-    crash("to be moved out");
-    //coefficient of rectangles and squares, including beta
-    double b1=-1.0/12,b0=1-8*b1;
-    double c1=-b1*beta/3,c0=-b0*beta/3;
-    //the stag phases add (-1)^area
-    if(phase_pres) c0=-c0;
-    compute_tlSym_staples_packed_bgq(staples1,staples2,links,c0,c1);
-    safe_su3_hermitian(staples1,staples1);
-    safe_su3_hermitian(staples2,staples2);
   }
 #endif
   
@@ -767,6 +752,7 @@ namespace nissa
 	Symanzik_sweeper->init_box_dir_par_geometry(4,Symanzik_par);
 	Symanzik_sweeper->init_staples(nlinks_per_Symanzik_staples_of_link,add_Symanzik_staples,compute_Symanzik_staples);
 #ifdef BGQ
+	Symanzik_sweeper->compute_staples_packed_bgq=compute_Symanzik_staples_packed_bgq;
 	Symanzik_sweeper->find_packing_index(compute_Symanzik_staples_packed);
 #endif
       }
@@ -842,6 +828,67 @@ namespace nissa
       }
   }
   
+  void compute_Wilson_staples_packed(su3 staples,su3 *links,double C1)
+  {
+    su3_put_to_zero(staples);
+    
+    for(int inu=0;inu<NDIM-1;inu++)
+      {
+	su3 hb;
+	//backward square staple
+	unsafe_su3_dag_prod_su3(hb,links[ 0],links[ 1]);
+	su3_summ_the_prod_su3(staples,hb,links[ 2]);
+	//forward square staple
+	su3 hf;
+	unsafe_su3_prod_su3(hf,links[ 3],links[ 4]);
+	su3_summ_the_prod_su3_dag(staples,hf,links[ 5]);
+	
+	links+=6;
+      }
+  }
+
+#ifdef BGQ
+  //compute the summ of the staples pointed by "ilinks"
+  void compute_Wilson_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double C1)
+  {
+    bi_su3 bi_staples;
+    
+    BI_SU3_PUT_TO_ZERO(bi_staples);
+    
+    DECLARE_REG_BI_SU3(REG_U1);
+    DECLARE_REG_BI_SU3(REG_U2);
+    DECLARE_REG_BI_SU3(REG_U3);
+    
+    for(int inu=0;inu<NDIM-1;inu++)
+      {
+	//backward square staple
+	bi_su3 hb;
+	REG_LOAD_BI_SU3(REG_U2,links[0]);
+	REG_LOAD_BI_SU3(REG_U3,links[1]);
+	REG_BI_SU3_DAG_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	STORE_REG_BI_SU3(hb,REG_U1);
+	REG_LOAD_BI_SU3(REG_U2,bi_staples);
+	REG_LOAD_BI_SU3(REG_U3,links[2]);
+	REG_BI_SU3_SUMM_THE_PROD_BI_SU3(REG_U2,REG_U1,REG_U3);
+	STORE_REG_BI_SU3(bi_staples,REG_U2);
+	//forward square staple
+	bi_su3 hf;
+	REG_LOAD_BI_SU3(REG_U2,links[3]);
+	REG_LOAD_BI_SU3(REG_U3,links[4]);
+	REG_BI_SU3_PROD_BI_SU3(REG_U1,REG_U2,REG_U3);
+	STORE_REG_BI_SU3(hf,REG_U1);
+	REG_LOAD_BI_SU3(REG_U2,bi_staples);
+	REG_LOAD_BI_SU3(REG_U3,links[5]);
+	REG_BI_SU3_SUMM_THE_PROD_BI_SU3_DAG(REG_U2,REG_U1,REG_U3);
+	STORE_REG_BI_SU3(bi_staples,REG_U2);
+	
+	links+=6;
+      }
+    
+    BI_SU3_TO_SU3(staples1,staples2,bi_staples);
+  }
+#endif
+  
   //initialize the Wilson sweeper using the above defined routines
   void init_Wilson_sweeper()
   {
@@ -854,6 +901,10 @@ namespace nissa
 	Wilson_sweeper->init_box_dir_par_geometry(2,Wilson_par);
 	const int nlinks_per_Wilson_staples_of_link=6*(NDIM-1);
 	Wilson_sweeper->init_staples(nlinks_per_Wilson_staples_of_link,add_Wilson_staples,compute_Wilson_staples);
+#ifdef BGQ
+	Wilson_sweeper->compute_staples_packed_bgq=compute_Wilson_staples_packed_bgq;
+	Wilson_sweeper->find_packing_index(compute_Wilson_staples_packed);
+#endif
       }
   }
   
