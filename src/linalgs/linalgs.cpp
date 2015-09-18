@@ -146,7 +146,7 @@ namespace nissa
 #endif
   }
   THREADABLE_FUNCTION_END
-
+  
   //scalar product
   THREADABLE_FUNCTION_4ARG(single_vector_glb_scalar_prod, float*,glb_res, float*,a, float*,b, int,n)
   {
@@ -156,11 +156,11 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(i,0,n)
       loc_thread_res+=a[i]*b[i];
-
+    
     (*glb_res)=glb_reduce_single(loc_thread_res);
   }
   THREADABLE_FUNCTION_END
-
+  
   //summ all points
   THREADABLE_FUNCTION_3ARG(double_vector_glb_collapse, double*,glb_res, double*,a, int,n)
   {
@@ -185,7 +185,7 @@ namespace nissa
 #endif
   }
   THREADABLE_FUNCTION_END
-
+  
   //complex version
   THREADABLE_FUNCTION_3ARG(complex_vector_glb_collapse, double*,glb_res, complex*,a, int,n)
   {
@@ -215,7 +215,7 @@ namespace nissa
 #endif
   }
   THREADABLE_FUNCTION_END
-
+  
   //put the passed vector to the new norm, returning the reciprocal of normalizating factor
   THREADABLE_FUNCTION_5ARG(double_vector_normalize, double*,ratio, double*,out, double*,in, double,norm, int,n)
   {
@@ -232,7 +232,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   //a[]=b[]+c[]*d
   THREADABLE_FUNCTION_6ARG(double_vector_summ_double_vector_prod_double, double*,a, double*,b, double*,c, double,d, int,n, int,OPT)
   {

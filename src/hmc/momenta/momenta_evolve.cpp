@@ -22,9 +22,9 @@ namespace nissa
     GET_THREAD_ID();
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
-        for(int ic1=0;ic1<3;ic1++)
-          for(int ic2=0;ic2<3;ic2++)
+      for(int mu=0;mu<NDIM;mu++)
+        for(int ic1=0;ic1<NCOL;ic1++)
+          for(int ic2=0;ic2<NCOL;ic2++)
             complex_subt_the_prod_idouble(H[ivol][mu][ic1][ic2],F[ivol][mu][ic1][ic2],dt);
     THREAD_BARRIER();
   }
@@ -39,7 +39,7 @@ namespace nissa
     
     //evolve
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	{
 	  su3 t1,t2;
 	  su3_prod_double(t1,H[ivol][mu],dt);

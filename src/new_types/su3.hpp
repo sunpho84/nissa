@@ -1254,7 +1254,7 @@ namespace nissa
   }
   
   void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredients &out,su3 Q);
-    
+  
   //build the exponential from the ingredients
   inline void safe_anti_hermitian_exact_i_exponentiate(su3 out,anti_hermitian_exp_ingredients &ing)
   {

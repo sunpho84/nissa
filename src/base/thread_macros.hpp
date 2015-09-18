@@ -21,9 +21,11 @@
 #ifndef USE_THREADS
  #define NACTIVE_THREADS 1
  #define MANDATORY_PARALLEL
+ #define MANDATORY_NOT_PARALLEL
 #else
  #define NACTIVE_THREADS ((thread_pool_locked)?1:nthreads)
- #define MANDATORY_PARALLEL if(thread_pool_locked) crash("this cannot be called when threads are locked")
+ #define MANDATORY_PARALLEL if(nthreads>1 && thread_pool_locked) crash("this cannot be called when threads are locked")
+ #define MANDATORY_NOT_PARALLEL if(nthreads>1 && !thread_pool_locked) crash("this cannot be called when threads are not locked")
 #endif
 
 #define IS_PARALLEL (NACTIVE_THREADS!=1)

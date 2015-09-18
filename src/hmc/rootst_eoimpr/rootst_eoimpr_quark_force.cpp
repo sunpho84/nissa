@@ -112,7 +112,7 @@ namespace nissa
     addrem_stagphases_to_eo_conf(conf);
   }
   THREADABLE_FUNCTION_END
-
+  
   //compute the quark force, without stouting reampping
   THREADABLE_FUNCTION_7ARG(compute_rootst_eoimpr_quark_force_no_stout_remapping, quad_su3**,F, quad_su3**,conf, color***,pf, theory_pars_t*,tp, rat_approx_t*,appr, int*,npfs, double,residue)
   {
@@ -129,7 +129,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //take into account the stout remapping procedure
-  THREADABLE_FUNCTION_7ARG(compute_rootst_eoimpr_quark_and_magnetic_force, quad_su3**,F, quad_su3**,conf, color***,pf, theory_pars_t*,physics, rat_approx_t*,appr, int*,npfs, double,residue)
+  THREADABLE_FUNCTION_7ARG(compute_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,conf, color***,pf, theory_pars_t*,physics, rat_approx_t*,appr, int*,npfs, double,residue)
   {
     int nlev=physics->stout_pars.nlev;
     

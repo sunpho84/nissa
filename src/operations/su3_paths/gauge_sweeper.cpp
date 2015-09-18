@@ -846,7 +846,7 @@ namespace nissa
 	links+=6;
       }
   }
-
+  
 #ifdef BGQ
   //compute the summ of the staples pointed by "ilinks"
   void compute_Wilson_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double C1)
@@ -911,9 +911,8 @@ namespace nissa
   //call the appropriate sweeper intializator
   void init_sweeper(gauge_action_name_t gauge_action_name)
   {
-#ifdef USE_THREADS
-    if(!thread_pool_locked) crash("call from non-parallel environment");
-#endif
+    MANDATORY_NOT_PARALLEL;
+    
     switch(gauge_action_name)
       {
       case WILSON_GAUGE_ACTION:if(!Wilson_sweeper->staples_inited) init_Wilson_sweeper();break;
