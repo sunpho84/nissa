@@ -457,6 +457,7 @@ namespace nissa
     smooth_pars_t sp=pars.smooth_pars;
     cool_pars_t cop=sp.cool_pars;
     stout_pars_t stp=sp.stout_pars;
+    adaptative_stout_pars_t asp=sp.adaptative_stout_pars;
     Wflow_pars_t wfp=sp.Wflow_pars;
     switch(sp.method)
       {
@@ -506,6 +507,25 @@ namespace nissa
 	      }
 	    Wflow_lx_conf(smoothed_conf,dt);
 	  }
+	break;
+      case smooth_pars_t::ADAPTATIVE_STOUTING:
+	{
+	  double t=0,tmeas=-1e-10;
+	  do
+	    {
+	      if(tmeas<t)
+		{
+		  tmeas+=sp.meas_each;
+		  double tot_charge;
+		  double plaq=global_plaquette_lx_conf(smoothed_conf);
+		  total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
+		  master_fprintf(file,"%d %lg %+16.16lg %16.16lg\n",iconf,t,tot_charge,plaq);
+		  verbosity_lv2_master_printf("Topological charge after %lg time of adaptative stout: +%16.16lg, plaquette: %16.16lg\n",t,tot_charge,plaq);
+	      }
+	      adaptative_stout_lx_conf(smoothed_conf,&t,asp.T,asp.arg_max);
+	  }
+	  while(t<asp.T);
+	}
 	break;
       default:
 	crash("should have not arrived here");

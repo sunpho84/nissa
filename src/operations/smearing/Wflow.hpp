@@ -5,6 +5,7 @@
 
 namespace nissa
 {
+  void adaptative_stout_lx_conf(quad_su3 *conf,double *t,double Tmax,double arg_max);
   void Wflow_lx_conf(quad_su3 *conf,double dt);
 }
 

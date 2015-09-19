@@ -358,7 +358,14 @@ namespace nissa
     double overrelax_exp;
   };
   
-  //structure to wilson flow
+  //structure to adataptive stout
+  struct adaptative_stout_pars_t
+  {
+    double T;
+    double arg_max;
+  };
+  
+  //structure to Wilson flow
   struct Wflow_pars_t
   {
     double T,dt;
@@ -367,7 +374,7 @@ namespace nissa
   //parameters to smooth a configuration
   struct smooth_pars_t
   {
-    enum method_t{UNSPEC_SMOOTH_METHOD,COOLING,STOUTING,WFLOWING};
+    enum method_t{UNSPEC_SMOOTH_METHOD,COOLING,STOUTING,ADAPTATIVE_STOUTING,WFLOWING};
     
     //basic
     int flag;
@@ -376,6 +383,7 @@ namespace nissa
     //pars
     cool_pars_t cool_pars;
     stout_pars_t stout_pars;
+    adaptative_stout_pars_t adaptative_stout_pars;
     Wflow_pars_t Wflow_pars;
     
     smooth_pars_t() : flag(false),method(COOLING) {}

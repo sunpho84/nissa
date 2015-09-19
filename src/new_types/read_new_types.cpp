@@ -39,8 +39,10 @@ namespace nissa
     else
       if(strcasecmp(name,"Stouting")==0) ret=smooth_pars_t::STOUTING;
       else
-	if(strcasecmp(name,"Wflowing")==0) ret=smooth_pars_t::WFLOWING;
-	else crash("unknown smoothing method: %s",name);
+	if(strcasecmp(name,"AdatptativeStouting")==0) ret=smooth_pars_t::ADAPTATIVE_STOUTING;
+	else
+	  if(strcasecmp(name,"Wflowing")==0) ret=smooth_pars_t::WFLOWING;
+	  else crash("unknown smoothing method: %s",name);
     
     return ret;
   }
@@ -86,6 +88,13 @@ namespace nissa
     read_str_double("InteStep",&pars.dt);
   }
   
+  //read parameters to adaptative stout
+  void read_adaptative_stout_pars(adaptative_stout_pars_t &pars)
+  {
+    read_str_double("TotTime",&pars.T);
+    read_str_double("ArgMax",&pars.arg_max);
+  }
+ 
   //read parameters to smooth
   void read_smooth_pars(smooth_pars_t &smooth_pars,bool flag=false)
   {
@@ -100,6 +109,7 @@ namespace nissa
 	  {
 	  case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool_pars);break;
 	  case smooth_pars_t::STOUTING: read_stout_pars(smooth_pars.stout_pars);break;
+	  case smooth_pars_t::ADAPTATIVE_STOUTING: read_adaptative_stout_pars(smooth_pars.adaptative_stout_pars);break;
 	  case smooth_pars_t::WFLOWING: read_Wflow_pars(smooth_pars.Wflow_pars);break;
 	  case smooth_pars_t::UNSPEC_SMOOTH_METHOD: crash("should not arrive here");break;
 	  }
