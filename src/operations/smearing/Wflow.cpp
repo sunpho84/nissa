@@ -120,10 +120,7 @@ namespace nissa
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
-	{
-	  su3 Q;
-	  su3_prod_idouble(Q,arg[ivol][mu],-dt); //putting here the integration time (- due to i)
-	}
+	su3_prodassign_idouble(arg[ivol][mu],-dt); //putting here the integration time (- due to i)
     THREAD_BARRIER();
     
     //integrate
