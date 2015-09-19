@@ -33,18 +33,19 @@ namespace nissa
   //convert a string into smoothing method
   smooth_pars_t::method_t smooth_method_name_from_str(const char *name)
   {
-    smooth_pars_t::method_t ret=smooth_pars_t::UNSPEC_SMOOTH_METHOD;
+    //database
+    const int nmet_known=4;
+    smooth_pars_t::method_t met_known[nmet_known]={smooth_pars_t::COOLING,smooth_pars_t::STOUTING,smooth_pars_t::ADAPTATIVE_STOUTING,smooth_pars_t::WFLOWING};
+    const char name_known[nmet_known][20]={"Cooling","Stouting","AdaptativeStouting","Wflowing"};
     
-    if(strcasecmp(name,"Cooling")==0) ret=smooth_pars_t::COOLING;
-    else
-      if(strcasecmp(name,"Stouting")==0) ret=smooth_pars_t::STOUTING;
-      else
-	if(strcasecmp(name,"AdatptativeStouting")==0) ret=smooth_pars_t::ADAPTATIVE_STOUTING;
-	else
-	  if(strcasecmp(name,"Wflowing")==0) ret=smooth_pars_t::WFLOWING;
-	  else crash("unknown smoothing method: %s",name);
+    //search
+    int imet=0;
+    while(imet<nmet_known && strcasecmp(name,name_known[imet])!=0) imet++;
     
-    return ret;
+    //check
+    if(imet==nmet_known) crash("unknown smoothing method: %s",name);
+    
+    return met_known[imet];
   }
   
   //read parameters to stout smear gauge action
