@@ -568,6 +568,7 @@ namespace nissa
   
   //summ the prod of su3 with imag
   inline void su3_prod_idouble(su3 a,su3 b,double r) {for(size_t i=0;i<NCOL;i++) color_prod_idouble(a[i],b[i],r);}
+  inline void su3_prodassign_idouble(su3 a,double r) {su3_prod_idouble(a,a,r);}
   inline void su3_summ_the_prod_idouble(su3 a,su3 b,double r) {for(size_t i=0;i<NCOL;i++) color_summ_the_prod_idouble(a[i],b[i],r);}
   //summ the prod of su3 with real
   inline void su3_summ_the_prod_double(su3 a,su3 b,double r) {for(size_t i=0;i<NCOL;i++) color_summ_the_prod_double(a[i],b[i],r);}
