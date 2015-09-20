@@ -174,7 +174,7 @@ namespace nissa
 	    master_printf(" rejected\n");
 	  }
       }
-    while(tstep>=ttoll);
+    while(fabs(tstep)>=ttoll);
     master_printf("Final choice: t=%lg\n",dt);
     nissa_free(test_conf);
     
