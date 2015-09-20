@@ -470,7 +470,7 @@ namespace nissa
 		double plaq=global_plaquette_lx_conf(smoothed_conf);
 		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
 		master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,istep,tot_charge,plaq);
-		verbosity_lv2_master_printf("Topological charge after %d cooling steps: +%16.16lg, plaquette: %16.16lg\n",istep,tot_charge,plaq);
+		verbosity_lv2_master_printf("Topological charge after %d cooling steps: %+16.16lg, plaquette: %16.16lg\n",istep,tot_charge,plaq);
 	      }
 	    if(istep!=cop.nsteps) cool_lx_conf(smoothed_conf,get_sweeper(cop.gauge_action));
 	  }

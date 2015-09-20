@@ -91,6 +91,7 @@ namespace nissa
     //add the new argument of the exponential to the old one
     double force_norm=0;
     double force_max=0;
+    double plaq=0;
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
 	{
@@ -110,6 +111,7 @@ namespace nissa
 	  //build Omega
 	  su3 omega;
 	  unsafe_su3_prod_su3_dag(omega,staple,conf[ivol][mu]);
+	  plaq+=su3_real_trace(omega)/(2*NDIM-2);
 	  
 	  //compute Q and weight (the minus is there due to original stout
 	  unsafe_su3_traceless_anti_hermitian_part(arg[ivol][mu],omega);
@@ -119,9 +121,10 @@ namespace nissa
 	}
     force_norm=sqrt(glb_reduce_double(force_norm)/(NDIM*glb_vol));
     force_max=sqrt(glb_max_double(force_max));
+    plaq=glb_reduce_double(plaq)/NDIM;
     double dt=std::min((Tmax-*t),arg_max/force_max);
     //dt=0.10;
-    master_printf("Force norm: %lg, max %lg,dt: %lg\n",force_norm,force_max,dt);
+    master_printf("Force norm: %lg, max %lg, plaq: %lg, dt: %lg\n",force_norm,force_max,plaq,dt);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
