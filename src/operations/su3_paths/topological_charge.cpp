@@ -512,6 +512,7 @@ namespace nissa
       case smooth_pars_t::ADAPTATIVE_STOUTING:
 	{
 	  double tot_rho=0;
+	  master_printf("asp nlev: %d %d\n",asp.nlevls,pars.smooth_pars.adaptative_stout_pars.nlevls);
 	  for(int ilev=0;ilev<=asp.nlevls;ilev++)
 	    {
 	      if(ilev%int_each==0)
