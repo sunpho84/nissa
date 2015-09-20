@@ -1,5 +1,5 @@
-#ifndef _STOUT_H
-#define _STOUT_H
+#ifndef _STOUT_HPP
+#define _STOUT_HPP
 
 namespace nissa
 {

@@ -131,30 +131,30 @@ namespace nissa
   //take into account the stout remapping procedure
   THREADABLE_FUNCTION_7ARG(compute_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,conf, color***,pf, theory_pars_t*,physics, rat_approx_t*,appr, int*,npfs, double,residue)
   {
-    int nlev=physics->stout_pars.nlev;
+    int nlevls=physics->stout_pars.nlevls;
     
     //first of all we take care of the trivial case
-    if(nlev==0)	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,conf,pf,physics,appr,npfs,residue);
+    if(nlevls==0)	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,conf,pf,physics,appr,npfs,residue);
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]
 	quad_su3 ***sme_conf;
-	stout_smear_conf_stack_allocate(&sme_conf,conf,nlev);
+	stout_smear_conf_stack_allocate(&sme_conf,conf,nlevls);
 	
 	//smear iteratively retaining all the stack
 	addrem_stagphases_to_eo_conf(sme_conf[0]); //remove the staggered phases
 	stout_smear_whole_stack(sme_conf,conf,&(physics->stout_pars));
 	
 	//compute the force in terms of the most smeared conf
-	addrem_stagphases_to_eo_conf(sme_conf[nlev]); //add to most smeared conf
-	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,sme_conf[nlev],pf,physics,appr,npfs,residue);
+	addrem_stagphases_to_eo_conf(sme_conf[nlevls]); //add to most smeared conf
+	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,sme_conf[nlevls],pf,physics,appr,npfs,residue);
 	
 	//remap the force backward
 	stouted_force_remap(F,sme_conf,&(physics->stout_pars));
 	addrem_stagphases_to_eo_conf(sme_conf[0]); //add back again to the original conf
 	
 	//now free the stack of confs
-	stout_smear_conf_stack_free(&sme_conf,nlev);
+	stout_smear_conf_stack_free(&sme_conf,nlevls);
       }
     
     compute_rootst_eoimpr_quark_force_finish_computation(F,conf);

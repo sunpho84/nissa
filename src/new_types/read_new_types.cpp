@@ -51,8 +51,8 @@ namespace nissa
   //read parameters to stout smear gauge action
   void read_stout_pars(stout_pars_t &stout_pars)
   {
-    read_str_int("StoutingNLevel",&stout_pars.nlev);
-    if(stout_pars.nlev!=0)
+    read_str_int("StoutingNLevel",&stout_pars.nlevls);
+    if(stout_pars.nlevls!=0)
       {
 	//isotropic or not?
 	int iso;
@@ -63,9 +63,7 @@ namespace nissa
 	  {
 	    double rho;
 	    read_str_double("StoutRho",&rho);
-	    for(int i=0;i<NDIM;i++)
-	      for(int j=0;j<NDIM;j++)
-		stout_pars.rho[i][j]=rho;
+	    stout_pars.set_to_iso(rho);
 	  }
 	else crash("Anisotropic stouting not yet implemented");
       }
@@ -92,8 +90,9 @@ namespace nissa
   //read parameters to adaptative stout
   void read_adaptative_stout_pars(adaptative_stout_pars_t &pars)
   {
-    read_str_double("TotTime",&pars.T);
-    read_str_double("ArgMax",&pars.arg_max);
+    read_str_int("NLevls",&pars.nlevls);
+    pars.rho=new double[pars.nlevls];
+    for(int ilev=0;ilev<pars.nlevls;ilev++) read_double(&pars.rho[ilev]);
   }
  
   //read parameters to smooth

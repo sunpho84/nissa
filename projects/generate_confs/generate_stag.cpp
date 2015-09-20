@@ -534,7 +534,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       if(fermionic_putpourri_flag||magnetization_flag||pseudo_corr_flag||quark_rendens_flag)
 	{
 	  //if needed stout
-	  quad_su3 **sme_conf=(theory_pars[itheory].stout_pars.nlev==0)?conf:new_conf;
+	  quad_su3 **sme_conf=(theory_pars[itheory].stout_pars.nlevls==0)?conf:new_conf;
 	  
 	  //it is pointless to smear if there is no fermionic measurement
 	  stout_smear(sme_conf,conf,&(theory_pars[itheory].stout_pars));

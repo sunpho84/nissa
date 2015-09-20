@@ -60,9 +60,9 @@ namespace nissa
     //if needed smear the configuration for pseudo-fermions, approx generation and action computation
     //otherwise bind out_conf to sme_conf
     quad_su3 *sme_conf[2];
-    for(int eo=0;eo<2;eo++) sme_conf[eo]=(theory_pars.stout_pars.nlev!=0)?
+    for(int eo=0;eo<2;eo++) sme_conf[eo]=(theory_pars.stout_pars.nlevls!=0)?
 			      nissa_malloc("sme_conf",loc_volh+bord_volh+edge_volh,quad_su3):out_conf[eo];
-    if(theory_pars.stout_pars.nlev!=0)
+    if(theory_pars.stout_pars.nlevls!=0)
       {
 	verbosity_lv2_master_printf("Stouting the links for pseudo-fermions generation and initial action computation\n");
 	stout_smear(sme_conf,out_conf,&(theory_pars.stout_pars));
@@ -100,7 +100,7 @@ namespace nissa
     omelyan_rootst_eoimpr_evolver(H,out_conf,pf,&theory_pars,&simul_pars);
     
     //if needed, resmear the conf, otherwise sme_conf is already binded to out_conf
-    if(theory_pars.stout_pars.nlev!=0)
+    if(theory_pars.stout_pars.nlevls!=0)
       {
 	verbosity_lv2_master_printf("Stouting the links for final action computation\n");
 	addrem_stagphases_to_eo_conf(out_conf);
@@ -127,7 +127,7 @@ namespace nissa
 	nissa_free(pf[iflav]);
       }
     for(int par=0;par<2;par++) nissa_free(H[par]);
-    if(theory_pars.stout_pars.nlev!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
+    if(theory_pars.stout_pars.nlevls!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
     
     //shift back
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)

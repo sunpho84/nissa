@@ -122,7 +122,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
-    switch(stout_pars->nlev)
+    switch(stout_pars->nlevls)
       {
       case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
       case 1:
@@ -137,10 +137,10 @@ namespace nissa
 	quad_su3 **in=ext_in,**ptr[2]={ext_temp,ext_out};
 	
 	//if the distance is even, first pass must use temp as out
-	quad_su3 **out=ptr[!(stout_pars->nlev%2==0)];
-	quad_su3 **temp=ptr[(stout_pars->nlev%2==0)];
+	quad_su3 **out=ptr[!(stout_pars->nlevls%2==0)];
+	quad_su3 **temp=ptr[(stout_pars->nlevls%2==0)];
 	
-	for(int i=0;i<stout_pars->nlev;i++)
+	for(int i=0;i<stout_pars->nlevls;i++)
 	  {
 	    stout_smear_single_level(out,in,&(stout_pars->rho));
             verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(out));
@@ -185,7 +185,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(stout_smear_whole_stack, quad_su3***,out, quad_su3**,in, stout_pars_t*,stout_pars)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
-    for(int i=1;i<=stout_pars->nlev;i++)
+    for(int i=1;i<=stout_pars->nlevls;i++)
       {
 	stout_smear_single_level(out[i],out[i-1],&(stout_pars->rho));
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
@@ -306,16 +306,16 @@ namespace nissa
     if(IS_MASTER_THREAD) sto_remap_time-=take_time();
 #endif
     
-    for(int i=stout_pars->nlev-1;i>=0;i--)
+    for(int i=stout_pars->nlevls-1;i>=0;i--)
       {
-	verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i+1,stout_pars->nlev);
+	verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i+1,stout_pars->nlevls);
 	stouted_force_remap_step(F,sme_conf[i],&(stout_pars->rho));
       }
     
 #ifdef BENCH
     if(IS_MASTER_THREAD)
       {
-	sto_remap_time+=take_time();  
+	sto_remap_time+=take_time();
 	nsto_remap++;
       }
 #endif

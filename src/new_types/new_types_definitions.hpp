@@ -338,8 +338,16 @@ namespace nissa
   //parameters to stout
   struct stout_pars_t
   {
-    int nlev;
+    int nlevls;
     stout_coeff_t rho;
+    void set_to_iso(double r)
+    {
+      for(int i=0;i<NDIM;i++)
+	for(int j=0;j<NDIM;j++)
+	  rho[i][j]=r;
+    }
+    stout_pars_t(int nlevls,double r) : nlevls(nlevls){set_to_iso(r);}
+    stout_pars_t(){}
   };
   
   //parameters to ape smear
@@ -361,8 +369,8 @@ namespace nissa
   //structure to adataptive stout
   struct adaptative_stout_pars_t
   {
-    double T;
-    double arg_max;
+    int nlevls;
+    double *rho;
   };
   
   //structure to Wilson flow

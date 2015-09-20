@@ -459,10 +459,11 @@ namespace nissa
     stout_pars_t stp=sp.stout_pars;
     adaptative_stout_pars_t asp=sp.adaptative_stout_pars;
     Wflow_pars_t wfp=sp.Wflow_pars;
+    int int_each=int(sp.meas_each);
     switch(sp.method)
       {
       case smooth_pars_t::COOLING:
-	for(int int_each=int(sp.meas_each),istep=0;istep<=(cop.nsteps/int_each)*int_each;istep++)
+	for(int istep=0;istep<=(cop.nsteps/int_each)*int_each;istep++)
 	  {
 	    if(istep%int_each==0)
 	      {
@@ -476,11 +477,11 @@ namespace nissa
 	  }
 	break;
       case smooth_pars_t::STOUTING:
-	for(int int_each=int(sp.meas_each),ilev=0;ilev<=(stp.nlev/int_each)*int_each;ilev++)
+	for(int ilev=0;ilev<=(stp.nlevls/int_each)*int_each;ilev++)
 	  {
 	    //fix to stout for "meas_each"
 	    stout_pars_t iter_pars=stp;
-	    iter_pars.nlev=sp.meas_each;
+	    iter_pars.nlevls=sp.meas_each;
 	    
 	    if(ilev%int_each==0)
 	      {
@@ -490,7 +491,7 @@ namespace nissa
 		master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,ilev,tot_charge,plaq);
 		verbosity_lv2_master_printf("Topological charge after %d stouting levels: %+16.16lg, plaquette: %16.16lg\n",ilev,tot_charge,plaq);
 	      }
-	    if(ilev!=stp.nlev) stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
+	    if(ilev!=stp.nlevls) stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
 	  }
 	break;
       case smooth_pars_t::WFLOWING:
@@ -510,21 +511,24 @@ namespace nissa
 	break;
       case smooth_pars_t::ADAPTATIVE_STOUTING:
 	{
-	  double t=0,tmeas=-1e-10,dt=0.10;
-	  do
+	  double tot_rho=0;
+	  for(int ilev=0;ilev<=asp.nlevls;ilev++)
 	    {
-	      if(tmeas<t)
+	      if(ilev%int_each==0)
 		{
-		  tmeas+=sp.meas_each;
 		  double tot_charge;
 		  double plaq=global_plaquette_lx_conf(smoothed_conf);
 		  total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		  master_fprintf(file,"%d %lg %+16.16lg %16.16lg\n",iconf,t,tot_charge,plaq);
-		  verbosity_lv2_master_printf("Topological charge after %lg time of adaptative stout: +%16.16lg, plaquette: %16.16lg\n",t,tot_charge,plaq);
-	      }
-	      adaptative_stout_lx_conf(smoothed_conf,&t,asp.T,&dt);
-	  }
-	  while(t<asp.T);
+		  master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,ilev,tot_charge,plaq);
+		  verbosity_lv2_master_printf("Topological charge after %d tot stouting: %+16.16lg, plaquette: %16.16lg\n",tot_rho,tot_charge,plaq);
+		}
+	      if(ilev!=asp.nlevls)
+		{
+		  stout_pars_t iter_pars(1,asp.rho[ilev]);
+		  stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
+		  tot_rho+=asp.rho[ilev];
+		}
+	    }
 	}
 	break;
       default:
@@ -639,7 +643,7 @@ namespace nissa
       {
 	double charge;
 	quad_su3 *conf[2];
-	if(stout_pars.nlev==0)
+	if(stout_pars.nlevls==0)
 	  {
 	    conf[0]=ext_conf[0];
 	    conf[1]=ext_conf[1];
@@ -656,7 +660,7 @@ namespace nissa
 	update(iconf,charge);
 	
 	//free if needed
-	if(stout_pars.nlev!=0)
+	if(stout_pars.nlevls!=0)
 	  {
 	    nissa_free(conf[0]);
 	    nissa_free(conf[1]);
