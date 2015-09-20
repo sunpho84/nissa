@@ -1,9 +1,10 @@
 #ifndef _MPI_NISSA_HPP
 #define _MPI_NISSA_HPP
 
-#ifdef USE_MPI
- #include <mpi.h>
-#endif
+#include <mpi.h>
+#include <algorithm>
+#include "new_types/new_types_definitions.hpp"
+#include "math_routines.hpp"
 
 namespace nissa
 {
@@ -17,8 +18,9 @@ namespace nissa
   void ranks_abort(int err);
   void ranks_barrier();
   float glb_reduce_single(float in_loc);
-  double glb_reduce_double(double in_loc);
-  double glb_max_double(double in_loc);
+  double glb_reduce_double(double in_loc,double (*thread_op)(double,double)=summ<double>,MPI_Op mpi_op=MPI_SUM);
+  inline double glb_max_double(double in_loc)
+  {return glb_reduce_double(in_loc,nissa_max,MPI_MAX);}
   int glb_reduce_int(int in_loc);
   int broadcast(int in,int rank_from=0);
   void broadcast(rat_approx_t *rat,int rank_from=0);

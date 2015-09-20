@@ -90,6 +90,7 @@ namespace nissa
     
     //add the new argument of the exponential to the old one
     double force_norm=0;
+    double force_max=0;
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
 	{
@@ -112,11 +113,15 @@ namespace nissa
 	  
 	  //compute Q and weight (the minus is there due to original stout
 	  unsafe_su3_traceless_anti_hermitian_part(arg[ivol][mu],omega);
-	  force_norm+=su3_norm2(arg[ivol][mu]);
+	  double loc_force_norm=su3_norm2(arg[ivol][mu]);
+	  force_norm+=loc_force_norm;
+	  force_max=nissa_max(force_max,loc_force_norm);
 	}
     force_norm=sqrt(glb_reduce_double(force_norm)/(NDIM*glb_vol));
+    force_max=sqrt(glb_max_double(force_max));
     double dt=std::min((Tmax-*t),arg_max/force_norm);
-    master_printf("Force norm: %lg, dt: %lg\n",force_norm,dt);
+    //dt=0.10;
+    master_printf("Force norm: %lg, max%lg,dt: %lg\n",force_norm,force_max,dt);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)

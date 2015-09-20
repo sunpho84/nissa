@@ -16,6 +16,8 @@
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/rat_approx.hpp"
 
+#include "mpi_routines.hpp"
+
 #ifdef USE_THREADS
   #include "routines/thread.hpp"
 #endif
@@ -255,7 +257,7 @@ namespace nissa
   }
   
   //reduce a double
-  double glb_reduce_double(double in_loc)
+  double glb_reduce_double(double in_loc,double (*thread_op)(double,double),MPI_Op mpi_op)
   {
     double out_glb;
     
@@ -271,8 +273,8 @@ namespace nissa
 	//within master thread summ all the pieces and between MPI
 	if(IS_MASTER_THREAD)
 	  {
-	    for(unsigned int ith=1;ith<nthreads;ith++) in_loc+=glb_double_reduction_buf[ith];
-	    MPI_Allreduce(&in_loc,&(glb_double_reduction_buf[0]),1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
+	    for(unsigned int ith=1;ith<nthreads;ith++) in_loc=thread_op(in_loc,glb_double_reduction_buf[ith]);
+	    MPI_Allreduce(&in_loc,&(glb_double_reduction_buf[0]),1,MPI_DOUBLE,mpi_op,MPI_COMM_WORLD);
 	    cache_flush();
 	  }
 	
@@ -314,38 +316,6 @@ namespace nissa
     else
 #endif
       MPI_Allreduce(&in_loc,&out_glb,1,MPI_FLOAT,MPI_SUM,MPI_COMM_WORLD);
-    
-    return out_glb;
-  }
-  
-  //max of all double
-  double glb_max_double(double in_loc)
-  {
-    double out_glb;
-    
-#ifdef USE_THREADS
-    if(!thread_pool_locked)
-      {
-	GET_THREAD_ID();
-	
-	//copy loc in the buf and sync all the threads
-	glb_double_reduction_buf[thread_id]=in_loc;
-	THREAD_BARRIER();
-	
-	//within master thread summ all the pieces and between MPI
-	if(IS_MASTER_THREAD)
-	  {
-	    for(unsigned int ith=1;ith<nthreads;ith++) in_loc=std::max(in_loc,glb_double_reduction_buf[ith]);
-	    MPI_Allreduce(&in_loc,&(glb_double_reduction_buf[0]),1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
-	    cache_flush();
-	  }
-	
-	//read glb val
-	THREAD_ATOMIC_EXEC(out_glb=glb_double_reduction_buf[0];);
-      }
-    else
-#endif
-      MPI_Allreduce(&in_loc,&out_glb,1,MPI_DOUBLE,MPI_MAX,MPI_COMM_WORLD);
     
     return out_glb;
   }
