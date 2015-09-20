@@ -148,6 +148,25 @@ namespace nissa
 	    old_plaq=new_plaq;
 	    dt=dt_test;
 	    master_printf(" accepted\n");
+	    
+	    double eps=1e-3;
+	    double dt_der=dt+tstep+(1+eps);
+	    
+	    //compute derivative
+	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	      for(int mu=0;mu<NDIM;mu++)
+		{
+		  su3 Q,expiQ;
+		  su3_prod_idouble(Q,arg[ivol][mu],-dt_der);
+		  safe_anti_hermitian_exact_i_exponentiate(expiQ,Q);
+		  safe_su3_prod_su3(test_conf[ivol][mu],expiQ,conf[ivol][mu]);
+		}
+	    set_borders_invalid(test_conf);
+	    double der_point_plaq=global_plaquette_lx_conf(test_conf);
+	    double der_plaq=(der_point_plaq-new_plaq)/(eps*tstep);
+	    master_printf(" Plaq derivative: %16.16lg\n",der_plaq,dt_test);
+	    
+	    if(der_plaq>0) tstep/=-2;
 	  }
 	else
 	  {
