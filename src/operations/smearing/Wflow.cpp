@@ -5,6 +5,7 @@
 #include "base/thread_macros.hpp"
 #include "communicate/communicate.hpp"
 #include "new_types/su3.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
@@ -78,7 +79,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //flow for the given time using an adaptative integrator of first order
-  THREADABLE_FUNCTION_4ARG(adaptative_stout_lx_conf, quad_su3*,conf, double*,t, double,Tmax, double,arg_max)
+  THREADABLE_FUNCTION_4ARG(adaptative_stout_lx_conf, quad_su3*,conf, double*,t, double,Tmax, double*,ext_dt)
   {
     GET_THREAD_ID();
     
@@ -89,8 +90,6 @@ namespace nissa
     communicate_lx_quad_su3_edges(conf);
     
     //add the new argument of the exponential to the old one
-    double force_norm=0;
-    double force_max=0;
     double plaq=0;
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
@@ -115,36 +114,76 @@ namespace nissa
 	  
 	  //compute Q and weight (the minus is there due to original stout
 	  unsafe_su3_traceless_anti_hermitian_part(arg[ivol][mu],omega);
-	  double loc_force_norm=su3_norm2(arg[ivol][mu]);
-	  force_norm+=loc_force_norm;
-	  force_max=nissa_max(force_max,loc_force_norm);
 	}
-    force_norm=sqrt(glb_reduce_double(force_norm)/(NDIM*glb_vol));
-    force_max=sqrt(glb_max_double(force_max));
-    plaq=glb_reduce_double(plaq)/NDIM;
-    double dt=std::min((Tmax-*t),arg_max/force_max);
-    //dt=0.10;
-    master_printf("Force norm: %lg, max %lg, plaq: %lg, dt: %lg\n",force_norm,force_max,plaq,dt);
+    plaq=glb_reduce_double(plaq)/NDIM/NCOL/glb_vol;
     
-    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<NDIM;mu++)
-	su3_prodassign_idouble(arg[ivol][mu],-dt); //putting here the integration time (- due to i)
-    THREAD_BARRIER();
+    //dt=0.10;
+    
+    double dt=0;
+    double tstep=*ext_dt;
+    double ttoll=0.001;
+    double old_plaq=global_plaquette_lx_conf(conf);
+    master_printf("Plaq: %lg, t=0\n",old_plaq);
+    
+    do
+      {
+	double dt_test=dt+tstep;
+	
+	//integrate
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      su3 Q,expiQ;
+	      su3_prod_idouble(Q,arg[ivol][mu],-dt_test);
+	      safe_anti_hermitian_exact_i_exponentiate(expiQ,Q);
+	      safe_su3_prod_su3(conf[ivol][mu],expiQ,conf[ivol][mu]);
+	    }
+	
+	double new_plaq=global_plaquette_lx_conf(conf);
+        master_printf("Plaq: %lg, at t=%t\n",old_plaq,dt_test);
+	
+	//disintegrate
+	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+	  for(int mu=0;mu<NDIM;mu++)
+	    {
+	      su3 Q,expiQ;
+	      su3_prod_idouble(Q,arg[ivol][mu],dt_test);
+	      safe_anti_hermitian_exact_i_exponentiate(expiQ,Q);
+	      safe_su3_prod_su3(conf[ivol][mu],expiQ,conf[ivol][mu]);
+	    }
+	
+	if(new_plaq>old_plaq)
+	  {
+	    old_plaq=new_plaq;
+	    dt=dt_test;
+	    master_printf(" accepted\n");
+	  }
+	else
+	  {
+	    tstep/=2;
+	    master_printf("rejected\n");
+	  }
+      }
+    while(tstep>=ttoll);
     
     //integrate
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
 	{
-	  su3 expiQ;
-	  safe_anti_hermitian_exact_i_exponentiate(expiQ,arg[ivol][mu]);
+	  su3 Q,expiQ;
+	  su3_prod_idouble(Q,arg[ivol][mu],-dt);
+	  safe_anti_hermitian_exact_i_exponentiate(expiQ,Q);
 	  safe_su3_prod_su3(conf[ivol][mu],expiQ,conf[ivol][mu]);
 	}
     
-    if(IS_MASTER_THREAD) *t+=dt;
+    if(IS_MASTER_THREAD)
+      {
+	*t+=dt;
+	*ext_dt=dt;
+      }
     set_borders_invalid(conf);
     
     nissa_free(arg);
   }
   THREADABLE_FUNCTION_END
-
 }

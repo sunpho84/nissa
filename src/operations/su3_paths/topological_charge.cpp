@@ -510,7 +510,7 @@ namespace nissa
 	break;
       case smooth_pars_t::ADAPTATIVE_STOUTING:
 	{
-	  double t=0,tmeas=-1e-10;
+	  double t=0,tmeas=-1e-10,dt=0.10;
 	  do
 	    {
 	      if(tmeas<t)
@@ -522,7 +522,7 @@ namespace nissa
 		  master_fprintf(file,"%d %lg %+16.16lg %16.16lg\n",iconf,t,tot_charge,plaq);
 		  verbosity_lv2_master_printf("Topological charge after %lg time of adaptative stout: +%16.16lg, plaquette: %16.16lg\n",t,tot_charge,plaq);
 	      }
-	      adaptative_stout_lx_conf(smoothed_conf,&t,asp.T,asp.arg_max);
+	      adaptative_stout_lx_conf(smoothed_conf,&t,asp.T,&dt);
 	  }
 	  while(t<asp.T);
 	}
