@@ -119,9 +119,9 @@ namespace nissa
 	}
     force_norm=sqrt(glb_reduce_double(force_norm)/(NDIM*glb_vol));
     force_max=sqrt(glb_max_double(force_max));
-    double dt=std::min((Tmax-*t),arg_max/force_norm);
+    double dt=std::min((Tmax-*t),arg_max/force_max);
     //dt=0.10;
-    master_printf("Force norm: %lg, max%lg,dt: %lg\n",force_norm,force_max,dt);
+    master_printf("Force norm: %lg, max %lg,dt: %lg\n",force_norm,force_max,dt);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
