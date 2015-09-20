@@ -85,7 +85,7 @@ namespace nissa
     
     //storage for staples
     quad_su3 *arg=nissa_malloc("arg",loc_vol,quad_su3);
-    quad_su3 *test_conf=nissa_malloc("test_conf",loc_vol,quad_su3);
+    quad_su3 *test_conf=nissa_malloc("test_conf",loc_vol+bord_vol,quad_su3);
     vector_reset(arg);
     
     communicate_lx_quad_su3_edges(conf);
