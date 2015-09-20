@@ -370,7 +370,7 @@ namespace nissa
   struct adaptative_stout_pars_t
   {
     int nlevls;
-    double *rho;
+    std::vector<double> rho;
   };
   
   //structure to Wilson flow

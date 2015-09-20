@@ -457,7 +457,7 @@ namespace nissa
     smooth_pars_t sp=pars.smooth_pars;
     cool_pars_t cop=sp.cool_pars;
     stout_pars_t stp=sp.stout_pars;
-    adaptative_stout_pars_t *asp=&sp.adaptative_stout_pars;
+    adaptative_stout_pars_t asp=sp.adaptative_stout_pars;
     Wflow_pars_t wfp=sp.Wflow_pars;
     int int_each=int(sp.meas_each);
     switch(sp.method)
@@ -512,7 +512,7 @@ namespace nissa
       case smooth_pars_t::ADAPTATIVE_STOUTING:
 	{
 	  double tot_rho=0;
-	  for(int ilev=0;ilev<=asp->nlevls;ilev++)
+	  for(int ilev=0;ilev<=asp.nlevls;ilev++)
 	    {
 	      if(ilev%int_each==0)
 		{
@@ -522,11 +522,11 @@ namespace nissa
 		  master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,ilev,tot_charge,plaq);
 		  verbosity_lv2_master_printf("Topological charge after %d tot stouting: %+16.16lg, plaquette: %16.16lg\n",tot_rho,tot_charge,plaq);
 		}
-	      if(ilev!=asp->nlevls)
+	      if(ilev!=asp.nlevls)
 		{
-		  stout_pars_t iter_pars(1,asp->rho[ilev]);
+		  stout_pars_t iter_pars(1,asp.rho[ilev]);
 		  stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
-		  tot_rho+=asp->rho[ilev];
+		  tot_rho+=asp.rho[ilev];
 		}
 	    }
 	}

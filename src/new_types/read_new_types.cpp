@@ -91,8 +91,12 @@ namespace nissa
   void read_adaptative_stout_pars(adaptative_stout_pars_t &pars)
   {
     read_str_int("NLevls",&pars.nlevls);
-    pars.rho=new double[pars.nlevls];
-    for(int ilev=0;ilev<pars.nlevls;ilev++) read_double(&pars.rho[ilev]);
+    for(int ilev=0;ilev<pars.nlevls;ilev++)
+      {
+	double r;
+	read_double(&r);
+	pars.rho.push_back(r);
+      }
   }
  
   //read parameters to smooth
