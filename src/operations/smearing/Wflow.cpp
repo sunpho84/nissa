@@ -85,6 +85,7 @@ namespace nissa
     
     //storage for staples
     quad_su3 *arg=nissa_malloc("arg",loc_vol,quad_su3);
+    quad_su3 *test_conf=nissa_malloc("test_conf",loc_vol,quad_su3);
     vector_reset(arg);
     
     communicate_lx_quad_su3_edges(conf);
@@ -123,7 +124,7 @@ namespace nissa
     double tstep=*ext_dt;
     double ttoll=0.001;
     double old_plaq=global_plaquette_lx_conf(conf);
-    master_printf("Plaq: %lg, t=0\n",old_plaq);
+    master_printf("Plaq: %16.16lg, at t=0\n",old_plaq);
     
     do
       {
@@ -136,21 +137,11 @@ namespace nissa
 	      su3 Q,expiQ;
 	      su3_prod_idouble(Q,arg[ivol][mu],-dt_test);
 	      safe_anti_hermitian_exact_i_exponentiate(expiQ,Q);
-	      safe_su3_prod_su3(conf[ivol][mu],expiQ,conf[ivol][mu]);
+	      safe_su3_prod_su3(test_conf[ivol][mu],expiQ,conf[ivol][mu]);
 	    }
-	
-	double new_plaq=global_plaquette_lx_conf(conf);
-        master_printf("Plaq: %lg, at t=%t\n",old_plaq,dt_test);
-	
-	//disintegrate
-	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  for(int mu=0;mu<NDIM;mu++)
-	    {
-	      su3 Q,expiQ;
-	      su3_prod_idouble(Q,arg[ivol][mu],dt_test);
-	      safe_anti_hermitian_exact_i_exponentiate(expiQ,Q);
-	      safe_su3_prod_su3(conf[ivol][mu],expiQ,conf[ivol][mu]);
-	    }
+	set_borders_invalid(test_conf);
+	double new_plaq=global_plaquette_lx_conf(test_conf);
+        master_printf("Plaq: %16.16lg vs %16.16lg, at t=%d\n",new_plaq,old_plaq,dt_test);
 	
 	if(new_plaq>old_plaq)
 	  {
@@ -161,10 +152,12 @@ namespace nissa
 	else
 	  {
 	    tstep/=2;
-	    master_printf("rejected\n");
+	    master_printf(" rejected\n");
 	  }
       }
     while(tstep>=ttoll);
+    
+    nissa_free(test_conf);
     
     //integrate
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
