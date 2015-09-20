@@ -141,7 +141,7 @@ namespace nissa
 	    }
 	set_borders_invalid(test_conf);
 	double new_plaq=global_plaquette_lx_conf(test_conf);
-        master_printf("Plaq: %16.16lg vs %16.16lg, at t=%d\n",new_plaq,old_plaq,dt_test);
+        master_printf("Plaq: %16.16lg vs %16.16lg, at t=%lg\n",new_plaq,old_plaq,dt_test);
 	
 	if(new_plaq>old_plaq)
 	  {
@@ -156,7 +156,7 @@ namespace nissa
 	  }
       }
     while(tstep>=ttoll);
-    
+    master_printf("Final choice: t=%lg\n",dt);
     nissa_free(test_conf);
     
     //integrate
