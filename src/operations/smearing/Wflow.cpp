@@ -150,7 +150,7 @@ namespace nissa
 	    master_printf(" accepted\n");
 	    
 	    double eps=1e-3;
-	    double dt_der=dt+tstep+(1+eps);
+	    double dt_der=dt+tstep*eps;
 	    
 	    //compute derivative
 	    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -164,7 +164,7 @@ namespace nissa
 	    set_borders_invalid(test_conf);
 	    double der_point_plaq=global_plaquette_lx_conf(test_conf);
 	    double der_plaq=(der_point_plaq-new_plaq)/(eps*tstep);
-	    master_printf(" Plaq derivative: %16.16lg\n",der_plaq,dt_test);
+	    master_printf(" Plaq derivative: (%16.16lg-%16.16lg)/%lg=%16.16lg\n",der_point_plaq,new_plaq,eps*tstep,der_plaq);
 	    
 	    if(der_plaq>0) tstep/=-2;
 	  }
