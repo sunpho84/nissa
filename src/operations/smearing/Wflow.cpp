@@ -166,7 +166,7 @@ namespace nissa
 	    double der_plaq=(der_point_plaq-new_plaq)/(eps*tstep);
 	    master_printf(" Plaq derivative: (%16.16lg-%16.16lg)/%lg=%16.16lg\n",der_point_plaq,new_plaq,eps*tstep,der_plaq);
 	    
-	    if(der_plaq>0) tstep/=-2;
+	    if(der_plaq<0) tstep/=-2;
 	  }
 	else
 	  {
