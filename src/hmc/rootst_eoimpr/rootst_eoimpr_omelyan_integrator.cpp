@@ -29,20 +29,44 @@
 #include "rootst_eoimpr_action.hpp"
 #include "rootst_eoimpr_quark_force.hpp"
 
+#define TOPO_MICRO 0
+#define TOPO_MACRO 1
+
+#define TOPO_EVOLUTION TOPO_MACRO
+
 namespace nissa
 {
   //evolve the momenta with topological force
-  THREADABLE_FUNCTION_5ARG(evolve_lx_momenta_with_topological_force, quad_su3*,H, quad_su3*,conf, topotential_pars_t*,topars, double,dt, quad_su3*,ext_F)
+  THREADABLE_FUNCTION_6ARG(evolve_lx_momenta_with_topological_force, quad_su3*,H, quad_su3*,conf, topotential_pars_t*,topars, double,dt, quad_su3*,ext_F, bool,phase_pres)
   {
-    verbosity_lv2_master_printf("Evolving momenta with topological force, dt=%lg\n",dt);
+    verbosity_lv2_master_printf("Evolving lx momenta with topological force, dt=%lg\n",dt);
     
     //allocate force and compute it
     quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",loc_vol,quad_su3):ext_F;
-    compute_topological_force_lx_conf(F,conf,topars,false);
+    compute_topological_force_lx_conf(F,conf,topars,phase_pres);
     
     //evolve
     evolve_lx_momenta_with_force(H,F,dt);
     if(ext_F==NULL) nissa_free(F);
+  }
+  THREADABLE_FUNCTION_END
+  
+  //eo wrapper
+  THREADABLE_FUNCTION_5ARG(evolve_eo_momenta_with_topological_force, quad_su3**,eo_H, quad_su3**,eo_conf, topotential_pars_t*,topars, double,dt, bool,phase_pres)
+  {
+    verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
+    
+    //reorder
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_volh,quad_su3);
+    quad_su3 *lx_H=nissa_malloc("lx_H",loc_vol,quad_su3);
+    paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
+    paste_eo_parts_into_lx_conf(lx_H,eo_H);
+    
+    evolve_lx_momenta_with_topological_force(lx_H,lx_conf,topars,dt,NULL,phase_pres);
+    
+    split_lx_conf_into_eo_parts(eo_H,lx_H);
+    nissa_free(eo_H);
+    nissa_free(eo_conf);;
   }
   THREADABLE_FUNCTION_END
   
@@ -61,7 +85,7 @@ namespace nissa
     
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
     evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
-    if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
+    if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F,false);
     
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
@@ -75,12 +99,12 @@ namespace nissa
 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
 	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
-	if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
+	if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F,false);
 	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
 	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
-	if(topars->flag) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
+	if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F,false);
 	
 	//normalize the configuration
 	unitarize_lx_conf_maximal_trace_projecting(lx_conf);
@@ -205,9 +229,11 @@ namespace nissa
     double dt=simul_pars->traj_length/simul_pars->nmd_steps,
       ldt=dt*OMELYAN_LAMBDA,l2dt=2*OMELYAN_LAMBDA*dt,uml2dt=(1-2*OMELYAN_LAMBDA)*dt;
     int nsteps=simul_pars->nmd_steps;
+    topotential_pars_t tp=theory_pars->topotential_pars;
     
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
     evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,ldt);
+    if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,ldt,true);
     
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
@@ -219,10 +245,12 @@ namespace nissa
 	
 	omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,uml2dt);
+	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,uml2dt,true);
 	
 	omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,last_dt);
-	
+	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt,true);
+
 	//normalize the configuration
 	addrem_stagphases_to_eo_conf(conf);
 	unitarize_eo_conf_maximal_trace_projecting(conf);

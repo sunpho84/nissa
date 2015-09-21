@@ -48,7 +48,7 @@ namespace nissa
     //normalize
     double norm=pot/(M_PI*M_PI*128);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	safe_su3_hermitian_prod_double(F[ivol][mu],F[ivol][mu],norm);
     set_borders_invalid(F);
     

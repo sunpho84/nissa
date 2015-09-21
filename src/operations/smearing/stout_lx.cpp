@@ -181,7 +181,7 @@ namespace nissa
     nissa_free(*out);
   }
   THREADABLE_FUNCTION_END
-
+  
   //smear iteratively retainig all the stack
   THREADABLE_FUNCTION_3ARG(stout_smear_whole_stack, quad_su3**,out, quad_su3*,in, stout_pars_t*,stout_pars)
   {
@@ -193,7 +193,7 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
-
+  
   //remap the force to one smearing level less
   THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3*,F, quad_su3*,conf, stout_coeff_t*,rho)
   {
@@ -245,8 +245,8 @@ namespace nissa
 	      {                                  //    |        |       |
 		int f1=loclx_neighup[ A][mu];    //    V   B    |   F   V     ^
 		int f2=loclx_neighup[ A][nu];    //    |        |       |     m
-		int f3=A;                        //  b23 -->-- f3 --<-- f2    u   	  
-		int b1=loclx_neighdw[f1][nu];    //             A             +  nu ->  
+		int f3=A;                        //  b23 -->-- f3 --<-- f2    u
+		int b1=loclx_neighdw[f1][nu];    //             A             +  nu ->
 		int b2=loclx_neighdw[b1][mu];
 		int b3=b2;
 		
@@ -257,7 +257,7 @@ namespace nissa
 		unsafe_su3_prod_su3_dag(temp2,temp1,conf[f3][nu]);
 		unsafe_su3_prod_su3(temp3,temp2,Lambda[f3][nu]);
 		su3_summ_the_prod_idouble(F[A][mu],temp3,-(*rho)[nu][mu]);
-		  
+		
 		//second term, insertion on b2 along mu
 		unsafe_su3_dag_prod_su3_dag(temp1,conf[b1][nu],conf[b2][mu]);
 		unsafe_su3_prod_su3(temp2,temp1,Lambda[b2][mu]);
