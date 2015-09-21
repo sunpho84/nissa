@@ -162,9 +162,9 @@ void read_conf(quad_su3 **conf,char *path)
       start_loc_rnd_gen(seed);
     }
   
-  //load metapotential if needed
+  //load metapotential if needed and possible
   if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
-    load_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars);
+    load_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars,false);
   
   ILDG_message_free_all(&mess);
 }

@@ -6,6 +6,7 @@
 
 #include "base/thread_macros.hpp"
 #include "geometry/geometry_eo.hpp"
+#include "io/input.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "operations/smearing/stout.hpp"
@@ -18,14 +19,21 @@
 
 namespace nissa
 {
+  const char topo_file_name[]="topo_potential";
+  
   //compute the topodynamical potential using past history
   double topodynamical_potential(double Q,topotential_pars_t &pars)
   {return pars.compute_pot(Q);}
   //draw the topodynamical potential
   void save_topodynamical_potential(topotential_pars_t &pars)
-  {pars.save("topo_potential");}
-  void load_topodynamical_potential(topotential_pars_t &pars)
-  {pars.load("topo_potential");}
+  {pars.save(topo_file_name);}
+  void load_topodynamical_potential(topotential_pars_t &pars,bool mandatory)
+  {
+    if(file_exists(topo_file_name)) pars.load(topo_file_name);
+    else
+      if(mandatory) crash("%s file not found when mandatory present",topo_file_name);
+      else verbosity_lv2_master_printf("%s not found, skipping reading",topo_file_name);
+  }
   
   //Compute the topological action
   double topotential_action(quad_su3 **ext_conf,topotential_pars_t &pars)
