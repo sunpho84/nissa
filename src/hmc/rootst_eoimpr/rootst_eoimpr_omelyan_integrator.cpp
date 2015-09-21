@@ -65,8 +65,8 @@ namespace nissa
     evolve_lx_momenta_with_topological_force(lx_H,lx_conf,topars,dt,NULL,phase_pres);
     
     split_lx_conf_into_eo_parts(eo_H,lx_H);
-    nissa_free(eo_H);
-    nissa_free(eo_conf);;
+    nissa_free(lx_H);
+    nissa_free(lx_conf);
   }
   THREADABLE_FUNCTION_END
   
