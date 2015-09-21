@@ -50,8 +50,8 @@ int nwritten_conf=0;
 double write_conf_time=0;
 void write_conf(const char *path,quad_su3 **conf)
 {
-  write_conf_time-=take_time();  
-
+  write_conf_time-=take_time();
+  
   //messages
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
@@ -91,6 +91,10 @@ void write_conf(const char *path,quad_su3 **conf)
   //mark time
   write_conf_time+=take_time();
   nwritten_conf++;
+  
+  //save the potential if needed
+  if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
+    save_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars);
 }
 
 //read conf
@@ -101,7 +105,7 @@ void read_conf(quad_su3 **conf,char *path)
   //init messages
   ILDG_message mess;
   ILDG_message_init_to_last(&mess);
-
+  
   //read the conf
   read_ildg_gauge_conf_and_split_into_eo_parts(conf,path,&mess);
   
@@ -157,6 +161,10 @@ void read_conf(quad_su3 **conf,char *path)
       master_printf("RND_gen status not found inside conf, starting from input passed seed\n");
       start_loc_rnd_gen(seed);
     }
+  
+  //load metapotential if needed
+  if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
+    load_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars);
   
   ILDG_message_free_all(&mess);
 }
@@ -358,9 +366,6 @@ namespace nissa
 void close_simulation()
 {
   master_printf("glb rnd generated: %d\n",nglbgen);
-  
-  if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
-    draw_topodynamical_potential(theory_pars[SEA_THEORY].topotential_pars);
   
   if(!store_running_temp_conf && ntraj_prod>0) write_conf(conf_path,conf);
   

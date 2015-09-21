@@ -57,7 +57,7 @@ namespace nissa
     verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
     
     //reorder
-    quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_volh,quad_su3);
+    quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     quad_su3 *lx_H=nissa_malloc("lx_H",loc_vol,quad_su3);
     paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
     paste_eo_parts_into_lx_conf(lx_H,eo_H);
