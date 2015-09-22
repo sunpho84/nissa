@@ -44,7 +44,9 @@ spincolor *temp_solution;
 
 gauge_info photon;
 double tadpole[4];
-spin1field *photon_phi,*photon_eta;
+const int iphi=0,ieta=1,ialt=2;
+spin1field *photon_field[3];
+const char photon_field_name[3][4]={"phi","eta","alt"};
 
 int hadr_corr_length;
 complex *hadr_corr;
@@ -79,24 +81,24 @@ spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
 
 
 //define types of quark propagator used
-const int nins_kind=6;
-enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  STOCH_PHI,  STOCH_ETA,  TADPOLE};
-const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","STOCH_PHI","STOCH_ETA","TADPOLE"};
-const int nqprop_kind=7;
-enum qprop_t{                           PROP_0,  PROP_S,  PROP_P,  PROP_PHI,  PROP_ETA,  PROP_PHIETA,  PROP_T};
-const char prop_name[nqprop_kind][20]={"PROP_0","PROP_S","PROP_P","PROP_PHI","PROP_ETA","PROP_PHIETA","PROP_T"};
+const int nins_kind=7;
+enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  STOCH_PHI,  STOCH_ETA,  STOCH_ALT,   TADPOLE};
+const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","STOCH_PHI","STOCH_ETA","STOCH_ALT", "TADPOLE"};
+const int nqprop_kind=9;
+enum qprop_t{                           PROP_0,  PROP_S,  PROP_P,  PROP_PHI,  PROP_ETA,  PROP_PHIETA,  PROP_ALT,  PROP_ALT_ALT,  PROP_T};
+const char prop_name[nqprop_kind][20]={"PROP_0","PROP_S","PROP_P","PROP_PHI","PROP_ETA","PROP_PHIETA","PROP_ALT","PROP_ALT_ALT","PROP_T"};
 const qprop_t PROP_PHI_ETA[2]={PROP_PHI,PROP_ETA};
 
 //map the source, the destination and the insertion for each propagator
-const qprop_t prop_map[nqprop_kind]=         {PROP_0,   PROP_S, PROP_P, PROP_PHI,  PROP_ETA,  PROP_PHIETA, PROP_T};
-const insertion_t insertion_map[nqprop_kind]={ORIGINAL, SCALAR, PSEUDO, STOCH_PHI, STOCH_ETA, STOCH_ETA,   TADPOLE};
-const qprop_t source_map[nqprop_kind]=       {PROP_0,   PROP_0, PROP_0, PROP_0,    PROP_0,    PROP_PHI,    PROP_0};
-const char prop_abbr[]=                       "0"       "S"     "P"     "A"        "B"        "X"          "T";
+const qprop_t prop_map[nqprop_kind]=         {PROP_0,   PROP_S, PROP_P, PROP_PHI,  PROP_ETA,  PROP_PHIETA, PROP_T,   PROP_ALT,  PROP_ALT_ALT};
+const insertion_t insertion_map[nqprop_kind]={ORIGINAL, SCALAR, PSEUDO, STOCH_PHI, STOCH_ETA, STOCH_ETA,   TADPOLE,  STOCH_ALT, STOCH_ALT};
+const qprop_t source_map[nqprop_kind]=       {PROP_0,   PROP_0, PROP_0, PROP_0,    PROP_0,    PROP_PHI,    PROP_0,   PROP_0,    PROP_ALT};
+const char prop_abbr[]=                       "0"       "S"     "P"     "A"        "B"        "X"          "T"       "L"        "M";
 
 //hadron contractions
 const int ncombo_hadr_corr=9;
-const qprop_t prop1_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_0,PROP_0,PROP_0,     PROP_0,PROP_PHI};
-const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_PHIETA,PROP_T,PROP_ETA};
+const qprop_t prop1_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_0,PROP_0,PROP_0,     PROP_0,PROP_PHI,PROP_ALT,PROP_0};
+const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_PHIETA,PROP_T,PROP_ETA,PROP_ALT,PROP_ALT_ALT};
 
 //parameters of the leptons
 int nleptons;
@@ -309,8 +311,7 @@ void init_simulation(char *path)
   hadrolept_corr_chris=nissa_malloc("hadrolept_corr_chris",glb_size[0]*glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
   original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
   source=nissa_malloc("source",loc_vol,PROP_TYPE);
-  photon_eta=nissa_malloc("photon_eta",loc_vol+bord_vol,spin1field);
-  photon_phi=nissa_malloc("photon_phi",loc_vol+bord_vol,spin1field);
+  for(int i=0;i<3;i++) photon_field[i]=nissa_malloc("photon_phield",loc_vol+bord_vol,spin1field);
   Q=nissa_malloc("Q*",nqprop,PROP_TYPE*);
   for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",loc_vol+bord_vol,PROP_TYPE);
   L=nissa_malloc("L*",nlprop,spinspin*);
@@ -359,7 +360,7 @@ int read_conf_parameters(int &iconf)
 	    {
 	      coords coord;
 	      generate_random_coord(coord);
-	      generate_stochastic_tlSym_gauge_propagator_source(photon_eta);
+	      generate_stochastic_tlSym_gauge_propagator_source(photon_field[ieta]);
 	      generate_original_source();
 	    }
 	}
@@ -493,17 +494,23 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
     case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
     case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
     case STOCH_PHI:
-      if(loc_pion_curr) insert_external_loc_source(source,photon_phi,ori,t);
+      if(loc_pion_curr) insert_external_loc_source(source,photon_field[iphi],ori,t);
       else
-	if(!pure_wilson) insert_tm_external_source(source,conf,photon_phi,ori,r,t);
-	else             insert_wilson_external_source(source,conf,photon_phi,ori,t);
+	if(!pure_wilson) insert_tm_external_source(source,conf,photon_field[iphi],ori,r,t);
+	else             insert_wilson_external_source(source,conf,photon_field[iphi],ori,t);
       master_printf("phi pos: %d\n",t);
       break;
     case STOCH_ETA:
-      if(loc_pion_curr) insert_external_loc_source(source,photon_eta,ori,t);
+      if(loc_pion_curr) insert_external_loc_source(source,photon_field[ieta],ori,t);
       else
-	if(!pure_wilson) insert_tm_external_source(source,conf,photon_eta,ori,r,t);
-	else             insert_wilson_external_source(source,conf,photon_eta,ori,t);break;
+	if(!pure_wilson) insert_tm_external_source(source,conf,photon_field[ieta],ori,r,t);
+	else             insert_wilson_external_source(source,conf,photon_field[ieta],ori,t);break;
+    case STOCH_ALT:
+      if(loc_pion_curr) insert_external_loc_source(source,photon_field[ialt],ori,t);
+      else
+	if(!pure_wilson) insert_tm_external_source(source,conf,photon_field[ialt],ori,r,t);
+	else             insert_wilson_external_source(source,conf,photon_field[ialt],ori,t);break;
+      break;
     case TADPOLE:
       if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
       else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);
@@ -587,7 +594,8 @@ void generate_quark_propagators_chris(int t1)
 void generate_photon_stochastic_propagator()
 {
   photon_prop_time-=take_time();
-  generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
+  generate_stochastic_tlSym_gauge_propagator(photon_field[iphi],photon_field[ieta],photon);
+  multiply_by_sqrt_tlSym_gauge_propagator(photon_field[ialt],photon_field[ieta],photon);
   photon_prop_time+=take_time();
   nphoton_prop_tot++;
 }
@@ -643,10 +651,10 @@ void test_photon_propagator()
   
   //now do it stocastically
   int nhits=10;
-  generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
+  generate_stochastic_tlSym_gauge_propagator(photon_field[iphi],photon_field[ieta],photon);
   for(int ihit=0;ihit<nhits;ihit++)
     {
-      generate_stochastic_tlSym_gauge_propagator(photon_phi,photon_eta,photon);
+      generate_stochastic_tlSym_gauge_propagator(photon_field[iphi],photon_field[ieta],photon);
       
       memset(phi_000,0,sizeof(double)*glb_size[0]);
       memset(eta_000,0,sizeof(double)*glb_size[0]);
@@ -663,14 +671,14 @@ void test_photon_propagator()
 	  double s100=sin(1*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
 	  complex cs100={c100,s100};
 	  double c200=cos(2*glb_coord_of_loclx[ivol][1]*2*M_PI/glb_size[1]);
-	  phi_000[t]+=photon_phi[ivol][0][RE]*c000;
-	  eta_000[t]+=photon_eta[ivol][0][RE]*c000;
-	  complex_summ_the_conj2_prod(phi_100[t],photon_phi[ivol][0],cs100);
-	  complex_summ_the_prod(eta_100[t],photon_eta[ivol][0],cs100);
-	  phi_200[t]+=photon_phi[ivol][0][RE]*c200;
-	  eta_200[t]+=photon_eta[ivol][0][RE]*c200;
-	  for(int jvol=0;jvol<loc_vol;jvol++) f=photon_eta[ivol][0][RE];//*photon_eta[jvol][0][RE];
-	  //master_printf("********** %lg %lg\n",photon_phi[ivol][0][IM],photon_eta[ivol][0][IM]);
+	  phi_000[t]+=photon_field[iphi][ivol][0][RE]*c000;
+	  eta_000[t]+=photon_field[ieta][ivol][0][RE]*c000;
+	  complex_summ_the_conj2_prod(phi_100[t],photon_field[iphi][ivol][0],cs100);
+	  complex_summ_the_prod(eta_100[t],photon_field[ieta][ivol][0],cs100);
+	  phi_200[t]+=photon_field[iphi][ivol][0][RE]*c200;
+	  eta_200[t]+=photon_field[ieta][ivol][0][RE]*c200;
+	  for(int jvol=0;jvol<loc_vol;jvol++) f=photon_field[ieta][ivol][0][RE];//*photon_field[ieta][jvol][0][RE];
+	  //master_printf("********** %lg %lg\n",photon_field[iphi][ivol][0][IM],photon_field[ieta][ivol][0][IM]);
 	}
       THREAD_BARRIER();
       
@@ -813,12 +821,12 @@ void set_to_lepton_sink_phase_factor(spinspin *prop,int ilepton,tm_quark_info &l
 }
 
 //insert the photon on the source side
-THREADABLE_FUNCTION_6ARG(insert_photon_on_the_source, spinspin*,prop, int,ilepton, int,phi_eta, int*,dirs, tm_quark_info,le, int,twall)
-{ 
+THREADABLE_FUNCTION_6ARG(insert_photon_on_the_source, spinspin*,prop, int,ilepton, int,iphi_eta_alt, int*,dirs, tm_quark_info,le, int,twall)
+{
   GET_THREAD_ID();
   
   //select A
-  spin1field *A=(phi_eta==0)?photon_phi:photon_eta;
+  spin1field *A=photon_field[iphi_eta_alt];
   communicate_lx_spin1field_borders(A);
   
   //copy on the temporary and communicate borders
@@ -828,7 +836,7 @@ THREADABLE_FUNCTION_6ARG(insert_photon_on_the_source, spinspin*,prop, int,ilepto
   
   if(!loc_muon_curr)
     {
-      master_printf("Inserting photon [%s] point-split on time %d\n",(phi_eta==0)?"phi":"eta",twall);
+      master_printf("Inserting photon [%s] point-split on time %d\n",photon_field_name[iphi_eta_alt],twall);
       
       dirac_matr GAMMA;
       if(pure_wilson) dirac_prod_double(&GAMMA,base_gamma+0,1);
@@ -890,7 +898,7 @@ THREADABLE_FUNCTION_6ARG(insert_photon_on_the_source, spinspin*,prop, int,ilepto
     }
   else
     {
-      master_printf("Inserting photon [%s] locally on time %d\n",(phi_eta==0)?"phi":"eta",twall);
+      master_printf("Inserting photon [%s] locally on time %d\n",photon_field_name[iphi_eta_alt]);
       
       for(int mu=0;mu<NDIM;mu++)
 	if(dirs[mu])
@@ -1675,8 +1683,7 @@ void close()
   master_printf(" - %02.2f%s to perform %d leptonic contractions (%2.2gs avg)\n",lept_contr_time/tot_prog_time*100,"%",nlept_contr_tot,lept_contr_time/nlept_contr_tot);
   master_printf(" - %02.2f%s to print hadro-leptonic contractions\n",print_time/tot_prog_time*100,"%");
   
-  nissa_free(photon_eta);
-  nissa_free(photon_phi);
+  for(int i=0;i<3;i++) nissa_free(photon_field[i]);
   nissa_free(source);
   nissa_free(original_source);
   for(int iprop=0;iprop<nqprop;iprop++) nissa_free(Q[iprop]);
