@@ -21,7 +21,8 @@ double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
 double tot_prog_time=0,source_time=0,photon_prop_time=0,lepton_prop_time=0;
 
 int wall_time;
-int without_external_line;
+const int follow_chris=0,follow_nazario=1;
+int follow_chris_or_nazario;
 int free_theory,rnd_gauge_transform;
 int ngauge_conf,nanalyzed_conf=0;
 char conf_path[1024],outfolder[1024];
@@ -44,9 +45,10 @@ spincolor *temp_solution;
 
 gauge_info photon;
 double tadpole[4];
+const int nphi_eta_alt=3;
 const int iphi=0,ieta=1,ialt=2;
-spin1field *photon_field[3];
-const char photon_field_name[3][4]={"phi","eta","alt"};
+spin1field *photon_field[nphi_eta_alt];
+const char photon_field_name[nphi_eta_alt][4]={"phi","eta","alt"};
 
 int hadr_corr_length;
 complex *hadr_corr;
@@ -55,6 +57,7 @@ int ig_hadr_so[nhadr_contr]={5,5},ig_hadr_si[nhadr_contr]={5,9};
 complex *glb_corr,*loc_corr;
 
 //sign of the muon momentum
+const int norie=2;
 const int sign_orie[2]={-1,+1};
 
 //list the 8 matrices to insert for the weak current
@@ -85,8 +88,8 @@ const int nins_kind=7;
 enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  STOCH_PHI,  STOCH_ETA,  STOCH_ALT,   TADPOLE};
 const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","STOCH_PHI","STOCH_ETA","STOCH_ALT", "TADPOLE"};
 const int nqprop_kind=9;
-enum qprop_t{                           PROP_0,  PROP_S,  PROP_P,  PROP_PHI,  PROP_ETA,  PROP_PHIETA,  PROP_ALT,  PROP_ALT_ALT,  PROP_T};
-const char prop_name[nqprop_kind][20]={"PROP_0","PROP_S","PROP_P","PROP_PHI","PROP_ETA","PROP_PHIETA","PROP_ALT","PROP_ALT_ALT","PROP_T"};
+enum qprop_t{                           PROP_0,  PROP_S,  PROP_P,  PROP_PHI,  PROP_ETA,  PROP_PHIETA,  PROP_T,  PROP_ALT,  PROP_ALT_ALT};
+const char prop_name[nqprop_kind][20]={"PROP_0","PROP_S","PROP_P","PROP_PHI","PROP_ETA","PROP_PHIETA","PROP_T","PROP_ALT","PROP_ALT_ALT"};
 const qprop_t PROP_PHI_ETA[2]={PROP_PHI,PROP_ETA};
 
 //map the source, the destination and the insertion for each propagator
@@ -118,10 +121,10 @@ void generate_photon_stochastic_propagator();
 
 //return appropriate propagator
 int nqprop,nlprop;
-int iqprop(int imass,qprop_t ip,int r)
+int iqprop(int imass,int ip,int r)
 {return r+nr*(imass+nqmass*ip);}
 int ilprop(int ilepton,int orie,int phi_eta_alt,int r,int t2)
-{return r+nr*(phi_eta_alt+3*(orie+2*(ilepton+nleptons*t2)));}
+{return r+nr*(phi_eta_alt+nphi_eta_alt*(orie+norie*(ilepton+nleptons*t2)));}
 
 //return appropriately modified info
 tm_quark_info get_lepton_info(int ilepton,int orie,int r)
@@ -270,7 +273,7 @@ void init_simulation(char *path)
   read_str_int("FreeTheory",&free_theory);
   
   //flag to make the muon with or without the external line
-  read_str_int("WithoutExternalLine",&without_external_line);
+  read_str_int("FollowChrisOrNazario",&follow_chris_or_nazario);
   
   //perform a random gauge transformation
   read_str_int("RandomGaugeTransform",&rnd_gauge_transform);
@@ -295,8 +298,8 @@ void init_simulation(char *path)
   compute_tadpole(tadpole,photon);
   
   //Allocate
-  nqprop=iqprop(nqmass-1,prop_map[nqprop_kind-1],nr-1)+1;
-  nlprop=ilprop(nleptons-1,1,1,nr-1,glb_size[0])+1; //added for chris
+  nqprop=iqprop(nqmass-1,nqprop_kind-1,nr-1)+1;
+  nlprop=ilprop(nleptons-1,norie-1,nphi_eta_alt-1,nr-1,glb_size[0])+1; //added for chris
   
   //allocate temporary vectors
   temp_source=nissa_malloc("temp_source",loc_vol,spincolor);
@@ -305,13 +308,13 @@ void init_simulation(char *path)
   hadr_corr=nissa_malloc("hadr_corr",hadr_corr_length,complex);
   glb_corr=nissa_malloc("glb_corr",glb_size[0]*nhadr_contr,complex);
   loc_corr=nissa_malloc("loc_corr",glb_size[0]*nhadr_contr,complex);
-  nind=nleptons*nweak_ind*2*2*nr;
+  nind=nleptons*nweak_ind*nphi_eta_alt*norie*nr;
   hadr=nissa_malloc("hadr",loc_vol,spinspin);
   hadrolept_corr=nissa_malloc("hadrolept_corr",glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
   hadrolept_corr_chris=nissa_malloc("hadrolept_corr_chris",glb_size[0]*glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
   original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
   source=nissa_malloc("source",loc_vol,PROP_TYPE);
-  for(int i=0;i<3;i++) photon_field[i]=nissa_malloc("photon_phield",loc_vol+bord_vol,spin1field);
+  for(int i=0;i<nphi_eta_alt;i++) photon_field[i]=nissa_malloc("photon_phield",loc_vol+bord_vol,spin1field);
   Q=nissa_malloc("Q*",nqprop,PROP_TYPE*);
   for(int iprop=0;iprop<nqprop;iprop++) Q[iprop]=nissa_malloc("Q",loc_vol+bord_vol,PROP_TYPE);
   L=nissa_malloc("L*",nlprop,spinspin*);
@@ -484,9 +487,9 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
   
   if(t!=-1 && inser!=STOCH_PHI) crash("not valid");
   
-  double ori_norm;
-  double_vector_glb_scalar_prod(&ori_norm,(double*)ori,(double*)ori,sizeof(PROP_TYPE)/sizeof(double)*loc_vol);
-  master_printf("ori_norm2: %lg\n",ori_norm);
+  //double ori_norm;
+  //double_vector_glb_scalar_prod(&ori_norm,(double*)ori,(double*)ori,sizeof(PROP_TYPE)/sizeof(double)*loc_vol);
+  //master_printf("ori_norm2: %lg\n",ori_norm);
   
   switch(inser)
     {
@@ -498,7 +501,7 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
       else
 	if(!pure_wilson) insert_tm_external_source(source,conf,photon_field[iphi],ori,r,t);
 	else             insert_wilson_external_source(source,conf,photon_field[iphi],ori,t);
-      master_printf("phi pos: %d\n",t);
+      //master_printf("phi pos: %d\n",t);
       break;
     case STOCH_ETA:
       if(loc_pion_curr) insert_external_loc_source(source,photon_field[ieta],ori,t);
@@ -517,9 +520,9 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
       break;
     }
   
-  double after_norm;
-  double_vector_glb_scalar_prod(&after_norm,(double*)source,(double*)source,sizeof(PROP_TYPE)/sizeof(double)*loc_vol);
-  master_printf("after_norm2: %lg\n",after_norm);
+    //double after_norm;
+    //double_vector_glb_scalar_prod(&after_norm,(double*)source,(double*)source,sizeof(PROP_TYPE)/sizeof(double)*loc_vol);
+    //master_printf("after_norm2: %lg\n",after_norm);
   
   source_time+=take_time();
   nsource_tot++;
@@ -530,7 +533,7 @@ void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
 {
   //these are the ways in which Dirac operator rotates - propagator is opposite, see below
 #ifdef POINT_SOURCE_VERSION
-  for(int ic=0;ic<3;ic++)
+  for(int ic=0;ic<NCOL;ic++)
 #endif
     for(int id=0;id<4;id++)
       { 
@@ -782,8 +785,8 @@ void get_lepton_sink_phase_factor(complex out,int ivol,int ilepton,tm_quark_info
   //compute space and time factor
   double arg=get_space_arg(ivol,le.bc);
   int t=glb_coord_of_loclx[ivol][0];
-  if(!without_external_line && t>=glb_size[0]/2) t=glb_size[0]-t;
-  if(!without_external_line && t>=glb_size[0]/2) t=glb_size[0]-t;
+  if(follow_chris_or_nazario==follow_nazario && t>=glb_size[0]/2) t=glb_size[0]-t;
+  if(follow_chris_or_nazario==follow_nazario && t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*lep_energy[ilepton]);
   
   //compute full exponential (notice the factor -1)
@@ -797,7 +800,7 @@ void get_antineutrino_source_phase_factor(complex out,int ivol,int ilepton,momen
   //compute space and time factor
   double arg=get_space_arg(ivol,bc);
   int t=glb_coord_of_loclx[ivol][0];
-  if(!without_external_line && t>=glb_size[0]/2) t=glb_size[0]-t;
+  if(follow_chris_or_nazario==follow_nazario && t>=glb_size[0]/2) t=glb_size[0]-t;
   double ext=exp(t*neu_energy[ilepton]);
   
   //compute full exponential (notice the factor +1)
@@ -1000,8 +1003,8 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
   master_printf("Generating lepton propagators for time %d\n",t2); //added for chris
   
   for(int ilepton=0;ilepton<nleptons;ilepton++)
-    for(int ori=0;ori<2;ori++)
-      for(int phi_eta_alt=0;phi_eta_alt<3;phi_eta_alt++)
+    for(int ori=0;ori<norie;ori++)
+      for(int phi_eta_alt=0;phi_eta_alt<nphi_eta_alt;phi_eta_alt++)
 	for(int r=0;r<nr;r++)
 	  {
 	    //set the properties of the meson
@@ -1016,7 +1019,7 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
 	    set_to_lepton_sink_phase_factor(prop,ilepton,le);
 	    
 	    //if we are doing Nazario's way (with the external line) add it
-	    if(!without_external_line)
+	    if(follow_chris_or_nazario==follow_nazario)
 	      {
 		//select only the wall
 		int tmiddle=glb_size[0]/2;
@@ -1034,7 +1037,7 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
 	    double lep_norm;
 	    double_vector_glb_scalar_prod(&lep_norm,(double*)prop,(double*)prop,sizeof(spinspin)/sizeof(double)*loc_vol);
 	    master_printf("lep prop_norm2: %lg\n",lep_norm);
-
+	    
 	  }
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
@@ -1054,7 +1057,7 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
   complex *corr=nissa_malloc("corr",glb_size[0],complex);
   
   for(int ilepton=0;ilepton<nleptons;ilepton++)
-    for(int orie=0;orie<2;orie++)
+    for(int orie=0;orie<norie;orie++)
       for(int rl=0;rl<nr;rl++)
 	{
 	  //set the properties of the meson
@@ -1188,9 +1191,9 @@ THREADABLE_FUNCTION_3ARG(hadronic_part_leptonic_correlation, spinspin*,hadr, PRO
   //it's just the matter of inserting gamma5*gamma5=identity between S1^dag and S2
   //on the sink gamma5 must still be inserted!
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int ic_si=0;ic_si<3;ic_si++)
+    for(int ic_si=0;ic_si<NCOL;ic_si++)
 #ifdef POINT_SOURCE_VERSION
-      for(int ic_so=0;ic_so<3;ic_so++)
+      for(int ic_so=0;ic_so<NCOL;ic_so++)
 #endif
 	for(int id_si1=0;id_si1<4;id_si1++)
 	  for(int id_si2=0;id_si2<4;id_si2++)
@@ -1221,12 +1224,12 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
   //get the projectors
   spinspin promu[2],pronu[2];
   twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1,base);
-  if(!without_external_line) twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,base);
+  if(follow_chris_or_nazario==follow_nazario) twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,base);
   else twisted_on_shell_operator_of_imom(promu[1],le,0,false,-1,base);
   naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
-  if(!without_external_line) naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
+  if(follow_chris_or_nazario==follow_nazario) naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
   else naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,-1);
-  if(without_external_line)
+  if(follow_chris_or_nazario==follow_chris)
     for(int i=0;i<2;i++)
       safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+map_mu[0]);
   
@@ -1306,12 +1309,12 @@ THREADABLE_FUNCTION_8ARG(attach_leptonic_correlation_chris, spinspin*,hadr, int,
   //get the projectors
   spinspin promu[2],pronu[2];
   twisted_on_shell_operator_of_imom(promu[0],le,0,false,-1,base);
-  if(!without_external_line) twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,base);
+  if(follow_chris_or_nazario==follow_nazario) twisted_on_shell_operator_of_imom(promu[1],le,0,false,+1,base);
   else twisted_on_shell_operator_of_imom(promu[1],le,0,false,-1,base);
   naive_massless_on_shell_operator_of_imom(pronu[0],le.bc,0,-1);
-  if(!without_external_line) naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
+  if(follow_chris_or_nazario==follow_nazario) naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,+1);
   else naive_massless_on_shell_operator_of_imom(pronu[1],le.bc,0,-1);
-  if(without_external_line)
+  if(follow_chris_or_nazario==follow_chris)
     for(int i=0;i<2;i++)
       safe_spinspin_prod_dirac(promu[i],promu[i],base_gamma+map_mu[0]);
   
@@ -1543,7 +1546,7 @@ void print_correlations()
   for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int qins=0;qins<2;qins++)
       for(int irev=0;irev<2;irev++)
-	for(int phi_eta_alt=0;phi_eta_alt<3;phi_eta_alt++)
+	for(int phi_eta_alt=0;phi_eta_alt<2;phi_eta_alt++)
 	  for(int r2=0;r2<nr;r2++)
 	    {
 	      //takes the index of the quarks
@@ -1683,7 +1686,7 @@ void close()
   master_printf(" - %02.2f%s to perform %d leptonic contractions (%2.2gs avg)\n",lept_contr_time/tot_prog_time*100,"%",nlept_contr_tot,lept_contr_time/nlept_contr_tot);
   master_printf(" - %02.2f%s to print hadro-leptonic contractions\n",print_time/tot_prog_time*100,"%");
   
-  for(int i=0;i<3;i++) nissa_free(photon_field[i]);
+  for(int i=0;i<nphi_eta_alt;i++) nissa_free(photon_field[i]);
   nissa_free(source);
   nissa_free(original_source);
   for(int iprop=0;iprop<nqprop;iprop++) nissa_free(Q[iprop]);

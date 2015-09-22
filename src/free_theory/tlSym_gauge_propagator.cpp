@@ -253,7 +253,7 @@ namespace nissa
     multiply_mom_space_sqrt_tlSym_gauge_propagator(phi_alt,eta,gl);
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
-	spin_prodassign_double(phi_alt[imom],glb_vol);
+	spin_prodassign_double(phi_alt[imom],sqrt(glb_vol));
 	cancel_if_zero_mode(phi_alt[imom],gl,imom);
       }
     set_borders_invalid(phi_alt);
