@@ -120,8 +120,8 @@ void generate_photon_stochastic_propagator();
 int nqprop,nlprop;
 int iqprop(int imass,qprop_t ip,int r)
 {return r+nr*(imass+nqmass*ip);}
-int ilprop(int ilepton,int orie,int phi_eta,int r,int t2)
-{return r+nr*(phi_eta+2*(orie+2*(ilepton+nleptons*t2)));}
+int ilprop(int ilepton,int orie,int phi_eta_alt,int r,int t2)
+{return r+nr*(phi_eta_alt+3*(orie+2*(ilepton+nleptons*t2)));}
 
 //return appropriately modified info
 tm_quark_info get_lepton_info(int ilepton,int orie,int r)
@@ -452,7 +452,7 @@ void generate_original_source()
 //////////////////////////////////////// quark propagators /////////////////////////////////////////////////
 
 //insert the photon on the source side
-void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,coords dirs,PROP_TYPE *in,int t)
+void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,coords dirs,PROP_TYPE *in,int t)
 { 
   GET_THREAD_ID();
   
@@ -467,15 +467,15 @@ void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,coords dirs,P
 	  {
 	    PROP_TYPE temp1,temp2;
 	    NAME2(unsafe_dirac_prod,PROP_TYPE)(temp1,base_gamma+map_mu[mu],in[ivol]);
-	    NAME3(unsafe,PROP_TYPE,prod_complex)(temp2,temp1,phi_eta[ivol][mu]);
+	    NAME3(unsafe,PROP_TYPE,prod_complex)(temp2,temp1,curr[ivol][mu]);
 	    NAME2(PROP_TYPE,summ_the_prod_idouble)(out[ivol],temp2,1);
 	  }
   
   set_borders_invalid(out);
 }
 //insert the photon on the source
-void insert_external_loc_source(PROP_TYPE *out,spin1field *phi_eta,PROP_TYPE *in,int t)
-{insert_external_loc_source(out,phi_eta,all_dirs,in,t);}
+void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,int t)
+{insert_external_loc_source(out,curr,all_dirs,in,t);}
 
 //generate a sequential source
 void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
@@ -918,8 +918,8 @@ THREADABLE_FUNCTION_6ARG(insert_photon_on_the_source, spinspin*,prop, int,ilepto
 THREADABLE_FUNCTION_END
 
 //insert the photon on the source
-void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta,tm_quark_info &le,int twall)
-{insert_photon_on_the_source(prop,ilepton,phi_eta,all_dirs,le,twall);}
+void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta_alt,tm_quark_info &le,int twall)
+{insert_photon_on_the_source(prop,ilepton,phi_eta_alt,all_dirs,le,twall);}
 
 //insert the conserved current on the source
 void insert_conserved_current_on_the_source(spinspin *prop,int ilepton,coords dirs,tm_quark_info &le)
@@ -1001,7 +1001,7 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
   
   for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int ori=0;ori<2;ori++)
-      for(int phi_eta=0;phi_eta<2;phi_eta++)
+      for(int phi_eta_alt=0;phi_eta_alt<3;phi_eta_alt++)
 	for(int r=0;r<nr;r++)
 	  {
 	    //set the properties of the meson
@@ -1009,7 +1009,7 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
 	    tm_quark_info le=get_lepton_info(ilepton,ori,r);
 	    
 	    //select the propagator
-	    int iprop=ilprop(ilepton,ori,phi_eta,r,t2); //added for Chris
+	    int iprop=ilprop(ilepton,ori,phi_eta_alt,r,t2); //added for Chris
 	    spinspin *prop=L[iprop];
 	    
 	    //put it to a phase
@@ -1028,7 +1028,7 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
 	    int twall;
 	    if(t2<0||t2>=glb_size[0]) twall=-1;
 	    else twall=t2;
-	    insert_photon_on_the_source(prop,ilepton,phi_eta,le,twall);
+	    insert_photon_on_the_source(prop,ilepton,phi_eta_alt,le,twall);
 	    multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
 	    
 	    double lep_norm;
@@ -1543,7 +1543,7 @@ void print_correlations()
   for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int qins=0;qins<2;qins++)
       for(int irev=0;irev<2;irev++)
-	for(int phi_eta=0;phi_eta<2;phi_eta++)
+	for(int phi_eta_alt=0;phi_eta_alt<3;phi_eta_alt++)
 	  for(int r2=0;r2<nr;r2++)
 	    {
 	      //takes the index of the quarks
@@ -1554,9 +1554,9 @@ void print_correlations()
 		for(int rl=0;rl<nr;rl++)
 		  {
 		    if(!pure_wilson) master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
-						    qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie],rl);
+						    qmass[iq1],qmass[iq2],qins+1,irev+1,photon_field_name[phi_eta_alt],!r2,r2,lepton_mom_sign[orie],rl);
 		    else             master_fprintf(fout," # kappaq1=%lg kappaq2=%lg qins=%d qrev=%d ins=%s lep_orie=%+d\n\n",
-						    qkappa[iq1],qkappa[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",lepton_mom_sign[orie]);
+						    qkappa[iq1],qkappa[iq2],qins+1,irev+1,photon_field_name[phi_eta_alt],lepton_mom_sign[orie]);
 		    for(int ind=0;ind<nweak_ind;ind++)
 		      for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 			{
