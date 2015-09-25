@@ -1,5 +1,8 @@
 #include <nissa.hpp>
 
+#include "conf.hpp"
+#include "pars.hpp"
+
 #ifdef POINT_SOURCE_VERSION
  #define PROP_TYPE su3spinspin
 #else
@@ -21,7 +24,6 @@ double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
 double tot_prog_time=0,source_time=0,photon_prop_time=0,lepton_prop_time=0;
 
 int wall_time;
-const int follow_chris=0,follow_nazario=1;
 int follow_chris_or_nazario;
 int free_theory,rnd_gauge_transform;
 int ngauge_conf,nanalyzed_conf=0;
@@ -45,10 +47,7 @@ spincolor *temp_solution;
 
 gauge_info photon;
 double tadpole[4];
-const int nphi_eta_alt=3;
-const int iphi=0,ieta=1,ialt=2;
 spin1field *photon_field[nphi_eta_alt];
-const char photon_field_name[nphi_eta_alt][4]={"phi","eta","alt"};
 
 int hadr_corr_length;
 complex *hadr_corr;
@@ -56,47 +55,20 @@ const int nhadr_contr=2;
 int ig_hadr_so[nhadr_contr]={5,5},ig_hadr_si[nhadr_contr]={5,9};
 complex *glb_corr,*loc_corr;
 
-//sign of the muon momentum
-const int norie=2;
-const int sign_orie[2]={-1,+1};
-
 //list the 8 matrices to insert for the weak current
 const int nweak_ins=16;
 const int nweak_ind=8;
 //const int nhadrolept_proj=4,hadrolept_projs[nhadrolept_proj]={9,4,5,0};
 const int nhadrolept_proj=1,hadrolept_projs[nhadrolept_proj]={4};
-int list_weak_insq[nweak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
-int list_weak_insl[nweak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
-int list_weak_ind_contr[nweak_ins]={0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7};
+const int list_weak_insq[nweak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
+const int list_weak_insl[nweak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
+const int list_weak_ind_contr[nweak_ins]={0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7};
 const char list_weak_ind_nameq[nweak_ind][3]={"VK","V0","AK","A0","VK","V0","AK","A0"};
 const char list_weak_ind_namel[nweak_ind][3]={"VK","V0","AK","A0","AK","A0","VK","V0"};
 int nind;
 spinspin *hadr;
 complex *hadrolept_corr_chris;
 complex *hadrolept_corr;
-
-//compute the eigenvalues of (1-+g0)/2
-double W=1/sqrt(2);
-spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
-		       {{ 0, 0},{+W, 0},{ 0, 0},{+W, 0}}},
-		      {{{+W, 0},{ 0, 0},{-W, 0},{ 0, 0}},
-		       {{ 0, 0},{+W, 0},{ 0, 0},{-W, 0}}}};
-
-
-//define types of quark propagator used
-const int nins_kind=7;
-enum insertion_t{                    ORIGINAL,  SCALAR,  PSEUDO,  STOCH_PHI,  STOCH_ETA,  STOCH_ALT,   TADPOLE};
-const char ins_name[nins_kind][20]={"ORIGINAL","SCALAR","PSEUDO","STOCH_PHI","STOCH_ETA","STOCH_ALT", "TADPOLE"};
-const int nqprop_kind=9;
-enum qprop_t{                           PROP_0,  PROP_S,  PROP_P,  PROP_PHI,  PROP_ETA,  PROP_PHIETA,  PROP_T,  PROP_ALT,  PROP_ALT_ALT};
-const char prop_name[nqprop_kind][20]={"PROP_0","PROP_S","PROP_P","PROP_PHI","PROP_ETA","PROP_PHIETA","PROP_T","PROP_ALT","PROP_ALT_ALT"};
-const qprop_t PROP_PHI_ETA[2]={PROP_PHI,PROP_ETA};
-
-//map the source, the destination and the insertion for each propagator
-const qprop_t prop_map[nqprop_kind]=         {PROP_0,   PROP_S, PROP_P, PROP_PHI,  PROP_ETA,  PROP_PHIETA, PROP_T,   PROP_ALT,  PROP_ALT_ALT};
-const insertion_t insertion_map[nqprop_kind]={ORIGINAL, SCALAR, PSEUDO, STOCH_PHI, STOCH_ETA, STOCH_ETA,   TADPOLE,  STOCH_ALT, STOCH_ALT};
-const qprop_t source_map[nqprop_kind]=       {PROP_0,   PROP_0, PROP_0, PROP_0,    PROP_0,    PROP_PHI,    PROP_0,   PROP_0,    PROP_ALT};
-const char prop_abbr[]=                       "0"       "S"     "P"     "A"        "B"        "X"          "T"       "L"        "M";
 
 //hadron contractions
 const int ncombo_hadr_corr=9;
@@ -107,13 +79,11 @@ const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_PHIETA
 int nleptons;
 int *lep_corr_iq1;
 int *lep_corr_iq2;
-int lepton_mom_sign[2]={-1,+1};
 tm_quark_info *leps;
 double *lep_energy,*neu_energy;
 spinspin **L,*temp_lep;
 
 //prototype
-void generate_random_coord(coords);
 void generate_original_source();
 void generate_photon_stochastic_propagator();
 
@@ -376,65 +346,15 @@ int read_conf_parameters(int &iconf)
   return ok_conf;
 }
 
-//read the conf and setup it
-void setup_conf()
+//init a new conf
+void start_new_conf()
 {
-  //load the gauge conf, propagate borders, calculate plaquette and PmuNu term
-  if(!free_theory)
-    {
-      read_ildg_gauge_conf(conf,conf_path);
-      master_printf("plaq: %+016.016g\n",global_plaquette_lx_conf(conf));
-    }
-  else generate_cold_lx_conf(conf);
-  
-  //if asked, randomly transform the configurations
-  if(rnd_gauge_transform) perform_random_gauge_transform(conf,conf);
-  
-  //put anti-periodic boundary condition for the fermionic propagator
-  old_theta[0]=old_theta[1]=old_theta[2]=old_theta[3]=0;
-  put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
-  adapt_theta(conf,old_theta,put_theta,0,0);
+  setup_conf(conf,old_theta,put_theta,conf_path,rnd_gauge_transform,free_theory);
   
   //reset correlations
   vector_reset(hadr_corr);
   vector_reset(hadrolept_corr);
   vector_reset(hadrolept_corr_chris);
-}
-
-//used to shift the configuration
-void index_shift(int &irank_out,int &ivol_out,int ivol_in,void *pars)
-{
-  int *source_coord=(int*)pars;
-  coords co;
-  for(int nu=0;nu<NDIM;nu++) co[nu]=(glb_coord_of_loclx[ivol_in][nu]+source_coord[nu])%glb_size[nu];
-  get_loclx_and_rank_of_coord(&ivol_out,&irank_out,co);
-}
-
-//generate a random postion
-void generate_random_coord(coords c)
-{for(int mu=0;mu<NDIM;mu++) c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));}
-
-//perform a random shift
-void random_shift_gauge_conf(quad_su3 *conf)
-{
-  //remove phase
-  put_theta[0]=0;put_theta[1]=put_theta[2]=put_theta[3]=0;
-  adapt_theta(conf,old_theta,put_theta,0,0);
-  
-  //source coord
-  coords shift_coord;
-  generate_random_coord(shift_coord);
-  
-  //shift the configuration
-  double shift_time=-take_time();
-  vector_remap_t shifter(loc_vol,index_shift,(void*)shift_coord);
-  shifter.remap(conf,conf,sizeof(quad_su3));
-  shift_time+=take_time();
-  master_printf("Shifted of %d %d %d %d in %lg sec, plaquette after shift: %+016.016lg\n",shift_coord[0],shift_coord[1],shift_coord[2],shift_coord[3],shift_time,global_plaquette_lx_conf(conf));
-  
-  //put back the phase
-  put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
-  adapt_theta(conf,old_theta,put_theta,0,0);
 }
 
 //generate a wall-source for stochastic QCD propagator
@@ -831,7 +751,9 @@ THREADABLE_FUNCTION_6ARG(insert_photon_on_the_source, spinspin*,prop, int,ilepto
   //select A
   spin1field *A=photon_field[iphi_eta_alt];
   communicate_lx_spin1field_borders(A);
-  
+  //test for Nazario
+  vector_reset(A);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol) for(int mu=0;mu<NDIM;mu++) A[ivol][mu][RE]=1;
   //copy on the temporary and communicate borders
   vector_copy(temp_lep,prop);
   communicate_lx_spinspin_borders(temp_lep);
@@ -926,7 +848,7 @@ void insert_photon_on_the_source(spinspin *prop,int ilepton,int phi_eta_alt,tm_q
 
 //insert the conserved current on the source
 void insert_conserved_current_on_the_source(spinspin *prop,int ilepton,coords dirs,tm_quark_info &le)
-{ 
+{
   GET_THREAD_ID();
   
   //phases
@@ -950,7 +872,7 @@ void insert_conserved_current_on_the_source(spinspin *prop,int ilepton,coords di
   //by computing i(phi(x-mu)A_mu(x-mu)(-i t3 g5-gmu)/2-phi(x+mu)A_mu(x)(-i t3 g5+gmu)/2)=
   //(ph0 A_mu(x-mu)g[r][0][mu]-ph0 A_mu(x)g[r][1][mu])=
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       {
 	//find neighbors
 	int ifw=loclx_neighup[ivol][mu];
@@ -1056,6 +978,25 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
   spinspin *prop=nissa_malloc("prop",loc_vol+bord_vol,spinspin);
   complex *corr=nissa_malloc("corr",glb_size[0],complex);
   
+  vector_reset(corr);
+  tm_quark_info le=get_lepton_info(0,0,0);
+  le.bc[0]=le.bc[1]=le.bc[2]=le.bc[3]=0;
+  compute_x_space_twisted_propagator_by_fft(prop,le,MAX_TWIST_BASE);
+  coords time_dir={1,0,0,0};
+  insert_photon_on_the_source(prop,0,iphi,time_dir,le,-1);
+  spinspin pro;
+  twisted_on_shell_operator_of_imom(pro,le,0,false,-1,MAX_TWIST_BASE);
+  NISSA_PARALLEL_LOOP(ivol, 0, loc_vol)
+    {
+      complex c;
+      trace_spinspin_prod_spinspin(c,prop[ivol],pro);
+      complex_summassign(corr[glb_coord_of_loclx[ivol][0]],c);
+    }
+  
+  for(int t=0;t<glb_size[0];t++) master_printf("%d %16.16lg %16.16lg\n",t,corr[t][RE],corr[t][IM]);
+  crash("ciao");
+  
+  
   for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int orie=0;orie<norie;orie++)
       for(int rl=0;rl<nr;rl++)
@@ -1069,8 +1010,11 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 	  int twall=glb_size[0]/2;
 	  select_propagator_timeslice(prop,prop,twall);
 	  
-	  //multiply with the prop
-	  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+	  //multiply with the lepton prop
+	  //multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+	  coords time_dir={1,0,0,0};
+	  insert_photon_on_the_source(prop,ilepton,iphi,time_dir,le,-1);
+	  //multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
 	  
 	  //get the projectors
 	  spinspin promu[2],pronu[2];
@@ -1124,6 +1068,7 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 		      spinspin dtd;
 		      unsafe_spinspin_prod_spinspin(dtd,promu[ilnp],td);
 		      trace_spinspin_with_dirac(corr[glb_t],dtd,hadrolept_proj_gamma+ig_proj);
+		      complex_prodassign_double(corr[glb_t],1.0/glb_spat_vol);
 		    }
 		  THREAD_BARRIER();
 		  
@@ -1436,7 +1381,7 @@ void compute_hadroleptonic_correlations()
   for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int qins=0;qins<2;qins++)
       for(int irev=0;irev<2;irev++)
-	for(int phi_eta=0;phi_eta<2;phi_eta++)
+	for(int iphi_eta_alt=0;iphi_eta_alt<nphi_eta_alt;iphi_eta_alt++)
 	  for(int r2=0;r2<nr;r2++)
 	    {
 	      //takes the index of the quarks
@@ -1448,14 +1393,14 @@ void compute_hadroleptonic_correlations()
 	      //ANNA2
 	      if(qins==0)
 	      {
-		PROP1_TYPE=PROP_PHI_ETA[phi_eta];
+		PROP1_TYPE=PROP_PHI_ETA_ALT[iphi_eta_alt];
 		PROP2_TYPE=PROP_0;
 	      }
 	      else
 	      {
 		PROP1_TYPE=PROP_0;
-		PROP2_TYPE=PROP_PHI_ETA[phi_eta];
-		}
+		PROP2_TYPE=PROP_PHI_ETA_ALT[iphi_eta_alt];
+	      }
 	      int ip1=iqprop(iq1,PROP1_TYPE,r2);
 	      int ip2=iqprop(iq2,PROP2_TYPE,r2);
 	      
@@ -1469,7 +1414,9 @@ void compute_hadroleptonic_correlations()
 		  {
 		    //contract with lepton
 		    //ANNA2 //added for chris
-		    int iprop=ilprop(ilepton,orie,!phi_eta,rl,glb_size[0]); //notice inversion of phi/eta w.r.t hadron side
+		    qprop_t PHI_ETA_ALT_bis[nphi_eta_alt]={PROP_ETA,PROP_PHI,PROP_ALT};
+		    int iprop=ilprop(ilepton,orie,PHI_ETA_ALT_bis[iphi_eta_alt],rl,glb_size[0]); //notice inversion of phi/eta w.r.t hadron side
+		    master_printf("%d ilprop: %d, nlprop: %d\n",iphi_eta_alt,iprop,nlprop);
 		    attach_leptonic_correlation(hadr,iprop,ilepton,orie,rl,ind);
 		    //do_not_attach_leptonic_correlation(hadr,ind);
 		    ind++;
@@ -1489,7 +1436,7 @@ void compute_hadroleptonic_correlations_chris(int t1,int t2)
   for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int qins=0;qins<2;qins++)
       for(int irev=0;irev<2;irev++)
-	for(int phi_eta=0;phi_eta<2;phi_eta++)
+	for(int iphi_eta_alt=0;iphi_eta_alt<nphi_eta_alt;iphi_eta_alt++)
 	  for(int r2=0;r2<nr;r2++)
 	    {
 	      //takes the index of the quarks
@@ -1501,13 +1448,13 @@ void compute_hadroleptonic_correlations_chris(int t1,int t2)
 	      //ANNA2
 	      if(qins==0)
 	      {
-		PROP1_TYPE=PROP_PHI_ETA[phi_eta];
+		PROP1_TYPE=PROP_PHI_ETA_ALT[iphi_eta_alt];
 		PROP2_TYPE=PROP_0;
 	      }
 	      else
 	      {
 		PROP1_TYPE=PROP_0;
-		PROP2_TYPE=PROP_PHI_ETA[phi_eta];
+		PROP2_TYPE=PROP_PHI_ETA_ALT[iphi_eta_alt];
 		}
 	      int ip1=iqprop(iq1,PROP1_TYPE,r2);
 	      int ip2=iqprop(iq2,PROP2_TYPE,r2);
@@ -1522,7 +1469,8 @@ void compute_hadroleptonic_correlations_chris(int t1,int t2)
 		  {
 		    //contract with lepton
 		    //ANNA2
-		    int iprop=ilprop(ilepton,orie,!phi_eta,rl,t2); //notice inversion of phi/eta w.r.t hadron side
+		    qprop_t PHI_ETA_ALT_bis[nphi_eta_alt]={PROP_ETA,PROP_PHI,PROP_ALT};
+		    int iprop=ilprop(ilepton,orie,PHI_ETA_ALT_bis[iphi_eta_alt],rl,t2); //notice inversion of phi/eta w.r.t hadron side
 		    attach_leptonic_correlation_chris(hadr,iprop,ilepton,orie,rl,ind,t1,t2);
 		    //do_not_attach_leptonic_correlation(hadr,ind);
 		    ind++;
@@ -1546,7 +1494,7 @@ void print_correlations()
   for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int qins=0;qins<2;qins++)
       for(int irev=0;irev<2;irev++)
-	for(int phi_eta_alt=0;phi_eta_alt<2;phi_eta_alt++)
+	for(int iphi_eta_alt=0;iphi_eta_alt<nphi_eta_alt;iphi_eta_alt++)
 	  for(int r2=0;r2<nr;r2++)
 	    {
 	      //takes the index of the quarks
@@ -1557,9 +1505,9 @@ void print_correlations()
 		for(int rl=0;rl<nr;rl++)
 		  {
 		    if(!pure_wilson) master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
-						    qmass[iq1],qmass[iq2],qins+1,irev+1,photon_field_name[phi_eta_alt],!r2,r2,lepton_mom_sign[orie],rl);
+						    qmass[iq1],qmass[iq2],qins+1,irev+1,photon_field_name[iphi_eta_alt],!r2,r2,sign_orie[orie],rl);
 		    else             master_fprintf(fout," # kappaq1=%lg kappaq2=%lg qins=%d qrev=%d ins=%s lep_orie=%+d\n\n",
-						    qkappa[iq1],qkappa[iq2],qins+1,irev+1,photon_field_name[phi_eta_alt],lepton_mom_sign[orie]);
+						    qkappa[iq1],qkappa[iq2],qins+1,irev+1,photon_field_name[iphi_eta_alt],sign_orie[orie]);
 		    for(int ind=0;ind<nweak_ind;ind++)
 		      for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 			{
@@ -1587,7 +1535,7 @@ void print_correlations()
   for(int ilepton=0;ilepton<nleptons;ilepton++)
     for(int qins=0;qins<2;qins++)
       for(int irev=0;irev<2;irev++)
-	for(int phi_eta=0;phi_eta<2;phi_eta++)
+	for(int iphi_eta_alt=0;iphi_eta_alt<nphi_eta_alt;iphi_eta_alt++)
 	  for(int r2=0;r2<nr;r2++)
 	    {
 	      //takes the index of the quarks
@@ -1598,9 +1546,9 @@ void print_correlations()
 		for(int rl=0;rl<nr;rl++)
 		  {
 		    if(!pure_wilson) master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
-						    qmass[iq1],qmass[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",!r2,r2,lepton_mom_sign[orie],rl);
+						    qmass[iq1],qmass[iq2],qins+1,irev+1,photon_field_name[iphi_eta_alt],!r2,r2,sign_orie[orie],rl);
 		    else             master_fprintf(fout," # kappaq1=%lg kappaq2=%lg qins=%d qrev=%d ins=%s lep_orie=%+d\n\n",
-						    qkappa[iq1],qkappa[iq2],qins+1,irev+1,(phi_eta==0)?"phi":"eta",lepton_mom_sign[orie]);
+						    qkappa[iq1],qkappa[iq2],qins+1,irev+1,photon_field_name[iphi_eta_alt],sign_orie[orie]);
 		    for(int ind=0;ind<nweak_ind;ind++)
 		      for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 			{
@@ -1731,14 +1679,14 @@ void in_main(int narg,char **arg)
   while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf))
     {
       //setup the conf and generate the source
-      setup_conf();
+      start_new_conf();
       
       compute_lepton_free_loop();
       
       for(int isource=0;isource<nsources;isource++)
 	{
 	  //init
-	  random_shift_gauge_conf(conf);
+	  random_shift_gauge_conf(conf,old_theta,put_theta);
 	  generate_photon_stochastic_propagator();
 	  generate_original_source();
 	  

@@ -612,11 +612,6 @@ namespace nissa
     topotential_pars_t topotential_pars;
     stout_pars_t stout_pars;
     em_field_pars_t em_field_pars;
-    fermionic_putpourri_meas_pars_t fermionic_putpourri_meas_pars;
-    quark_rendens_meas_pars_t quark_rendens_meas_pars;
-    spinpol_meas_pars_t spinpol_meas_pars;
-    magnetization_meas_pars_t magnetization_meas_pars;
-    pseudo_corr_meas_pars_t pseudo_corr_meas_pars;
   };
   
   //The structure to hold trajectory statistics

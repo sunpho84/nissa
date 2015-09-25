@@ -426,13 +426,6 @@ namespace nissa
 	
 	//electric and magnetic field
 	read_em_field_pars(theory_pars.em_field_pars);
-	
-	//info on pseudoscalar meson correlators, condensate and magnetization measure
-	read_pseudo_corr_meas_pars(theory_pars.pseudo_corr_meas_pars);
-	read_fermionic_putpourri_meas_pars(theory_pars.fermionic_putpourri_meas_pars);
-	read_quark_rendens_meas_pars(theory_pars.quark_rendens_meas_pars);
-	read_spinpol_meas_pars(theory_pars.spinpol_meas_pars);
-	read_magnetization_meas_pars(theory_pars.magnetization_meas_pars);
       }
   }
 }

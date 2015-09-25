@@ -186,22 +186,22 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //measure the above fermionic putpourri
-  void measure_fermionic_putpourri(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
+  void measure_fermionic_putpourri(quad_su3 **conf,theory_pars_t &theory_pars,fermionic_putpourri_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    FILE *file=open_file(theory_pars.fermionic_putpourri_meas_pars.path,conf_created?"w":"a");
-    int comp_susc=theory_pars.fermionic_putpourri_meas_pars.compute_susceptivities;
+    FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
+    int comp_susc=meas_pars.compute_susceptivities;
     
     //measure the putpourri for each quark
-    int ncopies=theory_pars.fermionic_putpourri_meas_pars.ncopies;
+    int ncopies=meas_pars.ncopies;
     for(int icopy=0;icopy<ncopies;icopy++)
       {
-	master_fprintf(file,"%d",iconf);    
+	master_fprintf(file,"%d",iconf);
 	for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
 	  {
 	    fermionic_putpourri_t putpourri;
 	    
 	    //loop over hits
-	    int nhits=theory_pars.fermionic_putpourri_meas_pars.nhits;
+	    int nhits=meas_pars.nhits;
 	    for(int hit=0;hit<nhits;hit++)
 	      {
 		verbosity_lv2_master_printf("Evaluating fermionic putpourri for flavor %d/%d, ncopy %d/%d, nhits %d/%d\n",
@@ -209,9 +209,7 @@ namespace nissa
 		
 		//compute and summ
 		fermionic_putpourri_t temp;
-		fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
-				    theory_pars.fermionic_putpourri_meas_pars.residue,
-				    comp_susc);
+		fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,meas_pars.residue,comp_susc);
 		complex_summassign(putpourri.chiral_cond,temp.chiral_cond);
 		if(comp_susc) complex_summassign(putpourri.chiral_cond_susc,temp.chiral_cond_susc);
 		complex_summassign(putpourri.energy_dens,temp.energy_dens);

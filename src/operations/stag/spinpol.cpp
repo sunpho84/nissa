@@ -47,10 +47,9 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute the spin-polarization for all flavors
-  void measure_spinpol(quad_su3 **ferm_conf,quad_su3 **glu_conf,theory_pars_t &tp,int iconf,int conf_created)
+  void measure_spinpol(quad_su3 **ferm_conf,quad_su3 **glu_conf,theory_pars_t &theory_pars,spinpol_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    spinpol_meas_pars_t *sp=&tp.spinpol_meas_pars;
-    if(sp->use_ferm_conf_for_gluons) glu_conf=ferm_conf;
+    if(meas_pars.use_ferm_conf_for_gluons) glu_conf=ferm_conf;
 
     /*
     //count the number of cooled levels

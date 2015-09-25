@@ -14,10 +14,10 @@
 namespace nissa
 {
   //compute the local pseudoscalar correlator in "time" direction (that can be all but time)
-  void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created,int dir)
+  void measure_time_pseudo_corr(quad_su3 **conf,theory_pars_t &theory_pars,pseudo_corr_meas_pars_t &meas_pars,int iconf,int conf_created,int dir)
   {
     char dir_name[5]="txyz";
-    FILE *file=open_file(theory_pars.pseudo_corr_meas_pars.path,conf_created?"w":"a");
+    FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
     int nflavs=theory_pars.nflavs;
     
@@ -37,7 +37,7 @@ namespace nissa
     vector_reset(loc_contr);
     
     //loop over the hits
-    int nhits=theory_pars.pseudo_corr_meas_pars.nhits;
+    int nhits=meas_pars.nhits;
     for(int hit=0;hit<nhits;hit++)
       {
 	verbosity_lv2_master_printf("Evaluating pseudoscalar %c correlator, hit %d/%d\n",dir_name[dir],hit+1,nhits);
@@ -49,7 +49,7 @@ namespace nissa
 	
 	//compute M^-1
 	for(int iflav=0;iflav<nflavs;iflav++)
-	  mult_Minv(prop[iflav],conf,&theory_pars,iflav,theory_pars.pseudo_corr_meas_pars.residue,source);
+	  mult_Minv(prop[iflav],conf,&theory_pars,iflav,meas_pars.residue,source);
 	
 	//contract
 	int icombo=0;

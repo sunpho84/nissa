@@ -147,12 +147,12 @@ namespace nissa
   }
   
   //measure magnetization
-  void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,int iconf,int conf_created)
+  void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,magnetization_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    FILE *file=open_file(theory_pars.magnetization_meas_pars.path,conf_created?"w":"a");
-    FILE *file_proj=open_file(combine("%s_proj_x",theory_pars.magnetization_meas_pars.path).c_str(),conf_created?"w":"a");
+    FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
+    FILE *file_proj=open_file(combine("%s_proj_x",meas_pars.path).c_str(),conf_created?"w":"a");
     
-    int ncopies=theory_pars.magnetization_meas_pars.ncopies;
+    int ncopies=meas_pars.ncopies;
     for(int icopy=0;icopy<ncopies;icopy++)
       {
         master_fprintf(file,"%d",iconf);
@@ -165,7 +165,7 @@ namespace nissa
             for(int i=0;i<glb_size[1];i++) magn_proj_x[i][RE]=magn_proj_x[i][IM]=0;
             
             //loop over hits
-            int nhits=theory_pars.magnetization_meas_pars.nhits;
+            int nhits=meas_pars.nhits;
             for(int hit=0;hit<nhits;hit++)
               {
                 verbosity_lv2_master_printf("Evaluating magnetization for flavor %d/%d, ncopies %d/%d nhits %d/%d\n",
@@ -173,8 +173,7 @@ namespace nissa
             
                 //compute and summ
                 complex temp,temp_magn_proj_x[glb_size[1]];
-                magnetization(&temp,temp_magn_proj_x,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,
-                              theory_pars.magnetization_meas_pars.residue); //flag holds quantization
+                magnetization(&temp,temp_magn_proj_x,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,meas_pars.residue); //flag holds quantization
                 
                 //normalize
                 complex_summ_the_prod_double(magn,temp,1.0/nhits);

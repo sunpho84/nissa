@@ -414,6 +414,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/smearing/stout_lx.cpp \
 	operations/smearing/Wflow.cpp \
 	operations/stag/magnetization.cpp \
+	operations/stag/nucleon.cpp \
 	operations/stag/putpourri.cpp \
 	operations/stag/rendens.cpp \
 	operations/stag/spinpol.cpp \
@@ -453,6 +454,7 @@ include_HEADERS+= \
 	operations/smearing/stout.hpp \
 	operations/smearing/Wflow.hpp \
 	operations/stag/magnetization.hpp \
+	operations/stag/nucleon.hpp \
 	operations/stag/putpourri.hpp \
 	operations/stag/rendens.hpp \
 	operations/stag/spinpol.hpp \
