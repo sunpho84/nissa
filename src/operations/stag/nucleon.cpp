@@ -55,7 +55,6 @@ namespace nissa
 	//generate the source on an even site
 	coords source_coord;
 	generate_random_coord(source_coord);
-	for(int mu=0;mu<4;mu++) source_coord[mu]=0;
 	generate_delta_eo_source(source,source_coord);
 	
 	//compute M^-1
@@ -70,11 +69,7 @@ namespace nissa
 		for(int eo=0;eo<2;eo++)
 		  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 		    {
-		      //int dt=glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]-source_coord[0];
-		      //double arg=M_PI*dt/glb_size[0];
-		      //complex phase={cos(arg),sin(arg)};
-		      
-		      //safe_color_prod_complex(temp_sol[eo][ieo],temp_sol[eo][ieo],phase);
+		      color_prod_double(temp_sol[eo][ieo],temp_sol[eo][ieo],(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]>=source_coord[0])?+1:-1);
 		      put_color_into_su3(prop[iflav][eo][ieo],temp_sol[eo][ieo],ic);
 		  }
 	      }
