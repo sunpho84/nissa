@@ -7,7 +7,7 @@
 
 namespace nissa
 {
-  const char compile_info[5][1024]={"unknown",CONFIG_TIME,CONFIG_FLAGS,__TIME__,__DATE__};
+  const char compile_info[4][1024]={CONFIG_TIME,CONFIG_FLAGS,__TIME__,__DATE__};
   
   int bulk_recip_lat_volume(int *P,int *L);
   int bulk_volume(int *L);

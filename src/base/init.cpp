@@ -41,6 +41,8 @@
 
 namespace nissa
 {
+  extern const char *git_version;
+  
   //init nissa
   void init_nissa(int narg,char **arg,const char compile_info[5][1024])
   {
@@ -64,9 +66,9 @@ namespace nissa
     signal(SIGXCPU,signal_handler);
     
     //print version and configuration and compilation time
-    master_printf("Initializing nissa, version: %s\n",compile_info[0]);
-    master_printf("Configured at %s with flags: %s\n",compile_info[1],compile_info[2]);
-    master_printf("Compiled at %s of %s\n",compile_info[3],compile_info[4]);
+    master_printf("Initializing nissa, version: %s\n",git_version);
+    master_printf("Configured at %s with flags: %s\n",compile_info[0],compile_info[1]);
+    master_printf("Compiled at %s of %s\n",compile_info[2],compile_info[3]);
     
     //define all derived MPI types
     define_MPI_types();
