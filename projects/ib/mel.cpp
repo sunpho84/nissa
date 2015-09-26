@@ -910,6 +910,69 @@ void insert_conserved_current_on_the_source(spinspin *prop,int ilepton,coords di
   set_borders_invalid(prop);
 }
 
+//insert the conserved current on the sink
+void insert_conserved_current_on_the_sink(spinspin *prop,int ilepton,coords dirs,tm_quark_info &le)
+{
+  GET_THREAD_ID();
+  
+  //phases
+  complex phases[4];
+  for(int mu=0;mu<NDIM;mu++)
+    {
+      phases[mu][0]=cos(-le.bc[mu]*M_PI);
+      phases[mu][1]=sin(-le.bc[mu]*M_PI);
+    }
+  
+  //copy on the temporary and communicate borders
+  vector_copy(temp_lep,prop);
+  communicate_lx_spinspin_borders(temp_lep);
+  vector_reset(prop);
+  
+  dirac_matr GAMMA;
+  if(pure_wilson) dirac_prod_double(&GAMMA,base_gamma+0,1);
+  else dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[le.r]);
+  
+  //prepare each propagator for a single lepton
+  //by computing i(A_mu(x)phi(x+mu)(-i t3 g5-gmu)/2-A_mu(x-mu)phi(x-mu)(-i t3 g5+gmu)/2)
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	//find neighbors
+	int ifw=loclx_neighup[ivol][mu];
+	int ibw=loclx_neighdw[ivol][mu];
+	
+	//compute phase factor
+	spinspin ph_bw,ph_fw;
+	
+	//transport down and up
+	if(glb_coord_of_loclx[ivol][mu]==glb_size[mu]-1) unsafe_spinspin_prod_complex_conj2(ph_fw,temp_lep[ifw],phases[mu]);
+	else spinspin_copy(ph_fw,temp_lep[ifw]);
+	if(glb_coord_of_loclx[ivol][mu]==0) unsafe_spinspin_prod_complex(ph_bw,temp_lep[ibw],phases[mu]);
+	else spinspin_copy(ph_bw,temp_lep[ibw]);
+	
+	//fix coefficients - i is inserted here!
+	//also dir selection is made here
+	spinspin_prodassign_idouble(ph_fw,-0.5*dirs[mu]);
+	spinspin_prodassign_idouble(ph_bw,+0.5*dirs[mu]);
+	
+	//summ and subtract the two
+	spinspin bw_M_fw,bw_P_fw;
+	spinspin_subt(bw_M_fw,ph_bw,ph_fw);
+	spinspin_summ(bw_P_fw,ph_bw,ph_fw);
+	
+	//put -i g5 t3 on the summ
+	spinspin temp_P;
+	unsafe_spinspin_prod_dirac(temp_P,bw_P_fw,&GAMMA);
+	spinspin_summassign(prop[ivol],temp_P);
+	
+	//put gmu on the diff
+	spinspin temp_M;
+	unsafe_spinspin_prod_dirac(temp_M,bw_M_fw,base_gamma+map_mu[mu]);
+	spinspin_summassign(prop[ivol],temp_M);
+      }
+  set_borders_invalid(prop);
+}
+
 //generate all the lepton propagators, pointing outward
 //the computations is done by:
 // 1)putting the correct phase in x space, given by exp(E_mu*t-i*vec(p)*vec(x))
@@ -977,22 +1040,46 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
   master_printf("Generating free loop\n");
   spinspin *prop=nissa_malloc("prop",loc_vol+bord_vol,spinspin);
   complex *corr=nissa_malloc("corr",glb_size[0],complex);
-  
-  vector_reset(corr);
   tm_quark_info le=get_lepton_info(0,0,0);
-  le.bc[0]=le.bc[1]=le.bc[2]=le.bc[3]=0;
+  //le.bc[0]=le.bc[1]=le.bc[2]=le.bc[3]=0;
   compute_x_space_twisted_propagator_by_fft(prop,le,MAX_TWIST_BASE);
-  coords time_dir={1,0,0,0};
-  insert_photon_on_the_source(prop,0,iphi,time_dir,le,-1);
+  coords time_dir={0,1,0,0};
+  insert_conserved_current_on_the_sink(prop, 0, time_dir, le);
   spinspin pro;
   twisted_on_shell_operator_of_imom(pro,le,0,false,-1,MAX_TWIST_BASE);
-  NISSA_PARALLEL_LOOP(ivol, 0, loc_vol)
+  vector_reset(corr);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
       complex c;
       trace_spinspin_prod_spinspin(c,prop[ivol],pro);
+      double arg=0;
+      for(int mu=1;mu<4;mu++)
+	arg+=-le.bc[mu]*M_PI/glb_size[mu]*glb_coord_of_loclx[ivol][mu];
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      safe_complex_prod(c,c,ph);
       complex_summassign(corr[glb_coord_of_loclx[ivol][0]],c);
     }
-  
+  for(int t=0;t<glb_size[0];t++) master_printf("%d %16.16lg %16.16lg\n",t,corr[t][RE],corr[t][IM]);
+  master_printf("------------------\n");
+  vector_reset(prop);
+  spinspin_put_to_diag(prop[0],1.0);
+  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,MAX_TWIST_BASE);
+  //insert_conserved_current_on_the_source(prop, 0, time_dir, le);
+  vector_reset(corr);
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    {
+      complex c;
+      trace_spinspin_prod_spinspin(c,prop[ivol],pro);
+      double arg=0;
+      for(int mu=1;mu<4;mu++)
+	arg+=le.bc[mu]*M_PI/glb_size[mu]*glb_coord_of_loclx[ivol][mu];
+      //compute the phase
+      complex ph={cos(arg),sin(arg)};
+      safe_complex_prod(c,c,ph);
+      complex_summassign(corr[glb_coord_of_loclx[ivol][0]],c);
+    }
+
   for(int t=0;t<glb_size[0];t++) master_printf("%d %16.16lg %16.16lg\n",t,corr[t][RE],corr[t][IM]);
   crash("ciao");
   

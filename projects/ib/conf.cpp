@@ -32,10 +32,6 @@ namespace nissa
     get_loclx_and_rank_of_coord(&ivol_out,&irank_out,co);
   }
   
-  //generate a random postion
-  void generate_random_coord(coords c)
-  {for(int mu=0;mu<NDIM;mu++) c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));}
-  
   //perform a random shift
   void random_shift_gauge_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta)
   {
