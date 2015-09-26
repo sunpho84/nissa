@@ -554,17 +554,17 @@ namespace nissa
     //free fixing matrix
     nissa_free(fixm);
   }
-
+  
   //wrappers
   void landau_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
   {landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,4);}
   void coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision)
   {landau_or_coulomb_gauge_fix(conf_out,conf_in,precision,3);}
-
+  
   //perform a random gauge transformation
-  void perform_random_gauge_transform(quad_su3 *conf_out,quad_su3 *conf_in)
+  THREADABLE_FUNCTION_2ARG(perform_random_gauge_transform, quad_su3*,conf_out, quad_su3*,conf_in)
   {
-    GET_THREAD_ID(); 
+    GET_THREAD_ID();
     
     //allocate fixing matrix
     su3 *fixm=nissa_malloc("fixm",loc_vol+bord_vol,su3);
@@ -580,4 +580,25 @@ namespace nissa
     //free fixing matrix
     nissa_free(fixm);
   }
+  THREADABLE_FUNCTION_END
+  
+  THREADABLE_FUNCTION_2ARG(perform_random_gauge_transform, quad_su3**,conf_out, quad_su3**,conf_in)
+  {
+    GET_THREAD_ID();
+    
+    //allocate fixing matrix
+    su3 *fixm[2]={nissa_malloc("fixm_e",loc_volh+bord_volh,su3),nissa_malloc("fixm_o",loc_volh+bord_volh,su3)};
+    
+    //extract random SU(3) matrix
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      su3_put_to_rnd(fixm[loclx_parity[ivol]][loceo_of_loclx[ivol]],loc_rnd_gen[ivol]);
+    for(int eo=0;eo<2;eo++) set_borders_invalid(fixm[eo]);
+    
+    //apply the transformation
+    gauge_transform_conf(conf_out,fixm,conf_in);
+    
+    //free fixing matrix
+    for(int eo=0;eo<2;eo++) nissa_free(fixm[eo]);
+  }
+  THREADABLE_FUNCTION_END
 }

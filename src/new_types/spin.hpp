@@ -288,88 +288,60 @@ namespace nissa
   
   //Get a color from a colorspinspin
   inline void get_color_from_colorspinspin(color out,colorspinspin in,int id1,int id2)
-  {
-    for(int ic_sink=0;ic_sink<3;ic_sink++)
-      {
-	out[ic_sink][0]=in[ic_sink][id1][id2][0];
-	out[ic_sink][1]=in[ic_sink][id1][id2][1];
-      }
-  }
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink],in[ic_sink][id1][id2]);}
   
   //Get a color from a spincolor
   inline void get_color_from_spincolor(color out,spincolor in,int id)
-  {
-    for(int ic_sink=0;ic_sink<3;ic_sink++)
-      {
-	out[ic_sink][0]=in[id][ic_sink][0];
-	out[ic_sink][1]=in[id][ic_sink][1];
-      }
-  }
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink],in[id][ic_sink]);}
   
   //Get a spincolor from a colorspinspin
   //In a spinspin the sink index runs slower than the source
   inline void get_spincolor_from_colorspinspin(spincolor out,colorspinspin in,int id_source)
   {
-    for(int ic_sink=0;ic_sink<3;ic_sink++)
+    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
       for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
-	{
-	  out[id_sink][ic_sink][0]=in[ic_sink][id_sink][id_source][0];
-	  out[id_sink][ic_sink][1]=in[ic_sink][id_sink][id_source][1];
-	}
+	complex_copy(out[id_sink][ic_sink],in[ic_sink][id_sink][id_source]);
   }
   
   //Get a spincolor from a su3spinspin
   inline void get_spincolor_from_su3spinspin(spincolor out,su3spinspin in,int id_source,int ic_source)
   {
-    for(int ic_sink=0;ic_sink<3;ic_sink++)
+    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
       for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
-	{
-	  out[id_sink][ic_sink][0]=in[ic_sink][ic_source][id_sink][id_source][0];
-	  out[id_sink][ic_sink][1]=in[ic_sink][ic_source][id_sink][id_source][1];
-	}
+	complex_copy(out[id_sink][ic_sink],in[ic_sink][ic_source][id_sink][id_source]);
   }
+  
+  //Get a color from a su3
+  inline void get_color_from_su3(color out,su3 in,int ic_source)
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink],in[ic_sink][ic_source]);}
   
   //Put a color into a colorspinspin
   inline void put_color_into_colorspinspin(colorspinspin out,color in,int id1,int id2)
-  {
-    for(int ic_sink=0;ic_sink<3;ic_sink++)
-      {
-	out[ic_sink][id1][id2][0]=in[ic_sink][0];
-	out[ic_sink][id1][id2][1]=in[ic_sink][1];
-      }
-  }
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink][id1][id2],in[ic_sink]);}
   
   //Put a color into a spincolor
   inline void put_color_into_spincolor(spincolor out,color in,int id)
-  {
-    for(int ic_sink=0;ic_sink<3;ic_sink++)
-      {
-	out[id][ic_sink][0]=in[ic_sink][0];
-	out[id][ic_sink][1]=in[ic_sink][1];
-      }
-  }
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[id][ic_sink],in[ic_sink]);}
   
   //Put a spincolor into a colorspinspin
   inline void put_spincolor_into_colorspinspin(colorspinspin out,spincolor in,int id_source)
   {
-    for(int ic_sink=0;ic_sink<3;ic_sink++)
+    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
       for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
-	{
-	  out[ic_sink][id_sink][id_source][0]=in[id_sink][ic_sink][0];
-	  out[ic_sink][id_sink][id_source][1]=in[id_sink][ic_sink][1];
-	}
+	complex_copy(out[ic_sink][id_sink][id_source],in[id_sink][ic_sink]);
   }
   
   //Put a spincolor into a su3spinspin
   inline void put_spincolor_into_su3spinspin(su3spinspin out,spincolor in,int id_source,int ic_source)
   {
-    for(int ic_sink=0;ic_sink<3;ic_sink++)
+    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
       for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
-	{
-	  out[ic_sink][ic_source][id_sink][id_source][0]=in[id_sink][ic_sink][0];
-	  out[ic_sink][ic_source][id_sink][id_source][1]=in[id_sink][ic_sink][1];
-	}
+	complex_copy(out[ic_sink][ic_source][id_sink][id_source],in[id_sink][ic_sink]);
   }
+  
+  //Put a spincolor into a su3
+  inline void put_color_into_su3(su3 out,color in,int ic_source)
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink][ic_source],in[ic_sink]);}
   
   //dirac*spinr
   inline void unsafe_dirac_prod_spin(spin out,dirac_matr *m,spin in)

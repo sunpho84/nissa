@@ -31,8 +31,8 @@ namespace nissa
   double rootst_eoimpr_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,int itraj)
   {
     //header
-    master_printf("Trajectory %d->%d (nmd: %d, ngss: %d)\n",itraj,itraj+1,simul_pars.nmd_steps,simul_pars.ngauge_substeps);
-    master_printf("-------------------------------\n");
+    master_printf("Trajectory %d->%d\n",itraj,itraj+1);
+    master_printf("-----------------------\n");
     
     //take initial time
     double hmc_time=-take_time();

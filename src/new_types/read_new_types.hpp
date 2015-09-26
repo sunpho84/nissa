@@ -1,6 +1,9 @@
 #ifndef _READ_NEW_TYPES_HPP
 #define _READ_NEW_TYPES_HPP
 
+#include "new_types_definitions.hpp"
+#include "operations/stag/nucleon.hpp"
+
 namespace nissa
 {
   gauge_action_name_t gauge_action_name_from_str(const char *name);
@@ -16,6 +19,7 @@ namespace nissa
   void read_watusso_meas_pars(watusso_meas_pars_t &pars,bool flag=false);
   void read_hmc_evol_pars(hmc_evol_pars_t &pars,theory_pars_t &th);
   void read_pseudo_corr_meas_pars(pseudo_corr_meas_pars_t &pars,bool flag=false);
+  void read_nucleon_corr_meas_pars(nucleon_corr_meas_pars_t &pars,bool flag=false);
   void read_quark_content(quark_content_t &quark_content,bool flag=false);
   void read_stout_pars(stout_pars_t &stout_pars);
   void read_ape_pars(ape_pars_t &ape_pars);

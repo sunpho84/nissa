@@ -97,7 +97,7 @@ namespace nissa
     nissa_free(loc_contr);
     nissa_free(glb_contr);
     
-    if(rank==0) fclose(file);
+    close_file(file);
   }
   
   /*

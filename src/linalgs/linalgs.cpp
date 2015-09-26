@@ -52,7 +52,7 @@ namespace nissa
   //double to double
   THREADABLE_FUNCTION_3ARG(double_vector_copy, double*,a, double*,b, int,n)
   {internal_vector_copy(a,b,n);}THREADABLE_FUNCTION_END
-
+  
   //set to zero
   void single_vector_init_to_zero(float *a,int n)
   {
@@ -74,7 +74,7 @@ namespace nissa
   //summ
   THREADABLE_FUNCTION_3ARG(double_vector_summassign, double*,out, double*,in, int,n)
   {GET_THREAD_ID();NISSA_PARALLEL_LOOP(i,0,n) out[i]+=in[i];set_borders_invalid(out);}THREADABLE_FUNCTION_END
-
+  
   //subt
   THREADABLE_FUNCTION_4ARG(double_vector_subt, double*,out, double*,in1, double*,in2, int,n)
   {GET_THREAD_ID();NISSA_PARALLEL_LOOP(i,0,n) out[i]=in1[i]-in2[i];set_borders_invalid(out);}THREADABLE_FUNCTION_END
@@ -381,13 +381,37 @@ namespace nissa
     glb_reduce_float_128(*a,loc_thread_res);
   }
   THREADABLE_FUNCTION_END
-
+  
   //(a,b)
   double double_conv_quadruple_accumulate_double_vector_glb_scalar_prod(double *a,double *b,int n)
   {float_128 out;quadruple_accumulate_double_vector_glb_scalar_prod(&out,a,b,n);return double_from_float_128(out);}
   
+  ////////////////////// color put/get from su3 ///////////////////////////
+  
+  THREADABLE_FUNCTION_3ARG(get_color_from_su3, color**,out, su3**,in, int,ic_source)
+  {
+    GET_THREAD_ID();
+    for(int eo=0;eo<2;eo++)
+      {
+	NISSA_PARALLEL_LOOP(ivol,0,loc_volh) get_color_from_su3(out[eo][ivol],in[eo][ivol],ic_source);
+	set_borders_invalid(out[eo]);
+      }
+  }
+  THREADABLE_FUNCTION_END
+  
+    THREADABLE_FUNCTION_3ARG(put_color_into_su3, su3**,out, color**,in, int,ic_source)
+  {
+    GET_THREAD_ID();
+    for(int eo=0;eo<2;eo++)
+      {
+	NISSA_PARALLEL_LOOP(ivol,0,loc_volh) put_color_into_su3(out[eo][ivol],in[eo][ivol],ic_source);
+	set_borders_invalid(out[eo]);
+      }
+  }
+  THREADABLE_FUNCTION_END
+  
   //////////////// color put/get from colorspinspin////////////////////////
-
+  
   THREADABLE_FUNCTION_4ARG(get_color_from_colorspinspin, color*,out, colorspinspin*,in, int,id1, int,id2)
   {
     GET_THREAD_ID();
@@ -395,7 +419,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   THREADABLE_FUNCTION_4ARG(put_color_into_colorspinspin, colorspinspin*,out, color*,in, int,id1, int,id2)
   {
     GET_THREAD_ID();
@@ -403,9 +427,9 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   //////////////// color put/get from spincolor//////////////////
-
+  
   THREADABLE_FUNCTION_3ARG(get_color_from_spincolor, color*,out, spincolor*,in, int,id)
   {
     GET_THREAD_ID();
@@ -421,9 +445,9 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   //////////////// colorspinspin put/get ////////////////////////
-
+  
   THREADABLE_FUNCTION_3ARG(get_spincolor_from_colorspinspin, spincolor*,out, colorspinspin*,in, int,id)
   {
     GET_THREAD_ID();
@@ -431,7 +455,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   THREADABLE_FUNCTION_3ARG(put_spincolor_into_colorspinspin, colorspinspin*,out, spincolor*,in, int,id)
   {
     GET_THREAD_ID();
@@ -439,7 +463,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   //////////////// su3spinspin put/get ////////////////////////
   
   THREADABLE_FUNCTION_4ARG(get_spincolor_from_su3spinspin, spincolor*,out, su3spinspin*,in, int,id, int,ic)
@@ -457,9 +481,9 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   ////////////////// spincolor algebra/////////////////////
-
+  
   THREADABLE_FUNCTION_3ARG(safe_dirac_prod_spincolor, spincolor*,out, dirac_matr*,m, spincolor*,in)
   {
     GET_THREAD_ID();

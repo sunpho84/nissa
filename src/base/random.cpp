@@ -13,6 +13,7 @@
 #include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 #ifdef USE_THREADS
@@ -137,7 +138,7 @@ namespace nissa
     nissa_free(loc_rnd_gen);
     loc_rnd_gen_inited=0;
   }
-
+  
   int nglbgen=0;
   
   //standard ran2 from numerical recipes
@@ -163,10 +164,21 @@ namespace nissa
     if(gen->iy<0) gen->iy+=imm1;
     
     out=std::min(am*gen->iy,rnmx);
-
+    
     if(gen==&glb_rnd_gen) nglbgen++;
     
     return out*(max-min)+min;
+  }
+  
+  //generate a random postion
+  void generate_random_coord(coords c)
+  {
+    GET_THREAD_ID();
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	if(IS_MASTER_THREAD) c[mu]=(int)(rnd_get_unif(&glb_rnd_gen,0,glb_size[mu]));
+	THREAD_BROADCAST(c[mu],c[mu]);
+      }
   }
   
   //return a numer between 0 and 1
@@ -346,7 +358,7 @@ namespace nissa
     set_borders_invalid(source);
   }
   THREADABLE_FUNCTION_END
-  void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall,int dir=0)
+  void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall,int dir)
   {for(int par=0;par<2;par++) generate_fully_undiluted_eo_source(source[par],rtype,twall,par,dir);}
   
   //generate a delta source
@@ -366,15 +378,15 @@ namespace nissa
     
     if(islocal)
       for(int id=0;id<4;id++)
-	for(int ic=0;ic<3;ic++)
+	for(int ic=0;ic<NCOL;ic++)
 	  source[loclx_of_coord(lx)][ic][ic][id][id][0]=1;
     
     set_borders_invalid(source);
   }
   THREADABLE_FUNCTION_END
-
+  
   //generate a delta source
-  THREADABLE_FUNCTION_2ARG(generate_delta_eo_source, color**,source, int*,x)
+  THREADABLE_FUNCTION_2ARG(generate_delta_eo_source, su3**,source, int*,x)
   {
     //reset
     for(int par=0;par<2;par++) vector_reset(source[par]);
@@ -391,7 +403,7 @@ namespace nissa
     if(islocal)
       {
 	int ivol=loclx_of_coord(lx);
-	for(int ic=0;ic<3;ic++) source[loclx_parity[ivol]][loceo_of_loclx[ivol]][ic][0]=1;
+	su3_put_to_id(source[loclx_parity[ivol]][loceo_of_loclx[ivol]]);
       }
     
     for(int par=0;par<2;par++) set_borders_invalid(source[par]);

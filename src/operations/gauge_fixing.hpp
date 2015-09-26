@@ -1,5 +1,5 @@
-#ifndef _GAUGE_FIXING_H
-#define _GAUGE_FIXING_H
+#ifndef _GAUGE_FIXING_HPP
+#define _GAUGE_FIXING_HPP
 
 namespace nissa
 {
@@ -18,6 +18,7 @@ namespace nissa
   void landau_or_coulomb_gauge_fix(quad_su3 *conf_out,quad_su3 *conf_in,double precision,int nmu);
   void local_gauge_transform(quad_su3 *conf,su3 g,int ivol);
   void perform_random_gauge_transform(quad_su3 *conf_out,quad_su3 *conf_in);
+  void perform_random_gauge_transform(quad_su3 **conf_out,quad_su3 **conf_in);
 }
 
 #endif

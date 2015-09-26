@@ -8,7 +8,7 @@ namespace nissa
   double rnd_get_unif(rnd_gen *gen,double min,double max);
   int rnd_get_pm_one(rnd_gen *gen);
   void comp_get_rnd(complex out,rnd_gen *gen,enum rnd_t rtype);
-  void generate_delta_eo_source(color **source,int *x);
+  void generate_delta_eo_source(su3 **source,int *x);
   void generate_delta_source(su3spinspin *source,int *x);
   void generate_colorspindiluted_source(su3spinspin *source,enum rnd_t rtype,int twall);
   inline void generate_spincolordiluted_source(su3spinspin *source,enum rnd_t rtype,int twall)
@@ -19,6 +19,7 @@ namespace nissa
   void generate_fully_undiluted_eo_source(color **source,enum rnd_t rtype,int twall,int dir=0);
   void rnd_fill_pm_one_loc_vector(double *v,int nps);
   void rnd_fill_unif_loc_vector(double *v,int dps,double min,double max);
+  void generate_random_coord(coords c);
   void rnd_get_Z2(complex out,rnd_gen *gen);
   void rnd_get_Z4(complex out,rnd_gen *gen);
   double rnd_get_gauss_double(rnd_gen *gen,double ave=0,double sig=1);

@@ -4,11 +4,12 @@
 
 #include <string.h>
 
-#include "new_types_definitions.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "io/input.hpp"
+#include "new_types_definitions.hpp"
+#include "operations/stag/nucleon.hpp"
 
 namespace nissa
 {
@@ -308,6 +309,19 @@ namespace nissa
       }
   }
   
+  //read parameters to measure nucleon correlators
+  void read_nucleon_corr_meas_pars(nucleon_corr_meas_pars_t &pars,bool flag=false)
+  {
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasureNucleonCorr",&pars.flag);
+    if(pars.flag)
+      {
+	read_str_str("Path",pars.path,1024);
+	read_str_double("InvResidue",&pars.residue);
+	read_str_int("NHits",&pars.nhits);
+      }
+  }
+  
   //read parameters to smear a conf in time when computing gauge observables
   void read_gauge_obs_temp_smear_pars(gauge_obs_temp_smear_pars_t &pars)
   {
@@ -324,7 +338,7 @@ namespace nissa
 	read_str_int("APETempNiters",&pars.nape_temp_iters);
       }
   }
-
+  
   //read parameters to smear a conf in space and time when computing gauge observables
   void read_gauge_obs_temp_spat_smear_pars(gauge_obs_temp_spat_smear_pars_t &pars)
   {
