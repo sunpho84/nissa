@@ -64,7 +64,18 @@ namespace nissa
 	    for(int iflav=0;iflav<nflavs;iflav++)
 	      {
 		mult_Minv(temp_sol,conf,&theory_pars,iflav,meas_pars.residue,temp_source);
-		put_color_into_su3(prop[iflav],temp_sol,ic);
+		
+		//put the anti-periodic condition on the propagator
+		for(int eo=0;eo<2;eo++)
+		  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		    {
+		      int dt=glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]-source_coord[0];
+		      double arg=M_PI*dt/glb_size[0];
+		      complex phase={cos(arg),sin(arg)};
+		      
+		      safe_color_prod_complex(temp_sol[eo][ieo],temp_sol[eo][ieo],phase);
+		      put_color_into_su3(prop[iflav][eo][ieo],temp_sol[eo][ieo],ic);
+		  }
 	      }
 	  }
 	
