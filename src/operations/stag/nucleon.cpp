@@ -79,12 +79,11 @@ namespace nissa
 	
 	//contract
 	int icombo=0;
-	int ifl[NCOL];
-	for(ifl[0]=0;ifl[0]<nflavs;ifl[0]++)
-	  for(ifl[1]=0;ifl[1]<=ifl[0];ifl[1]++)
-	    for(ifl[2]=0;ifl[2]<=ifl[1];ifl[2]++)
+	for(int ifl0=0;ifl0<nflavs;ifl0++)
+	  for(int ifl1=0;ifl1<=ifl0;ifl1++)
+	    for(int ifl2=0;ifl2<=ifl1;ifl2++)
 	      {
-		for(int eo=0;eo<1;eo++) //nb!
+		for(int eo=0;eo<2;eo++)
 		  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 		    {
 		      //find t
@@ -97,9 +96,9 @@ namespace nissa
 			    complex temp;
 			    const int *soc=eps_i[soeps];
 			    const int *sic=eps_i[sieps];
-			    unsafe_complex_prod(temp,prop[ifl[0]][eo][ieo][sic[0]][soc[0]],prop[ifl[1]][eo][ieo][sic[1]][soc[1]]);
+			    unsafe_complex_prod(temp,prop[ifl0][eo][ieo][sic[0]][soc[0]],prop[ifl1][eo][ieo][sic[1]][soc[1]]);
 			    complex_prodassign_double(temp,eps_s[soeps]*eps_s[sieps]);
-			    complex_summ_the_prod(loc_contr[icombo*glb_size[0]+t],temp,prop[ifl[2]][eo][ieo][sic[2]][soc[2]]);
+			    complex_summ_the_prod(loc_contr[icombo*glb_size[0]+t],temp,prop[ifl2][eo][ieo][sic[2]][soc[2]]);
 			  }
 		    }
 		icombo++;
@@ -113,12 +112,12 @@ namespace nissa
     //print
     double norm=nhits;
     int icombo=0;
-    for(int iflav=0;iflav<nflavs;iflav++)
-      for(int jflav=0;jflav<=iflav;jflav++)
-	for(int kflav=0;kflav<=jflav;kflav++)
+    for(int ifl0=0;ifl0<nflavs;ifl0++)
+      for(int ifl1=0;ifl1<=ifl0;ifl1++)
+	for(int ifl2=0;ifl2<=ifl1;ifl2++)
 	  {
 	    master_fprintf(file," # conf %d ; flv1 = %d , m1 = %lg ; flv2 = %d , m2 = %lg ; flv3 = %d , m3 = %lg\n",
-			   iconf,iflav,theory_pars.quark_content[iflav].mass,jflav,theory_pars.quark_content[jflav].mass,kflav,theory_pars.quark_content[kflav].mass);
+			   iconf,ifl0,theory_pars.quark_content[ifl0].mass,ifl1,theory_pars.quark_content[ifl1].mass,ifl2,theory_pars.quark_content[ifl2].mass);
 	  
 	  for(int t=0;t<glb_size[0];t++)
 	    master_fprintf(file,"%d %+016.16lg\n",t,glb_contr[icombo*glb_size[0]+t][RE]/norm);
@@ -127,7 +126,7 @@ namespace nissa
     
     //free everything
     for(int EO=0;EO<2;EO++)
-      {    
+      {
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  nissa_free(prop[iflav][EO]);
 	nissa_free(source[EO]);
