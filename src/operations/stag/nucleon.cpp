@@ -55,7 +55,7 @@ namespace nissa
 	//generate the source on an even site
 	coords source_coord;
 	generate_random_coord(source_coord);
-	for(int mu=0;mu<4;mu++) source_coord[mu]=(source_coord[mu]/2)*2;
+	for(int mu=0;mu<4;mu++) source_coord[mu]=0;//(source_coord[mu]/2)*2;
 	master_printf("Coord[0]: %d\n",source_coord[0]);
 	generate_delta_eo_source(source,source_coord);
 	
@@ -71,7 +71,7 @@ namespace nissa
 		for(int eo=0;eo<2;eo++)
 		  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 		    {
-		      color_prod_double(temp_sol[eo][ieo],temp_sol[eo][ieo],(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]>=source_coord[0])?+1:-1);
+		      //color_prod_double(temp_sol[eo][ieo],temp_sol[eo][ieo],(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]>=source_coord[0])?+1:-1);
 		      put_color_into_su3(prop[iflav][eo][ieo],temp_sol[eo][ieo],ic);
 		  }
 	      }
