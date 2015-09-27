@@ -55,7 +55,7 @@ namespace nissa
 	//generate the source on an even site
 	coords source_coord;
 	generate_random_coord(source_coord);
-	for(int mu=0;mu<4;mu++) source_coord[mu]=0;
+	for(int mu=0;mu<4;mu++) source_coord[mu]=(source_coord[mu]/2)*2;
 	master_printf("Coord[0]: %d\n",source_coord[0]);
 	generate_delta_eo_source(source,source_coord);
 	
