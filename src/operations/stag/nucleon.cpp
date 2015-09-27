@@ -88,18 +88,22 @@ namespace nissa
 		    {
 		      //find t
 		      int ilx=loclx_of_loceo[eo][ieo];
-		      int t=(glb_coord_of_loclx[ilx][0]+glb_size[0]-source_coord[0])%glb_size[0];
-		      
-		      for(int soeps=0;soeps<6;soeps++)
-			for(int sieps=0;sieps<6;sieps++)
-			  {
-			    complex temp;
-			    const int *soc=eps_i[soeps];
-			    const int *sic=eps_i[sieps];
-			    unsafe_complex_prod(temp,prop[ifl0][eo][ieo][sic[0]][soc[0]],prop[ifl1][eo][ieo][sic[1]][soc[1]]);
-			    complex_prodassign_double(temp,eps_s[soeps]*eps_s[sieps]);
-			    complex_summ_the_prod(loc_contr[icombo*glb_size[0]+t],temp,prop[ifl2][eo][ieo][sic[2]][soc[2]]);
-			  }
+		      int *c=glb_coord_of_loclx[ilx];
+		      if(c[1]%2==0&& c[2]%2==0 && c[3]%2==0)
+			{
+			  int t=(glb_coord_of_loclx[ilx][0]+glb_size[0]-source_coord[0])%glb_size[0];
+			  
+			  for(int soeps=0;soeps<6;soeps++)
+			    for(int sieps=0;sieps<6;sieps++)
+			      {
+				complex temp;
+				const int *soc=eps_i[soeps];
+				const int *sic=eps_i[sieps];
+				unsafe_complex_prod(temp,prop[ifl0][eo][ieo][sic[0]][soc[0]],prop[ifl1][eo][ieo][sic[1]][soc[1]]);
+				complex_prodassign_double(temp,eps_s[soeps]*eps_s[sieps]);
+				complex_summ_the_prod(loc_contr[icombo*glb_size[0]+t],temp,prop[ifl2][eo][ieo][sic[2]][soc[2]]);
+			      }
+			}
 		    }
 		icombo++;
 	      }
