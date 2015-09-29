@@ -1,29 +1,28 @@
-#include "nissa.h"
+#include "nissa.hpp"
 
-int main(int narg,char **arg)
+using namespace nissa;
+
+
+void in_main(int narg,char **arg)
 {
-  double precision;
-  char conf_in_path[1024];
-  char conf_out_path[1024];
+  open_input(arg[1]);
   
-  if(narg<2) crash("Use: %s input_file",arg[0]);
-  
-  //basic mpi initialization
-  init_nissa();
-  
-  //Init the MPI grid 
+  //Init the MPI grid
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
   init_grid(T,L);
   
-  open_input(arg[1]);
-  
+  char conf_in_path[1024];
   read_str_str("InGaugePath",conf_in_path,1024);
+  double precision;
   read_str_double("Precision",&precision);
+  char conf_out_path[1024];
   read_str_str("OutGaugePath",conf_out_path,1024);
   
   close_input();
+  
+  start_loc_rnd_gen(1000);
   
   ///////////////////////////////////////////
   
@@ -35,17 +34,25 @@ int main(int narg,char **arg)
   
   landau_gauge_fix(fix_conf,conf,precision);
   
-  write_gauge_conf(conf_out_path,fix_conf);
+  write_ildg_gauge_conf(conf_out_path,fix_conf,64);
   
-  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(conf));
-  master_printf("plaq: %.18g\n",global_plaquette_lx_conf(fix_conf));
-
+  master_printf("plaq: %16.16lg\n",global_plaquette_lx_conf(conf));
+  master_printf("plaq: %16.16lg\n",global_plaquette_lx_conf(fix_conf));
+  
   ///////////////////////////////////////////
-
+  
   nissa_free(conf);
   nissa_free(fix_conf);
   
-  close_nissa();
+}
 
+int main(int narg,char **arg)
+{
+  if(narg<2) crash("Use: %s input_file",arg[0]);
+  
+  //basic mpi initialization
+  init_nissa_threaded(narg,arg,in_main);
+  close_nissa();
+  
   return 0;
 }

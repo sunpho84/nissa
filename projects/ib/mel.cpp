@@ -1041,9 +1041,31 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
   spinspin *prop=nissa_malloc("prop",loc_vol+bord_vol,spinspin);
   complex *corr=nissa_malloc("corr",glb_size[0],complex);
   tm_quark_info le=get_lepton_info(0,0,0);
-  //le.bc[0]=le.bc[1]=le.bc[2]=le.bc[3]=0;
+  
+  //c[1]=1.075643001750072  
+  {
+    compute_x_space_twisted_propagator_by_fft(prop,le,MAX_TWIST_BASE);
+    spinspin pro;
+    twisted_on_shell_operator_of_imom(pro,le,0,false,-1,MAX_TWIST_BASE);
+    vector_reset(corr);
+    NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+      {
+	complex c;
+	trace_spinspin_prod_spinspin(c,prop[ivol],pro);
+	double arg=0;
+	for(int mu=1;mu<4;mu++)
+	  arg+=-le.bc[mu]*M_PI/glb_size[mu]*glb_coord_of_loclx[ivol][mu];
+	//compute the phase
+	complex ph={cos(arg),sin(arg)};
+	safe_complex_prod(c,c,ph);
+	complex_summassign(corr[glb_coord_of_loclx[ivol][0]],c);
+      }
+    for(int t=0;t<glb_size[0];t++) master_printf("%d %16.16lg %16.16lg\n",t,corr[t][RE],corr[t][IM]);
+    master_printf("------------------\n");
+  }
+  
   compute_x_space_twisted_propagator_by_fft(prop,le,MAX_TWIST_BASE);
-  coords time_dir={0,1,0,0};
+  coords time_dir={1,0,0,0};
   insert_conserved_current_on_the_sink(prop, 0, time_dir, le);
   spinspin pro;
   twisted_on_shell_operator_of_imom(pro,le,0,false,-1,MAX_TWIST_BASE);
@@ -1061,11 +1083,17 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
       complex_summassign(corr[glb_coord_of_loclx[ivol][0]],c);
     }
   for(int t=0;t<glb_size[0];t++) master_printf("%d %16.16lg %16.16lg\n",t,corr[t][RE],corr[t][IM]);
+  
   master_printf("------------------\n");
+
   vector_reset(prop);
-  spinspin_put_to_diag(prop[0],1.0);
+  spinspin_put_to_diag(prop[0],1);
+  //le.r=!le.r;
   multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,MAX_TWIST_BASE);
-  //insert_conserved_current_on_the_source(prop, 0, time_dir, le);
+  le.r=!le.r;
+  insert_conserved_current_on_the_source(prop, 0, time_dir, le);
+  le.r=!le.r;
+  twisted_on_shell_operator_of_imom(pro,le,0,false,-1,MAX_TWIST_BASE);
   vector_reset(corr);
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
     {
@@ -1079,9 +1107,11 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
       safe_complex_prod(c,c,ph);
       complex_summassign(corr[glb_coord_of_loclx[ivol][0]],c);
     }
-
   for(int t=0;t<glb_size[0];t++) master_printf("%d %16.16lg %16.16lg\n",t,corr[t][RE],corr[t][IM]);
-  crash("ciao");
+
+  master_printf("------------------\n");
+  
+  //crash("ciao");
   
   
   for(int ilepton=0;ilepton<nleptons;ilepton++)
@@ -1098,9 +1128,10 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
 	  select_propagator_timeslice(prop,prop,twall);
 	  
 	  //multiply with the lepton prop
-	  //multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
 	  coords time_dir={1,0,0,0};
-	  insert_photon_on_the_source(prop,ilepton,iphi,time_dir,le,-1);
+	  insert_conserved_current_on_the_source(prop,ilepton,time_dir,le);
+	  //multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+	  //insert_conserved_current_on_the_source(prop,ilepton,time_dir,le);
 	  //multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
 	  
 	  //get the projectors

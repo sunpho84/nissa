@@ -26,22 +26,22 @@ void in_main(int narg,char **arg)
   //open input file
   open_input(arg[1]);
   
-  //init the grid 
+  //init the grid
   int L,T;
   read_str_int("L",&L);
   read_str_int("T",&T);
-  init_grid(T,L);  
+  init_grid(T,L);
   
   //read in and out conf path
   char conf_path[1024];
   read_str_str("ConfPath",conf_path,1024);
   
   //read topo pars
-  top_meas_pars_t top_meas_pars;  
+  top_meas_pars_t top_meas_pars;
   read_top_meas_pars(top_meas_pars,true);
   
   //////////////////////////// read the conf /////////////////////////////
-
+  
   quad_su3 *conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
   
   //read the conf and write plaquette
@@ -50,7 +50,6 @@ void in_main(int narg,char **arg)
   read_ildg_gauge_conf(conf,conf_path,&mess);
   unitarize_conf_max(conf);
   
-  init_sweeper(top_meas_pars.gauge_cooling_action);
   measure_topology_lx_conf(top_meas_pars,conf,0,0);
   
   nissa_free(conf);

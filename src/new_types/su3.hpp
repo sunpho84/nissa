@@ -251,18 +251,16 @@ namespace nissa
     //create the two new rows of the matrix, column by column
     for(size_t ic=0;ic<NCOL;ic++)
       {
-	//first row
-	complex row1;
-	safe_complex_prod    (row1,mod[0][0],in[ic1][ic]);
-	complex_summ_the_prod(row1,mod[0][1],in[ic2][ic]);
-	//second row
-	complex row2;
-	safe_complex_prod    (row2,mod[1][0],in[ic1][ic]);
-	complex_summ_the_prod(row2,mod[1][1],in[ic2][ic]);
+	complex row[2];
+	for(int irow=0;irow<2;irow++)
+	  {
+	    safe_complex_prod    (row[irow],mod[irow][0],in[ic1][ic]);
+	    complex_summ_the_prod(row[irow],mod[irow][1],in[ic2][ic]);
+	  }
 	
 	//change the two lines in the matrix
-	complex_copy(in[ic1][ic],row1);
-	complex_copy(in[ic2][ic],row2);
+	complex_copy(in[ic1][ic],row[0]);
+	complex_copy(in[ic2][ic],row[1]);
       }
   }
   
@@ -394,13 +392,16 @@ namespace nissa
   }
   
   //summ two su3 matrixes
-  inline void su3_summ(su3 a,su3 b,su3 c) {su3_copy(a,b);for(size_t ic=0;ic<NCOL;ic++) color_summ(a[ic],b[ic],c[ic]);}
+  inline void su3_summ(su3 a,su3 b,su3 c) {for(size_t ic=0;ic<NCOL;ic++) color_summ(a[ic],b[ic],c[ic]);}
+  inline void unsafe_su3_summ_su3_dag(su3 a,su3 b,su3 c) {for(size_t i=0;i<NCOL;i++) for(size_t j=0;j<NCOL;j++) complex_summ_conj2(a[i][j],b[i][j],c[j][i]);}
+  inline void su3_summassign_su3_dag(su3 a,su3 b) {unsafe_su3_summ_su3_dag(a,a,b);}
   inline void su3_summassign(su3 a,su3 b){su3_summ(a,a,b);}
   inline void su3_summ_real(su3 a,su3 b,double c) {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) a[i][i][0]=b[i][i][0]+c;}
   inline void su3_subt(su3 a,su3 b,su3 c) {for(size_t ic=0;ic<NCOL;ic++) color_subt(a[ic],b[ic],c[ic]);}
   inline void su3_subtassign(su3 a,su3 b) {su3_subt(a,a,b);}
   inline void su3_subt_complex(su3 a,su3 b,complex c) {su3_copy(a,b);for(size_t i=0;i<NCOL;i++) complex_subt(a[i][i],b[i][i],c);}
   inline void unsafe_su3_subt_su3_dag(su3 a,su3 b,su3 c) {for(size_t i=0;i<NCOL;i++) for(size_t j=0;j<NCOL;j++) complex_subt_conj2(a[i][j],b[i][j],c[j][i]);}
+  inline void su3_subtassign_su3_dag(su3 a,su3 b) {unsafe_su3_subt_su3_dag(a,a,b);}
   
   //Product of two su3 matrixes
   inline void unsafe_su3_prod_su3(su3 a,su3 b,su3 c,const size_t nr_max=NCOL)
@@ -528,6 +529,8 @@ namespace nissa
   //product of an su3 matrix by a real
   inline void su3_prod_double(su3 a,su3 b,double r)
   {for(size_t ic=0;ic<NCOL;ic++) color_prod_double(a[ic],b[ic],r);}
+  inline void su3_prodassign_double(su3 a,double r)
+  {su3_prod_double(a,a,r);}
   
   //hermitian of su3 matrix times a real
   inline void unsafe_su3_hermitian_prod_double(su3 a,su3 b,double r)
@@ -780,7 +783,7 @@ namespace nissa
   
   //perform an iteration of maximal projection trace
   //by maximing the trace over three different subgroups of su3
-  inline void su3_unitarize_maximal_trace_projecting_iteration(su3 U,su3 M)
+  inline void su3_unitarize_maximal_trace_projecting_iteration_slow(su3 U,su3 M)
   {
     //loop over the three subgroups
     for(size_t isub_gr=0;isub_gr<NCOL;isub_gr++)
@@ -798,27 +801,72 @@ namespace nissa
       }
   }
   
+  //perform an iteration of maximal projection trace
+  //by maximing the trace over three different subgroups of su3
+  inline double su3_unitarize_maximal_trace_projecting_iteration(su3 U,su3 M)
+  {
+    //compute the product
+    su3 prod;
+    unsafe_su3_prod_su3_dag(prod,U,M);
+    
+    //master_printf("isub -1, %16.16lg\n",su3_real_trace(prod));
+    //loop over the three subgroups
+    for(size_t isub_gr=0;isub_gr<NCOL;isub_gr++)
+      {
+	//take the subgroup isub_gr
+	su2 sub;
+	su2_part_of_su3(sub,prod,isub_gr);
+	
+	//modify the subgroup
+	su2_prodassign_su3(sub,isub_gr,U);
+	su2_prodassign_su3(sub,isub_gr,prod);
+	
+	//master_printf("isub %d, %16.16lg\n",isub_gr,su3_real_trace(prod));
+      }
+    
+    return su3_real_trace(prod);
+  }
+  
   //perform maximal projection trace up to reaching the machine precision
   inline void su3_unitarize_maximal_trace_projecting(su3 U,su3 M)
   {
-    //initialize the guess
-    su3_unitarize_orthonormalizing(U,M);
+    //initialize the guess with the identity - proved to be faster than any good guess,
+    //because iterations are so good
+    su3_put_to_id(U);
     
-    //compute initial trace
-    double new_trace=real_part_of_trace_su3_prod_su3_dag(U,M);
-    double old_trace,residue;
+    //compute the "product", that means taking dag of M as U=1
+    su3 prod;
+    unsafe_su3_hermitian(prod,M);
     
-    //loop up to reach machine precision
+    //traces to go out from loop
+    double new_trace=su3_real_trace(prod);
+    double old_trace;
+    
+    int iter=0;
     do
       {
+	//store old trace
 	old_trace=new_trace;
-	su3_unitarize_maximal_trace_projecting_iteration(U,M);
-	new_trace=real_part_of_trace_su3_prod_su3_dag(U,M);
-	residue=2*fabs(new_trace-old_trace)/(new_trace+old_trace);
+	
+	//fix subgroup
+	int isub_gr=iter%NCOL;
+	
+	//take the subgroup isub_gr
+	su2 sub;
+	su2_part_of_su3(sub,prod,isub_gr);
+	
+	//modify the subgroup
+	su2_prodassign_su3(sub,isub_gr,U);
+	
+	//modify the prod and compute trace
+	su2_prodassign_su3(sub,isub_gr,prod);
+	new_trace=su3_real_trace(prod);
+	
+	iter++;
       }
-    while(residue>1.e-15);
+    while(new_trace>old_trace);
   }
-
+  
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
   void su3_find_overrelaxed(su3 out,su3 in,su3 staple,int nov_hits);
   
