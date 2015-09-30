@@ -114,7 +114,7 @@ namespace nissa
   THREADABLE_FUNCTION_6ARG(insert_tadpole, TYPE*,out, quad_su3*,conf, TYPE*,in, dirac_matr*,GAMMA, double*,tad, int,t) \
   {									\
     /*call with no source insertion, plus between fw and bw, and a global -0.25*/ \
-    complex fw_factor={-0.25,0},bw_factor={-0.25,0};			\
+    complex fw_factor={-0.25,0},bw_factor={-0.25,0};	/* see below for hte minus convention*/ \
     insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_tadpole_handle,t,tad); \
   }									\
   THREADABLE_FUNCTION_END						\
@@ -124,7 +124,7 @@ namespace nissa
   /*insert the external source, that is one of the two extrema of the stoch prop*/ \
   THREADABLE_FUNCTION_6ARG(insert_external_source, TYPE*,out, quad_su3*,conf, spin1field*,curr, TYPE*,in, dirac_matr*,GAMMA, int,t) \
   {									\
-    /*call with no source insertion, minus between fw and bw, and a global -i*0.5*/ \
+    /*call with no source insertion, minus between fw and bw, and a global -i*0.5 - the minus comes from definition in eq.11 of 1303.4896*/ \
     complex fw_factor={0,-0.5},bw_factor={0,+0.5};			\
     insert_vector_vertex(out,conf,curr,in,fw_factor,bw_factor,GAMMA,insert_external_source_handle,t); \
   }									\
@@ -135,8 +135,8 @@ namespace nissa
   /*insert the conserved time current*/ \
   THREADABLE_FUNCTION_6ARG(insert_conserved_current, TYPE*,out, quad_su3*,conf, TYPE*,in, dirac_matr*,GAMMA, int*,dirs, int,t) \
   {									\
-    /*call with no source insertion, minus between fw and bw, and a global -i*0.5*/ \
-    complex fw_factor={0.5,0},bw_factor={-0.5,0};			\
+    /*call with no source insertion, minus between fw and bw, and a global 0.5*/ \
+    complex fw_factor={-0.5,0},bw_factor={+0.5,0}; /* follow eq.11.43 of Gattringer*/		\
     insert_vector_vertex(out,conf,NULL,in,fw_factor,bw_factor,GAMMA,insert_conserved_current_handle,t,dirs); \
   }									\
   THREADABLE_FUNCTION_END						\
