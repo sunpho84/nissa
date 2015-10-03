@@ -4,6 +4,9 @@ AC_INIT([nissa],[1.0],[fr.sanfilippo@gmail.com])
 config_flags="$*"
 AC_DEFINE_UNQUOTED([CONFIG_FLAGS],["$config_flags"],[Flags passed to configure])
 
+#silent automake
+AM_SILENT_RULES([yes])
+
 #get configuration time
 AC_MSG_CHECKING([configuration date and time])
 CONFIG_DATE=`date`
