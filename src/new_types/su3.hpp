@@ -830,7 +830,6 @@ namespace nissa
   //perform maximal projection trace up to reaching the machine precision
   inline void su3_unitarize_maximal_trace_projecting(su3 out,su3 M)
   {
-    su3_print(M);
     //initialize the guess with the identity - proved to be faster than any good guess,
     //because iterations are so good
     su3 U;
