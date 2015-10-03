@@ -828,10 +828,12 @@ namespace nissa
   }
   
   //perform maximal projection trace up to reaching the machine precision
-  inline void su3_unitarize_maximal_trace_projecting(su3 U,su3 M)
+  inline void su3_unitarize_maximal_trace_projecting(su3 out,su3 M)
   {
+    su3_print(M);
     //initialize the guess with the identity - proved to be faster than any good guess,
     //because iterations are so good
+    su3 U;
     su3_put_to_id(U);
     
     //compute the "product", that means taking dag of M as U=1
@@ -865,6 +867,8 @@ namespace nissa
 	iter++;
       }
     while(new_trace>old_trace);
+    
+    su3_copy(out,U);
   }
   
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
