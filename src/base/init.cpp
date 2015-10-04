@@ -39,9 +39,36 @@
  #include "bgq/spi.hpp"
 #endif
 
+#include <unistd.h>
+#include <sys/ioctl.h>
+
 namespace nissa
 {
   extern const char *git_version;
+  
+  //print the banner
+  void print_banner()
+  {
+    //get window size
+    struct winsize w;
+    ioctl(STDOUT_FILENO,TIOCGWINSZ,&w);
+    
+    //set the bordr
+    if(w.ws_col>=42)
+      {
+	int n=(w.ws_col-42)/2;
+	char sp[n+1];
+	for(int i=0;i<n;i++) sp[i]=' ';
+	sp[n]='\0';
+	master_printf("\n"
+		      "%s███╗   ██╗██╗███████╗███████╗ █████╗ \n"
+		      "%s████╗  ██║██║██╔════╝██╔════╝██╔══██╗\n"
+		      "%s██╔██╗ ██║██║███████╗███████╗███████║\n"
+		      "%s██║╚██╗██║██║╚════██║╚════██║██╔══██║\n"
+		      "%s██║ ╚████║██║███████║███████║██║  ██║\n"
+		      "%s╚═╝  ╚═══╝╚═╝╚══════╝╚══════╝╚═╝  ╚═╝\n\n",sp,sp,sp,sp,sp,sp);
+      }
+  };
   
   //init nissa
   void init_nissa(int narg,char **arg,const char compile_info[5][1024])
@@ -64,9 +91,11 @@ namespace nissa
     signal(SIGSEGV,signal_handler);
     signal(SIGFPE,signal_handler);
     signal(SIGXCPU,signal_handler);
+
+    print_banner();
     
     //print version and configuration and compilation time
-    master_printf("Initializing nissa, version: %s\n",git_version);
+    master_printf("Initializing NISSA, version: %s\n",git_version);
     master_printf("Configured at %s with flags: %s\n",compile_info[0],compile_info[1]);
     master_printf("Compiled at %s of %s\n",compile_info[2],compile_info[3]);
     
