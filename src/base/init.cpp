@@ -49,14 +49,21 @@ namespace nissa
   //print the banner
   void print_banner()
   {
+    const int message_width=42;
+    
     //get window size
     struct winsize w;
     ioctl(STDOUT_FILENO,TIOCGWINSZ,&w);
     
+    //check terminal output
+    int width=w.ws_col;
+    int is_terminal=isatty(STDOUT_FILENO);
+    if(!is_terminal) width=message_width+10;
+    
     //set the bordr
-    if(w.ws_col>=42)
+    if(width>=message_width)
       {
-	int n=(w.ws_col-42)/2;
+	int n=(width-message_width)/2;
 	char sp[n+1];
 	for(int i=0;i<n;i++) sp[i]=' ';
 	sp[n]='\0';
