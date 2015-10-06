@@ -404,20 +404,19 @@ namespace nissa
 	MPI_Status status;
 	decript_MPI_error(MPI_File_write(file,data,nbytes_req,MPI_BYTE,&status),"while writing from first node");
 	
-	//check to have wrote 
-	size_t nbytes_wrote=MPI_Get_count_size_t(status);
+	//check to have written
+	size_t nbytes_written=MPI_Get_count_size_t(status);
 #else
-	size_t nbytes_wrote=fwrite(data,1,nbytes_req,file);
+	size_t nbytes_written=fwrite(data,1,nbytes_req,file);
 #endif
-	if(nbytes_wrote!=nbytes_req)
-	  crash("wrote %u bytes instead of %u required",nbytes_wrote,nbytes_req);
+	if(nbytes_written!=nbytes_req) crash("wrote %u bytes instead of %u required",nbytes_written,nbytes_req);
 	
 	//this is a blocking routine
 	ILDG_File_skip_nbytes(file,0);
       }
     else
       ILDG_File_skip_nbytes(file,nbytes_req);
-
+    
     //sync
 #ifdef USE_MPI_IO
     MPI_File_sync(file);
@@ -506,8 +505,7 @@ namespace nissa
     
     //count read bytes
     size_t nbytes_read=MPI_Get_count_size_t(status);
-    if((uint64_t)nbytes_read!=header.data_length/nranks)
-      crash("read %u bytes instead than %u",nbytes_read,header.data_length/nranks);
+    if((uint64_t)nbytes_read!=header.data_length/nranks) crash("read %u bytes instead than %u",nbytes_read,header.data_length/nranks);
     
     //put the view to original state and place at the end of the record, including padding
     normal_view.pos+=ceil_to_next_eight_multiple(header.data_length);
@@ -583,9 +581,9 @@ namespace nissa
 	nissa_free(mess);
       }
   }
-
+  
   ////////////////////////////////////// external writing interfaces //////////////////////////////////////
-
+  
   //remap to ildg
   THREADABLE_FUNCTION_3ARG(remap_to_write_ildg_data, char*,buf, char*,data, int,nbytes_per_site)
   {
@@ -641,9 +639,8 @@ namespace nissa
     ILDG_File_set_view(file,normal_view);
     
     //count wrote bytes
-    size_t nbytes_wrote=MPI_Get_count_size_t(status);
-    if((uint64_t)nbytes_wrote!=header.data_length/nranks)
-      crash("wrote %u bytes instead than %u",nbytes_wrote,header.data_length/nranks);
+    size_t nbytes_written=MPI_Get_count_size_t(status);
+    if((uint64_t)nbytes_written!=header.data_length/nranks) crash("written %u bytes instead than %u",nbytes_written,header.data_length/nranks);
     
     //reset mapped types
     unset_mapped_types(scidac_view.etype,scidac_view.ftype);
@@ -659,7 +656,7 @@ namespace nissa
     vector_remap_t *rem=new vector_remap_t(loc_vol,index_to_ILDG_remapping,NULL);
     rem->remap(buf,data,header.data_length/glb_vol);
     delete rem;
-
+    
     //write
     ILDG_Offset nbytes_wrote=fwrite(buf,1,nbytes_per_rank,file);
     if(nbytes_wrote!=nbytes_per_rank) crash("wrote %d bytes instead of %d",nbytes_wrote,nbytes_per_rank);
