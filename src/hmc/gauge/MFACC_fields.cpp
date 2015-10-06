@@ -17,7 +17,7 @@
 #endif
 
 #define DEBUG
-    
+
 #include "hmc/momenta/momenta_action.hpp"
 #include "operations/gauge_fixing.hpp"
 
@@ -34,18 +34,18 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //compute the action for the Fourier acceleration-related fields
+  //compute the action for the Fourier acceleration-related fields - last bit of eq.4
   double MFACC_fields_action(su3 **phi)
   {
     //summ the square of pi
     double glb_action_lx[2];
-    for(int id=0;id<2;id++)
-      double_vector_glb_scalar_prod(&(glb_action_lx[id]),(double*)(phi[id]),(double*)(phi[id]),18*loc_vol);
+    for(int ifield=0;ifield<2;ifield++)
+      double_vector_glb_scalar_prod(&(glb_action_lx[ifield]),(double*)(phi[ifield]),(double*)(phi[ifield]),sizeof(su3)/sizeof(double)*loc_vol);
     
     return (glb_action_lx[0]+glb_action_lx[1])/2;
   }
   
-  //Evolve Fourier acceleration related fields
+  //Evolve Fourier acceleration related fields - eq.5
   THREADABLE_FUNCTION_5ARG(evolve_MFACC_fields, su3**,phi, quad_su3*,conf, double,kappa, su3**,pi, double,dt)
   {
     verbosity_lv2_master_printf("Evolving Fourier fields, dt=%lg\n",dt);
@@ -54,14 +54,14 @@ namespace nissa
     su3 *F=nissa_malloc("temp",loc_vol+bord_vol,su3);
     su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
     
-    for(int id=0;id<2;id++)
+    for(int ifield=0;ifield<2;ifield++)
       {
         //compute
-        apply_MFACC(temp,conf,kappa,pi[id]);
+        apply_MFACC(temp,conf,kappa,pi[ifield]);
         apply_MFACC(F,conf,kappa,temp);
         
         //evolve
-        double_vector_summ_double_vector_prod_double((double*)(phi[id]),(double*)(phi[id]),(double*)F,dt,loc_vol*18);
+        double_vector_summ_double_vector_prod_double((double*)(phi[ifield]),(double*)(phi[ifield]),(double*)F,dt,loc_vol*sizeof(su3)/sizeof(double));
       }
     
     nissa_free(F);
@@ -69,13 +69,13 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //Evolve Fourier acceleration related momenta
+  //Evolve Fourier acceleration related momenta - eq.6
   THREADABLE_FUNCTION_3ARG(evolve_MFACC_momenta, su3**,pi, su3**,phi, double,dt)
   {
     verbosity_lv2_master_printf("Evolving Fourier momenta, dt=%lg\n",dt);
     
-    for(int id=0;id<2;id++)
-      double_vector_summ_double_vector_prod_double((double*)(pi[id]),(double*)(pi[id]),(double*)(phi[id]),-dt,loc_vol*18);
+    for(int ifield=0;ifield<2;ifield++)
+      double_vector_summ_double_vector_prod_double((double*)(pi[ifield]),(double*)(pi[ifield]),(double*)(phi[ifield]),-dt,loc_vol*sizeof(su3)/sizeof(double));
   }
   THREADABLE_FUNCTION_END
   
@@ -87,7 +87,7 @@ namespace nissa
         //reset
         su3_put_to_zero(out[ivol]);
         
-        for(int mu=0;mu<4;mu++)
+        for(int mu=0;mu<NDIM;mu++)
           {
             //neighbours search
             int iup=loclx_neighup[ivol][mu];
@@ -114,7 +114,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    verbosity_lv2_master_printf("Computing Fourier acceleration momenta originated QCD force\n");
+    verbosity_lv2_master_printf("Computing Fourier QCD force originated by acceleration-momenta\n");
     
     su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
     if(reset) vector_reset(F);
@@ -123,7 +123,7 @@ namespace nissa
     vector_reset(F);
     
     double eps=1.e-5;
-
+    
     //random gauge transform
     su3 *fixm=nissa_malloc("fixm",loc_vol+bord_vol,su3);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
@@ -131,13 +131,13 @@ namespace nissa
     //su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
     set_borders_invalid(fixm);
     gauge_transform_conf(conf,fixm,conf);
-    for(int id=0;id<2;id++)
+    for(int ifield=0;ifield<2;ifield++)
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	{
-	  //safe_su3_prod_su3(pi[id][ivol],fixm[ivol],pi[id][ivol]);
+	  //safe_su3_prod_su3(pi[ifield][ivol],fixm[ivol],pi[ifield][ivol]);
 	  su3 a; //gauge transformation when more true operator used
-	  unsafe_su3_prod_su3(a,fixm[ivol],pi[id][ivol]);
-	  unsafe_su3_prod_su3_dag(pi[id][ivol],a,fixm[ivol]);
+	  unsafe_su3_prod_su3(a,fixm[ivol],pi[ifield][ivol]);
+	  unsafe_su3_prod_su3_dag(pi[ifield][ivol],a,fixm[ivol]);
 	}
     
     //store initial link
@@ -148,7 +148,7 @@ namespace nissa
     su3 mod,ba;
     su3_put_to_zero(ba);
     ba[1][0][0]=ba[0][1][0]=eps/4;
-
+    
     //compute action previous to change
     double pre=MFACC_momenta_action(pi,conf,kappa);
     
@@ -166,13 +166,13 @@ namespace nissa
     double nu=-(post-pre)/eps;
 #endif
     
-    for(int id=0;id<2;id++)
+    for(int ifield=0;ifield<2;ifield++)
       {
-	apply_MFACC(temp,conf,kappa,pi[id]);
-	//compa(temp,conf,kappa,pi[id]);
+	apply_MFACC(temp,conf,kappa,pi[ifield]);
+	//compa(temp,conf,kappa,pi[ifield]);
 	
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-	  for(int mu=0;mu<4;mu++)
+	  for(int mu=0;mu<NDIM;mu++)
 	    {
 	      su3 t;
 	      int up=loclx_neighup[ivol][mu];
@@ -182,24 +182,24 @@ namespace nissa
 	      //version contracting with temp
 	      //forward piece
 	      unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],temp[ivol]);
-	      su3_summ_the_prod_su3(E,pi[id][up],t);
+	      su3_summ_the_prod_su3(E,pi[ifield][up],t);
 	      unsafe_su3_dag_prod_su3(t,conf[ivol][mu],temp[ivol]);
-	      unsafe_su3_dag_prod_su3(E,pi[id][up],t);
+	      unsafe_su3_dag_prod_su3(E,pi[ifield][up],t);
 	      //backward piece
 	      unsafe_su3_dag_prod_su3_dag(t,temp[up],conf[ivol][mu]);
-	      su3_summ_the_prod_su3(E,t,pi[id][ivol]);
+	      su3_summ_the_prod_su3(E,t,pi[ifield][ivol]);
 	      unsafe_su3_prod_su3_dag(t,temp[up],conf[ivol][mu]);
-	      su3_summ_the_prod_su3_dag(E,t,pi[id][ivol]);
-
+	      su3_summ_the_prod_su3_dag(E,t,pi[ifield][ivol]);
+	      
 	      su3_summ_the_prod_double(F[ivol][mu],E,kappa/16);
 	      
 	      //version contracting with pi
 	      //forward piece
-	      //unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],pi[id][ivol]);
-	      //su3_summ_the_prod_su3(F[ivol][mu],pi[id][up],t);
+	      //unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],pi[ifield][ivol]);
+	      //su3_summ_the_prod_su3(F[ivol][mu],pi[ifield][up],t);
 	      //backward piece
-	      //unsafe_su3_prod_su3_dag(t,pi[id][up],conf[ivol][mu]);
-	      //su3_summ_the_prod_su3_dag(F[ivol][mu],t,pi[id][ivol]);
+	      //unsafe_su3_prod_su3_dag(t,pi[ifield][up],conf[ivol][mu]);
+	      //su3_summ_the_prod_su3_dag(F[ivol][mu],t,pi[ifield][ivol]);
 	      
 	      //su3_summ_the_prod_su3_dag(F[ivol][mu],pi[0][loclx_neighup[ivol][mu]],pi[0][ivol]);
 	    }
@@ -220,7 +220,7 @@ crash("anna");
 #endif
   }
   THREADABLE_FUNCTION_END
-
+  
   //compute the MFACC fields-related QCD force (derivative of \H^\dag G \H/2)
   THREADABLE_FUNCTION_7ARG(MFACC_QCD_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, int,niter, double,residue, quad_su3*,H, bool,reset)
   {
@@ -234,11 +234,11 @@ crash("anna");
     
 #ifdef DEBUG
     double eps=1.e-5;
-
+    
     //store original
     su3 sto;
     su3_copy(sto,conf[0][0]);
-
+    
     //compute action previous to change
     double pre=0;
     inv_MFACC_cg(temp,NULL,conf,kappa,niter,residue,H_nu);
@@ -262,7 +262,7 @@ crash("anna");
     //double num=-(post-pre)/eps;
 #endif
     
-    for(int nu=0;nu<4;nu++)
+    for(int nu=0;nu<NDIM;nu++)
       {
 	//copy out
         NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_copy(H_nu[ivol],H[ivol][nu]);
@@ -276,7 +276,7 @@ crash("anna");
 	    su3 E;
 	    su3_put_to_zero(E);
 	    
-	    for(int mu=0;mu<4;mu++)
+	    for(int mu=0;mu<NDIM;mu++)
 	      {
 		su3 t;
 		int up=loclx_neighup[ivol][mu];
@@ -293,16 +293,16 @@ crash("anna");
 		unsafe_su3_prod_su3_dag(t,temp[up],conf[ivol][mu]);
 		su3_summ_the_prod_su3_dag(E,t,temp[ivol]);
 	      }
-
+	    
 	    su3_summ_the_prod_double(F[ivol][nu],E,-kappa/32);
-	      
+	    
 	    //version contracting with pi
 	    //forward piece
-	    //unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],pi[id][ivol]);
-	    //su3_summ_the_prod_su3(F[ivol][mu],pi[id][up],t);
+	    //unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],pi[ifield][ivol]);
+	    //su3_summ_the_prod_su3(F[ivol][mu],pi[ifield][up],t);
 	    //backward piece
-	    //unsafe_su3_prod_su3_dag(t,pi[id][up],conf[ivol][mu]);
-	    //su3_summ_the_prod_su3_dag(F[ivol][mu],t,pi[id][ivol]);
+	    //unsafe_su3_prod_su3_dag(t,pi[ifield][up],conf[ivol][mu]);
+	    //su3_summ_the_prod_su3_dag(F[ivol][mu],t,pi[ifield][ivol]);
 	    
 	    //su3_summ_the_prod_su3_dag(F[ivol][mu],pi[0][loclx_neighup[ivol][mu]],pi[0][ivol]);
 	  }
