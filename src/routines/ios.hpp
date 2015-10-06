@@ -1,5 +1,5 @@
-#ifndef _IOS_H
-#define _IOS_H
+#ifndef _IOS_HPP
+#define _IOS_HPP
 
 #include <string>
 #include "new_types/new_types_definitions.hpp"
@@ -22,7 +22,7 @@ namespace nissa
   int count_file_lines(const char *path);
   int get_file_size(const char *path);
   void print_contraction_to_file(FILE *fout,int op1,int op2,complex *contr,int twall,const char *tag,double norm);
-  void print_contractions_to_file(FILE *fout,int ncontr,int *op1,int *op2,complex *contr,int twall,const char *tag,double norm);
+  void print_contractions_to_file(FILE *fout,int ncontr,const int *op1,const int *op2,complex *contr,int twall,const char *tag,double norm);
 }
 
 #endif

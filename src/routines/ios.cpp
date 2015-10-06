@@ -214,7 +214,7 @@ namespace nissa
   }
   
   //print all the passed contractions
-  void print_contractions_to_file(FILE *fout,int ncontr,int *op_sour,int *op_sink,complex *contr,int twall,const char *tag,double norm)
+  void print_contractions_to_file(FILE *fout,int ncontr,const int *op_sour,const int *op_sink,complex *contr,int twall,const char *tag,double norm)
   {
     if(rank==0)
       for(int icontr=0;icontr<ncontr;icontr++)
