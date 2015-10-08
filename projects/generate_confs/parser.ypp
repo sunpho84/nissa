@@ -1,0 +1,177 @@
+%pure-parser
+%locations
+%defines
+%error-verbose
+%parse-param {driver_t *driver}
+%lex-param {void *scanner}
+
+%{
+#include <stdio.h>
+#include <string.h>
+#include <math.h>
+#include "nissa.hpp"
+#include "driver.hpp"
+#include "parser.hpp"
+#include "redefine_yy.hpp"
+
+  const int debug_parser=0;
+  
+  int parser_lex(YYSTYPE *lvalp,YYLTYPE *llocp,void *scanner);
+  void parser_error(YYLTYPE *locp,driver_t *driver,const char *err)
+  {crash("%d %s",locp->first_line,err);}
+
+#define scanner driver->scanner
+  %}
+
+ //union used to catch all symbols
+%union
+{
+    double double_numb;
+    unsigned int unsigned_int_numb;
+    int int_numb;
+    char *text;
+    gauge_action_name_t gauge_action_name;
+}
+
+%token TK_L
+%token TK_T
+%token TK_BETA
+%token TK_GAUGE_ACTION
+%token TK_WILSON
+%token <double_numb> TK_DOUBLE
+%type <double_numb> real_numb
+%token <int_numb> TK_SIGNED_INT
+%type <int_numb> int_numb
+%token <unsigned_int_numb> TK_UNSIGNED_INT
+%token <text> TK_QUOTED_TEXT
+
+%token TK_TRUE TK_FALSE TK_NONE
+//metadynamics
+%token TK_META
+%token TK_TOPO_POTENTIAL
+//quark content
+%token TK_QUARK
+%token TK_DEGENERACY
+%type <unsigned_int_numb> specify_degeneracy
+%token TK_MASS
+%type <double_numb> specify_mass
+%token TK_RE_POT_CH
+%type <double_numb> specify_re_pot_ch
+%token TK_IM_POT_CH
+%type <double_numb> specify_im_pot_ch
+%token TK_ELEC_CHARGE
+%type <double_numb> specify_elec_charge
+
+%type <gauge_action_name> assign_gauge_action
+%type <gauge_action_name> global_assign_gauge_action
+
+%%
+
+commands: commands command
+        | command
+;
+
+command: global_assign
+;
+
+//collection of assignement
+global_assign: global_assign_L
+             | global_assign_T
+             | global_assign_beta
+             | global_assign_gauge_action
+             | assign_topo_potential_pars
+             | add_quark
+;
+
+//assign T
+global_assign_T: TK_T '=' TK_UNSIGNED_INT {driver->T=$3;};
+
+//assign L
+global_assign_L: TK_L '=' TK_UNSIGNED_INT {driver->L=$3; };
+
+//assign beta
+global_assign_beta: TK_BETA '=' real_numb {driver->beta=$3;};
+
+//globally assign the gauge action
+global_assign_gauge_action: assign_gauge_action {driver->gauge_action_name=$1;};
+
+//assign gauge action name
+assign_gauge_action: TK_GAUGE_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
+
+////////////////////////////////////////////// TOPO POTENTIAL //////////////////////////////////////////////////
+
+//assign topopotential pars
+assign_topo_potential_pars: init_meta_topo_potential_pars meta_topo_potential_pars {}
+                          | init_topo_potential_pars topo_potential_pars {}
+                          | suppress_topo_potential_pars {}
+;
+
+//meta-topo-potential
+init_meta_topo_potential_pars: TK_TOPO_POTENTIAL TK_META {driver->topotential_pars.flag=2;};
+
+//ordinary topo-potential
+init_topo_potential_pars: TK_TOPO_POTENTIAL {driver->topotential_pars.flag=1;};
+
+//suppress topo-potential
+suppress_topo_potential_pars: TK_TOPO_POTENTIAL TK_NONE{driver->topotential_pars.flag=0;};
+
+//a list of meta-topo-potential subcommand
+meta_topo_potential_pars: meta_topo_potential_pars meta_topo_potential_par
+                        | meta_topo_potential_par
+;
+
+//spec
+meta_topo_potential_par: ;
+
+//a list of topo-potential subcommand
+topo_potential_pars: topo_potential_pars topo_potential_par
+                   | topo_potential_par
+;
+
+//spec
+topo_potential_par: ;
+
+////////////////////////////////////////////////// QUARK CONTENT //////////////////////////////////////////////////
+
+add_quark: name_quark specify_quark_pars;
+
+name_quark: TK_QUARK TK_QUOTED_TEXT
+          {
+	      quark_content_t q;
+	      driver->quarks.push_back(q);
+	  }
+          | TK_QUARK
+          {
+	      quark_content_t q;
+	      driver->quarks.push_back(q);
+	  }
+;
+
+specify_quark_pars: specify_quark_pars specify_quark_par
+                  | specify_quark_par
+;
+
+specify_quark_par: specify_degeneracy {driver->quarks.back().deg=$1;}
+                 | specify_mass {driver->quarks.back().mass=$1;}
+                 | specify_re_pot_ch {driver->quarks.back().re_pot=$1;}
+                 | specify_im_pot_ch {driver->quarks.back().im_pot=$1;}
+                 | specify_elec_charge {driver->quarks.back().charge=$1;}
+;
+
+specify_degeneracy: TK_DEGENERACY '=' TK_UNSIGNED_INT {$$=$3;};
+specify_mass: TK_MASS '=' real_numb {$$=$3;};
+specify_re_pot_ch: TK_RE_POT_CH '=' real_numb {$$=$3;};
+specify_im_pot_ch: TK_IM_POT_CH '=' real_numb {$$=$3;};
+specify_elec_charge: TK_ELEC_CHARGE '=' real_numb {$$=$3;};
+
+//////////////////////////////////////////////////// casting //////////////////////////////////////////////////////
+
+//cast to a double numb
+real_numb: TK_DOUBLE {$$=$1;master_printf("Copying %d to double\n",$1);}
+         | int_numb {$$=$1;master_printf("Casting %d to double\n",$1);}
+;
+
+//cast to integer
+int_numb: TK_UNSIGNED_INT {$$=$1;master_printf("Castying unsgined %d to signed integer\n",$1);}
+        | TK_SIGNED_INT {$$=$1;master_printf("Copying signed %d to integer\n",$1);}
+
