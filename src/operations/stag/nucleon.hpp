@@ -9,9 +9,13 @@ namespace nissa
   struct nucleon_corr_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
     double residue;
     int nhits;
+    
+    void master_fprintf(FILE *fout);
+    
+    nucleon_corr_meas_pars_t() : flag(0),path("nucleon_corr"),residue(1e-12),nhits(1) {}
   };
   
   void measure_nucleon_corr(quad_su3 **conf,theory_pars_t theory_pars,nucleon_corr_meas_pars_t meas_pars,int iconf,int conf_created);

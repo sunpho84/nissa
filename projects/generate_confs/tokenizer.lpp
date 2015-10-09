@@ -7,7 +7,7 @@
 %option bison-bridge
 %option bison-locations
 
-
+ /* define status to avoid c++ comment */
 %x COMMENT
 
  /* raw definitions */
@@ -34,7 +34,7 @@ CPP_COM_BEG \/\*
 CPP_COM_END \*\/
 CPP_COM {CPP_COM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COM_END}
 
-
+/* header of tokenizer */
 %{
 #include <stdio.h>
 #include <string.h>
@@ -91,15 +91,22 @@ CPP_COM {CPP_COM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COM_END}
  /* equal */
 \= DEBUG_PRINTF("Found =\n");return '=';
 
- /* true/false/none */
+ /* EOF */
+End DEBUG_PRINTF("Found End\n");return EOF;
+
+ /* true/false */
 True DEBUG_PRINTF("Found True\n");return TK_TRUE;
 False DEBUG_PRINTF("Found False\n");return TK_FALSE;
+
+ /* yes/no/none */
 None DEBUG_PRINTF("Found None\n");return TK_NONE;
+Yes DEBUG_PRINTF("Found Yes\n");return TK_YES;
+No DEBUG_PRINTF("Found No\n");return TK_NO;
 
  /* recognizing number */
 {DOUBLE} DEBUG_PRINTF("Found Double: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb);return TK_DOUBLE;
-{UNSIGNED_INT} if(debug_lexer)  master_printf("Found UnsignedInteger: %s\n",yytext);sscanf(yytext,"%d",&yylval->unsigned_int_numb);return TK_UNSIGNED_INT;
-{SIGNED_INT} if(debug_lexer)  master_printf("SignedInteger: %s\n",yytext);sscanf(yytext,"%d",&yylval->int_numb);return TK_SIGNED_INT;
+{UNSIGNED_INT} DEBUG_PRINTF("Found UnsignedInteger: %s\n",yytext);sscanf(yytext,"%d",&yylval->unsigned_int_numb);return TK_UNSIGNED_INT;
+{SIGNED_INT} DEBUG_PRINTF("Found SignedInteger: %s\n",yytext);sscanf(yytext,"%d",&yylval->int_numb);return TK_SIGNED_INT;
 
  /* time and space */
 L DEBUG_PRINTF("Found L\n");return TK_L;
@@ -123,6 +130,20 @@ Mass DEBUG_PRINTF("Found Mass\n");return TK_MASS;
 RePotCh  DEBUG_PRINTF("Found RePotCh\n");return TK_RE_POT_CH;
 ImPotCh  DEBUG_PRINTF("Found ImPotCh\n");return TK_IM_POT_CH;
 ElecCharge  DEBUG_PRINTF("Found ElecCharge\n");return TK_ELEC_CHARGE;
+
+ /* stout parameters */
+GlobalStoutPars DEBUG_PRINTF("Found GlobalStoutPars\n");return TK_GLOBAL_STOUT_PARS;
+NLevels DEBUG_PRINTF("Found NLevels\n");return TK_NLEVELS;
+Rho DEBUG_PRINTF("Found Rho\n");return TK_RHO;
+
+ /* background field parameters */
+BkgrdEMField DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
+Bx DEBUG_PRINTF("Found Bx\n");yylval->unsigned_int_numb=0;return TK_B_COMP;
+By DEBUG_PRINTF("Found By\n");yylval->unsigned_int_numb=1;return TK_B_COMP;
+Bz DEBUG_PRINTF("Found Bz\n");yylval->unsigned_int_numb=2;return TK_B_COMP;
+Ex DEBUG_PRINTF("Found Ex\n");yylval->unsigned_int_numb=0;return TK_E_COMP;
+Ey DEBUG_PRINTF("Found Ey\n");yylval->unsigned_int_numb=1;return TK_E_COMP;
+Ez DEBUG_PRINTF("Found Ez\n");yylval->unsigned_int_numb=2;return TK_E_COMP;
 
  /* crash if finds unexpected word or unrecognized char */
 {LETTER}{ALNUM}* crash("found unexpected string %s",yytext);

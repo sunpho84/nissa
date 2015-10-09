@@ -62,27 +62,27 @@ namespace nissa
     verbosity_lv1_master_printf("Computing topological force\n");
     
     //compute the staples
-    if(pars->stout_pars.nlevls==0) compute_topological_force_lx_conf_internal(F,conf,pars,phase_pres);
+    if(pars->stout_pars.nlevels==0) compute_topological_force_lx_conf_internal(F,conf,pars,phase_pres);
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]
 	quad_su3 **sme_conf;
-        stout_smear_conf_stack_allocate(&sme_conf,conf,pars->stout_pars.nlevls);
+        stout_smear_conf_stack_allocate(&sme_conf,conf,pars->stout_pars.nlevels);
         
         //smear iteratively retaining all the stack
         if(phase_pres) addrem_stagphases_to_lx_conf(sme_conf[0]); //remove the staggered phases
         stout_smear_whole_stack(sme_conf,conf,&(pars->stout_pars));
         
         //compute the force in terms of the most smeared conf
-        if(phase_pres) addrem_stagphases_to_lx_conf(sme_conf[pars->stout_pars.nlevls]); //add to most smeared conf
-	compute_topological_force_lx_conf_internal(F,sme_conf[pars->stout_pars.nlevls],pars,phase_pres);
+        if(phase_pres) addrem_stagphases_to_lx_conf(sme_conf[pars->stout_pars.nlevels]); //add to most smeared conf
+	compute_topological_force_lx_conf_internal(F,sme_conf[pars->stout_pars.nlevels],pars,phase_pres);
 	
         //remap the force backward
         stouted_force_remap(F,sme_conf,&(pars->stout_pars));
         if(phase_pres) addrem_stagphases_to_lx_conf(sme_conf[0]); //add back again to the original conf
 	
 	//now free the stack of confs
-        stout_smear_conf_stack_free(&sme_conf,pars->stout_pars.nlevls);
+        stout_smear_conf_stack_free(&sme_conf,pars->stout_pars.nlevels);
       }
     
     //take TA

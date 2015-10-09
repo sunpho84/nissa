@@ -15,6 +15,19 @@
 
 namespace nissa
 {
+  //print all pars
+  void meta_pars_t::master_fprintf(FILE *fout)
+  {
+    nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
+    nissa::master_fprintf(fout,"Each\t\t=\t%d\n",each);
+    nissa::master_fprintf(fout,"Coeff\t\t=\t%lg\n",coeff);
+    nissa::master_fprintf(fout,"Width\t\t=\t%lg\n",width);
+    nissa::master_fprintf(fout,"Barr\t\t=\t%lg\n",barr);
+    nissa::master_fprintf(fout,"ForceOut\t=\t%lg\n",force_out);
+    nissa::master_fprintf(fout,"WellTempering\t=\t%lg\n",well_tempering);
+    nissa::master_fprintf(fout,"Bend\t\t=\t%lg\n",bend);
+  }
+  
   //update the history-dependent potential
   void meta_pars_t::update(int isweep,double Q)
   {
@@ -70,7 +83,7 @@ namespace nissa
   void meta_pars_t::save(const char *path)
   {
     FILE *fout=open_file(path,"w");
-    for(int i=0;i<=ngrid;i++) master_fprintf(fout,"%lg %16.16lg\n",-barr+i*width,grid[i]);
+    for(int i=0;i<=ngrid;i++) nissa::master_fprintf(fout,"%lg %16.16lg\n",-barr+i*width,grid[i]);
     close_file(fout);
   }
   
@@ -119,9 +132,9 @@ namespace nissa
     
     //write
     FILE *fout=open_file(force_path,"w");
-    for(int i=0;i<=n;i++) master_fprintf(fout,"%16.16lg %16.16lg\n",x_min+i*dx,xy[i]);
-    master_fprintf(fout,"&\n");
-    for(int i=0;i<=n;i++) master_fprintf(fout,"%16.16lg %16.16lg\n",x_min+i*dx,xz[i]);
+    for(int i=0;i<=n;i++) nissa::master_fprintf(fout,"%16.16lg %16.16lg\n",x_min+i*dx,xy[i]);
+    nissa::master_fprintf(fout,"&\n");
+    for(int i=0;i<=n;i++) nissa::master_fprintf(fout,"%16.16lg %16.16lg\n",x_min+i*dx,xz[i]);
     close_file(fout);
     
     delete[] xy;

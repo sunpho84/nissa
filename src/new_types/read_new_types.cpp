@@ -52,8 +52,8 @@ namespace nissa
   //read parameters to stout smear gauge action
   void read_stout_pars(stout_pars_t &stout_pars)
   {
-    read_str_int("StoutingNLevel",&stout_pars.nlevls);
-    if(stout_pars.nlevls!=0)
+    read_str_int("StoutingNLevel",&stout_pars.nlevels);
+    if(stout_pars.nlevels!=0)
       {
 	//isotropic or not?
 	int iso;
@@ -91,8 +91,8 @@ namespace nissa
   //read parameters to adaptative stout
   void read_adaptative_stout_pars(adaptative_stout_pars_t &pars)
   {
-    read_str_int("NLevls",&pars.nlevls);
-    for(int ilev=0;ilev<pars.nlevls;ilev++)
+    read_str_int("Nlevels",&pars.nlevels);
+    for(int ilev=0;ilev<pars.nlevels;ilev++)
       {
 	double r;
 	read_double(&r);
@@ -124,15 +124,23 @@ namespace nissa
       }
   }
   
-  //read parameters to study topology
-  void read_top_meas_pars(top_meas_pars_t &top_meas_pars,bool flag=false)
+  //read and return path
+  std::string read_path()
   {
-    if(flag==true) top_meas_pars.flag=true;
-    else read_str_int("MeasureTopology",&top_meas_pars.flag);
-    if(top_meas_pars.flag)
+    char temp[1024];
+    read_str_str("Path",temp,1024);
+    return temp;
+  }
+  
+  //read parameters to study topology
+  void read_top_meas_pars(top_meas_pars_t &pars,bool flag=false)
+  {
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasureTopology",&pars.flag);
+    if(pars.flag)
       {
-	read_str_str("Path",top_meas_pars.path,1024);
-	read_smooth_pars(top_meas_pars.smooth_pars,true);
+	pars.path=read_path();
+	read_smooth_pars(pars.smooth_pars,true);
       }
   }
   
@@ -216,24 +224,16 @@ namespace nissa
   //read parameters of the background em field
   void read_em_field_pars(em_field_pars_t &pars,bool flag=false)
   {
-    for(int i=0;i<3;i++) pars.E[i]=pars.B[i]=0;
-    
     if(flag==true) pars.flag=true;
     else read_str_int("PutBkgrdEMField",&pars.flag);
-    switch(pars.flag)
+    if(pars.flag)
       {
-      case 0: break;
-      case 1: 
-      case 2: 
 	read_str_double("Ex",&(pars.E[0]));
 	read_str_double("Ey",&(pars.E[1]));
 	read_str_double("Ez",&(pars.E[2]));
 	read_str_double("Bx",&(pars.B[0]));
 	read_str_double("By",&(pars.B[1]));
 	read_str_double("Bz",&(pars.B[2]));
-	break;
-      default:
-	crash("case %d not implemented",pars.flag);
       }
   }
   
@@ -244,7 +244,7 @@ namespace nissa
     else read_str_int("MeasureFermionicPutpourri",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("Path",pars.path,1024);
+	pars.path=read_path();
 	read_str_double("InvResidue",&pars.residue);
 	read_str_int("ComputeSusceptivities",&pars.compute_susceptivities);
 	read_str_int("NCopies",&pars.ncopies);
@@ -259,7 +259,7 @@ namespace nissa
     else read_str_int("MeasureQuarkRendens",&pars.flag);
     if(pars.flag)
       {
-        read_str_str("Path",pars.path,1024);
+	pars.path=read_path();
         read_str_double("InvResidue",&pars.residue);
         read_str_int("NCopies",&pars.ncopies);
         read_str_int("NHits",&pars.nhits);
@@ -273,7 +273,7 @@ namespace nissa
     else read_str_int("MeasureSpinpol",&pars.flag);
     if(pars.flag)
       {
-        read_str_str("Path",pars.path,1024);
+	pars.path=read_path();
         read_str_double("InvResidue",&pars.residue);
         read_str_int("Dir",&pars.dir);
         read_str_int("NHits",&pars.nhits);
@@ -289,7 +289,7 @@ namespace nissa
     else read_str_int("MeasureMagnetization",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("Path",pars.path,1024);
+	pars.path=read_path();
 	read_str_double("InvResidue",&pars.residue);
 	read_str_int("NCopies",&pars.ncopies);
 	read_str_int("NHits",&pars.nhits);
@@ -303,7 +303,7 @@ namespace nissa
     else read_str_int("MeasurePseudoCorr",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("Path",pars.path,1024);
+	pars.path=read_path();
 	read_str_double("InvResidue",&pars.residue);
 	read_str_int("NHits",&pars.nhits);
       }
@@ -316,7 +316,7 @@ namespace nissa
     else read_str_int("MeasureNucleonCorr",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("Path",pars.path,1024);
+	pars.path=read_path();
 	read_str_double("InvResidue",&pars.residue);
 	read_str_int("NHits",&pars.nhits);
       }
@@ -354,7 +354,7 @@ namespace nissa
     else read_str_int("MeasureAllRect",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("Path",pars.path,1024);
+	pars.path=read_path();
 	read_gauge_obs_temp_spat_smear_pars(pars.smear_pars);
 	read_str_int("Tint",&pars.Tmin);
 	read_int(&pars.Tmax);
@@ -374,7 +374,7 @@ namespace nissa
     else read_str_int("MeasureWatusso",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("Path",pars.path,1024);
+	pars.path=read_path();
 	read_gauge_obs_temp_spat_smear_pars(pars.smear_pars);
 	read_str_int("SizeMin",&pars.size_min);
 	read_str_int("SizeStep",&pars.size_step);
@@ -396,7 +396,7 @@ namespace nissa
     else read_str_int("MeasurePolyCorrs",&pars.flag);
     if(pars.flag)
       {
-	read_str_str("Path",pars.path,1024);
+	pars.path=read_path();
         read_gauge_obs_temp_smear_pars(pars.gauge_smear_pars);
 	read_str_int("Dir",&pars.dir);
       }
@@ -407,7 +407,6 @@ namespace nissa
   {
     if(flag==true) pars.flag=true;
     else read_str_int("MeasureGaugeObs",&pars.flag);
-    if(pars.flag) read_str_str("Path",pars.path,1024);
   }
   
   //read the theory_pars parameters of the theory

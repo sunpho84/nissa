@@ -479,7 +479,7 @@ int generate_new_conf(int itraj)
 }
 
 //measure plaquette and polyakov loop, writing also acceptance
-void measure_gauge_obs(char *path,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
+void measure_gauge_obs(std::string path,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   //open creating or appending
   FILE *file=open_file(path,conf_created?"w":"a");
@@ -516,8 +516,8 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   verbosity_lv1_master_printf("Plaquette after \"temp\" (%d) smear: %16.16lg\n",pars.dir,global_plaquette_lx_conf(lx_conf));
   
   //open
-  FILE *fout=fopen(pars.path,(conf_created||!file_exists(pars.path))?"w":"r+");
-  if(fout==NULL) crash("opening %s",pars.path);
+  FILE *fout=fopen(pars.path.c_str(),(conf_created||!file_exists(pars.path))?"w":"r+");
+  if(fout==NULL) crash("opening %s",pars.path.c_str());
   if(fseek(fout,0,SEEK_END)) crash("seeking to the end");
   
   //compute and print
@@ -565,7 +565,7 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       if(fermionic_putpourri_flag||magnetization_flag||pseudo_corr_flag||quark_rendens_flag)
 	{
 	  //if needed stout
-	  quad_su3 **sme_conf=(theory_pars[itheory].stout_pars.nlevls==0)?conf:new_conf;
+	  quad_su3 **sme_conf=(theory_pars[itheory].stout_pars.nlevels==0)?conf:new_conf;
 	  
 	  //it is pointless to smear if there is no fermionic measurement
 	  stout_smear(sme_conf,conf,&(theory_pars[itheory].stout_pars));
@@ -789,7 +789,7 @@ void in_main(int narg,char **arg)
 		nglu_comp,glu_comp_time,glu_comp_time/std::max(nglu_comp,1));
   master_printf("time to write %d configurations: %lg, %lg per conf\n",
 		nwritten_conf,write_conf_time,write_conf_time/std::max(nwritten_conf,1)); 
-  for(int i=0;i<ntop_meas;i++) master_printf("time to perform the %d topo meas (%s): %lg\n",i,top_meas_pars[i].path,top_meas_time[i]);
+  for(int i=0;i<ntop_meas;i++) master_printf("time to perform the %d topo meas (%s): %lg\n",i,top_meas_pars[i].path.c_str(),top_meas_time[i]);
 #endif
   
   close_simulation();

@@ -18,7 +18,7 @@
   
   int parser_lex(YYSTYPE *lvalp,YYLTYPE *llocp,void *scanner);
   void parser_error(YYLTYPE *locp,driver_t *driver,const char *err)
-  {crash("%d %s",locp->first_line,err);}
+  {crash("exception %d %s",locp->first_line,err);}
 
 #define scanner driver->scanner
   %}
@@ -31,21 +31,22 @@
     int int_numb;
     char *text;
     gauge_action_name_t gauge_action_name;
+    stout_pars_t *stout_pars;
 }
 
 %token TK_L
 %token TK_T
 %token TK_BETA
-%token TK_GAUGE_ACTION
-%token TK_WILSON
 %token <double_numb> TK_DOUBLE
 %type <double_numb> real_numb
 %token <int_numb> TK_SIGNED_INT
 %type <int_numb> int_numb
 %token <unsigned_int_numb> TK_UNSIGNED_INT
 %token <text> TK_QUOTED_TEXT
-
-%token TK_TRUE TK_FALSE TK_NONE
+//true, false
+%token TK_TRUE TK_FALSE
+//yes no none
+%token TK_NONE TK_YES TK_NO
 //metadynamics
 %token TK_META
 %token TK_TOPO_POTENTIAL
@@ -61,47 +62,52 @@
 %type <double_numb> specify_im_pot_ch
 %token TK_ELEC_CHARGE
 %type <double_numb> specify_elec_charge
-
-%type <gauge_action_name> assign_gauge_action
-%type <gauge_action_name> global_assign_gauge_action
-
+//stout pars
+%token TK_GLOBAL_STOUT_PARS
+%type <stout_pars> stout_pars
+%token <unsigned_int_numb> TK_NLEVELS
+%type <unsigned_int_numb> specify_nlevels
+%token <double_numb> TK_RHO
+%type <double_numb> specify_rho
+//gauge action
+%token TK_GAUGE_ACTION
+%token TK_WILSON
+%type <gauge_action_name> specify_gauge_action
+%type <gauge_action_name> global_specify_gauge_action
+//background field
+%token TK_BKGRD_EM_FIELD
+%token <unsigned_int_numb> TK_B_COMP
+%token <unsigned_int_numb> TK_E_COMP
 %%
 
 commands: commands command
         | command
 ;
 
-command: global_assign
+command: global_specify
 ;
 
-//collection of assignement
-global_assign: global_assign_L
-             | global_assign_T
-             | global_assign_beta
-             | global_assign_gauge_action
-             | assign_topo_potential_pars
-             | add_quark
+global_specify: global_specify_L
+              | global_specify_T
+              | global_specify_beta
+              | global_specify_gauge_action
+              | specify_topo_potential_pars
+              | add_quark
+              | global_specify_stout_pars
+              | global_specify_bckgr_field
 ;
 
-//assign T
-global_assign_T: TK_T '=' TK_UNSIGNED_INT {driver->T=$3;};
+global_specify_T: TK_T '=' TK_UNSIGNED_INT {driver->T=$3;};
+global_specify_L: TK_L '=' TK_UNSIGNED_INT {driver->L=$3; };
+global_specify_beta: TK_BETA '=' real_numb {driver->beta=$3;};
+global_specify_gauge_action: specify_gauge_action {driver->gauge_action_name=$1;};
 
-//assign L
-global_assign_L: TK_L '=' TK_UNSIGNED_INT {driver->L=$3; };
-
-//assign beta
-global_assign_beta: TK_BETA '=' real_numb {driver->beta=$3;};
-
-//globally assign the gauge action
-global_assign_gauge_action: assign_gauge_action {driver->gauge_action_name=$1;};
-
-//assign gauge action name
-assign_gauge_action: TK_GAUGE_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
+specify_gauge_action: TK_GAUGE_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
 
 ////////////////////////////////////////////// TOPO POTENTIAL //////////////////////////////////////////////////
 
-//assign topopotential pars
-assign_topo_potential_pars: init_meta_topo_potential_pars meta_topo_potential_pars {}
+//specify topopotential pars
+specify_topo_potential_pars: init_meta_topo_potential_pars meta_topo_potential_pars {}
                           | init_topo_potential_pars topo_potential_pars {}
                           | suppress_topo_potential_pars {}
 ;
@@ -131,6 +137,19 @@ topo_potential_pars: topo_potential_pars topo_potential_par
 //spec
 topo_potential_par: ;
 
+////////////////////////////////////////////////// STOUT PARS //////////////////////////////////////////////////
+
+global_specify_stout_pars: TK_GLOBAL_STOUT_PARS stout_pars {driver->stout_pars=(*$2);delete $2;};
+
+stout_pars: stout_pars specify_nlevels {$$->nlevels=$2;}
+          | stout_pars specify_rho {$$->set_to_iso($2);}
+          | specify_nlevels {$$=new stout_pars_t;$$->nlevels=$1;}
+          | specify_rho {$$=new stout_pars_t;$$->set_to_iso($1);}
+;
+
+specify_nlevels: TK_NLEVELS '=' TK_UNSIGNED_INT {$$=$3;};
+specify_rho: TK_RHO '=' real_numb {$$=$3;};
+
 ////////////////////////////////////////////////// QUARK CONTENT //////////////////////////////////////////////////
 
 add_quark: name_quark specify_quark_pars;
@@ -138,6 +157,7 @@ add_quark: name_quark specify_quark_pars;
 name_quark: TK_QUARK TK_QUOTED_TEXT
           {
 	      quark_content_t q;
+	      q.name=$2;
 	      driver->quarks.push_back(q);
 	  }
           | TK_QUARK
@@ -164,10 +184,27 @@ specify_re_pot_ch: TK_RE_POT_CH '=' real_numb {$$=$3;};
 specify_im_pot_ch: TK_IM_POT_CH '=' real_numb {$$=$3;};
 specify_elec_charge: TK_ELEC_CHARGE '=' real_numb {$$=$3;};
 
+////////////////////////////////////////////////// BACKGROUND FIELD //////////////////////////////////////////////////
+
+global_specify_bckgr_field: TK_BKGRD_EM_FIELD TK_NO {driver->em_field_pars.flag=0;}
+                          | TK_BKGRD_EM_FIELD set_em_field_pars {driver->em_field_pars.flag=1;}
+;
+
+set_em_field_pars: set_em_field_pars set_em_field_par
+                 | set_em_field_par
+;
+
+set_em_field_par: set_e_field_par
+                | set_b_field_par
+;
+
+set_e_field_par: TK_E_COMP '=' TK_DOUBLE {driver->em_field_pars.E[$1]=$3;};
+set_b_field_par: TK_B_COMP '=' TK_DOUBLE {driver->em_field_pars.B[$1]=$3;};
+
 //////////////////////////////////////////////////// casting //////////////////////////////////////////////////////
 
 //cast to a double numb
-real_numb: TK_DOUBLE {$$=$1;master_printf("Copying %d to double\n",$1);}
+real_numb: TK_DOUBLE {$$=$1;master_printf("Copying %lg to double\n",$1);}
          | int_numb {$$=$1;master_printf("Casting %d to double\n",$1);}
 ;
 

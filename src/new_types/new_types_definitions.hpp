@@ -338,7 +338,7 @@ namespace nissa
   //parameters to stout
   struct stout_pars_t
   {
-    int nlevls;
+    int nlevels;
     stout_coeff_t rho;
     void set_to_iso(double r)
     {
@@ -346,8 +346,11 @@ namespace nissa
 	for(int j=0;j<NDIM;j++)
 	  rho[i][j]=r;
     }
-    stout_pars_t(int nlevls,double r) : nlevls(nlevls){set_to_iso(r);}
-    stout_pars_t(){}
+    stout_pars_t(int nlevels,double r) : nlevels(nlevels){set_to_iso(r);}
+    
+    void master_fprintf(FILE *fout);
+    
+    stout_pars_t() {stout_pars_t(0,0.0);}
   };
   
   //parameters to ape smear
@@ -355,6 +358,8 @@ namespace nissa
   {
     int nlev;
     double alpha;
+    
+    ape_pars_t() : nlev(20),alpha(0.5) {}
   };
   
   //structure to cool
@@ -364,19 +369,25 @@ namespace nissa
     int nsteps;
     int overrelax_flag;
     double overrelax_exp;
+    
+    cool_pars_t() : gauge_action(WILSON_GAUGE_ACTION),nsteps(120),overrelax_flag(0),overrelax_exp(0.0) {}
   };
   
   //structure to adataptive stout
   struct adaptative_stout_pars_t
   {
-    int nlevls;
+    int nlevels;
     std::vector<double> rho;
+    
+    adaptative_stout_pars_t() : nlevels(0) {}
   };
   
   //structure to Wilson flow
   struct Wflow_pars_t
   {
     double T,dt;
+    
+    Wflow_pars_t() : T(10),dt(0.2) {}
   };
   
   //parameters to smooth a configuration
@@ -422,11 +433,16 @@ namespace nissa
   //quark content
   struct quark_content_t
   {
+    std::string name;
     int deg;
     double mass;
     double re_pot;
     double im_pot;
     double charge;
+    
+    void master_fprintf(FILE *fout);
+    
+    quark_content_t() : deg(1),mass(0.1),re_pot(0.0),im_pot(0.0),charge(0.0) {}
   };
   
   //parameters to smear a gauge conf when measuring gauge observables
@@ -442,82 +458,100 @@ namespace nissa
     //ape temp
     double ape_temp_alpha;
     int nape_temp_iters;
+    
+    gauge_obs_temp_smear_pars_t() : use_hyp_or_ape_temp(0),hyp_temp_alpha0(1),hyp_temp_alpha1(1),hyp_temp_alpha2(0.5),ape_temp_alpha(0.5),nape_temp_iters(20) {}
   };
   
   //pars to compute polyakov loop
   struct poly_corr_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
     gauge_obs_temp_smear_pars_t gauge_smear_pars;
     int dir;
+    
+    poly_corr_meas_pars_t() : flag(0),path("luppoli"),dir(0) {}
   };
   
   //parameters to compute gauge observabls
   struct gauge_obs_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
+    
+    gauge_obs_meas_pars_t() : flag(0),path("gauge_obs") {}
   };
   
   //parameters to compute the fermionic gran-mix
   struct fermionic_putpourri_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
     double residue;
     int compute_susceptivities;
     int ncopies;
     int nhits;
+    
+    fermionic_putpourri_meas_pars_t() : flag(0),path("lavanda"),residue(1e-12),compute_susceptivities(0),ncopies(1),nhits(1) {}
   };
   
   //parameters to compute the quark density and its high-order suscetivities
   struct quark_rendens_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
     double residue;
     int ncopies;
     int nhits;
+    
+    quark_rendens_meas_pars_t() : flag(0),path("rendens"),residue(1e-12),ncopies(1),nhits(1) {}
   };
   
   //parameters to compute spin polarization
   struct spinpol_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
     double residue;
     int dir;
     int nhits;
     int use_ferm_conf_for_gluons;
     smooth_pars_t smooth_pars;
+    
+    spinpol_meas_pars_t() : flag(0),path("pollo"),residue(1e-12),dir(1),nhits(1),use_ferm_conf_for_gluons(0) {}
   };
   
   //parameters to compute the magnetization
   struct magnetization_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
     double residue;
     int ncopies;
     int nhits;
+    
+    magnetization_meas_pars_t() : flag(0),path("magnetization"),residue(1e-12),ncopies(1),nhits(1) {}
   };
   
   //parameters to compute time pseduoscalar correlator
   struct pseudo_corr_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
     double residue;
     int nhits;
+    
+    pseudo_corr_meas_pars_t() : flag(0),path("pseudo_corr"),residue(1e-12),nhits(1) {}
   };
   
   //parameters to measure topology properties
   struct top_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
     smooth_pars_t smooth_pars;
+    
+    top_meas_pars_t() : flag(0),path("topocharge") {}
   };
   
   //holds temporal-spatial gauge smearing parameters
@@ -528,32 +562,38 @@ namespace nissa
     //ape spat
     double ape_spat_alpha;
     int nape_spat_levls,*nape_spat_iters;
+    
+    gauge_obs_temp_spat_smear_pars_t() : ape_spat_alpha(0.0),nape_spat_levls(0) {}
   };
   
   //parameters to measure all rectangles path
   struct all_rect_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
     
     //parameters to smear in time and space
     gauge_obs_temp_spat_smear_pars_t smear_pars;
     
     //intervals for rectangles
     int Tmin,Tmax,Dmin,Dmax;
+    
+    all_rect_meas_pars_t() : flag(0),path("rectangles"),Tmin(3),Tmax(9),Dmin(1),Dmax(9) {}
   };
   
   //parameters to measure flux tube
   struct watusso_meas_pars_t
   {
     int flag;
-    char path[1024];
+    std::string path;
     
     //parameters to smear in time and space
     gauge_obs_temp_spat_smear_pars_t smear_pars;
     
     //intervals for rectanlge size and distance
     int size_min,size_max,size_step,dmax;
+    
+    watusso_meas_pars_t() : flag(0),path("watusso"),size_min(7),size_max(7),size_step(1),dmax(10) {}
   };
   
   //storable vector
@@ -581,7 +621,7 @@ namespace nissa
 #include "metadynamics.hpp"
 
 namespace nissa
-{ 
+{
   //parameters to add topological potential
   struct topotential_pars_t : meta_pars_t
   {
@@ -590,8 +630,13 @@ namespace nissa
     stout_pars_t stout_pars;
     //methods inside opearations/su3_paths/topological_charge.cpp
     void store_if_needed(quad_su3 **conf,int iconf);
+    
+    void master_fprintf(FILE *fout);
+    
+    topotential_pars_t() : meta_pars_t(),flag(0),theta(0.0){}
   };
   
+  //parameters to em field
   struct em_field_pars_t
   {
     int flag;
@@ -599,6 +644,10 @@ namespace nissa
     //basic
     double E[3];
     double B[3];
+    
+    void master_fprintf(FILE *fout);
+    
+    em_field_pars_t() : flag(0) {for(int i=0;i<3;i++) E[i]=B[i]=0;}
   };
   
   //theory content
@@ -612,21 +661,9 @@ namespace nissa
     topotential_pars_t topotential_pars;
     stout_pars_t stout_pars;
     em_field_pars_t em_field_pars;
+    
+    theory_pars_t() : beta(6.0),nflavs(0) {}
   };
-  
-  //The structure to hold trajectory statistics
-  struct hmc_traj_stat_el_t
-  {
-    int n;
-    double sx;
-    double s2x;
-    hmc_traj_stat_el_t(int n,double sx,double s2x) : n(n),sx(sx),s2x(s2x) {}
-    hmc_traj_stat_el_t() : n(0),sx(0),s2x(0) {}
-    hmc_traj_stat_el_t operator+=(double x){n++;sx+=x;s2x+=x*x;return (*this);}
-    void ave_err(double &ave,double &err){ave=sx;err=0;if(n>=2){ave=sx/n;err=s2x/n;err=sqrt((err-ave*ave)/(n-1));}}
-  };
-  typedef std::pair<int,int> hmc_traj_stat_pars_t;
-  typedef std::map<hmc_traj_stat_pars_t,hmc_traj_stat_el_t> hmc_traj_stat_t;
   
   //evolution parameters for hybrid monte carlo
   struct hmc_evol_pars_t
@@ -639,6 +676,10 @@ namespace nissa
     int ngauge_substeps;
     int *npseudo_fs;
     rat_approx_t *rat_appr;
+    
+    void master_fprintf(FILE *fout);
+    
+    hmc_evol_pars_t() : skip_mtest_ntraj(30),traj_length(1.0),pf_action_residue(1e-12),md_residue(1e-6),nmd_steps(13),ngauge_substeps(5) {}
   };
   
   //results of a unitarity check
@@ -647,6 +688,8 @@ namespace nissa
     int nbroken_links;
     double average_diff;
     double max_diff;
+    
+    unitarity_check_result_t () : nbroken_links(0),average_diff(0.0),max_diff(0.0) {}
   };
   
   //parameters for pure gauge theory
@@ -667,9 +710,11 @@ namespace nissa
     //the same for overrelax
     int nov_sweeps;
     int nov_hits;
+    
+    pure_gauge_evol_pars_t() : use_hmc(0),traj_length(1.0),nmd_steps(13),use_Facc(0),kappa(0.0),residue(1e-12),nhb_sweeps(1),nhb_hits(1),nov_sweeps(3),nov_hits(3) {}
   };
   
-  union evol_pars_t
+  struct evol_pars_t
   {
     hmc_evol_pars_t hmc_evol_pars;
     pure_gauge_evol_pars_t pure_gauge_evol_pars;
@@ -687,7 +732,7 @@ namespace nissa
 #else
     //destinations and source ranks
     int send_rank[8],recv_rank[8];
-    //requests and message
+#    //requests and message
     MPI_Request requests[16];
     int nrequest,imessage;
 #endif

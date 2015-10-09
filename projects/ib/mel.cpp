@@ -401,6 +401,14 @@ void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,coords dirs,PROP
 void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,int t)
 {insert_external_loc_source(out,curr,all_dirs,in,t);}
 
+void insert_external_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *ori,int t,int r,int loc)
+{
+  if(loc) insert_external_loc_source(source,photon_field[iphi],ori,t);
+  else
+    if(!pure_wilson) insert_tm_external_source(source,conf,photon_field[iphi],ori,r,t);
+    else             insert_wilson_external_source(source,conf,photon_field[iphi],ori,t);
+}
+
 //generate a sequential source
 void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
 {
@@ -417,24 +425,9 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
     case ORIGINAL:prop_multiply_with_gamma(source,0,original_source);break;
     case SCALAR:prop_multiply_with_gamma(source,0,ori);break;
     case PSEUDO:prop_multiply_with_gamma(source,5,ori);break;
-    case STOCH_PHI:
-      if(loc_pion_curr) insert_external_loc_source(source,photon_field[iphi],ori,t);
-      else
-	if(!pure_wilson) insert_tm_external_source(source,conf,photon_field[iphi],ori,r,t);
-	else             insert_wilson_external_source(source,conf,photon_field[iphi],ori,t);
-      //master_printf("phi pos: %d\n",t);
-      break;
-    case STOCH_ETA:
-      if(loc_pion_curr) insert_external_loc_source(source,photon_field[ieta],ori,t);
-      else
-	if(!pure_wilson) insert_tm_external_source(source,conf,photon_field[ieta],ori,r,t);
-	else             insert_wilson_external_source(source,conf,photon_field[ieta],ori,t);break;
-    case STOCH_ALT:
-      if(loc_pion_curr) insert_external_loc_source(source,photon_field[ialt],ori,t);
-      else
-	if(!pure_wilson) insert_tm_external_source(source,conf,photon_field[ialt],ori,r,t);
-	else             insert_wilson_external_source(source,conf,photon_field[ialt],ori,t);break;
-      break;
+    case STOCH_PHI:insert_external_source(source,photon_field[iphi],ori,t,r,loc_pion_curr);break;
+    case STOCH_ETA:insert_external_source(source,photon_field[ieta],ori,t,r,loc_pion_curr);break;
+    case STOCH_ALT:insert_external_source(source,photon_field[ialt],ori,t,r,loc_pion_curr);break;
     case TADPOLE:
       if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
       else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);

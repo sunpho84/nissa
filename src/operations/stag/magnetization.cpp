@@ -150,7 +150,7 @@ namespace nissa
   void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,magnetization_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
-    FILE *file_proj=open_file(combine("%s_proj_x",meas_pars.path).c_str(),conf_created?"w":"a");
+    FILE *file_proj=open_file(meas_pars.path+"%s_proj_x",conf_created?"w":"a");
     
     int ncopies=meas_pars.ncopies;
     for(int icopy=0;icopy<ncopies;icopy++)
