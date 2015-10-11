@@ -60,12 +60,7 @@ namespace nissa
 	read_str_int("IsotropicStouting",&iso);
 	
 	//only iso implemented
-	if(iso)
-	  {
-	    double rho;
-	    read_str_double("StoutRho",&rho);
-	    stout_pars.set_to_iso(rho);
-	  }
+	if(iso) read_str_double("StoutRho",&stout_pars.rho);
 	else crash("Anisotropic stouting not yet implemented");
       }
   }

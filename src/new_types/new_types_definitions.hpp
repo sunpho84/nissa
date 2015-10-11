@@ -325,8 +325,6 @@ namespace nissa
     ~two_stage_computation_pos_t() {free();}
   };
   
-  typedef momentum_t stout_coeff_t[NDIM];
-  
   //structure to store data for stouting
   struct stout_link_staples
   {
@@ -339,18 +337,14 @@ namespace nissa
   struct stout_pars_t
   {
     int nlevels;
-    stout_coeff_t rho;
-    void set_to_iso(double r)
-    {
-      for(int i=0;i<NDIM;i++)
-	for(int j=0;j<NDIM;j++)
-	  rho[i][j]=r;
-    }
-    stout_pars_t(int nlevels,double r) : nlevels(nlevels){set_to_iso(r);}
+    double rho;
     
-    void master_fprintf(FILE *fout);
+    int def_nlevels(){return 0;}
+    double def_rho(){return 0;}
     
-    stout_pars_t() {stout_pars_t(0,0.0);}
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    stout_pars_t() : nlevels(def_nlevels()),rho(def_rho()) {}
   };
   
   //parameters to ape smear
@@ -440,9 +434,16 @@ namespace nissa
     double im_pot;
     double charge;
     
-    void master_fprintf(FILE *fout);
+    std::string def_name(){return "quark";}
+    int def_deg(){return 1;}
+    double def_mass(){return 0.1;}
+    double def_re_pot(){return 0;}
+    double def_im_pot(){return 0;}
+    double def_charge(){return 0;}
     
-    quark_content_t() : deg(1),mass(0.1),re_pot(0.0),im_pot(0.0),charge(0.0) {}
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    quark_content_t() : deg(def_deg()),mass(def_mass()),re_pot(def_re_pot()),im_pot(def_im_pot()),charge(def_charge()) {}
   };
   
   //parameters to smear a gauge conf when measuring gauge observables
@@ -470,7 +471,13 @@ namespace nissa
     gauge_obs_temp_smear_pars_t gauge_smear_pars;
     int dir;
     
-    poly_corr_meas_pars_t() : flag(0),path("luppoli"),dir(0) {}
+    int def_flag(){return 0;}
+    std::string def_path(){return "luppoli";}
+    int def_dir(){return 0;}
+    
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    poly_corr_meas_pars_t() : flag(def_flag()),path(def_path()),dir(def_dir()) {}
   };
   
   //parameters to compute gauge observabls
@@ -479,7 +486,12 @@ namespace nissa
     int flag;
     std::string path;
     
-    gauge_obs_meas_pars_t() : flag(0),path("gauge_obs") {}
+    int def_flag(){return 0;}
+    std::string def_path(){return "gauge_obs";}
+    
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    gauge_obs_meas_pars_t() : flag(def_flag()),path(def_path()) {}
   };
   
   //parameters to compute the fermionic gran-mix
@@ -492,7 +504,17 @@ namespace nissa
     int ncopies;
     int nhits;
     
-    fermionic_putpourri_meas_pars_t() : flag(0),path("lavanda"),residue(1e-12),compute_susceptivities(0),ncopies(1),nhits(1) {}
+    int def_flag(){return 0;}
+    std::string def_path(){return "lavanda";}
+    double def_residue(){return 1e-12;}
+    int def_compute_susceptivities(){return 0;}
+    int def_ncopies(){return 1;}
+    int def_nhits(){return 1;}
+    
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    fermionic_putpourri_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),
+					compute_susceptivities(def_compute_susceptivities()),ncopies(def_ncopies()),nhits(def_nhits()) {}
   };
   
   //parameters to compute the quark density and its high-order suscetivities
@@ -504,7 +526,15 @@ namespace nissa
     int ncopies;
     int nhits;
     
-    quark_rendens_meas_pars_t() : flag(0),path("rendens"),residue(1e-12),ncopies(1),nhits(1) {}
+    int def_flag(){return 0;}
+    std::string def_path(){return "rendens";}
+    double def_residue(){return 1e-12;}
+    int def_ncopies(){return 1;}
+    int def_nhits(){return 1;}
+    
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    quark_rendens_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),ncopies(def_ncopies()),nhits(def_nhits()) {}
   };
   
   //parameters to compute spin polarization
@@ -518,7 +548,15 @@ namespace nissa
     int use_ferm_conf_for_gluons;
     smooth_pars_t smooth_pars;
     
-    spinpol_meas_pars_t() : flag(0),path("pollo"),residue(1e-12),dir(1),nhits(1),use_ferm_conf_for_gluons(0) {}
+    int def_flag(){return false;}
+    std::string def_path(){return "pollo";}
+    double def_residue(){return 1e-12;}
+    int def_dir(){return 1;}
+    int def_nhits(){return 1;}
+    int def_use_ferm_conf_for_gluons(){return 0;}
+    
+    spinpol_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),dir(def_dir()),nhits(def_nhits()),
+			    use_ferm_conf_for_gluons(def_use_ferm_conf_for_gluons()) {}
   };
   
   //parameters to compute the magnetization
@@ -530,7 +568,13 @@ namespace nissa
     int ncopies;
     int nhits;
     
-    magnetization_meas_pars_t() : flag(0),path("magnetization"),residue(1e-12),ncopies(1),nhits(1) {}
+    int def_flag(){return false;}
+    std::string def_path(){return "magnetization";}
+    double def_residue(){return 1e-12;}
+    int def_ncopies(){return 1;}
+    int def_nhits(){return 1;}
+    
+    magnetization_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),ncopies(def_ncopies()),nhits(def_nhits()) {}
   };
   
   //parameters to compute time pseduoscalar correlator
@@ -541,7 +585,14 @@ namespace nissa
     double residue;
     int nhits;
     
-    pseudo_corr_meas_pars_t() : flag(0),path("pseudo_corr"),residue(1e-12),nhits(1) {}
+    int def_flag(){return false;}
+    std::string def_path(){return "pseudo_corr";}
+    double def_residue(){return 1e-12;}
+    int def_nhits(){return 1;}
+    
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    pseudo_corr_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),nhits(def_nhits()) {}
   };
   
   //parameters to measure topology properties
@@ -571,14 +622,17 @@ namespace nissa
   {
     int flag;
     std::string path;
-    
-    //parameters to smear in time and space
     gauge_obs_temp_spat_smear_pars_t smear_pars;
-    
-    //intervals for rectangles
     int Tmin,Tmax,Dmin,Dmax;
     
-    all_rect_meas_pars_t() : flag(0),path("rectangles"),Tmin(3),Tmax(9),Dmin(1),Dmax(9) {}
+    int def_flag(){return 0;}
+    std::string def_path(){return "rectangles";}
+    int def_Tmin(){return 3;}
+    int def_Tmax(){return 9;}
+    int def_Dmin(){return 1;}
+    int def_Dmax(){return 9;}
+     
+    all_rect_meas_pars_t() : flag(def_flag()),path(def_path()),Tmin(def_Tmin()),Tmax(def_Tmax()),Dmin(def_Dmin()),Dmax(def_Dmax()) {}
   };
   
   //parameters to measure flux tube
@@ -586,14 +640,18 @@ namespace nissa
   {
     int flag;
     std::string path;
-    
-    //parameters to smear in time and space
     gauge_obs_temp_spat_smear_pars_t smear_pars;
-    
-    //intervals for rectanlge size and distance
     int size_min,size_max,size_step,dmax;
     
-    watusso_meas_pars_t() : flag(0),path("watusso"),size_min(7),size_max(7),size_step(1),dmax(10) {}
+    int def_flag(){return 0;}
+    std::string def_path(){return "watusso";}
+    int def_size_min(){return 7;}
+    int def_size_max(){return 7;}
+    int def_size_step(){return 1;}
+    int def_dmax(){return 10;}
+    
+    watusso_meas_pars_t() : flag(def_flag()),path(def_path()),size_min(def_size_min()),size_max(def_size_max()),
+			    size_step(def_size_step()),dmax(def_dmax()) {}
   };
   
   //storable vector
@@ -631,7 +689,7 @@ namespace nissa
     //methods inside opearations/su3_paths/topological_charge.cpp
     void store_if_needed(quad_su3 **conf,int iconf);
     
-    void master_fprintf(FILE *fout);
+    int master_fprintf(FILE *fout,bool full=false);
     
     topotential_pars_t() : meta_pars_t(),flag(0),theta(0.0){}
   };
@@ -645,7 +703,7 @@ namespace nissa
     double E[3];
     double B[3];
     
-    void master_fprintf(FILE *fout);
+    int master_fprintf(FILE *fout,bool full=false);
     
     em_field_pars_t() : flag(0) {for(int i=0;i<3;i++) E[i]=B[i]=0;}
   };
@@ -677,7 +735,7 @@ namespace nissa
     int *npseudo_fs;
     rat_approx_t *rat_appr;
     
-    void master_fprintf(FILE *fout);
+    int master_fprintf(FILE *fout,bool full=false);
     
     hmc_evol_pars_t() : skip_mtest_ntraj(30),traj_length(1.0),pf_action_residue(1e-12),md_residue(1e-6),nmd_steps(13),ngauge_substeps(5) {}
   };

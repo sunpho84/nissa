@@ -38,13 +38,12 @@ namespace nissa
     GET_THREAD_ID();
     int ret=0;
     
-    if(rank==0 && IS_MASTER_THREAD)
-      {
-	va_list ap;
-	va_start(ap,format);
-	ret=vfprintf(stream,format,ap);
-	va_end(ap);
-      }
+    va_list ap;
+    va_start(ap,format);
+    char s[1024];
+    ret=vsnprintf(s,1024,format,ap);
+    if(rank==0 && IS_MASTER_THREAD) fputs(s,stream);
+    va_end(ap);
     
     return ret;
   }
@@ -116,7 +115,7 @@ namespace nissa
     if(rank==0)
       {
 	fout=fopen(outfile.c_str(),mode);
-	if(fout==NULL) crash("Couldn't open the file: %s for mode: %s",outfile.c_str(),mode);
+	if(fout==NULL) crash("Couldn't open file: \"%s\" with mode: \"%s\"",outfile.c_str(),mode);
       }
     
     return fout;

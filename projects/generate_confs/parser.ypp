@@ -32,6 +32,10 @@
     char *text;
     gauge_action_name_t gauge_action_name;
     stout_pars_t *stout_pars;
+    pseudo_corr_meas_pars_t *pseudo_corr_meas_pars;
+    nucleon_corr_meas_pars_t *nucleon_corr_meas_pars;
+    fermionic_putpourri_meas_pars_t *fermionic_putpourri_meas_pars;
+    quark_rendens_meas_pars_t *quark_rendens_meas_pars;
 }
 
 %token TK_L
@@ -45,39 +49,69 @@
 %token <text> TK_QUOTED_TEXT
 //true, false
 %token TK_TRUE TK_FALSE
+//each
+%token <unsigned_int_numb> TK_EACH
+%type <unsigned_int_numb> each
 //yes no none
 %token TK_NONE TK_YES TK_NO
+//residue
+%token <double_numb> TK_RESIDUE
+%type <double_numb> residue
 //metadynamics
 %token TK_META
 %token TK_TOPO_POTENTIAL
+//path
+%token TK_PATH
+%type <text> path
+//meta commands
+%token TK_META_PRINT_SCANNED
+%token TK_META_PRINT_FULL
 //quark content
 %token TK_QUARK
 %token TK_DEGENERACY
-%type <unsigned_int_numb> specify_degeneracy
+%type <unsigned_int_numb> degeneracy
 %token TK_MASS
-%type <double_numb> specify_mass
+%type <double_numb> mass
 %token TK_RE_POT_CH
-%type <double_numb> specify_re_pot_ch
+%type <double_numb> re_pot_ch
 %token TK_IM_POT_CH
-%type <double_numb> specify_im_pot_ch
+%type <double_numb> im_pot_ch
 %token TK_ELEC_CHARGE
-%type <double_numb> specify_elec_charge
+%type <double_numb> elec_charge
 //stout pars
 %token TK_GLOBAL_STOUT_PARS
 %type <stout_pars> stout_pars
 %token <unsigned_int_numb> TK_NLEVELS
-%type <unsigned_int_numb> specify_nlevels
+%type <unsigned_int_numb> nlevels
 %token <double_numb> TK_RHO
-%type <double_numb> specify_rho
+%type <double_numb> rho
 //gauge action
 %token TK_GAUGE_ACTION
 %token TK_WILSON
-%type <gauge_action_name> specify_gauge_action
-%type <gauge_action_name> global_specify_gauge_action
+%type <gauge_action_name> gauge_action
+%type <gauge_action_name> global_gauge_action
 //background field
 %token TK_BKGRD_EM_FIELD
 %token <unsigned_int_numb> TK_B_COMP
 %token <unsigned_int_numb> TK_E_COMP
+//number of copies and hits
+%token TK_NCOPIES TK_NHITS
+%type <unsigned_int_numb> ncopies nhits
+//pseudo corr
+%token TK_PSEUDO_CORRELATORS
+%type <pseudo_corr_meas_pars> pseudo_corr_meas_pars
+//nucleon corr
+%token TK_NUCLEON_CORRELATORS
+%type <nucleon_corr_meas_pars> nucleon_corr_meas_pars
+//putpourri
+%token TK_FERMIONIC_PUTPOURRI
+%type <fermionic_putpourri_meas_pars> fermionic_putpourri_meas_pars
+%token TK_COMPUTE_SUSCEPTIVITIES
+%type <unsigned_int_numb> compute_susceptivities
+//rendens
+%token TK_QUARK_RENDENS
+%type <quark_rendens_meas_pars> quark_rendens_meas_pars
+
 %%
 
 commands: commands command
@@ -85,29 +119,48 @@ commands: commands command
 ;
 
 command: global_specify
+       | meta_command
 ;
 
-global_specify: global_specify_L
-              | global_specify_T
-              | global_specify_beta
-              | global_specify_gauge_action
-              | specify_topo_potential_pars
+global_specify: global_L
+              | global_T
+              | global_beta
+              | global_gauge_action
+              | topo_potential_pars
               | add_quark
-              | global_specify_stout_pars
-              | global_specify_bckgr_field
+              | global_stout_pars
+              | global_bckgr_field
+              | global_pseudo_corr_meas
+              | global_nucleon_corr_meas
+              | global_fermionic_putpourri_meas
+              | global_quark_rendens_meas
 ;
 
-global_specify_T: TK_T '=' TK_UNSIGNED_INT {driver->T=$3;};
-global_specify_L: TK_L '=' TK_UNSIGNED_INT {driver->L=$3; };
-global_specify_beta: TK_BETA '=' real_numb {driver->beta=$3;};
-global_specify_gauge_action: specify_gauge_action {driver->gauge_action_name=$1;};
+meta_command: meta_print_scanned
+            | meta_print_full
+;
 
-specify_gauge_action: TK_GAUGE_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
+meta_print_scanned: TK_META_PRINT_SCANNED TK_QUOTED_TEXT {FILE *fout=open_file($2,"w");driver->master_fprintf(fout);close_file(fout);}
+meta_print_full: TK_META_PRINT_FULL TK_QUOTED_TEXT {FILE *fout=open_file($2,"w");driver->master_fprintf(fout,true);close_file(fout);}
+
+//////////////////////////////////////////////// SIMPLE STUFF //////////////////////////////////////////////////
+
+global_T: TK_T '=' TK_UNSIGNED_INT {driver->T=$3;};
+global_L: TK_L '=' TK_UNSIGNED_INT {driver->L=$3; };
+global_beta: TK_BETA '=' real_numb {driver->beta=$3;};
+global_gauge_action: gauge_action {driver->gauge_action_name=$1;};
+
+gauge_action: TK_GAUGE_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
+
+each: TK_EACH '=' TK_UNSIGNED_INT {$$=$3;};
+
+residue: TK_RESIDUE '=' real_numb {$$=$3;};
+
 
 ////////////////////////////////////////////// TOPO POTENTIAL //////////////////////////////////////////////////
 
 //specify topopotential pars
-specify_topo_potential_pars: init_meta_topo_potential_pars meta_topo_potential_pars {}
+topo_potential_pars: init_meta_topo_potential_pars meta_topo_potential_pars {}
                           | init_topo_potential_pars topo_potential_pars {}
                           | suppress_topo_potential_pars {}
 ;
@@ -139,20 +192,19 @@ topo_potential_par: ;
 
 ////////////////////////////////////////////////// STOUT PARS //////////////////////////////////////////////////
 
-global_specify_stout_pars: TK_GLOBAL_STOUT_PARS stout_pars {driver->stout_pars=(*$2);delete $2;};
+global_stout_pars: stout_pars {driver->stout_pars=(*$1);delete $1;};
 
-stout_pars: stout_pars specify_nlevels {$$->nlevels=$2;}
-          | stout_pars specify_rho {$$->set_to_iso($2);}
-          | specify_nlevels {$$=new stout_pars_t;$$->nlevels=$1;}
-          | specify_rho {$$=new stout_pars_t;$$->set_to_iso($1);}
+stout_pars: TK_GLOBAL_STOUT_PARS {$$=new stout_pars_t;}
+          | stout_pars nlevels {$$->nlevels=$2;}
+          | stout_pars rho {$$->rho=$2;}
 ;
 
-specify_nlevels: TK_NLEVELS '=' TK_UNSIGNED_INT {$$=$3;};
-specify_rho: TK_RHO '=' real_numb {$$=$3;};
+nlevels: TK_NLEVELS '=' TK_UNSIGNED_INT {$$=$3;};
+rho: TK_RHO '=' real_numb {$$=$3;};
 
 ////////////////////////////////////////////////// QUARK CONTENT //////////////////////////////////////////////////
 
-add_quark: name_quark specify_quark_pars;
+add_quark: name_quark quark_pars;
 
 name_quark: TK_QUARK TK_QUOTED_TEXT
           {
@@ -167,27 +219,27 @@ name_quark: TK_QUARK TK_QUOTED_TEXT
 	  }
 ;
 
-specify_quark_pars: specify_quark_pars specify_quark_par
-                  | specify_quark_par
+quark_pars: quark_pars quark_par
+          | quark_par
 ;
 
-specify_quark_par: specify_degeneracy {driver->quarks.back().deg=$1;}
-                 | specify_mass {driver->quarks.back().mass=$1;}
-                 | specify_re_pot_ch {driver->quarks.back().re_pot=$1;}
-                 | specify_im_pot_ch {driver->quarks.back().im_pot=$1;}
-                 | specify_elec_charge {driver->quarks.back().charge=$1;}
+quark_par: degeneracy {driver->quarks.back().deg=$1;}
+         | mass {driver->quarks.back().mass=$1;}
+         | re_pot_ch {driver->quarks.back().re_pot=$1;}
+         | im_pot_ch {driver->quarks.back().im_pot=$1;}
+         | elec_charge {driver->quarks.back().charge=$1;}
 ;
 
-specify_degeneracy: TK_DEGENERACY '=' TK_UNSIGNED_INT {$$=$3;};
-specify_mass: TK_MASS '=' real_numb {$$=$3;};
-specify_re_pot_ch: TK_RE_POT_CH '=' real_numb {$$=$3;};
-specify_im_pot_ch: TK_IM_POT_CH '=' real_numb {$$=$3;};
-specify_elec_charge: TK_ELEC_CHARGE '=' real_numb {$$=$3;};
+degeneracy: TK_DEGENERACY '=' TK_UNSIGNED_INT {$$=$3;};
+mass: TK_MASS '=' real_numb {$$=$3;};
+re_pot_ch: TK_RE_POT_CH '=' real_numb {$$=$3;};
+im_pot_ch: TK_IM_POT_CH '=' real_numb {$$=$3;};
+elec_charge: TK_ELEC_CHARGE '=' real_numb {$$=$3;};
 
 ////////////////////////////////////////////////// BACKGROUND FIELD //////////////////////////////////////////////////
 
-global_specify_bckgr_field: TK_BKGRD_EM_FIELD TK_NO {driver->em_field_pars.flag=0;}
-                          | TK_BKGRD_EM_FIELD set_em_field_pars {driver->em_field_pars.flag=1;}
+global_bckgr_field: TK_BKGRD_EM_FIELD TK_NO {driver->em_field_pars.flag=0;}
+                  | TK_BKGRD_EM_FIELD set_em_field_pars {driver->em_field_pars.flag=1;}
 ;
 
 set_em_field_pars: set_em_field_pars set_em_field_par
@@ -201,6 +253,57 @@ set_em_field_par: set_e_field_par
 set_e_field_par: TK_E_COMP '=' TK_DOUBLE {driver->em_field_pars.E[$1]=$3;};
 set_b_field_par: TK_B_COMP '=' TK_DOUBLE {driver->em_field_pars.B[$1]=$3;};
 
+////////////////////////////////////////////////// PSEUDO CORR //////////////////////////////////////////////////
+
+global_pseudo_corr_meas: TK_PSEUDO_CORRELATORS TK_NO {driver->pseudo_corr_meas_pars.flag=false;}
+                       | pseudo_corr_meas_pars {driver->pseudo_corr_meas_pars=(*$1);delete $1;}
+;
+
+pseudo_corr_meas_pars: TK_PSEUDO_CORRELATORS {$$=new pseudo_corr_meas_pars_t;$$->flag=true;}
+                     | pseudo_corr_meas_pars each {$$->flag=$2;}
+                     | pseudo_corr_meas_pars path {$$->path=$2;}
+;
+
+////////////////////////////////////////////////// NUCLEON CORR //////////////////////////////////////////////////
+
+global_nucleon_corr_meas: TK_NUCLEON_CORRELATORS TK_NO {driver->nucleon_corr_meas_pars.flag=false;}
+                        | nucleon_corr_meas_pars {driver->nucleon_corr_meas_pars=(*$1);delete $1;}
+;
+
+nucleon_corr_meas_pars: TK_NUCLEON_CORRELATORS {$$=new nucleon_corr_meas_pars_t;$$->flag=true;}
+                      | nucleon_corr_meas_pars each {$$->flag=$2;}
+                      | nucleon_corr_meas_pars path {$$->path=$2;}
+;
+
+////////////////////////////////////////////////// FERMIONIC PUPOURRI //////////////////////////////////////////////////
+
+global_fermionic_putpourri_meas: TK_FERMIONIC_PUTPOURRI TK_NO {driver->fermionic_putpourri_meas_pars.flag=false;}
+                               | fermionic_putpourri_meas_pars {driver->fermionic_putpourri_meas_pars=(*$1);delete $1;}
+;
+
+fermionic_putpourri_meas_pars: TK_FERMIONIC_PUTPOURRI {$$=new fermionic_putpourri_meas_pars_t;$$->flag=true;}
+                             | fermionic_putpourri_meas_pars each {$$->flag=$2;}
+                             | fermionic_putpourri_meas_pars path {$$->path=$2;}
+                             | fermionic_putpourri_meas_pars residue {$$->residue=$2;}
+                             | fermionic_putpourri_meas_pars compute_susceptivities {$$->compute_susceptivities=$2;}
+                             | fermionic_putpourri_meas_pars ncopies {$$->ncopies=$2;}
+                             | fermionic_putpourri_meas_pars nhits {$$->nhits=$2;}
+;
+
+////////////////////////////////////////////////// RENDENS //////////////////////////////////////////////////
+
+global_quark_rendens_meas: TK_QUARK_RENDENS TK_NO {driver->quark_rendens_meas_pars.flag=false;}
+                         | quark_rendens_meas_pars {driver->quark_rendens_meas_pars=(*$1);delete $1;}
+;
+
+quark_rendens_meas_pars: TK_QUARK_RENDENS {$$=new quark_rendens_meas_pars_t;$$->flag=true;}
+                       | quark_rendens_meas_pars each {$$->flag=$2;}
+                       | quark_rendens_meas_pars path {$$->path=$2;}
+                       | quark_rendens_meas_pars residue {$$->residue=$2;}
+                       | quark_rendens_meas_pars ncopies {$$->ncopies=$2;}
+                       | quark_rendens_meas_pars nhits {$$->nhits=$2;}
+;
+
 //////////////////////////////////////////////////// casting //////////////////////////////////////////////////////
 
 //cast to a double numb
@@ -212,3 +315,10 @@ real_numb: TK_DOUBLE {$$=$1;master_printf("Copying %lg to double\n",$1);}
 int_numb: TK_UNSIGNED_INT {$$=$1;master_printf("Castying unsgined %d to signed integer\n",$1);}
         | TK_SIGNED_INT {$$=$1;master_printf("Copying signed %d to integer\n",$1);}
 
+
+ncopies: TK_NCOPIES '=' TK_UNSIGNED_INT {$$=$3;};
+nhits: TK_NHITS '=' TK_UNSIGNED_INT {$$=$3;};
+
+compute_susceptivities: TK_COMPUTE_SUSCEPTIVITIES '=' TK_UNSIGNED_INT {$$=$3;};
+
+path: TK_PATH '=' TK_QUOTED_TEXT {$$=$3;};

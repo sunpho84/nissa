@@ -34,6 +34,11 @@ namespace nissa
     a[0]=b;
     a[1]=0;
   }
+  inline void complex_put_to_imag(complex a,double b)
+  {
+    a[0]=0;
+    a[1]=b;
+  }
   inline void complex_put_to_zero(complex a)
   {complex_put_to_real(a,0);}
   //Assign the conj

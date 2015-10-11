@@ -16,7 +16,7 @@
 namespace nissa
 {
   //print all pars
-  void meta_pars_t::master_fprintf(FILE *fout)
+  void meta_pars_t::master_fprintf(FILE *fout,bool full)
   {
     nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
     nissa::master_fprintf(fout,"Each\t\t=\t%d\n",each);

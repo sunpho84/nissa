@@ -13,9 +13,14 @@ namespace nissa
     double residue;
     int nhits;
     
-    void master_fprintf(FILE *fout);
+    int def_flag(){return false;}
+    std::string def_path(){return "nucleon_corr";}
+    double def_residue(){return 1e-12;}
+    int def_nhits(){return 1;}
     
-    nucleon_corr_meas_pars_t() : flag(0),path("nucleon_corr"),residue(1e-12),nhits(1) {}
+    int master_fprintf(FILE *fout,bool full);
+    
+    nucleon_corr_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),nhits(def_nhits()) {}
   };
   
   void measure_nucleon_corr(quad_su3 **conf,theory_pars_t theory_pars,nucleon_corr_meas_pars_t meas_pars,int iconf,int conf_created);

@@ -143,4 +143,22 @@ namespace nissa
     close_file(file);
   }
   THREADABLE_FUNCTION_END
+  
+  //nucleon correlators
+  int nucleon_corr_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  {
+    int nprinted=0;
+    
+    if(flag||full)
+      {
+	nprinted+=nissa::master_fprintf(fout,"NucleonCorrelators\n");
+	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
+	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
+	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t\"%lg\"\n",residue);
+	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
+      }
+    else if(full) nprinted+=nissa::master_fprintf(fout,"NucleonCorrelators No\n");
+    
+    return nprinted;
+  }
 }

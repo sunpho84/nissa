@@ -511,6 +511,7 @@ namespace nissa
 	break;
       case smooth_pars_t::ADAPTATIVE_STOUTING:
 	{
+	  /*
 	  double tot_rho=0;
 	  for(int ilev=0;ilev<=asp.nlevels;ilev++)
 	    {
@@ -529,6 +530,8 @@ namespace nissa
 		  tot_rho+=asp.rho[ilev];
 		}
 	    }
+	  */
+	  crash("not fully available");
 	}
 	break;
       default:

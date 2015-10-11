@@ -33,7 +33,8 @@ namespace nissa
     void init();
     void read_pars();
     
-    void master_fprintf(FILE *fout);
+    void master_fprintf(FILE *fout,bool full=false);
+    
     meta_pars_t() : after(30),each(1),coeff(1.0),width(1.0),barr(10.0),force_out(100.0),well_tempering(0.0),bend(0.0),ngrid(0){}
   };
 }

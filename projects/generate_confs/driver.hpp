@@ -15,10 +15,14 @@ public:
   //geometry
   unsigned int L;
   unsigned int T;
+  unsigned int def_L(){return 4;}
+  unsigned int def_T(){return 4;}
   
   //gauge action
   double beta;
   gauge_action_name_t gauge_action_name;
+  double def_beta(){return 6.0;}
+  gauge_action_name_t def_gauge_action_name(){return WILSON_GAUGE_ACTION;}
   
   //topo potential pars
   topotential_pars_t topotential_pars;
@@ -28,38 +32,58 @@ public:
   
   //stout parameters
   stout_pars_t stout_pars;
-
+  
   //background em field
   em_field_pars_t em_field_pars;
   
-  //
-  void master_fprintf(FILE *fout)
+  //fermionic measures
+  pseudo_corr_meas_pars_t pseudo_corr_meas_pars;
+  nucleon_corr_meas_pars_t nucleon_corr_meas_pars;
+  fermionic_putpourri_meas_pars_t fermionic_putpourri_meas_pars;
+  quark_rendens_meas_pars_t quark_rendens_meas_pars;
+  
+  int master_fprintf(FILE *fout,bool full=false)
   {
+    int nprinted=0;
+    
     //geometry
-    nissa::master_fprintf(fout,"L\t\t=\t%d\n",L);
-    nissa::master_fprintf(fout,"T\t\t=\t%d\n",T);
+    int nprinted_geometry=0;
+    if(full||L!=def_L()) nprinted_geometry+=nissa::master_fprintf(fout,"L\t\t=\t%d\n",L);
+    if(full||T!=def_T()) nprinted_geometry+=nissa::master_fprintf(fout,"T\t\t=\t%d\n",T);
+    if(nprinted_geometry) nissa::master_fprintf(fout,"\n");
+    nprinted+=nprinted_geometry;
     //beta and action
-    nissa::master_fprintf(fout,"\n");
-    nissa::master_fprintf(fout,"Beta\t\t=\t%lg\n",beta);
-    const char name_known[3][20]={"Wilson","tlSym","Iwasaki"};
-    nissa::master_fprintf(fout,"GaugeAction\t=\t%s\n",name_known[gauge_action_name]);
-    //topotential
-    nissa::master_fprintf(fout,"\n");
-    topotential_pars.master_fprintf(fout);
-    //quarks
-    for(size_t i=0;i<quarks.size();i++)
+    int nprinted_betaact=0;
+    if(full||(beta!=def_beta())) nprinted_betaact+=nissa::master_fprintf(fout,"Beta\t\t=\t%lg\n",beta);
+    if(full||(gauge_action_name!=def_gauge_action_name()))
       {
-	nissa::master_fprintf(fout,"\n");
-	quarks[i].master_fprintf(fout);
+	const char name_known[3][20]={"Wilson","tlSym","Iwasaki"};
+	nprinted_betaact+=nissa::master_fprintf(fout,"GaugeAction\t=\t%s\n",name_known[gauge_action_name]);
       }
+    if(nprinted_betaact) nissa::master_fprintf(fout,"\n");
+    nprinted+=nprinted_betaact;
+    //topotential
+    if(topotential_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    //quarks
+    for(size_t i=0;i<quarks.size();i++) if(quarks[i].master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //global stout pars
-    nissa::master_fprintf(fout,"\n");
-    nissa::master_fprintf(fout,"GlobalStoutPars\n");
-    stout_pars.master_fprintf(fout);
+    if(full||stout_pars.nlevels!=stout_pars.def_nlevels()||stout_pars.rho!=stout_pars.def_rho()) nprinted+=nissa::master_fprintf(fout,"GlobalStoutPars\n");
+    if(stout_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //global em field pars
-    nissa::master_fprintf(fout,"\n");
-    em_field_pars.master_fprintf(fout);
+    if(em_field_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    //pseudo correlators pars
+    if(pseudo_corr_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    //nucleon correlators pars
+    if(nucleon_corr_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    //fermionic putpourri
+    if(fermionic_putpourri_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    //quark rendens
+    if(quark_rendens_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    
+    return nprinted;
   }
+  
+  driver_t() : L(def_L()),T(def_T()),beta(def_beta()) {}
   
 protected:
   void init_scanner();
