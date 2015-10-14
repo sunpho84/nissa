@@ -59,7 +59,7 @@ namespace nissa
 	if(fabs(w)<0.05) xi1w=-(1-w2*(1-w2*(1-w2/54)/28)/10)/3;
 	else xi1w=cw/w2-sin(w)/(w2*w);
 	
-	//eq. (60-65)
+	//eqs. (60-65)
 	complex r[2][3]=
 	  {{{2*c2u*u+s2u*(-2*u2+2*w2)+2*cu*u*(8*cw+3*u2*xi0w+w2*xi0w)+su*(-8*cw*u2+18*u2*xi0w+2*w2*xi0w),
 	     -8*cw*(2*su*u+cu*u2)+2*(s2u*u+c2u*u2-c2u*w2)+2*(9*cu*u2-3*su*u*u2+cu*w2 -su*u*w2)*xi0w},
@@ -74,7 +74,7 @@ namespace nissa
 	    {cu*xi0w-3*su*u*xi1w,
 	     -(su*xi0w)-3*cu*u*xi1w}}};
 	
-	//change sign to the f if needed
+	//change sign to the f if needed, eq. (34) - changed again below
 	if(ing->sign!=0)
 	  {
 	    ing->f[0][IM]*=-1;
@@ -103,7 +103,7 @@ namespace nissa
 		}
 	  }
 	
-	//change back sign to the f if needed
+	//change back sign to the f if needed, eq. (34)
 	if(ing->sign!=0)
 	  {
 	    ing->f[0][IM]*=-1;
@@ -121,7 +121,7 @@ namespace nissa
 	su3_summ_the_prod_complex(B[i],ing->Q2,b[i][2]);
       }
     
-    //compute Gamma (eq. 74)
+    //compute Gamma, eq. (74)
     su3 Gamma;
     //compute U*Sigma', to be used many times
     su3 aux;
@@ -135,13 +135,13 @@ namespace nissa
     su3_summ_the_prod_complex(Gamma,ing->Q2,we[1]);
     //third term
     su3_summ_the_prod_complex(Gamma,aux,ing->f[1]);
-    //fourth and fith term
+    //fourth and fifth term
     su3 temp;
     unsafe_su3_prod_su3  (temp,ing->Q,aux);
     su3_summ_the_prod_su3(temp,aux,ing->Q);
     su3_summ_the_prod_complex(Gamma,temp,ing->f[2]);
     
-    //compute Lambda (eq. 73)
+    //compute Lambda eq. (73)
     unsafe_su3_traceless_hermitian_part(Lambda,Gamma);
   }
 }

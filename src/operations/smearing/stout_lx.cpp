@@ -202,7 +202,7 @@ namespace nissa
     
     quad_su3 *Lambda=nissa_malloc("Lambda",loc_vol+bord_vol+edge_vol,quad_su3);
     
-    for(int mu=0;mu<4;mu++)
+    for(int mu=0;mu<NDIM;mu++)
       NISSA_PARALLEL_LOOP(A,0,loc_vol)
 	{
 	  //compute the ingredients needed to smear
@@ -237,8 +237,8 @@ namespace nissa
     //compute the third piece of eq. (75)
     communicate_lx_quad_su3_edges(Lambda);
     
-    for(int mu=0;mu<4;mu++)
-      for(int nu=0;nu<4;nu++)
+    for(int mu=0;mu<NDIM;mu++)
+      for(int nu=0;nu<NDIM;nu++)
 	if(mu!=nu)
 	  {
 	    NISSA_PARALLEL_LOOP(A,0,loc_vol)     //   b1 --<-- f1 -->-- +

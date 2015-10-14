@@ -63,9 +63,9 @@ namespace nissa
     //conclude the calculation of the fermionic force
     for(int iterm=0;iterm<appr->degree;iterm++)
       NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	for(int mu=0;mu<4;mu++)
-	  for(int ic1=0;ic1<3;ic1++)
-	    for(int ic2=0;ic2<3;ic2++)
+	for(int mu=0;mu<NDIM;mu++)
+	  for(int ic1=0;ic1<NCOL;ic1++)
+	    for(int ic2=0;ic2<NCOL;ic2++)
 	      {
 		complex temp1,temp2;
 		
@@ -100,7 +100,7 @@ namespace nissa
     for(int eo=0;eo<2;eo++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	  for(int mu=0;mu<4;mu++)
+	  for(int mu=0;mu<NDIM;mu++)
 	    {
 	      su3 temp;
 	      unsafe_su3_prod_su3(temp,conf[eo][ivol][mu],F[eo][ivol][mu]);
@@ -134,7 +134,7 @@ namespace nissa
     int nlevls=physics->stout_pars.nlevels;
     
     //first of all we take care of the trivial case
-    if(nlevls==0)	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,conf,pf,physics,appr,npfs,residue);
+    if(nlevls==0) compute_rootst_eoimpr_quark_force_no_stout_remapping(F,conf,pf,physics,appr,npfs,residue);
     else
       {
 	//allocate the stack of confs: conf is binded to sme_conf[0]
