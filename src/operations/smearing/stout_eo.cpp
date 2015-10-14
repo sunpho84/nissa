@@ -25,7 +25,7 @@
 namespace nissa
 {
   //compute the staples for the link U_A_mu weighting them with rho
-  void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,stout_coeff_t rho)
+  void stout_smear_compute_weighted_staples(su3 staples,quad_su3 **conf,int p,int A,int mu,double rho)
   {
     if(!check_edges_valid(conf[0])||!check_edges_valid(conf[1])) crash("../communicate/communicate edges externally");
     
@@ -34,26 +34,26 @@ namespace nissa
     
     //summ the 6 staples, each weighted with rho (eq. 1)
     su3 temp1,temp2;
-    for(int nu=0;nu<4;nu++)                   //  E---F---C   
+    for(int nu=0;nu<4;nu++)                   //  E---F---C
       if(nu!=mu)                              //  |   |   | mu
-	{                                     //  D---A---B   
-	  int B=loceo_neighup[p][A][nu];      //        nu    
+	{                                     //  D---A---B
+	  int B=loceo_neighup[p][A][nu];      //        nu
 	  int F=loceo_neighup[p][A][mu];
 	  unsafe_su3_prod_su3(    temp1,conf[p][A][nu],conf[!p][B][mu]);
 	  unsafe_su3_prod_su3_dag(temp2,temp1,         conf[!p][F][nu]);
-	  su3_summ_the_prod_double(staples,temp2,rho[mu][nu]);
+	  su3_summ_the_prod_double(staples,temp2,rho);
 	  
 	  int D=loceo_neighdw[p][A][nu];
 	  int E=loceo_neighup[!p][D][mu];
 	  unsafe_su3_dag_prod_su3(temp1,conf[!p][D][nu],conf[!p][D][mu]);
 	  unsafe_su3_prod_su3(    temp2,temp1,          conf[ p][E][nu]);
-	  su3_summ_the_prod_double(staples,temp2,rho[mu][nu]);
+	  su3_summ_the_prod_double(staples,temp2,rho);
 	}
   }
   
   //compute the parameters needed to smear a link, that can be used to smear it or to compute the 
   //partial derivative of the force
-  void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,int A,int mu,stout_coeff_t rho)
+  void stout_smear_compute_staples(stout_link_staples *out,quad_su3 **conf,int p,int A,int mu,double rho)
   {
     //compute the staples
     stout_smear_compute_weighted_staples(out->C,conf,p,A,mu,rho);
@@ -68,7 +68,7 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, stout_coeff_t*,rho)
+  THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, double*,rho)
   {
     GET_THREAD_ID();
 #ifdef BENCH
@@ -122,7 +122,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(stout_smear, quad_su3**,ext_out, quad_su3**,ext_in, stout_pars_t*,stout_pars)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_in));
-    switch(stout_pars->nlevls)
+    switch(stout_pars->nlevels)
       {
       case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
       case 1:
@@ -137,10 +137,10 @@ namespace nissa
 	quad_su3 **in=ext_in,**ptr[2]={ext_temp,ext_out};
 	
 	//if the distance is even, first pass must use temp as out
-	quad_su3 **out=ptr[!(stout_pars->nlevls%2==0)];
-	quad_su3 **temp=ptr[(stout_pars->nlevls%2==0)];
+	quad_su3 **out=ptr[!(stout_pars->nlevels%2==0)];
+	quad_su3 **temp=ptr[(stout_pars->nlevels%2==0)];
 	
-	for(int i=0;i<stout_pars->nlevls;i++)
+	for(int i=0;i<stout_pars->nlevels;i++)
 	  {
 	    stout_smear_single_level(out,in,&(stout_pars->rho));
             verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(out));
@@ -185,7 +185,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(stout_smear_whole_stack, quad_su3***,out, quad_su3**,in, stout_pars_t*,stout_pars)
   {
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
-    for(int i=1;i<=stout_pars->nlevls;i++)
+    for(int i=1;i<=stout_pars->nlevels;i++)
       {
 	stout_smear_single_level(out[i],out[i-1],&(stout_pars->rho));
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
@@ -194,7 +194,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
 
   //remap the force to one smearing level less
-  THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf, stout_coeff_t*,rho)
+  THREADABLE_FUNCTION_3ARG(stouted_force_remap_step, quad_su3**,F, quad_su3**,conf, double,rho)
   {
     GET_THREAD_ID();
     communicate_eo_quad_su3_edges(conf);
@@ -209,7 +209,7 @@ namespace nissa
 	  {
 	    //compute the ingredients needed to smear
 	    stout_link_staples sto_ste;
-	    stout_smear_compute_staples(&sto_ste,conf,p,A,mu,*rho);
+	    stout_smear_compute_staples(&sto_ste,conf,p,A,mu,rho);
 	    
 	    //compute the ingredients needed to exponentiate
 	    anti_hermitian_exp_ingredients ing;
@@ -259,37 +259,37 @@ namespace nissa
 		  unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
 		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[p][f3][nu]);
 		  unsafe_su3_prod_su3(temp3,temp2,Lambda[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-(*rho)[nu][mu]);
+		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
 		  
 		  //second term, insertion on b2 along mu
 		  unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
 		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b2][mu]);
 		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-(*rho)[mu][nu]);
+		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
 		  
 		  //third term, insertion on b1 along nu
 		  unsafe_su3_dag_prod_su3(temp1,conf[p][b1][nu],Lambda[p][b1][nu]);
 		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][b2][mu]);
 		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-(*rho)[nu][mu]);
+		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
 		  
 		  //fourth term, insertion on b3 along nu
 		  unsafe_su3_dag_prod_su3_dag(temp1,conf[p][b1][nu],conf[!p][b2][mu]);
 		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][b3][nu]);
 		  unsafe_su3_prod_su3(temp3,temp2,conf[!p][b3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+(*rho)[nu][mu]);
+		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
 		  
 		  //fifth term, insertion on f1 along nu
 		  unsafe_su3_prod_su3(temp1,Lambda[!p][f1][nu],conf[!p][f1][nu]);
 		  unsafe_su3_prod_su3_dag(temp2,temp1,conf[!p][f2][mu]);
 		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+(*rho)[nu][mu]);
+		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,+rho);
 		  
 		  //sixth term, insertion on f2 along mu
 		  unsafe_su3_prod_su3_dag(temp1,conf[!p][f1][nu],conf[!p][f2][mu]);
 		  unsafe_su3_prod_su3(temp2,temp1,Lambda[!p][f2][mu]);
 		  unsafe_su3_prod_su3_dag(temp3,temp2,conf[p][f3][nu]);
-		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-(*rho)[mu][nu]);
+		  su3_summ_the_prod_idouble(F[p][A][mu],temp3,-rho);
 		}
 	    }
     
@@ -306,10 +306,10 @@ namespace nissa
     if(IS_MASTER_THREAD) sto_remap_time-=take_time();
 #endif
     
-    for(int i=stout_pars->nlevls-1;i>=0;i--)
+    for(int i=stout_pars->nlevels-1;i>=0;i--)
       {
-	verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i+1,stout_pars->nlevls);
-	stouted_force_remap_step(F,sme_conf[i],&(stout_pars->rho));
+	verbosity_lv2_master_printf("Remapping the force, step: %d/%d\n",i+1,stout_pars->nlevels);
+	stouted_force_remap_step(F,sme_conf[i],stout_pars->rho);
       }
     
 #ifdef BENCH

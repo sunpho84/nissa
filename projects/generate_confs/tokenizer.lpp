@@ -1,0 +1,210 @@
+%option case-insensitive
+%option nounput
+%option noyywrap
+%option prefix="parser_"
+%option outfile="tokenizer.cpp"
+%option reentrant
+%option bison-bridge
+%option bison-locations
+
+ /* define status to avoid c++ comment */
+%x COMMENT
+
+ /* raw definitions */
+DIGIT [0-9]
+LETTER [a-z]
+ALNUM [a-z0-9_]
+SPACE [[:blank:]]
+SIGN \+|\-
+QUOTE \"|\'
+ANY .
+NEWLINE \n
+DOT \.
+
+ /* more complicated */
+WORD {LETTER}*
+DOUBLE {SIGN}?({DIGIT}*{DOT}{DIGIT}+)|({DIGIT}+{DOT}{DIGIT}*)
+SCI_DOUBLE {DOUBLE}e({SIGNED_INT}|{UNSIGNED_INT})
+UNSIGNED_INT {DIGIT}*
+SIGNED_INT {SIGN}{DIGIT}*
+
+ /* comments */
+C_COM_BEG \/\/
+C_COM {C_COM_BEG}{ANY}*
+CPP_COM_BEG \/\*
+CPP_COM_END \*\/
+CPP_COM {CPP_COM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COM_END}
+
+/* header of tokenizer */
+%{
+#include <stdio.h>
+#include <string.h>
+#include "nissa.hpp"
+#include "driver.hpp"
+
+#define YY_EXTRA_TYPE driver_t*
+
+#define DEBUG_PRINTF(...) if(debug_lexer) master_printf(__VA_ARGS__)
+
+#define YY_INPUT(buf,result,max_size)					\
+   {									\
+     int rc[2];								\
+     if(rank==0)							\
+       {								\
+	 rc[0]=fscanf(yyextra->fin,"%c",buf);				\
+	 rc[1]=feof(yyextra->fin);					\
+       }								\
+     MPI_Bcast(rc,1,MPI_INT,0,MPI_COMM_WORLD);				\
+     if(rc[0]!=1||rc[1]) result=YY_NULL;				\
+     else								\
+       {								\
+	 result=1;							\
+	 MPI_Bcast(buf,1,MPI_CHAR,0,MPI_COMM_WORLD);			\
+       }								\
+   }
+   
+#include "parser.hpp"
+   
+   const int debug_lexer=1;
+   
+   const unsigned int default_L=4;
+   const unsigned int default_T=8;
+   const double default_beta=6.0;
+   const gauge_action_name_t default_gauge_action_name=WILSON_GAUGE_ACTION;
+   
+   std::string curr_comment;
+%}
+
+%%
+ /* ignoring rules */
+"/*"                                DEBUG_PRINTF("Entering c++-style comment\n");curr_comment="";BEGIN(COMMENT);
+<COMMENT>"/*"                       master_printf("warning: multiple comments opened at line: %d\n", yylineno);
+<COMMENT>"*/"                       DEBUG_PRINTF("Exiting c++-style comment: %s\n",curr_comment.c_str());BEGIN(INITIAL);
+<COMMENT>"EOF"                      crash("reached end of file while scanning comment");
+<COMMENT>.|"\n"                     curr_comment+=yytext[0];
+{NEWLINE}                           DEBUG_PRINTF("Ignoring endline\n");
+{C_COM}                             DEBUG_PRINTF("Ignoring single line comment: %s\n",yytext);
+{SPACE}+                            DEBUG_PRINTF("Ignoring spaces: \"%s\"\n",yytext);
+
+ /* quoted text */
+{QUOTE}{ANY}*{QUOTE} yylval->text=strndup(yytext+1,strlen(yytext)-2);DEBUG_PRINTF("found string \"%s\", length=%d, copied: \"%s\"\n",yytext,(int)strlen(yytext),yylval->text); return TK_QUOTED_TEXT;
+
+ /* equal */
+\= DEBUG_PRINTF("Found =\n");return '=';
+
+ /* EOF */
+End DEBUG_PRINTF("Found End\n");return EOF;
+
+ /* true/false */
+True DEBUG_PRINTF("Found True\n");return TK_TRUE;
+False DEBUG_PRINTF("Found False\n");return TK_FALSE;
+
+ /* yes/no/none */
+None DEBUG_PRINTF("Found None\n");return TK_NONE;
+Yes DEBUG_PRINTF("Found Yes\n");return TK_YES;
+No DEBUG_PRINTF("Found No\n");return TK_NO;
+
+ /* each */
+Each DEBUG_PRINTF("Found Each\n");return TK_EACH;
+
+ /* residue */
+Residue DEBUG_PRINTF("Found Residue\n");return TK_RESIDUE;
+
+ /* ncopies and nhits */
+NCopies DEBUG_PRINTF("Found NCopies\n");return TK_NCOPIES;
+NHits DEBUG_PRINTF("Found NHits\n");return TK_NHITS;
+
+ /* path */
+Path DEBUG_PRINTF("Found Path\n");return TK_PATH;
+
+ /* meta commands */
+\#PrintScanned DEBUG_PRINTF("Found #PrintScanned\n");return TK_META_PRINT_SCANNED;
+\#PrintFull DEBUG_PRINTF("Found #PrintFull\n");return TK_META_PRINT_FULL;
+
+ /* recognizing number */
+{DOUBLE}|{SCI_DOUBLE} DEBUG_PRINTF("Found Double: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb);return TK_DOUBLE;
+{UNSIGNED_INT} DEBUG_PRINTF("Found UnsignedInteger: %s\n",yytext);sscanf(yytext,"%d",&yylval->unsigned_int_numb);return TK_UNSIGNED_INT;
+{SIGNED_INT} DEBUG_PRINTF("Found SignedInteger: %s\n",yytext);sscanf(yytext,"%d",&yylval->int_numb);return TK_SIGNED_INT;
+
+ /* time and space */
+L DEBUG_PRINTF("Found L\n");return TK_L;
+T DEBUG_PRINTF("Found T\n");return TK_T;
+
+ /* coupling */
+Beta DEBUG_PRINTF("Found Beta\n");return TK_BETA;
+
+ /* kind of gauge actions */
+GaugeAction DEBUG_PRINTF("Found GaugeAction\n");return TK_GAUGE_ACTION;
+Wilson DEBUG_PRINTF("Found Wilson\n");return TK_WILSON;
+
+ /* topo potential */
+Meta DEBUG_PRINTF("Found Meta\n");return TK_META;
+TopoPotential DEBUG_PRINTF("Found TopoPotential\n");return TK_TOPO_POTENTIAL;
+
+ /* quark content */
+Quark DEBUG_PRINTF("Found Quark\n");return TK_QUARK;
+Degeneracy DEBUG_PRINTF("Found Degeneracy\n");return TK_DEGENERACY;
+Mass DEBUG_PRINTF("Found Mass\n");return TK_MASS;
+RePotCh  DEBUG_PRINTF("Found RePotCh\n");return TK_RE_POT_CH;
+ImPotCh  DEBUG_PRINTF("Found ImPotCh\n");return TK_IM_POT_CH;
+ElecCharge  DEBUG_PRINTF("Found ElecCharge\n");return TK_ELEC_CHARGE;
+
+ /* stout parameters */
+GlobalStoutPars DEBUG_PRINTF("Found GlobalStoutPars\n");return TK_GLOBAL_STOUT_PARS;
+NLevels DEBUG_PRINTF("Found NLevels\n");return TK_NLEVELS;
+Rho DEBUG_PRINTF("Found Rho\n");return TK_RHO;
+
+ /* background field parameters */
+BkgrdEMField DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
+Bx DEBUG_PRINTF("Found Bx\n");yylval->unsigned_int_numb=0;return TK_B_COMP;
+By DEBUG_PRINTF("Found By\n");yylval->unsigned_int_numb=1;return TK_B_COMP;
+Bz DEBUG_PRINTF("Found Bz\n");yylval->unsigned_int_numb=2;return TK_B_COMP;
+Ex DEBUG_PRINTF("Found Ex\n");yylval->unsigned_int_numb=0;return TK_E_COMP;
+Ey DEBUG_PRINTF("Found Ey\n");yylval->unsigned_int_numb=1;return TK_E_COMP;
+Ez DEBUG_PRINTF("Found Ez\n");yylval->unsigned_int_numb=2;return TK_E_COMP;
+
+ /* measure pseudo correlators */
+PseudoCorrelators DEBUG_PRINTF("Found PseudoCorrelators\n");return TK_PSEUDO_CORRELATORS;
+
+ /* measure nucleon correlators */
+NucleonCorrelators DEBUG_PRINTF("Found NucleonCorrelators\n");return TK_NUCLEON_CORRELATORS;
+
+ /* measure fermionic putpourri */
+FermionicPutpourri DEBUG_PRINTF("Found FermionicPutpourri\n");return TK_FERMIONIC_PUTPOURRI;
+ComputeSusceptivities  DEBUG_PRINTF("Found ComputeSusceptivities\n");return TK_COMPUTE_SUSCEPTIVITIES;
+
+ /* quark rendens */
+QuarkRendens DEBUG_PRINTF("Found QuarkRendens\n");return TK_QUARK_RENDENS;
+
+ /* crash if finds unexpected word or unrecognized char */
+\#{LETTER}{ALNUM}* crash("found unexpected preprocessor directive %s",yytext);
+{LETTER}{ALNUM}* crash("found unexpected string %s",yytext);
+{ANY} crash("found unexpected char %c",yytext[0]);
+
+%%
+
+//initializator
+driver_t::driver_t(FILE *ext)
+{
+  fin=ext;
+  
+  init_scanner();
+}
+
+//initialize the scanner
+void driver_t::init_scanner()
+{
+    L=default_L;
+    T=default_T;
+    beta=default_beta;
+    gauge_action_name=default_gauge_action_name;
+    
+    yylex_init(&scanner);
+    yyset_extra(this,scanner);
+}
+
+//destroy the scanner
+void driver_t::destroy_scanner()
+{
+  yylex_destroy(scanner);
+}

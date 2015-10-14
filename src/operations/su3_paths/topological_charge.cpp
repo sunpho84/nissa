@@ -477,11 +477,11 @@ namespace nissa
 	  }
 	break;
       case smooth_pars_t::STOUTING:
-	for(int ilev=0;ilev<=(stp.nlevls/int_each)*int_each;ilev++)
+	for(int ilev=0;ilev<=(stp.nlevels/int_each)*int_each;ilev++)
 	  {
 	    //fix to stout for "meas_each"
 	    stout_pars_t iter_pars=stp;
-	    iter_pars.nlevls=sp.meas_each;
+	    iter_pars.nlevels=sp.meas_each;
 	    
 	    if(ilev%int_each==0)
 	      {
@@ -491,7 +491,7 @@ namespace nissa
 		master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,ilev,tot_charge,plaq);
 		verbosity_lv2_master_printf("Topological charge after %d stouting levels: %+16.16lg, plaquette: %16.16lg\n",ilev,tot_charge,plaq);
 	      }
-	    if(ilev!=stp.nlevls) stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
+	    if(ilev!=stp.nlevels) stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
 	  }
 	break;
       case smooth_pars_t::WFLOWING:
@@ -511,8 +511,9 @@ namespace nissa
 	break;
       case smooth_pars_t::ADAPTATIVE_STOUTING:
 	{
+	  /*
 	  double tot_rho=0;
-	  for(int ilev=0;ilev<=asp.nlevls;ilev++)
+	  for(int ilev=0;ilev<=asp.nlevels;ilev++)
 	    {
 	      if(ilev%int_each==0)
 		{
@@ -522,13 +523,15 @@ namespace nissa
 		  master_fprintf(file,"%d %lg %+16.16lg %16.16lg\n",iconf,tot_rho,tot_charge,plaq);
 		  verbosity_lv2_master_printf("Topological charge after %lg tot stouting: %+16.16lg, plaquette: %16.16lg\n",tot_rho,tot_charge,plaq);
 		}
-	      if(ilev!=asp.nlevls)
+	      if(ilev!=asp.nlevels)
 		{
 		  stout_pars_t iter_pars(1,asp.rho[ilev]);
 		  stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
 		  tot_rho+=asp.rho[ilev];
 		}
 	    }
+	  */
+	  crash("not fully available");
 	}
 	break;
       default:
@@ -643,7 +646,7 @@ namespace nissa
       {
 	double charge;
 	quad_su3 *conf[2];
-	if(stout_pars.nlevls==0)
+	if(stout_pars.nlevels==0)
 	  {
 	    conf[0]=ext_conf[0];
 	    conf[1]=ext_conf[1];
@@ -660,7 +663,7 @@ namespace nissa
 	update(iconf,charge);
 	
 	//free if needed
-	if(stout_pars.nlevls!=0)
+	if(stout_pars.nlevels!=0)
 	  {
 	    nissa_free(conf[0]);
 	    nissa_free(conf[1]);

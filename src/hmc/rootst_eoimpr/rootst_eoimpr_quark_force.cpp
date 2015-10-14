@@ -131,7 +131,7 @@ namespace nissa
   //take into account the stout remapping procedure
   THREADABLE_FUNCTION_7ARG(compute_rootst_eoimpr_quark_force, quad_su3**,F, quad_su3**,conf, color***,pf, theory_pars_t*,physics, rat_approx_t*,appr, int*,npfs, double,residue)
   {
-    int nlevls=physics->stout_pars.nlevls;
+    int nlevls=physics->stout_pars.nlevels;
     
     //first of all we take care of the trivial case
     if(nlevls==0) compute_rootst_eoimpr_quark_force_no_stout_remapping(F,conf,pf,physics,appr,npfs,residue);

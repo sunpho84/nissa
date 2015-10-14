@@ -39,7 +39,7 @@ namespace nissa
   double topotential_action(quad_su3 **ext_conf,topotential_pars_t &pars)
   {
     quad_su3 *conf[2];
-    if(pars.stout_pars.nlevls==0)
+    if(pars.stout_pars.nlevels==0)
       {
         conf[0]=ext_conf[0];
         conf[1]=ext_conf[1];
@@ -70,7 +70,7 @@ namespace nissa
       }
     
     //free if it was allocated
-    if(pars.stout_pars.nlevls!=0) for(int eo=0;eo<2;eo++) nissa_free(conf[eo]);
+    if(pars.stout_pars.nlevels!=0) for(int eo=0;eo<2;eo++) nissa_free(conf[eo]);
     
     return topo_action;
   }

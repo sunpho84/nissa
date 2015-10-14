@@ -38,13 +38,12 @@ namespace nissa
     GET_THREAD_ID();
     int ret=0;
     
-    if(rank==0 && IS_MASTER_THREAD)
-      {
-	va_list ap;
-	va_start(ap,format);
-	ret=vfprintf(stream,format,ap);
-	va_end(ap);
-      }
+    va_list ap;
+    va_start(ap,format);
+    char s[1024];
+    ret=vsnprintf(s,1024,format,ap);
+    if(rank==0 && IS_MASTER_THREAD) fputs(s,stream);
+    va_end(ap);
     
     return ret;
   }
@@ -68,24 +67,24 @@ namespace nissa
   {fprintf_friendly_units(fout,quant,1024,"Bytes");}
   
   //create a dir
-  int create_dir(char *path)
+  int create_dir(std::string path)
   {
-    int res=(rank==0) ? mkdir(path,480) : 0;
+    int res=(rank==0) ? mkdir(path.c_str(),480) : 0;
     MPI_Bcast(&res,1,MPI_INT,0,MPI_COMM_WORLD);
     if(res!=0)
-      master_printf("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path,res);
+      master_printf("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path.c_str(),res);
     
     return res;
   }
   
   //copy a file
-  int cp(char *path_out,char *path_in)
+  int cp(std::string path_out,std::string path_in)
   {
     int rc=0;
     if(rank==0)
       {
 	char command[1024];
-	sprintf(command,"cp %s %s",path_in,path_out);
+	sprintf(command,"cp %s %s",path_in.c_str(),path_out.c_str());
 	rc=system(command);
 	if(rc!=0) crash("cp failed!");
       }
@@ -94,40 +93,40 @@ namespace nissa
   }
   
   //pass to the folder
-  int cd(const char *path)
+  int cd(std::string path)
   {
     int rc=0;
     if(rank==0)
       {
 	char command[1024];
-	sprintf(command,"cd %s",path);
+	sprintf(command,"cd %s",path.c_str());
 	rc=system(command);
-	if(rc!=0) crash("cd failed!");
+	if(rc!=0) crash("cd to %s failed!",path.c_str());
       }
     
     return broadcast(rc);
   }
   
   //Open a file checking it
-  FILE* open_file(const char *outfile,const char *mode)
+  FILE* open_file(std::string outfile,const char *mode)
   {
     FILE *fout=NULL;
     
     if(rank==0)
       {
-	fout=fopen(outfile,mode);
-	if(fout==NULL) crash("Couldn't open the file: %s for mode: %s",outfile,mode);
+	fout=fopen(outfile.c_str(),mode);
+	if(fout==NULL) crash("Couldn't open file: \"%s\" with mode: \"%s\"",outfile.c_str(),mode);
       }
     
     return fout;
   }
   
   //Open a text file for output
-  FILE* open_text_file_for_output(const char *outfile)
+  FILE* open_text_file_for_output(std::string outfile)
   {return open_file(outfile,"w");}
   
   //Open a text file for input
-  FILE* open_text_file_for_input(const char *infile)
+  FILE* open_text_file_for_input(std::string infile)
   {return open_file(infile,"r");}
   
   //close an open file
@@ -135,7 +134,7 @@ namespace nissa
   {if(rank==0) fclose(file);}
   
   //count the number of lines in a file
-  int count_file_lines(const char *path)
+  int count_file_lines(std::string path)
   {
     //return -1 if file does not exist
     if(!file_exists(path)) return -1;
@@ -156,7 +155,7 @@ namespace nissa
   }
   
   //get the size of a file
-  int get_file_size(const char *path)
+  int get_file_size(std::string path)
   {
     //return -1 if file does not exist
     if(!file_exists(path)) return -1;

@@ -2,6 +2,7 @@
 aclocal.m4
 autom4te.cache/
 build_bgq_emu/
+build_opt/
 build_pc
 compile_commands.json
 config/compile

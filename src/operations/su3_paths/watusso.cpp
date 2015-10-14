@@ -68,7 +68,7 @@ namespace nissa
 	
 	//compute the watusso
 	int nu=0;
-	for(int imu=0;imu<3;imu++)
+	for(int imu=0;imu<NDIM-1;imu++)
 	  {
 	    int mu=perp_dir[nu][imu];
 	    
@@ -87,7 +87,7 @@ namespace nissa
 	    complex small_trace;
 	    complex_vector_glb_collapse(small_trace,loc_res,loc_vol);
 	    
-	    master_fprintf(fout," ### APE = ( %lg , %d ) , nu = %d , mu = %d , 1/3<trU> = %+016.016lg %+016.016lg\n\n",smear_pars->ape_spat_alpha,this_niters,nu,mu,small_trace[RE]/glb_vol/3,small_trace[IM]/glb_vol/3);
+	    master_fprintf(fout," ### APE = ( %lg , %d ) , nu = %d , mu = %d , 1/3<trU> = %+016.016lg %+016.016lg\n\n",smear_pars->ape_spat_alpha,this_niters,nu,mu,small_trace[RE]/glb_vol/NCOL,small_trace[IM]/glb_vol/NCOL);
 	    
 	    //elong on both sides the small
 	    int prev_sizeh=0;
@@ -164,8 +164,8 @@ namespace nissa
 		      
 		      //print the output
 		      for(int d=0;d<2*dmax+1;d++) master_fprintf(fout,"%+d %+016.16lg %+016.16lg %+016.016lg %+016.016lg\n",d-dmax,
-								 conn[d][RE]/(3*glb_vol),conn[d][IM]/(3*glb_vol),
-								 disc[d][RE]/(3*glb_vol),disc[d][IM]/(3*glb_vol));
+								 conn[d][RE]/(NCOL*glb_vol),conn[d][IM]/(NCOL*glb_vol),
+								 disc[d][RE]/(NCOL*glb_vol),disc[d][IM]/(NCOL*glb_vol));
 		      master_fprintf(fout,"\n");
 		      
 		      //increase the perpendicular dimension
