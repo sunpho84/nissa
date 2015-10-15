@@ -271,6 +271,12 @@ namespace nissa
     su2_prodassign_su3(mod,isub_gr,in);
   }
   
+  //return the norm of U-1
+  inline double su2_nonunitarity(double A,double B,double C,double D)
+  {return A*A-2*A+1+B*B+C*C+D*D;}
+  inline double su2_nonunitarity(su2 mod)
+  {return su2_nonunitarity(mod[0][0][RE],mod[0][1][IM],mod[0][1][RE],mod[0][0][IM]);}
+  
   //summ the trace to the input
   inline void su3_summ_the_trace(complex tr,su3 m)
   {for(size_t ic=0;ic<NCOL;ic++) complex_summ(tr,tr,m[ic][ic]);}
@@ -828,47 +834,7 @@ namespace nissa
   }
   
   //perform maximal projection trace up to reaching the machine precision
-  inline void su3_unitarize_maximal_trace_projecting(su3 out,su3 M)
-  {
-    //initialize the guess with the identity - proved to be faster than any good guess,
-    //because iterations are so good
-    su3 U;
-    su3_put_to_id(U);
-    
-    //compute the "product", that means taking dag of M as U=1
-    su3 prod;
-    unsafe_su3_hermitian(prod,M);
-    
-    //traces to go out from loop
-    double new_trace=su3_real_trace(prod);
-    double old_trace;
-    
-    int iter=0;
-    do
-      {
-	//store old trace
-	old_trace=new_trace;
-	
-	//fix subgroup
-	int isub_gr=iter%NCOL;
-	
-	//take the subgroup isub_gr
-	su2 sub;
-	su2_part_of_su3(sub,prod,isub_gr);
-	
-	//modify the subgroup
-	su2_prodassign_su3(sub,isub_gr,U);
-	
-	//modify the prod and compute trace
-	su2_prodassign_su3(sub,isub_gr,prod);
-	new_trace=su3_real_trace(prod);
-	
-	iter++;
-      }
-    while(new_trace>old_trace);
-    
-    su3_copy(out,U);
-  }
+  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M);
   
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
   void su3_find_overrelaxed(su3 out,su3 in,su3 staple,int nov_hits);

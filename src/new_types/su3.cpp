@@ -6,6 +6,53 @@
 
 namespace nissa
 {
+  //make unitary maximazing Trace(out*M^dag)
+  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M)
+  {
+    //initialize the guess with the identity - proved to be faster than any good guess,
+    //because iterations are so good
+    su3 U;
+    su3_put_to_id(U);
+    
+    //compute the "product", that means taking dag of M as U=1
+    su3 prod;
+    unsafe_su3_hermitian(prod,M);
+    
+    int iter=0;
+    double rotating_norm;
+    do
+      {
+	//fix subgroup
+	int isub_gr=iter%NCOL;
+	
+	//take the subgroup isub_gr
+	su2 sub;
+	su2_part_of_su3(sub,prod,isub_gr);
+	
+	//modify the subgroup
+	su2_prodassign_su3(sub,isub_gr,U);
+	
+	//modify the prod
+	su2_prodassign_su3(sub,isub_gr,prod);
+	
+	//condition to exit
+	rotating_norm=sqrt(su2_nonunitarity(sub));
+	
+	iter++;
+	
+	//check
+	if(iter>1000)
+	{
+	    su3_print(U);
+	    su3_print(prod);
+	    crash("%lg",rotating_norm);
+	  }
+      }
+    while(rotating_norm>3e-16);
+    
+    su3_copy(out,U);
+  }
+  
   //return a single link after the heatbath procedure
   //routines to be shrunk!
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen)
