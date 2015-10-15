@@ -68,7 +68,7 @@ namespace nissa
   }
   
   //smear the configuration according to Peardon paper
-  THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, double*,rho)
+  THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, double,rho)
   {
     GET_THREAD_ID();
 #ifdef BENCH
@@ -93,7 +93,7 @@ namespace nissa
 	  {
 	    //compute the staples needed to smear
 	    stout_link_staples sto_ste;
-	    stout_smear_compute_staples(&sto_ste,in,p,A,mu,*rho);
+	    stout_smear_compute_staples(&sto_ste,in,p,A,mu,rho);
 	    
 	    //exp(iQ)*U (eq. 3)
 	    su3 expiQ;
@@ -126,7 +126,7 @@ namespace nissa
       {
       case 0: if(ext_out!=ext_in) for(int eo=0;eo<2;eo++) vector_copy(ext_out[eo],ext_in[eo]);break;
       case 1:
-	stout_smear_single_level(ext_out,ext_in,&(stout_pars->rho));
+	stout_smear_single_level(ext_out,ext_in,stout_pars->rho);
 	verbosity_lv2_master_printf("sme_step 1, plaquette: %16.16lg\n",global_plaquette_eo_conf(ext_out));
 	break;
       default:
@@ -142,7 +142,7 @@ namespace nissa
 	
 	for(int i=0;i<stout_pars->nlevels;i++)
 	  {
-	    stout_smear_single_level(out,in,&(stout_pars->rho));
+	    stout_smear_single_level(out,in,stout_pars->rho);
             verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i+1,global_plaquette_eo_conf(out));
 	    //next input is current output
 	    in=out;
@@ -187,7 +187,7 @@ namespace nissa
     verbosity_lv2_master_printf("sme_step 0, plaquette: %16.16lg\n",global_plaquette_eo_conf(out[0]));
     for(int i=1;i<=stout_pars->nlevels;i++)
       {
-	stout_smear_single_level(out[i],out[i-1],&(stout_pars->rho));
+	stout_smear_single_level(out[i],out[i-1],stout_pars->rho);
 	verbosity_lv2_master_printf("sme_step %d, plaquette: %16.16lg\n",i,global_plaquette_eo_conf(out[i]));
       }
   }

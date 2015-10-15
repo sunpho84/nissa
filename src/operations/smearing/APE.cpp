@@ -52,10 +52,10 @@ namespace nissa
 		//calculate staples
 		su3 stap,temp1,temp2;
 		su3_put_to_zero(stap);
-		for(int nu=1;nu<4;nu++)                   //  E---F---C   
+		for(int nu=1;nu<4;nu++)                   //  E---F---C
 		  if(nu!=mu)                              //  |   |   | mu
-		    {                                     //  D---A---B   
-		      int A=ivol;                         //   nu    
+		    {                                     //  D---A---B
+		      int A=ivol;                         //   nu
 		      int B=loclx_neighup[A][nu];
 		      int F=loclx_neighup[A][mu];
 		      unsafe_su3_prod_su3(temp1,temp_conf[A][nu],temp_conf[B][mu]);
