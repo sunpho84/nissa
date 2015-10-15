@@ -52,8 +52,8 @@ void in_main(int narg,char **arg)
   char *pathin=arg[3];
   double rho;
   sscanf(arg[4],"%lg",&rho);
-  for(int i=0;i<4;i++) for(int j=0;j<4;j++) stout_pars.rho[i][j]=rho;
-  stout_pars.nlevls=atoi(arg[5]);
+  for(int i=0;i<4;i++) for(int j=0;j<4;j++) stout_pars.rho=rho;
+  stout_pars.nlevels=atoi(arg[5]);
   //char *pathout=arg[6];
   
   //Init the MPI grid 
@@ -75,7 +75,7 @@ void in_main(int narg,char **arg)
   double topo_time=0;
   double cool_time=0;
   
-  for(int ilev=0;ilev<=stout_pars.nlevls;ilev++)
+  for(int ilev=0;ilev<=stout_pars.nlevels;ilev++)
     {
       //compute topocharge
       double charge;
@@ -85,10 +85,10 @@ void in_main(int narg,char **arg)
       
       master_printf("Smearing level: %d plaq: %16.16lg charge: %16.16lg\n",ilev,global_plaquette_eo_conf(conf),charge);
       
-      if(ilev!=stout_pars.nlevls)
+      if(ilev!=stout_pars.nlevels)
 	{
 	  cool_time-=take_time();
-	  stout_smear_single_level(conf,conf,&(stout_pars.rho));
+	  stout_smear_single_level(conf,conf,stout_pars.rho);
 	  //new_cool_eo_conf(conf,0,0);
 	  cool_time+=take_time();
 	}
