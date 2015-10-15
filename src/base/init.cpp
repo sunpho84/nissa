@@ -98,11 +98,11 @@ namespace nissa
     signal(SIGSEGV,signal_handler);
     signal(SIGFPE,signal_handler);
     signal(SIGXCPU,signal_handler);
-
+    
     print_banner();
     
     //print version and configuration and compilation time
-    master_printf("Initializing NISSA, version: %s\n",git_version);
+    master_printf("\nInitializing NISSA, version: %s\n",git_version);
     master_printf("Configured at %s with flags: %s\n",compile_info[0],compile_info[1]);
     master_printf("Compiled at %s of %s\n",compile_info[2],compile_info[3]);
     
