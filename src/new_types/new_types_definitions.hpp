@@ -500,21 +500,21 @@ namespace nissa
     int flag;
     std::string path;
     double residue;
-    int compute_susceptivities;
+    int compute_susc;
     int ncopies;
     int nhits;
     
     int def_flag(){return 0;}
     std::string def_path(){return "lavanda";}
     double def_residue(){return 1e-12;}
-    int def_compute_susceptivities(){return 0;}
+    int def_compute_susc(){return 0;}
     int def_ncopies(){return 1;}
     int def_nhits(){return 1;}
     
     int master_fprintf(FILE *fout,bool full=false);
     
     fermionic_putpourri_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),
-					compute_susceptivities(def_compute_susceptivities()),ncopies(def_ncopies()),nhits(def_nhits()) {}
+					compute_susc(def_compute_susc()),ncopies(def_ncopies()),nhits(def_nhits()) {}
   };
   
   //parameters to compute the quark density and its high-order suscetivities
@@ -527,7 +527,7 @@ namespace nissa
     int nhits;
     
     int def_flag(){return 0;}
-    std::string def_path(){return "rendens";}
+    std::string def_path(){return "rende";}
     double def_residue(){return 1e-12;}
     int def_ncopies(){return 1;}
     int def_nhits(){return 1;}
@@ -573,6 +573,8 @@ namespace nissa
     double def_residue(){return 1e-12;}
     int def_ncopies(){return 1;}
     int def_nhits(){return 1;}
+    
+    int master_fprintf(FILE *fout,bool full=false);
     
     magnetization_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),ncopies(def_ncopies()),nhits(def_nhits()) {}
   };

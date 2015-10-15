@@ -34,8 +34,12 @@
     stout_pars_t *stout_pars;
     pseudo_corr_meas_pars_t *pseudo_corr_meas_pars;
     nucleon_corr_meas_pars_t *nucleon_corr_meas_pars;
+    
     fermionic_putpourri_meas_pars_t *fermionic_putpourri_meas_pars;
     quark_rendens_meas_pars_t *quark_rendens_meas_pars;
+    magnetization_meas_pars_t *magnetization_meas_pars;
+    
+    gauge_obs_meas_pars_t *plaq_pol_meas_pars;
 }
 
 %token TK_L
@@ -106,12 +110,17 @@
 //putpourri
 %token TK_FERMIONIC_PUTPOURRI
 %type <fermionic_putpourri_meas_pars> fermionic_putpourri_meas_pars
-%token TK_COMPUTE_SUSCEPTIVITIES
-%type <unsigned_int_numb> compute_susceptivities
+%token TK_COMPUTE_SUSC
+%type <unsigned_int_numb> compute_susc
 //rendens
 %token TK_QUARK_RENDENS
 %type <quark_rendens_meas_pars> quark_rendens_meas_pars
-
+//magnetization
+%token TK_MAGNETIZATION
+%type <magnetization_meas_pars> magnetization_meas_pars
+//gauge measures
+%token  TK_PLAQ_POL
+%type <plaq_pol_meas_pars>  plaq_pol_meas_pars
 %%
 
 commands: commands command
@@ -130,10 +139,14 @@ global_specify: global_L
               | add_quark
               | global_stout_pars
               | global_bckgr_field
+/////////////// fermionic measures ////////////////
               | global_pseudo_corr_meas
               | global_nucleon_corr_meas
               | global_fermionic_putpourri_meas
               | global_quark_rendens_meas
+              | global_magnetization_meas
+/////////////// gauge measures ////////////////////
+              | global_plaq_pol_meas
 ;
 
 meta_command: meta_print_scanned
@@ -262,6 +275,8 @@ global_pseudo_corr_meas: TK_PSEUDO_CORRELATORS TK_NO {driver->pseudo_corr_meas_p
 pseudo_corr_meas_pars: TK_PSEUDO_CORRELATORS {$$=new pseudo_corr_meas_pars_t;$$->flag=true;}
                      | pseudo_corr_meas_pars each {$$->flag=$2;}
                      | pseudo_corr_meas_pars path {$$->path=$2;}
+                     | pseudo_corr_meas_pars residue {$$->residue=$2;}
+                     | pseudo_corr_meas_pars nhits {$$->nhits=$2;}
 ;
 
 ////////////////////////////////////////////////// NUCLEON CORR //////////////////////////////////////////////////
@@ -273,6 +288,8 @@ global_nucleon_corr_meas: TK_NUCLEON_CORRELATORS TK_NO {driver->nucleon_corr_mea
 nucleon_corr_meas_pars: TK_NUCLEON_CORRELATORS {$$=new nucleon_corr_meas_pars_t;$$->flag=true;}
                       | nucleon_corr_meas_pars each {$$->flag=$2;}
                       | nucleon_corr_meas_pars path {$$->path=$2;}
+                      | nucleon_corr_meas_pars residue {$$->residue=$2;}
+                      | nucleon_corr_meas_pars nhits {$$->nhits=$2;}
 ;
 
 ////////////////////////////////////////////////// FERMIONIC PUPOURRI //////////////////////////////////////////////////
@@ -285,7 +302,7 @@ fermionic_putpourri_meas_pars: TK_FERMIONIC_PUTPOURRI {$$=new fermionic_putpourr
                              | fermionic_putpourri_meas_pars each {$$->flag=$2;}
                              | fermionic_putpourri_meas_pars path {$$->path=$2;}
                              | fermionic_putpourri_meas_pars residue {$$->residue=$2;}
-                             | fermionic_putpourri_meas_pars compute_susceptivities {$$->compute_susceptivities=$2;}
+                             | fermionic_putpourri_meas_pars compute_susc {$$->compute_susc=$2;}
                              | fermionic_putpourri_meas_pars ncopies {$$->ncopies=$2;}
                              | fermionic_putpourri_meas_pars nhits {$$->nhits=$2;}
 ;
@@ -304,7 +321,32 @@ quark_rendens_meas_pars: TK_QUARK_RENDENS {$$=new quark_rendens_meas_pars_t;$$->
                        | quark_rendens_meas_pars nhits {$$->nhits=$2;}
 ;
 
-//////////////////////////////////////////////////// casting //////////////////////////////////////////////////////
+////////////////////////////////////////////////// MAGNETIZATION //////////////////////////////////////////////////
+
+global_magnetization_meas: TK_MAGNETIZATION TK_NO {driver->magnetization_meas_pars.flag=false;}
+                         | magnetization_meas_pars {driver->magnetization_meas_pars=(*$1);delete $1;}
+;
+
+magnetization_meas_pars: TK_MAGNETIZATION {$$=new magnetization_meas_pars_t;$$->flag=true;}
+                       | magnetization_meas_pars each {$$->flag=$2;}
+                       | magnetization_meas_pars path {$$->path=$2;}
+                       | magnetization_meas_pars residue {$$->residue=$2;}
+                       | magnetization_meas_pars ncopies {$$->ncopies=$2;}
+                       | magnetization_meas_pars nhits {$$->nhits=$2;}
+;
+
+/////////////////////////////////////////////////// GAUGE OBS /////////////////////////////////////////////////////
+
+global_plaq_pol_meas: TK_PLAQ_POL TK_NO {driver->plaq_pol_meas_pars.flag=false;}
+                    | plaq_pol_meas_pars {driver->plaq_pol_meas_pars=(*$1);delete $1;}
+;
+
+plaq_pol_meas_pars: TK_PLAQ_POL {$$=new gauge_obs_meas_pars_t;$$->flag=true;}
+                  | plaq_pol_meas_pars each {$$->flag=$2;}
+                  | plaq_pol_meas_pars path {$$->path=$2;}
+;
+
+//////////////////////////////////////////////////// CASTING //////////////////////////////////////////////////////
 
 //cast to a double numb
 real_numb: TK_DOUBLE {$$=$1;master_printf("Copying %lg to double\n",$1);}
@@ -319,6 +361,6 @@ int_numb: TK_UNSIGNED_INT {$$=$1;master_printf("Castying unsgined %d to signed i
 ncopies: TK_NCOPIES '=' TK_UNSIGNED_INT {$$=$3;};
 nhits: TK_NHITS '=' TK_UNSIGNED_INT {$$=$3;};
 
-compute_susceptivities: TK_COMPUTE_SUSCEPTIVITIES '=' TK_UNSIGNED_INT {$$=$3;};
+compute_susc: TK_COMPUTE_SUSC '=' TK_UNSIGNED_INT {$$=$3;};
 
 path: TK_PATH '=' TK_QUOTED_TEXT {$$=$3;};

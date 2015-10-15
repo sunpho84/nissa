@@ -163,18 +163,16 @@ Ex DEBUG_PRINTF("Found Ex\n");yylval->unsigned_int_numb=0;return TK_E_COMP;
 Ey DEBUG_PRINTF("Found Ey\n");yylval->unsigned_int_numb=1;return TK_E_COMP;
 Ez DEBUG_PRINTF("Found Ez\n");yylval->unsigned_int_numb=2;return TK_E_COMP;
 
- /* measure pseudo correlators */
+ /* fermionic measures */
 PseudoCorrelators DEBUG_PRINTF("Found PseudoCorrelators\n");return TK_PSEUDO_CORRELATORS;
-
- /* measure nucleon correlators */
 NucleonCorrelators DEBUG_PRINTF("Found NucleonCorrelators\n");return TK_NUCLEON_CORRELATORS;
-
- /* measure fermionic putpourri */
 FermionicPutpourri DEBUG_PRINTF("Found FermionicPutpourri\n");return TK_FERMIONIC_PUTPOURRI;
-ComputeSusceptivities  DEBUG_PRINTF("Found ComputeSusceptivities\n");return TK_COMPUTE_SUSCEPTIVITIES;
-
- /* quark rendens */
+ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
 QuarkRendens DEBUG_PRINTF("Found QuarkRendens\n");return TK_QUARK_RENDENS;
+Magnetization DEBUG_PRINTF("Found Magnetization\n");return TK_MAGNETIZATION;
+
+ /* gauge measures */
+PlaqPol  DEBUG_PRINTF("Found PlaqPol\n");return TK_PLAQ_POL;
 
  /* crash if finds unexpected word or unrecognized char */
 \#{LETTER}{ALNUM}* crash("found unexpected preprocessor directive %s",yytext);

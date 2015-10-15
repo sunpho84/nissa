@@ -41,6 +41,10 @@ public:
   nucleon_corr_meas_pars_t nucleon_corr_meas_pars;
   fermionic_putpourri_meas_pars_t fermionic_putpourri_meas_pars;
   quark_rendens_meas_pars_t quark_rendens_meas_pars;
+  magnetization_meas_pars_t magnetization_meas_pars;
+  
+  //gauge measures
+  gauge_obs_meas_pars_t plaq_pol_meas_pars;
   
   int master_fprintf(FILE *fout,bool full=false)
   {
@@ -71,14 +75,14 @@ public:
     if(stout_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //global em field pars
     if(em_field_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    //pseudo correlators pars
+    //fermionic measures
     if(pseudo_corr_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    //nucleon correlators pars
     if(nucleon_corr_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    //fermionic putpourri
     if(fermionic_putpourri_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    //quark rendens
     if(quark_rendens_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    if(magnetization_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    //gauge masures
+    if(plaq_pol_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     
     return nprinted;
   }
