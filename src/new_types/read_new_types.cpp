@@ -241,7 +241,7 @@ namespace nissa
       {
 	pars.path=read_path();
 	read_str_double("InvResidue",&pars.residue);
-	read_str_int("ComputeSusceptivities",&pars.compute_susceptivities);
+	read_str_int("ComputeSusceptivities",&pars.compute_susc);
 	read_str_int("NCopies",&pars.ncopies);
 	read_str_int("NHits",&pars.nhits);
       }
