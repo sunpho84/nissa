@@ -12,6 +12,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/create/create_cold \
 	$(top_builddir)/tools/conf_transform/create/create_hot \
 	$(top_builddir)/tools/conf_transform/gaugefix/landau \
+	$(top_builddir)/tools/conf_transform/gaugefix/random \
 	$(top_builddir)/tools/conf_transform/smear/stout \
 	$(top_builddir)/tools/conf_transform/edit/grab_ildg_data \
 	$(top_builddir)/tools/conf_transform/edit/skip_random \
@@ -31,6 +32,7 @@ __top_builddir__tools_conf_transform_convert_ildg_to_gpu_SOURCES=conf_transform/
 __top_builddir__tools_conf_transform_create_create_cold_SOURCES=conf_transform/create/create_cold.cpp
 __top_builddir__tools_conf_transform_create_create_hot_SOURCES=conf_transform/create/create_hot.cpp
 __top_builddir__tools_conf_transform_gaugefix_landau_SOURCES=conf_transform/gaugefix/landau.cpp
+__top_builddir__tools_conf_transform_gaugefix_random_SOURCES=conf_transform/gaugefix/random.cpp
 __top_builddir__tools_conf_transform_smear_stout_SOURCES=conf_transform/smear/stout.cpp
 __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES=conf_transform/edit/grab_ildg_data.cpp
 __top_builddir__tools_conf_transform_edit_skip_random_SOURCES=conf_transform/edit/skip_random.cpp
