@@ -2025,6 +2025,7 @@ void print_correlations()
 	    }
   close_file(fout);
   
+  if(0)
   {
     //open file and reduce
     FILE *fout=open_file(combine("%s/corr_hl_chris",outfolder).c_str(),"w");
