@@ -41,10 +41,17 @@ namespace nissa
 	iter++;
 	
 	//check
+	const int niter_max=1000;
 	if(iter>1000)
-	{
+	  {
+	    master_printf("strange! we arrived to %d iter, that was set to be the maximum\n");
+	    master_printf("Here you are the input link:\n");
+	    su3_print(M);
+	    master_printf("Here you are the current maxtrace link:\n");
 	    su3_print(U);
+	    master_printf("This is meant to be the product:\n");
 	    su3_print(prod);
+	    master_printf("The norm was: %16.16lg\n",rotating_norm);
 	    crash("%lg",rotating_norm);
 	  }
       }
