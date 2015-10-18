@@ -35,3 +35,6 @@ const spin ompg0_eig[2][2]={{{{+W, 0},{ 0, 0},{+W, 0},{ 0, 0}},
 //sign of the lepton momentum
 const int norie=2;
 const int sign_orie[2]={-1,+1};
+
+const int nins=2;
+const int nrev=2;

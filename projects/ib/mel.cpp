@@ -13,6 +13,9 @@ using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
 
+const int nr_max=2; //for debug
+const int norie_max=2;
+
 int loc_pion_curr;
 int loc_muon_curr;
 
@@ -488,7 +491,7 @@ void generate_quark_propagators()
     {
       master_printf("Generating propagtor of type %s inserting %s on source %s\n",prop_name[prop_map[ip]],ins_name[insertion_map[ip]],prop_name[source_map[ip]]);
       for(int imass=0;imass<nqmass;imass++)
-	for(int r=0;r<nr;r++)
+	for(int r=0;r<nr_max;r++)
 	  {
 	    if(!pure_wilson) master_printf(" mass[%d]=%lg, r=%d\n",imass,qmass[imass],r);
 	    else             master_printf(" kappa[%d]=%lg\n",imass,qkappa[imass]);
@@ -996,9 +999,9 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
   master_printf("Generating lepton propagators for time %d\n",t2); //added for chris
   
   for(int ilepton=0;ilepton<nleptons;ilepton++)
-    for(int ori=0;ori<norie;ori++)
+    for(int ori=0;ori<norie_max;ori++)
       for(int phi_eta_alt=0;phi_eta_alt<nphi_eta_alt;phi_eta_alt++)
-	for(int r=0;r<nr;r++)
+	for(int r=0;r<nr_max;r++)
 	  {
 	    //set the properties of the meson
 	    //time boundaries are anti-periodic, space are as for external line
@@ -1288,7 +1291,7 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
     master_printf("------------------\n");
   }
   
-  for(int r=0;r<nr;r++)
+  for(int r=0;r<nr_max;r++)
   {
     master_printf("Projection of the lepton propagator (r=%d) multiplied by time conserved current on the source, should get c[1]=-0.001147877620189829\n",r);
     
@@ -1328,7 +1331,7 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
     master_printf("------------------\n");
   }
 
-  for(int r=0;r<nr;r++)
+  for(int r=0;r<nr_max;r++)
   {
     master_printf("Projection of the lepton propagator (r=%d) multiplied by full conserved current on the source, should get c[1]=-0.001147877620189519\n",r);
     
@@ -1367,7 +1370,7 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
     master_printf("------------------\n");
   }
 
-  for(int r=0;r<nr;r++)
+  for(int r=0;r<nr_max;r++)
   {
     master_printf("Projection of the lepton propagator (r=%d) multiplied by full photon \"i\" field on the source, should get c[1]=-0.001147877620189519 as before\n",r);
     
@@ -1495,8 +1498,8 @@ THREADABLE_FUNCTION_0ARG(compute_lepton_free_loop)
     //crash("ciao");
       
   for(int ilepton=0;ilepton<nleptons;ilepton++)
-    for(int orie=0;orie<norie;orie++)
-      for(int rl=0;rl<nr;rl++)
+    for(int orie=0;orie<norie_max;orie++)
+      for(int rl=0;rl<nr_max;rl++)
 	{
 	  //set the properties of the meson
 	  //time boundaries are anti-periodic, space are as for external line
@@ -1602,7 +1605,7 @@ void compute_hadronic_correlations()
   for(int icombo=0;icombo<ncombo_hadr_corr;icombo++)
     for(int imass=0;imass<nqmass;imass++)
       for(int jmass=0;jmass<nqmass;jmass++)
-	for(int r=0;r<nr;r++)
+	for(int r=0;r<nr_max;r++)
 	  {
 	    //compute the correlation function
 	    meson_two_points_Wilson_prop(glb_corr,loc_corr,ig_hadr_so,Q[iqprop(imass,prop1_hadr_map[icombo],r)],ig_hadr_si,Q[iqprop(jmass,prop2_hadr_map[icombo],r)],nhadr_contr);
@@ -1868,18 +1871,21 @@ THREADABLE_FUNCTION_2ARG(do_not_attach_leptonic_correlation, spinspin*,hadr, int
 }
 THREADABLE_FUNCTION_END
 
+//return the index of the combination of r, orientation, etc
+int hadrolept_corrpack_ind(int rl,int orie,int r2,int iphi_eta_alt,int irev,int qins,int ilepton)
+{return rl+nr*(orie+norie*(r2+nr*(iphi_eta_alt+nphi_eta_alt*(irev+nrev*(qins+nins*ilepton)))));}
+
 //compute the total hadroleptonic correlation functions
 void compute_hadroleptonic_correlations()
 {
   master_printf("Computing leptonic correlation functions\n");
   lept_contr_time-=take_time();
   
-  int ind=0;
-  for(int ilepton=0;ilepton<nleptons;ilepton++)
-    for(int qins=0;qins<2;qins++)
-      for(int irev=0;irev<2;irev++)
+ for(int ilepton=0;ilepton<nleptons;ilepton++)
+    for(int qins=0;qins<nins;qins++)
+      for(int irev=0;irev<nrev;irev++)
 	for(int iphi_eta_alt=0;iphi_eta_alt<nphi_eta_alt;iphi_eta_alt++)
-	  for(int r2=0;r2<nr;r2++)
+	  for(int r2=0;r2<nr_max;r2++)
 	    {
 	      //takes the index of the quarks
 	      int iq1=lep_corr_iq1[ilepton];
@@ -1906,16 +1912,16 @@ void compute_hadroleptonic_correlations()
 	      //compute the hadronic part
 	      hadronic_part_leptonic_correlation(hadr,Q[ip1],Q[ip2]);
 	      
-	      for(int orie=0;orie<2;orie++)
-		for(int rl=0;rl<nr;rl++)
+	      for(int orie=0;orie<norie_max;orie++)
+		for(int rl=0;rl<nr_max;rl++)
 		  {
 		    //contract with lepton
 		    //ANNA2 //added for chris
 		    int PHI_ETA_ALT_bis[nphi_eta_alt]={ieta,iphi,ialt};
 		    int iprop=ilprop(ilepton,orie,PHI_ETA_ALT_bis[iphi_eta_alt],rl,glb_size[0]); //notice inversion of phi/eta w.r.t hadron side
+		    int ind=hadrolept_corrpack_ind(rl,orie,r2,iphi_eta_alt,irev,qins,ilepton);
 		    attach_leptonic_correlation(hadr,iprop,ilepton,orie,rl,ind);
 		    //do_not_attach_leptonic_correlation(hadr,ind);
-		    ind++;
 		  }
 	    }
   
@@ -1928,12 +1934,11 @@ void compute_hadroleptonic_correlations_chris(int t1,int t2)
   master_printf("Computing leptonic correlation functions for Chris, t1=%d t2=%d\n",t1,t2);
   lept_contr_time-=take_time();
   
-  int ind=0;
   for(int ilepton=0;ilepton<nleptons;ilepton++)
-    for(int qins=0;qins<2;qins++)
-      for(int irev=0;irev<2;irev++)
+    for(int qins=0;qins<nins;qins++)
+      for(int irev=0;irev<norie_max;irev++)
 	for(int iphi_eta_alt=0;iphi_eta_alt<nphi_eta_alt;iphi_eta_alt++)
-	  for(int r2=0;r2<nr;r2++)
+	  for(int r2=0;r2<nr_max;r2++)
 	    {
 	      //takes the index of the quarks
 	      int iq1=lep_corr_iq1[ilepton];
@@ -1960,13 +1965,14 @@ void compute_hadroleptonic_correlations_chris(int t1,int t2)
 	      //compute the hadronic part
 	      hadronic_part_leptonic_correlation(hadr,Q[ip1],Q[ip2]);
 	      
-	      for(int orie=0;orie<2;orie++)
-		for(int rl=0;rl<nr;rl++)
+	      for(int orie=0;orie<norie_max;orie++)
+		for(int rl=0;rl<nr_max;rl++)
 		  {
 		    //contract with lepton
 		    //ANNA2
 		    qprop_t PHI_ETA_ALT_bis[nphi_eta_alt]={PROP_ETA,PROP_PHI,PROP_ALT};
 		    int iprop=ilprop(ilepton,orie,PHI_ETA_ALT_bis[iphi_eta_alt],rl,t2); //notice inversion of phi/eta w.r.t hadron side
+		    int ind=hadrolept_corrpack_ind(rl,orie,r2,iphi_eta_alt,irev,qins,ilepton);
 		    attach_leptonic_correlation_chris(hadr,iprop,ilepton,orie,rl,ind,t1,t2);
 		    //do_not_attach_leptonic_correlation(hadr,ind);
 		    ind++;
@@ -1986,10 +1992,9 @@ void print_correlations()
   glb_nodes_reduce_complex_vect(hadrolept_corr,glb_size[0]*nweak_ind*nhadrolept_proj*nind);
   
   //write down
-  int ext_ind=0;
   for(int ilepton=0;ilepton<nleptons;ilepton++)
-    for(int qins=0;qins<2;qins++)
-      for(int irev=0;irev<2;irev++)
+    for(int qins=0;qins<nins;qins++)
+      for(int irev=0;irev<nrev;irev++)
 	for(int iphi_eta_alt=0;iphi_eta_alt<nphi_eta_alt;iphi_eta_alt++)
 	  for(int r2=0;r2<nr;r2++)
 	    {
@@ -1997,7 +2002,7 @@ void print_correlations()
 	      int iq1=lep_corr_iq1[ilepton];
 	      int iq2=lep_corr_iq2[ilepton];
 	      if(irev==1) std::swap(iq1,iq2);
-	      for(int orie=0;orie<2;orie++)
+	      for(int orie=0;orie<norie;orie++)
 		for(int rl=0;rl<nr;rl++)
 		  {
 		    if(!pure_wilson) master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
@@ -2010,12 +2015,12 @@ void print_correlations()
 			  master_fprintf(fout," # qins=%s lins=%s proj=%s\n\n",list_weak_ind_nameq[ind],list_weak_ind_namel[ind],gtag[hadrolept_projs[ig_proj]]);
 			  for(int t=0;t<glb_size[0];t++)
 			    {
-			      int i=t+glb_size[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*ext_ind));
+			      int corrpack_ind=hadrolept_corrpack_ind(rl,orie,r2,iphi_eta_alt,irev,qins,ilepton);
+			      int i=t+glb_size[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*corrpack_ind));
 			      master_fprintf(fout,"%+016.16lg %+016.16lg\n",hadrolept_corr[i][RE]/nsources,hadrolept_corr[i][IM]/nsources);
 			    }
 			  master_fprintf(fout,"\n");
 			}
-		    ext_ind++;
 		  }
 	    }
   close_file(fout);
@@ -2028,8 +2033,8 @@ void print_correlations()
     //write down
     int ext_ind=0;
     for(int ilepton=0;ilepton<nleptons;ilepton++)
-      for(int qins=0;qins<2;qins++)
-	for(int irev=0;irev<2;irev++)
+      for(int qins=0;qins<nins;qins++)
+	for(int irev=0;irev<nrev;irev++)
 	  for(int iphi_eta_alt=0;iphi_eta_alt<nphi_eta_alt;iphi_eta_alt++)
 	    for(int r2=0;r2<nr;r2++)
 	      {
@@ -2037,7 +2042,7 @@ void print_correlations()
 		int iq1=lep_corr_iq1[ilepton];
 		int iq2=lep_corr_iq2[ilepton];
 		if(irev==1) std::swap(iq1,iq2);
-		for(int orie=0;orie<2;orie++)
+		for(int orie=0;orie<norie;orie++)
 		  for(int rl=0;rl<nr;rl++)
 		    {
 		      if(!pure_wilson) master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d ins=%s rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
@@ -2175,7 +2180,7 @@ void in_main(int narg,char **arg)
       //setup the conf and generate the source
       start_new_conf();
       
-      compute_lepton_free_loop();
+      //compute_lepton_free_loop();
       
       for(int isource=0;isource<nsources;isource++)
 	{
