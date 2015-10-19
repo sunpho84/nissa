@@ -42,17 +42,17 @@ namespace nissa
 	
 	//check
 	const int niter_max=1000;
-	if(iter>1000)
+	if(iter>niter_max*0.9)
 	  {
-	    master_printf("strange! we arrived to %d iter, that was set to be the maximum\n");
-	    master_printf("Here you are the input link:\n");
+	    printf("strange! we arrived to %d iter, that was set to be the maximum\n");
+	    printf("Here you are the input link:\n");
 	    su3_print(M);
-	    master_printf("Here you are the current maxtrace link:\n");
+	    printf("Here you are the current maxtrace link:\n");
 	    su3_print(U);
-	    master_printf("This is meant to be the product:\n");
+	    printf("This is meant to be the product:\n");
 	    su3_print(prod);
-	    master_printf("The norm was: %16.16lg\n",rotating_norm);
-	    crash("%lg",rotating_norm);
+	    printf("The norm was: %16.16lg\n",rotating_norm);
+	    if(iter>niter_max) crash("%lg",rotating_norm);
 	  }
       }
     while(rotating_norm>3e-16);
