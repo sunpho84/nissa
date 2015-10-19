@@ -19,43 +19,50 @@ namespace nissa
     unsafe_su3_hermitian(prod,M);
     
     int iter=0;
-    double rotating_norm;
+    //master_printf("iter: %d\n",iter);
+    double rotating_norm=1e300;
+    int converged=false;
     do
       {
-	//fix subgroup
-	int isub_gr=iter%NCOL;
-	
-	//take the subgroup isub_gr
-	su2 sub;
-	su2_part_of_su3(sub,prod,isub_gr);
-	
-	//modify the subgroup
-	su2_prodassign_su3(sub,isub_gr,U);
-	
-	//modify the prod
-	su2_prodassign_su3(sub,isub_gr,prod);
-	
-	//condition to exit
-	rotating_norm=sqrt(su2_nonunitarity(sub));
-	
+	for(int overrelax=0;((overrelax<3) && (!converged));overrelax++)
+	  for(int isub_gr=0;((isub_gr<NCOL) && (!converged));isub_gr++)
+	    {
+	      //take the subgroup isub_gr
+	      double r0,r1,r2,r3;
+	      su2_part_of_su3(r0,r1,r2,r3,prod,isub_gr);
+	      
+	      //form the matrix
+	      if(overrelax) su2_get_overrelaxing(r0,r1,r2,r3, r0,r1,r2,r3);
+	      else          su2_inv(r0,r1,r2,r3, r0,r1,r2,r3);
+	      
+	      //modify the subgroup and the product
+	      su2_prodassign_su3(r0,r1,r2,r3,isub_gr,U);
+	      su2_prodassign_su3(r0,r1,r2,r3,isub_gr,prod);
+	      
+	      //condition to exit
+	      if(!overrelax) rotating_norm=sqrt(su2_nonunitarity(r0,r1,r2,r3));
+	      converged=(rotating_norm<1e-15);
+	    }
 	iter++;
+	
+	su3_unitarize_explicitly_inverting(U,U);
 	
 	//check
 	const int niter_max=1000;
 	if(iter>niter_max*0.9)
 	  {
-	    printf("strange! we arrived to %d iter, that was set to be the maximum\n",iter);
+	    printf("We arrived to %d iter, that was set to be the maximum\n",iter);
 	    printf("Here you are the input link:\n");
 	    su3_print(M);
 	    printf("Here you are the current maxtrace link:\n");
 	    su3_print(U);
 	    printf("This is meant to be the product:\n");
 	    su3_print(prod);
-	    printf("The norm was: %16.16lg\n",rotating_norm);
+	    printf("The norm was: %16.16lg and the trace: %16.16lg\n",rotating_norm,su3_real_trace(prod));
 	    if(iter>niter_max) crash("%lg",rotating_norm);
 	  }
       }
-    while(rotating_norm>1e-15);
+    while(!converged);
     
     su3_copy(out,U);
   }
@@ -119,7 +126,7 @@ namespace nissa
   //return a single link after the overrelaxation procedure
   void su3_find_overrelaxed(su3 out,su3 in,su3 staple,int nov_hits)
   {
-    //compute the original contribution to the action due to the given link 
+    //compute the original contribution to the action due to the given link
     su3 prod;
     unsafe_su3_prod_su3_dag(prod,in,staple);
     
@@ -129,17 +136,15 @@ namespace nissa
     //iterate over overrelax hits
     for(int ihit=0;ihit<nov_hits;ihit++)
       //scan all the three possible subgroups
-      for(int isub_gr=0;isub_gr<3;isub_gr++)
+      for(int isub_gr=0;isub_gr<NCOL;isub_gr++)
 	{
 	  //take the part of the su3 matrix
 	  double r0,r1,r2,r3;
 	  su2_part_of_su3(r0,r1,r2,r3,prod,isub_gr);
 	  
 	  //build the changing matrix
-	  double x0=2*r0*r0-1;
-	  double x1=-2*r0*r1;
-	  double x2=-2*r0*r2;
-	  double x3=-2*r0*r3;
+	  double x0,x1,x2,x3;
+	  su2_get_overrelaxing(x0,x1,x2,x3,r0,r1,r2,r3);
 	  
 	  //change the link and optate the product
 	  su2_prodassign_su3(x0,x1,x2,x3,isub_gr,prod);

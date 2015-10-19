@@ -223,23 +223,18 @@ namespace nissa
     
     return N;
   }
+
+  //inverse of and su3
+  inline void su2_inv(double &a,double &b,double &c,double &d, double a0,double b0,double c0,double d0)
+  {a=a0;b=-b0;c=-c0;d=-d0;}
   
-  //return the same in a matrix
-  inline double su2_part_of_su3(su2 out,su3 in,int isub_gr)
+  //return the overrelaxing
+  inline void su2_get_overrelaxing(double &x0,double &x1,double &x2,double &x3,double r0,double r1,double r2,double r3)
   {
-    double A,B,C,D;
-    double N=su2_part_of_su3(A,B,C,D,in,isub_gr);
-    
-    out[0][0][RE]=A;
-    out[0][0][IM]=-D;
-    out[0][1][RE]=-C;
-    out[0][1][IM]=-B;
-    out[1][0][RE]=C;
-    out[1][0][IM]=-B;
-    out[1][1][RE]=A;
-    out[1][1][IM]=D;
-    
-    return N;
+    x0=2*r0*r0-1;
+    x1=-2*r0*r1;
+    x2=-2*r0*r2;
+    x3=-2*r0*r3;
   }
   
   //multiply an su2 matrix and an su3 and assign to last
@@ -799,11 +794,14 @@ namespace nissa
 	unsafe_su3_prod_su3_dag(prod,U,M);
 	
 	//take the subgroup isub_gr
-	su2 sub;
-	su2_part_of_su3(sub,prod,isub_gr);
+	double a,b,c,d;
+	su2_part_of_su3(a,b,c,d,prod,isub_gr);
+	
+	//invert
+	su2_inv(a,b,c,d, a,b,c,d);
 	
 	//modify the subgroup
-	su2_prodassign_su3(sub,isub_gr,U);
+	su2_prodassign_su3(a,b,c,d,isub_gr,U);
       }
   }
   
@@ -820,12 +818,15 @@ namespace nissa
     for(size_t isub_gr=0;isub_gr<NCOL;isub_gr++)
       {
 	//take the subgroup isub_gr
-	su2 sub;
-	su2_part_of_su3(sub,prod,isub_gr);
+	double a,b,c,d;
+	su2_part_of_su3(a,b,c,d,prod,isub_gr);
+	
+	//take the inverse
+	su2_inv(a,b,c,d,a,b,c,d);
 	
 	//modify the subgroup
-	su2_prodassign_su3(sub,isub_gr,U);
-	su2_prodassign_su3(sub,isub_gr,prod);
+	su2_prodassign_su3(a,b,c,d,isub_gr,U);
+	su2_prodassign_su3(a,b,c,d,isub_gr,prod);
 	
 	//master_printf("isub %d, %16.16lg\n",isub_gr,su3_real_trace(prod));
       }
