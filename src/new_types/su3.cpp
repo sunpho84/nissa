@@ -44,7 +44,7 @@ namespace nissa
 	const int niter_max=1000;
 	if(iter>niter_max*0.9)
 	  {
-	    printf("strange! we arrived to %d iter, that was set to be the maximum\n");
+	    printf("strange! we arrived to %d iter, that was set to be the maximum\n",iter);
 	    printf("Here you are the input link:\n");
 	    su3_print(M);
 	    printf("Here you are the current maxtrace link:\n");
@@ -55,7 +55,7 @@ namespace nissa
 	    if(iter>niter_max) crash("%lg",rotating_norm);
 	  }
       }
-    while(rotating_norm>3e-16);
+    while(rotating_norm>1e-15);
     
     su3_copy(out,U);
   }
