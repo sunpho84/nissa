@@ -69,8 +69,8 @@ complex *hadrolept_corr;
 
 //hadron contractions
 const int ncombo_hadr_corr=6;
-const qprop_t prop1_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_0,PROP_0,PROP_0,PROP_0     ,PROP_PHOTON};
-const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON,PROP_PHOTON2};
+const qprop_t prop1_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_0,PROP_0,PROP_0,PROP_0      ,PROP_PHOTON};
+const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON2,PROP_PHOTON};
 
 //parameters of the leptons
 int nleptons;
@@ -693,12 +693,10 @@ THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
 	  int twall;
 	  if(t2<0||t2>=glb_size[0]) twall=-1;
 	  else twall=t2;
+	  
+	  //insert photon and prolong
 	  insert_photon_on_the_source(prop,le,twall);
 	  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
-	  
-	  double lep_norm;
-	  double_vector_glb_scalar_prod(&lep_norm,(double*)prop,(double*)prop,sizeof(spinspin)/sizeof(double)*loc_vol);
-	  master_printf("lep prop_norm2: %lg\n",lep_norm);
 	}
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
