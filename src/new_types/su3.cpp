@@ -7,10 +7,8 @@
 namespace nissa
 {
   //make unitary maximazing Trace(out*M^dag)
-  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M)
+  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M,double precision,int niter_max)
   {
-    double precision=5e-15;
-    
     //initialize the guess with the identity - proved to be faster than any good guess,
     //because iterations are so good
     su3 U;
@@ -51,9 +49,7 @@ namespace nissa
 	su3_unitarize_explicitly_inverting(U,U);
 	unsafe_su3_prod_su3_dag(prod,U,M);
 	
-	//check
-	const int niter_max=20000;
-	//if(iter>niter_max*0.9)
+	if(iter>niter_max*0.9)
 	  {
 	    printf("We arrived to %d iter, that was set to be the maximum\n",iter);
 	    printf("Here you are the input link:\n");

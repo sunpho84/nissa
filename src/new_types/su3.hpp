@@ -835,7 +835,7 @@ namespace nissa
   }
   
   //perform maximal projection trace up to reaching the machine precision
-  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M);
+  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M,double precision=5e-15,int niter_max=20000);
   
   void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
   void su3_find_overrelaxed(su3 out,su3 in,su3 staple,int nov_hits);
