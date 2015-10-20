@@ -7,16 +7,16 @@
 namespace nissa
 {
   //make unitary maximazing Trace(out*M^dag)
-  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M)
+  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M,double precision=5e-15)
   {
     //initialize the guess with the identity - proved to be faster than any good guess,
     //because iterations are so good
     su3 U;
     su3_put_to_id(U);
     
-    //compute the "product", that means taking dag of M as U=1
+    //compute the product
     su3 prod;
-    unsafe_su3_hermitian(prod,M);
+    unsafe_su3_prod_su3_dag(prod,U,M);
     
     int iter=0;
     //master_printf("iter: %d\n",iter);
@@ -41,15 +41,17 @@ namespace nissa
 	      
 	      //condition to exit
 	      if(!overrelax) rotating_norm=sqrt(su2_nonunitarity(r0,r1,r2,r3));
-	      converged=(rotating_norm<1e-15);
+	      converged=(rotating_norm<precision);
 	    }
 	iter++;
 	
+	//refix
 	su3_unitarize_explicitly_inverting(U,U);
+	unsafe_su3_prod_su3_dag(prod,U,M);
 	
 	//check
-	const int niter_max=1000;
-	if(iter>niter_max*0.9)
+	const int niter_max=20000;
+	//if(iter>niter_max*0.9)
 	  {
 	    printf("We arrived to %d iter, that was set to be the maximum\n",iter);
 	    printf("Here you are the input link:\n");
