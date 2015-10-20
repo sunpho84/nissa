@@ -19,7 +19,6 @@ namespace nissa
     unsafe_su3_prod_su3_dag(prod,U,M);
     
     int iter=0;
-    //master_printf("iter: %d\n",iter);
     double rotating_norm=1e300;
     int converged=false;
     do
@@ -32,22 +31,26 @@ namespace nissa
 	      su2_part_of_su3(r0,r1,r2,r3,prod,isub_gr);
 	      
 	      //form the matrix
-	      if(overrelax) su2_get_overrelaxing(r0,r1,r2,r3, r0,r1,r2,r3);
-	      else          su2_inv(r0,r1,r2,r3, r0,r1,r2,r3);
+	      double x0,x1,x2,x3;
+	      if(overrelax) su2_get_overrelaxing(x0,x1,x2,x3, r0,r1,r2,r3);
+	      else          su2_inv(x0,x1,x2,x3, r0,r1,r2,r3);
 	      
 	      //modify the subgroup and the product
-	      su2_prodassign_su3(r0,r1,r2,r3,isub_gr,U);
-	      su2_prodassign_su3(r0,r1,r2,r3,isub_gr,prod);
+	      su2_prodassign_su3(x0,x1,x2,x3,isub_gr,U);
+	      su2_prodassign_su3(x0,x1,x2,x3,isub_gr,prod);
 	      
 	      //condition to exit
-	      if(!overrelax) rotating_norm=sqrt(su2_nonunitarity(r0,r1,r2,r3));
+	      if(!overrelax) rotating_norm=sqrt(su2_nonunitarity(x0,x1,x2,x3));
 	      converged=(rotating_norm<precision);
 	    }
 	iter++;
 	
 	//refix
-	su3_unitarize_explicitly_inverting(U,U);
-	unsafe_su3_prod_su3_dag(prod,U,M);
+	if(iter%100==0)
+	  {
+	    su3_unitarize_explicitly_inverting(U,U);
+	    unsafe_su3_prod_su3_dag(prod,U,M);
+	  }
 	
 	if(iter>niter_max*0.9)
 	  {
