@@ -13,7 +13,7 @@ namespace nissa
   int find_max_pow2(int a);
   
   template <class T> T summ(T a,T b){return a+b;}
-  template <class T> T nissa_max(T a,T b){return a>b?a:b;}
+  template <class T> T nissa_max(T a,T b){return std::max(a,b);}
   template <class T> T sqr(T a){return a*a;}
   template <class T> T cube(T a){return a*a*a;};
 }
