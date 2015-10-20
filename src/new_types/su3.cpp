@@ -7,8 +7,10 @@
 namespace nissa
 {
   //make unitary maximazing Trace(out*M^dag)
-  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M,double precision=5e-15)
+  void su3_unitarize_maximal_trace_projecting(su3 out,su3 M)
   {
+    double precision=5e-15;
+    
     //initialize the guess with the identity - proved to be faster than any good guess,
     //because iterations are so good
     su3 U;
