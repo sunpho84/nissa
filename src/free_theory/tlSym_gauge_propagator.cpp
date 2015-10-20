@@ -241,27 +241,27 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //generate a stochastic gauge propagator
-  THREADABLE_FUNCTION_3ARG(multiply_by_sqrt_tlSym_gauge_propagator, spin1field*,phi_alt, spin1field*,eta, gauge_info,gl)
+  THREADABLE_FUNCTION_3ARG(multiply_by_sqrt_tlSym_gauge_propagator, spin1field*,photon, spin1field*,eta, gauge_info,gl)
   {
     GET_THREAD_ID();
     
-    pass_spin1field_from_x_to_mom_space(eta,eta,gl.bc,true);
+    if(photon!=eta) vector_copy(photon,eta);
+    
+    pass_spin1field_from_x_to_mom_space(photon,photon,gl.bc,true);
     
     //multiply by prop
     //put volume normalization due to convolution
     //cancel zero modes
-    multiply_mom_space_sqrt_tlSym_gauge_propagator(phi_alt,eta,gl);
+    multiply_mom_space_sqrt_tlSym_gauge_propagator(photon,photon,gl);
     NISSA_PARALLEL_LOOP(imom,0,loc_vol)
       {
-	spin_prodassign_double(phi_alt[imom],sqrt(glb_vol));
-	cancel_if_zero_mode(phi_alt[imom],gl,imom);
+	spin_prodassign_double(photon[imom],sqrt(glb_vol));
+	cancel_if_zero_mode(photon[imom],gl,imom);
       }
-    set_borders_invalid(phi_alt);
+    set_borders_invalid(photon);
     
     //go back to x space
-    pass_spin1field_from_mom_to_x_space(eta,eta,gl.bc,true);
-    pass_spin1field_from_mom_to_x_space(phi_alt,phi_alt,gl.bc,true);
-    set_borders_invalid(eta);
+    pass_spin1field_from_mom_to_x_space(photon,photon,gl.bc,true);
     
   }
   THREADABLE_FUNCTION_END
