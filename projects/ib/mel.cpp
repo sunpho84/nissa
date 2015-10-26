@@ -649,10 +649,9 @@ THREADABLE_FUNCTION_END
 void insert_photon_on_the_source(spinspin *prop,int *dirs,tm_quark_info le,int twall)
 {
   if(!loc_muon_curr) master_printf("Inserting photon point-split on time %d\n",twall);
-  else master_printf("Inserting photon  locally on time %d\n");
+  else master_printf("Inserting photon locally on time %d\n");
   insert_photon_on_the_source(prop,photon_field,dirs,le,twall);
 }
-
 
 //insert the photon on the source
 void insert_photon_on_the_source(spinspin *prop,tm_quark_info &le,int twall)
@@ -1061,6 +1060,8 @@ void in_main(int narg,char **arg)
       
       for(int isource=0;isource<nsources;isource++)
 	{
+	  master_printf("\n=== Source %d/%d ====\n",isource+1,nsources);
+	  
 	  //init
 	  random_shift_gauge_conf(conf,old_theta,put_theta);
 	  generate_photon_stochastic_propagator();
