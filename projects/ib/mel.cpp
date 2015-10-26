@@ -937,9 +937,9 @@ void print_correlations()
 		  int corrpack_ind=hadrolept_corrpack_ind(rl,orie,r2,irev,qins,ilepton);
 		  
 		  if(!pure_wilson) master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
-						  qmass[iq1],qmass[iq2],qins+1,irev+1,!r2,r2,sign_orie[orie],rl);
+						  qmass[iq1],qmass[iq2],qins,irev+1,!r2,r2,sign_orie[orie],rl);
 		  else             master_fprintf(fout," # kappaq1=%lg kappaq2=%lg qins=%d qrev=%d lep_orie=%+d\n\n",
-						  qkappa[iq1],qkappa[iq2],qins+1,irev+1,sign_orie[orie]);
+						  qkappa[iq1],qkappa[iq2],qins,irev+1,sign_orie[orie]);
 		  for(int ind=0;ind<nweak_ind;ind++)
 		    for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
 		      {
