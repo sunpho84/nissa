@@ -251,6 +251,7 @@ include_HEADERS+= \
 
 __top_builddir__lib_libnissa_a_SOURCES+= \
 	inverters/momenta/cg_invert_MFACC.cpp \
+	inverters/momenta/cgm_invert_MFACC.cpp \
 	inverters/staggered/cgm_invert_stD2ee_m2_portable.cpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2.cpp \
 	inverters/staggered/cgm_32_invert_stD2ee_m2_portable.cpp \
@@ -278,6 +279,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 
 include_HEADERS+= \
 	inverters/momenta/cg_invert_MFACC.hpp \
+	inverters/momenta/cgm_invert_MFACC.hpp \
 	inverters/twisted_mass/cg_invert_tmDeoimpr.hpp \
 	inverters/twisted_mass/cg_invert_tmQ2.hpp \
 	inverters/twisted_mass/cg_64_invert_tmQ2.hpp \

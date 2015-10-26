@@ -8,6 +8,7 @@
 #include "base/vectors.hpp"
 #include "hmc/gauge/MFACC_fields.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
+#include "inverters/momenta/cgm_invert_MFACC.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/su3.hpp"
 #include "operations/remez/remez_algorithm.hpp"
@@ -39,6 +40,9 @@ namespace nissa
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++) herm_put_to_gauss(H[ivol][mu],&(loc_rnd_gen[ivol]),1);
     set_borders_invalid(H);
+    
+    //summ_src_and_all_inv_MFACC_cgm(quad_su3 *sol,quad_su3 *conf,double kappa,rat_approx_t *appr,int niter_max,double req_res,quad_su3 *source);
+
     
     //get the rational approx
     //rat_approx_t rat_exp_H;

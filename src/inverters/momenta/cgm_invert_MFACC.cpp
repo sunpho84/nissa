@@ -7,6 +7,7 @@
 #include "dirac_operators/momenta/MFACC.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
 
 #define BASETYPE su3
 #define NDOUBLES_PER_SITE 18
@@ -14,32 +15,34 @@
 #define BORD_VOL bord_vol
 
 #define APPLY_OPERATOR apply_MFACC
-#define CG_OPERATOR_PARAMETERS conf,kappa,
+#define CGM_OPERATOR_PARAMETERS conf,kappa,
 
-#define CG_INVERT inv_MFACC_cg
-#define CG_NPOSSIBLE_REQUESTS 16
+#define CGM_INVERT inv_MFACC_cgm
+#define CGM_INVERT_RUN_HM_UP_TO_COMM_PREC inv_MFACC_cgm_run_hm_up_to_comm_prec
+#define SUMM_SRC_AND_ALL_INV_CGM summ_src_and_all_inv_MFACC_cgm
+#define CGM_NPOSSIBLE_REQUESTS 16
 
-//maybe one day async comm
-//#define cg_start_communicating_borders start_communicating_ev_color_borders
-//#define cg_finish_communicating_borders finish_communicating_ev_color_borders
+#define CGM_START_COMMUNICATING_BORDERS(A)
+#define CGM_FINISH_COMMUNICATING_BORDERS(A)
 
-#define CG_ADDITIONAL_VECTORS_ALLOCATION()
-#define CG_ADDITIONAL_VECTORS_FREE()
+#define CGM_ADDITIONAL_VECTORS_ALLOCATION()
+#define CGM_ADDITIONAL_VECTORS_FREE()
 
 //additional parameters
-#define CG_NARG 2
+#define CGM_NARG 2
 #define AT1 quad_su3*
 #define A1 conf
 #define AT2 double
 #define A2 kappa
 
-#include "inverters/templates/cg_invert_template_threaded.cpp"
+#define CGM_ADDITIONAL_PARAMETERS_CALL conf,kappa,
 
-#include "new_types/su3.hpp"
+#include "inverters/templates/cgm_invert_template_threaded.cpp"
+
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_7ARG(inv_MFACC_cg, quad_su3*,sol, quad_su3*,guess, quad_su3*,conf, double,kappa, int,niter, double,residue, quad_su3*,source)
+  THREADABLE_FUNCTION_7ARG(summ_src_and_all_inv_MFACC_cgm, quad_su3*,sol, quad_su3*,conf, double,kappa, rat_approx_t*,appr, int,niter_max, double,req_res, quad_su3*,source)
   {
     GET_THREAD_ID();
     
@@ -58,7 +61,7 @@ namespace nissa
 	set_borders_invalid(temp_source);
 	
 	//invert
-	inv_MFACC_cg(temp_sol,NULL,conf,kappa,niter,residue,temp_source);
+	summ_src_and_all_inv_MFACC_cgm(temp_sol,conf,kappa,appr,niter_max,req_res,temp_source);
 	
 	//copy in
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol)

@@ -12,7 +12,7 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_4ARG(apply_MFACC, quad_su3*,out, quad_su3*,conf, double,kappa, quad_su3*,in)
+  THREADABLE_FUNCTION_5ARG(apply_MFACC, quad_su3*,out, quad_su3*,conf, double,kappa, double,offset, quad_su3*,in)
   {
     if(!check_borders_valid(in)) communicate_lx_quad_su3_borders(in);
     if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
@@ -20,16 +20,15 @@ namespace nissa
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       {
-	//reset
-	for(int nu=0;nu<4;nu++) su3_put_to_zero(out[ivol][nu]);
+	for(int nu=0;nu<NDIM;nu++) su3_put_to_zero(out[ivol][nu]);
 	
-	for(int mu=0;mu<4;mu++)
+	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    //neighbours search
 	    int iup=loclx_neighup[ivol][mu];
 	    int idw=loclx_neighdw[ivol][mu];
 	    
-	    for(int nu=0;nu<4;nu++)
+	    for(int nu=0;nu<NDIM;nu++)
 	      {
 		su3 temp;
 		
@@ -42,18 +41,18 @@ namespace nissa
 	  }
 	
 	//add normalization and similar
-	for(int nu=0;nu<4;nu++)
+	for(int nu=0;nu<NDIM;nu++)
 	  {
 	    su3_prod_double(out[ivol][nu],out[ivol][nu],kappa/(4*4));
-	    su3_summ_the_prod_double(out[ivol][nu],in[ivol][nu],kappa/2);
+	    su3_summ_the_prod_double(out[ivol][nu],in[ivol][nu],kappa/2+offset);
 	  }
       }
     
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
-  THREADABLE_FUNCTION_4ARG(apply_MFACC, su3*,out, quad_su3*,conf, double,kappa, su3*,in)
+  
+  THREADABLE_FUNCTION_5ARG(apply_MFACC, su3*,out, quad_su3*,conf, double,kappa, double,offset, su3*,in)
   {
     if(!check_borders_valid(in)) communicate_lx_su3_borders(in);
     if(!check_borders_valid(conf)) communicate_lx_quad_su3_borders(conf);
@@ -64,7 +63,7 @@ namespace nissa
 	//reset
 	su3_put_to_zero(out[ivol]);
 	
-	for(int mu=0;mu<4;mu++)
+	for(int mu=0;mu<NDIM;mu++)
 	  {
 	    //neighbours search
 	    int iup=loclx_neighup[ivol][mu];
@@ -81,7 +80,7 @@ namespace nissa
 	
 	//add normalization and similar
 	su3_prod_double(out[ivol],out[ivol],kappa/(4*4));
-	su3_summ_the_prod_double(out[ivol],in[ivol],kappa/2);
+	su3_summ_the_prod_double(out[ivol],in[ivol],kappa/2+offset);
       }
     
     set_borders_invalid(out);
