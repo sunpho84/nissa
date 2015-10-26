@@ -43,7 +43,7 @@ namespace nissa
     vector_copy(out_conf,in_conf);
     
     //create the momenta
-    generate_hmc_momenta(H);
+    generate_hmc_momenta(H,in_conf,evol_pars.kappa);
     
     //if we accelerate draw also momenta and position
     if(evol_pars.use_Facc)

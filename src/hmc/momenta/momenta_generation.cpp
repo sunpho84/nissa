@@ -34,20 +34,21 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //generate momenta using guassian hermitean matrix generator
-  THREADABLE_FUNCTION_1ARG(generate_hmc_momenta, quad_su3*,H)
+  THREADABLE_FUNCTION_3ARG(generate_hmc_momenta, quad_su3*,H, quad_su3*,conf, double,kappa)
   {
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++) herm_put_to_gauss(H[ivol][mu],&(loc_rnd_gen[ivol]),1);
     set_borders_invalid(H);
     
-    //summ_src_and_all_inv_MFACC_cgm(quad_su3 *sol,quad_su3 *conf,double kappa,rat_approx_t *appr,int niter_max,double req_res,quad_su3 *source);
-
+    //better idea: generate mu by mu and invert, put in position at the end
     
     //get the rational approx
-    //rat_approx_t rat_exp_H;
-    //generate_approx(rat_exp_H,3.13029e-06,1,15,1,2,"rat_H");
-    //master_printf_rat_approx(&rat_exp_H);
+    rat_approx_t rat_exp_H;
+    generate_approx_of_maxerr(rat_exp_H,1e-5,1.0,1e-9,-1,2);
+    master_printf_rat_approx(&rat_exp_H);
+    //summ_src_and_all_inv_MFACC_cgm(H,conf,kappa,rat_exp_H,1000000,1e-13,in_H);
+    
     
     crash("");
   }
