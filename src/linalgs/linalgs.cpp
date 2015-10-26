@@ -96,8 +96,7 @@ namespace nissa
     GET_THREAD_ID();
     
 #ifndef BGQ
-    NISSA_PARALLEL_LOOP(i,0,n)
-      loc_thread_res+=a[i]*b[i];
+    NISSA_PARALLEL_LOOP(i,0,n) loc_thread_res+=a[i]*b[i];
 #else
     int max_n=n/8;
     DECLARE_REG_BI_HALFSPIN(reg_loc_thread_res);
@@ -114,10 +113,8 @@ namespace nissa
 	BI_HALFSPIN_PREFETCH_NEXT_NEXT(b);
 	REG_LOAD_BI_HALFSPIN(reg_a,a_ptr);
 	REG_LOAD_BI_HALFSPIN(reg_b,b_ptr);
-	REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(reg_loc_thread_res,s0),NAME2(reg_loc_thread_res,s0),
-					     NAME2(reg_a,s0),NAME2(reg_b,s0));
-	REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(reg_loc_thread_res,s1),NAME2(reg_loc_thread_res,s1),
-					     NAME2(reg_a,s1),NAME2(reg_b,s1));
+	REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(reg_loc_thread_res,s0),NAME2(reg_loc_thread_res,s0),NAME2(reg_a,s0),NAME2(reg_b,s0));
+	REG_BI_COMPLEX_SUMM_THE_PROD_4DOUBLE(NAME2(reg_loc_thread_res,s1),NAME2(reg_loc_thread_res,s1),NAME2(reg_a,s1),NAME2(reg_b,s1));
       }
     REG_BI_COMPLEX_SUMM(reg_loc_thread_res_s0,reg_loc_thread_res_s0,reg_loc_thread_res_s1);
     

@@ -402,6 +402,7 @@ namespace nissa
   {
     if(flag==true) pars.flag=true;
     else read_str_int("MeasureGaugeObs",&pars.flag);
+    if(pars.flag) pars.path=read_path();
   }
   
   //read the theory_pars parameters of the theory

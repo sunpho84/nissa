@@ -1,5 +1,5 @@
-#ifndef _CGM_INVERT_STD2EE_M2_PORTABLE_H
-#define _CGM_INVERT_STD2EE_M2_PORTABLE_H
+#ifndef _CGM_INVERT_STD2EE_M2_PORTABLE_HPP
+#define _CGM_INVERT_STD2EE_M2_PORTABLE_HPP
 
 #include "new_types/new_types_definitions.hpp"
 

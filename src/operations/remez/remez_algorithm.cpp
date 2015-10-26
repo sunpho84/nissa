@@ -600,12 +600,12 @@ namespace nissa
     spread=1e37;
     delta=0.25;
     approx_tolerance=toll;
-
+    
     //alocate arrays
     float_high_prec_t *matr=NULL;
     float_high_prec_t *vec=NULL;
     THREAD_BROADCAST_PTR(matr,new float_high_prec_t[nzero_err_points*nzero_err_points]);
-    THREAD_BROADCAST_PTR(vec,new float_high_prec_t[nzero_err_points]);    
+    THREAD_BROADCAST_PTR(vec,new float_high_prec_t[nzero_err_points]);
     THREAD_BROADCAST_PTR(step,new float_high_prec_t[nmax_err_points]);
     THREAD_BROADCAST_PTR(coeff,new float_high_prec_t[nmax_err_points]);
     THREAD_BROADCAST_PTR(zero,new float_high_prec_t[nmax_err_points]);
@@ -621,7 +621,7 @@ namespace nissa
       {
 	// 1) set up the system to be solved
 	set_linear_system(matr,vec);
-
+	
 	// 2) solve the system
 	linear_system_solve(matr,coeff,vec,nzero_err_points);
 	
@@ -754,7 +754,7 @@ namespace nissa
 	
 	//check if found
 	found=(err<=maxerr);
-	verbosity_lv3_master_printf("Approx x^(%x/%d) with %d poles can make an error of %lg when %lg required, found: %d\n",
+	verbosity_lv3_master_printf("Approx x^(%d/%d) with %d poles can make an error of %lg when %lg required, found: %d\n",
 	       num,den,degree,err,maxerr,found);
 	
 	//if not found increase number of poles
@@ -769,6 +769,6 @@ namespace nissa
     master_printf("Needed time: %lg s\n",take_time()-generate_time);
     
     //store required maximal error
-    appr.maxerr=maxerr;    
+    appr.maxerr=maxerr;
   }
 }

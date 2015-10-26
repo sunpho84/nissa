@@ -9,6 +9,12 @@
  #define PROP_TYPE colorspinspin
 #endif
 
+/* the loop is normalised such that the physical rate at leading order
+  is obtained multiplying the loop by Gf^2 fpi^2 * phi2 (space phase
+  factor) which is (1-rl^2)/(16 pi mpi) where rl=ml/mpi, whereas the
+  interference is obtained by the full hadrolepton correlation
+  multiplied by 4*mpi*fpi*Gf^2*phi2 */
+
 using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
@@ -48,9 +54,9 @@ spin1field *photon_field;
 
 int hadr_corr_length;
 complex *hadr_corr;
-const int nhadr_contr=16;
-const int ig_hadr_so[nhadr_contr]={ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5};
-const int ig_hadr_si[nhadr_contr]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15};
+const int nhadr_contr=16+12;
+const int ig_hadr_so[nhadr_contr]={ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5  , 1, 2, 3, 10,11,12, 10,11,12,13,14,15};
+const int ig_hadr_si[nhadr_contr]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15  , 10,11,12,1, 2, 3,  10,11,12,13,14,15};
 complex *glb_corr,*loc_corr;
 
 //list the 8 matrices to insert for the weak current
@@ -795,9 +801,13 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
       dirac_herm(&temp_gamma,base_gamma+ig);
       dirac_prod(hadrolept_proj_gamma+ig_proj,base_gamma+map_mu[0],&temp_gamma);
     }
-  //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - no dagger, no commutator because it's on the leptonic part
+  //insert gamma5 on the sink-hadron-gamma: S1^dag G5 GW S2 (G5 G5) - no dagger, no commutator because it's on the LO leptonic part
   dirac_matr weak_ins_hadr_gamma[nweak_ins];
   for(int ins=0;ins<nweak_ins;ins++) dirac_prod(weak_ins_hadr_gamma+ins,base_gamma+5,base_gamma+list_weak_insq[ins]);
+  
+  //define the combined weak projectors (see below)
+  dirac_matr neutr_1m_g5_proj;
+  dirac_subt(&neutr_1m_g5_proj,base_gamma+0,base_gamma+5);
   
   for(int ins=0;ins<nweak_ins;ins++)
     {
@@ -810,15 +820,23 @@ THREADABLE_FUNCTION_6ARG(attach_leptonic_correlation, spinspin*,hadr, int,iprop,
 	  int t=loc_coord_of_loclx[ivol][0];
 	  
 	  //multiply lepton side on the right (source) side
+	  spinspin la;
+	  unsafe_spinspin_prod_dirac(la,lept[ivol],base_gamma+list_weak_insl[ins]);
+	  
+	  //include 4*(1-5)/2/2=(1-5) coming from the two neturino projector+(1-g5) weak lepton structure
+	  //the second /2 comes from sqr(1/sqrt(2)) of 1502.00257
 	  spinspin l;
-	  unsafe_spinspin_prod_dirac(l,lept[ivol],base_gamma+list_weak_insl[ins]);
+	  unsafe_spinspin_prod_dirac(l,la,&neutr_1m_g5_proj);
+	  
+	  //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
+	  complex ph;
+	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
 	  
 	  //trace hadron side
 	  complex h;
 	  trace_spinspin_with_dirac(h,hadr[ivol],weak_ins_hadr_gamma+ins);
-	  //get the neutrino phase (multiply hadron side) - notice that the sign of momentum is internally reversed
-	  complex ph;
-	  get_antineutrino_source_phase_factor(ph,ivol,ilepton,le.bc);
+	  
+	  //combine hl
 	  complex_prodassign(h,ph);
 	  spinspin_summ_the_complex_prod(hl_loc_corr[t],l,h);
 	}

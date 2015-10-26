@@ -257,12 +257,12 @@ void init_simulation(char *path)
   read_str_int("NValenceTheories",&nvalence_theories);
   ntheories=nvalence_theories+1;
   theory_pars=nissa_malloc("theory_pars",ntheories,theory_pars_t);
-  fermionic_putpourri_meas_pars=nissa_malloc("fermionic_putpourri_meas_pars",ntheories,fermionic_putpourri_meas_pars_t);
-  quark_rendens_meas_pars=nissa_malloc("quark_rendens_meas_pars",ntheories,quark_rendens_meas_pars_t);
-  spinpol_meas_pars=nissa_malloc("spinpol_meas_pars",ntheories,spinpol_meas_pars_t);
-  magnetization_meas_pars=nissa_malloc("magnetization_meas_pars",ntheories,magnetization_meas_pars_t);
-  pseudo_corr_meas_pars=nissa_malloc("pseudo_corr_meas_pars",ntheories,pseudo_corr_meas_pars_t);
-  nucleon_corr_meas_pars=nissa_malloc("nucleon_corr_meas_pars",ntheories,nucleon_corr_meas_pars_t);
+  fermionic_putpourri_meas_pars=new fermionic_putpourri_meas_pars_t[ntheories];
+  quark_rendens_meas_pars=new quark_rendens_meas_pars_t[ntheories];
+  spinpol_meas_pars=new spinpol_meas_pars_t[ntheories];
+  magnetization_meas_pars=new magnetization_meas_pars_t[ntheories];
+  pseudo_corr_meas_pars=new pseudo_corr_meas_pars_t[ntheories];
+  nucleon_corr_meas_pars=new nucleon_corr_meas_pars_t[ntheories];
   
   //read physical theory: theory 0 is the sea (simulated one)
   for(int itheory=0;itheory<ntheories;itheory++)
@@ -286,7 +286,7 @@ void init_simulation(char *path)
   
   //read if we want to measure topological charge
   read_str_int("NTopMeas",&ntop_meas);
-  top_meas_pars=nissa_malloc("top_meas_pars",ntop_meas,top_meas_pars_t);
+  top_meas_pars=new top_meas_pars_t[ntop_meas];
   top_meas_time=nissa_malloc("top_meas_time",ntop_meas,double);
   vector_reset(top_meas_time);
   for(int itop=0;itop<ntop_meas;itop++) read_top_meas_pars(top_meas_pars[itop]);
@@ -402,19 +402,19 @@ void close_simulation()
       rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
   
   //destroy topo pars
-  nissa_free(top_meas_pars);
+  delete[] top_meas_pars;
   nissa_free(top_meas_time);
   
   //unset theories
   for(int itheory=0;itheory<ntheories;itheory++)
     unset_theory_pars(theory_pars[itheory]);
   nissa_free(theory_pars);
-  nissa_free(fermionic_putpourri_meas_pars);
-  nissa_free(quark_rendens_meas_pars);
-  nissa_free(spinpol_meas_pars);
-  nissa_free(magnetization_meas_pars);
-  nissa_free(pseudo_corr_meas_pars);
-  nissa_free(nucleon_corr_meas_pars);
+  delete[] fermionic_putpourri_meas_pars;
+  delete[] quark_rendens_meas_pars;
+  delete[] spinpol_meas_pars;
+  delete[] magnetization_meas_pars;
+  delete[] pseudo_corr_meas_pars;
+  delete[] nucleon_corr_meas_pars;
   
   for(int par=0;par<2;par++)
     {
