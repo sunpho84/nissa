@@ -277,7 +277,7 @@ void init_simulation(char *path)
   hadr_corr=nissa_malloc("hadr_corr",hadr_corr_length,complex);
   glb_corr=nissa_malloc("glb_corr",glb_size[0]*nhadr_contr,complex);
   loc_corr=nissa_malloc("loc_corr",glb_size[0]*nhadr_contr,complex);
-  nind=nleptons*nweak_ind*norie*nr;
+  nind=nleptons*nweak_ind*norie*nr*nins;
   hadr=nissa_malloc("hadr",loc_vol,spinspin);
   hadrolept_corr=nissa_malloc("hadrolept_corr",glb_size[0]*nweak_ind*nhadrolept_proj*nind,complex);
   original_source=nissa_malloc("source",loc_vol,PROP_TYPE);
