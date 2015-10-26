@@ -12,7 +12,7 @@ cd ../../
 #rm -fr gmp-5.1.2
 
 #mpfr
-wget http://www.mpfr.org/mpfr-current/mpfr-3.1.2.tar.gz -O -|tar xzvf -
+wget http://www.mpfr.org/mpfr-current/mpfr-3.1.3.tar.gz -O -|tar xzvf -
 cd mpfr*/
 mkdir build
 cd build

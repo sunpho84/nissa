@@ -2,7 +2,7 @@
 
 mkdir comp
 cd comp
-wget http://mirror.switch.ch/ftp/mirror/gnu/emacs/emacs-24.3.tar.gz -O -|tar xzf -
+wget http://mirror.switch.ch/ftp/mirror/gnu/emacs/emacs-24.5.tar.gz -O -|tar xzf -
 cd emacs*
 ./configure --prefix=$HOME
 make -j 2
