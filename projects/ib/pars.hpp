@@ -23,5 +23,6 @@ const char prop_abbr[]=                       "0"       "S"     "P"     "T"     
 const int norie=2;
 const int sign_orie[2]={-1,+1};
 
-const int nins=2;
+const int nins=3;
+const int nlins=2;
 const int nrev=2;

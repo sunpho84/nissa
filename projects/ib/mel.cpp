@@ -96,8 +96,8 @@ void generate_photon_stochastic_propagator();
 int nqprop,nlprop;
 int iqprop(int imass,int ip,int r)
 {return r+nr*(imass+nqmass*ip);}
-int ilprop(int ilepton,int orie,int r)
-{return r+nr*(orie+norie*ilepton);}
+int ilprop(int ilepton,int ilins,int orie,int r)
+{return r+nr*(ilins+nlins*(orie+norie*ilepton));}
 
 //return appropriately modified info
 tm_quark_info get_lepton_info(int ilepton,int orie,int r)
@@ -268,7 +268,7 @@ void init_simulation(char *path)
   
   //Allocate
   nqprop=iqprop(nqmass-1,nqprop_kind-1,nr-1)+1;
-  nlprop=ilprop(nleptons-1,norie-1,nr-1)+1;
+  nlprop=ilprop(nleptons-1,nlins-1,norie-1,nr-1)+1;
   
   //allocate temporary vectors
   temp_source=nissa_malloc("temp_source",loc_vol,spincolor);
@@ -665,45 +665,45 @@ void insert_photon_on_the_source(spinspin *prop,tm_quark_info &le,int twall)
 // 3)going to momentum space
 // 4)multiplying by the lepton propagator in momentum space
 // 5)coming back to x space
-THREADABLE_FUNCTION_1ARG(generate_lepton_propagators, int,t2)
+THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 {
   GET_THREAD_ID();
   
   if(IS_MASTER_THREAD) lepton_prop_time-=take_time();
   
   for(int ilepton=0;ilepton<nleptons;ilepton++)
-    for(int ori=0;ori<norie;ori++)
-      for(int r=0;r<nr;r++)
-	{
-	  //set the properties of the meson
-	  //time boundaries are anti-periodic, space are as for external line
-	  tm_quark_info le=get_lepton_info(ilepton,ori,r);
-	  
-	  //select the propagator
-	  int iprop=ilprop(ilepton,ori,r);
-	  spinspin *prop=L[iprop];
-	  
-	  //put it to a phase
-	  set_to_lepton_sink_phase_factor(prop,ilepton,le);
-	  
-	  //if we are doing Nazario's way (with the external line) add it
-	  if(follow_chris_or_nazario==follow_nazario)
-	    {
-	      //select only the wall
-	      int tmiddle=glb_size[0]/2;
-	      select_propagator_timeslice(prop,prop,tmiddle);
-	      multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
-	    }
-	  
-	  //select only the wall
-	  int twall;
-	  if(t2<0||t2>=glb_size[0]) twall=-1;
-	  else twall=t2;
-	  
-	  //insert photon and prolong
-	  insert_photon_on_the_source(prop,le,twall);
-	  multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
-	}
+    for(int ilins=0;ilins<nlins;ilins++)
+      for(int ori=0;ori<norie;ori++)
+	for(int r=0;r<nr;r++)
+	  {
+	    //set the properties of the meson
+	    //time boundaries are anti-periodic, space are as for external line
+	    tm_quark_info le=get_lepton_info(ilepton,ori,r);
+	    
+	    //select the propagator
+	    int iprop=ilprop(ilepton,ilins,ori,r);
+	    spinspin *prop=L[iprop];
+	    
+	    //put it to a phase
+	    set_to_lepton_sink_phase_factor(prop,ilepton,le);
+	    
+	    //if we are doing Nazario's way (with the external line) add it
+	    if(follow_chris_or_nazario==follow_nazario)
+	      {
+		//select only the wall
+		int tmiddle=glb_size[0]/2;
+		select_propagator_timeslice(prop,prop,tmiddle);
+		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+	      }
+	    
+	    //insert or not photon
+	    if(ilins)
+	      {
+		//insert photon and prolong
+		insert_photon_on_the_source(prop,le,-1); //all times
+		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
+	      }
+	  }
   
   if(IS_MASTER_THREAD) lepton_prop_time+=take_time();
 }
@@ -886,17 +886,10 @@ void compute_hadroleptonic_correlations()
 	    int iq2=lep_corr_iq2[ilepton];
 	      
 	    //takes the propagators
-	    qprop_t PROP1_TYPE,PROP2_TYPE;
-	    if(qins==0)
-	      {
-		PROP1_TYPE=PROP_PHOTON;;
-		PROP2_TYPE=PROP_0;
-	      }
-	    else
-	      {
-		PROP1_TYPE=PROP_0;
-		PROP2_TYPE=PROP_PHOTON;
-	      }
+	    qprop_t PROP1_TYPE=PROP_0,PROP2_TYPE=PROP_0;
+	    if(qins==1) PROP1_TYPE=PROP_PHOTON;
+	    if(qins==2) PROP2_TYPE=PROP_PHOTON;
+	    
 	    int ip1=iqprop(iq1,PROP1_TYPE,r2);
 	    int ip2=iqprop(iq2,PROP2_TYPE,r2);
 	      
@@ -909,7 +902,8 @@ void compute_hadroleptonic_correlations()
 	      for(int rl=0;rl<nr;rl++)
 		{
 		  //contract with lepton
-		  int iprop=ilprop(ilepton,orie,rl);
+		  int ilins=(qins!=0);
+		  int iprop=ilprop(ilepton,ilins,orie,rl);
 		  int ind=hadrolept_corrpack_ind(rl,orie,r2,irev,qins,ilepton);
 		  attach_leptonic_correlation(hadr,iprop,ilepton,orie,rl,ind);
 		}
@@ -1072,7 +1066,7 @@ void in_main(int narg,char **arg)
 	  generate_photon_stochastic_propagator();
 	  generate_original_source();
 	  
-	  generate_lepton_propagators(glb_size[0]);
+	  generate_lepton_propagators();
 	  generate_quark_propagators();
 	  
 	  compute_hadroleptonic_correlations();
