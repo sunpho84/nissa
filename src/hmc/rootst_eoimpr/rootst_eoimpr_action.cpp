@@ -26,33 +26,46 @@ namespace nissa
     //quark action
     (*glb_action)=0;
     for(int ifl=0;ifl<nfl;ifl++)
-      for(int ipf=0;ipf<simul_pars->npseudo_fs[ifl];ipf++)
-	{
-	  //compute chi with background field
-	  add_backfield_to_conf(eo_conf,u1b[ifl]);
-	  summ_src_and_all_inv_stD2ee_m2_cgm(chi_e,eo_conf,simul_pars->rat_appr+3*ifl+1,1000000,simul_pars->pf_action_residue,pf[ifl][ipf]);
-	  rem_backfield_from_conf(eo_conf,u1b[ifl]);
-	  
-	  //compute scalar product
-	  double flav_action;
-	  double_vector_glb_scalar_prod(&flav_action,(double*)chi_e,(double*)(pf[ifl][ipf]),loc_volh*6);
-	  (*glb_action)+=flav_action;
-	}
+      {
+	//add background field
+	add_backfield_to_conf(eo_conf,u1b[ifl]);
+	
+	for(int ipf=0;ipf<simul_pars->npseudo_fs[ifl];ipf++)
+	  {
+	    verbosity_lv1_master_printf("Computing action for flavour %d/%d, pseudofermion %d/%d\n",ifl+1,nfl,ipf+1,simul_pars->npseudo_fs[ifl]);
+	    
+	    //compute chi with background field
+	    summ_src_and_all_inv_stD2ee_m2_cgm(chi_e,eo_conf,simul_pars->rat_appr+3*ifl+1,1000000,simul_pars->pf_action_residue,pf[ifl][ipf]);
+	    
+	    //compute scalar product
+	    double flav_action;
+	    double_vector_glb_scalar_prod(&flav_action,(double*)chi_e,(double*)(pf[ifl][ipf]),loc_volh*6);
+	    (*glb_action)+=flav_action;
+	  }
+	
+	//remove background field
+	rem_backfield_from_conf(eo_conf,u1b[ifl]);
+      }
     
     //free
     nissa_free(chi_e);
   }
   THREADABLE_FUNCTION_END
-
+  
   //Compute the total action of the rooted staggered e/o improved theory.
   //Passed conf must NOT contain the backfield, but contains the stagphases so remove it.
-  THREADABLE_FUNCTION_7ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, color***,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars)
+  THREADABLE_FUNCTION_8ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, color***,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, double,external_quark_action)
   {
     verbosity_lv1_master_printf("Computing action\n");
     
     //compute the three parts of the action
     double quark_action;
-    rootst_eoimpr_quark_action(&quark_action,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,simul_pars);
+    if(external_quark_action>=0)
+      {
+	verbosity_lv1_master_printf("No need to compute pseudofermion action\n");
+	quark_action=external_quark_action;
+      }
+    else rootst_eoimpr_quark_action(&quark_action,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,simul_pars);
     verbosity_lv1_master_printf("Quark_action: %16.16lg\n",quark_action);
     
     //gauge action

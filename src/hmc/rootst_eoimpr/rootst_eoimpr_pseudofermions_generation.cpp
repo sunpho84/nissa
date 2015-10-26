@@ -19,11 +19,14 @@
 namespace nissa
 {
   //generate pseudo-fermion using color vector generator
-  THREADABLE_FUNCTION_5ARG(generate_pseudo_fermion, color*,pf, quad_su3**,conf, quad_u1**,u1b, rat_approx_t*,rat, double,residue)
+  THREADABLE_FUNCTION_6ARG(generate_pseudo_fermion, double*,action, color*,pf, quad_su3**,conf, quad_u1**,u1b, rat_approx_t*,rat, double,residue)
   {
     //generate the random field
     color *pf_hb_vec=nissa_malloc("pf_hb_vec",loc_volh,color);
     generate_fully_undiluted_eo_source(pf_hb_vec,RND_GAUSS,-1,EVN);
+    
+    //compute action
+    double_vector_glb_scalar_prod(action,(double*)pf_hb_vec,(double*)pf_hb_vec,sizeof(color)/sizeof(double)*loc_volh);
     
     //invert to perform hv
     add_backfield_to_conf(conf,u1b);

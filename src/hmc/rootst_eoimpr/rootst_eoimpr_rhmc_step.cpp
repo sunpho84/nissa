@@ -84,17 +84,23 @@ namespace nissa
       for(int i=0;i<3;i++)
 	rat_approx_shift_all_poles(simul_pars.rat_appr+iflav*3+i,sqr(theory_pars.quark_content[iflav].mass));
     
-    //create pseudo-fermions
+    //create pseudo-fermions and store action
+    double pf_action=0;
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
       for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++)
-	generate_pseudo_fermion(pf[iflav][ipf],sme_conf,theory_pars.backfield[iflav],simul_pars.rat_appr+3*iflav+0,simul_pars.pf_action_residue);
+	{
+	  verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs);
+	  double pf_action_flav;
+	  generate_pseudo_fermion(&pf_action_flav,pf[iflav][ipf],sme_conf,theory_pars.backfield[iflav],simul_pars.rat_appr+3*iflav+0,simul_pars.pf_action_residue);
+	  pf_action+=pf_action_flav;
+	}
     
     //create the momenta
     generate_hmc_momenta(H);
     
     //compute initial action
     double init_action;
-    full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars);
+    full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars,pf_action);
     
     //evolve forward
     omelyan_rootst_eoimpr_evolver(H,out_conf,pf,&theory_pars,&simul_pars);
