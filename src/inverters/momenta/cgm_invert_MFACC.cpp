@@ -39,7 +39,6 @@
 
 #include "inverters/templates/cgm_invert_template_threaded.cpp"
 
-
 namespace nissa
 {
   THREADABLE_FUNCTION_7ARG(summ_src_and_all_inv_MFACC_cgm, quad_su3*,sol, quad_su3*,conf, double,kappa, rat_approx_t*,appr, int,niter_max, double,req_res, quad_su3*,source)

@@ -122,7 +122,7 @@ namespace nissa
 #ifdef DEBUG
     vector_reset(F);
     
-    double eps=1.e-5;
+    double eps=1.e-4;
     
     //random gauge transform
     su3 *fixm=nissa_malloc("fixm",loc_vol+bord_vol,su3);
@@ -145,15 +145,21 @@ namespace nissa
     su3_copy(sto,conf[0][0]);
     
     //prepare increment and change
-    su3 mod,ba;
+    su3 ba;
     su3_put_to_zero(ba);
-    ba[1][0][0]=ba[0][1][0]=eps/4;
+    ba[1][0][0]=ba[0][1][0]=eps/2;
+    su3 exp_mod;
+    safe_anti_hermitian_exact_i_exponentiate(exp_mod,ba);
+    su3_print(exp_mod);
+    su3 tem;
+    safe_su3_prod_su3_dag(tem,exp_mod,exp_mod);
+    su3_print(tem);
     
     //compute action previous to change
     double pre=MFACC_momenta_action(pi,conf,kappa);
     
     //change
-    unsafe_su3_prod_su3(conf[0][0],mod,sto);
+    unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
     
     //compute it after
     double post=MFACC_momenta_action(pi,conf,kappa);
@@ -162,8 +168,10 @@ namespace nissa
     su3_copy(conf[0][0],sto);
     
     //print pre and post, and write numerical
-    printf("pre: %lg, post: %lg\n",pre,post);
+    printf("pre: %lg, post: %lg, eps: %lg\n",pre,post,eps);
     double nu=-(post-pre)/eps;
+    
+    vector_reset(F);
 #endif
     
     for(int ifield=0;ifield<2;ifield++)
@@ -213,7 +221,7 @@ namespace nissa
     su3 r1,r2;
     unsafe_su3_prod_su3(r1,conf[0][0],F[0][0]);
     unsafe_su3_traceless_anti_hermitian_part(r2,r1);
-    double tr=(r2[1][0][1]+r2[0][1][1])/4;
+    double tr=(r2[1][0][1]+r2[0][1][1])/2;
     printf("an: %lg, nu: %lg\n",tr,nu);
     nissa_free(fixm);
 crash("anna");

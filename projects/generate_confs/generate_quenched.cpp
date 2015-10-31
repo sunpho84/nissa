@@ -578,12 +578,11 @@ void generate_new_conf(quad_su3 *conf,int check=0)
   if(evol_pars.use_hmc)
     {
       rat_approx_t rat_exp_H;
-      generate_approx_of_maxerr(rat_exp_H,1e-5,1.0,1e-9,-1,2);
+      generate_approx_of_maxerr(rat_exp_H,1e-6,10,sqrt(evol_pars.residue),-1,2);
       master_printf_rat_approx(&rat_exp_H);
-      //crash("");
       
       int perform_test=true;
-      double diff_act=pure_gauge_hmc_step(temp_conf,conf,theory_pars,evol_pars,iconf);
+      double diff_act=pure_gauge_hmc_step(temp_conf,conf,theory_pars,evol_pars,&rat_exp_H,iconf);
       
       //perform the test in any case
       master_printf("Diff action: %lg, ",diff_act);

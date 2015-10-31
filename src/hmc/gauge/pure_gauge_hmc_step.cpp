@@ -17,7 +17,7 @@
 namespace nissa
 {
   //perform a full hmc step and return the difference between final and original action
-  double pure_gauge_hmc_step(quad_su3 *out_conf,quad_su3 *in_conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,int itraj)
+  double pure_gauge_hmc_step(quad_su3 *out_conf,quad_su3 *in_conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,rat_approx_t *rat_exp_H,int itraj)
   {
     if(in_conf==out_conf) crash("in==out");
     
@@ -30,27 +30,29 @@ namespace nissa
     //allocate the momenta
     quad_su3 *H=nissa_malloc("H",loc_vol,quad_su3);
     
-    //if we need to accelerate allocate auxiliary fields
-    su3 *phi[2],*pi[2];
-    if(evol_pars.use_Facc)
-      for(int id=0;id<2;id++)
-	{
-	  phi[id]=nissa_malloc("phi",loc_vol+bord_vol,su3);
-	  pi[id]=nissa_malloc("pi",loc_vol+bord_vol,su3);
-	}
-    
     //copy the old conf into the new
     vector_copy(out_conf,in_conf);
     
-    //create the momenta
-    generate_hmc_momenta(H,in_conf,evol_pars.kappa);
-    
     //if we accelerate draw also momenta and position
+    su3 *phi[2],*pi[2];
     if(evol_pars.use_Facc)
       {
+	//if we need to accelerate allocate auxiliary fields
+	if(evol_pars.use_Facc)
+	  for(int id=0;id<2;id++)
+	    {
+	      phi[id]=nissa_malloc("phi",loc_vol+bord_vol,su3);
+	      pi[id]=nissa_malloc("pi",loc_vol+bord_vol,su3);
+	    }
+	
+	//create the momenta
+	generate_hmc_momenta_with_FACC(H,in_conf,rat_exp_H,evol_pars.kappa,evol_pars.residue);
+	
 	for(int id=0;id<2;id++) generate_MFACC_fields(phi[id]);
 	generate_MFACC_momenta(pi,out_conf,evol_pars.kappa,evol_pars.residue);
       }
+    else generate_hmc_momenta(H);
+
     
     //compute initial action
     double init_action_H=momenta_action(H);
