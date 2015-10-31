@@ -339,7 +339,7 @@ namespace nissa
   void ILDG_File_read_all(void *data,ILDG_File &file,size_t nbytes_req)
   {
     //padding
-    ILDG_File_seek_to_next_eight_multiple(file);  
+    ILDG_File_seek_to_next_eight_multiple(file);
     
 #ifdef USE_MPI_IO
     //reading and taking status/error
