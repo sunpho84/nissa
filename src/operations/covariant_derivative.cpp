@@ -47,7 +47,8 @@ namespace nissa
   APPLY_NABLA_I(colorspinspin)
   APPLY_NABLA_I(su3spinspin)
     
-  void insert_external_source_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){complex_copy(out,aux[ivol][mu]);}
+  void insert_external_source_handle(complex out,spin1field *aux,int ivol,int mu,void *pars)
+  {if(aux)complex_copy(out,aux[ivol][mu]);else complex_put_to_real(out,1);}
   void insert_tadpole_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){out[RE]=((double*)pars)[mu];out[IM]=0;}
   void insert_conserved_current_handle(complex out,spin1field *aux,int ivol,int mu,void *pars){out[RE]=((int*)pars)[mu];out[IM]=0;}
   
