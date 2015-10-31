@@ -19,6 +19,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/tools/conf_transform/edit/rewind_random \
 	$(top_builddir)/tools/print_gamma/gamma_test \
 	$(top_builddir)/tools/remez_algorithm/remez_create \
+	$(top_builddir)/tools/spinors/ildg_to_txt \
 	$(top_builddir)/tools/unitarity_check/unitarity_check \
 	$(top_builddir)/tools/x_clusterize/x_clusterize
 
@@ -37,6 +38,7 @@ __top_builddir__tools_conf_transform_smear_stout_SOURCES=conf_transform/smear/st
 __top_builddir__tools_conf_transform_edit_grab_ildg_data_SOURCES=conf_transform/edit/grab_ildg_data.cpp
 __top_builddir__tools_conf_transform_edit_skip_random_SOURCES=conf_transform/edit/skip_random.cpp
 __top_builddir__tools_conf_transform_edit_rewind_random_SOURCES=conf_transform/edit/rewind_random.cpp
+__top_builddir__tools_spinors_ildg_to_txt_SOURCES=spinors/ildg_to_txt.cpp
 __top_builddir__tools_print_gamma_gamma_test_SOURCES=print_gamma/gamma_test.cpp
 __top_builddir__tools_unitarity_check_unitarity_check_SOURCES=unitarity_check/unitarity_check.cpp
 __top_builddir__tools_x_clusterize_x_clusterize_SOURCES=x_clusterize/x_clusterize.cpp
