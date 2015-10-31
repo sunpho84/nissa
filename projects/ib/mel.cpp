@@ -60,23 +60,23 @@ const int ig_hadr_si[nhadr_contr]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,
 complex *glb_corr,*loc_corr;
 
 //list the 8 matrices to insert for the weak current
-const int nweak_ins=16;
-const int nweak_ind=8;
+const int nweak_ins=17;
+const int nweak_ind=9;
 //const int nhadrolept_proj=4,hadrolept_projs[nhadrolept_proj]={9,4,5,0};
 const int nhadrolept_proj=1,hadrolept_projs[nhadrolept_proj]={4};
-const int list_weak_insq[nweak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9};
-const int list_weak_insl[nweak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4};
-const int list_weak_ind_contr[nweak_ins]={0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7};
-const char list_weak_ind_nameq[nweak_ind][3]={"VK","V0","AK","A0","VK","V0","AK","A0"};
-const char list_weak_ind_namel[nweak_ind][3]={"VK","V0","AK","A0","AK","A0","VK","V0"};
+const int list_weak_insq[nweak_ins]=     {1,2,3,4, 6,7,8,9,  1,2,3,4, 6,7,8,9, 5};
+const int list_weak_insl[nweak_ins]=     {1,2,3,4, 6,7,8,9,  6,7,8,9, 1,2,3,4, 5};
+const int list_weak_ind_contr[nweak_ins]={0,0,0,1, 2,2,2,3,  4,4,4,5, 6,6,6,7, 8};
+const char list_weak_ind_nameq[nweak_ind][3]={"VK","V0","AK","A0","VK","V0","AK","A0","P5"};
+const char list_weak_ind_namel[nweak_ind][3]={"VK","V0","AK","A0","AK","A0","VK","V0","V0"};
 int nind;
 spinspin *hadr;
 complex *hadrolept_corr;
 
 //hadron contractions
-const int ncombo_hadr_corr=6;
-const qprop_t prop1_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_0,PROP_0,PROP_0,PROP_0      ,PROP_PHOTON};
-const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON2,PROP_PHOTON};
+const int ncombo_hadr_corr=7;
+const qprop_t prop1_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_0,PROP_0,PROP_0,PROP_0      ,PROP_PHOTON,PROP_0};
+const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON2,PROP_PHOTON,PROP_VECTOR};
 
 //parameters of the leptons
 int nleptons;
@@ -420,6 +420,7 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
       if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
       else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);
       break;
+    case VECTOR:insert_external_source(source,NULL,ori,t,r,loc_pion_curr);break;
     }
   
   source_time+=take_time();
@@ -722,7 +723,10 @@ void compute_hadronic_correlations()
 	for(int r=0;r<nr;r++)
 	  {
 	    //compute the correlation function
-	    meson_two_points_Wilson_prop(glb_corr,loc_corr,ig_hadr_so,Q[iqprop(imass,prop1_hadr_map[icombo],r)],ig_hadr_si,Q[iqprop(jmass,prop2_hadr_map[icombo],r)],nhadr_contr);
+	    int ip1=iqprop(imass,prop1_hadr_map[icombo],r);
+	    int ip2=iqprop(jmass,prop2_hadr_map[icombo],r);
+	    std::swap(ip1,ip2);
+	    meson_two_points_Wilson_prop(glb_corr,loc_corr,ig_hadr_so,Q[ip1],ig_hadr_si,Q[ip2],nhadr_contr);
 	    nhadr_contr_tot+=nhadr_contr;
 	    
 	    //save to the total stack
@@ -891,12 +895,12 @@ void compute_hadroleptonic_correlations()
 	    
 	    int ip1=iqprop(iq1,PROP1_TYPE,r2);
 	    int ip2=iqprop(iq2,PROP2_TYPE,r2);
-	      
+	    
 	    if(irev==1) std::swap(ip1,ip2); //select the propagator to revert
-	      
+	    
 	    //compute the hadronic part
 	    hadronic_part_leptonic_correlation(hadr,Q[ip1],Q[ip2]);
-	      
+	    
 	    for(int orie=0;orie<norie;orie++)
 	      for(int rl=0;rl<nr;rl++)
 		{
