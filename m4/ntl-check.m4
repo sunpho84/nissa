@@ -29,7 +29,7 @@ if test "$ntl_prefix" != ""; then
    CXXFLAGS+="-I${ntl_prefix}/include"
    LDFLAGS+="-L${ntl_prefix}"
 fi
-LIBS+="-lntl"
+LIBS+=" -lntl"
 
 dnl Check for existence
 
