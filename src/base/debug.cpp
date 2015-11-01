@@ -105,8 +105,8 @@ namespace nissa
       case SIGABRT: sprintf(name,"abort signal");break;
       default: sprintf(name,"unassociated");break;
       }
-    print_all_vect_content();
     print_backtrace_list();
+    print_all_vect_content();
     crash("signal %d (%s) detected, exiting",sig,name);
   }
   
