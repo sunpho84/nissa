@@ -250,7 +250,7 @@ namespace nissa
 	omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,last_dt);
 	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt,true);
-
+	
 	//normalize the configuration
 	addrem_stagphases_to_eo_conf(conf);
 	unitarize_eo_conf_maximal_trace_projecting(conf);

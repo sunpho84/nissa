@@ -256,7 +256,7 @@ void init_simulation(char *path)
   int nvalence_theories;
   read_str_int("NValenceTheories",&nvalence_theories);
   ntheories=nvalence_theories+1;
-  theory_pars=nissa_malloc("theory_pars",ntheories,theory_pars_t);
+  theory_pars=new theory_pars_t[ntheories];
   fermionic_putpourri_meas_pars=new fermionic_putpourri_meas_pars_t[ntheories];
   quark_rendens_meas_pars=new quark_rendens_meas_pars_t[ntheories];
   spinpol_meas_pars=new spinpol_meas_pars_t[ntheories];
@@ -408,7 +408,7 @@ void close_simulation()
   //unset theories
   for(int itheory=0;itheory<ntheories;itheory++)
     unset_theory_pars(theory_pars[itheory]);
-  nissa_free(theory_pars);
+  delete[] theory_pars;
   delete[] fermionic_putpourri_meas_pars;
   delete[] quark_rendens_meas_pars;
   delete[] spinpol_meas_pars;
