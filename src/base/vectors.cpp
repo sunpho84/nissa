@@ -179,7 +179,7 @@ namespace nissa
     int64_t tot=0;
     nissa_vect *curr=&(main_vect);
     do
-      {  
+      {
 	tot+=curr->nel*curr->size_per_el;
 	curr=curr->next;
       }
@@ -209,7 +209,7 @@ namespace nissa
       }
   }
   
-  //allocate an nissa vector 
+  //allocate an nissa vector
   void *internal_nissa_malloc(const char *tag,int64_t nel,int64_t size_per_el,const char *type,const char *file,int line)
   {
     GET_THREAD_ID();
