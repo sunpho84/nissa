@@ -95,7 +95,7 @@ namespace nissa
   //called when signal received
   void signal_handler(int sig)
   {
-    printf("maximal memory used: %ld",max_required_memory);
+    master_printf("maximal memory used: %ld\n",max_required_memory);
     verbosity_lv=3;
     char name[100];
     switch(sig)

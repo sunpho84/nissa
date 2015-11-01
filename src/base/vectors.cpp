@@ -217,6 +217,12 @@ namespace nissa
       {
 	IF_VECT_NOT_INITIALIZED() initialize_main_vect();
 	
+	if(VERBOSITY_LV3)
+	  {
+	    master_printf("Allocating vector ");
+	    vect_content_printf(last_vect);
+	  }
+	
 	int64_t size=nel*size_per_el;
 	//try to allocate the new vector
 	nissa_vect *nv=(nissa_vect*)malloc(size+sizeof(nissa_vect));
@@ -239,12 +245,6 @@ namespace nissa
 	
 	last_vect->next=nv;
 	last_vect=nv;
-	
-	if(VERBOSITY_LV3)
-	  {
-	    master_printf("Allocated vector ");
-	    vect_content_printf(last_vect);
-	  }
 	
 	//define returned pointer and check for its alignement
 	return_malloc_ptr=(void*)(last_vect+1);
