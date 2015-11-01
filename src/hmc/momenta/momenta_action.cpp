@@ -24,7 +24,7 @@ namespace nissa
     
     return (glb_action_eo[EVN]+glb_action_eo[ODD])/2;
   }
-
+  
   //lx version
   double momenta_action(quad_su3 *H)
   {
@@ -34,7 +34,7 @@ namespace nissa
     
     return glb_action_lx/2;
   }
-
+  
   //compute the action for the Fourier acceleration-related momenta
   THREADABLE_FUNCTION_4ARG(MFACC_momenta_action, double*,tot_action, su3**,pi, quad_su3*,conf, double,kappa)
   {
@@ -46,7 +46,7 @@ namespace nissa
       {
         //apply the kernel
         apply_MFACC(V,conf,kappa,pi[id]);
-        double_vector_glb_scalar_prod(&(glb_action_id[id]),(double*)V,(double*)V,18*loc_vol);
+        double_vector_glb_scalar_prod(&(glb_action_id[id]),(double*)V,(double*)V,sizeof(su3)/sizeof(double)*loc_vol);
       }
     
     (*tot_action)=(glb_action_id[0]+glb_action_id[1])/2;

@@ -122,7 +122,7 @@ namespace nissa
 #ifdef DEBUG
     vector_reset(F);
     
-    double eps=1.e-4;
+    double eps=1e-5;
     
     //random gauge transform
     su3 *fixm=nissa_malloc("fixm",loc_vol+bord_vol,su3);
@@ -140,9 +140,10 @@ namespace nissa
 	  unsafe_su3_prod_su3_dag(pi[ifield][ivol],a,fixm[ivol]);
 	}
     
-    //store initial link
+    //store initial link and compute action
     su3 sto;
     su3_copy(sto,conf[0][0]);
+    double act_ori=MFACC_momenta_action(pi,conf,kappa);
     
     //prepare increment and change
     su3 ba;
@@ -151,25 +152,23 @@ namespace nissa
     su3 exp_mod;
     safe_anti_hermitian_exact_i_exponentiate(exp_mod,ba);
     su3_print(exp_mod);
-    su3 tem;
-    safe_su3_prod_su3_dag(tem,exp_mod,exp_mod);
-    su3_print(tem);
     
-    //compute action previous to change
-    double pre=MFACC_momenta_action(pi,conf,kappa);
+    //change -, compute action
+    unsafe_su3_dag_prod_su3(conf[0][0],exp_mod,sto);
+    double act_minus=MFACC_momenta_action(pi,conf,kappa);
     
-    //change
+    //change +, compute action
     unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
-    
-    //compute it after
-    double post=MFACC_momenta_action(pi,conf,kappa);
+    double act_plus=MFACC_momenta_action(pi,conf,kappa);
     
     //set back everything
     su3_copy(conf[0][0],sto);
     
     //print pre and post, and write numerical
-    printf("pre: %lg, post: %lg, eps: %lg\n",pre,post,eps);
-    double nu=-(post-pre)/eps;
+    printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
+    double nu_plus=-(act_plus-act_ori)/eps;
+    double nu_minus=-(act_ori-act_minus)/eps;
+    double nu=-(act_plus-act_minus)/(2*eps);
     
     vector_reset(F);
 #endif
@@ -222,7 +221,7 @@ namespace nissa
     unsafe_su3_prod_su3(r1,conf[0][0],F[0][0]);
     unsafe_su3_traceless_anti_hermitian_part(r2,r1);
     double tr=(r2[1][0][1]+r2[0][1][1])/2;
-    printf("an: %lg, nu: %lg\n",tr,nu);
+    printf("an: %+016.016le, nu: %+016.016le, nu+: %+016.016le, nu-: %+016.016le\n",tr,nu,nu_plus,nu_minus);
     nissa_free(fixm);
 crash("anna");
 #endif
