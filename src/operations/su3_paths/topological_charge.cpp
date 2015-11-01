@@ -470,8 +470,8 @@ namespace nissa
 		double tot_charge;
 		double plaq=global_plaquette_lx_conf(smoothed_conf);
 		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,istep,tot_charge,plaq);
-		verbosity_lv2_master_printf("Topological charge after %d cooling steps: %+16.16lg, plaquette: %16.16lg\n",istep,tot_charge,plaq);
+		master_fprintf(file,"%d %d %+016.016lg %16.16lg\n",iconf,istep,tot_charge,plaq);
+		verbosity_lv2_master_printf("Topological charge after %d cooling steps: %+016.016lg, plaquette: %16.16lg\n",istep,tot_charge,plaq);
 	      }
 	    if(istep!=cop.nsteps) cool_lx_conf(smoothed_conf,get_sweeper(cop.gauge_action));
 	  }
@@ -488,8 +488,8 @@ namespace nissa
 		double tot_charge;
 		double plaq=global_plaquette_lx_conf(smoothed_conf);
 		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		master_fprintf(file,"%d %d %+16.16lg %16.16lg\n",iconf,ilev,tot_charge,plaq);
-		verbosity_lv2_master_printf("Topological charge after %d stouting levels: %+16.16lg, plaquette: %16.16lg\n",ilev,tot_charge,plaq);
+		master_fprintf(file,"%d %d %+016.016lg %16.16lg\n",iconf,ilev,tot_charge,plaq);
+		verbosity_lv2_master_printf("Topological charge after %d stouting levels: %+016.016lg, plaquette: %16.16lg\n",ilev,tot_charge,plaq);
 	      }
 	    if(ilev!=stp.nlevels) stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
 	  }
@@ -503,7 +503,7 @@ namespace nissa
 		double tot_charge;
 		double plaq=global_plaquette_lx_conf(smoothed_conf);
 		total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		master_fprintf(file,"%d %lg %+16.16lg %16.16lg\n",iconf,t,tot_charge,plaq);
+		master_fprintf(file,"%d %lg %+016.016lg %16.16lg\n",iconf,t,tot_charge,plaq);
 		verbosity_lv2_master_printf("Topological charge after %lg time of flow: +%16.16lg, plaquette: %16.16lg\n",t,tot_charge,plaq);
 	      }
 	    Wflow_lx_conf(smoothed_conf,dt);
@@ -520,8 +520,8 @@ namespace nissa
 		  double tot_charge;
 		  double plaq=global_plaquette_lx_conf(smoothed_conf);
 		  total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		  master_fprintf(file,"%d %lg %+16.16lg %16.16lg\n",iconf,tot_rho,tot_charge,plaq);
-		  verbosity_lv2_master_printf("Topological charge after %lg tot stouting: %+16.16lg, plaquette: %16.16lg\n",tot_rho,tot_charge,plaq);
+		  master_fprintf(file,"%d %lg %+016.016lg %16.16lg\n",iconf,tot_rho,tot_charge,plaq);
+		  verbosity_lv2_master_printf("Topological charge after %lg tot stouting: %+016.016lg, plaquette: %16.16lg\n",tot_rho,tot_charge,plaq);
 		}
 	      if(ilev!=asp.nlevels)
 		{

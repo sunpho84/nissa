@@ -128,7 +128,7 @@ namespace nissa
     su3 *fixm=nissa_malloc("fixm",loc_vol+bord_vol,su3);
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       su3_put_to_id(fixm[ivol]);
-    //su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
+      //su3_put_to_rnd(fixm[ivol],loc_rnd_gen[ivol]);
     set_borders_invalid(fixm);
     gauge_transform_conf(conf,fixm,conf);
     for(int ifield=0;ifield<2;ifield++)
@@ -186,29 +186,15 @@ namespace nissa
 	      
 	      su3 E;
 	      
-	      //version contracting with temp
 	      //forward piece
 	      unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],temp[ivol]);
-	      su3_summ_the_prod_su3(E,pi[ifield][up],t);
-	      unsafe_su3_dag_prod_su3(t,conf[ivol][mu],temp[ivol]);
-	      unsafe_su3_dag_prod_su3(E,pi[ifield][up],t);
+	      unsafe_su3_prod_su3(E,pi[ifield][up],t);
+	      
 	      //backward piece
 	      unsafe_su3_dag_prod_su3_dag(t,temp[up],conf[ivol][mu]);
 	      su3_summ_the_prod_su3(E,t,pi[ifield][ivol]);
-	      unsafe_su3_prod_su3_dag(t,temp[up],conf[ivol][mu]);
-	      su3_summ_the_prod_su3_dag(E,t,pi[ifield][ivol]);
 	      
-	      su3_summ_the_prod_double(F[ivol][mu],E,kappa/16);
-	      
-	      //version contracting with pi
-	      //forward piece
-	      //unsafe_su3_dag_prod_su3_dag(t,conf[ivol][mu],pi[ifield][ivol]);
-	      //su3_summ_the_prod_su3(F[ivol][mu],pi[ifield][up],t);
-	      //backward piece
-	      //unsafe_su3_prod_su3_dag(t,pi[ifield][up],conf[ivol][mu]);
-	      //su3_summ_the_prod_su3_dag(F[ivol][mu],t,pi[ifield][ivol]);
-	      
-	      //su3_summ_the_prod_su3_dag(F[ivol][mu],pi[0][loclx_neighup[ivol][mu]],pi[0][ivol]);
+	      su3_summ_the_prod_double(F[ivol][mu],E,kappa/8); //factor of 2
 	    }
 	THREAD_BARRIER();
       }

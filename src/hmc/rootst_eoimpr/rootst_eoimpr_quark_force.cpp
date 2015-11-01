@@ -49,11 +49,10 @@ namespace nissa
     
     ////////////////////
     
-    
     //summ all the terms performing appropriate elaboration
     //possible improvement by communicating more borders together
     for(int iterm=0;iterm<appr->degree;iterm++) apply_stDoe(v_o[iterm],eo_conf,chi_e[iterm]);
-        
+    
     //remove the background fields
     rem_backfield_from_conf(eo_conf,u1b);
     
