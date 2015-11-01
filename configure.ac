@@ -43,7 +43,7 @@ AC_SEARCH_LIBS(__gmpz_init,gmp)
 AC_SEARCH_LIBS(fftw_plan_dft_r2c_2d,fftw3)
 
 # Check ntl library
-LB_CHECK_NTL(,,AC_MSG_ERROR(["Unable to find NTL library"]))
+#LB_CHECK_NTL(,,AC_MSG_ERROR(["Unable to find NTL library"]))
 
 #spi
 AC_ARG_ENABLE(spi,
