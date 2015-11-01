@@ -94,10 +94,11 @@ namespace nissa
     get_MPI_nranks();
     get_MPI_rank();
     
-    //associate sigsegv with proper handle
+    //associate signals
     signal(SIGSEGV,signal_handler);
     signal(SIGFPE,signal_handler);
     signal(SIGXCPU,signal_handler);
+    signal(SIGABRT,signal_handler);
     
     print_banner();
     
