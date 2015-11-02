@@ -78,9 +78,7 @@ namespace nissa
 	//store the vector
 	NISSA_PARALLEL_LOOP(ivol,0,loc_vol) su3_copy(H[ivol][mu],out[ivol]);
 	set_borders_invalid(H);
-      }	
-    
-    //crash("");
+      }
   }
   THREADABLE_FUNCTION_END
   
@@ -92,13 +90,14 @@ namespace nissa
     //allocate gaussian field
     su3 *V=nissa_malloc("V",loc_vol+bord_vol,su3);
     
-    for(int id=0;id<2;id++)
+    for(int id=0;id<NDIM/2;id++)
       {
         //generate gaussianly V and then invert on it
         generate_MFACC_fields(V);
+	su3_print(V[0]);
         inv_MFACC_cg(pi[id],NULL,conf,kappa,10000000,residue,V);
       }
-    verbosity_lv2_master_printf("\n");
+    verbosity_lv1_master_printf("\n");
     
     nissa_free(V);
   }

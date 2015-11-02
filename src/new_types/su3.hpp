@@ -97,7 +97,7 @@ namespace nissa
   inline double color_norm2(color c)
   {double out=complex_norm2(c[0]);for(size_t ic=1;ic<NCOL;ic++) out+=complex_norm2(c[ic]);return out;}
     
-  /////////////////////////////// Generate an hermitean matrix ///////////////////////
+  /////////////////////////////// Generate an hermitian matrix ///////////////////////
   
   //Taken from M.D'Elia
 #if NCOL == 3

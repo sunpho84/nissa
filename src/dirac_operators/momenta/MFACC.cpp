@@ -12,6 +12,7 @@
 
 namespace nissa
 {
+  //apply DD
   THREADABLE_FUNCTION_5ARG(apply_MFACC, quad_su3*,out, quad_su3*,conf, double,kappa, double,offset, quad_su3*,in)
   {
     if(!check_borders_valid(in)) communicate_lx_quad_su3_borders(in);
