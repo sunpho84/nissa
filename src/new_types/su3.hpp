@@ -20,6 +20,8 @@
 
 namespace nissa
 {
+  extern su3 gell_mann_matr[NCOL*NCOL-1];
+  
   inline void color_put_to_zero(color m) {for(size_t ic=0;ic<NCOL;ic++) complex_put_to_zero(m[ic]);}
   inline void su3_put_to_zero(su3 m) {for(size_t ic=0;ic<NCOL;ic++) color_put_to_zero(m[ic]);}
   inline void as2t_su3_put_to_zero(as2t_su3 m) {for(size_t i=0;i<sizeof(as2t_su3)/sizeof(su3);i++) su3_put_to_zero(m[i]);}
@@ -1272,10 +1274,10 @@ namespace nissa
 	}
   }
   
-  void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredients &out,su3 Q);
+  void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,su3 Q);
   
   //build the exponential from the ingredients
-  inline void safe_anti_hermitian_exact_i_exponentiate(su3 out,anti_hermitian_exp_ingredients &ing)
+  inline void safe_hermitian_exact_i_exponentiate(su3 out,hermitian_exp_ingredients &ing)
   {
     CRASH_IF_NOT_3COL();
     
@@ -1284,20 +1286,20 @@ namespace nissa
     su3_summ_the_prod_complex(out,ing.Q,ing.f[1]);
     su3_summ_the_prod_complex(out,ing.Q2,ing.f[2]);
   }
-  inline void safe_anti_hermitian_exact_i_exponentiate(su3 out,su3 Q)
+  inline void safe_hermitian_exact_i_exponentiate(su3 out,su3 Q)
   {
-    anti_hermitian_exp_ingredients ing;
-    anti_hermitian_exact_i_exponentiate_ingredients(ing,Q);
-    safe_anti_hermitian_exact_i_exponentiate(out,ing);
+    hermitian_exp_ingredients ing;
+    hermitian_exact_i_exponentiate_ingredients(ing,Q);
+    safe_hermitian_exact_i_exponentiate(out,ing);
   }
   
-  //can be used for an hermitian matrix
-  inline void safe_hermitian_exact_exponentiate(su3 out,su3 in)
+  //can be used directly from an anti-hermitian matrix, ie. it compute straight exp(iQ)
+  inline void safe_anti_hermitian_exact_exponentiate(su3 out,su3 iQ)
   {
     su3 Q;
-    su3_prod_idouble(Q,in,-1);
+    su3_prod_idouble(Q,iQ,-1);
     
-    safe_anti_hermitian_exact_i_exponentiate(out,Q);
+    safe_hermitian_exact_i_exponentiate(out,Q);
   }
   
   //return sqrt(|U*U^+-1|)

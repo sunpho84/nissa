@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "linalgs/linalgs.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
@@ -43,7 +44,7 @@ namespace nissa
 	{
 	  su3 t1,t2;
 	  su3_prod_double(t1,H[ivol][mu],dt);
-	  safe_anti_hermitian_exact_i_exponentiate(t2,t1);
+	  safe_hermitian_exact_i_exponentiate(t2,t1);
           
 	  safe_su3_prod_su3(lx_conf[ivol][mu],t2,lx_conf[ivol][mu]);
 	}
@@ -55,13 +56,9 @@ namespace nissa
   //accelerate and evolve
   void evolve_lx_conf_with_accelerated_momenta(quad_su3 *lx_conf,quad_su3 *H,double kappa,int niter,double residue,double dt)
   {
-    if(fabs(kappa)>1.e-10)
-      {
-	quad_su3 *M=nissa_malloc("M",loc_vol+bord_vol,quad_su3);
-	accelerate_lx_momenta(M,lx_conf,kappa,niter,residue,H);
-	evolve_lx_conf_with_momenta(lx_conf,M,dt);
-	nissa_free(M);
-      }
-    else evolve_lx_conf_with_momenta(lx_conf,H,dt);
+    quad_su3 *M=nissa_malloc("M",loc_vol+bord_vol,quad_su3);
+    accelerate_lx_momenta(M,lx_conf,kappa,niter,residue,H);
+    evolve_lx_conf_with_momenta(lx_conf,M,dt);
+    nissa_free(M);
   }
 }

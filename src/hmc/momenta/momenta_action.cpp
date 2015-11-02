@@ -47,7 +47,7 @@ namespace nissa
     double_vector_glb_scalar_prod(&act,(double*)(H),(double*)(H_temp),sizeof(quad_su3)/sizeof(double)*loc_vol);
     nissa_free(H_temp);
     
-    return act;
+    return act/2;
   }
   
   //compute the action for the Fourier acceleration-related momenta
@@ -64,7 +64,7 @@ namespace nissa
         double_vector_glb_scalar_prod(&(glb_action_id[id]),(double*)V,(double*)V,sizeof(su3)/sizeof(double)*loc_vol);
       }
     
-    (*tot_action)=(glb_action_id[0]+glb_action_id[1])/4; //2 or 4!?
+    (*tot_action)=(glb_action_id[0]+glb_action_id[1])/2;
     nissa_free(V);
   }
   THREADABLE_FUNCTION_END

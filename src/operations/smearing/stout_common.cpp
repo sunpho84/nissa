@@ -23,7 +23,7 @@
 namespace nissa
 {
   //compute the lambda entering the force remapping
-  void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,anti_hermitian_exp_ingredients *ing)
+  void stouted_force_compute_Lambda(su3 Lambda,su3 U,su3 F,hermitian_exp_ingredients *ing)
   {
     complex b[2][3];
     

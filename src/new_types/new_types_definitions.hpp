@@ -216,7 +216,7 @@ namespace nissa
   
   #if NCOL == 3
   //used to exponentiate for stouting
-  struct anti_hermitian_exp_ingredients
+  struct hermitian_exp_ingredients
   {
     int sign;
     double c0,c1;

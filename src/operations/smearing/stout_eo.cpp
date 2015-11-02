@@ -88,7 +88,7 @@ namespace nissa
       else in[eo]=ext_in[eo];
     
     for(int p=0;p<2;p++)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	NISSA_PARALLEL_LOOP(A,0,loc_volh)
 	  {
 	    //compute the staples needed to smear
@@ -97,7 +97,7 @@ namespace nissa
 	    
 	    //exp(iQ)*U (eq. 3)
 	    su3 expiQ;
-	    safe_anti_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
+	    safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
 	    unsafe_su3_prod_su3(out[p][A][mu],expiQ,in[p][A][mu]);
 	  }
     
@@ -204,7 +204,7 @@ namespace nissa
       Lambda[eo]=nissa_malloc("Lambda",loc_volh+bord_volh+edge_volh,quad_su3);
     
     for(int p=0;p<2;p++)
-      for(int mu=0;mu<4;mu++)
+      for(int mu=0;mu<NDIM;mu++)
 	NISSA_PARALLEL_LOOP(A,0,loc_volh)
 	  {
 	    //compute the ingredients needed to smear
@@ -212,15 +212,15 @@ namespace nissa
 	    stout_smear_compute_staples(&sto_ste,conf,p,A,mu,rho);
 	    
 	    //compute the ingredients needed to exponentiate
-	    anti_hermitian_exp_ingredients ing;
-	    anti_hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
+	    hermitian_exp_ingredients ing;
+	    hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
 	    
 	    //compute the Lambda
 	    stouted_force_compute_Lambda(Lambda[p][A][mu],conf[p][A][mu],F[p][A][mu],&ing);
 	    
 	    //exp(iQ)
 	    su3 expiQ;
-	    safe_anti_hermitian_exact_i_exponentiate(expiQ,ing.Q);
+	    safe_hermitian_exact_i_exponentiate(expiQ,ing.Q);
 	    
 	    //first piece of eq. (75)
 	    su3 temp1;

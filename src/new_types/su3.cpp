@@ -6,6 +6,41 @@
 
 namespace nissa
 {
+  //gell-mann matrices as from eq.A.10 of Gattringer - note that T=lambda/2
+  su3 gell_mann_matr[NCOL*NCOL-1]={
+    {
+	{{0,0},{1,0},{0,0}},
+	{{1,0},{0,0},{0,0}},
+	{{0,0},{0,0},{0,0}}},
+     {
+       {{0,0},{0,-1},{0,0}},
+       {{0,1},{0,0},{0,0}},
+       {{0,0},{0,0},{0,0}}},
+     {
+       {{1,0},{0,0},{0,0}},
+       {{0,0},{-1,0},{0,0}},
+       {{0,0},{0,0},{0,0}}},
+     {
+       {{0,0},{0,0},{1,0}},
+       {{0,0},{0,0},{0,0}},
+       {{1,0},{0,0},{0,0}}},
+    {
+	{{0,0},{0,0},{0,-1}},
+	{{0,0},{0,0},{0,0}},
+	{{0,1},{0,0},{0,0}}},
+     {
+       {{0,0},{0,0},{0,0}},
+       {{0,0},{0,0},{1,0}},
+       {{0,0},{1,0},{0,0}}},
+     {
+       {{0,0},{0,0},{0,0}},
+       {{0,0},{0,0},{0,-1}},
+       {{0,0},{0,1},{0,0}}},
+     {
+       {{1/sqrt(3),0},{0,0},{0,0}},
+       {{0,0},{1/sqrt(3),0},{0,0}},
+       {{0,0},{0,0},{-2/sqrt(3),0}}}};
+  
   //make unitary maximazing Trace(out*M^dag)
   void su3_unitarize_maximal_trace_projecting(su3 out,su3 M,double precision,int niter_max)
   {
@@ -182,10 +217,10 @@ namespace nissa
     su3_unitarize_orthonormalizing(out,out);
   }
   
-  //exact exponential of i times the passed anti-hermitian matrix Q
+  //exact exponential of i times the *****passed hermitian matrix Q*****
   //algorithm taken from hep­lat/0311018
   //the stored f are relative to c0
-  void anti_hermitian_exact_i_exponentiate_ingredients(anti_hermitian_exp_ingredients &out,su3 Q)
+  void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,su3 Q)
   {
     //copy Q
     su3_copy(out.Q,Q);
@@ -197,7 +232,7 @@ namespace nissa
     unsafe_su3_prod_su3(out.Q2,Q,Q);
     
     //takes 1/2 of the real part of the trace of Q2 (eq. 15)
-    double c1=out.c1=su3_real_trace(out.Q2)/2; 
+    double c1=out.c1=su3_real_trace(out.Q2)/2;
     //compute c0_max (eq. 17)
     double c0_max=2*pow(c1/3,1.5);
     

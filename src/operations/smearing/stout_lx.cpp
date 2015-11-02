@@ -107,7 +107,7 @@ namespace nissa
 	  
 	  //exp(iQ)*U (eq. 3)
 	  su3 expiQ;
-	  safe_anti_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
+	  safe_hermitian_exact_i_exponentiate(expiQ,sto_ste.Q);
 	  unsafe_su3_prod_su3(out[A][mu],expiQ,in[A][mu]);
 	}
     force_norm=sqrt(glb_reduce_double(force_norm)/(NDIM*glb_vol));
@@ -210,15 +210,15 @@ namespace nissa
 	  stout_smear_compute_staples(&sto_ste,conf,A,mu,rho);
 	  
 	  //compute the ingredients needed to exponentiate
-	  anti_hermitian_exp_ingredients ing;
-	  anti_hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
+	  hermitian_exp_ingredients ing;
+	  hermitian_exact_i_exponentiate_ingredients(ing,sto_ste.Q);
 	  
 	  //compute the Lambda
 	  stouted_force_compute_Lambda(Lambda[A][mu],conf[A][mu],F[A][mu],&ing);
 	  
 	  //exp(iQ)
 	  su3 expiQ;
-	  safe_anti_hermitian_exact_i_exponentiate(expiQ,ing.Q);
+	  safe_hermitian_exact_i_exponentiate(expiQ,ing.Q);
 	  
 	  //first piece of eq. (75)
 	  su3 temp1;

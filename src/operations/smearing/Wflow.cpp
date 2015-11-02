@@ -52,7 +52,7 @@ namespace nissa
 	      su3 omega;
 	      unsafe_su3_prod_su3_dag(omega,staple,conf[ivol][mu]);
 	      
-	      //compute Q and weight (the minus is there due to original stout
+	      //compute Q and weight (the minus is there due to original stout)
 	      su3 iQ,Q;
 	      unsafe_su3_traceless_anti_hermitian_part(iQ,omega);
 	      su3_prod_idouble(Q,iQ,-RK_wn[iter]*dt); //putting here the integration time
@@ -68,7 +68,7 @@ namespace nissa
 	  for(int mu=0;mu<NDIM;mu++)
 	    {
 	      su3 expiQ;
-	      safe_anti_hermitian_exact_i_exponentiate(expiQ,arg[ivol][mu]);
+	      safe_hermitian_exact_i_exponentiate(expiQ,arg[ivol][mu]);
 	      safe_su3_prod_su3(conf[ivol][mu],expiQ,conf[ivol][mu]);
 	    }
 	set_borders_invalid(conf);

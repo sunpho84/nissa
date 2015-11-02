@@ -64,37 +64,39 @@ namespace nissa
 	su3_copy(sto,pi[ifield][0]);
 	double act_ori=MFACC_momenta_action(pi,conf,kappa);
 	
+	//store derivative
 	su3 nu_plus,nu_minus;
-	for(int ic1=0;ic1<NCOL;ic1++)
-	  for(int ic2=0;ic2<NCOL;ic2++)
-	    for(int ri=0;ri<2;ri++)
-	      {
-		//prepare increment and change
-		su3 ba;
-		su3_put_to_zero(ba);
-		ba[ic1][ic2][ri]+=eps/2;
-		ba[ic2][ic1][ri]+=(ri==0?(+1):(-1))*eps/2;
-		
-		//change -, compute action
-		su3_subt(pi[ifield][0],sto,ba);
-		double act_minus=MFACC_momenta_action(pi,conf,kappa);
-		
-		//change +, compute action
-		su3_summ(pi[ifield][0],sto,ba);
-		double act_plus=MFACC_momenta_action(pi,conf,kappa);
-		
-		//set back everything
-		su3_copy(phi[ifield][0],sto);
-		
-		//print pre and post, and write numerical
-		//printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
-		nu_plus[ic1][ic2][ri]=-(act_plus-act_ori)/eps;
-		nu_minus[ic1][ic2][ri]=-(act_ori-act_minus)/eps;
-	      }
+	su3_put_to_zero(nu_plus);
+	su3_put_to_zero(nu_minus);
+	
+	for(int igen=0;igen<8;igen++)
+	  {
+	    //prepare increment and change
+	    su3 ba;
+	    su3_prod_double(ba,gell_mann_matr[igen],eps);
+	    
+	    //change -, compute action
+	    su3_subt(pi[ifield][0],sto,ba);
+	    double act_minus=MFACC_momenta_action(pi,conf,kappa);
+	    
+	    //change +, compute action
+	    su3_summ(pi[ifield][0],sto,ba);
+	    double act_plus=MFACC_momenta_action(pi,conf,kappa);
+	    
+	    //set back everything
+	    su3_copy(phi[ifield][0],sto);
+	    
+	    printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
+	    double gr_plus=(act_plus-act_ori)/eps;
+	    double gr_minus=(act_ori-act_minus)/eps;
+	    su3_summ_the_prod_double(nu_plus,gell_mann_matr[igen],gr_plus/2);
+	    su3_summ_the_prod_double(nu_minus,gell_mann_matr[igen],gr_minus/2);
+	  }
 	
 	//take the average
 	su3 nu;
 	su3_summ(nu,nu_plus,nu_minus);
+	su3_prodassign_double(nu,0.5);
 #endif
 	
         //compute
@@ -102,12 +104,13 @@ namespace nissa
         apply_MFACC(F,conf,kappa,temp);
         
 #ifdef DEBUG
+	master_printf("Comparing MFACC fields derivative\n");
 	master_printf("an\n");
 	su3_print(F[0]);
 	master_printf("nu\n");
 	su3_print(nu);
+	//crash("ciccio");
 #endif
-	
 	//evolve
         double_vector_summ_double_vector_prod_double((double*)(phi[ifield]),(double*)(phi[ifield]),(double*)F,dt,loc_vol*sizeof(su3)/sizeof(double));
       }
@@ -122,23 +125,23 @@ namespace nissa
   {
     verbosity_lv2_master_printf("Evolving Fourier momenta, dt=%lg\n",dt);
     
-    for(int ifield=0;ifield<2;ifield++)
+    for(int ifield=0;ifield<NDIM/2;ifield++)
       double_vector_summ_double_vector_prod_double((double*)(pi[ifield]),(double*)(pi[ifield]),(double*)(phi[ifield]),-dt,loc_vol*sizeof(su3)/sizeof(double));
+    su3_print(pi[0][0]);
   }
   THREADABLE_FUNCTION_END
   
-  //compute the MFACC momenta-related QCD force (derivative of \pi^\dag MM \pi/2)
+  //compute the QCD force originated from MFACC momenta (derivative of \pi^\dag MM \pi/2) w.r.t U
   THREADABLE_FUNCTION_5ARG(MFACC_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, su3**,pi, bool,reset)
   {
     GET_THREAD_ID();
     
-    verbosity_lv2_master_printf("Computing Fourier QCD force originated by acceleration-momenta\n");
+    verbosity_lv2_master_printf("Computing QCD force originated by MFACC momenta (derivative of \\pi^\\dag MM \\pi/2) w.r.t U\n");
     
     su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
     if(reset) vector_reset(F);
     
 #ifdef DEBUG
-    vector_reset(F);
     double eps=1e-5;
     
     //store initial link and compute action
@@ -146,30 +149,41 @@ namespace nissa
     su3_copy(sto,conf[0][0]);
     double act_ori=MFACC_momenta_action(pi,conf,kappa);
     
-    //prepare increment and change
-    su3 ba;
-    su3_put_to_zero(ba);
-    ba[1][0][0]=ba[0][1][0]=eps/2;
-    su3 exp_mod;
-    safe_anti_hermitian_exact_i_exponentiate(exp_mod,ba);
-    su3_print(exp_mod);
+    //store derivative
+    su3 nu_plus,nu_minus;
+    su3_put_to_zero(nu_plus);
+    su3_put_to_zero(nu_minus);
     
-    //change -, compute action
-    unsafe_su3_dag_prod_su3(conf[0][0],exp_mod,sto);
-    double act_minus=MFACC_momenta_action(pi,conf,kappa);
+    for(int igen=0;igen<8;igen++)
+      {
+	//prepare increment and change
+	su3 ba;
+	su3_prod_double(ba,gell_mann_matr[igen],eps/2);
+	su3 exp_mod;
+	safe_hermitian_exact_i_exponentiate(exp_mod,ba);
+	
+	//change -, compute action
+	unsafe_su3_dag_prod_su3(conf[0][0],exp_mod,sto);
+	double act_minus=MFACC_momenta_action(pi,conf,kappa);
+	
+	//change +, compute action
+	unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
+	double act_plus=MFACC_momenta_action(pi,conf,kappa);
+	
+	//set back everything
+	su3_copy(conf[0][0],sto);
+	
+	//printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
+	double gr_plus=-(act_plus-act_ori)/eps;
+	double gr_minus=-(act_ori-act_minus)/eps;
+	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus/2);
+	su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus/2);
+      }
     
-    //change +, compute action
-    unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
-    double act_plus=MFACC_momenta_action(pi,conf,kappa);
-    
-    //set back everything
-    su3_copy(conf[0][0],sto);
-    
-    //print pre and post, and write numerical
-    printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
-    double nu_plus=-(act_plus-act_ori)/eps;
-    double nu_minus=-(act_ori-act_minus)/eps;
-    double nu=-(act_plus-act_minus)/(2*eps);
+    //take the average
+    su3 nu;
+    su3_summ(nu,nu_plus,nu_minus);
+    su3_prodassign_double(nu,0.5);
     
     vector_reset(F);
 #endif
@@ -195,7 +209,7 @@ namespace nissa
 	      su3_summ_the_prod_su3(E,t,pi[ifield][ivol]);
 	      
 	      //factor of kappa/16
-	      su3_summ_the_prod_double(F[ivol][mu],E,kappa/16);
+	      su3_summ_the_prod_double(F[ivol][mu],E,kappa/8);
 	    }
 	THREAD_BARRIER();
       }
@@ -207,9 +221,12 @@ namespace nissa
     su3 r1,r2;
     unsafe_su3_prod_su3(r1,conf[0][0],F[0][0]);
     unsafe_su3_traceless_anti_hermitian_part(r2,r1);
-    double tr=(r2[1][0][1]+r2[0][1][1])/2;
-    printf("an: %+016.016le, nu: %+016.016le, nu+: %+016.016le, nu-: %+016.016le\n",tr,nu,nu_plus,nu_minus);
-    //crash("anna");
+    
+    master_printf("Comparing MFACC momenta QCD force\n");
+    master_printf("an\n");
+    su3_print(r2);
+    master_printf("nu\n");
+    su3_print(nu);
 #endif
   }
   THREADABLE_FUNCTION_END
@@ -221,12 +238,7 @@ namespace nissa
     
     verbosity_lv2_master_printf("Computing Fourier acceleration fields originated QCD force\n");
     
-    su3 *H_nu=nissa_malloc("H_nu",loc_vol+bord_vol,su3);
-    su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
-    if(reset) vector_reset(F);
-    
 #ifdef DEBUG
-    vector_reset(F);
     double eps=1e-5;
     
     //store initial link and compute action
@@ -234,33 +246,48 @@ namespace nissa
     su3_copy(sto,conf[0][0]);
     double act_ori=momenta_action_with_FACC(conf,kappa,niter,residue,H);
     
-    //prepare increment and change
-    su3 ba;
-    su3_put_to_zero(ba);
-    ba[1][0][0]=ba[0][1][0]=eps/2;
-    su3 exp_mod;
-    safe_anti_hermitian_exact_i_exponentiate(exp_mod,ba);
-    su3_print(exp_mod);
+    //store derivative
+    su3 nu_plus,nu_minus;
+    su3_put_to_zero(nu_plus);
+    su3_put_to_zero(nu_minus);
     
-    //change -, compute action
-    unsafe_su3_dag_prod_su3(conf[0][0],exp_mod,sto);
-    double act_minus=momenta_action_with_FACC(conf,kappa,niter,residue,H);
+    for(int igen=0;igen<8;igen++)
+      {
+	//prepare increment and change
+	su3 ba;
+	su3_prod_double(ba,gell_mann_matr[igen],eps/2);
+	su3 exp_mod;
+	safe_hermitian_exact_i_exponentiate(exp_mod,ba);
+	
+	//change -, compute action
+	unsafe_su3_dag_prod_su3(conf[0][0],exp_mod,sto);
+	double act_minus=momenta_action_with_FACC(conf,kappa,niter,residue,H);
+	
+	//change +, compute action
+	unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
+	double act_plus=momenta_action_with_FACC(conf,kappa,niter,residue,H);
+	
+	//set back everything
+	su3_copy(conf[0][0],sto);
+	
+	//printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
+	double gr_plus=-(act_plus-act_ori)/eps;
+	double gr_minus=-(act_ori-act_minus)/eps;
+	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus/2);
+	su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus/2);
+      }
     
-    //change +, compute action
-    unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
-    double act_plus=momenta_action_with_FACC(conf,kappa,niter,residue,H);
-    
-    //set back everything
-    su3_copy(conf[0][0],sto);
-    
-    //print pre and post, and write numerical
-    printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
-    double nu_plus=-(act_plus-act_ori)/eps;
-    double nu_minus=-(act_ori-act_minus)/eps;
-    double nu=-(act_plus-act_minus)/(2*eps);
+    //take the average
+    su3 nu;
+    su3_summ(nu,nu_plus,nu_minus);
+    su3_prodassign_double(nu,0.5);
     
     vector_reset(F);
 #endif
+    
+    su3 *H_nu=nissa_malloc("H_nu",loc_vol+bord_vol,su3);
+    su3 *temp=nissa_malloc("temp",loc_vol+bord_vol,su3);
+    if(reset) vector_reset(F);
     
     for(int nu=0;nu<NDIM;nu++)
       {
@@ -288,7 +315,7 @@ namespace nissa
 		unsafe_su3_dag_prod_su3_dag(t,temp[up],conf[ivol][mu]);
 		su3_summ_the_prod_su3(E,t,temp[ivol]);
 		
-		su3_summ_the_prod_double(F[ivol][mu],E,-kappa/8); //8!?
+		su3_summ_the_prod_double(F[ivol][mu],E,-kappa/32);
 	      }
 	  }
 	THREAD_BARRIER();
@@ -299,9 +326,13 @@ namespace nissa
     su3 r1,r2;
     unsafe_su3_prod_su3(r1,conf[0][0],F[0][0]);
     unsafe_su3_traceless_anti_hermitian_part(r2,r1);
-    double tr=(r2[1][0][1]+r2[0][1][1])/2;
-    printf("an: %+016.016le, nu: %+016.016le, nu+: %+016.016le, nu-: %+016.016le\n",tr,nu,nu_plus,nu_minus);
-    crash("anna QCD force originating from H");
+    
+    master_printf("QCD force originating from H\n");
+    master_printf("an\n");
+    su3_print(r2);
+    master_printf("nu\n");
+    su3_print(nu);
+    //crash("ciccio");
 #endif
     
     nissa_free(temp);
