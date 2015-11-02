@@ -16,7 +16,9 @@
  #include "routines/thread.hpp"
 #endif
 
-#define DEBUG
+//#define DEBUG
+
+const double switchoff=0;
 
 #include "hmc/momenta/momenta_action.hpp"
 #include "operations/gauge_fixing.hpp"
@@ -209,7 +211,7 @@ namespace nissa
 	      su3_summ_the_prod_su3(E,t,pi[ifield][ivol]);
 	      
 	      //factor of kappa/16
-	      su3_summ_the_prod_double(F[ivol][mu],E,kappa/8);
+	      su3_summ_the_prod_double(F[ivol][mu],E,-kappa/16);
 	    }
 	THREAD_BARRIER();
       }

@@ -14,18 +14,24 @@
 #include "new_types/new_types_definitions.hpp"
 #include "routines/ios.hpp"
 
+extern int evolve_FACC;
+
 namespace nissa
 {
   double pure_gauge_action(quad_su3 *conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,quad_su3 *H,su3 **phi,su3 **pi)
   {
     //compute final action for momenta
-    double action_H;
-    if(evol_pars.use_Facc) action_H=momenta_action_with_FACC(conf,evol_pars.kappa, 100000,evol_pars.residue,H);
-    else action_H=momenta_action(H);
+    double action_H=0;
+    if(evolve_FACC&2)
+      {
+	if(evol_pars.use_Facc) action_H=momenta_action_with_FACC(conf,evol_pars.kappa, 100000,evol_pars.residue,H);
+	else action_H=momenta_action(H);
+      }
     verbosity_lv2_master_printf("Momenta action: %lg\n",action_H);
     
     //compute action for FACC
     double action_phi=0,action_pi=0;
+    if(evolve_FACC&1)
     if(evol_pars.use_Facc)
       {
 	action_phi=MFACC_fields_action(phi);
@@ -35,8 +41,8 @@ namespace nissa
       }
     
     //compute action for G
-    double action_G;
-    gluonic_action(&action_G,conf,&theory_pars,false);
+    double action_G=0;
+    if(evolve_FACC&2) gluonic_action(&action_G,conf,&theory_pars,false);
     verbosity_lv2_master_printf("Gauge action: %lg\n",action_G);
     
     return action_G+action_H+action_phi+action_pi;
@@ -80,7 +86,7 @@ namespace nissa
     verbosity_lv2_master_printf("Init action: %lg\n",init_action);
     
     //evolve forward
-    if(evol_pars.use_Facc) omelyan_pure_gauge_Facc_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
+    if(evol_pars.use_Facc) omelyan_pure_gauge_FACC_evolver(H,out_conf,pi,phi,&theory_pars,&evol_pars);
     else                   omelyan_pure_gauge_evolver(H,out_conf,&theory_pars,&evol_pars);
     
     //compute the action

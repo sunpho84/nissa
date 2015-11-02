@@ -21,6 +21,8 @@
 #include "gluonic_force.hpp"
 #include "MFACC_fields.hpp"
 
+int evolve_FACC=1;
+
 namespace nissa
 {
   // Evolve momenta according to the pure gauge force
@@ -86,19 +88,20 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //same but with acceleration
-  THREADABLE_FUNCTION_8ARG(evolve_momenta_and_Facc_momenta, quad_su3*,H, su3**,pi, quad_su3*,conf, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul, double,dt, quad_su3*,ext_F)
+  THREADABLE_FUNCTION_8ARG(evolve_momenta_and_FACC_momenta, quad_su3*,H, su3**,pi, quad_su3*,conf, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul, double,dt, quad_su3*,ext_F)
   {
-    verbosity_lv2_master_printf("Evolving momenta and Facc momenta, dt=%lg\n",dt);
+    verbosity_lv2_master_printf("Evolving momenta and FACC momenta, dt=%lg\n",dt);
     
     quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",loc_vol,quad_su3):ext_F;
     
-    //evolve Facc momenta
-    evolve_MFACC_momenta(pi,phi,dt);
+    //evolve FACC momenta
+    if(evolve_FACC&1) evolve_MFACC_momenta(pi,phi,dt);
     
     //compute the various contribution to the QCD force
-    compute_gluonic_force_lx_conf(F,conf,theory_pars,false);
-    summ_the_MFACC_momenta_QCD_force(F,conf,simul->kappa,pi);
-    summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
+    vector_reset(F);
+    if(evolve_FACC&2) compute_gluonic_force_lx_conf(F,conf,theory_pars,false);
+    if(evolve_FACC&1) summ_the_MFACC_momenta_QCD_force(F,conf,simul->kappa,pi);
+    if(evolve_FACC&2) summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
     evolve_lx_momenta_with_force(H,F,dt);
     
     if(ext_F==NULL) nissa_free(F);
@@ -106,14 +109,14 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //combine the two fields evolution
-  void evolve_lx_conf_with_accelerated_momenta_and_Facc_fields(quad_su3 *conf,su3 **phi,quad_su3 *H,su3 **pi,double kappa,int niter,double residue,double dt)
+  void evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(quad_su3 *conf,su3 **phi,quad_su3 *H,su3 **pi,double kappa,int niter,double residue,double dt)
   {
-    evolve_MFACC_fields(phi,conf,kappa,pi,dt);
-    evolve_lx_conf_with_accelerated_momenta(conf,H,kappa,niter,residue,dt);
+    if(evolve_FACC&1) evolve_MFACC_fields(phi,conf,kappa,pi,dt);
+    if(evolve_FACC&2) evolve_lx_conf_with_accelerated_momenta(conf,H,kappa,niter,residue,dt);
   }
   
   //integrator for pure gauge
-  THREADABLE_FUNCTION_6ARG(omelyan_pure_gauge_Facc_evolver, quad_su3*,H, quad_su3*,conf, su3**,pi, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
+  THREADABLE_FUNCTION_6ARG(omelyan_pure_gauge_FACC_evolver, quad_su3*,H, quad_su3*,conf, su3**,pi, su3**,phi, theory_pars_t*,theory_pars, pure_gauge_evol_pars_t*,simul)
   {
     const int niter_max=100000;
     
@@ -124,7 +127,7 @@ namespace nissa
     
     quad_su3 *F=nissa_malloc("F",loc_vol,quad_su3);
     
-    evolve_momenta_and_Facc_momenta(H,pi,conf,phi,theory_pars,simul,ldt,F);
+    evolve_momenta_and_FACC_momenta(H,pi,conf,phi,theory_pars,simul,ldt,F);
     
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
@@ -134,11 +137,11 @@ namespace nissa
 	//decide if last step is final or not
 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
-	evolve_lx_conf_with_accelerated_momenta_and_Facc_fields(conf,phi,H,pi,simul->kappa,niter_max,simul->residue,dth);
-	evolve_momenta_and_Facc_momenta(H,pi,conf,phi,theory_pars,simul,uml2dt,F);
+	evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(conf,phi,H,pi,simul->kappa,niter_max,simul->residue,dth);
+	evolve_momenta_and_FACC_momenta(H,pi,conf,phi,theory_pars,simul,uml2dt,F);
 	
-	evolve_lx_conf_with_accelerated_momenta_and_Facc_fields(conf,phi,H,pi,simul->kappa,niter_max,simul->residue,dth);
-	evolve_momenta_and_Facc_momenta(H,pi,conf,phi,theory_pars,simul,last_dt,F);
+	evolve_lx_conf_with_accelerated_momenta_and_FACC_fields(conf,phi,H,pi,simul->kappa,niter_max,simul->residue,dth);
+	evolve_momenta_and_FACC_momenta(H,pi,conf,phi,theory_pars,simul,last_dt,F);
 	
 	//normalize the configuration
 	unitarize_lx_conf_maximal_trace_projecting(conf);
