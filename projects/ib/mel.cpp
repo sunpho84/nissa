@@ -399,10 +399,10 @@ void insert_external_loc_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *in,in
 
 void insert_external_source(PROP_TYPE *out,spin1field *curr,PROP_TYPE *ori,int t,int r,int loc)
 {
-  if(loc) insert_external_loc_source(source,photon_field,ori,t);
+  if(loc) insert_external_loc_source(source,curr,ori,t);
   else
-    if(!pure_wilson) insert_tm_external_source(source,conf,photon_field,ori,r,t);
-    else             insert_wilson_external_source(source,conf,photon_field,ori,t);
+    if(!pure_wilson) insert_tm_external_source(source,conf,curr,ori,r,t);
+    else             insert_wilson_external_source(source,conf,curr,ori,t);
 }
 
 //generate a sequential source
