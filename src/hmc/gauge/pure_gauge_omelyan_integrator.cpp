@@ -21,7 +21,7 @@
 #include "gluonic_force.hpp"
 #include "MFACC_fields.hpp"
 
-int evolve_FACC=2;
+int evolve_FACC=1;
 
 namespace nissa
 {
@@ -38,50 +38,6 @@ namespace nissa
     
     //evolve
     evolve_lx_momenta_with_force(H,F,dt);
-    
-#if 0
-    GET_THREAD_ID();
-    
-    //print info on the norm of the force
-    double norm2;
-    double_vector_glb_scalar_prod(&norm2,(double*)F,(double*)F,loc_vol*sizeof(quad_su3)/sizeof(double));
-    master_printf("Gluonic force norm: %lg per site\n",sqrt(norm2)/glb_vol);
-    
-    //pars for calc
-    double eps=1e-4;
-    int ivol=0,mu=0;
-    
-    //compute action before
-    double act_bef;
-    gluonic_action(&act_bef,conf,theory_pars);
-    
-    //perform an inifinitesimal variation on site 0 dir 0
-    su3 gen;
-    su3_put_to_zero(gen);
-    gen[1][0][0]=gen[0][1][0]=eps;
-    su3 var;
-    safe_anti_hermitian_exact_i_exponentiate(var,gen);
-    
-    su3_print(var);
-    
-    //modify
-    su3 bef;
-    su3_copy(bef,conf[ivol][mu]);
-    if(rank==0 && IS_MASTER_THREAD) safe_su3_prod_su3(conf[ivol][mu],var,conf[ivol][mu]);
-    set_borders_invalid(conf);
-    
-    //compute action after rotation
-    double act_aft;
-    gluonic_action(&act_aft,conf,theory_pars);
-    
-    //put back in place
-    if(rank==0 && IS_MASTER_THREAD) su3_copy(conf[ivol][mu],bef);
-    set_borders_invalid(conf);
-    
-    double f_num=(act_bef-act_aft)/eps;
-    double f_ana=F[ivol][mu][1][0][IM]+F[ivol][mu][0][1][IM];
-    master_printf("force: (%lg-%lg)/%lg=%lg numerical, %lg analytical\n",act_bef,act_aft,eps,f_num,f_ana);
-#endif
     
     if(ext_F==NULL) nissa_free(F);
   }
@@ -101,7 +57,7 @@ namespace nissa
     vector_reset(F);
     if(evolve_FACC&2) compute_gluonic_force_lx_conf(F,conf,theory_pars,false);
     if(evolve_FACC&1) summ_the_MFACC_momenta_QCD_force(F,conf,simul->kappa,pi);
-    if(evolve_FACC&1) summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
+    if(evolve_FACC&2) summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
     evolve_lx_momenta_with_force(H,F,dt);
     
     if(ext_F==NULL) nissa_free(F);

@@ -18,8 +18,6 @@
 
 //#define DEBUG
 
-const double switchoff=0;
-
 #include "hmc/momenta/momenta_action.hpp"
 #include "operations/gauge_fixing.hpp"
 
