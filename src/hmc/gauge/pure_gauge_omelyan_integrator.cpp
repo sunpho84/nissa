@@ -21,7 +21,7 @@
 #include "gluonic_force.hpp"
 #include "MFACC_fields.hpp"
 
-int evolve_FACC=1;
+int evolve_FACC=2;
 
 namespace nissa
 {
@@ -101,7 +101,7 @@ namespace nissa
     vector_reset(F);
     if(evolve_FACC&2) compute_gluonic_force_lx_conf(F,conf,theory_pars,false);
     if(evolve_FACC&1) summ_the_MFACC_momenta_QCD_force(F,conf,simul->kappa,pi);
-    if(evolve_FACC&2) summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
+    if(evolve_FACC&1) summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
     evolve_lx_momenta_with_force(H,F,dt);
     
     if(ext_F==NULL) nissa_free(F);

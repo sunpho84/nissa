@@ -30,7 +30,7 @@ namespace nissa
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-
+  
   //evolve the configuration with the momenta
   THREADABLE_FUNCTION_3ARG(evolve_lx_conf_with_momenta, quad_su3*,lx_conf, quad_su3*,H, double,dt)
   {

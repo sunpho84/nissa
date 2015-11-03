@@ -20,11 +20,11 @@ namespace nissa
 {
   double pure_gauge_action(quad_su3 *conf,theory_pars_t &theory_pars,pure_gauge_evol_pars_t &evol_pars,quad_su3 *H,su3 **phi,su3 **pi)
   {
-    //compute final action for momenta
+    //compute action for momenta
     double action_H=0;
     if(evolve_FACC&2)
       {
-	if(evol_pars.use_Facc) action_H=momenta_action_with_FACC(conf,evol_pars.kappa, 100000,evol_pars.residue,H);
+	if(evol_pars.use_Facc) action_H=momenta_action_with_FACC(conf,evol_pars.kappa,100000,evol_pars.residue,H);
 	else action_H=momenta_action(H);
       }
     verbosity_lv2_master_printf("Momenta action: %lg\n",action_H);

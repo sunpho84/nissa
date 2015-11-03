@@ -233,12 +233,12 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //compute the MFACC fields-related QCD force (derivative of \H^\dag G \H/2) (eq.8)
+  //compute the QCD momenta force (derivative of \H^\dag G \H/2) (eq.8)
   THREADABLE_FUNCTION_7ARG(MFACC_QCD_momenta_QCD_force, quad_su3*,F, quad_su3*,conf, double,kappa, int,niter, double,residue, quad_su3*,H, bool,reset)
   {
     GET_THREAD_ID();
     
-    verbosity_lv2_master_printf("Computing Fourier acceleration fields originated QCD force\n");
+    verbosity_lv2_master_printf("Computing QCD force due to Fourier Accelerated QCD momentas\n");
     
 #ifdef DEBUG
     double eps=1e-5;
@@ -317,7 +317,7 @@ namespace nissa
 		unsafe_su3_dag_prod_su3_dag(t,temp[up],conf[ivol][mu]);
 		su3_summ_the_prod_su3(E,t,temp[ivol]);
 		
-		su3_summ_the_prod_double(F[ivol][mu],E,-kappa/32);
+		su3_summ_the_prod_double(F[ivol][mu],E,kappa/32); //it likes /32 more then -/32
 	      }
 	  }
 	THREAD_BARRIER();
