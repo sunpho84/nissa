@@ -6,8 +6,8 @@
 #include "../../src/bgq/Wilson_hopping_matrix_lx_bgq.hpp"
 
 #ifndef BGQ_EMU
-#include <bgpm/include/bgpm.h>
-#include <firmware/include/personality.h>
+ #include <bgpm/include/bgpm.h>
+ #include <firmware/include/personality.h>
 #endif
 
 using namespace nissa;
@@ -868,9 +868,9 @@ void debug2_st()
   
   double bgq_single_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
-      apply_single_stD2ee_m2_bgq(bi_single_out_eo[EVN],bi_single_conf_eo,mass2,bi_single_in_eo[EVN]);
+    apply_single_stD2ee_m2_bgq(bi_single_out_eo[EVN],bi_single_conf_eo,mass2,bi_single_in_eo[EVN]);
   bgq_single_time+=take_time();
-
+  
   bgq_single_time/=nbench;
   bgq_double_time/=nbench;
   
@@ -1022,7 +1022,7 @@ void in_main(int narg,char **arg)
   int T=atoi(arg[2]);
   
   //init
-  init_grid(T,L); 
+  init_grid(T,L);
   
   start_loc_rnd_gen(seed);
   
