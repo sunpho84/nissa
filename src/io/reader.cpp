@@ -118,7 +118,7 @@ namespace nissa
     //read the conf in lx and reorder it
     quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol+bord_vol,quad_su3);
     read_ildg_gauge_conf(lx_conf,path,mess);
-    split_lx_conf_into_eo_parts(eo_conf,lx_conf);
+    split_lx_vector_into_eo_parts(eo_conf,lx_conf);
     nissa_free(lx_conf);
     
     verbosity_lv3_master_printf("Plaquette after e/o reordering: %16.16lg\n",global_plaquette_eo_conf(eo_conf));

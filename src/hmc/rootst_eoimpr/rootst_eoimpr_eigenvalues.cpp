@@ -211,7 +211,7 @@ namespace nissa
 	      }
 	    else
 	      {
-		verbosity_lv2_master_printf("Stored rational approximation not valid, scheduling to generate a new one\n");		
+		verbosity_lv2_master_printf("Stored rational approximation not valid, scheduling to generate a new one\n");
 		iappr_to_recreate[nto_recreate]=i+3*iflav;
 		min_to_recreate[nto_recreate]=eig_min/ENL_GEN;
 		max_to_recreate[nto_recreate]=eig_max*ENL_GEN;
@@ -226,7 +226,7 @@ namespace nissa
     //find out who recreates what
     int rank_recreating[nto_recreate];
     int nrecreated_per_rank=(nto_recreate+nranks-1)/nranks;
-    verbosity_lv1_master_printf("Need to recreate %d expansions, %d ranks avaialbale\n",nto_recreate,nranks);
+    verbosity_lv1_master_printf("Need to recreate %d expansions, %d ranks available\n",nto_recreate,nranks);
     for(int ito=0;ito<nto_recreate;ito++)
       {
 	rank_recreating[ito]=ito/nrecreated_per_rank;

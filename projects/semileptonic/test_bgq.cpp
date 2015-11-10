@@ -806,7 +806,7 @@ void debug2_st()
   //split into eo the conf
   quad_su3 *conf_eo[2]={nissa_malloc("conf",loc_volh+bord_volh,quad_su3),
 			nissa_malloc("conf",loc_volh+bord_volh,quad_su3)};
-  split_lx_conf_into_eo_parts(conf_eo,conf);
+  split_lx_vector_into_eo_parts(conf_eo,conf);
   
   color *in_eo[2]={nissa_malloc("in",loc_volh+bord_volh,color),nissa_malloc("in",loc_volh+bord_volh,color)};
   split_lx_color_into_eo_parts(in_eo,in);

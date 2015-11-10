@@ -597,9 +597,9 @@ void setup_conf()
       quad_su3 *eo_conf[2];
       eo_conf[EVN]=nissa_malloc("new_conf_e",loc_volh+bord_volh+edge_volh,quad_su3);
       eo_conf[ODD]=nissa_malloc("new_conf_o",loc_volh+bord_volh+edge_volh,quad_su3);
-      split_lx_conf_into_eo_parts(eo_conf,conf);
+      split_lx_vector_into_eo_parts(eo_conf,conf);
       stout_smear(eo_conf,eo_conf,&(stout_smearing_pars));
-      paste_eo_parts_into_lx_conf(sme_conf,eo_conf);
+      paste_eo_parts_into_lx_vector(sme_conf,eo_conf);
       nissa_free(eo_conf[EVN]);
       nissa_free(eo_conf[ODD]);
       break;

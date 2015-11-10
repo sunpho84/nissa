@@ -45,7 +45,7 @@ namespace nissa
     su3 *periscoped=nissa_malloc("periscoped",loc_vol+bord_vol,su3);
     complex *loc_res=nissa_malloc("loc_res",loc_vol,complex);
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-    paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
+    paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     
     //make local copy of pars
     gauge_obs_temp_spat_smear_pars_t *smear_pars=&pars->smear_pars;

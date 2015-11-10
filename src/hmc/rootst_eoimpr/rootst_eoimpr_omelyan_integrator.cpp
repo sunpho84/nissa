@@ -59,12 +59,12 @@ namespace nissa
     //reorder
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
     quad_su3 *lx_H=nissa_malloc("lx_H",loc_vol,quad_su3);
-    paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
-    paste_eo_parts_into_lx_conf(lx_H,eo_H);
+    paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
+    paste_eo_parts_into_lx_vector(lx_H,eo_H);
     
     evolve_lx_momenta_with_topological_force(lx_H,lx_conf,topars,dt,NULL,phase_pres);
     
-    split_lx_conf_into_eo_parts(eo_H,lx_H);
+    split_lx_vector_into_eo_parts(eo_H,lx_H);
     nissa_free(lx_H);
     nissa_free(lx_conf);
   }
@@ -121,13 +121,13 @@ namespace nissa
     quad_su3 *H_lx=nissa_malloc("H_lx",loc_vol,quad_su3);
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
     
-    paste_eo_parts_into_lx_conf(H_lx,H_eo);
-    paste_eo_parts_into_lx_conf(conf_lx,conf_eo);
+    paste_eo_parts_into_lx_vector(H_lx,H_eo);
+    paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
     
-    split_lx_conf_into_eo_parts(H_eo,H_lx);
-    split_lx_conf_into_eo_parts(conf_eo,conf_lx);
+    split_lx_vector_into_eo_parts(H_eo,H_lx);
+    split_lx_vector_into_eo_parts(conf_eo,conf_lx);
     
     nissa_free(conf_lx);
     nissa_free(H_lx);

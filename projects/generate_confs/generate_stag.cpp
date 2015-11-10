@@ -507,7 +507,7 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
   
   //merge conf
   quad_su3 *lx_conf=nissa_malloc("conf",loc_vol+bord_vol+edge_vol,quad_su3);
-  paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
+  paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
   
   //hyp or ape
   gauge_obs_temp_smear_pars_t smear_pars=pars.gauge_smear_pars;
@@ -706,7 +706,7 @@ void run_program_for_production()
   while(check_if_continue())
     {
       double init_traj_time=take_time();
-
+      
       // 1) produce new conf
       int acc=1;
       if(ntraj_tot!=0)
@@ -733,7 +733,7 @@ void run_program_for_production()
       
       increase_max_time_per_traj(init_traj_time);
     }
-
+  
   master_printf("Performed %d trajectories\n\n",ntraj_prod);
 }
 
@@ -749,7 +749,7 @@ void run_program_for_analysis()
       nconf_analyzed++;
     }
   while(nconf_analyzed<nconf_to_analyze && !file_exists("stop"));
-
+  
   master_printf("Analyzed %d configurations\n\n",nconf_analyzed);
 }
 
@@ -769,27 +769,31 @@ void in_main(int narg,char **arg)
   /////////////////////////////////////// timings /////////////////////////////////
   
 #ifdef BENCH
-  master_printf("time to apply non optimized %d times: %lg, %lg per iter, %lg MFlop/s\n",
-		portable_stD_napp,portable_stD_app_time,portable_stD_app_time/(portable_stD_napp?portable_stD_napp:1),
-		1158.0e-6*loc_volh*portable_stD_napp/(portable_stD_app_time?portable_stD_app_time:1));
+  double tot_time=take_time()-init_time;
+  master_printf("time to apply non optimized %d times: %lg s (%2.2g %c tot), %lg per iter, %lg MFlop/s\n",
+	 portable_stD_napp,portable_stD_app_time,portable_stD_app_time/tot_time,'%',portable_stD_app_time/(portable_stD_napp?portable_stD_napp:1),
+		1158e-6*loc_volh*portable_stD_napp/(portable_stD_app_time?portable_stD_app_time:1));
 #ifdef BGQ
-  master_printf("time to apply optimized %d times: %lg, %lg per iter, %lg MFlop/s\n",
-		bgq_stdD_napp,bgq_stdD_app_time,bgq_stdD_app_time/(bgq_stdD_napp?bgq_stdD_napp:1),
-		1158.0e-6*loc_volh*bgq_stdD_napp/(bgq_stdD_app_time?bgq_stdD_app_time:1));
+  master_printf("time to apply optimized %d times: %lg s (%2.2g %c tot), %lg per iter, %lg MFlop/s \n",
+		bgq_stdD_napp,bgq_stdD_app_time,bgq_stdD_app_time/tot_time,'%',bgq_stdD_app_time/(bgq_stdD_napp?bgq_stdD_napp:1),
+		1158e-6*loc_volh*bgq_stdD_napp/(bgq_stdD_app_time?bgq_stdD_app_time:1));
 #endif
-  master_printf("overhead time to cgm invert %d times: %lg, %lg per inv\n",
-		ncgm_inv,cgm_inv_over_time,cgm_inv_over_time/std::max(ncgm_inv,1));
-  master_printf("overhead time to cg invert %d times: %lg, %lg per inv\n",
-		ncg_inv,cg_inv_over_time,cg_inv_over_time/std::max(ncg_inv,1));
-  master_printf("time to stout sme %d times: %lg, %lg per iter\n",
-		nsto,sto_time,sto_time/std::max(nsto,1));
-  master_printf("time to stout remap %d times: %lg, %lg per iter\n",
-		nsto_remap,sto_remap_time,sto_remap_time/std::max(nsto_remap,1));
-  master_printf("time to compute gluon force %d times: %lg, %lg per iter\n",
-		nglu_comp,glu_comp_time,glu_comp_time/std::max(nglu_comp,1));
-  master_printf("time to write %d configurations: %lg, %lg per conf\n",
-		nwritten_conf,write_conf_time,write_conf_time/std::max(nwritten_conf,1)); 
-  for(int i=0;i<ntop_meas;i++) master_printf("time to perform the %d topo meas (%s): %lg\n",i,top_meas_pars[i].path.c_str(),top_meas_time[i]);
+  master_printf("overhead time to cgm invert %d times: %lg s (%2.2g %c tot), %lg per inv\n",
+	 ncgm_inv,cgm_inv_over_time,cgm_inv_over_time/tot_time,'%',cgm_inv_over_time/std::max(ncgm_inv,1));
+  master_printf("overhead time to cg invert %d times: %lg s (%2.2g %c tot), %lg per inv\n",
+		ncg_inv,cg_inv_over_time,cg_inv_over_time/tot_time,'%',cg_inv_over_time/std::max(ncg_inv,1));
+  master_printf("time to stout sme %d times: %lg s (%2.2g %c tot), %lg per iter\n",
+		nsto,sto_time,sto_time/tot_time,'%',sto_time/std::max(nsto,1));
+  master_printf("time to stout remap %d times: %lg s (%2.2g %c tot), %lg per iter\n",
+		nsto_remap,sto_remap_time,sto_remap_time/tot_time,'%',sto_remap_time/std::max(nsto_remap,1));
+  master_printf("time to compute gluon force %d times: %lg s (%2.2g %c tot), %lg per iter\n",
+		nglu_comp,glu_comp_time,glu_comp_time/tot_time,'%',glu_comp_time/std::max(nglu_comp,1));
+  master_printf("time to remap geometry %d times: %lg s (%2.2g %c tot), %lg per iter\n",
+		nremap,remap_time,remap_time/tot_time,'%',remap_time/std::max(nremap,1));
+  master_printf("time to write %d configurations: %lg s (%2.2g %c tot), %lg per conf\n",
+		nwritten_conf,write_conf_time,write_conf_time/tot_time,'%',write_conf_time/std::max(nwritten_conf,1));
+  for(int i=0;i<ntop_meas;i++) master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,top_meas_pars[i].path.c_str(),top_meas_time[i],
+					     top_meas_time[i]/tot_time,'%');
 #endif
   
   close_simulation();

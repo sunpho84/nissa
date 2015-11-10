@@ -97,6 +97,8 @@ namespace nissa
    EXTERN double sto_remap_time;
    EXTERN int nglu_comp;
    EXTERN double glu_comp_time;
+   EXTERN double remap_time;
+   EXTERN int nremap;
   #ifdef BGQ
     EXTERN double bgq_stdD_app_time;
     EXTERN int bgq_stdD_napp;
@@ -113,6 +115,8 @@ namespace nissa
    EXTERN double sto_remap_time=0;
    EXTERN int nglu_comp=0;
    EXTERN double glu_comp_time=0;
+   EXTERN double remap_time=0;
+   EXTERN int nremap=0;
   #ifdef BGQ
     EXTERN double bgq_stdD_app_time=0;
     EXTERN int bgq_stdD_napp=0;

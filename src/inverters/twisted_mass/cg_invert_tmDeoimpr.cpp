@@ -35,7 +35,7 @@ namespace nissa
     spincolor *source_eos[2];
     source_eos[0]=nissa_malloc("source_eos0",loc_volh+bord_volh,spincolor);
     source_eos[1]=nissa_malloc("source_eos1",loc_volh+bord_volh,spincolor);
-    split_lx_spincolor_into_eo_parts(source_eos,source_lx);
+    split_lx_vector_into_eo_parts(source_eos,source_lx);
     
     //prepare the e/o split version of the solution
     spincolor *solution_eos[2];
@@ -46,7 +46,7 @@ namespace nissa
     quad_su3 *conf_eos[2];
     conf_eos[0]=nissa_malloc("conf_eos_0",loc_volh+bord_volh,quad_su3);
     conf_eos[1]=nissa_malloc("conf_eos_1",loc_volh+bord_volh,quad_su3);
-    split_lx_conf_into_eo_parts(conf_eos,conf_lx);
+    split_lx_vector_into_eo_parts(conf_eos,conf_lx);
     
     ///////////////////////////////////// invert with e/o improvement ///////////////////////////////////
     
@@ -88,7 +88,7 @@ namespace nissa
     
     /////////////////////////// paste the e/o parts of the solution together and free ///////////////////
     
-    paste_eo_parts_into_lx_spincolor(solution_lx,solution_eos);
+    paste_eo_parts_into_lx_vector(solution_lx,solution_eos);
     
     for(int par=0;par<2;par++)
       {

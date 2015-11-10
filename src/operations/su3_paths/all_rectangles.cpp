@@ -467,7 +467,7 @@ namespace nissa
   void measure_all_rectangular_paths(all_rect_meas_pars_t *pars,quad_su3 **conf_eo,int iconf,int create_output_file)
   {
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
-    paste_eo_parts_into_lx_conf(conf_lx,conf_eo);
+    paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
     measure_all_rectangular_paths(pars,conf_lx,iconf,create_output_file);
     

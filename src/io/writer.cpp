@@ -149,7 +149,7 @@ namespace nissa
   void paste_eo_parts_and_write_ildg_gauge_conf(const char *path,quad_su3 **eo_conf,size_t prec,ILDG_message *mess=NULL)
   {
     quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
-    paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
+    paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     write_ildg_gauge_conf(path,lx_conf,prec,mess);
     nissa_free(lx_conf);
   }

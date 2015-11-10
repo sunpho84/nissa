@@ -431,7 +431,7 @@ namespace nissa
   {
     //convert to lx
     quad_su3 *lx_conf=nissa_malloc("lx_conf",loc_vol+bord_vol+edge_vol,quad_su3);
-    paste_eo_parts_into_lx_conf(lx_conf,eo_conf);
+    paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     
     total_topological_charge_lx_conf(tot_charge,lx_conf);
     
@@ -546,7 +546,7 @@ namespace nissa
   void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **unsmoothed_conf_eo,int iconf,bool conf_created)
   {
     quad_su3 *unsmoothed_conf_lx=nissa_malloc("unsmoothed_conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
-    paste_eo_parts_into_lx_conf(unsmoothed_conf_lx,unsmoothed_conf_eo);
+    paste_eo_parts_into_lx_vector(unsmoothed_conf_lx,unsmoothed_conf_eo);
     measure_topology_lx_conf(pars,unsmoothed_conf_lx,iconf,conf_created,false);
     nissa_free(unsmoothed_conf_lx);
   }
