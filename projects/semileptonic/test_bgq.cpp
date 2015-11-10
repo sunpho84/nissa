@@ -809,7 +809,7 @@ void debug2_st()
   split_lx_vector_into_eo_parts(conf_eo,conf);
   
   color *in_eo[2]={nissa_malloc("in",loc_volh+bord_volh,color),nissa_malloc("in",loc_volh+bord_volh,color)};
-  split_lx_color_into_eo_parts(in_eo,in);
+  split_lx_vector_into_eo_parts(in_eo,in);
   
   double port_time=-take_time();
   color *out[2]={nissa_malloc("out_e",loc_volh+bord_volh,color),nissa_malloc("out_o",loc_volh+bord_volh,color)};
