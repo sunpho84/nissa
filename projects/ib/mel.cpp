@@ -182,6 +182,7 @@ void init_simulation(char *path)
       
       //compute meson momentum and bc
       double err;
+      master_printf("Resolving kinematical condition for combination of quarks %d/%d\n",il+1,nleptons);
       do
       	{
       	  //compute the error
@@ -194,7 +195,7 @@ void init_simulation(char *path)
       	  double der=(tm_quark_energy(leps[il],0)+naive_massless_quark_energy(leps[il].bc,0)-mes_mass-err)/eps;
       	  for(int i=1;i<NDIM;i++) leps[il].bc[i]-=eps+err/der;
 	  
-      	  master_printf("lep_e: %+010.10lg, neu_e: %+010.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
+      	  master_printf("  lep_e: %+010.10lg, neu_e: %+010.10lg, mes_mass: %lg, error: %lg, der: %lg\n",lep_energy,neu_energy,mes_mass,err,der);
       	}
       while(fabs(err)>1e-14);
       
@@ -203,7 +204,7 @@ void init_simulation(char *path)
       neu_energy[il]=naive_massless_quark_energy(leps[il].bc,0);
       master_printf(" ilepton %d, lepton energy: %lg, neutrino energy: %lg\n",il,lep_energy[il],neu_energy[il]);
       master_printf(" lep+neut energy: %lg\n",lep_energy[il]+neu_energy[il]);
-      master_printf(" bc: %+016.016lg\n",leps[il].bc[1]);
+      master_printf(" bc: %+016.016lg\n\n",leps[il].bc[1]);
     }
   
   //Zero mode subtraction
@@ -646,17 +647,6 @@ THREADABLE_FUNCTION_5ARG(insert_photon_on_the_source, spinspin*,prop, spin1field
 }
 THREADABLE_FUNCTION_END
 
-void insert_photon_on_the_source(spinspin *prop,int *dirs,tm_quark_info le,int twall)
-{
-  if(!loc_muon_curr) master_printf("Inserting photon point-split on time %d\n",twall);
-  else master_printf("Inserting photon locally on time %d\n");
-  insert_photon_on_the_source(prop,photon_field,dirs,le,twall);
-}
-
-//insert the photon on the source
-void insert_photon_on_the_source(spinspin *prop,tm_quark_info &le,int twall)
-{insert_photon_on_the_source(prop,all_dirs,le,twall);}
-
 //generate all the lepton propagators, pointing outward
 //the computations is done by:
 // 1)putting the correct phase in x space, given by exp(E_mu*t-i*vec(p)*vec(x))
@@ -699,7 +689,7 @@ THREADABLE_FUNCTION_0ARG(generate_lepton_propagators)
 	    if(ilins)
 	      {
 		//insert photon and prolong
-		insert_photon_on_the_source(prop,le,-1); //all times
+		insert_photon_on_the_source(prop,photon_field,all_dirs,le,-1); //all times
 		multiply_from_right_by_x_space_twisted_propagator_by_fft(prop,prop,le,base);
 	      }
 	  }
