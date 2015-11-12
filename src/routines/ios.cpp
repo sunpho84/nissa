@@ -69,7 +69,8 @@ namespace nissa
   //create a dir
   int create_dir(std::string path)
   {
-    int res=(rank==0) ? mkdir(path.c_str(),480) : 0;
+    umask(0);
+    int res=(rank==0) ? mkdir(path.c_str(),0775) : 0;
     MPI_Bcast(&res,1,MPI_INT,0,MPI_COMM_WORLD);
     if(res!=0)
       master_printf("Warning, failed to create dir %s, returned %d. Check that you have permissions and that parent dir exists.\n",path.c_str(),res);
