@@ -73,9 +73,9 @@ spinspin *hadr;
 complex *hadrolept_corr;
 
 //hadron contractions
-const int ncombo_hadr_corr=7;
-const qprop_t prop1_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_0,PROP_0,PROP_0,PROP_0      ,PROP_PHOTON,PROP_0};
-const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON2,PROP_PHOTON,PROP_VECTOR};
+const int ncombo_hadr_corr=6;
+const qprop_t prop1_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_0,PROP_0,PROP_0,PROP_0      ,PROP_PHOTON};//,PROP_0};
+const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON2,PROP_PHOTON};//,PROP_VECTOR};
 
 //parameters of the leptons
 int nleptons;
@@ -419,7 +419,7 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
       if(!pure_wilson) insert_tm_tadpole(source,conf,ori,r,tadpole,-1);
       else             insert_wilson_tadpole(source,conf,ori,tadpole,-1);
       break;
-    case VECTOR:insert_external_source(source,NULL,ori,t,r,loc_pion_curr);break;
+      //case VECTOR:insert_external_source(source,NULL,ori,t,r,loc_pion_curr);break;
     }
   
   source_time+=take_time();
