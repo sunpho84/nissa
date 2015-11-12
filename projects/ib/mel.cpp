@@ -53,9 +53,9 @@ spin1field *photon_field;
 
 int hadr_corr_length;
 complex *hadr_corr;
-const int nhadr_contr=16+12;
-const int ig_hadr_so[nhadr_contr]={ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5  , 1, 2, 3, 10,11,12, 10,11,12,13,14,15};
-const int ig_hadr_si[nhadr_contr]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15  , 10,11,12,1, 2, 3,  10,11,12,13,14,15};
+const int nhadr_contr=16+1+12;
+const int ig_hadr_so[nhadr_contr]={ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5  ,  4  , 1, 2, 3, 10,11,12, 10,11,12,13,14,15};
+const int ig_hadr_si[nhadr_contr]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15  ,  4  , 10,11,12,1, 2, 3,  10,11,12,13,14,15};
 complex *glb_corr,*loc_corr;
 
 //list the 8 matrices to insert for the weak current
@@ -714,7 +714,7 @@ void compute_hadronic_correlations()
 	    //compute the correlation function
 	    int ip1=iqprop(imass,prop1_hadr_map[icombo],r);
 	    int ip2=iqprop(jmass,prop2_hadr_map[icombo],r);
-	    std::swap(ip1,ip2);
+	    
 	    meson_two_points_Wilson_prop(glb_corr,loc_corr,ig_hadr_so,Q[ip1],ig_hadr_si,Q[ip2],nhadr_contr);
 	    nhadr_contr_tot+=nhadr_contr;
 	    
@@ -876,18 +876,18 @@ void compute_hadroleptonic_correlations()
 	    //takes the index of the quarks
 	    int iq1=lep_corr_iq1[ilepton];
 	    int iq2=lep_corr_iq2[ilepton];
-	      
+	    
 	    //takes the propagators
 	    qprop_t PROP1_TYPE=PROP_0,PROP2_TYPE=PROP_0;
 	    if(qins==1) PROP1_TYPE=PROP_PHOTON;
 	    if(qins==2) PROP2_TYPE=PROP_PHOTON;
 	    
+	    //fix propagator indices
 	    int ip1=iqprop(iq1,PROP1_TYPE,r2);
 	    int ip2=iqprop(iq2,PROP2_TYPE,r2);
 	    
-	    if(irev==1) std::swap(ip1,ip2); //select the propagator to revert
-	    
 	    //compute the hadronic part
+	    if(irev==1) std::swap(ip1,ip2); //select the propagator to revert
 	    hadronic_part_leptonic_correlation(hadr,Q[ip1],Q[ip2]);
 	    
 	    for(int orie=0;orie<norie;orie++)
@@ -918,33 +918,27 @@ void print_correlations()
     for(int qins=0;qins<nins;qins++)
       for(int irev=0;irev<nrev;irev++)
 	for(int r2=0;r2<nr;r2++)
-	  {
-	    //takes the index of the quarks
-	    int iq1=lep_corr_iq1[ilepton];
-	    int iq2=lep_corr_iq2[ilepton];
-	    if(irev==1) std::swap(iq1,iq2);
-	    for(int orie=0;orie<norie;orie++)
-	      for(int rl=0;rl<nr;rl++)
-		{
-		  int corrpack_ind=hadrolept_corrpack_ind(rl,orie,r2,irev,qins,ilepton);
-		  
-		  if(!pure_wilson) master_fprintf(fout," # mq1=%lg mq2=%lg qins=%d qrev=%d rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
-						  qmass[iq1],qmass[iq2],qins,irev+1,!r2,r2,sign_orie[orie],rl);
-		  else             master_fprintf(fout," # kappaq1=%lg kappaq2=%lg qins=%d qrev=%d lep_orie=%+d\n\n",
-						  qkappa[iq1],qkappa[iq2],qins,irev+1,sign_orie[orie]);
-		  for(int ind=0;ind<nweak_ind;ind++)
-		    for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
-		      {
-			master_fprintf(fout," # qins=%s lins=%s proj=%s\n\n",list_weak_ind_nameq[ind],list_weak_ind_namel[ind],gtag[hadrolept_projs[ig_proj]]);
-			for(int t=0;t<glb_size[0];t++)
-			  {
-			    int i=t+glb_size[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*corrpack_ind));
-			    master_fprintf(fout,"%+016.16lg %+016.16lg\n",hadrolept_corr[i][RE]/nsources,hadrolept_corr[i][IM]/nsources);
-			  }
-			master_fprintf(fout,"\n");
-		      }
-		}
-	  }
+	  for(int orie=0;orie<norie;orie++)
+	    for(int rl=0;rl<nr;rl++)
+	      {
+		int corrpack_ind=hadrolept_corrpack_ind(rl,orie,r2,irev,qins,ilepton);
+		
+		if(!pure_wilson) master_fprintf(fout," # mlept[%d]=%lg mq1=%lg mq2=%lg qins=%d qrev=%d rq1=%d rq2=%d lep_orie=%+d rl=%d\n\n",
+						ilepton,leps[ilepton].mass,qmass[lep_corr_iq1[ilepton]],qmass[lep_corr_iq2[ilepton]],qins,irev+1,!r2,r2,sign_orie[orie],rl);
+		else             master_fprintf(fout," # klept[%d]=%lg kappaq1=%lg kappaq2=%lg qins=%d qrev=%d lep_orie=%+d\n\n",
+						ilepton,leps[ilepton].kappa,qkappa[lep_corr_iq1[ilepton]],qkappa[lep_corr_iq2[ilepton]],qins,irev+1,sign_orie[orie]);
+		for(int ind=0;ind<nweak_ind;ind++)
+		  for(int ig_proj=0;ig_proj<nhadrolept_proj;ig_proj++)
+		    {
+		      master_fprintf(fout," # qins=%s lins=%s proj=%s\n\n",list_weak_ind_nameq[ind],list_weak_ind_namel[ind],gtag[hadrolept_projs[ig_proj]]);
+		      for(int t=0;t<glb_size[0];t++)
+			{
+			  int i=t+glb_size[0]*(ig_proj+nhadrolept_proj*(ind+nweak_ind*corrpack_ind));
+			  master_fprintf(fout,"%+016.16lg %+016.16lg\n",hadrolept_corr[i][RE]/nsources,hadrolept_corr[i][IM]/nsources);
+			}
+		      master_fprintf(fout,"\n");
+		    }
+	      }
   close_file(fout);
   
   /////////////////////////////////// purely hadronic part ////////////////////////////////////////////
