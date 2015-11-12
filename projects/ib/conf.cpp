@@ -2,6 +2,8 @@
 
 namespace nissa
 {
+  int nanalyzed_conf=0;
+  double tot_prog_time=0,wall_time;
   
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta,const char *conf_path,int rnd_gauge_transform,int free_theory)
@@ -53,5 +55,24 @@ namespace nissa
     //put back the phase
     put_theta[0]=1;put_theta[1]=put_theta[2]=put_theta[3]=0;
     adapt_theta(conf,old_theta,put_theta,0,0);
+  }
+  
+  //check if the time is enough
+  int check_remaining_time()
+  {
+    int enough_time;
+    
+    //check remaining time
+    double temp_time=take_time()+tot_prog_time;
+    double ave_time=temp_time/nanalyzed_conf;
+    double left_time=wall_time-temp_time;
+    enough_time=left_time>(ave_time*1.1);
+    
+    master_printf("Remaining time: %lg sec\n",left_time);
+    master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
+    if(enough_time) master_printf("Continuing with next conf!\n");
+    else master_printf("Not enough time, exiting!\n");
+    
+    return enough_time;
   }
 }

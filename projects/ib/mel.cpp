@@ -24,12 +24,11 @@ int loc_muon_curr;
 
 int ninv_tot=0,nhadr_contr_tot=0,nlept_contr_tot=0,nsource_tot=0,nphoton_prop_tot=0;
 double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
-double tot_prog_time=0,source_time=0,photon_prop_time=0,lepton_prop_time=0;
+double source_time=0,photon_prop_time=0,lepton_prop_time=0;
 
-int wall_time;
 int follow_chris_or_nazario;
 int free_theory,rnd_gauge_transform;
-int ngauge_conf,nanalyzed_conf=0;
+int ngauge_conf;
 char conf_path[1024],outfolder[1024];
 quad_su3 *conf;
 
@@ -126,7 +125,7 @@ void init_simulation(char *path)
   }
   
   //Wall time
-  read_str_int("WallTime",&wall_time);
+  read_str_double("WallTime",&wall_time);
   //Pure Wilson
   read_str_int("PureWilson",&pure_wilson);
   if(pure_wilson)
@@ -985,25 +984,6 @@ void print_correlations()
     }
   
   print_time+=take_time();
-}
-
-//check if the time is enough
-int check_remaining_time()
-{
-  int enough_time;
-  
-  //check remaining time
-  double temp_time=take_time()+tot_prog_time;
-  double ave_time=temp_time/nanalyzed_conf;
-  double left_time=wall_time-temp_time;
-  enough_time=left_time>(ave_time*1.1);
-  
-  master_printf("Remaining time: %lg sec\n",left_time);
-  master_printf("Average time per conf: %lg sec, pessimistically: %lg\n",ave_time,ave_time*1.1);
-  if(enough_time) master_printf("Continuing with next conf!\n");
-  else master_printf("Not enough time, exiting!\n");
-  
-  return enough_time;
 }
 
 //close deallocating everything
