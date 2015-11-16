@@ -1,11 +1,15 @@
 #include "nissa.hpp"
 
 #include "conf.hpp"
+#include "pars.hpp"
 
 using namespace nissa;
 
+colorspinspin *eta;
+
 void init_simulation(const char *path)
 {
+  read_input_preamble();
 }
 
 //close deallocating everything

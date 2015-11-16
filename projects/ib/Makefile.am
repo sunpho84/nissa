@@ -10,7 +10,7 @@ bin_PROGRAMS= \
 	$(top_builddir)/bin/mel_point_source \
 	$(top_builddir)/bin/test_prop
 
-common_sources=conf.cpp
+common_sources=conf.cpp pars.cpp
 
 include_HEADERS=conf.hpp pars.hpp
 

@@ -5,6 +5,16 @@ namespace nissa
   int nanalyzed_conf=0;
   double tot_prog_time=0,wall_time;
   
+  //init the MPI grid
+  void read_init_grid()
+  {
+    int L,T;
+    read_str_int("L",&L);
+    read_str_int("T",&T);
+    
+    init_grid(T,L);
+  }
+  
   //read the conf and setup it
   void setup_conf(quad_su3 *conf,momentum_t old_theta,momentum_t put_theta,const char *conf_path,int rnd_gauge_transform,int free_theory)
   {
