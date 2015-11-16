@@ -19,32 +19,17 @@ using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
 
-int loc_pion_curr;
-int loc_muon_curr;
-
 int ninv_tot=0,nhadr_contr_tot=0,nlept_contr_tot=0,nsource_tot=0,nphoton_prop_tot=0;
 double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
 double source_time=0,photon_prop_time=0,lepton_prop_time=0;
 
-int follow_chris_or_nazario;
-int free_theory,rnd_gauge_transform;
-int ngauge_conf;
-char conf_path[1024],outfolder[1024];
-quad_su3 *conf;
-
-double put_theta[4],old_theta[4]={0,0,0,0};
-
 PROP_TYPE *source,*original_source;
-int seed,noise_type;
 
-int nsources;
 PROP_TYPE **Q;
 
 spincolor *temp_source;
 spincolor *temp_solution;
 
-gauge_info photon;
-double tadpole[4];
 spin1field *photon_field;
 
 int hadr_corr_length;
@@ -175,64 +160,18 @@ void init_simulation(char *path)
       master_printf(" bc: %+016.016lg\n\n",leps[il].bc[1]);
     }
   
-  //Zero mode subtraction
-  char zero_mode_sub_str[100];
-  read_str_str("ZeroModeSubtraction",zero_mode_sub_str,100);
-  
-  if(strncasecmp(zero_mode_sub_str,"PECIONA",100)==0) photon.zms=PECIONA;
-  else
-    if(strncasecmp(zero_mode_sub_str,"UNNO_ALEMANNA",100)==0) photon.zms=UNNO_ALEMANNA;
-    else
-      if(strncasecmp(zero_mode_sub_str,"ONLY_100",100)==0) photon.zms=ONLY_100;
-      else crash("Unkwnown zero mode subtraction: %s",zero_mode_sub_str);
-  
-  //gauge for photon propagator
-  char photon_gauge_str[100];
-  read_str_str("PhotonGauge",photon_gauge_str,100);
-  if(strncasecmp(photon_gauge_str,"FEYNMAN",100)==0) photon.alpha=FEYNMAN_ALPHA;
-  else
-    if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) photon.alpha=LANDAU_ALPHA;
-    else
-      if(strncasecmp(photon_gauge_str,"LANDAU",100)==0) read_str_double("Alpha",&photon.alpha);
-      else crash("Unkwnown photon gauge: %s",photon_gauge_str);
-  
-  //discretization for photon propagator
-  char photon_discrete_str[100];
-  read_str_str("PhotonDiscretization",photon_discrete_str,100);
-  if(strncasecmp(photon_discrete_str,"WILSON",100)==0) photon.c1=WILSON_C1;
-  else
-    if(strncasecmp(photon_discrete_str,"TLSYM",100)==0) photon.c1=TLSYM_C1;
-    else crash("Unkwnown photon discretization: %s",photon_discrete_str);
-  
-  //initialize the random generator with the read seed
-  read_str_int("Seed",&seed);
-  start_loc_rnd_gen(seed);
-  //noise type
-  read_str_int("NoiseType",&noise_type);
-  
-  //flag to simulate in the free theory
-  read_str_int("FreeTheory",&free_theory);
-  
-  //flag to make the muon with or without the external line
-  read_str_int("FollowChrisOrNazario",&follow_chris_or_nazario);
-  
-  //perform a random gauge transformation
-  read_str_int("RandomGaugeTransform",&rnd_gauge_transform);
-  
-  //local current on muon or pion
-  read_str_int("LocPionCurr",&loc_pion_curr);
-  read_str_int("LocMuonCurr",&loc_muon_curr);
-  
-  //number of sources
-  read_str_int("NSources",&nsources);
-  
-  //number of configurations
-  read_str_int("NGaugeConf",&ngauge_conf);
+  read_photon_pars();
+  read_seed_start_random();
+  read_noise_type();
+  read_free_theory_flag();
+  read_gospel_convention();
+  read_random_gauge_transform();
+  read_loc_pion_curr();
+  read_loc_muon_curr();
+  read_nsources();
+  read_ngauge_conf();
   
   ///////////////////// finihed reading apart from conf list ///////////////
-  
-  //compute the tadpole summing all momentum
-  compute_tadpole(tadpole,photon);
   
   //Allocate
   nqprop=iqprop(nqmass-1,nqprop_kind-1,nr-1)+1;
@@ -259,57 +198,16 @@ void init_simulation(char *path)
   conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
 }
 
-//find a new conf
-int read_conf_parameters(int &iconf)
+//handle to discard the source
+void skip_conf()
 {
-  int ok_conf;
-  
-  do
+  for(int isource=0;isource<nsources;isource++)
     {
-      //Gauge path
-      read_str(conf_path,1024);
-      
-      //Out folder
-      read_str(outfolder,1024);
-      
-      //Check if the conf has been finished or is already running
-      master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
-      char fin_file[1024],run_file[1024];
-      sprintf(fin_file,"%s/finished",outfolder);
-      sprintf(run_file,"%s/running",outfolder);
-      ok_conf=!(file_exists(fin_file)) && !(file_exists(run_file));
-      
-      //if not finished
-      if(ok_conf)
-	{
-	  master_printf(" Configuration \"%s\" not yet analyzed, starting",conf_path);
-	  if(!dir_exists(outfolder))
-	    {
-	      int ris=create_dir(outfolder);
-	      if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
-	      else
-		crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
-	    }
-	  file_touch(run_file);
-	}
-      else
-	{
-	  master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
-	  for(int isource=0;isource<nsources;isource++)
-	    {
-	      coords coord;
-	      generate_random_coord(coord);
-	      generate_stochastic_tlSym_gauge_propagator_source(photon_field);
-	      generate_original_source();
-	    }
-	}
-      iconf++;
+      coords coord;
+      generate_random_coord(coord);
+      generate_stochastic_tlSym_gauge_propagator_source(photon_field);
+      generate_original_source();
     }
-  while(!ok_conf && iconf<ngauge_conf);
-  
-  master_printf("\n");
-  
-  return ok_conf;
 }
 
 //init a new conf
@@ -395,44 +293,6 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
   nsource_tot++;
 }
 
-//invert on top of a source, putting all needed for the appropriate quark
-void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
-{
-  //these are the ways in which Dirac operator rotates - propagator is opposite, see below
-#ifdef POINT_SOURCE_VERSION
-  for(int ic=0;ic<NCOL;ic++)
-#endif
-    for(int id=0;id<4;id++)
-      { 
-	//read the source out
-#ifdef POINT_SOURCE_VERSION
-	get_spincolor_from_su3spinspin(temp_source,in,id,ic);
-#else
-	get_spincolor_from_colorspinspin(temp_source,in,id);
-#endif
-	
-	//rotate the source index - the propagator rotate AS the sign of mass term
-	if(!pure_wilson) safe_dirac_prod_spincolor(temp_source,(tau3[r]==-1)?&Pminus:&Pplus,temp_source);
-	
-	//invert
-	inv_time-=take_time();
-	if(!pure_wilson) inv_tmD_cg_eoprec_eos(temp_solution,NULL,conf,kappa,tau3[r]*qmass[imass],100000,residue[imass],temp_source);
-	else             inv_tmD_cg_eoprec_eos(temp_solution,NULL,conf,qkappa[imass],0,100000,residue[imass],temp_source);
-	ninv_tot++;inv_time+=take_time();
-	
-	//rotate the sink index
-	if(!pure_wilson) safe_dirac_prod_spincolor(temp_solution,(tau3[r]==-1)?&Pminus:&Pplus,temp_solution);
-	
-	//put the output on place
-#ifdef POINT_SOURCE_VERSION
-	master_printf("  finished the inversion dirac index %d, color %d\n",id,ic);
-	put_spincolor_into_su3spinspin(out,temp_solution,id,ic);
-#else
-	master_printf("  finished the inversion dirac index %d\n",id);
-	put_spincolor_into_colorspinspin(out,temp_solution,id);
-#endif
-      }
-}
 
 //generate all the quark propagators
 void generate_quark_propagators()
@@ -989,7 +849,7 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf))
+  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf,skip_conf))
     {
       //setup the conf and generate the source
       start_new_conf();

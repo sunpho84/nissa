@@ -1,9 +1,10 @@
 #include <nissa.hpp>
 
+#define EXTERN
+ #include "conf.hpp"
+
 namespace nissa
 {
-  int nanalyzed_conf=0;
-  double tot_prog_time=0,wall_time;
   
   //init the MPI grid
   void read_init_grid()
@@ -84,5 +85,52 @@ namespace nissa
     else master_printf("Not enough time, exiting!\n");
     
     return enough_time;
+  }
+  
+  //find a new conf
+  int read_conf_parameters(int &iconf,void(*skip_conf)())
+  {
+    int ok_conf;
+    
+    do
+      {
+	//Gauge path
+	read_str(conf_path,1024);
+	
+	//Out folder
+	read_str(outfolder,1024);
+	
+	//Check if the conf has been finished or is already running
+	master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
+	char fin_file[1024],run_file[1024];
+	sprintf(fin_file,"%s/finished",outfolder);
+	sprintf(run_file,"%s/running",outfolder);
+	ok_conf=!(file_exists(fin_file)) && !(file_exists(run_file));
+	
+	//if not finished
+	if(ok_conf)
+	  {
+	    master_printf(" Configuration \"%s\" not yet analyzed, starting",conf_path);
+	    if(!dir_exists(outfolder))
+	      {
+		int ris=create_dir(outfolder);
+		if(ris==0) master_printf(" Output path \"%s\" not present, created.\n",outfolder);
+		else
+		  crash(" Failed to create the output \"%s\" for conf \"%s\".\n",outfolder,conf_path);
+	      }
+	    file_touch(run_file);
+	  }
+	else
+	  {
+	    master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
+	    skip_conf();
+	  }
+	iconf++;
+      }
+    while(!ok_conf && iconf<ngauge_conf);
+    
+    master_printf("\n");
+    
+    return ok_conf;
   }
 }
