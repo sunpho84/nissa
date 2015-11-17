@@ -970,12 +970,20 @@ namespace nissa
   //spincolor*real
   inline void spincolor_prod_double(spincolor a,spincolor b,double factor)
   {for(size_t i=0;i<4;i++) color_prod_double(a[i],b[i],factor);}
+  inline void spincolor_prod_idouble(spincolor a,spincolor b,double factor)
+  {for(size_t i=0;i<4;i++) color_prod_idouble(a[i],b[i],factor);}
+  inline void spincolor_prodassign_double(spincolor a,double factor)
+  {spincolor_prod_double(a,a,factor);}
+  inline void spincolor_prodassign_idouble(spincolor a,double factor)
+  {spincolor_prod_idouble(a,a,factor);}
   
   //spincolor*complex
   inline void unsafe_spincolor_prod_complex(spincolor a,spincolor b,complex factor)
   {for(size_t i=0;i<4;i++) unsafe_color_prod_complex(a[i],b[i],factor);}
   inline void safe_spincolor_prod_complex(spincolor a,spincolor b,complex factor)
   {spincolor c;spincolor_copy(c,b);unsafe_spincolor_prod_complex(a,c,factor);}
+  inline void spincolor_prodassign_complex(spincolor a,complex factor)
+  {safe_spincolor_prod_complex(a,a,factor);}
   
   //spincolor+spincolor*complex
   inline void spincolor_summ_the_prod_complex(spincolor a,spincolor b,complex factor)

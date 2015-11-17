@@ -167,6 +167,7 @@ namespace nissa
   }									\
   THREADABLE_FUNCTION_END
   
+  INSERT_VECTOR_VERTEX(spincolor)
   INSERT_VECTOR_VERTEX(colorspinspin)
   INSERT_VECTOR_VERTEX(su3spinspin)
 }

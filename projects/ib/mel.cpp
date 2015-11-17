@@ -9,6 +9,8 @@
  #define PROP_TYPE colorspinspin
 #endif
 
+#include "prop.hpp"
+
 /* the loop is normalised such that the physical rate at leading order
   is obtained multiplying the loop by Gf^2 fpi^2 * phi2 (space phase
   factor) which is (1-rl^2)/(16 pi mpi) where rl=ml/mpi, whereas the
@@ -19,16 +21,13 @@ using namespace nissa;
 
 /////////////////////////////////////// data //////////////////////////////
 
-int ninv_tot=0,nhadr_contr_tot=0,nlept_contr_tot=0,nsource_tot=0,nphoton_prop_tot=0;
-double inv_time=0,hadr_contr_time=0,lept_contr_time=0,print_time=0;
+int nhadr_contr_tot=0,nlept_contr_tot=0,nsource_tot=0,nphoton_prop_tot=0;
+double hadr_contr_time=0,lept_contr_time=0,print_time=0;
 double source_time=0,photon_prop_time=0,lepton_prop_time=0;
 
 PROP_TYPE *source,*original_source;
 
 PROP_TYPE **Q;
-
-spincolor *temp_source;
-spincolor *temp_solution;
 
 spin1field *photon_field;
 
@@ -178,8 +177,6 @@ void init_simulation(char *path)
   nlprop=ilprop(nleptons-1,nlins-1,norie-1,nr-1)+1;
   
   //allocate temporary vectors
-  temp_source=nissa_malloc("temp_source",loc_vol,spincolor);
-  temp_solution=nissa_malloc("temp_solution",loc_vol,spincolor);
   hadr_corr_length=glb_size[0]*nhadr_contr*ncombo_hadr_corr*nqmass*nqmass*nr;
   hadr_corr=nissa_malloc("hadr_corr",hadr_corr_length,complex);
   glb_corr=nissa_malloc("glb_corr",glb_size[0]*nhadr_contr,complex);
@@ -827,8 +824,6 @@ void close()
   nissa_free(loc_corr);
   nissa_free(hadr);
   nissa_free(hadrolept_corr);
-  nissa_free(temp_source);
-  nissa_free(temp_solution);
   nissa_free(lep_corr_iq1);
   nissa_free(lep_corr_iq2);
   nissa_free(leps);
