@@ -53,8 +53,8 @@ namespace nissa
 	      color v;
 	      unsafe_su3_prod_color(v,conf[par][ieo][mu],right_fw_bw[fw_bw][!par][loceo_neighup[par][ieo][mu]]);
 	      complex t;
-	      if(fw_bw==0) color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo]);
-	      else         color_scalar_prod(t,right_fw_bw[!fw_bw][par][ieo],v);
+	      if(fw_bw==0) color_scalar_prod(t,right_fw_bw[!fw_bw][par][ieo],v);
+	      else         color_scalar_prod(t,v,right_fw_bw[!fw_bw][par][ieo]);
 	      complex_summassign(point_result[loclx_of_loceo[par][ieo]],t);
 	    }
 	THREAD_BARRIER();

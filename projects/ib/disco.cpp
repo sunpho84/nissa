@@ -9,6 +9,8 @@
 using namespace nissa;
 
 spincolor *eta,*phi,*temp;
+quad_u1 *temp_bubble;
+quad_u1 *bubble;
 
 int nB;
 int iB(int imass,int r)
@@ -34,6 +36,8 @@ void init_simulation(const char *path)
   eta=nissa_malloc("eta",loc_vol+bord_vol,spincolor);
   phi=nissa_malloc("phi",loc_vol+bord_vol,spincolor);
   temp=nissa_malloc("temp",loc_vol+bord_vol,spincolor);
+  temp_bubble=nissa_malloc("temp_bubble",loc_vol+bord_vol,quad_u1);
+  bubble=nissa_malloc("bubble",loc_vol+bord_vol,quad_u1);
   
   nB=iB(nqmass-1,nr-1)+1;
 }
@@ -56,6 +60,8 @@ void close()
   nissa_free(phi);
   nissa_free(temp);
   nissa_free(conf);
+  nissa_free(temp_bubble);
+  nissa_free(bubble);
   
   master_printf("\n");
   master_printf("Inverted %d configurations.\n",nanalyzed_conf);
@@ -71,9 +77,9 @@ THREADABLE_FUNCTION_1ARG(compute_tadpole, int,r)
   else             insert_wilson_tadpole(temp,conf,phi,tadpole,-1);
   
   NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
-      for(int id=0;id<4;id++)
-	for(int ic=0;ic<NCOL;ic++)
-	  safe_complex_conj1_prod(temp[ivol][id][ic],eta[ivol][id][ic],temp[ivol][id][ic]);
+    for(int id=0;id<4;id++)
+      for(int ic=0;ic<NCOL;ic++)
+	safe_complex_conj1_prod(temp[ivol][id][ic],eta[ivol][id][ic],temp[ivol][id][ic]);
   THREAD_BARRIER();
   
   complex tadpole_res;
@@ -81,6 +87,57 @@ THREADABLE_FUNCTION_1ARG(compute_tadpole, int,r)
   master_printf("%+16.16lg %+16.16lg\n",tadpole_res[0],tadpole_res[1]);
 }
 THREADABLE_FUNCTION_END
+
+//matrix element of the vector current as a function of the photon position
+void vector_matrix_element(quad_u1 *out,spincolor *sink,quad_su3 *conf,int r,spincolor *source)
+{
+  GET_THREAD_ID();
+  
+  //set parameters
+  dirac_matr GAMMA;
+  if(!pure_wilson) dirac_prod_idouble(&GAMMA,base_gamma+5,-tau3[r]);
+  else             GAMMA=base_gamma[0];
+  
+  //reset the output and communicate borders
+  vector_reset(out);
+  communicate_lx_spincolor_borders(sink);
+  communicate_lx_spincolor_borders(source);
+  
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    for(int mu=0;mu<NDIM;mu++)
+      {
+	//find neighbors
+	int ifw=loclx_neighup[ivol][mu];
+	
+	//transport down and up
+	spincolor fw,bw;
+	unsafe_su3_prod_spincolor(fw,conf[ivol][mu],source[ifw]);
+	unsafe_su3_dag_prod_spincolor(bw,conf[ivol][mu],source[ivol]);
+	
+	//put GAMMA-gmu on the forward piece
+	spincolor GA_fw,gmu_fw,GA_M_gmu_fw;
+	unsafe_dirac_prod_spincolor(GA_fw,&GAMMA,fw);
+	unsafe_dirac_prod_spincolor(gmu_fw,base_gamma+map_mu[mu],fw);
+	spincolor_subt(GA_M_gmu_fw,GA_fw,gmu_fw);
+	//put GAMMA+gmu on the backward piece
+	spincolor GA_bw,gmu_bw,GA_P_gmu_bw;
+	unsafe_dirac_prod_spincolor(GA_bw,&GAMMA,bw);
+	unsafe_dirac_prod_spincolor(gmu_bw,base_gamma+map_mu[mu],bw);
+	spincolor_summ(GA_P_gmu_bw,GA_bw,gmu_bw);
+	
+	//take the scalar product
+	complex c_fw,c_bw;
+	spincolor_scalar_prod(c_fw,sink[ivol],GA_M_gmu_fw);
+	spincolor_scalar_prod(c_bw,sink[ifw],GA_P_gmu_bw);
+	
+	//summ the result
+	complex fact_fw={0,-0.5},fact_bw={0,+0.5};
+	complex_summ_the_prod(out[ivol][mu],c_fw,fact_fw);
+	complex_summ_the_prod(out[ivol][mu],c_bw,fact_bw);
+      }
+  
+  set_borders_invalid(out);
+}
 
 void in_main(int narg,char **arg)
 {
@@ -115,7 +172,25 @@ void in_main(int narg,char **arg)
 		//solve for phi for each quark
 		get_qprop(phi,eta,imass,r);
 		
+		//compute the tadpole
 		compute_tadpole(r);
+		
+		//compute the single bubble
+		vector_matrix_element(temp_bubble,eta,conf,r,phi);
+		complex tot={0,0};
+		for(int mu=0;mu<4;mu++)
+		  for(int ivol=0;ivol<loc_vol;ivol++)
+		    complex_summassign(tot,temp_bubble[ivol][mu]);
+		master_printf("AAAAA %lg %lg\n",tot[RE],tot[IM]);
+		
+		insert_tm_external_source(temp,conf,NULL,phi,r,-1);
+		complex tot2={0,0};
+		for(int ivol=0;ivol<loc_vol;ivol++)
+		  for(int id=0;id<4;id++)
+		    for(int ic=0;ic<NCOL;ic++)
+		      complex_summ_the_conj1_prod(tot2,eta[ivol][id][ic],temp[ivol][id][ic]);
+		master_printf("BBBB %lg %lg\n",tot2[RE],tot2[IM]);
+		
 	      }
 	}
     }

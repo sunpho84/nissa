@@ -1,5 +1,5 @@
-#ifndef _GEOMETRY_VIR_H
-#define _GEOMETRY_VIR_H
+#ifndef _GEOMETRY_VIR_HPP
+#define _GEOMETRY_VIR_HPP
 
 #include "new_types/new_types_definitions.hpp"
 

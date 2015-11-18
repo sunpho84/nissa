@@ -125,7 +125,7 @@ namespace nissa
   /*insert the external source, that is one of the two extrema of the stoch prop*/ \
   THREADABLE_FUNCTION_6ARG(insert_external_source, TYPE*,out, quad_su3*,conf, spin1field*,curr, TYPE*,in, dirac_matr*,GAMMA, int,t) \
   {									\
-    /*call with no source insertion, minus between fw and bw, and a global -i*0.5 - the minus comes from definition in eq.11 of 1303.4896*/ \
+    /*call with source insertion, minus between fw and bw, and a global -i*0.5 - the minus comes from definition in eq.11 of 1303.4896*/ \
     complex fw_factor={0,-0.5},bw_factor={0,+0.5};			\
     insert_vector_vertex(out,conf,curr,in,fw_factor,bw_factor,GAMMA,insert_external_source_handle,t); \
   }									\

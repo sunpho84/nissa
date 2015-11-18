@@ -87,6 +87,7 @@ namespace nissa
 #ifdef BENCH
  #ifdef ONLY_INSTANTIATION
    EXTERN double tot_comm_time;
+   EXTERN int ntot_comm;
    EXTERN double cgm_inv_over_time,cg_inv_over_time;
    EXTERN int ncgm_inv,ncg_inv;
    EXTERN double portable_stD_app_time;
@@ -105,6 +106,7 @@ namespace nissa
   #endif
  #else
    EXTERN double tot_comm_time=0;
+   EXTERN int ntot_comm=0;
    EXTERN double cgm_inv_over_time=0,cg_inv_over_time=0;
    EXTERN int ncgm_inv=0,ncg_inv=0;
    EXTERN double portable_stD_app_time=0;

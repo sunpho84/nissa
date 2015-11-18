@@ -379,7 +379,7 @@ namespace nissa
 	  assign_complex_prod_minus_i(s[mso][msi]);
 	}
   }
-
+  
   //compute the determinant of spinspin matrix
   inline void spinspin_det(complex d,spinspin s)
   {matrix_determinant(d,(complex*)s,4);}

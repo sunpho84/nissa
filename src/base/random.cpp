@@ -203,6 +203,10 @@ namespace nissa
     out[1]=rnd_get_pm_one(gen)/RAD2;
   }
   
+  //return a ZN complex
+  void rng_get_ZN(complex out,rnd_gen *gen,int N)
+  {complex_iexp(out,2*M_PI*(int)rnd_get_unif(gen,0,N)/N);}
+  
   //return a gaussian double
   double rnd_get_gauss_double(rnd_gen *gen,double ave,double sig)
   {
@@ -213,7 +217,7 @@ namespace nissa
     
     return r*cos(q)*sig+ave;
   }
-
+  
   //return a gaussian complex with sigma=sig/sqrt(2)
   void rnd_get_gauss_complex(complex out,rnd_gen *gen,complex ave,double sig)
   {

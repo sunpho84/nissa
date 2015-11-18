@@ -93,8 +93,8 @@ namespace nissa
   
   inline void color_scalar_prod(complex out,color a,color b)
   {
-    unsafe_complex_conj2_prod(out,a[0],b[0]);
-    for(size_t ic=1;ic<NCOL;ic++) complex_summ_the_conj2_prod(out,a[ic],b[ic]);
+    unsafe_complex_conj1_prod(out,a[0],b[0]);
+    for(size_t ic=1;ic<NCOL;ic++) complex_summ_the_conj1_prod(out,a[ic],b[ic]);
   }
   inline double color_norm2(color c)
   {double out=complex_norm2(c[0]);for(size_t ic=1;ic<NCOL;ic++) out+=complex_norm2(c[ic]);return out;}
@@ -1066,6 +1066,18 @@ namespace nissa
       {
 	for(size_t ic=0;ic<NCOL;ic++) unsafe_complex_prod(tmp[ic],m->entr[id1],in[m->pos[id1]][ic]);
 	su3_subt_the_prod_color(out[id1],U,tmp);
+      }
+  }
+  
+  //take the complex conjugated of the first
+  inline void spincolor_scalar_prod(complex out,spincolor in1,spincolor in2)
+  {
+    complex_put_to_zero(out);
+    for(int id=0;id<4;id++)
+      {
+	complex temp;
+	color_scalar_prod(temp,in1[id],in2[id]);
+	complex_summassign(out,temp);
       }
   }
   

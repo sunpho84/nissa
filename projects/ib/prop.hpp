@@ -29,8 +29,8 @@ namespace nissa
   //invert on top of a source, putting all needed for the appropriate quark
   inline void get_qprop(PROP_TYPE *out,PROP_TYPE *in,int imass,bool r)
   {
-    spincolor *temp_source;
-    spincolor *temp_solution;
+    spincolor *temp_source=nissa_malloc("temp_source",loc_vol+bord_vol,spincolor);
+    spincolor *temp_solution=nissa_malloc("temp_solution",loc_vol+bord_vol,spincolor);
     
     //these are the ways in which Dirac operator rotates - propagator is opposite, see below
 #ifdef POINT_SOURCE_VERSION
