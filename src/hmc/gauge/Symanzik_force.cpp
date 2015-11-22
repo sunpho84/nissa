@@ -20,12 +20,12 @@
 
 namespace nissa
 {
-  THREADABLE_FUNCTION_5ARG(Symanzik_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta, double,C1, bool,phase_pres)
+  THREADABLE_FUNCTION_4ARG(Symanzik_force_lx_conf, quad_su3*,out, quad_su3*,conf, double,beta, double,C1)
   {
     verbosity_lv2_master_printf("Computing Symanzik force\n");
     
     //coefficient of rectangles and squares, including beta
-    double C0=get_C0(C1,phase_pres);
+    double C0=get_C0(C1);
     double w1=-C1*beta/NCOL,w0=-C0*beta/NCOL;
     
     GET_THREAD_ID();

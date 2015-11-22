@@ -61,8 +61,7 @@ namespace nissa
     //generate the source
     generate_fully_undiluted_eo_source(rnd,RND_GAUSS,-1);
     
-    //we add stagphases and backfield externally because we need them for derivative
-    addrem_stagphases_to_eo_conf(conf);
+    //we add backfield externally because we need them for derivative
     add_backfield_to_conf(conf,u1b);
     
     //invert
@@ -168,7 +167,6 @@ namespace nissa
     
     //remove stag phases and u1 field, and automatically barrier before collapsing
     rem_backfield_from_conf(conf,u1b);
-    addrem_stagphases_to_eo_conf(conf);
     
     //free automatic synchronizing
     nissa_free(point_result);

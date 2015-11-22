@@ -188,51 +188,6 @@ namespace nissa
     eo_geom_inited=0;
   }
   
-  //add or remove staggered phases to/from a conf
-  THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_eo_conf, quad_su3**,eo_conf)
-  {
-    //we must ensure that nobody is using the conf
-    THREAD_BARRIER();
-    
-    //work also on borders and edges if allocated and valid
-    int ending=loc_volh;
-    if(check_borders_allocated(eo_conf[0]) && check_borders_allocated(eo_conf[1]) && check_borders_valid(eo_conf[0]) && check_borders_valid(eo_conf[1])) ending+=bord_volh;
-    if(check_edges_allocated(eo_conf[0])   && check_edges_allocated(eo_conf[1])   && check_edges_valid(eo_conf[0])   && check_edges_valid(eo_conf[1])) ending+=edge_volh;
-    
-    GET_THREAD_ID();
-    for(int par=0;par<2;par++)
-      {
-	NISSA_PARALLEL_LOOP(ivol_eo,0,ending)
-	  {
-	    int ivol_lx=loclx_of_loceo[par][ivol_eo];
-	    
-	    int d=0;
-	    
-	    //phase in direction 1 is always 0 so nothing has to be done in that dir
-	    //if(d%2==1) su3_prod_double(eo_conf[par][ivol_eo][1],eo_conf[par][ivol_eo][1],-1);
-	    
-	    //direction 2
-	    d+=glb_coord_of_loclx[ivol_lx][1];
-	    if(d%2==1) su3_prod_double(eo_conf[par][ivol_eo][2],eo_conf[par][ivol_eo][2],-1);
-	    
-	    //direction 3
-	    d+=glb_coord_of_loclx[ivol_lx][2];
-	    if(d%2==1) su3_prod_double(eo_conf[par][ivol_eo][3],eo_conf[par][ivol_eo][3],-1);
-	    
-	    //direction 0
-	    d+=glb_coord_of_loclx[ivol_lx][3];
-	    //debug: putting the anti-periodic condition on the temporal border
-	    //in future remove it!!!
-	    if(glb_coord_of_loclx[ivol_lx][0]==glb_size[0]-1) d+=1;
-	    if(d%2==1) su3_prod_double(eo_conf[par][ivol_eo][0],eo_conf[par][ivol_eo][0],-1);
-	  }
-      }
-    
-    //now the conf is again available
-    THREAD_BARRIER();
-  }
-  THREADABLE_FUNCTION_END
-
   //filter the points retaining only those having all even coord
   void filter_hypercube_origin_sites(color **vec)
   {

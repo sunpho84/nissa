@@ -24,17 +24,15 @@
 namespace nissa
 {
   //multiply by M^-1
-  THREADABLE_FUNCTION_7ARG(mult_Minv, color**,prop, quad_su3**,conf, quad_u1**,u1b, double,m, double,residue, color**,source, bool,phase_present)
+  THREADABLE_FUNCTION_6ARG(mult_Minv, color**,prop, quad_su3**,conf, quad_u1**,u1b, double,m, double,residue, color**,source)
   {
-    if(!phase_present) addrem_stagphases_to_eo_conf(conf);
     add_backfield_to_conf(conf,u1b);
     inv_stD_cg(prop,conf,m,100000,residue,source);
     rem_backfield_from_conf(conf,u1b);
-    if(!phase_present) addrem_stagphases_to_eo_conf(conf);
   }
   THREADABLE_FUNCTION_END
-  void mult_Minv(color **prop,quad_su3 **conf,theory_pars_t *pars,int iflav,double residue,color **source,bool phase_present=false)
-  {mult_Minv(prop,conf,pars->backfield[iflav],pars->quark_content[iflav].mass,residue,source,phase_present);}
+  void mult_Minv(color **prop,quad_su3 **conf,theory_pars_t *pars,int iflav,double residue,color **source)
+  {mult_Minv(prop,conf,pars->backfield[iflav],pars->quark_content[iflav].mass,residue,source);}
   
   //compute the matrix element of the derivative of the dirac operator between two vectors
   //forward and backward derivative are stored separately, for a reason

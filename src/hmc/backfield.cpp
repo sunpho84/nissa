@@ -7,6 +7,7 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
@@ -25,7 +26,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	  for(int mu=0;mu<4;mu++)
+	  for(int mu=0;mu<NDIM;mu++)
 	    {
 	      S[par][ivol][mu][0]=1;
 	      S[par][ivol][mu][1]=0;
@@ -91,7 +92,7 @@ namespace nissa
   
   void (*get_args_of_quantization[3])(coords,int,int,int)=
   {get_args_of_null_quantization,get_args_of_one_over_L2_quantization,get_args_of_half_half_quantization};
-
+  
   //multiply a background field by a constant em field
   //mu nu refers to the entry of F_mu_nu involved
   THREADABLE_FUNCTION_6ARG(add_em_field_to_backfield, quad_u1**,S, quark_content_t*,quark_content, double,em_str, int,quantization, int,mu, int,nu)
@@ -138,6 +139,38 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
+  //add staggered phases (or remove them!)
+  THREADABLE_FUNCTION_1ARG(add_stagphases_to_backfield, quad_u1**,S)
+  {
+    GET_THREAD_ID();
+    for(int par=0;par<2;par++)
+      {
+	NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
+	  {
+	    coords ph;
+	    get_stagphase_of_lx(ph,loclx_of_loceo[par][ivol_eo]);
+	    for(int mu=0;mu<NDIM;mu++) complex_prodassign_double(S[par][ivol_eo][mu],ph[mu]);
+	  }
+	set_borders_invalid(S);
+      }
+  
+  }
+  THREADABLE_FUNCTION_END
+  
+  //add the antiperiodic condition on the on dir mu
+  THREADABLE_FUNCTION_2ARG(add_antiperiodic_condition_to_backfield, quad_u1**,S, int,mu)
+  {
+    GET_THREAD_ID();
+    for(int par=0;par<2;par++)
+      {
+	NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
+	  if(glb_coord_of_loclx[loclx_of_loceo[par][ivol_eo]][mu]==(glb_size[mu]-1))
+	    complex_prodassign_double(S[par][ivol_eo][mu],-1);
+	set_borders_invalid(S);
+      }
+  }
+  THREADABLE_FUNCTION_END
+  
   //multiply the configuration for an additional u(1) field
   THREADABLE_FUNCTION_2ARG(add_backfield_to_conf, quad_su3**,conf, quad_u1**,u1)
   {
@@ -146,13 +179,13 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	  for(int mu=0;mu<4;mu++)
+	  for(int mu=0;mu<NDIM;mu++)
 	    safe_su3_prod_complex(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
 	set_borders_invalid(conf[par]);
       }
   }
   THREADABLE_FUNCTION_END
-
+  
   //multiply the configuration for an the conjugate of an u(1) field
   THREADABLE_FUNCTION_2ARG(rem_backfield_from_conf, quad_su3**,conf, quad_u1**,u1)
   {
@@ -161,7 +194,7 @@ namespace nissa
     for(int par=0;par<2;par++)
       {
 	NISSA_PARALLEL_LOOP(ivol,0,loc_volh)
-	  for(int mu=0;mu<4;mu++)
+	  for(int mu=0;mu<NDIM;mu++)
 	    safe_su3_prod_complex_conj(conf[par][ivol][mu],conf[par][ivol][mu],u1[par][ivol][mu]);
 	set_borders_invalid(conf[par]);
       }
@@ -188,6 +221,8 @@ namespace nissa
 	init_backfield_to_id(tp.backfield[iflav]);
 	add_im_pot_to_backfield(tp.backfield[iflav],&(tp.quark_content[iflav]));
 	add_em_field_to_backfield(tp.backfield[iflav],&(tp.quark_content[iflav]),&(tp.em_field_pars));
+	add_stagphases_to_backfield(tp.backfield[iflav]);
+	add_antiperiodic_condition_to_backfield(tp.backfield[iflav],0);
       }
   }
   

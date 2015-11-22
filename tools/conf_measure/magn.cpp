@@ -63,9 +63,8 @@ void analyze_conf(int iconf)
   read_str(conf_path,1024);
   read_ildg_gauge_conf_and_split_into_eo_parts(base_conf_eo,conf_path);
   
-  //smear the configuration and add phases
+  //smear the configuration
   stout_smear(stout_conf_eo,base_conf_eo,&stout_pars);
-  addrem_stagphases_to_eo_conf(stout_conf_eo);
   
   //loop over the number of hits
   for(int ihit=0;ihit<nhits;ihit++)

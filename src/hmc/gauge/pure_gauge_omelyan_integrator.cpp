@@ -34,7 +34,7 @@ namespace nissa
     
     //allocate force and compute it
     quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",loc_vol,quad_su3):ext_F;
-    compute_gluonic_force_lx_conf(F,conf,theory_pars,false); //no phase present
+    compute_gluonic_force_lx_conf(F,conf,theory_pars);
     
     //evolve
     evolve_lx_momenta_with_force(H,F,dt);
@@ -55,7 +55,7 @@ namespace nissa
     
     //compute the various contribution to the QCD force
     vector_reset(F);
-    if(evolve_FACC&2) compute_gluonic_force_lx_conf(F,conf,theory_pars,false);
+    if(evolve_FACC&2) compute_gluonic_force_lx_conf(F,conf,theory_pars);
     if(evolve_FACC&1) summ_the_MFACC_momenta_QCD_force(F,conf,simul->kappa,pi);
     if(evolve_FACC&2) summ_the_MFACC_QCD_momenta_QCD_force(F,conf,simul->kappa,100000,simul->residue,H);
     evolve_lx_momenta_with_force(H,F,dt);

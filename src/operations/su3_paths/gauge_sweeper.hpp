@@ -169,7 +169,7 @@ namespace nissa
   
 #ifdef BGQ
   void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links);
-  void compute_Symanzik_force_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double beta,bool phase_pres);
+  void compute_Symanzik_force_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double beta);
 #endif
   void compute_Symanzik_staples_packed(su3 staples,su3 *links,double C1);
   void init_Symanzik_sweeper();

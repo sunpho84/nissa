@@ -9,7 +9,7 @@
 
 namespace nissa
 {
-  void addrem_stagphases_to_lx_conf(quad_su3 *conf);
+  void get_stagphase_of_lx(coords ph,int ivol);
   int bordlx_of_coord(int *x,int mu);
   int bordlx_of_coord_list(int x0,int x1,int x2,int x3,int mu);
   void coord_of_lx(coords x,int ilx,coords s);

@@ -44,7 +44,7 @@ namespace nissa
     //copy the old conf into the new
     for(int par=0;par<2;par++)
       {
-	memcpy(out_conf[par],in_conf[par],loc_volh*sizeof(quad_su3));
+	vector_copy(out_conf[par],in_conf[par]);
 	set_borders_invalid(out_conf[par]);
       }
     
@@ -61,7 +61,7 @@ namespace nissa
     //otherwise bind out_conf to sme_conf
     quad_su3 *sme_conf[2];
     for(int eo=0;eo<2;eo++) sme_conf[eo]=(theory_pars.stout_pars.nlevels!=0)?
-			      nissa_malloc("sme_conf",loc_volh+bord_volh+edge_volh,quad_su3):out_conf[eo];
+			    nissa_malloc("sme_conf",loc_volh+bord_volh+edge_volh,quad_su3):out_conf[eo];
     if(theory_pars.stout_pars.nlevels!=0)
       {
 	verbosity_lv2_master_printf("Stouting the links for pseudo-fermions generation and initial action computation\n");
@@ -69,12 +69,7 @@ namespace nissa
 	
 	verbosity_lv2_master_printf("Original plaquette: %16.16lg\n",global_plaquette_eo_conf(out_conf));
 	verbosity_lv2_master_printf("Stouted plaquette: %16.16lg\n",global_plaquette_eo_conf(sme_conf));
-	
-	addrem_stagphases_to_eo_conf(sme_conf);
       }
-    
-    //add the phases to the output conf
-    addrem_stagphases_to_eo_conf(out_conf);
     
     //generate the appropriate expansion of rational approximations
     rootst_eoimpr_set_expansions(&simul_pars,sme_conf,&theory_pars);
@@ -98,7 +93,6 @@ namespace nissa
     //create the momenta
     generate_hmc_momenta(H);
     
-    //compute initial action
     double init_action;
     full_rootst_eoimpr_action(&init_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars,pf_action);
     
@@ -109,10 +103,7 @@ namespace nissa
     if(theory_pars.stout_pars.nlevels!=0)
       {
 	verbosity_lv2_master_printf("Stouting the links for final action computation\n");
-	addrem_stagphases_to_eo_conf(out_conf);
 	stout_smear(sme_conf,out_conf,&(theory_pars.stout_pars));
-	addrem_stagphases_to_eo_conf(out_conf);
-	addrem_stagphases_to_eo_conf(sme_conf);
       }
     
     //compute final action using sme_conf (see previous note)
@@ -122,9 +113,6 @@ namespace nissa
     
     //compute the diff
     double diff_action=final_action-init_action;
-    
-    //remove the phases
-    addrem_stagphases_to_eo_conf(out_conf);
     
     //free stuff
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)

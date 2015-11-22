@@ -543,13 +543,13 @@ namespace nissa
     su3_summ_the_dag_prod_su3(rectangles,links[ilinks[ 1]],dw_rectangles);
     
     //compute the summed staples
-    su3_linear_comb(staples,squares,get_C0(C1,false),rectangles,C1);
+    su3_linear_comb(staples,squares,get_C0(C1),rectangles,C1);
   }
   
   //compute the summ of the staples pointed by "ilinks"
   void compute_Symanzik_staples_packed(su3 staples,su3 *links,double C1)
   {
-    double C0=get_C0(C1,false);
+    double C0=get_C0(C1);
     
     su3 squares,rectangles,up_rectangles,dw_rectangles;
     su3_put_to_zero(squares);

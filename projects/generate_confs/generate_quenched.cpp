@@ -323,7 +323,7 @@ double compute_Symanzik_action(double *paths,double C1)
 {
   //compute the total action
   global_plaquette_and_rectangles_lx_conf(paths,conf);
-  return get_C0(C1,false)*6*glb_vol*(1-paths[0])+C1*12*glb_vol*(1-paths[1]);
+  return get_C0(C1)*6*glb_vol*(1-paths[0])+C1*12*glb_vol*(1-paths[1]);
 }
 //wrappers
 double compute_tlSym_action(double *paths) {return compute_Symanzik_action(paths,C1_TLSYM);}
@@ -342,7 +342,7 @@ double compute_Symanzik_action_per_timeslice(double *paths,double *paths_per_tim
   //normalize
   for(int ip=0;ip<2;ip++) paths[ip]/=(glb_size[0]-1);
   
-  return get_C0(C1,false)*6*glb_vol*(1-paths[0])+C1*12*glb_vol*(1-paths[1]);
+  return get_C0(C1)*6*glb_vol*(1-paths[0])+C1*12*glb_vol*(1-paths[1]);
 }
 double compute_Wilson_action_per_timeslice(double *paths,double *paths_per_timeslice)
 {
@@ -646,7 +646,7 @@ void measure_gauge_obs()
   double paths[2];
   double paths_per_timeslice[glb_size[0]*npaths_per_action];
   double action;
-  if(evol_pars.use_hmc) gluonic_action(&action,conf,&theory_pars,false);
+  if(evol_pars.use_hmc) gluonic_action(&action,conf,&theory_pars);
   else
     action=(boundary_cond==OPEN_BOUNDARY_COND)?compute_action_per_timeslice(paths,paths_per_timeslice):
       compute_action(paths);

@@ -18,7 +18,7 @@
 namespace nissa
 {
   //compute the magnetization starting from chi and rnd
-  //please note that the conf must hold backfield and stagphases
+  //please note that the conf must hold backfield
   THREADABLE_FUNCTION_10ARG(magnetization, complex*,magn, complex*,magn_proj_x, quad_su3**,conf, quark_content_t*,quark, color**,rnd, color**,chi, complex*,point_magn, coords*,arg, int,mu, int,nu)
   {
     GET_THREAD_ID();
@@ -112,19 +112,17 @@ namespace nissa
     //array to store magnetization on single site (actually storing backward contrib at displaced site)
     complex *point_magn=nissa_malloc("app",loc_vol,complex);
     
-    //we add stagphases and backfield externally because we need them for derivative
-    addrem_stagphases_to_eo_conf(conf);
+    //we add backfield externally because we need them for derivative
     add_backfield_to_conf(conf,u1b);
     
     //invert
-    inv_stD_cg(chi,conf,quark->mass,100000,residue,rnd);
+    inv_stD_cg(chi,conf,quark->mass,1000000,residue,rnd);
     
     //compute mag
     magnetization(magn,magn_proj_x,conf,quark,rnd,chi,point_magn,arg,mu,nu);
     
-    //remove stag phases and u1 field
+    //remove backfield
     rem_backfield_from_conf(conf,u1b);
-    addrem_stagphases_to_eo_conf(conf);
     
     //free
     for(int par=0;par<2;par++) nissa_free(chi[par]);

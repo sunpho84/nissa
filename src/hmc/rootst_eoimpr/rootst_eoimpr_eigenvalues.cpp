@@ -10,12 +10,14 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "inverters/staggered/cg_invert_stD2ee_m2.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/new_types_definitions.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/su3.hpp"
 #include "operations/remez/remez_algorithm.hpp"
+#include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS
@@ -29,11 +31,12 @@
 namespace nissa
 {
   //Return the maximal eigenvalue of the staggered Dirac operator for the passed quark
-  //assumes that the passed conf already has stag phases inside it
   THREADABLE_FUNCTION_4ARG(max_eigenval, double*,eig_max, quark_content_t*,quark_content, quad_su3**,eo_conf, int,niters)
   {
     GET_THREAD_ID();
+    
     communicate_ev_and_od_quad_su3_borders(eo_conf);
+    
     (*eig_max)=0;
     
     color *vec_in=nissa_malloc("vec_in",loc_volh+bord_volh,color);
@@ -136,7 +139,6 @@ namespace nissa
   }
   
   //scale the rational expansion
-  //assumes that the conf has already stag phases inside
   THREADABLE_FUNCTION_3ARG(rootst_eoimpr_set_expansions, hmc_evol_pars_t*,evol_pars, quad_su3**,eo_conf, theory_pars_t*,theory_pars)
   {
     GET_THREAD_ID();

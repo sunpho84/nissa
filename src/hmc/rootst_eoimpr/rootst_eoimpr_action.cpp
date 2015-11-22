@@ -7,6 +7,7 @@
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/momenta/momenta_action.hpp"
 #include "hmc/gauge/topological_action.hpp"
+#include "geometry/geometry_eo.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "linalgs/linalgs.hpp"
 #ifdef USE_THREADS
@@ -52,8 +53,8 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //Compute the total action of the rooted staggered e/o improved theory.
-  //Passed conf must NOT contain the backfield, but contains the stagphases so remove it.
+  //Compute the total action of the rooted staggered e/o improved theory
+  //Passed conf must NOT contain the backfield
   THREADABLE_FUNCTION_8ARG(full_rootst_eoimpr_action, double*,tot_action, quad_su3**,eo_conf, quad_su3**,sme_conf, quad_su3**,H, color***,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, double,external_quark_action)
   {
     verbosity_lv1_master_printf("Computing action\n");
@@ -70,7 +71,7 @@ namespace nissa
     
     //gauge action
     double gluon_action;
-    gluonic_action(&gluon_action,eo_conf,theory_pars,true);
+    gluonic_action(&gluon_action,eo_conf,theory_pars);
     verbosity_lv1_master_printf("Gluon_action: %16.16lg\n",gluon_action);
     
     //momenta action

@@ -37,13 +37,13 @@
 namespace nissa
 {
   //evolve the momenta with topological force
-  THREADABLE_FUNCTION_6ARG(evolve_lx_momenta_with_topological_force, quad_su3*,H, quad_su3*,conf, topotential_pars_t*,topars, double,dt, quad_su3*,ext_F, bool,phase_pres)
+  THREADABLE_FUNCTION_5ARG(evolve_lx_momenta_with_topological_force, quad_su3*,H, quad_su3*,conf, topotential_pars_t*,topars, double,dt, quad_su3*,ext_F)
   {
     verbosity_lv2_master_printf("Evolving lx momenta with topological force, dt=%lg\n",dt);
     
     //allocate force and compute it
     quad_su3 *F=(ext_F==NULL)?nissa_malloc("F",loc_vol,quad_su3):ext_F;
-    compute_topological_force_lx_conf(F,conf,topars,phase_pres);
+    compute_topological_force_lx_conf(F,conf,topars);
     
     //evolve
     evolve_lx_momenta_with_force(H,F,dt);
@@ -52,7 +52,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //eo wrapper
-  THREADABLE_FUNCTION_5ARG(evolve_eo_momenta_with_topological_force, quad_su3**,eo_H, quad_su3**,eo_conf, topotential_pars_t*,topars, double,dt, bool,phase_pres)
+  THREADABLE_FUNCTION_4ARG(evolve_eo_momenta_with_topological_force, quad_su3**,eo_H, quad_su3**,eo_conf, topotential_pars_t*,topars, double,dt)
   {
     verbosity_lv2_master_printf("Evolving e/o momenta with topological force, dt=%lg\n",dt);
     
@@ -62,7 +62,7 @@ namespace nissa
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);
     paste_eo_parts_into_lx_vector(lx_H,eo_H);
     
-    evolve_lx_momenta_with_topological_force(lx_H,lx_conf,topars,dt,NULL,phase_pres);
+    evolve_lx_momenta_with_topological_force(lx_H,lx_conf,topars,dt,NULL);
     
     split_lx_vector_into_eo_parts(eo_H,lx_H);
     nissa_free(lx_H);
@@ -73,8 +73,6 @@ namespace nissa
   //evolve the configuration according to pure gauge - note that there is a similar routine in "pure_gage"
   THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_su3*,lx_conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul)
   {
-    addrem_stagphases_to_lx_conf(lx_conf);
-    
     //macro step or micro step
     double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
       dth=dt/2,ldt=dt*OMELYAN_LAMBDA,l2dt=2*OMELYAN_LAMBDA*dt,uml2dt=(1-2*OMELYAN_LAMBDA)*dt;
@@ -85,7 +83,7 @@ namespace nissa
     
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
     evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,ldt,aux_F);
-    if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F,false);
+    if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,ldt,aux_F);
     
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
@@ -99,18 +97,17 @@ namespace nissa
 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
 	//     Compute H(t+(1-2*lambda)*dt) i.e. v2=v1+a[r1]*(1-2*lambda)*dt
 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,uml2dt,aux_F);
-	if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F,false);
+	if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,uml2dt,aux_F);
 	//     Compute U(t+dt/2) i.e. r(t+dt)=r1+v2*dt/2
 	evolve_lx_conf_with_momenta(lx_conf,H,dth);
 	//     Compute H(t+dt) i.e. v(t+dt)=v2+a[r(t+dt)]*lambda*dt (at last step) or *2*lambda*dt
 	evolve_momenta_with_pure_gauge_force(H,lx_conf,theory_pars,last_dt,aux_F);
-	if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F,false);
+	if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
 	
 	//normalize the configuration
 	unitarize_lx_conf_maximal_trace_projecting(lx_conf);
       }
     
-    addrem_stagphases_to_lx_conf(lx_conf);
     nissa_free(aux_F);
   }
   THREADABLE_FUNCTION_END
@@ -163,10 +160,7 @@ namespace nissa
     for(int eo=0;eo<2;eo++) sme_conf[eo]=nissa_malloc("sme_conf",loc_volh+bord_volh+edge_volh,quad_su3);
     
     //smear
-    addrem_stagphases_to_eo_conf(conf);
     stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
-    addrem_stagphases_to_eo_conf(conf);
-    addrem_stagphases_to_eo_conf(sme_conf);
     
     //compute action before
     double act_bef;
@@ -188,10 +182,7 @@ namespace nissa
     set_borders_invalid(conf);
     
     //smear
-    addrem_stagphases_to_eo_conf(conf);
     stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
-    addrem_stagphases_to_eo_conf(conf);
-    addrem_stagphases_to_eo_conf(sme_conf);
     
     //compute action after rotation
     double act_aft;
@@ -233,7 +224,7 @@ namespace nissa
     
     //     Compute H(t+lambda*dt) i.e. v1=v(t)+a[r(t)]*lambda*dt (first half step)
     evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,ldt);
-    if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,ldt,true);
+    if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,ldt);
     
     //         Main loop
     for(int istep=0;istep<nsteps;istep++)
@@ -245,16 +236,14 @@ namespace nissa
 	
 	omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,uml2dt);
-	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,uml2dt,true);
+	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,uml2dt);
 	
 	omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,last_dt);
-	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt,true);
+	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt);
 	
 	//normalize the configuration
-	addrem_stagphases_to_eo_conf(conf);
 	unitarize_eo_conf_maximal_trace_projecting(conf);
-	addrem_stagphases_to_eo_conf(conf);
       }
   }
   THREADABLE_FUNCTION_END

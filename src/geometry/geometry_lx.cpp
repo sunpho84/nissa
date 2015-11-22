@@ -580,44 +580,12 @@ namespace nissa
     }
   }
   
-  //multiply the whole conf for stag phases
-  THREADABLE_FUNCTION_1ARG(addrem_stagphases_to_lx_conf, quad_su3*,lx_conf)
+  //return the staggered phases for a given site
+  void get_stagphase_of_lx(coords ph,int ivol)
   {
-    //we must ensure that nobody is using the conf
-    THREAD_BARRIER();
-    
-    //work also on borders and edges if allocated and valid
-    int ending=loc_vol;
-    if(check_borders_allocated(lx_conf) && check_borders_valid(lx_conf)) ending+=bord_vol;
-    if(check_edges_allocated(lx_conf) && check_edges_valid(lx_conf)) ending+=edge_vol;
-    
-    GET_THREAD_ID();
-    NISSA_PARALLEL_LOOP(ivol,0,ending)
-      {
-	int d=0;
-	
-	//phase in direction 1 is always 0 so nothing has to be done in that dir
-	//if(d%2==1) su3_prod_double(lx_conf[ivol][1],lx_conf[ivol][1],-1);
-	
-	//direction 2
-	d+=glb_coord_of_loclx[ivol][1];
-	if(d%2==1) su3_prod_double(lx_conf[ivol][2],lx_conf[ivol][2],-1);
-	
-	//direction 3
-	d+=glb_coord_of_loclx[ivol][2];
-	if(d%2==1) su3_prod_double(lx_conf[ivol][3],lx_conf[ivol][3],-1);
-	
-	//direction 0
-	d+=glb_coord_of_loclx[ivol][3];
-	//debug: putting the anti-periodic condition on the temporal border
-	//in future remove it!!!
-	if(glb_coord_of_loclx[ivol][0]==glb_size[0]-1) d+=1;
-	if(d%2==1) su3_prod_double(lx_conf[ivol][0],lx_conf[ivol][0],-1);
-      }
-    
-    THREAD_BARRIER();
+    ph[1]=1;
+    for(int mu=1;mu<NDIM;mu++) ph[(mu+1)%NDIM]=ph[mu]*(1-2*(glb_coord_of_loclx[ivol][mu]%2));
   }
-  THREADABLE_FUNCTION_END
   
   //check that passed argument is between 0 and 15
   inline void crash_if_not_hypercubic_red(int hyp_red)

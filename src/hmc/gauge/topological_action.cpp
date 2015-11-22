@@ -50,10 +50,7 @@ namespace nissa
         conf[1]=nissa_malloc("stout_conf",loc_volh+bord_volh+edge_volh,quad_su3);
         
         //smear
-        addrem_stagphases_to_eo_conf(ext_conf);
         stout_smear(conf,ext_conf,&(pars.stout_pars));
-        addrem_stagphases_to_eo_conf(ext_conf);
-        addrem_stagphases_to_eo_conf(conf);
       }
     
     //compute topocharge

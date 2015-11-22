@@ -85,7 +85,7 @@ namespace nissa
     nissa_free(A[0]);					\
     nissa_free(A[1]);
 #define MINV(out,iflav,in)						\
-    mult_Minv(out,conf,&theory_pars,iflav,meas_pars.residue,in,true)
+    mult_Minv(out,conf,&theory_pars,iflav,meas_pars.residue,in)
 #define NEW_MINV(out,iflav,in)			\
     NEW_RENDE_T(out);				\
     MINV(out,iflav,in)
@@ -111,7 +111,6 @@ namespace nissa
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     complex *point_result=nissa_malloc("point_result",loc_vol,complex);
     NEW_RENDE_T(source);
-    addrem_stagphases_to_eo_conf(conf);
     
     //vectors for calculation
     NEW_RENDE_T(M);
@@ -199,7 +198,6 @@ namespace nissa
     DELETE_RENDE_T(dM_M_dM_M_dM_M);
     
     //close and deallocate
-    addrem_stagphases_to_eo_conf(conf);
     close_file(file);
     nissa_free(point_result);
     DELETE_RENDE_T(source);

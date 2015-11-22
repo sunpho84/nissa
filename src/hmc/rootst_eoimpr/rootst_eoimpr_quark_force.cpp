@@ -87,14 +87,11 @@ namespace nissa
       }
   }
   THREADABLE_FUNCTION_END
-
+  
   //Finish the computation multiplying for the conf and taking TA
   THREADABLE_FUNCTION_2ARG(compute_rootst_eoimpr_quark_force_finish_computation, quad_su3**,F, quad_su3**,conf)
   {
     GET_THREAD_ID();
-    
-    //remove the staggered phase from the conf, since they are already implemented in the force
-    addrem_stagphases_to_eo_conf(conf);
     
     for(int eo=0;eo<2;eo++)
       {
@@ -106,9 +103,6 @@ namespace nissa
 	      unsafe_su3_traceless_anti_hermitian_part(F[eo][ivol][mu],temp);
 	    }
       }
-    
-    //readd
-    addrem_stagphases_to_eo_conf(conf);
   }
   THREADABLE_FUNCTION_END
   
@@ -122,8 +116,6 @@ namespace nissa
       for(int ipf=0;ipf<npfs[iflav];ipf++)
 	summ_the_rootst_eoimpr_quark_force(F,tp->quark_content[iflav].charge,conf,pf[iflav][ipf],tp->em_field_pars.flag,tp->backfield[iflav],appr+(iflav*3+2),residue); //flag set quantization
     
-    //add the stag phases to the force term, coming from the disappered link in dS/d(U)
-    addrem_stagphases_to_eo_conf(F);
   }
   THREADABLE_FUNCTION_END
   
@@ -141,16 +133,13 @@ namespace nissa
 	stout_smear_conf_stack_allocate(&sme_conf,conf,nlevls);
 	
 	//smear iteratively retaining all the stack
-	addrem_stagphases_to_eo_conf(sme_conf[0]); //remove the staggered phases
 	stout_smear_whole_stack(sme_conf,conf,&(physics->stout_pars));
 	
 	//compute the force in terms of the most smeared conf
-	addrem_stagphases_to_eo_conf(sme_conf[nlevls]); //add to most smeared conf
 	compute_rootst_eoimpr_quark_force_no_stout_remapping(F,sme_conf[nlevls],pf,physics,appr,npfs,residue);
 	
 	//remap the force backward
 	stouted_force_remap(F,sme_conf,&(physics->stout_pars));
-	addrem_stagphases_to_eo_conf(sme_conf[0]); //add back again to the original conf
 	
 	//now free the stack of confs
 	stout_smear_conf_stack_free(&sme_conf,nlevls);

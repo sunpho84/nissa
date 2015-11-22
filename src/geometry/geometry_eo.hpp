@@ -5,7 +5,6 @@
 
 namespace nissa
 {
-  void addrem_stagphases_to_eo_conf(quad_su3 **eo_conf);
   void filter_hypercube_origin_sites(color **vec);
   int glblx_parity(int glx);
   int glb_coord_parity(coords c);

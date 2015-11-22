@@ -42,7 +42,7 @@ namespace nissa
     
     //compute action for G
     double action_G=0;
-    if(evolve_FACC&2) gluonic_action(&action_G,conf,&theory_pars,false);
+    if(evolve_FACC&2) gluonic_action(&action_G,conf,&theory_pars);
     verbosity_lv2_master_printf("Gauge action: %lg\n",action_G);
     
     return action_G+action_H+action_phi+action_pi;

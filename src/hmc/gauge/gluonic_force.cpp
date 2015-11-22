@@ -19,12 +19,9 @@
 namespace nissa
 {
   //Finish the computation multiplying for the conf and taking TA
-  THREADABLE_FUNCTION_3ARG(gluonic_force_finish_computation, quad_su3*,F, quad_su3*,conf, bool,phase_pres)
+  THREADABLE_FUNCTION_2ARG(gluonic_force_finish_computation, quad_su3*,F, quad_su3*,conf)
   {
     GET_THREAD_ID();
-    
-    //remove the staggered phase from the conf, since they are already implemented in the force
-    if(phase_pres) addrem_stagphases_to_lx_conf(conf);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
@@ -33,17 +30,14 @@ namespace nissa
 	  unsafe_su3_prod_su3(temp,conf[ivol][mu],F[ivol][mu]);
 	  unsafe_su3_traceless_anti_hermitian_part(F[ivol][mu],temp);
 	}
-    
-    //readd
-    if(phase_pres) addrem_stagphases_to_lx_conf(conf);
-    else THREAD_BARRIER();
+    THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
   
   //it's not working and communications seems to make it go onli 50% faster than the normal way
 #ifdef BGQNONONONONONONNONO 
   //compute the gauge action - bgq version
-  THREADABLE_FUNCTION_4ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics, bool,phase_pres)
+  THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics)
   {
     GET_THREAD_ID();
     
@@ -102,7 +96,7 @@ namespace nissa
 		compute_force(F[gs->ivol_of_box_dir_par[ibase+ibox_dir_par]][dir],
 			      F[gs->ivol_of_box_dir_par[ibase+ibox_dir_par+box_dir_par_sizeh]][dir],
 			      ((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link,
-			      physics->beta,phase_pres);
+			      physics->beta);
 	      THREAD_BARRIER();
 	      
               //increment the box-dir-par subset
@@ -110,11 +104,8 @@ namespace nissa
 	    }
       }
     
-    //add the stag phases to the force term, to cancel the one entering the force
-    if(phase_pres) addrem_stagphases_to_lx_conf(F);
-    
     //finish
-    gluonic_force_finish_computation(F,conf,phase_pres);
+    gluonic_force_finish_computation(F,conf);
     
     //////////////////////////////////////////////////////////////////////////
     
@@ -127,7 +118,7 @@ namespace nissa
 #else
   
   //compute only the gauge part
-  THREADABLE_FUNCTION_4ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics, bool,phase_pres)
+  THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics)
   {
     GET_THREAD_ID();
     
@@ -149,7 +140,7 @@ namespace nissa
     su3 sto;
     su3_copy(sto,conf[0][0]);
     double act_ori;
-    gluonic_action(&act_ori,conf,physics,phase_pres);
+    gluonic_action(&act_ori,conf,physics);
     
     //store derivative
     su3 nu_plus,nu_minus;
@@ -168,12 +159,12 @@ namespace nissa
 	//change -, compute action
 	unsafe_su3_dag_prod_su3(conf[0][0],exp_mod,sto);
 	double act_minus;
-	gluonic_action(&act_minus,conf,physics,phase_pres);
+	gluonic_action(&act_minus,conf,physics);
 	
 	//change +, compute action
 	unsafe_su3_prod_su3(conf[0][0],exp_mod,sto);
 	double act_plus;
-	gluonic_action(&act_plus,conf,physics,phase_pres);
+	gluonic_action(&act_plus,conf);
 	
 	//set back everything
 	su3_copy(conf[0][0],sto);
@@ -195,17 +186,14 @@ namespace nissa
     
     switch(physics->gauge_action_name)
       {
-      case WILSON_GAUGE_ACTION: Wilson_force_lx_conf(F,conf,physics->beta,phase_pres);break;
-      case TLSYM_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_TLSYM,phase_pres);break;
-      case IWASAKI_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_IWASAKI,phase_pres);break;
+      case WILSON_GAUGE_ACTION: Wilson_force_lx_conf(F,conf,physics->beta);break;
+      case TLSYM_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_TLSYM);break;
+      case IWASAKI_GAUGE_ACTION: Symanzik_force_lx_conf(F,conf,physics->beta,C1_IWASAKI);break;
       default: crash("Unknown action");
       }
     
-    //add the stag phases to the force term, to cancel those entering the force
-    if(phase_pres) addrem_stagphases_to_lx_conf(F);
-    
     //finish the calculation
-    gluonic_force_finish_computation(F,conf,phase_pres);
+    gluonic_force_finish_computation(F,conf);
     
 #ifdef DEBUG
     master_printf("checking pure gauge force\n");
