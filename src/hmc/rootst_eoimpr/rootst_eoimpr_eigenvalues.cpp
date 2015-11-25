@@ -92,7 +92,7 @@ namespace nissa
     if(valid)
       {
 	bool allocated=(appr.degree!=0);
-	if(!allocated) verbosity_lv3_master_printf(" Not allocated\n");
+	if(!allocated) verbosity_lv2_master_printf(" Not allocated\n");
 	valid&=allocated;
       }
     
@@ -101,7 +101,7 @@ namespace nissa
       {
 	double expo_stored=(double)appr.num/appr.den;
 	bool expo_is_the_same=(fabs(expo-expo_stored)<1e-14);
-	if(!expo_is_the_same) verbosity_lv3_master_printf(" Approx stored is for x^%lg, required is for x^%lg\n",expo_stored,expo);
+	if(!expo_is_the_same) verbosity_lv2_master_printf(" Approx stored is for x^%lg, required is for x^%lg\n",expo_stored,expo);
 	valid&=expo_is_the_same;
       }
     
@@ -109,7 +109,7 @@ namespace nissa
     if(valid)
       {
 	bool can_fit=(cond_numb<=cond_numb_stored);
-	if(!can_fit) verbosity_lv3_master_printf(" Condition number %lg>=%lg (stored)\n",cond_numb,cond_numb_stored);
+	if(!can_fit) verbosity_lv2_master_printf(" Condition number %lg>=%lg (stored)\n",cond_numb,cond_numb_stored);
 	valid&=can_fit;
       }
     
@@ -119,7 +119,7 @@ namespace nissa
 	double exc=pow(ENL_GEN,4);
 	double fact=cond_numb_stored/cond_numb;
 	bool does_not_exceed=(fact<exc);
-	if(!does_not_exceed) verbosity_lv3_master_printf(" Condition number %lg more than %lg smaller (%lg) than %lg (stored)\n",cond_numb,exc,fact,cond_numb_stored);
+	if(!does_not_exceed) verbosity_lv2_master_printf(" Condition number %lg more than %lg smaller (%lg) than %lg (stored)\n",cond_numb,exc,fact,cond_numb_stored);
 	valid&=does_not_exceed;
       }
     
@@ -130,7 +130,7 @@ namespace nissa
 	bool is_not_too_precise=(appr.maxerr>=maxerr/toll);
 	bool is_not_too_inaccur=(appr.maxerr<=maxerr*toll);
 	bool is_accurate=(is_not_too_precise&&is_not_too_inaccur);
-	if(!is_accurate) verbosity_lv3_master_printf(" Accuracy %lg more than %lg larger or smaller (%lg) than  %lg (stored)\n",
+	if(!is_accurate) verbosity_lv2_master_printf(" Accuracy %lg more than %lg larger or smaller (%lg) than  %lg (stored)\n",
 						     maxerr,toll,appr.maxerr/maxerr,appr.maxerr);
 	valid&=is_accurate;
       }
@@ -152,7 +152,7 @@ namespace nissa
     double min_to_recreate[3*nflavs];
     double max_to_recreate[3*nflavs];
     double maxerr_to_recreate[3*nflavs];
-	
+    
     for(int iflav=0;iflav<nflavs;iflav++)
       {
 	//find min and max eigenvalue
@@ -181,7 +181,7 @@ namespace nissa
 	    THREAD_BARRIER();
 	    
 	    //check if the approx is valid or not and in any case fit exponents
-	    verbosity_lv2_master_printf("Checking validity of approx %d/3 for flav %d/%d\n",i+1,iflav+1,nflavs);
+	    verbosity_lv2_master_printf("Checking validity of approx %d/3 for flav %d/%d (%s)\n",i+1,iflav+1,nflavs,appr[i].name);
 	    bool valid=check_approx_validity(appr[i],eig_min,eig_max,expo,maxerr[i]);
 	    THREAD_BARRIER();
 	    appr[i].num=num;
@@ -191,25 +191,29 @@ namespace nissa
 	    //if the approximation is valid scale it
 	    if(valid)
 	      {
-		verbosity_lv2_master_printf("Stored rational approximation valid, adapting it quickly\n");
-		
-		if(IS_MASTER_THREAD)
+		if(num==-den) verbosity_lv2_master_printf("Exact approximation, not modifying\n");
+		else
 		  {
-		    //center the arithmetic average
-		    double scale=sqrt(eig_max*eig_min)/sqrt(appr[i].minimum*appr[i].maximum);
-		    double scale_extra=pow(scale,expo);
+		    verbosity_lv2_master_printf("Stored rational approximation valid, adapting it quickly\n");
 		    
-		    //scale the rational approximation
-		    appr[i].minimum*=scale;
-		    appr[i].maximum*=scale;
-		    appr[i].cons*=scale_extra;
-		    for(int iterm=0;iterm<appr[i].degree;iterm++)
+		    if(IS_MASTER_THREAD)
 		      {
-			appr[i].poles[iterm]*=scale;
-			appr[i].weights[iterm]*=scale*scale_extra;
+			//center the arithmetic average
+			double scale=sqrt(eig_max*eig_min)/sqrt(appr[i].minimum*appr[i].maximum);
+			double scale_extra=pow(scale,expo);
+			
+			//scale the rational approximation
+			appr[i].minimum*=scale;
+			appr[i].maximum*=scale;
+			appr[i].cons*=scale_extra;
+			for(int iterm=0;iterm<appr[i].degree;iterm++)
+			  {
+			    appr[i].poles[iterm]*=scale;
+			    appr[i].weights[iterm]*=scale*scale_extra;
+			  }
 		      }
+		    THREAD_BARRIER();
 		  }
-		THREAD_BARRIER();
 	      }
 	    else
 	      {
@@ -246,7 +250,12 @@ namespace nissa
     THREAD_BARRIER();
     
     //now collect from other nodes
-    for(int ito=0;ito<nto_recreate;ito++) broadcast(evol_pars->rat_appr+iappr_to_recreate[ito],rank_recreating[ito]);
+    for(int ito=0;ito<nto_recreate;ito++)
+      {
+	rat_approx_t *rat=evol_pars->rat_appr+iappr_to_recreate[ito];
+	broadcast(rat,rank_recreating[ito]);
+	verbosity_lv1_master_printf("Approximation x^(%d/%d) recreated, now %d terms present\n",rat->num,rat->den,rat->degree);
+      }
     
     if(IS_MASTER_THREAD) MPI_Barrier(MPI_COMM_WORLD);
     THREAD_BARRIER();

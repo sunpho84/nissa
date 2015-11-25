@@ -250,7 +250,7 @@ namespace nissa
     
     float_high_prec_t *yy=NULL;
     THREAD_BROADCAST_PTR(yy,new float_high_prec_t[nmax_err_points]);
-    THREAD_BARRIER();    
+    THREAD_BARRIER();
     if(IS_MASTER_THREAD)
       {
 	eclose=1e30;
@@ -387,10 +387,10 @@ namespace nissa
       }
     THREAD_BARRIER();
   }
-
+  
   //compute separately the numerator and denominator of the approximation
   void rat_approx_finder_t::compute_num_den_approx(float_high_prec_t &yn,float_high_prec_t &yd,float_high_prec_t x)
-  {    
+  {
     yn=coeff[degree];
     for(int i=degree-1;i>=0;i--) yn=x*yn+coeff[i];
     yd=x+coeff[2*degree];
@@ -398,7 +398,7 @@ namespace nissa
   }
   
   //compute the approximation
-  float_high_prec_t rat_approx_finder_t::compute_approx(float_high_prec_t x) 
+  float_high_prec_t rat_approx_finder_t::compute_approx(float_high_prec_t x)
   {
     //numerator and denominator
     float_high_prec_t yn,yd;
@@ -407,7 +407,7 @@ namespace nissa
   }
   
   //compute the error
-  float_high_prec_t rat_approx_finder_t::get_err(float_high_prec_t x) 
+  float_high_prec_t rat_approx_finder_t::get_err(float_high_prec_t x)
   {
     //compute exact fun and approx
     float_high_prec_t fun=func_to_approx(x),app=compute_approx(x);
@@ -426,7 +426,7 @@ namespace nissa
   {return abs(get_err(x));}
   
   //calculate the roots of the approximation
-  void rat_approx_finder_t::root_find(float_high_prec_t *roots,float_high_prec_t *poles,float_high_prec_t &cons) 
+  void rat_approx_finder_t::root_find(float_high_prec_t *roots,float_high_prec_t *poles,float_high_prec_t &cons)
   {
     GET_THREAD_ID();
     
@@ -439,8 +439,8 @@ namespace nissa
 	const double upper=1,lower=-100000,tol=1.e-20;
 	
 	//find the numerator root
-	for(int i=0;i<=degree;i++) poly[i]=coeff[i];    
-	for(int i=degree-1;i>=0;i--) 
+	for(int i=0;i<=degree;i++) poly[i]=coeff[i];
+	for(int i=degree-1;i>=0;i--)
 	  {
 	    roots[i]=root_find_Newton(poly,i+1,lower,upper,tol);
 	    if(roots[i]==0.0) crash("Failure to converge on root %ld/%d",i+1,degree);
@@ -452,7 +452,7 @@ namespace nissa
 	poly[degree]=1;
 	for(int i=0;i<degree;i++) poly[i]=coeff[degree+1+i];
 	
-	for(int i=degree-1;i>=0;i--) 
+	for(int i=degree-1;i>=0;i--)
 	  {
 	    poles[i]=root_find_Newton(poly,i+1,lower,upper,tol);
 	    if(poles[i]==0.0) crash("Failure to converge on pole %ld/%d",i+1,degree);
@@ -468,7 +468,7 @@ namespace nissa
   }
   
   //evaluate the polynomial
-  float_high_prec_t rat_approx_finder_t::poly_eval(float_high_prec_t x,float_high_prec_t *poly,int size) 
+  float_high_prec_t rat_approx_finder_t::poly_eval(float_high_prec_t x,float_high_prec_t *poly,int size)
   {
     float_high_prec_t f=poly[size];
     for(int i=size-1;i>=0;i--) f=f*x+poly[i];
@@ -486,7 +486,7 @@ namespace nissa
   }
   
   //Newton's method to calculate roots
-  float_high_prec_t rat_approx_finder_t::root_find_Newton(float_high_prec_t *poly,int size,double x1,double x2,double acc) 
+  float_high_prec_t rat_approx_finder_t::root_find_Newton(float_high_prec_t *poly,int size,double x1,double x2,double acc)
   {
     const int nmax_iter=10000;
     
@@ -500,6 +500,7 @@ namespace nissa
       {
 	float_high_prec_t f=poly_eval(rtn,poly,size),df=poly_der(rtn,poly,size);
 	dx=f/df;
+	
 	rtn-=dx;
 	
 	iter++;
@@ -610,7 +611,7 @@ namespace nissa
     THREAD_BROADCAST_PTR(coeff,new float_high_prec_t[nmax_err_points]);
     THREAD_BROADCAST_PTR(zero,new float_high_prec_t[nmax_err_points]);
     THREAD_BROADCAST_PTR(xmax,new float_high_prec_t[nmax_err_points]);
-
+    
     //set the initial guess and set step
     find_cheb();
     set_step();
@@ -655,9 +656,9 @@ namespace nissa
       }
     
     //get err at max and check
-    if(farther.get_d()<=target_err) 
+    if(farther.get_d()<=target_err)
       {
-	verbosity_lv2_master_printf("Converged in %d iters, maxerr %lg when asked %lg\n",iter,farther.get_d(),target_err);
+	verbosity_lv2_master_printf("Converged with %d zeroes in %d iters, maxerr %lg when asked %lg\n",nzero_err_points,iter,farther.get_d(),target_err);
 	
 	//compute the roots
 	float_high_prec_t *roots=NULL;
@@ -681,7 +682,7 @@ namespace nissa
 	delete[] coeff;
 	delete[] xmax;
       }
-
+    
     //return the maximum error in the approximation
     double ret=farther.get_d();
     THREAD_BARRIER(); //before destroying the approximation we wait
@@ -733,42 +734,61 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    double generate_time=take_time();
-    
-    //set the name of the approximation and deallocate poles
-    if(name!=NULL && IS_MASTER_THREAD) snprintf(appr.name,20,"%s",name);
-    if(appr.degree!=0) rat_approx_destroy(&appr);
-    
-    //increase iteratively until it converges
-    int degree=1;
-    bool found=false;
-    do
+    //perform a few checks
+    if(num==den) crash("cannot work if the numerator has the same power of the denominator!");
+    if(num==-den)
       {
-	//allocate it
-	rat_approx_create(&appr,degree,name);
-
-	//generate
-	double err;
-	err=generate_approx(appr,minimum,maximum,num,den,maxerr,0.01);
-	THREAD_BROADCAST(err,err);
-	
-	//check if found
-	found=(err<=maxerr);
-	verbosity_lv3_master_printf("Approx x^(%d/%d) with %d poles can make an error of %lg when %lg required, found: %d\n",
-	       num,den,degree,err,maxerr,found);
-	
-	//if not found increase number of poles
-	if(!found)
-	  {
-	    degree++;
-	    rat_approx_destroy(&appr);
-	  }
+	verbosity_lv2_master_printf("Creating trivial approx for x^%d/%d\n",num,den);
+	rat_approx_create(&appr,1,name);
+	appr.num=num;
+	appr.den=den;
+	appr.minimum=minimum;
+	appr.maximum=maximum;
+	appr.cons=0;
+	appr.poles[0]=0;
+	appr.weights[0]=1;
       }
-    while(!found);
-    
-    master_printf("Needed time: %lg s\n",take_time()-generate_time);
-    
-    //store required maximal error
-    appr.maxerr=maxerr;
+    else
+      {
+        double generate_time=take_time();
+	
+	//set the name of the approximation and deallocate poles
+	if(name!=NULL && IS_MASTER_THREAD) snprintf(appr.name,20,"%s",name);
+	verbosity_lv3_master_printf("Generating approximation of x^(%d/%d) with max error %lg over the interval [%lg,%lg]\n",
+				    num,den,maxerr,minimum,maximum);
+	if(appr.degree!=0) rat_approx_destroy(&appr);
+	
+	//increase iteratively until it converges
+	int degree=1;
+	bool found=false;
+	do
+	  {
+	    //allocate it
+	    rat_approx_create(&appr,degree,name);
+	    
+	    //generate
+	    double err;
+	    err=generate_approx(appr,minimum,maximum,num,den,maxerr,0.01);
+	    THREAD_BROADCAST(err,err);
+	    
+	    //check if found
+	    found=(err<=maxerr);
+	    verbosity_lv3_master_printf("Approx x^(%d/%d) with %d poles can make an error of %lg when %lg required, found: %d\n",
+					num,den,degree,err,maxerr,found);
+	    
+	    //if not found increase number of poles
+	    if(!found)
+	      {
+		degree++;
+		rat_approx_destroy(&appr);
+	      }
+	  }
+	while(!found);
+	
+	master_printf("Needed time: %lg s\n",take_time()-generate_time);
+	
+	//store required maximal error
+	appr.maxerr=maxerr;
+      }
   }
 }

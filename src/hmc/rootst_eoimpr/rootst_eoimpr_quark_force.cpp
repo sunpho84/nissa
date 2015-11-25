@@ -13,6 +13,7 @@
 #include "inverters/staggered/cgm_32_invert_stD2ee_m2.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "new_types/complex.hpp"
+#include "new_types/rat_approx.hpp"
 #include "new_types/su3.hpp"
 #include "operations/smearing/stout.hpp"
 #include "routines/ios.hpp"
@@ -24,7 +25,6 @@
 namespace nissa
 {
   //Compute the fermionic force the rooted staggered e/o improved theory.
-  //Passed conf must NOT contain the backfield.
   //Of the result still need to be taken the TA
   //The approximation need to be already scaled, and must contain physical mass term
   THREADABLE_FUNCTION_8ARG(summ_the_rootst_eoimpr_quark_force, quad_su3**,F, double,charge, quad_su3**,eo_conf, color*,pf, int,quantization, quad_u1**,u1b, rat_approx_t*,appr, double,residue)

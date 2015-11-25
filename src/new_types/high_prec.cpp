@@ -59,26 +59,26 @@ namespace nissa
     
     //compute by solving out^d=in^n=ref
     float_high_prec_t ref=float_high_prec_t_pow_int(in,n);
-
+    
     //let's start from a reasonable approx
     float_high_prec_t out=pow(in.get_d(),(double)n/d);
     
     //(out+err)^d=in^n -> err=out*rel_err, rel_err=(ref/out^d-1)/d
     int iter=0;
     float_high_prec_t rel_residue;
-    double tol=16*pow(2.0,-high_prec_nbits());
+    double tol=32*pow(2.0,-high_prec_nbits());
     do
       {
         //compute out^d
         float_high_prec_t outd=float_high_prec_t_pow_int(out,d);
-
+	
         //compute relative error
         rel_residue=(ref/outd-1);
         
         //total err
         float_high_prec_t err=rel_residue*out/d;
         out+=err;
-        //verbosity_lv3_master_printf("Iter %d rel_residue: %lg\n",iter,fabs(rel_residue.get_d()));
+        //verbosity_lv3_master_printf("Iter %d rel_residue: %lg, tol: %lg\n",iter,fabs(rel_residue.get_d()),tol);
 	
         iter++;
       }

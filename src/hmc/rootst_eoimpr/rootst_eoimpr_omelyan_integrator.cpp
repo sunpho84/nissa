@@ -145,58 +145,83 @@ namespace nissa
     //compute the force
     compute_rootst_eoimpr_quark_force(F,conf,pf,theory_pars,simul_pars->rat_appr,simul_pars->npseudo_fs,simul_pars->md_residue);
     
-#if 0
-    //print info on the norm of the force
-    double norm2[2];
-    for(int ieo=0;ieo<2;ieo++) double_vector_glb_scalar_prod(norm2+ieo,(double*)(F[ieo]),(double*)(F[ieo]),loc_volh*sizeof(quad_su3)/sizeof(double));
-    master_printf("Fermionic force norm: %lg per site\n",sqrt(norm2[0]+norm2[1])/glb_vol);
+    //#define DEBUG
     
-    //pars for calc
-    double eps=1e-4;
-    int ivol=0,mu=0;
+#ifdef DEBUG
+    int par=1,ieo=1,mu=1;
+    double eps=1e-5;
+    
+    //store initial link
+    su3 sto;
+    su3_copy(sto,conf[par][ieo][mu]);
     
     //allocate smeared conf
     quad_su3 *sme_conf[2];
     for(int eo=0;eo<2;eo++) sme_conf[eo]=nissa_malloc("sme_conf",loc_volh+bord_volh+edge_volh,quad_su3);
     
-    //smear
-    stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
-    
     //compute action before
-    double act_bef;
-    rootst_eoimpr_quark_action(&act_bef,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,simul_pars);
-    
-    //perform an inifinitesimal variation on site 0 dir 0
-    su3 gen;
-    su3_put_to_zero(gen);
-    gen[1][0][0]=gen[0][1][0]=eps;
-    su3 var;
-    safe_anti_hermitian_exact_i_exponentiate(var,gen);
-    
-    su3_print(var);
-    
-    //modify
-    su3 bef;
-    su3_copy(bef,conf[0][ivol][mu]);
-    if(rank==0 && IS_MASTER_THREAD) safe_su3_prod_su3(conf[0][ivol][mu],var,conf[0][ivol][mu]);
-    set_borders_invalid(conf);
-    
-    //smear
+    double act_ori;
     stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
+    rootst_eoimpr_quark_action(&act_ori,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,simul_pars);
     
-    //compute action after rotation
-    double act_aft;
-    rootst_eoimpr_quark_action(&act_aft,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,simul_pars);
+    //store derivative
+    su3 nu_plus,nu_minus;
+    su3_put_to_zero(nu_plus);
+    su3_put_to_zero(nu_minus);
     
-    //put back in place
-    if(rank==0 && IS_MASTER_THREAD) su3_copy(conf[0][ivol][mu],bef);
-    set_borders_invalid(conf);
+    for(int igen=0;igen<NCOL*NCOL-1;igen++)
+      {
+	//prepare increment and change
+	su3 ba;
+	su3_prod_double(ba,gell_mann_matr[igen],eps/2);
+	
+	su3 exp_mod;
+	safe_hermitian_exact_i_exponentiate(exp_mod,ba);
+	
+	//change -, compute action
+	unsafe_su3_dag_prod_su3(conf[par][ieo][mu],exp_mod,sto);
+	double act_minus;
+	stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
+	rootst_eoimpr_quark_action(&act_minus,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,simul_pars);
+	
+	//change +, compute action
+	unsafe_su3_prod_su3(conf[par][ieo][mu],exp_mod,sto);
+	double act_plus;
+	stout_smear(sme_conf,conf,&(theory_pars->stout_pars));
+	rootst_eoimpr_quark_action(&act_plus,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,simul_pars);
+	
+	//set back everything
+	su3_copy(conf[par][ieo][mu],sto);
+	
+	//printf("plus: %+016.016le, ori: %+016.016le, minus: %+016.016le, eps: %lg\n",act_plus,act_ori,act_minus,eps);
+	double gr_plus=-(act_plus-act_ori)/eps;
+	double gr_minus=-(act_ori-act_minus)/eps;
+	su3_summ_the_prod_idouble(nu_plus,gell_mann_matr[igen],gr_plus);
+	su3_summ_the_prod_idouble(nu_minus,gell_mann_matr[igen],gr_minus);
+      }
     
-    double f_num=(act_bef-act_aft)/eps;
-    double f_ana=F[0][ivol][mu][1][0][IM]+F[0][ivol][mu][0][1][IM];
-    master_printf("force: (%lg-%lg)/%lg=%lg numerical, %lg analytical\n",act_bef,act_aft,eps,f_num,f_ana);
+    //take the average
+    su3 nu;
+    su3_summ(nu,nu_plus,nu_minus);
+    su3_prodassign_double(nu,0.5);
     
-    for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
+    master_printf("checking pure gauge force\n");
+    master_printf("an\n");
+    su3_print(F[par][ieo][mu]);
+    master_printf("nu\n");
+    su3_print(nu);
+    master_printf("nu_plus\n");
+    su3_print(nu_plus);
+    master_printf("nu_minus\n");
+    su3_print(nu_minus);
+    //crash("anna");
+#endif
+
+#if 0
+    //print info on the norm of the force
+    double norm2[2];
+    for(int ieo=0;ieo<2;ieo++) double_vector_glb_scalar_prod(norm2+ieo,(double*)(F[ieo]),(double*)(F[ieo]),loc_volh*sizeof(quad_su3)/sizeof(double));
+    master_printf("Fermionic force norm: %lg per site\n",sqrt(norm2[0]+norm2[1])/glb_vol);
 #endif
     
     //evolve

@@ -47,7 +47,7 @@ namespace nissa
     for(int iterm=0;iterm<appr->degree;iterm++)
       master_printf("   %d) pole: %lg, weight: %lg\n",iterm,appr->poles[iterm],appr->weights[iterm]);
   }
-
+  
   //convert from a stored approximation
   void convert_rat_approx(rat_approx_t *&appr,int &nflav,char *data,int data_length)
   {
@@ -82,7 +82,7 @@ namespace nissa
 	    if(!(s>>appr[i].poles[j])) crash("reading pole %d for approx %d",j,i);
 	    if(!(s>>appr[i].weights[j])) crash("reading weight %d for approx %d",j,i);
 	  }
-	if(VERBOSITY_LV3) master_printf_rat_approx(appr+i);       
+	if(VERBOSITY_LV3) master_printf_rat_approx(appr+i);
       }
   }
   
@@ -96,7 +96,7 @@ namespace nissa
     for(int i=0;i<nflav*3;i++)
       {
 	s<<appr[i].degree;
-	s.write(appr[i].name,20);	
+	s.write(appr[i].name,20);
 	s<<appr[i].minimum;
 	s<<appr[i].maximum;
 	s<<appr[i].maxerr;
