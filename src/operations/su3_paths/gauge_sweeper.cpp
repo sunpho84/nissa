@@ -614,7 +614,7 @@ namespace nissa
   //compute the summ of the staples pointed by "ilinks"
   void compute_Symanzik_staples_packed_bgq(su3 staples1,su3 staples2,bi_su3 *links,double C1)
   {
-    double C0=get_C0(C1,false);
+    double C0=get_C0(C1);
     bi_su3 squares,rectangles,up_rectangles,dw_rectangles;
     
     BI_SU3_PUT_TO_ZERO(squares);
