@@ -24,7 +24,7 @@ generate_stag_parser_built_sources= \
         parser.cpp
 
 AM_YFLAGS=-d
-#BUILT_SOURCES=$(generate_stag_parser_built_sources)
+BUILT_SOURCES=$(generate_stag_parser_built_sources)
 
 CLEANFILES=$(generate_stag_parser_built_sources)
 
