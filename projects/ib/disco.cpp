@@ -229,7 +229,7 @@ THREADABLE_FUNCTION_2ARG(compute_scalar_pseudoscalar, spincolor*,phi, spincolor*
 	pseudop_val.push_back(glb_pseudo[ri]);
       }
   
-  master_printf("Pseudop: %+16.16lg %+16.16lg\n",glb_pseudo[0],glb_pseudo[1]);
+  master_printf("Pseudo: %+16.16lg %+16.16lg\n",glb_pseudo[0],glb_pseudo[1]);
   master_printf("Scalar: %+16.16lg %+16.16lg\n",glb_scalar[0],glb_scalar[1]);
 }
 THREADABLE_FUNCTION_END

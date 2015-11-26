@@ -48,6 +48,7 @@ Compiling
 
 Compilation procede as in normal autotools way:
 
+	    bash config/bootstrap
 	    mkdir build
 	    cd build
 	    ../configure --help
