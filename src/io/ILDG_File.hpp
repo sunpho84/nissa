@@ -43,7 +43,20 @@ namespace nissa
   void ILDG_File_write_record_header(ILDG_File &file,ILDG_header &header_to_write);
   void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
   void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
-  void unset_mapped_types(MPI_Datatype &etype,MPI_Datatype &ftype);
+  
+  template <class T> void storable_vector_t<T>::read_from_ILDG_file(ILDG_File fin, const char *tag)
+  {
+    ILDG_header head;
+    head=ILDG_File_get_next_record_header(fin);
+    if(strcasecmp(tag,head.type)==0)
+      {
+	char *data=new char[head.data_length+1];
+	ILDG_File_read_all(data,fin,head.data_length);
+	this->convert_from_text(data);
+	delete[] data;
+      }
+    else crash("Unable to convert, tag %d while expecting %d",head.type,tag);
+  }
 }
 
 #endif

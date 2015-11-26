@@ -455,7 +455,7 @@ namespace nissa
       }
     
     //write the header
-    ILDG_File_master_write(file,(void*)&header,sizeof(ILDG_header));  
+    ILDG_File_master_write(file,(void*)&header,sizeof(ILDG_header));
   }
   
   ////////////////////////////////////// more complicated tasks //////////////////////////////////////

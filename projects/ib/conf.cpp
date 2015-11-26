@@ -88,7 +88,7 @@ namespace nissa
   }
   
   //find a new conf
-  int read_conf_parameters(int &iconf,void(*skip_conf)())
+  int read_conf_parameters(int &iconf,void(*skip_conf)(),bool(*external_condition)())
   {
     int ok_conf;
     
@@ -102,15 +102,14 @@ namespace nissa
 	
 	//Check if the conf has been finished or is already running
 	master_printf("Considering configuration \"%s\" with output path \"%s\".\n",conf_path,outfolder);
-	char fin_file[1024],run_file[1024];
-	sprintf(fin_file,"%s/finished",outfolder);
+	char run_file[1024];
 	sprintf(run_file,"%s/running",outfolder);
-	ok_conf=!(file_exists(fin_file)) && !(file_exists(run_file));
+	ok_conf=!(file_exists(run_file)) && external_condition();
 	
 	//if not finished
 	if(ok_conf)
 	  {
-	    master_printf(" Configuration \"%s\" not yet analyzed, starting",conf_path);
+	    master_printf(" Configuration \"%s\" not yet analyzed, starting\n",conf_path);
 	    if(!dir_exists(outfolder))
 	      {
 		int ris=create_dir(outfolder);
@@ -122,7 +121,7 @@ namespace nissa
 	  }
 	else
 	  {
-	    master_printf(" In output path \"%s\" terminating file already present: configuration \"%s\" already analyzed, skipping.\n",outfolder,conf_path);
+	    master_printf("\"%s\" finished or running, skipping configuration \"%s\"\n",outfolder,conf_path);
 	    skip_conf();
 	  }
 	iconf++;
@@ -130,6 +129,8 @@ namespace nissa
     while(!ok_conf && iconf<ngauge_conf);
     
     master_printf("\n");
+    
+    if(iconf==ngauge_conf) master_printf("Analyzed all confs, exiting\n\n");
     
     return ok_conf;
   }

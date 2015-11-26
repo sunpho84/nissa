@@ -831,6 +831,10 @@ void close()
   nissa_free(neu_energy);
 }
 
+//needed to avoid any check
+bool finish_file_present()
+{return file_exists(combine("%s/finished",outfolder).c_str());}
+
 void in_main(int narg,char **arg)
 {
   //Basic mpi initialization
@@ -844,7 +848,7 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf,skip_conf))
+  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf,skip_conf,finish_file_present))
     {
       //setup the conf and generate the source
       start_new_conf();

@@ -669,12 +669,17 @@ namespace nissa
       return ILDG_string_message_append_to_last(&mess,name,os.str().c_str());
     }
     //convert from a text message
-    void convert_from_message(ILDG_message &mess)
+    void convert_from_text(const char *data)
     {
-      std::istringstream is(mess.data);
+      std::istringstream is(data);
       T temp;
       while(is>>temp) this->push_back(temp);
     }
+    void convert_from_message(ILDG_message &mess)
+    {convert_from_text(mess.data);}
+    
+    //read it from file
+    void read_from_ILDG_file(ILDG_File fin,const char *tag);
   };
 }
 

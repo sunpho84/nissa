@@ -1,4 +1,5 @@
 #include "nissa.hpp"
+#include <unistd.h>
 
 #define PROP_TYPE colorspinspin
 
@@ -11,11 +12,15 @@ using namespace nissa;
 spincolor *eta,*phi,*temp;
 spin1field **bubble,*temp_bubble;
 spin1field **tot_bubble;
-std::vector<double> tadpole_val;
+storable_vector_t<double> tadpole_val,scalop_val,pseudop_val;
+
+const int version=1;
+int nread_sources;
+int silv_par=2;
 
 int nB;
-int iB(int imass,int r)
-{return r+2*imass;}
+int iB(int par,int imass,int r)
+{return r+nr*(imass+nqmass*par);}
 
 //initialize the simulation
 void init_simulation(const char *path)
@@ -33,7 +38,7 @@ void init_simulation(const char *path)
   read_ngauge_conf();
   
   //allocate
-  nB=iB(nqmass-1,nr-1)+1;
+  nB=iB(silv_par-1,nqmass-1,nr-1)+1;
   conf=nissa_malloc("conf",loc_vol+bord_vol,quad_su3);
   eta=nissa_malloc("eta",loc_vol+bord_vol,spincolor);
   phi=nissa_malloc("phi",loc_vol+bord_vol,spincolor);
@@ -52,6 +57,89 @@ void init_simulation(const char *path)
 void start_new_conf()
 {
   setup_conf(conf,old_theta,put_theta,conf_path,rnd_gauge_transform,free_theory);
+}
+
+//read the data
+void read_data()
+{
+  //open the file for reading
+  std::string path=combine("%s/bubbles",outfolder);
+  if(!file_exists(path.c_str()))
+    {
+      nread_sources=0;
+      master_printf("No source ever computed\n");
+    }
+  else
+    {
+      ILDG_File fin=ILDG_File_open_for_read(path.c_str());
+      
+      //read info and nsources
+      ILDG_header head;
+      ILDG_File_search_record(head,fin,"Info");
+      char info_data[head.data_length+1];
+      ILDG_File_read_all(info_data,fin,head.data_length);
+      
+      //parse
+      int read_version,read_par,read_nqmass,read_nr;
+      int nread_info=sscanf(info_data," Version %d Par %d NQmass %d Nr %d NSources %d",&read_version,&read_par,&read_nqmass,&read_nr,&nread_sources);
+      if(nread_info!=5) crash("could not parse info");
+      
+      //check the info record
+      if(version!=read_version) crash("read version %d while program is version %d",read_version,version);
+      if(silv_par!=read_par) crash("read parity %d while input is %d",read_par,silv_par);
+      if(nqmass!=read_nqmass) crash("read nqmass %d while input is %d",read_nqmass,nqmass);
+      if(nr!=read_nr) crash("read nr %d while input is %d",read_nr,nr);
+      
+      //load what have been done
+      if(nread_sources<nsources)
+	{
+	  tadpole_val.read_from_ILDG_file(fin,"Tadpole");
+	  pseudop_val.read_from_ILDG_file(fin,"Pseudoscalar");
+	  scalop_val.read_from_ILDG_file(fin,"Scalar");
+	}
+      
+      //store the different parity, masses and r
+      //for(int par=0;par<silv_par;par++)
+      //for(int imass=0;imass<nqmass;imass++)
+      //for(int r=0;r<nr;r++)
+      //ILDG_File_write_ildg_data_all(fout,bubble[par][imass][r],sizeof(spin1field),combine("par_%d_mass_%d_r_%d",par,imass,r).c_str());
+      //
+      //ILDG_File_close(fin);
+    }
+}
+
+//write the data
+void write_data()
+{
+  //open the file for output
+  ILDG_File fout=ILDG_File_open_for_write(combine("%s/bubbles",outfolder).c_str());
+  
+  //messages
+  ILDG_message mess;
+  ILDG_message_init_to_last(&mess);
+  
+  //write the info
+  std::ostringstream info;
+  info<<" Version "<<version
+      <<" Par "<<silv_par
+      <<" NQmass "<<nqmass
+      <<" Nr "<<nr
+      <<" NSources "<<nsources;
+  ILDG_string_message_append_to_last(&mess,"Info",info.str().c_str());
+  
+  //write tadpole and the rest
+  tadpole_val.append_to_message_with_name(mess,"Tadpole");
+  pseudop_val.append_to_message_with_name(mess,"Pseudoscalar");
+  scalop_val.append_to_message_with_name(mess,"Scalar");
+  ILDG_File_write_all_messages(fout,&mess);
+  
+  //store the different parity, masses and r
+  for(int par=0;par<silv_par;par++)
+    for(int imass=0;imass<nqmass;imass++)
+      for(int r=0;r<nr;r++)
+	ILDG_File_write_ildg_data_all(fout,bubble[par][imass][r],sizeof(spin1field),combine("par_%d_mass_%d_r_%d",par,imass,r).c_str());
+	
+  ILDG_File_close(fout);
 }
 
 //what to do to skip a configuration
@@ -82,7 +170,7 @@ void close()
 }
 
 //tadpole
-THREADABLE_FUNCTION_3ARG(compute_tadpole, spincolor*,phi, spincolor*,eta, int,r)
+THREADABLE_FUNCTION_3ARG(compute_tadpole, spincolor*,eta, spincolor*,phi, int,r)
 {
   GET_THREAD_ID();
   
@@ -99,10 +187,45 @@ THREADABLE_FUNCTION_3ARG(compute_tadpole, spincolor*,phi, spincolor*,eta, int,r)
   //reduce and store
   complex tadpole_res;
   complex_vector_glb_collapse(tadpole_res,(complex*)temp,sizeof(spincolor)/sizeof(complex)*loc_vol);
-  tadpole_val.push_back(tadpole_res[RE]);
-  tadpole_val.push_back(tadpole_res[IM]);
+  if(IS_MASTER_THREAD)
+    {
+      tadpole_val.push_back(tadpole_res[RE]);
+      tadpole_val.push_back(tadpole_res[IM]);
+    }
   
-  master_printf("%+16.16lg %+16.16lg\n",tadpole_res[0],tadpole_res[1]);
+  master_printf("Tadpole: %+16.16lg %+16.16lg\n",tadpole_res[0],tadpole_res[1]);
+}
+THREADABLE_FUNCTION_END
+
+//scalar and pseudoscalar
+THREADABLE_FUNCTION_2ARG(compute_scalar_pseudoscalar, spincolor*,phi, spincolor*,eta)
+{
+  GET_THREAD_ID();
+  
+  //trace
+  complex loc_scalar={0,0},loc_pseudo={0,0};
+  NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
+    {
+      spincolor temp;
+      unsafe_dirac_prod_spincolor(temp,base_gamma+5,eta[ivol]);
+      spincolor_scalar_prod(loc_scalar,eta[ivol],phi[ivol]);
+      spincolor_scalar_prod(loc_pseudo,eta[ivol],temp);
+    }
+  THREAD_BARRIER();
+  
+  //reduce and store
+  complex glb_scalar,glb_pseudo;
+  glb_reduce_complex(glb_scalar,loc_scalar);
+  glb_reduce_complex(glb_pseudo,loc_pseudo);
+  if(IS_MASTER_THREAD)
+    for(int ri=0;ri<2;ri++)
+      {
+	scalop_val.push_back(glb_scalar[ri]);
+	pseudop_val.push_back(glb_pseudo[ri]);
+      }
+  
+  master_printf("Pseudop: %+16.16lg %+16.16lg\n",glb_pseudo[0],glb_pseudo[1]);
+  master_printf("Scalar: %+16.16lg %+16.16lg\n",glb_scalar[0],glb_scalar[1]);
 }
 THREADABLE_FUNCTION_END
 
@@ -159,33 +282,23 @@ THREADABLE_FUNCTION_5ARG(vector_matrix_element, spin1field*,out, spincolor*,sink
 THREADABLE_FUNCTION_END
 
 //compute everything with a single mass
-void single_mass(int imass,int r)
+void single_mass(int par,int imass,int r)
 {
   master_printf(" imass %d/%d, r %d/%d\n",imass+1,nqmass,r,nr);
   
   //solve for phi for each quark
   get_qprop(phi,eta,imass,r);
   
-  //compute the tadpole
-  compute_tadpole(phi,eta,r);
+  //compute the various operator
+  compute_tadpole(eta,phi,r);
+  compute_scalar_pseudoscalar(eta,phi);
   
   //compute the single bubble
-  vector_matrix_element(bubble[iB(imass,r)],eta,conf,r,phi);
+  int ib=iB(par,imass,r);
+  vector_matrix_element(bubble[ib],eta,conf,r,phi);
   
-  //debug
-  complex tot={0,0};
-  for(int mu=0;mu<4;mu++)
-    for(int ivol=0;ivol<loc_vol;ivol++)
-      complex_summassign(tot,bubble[iB(imass,r)][ivol][mu]);
-  master_printf("AAAAA %lg %lg\n",tot[RE],tot[IM]);
-  
-  insert_tm_external_source(temp,conf,NULL,phi,r,-1);
-  complex tot2={0,0};
-  for(int ivol=0;ivol<loc_vol;ivol++)
-    for(int id=0;id<4;id++)
-      for(int ic=0;ic<NCOL;ic++)
-	complex_summ_the_conj1_prod(tot2,eta[ivol][id][ic],temp[ivol][id][ic]);
-  master_printf("BBBB %lg %lg\n",tot2[RE],tot2[IM]);
+  //summ to the total
+  double_vector_summassign((double*)(tot_bubble[ib]),(double*)(bubble[ib]),sizeof(spin1field)/sizeof(double)*loc_vol);
 }
 
 //compute everything with a single source
@@ -198,7 +311,30 @@ void single_source(int isource)
   
   for(int imass=0;imass<nqmass;imass++)
     for(int r=0;r<nr;r++)
-      single_mass(imass,r);
+      single_mass(isource%silv_par,imass,r);
+}
+
+//read the number of sources in the file and check that it works
+bool sources_missing()
+{
+  read_data();
+  if(nread_sources<nsources)
+    {
+      master_printf("Computed %d sources, we need to do %d\n",nread_sources,nsources);
+      return true;
+    }
+  else
+    {
+      master_printf("Computed all %d sources, skipping\n",nsources);
+      return false;
+    }
+}
+
+void finish_conf()
+{
+  write_data();
+  nanalyzed_conf++;
+  unlink(combine("%s/running",outfolder).c_str());
 }
 
 void in_main(int narg,char **arg)
@@ -214,14 +350,16 @@ void in_main(int narg,char **arg)
   
   //loop over the configs
   int iconf=0,enough_time=1;
-  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf,skip_conf))
+  while(iconf<ngauge_conf && enough_time && !file_exists("stop") && read_conf_parameters(iconf,skip_conf,sources_missing))
     {
       //setup the conf and generate the source
       start_new_conf();
       
       //loop over sources
-      for(int isource=0;isource<nsources;isource++)
+      for(int isource=nread_sources;isource<nsources;isource++)
 	single_source(isource);
+      
+      finish_conf();
     }
   
   //close the simulation
