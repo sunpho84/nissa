@@ -96,15 +96,20 @@ void read_data()
 	  tadpole_val.read_from_ILDG_file(fin,"Tadpole");
 	  pseudop_val.read_from_ILDG_file(fin,"Pseudoscalar");
 	  scalop_val.read_from_ILDG_file(fin,"Scalar");
+	  
+	  //read
+	  for(int par=0;par<silv_par;par++)
+	    for(int imass=0;imass<nqmass;imass++)
+	      for(int r=0;r<nr;r++)
+		{
+		  ILDG_header head=ILDG_File_get_next_record_header(fin);
+		  std::string exp_type=combine("par_%d_mass_%d_r_%d",par,imass,r);
+		  if(exp_type!=head.type) crash("expecting \"%s\", obtained \"%s\"",exp_type.c_str(),head.type);
+		  ILDG_File_read_ildg_data_all(bubble[par][imass][r],fin,head);
+		}
 	}
       
-      //store the different parity, masses and r
-      //for(int par=0;par<silv_par;par++)
-      //for(int imass=0;imass<nqmass;imass++)
-      //for(int r=0;r<nr;r++)
-      //ILDG_File_write_ildg_data_all(fout,bubble[par][imass][r],sizeof(spin1field),combine("par_%d_mass_%d_r_%d",par,imass,r).c_str());
-      //
-      //ILDG_File_close(fin);
+      ILDG_File_close(fin);
     }
 }
 
