@@ -41,7 +41,7 @@ namespace nissa
   void master_printf_rat_approx(rat_approx_t *appr)
   {
     master_printf("Rational approximation \"%s\" of x^(%d/%d):\n",appr->name,appr->num,appr->den);
-    master_printf("  valid in the interval: %.16lg %.16lg with a maximal error of: %lg\n",appr->minimum,appr->maximum,appr->maxerr);
+    master_printf("  valid in the interval: %.16lg %.16lg with a maximal relative error of: %lg\n",appr->minimum,appr->maximum,appr->maxerr);
     master_printf("  const: %.16lg\n",appr->cons);
     master_printf("  degree: %d\n",appr->degree);
     for(int iterm=0;iterm<appr->degree;iterm++)
