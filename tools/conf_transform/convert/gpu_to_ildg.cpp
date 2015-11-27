@@ -1,5 +1,7 @@
 #include "nissa.hpp"
 
+#include "gpu_stagphase.hpp"
+
 #include <math.h>
 
 using namespace nissa;
