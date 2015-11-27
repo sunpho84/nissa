@@ -52,19 +52,19 @@ Compilation procede as in normal autotools way:
 	    mkdir build
 	    cd build
 	    ../configure --help
-	    ../configure CXX=... CXXFLAGS=... [flags]
+	    ../configure  CXXFLAGS=... [flags]
 	    make
 
 The program have to be compiled with C++ including all the libraries and header necessary 
 for MPI. Typically you can use some wrapper of the system compiler to avoid having to pass
-all the paths and flags needed by MPI. Pass the name of such compiler wrapper through "CXX" 
-parameter, e.g: "CXX=mpicxx".
+all the paths and flags needed by MPI. Pass the name of such compiler wrapper through "MPICXX" 
+parameter, e.g: "MPICXX=mpicxx".
 
 On a typical PC therefore you should type something like:
- ../configure CXX=mpicxx CXXFLAGS="-fopenmp"
+ ../configure MPICXX=mpicxx CXXFLAGS="-fopenmp"
 
 On BGQ machine (Turing and Fermi) use:
- ../configure CC=mpixlc_r CXX=mpixlcxx_r CXXFLAGS="-qsmp=omp -O3 -qstrict=all" --enable-bgq
+ ../configure MPICC=mpixlc_r MPICXX=mpixlcxx_r CXXFLAGS="-qsmp=omp -O3 -qstrict=all" --enable-bgq
 
 When compiling using mpi intel compiler please set the flag: "CXXFLAGS=-DMPICH_IGNORE_CXX_SEEK"
 
