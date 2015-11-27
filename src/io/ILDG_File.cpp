@@ -116,7 +116,7 @@ namespace nissa
     char in_path[1024];
     sprintf(in_path,"%s",path);
 #ifdef USE_MPI_IO
-    decript_MPI_error(MPI_File_open(cart_comm,in_path,amode,MPI_INFO_NULL,&file),"while opening file %s",path);
+    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,in_path,amode,MPI_INFO_NULL,&file),"while opening file %s",path);
 #else
     file=fopen(in_path,mode);
     if(file==NULL) crash("while opening file %s",path);
