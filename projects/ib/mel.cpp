@@ -53,9 +53,32 @@ spinspin *hadr;
 complex *hadrolept_corr;
 
 //hadron contractions
-const int ncombo_hadr_corr=6;
-const qprop_t prop1_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_0,PROP_0,PROP_0,PROP_0      ,PROP_PHOTON};//,PROP_0};
-const qprop_t prop2_hadr_map[ncombo_hadr_corr]={PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON2,PROP_PHOTON};//,PROP_VECTOR};
+std::vector<std::pair<int,int> > prop_hadr_corr_map;
+
+//hold name and information on how to build a propagator
+struct qprop_t
+{
+  std::string name;
+  char shortname;
+  insertion_t insertion;
+  int isource;
+  qprop_t(const char *tag,char shortname,insertion_t insertion,int isource) : name(tag),shortname(shortname),insertion(insertion),isource(isource) {}
+};
+
+//keep the list
+std::vector<qprop_t> qprop_list;
+int add_qprop(const char *tag,char shortname,insertion_t insertion,int isource)
+{
+  int res=qprop_list.size();
+  qprop_list.push_back(qprop_t(tag,shortname,insertion,isource));
+  return res;
+}
+
+//return the size of the list
+int nqprop_kind()
+{return qprop_list.size();}
+
+int PROP_0,PROP_S,PROP_P,PROP_T,PROP_PHOTON,PROP_PHOTON2;
 
 //parameters of the leptons
 int nleptons;
@@ -173,11 +196,11 @@ void init_simulation(char *path)
   ///////////////////// finihed reading apart from conf list ///////////////
   
   //Allocate
-  nqprop=iqprop(nqmass-1,nqprop_kind-1,nr-1)+1;
+  nqprop=iqprop(nqmass-1,nqprop_kind()-1,nr-1)+1;
   nlprop=ilprop(nleptons-1,nlins-1,norie-1,nr-1)+1;
   
   //allocate temporary vectors
-  hadr_corr_length=glb_size[0]*nhadr_contr*ncombo_hadr_corr*nqmass*nqmass*nr;
+  hadr_corr_length=glb_size[0]*nhadr_contr*prop_hadr_corr_map.size()*nqmass*nqmass*nr;
   hadr_corr=nissa_malloc("hadr_corr",hadr_corr_length,complex);
   glb_corr=nissa_malloc("glb_corr",glb_size[0]*nhadr_contr,complex);
   loc_corr=nissa_malloc("loc_corr",glb_size[0]*nhadr_contr,complex);
@@ -215,6 +238,25 @@ void start_new_conf()
   //reset correlations
   vector_reset(hadr_corr);
   vector_reset(hadrolept_corr);
+  
+  //add the propagators
+  qprop_list.clear();
+  PROP_0=add_qprop("PROP_0",'0',ORIGINAL,0);
+  PROP_S=add_qprop("PROP_S",'S',SCALAR,PROP_0);
+  PROP_P=add_qprop("PROP_P",'P',PSEUDO,PROP_0);
+  PROP_T=add_qprop("PROP_T",'T',TADPOLE,PROP_0);
+  PROP_PHOTON=add_qprop("PROP_PHOTON",'L',PHOTON,PROP_0);
+  PROP_PHOTON2=add_qprop("PROP_PHOTON2",'M',PHOTON,PROP_PHOTON);
+  
+  //add the contraction combination
+  prop_hadr_corr_map.clear();
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_0));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_S));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_P));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_T));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_PHOTON2));
+  prop_hadr_corr_map.push_back(std::make_pair(PROP_PHOTON,PROP_PHOTON));
+  //prop_hadr_corr_map.push_back(std::make_pair(PROP_0,PROP_VECTOR));
 }
 
 //generate a wall-source for stochastic QCD propagator
@@ -294,16 +336,19 @@ void generate_source(insertion_t inser,int r,PROP_TYPE *ori,int t=-1)
 //generate all the quark propagators
 void generate_quark_propagators()
 {
-  for(int ip=0;ip<nqprop_kind;ip++)
+  for(int ip=0;ip<nqprop_kind();ip++)
     {
-      master_printf("Generating propagtor of type %s inserting %s on source %s\n",prop_name[prop_map[ip]],ins_name[insertion_map[ip]],prop_name[source_map[ip]]);
+      insertion_t insertion=qprop_list[ip].insertion;
+      int isource=qprop_list[ip].isource;
+      master_printf("Generating propagtor of type %s inserting %s on source %s\n",qprop_list[ip].name.c_str(),qprop_list[ip].name.c_str(),
+		    qprop_list[isource].name.c_str());
       for(int imass=0;imass<nqmass;imass++)
 	for(int r=0;r<nr;r++)
 	  {
 	    if(!pure_wilson) master_printf(" mass[%d]=%lg, r=%d\n",imass,qmass[imass],r);
 	    else             master_printf(" kappa[%d]=%lg\n",imass,qkappa[imass]);
-	    generate_source(insertion_map[ip],r,Q[iqprop(imass,source_map[ip],r)]);
-	    get_qprop(Q[iqprop(imass,prop_map[ip],r)],source,imass,r);
+	    generate_source(insertion,r,Q[iqprop(imass,isource,r)]);
+	    get_qprop(Q[iqprop(imass,ip,r)],source,imass,r);
 	  }
     }
 }
@@ -531,14 +576,14 @@ void compute_hadronic_correlations()
   master_printf("Computing hadronic correlation functions\n");
   
   hadr_contr_time-=take_time();
-  for(int icombo=0;icombo<ncombo_hadr_corr;icombo++)
+  for(size_t icombo=0;icombo<prop_hadr_corr_map.size();icombo++)
     for(int imass=0;imass<nqmass;imass++)
       for(int jmass=0;jmass<nqmass;jmass++)
 	for(int r=0;r<nr;r++)
 	  {
 	    //compute the correlation function
-	    int ip1=iqprop(imass,prop1_hadr_map[icombo],r);
-	    int ip2=iqprop(jmass,prop2_hadr_map[icombo],r);
+	    int ip1=iqprop(imass,prop_hadr_corr_map[icombo].first,r);
+	    int ip2=iqprop(jmass,prop_hadr_corr_map[icombo].second,r);
 	    
 	    meson_two_points_Wilson_prop(glb_corr,loc_corr,ig_hadr_so,Q[ip1],ig_hadr_si,Q[ip2],nhadr_contr);
 	    nhadr_contr_tot+=nhadr_contr;
@@ -703,7 +748,7 @@ void compute_hadroleptonic_correlations()
 	    int iq2=lep_corr_iq2[ilepton];
 	    
 	    //takes the propagators
-	    qprop_t PROP1_TYPE=PROP_0,PROP2_TYPE=PROP_0;
+	    int PROP1_TYPE=PROP_0,PROP2_TYPE=PROP_0;
 	    if(qins==1) PROP1_TYPE=PROP_PHOTON;
 	    if(qins==2) PROP2_TYPE=PROP_PHOTON;
 	    
@@ -773,9 +818,9 @@ void print_correlations()
   for(int i=0;i<hadr_corr_length;i++) complex_prodassign_double(hadr_corr[i],n);
   
   int ind=0;
-  for(int icombo=0;icombo<ncombo_hadr_corr;icombo++)
+  for(size_t icombo=0;icombo<prop_hadr_corr_map.size();icombo++)
     {
-      fout=open_file(combine("%s/corr_%c%c",outfolder,prop_abbr[prop1_hadr_map[icombo]],prop_abbr[prop2_hadr_map[icombo]]).c_str(),"w");
+      fout=open_file(combine("%s/corr_%c%c",outfolder,qprop_list[prop_hadr_corr_map[icombo].first].shortname,qprop_list[prop_hadr_corr_map[icombo].second].shortname).c_str(),"w");
       
       for(int imass=0;imass<nqmass;imass++)
 	for(int jmass=0;jmass<nqmass;jmass++)
@@ -833,7 +878,7 @@ void close()
 
 //needed to avoid any check
 bool finish_file_present()
-{return file_exists(combine("%s/finished",outfolder).c_str());}
+{return !file_exists(combine("%s/finished",outfolder).c_str());}
 
 void in_main(int narg,char **arg)
 {
