@@ -84,7 +84,7 @@ namespace nissa
 #define DELETE_RENDE_T(A)				\
     nissa_free(A[0]);					\
     nissa_free(A[1]);
-#define MINV(out,iflav,in)						\
+#define MINV(out,iflav,in)					\
     mult_Minv(out,conf,&theory_pars,iflav,meas_pars.residue,in)
 #define NEW_MINV(out,iflav,in)			\
     NEW_RENDE_T(out);				\
