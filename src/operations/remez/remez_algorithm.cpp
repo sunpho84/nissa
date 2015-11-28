@@ -742,6 +742,7 @@ namespace nissa
 	rat_approx_create(&appr,1,name);
 	appr.num=num;
 	appr.den=den;
+	appr.maxerr=maxerr;
 	appr.minimum=minimum;
 	appr.maximum=maximum;
 	appr.cons=0;

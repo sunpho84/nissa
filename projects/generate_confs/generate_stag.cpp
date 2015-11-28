@@ -132,6 +132,8 @@ void read_conf(quad_su3 **conf,char *path)
 	{
 	  if(strcasecmp(cur_mess->name,"RAT_approx")==0)
 	    {
+	      verbosity_lv1_master_printf("Rational approximation found in the configuration\n");
+	      
 	      //check that no other approx found and mark it
 	      if(rat_approx_found!=0) crash("a rational approximation has been already found!");
 	      rat_approx_found++;
@@ -152,15 +154,15 @@ void read_conf(quad_su3 **conf,char *path)
 	      nissa_free(temp_appr);
 	    }
 	}
-      
-      //report on rational approximation
-      switch(rat_approx_found)
-	{
-	case 0: if(ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
-	case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars[SEA_THEORY].nflavs);break;
-	case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
-	default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
-	}
+    }
+  
+  //report on rational approximation
+  switch(rat_approx_found)
+    {
+    case 0: if(ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
+    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars[SEA_THEORY].nflavs);break;
+    case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
+    default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
     }
   
   //if message with string not found start from input seed
