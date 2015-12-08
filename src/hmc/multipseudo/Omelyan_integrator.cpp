@@ -26,8 +26,9 @@
 #include "hmc/gauge/pure_gauge_omelyan_integrator.hpp"
 #include "hmc/momenta/momenta_evolve.hpp"
 
-#include "rootst_eoimpr_action.hpp"
-#include "rootst_eoimpr_quark_force.hpp"
+#include "hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp"
+
+#include "theory_action.hpp"
 
 #define TOPO_MICRO 0
 #define TOPO_MACRO 1
@@ -71,7 +72,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //evolve the configuration according to pure gauge - note that there is a similar routine in "pure_gage"
-  THREADABLE_FUNCTION_4ARG(omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_su3*,lx_conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul)
+  THREADABLE_FUNCTION_4ARG(Omelyan_pure_gauge_evolver_lx_conf, quad_su3*,H, quad_su3*,lx_conf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul)
   {
     //macro step or micro step
     double dt=simul->traj_length/simul->nmd_steps/simul->ngauge_substeps/2,
@@ -121,7 +122,7 @@ namespace nissa
     paste_eo_parts_into_lx_vector(H_lx,H_eo);
     paste_eo_parts_into_lx_vector(conf_lx,conf_eo);
     
-    omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
+    Omelyan_pure_gauge_evolver_lx_conf(H_lx,conf_lx,theory_pars,simul);
     
     split_lx_vector_into_eo_parts(H_eo,H_lx);
     split_lx_vector_into_eo_parts(conf_eo,conf_lx);
@@ -133,7 +134,7 @@ namespace nissa
   /////////////////////////////////////// QUARK E/O PART ////////////////////////////////////////////////
   
   // Evolve momenta according to the rooted staggered force
-  THREADABLE_FUNCTION_6ARG(evolve_momenta_with_quark_force, quad_su3**,H, quad_su3**,conf, color***,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, double,dt)
+  THREADABLE_FUNCTION_6ARG(evolve_momenta_with_quark_force, quad_su3**,H, quad_su3**,conf, pseudofermion_t*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars, double,dt)
   {
     GET_THREAD_ID();
     
@@ -239,7 +240,7 @@ namespace nissa
   
   ////////////////////////////////////// MACRO OMELYAN ////////////////////////////////////////////////
   
-  THREADABLE_FUNCTION_5ARG(omelyan_rootst_eoimpr_evolver, quad_su3**,H, quad_su3**,conf, color***,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars)
+  THREADABLE_FUNCTION_5ARG(Omelyan_integrator, quad_su3**,H, quad_su3**,conf, pseudofermion_t*,pf, theory_pars_t*,theory_pars, hmc_evol_pars_t*,simul_pars)
   {
     //macro step or micro step
     double dt=simul_pars->traj_length/simul_pars->nmd_steps,

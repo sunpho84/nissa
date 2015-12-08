@@ -54,13 +54,8 @@ namespace nissa
     if(guess==NULL) vector_reset(sol);
     else vector_copy(sol,guess);
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD)
-      {
-	nbicgstab_inv++;
-	bicgstab_inv_over_time-=take_time();
-      }
-#endif
+    START_TIMING(bicgstab_inv_over_time,nbicgstab_inv);
+    
     int each=VERBOSITY_LV3?1:10;
     
     //reset p and nu
@@ -104,13 +99,9 @@ namespace nissa
 	double_vector_summ_double_vector_prod_double((double*)p,(double*)r,(double*)p,beta,BULK_VOL*NDOUBLES_PER_SITE);
 	
 	//nu=A*P
-#ifdef BENCH
 	if(IS_MASTER_THREAD) bicgstab_inv_over_time+=take_time();
-#endif
 	APPLY_OPERATOR(nu,CG_OPERATOR_PARAMETERS p);
-#ifdef BENCH
 	if(IS_MASTER_THREAD) bicgstab_inv_over_time-=take_time();
-#endif
 	
 	//compute alpha=rho/(rhat0,nu)
 	double temp;
@@ -120,13 +111,10 @@ namespace nissa
 	//s=r-alpha*nu
 	double_vector_summ_double_vector_prod_double((double*)s,(double*)r,(double*)nu,-alpha,BULK_VOL*NDOUBLES_PER_SITE);
 	//t=As
-#ifdef BENCH
+
 	if(IS_MASTER_THREAD) bicgstab_inv_over_time+=take_time();
-#endif
 	APPLY_OPERATOR(t,CG_OPERATOR_PARAMETERS s);
-#ifdef BENCH
 	if(IS_MASTER_THREAD) bicgstab_inv_over_time-=take_time();
-#endif
 	
 	//omega=(t,s)/(t,t)
 	double_vector_glb_scalar_prod(&omega,(double*)t,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
@@ -158,9 +146,7 @@ namespace nissa
     //check if not converged
     if(final_iter==niter) crash("exit without converging");
     
-#ifdef BENCH
     if(IS_MASTER_THREAD) bicgstab_inv_over_time+=take_time();
-#endif
     
     nissa_free(t);
     nissa_free(s);

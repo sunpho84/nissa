@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "base/bench.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "geometry/geometry_lx.hpp"
@@ -41,13 +42,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD)
-      {
-	nglu_comp++;
-	glu_comp_time-=take_time();
-      }
-#endif
+    START_TIMING(glu_comp_time,nglu_comp);
     
     //take notes of ingredients
     void(*compute_force)(su3,su3,bi_su3*,double,bool);
@@ -109,9 +104,7 @@ namespace nissa
     
     //////////////////////////////////////////////////////////////////////////
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD) glu_comp_time+=take_time();
-#endif
+    STOP_TIMING(glu_comp_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -122,13 +115,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD)
-      {
-	nglu_comp++;
-	glu_comp_time-=take_time();
-      }
-#endif
+    START_TIMING(glu_comp_time,nglu_comp);
     
     //#define DEBUG
     
@@ -207,10 +194,8 @@ namespace nissa
     su3_print(nu_minus);
     crash("anna");
 #endif
-    
-#ifdef BENCH
-    if(IS_MASTER_THREAD) glu_comp_time+=take_time();
-#endif
+
+    STOP_TIMING(glu_comp_time);
   }
   THREADABLE_FUNCTION_END
 #endif

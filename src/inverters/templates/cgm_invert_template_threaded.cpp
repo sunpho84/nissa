@@ -61,13 +61,11 @@ namespace nissa
 #define IN_SHIFT shift
 #endif
     
-#if BENCH
     if(IS_MASTER_THREAD)
       {
 	ncgm_inv++;
 	cgm_inv_over_time-=take_time();
       }
-#endif
     
     int each=VERBOSITY_LV3?1:10;
     
@@ -145,13 +143,9 @@ namespace nissa
 	//     -s=Ap
 	if(use_async_communications && iter>1) CGM_FINISH_COMMUNICATING_BORDERS(p);
 	
-#if BENCH
 	if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
-#endif
 	APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS 0,p);
-#if BENCH
 	if(IS_MASTER_THREAD) cgm_inv_over_time-=take_time();
-#endif
 	
 	//     -pap=(p,s)=(p,Ap)
 	double_vector_glb_scalar_prod(&pap,(double*)p,(double*)s,BULK_VOL*NDOUBLES_PER_SITE);
@@ -167,7 +161,7 @@ namespace nissa
 	verbosity_lv3_master_printf("betap: %16.16lg, betaa: %16.16lg\n",betap,betaa);
 #endif
 	
-	//     calculate 
+	//     calculate
 	//     -zfs
 	//     -betas
 	//     -x
@@ -307,9 +301,7 @@ namespace nissa
     nissa_free(r);
     CGM_ADDITIONAL_VECTORS_FREE();
     
-#if BENCH
     if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
-#endif
     
 #ifdef CG_128_INVERT
     //if 128 bit precision required refine the solution

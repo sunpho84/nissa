@@ -46,13 +46,11 @@ namespace nissa
 #define IN_SHIFT shift
 #endif
     
-#if BENCH
     if(IS_MASTER_THREAD)
       {
 	ncgm_inv++;
 	cgm_inv_over_time-=take_time();
       }
-#endif
     
     int each=VERBOSITY_LV3?1:10;
     
@@ -130,13 +128,9 @@ namespace nissa
 	//     -s=Ap
 	if(use_async_communications && iter>1) CGM_FINISH_COMMUNICATING_BORDERS(p);
 	
-#if BENCH
 	if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
-#endif
 	APPLY_OPERATOR(s,CGM_OPERATOR_PARAMETERS IN_SHIFT[0],p);
-#if BENCH
 	if(IS_MASTER_THREAD) cgm_inv_over_time-=take_time();
-#endif
 	
 	//     -pap=(p,s)=(p,Ap)
 	single_vector_glb_scalar_prod(&pap,(float*)p,(float*)s,BULK_VOL*NDOUBLES_PER_SITE);
@@ -292,9 +286,7 @@ namespace nissa
     nissa_free(r);
     CGM_ADDITIONAL_VECTORS_FREE();
     
-#if BENCH
     if(IS_MASTER_THREAD) cgm_inv_over_time+=take_time();
-#endif
   }
   THREADABLE_FUNCTION_END
   

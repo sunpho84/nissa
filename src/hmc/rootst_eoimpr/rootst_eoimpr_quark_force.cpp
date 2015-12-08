@@ -112,7 +112,7 @@ namespace nissa
     //reset forces
     for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
     
-    for(int iflav=0;iflav<tp->nflavs;iflav++)
+    for(int iflav=0;iflav<tp->nflavs();iflav++)
       for(int ipf=0;ipf<npfs[iflav];ipf++)
 	summ_the_rootst_eoimpr_quark_force(F,tp->quark_content[iflav].charge,conf,pf[iflav][ipf],tp->em_field_pars.flag,tp->backfield[iflav],appr+(iflav*3+2),residue); //flag set quantization
     
