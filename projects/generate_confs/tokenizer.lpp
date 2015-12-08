@@ -96,8 +96,8 @@ CPP_COM {CPP_COM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COM_END}
 End DEBUG_PRINTF("Found End\n");return EOF;
 
  /* true/false */
-True DEBUG_PRINTF("Found True\n");return TK_TRUE;
-False DEBUG_PRINTF("Found False\n");return TK_FALSE;
+True DEBUG_PRINTF("Found True\n");yylval->unsigned_int_numb=1;return TK_UNSIGNED_INT;
+False DEBUG_PRINTF("Found False\n");yylval->unsigned_int_numb=0;return TK_UNSIGNED_INT;
 
  /* yes/no/none */
 None DEBUG_PRINTF("Found None\n");return TK_NONE;

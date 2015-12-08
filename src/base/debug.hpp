@@ -1,5 +1,5 @@
-#ifndef _DEBUG_H
-#define _DEBUG_H
+#ifndef _DEBUG_HPP
+#define _DEBUG_HPP
 
 namespace nissa
 {

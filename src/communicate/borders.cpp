@@ -5,6 +5,7 @@
 #include <mpi.h>
 #include <string.h>
 
+#include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"

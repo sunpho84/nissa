@@ -7,8 +7,8 @@ int main(int narg,char **arg)
   init_nissa(narg,arg);
   
   rat_approx_t rat;
-  generate_approx_of_maxerr(rat,pow(0.0027,2),10,1e-3,-1,32);
-  
+  generate_approx_of_maxerr(rat,2.3273336186266341e-07,1,7.418800292288640e-09,1,8);
+  master_printf_rat_approx(&rat);
   close_nissa();
   
   return 0;

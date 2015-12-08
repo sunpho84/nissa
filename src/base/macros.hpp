@@ -54,15 +54,9 @@
 #define RAN2_NTAB 32
 
 //communications benchmark
-#ifdef BENCH
 #define START_TIMING(TIME,COUNTER) do{if(IS_MASTER_THREAD){TIME-=take_time();COUNTER++;}}while(0)
- #define STOP_TIMING(TIME) do{if(IS_MASTER_THREAD) TIME+=take_time();}while(0)
- #define GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS() GET_THREAD_ID()
-#else
- #define START_TIMING(TIME,COUNTER)
- #define STOP_TIMING(TIME)
- #define GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS()
-#endif
+#define STOP_TIMING(TIME) do{if(IS_MASTER_THREAD) TIME+=take_time();}while(0)
+#define GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS() GET_THREAD_ID()
 #define START_COMMUNICATIONS_TIMING() START_TIMING(tot_comm_time,ntot_comm)
 #define STOP_COMMUNICATIONS_TIMING() STOP_TIMING(tot_comm_time)
 #define START_REMAP_TIMING() START_TIMING(remap_time,nremap)

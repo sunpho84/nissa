@@ -670,8 +670,8 @@ namespace nissa
 	if(IS_MASTER_THREAD) delete[] roots;
 	
 	for(int j=0;j<degree;j++)
-	  verbosity_lv2_master_printf("Residue = %lg, Pole = %lg\n",weights[j].get_d(),poles[j].get_d());
-	verbosity_lv2_master_printf("Const: %lg\n",cons.get_d());
+	  verbosity_lv2_master_printf("Weight = %16.16lg, Pole = %16.16lg\n",weights[j].get_d(),poles[j].get_d());
+	verbosity_lv2_master_printf("Const: %16.16lg\n",cons.get_d());
       }
     else verbosity_lv2_master_printf("Not converged to %lg prec with %d poles in %d iters (reached: %lg)\n",target_err,degree,iter,farther.get_d());
     

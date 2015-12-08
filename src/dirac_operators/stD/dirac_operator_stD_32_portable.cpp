@@ -14,9 +14,8 @@ namespace nissa
     GET_THREAD_ID();
     if(IS_MASTER_THREAD)
       {
-#ifdef BENCH
 	portable_stD_app_time-=take_time();
-#endif
+	
 	//check arguments
 	if(out==in)   crash("out==in!");
 	if(out==temp) crash("out==temp!");
@@ -75,13 +74,11 @@ namespace nissa
     
     set_borders_invalid(out);
     
-#ifdef BENCH
     if(IS_MASTER_THREAD)
       {
 	portable_stD_app_time+=take_time();
 	portable_stD_napp++;
       }
-#endif
   }
   THREADABLE_FUNCTION_END
 }

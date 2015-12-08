@@ -4,6 +4,7 @@
 
 #include <string.h>
 
+#include "base/bench.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
@@ -18,21 +19,13 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD)
-      {
-	remap_time-=take_time();
-	nremap++;
-      }
-#endif
+    START_REMAP_TIMING();
     
     //split
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
       memcpy(out_eo[loclx_parity[loclx]]+bps*loceo_of_loclx[loclx],in_lx+bps*loclx,bps);
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD) remap_time+=take_time();
-#endif
+    STOP_REMAP_TIMING();
     
     set_borders_invalid(out_eo[0]);
     set_borders_invalid(out_eo[1]);
@@ -44,22 +37,14 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD)
-      {
-	remap_time-=take_time();
-	nremap++;
-      }
-#endif
+    START_REMAP_TIMING();
     
     //paste
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(eo,0,loc_volh)
 	memcpy(out_lx+bps*loclx_of_loceo[par][eo],in_eo[par]+bps*eo,bps);
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD) remap_time+=take_time();
-#endif
+    STOP_REMAP_TIMING();
     
     set_borders_invalid(out_lx);
   }

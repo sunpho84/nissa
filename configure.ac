@@ -179,15 +179,6 @@ if test "$enable_thread_debug" = "2";then AC_DEFINE([THREAD_DEBUG],2,[Enable thr
 AM_CONDITIONAL([THREAD_DEBUG],[test "$enable_thread_debug" == "yes" ],[true],[false])
 AC_MSG_RESULT([enabling thread debug... $enable_thread_debug])
 
-#benchmarks
-AC_ARG_ENABLE(bench,
-	AS_HELP_STRING([--enable-bench],[Enable internal benchmarks]),
-	enable_bench="${enableval}",
-	enable_bench="yes")
-if test "$enable_bench" == "yes";then AC_DEFINE([BENCH],1,[Enable bench]) fi
-AM_CONDITIONAL([BENCH],[test "$enable_bench" == "yes" ],[true],[false])
-AC_MSG_RESULT([enabling internal benchmarks... $enable_bench])
-
 #max verbosity lv
 AC_ARG_ENABLE(max-verbosity-lv,
         AS_HELP_STRING([--enable-max-verbosity-lv=lv],[Set max verbosity lv]),

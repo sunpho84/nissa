@@ -51,8 +51,6 @@
 %type <int_numb> int_numb
 %token <unsigned_int_numb> TK_UNSIGNED_INT
 %token <text> TK_QUOTED_TEXT
-//true, false
-%token TK_TRUE TK_FALSE
 //each
 %token <unsigned_int_numb> TK_EACH
 %type <unsigned_int_numb> each
@@ -237,14 +235,18 @@ quark_pars: quark_pars quark_par
 ;
 
 quark_par: degeneracy {driver->quarks.back().deg=$1;}
+         | is_stag {driver->quarks.back().is_stag=$1;}
          | mass {driver->quarks.back().mass=$1;}
+         | kappa {driver->quarks.back().kappa=$1;}
          | re_pot_ch {driver->quarks.back().re_pot=$1;}
          | im_pot_ch {driver->quarks.back().im_pot=$1;}
          | elec_charge {driver->quarks.back().charge=$1;}
 ;
 
 degeneracy: TK_DEGENERACY '=' TK_UNSIGNED_INT {$$=$3;};
+is_stag: TK_STAG '=' TK_UNSIGNED_INT {$$=true;};
 mass: TK_MASS '=' real_numb {$$=$3;};
+kappa: TK_KAPPA '=' real_numb {$$=$3;};
 re_pot_ch: TK_RE_POT_CH '=' real_numb {$$=$3;};
 im_pot_ch: TK_IM_POT_CH '=' real_numb {$$=$3;};
 elec_charge: TK_ELEC_CHARGE '=' real_numb {$$=$3;};

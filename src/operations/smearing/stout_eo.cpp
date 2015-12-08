@@ -71,9 +71,11 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, double,rho)
   {
     GET_THREAD_ID();
-#ifdef BENCH
-    if(IS_MASTER_THREAD) sto_time-=take_time();
-#endif
+    if(IS_MASTER_THREAD)
+      {
+	sto_time-=take_time();
+	nsto++;
+      }
     
     communicate_eo_quad_su3_edges(ext_in);
     
@@ -108,13 +110,7 @@ namespace nissa
 	if(out==ext_in) nissa_free(in[eo]);
       }
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD)
-      {
-	nsto++;
-	sto_time+=take_time();
-      }
-#endif
+    if(IS_MASTER_THREAD) sto_time+=take_time();
   }
   THREADABLE_FUNCTION_END
 
@@ -302,9 +298,11 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD) sto_remap_time-=take_time();
-#endif
+    if(IS_MASTER_THREAD)
+      {
+	sto_remap_time-=take_time();
+	nsto_remap++;
+      }
     
     for(int i=stout_pars->nlevels-1;i>=0;i--)
       {
@@ -312,13 +310,7 @@ namespace nissa
 	stouted_force_remap_step(F,sme_conf[i],stout_pars->rho);
       }
     
-#ifdef BENCH
-    if(IS_MASTER_THREAD)
-      {
-	sto_remap_time+=take_time();
-	nsto_remap++;
-      }
-#endif
+    if(IS_MASTER_THREAD) sto_remap_time+=take_time();
   }
   THREADABLE_FUNCTION_END
 }

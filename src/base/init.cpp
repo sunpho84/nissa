@@ -13,6 +13,7 @@
  #include <malloc.h>
 #endif
 
+#include "bench.hpp"
 #include "debug.hpp"
 #include "global_variables.hpp"
 #include "random.hpp"
@@ -84,9 +85,8 @@ namespace nissa
     init_MPI_thread(narg,arg);
     
     tot_time=-take_time();
-#ifdef BENCH
     tot_comm_time=0;
-#endif
+    
     verb_call=0;
     
     //this must be done before everything otherwise rank non properly working

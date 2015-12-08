@@ -80,51 +80,7 @@ namespace nissa
   
   //float 128 summ
   EXTERN MPI_Op MPI_FLOAT_128_SUM;
-#endif
-  
-//timings
-  EXTERN double tot_time;
-#ifdef BENCH
- #ifdef ONLY_INSTANTIATION
-   EXTERN double tot_comm_time;
-   EXTERN int ntot_comm;
-   EXTERN double cgm_inv_over_time,cg_inv_over_time;
-   EXTERN int ncgm_inv,ncg_inv;
-   EXTERN double portable_stD_app_time;
-   EXTERN int portable_stD_napp;
-   EXTERN int nsto;
-   EXTERN double sto_time;
-   EXTERN int nsto_remap;
-   EXTERN double sto_remap_time;
-   EXTERN int nglu_comp;
-   EXTERN double glu_comp_time;
-   EXTERN double remap_time;
-   EXTERN int nremap;
-  #ifdef BGQ
-    EXTERN double bgq_stdD_app_time;
-    EXTERN int bgq_stdD_napp;
-  #endif
- #else
-   EXTERN double tot_comm_time=0;
-   EXTERN int ntot_comm=0;
-   EXTERN double cgm_inv_over_time=0,cg_inv_over_time=0;
-   EXTERN int ncgm_inv=0,ncg_inv=0;
-   EXTERN double portable_stD_app_time=0;
-   EXTERN int portable_stD_napp=0;
-   EXTERN int nsto=0;
-   EXTERN double sto_time=0;
-   EXTERN int nsto_remap=0;
-   EXTERN double sto_remap_time=0;
-   EXTERN int nglu_comp=0;
-   EXTERN double glu_comp_time=0;
-   EXTERN double remap_time=0;
-   EXTERN int nremap=0;
-  #ifdef BGQ
-    EXTERN double bgq_stdD_app_time=0;
-    EXTERN int bgq_stdD_napp=0;
-  #endif
- #endif
-#endif
+#endif  
 
   //nissa_config parameters
   EXTERN int verb_call;

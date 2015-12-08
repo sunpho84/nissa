@@ -107,6 +107,8 @@ namespace nissa
   //measure the quark number and its derivative w.r.t mu
   void measure_quark_rendens(quad_su3 **conf,theory_pars_t &theory_pars,quark_rendens_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
+    if(theory_pars.nwils_flavs) crash("not defined yet in presence of Wilson flavors");
+
     //open the file, allocate point result and source
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     complex *point_result=nissa_malloc("point_result",loc_vol,complex);
@@ -129,7 +131,7 @@ namespace nissa
 	master_fprintf(file,"%d\t",iconf);
 	
 	//loop over flavor
-	for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
 	  {
 	    //vectors for output
 	    NEW_TRACE_RES(Tr_M_dM);

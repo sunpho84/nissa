@@ -19,6 +19,8 @@ namespace nissa
 {
   THREADABLE_FUNCTION_5ARG(measure_nucleon_corr, quad_su3**,conf, theory_pars_t,theory_pars, nucleon_corr_meas_pars_t,meas_pars, int,iconf, int,conf_created)
   {
+    if(theory_pars.nwils_flavs) crash("not defined yet in presence of Wilson flavors");
+
     GET_THREAD_ID();
     const int eps_i[6][3]={{0,1,2},{1,2,0},{2,0,1},{0,2,1},{2,1,0},{1,0,2}};
     const int eps_s[6]={+1,+1,+1,-1,-1,-1};
@@ -26,7 +28,7 @@ namespace nissa
     CRASH_IF_NOT_3COL();
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
-    int nflavs=theory_pars.nflavs;
+    int nflavs=theory_pars.nflavs();
     
     //allocate source
     su3 *source[2]={nissa_malloc("source_e",loc_volh+bord_volh,su3),nissa_malloc("source_o",loc_volh+bord_volh,su3)};

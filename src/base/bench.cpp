@@ -9,6 +9,9 @@
 #include "global_variables.cpp"
 #include "thread_macros.hpp"
 
+#define EXTERN
+#include "bench.hpp"
+
 namespace nissa
 {
   //copy memory

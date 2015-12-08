@@ -402,6 +402,13 @@ namespace nissa
     smooth_pars_t() : flag(false),method(COOLING) {}
   };
   
+  //to hold rhmc fields
+  struct pseudofermion_t
+  {
+    color **stag;
+    spincolor **Wils;
+  };
+  
   //rational approximation
   struct rat_approx_t
   {
@@ -429,21 +436,25 @@ namespace nissa
   {
     std::string name;
     int deg;
+    bool is_stag;
     double mass;
+    double kappa;
     double re_pot;
     double im_pot;
     double charge;
     
     std::string def_name(){return "quark";}
     int def_deg(){return 1;}
+    bool def_is_stag(){return true;}
     double def_mass(){return 0.1;}
+    double def_kappa(){return 0.125;}
     double def_re_pot(){return 0;}
     double def_im_pot(){return 0;}
     double def_charge(){return 0;}
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    quark_content_t() : deg(def_deg()),mass(def_mass()),re_pot(def_re_pot()),im_pot(def_im_pot()),charge(def_charge()) {}
+    quark_content_t() : deg(def_deg()),is_stag(def_is_stag()),mass(def_mass()),kappa(def_kappa()),re_pot(def_re_pot()),im_pot(def_im_pot()),charge(def_charge()) {}
   };
   
   //parameters to smear a gauge conf when measuring gauge observables
@@ -719,7 +730,8 @@ namespace nissa
   struct theory_pars_t
   {
     double beta;
-    int nflavs;
+    int nstag_flavs,nWils_flavs;
+    int nflavs(){return nstag_flavs+nWils_flavs;}
     quad_u1 ***backfield;
     quark_content_t *quark_content;
     gauge_action_name_t gauge_action_name;
@@ -727,7 +739,7 @@ namespace nissa
     stout_pars_t stout_pars;
     em_field_pars_t em_field_pars;
     
-    theory_pars_t() : beta(6.0),nflavs(0) {}
+    theory_pars_t() : beta(6.0),nstag_flavs(0),nWils_flavs(0) {}
   };
   
   //evolution parameters for hybrid monte carlo

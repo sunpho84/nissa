@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "bench.hpp"
 #include "debug.hpp"
 #include "global_variables.hpp"
 #include "random.hpp"

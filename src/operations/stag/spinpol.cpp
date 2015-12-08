@@ -21,11 +21,13 @@ namespace nissa
 {
   THREADABLE_FUNCTION_7ARG(compute_tensorial_density, complex*,dens, complex**,loc_dens, theory_pars_t*,tp, quad_su3 **,conf, int,dir, int,nhits, double,residue)
   {
+    if(tp->nwils_flavs) crash("not defined yet in presence of Wilson flavors");
+
     //allocate noise and solution
     color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
     color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
     
-    for(int iflav=0;iflav<tp->nflavs;iflav++)
+    for(int iflav=0;iflav<tp->nflavs();iflav++)
       {
 	//reset the local density
 	vector_reset(loc_dens[iflav]);
