@@ -3,31 +3,18 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
-#include "base/thread_macros.hpp"
-#include "base/vectors.hpp"
-#include "geometry/geometry_eo.hpp"
-#include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
-#include "hmc/backfield.hpp"
-#include "linalgs/linalgs.hpp"
-#include "new_types/complex.hpp"
-#include "new_types/new_types_definitions.hpp"
-#include "new_types/su3.hpp"
 #include "operations/gaugeconf.hpp"
-#include "operations/smearing/stout.hpp"
-#include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
 
 #include "hmc/gauge/gluonic_force.hpp"
-#include "hmc/gauge/topological_force.hpp"
 #include "hmc/gauge/pure_gauge_omelyan_integrator.hpp"
+#include "hmc/gauge/topological_force.hpp"
 #include "hmc/momenta/momenta_evolve.hpp"
 
-#include "hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp"
-
+#include "quark_force.hpp"
 #include "theory_action.hpp"
 
 #define TOPO_MICRO 0
@@ -144,7 +131,7 @@ namespace nissa
     quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
     
     //compute the force
-    compute_rootst_eoimpr_quark_force(F,conf,pf,theory_pars,simul_pars->rat_appr,simul_pars->npseudo_fs,simul_pars->md_residue);
+    compute_quark_force(F,conf,pf,theory_pars,simul_pars->rat_appr,simul_pars->npseudo_fs,simul_pars->md_residue);
     
     //#define DEBUG
     

@@ -145,6 +145,7 @@ TopoPotential DEBUG_PRINTF("Found TopoPotential\n");return TK_TOPO_POTENTIAL;
 Quark DEBUG_PRINTF("Found Quark\n");return TK_QUARK;
 Degeneracy DEBUG_PRINTF("Found Degeneracy\n");return TK_DEGENERACY;
 Mass DEBUG_PRINTF("Found Mass\n");return TK_MASS;
+Kappa DEBUG_PRINTF("Found Kappa\n");return TK_KAPPA;
 RePotCh  DEBUG_PRINTF("Found RePotCh\n");return TK_RE_POT_CH;
 ImPotCh  DEBUG_PRINTF("Found ImPotCh\n");return TK_IM_POT_CH;
 ElecCharge  DEBUG_PRINTF("Found ElecCharge\n");return TK_ELEC_CHARGE;

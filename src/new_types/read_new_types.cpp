@@ -175,11 +175,11 @@ namespace nissa
     read_str_int("NGaugeSubSteps",&pars.ngauge_substeps);
     read_str_double("MdResidue",&pars.md_residue);
     read_str_double("PfActionResidue",&pars.pf_action_residue);
-    pars.npseudo_fs=new int[th.nflavs()];
+    pars.npseudo_fs=new int[th.nflavs];
     expect_str("NPseudoFermions");
-    for(int iflav=0;iflav<th.nflavs();iflav++) read_int(&pars.npseudo_fs[iflav]);
-    pars.rat_appr=new rat_approx_t[3*th.nflavs()];
-    for(int i=0;i<th.nflavs()*3;i++) pars.rat_appr[i].reset();
+    for(int iflav=0;iflav<th.nflavs;iflav++) read_int(&pars.npseudo_fs[iflav]);
+    pars.rat_appr=new rat_approx_t[3*th.nflavs];
+    for(int i=0;i<th.nflavs*3;i++) pars.rat_appr[i].reset();
   }
   
   //read the parameters relevant for pure gauge evolution
@@ -420,15 +420,15 @@ namespace nissa
     read_topotential_pars(theory_pars.topotential_pars);
     
     //number of undegenerate flavs
-    read_str_int("NDiffFlavs",&(theory_pars.nstag_flavs));
-    theory_pars.quark_content=nissa_malloc("quark_content",theory_pars.nflavs(),quark_content_t);
+    read_str_int("NDiffFlavs",&(theory_pars.nflavs));
+    theory_pars.quark_content=new quark_content_t[theory_pars.nflavs];
     
     //each flav parameters
-    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
+    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
       read_quark_content(theory_pars.quark_content[iflav]);
     
     //additional parameters to read only if fermions are defined
-    if(theory_pars.nflavs()!=0)
+    if(theory_pars.nflavs!=0)
       {
 	//stouting parameters
 	read_stout_pars(theory_pars.stout_pars);

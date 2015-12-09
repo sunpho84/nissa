@@ -5,6 +5,7 @@
 #include <math.h>
 #include <complex>
 
+#include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
@@ -82,11 +83,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    if(IS_MASTER_THREAD)
-      {
-	sto_time-=take_time();
-	nsto++;
-      }
+    START_TIMING(sto_time,nsto);
     
     communicate_lx_quad_su3_edges(ext_in);
     
@@ -120,7 +117,7 @@ namespace nissa
     set_borders_invalid(out);
     if(out==ext_in) nissa_free(in);
     
-    if(IS_MASTER_THREAD) sto_time+=take_time();
+    STOP_TIMING(sto_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -295,11 +292,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    if(IS_MASTER_THREAD)
-      {
-	sto_remap_time-=take_time();
-	nsto_remap++;
-      }
+    START_TIMING(sto_remap_time,nsto_remap);
     
     for(int i=stout_pars->nlevels-1;i>=0;i--)
       {
@@ -307,7 +300,7 @@ namespace nissa
 	stouted_force_remap_step(F,sme_conf[i],stout_pars->rho);
       }
     
-    if(IS_MASTER_THREAD) sto_remap_time+=take_time();
+    STOP_TIMING(sto_remap_time);
   }
   THREADABLE_FUNCTION_END
 }

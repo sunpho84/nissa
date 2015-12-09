@@ -2,6 +2,7 @@
 
 #include "cg_128_invert_tmQ2.hpp"
 
+#include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"

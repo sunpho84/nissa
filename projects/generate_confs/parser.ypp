@@ -72,6 +72,10 @@
 %token TK_QUARK
 %token TK_DEGENERACY
 %type <unsigned_int_numb> degeneracy
+%token TK_IS_STAG
+%type <unsigned_int_numb> is_stag
+%token TK_KAPPA
+%type <double_numb> kappa
 %token TK_MASS
 %type <double_numb> mass
 %token TK_RE_POT_CH
@@ -244,7 +248,7 @@ quark_par: degeneracy {driver->quarks.back().deg=$1;}
 ;
 
 degeneracy: TK_DEGENERACY '=' TK_UNSIGNED_INT {$$=$3;};
-is_stag: TK_STAG '=' TK_UNSIGNED_INT {$$=true;};
+is_stag: TK_IS_STAG '=' TK_UNSIGNED_INT {$$=true;};
 mass: TK_MASS '=' real_numb {$$=$3;};
 kappa: TK_KAPPA '=' real_numb {$$=$3;};
 re_pot_ch: TK_RE_POT_CH '=' real_numb {$$=$3;};

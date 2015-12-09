@@ -5,6 +5,7 @@
 //for the moment we still call "bgq"
 #include "bgq/bgq_macros.hpp"
 
+#include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"

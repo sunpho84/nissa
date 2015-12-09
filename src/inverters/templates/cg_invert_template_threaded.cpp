@@ -12,6 +12,7 @@
  #include "config.hpp"
 #endif
 
+#include "base/bench.hpp"
 #include "base/thread_macros.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS

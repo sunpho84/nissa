@@ -730,8 +730,7 @@ namespace nissa
   struct theory_pars_t
   {
     double beta;
-    int nstag_flavs,nWils_flavs;
-    int nflavs(){return nstag_flavs+nWils_flavs;}
+    int nflavs;
     quad_u1 ***backfield;
     quark_content_t *quark_content;
     gauge_action_name_t gauge_action_name;
@@ -739,7 +738,11 @@ namespace nissa
     stout_pars_t stout_pars;
     em_field_pars_t em_field_pars;
     
-    theory_pars_t() : beta(6.0),nstag_flavs(0),nWils_flavs(0) {}
+    theory_pars_t() : beta(6.0),nflavs(0),backfield(NULL),quark_content(NULL) {}
+    ~theory_pars_t()
+    {
+      delete[] quark_content;
+    }
   };
   
   //evolution parameters for hybrid monte carlo

@@ -6,11 +6,12 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "communicate/communicate.hpp"
+#include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "communicate/communicate.hpp"
 #include "new_types/su3.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

@@ -186,8 +186,6 @@ namespace nissa
   //measure the above fermionic putpourri
   void measure_fermionic_putpourri(quad_su3 **conf,theory_pars_t &theory_pars,fermionic_putpourri_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    if(theory_pars.nwils_flavs) crash("not defined yet in presence of Wilson flavors");
-    
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     int comp_susc=meas_pars.compute_susc;
     
@@ -196,8 +194,10 @@ namespace nissa
     for(int icopy=0;icopy<ncopies;icopy++)
       {
 	master_fprintf(file,"%d",iconf);
-	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
+	for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
 	  {
+	    if(!theory_pars.quark_content[iflav].is_stag) crash("not defined for non-staggered quarks");
+	    
 	    fermionic_putpourri_t putpourri;
 	    
 	    //loop over hits
@@ -205,7 +205,7 @@ namespace nissa
 	    for(int hit=0;hit<nhits;hit++)
 	      {
 		verbosity_lv2_master_printf("Evaluating fermionic putpourri for flavor %d/%d, ncopy %d/%d, nhits %d/%d\n",
-					    iflav+1,theory_pars.nflavs(),icopy+1,ncopies,hit+1,nhits);
+					    iflav+1,theory_pars.nflavs,icopy+1,ncopies,hit+1,nhits);
 		
 		//compute and summ
 		fermionic_putpourri_t temp;

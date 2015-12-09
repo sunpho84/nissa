@@ -218,6 +218,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/momenta/momenta_generation.cpp \
 	hmc/multipseudo/multipseudo_rhmc_step.cpp \
 	hmc/multipseudo/Omelyan_integrator.cpp \
+	hmc/multipseudo/quark_force.cpp \
 	hmc/multipseudo/theory_action.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
@@ -242,6 +243,7 @@ include_HEADERS+= \
 	hmc/momenta/momenta_generation.hpp \
 	hmc/multipseudo/multipseudo_rhmc_step.hpp \
 	hmc/multipseudo/Omelyan_integrator.hpp \
+	hmc/multipseudo/quark_force.hpp \
 	hmc/multipseudo/theory_action.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \

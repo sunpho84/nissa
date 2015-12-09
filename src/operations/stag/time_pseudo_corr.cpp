@@ -19,7 +19,7 @@ namespace nissa
     char dir_name[5]="txyz";
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
-    int nflavs=theory_pars.nflavs();
+    int nflavs=theory_pars.nflavs;
     
     //allocate source
     color *source[2]={nissa_malloc("source_e",loc_volh+bord_volh,color),

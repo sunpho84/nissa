@@ -7,11 +7,12 @@
 
 #include "operations/su3_paths/plaquette.hpp"
 
-#include "communicate/communicate.hpp"
+#include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "communicate/communicate.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/new_types_definitions.hpp"
@@ -71,11 +72,8 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(stout_smear_single_level, quad_su3**,out, quad_su3**,ext_in, double,rho)
   {
     GET_THREAD_ID();
-    if(IS_MASTER_THREAD)
-      {
-	sto_time-=take_time();
-	nsto++;
-      }
+    
+    START_TIMING(sto_time,nsto);
     
     communicate_eo_quad_su3_edges(ext_in);
     
@@ -110,7 +108,7 @@ namespace nissa
 	if(out==ext_in) nissa_free(in[eo]);
       }
     
-    if(IS_MASTER_THREAD) sto_time+=take_time();
+    STOP_TIMING(sto_time);
   }
   THREADABLE_FUNCTION_END
 

@@ -147,8 +147,6 @@ namespace nissa
   //measure magnetization
   void measure_magnetization(quad_su3 **conf,theory_pars_t &theory_pars,magnetization_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
-    if(theory_pars.nwils_flavs) crash("not defined yet in presence of Wilson flavors");
-
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     FILE *file_proj=open_file(meas_pars.path+"%s_proj_x",conf_created?"w":"a");
     
@@ -158,8 +156,10 @@ namespace nissa
         master_fprintf(file,"%d",iconf);
         
         //measure magnetization for each quark
-        for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
+        for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
           {
+	    if(!theory_pars.quark_content[iflav].is_stag) crash("not defined for non-staggered quarks");
+	    
             complex magn={0,0};
             complex magn_proj_x[glb_size[1]]; //this makes pair and pact with "1" and "2" upstairs
             for(int i=0;i<glb_size[1];i++) magn_proj_x[i][RE]=magn_proj_x[i][IM]=0;
@@ -169,7 +169,7 @@ namespace nissa
             for(int hit=0;hit<nhits;hit++)
               {
                 verbosity_lv2_master_printf("Evaluating magnetization for flavor %d/%d, ncopies %d/%d nhits %d/%d\n",
-                                            iflav+1,theory_pars.nflavs(),icopy+1,ncopies,hit+1,nhits);
+                                            iflav+1,theory_pars.nflavs,icopy+1,ncopies,hit+1,nhits);
             
                 //compute and summ
                 complex temp,temp_magn_proj_x[glb_size[1]];

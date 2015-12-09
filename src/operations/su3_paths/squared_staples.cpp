@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <math.h>
 
+#include "base/bench.hpp"
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
@@ -26,10 +27,10 @@ namespace nissa
     su3_put_to_zero(staple);
     
     su3 temp1,temp2;
-    for(int inu=0;inu<NDIM-1;inu++)                //  E---F---C   
+    for(int inu=0;inu<NDIM-1;inu++)                //  E---F---C
       {                                            //  |   |   | mu
-	int nu=perp_dir[mu][inu];                  //  D---A---B   
-	int p=loclx_parity[A];                     //        nu    
+	int nu=perp_dir[mu][inu];                  //  D---A---B
+	int p=loclx_parity[A];                     //        nu
 	int B=loclx_neighup[A][nu];
 	int F=loclx_neighup[A][mu];
 	unsafe_su3_prod_su3(    temp1,eo_conf[p][loceo_of_loclx[A]][nu],eo_conf[!p][loceo_of_loclx[B]][mu]);
