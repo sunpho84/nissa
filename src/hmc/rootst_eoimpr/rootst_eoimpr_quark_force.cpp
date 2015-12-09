@@ -4,6 +4,7 @@
 
 #include "hmc/backfield.hpp"
 
+#include "base/bench.hpp"
 #include "communicate/communicate.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
@@ -21,6 +22,8 @@ namespace nissa
   {
     GET_THREAD_ID();
     
+    START_TIMING(quark_force_over_time,nquark_force_over);
+    
     //allocate each terms of the expansion
     color *v_o[appr->degree],*chi_e[appr->degree];
     for(int iterm=0;iterm<appr->degree;iterm++)
@@ -33,7 +36,9 @@ namespace nissa
     add_backfield_to_conf(eo_conf,u1b);
     
     //invert the various terms
+    STOP_TIMING(quark_force_over_time);
     inv_stD2ee_m2_cgm_run_hm_up_to_comm_prec(chi_e,eo_conf,appr->poles,appr->degree,1000000,residue,pf);
+    UNPAUSE_TIMING(quark_force_over_time);
     
     ////////////////////
     
@@ -73,6 +78,8 @@ namespace nissa
 	nissa_free(v_o[iterm]);
 	nissa_free(chi_e[iterm]);
       }
+    
+    STOP_TIMING(quark_force_over_time);
   }
   THREADABLE_FUNCTION_END
 }

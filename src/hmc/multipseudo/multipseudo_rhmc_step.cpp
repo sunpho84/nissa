@@ -96,7 +96,6 @@ namespace nissa
 	{
 	  verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs);
 	  double pf_action_flav;
-	  master_printf("%d\n",theory_pars.quark_content[iflav].is_stag);
 	  if(theory_pars.quark_content[iflav].is_stag) generate_pseudo_fermion(&pf_action_flav,pf[iflav].stag[ipf],sme_conf,theory_pars.backfield[iflav],simul_pars.rat_appr+3*iflav+0,simul_pars.pf_action_residue);
 	  else crash("not yet implemented");
 	  pf_action+=pf_action_flav;
@@ -105,10 +104,12 @@ namespace nissa
     //create the momenta
     generate_hmc_momenta(H);
     
+    //compute initial action
     double init_action;
     full_theory_action(&init_action,out_conf,sme_conf,H,pf,&theory_pars,&simul_pars,pf_action);
+    verbosity_lv2_master_printf("Initial action: %lg\n",init_action);
     
-    //evolv
+    //evolve
     Omelyan_integrator(H,out_conf,pf,&theory_pars,&simul_pars);
     
     //if needed, resmear the conf

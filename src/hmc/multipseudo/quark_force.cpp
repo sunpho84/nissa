@@ -80,11 +80,11 @@ namespace nissa
     compute_quark_force_finish_computation(F,conf);
     
     //print the intensity of the force
-    if(verbosity_lv>=1)
+    if(VERBOSITY_LV2)
       {
 	double norm=0;
 	for(int par=0;par<2;par++) norm+=double_vector_norm2(F[par],loc_volh);
-	master_printf(" Quark force average norm: %lg\n",sqrt(norm/glb_vol));
+	master_printf("  Quark force average norm: %lg\n",sqrt(norm/glb_vol));
       }
   }
   THREADABLE_FUNCTION_END

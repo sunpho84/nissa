@@ -19,13 +19,13 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //split
     NISSA_PARALLEL_LOOP(loclx,0,loc_vol)
       memcpy(out_eo[loclx_parity[loclx]]+bps*loceo_of_loclx[loclx],in_lx+bps*loclx,bps);
     
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
     
     set_borders_invalid(out_eo[0]);
     set_borders_invalid(out_eo[1]);
@@ -37,14 +37,14 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //paste
     for(int par=0;par<2;par++)
       NISSA_PARALLEL_LOOP(eo,0,loc_volh)
 	memcpy(out_lx+bps*loclx_of_loceo[par][eo],in_eo[par]+bps*eo,bps);
     
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
     
     set_borders_invalid(out_lx);
   }

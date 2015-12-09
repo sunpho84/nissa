@@ -101,7 +101,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //wrapper
-  void omelyan_pure_gauge_evolver_eo_conf(quad_su3 **H_eo,quad_su3 **conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
+  void Omelyan_pure_gauge_evolver_eo_conf(quad_su3 **H_eo,quad_su3 **conf_eo,theory_pars_t *theory_pars,hmc_evol_pars_t *simul)
   {
     quad_su3 *H_lx=nissa_malloc("H_lx",loc_vol,quad_su3);
     quad_su3 *conf_lx=nissa_malloc("conf_lx",loc_vol+bord_vol+edge_vol,quad_su3);
@@ -204,13 +204,6 @@ namespace nissa
     su3_print(nu_minus);
     //crash("anna");
 #endif
-
-#if 0
-    //print info on the norm of the force
-    double norm2[2];
-    for(int ieo=0;ieo<2;ieo++) double_vector_glb_scalar_prod(norm2+ieo,(double*)(F[ieo]),(double*)(F[ieo]),loc_volh*sizeof(quad_su3)/sizeof(double));
-    master_printf("Fermionic force norm: %lg per site\n",sqrt(norm2[0]+norm2[1])/glb_vol);
-#endif
     
     //evolve
     for(int par=0;par<2;par++)
@@ -247,11 +240,11 @@ namespace nissa
 	//decide if last step is final or not
 	double last_dt=(istep==(nsteps-1)) ? ldt : l2dt;
 	
-	omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
+	Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,uml2dt);
 	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,uml2dt);
 	
-	omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
+	Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,last_dt);
 	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt);
 	

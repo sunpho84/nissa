@@ -314,7 +314,7 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_virlx, bi_oct_su3*,out, quad_su3*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //communicate conf border so we can accede it
     communicate_lx_quad_su3_borders(in);
@@ -346,14 +346,14 @@ namespace nissa
 	  }
     
     set_borders_invalid(out);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
   THREADABLE_FUNCTION_2ARG(virlx_conf_remap_to_lx, quad_su3*,ext_out, bi_oct_su3*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //buffer if needed
     int bufferize=((void*)ext_out==(void*)in);
@@ -374,7 +374,7 @@ namespace nissa
 	vector_copy(ext_out,out);
 	nissa_free(out);
       }
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -382,7 +382,7 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //communicate conf border so we can accede it
     communicate_lx_quad_su3_borders(in);
@@ -411,7 +411,7 @@ namespace nissa
 	  }
     
     for(int eo=0;eo<2;eo++) set_borders_invalid(out[eo]);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -419,7 +419,7 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_single_vireo, bi_single_oct_su3**,out, quad_su3*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //communicate conf border so we can accede it
     communicate_lx_quad_su3_borders(in);
@@ -448,7 +448,7 @@ namespace nissa
 	  }
     
     for(int eo=0;eo<2;eo++) set_borders_invalid(out[eo]);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -456,7 +456,7 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(eo_conf_remap_to_vireo, bi_oct_su3**,out, quad_su3**,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //communicate conf border so we can accede it
     communicate_ev_and_od_quad_su3_borders(in);
@@ -491,7 +491,7 @@ namespace nissa
     
     set_borders_invalid(out[EVN]);
     set_borders_invalid(out[ODD]);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -499,7 +499,7 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(eo_conf_remap_to_single_vireo, bi_single_oct_su3**,out, quad_su3**,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //communicate conf border so we can accede it
     communicate_ev_and_od_quad_su3_borders(in);
@@ -534,7 +534,7 @@ namespace nissa
     
     set_borders_invalid(out[EVN]);
     set_borders_invalid(out[ODD]);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -542,7 +542,7 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_virlx, bi_spincolor*,ext_out, spincolor*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //bufferize if needed
     int bufferize=(void*)ext_out==(void*)in;
@@ -561,14 +561,14 @@ namespace nissa
 	vector_copy(ext_out,out);
 	nissa_free(out);
       }
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_2ARG(virlx_spincolor_remap_to_lx, spincolor*,ext_out, bi_spincolor*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //buffer if needed
     int bufferize=(void*)ext_out==(void*)in;
@@ -588,7 +588,7 @@ namespace nissa
 	vector_copy(ext_out,out);
 	nissa_free(out);
       }
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -596,7 +596,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(evn_or_odd_spincolor_remap_to_virevn_or_odd, bi_spincolor*,out, spincolor*,in, int,par)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
@@ -604,14 +604,14 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_3ARG(virevn_or_odd_spincolor_remap_to_evn_or_odd, spincolor*,out, bi_spincolor*,in, int,par)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
@@ -620,7 +620,7 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -628,7 +628,7 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(lx_spincolor_128_remap_to_virlx, bi_spincolor_128*,ext_out, spincolor_128*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //bufferize if needed
     int bufferize=(void*)ext_out==(void*)in;
@@ -647,14 +647,14 @@ namespace nissa
 	vector_copy(ext_out,out);
 	nissa_free(out);
       }
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_2ARG(virlx_spincolor_128_remap_to_lx, spincolor_128*,ext_out, bi_spincolor_128*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //buffer if needed
     int bufferize=(void*)ext_out==(void*)in;
@@ -674,7 +674,7 @@ namespace nissa
 	vector_copy(ext_out,out);
 	nissa_free(out);
       }
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -682,7 +682,7 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(lx_spincolor_remap_to_vireo, bi_spincolor**,out, spincolor*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //copy the various VN
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
@@ -691,14 +691,14 @@ namespace nissa
     //wait filling
     set_borders_invalid(out[EVN]);
     set_borders_invalid(out[ODD]);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_2ARG(vireo_spincolor_remap_to_lx, spincolor*,out, bi_spincolor**,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //split to the two VN
     for(int par=0;par<2;par++)
@@ -709,7 +709,7 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -717,7 +717,7 @@ namespace nissa
   THREADABLE_FUNCTION_2ARG(lx_color_remap_to_vireo, bi_color**,out, color*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //copy the various VN
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
@@ -726,14 +726,14 @@ namespace nissa
     //wait filling
     set_borders_invalid(out[EVN]);
     set_borders_invalid(out[ODD]);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   //single
   THREADABLE_FUNCTION_2ARG(lx_color_remap_to_single_vireo, bi_single_color**,out, color*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //copy the various VN
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
@@ -742,14 +742,14 @@ namespace nissa
     //wait filling
     set_borders_invalid(out[EVN]);
     set_borders_invalid(out[ODD]);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_2ARG(vireo_color_remap_to_lx, color*,out, bi_color**,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //split to the two VN
     for(int par=0;par<2;par++)
@@ -759,7 +759,7 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -767,7 +767,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(evn_or_odd_color_remap_to_virevn_or_odd, bi_color*,out, color*,in, int,par)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
@@ -775,14 +775,14 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_3ARG(virevn_or_odd_color_remap_to_evn_or_odd, color*,out, bi_color*,in, int,par)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
@@ -791,7 +791,7 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -799,7 +799,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(evn_or_odd_color_remap_to_single_virevn_or_odd, bi_single_color*,out, color*,in, int,par)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_eo,0,loc_volh)
@@ -807,14 +807,14 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_3ARG(virevn_or_odd_single_color_remap_to_evn_or_odd, color*,out, bi_single_color*,in, int,par)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_vireo,0,loc_volh/NVNODES)
@@ -823,7 +823,7 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -831,7 +831,7 @@ namespace nissa
   THREADABLE_FUNCTION_3ARG(lx_as2t_su3_remap_to_opt_virlx, bi_opt_as2t_su3*,bi_cl, double,csw, as2t_su3*,Pmunu)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     NISSA_PARALLEL_LOOP(ivol_lx,0,loc_vol)
       {
@@ -844,14 +844,14 @@ namespace nissa
 	  }
       }
     set_borders_invalid(bi_cl);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   //reverse
   THREADABLE_FUNCTION_2ARG(virlx_opt_as2t_su3_remap_to_lx, opt_as2t_su3*,out, bi_opt_as2t_su3*,in)
   {
     GET_THREAD_ID();
-    START_REMAP_TIMING();
+    START_TIMING(remap_time,nremap);
     
     //split to the two VN
     NISSA_PARALLEL_LOOP(ivol_virlx,0,loc_vol/NVNODES)
@@ -861,7 +861,7 @@ namespace nissa
     
     //wait filling
     set_borders_invalid(out);
-    STOP_REMAP_TIMING();
+    STOP_TIMING(remap_time);
   }
   THREADABLE_FUNCTION_END
   

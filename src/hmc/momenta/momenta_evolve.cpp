@@ -2,8 +2,9 @@
  #include "config.hpp"
 #endif
 
-#include "linalgs/linalgs.hpp"
+#include "base/bench.hpp"
 #include "inverters/momenta/cg_invert_MFACC.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
@@ -38,6 +39,8 @@ namespace nissa
     
     verbosity_lv2_master_printf("Evolving conf with momenta, dt=%lg\n",dt);
     
+    START_TIMING(conf_evolve_time,nconf_evolve);
+    
     //evolve
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
@@ -50,6 +53,8 @@ namespace nissa
 	}
     
     set_borders_invalid(lx_conf);
+    
+    STOP_TIMING(conf_evolve_time);
   }
   THREADABLE_FUNCTION_END
   

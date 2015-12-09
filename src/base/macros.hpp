@@ -53,15 +53,6 @@
 //random number generator table length
 #define RAN2_NTAB 32
 
-//communications benchmark
-#define START_TIMING(TIME,COUNTER) do{if(IS_MASTER_THREAD){TIME-=take_time();COUNTER++;}}while(0)
-#define STOP_TIMING(TIME) do{if(IS_MASTER_THREAD) TIME+=take_time();}while(0)
-#define GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS() GET_THREAD_ID()
-#define START_COMMUNICATIONS_TIMING() START_TIMING(tot_comm_time,ntot_comm)
-#define STOP_COMMUNICATIONS_TIMING() STOP_TIMING(tot_comm_time)
-#define START_REMAP_TIMING() START_TIMING(remap_time,nremap)
-#define STOP_REMAP_TIMING() STOP_TIMING(remap_time)
-
 //constants
 #define NISSA_DEFAULT_VERBOSITY_LV 1
 #define NISSA_DEFAULT_USE_EO_GEOM 1

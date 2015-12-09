@@ -103,7 +103,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //start communication of lower surf to backward nodes
-    START_COMMUNICATIONS_TIMING();
+    START_TIMING(tot_comm_time,ntot_comm);
     int dir_comm[8]={0,0,0,0,1,1,1,1},tot_size=bord_volh*sizeof(quad_su3);
     comm_start(lx_quad_su3_comm,dir_comm,tot_size);
   }
@@ -129,10 +129,10 @@ namespace nissa
   void squared_staples_lx_conf_finish_communicating_lower_surface(quad_su3 *conf,int thread_id)
   {
     comm_wait(lx_quad_su3_comm);
-    STOP_COMMUNICATIONS_TIMING();
+    STOP_TIMING(tot_comm_time);
     
     //copy the received forward border (stored in the second half of receiving buf) on its destination
-    if(IS_MASTER_THREAD) memcpy(conf+loc_vol+bord_volh,((quad_su3*)recv_buf)+bord_volh,sizeof(quad_su3)*bord_volh);  
+    if(IS_MASTER_THREAD) memcpy(conf+loc_vol+bord_volh,((quad_su3*)recv_buf)+bord_volh,sizeof(quad_su3)*bord_volh);
     THREAD_BARRIER();
   }
 
@@ -174,7 +174,7 @@ namespace nissa
     THREAD_BARRIER();
     
     //start communication of fw surf backward staples to forward nodes
-    START_COMMUNICATIONS_TIMING();
+    START_TIMING(tot_comm_time,ntot_comm);
     int dir_comm[8]={1,1,1,1,0,0,0,0},tot_size=bord_volh*sizeof(quad_su3);
     comm_start(lx_quad_su3_comm,dir_comm,tot_size);
   }
@@ -221,7 +221,7 @@ namespace nissa
   void squared_staples_lx_conf_finish_communicating_fw_surf_bw_staples(squared_staples_t *out,int thread_id)
   {
     comm_wait(lx_quad_su3_comm);
-    STOP_COMMUNICATIONS_TIMING();
+    STOP_TIMING(tot_comm_time);
     
     //copy the received backward staples (stored on first half of receiving buf) on bw_surf sites
     for(int nu=0;nu<4;nu++) //staple and fw bord direction

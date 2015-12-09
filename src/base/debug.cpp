@@ -27,7 +27,7 @@ namespace nissa
 #ifdef USE_MPI
     return MPI_Wtime();
 #else
-    return (double) clock()/CLOCKS_PER_SEC;
+    return (double)clock()/CLOCKS_PER_SEC;
 #endif
   }
   

@@ -116,7 +116,7 @@ namespace nissa
   {
     GET_THREAD_ID();
     
-    START_TIMING(glu_comp_time,nglu_comp);
+    START_TIMING(gluon_force_time,ngluon_force);
     
     //#define DEBUG
     
@@ -197,14 +197,14 @@ namespace nissa
 #endif
     
     //print the intensity of the force
-    if(verbosity_lv>=1)
+    if(VERBOSITY_LV2)
       {
 	double norm=0;
 	norm+=double_vector_norm2(F,loc_vol);
-	master_printf(" Gluonic force average norm: %lg\n",sqrt(norm/glb_vol));
+	master_printf("  Gluonic force average norm: %lg\n",sqrt(norm/glb_vol));
       }
     
-    STOP_TIMING(glu_comp_time);
+    STOP_TIMING(gluon_force_time);
   }
   THREADABLE_FUNCTION_END
 #endif

@@ -54,11 +54,13 @@ int conf_created;
 int seed;
 
 //write a conf adding info
-int nwritten_conf=0;
+int nwrite_conf=0;
 double write_conf_time=0;
 void write_conf(const char *path,quad_su3 **conf)
 {
-  write_conf_time-=take_time();
+  GET_THREAD_ID();
+  
+  START_TIMING(write_conf_time,nwrite_conf);
   
   //messages
   ILDG_message mess;
@@ -97,8 +99,7 @@ void write_conf(const char *path,quad_su3 **conf)
   ILDG_message_free_all(&mess);
   
   //mark time
-  write_conf_time+=take_time();
-  nwritten_conf++;
+  STOP_TIMING(write_conf_time);
   
   //save the potential if needed
   if(theory_pars[SEA_THEORY].topotential_pars.flag==2)
@@ -787,11 +788,15 @@ void in_main(int narg,char **arg)
   master_printf("time to stout remap %d times: %lg s (%2.2g %c tot), %lg per iter\n",
 		nsto_remap,sto_remap_time,sto_remap_time*100/tot_time,'%',sto_remap_time/std::max(nsto_remap,1));
   master_printf("time to compute gluon force %d times: %lg s (%2.2g %c tot), %lg per iter\n",
-		nglu_comp,glu_comp_time,glu_comp_time*100/tot_time,'%',glu_comp_time/std::max(nglu_comp,1));
-  master_printf("time to remap geometry %d times: %lg s (%2.2g %c tot), %lg per iter\n",
+		ngluon_force,gluon_force_time,gluon_force_time*100/tot_time,'%',gluon_force_time/std::max(ngluon_force,1));
+  master_printf("overhead time to compute quark force %d times: %lg s (%2.2g %c tot), %lg per iter\n",
+		nquark_force_over,quark_force_over_time,quark_force_over_time*100/tot_time,'%',quark_force_over_time/std::max(nquark_force_over,1));
+  master_printf("time to evolve the gauge conf with momenta %d times: %lg s (%2.2g %c tot), %lg per iter\n",
+		nconf_evolve,conf_evolve_time,conf_evolve_time*100/tot_time,'%',conf_evolve_time/std::max(nconf_evolve,1));
+  master_printf("time to remap geometry of vectors %d times: %lg s (%2.2g %c tot), %lg per iter\n",
 		nremap,remap_time,remap_time*100/tot_time,'%',remap_time/std::max(nremap,1));
   master_printf("time to write %d configurations: %lg s (%2.2g %c tot), %lg per conf\n",
-		nwritten_conf,write_conf_time,write_conf_time*100/tot_time,'%',write_conf_time/std::max(nwritten_conf,1));
+		nwrite_conf,write_conf_time,write_conf_time*100/tot_time,'%',write_conf_time/std::max(nwrite_conf,1));
   for(int i=0;i<ntop_meas;i++) master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,top_meas_pars[i].path.c_str(),top_meas_time[i],
 					     top_meas_time[i]*100/tot_time,'%');
   

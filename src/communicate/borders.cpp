@@ -28,7 +28,7 @@
   order, putting up-surface from sending node in dw-border of receiving one. See this 1D example:
   
   send buf N0    send buf N1    ...              recv buf N0    recv buf N1
-   ---- ----      ---- ----     ...     --->      ---- ----      ---- ---- 
+   ---- ----      ---- ----     ...     --->      ---- ----      ---- ----
   | L0 | H0 |    | L1 | H1 |    ...              | H* | L1 |    | H0 | L2 |
    ---- ----      ---- ----                       ---- ----      ---- ----
 */
@@ -233,16 +233,16 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
+	GET_THREAD_ID();
 	
 	//take time and write some debug output
-	START_COMMUNICATIONS_TIMING();
+	START_TIMING(tot_comm_time,ntot_comm);
 	verbosity_lv3_master_printf("Start communication of lx borders of %s\n",get_vect_name((void*)vec));
 	
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_lx_vec(comm,vec);
 	comm_start(comm);
-	STOP_COMMUNICATIONS_TIMING();
+	STOP_TIMING(tot_comm_time);
       }
   }
   
@@ -251,16 +251,16 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
+	GET_THREAD_ID();
 	
 	//take note of passed time and write some debug info
-	START_COMMUNICATIONS_TIMING();
+	START_TIMING(tot_comm_time,ntot_comm);
 	verbosity_lv3_master_printf("Finish communication of lx borders of %s\n",get_vect_name((void*)vec));
 	
 	//wait communication to finish, fill back the vector and take time
 	comm_wait(comm);
 	fill_lx_bord_with_receiving_buf(vec,comm);
-	STOP_COMMUNICATIONS_TIMING();
+	STOP_TIMING(tot_comm_time);
 	
 	//set border not valid: this auto sync
 	set_borders_valid(vec);
@@ -324,16 +324,16 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
+	GET_THREAD_ID();
 	
 	//take time and output debugging info
-	START_COMMUNICATIONS_TIMING();
+	START_TIMING(tot_comm_time,ntot_comm);
 	verbosity_lv3_master_printf("Starting communication of ev or od borders of %s\n",get_vect_name((void*)vec));
 	
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_ev_or_od_vec(comm,vec,eo);
 	comm_start(comm);
-	STOP_COMMUNICATIONS_TIMING();
+	STOP_TIMING(tot_comm_time);
       }
   }
   
@@ -342,16 +342,16 @@ namespace nissa
   {
     if(!check_borders_valid(vec) && nparal_dir>0)
       {
-	GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
+	GET_THREAD_ID();
 	
 	//take time and make some output
-	START_COMMUNICATIONS_TIMING();
+	START_TIMING(tot_comm_time,ntot_comm);
 	verbosity_lv3_master_printf("Finish communication of ev or od borders of %s\n",get_vect_name((void*)vec));
 	
 	//wait communication to finish, fill back the vector and take time
 	comm_wait(comm);
 	fill_ev_or_od_bord_with_receiving_buf(vec,comm);
-	STOP_COMMUNICATIONS_TIMING();
+	STOP_TIMING(tot_comm_time);
 	
 	//set border not valid: this auto sync
 	set_borders_valid(vec);
@@ -426,16 +426,16 @@ namespace nissa
   {
     if((!check_borders_valid(vec[EVN])||!check_borders_valid(vec[ODD])) && nparal_dir>0)
       {
-	GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
+	GET_THREAD_ID();
 	
 	//take time and output debugging info
-	START_COMMUNICATIONS_TIMING();
+	START_TIMING(tot_comm_time,ntot_comm);
 	verbosity_lv3_master_printf("Starting communication of ev and od borders of %s\n",get_vect_name((void*)(*vec)));
 	
 	//fill the communicator buffer, start the communication and take time
 	fill_sending_buf_with_ev_and_od_vec(comm,vec);
 	comm_start(comm);
-	STOP_COMMUNICATIONS_TIMING();
+	STOP_TIMING(tot_comm_time);
       }
   }
   
@@ -444,16 +444,16 @@ namespace nissa
   {
     if(comm.comm_in_prog && nparal_dir>0)
       {
-	GET_THREAD_ID_FOR_COMMUNICATIONS_TIMINGS();
+	GET_THREAD_ID();
 	
 	//take time and make some output
-	START_COMMUNICATIONS_TIMING();
+	START_TIMING(tot_comm_time,ntot_comm);
 	verbosity_lv3_master_printf("Finish communication of ev and od borders of %s\n",get_vect_name((void*)(*vec)));
 	
 	//wait communication to finish, fill back the vector and take time
 	comm_wait(comm);
 	fill_ev_and_od_bord_with_receiving_buf(vec,comm);
-	STOP_COMMUNICATIONS_TIMING();
+	STOP_TIMING(tot_comm_time);
 	
 	//set border not valid: this auto sync
 	set_borders_valid(vec[EVN]);
