@@ -10,6 +10,8 @@ namespace nissa
   void single_vector_copy(float *a,float *b,int n);
   void double_conv_quadruple_vector_glb_scalar_prod(double *out,float_128 *a,float_128 *b,int n);
   void double_vector_glb_scalar_prod(double *res,double *a,double *b,int n);
+  template <class T> double double_vector_norm2(T *v,int n_per_class)
+  {double res;double_vector_glb_scalar_prod(&res,(double*)v,(double*)v,n_per_class*sizeof(T)/sizeof(double));return res;}
   void single_vector_glb_scalar_prod(float *res,float *a,float *b,int n);
   void double_vector_glb_collapse(double *res,double *a,int n);
   void double_vector_copy(double *a,double *b,int n);

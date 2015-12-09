@@ -9,6 +9,7 @@
 #include "hmc/gauge/Wilson_force.hpp"
 #include "hmc/gauge/Symanzik_force.hpp"
 #include "hmc/backfield.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #ifdef USE_THREADS
@@ -194,7 +195,15 @@ namespace nissa
     su3_print(nu_minus);
     crash("anna");
 #endif
-
+    
+    //print the intensity of the force
+    if(verbosity_lv>=1)
+      {
+	double norm=0;
+	norm+=double_vector_norm2(F,loc_vol);
+	master_printf(" Gluonic force average norm: %lg\n",sqrt(norm/glb_vol));
+      }
+    
     STOP_TIMING(glu_comp_time);
   }
   THREADABLE_FUNCTION_END

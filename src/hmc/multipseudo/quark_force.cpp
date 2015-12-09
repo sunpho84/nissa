@@ -4,6 +4,7 @@
 
 #include "base/thread_macros.hpp"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp"
+#include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "operations/smearing/stout.hpp"
 #include "routines/ios.hpp"
@@ -39,9 +40,13 @@ namespace nissa
     
     for(int iflav=0;iflav<tp->nflavs;iflav++)
       for(int ipf=0;ipf<npfs[iflav];ipf++)
-	if(tp->quark_content[iflav].is_stag)
-	summ_the_rootst_eoimpr_quark_force(F,tp->quark_content[iflav].charge,conf,pf[iflav].stag[ipf],tp->em_field_pars.flag,tp->backfield[iflav],appr+(iflav*3+2),residue);
-	else crash("non staggered not yet implemented");
+	{
+	  verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %d/%d\n",iflav+1,tp->nflavs,ipf+1,npfs[iflav]);
+	  
+	  if(tp->quark_content[iflav].is_stag)
+	    summ_the_rootst_eoimpr_quark_force(F,tp->quark_content[iflav].charge,conf,pf[iflav].stag[ipf],tp->em_field_pars.flag,tp->backfield[iflav],appr+(iflav*3+2),residue);
+	  else crash("non staggered not yet implemented");
+	}
     
   }
   THREADABLE_FUNCTION_END
@@ -73,6 +78,14 @@ namespace nissa
       }
     
     compute_quark_force_finish_computation(F,conf);
+    
+    //print the intensity of the force
+    if(verbosity_lv>=1)
+      {
+	double norm=0;
+	for(int par=0;par<2;par++) norm+=double_vector_norm2(F[par],loc_volh);
+	master_printf(" Quark force average norm: %lg\n",sqrt(norm/glb_vol));
+      }
   }
   THREADABLE_FUNCTION_END
 }
