@@ -79,10 +79,10 @@ void write_conf(const char *path,quad_su3 **conf)
   ILDG_bin_message_append_to_last(&mess,"RAT_approx",appr_data,appr_data_length);
   nissa_free(appr_data);
   
-#ifndef REPRODUCIBLE_RUN
+  //#ifndef REPRODUCIBLE_RUN
   //skip 10 random numbers
-  for(int iskip=0;iskip<10;iskip++) rnd_get_unif(&glb_rnd_gen,0,1);
-#endif
+  //for(int iskip=0;iskip<10;iskip++) rnd_get_unif(&glb_rnd_gen,0,1);
+  //#endif
   
   //topology history
   if(theory_pars[SEA_THEORY].topotential_pars.flag==2)

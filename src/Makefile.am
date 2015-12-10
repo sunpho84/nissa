@@ -206,7 +206,7 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/gauge/MFACC_fields.cpp \
 	hmc/gauge/gluonic_force.cpp \
 	hmc/gauge/pure_gauge_hmc_step.cpp \
-	hmc/gauge/pure_gauge_omelyan_integrator.cpp \
+	hmc/gauge/pure_gauge_Omelyan_integrator.cpp \
 	hmc/gauge/Symanzik_force.cpp \
 	hmc/gauge/Symanzik_action.cpp \
 	hmc/gauge/topological_action.cpp \
@@ -231,7 +231,7 @@ include_HEADERS+= \
 	hmc/gauge/gluonic_action.hpp \
 	hmc/gauge/gluonic_force.hpp \
 	hmc/gauge/pure_gauge_hmc_step.hpp \
-	hmc/gauge/pure_gauge_omelyan_integrator.hpp \
+	hmc/gauge/pure_gauge_Omelyan_integrator.hpp \
 	hmc/gauge/Symanzik_force.hpp \
 	hmc/gauge/Symanzik_action.hpp \
 	hmc/gauge/topological_action.hpp \

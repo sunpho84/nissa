@@ -65,7 +65,7 @@
 #include "hmc/gauge/gluonic_action.hpp"
 #include "hmc/gauge/gluonic_force.hpp"
 #include "hmc/gauge/pure_gauge_hmc_step.hpp"
-#include "hmc/gauge/pure_gauge_omelyan_integrator.hpp"
+#include "hmc/gauge/pure_gauge_Omelyan_integrator.hpp"
 #include "hmc/gauge/topological_action.hpp"
 #include "hmc/gauge/topological_force.hpp"
 #include "hmc/gauge/Symanzik_force.hpp"
