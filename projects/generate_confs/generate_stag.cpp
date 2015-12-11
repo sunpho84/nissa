@@ -756,10 +756,12 @@ void run_program_for_analysis()
 }
 
 //print the statistic
-void print_stat(const char *what,double time,int n)
+void print_stat(const char *what,double time,int n,int flops=0)
 {
     double tot_time=take_time()-init_time;
-    master_printf("time to %s %d times: %lg s (%2.2g %c tot), %lg per iter\n",what,n,time,time*100/tot_time,'%',time/std::max(n,1));
+    master_printf("time to %s %d times: %lg s (%2.2g %c tot), %lg per iter",what,n,time,time*100/tot_time,'%',time/std::max(n,1));
+    if(flops) master_printf(", %lg MFlop/s\n",flops*1e-6*n/(time?time:1));
+    else master_printf("\n");
 }
 
 void in_main(int narg,char **arg)
@@ -777,17 +779,15 @@ void in_main(int narg,char **arg)
   
   /////////////////////////////////////// timings /////////////////////////////////
   
-  print_stat("apply non vectorized staggered operator",portable_stD_app_time,portable_stD_napp);
-  master_printf(" %lg MFlop/s\n",1158e-6*loc_volh*portable_stD_napp/(portable_stD_app_time?portable_stD_app_time:1));
+  print_stat("apply non vectorized staggered operator",portable_stD_app_time,portable_stD_napp,1158*loc_volh);
 #ifdef BGQ
-  print_stat("apply vectorized staggered operator",bgq_stdD_app_time,bgq_stdD_napp);
-  master_printf(" %lg MFlop/s\n",1158e-6*loc_volh*bgq_stdD_napp/(bgq_stdD_app_time?bgq_stdD_app_time:1));
+  print_stat("apply vectorized staggered operator",bgq_stdD_app_time,bgq_stdD_napp,1158*loc_volh);
 #endif
   print_stat("cgm invert overhead",cgm_inv_over_time,ncgm_inv);
   print_stat("cg invert overhead",cg_inv_over_time,ncg_inv);
   print_stat("stout smearing",sto_time,nsto);
   print_stat("stout remapping",sto_remap_time,nsto_remap);
-  print_stat("compute gluon force",gluon_force_time,ngluon_force);
+  print_stat("compute gluon force",gluon_force_time,ngluon_force,((28*(NDIM-1)+2)*(NCOL*NCOL/*entries*/*(NCOL*6+(NCOL-1)*2))/*prod*/+11*(NCOL*NCOL*2)/*summ*/)*NDIM*loc_vol);
   print_stat("compute quark force",quark_force_over_time,nquark_force_over);
   print_stat("evolve the gauge conf with momenta",conf_evolve_time,nconf_evolve);
   print_stat("remap geometry of vectors",remap_time,nremap);

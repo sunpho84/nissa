@@ -627,7 +627,7 @@ namespace nissa
     DECLARE_REG_BI_SU3(REG_U3);
     
     for(int inu=0;inu<NDIM-1;inu++)
-      {  
+      {
 	//backward square staple
 	bi_su3 hb;
 	REG_LOAD_BI_SU3(REG_U2,links[0]);
