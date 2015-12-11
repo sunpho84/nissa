@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "base/bench.hpp"
 #include "communicate/communicate.hpp"
 #include "new_types/su3.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
@@ -243,6 +244,7 @@ namespace nissa
   THREADABLE_FUNCTION_1ARG(unitarize_lx_conf_orthonormalizing, quad_su3*,conf)
   {
     GET_THREAD_ID();
+    START_TIMING(unitarize_time,nunitarize);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int idir=0;idir<NDIM;idir++)
@@ -252,6 +254,7 @@ namespace nissa
 	  su3_copy(conf[ivol][idir],t);
 	}
     set_borders_invalid(conf);
+    STOP_TIMING(unitarize_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -259,12 +262,14 @@ namespace nissa
   THREADABLE_FUNCTION_1ARG(unitarize_lx_conf_maximal_trace_projecting, quad_su3*,conf)
   {
     GET_THREAD_ID();
+    START_TIMING(unitarize_time,nunitarize);
     
     NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
       for(int mu=0;mu<NDIM;mu++)
         su3_unitarize_maximal_trace_projecting(conf[ivol][mu],conf[ivol][mu]);
     
     set_borders_invalid(conf);
+    STOP_TIMING(unitarize_time);
   }
   THREADABLE_FUNCTION_END
   
@@ -272,6 +277,7 @@ namespace nissa
   THREADABLE_FUNCTION_1ARG(unitarize_eo_conf_maximal_trace_projecting, quad_su3**,conf)
   {
     GET_THREAD_ID();
+    START_TIMING(unitarize_time,nunitarize);
     
     for(int par=0;par<2;par++)
       {
@@ -281,6 +287,8 @@ namespace nissa
         
         set_borders_invalid(conf[par]);
       }
+    
+    STOP_TIMING(unitarize_time);
   }
   THREADABLE_FUNCTION_END
   

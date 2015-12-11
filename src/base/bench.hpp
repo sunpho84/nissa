@@ -31,6 +31,8 @@ namespace nissa
   EXTERN int nconf_evolve EQUAL_ZERO;
   EXTERN double quark_force_over_time EQUAL_ZERO;
   EXTERN int nquark_force_over EQUAL_ZERO;
+  EXTERN double unitarize_time EQUAL_ZERO;
+  EXTERN int nunitarize EQUAL_ZERO;
 #ifdef BGQ
   EXTERN double bgq_stdD_app_time EQUAL_ZERO;
   EXTERN int bgq_stdD_napp EQUAL_ZERO;

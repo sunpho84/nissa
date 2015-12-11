@@ -52,7 +52,6 @@ double topo_time=0;
 double meas_time=0;
 double read_time=0;
 double write_time=0;
-double unitarize_time=0;
 double x_corr_time=0;
 
 void measure_gauge_obs();
@@ -621,11 +620,12 @@ void generate_new_conf(quad_su3 *conf,int check=0)
 			2*(action_post-action_pre)/(action_post+action_pre));
 	}
     }
-  
-  unitarize_time-=take_time();
+
+  GET_THREAD_ID();
+  START_TIMING(unitarize_time,nunitarize);
   unitarize_lx_conf_maximal_trace_projecting(conf);
   if(boundary_cond==OPEN_BOUNDARY_COND) impose_open_boundary_cond(conf);
-  unitarize_time+=take_time();
+  STOP_TIMING(unitarize_time);
 }
 
 //benchmark added

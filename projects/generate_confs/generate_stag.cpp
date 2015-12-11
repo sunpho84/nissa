@@ -755,6 +755,10 @@ void run_program_for_analysis()
   master_printf("Analyzed %d configurations\n\n",nconf_analyzed);
 }
 
+//print the statistic
+void print_stat(const char *what,double time,int n)
+{master_printf("time to %s %d times: %lg s (%2.2g %c tot), %lg per iter\n",what,n,time,time*100/tot_time,'%',time/std::max(n,1));}
+
 void in_main(int narg,char **arg)
 {
   //check argument
@@ -771,32 +775,22 @@ void in_main(int narg,char **arg)
   /////////////////////////////////////// timings /////////////////////////////////
   
   double tot_time=take_time()-init_time;
-  master_printf("time to apply non optimized %d times: %lg s (%2.2g %c tot), %lg per iter, %lg MFlop/s\n",
-	 portable_stD_napp,portable_stD_app_time,portable_stD_app_time*100/tot_time,'%',portable_stD_app_time/(portable_stD_napp?portable_stD_napp:1),
-		1158e-6*loc_volh*portable_stD_napp/(portable_stD_app_time?portable_stD_app_time:1));
+  print_stat("apply non vectorized staggered operator",portable_stD_app_time,portable_stD_napp);
+  master_printf(" %lg MFlop/s\n",1158e-6*loc_volh*portable_stD_napp/(portable_stD_app_time?portable_stD_app_time:1));
 #ifdef BGQ
-  master_printf("time to apply optimized %d times: %lg s (%2.2g %c tot), %lg per iter, %lg MFlop/s \n",
-		bgq_stdD_napp,bgq_stdD_app_time,bgq_stdD_app_time*100/tot_time,'%',bgq_stdD_app_time/(bgq_stdD_napp?bgq_stdD_napp:1),
-		1158e-6*loc_volh*bgq_stdD_napp/(bgq_stdD_app_time?bgq_stdD_app_time:1));
+  print_stat("apply vectorized staggered operator",bgq_stD_app_time,bgq_stD_napp);
+  master_printf(" %lg MFlop/s\n",1158e-6*loc_volh*bgq_stdD_napp/(bgq_stdD_app_time?bgq_stdD_app_time:1));
 #endif
-  master_printf("overhead time to cgm invert %d times: %lg s (%2.2g %c tot), %lg per inv\n",
-	 ncgm_inv,cgm_inv_over_time,cgm_inv_over_time*100/tot_time,'%',cgm_inv_over_time/std::max(ncgm_inv,1));
-  master_printf("overhead time to cg invert %d times: %lg s (%2.2g %c tot), %lg per inv\n",
-		ncg_inv,cg_inv_over_time,cg_inv_over_time*100/tot_time,'%',cg_inv_over_time/std::max(ncg_inv,1));
-  master_printf("time to stout sme %d times: %lg s (%2.2g %c tot), %lg per iter\n",
-		nsto,sto_time,sto_time*100/tot_time,'%',sto_time/std::max(nsto,1));
-  master_printf("time to stout remap %d times: %lg s (%2.2g %c tot), %lg per iter\n",
-		nsto_remap,sto_remap_time,sto_remap_time*100/tot_time,'%',sto_remap_time/std::max(nsto_remap,1));
-  master_printf("time to compute gluon force %d times: %lg s (%2.2g %c tot), %lg per iter\n",
-		ngluon_force,gluon_force_time,gluon_force_time*100/tot_time,'%',gluon_force_time/std::max(ngluon_force,1));
-  master_printf("overhead time to compute quark force %d times: %lg s (%2.2g %c tot), %lg per iter\n",
-		nquark_force_over,quark_force_over_time,quark_force_over_time*100/tot_time,'%',quark_force_over_time/std::max(nquark_force_over,1));
-  master_printf("time to evolve the gauge conf with momenta %d times: %lg s (%2.2g %c tot), %lg per iter\n",
-		nconf_evolve,conf_evolve_time,conf_evolve_time*100/tot_time,'%',conf_evolve_time/std::max(nconf_evolve,1));
-  master_printf("time to remap geometry of vectors %d times: %lg s (%2.2g %c tot), %lg per iter\n",
-		nremap,remap_time,remap_time*100/tot_time,'%',remap_time/std::max(nremap,1));
-  master_printf("time to write %d configurations: %lg s (%2.2g %c tot), %lg per conf\n",
-		nwrite_conf,write_conf_time,write_conf_time*100/tot_time,'%',write_conf_time/std::max(nwrite_conf,1));
+  print_stat("cgm invert overhead",cgm_inv_over_time,ncgm_inv);
+  print_stat("cg invert overhead",cg_inv_over_time,ncg_inv);
+  print_stat("stout smearing",sto_time,nsto);
+  print_stat("stout remapping",sto_remap_time,nsto_remap);
+  print_stat("compute gluon force",gluon_force_time,ngluon_force);
+  print_stat("compute quark force",quark_force_over_time,nquark_force_over);
+  print_stat("evolve the gauge conf with momenta",conf_evolve_time,nconf_evolve);
+  print_stat("remap geometry of vectors",remap_time,nremap);
+  print_stat("unitarize the conf",unitarize_time,nunitarize);
+  print_stat("write",write_conf_time,nwrite_conf);
   for(int i=0;i<ntop_meas;i++) master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,top_meas_pars[i].path.c_str(),top_meas_time[i],
 					     top_meas_time[i]*100/tot_time,'%');
   
