@@ -120,7 +120,7 @@ namespace nissa
     inv_tmDee_or_oo_eos(out,kappa,mass,out);
     tmn2Doe_eos_bgq(out,conf,out);
     
-    minus_one_quarter_g5_subt_tmD_or_Qee_or_oo_eos(out,kappa,mass,in,D_or_Q);
+    minus_one_quarter_subt_tmD_or_Qee_or_oo_eos(out,kappa,mass,in,D_or_Q);
   }
   THREADABLE_FUNCTION_END
 }
