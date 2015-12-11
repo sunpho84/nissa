@@ -778,7 +778,7 @@ void in_main(int narg,char **arg)
   print_stat("apply non vectorized staggered operator",portable_stD_app_time,portable_stD_napp);
   master_printf(" %lg MFlop/s\n",1158e-6*loc_volh*portable_stD_napp/(portable_stD_app_time?portable_stD_app_time:1));
 #ifdef BGQ
-  print_stat("apply vectorized staggered operator",bgq_stD_app_time,bgq_stD_napp);
+  print_stat("apply vectorized staggered operator",bgq_stdD_app_time,bgq_stdD_napp);
   master_printf(" %lg MFlop/s\n",1158e-6*loc_volh*bgq_stdD_napp/(bgq_stdD_app_time?bgq_stdD_app_time:1));
 #endif
   print_stat("cgm invert overhead",cgm_inv_over_time,ncgm_inv);
