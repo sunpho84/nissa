@@ -219,8 +219,8 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	hmc/multipseudo/multipseudo_rhmc_step.cpp \
 	hmc/multipseudo/Omelyan_integrator.cpp \
 	hmc/multipseudo/quark_force.cpp \
+	hmc/multipseudo/set_expansions.cpp \
 	hmc/multipseudo/theory_action.cpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.cpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.cpp
 
@@ -244,8 +244,8 @@ include_HEADERS+= \
 	hmc/multipseudo/multipseudo_rhmc_step.hpp \
 	hmc/multipseudo/Omelyan_integrator.hpp \
 	hmc/multipseudo/quark_force.hpp \
+	hmc/multipseudo/set_expansions.hpp \
 	hmc/multipseudo/theory_action.hpp \
-	hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp \
 	hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.hpp
 

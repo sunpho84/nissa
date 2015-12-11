@@ -36,15 +36,15 @@ namespace nissa
   //return the even part of the application of D to a vector
   void evn_apply_stD(color *out,quad_su3 **conf,double m,color **in,double sign=1)
   {
-    apply_stDeo_half(out,conf,in[ODD]);  
-    double_vector_linear_comb((double*)out,(double*)in[EVN],m,(double*)out,sign*2,6*loc_volh);
+    apply_stDeo_half(out,conf,in[ODD]);
+    double_vector_linear_comb((double*)out,(double*)in[EVN],m,(double*)out,sign*2,2*NCOL*loc_volh);
   }
   
   //return the odd part of the application of D to a vector
   void odd_apply_stD(color *out,quad_su3 **conf,double m,color **in,double sign=1)
   {
     apply_st2Doe(out,conf,in[EVN]);
-    double_vector_linear_comb((double*)out,(double*)in[ODD],m,(double*)out,sign*0.5,6*loc_volh);
+    double_vector_linear_comb((double*)out,(double*)in[ODD],m,(double*)out,sign*0.5,2*NCOL*loc_volh);
   }
   
   //return the result of the application of D to a vector

@@ -405,8 +405,12 @@ namespace nissa
   //to hold rhmc fields
   struct pseudofermion_t
   {
+    int is_stag,npf;
     color **stag;
     spincolor **Wils;
+    
+    void create(int npf,int is_stag);
+    void destroy();
   };
   
   //rational approximation

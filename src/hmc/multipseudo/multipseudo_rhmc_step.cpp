@@ -21,13 +21,38 @@
 #include "hmc/backfield.hpp"
 #include "hmc/momenta/momenta_generation.hpp"
 #include "hmc/multipseudo/Omelyan_integrator.hpp"
+#include "hmc/multipseudo/set_expansions.hpp"
 #include "hmc/multipseudo/theory_action.hpp"
 
-#include "hmc/rootst_eoimpr/rootst_eoimpr_eigenvalues.hpp"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_pseudofermions_generation.hpp"
 
 namespace nissa
-{  
+{
+  //create a pseudofermion
+  void pseudofermion_t::create(int _npf,int _is_stag)
+  {
+    is_stag=_is_stag;
+    npf=_npf;
+    
+    if(is_stag) stag=nissa_malloc("pf*",loc_volh,color*);
+    else        Wils=nissa_malloc("pf*",loc_volh,spincolor*);
+    
+    for(int ipf=0;ipf<npf;ipf++)
+      if(is_stag) stag[ipf]=nissa_malloc("pf",loc_volh,color);
+      else Wils[ipf]=nissa_malloc("pf",loc_volh,spincolor);
+  }
+  
+  //destroy it
+  void pseudofermion_t::destroy()
+  {
+    for(int ipf=0;ipf<npf;ipf++)
+      if(is_stag) nissa_free(stag[ipf]);
+      else        nissa_free(Wils[ipf]);
+    
+    if(is_stag) nissa_free(stag);
+    else        nissa_free(Wils);
+  }
+  
   //perform a full hmc step and return the difference between final and original action
   double multipseudo_rhmc_step(quad_su3 **out_conf,quad_su3 **in_conf,theory_pars_t &theory_pars,hmc_evol_pars_t &simul_pars,int itraj)
   {
@@ -52,19 +77,7 @@ namespace nissa
     //allocate pseudo-fermions
     pseudofermion_t pf[theory_pars.nflavs];
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
-      {
-	int npfs=simul_pars.npseudo_fs[iflav];
-	if(theory_pars.quark_content[iflav].is_stag)
-	  {
-	    pf[iflav].stag=nissa_malloc("pf*",npfs,color*);
-	    for(int ipf=0;ipf<npfs;ipf++) pf[iflav].stag[ipf]=nissa_malloc("pf",loc_volh,color);
-	  }
-	else
-	{
-	    pf[iflav].Wils=nissa_malloc("pf*",npfs,spincolor*);
-	    for(int ipf=0;ipf<npfs;ipf++) pf[iflav].Wils[ipf]=nissa_malloc("pf",loc_volh,spincolor);
-	  }
-      }
+      pf[iflav].create(simul_pars.npseudo_fs[iflav],theory_pars.quark_content[iflav].is_stag);
     
     //if needed smear the configuration for pseudo-fermions, approx generation and action computation
     //otherwise bind out_conf to sme_conf
@@ -82,7 +95,7 @@ namespace nissa
       }
     
     //generate the appropriate expansion of rational approximations
-    rootst_eoimpr_set_expansions(&simul_pars,sme_conf,&theory_pars);
+    set_expansions(&simul_pars,sme_conf,&theory_pars);
     
     //shift all the poles of the mass
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
@@ -129,16 +142,7 @@ namespace nissa
     
     //free stuff
     for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
-      if(theory_pars.quark_content[iflav].is_stag)
-	{
-	  for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++) nissa_free(pf[iflav].stag[ipf]);
-	  nissa_free(pf[iflav].stag);
-	}
-      else
-	{
-	  for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++) nissa_free(pf[iflav].Wils[ipf]);
-	  nissa_free(pf[iflav].Wils);
-	}
+      pf[iflav].destroy();
     
     for(int par=0;par<2;par++) nissa_free(H[par]);
     if(theory_pars.stout_pars.nlevels!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);

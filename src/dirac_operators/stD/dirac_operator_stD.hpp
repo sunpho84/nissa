@@ -1,5 +1,5 @@
-#ifndef _DIRAC_OPERATOR_STD_H
-#define _DIRAC_OPERATOR_STD_H
+#ifndef _DIRAC_OPERATOR_STD_HPP
+#define _DIRAC_OPERATOR_STD_HPP
 
 namespace nissa
 {
