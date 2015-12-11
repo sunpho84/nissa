@@ -93,7 +93,7 @@ namespace nissa
 	if(topars->flag && TOPO_EVOLUTION==TOPO_MICRO) evolve_lx_momenta_with_topological_force(H,lx_conf,topars,last_dt,aux_F);
 	
 	//normalize the configuration
-	unitarize_lx_conf_maximal_trace_projecting(lx_conf);
+	//unitarize_lx_conf_maximal_trace_projecting(lx_conf);
       }
     
     nissa_free(aux_F);
@@ -247,10 +247,10 @@ namespace nissa
 	Omelyan_pure_gauge_evolver_eo_conf(H,conf,theory_pars,simul_pars);
 	evolve_momenta_with_quark_force(H,conf,pf,theory_pars,simul_pars,last_dt);
 	if(tp.flag && TOPO_EVOLUTION==TOPO_MACRO) evolve_eo_momenta_with_topological_force(H,conf,&tp,last_dt);
-	
-	//normalize the configuration
-	unitarize_eo_conf_maximal_trace_projecting(conf);
       }
+    
+    //normalize the configuration
+    unitarize_eo_conf_maximal_trace_projecting(conf);
   }
   THREADABLE_FUNCTION_END
 }
