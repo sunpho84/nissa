@@ -112,7 +112,7 @@ namespace nissa
   void tmn2Deo_eos_bgq(bi_spincolor *out,bi_oct_su3 **conf,bi_spincolor *in){tmn2Doe_or_tmn2Deo_eos_bgq(out,conf,1,in);}
   
   //implement Koo defined in equation (7)
-  THREADABLE_FUNCTION_6ARG(tmDkern_eoprec_eos_bgq, bi_spincolor*,out, bi_oct_su3**,conf, double,kappa, double,mass, bi_spincolor*,in, int,D_or_Q)
+  THREADABLE_FUNCTION_6ARG(tmD_or_Qkern_eoprec_eos_bgq, bi_spincolor*,out, bi_oct_su3**,conf, double,kappa, double,mass, bi_spincolor*,in, int,D_or_Q)
   {
     if(in==out) crash("cannot work with in==out");
     
