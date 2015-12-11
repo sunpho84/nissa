@@ -48,7 +48,7 @@ namespace nissa
 	old_eig_max=*eig_max;
 	double_vector_normalize(eig_max,(double*)vec_in,(double*)vec_out,glb_volh*NCOL,2*NCOL*loc_volh);
 	
-	if(iter++>0) is_increasing=(*eig_max/old_eig_max-1>1e-14);
+	if((iter++)>0) is_increasing=(*eig_max/old_eig_max-1>1e-14);
 	verbosity_lv1_master_printf("max_eigen search mass %lg, iter %d, eig %16.16lg\n",quark_content->mass,iter,*eig_max);
       }
     while(iter<niters&&is_increasing);

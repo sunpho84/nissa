@@ -757,7 +757,10 @@ void run_program_for_analysis()
 
 //print the statistic
 void print_stat(const char *what,double time,int n)
-{master_printf("time to %s %d times: %lg s (%2.2g %c tot), %lg per iter\n",what,n,time,time*100/tot_time,'%',time/std::max(n,1));}
+{
+    double tot_time=take_time()-init_time;
+    master_printf("time to %s %d times: %lg s (%2.2g %c tot), %lg per iter\n",what,n,time,time*100/tot_time,'%',time/std::max(n,1));
+}
 
 void in_main(int narg,char **arg)
 {
@@ -774,7 +777,6 @@ void in_main(int narg,char **arg)
   
   /////////////////////////////////////// timings /////////////////////////////////
   
-  double tot_time=take_time()-init_time;
   print_stat("apply non vectorized staggered operator",portable_stD_app_time,portable_stD_napp);
   master_printf(" %lg MFlop/s\n",1158e-6*loc_volh*portable_stD_napp/(portable_stD_app_time?portable_stD_app_time:1));
 #ifdef BGQ
