@@ -1052,7 +1052,7 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   ti+=take_time();
   ti/=nbench;
   
-  master_printf("Time to take a (local) path product: %lg s, %lg MFlops\n",ti,loc_vol*flops_per_su3_prod);
+  master_printf("Time to take a (local) path product: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
   
   nissa_free(bi_path_in);
   nissa_free(bi_path_out);
