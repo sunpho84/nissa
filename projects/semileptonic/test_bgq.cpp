@@ -1019,6 +1019,35 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
 {
   GET_THREAD_ID();
   
+  su3 *conf=nissa_malloc("conf",loc_vol,su3);
+  su3 *path_in=nissa_malloc("path_in",loc_vol,su3);
+  su3 *path_out=nissa_malloc("path_out",loc_vol,su3);
+  
+  vector_reset(conf);
+  vector_reset(path_in);
+  vector_reset(path_out);
+  
+  double ti=-take_time();
+  
+  int nbench=10;
+  for(int ibench=0;ibench<nbench;ibench++)
+    {
+      NISSA_PARALLEL_LOOP(ivol, 0, loc_vol)
+	unsafe_su3_prod_su3(path_out[ivol],conf[ivol],path_in[ivol]);
+      THREAD_BARRIER();
+    }
+  
+  ti+=take_time();
+  ti/=nbench;
+  
+  master_printf("Time to take portably a (local) path product: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
+  
+  nissa_free(path_in);
+  nissa_free(path_out);
+  nissa_free(conf);
+  
+  //////////////////////////////////////////////////////////
+  
   bi_su3 *bi_conf=nissa_malloc("bi_conf",loc_vol/2,bi_su3);
   bi_su3 *bi_path_in=nissa_malloc("bi_path_in",loc_vol/2,bi_su3);
   bi_su3 *bi_path_out=nissa_malloc("bi_path_out",loc_vol/2,bi_su3);
@@ -1052,11 +1081,12 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   ti+=take_time();
   ti/=nbench;
   
-  master_printf("Time to take a (local) path product: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
+  master_printf("Time to take vectorially a (local) path product: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
   
   nissa_free(bi_path_in);
   nissa_free(bi_path_out);
   nissa_free(bi_conf);
+
 }
 THREADABLE_FUNCTION_END
 

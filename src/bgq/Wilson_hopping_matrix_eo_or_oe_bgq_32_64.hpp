@@ -84,23 +84,29 @@
 #endif
 
 #ifdef BGQ
- #define SITE_COPY(base_out,base_in)		\
-  {						\
-    void *in=base_in,*out=base_out;		\
-    DECLARE_REG_BI_HALFSPINCOLOR(reg_temp);		\
-    BI_32_64_HALFSPINCOLOR_PREFETCH_NEXT(in);		\
-    REG_LOAD_BI_32_64_HALFSPINCOLOR(reg_temp,in);	\
-    STORE_REG_BI_32_64_HALFSPINCOLOR(out,reg_temp);	\
-  }
+ #define SITE_COPY(base_out,base_in)			\
+  do							\
+    {							\
+      void *in=base_in,*out=base_out;			\
+      DECLARE_REG_BI_HALFSPINCOLOR(reg_temp);		\
+      BI_32_64_HALFSPINCOLOR_PREFETCH_NEXT(in);		\
+      REG_LOAD_BI_32_64_HALFSPINCOLOR(reg_temp,in);	\
+      STORE_REG_BI_32_64_HALFSPINCOLOR(out,reg_temp);	\
+    }							\
+  while(0)
 #else
  #define SITE_COPY(out,in) BI_32_64_HALFSPINCOLOR_COPY(out,in)
 #endif
 
 #define PROJ_HEADER(A)                          \
- REORDER_BARRIER();				\
- CACHE_PREFETCH(out+A);				\
- BI_32_64_SU3_PREFETCH_NEXT(links[A])
-
+  do						\
+    {						\
+      REORDER_BARRIER();			\
+      CACHE_PREFETCH(out+A);			\
+      BI_32_64_SU3_PREFETCH_NEXT(links[A]);	\
+    }						\
+  while(0)
+  
 namespace nissa
 {
   //summ the eight contributions
@@ -128,7 +134,7 @@ namespace nissa
 	DER_TMQ_EXP_BGQ_32_64_HEADER(reg_out,reg_temp,piece[0]);
 	REG_BI_COLOR_SUMM(reg_out_s2,reg_out_s2,reg_temp_s0);
 	REG_BI_COLOR_SUMM(reg_out_s3,reg_out_s3,reg_temp_s1);
-          
+	
 	//XFW
 	DER_TMQ_EXP_BGQ_32_64_HEADER(reg_out,reg_temp,piece[1]);
 	REG_BI_COLOR_ISUBT(reg_out_s2,reg_out_s2,reg_temp_s1);
@@ -188,7 +194,7 @@ namespace nissa
 	//declare
         DECLARE_REG_BI_SPINCOLOR(reg_in);
         DECLARE_REG_BI_HALFSPINCOLOR(reg_proj);
-
+	
 	//load
 	REG_LOAD_BI_32_64_SPINCOLOR(reg_in,in[i]);
 	
@@ -240,11 +246,11 @@ namespace nissa
         REG_BI_COLOR_ISUMM(reg_proj_s1,reg_in_s1,reg_in_s3);
         REG_BI_32_64_SU3_DAG_PROD_BI_32_64_HALFSPINCOLOR_LOAD_STORE(out[iout[7]],links[7],reg_proj);
       }
-
+    
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-
+  
   //if virtual parallelized dir is really parallelized, fill send buffers
   THREADABLE_FUNCTION_0ARG(BGQ_32_64_WILSON_HOPPING_MATRIX_OE_OR_EO_VDIR_VN_COMM_AND_BUFF_FILL)
   {
@@ -256,7 +262,7 @@ namespace nissa
     //short access
     int v=vnode_paral_dir;
     const int fact=2;
-    BI_32_64_HALFSPINCOLOR *bgq_hopping_matrix_output_data=(BI_32_64_HALFSPINCOLOR*)send_buf+bord_volh/fact; //half vol bisp = vol sp 
+    BI_32_64_HALFSPINCOLOR *bgq_hopping_matrix_output_data=(BI_32_64_HALFSPINCOLOR*)send_buf+bord_volh/fact; //half vol bisp = vol sp
     BI_32_64_HALFSPINCOLOR *bgq_hopping_matrix_output_vdir_buffer=bgq_hopping_matrix_output_data+8*loc_volh/fact;
     
     ///////////////////////// bw scattered v derivative (fw derivative)  ////////////////////////
@@ -307,7 +313,7 @@ namespace nissa
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-
+  
   //pick data from vbuffer and put it in correct position
   THREADABLE_FUNCTION_0ARG(BGQ_32_64_WILSON_HOPPING_MATRIX_OE_OR_EO_VDIR_VN_LOCAL_TRANSPOSE)
   {
@@ -353,7 +359,7 @@ namespace nissa
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END
-
+  
   //perform communications between VN and start all the communications between nodes
   THREADABLE_FUNCTION_0ARG(START_32_64_WILSON_HOPPING_MATRIX_OE_OR_EO_BGQ_COMMUNICATIONS)
   {
@@ -367,7 +373,7 @@ namespace nissa
     if(!paral_dir[vnode_paral_dir]) BGQ_32_64_WILSON_HOPPING_MATRIX_OE_OR_EO_VDIR_VN_LOCAL_TRANSPOSE();
   }
   THREADABLE_FUNCTION_END
-
+  
   //finish the communications and put in place the communicated data
   THREADABLE_FUNCTION_1ARG(FINISH_32_64_WILSON_HOPPING_MATRIX_OE_OR_EO_BGQ_COMMUNICATIONS, int,oe_or_eo)
   {

@@ -82,7 +82,7 @@ namespace nissa
     virlx_of_loclx=nissa_malloc("virlx_of_loclx",loc_vol+bord_vol,int);
     vireo_of_loclx=nissa_malloc("vireo_of_loclx",loc_vol+bord_vol,int);
     loclx_of_virlx=nissa_malloc("loclx_of_virlx",(loc_vol+bord_vol)/NVNODES,int);
-    for(int par=0;par<2;par++) 
+    for(int par=0;par<2;par++)
       {
 	loclx_of_vireo[par]=nissa_malloc("loceo_of_virlx",(loc_vol+bord_vol)/NVNODES/2,int);
 	loceo_of_vireo[par]=nissa_malloc("loceo_of_vireo",(loc_vol+bord_vol)/NVNODES/2,int);
@@ -305,7 +305,6 @@ namespace nissa
 	  }
       }
   }
-  
   /*
     put together the 8 links to be applied to a single point
     first comes the links needed to scatter backward the signal (not to be daggered)
@@ -431,14 +430,14 @@ namespace nissa
 	  //catch links needed to scatter signal forward
 	  SU3_TO_BI_SINGLE_SU3(out[loclx_parity[isrc_lx]][vireo_of_loclx[isrc_lx]][4+mu],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
 	  
-	  //copy links also where they are needed to scatter the signal backward, if 
-	  //sites that need them are not in the border (that would mean that computation must be 
+	  //copy links also where they are needed to scatter the signal backward, if
+	  //sites that need them are not in the border (that would mean that computation must be
 	  //done in another node)
 	  int idst_lx=loclx_neighup[isrc_lx][mu],vn=vnode_of_loclx(idst_lx);
 	  if(idst_lx<loc_vol) SU3_TO_BI_SINGLE_SU3(out[loclx_parity[idst_lx]][vireo_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vn);
 	}
     
-    //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
+    //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward
     for(int mu=0;mu<4;mu++) //border and link direction
       if(paral_dir[mu])
 	NISSA_PARALLEL_LOOP(ibord,loc_vol+bord_offset[mu],loc_vol+bord_offset[mu]+bord_dir_vol[mu])
@@ -470,16 +469,15 @@ namespace nissa
 	    int vn=vnode_of_loceo(par,isrc_eo);
 	    SU3_TO_BI_SU3(out[par][vireo_of_loceo[par][isrc_eo]][4+mu],in[par][isrc_eo][mu],vn);
 	    
-	    //copy links also where they are needed to scatter the signal backward, if 
-	    //sites that need them are not in the border (that would mean that computation must be 
+	    //copy links also where they are needed to scatter the signal backward, if
+	    //sites that need them are not in the border (that would mean that computation must be
 	    //done in another node)
 	    int idst_eo=loceo_neighup[par][isrc_eo][mu];
 	    vn=vnode_of_loceo(!par,idst_eo);
 	    if(idst_eo<loc_volh) SU3_TO_BI_SU3(out[!par][vireo_of_loceo[!par][idst_eo]][mu],in[par][isrc_eo][mu],vn);
 	  }
-    
-    
-    //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
+        
+    //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward
     for(int par=0;par<2;par++)
       for(int mu=0;mu<4;mu++) //border and link direction
 	if(paral_dir[mu])
@@ -513,8 +511,8 @@ namespace nissa
 	    int vn=vnode_of_loceo(par,isrc_eo);
 	    SU3_TO_BI_SINGLE_SU3(out[par][vireo_of_loceo[par][isrc_eo]][4+mu],in[par][isrc_eo][mu],vn);
 	    
-	    //copy links also where they are needed to scatter the signal backward, if 
-	    //sites that need them are not in the border (that would mean that computation must be 
+	    //copy links also where they are needed to scatter the signal backward, if
+	    //sites that need them are not in the border (that would mean that computation must be
 	    //done in another node)
 	    int idst_eo=loceo_neighup[par][isrc_eo][mu];
 	    vn=vnode_of_loceo(!par,idst_eo);
@@ -522,7 +520,7 @@ namespace nissa
 						      in[par][isrc_eo][mu],vn);
 	  }
     
-    //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
+    //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward
     for(int par=0;par<2;par++)
       for(int mu=0;mu<4;mu++) //border and link direction
 	if(paral_dir[mu])
