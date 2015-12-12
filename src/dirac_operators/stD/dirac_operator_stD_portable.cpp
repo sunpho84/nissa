@@ -55,7 +55,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   THREADABLE_FUNCTION_3ARG(apply_stDeo_half, color*,out, quad_su3**,conf, color*,in)
   {
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
@@ -84,25 +84,24 @@ namespace nissa
 	  }
 	
 	//Doe contains 1/2, we put an additional one
-	color_prod_double(out[ie],out[ie],0.25);      
+	color_prod_double(out[ie],out[ie],0.25);
       }
     
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END
-
+  
   THREADABLE_FUNCTION_5ARG(apply_stD2ee_m2, color*,out, quad_su3**,conf, color*,temp, double,mass2, color*,in)
   {
     GET_THREAD_ID();
     if(IS_MASTER_THREAD)
       {
-	portable_stD_app_time-=take_time();
-	
 	//check arguments
 	if(out==in)   crash("out==in!");
 	if(out==temp) crash("out==temp!");
 	if(temp==in)  crash("temp==in!");
       }
+    START_TIMING(portable_stD_app_time,nportable_stD_app);
     
     if(!check_borders_valid(conf[EVN])||!check_borders_valid(conf[ODD]))
       communicate_ev_and_od_quad_su3_borders(conf);
@@ -149,8 +148,8 @@ namespace nissa
 	    su3_summ_the_prod_color(    out[ie],conf[EVN][ie  ][mu],temp[odup]);
 	    su3_dag_subt_the_prod_color(out[ie],conf[ODD][oddw][mu],temp[oddw]);
 	  }
-      }	
-
+      }
+    
     if(mass2!=0)
       NISSA_PARALLEL_LOOP(ie,0,loc_volh)
 	for(int ic=0;ic<3;ic++)
@@ -164,11 +163,7 @@ namespace nissa
     
     set_borders_invalid(out);
     
-    if(IS_MASTER_THREAD)
-      {
-	portable_stD_app_time+=take_time();
-	portable_stD_napp++;
-      }
+    STOP_TIMING(portable_stD_app_time);
   }
   THREADABLE_FUNCTION_END
 }

@@ -155,44 +155,59 @@
 #define BI_COMPLEX_SPLAT(A,B) A[0][0]=A[0][1]=A[1][0]=A[1][1]=B
 
 #define BI_COMPLEX_COPY(A,B)			\
-  {						\
+  do						\
+    {						\
     complex_copy(A[0],B[0]);			\
     complex_copy(A[1],B[1]);			\
-  }
+    }						\
+  while(0)
+
 #define BI_COMPLEX_COPY_FROM_BI_SINGLE_COMPLEX(A,B)	\
+  do							\
   {							\
     complex_copy_from_single_complex(A[0],B[0]);	\
     complex_copy_from_single_complex(A[1],B[1]);	\
-  }
+  }							\
+  while(0)
 #define BI_SINGLE_COMPLEX_COPY_FROM_BI_COMPLEX(A,B)	\
+  do							\
   {							\
     single_complex_copy_from_complex(A[0],B[0]);	\
     single_complex_copy_from_complex(A[1],B[1]);	\
-  }
+  }							\
+  while(0)
 #define BI_COLOR_COPY(A,B)			\
+  do						\
   {						\
     BI_COMPLEX_COPY(A[0],B[0]);			\
     BI_COMPLEX_COPY(A[1],B[1]);			\
     BI_COMPLEX_COPY(A[2],B[2]);			\
-  }
+  }						\
+  while(0)
 #define BI_SU3_COPY(A,B)			\
+  do						\
   {						\
     BI_COLOR_COPY(A[0],B[0]);			\
     BI_COLOR_COPY(A[1],B[1]);			\
     BI_COLOR_COPY(A[2],B[2]);			\
-  }
+  }						\
+  while(0)
 #define BI_HALFSPINCOLOR_COPY(A,B)		\
+  do						\
   {						\
     BI_COLOR_COPY(A[0],B[0]);			\
     BI_COLOR_COPY(A[1],B[1]);			\
-  }
+  }						\
+  while(0)
 #define BI_SPINCOLOR_COPY(A,B)			\
+  do						\
   {						\
     BI_COLOR_COPY(A[0],B[0]);			\
     BI_COLOR_COPY(A[1],B[1]);			\
     BI_COLOR_COPY(A[2],B[2]);			\
     BI_COLOR_COPY(A[3],B[3]);			\
-  }
+  }						\
+  while(0)
 
 /////////////////////////////////// split BI ///////////////////////////////////
 

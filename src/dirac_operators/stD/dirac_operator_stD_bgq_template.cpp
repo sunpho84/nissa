@@ -2,7 +2,7 @@
   {
     GET_THREAD_ID();
     
-    if(IS_MASTER_THREAD) bgq_stdD_app_time-=take_time();
+    START_TIMING(bgq_stdD_app_time,nbgq_stdD_app);
     
     //----------------------looping on E--------------------
     const int OE=0;
@@ -34,11 +34,7 @@
 		   (bi_out,mass2,bi_in);
     else         NAME3(hopping_matrix_oe_or_eo_expand_to,PREC,staggered_D_bgq)(bi_out,-1);
     
-    if(IS_MASTER_THREAD)
-      {
-	bgq_stdD_app_time+=take_time();
-	bgq_stdD_napp++;
-      }
+    STOP_TIMING(bgq_stdD_app_time);
   }
   THREADABLE_FUNCTION_END
 

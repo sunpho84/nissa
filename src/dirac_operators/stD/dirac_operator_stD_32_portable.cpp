@@ -14,13 +14,13 @@ namespace nissa
     GET_THREAD_ID();
     if(IS_MASTER_THREAD)
       {
-	portable_stD_app_time-=take_time();
-	
 	//check arguments
 	if(out==in)   crash("out==in!");
 	if(out==temp) crash("out==temp!");
 	if(temp==in)  crash("temp==in!");
       }
+    
+    START_TIMING(portable_stD_app_time,nportable_stD_app);
     
     if(!check_borders_valid(conf[EVN])) communicate_ev_and_od_single_quad_su3_borders(conf);
     if(!check_borders_valid(in)) communicate_ev_single_color_borders(in);
@@ -74,11 +74,7 @@ namespace nissa
     
     set_borders_invalid(out);
     
-    if(IS_MASTER_THREAD)
-      {
-	portable_stD_app_time+=take_time();
-	portable_stD_napp++;
-      }
+    STOP_TIMING(portable_stD_app_time);
   }
   THREADABLE_FUNCTION_END
 }

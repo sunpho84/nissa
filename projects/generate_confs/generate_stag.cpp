@@ -779,22 +779,23 @@ void in_main(int narg,char **arg)
   
   /////////////////////////////////////// timings /////////////////////////////////
   
-  print_stat("apply non vectorized staggered operator",portable_stD_app_time,portable_stD_napp,1158*loc_volh);
+  print_stat("apply non vectorized staggered operator",portable_stD_app_time,nportable_stD_app,1158*loc_volh);
 #ifdef BGQ
-  print_stat("apply vectorized staggered operator",bgq_stdD_app_time,bgq_stdD_napp,1158*loc_volh);
+  print_stat("apply vectorized staggered operator",bgq_stdD_app_time,nbgq_stdD_app,1158*loc_volh);
 #endif
-  print_stat("cgm invert overhead",cgm_inv_over_time,ncgm_inv);
-  print_stat("cg invert overhead",cg_inv_over_time,ncg_inv);
+  print_stat("cgm invert (overhead)",cgm_inv_over_time,ncgm_inv);
+  print_stat("cg invert (overhead)",cg_inv_over_time,ncg_inv);
   print_stat("stout smearing",sto_time,nsto);
   print_stat("stout remapping",sto_remap_time,nsto_remap);
-  print_stat("compute gluon force",gluon_force_time,ngluon_force,((28*(NDIM-1)+2)*(NCOL*NCOL/*entries*/*(NCOL*6+(NCOL-1)*2))/*prod*/+11*(NCOL*NCOL*2)/*summ*/)*NDIM*loc_vol);
-  print_stat("compute quark force",quark_force_over_time,nquark_force_over);
+  print_stat("compute gluon force",gluon_force_time,ngluon_force,((theory_pars[SEA_THEORY].gauge_action_name!=WILSON_GAUGE_ACTION)?
+								  flops_per_link_gauge_tlSym:flops_per_link_gauge_Wilson)*NDIM*loc_vol);
+  print_stat("compute quark force (overhead)",quark_force_over_time,nquark_force_over);
   print_stat("evolve the gauge conf with momenta",conf_evolve_time,nconf_evolve);
   print_stat("remap geometry of vectors",remap_time,nremap);
   print_stat("unitarize the conf",unitarize_time,nunitarize);
   print_stat("write",write_conf_time,nwrite_conf);
   for(int i=0;i<ntop_meas;i++) master_printf("time to perform the %d topo meas (%s): %lg (%2.2g %c tot)\n",i,top_meas_pars[i].path.c_str(),top_meas_time[i],
-					     top_meas_time[i]*100/tot_time,'%');
+					     top_meas_time[i]*100/(take_time()-init_time),'%');
   
   close_simulation();
 }

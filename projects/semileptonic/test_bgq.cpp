@@ -29,7 +29,7 @@ int comp_nhop(coords_5D n,coords_5D tcoords,coords_5D tdims,bool p=0)
     {
       if(p) master_printf(" net_dir %d, loc_coord %d, neigh_coord %d, is_torus %d\n",
 			  idir,tcoords[idir],n[idir],spi_dir_is_torus[idir]);
-  
+      
       int off=abs(n[idir]-tcoords[idir]);
       if(spi_dir_is_torus[idir]) off=std::min(off,std::min(tdims[idir]+n[idir]-tcoords[idir],
 							   tdims[idir]+tcoords[idir]-n[idir]));
@@ -113,7 +113,7 @@ void time_mpi_timing()
       iter_timing+=take_time();
       
       ave_timing+=iter_timing;
-      var_timing+=iter_timing*iter_timing;     
+      var_timing+=iter_timing*iter_timing;
     }
   ave_timing/=nbench;
   var_timing/=nbench;
@@ -386,7 +386,7 @@ void bench_comm()
 	      }
 	  master_printf(" [%lg Mb/sec exp]\n",max_time);
 	}
-
+      
       
       if(itest<8) saved_time[itest]=time;
     }
@@ -817,7 +817,7 @@ void debug2_st()
     apply_stD2ee_m2(out[EVN],conf_eo,in_eo[ODD]/*used as tmp*/,mass2,in_eo[EVN]);
     //apply_st2Doe(out[ODD],conf_eo,in_eo[EVN]);
   port_time+=take_time();
-  port_time/=2*nbench_port;
+  port_time/=nbench_port;
   
   nissa_free(conf_eo[EVN]);
   nissa_free(conf_eo[ODD]);
@@ -929,7 +929,7 @@ void debug2_st()
 
   //benchmark expansion
   double exp_bgq_time[2];
-  int nflops_exp=42*loc_volh;
+  int nflops_exp=NCOL*(9*flops_per_complex_summ)*loc_volh;
   for(int eo_or_oe=0;eo_or_oe<2;eo_or_oe++)
     {
       exp_bgq_time[eo_or_oe]=-take_time();
@@ -1027,24 +1027,23 @@ void in_main(int narg,char **arg)
   start_loc_rnd_gen(seed);
   
   check_torus();
-
+  
   time_mpi_timing();
-  /*
   bench_thread_barrier();
   
   //master_printf("debugging tmQ\n");
   //debug_apply_tmQ();
-
+  
   //master_printf("debugging stDeo\n");
   //debug_apply_stDeo();
-
+  
   //master_printf("debugging stDoe\n");
   //debug_apply_stDoe();
-
+  
   //prebench
   comm_start(lx_spincolor_comm);
   comm_wait(lx_spincolor_comm);
-
+  
   bench_comm();
   
   bench_scalar_prod();
@@ -1053,17 +1052,17 @@ void in_main(int narg,char **arg)
   int nmodes=1;
 #else
   int nmodes=4;
-#endif  
+#endif
   for(int mode=0;mode<nmodes;mode++) bench_vector_copy(mode);
-  */
+  
   //////////////////////////////////////
-
-  //debug2_tm();
+  
+  debug2_tm();
   debug2_st();
   
   /////////////////////////////////////////////
 }
- 
+
 int main(int narg,char **arg)
 {
   init_nissa_threaded(narg,arg,in_main);
