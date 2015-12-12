@@ -1029,23 +1029,21 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   
   double ti=-take_time();
   
-  DECLARE_REG_BI_SU3(REG_BI_CONF);
-  DECLARE_REG_BI_SU3(REG_BI_PATH_IN);
-  DECLARE_REG_BI_SU3(REG_BI_PATH_OUT);
-  
   int nbench=10;
   for(int ibench=0;ibench<nbench;ibench++)
     {
-      
       NISSA_PARALLEL_LOOP(ivol, 0, loc_vol/2)
 	{
+	  DECLARE_REG_BI_SU3(REG_BI_CONF);
 	  REG_LOAD_BI_SU3(REG_BI_CONF,bi_conf[ivol]);
-	  REG_LOAD_BI_SU3(REG_BI_PATH_IN,bi_path_in[ivol]);
 	  BI_SU3_PREFETCH_NEXT(bi_conf[ivol]);
+	  
+	  DECLARE_REG_BI_SU3(REG_BI_PATH_IN);
+	  REG_LOAD_BI_SU3(REG_BI_PATH_IN,bi_path_in[ivol]);
 	  BI_SU3_PREFETCH_NEXT(bi_path_in[ivol]);
 	  
-	  REG_BI_SU3_DAG_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);
-	  
+	  DECLARE_REG_BI_SU3(REG_BI_PATH_OUT);
+  	  REG_BI_SU3_DAG_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);	  
 	  STORE_REG_BI_SU3(bi_path_out[ivol],REG_BI_PATH_OUT);
 	}
       THREAD_BARRIER();
