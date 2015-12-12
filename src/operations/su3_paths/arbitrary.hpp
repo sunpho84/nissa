@@ -130,9 +130,9 @@ namespace nissa
     //setu the communication buffers
     void setup_sender_receivers();
   };
-
+  
   ////////////////////////////////////////////////////////////
-
+  
   struct coords_t{
     coords c;
     int &operator[](int i){return c[i];}
@@ -156,4 +156,4 @@ namespace nissa
 }
 
 #endif
-  
+

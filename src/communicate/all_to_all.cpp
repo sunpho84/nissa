@@ -43,7 +43,7 @@ namespace nissa
     nissa_free(out_buf_off_per_rank);
     nissa_free(in_buf_off_per_rank);
   }
-
+  
   //find (communicating) the complementary info
   void all_to_all_comm_t::setup_nper_rank_other_temp(int *nper_rank_other_temp,int *nper_rank_temp)
   {
@@ -62,7 +62,7 @@ namespace nissa
     THREAD_BARRIER();
     verbosity_lv3_master_printf("finished communicating setup_nper_rank_other_temp\n");
   }
-
+  
   //common part of initialization
   void all_to_all_comm_t::common_setup_part1(temp_build_t &build)
   {
@@ -79,7 +79,7 @@ namespace nissa
     nranks_fr=nranks_fr_loc;
     list_ranks_to=nissa_malloc("list_ranks_to",nranks_to,int);
     list_ranks_fr=nissa_malloc("list_ranks_fr",nranks_fr,int);
-
+    
     //store the true list of ranks to communicate with and the number of elements to send to each rank
     nper_rank_to=nissa_malloc("nper_rank_to",nranks_to,int);
     nper_rank_fr=nissa_malloc("nper_rank_fr",nranks_fr,int);
@@ -162,7 +162,7 @@ namespace nissa
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
     THREAD_BARRIER();
-  
+    
     //check
     /*
     int *in_buf_dest_check=nissa_malloc("in_buf_dest_check",nel_in,int);
@@ -188,7 +188,7 @@ namespace nissa
   void all_to_all_comm_t::setup_knowing_where_to_send(all_to_all_scattering_list_t &sl)
   {
     GET_THREAD_ID();
-
+    
     //count the nu,ber of elements to send
     temp_build_t build;
     nel_out=sl.size();
@@ -209,7 +209,7 @@ namespace nissa
     setup_nper_rank_other_temp(build.nper_rank_fr_temp,build.nper_rank_to_temp);
     common_setup_part1(build);
     out_buf_source=nissa_malloc("out_buf_source",nel_out,int);
-
+    
     //save where to store and fill where to load each element in the temporary buffer
     int *in_buf_dest_expl=nissa_malloc("in_buf_dest_expl",nel_out,int);
     if(IS_MASTER_THREAD)
@@ -228,7 +228,7 @@ namespace nissa
 		       in_buf_dest_expl,nranks_to,list_ranks_to,out_buf_off_per_rank,nper_rank_to);
     nissa_free(in_buf_dest_expl);
   }
-
+  
   //build knowing where to send
   all_to_all_comm_t::all_to_all_comm_t(all_to_all_gathering_list_t &gl)
   {
@@ -237,10 +237,10 @@ namespace nissa
   void all_to_all_comm_t::setup_knowing_what_to_ask(all_to_all_gathering_list_t &gl)
   {
     GET_THREAD_ID();
-
+    
     temp_build_t build;
     nel_in=gl.size();
-        
+    
     //count how many elements to send to each rank
     vector_reset(build.nper_rank_fr_temp);
     if(IS_MASTER_THREAD)
@@ -304,7 +304,7 @@ namespace nissa
 	MPI_Waitall(ireq,req_list,MPI_STATUS_IGNORE);
       }
     THREAD_BARRIER();
-      
+    
     //sort out data from the incoming buffer
     NISSA_PARALLEL_LOOP(iel_in,0,nel_in)
       memcpy((char*)out+in_buf_dest[iel_in]*bps,in_buf+iel_in*bps,bps);
@@ -322,16 +322,16 @@ namespace nissa
     int ivol,irank;
     get_loclx_and_rank_of_coord(&ivol,&irank,g);
     int ilink_asked=NDIM*ivol+mu;
-  
+    
     //if it is local, return local position
     if(irank==rank) return ilink_asked;
     else
       {
 	int irank_link_asked=ilink_asked*nranks+irank;
-      
+	
 	//if it is non local search it in the list of to-be-gathered
 	all_to_all_gathering_list_t::iterator it=this->find(irank_link_asked);
-      
+	
 	//if it is already in the list, return its position
 	if(it!=this->end()) return it->second;
 	else
@@ -340,7 +340,7 @@ namespace nissa
 	    int nel_gathered=this->size();
 	    int igathered=NDIM*loc_vol+nel_gathered;
 	    (*this)[irank_link_asked]=igathered;
-          
+	    
 	    return igathered;
 	  }
       }

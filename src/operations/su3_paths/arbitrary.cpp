@@ -417,9 +417,9 @@ namespace nissa
     
     nissa_free(nonloc_links);
   }
-
+  
   /////////////////////////////////////////// A SIMPLER APPROACH /////////////////////////////////////////
-
+  
   //initialise to identity
   THREADABLE_FUNCTION_2ARG(init_su3_path, path_drawing_t*,c, su3*,out)
   {
@@ -432,7 +432,7 @@ namespace nissa
     set_borders_invalid(out);
   }
   THREADABLE_FUNCTION_END;
-
+  
   //compare start and end
   void crash_if_end_diff_from_start(path_drawing_t *c)
   {
@@ -446,11 +446,11 @@ namespace nissa
   THREADABLE_FUNCTION_5ARG(elong_su3_path_BW, path_drawing_t*,c, su3*,out, quad_su3*,conf, int,mu, bool,both_sides)
   {
     GET_THREAD_ID();
-
+    
     if(both_sides) crash_if_end_diff_from_start(c);
     
     su3_vec_single_shift(out,mu,-1);
-
+    
     if(both_sides)
       NISSA_PARALLEL_LOOP(ivol,0,loc_vol)
 	{
@@ -466,11 +466,11 @@ namespace nissa
     t[mu]--;
     c->push_back(t);
     if(both_sides) c->push_front(t);
-
+    
     THREAD_BARRIER();
   }
   THREADABLE_FUNCTION_END;
-
+  
   //elong forward
   THREADABLE_FUNCTION_5ARG(elong_su3_path_FW, path_drawing_t*,c, su3*,out, quad_su3*,conf, int,mu, bool,both_sides)
   {
@@ -504,7 +504,7 @@ namespace nissa
   {
     //pointer to avoid branch
     void (*fun)(path_drawing_t*,su3*,quad_su3*,int,bool)=((len<0)?elong_su3_path_BW:elong_su3_path_FW);
-
+    
     //call the appropriate number of times
     for(int l=0;l<abs(len);l++) fun(c,out,conf,mu,both_sides);
   }

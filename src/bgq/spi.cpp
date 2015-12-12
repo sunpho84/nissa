@@ -218,7 +218,7 @@ namespace nissa
     //check not to have initialized
     if(!spi_inited)
       {
-	verbosity_lv2_master_printf("Starting spi\n");
+	verbosity_lv1_master_printf("Starting spi\n");
 	
 	//check that we do not have more than one process per node
 	if(Kernel_ProcessCount()!=1) crash("only one process per node implemented");
@@ -304,7 +304,7 @@ namespace nissa
 	//init the barrier
 	if(MUSPI_GIBarrierInit(&spi_barrier,0)) crash("initializing the barrier");
 #endif
-	verbosity_lv2_master_printf("spi initialized\n");      
+	verbosity_lv2_master_printf("spi initialized\n");
       }
   }
   

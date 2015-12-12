@@ -95,7 +95,7 @@ void check_torus()
 	int nhop=comp_nhop(n[mu][bf],tcoords,tdims,1);
 	master_printf("Dir %d bf %d nhop: %d\n",mu,bf,nhop);
       }
-
+  
   for(int mu=0;mu<4;mu++)
     {
       is_closed[mu]=0;
@@ -214,7 +214,7 @@ THREADABLE_FUNCTION_1ARG(bench_vector_copy, int,mode)
           int morso=loc_vol*sizeof(spincolor)/sizeof(double)/nthreads;
           double *x=(double*)in,*y=(double*)out;
           int is=thread_id*morso,ie=is+morso;
-
+	  
           for(int i=is;i<ie;i+=4) vec_st(vec_ld(0,x+i),0,y+i);
         }
 #endif
@@ -406,7 +406,7 @@ void debug_apply_stDoe_or_eo(int oe_or_eo)
   vector_reset(in);
   NISSA_LOC_VOL_LOOP(ivol)
     in[ivol][0][0]=glblx_of_loclx[ivol];
-  set_borders_invalid(in);  
+  set_borders_invalid(in);
   communicate_lx_color_borders(in);
   
   //remap conf to bgq
@@ -535,7 +535,7 @@ void debug_apply_tmQ()
   vector_reset(in);
   NISSA_LOC_VOL_LOOP(ivol)
     in[ivol][0][0][0]=glblx_of_loclx[ivol];
-  set_borders_invalid(in);  
+  set_borders_invalid(in);
   communicate_lx_spincolor_borders(in);
   
   //remap conf to bgq
@@ -568,7 +568,7 @@ void debug_apply_tmQ()
   THREAD_BARRIER();
   start_Wilson_hopping_matrix_lx_bgq_communications();
   THREAD_BARRIER();
-
+  
   //compute on the bulk and finish communications
   master_printf("Applying on the bulk: %d-%d\n",vsurf_vol,loc_volh);
   apply_Wilson_hopping_matrix_lx_bgq_nocomm(bi_conf,vsurf_vol,loc_volh,bi_in);
@@ -670,7 +670,7 @@ void debug2_tm()
   //remap in to bgq
   bi_spincolor *bi_in=nissa_malloc("bi_in",loc_vol+bord_vol,bi_spincolor);
   lx_spincolor_remap_to_virlx(bi_in,in);
-
+  
   //apply bgq
   bi_spincolor *bi_out=nissa_malloc("bi_out",loc_vol+bord_vol,bi_spincolor);
   double bgq_time=-take_time();
@@ -695,7 +695,7 @@ void debug2_tm()
   master_printf("Time to apply %d time:\n",nbench);
   master_printf(" %lg sec in port mode\n",port_time);
   master_printf(" %lg sec in bgq mode\n",bgq_time);
-
+  
   //benchmark pure hopping matrix application
   double hop_bgq_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
@@ -775,7 +775,7 @@ void debug2_tm()
 void debug2_st()
 {
   master_printf("------staggered------\n");
-
+  
   double mass2=0.8;
   
   //create random conf
@@ -802,7 +802,7 @@ void debug2_st()
   ///////////////////////// normal way //////////////////////
   
   master_printf("normal way\n");
-
+  
   //split into eo the conf
   quad_su3 *conf_eo[2]={nissa_malloc("conf",loc_volh+bord_volh,quad_su3),
 			nissa_malloc("conf",loc_volh+bord_volh,quad_su3)};
@@ -841,7 +841,7 @@ void debug2_st()
   //apply bgq
   bi_color *bi_out_eo[2]={nissa_malloc("bi_out",loc_volh/2,bi_color),
 			  nissa_malloc("bi_out",loc_volh/2,bi_color)};
-
+  
   bi_single_oct_su3 *bi_single_conf_eo[2]={nissa_malloc("bi_single_conf_evn",loc_volh/2,bi_single_oct_su3),
 					   nissa_malloc("bi_single_conf_odd",loc_volh/2,bi_single_oct_su3)};
   bi_single_color *bi_single_in_eo[2]={nissa_malloc("bi_single_in",loc_volh/2,bi_single_color),
@@ -911,7 +911,7 @@ void debug2_st()
   master_printf(" %lg sec in port mode, %lg MFlops\n",port_time,1156e-6*loc_volh/port_time);
   master_printf(" %lg sec in bgq double mode, %lg MFlops\n",bgq_double_time,1156e-6*loc_volh/bgq_double_time);
   master_printf(" %lg sec in bgq single mode, %lg MFlops\n",bgq_single_time,1156e-6*loc_volh/bgq_single_time);
-
+  
   //benchmark pure hopping matrix application
   double hop_bgq_time[2];
   int nflops_hop=480*loc_volh;
@@ -926,7 +926,7 @@ void debug2_st()
 		    (eo_or_oe==0)?"eo":"oe",
 		    hop_bgq_time[eo_or_oe],nflops_hop,nflops_hop*1e-6/hop_bgq_time[eo_or_oe]);
     }
-
+  
   //benchmark expansion
   double exp_bgq_time[2];
   int nflops_exp=NCOL*(9*flops_per_complex_summ)*loc_volh;
@@ -942,7 +942,7 @@ void debug2_st()
 		    (eo_or_oe==0)?"eo":"oe",
 		    exp_bgq_time[eo_or_oe],nflops_exp,nflops_exp*1e-6/exp_bgq_time[eo_or_oe]);
     }
-
+  
   //total
   double hop_plus_exp_bgq_time=hop_bgq_time[0]+hop_bgq_time[1]+exp_bgq_time[0]+exp_bgq_time[1];
   int nflops_hop_plus_exp=2*(nflops_exp+nflops_hop);
@@ -1015,6 +1015,49 @@ void debug2_st()
   nissa_free(bi_single_out_eo[1]);
 }
 
+THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
+{
+  bi_su3 *bi_conf=nissa_malloc("bi_conf",loc_vol/2,bi_su3);
+  bi_su3 *bi_path_in=nissa_malloc("bi_path_in",loc_vol/2,bi_su3);
+  bi_su3 *bi_path_out=nissa_malloc("bi_path_out",loc_vol/2,bi_su3);
+  
+  vector_reset(bi_conf);
+  vector_reset(bi_path_in);
+  vector_reset(bi_path_out);
+  
+  double ti=-take_time();
+  
+  DECLARE_REG_BI_SU3(REG_BI_CONF);
+  DECLARE_REG_BI_SU3(REG_BI_PATH_IN);
+  DECLARE_REG_BI_SU3(REG_BI_PATH_OUT);
+  
+  int nbench=10;
+  for(int ibench=0;ibench<nbench;ibench++)
+    {
+      
+      NISSA_PARALLEL_LOOP(ivol, 0, loc_vol/2)
+	{
+	  REG_LOAD_BI_SU3(REG_BI_CONF,bi_conf[ivol]);
+	  REG_LOAD_BI_SU3(REG_BI_PATH_IN,bi_path_in[ivol]);
+	  
+	  REG_BI_SU3_DAG_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);
+	  
+	  STORE_REG_BI_SU3(bi_path_out[ivol],REG_BI_PATH_OUT);
+	}
+      THREAD_BARRIER();
+    }
+  
+  ti+=take_time();
+  ti/=nbench;
+  
+  master_printf("Time to take a (local) path product: %lg s, %lg MFlops\n",ti,loc_vol*flops_per_su3_prod);
+  
+  nissa_free(bi_path_in);
+  nissa_free(bi_path_out);
+  nissa_free(bi_conf);
+}
+THREADABLE_FUNCTION_END
+
 void in_main(int narg,char **arg)
 {
   if(narg<3) crash("use %s L T",arg[0]);
@@ -1030,6 +1073,8 @@ void in_main(int narg,char **arg)
   
   time_mpi_timing();
   bench_thread_barrier();
+  
+  bench_su3_path_prod();
   
   //master_printf("debugging tmQ\n");
   //debug_apply_tmQ();
