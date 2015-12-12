@@ -1041,6 +1041,8 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
 	{
 	  REG_LOAD_BI_SU3(REG_BI_CONF,bi_conf[ivol]);
 	  REG_LOAD_BI_SU3(REG_BI_PATH_IN,bi_path_in[ivol]);
+	  BI_SU3_PREFETCH_NEXT(bi_conf[ivol]);
+	  BI_SU3_PREFETCH_NEXT(bi_path_in[ivol]);
 	  
 	  REG_BI_SU3_DAG_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);
 	  
