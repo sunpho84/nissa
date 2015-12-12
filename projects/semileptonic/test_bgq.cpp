@@ -1017,6 +1017,8 @@ void debug2_st()
 
 THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
 {
+  GET_THREAD_ID();
+  
   bi_su3 *bi_conf=nissa_malloc("bi_conf",loc_vol/2,bi_su3);
   bi_su3 *bi_path_in=nissa_malloc("bi_path_in",loc_vol/2,bi_su3);
   bi_su3 *bi_path_out=nissa_malloc("bi_path_out",loc_vol/2,bi_su3);
