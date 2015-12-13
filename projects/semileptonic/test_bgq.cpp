@@ -928,20 +928,36 @@ void debug2_st()
     }
   
   //benchmark expansion
-  double exp_bgq_time[2];
+  double exp_bgq_time[2][2];
   int nflops_exp=NCOL*(9*flops_per_complex_summ)*loc_volh;
-  for(int eo_or_oe=0;eo_or_oe<2;eo_or_oe++)
-    {
-      exp_bgq_time[eo_or_oe]=-take_time();
-      if(eo_or_oe==0) for(int ibench=0;ibench<nbench;ibench++) hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[EVN]);
-      else for(int ibench=0;ibench<nbench;ibench++) 
-	     hopping_matrix_oe_or_eo_expand_to_double_staggered_D_subtract_from_mass2_times_in_bgq(bi_out_eo[ODD],mass2,bi_in_eo[EVN]); 
-      exp_bgq_time[eo_or_oe]+=take_time();
-      exp_bgq_time[eo_or_oe]/=nbench;
-      master_printf("exp_bgq_time_%s: %lg sec, %d flops, %lg Mflops\n",
-		    (eo_or_oe==0)?"eo":"oe",
-		    exp_bgq_time[eo_or_oe],nflops_exp,nflops_exp*1e-6/exp_bgq_time[eo_or_oe]);
-    }
+  for(int single_double=0;single_double<2;single_double++)
+    for(int eo_or_oe=0;eo_or_oe<2;eo_or_oe++)
+      {
+	exp_bgq_time[single_double][eo_or_oe]=-take_time();
+	if(single_double==0)
+	  {
+	    if(eo_or_oe==0)
+	      for(int ibench=0;ibench<nbench;ibench++)
+		hopping_matrix_oe_or_eo_expand_to_single_staggered_D_bgq((bi_single_color*)(bi_out_eo[EVN]));
+	    else
+	      for(int ibench=0;ibench<nbench;ibench++)
+		hopping_matrix_oe_or_eo_expand_to_single_staggered_D_subtract_from_mass2_times_in_bgq((bi_single_color*)(bi_out_eo[ODD]),mass2,(bi_single_color*)(bi_in_eo[EVN]));
+	  }
+	else
+	  {
+	    if(eo_or_oe==0)
+	      for(int ibench=0;ibench<nbench;ibench++)
+		hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[EVN]);
+	    else
+	      for(int ibench=0;ibench<nbench;ibench++)
+		hopping_matrix_oe_or_eo_expand_to_double_staggered_D_subtract_from_mass2_times_in_bgq(bi_out_eo[ODD],mass2,bi_in_eo[EVN]);
+	  }
+	exp_bgq_time[single_double][eo_or_oe]+=take_time();
+	exp_bgq_time[single_double][eo_or_oe]/=nbench;
+	master_printf("exp_bgq_time_%s (%s): %lg sec, %d flops, %lg Mflops\n",
+		      (eo_or_oe==0)?"eo":"oe",(single_double==0?"single":"double"),
+		      exp_bgq_time[single_double][eo_or_oe],nflops_exp,nflops_exp*1e-6/exp_bgq_time[single_double][eo_or_oe]);
+      }}
   
   //total
   double hop_plus_exp_bgq_time=hop_bgq_time[0]+hop_bgq_time[1]+exp_bgq_time[0]+exp_bgq_time[1];
