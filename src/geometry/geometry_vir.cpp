@@ -305,6 +305,7 @@ namespace nissa
 	  }
       }
   }
+  
   /*
     put together the 8 links to be applied to a single point
     first comes the links needed to scatter backward the signal (not to be daggered)
@@ -323,16 +324,16 @@ namespace nissa
       for(int mu=0;mu<NDIM;mu++)
 	{
 	  //catch links needed to scatter signal forward
-	  SU3_TO_BI_SU3(out[virlx_of_loclx[isrc_lx]][4+mu],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
+	  SU3_TO_BI_SU3(out[virlx_of_loclx[isrc_lx]][NDIM+mu],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
 	  
-	  //copy links also where they are needed to scatter the signal backward, if 
-	  //sites that need them are not in the border (that would mean that computation must be 
+	  //copy links also where they are needed to scatter the signal backward, if
+	  //sites that need them are not in the border (that would mean that computation must be
 	  //done in another node
 	  int idst_lx=loclx_neighup[isrc_lx][mu];
 	  if(idst_lx<loc_vol) SU3_TO_BI_SU3(out[virlx_of_loclx[idst_lx]][mu],in[isrc_lx][mu],vnode_of_loclx(idst_lx));
 	}
     
-    //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward 
+    //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward
     for(int mu=0;mu<NDIM;mu++) //border and link direction
       if(paral_dir[mu])
 	NISSA_PARALLEL_LOOP(ibord,loc_vol+bord_offset[mu],loc_vol+bord_offset[mu]+bord_dir_vol[mu])
@@ -342,6 +343,48 @@ namespace nissa
 	    int idst_virlx=virlx_of_loclx[idst_lx];
 	    
 	    SU3_TO_BI_SU3(out[idst_virlx][mu],in[ibord][mu],vn_dst_virlx);
+	  }
+    
+    set_borders_invalid(out);
+    STOP_TIMING(remap_time);
+  }
+  THREADABLE_FUNCTION_END
+  
+  /*
+    similar, but the various links are in different blocks
+  */
+  THREADABLE_FUNCTION_2ARG(lx_conf_remap_to_virlx_blocked, bi_su3*,out, quad_su3*,in)
+  {
+    GET_THREAD_ID();
+    START_TIMING(remap_time,nremap);
+    
+    //communicate conf border so we can accede it
+    communicate_lx_quad_su3_borders(in);
+    
+    //scan the two virtual nodes
+    NISSA_PARALLEL_LOOP(isrc_lx,0,loc_vol)
+      for(int mu=0;mu<NDIM;mu++)
+	{
+	  //catch links needed to scatter signal forward
+	  SU3_TO_BI_SU3(out[(NDIM+mu)*loc_vol/NVNODES+virlx_of_loclx[isrc_lx]],in[isrc_lx][mu],vnode_of_loclx(isrc_lx));
+	  
+	  //copy links also where they are needed to scatter the signal backward, if
+	  //sites that need them are not in the border (that would mean that computation must be
+	  //done in another node
+	  int idst_lx=loclx_neighup[isrc_lx][mu];
+	  if(idst_lx<loc_vol) SU3_TO_BI_SU3_DAG(out[mu*loc_vol/NVNODES+virlx_of_loclx[idst_lx]],in[isrc_lx][mu],vnode_of_loclx(idst_lx));
+	}
+    
+    //scan the backward borders (first half of lx border) to finish catching links needed to scatter signal backward
+    for(int mu=0;mu<NDIM;mu++) //border and link direction
+      if(paral_dir[mu])
+	NISSA_PARALLEL_LOOP(ibord,loc_vol+bord_offset[mu],loc_vol+bord_offset[mu]+bord_dir_vol[mu])
+	  {
+	    int idst_lx=loclx_neighup[ibord][mu];
+	    int vn_dst_virlx=vnode_of_loclx(idst_lx);
+	    int idst_virlx=mu*loc_vol/NVNODES+virlx_of_loclx[idst_lx];
+	    
+	    SU3_TO_BI_SU3_DAG(out[idst_virlx],in[ibord][mu],vn_dst_virlx);
 	  }
     
     set_borders_invalid(out);

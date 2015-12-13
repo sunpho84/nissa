@@ -512,6 +512,18 @@
       REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c22),ptr);		\
     }									\
   while(0)
+#define REG_LOAD_BI_PARTIAL_SU3(out,in)					\
+  do									\
+    {									\
+      void *ptr=(in);							\
+      REG_LOAD_BI_COMPLEX_WITHOUT_ADVANCING(NAME2(out,c00),ptr);	\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c01),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c02),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c10),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c11),ptr);		\
+      REG_LOAD_BI_COMPLEX_AFTER_ADVANCING(NAME2(out,c12),ptr);		\
+    }									\
+  while(0)
 #define REG_LOAD_BI_SINGLE_SU3(out,in)					\
     do									\
       {									\

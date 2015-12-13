@@ -197,6 +197,18 @@
 	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c22));	\
       }									\
       while(0)
+#define STORE_REG_BI_PARTIAL_SU3(addr,in)				\
+    do									\
+      {									\
+	void *ptr=(addr);						\
+	REG_STORE_BI_COMPLEX_WITHOUT_ADVANCING(ptr,NAME2(in,c00));	\
+	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c01));	\
+	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c02));	\
+	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c10));	\
+	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c11));	\
+	REG_STORE_BI_COMPLEX_AFTER_ADVANCING(ptr,NAME2(in,c12));	\
+      }									\
+      while(0)
 #define STORE_REG_SU3(addr,vn,in)					\
     do									\
       {									\

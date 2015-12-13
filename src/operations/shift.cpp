@@ -61,7 +61,7 @@ namespace nissa
 	do
 	  {
 	    //find the site and the neighbour
-	    int ineigh=(sign>0) ? loclx_neighdw[isite][mu] : loclx_neighup[isite][mu]; 
+	    int ineigh=(sign>0) ? loclx_neighdw[isite][mu] : loclx_neighup[isite][mu];
 	    
 	    //copy the neighbour in the site
 	    su3_copy(u[isite],u[ineigh]);

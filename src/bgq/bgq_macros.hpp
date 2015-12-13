@@ -18,6 +18,9 @@
  #define COMPLEX_TO_BI_SINGLE_COMPLEX(A,B,VN) vec_st2(vec_ld2(0,B),0,A[VN])
 #endif
 
+//maybe we will promote it
+#define COMPLEX_TO_BI_COMPLEX_CONJ(A,B,VN) complex_conj(A[VN],B)
+
 #define COLOR_TO_BI_COLOR(A,B,VN)		\
   do						\
     {						\
@@ -42,6 +45,10 @@
       COLOR_TO_BI_COLOR(A[2],B[2],VN);		\
     }						\
   while(0)
+#define SU3_TO_BI_SU3_DAG(A,B,VN)					\
+  for(int icol=0;icol<NCOL;icol++)					\
+    for(int jcol=0;jcol<NCOL;jcol++)					\
+      COMPLEX_TO_BI_COMPLEX_CONJ(A[jcol][icol],B[icol][jcol],VN)
 #define SU3_TO_BI_SINGLE_SU3(A,B,VN)		\
   do						\
     {						\

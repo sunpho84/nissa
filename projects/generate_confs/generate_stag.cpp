@@ -709,6 +709,19 @@ void run_program_for_production()
     {
       double init_traj_time=take_time();
       
+      //TEST
+      su3_print(conf[0][0][0]);
+      su3 test;
+      su3_copy(test,conf[0][0][0]);
+      unsafe_complex_conj_conj_prod(test[0][2],test[1][0],test[2][1]);
+      complex_subt_the_conj_conj_prod(test[0][2],test[2][0],test[1][1]);
+      unsafe_complex_conj_conj_prod(test[1][2],test[2][0],test[0][1]);
+      complex_subt_the_conj_conj_prod(test[1][2],test[0][0],test[2][1]);
+      unsafe_complex_conj_conj_prod(test[2][2],test[0][0],test[1][1]);
+      complex_subt_the_conj_conj_prod(test[2][2],test[1][0],test[0][1]);
+      master_printf("\n%lg %lg\n",su3_real_det(test)-1,su3_real_det(conf[0][0][0])-1);
+      su3_print(test);
+      
       // 1) produce new conf
       int acc=1;
       if(ntraj_tot!=0)

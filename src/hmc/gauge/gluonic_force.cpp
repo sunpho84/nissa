@@ -36,81 +36,6 @@ namespace nissa
   }
   THREADABLE_FUNCTION_END
   
-  //it's not working and communications seems to make it go onli 50% faster than the normal way
-#ifdef BGQNONONONONONONNONO 
-  //compute the gauge action - bgq version
-  THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics)
-  {
-    GET_THREAD_ID();
-    
-    START_TIMING(glu_comp_time,nglu_comp);
-    
-    //take notes of ingredients
-    void(*compute_force)(su3,su3,bi_su3*,double,bool);
-    gauge_sweeper_t *gs;
-    
-    switch(physics->gauge_action_name)
-      {
-      case WILSON_GAUGE_ACTION:
-	//compute_staples_bgq=compute_Wilson_staples_packed_bgq;
-	gs=Wilson_sweeper;
-	crash("packed not implemented");
-	break;
-      case TLSYM_GAUGE_ACTION:
-	compute_force=compute_tlSym_force_packed_bgq;
-	gs=tlSym_sweeper;
-	break;
-      default: crash("Unknown action");
-      }
-    
-    //new version
-    if(!gs->packing_inited) crash("you have to init packing");
-    
-    int ibase=0;
-    for(int ibox=0;ibox<16;ibox++)
-      {
-	//communicate needed links
-	if(IS_MASTER_THREAD) gs->comm_time-=take_time();
-	gs->box_comm[ibox]->communicate(conf,conf,sizeof(su3),NULL,NULL,ibox+100);
-	if(IS_MASTER_THREAD)
-	  {
-	    gs->comm_time+=take_time();
-	    gs->comp_time-=take_time();
-	  }
-	for(int dir=0;dir<NDIM;dir++)
-	  for(int par=0;par<gs->gpar;par++)
-	    {
-	      int box_dir_par_size=gs->nsite_per_box_dir_par[par+gs->gpar*(dir+NDIM*ibox)];
-	      
-	      //pack
-	      gs->pack_links(conf,ibase,box_dir_par_size);
-	      
-	      //finding half box_dir_par_size
- 	      int box_dir_par_sizeh=box_dir_par_size/2;
-	      if(box_dir_par_sizeh*2!=box_dir_par_size) box_dir_par_sizeh++;
-	      NISSA_PARALLEL_LOOP(ibox_dir_par,0,box_dir_par_sizeh)
-		compute_force(F[gs->ivol_of_box_dir_par[ibase+ibox_dir_par]][dir],
-			      F[gs->ivol_of_box_dir_par[ibase+ibox_dir_par+box_dir_par_sizeh]][dir],
-			      ((bi_su3*)gs->packing_link_buf)+ibox_dir_par*gs->nlinks_per_staples_of_link,
-			      physics->beta);
-	      THREAD_BARRIER();
-	      
-              //increment the box-dir-par subset
-              ibase+=box_dir_par_size;
-	    }
-      }
-    
-    //finish
-    gluonic_force_finish_computation(F,conf);
-    
-    //////////////////////////////////////////////////////////////////////////
-    
-    STOP_TIMING(glu_comp_time);
-  }
-  THREADABLE_FUNCTION_END
-  
-#else
-  
   //compute only the gauge part
   THREADABLE_FUNCTION_3ARG(compute_gluonic_force_lx_conf, quad_su3*,F, quad_su3*,conf, theory_pars_t*,physics)
   {
@@ -207,5 +132,4 @@ namespace nissa
     STOP_TIMING(gluon_force_time);
   }
   THREADABLE_FUNCTION_END
-#endif
 }

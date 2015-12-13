@@ -6,6 +6,7 @@
 namespace nissa
 {
   void lx_conf_remap_to_virlx(bi_oct_su3 *out,quad_su3 *in);
+  void lx_conf_remap_to_virlx_blocked(bi_su3 *out,quad_su3 *in);
   void virlx_conf_remap_to_lx(quad_su3 *out,bi_oct_su3 *in);
   void lx_conf_remap_to_vireo(bi_oct_su3 **out,quad_su3 *in);
   void lx_conf_remap_to_single_vireo(bi_single_oct_su3 **out,quad_su3 *in);

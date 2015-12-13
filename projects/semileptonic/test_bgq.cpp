@@ -1095,7 +1095,67 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   ti+=take_time();
   ti/=nbench;
   
-  master_printf("Time to take vectorially a (local) path product: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
+  master_printf("Time to take vectorially a (local) path product with dag: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
+  
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  ti=-take_time();
+  
+  for(int ibench=0;ibench<nbench;ibench++)
+    {
+      NISSA_PARALLEL_LOOP(ivol, 0, loc_vol/2)
+	{
+	  DECLARE_REG_BI_SU3(REG_BI_CONF);
+	  REG_LOAD_BI_SU3(REG_BI_CONF,bi_conf[ivol]);
+	  BI_SU3_PREFETCH_NEXT(bi_conf[ivol]);
+	  
+	  DECLARE_REG_BI_SU3(REG_BI_PATH_IN);
+	  REG_LOAD_BI_SU3(REG_BI_PATH_IN,bi_path_in[ivol]);
+	  BI_SU3_PREFETCH_NEXT(bi_path_in[ivol]);
+	  
+	  DECLARE_REG_BI_SU3(REG_BI_PATH_OUT);
+  	  REG_BI_SU3_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);
+	  STORE_REG_BI_SU3(bi_path_out[ivol],REG_BI_PATH_OUT);
+	}
+      THREAD_BARRIER();
+    }
+  
+  ti+=take_time();
+  ti/=nbench;
+  
+  master_printf("Time to take vectorially a (local) path non-daggered product: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
+  
+  nissa_free(bi_path_in);
+  nissa_free(bi_path_out);
+  nissa_free(bi_conf);
+  
+  /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+  
+  ti=-take_time();
+  
+  for(int ibench=0;ibench<nbench;ibench++)
+    {
+      NISSA_PARALLEL_LOOP(ivol, 0, loc_vol/2)
+	{
+	  DECLARE_REG_BI_SU3(REG_BI_CONF);
+	  REG_LOAD_BI_PARTIAL_SU3(REG_BI_CONF,bi_conf[ivol]);
+	  BI_SU3_PREFETCH_NEXT(bi_conf[ivol]);
+	  
+	  DECLARE_REG_BI_SU3(REG_BI_PATH_IN);
+	  REG_LOAD_BI_SU3(REG_BI_PATH_IN,bi_path_in[ivol]);
+	  BI_SU3_PREFETCH_NEXT(bi_path_in[ivol]);
+	  
+	  DECLARE_REG_BI_SU3(REG_BI_PATH_OUT);
+  	  REG_BI_PARTIAL_SU3_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);
+	  STORE_REG_BI_PARTIAL_SU3(bi_path_out[ivol],REG_BI_PATH_OUT);
+	}
+      THREAD_BARRIER();
+    }
+  
+  ti+=take_time();
+  ti/=nbench;
+  
+  master_printf("Time to take vectorially a (local) path non-daggered product: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
   
   nissa_free(bi_path_in);
   nissa_free(bi_path_out);
@@ -1111,7 +1171,7 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
       comm_dir[mu]=1;
       
       int buff_size=bord_dir_vol[mu%4]*sizeof(su3);
-
+      
       //take time of n comms
       double time=-take_time();
       for(int ibench=0;ibench<nbench;ibench++)
