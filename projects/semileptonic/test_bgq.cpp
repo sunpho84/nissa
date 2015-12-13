@@ -1105,6 +1105,13 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   
   for(int mu=0;mu<8;mu++)
     {
+      //set all dir to 0 but mu
+      int comm_dir[8];
+      memset(comm_dir,0,sizeof(int)*8);
+      comm_dir[mu]=1;
+      
+      int buff_size=bord_dir_vol[mu%4]*sizeof(su3);
+
       //take time of n comms
       double time=-take_time();
       for(int ibench=0;ibench<nbench;ibench++)
@@ -1115,13 +1122,8 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
       time+=take_time();
       time/=nbench;
       
-      //set all dir to 0 but mu
-      int comm_dir[8];
-      memset(comm_dir,0,sizeof(int)*8);
-      comm_dir[mu]=1;
-      
       //print out
-      double size=bord_dir_vol[mu%4]*sizeof(su3)/1024.0/1024;
+      double size=buff_size/1024.0/1024;
       master_printf("Communications dir %d: %lg Mb / %lg sec = %lg Mb/sec",mu,size,time,size/time);
     }
 }
