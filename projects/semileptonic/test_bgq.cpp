@@ -957,10 +957,10 @@ void debug2_st()
 	master_printf("exp_bgq_time_%s (%s): %lg sec, %d flops, %lg Mflops\n",
 		      (eo_or_oe==0)?"eo":"oe",(single_double==0?"single":"double"),
 		      exp_bgq_time[single_double][eo_or_oe],nflops_exp,nflops_exp*1e-6/exp_bgq_time[single_double][eo_or_oe]);
-      }}
+      }
   
   //total
-  double hop_plus_exp_bgq_time=hop_bgq_time[0]+hop_bgq_time[1]+exp_bgq_time[0]+exp_bgq_time[1];
+  double hop_plus_exp_bgq_time=hop_bgq_time[0]+hop_bgq_time[1]+exp_bgq_time[0][0]+exp_bgq_time[0][1];
   int nflops_hop_plus_exp=2*(nflops_exp+nflops_hop);
   master_printf("(hop+exp)_bgq_time: %lg sec, %d flops, %lg Mflops\n",
 		hop_plus_exp_bgq_time,nflops_hop_plus_exp,nflops_hop_plus_exp*
@@ -1086,7 +1086,7 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
 	  BI_SU3_PREFETCH_NEXT(bi_path_in[ivol]);
 	  
 	  DECLARE_REG_BI_SU3(REG_BI_PATH_OUT);
-  	  REG_BI_SU3_DAG_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);	  
+  	  REG_BI_SU3_DAG_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);
 	  STORE_REG_BI_SU3(bi_path_out[ivol],REG_BI_PATH_OUT);
 	}
       THREAD_BARRIER();
@@ -1100,7 +1100,30 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   nissa_free(bi_path_in);
   nissa_free(bi_path_out);
   nissa_free(bi_conf);
-
+  
+  /////////////////////////////////////////////////////////////////////////////////////////////
+  
+  for(int mu=0;mu<8;mu++)
+    {
+      //take time of n comms
+      double time=-take_time();
+      for(int ibench=0;ibench<nbench;ibench++)
+	{
+	  comm_start(lx_su3_comm,comm_dir,buff_size);
+	  comm_wait(lx_spincolor_comm);
+	}
+      time+=take_time();
+      time/=nbench;
+      
+      //set all dir to 0 but mu
+      int comm_dir[8];
+      memset(comm_dir,0,sizeof(int)*8);
+      comm_dir[mu]=1;
+      
+      //print out
+      double size=bord_dir_vol[mu%4]*sizeof(su3)/1024.0/1024;
+      master_printf("Communications dir %d: %lg Mb / %lg sec = %lg Mb/sec",mu,size,time,size/time);
+    }
 }
 THREADABLE_FUNCTION_END
 
