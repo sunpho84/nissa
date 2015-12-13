@@ -1029,7 +1029,6 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   
   double ti=-take_time();
   
-  int nbench=10;
   for(int ibench=0;ibench<nbench;ibench++)
     {
       NISSA_PARALLEL_LOOP(ivol, 0, loc_vol)
@@ -1056,9 +1055,8 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   vector_reset(bi_path_in);
   vector_reset(bi_path_out);
   
-  double ti=-take_time();
+  ti=-take_time();
   
-  int nbench=10;
   for(int ibench=0;ibench<nbench;ibench++)
     {
       NISSA_PARALLEL_LOOP(ivol, 0, loc_vol/2)
