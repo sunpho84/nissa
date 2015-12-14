@@ -79,7 +79,6 @@ namespace nissa
   
   typedef squared_staples_t rectangular_staples_t;
   
-#ifdef BGQ
   typedef complex bi_complex[2];
   typedef bi_complex bi_color[NCOL];
   typedef bi_color bi_su3[NCOL];
@@ -95,13 +94,12 @@ namespace nissa
   typedef bi_single_color bi_single_halfspincolor[2];
   typedef bi_single_color bi_single_spincolor[4];
   typedef bi_single_su3 bi_single_oct_su3[8];
-
-#ifdef BGQ_EMU
-  typedef bi_complex reg_bi_complex;
-#else
+  
+#if (defined BGQ) && (!defined BGQ_EMU)
   typedef vector4double reg_bi_complex;
+#else
+  typedef bi_complex reg_bi_complex;
 #endif //BGQ_EMU
-#endif //BGQ
   
 #ifdef USE_MPI
 #ifdef USE_MPI_IO

@@ -5,7 +5,7 @@
 #include "../../src/bgq/staggered_hopping_matrix_eo_or_oe_bgq.hpp"
 #include "../../src/bgq/Wilson_hopping_matrix_lx_bgq.hpp"
 
-#ifndef BGQ_EMU
+#if (defined BGQ && !defined BGQ_EMU)
  #include <bgpm/include/bgpm.h>
  #include <firmware/include/personality.h>
 #endif
@@ -41,14 +41,12 @@ int comp_nhop(coords_5D n,coords_5D tcoords,coords_5D tdims,bool p=0)
 
 void check_torus()
 {
-#ifndef BGQ_EMU
+#ifdef SPI
   //get the personality
   Personality_t pers;
   Kernel_GetPersonality(&pers,sizeof(pers));
       
-#ifndef SPI
   for(int idir=0;idir<5;idir++) spi_dir_is_torus[idir]=ND_GET_TORUS(idir,pers.Network_Config.NetFlags);
-#endif
   
   coords_5D tcoords={pers.Network_Config.Acoord,pers.Network_Config.Bcoord,pers.Network_Config.Ccoord,
 		     pers.Network_Config.Dcoord,pers.Network_Config.Ecoord};
@@ -688,7 +686,7 @@ void debug2_tm()
   double_vector_subt((double*)un_out,(double*)un_out,(double*)out,loc_vol*sizeof(spincolor)/sizeof(double));
   double_vector_glb_scalar_prod(&diff,(double*)un_out,(double*)un_out,loc_vol*sizeof(spincolor)/sizeof(double));
   master_printf("TM application diff: %lg\n",diff);
-
+  
   //print benchmark
   master_printf("In+conf+addr size: %lg Mbytes (L2 cache: 32 Mb)\n",
 		(loc_vol*(sizeof(quad_su3)+sizeof(spincolor))+8*loc_volh*sizeof(bi_halfspincolor*))/1024.0/1024.0);
@@ -865,14 +863,13 @@ void debug2_st()
   for(int ibench=0;ibench<nbench;ibench++)
     apply_stD2ee_m2_bgq(bi_out_eo[EVN],bi_conf_eo,mass2,bi_in_eo[EVN]);
   bgq_double_time+=take_time();
+  bgq_double_time/=nbench;
   
   double bgq_single_time=-take_time();
   for(int ibench=0;ibench<nbench;ibench++)
     apply_single_stD2ee_m2_bgq(bi_single_out_eo[EVN],bi_single_conf_eo,mass2,bi_single_in_eo[EVN]);
   bgq_single_time+=take_time();
-  
   bgq_single_time/=nbench;
-  bgq_double_time/=nbench;
   
   //unamp to compare
   color *un_out=nissa_malloc("un_out",loc_volh,color);
@@ -907,7 +904,7 @@ void debug2_st()
   double_vector_glb_scalar_prod(&norm2,(double*)out[EVN],(double*)out[EVN],loc_volh*sizeof(color)/sizeof(double));
   master_printf("ST application relative diff: %lg\n",sqrt(diff2/norm2));
   master_printf("ST application relative diff single: %lg\n",sqrt(diff_single2/norm2));
-  master_printf("Time to apply %d time:\n",nbench);
+  master_printf("Time to apply %d time (on average):\n",nbench);
   master_printf(" %lg sec in port mode, %lg MFlops\n",port_time,1156e-6*loc_volh/port_time);
   master_printf(" %lg sec in bgq double mode, %lg MFlops\n",bgq_double_time,1156e-6*loc_volh/bgq_double_time);
   master_printf(" %lg sec in bgq single mode, %lg MFlops\n",bgq_single_time,1156e-6*loc_volh/bgq_single_time);
@@ -1000,16 +997,27 @@ void debug2_st()
   master_printf("buff_unfilling_time: %lg sec\n",buff_unfilling_time);
   
   //benchmark pure spi communication without data moving
-  double pure_spi_time=-take_time();
-  for(int ibench=0;ibench<nbench;ibench++)
+  for(int single_double=0;single_double<2;single_double++)
     {
-      comm_start(eo_color_comm);
-      comm_wait(eo_color_comm);
+      double pure_spi_time=-take_time();
+      for(int ibench=0;ibench<nbench;ibench++)
+	if(single_double==0)
+	  {
+	    comm_start(eo_single_color_comm);
+	    comm_wait(eo_single_color_comm);
+	  }
+      else
+	{
+	  comm_start(eo_color_comm);
+	  comm_wait(eo_color_comm);
+	}
+      
+      pure_spi_time+=take_time();
+      pure_spi_time/=nbench;
+      
+      double data_exch=(single_double==0?eo_single_color_comm:eo_color_comm).tot_mess_size/1024.0/1024.0;
+      master_printf("pure_comm_time (%s): %lg sec, %lg Mbytes, %lg Mb/sec\n",(single_double==0)?"single":"double",pure_spi_time,data_exch,data_exch/pure_spi_time);
     }
-  pure_spi_time+=take_time();
-  pure_spi_time/=nbench;
-  double data_exch=eo_color_comm.tot_mess_size/1024.0/1024.0;
-  master_printf("pure_comm_time: %lg sec, %lg Mbytes, %lg Mb/sec\n",pure_spi_time,data_exch,data_exch/pure_spi_time);
   
   nissa_free(conf);
   nissa_free(bi_conf_eo[0]);
@@ -1137,15 +1145,15 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
     {
       NISSA_PARALLEL_LOOP(ivol, 0, loc_vol/2)
 	{
-	  DECLARE_REG_BI_SU3(REG_BI_CONF);
+	  DECLARE_REG_BI_PARTIAL_SU3(REG_BI_CONF);
 	  REG_LOAD_BI_PARTIAL_SU3(REG_BI_CONF,bi_conf[ivol]);
-	  BI_SU3_PREFETCH_NEXT(bi_conf[ivol]);
+	  BI_PARTIAL_SU3_PREFETCH_NEXT(bi_conf[ivol]);
 	  
 	  DECLARE_REG_BI_SU3(REG_BI_PATH_IN);
 	  REG_LOAD_BI_SU3(REG_BI_PATH_IN,bi_path_in[ivol]);
 	  BI_SU3_PREFETCH_NEXT(bi_path_in[ivol]);
 	  
-	  DECLARE_REG_BI_SU3(REG_BI_PATH_OUT);
+	  DECLARE_REG_BI_PARTIAL_SU3(REG_BI_PATH_OUT);
   	  REG_BI_PARTIAL_SU3_PROD_BI_SU3(REG_BI_PATH_OUT,REG_BI_CONF,REG_BI_PATH_IN);
 	  STORE_REG_BI_PARTIAL_SU3(bi_path_out[ivol],REG_BI_PATH_OUT);
 	}
@@ -1176,7 +1184,7 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
       double time=-take_time();
       for(int ibench=0;ibench<nbench;ibench++)
 	{
-	  comm_start(lx_su3_comm,comm_dir,buff_size);
+	  comm_start(lx_spincolor_comm,comm_dir,buff_size);
 	  comm_wait(lx_spincolor_comm);
 	}
       time+=take_time();

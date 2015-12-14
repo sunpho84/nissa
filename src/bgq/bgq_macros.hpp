@@ -11,9 +11,11 @@
 ////////////////////////////// convert normal complex to BI //////////////////////////
 
 #ifdef BGQ_EMU
+ #define DECLARE_REG_BI_COMPLEX(A) bi_complex A
  #define COMPLEX_TO_BI_COMPLEX(A,B,VN) complex_copy(A[VN],B)
  #define COMPLEX_TO_BI_SINGLE_COMPLEX(A,B,VN) single_complex_copy_from_complex(A[VN],B)
 #else
+#define DECLARE_REG_BI_COMPLEX(A) reg_bi_complex A
  #define COMPLEX_TO_BI_COMPLEX(A,B,VN) vec_st2(vec_ld2(0,B),0,A[VN])
  #define COMPLEX_TO_BI_SINGLE_COMPLEX(A,B,VN) vec_st2(vec_ld2(0,B),0,A[VN])
 #endif

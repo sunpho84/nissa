@@ -1,5 +1,5 @@
-#ifndef _BGQ_INTRINSIC
-#define _BGQ_INTRINSIC
+#ifndef _BGQ_INTRINSIC_HPP
+#define _BGQ_INTRINSIC_HPP
 
 #include "intrinsic/declare.hpp"
 #include "intrinsic/load.hpp"

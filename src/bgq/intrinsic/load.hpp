@@ -48,198 +48,188 @@
 
 //prefetch a bi_halfspincolor
 #define BI_HALFSPINCOLOR_PREFETCH(addr)	\
-  do					\
-  {					\
-    void *ptr=(addr);			\
-    asm("dcbt      0 ,%[ptr]  \n"	\
-	"dcbt  %[c64],%[ptr]  \n"	\
-	"dcbt %[c128],%[ptr]  \n"	\
-	: :				\
-	  [ptr]  "r" (ptr),		\
-	  [c64]  "b" (64),		\
-	  [c128] "b" (128));		\
-  }					\
-  while(0)
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt      0 ,%[ptr]  \n"	\
+		  "dcbt  %[c64],%[ptr]  \n"	\
+		  "dcbt %[c128],%[ptr]  \n"	\
+		  : :				\
+		    [ptr]  "r" (ptr),		\
+		    [c64]  "b" (64),		\
+		    [c128] "b" (128));		\
+						)
 
 //prefetch a bi_halfspincolor
 #define BI_HALFSPINCOLOR_PREFETCH_NEXT(addr)	\
-  do						\
-  {						\
-    void *ptr=(addr);				\
-    asm("dcbt   %[c0],%[ptr]  \n"		\
-	"dcbt  %[c64],%[ptr]  \n"		\
-	"dcbt %[c128],%[ptr]  \n"		\
-	: :					\
-	  [ptr]  "r" (ptr),			\
-	  [c0]  "b" (192+0),			\
-	  [c64]  "b" (192+64),			\
-	  [c128] "b" (192+128));		\
-  }						\
-  while(0)
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt   %[c0],%[ptr]  \n"	\
+		  "dcbt  %[c64],%[ptr]  \n"	\
+		  "dcbt %[c128],%[ptr]  \n"	\
+		  : :				\
+		    [ptr]  "r" (ptr),		\
+		    [c0]  "b" (192+0),		\
+		    [c64]  "b" (192+64),	\
+		    [c128] "b" (192+128));	\
+						)
 
 //prefetch a bi_single_halfspincolor
 #define BI_SINGLE_HALFSPINCOLOR_PREFETCH_NEXT(addr)	\
-  do							\
-    {							\
-      void *ptr=(addr);					\
-      asm("dcbt   %[c0],%[ptr]  \n"			\
-	  "dcbt  %[c64],%[ptr]  \n"			\
-	  : :						\
-	    [ptr]  "r" (ptr),				\
-	    [c0]  "b" (96+0),				\
-	    [c64]  "b" (96+64));			\
-    }							\
-  while(0)
+  MACRO_GUARD(						\
+	      void *ptr=(addr);				\
+	      asm("dcbt   %[c0],%[ptr]  \n"		\
+		  "dcbt  %[c64],%[ptr]  \n"		\
+		  : :					\
+		    [ptr]  "r" (ptr),			\
+		    [c0]  "b" (96+0),			\
+		    [c64]  "b" (96+64));		\
+							)
 
 //prefetch a bi_color
 #define BI_COLOR_PREFETCH_NEXT(addr)		\
-  do						\
-  {						\
-    void *ptr=(addr);				\
-    asm("dcbt   %[c0],%[ptr]  \n"		\
-	"dcbt  %[c64],%[ptr]  \n"		\
-	: :					\
-	  [ptr]  "r" (ptr),			\
-	  [c0]  "b" (96+0),			\
-	  [c64]  "b" (96+64));			\
-  }						\
-  while(0)
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt   %[c0],%[ptr]  \n"	\
+		  "dcbt  %[c64],%[ptr]  \n"	\
+		  : :				\
+		    [ptr]  "r" (ptr),		\
+		    [c0]  "b" (96+0),		\
+		    [c64]  "b" (96+64));	\
+						)
 #define BI_SINGLE_COLOR_PREFETCH_NEXT(addr)	\
-  do						\
-  {						\
-    void *ptr=(addr);				\
-    asm("dcbt   %[c0],%[ptr]  \n"		\
-	"dcbt  %[c32],%[ptr]  \n"		\
-	: :					\
-	  [ptr]  "r" (ptr),			\
-	  [c0]  "b" (48+0),			\
-	  [c32]  "b" (48+32));			\
-  }						\
-  while(0)
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt   %[c0],%[ptr]  \n"	\
+		  "dcbt  %[c32],%[ptr]  \n"	\
+		  : :				\
+		    [ptr]  "r" (ptr),		\
+		    [c0]  "b" (48+0),		\
+		    [c32]  "b" (48+32));	\
+						)
 
 //prefetch a bi_halfspin
 #define BI_HALFSPIN_PREFETCH_NEXT(addr)		\
-  do						\
-  {						\
-    void *ptr=(addr);				\
-    asm("dcbt   %[c0],%[ptr]  \n"		\
-	: :					\
-	  [ptr]  "r" (ptr),			\
-	  [c0]  "b" (64+0));			\
-  }						\
-  while(0)
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt   %[c0],%[ptr]  \n"	\
+		  : :				\
+		    [ptr]  "r" (ptr),		\
+		    [c0]  "b" (64+0));		\
+						)
 
 #define BI_HALFSPIN_PREFETCH_NEXT_NEXT(addr)	\
-  do						\
-  {						\
-    void *ptr=(addr);				\
-    asm("dcbt   %[c0],%[ptr]  \n"		\
-	: :					\
-	  [ptr]  "r" (ptr),			\
-	  [c0]  "b" (128+0));			\
-  }						\
-  while(0)
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt   %[c0],%[ptr]  \n"	\
+		  : :				\
+		    [ptr]  "r" (ptr),		\
+		    [c0]  "b" (128+0));		\
+						)
 
 //prefetch a halfspincolor
 #define BI_SPINCOLOR_PREFETCH_NEXT(addr)	     \
-  do						     \
-  {						     \
-    void *ptr=(addr);				     \
-    asm("dcbt   %[c0],%[ptr]  \n"		     \
-	"dcbt  %[c64],%[ptr]  \n"		     \
-	"dcbt %[c128],%[ptr]  \n"		     \
-	"dcbt %[c192],%[ptr]  \n"		     \
-	"dcbt %[c256],%[ptr]  \n"		     \
-	"dcbt %[c320],%[ptr]  \n"		     \
-	: : [ptr] "r" (ptr),			     \
-	  [c0] "b" (384+0),			     \
-	  [c64] "b" (384+64),			     \
-	  [c128] "b" (384+128),			     \
-	  [c192] "b" (384+192),			     \
-	  [c256] "b" (384+256),			     \
-	  [c320] "b" (384+320));		     \
-  }						     \
-  while(0)
+  MACRO_GUARD(					     \
+	      void *ptr=(addr);			     \
+	      asm("dcbt   %[c0],%[ptr]  \n"	     \
+		  "dcbt  %[c64],%[ptr]  \n"	     \
+		  "dcbt %[c128],%[ptr]  \n"	     \
+		  "dcbt %[c192],%[ptr]  \n"	     \
+		  "dcbt %[c256],%[ptr]  \n"	     \
+		  "dcbt %[c320],%[ptr]  \n"	     \
+		  : : [ptr] "r" (ptr),		     \
+		    [c0] "b" (384+0),		     \
+		    [c64] "b" (384+64),		     \
+		    [c128] "b" (384+128),	     \
+		    [c192] "b" (384+192),	     \
+		    [c256] "b" (384+256),	     \
+		    [c320] "b" (384+320));	     \
+						     )
 
 //prefetch a bi_single_spincolor
 #define BI_SINGLE_SPINCOLOR_PREFETCH_NEXT(addr)	     \
-  do						     \
-  {						     \
-    void *ptr=(addr);				     \
-    asm("dcbt   %[c0],%[ptr]  \n"		     \
-	"dcbt  %[c64],%[ptr]  \n"		     \
-	"dcbt %[c128],%[ptr]  \n"		     \
-	: : [ptr] "r" (ptr),			     \
-	  [c0] "b" (192+0),			     \
-	  [c64] "b" (192+64),			     \
-	  [c128] "b" (192+128));		     \
-  }						     \
-  while(0)
+  MACRO_GUARD(					     \
+	      void *ptr=(addr);			     \
+	      asm("dcbt   %[c0],%[ptr]  \n"	     \
+		  "dcbt  %[c64],%[ptr]  \n"	     \
+		  "dcbt %[c128],%[ptr]  \n"	     \
+		  : : [ptr] "r" (ptr),		     \
+		    [c0] "b" (192+0),		     \
+		    [c64] "b" (192+64),		     \
+		    [c128] "b" (192+128));	     \
+						     )
 
 //prefetch next bi_su3
-#define BI_SU3_PREFETCH_NEXT(addr)	\
-  do					\
-  {					\
-    void *ptr=(addr);			\
-    asm("dcbt   %[c0],%[ptr]  \n"	\
-	"dcbt  %[c64],%[ptr]  \n"	\
-	"dcbt %[c128],%[ptr]  \n"	\
-	"dcbt %[c192],%[ptr]  \n"	\
-	"dcbt %[c256],%[ptr]  \n"	\
-	: :				\
-	  [ptr] "r" (ptr),		\
-	  [c0] "b" (288+0),		\
-	  [c64] "b" (288+64),		\
-	  [c128] "b" (288+128),		\
-	  [c192] "b" (288+192),		\
-	  [c256] "b" (288+256));	\
-  }					\
-  while(0)
+#define BI_SU3_PREFETCH_NEXT(addr)		\
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt   %[c0],%[ptr]  \n"	\
+		  "dcbt  %[c64],%[ptr]  \n"	\
+		  "dcbt %[c128],%[ptr]  \n"	\
+		  "dcbt %[c192],%[ptr]  \n"	\
+		  "dcbt %[c256],%[ptr]  \n"	\
+		  : :				\
+		    [ptr] "r" (ptr),		\
+		    [c0] "b" (288+0),		\
+		    [c64] "b" (288+64),		\
+		    [c128] "b" (288+128),	\
+		    [c192] "b" (288+192),	\
+		    [c256] "b" (288+256));	\
+					)
+#define BI_PARTIAL_SU3_PREFETCH_NEXT(addr)	\
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt   %[c0],%[ptr]  \n"	\
+		  "dcbt  %[c64],%[ptr]  \n"	\
+		  "dcbt %[c128],%[ptr]  \n"	\
+		  : :				\
+		    [ptr] "r" (ptr),		\
+		    [c0] "b" (192+0),		\
+		    [c64] "b" (192+64),		\
+		    [c128] "b" (192+128));	\
+					)
 #define BI_SINGLE_SU3_PREFETCH_NEXT(addr)	\
-  do					\
-  {					\
-    void *ptr=(addr);			\
-    asm("dcbt   %[c0],%[ptr]  \n"	\
-	"dcbt  %[c32],%[ptr]  \n"	\
-	"dcbt  %[c64],%[ptr]  \n"	\
-	"dcbt  %[c96],%[ptr]  \n"	\
-	"dcbt %[c128],%[ptr]  \n"	\
-	: :				\
-	  [ptr] "r" (ptr),		\
-	  [c0] "b" (144+0),		\
-	  [c32] "b" (144+32),		\
-	  [c64] "b" (144+64),		\
-	  [c96] "b" (144+96),		\
-	  [c128] "b" (144+128));	\
-  }					\
-  while(0)
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt   %[c0],%[ptr]  \n"	\
+		  "dcbt  %[c32],%[ptr]  \n"	\
+		  "dcbt  %[c64],%[ptr]  \n"	\
+		  "dcbt  %[c96],%[ptr]  \n"	\
+		  "dcbt %[c128],%[ptr]  \n"	\
+		  : :				\
+		    [ptr] "r" (ptr),		\
+		    [c0] "b" (144+0),		\
+		    [c32] "b" (144+32),		\
+		    [c64] "b" (144+64),		\
+		    [c96] "b" (144+96),		\
+		    [c128] "b" (144+128));	\
+						)
 
 //prefetch next su3
-#define SU3_PREFETCH(addr)		\
-  do					\
-  {					\
-    void *ptr=(addr);			\
-    asm("dcbt   %[c0],%[ptr]  \n"	\
- 	"dcbt  %[c64],%[ptr]  \n"	\
-	"dcbt %[c128],%[ptr]  \n"	\
-	: :				\
-	  [ptr] "r" (ptr),		\
-	  [c0] "b" (0),			\
-	  [c64] "b" (64),		\
-	  [c128] "b" (128));		\
-  }					\
-  while(0)
+#define SU3_PREFETCH(addr)			\
+  MACRO_GUARD(					\
+	      void *ptr=(addr);			\
+	      asm("dcbt   %[c0],%[ptr]  \n"	\
+		  "dcbt  %[c64],%[ptr]  \n"	\
+		  "dcbt %[c128],%[ptr]  \n"	\
+		  : :				\
+		    [ptr] "r" (ptr),		\
+		    [c0] "b" (0),		\
+		    [c64] "b" (64),		\
+		    [c128] "b" (128));		\
+						)
 
 #else
 
 //prefetch a bi_spincolor
-#define BI_SPINCOLOR_PREFETCH(addr)		\
-  CACHE_PREFETCH((char*)(addr)+  0);		\
-  CACHE_PREFETCH((char*)(addr)+ 64);		\
-  CACHE_PREFETCH((char*)(addr)+128);		\
-  CACHE_PREFETCH((char*)(addr)+192);		\
-  CACHE_PREFETCH((char*)(addr)+256);		\
-  CACHE_PREFETCH((char*)(addr)+320);
+#define BI_SPINCOLOR_PREFETCH(addr)			\
+  MACRO_GUARD(						\
+	      CACHE_PREFETCH((char*)(addr)+  0);	\
+	      CACHE_PREFETCH((char*)(addr)+ 64);	\
+	      CACHE_PREFETCH((char*)(addr)+128);	\
+	      CACHE_PREFETCH((char*)(addr)+192);	\
+	      CACHE_PREFETCH((char*)(addr)+256);	\
+	      CACHE_PREFETCH((char*)(addr)+320);	\
+							)
 
 //prefetch a bi_halfspincolor
 #define BI_HALFSPINCOLOR_PREFETCH(addr)		\
@@ -287,6 +277,10 @@
   CACHE_PREFETCH((char*)(addr)+288+128);	\
   CACHE_PREFETCH((char*)(addr)+288+192);	\
   CACHE_PREFETCH((char*)(addr)+288+256);
+#define BI_PARTIAL_SU3_PREFETCH_NEXT(addr)	\
+  CACHE_PREFETCH((char*)(addr)+192+ 0);		\
+  CACHE_PREFETCH((char*)(addr)+192+ 64);	\
+  CACHE_PREFETCH((char*)(addr)+192+128);
 #define BI_SINGLE_SU3_PREFETCH_NEXT(addr)	\
   CACHE_PREFETCH((char*)(addr)+144+ 0);		\
   CACHE_PREFETCH((char*)(addr)+144+ 32);	\

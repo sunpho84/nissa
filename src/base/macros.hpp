@@ -106,10 +106,13 @@
  #define VERBOSITY_LV3 0
 #endif
 
+//guard against ";"
+#define MACRO_GUARD(...) do{__VA_ARGS__}while(0)
+
 //wrappers for verbosity_lv?
-#define verbosity_lv1_master_printf(...) do{if(VERBOSITY_LV1) master_printf(__VA_ARGS__);}while(0)
-#define verbosity_lv2_master_printf(...) do{if(VERBOSITY_LV2) master_printf(__VA_ARGS__);}while(0)
-#define verbosity_lv3_master_printf(...) do{if(VERBOSITY_LV3) master_printf(__VA_ARGS__);}while(0)
+#define verbosity_lv1_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV1) master_printf(__VA_ARGS__);)
+#define verbosity_lv2_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV2) master_printf(__VA_ARGS__);)
+#define verbosity_lv3_master_printf(...) MACRO_GUARD(if(VERBOSITY_LV3) master_printf(__VA_ARGS__);)
 
 #define IF_VECT_NOT_INITIALIZED() if(main_arr!=((char*)&main_vect)+sizeof(nissa_vect))
 
@@ -117,7 +120,7 @@
 #define NISSA_LOC_VOLH_LOOP(a) for(int a=0;a<loc_volh;a++)
 #define NISSA_LOC_VOL_LOOP(a) for(int a=0;a<loc_vol;a++)
 
-#define CRASH_IF_NOT_ALIGNED(a,b) if((long long int)(void*)a%b!=0) crash("alignement problem");
+#define CRASH_IF_NOT_ALIGNED(a,b) MACRO_GUARD(if((long long int)(void*)a%b!=0) crash("alignement problem");)
 
 #if NCOL == 3
  #define CRASH_IF_NOT_3COL()
