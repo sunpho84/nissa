@@ -1159,7 +1159,7 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
   ti+=take_time();
   ti/=nbench;
   
-  master_printf("Time to take vectorially a (local) path non-daggered product: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
+  master_printf("Time to take vectorially a (local) path non-daggered partial product: %lg s, %lg MFlops\n",ti,loc_vol*1e-6*flops_per_su3_prod/ti);
   
   nissa_free(bi_path_in);
   nissa_free(bi_path_out);
@@ -1180,8 +1180,8 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
       double time=-take_time();
       for(int ibench=0;ibench<nbench;ibench++)
 	{
-	  comm_start(lx_spincolor_comm,comm_dir,buff_size);
-	  comm_wait(lx_spincolor_comm);
+	  comm_start(lx_su3_comm,comm_dir,buff_size);
+	  comm_wait(lx_su3_comm);
 	}
       time+=take_time();
       time/=nbench;
