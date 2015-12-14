@@ -1188,7 +1188,7 @@ THREADABLE_FUNCTION_0ARG(bench_su3_path_prod)
       
       //print out
       double size=buff_size/1024.0/1024;
-      master_printf("Communications dir %d: %lg Mb / %lg sec = %lg Mb/sec",mu,size,time,size/time);
+      master_printf("Communications dir %d: %lg Mb / %lg sec = %lg Mb/sec\n",mu,size,time,size/time);
     }
 }
 THREADABLE_FUNCTION_END
