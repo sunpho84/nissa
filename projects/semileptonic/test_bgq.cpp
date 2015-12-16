@@ -274,7 +274,7 @@ THREADABLE_FUNCTION_0ARG(bench_linear_comb)
     double_vector_linear_comb((double*)in3,(double*)in1,1.0,(double*)in2,2.0,loc_vol*sizeof(spincolor)/sizeof(double));
   lc_time+=take_time();
   lc_time/=nbench;
-
+  
   double sc;
   double_vector_glb_scalar_prod(&sc,(double*)in3,(double*)in3,loc_vol*sizeof(spincolor)/sizeof(double));
   
@@ -962,7 +962,36 @@ void debug2_st()
   master_printf("(hop+exp)_bgq_time: %lg sec, %d flops, %lg Mflops\n",
 		hop_plus_exp_bgq_time,nflops_hop_plus_exp,nflops_hop_plus_exp*
 		1e-6/hop_plus_exp_bgq_time);
-  
+
+  double tot_tie=0;
+  for(int cas=0;cas<10;cas++)
+    {
+      const int OE=0;
+      const int EO=1;
+      double tie=-take_time();
+      for(int ibench=0;ibench<nbench;ibench++)
+	switch(cas)
+	  {
+	  case 0:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],OE);break;
+	  case 1:start_double_staggered_hopping_matrix_oe_or_eo_bgq_communications();break;
+	  case 2:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,vsurf_volh,loc_volh/2,bi_in_eo[EVN],OE);break;
+	  case 3:finish_double_staggered_hopping_matrix_oe_or_eo_bgq_communications(OE);break;
+	  case 4:hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[EVN]);break;
+	  case 5:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,vsurf_volh,bi_out_eo[EVN],EO);break;
+	  case 6:start_double_staggered_hopping_matrix_oe_or_eo_bgq_communications();break;
+	  case 7:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,vsurf_volh,loc_volh/2,bi_out_eo[EVN],EO);break;
+	  case 8:finish_double_staggered_hopping_matrix_oe_or_eo_bgq_communications(EO);break;
+	  case 9:if(mass2!=0) hopping_matrix_oe_or_eo_expand_to_double_staggered_D_subtract_from_mass2_times_in_bgq
+				(bi_out_eo[EVN],mass2,bi_in_eo[EVN]);
+	    hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[EVN],-1);
+	    break;
+	  }
+      tie+=take_time();
+      tie/=nbench;
+      tot_tie+=tie;
+      master_printf("Piece %d time: %lg\n",tie);
+    }
+  master_printf("Total time: %lg\n",tot_tie);
   
   //benchmark buff filling
   double buff_filling_time=-take_time();
