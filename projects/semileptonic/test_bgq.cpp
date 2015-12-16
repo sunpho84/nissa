@@ -770,6 +770,10 @@ void debug2_tm()
   nissa_free(un_out);
 }
 
+THREADABLE_FUNCTION_0ARG(bull)
+{
+}}
+
 void debug2_st()
 {
   master_printf("------staggered------\n");
@@ -963,13 +967,16 @@ void debug2_st()
 		hop_plus_exp_bgq_time,nflops_hop_plus_exp,nflops_hop_plus_exp*
 		1e-6/hop_plus_exp_bgq_time);
 
-  double tot_tie=0;
-  for(int cas=0;cas<10;cas++)
-    {
-      const int OE=0;
-      const int EO=1;
-      double tie=-take_time();
-      for(int ibench=0;ibench<nbench;ibench++)
+  int ncas=11;
+  double tie[ncas];
+  for(int cas=0;cas<ncas;cas++) tie[cas]=0;
+
+  for(int ibench=0;ibench<nbench;ibench++)
+    for(int cas=0;cas<ncas;cas++)
+      {
+	const int OE=0;
+	const int EO=1;
+	tie[cas]-=take_time();
 	switch(cas)
 	  {
 	  case 0:apply_double_staggered_hopping_matrix_oe_or_eo_bgq_nocomm(bi_conf_eo,0,vsurf_volh,bi_in_eo[EVN],OE);break;
@@ -985,11 +992,29 @@ void debug2_st()
 				(bi_out_eo[EVN],mass2,bi_in_eo[EVN]);
 	    hopping_matrix_oe_or_eo_expand_to_double_staggered_D_bgq(bi_out_eo[EVN],-1);
 	    break;
+	  default:bull();break;
 	  }
-      tie+=take_time();
-      tie/=nbench;
-      tot_tie+=tie;
-      master_printf("Piece %d time: %lg\n",tie);
+	tie[cas]+=take_time();
+      }
+  
+  double tot_tie=0;
+  const char name[11][100]={"apply_oe_0_vsurfvolh",
+		       "start",
+		       "apply_oe_vsurfvolh_loc_volh/2",
+		       "finish",
+		       "expand",
+		       "apply_eo_0_vsurfvolh",
+		       "start",
+		       "apply_eo_vsurfvolh_loc_volh/2",
+		       "finish",
+		       "expand",
+		       "bench"};
+
+  for(int cas=0;cas<ncas;cas++)
+    {
+      tie[cas]/=nbench;
+      tot_tie+=tie[cas];
+      master_printf("Piece %d (%s) time: %lg\n",cas,name[cas],tie[cas]);
     }
   master_printf("Total time: %lg\n",tot_tie);
   
