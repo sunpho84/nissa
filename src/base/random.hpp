@@ -1,6 +1,8 @@
 #ifndef _RANDOM_HPP
 #define _RANDOM_HPP
 
+#include "new_types/new_types_definitions.hpp"
+
 namespace nissa
 {
   void convert_text_to_rnd_gen(rnd_gen *gen,char *text);

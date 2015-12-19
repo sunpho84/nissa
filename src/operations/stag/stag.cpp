@@ -2,20 +2,10 @@
  #include "config.hpp"
 #endif
 
-#include "base/global_variables.hpp"
-#include "base/random.hpp"
-#include "base/thread_macros.hpp"
-#include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
-#include "geometry/geometry_eo.hpp"
 #include "hmc/backfield.hpp"
 #include "inverters/staggered/cg_invert_stD.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/complex.hpp"
 #include "new_types/su3.hpp"
-#include "routines/ios.hpp"
-#include "routines/mpi_routines.hpp"
-#include "routines/math_routines.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

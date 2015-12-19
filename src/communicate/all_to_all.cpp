@@ -18,7 +18,7 @@
 #include "all_to_all.hpp"
 
 namespace nissa
-{  
+{
   temp_build_t::temp_build_t()
   {
     nper_rank_to_temp=nissa_malloc("nper_rank_to_temp",nranks,int);
@@ -31,7 +31,7 @@ namespace nissa
     nissa_free(out_buf_cur_per_rank);
     nissa_free(in_buf_cur_per_rank);
   }
-
+  
   all_to_all_comm_t::~all_to_all_comm_t()
   {
     nissa_free(list_ranks_to);

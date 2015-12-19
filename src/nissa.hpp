@@ -139,6 +139,7 @@
 #include "operations/source.hpp"
 
 #include "operations/stag/magnetization.hpp"
+#include "operations/stag/mesons.hpp"
 #include "operations/stag/nucleon.hpp"
 #include "operations/stag/putpourri.hpp"
 #include "operations/stag/rendens.hpp"
