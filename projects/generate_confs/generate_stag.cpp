@@ -616,6 +616,9 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	      verbosity_lv1_master_printf("Measuring nucleon correlator for theory %d/%d\n",itheory+1,ntheories);
 	      measure_nucleon_corr(sme_conf,theory_pars[itheory],nucleon_corr_meas_pars[itheory],iconf,conf_created);
 	    }
+	  
+	  //DEBUG
+	  staggered_meson_corr(sme_conf,theory_pars+itheory,iconf,conf_created);
 	}
     }
   
