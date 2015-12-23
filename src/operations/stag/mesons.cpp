@@ -255,7 +255,7 @@ namespace nissa
 	  {
 	    vector_reset(source[eo]);
 	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	      if(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]==0)
+	      if(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]==0 && is_hypercube_shift(loclx_of_loceo[eo][ieo],0))
 		complex_put_to_real(source[eo][ieo][icol],1);
 	    set_borders_invalid(source[eo]);
 	  }
@@ -266,6 +266,7 @@ namespace nissa
 	memset(cres,0,sizeof(color)*glb_size[0]);
 	for(int eo=0;eo<2;eo++)
 	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	    if(is_hypercube_shift(loclx_of_loceo[eo][ieo],0)||is_hypercube_shift(loclx_of_loceo[eo][ieo],1))
 	    color_summassign(cres[glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]],sol[eo][ieo]);
 	THREAD_BARRIER();
 	
