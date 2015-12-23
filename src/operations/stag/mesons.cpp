@@ -249,36 +249,37 @@ namespace nissa
     double res[glb_size[0]];
     memset(res,0,sizeof(double)*glb_size[0]);
     
-    for(int icol=0;icol<NCOL;icol++)
-      {
-	for(int eo=0;eo<2;eo++)
-	  {
-	    vector_reset(source[eo]);
-	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	      if(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]==0 && is_hypercube_shift(loclx_of_loceo[eo][ieo],0))
-		complex_put_to_real(source[eo][ieo][icol],1);
-	    set_borders_invalid(source[eo]);
-	  }
-	
-	mult_Minv(sol,gf_conf,tp,0,meas_pars->residue,source);
-	
-	for(int ishift=0;ishift<16;ishift++)
-	  {
-	    color cres[glb_size[0]];
-	    memset(cres,0,sizeof(color)*glb_size[0]);
-	    for(int eo=0;eo<2;eo++)
+    for(int so_shift=0;so_shift<16;so_shift+=2)
+      for(int icol=0;icol<NCOL;icol++)
+	{
+	  for(int eo=0;eo<2;eo++)
+	    {
+	      vector_reset(source[eo]);
 	      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-		if(is_hypercube_shift(loclx_of_loceo[eo][ieo],ishift))
-		  color_summassign(cres[glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]],sol[eo][ieo]);
-	    THREAD_BARRIER();
-	    
-	    glb_threads_reduce_double_vect((double*)cres,sizeof(color)/sizeof(double)*glb_size[0]);
-	    if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect((complex*)cres,NCOL*glb_size[0]);
-	    THREAD_BARRIER();
-	    
-	    for(int t=0;t<glb_size[0];t++) for(int jcol=0;jcol<NCOL;jcol++) res[t]+=complex_norm2(cres[t][jcol])/(meas_pars->nhits*glb_spat_vol*glb_spat_vol);
-	  }
-      }
+		if(glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]==0 && is_hypercube_shift(loclx_of_loceo[eo][ieo],so_shift))
+		  complex_put_to_real(source[eo][ieo][icol],1);
+	      set_borders_invalid(source[eo]);
+	    }
+	  
+	  mult_Minv(sol,gf_conf,tp,0,meas_pars->residue,source);
+	  
+	  for(int ishift=0;ishift<16;ishift++)
+	    {
+	      color cres[glb_size[0]];
+	      memset(cres,0,sizeof(color)*glb_size[0]);
+	      for(int eo=0;eo<2;eo++)
+		NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		  if(is_hypercube_shift(loclx_of_loceo[eo][ieo],ishift))
+		    color_summassign(cres[glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]],sol[eo][ieo]);
+	      THREAD_BARRIER();
+	      
+	      glb_threads_reduce_double_vect((double*)cres,sizeof(color)/sizeof(double)*glb_size[0]);
+	      if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect((complex*)cres,NCOL*glb_size[0]);
+	      THREAD_BARRIER();
+	      
+	      for(int t=0;t<glb_size[0];t++) for(int jcol=0;jcol<NCOL;jcol++) res[t]+=complex_norm2(cres[t][jcol])/(meas_pars->nhits*glb_spat_vol*glb_spat_vol);
+	    }
+	}
     
     for(int t=0;t<glb_size[0];t++)
       master_printf("%d %+016.016lg\n",t,res[t]);
@@ -332,7 +333,7 @@ namespace nissa
 	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
 	if(mesons.size()||full)
 	  {
-	    nprinted+=nissa::master_fprintf(fout,"Mesons\t\t=\t\{");
+	    nprinted+=nissa::master_fprintf(fout,"Mesons\t\t=\t{");
 	    for(size_t i=0;i<mesons.size();i++)
 	      {
 		nprinted+=nissa::master_fprintf(fout,"(%d,%d)",mesons[i].first,mesons[i].second);
