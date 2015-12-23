@@ -226,20 +226,24 @@ namespace nissa
 			  int sto_si_jshift=get_other_sto_shift(sto_si_ishift,ispin^itaste);
 			  
 			  //find the sign of the site
-			  int expo=((sto_so_ishift*2)&mask[iop])^((sto_si_ishift*2)&mask[iop]);
-			  int sign=1;
-			  for(int temp=expo;temp;temp/=2) sign*=1-2*(temp&1);
-			  
 			  for(int t=0;t<glb_size[0];t++)
-			    for(int so_col=0;so_col<NCOL;so_col++)
-			      for(int si_col=0;si_col<NCOL;si_col++)
-				{
-				  complex temp;
-				  unsafe_complex_conj2_prod(temp,
-							    sink_summed[ind_summ(iflav,sto_so_ishift,sto_si_ishift,t,so_col,si_col)],
-							    sink_summed[ind_summ(iflav,sto_so_jshift,sto_si_jshift,t,so_col,si_col)]);
-				  complex_summ_the_prod_double(corr[t+glb_size[0]*ic],temp,(double)sign/(meas_pars->nhits*glb_spat_vol*8));
-				}
+			    {
+			      int expo=((sto_so_ishift*2)&mask[iop])^((sto_si_ishift*2+t%2)&mask[iop]);
+			      int sign=1;
+			      for(int temp=expo;temp;temp/=2) sign*=1-2*(temp&1);
+			      master_printf("t: %d , sto_so_ishift: %d , sto_so_jshift %d , sto_si_ishift: %d sto_si_jshift: %d , expo: %d , sign: %d \n",
+					    t,sto_so_ishift,sto_so_jshift,sto_si_ishift,sto_si_jshift,expo,sign);
+			      
+			      for(int so_col=0;so_col<NCOL;so_col++)
+				for(int si_col=0;si_col<NCOL;si_col++)
+				  {
+				    complex temp;
+				    unsafe_complex_conj2_prod(temp,
+							      sink_summed[ind_summ(iflav,sto_so_ishift,sto_si_ishift,t,so_col,si_col)],
+							      sink_summed[ind_summ(iflav,sto_so_jshift,sto_si_jshift,t,so_col,si_col)]);
+				    complex_summ_the_prod_double(corr[t+glb_size[0]*ic],temp,(double)sign/(meas_pars->nhits*glb_spat_vol*8));
+				  }
+			    }
 			}
 		  }
 	    }
