@@ -40,7 +40,7 @@ namespace nissa
   inline int is_hypercube_shift(int ivol,int ishift)
   {
     int is=1;
-    for(int mu=0;mu<NDIM;mu++) is&=((glb_coord_of_loclx[ivol][mu]%2)==((ishift>>mu)==1));
+    for(int mu=0;mu<NDIM;mu++) is&=((glb_coord_of_loclx[ivol][mu]%2)==((ishift>>mu)%2));
     return is;
   }
   
@@ -262,20 +262,23 @@ namespace nissa
 	
 	mult_Minv(sol,gf_conf,tp,0,meas_pars->residue,source);
 	
-	color cres[glb_size[0]];
-	memset(cres,0,sizeof(color)*glb_size[0]);
-	for(int eo=0;eo<2;eo++)
-	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	    if(is_hypercube_shift(loclx_of_loceo[eo][ieo],0)||is_hypercube_shift(loclx_of_loceo[eo][ieo],1))
-	    color_summassign(cres[glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]],sol[eo][ieo]);
-	THREAD_BARRIER();
-	
-	glb_threads_reduce_double_vect((double*)cres,sizeof(color)/sizeof(double)*glb_size[0]);
-	if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect((complex*)cres,NCOL*glb_size[0]);
-	THREAD_BARRIER();
-	
-	for(int t=0;t<glb_size[0];t++) for(int jcol=0;jcol<NCOL;jcol++) res[t]+=complex_norm2(cres[t][jcol])/(meas_pars->nhits*glb_spat_vol*glb_spat_vol);
-      }	
+	for(int ishift=0;ishift<16;ishift++)
+	  {
+	    color cres[glb_size[0]];
+	    memset(cres,0,sizeof(color)*glb_size[0]);
+	    for(int eo=0;eo<2;eo++)
+	      NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		if(is_hypercube_shift(loclx_of_loceo[eo][ieo],ishift))
+		  color_summassign(cres[glb_coord_of_loclx[loclx_of_loceo[eo][ieo]][0]],sol[eo][ieo]);
+	    THREAD_BARRIER();
+	    
+	    glb_threads_reduce_double_vect((double*)cres,sizeof(color)/sizeof(double)*glb_size[0]);
+	    if(IS_MASTER_THREAD) glb_nodes_reduce_complex_vect((complex*)cres,NCOL*glb_size[0]);
+	    THREAD_BARRIER();
+	    
+	    for(int t=0;t<glb_size[0];t++) for(int jcol=0;jcol<NCOL;jcol++) res[t]+=complex_norm2(cres[t][jcol])/(meas_pars->nhits*glb_spat_vol*glb_spat_vol);
+	  }
+      }
     
     for(int t=0;t<glb_size[0];t++)
       master_printf("%d %+016.016lg\n",t,res[t]);
