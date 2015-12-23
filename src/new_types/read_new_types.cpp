@@ -9,6 +9,7 @@
 #include "base/vectors.hpp"
 #include "io/input.hpp"
 #include "new_types_definitions.hpp"
+#include "operations/stag/mesons.hpp"
 #include "operations/stag/nucleon.hpp"
 
 namespace nissa
@@ -361,7 +362,7 @@ namespace nissa
 	if(pars.Dmax<1||pars.Dmax>glb_size[1]) crash("Dint must end between [1,%d]",glb_size[1]);
       }
   }
-
+  
   //read parameters to measure flux tube
   void read_watusso_meas_pars(watusso_meas_pars_t &pars,bool flag=false)
   {
@@ -436,5 +437,29 @@ namespace nissa
 	//electric and magnetic field
 	read_em_field_pars(theory_pars.em_field_pars);
       }
+  }
+  
+  //read how to measure staggered mesons
+  void read_stag_meson_corr_meas_pars(stag_meson_corr_meas_pars_t &pars,bool flag)
+  {
+    if(flag==true) pars.flag=true;
+    else read_str_int("MeasureStagMesonCorr",&pars.flag);
+    if(pars.flag)
+      {
+	pars.path=read_path();
+	int nmesons;
+        read_str_int("NMesons",&nmesons);
+	for(int imeson=0;imeson<nmesons;imeson++)
+	  {
+	    int spin,taste;
+	    read_int(&spin);
+	    read_int(&taste);
+	    pars.mesons.push_back(std::make_pair(spin,taste));
+	  }
+        read_str_double("InvResidue",&pars.residue);
+        read_str_int("NCopies",&pars.ncopies);
+        read_str_int("NHits",&pars.nhits);
+      }
+    
   }
 }

@@ -16,12 +16,15 @@
  #include "routines/thread.hpp"
 #endif
 
+#include "mesons.hpp"
+
 //in this formalism, shift=t+2*(x+2*(y+2*z))
 
 namespace nissa
 {
   namespace
   {
+    int nop,nflavs,ncombo;
     const int nshift=8;
     
     //return final combo
@@ -152,18 +155,9 @@ namespace nissa
   {return ((sto_shift*2)^mask)/2;}
   
   //compute correlation functions for staggered mesons, arbitary taste and spin
-  THREADABLE_FUNCTION_4ARG(staggered_meson_corr, quad_su3**,ext_conf, theory_pars_t*,tp, int,iconf, int,conf_created)
+  THREADABLE_FUNCTION_4ARG(compute_staggered_meson_corr, complex*,corr, quad_su3**,ext_conf, theory_pars_t*,tp, stag_meson_corr_meas_pars_t*,meas_pars)
   {
     GET_THREAD_ID();
-    
-    //list of operators
-    std::vector<std::pair<int,int> > mesons;
-    mesons.push_back(std::make_pair(15,15));
-    
-    int nop=mesons.size();
-    int nflavs=tp->nflavs;
-    int ncombo=ind_combo(nop-1,nflavs-1,nflavs-1, nflavs)+1;
-    int nhits=1;
     
     //allocate
     color *source[2],*sol[2];
@@ -172,7 +166,7 @@ namespace nissa
 	sol[eo]=nissa_malloc("sol",loc_volh+bord_volh,color);
 	source[eo]=nissa_malloc("source",loc_volh+bord_volh,color);
       }
-    complex *glb_corr=nissa_malloc("glb_corr",glb_size[0]*ncombo,complex);
+    vector_reset(corr);
     quad_su3 *gf_conf[2];
     for(int eo=0;eo<2;eo++) gf_conf[eo]=nissa_malloc("gf_conf",loc_volh+bord_volh,quad_su3);
     int sink_summed_size=ind_summ(nflavs-1,nshift-1,nshift-1,glb_size[0]-1,NCOL-1,NCOL-1)+1;
@@ -182,25 +176,29 @@ namespace nissa
     //perform gauge fixing
     quad_su3 *temp_conf=nissa_malloc("temp_conf",loc_vol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_vector(temp_conf,ext_conf);
-    coulomb_gauge_fix(temp_conf,temp_conf,1e-14);
+    landau_gauge_fix(temp_conf,temp_conf,1e-12);
     split_lx_vector_into_eo_parts(gf_conf,temp_conf);
     nissa_free(temp_conf);
     
     //form the masks
     int mask[nop];
-    for(int iop=0;iop<nop;iop++) mask[iop]=form_stag_meson_pattern(mesons[iop].first,mesons[iop].second);
+    for(int iop=0;iop<nop;iop++)
+      {
+	mask[iop]=form_stag_meson_pattern(meas_pars->mesons[iop].first,meas_pars->mesons[iop].second);
+	master_printf(" iop %d mask: %d\n",iop,mask[iop]);
+      }
     
-    for(int ihit=0;ihit<nhits;ihit++)
+    for(int ihit=0;ihit<meas_pars->nhits;ihit++)
       {
 	//compute all props and summ over sink
 	for(int so_col=0;so_col<NCOL;so_col++)
 	  for(int sto_so_shift=0;sto_so_shift<nshift;sto_so_shift++)
 	    {
 	      int so_shift=sto_so_shift*2;
-	      prepare_source_in_hypercube_origin(source,so_shift,so_col,ihit*glb_size[0]/nhits);
+	      prepare_source_in_hypercube_origin(source,so_shift,so_col,ihit*glb_size[0]/meas_pars->nhits);
 	      for(int iflav=0;iflav<nflavs;iflav++)
 		{
-		  mult_Minv(sol,gf_conf,tp,iflav,1e-12,source);
+		  mult_Minv(sol,gf_conf,tp,iflav,meas_pars->residue,source);
 		  store_sol(sink_summed,iflav,so_col,sto_so_shift,sol);
 		}
 	    }
@@ -214,8 +212,8 @@ namespace nissa
 	if(IS_MASTER_THREAD)
 	  for(int iop=0;iop<nop;iop++)
 	    {
-	      int ispin=mesons[iop].first;
-	      int itaste=mesons[iop].second;
+	      int ispin=meas_pars->mesons[iop].first;
+	      int itaste=meas_pars->mesons[iop].second;
 	      
 	      for(int iflav=0;iflav<nflavs;iflav++)
 		for(int jflav=0;jflav<nflavs;jflav++)
@@ -226,7 +224,8 @@ namespace nissa
 			{
 			  int sto_so_jshift=get_other_sto_shift(sto_so_ishift,ispin^itaste);
 			  int sto_si_jshift=get_other_sto_shift(sto_si_ishift,ispin^itaste);
-
+			  
+			  //find the sign of the site
 			  int expo=((sto_so_ishift*2)&mask[iop])^((sto_si_ishift*2)&mask[iop]);
 			  int sign=1;
 			  for(int temp=expo;temp;temp/=2) sign*=1-2*(temp&1);
@@ -239,19 +238,76 @@ namespace nissa
 				  unsafe_complex_conj2_prod(temp,
 							    sink_summed[ind_summ(iflav,sto_so_ishift,sto_si_ishift,t,so_col,si_col)],
 							    sink_summed[ind_summ(iflav,sto_so_jshift,sto_si_jshift,t,so_col,si_col)]);
-
-				  complex_summ_the_prod_double(glb_corr[ic],temp,sign);
+				  complex_summ_the_prod_double(corr[t+glb_size[0]*ic],temp,(double)sign/(meas_pars->nhits*glb_spat_vol*8));
 				}
 			}
 		  }
-	      }
+	    }
+	THREAD_BARRIER();
       }
     
     for(int eo=0;eo<2;eo++) nissa_free(sol[eo]);
     for(int eo=0;eo<2;eo++) nissa_free(source[eo]);
     for(int eo=0;eo<2;eo++) nissa_free(gf_conf[eo]);
-    nissa_free(glb_corr);
     delete[] sink_summed;
   }
   THREADABLE_FUNCTION_END
+  
+  //compute and print
+  void measure_staggered_meson_corr(quad_su3 **ext_conf,theory_pars_t &tp,stag_meson_corr_meas_pars_t &meas_pars,int iconf,int conf_created)
+  {
+    nop=meas_pars.mesons.size();
+    nflavs=tp.nflavs;
+    ncombo=ind_combo(nop-1,nflavs-1,nflavs-1, nflavs)+1;
+    complex *corr=nissa_malloc("corr",glb_size[0]*ncombo,complex);
+    
+    compute_staggered_meson_corr(corr,ext_conf,&tp,&meas_pars);
+    
+    //open the file, allocate point result and source
+    FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
+    for(int iop=0;iop<nop;iop++)
+      for(int iflav=0;iflav<nflavs;iflav++)
+	for(int jflav=0;jflav<nflavs;jflav++)
+	  {
+	    int spin=meas_pars.mesons[iop].first;
+	    int taste=meas_pars.mesons[iop].second;
+	    master_fprintf(file," # conf %d ; spin %d , taste %d ; flv1 = %d , m1 = %lg ; flv2 = %d , m2 = %lg\n",
+			   iconf,spin,taste,iflav,tp.quark_content[iflav].mass,jflav,tp.quark_content[jflav].mass);
+	    int ic=ind_combo(iop,iflav,jflav, nflavs);
+	    for(int t=0;t<glb_size[0];t++)
+	      master_fprintf(file,"%d %+016.16lg %+016.016lg\n",t,corr[t+glb_size[0]*ic][RE],corr[t+glb_size[0]*ic][IM]);
+	    master_fprintf(file,"\n");
+	  }
+    close_file(file);
+    
+    nissa_free(corr);
+  }
+  
+  //nucleon correlators
+  int stag_meson_corr_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  {
+    int nprinted=0;
+    
+    if(flag||full)
+      {
+	nprinted+=nissa::master_fprintf(fout,"StagMesonCorrelators\n");
+	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
+	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
+	if(mesons.size()||full)
+	  {
+	    nprinted+=nissa::master_fprintf(fout,"Mesons\t\t=\t\{");
+	    for(size_t i=0;i<mesons.size();i++)
+	      {
+		nprinted+=nissa::master_fprintf(fout,"(%d,%d)",mesons[i].first,mesons[i].second);
+		if(i!=mesons.size()-1) nprinted+=nissa::master_fprintf(fout,",");
+		else                   nprinted+=nissa::master_fprintf(fout,"}\n");
+	      }
+	  }
+	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t\"%lg\"\n",residue);
+	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
+      }
+    else if(full) nprinted+=nissa::master_fprintf(fout,"StagMesonCorrelators No\n");
+    
+    return nprinted;
+  }
 }

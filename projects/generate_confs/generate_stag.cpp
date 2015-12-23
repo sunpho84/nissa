@@ -43,6 +43,7 @@ spinpol_meas_pars_t *spinpol_meas_pars;
 magnetization_meas_pars_t *magnetization_meas_pars;
 pseudo_corr_meas_pars_t *pseudo_corr_meas_pars;
 nucleon_corr_meas_pars_t *nucleon_corr_meas_pars;
+stag_meson_corr_meas_pars_t *stag_meson_corr_meas_pars;
 
 //traj
 double init_time,max_traj_time=0,wall_time;
@@ -266,6 +267,7 @@ void init_simulation(char *path)
   magnetization_meas_pars=new magnetization_meas_pars_t[ntheories];
   pseudo_corr_meas_pars=new pseudo_corr_meas_pars_t[ntheories];
   nucleon_corr_meas_pars=new nucleon_corr_meas_pars_t[ntheories];
+  stag_meson_corr_meas_pars=new stag_meson_corr_meas_pars_t[ntheories];
   
   //read physical theory: theory 0 is the sea (simulated one)
   for(int itheory=0;itheory<ntheories;itheory++)
@@ -275,6 +277,7 @@ void init_simulation(char *path)
       read_theory_pars(theory_pars[itheory]);
       read_pseudo_corr_meas_pars(pseudo_corr_meas_pars[itheory]);
       read_nucleon_corr_meas_pars(nucleon_corr_meas_pars[itheory]);
+      read_stag_meson_corr_meas_pars(stag_meson_corr_meas_pars[itheory]);
       read_fermionic_putpourri_meas_pars(fermionic_putpourri_meas_pars[itheory]);
       read_quark_rendens_meas_pars(quark_rendens_meas_pars[itheory]);
       read_spinpol_meas_pars(spinpol_meas_pars[itheory]);
@@ -417,6 +420,7 @@ void close_simulation()
   delete[] magnetization_meas_pars;
   delete[] pseudo_corr_meas_pars;
   delete[] nucleon_corr_meas_pars;
+  delete[] stag_meson_corr_meas_pars;
   
   for(int par=0;par<2;par++)
     {
@@ -561,10 +565,13 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       int magnetization_flag=check_flag_and_curr_conf(magnetization_meas_pars[itheory].flag,iconf);
       int pseudo_corr_flag=check_flag_and_curr_conf(pseudo_corr_meas_pars[itheory].flag,iconf);
       int nucleon_corr_flag=check_flag_and_curr_conf(nucleon_corr_meas_pars[itheory].flag,iconf);
+      int stag_meson_corr_flag=check_flag_and_curr_conf(stag_meson_corr_meas_pars[itheory].flag,iconf);
       int quark_rendens_flag=check_flag_and_curr_conf(quark_rendens_meas_pars[itheory].flag,iconf);
       int spinpol_flag=check_flag_and_curr_conf(spinpol_meas_pars[itheory].flag,iconf);
-      
-      if(fermionic_putpourri_flag||magnetization_flag||pseudo_corr_flag||quark_rendens_flag)
+      int meas_flag=fermionic_putpourri_flag||magnetization_flag||pseudo_corr_flag||nucleon_corr_flag||stag_meson_corr_flag||
+	quark_rendens_flag||spinpol_flag;
+	
+      if(meas_flag)
 	{
 	  //if needed stout
 	  quad_su3 **sme_conf=(theory_pars[itheory].stout_pars.nlevels==0)?conf:new_conf;
@@ -617,8 +624,12 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	      measure_nucleon_corr(sme_conf,theory_pars[itheory],nucleon_corr_meas_pars[itheory],iconf,conf_created);
 	    }
 	  
-	  //DEBUG
-	  staggered_meson_corr(sme_conf,theory_pars+itheory,iconf,conf_created);
+	  //staggered meson
+	  if(stag_meson_corr_flag)
+	    {
+	      verbosity_lv1_master_printf("Measuring staggered meson correlator for theory %d/%d\n",itheory+1,ntheories);
+	      measure_staggered_meson_corr(sme_conf,theory_pars[itheory],stag_meson_corr_meas_pars[itheory],iconf,conf_created);
+	    }
 	}
     }
   
@@ -711,19 +722,6 @@ void run_program_for_production()
   while(check_if_continue())
     {
       double init_traj_time=take_time();
-      
-      //TEST
-      su3_print(conf[0][0][0]);
-      su3 test;
-      su3_copy(test,conf[0][0][0]);
-      unsafe_complex_conj_conj_prod(test[0][2],test[1][0],test[2][1]);
-      complex_subt_the_conj_conj_prod(test[0][2],test[2][0],test[1][1]);
-      unsafe_complex_conj_conj_prod(test[1][2],test[2][0],test[0][1]);
-      complex_subt_the_conj_conj_prod(test[1][2],test[0][0],test[2][1]);
-      unsafe_complex_conj_conj_prod(test[2][2],test[0][0],test[1][1]);
-      complex_subt_the_conj_conj_prod(test[2][2],test[1][0],test[0][1]);
-      master_printf("\n%lg %lg\n",su3_real_det(test)-1,su3_real_det(conf[0][0][0])-1);
-      su3_print(test);
       
       // 1) produce new conf
       int acc=1;
