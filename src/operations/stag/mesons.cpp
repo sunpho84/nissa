@@ -245,7 +245,7 @@ namespace nissa
 				    complex temp;
 				    unsafe_complex_conj2_prod(temp,
 							      sink_summed[ind_summ(iflav,sto_so_ishift,sto_si_ishift,t,so_col,si_col)],
-							      sink_summed[ind_summ(iflav,sto_so_jshift,sto_si_jshift,t,so_col,si_col)]);
+							      sink_summed[ind_summ(jflav,sto_so_jshift,sto_si_jshift,t,so_col,si_col)]);
 				    complex_summ_the_prod_double(corr[t+glb_size[0]*ic],temp,(double)sign/(meas_pars->nhits*glb_spat_vol*8));
 				  }
 			    }
