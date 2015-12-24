@@ -184,8 +184,13 @@ namespace nissa
     int mask[nop];
     for(int iop=0;iop<nop;iop++)
       {
-	mask[iop]=form_stag_meson_pattern(meas_pars->mesons[iop].first,meas_pars->mesons[iop].second);
-	master_printf(" iop %d mask: %d\n",iop,mask[iop]);
+	int spin=meas_pars->mesons[iop].first;
+	int taste=meas_pars->mesons[iop].second;
+	int shift=(spin^taste);
+	mask[iop]=form_stag_meson_pattern(spin,taste);
+	master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift);
+	
+	if((spin^taste)&1) crash("operator %d (%d %d) has unpaired number of g0",iop,spin,taste);
       }
     
     for(int ihit=0;ihit<meas_pars->nhits;ihit++)
@@ -231,8 +236,8 @@ namespace nissa
 			      int expo=((sto_so_ishift*2)&mask[iop])^((sto_si_ishift*2+t%2)&mask[iop]);
 			      int sign=1;
 			      for(int temp=expo;temp;temp/=2) sign*=1-2*(temp&1);
-			      master_printf("t: %d , sto_so_ishift: %d , sto_so_jshift %d , sto_si_ishift: %d sto_si_jshift: %d , expo: %d , sign: %d \n",
-					    t,sto_so_ishift,sto_so_jshift,sto_si_ishift,sto_si_jshift,expo,sign);
+			      //master_printf("t: %d , sto_so_ishift: %d , sto_so_jshift %d , sto_si_ishift: %d sto_si_jshift: %d , expo: %d , sign: %d \n",
+			      //t,sto_so_ishift,sto_so_jshift,sto_si_ishift,sto_si_jshift,expo,sign);
 			      
 			      for(int so_col=0;so_col<NCOL;so_col++)
 				for(int si_col=0;si_col<NCOL;si_col++)
@@ -313,8 +318,8 @@ namespace nissa
 	  {
 	    int spin=meas_pars.mesons[iop].first;
 	    int taste=meas_pars.mesons[iop].second;
-	    master_fprintf(file," # conf %d ; spin %d , taste %d ; flv1 = %d , m1 = %lg ; flv2 = %d , m2 = %lg\n",
-			   iconf,spin,taste,iflav,tp.quark_content[iflav].mass,jflav,tp.quark_content[jflav].mass);
+	    master_fprintf(file," # conf %d ; iop %d , spin %d , taste %d ; flv1 = %d , m1 = %lg ; flv2 = %d , m2 = %lg\n",
+			   iconf,iop,spin,taste,iflav,tp.quark_content[iflav].mass,jflav,tp.quark_content[jflav].mass);
 	    int ic=ind_combo(iop,iflav,jflav, nflavs);
 	    for(int t=0;t<glb_size[0];t++)
 	      master_fprintf(file,"%d %+016.16lg %+016.016lg\n",t,corr[t+glb_size[0]*ic][RE],corr[t+glb_size[0]*ic][IM]);
