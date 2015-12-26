@@ -315,7 +315,7 @@ namespace nissa
 	nissa_a->flag=nissa_b->flag;
 	
 	//sync so we are sure that all threads are here
-	THREAD_BARRIER();      
+	THREAD_BARRIER();
       }
   }
   

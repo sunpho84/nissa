@@ -1,5 +1,5 @@
-#ifndef _APE_H
-#define _APE_H
+#ifndef _APE_HPP
+#define _APE_HPP
 
 namespace nissa
 {
