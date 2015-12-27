@@ -162,6 +162,7 @@ namespace nissa
       //for(int icol_so=0;icol_so<NCOL;icol_so++)
 	{
 	  int tso=2*rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2);
+	  master_printg("tsource: %d\n",tso);
 	  generate_fully_undiluted_eo_source(ori_source,RND_Z4,tso);
 	  for(int eo=0;eo<2;eo++)
 	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
@@ -233,7 +234,7 @@ namespace nissa
 	  for(int t=0;t<glb_size[0];t++)
 	    {
 	      int ic=icombo(iflav,iop,t);
-	      master_fprintf(file,"%d %+016.16lg %+016.016lg\n",t,corr[ic][RE],corr[ic][IM]);
+	      master_fprintf(file,"%d %+016.16lg %+016.016lg\n",t,corr[ic][RE]/meas_pars.nhits,corr[ic][IM]/meas_pars.nhits);
 	    }
 	    master_fprintf(file,"\n");
 	  }
