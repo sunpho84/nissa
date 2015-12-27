@@ -159,38 +159,38 @@ namespace nissa
       }
     
     for(int ihit=0;ihit<meas_pars->nhits;ihit++)
-      {
-	generate_fully_undiluted_eo_source(ori_source,RND_Z4,0);
-	for(int eo=0;eo<2;eo++)
-	  {
-	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	      if(!is_hypercube_shift(loclx_of_loceo[eo][ieo],0)) color_put_to_zero(ori_source[eo][ieo]);
-	    set_borders_invalid(ori_source[eo]);
-	  }
-	
-	for(int iflav=0;iflav<nflavs;iflav++)
-	  {
-	    for(int iop=0;iop<nop;iop++)
-	      {
-		apply_op(source,sol,conf,shift[iop],ori_source);
-		put_phases(source,mask[iop]);
-		mult_Minv(sol,conf,tp,iflav,meas_pars->residue,source);
-		put_phases(sol,mask[iop]);
-		apply_op(quark[iop],source,conf,shift[iop],sol);
-	      }
+      for(int icol_so=0;icol_so<NCOL;icol_so++)
+	{
+	  //generate_fully_undiluted_eo_source(ori_source,RND_Z4,0);
+	  if(rank==0) complex_put_to_real(ori_source[EVN][0][icol_so],1);
+	  for(int eo=0;eo<2;eo++)
+	    {
+	      //NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	      //if(!is_hypercube_shift(loclx_of_loceo[eo][ieo],0)) color_put_to_zero(ori_source[eo][ieo]);
+	      set_borders_invalid(ori_source[eo]);
+	    }
+	  
+	  for(int iflav=0;iflav<nflavs;iflav++)
+	    {
+	      for(int iop=0;iop<nop;iop++)
+		{
+		  //apply_op(source,sol,conf,shift[iop],ori_source);
+		  mult_Minv(sol,conf,tp,iflav,meas_pars->residue,source);
+		  apply_op(quark[iop],source,conf,shift[iop],sol);
+		}
 	    
-	    for(int iop=0;iop<nop;iop++)
-	      for(int eo=0;eo<2;eo++)
-		NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-		  {
-		    int ivol=loclx_of_loceo[eo][ieo];
-		    int t=glb_coord_of_loclx[ivol][0];
-		    for(int ic=0;ic<NCOL;ic++)
-		      complex_summ_the_conj2_prod(loc_corr[icombo(iflav,iop,t)],quark[0][eo][ieo][ic],quark[iop][eo][ieo][ic]);
-		  }
-	    THREAD_BARRIER();
-	  }
-      }
+	      for(int iop=0;iop<nop;iop++)
+		for(int eo=0;eo<2;eo++)
+		  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+		    {
+		      int ivol=loclx_of_loceo[eo][ieo];
+		      int t=glb_coord_of_loclx[ivol][0];
+		      for(int ic=0;ic<NCOL;ic++)
+			complex_summ_the_conj2_prod(loc_corr[icombo(iflav,iop,t)],quark[0][eo][ieo][ic],quark[iop][eo][ieo][ic]);
+		    }
+	      THREAD_BARRIER();
+	    }
+	}
     
     //reduce
     glb_threads_reduce_double_vect((double*)loc_corr,2*ncombo);
