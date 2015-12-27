@@ -76,7 +76,7 @@ namespace nissa
       
       for(int eo=0;eo<2;eo++) vector_copy(source[eo],ori_source[eo]);
       
-      addrem_stagphases(conf);
+      //addrem_stagphases(conf);
       
       for(int mu=0;mu<NDIM;mu++)
 	if((shift>>mu)&0x1)
@@ -99,7 +99,7 @@ namespace nissa
 	    for(int eo=0;eo<2;eo++) set_borders_invalid(source[eo]);
 	  }
       
-      addrem_stagphases(conf);
+      //addrem_stagphases(conf);
     }
     
     //add the phases
@@ -162,23 +162,23 @@ namespace nissa
       for(int icol_so=0;icol_so<NCOL;icol_so++)
 	{
 	  //generate_fully_undiluted_eo_source(ori_source,RND_Z4,0);
+	  //NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	  //if(!is_hypercube_shift(loclx_of_loceo[eo][ieo],0)) color_put_to_zero(ori_source[eo][ieo]);
+	  for(int eo=0;eo<2;eo++) vector_reset(ori_source[eo]);
 	  if(rank==0) complex_put_to_real(ori_source[EVN][0][icol_so],1);
-	  for(int eo=0;eo<2;eo++)
-	    {
-	      //NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
-	      //if(!is_hypercube_shift(loclx_of_loceo[eo][ieo],0)) color_put_to_zero(ori_source[eo][ieo]);
-	      set_borders_invalid(ori_source[eo]);
-	    }
+	  for(int eo=0;eo<2;eo++) set_borders_invalid(ori_source[eo]);
 	  
 	  for(int iflav=0;iflav<nflavs;iflav++)
 	    {
 	      for(int iop=0;iop<nop;iop++)
 		{
-		  //apply_op(source,sol,conf,shift[iop],ori_source);
+		  apply_op(source,sol,conf,shift[iop],ori_source);
+		  put_phases(source,mask[iop]);
 		  mult_Minv(sol,conf,tp,iflav,meas_pars->residue,source);
 		  apply_op(quark[iop],source,conf,shift[iop],sol);
+		  put_phases(quark[iop],mask[iop]);
 		}
-	    
+	      
 	      for(int iop=0;iop<nop;iop++)
 		for(int eo=0;eo<2;eo++)
 		  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
