@@ -161,11 +161,13 @@ namespace nissa
     for(int ihit=0;ihit<meas_pars->nhits;ihit++)
       //for(int icol_so=0;icol_so<NCOL;icol_so++)
 	{
+	  //generate tso
 	  int tso;
 	  if(IS_MASTER_THREAD) tso=2*(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2);
 	  THREAD_BROADCAST(tso,tso);
-	  
 	  master_printf("tsource: %d\n",tso);
+	  
+	  //generate source
 	  generate_fully_undiluted_eo_source(ori_source,RND_Z4,tso);
 	  for(int eo=0;eo<2;eo++)
 	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
@@ -178,8 +180,8 @@ namespace nissa
 	    {
 	      for(int iop=0;iop<nop;iop++)
 		{
-		  apply_op(source,sol,conf,shift[iop],ori_source);
 		  put_phases(source,mask[iop]);
+		  apply_op(source,sol,conf,shift[iop],ori_source);
 		  mult_Minv(sol,conf,tp,iflav,meas_pars->residue,source);
 		  apply_op(quark[iop],source,conf,shift[iop],sol);
 		  put_phases(quark[iop],mask[iop]);
@@ -192,7 +194,7 @@ namespace nissa
 		      int ivol=loclx_of_loceo[eo][ieo];
 		      int t=(glb_coord_of_loclx[ivol][0]-tso+glb_size[0])%glb_size[0];
 		      for(int ic=0;ic<NCOL;ic++)
-			complex_summ_the_conj2_prod(loc_corr[icombo(iflav,iop,t)],quark[0][eo][ieo][ic],quark[iop][eo][ieo][ic]);
+			complex_summ_the_conj1_prod(loc_corr[icombo(iflav,iop,t)],quark[0][eo][ieo][ic],quark[iop][eo][ieo][ic]);
 		    }
 	      THREAD_BARRIER();
 	    }
