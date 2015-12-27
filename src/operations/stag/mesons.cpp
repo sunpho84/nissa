@@ -53,23 +53,30 @@ namespace nissa
     int icombo(int iflav,int iop,int t)
     {return t+glb_size[0]*(iop+nop*iflav);}
     
-    //apply the operator
-    inline void apply_op(color **source,color **temp,quad_su3 **conf,int mask,int shift,color **ori_source)
+    inline void addrem_stagphases(quad_su3 **conf)
     {
       GET_THREAD_ID();
       
-      //put the phases
       for(int eo=0;eo<2;eo++)
 	{
 	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	    {
-	      int sign=1,ivol=loclx_of_loceo[eo][ieo];
-	      for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1)&&(glb_coord_of_loclx[ivol][mu]&0x1));
-	      if(abs(sign)!=1) crash("unexpected sign %d",sign);
-	      color_prod_double(source[eo][ieo],ori_source[eo][ieo],sign);
+	      coords ph;
+	      get_stagphase_of_lx(ph,loclx_of_loceo[eo][ieo]);
+	      for(int mu=0;mu<NDIM;mu++) su3_prodassign_double(conf[eo][ieo][mu],ph[mu]);
 	    }
-	  set_borders_invalid(source[eo]);
+	  set_borders_invalid(conf[eo]);
 	}
+    }
+    
+    //apply the operator
+    inline void apply_op(color **source,color **temp,quad_su3 **conf,int shift,color **ori_source)
+    {
+      GET_THREAD_ID();
+      
+      for(int eo=0;eo<2;eo++) vector_copy(source[eo],ori_source[eo]);
+      
+      addrem_stagphases(conf);
       
       for(int mu=0;mu<NDIM;mu++)
 	if((shift>>mu)&0x1)
@@ -91,6 +98,27 @@ namespace nissa
 		}
 	    for(int eo=0;eo<2;eo++) set_borders_invalid(source[eo]);
 	  }
+      
+      addrem_stagphases(conf);
+    }
+    
+    //add the phases
+    inline void put_phases(color **source,int mask)
+    {
+      GET_THREAD_ID();
+      
+      //put the phases
+      for(int eo=0;eo<2;eo++)
+	{
+	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	    {
+	      int sign=1,ivol=loclx_of_loceo[eo][ieo];
+	      for(int mu=0;mu<NDIM;mu++) sign*=1-2*(((mask>>mu)&0x1)&&(glb_coord_of_loclx[ivol][mu]&0x1));
+	      if(abs(sign)!=1) crash("unexpected sign %d",sign);
+	      color_prod_double(source[eo][ieo],source[eo][ieo],sign);
+	    }
+	  set_borders_invalid(source[eo]);
+	}
     }
     
     //check it is an hypercube origin
@@ -144,9 +172,11 @@ namespace nissa
 	  {
 	    for(int iop=0;iop<nop;iop++)
 	      {
-		apply_op(source,sol,conf,mask[iop],shift[iop],ori_source);
+		apply_op(source,sol,conf,shift[iop],ori_source);
+		put_phases(source,mask[iop]);
 		mult_Minv(sol,conf,tp,iflav,meas_pars->residue,source);
-		apply_op(quark[iop],source,conf,mask[iop],shift[iop],sol);
+		put_phases(sol,mask[iop]);
+		apply_op(quark[iop],source,conf,shift[iop],sol);
 	      }
 	    
 	    for(int iop=0;iop<nop;iop++)
