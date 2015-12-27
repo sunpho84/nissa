@@ -161,7 +161,7 @@ namespace nissa
     for(int ihit=0;ihit<meas_pars->nhits;ihit++)
       //for(int icol_so=0;icol_so<NCOL;icol_so++)
 	{
-	  int tso=2*rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2);
+	  int tso=2*(int)rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2);
 	  master_printf("tsource: %d\n",tso);
 	  generate_fully_undiluted_eo_source(ori_source,RND_Z4,tso);
 	  for(int eo=0;eo<2;eo++)
