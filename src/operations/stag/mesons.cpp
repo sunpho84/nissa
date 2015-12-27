@@ -161,7 +161,7 @@ namespace nissa
     for(int ihit=0;ihit<meas_pars->nhits;ihit++)
       //for(int icol_so=0;icol_so<NCOL;icol_so++)
 	{
-	  generate_fully_undiluted_eo_source(ori_source,RND_Z4,0);
+	  generate_fully_undiluted_eo_source(ori_source,RND_Z4,2*rnd_get_unif(&glb_rnd_gen,0,glb_size[0]/2));
 	  for(int eo=0;eo<2;eo++)
 	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
 	      if(!is_hypercube_shift(loclx_of_loceo[eo][ieo],0)) color_put_to_zero(ori_source[eo][ieo]);
