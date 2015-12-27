@@ -92,6 +92,14 @@ namespace nissa
 	    for(int eo=0;eo<2;eo++) set_borders_invalid(source[eo]);
 	  }
     }
+    
+    //check it is an hypercube origin
+    inline int is_hypercube_shift(int ivol,int ishift)
+    {
+      int is=1;
+      for(int mu=0;mu<NDIM;mu++) is&=((glb_coord_of_loclx[ivol][mu]%2)==((ishift>>mu)%2));
+      return is;
+    }
   }
   
   //compute correlation functions for staggered mesons, arbitary taste and spin
@@ -125,6 +133,13 @@ namespace nissa
     for(int ihit=0;ihit<meas_pars->nhits;ihit++)
       {
 	generate_fully_undiluted_eo_source(ori_source,RND_Z4,0);
+	for(int eo=0;eo<2;eo++)
+	  {
+	    NISSA_PARALLEL_LOOP(ieo,0,loc_volh)
+	      if(!is_hypercube_shift(loclx_of_loceo[eo][ieo],0)) color_put_to_zero(ori_source[eo][ieo]);
+	    set_borders_invalid(ori_source[eo]);
+	  }
+	
 	for(int iflav=0;iflav<nflavs;iflav++)
 	  {
 	    for(int iop=0;iop<nop;iop++)
