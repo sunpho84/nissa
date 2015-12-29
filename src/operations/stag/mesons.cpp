@@ -82,9 +82,11 @@ namespace nissa
       
       for(std::vector<int>::iterator mu_it=list_dir.begin();mu_it!=list_dir.end();mu_it++)
 	{
-	  //write header, copy and communicate
+	  //write comment, copy and communicate
 	  verbosity_lv2_master_printf(" shift %d\n",*mu_it);
-	  if(mu_it!=list_dir.begin()) for(int eo=0;eo<2;eo++) vector_copy(temp[eo],out[eo]);
+	  if(mu_it!=list_dir.begin())
+	    for(int eo=0;eo<2;eo++)
+	      vector_copy(temp[eo],out[eo]);
 	  
 	  //make the shift
 	  apply_covariant_shift(out,conf,*mu_it,temp);
@@ -182,16 +184,18 @@ namespace nissa
 	shift[iop]=(spin^taste);
 	mask[iop]=form_stag_meson_pattern(spin,taste);
 	if((shift[iop])&1) crash("operator %d (%d %d) has unmarched number of g0",iop,spin,taste);
-	master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
+	verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
       }
     
     for(int ihit=0;ihit<meas_pars->nhits;ihit++)
       {
+	verbosity_lv2_master_printf("Computing hit %d\%d\n",ihit,meas_pars->nhits);
+	
 	//generate tso
 	int tso;
 	if(IS_MASTER_THREAD) tso=rnd_get_unif(&glb_rnd_gen,0,glb_size[0]);
 	THREAD_BROADCAST(tso,tso);
-	master_printf("tsource: %d\n",tso);
+	verbosity_lv2_master_printf("tsource: %d\n",tso);
 	
 	//generate source
 	generate_fully_undiluted_eo_source(ori_source,RND_Z4,tso);
