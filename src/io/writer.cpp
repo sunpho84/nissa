@@ -95,7 +95,7 @@ namespace nissa
 	    prec,1,glb_size[3],glb_size[2],glb_size[1],glb_size[0]);
     ILDG_File_write_text_record(file,"etmc-propagator-format",propagator_format_message);
 #endif
-
+    
     //Write the binary data
     write_double_vector(file,(double*)spinor,4*NCOL*2,prec,"scidac-binary-data");
     
