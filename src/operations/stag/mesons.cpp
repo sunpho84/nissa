@@ -183,7 +183,7 @@ namespace nissa
 	int taste=meas_pars->mesons[iop].second;
 	shift[iop]=(spin^taste);
 	mask[iop]=form_stag_meson_pattern(spin,taste);
-	if((shift[iop])&1) crash("operator %d (%d %d) has unmarched number of g0",iop,spin,taste);
+	//if((shift[iop])&1) crash("operator %d (%d %d) has unmarched number of g0",iop,spin,taste);
 	verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
       }
     

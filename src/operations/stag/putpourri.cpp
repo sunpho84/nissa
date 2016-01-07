@@ -89,7 +89,7 @@ namespace nissa
 	vector_reset(point_result); //reset the point result
 	for(int par=0;par<2;par++) //loop on parity of sites
 	  NISSA_PARALLEL_LOOP(ieo,0,loc_volh) //loop on sites
-	    for(int ic=0;ic<3;ic++) //for every color takes the trace with conjugate of original source
+	    for(int ic=0;ic<NCOL;ic++) //for every color takes the trace with conjugate of original source
 	      complex_summ_the_conj1_prod(point_result[loclx_of_loceo[par][ieo]],rnd[par][ieo][ic],chi[par][ieo][ic]);
 	THREAD_BARRIER();
 	
@@ -129,7 +129,7 @@ namespace nissa
     ///////////////////// energy, barionic and pressure density ////////////////
     //compute forward derivative and backward, in turn
     //take into account that backward one must be conjugated
-    complex res_fw_bw[4][2];
+    complex res_fw_bw[NDIM][2];
     for(int mu=0;mu<4;mu++)
       compute_fw_bw_der_mel(res_fw_bw[mu],rnd,conf,mu,chi1,point_result);
     
@@ -152,7 +152,7 @@ namespace nissa
       }
     THREAD_BARRIER();
     
-    //if needed compute the quark number susceptivity
+    //if needed compute the quark number susceptibility
     if(comp_susc)
       { //adimensional, need to be summed to the energy density!
 	complex res_quark_dens_susc_fw_bw[2];
