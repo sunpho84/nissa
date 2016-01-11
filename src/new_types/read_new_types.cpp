@@ -256,6 +256,8 @@ namespace nissa
     if(pars.flag)
       {
 	pars.path=read_path();
+        read_str_int("After",&pars.after);
+        read_str_int("MaxOrder",&pars.max_order);
         read_str_double("InvResidue",&pars.residue);
         read_str_int("NCopies",&pars.ncopies);
         read_str_int("NHits",&pars.nhits);
@@ -288,19 +290,6 @@ namespace nissa
 	pars.path=read_path();
 	read_str_double("InvResidue",&pars.residue);
 	read_str_int("NCopies",&pars.ncopies);
-	read_str_int("NHits",&pars.nhits);
-      }
-  }
-  
-  //read parameters to measure pseudoscalar correlators
-  void read_pseudo_corr_meas_pars(pseudo_corr_meas_pars_t &pars,bool flag=false)
-  {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasurePseudoCorr",&pars.flag);
-    if(pars.flag)
-      {
-	pars.path=read_path();
-	read_str_double("InvResidue",&pars.residue);
 	read_str_int("NHits",&pars.nhits);
       }
   }

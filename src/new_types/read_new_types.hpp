@@ -19,7 +19,6 @@ namespace nissa
   void read_all_rect_meas_pars(all_rect_meas_pars_t &pars,bool flag=false);
   void read_watusso_meas_pars(watusso_meas_pars_t &pars,bool flag=false);
   void read_hmc_evol_pars(hmc_evol_pars_t &pars,theory_pars_t &th);
-  void read_pseudo_corr_meas_pars(pseudo_corr_meas_pars_t &pars,bool flag=false);
   void read_nucleon_corr_meas_pars(nucleon_corr_meas_pars_t &pars,bool flag=false);
   void read_quark_content(quark_content_t &quark_content,bool flag=false);
   void read_stout_pars(stout_pars_t &stout_pars);

@@ -29,11 +29,11 @@ UNSIGNED_INT {DIGIT}*
 SIGNED_INT {SIGN}{DIGIT}*
 
  /* comments */
-C_COM_BEG \/\/
-C_COM {C_COM_BEG}{ANY}*
-CPP_COM_BEG \/\*
-CPP_COM_END \*\/
-CPP_COM {CPP_COM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COM_END}
+C_COMM_BEG \/\/
+C_COMM {C_COMM_BEG}{ANY}*
+CPP_COMM_BEG \/\*
+CPP_COMM_END \*\/
+CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 
 /* header of tokenizer */
 %{
@@ -83,7 +83,7 @@ CPP_COM {CPP_COM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COM_END}
 <COMMENT>"EOF"                      crash("reached end of file while scanning comment");
 <COMMENT>.|"\n"                     curr_comment+=yytext[0];
 {NEWLINE}                           DEBUG_PRINTF("Ignoring endline\n");
-{C_COM}                             DEBUG_PRINTF("Ignoring single line comment: %s\n",yytext);
+{C_COMM}                             DEBUG_PRINTF("Ignoring single line comment: %s\n",yytext);
 {SPACE}+                            DEBUG_PRINTF("Ignoring spaces: \"%s\"\n",yytext);
 
  /* quoted text */
@@ -106,6 +106,9 @@ No DEBUG_PRINTF("Found No\n");return TK_NO;
 
  /* each */
 Each DEBUG_PRINTF("Found Each\n");return TK_EACH;
+
+ /* after */
+After DEBUG_PRINTF("Found After\n");return TK_AFTER;
 
  /* residue */
 Residue DEBUG_PRINTF("Found Residue\n");return TK_RESIDUE;
@@ -165,7 +168,6 @@ Ey DEBUG_PRINTF("Found Ey\n");yylval->unsigned_int_numb=1;return TK_E_COMP;
 Ez DEBUG_PRINTF("Found Ez\n");yylval->unsigned_int_numb=2;return TK_E_COMP;
 
  /* fermionic measures */
-PseudoCorrelators DEBUG_PRINTF("Found PseudoCorrelators\n");return TK_PSEUDO_CORRELATORS;
 NucleonCorrelators DEBUG_PRINTF("Found NucleonCorrelators\n");return TK_NUCLEON_CORRELATORS;
 FermionicPutpourri DEBUG_PRINTF("Found FermionicPutpourri\n");return TK_FERMIONIC_PUTPOURRI;
 ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;

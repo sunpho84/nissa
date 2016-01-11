@@ -41,7 +41,6 @@ fermionic_putpourri_meas_pars_t *fermionic_putpourri_meas_pars;
 quark_rendens_meas_pars_t *quark_rendens_meas_pars;
 spinpol_meas_pars_t *spinpol_meas_pars;
 magnetization_meas_pars_t *magnetization_meas_pars;
-pseudo_corr_meas_pars_t *pseudo_corr_meas_pars;
 nucleon_corr_meas_pars_t *nucleon_corr_meas_pars;
 stag_meson_corr_meas_pars_t *stag_meson_corr_meas_pars;
 
@@ -265,7 +264,6 @@ void init_simulation(char *path)
   quark_rendens_meas_pars=new quark_rendens_meas_pars_t[ntheories];
   spinpol_meas_pars=new spinpol_meas_pars_t[ntheories];
   magnetization_meas_pars=new magnetization_meas_pars_t[ntheories];
-  pseudo_corr_meas_pars=new pseudo_corr_meas_pars_t[ntheories];
   nucleon_corr_meas_pars=new nucleon_corr_meas_pars_t[ntheories];
   stag_meson_corr_meas_pars=new stag_meson_corr_meas_pars_t[ntheories];
   
@@ -275,7 +273,6 @@ void init_simulation(char *path)
       if(itheory==0) master_printf("Reading info on sea theory\n");
       else           master_printf("Reading info on additional (valence) theory %d/%d\n",itheory,nvalence_theories);
       read_theory_pars(theory_pars[itheory]);
-      read_pseudo_corr_meas_pars(pseudo_corr_meas_pars[itheory]);
       read_nucleon_corr_meas_pars(nucleon_corr_meas_pars[itheory]);
       read_stag_meson_corr_meas_pars(stag_meson_corr_meas_pars[itheory]);
       read_fermionic_putpourri_meas_pars(fermionic_putpourri_meas_pars[itheory]);
@@ -418,7 +415,6 @@ void close_simulation()
   delete[] quark_rendens_meas_pars;
   delete[] spinpol_meas_pars;
   delete[] magnetization_meas_pars;
-  delete[] pseudo_corr_meas_pars;
   delete[] nucleon_corr_meas_pars;
   delete[] stag_meson_corr_meas_pars;
   
@@ -563,12 +559,11 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
       //check measure
       int fermionic_putpourri_flag=check_flag_and_curr_conf(fermionic_putpourri_meas_pars[itheory].flag,iconf);
       int magnetization_flag=check_flag_and_curr_conf(magnetization_meas_pars[itheory].flag,iconf);
-      int pseudo_corr_flag=check_flag_and_curr_conf(pseudo_corr_meas_pars[itheory].flag,iconf);
       int nucleon_corr_flag=check_flag_and_curr_conf(nucleon_corr_meas_pars[itheory].flag,iconf);
       int stag_meson_corr_flag=check_flag_and_curr_conf(stag_meson_corr_meas_pars[itheory].flag,iconf);
-      int quark_rendens_flag=check_flag_and_curr_conf(quark_rendens_meas_pars[itheory].flag,iconf);
+      int quark_rendens_flag=check_flag_and_curr_conf(quark_rendens_meas_pars[itheory].flag,iconf)&&iconf>=quark_rendens_meas_pars[itheory].after;
       int spinpol_flag=check_flag_and_curr_conf(spinpol_meas_pars[itheory].flag,iconf);
-      int meas_flag=fermionic_putpourri_flag||magnetization_flag||pseudo_corr_flag||nucleon_corr_flag||stag_meson_corr_flag||
+      int meas_flag=fermionic_putpourri_flag||magnetization_flag||nucleon_corr_flag||stag_meson_corr_flag||
 	quark_rendens_flag||spinpol_flag;
 	
       if(meas_flag)
@@ -605,16 +600,6 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	    {
 	      verbosity_lv1_master_printf("Measuring magnetization for theory %d/%d\n",itheory+1,ntheories);
 	      measure_magnetization(sme_conf,theory_pars[itheory],magnetization_meas_pars[itheory],iconf,conf_created);
-	    }
-	  
-	  //pseudoscalar meson time corr
-	  if(pseudo_corr_flag)
-	    {
-	      verbosity_lv1_master_printf("Measuring pseudoscalar correlator for theory %d/%d\n",itheory+1,ntheories);
-	      measure_time_pseudo_corr(sme_conf,theory_pars[itheory],pseudo_corr_meas_pars[itheory],iconf,conf_created,0);
-	      if(pseudo_corr_meas_pars[itheory].flag>1)
-		for(int dir=1;dir<4;dir++)
-		  measure_time_pseudo_corr(sme_conf,theory_pars[itheory],pseudo_corr_meas_pars[itheory],iconf,0,dir);
 	    }
 	  
 	  //nucleon corr

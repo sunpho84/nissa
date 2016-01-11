@@ -431,7 +431,6 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/stag/rendens.cpp \
 	operations/stag/spinpol.cpp \
 	operations/stag/stag.cpp \
-	operations/stag/time_pseudo_corr.cpp \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
@@ -472,7 +471,6 @@ include_HEADERS+= \
 	operations/stag/rendens.hpp \
 	operations/stag/spinpol.hpp \
 	operations/stag/stag.hpp \
-	operations/stag/time_pseudo_corr.hpp \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \

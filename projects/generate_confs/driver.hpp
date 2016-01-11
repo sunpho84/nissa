@@ -37,7 +37,6 @@ public:
   em_field_pars_t em_field_pars;
   
   //fermionic measures
-  pseudo_corr_meas_pars_t pseudo_corr_meas_pars;
   nucleon_corr_meas_pars_t nucleon_corr_meas_pars;
   fermionic_putpourri_meas_pars_t fermionic_putpourri_meas_pars;
   quark_rendens_meas_pars_t quark_rendens_meas_pars;
@@ -76,7 +75,6 @@ public:
     //global em field pars
     if(em_field_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //fermionic measures
-    if(pseudo_corr_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     if(nucleon_corr_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     if(fermionic_putpourri_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     if(quark_rendens_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
