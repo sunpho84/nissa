@@ -34,11 +34,6 @@
 #define SEND_BACKWARD_BORD 1
 #define SEND_FORWARD_BORD 2
 
-//ILDG files
-#define ILDG_MAGIC_NO                   0x456789ab
-#define ILDG_MB_MASK                    ((uint16_t)0x80)
-#define ILDG_ME_MASK                    ((uint16_t)0x40)
-
 //ODD/EVN
 #define EVN 0
 #define ODD 1

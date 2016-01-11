@@ -1,3 +1,6 @@
+//partally based on A.Deuzeman, S.Reker and C.Urbach "lemon" library,
+//arXiv:1106.4177
+
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
@@ -21,6 +24,10 @@
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
+
+#define ILDG_MAGIC_NO                   0x456789ab
+#define ILDG_MB_MASK                    ((uint16_t)0x80)
+#define ILDG_ME_MASK                    ((uint16_t)0x40)
 
 namespace nissa
 {
@@ -312,7 +319,7 @@ namespace nissa
     iloc_ILDG=iglb_ILDG%loc_vol;
   }
   
-  //define the reampping from the layout having in each rank a consecutive block of data holding a 
+  //define the remapping from the layout having in each rank a consecutive block of data holding a
   //consecutive piece of ildg data to canonical lx
   void index_from_ILDG_remapping(int &irank_lx,int &iloc_lx,int iloc_ILDG,void *pars)
   {
