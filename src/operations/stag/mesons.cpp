@@ -189,7 +189,7 @@ namespace nissa
     
     for(int ihit=0;ihit<meas_pars->nhits;ihit++)
       {
-	verbosity_lv2_master_printf("Computing hit %d\%d\n",ihit,meas_pars->nhits);
+	verbosity_lv2_master_printf("Computing hit %d/%d\n",ihit,meas_pars->nhits);
 	
 	//generate tso
 	int tso;
