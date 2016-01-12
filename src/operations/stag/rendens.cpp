@@ -96,10 +96,13 @@ namespace nissa
     DM(out,iflav,ord,in)
 #define NEW_TRACE_RES(o)			\
     complex o={0,0}
-#define SUMM_THE_TRACE(A,B,C)				\
-      summ_the_trace((double*)A,point_result,B,C)
 #define PRINT(A)							\
       master_fprintf(file,"%+016.016lg %+016.016lg\t",A[0]/meas_pars.nhits,A[1]/meas_pars.nhits)
+#define SUMM_THE_TRACE_PRINT_AT_LAST_HIT(A,B,C)				\
+      summ_the_trace((double*)A,point_result,B,C);			\
+      if(ihit==meas_pars.nhits-1) PRINT(A)
+#define AT_ORDER(A)				\
+      if(meas_pars.max_order>=A)
       }
   
   using namespace rende;
@@ -148,42 +151,50 @@ namespace nissa
 		fill_rende_source(source);
 		
 		//compute dM*M^-1
-		MINV(M,iflav,source);
-		DM(dM_M,iflav,1,M);
-		
-		//compute d2M*M^-1
-		DM(d2M_M,iflav,2,M);
-		
-		//compute d3M*M^-1
-		DM(d3M_M,iflav,3,M);
+		AT_ORDER(1)
+		  {
+		    MINV(M,iflav,source);
+		    DM(dM_M,iflav,1,M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM,source,dM_M);
+		  }
 		
 		//compute dM*M^-1*dM*M^-1
-		MINV(M_dM_M,iflav,dM_M);
-		DM(dM_M_dM_M,iflav,1,M_dM_M);
+		AT_ORDER(2)
+		  {
+		    MINV(M_dM_M,iflav,dM_M);
+		    DM(dM_M_dM_M,iflav,1,M_dM_M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM_M_dM,source,dM_M_dM_M);
+		  }
+		
+		//compute d2M*M^-1
+		AT_ORDER(2)
+		  {
+		    DM(d2M_M,iflav,2,M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_d2M,source,d2M_M);
+		  }
+		
+		//compute d3M*M^-1
+		AT_ORDER(3)
+		  {
+		    DM(d3M_M,iflav,3,M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_d3M,source,d3M_M);
+		  }
 		
 		//compute d2M*M^-1*dM*M^-1
-		DM(d2M_M_dM_M,iflav,2,M_dM_M);
+		AT_ORDER(3)
+		  {
+		    DM(d2M_M_dM_M,iflav,2,M_dM_M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM_M_d2M,source,d2M_M_dM_M);
+		  }
 		
 		//compute dM_M_dM_M_dM_M
-		MINV(M_dM_M_dM_M,iflav,dM_M_dM_M);
-		DM(dM_M_dM_M_dM_M,iflav,1,M_dM_M_dM_M);
-		
-		//trace
-		SUMM_THE_TRACE(Tr_M_dM,source,dM_M);
-		SUMM_THE_TRACE(Tr_M_d2M,source,d2M_M);
-		SUMM_THE_TRACE(Tr_M_d3M,source,d3M_M);
-		SUMM_THE_TRACE(Tr_M_dM_M_dM,source,dM_M_dM_M);
-		SUMM_THE_TRACE(Tr_M_dM_M_d2M,source,d2M_M_dM_M);
-		SUMM_THE_TRACE(Tr_M_dM_M_dM_M_dM,source,dM_M_dM_M_dM_M);
+		AT_ORDER(3)
+		  {
+		    MINV(M_dM_M_dM_M,iflav,dM_M_dM_M);
+		    DM(dM_M_dM_M_dM_M,iflav,1,M_dM_M_dM_M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM_M_dM_M_dM,source,dM_M_dM_M_dM_M);
+		  }
 	      }
-	    
-	    //print out (automatical normalisation for nhits)
-	    PRINT(Tr_M_dM);
-	    PRINT(Tr_M_d2M);
-	    PRINT(Tr_M_d3M);
-	    PRINT(Tr_M_dM_M_dM);
-	    PRINT(Tr_M_dM_M_d2M);
-	    PRINT(Tr_M_dM_M_dM_M_dM);
 	  }
 	
 	master_fprintf(file,"\n");
