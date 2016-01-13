@@ -165,19 +165,19 @@ namespace nissa
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_d2M,source,d2M_M);
 		  }
 		
-		//compute d3M*M^-1
-		AT_ORDER(3)
-		  {
-		    DM(d3M_M,iflav,3,M);
-		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_d3M,source,d3M_M);
-		  }
-		
 		//compute dM*M^-1*dM*M^-1
 		AT_ORDER(2)
 		  {
 		    MINV(M_dM_M,iflav,dM_M);
 		    DM(dM_M_dM_M,iflav,1,M_dM_M);
 		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_dM_M_dM,source,dM_M_dM_M);
+		  }
+		
+		//compute d3M*M^-1
+		AT_ORDER(3)
+		  {
+		    DM(d3M_M,iflav,3,M);
+		    SUMM_THE_TRACE_PRINT_AT_LAST_HIT(Tr_M_d3M,source,d3M_M);
 		  }
 		
 		//compute d2M*M^-1*dM*M^-1
