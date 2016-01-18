@@ -89,10 +89,10 @@ namespace nissa
   }
   
   //read a gauge conf
-  void read_ildg_gauge_conf(quad_su3 *conf,const char *path,ILDG_message *mess)
+  void read_ildg_gauge_conf(quad_su3 *conf,std::string path,ILDG_message *mess)
   {
     //read
-    verbosity_lv1_master_printf("\nReading configuration from file: %s\n",path);
+    verbosity_lv1_master_printf("\nReading configuration from file: %s\n",path.c_str());
     read_real_vector(conf,path,"ildg-binary-data",mess);
     verbosity_lv2_master_printf("Configuration read!\n\n");
     
@@ -113,7 +113,7 @@ namespace nissa
   ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
   
   //read an ildg conf and split it into e/o parts
-  void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,const char *path,ILDG_message *mess)
+  void read_ildg_gauge_conf_and_split_into_eo_parts(quad_su3 **eo_conf,std::string path,ILDG_message *mess)
   {
     //read the conf in lx and reorder it
     quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol+bord_vol,quad_su3);

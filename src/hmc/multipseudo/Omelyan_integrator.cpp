@@ -131,7 +131,7 @@ namespace nissa
     quad_su3 *F[2]={nissa_malloc("F0",loc_volh,quad_su3),nissa_malloc("F1",loc_volh,quad_su3)};
     
     //compute the force
-    compute_quark_force(F,conf,pf,theory_pars,simul_pars->rat_appr,simul_pars->npseudo_fs,simul_pars->md_residue);
+    compute_quark_force(F,conf,pf,theory_pars,simul_pars->rat_appr,&simul_pars->npseudo_fs,simul_pars->md_residue);
     
     //#define DEBUG
     

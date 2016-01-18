@@ -24,7 +24,7 @@ namespace nissa
   void read_stout_pars(stout_pars_t &stout_pars);
   void read_ape_pars(ape_pars_t &ape_pars);
   void read_theory_pars(theory_pars_t &theory_pars);
-  void read_stag_meson_corr_meas_pars(stag_meson_corr_meas_pars_t &stag_meson_corr_meas_pars,bool flag=false);
+  void read_meson_corr_meas_pars(meson_corr_meas_pars_t &meson_corr_meas_pars,bool flag=false);
   void read_top_meas_pars(top_meas_pars_t &top_meas_pars,bool flag=false);
 }
 

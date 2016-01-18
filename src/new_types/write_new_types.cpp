@@ -22,8 +22,8 @@ namespace nissa
     if(full||name!=def_name()) nprinted+=nissa::master_fprintf(fout,"Quark\t\t\"%s\"\n",name.c_str());
     if(full||deg!=def_deg()) nprinted+=nissa::master_fprintf(fout,"Degeneracy\t=\t%d\n",deg);
     if(full||mass!=def_mass()) nprinted+=nissa::master_fprintf(fout,"Mass\t\t=\t%lg\n",mass);
-    if(full||re_pot!=def_re_pot()) nprinted+=nissa::master_fprintf(fout,"RePot\t\t=\t%lg\n",re_pot);
-    if(full||im_pot!=def_im_pot()) nprinted+=nissa::master_fprintf(fout,"ImPot\t\t=\t%lg\n",re_pot);
+    if(full||re_pot!=def_re_pot()) nprinted+=nissa::master_fprintf(fout,"RePotCh\t\t=\t%lg\n",re_pot);
+    if(full||im_pot!=def_im_pot()) nprinted+=nissa::master_fprintf(fout,"ImPotCh\t\t=\t%lg\n",re_pot);
     if(full||charge!=def_charge()) nprinted+=nissa::master_fprintf(fout,"ElecCharge\t=\t%lg\n",charge);
     
     return nprinted;
@@ -83,62 +83,34 @@ namespace nissa
   {
     int nprinted=0;
     
-    return nprinted;
-  }
-  
-  //fermionic putpourri
-  int fermionic_putpourri_meas_pars_t::master_fprintf(FILE *fout,bool full)
-  {
-    int nprinted=0;
-    
-    if(flag||full)
-      {
-	nprinted+=nissa::master_fprintf(fout,"FermionicPutpourri\n");
-	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
-	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t%lg\n",residue);
-	if(compute_susc!=def_compute_susc()||full)
-	  nprinted+=nissa::master_fprintf(fout,"ComputeSusc\t=\t%d\n",compute_susc);
-	if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout,"NCopies\t\t=\t%d\n",ncopies);
-	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
-      }
-    else if(full) nprinted+=nissa::master_fprintf(fout,"FermionicPutpourri No\n");
+    if(full||ntraj_tot!=def_ntraj_tot()) nprinted+=nissa::master_fprintf(fout,"NtrajTot\t\t=\t%d\n",ntraj_tot);
+    if(full||skip_mtest_ntraj!=def_skip_mtest_ntraj()) nprinted+=nissa::master_fprintf(fout,"SkipMtestNtraj\t\t=\t%d\n",skip_mtest_ntraj);
+    if(full||traj_length!=def_traj_length()) nprinted+=nissa::master_fprintf(fout,"TrajLength\t\t=\t%lg\n",traj_length);
+    if(full||pf_action_residue!=def_pf_action_residue()) nprinted+=nissa::master_fprintf(fout,"PfActionResidue\t\t=\t%lg\n",pf_action_residue);
+    if(full||md_residue!=def_md_residue()) nprinted+=nissa::master_fprintf(fout,"MdResidue\t\t=\t%lg\n",md_residue);
+    if(full||nmd_steps!=def_nmd_steps()) nprinted+=nissa::master_fprintf(fout,"NMdSteps\t\t=\t%d\n",nmd_steps);
+    if(full||ngauge_substeps!=def_ngauge_substeps()) nprinted+=nissa::master_fprintf(fout,"NGaugeSubsteps\t\t=\t%d\n",ngauge_substeps);
     
     return nprinted;
   }
   
-  //rendens
-  int quark_rendens_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  //parameters of configuration
+  int conf_pars_t::master_fprintf(FILE *fout,bool full)
   {
     int nprinted=0;
     
-    if(flag||full)
+    if(full||path!=def_path()) nprinted+=nissa::master_fprintf(fout,"ConfPath\t\t=\t\"%s\"\n",path.c_str());
+    if(full||store_path!=def_store_path()) nprinted+=nissa::master_fprintf(fout,"StoreConfPath\t\t=\t\"%s\"\n",store_path.c_str());
+    if(full||store_each!=def_store_each()) nprinted+=nissa::master_fprintf(fout,"StoreConfEach\t\t=\t%d\n",store_each);
+    if(full||store_running!=def_store_running()) nprinted+=nissa::master_fprintf(fout,"StoreRunningTempConf\t=\t%d\n",store_running);
+    if(full||start_cond!=def_start_cond())
       {
-	nprinted+=nissa::master_fprintf(fout,"QuarkRendens\n");
-	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
-	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t%lg\n",residue);
-	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
+	nprinted+=nissa::master_fprintf(fout,"StartCond\t\t=\t");
+	if(start_cond==HOT_START_COND) nprinted+=nissa::master_fprintf(fout,"HOT");
+	if(start_cond==COLD_START_COND) nprinted+=nissa::master_fprintf(fout,"COLD");
+	if(start_cond==UNSPEC_START_COND) crash("unspecified start cond");
+	nprinted+=nissa::master_fprintf(fout,"\n");
       }
-    else if(full) nprinted+=nissa::master_fprintf(fout,"QuarkRendens No\n");
-    
-    return nprinted;
-  }
-  
-  //magnetization
-  int magnetization_meas_pars_t::master_fprintf(FILE *fout,bool full)
-  {
-    int nprinted=0;
-    
-    if(flag||full)
-      {
-	nprinted+=nissa::master_fprintf(fout,"Magnetization\n");
-	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
-	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t%lg\n",residue);
-	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
-      }
-    else if(full) nprinted+=nissa::master_fprintf(fout,"Magnetization No\n");
     
     return nprinted;
   }
@@ -150,11 +122,12 @@ namespace nissa
     
     if(flag||full)
       {
-	nprinted+=nissa::master_fprintf(fout,"PlaqPoll\n");
+	nprinted+=nissa::master_fprintf(fout,"PlaqPol\n");
 	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
+	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
 	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
       }
-    else if(full) nprinted+=nissa::master_fprintf(fout,"PlaqPoll No\n");
+    else if(full) nprinted+=nissa::master_fprintf(fout,"PlaqPol No\n");
     
     return nprinted;
   }

@@ -480,37 +480,42 @@ namespace nissa
   struct poly_corr_meas_pars_t
   {
     int flag;
+    int after;
     std::string path;
     gauge_obs_temp_smear_pars_t gauge_smear_pars;
     int dir;
     
     int def_flag(){return 0;}
+    int def_after(){return 0;}
     std::string def_path(){return "luppoli";}
     int def_dir(){return 0;}
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    poly_corr_meas_pars_t() : flag(def_flag()),path(def_path()),dir(def_dir()) {}
+    poly_corr_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),dir(def_dir()) {}
   };
   
   //parameters to compute gauge observabls
   struct gauge_obs_meas_pars_t
   {
     int flag;
+    int after;
     std::string path;
     
     int def_flag(){return 0;}
+    int def_after(){return 0;}
     std::string def_path(){return "gauge_obs";}
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    gauge_obs_meas_pars_t() : flag(def_flag()),path(def_path()) {}
+    gauge_obs_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()) {}
   };
   
   //parameters to compute the fermionic gran-mix
   struct fermionic_putpourri_meas_pars_t
   {
     int flag;
+    int after;
     std::string path;
     double residue;
     int compute_susc;
@@ -518,6 +523,7 @@ namespace nissa
     int nhits;
     
     int def_flag(){return 0;}
+    int def_after(){return 0;}
     std::string def_path(){return "lavanda";}
     double def_residue(){return 1e-12;}
     int def_compute_susc(){return 0;}
@@ -526,7 +532,7 @@ namespace nissa
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    fermionic_putpourri_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),
+    fermionic_putpourri_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),residue(def_residue()),
 					compute_susc(def_compute_susc()),ncopies(def_ncopies()),nhits(def_nhits()) {}
   };
   
@@ -559,6 +565,7 @@ namespace nissa
   struct spinpol_meas_pars_t
   {
     int flag;
+    int after;
     std::string path;
     double residue;
     int dir;
@@ -566,14 +573,15 @@ namespace nissa
     int use_ferm_conf_for_gluons;
     smooth_pars_t smooth_pars;
     
-    int def_flag(){return false;}
+    int def_flag(){return 0;}
+    int def_after(){return 0;}
     std::string def_path(){return "pollo";}
     double def_residue(){return 1e-12;}
     int def_dir(){return 1;}
     int def_nhits(){return 1;}
     int def_use_ferm_conf_for_gluons(){return 0;}
     
-    spinpol_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),dir(def_dir()),nhits(def_nhits()),
+    spinpol_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),residue(def_residue()),dir(def_dir()),nhits(def_nhits()),
 			    use_ferm_conf_for_gluons(def_use_ferm_conf_for_gluons()) {}
   };
   
@@ -581,12 +589,14 @@ namespace nissa
   struct magnetization_meas_pars_t
   {
     int flag;
+    int after;
     std::string path;
     double residue;
     int ncopies;
     int nhits;
     
-    int def_flag(){return false;}
+    int def_flag(){return 0;}
+    int def_after(){return 0;}
     std::string def_path(){return "magnetization";}
     double def_residue(){return 1e-12;}
     int def_ncopies(){return 1;}
@@ -594,17 +604,19 @@ namespace nissa
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    magnetization_meas_pars_t() : flag(def_flag()),path(def_path()),residue(def_residue()),ncopies(def_ncopies()),nhits(def_nhits()) {}
+    magnetization_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),residue(def_residue()),ncopies(def_ncopies()),nhits(def_nhits()) {}
   };
   
   //parameters to measure topology properties
   struct top_meas_pars_t
   {
     int flag;
+    int after;
     std::string path;
     smooth_pars_t smooth_pars;
     
-    top_meas_pars_t() : flag(0),path("topocharge") {}
+    int def_after(){return 0;}
+    top_meas_pars_t() : flag(0),after(def_after()),path("topocharge") {}
   };
   
   //holds temporal-spatial gauge smearing parameters
@@ -623,36 +635,40 @@ namespace nissa
   struct all_rect_meas_pars_t
   {
     int flag;
+    int after;
     std::string path;
     gauge_obs_temp_spat_smear_pars_t smear_pars;
     int Tmin,Tmax,Dmin,Dmax;
     
     int def_flag(){return 0;}
+    int def_after(){return 0;}
     std::string def_path(){return "rectangles";}
     int def_Tmin(){return 3;}
     int def_Tmax(){return 9;}
     int def_Dmin(){return 1;}
     int def_Dmax(){return 9;}
      
-    all_rect_meas_pars_t() : flag(def_flag()),path(def_path()),Tmin(def_Tmin()),Tmax(def_Tmax()),Dmin(def_Dmin()),Dmax(def_Dmax()) {}
+    all_rect_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),Tmin(def_Tmin()),Tmax(def_Tmax()),Dmin(def_Dmin()),Dmax(def_Dmax()) {}
   };
   
   //parameters to measure flux tube
   struct watusso_meas_pars_t
   {
     int flag;
+    int after;
     std::string path;
     gauge_obs_temp_spat_smear_pars_t smear_pars;
     int size_min,size_max,size_step,dmax;
     
     int def_flag(){return 0;}
+    int def_after(){return 0;}
     std::string def_path(){return "watusso";}
     int def_size_min(){return 7;}
     int def_size_max(){return 7;}
     int def_size_step(){return 1;}
     int def_dmax(){return 10;}
     
-    watusso_meas_pars_t() : flag(def_flag()),path(def_path()),size_min(def_size_min()),size_max(def_size_max()),
+    watusso_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),size_min(def_size_min()),size_max(def_size_max()),
 			    size_step(def_size_step()),dmax(def_dmax()) {}
   };
   
@@ -737,18 +753,61 @@ namespace nissa
   //evolution parameters for hybrid monte carlo
   struct hmc_evol_pars_t
   {
+    int def_ntraj_tot(){return 100;}
+    int def_skip_mtest_ntraj(){return 30;}
+    double def_traj_length(){return 1.0;}
+    double def_pf_action_residue(){return 1e-12;}
+    double def_md_residue(){return 1e-6;}
+    int def_nmd_steps(){return 13;}
+    int def_ngauge_substeps(){return 5;}
+    
+    int ntraj_tot;
     int skip_mtest_ntraj;
     double traj_length;
     double pf_action_residue;
     double md_residue;
     int nmd_steps;
     int ngauge_substeps;
-    int *npseudo_fs;
+    
+    std::vector<int> npseudo_fs;
     rat_approx_t *rat_appr;
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    hmc_evol_pars_t() : skip_mtest_ntraj(30),traj_length(1.0),pf_action_residue(1e-12),md_residue(1e-6),nmd_steps(13),ngauge_substeps(5) {}
+    hmc_evol_pars_t() :
+      ntraj_tot(def_ntraj_tot()),
+      skip_mtest_ntraj(def_skip_mtest_ntraj()),
+      traj_length(def_traj_length()),
+      pf_action_residue(def_pf_action_residue()),
+      md_residue(def_md_residue()),
+      nmd_steps(def_nmd_steps()),
+      ngauge_substeps(def_ngauge_substeps())
+    {}
+  };
+  
+  struct conf_pars_t
+  {
+    std::string def_path(){return "conf";}
+    std::string def_store_path(){return "stored_conf.08%d";}
+    int def_store_each(){return 10;}
+    int def_store_running(){return 1;}
+    start_conf_cond_t def_start_cond(){return COLD_START_COND;}
+    
+    std::string path;
+    std::string store_path;
+    int store_each;
+    int store_running;
+    start_conf_cond_t start_cond;
+    
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    conf_pars_t() :
+      path(def_path()),
+      store_path(def_store_path()),
+      store_each(def_store_each()),
+      store_running(def_store_running()),
+      start_cond(def_start_cond())
+    {}
   };
   
   //results of a unitarity check
@@ -781,12 +840,6 @@ namespace nissa
     int nov_hits;
     
     pure_gauge_evol_pars_t() : use_hmc(0),traj_length(1.0),nmd_steps(13),use_Facc(0),kappa(0.0),residue(1e-12),nhb_sweeps(1),nhb_hits(1),nov_sweeps(3),nov_hits(3) {}
-  };
-  
-  struct evol_pars_t
-  {
-    hmc_evol_pars_t hmc_evol_pars;
-    pure_gauge_evol_pars_t pure_gauge_evol_pars;
   };
   
 #ifdef USE_MPI

@@ -19,10 +19,6 @@ top_meas_pars_t *top_meas_pars;
 all_rect_meas_pars_t all_rect_meas_pars;
 watusso_meas_pars_t watusso_meas_pars;
 
-//input and output path for confs
-char conf_path[1024];
-char store_conf_path[1024];
-
 //new and old conf
 quad_su3 *new_conf[2];
 quad_su3 *conf[2];
@@ -34,7 +30,8 @@ int nconf_to_analyze;
 //structures containing parameters
 int ntheories;
 theory_pars_t *theory_pars;
-evol_pars_t evol_pars;
+hmc_evol_pars_t evol_pars;
+conf_pars_t conf_pars;
 
 //meaures
 fermionic_putpourri_meas_pars_t *fermionic_putpourri_meas_pars;
@@ -42,21 +39,19 @@ quark_rendens_meas_pars_t *quark_rendens_meas_pars;
 spinpol_meas_pars_t *spinpol_meas_pars;
 magnetization_meas_pars_t *magnetization_meas_pars;
 nucleon_corr_meas_pars_t *nucleon_corr_meas_pars;
-stag_meson_corr_meas_pars_t *stag_meson_corr_meas_pars;
+meson_corr_meas_pars_t *meson_corr_meas_pars;
 
 //traj
 double init_time,max_traj_time=0,wall_time;
 int ntraj_prod;
-int itraj,ntraj_tot;
-int store_conf_each;
-int store_running_temp_conf;
+int itraj;
 int conf_created;
 int seed;
 
 //write a conf adding info
 int nwrite_conf=0;
 double write_conf_time=0;
-void write_conf(const char *path,quad_su3 **conf)
+void write_conf(std::string path,quad_su3 **conf)
 {
   GET_THREAD_ID();
   
@@ -74,7 +69,7 @@ void write_conf(const char *path,quad_su3 **conf)
   //rational approximation
   char *appr_data=NULL;
   int appr_data_length;
-  convert_rat_approx(appr_data,appr_data_length,evol_pars.hmc_evol_pars.rat_appr,theory_pars[SEA_THEORY].nflavs);
+  convert_rat_approx(appr_data,appr_data_length,evol_pars.rat_appr,theory_pars[SEA_THEORY].nflavs);
   
   ILDG_bin_message_append_to_last(&mess,"RAT_approx",appr_data,appr_data_length);
   nissa_free(appr_data);
@@ -107,7 +102,7 @@ void write_conf(const char *path,quad_su3 **conf)
 }
 
 //read conf
-void read_conf(quad_su3 **conf,char *path)
+void read_conf(quad_su3 **conf,const char *path)
 {
   master_printf("Reading conf from file: %s\n",path);
   
@@ -129,7 +124,7 @@ void read_conf(quad_su3 **conf,char *path)
 	theory_pars[SEA_THEORY].topotential_pars.grid.convert_from_message(*cur_mess);
       
       //check for rational approximation
-      if(ntraj_tot)
+      if(evol_pars.ntraj_tot)
 	{
 	  if(strcasecmp(cur_mess->name,"RAT_approx")==0)
 	    {
@@ -147,11 +142,11 @@ void read_conf(quad_su3 **conf,char *path)
 	      if(nflavs_appr_read==theory_pars[SEA_THEORY].nflavs)
 		{
 		  rat_approx_found++;
-		  for(int i=0;i<nflavs_appr_read*3;i++) evol_pars.hmc_evol_pars.rat_appr[i]=temp_appr[i];
+		  for(int i=0;i<nflavs_appr_read*3;i++) evol_pars.rat_appr[i]=temp_appr[i];
 		}
 	      else
 		for(int i=0;i<nflavs_appr_read*3;i++)
-		  rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
+		  rat_approx_destroy(evol_pars.rat_appr+i);
 	      nissa_free(temp_appr);
 	    }
 	}
@@ -160,7 +155,7 @@ void read_conf(quad_su3 **conf,char *path)
   //report on rational approximation
   switch(rat_approx_found)
     {
-    case 0: if(ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
+    case 0: if(evol_pars.ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
     case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars[SEA_THEORY].nflavs);break;
     case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
     default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
@@ -187,10 +182,10 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
   if(theory_pars[SEA_THEORY].nflavs==0) init_sweeper(theory_pars[SEA_THEORY].gauge_action_name);
   
   //load conf or generate it
-  if(file_exists(conf_path))
+  if(file_exists(conf_pars.path))
     {
-      master_printf("File %s found, loading\n",conf_path);
-      read_conf(conf,conf_path);
+      master_printf("File %s found, loading\n",conf_pars.path.c_str());
+      read_conf(conf,conf_pars.path.c_str());
       conf_created=false;
     }
   else
@@ -203,12 +198,12 @@ void init_program_to_run(start_conf_cond_t start_conf_cond)
       //generate hot or cold conf
       if(start_conf_cond==HOT_START_COND)
 	{
-	  master_printf("File %s not found, generating hot conf\n",conf_path);
+	  master_printf("File %s not found, generating hot conf\n",conf_pars.path.c_str());
 	  generate_hot_eo_conf(conf);
 	}
       else
 	{
-	  master_printf("File %s not found, generating cold conf\n",conf_path);
+	  master_printf("File %s not found, generating cold conf\n",conf_pars.path.c_str());
 	  generate_cold_eo_conf(conf);
 	}
       
@@ -265,7 +260,7 @@ void init_simulation(char *path)
   spinpol_meas_pars=new spinpol_meas_pars_t[ntheories];
   magnetization_meas_pars=new magnetization_meas_pars_t[ntheories];
   nucleon_corr_meas_pars=new nucleon_corr_meas_pars_t[ntheories];
-  stag_meson_corr_meas_pars=new stag_meson_corr_meas_pars_t[ntheories];
+  meson_corr_meas_pars=new meson_corr_meas_pars_t[ntheories];
   
   //read physical theory: theory 0 is the sea (simulated one)
   for(int itheory=0;itheory<ntheories;itheory++)
@@ -274,7 +269,7 @@ void init_simulation(char *path)
       else           master_printf("Reading info on additional (valence) theory %d/%d\n",itheory,nvalence_theories);
       read_theory_pars(theory_pars[itheory]);
       read_nucleon_corr_meas_pars(nucleon_corr_meas_pars[itheory]);
-      read_stag_meson_corr_meas_pars(stag_meson_corr_meas_pars[itheory]);
+      read_meson_corr_meas_pars(meson_corr_meas_pars[itheory]);
       read_fermionic_putpourri_meas_pars(fermionic_putpourri_meas_pars[itheory]);
       read_quark_rendens_meas_pars(quark_rendens_meas_pars[itheory]);
       read_spinpol_meas_pars(spinpol_meas_pars[itheory]);
@@ -301,33 +296,34 @@ void init_simulation(char *path)
   read_watusso_meas_pars(watusso_meas_pars);
   
   //read the number of trajectory to evolve and the wall_time
-  read_str_int("NTrajTot",&ntraj_tot);
+  read_str_int("NTrajTot",&evol_pars.ntraj_tot);
   read_str_double("WallTime",&wall_time);
   
   //read the seed
   read_str_int("Seed",&seed);
   
   //if we want to produce something, let's do it, otherwise load the list of configurations to analyze
-  start_conf_cond_t start_conf_cond=UNSPEC_START_COND;
-  if(ntraj_tot>0)
+  if(evol_pars.ntraj_tot>0)
     {
       //load evolution info depending if is a quenched simulation or unquenched
-      if(theory_pars[SEA_THEORY].nflavs!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
-	read_hmc_evol_pars(evol_pars.hmc_evol_pars,theory_pars[SEA_THEORY]);
-      else read_pure_gauge_evol_pars(evol_pars.pure_gauge_evol_pars);
+      read_hmc_evol_pars(evol_pars,theory_pars[SEA_THEORY]);
       
       //read in and out conf path
-      read_str_str("ConfPath",conf_path,1024);
-      read_str_str("StoreConfPath",store_conf_path,1024);
-      read_str_int("StoreConfEach",&store_conf_each);
-      read_str_int("StoreRunningTempConf",&store_running_temp_conf);
+      char temp[1024];
+      read_str_str("ConfPath",temp,1024);
+      conf_pars.path=temp;
+      read_str_str("StoreConfPath",temp,1024);
+      conf_pars.store_path=temp;
+      read_str_int("StoreConfEach",&conf_pars.store_each);
+      read_str_int("StoreRunningTempConf",&conf_pars.store_running);
       
       //read if configuration must be generated cold or hot
       char start_conf_cond_str[1024];
       read_str_str("StartConfCond",start_conf_cond_str,1024);
-      if(strcasecmp(start_conf_cond_str,"HOT")==0) start_conf_cond=HOT_START_COND;
-      if(strcasecmp(start_conf_cond_str,"COLD")==0) start_conf_cond=COLD_START_COND;
-      if(start_conf_cond==UNSPEC_START_COND)
+      conf_pars.start_cond=UNSPEC_START_COND;
+      if(strcasecmp(start_conf_cond_str,"HOT")==0) conf_pars.start_cond=HOT_START_COND;
+      if(strcasecmp(start_conf_cond_str,"COLD")==0) conf_pars.start_cond=COLD_START_COND;
+      if(conf_pars.start_cond==UNSPEC_START_COND)
 	crash("unknown starting condition cond %s, expected 'HOT' or 'COLD'",start_conf_cond_str);
     }
   else
@@ -363,8 +359,8 @@ void init_simulation(char *path)
     if(top_meas_pars[i].flag && top_meas_pars[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(top_meas_pars[i].smooth_pars.cool_pars.gauge_action);
   
   //init the program in "production" or "analysis" mode
-  if(ntraj_tot>0) init_program_to_run(start_conf_cond);
-  else            init_program_to_analyze();
+  if(evol_pars.ntraj_tot>0) init_program_to_run(conf_pars.start_cond);
+  else                      init_program_to_analyze();
 }
 
 //unset the background field
@@ -389,19 +385,19 @@ void close_simulation()
 {
   master_printf("glb rnd generated: %d\n",nglbgen);
   
-  if(!store_running_temp_conf && ntraj_prod>0) write_conf(conf_path,conf);
+  if(!conf_pars.store_running && ntraj_prod>0) write_conf(conf_pars.path,conf);
   
   //delete the conf list
-  if(ntraj_tot==0)
+  if(evol_pars.ntraj_tot==0)
     {
       for(int iconf_to=0;iconf_to<nconf_to_analyze;iconf_to++) nissa_free(conf_to_analyze_paths[iconf_to]);
       nissa_free(conf_to_analyze_paths);
     }
   
   //destroy rational approximations
-  if(ntraj_tot)
+  if(evol_pars.ntraj_tot)
     for(int i=0;i<theory_pars[SEA_THEORY].nflavs*3;i++)
-      rat_approx_destroy(evol_pars.hmc_evol_pars.rat_appr+i);
+      rat_approx_destroy(evol_pars.rat_appr+i);
   
   //destroy topo pars
   delete[] top_meas_pars;
@@ -416,7 +412,7 @@ void close_simulation()
   delete[] spinpol_meas_pars;
   delete[] magnetization_meas_pars;
   delete[] nucleon_corr_meas_pars;
-  delete[] stag_meson_corr_meas_pars;
+  delete[] meson_corr_meas_pars;
   
   for(int par=0;par<2;par++)
     {
@@ -434,10 +430,10 @@ int generate_new_conf(int itraj)
   if(theory_pars[SEA_THEORY].nflavs!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
     {
       //find if needed to perform test
-      int perform_test=(itraj>=evol_pars.hmc_evol_pars.skip_mtest_ntraj);
+      int perform_test=(itraj>=evol_pars.skip_mtest_ntraj);
       
       //integrare and compute difference of action
-      double diff_act=multipseudo_rhmc_step(new_conf,conf,theory_pars[SEA_THEORY],evol_pars.hmc_evol_pars,itraj);
+      double diff_act=multipseudo_rhmc_step(new_conf,conf,theory_pars[SEA_THEORY],evol_pars,itraj);
       
       //perform the test in any case
       master_printf("Diff action: %lg, ",diff_act);
@@ -532,38 +528,37 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
 }
 
 //return 1 if we need to measure
-int check_flag_and_curr_conf(int flag,int iconf)
-{return flag&&(iconf%flag==0);}
+template <class T> int measure_is_due(T &pars,int iconf)
+{return pars.flag&&(iconf%pars.flag==0)&&(iconf>=pars.after);}
 
 //measures
 void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)
 {
   double meas_time=-take_time();
   
-  if(gauge_obs_meas_pars.flag) if(iconf%gauge_obs_meas_pars.flag==0) measure_gauge_obs(gauge_obs_meas_pars.path,conf,iconf,acc,gauge_action_name);
-  if(poly_corr_meas_pars.flag) if(iconf%poly_corr_meas_pars.flag==0) measure_poly_corrs(poly_corr_meas_pars,conf,conf_created);
+  if(measure_is_due(gauge_obs_meas_pars,iconf)) measure_gauge_obs(gauge_obs_meas_pars.path,conf,iconf,acc,gauge_action_name);
+  if(measure_is_due(poly_corr_meas_pars,iconf)) measure_poly_corrs(poly_corr_meas_pars,conf,conf_created);
   for(int i=0;i<ntop_meas;i++)
-    if(top_meas_pars[i].flag)
-      if(iconf%top_meas_pars[i].flag==0)
-	{
-	  top_meas_time[i]-=take_time();
-	  measure_topology_eo_conf(top_meas_pars[i],conf,iconf,conf_created);
-	  top_meas_time[i]+=take_time();
-	}
+    if(measure_is_due(top_meas_pars[i],iconf))
+      {
+	top_meas_time[i]-=take_time();
+	measure_topology_eo_conf(top_meas_pars[i],conf,iconf,conf_created);
+	top_meas_time[i]+=take_time();
+      }
   
-  if(all_rect_meas_pars.flag) if(iconf%all_rect_meas_pars.flag==0) measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
-  if(watusso_meas_pars.flag) measure_watusso(&watusso_meas_pars,conf,iconf,conf_created);
+  if(measure_is_due(all_rect_meas_pars,iconf)) measure_all_rectangular_paths(&all_rect_meas_pars,conf,iconf,conf_created);
+  if(measure_is_due(watusso_meas_pars,iconf)) measure_watusso(&watusso_meas_pars,conf,iconf,conf_created);
   
   for(int itheory=0;itheory<ntheories;itheory++)
     {
       //check measure
-      int fermionic_putpourri_flag=check_flag_and_curr_conf(fermionic_putpourri_meas_pars[itheory].flag,iconf);
-      int magnetization_flag=check_flag_and_curr_conf(magnetization_meas_pars[itheory].flag,iconf);
-      int nucleon_corr_flag=check_flag_and_curr_conf(nucleon_corr_meas_pars[itheory].flag,iconf);
-      int stag_meson_corr_flag=check_flag_and_curr_conf(stag_meson_corr_meas_pars[itheory].flag,iconf);
-      int quark_rendens_flag=check_flag_and_curr_conf(quark_rendens_meas_pars[itheory].flag,iconf)&&iconf>=quark_rendens_meas_pars[itheory].after;
-      int spinpol_flag=check_flag_and_curr_conf(spinpol_meas_pars[itheory].flag,iconf);
-      int meas_flag=fermionic_putpourri_flag||magnetization_flag||nucleon_corr_flag||stag_meson_corr_flag||
+      int fermionic_putpourri_flag=measure_is_due(fermionic_putpourri_meas_pars[itheory],iconf);
+      int magnetization_flag=measure_is_due(magnetization_meas_pars[itheory],iconf);
+      int nucleon_corr_flag=measure_is_due(nucleon_corr_meas_pars[itheory],iconf);
+      int meson_corr_flag=measure_is_due(meson_corr_meas_pars[itheory],iconf);
+      int quark_rendens_flag=measure_is_due(quark_rendens_meas_pars[itheory],iconf);
+      int spinpol_flag=measure_is_due(spinpol_meas_pars[itheory],iconf);
+      int meas_flag=fermionic_putpourri_flag||magnetization_flag||nucleon_corr_flag||meson_corr_flag||
 	quark_rendens_flag||spinpol_flag;
 	
       if(meas_flag)
@@ -610,10 +605,10 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 	    }
 	  
 	  //staggered meson
-	  if(stag_meson_corr_flag)
+	  if(meson_corr_flag)
 	    {
 	      verbosity_lv1_master_printf("Measuring staggered meson correlator for theory %d/%d\n",itheory+1,ntheories);
-	      measure_staggered_meson_corr(sme_conf,theory_pars[itheory],stag_meson_corr_meas_pars[itheory],iconf,conf_created);
+	      measure_staggered_meson_corr(sme_conf,theory_pars[itheory],meson_corr_meas_pars[itheory],iconf,conf_created);
 	    }
 	}
     }
@@ -626,10 +621,10 @@ void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action
 //store conf when appropriate
 void store_conf_if_necessary()
 {
-  if(store_conf_each!=0 && itraj%store_conf_each==0)
+  if(conf_pars.store_each!=0 && itraj%conf_pars.store_each==0)
     {
       char path[1024];
-      sprintf(path,"%s.%05d",store_conf_path,itraj);
+      sprintf(path,conf_pars.store_path.c_str(),itraj);
       write_conf(path,conf);
     }
 }
@@ -679,10 +674,10 @@ bool check_if_continue()
     }
   
   //check if all traj performed
-  bool finished_all_traj=(itraj>=ntraj_tot);
+  bool finished_all_traj=(itraj>=evol_pars.ntraj_tot);
   if(finished_all_traj)
     {
-      verbosity_lv1_master_printf("Requested trajectory %d, perfomed %d, closing\n",ntraj_tot,itraj);
+      verbosity_lv1_master_printf("Requested trajectory %d, perfomed %d, closing\n",evol_pars.ntraj_tot,itraj);
       file_touch("stop");
       return false;
     }
@@ -710,7 +705,7 @@ void run_program_for_production()
       
       // 1) produce new conf
       int acc=1;
-      if(ntraj_tot!=0)
+      if(evol_pars.ntraj_tot!=0)
 	{
 	  acc=generate_new_conf(itraj);
 	  ntraj_prod++;
@@ -721,9 +716,9 @@ void run_program_for_production()
       measurements(new_conf,conf,itraj,acc,theory_pars[SEA_THEORY].gauge_action_name);
       
       // 3) increment id and write conf
-      if(store_running_temp_conf && (itraj%store_running_temp_conf==0)) write_conf(conf_path,conf);
+      if(conf_pars.store_running && (itraj%conf_pars.store_running==0)) write_conf(conf_pars.path,conf);
       
-      // 4) if conf is multiple of store_conf_each copy it
+      // 4) if conf is multiple of conf_pars.store_each copy it
       store_conf_if_necessary();
       
       // 5) spacing between output
@@ -773,8 +768,8 @@ void in_main(int narg,char **arg)
   
   ///////////////////////////////////////
   
-  if(ntraj_tot!=0) run_program_for_production();
-  else             run_program_for_analysis();
+  if(evol_pars.ntraj_tot!=0) run_program_for_production();
+  else                       run_program_for_analysis();
   
   /////////////////////////////////////// timings /////////////////////////////////
   

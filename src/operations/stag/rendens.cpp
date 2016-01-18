@@ -215,4 +215,24 @@ namespace nissa
     nissa_free(point_result);
     DELETE_RENDE_T(source);
   }
+  
+  //print
+  int quark_rendens_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  {
+    int nprinted=0;
+    
+    if(flag||full)
+      {
+	nprinted+=nissa::master_fprintf(fout,"QuarkRendens\n");
+	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
+	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
+	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
+	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t%lg\n",residue);
+	if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout,"NCopies\t\t=\t%d\n",nhits);
+	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
+      }
+    else if(full) nprinted+=nissa::master_fprintf(fout,"QuarkRendens No\n");
+    
+    return nprinted;
+  }
 }

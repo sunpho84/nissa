@@ -28,7 +28,7 @@ namespace nissa
     int nflavs;
     
     //form the mask for x (-1)^[x*(s^<+n^>)]
-    inline int form_stag_meson_pattern(int ispin,int itaste)
+    inline int form_meson_pattern(int ispin,int itaste)
     {
       //add g5*g5
       ispin^=15;
@@ -157,7 +157,7 @@ namespace nissa
   }
   
   //compute correlation functions for staggered mesons, arbitary taste and spin
-  THREADABLE_FUNCTION_4ARG(compute_staggered_meson_corr, complex*,corr, quad_su3**,conf, theory_pars_t*,tp, stag_meson_corr_meas_pars_t*,meas_pars)
+  THREADABLE_FUNCTION_4ARG(compute_staggered_meson_corr, complex*,corr, quad_su3**,conf, theory_pars_t*,tp, meson_corr_meas_pars_t*,meas_pars)
   {
     GET_THREAD_ID();
     
@@ -182,7 +182,7 @@ namespace nissa
 	int spin=meas_pars->mesons[iop].first;
 	int taste=meas_pars->mesons[iop].second;
 	shift[iop]=(spin^taste);
-	mask[iop]=form_stag_meson_pattern(spin,taste);
+	mask[iop]=form_meson_pattern(spin,taste);
 	//if((shift[iop])&1) crash("operator %d (%d %d) has unmarched number of g0",iop,spin,taste);
 	verbosity_lv3_master_printf(" iop %d (%d %d),\tmask: %d,\tshift: %d\n",iop,spin,taste,mask[iop],shift[iop]);
       }
@@ -245,7 +245,7 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //compute and print
-  void measure_staggered_meson_corr(quad_su3 **ext_conf,theory_pars_t &tp,stag_meson_corr_meas_pars_t &meas_pars,int iconf,int conf_created)
+  void measure_staggered_meson_corr(quad_su3 **ext_conf,theory_pars_t &tp,meson_corr_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     nop=meas_pars.mesons.size();
     nflavs=tp.nflavs;
@@ -277,18 +277,19 @@ namespace nissa
   }
   
   //nucleon correlators
-  int stag_meson_corr_meas_pars_t::master_fprintf(FILE *fout,bool full)
+  int meson_corr_meas_pars_t::master_fprintf(FILE *fout,bool full)
   {
     int nprinted=0;
     
     if(flag||full)
       {
-	nprinted+=nissa::master_fprintf(fout,"StagMesonCorrelators\n");
+	nprinted+=nissa::master_fprintf(fout,"MesonCorrelators\n");
 	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
+	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
 	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
 	if(mesons.size()||full)
 	  {
-	    nprinted+=nissa::master_fprintf(fout,"Mesons\t\t=\t{");
+	    nprinted+=nissa::master_fprintf(fout,"MesonList\t=\t{");
 	    for(size_t i=0;i<mesons.size();i++)
 	      {
 		nprinted+=nissa::master_fprintf(fout,"(%d,%d)",mesons[i].first,mesons[i].second);
@@ -296,7 +297,7 @@ namespace nissa
 		else                   nprinted+=nissa::master_fprintf(fout,"}\n");
 	      }
 	  }
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t\"%lg\"\n",residue);
+	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t%lg\n",residue);
 	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
       }
     else if(full) nprinted+=nissa::master_fprintf(fout,"StagMesonCorrelators No\n");

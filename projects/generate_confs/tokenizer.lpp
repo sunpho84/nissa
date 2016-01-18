@@ -24,9 +24,9 @@ DOT \.
  /* more complicated */
 WORD {LETTER}*
 DOUBLE {SIGN}?({DIGIT}*{DOT}{DIGIT}+)|({DIGIT}+{DOT}{DIGIT}*)
-SCI_DOUBLE {DOUBLE}e({SIGNED_INT}|{UNSIGNED_INT})
-UNSIGNED_INT {DIGIT}*
-SIGNED_INT {SIGN}{DIGIT}*
+INT {DIGIT}*
+MANTISSA e({SIGN}?{INT})
+SCI_DOUBLE ({DOUBLE}|{INT}){MANTISSA}
 
  /* comments */
 C_COMM_BEG \/\/
@@ -67,8 +67,8 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
    
    const int debug_lexer=1;
    
-   const unsigned int default_L=4;
-   const unsigned int default_T=8;
+   const int default_L=4;
+   const int default_T=8;
    const double default_beta=6.0;
    const gauge_action_name_t default_gauge_action_name=WILSON_GAUGE_ACTION;
    
@@ -83,8 +83,14 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 <COMMENT>"EOF"                      crash("reached end of file while scanning comment");
 <COMMENT>.|"\n"                     curr_comment+=yytext[0];
 {NEWLINE}                           DEBUG_PRINTF("Ignoring endline\n");
-{C_COMM}                             DEBUG_PRINTF("Ignoring single line comment: %s\n",yytext);
+{C_COMM}                            DEBUG_PRINTF("Ignoring single line comment: %s\n",yytext);
 {SPACE}+                            DEBUG_PRINTF("Ignoring spaces: \"%s\"\n",yytext);
+
+\+ return TK_PLUS;
+\- return TK_MINUS;
+\* return TK_TIMES;
+\/ return TK_DIV;
+\^ return TK_POW;
 
  /* quoted text */
 {QUOTE}{ANY}*{QUOTE} yylval->text=strndup(yytext+1,strlen(yytext)-2);DEBUG_PRINTF("found string \"%s\", length=%d, copied: \"%s\"\n",yytext,(int)strlen(yytext),yylval->text); return TK_QUOTED_TEXT;
@@ -96,8 +102,8 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 End DEBUG_PRINTF("Found End\n");return EOF;
 
  /* true/false */
-True DEBUG_PRINTF("Found True\n");yylval->unsigned_int_numb=1;return TK_UNSIGNED_INT;
-False DEBUG_PRINTF("Found False\n");yylval->unsigned_int_numb=0;return TK_UNSIGNED_INT;
+True DEBUG_PRINTF("Found True\n");yylval->int_numb=1;return TK_INT;
+False DEBUG_PRINTF("Found False\n");yylval->int_numb=0;return TK_INT;
 
  /* yes/no/none */
 None DEBUG_PRINTF("Found None\n");return TK_NONE;
@@ -120,14 +126,16 @@ NHits DEBUG_PRINTF("Found NHits\n");return TK_NHITS;
  /* path */
 Path DEBUG_PRINTF("Found Path\n");return TK_PATH;
 
+ /* meson list */
+MesonList DEBUG_PRINTF("Found MesonList\n");return TK_MESON_LIST;
+
  /* meta commands */
 \#PrintScanned DEBUG_PRINTF("Found #PrintScanned\n");return TK_META_PRINT_SCANNED;
 \#PrintFull DEBUG_PRINTF("Found #PrintFull\n");return TK_META_PRINT_FULL;
 
  /* recognizing number */
-{DOUBLE}|{SCI_DOUBLE} DEBUG_PRINTF("Found Double: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb);return TK_DOUBLE;
-{UNSIGNED_INT} DEBUG_PRINTF("Found UnsignedInteger: %s\n",yytext);sscanf(yytext,"%d",&yylval->unsigned_int_numb);return TK_UNSIGNED_INT;
-{SIGNED_INT} DEBUG_PRINTF("Found SignedInteger: %s\n",yytext);sscanf(yytext,"%d",&yylval->int_numb);return TK_SIGNED_INT;
+{SCI_DOUBLE}|{DOUBLE} DEBUG_PRINTF("Found Double: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb);return TK_DOUBLE;
+{INT} DEBUG_PRINTF("Found Integer: %s\n",yytext);sscanf(yytext,"%d",&yylval->int_numb);return TK_INT;
 
  /* time and space */
 L DEBUG_PRINTF("Found L\n");return TK_L;
@@ -139,6 +147,8 @@ Beta DEBUG_PRINTF("Found Beta\n");return TK_BETA;
  /* kind of gauge actions */
 GaugeAction DEBUG_PRINTF("Found GaugeAction\n");return TK_GAUGE_ACTION;
 Wilson DEBUG_PRINTF("Found Wilson\n");return TK_WILSON;
+tlSym DEBUG_PRINTF("Found tlSym\n");return TK_TLSYM;
+Iwasaki DEBUG_PRINTF("Found Iwasaki\n");return TK_IWASAKI;
 
  /* topo potential */
 Meta DEBUG_PRINTF("Found Meta\n");return TK_META;
@@ -160,22 +170,48 @@ Rho DEBUG_PRINTF("Found Rho\n");return TK_RHO;
 
  /* background field parameters */
 BkgrdEMField DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
-Bx DEBUG_PRINTF("Found Bx\n");yylval->unsigned_int_numb=0;return TK_B_COMP;
-By DEBUG_PRINTF("Found By\n");yylval->unsigned_int_numb=1;return TK_B_COMP;
-Bz DEBUG_PRINTF("Found Bz\n");yylval->unsigned_int_numb=2;return TK_B_COMP;
-Ex DEBUG_PRINTF("Found Ex\n");yylval->unsigned_int_numb=0;return TK_E_COMP;
-Ey DEBUG_PRINTF("Found Ey\n");yylval->unsigned_int_numb=1;return TK_E_COMP;
-Ez DEBUG_PRINTF("Found Ez\n");yylval->unsigned_int_numb=2;return TK_E_COMP;
+Bx DEBUG_PRINTF("Found Bx\n");yylval->int_numb=0;return TK_B_COMP;
+By DEBUG_PRINTF("Found By\n");yylval->int_numb=1;return TK_B_COMP;
+Bz DEBUG_PRINTF("Found Bz\n");yylval->int_numb=2;return TK_B_COMP;
+Ex DEBUG_PRINTF("Found Ex\n");yylval->int_numb=0;return TK_E_COMP;
+Ey DEBUG_PRINTF("Found Ey\n");yylval->int_numb=1;return TK_E_COMP;
+Ez DEBUG_PRINTF("Found Ez\n");yylval->int_numb=2;return TK_E_COMP;
 
  /* fermionic measures */
 NucleonCorrelators DEBUG_PRINTF("Found NucleonCorrelators\n");return TK_NUCLEON_CORRELATORS;
+MesonCorrelators DEBUG_PRINTF("Found MesonCorrelators\n");return TK_MESON_CORRELATORS;
 FermionicPutpourri DEBUG_PRINTF("Found FermionicPutpourri\n");return TK_FERMIONIC_PUTPOURRI;
 ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
 QuarkRendens DEBUG_PRINTF("Found QuarkRendens\n");return TK_QUARK_RENDENS;
 Magnetization DEBUG_PRINTF("Found Magnetization\n");return TK_MAGNETIZATION;
 
  /* gauge measures */
-PlaqPol  DEBUG_PRINTF("Found PlaqPol\n");return TK_PLAQ_POL;
+PlaqPol DEBUG_PRINTF("Found PlaqPol\n");return TK_PLAQ_POL;
+
+ /* evol pars */
+NTrajTot DEBUG_PRINTF("Found NTrajTot\n");return TK_NTRAJ_TOT;
+SkipMtestNtraj DEBUG_PRINTF("Found SkipMtestNtraj\n");return TK_SKIP_MTEST_NTRAJ;
+TrajLength DEBUG_PRINTF("Found TrajLength\n");return TK_TRAJ_LENGTH;
+PfActionResidue DEBUG_PRINTF("Found PfActionResidue\n");return TK_PF_ACTION_RESIDUE;
+MdResidue DEBUG_PRINTF("Found MdResidue\n");return TK_MD_RESIDUE;
+NMdSteps DEBUG_PRINTF("Found NMdSteps\n");return TK_NMD_STEPS;
+NGaugeSubsteps DEBUG_PRINTF("Found NGaugeSubsteps\n");return TK_NGAUGE_SUBSTEPS;
+
+ /* conf pars */
+ConfPath DEBUG_PRINTF("Found ConfPath\n");return TK_CONF_PATH;
+StoreConfPath DEBUG_PRINTF("Found StoreConfPath\n");return TK_STORE_CONF_PATH;
+StoreConfEach DEBUG_PRINTF("Found StoreConfEach\n");return TK_STORE_CONF_EACH;
+StoreRunningTempConf DEBUG_PRINTF("Found StoreRunningTempConf\n");return TK_STORE_RUNNING_TEMP_CONF;
+StartCond DEBUG_PRINTF("Found StartCond\n");return TK_START_COND;
+HOT DEBUG_PRINTF("Found HOT\n");return TK_HOT;
+COLD DEBUG_PRINTF("Found COLD\n");return TK_COLD;
+
+ /* punctuation */
+\, return TK_COMMA;
+\( return TK_BR_OP;
+\) return TK_BR_CL;
+\{ return TK_CUR_BR_OP;
+\} return TK_CUR_BR_CL;
 
  /* crash if finds unexpected word or unrecognized char */
 \#{LETTER}{ALNUM}* crash("found unexpected preprocessor directive %s",yytext);

@@ -114,25 +114,23 @@ namespace nissa
   
   //open a file
 #ifdef USE_MPI_IO
-  ILDG_File ILDG_File_open(const char *path,int amode)
+  ILDG_File ILDG_File_open(std::string path,int amode)
 #else
-    ILDG_File ILDG_File_open(const char *path,const char *mode)
+    ILDG_File ILDG_File_open(std::string path,const char *mode)
 #endif
   {
     ILDG_File file;
-    char in_path[1024];
-    sprintf(in_path,"%s",path);
 #ifdef USE_MPI_IO
-    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,in_path,amode,MPI_INFO_NULL,&file),"while opening file %s",path);
+    decript_MPI_error(MPI_File_open(MPI_COMM_WORLD,path.c_str(),amode,MPI_INFO_NULL,&file),"while opening file %s",path.c_str());
 #else
-    file=fopen(in_path,mode);
-    if(file==NULL) crash("while opening file %s",path);
+    file=fopen(path.c_str(),mode);
+    if(file==NULL) crash("while opening file %s",path.c_str());
 #endif
     
     return file;
   }
   
-  ILDG_File ILDG_File_open_for_read(const char *path)
+  ILDG_File ILDG_File_open_for_read(std::string path)
   {
 #ifdef USE_MPI_IO
     return ILDG_File_open(path,MPI_MODE_RDONLY);
@@ -141,14 +139,14 @@ namespace nissa
 #endif
   }
   
-  ILDG_File ILDG_File_open_for_write(const char *path)
+  ILDG_File ILDG_File_open_for_write(std::string path)
   {
     ILDG_File file;
 #ifdef USE_MPI_IO
-    file=ILDG_File_open(path,MPI_MODE_WRONLY|MPI_MODE_CREATE);
-    decript_MPI_error(MPI_File_set_size(file,0),"while resizing to 0 the file %s",path);
+    file=ILDG_File_open(path.c_str(),MPI_MODE_WRONLY|MPI_MODE_CREATE);
+    decript_MPI_error(MPI_File_set_size(file,0),"while resizing to 0 the file %s",path.c_str());
 #else
-    file=ILDG_File_open(path,"w");
+    file=ILDG_File_open(path.c_str(),"w");
 #endif
     return file;
   }

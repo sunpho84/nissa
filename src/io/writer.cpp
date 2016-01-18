@@ -71,7 +71,7 @@ namespace nissa
   }
   
   //Write a whole spincolor
-  void write_spincolor(const char *path,spincolor *spinor,size_t prec)
+  void write_spincolor(std::string path,spincolor *spinor,size_t prec)
   {
     //Open the file
     ILDG_File file=ILDG_File_open_for_write(path);
@@ -106,7 +106,7 @@ namespace nissa
   ////////////////////////// gauge configuration writing /////////////////////////////
   
   //Write the local part of the gauge configuration
-  void write_ildg_gauge_conf(const char *path,quad_su3 *in,size_t prec,ILDG_message *mess=NULL)
+  void write_ildg_gauge_conf(std::string path,quad_su3 *in,size_t prec,ILDG_message *mess=NULL)
   {
     double start_time=take_time();
     
@@ -141,12 +141,12 @@ namespace nissa
     //reorder back
     quad_su3_ildg_to_nissa_reord_in_place(in);
     
-    verbosity_lv2_master_printf("Time elapsed in writing gauge file '%s': %f s\n",path,take_time()-start_time);
+    verbosity_lv2_master_printf("Time elapsed in writing gauge file '%s': %f s\n",path.c_str(),take_time()-start_time);
     ILDG_File_close(file);
   }
   
   //read an ildg conf and split it into e/o parts
-  void paste_eo_parts_and_write_ildg_gauge_conf(const char *path,quad_su3 **eo_conf,size_t prec,ILDG_message *mess=NULL)
+  void paste_eo_parts_and_write_ildg_gauge_conf(std::string path,quad_su3 **eo_conf,size_t prec,ILDG_message *mess=NULL)
   {
     quad_su3 *lx_conf=nissa_malloc("temp_conf",loc_vol,quad_su3);
     paste_eo_parts_into_lx_vector(lx_conf,eo_conf);

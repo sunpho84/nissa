@@ -13,10 +13,10 @@ public:
   driver_t(FILE *file);
   
   //geometry
-  unsigned int L;
-  unsigned int T;
-  unsigned int def_L(){return 4;}
-  unsigned int def_T(){return 4;}
+  int L;
+  int T;
+  int def_L(){return 4;}
+  int def_T(){return 4;}
   
   //gauge action
   double beta;
@@ -38,12 +38,17 @@ public:
   
   //fermionic measures
   nucleon_corr_meas_pars_t nucleon_corr_meas_pars;
+  meson_corr_meas_pars_t meson_corr_meas_pars;
   fermionic_putpourri_meas_pars_t fermionic_putpourri_meas_pars;
   quark_rendens_meas_pars_t quark_rendens_meas_pars;
   magnetization_meas_pars_t magnetization_meas_pars;
   
   //gauge measures
   gauge_obs_meas_pars_t plaq_pol_meas_pars;
+  
+  //evolution and conf
+  hmc_evol_pars_t evol_pars;
+  conf_pars_t conf_pars;
   
   int master_fprintf(FILE *fout,bool full=false)
   {
@@ -60,8 +65,15 @@ public:
     if(full||(beta!=def_beta())) nprinted_betaact+=nissa::master_fprintf(fout,"Beta\t\t=\t%lg\n",beta);
     if(full||(gauge_action_name!=def_gauge_action_name()))
       {
-	const char name_known[3][20]={"Wilson","tlSym","Iwasaki"};
-	nprinted_betaact+=nissa::master_fprintf(fout,"GaugeAction\t=\t%s\n",name_known[gauge_action_name]);
+	nprinted_betaact+=nissa::master_fprintf(fout,"GaugeAction\t=\t");
+	switch(gauge_action_name)
+	  {
+	  case WILSON_GAUGE_ACTION: nprinted_betaact+=nissa::master_fprintf(fout,"Wilson");break;
+	  case TLSYM_GAUGE_ACTION: nprinted_betaact+=nissa::master_fprintf(fout,"tlSym");break;
+	  case IWASAKI_GAUGE_ACTION: nprinted_betaact+=nissa::master_fprintf(fout,"Iwasaki");break;
+	  default:crash("unknown gauge action %d",(int)gauge_action_name);
+	  }
+	nprinted_betaact+=nissa::master_fprintf(fout,"\n");
       }
     if(nprinted_betaact) nissa::master_fprintf(fout,"\n");
     nprinted+=nprinted_betaact;
@@ -75,12 +87,17 @@ public:
     //global em field pars
     if(em_field_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //fermionic measures
+    if(meson_corr_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     if(nucleon_corr_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     if(fermionic_putpourri_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     if(quark_rendens_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     if(magnetization_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //gauge masures
     if(plaq_pol_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    //hmc evolution
+    if(evol_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    //configuration
+    if(conf_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     
     return nprinted;
   }

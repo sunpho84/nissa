@@ -176,7 +176,7 @@ namespace nissa
     read_str_int("NGaugeSubSteps",&pars.ngauge_substeps);
     read_str_double("MdResidue",&pars.md_residue);
     read_str_double("PfActionResidue",&pars.pf_action_residue);
-    pars.npseudo_fs=new int[th.nflavs];
+    pars.npseudo_fs.resize(th.nflavs);
     expect_str("NPseudoFermions");
     for(int iflav=0;iflav<th.nflavs;iflav++) read_int(&pars.npseudo_fs[iflav]);
     pars.rat_appr=new rat_approx_t[3*th.nflavs];
@@ -429,7 +429,7 @@ namespace nissa
   }
   
   //read how to measure staggered mesons
-  void read_stag_meson_corr_meas_pars(stag_meson_corr_meas_pars_t &pars,bool flag)
+  void read_meson_corr_meas_pars(meson_corr_meas_pars_t &pars,bool flag)
   {
     if(flag==true) pars.flag=true;
     else read_str_int("MeasureStagMesonCorr",&pars.flag);
