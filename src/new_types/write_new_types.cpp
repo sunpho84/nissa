@@ -90,7 +90,12 @@ namespace nissa
     if(full||md_residue!=def_md_residue()) nprinted+=nissa::master_fprintf(fout,"MdResidue\t\t=\t%lg\n",md_residue);
     if(full||nmd_steps!=def_nmd_steps()) nprinted+=nissa::master_fprintf(fout,"NMdSteps\t\t=\t%d\n",nmd_steps);
     if(full||ngauge_substeps!=def_ngauge_substeps()) nprinted+=nissa::master_fprintf(fout,"NGaugeSubsteps\t\t=\t%d\n",ngauge_substeps);
-    
+    if(full||npseudo_fs.size())
+      {
+	nprinted+=nissa::master_fprintf(fout,"NPseudoFermions\t\t=\t{%d",npseudo_fs[0]);
+	for(size_t i=1;i<npseudo_fs.size();i++) nprinted+=nissa::master_fprintf(fout,",%d",npseudo_fs[i]);
+	nprinted+=nissa::master_fprintf(fout,"}\n");
+      }
     return nprinted;
   }
   

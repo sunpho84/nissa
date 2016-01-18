@@ -196,6 +196,7 @@ PfActionResidue DEBUG_PRINTF("Found PfActionResidue\n");return TK_PF_ACTION_RESI
 MdResidue DEBUG_PRINTF("Found MdResidue\n");return TK_MD_RESIDUE;
 NMdSteps DEBUG_PRINTF("Found NMdSteps\n");return TK_NMD_STEPS;
 NGaugeSubsteps DEBUG_PRINTF("Found NGaugeSubsteps\n");return TK_NGAUGE_SUBSTEPS;
+NPseudoFermions DEBUG_PRINTF("Found NPseudoFermions\n");return TK_NPSEUDO_FERMIONS;
 
  /* conf pars */
 ConfPath DEBUG_PRINTF("Found ConfPath\n");return TK_CONF_PATH;

@@ -59,8 +59,8 @@
 %token <int_numb> TK_INT
 %type <int_numb> int_numb
 %type <int_pair> int_pair
-//%type <int_list> int_list
-//%type <int_list> internal_int_list
+%type <int_list> int_list
+%type <int_list> internal_int_list
 %type <int_pair_list> int_pair_list
 %type <int_pair_list> internal_int_pair_list
 %token <text> TK_QUOTED_TEXT
@@ -157,6 +157,7 @@
 %token TK_MD_RESIDUE
 %token TK_NMD_STEPS
 %token TK_NGAUGE_SUBSTEPS
+%token TK_NPSEUDO_FERMIONS
 //conf parameters
 %token TK_CONF_PATH
 %token TK_STORE_CONF_PATH
@@ -425,6 +426,7 @@ global_evolve_pars: TK_NTRAJ_TOT '=' int_numb {driver->evol_pars.ntraj_tot=$3;}
                   | TK_MD_RESIDUE '=' real_numb {driver->evol_pars.md_residue=$3;}
                   | TK_NMD_STEPS '=' int_numb {driver->evol_pars.nmd_steps=$3;}
                   | TK_NGAUGE_SUBSTEPS '=' int_numb {driver->evol_pars.ngauge_substeps=$3;}
+                  | TK_NPSEUDO_FERMIONS '=' int_list {driver->evol_pars.npseudo_fs=(*$3);}
 ;
 
 ////////////////////////////////////////////////// CONF PARS ///////////////////////////////////////////////////
@@ -451,12 +453,12 @@ plaq_pol_meas_pars: TK_PLAQ_POL {$$=new gauge_obs_meas_pars_t;$$->flag=true;}
 
 /////////////////////////////////////////////// LIST OF INTEGERS ///////////////////////////////////////////////////
 
-//int_list: internal_int_list TK_CUR_BR_CL {$$=$1;}
-//;
+int_list: internal_int_list TK_CUR_BR_CL {$$=$1;}
+;
 
-//internal_int_list: TK_CUR_BR_OP int_numb {$$=new std::vector<int>;$$->push_back($2);}
-//                 | internal_int_list TK_COMMA int_numb {$$->push_back($3);}
-//;
+internal_int_list: TK_CUR_BR_OP int_numb {$$=new std::vector<int>;$$->push_back($2);}
+                 | internal_int_list TK_COMMA int_numb {$$->push_back($3);}
+;
 
 /////////////////////////////////////////////// LIST OF INTEGERS ///////////////////////////////////////////////////
 
