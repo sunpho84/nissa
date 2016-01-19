@@ -166,6 +166,9 @@
 %token TK_START_COND
 %token TK_HOT
 %token TK_COLD
+//walltime and seed
+%token TK_WALLTIME
+%token TK_SEED
 %%
 
 commands: commands command
@@ -195,6 +198,9 @@ global_specify: global_L
 /////////////// evolve and confpars ///////////////////////
               | global_evolve_pars
               | global_conf_pars
+//////////////// walltime and seed /////////////////
+              | TK_WALLTIME '=' int_numb {driver->walltime=$3;}
+              | TK_SEED '=' int_numb {driver->seed=$3;}
 ;
 
 meta_command: meta_print_scanned
@@ -474,9 +480,9 @@ internal_int_pair_list: TK_CUR_BR_OP int_pair {$$=new std::vector<std::pair<int,
 int_pair: TK_BR_OP int_numb TK_COMMA int_numb TK_BR_CL {$$=new std::pair<int,int>; (*$$)=std::make_pair($2,$4);}
 ;
 
-//////////////////////////////////////////////////// CASTING //////////////////////////////////////////////////////
+//////////////////////////////////////////////////// ARITHMETIC //////////////////////////////////////////////////////
 
-//cast to a double numb
+//double
 real_numb: TK_DOUBLE {$$=$1;master_printf("Copying %lg to double\n",$1);}
          | int_numb {$$=$1;master_printf("Casting %d to double\n",$1);}
          | TK_PLUS real_numb %prec NEG {$$=$2;}
@@ -489,7 +495,7 @@ real_numb: TK_DOUBLE {$$=$1;master_printf("Copying %lg to double\n",$1);}
          | TK_BR_OP real_numb TK_BR_CL {$$=$2;}
 ;
 
-//cast to integer
+//integer
 int_numb: TK_INT {$$=$1;master_printf("Copying %d to integer\n",$1);}
         | TK_PLUS int_numb %prec NEG {$$=$2;}
         | TK_MINUS int_numb %prec NEG {$$=-$2;}

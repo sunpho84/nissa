@@ -18,6 +18,12 @@ public:
   int def_L(){return 4;}
   int def_T(){return 4;}
   
+  //walltime and seed
+  int walltime;
+  int seed;
+  int def_walltime(){return 3500;}
+  int def_seed(){return 23526211;}
+  
   //gauge action
   double beta;
   gauge_action_name_t gauge_action_name;
@@ -50,33 +56,52 @@ public:
   hmc_evol_pars_t evol_pars;
   conf_pars_t conf_pars;
   
+  int master_fprintf_geometry(FILE *fout,int full)
+  {
+    int nprinted=0;
+    if(full||L!=def_L()) nprinted+=nissa::master_fprintf(fout,"L\t\t=\t%d\n",L);
+    if(full||T!=def_T()) nprinted+=nissa::master_fprintf(fout,"T\t\t=\t%d\n",T);
+    
+    return nprinted;
+  }
+  
+  int master_fprintf_betaact(FILE *fout,int full)
+  {
+    int nprinted=0;
+    if(full||(beta!=def_beta())) nprinted+=nissa::master_fprintf(fout,"Beta\t\t=\t%lg\n",beta);
+    if(full||(gauge_action_name!=def_gauge_action_name()))
+      {
+	nprinted+=nissa::master_fprintf(fout,"GaugeAction\t=\t");
+	switch(gauge_action_name)
+	  {
+	  case WILSON_GAUGE_ACTION: nprinted+=nissa::master_fprintf(fout,"Wilson");break;
+	  case TLSYM_GAUGE_ACTION: nprinted+=nissa::master_fprintf(fout,"tlSym");break;
+	  case IWASAKI_GAUGE_ACTION: nprinted+=nissa::master_fprintf(fout,"Iwasaki");break;
+	  default:crash("unknown gauge action %d",(int)gauge_action_name);
+	  }
+	nprinted+=nissa::master_fprintf(fout,"\n");
+      }
+    
+    return nprinted;
+  }
+  
+  int master_fprintf_walltime_seed(FILE *fout,int full)
+  {
+    int nprinted=0;
+    if(full||walltime!=def_walltime()) nprinted+=nissa::master_fprintf(fout,"Walltime\t\t=\t%d\n",walltime);
+    if(full||seed!=def_seed()) nprinted+=nissa::master_fprintf(fout,"Seed\t\t\t=\t%d\n",seed);
+    
+    return nprinted;
+  }
+  
   int master_fprintf(FILE *fout,bool full=false)
   {
     int nprinted=0;
     
     //geometry
-    int nprinted_geometry=0;
-    if(full||L!=def_L()) nprinted_geometry+=nissa::master_fprintf(fout,"L\t\t=\t%d\n",L);
-    if(full||T!=def_T()) nprinted_geometry+=nissa::master_fprintf(fout,"T\t\t=\t%d\n",T);
-    if(nprinted_geometry) nissa::master_fprintf(fout,"\n");
-    nprinted+=nprinted_geometry;
+    if(master_fprintf_geometry(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //beta and action
-    int nprinted_betaact=0;
-    if(full||(beta!=def_beta())) nprinted_betaact+=nissa::master_fprintf(fout,"Beta\t\t=\t%lg\n",beta);
-    if(full||(gauge_action_name!=def_gauge_action_name()))
-      {
-	nprinted_betaact+=nissa::master_fprintf(fout,"GaugeAction\t=\t");
-	switch(gauge_action_name)
-	  {
-	  case WILSON_GAUGE_ACTION: nprinted_betaact+=nissa::master_fprintf(fout,"Wilson");break;
-	  case TLSYM_GAUGE_ACTION: nprinted_betaact+=nissa::master_fprintf(fout,"tlSym");break;
-	  case IWASAKI_GAUGE_ACTION: nprinted_betaact+=nissa::master_fprintf(fout,"Iwasaki");break;
-	  default:crash("unknown gauge action %d",(int)gauge_action_name);
-	  }
-	nprinted_betaact+=nissa::master_fprintf(fout,"\n");
-      }
-    if(nprinted_betaact) nissa::master_fprintf(fout,"\n");
-    nprinted+=nprinted_betaact;
+    if(master_fprintf_betaact(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //topotential
     if(topotential_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //quarks
@@ -96,13 +121,16 @@ public:
     if(plaq_pol_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //hmc evolution
     if(evol_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    //walltime and seed
+    if(master_fprintf_walltime_seed(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //configuration
     if(conf_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     
     return nprinted;
   }
   
-  driver_t() : L(def_L()),T(def_T()),beta(def_beta()) {}
+private:
+  driver_t() {}
   
 protected:
   void init_scanner();

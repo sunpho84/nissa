@@ -44,13 +44,13 @@ namespace nissa
   {
     int nprinted=0;
     const char name_known[3][10]={"None","","Meta"};
-    nissa::master_fprintf(fout,"TopoPotential\t\t%s\n",name_known[flag]);
+    nprinted+=nissa::master_fprintf(fout,"TopoPotential\t\t%s\n",name_known[flag]);
     switch(flag)
       {
       case 0:break;
-      case 1:nissa::master_fprintf(fout,"Theta\t\t%lg\n",theta);break;
+      case 1:nprinted+=nissa::master_fprintf(fout,"Theta\t\t%lg\n",theta);break;
       case 2:
-	meta_pars_t::master_fprintf(fout);
+	nprinted+=meta_pars_t::master_fprintf(fout);
 	stout_pars.master_fprintf(fout);
 	break;
       }

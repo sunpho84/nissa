@@ -16,16 +16,19 @@
 namespace nissa
 {
   //print all pars
-  void meta_pars_t::master_fprintf(FILE *fout,bool full)
+  int meta_pars_t::master_fprintf(FILE *fout,bool full)
   {
-    nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
-    nissa::master_fprintf(fout,"Each\t\t=\t%d\n",each);
-    nissa::master_fprintf(fout,"Coeff\t\t=\t%lg\n",coeff);
-    nissa::master_fprintf(fout,"Width\t\t=\t%lg\n",width);
-    nissa::master_fprintf(fout,"Barr\t\t=\t%lg\n",barr);
-    nissa::master_fprintf(fout,"ForceOut\t=\t%lg\n",force_out);
-    nissa::master_fprintf(fout,"WellTempering\t=\t%lg\n",well_tempering);
-    nissa::master_fprintf(fout,"Bend\t\t=\t%lg\n",bend);
+    int nprinted=0;
+    nprinted+=nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
+    nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",each);
+    nprinted+=nissa::master_fprintf(fout,"Coeff\t\t=\t%lg\n",coeff);
+    nprinted+=nissa::master_fprintf(fout,"Width\t\t=\t%lg\n",width);
+    nprinted+=nissa::master_fprintf(fout,"Barr\t\t=\t%lg\n",barr);
+    nprinted+=nissa::master_fprintf(fout,"ForceOut\t=\t%lg\n",force_out);
+    nprinted+=nissa::master_fprintf(fout,"WellTempering\t=\t%lg\n",well_tempering);
+    nprinted+=nissa::master_fprintf(fout,"Bend\t\t=\t%lg\n",bend);
+    
+    return nprinted;
   }
   
   //update the history-dependent potential

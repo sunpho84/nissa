@@ -207,6 +207,10 @@ StartCond DEBUG_PRINTF("Found StartCond\n");return TK_START_COND;
 HOT DEBUG_PRINTF("Found HOT\n");return TK_HOT;
 COLD DEBUG_PRINTF("Found COLD\n");return TK_COLD;
 
+ /* walltime and seed */
+Walltime DEBUG_PRINTF("Found Walltime\n");return TK_WALLTIME;
+Seed DEBUG_PRINTF("Found Seed\n");return TK_SEED;
+
  /* punctuation */
 \, return TK_COMMA;
 \( return TK_BR_OP;
@@ -222,7 +226,7 @@ COLD DEBUG_PRINTF("Found COLD\n");return TK_COLD;
 %%
 
 //initializator
-driver_t::driver_t(FILE *ext)
+driver_t::driver_t(FILE *ext) : L(def_L()),T(def_T()),walltime(def_walltime()),seed(def_seed()),beta(def_beta())
 {
   fin=ext;
   
