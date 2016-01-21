@@ -38,8 +38,8 @@ fermionic_putpourri_meas_pars_t *fermionic_putpourri_meas_pars;
 quark_rendens_meas_pars_t *quark_rendens_meas_pars;
 spinpol_meas_pars_t *spinpol_meas_pars;
 magnetization_meas_pars_t *magnetization_meas_pars;
-nucleon_corr_meas_pars_t *nucleon_corr_meas_pars;
 meson_corr_meas_pars_t *meson_corr_meas_pars;
+nucleon_corr_meas_pars_t *nucleon_corr_meas_pars;
 
 //traj
 double init_time,max_traj_time=0,wall_time;
@@ -69,7 +69,7 @@ void write_conf(std::string path,quad_su3 **conf)
   //rational approximation
   char *appr_data=NULL;
   int appr_data_length;
-  convert_rat_approx(appr_data,appr_data_length,evol_pars.rat_appr,theory_pars[SEA_THEORY].nflavs);
+  convert_rat_approx(appr_data,appr_data_length,evol_pars.rat_appr,theory_pars[SEA_THEORY].nflavs());
   
   ILDG_bin_message_append_to_last(&mess,"RAT_approx",appr_data,appr_data_length);
   nissa_free(appr_data);
@@ -139,7 +139,7 @@ void read_conf(quad_su3 **conf,const char *path)
 	      convert_rat_approx(temp_appr,nflavs_appr_read,cur_mess->data,cur_mess->data_length);
 	      
 	      //check and possibly copy
-	      if(nflavs_appr_read==theory_pars[SEA_THEORY].nflavs)
+	      if(nflavs_appr_read==theory_pars[SEA_THEORY].nflavs())
 		{
 		  rat_approx_found++;
 		  for(int i=0;i<nflavs_appr_read*3;i++) evol_pars.rat_appr[i]=temp_appr[i];
@@ -156,7 +156,7 @@ void read_conf(quad_su3 **conf,const char *path)
   switch(rat_approx_found)
     {
     case 0: if(evol_pars.ntraj_tot) verbosity_lv2_master_printf("No rational approximation was found in the configuration file\n");break;
-    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars[SEA_THEORY].nflavs);break;
+    case 1: verbosity_lv2_master_printf("Rational approximation found but valid for %d flavors while we are running with %d\n",nflavs_appr_read,theory_pars[SEA_THEORY].nflavs());break;
     case 2: verbosity_lv2_master_printf("Rational approximation found and loaded\n");break;
     default: crash("rat_approx_found should not arrive to %d",rat_approx_found);
     }
@@ -179,7 +179,7 @@ void read_conf(quad_su3 **conf,const char *path)
 void init_program_to_run(start_conf_cond_t start_conf_cond)
 {
   //initialize the sweepers
-  if(theory_pars[SEA_THEORY].nflavs==0) init_sweeper(theory_pars[SEA_THEORY].gauge_action_name);
+  if(theory_pars[SEA_THEORY].nflavs()==0) init_sweeper(theory_pars[SEA_THEORY].gauge_action_name);
   
   //load conf or generate it
   if(file_exists(conf_pars.path))
@@ -356,7 +356,7 @@ void init_simulation(char *path)
   
   //initialize sweeper to cool
   for(int i=0;i<ntop_meas;i++)
-    if(top_meas_pars[i].flag && top_meas_pars[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(top_meas_pars[i].smooth_pars.cool_pars.gauge_action);
+    if(top_meas_pars[i].each && top_meas_pars[i].smooth_pars.method==smooth_pars_t::COOLING) init_sweeper(top_meas_pars[i].smooth_pars.cool_pars.gauge_action);
   
   //init the program in "production" or "analysis" mode
   if(evol_pars.ntraj_tot>0) init_program_to_run(conf_pars.start_cond);
@@ -366,7 +366,7 @@ void init_simulation(char *path)
 //unset the background field
 void unset_theory_pars(theory_pars_t &theory_pars)
 {
-  for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+  for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
     {
       for(int par=0;par<2;par++) nissa_free(theory_pars.backfield[iflav][par]);
       nissa_free(theory_pars.backfield[iflav]);
@@ -396,7 +396,7 @@ void close_simulation()
   
   //destroy rational approximations
   if(evol_pars.ntraj_tot)
-    for(int i=0;i<theory_pars[SEA_THEORY].nflavs*3;i++)
+    for(int i=0;i<theory_pars[SEA_THEORY].nflavs()*3;i++)
       rat_approx_destroy(evol_pars.rat_appr+i);
   
   //destroy topo pars
@@ -427,7 +427,7 @@ int generate_new_conf(int itraj)
   int acc;
   
   //if not quenched
-  if(theory_pars[SEA_THEORY].nflavs!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
+  if(theory_pars[SEA_THEORY].nflavs()!=0||theory_pars[SEA_THEORY].topotential_pars.flag!=0)
     {
       //find if needed to perform test
       int perform_test=(itraj>=evol_pars.skip_mtest_ntraj);
@@ -529,7 +529,7 @@ void measure_poly_corrs(poly_corr_meas_pars_t &pars,quad_su3 **eo_conf,bool conf
 
 //return 1 if we need to measure
 template <class T> int measure_is_due(T &pars,int iconf)
-{return pars.flag&&(iconf%pars.flag==0)&&(iconf>=pars.after);}
+{return (pars.each>0)&&(iconf%pars.each==0)&&(iconf>=pars.after);}
 
 //measures
 void measurements(quad_su3 **temp,quad_su3 **conf,int iconf,int acc,gauge_action_name_t gauge_action_name)

@@ -26,7 +26,7 @@ namespace nissa
     CRASH_IF_NOT_3COL();
     FILE *file=open_file(meas_pars.path,conf_created?"w":"a");
     
-    int nflavs=theory_pars.nflavs;
+    int nflavs=theory_pars.nflavs();
     
     //allocate source
     su3 *source[2]={nissa_malloc("source_e",loc_volh+bord_volh,su3),nissa_malloc("source_o",loc_volh+bord_volh,su3)};
@@ -151,16 +151,15 @@ namespace nissa
   {
     int nprinted=0;
     
-    if(flag||full)
+    nprinted+=nissa::master_fprintf(fout,"MeasNucleonCorrs\n");
+    if(is_nonstandard()||full)
       {
-	nprinted+=nissa::master_fprintf(fout,"NucleonCorrelators\n");
-	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
-	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
-	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t%lg\n",residue);
-	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
+	if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
+	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
+	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout," Residue\t=\t%lg\n",residue);
+	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout," NHits\t\t=\t%d\n",nhits);
       }
-    else if(full) nprinted+=nissa::master_fprintf(fout,"NucleonCorrelators No\n");
     
     return nprinted;
   }

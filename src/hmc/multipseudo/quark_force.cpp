@@ -38,10 +38,10 @@ namespace nissa
     //reset forces
     for(int eo=0;eo<2;eo++) vector_reset(F[eo]);
     
-    for(int iflav=0;iflav<tp->nflavs;iflav++)
+    for(int iflav=0;iflav<tp->nflavs();iflav++)
       for(int ipf=0;ipf<(*npfs)[iflav];ipf++)
 	{
-	  verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %d/%d\n",iflav+1,tp->nflavs,ipf+1,(*npfs)[iflav]);
+	  verbosity_lv2_master_printf("Computing quark force for flavour %d/%d, pseudofermion %d/%d\n",iflav+1,tp->nflavs(),ipf+1,(*npfs)[iflav]);
 	  
 	  if(tp->quark_content[iflav].is_stag)
 	    summ_the_rootst_eoimpr_quark_force(F,tp->quark_content[iflav].charge,conf,pf[iflav].stag[ipf],tp->em_field_pars.flag,tp->backfield[iflav],appr+(iflav*3+2),residue);

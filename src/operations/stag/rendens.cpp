@@ -132,7 +132,7 @@ namespace nissa
 	master_fprintf(file,"%d\t",iconf);
 	
 	//loop over flavor
-	for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
 	  {
 	    if(!theory_pars.quark_content[iflav].is_stag) crash("not defined for non-staggered quarks");
 	    
@@ -221,17 +221,16 @@ namespace nissa
   {
     int nprinted=0;
     
-    if(flag||full)
+    nprinted+=nissa::master_fprintf(fout,"MeasRendens\n");
+    if(is_nonstandard()||full)
       {
-	nprinted+=nissa::master_fprintf(fout,"QuarkRendens\n");
-	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
-	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
-	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t%lg\n",residue);
-	if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout,"NCopies\t\t=\t%d\n",nhits);
-	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
+	if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
+	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
+	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout," Residue\t=\t%lg\n",residue);
+	if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout," NCopies\t=\t%d\n",nhits);
+	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout," NHits\t\t=\t%d\n",nhits);
       }
-    else if(full) nprinted+=nissa::master_fprintf(fout,"QuarkRendens No\n");
     
     return nprinted;
   }

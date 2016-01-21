@@ -19,7 +19,7 @@
 namespace nissa
 {
   //compute quark action for a set of quark
-  THREADABLE_FUNCTION_7ARG(compute_quark_action, double*,glb_action, quad_su3**,eo_conf, int,nfl, quad_u1***,u1b, pseudofermion_t*,pf, quark_content_t*,quark_content, hmc_evol_pars_t*,simul_pars)
+  THREADABLE_FUNCTION_7ARG(compute_quark_action, double*,glb_action, quad_su3**,eo_conf, int,nfl, std::vector<quad_u1**>,u1b, pseudofermion_t*,pf, std::vector<quark_content_t>,quark_content, hmc_evol_pars_t*,simul_pars)
   {
     //allocate chi
     color *chi_e=nissa_malloc("chi_e",loc_volh,color);
@@ -69,7 +69,7 @@ namespace nissa
 	verbosity_lv1_master_printf("No need to compute pseudofermion action\n");
 	quark_action=external_quark_action;
       }
-    else compute_quark_action(&quark_action,sme_conf,theory_pars->nflavs,theory_pars->backfield,pf,theory_pars->quark_content,simul_pars);
+    else compute_quark_action(&quark_action,sme_conf,theory_pars->nflavs(),theory_pars->backfield,pf,theory_pars->quark_content,simul_pars);
     verbosity_lv1_master_printf("Quark_action: %16.16lg\n",quark_action);
     
     //gauge action

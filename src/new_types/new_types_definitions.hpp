@@ -284,7 +284,7 @@ namespace nissa
   //we order S as sink-source-re/im.
   //To compute each correlation function we need to summ 32 contribution,
   //relative to the product of the real and imaginary components.
-  //Two main patterns are possible, according to the the fact that we must 
+  //Two main patterns are possible, according to the the fact that we must
   //compute the real or imaginary part of the correlation function,
   //and if one of the two dirac matrices are imaginary.
   //We compact the product of the various correlation functions, so that
@@ -342,7 +342,16 @@ namespace nissa
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    stout_pars_t() : nlevels(def_nlevels()),rho(def_rho()) {}
+    int is_nonstandard()
+    {
+      return
+	nlevels!=def_nlevels()||
+	rho!=def_rho();
+    }
+    
+    stout_pars_t() :
+      nlevels(def_nlevels()),
+      rho(def_rho()) {}
   };
   
   //parameters to ape smear
@@ -351,7 +360,21 @@ namespace nissa
     int nlev;
     double alpha;
     
-    ape_pars_t() : nlev(20),alpha(0.5) {}
+    int def_nlev(){return 20;}
+    double def_alpha(){return 0.5;}
+    
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    int is_nonstandard()
+    {
+      return
+	nlev!=def_nlev()||
+	alpha!=def_alpha();
+    }
+    
+    ape_pars_t() :
+      nlev(def_nlev()),
+      alpha(def_alpha()) {}
   };
   
   //structure to cool
@@ -362,42 +385,93 @@ namespace nissa
     int overrelax_flag;
     double overrelax_exp;
     
-    cool_pars_t() : gauge_action(WILSON_GAUGE_ACTION),nsteps(120),overrelax_flag(0),overrelax_exp(0.0) {}
-  };
-  
-  //structure to adataptive stout
-  struct adaptative_stout_pars_t
-  {
-    int nlevels;
-    std::vector<double> rho;
+    gauge_action_name_t def_gauge_action(){return WILSON_GAUGE_ACTION;}
+    int def_nsteps(){return 120;}
+    int def_overrelax_flag(){return 0;}
+    double def_overrelax_exp(){return 0.0;}
     
-    adaptative_stout_pars_t() : nlevels(0) {}
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    int is_nonstandard()
+    {
+      return
+	gauge_action!=def_gauge_action()||
+	nsteps!=def_nsteps()||
+	overrelax_flag!=def_overrelax_flag()||
+	overrelax_exp!=def_overrelax_exp();
+    }
+    
+    cool_pars_t() :
+      gauge_action(def_gauge_action()),
+      nsteps(def_nsteps()),
+      overrelax_flag(def_overrelax_flag()),
+      overrelax_exp(def_overrelax_exp()) {}
   };
   
   //structure to Wilson flow
   struct Wflow_pars_t
   {
-    double T,dt;
+    double T;
+    double dt;
+    double def_T(){return 10;}
+    double def_dt(){return 0.2;}
     
-    Wflow_pars_t() : T(10),dt(0.2) {}
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    int is_nonstandard()
+    {
+      return
+	T!=def_T()||
+	dt!=def_dt();
+    }
+    
+    Wflow_pars_t() :
+      T(def_T()),
+      dt(def_dt()) {}
   };
   
   //parameters to smooth a configuration
   struct smooth_pars_t
   {
-    enum method_t{UNSPEC_SMOOTH_METHOD,COOLING,STOUTING,ADAPTATIVE_STOUTING,WFLOWING};
+    enum method_t{UNSPEC_SMOOTH_METHOD,COOLING,STOUTING,WFLOWING};
     
     //basic
-    int flag;
-    double meas_each;
     method_t method;
+    double meas_each;
+    method_t def_method(){return COOLING;}
+    double def_meas_each(){return 1;}
+    
     //pars
     cool_pars_t cool_pars;
     stout_pars_t stout_pars;
-    adaptative_stout_pars_t adaptative_stout_pars;
     Wflow_pars_t Wflow_pars;
     
-    smooth_pars_t() : flag(false),method(COOLING) {}
+    std::string get_method_name()
+    {
+      switch(method)
+	{
+	case COOLING:return "Cooling";break;
+	case STOUTING:return "Stouting";break;
+	case WFLOWING:return "WFlowing";break;
+	default:return "Unspec";break;
+	}
+    }
+    
+    int is_nonstandard()
+    {
+      return
+	method!=def_method()||
+	cool_pars.is_nonstandard()||
+	stout_pars.is_nonstandard()||
+	Wflow_pars.is_nonstandard()||
+	meas_each!=def_meas_each();
+    }
+    
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    smooth_pars_t() :
+      method(def_method()),
+      meas_each(def_meas_each()) {}
   };
   
   //to hold rhmc fields
@@ -456,167 +530,126 @@ namespace nissa
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    quark_content_t() : deg(def_deg()),is_stag(def_is_stag()),mass(def_mass()),kappa(def_kappa()),re_pot(def_re_pot()),im_pot(def_im_pot()),charge(def_charge()) {}
+    int is_nonstandard()
+    {
+      return
+	deg!=def_deg()||
+	is_stag!=def_is_stag()||
+	mass!=def_mass()||
+	kappa!=def_kappa()||
+	re_pot!=def_re_pot()||
+	im_pot!=def_im_pot()||
+	charge!=def_charge();
+    }
+    
+    quark_content_t() :
+      deg(def_deg()),
+      is_stag(def_is_stag()),
+      mass(def_mass()),
+      kappa(def_kappa()),
+      re_pot(def_re_pot()),
+      im_pot(def_im_pot()),
+      charge(def_charge()) {}
   };
   
   //parameters to smear a gauge conf when measuring gauge observables
   struct gauge_obs_temp_smear_pars_t
   {
     int use_hyp_or_ape_temp;
+    int def_use_hyp_or_ape_temp() {return 0;}
     
     //hyp pars
     double hyp_temp_alpha0;
     double hyp_temp_alpha1;
     double hyp_temp_alpha2;
+    double def_hyp_temp_alpha0() {return 1;}
+    double def_hyp_temp_alpha1() {return 1;}
+    double def_hyp_temp_alpha2() {return 0.5;}
     
     //ape temp
     double ape_temp_alpha;
     int nape_temp_iters;
+    double def_ape_temp_alpha(){return 0.5;}
+    int def_nape_temp_iters(){return 20;}
     
-    gauge_obs_temp_smear_pars_t() : use_hyp_or_ape_temp(0),hyp_temp_alpha0(1),hyp_temp_alpha1(1),hyp_temp_alpha2(0.5),ape_temp_alpha(0.5),nape_temp_iters(20) {}
+    int is_nonstandard()
+    {
+      return
+	use_hyp_or_ape_temp!=def_use_hyp_or_ape_temp()||
+	hyp_temp_alpha0!=def_hyp_temp_alpha0()||
+	hyp_temp_alpha1!=def_hyp_temp_alpha0()||
+	hyp_temp_alpha2!=def_hyp_temp_alpha0()||
+	ape_temp_alpha!=def_ape_temp_alpha()||
+	nape_temp_iters!=def_nape_temp_iters();
+    }
+    
+    gauge_obs_temp_smear_pars_t() :
+      use_hyp_or_ape_temp(def_use_hyp_or_ape_temp()),
+      hyp_temp_alpha0(def_hyp_temp_alpha0()),
+      hyp_temp_alpha1(def_hyp_temp_alpha0()),
+      hyp_temp_alpha2(def_hyp_temp_alpha0()),
+      ape_temp_alpha(def_ape_temp_alpha()),
+      nape_temp_iters(def_nape_temp_iters()) {}
   };
   
   //pars to compute polyakov loop
   struct poly_corr_meas_pars_t
   {
-    int flag;
+    int each;
     int after;
     std::string path;
     gauge_obs_temp_smear_pars_t gauge_smear_pars;
     int dir;
     
-    int def_flag(){return 0;}
+    int def_each(){return 1;}
     int def_after(){return 0;}
     std::string def_path(){return "luppoli";}
     int def_dir(){return 0;}
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    poly_corr_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),dir(def_dir()) {}
+    int is_nonstandard()
+    {
+      return
+	each!=def_each()||
+	after!=def_after()||
+	path!=def_path()||
+	dir!=def_dir()||
+	gauge_smear_pars.is_nonstandard();
+    }
+    
+    poly_corr_meas_pars_t() :
+      each(def_each()),
+      after(def_after()),
+      path(def_path()),
+      dir(def_dir()) {}
   };
   
   //parameters to compute gauge observabls
   struct gauge_obs_meas_pars_t
   {
-    int flag;
+    int each;
     int after;
     std::string path;
     
-    int def_flag(){return 0;}
+    int def_each(){return 1;}
     int def_after(){return 0;}
     std::string def_path(){return "gauge_obs";}
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    gauge_obs_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()) {}
-  };
-  
-  //parameters to compute the fermionic gran-mix
-  struct fermionic_putpourri_meas_pars_t
-  {
-    int flag;
-    int after;
-    std::string path;
-    double residue;
-    int compute_susc;
-    int ncopies;
-    int nhits;
+    int is_nonstandard()
+    {
+      return
+	each!=def_each()||
+	after!=def_after()||
+	path!=def_path();
+    }
     
-    int def_flag(){return 0;}
-    int def_after(){return 0;}
-    std::string def_path(){return "lavanda";}
-    double def_residue(){return 1e-12;}
-    int def_compute_susc(){return 0;}
-    int def_ncopies(){return 1;}
-    int def_nhits(){return 1;}
-    
-    int master_fprintf(FILE *fout,bool full=false);
-    
-    fermionic_putpourri_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),residue(def_residue()),
-					compute_susc(def_compute_susc()),ncopies(def_ncopies()),nhits(def_nhits()) {}
-  };
-  
-  //parameters to compute the quark density and its high-order suscetivities
-  struct quark_rendens_meas_pars_t
-  {
-    int flag;
-    int after;
-    int max_order;
-    std::string path;
-    double residue;
-    int ncopies;
-    int nhits;
-    
-    int def_flag(){return 0;}
-    int def_after(){return 0;}
-    int def_max_order(){return 2;}
-    std::string def_path(){return "rende";}
-    double def_residue(){return 1e-12;}
-    int def_ncopies(){return 1;}
-    int def_nhits(){return 1;}
-    
-    int master_fprintf(FILE *fout,bool full=false);
-    
-    quark_rendens_meas_pars_t() : flag(def_flag()),after(def_after()),max_order(def_max_order()),
-				  path(def_path()),residue(def_residue()),ncopies(def_ncopies()),nhits(def_nhits()) {}
-  };
-  
-  //parameters to compute spin polarization
-  struct spinpol_meas_pars_t
-  {
-    int flag;
-    int after;
-    std::string path;
-    double residue;
-    int dir;
-    int nhits;
-    int use_ferm_conf_for_gluons;
-    smooth_pars_t smooth_pars;
-    
-    int def_flag(){return 0;}
-    int def_after(){return 0;}
-    std::string def_path(){return "pollo";}
-    double def_residue(){return 1e-12;}
-    int def_dir(){return 1;}
-    int def_nhits(){return 1;}
-    int def_use_ferm_conf_for_gluons(){return 0;}
-    
-    spinpol_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),residue(def_residue()),dir(def_dir()),nhits(def_nhits()),
-			    use_ferm_conf_for_gluons(def_use_ferm_conf_for_gluons()) {}
-  };
-  
-  //parameters to compute the magnetization
-  struct magnetization_meas_pars_t
-  {
-    int flag;
-    int after;
-    std::string path;
-    double residue;
-    int ncopies;
-    int nhits;
-    
-    int def_flag(){return 0;}
-    int def_after(){return 0;}
-    std::string def_path(){return "magnetization";}
-    double def_residue(){return 1e-12;}
-    int def_ncopies(){return 1;}
-    int def_nhits(){return 1;}
-    
-    int master_fprintf(FILE *fout,bool full=false);
-    
-    magnetization_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),residue(def_residue()),ncopies(def_ncopies()),nhits(def_nhits()) {}
-  };
-  
-  //parameters to measure topology properties
-  struct top_meas_pars_t
-  {
-    int flag;
-    int after;
-    std::string path;
-    smooth_pars_t smooth_pars;
-    
-    int def_after(){return 0;}
-    top_meas_pars_t() : flag(0),after(def_after()),path("topocharge") {}
+    gauge_obs_meas_pars_t() :
+      each(def_each()),
+      after(def_after()),
+      path(def_path()) {}
   };
   
   //holds temporal-spatial gauge smearing parameters
@@ -634,33 +667,52 @@ namespace nissa
   //parameters to measure all rectangles path
   struct all_rect_meas_pars_t
   {
-    int flag;
+    int each;
     int after;
     std::string path;
     gauge_obs_temp_spat_smear_pars_t smear_pars;
     int Tmin,Tmax,Dmin,Dmax;
     
-    int def_flag(){return 0;}
+    int def_each(){return 1;}
     int def_after(){return 0;}
     std::string def_path(){return "rectangles";}
     int def_Tmin(){return 3;}
     int def_Tmax(){return 9;}
     int def_Dmin(){return 1;}
     int def_Dmax(){return 9;}
-     
-    all_rect_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),Tmin(def_Tmin()),Tmax(def_Tmax()),Dmin(def_Dmin()),Dmax(def_Dmax()) {}
+    
+    int is_nonstandard()
+    {
+      return
+	each!=def_each()||
+	after!=def_after()||
+	path!=def_path()||
+	Tmin!=def_Tmin()||
+	Tmax!=def_Tmax()||
+	Dmin!=def_Dmin()||
+	Dmax!=def_Dmax();
+    }
+    
+    all_rect_meas_pars_t() :
+      each(def_each()),
+      after(def_after()),
+      path(def_path()),
+      Tmin(def_Tmin()),
+      Tmax(def_Tmax()),
+      Dmin(def_Dmin()),
+      Dmax(def_Dmax()) {}
   };
   
   //parameters to measure flux tube
   struct watusso_meas_pars_t
   {
-    int flag;
+    int each;
     int after;
     std::string path;
     gauge_obs_temp_spat_smear_pars_t smear_pars;
     int size_min,size_max,size_step,dmax;
     
-    int def_flag(){return 0;}
+    int def_each(){return 1;}
     int def_after(){return 0;}
     std::string def_path(){return "watusso";}
     int def_size_min(){return 7;}
@@ -668,8 +720,26 @@ namespace nissa
     int def_size_step(){return 1;}
     int def_dmax(){return 10;}
     
-    watusso_meas_pars_t() : flag(def_flag()),after(def_after()),path(def_path()),size_min(def_size_min()),size_max(def_size_max()),
-			    size_step(def_size_step()),dmax(def_dmax()) {}
+    int is_nonstandard()
+    {
+      return
+	each!=def_each()||
+	after!=def_after()||
+	path!=def_path()||
+	size_min!=def_size_min()||
+	size_max!=def_size_max()||
+	size_step!=def_size_step()||
+	dmax!=def_dmax();
+    }
+    
+    watusso_meas_pars_t() :
+      each(def_each()),
+      after(def_after()),
+      path(def_path()),
+      size_min(def_size_min()),
+      size_max(def_size_max()),
+      size_step(def_size_step()),
+      dmax(def_dmax()) {}
   };
   
   //storable vector
@@ -709,12 +779,25 @@ namespace nissa
     int flag;
     double theta;
     stout_pars_t stout_pars;
+    int def_flag(){return 0;}
+    double def_theta(){return 0;}
+    
     //methods inside opearations/su3_paths/topological_charge.cpp
     void store_if_needed(quad_su3 **conf,int iconf);
     
     int master_fprintf(FILE *fout,bool full=false);
     
-    topotential_pars_t() : meta_pars_t(),flag(0),theta(0.0){}
+    int is_nonstandard()
+    {
+      return
+	flag!=def_flag()||
+	theta!=def_theta();
+    }
+    
+    topotential_pars_t() :
+      meta_pars_t(),
+      flag(def_flag()),
+      theta(def_theta()){}
   };
   
   //parameters to em field
@@ -728,6 +811,13 @@ namespace nissa
     
     int master_fprintf(FILE *fout,bool full=false);
     
+    int is_nonstandard()
+    {
+      return flag||
+	(fabs(E[0])>1e-14)||(fabs(E[1])>1e-14)||(fabs(E[2])>1e-14)||
+	(fabs(B[0])>1e-14)||(fabs(B[1])>1e-14)||(fabs(B[2])>1e-14);
+    }
+    
     em_field_pars_t() : flag(0) {for(int i=0;i<3;i++) E[i]=B[i]=0;}
   };
   
@@ -735,32 +825,28 @@ namespace nissa
   struct theory_pars_t
   {
     double beta;
-    int nflavs;
-    quad_u1 ***backfield;
-    quark_content_t *quark_content;
+    double def_beta(){return 6;}
+    
+    std::vector<quad_u1**> backfield;
+    std::vector<quark_content_t> quark_content;
     gauge_action_name_t gauge_action_name;
     topotential_pars_t topotential_pars;
     stout_pars_t stout_pars;
     em_field_pars_t em_field_pars;
     
-    theory_pars_t() : beta(6.0),nflavs(0),backfield(NULL),quark_content(NULL) {}
-    ~theory_pars_t()
-    {
-      delete[] quark_content;
-    }
+    int is_nonstandard()
+    {return beta!=def_beta();}
+    
+    int nflavs()
+    {return quark_content.size();}
+    
+    theory_pars_t() :
+      beta(def_beta()) {}
   };
   
   //evolution parameters for hybrid monte carlo
   struct hmc_evol_pars_t
   {
-    int def_ntraj_tot(){return 100;}
-    int def_skip_mtest_ntraj(){return 30;}
-    double def_traj_length(){return 1.0;}
-    double def_pf_action_residue(){return 1e-12;}
-    double def_md_residue(){return 1e-6;}
-    int def_nmd_steps(){return 13;}
-    int def_ngauge_substeps(){return 5;}
-    
     int ntraj_tot;
     int skip_mtest_ntraj;
     double traj_length;
@@ -769,10 +855,30 @@ namespace nissa
     int nmd_steps;
     int ngauge_substeps;
     
+    int def_ntraj_tot(){return 100;}
+    int def_skip_mtest_ntraj(){return 30;}
+    double def_traj_length(){return 1.0;}
+    double def_pf_action_residue(){return 1e-12;}
+    double def_md_residue(){return 1e-6;}
+    int def_nmd_steps(){return 13;}
+    int def_ngauge_substeps(){return 5;}
+    
     std::vector<int> npseudo_fs;
     rat_approx_t *rat_appr;
     
     int master_fprintf(FILE *fout,bool full=false);
+    
+    int is_nonstandard()
+    {
+      return
+	ntraj_tot!=def_ntraj_tot()||
+	skip_mtest_ntraj!=def_skip_mtest_ntraj()||
+	traj_length!=def_traj_length()||
+	pf_action_residue!=def_pf_action_residue()||
+	md_residue!=def_md_residue()||
+	nmd_steps!=def_nmd_steps()||
+	ngauge_substeps!=def_ngauge_substeps();
+    }
     
     hmc_evol_pars_t() :
       ntraj_tot(def_ntraj_tot()),
@@ -781,33 +887,41 @@ namespace nissa
       pf_action_residue(def_pf_action_residue()),
       md_residue(def_md_residue()),
       nmd_steps(def_nmd_steps()),
-      ngauge_substeps(def_ngauge_substeps())
-    {}
+      ngauge_substeps(def_ngauge_substeps()) {}
   };
   
   struct conf_pars_t
   {
-    std::string def_path(){return "conf";}
-    std::string def_store_path(){return "stored_conf.08%d";}
-    int def_store_each(){return 10;}
-    int def_store_running(){return 1;}
-    start_conf_cond_t def_start_cond(){return COLD_START_COND;}
-    
     std::string path;
     std::string store_path;
     int store_each;
     int store_running;
     start_conf_cond_t start_cond;
     
+    std::string def_path(){return "conf";}
+    std::string def_store_path(){return "stored_conf.08%d";}
+    int def_store_each(){return 10;}
+    int def_store_running(){return 1;}
+    start_conf_cond_t def_start_cond(){return COLD_START_COND;}
+    
     int master_fprintf(FILE *fout,bool full=false);
+    
+    int is_nonstandard()
+    {
+      return
+	path!=def_path()||
+	store_path!=def_store_path()||
+	store_each!=def_store_each()||
+	store_running!=def_store_running()||
+	start_cond!=def_start_cond();
+    }
     
     conf_pars_t() :
       path(def_path()),
       store_path(def_store_path()),
       store_each(def_store_each()),
       store_running(def_store_running()),
-      start_cond(def_start_cond())
-    {}
+      start_cond(def_start_cond()) {}
   };
   
   //results of a unitarity check

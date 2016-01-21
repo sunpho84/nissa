@@ -10,6 +10,8 @@
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 
+#include "putpourri.hpp"
+
 #include "stag.hpp"
 
 #ifdef USE_THREADS
@@ -17,7 +19,7 @@
 #endif
 
 namespace nissa
-{  
+{
   //holds the putpourri in a clean way
   struct fermionic_putpourri_t
   {
@@ -39,7 +41,7 @@ namespace nissa
     }
     fermionic_putpourri_t() {reset();}
   };
-      
+  
   //compute the fermionic putpourri for a single conf and hit
   THREADABLE_FUNCTION_6ARG(fermionic_putpourri, fermionic_putpourri_t*,putpourri, quad_su3**,conf, quad_u1**,u1b, quark_content_t*,quark, double,residue, int,comp_susc)
   {
@@ -194,7 +196,7 @@ namespace nissa
     for(int icopy=0;icopy<ncopies;icopy++)
       {
 	master_fprintf(file,"%d",iconf);
-	for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+	for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
 	  {
 	    if(!theory_pars.quark_content[iflav].is_stag) crash("not defined for non-staggered quarks");
 	    
@@ -205,11 +207,11 @@ namespace nissa
 	    for(int hit=0;hit<nhits;hit++)
 	      {
 		verbosity_lv2_master_printf("Evaluating fermionic putpourri for flavor %d/%d, ncopy %d/%d, nhits %d/%d\n",
-					    iflav+1,theory_pars.nflavs,icopy+1,ncopies,hit+1,nhits);
+					    iflav+1,theory_pars.nflavs(),icopy+1,ncopies,hit+1,nhits);
 		
 		//compute and summ
 		fermionic_putpourri_t temp;
-		fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,meas_pars.residue,comp_susc);
+		fermionic_putpourri(&temp,conf,theory_pars.backfield[iflav],&theory_pars.quark_content[iflav],meas_pars.residue,comp_susc);
 		complex_summassign(putpourri.chiral_cond,temp.chiral_cond);
 		if(comp_susc) complex_summassign(putpourri.chiral_cond_susc,temp.chiral_cond_susc);
 		complex_summassign(putpourri.energy_dens,temp.energy_dens);
@@ -242,19 +244,18 @@ namespace nissa
   {
     int nprinted=0;
     
-    if(flag||full)
+    nprinted+=nissa::master_fprintf(fout,"MeasPutpourri\n");
+    if(is_nonstandard()||full)
       {
-	nprinted+=nissa::master_fprintf(fout,"FermionicPutpourri\n");
-	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
-	if(after!=def_after()) nprinted+=nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
-	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t%lg\n",residue);
+	if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+	if(after!=def_after()) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
+	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
 	if(compute_susc!=def_compute_susc()||full)
-	  nprinted+=nissa::master_fprintf(fout,"ComputeSusc\t=\t%d\n",compute_susc);
-	if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout,"NCopies\t\t=\t%d\n",ncopies);
-	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
+	  nprinted+=nissa::master_fprintf(fout," ComputeSusc\t=\t%d\n",compute_susc);
+	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout," Residue\t=\t%lg\n",residue);
+	if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout," NCopies\t=\t%d\n",ncopies);
+	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout," NHits\t\t=\t%d\n",nhits);
       }
-    else if(full) nprinted+=nissa::master_fprintf(fout,"FermionicPutpourri No\n");
     
     return nprinted;
   }

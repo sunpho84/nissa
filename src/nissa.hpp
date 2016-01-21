@@ -149,13 +149,11 @@
 #include "operations/su3_paths/all_rectangles.hpp"
 #include "operations/su3_paths/arbitrary.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
-#include "operations/su3_paths/hypercubic_transfer.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "operations/su3_paths/pline.hpp"
 #include "operations/su3_paths/rectangles.hpp"
 #include "operations/su3_paths/rectangular_staples.hpp"
 #include "operations/su3_paths/squared_staples.hpp"
-#include "operations/su3_paths/shortest_hypercubic_paths.hpp"
 #include "operations/su3_paths/topological_charge.hpp"
 #include "operations/su3_paths/watusso.hpp"
 

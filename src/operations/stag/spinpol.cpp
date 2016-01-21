@@ -13,6 +13,8 @@
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 
+#include "spinpol.hpp"
+
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -25,7 +27,7 @@ namespace nissa
     color *rnd[2]={nissa_malloc("rnd_EVN",loc_volh+bord_volh,color),nissa_malloc("rnd_ODD",loc_volh+bord_volh,color)};
     color *chi[2]={nissa_malloc("chi_EVN",loc_volh+bord_volh,color),nissa_malloc("chi_ODD",loc_volh+bord_volh,color)};
     
-    for(int iflav=0;iflav<tp->nflavs;iflav++)
+    for(int iflav=0;iflav<tp->nflavs();iflav++)
       {
 	if(!tp->quark_content[iflav].is_stag) crash("not defined for non-staggered quarks");
 	    
@@ -52,7 +54,7 @@ namespace nissa
   void measure_spinpol(quad_su3 **ferm_conf,quad_su3 **glu_conf,theory_pars_t &theory_pars,spinpol_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     if(meas_pars.use_ferm_conf_for_gluons) glu_conf=ferm_conf;
-
+    
     /*
     //count the number of cooled levels
     cool_pars_t *sp=&sp->smooth_pars;
@@ -61,10 +63,10 @@ namespace nissa
     
     //allocate point and local results
     double *topo_dens=nissa_malloc("topo_dens",loc_vol,double);
-    complex tens[tp.nflavs];
-    complex *tens_dens[tp.nflavs];
+    complex tens[tp.nflavs()];
+    complex *tens_dens[tp.nflavs()];
     complex *spinpol_dens=nissa_malloc("spinpol_dens",loc_vol,complex);
-    for(int iflav=0;iflav<tp.nflavs;iflav++) tens_dens[iflav]=nissa_malloc("tens_dens_loc",loc_vol+bord_vol,complex);
+    for(int iflav=0;iflav<tp.nflavs();iflav++) tens_dens[iflav]=nissa_malloc("tens_dens_loc",loc_vol+bord_vol,complex);
     
     //evaluate the tensorial density for all quarks
     compute_tensorial_density(tens,tens_dens,&tp,ferm_conf,sp->dir,sp->nhits,sp->residue);
@@ -73,7 +75,7 @@ namespace nissa
     quad_su3 *cooled_conf=nissa_malloc("cooled_conf",loc_vol+bord_vol,quad_su3);
     paste_eo_parts_into_lx_conf(cooled_conf,glu_conf);
     double topo[ncool_meas];
-    complex spinpol[ncool_meas][tp.nflavs];
+    complex spinpol[ncool_meas][tp.nflavs()];
     for(int icool=0;icool<=cp->nsteps;icool++)
       {
 	if(icool%cp->meas_each)
@@ -85,7 +87,7 @@ namespace nissa
 	    double_vector_glb_collapse(topo+imeas,topo_dens,loc_vol);
 	    
 	    //topo-tens
-	    for(int iflav=0;iflav<tp.nflavs;iflav++)
+	    for(int iflav=0;iflav<tp.nflavs();iflav++)
 	      {
 		GET_THREAD_ID();
 		NISSA_PARALLEL_LOOP(ivol,0,loc_vol) complex_prod_double(spinpol_dens[ivol],tens_dens[iflav][ivol],topo_dens[ivol]);
@@ -101,7 +103,7 @@ namespace nissa
     
     //free
     for(int icool=0;icool<ncool_meas;icool++) nissa_free(topo_dens);
-    for(int iflav=0;iflav<tp.nflavs;iflav++) nissa_free(tens_dens[iflav]);
+    for(int iflav=0;iflav<tp.nflavs();iflav++) nissa_free(tens_dens[iflav]);
     nissa_free(spinpol_dens);
     nissa_free(cooled_conf);
     
@@ -112,7 +114,7 @@ namespace nissa
     master_fprintf(fout," # conf %d, nhits %d, dir %d, residue %lg\n\n",iconf,sp->nhits,sp->dir,sp->residue);
     
     //write tensorial density alone
-    for(int iflav=0;iflav<tp.nflavs;iflav++) master_fprintf(fout," tdens flav %d:\t%+016.016lg\t%+016.016lg\n",iflav,tens[iflav][RE],tens[iflav][IM]);
+    for(int iflav=0;iflav<tp.nflavs();iflav++) master_fprintf(fout," tdens flav %d:\t%+016.016lg\t%+016.016lg\n",iflav,tens[iflav][RE],tens[iflav][IM]);
     master_fprintf(fout,"\n");
     
     //write topological charge density
@@ -121,7 +123,7 @@ namespace nissa
     
     //write tensorial*topo density
     for(int imeas=0;imeas<ncool_meas;imeas++)
-      for(int iflav=0;iflav<tp.nflavs;iflav++)
+      for(int iflav=0;iflav<tp.nflavs();iflav++)
 	master_fprintf(fout," spinpol flav %d cool %d:\t%+016.016lg\t%+016.016lg\n",iflav,imeas*cp->meas_each,spinpol[imeas][iflav][RE],spinpol[imeas][iflav][IM]);
     master_fprintf(fout,"\n\n\n");
     

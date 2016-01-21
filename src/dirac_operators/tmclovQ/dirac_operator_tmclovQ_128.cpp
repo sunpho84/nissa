@@ -29,11 +29,11 @@ namespace nissa
 
   void apply_tmclovQ_128_common(spincolor_128 *out,quad_su3 *conf,double kappa,double mu,spincolor_128 *in)
   {
-    communicate_lx_spincolor_128_borders(in);    
+    communicate_lx_spincolor_128_borders(in);
     communicate_lx_quad_su3_borders(conf);
     
     double kcf=1/(2*kappa);
-        
+    
     GET_THREAD_ID();
     NISSA_PARALLEL_LOOP(X,0,loc_vol)
       {

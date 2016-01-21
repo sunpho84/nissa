@@ -43,14 +43,15 @@ public:
   em_field_pars_t em_field_pars;
   
   //fermionic measures
-  nucleon_corr_meas_pars_t nucleon_corr_meas_pars;
-  meson_corr_meas_pars_t meson_corr_meas_pars;
-  fermionic_putpourri_meas_pars_t fermionic_putpourri_meas_pars;
-  quark_rendens_meas_pars_t quark_rendens_meas_pars;
-  magnetization_meas_pars_t magnetization_meas_pars;
+  std::vector<meson_corr_meas_pars_t> meson_corr_meas;
+  std::vector<nucleon_corr_meas_pars_t> nucleon_corr_meas;
+  std::vector<fermionic_putpourri_meas_pars_t> fermionic_putpourri_meas;
+  std::vector<quark_rendens_meas_pars_t> quark_rendens_meas;
+  std::vector<magnetization_meas_pars_t> magnetization_meas;
   
   //gauge measures
-  gauge_obs_meas_pars_t plaq_pol_meas_pars;
+  std::vector<gauge_obs_meas_pars_t> plaq_pol_meas;
+  std::vector<top_meas_pars_t> top_meas;
   
   //evolution and conf
   hmc_evol_pars_t evol_pars;
@@ -59,8 +60,9 @@ public:
   int master_fprintf_geometry(FILE *fout,int full)
   {
     int nprinted=0;
-    if(full||L!=def_L()) nprinted+=nissa::master_fprintf(fout,"L\t\t=\t%d\n",L);
-    if(full||T!=def_T()) nprinted+=nissa::master_fprintf(fout,"T\t\t=\t%d\n",T);
+    if(full||L!=def_L()||T!=def_T()) nprinted+=nissa::master_fprintf(fout,"Geometry\n",L);
+    if(full||L!=def_L()) nprinted+=nissa::master_fprintf(fout," L\t\t=\t%d\n",L);
+    if(full||T!=def_T()) nprinted+=nissa::master_fprintf(fout," T\t\t=\t%d\n",T);
     
     return nprinted;
   }
@@ -68,10 +70,11 @@ public:
   int master_fprintf_betaact(FILE *fout,int full)
   {
     int nprinted=0;
-    if(full||(beta!=def_beta())) nprinted+=nissa::master_fprintf(fout,"Beta\t\t=\t%lg\n",beta);
+    if(full||(beta!=def_beta())||(gauge_action_name!=def_gauge_action_name())) nprinted+=nissa::master_fprintf(fout,"GaugePars\n");
+    if(full||(beta!=def_beta())) nprinted+=nissa::master_fprintf(fout," Beta\t\t=\t%lg\n",beta);
     if(full||(gauge_action_name!=def_gauge_action_name()))
       {
-	nprinted+=nissa::master_fprintf(fout,"GaugeAction\t=\t");
+	nprinted+=nissa::master_fprintf(fout," Action\t\t=\t");
 	switch(gauge_action_name)
 	  {
 	  case WILSON_GAUGE_ACTION: nprinted+=nissa::master_fprintf(fout,"Wilson");break;
@@ -88,9 +91,18 @@ public:
   int master_fprintf_walltime_seed(FILE *fout,int full)
   {
     int nprinted=0;
-    if(full||walltime!=def_walltime()) nprinted+=nissa::master_fprintf(fout,"Walltime\t\t=\t%d\n",walltime);
-    if(full||seed!=def_seed()) nprinted+=nissa::master_fprintf(fout,"Seed\t\t\t=\t%d\n",seed);
+    if(full||walltime!=def_walltime()||seed!=def_seed()) nprinted+=nissa::master_fprintf(fout,"Run\n");
+    if(full||walltime!=def_walltime()) nprinted+=nissa::master_fprintf(fout," Walltime\t=\t%d\n",walltime);
+    if(full||seed!=def_seed()) nprinted+=nissa::master_fprintf(fout," Seed\t\t=\t%d\n",seed);
     
+    return nprinted;
+  }
+  
+  //print a whole vector
+  template <class T> int master_printf_vector(FILE *fout,std::vector<T> &v,int full)
+  {
+    int nprinted=0;
+    for(typename std::vector<T>::iterator it=v.begin();it!=v.end();it++) if(it->master_fprintf(fout,full)){nprinted+=nissa::master_fprintf(fout,"\n");}
     return nprinted;
   }
   
@@ -107,18 +119,18 @@ public:
     //quarks
     for(size_t i=0;i<quarks.size();i++) if(quarks[i].master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //global stout pars
-    if(full||stout_pars.nlevels!=stout_pars.def_nlevels()||stout_pars.rho!=stout_pars.def_rho()) nprinted+=nissa::master_fprintf(fout,"GlobalStoutPars\n");
     if(stout_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //global em field pars
     if(em_field_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //fermionic measures
-    if(meson_corr_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    if(nucleon_corr_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    if(fermionic_putpourri_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    if(quark_rendens_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
-    if(magnetization_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    nprinted+=master_printf_vector(fout,meson_corr_meas,full);
+    nprinted+=master_printf_vector(fout,nucleon_corr_meas,full);
+    nprinted+=master_printf_vector(fout,fermionic_putpourri_meas,full);
+    nprinted+=master_printf_vector(fout,quark_rendens_meas,full);
+    nprinted+=master_printf_vector(fout,magnetization_meas,full);
     //gauge masures
-    if(plaq_pol_meas_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
+    nprinted+=master_printf_vector(fout,plaq_pol_meas,full);
+    nprinted+=master_printf_vector(fout,top_meas,full);
     //hmc evolution
     if(evol_pars.master_fprintf(fout,full)) {nprinted++;nissa::master_fprintf(fout,"\n");}
     //walltime and seed

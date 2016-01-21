@@ -434,12 +434,10 @@ __top_builddir__lib_libnissa_a_SOURCES+= \
 	operations/su3_paths/all_rectangles.cpp \
 	operations/su3_paths/arbitrary.cpp \
 	operations/su3_paths/gauge_sweeper.cpp \
-	operations/su3_paths/hypercubic_transfer.cpp \
 	operations/su3_paths/plaquette.cpp \
 	operations/su3_paths/pline.cpp \
 	operations/su3_paths/rectangles.cpp \
 	operations/su3_paths/rectangular_staples.cpp \
-	operations/su3_paths/shortest_hypercubic_paths.cpp \
 	operations/su3_paths/squared_staples.cpp \
 	operations/su3_paths/topological_charge.cpp \
 	operations/su3_paths/watusso.cpp \
@@ -474,12 +472,10 @@ include_HEADERS+= \
 	operations/su3_paths/all_rectangles.hpp \
 	operations/su3_paths/arbitrary.hpp \
 	operations/su3_paths/gauge_sweeper.hpp \
-	operations/su3_paths/hypercubic_transfer.hpp \
 	operations/su3_paths/plaquette.hpp \
 	operations/su3_paths/pline.hpp \
 	operations/su3_paths/rectangles.hpp \
 	operations/su3_paths/rectangular_staples.hpp \
-	operations/su3_paths/shortest_hypercubic_paths.hpp \
 	operations/su3_paths/squared_staples.hpp \
 	operations/su3_paths/topological_charge.hpp \
 	operations/su3_paths/watusso.hpp \

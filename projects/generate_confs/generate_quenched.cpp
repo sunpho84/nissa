@@ -423,7 +423,7 @@ void init_simulation(char *path)
   
   //read the topology measures info
   read_top_meas_pars(top_meas_pars);
-  if(top_meas_pars.flag) init_sweeper(top_meas_pars.smooth_pars.cool_pars.gauge_action);
+  if(top_meas_pars.each) init_sweeper(top_meas_pars.smooth_pars.cool_pars.gauge_action);
   
   //read X space correlation measurement
   read_str_int("MeasXCorr",&x_corr_flag);
@@ -515,7 +515,7 @@ void init_simulation(char *path)
       
       //write initial measures
       if(gauge_obs_flag) measure_gauge_obs();
-      if(top_meas_pars.flag) measure_topology(top_meas_pars,conf,0,true);
+      if(top_meas_pars.each) measure_topology(top_meas_pars,conf,0,true);
       if(x_corr_flag)
 	{
 	  meas_x_corr(x_corr_path,conf,true);
@@ -716,7 +716,7 @@ void in_main(int narg,char **arg)
       
       // 2) measure
       if(gauge_obs_flag && iconf%gauge_obs_flag==0) measure_gauge_obs();
-      if(top_meas_pars.flag && iconf%top_meas_pars.flag==0) measure_topology(top_meas_pars,conf,iconf,0);
+      if(top_meas_pars.each && iconf%top_meas_pars.each==0) measure_topology(top_meas_pars,conf,iconf,0);
       if(x_corr_flag && iconf%x_corr_flag==0)
 	{
 	  meas_x_corr(x_corr_path,conf,false);

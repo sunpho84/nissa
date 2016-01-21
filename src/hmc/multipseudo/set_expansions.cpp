@@ -130,7 +130,7 @@ namespace nissa
     GET_THREAD_ID();
     
     //loop over each flav
-    int nflavs=theory_pars->nflavs;
+    int nflavs=theory_pars->nflavs();
     
     //list of rat_approx to recreate
     int nto_recreate=0;

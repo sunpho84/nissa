@@ -67,11 +67,6 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
    
    const int debug_lexer=1;
    
-   const int default_L=4;
-   const int default_T=8;
-   const double default_beta=6.0;
-   const gauge_action_name_t default_gauge_action_name=WILSON_GAUGE_ACTION;
-   
    std::string curr_comment;
 %}
 
@@ -97,9 +92,6 @@ CPP_COMM {CPP_COMM_BEG}(({ANY}-a)|{NEWLINE})*{CPP_COMM_END}
 
  /* equal */
 \= DEBUG_PRINTF("Found =\n");return '=';
-
- /* EOF */
-End DEBUG_PRINTF("Found End\n");return EOF;
 
  /* true/false */
 True DEBUG_PRINTF("Found True\n");yylval->int_numb=1;return TK_INT;
@@ -132,26 +124,28 @@ MesonList DEBUG_PRINTF("Found MesonList\n");return TK_MESON_LIST;
  /* meta commands */
 \#PrintScanned DEBUG_PRINTF("Found #PrintScanned\n");return TK_META_PRINT_SCANNED;
 \#PrintFull DEBUG_PRINTF("Found #PrintFull\n");return TK_META_PRINT_FULL;
+\#End DEBUG_PRINTF("Found #End\n");return EOF;
 
  /* recognizing number */
 {SCI_DOUBLE}|{DOUBLE} DEBUG_PRINTF("Found Double: %s\n",yytext);sscanf(yytext,"%lg",&yylval->double_numb);return TK_DOUBLE;
 {INT} DEBUG_PRINTF("Found Integer: %s\n",yytext);sscanf(yytext,"%d",&yylval->int_numb);return TK_INT;
 
  /* time and space */
+Geometry  DEBUG_PRINTF("Found Geometry\n");return TK_GEOMETRY;
 L DEBUG_PRINTF("Found L\n");return TK_L;
 T DEBUG_PRINTF("Found T\n");return TK_T;
 
- /* coupling */
+ /* gauge action */
+GaugePars DEBUG_PRINTF("Found GaugePars\n");return TK_GAUGE_PARS;
 Beta DEBUG_PRINTF("Found Beta\n");return TK_BETA;
-
- /* kind of gauge actions */
-GaugeAction DEBUG_PRINTF("Found GaugeAction\n");return TK_GAUGE_ACTION;
+Action DEBUG_PRINTF("Found Action\n");return TK_ACTION;
 Wilson DEBUG_PRINTF("Found Wilson\n");return TK_WILSON;
 tlSym DEBUG_PRINTF("Found tlSym\n");return TK_TLSYM;
 Iwasaki DEBUG_PRINTF("Found Iwasaki\n");return TK_IWASAKI;
 
  /* topo potential */
 Meta DEBUG_PRINTF("Found Meta\n");return TK_META;
+Ordinary DEBUG_PRINTF("Found Ordinary\n");return TK_ORDINARY;
 TopoPotential DEBUG_PRINTF("Found TopoPotential\n");return TK_TOPO_POTENTIAL;
 
  /* quark content */
@@ -163,10 +157,18 @@ RePotCh  DEBUG_PRINTF("Found RePotCh\n");return TK_RE_POT_CH;
 ImPotCh  DEBUG_PRINTF("Found ImPotCh\n");return TK_IM_POT_CH;
 ElecCharge  DEBUG_PRINTF("Found ElecCharge\n");return TK_ELEC_CHARGE;
 
+ /* smooth method */
+SmoothMethod DEBUG_PRINTF("Found SmoothMethod\n");return TK_SMOOTH_METHOD;
+Stouting DEBUG_PRINTF("Found Stouting\n");return TK_STOUTING;
+Cooling  DEBUG_PRINTF("Found Cooling\n");return TK_COOLING;
+
  /* stout parameters */
-GlobalStoutPars DEBUG_PRINTF("Found GlobalStoutPars\n");return TK_GLOBAL_STOUT_PARS;
+StoutPars DEBUG_PRINTF("Found StoutPars\n");return TK_STOUT_PARS;
 NLevels DEBUG_PRINTF("Found NLevels\n");return TK_NLEVELS;
 Rho DEBUG_PRINTF("Found Rho\n");return TK_RHO;
+
+ /* cooling parameters */
+CoolPars DEBUG_PRINTF("Found CoolPars\n");return TK_COOL_PARS;
 
  /* background field parameters */
 BkgrdEMField DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
@@ -178,36 +180,41 @@ Ey DEBUG_PRINTF("Found Ey\n");yylval->int_numb=1;return TK_E_COMP;
 Ez DEBUG_PRINTF("Found Ez\n");yylval->int_numb=2;return TK_E_COMP;
 
  /* fermionic measures */
-NucleonCorrelators DEBUG_PRINTF("Found NucleonCorrelators\n");return TK_NUCLEON_CORRELATORS;
-MesonCorrelators DEBUG_PRINTF("Found MesonCorrelators\n");return TK_MESON_CORRELATORS;
-FermionicPutpourri DEBUG_PRINTF("Found FermionicPutpourri\n");return TK_FERMIONIC_PUTPOURRI;
+MeasNucleonCorrs DEBUG_PRINTF("Found MeasNucleonCorrs\n");return TK_MEAS_NUCLEON_CORRS;
+MeasMesonCorrs DEBUG_PRINTF("Found MeasMesonCorrs\n");return TK_MEAS_MESON_CORRS;
+MeasPutpourri DEBUG_PRINTF("Found MeasPutpourri\n");return TK_MEAS_PUTPOURRI;
+MeasRendens DEBUG_PRINTF("Found MeasRendens\n");return TK_MEAS_RENDENS;
+MeasMagnetiz DEBUG_PRINTF("Found MeasMagnetiz\n");return TK_MEAS_MAGNETIZ;
+
+ /* parameters for PutPourri */
 ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
-QuarkRendens DEBUG_PRINTF("Found QuarkRendens\n");return TK_QUARK_RENDENS;
-Magnetization DEBUG_PRINTF("Found Magnetization\n");return TK_MAGNETIZATION;
 
  /* gauge measures */
-PlaqPol DEBUG_PRINTF("Found PlaqPol\n");return TK_PLAQ_POL;
+MeasPlaqPol DEBUG_PRINTF("Found MeasPlaqPol\n");return TK_MEAS_PLAQ_POL;
+MeasTop DEBUG_PRINTF("Found MeasTop\n");return TK_MEAS_TOP;
 
  /* evol pars */
+Evolution DEBUG_PRINTF("Found Evolution\n");return TK_EVOLUTION;
 NTrajTot DEBUG_PRINTF("Found NTrajTot\n");return TK_NTRAJ_TOT;
-SkipMtestNtraj DEBUG_PRINTF("Found SkipMtestNtraj\n");return TK_SKIP_MTEST_NTRAJ;
+SkipMetro DEBUG_PRINTF("Found SkipMetro\n");return TK_SKIP_METRO;
 TrajLength DEBUG_PRINTF("Found TrajLength\n");return TK_TRAJ_LENGTH;
-PfActionResidue DEBUG_PRINTF("Found PfActionResidue\n");return TK_PF_ACTION_RESIDUE;
+ActResidue DEBUG_PRINTF("Found ActResidue\n");return TK_ACT_RESIDUE;
 MdResidue DEBUG_PRINTF("Found MdResidue\n");return TK_MD_RESIDUE;
-NMdSteps DEBUG_PRINTF("Found NMdSteps\n");return TK_NMD_STEPS;
-NGaugeSubsteps DEBUG_PRINTF("Found NGaugeSubsteps\n");return TK_NGAUGE_SUBSTEPS;
-NPseudoFermions DEBUG_PRINTF("Found NPseudoFermions\n");return TK_NPSEUDO_FERMIONS;
+NSteps DEBUG_PRINTF("Found NSteps\n");return TK_NSTEPS;
+NSubsteps DEBUG_PRINTF("Found NSubsteps\n");return TK_NSUBSTEPS;
+NPseudoFerms DEBUG_PRINTF("Found NPseudoFerms\n");return TK_NPSEUDO_FERMS;
 
  /* conf pars */
-ConfPath DEBUG_PRINTF("Found ConfPath\n");return TK_CONF_PATH;
-StoreConfPath DEBUG_PRINTF("Found StoreConfPath\n");return TK_STORE_CONF_PATH;
-StoreConfEach DEBUG_PRINTF("Found StoreConfEach\n");return TK_STORE_CONF_EACH;
-StoreRunningTempConf DEBUG_PRINTF("Found StoreRunningTempConf\n");return TK_STORE_RUNNING_TEMP_CONF;
+Configuration DEBUG_PRINTF("Found Configuration\n");return TK_CONFIGURATION;
+StorePath DEBUG_PRINTF("Found StorePath\n");return TK_STORE_PATH;
+StoreEach DEBUG_PRINTF("Found StoreEach\n");return TK_STORE_EACH;
+StoreRunning DEBUG_PRINTF("Found StoreRunning\n");return TK_STORE_RUNNING;
 StartCond DEBUG_PRINTF("Found StartCond\n");return TK_START_COND;
 HOT DEBUG_PRINTF("Found HOT\n");return TK_HOT;
 COLD DEBUG_PRINTF("Found COLD\n");return TK_COLD;
 
- /* walltime and seed */
+ /* run pars */
+Run DEBUG_PRINTF("Found Run\n");return TK_RUN;
 Walltime DEBUG_PRINTF("Found Walltime\n");return TK_WALLTIME;
 Seed DEBUG_PRINTF("Found Seed\n");return TK_SEED;
 
@@ -218,6 +225,12 @@ Seed DEBUG_PRINTF("Found Seed\n");return TK_SEED;
 \{ return TK_CUR_BR_OP;
 \} return TK_CUR_BR_CL;
 
+ /* quantities */
+Days? DEBUG_PRINTF("Found Day(s)\n");yylval->int_numb=24*60*60;return TK_QUANTITY;
+Hours? DEBUG_PRINTF("Found Hour(s)\n");yylval->int_numb=60*60;return TK_QUANTITY;
+Minute? DEBUG_PRINTF("Found Minute(s)\n");yylval->int_numb=60;return TK_QUANTITY;
+Seconds? DEBUG_PRINTF("Found Second(s)\n");yylval->int_numb=1;return TK_QUANTITY;
+
  /* crash if finds unexpected word or unrecognized char */
 \#{LETTER}{ALNUM}* crash("found unexpected preprocessor directive %s",yytext);
 {LETTER}{ALNUM}* crash("found unexpected string %s",yytext);
@@ -226,8 +239,13 @@ Seed DEBUG_PRINTF("Found Seed\n");return TK_SEED;
 %%
 
 //initializator
-driver_t::driver_t(FILE *ext) : L(def_L()),T(def_T()),walltime(def_walltime()),seed(def_seed()),beta(def_beta())
-{
+driver_t::driver_t(FILE *ext) :
+                        L(def_L()),
+			T(def_T()),
+			walltime(def_walltime()),
+			seed(def_seed()),
+			beta(def_beta()),
+			gauge_action_name(def_gauge_action_name()){
   fin=ext;
   
   init_scanner();
@@ -236,11 +254,6 @@ driver_t::driver_t(FILE *ext) : L(def_L()),T(def_T()),walltime(def_walltime()),s
 //initialize the scanner
 void driver_t::init_scanner()
 {
-    L=default_L;
-    T=default_T;
-    beta=default_beta;
-    gauge_action_name=default_gauge_action_name;
-    
     yylex_init(&scanner);
     yyset_extra(this,scanner);
 }

@@ -3,6 +3,35 @@
 
 namespace nissa
 {
+  //parameters to measure topology properties
+  struct top_meas_pars_t
+  {
+    int each;
+    int after;
+    std::string path;
+    smooth_pars_t smooth_pars;
+    
+    int def_each(){return 1;}
+    int def_after(){return 0;}
+    std::string def_path(){return "Topo";}
+    
+    int is_nonstandard()
+    {
+      return
+	each!=def_each()||
+	after!=def_after()||
+	path!=def_path()||
+	smooth_pars.is_nonstandard();
+    }
+    
+    int master_fprintf(FILE *fout,bool full=false);
+    
+    top_meas_pars_t() :
+      each(def_each()),
+      after(def_after()),
+      path(def_path()) {}
+  };
+  
   void build_chromo_therm_from_anti_symmetric_four_leaves(quad_su3 out,as2t_su3 in);
   void measure_topology_eo_conf(top_meas_pars_t &pars,quad_su3 **uncooled_conf,int iconf,bool conf_created);
   void measure_topology_lx_conf(top_meas_pars_t &pars,quad_su3 *uncooled_conf,int iconf,bool conf_created,bool presereve_uncooled=false);

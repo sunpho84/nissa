@@ -30,18 +30,12 @@
     int int_numb;
     char *text;
     gauge_action_name_t gauge_action_name;
+    smooth_pars_t *smooth_pars;
     stout_pars_t *stout_pars;
-    nucleon_corr_meas_pars_t *nucleon_corr_meas_pars;
-    meson_corr_meas_pars_t *meson_corr_meas_pars;
+    cool_pars_t *cool_pars;
     std::vector<int> *int_list;
     std::pair<int,int> *int_pair;
     std::vector<std::pair<int,int> > *int_pair_list;
-    
-    fermionic_putpourri_meas_pars_t *fermionic_putpourri_meas_pars;
-    quark_rendens_meas_pars_t *quark_rendens_meas_pars;
-    magnetization_meas_pars_t *magnetization_meas_pars;
-    
-    gauge_obs_meas_pars_t *plaq_pol_meas_pars;
 }
 
 //arithmethc
@@ -50,13 +44,18 @@
 %precedence NEG
 %right TK_POW
 
-//general pars
+//geometry
+%token TK_GEOMETRY
 %token TK_L
 %token TK_T
+//gauge pars
+%token TK_GAUGE_PARS
 %token TK_BETA
+//general pars
 %token <double_numb> TK_DOUBLE
 %type <double_numb> real_numb
 %token <int_numb> TK_INT
+%token <int_numb> TK_QUANTITY
 %type <int_numb> int_numb
 %type <int_pair> int_pair
 %type <int_list> int_list
@@ -82,6 +81,7 @@
 %type <double_numb> residue
 //metadynamics
 %token TK_META
+%token TK_ORDINARY
 %token TK_TOPO_POTENTIAL
 //path
 %token TK_PATH
@@ -105,20 +105,29 @@
 %type <double_numb> im_pot_ch
 %token TK_ELEC_CHARGE
 %type <double_numb> elec_charge
+//smooth method
+%token TK_SMOOTH_METHOD
+%token TK_STOUTING
+%token TK_COOLING
+%type <smooth_pars> smooth_pars
 //stout pars
-%token TK_GLOBAL_STOUT_PARS
+%token TK_STOUT_PARS
 %type <stout_pars> stout_pars
-%token <int_numb> TK_NLEVELS
+%token TK_NLEVELS
 %type <int_numb> nlevels
-%token <double_numb> TK_RHO
+%token TK_RHO
 %type <double_numb> rho
+//stout pars
+%token TK_COOL_PARS
+%type <cool_pars> cool_pars
+%token TK_NSTEPS
+%type <int_numb> nsteps
 //gauge action
-%token TK_GAUGE_ACTION
+%token TK_ACTION
 %token TK_WILSON
 %token TK_TLSYM
 %token TK_IWASAKI
-%type <gauge_action_name> gauge_action
-%type <gauge_action_name> global_gauge_action
+%type <gauge_action_name> action
 //background field
 %token TK_BKGRD_EM_FIELD
 %token <int_numb> TK_B_COMP
@@ -127,46 +136,41 @@
 %token TK_NCOPIES TK_NHITS
 %type <int_numb> ncopies nhits
 //meson corr
-%token TK_MESON_CORRELATORS
+%token TK_MEAS_MESON_CORRS
 %token TK_MESON_LIST
-%type <meson_corr_meas_pars> meson_corr_meas_pars
 %type <int_pair_list> meson_list
 //nucleon corr
-%token TK_NUCLEON_CORRELATORS
-%type <nucleon_corr_meas_pars> nucleon_corr_meas_pars
+%token TK_MEAS_NUCLEON_CORRS
 //putpourri
-%token TK_FERMIONIC_PUTPOURRI
-%type <fermionic_putpourri_meas_pars> fermionic_putpourri_meas_pars
+%token TK_MEAS_PUTPOURRI
 %token TK_COMPUTE_SUSC
 %type <int_numb> compute_susc
 //rendens
-%token TK_QUARK_RENDENS
-%type <quark_rendens_meas_pars> quark_rendens_meas_pars
+%token TK_MEAS_RENDENS
 //magnetization
-%token TK_MAGNETIZATION
-%type <magnetization_meas_pars> magnetization_meas_pars
+%token TK_MEAS_MAGNETIZ
 //gauge measures
-%token TK_PLAQ_POL
-%type <plaq_pol_meas_pars>  plaq_pol_meas_pars
+%token TK_MEAS_PLAQ_POL
+%token TK_MEAS_TOP
 //evolution parameters
-%token TK_EVOLVE_PARS
+%token TK_EVOLUTION
 %token TK_NTRAJ_TOT
-%token TK_SKIP_MTEST_NTRAJ
+%token TK_SKIP_METRO
 %token TK_TRAJ_LENGTH
-%token TK_PF_ACTION_RESIDUE
+%token TK_ACT_RESIDUE
 %token TK_MD_RESIDUE
-%token TK_NMD_STEPS
-%token TK_NGAUGE_SUBSTEPS
-%token TK_NPSEUDO_FERMIONS
+%token TK_NSUBSTEPS
+%token TK_NPSEUDO_FERMS
 //conf parameters
-%token TK_CONF_PATH
-%token TK_STORE_CONF_PATH
-%token TK_STORE_CONF_EACH
-%token TK_STORE_RUNNING_TEMP_CONF
+%token TK_CONFIGURATION
+%token TK_STORE_PATH
+%token TK_STORE_EACH
+%token TK_STORE_RUNNING
 %token TK_START_COND
 %token TK_HOT
 %token TK_COLD
-//walltime and seed
+//run pars
+%token TK_RUN
 %token TK_WALLTIME
 %token TK_SEED
 %%
@@ -179,28 +183,26 @@ command: global_specify
        | meta_command
 ;
 
-global_specify: global_L
-              | global_T
-              | global_beta
-              | global_gauge_action
+global_specify: geometry
+              | gauge_pars
               | topo_potential_pars
               | add_quark
-              | global_stout_pars
+              | stout_pars {driver->stout_pars=(*$1);};
               | global_bckgr_field
 /////////////// fermionic measures ////////////////
-              | global_meson_corr_meas
-              | global_nucleon_corr_meas
-              | global_fermionic_putpourri_meas
-              | global_quark_rendens_meas
-              | global_magnetization_meas
+              | meson_corr_meas
+              | nucleon_corr_meas
+              | fermionic_putpourri_meas
+              | quark_rendens_meas
+              | magnetization_meas
 /////////////// gauge measures ////////////////////
-              | global_plaq_pol_meas
+              | plaq_pol_meas
+              | top_meas
 /////////////// evolve and confpars ///////////////////////
               | global_evolve_pars
               | global_conf_pars
 //////////////// walltime and seed /////////////////
-              | TK_WALLTIME '=' int_numb {driver->walltime=$3;}
-              | TK_SEED '=' int_numb {driver->seed=$3;}
+              | run_pars
 ;
 
 meta_command: meta_print_scanned
@@ -212,14 +214,9 @@ meta_print_full: TK_META_PRINT_FULL TK_QUOTED_TEXT {FILE *fout=open_file($2,"w")
 
 //////////////////////////////////////////////// SIMPLE STUFF //////////////////////////////////////////////////
 
-global_T: TK_T '=' int_numb {driver->T=$3;};
-global_L: TK_L '=' int_numb {driver->L=$3; };
-global_beta: TK_BETA '=' real_numb {driver->beta=$3;};
-global_gauge_action: gauge_action {driver->gauge_action_name=$1;};
-
-gauge_action: TK_GAUGE_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
-            | TK_GAUGE_ACTION '=' TK_TLSYM {$$=TLSYM_GAUGE_ACTION;};
-            | TK_GAUGE_ACTION '=' TK_IWASAKI {$$=IWASAKI_GAUGE_ACTION;};
+action: TK_ACTION '=' TK_WILSON {$$=WILSON_GAUGE_ACTION;};
+      | TK_ACTION '=' TK_TLSYM {$$=TLSYM_GAUGE_ACTION;};
+      | TK_ACTION '=' TK_IWASAKI {$$=IWASAKI_GAUGE_ACTION;};
 
 each: TK_EACH '=' int_numb {$$=$3;};
 
@@ -235,64 +232,59 @@ compute_susc: TK_COMPUTE_SUSC '=' int_numb {$$=$3;};
 
 path: TK_PATH '=' TK_QUOTED_TEXT {$$=$3;};
 
+geometry: TK_GEOMETRY
+        | geometry TK_T '=' int_numb {driver->T=$4;}
+        | geometry TK_L '=' int_numb {driver->L=$4;}
+;
+
+gauge_pars: TK_GAUGE_PARS
+          | gauge_pars TK_BETA '=' real_numb {driver->beta=$4;};
+          | gauge_pars action {driver->gauge_action_name=$2;};
+
+run_pars: TK_RUN {}
+        | run_pars TK_WALLTIME '=' int_numb {driver->walltime=$4;}
+        | run_pars TK_SEED '=' int_numb {driver->seed=$4;}
+
 ////////////////////////////////////////////// TOPO POTENTIAL //////////////////////////////////////////////////
 
 //specify topopotential pars
-topo_potential_pars: init_meta_topo_potential_pars meta_topo_potential_pars {}
-                          | init_topo_potential_pars topo_potential_pars {}
-                          | suppress_topo_potential_pars {}
-;
+topo_potential_pars: TK_TOPO_POTENTIAL '=' TK_META {driver->topotential_pars.flag=2;}
+                   | TK_TOPO_POTENTIAL '=' TK_ORDINARY {driver->topotential_pars.flag=1;};
+                   | TK_TOPO_POTENTIAL '=' TK_NONE {driver->topotential_pars.flag=0;};
 
-//meta-topo-potential
-init_meta_topo_potential_pars: TK_TOPO_POTENTIAL TK_META {driver->topotential_pars.flag=2;};
+////////////////////////////////////////////////// SMOOTH PARS /////////////////////////////////////////////////
 
-//ordinary topo-potential
-init_topo_potential_pars: TK_TOPO_POTENTIAL {driver->topotential_pars.flag=1;};
-
-//suppress topo-potential
-suppress_topo_potential_pars: TK_TOPO_POTENTIAL TK_NONE{driver->topotential_pars.flag=0;};
-
-//a list of meta-topo-potential subcommand
-meta_topo_potential_pars: meta_topo_potential_pars meta_topo_potential_par
-                        | meta_topo_potential_par
-;
-
-//spec
-meta_topo_potential_par: ;
-
-//a list of topo-potential subcommand
-topo_potential_pars: topo_potential_pars topo_potential_par
-                   | topo_potential_par
-;
-
-//spec
-topo_potential_par: ;
+smooth_pars: TK_SMOOTH_METHOD '=' TK_STOUTING {$$=new smooth_pars_t;$$->method=smooth_pars_t::STOUTING;}
+           | TK_SMOOTH_METHOD '=' TK_COOLING {$$=new smooth_pars_t;$$->method=smooth_pars_t::COOLING;}
+           | smooth_pars stout_pars {$$->stout_pars=(*$2);}
+           | smooth_pars cool_pars {$$->cool_pars=(*$2);}
 
 ////////////////////////////////////////////////// STOUT PARS //////////////////////////////////////////////////
 
-global_stout_pars: stout_pars {driver->stout_pars=(*$1);delete $1;};
-
-stout_pars: TK_GLOBAL_STOUT_PARS {$$=new stout_pars_t;}
-          | stout_pars nlevels {$$->nlevels=$2;}
-          | stout_pars rho {$$->rho=$2;}
+stout_pars: TK_STOUT_PARS {$$=new stout_pars_t;}
+          | stout_pars nlevels {$$=$1;$$->nlevels=$2;}
+          | stout_pars rho {$$=$1;$$->rho=$2;}
 ;
 
 nlevels: TK_NLEVELS '=' int_numb {$$=$3;};
 rho: TK_RHO '=' real_numb {$$=$3;};
 
+////////////////////////////////////////////////// COOL PARS //////////////////////////////////////////////////
+
+cool_pars: TK_COOL_PARS {$$=new cool_pars_t;}
+         | cool_pars nsteps {$$=$1;$$->nsteps=$2;}
+;
+
+nsteps: TK_NSTEPS '=' int_numb {$$=$3;};
+
 ////////////////////////////////////////////////// QUARK CONTENT //////////////////////////////////////////////////
 
 add_quark: name_quark quark_pars;
 
-name_quark: TK_QUARK TK_QUOTED_TEXT
+name_quark: TK_QUARK '=' TK_QUOTED_TEXT
           {
 	      quark_content_t q;
-	      q.name=$2;
-	      driver->quarks.push_back(q);
-	  }
-          | TK_QUARK
-          {
-	      quark_content_t q;
+	      q.name=$3;
 	      driver->quarks.push_back(q);
 	  }
 ;
@@ -320,48 +312,30 @@ elec_charge: TK_ELEC_CHARGE '=' real_numb {$$=$3;};
 
 ////////////////////////////////////////////////// BACKGROUND FIELD //////////////////////////////////////////////////
 
-global_bckgr_field: TK_BKGRD_EM_FIELD TK_NO {driver->em_field_pars.flag=0;}
-                  | TK_BKGRD_EM_FIELD set_em_field_pars {driver->em_field_pars.flag=1;}
+global_bckgr_field: TK_BKGRD_EM_FIELD {driver->em_field_pars.flag=1;}
+                  | global_bckgr_field TK_E_COMP '=' real_numb {driver->em_field_pars.E[$2]=$4;}
+                  | global_bckgr_field TK_B_COMP '=' real_numb {driver->em_field_pars.B[$2]=$4;}
 ;
-
-set_em_field_pars: set_em_field_pars set_em_field_par
-                 | set_em_field_par
-;
-
-set_em_field_par: set_e_field_par
-                | set_b_field_par
-;
-
-set_e_field_par: TK_E_COMP '=' real_numb {driver->em_field_pars.E[$1]=$3;};
-set_b_field_par: TK_B_COMP '=' real_numb {driver->em_field_pars.B[$1]=$3;};
 
 ////////////////////////////////////////////////// NUCLEON CORR //////////////////////////////////////////////////
 
-global_nucleon_corr_meas: TK_NUCLEON_CORRELATORS TK_NO {driver->nucleon_corr_meas_pars.flag=false;}
-                        | nucleon_corr_meas_pars {driver->nucleon_corr_meas_pars=(*$1);delete $1;}
-;
-
-nucleon_corr_meas_pars: TK_NUCLEON_CORRELATORS {$$=new nucleon_corr_meas_pars_t;$$->flag=true;}
-                      | nucleon_corr_meas_pars each {$$->flag=$2;}
-                      | nucleon_corr_meas_pars after {$$->after=$2;}
-                      | nucleon_corr_meas_pars path {$$->path=$2;}
-                      | nucleon_corr_meas_pars residue {$$->residue=$2;}
-                      | nucleon_corr_meas_pars nhits {$$->nhits=$2;}
+nucleon_corr_meas: TK_MEAS_NUCLEON_CORRS {driver->nucleon_corr_meas.push_back(nucleon_corr_meas_pars_t());}
+                 | nucleon_corr_meas each {driver->nucleon_corr_meas.back().each=$2;}
+                 | nucleon_corr_meas after {driver->nucleon_corr_meas.back().after=$2;}
+                 | nucleon_corr_meas path {driver->nucleon_corr_meas.back().path=$2;}
+                 | nucleon_corr_meas residue {driver->nucleon_corr_meas.back().residue=$2;}
+                 | nucleon_corr_meas nhits {driver->nucleon_corr_meas.back().nhits=$2;}
 ;
 
 ////////////////////////////////////////////////// MESON CORR //////////////////////////////////////////////////
 
-global_meson_corr_meas: TK_MESON_CORRELATORS TK_NO {driver->meson_corr_meas_pars.flag=false;}
-                        | meson_corr_meas_pars {driver->meson_corr_meas_pars=(*$1);delete $1;}
-;
-
-meson_corr_meas_pars: TK_MESON_CORRELATORS {$$=new meson_corr_meas_pars_t;$$->flag=true;}
-                      | meson_corr_meas_pars each {$$->flag=$2;}
-                      | meson_corr_meas_pars after {$$->after=$2;}
-                      | meson_corr_meas_pars path {$$->path=$2;}
-                      | meson_corr_meas_pars residue {$$->residue=$2;}
-                      | meson_corr_meas_pars nhits {$$->nhits=$2;}
-                      | meson_corr_meas_pars meson_list {$$->mesons=*$2;}
+meson_corr_meas: TK_MEAS_MESON_CORRS {driver->meson_corr_meas.push_back(meson_corr_meas_pars_t());}
+               | meson_corr_meas each {driver->meson_corr_meas.back().each=$2;}
+               | meson_corr_meas after {driver->meson_corr_meas.back().after=$2;}
+               | meson_corr_meas path {driver->meson_corr_meas.back().path=$2;}
+               | meson_corr_meas residue {driver->meson_corr_meas.back().residue=$2;}
+               | meson_corr_meas nhits {driver->meson_corr_meas.back().nhits=$2;}
+               | meson_corr_meas meson_list {driver->meson_corr_meas.back().mesons=*$2;}
 ;
 
 meson_list: TK_MESON_LIST '=' int_pair_list {
@@ -377,84 +351,83 @@ meson_list: TK_MESON_LIST '=' int_pair_list {
 ;
 
 
-////////////////////////////////////////////////// FERMIONIC PUPOURRI //////////////////////////////////////////////////
+////////////////////////////////////////////////// FERMIONIC POUTPURRI //////////////////////////////////////////////////
 
-global_fermionic_putpourri_meas: TK_FERMIONIC_PUTPOURRI TK_NO {driver->fermionic_putpourri_meas_pars.flag=false;}
-                               | fermionic_putpourri_meas_pars {driver->fermionic_putpourri_meas_pars=(*$1);delete $1;}
-;
-
-fermionic_putpourri_meas_pars: TK_FERMIONIC_PUTPOURRI {$$=new fermionic_putpourri_meas_pars_t;$$->flag=true;}
-                             | fermionic_putpourri_meas_pars each {$$->flag=$2;}
-                             | fermionic_putpourri_meas_pars after {$$->after=$2;}
-                             | fermionic_putpourri_meas_pars path {$$->path=$2;}
-                             | fermionic_putpourri_meas_pars residue {$$->residue=$2;}
-                             | fermionic_putpourri_meas_pars compute_susc {$$->compute_susc=$2;}
-                             | fermionic_putpourri_meas_pars ncopies {$$->ncopies=$2;}
-                             | fermionic_putpourri_meas_pars nhits {$$->nhits=$2;}
+fermionic_putpourri_meas: TK_MEAS_PUTPOURRI {driver->fermionic_putpourri_meas.push_back(fermionic_putpourri_meas_pars_t());}
+                        | fermionic_putpourri_meas each {driver->fermionic_putpourri_meas.back().each=$2;}
+                        | fermionic_putpourri_meas after {driver->fermionic_putpourri_meas.back().after=$2;}
+                        | fermionic_putpourri_meas path {driver->fermionic_putpourri_meas.back().path=$2;}
+                        | fermionic_putpourri_meas residue {driver->fermionic_putpourri_meas.back().residue=$2;}
+                        | fermionic_putpourri_meas compute_susc {driver->fermionic_putpourri_meas.back().compute_susc=$2;}
+                        | fermionic_putpourri_meas ncopies {driver->fermionic_putpourri_meas.back().ncopies=$2;}
+                        | fermionic_putpourri_meas nhits {driver->fermionic_putpourri_meas.back().nhits=$2;}
 ;
 
 ////////////////////////////////////////////////// RENDENS //////////////////////////////////////////////////
 
-global_quark_rendens_meas: TK_QUARK_RENDENS TK_NO {driver->quark_rendens_meas_pars.flag=false;}
-                         | quark_rendens_meas_pars {driver->quark_rendens_meas_pars=(*$1);delete $1;}
-;
-
-quark_rendens_meas_pars: TK_QUARK_RENDENS {$$=new quark_rendens_meas_pars_t;$$->flag=true;}
-                       | quark_rendens_meas_pars each {$$->flag=$2;}
-                       | quark_rendens_meas_pars after {$$->after=$2;}
-                       | quark_rendens_meas_pars path {$$->path=$2;}
-                       | quark_rendens_meas_pars residue {$$->residue=$2;}
-                       | quark_rendens_meas_pars ncopies {$$->ncopies=$2;}
-                       | quark_rendens_meas_pars nhits {$$->nhits=$2;}
+quark_rendens_meas: TK_MEAS_RENDENS {driver->quark_rendens_meas.push_back(quark_rendens_meas_pars_t());}
+                  | quark_rendens_meas each {driver->quark_rendens_meas.back().each=$2;}
+                  | quark_rendens_meas after {driver->quark_rendens_meas.back().after=$2;}
+                  | quark_rendens_meas path {driver->quark_rendens_meas.back().path=$2;}
+                  | quark_rendens_meas residue {driver->quark_rendens_meas.back().residue=$2;}
+                  | quark_rendens_meas ncopies {driver->quark_rendens_meas.back().ncopies=$2;}
+                  | quark_rendens_meas nhits {driver->quark_rendens_meas.back().nhits=$2;}
 ;
 
 ////////////////////////////////////////////////// MAGNETIZATION //////////////////////////////////////////////////
 
-global_magnetization_meas: TK_MAGNETIZATION TK_NO {driver->magnetization_meas_pars.flag=false;}
-                         | magnetization_meas_pars {driver->magnetization_meas_pars=(*$1);delete $1;}
-;
-
-magnetization_meas_pars: TK_MAGNETIZATION {$$=new magnetization_meas_pars_t;$$->flag=true;}
-                       | magnetization_meas_pars each {$$->flag=$2;}
-                       | magnetization_meas_pars after {$$->after=$2;}
-                       | magnetization_meas_pars path {$$->path=$2;}
-                       | magnetization_meas_pars residue {$$->residue=$2;}
-                       | magnetization_meas_pars ncopies {$$->ncopies=$2;}
-                       | magnetization_meas_pars nhits {$$->nhits=$2;}
+magnetization_meas: TK_MEAS_MAGNETIZ {driver->magnetization_meas.push_back(magnetization_meas_pars_t());}
+                  | magnetization_meas each {driver->magnetization_meas.back().each=$2;}
+                  | magnetization_meas after {driver->magnetization_meas.back().after=$2;}
+                  | magnetization_meas path {driver->magnetization_meas.back().path=$2;}
+                  | magnetization_meas residue {driver->magnetization_meas.back().residue=$2;}
+                  | magnetization_meas ncopies {driver->magnetization_meas.back().ncopies=$2;}
+                  | magnetization_meas nhits {driver->magnetization_meas.back().nhits=$2;}
 ;
 
 ////////////////////////////////////////////////// EVOLUTION //////////////////////////////////////////////////
 
-global_evolve_pars: TK_NTRAJ_TOT '=' int_numb {driver->evol_pars.ntraj_tot=$3;}
-                  | TK_SKIP_MTEST_NTRAJ '=' int_numb {driver->evol_pars.skip_mtest_ntraj=$3;}
-                  | TK_TRAJ_LENGTH '=' real_numb {driver->evol_pars.traj_length=$3;}
-                  | TK_PF_ACTION_RESIDUE '=' real_numb {driver->evol_pars.pf_action_residue=$3;}
-                  | TK_MD_RESIDUE '=' real_numb {driver->evol_pars.md_residue=$3;}
-                  | TK_NMD_STEPS '=' int_numb {driver->evol_pars.nmd_steps=$3;}
-                  | TK_NGAUGE_SUBSTEPS '=' int_numb {driver->evol_pars.ngauge_substeps=$3;}
-                  | TK_NPSEUDO_FERMIONS '=' int_list {driver->evol_pars.npseudo_fs=(*$3);}
+global_evolve_pars: TK_EVOLUTION {}
+                  | global_evolve_pars TK_NTRAJ_TOT '=' int_numb {driver->evol_pars.ntraj_tot=$4;}
+                  | global_evolve_pars TK_SKIP_METRO '=' int_numb {driver->evol_pars.skip_mtest_ntraj=$4;}
+                  | global_evolve_pars TK_TRAJ_LENGTH '=' real_numb {driver->evol_pars.traj_length=$4;}
+                  | global_evolve_pars TK_ACT_RESIDUE '=' real_numb {driver->evol_pars.pf_action_residue=$4;}
+                  | global_evolve_pars TK_MD_RESIDUE '=' real_numb {driver->evol_pars.md_residue=$4;}
+                  | global_evolve_pars TK_NSTEPS '=' int_numb {driver->evol_pars.nmd_steps=$4;}
+                  | global_evolve_pars TK_NSUBSTEPS '=' int_numb {driver->evol_pars.ngauge_substeps=$4;}
+                  | global_evolve_pars TK_NPSEUDO_FERMS '=' int_list {driver->evol_pars.npseudo_fs=(*$4);}
 ;
 
 ////////////////////////////////////////////////// CONF PARS ///////////////////////////////////////////////////
 
-global_conf_pars: TK_CONF_PATH '=' TK_QUOTED_TEXT {driver->conf_pars.path=$3;}
-                | TK_STORE_CONF_PATH '=' TK_QUOTED_TEXT {driver->conf_pars.store_path=$3;}
-                | TK_STORE_CONF_EACH '=' int_numb {driver->conf_pars.store_each=$3;}
-                | TK_STORE_RUNNING_TEMP_CONF '=' int_numb {driver->conf_pars.store_running=$3;}
-                | TK_START_COND '=' TK_HOT {driver->conf_pars.start_cond=HOT_START_COND;}
-                | TK_START_COND '=' TK_COLD {driver->conf_pars.start_cond=COLD_START_COND;}
+global_conf_pars: TK_CONFIGURATION {}
+                | global_conf_pars path {driver->conf_pars.path=$2;}
+                | global_conf_pars TK_STORE_PATH '=' TK_QUOTED_TEXT {
+                        driver->conf_pars.store_path=$4;
+                        char test1[128];
+                        char test2[128];
+                        snprintf(test1,128,$4,100);
+                        snprintf(test2,128,$4,101);
+                        if(!strcmp(test1,test2)) crash("bad template %s for store_path",$4);}
+                | global_conf_pars TK_STORE_EACH '=' int_numb {driver->conf_pars.store_each=$4;}
+                | global_conf_pars TK_STORE_RUNNING '=' int_numb {driver->conf_pars.store_running=$4;}
+                | global_conf_pars TK_START_COND '=' TK_HOT {driver->conf_pars.start_cond=HOT_START_COND;}
+                | global_conf_pars TK_START_COND '=' TK_COLD {driver->conf_pars.start_cond=COLD_START_COND;}
 ;
 
 /////////////////////////////////////////////////// GAUGE OBS /////////////////////////////////////////////////////
 
-global_plaq_pol_meas: TK_PLAQ_POL TK_NO {driver->plaq_pol_meas_pars.flag=false;}
-                    | plaq_pol_meas_pars {driver->plaq_pol_meas_pars=(*$1);delete $1;}
+plaq_pol_meas: TK_MEAS_PLAQ_POL {driver->plaq_pol_meas.push_back(gauge_obs_meas_pars_t());}
+             | plaq_pol_meas each {driver->plaq_pol_meas.back().each=$2;}
+             | plaq_pol_meas after {driver->plaq_pol_meas.back().after=$2;}
+             | plaq_pol_meas path {driver->plaq_pol_meas.back().path=$2;}
 ;
 
-plaq_pol_meas_pars: TK_PLAQ_POL {$$=new gauge_obs_meas_pars_t;$$->flag=true;}
-                  | plaq_pol_meas_pars each {$$->flag=$2;}
-                  | plaq_pol_meas_pars after {$$->after=$2;}
-                  | plaq_pol_meas_pars path {$$->path=$2;}
+top_meas: TK_MEAS_TOP {driver->top_meas.push_back(top_meas_pars_t());}
+        | top_meas each {driver->top_meas.back().each=$2;}
+        | top_meas after {driver->top_meas.back().after=$2;}
+        | top_meas path {driver->top_meas.back().path=$2;}
+        | top_meas smooth_pars {driver->top_meas.back().smooth_pars=(*$2);}
 ;
 
 /////////////////////////////////////////////// LIST OF INTEGERS ///////////////////////////////////////////////////
@@ -501,6 +474,7 @@ int_numb: TK_INT {$$=$1;master_printf("Copying %d to integer\n",$1);}
         | TK_MINUS int_numb %prec NEG {$$=-$2;}
         | int_numb TK_PLUS int_numb {$$=$1+$3;}
         | int_numb TK_MINUS int_numb {$$=$1-$3;}
+        | int_numb TK_QUANTITY {$$=$1*$2;}
         | int_numb TK_TIMES int_numb {$$=$1*$3;}
         | int_numb TK_DIV int_numb {$$=$1/$3;}
         | int_numb TK_POW int_numb {$$=(int)pow($1,$3);}

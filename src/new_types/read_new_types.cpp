@@ -10,7 +10,12 @@
 #include "io/input.hpp"
 #include "new_types_definitions.hpp"
 #include "operations/stag/mesons.hpp"
+#include "operations/stag/magnetization.hpp"
 #include "operations/stag/nucleon.hpp"
+#include "operations/stag/putpourri.hpp"
+#include "operations/stag/rendens.hpp"
+#include "operations/stag/spinpol.hpp"
+#include "operations/su3_paths/topological_charge.hpp"
 
 namespace nissa
 {
@@ -36,9 +41,9 @@ namespace nissa
   smooth_pars_t::method_t smooth_method_name_from_str(const char *name)
   {
     //database
-    const int nmet_known=4;
-    smooth_pars_t::method_t met_known[nmet_known]={smooth_pars_t::COOLING,smooth_pars_t::STOUTING,smooth_pars_t::ADAPTATIVE_STOUTING,smooth_pars_t::WFLOWING};
-    const char name_known[nmet_known][20]={"Cooling","Stouting","AdaptativeStouting","Wflowing"};
+    const int nmet_known=3;
+    smooth_pars_t::method_t met_known[nmet_known]={smooth_pars_t::COOLING,smooth_pars_t::STOUTING,smooth_pars_t::WFLOWING};
+    const char name_known[nmet_known][20]={"Cooling","Stouting","Wflowing"};
     
     //search
     int imet=0;
@@ -84,40 +89,22 @@ namespace nissa
     read_str_double("InteStep",&pars.dt);
   }
   
-  //read parameters to adaptative stout
-  void read_adaptative_stout_pars(adaptative_stout_pars_t &pars)
-  {
-    read_str_int("Nlevels",&pars.nlevels);
-    for(int ilev=0;ilev<pars.nlevels;ilev++)
-      {
-	double r;
-	read_double(&r);
-	pars.rho.push_back(r);
-      }
-  }
- 
   //read parameters to smooth
-  void read_smooth_pars(smooth_pars_t &smooth_pars,bool flag=false)
+  void read_smooth_pars(smooth_pars_t &smooth_pars)
   {
-    if(flag==true) smooth_pars.flag=true;
-    else read_str_int("Smoothing",&smooth_pars.flag);
-    if(smooth_pars.flag)
+    char smooth_method_name_str[1024];
+    read_str_str("SmoothMethod",smooth_method_name_str,1024);
+    smooth_pars.method=smooth_method_name_from_str(smooth_method_name_str);
+    switch(smooth_pars.method)
       {
-	char smooth_method_name_str[1024];
-	read_str_str("SmoothMethod",smooth_method_name_str,1024);
-	smooth_pars.method=smooth_method_name_from_str(smooth_method_name_str);
-	switch(smooth_pars.method)
-	  {
-	  case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool_pars);break;
-	  case smooth_pars_t::STOUTING: read_stout_pars(smooth_pars.stout_pars);break;
-	  case smooth_pars_t::ADAPTATIVE_STOUTING: read_adaptative_stout_pars(smooth_pars.adaptative_stout_pars);break;
-	  case smooth_pars_t::WFLOWING: read_Wflow_pars(smooth_pars.Wflow_pars);break;
-	  case smooth_pars_t::UNSPEC_SMOOTH_METHOD: crash("should not arrive here");break;
-	  }
-	read_str_double("MeasEach",&smooth_pars.meas_each);
-	if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUTING)&&fabs(smooth_pars.meas_each-int(smooth_pars.meas_each))>=1.e-14)
-	  crash("MeasEach must be integer if Cooling or Stouting method selected");
+      case smooth_pars_t::COOLING: read_cool_pars(smooth_pars.cool_pars);break;
+      case smooth_pars_t::STOUTING: read_stout_pars(smooth_pars.stout_pars);break;
+      case smooth_pars_t::WFLOWING: read_Wflow_pars(smooth_pars.Wflow_pars);break;
+      case smooth_pars_t::UNSPEC_SMOOTH_METHOD: crash("should not arrive here");break;
       }
+    read_str_double("MeasEach",&smooth_pars.meas_each);
+    if((smooth_pars.method==smooth_pars_t::COOLING||smooth_pars.method==smooth_pars_t::STOUTING)&&fabs(smooth_pars.meas_each-int(smooth_pars.meas_each))>=1.e-14)
+      crash("MeasEach must be integer if Cooling or Stouting method selected");
   }
   
   //read and return path
@@ -129,14 +116,13 @@ namespace nissa
   }
   
   //read parameters to study topology
-  void read_top_meas_pars(top_meas_pars_t &pars,bool flag=false)
+  void read_top_meas_pars(top_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasureTopology",&pars.flag);
-    if(pars.flag)
+    read_str_int("MeasureTopology",&pars.each);
+    if(pars.each)
       {
 	pars.path=read_path();
-	read_smooth_pars(pars.smooth_pars,true);
+	read_smooth_pars(pars.smooth_pars);
       }
   }
   
@@ -176,11 +162,11 @@ namespace nissa
     read_str_int("NGaugeSubSteps",&pars.ngauge_substeps);
     read_str_double("MdResidue",&pars.md_residue);
     read_str_double("PfActionResidue",&pars.pf_action_residue);
-    pars.npseudo_fs.resize(th.nflavs);
+    pars.npseudo_fs.resize(th.nflavs());
     expect_str("NPseudoFermions");
-    for(int iflav=0;iflav<th.nflavs;iflav++) read_int(&pars.npseudo_fs[iflav]);
-    pars.rat_appr=new rat_approx_t[3*th.nflavs];
-    for(int i=0;i<th.nflavs*3;i++) pars.rat_appr[i].reset();
+    for(int iflav=0;iflav<th.nflavs();iflav++) read_int(&pars.npseudo_fs[iflav]);
+    pars.rat_appr=new rat_approx_t[3*th.nflavs()];
+    for(int i=0;i<th.nflavs()*3;i++) pars.rat_appr[i].reset();
   }
   
   //read the parameters relevant for pure gauge evolution
@@ -234,11 +220,10 @@ namespace nissa
   }
   
   //read parameters to measure the fermionic gran mix
-  void read_fermionic_putpourri_meas_pars(fermionic_putpourri_meas_pars_t &pars,bool flag=false)
+  void read_fermionic_putpourri_meas_pars(fermionic_putpourri_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasureFermionicPutpourri",&pars.flag);
-    if(pars.flag)
+    read_str_int("MeasureFermionicPutpourri",&pars.each);
+    if(pars.each)
       {
 	pars.path=read_path();
 	read_str_double("InvResidue",&pars.residue);
@@ -249,11 +234,10 @@ namespace nissa
   }
   
   //read parameters to measure the quark density and its derivatives
-  void read_quark_rendens_meas_pars(quark_rendens_meas_pars_t &pars,bool flag=false)
+  void read_quark_rendens_meas_pars(quark_rendens_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasureQuarkRendens",&pars.flag);
-    if(pars.flag)
+    read_str_int("MeasureQuarkRendens",&pars.each);
+    if(pars.each)
       {
 	pars.path=read_path();
         read_str_int("After",&pars.after);
@@ -265,11 +249,10 @@ namespace nissa
   }
   
   //read parameters to measure the spin polarization
-  void read_spinpol_meas_pars(spinpol_meas_pars_t &pars,bool flag=false)
+  void read_spinpol_meas_pars(spinpol_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasureSpinpol",&pars.flag);
-    if(pars.flag)
+    read_str_int("MeasureSpinpol",&pars.each);
+    if(pars.each)
       {
 	pars.path=read_path();
         read_str_double("InvResidue",&pars.residue);
@@ -281,11 +264,10 @@ namespace nissa
   }
   
   //read parameters to measure magnetization
-  void read_magnetization_meas_pars(magnetization_meas_pars_t &pars,bool flag=false)
+  void read_magnetization_meas_pars(magnetization_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasureMagnetization",&pars.flag);
-    if(pars.flag)
+    read_str_int("MeasureMagnetization",&pars.each);
+    if(pars.each)
       {
 	pars.path=read_path();
 	read_str_double("InvResidue",&pars.residue);
@@ -295,11 +277,10 @@ namespace nissa
   }
   
   //read parameters to measure nucleon correlators
-  void read_nucleon_corr_meas_pars(nucleon_corr_meas_pars_t &pars,bool flag=false)
+  void read_nucleon_corr_meas_pars(nucleon_corr_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasureNucleonCorr",&pars.flag);
-    if(pars.flag)
+    read_str_int("MeasureNucleonCorr",&pars.each);
+    if(pars.each)
       {
 	pars.path=read_path();
 	read_str_double("InvResidue",&pars.residue);
@@ -333,11 +314,10 @@ namespace nissa
   }
   
   //read parameters to measure all rectangles
-  void read_all_rect_meas_pars(all_rect_meas_pars_t &pars,bool flag=false)
+  void read_all_rect_meas_pars(all_rect_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasureAllRect",&pars.flag);
-    if(pars.flag)
+    read_str_int("MeasureAllRect",&pars.each);
+    if(pars.each)
       {
 	pars.path=read_path();
 	read_gauge_obs_temp_spat_smear_pars(pars.smear_pars);
@@ -353,11 +333,10 @@ namespace nissa
   }
   
   //read parameters to measure flux tube
-  void read_watusso_meas_pars(watusso_meas_pars_t &pars,bool flag=false)
+  void read_watusso_meas_pars(watusso_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasureWatusso",&pars.flag);
-    if(pars.flag)
+    read_str_int("MeasureWatusso",&pars.each);
+    if(pars.each)
       {
 	pars.path=read_path();
 	read_gauge_obs_temp_spat_smear_pars(pars.smear_pars);
@@ -373,13 +352,12 @@ namespace nissa
 	  }
       }
   }
-
+  
   //read the parameters to compute polyakov correlators
-  void read_poly_corr_meas_pars(poly_corr_meas_pars_t &pars,bool flag=false)
+  void read_poly_corr_meas_pars(poly_corr_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasurePolyCorrs",&pars.flag);
-    if(pars.flag)
+    read_str_int("MeasurePolyCorrs",&pars.each);
+    if(pars.each)
       {
 	pars.path=read_path();
         read_gauge_obs_temp_smear_pars(pars.gauge_smear_pars);
@@ -388,11 +366,10 @@ namespace nissa
   }
   
   //read the parameters to measure gauge observables
-  void read_gauge_obs_meas_pars(gauge_obs_meas_pars_t &pars,bool flag=false)
+  void read_gauge_obs_meas_pars(gauge_obs_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasureGaugeObs",&pars.flag);
-    if(pars.flag) pars.path=read_path();
+    read_str_int("MeasureGaugeObs",&pars.each);
+    if(pars.each) pars.path=read_path();
   }
   
   //read the theory_pars parameters of the theory
@@ -410,15 +387,16 @@ namespace nissa
     read_topotential_pars(theory_pars.topotential_pars);
     
     //number of undegenerate flavs
-    read_str_int("NDiffFlavs",&(theory_pars.nflavs));
-    theory_pars.quark_content=new quark_content_t[theory_pars.nflavs];
+    int nflavs;
+    read_str_int("NDiffFlavs",&nflavs);
+    theory_pars.quark_content.resize(nflavs);
     
     //each flav parameters
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
       read_quark_content(theory_pars.quark_content[iflav]);
     
     //additional parameters to read only if fermions are defined
-    if(theory_pars.nflavs!=0)
+    if(theory_pars.nflavs()!=0)
       {
 	//stouting parameters
 	read_stout_pars(theory_pars.stout_pars);
@@ -429,11 +407,10 @@ namespace nissa
   }
   
   //read how to measure staggered mesons
-  void read_meson_corr_meas_pars(meson_corr_meas_pars_t &pars,bool flag)
+  void read_meson_corr_meas_pars(meson_corr_meas_pars_t &pars)
   {
-    if(flag==true) pars.flag=true;
-    else read_str_int("MeasureStagMesonCorr",&pars.flag);
-    if(pars.flag)
+    read_str_int("MeasureStagMesonCorr",&pars.each);
+    if(pars.each)
       {
 	pars.path=read_path();
 	int nmesons;

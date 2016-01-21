@@ -11,6 +11,8 @@
 #include "new_types/su3.hpp"
 #include "routines/mpi_routines.hpp"
 
+#include "magnetization.hpp"
+
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -156,7 +158,7 @@ namespace nissa
         master_fprintf(file,"%d",iconf);
         
         //measure magnetization for each quark
-        for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+        for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
           {
 	    if(!theory_pars.quark_content[iflav].is_stag) crash("not defined for non-staggered quarks");
 	    
@@ -169,11 +171,11 @@ namespace nissa
             for(int hit=0;hit<nhits;hit++)
               {
                 verbosity_lv2_master_printf("Evaluating magnetization for flavor %d/%d, ncopies %d/%d nhits %d/%d\n",
-                                            iflav+1,theory_pars.nflavs,icopy+1,ncopies,hit+1,nhits);
+                                            iflav+1,theory_pars.nflavs(),icopy+1,ncopies,hit+1,nhits);
             
                 //compute and summ
                 complex temp,temp_magn_proj_x[glb_size[1]];
-                magnetization(&temp,temp_magn_proj_x,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],theory_pars.quark_content+iflav,meas_pars.residue); //flag holds quantization
+                magnetization(&temp,temp_magn_proj_x,conf,theory_pars.em_field_pars.flag,theory_pars.backfield[iflav],&theory_pars.quark_content[iflav],meas_pars.residue); //flag holds quantization
                 
                 //normalize
                 complex_summ_the_prod_double(magn,temp,1.0/nhits);
@@ -198,17 +200,16 @@ namespace nissa
   {
     int nprinted=0;
     
-    if(flag||full)
+    nprinted+=nissa::master_fprintf(fout,"MeasMagnetiz\n");
+    if(is_nonstandard()||full)
       {
-	nprinted+=nissa::master_fprintf(fout,"Magnetization\n");
-	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
-	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
-	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t%lg\n",residue);
-	if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout,"NCopies\t\t=\t%d\n",ncopies);
-	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
+	if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
+	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
+	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout," Residue\t=\t%lg\n",residue);
+	if(ncopies!=def_ncopies()||full) nprinted+=nissa::master_fprintf(fout," NCopies\t=\t%d\n",ncopies);
+	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout," NHits\t\t=\t%d\n",nhits);
       }
-    else if(full) nprinted+=nissa::master_fprintf(fout,"Magnetization No\n");
     
     return nprinted;
   }

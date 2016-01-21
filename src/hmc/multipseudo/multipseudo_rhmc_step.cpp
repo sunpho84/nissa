@@ -75,8 +75,8 @@ namespace nissa
       }
     
     //allocate pseudo-fermions
-    pseudofermion_t pf[theory_pars.nflavs];
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    pseudofermion_t pf[theory_pars.nflavs()];
+    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
       pf[iflav].create(simul_pars.npseudo_fs[iflav],theory_pars.quark_content[iflav].is_stag);
     
     //if needed smear the configuration for pseudo-fermions, approx generation and action computation
@@ -98,16 +98,16 @@ namespace nissa
     set_expansions(&simul_pars,sme_conf,&theory_pars);
     
     //shift all the poles of the mass
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
       for(int i=0;i<3;i++)
 	rat_approx_shift_all_poles(simul_pars.rat_appr+iflav*3+i,sqr(theory_pars.quark_content[iflav].mass));
     
     //create pseudo-fermions and store action
     double pf_action=0;
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
       for(int ipf=0;ipf<simul_pars.npseudo_fs[iflav];ipf++)
 	{
-	  verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs);
+	  verbosity_lv1_master_printf("Generating pseudofermion %d/%d for flavour %d/%d\n",ipf+1,simul_pars.npseudo_fs[iflav],iflav+1,theory_pars.nflavs());
 	  double pf_action_flav;
 	  if(theory_pars.quark_content[iflav].is_stag) generate_pseudo_fermion(&pf_action_flav,pf[iflav].stag[ipf],sme_conf,theory_pars.backfield[iflav],simul_pars.rat_appr+3*iflav+0,simul_pars.pf_action_residue);
 	  else crash("not yet implemented");
@@ -141,14 +141,14 @@ namespace nissa
     double diff_action=final_action-init_action;
     
     //free stuff
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
       pf[iflav].destroy();
     
     for(int par=0;par<2;par++) nissa_free(H[par]);
     if(theory_pars.stout_pars.nlevels!=0) for(int eo=0;eo<2;eo++) nissa_free(sme_conf[eo]);
     
     //shift back
-    for(int iflav=0;iflav<theory_pars.nflavs;iflav++)
+    for(int iflav=0;iflav<theory_pars.nflavs();iflav++)
       for(int i=0;i<3;i++)
 	rat_approx_shift_all_poles(simul_pars.rat_appr+iflav*3+i,-sqr(theory_pars.quark_content[iflav].mass));
     

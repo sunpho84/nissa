@@ -248,7 +248,7 @@ namespace nissa
   void measure_staggered_meson_corr(quad_su3 **ext_conf,theory_pars_t &tp,meson_corr_meas_pars_t &meas_pars,int iconf,int conf_created)
   {
     nop=meas_pars.mesons.size();
-    nflavs=tp.nflavs;
+    nflavs=tp.nflavs();
     ncombo=icombo(nflavs-1,nop-1,glb_size[0]-1)+1;
     double norm=1.0/(meas_pars.nhits*glb_spat_vol);
     complex *corr=nissa_malloc("corr",ncombo,complex);
@@ -281,15 +281,15 @@ namespace nissa
   {
     int nprinted=0;
     
-    if(flag||full)
+	nprinted+=nissa::master_fprintf(fout,"MeasMesonCorrs\n");
+    if(is_nonstandard()||full)
       {
-	nprinted+=nissa::master_fprintf(fout,"MesonCorrelators\n");
-	if(flag!=1||full) nprinted+=nissa::master_fprintf(fout,"Each\t\t=\t%d\n",flag);
-	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout,"After\t\t=\t%d\n",after);
-	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout,"Path\t\t=\t\"%s\"\n",path.c_str());
+	if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+	if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
+	if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
 	if(mesons.size()||full)
 	  {
-	    nprinted+=nissa::master_fprintf(fout,"MesonList\t=\t{");
+	    nprinted+=nissa::master_fprintf(fout," MesonList\t=\t{");
 	    for(size_t i=0;i<mesons.size();i++)
 	      {
 		nprinted+=nissa::master_fprintf(fout,"(%d,%d)",mesons[i].first,mesons[i].second);
@@ -297,10 +297,9 @@ namespace nissa
 		else                   nprinted+=nissa::master_fprintf(fout,"}\n");
 	      }
 	  }
-	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout,"Residue\t\t=\t%lg\n",residue);
-	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout,"NHits\t\t=\t%d\n",nhits);
+	if(residue!=def_residue()||full) nprinted+=nissa::master_fprintf(fout," Residue\t=\t%lg\n",residue);
+	if(nhits!=def_nhits()||full) nprinted+=nissa::master_fprintf(fout," NHits\t\t=\t%d\n",nhits);
       }
-    else if(full) nprinted+=nissa::master_fprintf(fout,"StagMesonCorrelators No\n");
     
     return nprinted;
   }

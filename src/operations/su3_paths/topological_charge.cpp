@@ -457,7 +457,6 @@ namespace nissa
     smooth_pars_t sp=pars.smooth_pars;
     cool_pars_t cop=sp.cool_pars;
     stout_pars_t stp=sp.stout_pars;
-    adaptative_stout_pars_t asp=sp.adaptative_stout_pars;
     Wflow_pars_t wfp=sp.Wflow_pars;
     int int_each=int(sp.meas_each);
     switch(sp.method)
@@ -508,31 +507,6 @@ namespace nissa
 	      }
 	    Wflow_lx_conf(smoothed_conf,dt);
 	  }
-	break;
-      case smooth_pars_t::ADAPTATIVE_STOUTING:
-	{
-	  /*
-	  double tot_rho=0;
-	  for(int ilev=0;ilev<=asp.nlevels;ilev++)
-	    {
-	      if(ilev%int_each==0)
-		{
-		  double tot_charge;
-		  double plaq=global_plaquette_lx_conf(smoothed_conf);
-		  total_topological_charge_lx_conf(&tot_charge,smoothed_conf);
-		  master_fprintf(file,"%d %lg %+016.016lg %16.16lg\n",iconf,tot_rho,tot_charge,plaq);
-		  verbosity_lv2_master_printf("Topological charge after %lg tot stouting: %+016.016lg, plaquette: %16.16lg\n",tot_rho,tot_charge,plaq);
-		}
-	      if(ilev!=asp.nlevels)
-		{
-		  stout_pars_t iter_pars(1,asp.rho[ilev]);
-		  stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
-		  tot_rho+=asp.rho[ilev];
-		}
-	    }
-	  */
-	  crash("not fully available");
-	}
 	break;
       default:
 	crash("should have not arrived here");
@@ -670,4 +644,21 @@ namespace nissa
 	  }
       }
   }
+  
+  //print pars
+  int top_meas_pars_t::master_fprintf(FILE *fout,bool full)
+    {
+      int nprinted=0;
+      
+      nprinted+=nissa::master_fprintf(fout,"MeasTop\n");
+      if(full||is_nonstandard())
+	{
+	  if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+	  if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
+	  if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
+	  nprinted+=smooth_pars.master_fprintf(fout,full);
+	}
+      
+      return nprinted;
+    }
 }
