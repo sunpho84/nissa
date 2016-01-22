@@ -1,8 +1,0 @@
-#inlcude "nissa.hpp"
-
-using namespace nissa;
-
-int main()
-{
-  return 0;
-}
