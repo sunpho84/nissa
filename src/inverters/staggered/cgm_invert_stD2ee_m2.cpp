@@ -9,6 +9,7 @@
 #include "cgm_invert_stD2ee_m2_portable.hpp"
 
 #include "base/global_variables.hpp"
+#include "new_types/rat_approx.hpp"
 
 namespace nissa
 {

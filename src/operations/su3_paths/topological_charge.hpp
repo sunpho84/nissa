@@ -1,6 +1,10 @@
 #ifndef _TOPOLOGICAL_CHARGE_HPP
 #define _TOPOLOGICAL_CHARGE_HPP
 
+#include "operations/smearing/smooth.hpp"
+
+#include "hmc/gauge/topological_action.hpp"
+
 namespace nissa
 {
   //parameters to measure topology properties

@@ -3,7 +3,6 @@
 #endif
 
 #include "base/global_variables.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "operations/su3_paths/plaquette.hpp"
 #include "routines/ios.hpp"
 

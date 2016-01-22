@@ -1,6 +1,8 @@
 #ifndef _MOMENTA_GENERATION_HPP
 #define _MOMENTA_GENERATION_HPP
 
+#include "new_types/rat_approx.hpp"
+
 namespace nissa
 {
   void generate_MFACC_momenta(su3 **pi,quad_su3 *conf,double kappa,double residue);

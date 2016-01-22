@@ -3,12 +3,15 @@
  #include "config.hpp"
 #endif
 
+#include <stdint.h>
+
 #include "geometry/geometry_mix.hpp"
 #include "operations/gaugeconf.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
 
+#include "hmc/theory_pars.hpp"
 #include "hmc/gauge/gluonic_force.hpp"
 #include "hmc/gauge/pure_gauge_Omelyan_integrator.hpp"
 #include "hmc/gauge/topological_force.hpp"

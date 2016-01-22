@@ -1,10 +1,18 @@
-#ifndef _SPI_H
-#define _SPI_H
+#ifndef _SPI_HPP
+#define _SPI_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#ifdef SPI
+ #include <spi/include/kernel/MU.h>
+#endif
+
+#include <stdint.h>
+
+#include "communicate/communicate.hpp"
 
 namespace nissa
 {
+  typedef uint8_t coords_5D[5];
+  
   void get_spi_coord();
   void init_spi();
   void set_spi_geometry();

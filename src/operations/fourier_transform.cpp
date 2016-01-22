@@ -8,7 +8,6 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "new_types/complex.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
 

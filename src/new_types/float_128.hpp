@@ -1,10 +1,16 @@
-#ifndef _FLOAT128_H
-#define _FLOAT128_H
+#ifndef _FLOAT128_HPP
+#define _FLOAT128_HPP
 
-#include "new_types_definitions.hpp"
+#include "su3.hpp"
 
 namespace nissa
 {
+  //quadruple precision float
+  typedef double float_128[2];
+  typedef float_128 complex_128[2];
+  typedef complex_128 color_128[NCOL];
+  typedef color_128 spincolor_128[4];
+  
   double double_from_float_128(float_128 b);
   void color_128_copy(color_128 a,color_128 b);
   void color_128_isubt(color_128 a,color_128 b,color_128 c);

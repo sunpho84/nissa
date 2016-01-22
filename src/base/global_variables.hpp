@@ -1,5 +1,5 @@
-#ifndef _GLOBAL_VARIABLES_H
-#define _GLOBAL_VARIABLES_H
+#ifndef _GLOBAL_VARIABLES_HPP
+#define _GLOBAL_VARIABLES_HPP
 
 #ifdef USE_MPI
  #include <mpi.h>

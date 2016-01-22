@@ -7,7 +7,6 @@
 #include "communicate/communicate.hpp"
 #include "dirac_operators/momenta/MFACC.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 
 #define BASETYPE su3

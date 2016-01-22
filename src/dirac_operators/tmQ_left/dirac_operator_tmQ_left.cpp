@@ -1,6 +1,5 @@
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
-#include "communicate/communicate.hpp"
+#include "communicate/borders.hpp"
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "base/thread_macros.hpp"

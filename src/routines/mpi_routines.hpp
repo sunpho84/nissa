@@ -3,7 +3,7 @@
 
 #include <mpi.h>
 #include <algorithm>
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/rat_approx.hpp"
 #include "math_routines.hpp"
 
 namespace nissa

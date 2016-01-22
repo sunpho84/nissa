@@ -8,10 +8,11 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
+#include "hmc/multipseudo/theory_action.hpp"
 #include "new_types/complex.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
+
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -202,34 +203,34 @@ namespace nissa
   THREADABLE_FUNCTION_END
   
   //allocate background fields
-  void theory_pars_allocate_backfield(theory_pars_t &tp)
+  void theory_pars_t::allocate_backfield()
   {
-    tp.backfield.resize(tp.nflavs());
-    for(int iflav=0;iflav<tp.nflavs();iflav++)
+    backfield.resize(nflavs());
+    for(int iflav=0;iflav<nflavs();iflav++)
       {
-	tp.backfield[iflav]=nissa_malloc("back*",2,quad_u1*);
-	for(int par=0;par<2;par++) tp.backfield[iflav][par]=nissa_malloc("back_eo",loc_volh,quad_u1);
+	backfield[iflav]=nissa_malloc("back*",2,quad_u1*);
+	for(int par=0;par<2;par++) backfield[iflav][par]=nissa_malloc("back_eo",loc_volh,quad_u1);
       }
   }
   
   //set the background fields
-  void theory_pars_init_backfield(theory_pars_t &tp)
+  void theory_pars_t::init_backfield()
   {
     //initialize background field to id, then add all other things
-    for(int iflav=0;iflav<tp.nflavs();iflav++)
+    for(int iflav=0;iflav<nflavs();iflav++)
       {
-	init_backfield_to_id(tp.backfield[iflav]);
-	add_im_pot_to_backfield(tp.backfield[iflav],&(tp.quark_content[iflav]));
-	add_em_field_to_backfield(tp.backfield[iflav],&(tp.quark_content[iflav]),&(tp.em_field_pars));
-	if(tp.quark_content[iflav].is_stag) add_stagphases_to_backfield(tp.backfield[iflav]);
-	add_antiperiodic_condition_to_backfield(tp.backfield[iflav],0);
+	init_backfield_to_id(backfield[iflav]);
+	add_im_pot_to_backfield(backfield[iflav],&(quark_content[iflav]));
+	add_em_field_to_backfield(backfield[iflav],&(quark_content[iflav]),&(em_field_pars));
+	if(quark_content[iflav].is_stag) add_stagphases_to_backfield(backfield[iflav]);
+	add_antiperiodic_condition_to_backfield(backfield[iflav],0);
       }
   }
   
   //merge the two
-  void theory_pars_allocinit_backfield(theory_pars_t &tp)
+  void theory_pars_t::allocinit_backfield()
   {
-    theory_pars_allocate_backfield(tp);
-    theory_pars_init_backfield(tp);
+    allocate_backfield();
+    init_backfield();
   }
 }

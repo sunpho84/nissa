@@ -7,7 +7,6 @@
 #include "base/thread_macros.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "io/input.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "operations/smearing/stout.hpp"
 #include "operations/su3_paths/topological_charge.hpp"

@@ -1,6 +1,8 @@
 #ifndef _SPINPOL_HPP
 #define _SPINPOL_HPP
 
+#include "operations/smearing/smooth.hpp"
+
 namespace nissa
 {
   struct spinpol_meas_pars_t

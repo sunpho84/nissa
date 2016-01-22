@@ -3,8 +3,10 @@
 #endif
 
 #include "base/bench.hpp"
-#include "communicate/communicate.hpp"
+#include "base/random.hpp"
+#include "communicate/borders.hpp"
 #include "new_types/su3.hpp"
+#include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/gauge_sweeper.hpp"
 #include "routines/mpi_routines.hpp"
 #ifdef USE_THREADS

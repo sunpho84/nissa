@@ -4,8 +4,14 @@
 
 #include <math.h>
 
+#if HIGH_PREC == GMP_HIGH_PREC
+ #include <gmpxx.h>
+#endif
+
+#include "base/random.hpp"
 #include "communicate/communicate.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
+#include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/su3.hpp"

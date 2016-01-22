@@ -1,14 +1,12 @@
-#ifndef _INCLUDE_REMEZ_ALGORITIHM_H
-#define _INCLUDE_REMEZ_ALGORITIHM_H
+#ifndef _INCLUDE_REMEZ_ALGORITIHM_HPP
+#define _INCLUDE_REMEZ_ALGORITIHM_HPP
 
 #ifdef HAVE_CONFIG_H
  #include "config.hpp"
 #endif
 
-#include "new_types/new_types_definitions.hpp"
-#if HIGH_PREC == NATIVE
- #include "new_types/float_256.hpp"
-#endif
+#include "new_types/high_prec.hpp"
+
 #include "base/vectors.hpp"
 
 namespace nissa

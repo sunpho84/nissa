@@ -54,6 +54,33 @@ double read_time=0;
 double write_time=0;
 double x_corr_time=0;
 
+//read the parameters relevant for pure gauge evolution
+void read_pure_gauge_evol_pars(pure_gauge_evol_pars_t &pars)
+{
+  //use or not hybrid Monte Carlo
+  read_str_int("UseHMC",&pars.use_hmc);
+  if(pars.use_hmc)
+    {
+      read_str_double("HmcTrajLength",&pars.traj_length);
+      read_str_int("NmdSteps",&pars.nmd_steps);
+      read_str_int("UseFacc",&pars.use_Facc);
+      if(pars.use_Facc)
+	{
+	  read_str_double("Kappa",&pars.kappa);
+	  read_str_double("Residue",&pars.residue);
+	}
+    }
+  else
+    {
+      //heat bath parameters
+      read_str_int("NHbSweeps",&pars.nhb_sweeps);
+      read_str_int("NHbHits",&pars.nhb_hits);
+      //overrelax parameters
+      read_str_int("NOvSweeps",&pars.nov_sweeps);
+      read_str_int("NOvHits",&pars.nov_hits);
+    }
+}
+
 void measure_gauge_obs();
 void measure_topology(top_meas_pars_t&,quad_su3*,int,bool,bool presereve_uncooled=true);
 
@@ -83,7 +110,7 @@ void write_conf(const char *path)
   
   //free messages
   ILDG_message_free_all(&mess);
-
+  
   write_time+=take_time();
 }
 
@@ -422,7 +449,8 @@ void init_simulation(char *path)
     crash("unknown boundary condition %s, expected 'PERIODIC' or 'OPEN'",boundary_cond_str);
   
   //read the topology measures info
-  read_top_meas_pars(top_meas_pars);
+  crash("fix reading topomeas");
+  //read_top_meas_pars(top_meas_pars);
   if(top_meas_pars.each) init_sweeper(top_meas_pars.smooth_pars.cool_pars.gauge_action);
   
   //read X space correlation measurement

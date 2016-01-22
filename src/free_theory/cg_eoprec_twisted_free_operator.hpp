@@ -1,8 +1,6 @@
 #ifndef _CG_EOPREC_TWISTED_MASS_FREE_OPERATOR_HPP
 #define _CG_EOPREC_TWISTED_MASS_FREE_OPERATOR_HPP
 
-#include "new_types/new_types_definitions.hpp"
-
 #include "free_theory_types.hpp"
 
 namespace nissa

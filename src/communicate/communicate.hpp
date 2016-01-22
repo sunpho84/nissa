@@ -1,10 +1,10 @@
 #ifndef COMMUNICATE_HPP
 #define COMMUNICATE_HPP
 
-#include "borders.hpp"
-#include "edges.hpp"
+#include <mpi.h>
+#include <stdio.h>
+#include <stdint.h>
 
-#include "base/global_variables.hpp"
 #include "base/macros.hpp"
 
 /*
@@ -62,46 +62,38 @@
 
 namespace nissa
 {
-#define DEFINE_EO_BORDERS_ROUTINES(TYPE)				\
-  inline void NAME3(communicate_ev_and_od,TYPE,borders)(TYPE **s)	\
-  {communicate_ev_and_od_borders((void**)s,NAME3(lx,TYPE,comm));}	\
-  inline void NAME3(communicate_ev_or_od,TYPE,borders)(TYPE *s,int eo)	\
-  {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),eo);}		\
-  inline void NAME3(start_communicating_ev_or_od,TYPE,borders)(TYPE *s,int eo) \
-  {start_communicating_ev_or_od_borders(NAME3(eo,TYPE,comm),s,eo);}	\
-  inline void NAME3(finish_communicating_ev_or_od,TYPE,borders)(TYPE *s) \
-  {finish_communicating_ev_or_od_borders(s,NAME3(eo,TYPE,comm));}	\
-  inline void NAME3(communicate_ev,TYPE,borders)(TYPE *s)		\
-  {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),EVN);}		\
-  inline void NAME3(communicate_od,TYPE,borders)(TYPE *s)		\
-  {communicate_ev_or_od_borders(s,NAME3(eo,TYPE,comm),ODD);}
   
-#define DEFINE_LX_BORDERS_ROUTINES(TYPE)			\
-  inline void NAME3(communicate_lx,TYPE,borders)(TYPE *s)	\
-  {communicate_lx_borders(s,NAME3(lx,TYPE,comm));}			\
-  inline void NAME3(start_communicating_lx,TYPE,borders)(TYPE *s)	\
-  {start_communicating_lx_borders(NAME3(lx,TYPE,comm),s);}		\
-  inline void NAME3(finish_communicating_lx,TYPE,borders)(TYPE *s)	\
-  {finish_communicating_lx_borders(s,NAME3(lx,TYPE,comm));}
-  
-#define DEFINE_BORDERS_ROUTINES(TYPE)		\
-  DEFINE_LX_BORDERS_ROUTINES(TYPE)		\
-  DEFINE_EO_BORDERS_ROUTINES(TYPE)
-  
-  DEFINE_BORDERS_ROUTINES(spin)
-  DEFINE_BORDERS_ROUTINES(spin1field)
-  DEFINE_BORDERS_ROUTINES(color)
-  DEFINE_BORDERS_ROUTINES(spincolor)
-  DEFINE_BORDERS_ROUTINES(spincolor_128)
-  DEFINE_BORDERS_ROUTINES(halfspincolor)
-  DEFINE_BORDERS_ROUTINES(colorspinspin)
-  DEFINE_BORDERS_ROUTINES(spinspin)
-  DEFINE_BORDERS_ROUTINES(su3spinspin)
-  DEFINE_BORDERS_ROUTINES(su3)
-  DEFINE_BORDERS_ROUTINES(quad_su3)
-  DEFINE_BORDERS_ROUTINES(single_color)
-  DEFINE_BORDERS_ROUTINES(single_quad_su3)
-  DEFINE_BORDERS_ROUTINES(single_halfspincolor)
+#ifdef USE_MPI
+  //out and in buffer
+  struct comm_t
+  {
+    //bgq specific structures, in alternative to ordinary MPI
+#ifdef SPI
+    //descriptors
+    MUHWI_Descriptor_t *descriptors;
+    MUHWI_Destination spi_dest[8];
+#else
+    //destinations and source ranks
+    int send_rank[8],recv_rank[8];
+#    //requests and message
+    MPI_Request requests[16];
+    int nrequest,imessage;
+#endif
+    
+    //communication in progress
+    int comm_in_prog;
+    //local size
+    uint64_t nbytes_per_site;
+    //size of the message
+    uint64_t tot_mess_size;
+    //offsets
+    int send_offset[8],message_length[8],recv_offset[8];
+    
+    //constructor
+    bool initialized;
+    comm_t(){initialized=false;}
+  };
+#endif
 }
 
 #endif

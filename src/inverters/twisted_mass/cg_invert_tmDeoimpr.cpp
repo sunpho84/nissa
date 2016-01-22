@@ -9,7 +9,6 @@
 #include "base/vectors.hpp"
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
 #include "geometry/geometry_mix.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "routines/ios.hpp"
 
 #include "cg_64_invert_tmDeoimpr.hpp"

@@ -2,10 +2,67 @@
 #define _GAUGECONF_HPP
 
 #include "operations/su3_paths/gauge_sweeper.hpp"
-#include "new_types/new_types_definitions.hpp"
 
 namespace nissa
 {
+  //Starting condition for a gauge conf
+  enum start_conf_cond_t{UNSPEC_START_COND,HOT_START_COND,COLD_START_COND};
+  
+  //Boundary conditions
+  enum boundary_cond_t{UNSPEC_BOUNDARY_COND,PERIODIC_BOUNDARY_COND,OPEN_BOUNDARY_COND};
+  
+  //results of a unitarity check
+  struct unitarity_check_result_t
+  {
+    int nbroken_links;
+    double average_diff;
+    double max_diff;
+    
+    unitarity_check_result_t () : nbroken_links(0),average_diff(0.0),max_diff(0.0) {}
+  };
+  
+  //parameters to compute gauge observabls
+  struct gauge_obs_meas_pars_t
+  {
+    int each;
+    int after;
+    std::string path;
+    
+    int def_each(){return 1;}
+    int def_after(){return 0;}
+    std::string def_path(){return "gauge_obs";}
+    
+    int master_fprintf(FILE *fout,bool full=false)
+    {
+      int nprinted=0;
+      
+      nprinted+=nissa::master_fprintf(fout,"MeasPlaqPol\n");
+      if(full||is_nonstandard())
+	{
+	  if(each!=def_each()||full) nprinted+=nissa::master_fprintf(fout," Each\t\t=\t%d\n",each);
+	  if(after!=def_after()||full) nprinted+=nissa::master_fprintf(fout," After\t\t=\t%d\n",after);
+	  if(path!=def_path()||full) nprinted+=nissa::master_fprintf(fout," Path\t\t=\t\"%s\"\n",path.c_str());
+	}
+      
+      return nprinted;
+    }
+    
+    int is_nonstandard()
+    {
+      return
+	each!=def_each()||
+	after!=def_after()||
+	path!=def_path();
+    }
+    
+    gauge_obs_meas_pars_t() :
+      each(def_each()),
+      after(def_after()),
+      path(def_path()) {}
+  };
+  
+  /////////////////////////////////////////////////////////////
+  
   inline int check_add_square_staple(int *isquare_staples_to_ask,int &nsquare_staple_to_ask,int ivol,int dir,int verse,int iter);
   void ac_rotate_gauge_conf(quad_su3 *out,quad_su3 *in,int axis);
   void ac_rotate_vector(void *out,void *in,int axis,size_t bps);

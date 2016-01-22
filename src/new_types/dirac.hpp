@@ -1,12 +1,20 @@
 #ifndef _DIRAC_HPP
 #define _DIRAC_HPP
 
+#include <string.h>
+
 #include "complex.hpp"
-#include "spin.hpp"
-#include "su3.hpp"
+#include "base/debug.hpp"
 
 namespace nissa
 {
+  //The structure for gamma matrix
+  struct dirac_matr
+  {
+    int pos[4];
+    complex entr[4];
+  };
+  
   //Initialize a dirac matrix with outside entries
   inline void init_dirac(dirac_matr *out,int pos0,double rea0,double ima0,int pos1,double rea1,double ima1,int pos2,double rea2,double ima2,int pos3,double rea3,double ima3)
   {
@@ -156,93 +164,6 @@ namespace nissa
       }
   }
   
-  //Summ the passed gamma multiplied by a double to spinspin
-  inline void spinspin_dirac_summ_the_prod_double(spinspin out,dirac_matr *in,double r)
-  {
-    //This is the line on the matrix
-    for(int ig=0;ig<4;ig++)
-      complex_summ_the_prod_double(out[ig][in->pos[ig]],in->entr[ig],r);
-  }
-  inline void spinspin_dirac_summ_the_prod_idouble(spinspin out,dirac_matr *in,double r)
-  {
-    for(int ig=0;ig<4;ig++)
-      complex_summ_the_prod_idouble(out[ig][in->pos[ig]],in->entr[ig],r);
-  }
-  inline void spinspin_dirac_summ_the_prod_complex(spinspin out,dirac_matr *in,complex c)
-  {
-    for(int ig=0;ig<4;ig++)
-      complex_summ_the_prod(out[ig][in->pos[ig]],in->entr[ig],c);
-  }
-  inline void spinspin_dirac_subt_the_prod_complex(spinspin out,dirac_matr *in,complex c)
-  {
-    for(int ig=0;ig<4;ig++)
-      complex_subt_the_prod(out[ig][in->pos[ig]],in->entr[ig],c);
-  }
-  inline void spinspin_dirac_prod_double(spinspin out,dirac_matr *in,double r)
-  {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_double(out,in,r);}
-  inline void spinspin_dirac_prod_idouble(spinspin out,dirac_matr *in,double r)
-  {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_idouble(out,in,r);}
-  inline void spinspin_dirac_prod_complex(spinspin out,dirac_matr *in,complex c)
-  {spinspin_put_to_zero(out);spinspin_dirac_summ_the_prod_complex(out,in,c);}
-  
-  //out=m*in
-  inline void unsafe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
-  {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
-	unsafe_complex_prod(out[id1][id2],m->entr[id1],in[m->pos[id1]][id2]);
-  }
-  inline void safe_dirac_prod_spinspin(spinspin out,dirac_matr *m,spinspin in)
-  {spinspin temp;unsafe_dirac_prod_spinspin(temp,m,in);spinspin_copy(out,temp);}
-  inline void unsafe_dirac_prod_colorspinspin(colorspinspin out,dirac_matr *m,colorspinspin in)
-  {for(int ic=0;ic<3;ic++) unsafe_dirac_prod_spinspin(out[ic],m,in[ic]);}
-  inline void safe_dirac_prod_colorspinspin(colorspinspin out,dirac_matr *m,colorspinspin in)
-  {colorspinspin temp;unsafe_dirac_prod_colorspinspin(temp,m,in);colorspinspin_copy(out,temp);}
-  inline void unsafe_dirac_prod_su3spinspin(su3spinspin out,dirac_matr *m,su3spinspin in)
-  {for(int ic=0;ic<3;ic++) unsafe_dirac_prod_colorspinspin(out[ic],m,in[ic]);}
-  inline void safe_dirac_prod_su3spinspin(su3spinspin out,dirac_matr *m,su3spinspin in)
-  {su3spinspin temp;unsafe_dirac_prod_su3spinspin(temp,m,in);su3spinspin_copy(out,temp);}
-
-  //out+=m*in
-  inline void spinspin_dirac_summ_the_prod_spinspin(spinspin out,dirac_matr *in,spinspin c)
-  {
-    spinspin temp;
-    unsafe_dirac_prod_spinspin(temp,in,c);
-    spinspin_summassign(out,temp);
-  }
-
-  
-  //out=m*in^t
-  inline void unsafe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)
-  {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
-	unsafe_complex_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
-  }
-  inline void safe_dirac_prod_spinspin_transp(spinspin out,dirac_matr *m,spinspin in)
-  {spinspin temp;unsafe_dirac_prod_spinspin_transp(temp,m,in);spinspin_copy(out,temp);}
-  
-  //out=m*in^+
-  inline void unsafe_dirac_prod_spinspin_dag(spinspin out,dirac_matr *m,spinspin in)
-  {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
-	unsafe_complex_conj2_prod(out[id1][id2],m->entr[id1],in[id2][m->pos[id1]]);
-  }
-  inline void safe_dirac_prod_spinspin_dag(spinspin out,dirac_matr *m,spinspin in)
-  {spinspin temp;unsafe_dirac_prod_spinspin_dag(temp,m,in);spinspin_copy(out,temp);}
-  
-  //out=in*m
-  inline void unsafe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m)
-  {
-    spinspin_put_to_zero(out);
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
-	unsafe_complex_prod(out[id1][m->pos[id2]],in[id1][id2],m->entr[id2]);
-  }
-  inline void safe_spinspin_prod_dirac(spinspin out,spinspin in,dirac_matr *m)
-  {spinspin temp;unsafe_spinspin_prod_dirac(temp,in,m);spinspin_copy(out,temp);}
-  
   //Print the dirac marix passed as argument only on node 0
   inline void print_dirac(dirac_matr *in)
   {
@@ -254,25 +175,6 @@ namespace nissa
 	for(int ic=pos+1;ic<4;ic++) printf("+%02.2f,+%02.2f\t",0.,0.);
 	printf("\n");
       }
-  }
-  
-  //Trace of the product of two spinspins
-  inline void summ_the_trace_prod_spinspins(complex c,spinspin a,spinspin b)
-  {
-    for(int id1=0;id1<4;id1++)
-      for(int id2=0;id2<4;id2++)
-	complex_summ_the_prod(c,a[id1][id2],b[id2][id1]);
-  }
-  inline void trace_prod_spinspins(complex c,spinspin a,spinspin b)
-  {
-    c[0]=c[1]=0;
-    summ_the_trace_prod_spinspins(c,a,b);
-  }
-  inline void trace_spinspin_with_dirac(complex out,spinspin s,dirac_matr *m)
-  {
-    complex_put_to_zero(out);
-    for(int id1=0;id1<4;id1++)
-      complex_summ_the_prod(out,m->entr[id1],s[m->pos[id1]][id1]);
   }
   
   void init_base_gamma();

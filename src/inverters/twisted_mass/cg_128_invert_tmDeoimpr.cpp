@@ -8,7 +8,6 @@
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr_128.hpp"
 #include "inverters/twisted_mass/cg_64_invert_tmDeoimpr.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE spincolor
 #define BASETYPE_128 spincolor_128

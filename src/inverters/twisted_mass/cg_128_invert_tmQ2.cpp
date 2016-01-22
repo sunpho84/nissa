@@ -6,7 +6,6 @@
 #include "dirac_operators/tmQ2/dirac_operator_tmQ2.hpp"
 #include "dirac_operators/tmQ2/dirac_operator_tmQ2_128.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE spincolor
 #define BASETYPE_128 spincolor_128

@@ -6,7 +6,6 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "operations/su3_paths/squared_staples.hpp"
 #include "routines/ios.hpp"

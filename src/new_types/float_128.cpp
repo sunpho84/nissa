@@ -12,7 +12,8 @@
 #include "routines/ios.hpp"
 
 #include "complex.hpp"
-#include "new_types_definitions.hpp"
+#include "float_128.hpp"
+#include "su3.hpp"
 
 namespace nissa
 {

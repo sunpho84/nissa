@@ -1,7 +1,5 @@
-#ifndef _CG_INVERT_TMQ2_H
-#define _CG_INVERT_TMQ2_H
-
-#include "new_types/new_types_definitions.hpp"
+#ifndef _CG_INVERT_TMQ2_HPP
+#define _CG_INVERT_TMQ2_HPP
 
 namespace nissa
 {

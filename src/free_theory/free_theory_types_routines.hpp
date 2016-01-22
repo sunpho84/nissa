@@ -1,7 +1,7 @@
 #ifndef _FREE_THEORY_TYPES_ROUTINES_HPP
 #define _FREE_THEORY_TYPES_ROUTINES_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
 #include "free_theory_types.hpp"
 
 namespace nissa

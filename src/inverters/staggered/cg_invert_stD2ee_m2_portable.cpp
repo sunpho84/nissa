@@ -7,7 +7,6 @@
 #include "communicate/communicate.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE color
 #define NDOUBLES_PER_SITE 6

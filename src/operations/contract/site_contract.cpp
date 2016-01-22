@@ -5,6 +5,7 @@
 #include "new_types/complex.hpp"
 #include "new_types/dirac.hpp"
 #include "new_types/spin.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

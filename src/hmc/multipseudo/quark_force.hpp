@@ -1,6 +1,8 @@
 #ifndef _QUARK_FORCE_HPP
 #define _QUARK_FORCE_HPP
 
+#include "multipseudo_rhmc_step.hpp"
+
 namespace nissa
 {
   void compute_quark_force_finish_computation(quad_su3 **F,quad_su3 **conf);

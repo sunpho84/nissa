@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "new_types_definitions.hpp"
 #include "base/debug.hpp"
+#include "io/ILDG_File.hpp"
 
 namespace nissa
 {

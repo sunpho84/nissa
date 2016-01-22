@@ -6,10 +6,9 @@
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
+#include "communicate/borders.hpp"
 #include "dirac_operators/tmQ2/dirac_operator_tmQ2.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 
 #ifdef BGQ
  #include "geometry/geometry_vir.hpp"

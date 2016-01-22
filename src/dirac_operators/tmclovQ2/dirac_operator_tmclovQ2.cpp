@@ -3,6 +3,7 @@
 #endif
 
 #include "dirac_operators/tmclovQ/dirac_operator_tmclovQ.hpp"
+#include "new_types/su3.hpp"
 
 //Apply the Q+Q- operator to a spincolor
 

@@ -5,7 +5,6 @@
 #include "cg_64_invert_tmclovQ2.hpp"
 #include "cg_128_invert_tmclovQ2.hpp"
 
-#include "new_types/new_types_definitions.hpp"
 #include "base/global_variables.hpp"
 
 namespace nissa

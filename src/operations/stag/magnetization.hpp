@@ -1,9 +1,11 @@
 #ifndef _MAGNETIZATION_HPP
 #define _MAGNETIZATION_HPP
 
+#include "hmc/theory_pars.hpp"
+
 namespace nissa
 {
-    struct magnetization_meas_pars_t
+  struct magnetization_meas_pars_t
   {
     int each;
     int after;

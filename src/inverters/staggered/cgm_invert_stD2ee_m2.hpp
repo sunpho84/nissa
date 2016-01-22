@@ -1,5 +1,7 @@
-#ifndef _CGM_INVERT_STD2EE_M2_H
-#define _CGM_INVERT_STD2EE_M2_H
+#ifndef _CGM_INVERT_STD2EE_M2_HPP
+#define _CGM_INVERT_STD2EE_M2_HPP
+
+#include "new_types/rat_approx.hpp"
 
 namespace nissa
 {

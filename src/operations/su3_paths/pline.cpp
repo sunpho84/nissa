@@ -6,9 +6,9 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include "communicate/communicate.hpp"
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
+#include "communicate/borders.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "io/endianness.hpp"

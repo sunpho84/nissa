@@ -112,7 +112,6 @@
 #include "new_types/float_256.hpp"
 #include "new_types/high_prec.hpp"
 #include "new_types/metadynamics.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/rat_approx.hpp"
 #include "new_types/read_new_types.hpp"
 #include "new_types/spin.hpp"

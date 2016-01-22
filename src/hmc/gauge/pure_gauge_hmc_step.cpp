@@ -11,7 +11,7 @@
 #include "hmc/momenta/momenta_action.hpp"
 #include "hmc/momenta/momenta_generation.hpp"
 #include "hmc/gauge/pure_gauge_Omelyan_integrator.hpp"
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/rat_approx.hpp"
 #include "routines/ios.hpp"
 
 extern int evolve_FACC;
@@ -42,7 +42,7 @@ namespace nissa
     
     //compute action for G
     double action_G=0;
-    if(evolve_FACC&2) gluonic_action(&action_G,conf,&theory_pars);
+    if(evolve_FACC&2) gluonic_action(&action_G,conf,theory_pars.gauge_action_name,theory_pars.beta);
     verbosity_lv2_master_printf("Gauge action: %lg\n",action_G);
     
     return action_G+action_H+action_phi+action_pi;

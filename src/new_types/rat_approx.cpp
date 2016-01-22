@@ -10,7 +10,7 @@
 #include "base/thread_macros.hpp"
 #include "io/buffer.hpp"
 #include "io/endianness.hpp"
-#include "new_types_definitions.hpp"
+#include "rat_approx.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

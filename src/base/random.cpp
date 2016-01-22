@@ -8,11 +8,11 @@
 
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
+#include "base/random.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
@@ -21,7 +21,13 @@
 #endif
 
 namespace nissa
-{  
+{
+  rnd_gen glb_rnd_gen;
+  bool glb_rnd_gen_inited;
+  rnd_gen *loc_rnd_gen;
+  bool loc_rnd_gen_inited;
+  enum rnd_t rnd_type_map[6]={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4,RND_GAUSS};
+  
   double rnd_get_unif(rnd_gen *gen,double min,double max);
   
   //initialize a random number generator
@@ -413,4 +419,140 @@ namespace nissa
     for(int par=0;par<2;par++) set_borders_invalid(source[par]);
   }
   THREADABLE_FUNCTION_END
+  
+    //Taken from M.D'Elia
+#if NCOL == 3
+  void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma)
+  {
+    const double one_by_sqrt3=0.577350269189626;
+    const double two_by_sqrt3=1.15470053837925;
+    
+    double r[8];
+    for(size_t ir=0;ir<4;ir++)
+      {
+	complex rc,ave={0,0};
+	rnd_get_gauss_complex(rc,gen,ave,sigma);
+	r[ir*2+0]=rc[0];
+	r[ir*2+1]=rc[1];
+      }
+    
+    //real part of diagonal elements
+    H[0][0][0]= r[2]+one_by_sqrt3*r[7];
+    H[1][1][0]=-r[2]+one_by_sqrt3*r[7];
+    H[2][2][0]=     -two_by_sqrt3*r[7];
+    
+    //put immaginary part of diagonal elements to 0
+    H[0][0][1]=H[1][1][1]=H[2][2][1]=0;
+    
+    //remaining
+    H[0][1][0]=H[1][0][0]=r[0];
+    H[0][1][1]=-(H[1][0][1]=r[1]);
+    H[0][2][0]=H[2][0][0]=r[3];
+    H[0][2][1]=-(H[2][0][1]=r[4]);
+    H[1][2][0]=H[2][1][0]=r[5];
+    H[1][2][1]=-(H[2][1][1]=r[6]);
+  }
+#endif
+  
+  /////////////////////////////// Generate an hermitian matrix ///////////////////////
+  
+  // A gauss vector has complex components z which are gaussian distributed
+  // with <z~ z> = sigma
+  void color_put_to_gauss(color H,rnd_gen *gen,double sigma)
+  {
+    complex ave={0,0};
+    for(size_t ic=0;ic<NCOL;ic++) rnd_get_gauss_complex(H[ic],gen,ave,sigma);
+  }
+  
+  //put a matrix to random used passed random generator
+  void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
+  {
+    su3_put_to_id(u_ran);
+    
+    for(size_t i1=0;i1<NCOL;i1++)
+      for(size_t i2=i1+1;i2<NCOL;i2++)
+	{
+	  //generate u0,u1,u2,u3 random on the four dim. sphere
+	  double u0=rnd_get_unif(&rnd,-1,1);
+	  double alpha=sqrt(1-u0*u0);
+	  double phi=rnd_get_unif(&rnd,0,2*M_PI);
+	  double costheta=rnd_get_unif(&rnd,-1,1);
+	  double sintheta=sqrt(1-costheta*costheta);
+	  double u3=alpha*costheta;
+	  double u1=alpha*sintheta*cos(phi);
+	  double u2=alpha*sintheta*sin(phi);
+	  
+	  //define u_l as unit matrix ...
+	  su3 u_l;
+	  su3_put_to_id(u_l);
+	  
+	  //... and then modify the elements in the chosen su(2) subgroup
+	  u_l[i1][i1][RE]=u0;
+	  u_l[i1][i1][IM]=u3;
+	  u_l[i1][i2][RE]=u2;
+	  u_l[i1][i2][IM]=u1;
+	  u_l[i2][i1][RE]=-u2;
+	  u_l[i2][i1][IM]=u1;
+	  u_l[i2][i2][RE]=u0;
+	  u_l[i2][i2][IM]=-u3;
+	  
+	  safe_su3_prod_su3(u_ran,u_l,u_ran);
+	}
+  }
+  
+  //return a single link after the heatbath procedure
+  //routines to be shrunk!
+  void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen)
+  {
+    //compute the original contribution to the action due to the given link 
+    su3 prod;
+    unsafe_su3_prod_su3_dag(prod,in,staple);
+    
+    //copy in link to out
+    if(out!=in) su3_copy(out,in);
+    
+    //iterate over heatbath hits
+    for(int ihit=0;ihit<nhb_hits;ihit++)
+      //scan all the three possible subgroups
+      for(int isub_gr=0;isub_gr<3;isub_gr++)
+	{
+	  //take the part of the su3 matrix
+	  double r0,r1,r2,r3;
+	  double smod=su2_part_of_su3(r0,r1,r2,r3,prod,isub_gr);
+	  
+	  //omega is the coefficient of the plaquette, divided by the module of the su2 submatrix for normalization
+	  double omega_f=beta/(3*smod);
+	  double z_norm=exp(-2*omega_f);
+	  omega_f=1/omega_f;
+	  
+	  double temp_f,z_f,a0;
+	  do
+	    {
+	      double z_temp=(z_norm-1)*rnd_get_unif(gen,0,1)+1;
+	      a0     = 1+omega_f*log(z_temp);
+	      z_f    = 1-a0*a0;
+	      temp_f = sqr(rnd_get_unif(gen,0,1))-z_f;
+	    }
+	  while(temp_f>0);
+	  
+	  double x_rat=sqrt(z_f);
+	  
+	  //generate an su2 matrix
+	  double fi=rnd_get_unif(gen,0,2*M_PI);
+	  double cteta=rnd_get_unif(gen,-1,1);
+	  double steta=sqrt(1-cteta*cteta);
+	  
+	  double a1=steta*cos(fi)*x_rat;
+	  double a2=steta*sin(fi)*x_rat;
+	  double a3=cteta*x_rat;
+	  
+	  double x0 = a0*r0 + a1*r1 + a2*r2 + a3*r3;
+	  double x1 = r0*a1 - a0*r1 + a2*r3 - r2*a3;
+	  double x2 = r0*a2 - a0*r2 + a3*r1 - r3*a1;
+	  double x3 = r0*a3 - a0*r3 + a1*r2 - r1*a2;
+	  
+	  su2_prodassign_su3(x0,x1,x2,x3,isub_gr,prod);
+	  su2_prodassign_su3(x0,x1,x2,x3,isub_gr,out);
+	}
+  }
 }

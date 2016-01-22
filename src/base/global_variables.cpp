@@ -2,7 +2,13 @@
  #include "config.hpp"
 #endif
 
-#include "new_types/new_types_definitions.hpp"
+#include "base/vectors.hpp"
+#include "communicate/communicate.hpp"
+#include "geometry/geometry_lx.hpp"
+#include "new_types/dirac.hpp"
+#include "new_types/float_128.hpp"
+#include "new_types/su3.hpp"
+#include "new_types/two_stage_computation.hpp"
 
 #ifdef ONLY_INSTANTIATION
  #define EXTERN extern
@@ -80,8 +86,8 @@ namespace nissa
   
   //float 128 summ
   EXTERN MPI_Op MPI_FLOAT_128_SUM;
-#endif  
-
+#endif
+  
   //nissa_config parameters
   EXTERN int verb_call;
   EXTERN int verbosity_lv;
@@ -169,16 +175,6 @@ namespace nissa
   EXTERN nissa_vect *last_vect;
   EXTERN void *return_malloc_ptr;
   
-  //random generator stuff
-  EXTERN rnd_gen glb_rnd_gen;
-  EXTERN bool glb_rnd_gen_inited;
-  EXTERN rnd_gen *loc_rnd_gen;
-  EXTERN bool loc_rnd_gen_inited;
-  EXTERN enum rnd_t rnd_type_map[6]
-#ifndef ONLY_INSTANTIATION
-  ={RND_ALL_PLUS_ONE,RND_ALL_MINUS_ONE,RND_Z2,RND_Z2,RND_Z4,RND_GAUSS}
-#endif
-    ;
   EXTERN as2t smunu_entr[4];   //these are the sigma matrices entries
   EXTERN int smunu_pos[4][6];  //and positions
   
@@ -212,12 +208,6 @@ namespace nissa
   EXTERN int tau3[2]
 #ifndef ONLY_INSTANTIATION
   ={-1,+1}
-#endif
-    ;
-  
-  EXTERN int su3_sub_gr_indices[3][2]
-#ifndef ONLY_INSTANTIATION
-  ={{0,1},{1,2},{0,2}}
 #endif
     ;
   

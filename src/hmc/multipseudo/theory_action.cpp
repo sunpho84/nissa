@@ -5,8 +5,9 @@
 #include "base/thread_macros.hpp"
 #include "hmc/backfield.hpp"
 #include "hmc/gauge/gluonic_action.hpp"
-#include "hmc/momenta/momenta_action.hpp"
 #include "hmc/gauge/topological_action.hpp"
+#include "hmc/momenta/momenta_action.hpp"
+#include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "linalgs/linalgs.hpp"
@@ -74,7 +75,7 @@ namespace nissa
     
     //gauge action
     double gluon_action;
-    gluonic_action(&gluon_action,eo_conf,theory_pars);
+    gluonic_action(&gluon_action,eo_conf,theory_pars->gauge_action_name,theory_pars->beta);
     verbosity_lv1_master_printf("Gluon_action: %16.16lg\n",gluon_action);
     
     //momenta action

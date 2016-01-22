@@ -1,8 +1,15 @@
-#ifndef _FLOAT256_H
-#define _FLOAT256_H
+#ifndef _FLOAT256_HPP
+#define _FLOAT256_HPP
+
+#include "float_128.hpp"
 
 namespace nissa
 {
+  //octpuple
+  typedef double float_256[4];
+  typedef double float_256_unr[5];
+  struct float_256_class;
+  
   int float_256_is_equal(float_256 a,float_256 b);
   int float_256_is_greater(float_256 a,double b);
   int float_256_is_greater(float_256 a,float_256 b);

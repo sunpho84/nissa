@@ -184,7 +184,7 @@ void setup_conf()
   master_printf("plaq: %.16g\n",global_plaquette_lx_conf(conf));
 
   conf_smear_time-=take_time();
-  ape_spatial_smear_conf(sme_conf,conf,ape_smearing_pars.alpha,ape_smearing_pars.nlev);
+  ape_spatial_smear_conf(sme_conf,conf,ape_smearing_pars.alpha,ape_smearing_pars.nlevels);
   conf_smear_time+=take_time();
   
   master_printf("smerded plaq: %.16g\n",global_plaquette_lx_conf(sme_conf));

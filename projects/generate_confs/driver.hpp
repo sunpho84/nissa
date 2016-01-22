@@ -52,6 +52,9 @@ public:
   //gauge measures
   std::vector<gauge_obs_meas_pars_t> plaq_pol_meas;
   std::vector<top_meas_pars_t> top_meas;
+  std::vector<poly_corr_meas_pars_t> luppoli_meas;
+  std::vector<watusso_meas_pars_t> watusso_meas;
+  std::vector<all_rect_meas_pars_t> all_rect_meas;
   
   //evolution and conf
   hmc_evol_pars_t evol_pars;

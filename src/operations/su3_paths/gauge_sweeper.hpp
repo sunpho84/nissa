@@ -7,7 +7,7 @@
 
 #include "base/thread_macros.hpp"
 #include "communicate/all_to_all.hpp"
-#include "hmc/gauge/Symanzik_action.hpp"
+#include "hmc/gauge/gluonic_action.hpp"
 #include "new_types/su3.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

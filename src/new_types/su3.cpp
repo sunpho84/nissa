@@ -3,6 +3,8 @@
 #endif
 
 #include "su3.hpp"
+#include "base/global_variables.hpp"
+#include "operations/su3_paths/rectangular_staples.hpp"
 
 namespace nissa
 {
@@ -103,62 +105,6 @@ namespace nissa
     while(!converged);
     
     su3_copy(out,U);
-  }
-  
-  //return a single link after the heatbath procedure
-  //routines to be shrunk!
-  void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen)
-  {
-    //compute the original contribution to the action due to the given link 
-    su3 prod;
-    unsafe_su3_prod_su3_dag(prod,in,staple);
-    
-    //copy in link to out
-    if(out!=in) su3_copy(out,in);
-    
-    //iterate over heatbath hits
-    for(int ihit=0;ihit<nhb_hits;ihit++)
-      //scan all the three possible subgroups
-      for(int isub_gr=0;isub_gr<3;isub_gr++)
-	{
-	  //take the part of the su3 matrix
-	  double r0,r1,r2,r3;
-	  double smod=su2_part_of_su3(r0,r1,r2,r3,prod,isub_gr);
-	  
-	  //omega is the coefficient of the plaquette, divided by the module of the su2 submatrix for normalization
-	  double omega_f=beta/(3*smod);
-	  double z_norm=exp(-2*omega_f);
-	  omega_f=1/omega_f;
-	  
-	  double temp_f,z_f,a0;
-	  do
-	    {
-	      double z_temp=(z_norm-1)*rnd_get_unif(gen,0,1)+1;
-	      a0     = 1+omega_f*log(z_temp);
-	      z_f    = 1-a0*a0;
-	      temp_f = sqr(rnd_get_unif(gen,0,1))-z_f;
-	    }
-	  while(temp_f>0);
-	  
-	  double x_rat=sqrt(z_f);
-	  
-	  //generate an su2 matrix
-	  double fi=rnd_get_unif(gen,0,2*M_PI);
-	  double cteta=rnd_get_unif(gen,-1,1);
-	  double steta=sqrt(1-cteta*cteta);
-	  
-	  double a1=steta*cos(fi)*x_rat;
-	  double a2=steta*sin(fi)*x_rat;
-	  double a3=cteta*x_rat;
-	  
-	  double x0 = a0*r0 + a1*r1 + a2*r2 + a3*r3;
-	  double x1 = r0*a1 - a0*r1 + a2*r3 - r2*a3;
-	  double x2 = r0*a2 - a0*r2 + a3*r1 - r3*a1;
-	  double x3 = r0*a3 - a0*r3 + a1*r2 - r1*a2;
-	  
-	  su2_prodassign_su3(x0,x1,x2,x3,isub_gr,prod);
-	  su2_prodassign_su3(x0,x1,x2,x3,isub_gr,out);
-	}
   }
   
   //return a single link after the overrelaxation procedure
@@ -321,5 +267,25 @@ namespace nissa
 	    out.f[2][IM]*=-1;
 	  }
       }
+  }
+  
+  //return a cooled copy of the passed link
+  void su3_find_cooled_eo_conf(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu)
+    {
+    //compute the staple
+    su3 staple;
+    compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
+    
+    //find the link that maximize the plaquette
+    su3_unitarize_maximal_trace_projecting(u,staple);
+  }
+  inline void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu)
+  {
+    //compute the staple
+    su3 staple;
+    compute_point_summed_squared_staples_lx_conf_single_dir(staple,lx_conf,ivol,mu);
+    
+    //find the link that maximize the plaquette
+    su3_unitarize_maximal_trace_projecting(u,staple);
   }
 }

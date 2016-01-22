@@ -7,7 +7,6 @@
 
 #include "complex.hpp"
 #include "dirac.hpp"
-#include "new_types_definitions.hpp"
 #include "spin.hpp"
 #include "su3.hpp"
 

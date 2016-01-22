@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "new_types/new_types_definitions.hpp"
 #include "base/vectors.hpp"
 #include "communicate/communicate.hpp"
 #include "base/global_variables.hpp"

@@ -3,6 +3,7 @@
 #endif
 
 #include "hmc/backfield.hpp"
+#include "hmc/theory_pars.hpp"
 #include "inverters/staggered/cg_invert_stD.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"

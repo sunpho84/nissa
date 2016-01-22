@@ -5,8 +5,8 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
-#include "new_types/new_types_definitions.hpp"
+#include "communicate/borders.hpp"
+#include "communicate/edges.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS

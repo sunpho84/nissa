@@ -2,10 +2,34 @@
 #define _VECTORS_HPP
 
 #include <stdio.h>
-#include "new_types/new_types_definitions.hpp"
+#include <stdint.h>
+
+#include "base/macros.hpp"
 
 namespace nissa
 {
+  //nissa vector
+  struct nissa_vect
+  {
+    int64_t nel;
+    int64_t size_per_el;
+    
+    char tag[NISSA_VECT_STRING_LENGTH];
+    char type[NISSA_VECT_STRING_LENGTH];
+    
+    char file[NISSA_VECT_STRING_LENGTH];
+    int line;
+    
+    nissa_vect *prev;
+    nissa_vect *next;
+    
+    uint32_t flag;
+    
+    //padding to keep memory alignment
+    char pad[(NISSA_VECT_ALIGNMENT-(2*sizeof(int64_t)+3*NISSA_VECT_STRING_LENGTH+sizeof(int)+2*sizeof(nissa_vect*)+sizeof(uint32_t))%NISSA_VECT_ALIGNMENT)%
+	      NISSA_VECT_ALIGNMENT];
+  };
+  
   char *get_vect_name(void *v);
   int check_borders_allocated(void *data);
   int check_borders_communicated_at_least_once(void *data);
@@ -40,4 +64,4 @@ namespace nissa
   void vect_content_printf(void *vec);
 }
 #endif
-  
+

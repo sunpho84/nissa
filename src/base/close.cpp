@@ -11,7 +11,6 @@
 #include "global_variables.hpp"
 #include "random.hpp"
 #include "vectors.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "geometry/geometry_Wsklx.hpp"

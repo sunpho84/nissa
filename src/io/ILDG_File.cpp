@@ -19,6 +19,7 @@
 #include "routines/ios.hpp"
 #include "routines/mpi_routines.hpp"
 
+#include "ILDG_File.hpp"
 #include "endianness.hpp"
 
 #ifdef USE_THREADS
@@ -466,7 +467,7 @@ namespace nissa
   ////////////////////////////////////// more complicated tasks //////////////////////////////////////
   
   //search a particular record in a file
-  int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *record_name,ILDG_message *mess=NULL)
+  int ILDG_File_search_record(ILDG_header &header,ILDG_File &file,const char *record_name,ILDG_message *mess)
   {
     ILDG_message *last_mess=mess;
     

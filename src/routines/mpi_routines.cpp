@@ -13,7 +13,6 @@
 #include "geometry/geometry_lx.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/float_128.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/rat_approx.hpp"
 
 #include "mpi_routines.hpp"

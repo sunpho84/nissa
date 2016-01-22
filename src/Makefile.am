@@ -394,7 +394,6 @@ include_HEADERS+= \
 	new_types/float_256.hpp \
 	new_types/high_prec.hpp \
 	new_types/metadynamics.hpp \
-	new_types/new_types_definitions.hpp \
 	new_types/rat_approx.hpp \
 	new_types/read_new_types.hpp \
 	new_types/spin.hpp \

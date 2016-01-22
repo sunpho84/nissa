@@ -12,6 +12,7 @@
 #include "operations/su3_paths/arbitrary.hpp"
 #include "operations/smearing/APE.hpp"
 #include "operations/smearing/HYP.hpp"
+#include "watusso.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -32,6 +33,9 @@ namespace nissa
   //compute the flux tube
   THREADABLE_FUNCTION_4ARG(measure_watusso, watusso_meas_pars_t*,pars, quad_su3**,eo_conf, int,iconf, int,create_output_file)
   {
+    crash("to be fixed");
+
+    /*
     GET_THREAD_ID();
     
     //open output file
@@ -183,6 +187,7 @@ namespace nissa
     nissa_free(periscoped);
     nissa_free(big_su3);
     nissa_free(small_su3);
+    */
   }
   THREADABLE_FUNCTION_END
 }

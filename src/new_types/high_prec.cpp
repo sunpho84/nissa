@@ -8,11 +8,8 @@
 
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
-#include "new_types/new_types_definitions.hpp"
-#if HIGH_PREC==NATIVE_HIGH_PREC
- #include "new_types/float_256.hpp"
-#endif
 #include "routines/ios.hpp"
+#include "high_prec.hpp"
 
 namespace nissa
 {

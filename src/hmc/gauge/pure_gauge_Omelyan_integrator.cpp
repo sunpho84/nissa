@@ -9,7 +9,6 @@
 #include "hmc/momenta/momenta_evolve.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/complex.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "operations/gaugeconf.hpp"
 #include "routines/ios.hpp"
@@ -20,6 +19,8 @@
 #include "gluonic_action.hpp"
 #include "gluonic_force.hpp"
 #include "MFACC_fields.hpp"
+
+#include "pure_gauge_Omelyan_integrator.hpp"
 
 int evolve_FACC=1;
 

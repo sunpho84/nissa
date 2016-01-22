@@ -11,8 +11,9 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
+#include "communicate/borders.hpp"
 #include "new_types/su3.hpp"
+#include "rectangular_staples.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

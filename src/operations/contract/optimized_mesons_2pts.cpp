@@ -1,7 +1,8 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "routines/thread.hpp"
+
+#include "optimized_mesons_2pts.hpp"
 
 #ifdef BGQ
  #include "bgq/intrinsic.hpp"

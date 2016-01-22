@@ -3,7 +3,8 @@
 #endif
 
 #include "base/global_variables.hpp"
-#include "communicate/communicate.hpp"
+#include "base/random.hpp"
+#include "communicate/borders.hpp"
 #include "geometry/geometry_eo.hpp"
 #include "hmc/backfield.hpp"
 #include "inverters/staggered/cg_invert_stD.hpp"

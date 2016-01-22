@@ -1,8 +1,6 @@
 #ifndef _GEOMETRY_EO_HPP
 #define _GEOMETRY_EO_HPP
 
-#include "new_types/new_types_definitions.hpp"
-
 namespace nissa
 {
   void filter_hypercube_origin_sites(color **vec);

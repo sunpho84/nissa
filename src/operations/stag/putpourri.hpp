@@ -1,6 +1,8 @@
 #ifndef _PUTPOURRI_HPP
 #define _PUTPOURRI_HPP
 
+#include "hmc/theory_pars.hpp"
+
 namespace nissa
 {
   struct fermionic_putpourri_meas_pars_t

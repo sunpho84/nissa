@@ -10,11 +10,11 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
-#include "communicate/communicate.hpp"
+#include "communicate/borders.hpp"
+#include "communicate/edges.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "new_types/complex.hpp"
 #include "new_types/float_128.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
 #include "operations/gaugeconf.hpp"
@@ -475,7 +475,7 @@ namespace nissa
 	    if(istep!=cop.nsteps) cool_lx_conf(smoothed_conf,get_sweeper(cop.gauge_action));
 	  }
 	break;
-      case smooth_pars_t::STOUTING:
+      case smooth_pars_t::STOUT:
 	for(int ilev=0;ilev<=(stp.nlevels/int_each)*int_each;ilev++)
 	  {
 	    //fix to stout for "meas_each"
@@ -493,7 +493,7 @@ namespace nissa
 	    if(ilev!=stp.nlevels) stout_smear(smoothed_conf,smoothed_conf,&iter_pars);
 	  }
 	break;
-      case smooth_pars_t::WFLOWING:
+      case smooth_pars_t::WFLOW:
 	for(double dt=wfp.dt,tmeas=-dt/2,t=0;t<wfp.T;t+=dt)
 	  {
 	    if(tmeas<t)
@@ -508,8 +508,10 @@ namespace nissa
 	    Wflow_lx_conf(smoothed_conf,dt);
 	  }
 	break;
-      default:
+      case smooth_pars_t::UNSPEC_SMOOTH_METHOD:
 	crash("should have not arrived here");
+      default:
+	crash("not handled yet");
       }
     
     //discard smoothed conf

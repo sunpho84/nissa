@@ -1,6 +1,8 @@
 #ifndef _MATH_ROUTINES_HPP
 #define _MATH_ROUTINES_HPP
 
+#include <algorithm>
+
 namespace nissa
 {
   double lfact(double n);

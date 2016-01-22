@@ -2,12 +2,11 @@
  #include "config.hpp"
 #endif
 
-#include "new_types/float_128.hpp"
-#include "new_types/new_types_definitions.hpp"
-#include "communicate/communicate.hpp"
 #include "base/global_variables.hpp"
 #include "base/vectors.hpp"
 #include "base/thread_macros.hpp"
+#include "communicate/borders.hpp"
+#include "new_types/float_128.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

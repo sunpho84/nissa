@@ -2,11 +2,10 @@
  #include "config.hpp"
 #endif
 
-#include "hmc/backfield.hpp"
-
 #include "base/bench.hpp"
-#include "communicate/communicate.hpp"
+#include "communicate/borders.hpp"
 #include "dirac_operators/stD/dirac_operator_stD.hpp"
+#include "hmc/backfield.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "new_types/su3.hpp"
 #ifdef USE_THREADS

@@ -5,21 +5,87 @@
 #include <string.h>
 
 #include "base/debug.hpp"
-#include "base/global_variables.hpp"
-#include "base/random.hpp"
 
 #include "complex.hpp"
-#include "float_128.hpp"
-#include "new_types_definitions.hpp"
+#include "dirac.hpp"
 #include "spin.hpp"
 #include "su3.hpp"
 
-#include "operations/su3_paths/squared_staples.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"
 
 namespace nissa
 {
+  typedef complex color[NCOL];
+  
+  typedef complex color2[2];
+  typedef color2 su2[2];
+  
+  typedef color spincolor[4];
+  typedef color halfspincolor[2];
+  typedef spin colorspin[NCOL];
+  
+  typedef colorspin spincolorspin[4];
+  typedef spincolorspin colorspincolorspin[NCOL];
+  
+  typedef spinspin colorspinspin[NCOL];
+  
+  typedef color su3[NCOL];
+  typedef su3 quad_su3[NDIM];
+  typedef su3 oct_su3[2*NDIM];
+  
+  typedef colorspinspin su3spinspin[NCOL];
+  
+  typedef su3 as2t_su3[NDIM*(NDIM+1)/2];
+  typedef su3 opt_as2t_su3[4];
+  
+  typedef single_complex single_color[NCOL];
+  typedef single_color single_su3[NCOL];
+  typedef single_color single_halfspincolor[2];
+  typedef single_color single_spincolor[4];
+  typedef single_su3 single_quad_su3[4];
+  
+  typedef bi_complex bi_color[NCOL];
+  typedef bi_color bi_su3[NCOL];
+  typedef bi_su3 bi_oct_su3[8];
+  typedef bi_color bi_spincolor[4];
+  typedef bi_color bi_halfspincolor[2];
+  typedef bi_complex bi_halfspin[2];
+  typedef bi_su3 bi_opt_as2t_su3[4];
+  
+  typedef bi_single_complex bi_single_color[NCOL];
+  typedef bi_single_color bi_single_su3[NCOL];
+  typedef bi_single_color bi_single_halfspincolor[2];
+  typedef bi_single_color bi_single_spincolor[4];
+  typedef bi_single_su3 bi_single_oct_su3[8];
+  
+#ifdef BGQ
+  typedef bi_complex_128 bi_color_128[NCOL];
+  typedef bi_color_128 bi_su3_128[NCOL];
+  typedef bi_su3_128 bi_oct_su3_128[8];
+  typedef bi_color_128 bi_spincolor_128[4];
+#endif
+
+#if NCOL == 3
+  //used to exponentiate for stouting
+  struct hermitian_exp_ingredients
+  {
+    int sign;
+    double c0,c1;
+    double cu,su;
+    double c2u,s2u;
+    su3 Q,Q2;
+    double u,w,theta;
+    double xi0w;
+    double cw;
+    complex f[3];
+  };
+  
+  const int su3_sub_gr_indices[3][2]={{0,1},{1,2},{0,2}};
+#endif
+  
+  ////////////////////////////////////////////////////////////////////
+  
   extern su3 gell_mann_matr[NCOL*NCOL-1];
   
   inline void color_put_to_zero(color m) {for(size_t ic=0;ic<NCOL;ic++) complex_put_to_zero(m[ic]);}
@@ -97,52 +163,7 @@ namespace nissa
     for(size_t ic=1;ic<NCOL;ic++) complex_summ_the_conj1_prod(out,a[ic],b[ic]);
   }
   inline double color_norm2(color c)
-  {double out=complex_norm2(c[0]);for(size_t ic=1;ic<NCOL;ic++) out+=complex_norm2(c[ic]);return out;}
-    
-  /////////////////////////////// Generate an hermitian matrix ///////////////////////
-  
-  //Taken from M.D'Elia
-#if NCOL == 3
-  inline void herm_put_to_gauss(su3 H,rnd_gen *gen,double sigma)
-  {
-    const double one_by_sqrt3=0.577350269189626;
-    const double two_by_sqrt3=1.15470053837925;
-    
-    double r[8];
-    for(size_t ir=0;ir<4;ir++)
-      {
-	complex rc,ave={0,0};
-	rnd_get_gauss_complex(rc,gen,ave,sigma);
-	r[ir*2+0]=rc[0];
-	r[ir*2+1]=rc[1];
-      }
-    
-    //real part of diagonal elements
-    H[0][0][0]= r[2]+one_by_sqrt3*r[7];
-    H[1][1][0]=-r[2]+one_by_sqrt3*r[7];
-    H[2][2][0]=     -two_by_sqrt3*r[7];
-    
-    //put immaginary part of diagonal elements to 0
-    H[0][0][1]=H[1][1][1]=H[2][2][1]=0;
-    
-    //remaining
-    H[0][1][0]=H[1][0][0]=r[0];
-    H[0][1][1]=-(H[1][0][1]=r[1]);
-    H[0][2][0]=H[2][0][0]=r[3];
-    H[0][2][1]=-(H[2][0][1]=r[4]);
-    H[1][2][0]=H[2][1][0]=r[5];
-    H[1][2][1]=-(H[2][1][1]=r[6]);
-  }
-#else
-#endif
-  
-  // A gauss vector has complex components z which are gaussian distributed
-  // with <z~ z> = sigma
-  inline void color_put_to_gauss(color H,rnd_gen *gen,double sigma)
-  {
-    complex ave={0,0};
-    for(size_t ic=0;ic<NCOL;ic++) rnd_get_gauss_complex(H[ic],gen,ave,sigma);
-  }
+  {double out=complex_norm2(c[0]);for(size_t ic=1;ic<NCOL;ic++) out+=complex_norm2(c[ic]);return out;}  
   
   //////////////////////////////////// Color and complex //////////////////////////////
   
@@ -839,28 +860,8 @@ namespace nissa
   //perform maximal projection trace up to reaching the machine precision
   void su3_unitarize_maximal_trace_projecting(su3 out,su3 M,double precision=5e-15,int niter_max=20000);
   
-  void su3_find_heatbath(su3 out,su3 in,su3 staple,double beta,int nhb_hits,rnd_gen *gen);
-  void su3_find_overrelaxed(su3 out,su3 in,su3 staple,int nov_hits);
-  
-  //return a cooled copy of the passed link
-  inline void su3_find_cooled_eo_conf(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu)
-  {
-    //compute the staple
-    su3 staple;
-    compute_point_summed_squared_staples_eo_conf_single_dir(staple,eo_conf,loclx_of_loceo[par][ieo],mu);
-    
-    //find the link that maximize the plaquette
-    su3_unitarize_maximal_trace_projecting(u,staple);
-  }
-  inline void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu)
-  {
-    //compute the staple
-    su3 staple;
-    compute_point_summed_squared_staples_lx_conf_single_dir(staple,lx_conf,ivol,mu);
-    
-    //find the link that maximize the plaquette
-    su3_unitarize_maximal_trace_projecting(u,staple);
-  }
+  void su3_find_cooled_eo_conf(su3 u,quad_su3 **eo_conf,int par,int ieo,int mu);
+  void su3_find_cooled_lx_conf(su3 u,quad_su3 *lx_conf,int ivol,int mu);
   
   ////////////////////// products between su3 and color //////////////////
   
@@ -1133,6 +1134,73 @@ namespace nissa
 	    complex_summ_the_conj1_prod(a[c1][id_si][id_so],b[c2][c1],c[c2][id_si][id_so]);
   }
   
+  inline void unsafe_dirac_prod_colorspinspin(colorspinspin out,dirac_matr *m,colorspinspin in)
+  {for(int ic=0;ic<NCOL;ic++) unsafe_dirac_prod_spinspin(out[ic],m,in[ic]);}
+  inline void safe_dirac_prod_colorspinspin(colorspinspin out,dirac_matr *m,colorspinspin in)
+  {colorspinspin temp;unsafe_dirac_prod_colorspinspin(temp,m,in);colorspinspin_copy(out,temp);}
+  inline void unsafe_dirac_prod_su3spinspin(su3spinspin out,dirac_matr *m,su3spinspin in)
+  {for(int ic=0;ic<NCOL;ic++) unsafe_dirac_prod_colorspinspin(out[ic],m,in[ic]);}
+  inline void safe_dirac_prod_su3spinspin(su3spinspin out,dirac_matr *m,su3spinspin in)
+  {su3spinspin temp;unsafe_dirac_prod_su3spinspin(temp,m,in);su3spinspin_copy(out,temp);}
+  
+  //////////////////////////////// get and put ///////////////////////////////////
+  
+  //Get a color from a colorspinspin
+  inline void get_color_from_colorspinspin(color out,colorspinspin in,int id1,int id2)
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink],in[ic_sink][id1][id2]);}
+  
+  //Get a color from a spincolor
+  inline void get_color_from_spincolor(color out,spincolor in,int id)
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink],in[id][ic_sink]);}
+  
+  //Get a spincolor from a colorspinspin
+  //In a spinspin the sink index runs slower than the source
+  inline void get_spincolor_from_colorspinspin(spincolor out,colorspinspin in,int id_source)
+  {
+    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
+      for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
+	complex_copy(out[id_sink][ic_sink],in[ic_sink][id_sink][id_source]);
+  }
+  
+  //Get a spincolor from a su3spinspin
+  inline void get_spincolor_from_su3spinspin(spincolor out,su3spinspin in,int id_source,int ic_source)
+  {
+    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
+      for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
+	complex_copy(out[id_sink][ic_sink],in[ic_sink][ic_source][id_sink][id_source]);
+  }
+  
+  //Get a color from a su3
+  inline void get_color_from_su3(color out,su3 in,int ic_source)
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink],in[ic_sink][ic_source]);}
+  
+  //Put a color into a colorspinspin
+  inline void put_color_into_colorspinspin(colorspinspin out,color in,int id1,int id2)
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink][id1][id2],in[ic_sink]);}
+  
+  //Put a color into a spincolor
+  inline void put_color_into_spincolor(spincolor out,color in,int id)
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[id][ic_sink],in[ic_sink]);}
+  
+  //Put a spincolor into a colorspinspin
+  inline void put_spincolor_into_colorspinspin(colorspinspin out,spincolor in,int id_source)
+  {
+    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
+      for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
+	complex_copy(out[ic_sink][id_sink][id_source],in[id_sink][ic_sink]);
+  }
+  
+  //Put a spincolor into a su3spinspin
+  inline void put_spincolor_into_su3spinspin(su3spinspin out,spincolor in,int id_source,int ic_source)
+  {
+    for(int ic_sink=0;ic_sink<NCOL;ic_sink++)
+      for(int id_sink=0;id_sink<4;id_sink++) //dirac index of sink
+	complex_copy(out[ic_sink][ic_source][id_sink][id_source],in[id_sink][ic_sink]);
+  }
+  
+  //Put a spincolor into a su3
+  inline void put_color_into_su3(su3 out,color in,int ic_source)
+  {for(int ic_sink=0;ic_sink<NCOL;ic_sink++) complex_copy(out[ic_sink][ic_source],in[ic_sink]);}
   ///////////////////////////////////// colorspinspin ////////////////////////////////////
   
   //colorspinspin*real or complex
@@ -1256,42 +1324,6 @@ namespace nissa
 	  for(size_t c2=0;c2<NCOL;c2++)
 	    for(size_t c3=0;c3<NCOL;c3++)
 	      complex_summ_the_conj1_prod(a[c1][c3][id_si][id_so],b[c2][c1],c[c2][c3][id_si][id_so]);
-  }
-  
-  //put a matrix to random used passed random generator
-  inline void su3_put_to_rnd(su3 u_ran,rnd_gen &rnd)
-  {
-    su3_put_to_id(u_ran);
-    
-    for(size_t i1=0;i1<NCOL;i1++)
-      for(size_t i2=i1+1;i2<NCOL;i2++)
-	{
-	  //generate u0,u1,u2,u3 random on the four dim. sphere
-	  double u0=rnd_get_unif(&rnd,-1,1);
-	  double alpha=sqrt(1-u0*u0);
-	  double phi=rnd_get_unif(&rnd,0,2*M_PI);
-	  double costheta=rnd_get_unif(&rnd,-1,1);
-	  double sintheta=sqrt(1-costheta*costheta);
-	  double u3=alpha*costheta;
-	  double u1=alpha*sintheta*cos(phi);
-	  double u2=alpha*sintheta*sin(phi);
-	  
-	  //define u_l as unit matrix ...
-	  su3 u_l;
-	  su3_put_to_id(u_l);
-	  
-	  //... and then modify the elements in the chosen su(2) subgroup
-	  u_l[i1][i1][RE]=u0;
-	  u_l[i1][i1][IM]=u3;
-	  u_l[i1][i2][RE]=u2;
-	  u_l[i1][i2][IM]=u1;
-	  u_l[i2][i1][RE]=-u2;
-	  u_l[i2][i1][IM]=u1;
-	  u_l[i2][i2][RE]=u0;
-	  u_l[i2][i2][IM]=-u3;
-	  
-	  safe_su3_prod_su3(u_ran,u_l,u_ran);
-	}
   }
   
   void hermitian_exact_i_exponentiate_ingredients(hermitian_exp_ingredients &out,su3 Q);

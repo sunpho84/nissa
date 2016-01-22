@@ -1,7 +1,7 @@
 #ifndef _MESONS_HPP
 #define _MESONS_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "hmc/theory_pars.hpp"
 
 namespace nissa
 {

@@ -1,7 +1,7 @@
-#ifndef _ENDIANNESS_H
-#define _ENDIANNESS_H
+#ifndef _ENDIANNESS_HPP
+#define _ENDIANNESS_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include <stdint.h>
 
 namespace nissa
 {
@@ -19,7 +19,7 @@ namespace nissa
   inline void change_endianness(int *dest,int *sour,int nints,int verbose=1)
   {change_endianness((float*)dest,(float*)sour,nints,verbose);}
   inline void change_endianness(uint64_t *dest,uint64_t *sour,int nints,int verbose=1)
-  {change_endianness((double*)dest,(double*)sour,nints,verbose);}  
+  {change_endianness((double*)dest,(double*)sour,nints,verbose);}
   
   template <class T> void change_endianness(T &a,int verbose=0){change_endianness(&a,&a,1,verbose);}
 }

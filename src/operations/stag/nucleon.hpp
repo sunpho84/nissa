@@ -1,7 +1,7 @@
 #ifndef _NUCLEON_HPP
 #define _NUCLEON_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "hmc/theory_pars.hpp"
 
 namespace nissa
 {

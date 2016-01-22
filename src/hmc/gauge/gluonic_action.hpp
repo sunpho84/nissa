@@ -3,7 +3,6 @@
 
 #include "base/debug.hpp"
 #include "base/global_variables.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "routines/ios.hpp"
 
 #include "Symanzik_action.hpp"
@@ -11,13 +10,46 @@
 
 namespace nissa
 {
-  template <class T> void gluonic_action(double *gluon_action,T conf,theory_pars_t *theory_pars)
+  //Gauge action
+  enum gauge_action_name_t{UNSPEC_GAUGE_ACTION,WILSON_GAUGE_ACTION,TLSYM_GAUGE_ACTION,IWASAKI_GAUGE_ACTION};
+  
+  //convert a string into gauge action name
+  inline gauge_action_name_t gauge_action_name_from_str(const char *name)
   {
-    switch(theory_pars->gauge_action_name)
+    //database
+    const int nact_known=3;
+    gauge_action_name_t act_known[nact_known]={WILSON_GAUGE_ACTION,TLSYM_GAUGE_ACTION,IWASAKI_GAUGE_ACTION};
+    const char name_known[nact_known][20]={"Wilson","tlSym","Iwasaki"};
+    
+    //search
+    int iact=0;
+    while(iact<nact_known && strcasecmp(name,name_known[iact])!=0) iact++;
+    
+    //check
+    if(iact==nact_known) crash("unknown gauge action: %s",name);
+    
+    return act_known[iact];
+  }
+  
+  //convert a gauge action name into a str
+  inline std::string get_gauge_action_name_str(gauge_action_name_t name)
+  {
+    switch(name)
       {
-      case WILSON_GAUGE_ACTION:Wilson_action(gluon_action,conf,theory_pars->beta);break;
-      case TLSYM_GAUGE_ACTION:tlSym_action(gluon_action,conf,theory_pars->beta);break;
-      case IWASAKI_GAUGE_ACTION:Iwasaki_action(gluon_action,conf,theory_pars->beta);break;
+      case WILSON_GAUGE_ACTION:return "Wilson";break;
+      case TLSYM_GAUGE_ACTION:return "tlSym";break;
+      case IWASAKI_GAUGE_ACTION:return "Iwasaki";break;
+      default:return "Unknown";
+      }
+  }
+  
+  template <class T> void gluonic_action(double *gluon_action,T conf,gauge_action_name_t gauge_action_name,double beta)
+  {
+    switch(gauge_action_name)
+      {
+      case WILSON_GAUGE_ACTION:Wilson_action(gluon_action,conf,beta);break;
+      case TLSYM_GAUGE_ACTION:tlSym_action(gluon_action,conf,beta);break;
+      case IWASAKI_GAUGE_ACTION:Iwasaki_action(gluon_action,conf,beta);break;
       default:crash("Unknown action");
       }
   }

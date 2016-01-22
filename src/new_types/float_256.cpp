@@ -8,7 +8,7 @@
 #include <math.h>
 
 #include "float_128.hpp"
-#include "new_types_definitions.hpp"
+#include "float_256.hpp"
 #include "routines/ios.hpp"
 
 namespace nissa

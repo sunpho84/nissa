@@ -1,6 +1,8 @@
 #ifndef _STAG_HPP
 #define _STAG_HPP
 
+#include "hmc/theory_pars.hpp"
+
 namespace nissa
 {
   void compute_fw_bw_der_mel(complex *res_fw_bw,color **left,quad_su3 **conf,int mu,color **right,complex *point_result);

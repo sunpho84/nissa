@@ -3,6 +3,8 @@
 #endif
 
 #include "base/thread_macros.hpp"
+#include "hmc/multipseudo/multipseudo_rhmc_step.hpp"
+#include "hmc/theory_pars.hpp"
 #include "hmc/rootst_eoimpr/rootst_eoimpr_quark_force.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"

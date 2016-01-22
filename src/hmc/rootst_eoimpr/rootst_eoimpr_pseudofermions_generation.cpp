@@ -9,7 +9,6 @@
 #include "geometry/geometry_eo.hpp"
 #include "inverters/staggered/cgm_invert_stD2ee_m2.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

@@ -9,7 +9,6 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS

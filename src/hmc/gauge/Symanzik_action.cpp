@@ -4,7 +4,6 @@
 
 #include "communicate/communicate.hpp"
 #include "base/global_variables.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "operations/su3_paths/rectangles.hpp"
 #include "routines/ios.hpp"
 

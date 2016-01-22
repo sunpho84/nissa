@@ -4,12 +4,11 @@
 
 #include <math.h>
 
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
-#include "communicate/communicate.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "communicate/borders.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif
@@ -26,7 +25,7 @@ namespace nissa
     NISSA_PARALLEL_LOOP(x,0,loc_vol)
       {
 	int xmu=glb_coord_of_loclx[x][mu];
-	int dist=fabs(xmu-xmu_start);
+	int dist=abs(xmu-xmu_start);
 	int ori=(xmu==xmu_start);
 	int ord=xmu>=xmu_start;
 	

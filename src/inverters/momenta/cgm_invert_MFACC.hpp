@@ -1,7 +1,7 @@
 #ifndef _CGM_INVERT_MFACC_HPP
 #define _CGM_INVERT_MFACC_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/rat_approx.hpp"
 
 namespace nissa
 {

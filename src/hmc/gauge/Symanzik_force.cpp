@@ -7,7 +7,6 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "operations/su3_paths/rectangular_staples.hpp"
 #include "operations/su3_paths/squared_staples.hpp"

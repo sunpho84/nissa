@@ -1,7 +1,9 @@
 #ifndef _LINALGS_HPP
 #define _LINALGS_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/dirac.hpp"
+#include "new_types/float_128.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

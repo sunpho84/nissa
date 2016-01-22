@@ -587,7 +587,7 @@ void setup_conf()
     case no_conf_smearing:
       break;
     case ape_conf_smearing:
-      ape_spatial_smear_conf(sme_conf,conf,ape_smearing_pars.alpha,ape_smearing_pars.nlev);
+      ape_spatial_smear_conf(sme_conf,conf,ape_smearing_pars.alpha,ape_smearing_pars.nlevels);
       break;
     case stout_conf_smearing:
       //workaround because stout is implemented only for eo conf

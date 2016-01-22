@@ -8,7 +8,6 @@
 #include "communicate/communicate.hpp"
 #include "geometry/geometry_mix.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "operations/shift.hpp"
 #include "operations/remap_vector.hpp"
@@ -20,6 +19,8 @@
 #include "operations/smearing/APE.hpp"
 #include "operations/smearing/HYP.hpp"
 #include "operations/su3_paths/plaquette.hpp"
+
+#include "all_rectangles.hpp"
 
 namespace nissa
 {
@@ -87,11 +88,13 @@ namespace nissa
   //compute all possible rectangular paths among a defined interval
   THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
+    crash("To be fixed");
+    /*
 #if NDIM>=3
     GET_THREAD_ID();
 
     verbosity_lv1_master_printf("Computing all rectangular paths\n");
-
+    
     //take a copy of smear pars
     gauge_obs_temp_spat_smear_pars_t *smear_pars=&pars->smear_pars;
     gauge_obs_temp_smear_pars_t *temp_smear_pars=&smear_pars->gauge_temp_smear_pars;
@@ -320,12 +323,15 @@ namespace nissa
 #else
     crash("not implemented");
 #endif
+    */
   }
   THREADABLE_FUNCTION_END
   
   //compute all possible rectangular paths among a defined interval
   THREADABLE_FUNCTION_4ARG(measure_all_rectangular_paths_old, all_rect_meas_pars_t*,pars, quad_su3*,ori_conf, int,iconf, int,create_output_file)
   {
+    crash("to be fixed");
+    /*
     GET_THREAD_ID();
     
     gauge_obs_temp_spat_smear_pars_t *smear_pars=&pars->smear_pars;
@@ -461,6 +467,7 @@ namespace nissa
     nissa_free(TS_path);
     nissa_free(closed_path);
     nissa_free(point_path);
+    */
   }
   THREADABLE_FUNCTION_END
   

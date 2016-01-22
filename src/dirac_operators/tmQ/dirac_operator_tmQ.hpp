@@ -1,7 +1,7 @@
-#ifndef _DIRAC_OPERATOR_TMQ_H
-#define _DIRAC_OPERATOR_TMQ_H
+#ifndef _DIRAC_OPERATOR_TMQ_HPP
+#define _DIRAC_OPERATOR_TMQ_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

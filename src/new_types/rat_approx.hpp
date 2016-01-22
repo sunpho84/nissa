@@ -5,6 +5,28 @@
 
 namespace nissa
 {
+  //rational approximation
+  struct rat_approx_t
+  {
+    char name[20];
+    double minimum;
+    double maximum;
+    double maxerr;
+    double cons;
+    int num,den;
+    int degree;
+    double *poles;
+    double *weights;
+    void reset()
+    {
+      strcpy(name,"");
+      minimum=maximum=cons=maxerr=0;
+      degree=num=den=0;
+      poles=weights=NULL;
+    }
+    rat_approx_t(){reset();}
+  };
+
   void convert_rat_approx(buffer_t &s,rat_approx_t *appr,int nflav);
   void convert_rat_approx(char *&data,int &data_length,rat_approx_t *appr,int nflav);
   void convert_rat_approx(rat_approx_t *&appr,int &nflav,char *data,int data_length);

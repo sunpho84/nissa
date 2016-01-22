@@ -1,6 +1,8 @@
 #ifndef _RENDENS_HPP
 #define _RENDENS_HPP
 
+#include "hmc/theory_pars.hpp"
+
 namespace nissa
 {
   struct quark_rendens_meas_pars_t

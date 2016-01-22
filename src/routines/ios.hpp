@@ -2,7 +2,9 @@
 #define _IOS_HPP
 
 #include <string>
-#include "new_types/new_types_definitions.hpp"
+#include <stdio.h>
+#include <stdint.h>
+#include "new_types/complex.hpp"
 
 namespace nissa
 {

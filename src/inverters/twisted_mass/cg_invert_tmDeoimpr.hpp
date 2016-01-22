@@ -1,7 +1,7 @@
-#ifndef _CG_INVERT_TMDEOIMPR_H
-#define _CG_INVERT_TMDEOIMPR_H
+#ifndef _CG_INVERT_TMDEOIMPR_HPP
+#define _CG_INVERT_TMDEOIMPR_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {

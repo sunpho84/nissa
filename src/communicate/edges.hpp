@@ -1,8 +1,6 @@
 #ifndef _EDGES_HPP
 #define _EDGES_HPP
 
-#include "new_types/new_types_definitions.hpp"
-
 namespace nissa
 {
   void communicate_eo_edges(char **data,comm_t &comm,MPI_Datatype *MPI_EDGES_SEND,MPI_Datatype *MPI_EDGES_RECE,int nbytes_per_site);

@@ -13,6 +13,7 @@
 #include "new_types/dirac.hpp"
 #include "new_types/spin.hpp"
 #include "operations/fourier_transform.hpp"
+#include "routines/ios.hpp"
 
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

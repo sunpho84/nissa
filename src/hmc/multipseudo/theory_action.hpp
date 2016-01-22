@@ -1,5 +1,9 @@
 #ifndef _THEORY_ACTION_HPP
 #define _THEORY_ACTION_HPP
+
+#include "multipseudo_rhmc_step.hpp"
+#include "new_types/rat_approx.hpp"
+
 namespace nissa
 {
   void compute_quark_action(double *glb_action,quad_su3 **eo_conf,int nfl,std::vector<quad_u1**> u1b, pseudofermion_t *pf,std::vector<quark_content_t> quark_content,hmc_evol_pars_t *simul_pars);

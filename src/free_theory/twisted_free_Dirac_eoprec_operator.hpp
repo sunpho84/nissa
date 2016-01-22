@@ -1,8 +1,7 @@
 #ifndef _TWISTED_DIRAC_EOPREC_OPERATOR_HPP
 #define _TWISTED_DIRAC_EOPREC_OPERATOR_HPP
 
-#include "new_types/new_types_definitions.hpp"
-
+#include "new_types/spin.hpp"
 #include "free_theory_types.hpp"
 
 namespace nissa

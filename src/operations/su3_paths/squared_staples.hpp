@@ -1,8 +1,12 @@
-#ifndef _SQUARED_STAPLE_H
-#define _SQUARED_STAPLE_H
+#ifndef _SQUARED_STAPLE_HPP
+#define _SQUARED_STAPLE_HPP
+
+#include "new_types/su3.hpp"
 
 namespace nissa
 {
+  typedef su3 squared_staples_t[NDIM][NDIM*(NDIM+1)/2];
+  
   void compute_squared_staples_lx_conf(squared_staples_t *out,quad_su3 *conf);
   void compute_summed_squared_staples_eo_conf(quad_su3 **F,quad_su3 **eo_conf);
   void compute_summed_squared_staples_lx_conf(quad_su3 *out,quad_su3 *conf);

@@ -2,6 +2,7 @@
  #include "config.hpp"
 #endif
 
+#include "base/random.hpp"
 #include "linalgs/linalgs.hpp"
 #include "new_types/su3.hpp"
 #include "routines/mpi_routines.hpp"

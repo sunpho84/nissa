@@ -159,8 +159,12 @@ ElecCharge  DEBUG_PRINTF("Found ElecCharge\n");return TK_ELEC_CHARGE;
 
  /* smooth method */
 SmoothMethod DEBUG_PRINTF("Found SmoothMethod\n");return TK_SMOOTH_METHOD;
-Stouting DEBUG_PRINTF("Found Stouting\n");return TK_STOUTING;
-Cooling  DEBUG_PRINTF("Found Cooling\n");return TK_COOLING;
+Stout DEBUG_PRINTF("Found Stout\n");return TK_STOUT;
+Cooling DEBUG_PRINTF("Found Cooling\n");return TK_COOLING;
+WFlow DEBUG_PRINTF("Found WFlow\n");return TK_WFLOW;
+Ape DEBUG_PRINTF("Found Ape\n");return TK_APE;
+Hyp DEBUG_PRINTF("Found Hyp\n");return TK_HYP;
+MeasEach DEBUG_PRINTF("Found MeasEach\n");return TK_MEAS_EACH;
 
  /* stout parameters */
 StoutPars DEBUG_PRINTF("Found StoutPars\n");return TK_STOUT_PARS;
@@ -169,6 +173,17 @@ Rho DEBUG_PRINTF("Found Rho\n");return TK_RHO;
 
  /* cooling parameters */
 CoolPars DEBUG_PRINTF("Found CoolPars\n");return TK_COOL_PARS;
+
+ /* hyp parameters */
+Alphas DEBUG_PRINTF("Found Alphas\n");return TK_ALPHAS;
+
+ /* ape parameters */
+Alpha DEBUG_PRINTF("Found Alpha\n");return TK_ALPHA;
+
+ /* wflow parameters */
+WFlowPars DEBUG_PRINTF("Found WFlowPars\n");return TK_WFLOW_PARS;
+InteStep DEBUG_PRINTF("Found InteStep\n");return TK_INTE_STEP;
+FlowTime DEBUG_PRINTF("Found FlowTime\n");return TK_FLOW_TIME;
 
  /* background field parameters */
 BkgrdEMField DEBUG_PRINTF("Found BkgrdEMField\n");return TK_BKGRD_EM_FIELD;
@@ -192,6 +207,9 @@ ComputeSusc  DEBUG_PRINTF("Found ComputeSusc\n");return TK_COMPUTE_SUSC;
  /* gauge measures */
 MeasPlaqPol DEBUG_PRINTF("Found MeasPlaqPol\n");return TK_MEAS_PLAQ_POL;
 MeasTop DEBUG_PRINTF("Found MeasTop\n");return TK_MEAS_TOP;
+MeasLuppoli DEBUG_PRINTF("Found MeasLuppoli\n");return TK_MEAS_LUPPOLI;
+MeasWatusso DEBUG_PRINTF("Found MeasWatusso\n");return TK_MEAS_WATUSSO;
+MeasAllRects DEBUG_PRINTF("Found MeasAllRects\n");return TK_MEAS_ALL_RECTS;
 
  /* evol pars */
 Evolution DEBUG_PRINTF("Found Evolution\n");return TK_EVOLUTION;

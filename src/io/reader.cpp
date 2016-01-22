@@ -11,11 +11,11 @@
 #include "geometry/geometry_mix.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/spin.hpp"
 #include "new_types/su3.hpp"
 #include "operations/gaugeconf.hpp"
 #include "operations/su3_paths/plaquette.hpp"
+#include "operations/gaugeconf.hpp"
 #include "routines/ios.hpp"
 
 #include "checksum.hpp"

@@ -15,7 +15,6 @@
 #include "communicate/communicate.hpp"
 #include "dirac_operators/tmDeoimpr/dirac_operator_tmDeoimpr.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "routines/ios.hpp"
 
 #define BASETYPE spincolor

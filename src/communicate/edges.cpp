@@ -10,8 +10,8 @@
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
+#include "communicate/borders.hpp"
 #include "geometry/geometry_lx.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "routines/ios.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"

@@ -6,7 +6,6 @@
 #include "base/vectors.hpp"
 #include "dirac_operators/tmclovQ2/dirac_operator_tmclovQ2.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 
 #define BASETYPE spincolor
 

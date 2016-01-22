@@ -1,6 +1,9 @@
 #ifndef _ALL_TO_ALL_COMM_HPP
 #define _ALL_TO_ALL_COMM_HPP
 
+#include <map>
+#include <vector>
+
 namespace nissa
 {
   //all to all communicators initializing structure

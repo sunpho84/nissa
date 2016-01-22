@@ -1,10 +1,30 @@
 #ifndef _COMPLEX_HPP
 #define _COMPLEX_HPP
 
-#include "new_types_definitions.hpp"
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
+#include <math.h>
+
+#include "base/macros.hpp"
 
 namespace nissa
 {
+  typedef double complex[2];
+  typedef complex quad_u1[NDIM];
+  
+  typedef float single_complex[2];
+  
+  typedef complex bi_complex[2];
+  typedef single_complex bi_single_complex[2];
+  
+#ifdef BGQ
+  typedef complex_128 bi_complex_128[2];
+#endif
+  
+  //////////////////////////////////////////////////////////
+  
   inline double real_part_of_complex_prod(complex a,complex b)
   {return a[0]*b[0]-a[1]*b[1];};
   inline double real_part_of_complex_scalar_prod(const complex a,const complex b)

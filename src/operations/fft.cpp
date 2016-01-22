@@ -15,7 +15,6 @@
 #include "base/vectors.hpp"
 #include "geometry/geometry_lx.hpp"
 #include "linalgs/linalgs.hpp"
-#include "new_types/new_types_definitions.hpp"
 #include "operations/remap_vector.hpp"
 #include "routines/ios.hpp"
 #include "routines/math_routines.hpp"

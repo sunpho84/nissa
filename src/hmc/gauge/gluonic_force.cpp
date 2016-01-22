@@ -16,6 +16,7 @@
  #include "routines/thread.hpp"
 #endif
 
+#include "hmc/theory_pars.hpp"
 #include "gluonic_action.hpp"
 
 namespace nissa

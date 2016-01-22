@@ -1,10 +1,66 @@
 #ifndef _ILDG_FILE_HPP
 #define _ILDG_FILE_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#ifdef HAVE_CONFIG_H
+ #include "config.hpp"
+#endif
+
+#include <stdio.h>
+#include <stdint.h>
+
+#include <string>
+#include <sstream>
+#include <vector>
+
+#include "checksum.hpp"
+#include "base/debug.hpp"
 
 namespace nissa
 {
+#ifdef USE_MPI
+#ifdef USE_MPI_IO
+  typedef MPI_Offset ILDG_Offset;
+  typedef MPI_File ILDG_File;
+#else
+  typedef off_t ILDG_Offset;
+  typedef FILE* ILDG_File;
+#endif
+#endif
+  
+  //ILDG header
+  struct ILDG_header
+  {
+    uint32_t magic_no;
+    uint16_t version;
+    uint16_t mbme_flag;
+    uint64_t data_length;
+    char type[128];
+  };
+  
+  //store messages
+  struct ILDG_message
+  {
+    bool is_last;
+    char *data;
+    char *name;
+    uint64_t data_length;
+    ILDG_message *next;
+  };
+  
+  //ILDG file view
+  struct ILDG_File_view
+  {
+#ifdef USE_MPI
+#ifdef USE_MPI_IO
+    MPI_Datatype etype;
+    MPI_Datatype ftype;
+    MPI_Offset view_pos;
+    MPI_Offset pos;
+#endif
+#endif
+    char format[100];
+  };
+  
 #ifdef USE_MPI_IO
   ILDG_File ILDG_File_open(std::string path,int amode);
 #else
@@ -44,19 +100,43 @@ namespace nissa
   void ILDG_File_write_record(ILDG_File &file,const char *type,const char *buf,uint64_t len);
   void ILDG_File_write_text_record(ILDG_File &file,const char *type,const char *text);
   
-  template <class T> void storable_vector_t<T>::read_from_ILDG_file(ILDG_File fin, const char *tag)
+  //storable vector
+  ILDG_message* ILDG_string_message_append_to_last(ILDG_message *mess,const char *name,const char *data);
+  template<class T> struct storable_vector_t : std::vector<T>
   {
-    ILDG_header head;
-    head=ILDG_File_get_next_record_header(fin);
-    if(strcasecmp(tag,head.type)==0)
-      {
-	char *data=new char[head.data_length+1];
-	ILDG_File_read_all(data,fin,head.data_length);
-	this->convert_from_text(data);
-	delete[] data;
-      }
-    else crash("Unable to convert, tag %d while expecting %d",head.type,tag);
-  }
+    //append to last message
+    ILDG_message *append_to_message_with_name(ILDG_message &mess,const char *name)
+    {
+      std::ostringstream os;
+      os.precision(16);
+      for(typename std::vector<T>::iterator it=this->begin();it!=this->end();it++) os<<*it<<" ";
+      return ILDG_string_message_append_to_last(&mess,name,os.str().c_str());
+    }
+    //convert from a text message
+    void convert_from_text(const char *data)
+    {
+      std::istringstream is(data);
+      T temp;
+      while(is>>temp) this->push_back(temp);
+    }
+    void convert_from_message(ILDG_message &mess)
+    {convert_from_text(mess.data);}
+    
+    //read it from file
+    void read_from_ILDG_file(ILDG_File fin, const char *tag)
+    {
+      ILDG_header head;
+      head=ILDG_File_get_next_record_header(fin);
+      if(strcasecmp(tag,head.type)==0)
+	{
+	  char *data=new char[head.data_length+1];
+	  ILDG_File_read_all(data,fin,head.data_length);
+	  this->convert_from_text(data);
+	  delete[] data;
+	}
+      else crash("Unable to convert, tag %d while expecting %d",head.type,tag);
+    }
+  };
 }
 
 #endif

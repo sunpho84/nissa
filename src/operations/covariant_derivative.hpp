@@ -1,8 +1,6 @@
 #ifndef _COVARIANT_DERIVATIVE_HPP
 #define _COVARIANT_DERIVATIVE_HPP
 
-#include "new_types/new_types_definitions.hpp"
-
 namespace nissa
 {
   void apply_nabla_i(spincolor *out,spincolor *in,quad_su3 *conf,int mu);

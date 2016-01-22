@@ -9,6 +9,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if HIGH_PREC == GMP_HIGH_PREC
+ #include <gmpxx.h>
+#endif
+
 #if defined BGQ && !defined BGQ_EMU
  #include <malloc.h>
 #endif
@@ -19,6 +23,7 @@
 #include "random.hpp"
 #include "vectors.hpp"
 
+#include "communicate/borders.hpp"
 #include "communicate/communicate.hpp"
 #include "io/input.hpp"
 #include "io/endianness.hpp"

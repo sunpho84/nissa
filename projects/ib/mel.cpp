@@ -33,9 +33,9 @@ spin1field *photon_field;
 
 int hadr_corr_length;
 complex *hadr_corr;
-const int nhadr_contr=16+1+12;
-const int ig_hadr_so[nhadr_contr]={ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5  ,  4  , 1, 2, 3, 10,11,12, 10,11,12,13,14,15};
-const int ig_hadr_si[nhadr_contr]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15  ,  4  , 10,11,12,1, 2, 3,  10,11,12,13,14,15};
+const int nhadr_contr=16+1+3+12;
+const int ig_hadr_so[nhadr_contr]={ 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5  ,  4  , 1,2,3, 1, 2, 3, 10,11,12, 10,11,12,13,14,15};
+const int ig_hadr_si[nhadr_contr]={ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14,15  ,  4  , 1,2,3, 10,11,12,1, 2, 3,  10,11,12,13,14,15};
 complex *glb_corr,*loc_corr;
 
 //list the 8 matrices to insert for the weak current

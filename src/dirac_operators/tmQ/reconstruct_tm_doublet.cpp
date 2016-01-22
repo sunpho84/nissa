@@ -2,7 +2,6 @@
  #include "config.hpp"
 #endif
 
-#include "new_types/new_types_definitions.hpp"
 #include "new_types/su3.hpp"
 #include "base/global_variables.hpp"
 #include "base/thread_macros.hpp"

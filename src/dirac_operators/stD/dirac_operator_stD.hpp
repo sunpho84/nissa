@@ -1,6 +1,8 @@
 #ifndef _DIRAC_OPERATOR_STD_HPP
 #define _DIRAC_OPERATOR_STD_HPP
 
+#include "new_types/su3.hpp"
+
 namespace nissa
 {
   void apply_st2Doe(color *out,quad_su3 **conf,color *in);

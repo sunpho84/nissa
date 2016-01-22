@@ -15,6 +15,7 @@
 #include "base/thread_macros.hpp"
 #include "base/vectors.hpp"
 #include "routines/ios.hpp"
+#include "spi.hpp"
 #ifdef USE_THREADS
  #include "routines/thread.hpp"
 #endif

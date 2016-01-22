@@ -1,7 +1,7 @@
-#ifndef _CG_INVERT_STD2EE_M2_PORTABLE_H
-#define _CG_INVERT_STD2EE_M2_PORTABLE_H
+#ifndef _CG_INVERT_STD2EE_M2_PORTABLE_HPP
+#define _CG_INVERT_STD2EE_M2_PORTABLE_HPP
 
-#include "new_types/new_types_definitions.hpp"
+#include "new_types/su3.hpp"
 
 namespace nissa
 {
